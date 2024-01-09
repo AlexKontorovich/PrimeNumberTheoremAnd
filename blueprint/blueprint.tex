@@ -1,0 +1,49 @@
+\documentclass{report}
+
+\usepackage{amsmath, amsthm}
+\usepackage[showmore, dep_graph, coverage, project=../../]{blueprint}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+
+\dochome{https://github.com/AlexKontorovich/PrimeNumberTheoremAnd}
+
+\title{Complex Analysis: Has Primitives}
+\author{Rutgers Lean Seminar}
+
+%
+% This is a blueprint for the HasPrimitives project, written by the Rutgers Lean Group
+% 
+% This blueprint can be edited like a standard LaTeX document.
+%
+% There are 3 useful commands that are specific to lean:
+%   * \lean{leanref}: is used in a definition, lemma or theorem, and is the
+%		      name of the lean object corresponding to the definition,
+%		      lemma or theorem.
+%   * \leanok: is used in a lemma or theorem: marks that the lemma or theorem
+%              has been fully formalized
+%   * \uses{ref}: is used in a proof environment: specifies which definitions,
+%                 lemma, theorems are used in the proof. Note that 'ref' is a
+%                 LaTeX ref, not a lean one.
+%
+
+\begin{document}
+\maketitle
+
+This project aims to formalize a proof that holomorphic functions on simply connected open sets have primitives.
+
+\chapter{The project}
+
+\section{Main result}
+
+\input{PrimitivesOfSimplyConnected.tex}
+
+\section{Primitives on a Disc}
+
+\input{Basic.tex}
+
+\end{document}
