@@ -1,0 +1,9 @@
+.lake
+*.olean
+*.paux
+blueprint/web
+*.aux
+*.fls
+*.fdb_latexmk
+*.log
+*.swp
