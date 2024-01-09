@@ -1,0 +1,82 @@
+on:
+  push:
+    branches:
+      - main
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build_blueprint:
+    runs-on: ubuntu-latest
+    name: Build blueprint
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install elan
+        run: curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain $(cat lean-toolchain)
+
+      - name: Build project
+        run: make LAKEBIN='~/.elan/bin/lake' build
+
+      ## don't do this yet until mathlib dependencies are worked out
+      #- name: Cache mathlib docs
+      #  uses: actions/cache@v3
+      #  with:
+      #    path: |
+      #      .lake/build/doc/Init
+      #      .lake/build/doc/Lake
+      #      .lake/build/doc/Lean
+      #      .lake/build/doc/Std
+      #      .lake/build/doc/Mathlib
+      #      .lake/build/doc/declarations
+      #    key: MathlibDoc-${{ hashFiles('lake-manifest.json') }}
+      #    restore-keys: |
+      #      MathlibDoc-
+
+      - name: Build documentation
+        run: make LAKEBIN='~/.elan/bin/lake' doc
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip' # cache pip dependencies
+
+      - name: Install blueprint apt dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz libgraphviz-dev pdf2svg dvisvgm
+
+      - name: Install blueprint dependencies
+        run: |
+          cd blueprint && pip install -r requirements.txt
+
+      - name: Build blueprint and copy to `docs/blueprint`
+        run: |
+          make blueprint
+          mkdir -p docs
+          mv blueprint/web docs/
+
+      - name: Copy documentation to `docs/docs`
+        run: |
+          mkdir -p docs
+          cp -r .lake/build/doc docs/docs
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload docs & blueprint artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: docs
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v3
