@@ -24,13 +24,18 @@ def RectangleBorder (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ {z.im} ∪ {z.
 /-- A function is `HolomorphicOn` a set if it is complex differentiable on that set. -/
 abbrev HolomorphicOn (f : ℂ → ℂ) (s : Set ℂ) : Prop := DifferentiableOn ℂ f s
 
-/-- A function is `MeromorphicOnRectangle`  -/
+/-%%
+A function is Meromorphic on a rectangle with corners $z$ and $w$ if it is holomorphic off a
+(finite) set of poles, none of which are on the boundary of the rectangle.
+%%-/
+/-- A function is `MeromorphicOnRectangle` if it's holomorphic off of a finite set of `poles`,
+  none of which is on the boundary of the rectangle (so the function is continuous there). -/
 class MeromorphicOnRectangle (f : ℂ → ℂ) (poles : Set ℂ) (z w : ℂ) : Prop where
   holomorphicOn : HolomorphicOn f ((Rectangle z w) ∩ polesᶜ)
   hasPoleAt : ∀ p ∈ poles, MeromorphicAt f p
   continuousOn : ContinuousOn f (RectangleBorder z w)
+
 /-%%
-Class MeromorphicOnRectangle (f)
 Theorem ResidueOnRectangle
 MellinTransform
 Mellin Inversion (Goldfeld-Kontorovich)
@@ -51,8 +56,13 @@ Then locally f looks like (z-z_0)^N g
 For all c sufficiently small, integral over big rectangle with finitely many poles is equal to rectangle integral localized at each pole.
 Rectangles tile rectangles! (But not circles -> circles) No need for toy contours!
 
+%%-/
 
+/-- The real floor function. -/
+noncomputable def Real.floor (x : NNReal) : ℕ := by
+  exact x.exists_floor.choose
 
+/-%%
 \begin{def}
 The Chebyshev Psi function is defined as
 $$
