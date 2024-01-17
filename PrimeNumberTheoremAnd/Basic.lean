@@ -3,6 +3,7 @@ import Mathlib.NumberTheory.VonMangoldt
 import Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.NumberTheory.ZetaFunction
 import Mathlib.Analysis.Analytic.Meromorphic
+import PrimeNumberTheoremAnd.EulerProducts.LSeries
 
 open Complex BigOperators Finset Nat Classical
 
@@ -36,7 +37,17 @@ class MeromorphicOnRectangle (f : ℂ → ℂ) (poles : Set ℂ) (z w : ℂ) : P
   continuousOn : ContinuousOn f (RectangleBorder z w)
 
 /-%%
-Theorem ResidueOnRectangle
+Discuss polar behavior of meromorphic functions
+
+A
+
+%%-/
+
+/-%%
+We show that if a function is meromorphic on a rectangle, then the rectangle integral of the
+function is equal to the sum of the residues of the function at its poles.
+%%-/
+/-%%
 MellinTransform
 Mellin Inversion (Goldfeld-Kontorovich)
 ChebyshevPsi
@@ -59,23 +70,24 @@ Rectangles tile rectangles! (But not circles -> circles) No need for toy contour
 %%-/
 
 /-- The real floor function. -/
-noncomputable def Real.floor (x : NNReal) : ℕ := by
-  exact x.exists_floor.choose
+-- noncomputable def Real.floor (x : NNReal) : ℕ := by
+--   exact x.exists_floor.choose
 
 /-%%
-\begin{def}
+\begin{definition}
 The Chebyshev Psi function is defined as
 $$
 \psi(x) = \sum_{n \leq x} \Lambda(n),
 $$
 where $\Lambda(n)$ is the von Mangoldt function.
-\end{def}
+\end{definition}
 %%-/
-noncomputable def ChebyshevPsi (x : ℝ) : ℝ := ∑ n in Finset.Ico (1 : ℕ) (Real.floor (x + 1)), Λ n
+-- noncomputable def ChebyshevPsi (x : ℝ) : ℝ := ∑ n in Finset.Ico (1 : ℕ) (Real.floor (x + 1)), Λ n
 
 /-%%
 
 Main Theorem: The Prime Number Theorem
 \begin{theorem}[PrimeNumberTheorem]
-
+PNT
+\end{theorem}
 %%-/

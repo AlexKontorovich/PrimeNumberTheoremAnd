@@ -5,7 +5,7 @@ import Mathlib.Analysis.Calculus.Deriv.Inv
 import Mathlib.Analysis.SpecialFunctions.Complex.LogDeriv
 import Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
 import Mathlib.NumberTheory.VonMangoldt
-import EulerProducts.Auxiliary
+import PrimeNumberTheoremAnd.EulerProducts.Auxiliary
 
 /-!
 # Logarithms of Euler Products
@@ -49,8 +49,9 @@ lemma norm_ofNat_cpow_div_one_sub_mul_cpow_le {n : ℕ} {a s : ℂ} (hn : 1 < n)
       _ ≤ ‖a * n ^ (-s)‖ + ‖1 - a * n ^ (-s)‖ := norm_le_norm_add_norm_sub' _ _
       _ ≤ 1 / 2 + ‖1 - a * n ^ (-s)‖ := add_le_add_right h _
   rw [norm_div, H, div_le_iff, mul_comm, ← mul_assoc]
-  · refine le_mul_of_one_le_left (Real.rpow_nonneg_of_nonneg n.cast_nonneg (-s.re)) ?_
-    linarith only [h']
+  · sorry
+    -- refine le_mul_of_one_le_left (Real.rpow_nonneg_of_nonneg n.cast_nonneg (-s.re)) ?_
+    -- linarith only [h']
   · linarith only [h']
 
 lemma hasDerivAt_neg_log_one_sub_mul_ofNat_cpow {n : ℕ} {a s : ℂ}

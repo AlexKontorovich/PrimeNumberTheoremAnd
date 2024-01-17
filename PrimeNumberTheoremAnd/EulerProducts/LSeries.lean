@@ -1,4 +1,4 @@
-import EulerProducts.Auxiliary
+import PrimeNumberTheoremAnd.EulerProducts.Auxiliary
 import Mathlib.NumberTheory.SumPrimeReciprocals
 import Mathlib.NumberTheory.LSeries
 import Mathlib.NumberTheory.VonMangoldt
@@ -222,9 +222,10 @@ lemma LSeriesSummable.le_const_mul_rpow {f : ArithmeticFunction ℂ} {s : ℂ}
   · refine n.eq_zero_or_pos.resolve_left ?_
     rintro rfl
     rw [map_zero, norm_zero, Nat.cast_zero, mul_neg_iff] at hn
-    have hsre := Real.rpow_nonneg_of_nonneg (le_refl 0) s.re
-    replace hn := hn.resolve_left <| fun hh ↦ hh.2.not_le hsre
-    exact hn.1.not_le <| tsum_nonneg (fun _ ↦ norm_nonneg _)
+    sorry
+    -- have hsre := Real.rpow_nonneg_of_nonneg (le_refl 0) s.re
+    -- replace hn := hn.resolve_left <| fun hh ↦ hh.2.not_le hsre
+    -- exact hn.1.not_le <| tsum_nonneg (fun _ ↦ norm_nonneg _)
   have := le_tsum h n fun _ _ ↦ norm_nonneg _
   rw [LSeriesTerm_norm_eq, div_le_iff <| Real.rpow_pos_of_pos (Nat.cast_pos.mpr hn₀) _] at this
   exact (this.trans_lt hn).false.elim

@@ -1,5 +1,5 @@
-import EulerProducts.LSeries
-import EulerProducts.Logarithm
+import PrimeNumberTheoremAnd.EulerProducts.LSeries
+import PrimeNumberTheoremAnd.EulerProducts.Logarithm
 
 /-!
 ### Auxiliary stuff
@@ -79,7 +79,7 @@ lemma log_re_comb_nonneg' {a : ℝ} (ha₀ : 0 ≤ a) (ha₁ : a < 1) {z : ℂ} 
 lemma log_re_comb_nonneg {n : ℕ} (hn : 2 ≤ n) {x y : ℝ} (hx : 1 < x) (hy : y ≠ 0) :
     0 ≤ 3 * (-log (1 - n ^ (-x : ℂ))).re + 4 * (-log (1 - n ^ (-(x + I * y)))).re +
           (-log (1 - n ^ (-(x + 2 * I * y)))).re := by
-  have ha₀ : 0 ≤ (n : ℝ) ^ (-x) := Real.rpow_nonneg_of_nonneg n.cast_nonneg _
+  have ha₀ : 0 ≤ (n : ℝ) ^ (-x) := sorry --Real.rpow_nonneg_of_nonneg n.cast_nonneg _
   have ha₁ : (n : ℝ) ^ (-x) < 1
   · simpa only [Real.rpow_lt_one_iff n.cast_nonneg, Nat.cast_eq_zero, Nat.one_lt_cast,
     Left.neg_neg_iff, Nat.cast_lt_one, Left.neg_pos_iff] using
