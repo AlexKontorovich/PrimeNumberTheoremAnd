@@ -22,13 +22,13 @@ the claim then follows from Fubini's theorem.
 \end{proof}
 
 \begin{lemma}[Second Fourier identity]\label{second-fourier} If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
-$$ \int_{-\log x}^infty e^{-u(sigma-1)} \hat psi(\frac{u}{2\pi})\ du = x^{sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt.$$
+$$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du = x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt.$$
 \end{lemma}
 
 \begin{proof}  The left-hand side expands as
-  $$ \int_{-\log x}^infty \int_\R e^{-u(sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt du = x^{sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt$$
+  $$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt du = x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt$$
   so by Fubini's theorem it suffices to verify the identity
-$$ \int_{-\log x}^infty \int_\R e^{-u(sigma-1)} e(-\frac{tu}{2\pi})\ du = x^{sigma - 1} \frac{1}{\sigma+it-1} x^{it}$$
+$$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} e(-\frac{tu}{2\pi})\ du = x^{\sigma - 1} \frac{1}{\sigma+it-1} x^{it}$$
 which is a routine calculation.
 \end{proof}
 
@@ -49,16 +49,16 @@ for all $u \in \R$, where $C$ is an absolute constant.
 \end{proof}
 
 \begin{lemma}[Limiting Fourier identity]\label{limiting}  If $\psi: \R \to \C$ is $C^2$ and compactly supported and $x \geq 1$, then
-$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^infty \hat psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
 
 \begin{proof}  By the preceding two lemmas, we know that for any $\sigma>1$, we have
-  $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A x^{1-\sigma} \int_{-\log x}^infty e^{-u(\sigma-1)} \hat psi(\frac{u}{2\pi})\ du =  \int_\R G(\sigma+it) \psi(t) x^{it}\ dt.$$
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A x^{1-\sigma} \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(\sigma+it) \psi(t) x^{it}\ dt.$$
   Now take limits as $\sigma \to 1$ using dominated convergence together with \eqref{cheby} and Lemma \ref{decay} to obtain the result.
 \end{proof}
 
 \begin{corollary}\label{limiting-cor}  With the hypotheses as above, we have
-  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat psi(\frac{u}{2\pi})\ du + o(1)$$
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
   as $x \to \infty$.
 \end{corollary}
 
@@ -74,9 +74,9 @@ $$ |\psi_{>R}(t)|, |\psi''_{>R}(t)| \ll R^{-1} / (1 + |t|^2) $$
 where the implied constants depend on $\psi$.  By Lemma \ref{decay} we then have
 $$ \hat \psi_{>R}(u) \ll R^{-1} / (1+|u|^2).$$
 Using this and \eqref{cheby} one can show that
-$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{>R}( \frac{1}{2\pi} \log \frac{n}{x} ), A \int_{-\infty}^\infty \hat psi_{>R} (\frac{u}{2\pi})\ du \ll R^{-1} $$
-(with implied constants also depending on $A$), while from Lemma \ref{limiting-cor} on ehas
-$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{\leq R}( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat psi_{\leq R} (\frac{u}{2\pi})\ du + o(1).$$
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{>R}( \frac{1}{2\pi} \log \frac{n}{x} ), A \int_{-\infty}^\infty \hat \psi_{>R} (\frac{u}{2\pi})\ du \ll R^{-1} $$
+(with implied constants also depending on $A$), while from Lemma \ref{limiting-cor} one has
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{\leq R}( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi_{\leq R} (\frac{u}{2\pi})\ du + o(1).$$
 Combining the two estimates and letting $R$ be large, we obtain the claim.
 \end{proof}
 
@@ -94,7 +94,7 @@ as $u \to \infty$.
 \begin{proof} By Lemma \ref{bij}, we can write
 $$ y \Psi(y) = \hat \psi( \frac{1}{2\pi} \log y )$$
 for all $y>0$ and some Schwartz function $\psi$.  Making this substitution, the claim is then equivalent after standard manipulations to
-$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat psi(\frac{u}{2\pi})\ du + o(1)$$
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
 and the claim follows from Lemma \ref{schwarz-id}.
 \end{proof}
 
