@@ -49,29 +49,39 @@ function is equal to the sum of the residues of the function at its poles.
 %%-/
 /-%%
 MellinTransform
+
 Mellin Inversion (Goldfeld-Kontorovich)
+
 ChebyshevPsi
+
 ZeroFreeRegion
+
 Hadamard Factorization
+
 Hoffstein-Lockhart + Goldfeld-Hoffstein-Liemann
-9-12 and 2-5 every day
-DirichletSeries (NatPos->C)
+
+LSeries (NatPos->C)
+
 RiemannZetaFunction
+
 RectangleIntegral
+
 ResidueTheoremOnRectangle
+
 ArgumentPrincipleOnRectangle
+
 Break rectangle into lots of little rectangles where f is holomorphic, and squares with center at a pole
+
 HasPoleAt f z : TendsTo 1/f (N 0)
+
 Equiv: TendsTo f atTop
+
 Then locally f looks like (z-z_0)^N g
+
 For all c sufficiently small, integral over big rectangle with finitely many poles is equal to rectangle integral localized at each pole.
 Rectangles tile rectangles! (But not circles -> circles) No need for toy contours!
 
 %%-/
-
-/-- The real floor function. -/
--- noncomputable def Real.floor (x : NNReal) : ℕ := by
---   exact x.exists_floor.choose
 
 /-%%
 \begin{definition}
@@ -82,12 +92,18 @@ $$
 where $\Lambda(n)$ is the von Mangoldt function.
 \end{definition}
 %%-/
--- noncomputable def ChebyshevPsi (x : ℝ) : ℝ := ∑ n in Finset.Ico (1 : ℕ) (Real.floor (x + 1)), Λ n
+noncomputable def ChebyshevPsi (x : ℝ) : ℝ := ∑ n in Finset.Ico (1 : ℕ) (Nat.floor x), Λ n
 
 /-%%
 
 Main Theorem: The Prime Number Theorem
 \begin{theorem}[PrimeNumberTheorem]
-PNT
+$$
+ψ (x) = x + O(x e^{-c \sqrt{\log x}})
+$$
+as $x\to \infty$.
 \end{theorem}
 %%-/
+/-- *** Prime Number Theorem *** The `ChebyshevPsi` function is asymptotic to `x`. -/
+theorem PrimeNumberTheorem : (fun x ↦ ChebyshevPsi x - x) =o[at_top] id := by
+  sorry
