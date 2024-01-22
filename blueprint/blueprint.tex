@@ -26,10 +26,40 @@
 
 \chapter{The project}
 
-\section{Main result}
 
-\input{Basic.tex}
+The first main goal is to prove the Prime Number Theorem. Continuations of this project aim to extend
+this work to primes in progressions (Dirichlet's theorem), Chebytarev's density theorem, etc
+etc.
+
+There are (at least) three approaches to PNT that we may want to pursue simultaneously. The quickest, at this stage, is likely to 
+follow
+ the ``Euclidean Products'' project by Michael Stoll, which has a proof of PNT missing only the Wiener-Ikehara Tauberian theorem. 
+
+The second develops some complex analysis (residue calculus on rectangles, argument principle, Mellin transforms), to pull contours and derive a PNT with just an asymptotic formula.
+
+The third approach, which will be the most general of the three, is to: (1) develop the residue calculus et al, as above, (2) add the Hadamard factorization theorem, (3) use it to prove the zero-free region for zeta via Hoffstein-Lockhart+Goldfeld-Hoffstein-Liemann (which generalizes to higher degree L-functions), and (4) use this to prove the prime number theorem with exp-root-log savings.
+
+\chapter{First approach: Wiener-Ikehara Tauberian theorem.}
 
 \input{wiener.tex}
+
+\chapter{Second approach}
+
+\section{Residue calculus on rectangles}
+\input{ResidueCalcOnRectangles.tex}
+
+\section{Mellin transforms}
+\input{MellinCalculus.tex}
+
+\chapter{Third Approach}
+
+\section{Hadamard factorization}
+\input{HadamardFactorization.tex}
+
+\section{Hoffstein-Lockhart}
+\input{HoffsteinLockhart.tex}
+
+\section{Strong PNT}
+\input{StrongPNT.tex}
 
 \end{document}

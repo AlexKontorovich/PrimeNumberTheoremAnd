@@ -1,0 +1,248 @@
+import Mathlib.Analysis.Complex.CauchyIntegral
+import Mathlib.NumberTheory.VonMangoldt
+import Mathlib.NumberTheory.ArithmeticFunction
+import Mathlib.NumberTheory.ZetaFunction
+import Mathlib.Analysis.Analytic.Meromorphic
+import PrimeNumberTheoremAnd.EulerProducts.LSeries
+
+/-%%
+In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler), prove its inversion formula, and
+derive a number of important properties of some special functions and bumpfunctions.
+
+\begin{definition}
+Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mellin transform of $f$ to be the function $\mathcal{M}(f)$ from $\mathbb{C}$ to $\mathbb{C}$ defined by
+$$\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx.$$
+\end{definition}
+
+[Note: My preferred way to think about this is that we are integrating over the multiplicative group $\mathbb{R}_{>0}$, multiplying by a (not necessarily unitary!) character $|\cdot|^s$, and integrating with respect to the invariant Haar measure $dx/x$. This is very useful in the kinds of calculations carried out below. But may be more difficult to formalize as things now stand. So we
+might have clunkier calculations, which ``magically'' turn out just right - of course they're explained by the aforementioned structure...]
+
+%%-/
+
+/-%%
+It is very convenient to define integrals along vertical lines in the complex plane, as follows.
+\begin{definition}\label{VerticalIntegral}
+Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $σ$ be a real number. Then we define
+$$\int_{(σ)}f(s)ds = \int_{σ-i\infty}^{σ+i\infty}f(s)ds.$$
+\end{definition}
+%%-/
+-- definition VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
+--   ∫ s : ℝ in {σ} | f s |, f s
+/-%%
+We first prove the following ``Perron-type'' formula.
+\begin{lemma}\label{PerronFormula}
+For $x>0$ and $σ>1$, we have
+$$
+\int_{(σ)}\frac{x^s}{s(s+1)}ds = \begin{cases}
+1-\frac1x & \text{ if }x>1\\
+0 & \text{ if } x<1
+\end{cases}.
+$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+Pull contours and collect residues. This only involves rectangles, and everything is absolutely convergent.
+\end{proof}
+%%-/
+
+/-%%
+\begin{theorem}\label{MellinInversion}
+Let $f$ be a nice function from $\mathbb{R}_{>0}$ to $\mathbb{C}$, and let $σ$ be sufficiently large. Then
+$$f(x) = \frac{1}{2\pi i}\int_{(σ)}\mathcal{M}(f)(s)x^{-s}ds.$$
+\end{theorem}
+
+[Note: How ``nice''? Schwartz (on $(0,\infty)$) is certainly enough. As we formalize this, we can add whatever conditions are necessary for the proof to go through.]
+%%-/
+/-%%
+\begin{proof}
+The proof is from [Goldfeld-Kontorovich 2012].
+Integrate by parts twice.
+$$
+\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx = - \int_0^\infty f'(x)x^s\frac{1}{s}dx = \int_0^\infty f''(x)x^{s+1}\frac{1}{s(s+1)}dx.
+$$
+Assuming $f$ is Schwartz, say, we now have at least quadratic decay in $s$ of the Mellin transform. Inserting this formula into the inversion formula and Fubini-Tonelli (we now have absolute convergence!) gives:
+$$
+RHS = \frac{1}{2\pi i}\left(\int_{(σ)}\int_0^\infty f''(t)t^{s+1}\frac{1}{s(s+1)}dt\right) x^{-s}ds
+$$
+$$
+= \int_0^\infty f''(t) t \left( \frac{1}{2\pi i}\int_{(σ)}(t/x)^s\frac{1}{s(s+1)}ds\right) dt.
+$$
+Apply the Perron formula to the inside:
+$$
+= \int_x^\infty f''(t) t \left(1-\frac{x}{t}\right)dt
+= -\int_x^\infty f'(t) dt
+= f(x),
+$$
+where we integrated by parts (undoing the first partial integration), and finally applied the fundamental theorem of calculus (undoing the second).
+\end{proof}
+%%-/
+
+/-%%
+Finally, we need Mellin Convolutions and properties thereof.
+\begin{definition}\label{MellinConvolution}
+Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$. Then we define the Mellin convolution of $f$ and $g$ to be the function $f\ast g$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
+$$(f\ast g)(x) = \int_0^\infty f(y)g(x/y)\frac{dy}{y}.$$
+\end{definition}
+%%-/
+
+/-%%
+The Mellin transform of a convolution is the product of the Mellin transforms.
+\begin{theorem}\label{MellinConvolutionTransform}
+Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$. Then
+$$\mathcal{M}(f\ast g)(s) = \mathcal{M}(f)(s)\mathcal{M}(g)(s).$$
+\end{theorem}
+%%-/
+
+/-%%
+\begin{proof}
+This is a straightforward calculation.
+\end{proof}
+%%-/
+
+/-%%
+Let $\psi$ be a bumpfunction supported in $[1/2,2]$; that is, $\psi$ is nonnegative, smooth, and has total mass
+$$
+\int_0^\infty \psi(x)\frac{dx}{x} = 1.
+$$
+\begin{theorem}\label{SmoothExistence}
+Such a bumpfunction exists.
+\end{theorem}
+%%-/
+
+/-%%
+The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at least) like $1/|s|$.
+\begin{theorem}\label{MellinOfPsi}
+The Mellin transform of $\psi$ is
+$$\mathcal{M}(\psi)(s) =  O\left(\frac{1}{|s|}\right),$$
+as $|s|\to\infty$.
+\end{theorem}
+
+[Of course it decays faster than any power of $|s|$, but it turns out that we will just need one power.]
+%%-/
+
+/-%%
+\begin{proof}
+Integrate by parts once.
+\end{proof}
+%%-/
+
+/-%%
+We can make a delta spike out of this bumpfunction, as follows.
+\begin{definition}\label{DeltaSpike}
+Let $\psi$ be a bumpfunction supported in $[1/2,2]$. Then for any $\epsilon>0$, we define the delta spike $\psi_\epsilon$ to be the function from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
+$$\psi_\epsilon(x) = \frac{1}{\epsilon}\psi\left(x^{\frac{1}{\epsilon}}\right).$$
+\end{definition}
+
+This spike still has mass one:
+\begin{lemma}\label{DeltaSpikeMass}
+For any $\epsilon>0$, we have
+$$\int_0^\infty \psi_\epsilon(x)\frac{dx}{x} = 1.$$
+\end{lemma}
+%%-/
+/-%%
+\begin{proof}
+Substitute $y=x^{1/\epsilon}$, and use the fact that $\psi$ has mass one, and that $dx/x$ is Haar measure.
+\end{proof}
+%%-/
+
+/-%%
+The Mellin transform of the delta spike is easy to compute.
+\begin{theorem}\label{MellinOfDeltaSpike}
+For any $\epsilon>0$, the Mellin transform of $\psi_\epsilon$ is
+$$\mathcal{M}(\psi_\epsilon)(s) = \mathcal{M}(\psi)\left(\epsilon s\right).$$
+\end{theorem}
+%%-/
+
+/-%%
+\begin{proof}
+Substitute $y=x^{1/\epsilon}$, use Haar measure; direct calculation.
+\end{proof}
+%%-/
+
+/-%%
+In particular, for $s=1$, we have that the Mellin transform of $\psi_\epsilon$ is $1+O(\epsilon)$.
+\begin{corollary}\label{MellinOfDeltaSpikeAt1}
+For any $\epsilon>0$, we have
+$$\mathcal{M}(\psi_\epsilon)(1) =
+\mathcal{M}(\psi)(\epsilon)= 1+O(\epsilon).$$
+\end{corollary}
+%%-/
+
+/-%%
+\begin{proof}
+This is immediate from the above theorem and the fact that $\mathcal{M}(\psi)(0)=1$.
+\end{proof}
+%%-/
+
+/-%%
+For $X>0$, let $1_X$ be the function from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
+$$1_X(x) = \begin{cases}
+1 & \text{ if }x\leq X\\
+0 & \text{ if }x>X
+\end{cases}.$$
+This has Mellin transform
+\begin{theorem}\label{MellinOf1X}
+The Mellin transform of $1_X$ is
+$$\mathcal{M}(1_X)(s) = \frac{X^s}{s}.$$
+\end{theorem}
+[Note: for $X=1$, this already exists in mathlib]
+%%-/
+
+/-%%
+What will be essential for us is properties of the smooth version of $1_X$, obtained as the
+ Mellin convolution of $1_X$ with $\psi_\epsilon$.
+\begin{definition}\label{Smooth1X}
+Let $X>0$ and $\epsilon>0$. Then we define the smooth function $1_{X,\epsilon}$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
+$$1_{X,\epsilon} = 1_X\ast\psi_\epsilon.$$
+\end{definition}
+%%-/
+
+/-%%
+In particular, we have the following
+\begin{lemma}\label{Smooth1XProperties}
+Fix $X>0$ and $\epsilon>0$. There is an absolute constant $c>0$ so that:
+
+(1) If $x\leq X(1-c\epsilon)$, then
+$$1_{X,\epsilon}(x) = 1.$$
+
+And (2):
+if $x\geq X(1+c\epsilon)$, then
+$$1_{X,\epsilon}(x) = 0.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+This is a straightforward calculation, using the fact that $\psi_\epsilon$ is supported in $[1/2^\epsilon,2^\epsilon]$.
+\end{proof}
+%%-/
+
+/-%%
+Combining the above, we have the following Main Lemma of this section on the Mellin transform of $1_{X,\epsilon}$.
+\begin{lemma}\label{MellinOfSmooth1X}
+Fix $X>0$ and $\epsilon>0$. Then the Mellin transform of $1_{X,\epsilon}$ is
+$$\mathcal{M}(1_{X,\epsilon})(s) = \frac{X^s}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
+At $s=1$, we have
+$$\mathcal{M}(1_{X,\epsilon})(1) = X(1+O(\epsilon)).$$
+\end{lemma}
+%%-/
+
+/-%%
+\section{Second proof of the prime number theorem}
+%%-/
+
+
+/-%%
+We have established that zeta doesn't vanish on the 1 line, and has a pole at $s=1$ of order 1.
+We also have that
+$$
+-\frac{\zeta'(s)}{\zeta(s)} = \sum_{n=1}^\infty \frac{\Lambda(n)}{n^s}.
+$$
+
+The main object of study is the following inverse Mellin transform, which will turn out to be a smoothed Chebyshev function.
+\begin{definition}\label{SmoothedChebyshev}
+Fix $X>0$, $\epsilon>0$, and a bumpfunction $\psi$ supported in $[1/2,2]$. Then we define the smoothed Chebyshev function $\psi_{X,\epsilon}$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
+$$\psi_{X,\epsilon}(x) = \frac{1}{2\pi i}\int_{(2)}\frac{-\zeta'(s)}{\zeta(s)}1_{X,\epsilon}(x)x^{-s}ds.$$
+%%-/
