@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - main
+      - blueprint_fixes
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
