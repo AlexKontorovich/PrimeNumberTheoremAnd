@@ -44,8 +44,10 @@ noncomputable def RectangleIntegral (f : ℂ → ℂ) (z w : ℂ) : ℂ :=
 abbrev HolomorphicOn (f : ℂ → ℂ) (s : Set ℂ) : Prop := DifferentiableOn ℂ f s
 
 /-%%
-A function is Meromorphic on a rectangle with corners $z$ and $w$ if it is holomorphic off a
+\begin{definition}\label{MeromorphicOnRectangle}\lean{MeromorphicOnRectangle}\leanok
+A function $f$ is Meromorphic on a rectangle with corners $z$ and $w$ if it is holomorphic off a
 (finite) set of poles, none of which are on the boundary of the rectangle.
+\end{definition}
 %%-/
 /-- A function is `MeromorphicOnRectangle` if it's holomorphic off of a finite set of `poles`,
   none of which is on the boundary of the rectangle (so the function is continuous there). -/
@@ -64,6 +66,12 @@ is equal to the sum of sufficiently small rectangle integrals around each pole.
     -- ∀ᶠ c in 𝓝[>](0:ℝ),
     -- RectangleIntegral f z w = ∑ p in poles, RectangleIntegral f (p-(c+c*I)) (p+c+c*I) := sorry
 
+/-%%
+\begin{proof}
+\uses{MeromorphicOnRectangle, RectangleIntegral}
+Rectangles tile rectangles, zoom in.
+\end{proof}
+%%-/
 /-%%
 A meromorphic function has a pole of finite order.
 \begin{definition}\label{PoleOrder}
@@ -92,9 +100,9 @@ We can evaluate a small integral around a pole by taking the residue.
 If $f$ has a pole at $z_0$, then every small enough rectangle integral around $z_0$ is equal to $2\pi i Res_{z_0} f$.
 \end{theorem}
 %%-/
-theorem ResidueTheoremOnRectangle (f : ℂ → ℂ) (z₀ : ℂ) (h : MeromorphicAt f z₀) :
-    ∀ᶠ c in 𝓝[>](0:ℝ),
-    RectangleIntegral f (z-(c+c*I)) (z+c+c*I) = 2*π*I* Res f z₀ := sorry
+-- theorem ResidueTheoremOnRectangle (f : ℂ → ℂ) (z₀ : ℂ) (h : MeromorphicAt f z₀) :
+--     ∀ᶠ c in 𝓝[>](0:ℝ),
+--     RectangleIntegral f (z-(c+c*I)) (z+c+c*I) = 2*π*I* Res f z₀ := sorry
 
 /-%%
 \begin{proof}
