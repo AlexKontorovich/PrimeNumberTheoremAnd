@@ -49,6 +49,10 @@ jobs:
           python-version: '3.9'
           cache: 'pip' # cache pip dependencies
 
+      - name: Update pip
+        run: |
+          pip install --upgrade pip
+
       - name: Install blueprint apt dependencies
         run: |
           sudo apt-get update
