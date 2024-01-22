@@ -1,0 +1,2 @@
+plasTeX @ git+https://github.com/plastex/plastex.git
+leanblueprint @ git+https://github.com/PatrickMassot/leanblueprint.git
