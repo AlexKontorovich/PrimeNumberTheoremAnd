@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - main
+      - blueprint_fixes
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -48,6 +49,10 @@ jobs:
         with:
           python-version: '3.9'
           cache: 'pip' # cache pip dependencies
+
+      - name: Update pip
+        run: |
+          pip install --upgrade pip
 
       - name: Install blueprint apt dependencies
         run: |
