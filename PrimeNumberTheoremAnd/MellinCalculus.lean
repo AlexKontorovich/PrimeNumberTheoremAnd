@@ -172,44 +172,44 @@ $$\mathcal{M}(\psi_\epsilon)(1) =
 
 /-%%
 \begin{proof}
-This is immediate from the above theorem and the fact that $\mathcal{M}(\psi)(0)=1$.
+This is immediate from the above theorem, continuity, and the fact that $\mathcal{M}(\psi)(0)=1$ (total mass one).
 \end{proof}
 %%-/
 
 /-%%
-For $X>0$, let $1_X$ be the function from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
-$$1_X(x) = \begin{cases}
-1 & \text{ if }x\leq X\\
-0 & \text{ if }x>X
+Let $1_{(0,1]}$ be the function from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
+$$1_{(0,1]}(x) = \begin{cases}
+1 & \text{ if }x\leq 1\\
+0 & \text{ if }x>1
 \end{cases}.$$
 This has Mellin transform
-\begin{theorem}\label{MellinOf1X}
-The Mellin transform of $1_X$ is
-$$\mathcal{M}(1_X)(s) = \frac{X^s}{s}.$$
+\begin{theorem}\label{MellinOf1}
+The Mellin transform of $1_{(0,1]}$ is
+$$\mathcal{M}(1_{(0,1]})(s) = \frac{1}{s}.$$
 \end{theorem}
-[Note: for $X=1$, this already exists in mathlib]
+[Note: this already exists in mathlib]
 %%-/
 
 /-%%
-What will be essential for us is properties of the smooth version of $1_X$, obtained as the
- Mellin convolution of $1_X$ with $\psi_\epsilon$.
-\begin{definition}\label{Smooth1X}
-Let $X>0$ and $\epsilon>0$. Then we define the smooth function $1_{X,\epsilon}$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
-$$1_{X,\epsilon} = 1_X\ast\psi_\epsilon.$$
+What will be essential for us is properties of the smooth version of $1_{(0,1]}$, obtained as the
+ Mellin convolution of $1_{(0,1]}$ with $\psi_\epsilon$.
+\begin{definition}\label{Smooth1}
+Let $\epsilon>0$. Then we define the smooth function $\widetilde{1_{\epsilon}}$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
+$$\widetilde{1_{\epsilon}} = 1_{(0,1]}\ast\psi_\epsilon.$$
 \end{definition}
 %%-/
 
 /-%%
 In particular, we have the following
-\begin{lemma}\label{Smooth1XProperties}
-Fix $X>0$ and $\epsilon>0$. There is an absolute constant $c>0$ so that:
+\begin{lemma}\label{Smooth1Properties}
+Fix $\epsilon>0$. There is an absolute constant $c>0$ so that:
 
-(1) If $x\leq X(1-c\epsilon)$, then
-$$1_{X,\epsilon}(x) = 1.$$
+(1) If $x\leq (1-c\epsilon)$, then
+$$\widetilde{1_{\epsilon}}(x) = 1.$$
 
 And (2):
-if $x\geq X(1+c\epsilon)$, then
-$$1_{X,\epsilon}(x) = 0.$$
+if $x\geq (1+c\epsilon)$, then
+$$\widetilde{1_{\epsilon}}(x) = 0.$$
 \end{lemma}
 %%-/
 
@@ -220,29 +220,15 @@ This is a straightforward calculation, using the fact that $\psi_\epsilon$ is su
 %%-/
 
 /-%%
-Combining the above, we have the following Main Lemma of this section on the Mellin transform of $1_{X,\epsilon}$.
-\begin{lemma}\label{MellinOfSmooth1X}
-Fix $X>0$ and $\epsilon>0$. Then the Mellin transform of $1_{X,\epsilon}$ is
-$$\mathcal{M}(1_{X,\epsilon})(s) = \frac{X^s}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
+Combining the above, we have the following Main Lemma of this section on the Mellin transform of $\widetilde{1_{\epsilon}}$.
+\begin{lemma}\label{MellinOfSmooth1}
+Fix  $\epsilon>0$. Then the Mellin transform of $\widetilde{1_{\epsilon}}$ is
+$$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = \frac{1}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
+
+For any $s$, we have the bound
+$$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\right).$$
+
 At $s=1$, we have
-$$\mathcal{M}(1_{X,\epsilon})(1) = X(1+O(\epsilon)).$$
+$$\mathcal{M}(\widetilde{1_{\epsilon}})(1) = (1+O(\epsilon)).$$
 \end{lemma}
-%%-/
-
-/-%%
-\section{Second proof of the prime number theorem}
-%%-/
-
-
-/-%%
-We have established that zeta doesn't vanish on the 1 line, and has a pole at $s=1$ of order 1.
-We also have that
-$$
--\frac{\zeta'(s)}{\zeta(s)} = \sum_{n=1}^\infty \frac{\Lambda(n)}{n^s}.
-$$
-
-The main object of study is the following inverse Mellin transform, which will turn out to be a smoothed Chebyshev function.
-\begin{definition}\label{SmoothedChebyshev}
-Fix $X>0$, $\epsilon>0$, and a bumpfunction $\psi$ supported in $[1/2,2]$. Then we define the smoothed Chebyshev function $\psi_{X,\epsilon}$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
-$$\psi_{X,\epsilon}(x) = \frac{1}{2\pi i}\int_{(2)}\frac{-\zeta'(s)}{\zeta(s)}1_{X,\epsilon}(x)x^{-s}ds.$$
 %%-/
