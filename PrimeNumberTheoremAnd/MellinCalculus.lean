@@ -9,7 +9,7 @@ import PrimeNumberTheoremAnd.EulerProducts.LSeries
 In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler), prove its inversion formula, and
 derive a number of important properties of some special functions and bumpfunctions.
 
-\begin{definition}
+\begin{definition}\label{MellinTransform}
 Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mellin transform of $f$ to be the function $\mathcal{M}(f)$ from $\mathbb{C}$ to $\mathbb{C}$ defined by
 $$\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx.$$
 \end{definition}
@@ -43,6 +43,7 @@ $$
 
 /-%%
 \begin{proof}
+\uses{ResidueTheoremOnRectangle, VerticalIntegral, MellinTransform}
 Pull contours and collect residues. This only involves rectangles, and everything is absolutely convergent.
 \end{proof}
 %%-/
@@ -57,6 +58,7 @@ $$f(x) = \frac{1}{2\pi i}\int_{(σ)}\mathcal{M}(f)(s)x^{-s}ds.$$
 %%-/
 /-%%
 \begin{proof}
+\uses{PerronFormula}
 The proof is from [Goldfeld-Kontorovich 2012].
 Integrate by parts twice.
 $$
@@ -97,18 +99,24 @@ $$\mathcal{M}(f\ast g)(s) = \mathcal{M}(f)(s)\mathcal{M}(g)(s).$$
 
 /-%%
 \begin{proof}
+\uses{MellinTransform}
 This is a straightforward calculation.
 \end{proof}
 %%-/
 
 /-%%
-Let $\psi$ be a bumpfunction supported in $[1/2,2]$; that is, $\psi$ is nonnegative, smooth, and has total mass
+Let $\psi$ be a bumpfunction.
+\begin{theorem}\label{SmoothExistence}
+There exists a smooth (once differentiable would be enough), nonnegative ``bumpfunction'' $\psi$,
+ supported in $[1/2,2]$ with total mass one:
 $$
 \int_0^\infty \psi(x)\frac{dx}{x} = 1.
 $$
-\begin{theorem}\label{SmoothExistence}
-Such a bumpfunction exists.
 \end{theorem}
+\begin{proof}
+\uses{smooth-ury}
+Same idea as Urysohn-type argument.
+\end{proof}
 %%-/
 
 /-%%
@@ -124,6 +132,7 @@ as $|s|\to\infty$.
 
 /-%%
 \begin{proof}
+\uses{MellinTransform, SmoothExistence}
 Integrate by parts once.
 \end{proof}
 %%-/
@@ -143,6 +152,7 @@ $$\int_0^\infty \psi_\epsilon(x)\frac{dx}{x} = 1.$$
 %%-/
 /-%%
 \begin{proof}
+\uses{DeltaSpike}
 Substitute $y=x^{1/\epsilon}$, and use the fact that $\psi$ has mass one, and that $dx/x$ is Haar measure.
 \end{proof}
 %%-/
@@ -157,6 +167,7 @@ $$\mathcal{M}(\psi_\epsilon)(s) = \mathcal{M}(\psi)\left(\epsilon s\right).$$
 
 /-%%
 \begin{proof}
+\uses{DeltaSpike, MellinTransform}
 Substitute $y=x^{1/\epsilon}$, use Haar measure; direct calculation.
 \end{proof}
 %%-/
@@ -172,7 +183,9 @@ $$\mathcal{M}(\psi_\epsilon)(1) =
 
 /-%%
 \begin{proof}
-This is immediate from the above theorem, continuity, and the fact that $\mathcal{M}(\psi)(0)=1$ (total mass one).
+\uses{MellinOfDeltaSpike}
+This is immediate from the above theorem, the fact that $\mathcal{M}(\psi)(0)=1$ (total mass one),
+and that $\psi$ is Lipschitz.
 \end{proof}
 %%-/
 
@@ -193,7 +206,7 @@ $$\mathcal{M}(1_{(0,1]})(s) = \frac{1}{s}.$$
 /-%%
 What will be essential for us is properties of the smooth version of $1_{(0,1]}$, obtained as the
  Mellin convolution of $1_{(0,1]}$ with $\psi_\epsilon$.
-\begin{definition}\label{Smooth1}
+\begin{definition}\label{Smooth1}\uses{MellinOf1, MellinConvolution}
 Let $\epsilon>0$. Then we define the smooth function $\widetilde{1_{\epsilon}}$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
 $$\widetilde{1_{\epsilon}} = 1_{(0,1]}\ast\psi_\epsilon.$$
 \end{definition}
@@ -215,13 +228,14 @@ $$\widetilde{1_{\epsilon}}(x) = 0.$$
 
 /-%%
 \begin{proof}
+\uses{Smooth1, MellinConvolution}
 This is a straightforward calculation, using the fact that $\psi_\epsilon$ is supported in $[1/2^\epsilon,2^\epsilon]$.
 \end{proof}
 %%-/
 
 /-%%
 Combining the above, we have the following Main Lemma of this section on the Mellin transform of $\widetilde{1_{\epsilon}}$.
-\begin{lemma}\label{MellinOfSmooth1}
+\begin{lemma}\label{MellinOfSmooth1}\uses{Smooth1Properties, MellinConvolutionTransform, MellinOfDeltaSpikeAt1}
 Fix  $\epsilon>0$. Then the Mellin transform of $\widetilde{1_{\epsilon}}$ is
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = \frac{1}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
 

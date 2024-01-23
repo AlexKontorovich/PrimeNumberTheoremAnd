@@ -1,3 +1,5 @@
+import PrimeNumberTheoremAnd.EulerProducts.PNT
+
 /-%%
 The Fourier transform of an absolutely integrable function $\psi: \R \to \C$ is defined by the formula
 $$ \hat \psi(u) := \int_\R e(-tu) \psi(t)\ dt$$
@@ -92,7 +94,8 @@ Combining the two estimates and letting $R$ be large, we obtain the claim.
 \begin{proof}  This is a standard result in Fourier analysis.
 \end{proof}
 
-\begin{corollary}  If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then, then
+\begin{corollary}\label{WienerIkeharaSmooth}
+  If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then, then
 $$ \sum_{n=1}^\infty f(n) \Psi( \frac{n}{x} ) = A x \int_0^\infty \Psi(y)\ dy + o(x)$$
 as $u \to \infty$.
 \end{corollary}
@@ -115,7 +118,7 @@ and the claim follows from Lemma \ref{schwarz-id}.
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
 \begin{proposition}
-\label{prop:smooth-ury}
+\label{WienerIkeharaInterval}
   For any closed interval $I \subset (0,+\infty)$, we have
   $$ \sum_{n=1}^\infty f(n) 1_I( \frac{n}{x} ) = A x |I|  + o(x).$$
 \end{proposition}
@@ -125,13 +128,23 @@ Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
   Use Lemma \ref{smooth-ury} to bound $1_I$ above and below by smooth compactly supported functions whose integral is close to the measure of $|I|$, and use the non-negativity of $f$.
 \end{proof}
 
-\begin{corollary}  We have
+\begin{corollary}\label{WienerIkehara}
+  We have
 $$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
 \end{corollary}
-
+%%-/
+open Filter Nat ArithmeticFunction in
+/-- A version of the *Wiener-Ikehara Tauberian Theorem*: If `f` is a nonnegative arithmetic
+function whose L-series has a simple pole at `s = 1` with residue `A` and otherwise extends
+continuously to the closed half-plane `re s ≥ 1`, then `∑ n < N, f n` is asymptotic to `A*N`. -/
+theorem WienerIkeharaTheorem' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ → ℂ} (hf : ∀ n, 0 ≤ f n)
+    (hF : Set.EqOn F (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hF' : ContinuousOn F {s | 1 ≤ s.re}) :
+    Tendsto (fun N : ℕ ↦ ((Finset.range N).sum f) / N) atTop (nhds A) := by
+  sorry
+/-%%
 \begin{proof}
-\uses{prop:smooth-ury}
+\uses{WienerIkeharaInterval, cheby}
   Apply the preceding proposition with $I = [\varepsilon,1]$ and then send $\varepsilon$ to zero (using \eqref{cheby} to control the error).
 \end{proof}
-
 %%-/

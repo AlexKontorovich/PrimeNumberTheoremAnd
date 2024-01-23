@@ -106,6 +106,7 @@ If $f$ has a pole at $z_0$, then every small enough rectangle integral around $z
 
 /-%%
 \begin{proof}
+\uses{PoleOrder, Residue, RectangleIntegral}
 Near $z_0$, $f$ looks like $(z-z_0)^{-n} g(z)$, where $g$ is holomorphic and $g(z_0) \neq 0$.
 Expand $g$ in a power series around $z_0$, so that
 $$
@@ -178,6 +179,7 @@ $$
 
 /-%%
 \begin{proof}
+\uses{Residue, PoleOrder}
 We can write $f(z) = (z-z_0)^{-n} g(z)$, where $g$ is holomorphic and $g(z_0) \neq 0$.
 Then $f'(z) = -n(z-z_0)^{-n-1} g(z) + (z-z_0)^{-n} g'(z)$, so
 $$
