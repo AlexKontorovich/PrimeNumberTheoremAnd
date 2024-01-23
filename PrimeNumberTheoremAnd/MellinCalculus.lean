@@ -22,18 +22,21 @@ might have clunkier calculations, which ``magically'' turn out just right - of c
 /-%%
 It is very convenient to define integrals along vertical lines in the complex plane, as follows.
 \begin{definition}\label{VerticalIntegral}
-Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $σ$ be a real number. Then we define
-$$\int_{(σ)}f(s)ds = \int_{σ-i\infty}^{σ+i\infty}f(s)ds.$$
+Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a real number. Then we define
+$$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
 \end{definition}
+[Note: Better to define $\int_{(\sigma)}$ as $\frac1{2\pi i}\int_{\sigma-i\infty}^{\sigma+i\infty}$??
+There's a factor of $2\pi i$ in such contour integrals...]
 %%-/
 -- definition VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
 --   ∫ s : ℝ in {σ} | f s |, f s
 /-%%
 We first prove the following ``Perron-type'' formula.
 \begin{lemma}\label{PerronFormula}
-For $x>0$ and $σ>1$, we have
+For $x>0$ and $\sigma>1$, we have
 $$
-\int_{(σ)}\frac{x^s}{s(s+1)}ds = \begin{cases}
+\frac1{2\pi i}
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds = \begin{cases}
 1-\frac1x & \text{ if }x>1\\
 0 & \text{ if } x<1
 \end{cases}.
@@ -50,8 +53,8 @@ Pull contours and collect residues. This only involves rectangles, and everythin
 
 /-%%
 \begin{theorem}\label{MellinInversion}
-Let $f$ be a nice function from $\mathbb{R}_{>0}$ to $\mathbb{C}$, and let $σ$ be sufficiently large. Then
-$$f(x) = \frac{1}{2\pi i}\int_{(σ)}\mathcal{M}(f)(s)x^{-s}ds.$$
+Let $f$ be a nice function from $\mathbb{R}_{>0}$ to $\mathbb{C}$, and let $\sigma$ be sufficiently large. Then
+$$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
 \end{theorem}
 
 [Note: How ``nice''? Schwartz (on $(0,\infty)$) is certainly enough. As we formalize this, we can add whatever conditions are necessary for the proof to go through.]
@@ -66,10 +69,10 @@ $$
 $$
 Assuming $f$ is Schwartz, say, we now have at least quadratic decay in $s$ of the Mellin transform. Inserting this formula into the inversion formula and Fubini-Tonelli (we now have absolute convergence!) gives:
 $$
-RHS = \frac{1}{2\pi i}\left(\int_{(σ)}\int_0^\infty f''(t)t^{s+1}\frac{1}{s(s+1)}dt\right) x^{-s}ds
+RHS = \frac{1}{2\pi i}\left(\int_{(\sigma)}\int_0^\infty f''(t)t^{s+1}\frac{1}{s(s+1)}dt\right) x^{-s}ds
 $$
 $$
-= \int_0^\infty f''(t) t \left( \frac{1}{2\pi i}\int_{(σ)}(t/x)^s\frac{1}{s(s+1)}ds\right) dt.
+= \int_0^\infty f''(t) t \left( \frac{1}{2\pi i}\int_{(\sigma)}(t/x)^s\frac{1}{s(s+1)}ds\right) dt.
 $$
 Apply the Perron formula to the inside:
 $$
