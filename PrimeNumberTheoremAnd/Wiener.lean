@@ -1,4 +1,4 @@
-
+/-%%
 The Fourier transform of an absolutely integrable function $\psi: \R \to \C$ is defined by the formula
 $$ \hat \psi(u) := \int_\R e(-tu) \psi(t)\ dt$$
 where $e(\theta) := e^{2\pi i \theta}$.
@@ -134,5 +134,4 @@ $$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
   Apply the preceding proposition with $I = [\varepsilon,1]$ and then send $\varepsilon$ to zero (using \eqref{cheby} to control the error).
 \end{proof}
 
-
-
+%%-/

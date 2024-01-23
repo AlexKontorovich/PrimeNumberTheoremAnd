@@ -21,8 +21,10 @@ A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ 
 
 
 
-A function is Meromorphic on a rectangle with corners $z$ and $w$ if it is holomorphic off a
+\begin{definition}\label{MeromorphicOnRectangle}\lean{MeromorphicOnRectangle}\leanok
+A function $f$ is Meromorphic on a rectangle with corners $z$ and $w$ if it is holomorphic off a
 (finite) set of poles, none of which are on the boundary of the rectangle.
+\end{definition}
 
 
 
@@ -30,6 +32,13 @@ A function is Meromorphic on a rectangle with corners $z$ and $w$ if it is holom
 If $f$ is meromorphic on a rectangle with corners $z$ and $w$, then the rectangle integral of $f$
 is equal to the sum of sufficiently small rectangle integrals around each pole.
 \end{theorem}
+
+
+
+\begin{proof}
+\uses{MeromorphicOnRectangle, RectangleIntegral}
+Rectangles tile rectangles, zoom in.
+\end{proof}
 
 
 
