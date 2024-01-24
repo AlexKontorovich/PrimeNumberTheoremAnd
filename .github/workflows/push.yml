@@ -26,6 +26,9 @@ jobs:
       - name: Build project
         run: make LAKEBIN='~/.elan/bin/lake' build
 
+      - name: Build documentation
+        run: make LAKEBIN='~/.elan/bin/lake' doc
+
       - name: Cache mathlib docs
         uses: actions/cache@v3
         with:
@@ -39,9 +42,6 @@ jobs:
           key: MathlibDoc-${{ hashFiles('lake-manifest.json') }}
           restore-keys: |
             MathlibDoc-
-
-      - name: Build documentation
-        run: make LAKEBIN='~/.elan/bin/lake' doc
 
       - name: Install Python
         uses: actions/setup-python@v5
