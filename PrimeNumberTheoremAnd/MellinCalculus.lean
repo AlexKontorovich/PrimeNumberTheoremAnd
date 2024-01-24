@@ -143,6 +143,7 @@ Integrate by parts once.
 /-%%
 We can make a delta spike out of this bumpfunction, as follows.
 \begin{definition}\label{DeltaSpike}
+\uses{SmoothExistence}
 Let $\psi$ be a bumpfunction supported in $[1/2,2]$. Then for any $\epsilon>0$, we define the delta spike $\psi_\epsilon$ to be the function from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
 $$\psi_\epsilon(x) = \frac{1}{\epsilon}\psi\left(x^{\frac{1}{\epsilon}}\right).$$
 \end{definition}

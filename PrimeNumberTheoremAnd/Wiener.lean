@@ -147,4 +147,6 @@ theorem WienerIkeharaTheorem' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ �
 \uses{WienerIkeharaInterval, cheby}
   Apply the preceding proposition with $I = [\varepsilon,1]$ and then send $\varepsilon$ to zero (using \eqref{cheby} to control the error).
 \end{proof}
+
+
 %%-/
