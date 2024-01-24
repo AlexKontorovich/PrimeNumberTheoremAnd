@@ -1,4 +1,4 @@
-
+import Mathlib.Analysis.Complex.CauchyIntegral
 /-%%
 The approach here is completely standard. We follow the use of $\mathcal{M}(\widetilde{1_{\epsilon}})$ as in Kontorovich 2015.
 %%-/
@@ -76,6 +76,46 @@ $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{\text{curve}}\frac{-\zeta'(s)}{\zet
 X^{s}ds.$$
 \end{theorem}
 %%-/
+
+/-%%
+\begin{theorem}\label{ZetaNoZerosOn1Line}
+The zeta function does not vanish on the 1-line.
+\end{theorem}
+This fact is already proved in Stoll's work.
+%%-/
+
+/-%%
+General theorem:
+\begin{theorem}\label{NoZerosInBoxOfNoneOnBoundary}
+\lean{NoZerosInBoxOfNoneOnBoundary}
+You have a set $S$ of points in $\C$ with no accumulation point.
+Suppose that none of these points line on a given line $L$.
+Then for any desired interval $I \subset L $, there is a box $B$ having $I$ as its right boundary with no points of $S$ in $B$.
+\end{theorem}
+%%-/
+theorem NoZerosInBoxOfNoneOnBoundary
+  {S : Set ℂ}
+  --{hS : } -- S has no accumulation point
+  {x₀ : ℝ} -- that's the x-coordinate of the line L
+  (hL : ∀ z : ℂ, z ∈ S → z.re ≠ x₀) -- none of the points of S lie on L
+  {y₀ y₁ : ℝ} -- determine the y-coordinates of the interval I
+  :
+  ∃ (δ : ℝ) (hδ : 0 < δ), -- width of the box
+  ∀ z : ℂ, x₀ - δ ≤ z.re → z.re ≤ x₀ → y₀ ≤ z.im → z.im ≤ y₁ → z ∉ S := by
+/-%%
+\begin{proof}
+We argue by contraposition.
+%%-/
+    contrapose! hL -- not quite, want to contrapose `hS`
+/-%%
+If for every $\delta>0$, the box $[x_0-\delta,x_0] \times_{ℂ} [y_0,y_1]$ contains a point of $S$, then we can find an
+accumulation point
+ of $S$, a contradiction.
+\end{proof}
+%%-/
+    sorry
+
+
 
 /-%%
 Then, since $\zeta$ doesn't vanish on the 1-line, there is a $\delta$ (depending on $T$), so that the box $[1-\delta,1] \times_{ℂ} [-T,T]$ is free of zeros of $\zeta$.
