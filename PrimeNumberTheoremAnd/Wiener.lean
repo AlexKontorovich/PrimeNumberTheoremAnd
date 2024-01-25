@@ -124,7 +124,7 @@ Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 \end{proposition}
 
 \begin{proof}
-\uses{smooth-ury}
+\uses{smooth-ury, WienerIkeharaSmooth}
   Use Lemma \ref{smooth-ury} to bound $1_I$ above and below by smooth compactly supported functions whose integral is close to the measure of $|I|$, and use the non-negativity of $f$.
 \end{proof}
 
@@ -147,6 +147,17 @@ theorem WienerIkeharaTheorem' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ �
 \uses{WienerIkeharaInterval, cheby}
   Apply the preceding proposition with $I = [\varepsilon,1]$ and then send $\varepsilon$ to zero (using \eqref{cheby} to control the error).
 \end{proof}
+%%-/
 
+/-%%
+\begin{theorem}[Weak PNT]\label{WeakPNT}  We have
+$$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
+\end{theorem}
+%%-/
 
+/-%%
+\begin{proof}
+\uses{WienerIkehara}
+  Already done by Stoll, assuming Wiener-Ikehara.
+\end{proof}
 %%-/

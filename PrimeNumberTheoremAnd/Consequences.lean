@@ -4,7 +4,7 @@
 \end{theorem}
 
 \begin{proof}
-\uses{StrongPNT}
+\uses{WeakPNT}
 From the prime number theorem we already have
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x)$$
 so it suffices to show that
@@ -110,7 +110,7 @@ From M\"obius inversion $1_{n=1} = \sum_{d|n} \mu(d)$ and summing we have
 \end{proposition}
 
 \begin{proof}
-\uses{mun, StrongPNT}
+\uses{mun, WeakPNT}
 From the Dirichlet convolution identity
   $$ \mu(n) \log n = - \sum_{d|n} \mu(d) \Lambda(n/d)$$
 and summing we obtain
