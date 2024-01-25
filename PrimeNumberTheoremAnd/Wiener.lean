@@ -150,6 +150,8 @@ theorem WienerIkeharaTheorem' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ �
 %%-/
 
 /-%%
+\section{Weak PNT}
+
 \begin{theorem}[Weak PNT]\label{WeakPNT}  We have
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 \end{theorem}
