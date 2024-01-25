@@ -1,4 +1,12 @@
 import PrimeNumberTheoremAnd.EulerProducts.PNT
+import Mathlib.Analysis.Fourier.FourierTransform
+import Mathlib.NumberTheory.ArithmeticFunction
+import Mathlib.Topology.Support
+import Mathlib.Analysis.Calculus.ContDiff.Defs
+
+open Nat Real BigOperators
+open Complex hiding log
+-- can't open ArithmeticFunction because this causes a namespace collision with σ.  Couldn't figure out how to use `open hiding` to fix this.
 
 /-%%
 The Fourier transform of an absolutely integrable function $\psi: \R \to \C$ is defined by the formula
@@ -8,11 +16,20 @@ where $e(\theta) := e^{2\pi i \theta}$.
 Let $f: \N \to \C$ be an arithmetic function such that $\sum_{n=1}^\infty \frac{|f(n)|}{n^\sigma} < \infty$ for all $\sigma>1$.  Then the Dirichlet series
 $$ F(s) := \sum_{n=1}^\infty \frac{f(n)}{n^s}$$
 is absolutely convergent for $\sigma>1$.
+%%-/
 
+variable {f: ArithmeticFunction ℝ} (hf: ∀ (σ:ℝ), 1 < σ → Summable (fun n ↦ |f n| / n^σ))
+
+/-%%
 \begin{lemma}[First Fourier identity]\label{first-fourier}  If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = \int_\R F(\sigma + it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
+%%-/
 
+lemma first_fourier {ψ:ℝ → ℂ} (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ) {x σ:ℝ} (hx: 0 < x) (hσ: 1 < σ) : ∑' n : ℕ, f n / (n^σ:ℝ) * (fourierIntegral ψ (1 / (2 * π) * log (n / x))) = ∫ t:ℝ, ArithmeticFunction.LSeries f (σ + t * I) * ψ t * x^(t * I) ∂ volume := by
+  sorry
+
+/-%%
 \begin{proof}  By the definition of the Fourier transform, the left-hand side expands as
 $$ \sum_{n=1}^\infty \int_\R \frac{f(n)}{n^\sigma} \psi(t) e( - \frac{1}{2\pi} t \log \frac{n}{x})\ dt$$
 while the right-hand side expands as
@@ -21,11 +38,18 @@ Since
 $$\frac{f(n)}{n^\sigma} \psi(t) e( - \frac{1}{2\pi} t \log \frac{n}{x}) = \frac{f(n)}{n^{\sigma+it}} \psi(t) x^{it}$$
 the claim then follows from Fubini's theorem.
 \end{proof}
+%%-/
 
+/-%%
 \begin{lemma}[Second Fourier identity]\label{second-fourier} If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
 $$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du = x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt.$$
 \end{lemma}
+%%-/
 
+lemma second_fourier {ψ:ℝ → ℂ} (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ) {x σ:ℝ} (hx: 0 < x) (hσ: 1 < σ) : ∫ u in Set.Ici (-log x), Real.exp (-u * (σ - 1)) * fourierIntegral ψ (u / (2 * π)) = (x^(σ - 1):ℝ) * ∫ t, (1 / (σ + t * I - 1)) * ψ t * x^(t * I) ∂ volume :=
+  sorry
+
+/-%%
 \begin{proof}
 \uses{first-fourier}
   The left-hand side expands as
@@ -34,27 +58,48 @@ $$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du = x^{\si
 $$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} e(-\frac{tu}{2\pi})\ du = x^{\sigma - 1} \frac{1}{\sigma+it-1} x^{it}$$
 which is a routine calculation.
 \end{proof}
+%%-/
 
+/-%%
 Now let $A \in \C$, and suppose that there is a continuous function $G(s)$ defined on $\mathrm{Re} s \geq 1$ such that $G(s) = F(s) - \frac{A}{s-1}$ whenever $\mathrm{Re} s > 1$.  We also make the Chebyshev-type hypothesis
 \begin{equation}\label{cheby}
 \sum_{n \leq x} |f(n)| \ll x
 \end{equation}
 for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies the arguments and can be obtained fairly easily in applications).
+%%-/
 
+variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ ArithmeticFunction.LSeries f s - A / (s - 1)) {s | 1 < s.re})
+
+variable (hcheby: ∃ C:ℝ, ∀ x:ℕ, ∑ n in Finset.Iic x, |f n| ≤ C * x)
+
+/-%%
 \begin{lemma}[Decay bounds]\label{decay}  If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
   $$ |\psi(t)|, |\psi''(t)| \leq A / (1 + |t|^2)$$
   for all $t \in \R$, then
 $$ |\hat \psi(u)| \leq C A / (1+|u|^2)$$
 for all $u \in \R$, where $C$ is an absolute constant.
 \end{lemma}
+%%-/
 
+lemma decay_bounds : ∃ C:ℝ, ∀ (ψ:ℝ → ℂ) (hψ: ContDiff ℝ 2 ψ) (hsupp: HasCompactSupport ψ) (A:ℝ) (hA: ∀ t, ‖ψ t‖ ≤ A / (1 + t^2)) (hA': ∀ t, ‖deriv^[2] ψ t‖  ≤ A / (1 + t^2)) (u:ℝ), ‖fourierIntegral ψ u‖ ≤ C * A / (1 + u^2) := by
+  sorry
+
+/-%%
 \begin{proof} This follows from a standard integration by parts argument.
 \end{proof}
+%%-/
 
+/-%%
 \begin{lemma}[Limiting Fourier identity]\label{limiting}  If $\psi: \R \to \C$ is $C^2$ and compactly supported and $x \geq 1$, then
 $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
+%%-/
 
+
+lemma limiting_fourier {ψ:ℝ → ℂ} (hψ: ContDiff ℝ 2 ψ) (hsupp: HasCompactSupport ψ) {x:ℝ} (hx: 1 ≤ x) : ∑' n, f(n) / n * fourierIntegral ψ (1/(2*π) * log (n/x)) - A * ∫ u in Set.Ici (-log x), fourierIntegral ψ (u / (2*π)) ∂ volume = ∫ t, (G (1 + I*t)) * (ψ t) * x^(I * t) ∂ volume := by
+  sorry
+
+/-%%
 \begin{proof}
 \uses{first-fourier,second-fourier,decay}
  By the preceding two lemmas, we know that for any $\sigma>1$, we have
