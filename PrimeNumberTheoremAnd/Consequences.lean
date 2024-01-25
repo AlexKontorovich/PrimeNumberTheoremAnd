@@ -1,8 +1,10 @@
+/-%%
 \begin{theorem}\label{chebyshev-asymptotic}  One has
   $$ \sum_{p \leq x} \log p = x + o(x).$$
 \end{theorem}
 
 \begin{proof}
+\uses{StrongPNT}
 From the prime number theorem we already have
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x)$$
 so it suffices to show that
@@ -10,11 +12,13 @@ $$ \sum_{j \geq 2} \sum_{p^j \leq x} \log p = o(x).$$
 Only the terms with $j \leq \log x / \log 2$ contribute, and each $j$ contributes at most $\sqrt{x} \log x$ to the sum, so the left-hand side is $O( \sqrt{x} \log^2 x ) = o(x)$ as required.
 \end{proof}
 
-\begin{corollary}[Bounds on primorial]  We have
+\begin{corollary}[Bounds on primorial]  \label{primorial-bounds}
+We have
   $$ \prod_{p \leq x} p = \exp( x + o(x) )$$
 \end{corollary}
 
 \begin{proof}
+\uses{chebyshev-asymptotic}
   Exponentiate Theorem \ref{chebyshev-asymptotic}.
 \end{proof}
 
@@ -25,7 +29,9 @@ Let $\pi(x)$ denote the number of primes up to $x$.
 as $x \to \infty$.
 \end{theorem}
 
-\begin{proof}  We have the identity
+\begin{proof}
+\uses{chebyshev-asymptotic}
+We have the identity
 $$ \pi(x) = \frac{1}{\log x} \sum_{p \leq x} \log p
 + \int_2^x (\sum_{p \leq t} \log p) \frac{dt}{t \log^2 t}$$
 as can be proven by interchanging the sum and integral and using the fundamental theorem of calculus.  For any $\eps$, we know from Theorem \ref{chebyshev-asymptotic} that there is $x_\eps$ such that
@@ -43,7 +49,9 @@ $$ \pi(x) = (1+o(1)) \frac{x}{\log x}$$
 as $x \to \infty$.
 \end{corollary}
 
-\begin{proof} An integration by parts gives
+\begin{proof}
+\uses{pi-asymp}
+An integration by parts gives
   $$ \int_2^x \frac{dt}{\log t} = \frac{x}{\log x} - \frac{2}{\log 2} + \int_2^x \frac{dt}{\log^2 t}.$$
 We have the crude bounds
 $$ \int_2^{\sqrt{x}} \frac{dt}{\log^2 t} = O( \sqrt{x} )$$
@@ -57,31 +65,41 @@ and the claim then follows from Theorem \ref{pi-asymp}.
 
 Let $p_n$ denote the $n^{th}$ prime.
 
-\begin{proposition} One has
+\begin{proposition}\label{pn-asymptotic}
+ One has
   $$ p_n = (1+o(1)) n \log n$$
 as $n \to \infty$.
 \end{proposition}
 
-\begin{proof}  Use Corollary \ref{pi-alt} to show that for any $\eps>0$, and for $x$ sufficiently large, the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up to $(1+\eps) n \log n$ is greater than $n$.
+\begin{proof}
+\uses{pi-alt}
+Use Corollary \ref{pi-alt} to show that for any $\eps>0$, and for $x$ sufficiently large, the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up to $(1+\eps) n \log n$ is greater than $n$.
 \end{proof}
 
-\begin{corollary}  We have $p_{n+1} - p_n = o(p_n)$
+\begin{corollary} \label{pn-pn+1}
+We have $p_{n+1} - p_n = o(p_n)$
   as $n \to \infty$.
 \end{corollary}
 
-\begin{proof}  Easy consequence of preceding proposition.
+\begin{proof}
+\uses{pn-asymptotic}
+  Easy consequence of preceding proposition.
 \end{proof}
 
-\begin{corollary}  For every $\eps>0$, there is a prime between $x$ and $(1+\eps x)$ for all sufficiently large $x$.
+\begin{corollary}  \label{prime-between}
+For every $\eps>0$, there is a prime between $x$ and $(1+\eps x)$ for all sufficiently large $x$.
 \end{corollary}
 
-\begin{proof}  Use Corollary \ref{pi-alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infinity as $x \to \infty$.
+\begin{proof}
+\uses{pi-alt}
+Use Corollary \ref{pi-alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infinity as $x \to \infty$.
 \end{proof}
 
 \begin{proposition}\label{mun}  We have $|\sum_{n \leq x} \frac{\mu(n)}{n}| \ll 1$.
 \end{proposition}
 
-\begin{proof}  From M\"obius inversion $1_{n=1} = \sum_{d|n} \mu(d)$ and summing we have
+\begin{proof}
+From M\"obius inversion $1_{n=1} = \sum_{d|n} \mu(d)$ and summing we have
   $$ 1 = \sum_{d \leq x} \mu(d) \lfloor \frac{x}{d} \rfloor$$
   for any $x \geq 1$.  Since $\lfloor \frac{x}{d} \rfloor = \frac{x}{d} + O(1)$, we conclude that
   $$ 1 = x \sum_{d \leq x} \frac{\mu(d)}{d} + O(x)$$
@@ -91,7 +109,9 @@ as $n \to \infty$.
 \begin{proposition}\label{mu-pnt}  We have $\sum_{n \leq x} \mu(n) = o(x)$.
 \end{proposition}
 
-\begin{proof}  From the Dirichlet convolution identity
+\begin{proof}
+\uses{mun, StrongPNT}
+From the Dirichlet convolution identity
   $$ \mu(n) \log n = - \sum_{d|n} \mu(d) \Lambda(n/d)$$
 and summing we obtain
 $$ \sum_{n \leq x} \mu(n) \log n = - \sum_{d \leq x} \mu(d) \sum_{m \leq x/d} \Lambda(m).$$
@@ -114,10 +134,13 @@ Sending $\eps \to 0$ we obtain the claim.
 \end{proof}
 
 
-\begin{proposition}  We have $\sum_{n \leq x} \lambda(n) = o(x)$.
+\begin{proposition}  \label{lambda-pnt}
+We have $\sum_{n \leq x} \lambda(n) = o(x)$.
 \end{proposition}
 
-\begin{proof}  From the identity
+\begin{proof}
+\uses{mu-pnt}
+From the identity
   $$ \lambda(n) = \sum_{d^2|n} \mu(n/d^2)$$
 and summing, we have
 $$ \sum_{n \leq x} \lambda(n) = \sum_{d \leq \sqrt{x}} \sum_{n \leq x/d^2} \mu(n).$$
@@ -127,3 +150,5 @@ and hence on summing in $d$
 $$ \sum_{n \leq x} \lambda(n) = O(\eps x) + O_\eps(x^{1/2}).$$
 Sending $\eps \to 0$ we obtain the claim.
 \end{proof}
+
+%%-/
