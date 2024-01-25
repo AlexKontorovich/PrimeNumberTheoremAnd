@@ -7,3 +7,4 @@ blueprint/web
 *.fdb_latexmk
 *.log
 *.swp
+.DS_STORE

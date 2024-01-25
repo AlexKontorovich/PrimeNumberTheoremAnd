@@ -3,7 +3,6 @@ The approach here is completely standard. We follow the use of $\mathcal{M}(\wid
 
 
 
-
 It has already been established that zeta doesn't vanish on the 1 line, and has a pole at $s=1$ of order 1.
 We also have that
 $$
@@ -29,6 +28,7 @@ $$\psi_{\epsilon}(X) = \sum_{n=1}^\infty \Lambda(n)\widetilde{1_{\epsilon}}(n/X)
 
 
 \begin{proof}
+\uses{SmoothedChebyshev, MellinInversion}
 We have that
 $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(2)}\sum_{n=1}^\infty \frac{\Lambda(n)}{n^s}
 \mathcal{M}(\widetilde{1_{\epsilon}})(s)
@@ -48,24 +48,29 @@ and apply the Mellin inversion formula (Theorem \ref{MellinInversion}).
 The smoothed Chebyshev function is close to the actual Chebyshev function.
 \begin{theorem}\label{SmoothedChebyshevClose}
 We have that
-$$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X \log X).$$
+$$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X).$$
 \end{theorem}
 
 
 
 \begin{proof}
+\uses{SmoothedChebyshevDirichlet, Smooth1Properties}
 Take the difference. By Lemma \ref{Smooth1Properties}, the sums agree except when $1-c \epsilon \leq n/X \leq 1+c \epsilon$. This is an interval of length $\ll \epsilon X$, and the summands are bounded by $\Lambda(n) \ll \log X$.
+
+This is not enough, as it loses a log! (Which is fine if our target is the strong PNT, with exp-root-log savings, but not here with the ``softer'' approach.) So we will need something like the Selberg sieve (already in Mathlib? Or close?) to conclude that the number of primes in this interval is $\ll \epsilon X / \log X + 1$.
+(The number of prime powers is $\ll X^{1/2}$.)
+And multiplying that by $\Lambda (n) \ll \log X$ gives the desired bound.
 \end{proof}
 
 
 
 Returning to the definition of $\psi_{\epsilon}$, fix a large $T$ to be chosen later, and pull contours (via rectangles!) to go
-from $2$ up to $2+iT$, then over to $1+iT$, and up from there to $1+i\infty$ (and symmetrically in the lower half plane). Call
-this path $\gamma$. The
+from $2$ up to $2+iT$, then over to $1+iT$, and up from there to $1+i\infty$ (and symmetrically in the lower half plane).  The
 rectangles involved are all where the integrand is holomorphic, so there is no change.
 \begin{theorem}\label{SmoothedChebyshevPull1}
+\uses{SmoothedChebyshev, RectangleIntegral}
 We have that
-$$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{\gamma}\frac{-\zeta'(s)}{\zeta(s)}
+$$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{\text{curve}}\frac{-\zeta'(s)}{\zeta(s)}
 \mathcal{M}(\widetilde{1_{\epsilon}})(s)
 X^{s}ds.$$
 \end{theorem}
@@ -73,6 +78,18 @@ X^{s}ds.$$
 
 
 Then, since $\zeta$ doesn't vanish on the 1-line, there is a $\delta$ (depending on $T$), so that the box $[1-\delta,1] \times_{ℂ} [-T,T]$ is free of zeros of $\zeta$.
+\begin{theorem}\label{ZetaNoZerosInBox}
+For any $T>0$, there is a $\delta>0$ so that $[1-\delta,1] \times_{ℂ} [-T,T]$ is free of zeros of $\zeta$.
+\end{theorem}
+
+
+
+\begin{proof}
+We have that zeta doesn't vanish on the 1 line and is holomorphic inside the box (except for the pole at $s=1$). If for a height $T>0$, there was no such $\delta$, then there would be a sequence of zeros of $\zeta$ approaching the 1 line, and by compactness, we could find a subsequence of zeros converging to a point on the 1 line. But then $\zeta$ would vanish at that point, a contradiction. (Worse yet, zeta would then be entirely zero...)
+\end{proof}
+
+
+
 The rectangle with opposite corners $1-\delta - i T$ and $2+iT$ contains a single pole of $-\zeta'/\zeta$ at $s=1$, and the residue is $1$ (from Theorem \ref{ResidueOfLogDerivative}).
 \begin{theorem}\label{ZeroFreeBox}
 $-\zeta'/\zeta$ is holomorphic on the box $[1-\delta,2] \times_{ℂ} [-T,T]$, except a simple pole with residue $1$ at $s$=1.
@@ -80,6 +97,45 @@ $-\zeta'/\zeta$ is holomorphic on the box $[1-\delta,2] \times_{ℂ} [-T,T]$, ex
 
 
 
-Inserting this into $\psi_{\epsilon}$, we get
+\begin{proof}
+\uses{ZetaNoZerosInBox, ResidueOfLogDerivative}
+The proof is as described.
+\end{proof}
+
+
+
+We insert this information in $\psi_{\epsilon}$. We add and subtract the integral over the box $[1-\delta,2] \times_{ℂ} [-T,T]$, which we evaluate as follows
+\begin{theorem}\label{ZetaBoxEval}
+The rectangle integral over $[1-\delta,2] \times_{ℂ} [-T,T]$ of the integrand in $\psi_{\epsilon}$ is
+$$\frac{1}{2\pi i}\int_{\partial([1-\delta,2] \times_{ℂ} [-T,T])}\frac{-\zeta'(s)}{\zeta(s)}
+\mathcal{M}(\widetilde{1_{\epsilon}})(s)
+X^{s}ds = \frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
+= X\left(\mathcal{M}(\psi)\left(\epsilon\right)\right)
+= X(1+O(\epsilon))
+.$$
+\end{theorem}
+
+
+
+\begin{proof}
+\uses{ZeroFreeBox, RectangleIntegral, ResidueOfLogDerivative, MellinOfSmooth1, MellinOfDeltaSpikeAt1}
+Residue calculus / the argument principle.
+\end{proof}
+
+
+
+It remains to estimate the contributions from the integrals over the curve $\gamma = \gamma_1 +
+\gamma_2 + \gamma_3 + \gamma_4
++\gamma_5,
+$
+where:
+\begin{itemize}
+\item $\gamma_1$ is the vertical segment from $1-i\infty$ to $1-iT$,
+\item $\gamma_2$ is the horizontal segment from $1-iT$ to $1-\delta-iT$,
+\item $\gamma_3$ is the vertical segment from $1-\delta-iT$ to $1-\delta+iT$,
+\item $\gamma_4$ is the horizontal segment from $1-\delta+iT$ to $1+iT$, and
+\item $\gamma_5$ is the vertical segment from $1+iT$ to $1+i\infty$.
+\end{itemize}
+
 
 
