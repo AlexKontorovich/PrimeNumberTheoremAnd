@@ -126,6 +126,7 @@ For any $T>0$, there is a $\delta>0$ so that $[1-\delta,1] \times_{ℂ} [-T,T]$ 
 
 /-%%
 \begin{proof}
+\uses{NoZerosInBoxOfNoneOnBoundary}
 We have that zeta doesn't vanish on the 1 line and is holomorphic inside the box (except for the pole at $s=1$). If for a height $T>0$, there was no such $\delta$, then there would be a sequence of zeros of $\zeta$ approaching the 1 line, and by compactness, we could find a subsequence of zeros converging to a point on the 1 line. But then $\zeta$ would vanish at that point, a contradiction. (Worse yet, zeta would then be entirely zero...)
 \end{proof}
 %%-/
@@ -159,7 +160,7 @@ X^{s}ds = \frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
 
 /-%%
 \begin{proof}
-\uses{ZeroFreeBox, RectangleIntegral, ResidueOfLogDerivative, MellinOfSmooth1, MellinOfDeltaSpikeAt1}
+\uses{ZeroFreeBox, Rectangle, RectangleBorder, RectangleIntegral, ResidueOfLogDerivative, MellinOfSmooth1, MellinOfDeltaSpikeAt1}
 Residue calculus / the argument principle.
 \end{proof}
 %%-/
@@ -178,4 +179,18 @@ where:
 \item $\gamma_5$ is the vertical segment from $1+iT$ to $1+i\infty$.
 \end{itemize}
 
+%%-/
+/-%%
+\section{Weak PNT'}
+
+\begin{theorem}[Weak PNT']\label{WeakPNT'}  We have
+$$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
+\end{theorem}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval}
+  Evaluate the integrals.
+\end{proof}
 %%-/

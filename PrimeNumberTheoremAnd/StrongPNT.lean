@@ -23,7 +23,7 @@ noncomputable def ChebyshevPsi (x : ℝ) : ℝ := (Finset.range (Nat.floor x)).s
 /-%%
 
 Main Theorem: The Prime Number Theorem in strong form.
-\begin{theorem}[PrimeNumberTheorem]\label{StrongPNT}\lean{PrimeNumberTheorem}\uses{WienerIkehara}
+\begin{theorem}[PrimeNumberTheorem]\label{StrongPNT}\lean{PrimeNumberTheorem}\uses{WienerIkehara, ChebysevPsi}
 There is a constant $c > 0$ such that
 $$
 ψ (x) = x + O(x e^{-c \sqrt{\log x}})
