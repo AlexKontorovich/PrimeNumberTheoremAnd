@@ -45,6 +45,7 @@ abbrev HolomorphicOn (f : ℂ → ℂ) (s : Set ℂ) : Prop := DifferentiableOn 
 
 /-%%
 \begin{definition}\label{MeromorphicOnRectangle}\lean{MeromorphicOnRectangle}\leanok
+\uses{Rectangle, RectangleBorder, RectangleIntegral}
 A function $f$ is Meromorphic on a rectangle with corners $z$ and $w$ if it is holomorphic off a
 (finite) set of poles, none of which are on the boundary of the rectangle.
 \end{definition}
@@ -106,7 +107,7 @@ If $f$ has a pole at $z_0$, then every small enough rectangle integral around $z
 
 /-%%
 \begin{proof}
-\uses{PoleOrder, Residue, RectangleIntegral}
+\uses{PoleOrder, Residue, RectangleIntegral, RectangleIntegralEqSumOfRectangles}
 Near $z_0$, $f$ looks like $(z-z_0)^{-n} g(z)$, where $g$ is holomorphic and $g(z_0) \neq 0$.
 Expand $g$ in a power series around $z_0$, so that
 $$

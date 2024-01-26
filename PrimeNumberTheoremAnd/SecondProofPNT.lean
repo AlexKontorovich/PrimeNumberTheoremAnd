@@ -160,7 +160,7 @@ X^{s}ds = \frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
 
 /-%%
 \begin{proof}
-\uses{ZeroFreeBox, Rectangle, RectangleBorder, RectangleIntegral, ResidueOfLogDerivative, MellinOfSmooth1, MellinOfDeltaSpikeAt1}
+\uses{ZeroFreeBox, Rectangle, RectangleBorder, RectangleIntegral, ResidueOfLogDerivative, MellinOfSmooth1, MellinOfDeltaSpikeAt1, SmoothedChebyshevPull1}
 Residue calculus / the argument principle.
 \end{proof}
 %%-/
@@ -190,7 +190,7 @@ $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 
 /-%%
 \begin{proof}
-\uses{ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval}
+\uses{ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval, WeakPNT}
   Evaluate the integrals.
 \end{proof}
 %%-/

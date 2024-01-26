@@ -249,7 +249,7 @@ $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 
 /-%%
 \begin{proof}
-\uses{WienerIkehara}
+\uses{WienerIkehara, ChebyshevPsi}
   Already done by Stoll, assuming Wiener-Ikehara.
 \end{proof}
 %%-/

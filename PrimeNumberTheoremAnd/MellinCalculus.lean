@@ -46,7 +46,7 @@ $$
 
 /-%%
 \begin{proof}
-\uses{ResidueTheoremOnRectangle, VerticalIntegral, MellinTransform}
+\uses{ResidueTheoremOnRectangle, RectangleIntegralEqSumOfRectangles, VerticalIntegral, MellinTransform}
 Pull contours and collect residues. This only involves rectangles, and everything is absolutely convergent.
 \end{proof}
 %%-/
@@ -187,7 +187,7 @@ $$\mathcal{M}(\psi_\epsilon)(1) =
 
 /-%%
 \begin{proof}
-\uses{MellinOfDeltaSpike}
+\uses{MellinOfDeltaSpike, DeltaSpikeMass}
 This is immediate from the above theorem, the fact that $\mathcal{M}(\psi)(0)=1$ (total mass one),
 and that $\psi$ is Lipschitz.
 \end{proof}
