@@ -58,7 +58,6 @@ $$
 -\frac{\zeta'}{\zeta}(\sigma+it) \ll (\log t)^2
 $$
 there.
-$$
 \end{theorem}
 \begin{proof}
 \uses{thm:Fsigma'}
