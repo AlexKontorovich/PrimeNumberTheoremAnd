@@ -104,7 +104,7 @@ lemma VerticalIntegral_Perron_le_one {x : ℝ} (xpos : 0 < x) (x_le_one : x < 1)
   · intro σ' σ'' σ'pos σ''pos
     have := rectIntLimit σ' σ'' σ'pos σ''pos
     sorry
---%% But we also have the bound $\int_{(\sigma')}\leq x^\sigma' * C$, where
+--%% But we also have the bound $\int_{(\sigma')} \leq x^{\sigma'} * C$, where
 --%% $C=\int_\R\frac{1}{|(1+t)(1+t+1)|}dt$.
   have VertIntBound : ∃ C > 0, ∀ σ' > 1, Complex.abs (VerticalIntegral f σ') ≤ x^σ' * C
   · let C := ∫ (t : ℝ), 1 / |(1 + t) * (1 + t + 1)|
