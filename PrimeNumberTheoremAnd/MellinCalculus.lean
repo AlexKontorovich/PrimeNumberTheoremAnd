@@ -1,9 +1,6 @@
-import Mathlib.Analysis.Complex.CauchyIntegral
-import Mathlib.NumberTheory.VonMangoldt
-import Mathlib.NumberTheory.ArithmeticFunction
-import Mathlib.NumberTheory.ZetaFunction
-import Mathlib.Analysis.Analytic.Meromorphic
-import PrimeNumberTheoremAnd.EulerProducts.LSeries
+import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+
+open Complex Topology Filter
 
 /-%%
 In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler), prove its inversion formula, and
@@ -21,19 +18,20 @@ might have clunkier calculations, which ``magically'' turn out just right - of c
 
 /-%%
 It is very convenient to define integrals along vertical lines in the complex plane, as follows.
-\begin{definition}\label{VerticalIntegral}
+\begin{definition}\label{VerticalIntegral}\leanok
 Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a real number. Then we define
 $$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
 \end{definition}
 [Note: Better to define $\int_{(\sigma)}$ as $\frac1{2\pi i}\int_{\sigma-i\infty}^{\sigma+i\infty}$??
 There's a factor of $2\pi i$ in such contour integrals...]
 %%-/
--- definition VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
---   ∫ s : ℝ in {σ} | f s |, f s
+noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
+  I • ∫ t : ℝ, f (σ + t * I)
+
 /-%%
 We first prove the following ``Perron-type'' formula.
 \begin{lemma}\label{PerronFormula}
-For $x>0$ and $\sigma>1$, we have
+For $x>0$ and $\sigma>0$, we have
 $$
 \frac1{2\pi i}
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds = \begin{cases}
@@ -44,12 +42,87 @@ $$
 \end{lemma}
 %%-/
 
+lemma HolomorphicOn_of_Perron_function {x : ℝ} (xpos : 0 < x) :
+    HolomorphicOn (fun s => x ^ s / (s * (s + 1))) {s | 0 < s.re} := by
+  sorry
+
+lemma RectangleIntegral_eq_zero {σ σ' T : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 < σ') (T_pos : 0 < T)
+    {f : ℂ → ℂ} (fHolo : HolomorphicOn f {s | 0 < s.re}) :
+    RectangleIntegral f (σ - I * T) (σ' + I * T) = 0 := by
+  sorry -- apply HolomorphicOn.vanishesOnRectangle in PR #9598
+
+lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 < σ')
+    {f : ℂ → ℂ} (fHolo : HolomorphicOn f {s | 0 < s.re}) :
+    -- needs more hypotheses
+    Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ - I * T) (σ' + I * T)) atTop
+      (𝓝 (VerticalIntegral f σ' - VerticalIntegral f σ)) := by
+  sorry
+
+lemma PerronIntegralPosAux : 0 < ∫ (t : ℝ), 1 / |(1 + t) * (1 + t + 1)| := by
+
+  sorry
+
+lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) (x_le_one : x < 1) {σ : ℝ} (σ_gt_one : 1 < σ) :
+    Complex.abs (VerticalIntegral f σ') ≤ x ^ σ' * ∫ (t : ℝ), 1 / |(1 + t) * (1 + t + 1)| := by
+  sorry
+
+
+lemma limitOfConstant {a : ℝ → ℂ} (σ : ℝ) (ha : ∀ᶠ (σ' : ℝ) (σ'' : ℝ) in atTop, a σ' = a σ'')
+    (ha' : Tendsto (fun σ' => a σ') atTop (𝓝 0)) : a σ = 0 := by
+  sorry
+/-%%
+We break this into the two cases, first proving the following.
+\begin{lemma}\label{PerronFormulaLeOne}\lean{VerticalIntegral_Perron_le_one}
+For $x>0$, $\sigma>0$, and $x<1$, we have
+$$
+\frac1{2\pi i}
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds =0.
+$$
+\end{lemma}
+%%-/
+lemma VerticalIntegral_Perron_le_one {x : ℝ} (xpos : 0 < x) (x_le_one : x < 1)
+    {σ : ℝ} (σ_pos : 0 < σ) : VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 0 := by
 /-%%
 \begin{proof}
 \uses{ResidueTheoremOnRectangle, RectangleIntegralEqSumOfRectangles, VerticalIntegral, MellinTransform}
-Pull contours and collect residues. This only involves rectangles, and everything is absolutely convergent.
-\end{proof}
+  Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 %%-/
+  set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
+  have fHolo : HolomorphicOn f {s : ℂ | 0 < s.re} := HolomorphicOn_of_Perron_function xpos
+--%% The rectangle integral of $f$ with corners $\sigma-iT$ and $\sigma+iT$ is zero.
+  have rectInt : ∀ (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') (T : ℝ) (Tpos : 0 < T),
+    RectangleIntegral f (σ' - I * T) (σ'' + I * T) = 0 :=
+    fun σ' σ'' σ'pos σ''pos T Tpos ↦ RectangleIntegral_eq_zero σ'pos σ''pos Tpos fHolo
+--%% The limit of this rectangle integral as $T\to\infty$ is $\int_{(\sigma')}-\int_{(\sigma)}$.
+  have rectIntLimit : ∀ (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ''),
+    Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ' - I * T) (σ'' + I * T))
+      atTop (𝓝 (VerticalIntegral f σ'' - VerticalIntegral f σ')) := fun σ' σ'' σ'pos σ''pos ↦
+      RectangleIntegral_tendsTo_VerticalIntegral σ'pos σ''pos fHolo
+--%% Therefore, $\int_{(\sigma')}=\int_{(\sigma)}$.
+  have contourPull : ∀ (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ''),
+    VerticalIntegral f σ' = VerticalIntegral f σ''
+  · intro σ' σ'' σ'pos σ''pos
+    have := rectIntLimit σ' σ'' σ'pos σ''pos
+    sorry
+--%% But we also have the bound $\int_{(\sigma')}\leq x^\sigma' * C$, where
+--%% $C=\int_\R\frac{1}{|(1+t)(1+t+1)|}dt$.
+  have VertIntBound : ∃ C > 0, ∀ σ' > 1, Complex.abs (VerticalIntegral f σ') ≤ x^σ' * C
+  · let C := ∫ (t : ℝ), 1 / |(1 + t) * (1 + t + 1)|
+    exact ⟨C, PerronIntegralPosAux, fun σ' σ'_gt_one ↦ VertIntPerronBound xpos x_le_one σ'_gt_one⟩
+--%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
+  have VertIntTendsto : Tendsto (fun (σ' : ℝ) ↦ VerticalIntegral f σ') atTop (𝓝 0)
+  · have : ‖x‖ < 1 := sorry
+    have := tendsto_pow_atTop_nhds_0_of_norm_lt_1 this
+    sorry
+--%% So pulling contours gives $\int_{(\sigma)}=0$.
+  refine limitOfConstant (a := fun σ' ↦ VerticalIntegral f σ') σ ?_ VertIntTendsto
+  filter_upwards [mem_atTop 1]
+  intro σ' σ'_ge_one
+  filter_upwards [mem_atTop 1]
+  intro σ'' σ''_ge_one
+  exact contourPull σ' σ'' (by linarith) (by linarith)
+--%%\end{proof}
+
 
 /-%%
 \begin{theorem}\label{MellinInversion}
