@@ -38,7 +38,7 @@ $$
 
 
 \begin{proof}
-\uses{ResidueTheoremOnRectangle, VerticalIntegral, MellinTransform}
+\uses{ResidueTheoremOnRectangle, RectangleIntegralEqSumOfRectangles, VerticalIntegral, MellinTransform}
 Pull contours and collect residues. This only involves rectangles, and everything is absolutely convergent.
 \end{proof}
 
@@ -136,6 +136,7 @@ Integrate by parts once.
 
 We can make a delta spike out of this bumpfunction, as follows.
 \begin{definition}\label{DeltaSpike}
+\uses{SmoothExistence}
 Let $\psi$ be a bumpfunction supported in $[1/2,2]$. Then for any $\epsilon>0$, we define the delta spike $\psi_\epsilon$ to be the function from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
 $$\psi_\epsilon(x) = \frac{1}{\epsilon}\psi\left(x^{\frac{1}{\epsilon}}\right).$$
 \end{definition}
@@ -180,7 +181,7 @@ $$\mathcal{M}(\psi_\epsilon)(1) =
 
 
 \begin{proof}
-\uses{MellinOfDeltaSpike}
+\uses{MellinOfDeltaSpike, DeltaSpikeMass}
 This is immediate from the above theorem, the fact that $\mathcal{M}(\psi)(0)=1$ (total mass one),
 and that $\psi$ is Lipschitz.
 \end{proof}

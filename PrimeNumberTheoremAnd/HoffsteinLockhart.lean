@@ -45,7 +45,7 @@ whence $F(\sigma)\ge1$ there.
 \uses{thm:HLineq}
 That
 $\log F(\sigma)\ge0$ for $\sigma>1$ follows from
-Theorem~\ref{thm:HLineq}.
+Theorem \ref{thm:HLineq}.
 \end{proof}
 [Note: I often prefer to avoid taking logs of functions that, even if real-valued, have to be justified as being such. Instead, I like to start with ``logF'' as a convergent
 Dirichlet series, show that it is real-valued and non-negative, and then exponentiate...]
@@ -62,7 +62,7 @@ $$
 \end{theorem}
 \begin{proof}
 \uses{thm:Fsigma'}
-Use Theorem~\ref{thm:Fsigma'} and Hadamard factorization.
+Use Theorem \ref{thm:Fsigma'} and Hadamard factorization.
 \end{proof}
 
 This allows us to quantify precisely the relationship between $T$ and $\delta$ in

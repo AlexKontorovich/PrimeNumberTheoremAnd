@@ -7,9 +7,13 @@ Let $f: \N \to \C$ be an arithmetic function such that $\sum_{n=1}^\infty \frac{
 $$ F(s) := \sum_{n=1}^\infty \frac{f(n)}{n^s}$$
 is absolutely convergent for $\sigma>1$.
 
+
+
 \begin{lemma}[First Fourier identity]\label{first-fourier}  If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = \int_\R F(\sigma + it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
+
+
 
 \begin{proof}  By the definition of the Fourier transform, the left-hand side expands as
 $$ \sum_{n=1}^\infty \int_\R \frac{f(n)}{n^\sigma} \psi(t) e( - \frac{1}{2\pi} t \log \frac{n}{x})\ dt$$
@@ -20,9 +24,13 @@ $$\frac{f(n)}{n^\sigma} \psi(t) e( - \frac{1}{2\pi} t \log \frac{n}{x}) = \frac{
 the claim then follows from Fubini's theorem.
 \end{proof}
 
+
+
 \begin{lemma}[Second Fourier identity]\label{second-fourier} If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
 $$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du = x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt.$$
 \end{lemma}
+
+
 
 \begin{proof}
 \uses{first-fourier}
@@ -33,11 +41,15 @@ $$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} e(-\frac{tu}{2\pi})\ du = x^{\
 which is a routine calculation.
 \end{proof}
 
+
+
 Now let $A \in \C$, and suppose that there is a continuous function $G(s)$ defined on $\mathrm{Re} s \geq 1$ such that $G(s) = F(s) - \frac{A}{s-1}$ whenever $\mathrm{Re} s > 1$.  We also make the Chebyshev-type hypothesis
 \begin{equation}\label{cheby}
 \sum_{n \leq x} |f(n)| \ll x
 \end{equation}
 for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies the arguments and can be obtained fairly easily in applications).
+
+
 
 \begin{lemma}[Decay bounds]\label{decay}  If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
   $$ |\psi(t)|, |\psi''(t)| \leq A / (1 + |t|^2)$$
@@ -46,12 +58,18 @@ $$ |\hat \psi(u)| \leq C A / (1+|u|^2)$$
 for all $u \in \R$, where $C$ is an absolute constant.
 \end{lemma}
 
+
+
 \begin{proof} This follows from a standard integration by parts argument.
 \end{proof}
+
+
 
 \begin{lemma}[Limiting Fourier identity]\label{limiting}  If $\psi: \R \to \C$ is $C^2$ and compactly supported and $x \geq 1$, then
 $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
+
+
 
 \begin{proof}
 \uses{first-fourier,second-fourier,decay}
@@ -60,18 +78,26 @@ $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )
   Now take limits as $\sigma \to 1$ using dominated convergence together with \eqref{cheby} and Lemma \ref{decay} to obtain the result.
 \end{proof}
 
+
+
 \begin{corollary}\label{limiting-cor}  With the hypotheses as above, we have
   $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
   as $x \to \infty$.
 \end{corollary}
+
+
 
 \begin{proof}
 \uses{limiting}
  Immediate from the Riemann-Lebesgue lemma, and also noting that $\int_{-\infty}^{-\log x} \hat \psi(\frac{u}{2\pi})\ du = o(1)$.
 \end{proof}
 
+
+
 \begin{lemma}\label{schwarz-id}  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.
 \end{lemma}
+
+
 
 \begin{proof}
 \uses{limiting-cor}
@@ -86,17 +112,25 @@ $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{\leq R}( \frac{1}{2\pi} \log \fra
 Combining the two estimates and letting $R$ be large, we obtain the claim.
 \end{proof}
 
+
+
 \begin{lemma}\label{bij}  The Fourier transform is a bijection on the Schwartz class.
 \end{lemma}
 
+
+
 \begin{proof}  This is a standard result in Fourier analysis.
 \end{proof}
+
+
 
 \begin{corollary}\label{WienerIkeharaSmooth}
   If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then, then
 $$ \sum_{n=1}^\infty f(n) \Psi( \frac{n}{x} ) = A x \int_0^\infty \Psi(y)\ dy + o(x)$$
 as $u \to \infty$.
 \end{corollary}
+
+
 
 \begin{proof}
 \uses{bij,schwarz-id}
@@ -107,11 +141,17 @@ $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )
 and the claim follows from Lemma \ref{schwarz-id}.
 \end{proof}
 
+
+
 \begin{lemma}[Smooth Urysohn lemma]\label{smooth-ury}  If $I$ is a closed interval contained in an open interval $J$, then there exists a smooth function $\Psi: \R \to \R$ with $1_I \leq \Psi \leq 1_J$.
 \end{lemma}
 
+
+
 \begin{proof}  A standard analysis lemma, which can be proven by convolving $1_K$ with a smooth approximation to the identity for some interval $K$ between $I$ and $J$.
 \end{proof}
+
+
 
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
@@ -121,10 +161,14 @@ Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
   $$ \sum_{n=1}^\infty f(n) 1_I( \frac{n}{x} ) = A x |I|  + o(x).$$
 \end{proposition}
 
+
+
 \begin{proof}
-\uses{smooth-ury}
+\uses{smooth-ury, WienerIkeharaSmooth}
   Use Lemma \ref{smooth-ury} to bound $1_I$ above and below by smooth compactly supported functions whose integral is close to the measure of $|I|$, and use the non-negativity of $f$.
 \end{proof}
+
+
 
 \begin{corollary}\label{WienerIkehara}
   We have
@@ -136,6 +180,21 @@ $$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
 \begin{proof}
 \uses{WienerIkeharaInterval, cheby}
   Apply the preceding proposition with $I = [\varepsilon,1]$ and then send $\varepsilon$ to zero (using \eqref{cheby} to control the error).
+\end{proof}
+
+
+
+\section{Weak PNT}
+
+\begin{theorem}[Weak PNT]\label{WeakPNT}  We have
+$$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
+\end{theorem}
+
+
+
+\begin{proof}
+\uses{WienerIkehara, ChebyshevPsi}
+  Already done by Stoll, assuming Wiener-Ikehara.
 \end{proof}
 
 
