@@ -36,11 +36,19 @@ etc.
 
 There are (at least) three approaches to PNT that we may want to pursue simultaneously. The quickest, at this stage, is likely to
 follow
- the ``Euclidean Products'' project by Michael Stoll, which has a proof of PNT missing only the Wiener-Ikehara Tauberian theorem.
+ the ``Euler Products'' project by Michael Stoll, which has a proof of PNT missing only the Wiener-Ikehara Tauberian theorem.
 
 The second develops some complex analysis (residue calculus on rectangles, argument principle, Mellin transforms), to pull contours and derive a PNT with just an asymptotic formula.
 
 The third approach, which will be the most general of the three, is to: (1) develop the residue calculus et al, as above, (2) add the Hadamard factorization theorem, (3) use it to prove the zero-free region for zeta via Hoffstein-Lockhart+Goldfeld-Hoffstein-Liemann (which generalizes to higher degree L-functions), and (4) use this to prove the prime number theorem with exp-root-log savings.
+
+A word about the expected ``rate-limiting-steps'' in each of the approaches. 
+
+(*) In approach (1), I think it will be the fact that the Fourier transform is a bijection on the Schwartz class. There is a recent PR (https://github.com/leanprover-community/mathlib4/pull/9773) with David Loeffler and Heather Macbeth making the first steps in that direction, just computing the (Frechet) derivative of the Fourier transform. One will need to iterate on that to get arbitrary derivatives, to conclude the bijection.
+
+(*) In approach (2), there are two rate-limiting-steps, neither too serious (in my estimation). The first is how to handle meromorphic functions on rectangles. Perhaps in this project, it should not be done in any generality, but on a case by case basis. There are two simple poles whose residues need to be computed in the proof of the Perron formula, and one simple pole in the log-derivative of zeta, nothing too complicated, and maybe we shouldn't get bogged down in the general case. The other is the fact that the $\epsilon$-smoothed Chebyshev function differs from the unsmoothed by $\epsilon X$ (and not $\epsilon X \log X$, as follows from a trivial bound). This needs a Brun-Titchmarsh type theorem, perhaps can be done even more easily in this case with a Selberg sieve, on which there is (partial?) progress in Mathlib.
+
+(*) In approach (3), it's obviously the Hadamard factorization, which needs quite a lot of nontrivial mathematics. (But after that, the math is not hard, on top of things in approach (2) -- and if we're getting the strong error term, we can afford to lose $\log X$ in the Chebyshev discussion above...).
 
 \chapter{First approach: Wiener-Ikehara Tauberian theorem.}
 

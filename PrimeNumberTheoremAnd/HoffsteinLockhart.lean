@@ -66,6 +66,6 @@ Use Theorem~\ref{thm:Fsigma'} and Hadamard factorization.
 \end{proof}
 
 This allows us to quantify precisely the relationship between $T$ and $\delta$ in
-Theorem~\ref{ZetaNoZerosInBox}....
+Theorem \ref{ZetaNoZerosInBox}....
 
 %%-/
