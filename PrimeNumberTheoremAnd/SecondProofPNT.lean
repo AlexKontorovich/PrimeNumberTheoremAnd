@@ -126,7 +126,7 @@ For any $T>0$, there is a $\delta>0$ so that $[1-\delta,1] \times_{ℂ} [-T,T]$ 
 
 /-%%
 \begin{proof}
-\uses{NoZerosInBoxOfNoneOnBoundary}
+\uses{NoZerosInBoxOfNoneOnBoundary, ZetaNoZerosOn1Line}
 We have that zeta doesn't vanish on the 1 line and is holomorphic inside the box (except for the pole at $s=1$). If for a height $T>0$, there was no such $\delta$, then there would be a sequence of zeros of $\zeta$ approaching the 1 line, and by compactness, we could find a subsequence of zeros converging to a point on the 1 line. But then $\zeta$ would vanish at that point, a contradiction. (Worse yet, zeta would then be entirely zero...)
 \end{proof}
 %%-/
