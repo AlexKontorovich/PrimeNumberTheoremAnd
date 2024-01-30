@@ -32,17 +32,17 @@ $$
 higher degree $L$-functions.]
 
 This means that, for fixed $t$, we define the following alternate function.
-\begin{definition}\label{Fsigma'Def} For $\sigma>1$ and $t\in\mathbb{R}$, define
+\begin{definition}\label{FsigmaDef} For $\sigma>1$ and $t\in\mathbb{R}$, define
 $$
 F(\sigma) := \zeta^3(\sigma)\zeta^2(\sigma+it)\zeta^2(\sigma-it)\zeta(\sigma+2it)\zeta(\sigma-2it).
 $$
 \end{definition}
-\begin{theorem}\label{Fsigma'Thm}
+\begin{theorem}\label{FsigmaThm}
 Then $F$ is real-valued, and
 whence $F(\sigma)\ge1$ there.
 \end{theorem}
 \begin{proof}
-\uses{thm:HLineq, Fsigma'Def}
+\uses{thm:HLineq, FsigmaDef}
 That
 $\log F(\sigma)\ge0$ for $\sigma>1$ follows from
 Theorem \ref{thm:HLineq}.
@@ -60,8 +60,8 @@ $$
 there.
 \end{theorem}
 \begin{proof}
-\uses{Fsigma'Thm}
-Use Theorem \ref{Fsigma'Thm} and Hadamard factorization.
+\uses{FsigmaThm}
+Use Theorem \ref{FsigmaThm} and Hadamard factorization.
 \end{proof}
 
 This allows us to quantify precisely the relationship between $T$ and $\delta$ in

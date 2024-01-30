@@ -181,9 +181,9 @@ where:
 
 %%-/
 /-%%
-\section{Weak PNT'}
+\section{Weak PNT proof 2}
 
-\begin{theorem}[Weak PNT']\label{WeakPNT'}  We have
+\begin{theorem}[Weak PNT2]\label{WeakPNT2}  We have
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 \end{theorem}
 %%-/
