@@ -55,7 +55,7 @@ $$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X).$$
 
 /-%%
 \begin{proof}
-\uses{SmoothedChebyshevDirichlet, Smooth1Properties}
+\uses{SmoothedChebyshevDirichlet, Smooth1Properties, ChebyshevPsi}
 Take the difference. By Lemma \ref{Smooth1Properties}, the sums agree except when $1-c \epsilon \leq n/X \leq 1+c \epsilon$. This is an interval of length $\ll \epsilon X$, and the summands are bounded by $\Lambda(n) \ll \log X$.
 
 This is not enough, as it loses a log! (Which is fine if our target is the strong PNT, with exp-root-log savings, but not here with the ``softer'' approach.) So we will need something like the Selberg sieve (already in Mathlib? Or close?) to conclude that the number of primes in this interval is $\ll \epsilon X / \log X + 1$.
