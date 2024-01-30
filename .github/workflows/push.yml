@@ -58,7 +58,16 @@ jobs:
         uses: actions/deploy-pages@v3
 
 
-      # generate doc after blueprint (as it's quite a bit longer)
+  # generate doc after blueprint (as it's quite a bit longer)
+  build_docs:
+    runs-on: ubuntu-latest
+    name: Build docs
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Install elan
         run: curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain $(cat lean-toolchain)
 
@@ -86,6 +95,14 @@ jobs:
         run: |
           mkdir -p docs
           cp -r .lake/build/doc docs/docs
+
+      - name: Download blueprint artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: blueprint_artifacts
+          
+      - name: Extract blueprint artifacts
+        run: rsync -av blueprint_artifacts/*/* docs/docs/
 
       - name: Upload docs & blueprint artifact
         uses: actions/upload-pages-artifact@v2
