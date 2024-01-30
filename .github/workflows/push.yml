@@ -102,7 +102,7 @@ jobs:
           path: blueprint_artifacts
           
       - name: Extract blueprint artifacts
-        run: rsync -av blueprint_artifacts/*/* docs/docs/
+        run: tar xvf blueprint_artifacts/github-pages/artifact.tar -C docs/
 
       - name: Upload docs & blueprint artifact
         uses: actions/upload-pages-artifact@v2
