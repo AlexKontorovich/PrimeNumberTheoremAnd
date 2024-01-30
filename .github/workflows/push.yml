@@ -45,6 +45,14 @@ jobs:
           mkdir -p docs
           mv blueprint/web docs/
 
+      - name: Restore previous documentation, while we wait for the next one to be generated
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            docs/docs
+          key: Documentation-cache
+
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
@@ -95,6 +103,13 @@ jobs:
         run: |
           mkdir -p docs
           cp -r .lake/build/doc docs/docs
+
+      - name: Save documentation for future use
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            docs/docs
+          key: Documentation-cache
 
       - name: Download blueprint artifacts
         uses: actions/download-artifact@v3
