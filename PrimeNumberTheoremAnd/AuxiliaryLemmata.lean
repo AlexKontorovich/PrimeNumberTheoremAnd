@@ -58,7 +58,7 @@ lemma HolomorphicOn_of_Perron_function {x : ℝ} (xpos : 0 < x) :
 \begin{lemma}\label{RectangleIntegral_eq_zero}\lean{RectangleIntegral_eq_zero}
 \uses{RectangleIntegral}
 Let $\sigma,\sigma',T>0$, and let $f$ be a holomorphic function on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$. Then
-the rectanglet integral
+the rectangle integral
 $$\int_{\sigma-iT}^{\sigma'+iT}f(s)ds = 0.$$
 \end{lemma}
 %%-/
