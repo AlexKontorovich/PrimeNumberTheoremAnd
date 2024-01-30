@@ -58,7 +58,7 @@ class MeromorphicOnRectangle (f : ℂ → ℂ) (poles : Finset ℂ) (z w : ℂ) 
   continuousOn : ContinuousOn f (RectangleBorder z w)
 
 /-%%
-\begin{theorem}\label{RectangleIntegralEqSumOfRectangles}\lean{RectangleIntegralEqSumOfRectangles}
+\begin{theorem}\label{RectangleIntegralEqSumOfRectangles}%\lean{RectangleIntegralEqSumOfRectangles}
 If $f$ is meromorphic on a rectangle with corners $z$ and $w$, then the rectangle integral of $f$
 is equal to the sum of sufficiently small rectangle integrals around each pole.
 \end{theorem}

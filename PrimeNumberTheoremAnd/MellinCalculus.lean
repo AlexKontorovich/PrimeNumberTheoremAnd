@@ -25,6 +25,7 @@ $$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
 [Note: Better to define $\int_{(\sigma)}$ as $\frac1{2\pi i}\int_{\sigma-i\infty}^{\sigma+i\infty}$??
 There's a factor of $2\pi i$ in such contour integrals...]
 %%-/
+
 noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
   I • ∫ t : ℝ, f (σ + t * I)
 
@@ -38,6 +39,7 @@ This requires some preparatory material.
 Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 \end{lemma}
 %%-/
+
 lemma HolomorphicOn_of_Perron_function {x : ℝ} (xpos : 0 < x) :
     HolomorphicOn (fun s => x ^ s / (s * (s + 1))) {s | 0 < s.re} := by
   sorry
@@ -50,6 +52,7 @@ the rectanglet integral
 $$\int_{\sigma-iT}^{\sigma'+iT}f(s)ds = 0.$$
 \end{lemma}
 %%-/
+
 lemma RectangleIntegral_eq_zero {σ σ' T : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 < σ') (T_pos : 0 < T)
     {f : ℂ → ℂ} (fHolo : HolomorphicOn f {s | 0 < s.re}) :
     RectangleIntegral f (σ - I * T) (σ' + I * T) = 0 := by
@@ -65,6 +68,7 @@ $$\lim_{T\to\infty}\int_{\sigma-iT}^{\sigma'+iT}f(s)ds = \int_{(\sigma')}f(s)ds 
 *** Needs more conditions on $f$ ***
 \end{lemma}
 %%-/
+
 lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 < σ')
     {f : ℂ → ℂ} (fHolo : HolomorphicOn f {s | 0 < s.re}) :
     -- needs more hypotheses
@@ -79,6 +83,7 @@ $$\int_\R\frac{1}{|(1+t)(1+t+1)|}dt$$
 is positive (and hence convergent - since a divergent integral is zero in Lean, by definition).
 \end{lemma}
 %%-/
+
 lemma PerronIntegralPosAux : 0 < ∫ (t : ℝ), 1 / |(1 + t) * (1 + t + 1)| := by
   sorry
 
@@ -90,6 +95,7 @@ $$\left|
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t)(1+t+1)|}dt.$$
 \end{lemma}
 %%-/
+
 lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) (x_le_one : x < 1) {σ : ℝ} (σ_gt_one : 1 < σ) :
     Complex.abs (VerticalIntegral f σ) ≤ x ^ σ * ∫ (t : ℝ), 1 / |(1 + t) * (1 + t + 1)| := by
   sorry
@@ -101,9 +107,11 @@ $\sigma, \sigma'>0$, we have $a(\sigma')=a(\sigma)$, and that
 $\lim_{\sigma\to\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
 \end{lemma}
 %%-/
+
 lemma limitOfConstant {a : ℝ → ℂ} {σ : ℝ} (σpos : 0 < σ) (ha : ∀ (σ' : ℝ) (σ'' : ℝ) (σ'pos : 0 < σ')
     (σ''pos : 0 < σ''), a σ' = a σ'') (ha' : Tendsto (fun σ' => a σ') atTop (𝓝 0)) : a σ = 0 := by
   sorry
+
 /-%%
 We are ready for the Perron formula, which breaks into two cases, the first being:
 \begin{lemma}\label{PerronFormulaLtOne}\lean{VerticalIntegral_Perron_lt_one}
@@ -114,6 +122,7 @@ $$
 $$
 \end{lemma}
 %%-/
+
 lemma VerticalIntegral_Perron_lt_one {x : ℝ} (xpos : 0 < x) (x_lt_one : x < 1)
     {σ : ℝ} (σ_pos : 0 < σ) : VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 0 := by
 /-%%
@@ -163,6 +172,7 @@ $$
 $$
 \end{lemma}
 %%-/
+
 lemma VerticalIntegral_Perron_gt_one {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < σ) :
     VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 1 - 1 / x := by
   sorry
@@ -371,7 +381,7 @@ This is a straightforward calculation, using the fact that $\psi_\epsilon$ is su
 
 /-%%
 Combining the above, we have the following Main Lemma of this section on the Mellin transform of $\widetilde{1_{\epsilon}}$.
-\begin{lemma}\label{MellinOfSmooth1}\uses{Smooth1Properties, MellinConvolutionTransform, MellinOfDeltaSpikeAt1}
+\begin{lemma}\label{MellinOfSmooth1}\uses{Smooth1Properties, MellinConvolutionTransform, MellinOfDeltaSpikeAt1, MellinOfPsi}
 Fix  $\epsilon>0$. Then the Mellin transform of $\widetilde{1_{\epsilon}}$ is
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = \frac{1}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
 

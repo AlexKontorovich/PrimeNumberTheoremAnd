@@ -18,10 +18,10 @@ noncomputable def ChebyshevPsi (x : ℝ) : ℝ := (Finset.range (Nat.floor x)).s
 /-%%
 
 Main Theorem: The Prime Number Theorem in strong form.
-\begin{theorem}[PrimeNumberTheorem]\label{StrongPNT}\lean{PrimeNumberTheorem}\uses{thm:StrongZeroFree, ChebyshevPsi}
+\begin{theorem}[PrimeNumberTheorem]\label{StrongPNT}\lean{PrimeNumberTheorem}\uses{thm:StrongZeroFree, ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval}
 There is a constant $c > 0$ such that
 $$
-\psi(x) = x + O(x \exp(-c \sqrt(\log x)))
+\psi(x) = x + O(x \exp(-c \sqrt{\log x}))
 $$
 as $x\to \infty$.
 \end{theorem}
