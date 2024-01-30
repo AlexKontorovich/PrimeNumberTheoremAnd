@@ -158,7 +158,10 @@ Combining the two estimates and letting $R$ be large, we obtain the claim.
 lemma fourier_surjection_on_schwartz (f : SchwartzMap ℝ ℂ) : ∃ g : SchwartzMap ℝ ℂ, fourierIntegral g = f := by sorry
 
 /-%%
-\begin{proof}  This is a standard result in Fourier analysis.
+\begin{proof}
+\uses{MellinInversion}
+ This is a standard result in Fourier analysis.
+It can be proved here by appealing to Mellin inversion, Theorem \ref{MellinInversion}.
 \end{proof}
 %%-/
 

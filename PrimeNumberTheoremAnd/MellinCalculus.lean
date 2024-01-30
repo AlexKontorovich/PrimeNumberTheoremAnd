@@ -107,7 +107,7 @@ $$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
 %%-/
 /-%%
 \begin{proof}
-\uses{PerronFormula}
+\uses{PerronFormula, MellinTransform}
 The proof is from [Goldfeld-Kontorovich 2012].
 Integrate by parts twice.
 $$
