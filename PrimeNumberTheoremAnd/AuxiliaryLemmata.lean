@@ -89,7 +89,7 @@ lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} (σ_pos : 0 < σ
 /-%%
 \begin{lemma}\label{PerronIntegralPosAux}\lean{PerronIntegralPosAux}
 The integral
-$$\int_\R\frac{1}{|(1+t)(1+t+1)|}dt$$
+$$\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$$
 is positive (and hence convergent - since a divergent integral is zero in Lean, by definition).
 \end{lemma}
 %%-/
@@ -102,7 +102,7 @@ lemma PerronIntegralPosAux : 0 < ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.
 \uses{VerticalIntegral}
 Let $x>0$, $\sigma>1$, and $x<1$. Then
 $$\left|
-\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t)(1+t+1)|}dt.$$
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
 \end{lemma}
 %%-/
 

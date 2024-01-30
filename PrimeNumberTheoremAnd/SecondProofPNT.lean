@@ -190,7 +190,7 @@ $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 
 /-%%
 \begin{proof}
-\uses{ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval, WeakPNT}
+\uses{ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval}
   Evaluate the integrals.
 \end{proof}
 %%-/
