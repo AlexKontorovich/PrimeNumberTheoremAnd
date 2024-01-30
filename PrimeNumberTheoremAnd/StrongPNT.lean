@@ -6,7 +6,7 @@ open Nat
 open scoped ArithmeticFunction
 
 /-%%
-\begin{definition}%\label{ChebyshevPsi}\lean{ChebyshevPsi}\leanok
+\begin{definition}\label{ChebyshevPsi}\lean{ChebyshevPsi}\leanok
 The Chebyshev Psi function is defined as
 $$
 \psi(x) := \sum_{n \le x} \Lambda(n),
@@ -18,10 +18,10 @@ noncomputable def ChebyshevPsi (x : ℝ) : ℝ := (Finset.range (Nat.floor x)).s
 /-%%
 
 Main Theorem: The Prime Number Theorem in strong form.
-\begin{theorem}[PrimeNumberTheorem]\label{StrongPNT}\lean{PrimeNumberTheorem}\uses{thm:StrongZeroFree, ChebysevPsi, WeakPNT'}
+\begin{theorem}[PrimeNumberTheorem]\label{StrongPNT}\lean{PrimeNumberTheorem}\uses{thm:StrongZeroFree, ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval}
 There is a constant $c > 0$ such that
 $$
-\psi(x) = x + O(x exp(-c sqrt(log x)))
+\psi(x) = x + O(x \exp(-c \sqrt{\log x}))
 $$
 as $x\to \infty$.
 \end{theorem}

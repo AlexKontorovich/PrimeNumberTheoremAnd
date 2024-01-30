@@ -4,6 +4,7 @@ import Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.NumberTheory.ZetaFunction
 import Mathlib.Analysis.Analytic.Meromorphic
 import PrimeNumberTheoremAnd.EulerProducts.LSeries
+import PrimeNumberTheoremAnd.AuxiliaryLemmata
 
 open Complex BigOperators Finset Nat Classical
 
@@ -13,14 +14,6 @@ open scoped ArithmeticFunction Interval
 
 In this file, we develop residue calculus on rectangles.
 
-\begin{definition}\label{Rectangle}\lean{Rectangle}\leanok
-A Rectangle has corners $z$ and $w \in \C$.
-\end{definition}
-%%-/
-/-- A `Rectangle` has corners `z` and `w`. -/
-def Rectangle (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ [[z.im, w.im]]
-
-/-%%
 The border of a rectangle is the union of its four sides.
 \begin{definition}\label{RectangleBorder}\lean{RectangleBorder}\leanok
 A Rectangle's border, given corners $z$ and $w$ is the union of the four sides.
@@ -29,25 +22,13 @@ A Rectangle's border, given corners $z$ and $w$ is the union of the four sides.
 /-- A `RectangleBorder` has corners `z` and `w`. -/
 def RectangleBorder (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ {z.im} ∪ {z.re} ×ℂ [[z.im, w.im]] ∪ [[z.re, w.re]] ×ℂ {w.im} ∪ {w.re} ×ℂ [[z.im, w.im]]
 
-/-%%
-\begin{definition}\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
-A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ and $w$ in $\C$.
-\end{definition}
-%%-/
-/-- A `RectangleIntegral` of a function `f` is one over a rectangle determined by
-  `z` and `w` in `ℂ`. -/
-noncomputable def RectangleIntegral (f : ℂ → ℂ) (z w : ℂ) : ℂ :=
-    (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I))
-     + I • (∫ y : ℝ in z.im..w.im, f (w.re + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (z.re + y * I)
-
-/-- A function is `HolomorphicOn` a set if it is complex differentiable on that set. -/
-abbrev HolomorphicOn (f : ℂ → ℂ) (s : Set ℂ) : Prop := DifferentiableOn ℂ f s
 
 /-%%
 \begin{definition}\label{MeromorphicOnRectangle}\lean{MeromorphicOnRectangle}\leanok
 \uses{Rectangle, RectangleBorder, RectangleIntegral}
 A function $f$ is Meromorphic on a rectangle with corners $z$ and $w$ if it is holomorphic off a
 (finite) set of poles, none of which are on the boundary of the rectangle.
+[Note: Might be overkill, can just work explicitly with the functions that arise. Of course would be nice to have the general theory as well...]
 \end{definition}
 %%-/
 /-- A function is `MeromorphicOnRectangle` if it's holomorphic off of a finite set of `poles`,
@@ -58,7 +39,7 @@ class MeromorphicOnRectangle (f : ℂ → ℂ) (poles : Finset ℂ) (z w : ℂ) 
   continuousOn : ContinuousOn f (RectangleBorder z w)
 
 /-%%
-\begin{theorem}\label{RectangleIntegralEqSumOfRectangles}\lean{RectangleIntegralEqSumOfRectangles}
+\begin{theorem}\label{RectangleIntegralEqSumOfRectangles}%\lean{RectangleIntegralEqSumOfRectangles}
 If $f$ is meromorphic on a rectangle with corners $z$ and $w$, then the rectangle integral of $f$
 is equal to the sum of sufficiently small rectangle integrals around each pole.
 \end{theorem}

@@ -76,7 +76,7 @@ as $n \to \infty$.
 Use Corollary \ref{pi-alt} to show that for any $\eps>0$, and for $x$ sufficiently large, the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up to $(1+\eps) n \log n$ is greater than $n$.
 \end{proof}
 
-\begin{corollary} \label{pn-pn+1}
+\begin{corollary} \label{pn-pnPlus1}
 We have $p_{n+1} - p_n = o(p_n)$
   as $n \to \infty$.
 \end{corollary}

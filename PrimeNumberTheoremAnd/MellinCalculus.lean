@@ -17,62 +17,8 @@ might have clunkier calculations, which ``magically'' turn out just right - of c
 %%-/
 
 /-%%
-It is very convenient to define integrals along vertical lines in the complex plane, as follows.
-\begin{definition}\label{VerticalIntegral}\leanok
-Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a real number. Then we define
-$$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
-\end{definition}
-[Note: Better to define $\int_{(\sigma)}$ as $\frac1{2\pi i}\int_{\sigma-i\infty}^{\sigma+i\infty}$??
-There's a factor of $2\pi i$ in such contour integrals...]
-%%-/
-noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
-  I • ∫ t : ℝ, f (σ + t * I)
-
-/-%%
-We first prove the following ``Perron-type'' formula.
-\begin{lemma}\label{PerronFormula}
-For $x>0$ and $\sigma>0$, we have
-$$
-\frac1{2\pi i}
-\int_{(\sigma)}\frac{x^s}{s(s+1)}ds = \begin{cases}
-1-\frac1x & \text{ if }x>1\\
-0 & \text{ if } x<1
-\end{cases}.
-$$
-\end{lemma}
-%%-/
-
-lemma HolomorphicOn_of_Perron_function {x : ℝ} (xpos : 0 < x) :
-    HolomorphicOn (fun s => x ^ s / (s * (s + 1))) {s | 0 < s.re} := by
-  sorry
-
-lemma RectangleIntegral_eq_zero {σ σ' T : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 < σ') (T_pos : 0 < T)
-    {f : ℂ → ℂ} (fHolo : HolomorphicOn f {s | 0 < s.re}) :
-    RectangleIntegral f (σ - I * T) (σ' + I * T) = 0 := by
-  sorry -- apply HolomorphicOn.vanishesOnRectangle in PR #9598
-
-lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 < σ')
-    {f : ℂ → ℂ} (fHolo : HolomorphicOn f {s | 0 < s.re}) :
-    -- needs more hypotheses
-    Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ - I * T) (σ' + I * T)) atTop
-      (𝓝 (VerticalIntegral f σ' - VerticalIntegral f σ)) := by
-  sorry
-
-lemma PerronIntegralPosAux : 0 < ∫ (t : ℝ), 1 / |(1 + t) * (1 + t + 1)| := by
-
-  sorry
-
-lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) (x_le_one : x < 1) {σ : ℝ} (σ_gt_one : 1 < σ) :
-    Complex.abs (VerticalIntegral f σ') ≤ x ^ σ' * ∫ (t : ℝ), 1 / |(1 + t) * (1 + t + 1)| := by
-  sorry
-
-
-lemma limitOfConstant {a : ℝ → ℂ} (σ : ℝ) (ha : ∀ᶠ (σ' : ℝ) (σ'' : ℝ) in atTop, a σ' = a σ'')
-    (ha' : Tendsto (fun σ' => a σ') atTop (𝓝 0)) : a σ = 0 := by
-  sorry
-/-%%
-We break this into the two cases, first proving the following.
-\begin{lemma}\label{PerronFormulaLeOne}\lean{VerticalIntegral_Perron_le_one}
+We are ready for the Perron formula, which breaks into two cases, the first being:
+\begin{lemma}\label{PerronFormulaLtOne}\lean{VerticalIntegral_Perron_lt_one}
 For $x>0$, $\sigma>0$, and $x<1$, we have
 $$
 \frac1{2\pi i}
@@ -80,11 +26,12 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma VerticalIntegral_Perron_le_one {x : ℝ} (xpos : 0 < x) (x_le_one : x < 1)
+
+lemma VerticalIntegral_Perron_lt_one {x : ℝ} (xpos : 0 < x) (x_lt_one : x < 1)
     {σ : ℝ} (σ_pos : 0 < σ) : VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 0 := by
 /-%%
 \begin{proof}
-\uses{ResidueTheoremOnRectangle, RectangleIntegralEqSumOfRectangles, VerticalIntegral, MellinTransform}
+\uses{HolomorphicOn_of_Perron_function, RectangleIntegral_eq_zero, PerronIntegralPosAux, VertIntPerronBound, limitOfConstant, RectangleIntegral_tendsTo_VerticalIntegral}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
@@ -104,25 +51,51 @@ lemma VerticalIntegral_Perron_le_one {x : ℝ} (xpos : 0 < x) (x_le_one : x < 1)
   · intro σ' σ'' σ'pos σ''pos
     have := rectIntLimit σ' σ'' σ'pos σ''pos
     sorry
---%% But we also have the bound $\int_{(\sigma')}\leq x^\sigma' * C$, where
+--%% But we also have the bound $\int_{(\sigma')} \leq x^{\sigma'} * C$, where
 --%% $C=\int_\R\frac{1}{|(1+t)(1+t+1)|}dt$.
   have VertIntBound : ∃ C > 0, ∀ σ' > 1, Complex.abs (VerticalIntegral f σ') ≤ x^σ' * C
-  · let C := ∫ (t : ℝ), 1 / |(1 + t) * (1 + t + 1)|
-    exact ⟨C, PerronIntegralPosAux, fun σ' σ'_gt_one ↦ VertIntPerronBound xpos x_le_one σ'_gt_one⟩
+  · let C := ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)|
+    refine ⟨C, PerronIntegralPosAux, fun σ' σ'_gt_one ↦ VertIntPerronBound xpos x_lt_one σ'_gt_one⟩
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
   have VertIntTendsto : Tendsto (fun (σ' : ℝ) ↦ VerticalIntegral f σ') atTop (𝓝 0)
   · have : ‖x‖ < 1 := sorry
     have := tendsto_pow_atTop_nhds_0_of_norm_lt_1 this
     sorry
 --%% So pulling contours gives $\int_{(\sigma)}=0$.
-  refine limitOfConstant (a := fun σ' ↦ VerticalIntegral f σ') σ ?_ VertIntTendsto
-  filter_upwards [mem_atTop 1]
-  intro σ' σ'_ge_one
-  filter_upwards [mem_atTop 1]
-  intro σ'' σ''_ge_one
-  exact contourPull σ' σ'' (by linarith) (by linarith)
+  exact limitOfConstant (a := fun σ' ↦ VerticalIntegral f σ') σ_pos contourPull VertIntTendsto
 --%%\end{proof}
 
+
+/-%%
+The second lemma is the case $x>1$.
+\begin{lemma}\label{PerronFormulaGtOne}\lean{VerticalIntegral_Perron_gt_one}
+For $x>1$ and $\sigma>0$, we have
+$$
+\frac1{2\pi i}
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds =1-1/x.
+$$
+\end{lemma}
+%%-/
+
+lemma VerticalIntegral_Perron_gt_one {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < σ) :
+    VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 1 - 1 / x := by
+  sorry
+
+
+/-%%
+The two together give the Perron formula.
+\begin{lemma}\label{PerronFormula}
+\uses{PerronFormulaLtOne, PerronFormulaGtOne}
+For $x>0$ and $\sigma>0$, we have
+$$
+\frac1{2\pi i}
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds = \begin{cases}
+1-\frac1x & \text{ if }x>1\\
+0 & \text{ if } x<1
+\end{cases}.
+$$
+\end{lemma}
+%%-/
 
 /-%%
 \begin{theorem}\label{MellinInversion}
@@ -312,7 +285,7 @@ This is a straightforward calculation, using the fact that $\psi_\epsilon$ is su
 
 /-%%
 Combining the above, we have the following Main Lemma of this section on the Mellin transform of $\widetilde{1_{\epsilon}}$.
-\begin{lemma}\label{MellinOfSmooth1}\uses{Smooth1Properties, MellinConvolutionTransform, MellinOfDeltaSpikeAt1}
+\begin{lemma}\label{MellinOfSmooth1}\uses{Smooth1Properties, MellinConvolutionTransform, MellinOfDeltaSpikeAt1, MellinOfPsi}
 Fix  $\epsilon>0$. Then the Mellin transform of $\widetilde{1_{\epsilon}}$ is
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = \frac{1}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
 

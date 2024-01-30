@@ -55,7 +55,7 @@ $$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X).$$
 
 /-%%
 \begin{proof}
-\uses{SmoothedChebyshevDirichlet, Smooth1Properties}
+\uses{SmoothedChebyshevDirichlet, Smooth1Properties, ChebyshevPsi}
 Take the difference. By Lemma \ref{Smooth1Properties}, the sums agree except when $1-c \epsilon \leq n/X \leq 1+c \epsilon$. This is an interval of length $\ll \epsilon X$, and the summands are bounded by $\Lambda(n) \ll \log X$.
 
 This is not enough, as it loses a log! (Which is fine if our target is the strong PNT, with exp-root-log savings, but not here with the ``softer'' approach.) So we will need something like the Selberg sieve (already in Mathlib? Or close?) to conclude that the number of primes in this interval is $\ll \epsilon X / \log X + 1$.
@@ -126,7 +126,7 @@ For any $T>0$, there is a $\delta>0$ so that $[1-\delta,1] \times_{ℂ} [-T,T]$ 
 
 /-%%
 \begin{proof}
-\uses{NoZerosInBoxOfNoneOnBoundary}
+\uses{NoZerosInBoxOfNoneOnBoundary, ZetaNoZerosOn1Line}
 We have that zeta doesn't vanish on the 1 line and is holomorphic inside the box (except for the pole at $s=1$). If for a height $T>0$, there was no such $\delta$, then there would be a sequence of zeros of $\zeta$ approaching the 1 line, and by compactness, we could find a subsequence of zeros converging to a point on the 1 line. But then $\zeta$ would vanish at that point, a contradiction. (Worse yet, zeta would then be entirely zero...)
 \end{proof}
 %%-/
@@ -181,16 +181,16 @@ where:
 
 %%-/
 /-%%
-\section{Weak PNT'}
+\section{Weak PNT proof 2}
 
-\begin{theorem}[Weak PNT']\label{WeakPNT'}  We have
+\begin{theorem}[Weak PNT2]\label{WeakPNT2}  We have
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 \end{theorem}
 %%-/
 
 /-%%
 \begin{proof}
-\uses{ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval, WeakPNT}
+\uses{ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval}
   Evaluate the integrals.
 \end{proof}
 %%-/
