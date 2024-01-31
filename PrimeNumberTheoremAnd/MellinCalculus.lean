@@ -163,7 +163,7 @@ lemma Function.support_id : Function.support (fun x : ℝ => x) = Set.Iio 0 ∪ 
   ext x
   simp
 
--- local attribute [-simp] one_div
+attribute [- simp] one_div
 
 /-%%
 Let $\psi$ be a bumpfunction.
@@ -209,20 +209,20 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ �
     replace hΨ0 := hΨ0 y
     replace hΨ1 := hΨ1 y
     contrapose! hy
-    simp
+    simp only [ne_eq, Set.mem_setOf_eq, not_not]
     simp only [Set.mem_Icc, not_and_or, not_le] at hy
     cases hy with
     | inl hy =>
       have h' : ¬ 1/2 < y := by linarith
-      simp [-one_div, not_le, h'] at hΨ1
+      simp [not_le, h'] at hΨ1
       have h'' : ¬ 1 ≤ y := by linarith
-      simp [-one_div, not_le, h''] at hΨ0
+      simp [not_le, h''] at hΨ0
       linarith
     | inr hy =>
       have h' : ¬ y < 2 := by linarith
-      simp [-one_div, not_le, h'] at hΨ1
+      simp only [h', and_false, ite_false] at hΨ1
       have h'' : ¬ y ≤ 3/2 := by linarith
-      simp [-one_div, not_le, h''] at hΨ0
+      simp only [h'', and_false, ite_false] at hΨ0
       linarith
   · rw [MeasureTheory.integral_pos_iff_support_of_nonneg]
     simp only [Function.support_div, measurableSet_Ici, MeasureTheory.Measure.restrict_apply']
@@ -235,25 +235,24 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ �
       · intros h
         exact h.left.left
       · intros h
-        simp [-one_div, h, and_true, lt_or_lt_iff_ne, ne_eq]
+        simp [h, and_true, lt_or_lt_iff_ne, ne_eq]
         constructor
         · linarith [h.left]
         · linarith
     rw [this]
-    simp [-one_div, Real.volume_Ioo, ENNReal.ofReal_pos, sub_pos, gt_iff_lt]
+    simp only [Real.volume_Ioo, ENNReal.ofReal_pos, sub_pos, gt_iff_lt]
     linarith
     · rw [Pi.le_def]
       intro y
-      simp
+      simp only [Pi.zero_apply]
       by_cases h : y ∈ Function.support Ψ
       . apply div_nonneg
         · apply le_trans _ (hΨ0 y)
-          simp_rw [apply_ite]
-          simp
+          simp [apply_ite]
         rw [hΨSupport] at h
-        simp [-one_div] at h
+        simp only [Set.mem_Ioo] at h
         linarith [h.left]
-      . simp at h
+      . simp only [Function.mem_support, ne_eq, not_not] at h
         rw [h]
         simp
     · have this : (fun x => Ψ x / x) = Set.piecewise (Set.Icc (1 / 2) 2) (fun x => Ψ x / x) 0 := by
@@ -262,28 +261,27 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ �
         by_cases hxIcc : x ∈ Set.Icc (1 / 2) 2
         exact (if_pos hxIcc).symm
         rw [if_neg hxIcc]
-        have fsdoifj : Ψ x = 0 := by
+        have hΨx0 : Ψ x = 0 := by
           have hxIoo : x ∉ Set.Ioo (1 / 2) 2 := by
             simp only [Set.mem_Icc, not_and_or, not_le] at hxIcc
-            simp [-one_div, Set.mem_Ioo, Set.mem_Icc]
+            simp [Set.mem_Ioo, Set.mem_Icc]
             intro
-            cases hxIcc <;>            linarith
+            cases hxIcc <;> linarith
           rw [<-hΨSupport] at hxIoo
           simp at hxIoo
           exact hxIoo
-        simp [fsdoifj]
+        simp [hΨx0]
       rw [this]
       apply MeasureTheory.Integrable.piecewise measurableSet_Icc
-      · apply ContinuousOn.integrableOn_compact
-        exact isCompact_Icc
+      · apply ContinuousOn.integrableOn_compact isCompact_Icc
         apply ContinuousOn.div
-        replace hΨContDiff := hΨContDiff 0
-        simp at hΨContDiff
-        exact Continuous.continuousOn hΨContDiff
-        apply continuousOn_id
-        simp [-one_div]
-        intros
-        linarith
+        · replace hΨContDiff := hΨContDiff 0
+          simp only [contDiff_zero] at hΨContDiff
+          exact Continuous.continuousOn hΨContDiff
+        · apply continuousOn_id
+        · simp only [Set.mem_Icc, ne_eq, and_imp]
+          intros
+          linarith
       · -- exact? -- fails
         exact MeasureTheory.integrableOn_zero
 
