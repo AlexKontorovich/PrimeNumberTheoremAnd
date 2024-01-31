@@ -195,64 +195,46 @@ and the claim follows from Lemma \ref{schwarz-id}.
 %%-/
 
 lemma smooth_urysohn {a b c d:ℝ} (h1: a < b) (h2: b<c) (h3: c < d) : ∃ Ψ:ℝ → ℝ, (∀ n, ContDiff ℝ n Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧ Ψ ≤ Set.indicator (Set.Ioo a d) 1 := by
-  have := exists_smooth_zero_one_of_closed (E := ℝ) (H := ℝ) (modelWithCornersSelf ℝ ℝ) (s := Set.Iic a ∪ Set.Ici d) (t := Set.Icc b c)
+  have := exists_smooth_zero_one_of_closed (modelWithCornersSelf ℝ ℝ) (s := Set.Iic a ∪ Set.Ici d) (t := Set.Icc b c)
+    (IsClosed.union isClosed_Iic isClosed_Ici)
+    (isClosed_Icc)
     (by
-      apply IsClosed.union
-      exact isClosed_Iic
-      exact isClosed_Ici)
-    (by
-      exact isClosed_Icc
-    )
-    (by
-      simp only [Set.disjoint_union_left]
-      simp [Set.disjoint_iff]
-      simp [Set.subset_def]
-      constructor <;> intro x hx hx' <;> linarith)
-  rcases this with ⟨Ψ, hΨ0, hΨ1, hΨ01⟩
-  rcases Ψ with ⟨Ψ, hΨ'⟩
-  simp [Set.EqOn] at *
+      simp_rw [Set.disjoint_union_left, Set.disjoint_iff, Set.subset_def, Set.mem_inter_iff, Set.mem_Iic, Set.mem_Icc,
+        Set.mem_empty_iff_false, and_imp, imp_false, not_le, Set.mem_Ici]
+      constructor <;> intros <;> linarith)
+  rcases this with ⟨⟨Ψ, hΨcontMDiff⟩, hΨ0, hΨ1, hΨ01⟩
+  simp only [Set.EqOn, Set.mem_setOf_eq, Set.mem_union, Set.mem_Iic, Set.mem_Ici,
+    ContMDiffMap.coeFn_mk, Pi.zero_apply, Set.mem_Icc, Pi.one_apply, and_imp] at *
   use Ψ
   constructor
-  · rw [contDiff_all_iff_nat, <-contDiff_top]
-    exact ContMDiff.contDiff hΨ'
+  · rw [contDiff_all_iff_nat, ←contDiff_top]
+    exact ContMDiff.contDiff hΨcontMDiff
   · constructor
     · rw [hasCompactSupport_def]
-      apply isCompact_closure_of_subset_compact (t := Set.Icc a d)
-      · exact isCompact_Icc
-      rw [@Function.support_subset_iff]
+      apply isCompact_closure_of_subset_compact (t := Set.Icc a d) isCompact_Icc
+      rw [Function.support_subset_iff]
       intro x hx
       contrapose! hx
       simp only [Set.mem_Icc, not_and_or] at hx
       apply hΨ0
-      cases' hx with hx hx
-      · left
-        linarith
-      · right
-        linarith
-    ·
-      constructor
+      by_contra! h'
+      cases' hx <;> linarith
+    · constructor
       · intro x
-        simp
         rw [Set.indicator_apply]
         split_ifs with h
-        simp at *
+        simp only [Set.mem_Icc, Pi.one_apply] at *
         rw [hΨ1 h.left h.right]
-        -- exact h.left
-        -- exact h.right
         exact (hΨ01 x).left
       · intro x
-        simp
         rw [Set.indicator_apply]
         split_ifs with h
         simp at *
         exact (hΨ01 x).right
         rw [hΨ0]
         simp only [Set.mem_Ioo, not_and_or] at h
-        cases' h with hx hx
-        · left
-          linarith
-        · right
-          linarith
+        by_contra! h'
+        cases' h <;> linarith
   done
 
 
