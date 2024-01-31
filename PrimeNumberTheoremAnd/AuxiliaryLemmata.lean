@@ -93,9 +93,13 @@ $$\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$$
 is positive (and hence convergent - since a divergent integral is zero in Lean, by definition).
 \end{lemma}
 %%-/
-
 lemma PerronIntegralPosAux : 0 < ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| := by
   sorry
+/-%%
+\begin{proof}
+Standard estimate.
+\end{proof}
+%%-/
 
 /-%%
 \begin{lemma}\label{VertIntPerronBound}\lean{VertIntPerronBound}\leanok
