@@ -155,13 +155,9 @@ This is a straightforward calculation.
 \end{proof}
 %%-/
 
-lemma integral_div {f : ℝ → ℝ} (c : ℝ) (s : Set ℝ) :
-  (∫ x in S, f x / c) = (∫ x in S, f x) / c := by
-  exact MeasureTheory.integral_div c fun a => f a
-
 lemma Function.support_id : Function.support (fun x : ℝ => x) = Set.Iio 0 ∪ Set.Ioi 0 := by
   ext x
-  simp
+  simp only [mem_support, ne_eq, Set.Iio_union_Ioi, Set.mem_compl_iff, Set.mem_singleton_iff]
 
 attribute [- simp] one_div
 
@@ -178,8 +174,7 @@ $$
 
 lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ ∫ x in Set.Ici 0, Ψ x / x = 1 := by
   suffices h : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, Ψ x / x
-  ·
-    rcases h with ⟨Ψ, hΨ, hΨsupp, hΨpos⟩
+  · rcases h with ⟨Ψ, hΨ, hΨsupp, hΨpos⟩
     let c := (∫ x in Set.Ici 0, Ψ x / x)
     use fun y => Ψ y / c
     constructor
@@ -204,44 +199,26 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ �
   unfold Set.indicator at hΨ0 hΨ1
   simp only [Set.mem_Icc, Pi.one_apply, Pi.le_def, Set.mem_Ioo] at hΨ0 hΨ1
   constructor
-  · simp only [Function.support, Set.subset_def]
-    intro y hy
-    replace hΨ0 := hΨ0 y
-    replace hΨ1 := hΨ1 y
-    contrapose! hy
-    simp only [ne_eq, Set.mem_setOf_eq, not_not]
-    simp only [Set.mem_Icc, not_and_or, not_le] at hy
-    cases hy with
-    | inl hy =>
-      have h' : ¬ 1/2 < y := by linarith
-      simp [not_le, h'] at hΨ1
-      have h'' : ¬ 1 ≤ y := by linarith
-      simp [not_le, h''] at hΨ0
-      linarith
-    | inr hy =>
-      have h' : ¬ y < 2 := by linarith
-      simp only [h', and_false, ite_false] at hΨ1
-      have h'' : ¬ y ≤ 3/2 := by linarith
-      simp only [h'', and_false, ite_false] at hΨ0
-      linarith
+  · simp only [hΨSupport, Set.subset_def, Set.mem_Ioo, Set.mem_Icc, and_imp]
+    intro y hy hy'
+    exact ⟨by linarith, by linarith⟩
   · rw [MeasureTheory.integral_pos_iff_support_of_nonneg]
-    simp only [Function.support_div, measurableSet_Ici, MeasureTheory.Measure.restrict_apply']
-    rw [hΨSupport]
-    rw [Function.support_id]
-    have : (Set.Ioo (1 / 2 : ℝ) 2 ∩ (Set.Iio 0 ∪ Set.Ioi 0) ∩ Set.Ici 0) = Set.Ioo (1 / 2) 2 := by
-      ext x
-      simp only [Set.mem_inter_iff, Set.mem_Ioo, Set.mem_Ici, Set.mem_Iio, Set.mem_Ioi, Set.mem_union, not_lt, and_true, not_le]
-      constructor
-      · intros h
-        exact h.left.left
-      · intros h
-        simp [h, and_true, lt_or_lt_iff_ne, ne_eq]
+    · simp only [Function.support_div, measurableSet_Ici, MeasureTheory.Measure.restrict_apply']
+      rw [hΨSupport]
+      rw [Function.support_id]
+      have : (Set.Ioo (1 / 2 : ℝ) 2 ∩ (Set.Iio 0 ∪ Set.Ioi 0) ∩ Set.Ici 0) = Set.Ioo (1 / 2) 2 := by
+        ext x
+        simp only [Set.mem_inter_iff, Set.mem_Ioo, Set.mem_Ici, Set.mem_Iio, Set.mem_Ioi, Set.mem_union, not_lt, and_true, not_le]
         constructor
-        · linarith [h.left]
-        · linarith
-    rw [this]
-    simp only [Real.volume_Ioo, ENNReal.ofReal_pos, sub_pos, gt_iff_lt]
-    linarith
+        · intros h
+          exact h.left.left
+        · intros h
+          simp [h, and_true, lt_or_lt_iff_ne, ne_eq]
+          constructor
+          · linarith [h.left]
+          · linarith
+      simp only [this, Real.volume_Ioo, ENNReal.ofReal_pos, sub_pos, gt_iff_lt]
+      linarith
     · rw [Pi.le_def]
       intro y
       simp only [Pi.zero_apply]
@@ -249,28 +226,26 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ �
       . apply div_nonneg
         · apply le_trans _ (hΨ0 y)
           simp [apply_ite]
-        rw [hΨSupport] at h
-        simp only [Set.mem_Ioo] at h
+        rw [hΨSupport, Set.mem_Ioo] at h
         linarith [h.left]
       . simp only [Function.mem_support, ne_eq, not_not] at h
-        rw [h]
-        simp
-    · have this : (fun x => Ψ x / x) = Set.piecewise (Set.Icc (1 / 2) 2) (fun x => Ψ x / x) 0 := by
+        simp [h]
+    · have : (fun x => Ψ x / x) = Set.piecewise (Set.Icc (1 / 2) 2) (fun x => Ψ x / x) 0 := by
         ext x
         simp only [Set.piecewise]
         by_cases hxIcc : x ∈ Set.Icc (1 / 2) 2
-        exact (if_pos hxIcc).symm
-        rw [if_neg hxIcc]
-        have hΨx0 : Ψ x = 0 := by
-          have hxIoo : x ∉ Set.Ioo (1 / 2) 2 := by
-            simp only [Set.mem_Icc, not_and_or, not_le] at hxIcc
-            simp [Set.mem_Ioo, Set.mem_Icc]
-            intro
-            cases hxIcc <;> linarith
-          rw [<-hΨSupport] at hxIoo
-          simp at hxIoo
-          exact hxIoo
-        simp [hΨx0]
+        · exact (if_pos hxIcc).symm
+        · rw [if_neg hxIcc]
+          have hΨx0 : Ψ x = 0 := by
+            have hxIoo : x ∉ Set.Ioo (1 / 2) 2 := by
+              simp only [Set.mem_Icc, not_and_or, not_le] at hxIcc
+              simp [Set.mem_Ioo, Set.mem_Icc]
+              intro
+              cases hxIcc <;> linarith
+            rw [<-hΨSupport] at hxIoo
+            simp only [Function.mem_support, ne_eq, not_not] at hxIoo
+            exact hxIoo
+          simp [hΨx0]
       rw [this]
       apply MeasureTheory.Integrable.piecewise measurableSet_Icc
       · apply ContinuousOn.integrableOn_compact isCompact_Icc
