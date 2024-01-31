@@ -49,10 +49,14 @@ The following is preparatory material used in the proof of the Perron formula, s
 Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 \end{lemma}
 %%-/
-
 lemma HolomorphicOn_of_Perron_function {x : ℝ} (xpos : 0 < x) :
     HolomorphicOn (fun s => x ^ s / (s * (s + 1))) {s | 0 < s.re} := by
   sorry
+/-%%
+\begin{proof}
+Chain differentiabilities.
+\end{proof}
+%%-/
 
 /-%%
 \begin{lemma}\label{RectangleIntegral_eq_zero}\lean{RectangleIntegral_eq_zero}\leanok
@@ -122,7 +126,14 @@ $\sigma, \sigma'>0$, we have $a(\sigma')=a(\sigma)$, and that
 $\lim_{\sigma\to\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
 \end{lemma}
 %%-/
-
 lemma limitOfConstant {a : ℝ → ℂ} {σ : ℝ} (σpos : 0 < σ) (ha : ∀ (σ' : ℝ) (σ'' : ℝ) (σ'pos : 0 < σ')
     (σ''pos : 0 < σ''), a σ' = a σ'') (ha' : Tendsto (fun σ' => a σ') atTop (𝓝 0)) : a σ = 0 := by
   sorry
+/-%%
+\begin{proof}
+To show that $a(\sigma)=0$, we show that $a(\sigma)< \epsilon$ for all $\epsilon>0$. Let $\epsilon>0$.
+The fact that $\lim_{\sigma\to\infty}a(\sigma)=0$ means that there exists $\sigma_0>0$ such that
+$|a(\sigma)|<\epsilon$ for all $\sigma>\sigma_0$. Now let $\sigma>0$. Then $a(\sigma)=a(\sigma_0)$, and
+so $|a(\sigma)|=|a(\sigma_0)|<\epsilon$, as required.
+\end{proof}
+%%-/

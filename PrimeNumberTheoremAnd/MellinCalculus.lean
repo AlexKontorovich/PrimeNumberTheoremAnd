@@ -17,6 +17,25 @@ might have clunkier calculations, which ``magically'' turn out just right - of c
 %%-/
 
 /-%%
+We need some auxiliary lemmata.
+
+%** Note : move aux stuff back into here! **
+
+\begin{lemma}\label{zeroTendstoDiff}\lean{zeroTendstoDiff}\leanok
+If the limit of $0$ is $L₁ - L₂$, then $L₁ = L₂$.
+\end{lemma}
+%%-/
+lemma zeroTendstoDiff (L₁ L₂ : ℂ) (f : ℝ → ℂ) (h : ∀ᶠ T in atTop,  f T = 0)
+    (h' : Tendsto f atTop (𝓝 (L₂ - L₁))) : L₁ = L₂ := by
+  sorry
+/-%%
+\begin{proof}
+Obvious.
+\end{proof}
+%%-/
+
+
+/-%%
 We are ready for the Perron formula, which breaks into two cases, the first being:
 \begin{lemma}\label{PerronFormulaLtOne}\lean{VerticalIntegral_Perron_lt_one}
 For $x>0$, $\sigma>0$, and $x<1$, we have
@@ -49,8 +68,10 @@ lemma VerticalIntegral_Perron_lt_one {x : ℝ} (xpos : 0 < x) (x_lt_one : x < 1)
   have contourPull : ∀ (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ''),
     VerticalIntegral f σ' = VerticalIntegral f σ''
   · intro σ' σ'' σ'pos σ''pos
-    have := rectIntLimit σ' σ'' σ'pos σ''pos
-    sorry
+    refine zeroTendstoDiff (VerticalIntegral f σ') (VerticalIntegral f σ'') ((fun T => RectangleIntegral f (↑σ' - I * ↑T) (↑σ'' + I * ↑T))) ?_ ?_
+    · filter_upwards [eventually_gt_atTop 0]
+      exact (rectInt σ' σ'' σ'pos σ''pos)
+    · exact (rectIntLimit σ' σ'' σ'pos σ''pos)
 --%% But we also have the bound $\int_{(\sigma')} \leq x^{\sigma'} * C$, where
 --%% $C=\int_\R\frac{1}{|(1+t)(1+t+1)|}dt$.
   have VertIntBound : ∃ C > 0, ∀ σ' > 1, Complex.abs (VerticalIntegral f σ') ≤ x^σ' * C
