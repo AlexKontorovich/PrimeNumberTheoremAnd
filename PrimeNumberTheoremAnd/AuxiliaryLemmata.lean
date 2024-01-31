@@ -45,7 +45,7 @@ The following is preparatory material used in the proof of the Perron formula, s
 %%-/
 
 /-%%
-\begin{lemma}\label{HolomorphicOn_of_Perron_function}\lean{HolomorphicOn_of_Perron_function}
+\begin{lemma}\label{HolomorphicOn_of_Perron_function}\lean{HolomorphicOn_of_Perron_function}\leanok
 Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 \end{lemma}
 %%-/
@@ -55,7 +55,7 @@ lemma HolomorphicOn_of_Perron_function {x : ℝ} (xpos : 0 < x) :
   sorry
 
 /-%%
-\begin{lemma}\label{RectangleIntegral_eq_zero}\lean{RectangleIntegral_eq_zero}
+\begin{lemma}\label{RectangleIntegral_eq_zero}\lean{RectangleIntegral_eq_zero}\leanok
 \uses{RectangleIntegral}
 Let $\sigma,\sigma',T>0$, and let $f$ be a holomorphic function on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$. Then
 the rectangle integral
@@ -69,7 +69,7 @@ lemma RectangleIntegral_eq_zero {σ σ' T : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 
   sorry -- apply HolomorphicOn.vanishesOnRectangle in PR #9598
 
 /-%%
-\begin{lemma}\label{RectangleIntegral_tendsTo_VerticalIntegral}\lean{RectangleIntegral_tendsTo_VerticalIntegral}
+\begin{lemma}\label{RectangleIntegral_tendsTo_VerticalIntegral}\lean{RectangleIntegral_tendsTo_VerticalIntegral}\leanok
 \uses{RectangleIntegral}
 Let $\sigma,\sigma'>0$, and let $f$ be a holomorphic function on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$. Then
 the limit of rectangle integrals
@@ -87,7 +87,7 @@ lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} (σ_pos : 0 < σ
   sorry
 
 /-%%
-\begin{lemma}\label{PerronIntegralPosAux}\lean{PerronIntegralPosAux}
+\begin{lemma}\label{PerronIntegralPosAux}\lean{PerronIntegralPosAux}\leanok
 The integral
 $$\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$$
 is positive (and hence convergent - since a divergent integral is zero in Lean, by definition).
@@ -98,7 +98,7 @@ lemma PerronIntegralPosAux : 0 < ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.
   sorry
 
 /-%%
-\begin{lemma}\label{VertIntPerronBound}\lean{VertIntPerronBound}
+\begin{lemma}\label{VertIntPerronBound}\lean{VertIntPerronBound}\leanok
 \uses{VerticalIntegral}
 Let $x>0$, $\sigma>1$, and $x<1$. Then
 $$\left|
@@ -112,7 +112,7 @@ lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) (x_le_one : x < 1) {σ : ℝ} 
   sorry
 
 /-%%
-\begin{lemma}\label{limitOfConstant}\lean{limitOfConstant}
+\begin{lemma}\label{limitOfConstant}\lean{limitOfConstant}\leanok
 Let $a:\R\to\C$ be a function, and let $\sigma>0$ be a real number. Suppose that, for all
 $\sigma, \sigma'>0$, we have $a(\sigma')=a(\sigma)$, and that
 $\lim_{\sigma\to\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
