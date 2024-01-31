@@ -3,6 +3,7 @@ import Mathlib.Analysis.Fourier.FourierTransform
 import Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.Topology.Support
 import Mathlib.Analysis.Calculus.ContDiff.Defs
+import Mathlib.Geometry.Manifold.PartitionOfUnity
 
 open Nat Real BigOperators ArithmeticFunction
 open Complex hiding log
@@ -186,12 +187,74 @@ and the claim follows from Lemma \ref{schwarz-id}.
 \end{proof}
 %%-/
 
+
+
 /-%%
 \begin{lemma}[Smooth Urysohn lemma]\label{smooth-ury}  If $I$ is a closed interval contained in an open interval $J$, then there exists a smooth function $\Psi: \R \to \R$ with $1_I \leq \Psi \leq 1_J$.
 \end{lemma}
 %%-/
 
-lemma smooth_urysohn {a b c d:ℝ} (h1: a < b) (h2: b<c) (h3: c < d) : ∃ Ψ:ℝ → ℝ, (∀ n, ContDiff ℝ n Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧ Ψ ≤ Set.indicator (Set.Ioo a d) 1 := by sorry
+lemma smooth_urysohn {a b c d:ℝ} (h1: a < b) (h2: b<c) (h3: c < d) : ∃ Ψ:ℝ → ℝ, (∀ n, ContDiff ℝ n Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧ Ψ ≤ Set.indicator (Set.Ioo a d) 1 := by
+  have := exists_smooth_zero_one_of_closed (E := ℝ) (H := ℝ) (modelWithCornersSelf ℝ ℝ) (s := Set.Iic a ∪ Set.Ici d) (t := Set.Icc b c)
+    (by
+      apply IsClosed.union
+      exact isClosed_Iic
+      exact isClosed_Ici)
+    (by
+      exact isClosed_Icc
+    )
+    (by
+      simp only [Set.disjoint_union_left]
+      simp [Set.disjoint_iff]
+      simp [Set.subset_def]
+      constructor <;> intro x hx hx' <;> linarith)
+  rcases this with ⟨Ψ, hΨ0, hΨ1, hΨ01⟩
+  rcases Ψ with ⟨Ψ, hΨ'⟩
+  simp [Set.EqOn] at *
+  use Ψ
+  constructor
+  · rw [contDiff_all_iff_nat, <-contDiff_top]
+    exact ContMDiff.contDiff hΨ'
+  · constructor
+    · rw [hasCompactSupport_def]
+      apply isCompact_closure_of_subset_compact (t := Set.Icc a d)
+      · exact isCompact_Icc
+      rw [@Function.support_subset_iff]
+      intro x hx
+      contrapose! hx
+      simp only [Set.mem_Icc, not_and_or] at hx
+      apply hΨ0
+      cases' hx with hx hx
+      · left
+        linarith
+      · right
+        linarith
+    ·
+      constructor
+      · intro x
+        simp
+        rw [Set.indicator_apply]
+        split_ifs with h
+        simp at *
+        rw [hΨ1 h.left h.right]
+        -- exact h.left
+        -- exact h.right
+        exact (hΨ01 x).left
+      · intro x
+        simp
+        rw [Set.indicator_apply]
+        split_ifs with h
+        simp at *
+        exact (hΨ01 x).right
+        rw [hΨ0]
+        simp only [Set.mem_Ioo, not_and_or] at h
+        cases' h with hx hx
+        · left
+          linarith
+        · right
+          linarith
+  done
+
 
 /-%%
 \begin{proof}  A standard analysis lemma, which can be proven by convolving $1_K$ with a smooth approximation to the identity for some interval $K$ between $I$ and $J$. Note that we have ``SmoothBumpFunction''s on smooth manifolds in Mathlib, so this shouldn't be too hard...
