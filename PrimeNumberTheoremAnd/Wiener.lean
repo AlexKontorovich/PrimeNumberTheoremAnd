@@ -21,7 +21,7 @@ is absolutely convergent for $\sigma>1$.
 variable {f: ArithmeticFunction ℝ} (hf: ∀ (σ':ℝ), 1 < σ' → Summable (fun n ↦ |f n| / n^σ'))
 
 /-%%
-\begin{lemma}[First Fourier identity]\label{first-fourier}  If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
+\begin{lemma}[First Fourier identity]\label{first-fourier}\lean{first_fourier}\leanok  If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = \int_\R F(\sigma + it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
 %%-/
@@ -41,7 +41,7 @@ the claim then follows from Fubini's theorem.
 %%-/
 
 /-%%
-\begin{lemma}[Second Fourier identity]\label{second-fourier} If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
+\begin{lemma}[Second Fourier identity]\label{second-fourier}\lean{second_fourier}\leanok If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
 $$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du = x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt.$$
 \end{lemma}
 %%-/
@@ -73,7 +73,7 @@ variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Se
 variable (hcheby: ∃ C:ℝ, ∀ x:ℕ, ∑ n in Finset.Iic x, |f n| ≤ C * x)
 
 /-%%
-\begin{lemma}[Decay bounds]\label{decay}  If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
+\begin{lemma}[Decay bounds]\label{decay}\lean{decay_bounds}\leanok  If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
   $$ |\psi(t)|, |\psi''(t)| \leq A / (1 + |t|^2)$$
   for all $t \in \R$, then
 $$ |\hat \psi(u)| \leq C A / (1+|u|^2)$$
@@ -90,7 +90,7 @@ lemma decay_bounds : ∃ C:ℝ, ∀ (ψ:ℝ → ℂ) (hψ: ContDiff ℝ 2 ψ) (h
 %%-/
 
 /-%%
-\begin{lemma}[Limiting Fourier identity]\label{limiting}  If $\psi: \R \to \C$ is $C^2$ and compactly supported and $x \geq 1$, then
+\begin{lemma}[Limiting Fourier identity]\label{limiting}\lean{limiting_fourier}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported and $x \geq 1$, then
 $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
 %%-/
@@ -109,7 +109,7 @@ lemma limiting_fourier {ψ:ℝ → ℂ} (hψ: ContDiff ℝ 2 ψ) (hsupp: HasComp
 %%-/
 
 /-%%
-\begin{corollary}\label{limiting-cor}  With the hypotheses as above, we have
+\begin{corollary}\label{limiting-cor}\lean{limiting_cor}\leanok  With the hypotheses as above, we have
   $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
   as $x \to \infty$.
 \end{corollary}
@@ -127,7 +127,7 @@ lemma limiting_cor {ψ:ℝ → ℂ} (hψ: ContDiff ℝ 2 ψ) (hsupp: HasCompactS
 %%-/
 
 /-%%
-\begin{lemma}\label{schwarz-id}  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.
+\begin{lemma}\label{schwarz-id}\lean{limiting_cor_schwartz}\leanok  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.
 \end{lemma}
 %%-/
 
@@ -149,7 +149,7 @@ Combining the two estimates and letting $R$ be large, we obtain the claim.
 %%-/
 
 /-%%
-\begin{lemma}\label{bij}  The Fourier transform is a bijection on the Schwartz class.
+\begin{lemma}\label{bij}\lean{fourier_surjection_on_schwartz}\leanok  The Fourier transform is a bijection on the Schwartz class.
 \end{lemma}
 %%-/
 
@@ -166,7 +166,7 @@ It can be proved here by appealing to Mellin inversion, Theorem \ref{MellinInver
 %%-/
 
 /-%%
-\begin{corollary}\label{WienerIkeharaSmooth}
+\begin{corollary}\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
   If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then, then
 $$ \sum_{n=1}^\infty f(n) \Psi( \frac{n}{x} ) = A x \int_0^\infty \Psi(y)\ dy + o(x)$$
 as $u \to \infty$.
@@ -187,7 +187,7 @@ and the claim follows from Lemma \ref{schwarz-id}.
 %%-/
 
 /-%%
-\begin{lemma}[Smooth Urysohn lemma]\label{smooth-ury}  If $I$ is a closed interval contained in an open interval $J$, then there exists a smooth function $\Psi: \R \to \R$ with $1_I \leq \Psi \leq 1_J$.
+\begin{lemma}[Smooth Urysohn lemma]\label{smooth-ury}\lean{smooth_urysohn}\leanok  If $I$ is a closed interval contained in an open interval $J$, then there exists a smooth function $\Psi: \R \to \R$ with $1_I \leq \Psi \leq 1_J$.
 \end{lemma}
 %%-/
 
@@ -202,7 +202,7 @@ lemma smooth_urysohn {a b c d:ℝ} (h1: a < b) (h2: b<c) (h3: c < d) : ∃ Ψ:�
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
 \begin{proposition}
-\label{WienerIkeharaInterval}
+\label{WienerIkeharaInterval}\lean{WienerIkeharaInterval}\leanok
   For any closed interval $I \subset (0,+\infty)$, we have
   $$ \sum_{n=1}^\infty f(n) 1_I( \frac{n}{x} ) = A x |I|  + o(x).$$
 \end{proposition}
@@ -221,7 +221,7 @@ lemma WienerIkeharaInterval (a b:ℝ) (ha: 0 < a) (hb: a < b) : Tendsto (fun x :
 %%-/
 
 /-%%
-\begin{corollary}\label{WienerIkehara}
+\begin{corollary}\label{WienerIkehara}\lean{WienerIkeharaTheorem'}\leanok
   We have
 $$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
 \end{corollary}
@@ -245,11 +245,13 @@ theorem WienerIkeharaTheorem' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ �
 /-%%
 \section{Weak PNT}
 
-\begin{theorem}[Weak PNT]\label{WeakPNT}  We have
+\begin{theorem}[Weak PNT]\label{WeakPNT}\lean{WeakPNT}\leanok  We have
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 \end{theorem}
 %%-/
-
+theorem WeakPNT :
+    Tendsto (fun N : ℕ ↦ ((Finset.range N).sum Λ) / N) atTop (nhds 1) := by
+  sorry
 /-%%
 \begin{proof}
 \uses{WienerIkehara, ChebyshevPsi}
