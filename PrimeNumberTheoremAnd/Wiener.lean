@@ -187,8 +187,6 @@ and the claim follows from Lemma \ref{schwarz-id}.
 \end{proof}
 %%-/
 
-
-
 /-%%
 \begin{lemma}[Smooth Urysohn lemma]\label{smooth-ury}  If $I$ is a closed interval contained in an open interval $J$, then there exists a smooth function $\Psi: \R \to \R$ with $1_I \leq \Psi \leq 1_J$.
 \end{lemma}
