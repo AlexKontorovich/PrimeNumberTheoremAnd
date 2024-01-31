@@ -237,7 +237,7 @@ theorem WienerIkeharaTheorem' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ �
   sorry
 /-%%
 \begin{proof}
-\uses{WienerIkeharaInterval, cheby}
+\uses{WienerIkeharaInterval}
   Apply the preceding proposition with $I = [\varepsilon,1]$ and then send $\varepsilon$ to zero (using \eqref{cheby} to control the error).
 \end{proof}
 %%-/
