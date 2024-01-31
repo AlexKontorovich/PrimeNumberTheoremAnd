@@ -1,16 +1,34 @@
 import PrimeNumberTheoremAnd.Wiener
 import Mathlib.Analysis.Asymptotics.Asymptotics
 import Mathlib.NumberTheory.PrimeCounting
+import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
 
 open BigOperators Filter Real Classical Asymptotics
 open Nat.ArithmeticFunction hiding log
+
+/-%%
+\begin{lemma}\label{range-eq-range}\lean{finsum_range_eq_sum_range, finsum_range_eq_sum_range'}\leanok For any arithmetic function $f$ and real number $x$, one has
+$$ \sum_{n \leq x} f n = \sum_{n \leq ⌊x⌋_+} f n$$
+and
+$$ \sum_{n < x} f n = \sum_{n < ⌈x⌉_+} f n.$$
+–d{lemma}
+%%-/
+lemma finsum_range_eq_sum_range {R: Type*} [AddCommMonoid R] {f: Nat.ArithmeticFunction R} (x:ℝ) : ∑ᶠ (n:ℕ) (_: n < x), f n = ∑ n in Finset.range ⌈x⌉₊, f n := by
+  sorry
+
+lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f: Nat.ArithmeticFunction R} (x:ℝ) : ∑ᶠ (n:ℕ) (_: n ≤ x), f n = ∑ n in Finset.Iic ⌊x⌋₊, f n := by
+  sorry
+
+/-%%
+\begin{proof} Straightforward. \end{proof}
+%%-/
 
 /-%%
 \begin{theorem}\label{chebyshev-asymptotic}\lean{chebyshev_asymptotic}\leanok  One has
   $$ \sum_{p \leq x} \log p = x + o(x).$$
 \end{theorem}
 %%-/
-theorem chebyshev_asymptotic : ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧ ∀ x : ℝ, ∑ p in (Finset.filter Nat.Prime (Finset.range ⌊x⌋₊)), log p = x + E x := by
+theorem chebyshev_asymptotic : (fun x ↦ ∑ p in (Finset.filter Nat.Prime (Finset.range ⌈x⌉₊)), log p) ~[atTop] (fun x ↦ x) := by
   sorry
 
 /-%%
