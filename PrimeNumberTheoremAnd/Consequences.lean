@@ -87,7 +87,7 @@ We have $p_{n+1} - p_n = o(p_n)$
 \end{proof}
 
 \begin{corollary}  \label{prime-between}
-For every $\eps>0$, there is a prime between $x$ and $(1+\eps x)$ for all sufficiently large $x$.
+For every $\eps>0$, there is a prime between $x$ and $(1+\eps) x$ for all sufficiently large $x$.
 \end{corollary}
 
 \begin{proof}
