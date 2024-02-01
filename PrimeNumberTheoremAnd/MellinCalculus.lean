@@ -24,15 +24,15 @@ It is very convenient to define integrals along vertical lines in the complex pl
 Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a real number. Then we define
 $$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
 \end{definition}
-[Note: Better to define $\int_{(\sigma)}$ as $\frac1{2\pi i}\int_{\sigma-i\infty}^{\sigma+i\infty}$??
-There's a factor of $2\pi i$ in such contour integrals...]
 
-Attempt on 2/1/24: yes, add $1/(2\pi i)$ to the definition of ``VerticalIntegral''  and ``RectangleIntegral'' (below).
+We also have a version with a factor of $1/(2\pi i)$.
 %%-/
 
 noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
-  (1 / (2 * π)) * ∫ t : ℝ, f (σ + t * I)
+  I • ∫ t : ℝ, f (σ + t * I)
 
+noncomputable abbrev VerticalIntegral' (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * ∫ t : ℝ, f (σ + t * I)
 
 /-%%
 The following is preparatory material used in the proof of the Perron formula, see Lemma \ref{PerronFormula}.
