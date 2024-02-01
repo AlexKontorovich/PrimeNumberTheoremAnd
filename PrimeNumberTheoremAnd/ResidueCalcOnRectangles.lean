@@ -4,7 +4,7 @@ import Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.NumberTheory.ZetaFunction
 import Mathlib.Analysis.Analytic.Meromorphic
 import PrimeNumberTheoremAnd.EulerProducts.LSeries
-import PrimeNumberTheoremAnd.AuxiliaryLemmata
+
 
 open Complex BigOperators Finset Nat Classical
 
@@ -14,6 +14,28 @@ open scoped ArithmeticFunction Interval
 
 In this file, we develop residue calculus on rectangles.
 
+\begin{definition}\label{Rectangle}\lean{Rectangle}\leanok
+A Rectangle has corners $z$ and $w \in \C$.
+\end{definition}
+%%-/
+/-- A `Rectangle` has corners `z` and `w`. -/
+def Rectangle (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ [[z.im, w.im]]
+
+/-%%
+\begin{definition}\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
+A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ and $w$ in $\C$.
+\end{definition}
+%%-/
+/-- A `RectangleIntegral` of a function `f` is one over a rectangle determined by
+  `z` and `w` in `ℂ`. -/
+noncomputable def RectangleIntegral (f : ℂ → ℂ) (z w : ℂ) : ℂ :=
+    (∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I))
+     + I • (∫ y : ℝ in z.im..w.im, f (w.re + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (z.re + y * I)
+
+/-- A function is `HolomorphicOn` a set if it is complex differentiable on that set. -/
+abbrev HolomorphicOn (f : ℂ → ℂ) (s : Set ℂ) : Prop := DifferentiableOn ℂ f s
+
+/-%%
 The border of a rectangle is the union of its four sides.
 \begin{definition}\label{RectangleBorder}\lean{RectangleBorder}\leanok
 A Rectangle's border, given corners $z$ and $w$ is the union of the four sides.
@@ -65,6 +87,7 @@ $$
 
 [Note: There is a recent PR by David Loeffler dealing with orders of poles.]
 %%-/
+
 
 /-%%
 If a meromorphic function $f$ has a pole at $z_0$, then the residue of $f$ at $z_0$ is the coefficient of $1/(z-z_0)$ in the Laurent series of $f$ around $z_0$.
