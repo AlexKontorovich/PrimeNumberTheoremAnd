@@ -306,9 +306,8 @@ lemma PerronFormulaGtOne {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < �
 
 
 /-%%
-The two together give the Perron formula.
-\begin{lemma}\label{PerronFormula}
-\uses{PerronFormulaLtOne, PerronFormulaGtOne}
+The two together give the Perron formula. (Which doesn't need to be a separate lemma.)
+
 For $x>0$ and $\sigma>0$, we have
 $$
 \frac1{2\pi i}
@@ -317,17 +316,28 @@ $$
 0 & \text{ if } x<1
 \end{cases}.
 $$
-\end{lemma}
 %%-/
 
 /-%%
-\begin{theorem}\label{MellinInversion}
-Let $f$ be a nice function from $\mathbb{R}_{>0}$ to $\mathbb{C}$, and let $\sigma$ be sufficiently large. Then
+\begin{definition}\label{MellinTransform}\lean{MellinTransform}\leanok
+Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mellin transform of $f$ to be the function $\mathcal{M}(f)$ from $\mathbb{C}$ to $\mathbb{C}$ defined by
+$$\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx.$$
+\end{definition}
+%%-/
+noncomputable def MellinTransform (f : ℝ → ℂ) (s : ℂ) : ℂ :=
+  ∫ x in Set.Ioi 0, f x * x ^ (s - 1)
+
+/-%%
+\begin{theorem}\label{MellinInversion}\lean{MellinInversion}\leanok
+Let $f$ be a ``nice'' function from $\mathbb{R}_{>0}$ to $\mathbb{C}$, and let $\sigma$ be sufficiently large. Then
 $$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
 \end{theorem}
 
 [Note: How ``nice''? Schwartz (on $(0,\infty)$) is certainly enough. As we formalize this, we can add whatever conditions are necessary for the proof to go through.]
 %%-/
+theorem MellinInversion {f : ℝ → ℂ} (σ : ℝ) (hσ : σ > 0) (hf : Continuous f) :
+    f = fun (x : ℝ) => VerticalIntegral (fun s ↦ x ^ (-s) * MellinTransform f s) σ  := by
+  sorry
 /-%%
 \begin{proof}
 \uses{PerronFormula, MellinTransform}
