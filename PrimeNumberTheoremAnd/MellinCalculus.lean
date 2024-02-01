@@ -26,6 +26,8 @@ $$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
 \end{definition}
 [Note: Better to define $\int_{(\sigma)}$ as $\frac1{2\pi i}\int_{\sigma-i\infty}^{\sigma+i\infty}$??
 There's a factor of $2\pi i$ in such contour integrals...]
+
+Attempt on 2/1/24: yes, add $1/(2\pi i)$ to the definition of `VerticalIntegral`  and `RectangleIntegral` (below).
 %%-/
 
 noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
@@ -142,7 +144,7 @@ lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) (x_le_one : x < 1) {σ : ℝ} 
   sorry
 /-%%
 \begin{proof}
-Triangle inequality and pointwise estimate.
+Triangle inequality and pointwise estimate. Use
 \end{proof}
 %%-/
 
@@ -182,7 +184,7 @@ Standard.
 
 /-%%
 We are ready for the Perron formula, which breaks into two cases, the first being:
-\begin{lemma}\label{PerronFormulaLtOne}\lean{VerticalIntegral_Perron_lt_one}\leanok
+\begin{lemma}\label{PerronFormulaLtOne}\lean{PerronFormulaLtOne}\leanok
 For $x>0$, $\sigma>0$, and $x<1$, we have
 $$
 \frac1{2\pi i}
@@ -191,7 +193,7 @@ $$
 \end{lemma}
 %%-/
 
-lemma VerticalIntegral_Perron_lt_one {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1)
+lemma PerronFormulaLtOne {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1)
     {σ : ℝ} (σ_pos : 0 < σ) : VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 0 := by
 /-%%
 \begin{proof}
@@ -245,11 +247,11 @@ Here are some auxiliary lemmata for the second case.
 %-/
 
 /-%%
-\begin{lemma}\label{HolomorphicOn_of_Perron_function'}\lean{HolomorphicOn_of_Perron_function'}\leanok
+\begin{lemma}\label{HolomorphicOn_of_Perron_function2}\lean{HolomorphicOn_of_Perron_function2}\leanok
 Let $x>1$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on $\C\setminus{0,1}$.
 \end{lemma}
 %%-/
-lemma HolomorphicOn_of_Perron_function' {x : ℝ} (x_gt_one : 1 < x) :
+lemma HolomorphicOn_of_Perron_function2 {x : ℝ} (x_gt_one : 1 < x) :
     HolomorphicOn (fun s ↦ x^s / (s * (s + 1))) {0, -1}ᶜ := by
   sorry
 /-%%
@@ -277,7 +279,7 @@ Pull contour from $(\sigma)$ to $(-1/2)$.
 %%-/
 
 /-%
-\begin{lemma}\label{PerronFormulaGtOne}\lean{VerticalIntegral_Perron_gt_one}\leanok
+\begin{lemma}\label{PerronFormulaGtOne}\lean{PerronFormulaGtOne}\leanok
 For $x>1$ and $\sigma>0$, we have
 $$
 \frac1{2\pi i}
@@ -285,8 +287,7 @@ $$
 $$
 \end{lemma}
 %%-/
-
-lemma VerticalIntegral_Perron_gt_one {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < σ) :
+lemma PerronFormulaGtOne {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < σ) :
     VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 1 - 1 / x := by
 /-%%
 \begin{proof}
@@ -294,7 +295,7 @@ lemma VerticalIntegral_Perron_gt_one {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,1}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
-  have fHolo : HolomorphicOn f {0, -1}ᶜ := HolomorphicOn_of_Perron_function' x_gt_one
+  have fHolo : HolomorphicOn f {0, -1}ᶜ := HolomorphicOn_of_Perron_function2 x_gt_one
 --%% First pull the contour from $(\sigma)$ to $(-1/2)$.
   have contourPull₁ : VerticalIntegral f σ = 1 + VerticalIntegral f (-1 / 2) := PerronResiduePull1 x_gt_one σ_pos
   rw [contourPull₁]
