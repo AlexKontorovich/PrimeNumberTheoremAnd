@@ -154,7 +154,7 @@ lemma limitOfConstant {a : ℝ → ℂ} {σ : ℝ} (σpos : 0 < σ)
     (ha : ∀ (σ' : ℝ) (σ'' : ℝ) (_ : 0 < σ') (_ : 0 < σ''), a σ' = a σ'')
     (ha' : Tendsto a atTop (𝓝 0)) : a σ = 0 := by
 /-%%
-\begin{proof}\begin{align*}
+\begin{proof}\leanok\begin{align*}
 \lim_{\sigma'\to\infty}a(\sigma) &= \lim_{\sigma'\to\infty}a(\sigma') \\
 %%-/
   have := eventuallyEq_of_mem (mem_atTop σ) fun σ' h ↦ ha σ' σ (σpos.trans_le h) σpos
