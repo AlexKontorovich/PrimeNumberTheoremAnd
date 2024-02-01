@@ -24,6 +24,7 @@ def Rectangle (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ [[z.im, w.im]]
 /-%%
 \begin{definition}\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
 A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ and $w$ in $\C$.
+We will sometimes denote it by $\int_{z}^{w} f$.
 \end{definition}
 %%-/
 /-- A `RectangleIntegral` of a function `f` is one over a rectangle determined by
