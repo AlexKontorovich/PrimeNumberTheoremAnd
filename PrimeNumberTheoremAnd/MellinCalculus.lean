@@ -82,7 +82,7 @@ lemma RectangleIntegral_eq_zero {σ σ' T : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 
     RectangleIntegral f (σ - I * T) (σ' + I * T) = 0 :=
 /-%%
 \begin{proof}\leanok
-Direct application of `HolomorphicOn.vanishesOnRectangle` (mathlib4#9598).
+Direct application of HolomorphicOn.vanishesOnRectangle (mathlib4#9598).
 %%-/
   fHolo.vanishesOnRectangle (fun _ h_rect ↦ LT.lt.trans_le (by simp_all) h_rect.1.1)
 --%%\end{proof}
