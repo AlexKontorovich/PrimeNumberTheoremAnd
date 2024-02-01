@@ -35,7 +35,7 @@ noncomputable abbrev VerticalIntegral' (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * ∫ t : ℝ, f (σ + t * I)
 
 /-%%
-The following is preparatory material used in the proof of the Perron formula, see Lemma \ref{PerronFormula}.
+The following is preparatory material used in the proof of the Perron formula, see Lemma \ref{PerronFormulaLtOne}.
 %%-/
 
 /-%%
@@ -323,6 +323,7 @@ $$
 Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mellin transform of $f$ to be the function $\mathcal{M}(f)$ from $\mathbb{C}$ to $\mathbb{C}$ defined by
 $$\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx.$$
 \end{definition}
+[Note: already exists in Mathlib, with some good API.]
 %%-/
 noncomputable def MellinTransform (f : ℝ → ℂ) (s : ℂ) : ℂ :=
   ∫ x in Set.Ioi 0, f x * x ^ (s - 1)
@@ -340,7 +341,7 @@ theorem MellinInversion {f : ℝ → ℂ} (σ : ℝ) (hσ : σ > 0) (hf : Contin
   sorry
 /-%%
 \begin{proof}
-\uses{PerronFormula, MellinTransform}
+\uses{PerronFormulaLtOne, PerronFormulaGtOne, MellinTransform}
 The proof is from [Goldfeld-Kontorovich 2012].
 Integrate by parts twice.
 $$
