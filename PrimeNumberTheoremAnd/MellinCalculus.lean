@@ -162,6 +162,20 @@ so $|a(\sigma)|=|a(\sigma_0)|<\epsilon$, as required.
 \end{proof}
 %%-/
 
+/-%%
+\begin{lemma}\label{tendsto_Realpow_atTop_nhds_0_of_norm_lt_1}\lean{tendsto_Realpow_atTop_nhds_0_of_norm_lt_1}\leanok
+Let $x>0$ and $x<1$. Then
+$$\lim_{\sigma\to\infty}x^\sigma=0.$$
+\end{lemma}
+%%-/
+lemma tendsto_Realpow_atTop_nhds_0_of_norm_lt_1 {x : ℝ} {C : ℝ} (xpos : 0 < x) (x_lt_one : x < 1) (Cpos : C > 0) :
+  Tendsto (fun (σ : ℝ) => x ^ σ * C) atTop (𝓝 0) := by
+  sorry -- mimic `tendsto_pow_atTop_nhds_0_of_norm_lt_1`
+/-%%
+\begin{proof}
+Standard.
+\end{proof}
+%%-/
 
 /-%%
 We are ready for the Perron formula, which breaks into two cases, the first being:
@@ -174,11 +188,14 @@ $$
 \end{lemma}
 %%-/
 
-lemma VerticalIntegral_Perron_lt_one {x : ℝ} (xpos : 0 < x) (x_lt_one : x < 1)
+lemma VerticalIntegral_Perron_lt_one {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1)
     {σ : ℝ} (σ_pos : 0 < σ) : VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 0 := by
 /-%%
 \begin{proof}
-\uses{HolomorphicOn_of_Perron_function, RectangleIntegral_eq_zero, PerronIntegralPosAux, VertIntPerronBound, limitOfConstant, RectangleIntegral_tendsTo_VerticalIntegral, zeroTendstoDiff}
+\uses{HolomorphicOn_of_Perron_function, RectangleIntegral_eq_zero, PerronIntegralPosAux,
+VertIntPerronBound, limitOfConstant, RectangleIntegral_tendsTo_VerticalIntegral, zeroTendstoDiff,
+tendsto_Realpow_atTop_nhds_0_of_norm_lt_1}
+\leanok
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
@@ -206,18 +223,24 @@ lemma VerticalIntegral_Perron_lt_one {x : ℝ} (xpos : 0 < x) (x_lt_one : x < 1)
   · let C := ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)|
     refine ⟨C, PerronIntegralPosAux, fun σ' σ'_gt_one ↦ VertIntPerronBound xpos x_lt_one σ'_gt_one⟩
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
-  have VertIntTendsto : Tendsto (fun (σ' : ℝ) ↦ VerticalIntegral f σ') atTop (𝓝 0)
-  · have : ‖x‖ < 1 := sorry
-    have := tendsto_pow_atTop_nhds_0_of_norm_lt_1 this
-    sorry
---%% So pulling contours gives $\int_{(\sigma)}=0$.
+  have AbsVertIntTendsto : Tendsto (fun (σ' : ℝ) ↦ Complex.abs (VerticalIntegral f σ')) atTop (𝓝 0)
+  · obtain ⟨C, Cpos, hC⟩ := VertIntBound
+    have := tendsto_Realpow_atTop_nhds_0_of_norm_lt_1 xpos x_lt_one Cpos
+    refine tendsto_of_tendsto_of_tendsto_of_le_of_le'
+      (f := (fun (σ' : ℝ) ↦ Complex.abs (VerticalIntegral f σ'))) (a := 0) (g := fun x ↦ 0)
+      (h := (fun σ => x ^ σ * C)) (b := atTop) (tendsto_const_nhds) this ?_ ?_
+    · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _
+    · filter_upwards [eventually_gt_atTop 1]; exact fun σ' σ'_gt_one ↦ hC σ' σ'_gt_one
+  have VertIntTendsto : Tendsto (fun (σ' : ℝ) ↦ VerticalIntegral f σ') atTop (𝓝 0) :=
+    tendsto_zero_iff_norm_tendsto_zero.mpr AbsVertIntTendsto
+  --%% So pulling contours gives $\int_{(\sigma)}=0$.
   exact limitOfConstant (a := fun σ' ↦ VerticalIntegral f σ') σ_pos contourPull VertIntTendsto
 --%%\end{proof}
 
 
 /-%%
 The second lemma is the case $x>1$.
-\begin{lemma}\label{PerronFormulaGtOne}\lean{VerticalIntegral_Perron_gt_one}
+\begin{lemma}\label{PerronFormulaGtOne}\lean{VerticalIntegral_Perron_gt_one}\leanok
 For $x>1$ and $\sigma>0$, we have
 $$
 \frac1{2\pi i}
@@ -229,6 +252,12 @@ $$
 lemma VerticalIntegral_Perron_gt_one {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < σ) :
     VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 1 - 1 / x := by
   sorry
+
+/-%%
+\begin{proof}
+Similar, but now we actually have to pull contours and pick up residues.
+\end{proof}
+%%-/
 
 
 /-%%
