@@ -27,7 +27,7 @@ $$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
 [Note: Better to define $\int_{(\sigma)}$ as $\frac1{2\pi i}\int_{\sigma-i\infty}^{\sigma+i\infty}$??
 There's a factor of $2\pi i$ in such contour integrals...]
 
-Attempt on 2/1/24: yes, add $1/(2\pi i)$ to the definition of `VerticalIntegral`  and `RectangleIntegral` (below).
+Attempt on 2/1/24: yes, add $1/(2\pi i)$ to the definition of ``VerticalIntegral''  and ``RectangleIntegral'' (below).
 %%-/
 
 noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
@@ -291,7 +291,7 @@ lemma PerronFormulaGtOne {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < �
     VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 1 - 1 / x := by
 /-%%
 \begin{proof}
-\uses{HolomorphicOn_of_Perron_function', PerronResiduePull1}
+\uses{HolomorphicOn_of_Perron_function2, PerronResiduePull1}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,1}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
