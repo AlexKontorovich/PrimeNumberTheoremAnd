@@ -178,7 +178,7 @@ lemma VerticalIntegral_Perron_lt_one {x : ℝ} (xpos : 0 < x) (x_lt_one : x < 1)
     {σ : ℝ} (σ_pos : 0 < σ) : VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 0 := by
 /-%%
 \begin{proof}
-\uses{HolomorphicOn_of_Perron_function, RectangleIntegral_eq_zero, PerronIntegralPosAux, VertIntPerronBound, limitOfConstant, RectangleIntegral_tendsTo_VerticalIntegral}
+\uses{HolomorphicOn_of_Perron_function, RectangleIntegral_eq_zero, PerronIntegralPosAux, VertIntPerronBound, limitOfConstant, RectangleIntegral_tendsTo_VerticalIntegral, zeroTendstoDiff}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
@@ -310,7 +310,7 @@ attribute [- simp] one_div
 
 /-%%
 Let $\psi$ be a bumpfunction.
-\begin{theorem}\label{SmoothExistence}
+\begin{theorem}\label{SmoothExistence}\leanok
 There exists a smooth (once differentiable would be enough), nonnegative ``bumpfunction'' $\psi$,
  supported in $[1/2,2]$ with total mass one:
 $$
@@ -340,7 +340,7 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ �
         apply div_self
         exact ne_of_gt hΨpos
   have := smooth_urysohn_support_Ioo (a := 1 / 2) (b := 1) (c := 3/2) (d := 2) (by linarith) (by linarith) (by linarith)
-  rcases this with ⟨Ψ, hΨContDiff, hΨCompactSupport, hΨ0, hΨ1, hΨSupport⟩
+  rcases this with ⟨Ψ, hΨContDiff, _, hΨ0, hΨ1, hΨSupport⟩
   use Ψ
   use hΨContDiff
   unfold Set.indicator at hΨ0 hΨ1
@@ -409,7 +409,7 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ �
 
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{smooth-ury}
 Same idea as Urysohn-type argument.
 \end{proof}

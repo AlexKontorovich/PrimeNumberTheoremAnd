@@ -11,7 +11,7 @@ open Nat.ArithmeticFunction hiding log
 $$ \sum_{n \leq x} f n = \sum_{n \leq ⌊x⌋_+} f n$$
 and
 $$ \sum_{n < x} f n = \sum_{n < ⌈x⌉_+} f n.$$
-–d{lemma}
+\end{lemma}
 %%-/
 lemma finsum_range_eq_sum_range {R: Type*} [AddCommMonoid R] {f: Nat.ArithmeticFunction R} (x:ℝ) : ∑ᶠ (n:ℕ) (_: n < x), f n = ∑ n in Finset.range ⌈x⌉₊, f n := by
   sorry
