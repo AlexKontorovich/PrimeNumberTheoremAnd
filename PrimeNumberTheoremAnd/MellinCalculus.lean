@@ -65,6 +65,10 @@ Composition of differentiabilities.
 \end{proof}
 %%-/
 
+theorem HolomorphicOn.vanishesOnRectangle {f : ℂ → ℂ} {U : Set ℂ} {z w : ℂ}
+    (f_holo : HolomorphicOn f U) (hU : Rectangle z w ⊆ U) :
+    RectangleIntegral f z w = 0 := by sorry -- mathlib4#9598
+
 /-%%
 \begin{lemma}\label{RectangleIntegral_eq_zero}\lean{RectangleIntegral_eq_zero}\leanok
 \uses{RectangleIntegral}
@@ -73,16 +77,15 @@ the rectangle integral
 $$\int_{\sigma-iT}^{\sigma'+iT}f(s)ds = 0.$$
 \end{lemma}
 %%-/
-lemma RectangleIntegral_eq_zero {σ σ' T : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 < σ') (T_pos : 0 < T)
+lemma RectangleIntegral_eq_zero {σ σ' T : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 < σ')
     {f : ℂ → ℂ} (fHolo : HolomorphicOn f {s | 0 < s.re}) :
-    RectangleIntegral f (σ - I * T) (σ' + I * T) = 0 := by
-  sorry -- apply HolomorphicOn.vanishesOnRectangle in PR #9598
+    RectangleIntegral f (σ - I * T) (σ' + I * T) = 0 :=
 /-%%
-\begin{proof}
-This almost exists in a Mathlib PR, needs to be adapted here.
-(HolomorphicOn.vanishesOnRectangle in PR \#9598)
-\end{proof}
+\begin{proof}\leanok
+Direct application of `HolomorphicOn.vanishesOnRectangle` (mathlib4#9598).
 %%-/
+  fHolo.vanishesOnRectangle (fun _ h_rect ↦ LT.lt.trans_le (by simp_all) h_rect.1.1)
+--%%\end{proof}
 
 
 /-%%
@@ -201,40 +204,37 @@ tendsto_Realpow_atTop_nhds_0_of_norm_lt_1}
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
   have fHolo : HolomorphicOn f {s : ℂ | 0 < s.re} := HolomorphicOn_of_Perron_function xpos
 --%% The rectangle integral of $f$ with corners $\sigma-iT$ and $\sigma+iT$ is zero.
-  have rectInt : ∀ (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') (T : ℝ) (Tpos : 0 < T),
-    RectangleIntegral f (σ' - I * T) (σ'' + I * T) = 0 :=
-    fun σ' σ'' σ'pos σ''pos T Tpos ↦ RectangleIntegral_eq_zero σ'pos σ''pos Tpos fHolo
+  have rectInt (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') (T : ℝ) :
+      RectangleIntegral f (σ' - I * T) (σ'' + I * T) = 0 :=
+    RectangleIntegral_eq_zero σ'pos σ''pos fHolo
 --%% The limit of this rectangle integral as $T\to\infty$ is $\int_{(\sigma')}-\int_{(\sigma)}$.
-  have rectIntLimit : ∀ (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ''),
-    Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ' - I * T) (σ'' + I * T))
-      atTop (𝓝 (VerticalIntegral f σ'' - VerticalIntegral f σ')) := fun σ' σ'' σ'pos σ''pos ↦
-      RectangleIntegral_tendsTo_VerticalIntegral σ'pos σ''pos fHolo
+  have rectIntLimit (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
+      Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ' - I * T) (σ'' + I * T))
+      atTop (𝓝 (VerticalIntegral f σ'' - VerticalIntegral f σ')) :=
+    RectangleIntegral_tendsTo_VerticalIntegral σ'pos σ''pos fHolo
 --%% Therefore, $\int_{(\sigma')}=\int_{(\sigma)}$.
-  have contourPull : ∀ (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ''),
+  have contourPull (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
     VerticalIntegral f σ' = VerticalIntegral f σ''
-  · intro σ' σ'' σ'pos σ''pos
-    refine zeroTendstoDiff (VerticalIntegral f σ') (VerticalIntegral f σ'') ((fun T => RectangleIntegral f (↑σ' - I * ↑T) (↑σ'' + I * ↑T))) ?_ ?_
-    · filter_upwards [eventually_gt_atTop 0]
-      exact (rectInt σ' σ'' σ'pos σ''pos)
-    · exact (rectIntLimit σ' σ'' σ'pos σ''pos)
+  · apply zeroTendstoDiff
+    · filter_upwards
+      exact rectInt σ' σ'' σ'pos σ''pos
+    · exact rectIntLimit σ' σ'' σ'pos σ''pos
 --%% But we also have the bound $\int_{(\sigma')} \leq x^{\sigma'} * C$, where
 --%% $C=\int_\R\frac{1}{|(1+t)(1+t+1)|}dt$.
   have VertIntBound : ∃ C > 0, ∀ σ' > 1, Complex.abs (VerticalIntegral f σ') ≤ x^σ' * C
   · let C := ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)|
-    refine ⟨C, PerronIntegralPosAux, fun σ' σ'_gt_one ↦ VertIntPerronBound xpos x_lt_one σ'_gt_one⟩
+    exact ⟨C, PerronIntegralPosAux, fun _ ↦ VertIntPerronBound xpos x_lt_one⟩
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
-  have AbsVertIntTendsto : Tendsto (fun (σ' : ℝ) ↦ Complex.abs (VerticalIntegral f σ')) atTop (𝓝 0)
+  have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral f)) atTop (𝓝 0)
   · obtain ⟨C, Cpos, hC⟩ := VertIntBound
     have := tendsto_Realpow_atTop_nhds_0_of_norm_lt_1 xpos x_lt_one Cpos
-    refine tendsto_of_tendsto_of_tendsto_of_le_of_le'
-      (f := (fun (σ' : ℝ) ↦ Complex.abs (VerticalIntegral f σ'))) (a := 0) (g := fun x ↦ 0)
-      (h := (fun σ => x ^ σ * C)) (b := atTop) (tendsto_const_nhds) this ?_ ?_
+    apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
     · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _
-    · filter_upwards [eventually_gt_atTop 1]; exact fun σ' σ'_gt_one ↦ hC σ' σ'_gt_one
-  have VertIntTendsto : Tendsto (fun (σ' : ℝ) ↦ VerticalIntegral f σ') atTop (𝓝 0) :=
+    · filter_upwards [eventually_gt_atTop 1]; exact hC
+  have VertIntTendsto : Tendsto (VerticalIntegral f) atTop (𝓝 0) :=
     tendsto_zero_iff_norm_tendsto_zero.mpr AbsVertIntTendsto
   --%% So pulling contours gives $\int_{(\sigma)}=0$.
-  exact limitOfConstant (a := fun σ' ↦ VerticalIntegral f σ') σ_pos contourPull VertIntTendsto
+  exact limitOfConstant σ_pos contourPull VertIntTendsto
 --%%\end{proof}
 
 
