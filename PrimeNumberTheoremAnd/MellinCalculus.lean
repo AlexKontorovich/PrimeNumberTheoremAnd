@@ -150,17 +150,17 @@ $\sigma, \sigma'>0$, we have $a(\sigma')=a(\sigma)$, and that
 $\lim_{\sigma\to\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
 \end{lemma}
 %%-/
-lemma limitOfConstant {a : ℝ → ℂ} {σ : ℝ} (σpos : 0 < σ) (ha : ∀ (σ' : ℝ) (σ'' : ℝ) (σ'pos : 0 < σ')
-    (σ''pos : 0 < σ''), a σ' = a σ'') (ha' : Tendsto (fun σ' => a σ') atTop (𝓝 0)) : a σ = 0 := by
-  sorry
+lemma limitOfConstant {a : ℝ → ℂ} {σ : ℝ} (σpos : 0 < σ)
+    (ha : ∀ (σ' : ℝ) (σ'' : ℝ) (_ : 0 < σ') (_ : 0 < σ''), a σ' = a σ'')
+    (ha' : Tendsto a atTop (𝓝 0)) : a σ = 0 := by
 /-%%
-\begin{proof}
-To show that $a(\sigma)=0$, we show that $a(\sigma)< \epsilon$ for all $\epsilon>0$. Let $\epsilon>0$.
-The fact that $\lim_{\sigma\to\infty}a(\sigma)=0$ means that there exists $\sigma_0>0$ such that
-$|a(\sigma)|<\epsilon$ for all $\sigma>\sigma_0$. Now let $\sigma>0$. Then $a(\sigma)=a(\sigma_0)$, and
-so $|a(\sigma)|=|a(\sigma_0)|<\epsilon$, as required.
-\end{proof}
+\begin{proof}\begin{align*}
+\lim_{\sigma'\to\infty}a(\sigma) &= \lim_{\sigma'\to\infty}a(\sigma') \\
 %%-/
+  have := eventuallyEq_of_mem (mem_atTop σ) fun σ' h ↦ ha σ' σ (σpos.trans_le h) σpos
+--%% &= 0
+  exact tendsto_const_nhds_iff.mp (ha'.congr' this)
+--%%\end{align*}\end{proof}
 
 /-%%
 \begin{lemma}\label{tendsto_Realpow_atTop_nhds_0_of_norm_lt_1}\lean{tendsto_Realpow_atTop_nhds_0_of_norm_lt_1}\leanok
