@@ -9,6 +9,68 @@ open Nat Real BigOperators ArithmeticFunction
 open Complex hiding log
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems impossible to hide, and hence parameters that are traditionally called σ will have to be called σ' instead in this file.
 
+-- This version makes the support of Ψ explicit, and this is easier for some later proofs
+lemma smooth_urysohn_support_Ioo {a b c d:ℝ} (h1: a < b) (h2: b<c) (h3: c < d) : ∃ Ψ:ℝ → ℝ, (∀ n, ContDiff ℝ n Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧ Ψ ≤ Set.indicator (Set.Ioo a d) 1 ∧ (Function.support Ψ = Set.Ioo a d) := by
+
+  have := exists_msmooth_zero_iff_one_iff_of_closed
+    (modelWithCornersSelf ℝ ℝ) (s := Set.Iic a ∪ Set.Ici d) (t := Set.Icc b c)
+    (IsClosed.union isClosed_Iic isClosed_Ici)
+    (isClosed_Icc)
+    (by
+      simp_rw [Set.disjoint_union_left, Set.disjoint_iff, Set.subset_def, Set.mem_inter_iff, Set.mem_Iic, Set.mem_Icc,
+        Set.mem_empty_iff_false, and_imp, imp_false, not_le, Set.mem_Ici]
+      constructor <;> intros <;> linarith)
+
+  rcases this with ⟨Ψ, hΨSmooth, hΨrange, hΨ0, hΨ1⟩
+
+  simp only [Set.EqOn, Set.mem_setOf_eq, Set.mem_union, Set.mem_Iic, Set.mem_Ici,
+    ContMDiffMap.coeFn_mk, Pi.zero_apply, Set.mem_Icc, Pi.one_apply, and_imp] at *
+  use Ψ
+  constructor
+  · rw [contDiff_all_iff_nat, ←contDiff_top]
+    exact ContMDiff.contDiff hΨSmooth
+  · constructor
+    · rw [hasCompactSupport_def]
+      apply isCompact_closure_of_subset_compact (t := Set.Icc a d) isCompact_Icc
+      simp_rw [Function.support_subset_iff, ne_eq, <-hΨ0]
+      intro x hx
+      contrapose! hx
+      simp only [Set.mem_Icc, not_and_or] at hx
+      by_contra! h'
+      cases' hx <;> linarith
+    · constructor
+      · intro x
+        rw [Set.indicator_apply]
+        split_ifs with h
+        · simp only [Set.mem_Icc, Pi.one_apply] at *
+          simp_rw [hΨ1 x] at h
+          exact Eq.le (_root_.id h.symm)
+        · have : Ψ x ∈ Set.range Ψ := by simp only [Set.mem_range, exists_apply_eq_apply]
+          have : Ψ x ∈ Set.Icc 0 1 := by exact hΨrange this
+          simp at this
+          exact this.left
+      · constructor
+        ·
+          intro x
+          rw [Set.indicator_apply]
+          split_ifs with h
+          · have : Ψ x ∈ Set.range Ψ := by simp only [Set.mem_range, exists_apply_eq_apply]
+            have : Ψ x ∈ Set.Icc 0 1 := by exact hΨrange this
+            simp at this
+            simp
+            exact this.right
+          · simp only [Set.mem_Ioo, Pi.one_apply] at *
+            simp only [not_and_or, not_lt] at h
+            simp_rw [hΨ0 x] at h
+            exact Eq.le h
+        · simp_rw [Function.support, ne_eq, ←hΨ0]
+          simp [Set.ext_iff]
+          intro x
+          push_neg
+          tauto
+  done
+
+
 /-%%
 The Fourier transform of an absolutely integrable function $\psi: \R \to \C$ is defined by the formula
 $$ \hat \psi(u) := \int_\R e(-tu) \psi(t)\ dt$$

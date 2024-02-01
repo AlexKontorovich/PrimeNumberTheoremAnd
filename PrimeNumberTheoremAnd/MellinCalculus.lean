@@ -1,4 +1,6 @@
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+import PrimeNumberTheoremAnd.Wiener
+import Mathlib.Analysis.Calculus.ContDiff.Basic
 
 open Complex Topology Filter
 
@@ -174,6 +176,12 @@ This is a straightforward calculation.
 \end{proof}
 %%-/
 
+lemma Function.support_id : Function.support (fun x : ℝ => x) = Set.Iio 0 ∪ Set.Ioi 0 := by
+  ext x
+  simp only [mem_support, ne_eq, Set.Iio_union_Ioi, Set.mem_compl_iff, Set.mem_singleton_iff]
+
+attribute [- simp] one_div
+
 /-%%
 Let $\psi$ be a bumpfunction.
 \begin{theorem}\label{SmoothExistence}
@@ -183,6 +191,98 @@ $$
 \int_0^\infty \psi(x)\frac{dx}{x} = 1.
 $$
 \end{theorem}
+%%-/
+
+lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ ∫ x in Set.Ici 0, Ψ x / x = 1 := by
+  suffices h : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, Ψ x / x
+  · rcases h with ⟨Ψ, hΨ, hΨsupp, hΨpos⟩
+    let c := (∫ x in Set.Ici 0, Ψ x / x)
+    use fun y => Ψ y / c
+    constructor
+    · intro n
+      exact ContDiff.div_const (hΨ n) c
+    · constructor
+      · simp only [Function.support, Set.subset_def, div_ne_zero] at hΨsupp ⊢
+        intro y hy
+        have := hΨsupp y
+        apply this
+        simp at hy
+        push_neg at hy
+        simp [hy.left]
+      · simp only [div_right_comm _ c _]
+        rw [MeasureTheory.integral_div c]
+        apply div_self
+        exact ne_of_gt hΨpos
+  have := smooth_urysohn_support_Ioo (a := 1 / 2) (b := 1) (c := 3/2) (d := 2) (by linarith) (by linarith) (by linarith)
+  rcases this with ⟨Ψ, hΨContDiff, hΨCompactSupport, hΨ0, hΨ1, hΨSupport⟩
+  use Ψ
+  use hΨContDiff
+  unfold Set.indicator at hΨ0 hΨ1
+  simp only [Set.mem_Icc, Pi.one_apply, Pi.le_def, Set.mem_Ioo] at hΨ0 hΨ1
+  constructor
+  · simp only [hΨSupport, Set.subset_def, Set.mem_Ioo, Set.mem_Icc, and_imp]
+    intro y hy hy'
+    exact ⟨by linarith, by linarith⟩
+  · rw [MeasureTheory.integral_pos_iff_support_of_nonneg]
+    · simp only [Function.support_div, measurableSet_Ici, MeasureTheory.Measure.restrict_apply']
+      rw [hΨSupport]
+      rw [Function.support_id]
+      have : (Set.Ioo (1 / 2 : ℝ) 2 ∩ (Set.Iio 0 ∪ Set.Ioi 0) ∩ Set.Ici 0) = Set.Ioo (1 / 2) 2 := by
+        ext x
+        simp only [Set.mem_inter_iff, Set.mem_Ioo, Set.mem_Ici, Set.mem_Iio, Set.mem_Ioi, Set.mem_union, not_lt, and_true, not_le]
+        constructor
+        · intros h
+          exact h.left.left
+        · intros h
+          simp [h, and_true, lt_or_lt_iff_ne, ne_eq]
+          constructor
+          · linarith [h.left]
+          · linarith
+      simp only [this, Real.volume_Ioo, ENNReal.ofReal_pos, sub_pos, gt_iff_lt]
+      linarith
+    · rw [Pi.le_def]
+      intro y
+      simp only [Pi.zero_apply]
+      by_cases h : y ∈ Function.support Ψ
+      . apply div_nonneg
+        · apply le_trans _ (hΨ0 y)
+          simp [apply_ite]
+        rw [hΨSupport, Set.mem_Ioo] at h
+        linarith [h.left]
+      . simp only [Function.mem_support, ne_eq, not_not] at h
+        simp [h]
+    · have : (fun x => Ψ x / x) = Set.piecewise (Set.Icc (1 / 2) 2) (fun x => Ψ x / x) 0 := by
+        ext x
+        simp only [Set.piecewise]
+        by_cases hxIcc : x ∈ Set.Icc (1 / 2) 2
+        · exact (if_pos hxIcc).symm
+        · rw [if_neg hxIcc]
+          have hΨx0 : Ψ x = 0 := by
+            have hxIoo : x ∉ Set.Ioo (1 / 2) 2 := by
+              simp only [Set.mem_Icc, not_and_or, not_le] at hxIcc
+              simp [Set.mem_Ioo, Set.mem_Icc]
+              intro
+              cases hxIcc <;> linarith
+            rw [<-hΨSupport] at hxIoo
+            simp only [Function.mem_support, ne_eq, not_not] at hxIoo
+            exact hxIoo
+          simp [hΨx0]
+      rw [this]
+      apply MeasureTheory.Integrable.piecewise measurableSet_Icc
+      · apply ContinuousOn.integrableOn_compact isCompact_Icc
+        apply ContinuousOn.div
+        · replace hΨContDiff := hΨContDiff 0
+          simp only [contDiff_zero] at hΨContDiff
+          exact Continuous.continuousOn hΨContDiff
+        · apply continuousOn_id
+        · simp only [Set.mem_Icc, ne_eq, and_imp]
+          intros
+          linarith
+      · -- exact? -- fails
+        exact MeasureTheory.integrableOn_zero
+
+
+/-%%
 \begin{proof}
 \uses{smooth-ury}
 Same idea as Urysohn-type argument.
