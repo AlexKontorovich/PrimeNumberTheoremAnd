@@ -172,32 +172,42 @@ $$
 \end{theorem}
 %%-/
 
-lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ ∫ x in Set.Ici 0, Ψ x / x = 1 := by
-  suffices h : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, Ψ x / x
-  · rcases h with ⟨Ψ, hΨ, hΨsupp, hΨpos⟩
+lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧ Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ ∫ x in Set.Ici 0, Ψ x / x = 1 := by
+  suffices h : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧ Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, Ψ x / x
+  · rcases h with ⟨Ψ, hΨ, hΨnonneg, hΨsupp, hΨpos⟩
     let c := (∫ x in Set.Ici 0, Ψ x / x)
     use fun y => Ψ y / c
     constructor
     · intro n
       exact ContDiff.div_const (hΨ n) c
     · constructor
-      · simp only [Function.support, Set.subset_def, div_ne_zero] at hΨsupp ⊢
-        intro y hy
-        have := hΨsupp y
-        apply this
-        simp at hy
-        push_neg at hy
-        simp [hy.left]
-      · simp only [div_right_comm _ c _]
-        rw [MeasureTheory.integral_div c]
-        apply div_self
-        exact ne_of_gt hΨpos
+      · intro y
+        exact div_nonneg (hΨnonneg y) (le_of_lt hΨpos)
+      · constructor
+        · simp only [Function.support, Set.subset_def, div_ne_zero] at hΨsupp ⊢
+          intro y hy
+          have := hΨsupp y
+          apply this
+          simp at hy
+          push_neg at hy
+          simp [hy.left]
+        · simp only [div_right_comm _ c _]
+          rw [MeasureTheory.integral_div c]
+          apply div_self
+          exact ne_of_gt hΨpos
+
   have := smooth_urysohn_support_Ioo (a := 1 / 2) (b := 1) (c := 3/2) (d := 2) (by linarith) (by linarith) (by linarith)
   rcases this with ⟨Ψ, hΨContDiff, hΨCompactSupport, hΨ0, hΨ1, hΨSupport⟩
   use Ψ
   use hΨContDiff
   unfold Set.indicator at hΨ0 hΨ1
   simp only [Set.mem_Icc, Pi.one_apply, Pi.le_def, Set.mem_Ioo] at hΨ0 hΨ1
+  constructor
+  · intro x
+    replace hΨ0 := hΨ0 x
+    replace hΨ1 := hΨ1 x
+    apply le_trans _ hΨ0
+    simp [apply_ite]
   constructor
   · simp only [hΨSupport, Set.subset_def, Set.mem_Ioo, Set.mem_Icc, and_imp]
     intro y hy hy'
