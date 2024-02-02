@@ -173,9 +173,14 @@ Let $x>0$ and $x<1$. Then
 $$\lim_{\sigma\to\infty}x^\sigma=0.$$
 \end{lemma}
 %%-/
-lemma tendsto_Realpow_atTop_nhds_0_of_norm_lt_1 {x : ℝ} {C : ℝ} (xpos : 0 < x) (x_lt_one : x < 1) (Cpos : C > 0) :
+lemma tendsto_Realpow_atTop_nhds_0_of_norm_lt_1 {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1) (C : ℝ) :
   Tendsto (fun (σ : ℝ) => x ^ σ * C) atTop (𝓝 0) := by
-  sorry -- mimic `tendsto_pow_atTop_nhds_0_of_norm_lt_1`
+  have := tendsto_rpow_atTop_of_base_lt_one x (by linarith) x_lt_one
+  convert this.const_smul (c := C) using 1
+  · ext σ
+    simp only [rpow_eq_pow, smul_eq_mul]
+    ring
+  · simp only [smul_eq_mul, mul_zero]
 /-%%
 \begin{proof}
 Standard.
@@ -228,8 +233,8 @@ tendsto_Realpow_atTop_nhds_0_of_norm_lt_1}
     exact ⟨C, PerronIntegralPosAux, fun _ ↦ VertIntPerronBound xpos x_lt_one⟩
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
   have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral f)) atTop (𝓝 0)
-  · obtain ⟨C, Cpos, hC⟩ := VertIntBound
-    have := tendsto_Realpow_atTop_nhds_0_of_norm_lt_1 xpos x_lt_one Cpos
+  · obtain ⟨C, _, hC⟩ := VertIntBound
+    have := tendsto_Realpow_atTop_nhds_0_of_norm_lt_1 xpos x_lt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
     · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _
     · filter_upwards [eventually_gt_atTop 1]; exact hC
@@ -265,18 +270,120 @@ Composition of differentiabilities.
 For $x>1$ and $\sigma>0$, we have
 $$
 \frac1{2\pi i}
-\int_{(\sigma)}\frac{x^s}{s(s+1)}ds =1-1/x.
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds =1
++
+\frac 1{2\pi i}
+\int_{(-1/2)}\frac{x^s}{s(s+1)}ds.
 $$
 \end{lemma}
 %%-/
 lemma PerronResiduePull1 {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < σ) :
-    VerticalIntegral (fun s => x ^ s / (s * (s + 1))) σ = 1 + VerticalIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2) := by
+    VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ = 1 + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-1 / 2) := by
   sorry
 /-%%
 \begin{proof}
 Pull contour from $(\sigma)$ to $(-1/2)$.
 \end{proof}
 %%-/
+
+/-%%
+\begin{lemma}\label{PerronResiduePull2}\lean{PerronResiduePull2}\leanok
+For $x>1$, we have
+$$
+\frac1{2\pi i}
+\int_{(-1/2)}\frac{x^s}{s(s+1)}ds = -1/x +
+\frac 1{2\pi i}
+\int_{(-3/2)}\frac{x^s}{s(s+1)}ds.
+$$
+\end{lemma}
+%%-/
+lemma PerronResiduePull2 {x : ℝ} (x_gt_one : 1 < x) :
+    VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
+    = -1 / x + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-3 / 2) := by
+  sorry
+/-%%
+\begin{proof}
+Pull contour from $(-1/2)$ to $(-3/2)$.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}\label{PerronContourPull3}\lean{PerronContourPull3}\leanok
+For $x>1$ and $\sigma<-3/2$, we have
+$$
+\frac1{2\pi i}
+\int_{(-3/2)}\frac{x^s}{s(s+1)}ds = \frac 1{2\pi i}
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds.
+$$
+\end{lemma}
+%%-/
+lemma PerronContourPull3 {x : ℝ} (x_gt_one : 1 < x) {σ' σ'' : ℝ} (σ'le : σ' ≤ -3/2) (σ''le : σ'' ≤ -3/2) :
+    VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ' = VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ'' := by
+  sorry
+/-%%
+\begin{proof}
+Pull contour from $(-3/2)$ to $(\sigma)$.
+\end{proof}
+%%-/
+
+
+/-%%
+\begin{lemma}\label{VertIntPerronBoundLeft}\lean{VertIntPerronBoundLeft}\leanok
+\uses{VerticalIntegral}
+Let $x>1$ and $\sigma<-3/2$. Then
+$$\left|
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
+\end{lemma}
+%%-/
+
+lemma VertIntPerronBoundLeft {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σle : σ < -3 / 2) :
+    Complex.abs (VerticalIntegral' (fun s ↦ x^s / (s * (s + 1))) σ)
+      ≤ x ^ σ *
+        ((∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)|) / (2 * π)) := by
+  sorry
+/-%%
+\begin{proof}
+Triangle inequality and pointwise estimate. Use
+\end{proof}
+%%-/
+
+
+/-%%
+\begin{lemma}\label{tendsto_Realpow_atTop_nhds_0_of_norm_gt_1}\lean{tendsto_Realpow_atTop_nhds_0_of_norm_gt_1}\leanok
+Let $x>1$. Then
+$$\lim_{\sigma\to-\infty}x^\sigma=0.$$
+\end{lemma}
+%%-/
+lemma tendsto_Realpow_atTop_nhds_0_of_norm_gt_1 {x : ℝ} {C : ℝ} (x_gt_one : 1 < x) (Cpos : C > 0) :
+    Tendsto (fun (σ : ℝ) => x ^ σ * C) atBot (𝓝 0) := by
+  sorry -- mimic `tendsto_pow_atTop_nhds_0_of_norm_lt_1`
+/-%%
+\begin{proof}
+Standard.
+\end{proof}
+%%-/
+
+
+/-%%
+\begin{lemma}\label{limitOfConstantLeft}\lean{limitOfConstantLeft}\leanok
+Let $a:\R\to\C$ be a function, and let $\sigma<-3/2$ be a real number. Suppose that, for all
+$\sigma, \sigma'>0$, we have $a(\sigma')=a(\sigma)$, and that
+$\lim_{\sigma\to-\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
+\end{lemma}
+%%-/
+lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3/2)
+    (ha : ∀ (σ' : ℝ) (σ'' : ℝ) (_ : σ' ≤ -3/2) (_ : σ'' ≤ -3/2), a σ' = a σ'')
+    (ha' : Tendsto a atBot (𝓝 0)) : a σ = 0 := by
+/-%%
+\begin{proof}\leanok
+\begin{align*}
+\lim_{\sigma'\to-\infty}a(\sigma) &= \lim_{\sigma'\to-\infty}a(\sigma') \\
+%%-/
+  have := eventuallyEq_of_mem (mem_atBot (-3/2)) fun σ' h ↦ ha σ' σ h σlt
+--%% &= 0
+  exact tendsto_const_nhds_iff.mp (ha'.congr' this)
+--%%\end{align*}\end{proof}
+
 
 /-%
 \begin{lemma}\label{PerronFormulaGtOne}\lean{PerronFormulaGtOne}\leanok
@@ -288,18 +395,44 @@ $$
 \end{lemma}
 %%-/
 lemma PerronFormulaGtOne {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < σ) :
-    VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 1 - 1 / x := by
+    VerticalIntegral' (fun s ↦ x^s / (s * (s + 1))) σ = 1 - 1 / x := by
 /-%%
-\begin{proof}
-\uses{HolomorphicOn_of_Perron_function2, PerronResiduePull1}
+\begin{proof}\leanok
+\uses{HolomorphicOn_of_Perron_function2, PerronResiduePull1,
+PerronResiduePull2, PerronContourPull3, PerronIntegralPosAux, VertIntPerronBoundLeft,
+tendsto_Realpow_atTop_nhds_0_of_norm_gt_1, limitOfConstantLeft}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,1}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
   have fHolo : HolomorphicOn f {0, -1}ᶜ := HolomorphicOn_of_Perron_function2 x_gt_one
---%% First pull the contour from $(\sigma)$ to $(-1/2)$.
-  have contourPull₁ : VerticalIntegral f σ = 1 + VerticalIntegral f (-1 / 2) := PerronResiduePull1 x_gt_one σ_pos
+--%% First pull the contour from $(\sigma)$ to $(-1/2)$, picking up a residue $1$ at $s=0$.
+  have contourPull₁ : VerticalIntegral' f σ = 1 + VerticalIntegral' f (-1 / 2) := PerronResiduePull1 x_gt_one σ_pos
   rw [contourPull₁]
-  sorry
+--%% Next pull the contour from $(-1/2)$ to $(-3/2)$, picking up a residue $-1/x$ at $s=-1$.
+  have contourPull₂ : VerticalIntegral' f (-1 / 2) = -1 / x + VerticalIntegral' f (-3 / 2) := PerronResiduePull2 x_gt_one
+  rw [contourPull₂]
+--%% Then pull the contour all the way to $(\sigma')$ with $\sigma'<-3/2$.
+  have contourPull₃ : ∀ σ' σ'' (σ'le : σ' ≤ -3/2) (σ''le : σ'' ≤ -3/2), VerticalIntegral' f σ' = VerticalIntegral' f σ'' := fun σ' σ'' σ'le σ''le ↦ PerronContourPull3 x_gt_one σ'le σ''le
+--%% For $\sigma' < -3/2$, the integral is bounded by $x^{\sigma'}\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$.
+  have VertIntBound : ∃ C > 0, ∀ σ' < -3/2, Complex.abs (VerticalIntegral' f σ') ≤ x^σ' * C
+  · let C := ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)|
+    have : 0 < C / (2 * π) := div_pos PerronIntegralPosAux (by norm_num [pi_pos])
+    exact ⟨C / (2 * π), this, fun _ ↦ VertIntPerronBoundLeft x_gt_one⟩
+--%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
+  have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral' f)) atBot (𝓝 0)
+  · obtain ⟨C, Cpos, hC⟩ := VertIntBound
+    have := tendsto_Realpow_atTop_nhds_0_of_norm_gt_1 x_gt_one Cpos
+    apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
+    · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _
+    · filter_upwards [eventually_lt_atBot (-3/2)]; exact hC
+  have VertIntTendsto : Tendsto (VerticalIntegral' f) atBot (𝓝 0) :=
+    tendsto_zero_iff_norm_tendsto_zero.mpr AbsVertIntTendsto
+  --%% So pulling contours gives $\int_{(-3/2)}=0$.
+  have VertIntEqZero: VerticalIntegral' f (-3 / 2) = 0 :=
+    limitOfConstantLeft (σ := -3/2) (Eq.le rfl) contourPull₃ VertIntTendsto
+  rw [VertIntEqZero]
+  simp only [add_zero, one_div]
+  ring
 /-%%
 \end{proof}
 %%-/
