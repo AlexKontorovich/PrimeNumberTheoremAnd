@@ -141,7 +141,45 @@ $$\left|
 lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) (x_le_one : x < 1) {σ : ℝ} (σ_gt_one : 1 < σ) :
     Complex.abs (VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ)
       ≤ x ^ σ * ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| := by
-  sorry
+  calc
+    _ = ‖∫ (t : ℝ), x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ := ?_
+    _ ≤ ∫ (t : ℝ), ‖x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ :=
+        MeasureTheory.norm_integral_le_integral_norm _
+    _ = ∫ (t : ℝ), x ^ σ / ‖((σ + t * I) * (σ + t * I + 1))‖ := ?_
+    _ = x ^ σ * ∫ (t : ℝ), 1 / (Complex.abs (σ + t * I) * Complex.abs (σ + t * I + 1)) := ?_
+    _ ≤ x ^ σ * ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| :=
+        mul_le_mul_of_nonneg_left ?_ (rpow_nonneg xpos.le _)
+  · simp only [VerticalIntegral, smul_eq_mul, map_mul, abs_I, one_mul, Complex.norm_eq_abs]
+  · congr with t
+    rw [norm_div, Complex.norm_eq_abs, Complex.abs_cpow_eq_rpow_re_of_pos xpos, add_re, ofReal_re,
+      re_ofReal_mul, I_re, mul_zero, add_zero]
+  · simp_rw [div_eq_mul_inv, MeasureTheory.integral_mul_left, one_mul, Complex.norm_eq_abs, map_mul]
+  clear! x
+  -- Note: I didn't try to prove this because the result is trivial if it isn't true.
+  by_cases hint : MeasureTheory.Integrable fun (a : ℝ) => 1 / (Complex.abs (σ + ↑a * I) * Complex.abs (↑σ + ↑a * I + 1))
+  swap
+  · rw [MeasureTheory.integral_undef hint]
+    apply MeasureTheory.integral_nonneg
+    rw [Pi.le_def]
+    intro t
+    simp only [Pi.zero_apply, one_div, inv_nonneg, abs_nonneg]
+  apply MeasureTheory.integral_mono hint
+  · have := PerronIntegralPosAux
+    contrapose! this
+    have := MeasureTheory.integral_undef this
+    simp_rw [this, le_rfl]
+  rw [Pi.le_def]
+  intro t
+  rw [abs_eq_self.mpr (by positivity)]
+  simp only [Complex.abs_apply]
+  gcongr
+  · apply sqrt_le_sqrt
+    rw [normSq_add_mul_I, add_le_add_iff_right]
+    exact one_le_pow_of_one_le σ_gt_one.le _
+  · apply sqrt_le_sqrt
+    rw [add_right_comm, ← ofReal_one, ← ofReal_add, normSq_add_mul_I, add_le_add_iff_right]
+    nlinarith
+
 /-%%
 \begin{proof}
 Triangle inequality and pointwise estimate. Use
