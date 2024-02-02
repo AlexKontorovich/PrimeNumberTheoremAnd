@@ -423,7 +423,7 @@ lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3/2)
 --%%\end{align*}\end{proof}
 
 
-/-%
+/-%%
 \begin{lemma}\label{PerronFormulaGtOne}\lean{PerronFormulaGtOne}\leanok
 For $x>1$ and $\sigma>0$, we have
 $$
