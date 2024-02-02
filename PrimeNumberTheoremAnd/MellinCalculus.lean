@@ -442,7 +442,7 @@ tendsto_Realpow_atTop_nhds_0_of_norm_gt_1, limitOfConstantLeft}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,1}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
-  have fHolo : HolomorphicOn f {0, -1}ᶜ := HolomorphicOn_of_Perron_function2 x_gt_one
+  have : HolomorphicOn f {0, -1}ᶜ := HolomorphicOn_of_Perron_function2 x_gt_one
 --%% First pull the contour from $(\sigma)$ to $(-1/2)$, picking up a residue $1$ at $s=0$.
   have contourPull₁ : VerticalIntegral' f σ = 1 + VerticalIntegral' f (-1 / 2) := PerronResiduePull1 x_gt_one σ_pos
   rw [contourPull₁]
@@ -450,7 +450,7 @@ tendsto_Realpow_atTop_nhds_0_of_norm_gt_1, limitOfConstantLeft}
   have contourPull₂ : VerticalIntegral' f (-1 / 2) = -1 / x + VerticalIntegral' f (-3 / 2) := PerronResiduePull2 x_gt_one
   rw [contourPull₂]
 --%% Then pull the contour all the way to $(\sigma')$ with $\sigma'<-3/2$.
-  have contourPull₃ : ∀ σ' σ'' (σ'le : σ' ≤ -3/2) (σ''le : σ'' ≤ -3/2), VerticalIntegral' f σ' = VerticalIntegral' f σ'' := fun σ' σ'' σ'le σ''le ↦ PerronContourPull3 x_gt_one σ'le σ''le
+  have contourPull₃ : ∀ σ' σ'' (_ : σ' ≤ -3/2) (_ : σ'' ≤ -3/2), VerticalIntegral' f σ' = VerticalIntegral' f σ'' := fun σ' σ'' σ'le σ''le ↦ PerronContourPull3 x_gt_one σ'le σ''le
 --%% For $\sigma' < -3/2$, the integral is bounded by $x^{\sigma'}\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$.
   have VertIntBound : ∃ C > 0, ∀ σ' < -3/2, Complex.abs (VerticalIntegral' f σ') ≤ x^σ' * C
   · let C := ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)|
