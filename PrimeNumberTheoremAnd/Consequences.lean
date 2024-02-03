@@ -14,7 +14,10 @@ $$ \sum_{n < x} f n = \sum_{n < ⌈x⌉_+} f n.$$
 \end{lemma}
 %%-/
 lemma finsum_range_eq_sum_range {R: Type*} [AddCommMonoid R] {f: Nat.ArithmeticFunction R} (x:ℝ) : ∑ᶠ (n:ℕ) (_: n < x), f n = ∑ n in Finset.range ⌈x⌉₊, f n := by
-  sorry
+  apply finsum_cond_eq_sum_of_cond_iff (fun i => f i)
+  intros
+  simp only [Finset.mem_range]
+  exact Iff.symm Nat.lt_ceil
 
 lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f: Nat.ArithmeticFunction R} (x:ℝ) : ∑ᶠ (n:ℕ) (_: n ≤ x), f n = ∑ n in Finset.Iic ⌊x⌋₊, f n := by
   sorry
