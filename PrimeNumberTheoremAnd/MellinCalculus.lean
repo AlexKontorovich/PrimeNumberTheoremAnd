@@ -45,7 +45,9 @@ If the limit of $0$ is $L₁ - L₂$, then $L₁ = L₂$.
 %%-/
 lemma zeroTendstoDiff (L₁ L₂ : ℂ) (f : ℝ → ℂ) (h : ∀ᶠ T in atTop,  f T = 0)
     (h' : Tendsto f atTop (𝓝 (L₂ - L₁))) : L₁ = L₂ := by
-  sorry
+  rw [← zero_add L₁, ← @eq_sub_iff_add_eq]
+  apply tendsto_nhds_unique (EventuallyEq.tendsto h) h'
+
 /-%%
 \begin{proof}
 Obvious.
