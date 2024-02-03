@@ -117,6 +117,48 @@ Almost by definition.
 \end{proof}
 %%-/
 
+-- TODO: upstream to mathlib Arctan.lean
+lemma arctan_atTop : Tendsto arctan atTop (𝓝 (π / 2)) :=
+  tendsto_nhds_of_tendsto_nhdsWithin (tendsto_Ioo_atTop.mp tanOrderIso.symm.tendsto_atTop)
+
+lemma arctan_atBot : Tendsto arctan atBot (𝓝 (-(π / 2))) :=
+  tendsto_nhds_of_tendsto_nhdsWithin (tendsto_Ioo_atBot.mp tanOrderIso.symm.tendsto_atBot)
+
+lemma arctan_ne_zero {x : ℝ} (hx : x ≠ 0) : arctan x ≠ 0 :=
+  fun h ↦ hx <| (show arctan.Injective from StrictMono.injective tanOrderIso.symm.strictMono)
+    (h.trans arctan_zero.symm)
+
+-- TODO: upstream to mathlib ImproperIntegral.lean
+private lemma intervalIntegral_one_div_one_add_sq_tendsto :
+    Tendsto (fun i => ∫ (x : ℝ) in -i..i, 1 / (1 + x ^ 2)) atTop (𝓝 π) := by
+  convert Tendsto.add arctan_atTop arctan_atTop <;> simp
+
+open MeasureTheory in
+lemma integrable_one_div_one_add_sq : Integrable fun (x : ℝ) ↦ 1 / (1 + x ^ 2) := by
+  have (x : ℝ) : ‖1 / (1 + x ^ 2)‖ = 1 / (1 + x ^ 2) := norm_of_nonneg (by positivity)
+  refine integrable_of_intervalIntegral_norm_tendsto π (fun i ↦ ?_) tendsto_neg_atTop_atBot
+    tendsto_id (by simpa only [this] using intervalIntegral_one_div_one_add_sq_tendsto)
+  by_cases hi : i = 0
+  · rewrite [hi, Set.Ioc_eq_empty (by norm_num)]; exact integrableOn_empty
+  · refine (intervalIntegral.intervalIntegrable_of_integral_ne_zero ?_).1
+    simp [← two_mul, arctan_ne_zero hi]
+
+open MeasureTheory in
+lemma integral_Iic_one_div_one_add_sq {i : ℝ} :
+    ∫ (x : ℝ) in Set.Iic i, 1 / (1 + x ^ 2) = arctan i + (π / 2) :=
+  integral_Iic_of_hasDerivAt_of_tendsto' (fun x _ => hasDerivAt_arctan x)
+    integrable_one_div_one_add_sq.integrableOn arctan_atBot |>.trans (sub_neg_eq_add _ _)
+
+open MeasureTheory in
+lemma integral_Ioi_one_div_one_add_sq {i : ℝ} :
+    ∫ (x : ℝ) in Set.Ioi i, 1 / (1 + x ^ 2) = (π / 2) - arctan i :=
+  integral_Ioi_of_hasDerivAt_of_tendsto' (fun x _ => hasDerivAt_arctan x)
+    integrable_one_div_one_add_sq.integrableOn arctan_atTop
+
+open MeasureTheory in
+lemma integral_volume_one_div_one_add_sq : ∫ (x : ℝ), 1 / (1 + x ^ 2) = π :=
+  tendsto_nhds_unique (intervalIntegral_tendsto_integral integrable_one_div_one_add_sq
+    tendsto_neg_atTop_atBot tendsto_id) intervalIntegral_one_div_one_add_sq_tendsto
 
 /-%%
 \begin{lemma}\label{PerronIntegralPosAux}\lean{PerronIntegralPosAux}\leanok
@@ -125,13 +167,40 @@ $$\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$$
 is positive (and hence convergent - since a divergent integral is zero in Lean, by definition).
 \end{lemma}
 %%-/
+open MeasureTheory in
 lemma PerronIntegralPosAux : 0 < ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| := by
-  sorry
 /-%%
-\begin{proof}
-Standard estimate.
-\end{proof}
+\begin{proof}\leanok
+This integral is between $\frac{1}{2}$ and $1$ of the integral of $\frac{1}{1+t^2}$, which is $\pi$.
 %%-/
+  simp_rw [fun (t : ℝ) ↦ abs_of_pos (show sqrt (1 + t^2) * sqrt (2 + t^2) > 0 by positivity)]
+  apply (half_pos <| pi_pos.trans_eq integral_volume_one_div_one_add_sq.symm).trans_le
+  rewrite [← integral_div]
+
+  have h_int1 : Integrable fun (t : ℝ) ↦ 1 / (1 + t^2) := Classical.byContradiction fun hc ↦
+    (integral_volume_one_div_one_add_sq.trans_ne pi_ne_zero) (integral_undef hc)
+  have h_int2 : Integrable fun (t : ℝ) ↦ 1 / (1 + t^2) / 2 := Integrable.div_const h_int1 2
+
+  have h_mono1 (t : ℝ): 1 / (1 + t^2) / 2 ≤ 1 / (sqrt (1 + t^2) * sqrt (2 + t^2)) := by
+    apply (div_div _ _ _).trans_le
+    gcongr 1 / ?_
+    calc
+      _ ≤ sqrt (2 + t^2) * sqrt (2 + t^2) := by gcongr; apply Real.sqrt_le_sqrt; nlinarith
+      _ = 2 + t^2 := by rw [← Real.sqrt_mul, sqrt_mul_self] <;> positivity
+      _ ≤ _ := by nlinarith
+  have h_mono2 (t : ℝ) : 1 / (sqrt (1 + t^2) * sqrt (2 + t^2)) ≤ 1 / (1 + t^2) := by
+    gcongr 1 / ?_
+    calc
+      _ = sqrt (1 + t^2) * sqrt (1 + t^2) := by rw [← Real.sqrt_mul, sqrt_mul_self] <;> positivity
+      _ ≤ _ := by gcongr; apply Real.sqrt_le_sqrt; nlinarith
+
+  refine integral_mono h_int2 (Integrable.mono h_int1 ?_ ?_) h_mono1
+  · refine (measurable_const.div <| Measurable.mul ?_ ?_).aestronglyMeasurable
+    all_goals exact (measurable_const.add <| measurable_id'.pow_const 2).sqrt
+  · refine ae_of_all _ (fun x ↦ ?_)
+    repeat rewrite [norm_of_nonneg (by positivity)]
+    exact h_mono2 x
+--%%\end{proof}
 
 /-%%
 \begin{lemma}\label{VertIntPerronBound}\lean{VertIntPerronBound}\leanok
@@ -142,7 +211,7 @@ $$\left|
 \end{lemma}
 %%-/
 
-lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) (x_le_one : x < 1) {σ : ℝ} (σ_gt_one : 1 < σ) :
+lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_gt_one : 1 < σ) :
     Complex.abs (VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ)
       ≤ x ^ σ * ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| := by
   calc
@@ -272,7 +341,7 @@ tendsto_Realpow_atTop_nhds_0_of_norm_lt_1}
 --%% $C=\int_\R\frac{1}{|(1+t)(1+t+1)|}dt$.
   have VertIntBound : ∃ C > 0, ∀ σ' > 1, Complex.abs (VerticalIntegral f σ') ≤ x^σ' * C
   · let C := ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)|
-    exact ⟨C, PerronIntegralPosAux, fun _ ↦ VertIntPerronBound xpos x_lt_one⟩
+    exact ⟨C, PerronIntegralPosAux, fun _ ↦ VertIntPerronBound xpos⟩
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
   have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral f)) atTop (𝓝 0)
   · obtain ⟨C, _, hC⟩ := VertIntBound
