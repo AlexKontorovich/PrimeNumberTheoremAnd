@@ -8,9 +8,9 @@ open Nat.ArithmeticFunction hiding log
 
 /-%%
 \begin{lemma}\label{range-eq-range}\lean{finsum_range_eq_sum_range, finsum_range_eq_sum_range'}\leanok For any arithmetic function $f$ and real number $x$, one has
-$$ \sum_{n \leq x} f n = \sum_{n \leq ⌊x⌋_+} f n$$
+$$ \sum_{n \leq x} f(n) = \sum_{n \leq ⌊x⌋_+} f(n)$$
 and
-$$ \sum_{n < x} f n = \sum_{n < ⌈x⌉_+} f n.$$
+$$ \sum_{n < x} f(n) = \sum_{n < ⌈x⌉_+} f(n).$$
 \end{lemma}
 %%-/
 lemma finsum_range_eq_sum_range {R: Type*} [AddCommMonoid R] {f: Nat.ArithmeticFunction R} (x:ℝ) : ∑ᶠ (n:ℕ) (_: n < x), f n = ∑ n in Finset.range ⌈x⌉₊, f n := by
@@ -31,7 +31,7 @@ lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f: Nat.Arithmetic
   apply (Nat.le_floor_iff' n_ne_0).mp
 
 /-%%
-\begin{proof} Straightforward. \end{proof}
+\begin{proof}\leanok Straightforward. \end{proof}
 %%-/
 
 /-%%
@@ -42,9 +42,14 @@ lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f: Nat.Arithmetic
 theorem chebyshev_asymptotic : (fun x ↦ ∑ p in (Finset.filter Nat.Prime (Finset.range ⌈x⌉₊)), log p) ~[atTop] (fun x ↦ x) := by
   sorry
 
+theorem chebyshev_asymptotic_finsum : (fun x ↦ ∑ᶠ (p:ℕ) (_: p ≤ x) (_: Nat.Prime p), log p) ~[atTop] (fun x ↦ x) := by
+  sorry
+
+-- one could also consider adding a version with p < x instead of p \leq x
+
 /-%%
 \begin{proof}
-\uses{WeakPNT}
+\uses{WeakPNT, range-eq-range}
 From the prime number theorem we already have
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x)$$
 so it suffices to show that
@@ -60,6 +65,9 @@ We have
 \end{corollary}
 %%-/
 theorem primorial_bounds : ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧ ∀ x : ℝ, ∏ p in (Finset.filter Nat.Prime (Finset.range ⌊x⌋₊)), p = exp ( x + E x ) := by
+  sorry
+
+theorem primorial_bounds_finprod : ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧ ∀ x : ℝ, ∏ᶠ (p:ℕ) (_:p ≤ x) (_:Nat.Prime p), p = exp ( x + E x ) := by
   sorry
 
 /-%%
