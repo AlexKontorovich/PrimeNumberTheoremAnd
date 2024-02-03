@@ -60,12 +60,16 @@ Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on the half-pl
 %%-/
 lemma HolomorphicOn_of_Perron_function {x : ℝ} (xpos : 0 < x) :
     HolomorphicOn (fun s => x ^ s / (s * (s + 1))) {s | 0 < s.re} := by
-  sorry
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Composition of differentiabilities.
-\end{proof}
 %%-/
+  simp_rw [Complex.cpow_def_of_ne_zero <| ofReal_ne_zero.mpr <| ne_of_gt xpos]
+  apply DifferentiableOn.div <| DifferentiableOn.cexp <| DifferentiableOn.const_mul differentiableOn_id _
+  · exact DifferentiableOn.mul differentiableOn_id <| DifferentiableOn.add_const differentiableOn_id 1
+  · exact fun _ hx ↦ mul_ne_zero (ne_of_apply_ne re <| ne_of_gt hx)
+      <| ne_of_apply_ne re <| ne_of_gt <| (lt_add_one 0).trans <| add_lt_add_right (by exact hx) 1
+--%%\end{proof}
 
 theorem HolomorphicOn.vanishesOnRectangle {f : ℂ → ℂ} {U : Set ℂ} {z w : ℂ}
     (f_holo : HolomorphicOn f U) (hU : Rectangle z w ⊆ U) :
