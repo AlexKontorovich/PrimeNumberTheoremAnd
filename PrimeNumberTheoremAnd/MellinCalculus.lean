@@ -400,7 +400,20 @@ $$\lim_{\sigma\to-\infty}x^\sigma=0.$$
 %%-/
 lemma tendsto_Realpow_atTop_nhds_0_of_norm_gt_1 {x : ℝ} {C : ℝ} (x_gt_one : 1 < x) (Cpos : C > 0) :
     Tendsto (fun (σ : ℝ) => x ^ σ * C) atBot (𝓝 0) := by
-  sorry -- mimic `tendsto_pow_atTop_nhds_0_of_norm_lt_1`
+  have h: Tendsto (fun (σ : ℝ) => x ^ (-σ) * C) atTop (𝓝 0) := by
+    have := (lt_trans zero_lt_one x_gt_one)
+    conv =>
+      congr
+      ext
+      rw [rpow_neg (le_of_lt this), ← inv_rpow (le_of_lt this)]
+    exact tendsto_Realpow_atTop_nhds_0_of_norm_lt_1 (inv_pos.mpr this) (inv_lt_one x_gt_one) C
+  have := Tendsto.comp h tendsto_neg_atBot_atTop
+  conv at this =>
+    congr
+    ext
+    rw [@Function.comp_apply, neg_neg]
+  exact this
+
 /-%%
 \begin{proof}
 Standard.
