@@ -47,7 +47,6 @@ lemma zeroTendstoDiff (L₁ L₂ : ℂ) (f : ℝ → ℂ) (h : ∀ᶠ T in atTop
     (h' : Tendsto f atTop (𝓝 (L₂ - L₁))) : L₁ = L₂ := by
   rw [← zero_add L₁, ← @eq_sub_iff_add_eq]
   apply tendsto_nhds_unique (EventuallyEq.tendsto h) h'
-
 /-%%
 \begin{proof}\leanok
 Obvious.
@@ -72,10 +71,6 @@ Composition of differentiabilities.
   · exact fun _ hx ↦ mul_ne_zero (ne_of_apply_ne re <| ne_of_gt hx)
       <| ne_of_apply_ne re <| ne_of_gt <| (lt_add_one 0).trans <| add_lt_add_right (by exact hx) 1
 --%%\end{proof}
-
-theorem HolomorphicOn.vanishesOnRectangle {f : ℂ → ℂ} {U : Set ℂ} {z w : ℂ}
-    (f_holo : HolomorphicOn f U) (hU : Rectangle z w ⊆ U) :
-    RectangleIntegral f z w = 0 := by sorry -- mathlib4#9598
 
 /-%%
 \begin{lemma}\label{RectangleIntegral_eq_zero}\lean{RectangleIntegral_eq_zero}\leanok
