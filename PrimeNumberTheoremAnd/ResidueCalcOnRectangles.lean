@@ -114,7 +114,7 @@ that the inner square is strictly contained in the big rectangle.)
 /-%%
 \begin{lemma}\label{ResidueTheoremAtOrigin}
 \lean{ResidueTheoremAtOrigin}\leanok
-Then square integral of $f(s) = 1/s$ with corners $-1-i$ and $1+i$ is equal to $2\pi i$.
+The rectangle (square) integral of $f(s) = 1/s$ with corners $-1-i$ and $1+i$ is equal to $2\pi i$.
 \end{lemma}
 %%-/
 lemma ResidueTheoremAtOrigin :

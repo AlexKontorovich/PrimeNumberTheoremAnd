@@ -263,7 +263,7 @@ lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_gt_one : 1 < σ
 
 /-%%
 \begin{proof}\leanok
-Triangle inequality and pointwise estimate. Use
+Triangle inequality and pointwise estimate.
 \end{proof}
 %%-/
 
@@ -305,7 +305,7 @@ Standard.
 %%-/
 
 /-%%
-We are ready for the Perron formula, which breaks into two cases, the first being:
+We are ready for the first case of the Perron formula, namely when $x<1$:
 \begin{lemma}\label{PerronFormulaLtOne}\lean{PerronFormulaLtOne}\leanok
 For $x>0$, $\sigma>0$, and $x<1$, we have
 $$
@@ -366,14 +366,13 @@ tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}
 
 
 /-%%
-The second lemma is the case $x>1$.
-
+The second case is when $x>1$.
 Here are some auxiliary lemmata for the second case.
 %-/
 
 /-%%
 \begin{lemma}\label{HolomorphicOn_of_Perron_function2}\lean{HolomorphicOn_of_Perron_function2}\leanok
-Let $x>1$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on $\C\setminus{0,1}$.
+Let $x>1$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on $\C\setminus\{0,1\}$.
 \end{lemma}
 %%-/
 lemma HolomorphicOn_of_Perron_function2 {x : ℝ} (x_gt_one : 1 < x) :
@@ -386,41 +385,36 @@ Composition of differentiabilities.
 %%-/
 
 /-%%
-\begin{lemma}\label{PerronSigmaNegOneHalfPull}\lean{PerronSigmaNegOneHalfPull}\leanok
-Let $x>0$ and $\sigma>0$. Then for all sufficiently small $c>0$, we have that
+\begin{lemma}[PerronSigmaNegOneHalfPull]\label{PerronSigmaNegOneHalfPull}
+\lean{PerronSigmaNegOneHalfPull}\leanok
+Let $x>0$ and $\sigma>0$. Then for all $T>0$, we have that
 $$
 \frac1{2\pi i}
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds -
 \frac 1{2\pi i}
 \int_{(-1/2)}\frac{x^s}{s(s+1)}ds =
-\int_{-c-ic}^{c+ic}\frac{x^s}{s(s+1)}ds,
+\int_{-1/2-iT}^{\sigma +iT}\frac{x^s}{s(s+1)}ds,
 $$
-that is, a rectangle with corners $-c-ic$ and $c+ic$.
+that is, a rectangle with corners $-1/2-iT$ and $\sigma+iT$.
 \end{lemma}
 %%-/
-lemma PerronSigmaNegOneHalfPull {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_pos : 0 < σ) :
-    ∀ᶠ (c : ℝ) in 𝓝[>]0,
+lemma PerronSigmaNegOneHalfPull {x : ℝ} (xpos : 0 < x) {σ T : ℝ} (σ_pos : 0 < σ) (Tpos : 0 < T):
     VerticalIntegral (fun s => x ^ s / (s * (s + 1))) σ
     - VerticalIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
-    = RectangleIntegral (fun s => x ^ s / (s * (s + 1))) (-c - I * c) (c + I * c) := by
+    = RectangleIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2 - I * T) (σ + I * T) := by
   sorry
 /-%%
-\begin{proof}
-The difference of the two vertical integrals is equal to the integral of a rectangle with corners
-$-1/2 - i*T$ and $\sigma + i*T$, for all $T>0$ (indeed, the rectangle integral is independent of $T$, because the
-remaining $|\_|$ shape (in the upper half plane, say) is itself the limit of a rectangle integral which vanishes
-since the function is holomorphic there).
-
-Take $c$ to be less than $1$ (so as not to hit the pole at $-1$), and less than $\sigma$ (so we
-don't have to worry about ``betweenness'' horizontally), and less than $T$ (for the same reason
-vertically). Then we can add rectangles to the little rectangle with side length $2c$ so as to
-fill out the larger rectangle with corners $-1/2 - i*T$ and $\sigma + i*T$.
-All of these extra rectangles are in the region of holomorphicity, so their integrals vanish.
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
+The integral on $(\sigma)$ minus that on $(-1/2)$, minus the integral on the rectangle, is
+the integral over two regions, one in the upper half plane and one in the lower half plane.
+In the upper half plane, the shape looks like $|\_|$, with corners at $-1/2+iT$ and $\sigma+iT$.
+The integral over that shape is the limit of integrals over rectangles with corners at $-1/2+iT$
+and $\sigma+iU$, for $U\to \infty$; each of those rectangles has integral zero.
 \end{proof}
 %%-/
 
 /-%%
-\begin{lemma}\label{PerronResidue_zero}\lean{PerronResidue_zero}\leanok
+\begin{lemma}\label{PerronResidueAtZero}\lean{PerronResidueAtZero}\leanok
 Let $x>0$. Then for all sufficiently small $c>0$, we have that
 $$
 \frac1{2\pi i}
@@ -428,7 +422,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma PerronResidue_zero {x : ℝ} (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
+lemma PerronResidueAtZero {x : ℝ} (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
     RectangleIntegral' (fun (s : ℂ) ↦ x ^ s / (s * (s + 1))) (-c - I * c) (c + I * c) = 1 := by
   sorry
 
@@ -465,11 +459,11 @@ lemma PerronResiduePull1 {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < �
     dsimp [RectangleIntegral', VerticalIntegral']
     rw [← hc, mul_sub]
   have RectEventuallyEq : ∀ᶠ (c : ℝ) in 𝓝[>]0, RectangleIntegral' f (-c - I * c) (c + I * c) = 1 :=
-    PerronResidue_zero (by linarith)
+    PerronResidueAtZero (by linarith)
   sorry
 /-%%
 \begin{proof}
-\uses{PerronSigmaNegOneHalfPull, PerronResidue_zero}
+\uses{PerronSigmaNegOneHalfPull, PerronResidueAtZero}
 Pull contour from $(\sigma)$ to $(-1/2)$.
 \end{proof}
 %%-/
