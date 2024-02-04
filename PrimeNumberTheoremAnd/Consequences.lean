@@ -164,7 +164,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) �
 
 /-%%
 \begin{corollary}  \label{prime-between}\lean{prime_between}\leanok
-For every $\eps>0$, there is a prime between $x$ and $(1+\eps x)$ for all sufficiently large $x$.
+For every $\eps>0$, there is a prime between $x$ and $(1+\eps)x$ for all sufficiently large $x$.
 \end{corollary}
 %%-/
 
