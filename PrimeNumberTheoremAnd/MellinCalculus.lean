@@ -281,19 +281,17 @@ lemma limitOfConstant {a : ℝ → ℂ} {σ : ℝ} (σpos : 0 < σ)
 --%%\end{align*}\end{proof}
 
 /-%%
-\begin{lemma}\label{tendsto_Realpow_atTop_nhds_0_of_norm_lt_1}\lean{tendsto_Realpow_atTop_nhds_0_of_norm_lt_1}\leanok
+\begin{lemma}\label{tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}\lean{tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}\leanok
 Let $x>0$ and $x<1$. Then
 $$\lim_{\sigma\to\infty}x^\sigma=0.$$
 \end{lemma}
 %%-/
-lemma tendsto_Realpow_atTop_nhds_0_of_norm_lt_1 {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1) (C : ℝ) :
+lemma tendsto_rpow_atTop_nhds_zero_of_norm_lt_one {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1) (C : ℝ) :
   Tendsto (fun (σ : ℝ) => x ^ σ * C) atTop (𝓝 0) := by
-  have := tendsto_rpow_atTop_of_base_lt_one x (by linarith) x_lt_one
-  convert this.const_smul (c := C) using 1
-  · ext σ
-    simp only [rpow_eq_pow, smul_eq_mul]
-    ring
-  · simp only [smul_eq_mul, mul_zero]
+  have := Tendsto.mul_const C (tendsto_rpow_atTop_of_base_lt_one x (by linarith) x_lt_one)
+  simp only [rpow_eq_pow, zero_mul] at this
+  exact this
+
 /-%%
 \begin{proof}
 Standard.
@@ -317,7 +315,7 @@ lemma PerronFormulaLtOne {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1)
 \begin{proof}
 \uses{HolomorphicOn_of_Perron_function, RectangleIntegral_eq_zero, PerronIntegralPosAux,
 VertIntPerronBound, limitOfConstant, RectangleIntegral_tendsTo_VerticalIntegral, zeroTendstoDiff,
-tendsto_Realpow_atTop_nhds_0_of_norm_lt_1}
+tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}
 \leanok
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 %%-/
@@ -347,7 +345,7 @@ tendsto_Realpow_atTop_nhds_0_of_norm_lt_1}
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
   have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral f)) atTop (𝓝 0)
   · obtain ⟨C, _, hC⟩ := VertIntBound
-    have := tendsto_Realpow_atTop_nhds_0_of_norm_lt_1 xpos x_lt_one C
+    have := tendsto_rpow_atTop_nhds_zero_of_norm_lt_one xpos x_lt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
     · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _
     · filter_upwards [eventually_gt_atTop 1]; exact hC
@@ -462,14 +460,18 @@ Triangle inequality and pointwise estimate. Use
 
 
 /-%%
-\begin{lemma}\label{tendsto_Realpow_atTop_nhds_0_of_norm_gt_1}\lean{tendsto_Realpow_atTop_nhds_0_of_norm_gt_1}\leanok
+\begin{lemma}\label{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\lean{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\leanok
 Let $x>1$. Then
 $$\lim_{\sigma\to-\infty}x^\sigma=0.$$
 \end{lemma}
 %%-/
-lemma tendsto_Realpow_atTop_nhds_0_of_norm_gt_1 {x : ℝ} {C : ℝ} (x_gt_one : 1 < x) (Cpos : C > 0) :
+lemma tendsto_rpow_atTop_nhds_zero_of_norm_gt_one {x : ℝ} (x_gt_one : 1 < x) (C : ℝ) :
     Tendsto (fun (σ : ℝ) => x ^ σ * C) atBot (𝓝 0) := by
-  sorry -- mimic `tendsto_pow_atTop_nhds_0_of_norm_lt_1`
+  have := (zero_lt_one.trans x_gt_one)
+  have h := tendsto_rpow_atTop_nhds_zero_of_norm_lt_one (inv_pos.mpr this) (inv_lt_one x_gt_one) C
+  convert (h.comp tendsto_neg_atBot_atTop) using 1
+  ext; simp only [this.le, inv_rpow, Function.comp_apply, rpow_neg, inv_inv]
+
 /-%%
 \begin{proof}
 Standard.
@@ -513,7 +515,7 @@ lemma PerronFormulaGtOne {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < �
 \begin{proof}\leanok
 \uses{HolomorphicOn_of_Perron_function2, PerronResiduePull1,
 PerronResiduePull2, PerronContourPull3, PerronIntegralPosAux, VertIntPerronBoundLeft,
-tendsto_Realpow_atTop_nhds_0_of_norm_gt_1, limitOfConstantLeft}
+tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,1}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
@@ -534,7 +536,7 @@ tendsto_Realpow_atTop_nhds_0_of_norm_gt_1, limitOfConstantLeft}
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
   have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral' f)) atBot (𝓝 0)
   · obtain ⟨C, Cpos, hC⟩ := VertIntBound
-    have := tendsto_Realpow_atTop_nhds_0_of_norm_gt_1 x_gt_one Cpos
+    have := tendsto_rpow_atTop_nhds_zero_of_norm_gt_one x_gt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
     · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _
     · filter_upwards [eventually_lt_atBot (-3/2)]; exact hC
