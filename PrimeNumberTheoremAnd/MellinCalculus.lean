@@ -34,6 +34,11 @@ noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
 noncomputable abbrev VerticalIntegral' (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * ∫ t : ℝ, f (σ + t * I)
 
+-- without bumping this instance, the next instance times out
+instance (G : Type*) [DivInvMonoid G] [MeasurableSpace G] [MeasurableInv G] [MeasurableMul₂ G] :
+    MeasurableDiv₂ G := inferInstance
+instance : MeasurableDiv₂ ℂ := inferInstance
+
 /-%%
 The following is preparatory material used in the proof of the Perron formula, see Lemma \ref{PerronFormulaLtOne}.
 %%-/
@@ -99,25 +104,39 @@ Direct application of HolomorphicOn.vanishesOnRectangle (mathlib4#9598).
 /-%%
 \begin{lemma}\label{RectangleIntegral_tendsTo_VerticalIntegral}\lean{RectangleIntegral_tendsTo_VerticalIntegral}\leanok
 \uses{RectangleIntegral}
-Let $\sigma,\sigma'>0$, and let $f$ be a holomorphic function on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$. Then
-the limit of rectangle integrals
-$$\lim_{T\to\infty}\int_{\sigma-iT}^{\sigma'+iT}f(s)ds = \int_{(\sigma')}f(s)ds - \int_{(\sigma)}f(s)ds
-.$$
-*** Needs more conditions on $f$ ***
+Let $\sigma,\sigma' ∈ \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
+the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
+the horizontal integral $\int_{(\sigma)}^{\sigma'}f(x + yi)dx$ vanishes as $y \to \pm \infty$.
+Then the limit of rectangle integrals
+$$\lim_{T\to\infty}\int_{\sigma-iT}^{\sigma'+iT}f(s)ds =
+\int_{(\sigma')}f(s)ds - \int_{(\sigma)}f(s)ds.$$
 \end{lemma}
 %%-/
 
-lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 < σ')
-    {f : ℂ → ℂ} (fHolo : HolomorphicOn f {s | 0 < s.re}) :
-    -- needs more hypotheses
+open MeasureTheory
+
+lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
+    (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (↑x + ↑(y) * I)) atBot (𝓝 0))
+    (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (↑x + ↑(y) * I)) atTop (𝓝 0))
+    (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
+    (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ - I * T) (σ' + I * T)) atTop
       (𝓝 (VerticalIntegral f σ' - VerticalIntegral f σ)) := by
-  sorry
-/-%%
-\begin{proof}
-Almost by definition.
-\end{proof}
-%%-/
+  /-%%
+  \begin{proof}\leanok
+  Almost by definition.
+  %%-/
+  have h_lower (x : ℝ) : (σ - I * x).im = -x := by simp
+  have h_upper (x : ℝ) : (σ' + I * x).im = x := by simp
+  have h_left (x : ℝ) : (σ - I * x).re = σ := by simp
+  have h_right (x : ℝ) : (σ' + I * x).re = σ' := by simp
+  simp_rw [RectangleIntegral, h_left, h_right, h_lower, h_upper]
+  apply Tendsto.sub
+  · rewrite [← zero_add (VerticalIntegral _ _), ← zero_sub_zero]
+    apply Tendsto.add <| Tendsto.sub (hbot.comp tendsto_neg_atTop_atBot) htop
+    exact (intervalIntegral_tendsto_integral hright tendsto_neg_atTop_atBot tendsto_id).const_smul I
+  · exact (intervalIntegral_tendsto_integral hleft tendsto_neg_atTop_atBot tendsto_id).const_smul I
+  --%%\end{proof}
 
 -- TODO: upstream to mathlib Arctan.lean
 lemma arctan_atTop : Tendsto arctan atTop (𝓝 (π / 2)) :=
@@ -135,7 +154,6 @@ private lemma intervalIntegral_one_div_one_add_sq_tendsto :
     Tendsto (fun i => ∫ (x : ℝ) in -i..i, 1 / (1 + x ^ 2)) atTop (𝓝 π) := by
   convert Tendsto.add arctan_atTop arctan_atTop <;> simp
 
-open MeasureTheory in
 lemma integrable_one_div_one_add_sq : Integrable fun (x : ℝ) ↦ 1 / (1 + x ^ 2) := by
   have (x : ℝ) : ‖1 / (1 + x ^ 2)‖ = 1 / (1 + x ^ 2) := norm_of_nonneg (by positivity)
   refine integrable_of_intervalIntegral_norm_tendsto π (fun i ↦ ?_) tendsto_neg_atTop_atBot
@@ -145,19 +163,16 @@ lemma integrable_one_div_one_add_sq : Integrable fun (x : ℝ) ↦ 1 / (1 + x ^ 
   · refine (intervalIntegral.intervalIntegrable_of_integral_ne_zero ?_).1
     simp [← two_mul, arctan_ne_zero hi]
 
-open MeasureTheory in
 lemma integral_Iic_one_div_one_add_sq {i : ℝ} :
     ∫ (x : ℝ) in Set.Iic i, 1 / (1 + x ^ 2) = arctan i + (π / 2) :=
   integral_Iic_of_hasDerivAt_of_tendsto' (fun x _ => hasDerivAt_arctan x)
     integrable_one_div_one_add_sq.integrableOn arctan_atBot |>.trans (sub_neg_eq_add _ _)
 
-open MeasureTheory in
 lemma integral_Ioi_one_div_one_add_sq {i : ℝ} :
     ∫ (x : ℝ) in Set.Ioi i, 1 / (1 + x ^ 2) = (π / 2) - arctan i :=
   integral_Ioi_of_hasDerivAt_of_tendsto' (fun x _ => hasDerivAt_arctan x)
     integrable_one_div_one_add_sq.integrableOn arctan_atTop
 
-open MeasureTheory in
 lemma integral_volume_one_div_one_add_sq : ∫ (x : ℝ), 1 / (1 + x ^ 2) = π :=
   tendsto_nhds_unique (intervalIntegral_tendsto_integral integrable_one_div_one_add_sq
     tendsto_neg_atTop_atBot tendsto_id) intervalIntegral_one_div_one_add_sq_tendsto
@@ -169,7 +184,6 @@ $$\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$$
 is positive (and hence convergent - since a divergent integral is zero in Lean, by definition).
 \end{lemma}
 %%-/
-open MeasureTheory in
 lemma PerronIntegralPosAux : 0 < ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| := by
 /-%%
 \begin{proof}\leanok
@@ -219,7 +233,7 @@ lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_gt_one : 1 < σ
   calc
     _ = ‖∫ (t : ℝ), x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ := ?_
     _ ≤ ∫ (t : ℝ), ‖x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ :=
-        MeasureTheory.norm_integral_le_integral_norm _
+        norm_integral_le_integral_norm _
     _ = ∫ (t : ℝ), x ^ σ / ‖((σ + t * I) * (σ + t * I + 1))‖ := ?_
     _ = x ^ σ * ∫ (t : ℝ), 1 / (Complex.abs (σ + t * I) * Complex.abs (σ + t * I + 1)) := ?_
     _ ≤ x ^ σ * ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| :=
@@ -228,20 +242,20 @@ lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_gt_one : 1 < σ
   · congr with t
     rw [norm_div, Complex.norm_eq_abs, Complex.abs_cpow_eq_rpow_re_of_pos xpos, add_re, ofReal_re,
       re_ofReal_mul, I_re, mul_zero, add_zero]
-  · simp_rw [div_eq_mul_inv, MeasureTheory.integral_mul_left, one_mul, Complex.norm_eq_abs, map_mul]
+  · simp_rw [div_eq_mul_inv, integral_mul_left, one_mul, Complex.norm_eq_abs, map_mul]
   clear! x
   -- Note: I didn't try to prove this because the result is trivial if it isn't true.
-  by_cases hint : MeasureTheory.Integrable fun (a : ℝ) => 1 / (Complex.abs (σ + ↑a * I) * Complex.abs (↑σ + ↑a * I + 1))
+  by_cases hint : Integrable fun (a : ℝ) => 1 / (Complex.abs (σ + ↑a * I) * Complex.abs (↑σ + ↑a * I + 1))
   swap
-  · rw [MeasureTheory.integral_undef hint]
-    apply MeasureTheory.integral_nonneg
+  · rw [integral_undef hint]
+    apply integral_nonneg
     rw [Pi.le_def]
     intro t
     simp only [Pi.zero_apply, one_div, inv_nonneg, abs_nonneg]
-  apply MeasureTheory.integral_mono hint
+  apply integral_mono hint
   · have := PerronIntegralPosAux
     contrapose! this
-    have := MeasureTheory.integral_undef this
+    have := integral_undef this
     simp_rw [this, le_rfl]
   rw [Pi.le_def]
   intro t
@@ -287,16 +301,18 @@ $$\lim_{\sigma\to\infty}x^\sigma=0.$$
 \end{lemma}
 %%-/
 lemma tendsto_rpow_atTop_nhds_zero_of_norm_lt_one {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1) (C : ℝ) :
-  Tendsto (fun (σ : ℝ) => x ^ σ * C) atTop (𝓝 0) := by
-  have := Tendsto.mul_const C (tendsto_rpow_atTop_of_base_lt_one x (by linarith) x_lt_one)
-  simp only [rpow_eq_pow, zero_mul] at this
-  exact this
-
+    Tendsto (fun (σ : ℝ) => x ^ σ * C) atTop (𝓝 0) := by
 /-%%
 \begin{proof}
 Standard.
-\end{proof}
 %%-/
+  have := Tendsto.mul_const C (tendsto_rpow_atTop_of_base_lt_one x (by linarith) x_lt_one)
+  simpa only [rpow_eq_pow, zero_mul] using this
+--%%\end{proof}
+
+lemma PerronVertIntegrable {x : ℝ} (xpos : 0 < x) {σ : ℝ} :
+    Integrable (fun (s : ℝ) ↦ x^(σ + s * I) / ((σ + s * I) * (σ + s * I + 1))) := by
+  sorry
 
 /-%%
 We are ready for the Perron formula, which breaks into two cases, the first being:
@@ -328,8 +344,13 @@ tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}
 --%% The limit of this rectangle integral as $T\to\infty$ is $\int_{(\sigma')}-\int_{(\sigma)}$.
   have rectIntLimit (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
       Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ' - I * T) (σ'' + I * T))
-      atTop (𝓝 (VerticalIntegral f σ'' - VerticalIntegral f σ')) :=
-    RectangleIntegral_tendsTo_VerticalIntegral σ'pos σ''pos fHolo
+      atTop (𝓝 (VerticalIntegral f σ'' - VerticalIntegral f σ')) := by
+    let g (y : ℝ) := ∫ (x : ℝ) in σ'..σ'', f (↑x + ↑y * I)
+    refine RectangleIntegral_tendsTo_VerticalIntegral ?_ ?_
+      (PerronVertIntegrable xpos) (PerronVertIntegrable xpos)
+    all_goals apply tendsto_zero_iff_norm_tendsto_zero.mpr
+    · sorry
+    · sorry
 --%% Therefore, $\int_{(\sigma')}=\int_{(\sigma)}$.
   have contourPull (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
     VerticalIntegral f σ' = VerticalIntegral f σ''
@@ -535,7 +556,7 @@ tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
     exact ⟨C / (2 * π), this, fun _ ↦ VertIntPerronBoundLeft x_gt_one⟩
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
   have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral' f)) atBot (𝓝 0)
-  · obtain ⟨C, Cpos, hC⟩ := VertIntBound
+  · obtain ⟨C, _, hC⟩ := VertIntBound
     have := tendsto_rpow_atTop_nhds_zero_of_norm_gt_one x_gt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
     · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _
@@ -672,7 +693,7 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
           push_neg at hy
           simp [hy.left]
         · simp only [div_right_comm _ c _]
-          rw [MeasureTheory.integral_div c]
+          rw [integral_div c]
           apply div_self
           exact ne_of_gt hΨpos
 
@@ -684,16 +705,14 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
   simp only [Set.mem_Icc, Pi.one_apply, Pi.le_def, Set.mem_Ioo] at hΨ0 hΨ1
   constructor
   · intro x
-    replace hΨ0 := hΨ0 x
-    replace hΨ1 := hΨ1 x
-    apply le_trans _ hΨ0
+    apply le_trans _ (hΨ0 x)
     simp [apply_ite]
   constructor
   · simp only [hΨSupport, Set.subset_def, Set.mem_Ioo, Set.mem_Icc, and_imp]
     intro y hy hy'
     exact ⟨by linarith, by linarith⟩
-  · rw [MeasureTheory.integral_pos_iff_support_of_nonneg]
-    · simp only [Function.support_div, measurableSet_Ici, MeasureTheory.Measure.restrict_apply']
+  · rw [integral_pos_iff_support_of_nonneg]
+    · simp only [Function.support_div, measurableSet_Ici, Measure.restrict_apply']
       rw [hΨSupport]
       rw [Function.support_id]
       have : (Set.Ioo (1 / 2 : ℝ) 2 ∩ (Set.Iio 0 ∪ Set.Ioi 0) ∩ Set.Ici 0) = Set.Ioo (1 / 2) 2 := by
@@ -737,7 +756,7 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
             exact hxIoo
           simp [hΨx0]
       rw [this]
-      apply MeasureTheory.Integrable.piecewise measurableSet_Icc
+      apply Integrable.piecewise measurableSet_Icc
       · apply ContinuousOn.integrableOn_compact isCompact_Icc
         apply ContinuousOn.div
         · replace hΨContDiff := hΨContDiff 0
@@ -747,8 +766,7 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
         · simp only [Set.mem_Icc, ne_eq, and_imp]
           intros
           linarith
-      · -- exact? -- fails
-        exact MeasureTheory.integrableOn_zero
+      · exact integrableOn_zero
 
 
 /-%%
