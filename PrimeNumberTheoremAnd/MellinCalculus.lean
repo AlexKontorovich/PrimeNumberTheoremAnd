@@ -32,7 +32,7 @@ noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
   I • ∫ t : ℝ, f (σ + t * I)
 
 noncomputable abbrev VerticalIntegral' (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
-  (1 / (2 * π * I)) * ∫ t : ℝ, f (σ + t * I)
+  (1 / (2 * π * I)) * VerticalIntegral f σ
 
 /-%%
 The following is preparatory material used in the proof of the Perron formula, see Lemma \ref{PerronFormulaLtOne}.
@@ -391,8 +391,65 @@ Composition of differentiabilities.
 %%-/
 
 /-%%
+\begin{lemma}\label{PerronSigmaNegOneHalfPull}\lean{PerronSigmaNegOneHalfPull}\leanok
+Let $x>0$ and $\sigma>0$. Then for all sufficiently small $c>0$, we have that
+$$
+\frac1{2\pi i}
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds -
+\frac 1{2\pi i}
+\int_{(-1/2)}\frac{x^s}{s(s+1)}ds =
+\int_{-c-ic}^{c+ic}\frac{x^s}{s(s+1)}ds,
+$$
+that is, a rectangle with corners $-c-ic$ and $c+ic$.
+\end{lemma}
+%%-/
+lemma PerronSigmaNegOneHalfPull {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_pos : 0 < σ) :
+    ∀ᶠ (c : ℝ) in 𝓝[>]0,
+    VerticalIntegral (fun s => x ^ s / (s * (s + 1))) σ
+    - VerticalIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
+    = RectangleIntegral (fun s => x ^ s / (s * (s + 1))) (-c - I * c) (c + I * c) := by
+  sorry
+/-%%
+\begin{proof}
+The difference of the two vertical integrals is equal to the integral of a rectangle with corners
+$-1/2 - i*T$ and $\sigma + i*T$, for all $T>0$ (indeed, the rectangle integral is independent of $T$, because the
+remaining $|\_|$ shape (in the upper half plane, say) is itself the limit of a rectangle integral which vanishes
+since the function is holomorphic there).
+
+Take $c$ to be less than $1$ (so as not to hit the pole at $-1$), and less than $\sigma$ (so we
+don't have to worry about ``betweenness'' horizontally), and less than $T$ (for the same reason
+vertically). Then we can add rectangles to the little rectangle with side length $2c$ so as to
+fill out the larger rectangle with corners $-1/2 - i*T$ and $\sigma + i*T$.
+All of these extra rectangles are in the region of holomorphicity, so their integrals vanish.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}\label{PerronResidue_zero}\lean{PerronResidue_zero}\leanok
+Let $x>0$. Then for all sufficiently small $c>0$, we have that
+$$
+\frac1{2\pi i}
+\int_{-c-i*c}^{c+ i*c}\frac{x^s}{s(s+1)}ds = 1.
+$$
+\end{lemma}
+%%-/
+lemma PerronResidue_zero {x : ℝ} (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
+    RectangleIntegral' (fun (s : ℂ) ↦ x ^ s / (s * (s + 1))) (-c - I * c) (c + I * c) = 1 := by
+  sorry
+
+/-%%
+\begin{proof}
+For $c>0$ sufficiently small, $x^s/(s(s+1))$ is equal to $1/s$ plus a function, $g$, say,
+holomorphic in the whole rectangle. The rectangle integral of $g$ is zero. It suffices to
+compute the rectangle integral of $1/s$. This is done as described in the proof
+of Lemma \ref{ResidueTheoremOnRectangle}. But perhaps it's easier to do it directly
+than prove a general theorem.
+\end{proof}
+%%-/
+
+/-%%
 \begin{lemma}\label{PerronResiduePull1}\lean{PerronResiduePull1}\leanok
-For $x>1$ and $\sigma>0$, we have
+For $x>1$ (of course $x>0$ would suffice) and $\sigma>0$, we have
 $$
 \frac1{2\pi i}
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds =1
@@ -403,10 +460,21 @@ $$
 \end{lemma}
 %%-/
 lemma PerronResiduePull1 {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < σ) :
-    VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ = 1 + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-1 / 2) := by
+    VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ =
+    1 + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-1 / 2) := by
+  set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
+  have VertIntDiffRect : ∀ᶠ (c : ℝ) in 𝓝[>]0, VerticalIntegral' f σ - VerticalIntegral' f (-1 / 2) =
+    RectangleIntegral' f (-c - I * c) (c + I * c)
+  · filter_upwards [PerronSigmaNegOneHalfPull (by linarith : 0 < x) σ_pos]
+    intro c hc
+    dsimp [RectangleIntegral', VerticalIntegral']
+    rw [← hc, mul_sub]
+  have RectEventuallyEq : ∀ᶠ (c : ℝ) in 𝓝[>]0, RectangleIntegral' f (-c - I * c) (c + I * c) = 1 :=
+    PerronResidue_zero (by linarith)
   sorry
 /-%%
 \begin{proof}
+\uses{PerronSigmaNegOneHalfPull, PerronResidue_zero}
 Pull contour from $(\sigma)$ to $(-1/2)$.
 \end{proof}
 %%-/
