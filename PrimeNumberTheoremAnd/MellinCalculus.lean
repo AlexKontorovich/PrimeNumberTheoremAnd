@@ -2,7 +2,7 @@ import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import PrimeNumberTheoremAnd.Wiener
 import Mathlib.Analysis.Calculus.ContDiff.Basic
 
-open Complex Topology Filter Real
+open Complex Topology Filter Real MeasureTheory
 
 /-%%
 In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler), prove its inversion formula, and
@@ -107,8 +107,6 @@ $$\lim_{T\to\infty}\int_{\sigma-iT}^{\sigma'+iT}f(s)ds =
 \int_{(\sigma')}f(s)ds - \int_{(\sigma)}f(s)ds.$$
 \end{lemma}
 %%-/
-open MeasureTheory
-
 lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
     (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (↑x + ↑(-y) * I)) atTop (𝓝 0))
     (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (↑x + ↑(y) * I)) atTop (𝓝 0))
@@ -329,7 +327,6 @@ lemma PerronFormulaLtOne {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1)
 \uses{HolomorphicOn_of_Perron_function, RectangleIntegral_eq_zero, PerronIntegralPosAux,
 VertIntPerronBound, limitOfConstant, RectangleIntegral_tendsTo_VerticalIntegral, zeroTendstoDiff,
 tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}
-\leanok
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
@@ -341,8 +338,12 @@ tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}
 --%% The limit of this rectangle integral as $T\to\infty$ is $\int_{(\sigma')}-\int_{(\sigma)}$.
   have rectIntLimit (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
       Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ' - I * T) (σ'' + I * T))
-      atTop (𝓝 (VerticalIntegral f σ'' - VerticalIntegral f σ')) :=
-    RectangleIntegral_tendsTo_VerticalIntegral σ'pos σ''pos fHolo
+      atTop (𝓝 (VerticalIntegral f σ'' - VerticalIntegral f σ')) := by
+    apply RectangleIntegral_tendsTo_VerticalIntegral
+    · sorry
+    · sorry
+    · sorry
+    · sorry
 --%% Therefore, $\int_{(\sigma')}=\int_{(\sigma)}$.
   have contourPull (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
     VerticalIntegral f σ' = VerticalIntegral f σ''
