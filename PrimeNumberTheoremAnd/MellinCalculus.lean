@@ -790,6 +790,58 @@ For any $\epsilon>0$, we have
 $$\int_0^\infty \psi_\epsilon(x)\frac{dx}{x} = 1.$$
 \end{lemma}
 %%-/
+noncomputable def DeltaSpike (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
+  fun x => Ψ (x ^ (1 / ε)) / ε
+
+lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (Ψcontdiff : ∀ n, ContDiff ℝ n Ψ) (Ψpos : ∀ x, 0 ≤ Ψ x) (Ψsupp : Ψ.support ⊆ Set.Icc (1 / 2) 2) (mass_one: ∫ x in Set.Ioi 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
+    ∫ x in Set.Ioi 0, ((DeltaSpike Ψ ε) x) / x = 1 := by
+  unfold DeltaSpike
+  let y := (fun (y:ℝ) => y^(1/ε))
+  have : ∫ (x : ℝ) in Set.Ioi 0, Ψ (x ^ (1 / ε)) / ε / x = ∫ (x : ℝ) in Set.Ioi 0, ((Ψ ∘ y) x) / ε / x := by rfl
+  rw [this]
+  let y' := (fun (y:ℝ) => y^(1/ε-1)/ε)
+  have y'_is_deriv : ∀ x ∈ Set.Ioi 0, HasDerivAt y (y' x) x := by
+    intro x x0
+    have : x > 0 := by exact x0
+    have b: (HasDerivAt (fun (y:ℝ)=>y) 1 x) := by exact hasDerivAt_id' x
+    convert HasDerivAt.rpow_const b _ using 1
+    ring
+    exact (Or.inl this.ne')
+  have : ∫ (x : ℝ) in Set.Ioi 0, ((Ψ ∘ y) x) / ε / x = ∫ (x : ℝ) in Set.Ioi 0, (((fun z => (Ψ z) / z) ∘ y) x) * (y' x)  := by
+    repeat rw [← (MeasureTheory.integral_subtype (measurableSet_Ioi (a:=(0:ℝ))))]
+    have x_pos: ∀ x: (@Set.Elem ℝ (Set.Ioi 0)), (x>(0:ℝ)) := by
+      intro x
+      exact x.property.out
+    simp only [Function.comp_apply, Real.rpow_sub, x_pos, rpow_one, mul_div_assoc]
+    have x1ε_nz: ∀ x : (@Set.Elem ℝ (Set.Ioi 0)), (x.val ^ (1/ε)≠ (0:ℝ)) := by
+      intro x
+      apply ne_of_gt
+      apply Real.rpow_pos_of_pos
+      exact x.property.out
+    conv =>
+      rhs
+      congr
+      rfl
+      intro x
+      rw [div_eq_mul_one_div, mul_assoc,
+          ← mul_div_assoc, ← mul_div_assoc, ← mul_div_assoc,
+          one_div_mul_cancel (x1ε_nz x), ← div_eq_mul_one_div, div_right_comm]
+  rw [this, MeasureTheory.integral_comp_mul_deriv_Ioi]
+  . simp only [zero_rpow (one_div_pos.mpr εpos).ne']
+    exact mass_one
+  . apply ContinuousOn.rpow_const continuousOn_id
+    exact fun _ _ => Or.inr (one_div_pos.mpr εpos).le
+  . exact tendsto_rpow_atTop (one_div_pos.mpr εpos)
+  . exact fun x a => HasDerivAt.hasDerivWithinAt (y'_is_deriv x a)
+  . have Ψcont := contDiff_zero.mp (Ψcontdiff 0)
+    apply ContinuousOn.div Ψcont.continuousOn continuousOn_id
+    simp only [Set.mem_image, forall_exists_index, and_imp, forall_apply_eq_imp_iff₂]
+    exact fun _ ha => ne_of_gt (rpow_pos_of_pos ha (1 / ε))
+  .
+    sorry
+  .
+    sorry
+
 /-%%
 \begin{proof}
 \uses{DeltaSpike}
