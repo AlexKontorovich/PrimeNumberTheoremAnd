@@ -49,7 +49,7 @@ lemma zeroTendstoDiff (L₁ L₂ : ℂ) (f : ℝ → ℂ) (h : ∀ᶠ T in atTop
   apply tendsto_nhds_unique (EventuallyEq.tendsto h) h'
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Obvious.
 \end{proof}
 %%-/
@@ -99,25 +99,38 @@ Direct application of HolomorphicOn.vanishesOnRectangle (mathlib4#9598).
 /-%%
 \begin{lemma}\label{RectangleIntegral_tendsTo_VerticalIntegral}\lean{RectangleIntegral_tendsTo_VerticalIntegral}\leanok
 \uses{RectangleIntegral}
-Let $\sigma,\sigma'>0$, and let $f$ be a holomorphic function on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$. Then
-the limit of rectangle integrals
-$$\lim_{T\to\infty}\int_{\sigma-iT}^{\sigma'+iT}f(s)ds = \int_{(\sigma')}f(s)ds - \int_{(\sigma)}f(s)ds
-.$$
-*** Needs more conditions on $f$ ***
+Let $\sigma,\sigma' ∈ \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
+the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
+the horizontal integral $\int_{(\sigma)}^{\sigma'}f(x + yi)dx$ vanishes as $y \to \pm \infty$.
+Then the limit of rectangle integrals
+$$\lim_{T\to\infty}\int_{\sigma-iT}^{\sigma'+iT}f(s)ds =
+\int_{(\sigma')}f(s)ds - \int_{(\sigma)}f(s)ds.$$
 \end{lemma}
 %%-/
+open MeasureTheory
 
-lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 < σ')
-    {f : ℂ → ℂ} (fHolo : HolomorphicOn f {s | 0 < s.re}) :
-    -- needs more hypotheses
+lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
+    (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (↑x + ↑(-y) * I)) atTop (𝓝 0))
+    (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (↑x + ↑(y) * I)) atTop (𝓝 0))
+    (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
+    (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ - I * T) (σ' + I * T)) atTop
       (𝓝 (VerticalIntegral f σ' - VerticalIntegral f σ)) := by
-  sorry
 /-%%
-\begin{proof}
-Almost by definition.
-\end{proof}
+  \begin{proof}\leanok
+  Almost by definition.
 %%-/
+  have h_lower (x : ℝ) : (σ - I * x).im = -x := by simp
+  have h_upper (x : ℝ) : (σ' + I * x).im = x := by simp
+  have h_left (x : ℝ) : (σ - I * x).re = σ := by simp
+  have h_right (x : ℝ) : (σ' + I * x).re = σ' := by simp
+  simp_rw [RectangleIntegral, h_left, h_right, h_lower, h_upper]
+  apply Tendsto.sub
+  · rewrite [← zero_add (VerticalIntegral _ _)]
+    apply Tendsto.add (by rewrite [← zero_sub_zero]; exact Tendsto.sub hbot htop)
+    exact (intervalIntegral_tendsto_integral hright tendsto_neg_atTop_atBot tendsto_id).const_smul I
+  · exact (intervalIntegral_tendsto_integral hleft tendsto_neg_atTop_atBot tendsto_id).const_smul I
+--%%\end{proof}
 
 -- TODO: upstream to mathlib Arctan.lean
 lemma arctan_atTop : Tendsto arctan atTop (𝓝 (π / 2)) :=
@@ -256,7 +269,7 @@ lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_gt_one : 1 < σ
     nlinarith
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Triangle inequality and pointwise estimate. Use
 \end{proof}
 %%-/
@@ -293,7 +306,7 @@ lemma tendsto_rpow_atTop_nhds_zero_of_norm_lt_one {x : ℝ}  (xpos : 0 < x) (x_l
   exact this
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Standard.
 \end{proof}
 %%-/
