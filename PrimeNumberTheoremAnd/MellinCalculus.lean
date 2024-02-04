@@ -793,32 +793,36 @@ $$\int_0^\infty \psi_\epsilon(x)\frac{dx}{x} = 1.$$
 noncomputable def DeltaSpike (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
   fun x => Ψ (x ^ (1 / ε)) / ε
 
-lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (Ψcontdiff : ∀ n, ContDiff ℝ n Ψ) (Ψpos : ∀ x, 0 ≤ Ψ x) (Ψsupp : Ψ.support ⊆ Set.Icc (1 / 2) 2) (mass_one: ∫ x in Set.Ioi 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
+lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (Ψcontdiff : ∀ n, ContDiff ℝ n Ψ) (mass_one: ∫ x in Set.Ioi 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
     ∫ x in Set.Ioi 0, ((DeltaSpike Ψ ε) x) / x = 1 := by
   unfold DeltaSpike
-  let y := (fun (y:ℝ) => y^(1/ε))
-  simp only [← (Function.comp_apply (f:=Ψ) (g:=y))]
-  let y' := (fun (y:ℝ) => y^(1/ε-1)/ε)
+  let y := (fun (y:ℝ) => y ^ (1 / ε))
+  simp only [← (Function.comp_apply (f := Ψ) (g := y))]
+  let y' := (fun (y:ℝ) => y ^ (1 / ε - 1) / ε)
   have y'_is_deriv : ∀ x ∈ Set.Ioi 0, HasDerivAt y (y' x) x := by
     intro x x0
     convert HasDerivAt.rpow_const (hasDerivAt_id' x) _ using 1
     ring
     exact (Or.inl x0.out.ne')
-  have : ∫ (x : ℝ) in Set.Ioi 0, ((Ψ ∘ y) x) / ε / x = ∫ (x : ℝ) in Set.Ioi 0, (((fun z => (Ψ z) / z) ∘ y) x) * (y' x)  := by
-    repeat rw [← (MeasureTheory.integral_subtype (measurableSet_Ioi (a:=(0:ℝ))))]
+  have x1ε_nz := fun (x: (@Set.Elem ℝ (Set.Ioi 0))) =>
+    ne_of_gt (Real.rpow_pos_of_pos x.property.out (1 / ε))
+  have :
+    ∫ (x : ℝ) in Set.Ioi 0, ((Ψ ∘ y) x) / ε / x =
+    ∫ (x : ℝ) in Set.Ioi 0, (((fun z => (Ψ z) / z) ∘ y) x) * (y' x)  := by
+    repeat rw [← (MeasureTheory.integral_subtype (measurableSet_Ioi (a := (0 : ℝ))))]
     have x_pos:=  fun (x: (@Set.Elem ℝ (Set.Ioi 0))) =>
       x.property.out
-    simp only [Function.comp_apply, Real.rpow_sub, x_pos, rpow_one, mul_div_assoc]
-    have x1ε_nz := fun (x: (@Set.Elem ℝ (Set.Ioi 0))) =>
-      ne_of_gt (Real.rpow_pos_of_pos x.property.out (1/ε))
+    simp only [Function.comp_apply, Real.rpow_sub, x_pos, rpow_one]
     conv =>
-      rhs
-      congr
-      rfl
+      rhs ; congr ; rfl
       intro x
-      rw [div_eq_mul_one_div, mul_assoc,
-          ← mul_div_assoc, ← mul_div_assoc, ← mul_div_assoc,
-          one_div_mul_cancel (x1ε_nz x), ← div_eq_mul_one_div, div_right_comm]
+      rw [← mul_div_assoc, ← mul_div_assoc,
+          div_mul_cancel _ (x1ε_nz x), div_right_comm]
+  have mass_integrable_on: MeasureTheory.IntegrableOn (fun z => Ψ z / z) (Set.Ioi 0) := by
+    rw [MeasureTheory.IntegrableOn]
+    contrapose mass_one
+    simp only [MeasureTheory.integral_def, mass_one, dite_false]
+    split_ifs <;> simp only [zero_ne_one, not_false_eq_true]
   rw [this, MeasureTheory.integral_comp_mul_deriv_Ioi]
   . simp only [zero_rpow (one_div_pos.mpr εpos).ne']
     exact mass_one
@@ -837,18 +841,25 @@ lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (Ψcontdiff : ∀ n, ContDiff ℝ n Ψ) 
         rw [← h2]
         exact rpow_nonneg h1 (1 / ε)
       . intro h
-        use x^ε
+        use x ^ ε
         apply And.intro (rpow_nonneg h ε)
         rw [@one_div, ← rpow_mul h, mul_inv_cancel εpos.ne', rpow_one]
-    rw [this]
-    rw [integrableOn_Ici_iff_integrableOn_Ioi']
-    . rw [MeasureTheory.IntegrableOn]
-      contrapose mass_one
-      simp only [MeasureTheory.integral_def, mass_one, dite_false]
-      split_ifs <;> simp only [zero_ne_one, not_false_eq_true]
+    rw [this, integrableOn_Ici_iff_integrableOn_Ioi']
+    . apply mass_integrable_on
     . simp only [MeasureTheory.measure_singleton, ne_eq, ENNReal.zero_ne_top, not_false_eq_true]
-  .
-    sorry
+  . rw [integrableOn_Ici_iff_integrableOn_Ioi']
+    have : (∀ x : ℝ,
+      (Ψ (x ^ (1 / ε)) / x ^ (1 / ε) * (x ^ (1 / ε - 1) / ε) =
+      (|1 / ε| * x ^ (1 / ε - 1)) • (Ψ (x ^ (1 / ε)) / x ^ (1 / ε)))) := by
+      intro x
+      rw [abs_of_pos (one_div_pos.mpr εpos)]
+      simp only [Algebra.smul_def, Algebra.id.map_eq_id, map_mul, map_div₀, map_one, RingHom.id_apply]
+      ring
+    simp only [Function.comp_apply, this]
+    rw [MeasureTheory.integrableOn_Ioi_comp_rpow_iff (fun z => (Ψ z) / z), MeasureTheory.IntegrableOn]
+    apply mass_integrable_on
+    simp only [ne_eq, div_eq_zero_iff, one_ne_zero, εpos.ne', or_self, not_false_eq_true]
+    simp only [MeasureTheory.measure_singleton, ne_eq, ENNReal.zero_ne_top, not_false_eq_true]
 
 /-%%
 \begin{proof}
