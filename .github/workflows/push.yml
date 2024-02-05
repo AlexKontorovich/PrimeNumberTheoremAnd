@@ -106,7 +106,7 @@ jobs:
           cp -r .lake/build/doc docs/docs
 
       - name: Clear previously saved cache
-        uses: DareFox/delete-cache-by-key
+        uses: DareFox/delete-cache-by-key@v1.0.1
         with:
           key: Documentation-cache
           mode: exact
