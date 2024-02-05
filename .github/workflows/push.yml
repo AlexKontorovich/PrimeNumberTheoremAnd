@@ -9,6 +9,8 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  # allow write to manipulate cache
+  actions: write
 
 jobs:
   build_blueprint:
