@@ -2,7 +2,7 @@ import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import PrimeNumberTheoremAnd.Wiener
 import Mathlib.Analysis.Calculus.ContDiff.Basic
 
-open Complex Topology Filter Real MeasureTheory
+open Complex Topology Filter Real MeasureTheory Set
 
 /-%%
 In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler), prove its inversion formula, and
@@ -451,20 +451,16 @@ $$
 lemma PerronResiduePull1 {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < σ) :
     VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ =
     1 + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-1 / 2) := by
-  set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
-  have VertIntDiffRect : ∀ᶠ (c : ℝ) in 𝓝[>]0, VerticalIntegral' f σ - VerticalIntegral' f (-1 / 2) =
-    RectangleIntegral' f (-c - I * c) (c + I * c)
-  · filter_upwards [PerronSigmaNegOneHalfPull (by linarith : 0 < x) σ_pos]
-    intro c hc
-    dsimp [RectangleIntegral', VerticalIntegral']
-    rw [← hc, mul_sub]
-  have RectEventuallyEq : ∀ᶠ (c : ℝ) in 𝓝[>]0, RectangleIntegral' f (-c - I * c) (c + I * c) = 1 :=
-    PerronResidueAtZero (by linarith)
   sorry
 /-%%
 \begin{proof}
 \uses{PerronSigmaNegOneHalfPull, PerronResidueAtZero}
-Pull contour from $(\sigma)$ to $(-1/2)$.
+By Lemma \ref{PerronSigmaNegOneHalfPull}, the difference of the two vertical integrals is equal
+to the integral over a rectangle with corners at $-1/2-iT$ and $\sigma+iT$ (for any $T>0$). By
+Lemma \ref{RectanglePullToNhdOfPole}, for $c>0$ sufficiently small, the integral over
+this rectangle is equal to the integral over a square with corners at $-c-i*c$ and $c+i*c$ for $c>0$
+sufficiently small.
+By Lemma \ref{PerronResidueAtZero}, the integral over this square is equal to $1$.
 \end{proof}
 %%-/
 

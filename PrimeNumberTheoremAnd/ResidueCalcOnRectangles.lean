@@ -97,7 +97,7 @@ over the rectangle with corners $z$ and $w$ is the same as the integral of $f$ o
 centered at $p$.
 \end{lemma}
 %%-/
-lemma RectanglePullToNhdOfPole {f g : ℂ → ℂ} {z w p A : ℂ} (pInRectInterior : Rectangle z w ∈ nhds p)
+lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ nhds p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0, RectangleIntegral f z w =
       RectangleIntegral f (-c - I * c + p) (c + I * c + p) := by sorry
