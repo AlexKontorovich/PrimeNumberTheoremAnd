@@ -857,6 +857,26 @@ For any $\epsilon>0$, we have
 $$\int_0^\infty \psi_\epsilon(x)\frac{dx}{x} = 1.$$
 \end{lemma}
 %%-/
+noncomputable def DeltaSpike (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
+  fun x => Ψ (x ^ (1 / ε)) / ε
+
+lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (mass_one: ∫ x in Set.Ioi 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
+    ∫ x in Set.Ioi 0, ((DeltaSpike Ψ ε) x) / x = 1 :=
+  calc
+    _ = ∫ (x : ℝ) in Set.Ioi 0, (|1/ε| * x ^ (1 / ε - 1)) • ((fun z => (Ψ z) / z) (x ^ (1 / ε))) := by
+      apply MeasureTheory.set_integral_congr_ae measurableSet_Ioi
+      filter_upwards with x hx
+      simp only [Set.mem_Ioi, smul_eq_mul, abs_of_pos (one_div_pos.mpr εpos)]
+      symm ; calc
+        _ = (Ψ (x ^ (1 / ε)) / x ^ (1 / ε)) * x ^ (1 / ε - 1) * (1 / ε) := by ring
+        _ = _ := by rw [rpow_sub hx, rpow_one]
+        _ = (Ψ (x ^ (1 / ε)) / x ^ (1 / ε) * x ^ (1 / ε) / x) * (1/ ε) := by ring
+        _ = _ := by rw [div_mul_cancel _ (ne_of_gt (Real.rpow_pos_of_pos hx (1/ε)))]
+        _ = (Ψ (x ^ (1 / ε)) / ε / x) := by ring
+    _ = 1 := by
+      rw [MeasureTheory.integral_comp_rpow_Ioi (fun z => (Ψ z) / z), ← mass_one]
+      simp only [ne_eq, div_eq_zero_iff, one_ne_zero, εpos.ne', or_self, not_false_eq_true]
+
 /-%%
 \begin{proof}
 \uses{DeltaSpike}
