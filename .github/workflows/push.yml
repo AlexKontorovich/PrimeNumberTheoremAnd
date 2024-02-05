@@ -58,7 +58,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: |
-            docs/docs
+            docs/web
           key: Blueprint-cache
 
 
@@ -149,7 +149,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: |
-            docs/docs
+            docs/web
           key: Blueprint-cache
         continue-on-error: true
 
