@@ -105,6 +105,12 @@ jobs:
           mkdir -p docs
           cp -r .lake/build/doc docs/docs
 
+      - name: Clear previously saved cache
+        uses: DareFox/delete-cache-by-key
+        with:
+          key: Documentation-cache
+          mode: exact
+
       - name: Save documentation for future use
         uses: actions/cache/save@v4
         with:
