@@ -3,7 +3,7 @@ import Mathlib.Analysis.Analytic.Meromorphic
 import PrimeNumberTheoremAnd.EulerProducts.LSeries
 
 
-open Complex BigOperators Finset Nat Classical Real Topology Filter Set
+open Complex BigOperators Finset Nat Classical Real Topology Filter Set MeasureTheory
 
 open scoped Interval
 
@@ -61,6 +61,38 @@ A LowerUIntegral of a function $f$ comes from $\sigma-i\infty$ up to $\sigma-iT$
 noncomputable def LowerUIntegral (f : ℂ → ℂ) (σ σ' T : ℝ) : ℂ :=
     ((∫ x : ℝ in σ..σ', f (x - T * I))
      - I • (∫ y : ℝ in Iic (-T), f (σ' - y * I)) + I • ∫ y : ℝ in Iic (-T), f (σ - y * I))
+
+
+/-%%
+It is very convenient to define integrals along vertical lines in the complex plane, as follows.
+\begin{definition}\label{VerticalIntegral}\leanok
+Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a real number. Then we define
+$$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
+\end{definition}
+%%-/
+
+noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
+  I • ∫ t : ℝ, f (σ + t * I)
+
+--%% We also have a version with a factor of $1/(2\pi i)$.
+noncomputable abbrev VerticalIntegral' (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * VerticalIntegral f σ
+
+/-%%
+\begin{lemma}\label{DiffVertRect_eq_UpperLowerUs}\lean{DiffVertRect_eq_UpperLowerUs}\leanok
+The difference of two vertical integrals and a rectangle is the difference of an upper and a lower U integrals.
+\end{lemma}
+%%-/
+lemma DiffVertRect_eq_UpperLowerUs {f : ℂ → ℂ} {σ σ' T : ℝ}
+    (f_int_σ : Integrable (fun (t : ℝ) ↦ f (σ + t * I)))
+    (f_int_σ' : Integrable (fun (t : ℝ) ↦ f (σ' + t * I))) :
+  (VerticalIntegral f σ') - (VerticalIntegral f σ) - (RectangleIntegral f (σ - I * T) (σ' + I * T)) = (UpperUIntegral f σ σ' T) - (LowerUIntegral f σ σ' T) := by
+  sorry
+/-%%
+\begin{proof}\uses{UpperUIntegral, LowerUIntegral}
+Follows directly from the definitions.
+\end{proof}
+%%-/
 
 /-- A function is `HolomorphicOn` a set if it is complex differentiable on that set. -/
 abbrev HolomorphicOn {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] (f : ℂ → E) (s : Set ℂ) :

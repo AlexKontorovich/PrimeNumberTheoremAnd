@@ -9,21 +9,6 @@ In this section, we prove the Perron formula, which plays a key role in our proo
 %%-/
 
 /-%%
-It is very convenient to define integrals along vertical lines in the complex plane, as follows.
-\begin{definition}\label{VerticalIntegral}\leanok
-Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a real number. Then we define
-$$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
-\end{definition}
-%%-/
-
-noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
-  I • ∫ t : ℝ, f (σ + t * I)
-
---%% We also have a version with a factor of $1/(2\pi i)$.
-noncomputable abbrev VerticalIntegral' (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
-  (1 / (2 * π * I)) * VerticalIntegral f σ
-
-/-%%
 The following is preparatory material used in the proof of the Perron formula, see Lemma \ref{PerronFormulaLtOne}.
 %%-/
 
@@ -234,7 +219,7 @@ This integral is between $\frac{1}{2}$ and $1$ of the integral of $\frac{1}{1+t^
 /-%%
 \begin{lemma}\label{VertIntPerronBound}\lean{VertIntPerronBound}\leanok
 \uses{VerticalIntegral}
-Let $x>0$, $\sigma>1$, and $x<1$. Then
+Let $x>0$ and $\sigma>1$. Then
 $$\left|
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
 \end{lemma}
@@ -285,6 +270,25 @@ lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_gt_one : 1 < σ
 /-%%
 \begin{proof}\leanok
 Triangle inequality and pointwise estimate.
+\end{proof}
+%%-/
+
+/-%%
+TODO: Refactor with ``VertIntPerronBound''.
+\begin{lemma}\label{VertIntPerronBound2}\lean{VertIntPerronBound2}\leanok
+\uses{VertIntPerronBound}
+Let $x>0$ and $\sigma\in \R$, $\sigma \ne 0, -1$. Then
+$$\left|
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \ll x^\sigma.$$
+\end{lemma}
+%%-/
+lemma VertIntPerronBound2 {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_ne_zero : σ ≠ 0)
+    (σ_ne_neg_one : σ ≠ -1) : ∃ C > 0,
+      Complex.abs (VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ) ≤ x ^ σ * C := by
+  sorry
+/-%%
+\begin{proof}
+Similar to ``VertIntPerronBound''.
 \end{proof}
 %%-/
 
@@ -459,10 +463,10 @@ Here are some auxiliary lemmata for the second case.
 
 /-%%
 \begin{lemma}\label{HolomorphicOn_of_Perron_function2}\lean{HolomorphicOn_of_Perron_function2}\leanok
-Let $x>1$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on $\C\setminus\{0,1\}$.
+Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on $\C\setminus\{0,1\}$.
 \end{lemma}
 %%-/
-lemma HolomorphicOn_of_Perron_function2 {x : ℝ} (x_gt_one : 1 < x) :
+lemma HolomorphicOn_of_Perron_function2 {x : ℝ} (x_gt_one : 0 < x) :
     HolomorphicOn (fun s ↦ x^s / (s * (s + 1))) {0, -1}ᶜ := by
   sorry
 /-%%
@@ -474,29 +478,31 @@ Composition of differentiabilities.
 /-%%
 \begin{lemma}[PerronSigmaNegOneHalfPull]\label{PerronSigmaNegOneHalfPull}
 \lean{PerronSigmaNegOneHalfPull}\leanok
-Let $x>0$ and $\sigma>0$. Then for all $T>0$, we have that
+Let $x>0$ and $\sigma, \sigma'\in\R$. Then for all $T>0$, we have that
 $$
 \frac1{2\pi i}
-\int_{(\sigma)}\frac{x^s}{s(s+1)}ds -
+\int_{(\sigma')}\frac{x^s}{s(s+1)}ds -
 \frac 1{2\pi i}
-\int_{(-1/2)}\frac{x^s}{s(s+1)}ds =
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds =
 \int_{-1/2-iT}^{\sigma +iT}\frac{x^s}{s(s+1)}ds,
 $$
 that is, a rectangle with corners $-1/2-iT$ and $\sigma+iT$.
 \end{lemma}
 %%-/
-lemma PerronSigmaNegOneHalfPull {x : ℝ} (xpos : 0 < x) {σ T : ℝ} (σ_pos : 0 < σ) (Tpos : 0 < T):
+lemma PerronSigmaNegOneHalfPull {x : ℝ} (xpos : 0 < x) {σ T : ℝ} (Tpos : 0 < T):
     VerticalIntegral (fun s => x ^ s / (s * (s + 1))) σ
     - VerticalIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
     = RectangleIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2 - I * T) (σ + I * T) := by
   sorry
 /-%%
-\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, UpperUIntegral,
+RectangleIntegral_tendsTo_VerticalIntegral, LowerUIntegral, RectangleIntegral_tendsTo_LowerU,
+PerronFun_tendsto_zero_Upper, PerronFun_tendsto_zero_Lower, PerronFun_integrable}
 The integral on $(\sigma)$ minus that on $(-1/2)$, minus the integral on the rectangle, is
-the integral over two regions, one in the upper half plane and one in the lower half plane.
-In the upper half plane, the shape looks like $|\_|$, with corners at $-1/2+iT$ and $\sigma+iT$.
-The integral over that shape is the limit of integrals over rectangles with corners at $-1/2+iT$
-and $\sigma+iU$, for $U\to \infty$; each of those rectangles has integral zero.
+the integral over an UpperU and a LowerU.
+The integrals over the U's are limits of integrals over rectangles with corners at $-1/2+iT$
+and $\sigma+iU$ (for UpperU); this uses Lemma \ref{RectangleIntegral_tendsTo_UpperU}. The
+integrals over the rectangles vanish by , by Lemmas \ref{PerronFun_tendsto_zero_Upper} and
 \end{proof}
 %%-/
 
@@ -673,7 +679,7 @@ tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,1}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
-  have : HolomorphicOn f {0, -1}ᶜ := HolomorphicOn_of_Perron_function2 x_gt_one
+  have : HolomorphicOn f {0, -1}ᶜ := HolomorphicOn_of_Perron_function2 (by linarith : 0 < x)
 --%% First pull the contour from $(\sigma)$ to $(-1/2)$, picking up a residue $1$ at $s=0$.
   have contourPull₁ : VerticalIntegral' f σ = 1 + VerticalIntegral' f (-1 / 2) := PerronResiduePull1 x_gt_one σ_pos
   rw [contourPull₁]
