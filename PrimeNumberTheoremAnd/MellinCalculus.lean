@@ -1,4 +1,4 @@
-import PrimeNumberTheoremAnd.PerronIntegral
+import PrimeNumberTheoremAnd.PerronFormula
 
 open Complex Topology Filter Real MeasureTheory Set
 
