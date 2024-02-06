@@ -9,7 +9,7 @@ In this section, we prove the Perron formula, which plays a key role in our proo
 %%-/
 
 /-%%
-The following is preparatory material used in the proof of the Perron formula, see Lemma \ref{FormulaLtOne}.
+The following is preparatory material used in the proof of the Perron formula, see Lemma \ref{formulaLtOne}.
 %%-/
 
 /-%%
@@ -483,7 +483,7 @@ The numerator is bounded and the denominator tends to infinity.
 
 /-%%
 We are ready for the first case of the Perron formula, namely when $x<1$:
-\begin{lemma}[FormulaLtOne]\label{FormulaLtOne}\lean{FormulaLtOne}\leanok
+\begin{lemma}[formulaLtOne]\label{formulaLtOne}\lean{formulaLtOne}\leanok
 For $x>0$, $\sigma>0$, and $x<1$, we have
 $$
 \frac1{2\pi i}
@@ -492,7 +492,7 @@ $$
 \end{lemma}
 %%-/
 
-lemma FormulaLtOne {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1)
+lemma formulaLtOne {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1)
     {σ : ℝ} (σ_pos : 0 < σ) : VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 0 := by
 /-%%
 \begin{proof}\leanok
