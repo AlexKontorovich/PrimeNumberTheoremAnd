@@ -2,6 +2,7 @@
 *.olean
 *.paux
 blueprint/web
+blueprint/print
 *.aux
 *.fls
 *.fdb_latexmk

@@ -85,7 +85,7 @@ lemma RectangleIntegral_eq_zero {σ σ' T : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 
     RectangleIntegral f (σ - I * T) (σ' + I * T) = 0 :=
 /-%%
 \begin{proof}\leanok
-Direct application of HolomorphicOn.vanishesOnRectangle (mathlib4#9598).
+Direct application of HolomorphicOn.vanishesOnRectangle (mathlib4\#9598).
 %%-/
   fHolo.vanishesOnRectangle (fun _ h_rect ↦ LT.lt.trans_le (by simp_all) h_rect.1.1)
 --%%\end{proof}
@@ -279,10 +279,10 @@ lemma limitOfConstant {a : ℝ → ℂ} {σ : ℝ} (σpos : 0 < σ)
     (ha' : Tendsto a atTop (𝓝 0)) : a σ = 0 := by
 /-%%
 \begin{proof}\leanok\begin{align*}
-\lim_{\sigma'\to\infty}a(\sigma) &= \lim_{\sigma'\to\infty}a(\sigma') \\
+\lim_{\sigma'\to\infty}a(\sigma) &= \lim_{\sigma'\to\infty}a(\sigma') \\%nobreak%
 %%-/
   have := eventuallyEq_of_mem (mem_atTop σ) fun σ' h ↦ ha σ' σ (σpos.trans_le h) σpos
---%% &= 0
+--%% &= 0%nobreak%
   exact tendsto_const_nhds_iff.mp (ha'.congr' this)
 --%%\end{align*}\end{proof}
 
@@ -559,10 +559,10 @@ lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3/2)
 /-%%
 \begin{proof}\leanok
 \begin{align*}
-\lim_{\sigma'\to-\infty}a(\sigma) &= \lim_{\sigma'\to-\infty}a(\sigma') \\
+\lim_{\sigma'\to-\infty}a(\sigma) &= \lim_{\sigma'\to-\infty}a(\sigma') \\%nobreak%
 %%-/
   have := eventuallyEq_of_mem (mem_atBot (-3/2)) fun σ' h ↦ ha σ' σ h σlt
---%% &= 0
+--%% &= 0%nobreak%
   exact tendsto_const_nhds_iff.mp (ha'.congr' this)
 --%%\end{align*}\end{proof}
 
