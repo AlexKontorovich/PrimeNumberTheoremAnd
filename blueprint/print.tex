@@ -1,0 +1,24 @@
+\documentclass[a4paper]{report}
+\usepackage[textwidth=14cm]{geometry}
+
+\usepackage{amssymb}
+
+% allow for unicode input
+% first save previous definition of mathbb, to avoid those being replaced with unicode
+\let\oldmathbb\mathbb
+\usepackage{polyglossia}
+\usepackage{mathtools}
+\usepackage[warnings-off={mathtools-colon,mathtools-overbracket}]{unicode-math}
+% restore original mathbb
+\let\mathbb\oldmathbb
+
+% empty out the plastex commands
+\newcommand{\proves}[1]{}
+\newcommand{\lean}[1]{}
+\newcommand{\leanok}{}
+\newcommand{\uses}[1]{}
+
+\input{blueprint.tex}
+
+\end{document}
+

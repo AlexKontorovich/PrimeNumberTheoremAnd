@@ -181,7 +181,7 @@ def extract_blueprint(text):
     matches=re.finditer(r'^'+line_delimiter+r'(.*)$', text, flags=re.MULTILINE)
     for match in matches:
         # add to extracted dict
-        extracted[match.start(1)]=match.group(1)
+        extracted[match.start(1)]=match.group(1)+"\n"
 
     # text without blueprint
     text_without=re.sub(start_delimiter+r'.*?'+end_delimiter,'', text, flags=re.DOTALL)
@@ -192,7 +192,10 @@ def extract_blueprint(text):
     # combine entries
     out=""
     for item in extracted:
-        out=out+item[1]+"\n\n"
+        out=out+item[1]+"\n"
+
+    # remove newlines when they are explicitly prevented
+    out=re.sub(r'%nobreak%\s\s*','\n',out)
 
     # return the blueprint and the lean file without the blueprint
     return (out,text_without)

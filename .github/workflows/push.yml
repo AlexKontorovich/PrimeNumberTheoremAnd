@@ -9,6 +9,8 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  # allow write to manipulate cache
+  actions: write
 
 jobs:
   build_blueprint:
@@ -45,12 +47,28 @@ jobs:
           mkdir -p docs
           mv blueprint/web docs/
 
+      - name: Clear previously saved cache
+        uses: DareFox/delete-cache-by-key@v1.0.1
+        with:
+          key: Blueprint-cache
+          mode: exact
+        continue-on-error: true
+
+      - name: Save blueprint for future use
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            docs/web
+          key: Blueprint-cache
+
+
       - name: Restore previous documentation, while we wait for the next one to be generated
         uses: actions/cache/restore@v4
         with:
           path: |
             docs/docs
           key: Documentation-cache
+        continue-on-error: true
 
 
       - name: Setup Pages
@@ -105,6 +123,13 @@ jobs:
           mkdir -p docs
           cp -r .lake/build/doc docs/docs
 
+      - name: Clear previously saved cache
+        uses: DareFox/delete-cache-by-key@v1.0.1
+        with:
+          key: Documentation-cache
+          mode: exact
+        continue-on-error: true
+
       - name: Save documentation for future use
         uses: actions/cache/save@v4
         with:
@@ -112,13 +137,21 @@ jobs:
             docs/docs
           key: Documentation-cache
 
-      - name: Download blueprint artifacts
-        uses: actions/download-artifact@v3
+      #- name: Download blueprint artifacts
+      #  uses: actions/download-artifact@v3
+      #  with:
+      #    path: blueprint_artifacts
+      #    
+      #- name: Extract blueprint artifacts
+      #  run: tar xvf blueprint_artifacts/github-pages/artifact.tar -C docs/
+
+      - name: Restore previously generated blueprint
+        uses: actions/cache/restore@v4
         with:
-          path: blueprint_artifacts
-          
-      - name: Extract blueprint artifacts
-        run: tar xvf blueprint_artifacts/github-pages/artifact.tar -C docs/
+          path: |
+            docs/web
+          key: Blueprint-cache
+        continue-on-error: true
 
       - name: Upload docs & blueprint artifact
         uses: actions/upload-pages-artifact@v2
