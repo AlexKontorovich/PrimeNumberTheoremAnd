@@ -1,14 +1,11 @@
 import Mathlib.Analysis.Complex.CauchyIntegral
-import Mathlib.NumberTheory.VonMangoldt
-import Mathlib.NumberTheory.ArithmeticFunction
-import Mathlib.NumberTheory.ZetaFunction
 import Mathlib.Analysis.Analytic.Meromorphic
 import PrimeNumberTheoremAnd.EulerProducts.LSeries
 
 
-open Complex BigOperators Finset Nat Classical Real Topology Filter
+open Complex BigOperators Finset Nat Classical Real Topology Filter Set
 
-open scoped ArithmeticFunction Interval
+open scoped Interval
 
 /-%%
 
@@ -44,6 +41,26 @@ A Rectangle's border, given corners $z$ and $w$ is the union of the four sides.
 %%-/
 /-- A `RectangleBorder` has corners `z` and `w`. -/
 def RectangleBorder (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ {z.im} ∪ {z.re} ×ℂ [[z.im, w.im]] ∪ [[z.re, w.re]] ×ℂ {w.im} ∪ {w.re} ×ℂ [[z.im, w.im]]
+
+/-%%
+An UpperUIntegral is the integral of a function over a |\_| shape.
+\begin{definition}\label{UpperUIntegral}\lean{UpperUIntegral}\leanok
+An UpperUIntegral of a function $f$ comes from $\sigma+i\infty$ down to $\sigma+iT$, over to $\sigma'+iT$, and back up to $\sigma'+i\infty$.
+\end{definition}
+%%-/
+noncomputable def UpperUIntegral (f : ℂ → ℂ) (σ σ' T : ℝ) : ℂ :=
+    ((∫ x : ℝ in σ..σ', f (x + T * I))
+     + I • (∫ y : ℝ in Ici T, f (σ' + y * I)) - I • ∫ y : ℝ in Ici T, f (σ + y * I))
+
+/-%%
+A LowerUIntegral is the integral of a function over a |-| shape.
+\begin{definition}\label{LowerUIntegral}\lean{LowerUIntegral}\leanok
+A LowerUIntegral of a function $f$ comes from $\sigma-i\infty$ up to $\sigma-iT$, over to $\sigma'-iT$, and back down to $\sigma'-i\infty$.
+\end{definition}
+%%-/
+noncomputable def LowerUIntegral (f : ℂ → ℂ) (σ σ' T : ℝ) : ℂ :=
+    ((∫ x : ℝ in σ..σ', f (x - T * I))
+     - I • (∫ y : ℝ in Iic (-T), f (σ' - y * I)) + I • ∫ y : ℝ in Iic (-T), f (σ - y * I))
 
 /-- A function is `HolomorphicOn` a set if it is complex differentiable on that set. -/
 abbrev HolomorphicOn {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] (f : ℂ → E) (s : Set ℂ) :
@@ -181,24 +198,27 @@ which contributes another factor of $1/2$. (Fun! Each of the vertical/horizontal
 /-%%
 \begin{lemma}\label{ResidueTheoremOnRectangleWithSimplePole}
 \lean{ResidueTheoremOnRectangleWithSimplePole}\leanok
-Suppose that $f$ is a holomorphic function on a square centered on $p$, except for a simple pole
-at $p$. By the latter, we mean that there is a function $g$ holomorphic on the square such that,
-in the square, we have $f = g + A/(s-p)$ for some $A\in\C$. Then the integral of $f$ over the
-square is $A$.
+Suppose that $f$ is a holomorphic function on a rectangle, except for a simple pole
+at $p$. By the latter, we mean that there is a function $g$ holomorphic on the rectangle such that, $f = g + A/(s-p)$ for some $A\in\C$. Then the integral of $f$ over the
+rectangle is $A$.
 \end{lemma}
 %%-/
-lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {p A : ℂ} {c : ℝ} (cpos : 0 < c)
-    (fHolo : HolomorphicOn f (Rectangle (-c - I * c + p) (c + I * c + p) \ {p}))
-    (gHolo : HolomorphicOn g (Rectangle (-c - I * c + p) (c + I * c + p)))
+lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ}
+    (pInRectInterior : Rectangle z w ∈ nhds p)
+    (fHolo : HolomorphicOn f (Rectangle z w \ {p}))
+    (gHolo : HolomorphicOn g (Rectangle z w))
     (principalPart : Set.EqOn f (g + fun s ↦ A / (s - p))
-      (Rectangle (-c - I * c + p) (c + I * c + p) \ {p})) :
-    RectangleIntegral' f (-c - I * c + p) (c + I * c + p) = A := by
+      (Rectangle z w \ {p})) :
+    RectangleIntegral' f z w = A := by
 
   sorry
 /-%%
-\begin{proof}\uses{ResidueTheoremAtOrigin}
+\begin{proof}\uses{ResidueTheoremAtOrigin, RectanglePullToNhdOfPole, HolomorphicOn.vanishesOnRectangle}
 Replace $f$ with $g + A/(s-p)$ in the integral.
-The integral of $g$ vanishes. To evaluate the square integral of $1/(s-p)$,
-pull everything to the origin, and rescale by $c$; what remains is handled by Lemma \ref{ResidueTheoremAtOrigin}.
+The integral of $g$ vanishes by Lemma \ref{HolomorphicOn.vanishesOnRectangle}.
+ To evaluate the integral of $1/(s-p)$,
+pull everything to a square about the origin using Lemma \ref{RectanglePullToNhdOfPole},
+and rescale by $c$;
+what remains is handled by Lemma \ref{ResidueTheoremAtOrigin}.
 \end{proof}
 %%-/
