@@ -14,7 +14,7 @@ The following is preparatory material used in the proof of the Perron formula, s
 
 /-%%
 TODO: move to general section.
-\begin{lemma}\label{zeroTendstoDiff}\lean{zeroTendstoDiff}\leanok
+\begin{lemma}[zeroTendstoDiff]\label{zeroTendstoDiff}\lean{zeroTendstoDiff}\leanok
 If the limit of $0$ is $L₁ - L₂$, then $L₁ = L₂$.
 \end{lemma}
 %%-/
@@ -31,7 +31,7 @@ Obvious.
 
 /-%%
 TODO: Change this to the statement of `HolomorphicOn_of_Perron_function2` and refactor.
-\begin{lemma}\label{HolomorphicOn_of_Perron_function}\lean{HolomorphicOn_of_Perron_function}\leanok
+\begin{lemma}[HolomorphicOn_of_Perron_function]\label{HolomorphicOn_of_Perron_function}\lean{HolomorphicOn_of_Perron_function}\leanok
 Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 \end{lemma}
 %%-/
@@ -50,7 +50,7 @@ Composition of differentiabilities.
 
 
 /-%%
-\begin{lemma}\label{HolomorphicOn_of_Perron_function2}\lean{HolomorphicOn_of_Perron_function2}\leanok
+\begin{lemma}[HolomorphicOn_of_Perron_function2]\label{HolomorphicOn_of_Perron_function2}\lean{HolomorphicOn_of_Perron_function2}\leanok
 Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on $\C\setminus\{0,1\}$.
 \end{lemma}
 %%-/
@@ -65,7 +65,7 @@ Composition of differentiabilities.
 
 /-%%
 TODO: Move this to general section.
-\begin{lemma}\label{RectangleIntegral_tendsTo_VerticalIntegral}\lean{RectangleIntegral_tendsTo_VerticalIntegral}\leanok
+\begin{lemma}[RectangleIntegral_tendsTo_VerticalIntegral]\label{RectangleIntegral_tendsTo_VerticalIntegral}\lean{RectangleIntegral_tendsTo_VerticalIntegral}\leanok
 \uses{RectangleIntegral}
 Let $\sigma,\sigma' ∈ \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
 the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
@@ -99,7 +99,7 @@ lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ
 --%%\end{proof}
 
 /-%%
-\begin{lemma}\label{RectangleIntegral_tendsTo_UpperU}\lean{RectangleIntegral_tendsTo_UpperU}\leanok
+\begin{lemma}[RectangleIntegral_tendsTo_UpperU]\label{RectangleIntegral_tendsTo_UpperU}\lean{RectangleIntegral_tendsTo_UpperU}\leanok
 Let $\sigma,\sigma' ∈ \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
 the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
 the horizontal integral $\int_{(\sigma)}^{\sigma'}f(x + yi)dx$ vanishes as $y \to \pm \infty$.
@@ -123,7 +123,7 @@ Almost by definition.
 %%-/
 
 /-%%
-\begin{lemma}\label{RectangleIntegral_tendsTo_LowerU}\lean{RectangleIntegral_tendsTo_LowerU}\leanok
+\begin{lemma}[RectangleIntegral_tendsTo_LowerU]\label{RectangleIntegral_tendsTo_LowerU}\lean{RectangleIntegral_tendsTo_LowerU}\leanok
 Let $\sigma,\sigma' ∈ \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
 the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
 the horizontal integral $\int_{(\sigma)}^{\sigma'}f(x + yi)dx$ vanishes as $y \to -\infty$.
@@ -190,7 +190,7 @@ lemma integral_volume_one_div_one_add_sq : ∫ (x : ℝ), 1 / (1 + x ^ 2) = π :
     tendsto_neg_atTop_atBot tendsto_id) intervalIntegral_one_div_one_add_sq_tendsto
 
 /-%%
-\begin{lemma}\label{PerronIntegralPosAux}\lean{PerronIntegralPosAux}\leanok
+\begin{lemma}[PerronIntegralPosAux]\label{PerronIntegralPosAux}\lean{PerronIntegralPosAux}\leanok
 The integral
 $$\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$$
 is positive (and hence convergent - since a divergent integral is zero in Lean, by definition).
@@ -232,7 +232,7 @@ This integral is between $\frac{1}{2}$ and $1$ of the integral of $\frac{1}{1+t^
 --%%\end{proof}
 
 /-%%
-\begin{lemma}\label{VertIntPerronBound}\lean{VertIntPerronBound}\leanok
+\begin{lemma}[VertIntPerronBound]\label{VertIntPerronBound}\lean{VertIntPerronBound}\leanok
 Let $x>0$ and $\sigma>1$. Then
 $$\left|
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
@@ -289,7 +289,7 @@ Triangle inequality and pointwise estimate.
 %%-/
 
 /-%%
-\begin{lemma}\label{VertIntPerronBoundLeft}\lean{VertIntPerronBoundLeft}\leanok
+\begin{lemma}[VertIntPerronBoundLeft]\label{VertIntPerronBoundLeft}\lean{VertIntPerronBoundLeft}\leanok
 Let $x>1$ and $\sigma<-3/2$. Then
 $$\left|
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
@@ -311,7 +311,7 @@ Triangle inequality and pointwise estimate.
 
 /-%%
 TODO : Remove this lemma if it's not needed
-\begin{lemma}\label{VertIntPerronBound2}\lean{VertIntPerronBound2}\leanok
+\begin{lemma}[VertIntPerronBound2]\label{VertIntPerronBound2}\lean{VertIntPerronBound2}\leanok
 Let $x>0$ and $\sigma\in \R$, $\sigma \ne 0, -1$. Then
 $$\left|
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \ll_\sigma x^\sigma.$$
@@ -330,7 +330,7 @@ Similar to ``VertIntPerronBound''.
 %%-/
 
 /-%%
-\begin{lemma}\label{PerronFun_integrable}\lean{PerronFun_integrable}\leanok
+\begin{lemma}[PerronFun_integrable]\label{PerronFun_integrable}\lean{PerronFun_integrable}\leanok
 Let $x>0$ and $\sigma\in\R$. Then
 $$\int_{\R}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
 is integrable.
@@ -348,7 +348,7 @@ Apply Lemma \ref{VertIntPerronBound}.
 
 /-%%
 TODO : Move to general section
-\begin{lemma}\label{limitOfConstant}\lean{limitOfConstant}\leanok
+\begin{lemma}[limitOfConstant]\label{limitOfConstant}\lean{limitOfConstant}\leanok
 Let $a:\R\to\C$ be a function, and let $\sigma>0$ be a real number. Suppose that, for all
 $\sigma, \sigma'>0$, we have $a(\sigma')=a(\sigma)$, and that
 $\lim_{\sigma\to\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
@@ -367,7 +367,7 @@ lemma limitOfConstant {a : ℝ → ℂ} {σ : ℝ} (σpos : 0 < σ)
 --%%\end{align*}\end{proof}
 
 /-%%
-\begin{lemma}\label{limitOfConstantLeft}\lean{limitOfConstantLeft}\leanok
+\begin{lemma}[limitOfConstantLeft]\label{limitOfConstantLeft}\lean{limitOfConstantLeft}\leanok
 Let $a:\R\to\C$ be a function, and let $\sigma<-3/2$ be a real number. Suppose that, for all
 $\sigma, \sigma'>0$, we have $a(\sigma')=a(\sigma)$, and that
 $\lim_{\sigma\to-\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
@@ -387,7 +387,7 @@ lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3/2)
 --%%\end{align*}\end{proof}
 
 /-%%
-\begin{lemma}\label{tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}\lean{tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}\leanok
+\begin{lemma}[tendsto_rpow_atTop_nhds_zero_of_norm_lt_one]\label{tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}\lean{tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}\leanok
 Let $x>0$ and $x<1$. Then
 $$\lim_{\sigma\to\infty}x^\sigma=0.$$
 \end{lemma}
@@ -405,7 +405,7 @@ Standard.
 %%-/
 
 /-%%
-\begin{lemma}\label{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\lean{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\leanok
+\begin{lemma}[tendsto_rpow_atTop_nhds_zero_of_norm_gt_one]\label{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\lean{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\leanok
 Let $x>1$. Then
 $$\lim_{\sigma\to-\infty}x^\sigma=0.$$
 \end{lemma}
@@ -424,7 +424,7 @@ Standard.
 %%-/
 
 /-%%
-\begin{lemma}\label{PerronFun_tendsto_zero_Lower}\lean{PerronFun_tendsto_zero_Lower}\leanok
+\begin{lemma}[PerronFun_tendsto_zero_Lower]\label{PerronFun_tendsto_zero_Lower}\lean{PerronFun_tendsto_zero_Lower}\leanok
 Let $x>0$ and $\sigma',\sigma''\in\R$. Then
 $$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
 goes to $0$ as $t\to-\infty$.
@@ -444,7 +444,7 @@ The numerator is bounded and the denominator tends to infinity.
 
 
 /-%%
-\begin{lemma}\label{PerronFun_tendsto_zero_Upper}\lean{PerronFun_tendsto_zero_Upper}\leanok
+\begin{lemma}[PerronFun_tendsto_zero_Upper]\label{PerronFun_tendsto_zero_Upper}\lean{PerronFun_tendsto_zero_Upper}\leanok
 Let $x>0$ and $\sigma',\sigma''\in\R$. Then
 $$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
 goes to $0$ as $t\to\infty$.
@@ -464,7 +464,7 @@ The numerator is bounded and the denominator tends to infinity.
 
 /-%%
 We are ready for the first case of the Perron formula, namely when $x<1$:
-\begin{lemma}\label{PerronFormulaLtOne}\lean{PerronFormulaLtOne}\leanok
+\begin{lemma}[PerronFormulaLtOne]\label{PerronFormulaLtOne}\lean{PerronFormulaLtOne}\leanok
 For $x>0$, $\sigma>0$, and $x<1$, we have
 $$
 \frac1{2\pi i}
@@ -570,7 +570,7 @@ integrals over the rectangles vanish by , by Lemmas \ref{PerronFun_tendsto_zero_
 %%-/
 
 /-%%
-\begin{lemma}\label{PerronIdentity}\lean{PerronIdentity}\leanok
+\begin{lemma}[PerronIdentity]\label{PerronIdentity}\lean{PerronIdentity}\leanok
 Let $x\in \R$ and $s \ne 0, -1$. Then
 $$
 \frac{x^\sigma}{s(1+s)} = \frac{x^\sigma}{s} - \frac{x^\sigma}{1+s}
@@ -594,7 +594,7 @@ By ring.
 %%-/
 
 /-%%
-\begin{lemma}\label{PerronDiffBddAtZero}\lean{PerronDiffBddAtZero}\leanok
+\begin{lemma}[PerronDiffBddAtZero]\label{PerronDiffBddAtZero}\lean{PerronDiffBddAtZero}\leanok
 Let $x>0$. Then for $0 < c < 1 /2$, we have that the function
 $$
 s ↦ \frac{x^s}{s(s+1)} - \frac1s
@@ -617,7 +617,7 @@ Applying Lemma \ref{PerronIdentity}, the
 
 
 /-%%
-\begin{lemma}\label{PerronDiffBddAtNegOne}\lean{PerronDiffBddAtNegOne}\leanok
+\begin{lemma}[PerronDiffBddAtNegOne]\label{PerronDiffBddAtNegOne}\lean{PerronDiffBddAtNegOne}\leanok
 Let $x>0$. Then for $0 < c < 1 /2$, we have that the function
 $$
 s ↦ \frac{x^s}{s(s+1)} - \frac{-x^{-1}}{s+1}
@@ -662,7 +662,7 @@ noncomputable def equivRealProdCLM : ℂ ≃L[ℝ] ℝ × ℝ :=
     abs_le_sqrt_two_mul_max (equivRealProd.symm p)
 
 /-%%
-\begin{lemma}\label{PerronResidueAtZero}\lean{PerronResidueAtZero}\leanok
+\begin{lemma}[PerronResidueAtZero]\label{PerronResidueAtZero}\lean{PerronResidueAtZero}\leanok
 Let $x>0$. Then for all sufficiently small $c>0$, we have that
 $$
 \frac1{2\pi i}
@@ -726,7 +726,7 @@ holomorphic in the whole rectangle (by Lemma \ref{PerronDiffBddAtZero}).
 --%%\end{proof}
 
 /-%%
-\begin{lemma}\label{PerronResiduePull1}\lean{PerronResiduePull1}\leanok
+\begin{lemma}[PerronResiduePull1]\label{PerronResiduePull1}\lean{PerronResiduePull1}\leanok
 For $x>1$ (of course $x>0$ would suffice) and $\sigma>0$, we have
 $$
 \frac1{2\pi i}
@@ -754,7 +754,7 @@ By Lemma \ref{PerronResidueAtZero}, the integral over this square is equal to $1
 %%-/
 
 /-%%
-\begin{lemma}\label{PerronResiduePull2}\lean{PerronResiduePull2}\leanok
+\begin{lemma}[PerronResiduePull2]\label{PerronResiduePull2}\lean{PerronResiduePull2}\leanok
 For $x>1$, we have
 $$
 \frac1{2\pi i}
@@ -775,7 +775,7 @@ Pull contour from $(-1/2)$ to $(-3/2)$.
 %%-/
 
 /-%%
-\begin{lemma}\label{PerronContourPull3}\lean{PerronContourPull3}\leanok
+\begin{lemma}[PerronContourPull3]\label{PerronContourPull3}\lean{PerronContourPull3}\leanok
 For $x>1$ and $\sigma<-3/2$, we have
 $$
 \frac1{2\pi i}
@@ -794,7 +794,7 @@ Pull contour from $(-3/2)$ to $(\sigma)$.
 %%-/
 
 /-%%
-\begin{lemma}\label{PerronFormulaGtOne}\lean{PerronFormulaGtOne}\leanok
+\begin{lemma}[PerronFormulaGtOne]\label{PerronFormulaGtOne}\lean{PerronFormulaGtOne}\leanok
 For $x>1$ and $\sigma>0$, we have
 $$
 \frac1{2\pi i}

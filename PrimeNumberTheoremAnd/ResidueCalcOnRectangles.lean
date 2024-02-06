@@ -19,7 +19,7 @@ A Rectangle has corners $z$ and $w \in \C$.
 def Rectangle (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ [[z.im, w.im]]
 
 /-%%
-\begin{definition}\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
+\begin{definition}[RectangleIntegral]\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
 A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ and $w$ in $\C$.
 We will sometimes denote it by $\int_{z}^{w} f$. (There is also a primed version, which is $1/(2\pi i)$ times the original.)
 \end{definition}
@@ -35,7 +35,7 @@ noncomputable abbrev RectangleIntegral' (f : ℂ → ℂ) (z w : ℂ) : ℂ :=
 
 /-%%
 The border of a rectangle is the union of its four sides.
-\begin{definition}\label{RectangleBorder}\lean{RectangleBorder}\leanok
+\begin{definition}[RectangleBorder]\label{RectangleBorder}\lean{RectangleBorder}\leanok
 A Rectangle's border, given corners $z$ and $w$ is the union of the four sides.
 \end{definition}
 %%-/
@@ -54,7 +54,7 @@ noncomputable def UpperUIntegral (f : ℂ → ℂ) (σ σ' T : ℝ) : ℂ :=
 
 /-%%
 A LowerUIntegral is the integral of a function over a |-| shape.
-\begin{definition}\label{LowerUIntegral}\lean{LowerUIntegral}\leanok
+\begin{definition}[LowerUIntegral]\label{LowerUIntegral}\lean{LowerUIntegral}\leanok
 A LowerUIntegral of a function $f$ comes from $\sigma-i\infty$ up to $\sigma-iT$, over to $\sigma'-iT$, and back down to $\sigma'-i\infty$.
 \end{definition}
 %%-/
@@ -65,7 +65,7 @@ noncomputable def LowerUIntegral (f : ℂ → ℂ) (σ σ' T : ℝ) : ℂ :=
 
 /-%%
 It is very convenient to define integrals along vertical lines in the complex plane, as follows.
-\begin{definition}\label{VerticalIntegral}\leanok
+\begin{definition}[VerticalIntegral]\label{VerticalIntegral}\leanok
 Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a real number. Then we define
 $$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
 \end{definition}
@@ -79,7 +79,7 @@ noncomputable abbrev VerticalIntegral' (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * VerticalIntegral f σ
 
 /-%%
-\begin{lemma}\label{DiffVertRect_eq_UpperLowerUs}\lean{DiffVertRect_eq_UpperLowerUs}\leanok
+\begin{lemma}[DiffVertRect_eq_UpperLowerUs]\label{DiffVertRect_eq_UpperLowerUs}\lean{DiffVertRect_eq_UpperLowerUs}\leanok
 The difference of two vertical integrals and a rectangle is the difference of an upper and a lower U integrals.
 \end{lemma}
 %%-/
@@ -100,7 +100,7 @@ abbrev HolomorphicOn {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] (f :
 
 
 /-%%
-\begin{theorem}\label{existsDifferentiableOn_of_bddAbove}\lean{existsDifferentiableOn_of_bddAbove}\leanok
+\begin{theorem}[existsDifferentiableOn_of_bddAbove]\label{existsDifferentiableOn_of_bddAbove}\lean{existsDifferentiableOn_of_bddAbove}\leanok
 If $f$ is differentiable on a set $s$ except at $c\in s$, and $f$ is bounded above on $s\setminus\{c\}$, then there exists a differentiable function $g$ on $s$ such that $f$ and $g$ agree on $s\setminus\{c\}$.
 \end{theorem}
 %%-/
@@ -123,7 +123,7 @@ This is the Reimann Removable Singularity Theorem, slightly rephrased from what'
 %%-/
 
 /-%%
-\begin{theorem}\label{HolomorphicOn.vanishesOnRectangle}\lean{HolomorphicOn.vanishesOnRectangle}\leanok
+\begin{theorem}[HolomorphicOn.vanishesOnRectangle]\label{HolomorphicOn.vanishesOnRectangle}\lean{HolomorphicOn.vanishesOnRectangle}\leanok
 If $f$ is holomorphic on a rectangle $z$ and $w$, then the integral of $f$ over the rectangle with corners $z$ and $w$ is $0$.
 \end{theorem}
 %%-/
@@ -140,7 +140,7 @@ This is in a Mathlib PR.
 /-%%
 The next lemma allows to zoom a big rectangle down to a small square, centered at a pole.
 
-\begin{lemma}\label{RectanglePullToNhdOfPole}\lean{RectanglePullToNhdOfPole}\leanok
+\begin{lemma}[RectanglePullToNhdOfPole]\label{RectanglePullToNhdOfPole}\lean{RectanglePullToNhdOfPole}\leanok
 If $f$ is holomorphic on a rectangle $z$ and $w$ except at a point $p$, then the integral of $f$
 over the rectangle with corners $z$ and $w$ is the same as the integral of $f$ over a small square
 centered at $p$.
@@ -161,7 +161,7 @@ that the inner square is strictly contained in the big rectangle.)
 
 
 /-%%
-\begin{lemma}\label{ResidueTheoremAtOrigin}
+\begin{lemma}[ResidueTheoremAtOrigin]\label{ResidueTheoremAtOrigin}
 \lean{ResidueTheoremAtOrigin}\leanok
 The rectangle (square) integral of $f(s) = 1/s$ with corners $-1-i$ and $1+i$ is equal to $2\pi i$.
 \end{lemma}
@@ -228,7 +228,7 @@ which contributes another factor of $1/2$. (Fun! Each of the vertical/horizontal
 %%-/
 
 /-%%
-\begin{lemma}\label{ResidueTheoremOnRectangleWithSimplePole}
+\begin{lemma}[ResidueTheoremOnRectangleWithSimplePole]\label{ResidueTheoremOnRectangleWithSimplePole}
 \lean{ResidueTheoremOnRectangleWithSimplePole}\leanok
 Suppose that $f$ is a holomorphic function on a rectangle, except for a simple pole
 at $p$. By the latter, we mean that there is a function $g$ holomorphic on the rectangle such that, $f = g + A/(s-p)$ for some $A\in\C$. Then the integral of $f$ over the
