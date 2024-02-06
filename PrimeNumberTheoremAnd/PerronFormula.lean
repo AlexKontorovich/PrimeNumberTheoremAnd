@@ -218,7 +218,6 @@ This integral is between $\frac{1}{2}$ and $1$ of the integral of $\frac{1}{1+t^
 
 /-%%
 \begin{lemma}\label{VertIntPerronBound}\lean{VertIntPerronBound}\leanok
-\uses{VerticalIntegral}
 Let $x>0$ and $\sigma>1$. Then
 $$\left|
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
@@ -269,17 +268,39 @@ lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_gt_one : 1 < σ
 
 /-%%
 \begin{proof}\leanok
+\uses{VerticalIntegral}
 Triangle inequality and pointwise estimate.
 \end{proof}
 %%-/
 
 /-%%
-TODO: Refactor with ``VertIntPerronBound''.
+\begin{lemma}\label{VertIntPerronBoundLeft}\lean{VertIntPerronBoundLeft}\leanok
+Let $x>1$ and $\sigma<-3/2$. Then
+$$\left|
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
+\end{lemma}
+%%-/
+
+lemma VertIntPerronBoundLeft {x : ℝ} (x_gt_zero : 0 < x) :
+    ∃ C > 0, ∀ (σ : ℝ) (_ : σ < -3 / 2),
+    Complex.abs (VerticalIntegral' (fun s ↦ x^s / (s * (s + 1))) σ)
+      ≤ x ^ σ * C := by
+  sorry
+/-%%
+\begin{proof}
+\uses{VerticalIntegral}
+Triangle inequality and pointwise estimate.
+\end{proof}
+%%-/
+
+
+/-%%
+TODO : Remove this lemma if it's not needed
 \begin{lemma}\label{VertIntPerronBound2}\lean{VertIntPerronBound2}\leanok
-\uses{VertIntPerronBound}
 Let $x>0$ and $\sigma\in \R$, $\sigma \ne 0, -1$. Then
 $$\left|
-\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \ll x^\sigma.$$
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \ll_\sigma x^\sigma.$$
+Note that the implied constant here does depend on $\sigma$. (So it's not as useful a lemma.)
 \end{lemma}
 %%-/
 lemma VertIntPerronBound2 {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_ne_zero : σ ≠ 0)
@@ -288,10 +309,10 @@ lemma VertIntPerronBound2 {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_ne_zero : σ �
   sorry
 /-%%
 \begin{proof}
+\uses{VertIntPerronBound}
 Similar to ``VertIntPerronBound''.
 \end{proof}
 %%-/
-
 
 /-%%
 \begin{lemma}\label{PerronFun_integrable}\lean{PerronFun_integrable}\leanok
@@ -331,6 +352,26 @@ lemma limitOfConstant {a : ℝ → ℂ} {σ : ℝ} (σpos : 0 < σ)
 --%%\end{align*}\end{proof}
 
 /-%%
+\begin{lemma}\label{limitOfConstantLeft}\lean{limitOfConstantLeft}\leanok
+Let $a:\R\to\C$ be a function, and let $\sigma<-3/2$ be a real number. Suppose that, for all
+$\sigma, \sigma'>0$, we have $a(\sigma')=a(\sigma)$, and that
+$\lim_{\sigma\to-\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
+\end{lemma}
+%%-/
+lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3/2)
+    (ha : ∀ (σ' : ℝ) (σ'' : ℝ) (_ : σ' ≤ -3/2) (_ : σ'' ≤ -3/2), a σ' = a σ'')
+    (ha' : Tendsto a atBot (𝓝 0)) : a σ = 0 := by
+/-%%
+\begin{proof}\leanok
+\begin{align*}
+\lim_{\sigma'\to-\infty}a(\sigma) &= \lim_{\sigma'\to-\infty}a(\sigma') \\
+%%-/
+  have := eventuallyEq_of_mem (mem_atBot (-3/2)) fun σ' h ↦ ha σ' σ h σlt
+--%% &= 0
+  exact tendsto_const_nhds_iff.mp (ha'.congr' this)
+--%%\end{align*}\end{proof}
+
+/-%%
 \begin{lemma}\label{tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}\lean{tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}\leanok
 Let $x>0$ and $x<1$. Then
 $$\lim_{\sigma\to\infty}x^\sigma=0.$$
@@ -344,6 +385,25 @@ lemma tendsto_rpow_atTop_nhds_zero_of_norm_lt_one {x : ℝ}  (xpos : 0 < x) (x_l
 
 /-%%
 \begin{proof}\leanok
+Standard.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}\label{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\lean{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\leanok
+Let $x>1$. Then
+$$\lim_{\sigma\to-\infty}x^\sigma=0.$$
+\end{lemma}
+%%-/
+lemma tendsto_rpow_atTop_nhds_zero_of_norm_gt_one {x : ℝ} (x_gt_one : 1 < x) (C : ℝ) :
+    Tendsto (fun (σ : ℝ) => x ^ σ * C) atBot (𝓝 0) := by
+  have := (zero_lt_one.trans x_gt_one)
+  have h := tendsto_rpow_atTop_nhds_zero_of_norm_lt_one (inv_pos.mpr this) (inv_lt_one x_gt_one) C
+  convert (h.comp tendsto_neg_atBot_atTop) using 1
+  ext; simp only [this.le, inv_rpow, Function.comp_apply, rpow_neg, inv_inv]
+
+/-%%
+\begin{proof}
 Standard.
 \end{proof}
 %%-/
@@ -597,69 +657,6 @@ Pull contour from $(-3/2)$ to $(\sigma)$.
 \end{proof}
 %%-/
 
-
-/-%%
-\begin{lemma}\label{VertIntPerronBoundLeft}\lean{VertIntPerronBoundLeft}\leanok
-\uses{VerticalIntegral}
-Let $x>1$ and $\sigma<-3/2$. Then
-$$\left|
-\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
-\end{lemma}
-%%-/
-
-lemma VertIntPerronBoundLeft {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σle : σ < -3 / 2) :
-    Complex.abs (VerticalIntegral' (fun s ↦ x^s / (s * (s + 1))) σ)
-      ≤ x ^ σ *
-        ((∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)|) / (2 * π)) := by
-  sorry
-/-%%
-\begin{proof}
-Triangle inequality and pointwise estimate. Use
-\end{proof}
-%%-/
-
-
-/-%%
-\begin{lemma}\label{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\lean{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\leanok
-Let $x>1$. Then
-$$\lim_{\sigma\to-\infty}x^\sigma=0.$$
-\end{lemma}
-%%-/
-lemma tendsto_rpow_atTop_nhds_zero_of_norm_gt_one {x : ℝ} (x_gt_one : 1 < x) (C : ℝ) :
-    Tendsto (fun (σ : ℝ) => x ^ σ * C) atBot (𝓝 0) := by
-  have := (zero_lt_one.trans x_gt_one)
-  have h := tendsto_rpow_atTop_nhds_zero_of_norm_lt_one (inv_pos.mpr this) (inv_lt_one x_gt_one) C
-  convert (h.comp tendsto_neg_atBot_atTop) using 1
-  ext; simp only [this.le, inv_rpow, Function.comp_apply, rpow_neg, inv_inv]
-
-/-%%
-\begin{proof}
-Standard.
-\end{proof}
-%%-/
-
-
-/-%%
-\begin{lemma}\label{limitOfConstantLeft}\lean{limitOfConstantLeft}\leanok
-Let $a:\R\to\C$ be a function, and let $\sigma<-3/2$ be a real number. Suppose that, for all
-$\sigma, \sigma'>0$, we have $a(\sigma')=a(\sigma)$, and that
-$\lim_{\sigma\to-\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
-\end{lemma}
-%%-/
-lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3/2)
-    (ha : ∀ (σ' : ℝ) (σ'' : ℝ) (_ : σ' ≤ -3/2) (_ : σ'' ≤ -3/2), a σ' = a σ'')
-    (ha' : Tendsto a atBot (𝓝 0)) : a σ = 0 := by
-/-%%
-\begin{proof}\leanok
-\begin{align*}
-\lim_{\sigma'\to-\infty}a(\sigma) &= \lim_{\sigma'\to-\infty}a(\sigma') \\
-%%-/
-  have := eventuallyEq_of_mem (mem_atBot (-3/2)) fun σ' h ↦ ha σ' σ h σlt
---%% &= 0
-  exact tendsto_const_nhds_iff.mp (ha'.congr' this)
---%%\end{align*}\end{proof}
-
-
 /-%%
 \begin{lemma}\label{PerronFormulaGtOne}\lean{PerronFormulaGtOne}\leanok
 For $x>1$ and $\sigma>0$, we have
@@ -689,10 +686,8 @@ tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
 --%% Then pull the contour all the way to $(\sigma')$ with $\sigma'<-3/2$.
   have contourPull₃ : ∀ σ' σ'' (_ : σ' ≤ -3/2) (_ : σ'' ≤ -3/2), VerticalIntegral' f σ' = VerticalIntegral' f σ'' := fun σ' σ'' σ'le σ''le ↦ PerronContourPull3 x_gt_one σ'le σ''le
 --%% For $\sigma' < -3/2$, the integral is bounded by $x^{\sigma'}\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$.
-  have VertIntBound : ∃ C > 0, ∀ σ' < -3/2, Complex.abs (VerticalIntegral' f σ') ≤ x^σ' * C
-  · let C := ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)|
-    have : 0 < C / (2 * π) := div_pos PerronIntegralPosAux (by norm_num [pi_pos])
-    exact ⟨C / (2 * π), this, fun _ ↦ VertIntPerronBoundLeft x_gt_one⟩
+  have VertIntBound : ∃ C > 0, ∀ σ' < -3/2, Complex.abs (VerticalIntegral' f σ') ≤ x^σ' * C :=
+    VertIntPerronBoundLeft (by linarith : 0 < x)
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
   have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral' f)) atBot (𝓝 0)
   · obtain ⟨C, Cpos, hC⟩ := VertIntBound
