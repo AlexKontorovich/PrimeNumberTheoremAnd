@@ -239,10 +239,9 @@ lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ
     (pInRectInterior : Rectangle z w ∈ nhds p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p}))
     (gHolo : HolomorphicOn g (Rectangle z w))
-    (principalPart : Set.EqOn f (g + fun s ↦ A / (s - p))
+    (principalPart : Set.EqOn (f - fun s ↦ A / (s - p)) (g)
       (Rectangle z w \ {p})) :
     RectangleIntegral' f z w = A := by
-
   sorry
 /-%%
 \begin{proof}\uses{ResidueTheoremAtOrigin, RectanglePullToNhdOfPole, HolomorphicOn.vanishesOnRectangle}

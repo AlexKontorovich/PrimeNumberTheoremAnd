@@ -48,6 +48,21 @@ Composition of differentiabilities.
       <| ne_of_apply_ne re <| ne_of_gt <| (lt_add_one 0).trans <| add_lt_add_right (by exact hx) 1
 --%%\end{proof}
 
+
+/-%%
+\begin{lemma}\label{HolomorphicOn_of_Perron_function2}\lean{HolomorphicOn_of_Perron_function2}\leanok
+Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on $\C\setminus\{0,1\}$.
+\end{lemma}
+%%-/
+lemma HolomorphicOn_of_Perron_function2 {x : ℝ} (x_gt_one : 0 < x) :
+    HolomorphicOn (fun s ↦ x^s / (s * (s + 1))) {0, -1}ᶜ := by
+  sorry
+/-%%
+\begin{proof}
+Composition of differentiabilities.
+\end{proof}
+%%-/
+
 /-%%
 TODO: Move this to general section.
 \begin{lemma}\label{RectangleIntegral_tendsTo_VerticalIntegral}\lean{RectangleIntegral_tendsTo_VerticalIntegral}\leanok
@@ -321,7 +336,7 @@ $$\int_{\R}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
 is integrable.
 \end{lemma}
 %%-/
-lemma PerronFun_integrable {x : ℝ} (xpos : 0 < x) (σ : ℝ) :
+lemma PerronFun_integrable {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ ≠ -1) :
     let f := fun (s : ℂ) ↦ x ^ s / (s * (s + 1));
     Integrable fun (t : ℝ) ↦ f (σ + t * I) := by
   sorry
@@ -488,8 +503,8 @@ PerronFun_tendsto_zero_Lower, PerronFun_tendsto_zero_Upper, PerronFun_integrable
     apply RectangleIntegral_tendsTo_VerticalIntegral
     · exact PerronFun_tendsto_zero_Lower xpos σ' σ''
     · exact PerronFun_tendsto_zero_Upper xpos σ' σ''
-    · exact PerronFun_integrable xpos σ'
-    · exact PerronFun_integrable xpos σ''
+    · exact PerronFun_integrable xpos (by linarith) (by linarith)
+    · exact PerronFun_integrable xpos (by linarith) (by linarith)
 --%% Therefore, $\int_{(\sigma')}=\int_{(\sigma)}$.
   have contourPull (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
     VerticalIntegral f σ' = VerticalIntegral f σ''
@@ -521,19 +536,6 @@ The second case is when $x>1$.
 Here are some auxiliary lemmata for the second case.
 %-/
 
-/-%%
-\begin{lemma}\label{HolomorphicOn_of_Perron_function2}\lean{HolomorphicOn_of_Perron_function2}\leanok
-Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on $\C\setminus\{0,1\}$.
-\end{lemma}
-%%-/
-lemma HolomorphicOn_of_Perron_function2 {x : ℝ} (x_gt_one : 0 < x) :
-    HolomorphicOn (fun s ↦ x^s / (s * (s + 1))) {0, -1}ᶜ := by
-  sorry
-/-%%
-\begin{proof}
-Composition of differentiabilities.
-\end{proof}
-%%-/
 
 /-%%
 \begin{lemma}[PerronSigmaNegOneHalfPull]\label{PerronSigmaNegOneHalfPull}
@@ -567,6 +569,75 @@ integrals over the rectangles vanish by , by Lemmas \ref{PerronFun_tendsto_zero_
 %%-/
 
 /-%%
+\begin{lemma}\label{PerronIdentity}\lean{PerronIdentity}\leanok
+Let $x\in \R$ and $s \ne 0, -1$. Then
+$$
+\frac{x^\sigma}{s(1+s)} = \frac{x^\sigma}{s} - \frac{x^\sigma}{1+s}
+$$
+\end{lemma}
+%%-/
+lemma PerronIdentity {x : ℝ} {s : ℂ} (s_ne_zero : s ≠ 0) (s_ne_neg_one : s ≠ -1) :
+    (x : ℂ) ^ s / (s * (1 + s))
+      = (x : ℂ) ^ s / s - (x : ℂ) ^ s / (1 + s) := by
+  have : 1 + s ≠ 0 := by
+    intro h
+    have : s = -1 := by rw [neg_eq_of_add_eq_zero_right h]
+    exact s_ne_neg_one this
+  have : s * (1 + s) ≠ 0 := mul_ne_zero s_ne_zero this
+  field_simp
+  ring
+/-%%
+\begin{proof}\leanok
+By ring.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}\label{PerronDiffBddAtZero}\lean{PerronDiffBddAtZero}\leanok
+Let $x>0$. Then for $0 < c < 1 /2$, we have that the function
+$$
+s ↦ \frac{x^s}{s(s+1)} - \frac1s
+$$
+is bounded above on the rectangle with corners at $-c-i*c$ and $c+i*c$ (except at $s=0$).
+\end{lemma}
+%%-/
+lemma PerronDiffBddAtZero (x : ℝ) {c : ℝ} (cpos : 0 < c) (c_lt : c < 1/2) :
+    BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - 1 / s)) ''
+      (Rectangle (-c - I * c) (c + I * c) \ {0})) := by
+  sorry
+/-%%
+\begin{proof}\uses{PerronIdentity}
+Applying Lemma \ref{PerronIdentity}, the
+ function $s ↦ x^s/s(s+1) - 1/s = x^s/s - x^0/s - x^s/(1+s)$. The last term is bounded for $s$
+ away from $-1$. The first two terms are the difference quotient of the function $s ↦ x^s$ at
+ $0$; since it's differentiable, the difference remains bounded as $s\to 0$.
+\end{proof}
+%%-/
+
+-- From PR #9598
+/-- The preimage under `equivRealProd` of `s ×ˢ t` is `s ×ℂ t`. -/
+lemma preimage_equivRealProd_prod (s t : Set ℝ) : equivRealProd ⁻¹' (s ×ˢ t) = s ×ℂ t := rfl
+
+-- From PR #9598
+/-- The inequality `s × t ⊆ s₁ × t₁` holds in `ℂ` iff it holds in `ℝ × ℝ`. -/
+lemma reProdIm_subset_iff {s s₁ t t₁ : Set ℝ} : s ×ℂ t ⊆ s₁ ×ℂ t₁ ↔ s ×ˢ t ⊆ s₁ ×ˢ t₁ := by
+  rw [← @preimage_equivRealProd_prod s t, ← @preimage_equivRealProd_prod s₁ t₁]
+  exact Equiv.preimage_subset equivRealProd _ _
+
+-- From PR #9598
+/-- If `s ⊆ s₁ ⊆ ℝ` and `t ⊆ t₁ ⊆ ℝ`, then `s × t ⊆ s₁ × t₁` in `ℂ`. -/
+lemma reProdIm_subset_iff' {s s₁ t t₁ : Set ℝ} :
+    s ×ℂ t ⊆ s₁ ×ℂ t₁ ↔ s ⊆ s₁ ∧ t ⊆ t₁ ∨ s = ∅ ∨ t = ∅ := by
+  convert prod_subset_prod_iff
+  exact reProdIm_subset_iff
+
+-- Exists in Mathlib; need to update version
+/-- The natural `ContinuousLinearEquiv` from `ℂ` to `ℝ × ℝ`. -/
+noncomputable def equivRealProdCLM : ℂ ≃L[ℝ] ℝ × ℝ :=
+  equivRealProdLm.toContinuousLinearEquivOfBounds 1 (Real.sqrt 2) equivRealProd_apply_le' fun p =>
+    abs_le_sqrt_two_mul_max (equivRealProd.symm p)
+
+/-%%
 \begin{lemma}\label{PerronResidueAtZero}\lean{PerronResidueAtZero}\leanok
 Let $x>0$. Then for all sufficiently small $c>0$, we have that
 $$
@@ -577,17 +648,58 @@ $$
 %%-/
 lemma PerronResidueAtZero {x : ℝ} (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
     RectangleIntegral' (fun (s : ℂ) ↦ x ^ s / (s * (s + 1))) (-c - I * c) (c + I * c) = 1 := by
-  sorry
-
 /-%%
-\begin{proof}
-For $c>0$ sufficiently small, $x^s/(s(s+1))$ is equal to $1/s$ plus a function, $g$, say,
-holomorphic in the whole rectangle. The rectangle integral of $g$ is zero. It suffices to
-compute the rectangle integral of $1/s$. This is done as described in the proof
-of Lemma \ref{ResidueTheoremOnRectangle}. But perhaps it's easier to do it directly
-than prove a general theorem.
-\end{proof}
+\begin{proof}\leanok
+\uses{PerronDiffBddAtZero, ResidueTheoremOnRectangleWithSimplePole,
+existsDifferentiableOn_of_bddAbove}
+For $c>0$ sufficiently small, say $c<1/2$,
 %%-/
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2)]
+  intro c hc
+  set f : ℂ → ℂ := (fun (s : ℂ) ↦ x ^ s / (s * (s + 1)))
+  set Rect := Rectangle (-c - I * c) (c + I * c)
+  have RectSub : Rect \ {0} ⊆ {0, -1}ᶜ := sorry
+  have fHolo : HolomorphicOn f (Rect \ {0}) :=
+    (HolomorphicOn_of_Perron_function2 xpos).mono RectSub
+  set f1 : ℂ → ℂ := f - (fun (s : ℂ) ↦ 1 / s)
+  have f1Holo : HolomorphicOn f1 (Rect \ {0}) := sorry
+  simp only [mem_Ioo] at hc
+  have uIccIcc : uIcc (-c) c = Icc (-c) c := by apply uIcc_of_le; linarith
+  have RectMemNhds : Rect ∈ 𝓝 0
+  · rw [mem_nhds_iff]
+    refine ⟨(Ioo (-c / 2) (c / 2)) ×ℂ (Ioo (-c / 2) (c / 2)), ?_, ?_⟩
+    dsimp [Rectangle]
+    simp only [zero_mul, mul_zero, sub_self, sub_zero, add_zero, neg_zero, one_mul, zero_add,
+      zero_sub]
+    simp_rw [uIccIcc]
+    apply reProdIm_subset_iff'.mpr
+    · left
+      constructor
+      · intro u
+        simp only [mem_Ioo, mem_Icc, and_imp]
+        intro hu1 hu2
+        refine ⟨by linarith, by linarith⟩
+      · intro u
+        simp only [mem_Ioo, mem_Icc, and_imp]
+        intro hu1 hu2
+        refine ⟨by linarith, by linarith⟩
+    · constructor
+      · rw [← preimage_equivRealProd_prod]
+        apply (isOpen_Ioo.prod isOpen_Ioo).preimage
+        exact equivRealProdCLM.continuous
+      · rw [mem_reProdIm]
+        simp only [zero_re, mem_Ioo, zero_im, and_self]
+        refine ⟨by linarith, by linarith⟩
+/-%% $x^s/(s(s+1))$ is equal to $1/s$ plus a function, $g$, say,
+holomorphic in the whole rectangle (by Lemma \ref{PerronDiffBddAtZero}).
+%%-/
+  have bddAbove := PerronDiffBddAtZero x hc.1 hc.2
+  obtain ⟨g, gHolo, g_eq_fDiff⟩ := existsDifferentiableOn_of_bddAbove RectMemNhds f1Holo bddAbove
+--%% Now apply Lemma \ref{ResidueTheoremOnRectangleWithSimplePole}.
+  apply ResidueTheoremOnRectangleWithSimplePole (pInRectInterior := RectMemNhds) (fHolo := fHolo) (g := g) (A := 1) (gHolo := gHolo)
+  convert g_eq_fDiff using 1
+  simp
+--%%\end{proof}
 
 /-%%
 \begin{lemma}\label{PerronResiduePull1}\lean{PerronResiduePull1}\leanok
