@@ -1,6 +1,8 @@
+import Mathlib.Analysis.Calculus.ContDiff.Basic
+import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
+import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.Asymptotics
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import PrimeNumberTheoremAnd.Wiener
-import Mathlib.Analysis.Calculus.ContDiff.Basic
 
 open Complex Topology Filter Real
 
@@ -137,45 +139,6 @@ lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ
     exact (intervalIntegral_tendsto_integral hright tendsto_neg_atTop_atBot tendsto_id).const_smul I
   · exact (intervalIntegral_tendsto_integral hleft tendsto_neg_atTop_atBot tendsto_id).const_smul I
   --%%\end{proof}
-
--- TODO: upstream to mathlib Arctan.lean
-lemma arctan_atTop : Tendsto arctan atTop (𝓝 (π / 2)) :=
-  tendsto_nhds_of_tendsto_nhdsWithin (tendsto_Ioo_atTop.mp tanOrderIso.symm.tendsto_atTop)
-
-lemma arctan_atBot : Tendsto arctan atBot (𝓝 (-(π / 2))) :=
-  tendsto_nhds_of_tendsto_nhdsWithin (tendsto_Ioo_atBot.mp tanOrderIso.symm.tendsto_atBot)
-
-lemma arctan_ne_zero {x : ℝ} (hx : x ≠ 0) : arctan x ≠ 0 :=
-  fun h ↦ hx <| (show arctan.Injective from StrictMono.injective tanOrderIso.symm.strictMono)
-    (h.trans arctan_zero.symm)
-
--- TODO: upstream to mathlib ImproperIntegral.lean
-private lemma intervalIntegral_one_div_one_add_sq_tendsto :
-    Tendsto (fun i => ∫ (x : ℝ) in -i..i, 1 / (1 + x ^ 2)) atTop (𝓝 π) := by
-  convert Tendsto.add arctan_atTop arctan_atTop <;> simp
-
-lemma integrable_one_div_one_add_sq : Integrable fun (x : ℝ) ↦ 1 / (1 + x ^ 2) := by
-  have (x : ℝ) : ‖1 / (1 + x ^ 2)‖ = 1 / (1 + x ^ 2) := norm_of_nonneg (by positivity)
-  refine integrable_of_intervalIntegral_norm_tendsto π (fun i ↦ ?_) tendsto_neg_atTop_atBot
-    tendsto_id (by simpa only [this] using intervalIntegral_one_div_one_add_sq_tendsto)
-  by_cases hi : i = 0
-  · rewrite [hi, Set.Ioc_eq_empty (by norm_num)]; exact integrableOn_empty
-  · refine (intervalIntegral.intervalIntegrable_of_integral_ne_zero ?_).1
-    simp [← two_mul, arctan_ne_zero hi]
-
-lemma integral_Iic_one_div_one_add_sq {i : ℝ} :
-    ∫ (x : ℝ) in Set.Iic i, 1 / (1 + x ^ 2) = arctan i + (π / 2) :=
-  integral_Iic_of_hasDerivAt_of_tendsto' (fun x _ => hasDerivAt_arctan x)
-    integrable_one_div_one_add_sq.integrableOn arctan_atBot |>.trans (sub_neg_eq_add _ _)
-
-lemma integral_Ioi_one_div_one_add_sq {i : ℝ} :
-    ∫ (x : ℝ) in Set.Ioi i, 1 / (1 + x ^ 2) = (π / 2) - arctan i :=
-  integral_Ioi_of_hasDerivAt_of_tendsto' (fun x _ => hasDerivAt_arctan x)
-    integrable_one_div_one_add_sq.integrableOn arctan_atTop
-
-lemma integral_volume_one_div_one_add_sq : ∫ (x : ℝ), 1 / (1 + x ^ 2) = π :=
-  tendsto_nhds_unique (intervalIntegral_tendsto_integral integrable_one_div_one_add_sq
-    tendsto_neg_atTop_atBot tendsto_id) intervalIntegral_one_div_one_add_sq_tendsto
 
 /-%%
 \begin{lemma}\label{PerronIntegralPosAux}\lean{PerronIntegralPosAux}\leanok
