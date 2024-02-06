@@ -36,11 +36,6 @@ noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
 noncomputable abbrev VerticalIntegral' (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * VerticalIntegral f σ
 
--- without bumping this instance, the next instance times out
-instance (G : Type*) [DivInvMonoid G] [MeasurableSpace G] [MeasurableInv G] [MeasurableMul₂ G] :
-    MeasurableDiv₂ G := inferInstance
-instance : MeasurableDiv₂ ℂ := inferInstance
-
 /-%%
 The following is preparatory material used in the proof of the Perron formula, see Lemma \ref{PerronFormulaLtOne}.
 %%-/
@@ -268,9 +263,24 @@ Standard.
   simpa only [rpow_eq_pow, zero_mul] using this
 --%%\end{proof}
 
-lemma PerronVertIntegrable {x : ℝ} (xpos : 0 < x) {σ : ℝ} :
-    Integrable (fun (s : ℝ) ↦ x^(σ + s * I) / ((σ + s * I) * (σ + s * I + 1))) := by
-  sorry
+noncomputable abbrev perron (x : ℝ) := fun (s : ℂ) ↦ x^s / (s * (s + 1))
+
+lemma PerronVertIsBigO : (fun (s : ℝ) ↦ perron x (σ + s * i)) =O[atBot ⊔ atTop] fun (s : ℝ) ↦ 1 / x^2 := by
+  refine Asymptotics.isBigO_sup.mpr ⟨?_, ?_⟩
+  · sorry
+  · sorry
+
+lemma PerronVertIntegrable {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σpos : 0 < σ) {μ : Measure ℝ}
+    [IsLocallyFiniteMeasure μ] : Integrable (fun (s : ℝ) ↦ perron x (σ + s * I)) μ := by
+  have : Continuous fun (s : ℝ) ↦ σ + s * I := by continuity
+  replace : Continuous (fun (s : ℝ) ↦ perron x (σ + s * I)) :=
+   (HolomorphicOn_of_Perron_function xpos).continuousOn.comp_continuous this (by simp [σpos])
+  obtain ⟨hbot, htop⟩ := Asymptotics.isBigO_sup.mp PerronVertIsBigO
+  refine this.locallyIntegrable.integrable_of_isBigO_atBot_atTop hbot ?_ htop ?_
+  · use Iic (-1 : ℝ), Iic_mem_atBot _
+    sorry
+  · use Ici (1 : ℝ), Ici_mem_atTop _
+    sorry
 
 /-%%
 We are ready for the first case of the Perron formula, namely when $x<1$:
