@@ -39,7 +39,7 @@ theorem MellinInversion {f : ℝ → ℂ} (σ : ℝ) (hσ : σ > 0) (hf : Contin
   sorry
 /-%%
 \begin{proof}
-\uses{Perron.formulaLtOne, Perron.formulaGtOne, MellinTransform}
+\uses{formulaLtOne, formulaGtOne, MellinTransform}
 The proof is from [Goldfeld-Kontorovich 2012].
 Integrate by parts twice.
 $$
