@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lawrence Wu
 -/
 import Mathlib.MeasureTheory.Integral.IntegrableOn
+import Mathlib.MeasureTheory.Function.LocallyIntegrable
+import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.IntegrableOn
+import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Function.LocallyIntegrable
 
 /-!
 # Bounding of integrals by asymptotics
@@ -12,55 +15,88 @@ We establish integrability of `f` from `f = O(g)`.
 
 ## Main results
 
-* `Asymptotics.IsBigO.integrableAtFilter`: Given measurable functions `f`, `g` with `f = O[l] g`,
-  `IntegrableAtFilter g l μ` implies `IntegrableAtFilter f l μ`.
+* `Asymptotics.IsBigO.integrableAtFilter`: If `f = O[l] g` on measurably generated `l`,
+  `f` is strongly measurable at `l`, and `g` is integrable at `l`, then `f` is integrable at `l`.
+* `MeasureTheory.LocallyIntegrable.integrable_of_isBigO_cocompact`: If `f` is locally integrable,
+  and `f =O[cocompact] g` for some `g` integrable at `cocompact`, then `f` is integrable.
+* `MeasureTheory.LocallyIntegrable.integrable_of_isBigO_atBot_atTop`: If `f` is locally integrable,
+  and `f =O[atBot] g`, `f =O[atTop] g'` for some `g`, `g'` integrable at `atBot` and `atTop`
+  respectively, then `f` is integrable.
 -/
 
 open Asymptotics MeasureTheory Set Filter
 
-variable {α E : Type*} [MeasurableSpace α] [NormedDivisionRing E] [NormedSpace ℝ E]
- {f g : α → E} {a b : α} {μ : Measure α} {l : Filter α}
+variable {α E F : Type*} [MeasurableSpace α] [NormedAddCommGroup E] [NormedAddCommGroup F]
+  {f : α → E} {g : α → F} {a b : α} {μ : Measure α} {l : Filter α}
 
-private theorem _root_.Asymptotics.IsBigO.integrableAtFilter_aux
-    (hfm : AEStronglyMeasurable f μ)
-    (hae_restrict_iff : ∀ C' : E, ∀ s ∈ l, ∀ t ∈ l,
-      (∀ᵐ (x : α) ∂μ.restrict (s ∩ t), ‖f x‖ ≤ ‖C' * g x‖) ↔
-      ∀ᵐ (x : α) ∂μ, x ∈ (s ∩ t) → ‖f x‖ ≤ ‖C' * g x‖)
-    (hf : f =O[l] g) (hg : IntegrableAtFilter g l μ) : IntegrableAtFilter f l μ := by
+/-- If `f = O[l] g` on measurably generated `l`, `f` is strongly measurable at `l`,
+and `g` is integrable at `l`, then `f` is integrable at `l`. -/
+theorem _root_.Asymptotics.IsBigO.integrableAtFilter [IsMeasurablyGenerated l]
+    (hf : f =O[l] g) (hfm : StronglyMeasurableAtFilter f l μ) (hg : IntegrableAtFilter g l μ) :
+    IntegrableAtFilter f l μ := by
   obtain ⟨C, hC⟩ := hf.bound
-  obtain ⟨C', hC'⟩ := exists_norm_eq E <| le_max_right C 0
+  let C' : NNReal := ⟨max C 0, le_max_right C 0⟩
   obtain ⟨s, hsl, hs⟩ := hC.exists_mem
   obtain ⟨t, htl, ht⟩ := hg
-  use s ∩ t, inter_mem hsl htl, hfm.restrict
-  refine ht.mono_set (inter_subset_right s t) |>.const_mul C' |>.2.mono
-    <| (hae_restrict_iff C' s hsl t htl).mpr <| ae_of_all _ fun x hx => (hs x hx.1).trans ?_
-  rewrite [norm_mul, hC']
-  gcongr
-  apply le_max_left
-
-/-- `Asymptotics.IsBigO.integrableAtFilter` with measurability hypothesis on `l` instead of `g`. -/
-theorem _root_.Asymptotics.IsBigO.integrableAtFilter'
-    (hfm : AEStronglyMeasurable f μ) (hgm : ∀ s ∈ l, MeasurableSet s)
-    (hf : f =O[l] g) (hg : IntegrableAtFilter g l μ) : IntegrableAtFilter f l μ := by
-  refine hf.integrableAtFilter_aux hfm (fun _ s hs t ht ↦ ?_) hg
-  exact ae_restrict_iff' <| (hgm s hs).inter (hgm t ht)
+  obtain ⟨u, hul, hu⟩ := hfm
+  obtain ⟨S, hS, hs_meas, hs_le⟩ :=
+    IsMeasurablyGenerated.exists_measurable_subset <| inter_mem (inter_mem hsl htl) hul
+  use S, hS, hu.mono_measure <| Measure.restrict_mono (fun _ hx ↦ (hs_le hx).2) le_rfl
+  calc
+    _ ≤ ∫⁻ (x : α) in S, C' * ‖g x‖₊ ∂μ := by
+      refine lintegral_mono_ae <| (ae_restrict_iff' hs_meas).mpr <| ae_of_all _ fun x hx => ?_
+      rewrite [← ENNReal.coe_mul, ENNReal.coe_le_coe]
+      refine (hs x (hs_le hx).1.1).trans ?_
+      show C * ‖g x‖ ≤ (max C 0) * ‖g x‖
+      gcongr
+      apply le_max_left
+    _ = C' * ∫⁻ (x : α) in S, ↑‖g x‖₊ ∂μ := lintegral_const_mul' _ _ ENNReal.coe_ne_top
+    _ < ⊤ := ENNReal.mul_lt_top ENNReal.coe_ne_top <| ne_top_of_lt
+      <| ht.mono_set (fun _ hx ↦ (hs_le hx).1.2) |>.2
 
 /-- Variant of `MeasureTheory.Integrable.mono` taking `f =O[⊤] (g)` instead of `‖f(x)‖ ≤ ‖g(x)‖` -/
 theorem _root_.Asymptotics.IsBigO.integrable (hfm : AEStronglyMeasurable f μ)
     (hf : f =O[⊤] g) (hg : Integrable g μ) : Integrable f μ := by
-  stop
-  rewrite [← IntegrableAtFilter.top] at *
-  refine hf.integrableAtFilter' hfm (fun _ hs ↦ ?_) hg
-  convert MeasurableSet.univ
-  exact mem_top.mp hs
+  rewrite [← integrableAtFilter_top] at *
+  exact hf.integrableAtFilter ⟨univ, univ_mem, hfm.restrict⟩ hg
 
-variable [MeasurableSpace E] [OpensMeasurableSpace E] [SecondCountableTopology E]
+variable [TopologicalSpace α] [SecondCountableTopology α]
 
-/-- Given measurable functions `f`, `g` with `f = O[l] g`,
-`IntegrableAtFilter g l μ` implies `IntegrableAtFilter f l μ`. -/
-theorem _root_.Asymptotics.IsBigO.integrableAtFilter (hfm : Measurable f) (hgm : Measurable g)
-    (hf : f =O[l] g) (hg : IntegrableAtFilter g l μ) : IntegrableAtFilter f l μ := by
-  refine hf.integrableAtFilter_aux hfm.aestronglyMeasurable (fun C' _ _ _ _ ↦ ?_) hg
-  refine ae_restrict_iff (measurableSet_le hfm.norm ?_)
-  convert hgm.norm.const_mul ‖C'‖
-  exact norm_mul C' _
+namespace MeasureTheory
+
+/-- If `f` is locally integrable, and `f =O[cocompact] g` for some `g` integrable at `cocompact`,
+then `f` is integrable. -/
+theorem LocallyIntegrable.integrable_of_isBigO_cocompact [IsMeasurablyGenerated (cocompact α)]
+    (hf : LocallyIntegrable f μ) (ho : f =O[cocompact α] g)
+    (hg : IntegrableAtFilter g (cocompact α) μ) : Integrable f μ := by
+  refine integrable_iff_integrableAtFilter_cocompact.mpr ⟨ho.integrableAtFilter ?_ hg, hf⟩
+  exact hf.aestronglyMeasurable.stronglyMeasurableAtFilter
+
+variable [LinearOrder α] [CompactIccSpace α] {g' : α → F}
+
+/-- If `f` is locally integrable, and `f =O[atBot] g`, `f =O[atTop] g'` for some
+`g`, `g'` integrable at `atBot` and `atTop` respectively, then `f` is integrable. -/
+theorem LocallyIntegrable.integrable_of_isBigO_atBot_atTop
+    [IsMeasurablyGenerated (atBot (α := α))] [IsMeasurablyGenerated (atTop (α := α))]
+    (hf : LocallyIntegrable f μ)
+    (ho : f =O[atBot] g) (hg : IntegrableAtFilter g atBot μ)
+    (ho' : f =O[atTop] g') (hg' : IntegrableAtFilter g' atTop μ) : Integrable f μ := by
+  refine integrable_iff_integrableAtFilter_atBot_atTop.mpr
+    ⟨⟨ho.integrableAtFilter ?_ hg, ho'.integrableAtFilter ?_ hg'⟩, hf⟩
+  all_goals exact hf.aestronglyMeasurable.stronglyMeasurableAtFilter
+
+/-- If `f` is locally integrable on `(∞, a]`, and `f =O[atBot] g`, for some
+`g` integrable at `atBot`, then `f` is integrable on `(∞, a]`. -/
+theorem LocallyIntegrableOn.integrableOn_of_isBigO_atBot [IsMeasurablyGenerated (atBot (α := α))]
+    (hf : LocallyIntegrableOn f (Iic a) μ) (ho : f =O[atBot] g)
+    (hg : IntegrableAtFilter g atBot μ) : IntegrableOn f (Iic a) μ := by
+  refine integrableOn_Iic_iff_integrableAtFilter_atBot.mpr ⟨ho.integrableAtFilter ?_ hg, hf⟩
+  exact ⟨Iic a, Iic_mem_atBot a, hf.aestronglyMeasurable⟩
+
+/-- If `f` is locally integrable on `[a, ∞)`, and `f =O[atTop] g`, for some
+`g` integrable at `atTop`, then `f` is integrable on `[a, ∞)`. -/
+theorem LocallyIntegrableOn.integrableOn_of_isBigO_atTop [IsMeasurablyGenerated (atTop (α := α))]
+    (hf : LocallyIntegrableOn f (Ici a) μ) (ho : f =O[atTop] g)
+    (hg : IntegrableAtFilter g atTop μ) : IntegrableOn f (Ici a) μ := by
+  refine integrableOn_Ici_iff_integrableAtFilter_atTop.mpr ⟨ho.integrableAtFilter ?_ hg, hf⟩
+  exact ⟨Ici a, Ici_mem_atTop a, hf.aestronglyMeasurable⟩
