@@ -255,7 +255,7 @@ namespace Perron
 
 /-%%
 TODO: Change this to the statement of `isHolomorphicOn2` and refactor.
-\begin{lemma}[isHolomorphicOn]\label{isHolomorphicOn}\lean{isHolomorphicOn}\leanok
+\begin{lemma}[isHolomorphicOn]\label{isHolomorphicOn}\lean{Perron.isHolomorphicOn}\leanok
 Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 \end{lemma}
 %%-/
@@ -273,7 +273,7 @@ Composition of differentiabilities.
 --%%\end{proof}
 
 /-%%
-\begin{lemma}[isHolomorphicOn2]\label{isHolomorphicOn2}\lean{isHolomorphicOn2}\leanok
+\begin{lemma}[isHolomorphicOn2]\label{isHolomorphicOn2}\lean{Perron.isHolomorphicOn2}\leanok
 Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on $\C\setminus\{0,1\}$.
 \end{lemma}
 %%-/
@@ -287,7 +287,7 @@ Composition of differentiabilities.
 %%-/
 
 /-%%
-\begin{lemma}[integralPosAux]\label{integralPosAux}\lean{integralPosAux}\leanok
+\begin{lemma}[integralPosAux]\label{integralPosAux}\lean{Perron.integralPosAux}\leanok
 The integral
 $$\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$$
 is positive (and hence convergent - since a divergent integral is zero in Lean, by definition).
@@ -328,7 +328,7 @@ This integral is between $\frac{1}{2}$ and $1$ of the integral of $\frac{1}{1+t^
 --%%\end{proof}
 
 /-%%
-\begin{lemma}[vertIntBound]\label{vertIntBound}\lean{vertIntBound}\leanok
+\begin{lemma}[vertIntBound]\label{vertIntBound}\lean{Perron.vertIntBound}\leanok
 Let $x>0$ and $\sigma>1$. Then
 $$\left|
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
@@ -385,7 +385,7 @@ Triangle inequality and pointwise estimate.
 %%-/
 
 /-%%
-\begin{lemma}[vertIntBoundLeft]\label{vertIntBoundLeft}\lean{vertIntBoundLeft}\leanok
+\begin{lemma}[vertIntBoundLeft]\label{vertIntBoundLeft}\lean{Perron.vertIntBoundLeft}\leanok
 Let $x>1$ and $\sigma<-3/2$. Then
 $$\left|
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
@@ -407,7 +407,7 @@ Triangle inequality and pointwise estimate.
 
 /-%%
 TODO : Remove this lemma if it's not needed
-\begin{lemma}[vertIntBound2]\label{vertIntBound2}\lean{vertIntBound2}\leanok
+\begin{lemma}[vertIntBound2]\label{vertIntBound2}\lean{Perron.vertIntBound2}\leanok
 Let $x>0$ and $\sigma\in \R$, $\sigma \ne 0, -1$. Then
 $$\left|
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \ll_\sigma x^\sigma.$$
@@ -426,7 +426,7 @@ Similar to ``vertIntBound''.
 %%-/
 
 /-%%
-\begin{lemma}[isIntegrable]\label{isIntegrable}\lean{isIntegrable}\leanok
+\begin{lemma}[isIntegrable]\label{isIntegrable}\lean{Perron.isIntegrable}\leanok
 Let $x>0$ and $\sigma\in\R$. Then
 $$\int_{\R}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
 is integrable.
@@ -443,7 +443,7 @@ Apply Lemma \ref{vertIntBound}.
 %%-/
 
 /-%%
-\begin{lemma}[tendsto_zero_Lower]\label{tendsto_zero_Lower}\lean{tendsto_zero_Lower}\leanok
+\begin{lemma}[tendsto_zero_Lower]\label{tendsto_zero_Lower}\lean{Perron.tendsto_zero_Lower}\leanok
 Let $x>0$ and $\sigma',\sigma''\in\R$. Then
 $$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
 goes to $0$ as $t\to-\infty$.
@@ -463,7 +463,7 @@ The numerator is bounded and the denominator tends to infinity.
 
 
 /-%%
-\begin{lemma}[tendsto_zero_Upper]\label{tendsto_zero_Upper}\lean{tendsto_zero_Upper}\leanok
+\begin{lemma}[tendsto_zero_Upper]\label{tendsto_zero_Upper}\lean{Perron.tendsto_zero_Upper}\leanok
 Let $x>0$ and $\sigma',\sigma''\in\R$. Then
 $$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
 goes to $0$ as $t\to\infty$.
@@ -483,7 +483,7 @@ The numerator is bounded and the denominator tends to infinity.
 
 /-%%
 We are ready for the first case of the Perron formula, namely when $x<1$:
-\begin{lemma}[formulaLtOne]\label{formulaLtOne}\lean{formulaLtOne}\leanok
+\begin{lemma}[formulaLtOne]\label{formulaLtOne}\lean{Perron.formulaLtOne}\leanok
 For $x>0$, $\sigma>0$, and $x<1$, we have
 $$
 \frac1{2\pi i}
@@ -558,7 +558,7 @@ Here are some auxiliary lemmata for the second case.
 
 /-%%
 \begin{lemma}[sigmaNegOneHalfPull]\label{sigmaNegOneHalfPull}
-\lean{sigmaNegOneHalfPull}\leanok
+\lean{Perron.sigmaNegOneHalfPull}\leanok
 Let $x>0$ and $\sigma, \sigma'\in\R$. Then for all $T>0$, we have that
 $$
 \frac1{2\pi i}
@@ -589,7 +589,7 @@ integrals over the rectangles vanish by Lemmas \ref{tendsto_zero_Upper} and
 %%-/
 
 /-%%
-\begin{lemma}[keyIdentity]\label{keyIdentity}\lean{keyIdentity}\leanok
+\begin{lemma}[keyIdentity]\label{keyIdentity}\lean{Perron.keyIdentity}\leanok
 Let $x\in \R$ and $s \ne 0, -1$. Then
 $$
 \frac{x^\sigma}{s(1+s)} = \frac{x^\sigma}{s} - \frac{x^\sigma}{1+s}
@@ -613,7 +613,7 @@ By ring.
 %%-/
 
 /-%%
-\begin{lemma}[diffBddAtZero]\label{diffBddAtZero}\lean{diffBddAtZero}\leanok
+\begin{lemma}[diffBddAtZero]\label{diffBddAtZero}\lean{Perron.diffBddAtZero}\leanok
 Let $x>0$. Then for $0 < c < 1 /2$, we have that the function
 $$
 s ↦ \frac{x^s}{s(s+1)} - \frac1s
@@ -636,7 +636,7 @@ Applying Lemma \ref{keyIdentity}, the
 
 
 /-%%
-\begin{lemma}[diffBddAtNegOne]\label{diffBddAtNegOne}\lean{diffBddAtNegOne}\leanok
+\begin{lemma}[diffBddAtNegOne]\label{diffBddAtNegOne}\lean{Perron.diffBddAtNegOne}\leanok
 Let $x>0$. Then for $0 < c < 1 /2$, we have that the function
 $$
 s ↦ \frac{x^s}{s(s+1)} - \frac{-x^{-1}}{s+1}
@@ -658,7 +658,7 @@ Applying Lemma \ref{keyIdentity}, the
 %%-/
 
 /-%%
-\begin{lemma}[residueAtZero]\label{residueAtZero}\lean{residueAtZero}\leanok
+\begin{lemma}[residueAtZero]\label{residueAtZero}\lean{Perron.residueAtZero}\leanok
 Let $x>0$. Then for all sufficiently small $c>0$, we have that
 $$
 \frac1{2\pi i}
@@ -722,7 +722,7 @@ holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
 --%%\end{proof}
 
 /-%%
-\begin{lemma}[residuePull1]\label{residuePull1}\lean{residuePull1}\leanok
+\begin{lemma}[residuePull1]\label{residuePull1}\lean{Perron.residuePull1}\leanok
 For $x>1$ (of course $x>0$ would suffice) and $\sigma>0$, we have
 $$
 \frac1{2\pi i}
@@ -750,7 +750,7 @@ By Lemma \ref{residueAtZero}, the integral over this square is equal to $1$.
 %%-/
 
 /-%%
-\begin{lemma}[residuePull2]\label{residuePull2}\lean{residuePull2}\leanok
+\begin{lemma}[residuePull2]\label{residuePull2}\lean{Perron.residuePull2}\leanok
 For $x>1$, we have
 $$
 \frac1{2\pi i}
@@ -772,7 +772,7 @@ Pull contour from $(-1/2)$ to $(-3/2)$.
 %%-/
 
 /-%%
-\begin{lemma}[contourPull3]\label{contourPull3}\lean{contourPull3}\leanok
+\begin{lemma}[contourPull3]\label{contourPull3}\lean{Perron.contourPull3}\leanok
 For $x>1$ and $\sigma<-3/2$, we have
 $$
 \frac1{2\pi i}
@@ -791,7 +791,7 @@ Pull contour from $(-3/2)$ to $(\sigma)$.
 %%-/
 
 /-%%
-\begin{lemma}[formulaGtOne]\label{formulaGtOne}\lean{formulaGtOne}\leanok
+\begin{lemma}[formulaGtOne]\label{formulaGtOne}\lean{Perron.formulaGtOne}\leanok
 For $x>1$ and $\sigma>0$, we have
 $$
 \frac1{2\pi i}
