@@ -4,7 +4,7 @@ import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.Asymptotics
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import PrimeNumberTheoremAnd.Wiener
 
-open Complex Topology Filter Real
+open Complex Topology Filter Real MeasureTheory Set
 
 /-%%
 In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler), prove its inversion formula, and
@@ -34,7 +34,7 @@ noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
   I • ∫ t : ℝ, f (σ + t * I)
 
 noncomputable abbrev VerticalIntegral' (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
-  (1 / (2 * π * I)) * ∫ t : ℝ, f (σ + t * I)
+  (1 / (2 * π * I)) * VerticalIntegral f σ
 
 -- without bumping this instance, the next instance times out
 instance (G : Type*) [DivInvMonoid G] [MeasurableSpace G] [MeasurableInv G] [MeasurableMul₂ G] :
@@ -54,9 +54,8 @@ lemma zeroTendstoDiff (L₁ L₂ : ℂ) (f : ℝ → ℂ) (h : ∀ᶠ T in atTop
     (h' : Tendsto f atTop (𝓝 (L₂ - L₁))) : L₁ = L₂ := by
   rw [← zero_add L₁, ← @eq_sub_iff_add_eq]
   apply tendsto_nhds_unique (EventuallyEq.tendsto h) h'
-
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Obvious.
 \end{proof}
 %%-/
@@ -80,10 +79,6 @@ Composition of differentiabilities.
       <| ne_of_apply_ne re <| ne_of_gt <| (lt_add_one 0).trans <| add_lt_add_right (by exact hx) 1
 --%%\end{proof}
 
-theorem HolomorphicOn.vanishesOnRectangle {f : ℂ → ℂ} {U : Set ℂ} {z w : ℂ}
-    (f_holo : HolomorphicOn f U) (hU : Rectangle z w ⊆ U) :
-    RectangleIntegral f z w = 0 := by sorry -- mathlib4#9598
-
 /-%%
 \begin{lemma}\label{RectangleIntegral_eq_zero}\lean{RectangleIntegral_eq_zero}\leanok
 \uses{RectangleIntegral}
@@ -97,7 +92,7 @@ lemma RectangleIntegral_eq_zero {σ σ' T : ℝ} (σ_pos : 0 < σ) (σ'_pos : 0 
     RectangleIntegral f (σ - I * T) (σ' + I * T) = 0 :=
 /-%%
 \begin{proof}\leanok
-Direct application of HolomorphicOn.vanishesOnRectangle (mathlib4#9598).
+Direct application of HolomorphicOn.vanishesOnRectangle (mathlib4\#9598).
 %%-/
   fHolo.vanishesOnRectangle (fun _ h_rect ↦ LT.lt.trans_le (by simp_all) h_rect.1.1)
 --%%\end{proof}
@@ -124,10 +119,10 @@ lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ - I * T) (σ' + I * T)) atTop
       (𝓝 (VerticalIntegral f σ' - VerticalIntegral f σ)) := by
-  /-%%
-  \begin{proof}\leanok
-  Almost by definition.
-  %%-/
+/-%%
+\begin{proof}\leanok
+Almost by definition.
+%%-/
   have h_lower (x : ℝ) : (σ - I * x).im = -x := by simp
   have h_upper (x : ℝ) : (σ' + I * x).im = x := by simp
   have h_left (x : ℝ) : (σ - I * x).re = σ := by simp
@@ -138,7 +133,7 @@ lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ
     apply Tendsto.add <| Tendsto.sub (hbot.comp tendsto_neg_atTop_atBot) htop
     exact (intervalIntegral_tendsto_integral hright tendsto_neg_atTop_atBot tendsto_id).const_smul I
   · exact (intervalIntegral_tendsto_integral hleft tendsto_neg_atTop_atBot tendsto_id).const_smul I
-  --%%\end{proof}
+--%%\end{proof}
 
 /-%%
 \begin{lemma}\label{PerronIntegralPosAux}\lean{PerronIntegralPosAux}\leanok
@@ -233,8 +228,8 @@ lemma VertIntPerronBound {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_gt_one : 1 < σ
     nlinarith
 
 /-%%
-\begin{proof}
-Triangle inequality and pointwise estimate. Use
+\begin{proof}\leanok
+Triangle inequality and pointwise estimate.
 \end{proof}
 %%-/
 
@@ -250,10 +245,10 @@ lemma limitOfConstant {a : ℝ → ℂ} {σ : ℝ} (σpos : 0 < σ)
     (ha' : Tendsto a atTop (𝓝 0)) : a σ = 0 := by
 /-%%
 \begin{proof}\leanok\begin{align*}
-\lim_{\sigma'\to\infty}a(\sigma) &= \lim_{\sigma'\to\infty}a(\sigma') \\
+\lim_{\sigma'\to\infty}a(\sigma) &= \lim_{\sigma'\to\infty}a(\sigma') \\%nobreak%
 %%-/
   have := eventuallyEq_of_mem (mem_atTop σ) fun σ' h ↦ ha σ' σ (σpos.trans_le h) σpos
---%% &= 0
+--%% &= 0%nobreak%
   exact tendsto_const_nhds_iff.mp (ha'.congr' this)
 --%%\end{align*}\end{proof}
 
@@ -266,7 +261,7 @@ $$\lim_{\sigma\to\infty}x^\sigma=0.$$
 lemma tendsto_rpow_atTop_nhds_zero_of_norm_lt_one {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1) (C : ℝ) :
     Tendsto (fun (σ : ℝ) => x ^ σ * C) atTop (𝓝 0) := by
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Standard.
 %%-/
   have := Tendsto.mul_const C (tendsto_rpow_atTop_of_base_lt_one x (by linarith) x_lt_one)
@@ -278,7 +273,7 @@ lemma PerronVertIntegrable {x : ℝ} (xpos : 0 < x) {σ : ℝ} :
   sorry
 
 /-%%
-We are ready for the Perron formula, which breaks into two cases, the first being:
+We are ready for the first case of the Perron formula, namely when $x<1$:
 \begin{lemma}\label{PerronFormulaLtOne}\lean{PerronFormulaLtOne}\leanok
 For $x>0$, $\sigma>0$, and $x<1$, we have
 $$
@@ -295,7 +290,6 @@ lemma PerronFormulaLtOne {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1)
 \uses{HolomorphicOn_of_Perron_function, RectangleIntegral_eq_zero, PerronIntegralPosAux,
 VertIntPerronBound, limitOfConstant, RectangleIntegral_tendsTo_VerticalIntegral, zeroTendstoDiff,
 tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}
-\leanok
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
@@ -341,14 +335,13 @@ tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}
 
 
 /-%%
-The second lemma is the case $x>1$.
-
+The second case is when $x>1$.
 Here are some auxiliary lemmata for the second case.
 %-/
 
 /-%%
 \begin{lemma}\label{HolomorphicOn_of_Perron_function2}\lean{HolomorphicOn_of_Perron_function2}\leanok
-Let $x>1$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on $\C\setminus{0,1}$.
+Let $x>1$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on $\C\setminus\{0,1\}$.
 \end{lemma}
 %%-/
 lemma HolomorphicOn_of_Perron_function2 {x : ℝ} (x_gt_one : 1 < x) :
@@ -361,8 +354,60 @@ Composition of differentiabilities.
 %%-/
 
 /-%%
+\begin{lemma}[PerronSigmaNegOneHalfPull]\label{PerronSigmaNegOneHalfPull}
+\lean{PerronSigmaNegOneHalfPull}\leanok
+Let $x>0$ and $\sigma>0$. Then for all $T>0$, we have that
+$$
+\frac1{2\pi i}
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds -
+\frac 1{2\pi i}
+\int_{(-1/2)}\frac{x^s}{s(s+1)}ds =
+\int_{-1/2-iT}^{\sigma +iT}\frac{x^s}{s(s+1)}ds,
+$$
+that is, a rectangle with corners $-1/2-iT$ and $\sigma+iT$.
+\end{lemma}
+%%-/
+lemma PerronSigmaNegOneHalfPull {x : ℝ} (xpos : 0 < x) {σ T : ℝ} (σ_pos : 0 < σ) (Tpos : 0 < T):
+    VerticalIntegral (fun s => x ^ s / (s * (s + 1))) σ
+    - VerticalIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
+    = RectangleIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2 - I * T) (σ + I * T) := by
+  sorry
+/-%%
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
+The integral on $(\sigma)$ minus that on $(-1/2)$, minus the integral on the rectangle, is
+the integral over two regions, one in the upper half plane and one in the lower half plane.
+In the upper half plane, the shape looks like $|\_|$, with corners at $-1/2+iT$ and $\sigma+iT$.
+The integral over that shape is the limit of integrals over rectangles with corners at $-1/2+iT$
+and $\sigma+iU$, for $U\to \infty$; each of those rectangles has integral zero.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}\label{PerronResidueAtZero}\lean{PerronResidueAtZero}\leanok
+Let $x>0$. Then for all sufficiently small $c>0$, we have that
+$$
+\frac1{2\pi i}
+\int_{-c-i*c}^{c+ i*c}\frac{x^s}{s(s+1)}ds = 1.
+$$
+\end{lemma}
+%%-/
+lemma PerronResidueAtZero {x : ℝ} (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
+    RectangleIntegral' (fun (s : ℂ) ↦ x ^ s / (s * (s + 1))) (-c - I * c) (c + I * c) = 1 := by
+  sorry
+
+/-%%
+\begin{proof}
+For $c>0$ sufficiently small, $x^s/(s(s+1))$ is equal to $1/s$ plus a function, $g$, say,
+holomorphic in the whole rectangle. The rectangle integral of $g$ is zero. It suffices to
+compute the rectangle integral of $1/s$. This is done as described in the proof
+of Lemma \ref{ResidueTheoremOnRectangle}. But perhaps it's easier to do it directly
+than prove a general theorem.
+\end{proof}
+%%-/
+
+/-%%
 \begin{lemma}\label{PerronResiduePull1}\lean{PerronResiduePull1}\leanok
-For $x>1$ and $\sigma>0$, we have
+For $x>1$ (of course $x>0$ would suffice) and $\sigma>0$, we have
 $$
 \frac1{2\pi i}
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds =1
@@ -373,11 +418,18 @@ $$
 \end{lemma}
 %%-/
 lemma PerronResiduePull1 {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < σ) :
-    VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ = 1 + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-1 / 2) := by
+    VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ =
+    1 + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-1 / 2) := by
   sorry
 /-%%
 \begin{proof}
-Pull contour from $(\sigma)$ to $(-1/2)$.
+\uses{PerronSigmaNegOneHalfPull, PerronResidueAtZero}
+By Lemma \ref{PerronSigmaNegOneHalfPull}, the difference of the two vertical integrals is equal
+to the integral over a rectangle with corners at $-1/2-iT$ and $\sigma+iT$ (for any $T>0$). By
+Lemma \ref{RectanglePullToNhdOfPole}, for $c>0$ sufficiently small, the integral over
+this rectangle is equal to the integral over a square with corners at $-c-i*c$ and $c+i*c$ for $c>0$
+sufficiently small.
+By Lemma \ref{PerronResidueAtZero}, the integral over this square is equal to $1$.
 \end{proof}
 %%-/
 
@@ -476,10 +528,10 @@ lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3/2)
 /-%%
 \begin{proof}\leanok
 \begin{align*}
-\lim_{\sigma'\to-\infty}a(\sigma) &= \lim_{\sigma'\to-\infty}a(\sigma') \\
+\lim_{\sigma'\to-\infty}a(\sigma) &= \lim_{\sigma'\to-\infty}a(\sigma') \\%nobreak%
 %%-/
   have := eventuallyEq_of_mem (mem_atBot (-3/2)) fun σ' h ↦ ha σ' σ h σlt
---%% &= 0
+--%% &= 0%nobreak%
   exact tendsto_const_nhds_iff.mp (ha'.congr' this)
 --%%\end{align*}\end{proof}
 
@@ -771,6 +823,26 @@ For any $\epsilon>0$, we have
 $$\int_0^\infty \psi_\epsilon(x)\frac{dx}{x} = 1.$$
 \end{lemma}
 %%-/
+noncomputable def DeltaSpike (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
+  fun x => Ψ (x ^ (1 / ε)) / ε
+
+lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (mass_one: ∫ x in Set.Ioi 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
+    ∫ x in Set.Ioi 0, ((DeltaSpike Ψ ε) x) / x = 1 :=
+  calc
+    _ = ∫ (x : ℝ) in Set.Ioi 0, (|1/ε| * x ^ (1 / ε - 1)) • ((fun z => (Ψ z) / z) (x ^ (1 / ε))) := by
+      apply MeasureTheory.set_integral_congr_ae measurableSet_Ioi
+      filter_upwards with x hx
+      simp only [Set.mem_Ioi, smul_eq_mul, abs_of_pos (one_div_pos.mpr εpos)]
+      symm ; calc
+        _ = (Ψ (x ^ (1 / ε)) / x ^ (1 / ε)) * x ^ (1 / ε - 1) * (1 / ε) := by ring
+        _ = _ := by rw [rpow_sub hx, rpow_one]
+        _ = (Ψ (x ^ (1 / ε)) / x ^ (1 / ε) * x ^ (1 / ε) / x) * (1/ ε) := by ring
+        _ = _ := by rw [div_mul_cancel _ (ne_of_gt (Real.rpow_pos_of_pos hx (1/ε)))]
+        _ = (Ψ (x ^ (1 / ε)) / ε / x) := by ring
+    _ = 1 := by
+      rw [MeasureTheory.integral_comp_rpow_Ioi (fun z => (Ψ z) / z), ← mass_one]
+      simp only [ne_eq, div_eq_zero_iff, one_ne_zero, εpos.ne', or_self, not_false_eq_true]
+
 /-%%
 \begin{proof}
 \uses{DeltaSpike}

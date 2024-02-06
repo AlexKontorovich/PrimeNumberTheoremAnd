@@ -1,5 +1,9 @@
 all:
-	plastex -c plastex.cfg blueprint.tex
+	plastex -c plastex.cfg web.tex
+
+pdf:
+	mkdir -p print
+	xelatex -output-directory=print print.tex
 
 clean-aux:
 	rm -f blueprint.paux
