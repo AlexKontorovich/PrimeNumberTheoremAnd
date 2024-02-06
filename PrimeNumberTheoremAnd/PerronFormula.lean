@@ -559,7 +559,8 @@ lemma PerronSigmaNegOneHalfPull {x : ℝ} (xpos : 0 < x) {σ T : ℝ} (Tpos : 0 
 /-%%
 \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, UpperUIntegral,
 RectangleIntegral_tendsTo_VerticalIntegral, LowerUIntegral, RectangleIntegral_tendsTo_LowerU,
-PerronFun_tendsto_zero_Upper, PerronFun_tendsto_zero_Lower, PerronFun_integrable}
+RectangleIntegral_tendsTo_UpperU, PerronFun_tendsto_zero_Upper, PerronFun_tendsto_zero_Lower,
+PerronFun_integrable}
 The integral on $(\sigma)$ minus that on $(-1/2)$, minus the integral on the rectangle, is
 the integral over an UpperU and a LowerU.
 The integrals over the U's are limits of integrals over rectangles with corners at $-1/2+iT$
@@ -611,6 +612,29 @@ Applying Lemma \ref{PerronIdentity}, the
  function $s ↦ x^s/s(s+1) - 1/s = x^s/s - x^0/s - x^s/(1+s)$. The last term is bounded for $s$
  away from $-1$. The first two terms are the difference quotient of the function $s ↦ x^s$ at
  $0$; since it's differentiable, the difference remains bounded as $s\to 0$.
+\end{proof}
+%%-/
+
+
+/-%%
+\begin{lemma}\label{PerronDiffBddAtNegOne}\lean{PerronDiffBddAtNegOne}\leanok
+Let $x>0$. Then for $0 < c < 1 /2$, we have that the function
+$$
+s ↦ \frac{x^s}{s(s+1)} - \frac{-x^{-1}}{s+1}
+$$
+is bounded above on the rectangle with corners at $-1-c-i*c$ and $-1+c+i*c$ (except at $s=-1$).
+\end{lemma}
+%%-/
+lemma PerronDiffBddAtNegOne (x : ℝ) {c : ℝ} (cpos : 0 < c) (c_lt : c < 1/2) :
+    BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - (-x⁻¹) / (s+1))) ''
+      (Rectangle (-1 - c - I * c) (-1 + c + I * c) \ {-1})) := by
+  sorry
+/-%%
+\begin{proof}\uses{PerronIdentity}
+Applying Lemma \ref{PerronIdentity}, the
+ function $s ↦ x^s/s(s+1) - x^{-1}/(s+1) = x^s/s - x^s/(s+1) - (-x^{-1})/(s+1)$. The first term is bounded for $s$
+ away from $0$. The last two terms are the difference quotient of the function $s ↦ x^s$ at
+ $-1$; since it's differentiable, the difference remains bounded as $s\to -1$.
 \end{proof}
 %%-/
 
