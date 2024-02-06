@@ -766,6 +766,7 @@ lemma residuePull2 {x : ℝ} (x_gt_one : 1 < x) :
   sorry
 /-%%
 \begin{proof}
+\uses{diffBddAtNegOne}
 Pull contour from $(-1/2)$ to $(-3/2)$.
 \end{proof}
 %%-/
