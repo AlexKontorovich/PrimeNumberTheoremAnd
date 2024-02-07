@@ -1,5 +1,23 @@
-'on':
-  push:
-    branches: ['main', 'dev']
+on:
   pull_request:
     types: [opened, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install elan
+        run: curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain $(cat lean-toolchain)
+
+      - name: Build project
+        run: make LAKEBIN='~/.elan/bin/lake' build
