@@ -214,7 +214,7 @@ noncomputable def equivRealProdCLM : ℂ ≃L[ℝ] ℝ × ℝ :=
 
 namespace Perron
 
-variable {x σ σ'' T : ℝ}
+variable {x σ σ' σ'' T : ℝ}
 
 noncomputable abbrev f (x : ℝ) := fun (s : ℂ) => x ^ s / (s * (s + 1))
 
@@ -404,6 +404,52 @@ lemma isTheta_atBot_atTop (xpos : 0 < x) :
       |>.trans h_σx |>.trans h_ix
     convert IsROrC.norm_im_le_norm (σ + x * I)
     simp
+
+lemma uniform_bound {y : ℝ} (hx : 0 < x) (hσ : σ ∈ uIcc σ' σ'') :
+    let C := (sSup ((fun (σ : ℝ) ↦ 2 * ‖σ * (σ + 1)‖) '' uIcc σ' σ''))
+    Real.sqrt C < ‖y‖ → ‖f x (σ + y * I)‖ ≤ ‖((x ^ σ') ⊔ (x ^ σ''))‖ / (y ^ 2 / 2) := by
+  intro C hy
+  rewrite [norm_div]
+  calc
+    _ ≤ ‖((x ^ σ') ⊔ (x ^ σ''))‖ / ‖(↑σ + ↑y * I) * (↑σ + ↑y * I + 1)‖ := by
+      gcongr
+      refine LE.le.trans ?_ (le_norm_self _)
+      rewrite [Complex.norm_eq_abs, Complex.abs_cpow_of_ne_zero (ofReal_ne_zero.mpr (ne_of_gt hx))]
+      suffices x ^ σ ≤ x ^ σ' ∨ x ^ σ ≤ x ^ σ'' by
+        simpa [Complex.arg_ofReal_of_nonneg hx.le, abs_eq_self.mpr hx.le] using this
+      by_cases hx1 : 1 ≤ x
+      · obtain hσ | hσ := le_max_iff.mp hσ.2
+        · exact Or.inl (rpow_le_rpow_of_exponent_le hx1 hσ)
+        · exact Or.inr (rpow_le_rpow_of_exponent_le hx1 hσ)
+      · obtain hσ | hσ := inf_le_iff.mp hσ.1
+        · exact Or.inl <| rpow_le_rpow_of_exponent_ge hx (by linarith) hσ
+        · exact Or.inr <| rpow_le_rpow_of_exponent_ge hx (by linarith) hσ
+    _ ≤ _ := by
+      have : 0 < y ^ 2 := sq_pos_of_pos (Real.sqrt_nonneg _ |>.trans_lt hy) |>.trans_eq (sq_abs y)
+      gcongr
+      replace := IsROrC.norm_re_le_norm <| (↑σ + ↑y * I) * (↑σ + ↑y * I + 1)
+      refine LE.le.trans ?_ this
+      suffices y ^ 2 / 2 ≤ ‖σ * (σ + 1) - y * y‖ by simpa using this
+      rewrite [norm_sub_rev]
+      calc
+        _ ≤ ‖y * y‖ / 2 := by rw [← sq, show ‖y ^ 2‖ = y ^ 2 from abs_eq_self.mpr (sq_nonneg y)]
+        _ ≤ ‖y * y‖ - ‖σ * (σ + 1)‖ := by
+          rewrite [le_sub_iff_add_le, ← le_sub_iff_add_le', sub_half, le_div_iff' (by norm_num)]
+          have h_le_sup : 2 * ‖σ * (σ + 1)‖ ≤ C := by
+            let S := (fun (σ : ℝ) ↦ 2 * ‖σ * (σ + 1)‖) '' uIcc σ' σ''
+            have h_lub : IsLUB S (sSup S) := by
+              refine Real.isLUB_sSup S (nonempty_uIcc.image _) ?_
+              refine isCompact_uIcc.bddAbove_image (Continuous.continuousOn ?_)
+              exact continuous_const.mul (continuous_id'.mul <| continuous_add_right 1).norm
+            exact h_lub.1 <| Set.mem_image_of_mem (fun σ => (2 : ℝ) * ‖σ * (σ + (1 : ℝ))‖) hσ
+          convert h_le_sup.trans_lt (lt_sq_of_sqrt_lt hy) |>.le
+          rw [sq, norm_mul]
+        _ ≤ _ := norm_sub_norm_le _ _
+
+lemma upperEdge_isBigO_atBot_atTop (xpos : 0 < x) :
+    ((fun (y : ℝ) ↦ ∫ (σ : ℝ) in σ'..σ'', f x (σ + y * I)) =O[atBot] fun (y : ℝ) ↦ 1 / y^2) ∧
+    (fun (y : ℝ) ↦ ∫ (σ : ℝ) in σ'..σ'', f x (σ + y * I)) =O[atTop] fun (y : ℝ) ↦ 1 / y^2 := by
+  sorry
 
 /-%%
 \begin{lemma}[isIntegrable]\label{isIntegrable}\lean{Perron.isIntegrable}\leanok
