@@ -43,8 +43,8 @@ $$\lim_{T\to\infty}\int_{\sigma-iT}^{\sigma'+iT}f(s)ds =
 \end{lemma}
 %%-/
 lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
-    (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (↑x + ↑(y) * I)) atBot (𝓝 0))
-    (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (↑x + ↑(y) * I)) atTop (𝓝 0))
+    (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ - I * T) (σ' + I * T)) atTop
@@ -224,7 +224,7 @@ TODO: Change this to the statement of `isHolomorphicOn2` and refactor.
 Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 \end{lemma}
 %%-/
-lemma isHolomorphicOn (xpos : 0 < x) : HolomorphicOn (f x) {s | 0 < s.re} := by
+lemma isHolomorphicOn (xpos : 0 < x) : HolomorphicOn (f x) {0, -1}ᶜ := by
 /-%%
 \begin{proof}\leanok
 Composition of differentiabilities.
@@ -233,22 +233,10 @@ Composition of differentiabilities.
   simp_rw [Complex.cpow_def_of_ne_zero <| ofReal_ne_zero.mpr <| ne_of_gt xpos]
   apply DifferentiableOn.div <| DifferentiableOn.cexp <| DifferentiableOn.const_mul differentiableOn_id _
   · exact DifferentiableOn.mul differentiableOn_id <| DifferentiableOn.add_const differentiableOn_id 1
-  · exact fun _ hx ↦ mul_ne_zero (ne_of_apply_ne re <| ne_of_gt hx)
-      <| ne_of_apply_ne re <| ne_of_gt <| (lt_add_one 0).trans <| add_lt_add_right (by exact hx) 1
+  · intro x hx
+    obtain ⟨h0, h1⟩ := not_or.mp hx
+    exact mul_ne_zero h0 <| add_ne_add_left 1 |>.mpr h1 |>.trans_eq (add_left_neg 1)
 --%%\end{proof}
-
-/-%%
-\begin{lemma}[isHolomorphicOn2]\label{isHolomorphicOn2}\lean{Perron.isHolomorphicOn2}\leanok
-Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on $\C\setminus\{0,-1\}$.
-\end{lemma}
-%%-/
-lemma isHolomorphicOn2 (x_gt_one : 0 < x) : HolomorphicOn (f x) {0, -1}ᶜ := by
-  sorry
-/-%%
-\begin{proof}
-Composition of differentiabilities.
-\end{proof}
-%%-/
 
 /-%%
 \begin{lemma}[integralPosAux]\label{integralPosAux}\lean{Perron.integralPosAux}\leanok
@@ -393,11 +381,11 @@ lemma map_conj (hx : 0 ≤ x) (s : ℂ) : f x (conj s) = conj (f x s) := by
   · rewrite [Complex.arg_ofReal_of_nonneg hx]
     exact pi_ne_zero.symm
 
-lemma vertical_isTheta_atTop (xpos : 0 < x) :
+lemma isTheta_atTop (xpos : 0 < x) :
     (fun (y : ℝ) ↦ f x (σ + y * I)) =Θ[atTop] fun (y : ℝ) ↦ 1 / y^2 := by
   have hx : (x : ℂ) ≠ 0 := ofReal_ne_zero.mpr (ne_of_gt xpos)
   apply IsTheta.div
-  · simp_rw [cpow_add _ _ hx, show (fun (_ : ℝ) ↦ (1 : ℝ)) = fun _ ↦ 1 * 1 by norm_num]
+  · simp_rw [cpow_add _ _ hx, (by norm_num : (fun (_ : ℝ) ↦ (1 : ℝ)) = fun _ ↦ 1 * 1)]
     refine IsTheta.mul (isTheta_const_const ?_ (by norm_num)) (isTheta_norm_left.mp ?_)
     · rewrite [← Complex.ofReal_cpow (le_of_lt xpos), ofReal_ne_zero]
       exact ne_of_gt (rpow_pos_of_pos xpos σ)
@@ -426,10 +414,10 @@ is integrable.
 lemma isIntegrable (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ ≠ -1) :
     Integrable fun (t : ℝ) ↦ f x (σ + t * I) := by
   have : Continuous (fun (y : ℝ) ↦ f x (σ + y * I)) := by
-    refine (isHolomorphicOn2 xpos).continuousOn.comp_continuous (by continuity) fun x ↦ not_or.mpr ?_
+    refine (isHolomorphicOn xpos).continuousOn.comp_continuous (by continuity) fun x ↦ not_or.mpr ?_
     simp [Complex.ext_iff, σ_ne_zero, σ_ne_neg_one]
   refine this.locallyIntegrable.integrable_of_isBigO_atTop_of_norm_eq_norm_neg
-    ?_ (vertical_isTheta_atTop xpos).isBigO ?_
+    ?_ (isTheta_atTop xpos).isBigO ?_
   · refine univ_mem' fun y ↦ ?_
     show ‖f x (↑σ + ↑y * I)‖ = ‖f x (↑σ + ↑(-y) * I)‖
     have : (↑σ + ↑(-y) * I) = conj (↑σ + ↑y * I) := Complex.ext (by simp) (by simp)
@@ -499,18 +487,14 @@ tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 %%-/
   let f := f x
-  have fHolo : HolomorphicOn f {s : ℂ | 0 < s.re} := isHolomorphicOn xpos
+  have fHolo : HolomorphicOn f {0, -1}ᶜ := isHolomorphicOn xpos
 --%% The rectangle integral of $f$ with corners $\sigma-iT$ and $\sigma+iT$ is zero.
   have rectInt (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') (T : ℝ) :
       RectangleIntegral f (σ' - I * T) (σ'' + I * T) = 0
-  -- TODO: This can be golfed to one line
-  · apply fHolo.vanishesOnRectangle
-    intro z h_rect
-    simp only [mem_setOf_eq]
-    have := h_rect.1.1
-    simp only [sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self,
-      sub_zero, add_re, add_zero, inf_le_iff] at this
-    cases this <;> linarith [σ'pos, σ''pos]
+  · refine fHolo.vanishesOnRectangle fun z h_rect ↦ not_or.mpr (?_ : ¬z = 0 ∧ ¬z = -1)
+    simp_rw [Complex.ext_iff, ← not_or, Complex.zero_re, show (-1 : ℂ).re = -1 from rfl]
+    have : σ' ≤ z.re ∨ σ'' ≤ z.re := by simpa using h_rect.1.1
+    intro hc; cases hc <;> cases this <;> linarith [σ'pos, σ''pos]
 --%% The limit of this rectangle integral as $T\to\infty$ is $\int_{(\sigma')}-\int_{(\sigma)}$.
   have rectIntLimit (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
       Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ' - I * T) (σ'' + I * T))
@@ -676,7 +660,7 @@ For $c>0$ sufficiently small, say $c<1/2$,
   set Rect := Rectangle (-c - I * c) (c + I * c)
   have RectSub : Rect \ {0} ⊆ {0, -1}ᶜ := sorry
   have fHolo : HolomorphicOn f (Rect \ {0}) :=
-    (isHolomorphicOn2 xpos).mono RectSub
+    (isHolomorphicOn xpos).mono RectSub
   set f1 : ℂ → ℂ := f - (fun (s : ℂ) ↦ 1 / s)
   have f1Holo : HolomorphicOn f1 (Rect \ {0}) := sorry
   simp only [mem_Ioo] at hc
@@ -805,7 +789,7 @@ tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,1}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
-  have : HolomorphicOn f {0, -1}ᶜ := isHolomorphicOn2 (by linarith : 0 < x)
+  have : HolomorphicOn f {0, -1}ᶜ := isHolomorphicOn (by linarith : 0 < x)
 --%% First pull the contour from $(\sigma)$ to $(-1/2)$, picking up a residue $1$ at $s=0$.
   have contourPull₁ : VerticalIntegral' f σ = 1 + VerticalIntegral' f (-1 / 2) := residuePull1 x_gt_one σ_pos
   rw [contourPull₁]

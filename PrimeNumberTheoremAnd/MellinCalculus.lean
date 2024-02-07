@@ -134,9 +134,7 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
   simp only [Set.mem_Icc, Pi.one_apply, Pi.le_def, Set.mem_Ioo] at hΨ0 hΨ1
   constructor
   · intro x
-    replace hΨ0 := hΨ0 x
-    replace hΨ1 := hΨ1 x
-    apply le_trans _ hΨ0
+    apply le_trans _ (hΨ0 x)
     simp [apply_ite]
   constructor
   · simp only [hΨSupport, Set.subset_def, Set.mem_Ioo, Set.mem_Icc, and_imp]
