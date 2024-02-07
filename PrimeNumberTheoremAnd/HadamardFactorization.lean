@@ -3,7 +3,7 @@ import Mathlib.NumberTheory.VonMangoldt
 import Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.NumberTheory.ZetaFunction
 import Mathlib.Analysis.Analytic.Meromorphic
-import EulerProducts.LSeries
+import PrimeNumberTheoremAnd.EulerProducts.LSeries
 
 open Complex BigOperators Finset Nat Classical
 

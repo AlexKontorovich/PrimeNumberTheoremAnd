@@ -1,4 +1,4 @@
-import EulerProducts.PNT
+import PrimeNumberTheoremAnd.EulerProducts.PNT
 import Mathlib.Analysis.Fourier.FourierTransform
 import Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.Topology.Support
@@ -12,7 +12,7 @@ open Complex hiding log
 -- This version makes the support of Ψ explicit, and this is easier for some later proofs
 lemma smooth_urysohn_support_Ioo {a b c d:ℝ} (h1: a < b) (h2: b<c) (h3: c < d) : ∃ Ψ:ℝ → ℝ, (∀ n, ContDiff ℝ n Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧ Ψ ≤ Set.indicator (Set.Ioo a d) 1 ∧ (Function.support Ψ = Set.Ioo a d) := by
 
-  have := exists_msmooth_zero_iff_one_iff_of_isClosed
+  have := exists_msmooth_zero_iff_one_iff_of_closed
     (modelWithCornersSelf ℝ ℝ) (s := Set.Iic a ∪ Set.Ici d) (t := Set.Icc b c)
     (IsClosed.union isClosed_Iic isClosed_Ici)
     (isClosed_Icc)
@@ -31,7 +31,7 @@ lemma smooth_urysohn_support_Ioo {a b c d:ℝ} (h1: a < b) (h2: b<c) (h3: c < d)
     exact ContMDiff.contDiff hΨSmooth
   · constructor
     · rw [hasCompactSupport_def]
-      apply IsCompact.closure_of_subset (K := Set.Icc a d) isCompact_Icc
+      apply isCompact_closure_of_subset_compact (t := Set.Icc a d) isCompact_Icc
       simp_rw [Function.support_subset_iff, ne_eq, <-hΨ0]
       intro x hx
       contrapose! hx
@@ -255,7 +255,7 @@ and the claim follows from Lemma \ref{schwarz-id}.
 %%-/
 
 lemma smooth_urysohn {a b c d:ℝ} (h1: a < b) (h2: b<c) (h3: c < d) : ∃ Ψ:ℝ → ℝ, (∀ n, ContDiff ℝ n Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧ Ψ ≤ Set.indicator (Set.Ioo a d) 1 := by
-  have := exists_smooth_zero_one_of_isClosed (modelWithCornersSelf ℝ ℝ) (s := Set.Iic a ∪ Set.Ici d) (t := Set.Icc b c)
+  have := exists_smooth_zero_one_of_closed (modelWithCornersSelf ℝ ℝ) (s := Set.Iic a ∪ Set.Ici d) (t := Set.Icc b c)
     (IsClosed.union isClosed_Iic isClosed_Ici)
     (isClosed_Icc)
     (by
@@ -271,7 +271,7 @@ lemma smooth_urysohn {a b c d:ℝ} (h1: a < b) (h2: b<c) (h3: c < d) : ∃ Ψ:�
     exact ContMDiff.contDiff hΨcontMDiff
   · constructor
     · rw [hasCompactSupport_def]
-      apply IsCompact.closure_of_subset (K := Set.Icc a d) isCompact_Icc
+      apply isCompact_closure_of_subset_compact (t := Set.Icc a d) isCompact_Icc
       rw [Function.support_subset_iff]
       intro x hx
       contrapose! hx

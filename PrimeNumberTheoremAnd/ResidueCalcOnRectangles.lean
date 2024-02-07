@@ -1,7 +1,6 @@
 import Mathlib.Analysis.Complex.CauchyIntegral
-import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.Analytic.Meromorphic
-import EulerProducts.LSeries
+import PrimeNumberTheoremAnd.EulerProducts.LSeries
 
 
 open Complex BigOperators Finset Nat Classical Real Topology Filter Set MeasureTheory
