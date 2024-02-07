@@ -4,7 +4,7 @@ import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.Asymptotics
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import PrimeNumberTheoremAnd.Wiener
 
-open Complex Topology Filter Real MeasureTheory Set Asymptotics
+open Complex ComplexConjugate Topology Filter Real MeasureTheory Set Asymptotics
 
 /-%%
 In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler), prove its inversion formula, and
@@ -263,7 +263,6 @@ Standard.
 
 noncomputable abbrev perron (x : ℝ) := fun (s : ℂ) ↦ x^s / (s * (s + 1))
 
-open ComplexConjugate in
 lemma perron_conj (hx : 0 ≤ x) (s : ℂ) : perron x (conj s) = conj (perron x s) := by
   simp? [perron] says simp only [perron, map_div₀, map_mul, map_add, map_one]
   congr
@@ -294,8 +293,7 @@ lemma PerronVertIsTheta {σ : ℝ} (xpos : 0 < x) :
     convert IsROrC.norm_im_le_norm (σ + x * I)
     simp
 
-open ComplexConjugate in
-lemma PerronVertIntegrable {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σpos : 0 < σ) :
+lemma perron_vertical_integrable {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σpos : 0 < σ) :
     Integrable (fun (y : ℝ) ↦ perron x (σ + y * I)) := by
   have : Continuous (fun (y : ℝ) ↦ perron x (σ + y * I)) :=
    (HolomorphicOn_of_Perron_function xpos).continuousOn.comp_continuous
@@ -310,6 +308,12 @@ lemma PerronVertIntegrable {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σpos : 0 < σ) 
       (show (0 : ℝ) < 1 by norm_num) |>.congr_fun (fun y hy ↦ ?_) measurableSet_Ioi⟩
     beta_reduce
     rw [rpow_neg (show (0 : ℝ) < 1 by norm_num |>.trans hy |>.le), inv_eq_one_div, rpow_two]
+
+lemma perron_horizontal_integral_eq_zero {b σ' σ'' : ℝ}
+    (hb : 0 ≤ b) (σ'_pos : 0 < σ') (σ''_pos : 0 < σ'') :
+    Tendsto (fun (y : ℝ) => ‖∫ (x : ℝ) in σ'..σ'', perron b (x + y * I)‖) atBot (𝓝 0) ∧
+    Tendsto (fun (y : ℝ) => ‖∫ (x : ℝ) in σ'..σ'', perron b (x + y * I)‖) atTop (𝓝 0) := by
+  sorry
 
 /-%%
 We are ready for the first case of the Perron formula, namely when $x<1$:
@@ -331,7 +335,7 @@ VertIntPerronBound, limitOfConstant, RectangleIntegral_tendsTo_VerticalIntegral,
 tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 %%-/
-  set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
+  let f : ℂ → ℂ := perron x
   have fHolo : HolomorphicOn f {s : ℂ | 0 < s.re} := HolomorphicOn_of_Perron_function xpos
 --%% The rectangle integral of $f$ with corners $\sigma-iT$ and $\sigma+iT$ is zero.
   have rectInt (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') (T : ℝ) :
@@ -341,12 +345,11 @@ tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}
   have rectIntLimit (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
       Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ' - I * T) (σ'' + I * T))
       atTop (𝓝 (VerticalIntegral f σ'' - VerticalIntegral f σ')) := by
-    let g (y : ℝ) := ∫ (x : ℝ) in σ'..σ'', f (↑x + ↑y * I)
     refine RectangleIntegral_tendsTo_VerticalIntegral ?_ ?_
-      (PerronVertIntegrable xpos σ'pos) (PerronVertIntegrable xpos σ''pos)
+      (perron_vertical_integrable xpos σ'pos) (perron_vertical_integrable xpos σ''pos)
     all_goals apply tendsto_zero_iff_norm_tendsto_zero.mpr
-    · sorry
-    · sorry
+    · exact perron_horizontal_integral_eq_zero.1
+    · exact perron_horizontal_integral_eq_zero.2
 --%% Therefore, $\int_{(\sigma')}=\int_{(\sigma)}$.
   have contourPull (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
     VerticalIntegral f σ' = VerticalIntegral f σ''
