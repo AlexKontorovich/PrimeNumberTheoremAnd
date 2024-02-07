@@ -19,5 +19,8 @@ jobs:
       - name: Install elan
         run: curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain $(cat lean-toolchain)
 
+      - name: Get cache
+        run: ~/.elan/bin/lake exe cache get || true
+
       - name: Build project
         run: make LAKEBIN='~/.elan/bin/lake' build
