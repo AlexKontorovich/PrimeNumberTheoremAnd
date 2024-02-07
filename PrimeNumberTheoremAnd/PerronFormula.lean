@@ -1,8 +1,10 @@
+import Mathlib.Analysis.Calculus.ContDiff.Basic
+import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
+import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.Asymptotics
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import PrimeNumberTheoremAnd.Wiener
-import Mathlib.Analysis.Calculus.ContDiff.Basic
 
-open Complex Topology Filter Real MeasureTheory Set
+open Asymptotics Complex ComplexConjugate Topology Filter Real MeasureTheory Set
 
 /-%%
 In this section, we prove the Perron formula, which plays a key role in our proof of Mellin inversion.
@@ -48,8 +50,8 @@ lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ
     Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ - I * T) (σ' + I * T)) atTop
       (𝓝 (VerticalIntegral f σ' - VerticalIntegral f σ)) := by
 /-%%
-  \begin{proof}\leanok
-  Almost by definition.
+\begin{proof}\leanok
+Almost by definition.
 %%-/
   have h_lower (x : ℝ) : (σ - I * x).im = -x := by simp
   have h_upper (x : ℝ) : (σ' + I * x).im = x := by simp
@@ -111,45 +113,6 @@ Almost by definition.
 \end{proof}
 %%-/
 
--- TODO: upstream to mathlib Arctan.lean
-lemma arctan_atTop : Tendsto arctan atTop (𝓝 (π / 2)) :=
-  tendsto_nhds_of_tendsto_nhdsWithin (tendsto_Ioo_atTop.mp tanOrderIso.symm.tendsto_atTop)
-
-lemma arctan_atBot : Tendsto arctan atBot (𝓝 (-(π / 2))) :=
-  tendsto_nhds_of_tendsto_nhdsWithin (tendsto_Ioo_atBot.mp tanOrderIso.symm.tendsto_atBot)
-
-lemma arctan_ne_zero {x : ℝ} (hx : x ≠ 0) : arctan x ≠ 0 :=
-  fun h ↦ hx <| (show arctan.Injective from StrictMono.injective tanOrderIso.symm.strictMono)
-    (h.trans arctan_zero.symm)
-
--- TODO: upstream to mathlib ImproperIntegral.lean
-private lemma intervalIntegral_one_div_one_add_sq_tendsto :
-    Tendsto (fun i => ∫ (x : ℝ) in -i..i, 1 / (1 + x ^ 2)) atTop (𝓝 π) := by
-  convert Tendsto.add arctan_atTop arctan_atTop <;> simp
-
-lemma integrable_one_div_one_add_sq : Integrable fun (x : ℝ) ↦ 1 / (1 + x ^ 2) := by
-  have (x : ℝ) : ‖1 / (1 + x ^ 2)‖ = 1 / (1 + x ^ 2) := norm_of_nonneg (by positivity)
-  refine integrable_of_intervalIntegral_norm_tendsto π (fun i ↦ ?_) tendsto_neg_atTop_atBot
-    tendsto_id (by simpa only [this] using intervalIntegral_one_div_one_add_sq_tendsto)
-  by_cases hi : i = 0
-  · rewrite [hi, Set.Ioc_eq_empty (by norm_num)]; exact integrableOn_empty
-  · refine (intervalIntegral.intervalIntegrable_of_integral_ne_zero ?_).1
-    simp [← two_mul, arctan_ne_zero hi]
-
-lemma integral_Iic_one_div_one_add_sq {i : ℝ} :
-    ∫ (x : ℝ) in Set.Iic i, 1 / (1 + x ^ 2) = arctan i + (π / 2) :=
-  integral_Iic_of_hasDerivAt_of_tendsto' (fun x _ => hasDerivAt_arctan x)
-    integrable_one_div_one_add_sq.integrableOn arctan_atBot |>.trans (sub_neg_eq_add _ _)
-
-lemma integral_Ioi_one_div_one_add_sq {i : ℝ} :
-    ∫ (x : ℝ) in Set.Ioi i, 1 / (1 + x ^ 2) = (π / 2) - arctan i :=
-  integral_Ioi_of_hasDerivAt_of_tendsto' (fun x _ => hasDerivAt_arctan x)
-    integrable_one_div_one_add_sq.integrableOn arctan_atTop
-
-lemma integral_volume_one_div_one_add_sq : ∫ (x : ℝ), 1 / (1 + x ^ 2) = π :=
-  tendsto_nhds_unique (intervalIntegral_tendsto_integral integrable_one_div_one_add_sq
-    tendsto_neg_atTop_atBot tendsto_id) intervalIntegral_one_div_one_add_sq_tendsto
-
 
 /-%%
 TODO : Move to general section
@@ -198,16 +161,14 @@ $$\lim_{\sigma\to\infty}x^\sigma=0.$$
 \end{lemma}
 %%-/
 lemma tendsto_rpow_atTop_nhds_zero_of_norm_lt_one {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1) (C : ℝ) :
-  Tendsto (fun (σ : ℝ) => x ^ σ * C) atTop (𝓝 0) := by
-  have := Tendsto.mul_const C (tendsto_rpow_atTop_of_base_lt_one x (by linarith) x_lt_one)
-  simp only [rpow_eq_pow, zero_mul] at this
-  exact this
-
+    Tendsto (fun (σ : ℝ) => x ^ σ * C) atTop (𝓝 0) := by
 /-%%
 \begin{proof}\leanok
 Standard.
-\end{proof}
 %%-/
+  have := Tendsto.mul_const C (tendsto_rpow_atTop_of_base_lt_one x (by linarith) x_lt_one)
+  simpa only [rpow_eq_pow, zero_mul] using this
+--%%\end{proof}
 
 /-%%
 \begin{lemma}[tendsto_rpow_atTop_nhds_zero_of_norm_gt_one]\label{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\lean{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\leanok
@@ -253,38 +214,29 @@ noncomputable def equivRealProdCLM : ℂ ≃L[ℝ] ℝ × ℝ :=
 
 namespace Perron
 
+variable {x σ σ'' T : ℝ}
+
+noncomputable abbrev f (x : ℝ) := fun (s : ℂ) => x ^ s / (s * (s + 1))
+
 /-%%
 TODO: Change this to the statement of `isHolomorphicOn2` and refactor.
 \begin{lemma}[isHolomorphicOn]\label{isHolomorphicOn}\lean{Perron.isHolomorphicOn}\leanok
 Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 \end{lemma}
 %%-/
-lemma isHolomorphicOn {x : ℝ} (xpos : 0 < x) :
-    HolomorphicOn (fun s => x ^ s / (s * (s + 1))) {s | 0 < s.re} := by
+lemma isHolomorphicOn (xpos : 0 < x) : HolomorphicOn (f x) {0, -1}ᶜ := by
 /-%%
 \begin{proof}\leanok
 Composition of differentiabilities.
 %%-/
+  unfold f
   simp_rw [Complex.cpow_def_of_ne_zero <| ofReal_ne_zero.mpr <| ne_of_gt xpos]
   apply DifferentiableOn.div <| DifferentiableOn.cexp <| DifferentiableOn.const_mul differentiableOn_id _
   · exact DifferentiableOn.mul differentiableOn_id <| DifferentiableOn.add_const differentiableOn_id 1
-  · exact fun _ hx ↦ mul_ne_zero (ne_of_apply_ne re <| ne_of_gt hx)
-      <| ne_of_apply_ne re <| ne_of_gt <| (lt_add_one 0).trans <| add_lt_add_right (by exact hx) 1
+  · intro x hx
+    obtain ⟨h0, h1⟩ := not_or.mp hx
+    exact mul_ne_zero h0 <| add_ne_add_left 1 |>.mpr h1 |>.trans_eq (add_left_neg 1)
 --%%\end{proof}
-
-/-%%
-\begin{lemma}[isHolomorphicOn2]\label{isHolomorphicOn2}\lean{Perron.isHolomorphicOn2}\leanok
-Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on $\C\setminus\{0,1\}$.
-\end{lemma}
-%%-/
-lemma isHolomorphicOn2 {x : ℝ} (x_gt_one : 0 < x) :
-    HolomorphicOn (fun s ↦ x^s / (s * (s + 1))) {0, -1}ᶜ := by
-  sorry
-/-%%
-\begin{proof}
-Composition of differentiabilities.
-\end{proof}
-%%-/
 
 /-%%
 \begin{lemma}[integralPosAux]\label{integralPosAux}\lean{Perron.integralPosAux}\leanok
@@ -335,13 +287,13 @@ $$\left|
 \end{lemma}
 %%-/
 
-lemma vertIntBound {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_gt_one : 1 < σ) :
-    Complex.abs (VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ)
+lemma vertIntBound (xpos : 0 < x) (σ_gt_one : 1 < σ) :
+    Complex.abs (VerticalIntegral (f x) σ)
       ≤ x ^ σ * ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| := by
   calc
     _ = ‖∫ (t : ℝ), x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ := ?_
     _ ≤ ∫ (t : ℝ), ‖x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ :=
-        MeasureTheory.norm_integral_le_integral_norm _
+        norm_integral_le_integral_norm _
     _ = ∫ (t : ℝ), x ^ σ / ‖((σ + t * I) * (σ + t * I + 1))‖ := ?_
     _ = x ^ σ * ∫ (t : ℝ), 1 / (Complex.abs (σ + t * I) * Complex.abs (σ + t * I + 1)) := ?_
     _ ≤ x ^ σ * ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| :=
@@ -350,20 +302,20 @@ lemma vertIntBound {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_gt_one : 1 < σ) :
   · congr with t
     rw [norm_div, Complex.norm_eq_abs, Complex.abs_cpow_eq_rpow_re_of_pos xpos, add_re, ofReal_re,
       re_ofReal_mul, I_re, mul_zero, add_zero]
-  · simp_rw [div_eq_mul_inv, MeasureTheory.integral_mul_left, one_mul, Complex.norm_eq_abs, map_mul]
+  · simp_rw [div_eq_mul_inv, integral_mul_left, one_mul, Complex.norm_eq_abs, map_mul]
   clear! x
   -- Note: I didn't try to prove this because the result is trivial if it isn't true.
-  by_cases hint : MeasureTheory.Integrable fun (a : ℝ) => 1 / (Complex.abs (σ + ↑a * I) * Complex.abs (↑σ + ↑a * I + 1))
+  by_cases hint : Integrable fun (a : ℝ) => 1 / (Complex.abs (σ + ↑a * I) * Complex.abs (↑σ + ↑a * I + 1))
   swap
-  · rw [MeasureTheory.integral_undef hint]
-    apply MeasureTheory.integral_nonneg
+  · rw [integral_undef hint]
+    apply integral_nonneg
     rw [Pi.le_def]
     intro t
     simp only [Pi.zero_apply, one_div, inv_nonneg, abs_nonneg]
-  apply MeasureTheory.integral_mono hint
+  apply integral_mono hint
   · have := integralPosAux
     contrapose! this
-    have := MeasureTheory.integral_undef this
+    have := integral_undef this
     simp_rw [this, le_rfl]
   rw [Pi.le_def]
   intro t
@@ -392,10 +344,8 @@ $$\left|
 \end{lemma}
 %%-/
 
-lemma vertIntBoundLeft {x : ℝ} (x_gt_zero : 0 < x) :
-    ∃ C > 0, ∀ (σ : ℝ) (_ : σ < -3 / 2),
-    Complex.abs (VerticalIntegral' (fun s ↦ x^s / (s * (s + 1))) σ)
-      ≤ x ^ σ * C := by
+lemma vertIntBoundLeft (x_gt_zero : 0 < x) :
+    ∃ C > 0, ∀ (σ : ℝ) (_ : σ < -3 / 2), Complex.abs (VerticalIntegral' (f x) σ) ≤ x ^ σ * C := by
   sorry
 /-%%
 \begin{proof}
@@ -414,9 +364,8 @@ $$\left|
 Note that the implied constant here does depend on $\sigma$. (So it's not as useful a lemma.)
 \end{lemma}
 %%-/
-lemma vertIntBound2 {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_ne_zero : σ ≠ 0)
-    (σ_ne_neg_one : σ ≠ -1) : ∃ C > 0,
-      Complex.abs (VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ) ≤ x ^ σ * C := by
+lemma vertIntBound2 (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ ≠ -1) :
+    ∃ C > 0, Complex.abs (VerticalIntegral (f x) σ) ≤ x ^ σ * C := by
   sorry
 /-%%
 \begin{proof}
@@ -425,6 +374,36 @@ Similar to ``vertIntBound''.
 \end{proof}
 %%-/
 
+lemma map_conj (hx : 0 ≤ x) (s : ℂ) : f x (conj s) = conj (f x s) := by
+  simp? [f] says simp only [f, map_div₀, map_mul, map_add, map_one]
+  congr
+  rw [cpow_conj, Complex.conj_ofReal]
+  · rewrite [Complex.arg_ofReal_of_nonneg hx]
+    exact pi_ne_zero.symm
+
+lemma isTheta_atTop (xpos : 0 < x) :
+    (fun (y : ℝ) ↦ f x (σ + y * I)) =Θ[atTop] fun (y : ℝ) ↦ 1 / y^2 := by
+  have hx : (x : ℂ) ≠ 0 := ofReal_ne_zero.mpr (ne_of_gt xpos)
+  apply IsTheta.div
+  · simp_rw [cpow_add _ _ hx, (by norm_num : (fun (_ : ℝ) ↦ (1 : ℝ)) = fun _ ↦ 1 * 1)]
+    refine IsTheta.mul (isTheta_const_const ?_ (by norm_num)) (isTheta_norm_left.mp ?_)
+    · rewrite [← Complex.ofReal_cpow (le_of_lt xpos), ofReal_ne_zero]
+      exact ne_of_gt (rpow_pos_of_pos xpos σ)
+    · simp [Complex.abs_cpow_of_ne_zero hx, arg_ofReal_of_nonneg xpos.le]
+  · have h_ix : (fun (x : ℝ) ↦ x * I) =Θ[atTop] id := by
+      refine isTheta_of_norm_eventuallyEq' <| eventuallyEq_of_mem (Ici_mem_atTop 0) fun x hx ↦ ?_
+      simp [abs_eq_self.mpr (show 0 ≤ x from hx)]
+    have h_1ix {c : ℂ} : (fun (_ : ℝ) => c) =o[atTop] fun (x : ℝ) => x * I :=
+      (isLittleO_const_id_atTop c).trans_isTheta h_ix.symm
+    have h_σx : (fun (x : ℝ) ↦ σ + x * I) =Θ[atTop] fun x => x * I := by
+      conv => { congr; rfl; ext; rewrite [add_comm] }
+      exact IsTheta.add_isLittleO <| h_1ix
+    simp_rw [sq]
+    refine IsTheta.mul (h_σx.trans h_ix) <| IsTheta.add_isLittleO (h_1ix.trans_le fun x ↦ ?_)
+      |>.trans h_σx |>.trans h_ix
+    convert IsROrC.norm_im_le_norm (σ + x * I)
+    simp
+
 /-%%
 \begin{lemma}[isIntegrable]\label{isIntegrable}\lean{Perron.isIntegrable}\leanok
 Let $x>0$ and $\sigma\in\R$. Then
@@ -432,15 +411,29 @@ $$\int_{\R}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
 is integrable.
 \end{lemma}
 %%-/
-lemma isIntegrable {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ ≠ -1) :
-    let f := fun (s : ℂ) ↦ x ^ s / (s * (s + 1));
-    Integrable fun (t : ℝ) ↦ f (σ + t * I) := by
-  sorry
+lemma isIntegrable (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ ≠ -1) :
+    Integrable fun (t : ℝ) ↦ f x (σ + t * I) := by
 /-%%
-\begin{proof}\uses{vertIntBound}
-Apply Lemma \ref{vertIntBound}.
-\end{proof}
+\begin{proof}\uses{isHolomorphicOn}
+By \ref{isHolomorphicOn}, $f$ is continuous, so it is integrable on any interval.
 %%-/
+  have : Continuous (fun (y : ℝ) ↦ f x (σ + y * I)) := by
+    refine (isHolomorphicOn xpos).continuousOn.comp_continuous (by continuity) fun x ↦ not_or.mpr ?_
+    simp [Complex.ext_iff, σ_ne_zero, σ_ne_neg_one]
+--%% Also, $|f(x)| = \Theta(x^{-2})$ as $x\to\infty$,
+  refine this.locallyIntegrable.integrable_of_isBigO_atTop_of_norm_eq_norm_neg
+    ?_ (isTheta_atTop xpos).isBigO ?_
+--%% and $|f(-x)| = \Theta(x^{-2})$ as $x\to\infty$.
+  · refine univ_mem' fun y ↦ ?_
+    show ‖f x (↑σ + ↑y * I)‖ = ‖f x (↑σ + ↑(-y) * I)‖
+    have : (↑σ + ↑(-y) * I) = conj (↑σ + ↑y * I) := Complex.ext (by simp) (by simp)
+    simp_rw [this, map_conj xpos.le, Complex.norm_eq_abs, abs_conj]
+--%% Since $g(x) = x^{-2}$ is integrable on $[a,\infty)$ for any $a>0$, we conclude.
+  · refine ⟨Ioi 1, Ioi_mem_atTop 1, integrableOn_Ioi_rpow_of_lt (show (-2 : ℝ) < -1 by norm_num)
+      (show (0 : ℝ) < 1 by norm_num) |>.congr_fun (fun y hy ↦ ?_) measurableSet_Ioi⟩
+    beta_reduce
+    rw [rpow_neg (show (0 : ℝ) < 1 by norm_num |>.trans hy |>.le), inv_eq_one_div, rpow_two]
+--%%\end{proof}
 
 /-%%
 \begin{lemma}[tendsto_zero_Lower]\label{tendsto_zero_Lower}\lean{Perron.tendsto_zero_Lower}\leanok
@@ -449,11 +442,8 @@ $$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sig
 goes to $0$ as $t\to-\infty$.
 \end{lemma}
 %%-/
-lemma tendsto_zero_Lower {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
-    let f := fun (s : ℂ) ↦ x ^ s / (s * (s + 1));
-    Tendsto (fun (t : ℝ) => ∫ (σ : ℝ) in σ'..σ'', f (σ + t * I)) atBot (𝓝 0) := by
-  intro f
-  dsimp [f]
+lemma tendsto_zero_Lower (xpos : 0 < x) (σ' σ'' : ℝ) :
+    Tendsto (fun (t : ℝ) => ∫ (σ : ℝ) in σ'..σ'', f x (σ + t * I)) atBot (𝓝 0) := by
   sorry
 /-%%
 \begin{proof}\leanok
@@ -469,11 +459,8 @@ $$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sig
 goes to $0$ as $t\to\infty$.
 \end{lemma}
 %%-/
-lemma tendsto_zero_Upper {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
-    let f := fun (s : ℂ) ↦ x ^ s / (s * (s + 1));
-    Tendsto (fun (t : ℝ) => ∫ (σ : ℝ) in σ'..σ'', f (σ + t * I)) atTop (𝓝 0) := by
-  intro f
-  dsimp [f]
+lemma tendsto_zero_Upper (xpos : 0 < x) (σ' σ'' : ℝ) :
+    Tendsto (fun (t : ℝ) => ∫ (σ : ℝ) in σ'..σ'', f x (σ + t * I)) atTop (𝓝 0) := by
   sorry
 /-%%
 \begin{proof}\leanok
@@ -492,8 +479,8 @@ $$
 \end{lemma}
 %%-/
 
-lemma formulaLtOne {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1)
-    {σ : ℝ} (σ_pos : 0 < σ) : VerticalIntegral (fun s ↦ x^s / (s * (s + 1))) σ = 0 := by
+lemma formulaLtOne (xpos : 0 < x) (x_lt_one : x < 1) (σ_pos : 0 < σ)
+    : VerticalIntegral (f x) σ = 0 := by
 /-%%
 \begin{proof}\leanok
 \uses{isHolomorphicOn, HolomorphicOn.vanishesOnRectangle, integralPosAux,
@@ -502,19 +489,15 @@ tendsto_rpow_atTop_nhds_zero_of_norm_lt_one,
 tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 %%-/
-  set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
-  have fHolo : HolomorphicOn f {s : ℂ | 0 < s.re} := isHolomorphicOn xpos
+  let f := f x
+  have fHolo : HolomorphicOn f {0, -1}ᶜ := isHolomorphicOn xpos
 --%% The rectangle integral of $f$ with corners $\sigma-iT$ and $\sigma+iT$ is zero.
   have rectInt (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') (T : ℝ) :
       RectangleIntegral f (σ' - I * T) (σ'' + I * T) = 0
-  -- TODO: This can be golfed to one line
-  · apply fHolo.vanishesOnRectangle
-    intro z h_rect
-    simp only [mem_setOf_eq]
-    have := h_rect.1.1
-    simp only [sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self,
-      sub_zero, add_re, add_zero, inf_le_iff] at this
-    cases this <;> linarith [σ'pos, σ''pos]
+  · refine fHolo.vanishesOnRectangle fun z h_rect ↦ not_or.mpr (?_ : ¬z = 0 ∧ ¬z = -1)
+    simp_rw [Complex.ext_iff, ← not_or, Complex.zero_re, show (-1 : ℂ).re = -1 from rfl]
+    have : σ' ≤ z.re ∨ σ'' ≤ z.re := by simpa using h_rect.1.1
+    intro hc; cases hc <;> cases this <;> linarith [σ'pos, σ''pos]
 --%% The limit of this rectangle integral as $T\to\infty$ is $\int_{(\sigma')}-\int_{(\sigma)}$.
   have rectIntLimit (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
       Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ' - I * T) (σ'' + I * T))
@@ -570,7 +553,7 @@ $$
 that is, a rectangle with corners $-1/2-iT$ and $\sigma+iT$.
 \end{lemma}
 %%-/
-lemma sigmaNegOneHalfPull {x : ℝ} (xpos : 0 < x) {σ T : ℝ} (Tpos : 0 < T):
+lemma sigmaNegOneHalfPull (xpos : 0 < x) (Tpos : 0 < T):
     VerticalIntegral (fun s => x ^ s / (s * (s + 1))) σ
     - VerticalIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
     = RectangleIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2 - I * T) (σ + I * T) := by
@@ -596,7 +579,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma keyIdentity {x : ℝ} {s : ℂ} (s_ne_zero : s ≠ 0) (s_ne_neg_one : s ≠ -1) :
+lemma keyIdentity {s : ℂ} (s_ne_zero : s ≠ 0) (s_ne_neg_one : s ≠ -1) :
     (x : ℂ) ^ s / (s * (1 + s))
       = (x : ℂ) ^ s / s - (x : ℂ) ^ s / (1 + s) := by
   have : 1 + s ≠ 0 := by
@@ -666,7 +649,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma residueAtZero {x : ℝ} (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
+lemma residueAtZero (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
     RectangleIntegral' (fun (s : ℂ) ↦ x ^ s / (s * (s + 1))) (-c - I * c) (c + I * c) = 1 := by
 /-%%
 \begin{proof}\leanok
@@ -680,7 +663,7 @@ For $c>0$ sufficiently small, say $c<1/2$,
   set Rect := Rectangle (-c - I * c) (c + I * c)
   have RectSub : Rect \ {0} ⊆ {0, -1}ᶜ := sorry
   have fHolo : HolomorphicOn f (Rect \ {0}) :=
-    (isHolomorphicOn2 xpos).mono RectSub
+    (isHolomorphicOn xpos).mono RectSub
   set f1 : ℂ → ℂ := f - (fun (s : ℂ) ↦ 1 / s)
   have f1Holo : HolomorphicOn f1 (Rect \ {0}) := sorry
   simp only [mem_Ioo] at hc
@@ -733,7 +716,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma residuePull1 {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < σ) :
+lemma residuePull1 (x_gt_one : 1 < x) (σ_pos : 0 < σ) :
     VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ =
     1 + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-1 / 2) := by
   sorry
@@ -760,7 +743,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma residuePull2 {x : ℝ} (x_gt_one : 1 < x) :
+lemma residuePull2 (x_gt_one : 1 < x) :
     VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
     = -1 / x + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-3 / 2) := by
   sorry
@@ -781,7 +764,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma contourPull3 {x : ℝ} (x_gt_one : 1 < x) {σ' σ'' : ℝ} (σ'le : σ' ≤ -3/2) (σ''le : σ'' ≤ -3/2) :
+lemma contourPull3 (x_gt_one : 1 < x) (σ'le : σ' ≤ -3/2) (σ''le : σ'' ≤ -3/2) :
     VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ' = VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ'' := by
   sorry
 /-%%
@@ -799,7 +782,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma formulaGtOne {x : ℝ} (x_gt_one : 1 < x) {σ : ℝ} (σ_pos : 0 < σ) :
+lemma formulaGtOne (x_gt_one : 1 < x) (σ_pos : 0 < σ) :
     VerticalIntegral' (fun s ↦ x^s / (s * (s + 1))) σ = 1 - 1 / x := by
 /-%%
 \begin{proof}\leanok
@@ -809,7 +792,7 @@ tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,1}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
-  have : HolomorphicOn f {0, -1}ᶜ := isHolomorphicOn2 (by linarith : 0 < x)
+  have : HolomorphicOn f {0, -1}ᶜ := isHolomorphicOn (by linarith : 0 < x)
 --%% First pull the contour from $(\sigma)$ to $(-1/2)$, picking up a residue $1$ at $s=0$.
   have contourPull₁ : VerticalIntegral' f σ = 1 + VerticalIntegral' f (-1 / 2) := residuePull1 x_gt_one σ_pos
   rw [contourPull₁]
@@ -823,7 +806,7 @@ tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
     vertIntBoundLeft (by linarith : 0 < x)
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
   have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral' f)) atBot (𝓝 0)
-  · obtain ⟨C, Cpos, hC⟩ := VertIntBound
+  · obtain ⟨C, _, hC⟩ := VertIntBound
     have := tendsto_rpow_atTop_nhds_zero_of_norm_gt_one x_gt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
     · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _
