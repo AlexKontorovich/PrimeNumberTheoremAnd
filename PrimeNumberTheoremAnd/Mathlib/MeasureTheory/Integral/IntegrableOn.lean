@@ -5,13 +5,6 @@ open Filter MeasureTheory
 variable {α β : Type*} [MeasurableSpace α] [NormedAddCommGroup β]
   {l l' : Filter α} {f g : α → β} {μ : Measure α}
 
-theorem _root_.MeasurableSet.integrable_subtype_iff_integrableOn (hs : MeasurableSet s) :
-    Integrable (fun (x : Subtype s) => f ↑x) (μ.comap Subtype.val) ↔ IntegrableOn f s μ := by
-  rewrite [IntegrableOn, ← map_comap_subtype_coe hs,
-    (MeasurableEmbedding.subtype_coe hs).integrable_map_iff]
-  rfl
-
-
 protected theorem IntegrableAtFilter.norm (hf : IntegrableAtFilter f l μ) :
     IntegrableAtFilter (fun x => ‖f x‖) l μ :=
   Exists.casesOn hf fun s hs ↦ ⟨s, hs.1, hs.2.norm⟩

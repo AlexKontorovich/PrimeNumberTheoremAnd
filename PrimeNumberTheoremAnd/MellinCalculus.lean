@@ -4,7 +4,7 @@ import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.Asymptotics
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import PrimeNumberTheoremAnd.Wiener
 
-open Complex Topology Filter Real MeasureTheory Set
+open Complex Topology Filter Real MeasureTheory Set Asymptotics
 
 /-%%
 In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler), prove its inversion formula, and
@@ -104,8 +104,6 @@ $$\lim_{T\to\infty}\int_{\sigma-iT}^{\sigma'+iT}f(s)ds =
 \int_{(\sigma')}f(s)ds - \int_{(\sigma)}f(s)ds.$$
 \end{lemma}
 %%-/
-
-open MeasureTheory
 
 lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
     (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (↑x + ↑(y) * I)) atBot (𝓝 0))
@@ -265,22 +263,53 @@ Standard.
 
 noncomputable abbrev perron (x : ℝ) := fun (s : ℂ) ↦ x^s / (s * (s + 1))
 
-lemma PerronVertIsBigO : (fun (s : ℝ) ↦ perron x (σ + s * i)) =O[atBot ⊔ atTop] fun (s : ℝ) ↦ 1 / x^2 := by
-  refine Asymptotics.isBigO_sup.mpr ⟨?_, ?_⟩
-  · sorry
-  · sorry
+open ComplexConjugate in
+lemma perron_conj (hx : 0 ≤ x) (s : ℂ) : perron x (conj s) = conj (perron x s) := by
+  simp? [perron] says simp only [perron, map_div₀, map_mul, map_add, map_one]
+  congr
+  rw [cpow_conj, Complex.conj_ofReal]
+  · rewrite [Complex.arg_ofReal_of_nonneg hx]
+    exact pi_ne_zero.symm
 
-lemma PerronVertIntegrable {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σpos : 0 < σ) {μ : Measure ℝ}
-    [IsLocallyFiniteMeasure μ] : Integrable (fun (s : ℝ) ↦ perron x (σ + s * I)) μ := by
-  have : Continuous fun (s : ℝ) ↦ σ + s * I := by continuity
-  replace : Continuous (fun (s : ℝ) ↦ perron x (σ + s * I)) :=
-   (HolomorphicOn_of_Perron_function xpos).continuousOn.comp_continuous this (by simp [σpos])
-  obtain ⟨hbot, htop⟩ := Asymptotics.isBigO_sup.mp PerronVertIsBigO
-  refine this.locallyIntegrable.integrable_of_isBigO_atBot_atTop hbot ?_ htop ?_
-  · use Iic (-1 : ℝ), Iic_mem_atBot _
-    sorry
-  · use Ici (1 : ℝ), Ici_mem_atTop _
-    sorry
+lemma PerronVertIsTheta {σ : ℝ} (xpos : 0 < x) :
+    (fun (y : ℝ) ↦ perron x (σ + y * I)) =Θ[atTop] fun (y : ℝ) ↦ 1 / y^2 := by
+  have hx : (x : ℂ) ≠ 0 := ofReal_ne_zero.mpr (ne_of_gt xpos)
+  apply IsTheta.div
+  · simp_rw [cpow_add _ _ hx, show (fun (_ : ℝ) ↦ (1 : ℝ)) = fun _ ↦ 1 * 1 by norm_num]
+    refine IsTheta.mul (isTheta_const_const ?_ (by norm_num)) (isTheta_norm_left.mp ?_)
+    · rewrite [← Complex.ofReal_cpow (le_of_lt xpos), ofReal_ne_zero]
+      exact ne_of_gt (rpow_pos_of_pos xpos σ)
+    · simp [Complex.abs_cpow_of_ne_zero hx, arg_ofReal_of_nonneg xpos.le]
+  · have h_ix : (fun (x : ℝ) ↦ x * I) =Θ[atTop] id := by
+      refine isTheta_of_norm_eventuallyEq' <| eventuallyEq_of_mem (Ici_mem_atTop 0) fun x hx ↦ ?_
+      simp [abs_eq_self.mpr (show 0 ≤ x from hx)]
+    have h_1ix {c : ℂ} : (fun (_ : ℝ) => c) =o[atTop] fun (x : ℝ) => x * I :=
+      (isLittleO_const_id_atTop c).trans_isTheta h_ix.symm
+    have h_σx : (fun (x : ℝ) ↦ σ + x * I) =Θ[atTop] fun x => x * I := by
+      conv => { congr; rfl; ext; rewrite [add_comm] }
+      exact IsTheta.add_isLittleO <| h_1ix
+    simp_rw [sq]
+    refine IsTheta.mul (h_σx.trans h_ix) <| IsTheta.add_isLittleO (h_1ix.trans_le fun x ↦ ?_)
+      |>.trans h_σx |>.trans h_ix
+    convert IsROrC.norm_im_le_norm (σ + x * I)
+    simp
+
+open ComplexConjugate in
+lemma PerronVertIntegrable {x : ℝ} (xpos : 0 < x) {σ : ℝ} (σpos : 0 < σ) :
+    Integrable (fun (y : ℝ) ↦ perron x (σ + y * I)) := by
+  have : Continuous (fun (y : ℝ) ↦ perron x (σ + y * I)) :=
+   (HolomorphicOn_of_Perron_function xpos).continuousOn.comp_continuous
+     (by continuity) (by simp [σpos])
+  refine this.locallyIntegrable.integrable_of_isBigO_atTop_of_norm_eq_norm_neg
+    ?_ (PerronVertIsTheta xpos).isBigO ?_
+  · refine univ_mem' fun y ↦ ?_
+    show ‖perron x (↑σ + ↑y * I)‖ = ‖perron x (↑σ + ↑(-y) * I)‖
+    have : (↑σ + ↑(-y) * I) = conj (↑σ + ↑y * I) := Complex.ext (by simp) (by simp)
+    simp_rw [this, perron_conj xpos.le, Complex.norm_eq_abs, abs_conj]
+  · refine ⟨Ioi 1, Ioi_mem_atTop 1, integrableOn_Ioi_rpow_of_lt (show (-2 : ℝ) < -1 by norm_num)
+      (show (0 : ℝ) < 1 by norm_num) |>.congr_fun (fun y hy ↦ ?_) measurableSet_Ioi⟩
+    beta_reduce
+    rw [rpow_neg (show (0 : ℝ) < 1 by norm_num |>.trans hy |>.le), inv_eq_one_div, rpow_two]
 
 /-%%
 We are ready for the first case of the Perron formula, namely when $x<1$:
@@ -314,7 +343,7 @@ tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}
       atTop (𝓝 (VerticalIntegral f σ'' - VerticalIntegral f σ')) := by
     let g (y : ℝ) := ∫ (x : ℝ) in σ'..σ'', f (↑x + ↑y * I)
     refine RectangleIntegral_tendsTo_VerticalIntegral ?_ ?_
-      (PerronVertIntegrable xpos) (PerronVertIntegrable xpos)
+      (PerronVertIntegrable xpos σ'pos) (PerronVertIntegrable xpos σ''pos)
     all_goals apply tendsto_zero_iff_norm_tendsto_zero.mpr
     · sorry
     · sorry
