@@ -9,13 +9,6 @@ open scoped Topology Interval ENNReal BigOperators
 variable {X E : Type*} [MeasurableSpace X] [TopologicalSpace X] [NormedAddCommGroup E]
   {f : X → E} {μ : Measure X}
 
-theorem integrable_iff_integrableAtFilter_cocompact :
-    Integrable f μ ↔ (IntegrableAtFilter f (cocompact X) μ ∧ LocallyIntegrable f μ) := by
-  refine ⟨fun hf ↦ ⟨hf.integrableAtFilter _, hf.locallyIntegrable⟩, fun ⟨⟨s, hsc, hs⟩, hloc⟩ ↦ ?_⟩
-  obtain ⟨t, htc, ht⟩ := mem_cocompact'.mp hsc
-  rewrite [← integrableOn_univ, ← compl_union_self s, integrableOn_union]
-  exact ⟨(hloc.integrableOn_isCompact htc).mono ht le_rfl, hs⟩
-
 theorem integrable_iff_integrableAtFilter_atBot_atTop [LinearOrder X] [CompactIccSpace X] :
     Integrable f μ ↔
     (IntegrableAtFilter f atBot μ ∧ IntegrableAtFilter f atTop μ) ∧ LocallyIntegrable f μ := by

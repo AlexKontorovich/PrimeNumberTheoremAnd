@@ -49,7 +49,7 @@ theorem _root_.Asymptotics.IsBigO.integrableAtFilter [IsMeasurablyGenerated l]
 /-- Variant of `MeasureTheory.Integrable.mono` taking `f =O[⊤] (g)` instead of `‖f(x)‖ ≤ ‖g(x)‖` -/
 theorem _root_.Asymptotics.IsBigO.integrable (hfm : AEStronglyMeasurable f μ)
     (hf : f =O[⊤] g) (hg : Integrable g μ) : Integrable f μ := by
-  rewrite [← integrableAtFilter_top] at *
+  rewrite [← MeasureTheory.integrableAtFilter_top] at *
   exact hf.integrableAtFilter ⟨univ, univ_mem, hfm.restrict⟩ hg
 
 variable [TopologicalSpace α] [SecondCountableTopology α]
