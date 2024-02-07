@@ -381,21 +381,22 @@ lemma map_conj (hx : 0 ≤ x) (s : ℂ) : f x (conj s) = conj (f x s) := by
   · rewrite [Complex.arg_ofReal_of_nonneg hx]
     exact pi_ne_zero.symm
 
-lemma isTheta_atTop (xpos : 0 < x) :
+lemma isTheta_atBot_atTop (xpos : 0 < x) :
+    ((fun (y : ℝ) ↦ f x (σ + y * I)) =Θ[atBot] fun (y : ℝ) ↦ 1 / y^2) ∧
     (fun (y : ℝ) ↦ f x (σ + y * I)) =Θ[atTop] fun (y : ℝ) ↦ 1 / y^2 := by
   have hx : (x : ℂ) ≠ 0 := ofReal_ne_zero.mpr (ne_of_gt xpos)
-  apply IsTheta.div
+  refine isTheta_sup.mp (IsTheta.div ?_ ?_)
   · simp_rw [cpow_add _ _ hx, (by norm_num : (fun (_ : ℝ) ↦ (1 : ℝ)) = fun _ ↦ 1 * 1)]
     refine IsTheta.mul (isTheta_const_const ?_ (by norm_num)) (isTheta_norm_left.mp ?_)
     · rewrite [← Complex.ofReal_cpow (le_of_lt xpos), ofReal_ne_zero]
       exact ne_of_gt (rpow_pos_of_pos xpos σ)
     · simp [Complex.abs_cpow_of_ne_zero hx, arg_ofReal_of_nonneg xpos.le]
-  · have h_ix : (fun (x : ℝ) ↦ x * I) =Θ[atTop] id := by
-      refine isTheta_of_norm_eventuallyEq' <| eventuallyEq_of_mem (Ici_mem_atTop 0) fun x hx ↦ ?_
-      simp [abs_eq_self.mpr (show 0 ≤ x from hx)]
-    have h_1ix {c : ℂ} : (fun (_ : ℝ) => c) =o[atTop] fun (x : ℝ) => x * I :=
-      (isLittleO_const_id_atTop c).trans_isTheta h_ix.symm
-    have h_σx : (fun (x : ℝ) ↦ σ + x * I) =Θ[atTop] fun x => x * I := by
+  · have h_ix : (fun (x : ℝ) ↦ x * I) =Θ[atBot ⊔ atTop] id :=
+      isTheta_of_norm_eventuallyEq <| univ_mem' fun x ↦ by simp
+    have h_1ix {c : ℂ} : (fun (_ : ℝ) => c) =o[atBot ⊔ atTop] fun (x : ℝ) => x * I :=
+      isLittleO_sup.mpr ⟨isLittleO_const_id_atBot c, isLittleO_const_id_atTop c⟩
+        |>.trans_isTheta h_ix.symm
+    have h_σx : (fun (x : ℝ) ↦ σ + x * I) =Θ[atBot ⊔ atTop] fun x => x * I := by
       conv => { congr; rfl; ext; rewrite [add_comm] }
       exact IsTheta.add_isLittleO <| h_1ix
     simp_rw [sq]
@@ -422,7 +423,7 @@ By \ref{isHolomorphicOn}, $f$ is continuous, so it is integrable on any interval
     simp [Complex.ext_iff, σ_ne_zero, σ_ne_neg_one]
 --%% Also, $|f(x)| = \Theta(x^{-2})$ as $x\to\infty$,
   refine this.locallyIntegrable.integrable_of_isBigO_atTop_of_norm_eq_norm_neg
-    ?_ (isTheta_atTop xpos).isBigO ?_
+    ?_ (isTheta_atBot_atTop xpos).2.isBigO ?_
 --%% and $|f(-x)| = \Theta(x^{-2})$ as $x\to\infty$.
   · refine univ_mem' fun y ↦ ?_
     show ‖f x (↑σ + ↑y * I)‖ = ‖f x (↑σ + ↑(-y) * I)‖
