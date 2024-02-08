@@ -88,7 +88,33 @@ lemma DiffVertRect_eq_UpperLowerUs {f : ℂ → ℂ} {σ σ' T : ℝ}
     (f_int_σ : Integrable (fun (t : ℝ) ↦ f (σ + t * I)))
     (f_int_σ' : Integrable (fun (t : ℝ) ↦ f (σ' + t * I))) :
   (VerticalIntegral f σ') - (VerticalIntegral f σ) - (RectangleIntegral f (σ - I * T) (σ' + I * T)) = (UpperUIntegral f σ σ' T) - (LowerUIntegral f σ σ' T) := by
-  sorry
+  simp only [VerticalIntegral, UpperUIntegral, RectangleIntegral, LowerUIntegral]
+  have h₁ : (I • ∫ (t : ℝ), f (↑σ' + ↑t * I)) =
+      (I • ∫ (y : ℝ) in (↑σ - I * ↑T).im..(↑σ' + I * ↑T).im, f (↑(↑σ' + I * ↑T).re + ↑y * I))
+      + (I • ∫ (t : ℝ) in Set.Ici T, f (↑σ' + ↑t * I))
+      + (I • ∫ (y : ℝ) in Set.Iic (-T), f (↑σ' - ↑y * I)) := by sorry
+  have h₂ : (I • ∫ (t : ℝ), f (↑σ + ↑t * I)) =
+      (I • ∫ (y : ℝ) in (↑σ - I * ↑T).im..(↑σ' + I * ↑T).im, f (↑(↑σ - I * ↑T).re + ↑y * I)) +
+      (I • ∫ (y : ℝ) in Set.Iic (-T), f (↑σ - ↑y * I)) +
+      (I • ∫ (t : ℝ) in Set.Ici T, f (↑σ + ↑t * I)) := by sorry
+  rw [h₁, h₂]
+
+  generalize I • ∫ (y : ℝ) in (σ - I * T).im..(σ' + I * T).im, f ((σ' + I * T).re + y * I) = a1
+  generalize I • ∫ (t : ℝ) in Set.Ici T, f (↑σ' + ↑t * I) = b1
+  generalize I • ∫ (y : ℝ) in Set.Iic (-T), f (↑σ' - ↑y * I) = c1
+
+  generalize I • ∫ (y : ℝ) in (σ - I * T).im..(↑σ' + I * T).im, f ((σ - I * ↑T).re + y * I) = a2
+  generalize I • ∫ (y : ℝ) in Set.Iic (-T), f (↑σ - ↑y * I) = b2
+  generalize I • ∫ (t : ℝ) in Set.Ici T, f (↑σ + ↑t * I) = c2
+
+  simp only [sub_im, ofReal_im, mul_im, I_re, I_im, ofReal_re, zero_sub, ofReal_neg,
+      sub_re, mul_re, add_re, add_im]
+  ring_nf
+/-%%
+\begin{proof}\uses{UpperUIntegral, LowerUIntegral}
+Follows directly from the definitions.
+\end{proof}
+%%-/
 /-%%
 \begin{proof}\uses{UpperUIntegral, LowerUIntegral}
 Follows directly from the definitions.
