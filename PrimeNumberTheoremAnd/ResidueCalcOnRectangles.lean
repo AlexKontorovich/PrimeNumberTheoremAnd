@@ -569,6 +569,29 @@ which contributes another factor of $1/2$. (Fun! Each of the vertical/horizontal
 \end{proof}
 %%-/
 
+
+theorem ResidueTheoremOnRectangleWithSimplePole_aux1 {z w p z' w' : ℂ}
+    (pInRectInterior : Rectangle z w ∈ nhds p)
+    (fHolo : ContinuousOn f (Rectangle z w \ {p}))
+    (principalPart : Set.EqOn (f) (fun s ↦ 1 / (s - p))
+      (Rectangle z w \ {p})) 
+    :
+    let L : ℂ → ℂ := fun s ↦ (s - z) / (w - z) * (w' - z') + z'
+    let Linv : ℂ → ℂ := fun s' ↦ (s' - z') / (w' - z') * (w - z) + z
+    let p' := L p
+    let f' := fun s' ↦ f (Linv s')
+    RectangleIntegral' f z w = RectangleIntegral' f' z' w' := by
+  sorry
+
+example {z w p : ℂ}
+    (pInRectInterior : Rectangle z w ∈ nhds p)
+    (fHolo : ContinuousOn f (Rectangle z w \ {p}))
+    (principalPart : Set.EqOn (f) (fun s ↦ 1 / (s - p))
+      (Rectangle z w \ {p})) :
+    RectangleIntegral' f z w = 1 := by
+  sorry
+
+
 /-%%
 \begin{lemma}[ResidueTheoremOnRectangleWithSimplePole]\label{ResidueTheoremOnRectangleWithSimplePole}
 \lean{ResidueTheoremOnRectangleWithSimplePole}\leanok
