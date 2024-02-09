@@ -481,27 +481,6 @@ theorem horizontal_integral_isBigO
         measurableSet_uIoc measure_Ioc_lt_top
 
 /-%%
-\begin{lemma}[tendsto_zero_Upper]\label{tendsto_zero_Upper}\lean{Perron.tendsto_zero_Upper}\leanok
-Let $x>0$ and $\sigma',\sigma''\in\R$. Then
-$$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
-goes to $0$ as $t\to\infty$.
-\end{lemma}
-%%-/
-lemma tendsto_zero_Upper (xpos : 0 < x) (σ' σ'' : ℝ) :
-    Tendsto (fun (t : ℝ) => ∫ (σ : ℝ) in σ'..σ'', f x (σ + t * I)) atTop (𝓝 0) := by
-/-%%
-\begin{proof}\leanok
-The numerator is bounded and the denominator tends to infinity.
-\end{proof}
-%%-/
-  have hcast : (fun (y : ℝ) ↦ 1 / y ^ 2) =ᶠ[atTop] fun y ↦ y ^ (-2 : ℝ) := by
-    filter_upwards [Ici_mem_atTop 0]
-    intro y hy
-    rw [rpow_neg hy, inv_eq_one_div, rpow_two]
-  refine isBigO_sup.mp (horizontal_integral_isBigO xpos σ' σ'' volume)
-    |>.2.trans_eventuallyEq hcast |>.trans_tendsto <| tendsto_rpow_neg_atTop (by norm_num)
-
-/-%%
 \begin{lemma}[tendsto_zero_Lower]\label{tendsto_zero_Lower}\lean{Perron.tendsto_zero_Lower}\leanok
 Let $x>0$ and $\sigma',\sigma''\in\R$. Then
 $$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
@@ -522,6 +501,27 @@ The numerator is bounded and the denominator tends to infinity.
   exact isBigO_sup.mp (horizontal_integral_isBigO xpos σ' σ'' volume)
     |>.1.trans_eventuallyEq hcast |>.trans_tendsto
     <| tendsto_rpow_neg_atTop (by norm_num) |>.comp tendsto_neg_atBot_atTop
+
+/-%%
+\begin{lemma}[tendsto_zero_Upper]\label{tendsto_zero_Upper}\lean{Perron.tendsto_zero_Upper}\leanok
+Let $x>0$ and $\sigma',\sigma''\in\R$. Then
+$$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
+goes to $0$ as $t\to\infty$.
+\end{lemma}
+%%-/
+lemma tendsto_zero_Upper (xpos : 0 < x) (σ' σ'' : ℝ) :
+    Tendsto (fun (t : ℝ) => ∫ (σ : ℝ) in σ'..σ'', f x (σ + t * I)) atTop (𝓝 0) := by
+/-%%
+\begin{proof}\leanok
+The numerator is bounded and the denominator tends to infinity.
+\end{proof}
+%%-/
+  have hcast : (fun (y : ℝ) ↦ 1 / y ^ 2) =ᶠ[atTop] fun y ↦ y ^ (-2 : ℝ) := by
+    filter_upwards [Ici_mem_atTop 0]
+    intro y hy
+    rw [rpow_neg hy, inv_eq_one_div, rpow_two]
+  refine isBigO_sup.mp (horizontal_integral_isBigO xpos σ' σ'' volume)
+    |>.2.trans_eventuallyEq hcast |>.trans_tendsto <| tendsto_rpow_neg_atTop (by norm_num)
 
 /-%%
 We are ready for the first case of the Perron formula, namely when $x<1$:
