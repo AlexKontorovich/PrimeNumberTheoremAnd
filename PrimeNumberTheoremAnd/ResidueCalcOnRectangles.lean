@@ -19,6 +19,10 @@ A Rectangle has corners $z$ and $w \in \C$.
 /-- A `Rectangle` has corners `z` and `w`. -/
 def Rectangle (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ [[z.im, w.im]]
 
+lemma Rectangle.symm {z w : ℂ} : Rectangle z w = Rectangle w z := by
+  dsimp [Rectangle]
+  rw [Set.uIcc_comm z.re w.re, Set.uIcc_comm z.im w.im]
+
 /-%%
 \begin{definition}[RectangleIntegral]\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
 A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ and $w$ in $\C$.
@@ -137,6 +141,44 @@ This is in a Mathlib PR.
 \end{proof}
 %%-/
 
+/--
+Given `x₀ a x₁ : ℝ`, `x₀ < a < x₁` and `y₀ y₁ : ℝ` and a function `f : ℂ → ℂ` so that
+both `(t : ℝ) ↦ f(t + y₀ * I)` and `(t : ℝ) ↦ f(t + y₁ * I)` are integrable over both
+`t ∈ Icc x₀ a` and `t ∈ Icc a x₁`, we have that
+`RectangleIntegral f (x₀ + y₀ * I) (x₁ + y₁ * I)` is the sum of
+`RectangleIntegral f (x₀ + y₀ * I) (a + y₁ * I)` and
+`RectangleIntegral f (a + y₀ * I) (x₁ + y₁ * I)`.
+-/
+lemma RectangleIntegralHSplit {f : ℂ → ℂ} {x₀ a x₁ y₀ y₁ : ℝ}
+    (x₀_lt_a : x₀ < a) (a_lt_x₁ : a < x₁)
+    (f_int_x₀_a : IntegrableOn (fun (t : ℝ) ↦ f (t + y₀ * I)) (Icc x₀ a))
+    (f_int_a_x₁ : IntegrableOn (fun (t : ℝ) ↦ f (t + y₁ * I)) (Icc a x₁)) :
+    RectangleIntegral f (x₀ + y₀ * I) (x₁ + y₁ * I) =
+      RectangleIntegral f (x₀ + y₀ * I) (a + y₁ * I) +
+      RectangleIntegral f (a + y₀ * I) (x₁ + y₁ * I) := by
+  dsimp [RectangleIntegral]
+  simp only [mul_one, mul_zero, add_zero, zero_add, sub_self]
+  sorry
+
+/--
+A rectangle integral with corners `a` and `d` can be subdivided into nine smaller rectangles.
+-/
+lemma RectangleSubdivide {a b c d : ℂ} (aRe_lt_bRe : a.re < b.re) (bRe_lt_cRe : b.re < c.re)
+    (cRe_lt_dRe : c.re < d.re) (aIm_lt_bIm : a.im < b.im) (bIm_lt_cIm : b.im < c.im)
+    (cIm_lt_dIm : c.im < d.im) (f : ℂ → ℂ) (fcont : ContinuousOn f (Rectangle a d)) :
+    RectangleIntegral f a d =
+      RectangleIntegral f a b +
+      RectangleIntegral f (b.re + I * a.im) (c.re + I * b.im) +
+      RectangleIntegral f (c.re + I * a.im) (d.re + I * b.im) +
+      RectangleIntegral f (a.re + I * b.im) (b.re + I * c.im) +
+      RectangleIntegral f b c +
+      RectangleIntegral f (c.re + I * b.im) (d.re + I * c.im) +
+      RectangleIntegral f (a.re + I * c.im) (b.re + I * d.im) +
+      RectangleIntegral f (b.re + I * c.im) (c.re + I * d.im) +
+      RectangleIntegral f c d := by
+  dsimp [RectangleIntegral]
+
+  sorry
 
 /-%%
 The next lemma allows to zoom a big rectangle down to a small square, centered at a pole.
@@ -147,24 +189,38 @@ over the rectangle with corners $z$ and $w$ is the same as the integral of $f$ o
 centered at $p$.
 \end{lemma}
 %%-/
-lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ nhds p)
+lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
+    (zIm_lt_wIm : z.im < w.im) (pInRectInterior : Rectangle z w ∈ nhds p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0, RectangleIntegral f z w =
       RectangleIntegral f (-c - I * c + p) (c + I * c + p) := by
+--%% \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
   rw [mem_nhds_iff] at pInRectInterior
   obtain ⟨nhdP, nhdSubRect, nhdOpen, pInNhd⟩ := pInRectInterior
   have : ∃ c₁ > 0, Metric.ball p c₁ ⊆ nhdP := by
     simp_all
     refine Metric.mem_nhds_iff.mp ?_
     exact IsOpen.mem_nhds nhdOpen pInNhd
+--%% Let $c_1$ be small enough that a ball of radius $c_1$ about $p$ is contained in the rectangle.
   obtain ⟨c₁, c₁Pos, c₁SubNhd⟩ := this
   filter_upwards [Ioo_mem_nhdsWithin_Ioi' (half_pos c₁Pos)]
   set c₀ := c₁ / 2
+--%% Let $c < c_1/2$.
   intro c cPos
   simp_all only [gt_iff_lt, Set.mem_Ioo]
+--%% Let $R_1$ be the rectangle with corners $z$ and $-c-i c + p$.
+  let R1 := Rectangle z (-c - I * c + p)
+  let RI1 := RectangleIntegral f z (-c - I * c + p)
+  have fHolo1 : HolomorphicOn f R1 := by
+    sorry
+--%% Let $R_2$ be the rectangle with corners $-c + \Re p + i \Im z$ and $c - i c + p$.
+  let R2 := Rectangle (-c + p.re + I * z.im) (c - I * c + p)
+  let RI2 := RectangleIntegral f (-c + p.re + I * z.im) (c - I * c + p)
+  have fHolo2 : HolomorphicOn f R2 := by
+    sorry
+--%% Let $R_3$ be the rectangle with corners $c + \Re p + i \Im z$ and $\Re w + \Im p - i c$.
   sorry
 /-%%
-\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
 Chop the big rectangle with two vertical cuts and two horizontal cuts into nine smaller rectangles,
 the middle one being the desired square. The integral over each of the eight outer rectangles
 vanishes, since $f$ is holomorphic there. (The constant $c$ being ``small enough'' here just means
