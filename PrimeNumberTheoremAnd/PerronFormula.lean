@@ -1,4 +1,5 @@
 import Mathlib.Analysis.Calculus.ContDiff.Basic
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Uniformly
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
 import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.Asymptotics
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
@@ -381,75 +382,59 @@ lemma map_conj (hx : 0 ≤ x) (s : ℂ) : f x (conj s) = conj (f x s) := by
   · rewrite [Complex.arg_ofReal_of_nonneg hx]
     exact pi_ne_zero.symm
 
-lemma isTheta_atBot_atTop (xpos : 0 < x) :
-    ((fun (y : ℝ) ↦ f x (σ + y * I)) =Θ[atBot] fun (y : ℝ) ↦ 1 / y^2) ∧
-    (fun (y : ℝ) ↦ f x (σ + y * I)) =Θ[atTop] fun (y : ℝ) ↦ 1 / y^2 := by
+theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
+    (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)]
+    ((fun y ↦ 1 / y^2) ∘ Prod.snd) := by
   have hx : (x : ℂ) ≠ 0 := ofReal_ne_zero.mpr (ne_of_gt xpos)
-  refine isTheta_sup.mp (IsTheta.div ?_ ?_)
-  · simp_rw [cpow_add _ _ hx, (by norm_num : (fun (_ : ℝ) ↦ (1 : ℝ)) = fun _ ↦ 1 * 1)]
-    refine IsTheta.mul (isTheta_const_const ?_ (by norm_num)) (isTheta_norm_left.mp ?_)
-    · rewrite [← Complex.ofReal_cpow (le_of_lt xpos), ofReal_ne_zero]
-      exact ne_of_gt (rpow_pos_of_pos xpos σ)
-    · simp [Complex.abs_cpow_of_ne_zero hx, arg_ofReal_of_nonneg xpos.le]
-  · have h_ix : (fun (x : ℝ) ↦ x * I) =Θ[atBot ⊔ atTop] id :=
-      isTheta_of_norm_eventuallyEq <| univ_mem' fun x ↦ by simp
-    have h_1ix {c : ℂ} : (fun (_ : ℝ) => c) =o[atBot ⊔ atTop] fun (x : ℝ) => x * I :=
-      isLittleO_sup.mpr ⟨isLittleO_const_id_atBot c, isLittleO_const_id_atTop c⟩
-        |>.trans_isTheta h_ix.symm
-    have h_σx : (fun (x : ℝ) ↦ σ + x * I) =Θ[atBot ⊔ atTop] fun x => x * I := by
-      conv => { congr; rfl; ext; rewrite [add_comm] }
-      exact IsTheta.add_isLittleO <| h_1ix
+  refine IsTheta.div ?_ ?_
+  · simp_rw [cpow_add _ _ hx]
+    conv => { rhs; ext; rw [show (1 : ℝ) = 1 * 1 by norm_num] }
+    refine IsTheta.mul ?_ ?_
+    · have hcont : ContinuousOn (fun (σ : ℝ) ↦ (x : ℂ) ^ (σ : ℂ)) (uIcc σ' σ'') :=
+        continuousOn_const.cpow continuous_ofReal.continuousOn fun _ _ ↦ Or.inl xpos
+      refine hcont.const_isThetaUniformlyOn_isCompact isCompact_uIcc (by norm_num) (fun i _ ↦ ?_) _
+      rewrite [← Complex.ofReal_cpow (le_of_lt xpos), ofReal_ne_zero]
+      exact ne_of_gt (rpow_pos_of_pos xpos _)
+    · -- in mathlib this `simp` closes the goal, but here it's nonterminal as `norm_one` fails to apply
+      simp? [← isTheta_norm_left, Complex.abs_cpow_of_ne_zero hx, arg_ofReal_of_nonneg xpos.le] says
+        simp only [← isTheta_norm_left, Complex.norm_eq_abs,
+          Complex.abs_cpow_of_ne_zero hx, abs_ofReal, mul_re, ofReal_re, I_re, mul_zero, ofReal_im,
+          I_im, mul_one, sub_self, rpow_zero, arg_ofReal_of_nonneg xpos.le, mul_im, add_zero,
+          zero_mul, Real.exp_zero, ne_eq, one_ne_zero, not_false_eq_true, div_self, norm_one]
+      conv => { lhs; ext; rw [norm_one] }
+  · have h_yI : (fun ((_σ, y) : ℝ × ℝ) ↦ y * I) =Θ[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)] Prod.snd :=
+      isTheta_of_norm_eventuallyEq <| eventuallyEq_of_mem univ_mem fun _ _ ↦ by simp
+    have h_c {c : ℂ} : (fun (_ : ℝ × ℝ) => c) =o[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)] Prod.snd := by
+      rewrite [Filter.prod_sup, isLittleO_sup]
+      exact ⟨isLittleO_const_snd_atBot c _, isLittleO_const_snd_atTop c _⟩
+    have h_fst : (fun (σy : ℝ × ℝ) ↦ (σy.1 : ℂ)) =o[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)]
+        fun (_σ, y) => y * I :=
+      continuous_ofReal.continuousOn.const_isBigOUniformlyOn_isCompact isCompact_uIcc
+        (by norm_num : ‖(1 : ℂ)‖ ≠ 0) _ |>.trans_isLittleO (h_c.trans_isTheta h_yI.symm)
+    have h_σ_yI : (fun (σy : ℝ × ℝ) ↦ σy.1 + σy.2 * I) =Θ[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)]
+        fun ((_σ, y) : ℝ × ℝ) => y * I := by
+      conv => { lhs; ext; rewrite [add_comm] }
+      exact IsTheta.add_isLittleO h_fst
     simp_rw [sq]
-    refine IsTheta.mul (h_σx.trans h_ix) <| IsTheta.add_isLittleO (h_1ix.trans_le fun x ↦ ?_)
-      |>.trans h_σx |>.trans h_ix
-    convert IsROrC.norm_im_le_norm (σ + x * I)
-    simp
+    refine (h_σ_yI.trans h_yI).mul ?_
+    calc
+      _ =Θ[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)] (fun (σy : ℝ × ℝ) ↦ σy.1 + σy.2 * I) := by
+        refine IsTheta.add_isLittleO <| (h_c (c := (1 : ℂ))).trans_isTheta <| h_yI.symm.trans ?_
+        conv => { rhs; ext; rw [add_comm] }
+        refine (IsTheta.add_isLittleO h_fst).symm
+      _ =Θ[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)] _ := h_σ_yI.trans h_yI
 
-lemma uniform_bound {y : ℝ} (hx : 0 < x) (hσ : σ ∈ uIcc σ' σ'') :
-    let C := (sSup ((fun (σ : ℝ) ↦ 2 * ‖σ * (σ + 1)‖) '' uIcc σ' σ''))
-    Real.sqrt C < ‖y‖ → ‖f x (σ + y * I)‖ ≤ ‖((x ^ σ') ⊔ (x ^ σ''))‖ / (y ^ 2 / 2) := by
-  intro C hy
-  rewrite [norm_div]
-  calc
-    _ ≤ ‖((x ^ σ') ⊔ (x ^ σ''))‖ / ‖(↑σ + ↑y * I) * (↑σ + ↑y * I + 1)‖ := by
-      gcongr
-      refine LE.le.trans ?_ (le_norm_self _)
-      rewrite [Complex.norm_eq_abs, Complex.abs_cpow_of_ne_zero (ofReal_ne_zero.mpr (ne_of_gt hx))]
-      suffices x ^ σ ≤ x ^ σ' ∨ x ^ σ ≤ x ^ σ'' by
-        simpa [Complex.arg_ofReal_of_nonneg hx.le, abs_eq_self.mpr hx.le] using this
-      by_cases hx1 : 1 ≤ x
-      · obtain hσ | hσ := le_max_iff.mp hσ.2
-        · exact Or.inl (rpow_le_rpow_of_exponent_le hx1 hσ)
-        · exact Or.inr (rpow_le_rpow_of_exponent_le hx1 hσ)
-      · obtain hσ | hσ := inf_le_iff.mp hσ.1
-        · exact Or.inl <| rpow_le_rpow_of_exponent_ge hx (by linarith) hσ
-        · exact Or.inr <| rpow_le_rpow_of_exponent_ge hx (by linarith) hσ
-    _ ≤ _ := by
-      have : 0 < y ^ 2 := sq_pos_of_pos (Real.sqrt_nonneg _ |>.trans_lt hy) |>.trans_eq (sq_abs y)
-      gcongr
-      replace := IsROrC.norm_re_le_norm <| (↑σ + ↑y * I) * (↑σ + ↑y * I + 1)
-      refine LE.le.trans ?_ this
-      suffices y ^ 2 / 2 ≤ ‖σ * (σ + 1) - y * y‖ by simpa using this
-      rewrite [norm_sub_rev]
-      calc
-        _ ≤ ‖y * y‖ / 2 := by rw [← sq, show ‖y ^ 2‖ = y ^ 2 from abs_eq_self.mpr (sq_nonneg y)]
-        _ ≤ ‖y * y‖ - ‖σ * (σ + 1)‖ := by
-          rewrite [le_sub_iff_add_le, ← le_sub_iff_add_le', sub_half, le_div_iff' (by norm_num)]
-          have h_le_sup : 2 * ‖σ * (σ + 1)‖ ≤ C := by
-            let S := (fun (σ : ℝ) ↦ 2 * ‖σ * (σ + 1)‖) '' uIcc σ' σ''
-            have h_lub : IsLUB S (sSup S) := by
-              refine Real.isLUB_sSup S (nonempty_uIcc.image _) ?_
-              refine isCompact_uIcc.bddAbove_image (Continuous.continuousOn ?_)
-              exact continuous_const.mul (continuous_id'.mul <| continuous_add_right 1).norm
-            exact h_lub.1 <| Set.mem_image_of_mem (fun σ => (2 : ℝ) * ‖σ * (σ + (1 : ℝ))‖) hσ
-          convert h_le_sup.trans_lt (lt_sq_of_sqrt_lt hy) |>.le
-          rw [sq, norm_mul]
-        _ ≤ _ := norm_sub_norm_le _ _
+theorem isTheta_uniformlyOn_uIoc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
+    (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 (uIoc σ' σ'') ×ˢ (atBot ⊔ atTop)]
+    fun (σ, y) ↦ 1 / y^2 := by
+  refine (𝓟 (uIoc σ' σ'')).eq_or_neBot.casesOn (fun hbot ↦ by simp [hbot]) (fun _ ↦ ?_)
+  haveI : NeBot (atBot (α := ℝ) ⊔ atTop) := sup_neBot.mpr (Or.inl atBot_neBot)
+  exact (isTheta_uniformlyOn_uIcc xpos σ' σ'').mono (by simpa using Ioc_subset_Icc_self)
 
-lemma upperEdge_isBigO_atBot_atTop (xpos : 0 < x) :
-    ((fun (y : ℝ) ↦ ∫ (σ : ℝ) in σ'..σ'', f x (σ + y * I)) =O[atBot] fun (y : ℝ) ↦ 1 / y^2) ∧
-    (fun (y : ℝ) ↦ ∫ (σ : ℝ) in σ'..σ'', f x (σ + y * I)) =O[atTop] fun (y : ℝ) ↦ 1 / y^2 := by
-  sorry
+lemma isTheta (xpos : 0 < x) :
+    ((fun (y : ℝ) ↦ f x (σ + y * I)) =Θ[atBot] fun (y : ℝ) ↦ 1 / y^2) ∧
+    (fun (y : ℝ) ↦ f x (σ + y * I)) =Θ[atTop] fun (y : ℝ) ↦ 1 / y^2 :=
+  isTheta_sup.mp <| isTheta_of_isThetaUniformly (isTheta_uniformlyOn_uIcc xpos σ σ) left_mem_uIcc
 
 /-%%
 \begin{lemma}[isIntegrable]\label{isIntegrable}\lean{Perron.isIntegrable}\leanok
@@ -469,7 +454,7 @@ By \ref{isHolomorphicOn}, $f$ is continuous, so it is integrable on any interval
     simp [Complex.ext_iff, σ_ne_zero, σ_ne_neg_one]
 --%% Also, $|f(x)| = \Theta(x^{-2})$ as $x\to\infty$,
   refine this.locallyIntegrable.integrable_of_isBigO_atTop_of_norm_eq_norm_neg
-    ?_ (isTheta_atBot_atTop xpos).2.isBigO ?_
+    ?_ (isTheta xpos).2.isBigO ?_
 --%% and $|f(-x)| = \Theta(x^{-2})$ as $x\to\infty$.
   · refine univ_mem' fun y ↦ ?_
     show ‖f x (↑σ + ↑y * I)‖ = ‖f x (↑σ + ↑(-y) * I)‖
@@ -482,22 +467,18 @@ By \ref{isHolomorphicOn}, $f$ is continuous, so it is integrable on any interval
     rw [rpow_neg (show (0 : ℝ) < 1 by norm_num |>.trans hy |>.le), inv_eq_one_div, rpow_two]
 --%%\end{proof}
 
-/-%%
-\begin{lemma}[tendsto_zero_Lower]\label{tendsto_zero_Lower}\lean{Perron.tendsto_zero_Lower}\leanok
-Let $x>0$ and $\sigma',\sigma''\in\R$. Then
-$$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
-goes to $0$ as $t\to-\infty$.
-\end{lemma}
-%%-/
-lemma tendsto_zero_Lower (xpos : 0 < x) (σ' σ'' : ℝ) :
-    Tendsto (fun (t : ℝ) => ∫ (σ : ℝ) in σ'..σ'', f x (σ + t * I)) atBot (𝓝 0) := by
-  sorry
-/-%%
-\begin{proof}\leanok
-The numerator is bounded and the denominator tends to infinity.
-\end{proof}
-%%-/
-
+theorem horizontal_integral_isBigO
+    {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) (μ : Measure ℝ) [IsLocallyFiniteMeasure μ] :
+    (fun (y : ℝ) => ∫ (σ : ℝ) in σ'..σ'', f x (σ + y * I) ∂μ) =O[atBot ⊔ atTop]
+    fun y ↦ 1 / y^2 := by
+  let g := fun ((σ, y) : ℝ × ℝ) ↦ f x (σ + y * I)
+  calc
+    _ =Θ[atBot ⊔ atTop] fun (y : ℝ) => ∫ (σ : ℝ) in uIoc σ' σ'', g (σ, y) ∂μ :=
+        isTheta_of_norm_eventuallyEq <| eventuallyEq_of_mem univ_mem fun _ _ ↦
+          intervalIntegral.norm_intervalIntegral_eq _ _ _ _
+    _ =O[atBot ⊔ atTop] _ :=
+      (isTheta_uniformlyOn_uIoc xpos σ' σ'').isBigO.set_integral_isBigO
+        measurableSet_uIoc measure_Ioc_lt_top
 
 /-%%
 \begin{lemma}[tendsto_zero_Upper]\label{tendsto_zero_Upper}\lean{Perron.tendsto_zero_Upper}\leanok
@@ -508,12 +489,39 @@ goes to $0$ as $t\to\infty$.
 %%-/
 lemma tendsto_zero_Upper (xpos : 0 < x) (σ' σ'' : ℝ) :
     Tendsto (fun (t : ℝ) => ∫ (σ : ℝ) in σ'..σ'', f x (σ + t * I)) atTop (𝓝 0) := by
-  sorry
 /-%%
 \begin{proof}\leanok
 The numerator is bounded and the denominator tends to infinity.
 \end{proof}
 %%-/
+  have hcast : (fun (y : ℝ) ↦ 1 / y ^ 2) =ᶠ[atTop] fun y ↦ y ^ (-2 : ℝ) := by
+    filter_upwards [Ici_mem_atTop 0]
+    intro y hy
+    rw [rpow_neg hy, inv_eq_one_div, rpow_two]
+  refine isBigO_sup.mp (horizontal_integral_isBigO xpos σ' σ'' volume)
+    |>.2.trans_eventuallyEq hcast |>.trans_tendsto <| tendsto_rpow_neg_atTop (by norm_num)
+
+/-%%
+\begin{lemma}[tendsto_zero_Lower]\label{tendsto_zero_Lower}\lean{Perron.tendsto_zero_Lower}\leanok
+Let $x>0$ and $\sigma',\sigma''\in\R$. Then
+$$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
+goes to $0$ as $t\to-\infty$.
+\end{lemma}
+%%-/
+lemma tendsto_zero_Lower (xpos : 0 < x) (σ' σ'' : ℝ) :
+    Tendsto (fun (t : ℝ) => ∫ (σ : ℝ) in σ'..σ'', f x (σ + t * I)) atBot (𝓝 0) := by
+/-%%
+\begin{proof}\leanok
+The numerator is bounded and the denominator tends to infinity.
+\end{proof}
+%%-/
+  have hcast : (fun (y : ℝ) ↦ 1 / y ^ 2) =ᶠ[atBot] fun y ↦ (-y) ^ (-2 : ℝ) := by
+    filter_upwards [Iic_mem_atBot 0]
+    intro y hy
+    rw [rpow_neg (neg_nonneg.mpr hy), inv_eq_one_div, rpow_two, neg_sq]
+  exact isBigO_sup.mp (horizontal_integral_isBigO xpos σ' σ'' volume)
+    |>.1.trans_eventuallyEq hcast |>.trans_tendsto
+    <| tendsto_rpow_neg_atTop (by norm_num) |>.comp tendsto_neg_atBot_atTop
 
 /-%%
 We are ready for the first case of the Perron formula, namely when $x<1$:
