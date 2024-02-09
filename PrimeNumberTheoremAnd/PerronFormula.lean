@@ -402,27 +402,27 @@ theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
           I_im, mul_one, sub_self, rpow_zero, arg_ofReal_of_nonneg xpos.le, mul_im, add_zero,
           zero_mul, Real.exp_zero, ne_eq, one_ne_zero, not_false_eq_true, div_self, norm_one]
       conv => { lhs; ext; rw [norm_one] }
-  · have h_yI : (fun ((_σ, y) : ℝ × ℝ) ↦ y * I) =Θ[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)] Prod.snd :=
+  · set l := 𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop : Filter ℝ) with hl
+    have h_yI : (fun ((_σ, y) : ℝ × ℝ) ↦ y * I) =Θ[l] Prod.snd :=
       isTheta_of_norm_eventuallyEq <| eventuallyEq_of_mem univ_mem fun _ _ ↦ by simp
-    have h_c {c : ℂ} : (fun (_ : ℝ × ℝ) => c) =o[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)] Prod.snd := by
-      rewrite [Filter.prod_sup, isLittleO_sup]
+    have h_c {c : ℂ} : (fun (_ : ℝ × ℝ) => c) =o[l] Prod.snd := by
+      rewrite [hl, Filter.prod_sup, isLittleO_sup]
       exact ⟨isLittleO_const_snd_atBot c _, isLittleO_const_snd_atTop c _⟩
-    have h_fst : (fun (σy : ℝ × ℝ) ↦ (σy.1 : ℂ)) =o[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)]
+    have h_fst : (fun (σy : ℝ × ℝ) ↦ (σy.1 : ℂ)) =o[l]
         fun (_σ, y) => y * I :=
       continuous_ofReal.continuousOn.const_isBigOUniformlyOn_isCompact isCompact_uIcc
         (by norm_num : ‖(1 : ℂ)‖ ≠ 0) _ |>.trans_isLittleO (h_c.trans_isTheta h_yI.symm)
-    have h_σ_yI : (fun (σy : ℝ × ℝ) ↦ σy.1 + σy.2 * I) =Θ[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)]
-        fun ((_σ, y) : ℝ × ℝ) => y * I := by
+    have h_σ_yI : (fun (σy : ℝ × ℝ) ↦ σy.1 + σy.2 * I) =Θ[l] fun ((_σ, y) : ℝ × ℝ) => y * I := by
       conv => { lhs; ext; rewrite [add_comm] }
       exact IsTheta.add_isLittleO h_fst
     simp_rw [sq]
     refine (h_σ_yI.trans h_yI).mul ?_
     calc
-      _ =Θ[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)] (fun (σy : ℝ × ℝ) ↦ σy.1 + σy.2 * I) := by
+      _ =Θ[l] (fun (σy : ℝ × ℝ) ↦ σy.1 + σy.2 * I) := by
         refine IsTheta.add_isLittleO <| (h_c (c := (1 : ℂ))).trans_isTheta <| h_yI.symm.trans ?_
         conv => { rhs; ext; rw [add_comm] }
         refine (IsTheta.add_isLittleO h_fst).symm
-      _ =Θ[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)] _ := h_σ_yI.trans h_yI
+      _ =Θ[l] _ := h_σ_yI.trans h_yI
 
 theorem isTheta_uniformlyOn_uIoc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 (uIoc σ' σ'') ×ˢ (atBot ⊔ atTop)]
