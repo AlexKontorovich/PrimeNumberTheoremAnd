@@ -387,26 +387,23 @@ theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     ((fun y ↦ 1 / y^2) ∘ Prod.snd) := by
   set l := 𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop : Filter ℝ) with hl
   refine IsTheta.div (isTheta_norm_left.mp ?_) ?_
-  · suffices (fun σy => |x| ^ σy.1) =Θ[l] fun _ => (1 : ℝ) by
+  · suffices (fun (σ, _y) => |x| ^ σ) =Θ[l] fun _ => (1 : ℝ) by
       simpa [Complex.abs_cpow_of_ne_zero <| ofReal_ne_zero.mpr (ne_of_gt xpos),
         arg_ofReal_of_nonneg xpos.le] using this
-    have hcont : ContinuousOn (fun (σ : ℝ) ↦ |x| ^ σ) (uIcc σ' σ'') :=
-      continuousOn_const.rpow continuousOn_id fun _ _ ↦ Or.inl <| ne_of_gt (abs_pos_of_pos xpos)
-    exact hcont.const_isThetaUniformlyOn_isCompact isCompact_uIcc (by norm_num : ‖(1 : ℝ)‖ ≠ 0)
+    exact (continuousOn_const.rpow continuousOn_id fun _ _ ↦ Or.inl <| ne_of_gt (abs_pos_of_pos xpos))
+      |>.const_isThetaUniformlyOn_isCompact isCompact_uIcc (by norm_num)
       (fun i _ ↦ ne_of_gt <| rpow_pos_of_pos (abs_pos_of_pos xpos) _) _
-  · have h_yI : (fun ((_σ, y) : ℝ × ℝ) ↦ y * I) =Θ[l] Prod.snd :=
-      isTheta_of_norm_eventuallyEq (by simp; rfl)
-    have h_c {c : ℂ} : (fun (_ : ℝ × ℝ) => c) =o[l] Prod.snd := by
+  · have h_c {c : ℂ} : (fun (_ : ℝ × ℝ) => c) =o[l] Prod.snd := by
       rewrite [hl, Filter.prod_sup, isLittleO_sup]
       exact ⟨isLittleO_const_snd_atBot c _, isLittleO_const_snd_atTop c _⟩
-    have h_σ_yI : (fun (σy : ℝ × ℝ) ↦ σy.1 + σy.2 * I) =Θ[l] fun ((_σ, y) : ℝ × ℝ) => y * I := by
-      conv => { lhs; ext; rw [add_comm] }
-      exact IsTheta.add_isLittleO <|
-        continuous_ofReal.continuousOn.const_isBigOUniformlyOn_isCompact isCompact_uIcc
+    have h_yI : (fun ((_σ, y) : ℝ × ℝ) ↦ y * I) =Θ[l] Prod.snd :=
+      isTheta_of_norm_eventuallyEq (by simp; rfl)
+    have h_σ_yI : (fun (σy : ℝ × ℝ) ↦ σy.1 + σy.2 * I) =Θ[l] Prod.snd := by
+      refine (IsTheta.isLittleO_add ?_).trans h_yI
+      exact continuous_ofReal.continuousOn.const_isBigOUniformlyOn_isCompact isCompact_uIcc
         (by norm_num : ‖(1 : ℂ)‖ ≠ 0) _ |>.trans_isLittleO (h_c.trans_isTheta h_yI.symm)
-    have h := h_σ_yI.trans h_yI
     simp_rw [sq]
-    exact h.mul <| (IsTheta.add_isLittleO <| h_c.trans_isTheta <| h.symm).trans h
+    exact h_σ_yI.mul <| (IsTheta.add_isLittleO <| h_c.trans_isTheta h_σ_yI.symm).trans h_σ_yI
 
 theorem isTheta_uniformlyOn_uIoc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 (uIoc σ' σ'') ×ˢ (atBot ⊔ atTop)]
