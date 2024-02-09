@@ -385,43 +385,36 @@ lemma map_conj (hx : 0 ≤ x) (s : ℂ) : f x (conj s) = conj (f x s) := by
 theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)]
     ((fun y ↦ 1 / y^2) ∘ Prod.snd) := by
+  set l := 𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop : Filter ℝ) with hl
   have hx : (x : ℂ) ≠ 0 := ofReal_ne_zero.mpr (ne_of_gt xpos)
   refine IsTheta.div ?_ ?_
   · simp_rw [cpow_add _ _ hx]
     conv => { rhs; ext; rw [show (1 : ℝ) = 1 * 1 by norm_num] }
-    refine IsTheta.mul ?_ ?_
+    refine IsTheta.mul ?_ (isTheta_norm_left.mp ?_)
     · have hcont : ContinuousOn (fun (σ : ℝ) ↦ (x : ℂ) ^ (σ : ℂ)) (uIcc σ' σ'') :=
         continuousOn_const.cpow continuous_ofReal.continuousOn fun _ _ ↦ Or.inl xpos
       refine hcont.const_isThetaUniformlyOn_isCompact isCompact_uIcc (by norm_num) (fun i _ ↦ ?_) _
       rewrite [← Complex.ofReal_cpow (le_of_lt xpos), ofReal_ne_zero]
       exact ne_of_gt (rpow_pos_of_pos xpos _)
-    · -- in mathlib this `simp` closes the goal, but here it's nonterminal as `norm_one` fails to apply
-      simp? [← isTheta_norm_left, Complex.abs_cpow_of_ne_zero hx, arg_ofReal_of_nonneg xpos.le] says
-        simp only [← isTheta_norm_left, Complex.norm_eq_abs,
-          Complex.abs_cpow_of_ne_zero hx, abs_ofReal, mul_re, ofReal_re, I_re, mul_zero, ofReal_im,
-          I_im, mul_one, sub_self, rpow_zero, arg_ofReal_of_nonneg xpos.le, mul_im, add_zero,
-          zero_mul, Real.exp_zero, ne_eq, one_ne_zero, not_false_eq_true, div_self, norm_one]
-      conv => { lhs; ext; rw [norm_one] }
-  · set l := 𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop : Filter ℝ) with hl
-    have h_yI : (fun ((_σ, y) : ℝ × ℝ) ↦ y * I) =Θ[l] Prod.snd :=
+    · simp [Complex.abs_cpow_of_ne_zero hx, arg_ofReal_of_nonneg xpos.le, isTheta_rfl]
+  · have h_yI : (fun ((_σ, y) : ℝ × ℝ) ↦ y * I) =Θ[l] Prod.snd :=
       isTheta_of_norm_eventuallyEq <| eventuallyEq_of_mem univ_mem fun _ _ ↦ by simp
     have h_c {c : ℂ} : (fun (_ : ℝ × ℝ) => c) =o[l] Prod.snd := by
       rewrite [hl, Filter.prod_sup, isLittleO_sup]
       exact ⟨isLittleO_const_snd_atBot c _, isLittleO_const_snd_atTop c _⟩
-    have h_fst : (fun (σy : ℝ × ℝ) ↦ (σy.1 : ℂ)) =o[l]
-        fun (_σ, y) => y * I :=
+    have h_fst : (fun (σy : ℝ × ℝ) ↦ (σy.1 : ℂ)) =o[l] fun (_σ, y) => y * I :=
       continuous_ofReal.continuousOn.const_isBigOUniformlyOn_isCompact isCompact_uIcc
         (by norm_num : ‖(1 : ℂ)‖ ≠ 0) _ |>.trans_isLittleO (h_c.trans_isTheta h_yI.symm)
     have h_σ_yI : (fun (σy : ℝ × ℝ) ↦ σy.1 + σy.2 * I) =Θ[l] fun ((_σ, y) : ℝ × ℝ) => y * I := by
-      conv => { lhs; ext; rewrite [add_comm] }
-      exact IsTheta.add_isLittleO h_fst
+      convert IsTheta.add_isLittleO h_fst
+      exact add_comm _ _
     simp_rw [sq]
     refine (h_σ_yI.trans h_yI).mul ?_
     calc
       _ =Θ[l] (fun (σy : ℝ × ℝ) ↦ σy.1 + σy.2 * I) := by
         refine IsTheta.add_isLittleO <| (h_c (c := (1 : ℂ))).trans_isTheta <| h_yI.symm.trans ?_
         conv => { rhs; ext; rw [add_comm] }
-        refine (IsTheta.add_isLittleO h_fst).symm
+        exact (IsTheta.add_isLittleO h_fst).symm
       _ =Θ[l] _ := h_σ_yI.trans h_yI
 
 theorem isTheta_uniformlyOn_uIoc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
@@ -454,16 +447,14 @@ By \ref{isHolomorphicOn}, $f$ is continuous, so it is integrable on any interval
     simp [Complex.ext_iff, σ_ne_zero, σ_ne_neg_one]
 --%% Also, $|f(x)| = \Theta(x^{-2})$ as $x\to\infty$,
   refine this.locallyIntegrable.integrable_of_isBigO_atTop_of_norm_eq_norm_neg
-    ?_ (isTheta xpos).2.isBigO ?_
+    (univ_mem' fun y ↦ ?_) (isTheta xpos).2.isBigO ⟨Ioi 1, Ioi_mem_atTop 1, ?_⟩
 --%% and $|f(-x)| = \Theta(x^{-2})$ as $x\to\infty$.
-  · refine univ_mem' fun y ↦ ?_
-    show ‖f x (↑σ + ↑y * I)‖ = ‖f x (↑σ + ↑(-y) * I)‖
+  · show ‖f x (↑σ + ↑y * I)‖ = ‖f x (↑σ + ↑(-y) * I)‖
     have : (↑σ + ↑(-y) * I) = conj (↑σ + ↑y * I) := Complex.ext (by simp) (by simp)
     simp_rw [this, map_conj xpos.le, Complex.norm_eq_abs, abs_conj]
 --%% Since $g(x) = x^{-2}$ is integrable on $[a,\infty)$ for any $a>0$, we conclude.
-  · refine ⟨Ioi 1, Ioi_mem_atTop 1, integrableOn_Ioi_rpow_of_lt (show (-2 : ℝ) < -1 by norm_num)
-      (show (0 : ℝ) < 1 by norm_num) |>.congr_fun (fun y hy ↦ ?_) measurableSet_Ioi⟩
-    beta_reduce
+  · refine integrableOn_Ioi_rpow_of_lt (show (-2 : ℝ) < -1 by norm_num)
+      (show (0 : ℝ) < 1 by norm_num) |>.congr_fun (fun y hy ↦ ?_) measurableSet_Ioi
     rw [rpow_neg (show (0 : ℝ) < 1 by norm_num |>.trans hy |>.le), inv_eq_one_div, rpow_two]
 --%%\end{proof}
 
@@ -474,8 +465,8 @@ theorem horizontal_integral_isBigO
   let g := fun ((σ, y) : ℝ × ℝ) ↦ f x (σ + y * I)
   calc
     _ =Θ[atBot ⊔ atTop] fun (y : ℝ) => ∫ (σ : ℝ) in uIoc σ' σ'', g (σ, y) ∂μ :=
-        isTheta_of_norm_eventuallyEq <| eventuallyEq_of_mem univ_mem fun _ _ ↦
-          intervalIntegral.norm_intervalIntegral_eq _ _ _ _
+        isTheta_of_norm_eventuallyEq <| univ_mem'
+          fun _ ↦ intervalIntegral.norm_intervalIntegral_eq _ _ _ _
     _ =O[atBot ⊔ atTop] _ :=
       (isTheta_uniformlyOn_uIoc xpos σ' σ'').isBigO.set_integral_isBigO
         measurableSet_uIoc measure_Ioc_lt_top
