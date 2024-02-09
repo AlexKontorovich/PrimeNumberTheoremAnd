@@ -461,7 +461,7 @@ is integrable.
 lemma isIntegrable (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ ≠ -1) :
     Integrable fun (t : ℝ) ↦ f x (σ + t * I) := by
 /-%%
-\begin{proof}\uses{isHolomorphicOn}
+\begin{proof}\uses{isHolomorphicOn}\leanok
 By \ref{isHolomorphicOn}, $f$ is continuous, so it is integrable on any interval.
 %%-/
   have : Continuous (fun (y : ℝ) ↦ f x (σ + y * I)) := by

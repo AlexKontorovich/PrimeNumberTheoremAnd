@@ -150,7 +150,19 @@ centered at $p$.
 lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ nhds p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0, RectangleIntegral f z w =
-      RectangleIntegral f (-c - I * c + p) (c + I * c + p) := by sorry
+      RectangleIntegral f (-c - I * c + p) (c + I * c + p) := by
+  rw [mem_nhds_iff] at pInRectInterior
+  obtain ⟨nhdP, nhdSubRect, nhdOpen, pInNhd⟩ := pInRectInterior
+  have : ∃ c₁ > 0, Metric.ball p c₁ ⊆ nhdP := by
+    simp_all
+    refine Metric.mem_nhds_iff.mp ?_
+    exact IsOpen.mem_nhds nhdOpen pInNhd
+  obtain ⟨c₁, c₁Pos, c₁SubNhd⟩ := this
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (half_pos c₁Pos)]
+  set c₀ := c₁ / 2
+  intro c cPos
+  simp_all only [gt_iff_lt, Set.mem_Ioo]
+  sorry
 /-%%
 \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
 Chop the big rectangle with two vertical cuts and two horizontal cuts into nine smaller rectangles,
