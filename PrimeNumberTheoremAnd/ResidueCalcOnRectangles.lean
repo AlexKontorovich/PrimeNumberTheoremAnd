@@ -229,10 +229,6 @@ that the inner square is strictly contained in the big rectangle.)
 \end{proof}
 %%-/
 
-theorem ResidueTheoremAtOrigin_aux1a1 (f : ℝ → ℝ) : 
-  ∫ (x : ℝ) in (-1)..1, (f x : ℂ) = ∫ (x : ℝ) in (-1)..1, (f x : ℝ) := by
-  exact intervalIntegral.integral_ofReal
-
 theorem ResidueTheoremAtOrigin_aux1a2 (x : ℝ) 
   : 1 / (1 + (ofReal' x) ^ 2) = ofReal' (1 / (1 + x ^ 2)) := by
   simp only [one_div, ofReal_inv, ofReal_add, ofReal_one, ofReal_pow]
@@ -240,7 +236,7 @@ theorem ResidueTheoremAtOrigin_aux1a2 (x : ℝ)
 theorem ResidueTheoremAtOrigin_aux1a3 : 
   ∫ (x : ℝ) in (-1)..1, (1 / (1 + x ^ 2) : ℂ) = ∫ (x : ℝ) in (-1)..1, (1 / (1 + x ^ 2) : ℝ) := by
   simp_rw [ResidueTheoremAtOrigin_aux1a2]
-  exact ResidueTheoremAtOrigin_aux1a1 (fun x => 1 / (1 + x ^ 2))
+  exact intervalIntegral.integral_ofReal (f := (fun x => 1 / (1 + x ^ 2)))
 
 theorem ResidueTheoremAtOrigin_aux1a : 
   ∫ (x : ℝ) in (-1)..1, (1 / (1 + x ^ 2) : ℂ) = ↑(arctan 1) - ↑(arctan (-1)) := by
@@ -261,8 +257,7 @@ theorem ResidueTheoremAtOrigin_aux1b (x : ℝ)
       exact rfl
     linarith
   apply hu₁.mul_left_cancel
-  rw [mul_sub]
-  rw [(IsUnit.mul_inv_eq_one hu₁).mpr rfl]
+  rw [mul_sub, (IsUnit.mul_inv_eq_one hu₁).mpr rfl]
   have hu₂ : IsUnit (x + I) := by
     apply Ne.isUnit
     by_contra h
@@ -275,8 +270,7 @@ theorem ResidueTheoremAtOrigin_aux1b (x : ℝ)
   apply hu₂.mul_left_cancel
   rw [mul_sub, ← mul_assoc]
   nth_rw 2 [mul_comm]
-  rw [← mul_assoc]
-  rw [(IsUnit.inv_mul_eq_one hu₂).mpr rfl]
+  rw [← mul_assoc, (IsUnit.inv_mul_eq_one hu₂).mpr rfl]
   symm
   rw [← mul_assoc]
   have : (x + I) * (x + -I) = 1 + x^2 := by
@@ -284,7 +278,7 @@ theorem ResidueTheoremAtOrigin_aux1b (x : ℝ)
     simp only [I_sq, sub_neg_eq_add]
     rw [add_comm]                                    
   rw [this]
-  simp
+  simp only [one_div, mul_one, one_mul, add_sub_add_left_eq_sub, sub_neg_eq_add]
   rw [← mul_assoc, mul_comm, ← mul_assoc]
   have : IsUnit (1 + (x : ℂ)^2) := by
     have : (x + I) * (x + -I) = 1 + (x : ℂ)^2 := by
@@ -300,32 +294,26 @@ theorem integrable_of_continuous (a b : ℝ) (A : Type) [NormedRing A] (f : ℝ 
   IntervalIntegrable f volume a b := by
   let g : ℝ → A := fun _ ↦ 1
   have : IntervalIntegrable g volume a b := intervalIntegrable_const
-  have := IntervalIntegrable.mul_continuousOn this hf
-  simp at this
-  exact this
-
-theorem continuous_of_inverse_continuous_nonzero (a b : ℝ) (f : ℝ → ℂ) (hf : ContinuousOn f [[a,b]]) (h : ∀ y ∈ [[a,b]], f y ≠ 0) :
-  ContinuousOn (fun x ↦ (f x)⁻¹) [[a, b]] := by
-  apply ContinuousOn.inv₀ hf h
+  have := IntervalIntegrable.mul_continuousOn (intervalIntegrable_const : IntervalIntegrable g volume a b) hf
+  simpa only [one_mul]
 
 theorem ResidueTheoremAtOrigin_aux1c (a b : ℝ) :
     let f : ℝ → ℂ := fun y => (y + I)⁻¹
     IntervalIntegrable f volume a b := by
   intro f
   have : ContinuousOn f [[a, b]] := by
-    simp
-    apply continuous_of_inverse_continuous_nonzero a b (fun y ↦ (y + I)) _
-    · simp only [ne_eq, inv_eq_zero, Subtype.forall]
-      intro x _
-      by_contra h
-      have : (x + I).im = 1 := by
-        simp only [add_im, ofReal_im, I_im, zero_add]
-      rw [h] at this
-      absurd this
-      norm_num
-    apply ContinuousOn.add _ _
-    · exact Continuous.continuousOn (IsROrC.continuous_ofReal (K := ℂ))
-    exact continuousOn_const
+    apply ContinuousOn.inv₀ (f := ((fun y ↦ (y + I)) : ℝ → ℂ))
+    · apply ContinuousOn.add _ _
+      · exact Continuous.continuousOn (IsROrC.continuous_ofReal (K := ℂ))
+      exact continuousOn_const
+    simp only [ne_eq, inv_eq_zero, Subtype.forall]
+    intro x _
+    by_contra h
+    have : (x + I).im = 1 := by
+      simp only [add_im, ofReal_im, I_im, zero_add]
+    rw [h] at this
+    absurd this
+    norm_num
   exact integrable_of_continuous a b ℂ f this
 
 theorem ResidueTheoremAtOrigin_aux1c' (a b : ℝ) :
@@ -334,18 +322,18 @@ theorem ResidueTheoremAtOrigin_aux1c' (a b : ℝ) :
   intro f
   have : ContinuousOn f [[a, b]] := by
     simp
-    apply continuous_of_inverse_continuous_nonzero a b (fun y ↦ (y + -I)) _
-    · simp only [ne_eq, inv_eq_zero, Subtype.forall]
-      intro x _
-      by_contra h
-      have : (x + -I).im = -1 := by
-        simp only [add_im, ofReal_im, neg_im, I_im, zero_add]
-      rw [h] at this
-      absurd this
-      norm_num
-    apply ContinuousOn.add _ _
-    · exact Continuous.continuousOn (IsROrC.continuous_ofReal (K := ℂ))
-    exact continuousOn_const
+    apply ContinuousOn.inv₀ (f := ((fun y ↦ (y + -I)) : ℝ → ℂ))
+    · apply ContinuousOn.add _ _
+      · exact Continuous.continuousOn (IsROrC.continuous_ofReal (K := ℂ))
+      exact continuousOn_const
+    simp only [ne_eq, inv_eq_zero, Subtype.forall]
+    intro x _
+    by_contra h
+    have : (x + -I).im = -1 := by
+      simp only [add_im, ofReal_im, neg_im, I_im, zero_add]
+    rw [h] at this
+    absurd this
+    norm_num
   exact integrable_of_continuous a b ℂ f this
 
 theorem ResidueTheoremAtOrigin_aux1 :
@@ -359,9 +347,8 @@ theorem ResidueTheoremAtOrigin_aux1 :
       intro x
       exact ResidueTheoremAtOrigin_aux1b x
     simp_rw [this]
-    rw [intervalIntegral.integral_const_mul (2 * I)]
-    rw [ResidueTheoremAtOrigin_aux1a]
-    simp
+    rw [intervalIntegral.integral_const_mul (2 * I), ResidueTheoremAtOrigin_aux1a]
+    simp only [arctan_one, ofReal_div, ofReal_ofNat, arctan_neg, ofReal_neg, sub_neg_eq_add]
     ring
   exact ResidueTheoremAtOrigin_aux1c' (-1) 1
   exact ResidueTheoremAtOrigin_aux1c (-1) 1
@@ -378,8 +365,7 @@ theorem ResidueTheoremAtOrigin_aux2b (y : ℝ) : (1 + y * I)⁻¹ - (-1 + y * I)
       exact rfl
     linarith
   apply hu₁.mul_left_cancel
-  rw [mul_sub]
-  rw [(IsUnit.mul_inv_eq_one hu₁).mpr rfl]
+  rw [mul_sub, (IsUnit.mul_inv_eq_one hu₁).mpr rfl]
   have hu₂ : IsUnit (-1 + y * I) := by
     apply Ne.isUnit
     by_contra h
@@ -393,8 +379,7 @@ theorem ResidueTheoremAtOrigin_aux2b (y : ℝ) : (1 + y * I)⁻¹ - (-1 + y * I)
   apply hu₂.mul_left_cancel
   rw [mul_sub, ← mul_assoc]
   nth_rw 3 [mul_comm]
-  rw [← mul_assoc]
-  rw [(IsUnit.inv_mul_eq_one hu₂).mpr rfl]
+  rw [← mul_assoc, (IsUnit.inv_mul_eq_one hu₂).mpr rfl]
   symm
   rw [← mul_assoc]
   have : (-1 + y * I) * (1 + y * I) = -1 - y ^ 2 := by
@@ -402,12 +387,11 @@ theorem ResidueTheoremAtOrigin_aux2b (y : ℝ) : (1 + y * I)⁻¹ - (-1 + y * I)
     simp only [I_sq, mul_neg, mul_one]
     rfl
   rw [this]
-  simp
+  simp only [one_div, mul_one, one_mul, add_sub_add_right_eq_sub]
   rw [← mul_assoc, mul_comm, ← mul_assoc]
   have : (-1 - (y : ℂ)^2) = -(1 + y ^ 2) := by
     ring
-  rw [this]
-  rw [mul_neg]
+  rw [this, mul_neg]
   have : IsUnit (1 + (y : ℂ) ^ 2) := by
     have : (1 - y * I) * (1 + y * I) = 1 + y ^ 2 := by
       ring_nf
@@ -432,21 +416,20 @@ theorem ResidueTheoremAtOrigin_aux2c (a b : ℝ) :
     IntervalIntegrable f volume a b := by
   intro f
   have : ContinuousOn f [[a, b]] := by
-    simp
-    apply continuous_of_inverse_continuous_nonzero a b (fun y ↦ (1 + y * I)) _
-    · simp only [ne_eq, inv_eq_zero, Subtype.forall]
-      intro x _
-      by_contra h
-      have : (1 + x * I).re = 1 := by
-        simp only [add_re, one_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-          sub_self, add_zero]
-      rw [h] at this
-      simp only [zero_re, zero_ne_one] at this 
-    apply ContinuousOn.add _ _
-    · exact continuousOn_const
-    apply ContinuousOn.mul _ _
-    · exact Continuous.continuousOn (IsROrC.continuous_ofReal (K := ℂ))
-    exact continuousOn_const
+    apply ContinuousOn.inv₀ (f := ((fun y ↦ (1 + y * I)) : ℝ → ℂ))
+    · apply ContinuousOn.add _ _
+      · exact continuousOn_const
+      apply ContinuousOn.mul _ _
+      · exact Continuous.continuousOn (IsROrC.continuous_ofReal (K := ℂ))
+      exact continuousOn_const
+    simp only [ne_eq, inv_eq_zero, Subtype.forall]
+    intro x _
+    by_contra h
+    have : (1 + x * I).re = 1 := by
+      simp only [add_re, one_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+        sub_self, add_zero]
+    rw [h] at this
+    simp only [zero_re, zero_ne_one] at this 
   exact integrable_of_continuous a b ℂ f this
 
 theorem ResidueTheoremAtOrigin_aux2c' (a b : ℝ) :
@@ -454,23 +437,22 @@ theorem ResidueTheoremAtOrigin_aux2c' (a b : ℝ) :
     IntervalIntegrable f volume a b := by
   intro f
   have : ContinuousOn f [[a, b]] := by
-    simp
-    apply continuous_of_inverse_continuous_nonzero a b (fun y ↦ (-1 + y * I)) _
-    · simp only [ne_eq, inv_eq_zero, Subtype.forall]
-      intro x _
-      by_contra h
-      have : (-1 + x * I).re = -1 := by
-        simp only [add_re, neg_re, one_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im,
-          mul_one, sub_self, add_zero]
-      rw [h] at this
-      simp only [zero_re] at this
-      absurd this
-      norm_num
-    apply ContinuousOn.add _ _
-    · exact continuousOn_const
-    apply ContinuousOn.mul _ _
-    · exact Continuous.continuousOn (IsROrC.continuous_ofReal (K := ℂ))
-    exact continuousOn_const
+    apply ContinuousOn.inv₀ (f := ((fun y ↦ (-1 + y * I)) : ℝ → ℂ))
+    · apply ContinuousOn.add _ _
+      · exact continuousOn_const
+      apply ContinuousOn.mul _ _
+      · exact Continuous.continuousOn (IsROrC.continuous_ofReal (K := ℂ))
+      exact continuousOn_const
+    simp only [ne_eq, inv_eq_zero, Subtype.forall]
+    intro x _
+    by_contra h
+    have : (-1 + x * I).re = -1 := by
+      simp only [add_re, neg_re, one_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im,
+        mul_one, sub_self, add_zero]
+    rw [h] at this
+    simp only [zero_re] at this
+    absurd this
+    norm_num
   exact integrable_of_continuous a b ℂ f this
 
 theorem ResidueTheoremAtOrigin_aux2 :
@@ -478,17 +460,15 @@ theorem ResidueTheoremAtOrigin_aux2 :
     I * ∫ (y : ℝ) in (-0 - 1)..0 + 1, 1 / ((-1 - 0 : ℝ) + y * I) = π * I
   := by
   simp only [add_zero, ofReal_one, one_div, neg_zero, zero_sub, zero_add, sub_zero, ofReal_neg]
-  rw [← mul_sub]
-  rw [mul_comm (π : ℂ) I]
+  rw [← mul_sub, mul_comm (π : ℂ) I]
   simp only [mul_eq_mul_left_iff, I_ne_zero, or_false]
   rw [← intervalIntegral.integral_sub]
   · have : ∀ y : ℝ, (1 + y * I)⁻¹ - (-1 + y * I)⁻¹ = 2 * (1 / (1 + (y : ℝ)^2)) := by
       intro y
       exact ResidueTheoremAtOrigin_aux2b y
     simp_rw [this]
-    rw [intervalIntegral.integral_const_mul 2]
-    rw [ResidueTheoremAtOrigin_aux1a]
-    simp
+    rw [intervalIntegral.integral_const_mul 2, ResidueTheoremAtOrigin_aux1a]
+    simp only [arctan_one, ofReal_div, ofReal_ofNat, arctan_neg, ofReal_neg, sub_neg_eq_add]
     ring
   exact ResidueTheoremAtOrigin_aux2c (-1) 1
   exact ResidueTheoremAtOrigin_aux2c' (-1) 1
@@ -502,8 +482,7 @@ The rectangle (square) integral of $f(s) = 1/s$ with corners $-1-i$ and $1+i$ is
 lemma ResidueTheoremAtOrigin :
     RectangleIntegral' (fun s ↦ 1 / s) (-1 - I) (1 + I) = 1 := by
   dsimp [RectangleIntegral', RectangleIntegral]
-  rw [ResidueTheoremAtOrigin_aux1]
-  rw [add_sub_assoc]
+  rw [ResidueTheoremAtOrigin_aux1, add_sub_assoc]
   have := ResidueTheoremAtOrigin_aux2
   rw [ResidueTheoremAtOrigin_aux2]
   have : (2 * π * I) ≠ 0 := by
