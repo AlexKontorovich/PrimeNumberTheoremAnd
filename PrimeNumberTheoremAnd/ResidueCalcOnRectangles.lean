@@ -229,18 +229,18 @@ that the inner square is strictly contained in the big rectangle.)
 \end{proof}
 %%-/
 
-theorem ResidueTheoremAtOrigin_aux1a2 (x : ℝ) 
+theorem ResidueTheoremAtOrigin_aux1a_aux1 (x : ℝ)
   : 1 / (1 + (ofReal' x) ^ 2) = ofReal' (1 / (1 + x ^ 2)) := by
   simp only [one_div, ofReal_inv, ofReal_add, ofReal_one, ofReal_pow]
 
-theorem ResidueTheoremAtOrigin_aux1a3 : 
+theorem ResidueTheoremAtOrigin_aux1a_aux2 :
   ∫ (x : ℝ) in (-1)..1, (1 / (1 + x ^ 2) : ℂ) = ∫ (x : ℝ) in (-1)..1, (1 / (1 + x ^ 2) : ℝ) := by
-  simp_rw [ResidueTheoremAtOrigin_aux1a2]
+  simp_rw [ResidueTheoremAtOrigin_aux1a_aux1]
   exact intervalIntegral.integral_ofReal (f := (fun x => 1 / (1 + x ^ 2)))
 
-theorem ResidueTheoremAtOrigin_aux1a : 
+theorem ResidueTheoremAtOrigin_aux1a :
   ∫ (x : ℝ) in (-1)..1, (1 / (1 + x ^ 2) : ℂ) = ↑(arctan 1) - ↑(arctan (-1)) := by
-  rw [ResidueTheoremAtOrigin_aux1a3]
+  rw [ResidueTheoremAtOrigin_aux1a_aux2]
   simp only [one_div, integral_inv_one_add_sq, arctan_one, arctan_neg, sub_neg_eq_add, ofReal_add,
     ofReal_div, ofReal_ofNat, ofReal_neg]
 
@@ -491,7 +491,7 @@ lemma ResidueTheoremAtOrigin :
   field_simp
   ring
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 The bottom is:
 $$
 \frac1{2\pi i}
