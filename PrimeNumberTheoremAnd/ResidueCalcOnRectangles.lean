@@ -161,7 +161,8 @@ If $f$ is holomorphic on a rectangle $z$ and $w$, then the integral of $f$ over 
 %%-/
 theorem HolomorphicOn.vanishesOnRectangle {f : ℂ → ℂ} {U : Set ℂ} {z w : ℂ}
     (f_holo : HolomorphicOn f U) (hU : Rectangle z w ⊆ U) :
-    RectangleIntegral f z w = 0 := by sorry -- mathlib4\#9598
+    RectangleIntegral f z w = 0 :=
+  integral_boundary_rect_eq_zero_of_differentiableOn f z w (f_holo.mono hU)
 /-%%
 \begin{proof}\leanok
 This is in a Mathlib PR.
@@ -302,7 +303,7 @@ theorem ResidueTheoremAtOrigin_aux1b (x : ℝ)
   have : (x + I) * (x + -I) = 1 + x^2 := by
     ring_nf
     simp only [I_sq, sub_neg_eq_add]
-    rw [add_comm]                                    
+    rw [add_comm]
   rw [this]
   simp only [one_div, mul_one, one_mul, add_sub_add_left_eq_sub, sub_neg_eq_add]
   rw [← mul_assoc, mul_comm, ← mul_assoc]
@@ -455,7 +456,7 @@ theorem ResidueTheoremAtOrigin_aux2c (a b : ℝ) :
       simp only [add_re, one_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
         sub_self, add_zero]
     rw [h] at this
-    simp only [zero_re, zero_ne_one] at this 
+    simp only [zero_re, zero_ne_one] at this
   exact integrable_of_continuous a b ℂ f this
 
 theorem ResidueTheoremAtOrigin_aux2c' (a b : ℝ) :

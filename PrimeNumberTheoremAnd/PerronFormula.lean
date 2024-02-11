@@ -528,7 +528,8 @@ tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
 --%% The rectangle integral of $f$ with corners $\sigma-iT$ and $\sigma+iT$ is zero.
   have rectInt (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') (T : ℝ) :
       RectangleIntegral f (σ' - I * T) (σ'' + I * T) = 0
-  · refine fHolo.vanishesOnRectangle fun z h_rect ↦ not_or.mpr (?_ : ¬z = 0 ∧ ¬z = -1)
+  · refine integral_boundary_rect_eq_zero_of_differentiableOn f _ _
+      (fHolo.mono fun z h_rect ↦ not_or.mpr (?_ : ¬z = 0 ∧ ¬z = -1))
     simp_rw [Complex.ext_iff, ← not_or, Complex.zero_re, show (-1 : ℂ).re = -1 from rfl]
     have : σ' ≤ z.re ∨ σ'' ≤ z.re := by simpa using h_rect.1.1
     intro hc; cases hc <;> cases this <;> linarith [σ'pos, σ''pos]
