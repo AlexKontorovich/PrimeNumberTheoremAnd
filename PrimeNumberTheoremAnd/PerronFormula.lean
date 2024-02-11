@@ -380,7 +380,7 @@ $$\left|
 lemma vertIntBoundLeft (xpos : 0 < x) :
     ∃ C, ∀ (σ : ℝ) (_ : σ < -3 / 2), Complex.abs (VerticalIntegral' (f x) σ) ≤ x ^ σ * C := by
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{VerticalIntegral}
 %%-/
   /- This proof is adapted from `vertIntBound` -/
