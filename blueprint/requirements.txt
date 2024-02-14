@@ -1,6 +1,7 @@
 plasTeX @ git+https://github.com/plastex/plastex.git
-plastexdepgraph @ git+https://github.com/PatrickMassot/plastexdepgraph
+#plastexdepgraph @ git+https://github.com/PatrickMassot/plastexdepgraph
+plastexdepgraph @ git+https://github.com/ianjauslin-rutgers/plastexdepgraph@fc7e991
 plastexshowmore @ git+https://github.com/PatrickMassot/plastexshowmore
 #leanblueprint @ git+https://github.com/PatrickMassot/leanblueprint.git
-leanblueprint @ git+https://github.com/ianjauslin-rutgers/leanblueprint.git@37a97a68
+leanblueprint @ git+https://github.com/ianjauslin-rutgers/leanblueprint.git@37a0fe9
 
