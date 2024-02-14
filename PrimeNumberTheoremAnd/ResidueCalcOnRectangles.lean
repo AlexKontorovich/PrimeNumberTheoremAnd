@@ -66,7 +66,7 @@ A LowerUIntegral of a function $f$ comes from $\sigma-i\infty$ up to $\sigma-iT$
 %%-/
 noncomputable def LowerUIntegral (f : ℂ → ℂ) (σ σ' T : ℝ) : ℂ :=
     ((∫ x : ℝ in σ..σ', f (x - T * I))
-     - I • (∫ y : ℝ in Iic (-T), f (σ' - y * I)) + I • ∫ y : ℝ in Iic (-T), f (σ - y * I))
+     - I • (∫ y : ℝ in Iic (-T), f (σ' + y * I)) + I • ∫ y : ℝ in Iic (-T), f (σ + y * I))
 
 
 /-%%
