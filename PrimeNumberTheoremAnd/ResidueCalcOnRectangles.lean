@@ -2,6 +2,7 @@ import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.Analytic.Meromorphic
 import Mathlib.Analysis.SpecialFunctions.Integrals
+import Mathlib.MeasureTheory.Measure.Lebesgue.Integral
 import EulerProducts.LSeries
 
 
@@ -69,7 +70,7 @@ A LowerUIntegral of a function $f$ comes from $\sigma-i\infty$ up to $\sigma-iT$
 %%-/
 noncomputable def LowerUIntegral (f : ℂ → ℂ) (σ σ' T : ℝ) : ℂ :=
     ((∫ x : ℝ in σ..σ', f (x - T * I))
-     - I • (∫ y : ℝ in Iic (-T), f (σ' - y * I)) + I • ∫ y : ℝ in Iic (-T), f (σ - y * I))
+     - I • (∫ y : ℝ in Iic (-T), f (σ' + y * I)) + I • ∫ y : ℝ in Iic (-T), f (σ + y * I))
 
 
 /-%%
@@ -152,24 +153,17 @@ lemma DiffVertRect_eq_UpperLowerUs {f : ℂ → ℂ} {σ σ' T : ℝ}
   have h₁ : (I • ∫ (t : ℝ), f (↑σ' + ↑t * I)) =
       (I • ∫ (y : ℝ) in (↑σ - I * ↑T).im..(↑σ' + I * ↑T).im, f (↑(↑σ' + I * ↑T).re + ↑y * I))
       + (I • ∫ (t : ℝ) in Set.Ici T, f (↑σ' + ↑t * I))
-      + (I • ∫ (y : ℝ) in Set.Iic (-T), f (↑σ' - ↑y * I)) := by sorry
+      + (I • ∫ (y : ℝ) in Set.Iic (-T), f (↑σ' + ↑y * I)) := by sorry
   have h₂ : (I • ∫ (t : ℝ), f (↑σ + ↑t * I)) =
       (I • ∫ (y : ℝ) in (↑σ - I * ↑T).im..(↑σ' + I * ↑T).im, f (↑(↑σ - I * ↑T).re + ↑y * I)) +
-      (I • ∫ (y : ℝ) in Set.Iic (-T), f (↑σ - ↑y * I)) +
+      (I • ∫ (y : ℝ) in Set.Iic (-T), f (↑σ + ↑y * I)) +
       (I • ∫ (t : ℝ) in Set.Ici T, f (↑σ + ↑t * I)) := by sorry
   rw [h₁, h₂]
-
-  generalize I • ∫ (y : ℝ) in (σ - I * T).im..(σ' + I * T).im, f ((σ' + I * T).re + y * I) = a1
-  generalize I • ∫ (t : ℝ) in Set.Ici T, f (↑σ' + ↑t * I) = b1
-  generalize I • ∫ (y : ℝ) in Set.Iic (-T), f (↑σ' - ↑y * I) = c1
-
-  generalize I • ∫ (y : ℝ) in (σ - I * T).im..(↑σ' + I * T).im, f ((σ - I * ↑T).re + y * I) = a2
-  generalize I • ∫ (y : ℝ) in Set.Iic (-T), f (↑σ - ↑y * I) = b2
-  generalize I • ∫ (t : ℝ) in Set.Ici T, f (↑σ + ↑t * I) = c2
-
-  simp only [sub_im, ofReal_im, mul_im, I_re, I_im, ofReal_re, zero_sub, ofReal_neg,
-      sub_re, mul_re, add_re, add_im]
+  simp only [sub_im, ofReal_im, mul_im, I_re, I_im, ofReal_re, zero_sub, sub_re, mul_re,  add_re,
+    add_im, ← integral_comp_neg_Ioi, ← integral_Ici_eq_integral_Ioi, ← integral_Ici_eq_integral_Ioi,
+    ofReal_neg, mul_neg, neg_mul, add_left_inj]
   ring_nf
+
 /-%%
 \begin{proof}\uses{UpperUIntegral, LowerUIntegral}
 Follows directly from the definitions.
