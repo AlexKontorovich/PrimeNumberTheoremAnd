@@ -216,7 +216,8 @@ If $f$ is holomorphic on a rectangle $z$ and $w$, then the integral of $f$ over 
 %%-/
 theorem HolomorphicOn.vanishesOnRectangle {f : ℂ → ℂ} {U : Set ℂ} {z w : ℂ}
     (f_holo : HolomorphicOn f U) (hU : Rectangle z w ⊆ U) :
-    RectangleIntegral f z w = 0 := by sorry -- mathlib4\#9598
+    RectangleIntegral f z w = 0 :=
+  integral_boundary_rect_eq_zero_of_differentiableOn f z w (f_holo.mono hU)
 /-%%
 \begin{proof}\leanok
 This is in a Mathlib PR.
