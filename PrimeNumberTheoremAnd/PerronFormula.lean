@@ -234,7 +234,7 @@ lemma integral_one_div_const_add_sq_pos (c : ℝ) (hc : 0 < c) : 0 < ∫ (t : �
   positivity
 
 lemma Integrable.one_div_const_add_sq (c : ℝ) (hc : 0 < c) : Integrable fun (t : ℝ) ↦ 1 / (c + t^2) :=
-  Classical.byContradiction fun h ↦ (integral_one_div_const_add_sq_pos c hc).ne.symm (integral_undef h)
+  .of_integral_ne_zero (integral_one_div_const_add_sq_pos c hc).ne'
 
 lemma integralPosAux'_of_le (c₁ c₂ : ℝ) (c₁_pos : 0 < c₁) (hle : c₁ ≤ c₂) : 0 < ∫ (t : ℝ), 1 / |Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)| := by
   have c₂_pos : 0 < c₂ := by linarith
