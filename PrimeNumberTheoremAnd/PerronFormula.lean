@@ -223,38 +223,71 @@ $$\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$$
 is positive (and hence convergent - since a divergent integral is zero in Lean, by definition).
 \end{lemma}
 %%-/
+
+lemma integral_one_div_const_add_sq_pos (c : ℝ) (hc : 0 < c) : 0 < ∫ (t : ℝ), 1 / (c + t^2) := by
+  have hfun_eq (t : ℝ) : 1 / (c + t^2) = c⁻¹ * (1 + ((Real.sqrt c)⁻¹ * t)^2)⁻¹ := by
+    field_simp [hc.ne.symm]
+  simp_rw [hfun_eq]
+  rw [MeasureTheory.integral_mul_left, Measure.integral_comp_mul_left (fun t ↦ (1+t^2)⁻¹) (a:=(Real.sqrt c)⁻¹)]
+  simp only [inv_inv, abs_eq_self.mpr <| Real.sqrt_nonneg c, smul_eq_mul, gt_iff_lt, inv_pos, hc,
+    mul_pos_iff_of_pos_left, sqrt_pos]
+  simp_rw [inv_eq_one_div, integral_volume_one_div_one_add_sq]
+  positivity
+
+lemma Integrable.one_div_const_add_sq (c : ℝ) (hc : 0 < c) : Integrable fun (t : ℝ) ↦ 1 / (c + t^2) :=
+  Classical.byContradiction fun h ↦ (integral_one_div_const_add_sq_pos c hc).ne.symm (integral_undef h)
+
+lemma integralPosAux'_of_le (c₁ c₂ : ℝ) (c₁_pos : 0 < c₁) (hle : c₁ ≤ c₂) : 0 < ∫ (t : ℝ), 1 / |Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)| := by
+  have c₂_pos : 0 < c₂ := by linarith
+  simp_rw [fun (t : ℝ) ↦ abs_of_pos (show sqrt (c₁ + t^2) * sqrt (c₂ + t^2) > 0 by positivity)]
+
+  have hlower (t : ℝ) : 1 / (c₂ + t^2) ≤ 1 / (Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)) := by
+    gcongr
+    calc
+      _ ≤ Real.sqrt (c₂ + t^2) * Real.sqrt (c₂ + t^2) := ?_
+      _ ≤ c₂ + t^2 := ?_
+    · gcongr
+      apply Real.sqrt_le_sqrt
+      gcongr
+    · rw[←Real.sqrt_mul, sqrt_mul_self] <;> positivity
+
+  have hupper (t : ℝ) : 1 / (Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)) ≤ 1 / (c₁ + t^2)  := by
+    gcongr
+    calc
+      _ ≥ Real.sqrt (c₁ + t^2) * Real.sqrt (c₁ + t^2) := ?_
+      _ ≥ c₁ + t^2 := ?_
+    · gcongr
+      apply Real.sqrt_le_sqrt
+      gcongr
+    · rw[←Real.sqrt_mul, sqrt_mul_self] <;> positivity
+
+  calc 0 < ∫ t, 1 / (c₂ + t^2) := integral_one_div_const_add_sq_pos c₂ c₂_pos
+       _ ≤ ∫ t, 1 / (Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)) := ?_
+
+  apply integral_mono
+  · apply Integrable.one_div_const_add_sq c₂ c₂_pos
+  · apply MeasureTheory.Integrable.mono (g := fun t:ℝ ↦ 1/(c₁ + t^2))
+    · apply Integrable.one_div_const_add_sq c₁ c₁_pos
+    · refine (measurable_const.div <| Measurable.mul ?_ ?_).aestronglyMeasurable <;>
+        exact (measurable_const.add <| measurable_id'.pow_const 2).sqrt
+    refine ae_of_all _ (fun x ↦ ?_)
+    repeat rewrite [norm_of_nonneg (by positivity)]
+    exact hupper x
+  apply hlower
+
+
+lemma integralPosAux' (c₁ c₂ : ℝ) (c₁_pos : 0 < c₁) (c₂_pos : 0 < c₂) : 0 < ∫ (t : ℝ), 1 / |Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)| := by
+  by_cases hc : c₁ ≤ c₂
+  · apply integralPosAux'_of_le c₁ c₂ c₁_pos hc
+  · convert integralPosAux'_of_le c₂ c₁ c₂_pos (by linarith) using 4
+    rw [mul_comm]
+
 lemma integralPosAux : 0 < ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| := by
 /-%%
 \begin{proof}\leanok
 This integral is between $\frac{1}{2}$ and $1$ of the integral of $\frac{1}{1+t^2}$, which is $\pi$.
 %%-/
-  simp_rw [fun (t : ℝ) ↦ abs_of_pos (show sqrt (1 + t^2) * sqrt (2 + t^2) > 0 by positivity)]
-  apply (half_pos <| pi_pos.trans_eq integral_volume_one_div_one_add_sq.symm).trans_le
-  rewrite [← integral_div]
-
-  have h_int1 : Integrable fun (t : ℝ) ↦ 1 / (1 + t^2) := Classical.byContradiction fun hc ↦
-    (integral_volume_one_div_one_add_sq.trans_ne pi_ne_zero) (integral_undef hc)
-  have h_int2 : Integrable fun (t : ℝ) ↦ 1 / (1 + t^2) / 2 := Integrable.div_const h_int1 2
-
-  have h_mono1 (t : ℝ): 1 / (1 + t^2) / 2 ≤ 1 / (sqrt (1 + t^2) * sqrt (2 + t^2)) := by
-    apply (div_div _ _ _).trans_le
-    gcongr 1 / ?_
-    calc
-      _ ≤ sqrt (2 + t^2) * sqrt (2 + t^2) := by gcongr; apply Real.sqrt_le_sqrt; nlinarith
-      _ = 2 + t^2 := by rw [← Real.sqrt_mul, sqrt_mul_self] <;> positivity
-      _ ≤ _ := by nlinarith
-  have h_mono2 (t : ℝ) : 1 / (sqrt (1 + t^2) * sqrt (2 + t^2)) ≤ 1 / (1 + t^2) := by
-    gcongr 1 / ?_
-    calc
-      _ = sqrt (1 + t^2) * sqrt (1 + t^2) := by rw [← Real.sqrt_mul, sqrt_mul_self] <;> positivity
-      _ ≤ _ := by gcongr; apply Real.sqrt_le_sqrt; nlinarith
-
-  refine integral_mono h_int2 (Integrable.mono h_int1 ?_ ?_) h_mono1
-  · refine (measurable_const.div <| Measurable.mul ?_ ?_).aestronglyMeasurable
-    all_goals exact (measurable_const.add <| measurable_id'.pow_const 2).sqrt
-  · refine ae_of_all _ (fun x ↦ ?_)
-    repeat rewrite [norm_of_nonneg (by positivity)]
-    exact h_mono2 x
+  apply integralPosAux' <;> norm_num
 --%%\end{proof}
 
 /-%%
@@ -264,7 +297,6 @@ $$\left|
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
 \end{lemma}
 %%-/
-
 lemma vertIntBound (xpos : 0 < x) (σ_gt_one : 1 < σ) :
     Complex.abs (VerticalIntegral (f x) σ)
       ≤ x ^ σ * ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| := by
@@ -318,16 +350,65 @@ Triangle inequality and pointwise estimate.
 \begin{lemma}[vertIntBoundLeft]\label{vertIntBoundLeft}\lean{Perron.vertIntBoundLeft}\leanok
 Let $x>1$ and $\sigma<-3/2$. Then
 $$\left|
-\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1/4+t^2)(2+t^2)|^{1/2}}dt.$$
 \end{lemma}
 %%-/
 
-lemma vertIntBoundLeft (x_gt_zero : 0 < x) :
-    ∃ C > 0, ∀ (σ : ℝ) (_ : σ < -3 / 2), Complex.abs (VerticalIntegral' (f x) σ) ≤ x ^ σ * C := by
-  sorry
+lemma vertIntBoundLeft (xpos : 0 < x) :
+    ∃ C, ∀ (σ : ℝ) (_ : σ < -3 / 2), Complex.abs (VerticalIntegral' (f x) σ) ≤ x ^ σ * C := by
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{VerticalIntegral}
+%%-/
+  /- This proof is adapted from `vertIntBound` -/
+  use (1/(2*π)) *  ∫ (t : ℝ), 1 / |Real.sqrt (4⁻¹ + t^2) * Real.sqrt (2 + t^2)|
+  intro σ hσ
+  suffices h : Complex.abs (VerticalIntegral (f x) σ) ≤ x^σ * ∫ (t : ℝ), 1 / |Real.sqrt (4⁻¹ + t^2) * Real.sqrt (2 + t^2)| by
+    rw [VerticalIntegral']
+    simp only [one_div, mul_inv_rev, inv_I, neg_mul, map_neg_eq_map, map_mul, abs_I, map_inv₀,
+      abs_ofReal, abs_ofNat, one_mul, ge_iff_le, abs_of_pos Real.pi_pos] at h ⊢
+    convert_to π⁻¹ * 2⁻¹ * Complex.abs (VerticalIntegral (f x) σ) ≤ π⁻¹ * 2⁻¹ * (x ^ σ * ∫ (t : ℝ), |sqrt (4⁻¹ + t ^ 2) * sqrt (2 + t ^ 2)|⁻¹)
+    · ring
+    · gcongr
+  calc
+    _ = ‖∫ (t : ℝ), x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ := ?_
+    _ ≤ ∫ (t : ℝ), ‖x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ := norm_integral_le_integral_norm _
+    _ = ∫ (t : ℝ), x ^ σ / ‖((σ + t * I) * (σ + t * I + 1))‖ := ?_
+    _ = x ^ σ * ∫ (t : ℝ), 1 / (Complex.abs (σ + t * I) * Complex.abs (σ + t * I + 1)) := ?_
+    _ ≤ x ^ σ * ∫ (t : ℝ), 1 / |Real.sqrt (4⁻¹ + t^2) * Real.sqrt (2 + t^2)| := ?_
+  · simp [VerticalIntegral', VerticalIntegral, show 0 ≤ π from le_of_lt Real.pi_pos]
+  · congr with t
+    rw [norm_div, Complex.norm_eq_abs, Complex.abs_cpow_eq_rpow_re_of_pos xpos, add_re, ofReal_re,
+      re_ofReal_mul, I_re, mul_zero, add_zero]
+  · simp_rw [div_eq_mul_inv, integral_mul_left, one_mul, Complex.norm_eq_abs, map_mul]
+  gcongr
+  by_cases hint : Integrable fun (a : ℝ) => 1 / (Complex.abs (σ + ↑a * I) * Complex.abs (↑σ + ↑a * I + 1))
+  swap
+  · rw [integral_undef hint]
+    apply integral_nonneg
+    rw [Pi.le_def]
+    intro t
+    simp only [Pi.zero_apply, one_div, inv_nonneg, abs_nonneg]
+  apply integral_mono hint
+  · have := integralPosAux' (4⁻¹) 2 (by norm_num) (by norm_num)
+    contrapose! this
+    have := integral_undef this
+    simp_rw [this, le_rfl]
+  rw [Pi.le_def]
+  intro t
+  rw [abs_eq_self.mpr (by positivity)]
+  simp only [Complex.abs_apply]
+  rw[mul_comm]
+  gcongr
+  swap
+  · apply sqrt_le_sqrt
+    rw [normSq_add_mul_I, add_le_add_iff_right]
+    nlinarith only [hσ]
+  · apply sqrt_le_sqrt
+    rw [add_right_comm, ← ofReal_one, ← ofReal_add, normSq_add_mul_I, add_le_add_iff_right]
+    ring_nf
+    nlinarith
+/-%%
 Triangle inequality and pointwise estimate.
 \end{proof}
 %%-/
@@ -814,11 +895,11 @@ tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
 --%% Then pull the contour all the way to $(\sigma')$ with $\sigma'<-3/2$.
   have contourPull₃ : ∀ σ' σ'' (_ : σ' ≤ -3/2) (_ : σ'' ≤ -3/2), VerticalIntegral' f σ' = VerticalIntegral' f σ'' := fun σ' σ'' σ'le σ''le ↦ contourPull3 x_gt_one σ'le σ''le
 --%% For $\sigma' < -3/2$, the integral is bounded by $x^{\sigma'}\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$.
-  have VertIntBound : ∃ C > 0, ∀ σ' < -3/2, Complex.abs (VerticalIntegral' f σ') ≤ x^σ' * C :=
+  have VertIntBound : ∃ C, ∀ σ' < -3/2, Complex.abs (VerticalIntegral' f σ') ≤ x^σ' * C :=
     vertIntBoundLeft (by linarith : 0 < x)
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
   have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral' f)) atBot (𝓝 0)
-  · obtain ⟨C, _, hC⟩ := VertIntBound
+  · obtain ⟨C, hC⟩ := VertIntBound
     have := tendsto_rpow_atTop_nhds_zero_of_norm_gt_one x_gt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
     · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _
