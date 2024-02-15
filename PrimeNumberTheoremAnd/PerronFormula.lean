@@ -197,7 +197,6 @@ variable {x σ σ' σ'' T : ℝ}
 noncomputable abbrev f (x : ℝ) := fun (s : ℂ) => x ^ s / (s * (s + 1))
 
 /-%%
-TODO: Change this to the statement of `isHolomorphicOn2` and refactor.
 \begin{lemma}[isHolomorphicOn]\label{isHolomorphicOn}\lean{Perron.isHolomorphicOn}\leanok
 Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 \end{lemma}
@@ -700,6 +699,20 @@ is bounded above on the rectangle with corners at $-c-i*c$ and $c+i*c$ (except a
 lemma diffBddAtZero (x : ℝ) {c : ℝ} (cpos : 0 < c) (c_lt : c < 1/2) :
     BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - 1 / s)) ''
       (Rectangle (-c - I * c) (c + I * c) \ {0})) := by
+  rw [bddAbove_def]
+  use x^2
+  intro y hy
+  simp only [one_div, Function.comp_apply, Complex.norm_eq_abs, mem_image, mem_diff,
+    mem_singleton_iff] at hy
+  obtain ⟨s, ⟨s_memRect, s_nonzero⟩, rfl⟩ := hy
+  have s_ne_neg_one : s ≠ -1 := by
+    intro h
+    rw [h] at s_memRect
+    dsimp [Rectangle] at s_memRect
+    simp only [zero_mul, mul_zero, sub_self, sub_zero, add_zero, neg_zero, one_mul, zero_add,
+      zero_sub] at s_memRect
+    rw [uIcc_of_le (by linarith : -c ≤ c)] at s_memRect
+    sorry
   sorry
 /-%%
 \begin{proof}\uses{keyIdentity}
@@ -879,7 +892,7 @@ lemma formulaGtOne (x_gt_one : 1 < x) (σ_pos : 0 < σ) :
     VerticalIntegral' (fun s ↦ x^s / (s * (s + 1))) σ = 1 - 1 / x := by
 /-%%
 \begin{proof}\leanok
-\uses{isHolomorphicOn2, residuePull1,
+\uses{isHolomorphicOn, residuePull1,
 residuePull2, contourPull3, integralPosAux, vertIntBoundLeft,
 tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,1}$.
