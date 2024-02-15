@@ -190,29 +190,6 @@ Standard.
 \end{proof}
 %%-/
 
--- From PR #9598
-/-- The preimage under `equivRealProd` of `s ×ˢ t` is `s ×ℂ t`. -/
-lemma preimage_equivRealProd_prod (s t : Set ℝ) : equivRealProd ⁻¹' (s ×ˢ t) = s ×ℂ t := rfl
-
--- From PR #9598
-/-- The inequality `s × t ⊆ s₁ × t₁` holds in `ℂ` iff it holds in `ℝ × ℝ`. -/
-lemma reProdIm_subset_iff {s s₁ t t₁ : Set ℝ} : s ×ℂ t ⊆ s₁ ×ℂ t₁ ↔ s ×ˢ t ⊆ s₁ ×ˢ t₁ := by
-  rw [← @preimage_equivRealProd_prod s t, ← @preimage_equivRealProd_prod s₁ t₁]
-  exact Equiv.preimage_subset equivRealProd _ _
-
--- From PR #9598
-/-- If `s ⊆ s₁ ⊆ ℝ` and `t ⊆ t₁ ⊆ ℝ`, then `s × t ⊆ s₁ × t₁` in `ℂ`. -/
-lemma reProdIm_subset_iff' {s s₁ t t₁ : Set ℝ} :
-    s ×ℂ t ⊆ s₁ ×ℂ t₁ ↔ s ⊆ s₁ ∧ t ⊆ t₁ ∨ s = ∅ ∨ t = ∅ := by
-  convert prod_subset_prod_iff
-  exact reProdIm_subset_iff
-
--- Exists in Mathlib; need to update version
-/-- The natural `ContinuousLinearEquiv` from `ℂ` to `ℝ × ℝ`. -/
-noncomputable def equivRealProdCLM : ℂ ≃L[ℝ] ℝ × ℝ :=
-  equivRealProdLm.toContinuousLinearEquivOfBounds 1 (Real.sqrt 2) equivRealProd_apply_le' fun p =>
-    abs_le_sqrt_two_mul_max (equivRealProd.symm p)
-
 namespace Perron
 
 variable {x σ σ' σ'' T : ℝ}
