@@ -112,6 +112,13 @@ lemma rectangle_in_convex {U : Set ℂ} (U_convex : Convex ℝ U) {z w : ℂ} (h
     (hw : w ∈ U) (hzw : (z.re + w.im * I) ∈ U) (hwz : (w.re + z.im * I) ∈ U) :
     Rectangle z w ⊆ U := by sorry -- already exists in mathlib4\#9598
 
+lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w.im) (p : ℂ) :
+    p ∈ Rectangle z w ↔ z.re ≤ p.re ∧ p.re ≤ w.re ∧ z.im ≤ p.im ∧ p.im ≤ w.im := by
+  simp only [Rectangle, uIcc_of_le (by linarith : z.re ≤ w.re),
+    uIcc_of_le (by linarith : z.im ≤ w.im), ← preimage_equivRealProd_prod, Icc_prod_Icc,
+    mem_preimage, equivRealProd_apply, mem_Icc, Prod.mk_le_mk]
+  tauto
+
 -- Exists in Mathlib; need to update version
 /-- The natural `ContinuousLinearEquiv` from `ℂ` to `ℝ × ℝ`. -/
 noncomputable def equivRealProdCLM : ℂ ≃L[ℝ] ℝ × ℝ :=
@@ -165,12 +172,7 @@ lemma DiffVertRect_eq_UpperLowerUs {f : ℂ → ℂ} {σ σ' T : ℝ}
   ring_nf
 
 /-%%
-\begin{proof}\uses{UpperUIntegral, LowerUIntegral}
-Follows directly from the definitions.
-\end{proof}
-%%-/
-/-%%
-\begin{proof}\uses{UpperUIntegral, LowerUIntegral}
+\begin{proof}\uses{UpperUIntegral, LowerUIntegral}\leanok
 Follows directly from the definitions.
 \end{proof}
 %%-/
@@ -446,7 +448,7 @@ lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.r
     (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0, RectangleIntegral f z w =
       RectangleIntegral f (-c - I * c + p) (c + I * c + p) := by
---%% \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
+--%% \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}\leanok
   filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1), SmallSquareInRectangle pInRectInterior]
   intro c cpos hc
   simp only [mem_Ioo] at cpos
@@ -502,8 +504,8 @@ lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.r
     rw [ofReal_add, ofReal_add]
     ring
 /-%%
-Chop the big rectangle with two vertical cuts and two horizontal cuts into nine smaller rectangles,
-the middle one being the desired square. The integral over each of the eight outer rectangles
+Chop the big rectangle with two vertical cuts and two horizontal cuts into smaller rectangles,
+the middle one being the desired square. The integral over each of the outer rectangles
 vanishes, since $f$ is holomorphic there. (The constant $c$ being ``small enough'' here just means
 that the inner square is strictly contained in the big rectangle.)
 \end{proof}
