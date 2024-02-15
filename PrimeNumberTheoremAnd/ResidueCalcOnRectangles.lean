@@ -182,7 +182,7 @@ lemma DiffVertRect_eq_UpperLowerUs {f : ℂ → ℂ} {σ σ' T : ℝ}
   ring_nf
 
 /-%%
-\begin{proof}\uses{UpperUIntegral, LowerUIntegral}
+\begin{proof}\uses{UpperUIntegral, LowerUIntegral}\leanok
 Follows directly from the definitions.
 \end{proof}
 %%-/
