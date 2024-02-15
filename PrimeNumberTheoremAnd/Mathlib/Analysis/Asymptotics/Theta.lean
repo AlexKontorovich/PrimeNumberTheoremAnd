@@ -11,4 +11,4 @@ theorem isTheta_bot : f =Θ[⊥] g := by simp [IsTheta]
 lemma IsTheta.isLittleO_add {f₁ f₂ : α → E'}
     (h : f₁ =o[l] f₂) : (f₁ + f₂) =Θ[l] f₂ := by
   rewrite [add_comm]
-  exact IsTheta.add_isLittleO h
+  exact symm (IsLittleO.right_isTheta_add' h)

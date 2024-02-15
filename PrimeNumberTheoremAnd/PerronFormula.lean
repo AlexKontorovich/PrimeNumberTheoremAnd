@@ -461,7 +461,7 @@ theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
       exact continuous_ofReal.continuousOn.const_isBigOUniformlyOn_isCompact isCompact_uIcc
         (by norm_num : ‖(1 : ℂ)‖ ≠ 0) _ |>.trans_isLittleO (h_c.trans_isTheta h_yI.symm)
     simp_rw [sq]
-    exact h_σ_yI.mul <| (IsTheta.add_isLittleO <| h_c.trans_isTheta h_σ_yI.symm).trans h_σ_yI
+    refine h_σ_yI.mul <| (IsLittleO.right_isTheta_add' <| h_c.trans_isTheta h_σ_yI.symm).symm.trans h_σ_yI
 
 theorem isTheta_uniformlyOn_uIoc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 (uIoc σ' σ'') ×ˢ (atBot ⊔ atTop)]
