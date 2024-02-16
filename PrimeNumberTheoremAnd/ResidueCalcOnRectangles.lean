@@ -387,22 +387,6 @@ lemma rect_subset_of_rect_subset {z w z' w' z'' w'' : ℂ} (h' : Rectangle z' w'
   · obtain _ | _ | _ | _ := h''.2.2.1 <;> simp_all [rect_subset_iff'.mp h']
   · obtain _ | _ | _ | _ := h''.2.2.2 <;> simp_all [rect_subset_iff'.mp h']
 
-lemma mapsTo_left_re (z w : ℂ) :
-    MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) :=
-  fun _ hx ↦ ⟨by simp, by simp [hx]⟩
-
-lemma mapsTo_right_re (z w : ℂ) :
-    MapsTo (fun (y : ℝ) => ↑w.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) :=
-  fun _ hx ↦ ⟨by simp, by simp [hx]⟩
-
-lemma mapsTo_left_im (z w : ℂ) :
-    MapsTo (fun (x : ℝ) => ↑x + z.im * I) [[z.re, w.re]] (Rectangle z w) :=
-  fun _ hx ↦ ⟨by simp [hx], by simp⟩
-
-lemma mapsTo_right_im (z w : ℂ) :
-    MapsTo (fun (x : ℝ) => ↑x + w.im * I) [[z.re, w.re]] (Rectangle z w) :=
-  fun _ hx ↦ ⟨by simp [hx], by simp⟩
-
 /-- Note: try using `by simp` for `h`. -/
 lemma rectangle_disjoint_singleton {z w p : ℂ}
     (h : (p.re < z.re ∧ p.re < w.re) ∨ (p.im < z.im ∧ p.im < w.im) ∨
@@ -466,6 +450,22 @@ lemma RectPull_rectSub4 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
   rect_subset_punctured_rect hc (by simp [sub_eq_neg_add, add_comm])
     (by simp [cpos, RectPull_re_aux zRe_lt_wRe cpos hc])
 
+
+lemma mapsTo_left_re (z w : ℂ) :
+    MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) :=
+  fun _ hx ↦ ⟨by simp, by simp [hx]⟩
+
+lemma mapsTo_right_re (z w : ℂ) :
+    MapsTo (fun (y : ℝ) => ↑w.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) :=
+  fun _ hx ↦ ⟨by simp, by simp [hx]⟩
+
+lemma mapsTo_left_im (z w : ℂ) :
+    MapsTo (fun (x : ℝ) => ↑x + z.im * I) [[z.re, w.re]] (Rectangle z w) :=
+  fun _ hx ↦ ⟨by simp [hx], by simp⟩
+
+lemma mapsTo_right_im (z w : ℂ) :
+    MapsTo (fun (x : ℝ) => ↑x + w.im * I) [[z.re, w.re]] (Rectangle z w) :=
+  fun _ hx ↦ ⟨by simp [hx], by simp⟩
 
 attribute [fun_prop] Complex.continuous_ofReal
 
