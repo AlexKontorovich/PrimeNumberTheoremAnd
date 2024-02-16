@@ -353,23 +353,20 @@ lemma SmallSquareInRectangle {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ 
     rw [normC']
     nlinarith
 
-lemma RectPull_rectSub1 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
-    {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
-    Rectangle (z.re + z.im * I) (w.re + (p.im - c : ℝ) * I) ⊆ Rectangle z w \ {p} := sorry
+lemma rect_subset_iff {z w z' w' : ℂ} :
+    Rectangle z' w' ⊆ Rectangle z w ↔
+    z'.re ∈ [[z.re, w.re]] ∧ z'.im ∈ [[z.im, w.im]] ∧
+    w'.re ∈ [[z.re, w.re]] ∧ w'.im ∈ [[z.im, w.im]] := by
+  sorry
 
-lemma RectPull_rectSub2 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
-    {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
-    Rectangle (z.re + (p.im + c : ℝ) * I) (w.re + w.im * I) ⊆ Rectangle z w \ {p}:= sorry
-
-lemma RectPull_rectSub3 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
-    {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
-    Rectangle (z.re + (p.im - c : ℝ) * I) ((p.re - c : ℝ) + (p.im + c : ℝ) * I)
-      ⊆ Rectangle z w \ {p} := sorry
-
-lemma RectPull_rectSub4 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
-    {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
-    Rectangle ((p.re + c : ℝ) + (p.im - c : ℝ) * I) (w.re + (p.im + c : ℝ) * I)
-      ⊆ Rectangle z w \ {p} := sorry
+/-- Note: Try using `by simp` for `h''`. -/
+lemma rect_subset_of_rect_subset {z w z' w' z'' w'' : ℂ} (h' : Rectangle z' w' ⊆ Rectangle z w)
+    (h'': z''.re ∈ ({z.re, w.re, z'.re, w'.re} : Set ℝ) ∧
+      z''.im ∈ ({z.im, w.im, z'.im, w'.im} : Set ℝ) ∧
+      w''.re ∈ ({z.re, w.re, z'.re, w'.re} : Set ℝ) ∧
+      w''.im ∈ ({z.im, w.im, z'.im, w'.im} : Set ℝ)) :
+    Rectangle z'' w'' ⊆ Rectangle z w := by
+  sorry
 
 lemma mapsTo_left_re (z w : ℂ) :
     MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) :=
@@ -387,14 +384,67 @@ lemma mapsTo_right_im (z w : ℂ) :
     MapsTo (fun (x : ℝ) => ↑x + w.im * I) [[z.re, w.re]] (Rectangle z w) :=
   fun _ hx ↦ ⟨by simp [hx], by simp⟩
 
+lemma rectangle_disjoint {z w p : ℂ}
+    (h : (p.re < z.re ∧ p.re < w.re) ∨ (p.im < z.im ∧ p.im < w.im) ∨
+      (z.re < p.re ∧ w.re < p.re) ∨ (z.im < p.im ∧ w.im < p.im)) :
+    Disjoint (Rectangle z w) {p} := by
+  obtain h | h | h | h := h
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+
+lemma RectPull_re_aux  {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
+    {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
+    z.re < p.re ∧ p.re < w.re := by
+  use (uIcc_of_lt zRe_lt_wRe ▸ (rect_subset_iff.mp hc).1).1.trans_lt (by simp [cpos])
+  exact LT.lt.trans_le (by simp [cpos]) (uIcc_of_lt zRe_lt_wRe ▸ (rect_subset_iff.mp hc).2.2.1).2
+
+lemma RectPull_im_aux  {z w p : ℂ} (zIm_lt_wIm : z.im < w.im)
+    {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
+    z.im < p.im ∧ p.im < w.im := by
+  use (uIcc_of_lt zIm_lt_wIm ▸ (rect_subset_iff.mp hc).2.1).1.trans_lt (by simp [cpos])
+  exact LT.lt.trans_le (by simp [cpos]) (uIcc_of_lt zIm_lt_wIm ▸ (rect_subset_iff.mp hc).2.2.2).2
+
+lemma RectPull_rectSub1 {z w p : ℂ} (zIm_lt_wIm : z.im < w.im)
+    {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
+    Rectangle (z.re + z.im * I) (w.re + (p.im - c : ℝ) * I) ⊆ Rectangle z w \ {p} := by
+  rw [Set.subset_diff]
+  use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add])
+  exact rectangle_disjoint (by simp [cpos, (RectPull_im_aux zIm_lt_wIm cpos hc).1])
+
+lemma RectPull_rectSub2 {z w p : ℂ} (zIm_lt_wIm : z.im < w.im)
+    {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
+    Rectangle (z.re + (p.im + c : ℝ) * I) (w.re + w.im * I) ⊆ Rectangle z w \ {p}:= by
+  rw [Set.subset_diff]
+  use rect_subset_of_rect_subset hc (by simp [add_comm])
+  exact rectangle_disjoint (by simp [cpos, (RectPull_im_aux zIm_lt_wIm cpos hc).2])
+
+lemma RectPull_rectSub3 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
+    {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
+    Rectangle (z.re + (p.im - c : ℝ) * I) ((p.re - c : ℝ) + (p.im + c : ℝ) * I)
+      ⊆ Rectangle z w \ {p} := by
+  rw [Set.subset_diff]
+  use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add, add_comm])
+  exact rectangle_disjoint (by simp [cpos, (RectPull_re_aux zRe_lt_wRe cpos hc).1])
+
+lemma RectPull_rectSub4 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
+    {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
+    Rectangle ((p.re + c : ℝ) + (p.im - c : ℝ) * I) (w.re + (p.im + c : ℝ) * I)
+      ⊆ Rectangle z w \ {p} := by
+  rw [Set.subset_diff]
+  use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add, add_comm])
+  exact rectangle_disjoint (by simp [cpos, (RectPull_re_aux zRe_lt_wRe cpos hc).2])
+
+
 attribute [fun_prop] Complex.continuous_ofReal
 
-lemma RectPull_aux1 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
+lemma RectPull_aux1 {f : ℂ → ℂ} {z w p : ℂ} (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (y : ℝ) ↦ f (z.re + y * I)) volume z.im (p.im - c) := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  refine MapsTo.mono_right ?_ (RectPull_rectSub1 zRe_lt_wRe zIm_lt_wIm cpos hc)
+  refine MapsTo.mono_right ?_ (RectPull_rectSub1 zIm_lt_wIm cpos hc)
   simpa using mapsTo_left_re z (↑w.re + ↑(p.im - c) * I)
 
 lemma RectPull_aux2 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
@@ -404,12 +454,13 @@ lemma RectPull_aux2 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
   sorry
 
-lemma RectPull_aux3 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
+lemma RectPull_aux3 {f : ℂ → ℂ} {z w p : ℂ} (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (y : ℝ) ↦ f (w.re + y * I)) volume z.im (p.im - c) := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  sorry
+  refine MapsTo.mono_right ?_ (RectPull_rectSub1 zIm_lt_wIm cpos hc)
+  simpa using mapsTo_right_re z (↑w.re + ↑(p.im - c) * I)
 
 lemma RectPull_aux4 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
@@ -418,40 +469,44 @@ lemma RectPull_aux4 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
   sorry
 
-lemma RectPull_aux5 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
+lemma RectPull_aux5 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (y : ℝ) ↦ f (z.re + y * I)) volume (p.im - c) (p.im + c) := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  sorry
+  refine MapsTo.mono_right ?_ (RectPull_rectSub3 zRe_lt_wRe cpos hc)
+  simpa using mapsTo_left_re (↑z.re + ↑(p.im - c) * I) (↑(p.re - c) + ↑(p.im + c) * I)
 
-lemma RectPull_aux6 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
+lemma RectPull_aux6 {f : ℂ → ℂ} {z w p : ℂ} (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (y : ℝ) ↦ f (z.re + y * I)) volume (p.im + c) w.im := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  sorry
+  refine MapsTo.mono_right ?_ (RectPull_rectSub2 zIm_lt_wIm cpos hc)
+  simpa using mapsTo_left_re (↑z.re + ↑(p.im + c) * I) (↑w.re + ↑w.im * I)
 
-lemma RectPull_aux7 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
+lemma RectPull_aux7 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (y : ℝ) ↦ f (w.re + y * I)) volume (p.im - c) (p.im + c) := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  sorry
+  refine MapsTo.mono_right ?_ (RectPull_rectSub4 zRe_lt_wRe cpos hc)
+  simpa using mapsTo_right_re (↑(p.re + c) + ↑(p.im - c) * I) (↑w.re + ↑(p.im + c) * I)
 
-lemma RectPull_aux8 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
+lemma RectPull_aux8 {f : ℂ → ℂ} {z w p : ℂ} (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (y : ℝ) ↦ f (w.re + y * I)) volume (p.im + c) w.im := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  sorry
+  refine MapsTo.mono_right ?_ (RectPull_rectSub2 zIm_lt_wIm cpos hc)
+  simpa using mapsTo_right_re (↑z.re + ↑(p.im + c) * I) (↑w.re + ↑w.im * I)
 
-lemma RectPull_aux9 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
+lemma RectPull_aux9 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im - c : ℝ) * I)) volume z.re (p.re - c) := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  refine MapsTo.mono_right ?_ (RectPull_rectSub3 zRe_lt_wRe zIm_lt_wIm cpos hc)
+  refine MapsTo.mono_right ?_ (RectPull_rectSub3 zRe_lt_wRe cpos hc)
   simpa using mapsTo_left_im (↑z.re + ↑(p.im - c) * I) (↑(p.re - c) + ↑(p.im + c) * I)
 
 lemma RectPull_aux10 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
@@ -461,12 +516,13 @@ lemma RectPull_aux10 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) 
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
   sorry
 
-lemma RectPull_aux11 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
+lemma RectPull_aux11 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im + c : ℝ) * I)) volume z.re (p.re - c) := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  sorry
+  refine MapsTo.mono_right ?_ (RectPull_rectSub3 zRe_lt_wRe cpos hc)
+  simpa using mapsTo_right_im (↑z.re + ↑(p.im - c) * I) (↑(p.re - c) + ↑(p.im + c) * I)
 
 lemma RectPull_aux12 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
@@ -482,12 +538,13 @@ lemma RectPull_aux13 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) 
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
   sorry
 
-lemma RectPull_aux14 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
+lemma RectPull_aux14 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im - c : ℝ) * I)) volume (p.re + c) w.re := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  sorry
+  refine MapsTo.mono_right ?_ (RectPull_rectSub4 zRe_lt_wRe cpos hc)
+  simpa using mapsTo_left_im (↑(p.re + c) + ↑(p.im - c) * I) (↑w.re + ↑(p.im + c) * I)
 
 lemma RectPull_aux15 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
@@ -496,12 +553,13 @@ lemma RectPull_aux15 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) 
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
   sorry
 
-lemma RectPull_aux16 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
+lemma RectPull_aux16 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im + c : ℝ) * I)) volume (p.re + c) w.re := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  sorry
+  refine MapsTo.mono_right ?_ (RectPull_rectSub4 zRe_lt_wRe cpos hc)
+  simpa using mapsTo_right_im (↑(p.re + c) + ↑(p.im - c) * I) (↑w.re + ↑(p.im + c) * I)
 
 /-%%
 The next lemma allows to zoom a big rectangle down to a small square, centered at a pole.
@@ -528,41 +586,41 @@ lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.r
 
 -- First chop off the bottom of the rectangle
   rw [RectangleIntegralVSplit (p.im - c) (f := f) (x₀ := z.re) (x₁ := w.re) (y₀ := z.im) (y₁ := w.im)
-    (RectPull_aux1 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)
+    (RectPull_aux1 zIm_lt_wIm cpos.1 hc fCont)
     (RectPull_aux2 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)
-    (RectPull_aux3 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)
+    (RectPull_aux3 zIm_lt_wIm cpos.1 hc fCont)
     (RectPull_aux4 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)]
   rw [HolomorphicOn.vanishesOnRectangle fHolo (z := z.re + z.im * I) (w := w.re + (p.im - c : ℝ) * I)
-    (RectPull_rectSub1 zRe_lt_wRe zIm_lt_wIm cpos.1 hc), zero_add]
+    (RectPull_rectSub1 zIm_lt_wIm cpos.1 hc), zero_add]
 
 -- Then chop off the top of the rectangle
   rw [RectangleIntegralVSplit (p.im + c) (f := f) (x₀ := z.re) (x₁ := w.re) (y₀ := p.im - c) (y₁ := w.im)
-    (RectPull_aux5 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)
-    (RectPull_aux6 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)
-    (RectPull_aux7 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)
-    (RectPull_aux8 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)]
+    (RectPull_aux5 zRe_lt_wRe cpos.1 hc fCont)
+    (RectPull_aux6 zIm_lt_wIm cpos.1 hc fCont)
+    (RectPull_aux7 zRe_lt_wRe cpos.1 hc fCont)
+    (RectPull_aux8 zIm_lt_wIm cpos.1 hc fCont)]
   rw [HolomorphicOn.vanishesOnRectangle fHolo (z := z.re + (p.im + c : ℝ) * I) (w := w.re + w.im * I)
-    (RectPull_rectSub2 zRe_lt_wRe zIm_lt_wIm cpos.1 hc), add_zero]
+    (RectPull_rectSub2 zIm_lt_wIm cpos.1 hc), add_zero]
 
 -- Then chop off the left of the rectangle
   rw [RectangleIntegralHSplit (p.re - c) (x₀ := z.re) (x₁ := w.re) (y₀ := p.im - c) (y₁ := p.im + c)
-    (RectPull_aux9 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)
+    (RectPull_aux9 zRe_lt_wRe cpos.1 hc fCont)
     (RectPull_aux10 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)
-    (RectPull_aux11 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)
+    (RectPull_aux11 zRe_lt_wRe cpos.1 hc fCont)
     (RectPull_aux12 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)]
   rw [HolomorphicOn.vanishesOnRectangle fHolo (z := z.re + (p.im - c : ℝ) * I)
     (w := (p.re - c : ℝ) + (p.im + c : ℝ) * I)
-    (RectPull_rectSub3 zRe_lt_wRe zIm_lt_wIm cpos.1 hc), zero_add]
+    (RectPull_rectSub3 zRe_lt_wRe cpos.1 hc), zero_add]
 
   -- Then chop off the right of the rectangle
   rw [RectangleIntegralHSplit (p.re + c) (x₀ := p.re - c) (x₁ := w.re) (y₀ := p.im - c) (y₁ := p.im + c)
     (RectPull_aux13 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)
-    (RectPull_aux14 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)
+    (RectPull_aux14 zRe_lt_wRe cpos.1 hc fCont)
     (RectPull_aux15 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)
-    (RectPull_aux16 zRe_lt_wRe zIm_lt_wIm cpos.1 hc fCont)]
+    (RectPull_aux16 zRe_lt_wRe cpos.1 hc fCont)]
   rw [HolomorphicOn.vanishesOnRectangle fHolo (z := (p.re + c : ℝ) + (p.im - c : ℝ) * I)
     (w := w.re + (p.im + c : ℝ) * I)
-    (RectPull_rectSub4 zRe_lt_wRe zIm_lt_wIm cpos.1 hc), add_zero]
+    (RectPull_rectSub4 zRe_lt_wRe cpos.1 hc), add_zero]
 
   have pReIm := re_add_im p
   congr! 1
