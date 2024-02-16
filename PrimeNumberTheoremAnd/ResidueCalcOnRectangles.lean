@@ -712,51 +712,20 @@ theorem ResidueTheoremAtOrigin_aux1b (x : ℝ)
   rw [(IsUnit.inv_mul_eq_one this).mpr rfl]
   ring
 
+@[deprecated ContinuousOn.intervalIntegrable]
 theorem integrable_of_continuous (a b : ℝ) (A : Type) [NormedRing A] (f : ℝ → A) (hf : ContinuousOn f [[a,b]]) :
-  IntervalIntegrable f volume a b := by
-  let g : ℝ → A := fun _ ↦ 1
-  have : IntervalIntegrable g volume a b := intervalIntegrable_const
-  have := IntervalIntegrable.mul_continuousOn (intervalIntegrable_const : IntervalIntegrable g volume a b) hf
-  simpa only [one_mul]
+    IntervalIntegrable f volume a b :=
+  hf.intervalIntegrable
 
 theorem ResidueTheoremAtOrigin_aux1c (a b : ℝ) :
     let f : ℝ → ℂ := fun y => (y + I)⁻¹
-    IntervalIntegrable f volume a b := by
-  intro f
-  have : ContinuousOn f [[a, b]] := by
-    apply ContinuousOn.inv₀ (f := ((fun y ↦ (y + I)) : ℝ → ℂ))
-    · apply ContinuousOn.add _ _
-      · exact Continuous.continuousOn (IsROrC.continuous_ofReal (K := ℂ))
-      exact continuousOn_const
-    simp only [ne_eq, inv_eq_zero, Subtype.forall]
-    intro x _
-    by_contra h
-    have : (x + I).im = 1 := by
-      simp only [add_im, ofReal_im, I_im, zero_add]
-    rw [h] at this
-    absurd this
-    norm_num
-  exact integrable_of_continuous a b ℂ f this
+    IntervalIntegrable f volume a b :=
+  (ContinuousOn.inv₀ (by fun_prop) (by simp [Complex.ext_iff])).intervalIntegrable
 
 theorem ResidueTheoremAtOrigin_aux1c' (a b : ℝ) :
     let f : ℝ → ℂ := fun y => (↑y + -I)⁻¹
-    IntervalIntegrable f volume a b := by
-  intro f
-  have : ContinuousOn f [[a, b]] := by
-    simp
-    apply ContinuousOn.inv₀ (f := ((fun y ↦ (y + -I)) : ℝ → ℂ))
-    · apply ContinuousOn.add _ _
-      · exact Continuous.continuousOn (IsROrC.continuous_ofReal (K := ℂ))
-      exact continuousOn_const
-    simp only [ne_eq, inv_eq_zero, Subtype.forall]
-    intro x _
-    by_contra h
-    have : (x + -I).im = -1 := by
-      simp only [add_im, ofReal_im, neg_im, I_im, zero_add]
-    rw [h] at this
-    absurd this
-    norm_num
-  exact integrable_of_continuous a b ℂ f this
+    IntervalIntegrable f volume a b :=
+  (ContinuousOn.inv₀ (by fun_prop) (by simp [Complex.ext_iff])).intervalIntegrable
 
 theorem ResidueTheoremAtOrigin_aux1 :
   (∫ (x : ℝ) in (-1 - 0)..(1 + 0), 1 / (x + (-0 - 1 : ℝ) * I)) -
@@ -835,47 +804,13 @@ theorem ResidueTheoremAtOrigin_aux2b (y : ℝ) : (1 + y * I)⁻¹ - (-1 + y * I)
 
 theorem ResidueTheoremAtOrigin_aux2c (a b : ℝ) :
     let f : ℝ → ℂ := fun y => (1 + ↑y * I)⁻¹
-    IntervalIntegrable f volume a b := by
-  intro f
-  have : ContinuousOn f [[a, b]] := by
-    apply ContinuousOn.inv₀ (f := ((fun y ↦ (1 + y * I)) : ℝ → ℂ))
-    · apply ContinuousOn.add _ _
-      · exact continuousOn_const
-      apply ContinuousOn.mul _ _
-      · exact Continuous.continuousOn (IsROrC.continuous_ofReal (K := ℂ))
-      exact continuousOn_const
-    simp only [ne_eq, inv_eq_zero, Subtype.forall]
-    intro x _
-    by_contra h
-    have : (1 + x * I).re = 1 := by
-      simp only [add_re, one_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-        sub_self, add_zero]
-    rw [h] at this
-    simp only [zero_re, zero_ne_one] at this
-  exact integrable_of_continuous a b ℂ f this
+    IntervalIntegrable f volume a b :=
+  (ContinuousOn.inv₀ (by fun_prop) (by simp [Complex.ext_iff])).intervalIntegrable
 
 theorem ResidueTheoremAtOrigin_aux2c' (a b : ℝ) :
     let f : ℝ → ℂ := fun y => (-1 + ↑y * I)⁻¹
-    IntervalIntegrable f volume a b := by
-  intro f
-  have : ContinuousOn f [[a, b]] := by
-    apply ContinuousOn.inv₀ (f := ((fun y ↦ (-1 + y * I)) : ℝ → ℂ))
-    · apply ContinuousOn.add _ _
-      · exact continuousOn_const
-      apply ContinuousOn.mul _ _
-      · exact Continuous.continuousOn (IsROrC.continuous_ofReal (K := ℂ))
-      exact continuousOn_const
-    simp only [ne_eq, inv_eq_zero, Subtype.forall]
-    intro x _
-    by_contra h
-    have : (-1 + x * I).re = -1 := by
-      simp only [add_re, neg_re, one_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im,
-        mul_one, sub_self, add_zero]
-    rw [h] at this
-    simp only [zero_re] at this
-    absurd this
-    norm_num
-  exact integrable_of_continuous a b ℂ f this
+    IntervalIntegrable f volume a b :=
+  (ContinuousOn.inv₀ (by fun_prop) (by simp [Complex.ext_iff])).intervalIntegrable
 
 theorem ResidueTheoremAtOrigin_aux2 :
   (I * ∫ (y : ℝ) in (-0 - 1)..0 + 1, 1 / ((1 + 0 : ℝ) + y * I)) -
