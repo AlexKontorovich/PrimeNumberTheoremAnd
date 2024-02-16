@@ -185,33 +185,10 @@ lemma tendsto_rpow_atTop_nhds_zero_of_norm_gt_one {x : ℝ} (x_gt_one : 1 < x) (
   ext; simp only [this.le, inv_rpow, Function.comp_apply, rpow_neg, inv_inv]
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Standard.
 \end{proof}
 %%-/
-
--- From PR #9598
-/-- The preimage under `equivRealProd` of `s ×ˢ t` is `s ×ℂ t`. -/
-lemma preimage_equivRealProd_prod (s t : Set ℝ) : equivRealProd ⁻¹' (s ×ˢ t) = s ×ℂ t := rfl
-
--- From PR #9598
-/-- The inequality `s × t ⊆ s₁ × t₁` holds in `ℂ` iff it holds in `ℝ × ℝ`. -/
-lemma reProdIm_subset_iff {s s₁ t t₁ : Set ℝ} : s ×ℂ t ⊆ s₁ ×ℂ t₁ ↔ s ×ˢ t ⊆ s₁ ×ˢ t₁ := by
-  rw [← @preimage_equivRealProd_prod s t, ← @preimage_equivRealProd_prod s₁ t₁]
-  exact Equiv.preimage_subset equivRealProd _ _
-
--- From PR #9598
-/-- If `s ⊆ s₁ ⊆ ℝ` and `t ⊆ t₁ ⊆ ℝ`, then `s × t ⊆ s₁ × t₁` in `ℂ`. -/
-lemma reProdIm_subset_iff' {s s₁ t t₁ : Set ℝ} :
-    s ×ℂ t ⊆ s₁ ×ℂ t₁ ↔ s ⊆ s₁ ∧ t ⊆ t₁ ∨ s = ∅ ∨ t = ∅ := by
-  convert prod_subset_prod_iff
-  exact reProdIm_subset_iff
-
--- Exists in Mathlib; need to update version
-/-- The natural `ContinuousLinearEquiv` from `ℂ` to `ℝ × ℝ`. -/
-noncomputable def equivRealProdCLM : ℂ ≃L[ℝ] ℝ × ℝ :=
-  equivRealProdLm.toContinuousLinearEquivOfBounds 1 (Real.sqrt 2) equivRealProd_apply_le' fun p =>
-    abs_le_sqrt_two_mul_max (equivRealProd.symm p)
 
 namespace Perron
 
@@ -220,7 +197,6 @@ variable {x σ σ' σ'' T : ℝ}
 noncomputable abbrev f (x : ℝ) := fun (s : ℂ) => x ^ s / (s * (s + 1))
 
 /-%%
-TODO: Change this to the statement of `isHolomorphicOn2` and refactor.
 \begin{lemma}[isHolomorphicOn]\label{isHolomorphicOn}\lean{Perron.isHolomorphicOn}\leanok
 Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
 \end{lemma}
@@ -246,38 +222,71 @@ $$\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$$
 is positive (and hence convergent - since a divergent integral is zero in Lean, by definition).
 \end{lemma}
 %%-/
+
+lemma integral_one_div_const_add_sq_pos (c : ℝ) (hc : 0 < c) : 0 < ∫ (t : ℝ), 1 / (c + t^2) := by
+  have hfun_eq (t : ℝ) : 1 / (c + t^2) = c⁻¹ * (1 + ((Real.sqrt c)⁻¹ * t)^2)⁻¹ := by
+    field_simp [hc.ne.symm]
+  simp_rw [hfun_eq]
+  rw [MeasureTheory.integral_mul_left, Measure.integral_comp_mul_left (fun t ↦ (1+t^2)⁻¹) (a:=(Real.sqrt c)⁻¹)]
+  simp only [inv_inv, abs_eq_self.mpr <| Real.sqrt_nonneg c, smul_eq_mul, gt_iff_lt, inv_pos, hc,
+    mul_pos_iff_of_pos_left, sqrt_pos]
+  simp_rw [inv_eq_one_div, integral_volume_one_div_one_add_sq]
+  positivity
+
+lemma Integrable.one_div_const_add_sq (c : ℝ) (hc : 0 < c) : Integrable fun (t : ℝ) ↦ 1 / (c + t^2) :=
+  .of_integral_ne_zero (integral_one_div_const_add_sq_pos c hc).ne'
+
+lemma integralPosAux'_of_le (c₁ c₂ : ℝ) (c₁_pos : 0 < c₁) (hle : c₁ ≤ c₂) : 0 < ∫ (t : ℝ), 1 / |Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)| := by
+  have c₂_pos : 0 < c₂ := by linarith
+  simp_rw [fun (t : ℝ) ↦ abs_of_pos (show sqrt (c₁ + t^2) * sqrt (c₂ + t^2) > 0 by positivity)]
+
+  have hlower (t : ℝ) : 1 / (c₂ + t^2) ≤ 1 / (Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)) := by
+    gcongr
+    calc
+      _ ≤ Real.sqrt (c₂ + t^2) * Real.sqrt (c₂ + t^2) := ?_
+      _ ≤ c₂ + t^2 := ?_
+    · gcongr
+      apply Real.sqrt_le_sqrt
+      gcongr
+    · rw[←Real.sqrt_mul, sqrt_mul_self] <;> positivity
+
+  have hupper (t : ℝ) : 1 / (Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)) ≤ 1 / (c₁ + t^2)  := by
+    gcongr
+    calc
+      _ ≥ Real.sqrt (c₁ + t^2) * Real.sqrt (c₁ + t^2) := ?_
+      _ ≥ c₁ + t^2 := ?_
+    · gcongr
+      apply Real.sqrt_le_sqrt
+      gcongr
+    · rw[←Real.sqrt_mul, sqrt_mul_self] <;> positivity
+
+  calc 0 < ∫ t, 1 / (c₂ + t^2) := integral_one_div_const_add_sq_pos c₂ c₂_pos
+       _ ≤ ∫ t, 1 / (Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)) := ?_
+
+  apply integral_mono
+  · apply Integrable.one_div_const_add_sq c₂ c₂_pos
+  · apply MeasureTheory.Integrable.mono (g := fun t:ℝ ↦ 1/(c₁ + t^2))
+    · apply Integrable.one_div_const_add_sq c₁ c₁_pos
+    · refine (measurable_const.div <| Measurable.mul ?_ ?_).aestronglyMeasurable <;>
+        exact (measurable_const.add <| measurable_id'.pow_const 2).sqrt
+    refine ae_of_all _ (fun x ↦ ?_)
+    repeat rewrite [norm_of_nonneg (by positivity)]
+    exact hupper x
+  apply hlower
+
+
+lemma integralPosAux' (c₁ c₂ : ℝ) (c₁_pos : 0 < c₁) (c₂_pos : 0 < c₂) : 0 < ∫ (t : ℝ), 1 / |Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)| := by
+  by_cases hc : c₁ ≤ c₂
+  · apply integralPosAux'_of_le c₁ c₂ c₁_pos hc
+  · convert integralPosAux'_of_le c₂ c₁ c₂_pos (by linarith) using 4
+    rw [mul_comm]
+
 lemma integralPosAux : 0 < ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| := by
 /-%%
 \begin{proof}\leanok
 This integral is between $\frac{1}{2}$ and $1$ of the integral of $\frac{1}{1+t^2}$, which is $\pi$.
 %%-/
-  simp_rw [fun (t : ℝ) ↦ abs_of_pos (show sqrt (1 + t^2) * sqrt (2 + t^2) > 0 by positivity)]
-  apply (half_pos <| pi_pos.trans_eq integral_volume_one_div_one_add_sq.symm).trans_le
-  rewrite [← integral_div]
-
-  have h_int1 : Integrable fun (t : ℝ) ↦ 1 / (1 + t^2) := Classical.byContradiction fun hc ↦
-    (integral_volume_one_div_one_add_sq.trans_ne pi_ne_zero) (integral_undef hc)
-  have h_int2 : Integrable fun (t : ℝ) ↦ 1 / (1 + t^2) / 2 := Integrable.div_const h_int1 2
-
-  have h_mono1 (t : ℝ): 1 / (1 + t^2) / 2 ≤ 1 / (sqrt (1 + t^2) * sqrt (2 + t^2)) := by
-    apply (div_div _ _ _).trans_le
-    gcongr 1 / ?_
-    calc
-      _ ≤ sqrt (2 + t^2) * sqrt (2 + t^2) := by gcongr; apply Real.sqrt_le_sqrt; nlinarith
-      _ = 2 + t^2 := by rw [← Real.sqrt_mul, sqrt_mul_self] <;> positivity
-      _ ≤ _ := by nlinarith
-  have h_mono2 (t : ℝ) : 1 / (sqrt (1 + t^2) * sqrt (2 + t^2)) ≤ 1 / (1 + t^2) := by
-    gcongr 1 / ?_
-    calc
-      _ = sqrt (1 + t^2) * sqrt (1 + t^2) := by rw [← Real.sqrt_mul, sqrt_mul_self] <;> positivity
-      _ ≤ _ := by gcongr; apply Real.sqrt_le_sqrt; nlinarith
-
-  refine integral_mono h_int2 (Integrable.mono h_int1 ?_ ?_) h_mono1
-  · refine (measurable_const.div <| Measurable.mul ?_ ?_).aestronglyMeasurable
-    all_goals exact (measurable_const.add <| measurable_id'.pow_const 2).sqrt
-  · refine ae_of_all _ (fun x ↦ ?_)
-    repeat rewrite [norm_of_nonneg (by positivity)]
-    exact h_mono2 x
+  apply integralPosAux' <;> norm_num
 --%%\end{proof}
 
 /-%%
@@ -287,7 +296,6 @@ $$\left|
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
 \end{lemma}
 %%-/
-
 lemma vertIntBound (xpos : 0 < x) (σ_gt_one : 1 < σ) :
     Complex.abs (VerticalIntegral (f x) σ)
       ≤ x ^ σ * ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| := by
@@ -341,39 +349,88 @@ Triangle inequality and pointwise estimate.
 \begin{lemma}[vertIntBoundLeft]\label{vertIntBoundLeft}\lean{Perron.vertIntBoundLeft}\leanok
 Let $x>1$ and $\sigma<-3/2$. Then
 $$\left|
-\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1/4+t^2)(2+t^2)|^{1/2}}dt.$$
 \end{lemma}
 %%-/
 
-lemma vertIntBoundLeft (x_gt_zero : 0 < x) :
-    ∃ C > 0, ∀ (σ : ℝ) (_ : σ < -3 / 2), Complex.abs (VerticalIntegral' (f x) σ) ≤ x ^ σ * C := by
-  sorry
+lemma vertIntBoundLeft (xpos : 0 < x) :
+    ∃ C, ∀ (σ : ℝ) (_ : σ < -3 / 2), Complex.abs (VerticalIntegral' (f x) σ) ≤ x ^ σ * C := by
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{VerticalIntegral}
+%%-/
+  /- This proof is adapted from `vertIntBound` -/
+  use (1/(2*π)) *  ∫ (t : ℝ), 1 / |Real.sqrt (4⁻¹ + t^2) * Real.sqrt (2 + t^2)|
+  intro σ hσ
+  suffices h : Complex.abs (VerticalIntegral (f x) σ) ≤ x^σ * ∫ (t : ℝ), 1 / |Real.sqrt (4⁻¹ + t^2) * Real.sqrt (2 + t^2)| by
+    rw [VerticalIntegral']
+    simp only [one_div, mul_inv_rev, inv_I, neg_mul, map_neg_eq_map, map_mul, abs_I, map_inv₀,
+      abs_ofReal, abs_ofNat, one_mul, ge_iff_le, abs_of_pos Real.pi_pos] at h ⊢
+    convert_to π⁻¹ * 2⁻¹ * Complex.abs (VerticalIntegral (f x) σ) ≤ π⁻¹ * 2⁻¹ * (x ^ σ * ∫ (t : ℝ), |sqrt (4⁻¹ + t ^ 2) * sqrt (2 + t ^ 2)|⁻¹)
+    · ring
+    · gcongr
+  calc
+    _ = ‖∫ (t : ℝ), x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ := ?_
+    _ ≤ ∫ (t : ℝ), ‖x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ := norm_integral_le_integral_norm _
+    _ = ∫ (t : ℝ), x ^ σ / ‖((σ + t * I) * (σ + t * I + 1))‖ := ?_
+    _ = x ^ σ * ∫ (t : ℝ), 1 / (Complex.abs (σ + t * I) * Complex.abs (σ + t * I + 1)) := ?_
+    _ ≤ x ^ σ * ∫ (t : ℝ), 1 / |Real.sqrt (4⁻¹ + t^2) * Real.sqrt (2 + t^2)| := ?_
+  · simp [VerticalIntegral', VerticalIntegral, show 0 ≤ π from le_of_lt Real.pi_pos]
+  · congr with t
+    rw [norm_div, Complex.norm_eq_abs, Complex.abs_cpow_eq_rpow_re_of_pos xpos, add_re, ofReal_re,
+      re_ofReal_mul, I_re, mul_zero, add_zero]
+  · simp_rw [div_eq_mul_inv, integral_mul_left, one_mul, Complex.norm_eq_abs, map_mul]
+  gcongr
+  by_cases hint : Integrable fun (a : ℝ) => 1 / (Complex.abs (σ + ↑a * I) * Complex.abs (↑σ + ↑a * I + 1))
+  swap
+  · rw [integral_undef hint]
+    apply integral_nonneg
+    rw [Pi.le_def]
+    intro t
+    simp only [Pi.zero_apply, one_div, inv_nonneg, abs_nonneg]
+  apply integral_mono hint
+  · have := integralPosAux' (4⁻¹) 2 (by norm_num) (by norm_num)
+    contrapose! this
+    have := integral_undef this
+    simp_rw [this, le_rfl]
+  rw [Pi.le_def]
+  intro t
+  rw [abs_eq_self.mpr (by positivity)]
+  simp only [Complex.abs_apply]
+  rw[mul_comm]
+  gcongr
+  swap
+  · apply sqrt_le_sqrt
+    rw [normSq_add_mul_I, add_le_add_iff_right]
+    nlinarith only [hσ]
+  · apply sqrt_le_sqrt
+    rw [add_right_comm, ← ofReal_one, ← ofReal_add, normSq_add_mul_I, add_le_add_iff_right]
+    ring_nf
+    nlinarith
+/-%%
 Triangle inequality and pointwise estimate.
 \end{proof}
 %%-/
 
 
-/-%%
+/-% -- this is purposefully the wrong delimiter, so it doesn't get scraped into blueprint
 TODO : Remove this lemma if it's not needed
-\begin{lemma}[vertIntBound2]\label{vertIntBound2}\lean{Perron.vertIntBound2}\leanok
+\begin{lemma}[vertIntBound2]%\label{vertIntBound2}\lean{Perron.vertIntBound2}\leanok
 Let $x>0$ and $\sigma\in \R$, $\sigma \ne 0, -1$. Then
 $$\left|
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \ll_\sigma x^\sigma.$$
 Note that the implied constant here does depend on $\sigma$. (So it's not as useful a lemma.)
 \end{lemma}
-%%-/
+%-/
 lemma vertIntBound2 (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ ≠ -1) :
     ∃ C > 0, Complex.abs (VerticalIntegral (f x) σ) ≤ x ^ σ * C := by
   sorry
-/-%%
+/-%
 \begin{proof}
 \uses{vertIntBound}
 Similar to ``vertIntBound''.
 \end{proof}
-%%-/
+%-/
 
 lemma map_conj (hx : 0 ≤ x) (s : ℂ) : f x (conj s) = conj (f x s) := by
   simp? [f] says simp only [f, map_div₀, map_mul, map_add, map_one]
@@ -403,7 +460,7 @@ theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
       exact continuous_ofReal.continuousOn.const_isBigOUniformlyOn_isCompact isCompact_uIcc
         (by norm_num : ‖(1 : ℂ)‖ ≠ 0) _ |>.trans_isLittleO (h_c.trans_isTheta h_yI.symm)
     simp_rw [sq]
-    exact h_σ_yI.mul <| (IsTheta.add_isLittleO <| h_c.trans_isTheta h_σ_yI.symm).trans h_σ_yI
+    refine h_σ_yI.mul <| (IsLittleO.right_isTheta_add' <| h_c.trans_isTheta h_σ_yI.symm).symm.trans h_σ_yI
 
 theorem isTheta_uniformlyOn_uIoc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 (uIoc σ' σ'') ×ˢ (atBot ⊔ atTop)]
@@ -528,7 +585,8 @@ tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
 --%% The rectangle integral of $f$ with corners $\sigma-iT$ and $\sigma+iT$ is zero.
   have rectInt (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') (T : ℝ) :
       RectangleIntegral f (σ' - I * T) (σ'' + I * T) = 0
-  · refine fHolo.vanishesOnRectangle fun z h_rect ↦ not_or.mpr (?_ : ¬z = 0 ∧ ¬z = -1)
+  · refine integral_boundary_rect_eq_zero_of_differentiableOn f _ _
+      (fHolo.mono fun z h_rect ↦ not_or.mpr (?_ : ¬z = 0 ∧ ¬z = -1))
     simp_rw [Complex.ext_iff, ← not_or, Complex.zero_re, show (-1 : ℂ).re = -1 from rfl]
     have : σ' ≤ z.re ∨ σ'' ≤ z.re := by simpa using h_rect.1.1
     intro hc; cases hc <;> cases this <;> linarith [σ'pos, σ''pos]
@@ -605,6 +663,11 @@ integrals over the rectangles vanish by Lemmas \ref{tendsto_zero_Upper} and
 \end{proof}
 %%-/
 
+lemma sPlusOneNeZero {s : ℂ} (s_ne_neg_one : s ≠ -1) : s + 1 ≠ 0 := by
+  intro h
+  have : s = -1 := add_eq_zero_iff_eq_neg.mp h
+  exact s_ne_neg_one this
+
 /-%%
 \begin{lemma}[keyIdentity]\label{keyIdentity}\lean{Perron.keyIdentity}\leanok
 Let $x\in \R$ and $s \ne 0, -1$. Then
@@ -613,14 +676,11 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma keyIdentity {s : ℂ} (s_ne_zero : s ≠ 0) (s_ne_neg_one : s ≠ -1) :
-    (x : ℂ) ^ s / (s * (1 + s))
-      = (x : ℂ) ^ s / s - (x : ℂ) ^ s / (1 + s) := by
-  have : 1 + s ≠ 0 := by
-    intro h
-    have : s = -1 := by rw [neg_eq_of_add_eq_zero_right h]
-    exact s_ne_neg_one this
-  have : s * (1 + s) ≠ 0 := mul_ne_zero s_ne_zero this
+lemma keyIdentity (x : ℝ) {s : ℂ} (s_ne_zero : s ≠ 0) (s_ne_neg_one : s ≠ -1) :
+    (x : ℂ) ^ s / (s * (s + 1))
+      = (x : ℂ) ^ s / s - (x : ℂ) ^ s / (s + 1) := by
+  have : s + 1 ≠ 0 := sPlusOneNeZero s_ne_neg_one
+  have : s * (s + 1) ≠ 0 := mul_ne_zero s_ne_zero this
   field_simp
   ring
 /-%%
@@ -628,6 +688,25 @@ lemma keyIdentity {s : ℂ} (s_ne_zero : s ≠ 0) (s_ne_neg_one : s ≠ -1) :
 By ring.
 \end{proof}
 %%-/
+
+lemma diffBddAtZero_aux_ge {x : ℝ} (xpos : 0 < x) (xge : 1 ≤ x) :
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Rectangle (-c - I * c) (c + I * c),
+    Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ x ^ (2 : ℝ) * 2 := sorry
+
+lemma diffBddAtZero_aux_lt {x : ℝ} (xpos : 0 < x) (xlt : x < 1) :
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Rectangle (-c - I * c) (c + I * c),
+    Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ x ^ (-(2 : ℝ)) * 2 := sorry
+
+lemma diffBddAtZero_aux {x : ℝ} (xpos : 0 < x) :
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Rectangle (-c - I * c) (c + I * c),
+    Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ if h : 1 ≤ x then x ^ (2 : ℝ) * 2 else x ^ (-(2 : ℝ)) * 2 := by
+  by_cases h : 1 ≤ x
+  · filter_upwards [diffBddAtZero_aux_ge xpos h]
+    intro c sRectBnd sRect
+    simpa [h, ↓reduceDite, rpow_two, ge_iff_le] using (sRectBnd sRect)
+  · filter_upwards [diffBddAtZero_aux_lt xpos (by linarith : x < 1)]
+    intro c sRectBnd sRect
+    simpa [h, ↓reduceDite, rpow_two, ge_iff_le] using (sRectBnd sRect)
 
 /-%%
 \begin{lemma}[diffBddAtZero]\label{diffBddAtZero}\lean{Perron.diffBddAtZero}\leanok
@@ -638,10 +717,99 @@ $$
 is bounded above on the rectangle with corners at $-c-i*c$ and $c+i*c$ (except at $s=0$).
 \end{lemma}
 %%-/
-lemma diffBddAtZero (x : ℝ) {c : ℝ} (cpos : 0 < c) (c_lt : c < 1/2) :
+lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) :
+     ∀ᶠ (c : ℝ) in 𝓝[>] 0,
     BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - 1 / s)) ''
       (Rectangle (-c - I * c) (c + I * c) \ {0})) := by
-  sorry
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2), diffBddAtZero_aux xpos]
+  intro c hc sRectBnd
+  simp only [mem_Ioo] at hc
+  have cpos : 0 < c := hc.1
+  have c_lt : c < 1 / 2 := hc.2
+  rw [bddAbove_def]
+  let bnd := if h : 1 ≤ x then x ^ (2 : ℝ) * 4 else x ^ (-(2 : ℝ)) * 4
+  use bnd
+  intro y hy
+  simp only [one_div, Function.comp_apply, Complex.norm_eq_abs, mem_image, mem_diff,
+    mem_singleton_iff] at hy
+  obtain ⟨s, ⟨s_memRect, s_nonzero⟩, rfl⟩ := hy
+  change s ≠ 0 at s_nonzero
+  have s_ne_neg_one : s ≠ -1 := by
+    intro h
+    rw [h] at s_memRect
+    rw [mem_Rect (by simp; linarith) (by simp; linarith)] at s_memRect
+    simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
+      sub_self, sub_zero, one_re, neg_le_neg_iff, add_re, add_zero, sub_im, neg_im, neg_zero,
+      mul_im, one_mul, zero_add, zero_sub, one_im, Left.neg_nonpos_iff, add_im, and_self] at s_memRect
+    linarith
+  rw [keyIdentity x s_nonzero s_ne_neg_one]
+
+  calc
+    _ = Complex.abs ((x : ℂ) ^ s / s - s⁻¹ + -(x : ℂ) ^ s / (s + 1)) := by congr; ring
+    _ ≤ Complex.abs ((x : ℂ) ^ s / s - s⁻¹) + Complex.abs (-(x : ℂ) ^ s / (s + 1)) := AbsoluteValue.add_le Complex.abs _ _
+    _ ≤ Complex.abs ((x : ℂ) ^ s / s - s⁻¹) +  bnd / 2 := ?_
+    _ ≤ bnd / 2 + bnd / 2 := by
+      gcongr
+      convert sRectBnd s s_memRect
+      by_cases one_le_x : 1 ≤ x <;> simp only [dite_eq_ite, one_le_x, ↓reduceIte, ↓reduceDite] <;> field_simp <;> ring
+    _ = bnd := by ring
+
+  gcongr
+  rw [← Complex.abs_neg]
+  simp only [map_neg_eq_map, map_div₀]
+  rw [mem_Rect ] at s_memRect
+  · simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
+      sub_self, sub_zero, add_re, add_zero, sub_im, neg_im, neg_zero, mul_im, one_mul, zero_add,
+      zero_sub, add_im] at s_memRect
+    have bnd2 : (Complex.abs (s + 1))⁻¹ ≤ 2
+    · rw [inv_le (by simp [sPlusOneNeZero s_ne_neg_one]) (by linarith)]
+      calc
+        2⁻¹ ≤ (s + 1).re := by
+          simp only [add_re, one_re]
+          have aux1 : -(1 : ℝ) / 2 ≤ s.re := by linarith [s_memRect.1]
+          have aux2 : -(1 : ℝ) / 2 = -1 + 2⁻¹ := by norm_num
+          rw [aux2] at aux1
+          linarith
+        _ ≤ Complex.abs (s + 1) := Complex.re_le_abs _
+    by_cases one_le_x : 1 ≤ x
+    · simp only [one_le_x, ↓reduceDite, mul_div_assoc]
+      rw [(by norm_num : (4 : ℝ) / 2 = 2)]
+      have bnd1 : Complex.abs ((x : ℂ) ^ s) ≤ x ^ (2 : ℝ) := by
+        rw [Complex.abs_cpow_eq_rpow_re_of_pos xpos]
+        have : s.re ≤ 2 := by linarith [s_memRect.2.1]
+        exact Real.rpow_le_rpow_of_exponent_le one_le_x this
+      change Complex.abs ((x : ℂ) ^ s) * (Complex.abs (s + 1))⁻¹ ≤ _
+      refine mul_le_mul bnd1 bnd2 (inv_nonneg_of_nonneg (AbsoluteValue.nonneg Complex.abs _)) ?_
+      convert sq_nonneg x
+      exact rpow_two x
+    · simp only [one_le_x, ↓reduceDite, one_div]
+      simp only [not_le] at one_le_x
+      rw [mul_div_assoc, (by norm_num : (4 : ℝ) / 2 = 2)]
+      set t := x⁻¹
+      have tpos : 0 < t := inv_pos_of_pos xpos
+      have tGeOne : 1 ≤ t := one_le_inv xpos one_le_x.le
+      have bnd1 : Complex.abs ((x : ℂ) ^ s) ≤ x ^ (-(2 : ℝ)) := by
+        rw [Complex.abs_cpow_eq_rpow_re_of_pos xpos]
+        rw [(by field_simp : x = t⁻¹), Real.inv_rpow tpos.le, inv_le (Real.rpow_pos_of_pos tpos _) (by simp [Real.rpow_pos_of_pos xpos _])]
+        have : (t⁻¹ ^ (-(2 : ℝ)))⁻¹ = t ^ (-(2 : ℝ))
+        · simp only [inv_inv]
+          rw [Real.rpow_neg xpos.le, inv_inv, Real.rpow_neg tpos.le, Real.inv_rpow xpos.le, inv_inv]
+        rw [this]
+        apply Real.rpow_le_rpow_of_exponent_le tGeOne -- (Real.rpow_pos_of_pos tpos s.re)
+        linarith [s_memRect.1]
+      change Complex.abs ((x : ℂ) ^ s) * (Complex.abs (s + 1))⁻¹ ≤ _
+      refine mul_le_mul bnd1 bnd2 (inv_nonneg_of_nonneg (AbsoluteValue.nonneg Complex.abs _)) ?_
+      convert sq_nonneg t
+      rw [← rpow_two t, Real.rpow_neg]
+      simp only [rpow_two, inv_pow]
+      exact xpos.le
+  · simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self,
+      sub_zero, add_re, add_zero, neg_le_self_iff]
+    linarith
+  · simp only [sub_im, neg_im, ofReal_im, neg_zero, mul_im, I_re, mul_zero, I_im, ofReal_re, one_mul,
+      zero_add, zero_sub, add_im, neg_le_self_iff]
+    linarith
+
 /-%%
 \begin{proof}\uses{keyIdentity}
 Applying Lemma \ref{keyIdentity}, the
@@ -689,10 +857,12 @@ lemma residueAtZero (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
 \begin{proof}\leanok
 \uses{diffBddAtZero, ResidueTheoremOnRectangleWithSimplePole,
 existsDifferentiableOn_of_bddAbove}
-For $c>0$ sufficiently small, say $c<1/2$,
+For $c>0$ sufficiently small,
 %%-/
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2)]
-  intro c hc
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2), diffBddAtZero xpos]
+  intro c hc bddAbove
+  simp only [mem_Ioo] at hc
+  have cpos : 0 < c := hc.1
   set f : ℂ → ℂ := (fun (s : ℂ) ↦ x ^ s / (s * (s + 1)))
   set Rect := Rectangle (-c - I * c) (c + I * c)
   have RectSub : Rect \ {0} ⊆ {0, -1}ᶜ := sorry
@@ -700,7 +870,6 @@ For $c>0$ sufficiently small, say $c<1/2$,
     (isHolomorphicOn xpos).mono RectSub
   set f1 : ℂ → ℂ := f - (fun (s : ℂ) ↦ 1 / s)
   have f1Holo : HolomorphicOn f1 (Rect \ {0}) := sorry
-  simp only [mem_Ioo] at hc
   have uIccIcc : uIcc (-c) c = Icc (-c) c := by apply uIcc_of_le; linarith
   have RectMemNhds : Rect ∈ 𝓝 0
   · rw [mem_nhds_iff]
@@ -730,7 +899,6 @@ For $c>0$ sufficiently small, say $c<1/2$,
 /-%% $x^s/(s(s+1))$ is equal to $1/s$ plus a function, $g$, say,
 holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
 %%-/
-  have bddAbove := diffBddAtZero x hc.1 hc.2
   obtain ⟨g, gHolo, g_eq_fDiff⟩ := existsDifferentiableOn_of_bddAbove RectMemNhds f1Holo bddAbove
 --%% Now apply Lemma \ref{ResidueTheoremOnRectangleWithSimplePole}.
   apply ResidueTheoremOnRectangleWithSimplePole (pInRectInterior := RectMemNhds) (fHolo := fHolo) (g := g) (A := 1) (gHolo := gHolo)
@@ -820,7 +988,7 @@ lemma formulaGtOne (x_gt_one : 1 < x) (σ_pos : 0 < σ) :
     VerticalIntegral' (fun s ↦ x^s / (s * (s + 1))) σ = 1 - 1 / x := by
 /-%%
 \begin{proof}\leanok
-\uses{isHolomorphicOn2, residuePull1,
+\uses{isHolomorphicOn, residuePull1,
 residuePull2, contourPull3, integralPosAux, vertIntBoundLeft,
 tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,1}$.
@@ -836,11 +1004,11 @@ tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
 --%% Then pull the contour all the way to $(\sigma')$ with $\sigma'<-3/2$.
   have contourPull₃ : ∀ σ' σ'' (_ : σ' ≤ -3/2) (_ : σ'' ≤ -3/2), VerticalIntegral' f σ' = VerticalIntegral' f σ'' := fun σ' σ'' σ'le σ''le ↦ contourPull3 x_gt_one σ'le σ''le
 --%% For $\sigma' < -3/2$, the integral is bounded by $x^{\sigma'}\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$.
-  have VertIntBound : ∃ C > 0, ∀ σ' < -3/2, Complex.abs (VerticalIntegral' f σ') ≤ x^σ' * C :=
+  have VertIntBound : ∃ C, ∀ σ' < -3/2, Complex.abs (VerticalIntegral' f σ') ≤ x^σ' * C :=
     vertIntBoundLeft (by linarith : 0 < x)
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
   have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral' f)) atBot (𝓝 0)
-  · obtain ⟨C, _, hC⟩ := VertIntBound
+  · obtain ⟨C, hC⟩ := VertIntBound
     have := tendsto_rpow_atTop_nhds_zero_of_norm_gt_one x_gt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
     · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _

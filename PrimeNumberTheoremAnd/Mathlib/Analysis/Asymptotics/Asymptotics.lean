@@ -1,5 +1,5 @@
 import Mathlib.Analysis.Asymptotics.Asymptotics
-import PrimeNumberTheoremAnd.Mathlib.Topology.Algebra.Order.Compact
+import Mathlib.Topology.Algebra.Order.Compact
 
 open Filter Topology
 
