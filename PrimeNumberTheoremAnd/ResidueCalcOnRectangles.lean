@@ -371,13 +371,31 @@ lemma RectPull_rectSub4 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z
     Rectangle ((p.re + c : ℝ) + (p.im - c : ℝ) * I) (w.re + (p.im + c : ℝ) * I)
       ⊆ Rectangle z w \ {p} := sorry
 
+lemma mapsTo_left_re (z w : ℂ) :
+    MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) :=
+  fun _ hx ↦ ⟨by simp, by simp [hx]⟩
+
+lemma mapsTo_right_re (z w : ℂ) :
+    MapsTo (fun (y : ℝ) => ↑w.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) :=
+  fun _ hx ↦ ⟨by simp, by simp [hx]⟩
+
+lemma mapsTo_left_im (z w : ℂ) :
+    MapsTo (fun (x : ℝ) => ↑x + z.im * I) [[z.re, w.re]] (Rectangle z w) :=
+  fun _ hx ↦ ⟨by simp [hx], by simp⟩
+
+lemma mapsTo_right_im (z w : ℂ) :
+    MapsTo (fun (x : ℝ) => ↑x + w.im * I) [[z.re, w.re]] (Rectangle z w) :=
+  fun _ hx ↦ ⟨by simp [hx], by simp⟩
+
 attribute [fun_prop] Complex.continuous_ofReal
+
 lemma RectPull_aux1 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (y : ℝ) ↦ f (z.re + y * I)) volume z.im (p.im - c) := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  sorry
+  refine MapsTo.mono_right ?_ (RectPull_rectSub1 zRe_lt_wRe zIm_lt_wIm cpos hc)
+  simpa using mapsTo_left_re z (↑w.re + ↑(p.im - c) * I)
 
 lemma RectPull_aux2 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
@@ -433,7 +451,8 @@ lemma RectPull_aux9 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im - c : ℝ) * I)) volume z.re (p.re - c) := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  sorry
+  refine MapsTo.mono_right ?_ (RectPull_rectSub3 zRe_lt_wRe zIm_lt_wIm cpos hc)
+  simpa using mapsTo_left_im (↑z.re + ↑(p.im - c) * I) (↑(p.re - c) + ↑(p.im + c) * I)
 
 lemma RectPull_aux10 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
