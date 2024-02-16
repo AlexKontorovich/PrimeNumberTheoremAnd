@@ -120,7 +120,7 @@ lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w
     mem_preimage, equivRealProd_apply, mem_Icc, Prod.mk_le_mk]
   tauto
 
-theorem RectangleIntegral_congr (f g : ℂ → ℂ) (z w : ℂ) (h : Set.EqOn f g (RectangleBorder z w)) :
+theorem RectangleIntegral_congr {f g : ℂ → ℂ} {z w : ℂ} (h : Set.EqOn f g (RectangleBorder z w)) :
     RectangleIntegral f z w = RectangleIntegral g z w := by
   dsimp [RectangleIntegral]
   congr! 2
@@ -180,11 +180,12 @@ theorem RectangleIntegral_congr (f g : ℂ → ℂ) (z w : ℂ) (h : Set.EqOn f 
       Prod.mk.injEq, true_and, exists_eq_right, hy]
   exact h this
 
-theorem RectangleIntegral'_congr (f g : ℂ → ℂ) (z w : ℂ) (h : Set.EqOn f g (RectangleBorder z w)) :
+theorem RectangleIntegral'_congr {f g : ℂ → ℂ} {z w : ℂ} (h : Set.EqOn f g (RectangleBorder z w)) :
     RectangleIntegral' f z w = RectangleIntegral' g z w := by
   dsimp [RectangleIntegral']
   congr! 1
-  exact RectangleIntegral_congr f g z w h
+  exact RectangleIntegral_congr h
+
 
 -- Exists in Mathlib; need to update version
 /-- The natural `ContinuousLinearEquiv` from `ℂ` to `ℝ × ℝ`. -/
@@ -266,6 +267,7 @@ abbrev HolomorphicOn {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] (f :
     Prop := DifferentiableOn ℂ f s
 
 
+
 /-%%
 \begin{theorem}[existsDifferentiableOn_of_bddAbove]\label{existsDifferentiableOn_of_bddAbove}\lean{existsDifferentiableOn_of_bddAbove}\leanok
 If $f$ is differentiable on a set $s$ except at $c\in s$, and $f$ is bounded above on $s\setminus\{c\}$, then there exists a differentiable function $g$ on $s$ such that $f$ and $g$ agree on $s\setminus\{c\}$.
@@ -303,6 +305,30 @@ theorem HolomorphicOn.vanishesOnRectangle {f : ℂ → ℂ} {U : Set ℂ} {z w :
 This is in a Mathlib PR.
 \end{proof}
 %%-/
+
+
+
+
+#check IntervalIntegrable.add
+
+#check IntervalIntegrable
+
+
+def RectangleBorderIntegrable (f : ℂ → ℂ) (z w : ℂ) : Prop := 
+  sorry
+
+theorem RectangleBorderIntegrable.add {f g : ℂ → ℂ} {z w : ℂ} (hf : RectangleBorderIntegrable f z w) (hg : RectangleBorderIntegrable g z w) : RectangleIntegral (f + g) z w = RectangleIntegral f z w + RectangleIntegral g z w := by
+  sorry
+
+theorem HolomorphicOn.rectangleBorderIntegrable {f : ℂ → ℂ} {z w : ℂ} (hf : HolomorphicOn f (Rectangle z w)) : RectangleBorderIntegrable f z w := by
+  sorry
+
+theorem HolomorphicOn.rectangleBorderIntegrable' {f : ℂ → ℂ} {z w p : ℂ}
+    (hf : HolomorphicOn f (Rectangle z w \ {p}))
+    (pInInterior : Rectangle z w ∈ nhds p) : RectangleBorderIntegrable f z w := by
+  sorry
+
+
 
 /--
 Given `x₀ a x₁ : ℝ`, and `y₀ y₁ : ℝ` and a function `f : ℂ → ℂ` so that
@@ -1063,7 +1089,23 @@ lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ
     rw [← this]
     ring
   -- let's rewrite f using principalPart'
+  have principalPart'' : Set.EqOn f (g + (fun s ↦ A / (s - p))) (RectangleBorder (-↑c - I * ↑c + p) (↑c + I * ↑c + p)) := by
+    apply principalPart'.mono
+    sorry
+  rw [RectangleIntegral'_congr principalPart'']
+  have hg : HolomorphicOn g (Rectangle (-↑c - I * ↑c + p) (↑c + I * ↑c + p)) := by
+    sorry
+  have hfun : HolomorphicOn (fun s ↦ A / (s - p)) (Rectangle (-↑c - I * ↑c + p) (↑c + I * ↑c + p) \ {p}) := by
+    sorry
+  have pInSquare : Rectangle (-↑c - I * ↑c + p) (↑c + I * ↑c + p) ∈ 𝓝 p := by
+    sorry
+  have hgInt := hg.rectangleBorderIntegrable
+  have hfunInt := hfun.rectangleBorderIntegrable' pInSquare
+  have hgInt' := hgInt.add hfunInt
   dsimp [RectangleIntegral']
+  rw [hgInt']
+  rw [hg.vanishesOnRectangle (fun ⦃a⦄ a => a)]
+  
   sorry
 
 #exit
