@@ -180,6 +180,12 @@ theorem RectangleIntegral_congr (f g : ℂ → ℂ) (z w : ℂ) (h : Set.EqOn f 
       Prod.mk.injEq, true_and, exists_eq_right, hy]
   exact h this
 
+theorem RectangleIntegral'_congr (f g : ℂ → ℂ) (z w : ℂ) (h : Set.EqOn f g (RectangleBorder z w)) :
+    RectangleIntegral' f z w = RectangleIntegral' g z w := by
+  dsimp [RectangleIntegral']
+  congr! 1
+  exact RectangleIntegral_congr f g z w h
+
 -- Exists in Mathlib; need to update version
 /-- The natural `ContinuousLinearEquiv` from `ℂ` to `ℝ × ℝ`. -/
 noncomputable def equivRealProdCLM : ℂ ≃L[ℝ] ℝ × ℝ :=
