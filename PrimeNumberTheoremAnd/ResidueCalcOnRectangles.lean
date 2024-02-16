@@ -353,11 +353,20 @@ lemma SmallSquareInRectangle {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ 
     rw [normC']
     nlinarith
 
+lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := ⟨left_mem_uIcc, left_mem_uIcc⟩
+lemma right_mem_rect (z w : ℂ) : w ∈ Rectangle z w := ⟨right_mem_uIcc, right_mem_uIcc⟩
+
 lemma rect_subset_iff {z w z' w' : ℂ} :
+    Rectangle z' w' ⊆ Rectangle z w ↔ z' ∈ Rectangle z w ∧ w' ∈ Rectangle z w := by
+  use fun h ↦ ⟨h (left_mem_rect z' w'), h (right_mem_rect z' w')⟩
+  intro ⟨hz', hw'⟩ x hx
+  sorry
+
+lemma rect_subset_iff' {z w z' w' : ℂ} :
     Rectangle z' w' ⊆ Rectangle z w ↔
     z'.re ∈ [[z.re, w.re]] ∧ z'.im ∈ [[z.im, w.im]] ∧
-    w'.re ∈ [[z.re, w.re]] ∧ w'.im ∈ [[z.im, w.im]] := by
-  sorry
+    w'.re ∈ [[z.re, w.re]] ∧ w'.im ∈ [[z.im, w.im]] :=
+  rect_subset_iff.trans (by simp [Rectangle, reProdIm]; tauto)
 
 /-- Note: Try using `by simp` for `h''`. -/
 lemma rect_subset_of_rect_subset {z w z' w' z'' w'' : ℂ} (h' : Rectangle z' w' ⊆ Rectangle z w)
@@ -366,7 +375,12 @@ lemma rect_subset_of_rect_subset {z w z' w' z'' w'' : ℂ} (h' : Rectangle z' w'
       w''.re ∈ ({z.re, w.re, z'.re, w'.re} : Set ℝ) ∧
       w''.im ∈ ({z.im, w.im, z'.im, w'.im} : Set ℝ)) :
     Rectangle z'' w'' ⊆ Rectangle z w := by
-  sorry
+  rw [rect_subset_iff']
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · obtain _ | _ | _ | _ := h''.1 <;> simp_all [rect_subset_iff'.mp h']
+  · obtain _ | _ | _ | _ := h''.2.1 <;> simp_all [rect_subset_iff'.mp h']
+  · obtain _ | _ | _ | _ := h''.2.2.1 <;> simp_all [rect_subset_iff'.mp h']
+  · obtain _ | _ | _ | _ := h''.2.2.2 <;> simp_all [rect_subset_iff'.mp h']
 
 lemma mapsTo_left_re (z w : ℂ) :
     MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) :=
@@ -384,7 +398,7 @@ lemma mapsTo_right_im (z w : ℂ) :
     MapsTo (fun (x : ℝ) => ↑x + w.im * I) [[z.re, w.re]] (Rectangle z w) :=
   fun _ hx ↦ ⟨by simp [hx], by simp⟩
 
-lemma rectangle_disjoint {z w p : ℂ}
+lemma rectangle_disjoint_singleton {z w p : ℂ}
     (h : (p.re < z.re ∧ p.re < w.re) ∨ (p.im < z.im ∧ p.im < w.im) ∨
       (z.re < p.re ∧ w.re < p.re) ∨ (z.im < p.im ∧ w.im < p.im)) :
     Disjoint (Rectangle z w) {p} := by
@@ -397,28 +411,28 @@ lemma rectangle_disjoint {z w p : ℂ}
 lemma RectPull_re_aux  {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
     z.re < p.re ∧ p.re < w.re := by
-  use (uIcc_of_lt zRe_lt_wRe ▸ (rect_subset_iff.mp hc).1).1.trans_lt (by simp [cpos])
-  exact LT.lt.trans_le (by simp [cpos]) (uIcc_of_lt zRe_lt_wRe ▸ (rect_subset_iff.mp hc).2.2.1).2
+  use (uIcc_of_lt zRe_lt_wRe ▸ (rect_subset_iff'.mp hc).1).1.trans_lt (by simp [cpos])
+  exact LT.lt.trans_le (by simp [cpos]) (uIcc_of_lt zRe_lt_wRe ▸ (rect_subset_iff'.mp hc).2.2.1).2
 
 lemma RectPull_im_aux  {z w p : ℂ} (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
     z.im < p.im ∧ p.im < w.im := by
-  use (uIcc_of_lt zIm_lt_wIm ▸ (rect_subset_iff.mp hc).2.1).1.trans_lt (by simp [cpos])
-  exact LT.lt.trans_le (by simp [cpos]) (uIcc_of_lt zIm_lt_wIm ▸ (rect_subset_iff.mp hc).2.2.2).2
+  use (uIcc_of_lt zIm_lt_wIm ▸ (rect_subset_iff'.mp hc).2.1).1.trans_lt (by simp [cpos])
+  exact LT.lt.trans_le (by simp [cpos]) (uIcc_of_lt zIm_lt_wIm ▸ (rect_subset_iff'.mp hc).2.2.2).2
 
 lemma RectPull_rectSub1 {z w p : ℂ} (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
     Rectangle (z.re + z.im * I) (w.re + (p.im - c : ℝ) * I) ⊆ Rectangle z w \ {p} := by
   rw [Set.subset_diff]
   use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add])
-  exact rectangle_disjoint (by simp [cpos, (RectPull_im_aux zIm_lt_wIm cpos hc).1])
+  exact rectangle_disjoint_singleton (by simp [cpos, (RectPull_im_aux zIm_lt_wIm cpos hc).1])
 
 lemma RectPull_rectSub2 {z w p : ℂ} (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
     Rectangle (z.re + (p.im + c : ℝ) * I) (w.re + w.im * I) ⊆ Rectangle z w \ {p}:= by
   rw [Set.subset_diff]
   use rect_subset_of_rect_subset hc (by simp [add_comm])
-  exact rectangle_disjoint (by simp [cpos, (RectPull_im_aux zIm_lt_wIm cpos hc).2])
+  exact rectangle_disjoint_singleton (by simp [cpos, (RectPull_im_aux zIm_lt_wIm cpos hc).2])
 
 lemma RectPull_rectSub3 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
@@ -426,7 +440,7 @@ lemma RectPull_rectSub3 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
       ⊆ Rectangle z w \ {p} := by
   rw [Set.subset_diff]
   use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add, add_comm])
-  exact rectangle_disjoint (by simp [cpos, (RectPull_re_aux zRe_lt_wRe cpos hc).1])
+  exact rectangle_disjoint_singleton (by simp [cpos, (RectPull_re_aux zRe_lt_wRe cpos hc).1])
 
 lemma RectPull_rectSub4 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
@@ -434,7 +448,7 @@ lemma RectPull_rectSub4 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
       ⊆ Rectangle z w \ {p} := by
   rw [Set.subset_diff]
   use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add, add_comm])
-  exact rectangle_disjoint (by simp [cpos, (RectPull_re_aux zRe_lt_wRe cpos hc).2])
+  exact rectangle_disjoint_singleton (by simp [cpos, (RectPull_re_aux zRe_lt_wRe cpos hc).2])
 
 
 attribute [fun_prop] Complex.continuous_ofReal
@@ -571,7 +585,7 @@ centered at $p$.
 \end{lemma}
 %%-/
 lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
-    (zIm_lt_wIm : z.im < w.im) (pInRectInterior : Rectangle z w ∈ nhds p)
+    (zIm_lt_wIm : z.im < w.im) (pInRectInterior : Rectangle z w ∈ 𝓝 p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0, RectangleIntegral f z w =
       RectangleIntegral f (-c - I * c + p) (c + I * c + p) := by
