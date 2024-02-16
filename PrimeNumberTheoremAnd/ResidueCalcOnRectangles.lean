@@ -52,6 +52,7 @@ A Rectangle's border, given corners $z$ and $w$ is the union of the four sides.
 /-- A `RectangleBorder` has corners `z` and `w`. -/
 def RectangleBorder (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ {z.im} ∪ {z.re} ×ℂ [[z.im, w.im]] ∪ [[z.re, w.re]] ×ℂ {w.im} ∪ {w.re} ×ℂ [[z.im, w.im]]
 
+
 /-%%
 An UpperUIntegral is the integral of a function over a |\_| shape.
 \begin{definition}\label{UpperUIntegral}\lean{UpperUIntegral}\leanok
@@ -118,6 +119,66 @@ lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w
     uIcc_of_le (by linarith : z.im ≤ w.im), ← preimage_equivRealProd_prod, Icc_prod_Icc,
     mem_preimage, equivRealProd_apply, mem_Icc, Prod.mk_le_mk]
   tauto
+
+theorem RectangleIntegral_congr (f g : ℂ → ℂ) (z w : ℂ) (h : Set.EqOn f g (RectangleBorder z w)) :
+    RectangleIntegral f z w = RectangleIntegral g z w := by
+  dsimp [RectangleIntegral]
+  congr! 2
+  · congr! 1
+    · apply intervalIntegral.integral_congr
+      intro x hx
+      simp only
+      have : x + z.im * I ∈ RectangleBorder z w := by
+        dsimp [RectangleBorder]
+        simp only [mem_union]
+        left
+        left
+        left
+        rw [← preimage_equivRealProd_prod]
+        simp only [prod_singleton, mem_preimage, equivRealProd_apply, add_re, ofReal_re, mul_re,
+          I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add,
+          mem_image, Prod.mk.injEq, and_true, exists_eq_right, hx]
+      exact h this
+    apply intervalIntegral.integral_congr
+    intro x hx
+    simp only
+    have : x + w.im * I ∈ RectangleBorder z w := by
+      dsimp [RectangleBorder]
+      simp only [mem_union]
+      left
+      right
+      rw [← preimage_equivRealProd_prod]
+      simp only [prod_singleton, mem_preimage, equivRealProd_apply, add_re, ofReal_re, mul_re, I_re,
+        mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add, mem_image,
+        Prod.mk.injEq, and_true, exists_eq_right, hx]
+    exact h this
+  · congr! 1
+    apply intervalIntegral.integral_congr
+    intro y hy
+    simp only
+    have : w.re + y * I ∈ RectangleBorder z w := by
+      dsimp [RectangleBorder]
+      simp only [mem_union]
+      right
+      rw [← preimage_equivRealProd_prod]
+      simp only [singleton_prod, mem_preimage, equivRealProd_apply, add_re, ofReal_re, mul_re, I_re,
+        mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add, mem_image,
+        Prod.mk.injEq, true_and, exists_eq_right, hy]
+    exact h this
+  apply intervalIntegral.integral_congr
+  intro y hy
+  simp only
+  have : z.re + y * I ∈ RectangleBorder z w := by
+    dsimp [RectangleBorder]
+    simp only [mem_union]
+    left
+    left
+    right
+    rw [← preimage_equivRealProd_prod]
+    simp only [singleton_prod, mem_preimage, equivRealProd_apply, add_re, ofReal_re, mul_re, I_re,
+      mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add, mem_image,
+      Prod.mk.injEq, true_and, exists_eq_right, hy]
+  exact h this
 
 -- Exists in Mathlib; need to update version
 /-- The natural `ContinuousLinearEquiv` from `ℂ` to `ℝ × ℝ`. -/
@@ -958,6 +1019,12 @@ theorem exists_of_eventually
     assumption
   exact ha₂ this
 
+theorem exists_of_eventually_2
+  {P Q : ℝ → Prop}
+  (hP : ∀ᶠ (c : ℝ) in 𝓝[>] 0, P c)
+  (hQ : ∀ᶠ (c : ℝ) in 𝓝[>] 0, Q c) :
+  ∃ c > 0, P c ∧ Q c := exists_of_eventually (Filter.eventually_iff.mp (hP.and hQ))
+
 /-%%
 \begin{lemma}[ResidueTheoremOnRectangleWithSimplePole]\label{ResidueTheoremOnRectangleWithSimplePole}
 \lean{ResidueTheoremOnRectangleWithSimplePole}\leanok
@@ -975,8 +1042,26 @@ lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ
     (principalPart : Set.EqOn (f - fun s ↦ A / (s - p)) (g)
       (Rectangle z w \ {p})) :
     RectangleIntegral' f z w = A := by
-  have := RectanglePullToNhdOfPole' zRe_lt_wRe zIm_lt_wIm pInRectInterior fHolo
-  have := exists_of_eventually this
+  have h₁ := RectanglePullToNhdOfPole' zRe_lt_wRe zIm_lt_wIm pInRectInterior fHolo
+  have h₂ := SmallSquareInRectangle pInRectInterior
+  obtain ⟨c, cpos, hc₁, hc₂⟩ := exists_of_eventually_2 h₁ h₂
+  rw [hc₁]
+  have principalPart' : Set.EqOn f (g + (fun s ↦ A / (s - p)))
+    (Rectangle z w \ {p}) := by
+    intro s hs
+    have := principalPart hs
+    simp_all only [mul_eq_mul_left_iff, one_div, mul_inv_rev, inv_I, neg_mul, neg_eq_zero,
+      _root_.mul_eq_zero, I_ne_zero, inv_eq_zero, ofReal_eq_zero, OfNat.ofNat_ne_zero, or_false,
+      false_or, eventually_or_distrib_right, gt_iff_lt, mem_diff, mem_singleton_iff, Pi.sub_apply,
+      Pi.add_apply]
+    rw [← this]
+    ring
+  -- let's rewrite f using principalPart'
+  dsimp [RectangleIntegral']
+  sorry
+
+#exit
+  have := exists_of_eventually h₁
   obtain ⟨c, cpos, hc⟩ := this
   rw [hc]
   
