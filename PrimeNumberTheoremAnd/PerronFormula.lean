@@ -689,22 +689,24 @@ By ring.
 \end{proof}
 %%-/
 
-lemma diffBddAtZero_aux_ge {x : ℝ} (xpos : 0 < x) (xge : 1 ≤ x) {c : ℝ} (cpos : 0 < c) (c_lt : c < 1 / 2) (s : ℂ)
-    (s_memRect : s ∈ Rectangle (-c - I * c) (c + I * c)) (s_nonzero : s ≠ 0) :
-    Complex.abs (↑x ^ s / s - s⁻¹) ≤ x ^ (2 : ℝ) * 2 := sorry
+lemma diffBddAtZero_aux_ge {x : ℝ} (xpos : 0 < x) (xge : 1 ≤ x) :
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Rectangle (-c - I * c) (c + I * c),
+    Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ x ^ (2 : ℝ) * 2 := sorry
 
-lemma diffBddAtZero_aux_lt {x : ℝ} (xpos : 0 < x) (xlt : x < 1) {c : ℝ} (cpos : 0 < c) (c_lt : c < 1 / 2) (s : ℂ)
-    (s_memRect : s ∈ Rectangle (-c - I * c) (c + I * c)) (s_nonzero : s ≠ 0) :
-    Complex.abs (↑x ^ s / s - s⁻¹) ≤ x ^ (-(2 : ℝ)) * 2 := sorry
+lemma diffBddAtZero_aux_lt {x : ℝ} (xpos : 0 < x) (xlt : x < 1) :
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Rectangle (-c - I * c) (c + I * c),
+    Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ x ^ (-(2 : ℝ)) * 2 := sorry
 
-lemma diffBddAtZero_aux {x : ℝ} (xpos : 0 < x) {c : ℝ} (cpos : 0 < c) (c_lt : c < 1 / 2) (s : ℂ)
-    (s_memRect : s ∈ Rectangle (-c - I * c) (c + I * c)) (s_nonzero : s ≠ 0) :
-    Complex.abs (↑x ^ s / s - s⁻¹) ≤ if h : 1 ≤ x then x ^ (2 : ℝ) * 2 else x ^ (-(2 : ℝ)) * 2 := by
+lemma diffBddAtZero_aux {x : ℝ} (xpos : 0 < x) :
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Rectangle (-c - I * c) (c + I * c),
+    Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ if h : 1 ≤ x then x ^ (2 : ℝ) * 2 else x ^ (-(2 : ℝ)) * 2 := by
   by_cases h : 1 ≤ x
-  · convert diffBddAtZero_aux_ge xpos h cpos c_lt s s_memRect s_nonzero
-    simp [h]
-  · convert diffBddAtZero_aux_lt xpos (by linarith : x < 1) cpos c_lt s s_memRect s_nonzero
-    simp [h]
+  · filter_upwards [diffBddAtZero_aux_ge xpos h]
+    intro c sRectBnd sRect
+    simpa [h, ↓reduceDite, rpow_two, ge_iff_le] using (sRectBnd sRect)
+  · filter_upwards [diffBddAtZero_aux_lt xpos (by linarith : x < 1)]
+    intro c sRectBnd sRect
+    simpa [h, ↓reduceDite, rpow_two, ge_iff_le] using (sRectBnd sRect)
 
 /-%%
 \begin{lemma}[diffBddAtZero]\label{diffBddAtZero}\lean{Perron.diffBddAtZero}\leanok
@@ -715,9 +717,15 @@ $$
 is bounded above on the rectangle with corners at $-c-i*c$ and $c+i*c$ (except at $s=0$).
 \end{lemma}
 %%-/
-lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) {c : ℝ} (cpos : 0 < c) (c_lt : c < 1/2) :
+lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) :
+     ∀ᶠ (c : ℝ) in 𝓝[>] 0,
     BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - 1 / s)) ''
       (Rectangle (-c - I * c) (c + I * c) \ {0})) := by
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2), diffBddAtZero_aux xpos]
+  intro c hc sRectBnd
+  simp only [mem_Ioo] at hc
+  have cpos : 0 < c := hc.1
+  have c_lt : c < 1 / 2 := hc.2
   rw [bddAbove_def]
   let bnd := if h : 1 ≤ x then x ^ (2 : ℝ) * 4 else x ^ (-(2 : ℝ)) * 4
   use bnd
@@ -735,68 +743,72 @@ lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) {c : ℝ} (cpos : 0 < c) (c_lt : c 
       mul_im, one_mul, zero_add, zero_sub, one_im, Left.neg_nonpos_iff, add_im, and_self] at s_memRect
     linarith
   rw [keyIdentity x s_nonzero s_ne_neg_one]
+
   calc
     _ = Complex.abs ((x : ℂ) ^ s / s - s⁻¹ + -(x : ℂ) ^ s / (s + 1)) := by congr; ring
     _ ≤ Complex.abs ((x : ℂ) ^ s / s - s⁻¹) + Complex.abs (-(x : ℂ) ^ s / (s + 1)) := AbsoluteValue.add_le Complex.abs _ _
-    _ ≤ Complex.abs ((x : ℂ) ^ s / s - s⁻¹) +  bnd / 2 := by
-      gcongr
-      rw [← Complex.abs_neg]
-      simp only [map_neg_eq_map, map_div₀]
-      rw [mem_Rect ] at s_memRect
-      · simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
-          sub_self, sub_zero, add_re, add_zero, sub_im, neg_im, neg_zero, mul_im, one_mul, zero_add,
-          zero_sub, add_im] at s_memRect
-        have bnd2 : (Complex.abs (s + 1))⁻¹ ≤ 2 := by
-          rw [inv_le (by simp [sPlusOneNeZero s_ne_neg_one]) (by linarith)]
-          calc
-            2⁻¹ ≤ (s + 1).re := by
-              simp only [add_re, one_re]
-              have aux1 : -(1 : ℝ) / 2 ≤ s.re := by linarith [s_memRect.1]
-              have aux2 : -(1 : ℝ) / 2 = -1 + 2⁻¹ := by norm_num
-              rw [aux2] at aux1
-              linarith
-            _ ≤ Complex.abs (s + 1) := Complex.re_le_abs _
-        by_cases one_le_x : 1 ≤ x
-        · simp only [one_le_x, ↓reduceDite, mul_div_assoc]
-          rw [(by norm_num : (4 : ℝ) / 2 = 2)]
-          have bnd1 : Complex.abs ((x : ℂ) ^ s) ≤ x ^ (2 : ℝ) := by
-            rw [Complex.abs_cpow_eq_rpow_re_of_pos xpos]
-            have : s.re ≤ 2 := by linarith [s_memRect.2.1]
-            exact Real.rpow_le_rpow_of_exponent_le one_le_x this
-          change Complex.abs ((x : ℂ) ^ s) * (Complex.abs (s + 1))⁻¹ ≤ _
-          refine mul_le_mul bnd1 bnd2 (inv_nonneg_of_nonneg (AbsoluteValue.nonneg Complex.abs _)) ?_
-          convert sq_nonneg x
-          exact rpow_two x
-        · simp only [one_le_x, ↓reduceDite, one_div]
-          simp only [not_le] at one_le_x
-          rw [mul_div_assoc, (by norm_num : (4 : ℝ) / 2 = 2)]
-          set t := x⁻¹
-          have tpos : 0 < t := inv_pos_of_pos xpos
-          have tGeOne : 1 ≤ t := one_le_inv xpos one_le_x.le
-          have bnd1 : Complex.abs ((x : ℂ) ^ s) ≤ x ^ (-(2 : ℝ)) := by
-            rw [Complex.abs_cpow_eq_rpow_re_of_pos xpos]
-            rw [(by field_simp : x = t⁻¹), Real.inv_rpow tpos.le, inv_le (Real.rpow_pos_of_pos tpos _) (by simp [Real.rpow_pos_of_pos xpos _])]
-            have : (t⁻¹ ^ (-(2 : ℝ)))⁻¹ = t ^ (-(2 : ℝ))
-            · simp only [inv_inv]
-              rw [Real.rpow_neg xpos.le, inv_inv, Real.rpow_neg tpos.le, Real.inv_rpow xpos.le, inv_inv]
-            rw [this]
-            apply Real.rpow_le_rpow_of_exponent_le tGeOne -- (Real.rpow_pos_of_pos tpos s.re)
-            linarith [s_memRect.1]
-          change Complex.abs ((x : ℂ) ^ s) * (Complex.abs (s + 1))⁻¹ ≤ _
-          refine mul_le_mul bnd1 bnd2 (inv_nonneg_of_nonneg (AbsoluteValue.nonneg Complex.abs _)) ?_
-          convert sq_nonneg t
-          rw [← rpow_two t, Real.rpow_neg]
-          simp only [rpow_two, inv_pow]
-          exact xpos.le
-      · simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self, sub_zero, add_re, add_zero, neg_le_self_iff]
-        linarith
-      · simp only [sub_im, neg_im, ofReal_im, neg_zero, mul_im, I_re, mul_zero, I_im, ofReal_re, one_mul, zero_add, zero_sub, add_im, neg_le_self_iff]
-        linarith
+    _ ≤ Complex.abs ((x : ℂ) ^ s / s - s⁻¹) +  bnd / 2 := ?_
     _ ≤ bnd / 2 + bnd / 2 := by
       gcongr
-      convert diffBddAtZero_aux xpos cpos c_lt s s_memRect s_nonzero
+      convert sRectBnd s s_memRect
       by_cases one_le_x : 1 ≤ x <;> simp only [dite_eq_ite, one_le_x, ↓reduceIte, ↓reduceDite] <;> field_simp <;> ring
     _ = bnd := by ring
+
+  gcongr
+  rw [← Complex.abs_neg]
+  simp only [map_neg_eq_map, map_div₀]
+  rw [mem_Rect ] at s_memRect
+  · simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
+      sub_self, sub_zero, add_re, add_zero, sub_im, neg_im, neg_zero, mul_im, one_mul, zero_add,
+      zero_sub, add_im] at s_memRect
+    have bnd2 : (Complex.abs (s + 1))⁻¹ ≤ 2
+    · rw [inv_le (by simp [sPlusOneNeZero s_ne_neg_one]) (by linarith)]
+      calc
+        2⁻¹ ≤ (s + 1).re := by
+          simp only [add_re, one_re]
+          have aux1 : -(1 : ℝ) / 2 ≤ s.re := by linarith [s_memRect.1]
+          have aux2 : -(1 : ℝ) / 2 = -1 + 2⁻¹ := by norm_num
+          rw [aux2] at aux1
+          linarith
+        _ ≤ Complex.abs (s + 1) := Complex.re_le_abs _
+    by_cases one_le_x : 1 ≤ x
+    · simp only [one_le_x, ↓reduceDite, mul_div_assoc]
+      rw [(by norm_num : (4 : ℝ) / 2 = 2)]
+      have bnd1 : Complex.abs ((x : ℂ) ^ s) ≤ x ^ (2 : ℝ) := by
+        rw [Complex.abs_cpow_eq_rpow_re_of_pos xpos]
+        have : s.re ≤ 2 := by linarith [s_memRect.2.1]
+        exact Real.rpow_le_rpow_of_exponent_le one_le_x this
+      change Complex.abs ((x : ℂ) ^ s) * (Complex.abs (s + 1))⁻¹ ≤ _
+      refine mul_le_mul bnd1 bnd2 (inv_nonneg_of_nonneg (AbsoluteValue.nonneg Complex.abs _)) ?_
+      convert sq_nonneg x
+      exact rpow_two x
+    · simp only [one_le_x, ↓reduceDite, one_div]
+      simp only [not_le] at one_le_x
+      rw [mul_div_assoc, (by norm_num : (4 : ℝ) / 2 = 2)]
+      set t := x⁻¹
+      have tpos : 0 < t := inv_pos_of_pos xpos
+      have tGeOne : 1 ≤ t := one_le_inv xpos one_le_x.le
+      have bnd1 : Complex.abs ((x : ℂ) ^ s) ≤ x ^ (-(2 : ℝ)) := by
+        rw [Complex.abs_cpow_eq_rpow_re_of_pos xpos]
+        rw [(by field_simp : x = t⁻¹), Real.inv_rpow tpos.le, inv_le (Real.rpow_pos_of_pos tpos _) (by simp [Real.rpow_pos_of_pos xpos _])]
+        have : (t⁻¹ ^ (-(2 : ℝ)))⁻¹ = t ^ (-(2 : ℝ))
+        · simp only [inv_inv]
+          rw [Real.rpow_neg xpos.le, inv_inv, Real.rpow_neg tpos.le, Real.inv_rpow xpos.le, inv_inv]
+        rw [this]
+        apply Real.rpow_le_rpow_of_exponent_le tGeOne -- (Real.rpow_pos_of_pos tpos s.re)
+        linarith [s_memRect.1]
+      change Complex.abs ((x : ℂ) ^ s) * (Complex.abs (s + 1))⁻¹ ≤ _
+      refine mul_le_mul bnd1 bnd2 (inv_nonneg_of_nonneg (AbsoluteValue.nonneg Complex.abs _)) ?_
+      convert sq_nonneg t
+      rw [← rpow_two t, Real.rpow_neg]
+      simp only [rpow_two, inv_pow]
+      exact xpos.le
+  · simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self,
+      sub_zero, add_re, add_zero, neg_le_self_iff]
+    linarith
+  · simp only [sub_im, neg_im, ofReal_im, neg_zero, mul_im, I_re, mul_zero, I_im, ofReal_re, one_mul,
+      zero_add, zero_sub, add_im, neg_le_self_iff]
+    linarith
 
 /-%%
 \begin{proof}\uses{keyIdentity}
@@ -845,10 +857,12 @@ lemma residueAtZero (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
 \begin{proof}\leanok
 \uses{diffBddAtZero, ResidueTheoremOnRectangleWithSimplePole,
 existsDifferentiableOn_of_bddAbove}
-For $c>0$ sufficiently small, say $c<1/2$,
+For $c>0$ sufficiently small,
 %%-/
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2)]
-  intro c hc
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2), diffBddAtZero xpos]
+  intro c hc bddAbove
+  simp only [mem_Ioo] at hc
+  have cpos : 0 < c := hc.1
   set f : ℂ → ℂ := (fun (s : ℂ) ↦ x ^ s / (s * (s + 1)))
   set Rect := Rectangle (-c - I * c) (c + I * c)
   have RectSub : Rect \ {0} ⊆ {0, -1}ᶜ := sorry
@@ -856,7 +870,6 @@ For $c>0$ sufficiently small, say $c<1/2$,
     (isHolomorphicOn xpos).mono RectSub
   set f1 : ℂ → ℂ := f - (fun (s : ℂ) ↦ 1 / s)
   have f1Holo : HolomorphicOn f1 (Rect \ {0}) := sorry
-  simp only [mem_Ioo] at hc
   have uIccIcc : uIcc (-c) c = Icc (-c) c := by apply uIcc_of_le; linarith
   have RectMemNhds : Rect ∈ 𝓝 0
   · rw [mem_nhds_iff]
@@ -886,7 +899,6 @@ For $c>0$ sufficiently small, say $c<1/2$,
 /-%% $x^s/(s(s+1))$ is equal to $1/s$ plus a function, $g$, say,
 holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
 %%-/
-  have bddAbove := diffBddAtZero xpos hc.1 hc.2
   obtain ⟨g, gHolo, g_eq_fDiff⟩ := existsDifferentiableOn_of_bddAbove RectMemNhds f1Holo bddAbove
 --%% Now apply Lemma \ref{ResidueTheoremOnRectangleWithSimplePole}.
   apply ResidueTheoremOnRectangleWithSimplePole (pInRectInterior := RectMemNhds) (fHolo := fHolo) (g := g) (A := 1) (gHolo := gHolo)
