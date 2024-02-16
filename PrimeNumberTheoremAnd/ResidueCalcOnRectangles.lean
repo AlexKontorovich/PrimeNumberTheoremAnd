@@ -415,6 +415,17 @@ lemma rectangle_disjoint_singleton {z w p : ℂ}
   · exact Or.inl (not_mem_uIcc_of_gt h.1 h.2)
   · exact Or.inr (not_mem_uIcc_of_gt h.1 h.2)
 
+/-- Note: try using `by simp` for `h''`, `hp`. -/
+lemma rect_subset_punctured_rect {z w z' w' z'' w'' p : ℂ} (h' : Rectangle z' w' ⊆ Rectangle z w)
+    (h'': z''.re ∈ ({z.re, w.re, z'.re, w'.re} : Set ℝ) ∧
+      z''.im ∈ ({z.im, w.im, z'.im, w'.im} : Set ℝ) ∧
+      w''.re ∈ ({z.re, w.re, z'.re, w'.re} : Set ℝ) ∧
+      w''.im ∈ ({z.im, w.im, z'.im, w'.im} : Set ℝ))
+    (hp : (p.re < z''.re ∧ p.re < w''.re) ∨ (p.im < z''.im ∧ p.im < w''.im) ∨
+      (z''.re < p.re ∧ w''.re < p.re) ∨ (z''.im < p.im ∧ w''.im < p.im)) :
+    Rectangle z'' w'' ⊆ Rectangle z w \ {p} :=
+  Set.subset_diff.mpr ⟨rect_subset_of_rect_subset h' h'', rectangle_disjoint_singleton hp⟩
+
 /-- TODO: could probably generalize these next two lemmas without making them much harder to use
   in the following application -/
 lemma RectPull_re_aux  {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
@@ -431,33 +442,29 @@ lemma RectPull_im_aux  {z w p : ℂ} (zIm_lt_wIm : z.im < w.im)
 
 lemma RectPull_rectSub1 {z w p : ℂ} (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
-    Rectangle (z.re + z.im * I) (w.re + (p.im - c : ℝ) * I) ⊆ Rectangle z w \ {p} := by
-  rw [Set.subset_diff]
-  use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add])
-  exact rectangle_disjoint_singleton (by simp [cpos, RectPull_im_aux zIm_lt_wIm cpos hc])
+    Rectangle (z.re + z.im * I) (w.re + (p.im - c : ℝ) * I) ⊆ Rectangle z w \ {p} :=
+  rect_subset_punctured_rect hc (by simp [sub_eq_neg_add])
+    (by simp [cpos, RectPull_im_aux zIm_lt_wIm cpos hc])
 
 lemma RectPull_rectSub2 {z w p : ℂ} (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
-    Rectangle (z.re + (p.im + c : ℝ) * I) (w.re + w.im * I) ⊆ Rectangle z w \ {p}:= by
-  rw [Set.subset_diff]
-  use rect_subset_of_rect_subset hc (by simp [add_comm])
-  exact rectangle_disjoint_singleton (by simp [cpos, RectPull_im_aux zIm_lt_wIm cpos hc])
+    Rectangle (z.re + (p.im + c : ℝ) * I) (w.re + w.im * I) ⊆ Rectangle z w \ {p}:=
+  rect_subset_punctured_rect hc (by simp [add_comm])
+    (by simp [cpos, RectPull_im_aux zIm_lt_wIm cpos hc])
 
 lemma RectPull_rectSub3 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
     Rectangle (z.re + (p.im - c : ℝ) * I) ((p.re - c : ℝ) + (p.im + c : ℝ) * I)
-      ⊆ Rectangle z w \ {p} := by
-  rw [Set.subset_diff]
-  use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add, add_comm])
-  exact rectangle_disjoint_singleton (by simp [cpos, RectPull_re_aux zRe_lt_wRe cpos hc])
+      ⊆ Rectangle z w \ {p} :=
+  rect_subset_punctured_rect hc (by simp [sub_eq_neg_add, add_comm])
+    (by simp [cpos, RectPull_re_aux zRe_lt_wRe cpos hc])
 
 lemma RectPull_rectSub4 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w) :
     Rectangle ((p.re + c : ℝ) + (p.im - c : ℝ) * I) (w.re + (p.im + c : ℝ) * I)
-      ⊆ Rectangle z w \ {p} := by
-  rw [Set.subset_diff]
-  use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add, add_comm])
-  exact rectangle_disjoint_singleton (by simp [cpos, RectPull_re_aux zRe_lt_wRe cpos hc])
+      ⊆ Rectangle z w \ {p} :=
+  rect_subset_punctured_rect hc (by simp [sub_eq_neg_add, add_comm])
+    (by simp [cpos, RectPull_re_aux zRe_lt_wRe cpos hc])
 
 
 attribute [fun_prop] Complex.continuous_ofReal
@@ -475,10 +482,9 @@ lemma RectPull_aux2 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (y : ℝ) ↦ f (z.re + y * I)) volume (p.im - c) w.im := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  have : Rectangle (z.re + (p.im - c) * I) (z.re + w.im * I) ⊆ Rectangle z w \ {p} := by
-    rw [Set.subset_diff]
-    use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add])
-    exact rectangle_disjoint_singleton (by simp [cpos, RectPull_re_aux zRe_lt_wRe cpos hc])
+  have : Rectangle (z.re + (p.im - c) * I) (z.re + w.im * I) ⊆ Rectangle z w \ {p} :=
+    rect_subset_punctured_rect hc (by simp [sub_eq_neg_add])
+      (by simp [cpos, RectPull_re_aux zRe_lt_wRe cpos hc])
   refine MapsTo.mono_right ?_ this
   simpa using mapsTo_left_re (↑z.re + (↑p.im - ↑c) * I) (↑z.re + w.im * I)
 
@@ -495,10 +501,9 @@ lemma RectPull_aux4 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (y : ℝ) ↦ f (w.re + y * I)) volume (p.im - c) w.im := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  have : Rectangle (w.re + (p.im - c) * I) (w.re + w.im * I) ⊆ Rectangle z w \ {p} := by
-    rw [Set.subset_diff]
-    use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add])
-    exact rectangle_disjoint_singleton (by simp [cpos, RectPull_re_aux zRe_lt_wRe cpos hc])
+  have : Rectangle (w.re + (p.im - c) * I) (w.re + w.im * I) ⊆ Rectangle z w \ {p} :=
+    rect_subset_punctured_rect hc (by simp [sub_eq_neg_add])
+      (by simp [cpos, RectPull_re_aux zRe_lt_wRe cpos hc])
   refine MapsTo.mono_right ?_ this
   simpa using mapsTo_right_re (↑w.re + (↑p.im - ↑c) * I) (↑w.re + w.im * I)
 
@@ -547,10 +552,8 @@ lemma RectPull_aux10 {f : ℂ → ℂ} {z w p : ℂ}
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im - c : ℝ) * I)) volume (p.re - c) w.re := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  have : Rectangle ((p.re - c) + (p.im - c) * I) (w.re + (p.im - c) * I) ⊆ Rectangle z w \ {p}
-  · rw [Set.subset_diff]
-    use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add])
-    exact rectangle_disjoint_singleton (by simp [cpos])
+  have : Rectangle ((p.re - c) + (p.im - c) * I) (w.re + (p.im - c) * I) ⊆ Rectangle z w \ {p} :=
+    rect_subset_punctured_rect hc (by simp [sub_eq_neg_add]) (by simp [cpos])
   refine MapsTo.mono_right ?_ this
   simpa using mapsTo_left_im (↑p.re - ↑c + (↑p.im - ↑c) * I) (↑w.re + (↑p.im - ↑c) * I)
 
@@ -567,10 +570,8 @@ lemma RectPull_aux12 {f : ℂ → ℂ} {z w p : ℂ}
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im + c : ℝ) * I)) volume (p.re - c) w.re := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  have : Rectangle ((p.re - c) + (p.im + c) * I) (w.re + (p.im + c) * I) ⊆ Rectangle z w \ {p}
-  · rw [Set.subset_diff]
-    use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add, add_comm])
-    exact rectangle_disjoint_singleton (by simp [cpos])
+  have : Rectangle ((p.re - c) + (p.im + c) * I) (w.re + (p.im + c) * I) ⊆ Rectangle z w \ {p} :=
+    rect_subset_punctured_rect hc (by simp [sub_eq_neg_add, add_comm]) (by simp [cpos])
   refine MapsTo.mono_right ?_ this
   simpa using mapsTo_right_im (↑p.re - ↑c + (↑p.im + ↑c) * I) (↑w.re + (↑p.im + ↑c) * I)
 
@@ -579,10 +580,8 @@ lemma RectPull_aux13 {f : ℂ → ℂ} {z w p : ℂ}
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im - c : ℝ) * I)) volume (p.re - c) (p.re + c) := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  have : Rectangle ((p.re - c) + (p.im - c) * I) ((p.re + c) + (p.im - c) * I) ⊆ Rectangle z w \ {p}
-  · rw [Set.subset_diff]
-    use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add, add_comm])
-    exact rectangle_disjoint_singleton (by simp [cpos])
+  have : Rectangle ((p.re - c) + (p.im - c) * I) ((p.re + c) + (p.im - c) * I) ⊆ Rectangle z w \ {p} :=
+    rect_subset_punctured_rect hc (by simp [sub_eq_neg_add, add_comm]) (by simp [cpos])
   refine MapsTo.mono_right ?_ this
   simpa using mapsTo_left_im (↑p.re - ↑c + (↑p.im - ↑c) * I) (↑p.re + ↑c + (↑p.im - ↑c) * I)
 
@@ -599,10 +598,8 @@ lemma RectPull_aux15 {f : ℂ → ℂ} {z w p : ℂ}
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
     IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im + c : ℝ) * I)) volume (p.re - c) (p.re + c) := by
   refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
-  have : Rectangle ((p.re - c) + (p.im + c) * I) ((p.re + c) + (p.im + c) * I) ⊆ Rectangle z w \ {p}
-  · rw [Set.subset_diff]
-    use rect_subset_of_rect_subset hc (by simp [sub_eq_neg_add, add_comm])
-    exact rectangle_disjoint_singleton (by simp [cpos])
+  have : Rectangle ((p.re - c) + (p.im + c) * I) ((p.re + c) + (p.im + c) * I) ⊆ Rectangle z w \ {p} :=
+    rect_subset_punctured_rect hc (by simp [sub_eq_neg_add, add_comm]) (by simp [cpos])
   refine MapsTo.mono_right ?_ this
   simpa using mapsTo_right_im (↑p.re - ↑c + (↑p.im + ↑c) * I) (↑p.re + ↑c + (↑p.im + ↑c) * I)
 
