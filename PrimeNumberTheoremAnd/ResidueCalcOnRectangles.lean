@@ -371,85 +371,118 @@ lemma RectPull_rectSub4 {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z
     Rectangle ((p.re + c : ℝ) + (p.im - c : ℝ) * I) (w.re + (p.im + c : ℝ) * I)
       ⊆ Rectangle z w \ {p} := sorry
 
+attribute [fun_prop] Complex.continuous_ofReal
 lemma RectPull_aux1 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (y : ℝ) ↦ f (z.re + y * I)) volume z.im (p.im - c) := sorry
+    IntervalIntegrable (fun (y : ℝ) ↦ f (z.re + y * I)) volume z.im (p.im - c) := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux2 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (y : ℝ) ↦ f (z.re + y * I)) volume (p.im - c) w.im := sorry
+    IntervalIntegrable (fun (y : ℝ) ↦ f (z.re + y * I)) volume (p.im - c) w.im := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux3 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (y : ℝ) ↦ f (w.re + y * I)) volume z.im (p.im - c) := sorry
+    IntervalIntegrable (fun (y : ℝ) ↦ f (w.re + y * I)) volume z.im (p.im - c) := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux4 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (y : ℝ) ↦ f (w.re + y * I)) volume (p.im - c) w.im := sorry
+    IntervalIntegrable (fun (y : ℝ) ↦ f (w.re + y * I)) volume (p.im - c) w.im := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux5 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (y : ℝ) ↦ f (z.re + y * I)) volume (p.im - c) (p.im + c) := sorry
+    IntervalIntegrable (fun (y : ℝ) ↦ f (z.re + y * I)) volume (p.im - c) (p.im + c) := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux6 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (y : ℝ) ↦ f (z.re + y * I)) volume (p.im + c) w.im := sorry
+    IntervalIntegrable (fun (y : ℝ) ↦ f (z.re + y * I)) volume (p.im + c) w.im := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux7 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (y : ℝ) ↦ f (w.re + y * I)) volume (p.im - c) (p.im + c) := sorry
+    IntervalIntegrable (fun (y : ℝ) ↦ f (w.re + y * I)) volume (p.im - c) (p.im + c) := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux8 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (y : ℝ) ↦ f (w.re + y * I)) volume (p.im + c) w.im := sorry
+    IntervalIntegrable (fun (y : ℝ) ↦ f (w.re + y * I)) volume (p.im + c) w.im := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux9 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im - c : ℝ) * I)) volume z.re (p.re - c) := sorry
+    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im - c : ℝ) * I)) volume z.re (p.re - c) := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux10 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im - c : ℝ) * I)) volume (p.re - c) w.re := sorry
+    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im - c : ℝ) * I)) volume (p.re - c) w.re := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux11 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im + c : ℝ) * I)) volume z.re (p.re - c) := sorry
+    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im + c : ℝ) * I)) volume z.re (p.re - c) := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux12 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im + c : ℝ) * I)) volume (p.re - c) w.re := sorry
+    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im + c : ℝ) * I)) volume (p.re - c) w.re := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux13 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im - c : ℝ) * I)) volume (p.re - c) (p.re + c) := sorry
+    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im - c : ℝ) * I)) volume (p.re - c) (p.re + c) := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux14 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im - c : ℝ) * I)) volume (p.re + c) w.re := sorry
+    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im - c : ℝ) * I)) volume (p.re + c) w.re := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux15 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im + c : ℝ) * I)) volume (p.re - c) (p.re + c) := sorry
+    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im + c : ℝ) * I)) volume (p.re - c) (p.re + c) := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 lemma RectPull_aux16 {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re) (zIm_lt_wIm : z.im < w.im)
     {c : ℝ} (cpos : 0 < c) (hc : Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w)
     (fCont : ContinuousOn f (Rectangle z w \ {p})) :
-    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im + c : ℝ) * I)) volume (p.re + c) w.re := sorry
+    IntervalIntegrable (fun (x : ℝ) ↦ f (x + (p.im + c : ℝ) * I)) volume (p.re + c) w.re := by
+  refine (fCont.comp (by fun_prop) ?_).intervalIntegrable
+  sorry
 
 /-%%
 The next lemma allows to zoom a big rectangle down to a small square, centered at a pole.
