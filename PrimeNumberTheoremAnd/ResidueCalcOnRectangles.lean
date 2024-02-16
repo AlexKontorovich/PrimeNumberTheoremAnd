@@ -359,8 +359,13 @@ lemma right_mem_rect (z w : ℂ) : w ∈ Rectangle z w := ⟨right_mem_uIcc, rig
 lemma rect_subset_iff {z w z' w' : ℂ} :
     Rectangle z' w' ⊆ Rectangle z w ↔ z' ∈ Rectangle z w ∧ w' ∈ Rectangle z w := by
   use fun h ↦ ⟨h (left_mem_rect z' w'), h (right_mem_rect z' w')⟩
-  intro ⟨hz', hw'⟩ x hx
-  sorry
+  intro ⟨⟨⟨hz're_ge, hz're_le⟩, ⟨hz'im_ge, hz'im_le⟩⟩,
+    ⟨⟨hw're_ge, hw're_le⟩, ⟨hw'im_ge, hw'im_le⟩⟩⟩ x ⟨⟨hxre_ge, hxre_le⟩, ⟨hxim_ge, hxim_le⟩⟩
+  refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩⟩
+  · exact (le_inf hz're_ge hw're_ge).trans hxre_ge
+  · exact (le_sup_iff.mp hxre_le).casesOn (fun h ↦ h.trans hz're_le) (fun h ↦ h.trans hw're_le)
+  · exact (le_inf hz'im_ge hw'im_ge).trans hxim_ge
+  · exact (le_sup_iff.mp hxim_le).casesOn (fun h ↦ h.trans hz'im_le) (fun h ↦ h.trans hw'im_le)
 
 lemma rect_subset_iff' {z w z' w' : ℂ} :
     Rectangle z' w' ⊆ Rectangle z w ↔
