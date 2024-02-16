@@ -754,7 +754,6 @@ lemma RectanglePullToNhdOfPole' {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.
   intro c hc
   dsimp [RectangleIntegral']
   rw [hc]
-  sorry
 
 theorem ResidueTheoremAtOrigin_aux1a_aux1 (x : ℝ)
   : 1 / (1 + (ofReal' x) ^ 2) = ofReal' (1 / (1 + x ^ 2)) := by
@@ -1108,15 +1107,13 @@ lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ
   
   sorry
 
-#exit
-  have := exists_of_eventually h₁
-  obtain ⟨c, cpos, hc⟩ := this
-  rw [hc]
+  -- have := exists_of_eventually h₁
+  -- obtain ⟨c, cpos, hc⟩ := this
+  -- rw [hc]
   
-  simp_all
+  -- simp_all
+  -- sorry
 
-  
-  sorry
 /-%%
 \begin{proof}\uses{ResidueTheoremAtOrigin, RectanglePullToNhdOfPole, HolomorphicOn.vanishesOnRectangle}
 Replace $f$ with $g + A/(s-p)$ in the integral.
