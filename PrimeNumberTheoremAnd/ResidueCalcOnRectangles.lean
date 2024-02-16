@@ -220,7 +220,7 @@ lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.r
     (zIm_lt_wIm : z.im < w.im) (pInRectInterior : Rectangle z w ∈ nhds p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0, RectangleIntegral f z w =
-      RectangleIntegral f (-c - I * c + p) (c + I * c + p) := by
+      RectangleIntegral f (-c - I * c + p) (c + I * c + p) ∧ Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w := by
 --%% \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
   rw [mem_nhds_iff] at pInRectInterior
   obtain ⟨nhdP, nhdSubRect, nhdOpen, pInNhd⟩ := pInRectInterior
@@ -254,6 +254,18 @@ vanishes, since $f$ is holomorphic there. (The constant $c$ being ``small enough
 that the inner square is strictly contained in the big rectangle.)
 \end{proof}
 %%-/
+
+lemma RectanglePullToNhdOfPole' {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
+    (zIm_lt_wIm : z.im < w.im) (pInRectInterior : Rectangle z w ∈ nhds p)
+    (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
+    ∀ᶠ (c : ℝ) in 𝓝[>]0, RectangleIntegral' f z w =
+      RectangleIntegral' f (-c - I * c + p) (c + I * c + p) := by
+  have := RectanglePullToNhdOfPole zRe_lt_wRe zIm_lt_wIm pInRectInterior fHolo
+  filter_upwards [this]
+  intro c hc
+  dsimp [RectangleIntegral']
+  rw [hc]
+  sorry
 
 theorem ResidueTheoremAtOrigin_aux1a_aux1 (x : ℝ)
   : 1 / (1 + (ofReal' x) ^ 2) = ofReal' (1 / (1 + x ^ 2)) := by
@@ -596,6 +608,24 @@ example {z w p : ℂ}
     RectangleIntegral' f z w = 1 := by
   sorry
 
+theorem exists_of_eventually
+  {P : ℝ → Prop}
+  (this : ∀ᶠ (c : ℝ) in 𝓝[>] 0, P c)
+  :
+  ∃ c > 0, P c := by
+  have h := Filter.eventually_iff.mp this
+  have := (mem_nhdsWithin_Ioi_iff_exists_Ioo_subset' (by linarith : (0 : ℝ) < 1)).mp h
+  obtain ⟨a, ha₁, ha₂⟩ := this
+  use a/2
+  have : a > 0 := ha₁
+  constructor
+  · linarith
+  have : (a / 2) ∈ Ioo 0 a := by 
+    simp
+    constructor
+    · linarith 
+    assumption
+  exact ha₂ this
 
 /-%%
 \begin{lemma}[ResidueTheoremOnRectangleWithSimplePole]\label{ResidueTheoremOnRectangleWithSimplePole}
@@ -605,13 +635,23 @@ at $p$. By the latter, we mean that there is a function $g$ holomorphic on the r
 rectangle is $A$.
 \end{lemma}
 %%-/
-lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ}
+lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ} 
+    (zRe_lt_wRe : z.re < w.re)
+    (zIm_lt_wIm : z.im < w.im)
     (pInRectInterior : Rectangle z w ∈ nhds p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p}))
     (gHolo : HolomorphicOn g (Rectangle z w))
     (principalPart : Set.EqOn (f - fun s ↦ A / (s - p)) (g)
       (Rectangle z w \ {p})) :
     RectangleIntegral' f z w = A := by
+  have := RectanglePullToNhdOfPole' zRe_lt_wRe zIm_lt_wIm pInRectInterior fHolo
+  have := exists_of_eventually this
+  obtain ⟨c, cpos, hc⟩ := this
+  rw [hc]
+  
+  simp_all
+
+  
   sorry
 /-%%
 \begin{proof}\uses{ResidueTheoremAtOrigin, RectanglePullToNhdOfPole, HolomorphicOn.vanishesOnRectangle}
