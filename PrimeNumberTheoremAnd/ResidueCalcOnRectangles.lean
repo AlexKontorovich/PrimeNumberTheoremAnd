@@ -31,6 +31,14 @@ def Rectangle (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ [[z.im, w.im]]
 lemma Rectangle.symm {z w : ℂ} : Rectangle z w = Rectangle w z := by
   simp_rw [Rectangle, Set.uIcc_comm]
 
+def Square (p : ℂ) (c : ℝ) : Set ℂ := Rectangle (-c - c * I + p) (c + c * I + p)
+
+lemma Square_apply (p : ℂ) {c : ℝ} (cpos : c > 0) :
+    Square p c =
+      Icc (-c + p.re) (c + p.re) ×ℂ Icc (-c + p.im) (c + p.im) := by
+  rw [Square, Rectangle, uIcc_of_le (by simp; linarith), uIcc_of_le (by simp; linarith)]
+  simp
+
 /-%%
 \begin{definition}[RectangleIntegral]\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
 A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ and $w$ in $\C$.
@@ -126,6 +134,20 @@ lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w
     p ∈ Rectangle z w ↔ z.re ≤ p.re ∧ p.re ≤ w.re ∧ z.im ≤ p.im ∧ p.im ≤ w.im := by
   rw [Rectangle, uIcc_of_le zRe_lt_wRe, uIcc_of_le zIm_lt_wIm]
   exact and_assoc
+
+lemma SquareMemNhds (p : ℂ) {c : ℝ} (cpos : c > 0) :
+    Square p c ∈ 𝓝 p := by
+  rw [Square_apply p cpos, mem_nhds_iff, ← preimage_equivRealProd_prod]
+  refine ⟨Ioo (-c + p.re) (c + p.re) ×ℂ Ioo (-c + p.im) (c + p.im), ?_, ?_,
+    ⟨by simp [cpos], by simp [cpos]⟩⟩
+  · rw [← preimage_equivRealProd_prod]
+    simp only [Equiv.range_eq_univ, subset_univ, preimage_subset_preimage_iff]
+    rw [prod_subset_prod_iff]
+    left
+    refine ⟨Ioo_subset_Icc_self, Ioo_subset_Icc_self⟩
+  · rw [← preimage_equivRealProd_prod]
+    apply (isOpen_Ioo.prod isOpen_Ioo).preimage
+    exact equivRealProdCLM.continuous
 
 /-%%
 \begin{lemma}[DiffVertRect_eq_UpperLowerUs]\label{DiffVertRect_eq_UpperLowerUs}\lean{DiffVertRect_eq_UpperLowerUs}\leanok
@@ -465,7 +487,7 @@ lemma RectangleIntegralVSplit' {f : ℂ → ℂ} {b x₀ x₁ y₀ y₁ : ℝ} (
     (IntervalIntegrable.mono (by simpa using hf.2.2.1) (uIcc_subset_uIcc hb right_mem_uIcc) le_rfl)
 
 lemma SmallSquareInRectangle {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ nhds p) :
-    ∀ᶠ (c : ℝ) in 𝓝[>]0, Rectangle (-c - I * c + p) (c + I * c + p) ⊆ Rectangle z w := by
+    ∀ᶠ (c : ℝ) in 𝓝[>]0, Square p c ⊆ Rectangle z w := by
   rw [mem_nhds_iff] at pInRectInterior
   obtain ⟨nhdP, nhdSubRect, nhdOpen, pInNhd⟩ := pInRectInterior
   have : ∃ c₁ > 0, Metric.ball p c₁ ⊆ nhdP := by
@@ -479,7 +501,7 @@ lemma SmallSquareInRectangle {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ 
   simp only [mem_Ioo] at cPos
   have c_ge_0 : 0 ≤ c := by linarith [mem_Ioo.mp cPos]
   have sqrt2le : Real.sqrt 2 ≤ 2 := Real.sqrt_le_iff.mpr (by norm_num)
-  have normC : Complex.abs (c + I * c) = c * Real.sqrt 2 := by
+  have normC : Complex.abs (c + c * I) = c * Real.sqrt 2 := by
     simp only [Complex.abs, normSq, MonoidWithZeroHom.coe_mk, ZeroHom.coe_mk, AbsoluteValue.coe_mk,
       MulHom.coe_mk, add_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self,
       add_zero, add_im, mul_im, one_mul, zero_add]
@@ -495,21 +517,20 @@ lemma SmallSquareInRectangle {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ 
   apply subset_trans ?_ c₁SubNhd
   apply rectangle_in_convex (convex_ball _ _)
   · simp only [Metric.mem_ball, dist_add_self_left, Complex.norm_eq_abs]
-    rw [(by ring: -(c : ℂ) - I * c = -(c + I * c)), Complex.abs_neg, normC]
+    rw [(by ring: -(c : ℂ) - c * I = -(c + c * I)), Complex.abs_neg, normC]
     nlinarith
   · simp only [Metric.mem_ball, dist_add_self_left, Complex.norm_eq_abs]
     rw [normC]
     nlinarith
-  · simp only [add_re, sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im,
-    mul_zero, sub_self, sub_zero, ofReal_add, ofReal_neg, add_im, mul_im, one_mul, zero_add]
-    rw[(by ring : -(c : ℂ) + p.re + (c + p.im) * I = -c + c * I + (p.re + p.im * I))]
+  · simp only [add_re, sub_re, neg_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+    sub_self, sub_zero, ofReal_add, ofReal_neg, add_im, mul_im, add_zero, zero_add]
+    rw [(by ring : -(c : ℂ) + p.re + (c + p.im) * I = -c + c * I + (p.re + p.im * I))]
     rw [re_add_im]
     simp only [Metric.mem_ball, dist_add_self_left, Complex.norm_eq_abs]
     rw [normC']
     nlinarith
-  · simp only [add_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self,
-    add_zero, ofReal_add, add_im, sub_im, neg_im, neg_zero, mul_im, one_mul, zero_add, zero_sub,
-    ofReal_neg]
+  · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+    add_zero, ofReal_add, add_im, sub_im, neg_im, neg_zero, mul_im, zero_sub, ofReal_neg]
     rw [(by ring : (c : ℂ) + p.re + (-c + p.im) * I = c - c * I + (p.re + p.im * I)), re_add_im]
     simp only [Metric.mem_ball, dist_add_self_left, Complex.norm_eq_abs]
     rw [← Complex.abs_neg, neg_sub, sub_eq_add_neg, add_comm, normC']
