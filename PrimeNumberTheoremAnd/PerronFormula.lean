@@ -892,7 +892,7 @@ For $c>0$ sufficiently small,
     · constructor
       · rw [← preimage_equivRealProd_prod]
         apply (isOpen_Ioo.prod isOpen_Ioo).preimage
-        exact _root_.equivRealProdCLM.continuous
+        exact equivRealProdCLM.continuous
       · rw [mem_reProdIm]
         simp only [zero_re, mem_Ioo, zero_im, and_self]
         refine ⟨by linarith, by linarith⟩

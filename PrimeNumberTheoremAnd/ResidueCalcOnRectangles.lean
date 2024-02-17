@@ -127,12 +127,6 @@ lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w
   rw [Rectangle, uIcc_of_le zRe_lt_wRe, uIcc_of_le zIm_lt_wIm]
   exact and_assoc
 
--- Exists in Mathlib; need to update version
-/-- The natural `ContinuousLinearEquiv` from `ℂ` to `ℝ × ℝ`. -/
-noncomputable def equivRealProdCLM : ℂ ≃L[ℝ] ℝ × ℝ :=
-  equivRealProdLm.toContinuousLinearEquivOfBounds 1 (Real.sqrt 2) equivRealProd_apply_le' fun p =>
-    abs_le_sqrt_two_mul_max (equivRealProd.symm p)
-
 /-%%
 \begin{lemma}[DiffVertRect_eq_UpperLowerUs]\label{DiffVertRect_eq_UpperLowerUs}\lean{DiffVertRect_eq_UpperLowerUs}\leanok
 The difference of two vertical integrals and a rectangle is the difference of an upper and a lower U integrals.
@@ -530,6 +524,9 @@ over the rectangle with corners $z$ and $w$ is the same as the integral of $f$ o
 centered at $p$.
 \end{lemma}
 %%-/
+/-- Given `f` holomorphic on a rectangle `z` and `w` except at a point `p`, the integral of `f` over
+the rectangle with corners `z` and `w` is the same as the integral of `f` over a small square
+centered at `p`. -/
 lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
     (zIm_lt_wIm : z.im < w.im) (pInRectInterior : Rectangle z w ∈ 𝓝 p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
