@@ -852,7 +852,7 @@ $$
 \end{lemma}
 %%-/
 lemma residueAtZero (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
-    RectangleIntegral' (fun (s : ℂ) ↦ x ^ s / (s * (s + 1))) (-c - I * c) (c + I * c) = 1 := by
+    RectangleIntegral' (fun (s : ℂ) ↦ x ^ s / (s * (s + 1))) (-c - c * I) (c + c * I) = 1 := by
 /-%%
 \begin{proof}\leanok
 \uses{diffBddAtZero, ResidueTheoremOnRectangleWithSimplePole,
@@ -876,10 +876,11 @@ For $c>0$ sufficiently small,
 holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
 %%-/
   obtain ⟨g, gHolo, g_eq_fDiff⟩ := existsDifferentiableOn_of_bddAbove RectMemNhds f1Holo bddAbove
+  simp_rw [Square, add_zero] at fHolo gHolo RectMemNhds Rect
+
 --%% Now apply Lemma \ref{ResidueTheoremOnRectangleWithSimplePole}.
   apply ResidueTheoremOnRectangleWithSimplePole (pInRectInterior := RectMemNhds) (fHolo := fHolo) (g := g) (A := 1) (gHolo := gHolo)
-  convert g_eq_fDiff using 1
-  simp
+  convert g_eq_fDiff using 3 <;> simp [Square]
 --%%\end{proof}
 
 /-%%
