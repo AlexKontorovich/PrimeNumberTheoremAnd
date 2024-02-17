@@ -7,7 +7,7 @@ package «PrimeNumberTheoremAnd»
 lean_lib «PrimeNumberTheoremAnd»
 
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git" @ "aa79ce0"
+  "https://github.com/leanprover-community/mathlib4.git" @ "5e53cc1"
 
 require EulerProducts from git
   "https://github.com/MichaelStollBayreuth/EulerProducts.git" @ "751e411"
