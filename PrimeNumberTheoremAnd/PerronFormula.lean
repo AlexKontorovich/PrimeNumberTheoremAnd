@@ -690,15 +690,15 @@ By ring.
 %%-/
 
 lemma diffBddAtZero_aux_ge {x : ℝ} (xpos : 0 < x) (xge : 1 ≤ x) :
-    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Rectangle (-c - I * c) (c + I * c),
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Square 0 c,
     Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ x ^ (2 : ℝ) * 2 := sorry
 
 lemma diffBddAtZero_aux_lt {x : ℝ} (xpos : 0 < x) (xlt : x < 1) :
-    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Rectangle (-c - I * c) (c + I * c),
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Square 0 c,
     Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ x ^ (-(2 : ℝ)) * 2 := sorry
 
 lemma diffBddAtZero_aux {x : ℝ} (xpos : 0 < x) :
-    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Rectangle (-c - I * c) (c + I * c),
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Square 0 c,
     Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ if h : 1 ≤ x then x ^ (2 : ℝ) * 2 else x ^ (-(2 : ℝ)) * 2 := by
   by_cases h : 1 ≤ x
   · filter_upwards [diffBddAtZero_aux_ge xpos h]
@@ -720,7 +720,7 @@ is bounded above on the rectangle with corners at $-c-i*c$ and $c+i*c$ (except a
 lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) :
      ∀ᶠ (c : ℝ) in 𝓝[>] 0,
     BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - 1 / s)) ''
-      (Rectangle (-c - I * c) (c + I * c) \ {0})) := by
+      (Square 0 c \ {0})) := by
   filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2), diffBddAtZero_aux xpos]
   intro c hc sRectBnd
   simp only [mem_Ioo] at hc
@@ -737,7 +737,7 @@ lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) :
   have s_ne_neg_one : s ≠ -1 := by
     intro h
     rw [h] at s_memRect
-    rw [mem_Rect (by simp; linarith) (by simp; linarith)] at s_memRect
+    rw [Square, mem_Rect (by simp; linarith) (by simp; linarith)] at s_memRect
     simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
       sub_self, sub_zero, one_re, neg_le_neg_iff, add_re, add_zero, sub_im, neg_im, neg_zero,
       mul_im, one_mul, zero_add, zero_sub, one_im, Left.neg_nonpos_iff, add_im, and_self] at s_memRect
@@ -757,7 +757,7 @@ lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) :
   gcongr
   rw [← Complex.abs_neg]
   simp only [map_neg_eq_map, map_div₀]
-  rw [mem_Rect ] at s_memRect
+  rw [Square, mem_Rect] at s_memRect
   · simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
       sub_self, sub_zero, add_re, add_zero, sub_im, neg_im, neg_zero, mul_im, one_mul, zero_add,
       zero_sub, add_im] at s_memRect
@@ -831,7 +831,7 @@ is bounded above on the rectangle with corners at $-1-c-i*c$ and $-1+c+i*c$ (exc
 %%-/
 lemma diffBddAtNegOne (x : ℝ) {c : ℝ} (cpos : 0 < c) (c_lt : c < 1/2) :
     BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - (-x⁻¹) / (s+1))) ''
-      (Rectangle (-1 - c - I * c) (-1 + c + I * c) \ {-1})) := by
+      (Square (-1) c \ {-1})) := by
   sorry
 /-%%
 \begin{proof}\uses{keyIdentity}
@@ -864,38 +864,14 @@ For $c>0$ sufficiently small,
   simp only [mem_Ioo] at hc
   have cpos : 0 < c := hc.1
   set f : ℂ → ℂ := (fun (s : ℂ) ↦ x ^ s / (s * (s + 1)))
-  set Rect := Rectangle (-c - I * c) (c + I * c)
+  set Rect := Square 0 c
   have RectSub : Rect \ {0} ⊆ {0, -1}ᶜ := sorry
   have fHolo : HolomorphicOn f (Rect \ {0}) :=
     (isHolomorphicOn xpos).mono RectSub
   set f1 : ℂ → ℂ := f - (fun (s : ℂ) ↦ 1 / s)
   have f1Holo : HolomorphicOn f1 (Rect \ {0}) := sorry
   have uIccIcc : uIcc (-c) c = Icc (-c) c := by apply uIcc_of_le; linarith
-  have RectMemNhds : Rect ∈ 𝓝 0
-  · rw [mem_nhds_iff]
-    refine ⟨(Ioo (-c / 2) (c / 2)) ×ℂ (Ioo (-c / 2) (c / 2)), ?_, ?_⟩
-    dsimp [Rectangle]
-    simp only [zero_mul, mul_zero, sub_self, sub_zero, add_zero, neg_zero, one_mul, zero_add,
-      zero_sub]
-    simp_rw [uIccIcc]
-    apply reProdIm_subset_iff'.mpr
-    · left
-      constructor
-      · intro u
-        simp only [mem_Ioo, mem_Icc, and_imp]
-        intro hu1 hu2
-        refine ⟨by linarith, by linarith⟩
-      · intro u
-        simp only [mem_Ioo, mem_Icc, and_imp]
-        intro hu1 hu2
-        refine ⟨by linarith, by linarith⟩
-    · constructor
-      · rw [← preimage_equivRealProd_prod]
-        apply (isOpen_Ioo.prod isOpen_Ioo).preimage
-        exact equivRealProdCLM.continuous
-      · rw [mem_reProdIm]
-        simp only [zero_re, mem_Ioo, zero_im, and_self]
-        refine ⟨by linarith, by linarith⟩
+  have RectMemNhds : Rect ∈ 𝓝 0 := SquareMemNhds 0 cpos
 /-%% $x^s/(s(s+1))$ is equal to $1/s$ plus a function, $g$, say,
 holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
 %%-/
