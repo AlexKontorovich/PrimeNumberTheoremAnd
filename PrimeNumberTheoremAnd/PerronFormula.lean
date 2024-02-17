@@ -869,7 +869,7 @@ For $c>0$ sufficiently small,
   set f1 : ℂ → ℂ := f - (fun (s : ℂ) ↦ 1 / s)
   have f1Holo : HolomorphicOn f1 (Rect \ {0}) := sorry
   have uIccIcc : uIcc (-c) c = Icc (-c) c := by apply uIcc_of_le; linarith
-  have RectMemNhds : Rect ∈ 𝓝 0 := SquareMemNhds 0 cpos
+  have RectMemNhds : Rect ∈ 𝓝 0 := square_mem_nhds 0 (ne_of_gt cpos)
 /-%% $x^s/(s(s+1))$ is equal to $1/s$ plus a function, $g$, say,
 holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
 %%-/
