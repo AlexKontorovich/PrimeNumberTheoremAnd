@@ -12,8 +12,6 @@ open Complex BigOperators  Nat Classical Real Topology Filter Set MeasureTheory
 
 open scoped Interval
 
-attribute [fun_prop] Complex.continuous_ofReal
-
 lemma Complex.abs_neg (z : ℂ) : Complex.abs (-z) = Complex.abs z :=
   AbsoluteValue.map_neg abs z
 

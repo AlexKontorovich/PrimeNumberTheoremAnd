@@ -1,6 +1,5 @@
 import Mathlib.Analysis.Calculus.ContDiff.Basic
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Uniformly
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
 import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.Asymptotics
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import PrimeNumberTheoremAnd.Wiener
@@ -229,8 +228,7 @@ lemma integral_one_div_const_add_sq_pos (c : ℝ) (hc : 0 < c) : 0 < ∫ (t : �
   simp_rw [hfun_eq]
   rw [MeasureTheory.integral_mul_left, Measure.integral_comp_mul_left (fun t ↦ (1+t^2)⁻¹) (a:=(Real.sqrt c)⁻¹)]
   simp only [inv_inv, abs_eq_self.mpr <| Real.sqrt_nonneg c, smul_eq_mul, gt_iff_lt, inv_pos, hc,
-    mul_pos_iff_of_pos_left, sqrt_pos]
-  simp_rw [inv_eq_one_div, integral_volume_one_div_one_add_sq]
+    mul_pos_iff_of_pos_left, sqrt_pos, integral_univ_inv_one_add_sq]
   positivity
 
 lemma Integrable.one_div_const_add_sq (c : ℝ) (hc : 0 < c) : Integrable fun (t : ℝ) ↦ 1 / (c + t^2) :=
@@ -456,11 +454,11 @@ theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     have h_yI : (fun ((_σ, y) : ℝ × ℝ) ↦ y * I) =Θ[l] Prod.snd :=
       isTheta_of_norm_eventuallyEq (by simp; rfl)
     have h_σ_yI : (fun (σy : ℝ × ℝ) ↦ σy.1 + σy.2 * I) =Θ[l] Prod.snd := by
-      refine (IsTheta.isLittleO_add ?_).trans h_yI
+      refine IsLittleO.add_isTheta ?_ h_yI
       exact continuous_ofReal.continuousOn.const_isBigOUniformlyOn_isCompact isCompact_uIcc
-        (by norm_num : ‖(1 : ℂ)‖ ≠ 0) _ |>.trans_isLittleO (h_c.trans_isTheta h_yI.symm)
+        (by norm_num : ‖(1 : ℂ)‖ ≠ 0) _ |>.trans_isLittleO h_c
     simp_rw [sq]
-    refine h_σ_yI.mul <| (IsLittleO.right_isTheta_add' <| h_c.trans_isTheta h_σ_yI.symm).symm.trans h_σ_yI
+    exact h_σ_yI.mul (h_σ_yI.add_isLittleO h_c)
 
 theorem isTheta_uniformlyOn_uIoc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 (uIoc σ' σ'') ×ˢ (atBot ⊔ atTop)]
