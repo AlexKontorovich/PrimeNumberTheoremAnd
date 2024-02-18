@@ -626,16 +626,70 @@ tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
 /-%%
 The second case is when $x>1$.
 Here are some auxiliary lemmata for the second case.
+TODO: Move to more general section
 %%-/
 
+theorem HolomorphicOn.upperUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} (hσ : σ ≤ σ')
+    (hf : HolomorphicOn f {z : ℂ | σ ≤ z.re ∧ z.re ≤ σ' ∧ T ≤ z.im})
+    (htop : Tendsto (fun y : ℝ => ∫ (x : ℝ) in σ..σ', f (↑x + ↑y * I)) atTop (𝓝 0))
+    (hleft : Integrable fun y : ℝ => f (↑σ + ↑y * I))
+    (hright : Integrable fun y : ℝ => f (↑σ' + ↑y * I)) :
+    UpperUIntegral f σ σ' T = 0 := by
+
+  have hlim1 : Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ + I * T) (σ' + I * U)) atTop
+      (𝓝 (UpperUIntegral f σ σ' T)) := RectangleIntegral_tendsTo_UpperU htop  hleft hright
+
+  have hrect {U  : ℝ} (hU : T ≤ U) : RectangleIntegral f (σ + I * T) (σ' + I * U) = 0 := by
+    apply hf.vanishesOnRectangle
+    intro z
+    simp
+    rw[mem_Rect (by simp [hσ]) (by simp [hU])]
+    simp
+    rintro hσz hzσ' hTz _
+    refine ⟨hσz, hzσ', hTz⟩
+
+  have hlim2 : Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ + I * T) (σ' + I * U)) atTop
+      (𝓝 0) := by
+    apply EventuallyEq.tendsto
+    filter_upwards [eventually_ge_atTop T]
+    exact fun U hTU ↦ hrect hTU
+
+  exact tendsto_nhds_unique hlim1 hlim2
+
+theorem HolomorphicOn.lowerUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} (hσ : σ ≤ σ')
+    (hf : HolomorphicOn f {z : ℂ | σ ≤ z.re ∧ z.re ≤ σ' ∧ z.im ≤ -T})
+    (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (hleft : Integrable fun y : ℝ => f (↑σ + ↑y * I))
+    (hright : Integrable fun y : ℝ => f (↑σ' + ↑y * I)) :
+    LowerUIntegral f σ σ' T = 0 := by
+
+  have hlim1 : Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ - I * U) (σ' - I * T)) atTop
+      (𝓝 (LowerUIntegral f σ σ' T)) := RectangleIntegral_tendsTo_LowerU hbot hleft hright
+
+  have hrect {U  : ℝ} (hU : T ≤ U) : RectangleIntegral f (σ - I * U) (σ' - I * T) = 0 := by
+    apply hf.vanishesOnRectangle
+    intro z
+    simp
+    rw[mem_Rect (by simp [hσ]) (by simp [hU])]
+    simp
+    rintro hσz hzσ' _ hzT
+    refine ⟨hσz, hzσ', hzT⟩
+
+  have hlim2 : Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ - I * U) (σ' - I * T)) atTop
+      (𝓝 0) := by
+    apply EventuallyEq.tendsto
+    filter_upwards [eventually_ge_atTop T]
+    exact fun U hTU ↦ hrect hTU
+
+  exact tendsto_nhds_unique hlim1 hlim2
 
 /-%%
 \begin{lemma}[sigmaNegOneHalfPull]\label{sigmaNegOneHalfPull}
 \lean{Perron.sigmaNegOneHalfPull}\leanok
-Let $x>0$ and $\sigma, \sigma'\in\R$. Then for all $T>0$, we have that
+Let $x>0$ and $\sigma > 0$. Then for all $T>0$, we have that
 $$
 \frac1{2\pi i}
-\int_{(\sigma')}\frac{x^s}{s(s+1)}ds -
+\int_{(-1/2)}\frac{x^s}{s(s+1)}ds -
 \frac 1{2\pi i}
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds =
 \int_{-1/2-iT}^{\sigma +iT}\frac{x^s}{s(s+1)}ds,
@@ -643,23 +697,59 @@ $$
 that is, a rectangle with corners $-1/2-iT$ and $\sigma+iT$.
 \end{lemma}
 %%-/
-lemma sigmaNegOneHalfPull (xpos : 0 < x) (Tpos : 0 < T):
-    VerticalIntegral (fun s => x ^ s / (s * (s + 1))) σ
-    - VerticalIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
-    = RectangleIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2 - I * T) (σ + I * T) := by
-  sorry
+lemma sigmaNegOneHalfPull_aux {f : ℂ → ℂ} (hf1 : Integrable (fun t : ℝ ↦ f ((-1/2:ℝ) + t * I)))
+  (hf2 : Integrable (fun t : ℝ ↦ f (σ + t * I)))
+  (hftop : Tendsto (fun y : ℝ => ∫ (x : ℝ) in (-1/2:ℝ)..σ, f (↑x + ↑y * I)) atTop (𝓝 0))
+  (hfbot : Tendsto (fun y : ℝ => ∫ (x : ℝ) in (-1/2:ℝ)..σ, f (x + y * I)) atBot (𝓝 0))
+  (hf_holo : HolomorphicOn f {0, -1}ᶜ) (σpos : 0 < σ) (Tpos : 0 < T):
+    VerticalIntegral f σ
+    - VerticalIntegral f (-1 / 2)
+    = RectangleIntegral f (-1 / 2 - I * T) (σ + I * T) := by
+
 /-%%
 \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, UpperUIntegral,
 RectangleIntegral_tendsTo_VerticalIntegral, LowerUIntegral, RectangleIntegral_tendsTo_LowerU,
 RectangleIntegral_tendsTo_UpperU, tendsto_zero_Upper, tendsto_zero_Lower,
 isIntegrable}
+%%-/
+  suffices : VerticalIntegral f σ
+    - VerticalIntegral f (-1 / 2)
+    - RectangleIntegral f (-1 / 2 - I * T) (σ + I * T) = 0
+  · linear_combination this
+  calc
+    _ = UpperUIntegral f (-1/2) σ T
+        - LowerUIntegral f (-1/2) σ T := ?_
+    _ = 0 := ?_
+/-%%
 The integral on $(\sigma)$ minus that on $(-1/2)$, minus the integral on the rectangle, is
 the integral over an UpperU and a LowerU.
+%%-/
+  · convert DiffVertRect_eq_UpperLowerUs hf1 hf2
+    norm_num
+/-%%
 The integrals over the U's are limits of integrals over rectangles with corners at $-1/2+iT$
 and $\sigma+iU$ (for UpperU); this uses Lemma \ref{RectangleIntegral_tendsTo_UpperU}. The
 integrals over the rectangles vanish by Lemmas \ref{tendsto_zero_Upper} and
 \end{proof}
 %%-/
+  · rw[HolomorphicOn.upperUIntegral_eq_zero (by linarith) _ hftop hf1 hf2,
+      HolomorphicOn.lowerUIntegral_eq_zero (by linarith) _ hfbot hf1 hf2]
+    · ring
+    all_goals
+    · apply hf_holo.mono
+      intro z
+      simp only [mem_setOf_eq, mem_compl_iff, mem_insert_iff, mem_singleton_iff, and_imp]
+      push_neg
+      intro _ _ _
+      constructor <;> apply_fun Complex.im <;> norm_num <;> linarith
+
+lemma sigmaNegOneHalfPull (xpos : 0 < x) (σpos : 0 < σ) (Tpos : 0 < T):
+    VerticalIntegral (fun s => x ^ s / (s * (s + 1))) σ
+    - VerticalIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
+    = RectangleIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2 - I * T) (σ + I * T) :=
+  sigmaNegOneHalfPull_aux (isIntegrable xpos (by norm_num) (by norm_num))
+    (isIntegrable xpos σpos.ne.symm (by linarith)) (tendsto_zero_Upper xpos ..)
+    (tendsto_zero_Lower xpos ..) (isHolomorphicOn xpos) σpos Tpos
 
 lemma sPlusOneNeZero {s : ℂ} (s_ne_neg_one : s ≠ -1) : s + 1 ≠ 0 := by
   intro h

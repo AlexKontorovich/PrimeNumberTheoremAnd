@@ -100,6 +100,13 @@ noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
 noncomputable abbrev VerticalIntegral' (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * VerticalIntegral f σ
 
+lemma verticalIntegral_split_three {f : ℂ → ℂ} {σ : ℝ} (a b : ℝ) (hf : Integrable (fun t : ℝ ↦ f (σ + t * I))) :
+    VerticalIntegral f σ = I • (∫ t in Iic (a), f (σ + t * I)) + I • (∫ t in a..b, f (σ + t * I))
+    + I • ∫ t in Ici b, f (σ + t * I) := by
+  simp_rw [VerticalIntegral, ← smul_add]
+  congr
+  rw [← intervalIntegral.integral_Iic_sub_Iic hf.restrict hf.restrict, add_sub_cancel'_right,
+    integral_Iic_eq_integral_Iio, intervalIntegral.integral_Iio_add_Ici hf.restrict hf.restrict]
 
 -- From PR #9598
 /-- The preimage under `equivRealProd` of `s ×ˢ t` is `s ×ℂ t`. -/
@@ -183,37 +190,12 @@ lemma DiffVertRect_eq_UpperLowerUs {f : ℂ → ℂ} {σ σ' T : ℝ}
     (f_int_σ : Integrable (fun (t : ℝ) ↦ f (σ + t * I)))
     (f_int_σ' : Integrable (fun (t : ℝ) ↦ f (σ' + t * I))) :
   (VerticalIntegral f σ') - (VerticalIntegral f σ) - (RectangleIntegral f (σ - I * T) (σ' + I * T)) = (UpperUIntegral f σ σ' T) - (LowerUIntegral f σ σ' T) := by
-  dsimp only [VerticalIntegral, UpperUIntegral, RectangleIntegral, LowerUIntegral]
-  have h₁ : (I • ∫ (t : ℝ), f (↑σ' + ↑t * I)) =
-      (I • ∫ (y : ℝ) in (↑σ - I * ↑T).im..(↑σ' + I * ↑T).im, f (↑(↑σ' + I * ↑T).re + ↑y * I)) +
-      (I • ∫ (t : ℝ) in Set.Ici T, f (↑σ' + ↑t * I)) +
-      (I • ∫ (y : ℝ) in Set.Iic (-T), f (↑σ' + ↑y * I)) := by
-    simp only [smul_eq_mul, add_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im,
-      sub_self, add_zero, sub_im, mul_im, one_mul, zero_add, zero_sub, add_im]
-    rw [← intervalIntegral.integral_Iic_sub_Iic (Integrable.restrict f_int_σ')
-        (Integrable.restrict f_int_σ'), ← @intervalIntegral.integral_Iio_add_Ici _ _ _ T _ _
-        (Integrable.restrict f_int_σ') (Integrable.restrict f_int_σ'), mul_sub, mul_add,
-        ← integral_comp_neg_Ioi, ← integral_Ici_eq_integral_Ioi,
-        ← integral_Iic_eq_integral_Iio, sub_add_eq_add_sub, sub_add]
-    convert (sub_zero _).symm
-    simp only [ofReal_neg, neg_mul, sub_self]
-  have h₂ : (I • ∫ (t : ℝ), f (↑σ + ↑t * I)) =
-      (I • ∫ (y : ℝ) in (↑σ - I * ↑T).im..(↑σ' + I * ↑T).im, f (↑(↑σ - I * ↑T).re + ↑y * I)) +
-      (I • ∫ (y : ℝ) in Set.Iic (-T), f (↑σ + ↑y * I)) +
-      (I • ∫ (t : ℝ) in Set.Ici T, f (↑σ + ↑t * I)) := by
-    simp only [smul_eq_mul, sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
-      sub_self, sub_zero, sub_im, mul_im, one_mul, zero_add, zero_sub, add_im]
-    rw [← intervalIntegral.integral_Iic_sub_Iic (Integrable.restrict f_int_σ)
-        (Integrable.restrict f_int_σ), ← @intervalIntegral.integral_Iio_add_Ici _ _ _ T _ _
-        (Integrable.restrict f_int_σ) (Integrable.restrict f_int_σ), mul_sub, mul_add,
-        ← integral_comp_neg_Ioi, ← integral_Ici_eq_integral_Ioi,
-        ← integral_Iic_eq_integral_Iio]
-    simp only [ofReal_neg, neg_mul, sub_add_cancel]
-  rw [h₁, h₂]
-  simp only [sub_im, ofReal_im, mul_im, I_re, I_im, ofReal_re, zero_sub, sub_re, mul_re,  add_re,
-    add_im, ← integral_comp_neg_Ioi, ← integral_Ici_eq_integral_Ioi, ← integral_Ici_eq_integral_Ioi,
-    ofReal_neg, mul_neg, neg_mul, add_left_inj]
-  ring_nf
+  rw[verticalIntegral_split_three (-T) T f_int_σ, verticalIntegral_split_three (-T) T f_int_σ',
+    RectangleIntegral, UpperUIntegral, LowerUIntegral]
+  norm_num
+  have {a b c d e g h i : ℂ} :
+    a + b + c - (d + e + g) - (h - i + b - e) = i + c - g - (h - a + d) := by ring
+  convert this using 1
 
 /-%%
 \begin{proof}\uses{UpperUIntegral, LowerUIntegral}\leanok
