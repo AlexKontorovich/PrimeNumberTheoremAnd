@@ -249,11 +249,6 @@ This is in a Mathlib PR.
 \end{proof}
 %%-/
 
--- theorem HolomorphicOn.rectangleBorderIntegrable' {f : ℂ → ℂ} {z w p : ℂ}
---     (hf : HolomorphicOn f (Rectangle z w \ {p}))
---     (pInInterior : Rectangle z w ∈ nhds p) : RectangleBorderIntegrable f z w := by
---   sorry
-
 -- ## Rectangle API ##
 
 lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := ⟨left_mem_uIcc, left_mem_uIcc⟩
@@ -384,6 +379,16 @@ theorem RectangleBorderIntegrable.add {f g : ℂ → ℂ} {z w : ℂ} (hf : Rect
   rw [intervalIntegral.integral_add hf.1 hg.1, intervalIntegral.integral_add hf.2.1 hg.2.1,
     intervalIntegral.integral_add hf.2.2.1 hg.2.2.1, intervalIntegral.integral_add hf.2.2.2 hg.2.2.2]
   ring
+
+theorem HolomorphicOn.rectangleBorderIntegrable' {f : ℂ → ℂ} {z w p : ℂ}
+    (hf : HolomorphicOn f (Rectangle z w \ {p}))
+    (pInInterior : Rectangle z w ∈ nhds p) : RectangleBorderIntegrable f z w := by
+  sorry
+
+theorem HolomorphicOn.rectangleBorderIntegrable {f : ℂ → ℂ} {z w : ℂ}
+    (hf : HolomorphicOn f (Rectangle z w))
+    : RectangleBorderIntegrable f z w := by
+  sorry
 
 lemma mapsTo_rectangle_left_re (z w : ℂ) :
     MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) :=
@@ -814,6 +819,7 @@ which contributes another factor of $1/2$. (Fun! Each of the vertical/horizontal
 \end{proof}
 %%-/
 
+variable {f : ℂ → ℂ}
 
 theorem ResidueTheoremOnRectangleWithSimplePole_aux1 {z w p z' w' : ℂ}
     (pInRectInterior : Rectangle z w ∈ nhds p)
@@ -861,6 +867,13 @@ theorem exists_of_eventually_2
   (hQ : ∀ᶠ (c : ℝ) in 𝓝[>] 0, Q c) :
   ∃ c > 0, P c ∧ Q c := exists_of_eventually (Filter.eventually_iff.mp (hP.and hQ))
 
+lemma RectanglePullToNhdOfPole'_former {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
+    (zIm_lt_wIm : z.im < w.im) (pInRectInterior : Rectangle z w ∈ nhds p)
+    (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
+    ∀ᶠ (c : ℝ) in 𝓝[>]0, RectangleIntegral' f z w =
+      RectangleIntegral' f (-c - I * c + p) (c + I * c + p) := by
+  sorry
+
 /-%%
 \begin{lemma}[ResidueTheoremOnRectangleWithSimplePole]\label{ResidueTheoremOnRectangleWithSimplePole}
 \lean{ResidueTheoremOnRectangleWithSimplePole}\leanok
@@ -878,7 +891,7 @@ lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ
     (principalPart : Set.EqOn (f - fun s ↦ A / (s - p)) (g)
       (Rectangle z w \ {p})) :
     RectangleIntegral' f z w = A := by
-  have h₁ := RectanglePullToNhdOfPole' zRe_lt_wRe zIm_lt_wIm pInRectInterior fHolo
+  have h₁ := RectanglePullToNhdOfPole'_former zRe_lt_wRe zIm_lt_wIm pInRectInterior fHolo
   have h₂ := SmallSquareInRectangle pInRectInterior
   obtain ⟨c, cpos, hc₁, hc₂⟩ := exists_of_eventually_2 h₁ h₂
   rw [hc₁]
