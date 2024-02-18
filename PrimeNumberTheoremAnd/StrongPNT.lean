@@ -1,7 +1,7 @@
 import Mathlib.NumberTheory.VonMangoldt
 import Mathlib.NumberTheory.ArithmeticFunction
 
-open Nat
+open Nat Filter
 
 open scoped ArithmeticFunction
 
@@ -29,6 +29,6 @@ as $x\to \infty$.
 %%-/
 /-- *** Prime Number Theorem *** The `ChebyshevPsi` function is asymptotic to `x`. -/
 theorem PrimeNumberTheorem : ∃ (c : ℝ) (hc : c > 0),
-    (ChebyshevPsi - id) =O[at_top] (fun (x : ℝ) ↦ x * Real.exp (-c * Real.sqrt (Real.log x))) := by
+    (ChebyshevPsi - id) =O[atTop] (fun (x : ℝ) ↦ x * Real.exp (-c * Real.sqrt (Real.log x))) := by
 
   sorry

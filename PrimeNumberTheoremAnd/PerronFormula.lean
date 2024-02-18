@@ -1,6 +1,5 @@
 import Mathlib.Analysis.Calculus.ContDiff.Basic
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Uniformly
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
 import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.Asymptotics
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import PrimeNumberTheoremAnd.Wiener
@@ -229,8 +228,7 @@ lemma integral_one_div_const_add_sq_pos (c : ℝ) (hc : 0 < c) : 0 < ∫ (t : �
   simp_rw [hfun_eq]
   rw [MeasureTheory.integral_mul_left, Measure.integral_comp_mul_left (fun t ↦ (1+t^2)⁻¹) (a:=(Real.sqrt c)⁻¹)]
   simp only [inv_inv, abs_eq_self.mpr <| Real.sqrt_nonneg c, smul_eq_mul, gt_iff_lt, inv_pos, hc,
-    mul_pos_iff_of_pos_left, sqrt_pos]
-  simp_rw [inv_eq_one_div, integral_volume_one_div_one_add_sq]
+    mul_pos_iff_of_pos_left, sqrt_pos, integral_univ_inv_one_add_sq]
   positivity
 
 lemma Integrable.one_div_const_add_sq (c : ℝ) (hc : 0 < c) : Integrable fun (t : ℝ) ↦ 1 / (c + t^2) :=
@@ -456,11 +454,11 @@ theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     have h_yI : (fun ((_σ, y) : ℝ × ℝ) ↦ y * I) =Θ[l] Prod.snd :=
       isTheta_of_norm_eventuallyEq (by simp; rfl)
     have h_σ_yI : (fun (σy : ℝ × ℝ) ↦ σy.1 + σy.2 * I) =Θ[l] Prod.snd := by
-      refine (IsTheta.isLittleO_add ?_).trans h_yI
+      refine IsLittleO.add_isTheta ?_ h_yI
       exact continuous_ofReal.continuousOn.const_isBigOUniformlyOn_isCompact isCompact_uIcc
-        (by norm_num : ‖(1 : ℂ)‖ ≠ 0) _ |>.trans_isLittleO (h_c.trans_isTheta h_yI.symm)
+        (by norm_num : ‖(1 : ℂ)‖ ≠ 0) _ |>.trans_isLittleO h_c
     simp_rw [sq]
-    refine h_σ_yI.mul <| (IsLittleO.right_isTheta_add' <| h_c.trans_isTheta h_σ_yI.symm).symm.trans h_σ_yI
+    exact h_σ_yI.mul (h_σ_yI.add_isLittleO h_c)
 
 theorem isTheta_uniformlyOn_uIoc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 (uIoc σ' σ'') ×ˢ (atBot ⊔ atTop)]
@@ -628,16 +626,42 @@ tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
 /-%%
 The second case is when $x>1$.
 Here are some auxiliary lemmata for the second case.
+TODO: Move to more general section
 %%-/
 
+theorem HolomorphicOn.upperUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} (hσ : σ ≤ σ')
+    (hf : HolomorphicOn f {z : ℂ | σ ≤ z.re ∧ z.re ≤ σ' ∧ T ≤ z.im})
+    (htop : Tendsto (fun y : ℝ => ∫ (x : ℝ) in σ..σ', f (↑x + ↑y * I)) atTop (𝓝 0))
+    (hleft : Integrable fun y : ℝ => f (↑σ + ↑y * I))
+    (hright : Integrable fun y : ℝ => f (↑σ' + ↑y * I)) :
+    UpperUIntegral f σ σ' T = 0 := by
+  apply tendsto_nhds_unique (RectangleIntegral_tendsTo_UpperU htop hleft hright)
+  apply EventuallyEq.tendsto
+  filter_upwards [eventually_ge_atTop T]
+  refine fun _ hTU ↦ hf.vanishesOnRectangle fun _ ↦ ?_
+  rw [mem_Rect (by simp [hσ]) (by simp [hTU])]
+  simpa using by tauto
+
+theorem HolomorphicOn.lowerUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} (hσ : σ ≤ σ')
+    (hf : HolomorphicOn f {z : ℂ | σ ≤ z.re ∧ z.re ≤ σ' ∧ z.im ≤ -T})
+    (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (hleft : Integrable fun y : ℝ => f (↑σ + ↑y * I))
+    (hright : Integrable fun y : ℝ => f (↑σ' + ↑y * I)) :
+    LowerUIntegral f σ σ' T = 0 := by
+  apply tendsto_nhds_unique (RectangleIntegral_tendsTo_LowerU hbot hleft hright)
+  apply EventuallyEq.tendsto
+  filter_upwards [eventually_ge_atTop T]
+  refine fun _ hTU ↦ hf.vanishesOnRectangle fun _ ↦ ?_
+  rw [mem_Rect (by simp [hσ]) (by simp [hTU])]
+  simpa using by tauto
 
 /-%%
 \begin{lemma}[sigmaNegOneHalfPull]\label{sigmaNegOneHalfPull}
 \lean{Perron.sigmaNegOneHalfPull}\leanok
-Let $x>0$ and $\sigma, \sigma'\in\R$. Then for all $T>0$, we have that
+Let $x>0$ and $\sigma > 0$. Then for all $T>0$, we have that
 $$
 \frac1{2\pi i}
-\int_{(\sigma')}\frac{x^s}{s(s+1)}ds -
+\int_{(-1/2)}\frac{x^s}{s(s+1)}ds -
 \frac 1{2\pi i}
 \int_{(\sigma)}\frac{x^s}{s(s+1)}ds =
 \int_{-1/2-iT}^{\sigma +iT}\frac{x^s}{s(s+1)}ds,
@@ -645,23 +669,59 @@ $$
 that is, a rectangle with corners $-1/2-iT$ and $\sigma+iT$.
 \end{lemma}
 %%-/
-lemma sigmaNegOneHalfPull (xpos : 0 < x) (Tpos : 0 < T):
-    VerticalIntegral (fun s => x ^ s / (s * (s + 1))) σ
-    - VerticalIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
-    = RectangleIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2 - I * T) (σ + I * T) := by
-  sorry
+lemma sigmaNegOneHalfPull_aux {f : ℂ → ℂ} (hf1 : Integrable (fun t : ℝ ↦ f ((-1/2:ℝ) + t * I)))
+  (hf2 : Integrable (fun t : ℝ ↦ f (σ + t * I)))
+  (hftop : Tendsto (fun y : ℝ => ∫ (x : ℝ) in (-1/2:ℝ)..σ, f (↑x + ↑y * I)) atTop (𝓝 0))
+  (hfbot : Tendsto (fun y : ℝ => ∫ (x : ℝ) in (-1/2:ℝ)..σ, f (x + y * I)) atBot (𝓝 0))
+  (hf_holo : HolomorphicOn f {0, -1}ᶜ) (σpos : 0 < σ) (Tpos : 0 < T):
+    VerticalIntegral f σ
+    - VerticalIntegral f (-1 / 2)
+    = RectangleIntegral f (-1 / 2 - I * T) (σ + I * T) := by
+
 /-%%
 \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, UpperUIntegral,
 RectangleIntegral_tendsTo_VerticalIntegral, LowerUIntegral, RectangleIntegral_tendsTo_LowerU,
 RectangleIntegral_tendsTo_UpperU, tendsto_zero_Upper, tendsto_zero_Lower,
 isIntegrable}
+%%-/
+  suffices : VerticalIntegral f σ
+    - VerticalIntegral f (-1 / 2)
+    - RectangleIntegral f (-1 / 2 - I * T) (σ + I * T) = 0
+  · linear_combination this
+  calc
+    _ = UpperUIntegral f (-1/2) σ T
+        - LowerUIntegral f (-1/2) σ T := ?_
+    _ = 0 := ?_
+/-%%
 The integral on $(\sigma)$ minus that on $(-1/2)$, minus the integral on the rectangle, is
 the integral over an UpperU and a LowerU.
+%%-/
+  · convert DiffVertRect_eq_UpperLowerUs hf1 hf2
+    norm_num
+/-%%
 The integrals over the U's are limits of integrals over rectangles with corners at $-1/2+iT$
 and $\sigma+iU$ (for UpperU); this uses Lemma \ref{RectangleIntegral_tendsTo_UpperU}. The
 integrals over the rectangles vanish by Lemmas \ref{tendsto_zero_Upper} and
 \end{proof}
 %%-/
+  · rw[HolomorphicOn.upperUIntegral_eq_zero (by linarith) _ hftop hf1 hf2,
+      HolomorphicOn.lowerUIntegral_eq_zero (by linarith) _ hfbot hf1 hf2]
+    · ring
+    all_goals
+    · apply hf_holo.mono
+      intro z
+      simp only [mem_setOf_eq, mem_compl_iff, mem_insert_iff, mem_singleton_iff, and_imp]
+      push_neg
+      intro _ _ _
+      constructor <;> apply_fun Complex.im <;> norm_num <;> linarith
+
+lemma sigmaNegOneHalfPull (xpos : 0 < x) (σpos : 0 < σ) (Tpos : 0 < T):
+    VerticalIntegral (fun s => x ^ s / (s * (s + 1))) σ
+    - VerticalIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
+    = RectangleIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2 - I * T) (σ + I * T) :=
+  sigmaNegOneHalfPull_aux (isIntegrable xpos (by norm_num) (by norm_num))
+    (isIntegrable xpos σpos.ne.symm (by linarith)) (tendsto_zero_Upper xpos ..)
+    (tendsto_zero_Lower xpos ..) (isHolomorphicOn xpos) σpos Tpos
 
 lemma sPlusOneNeZero {s : ℂ} (s_ne_neg_one : s ≠ -1) : s + 1 ≠ 0 := by
   intro h
@@ -690,15 +750,15 @@ By ring.
 %%-/
 
 lemma diffBddAtZero_aux_ge {x : ℝ} (xpos : 0 < x) (xge : 1 ≤ x) :
-    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Rectangle (-c - I * c) (c + I * c),
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Square 0 c,
     Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ x ^ (2 : ℝ) * 2 := sorry
 
 lemma diffBddAtZero_aux_lt {x : ℝ} (xpos : 0 < x) (xlt : x < 1) :
-    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Rectangle (-c - I * c) (c + I * c),
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Square 0 c,
     Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ x ^ (-(2 : ℝ)) * 2 := sorry
 
 lemma diffBddAtZero_aux {x : ℝ} (xpos : 0 < x) :
-    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Rectangle (-c - I * c) (c + I * c),
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Square 0 c,
     Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ if h : 1 ≤ x then x ^ (2 : ℝ) * 2 else x ^ (-(2 : ℝ)) * 2 := by
   by_cases h : 1 ≤ x
   · filter_upwards [diffBddAtZero_aux_ge xpos h]
@@ -720,7 +780,7 @@ is bounded above on the rectangle with corners at $-c-i*c$ and $c+i*c$ (except a
 lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) :
      ∀ᶠ (c : ℝ) in 𝓝[>] 0,
     BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - 1 / s)) ''
-      (Rectangle (-c - I * c) (c + I * c) \ {0})) := by
+      (Square 0 c \ {0})) := by
   filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2), diffBddAtZero_aux xpos]
   intro c hc sRectBnd
   simp only [mem_Ioo] at hc
@@ -737,7 +797,7 @@ lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) :
   have s_ne_neg_one : s ≠ -1 := by
     intro h
     rw [h] at s_memRect
-    rw [mem_Rect (by simp; linarith) (by simp; linarith)] at s_memRect
+    rw [Square, mem_Rect (by simp; linarith) (by simp; linarith)] at s_memRect
     simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
       sub_self, sub_zero, one_re, neg_le_neg_iff, add_re, add_zero, sub_im, neg_im, neg_zero,
       mul_im, one_mul, zero_add, zero_sub, one_im, Left.neg_nonpos_iff, add_im, and_self] at s_memRect
@@ -757,7 +817,7 @@ lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) :
   gcongr
   rw [← Complex.abs_neg]
   simp only [map_neg_eq_map, map_div₀]
-  rw [mem_Rect ] at s_memRect
+  rw [Square, mem_Rect] at s_memRect
   · simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
       sub_self, sub_zero, add_re, add_zero, sub_im, neg_im, neg_zero, mul_im, one_mul, zero_add,
       zero_sub, add_im] at s_memRect
@@ -831,7 +891,7 @@ is bounded above on the rectangle with corners at $-1-c-i*c$ and $-1+c+i*c$ (exc
 %%-/
 lemma diffBddAtNegOne (x : ℝ) {c : ℝ} (cpos : 0 < c) (c_lt : c < 1/2) :
     BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - (-x⁻¹) / (s+1))) ''
-      (Rectangle (-1 - c - I * c) (-1 + c + I * c) \ {-1})) := by
+      (Square (-1) c \ {-1})) := by
   sorry
 /-%%
 \begin{proof}\uses{keyIdentity}
@@ -852,7 +912,7 @@ $$
 \end{lemma}
 %%-/
 lemma residueAtZero (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
-    RectangleIntegral' (fun (s : ℂ) ↦ x ^ s / (s * (s + 1))) (-c - I * c) (c + I * c) = 1 := by
+    RectangleIntegral' (fun (s : ℂ) ↦ x ^ s / (s * (s + 1))) (-c - c * I) (c + c * I) = 1 := by
 /-%%
 \begin{proof}\leanok
 \uses{diffBddAtZero, ResidueTheoremOnRectangleWithSimplePole,
@@ -864,46 +924,23 @@ For $c>0$ sufficiently small,
   simp only [mem_Ioo] at hc
   have cpos : 0 < c := hc.1
   set f : ℂ → ℂ := (fun (s : ℂ) ↦ x ^ s / (s * (s + 1)))
-  set Rect := Rectangle (-c - I * c) (c + I * c)
+  set Rect := Square 0 c
   have RectSub : Rect \ {0} ⊆ {0, -1}ᶜ := sorry
   have fHolo : HolomorphicOn f (Rect \ {0}) :=
     (isHolomorphicOn xpos).mono RectSub
   set f1 : ℂ → ℂ := f - (fun (s : ℂ) ↦ 1 / s)
   have f1Holo : HolomorphicOn f1 (Rect \ {0}) := sorry
   have uIccIcc : uIcc (-c) c = Icc (-c) c := by apply uIcc_of_le; linarith
-  have RectMemNhds : Rect ∈ 𝓝 0
-  · rw [mem_nhds_iff]
-    refine ⟨(Ioo (-c / 2) (c / 2)) ×ℂ (Ioo (-c / 2) (c / 2)), ?_, ?_⟩
-    dsimp [Rectangle]
-    simp only [zero_mul, mul_zero, sub_self, sub_zero, add_zero, neg_zero, one_mul, zero_add,
-      zero_sub]
-    simp_rw [uIccIcc]
-    apply reProdIm_subset_iff'.mpr
-    · left
-      constructor
-      · intro u
-        simp only [mem_Ioo, mem_Icc, and_imp]
-        intro hu1 hu2
-        refine ⟨by linarith, by linarith⟩
-      · intro u
-        simp only [mem_Ioo, mem_Icc, and_imp]
-        intro hu1 hu2
-        refine ⟨by linarith, by linarith⟩
-    · constructor
-      · rw [← preimage_equivRealProd_prod]
-        apply (isOpen_Ioo.prod isOpen_Ioo).preimage
-        exact _root_.equivRealProdCLM.continuous
-      · rw [mem_reProdIm]
-        simp only [zero_re, mem_Ioo, zero_im, and_self]
-        refine ⟨by linarith, by linarith⟩
+  have RectMemNhds : Rect ∈ 𝓝 0 := square_mem_nhds 0 (ne_of_gt cpos)
 /-%% $x^s/(s(s+1))$ is equal to $1/s$ plus a function, $g$, say,
 holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
 %%-/
   obtain ⟨g, gHolo, g_eq_fDiff⟩ := existsDifferentiableOn_of_bddAbove RectMemNhds f1Holo bddAbove
+  simp_rw [Square, add_zero] at fHolo gHolo RectMemNhds Rect
+
 --%% Now apply Lemma \ref{ResidueTheoremOnRectangleWithSimplePole}.
   apply ResidueTheoremOnRectangleWithSimplePole (pInRectInterior := RectMemNhds) (fHolo := fHolo) (g := g) (A := 1) (gHolo := gHolo)
-  convert g_eq_fDiff using 1
-  simp
+  convert g_eq_fDiff using 3 <;> simp [Square]
 --%%\end{proof}
 
 /-%%
