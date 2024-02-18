@@ -635,26 +635,12 @@ theorem HolomorphicOn.upperUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} 
     (hleft : Integrable fun y : ℝ => f (↑σ + ↑y * I))
     (hright : Integrable fun y : ℝ => f (↑σ' + ↑y * I)) :
     UpperUIntegral f σ σ' T = 0 := by
-
-  have hlim1 : Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ + I * T) (σ' + I * U)) atTop
-      (𝓝 (UpperUIntegral f σ σ' T)) := RectangleIntegral_tendsTo_UpperU htop  hleft hright
-
-  have hrect {U  : ℝ} (hU : T ≤ U) : RectangleIntegral f (σ + I * T) (σ' + I * U) = 0 := by
-    apply hf.vanishesOnRectangle
-    intro z
-    simp
-    rw[mem_Rect (by simp [hσ]) (by simp [hU])]
-    simp
-    rintro hσz hzσ' hTz _
-    refine ⟨hσz, hzσ', hTz⟩
-
-  have hlim2 : Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ + I * T) (σ' + I * U)) atTop
-      (𝓝 0) := by
-    apply EventuallyEq.tendsto
-    filter_upwards [eventually_ge_atTop T]
-    exact fun U hTU ↦ hrect hTU
-
-  exact tendsto_nhds_unique hlim1 hlim2
+  apply tendsto_nhds_unique (RectangleIntegral_tendsTo_UpperU htop hleft hright)
+  apply EventuallyEq.tendsto
+  filter_upwards [eventually_ge_atTop T]
+  refine fun _ hTU ↦ hf.vanishesOnRectangle fun _ ↦ ?_
+  rw [mem_Rect (by simp [hσ]) (by simp [hTU])]
+  simpa using by tauto
 
 theorem HolomorphicOn.lowerUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} (hσ : σ ≤ σ')
     (hf : HolomorphicOn f {z : ℂ | σ ≤ z.re ∧ z.re ≤ σ' ∧ z.im ≤ -T})
@@ -662,26 +648,12 @@ theorem HolomorphicOn.lowerUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} 
     (hleft : Integrable fun y : ℝ => f (↑σ + ↑y * I))
     (hright : Integrable fun y : ℝ => f (↑σ' + ↑y * I)) :
     LowerUIntegral f σ σ' T = 0 := by
-
-  have hlim1 : Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ - I * U) (σ' - I * T)) atTop
-      (𝓝 (LowerUIntegral f σ σ' T)) := RectangleIntegral_tendsTo_LowerU hbot hleft hright
-
-  have hrect {U  : ℝ} (hU : T ≤ U) : RectangleIntegral f (σ - I * U) (σ' - I * T) = 0 := by
-    apply hf.vanishesOnRectangle
-    intro z
-    simp
-    rw[mem_Rect (by simp [hσ]) (by simp [hU])]
-    simp
-    rintro hσz hzσ' _ hzT
-    refine ⟨hσz, hzσ', hzT⟩
-
-  have hlim2 : Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ - I * U) (σ' - I * T)) atTop
-      (𝓝 0) := by
-    apply EventuallyEq.tendsto
-    filter_upwards [eventually_ge_atTop T]
-    exact fun U hTU ↦ hrect hTU
-
-  exact tendsto_nhds_unique hlim1 hlim2
+  apply tendsto_nhds_unique (RectangleIntegral_tendsTo_LowerU hbot hleft hright)
+  apply EventuallyEq.tendsto
+  filter_upwards [eventually_ge_atTop T]
+  refine fun _ hTU ↦ hf.vanishesOnRectangle fun _ ↦ ?_
+  rw [mem_Rect (by simp [hσ]) (by simp [hTU])]
+  simpa using by tauto
 
 /-%%
 \begin{lemma}[sigmaNegOneHalfPull]\label{sigmaNegOneHalfPull}

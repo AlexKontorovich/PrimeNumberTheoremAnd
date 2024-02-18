@@ -353,7 +353,7 @@ theorem rectangleIntegral_symm (f : ℂ → ℂ) (z w : ℂ) :
 theorem rectangleIntegral_symm_re (f : ℂ → ℂ) (z w : ℂ) :
     RectangleIntegral f (w.re + z.im * I) (z.re + w.im * I) = - RectangleIntegral f z w := by
   simp? [RectangleIntegral, intervalIntegral.integral_symm w.re] says
-    simp only [RectangleIntegral, add_im, ofReal_im, mul_im, ofReal_re, I_im,
+    simp only [RectangleIntegral._eq_1, add_im, ofReal_im, mul_im, ofReal_re, I_im,
       mul_one, I_re, mul_zero, add_zero, zero_add, add_re, mul_re, sub_self, smul_eq_mul,
       intervalIntegral.integral_symm w.re, sub_neg_eq_add, neg_sub]
   group
