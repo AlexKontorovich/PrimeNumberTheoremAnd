@@ -8,7 +8,7 @@ import EulerProducts.LSeries
 
 set_option autoImplicit false
 
-open Complex BigOperators  Nat Classical Real Topology Filter Set MeasureTheory
+open Complex BigOperators Nat Classical Real Topology Filter Set MeasureTheory
 
 open scoped Interval
 
@@ -461,27 +461,8 @@ theorem ContinuousOn.rectangleBorderNoPIntegrable {f : ℂ → ℂ} {z w p : ℂ
   refine (hf.mono (Set.subset_diff.mpr ?_)).rectangleBorder_integrable
   exact ⟨rectangleBorder_subset_rectangle z w, disjoint_singleton_right.mpr pNotOnBorder⟩
 
-lemma Real.Icc_nmem_nhds_left (a b : ℝ) : Set.Icc a b ∉ 𝓝 a := by
-  by_contra hc
-  obtain ⟨ε, ε_pos, ε_in_icc⟩ := Metric.mem_nhds_iff.mp hc
-  have h_mem : a - ε/2 ∈ Metric.ball a ε := mem_ball_iff_norm'.mpr (by simp [ε_pos, abs_of_pos])
-  have h_nmem : a - ε/2 ∉ Set.Icc a b := Set.not_mem_Icc_of_lt (by linarith)
-  exact h_nmem (ε_in_icc h_mem)
-
-lemma Real.Icc_nmem_nhds_right (a b : ℝ) : Set.Icc a b ∉ 𝓝 b := by
-  by_contra hc
-  obtain ⟨ε, ε_pos, ε_in_icc⟩ := Metric.mem_nhds_iff.mp hc
-  have h_mem : b + ε/2 ∈ Metric.ball b ε := mem_ball_iff_norm'.mpr (by simp [ε_pos, abs_of_pos])
-  have h_nmem : b + ε/2 ∉ Set.Icc a b := Set.not_mem_Icc_of_gt (by linarith)
-  exact h_nmem (ε_in_icc h_mem)
-
 lemma Real.Icc_mem_nhds_iff_mem_Ioo (a b : ℝ) (p : ℝ) : Set.Icc a b ∈ 𝓝 p ↔ p ∈ Set.Ioo a b := by
-  constructor <;> intro h
-  · obtain ⟨hap, hbp⟩ := mem_of_mem_nhds h
-    have hap_ne : p ≠ a := fun hc ↦ (hc ▸ Real.Icc_nmem_nhds_left a b : Icc a b ∉ 𝓝 p) h
-    have hbp_ne : p ≠ b := fun hc ↦ (hc ▸ Real.Icc_nmem_nhds_right a b : Icc a b ∉ 𝓝 p) h
-    exact ⟨hap_ne.symm.lt_of_le hap, hbp_ne.lt_of_le hbp⟩
-  · exact mem_nhds_iff.mpr ⟨Ioo a b, Ioo_subset_Icc_self, isOpen_Ioo, h⟩
+  rw [← mem_interior_iff_mem_nhds, interior_Icc]
 
 lemma Complex.image_ball_re {p : ℂ} {ε : ℝ} :
     Complex.re '' Metric.ball p ε = Metric.ball p.re ε := by
