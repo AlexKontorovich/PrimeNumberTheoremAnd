@@ -93,7 +93,66 @@ variable {f: ArithmeticFunction ℝ} (hf: ∀ (σ':ℝ), 1 < σ' → Summable (f
 @[simp]
 theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
 
-lemma first_fourier {ψ:ℝ → ℂ} (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ)
+@[simp]
+theorem nnnorm_circle_smul (z : circle) (s : ℂ) : ‖z • s‖₊ = ‖s‖₊ := by
+  simp [show z • s = z.val * s from rfl]
+
+lemma hf_coe1 {σ' : ℝ} (hσ : 1 < σ') :
+    (∑' (i : ℕ), ↑‖(f i : ℂ) / ↑((i : ℝ) ^ σ')‖₊ : ENNReal) ≠ ⊤ := by
+  apply ENNReal.tsum_coe_ne_top_iff_summable_coe.mpr
+  norm_cast
+  simp_rw [← norm_toNNReal]
+  apply Summable.toNNReal
+  have (n : ℕ) : 0 ≤ (n : ℝ) ^ σ' := by positivity
+  simp_rw [norm_div, Real.norm_eq_abs, _root_.abs_of_nonneg (this _), hf σ' hσ]
+
+lemma first_fourier_aux1 {ψ : ℝ → ℂ} (hψ: Continuous ψ) {x : ℝ} (n : ℕ) : Measurable fun (u : ℝ) ↦
+    (‖fourierChar (-(u * ((1 : ℝ) / ((2 : ℝ) * π) * (n / x).log))) • ψ u‖₊ : ENNReal) := by
+  -- TODO: attribute [fun_prop] Real.continuous_fourierChar once `fun_prop` bugfix is merged
+  refine Measurable.comp ?_ (by fun_prop) |>.smul (by fun_prop)
+    |>.nnnorm |>.coe_nnreal_ennreal
+  exact Continuous.measurable Real.continuous_fourierChar
+
+lemma first_fourier_aux2a {x y : ℝ} {n : ℕ} :
+    (2 : ℂ) * π * -(y * (1 / (2 * π) * Real.log ((n + 1) / x))) = -(y * ((n + 1) / x).log) := by
+  calc
+    _ = -(y * (((2 : ℂ) * π) / (2 * π) * Real.log ((n + 1) / x))) := by ring
+    _ = _ := by rw [div_self (by norm_num; exact pi_ne_zero), one_mul]
+
+lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hσ : 1 < σ') (hx : 0 < x) (n : ℕ) :
+    (f n : ℂ) / ↑((n : ℝ) ^ σ') *
+    fourierChar (-(y * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (↑n / x)))) • ψ y =
+    ((f n : ℂ) / n ^ (↑σ' + ↑y * I)) • (ψ y * ↑x ^ (↑y * I)) := by
+  show _ * ((fourierChar <| Multiplicative.ofAdd (_) : ℂ) • ψ y) = ((f n : ℂ) / _) • _
+  rw [fourierChar_apply]
+  show _ / _ * cexp (↑(_ * -(y * _)) * I) • ψ y = _
+  calc
+    _ = ((f n : ℂ) *
+        (cexp (↑((2 : ℝ) * π * -(y * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) * I) /
+        ↑((n : ℝ) ^ σ'))) • ψ y := by
+      simp_rw [smul_eq_mul]; group
+    _ = ((f n : ℂ) * (↑x ^ (↑y * I) / ↑n ^ (↑σ' + ↑y * I))) • ψ y := by
+      congr 2
+      cases n with
+      | zero =>
+        have : σ' = 0 → ¬y = 0 := fun _ ↦ False.elim (by linarith)
+        simp [Real.zero_rpow (by linarith : σ' ≠ 0),
+          Complex.zero_cpow (by simpa [Complex.ext_iff] using this : σ' + ↑y * I ≠ 0)]
+      | succ n =>
+        rw [Real.rpow_def_of_pos (cast_pos.mpr (Nat.zero_lt_succ n)),
+          Complex.cpow_def_of_ne_zero (ofReal_ne_zero.mpr (ne_of_gt hx)),
+          Complex.cpow_def_of_ne_zero (NeZero.natCast_ne (succ n) ℂ)]
+        push_cast
+        simp_rw [← Complex.exp_sub]
+        congr 1
+        rw [first_fourier_aux2a, Real.log_div (cast_add_one_ne_zero n) (ne_of_gt hx)]
+        push_cast
+        rw [Complex.ofReal_log (by linarith), Complex.ofReal_log hx.le]
+        push_cast
+        ring
+    _ = _ := by simp_rw [smul_eq_mul]; group
+
+lemma first_fourier {ψ : ℝ → ℂ} (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ)
     {x σ':ℝ} (hx: 0 < x) (hσ: 1 < σ') :
     ∑' n : ℕ, f n / (n^σ':ℝ) * (fourierIntegral ψ (1 / (2 * π) * log (n / x))) =
     ∫ t:ℝ, ArithmeticFunction.LSeries f (σ' + t * I) * ψ t * x^(t * I) ∂ volume := by
@@ -117,81 +176,25 @@ the claim then follows from Fubini's theorem.
     _ = ∫ (v : ℝ), ∑' (n : ℕ), (f n : ℂ) / ↑((n : ℝ) ^ σ') *
         fourierChar (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
       refine (integral_tsum ?_ ?_).symm
-      · refine fun _ ↦ Measurable.aestronglyMeasurable ?_
+      · -- TODO: attribute [fun_prop] Real.continuous_fourierChar once `fun_prop` bugfix is merged
+        refine fun _ ↦ Measurable.aestronglyMeasurable ?_
         refine Measurable.mul (by fun_prop) ((Measurable.comp ?_ (by fun_prop)).smul (by fun_prop))
         exact Continuous.measurable Real.continuous_fourierChar
       · simp_rw [nnnorm_mul]
         push_cast
-        have (n : ℕ) : Measurable fun (u : ℝ) =>
-            (‖fourierChar (-(u * ((1 : ℝ) / ((2 : ℝ) * π) * (n / x).log))) • ψ u‖₊ : ENNReal) := by
-          refine Measurable.comp ?_ (by fun_prop) |>.smul (by fun_prop)
-            |>.nnnorm |>.coe_nnreal_ennreal
-          exact Continuous.measurable Real.continuous_fourierChar
-        simp_rw [lintegral_const_mul _ (this _)]
+        simp_rw [lintegral_const_mul _ (first_fourier_aux1 hcont _)]
         calc
-          _ = ∑' (i : ℕ), (‖(f i : ℂ) / ↑((i : ℝ) ^ σ')‖₊ : ENNReal) *
-              ∫⁻ (a : ℝ),
-              ‖(fourierChar (-(a * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (i / x))))).val * ψ a‖₊
-              ∂volume := by
-            rfl
           _ = (∑' (i : ℕ), (‖(f i : ℂ) / ↑((i : ℝ) ^ σ')‖₊ : ENNReal)) *
               ∫⁻ (a : ℝ), ‖ψ a‖₊ ∂volume := by
             simp [ENNReal.tsum_mul_right]
-          _ ≠ ⊤ := by
-            apply ENNReal.mul_ne_top
-            · apply ENNReal.tsum_coe_ne_top_iff_summable_coe.mpr
-              norm_cast
-              simp_rw [← norm_toNNReal]
-              apply Summable.toNNReal
-              have (n : ℕ) : 0 ≤ (n : ℝ) ^ σ' := by positivity
-              simp_rw [norm_div, Real.norm_eq_abs, _root_.abs_of_nonneg (this _), hf σ' hσ]
-            · calc
-                _ = ∫⁻ a in tsupport ψ, ↑‖ψ a‖₊ := by
-                  have : ∀ᵐ x ∂volume, x ∈ (tsupport ψ)ᶜ → (‖ψ x‖₊ : ENNReal) = 0 :=
-                    Filter.univ_mem' fun a ha ↦ by simp [image_eq_zero_of_nmem_tsupport ha]
-                  rw [← lintegral_add_compl _ hsupp.measurableSet,
-                    set_lintegral_congr_fun hsupp.measurableSet.compl this]
-                  simp
-                _ ≠ ⊤ :=
-                  ne_top_of_lt <| MeasureTheory.set_lintegral_lt_top_of_isCompact
-                    (ne_top_of_lt hsupp.measure_lt_top) hsupp (by fun_prop)
+          _ ≠ ⊤ := ENNReal.mul_ne_top
+            (hf_coe1 hf hσ) (ne_top_of_lt (hcont.integrable_of_hasCompactSupport hsupp).2)
     _ = _ := by
       congr 1; ext y
       simp_rw [mul_assoc (L _ _), ← smul_eq_mul (a := (L _ _)), ArithmeticFunction.LSeries]
       rw [← tsum_smul_const]
       · congr 1; ext n
-        show _ * ((fourierChar <| Multiplicative.ofAdd (_) : ℂ) • ψ y) = ((f n : ℂ) / _) • _
-        rw [fourierChar_apply]
-        show _ / _ * cexp (↑(_ * -(y * _)) * I) • ψ y = _
-        calc
-          _ = ((f n : ℂ) *
-              (cexp (↑((2 : ℝ) * π * -(y * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) * I) /
-              ↑((n : ℝ) ^ σ'))) • ψ y := by
-            simp_rw [smul_eq_mul]; group
-          _ = ((f n : ℂ) * (↑x ^ (↑y * I) / ↑n ^ (↑σ' + ↑y * I))) • ψ y := by
-            congr 2
-            cases n with
-            | zero =>
-              have : σ' = 0 → ¬y = 0 := fun _ ↦ False.elim (by linarith)
-              simp [Real.zero_rpow (by linarith : σ' ≠ 0),
-                Complex.zero_cpow (by simpa [Complex.ext_iff] using this : σ' + ↑y * I ≠ 0)]
-            | succ n =>
-              rw [Real.rpow_def_of_pos (cast_pos.mpr (Nat.zero_lt_succ n)),
-                Complex.cpow_def_of_ne_zero (ofReal_ne_zero.mpr (ne_of_gt hx)),
-                Complex.cpow_def_of_ne_zero (NeZero.natCast_ne (succ n) ℂ)]
-              push_cast
-              simp_rw [← Complex.exp_sub]
-              congr 1
-              have : (2 : ℂ) * π * -(y * (1 / (2 * π) * Real.log ((n + 1) / x))) =
-                  -(y * Real.log ((n + 1) / x)) := calc
-                _ = -(y * (((2 : ℂ) * π) / (2 * π) * Real.log ((n + 1) / x))) := by ring
-                _ = _ := by rw [div_self (by norm_num; exact pi_ne_zero), one_mul]
-              rw [this, Real.log_div (cast_add_one_ne_zero n) (ne_of_gt hx)]
-              push_cast
-              rw [Complex.ofReal_log (by linarith), Complex.ofReal_log hx.le]
-              push_cast
-              ring
-          _ = _ := by simp_rw [smul_eq_mul]; group
+        exact first_fourier_aux2 hσ hx n
       · apply Summable.of_norm
         convert hf σ' hσ with n
         cases n <;> simp [-cast_succ, Complex.abs_cpow_of_ne_zero (NeZero.natCast_ne _ ℂ)]
