@@ -4,11 +4,10 @@ import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.Analytic.Meromorphic
 import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.MeasureTheory.Measure.Lebesgue.Integral
-import EulerProducts.LSeries
-
-set_option autoImplicit false
+import EulerProduct.LSeries
 
 open Complex BigOperators Nat Classical Real Topology Filter Set MeasureTheory
+
 
 open scoped Interval
 
