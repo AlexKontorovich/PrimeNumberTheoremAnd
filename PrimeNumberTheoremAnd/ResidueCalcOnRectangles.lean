@@ -6,7 +6,8 @@ import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.MeasureTheory.Measure.Lebesgue.Integral
 import EulerProducts.LSeries
 
-open Complex BigOperators  Nat Classical Real Topology Filter Set MeasureTheory
+open Complex BigOperators Nat Classical Real Topology Filter Set MeasureTheory
+
 
 open scoped Interval
 
@@ -26,6 +27,10 @@ def Rectangle (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ [[z.im, w.im]]
 
 lemma Rectangle.symm {z w : ℂ} : Rectangle z w = Rectangle w z := by
   simp_rw [Rectangle, Set.uIcc_comm]
+
+lemma Rectangle.symm_re {z w : ℂ} :
+    Rectangle (w.re + z.im * I) (z.re + w.im * I) = Rectangle z w := by
+  simp [Rectangle, Set.uIcc_comm]
 
 def Square (p : ℂ) (c : ℝ) : Set ℂ := Rectangle (-c - c * I + p) (c + c * I + p)
 
@@ -131,19 +136,43 @@ lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w
   rw [Rectangle, uIcc_of_le zRe_lt_wRe, uIcc_of_le zIm_lt_wIm]
   exact and_assoc
 
-lemma SquareMemNhds (p : ℂ) {c : ℝ} (cpos : c > 0) :
+lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by
+  simpa [Square] using Rectangle.symm
+
+def Set.uIoo {α : Type*} [Lattice α] (a b : α) : Set α := Ioo (a ⊓ b) (a ⊔ b)
+
+@[simp]
+theorem uIoo_of_le {α : Type*} [Lattice α] {a b : α} (h : a ≤ b) : Set.uIoo a b = Ioo a b := by
+  rw [uIoo, inf_eq_left.2 h, sup_eq_right.2 h]
+
+lemma square_mem_nhds (p : ℂ) {c : ℝ} (hc : c ≠ 0) :
     Square p c ∈ 𝓝 p := by
-  rw [Square_apply p cpos, mem_nhds_iff, ← preimage_equivRealProd_prod]
-  refine ⟨Ioo (-c + p.re) (c + p.re) ×ℂ Ioo (-c + p.im) (c + p.im), ?_, ?_,
-    ⟨by simp [cpos], by simp [cpos]⟩⟩
-  · rw [← preimage_equivRealProd_prod]
-    simp only [Equiv.range_eq_univ, subset_univ, preimage_subset_preimage_iff]
-    rw [prod_subset_prod_iff]
-    left
-    refine ⟨Ioo_subset_Icc_self, Ioo_subset_Icc_self⟩
-  · rw [← preimage_equivRealProd_prod]
-    apply (isOpen_Ioo.prod isOpen_Ioo).preimage
-    exact equivRealProdCLM.continuous
+  rw [Square, Rectangle, mem_nhds_iff]
+  refine ⟨(uIoo (-c + p.re) (c + p.re)) ×ℂ (uIoo (-c + p.im) (c + p.im)), ?_, ?_, ?_⟩
+  · refine reProdIm_subset_iff'.mpr (Or.inl ⟨?_, ?_⟩) <;> simpa using Ioo_subset_Icc_self
+  · exact isOpen_Ioo.reProdIm isOpen_Ioo
+  · exact ⟨by simp [uIoo, hc, hc.symm], by simp [uIoo, hc, hc.symm]⟩
+
+lemma square_subset_closedBall (p : ℂ) (c : ℝ) :
+    Square p c ⊆ Metric.closedBall p (|c| * Real.sqrt 2) := by
+  wlog hc : c ≥ 0 with h
+  · rw [← square_neg, ← _root_.abs_neg]
+    exact h p (-c) (neg_nonneg.mpr (le_of_not_le hc))
+  intro x hx
+  unfold Square Rectangle at hx
+  replace hx : x ∈ [[-c + p.re, c + p.re]] ×ℂ [[-c + p.im, c + p.im]] := by simpa using hx
+  rw [uIcc_of_le (by linarith), uIcc_of_le (by linarith)] at hx
+  simp_rw [← sub_eq_neg_add, add_comm c, ← Real.closedBall_eq_Icc] at hx
+  obtain ⟨hx_re : x.re ∈ Metric.closedBall p.re c, hx_im : x.im ∈ Metric.closedBall p.im c⟩ := hx
+  rw [mem_closedBall_iff_norm] at hx_re hx_im ⊢
+  rw [_root_.mul_self_le_mul_self_iff (norm_nonneg _) (by positivity),
+    Complex.norm_eq_abs, ← sq, Complex.sq_abs, Complex.normSq_apply]
+  simp_rw [← abs_mul_abs_self (x - p).re, ← abs_mul_abs_self (x - p).im, ← Real.norm_eq_abs]
+  calc
+    _ ≤ c * c + c * c := by gcongr <;> assumption
+    _ = 2 * (‖c‖ * ‖c‖) := by rw [← two_mul]; congr 1; simp
+    _ = (Real.sqrt 2) * (Real.sqrt 2) * (‖c‖ * ‖c‖) := by rw [mul_self_sqrt zero_le_two]
+    _ = _ := by group
 
 /-%%
 \begin{lemma}[DiffVertRect_eq_UpperLowerUs]\label{DiffVertRect_eq_UpperLowerUs}\lean{DiffVertRect_eq_UpperLowerUs}\leanok
@@ -205,15 +234,10 @@ If $f$ is differentiable on a set $s$ except at $c\in s$, and $f$ is bounded abo
 theorem existsDifferentiableOn_of_bddAbove {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
     [CompleteSpace E] {f : ℂ → E} {s : Set ℂ} {c : ℂ} (hc : s ∈ nhds c)
     (hd : HolomorphicOn f (s \ {c})) (hb : BddAbove (norm ∘ f '' (s \ {c}))) :
-    ∃ (g : ℂ → E), HolomorphicOn g s ∧ (Set.EqOn f g (s \ {c})) := by
-  refine ⟨(Function.update f c (limUnder (nhdsWithin c {c}ᶜ) f)),
-    differentiableOn_update_limUnder_of_bddAbove hc hd hb, ?_⟩
-  intro z hz
-  by_cases h : z = c
-  · exfalso
-    simp only [Set.mem_diff, Set.mem_singleton_iff] at hz
-    exact hz.2 h
-  · simp [h]
+    ∃ (g : ℂ → E), HolomorphicOn g s ∧ (Set.EqOn f g (s \ {c})) :=
+  ⟨Function.update f c (limUnder (𝓝[{c}ᶜ] c) f),
+    differentiableOn_update_limUnder_of_bddAbove hc hd hb,
+    fun z hz ↦ if h : z = c then (hz.2 h).elim else by simp [h]⟩
 /-%%
 \begin{proof}\leanok
 This is the Reimann Removable Singularity Theorem, slightly rephrased from what's in Mathlib. (We don't care what the function $g$ is, just that it's holomorphic.)
@@ -338,6 +362,20 @@ theorem RectangleIntegral'_congr {f g : ℂ → ℂ} {z w : ℂ} (h : Set.EqOn f
     RectangleIntegral' f z w = RectangleIntegral' g z w := by
   rw [RectangleIntegral', RectangleIntegral_congr h]
 
+theorem rectangleIntegral_symm (f : ℂ → ℂ) (z w : ℂ) :
+    RectangleIntegral f z w = RectangleIntegral f w z := by
+  simp_rw [RectangleIntegral, intervalIntegral.integral_symm w.re,
+    intervalIntegral.integral_symm w.im, smul_eq_mul]
+  group
+
+theorem rectangleIntegral_symm_re (f : ℂ → ℂ) (z w : ℂ) :
+    RectangleIntegral f (w.re + z.im * I) (z.re + w.im * I) = - RectangleIntegral f z w := by
+  simp? [RectangleIntegral, intervalIntegral.integral_symm w.re] says
+    simp only [RectangleIntegral, add_im, ofReal_im, mul_im, ofReal_re, I_im,
+      mul_one, I_re, mul_zero, add_zero, zero_add, add_re, mul_re, sub_self, smul_eq_mul,
+      intervalIntegral.integral_symm w.re, sub_neg_eq_add, neg_sub]
+  group
+
 def RectangleBorderIntegrable (f : ℂ → ℂ) (z w : ℂ) : Prop :=
     IntervalIntegrable (fun x => f (x + z.im * I)) volume z.re w.re ∧
     IntervalIntegrable (fun x => f (x + w.im * I)) volume z.re w.re ∧
@@ -422,6 +460,56 @@ theorem ContinuousOn.rectangleBorderNoPIntegrable {f : ℂ → ℂ} {z w p : ℂ
   refine (hf.mono (Set.subset_diff.mpr ?_)).rectangleBorder_integrable
   exact ⟨rectangleBorder_subset_rectangle z w, disjoint_singleton_right.mpr pNotOnBorder⟩
 
+lemma Real.Icc_mem_nhds_iff_mem_Ioo (a b : ℝ) (p : ℝ) : Set.Icc a b ∈ 𝓝 p ↔ p ∈ Set.Ioo a b := by
+  rw [← mem_interior_iff_mem_nhds, interior_Icc]
+
+lemma Complex.image_ball_re {p : ℂ} {ε : ℝ} :
+    Complex.re '' Metric.ball p ε = Metric.ball p.re ε := by
+  ext x; constructor <;> intro hx
+  · obtain ⟨x', hx', hxx'⟩ := hx
+    rw [mem_ball_iff_norm'] at hx' ⊢
+    rw [← hxx', ← sub_re]
+    exact (IsROrC.norm_re_le_norm (p - x')).trans_lt hx'
+  · refine ⟨x + p.im * I, ?_, by simp⟩
+    rw [mem_ball_iff_norm'] at hx ⊢
+    simp_rw [show p - (↑x + ↑p.im * I) = ↑(p.re - x) by simp [Complex.ext_iff], norm_real, hx]
+
+lemma Complex.image_ball_im {p : ℂ} {ε : ℝ} :
+    Complex.im '' Metric.ball p ε = Metric.ball p.im ε := by
+  ext x; constructor <;> intro hx
+  · obtain ⟨x', hx', hxx'⟩ := hx
+    rw [mem_ball_iff_norm'] at hx' ⊢
+    rw [← hxx', ← sub_im]
+    exact (IsROrC.norm_im_le_norm (p - x')).trans_lt hx'
+  · refine ⟨p.re + x * I, ?_, by simp⟩
+    rw [mem_ball_iff_norm'] at hx ⊢
+    simp_rw [show p - (↑p.re + ↑x * I) = ↑(p.im - x) * I by simp [Complex.ext_iff], norm_mul,
+      norm_I, mul_one, norm_real, hx]
+
+lemma Complex.image_reProdIm_re {a b : Set ℝ} : Complex.re '' (a ×ℂ b) ⊆ a :=
+  fun _ ↦ fun ⟨_, hx', hxx'⟩ ↦ hxx' ▸ hx'.1
+
+lemma Complex.image_reProdIm_im {a b : Set ℝ} : Complex.im '' (a ×ℂ b) ⊆ b :=
+  fun _ ↦ fun ⟨_, hx', hxx'⟩ ↦ hxx' ▸ hx'.2
+
+lemma reProdIm_mem_nhds_iff {a b : Set ℝ} {p : ℂ} :
+    a ×ℂ b ∈ 𝓝 p ↔ a ∈ 𝓝 p.re ∧ b ∈ 𝓝 p.im := by
+  constructor <;> intro h
+  · simp_rw [Metric.mem_nhds_iff] at h ⊢
+    obtain ⟨ε, ε_pos, ε_subset⟩ := h
+    constructor <;> use ε, ε_pos
+    · exact Complex.image_ball_re ▸ (image_mono ε_subset).trans Complex.image_reProdIm_re
+    · exact Complex.image_ball_im ▸ (image_mono ε_subset).trans Complex.image_reProdIm_im
+  · simp_rw [mem_nhds_iff] at h ⊢
+    obtain ⟨⟨a', ha', ha'_open, ha'p⟩, ⟨b', hb', hb'_open, hb'_p⟩⟩ := h
+    use a' ×ℂ b', reProdIm_subset_iff'.mpr (Or.inl ⟨ha', hb'⟩), ha'_open.reProdIm hb'_open
+    exact ⟨ha'p, hb'_p⟩
+
+lemma rect_mem_nhds_iff {z w p : ℂ}:
+    Rectangle z w ∈ 𝓝 p ↔ p ∈ uIoo z.re w.re ×ℂ uIoo z.im w.im := by
+  simp_rw [Rectangle, reProdIm_mem_nhds_iff, uIcc, Real.Icc_mem_nhds_iff_mem_Ioo, uIoo]
+  rfl
+
 -- ## End Rectangle API ##
 
 /--
@@ -484,53 +572,56 @@ lemma RectangleIntegralVSplit' {f : ℂ → ℂ} {b x₀ x₁ y₀ y₁ : ℝ} (
 
 lemma SmallSquareInRectangle {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ nhds p) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0, Square p c ⊆ Rectangle z w := by
-  rw [mem_nhds_iff] at pInRectInterior
-  obtain ⟨nhdP, nhdSubRect, nhdOpen, pInNhd⟩ := pInRectInterior
-  have : ∃ c₁ > 0, Metric.ball p c₁ ⊆ nhdP := by
-    simp_all
-    refine Metric.mem_nhds_iff.mp ?_
-    exact IsOpen.mem_nhds nhdOpen pInNhd
---%% Let $c_1$ be small enough that a ball of radius $c_1$ about $p$ is contained in the rectangle.
-  obtain ⟨c₁, c₁Pos, c₁SubNhd⟩ := this
+  obtain ⟨c₁, c₁Pos, c₁SubRect⟩ := Metric.mem_nhds_iff.mp pInRectInterior
   filter_upwards [Ioo_mem_nhdsWithin_Ioi' (half_pos c₁Pos)]
-  intro c cPos
-  simp only [mem_Ioo] at cPos
-  have c_ge_0 : 0 ≤ c := by linarith [mem_Ioo.mp cPos]
-  have sqrt2le : Real.sqrt 2 ≤ 2 := Real.sqrt_le_iff.mpr (by norm_num)
-  have normC : Complex.abs (c + c * I) = c * Real.sqrt 2 := by
-    simp only [Complex.abs, normSq, MonoidWithZeroHom.coe_mk, ZeroHom.coe_mk, AbsoluteValue.coe_mk,
-      MulHom.coe_mk, add_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self,
-      add_zero, add_im, mul_im, one_mul, zero_add]
-    ring_nf
-    rw [sqrt_mul (sq_nonneg _), sqrt_sq c_ge_0]
-  have normC' : Complex.abs (-c + c * I) = c * Real.sqrt 2 := by
-    simp only [Complex.abs, normSq, MonoidWithZeroHom.coe_mk, ZeroHom.coe_mk, AbsoluteValue.coe_mk,
-      MulHom.coe_mk, add_re, neg_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-      sub_self, add_zero, mul_neg, neg_mul, neg_neg, add_im, neg_im, neg_zero, mul_im, zero_add]
-    ring_nf
-    rw [sqrt_mul (sq_nonneg _), sqrt_sq c_ge_0]
-  apply subset_trans ?_ nhdSubRect
-  apply subset_trans ?_ c₁SubNhd
-  apply rectangle_in_convex (convex_ball _ _)
-  · simp only [Metric.mem_ball, dist_add_self_left, Complex.norm_eq_abs]
-    rw [(by ring: -(c : ℂ) - c * I = -(c + c * I)), Complex.abs_neg, normC]
-    nlinarith
-  · simp only [Metric.mem_ball, dist_add_self_left, Complex.norm_eq_abs]
-    rw [normC]
-    nlinarith
-  · simp only [add_re, sub_re, neg_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-    sub_self, sub_zero, ofReal_add, ofReal_neg, add_im, mul_im, add_zero, zero_add]
-    rw [(by ring : -(c : ℂ) + p.re + (c + p.im) * I = -c + c * I + (p.re + p.im * I))]
-    rw [re_add_im]
-    simp only [Metric.mem_ball, dist_add_self_left, Complex.norm_eq_abs]
-    rw [normC']
-    nlinarith
-  · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-    add_zero, ofReal_add, add_im, sub_im, neg_im, neg_zero, mul_im, zero_sub, ofReal_neg]
-    rw [(by ring : (c : ℂ) + p.re + (-c + p.im) * I = c - c * I + (p.re + p.im * I)), re_add_im]
-    simp only [Metric.mem_ball, dist_add_self_left, Complex.norm_eq_abs]
-    rw [← Complex.abs_neg, neg_sub, sub_eq_add_neg, add_comm, normC']
-    nlinarith
+  intro c ⟨cPos, cLt⟩
+  refine subset_trans (square_subset_closedBall p c) <| subset_trans ?_ c₁SubRect
+  have : Real.sqrt 2 < 2 := by refine (Real.sqrt_lt ?_ ?_).mpr ?_ <;> norm_num
+  exact (abs_of_pos cPos).symm ▸ Metric.closedBall_subset_ball (by nlinarith)
+
+lemma RectanglePullToNhdOfPole' {f : ℂ → ℂ} {z₀ z₁ z₂ z₃ p : ℂ}
+    (h_orientation : z₀.re ≤ z₃.re ∧ z₀.im ≤ z₃.im ∧ z₁.re ≤ z₂.re ∧ z₁.im ≤ z₂.im)
+    (hp : Rectangle z₁ z₂ ∈ 𝓝 p) (hz : Rectangle z₁ z₂ ⊆ Rectangle z₀ z₃)
+    (fHolo : HolomorphicOn f (Rectangle z₀ z₃ \ {p})) :
+    RectangleIntegral f z₀ z₃ = RectangleIntegral f z₁ z₂ := by
+  obtain ⟨hz₀_re, hz₀_im, hz₁_re, hz₁_im⟩ := h_orientation
+  have := rect_subset_iff.mp hz
+  rw [Rectangle, uIcc_of_le hz₀_re, uIcc_of_le hz₀_im] at this
+  obtain ⟨⟨⟨_, _⟩, ⟨_, _⟩⟩, ⟨_, _⟩, ⟨_, _⟩⟩ := this
+  obtain ⟨⟨_, _⟩, ⟨_, _⟩⟩ := (uIoo_of_le hz₁_re) ▸ (uIoo_of_le hz₁_im) ▸ rect_mem_nhds_iff.mp hp
+  obtain ⟨_, _, _, _⟩ := show p.re < z₂.re ∧ p.re < z₃.re ∧ p.im < z₂.im ∧ p.im < z₃.im from
+    ⟨by linarith, by linarith, by linarith, by linarith⟩
+  obtain ⟨_, _, _, _⟩ := show z₀.re < p.re ∧ z₁.re < p.re ∧ z₀.im < p.im ∧ z₁.im < p.im from
+    ⟨by linarith, by linarith, by linarith, by linarith⟩
+
+  have fCont := fHolo.continuousOn
+
+  have hbot : RectangleBorderIntegrable f (↑z₀.re + ↑z₀.im * I) (↑z₃.re + ↑z₃.im * I) := ?_
+  have htop : RectangleBorderIntegrable f (↑z₀.re + ↑z₁.im * I) (↑z₃.re + ↑z₃.im * I) := ?_
+  have hleft : RectangleBorderIntegrable f (↑z₀.re + ↑z₁.im * I) (↑z₃.re + ↑z₂.im * I) := ?_
+  have hright : RectangleBorderIntegrable f (↑z₁.re + ↑z₁.im * I) (↑z₃.re + ↑z₂.im * I) := ?_
+  all_goals try {
+    refine (fCont.mono (rectangleBorder_subset_punctured_rect ?_ ?_)).rectangleBorder_integrable
+    · simp_all
+    · simpa using ⟨by linarith, by linarith, by linarith, by linarith⟩
+  }
+  have hbot' : z₁.im ∈ [[z₀.im, z₃.im]] := ?_
+  have htop' : z₂.im ∈ [[z₁.im, z₃.im]] := ?_
+  have hleft' : z₁.re ∈ [[z₀.re, z₃.re]] := ?_
+  have hright' : z₂.re ∈ [[z₁.re, z₃.re]] := ?_
+  all_goals try { rw [Set.uIcc_of_le]; constructor; all_goals assumption }
+  have hbot'' : Rectangle (↑z₀.re + ↑z₀.im * I) (↑z₃.re + ↑z₁.im * I) ⊆ Rectangle z₀ z₃ \ {p} := ?_
+  have htop'' : Rectangle (↑z₀.re + ↑z₂.im * I) (↑z₃.re + ↑z₃.im * I) ⊆ Rectangle z₀ z₃ \ {p} := ?_
+  have hleft'' : Rectangle (↑z₀.re + ↑z₁.im * I) (↑z₁.re + ↑z₂.im * I) ⊆ Rectangle z₀ z₃ \ {p} := ?_
+  have hright'' : Rectangle (↑z₂.re + ↑z₁.im * I) (↑z₃.re + ↑z₂.im * I) ⊆ Rectangle z₀ z₃ \ {p} := ?_
+  all_goals try { apply rectangle_subset_punctured_rect <;> simp_all }
+
+  rw [← re_add_im z₀, ← re_add_im z₃,
+    RectangleIntegralVSplit' hbot' hbot, fHolo.vanishesOnRectangle hbot'', zero_add,
+    RectangleIntegralVSplit' htop' htop, fHolo.vanishesOnRectangle htop'', add_zero,
+    RectangleIntegralHSplit' hleft' hleft, fHolo.vanishesOnRectangle hleft'', zero_add,
+    RectangleIntegralHSplit' hright' hright, fHolo.vanishesOnRectangle hright'', add_zero,
+    re_add_im, re_add_im]
 
 /-%%
 The next lemma allows to zoom a big rectangle down to a small square, centered at a pole.
@@ -544,153 +635,48 @@ centered at $p$.
 /-- Given `f` holomorphic on a rectangle `z` and `w` except at a point `p`, the integral of `f` over
 the rectangle with corners `z` and `w` is the same as the integral of `f` over a small square
 centered at `p`. -/
-lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
-    (zIm_lt_wIm : z.im < w.im) (pInRectInterior : Rectangle z w ∈ 𝓝 p)
+lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re ≤ w.re)
+    (zIm_lt_wIm : z.im ≤ w.im) (hp : Rectangle z w ∈ 𝓝 p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
-    ∀ᶠ (c : ℝ) in 𝓝[>]0, RectangleIntegral f z w =
-      RectangleIntegral f (-c - I * c + p) (c + I * c + p) := by
---%% \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}\leanok
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' zero_lt_one, SmallSquareInRectangle pInRectInterior]
-  intro c ⟨cpos, _⟩ hc
-  have fCont : ContinuousOn f (Rectangle z w \ {p}) := fHolo.continuousOn
-
-  have : z.re ≤ p.re - c := by
-    suffices p.re - c ∈ [[z.re, w.re]] from (Set.uIcc_of_lt zRe_lt_wRe ▸ this).1
-    simpa [sub_eq_neg_add] using (rect_subset_iff.mp hc).1.1
-  have : p.re - c < p.re + c := by linarith
-  have : p.re + c ≤ w.re := by
-    suffices p.re + c ∈ [[z.re, w.re]] from (Set.uIcc_of_lt zRe_lt_wRe ▸ this).2
-    simpa [add_comm] using (rect_subset_iff.mp hc).2.1
-  have : z.im ≤ p.im - c := by
-    suffices p.im - c ∈ [[z.im, w.im]] from (Set.uIcc_of_lt zIm_lt_wIm ▸ this).1
-    simpa [sub_eq_neg_add] using (rect_subset_iff.mp hc).1.2
-  have : p.im - c < p.im + c := by linarith
-  have : p.im + c ≤ w.im := by
-    suffices p.im + c ∈ [[z.im, w.im]] from (Set.uIcc_of_lt zIm_lt_wIm ▸ this).2
-    simpa [add_comm] using (rect_subset_iff.mp hc).2.2
-
+    ∀ᶠ (c : ℝ) in 𝓝[>]0,
+    RectangleIntegral f z w = RectangleIntegral f (-c - I * c + p) (c + I * c + p) := by
 /-%%
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}\leanok
 Chop the big rectangle with two vertical cuts and two horizontal cuts into smaller rectangles,
 the middle one being the desired square. The integral over each of the outer rectangles
 vanishes, since $f$ is holomorphic there. (The constant $c$ being ``small enough'' here just means
 that the inner square is strictly contained in the big rectangle.)
 %%-/
-  have hbot : RectangleBorderIntegrable f (↑z.re + ↑z.im * I) (↑w.re + ↑w.im * I) := by
-    refine (fCont.mono (rectangleBorder_subset_punctured_rect ?_ ?_)).rectangleBorder_integrable
-    · simpa using ⟨by linarith, by linarith⟩
-    · simpa using ⟨by linarith, by linarith, by linarith, by linarith⟩
-  have htop : RectangleBorderIntegrable f (↑z.re + ↑(p.im - c) * I) (↑w.re + ↑w.im * I) := by
-    refine (fCont.mono (rectangleBorder_subset_punctured_rect ?_ ?_)).rectangleBorder_integrable
-    · simpa using ⟨by linarith, by linarith, by linarith⟩
-    · simpa using ⟨by linarith, by linarith, by linarith, by linarith⟩
-  have hleft : RectangleBorderIntegrable f (↑z.re + ↑(p.im - c) * I) (↑w.re + ↑(p.im + c) * I) := by
-    refine (fCont.mono (rectangleBorder_subset_punctured_rect ?_ ?_)).rectangleBorder_integrable
-    · simpa using ⟨by linarith, by linarith, by linarith, by linarith⟩
-    · simpa using ⟨by linarith, by linarith, by linarith, by linarith⟩
-  have hright : RectangleBorderIntegrable f (↑(p.re - c) + ↑(p.im - c) * I) (w.re + ↑(p.im + c) * I)
-  · refine (fCont.mono (rectangleBorder_subset_punctured_rect ?_ ?_)).rectangleBorder_integrable
-    · simpa using ⟨by linarith, by linarith, by linarith, by linarith, by linarith⟩
-    · simpa using ⟨by linarith, by linarith, by linarith, by linarith⟩
-  have hbot' : p.im - c ∈ [[z.im, w.im]] :=
-    Set.uIcc_of_le zIm_lt_wIm.le ▸ ⟨by linarith, by linarith⟩
-  have htop' : p.im + c ∈ [[p.im - c, w.im]] :=
-    Set.uIcc_of_le (by linarith : p.im - c ≤ w.im) ▸ ⟨by linarith, by linarith⟩
-  have hleft' : p.re - c ∈ [[z.re, w.re]] :=
-    Set.uIcc_of_le zRe_lt_wRe.le ▸ ⟨by linarith, by linarith⟩
-  have hright' : p.re + c ∈ [[p.re - c, w.re]] :=
-    Set.uIcc_of_le (by linarith : p.re - c ≤ w.re) ▸ ⟨by linarith, by linarith⟩
-  have hbot'' : Rectangle (↑z.re + ↑z.im * I) (↑w.re + ↑(p.im - c) * I) ⊆ Rectangle z w \ {p} := by
-    apply rectangle_subset_punctured_rect
-    · simpa using ⟨by linarith, by linarith, by linarith⟩
-    · simp [cpos, (by linarith : z.im < p.im)]
-  have htop'' : Rectangle (↑z.re + ↑(p.im + c) * I) (↑w.re + ↑w.im * I) ⊆ Rectangle z w \ {p} := by
-    apply rectangle_subset_punctured_rect
-    · simpa using ⟨by linarith, by linarith, by linarith⟩
-    · simp [cpos, (by linarith : p.im < w.im)]
-  have hleft'' :
-      Rectangle (↑z.re + ↑(p.im - c) * I) (↑(p.re - c) + ↑(p.im + c) * I) ⊆ Rectangle z w \ {p}
-  · apply rectangle_subset_punctured_rect
-    · simpa using ⟨by linarith, by linarith, by linarith, by linarith, by linarith⟩
-    · simp [cpos, (by linarith : z.re < p.re)]
-  have hright'' :
-      Rectangle (↑(p.re + c) + ↑(p.im - c) * I) (↑w.re + ↑(p.im + c) * I) ⊆ Rectangle z w \ {p}
-  · apply rectangle_subset_punctured_rect
-    · simpa using ⟨by linarith, by linarith, by linarith, by linarith, by linarith⟩
-    · simp [cpos, (by linarith : p.re < w.re)]
-
-  rw [← re_add_im z, ← re_add_im w,
-    RectangleIntegralVSplit' hbot' hbot, fHolo.vanishesOnRectangle hbot'', zero_add,
-    RectangleIntegralVSplit' htop' htop, fHolo.vanishesOnRectangle htop'', add_zero,
-    RectangleIntegralHSplit' hleft' hleft, fHolo.vanishesOnRectangle hleft'', zero_add,
-    RectangleIntegralHSplit' hright' hright, fHolo.vanishesOnRectangle hright'', add_zero]
-  congr 1 <;> apply Complex.ext <;> simp [sub_eq_neg_add, add_comm]
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' zero_lt_one, SmallSquareInRectangle hp]
+  intro c ⟨cpos, _⟩ hc
+  simp_rw [mul_comm I]
+  exact RectanglePullToNhdOfPole' (by simp_all [cpos.le])
+    (square_mem_nhds p (ne_of_gt cpos)) hc fHolo
 --%%\end{proof}
 
-theorem ResidueTheoremAtOrigin_aux1a_aux1 (x : ℝ)
-  : 1 / (1 + (ofReal' x) ^ 2) = ofReal' (1 / (1 + x ^ 2)) := by
-  simp only [one_div, ofReal_inv, ofReal_add, ofReal_one, ofReal_pow]
-
-theorem ResidueTheoremAtOrigin_aux1a_aux2 :
-  ∫ (x : ℝ) in (-1)..1, (1 / (1 + x ^ 2) : ℂ) = ∫ (x : ℝ) in (-1)..1, (1 / (1 + x ^ 2) : ℝ) := by
-  simp_rw [ResidueTheoremAtOrigin_aux1a_aux1]
-  exact intervalIntegral.integral_ofReal (f := (fun x => 1 / (1 + x ^ 2)))
-
 theorem ResidueTheoremAtOrigin_aux1a :
-  ∫ (x : ℝ) in (-1)..1, (1 / (1 + x ^ 2) : ℂ) = ↑(arctan 1) - ↑(arctan (-1)) := by
-  rw [ResidueTheoremAtOrigin_aux1a_aux2]
-  simp only [one_div, integral_inv_one_add_sq, arctan_one, arctan_neg, sub_neg_eq_add, ofReal_add,
-    ofReal_div, ofReal_ofNat, ofReal_neg]
+    ∫ (x : ℝ) in (-1)..1, ((1 + x ^ 2)⁻¹ : ℂ) = ↑(arctan 1) - ↑(arctan (-1)) := by
+  norm_cast
+  rw [intervalIntegral.integral_ofReal, integral_inv_one_add_sq]
 
-theorem ResidueTheoremAtOrigin_aux1b (x : ℝ)
-  : (x + -I)⁻¹ - (x + I)⁻¹ = (2 * I) * (1 / (1 + (x : ℝ)^2))
-  := by
-  have hu₁ : IsUnit (x + -I) := by
-    apply Ne.isUnit
-    by_contra h
-    have h₁ : (x + -I).im = -1 := by
-      simp only [add_im, ofReal_im, neg_im, I_im, zero_add]
-    have h₂ : (x + -I).im = 0 := by
-      rw [h]
-      exact rfl
-    linarith
+theorem ResidueTheoremAtOrigin_aux1b (x : ℝ) :
+    (x + -I)⁻¹ - (x + I)⁻¹ = (2 * I) * ↑((1 + x ^ 2)⁻¹ : ℝ) := by
+  have hu₁ : IsUnit (x + -I) := Ne.isUnit (by simp [Complex.ext_iff])
+  have hu₂ : IsUnit (x + I) := Ne.isUnit (by simp [Complex.ext_iff])
   apply hu₁.mul_left_cancel
-  rw [mul_sub, (IsUnit.mul_inv_eq_one hu₁).mpr rfl]
-  have hu₂ : IsUnit (x + I) := by
-    apply Ne.isUnit
-    by_contra h
-    have h₁ : (x + I).im = 1 := by
-      simp only [add_im, ofReal_im, I_im, zero_add, eq_neg_self_iff, one_ne_zero]
-    have h₂ : (x + I).im = 0 := by
-      rw [h]
-      exact rfl
-    linarith
+  rw [mul_sub, hu₁.mul_inv_cancel]
   apply hu₂.mul_left_cancel
-  rw [mul_sub, ← mul_assoc]
-  nth_rw 2 [mul_comm]
-  rw [← mul_assoc, (IsUnit.inv_mul_eq_one hu₂).mpr rfl]
-  symm
-  rw [← mul_assoc]
-  have : (x + I) * (x + -I) = 1 + x^2 := by
-    ring_nf
-    simp only [I_sq, sub_neg_eq_add]
-    rw [add_comm]
-  rw [this]
-  simp only [one_div, mul_one, one_mul, add_sub_add_left_eq_sub, sub_neg_eq_add]
-  rw [← mul_assoc, mul_comm, ← mul_assoc]
-  have : IsUnit (1 + (x : ℂ)^2) := by
-    have : (x + I) * (x + -I) = 1 + (x : ℂ)^2 := by
-      ring_nf
-      simp only [I_sq, sub_neg_eq_add]
-      rw [add_comm]
-    rw [← this]
-    exact IsUnit.mul hu₂ hu₁
-  rw [(IsUnit.inv_mul_eq_one this).mpr rfl]
-  ring
-
-@[deprecated ContinuousOn.intervalIntegrable]
-theorem integrable_of_continuous (a b : ℝ) (A : Type) [NormedRing A] (f : ℝ → A) (hf : ContinuousOn f [[a,b]]) :
-    IntervalIntegrable f volume a b :=
-  hf.intervalIntegrable
+  calc
+    _ = (x + I) * 1 - (x + I)⁻¹ * (x + I) * (x + -I) := by group
+    _ = (1 : ℝ) * (2 * I) := by simp [hu₂.inv_mul_cancel, two_mul]
+    _ = ((1 + x ^ 2)⁻¹ * (1 + x ^ 2) : ℝ) * (2 * I) := by
+      congr 2
+      exact (Ne.isUnit (by nlinarith)).inv_mul_cancel.symm
+    _ = ((1 + x ^ 2 : ℂ)⁻¹ * ((x + I) * (x + -I))) * (2 * I) := by
+      push_cast
+      congr 2
+      trans - I ^ 2 + x ^ 2; simp; group
+    _ = _ := by norm_cast; group
 
 theorem ResidueTheoremAtOrigin_aux1c (a b : ℝ) :
     let f : ℝ → ℂ := fun y => (y + I)⁻¹
@@ -703,79 +689,34 @@ theorem ResidueTheoremAtOrigin_aux1c' (a b : ℝ) :
   (ContinuousOn.inv₀ (by fun_prop) (by simp [Complex.ext_iff])).intervalIntegrable
 
 theorem ResidueTheoremAtOrigin_aux1 :
-  (∫ (x : ℝ) in (-1 - 0)..(1 + 0), 1 / (x + (-0 - 1 : ℝ) * I)) -
-    ∫ (x : ℝ) in (-1 - 0)..(1 + 0), 1 / (x + (0 + 1 : ℝ) * I) = π * I
-  := by
-  simp only [neg_zero, zero_sub, ofReal_neg, ofReal_one, neg_mul, one_mul, one_div, sub_zero,
-    add_zero, zero_add]
-  rw [← intervalIntegral.integral_sub]
-  · have : ∀ x : ℝ, (x + -I)⁻¹ - (x + I)⁻¹ = (2 * I) * (1 / (1 + (x : ℝ)^2)) := by
-      intro x
-      exact ResidueTheoremAtOrigin_aux1b x
-    simp_rw [this]
-    rw [intervalIntegral.integral_const_mul (2 * I), ResidueTheoremAtOrigin_aux1a]
-    simp only [arctan_one, ofReal_div, ofReal_ofNat, arctan_neg, ofReal_neg, sub_neg_eq_add]
-    ring
-  exact ResidueTheoremAtOrigin_aux1c' (-1) 1
-  exact ResidueTheoremAtOrigin_aux1c (-1) 1
+    (∫ (x : ℝ) in (-1 - 0)..(1 + 0), 1 / (x + (-0 - 1 : ℝ) * I)) -
+    ∫ (x : ℝ) in (-1 - 0)..(1 + 0), 1 / (x + (0 + 1 : ℝ) * I) = π * I := by
+  suffices (∫ (x : ℝ) in (-1 : ℝ)..1, (x + -I)⁻¹) - ∫ (x : ℝ) in (-1 : ℝ)..1, (x + I)⁻¹ = π * I by
+    simpa
+  rw [← intervalIntegral.integral_sub
+    (ResidueTheoremAtOrigin_aux1c' (-1) 1) (ResidueTheoremAtOrigin_aux1c (-1) 1)]
+  trans 2 * I * (π / 4 + π / 4)
+  · simp [ResidueTheoremAtOrigin_aux1b, ResidueTheoremAtOrigin_aux1a]
+  · group
 
-theorem ResidueTheoremAtOrigin_aux2b (y : ℝ) : (1 + y * I)⁻¹ - (-1 + y * I)⁻¹ = 2 * (1 / (1 + y ^ 2)) := by
-  have hu₁ : IsUnit (1 + y * I) := by
-    apply Ne.isUnit
-    by_contra h
-    have h₁ : (1 + y * I).re = 1 := by
-      simp only [add_re, one_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-        sub_self, add_zero]
-    have h₂ : (1 + y * I).re = 0 := by
-      rw [h]
-      exact rfl
-    linarith
+theorem ResidueTheoremAtOrigin_aux2b (y : ℝ) :
+    (1 + y * I)⁻¹ - (-1 + y * I)⁻¹ = 2 * ((1 + y ^ 2)⁻¹ : ℝ) := by
+  have hu₁ : IsUnit (1 + y * I) := Ne.isUnit (by simp [Complex.ext_iff])
+  have hu₂ : IsUnit (-1 + y * I) := Ne.isUnit (by simp [Complex.ext_iff])
   apply hu₁.mul_left_cancel
-  rw [mul_sub, (IsUnit.mul_inv_eq_one hu₁).mpr rfl]
-  have hu₂ : IsUnit (-1 + y * I) := by
-    apply Ne.isUnit
-    by_contra h
-    have h₁ : (-1 + y * I).re = -1 := by
-      simp only [add_re, neg_re, one_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im,
-        mul_one, sub_self, add_zero]
-    have h₂ : (-1 + y * I).re = 0 := by
-      rw [h]
-      exact rfl
-    linarith
+  rw [mul_sub, hu₁.mul_inv_cancel]
   apply hu₂.mul_left_cancel
-  rw [mul_sub, ← mul_assoc]
-  nth_rw 3 [mul_comm]
-  rw [← mul_assoc, (IsUnit.inv_mul_eq_one hu₂).mpr rfl]
-  symm
-  rw [← mul_assoc]
-  have : (-1 + y * I) * (1 + y * I) = -1 - y ^ 2 := by
-    ring_nf
-    simp only [I_sq, mul_neg, mul_one]
-    rfl
-  rw [this]
-  simp only [one_div, mul_one, one_mul, add_sub_add_right_eq_sub]
-  rw [← mul_assoc, mul_comm, ← mul_assoc]
-  have : (-1 - (y : ℂ)^2) = -(1 + y ^ 2) := by
-    ring
-  rw [this, mul_neg]
-  have : IsUnit (1 + (y : ℂ) ^ 2) := by
-    have : (1 - y * I) * (1 + y * I) = 1 + y ^ 2 := by
-      ring_nf
-      simp only [I_sq, mul_neg, mul_one, sub_neg_eq_add]
-    rw [← this]
-    have hu₂' : IsUnit (1 - y * I) := by
-      apply Ne.isUnit
-      by_contra h
-      have h₁ : (1 - y * I).re = 1 := by
-        simp only [sub_re, one_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-          sub_self, sub_zero]
-      have h₂ : (1 - y * I).re = 0 := by
-        rw [h]
-        exact rfl
-      linarith
-    exact IsUnit.mul hu₂' hu₁
-  rw [(IsUnit.inv_mul_eq_one this).mpr rfl]
-  norm_num
+  calc
+    _ = (-1 + ↑y * I) * 1 - (-1 + ↑y * I)⁻¹ * (-1 + ↑y * I) * (1 + ↑y * I) := by group
+    _ = ((1 * -2) : ℝ) := by trans -1 - 1; simp [hu₂.inv_mul_cancel]; norm_num
+    _ = (((1 + y ^ 2)⁻¹ * (1 + y ^ 2) : ℝ) * (-2) : ℝ) := by
+      congr 2
+      exact (Ne.isUnit (by nlinarith)).inv_mul_cancel.symm
+    _ = (1 + (y : ℂ) ^ 2)⁻¹ * (1 + (y : ℂ) ^ 2) * (-2) := by norm_cast
+    _ = (1 + (y : ℂ) ^ 2)⁻¹ * (-(1 + y * I) * (-1 + y * I)) * (-2) := by
+      congr 2
+      trans 1 - ↑y ^ 2 * I ^ 2; simp; group
+    _ = _ := by push_cast; group
 
 theorem ResidueTheoremAtOrigin_aux2c (a b : ℝ) :
     let f : ℝ → ℂ := fun y => (1 + ↑y * I)⁻¹
@@ -788,22 +729,15 @@ theorem ResidueTheoremAtOrigin_aux2c' (a b : ℝ) :
   (ContinuousOn.inv₀ (by fun_prop) (by simp [Complex.ext_iff])).intervalIntegrable
 
 theorem ResidueTheoremAtOrigin_aux2 :
-  (I * ∫ (y : ℝ) in (-0 - 1)..0 + 1, 1 / ((1 + 0 : ℝ) + y * I)) -
-    I * ∫ (y : ℝ) in (-0 - 1)..0 + 1, 1 / ((-1 - 0 : ℝ) + y * I) = π * I
-  := by
-  simp only [add_zero, ofReal_one, one_div, neg_zero, zero_sub, zero_add, sub_zero, ofReal_neg]
+    (I * ∫ (y : ℝ) in (-0 - 1)..0 + 1, 1 / ((1 + 0 : ℝ) + y * I)) -
+    I * ∫ (y : ℝ) in (-0 - 1)..0 + 1, 1 / ((-1 - 0 : ℝ) + y * I) = π * I := by
   rw [← mul_sub, mul_comm (π : ℂ) I]
-  simp only [mul_eq_mul_left_iff, I_ne_zero, or_false]
-  rw [← intervalIntegral.integral_sub]
-  · have : ∀ y : ℝ, (1 + y * I)⁻¹ - (-1 + y * I)⁻¹ = 2 * (1 / (1 + (y : ℝ)^2)) := by
-      intro y
-      exact ResidueTheoremAtOrigin_aux2b y
-    simp_rw [this]
-    rw [intervalIntegral.integral_const_mul 2, ResidueTheoremAtOrigin_aux1a]
-    simp only [arctan_one, ofReal_div, ofReal_ofNat, arctan_neg, ofReal_neg, sub_neg_eq_add]
-    ring
-  exact ResidueTheoremAtOrigin_aux2c (-1) 1
-  exact ResidueTheoremAtOrigin_aux2c' (-1) 1
+  suffices (∫ y in (-1 : ℝ)..1, (1 + ↑y * I)⁻¹) - ∫ y in (-1 : ℝ)..1, (-1 + ↑y * I)⁻¹ = ↑π by simpa
+  rw [← intervalIntegral.integral_sub
+    (ResidueTheoremAtOrigin_aux2c (-1) 1) (ResidueTheoremAtOrigin_aux2c' (-1) 1)]
+  trans 2 * (↑π / 4 + ↑π / 4)
+  · simp [ResidueTheoremAtOrigin_aux2b, ResidueTheoremAtOrigin_aux1a]
+  · group
 
 /-%%
 \begin{lemma}[ResidueTheoremAtOrigin]\label{ResidueTheoremAtOrigin}
@@ -814,14 +748,10 @@ The rectangle (square) integral of $f(s) = 1/s$ with corners $-1-i$ and $1+i$ is
 lemma ResidueTheoremAtOrigin :
     RectangleIntegral' (fun s ↦ 1 / s) (-1 - I) (1 + I) = 1 := by
   dsimp [RectangleIntegral', RectangleIntegral]
-  rw [ResidueTheoremAtOrigin_aux1, add_sub_assoc]
-  have := ResidueTheoremAtOrigin_aux2
-  rw [ResidueTheoremAtOrigin_aux2]
-  have : (2 * π * I) ≠ 0 := by
-    norm_num
-    exact pi_ne_zero
-  field_simp
-  ring
+  rw [ResidueTheoremAtOrigin_aux1, add_sub_assoc, ResidueTheoremAtOrigin_aux2]
+  trans  1 / (2 * ↑π * I) * (2 * ↑π * I)
+  · group
+  · exact one_div_mul_cancel (by norm_num; exact pi_ne_zero)
 /-%%
 \begin{proof}\leanok
 The bottom is:
