@@ -867,12 +867,13 @@ theorem exists_of_eventually_2
   (hQ : ∀ᶠ (c : ℝ) in 𝓝[>] 0, Q c) :
   ∃ c > 0, P c ∧ Q c := exists_of_eventually (Filter.eventually_iff.mp (hP.and hQ))
 
-lemma RectanglePullToNhdOfPole'_former {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re < w.re)
-    (zIm_lt_wIm : z.im < w.im) (pInRectInterior : Rectangle z w ∈ nhds p)
+lemma RectanglePullToNhdOfPole'_former {f : ℂ → ℂ} {z w p : ℂ} (zRe_le_wRe : z.re ≤ w.re)
+    (zIm_le_wIm : z.im ≤ w.im) (pInRectInterior : Rectangle z w ∈ nhds p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0, RectangleIntegral' f z w =
       RectangleIntegral' f (-c - I * c + p) (c + I * c + p) := by
-  sorry
+  filter_upwards [RectanglePullToNhdOfPole zRe_le_wRe zIm_le_wIm pInRectInterior fHolo] with c h
+  simp_rw [RectangleIntegral', h]
 
 /-%%
 \begin{lemma}[ResidueTheoremOnRectangleWithSimplePole]\label{ResidueTheoremOnRectangleWithSimplePole}
@@ -891,7 +892,7 @@ lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ
     (principalPart : Set.EqOn (f - fun s ↦ A / (s - p)) (g)
       (Rectangle z w \ {p})) :
     RectangleIntegral' f z w = A := by
-  have h₁ := RectanglePullToNhdOfPole'_former zRe_lt_wRe zIm_lt_wIm pInRectInterior fHolo
+  have h₁ := RectanglePullToNhdOfPole'_former zRe_lt_wRe.le zIm_lt_wIm.le pInRectInterior fHolo
   have h₂ := SmallSquareInRectangle pInRectInterior
   obtain ⟨c, cpos, hc₁, hc₂⟩ := exists_of_eventually_2 h₁ h₂
   rw [hc₁]
