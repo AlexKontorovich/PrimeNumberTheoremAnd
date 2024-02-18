@@ -1,7 +1,13 @@
 import Lake
 open Lake DSL
 
-package «PrimeNumberTheoremAnd»
+package «PrimeNumberTheoremAnd» where
+  leanOptions := #[
+    ⟨`pp.unicode.fun, true⟩, -- pretty-prints `fun a ↦ b`
+    ⟨`pp.proofs.withType, false⟩,
+    ⟨`autoImplicit, false⟩,
+    ⟨`relaxedAutoImplicit, false⟩
+  ]
 
 @[default_target]
 lean_lib «PrimeNumberTheoremAnd»

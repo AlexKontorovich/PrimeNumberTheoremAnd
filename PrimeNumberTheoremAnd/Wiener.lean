@@ -10,8 +10,6 @@ open Nat Real BigOperators ArithmeticFunction MeasureTheory
 open Complex hiding log
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems impossible to hide, and hence parameters that are traditionally called σ will have to be called σ' instead in this file.
 
-set_option autoImplicit false
-
 -- This version makes the support of Ψ explicit, and this is easier for some later proofs
 lemma smooth_urysohn_support_Ioo {a b c d:ℝ} (h1: a < b) (h2: b<c) (h3: c < d) : ∃ Ψ:ℝ → ℝ, (∀ n, ContDiff ℝ n Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧ Ψ ≤ Set.indicator (Set.Ioo a d) 1 ∧ (Function.support Ψ = Set.Ioo a d) := by
 
