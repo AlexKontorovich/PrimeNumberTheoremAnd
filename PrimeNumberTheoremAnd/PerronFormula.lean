@@ -568,6 +568,23 @@ $$
 \end{lemma}
 %%-/
 
+lemma contourPull {σ' σ'' : ℝ} (xpos : 0 < x) (hσ0 : 0 ∉ uIcc σ' σ'') (hσ1 : -1 ∉ uIcc σ' σ'') :
+    VerticalIntegral (f x) σ' = VerticalIntegral (f x) σ'' := by
+  have fHolo : HolomorphicOn (f x) {0, -1}ᶜ := isHolomorphicOn xpos
+  have hσ'0 : σ' ≠ 0 := fun h ↦ hσ0 (h ▸ left_mem_uIcc)
+  have hσ'1 : σ' ≠ -1 := fun h ↦ hσ1 (h ▸ left_mem_uIcc)
+  have hσ''0 : σ'' ≠ 0 := fun h ↦ hσ0 (h ▸ right_mem_uIcc)
+  have hσ''1 : σ'' ≠ -1 := fun h ↦ hσ1 (h ▸ right_mem_uIcc)
+  have rectInt (T : ℝ) : RectangleIntegral (f x) (σ' - I * T) (σ'' + I * T) = 0 := by
+    apply integral_boundary_rect_eq_zero_of_differentiableOn (f x) _ _ (fHolo.mono fun z hrect ↦ ?_)
+    have : z ∈ uIcc σ' σ'' ×ℂ uIcc (-T) T := by simpa using hrect
+    have h_re : z.re ≠ 0 := fun h ↦ hσ0 (h ▸ this.1)
+    have h_im : z.re ≠ -1 := fun h ↦ hσ1 (h ▸ this.1)
+    simp_all [Complex.ext_iff]
+  exact zeroTendstoDiff _ _ _ (univ_mem' rectInt) <| RectangleIntegral_tendsTo_VerticalIntegral
+    (tendsto_zero_Lower xpos σ' σ'') (tendsto_zero_Upper xpos σ' σ'')
+    (isIntegrable xpos hσ'0 hσ'1) (isIntegrable xpos hσ''0 hσ''1)
+
 lemma formulaLtOne (xpos : 0 < x) (x_lt_one : x < 1) (σ_pos : 0 < σ)
     : VerticalIntegral (f x) σ = 0 := by
 /-%%
@@ -577,51 +594,31 @@ vertIntBound, limitOfConstant, RectangleIntegral_tendsTo_VerticalIntegral, zeroT
 tendsto_rpow_atTop_nhds_zero_of_norm_lt_one,
 tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
+  The rectangle integral of $f$ with corners $\sigma-iT$ and $\sigma+iT$ is zero.
+  The limit of this rectangle integral as $T\to\infty$ is $\int_{(\sigma')}-\int_{(\sigma)}$.
+  Therefore, $\int_{(\sigma')}=\int_{(\sigma)}$.
 %%-/
-  let f := f x
-  have fHolo : HolomorphicOn f {0, -1}ᶜ := isHolomorphicOn xpos
---%% The rectangle integral of $f$ with corners $\sigma-iT$ and $\sigma+iT$ is zero.
-  have rectInt (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') (T : ℝ) :
-      RectangleIntegral f (σ' - I * T) (σ'' + I * T) = 0
-  · refine integral_boundary_rect_eq_zero_of_differentiableOn f _ _
-      (fHolo.mono fun z h_rect ↦ not_or.mpr (?_ : ¬z = 0 ∧ ¬z = -1))
-    simp_rw [Complex.ext_iff, ← not_or, Complex.zero_re, show (-1 : ℂ).re = -1 from rfl]
-    have : σ' ≤ z.re ∨ σ'' ≤ z.re := by simpa using h_rect.1.1
-    intro hc; cases hc <;> cases this <;> linarith [σ'pos, σ''pos]
---%% The limit of this rectangle integral as $T\to\infty$ is $\int_{(\sigma')}-\int_{(\sigma)}$.
-  have rectIntLimit (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
-      Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ' - I * T) (σ'' + I * T))
-      atTop (𝓝 (VerticalIntegral f σ'' - VerticalIntegral f σ')) := by
-    apply RectangleIntegral_tendsTo_VerticalIntegral
-    · exact tendsto_zero_Lower xpos σ' σ''
-    · exact tendsto_zero_Upper xpos σ' σ''
-    · exact isIntegrable xpos (by linarith) (by linarith)
-    · exact isIntegrable xpos (by linarith) (by linarith)
---%% Therefore, $\int_{(\sigma')}=\int_{(\sigma)}$.
-  have contourPull (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
-    VerticalIntegral f σ' = VerticalIntegral f σ''
-  · apply zeroTendstoDiff
-    · filter_upwards
-      exact rectInt σ' σ'' σ'pos σ''pos
-    · exact rectIntLimit σ' σ'' σ'pos σ''pos
+  have h_contourPull (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
+      VerticalIntegral (f x) σ' = VerticalIntegral (f x) σ'' :=
+    contourPull xpos (not_mem_uIcc_of_lt σ'pos σ''pos)
+      (not_mem_uIcc_of_lt (by linarith) (by linarith))
 --%% But we also have the bound $\int_{(\sigma')} \leq x^{\sigma'} * C$, where
 --%% $C=\int_\R\frac{1}{|(1+t)(1+t+1)|}dt$.
-  have VertIntBound : ∃ C > 0, ∀ σ' > 1, Complex.abs (VerticalIntegral f σ') ≤ x^σ' * C
+  have VertIntBound : ∃ C > 0, ∀ σ' > 1, Complex.abs (VerticalIntegral (f x) σ') ≤ x^σ' * C
   · let C := ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)|
     exact ⟨C, integralPosAux, fun _ ↦ vertIntBound xpos⟩
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
-  have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral f)) atTop (𝓝 0)
+  have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral (f x))) atTop (𝓝 0)
   · obtain ⟨C, _, hC⟩ := VertIntBound
     have := tendsto_rpow_atTop_nhds_zero_of_norm_lt_one xpos x_lt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
     · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _
     · filter_upwards [eventually_gt_atTop 1]; exact hC
-  have VertIntTendsto : Tendsto (VerticalIntegral f) atTop (𝓝 0) :=
+  have VertIntTendsto : Tendsto (VerticalIntegral (f x)) atTop (𝓝 0) :=
     tendsto_zero_iff_norm_tendsto_zero.mpr AbsVertIntTendsto
   --%% So pulling contours gives $\int_{(\sigma)}=0$.
-  exact limitOfConstant σ_pos contourPull VertIntTendsto
+  exact limitOfConstant σ_pos h_contourPull VertIntTendsto
 --%%\end{proof}
-
 
 /-%%
 The second case is when $x>1$.
@@ -710,7 +707,7 @@ lemma sigmaNegOneHalfPull_aux {f : ℂ → ℂ} (hf1 : Integrable (fun t : ℝ �
 \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, UpperUIntegral,
 RectangleIntegral_tendsTo_VerticalIntegral, LowerUIntegral, RectangleIntegral_tendsTo_LowerU,
 RectangleIntegral_tendsTo_UpperU, tendsto_zero_Upper, tendsto_zero_Lower,
-isIntegrable}
+isIntegrable}\leanok
 %%-/
   suffices : VerticalIntegral f σ
     - VerticalIntegral f (-1 / 2)
@@ -744,9 +741,8 @@ integrals over the rectangles vanish by Lemmas \ref{tendsto_zero_Upper} and
       constructor <;> apply_fun Complex.im <;> norm_num <;> linarith
 
 lemma sigmaNegOneHalfPull (xpos : 0 < x) (σpos : 0 < σ) (Tpos : 0 < T):
-    VerticalIntegral (fun s => x ^ s / (s * (s + 1))) σ
-    - VerticalIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
-    = RectangleIntegral (fun s => x ^ s / (s * (s + 1))) (-1 / 2 - I * T) (σ + I * T) :=
+    VerticalIntegral (f x) σ - VerticalIntegral (f x) (-1 / 2)
+    = RectangleIntegral (f x) (-1 / 2 - I * T) (σ + I * T) :=
   sigmaNegOneHalfPull_aux (isIntegrable xpos (by norm_num) (by norm_num))
     (isIntegrable xpos σpos.ne.symm (by linarith)) (tendsto_zero_Upper xpos ..)
     (tendsto_zero_Lower xpos ..) (isHolomorphicOn xpos) σpos Tpos
@@ -940,7 +936,7 @@ $$
 \end{lemma}
 %%-/
 lemma residueAtZero (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
-    RectangleIntegral' (fun (s : ℂ) ↦ x ^ s / (s * (s + 1))) (-c - c * I) (c + c * I) = 1 := by
+    RectangleIntegral' (f x) (-c - c * I) (c + c * I) = 1 := by
 /-%%
 \begin{proof}\leanok
 \uses{diffBddAtZero, ResidueTheoremOnRectangleWithSimplePole,
@@ -949,25 +945,25 @@ For $c>0$ sufficiently small,
 %%-/
   filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2), diffBddAtZero xpos]
   intro c hc bddAbove
-  simp only [mem_Ioo] at hc
-  have cpos : 0 < c := hc.1
-  set f : ℂ → ℂ := (fun (s : ℂ) ↦ x ^ s / (s * (s + 1)))
-  set Rect := Square 0 c
-  have RectSub : Rect \ {0} ⊆ {0, -1}ᶜ := sorry
-  have fHolo : HolomorphicOn f (Rect \ {0}) :=
-    (isHolomorphicOn xpos).mono RectSub
-  set f1 : ℂ → ℂ := f - (fun (s : ℂ) ↦ 1 / s)
-  have f1Holo : HolomorphicOn f1 (Rect \ {0}) := sorry
-  have uIccIcc : uIcc (-c) c = Icc (-c) c := by apply uIcc_of_le; linarith
-  have RectMemNhds : Rect ∈ 𝓝 0 := square_mem_nhds 0 (ne_of_gt cpos)
+  obtain ⟨cpos, _⟩ := hc
+  have RectSub : Square 0 c \ {0} ⊆ {0, -1}ᶜ := by
+    refine fun s ⟨hs, hs0⟩ ↦ not_or.mpr ⟨hs0, ?_⟩
+    rw [Square, mem_Rect (by simpa using by linarith) (by simp [cpos.le])] at hs
+    replace hs : -c ≤ s.re ∧ s.re ≤ c ∧ -c ≤ s.im ∧ s.im ≤ c := by simpa using hs
+    simpa [Complex.ext_iff] using fun h ↦ by linarith
+  have fHolo : HolomorphicOn (f x) (Square 0 c \ {0}) := (isHolomorphicOn xpos).mono RectSub
+  have f1Holo : HolomorphicOn ((f x) - (fun (s : ℂ) ↦ 1 / s)) (Square 0 c \ {0}) :=
+    fHolo.sub (by simpa using differentiableOn_inv.mono fun s hs ↦ hs.2)
+
+  have RectMemNhds : Square 0 c ∈ 𝓝 0 := square_mem_nhds 0 (ne_of_gt cpos)
 /-%% $x^s/(s(s+1))$ is equal to $1/s$ plus a function, $g$, say,
 holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
 %%-/
   obtain ⟨g, gHolo, g_eq_fDiff⟩ := existsDifferentiableOn_of_bddAbove RectMemNhds f1Holo bddAbove
-  simp_rw [Square, add_zero] at fHolo gHolo RectMemNhds Rect
+  simp_rw [Square, add_zero] at fHolo gHolo RectMemNhds
 
 --%% Now apply Lemma \ref{ResidueTheoremOnRectangleWithSimplePole}.
-  apply ResidueTheoremOnRectangleWithSimplePole (pInRectInterior := RectMemNhds) (fHolo := fHolo) (g := g) (A := 1) (gHolo := gHolo)
+  apply ResidueTheoremOnRectangleWithSimplePole RectMemNhds fHolo gHolo
   convert g_eq_fDiff using 3 <;> simp [Square]
 --%%\end{proof}
 
@@ -984,11 +980,9 @@ $$
 \end{lemma}
 %%-/
 lemma residuePull1 (x_gt_one : 1 < x) (σ_pos : 0 < σ) :
-    VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ =
-    1 + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-1 / 2) := by
-  sorry
+    VerticalIntegral' (f x) σ = 1 + VerticalIntegral' (f x) (-1 / 2) := by
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{sigmaNegOneHalfPull, residueAtZero}
 By Lemma \ref{sigmaNegOneHalfPull}, the difference of the two vertical integrals is equal
 to the integral over a rectangle with corners at $-1/2-iT$ and $\sigma+iT$ (for any $T>0$). By
@@ -998,6 +992,33 @@ sufficiently small.
 By Lemma \ref{residueAtZero}, the integral over this square is equal to $1$.
 \end{proof}
 %%-/
+  apply eq_add_of_sub_eq
+  have xpos : 0 < x := zero_lt_one.trans x_gt_one
+  rw [VerticalIntegral', ← mul_sub, sigmaNegOneHalfPull xpos σ_pos (by norm_num : (0 : ℝ) < 1)]
+  have h_nhds : Rectangle (-1 / 2 - I * ↑1) (↑σ + I * ↑1) ∈ 𝓝 0 := by
+    rw [rect_mem_nhds_iff]
+    suffices 0 ∈ Ioo (-1 / 2) σ ×ℂ Ioo (-1) 1 by simpa [(by linarith : -1/2 ≤ σ)] using this
+    refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩⟩ <;> norm_num
+    exact σ_pos
+  have fHolo : HolomorphicOn (f x) (Rectangle (-1 / 2 - I * ↑1) (↑σ + I * ↑1) \ {0}) := by
+    apply (isHolomorphicOn xpos).mono
+    refine fun s ⟨hs, hs0⟩ ↦ not_or.mpr ⟨hs0, ?_⟩
+    rw [mem_Rect (by simpa using by linarith) (by simp)] at hs
+    replace hs : -1 / 2 ≤ s.re ∧ s.re ≤ σ ∧ -1 ≤ s.im ∧ s.im ≤ 1 := by simpa using hs
+    simpa [Complex.ext_iff] using fun h ↦ by linarith
+  have := RectanglePullToNhdOfPole (by simpa using by linarith) (by simp) h_nhds fHolo
+  obtain ⟨c, hcf, hc⟩ := ((residueAtZero xpos).and this).exists_mem
+  obtain ⟨ε, hε, hεc⟩ := Metric.mem_nhdsWithin_iff.mp hcf
+  replace hεc : ε/2 ∈ c := hεc ⟨mem_ball_iff_norm.mpr (by simp [abs_of_pos hε, hε]), half_pos hε⟩
+  obtain ⟨h1, h2⟩ := hc (ε/2) hεc
+  unfold RectangleIntegral' at h1
+  replace : (2 * π * I) ≠ 0 := by norm_num; exact pi_ne_zero
+  replace h1 :
+      RectangleIntegral (f x) (-↑(ε / 2) - ↑(ε / 2) * I) (↑(ε / 2) + ↑(ε / 2) * I) = 2 * ↑π * I
+  · field_simp at h1 ⊢
+    exact h1
+  push_cast at *
+  simp_rw [h2, add_zero, mul_comm I, h1, one_div_mul_cancel this]
 
 /-%%
 \begin{lemma}[residuePull2]\label{residuePull2}\lean{Perron.residuePull2}\leanok
@@ -1033,12 +1054,15 @@ $$
 %%-/
 lemma contourPull3 (x_gt_one : 1 < x) (σ'le : σ' ≤ -3/2) (σ''le : σ'' ≤ -3/2) :
     VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ' = VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ'' := by
-  sorry
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Pull contour from $(-3/2)$ to $(\sigma)$.
 \end{proof}
 %%-/
+  unfold VerticalIntegral'
+  congr 1
+  exact contourPull (by linarith) (not_mem_uIcc_of_gt (by linarith) (by linarith))
+    (not_mem_uIcc_of_gt (by linarith) (by linarith))
 
 /-%%
 \begin{lemma}[formulaGtOne]\label{formulaGtOne}\lean{Perron.formulaGtOne}\leanok
@@ -1061,15 +1085,20 @@ tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
   have : HolomorphicOn f {0, -1}ᶜ := isHolomorphicOn (by linarith : 0 < x)
 --%% First pull the contour from $(\sigma)$ to $(-1/2)$, picking up a residue $1$ at $s=0$.
-  have contourPull₁ : VerticalIntegral' f σ = 1 + VerticalIntegral' f (-1 / 2) := residuePull1 x_gt_one σ_pos
+  have contourPull₁ : VerticalIntegral' f σ = 1 + VerticalIntegral' f (-1 / 2) :=
+    residuePull1 x_gt_one σ_pos
   rw [contourPull₁]
 --%% Next pull the contour from $(-1/2)$ to $(-3/2)$, picking up a residue $-1/x$ at $s=-1$.
-  have contourPull₂ : VerticalIntegral' f (-1 / 2) = -1 / x + VerticalIntegral' f (-3 / 2) := residuePull2 x_gt_one
+  have contourPull₂ : VerticalIntegral' f (-1 / 2) = -1 / x + VerticalIntegral' f (-3 / 2) :=
+    residuePull2 x_gt_one
   rw [contourPull₂]
 --%% Then pull the contour all the way to $(\sigma')$ with $\sigma'<-3/2$.
-  have contourPull₃ : ∀ σ' σ'' (_ : σ' ≤ -3/2) (_ : σ'' ≤ -3/2), VerticalIntegral' f σ' = VerticalIntegral' f σ'' := fun σ' σ'' σ'le σ''le ↦ contourPull3 x_gt_one σ'le σ''le
+  have contourPull₃ (σ' σ'' : ℝ) (hσ' : σ' ≤ -3/2) (hσ'' : σ'' ≤ -3/2) :
+      VerticalIntegral' f σ' = VerticalIntegral' f σ'' :=
+    contourPull3 x_gt_one hσ' hσ''
 --%% For $\sigma' < -3/2$, the integral is bounded by $x^{\sigma'}\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$.
-  have VertIntBound : ∃ C, ∀ σ' < -3/2, Complex.abs (VerticalIntegral' f σ') ≤ x^σ' * C :=
+  have VertIntBound : ∃ C, ∀ σ' < -3/2,
+      Complex.abs (VerticalIntegral' f σ') ≤ x^σ' * C :=
     vertIntBoundLeft (by linarith : 0 < x)
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
   have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral' f)) atBot (𝓝 0)
