@@ -92,7 +92,9 @@ variable {f: ArithmeticFunction ℝ} (hf: ∀ (σ':ℝ), 1 < σ' → Summable (f
 \end{lemma}
 %%-/
 
--- set_option trace.Meta.Tactic.fun_prop true
+@[simp]
+theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
+
 lemma first_fourier {ψ:ℝ → ℂ} (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ)
     {x σ':ℝ} (hx: 0 < x) (hσ: 1 < σ') :
     ∑' n : ℕ, f n / (n^σ':ℝ) * (fourierIntegral ψ (1 / (2 * π) * log (n / x))) =
@@ -127,20 +129,34 @@ the claim then follows from Fubini's theorem.
           refine Measurable.comp ?_ (by fun_prop) |>.smul (by fun_prop)
             |>.nnnorm |>.coe_nnreal_ennreal
           exact Continuous.measurable Real.continuous_fourierChar
-        simp_rw [lintegral_const_mul _ (this _), ← lt_top_iff_ne_top]
+        simp_rw [lintegral_const_mul _ (this _)]
         calc
-          _ ≤ ∑' (i : ℕ), (∑' (j : ℕ), (‖(f j : ℂ) / ↑((j : ℝ) ^ σ')‖₊ : ENNReal)) *
-              ∫⁻ (a : ℝ), ‖fourierChar (-(a * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (i / x)))) • ψ a‖₊
+          _ = ∑' (i : ℕ), (‖(f i : ℂ) / ↑((i : ℝ) ^ σ')‖₊ : ENNReal) *
+              ∫⁻ (a : ℝ),
+              ‖(fourierChar (-(a * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (i / x))))).val * ψ a‖₊
               ∂volume := by
-            refine tsum_mono ENNReal.summable ENNReal.summable fun i ↦ ?_
-            gcongr
-            exact ENNReal.le_tsum i
-          _ < ⊤ := by
-            rw [ENNReal.tsum_mul_left]
-            apply ENNReal.mul_lt_top
-            · norm_cast
-              sorry -- NNReal.tsum_eq_toNNReal_tsum
-            · sorry -- Fourier.norm_fourierIntegral_le_integral_norm
+            rfl
+          _ = (∑' (i : ℕ), (‖(f i : ℂ) / ↑((i : ℝ) ^ σ')‖₊ : ENNReal)) *
+              ∫⁻ (a : ℝ), ‖ψ a‖₊ ∂volume := by
+            simp [ENNReal.tsum_mul_right]
+          _ ≠ ⊤ := by
+            apply ENNReal.mul_ne_top
+            · apply ENNReal.tsum_coe_ne_top_iff_summable_coe.mpr
+              norm_cast
+              simp_rw [← norm_toNNReal]
+              apply Summable.toNNReal
+              have (n : ℕ) : 0 ≤ (n : ℝ) ^ σ' := by positivity
+              simp_rw [norm_div, Real.norm_eq_abs, _root_.abs_of_nonneg (this _), hf σ' hσ]
+            · calc
+                _ = ∫⁻ a in tsupport ψ, ↑‖ψ a‖₊ := by
+                  have : ∀ᵐ x ∂volume, x ∈ (tsupport ψ)ᶜ → (‖ψ x‖₊ : ENNReal) = 0 :=
+                    Filter.univ_mem' fun a ha ↦ by simp [image_eq_zero_of_nmem_tsupport ha]
+                  rw [← lintegral_add_compl _ hsupp.measurableSet,
+                    set_lintegral_congr_fun hsupp.measurableSet.compl this]
+                  simp
+                _ ≠ ⊤ :=
+                  ne_top_of_lt <| MeasureTheory.set_lintegral_lt_top_of_isCompact
+                    (ne_top_of_lt hsupp.measure_lt_top) hsupp (by fun_prop)
     _ = _ := by
       congr 1; ext y
       simp_rw [mul_assoc (L _ _), ← smul_eq_mul (a := (L _ _)), ArithmeticFunction.LSeries]
