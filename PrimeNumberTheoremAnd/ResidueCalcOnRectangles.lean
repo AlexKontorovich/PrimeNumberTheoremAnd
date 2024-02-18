@@ -4,7 +4,7 @@ import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.Analytic.Meromorphic
 import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.MeasureTheory.Measure.Lebesgue.Integral
-import EulerProduct.LSeries
+import EulerProducts.LSeries
 
 open Complex BigOperators Nat Classical Real Topology Filter Set MeasureTheory
 
@@ -635,8 +635,8 @@ centered at $p$.
 /-- Given `f` holomorphic on a rectangle `z` and `w` except at a point `p`, the integral of `f` over
 the rectangle with corners `z` and `w` is the same as the integral of `f` over a small square
 centered at `p`. -/
-lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (hp : Rectangle z w ∈ 𝓝 p)
-    (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w.im)
+lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re ≤ w.re)
+    (zIm_lt_wIm : z.im ≤ w.im) (hp : Rectangle z w ∈ 𝓝 p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0,
     RectangleIntegral f z w = RectangleIntegral f (-c - I * c + p) (c + I * c + p) := by
@@ -675,7 +675,7 @@ theorem ResidueTheoremAtOrigin_aux1b (x : ℝ) :
     _ = ((1 + x ^ 2 : ℂ)⁻¹ * ((x + I) * (x + -I))) * (2 * I) := by
       push_cast
       congr 2
-      simpa [mul_add, add_mul] using by group
+      trans - I ^ 2 + x ^ 2; simp; group
     _ = _ := by norm_cast; group
 
 theorem ResidueTheoremAtOrigin_aux1c (a b : ℝ) :
@@ -695,7 +695,9 @@ theorem ResidueTheoremAtOrigin_aux1 :
     simpa
   rw [← intervalIntegral.integral_sub
     (ResidueTheoremAtOrigin_aux1c' (-1) 1) (ResidueTheoremAtOrigin_aux1c (-1) 1)]
-  simpa [ResidueTheoremAtOrigin_aux1b, ResidueTheoremAtOrigin_aux1a] using by group
+  trans 2 * I * (π / 4 + π / 4)
+  · simp [ResidueTheoremAtOrigin_aux1b, ResidueTheoremAtOrigin_aux1a]
+  · group
 
 theorem ResidueTheoremAtOrigin_aux2b (y : ℝ) :
     (1 + y * I)⁻¹ - (-1 + y * I)⁻¹ = 2 * ((1 + y ^ 2)⁻¹ : ℝ) := by
@@ -706,7 +708,7 @@ theorem ResidueTheoremAtOrigin_aux2b (y : ℝ) :
   apply hu₂.mul_left_cancel
   calc
     _ = (-1 + ↑y * I) * 1 - (-1 + ↑y * I)⁻¹ * (-1 + ↑y * I) * (1 + ↑y * I) := by group
-    _ = ((1 * -2) : ℝ) := by simpa [hu₂.inv_mul_cancel] using by norm_num
+    _ = ((1 * -2) : ℝ) := by trans -1 - 1; simp [hu₂.inv_mul_cancel]; norm_num
     _ = (((1 + y ^ 2)⁻¹ * (1 + y ^ 2) : ℝ) * (-2) : ℝ) := by
       congr 2
       exact (Ne.isUnit (by nlinarith)).inv_mul_cancel.symm
@@ -714,7 +716,7 @@ theorem ResidueTheoremAtOrigin_aux2b (y : ℝ) :
     _ = (1 + (y : ℂ) ^ 2)⁻¹ * (-(1 + y * I) * (-1 + y * I)) * (-2) := by
       congr 2
       trans 1 - ↑y ^ 2 * I ^ 2; simp; group
-    _ = _ := by simpa using by group
+    _ = _ := by push_cast; group
 
 theorem ResidueTheoremAtOrigin_aux2c (a b : ℝ) :
     let f : ℝ → ℂ := fun y => (1 + ↑y * I)⁻¹
@@ -733,7 +735,9 @@ theorem ResidueTheoremAtOrigin_aux2 :
   suffices (∫ y in (-1 : ℝ)..1, (1 + ↑y * I)⁻¹) - ∫ y in (-1 : ℝ)..1, (-1 + ↑y * I)⁻¹ = ↑π by simpa
   rw [← intervalIntegral.integral_sub
     (ResidueTheoremAtOrigin_aux2c (-1) 1) (ResidueTheoremAtOrigin_aux2c' (-1) 1)]
-  simpa [ResidueTheoremAtOrigin_aux2b, ResidueTheoremAtOrigin_aux1a] using by group
+  trans 2 * (↑π / 4 + ↑π / 4)
+  · simp [ResidueTheoremAtOrigin_aux2b, ResidueTheoremAtOrigin_aux1a]
+  · group
 
 /-%%
 \begin{lemma}[ResidueTheoremAtOrigin]\label{ResidueTheoremAtOrigin}
@@ -745,11 +749,9 @@ lemma ResidueTheoremAtOrigin :
     RectangleIntegral' (fun s ↦ 1 / s) (-1 - I) (1 + I) = 1 := by
   dsimp [RectangleIntegral', RectangleIntegral]
   rw [ResidueTheoremAtOrigin_aux1, add_sub_assoc, ResidueTheoremAtOrigin_aux2]
-  have : (2 * π * I) ≠ 0 := by
-    norm_num
-    exact pi_ne_zero
-  field_simp
-  ring
+  trans  1 / (2 * ↑π * I) * (2 * ↑π * I)
+  · group
+  · exact one_div_mul_cancel (by norm_num; exact pi_ne_zero)
 /-%%
 \begin{proof}\leanok
 The bottom is:
