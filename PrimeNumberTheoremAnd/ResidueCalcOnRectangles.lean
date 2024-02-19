@@ -469,7 +469,7 @@ theorem Complex.nhds_hasBasis_square (p : ℂ) : HasBasis (𝓝 p) (0 < ·) (Squ
     refine ⟨ε ⊓ ε', lt_inf_iff.mpr ⟨hε, hε'⟩, ?_, ?_⟩ <;> apply Set.Icc_subset_Icc
     <;> linarith [(inf_le_left : ε ⊓ ε' ≤ ε), (inf_le_right : ε ⊓ ε' ≤ ε')]
   · intro; rfl
-  · intro ε hε
+  · intros
     rw [← uIcc_of_lt (by linarith), ← uIcc_of_lt (by linarith)]
     simpa [Square, Rectangle] using by ring_nf
 
@@ -543,7 +543,7 @@ lemma RectangleIntegralVSplit' {f : ℂ → ℂ} {b x₀ x₁ y₀ y₁ : ℝ} (
 lemma SmallSquareInRectangle {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ nhds p) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0, Square p c ⊆ Rectangle z w := by
   obtain ⟨ε, hε0, hε⟩ := ((Complex.nhds_hasBasis_square p).1 _).mp pInRectInterior
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (hε0)] with ε' ⟨hε'0, hε'⟩
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (hε0)] with _ ⟨_, _⟩
   refine subset_trans ?_ hε
   apply RectSubRect' <;> simpa using by linarith
 
