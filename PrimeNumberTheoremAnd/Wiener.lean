@@ -4,14 +4,19 @@ import Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.Topology.Support
 import Mathlib.Analysis.Calculus.ContDiff.Defs
 import Mathlib.Geometry.Manifold.PartitionOfUnity
+import Mathlib.Tactic.FunProp.AEMeasurable
 import Mathlib.Tactic.FunProp.Measurable
 
-open Nat Real BigOperators ArithmeticFunction MeasureTheory
+open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set
 open Complex hiding log
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems impossible to hide, and hence parameters that are traditionally called σ will have to be called σ' instead in this file.
 
+open scoped Topology
+
 -- This version makes the support of Ψ explicit, and this is easier for some later proofs
-lemma smooth_urysohn_support_Ioo {a b c d:ℝ} (h1: a < b) (h2: b<c) (h3: c < d) : ∃ Ψ:ℝ → ℝ, (∀ n, ContDiff ℝ n Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧ Ψ ≤ Set.indicator (Set.Ioo a d) 1 ∧ (Function.support Ψ = Set.Ioo a d) := by
+lemma smooth_urysohn_support_Ioo {a b c d : ℝ} (h1 : a < b) (h3: c < d) :
+    ∃ Ψ : ℝ → ℝ, (∀ n, ContDiff ℝ n Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧
+    Ψ ≤ Set.indicator (Set.Ioo a d) 1 ∧ (Function.support Ψ = Set.Ioo a d) := by
 
   have := exists_msmooth_zero_iff_one_iff_of_isClosed
     (modelWithCornersSelf ℝ ℝ) (s := Set.Iic a ∪ Set.Ici d) (t := Set.Icc b c)
@@ -47,28 +52,22 @@ lemma smooth_urysohn_support_Ioo {a b c d:ℝ} (h1: a < b) (h2: b<c) (h3: c < d)
           simp_rw [hΨ1 x] at h
           exact Eq.le (_root_.id h.symm)
         · have : Ψ x ∈ Set.range Ψ := by simp only [Set.mem_range, exists_apply_eq_apply]
-          have : Ψ x ∈ Set.Icc 0 1 := by exact hΨrange this
-          simp at this
+          have : Ψ x ∈ Set.Icc 0 1 := hΨrange this
           exact this.left
       · constructor
-        ·
-          intro x
+        · intro x
           rw [Set.indicator_apply]
           split_ifs with h
           · have : Ψ x ∈ Set.range Ψ := by simp only [Set.mem_range, exists_apply_eq_apply]
             have : Ψ x ∈ Set.Icc 0 1 := by exact hΨrange this
-            simp at this
-            simp
-            exact this.right
+            simpa using this.2
           · simp only [Set.mem_Ioo, Pi.one_apply] at *
             simp only [not_and_or, not_lt] at h
             simp_rw [hΨ0 x] at h
             exact Eq.le h
         · simp_rw [Function.support, ne_eq, ←hΨ0]
-          simp [Set.ext_iff]
-          intro x
           push_neg
-          tauto
+          simp [Set.ext_iff]
   done
 
 
@@ -83,12 +82,6 @@ is absolutely convergent for $\sigma>1$.
 %%-/
 
 variable {f: ArithmeticFunction ℝ} (hf: ∀ (σ':ℝ), 1 < σ' → Summable (fun n ↦ |f n| / n^σ'))
-
-/-%%
-\begin{lemma}[First Fourier identity]\label{first-fourier}\lean{first_fourier}\leanok  If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
-  $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = \int_\R F(\sigma + it) \psi(t) x^{it}\ dt.$$
-\end{lemma}
-%%-/
 
 @[simp]
 theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
@@ -152,12 +145,18 @@ lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hσ : 1 < σ') (hx 
         ring
     _ = _ := by simp_rw [smul_eq_mul]; group
 
+
+/-%%
+\begin{lemma}[First Fourier identity]\label{first-fourier}\lean{first_fourier}\leanok  If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = \int_\R F(\sigma + it) \psi(t) x^{it}\ dt.$$
+\end{lemma}
+%%-/
 lemma first_fourier {ψ : ℝ → ℂ} (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ)
     {x σ':ℝ} (hx: 0 < x) (hσ: 1 < σ') :
     ∑' n : ℕ, f n / (n^σ':ℝ) * (fourierIntegral ψ (1 / (2 * π) * log (n / x))) =
     ∫ t:ℝ, ArithmeticFunction.LSeries f (σ' + t * I) * ψ t * x^(t * I) ∂ volume := by
 /-%%
-\begin{proof}  By the definition of the Fourier transform, the left-hand side expands as
+\begin{proof}\leanok  By the definition of the Fourier transform, the left-hand side expands as
 $$ \sum_{n=1}^\infty \int_\R \frac{f(n)}{n^\sigma} \psi(t) e( - \frac{1}{2\pi} t \log \frac{n}{x})\ dt$$
 while the right-hand side expands as
 $$ \int_\R \sum_{n=1}^\infty \frac{f(n)}{n^{\sigma+it}} \psi(t) x^{it}\ dt.$$
@@ -205,19 +204,107 @@ $$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du = x^{\si
 \end{lemma}
 %%-/
 
-lemma second_fourier {ψ:ℝ → ℂ} (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ) {x σ':ℝ} (hx: 0 < x) (hσ: 1 < σ') : ∫ u in Set.Ici (-log x), Real.exp (-u * (σ' - 1)) * fourierIntegral ψ (u / (2 * π)) = (x^(σ' - 1):ℝ) * ∫ t, (1 / (σ' + t * I - 1)) * ψ t * x^(t * I) ∂ volume :=
-  sorry
+@[continuity]
+lemma continuous_multiplicative_ofAdd : Continuous (⇑Multiplicative.ofAdd : ℝ → ℝ) := ⟨fun _ ↦ id⟩
 
+attribute [fun_prop] measurable_coe_nnreal_ennreal
+
+lemma second_fourier_integrable_aux1a {x σ' : ℝ} (hσ : 1 < σ') :
+    IntegrableOn (fun (x : ℝ) ↦ cexp (-((x : ℂ) * ((σ' : ℂ) - 1)))) (Ici (-Real.log x)) := by
+  norm_cast
+  suffices IntegrableOn (fun (x : ℝ) ↦ (rexp (-(x * (σ' - 1))))) (Ici (-x.log)) _ from this.ofReal
+  simp_rw [fun (a x : ℝ) ↦ (by ring : -(x * a) = -a * x), integrableOn_Ici_iff_integrableOn_Ioi]
+  apply exp_neg_integrableOn_Ioi
+  linarith
+
+lemma second_fourier_integrable_aux1 {ψ : ℝ → ℂ}
+    (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ) {σ' x : ℝ} (hσ : 1 < σ') :
+    let ν : Measure (ℝ × ℝ) := (volume.restrict (Ici (-Real.log x))).prod volume
+    Integrable (Function.uncurry fun (u : ℝ) (a : ℝ) ↦ ((rexp (-u * (σ' - 1))) : ℂ) •
+    (fourierChar (Multiplicative.ofAdd (-(a * (u / (2 * π))))) : ℂ) • ψ a) ν := by
+  intro ν
+  constructor
+  · apply Measurable.aestronglyMeasurable
+    apply MeasureTheory.measurable_uncurry_of_continuous_of_measurable <;> intro i
+    swap; apply Continuous.measurable
+    all_goals exact Continuous.smul (by fun_prop) <|
+      (Continuous.subtype_val (by continuity)).smul (by fun_prop)
+  · let f1 : ℝ → ENNReal := fun a1 ↦ ↑‖cexp (-(↑a1 * (↑σ' - 1)))‖₊
+    let f2 : ℝ → ENNReal := fun a2 ↦ ↑‖ψ a2‖₊
+    suffices ∫⁻ (a : ℝ × ℝ), f1 a.1 * f2 a.2 ∂ν < ⊤ by simpa [Function.uncurry, HasFiniteIntegral]
+    refine (lintegral_prod_mul ?_ ?_).trans_lt ?_ <;> unfold_let f1 f2; fun_prop; fun_prop
+    exact ENNReal.mul_lt_top (ne_top_of_lt (second_fourier_integrable_aux1a hσ).2)
+      (ne_top_of_lt (hcont.integrable_of_hasCompactSupport hsupp).2)
+
+lemma second_fourier_integrable_aux2 {σ' t x : ℝ} (hσ : 1 < σ') :
+    IntegrableOn (fun (u : ℝ) ↦ cexp ((1 - ↑σ' - ↑t * I) * ↑u)) (Ioi (-Real.log x)) := by
+  refine (integrable_norm_iff (Measurable.aestronglyMeasurable <| by fun_prop)).mp ?_
+  suffices IntegrableOn (fun a ↦ rexp (-(σ' - 1) * a)) (Ioi (-x.log)) _ by simpa [Complex.abs_exp]
+  apply exp_neg_integrableOn_Ioi
+  linarith
+
+lemma second_fourier_aux {x σ' t : ℝ} (hx : 0 < x) :
+    -(cexp (-((1 - ↑σ' - ↑t * I) * ↑(Real.log x))) / (1 - ↑σ' - ↑t * I)) =
+    ↑(x ^ (σ' - 1)) * (↑σ' + ↑t * I - 1)⁻¹ * ↑x ^ (↑t * I) := by
+  calc
+    _ = cexp (↑(Real.log x) * ((↑σ' - 1) + ↑t * I)) * (↑σ' + ↑t * I - 1)⁻¹ := by rw [← div_neg]; ring_nf
+    _ = (x ^ ((↑σ' - 1) + ↑t * I)) * (↑σ' + ↑t * I - 1)⁻¹ := by
+      rw [Complex.cpow_def_of_ne_zero (ofReal_ne_zero.mpr (ne_of_gt hx)), Complex.ofReal_log hx.le]
+    _ = (x ^ ((σ' : ℂ) - 1)) * (x ^ (↑t * I)) * (↑σ' + ↑t * I - 1)⁻¹ := by
+      rw [Complex.cpow_add _ _ (ofReal_ne_zero.mpr (ne_of_gt hx))]
+    _ = _ := by rw [ofReal_cpow hx.le]; push_cast; ring
+
+lemma second_fourier {ψ : ℝ → ℂ} (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ)
+    {x σ' : ℝ} (hx : 0 < x) (hσ : 1 < σ') :
+    ∫ u in Ici (-log x), Real.exp (-u * (σ' - 1)) * fourierIntegral ψ (u / (2 * π)) =
+    (x^(σ' - 1) : ℝ) * ∫ t, (1 / (σ' + t * I - 1)) * ψ t * x^(t * I) ∂ volume := by
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{first-fourier}
-  The left-hand side expands as
-  $$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt du = x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt$$
-  so by Fubini's theorem it suffices to verify the identity
-$$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} e(-\frac{tu}{2\pi})\ du = x^{\sigma - 1} \frac{1}{\sigma+it-1} x^{it}$$
-which is a routine calculation.
+The left-hand side expands as
+$$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt\ du =
+x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt$$
+so by Fubini's theorem it suffices to verify the identity
+\begin{align*}
+\int_{-\log x}^\infty e^{-u(\sigma-1)} e(-\frac{tu}{2\pi})\ du
+&= \int_{-\log x}^\infty e^{(it - \sigma + 1)u}\ du \\
+&= \frac{1}{it - \sigma + 1} e^{(it - \sigma + 1)u}\ \Big|_{-\log x}^\infty \\
+&= x^{\sigma - 1} \frac{1}{\sigma+it-1} x^{it}
+\end{align*}
 \end{proof}
 %%-/
+  conv in ↑(rexp _) * _ => { rw [fourierIntegral_def, ← smul_eq_mul, ← integral_smul] }
+  rw [MeasureTheory.integral_integral_swap (second_fourier_integrable_aux1 hcont hsupp hσ),
+    ← integral_mul_left]
+  congr 1; ext t
+  simp_rw [fourierChar_apply, smul_eq_mul, ← mul_assoc _ _ (ψ _), integral_mul_right]
+  rw [fun (a b d : ℂ) ↦ show a * (b * (ψ t) * d) = (a * b * d) * ψ t by ring]
+  congr 1
+  push_cast
+  simp_rw [← Complex.exp_add]
+  have (u : ℝ) :
+      -↑u * (↑σ' - 1) + 2 * ↑π * -(↑t * (↑u / (2 * ↑π))) * I = (1 - σ' - t * I) * u := calc
+    _ = -↑u * (↑σ' - 1) + (2 * ↑π) / (2 * ↑π) * -(↑t * ↑u) * I := by ring
+    _ = -↑u * (↑σ' - 1) + 1 * -(↑t * ↑u) * I := by rw [div_self (by norm_num; exact pi_ne_zero)]
+    _ = _ := by ring
+  simp_rw [this]
+  let c : ℂ := (1 - ↑σ' - ↑t * I)
+  have : c ≠ 0 := by simpa [Complex.ext_iff] using fun h ↦ False.elim (by linarith)
+  let f' (u : ℝ) := cexp (c * u)
+  let f := fun (u : ℝ) ↦ (f' u) / c
+  have hderiv : ∀ u ∈ Ici (-Real.log x), HasDerivAt f (f' u) u := by
+    intro u _
+    rw [show f' u = cexp (c * u) * (c * 1) / c by field_simp]
+    exact (hasDerivAt_id' u).ofReal_comp.const_mul c |>.cexp.div_const c
+  have hf : Tendsto f atTop (𝓝 0) := by
+    apply tendsto_zero_iff_norm_tendsto_zero.mpr
+    suffices Tendsto (fun (x : ℝ) ↦ abs (cexp (c * ↑x)) / abs c) atTop (𝓝 (0 / abs c)) by simpa
+    apply Filter.Tendsto.div_const
+    suffices Tendsto (. * (1 - σ')) atTop atBot by simpa [Complex.abs_exp, mul_comm (1 - σ')]
+    exact Tendsto.atTop_mul_neg_const (by linarith) fun ⦃s⦄ h ↦ h
+  rw [integral_Ici_eq_integral_Ioi,
+    integral_Ioi_of_hasDerivAt_of_tendsto' hderiv (second_fourier_integrable_aux2 hσ) hf]
+  simpa using second_fourier_aux hx
 
 /-%%
 Now let $A \in \C$, and suppose that there is a continuous function $G(s)$ defined on $\mathrm{Re} s \geq 1$ such that $G(s) = F(s) - \frac{A}{s-1}$ whenever $\mathrm{Re} s > 1$.  We also make the Chebyshev-type hypothesis
