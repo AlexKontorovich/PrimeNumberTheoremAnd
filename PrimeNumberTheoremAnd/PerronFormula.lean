@@ -935,8 +935,10 @@ holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
   simp_rw [Square, add_zero] at fHolo gHolo RectMemNhds
 
 --%% Now apply Lemma \ref{ResidueTheoremOnRectangleWithSimplePole}.
-  apply ResidueTheoremOnRectangleWithSimplePole RectMemNhds fHolo gHolo
-  convert g_eq_fDiff using 3 <;> simp [Square]
+  refine ResidueTheoremOnRectangleWithSimplePole ?_ ?_ RectMemNhds gHolo ?_
+  · simpa using cpos.le
+  · simpa using cpos.le
+  · convert g_eq_fDiff using 3 <;> simp [Square]
 --%%\end{proof}
 
 /-%%
@@ -968,7 +970,7 @@ By Lemma \ref{residueAtZero}, the integral over this square is equal to $1$.
   have xpos : 0 < x := zero_lt_one.trans x_gt_one
   rw [VerticalIntegral', ← mul_sub, sigmaNegOneHalfPull xpos σ_pos (by norm_num : (0 : ℝ) < 1)]
   have h_nhds : Rectangle (-1 / 2 - I * ↑1) (↑σ + I * ↑1) ∈ 𝓝 0 := by
-    rw [rect_mem_nhds_iff]
+    rw [rectangle_mem_nhds_iff]
     suffices 0 ∈ Ioo (-1 / 2) σ ×ℂ Ioo (-1) 1 by simpa [(by linarith : -1/2 ≤ σ)] using this
     refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩⟩ <;> norm_num
     exact σ_pos

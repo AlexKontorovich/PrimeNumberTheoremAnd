@@ -64,6 +64,7 @@ A Rectangle's border, given corners $z$ and $w$ is the union of the four sides.
 /-- A `RectangleBorder` has corners `z` and `w`. -/
 def RectangleBorder (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ {z.im} ∪ {z.re} ×ℂ [[z.im, w.im]] ∪ [[z.re, w.re]] ×ℂ {w.im} ∪ {w.re} ×ℂ [[z.im, w.im]]
 
+
 /-%%
 An UpperUIntegral is the integral of a function over a |\_| shape.
 \begin{definition}\label{UpperUIntegral}\lean{UpperUIntegral}\leanok
@@ -208,6 +209,7 @@ abbrev HolomorphicOn {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] (f :
     Prop := DifferentiableOn ℂ f s
 
 
+
 /-%%
 \begin{theorem}[existsDifferentiableOn_of_bddAbove]\label{existsDifferentiableOn_of_bddAbove}\lean{existsDifferentiableOn_of_bddAbove}\leanok
 If $f$ is differentiable on a set $s$ except at $c\in s$, and $f$ is bounded above on $s\setminus\{c\}$, then there exists a differentiable function $g$ on $s$ such that $f$ and $g$ agree on $s\setminus\{c\}$.
@@ -315,6 +317,10 @@ lemma rectangleBorder_subset_punctured_rect {z₀ z₁ z₂ z₃ p : ℂ}
   Set.subset_diff.mpr ⟨
     (rectangleBorder_subset_rectangle _ _).trans (by apply RectSubRect' <;> tauto),
     rectangleBorder_disjoint_singleton hp⟩
+
+lemma rectangle_mem_nhds_iff {z w p : ℂ} : Rectangle z w ∈ 𝓝 p ↔
+    p ∈ (Set.uIoo z.re w.re) ×ℂ (Set.uIoo z.im w.im) := by
+  simp_rw [← mem_interior_iff_mem_nhds, Rectangle, Complex.interior_reProdIm, uIoo, uIcc, interior_Icc]
 
 /-- A real segment `[a₁, a₂]` translated by `b * I` is the complex line segment.
 Golfed from mathlib\#9598.-/
@@ -442,55 +448,33 @@ theorem ContinuousOn.rectangleBorderNoPIntegrable {f : ℂ → ℂ} {z w p : ℂ
   refine (hf.mono (Set.subset_diff.mpr ?_)).rectangleBorder_integrable
   exact ⟨rectangleBorder_subset_rectangle z w, disjoint_singleton_right.mpr pNotOnBorder⟩
 
-lemma Real.Icc_mem_nhds_iff_mem_Ioo (a b : ℝ) (p : ℝ) : Set.Icc a b ∈ 𝓝 p ↔ p ∈ Set.Ioo a b := by
-  rw [← mem_interior_iff_mem_nhds, interior_Icc]
+theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b :=
+  fun ⟨h1, h2⟩ ↦ (left_lt_sup.mp h2) (le_of_not_le (inf_lt_left.mp h1))
 
-lemma Complex.image_ball_re {p : ℂ} {ε : ℝ} :
-    Complex.re '' Metric.ball p ε = Metric.ball p.re ε := by
-  ext x; constructor <;> intro hx
-  · obtain ⟨x', hx', hxx'⟩ := hx
-    rw [mem_ball_iff_norm'] at hx' ⊢
-    rw [← hxx', ← sub_re]
-    exact (IsROrC.norm_re_le_norm (p - x')).trans_lt hx'
-  · refine ⟨x + p.im * I, ?_, by simp⟩
-    rw [mem_ball_iff_norm'] at hx ⊢
-    simp_rw [show p - (↑x + ↑p.im * I) = ↑(p.re - x) by simp [Complex.ext_iff], norm_real, hx]
+theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b :=
+  fun ⟨h1, h2⟩ ↦ (right_lt_sup.mp h2) (le_of_not_le (inf_lt_right.mp h1))
 
-lemma Complex.image_ball_im {p : ℂ} {ε : ℝ} :
-    Complex.im '' Metric.ball p ε = Metric.ball p.im ε := by
-  ext x; constructor <;> intro hx
-  · obtain ⟨x', hx', hxx'⟩ := hx
-    rw [mem_ball_iff_norm'] at hx' ⊢
-    rw [← hxx', ← sub_im]
-    exact (IsROrC.norm_im_le_norm (p - x')).trans_lt hx'
-  · refine ⟨p.re + x * I, ?_, by simp⟩
-    rw [mem_ball_iff_norm'] at hx ⊢
-    simp_rw [show p - (↑p.re + ↑x * I) = ↑(p.im - x) * I by simp [Complex.ext_iff], norm_mul,
-      norm_I, mul_one, norm_real, hx]
+theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a :=
+  fun h ↦ Set.left_not_mem_uIoo (h ▸ hc)
 
-lemma Complex.image_reProdIm_re {a b : Set ℝ} : Complex.re '' (a ×ℂ b) ⊆ a :=
-  fun _ ↦ fun ⟨_, hx', hxx'⟩ ↦ hxx' ▸ hx'.1
+theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b :=
+  fun h ↦ Set.right_not_mem_uIoo (h ▸ hc)
 
-lemma Complex.image_reProdIm_im {a b : Set ℝ} : Complex.im '' (a ×ℂ b) ⊆ b :=
-  fun _ ↦ fun ⟨_, hx', hxx'⟩ ↦ hxx' ▸ hx'.2
+theorem not_mem_rectangleBorder_of_rectangle_mem_nhds {z w p : ℂ} (hp : Rectangle z w ∈ 𝓝 p) :
+    p ∉ RectangleBorder z w := by
+  refine Set.disjoint_right.mp (rectangleBorder_disjoint_singleton ?_) rfl
+  have h1 := rectangle_mem_nhds_iff.mp hp
+  exact ⟨Set.ne_left_of_mem_uIoo h1.1, Set.ne_right_of_mem_uIoo h1.1,
+    Set.ne_left_of_mem_uIoo h1.2, Set.ne_right_of_mem_uIoo h1.2⟩
 
-lemma reProdIm_mem_nhds_iff {a b : Set ℝ} {p : ℂ} :
-    a ×ℂ b ∈ 𝓝 p ↔ a ∈ 𝓝 p.re ∧ b ∈ 𝓝 p.im := by
-  constructor <;> intro h
-  · simp_rw [Metric.mem_nhds_iff] at h ⊢
-    obtain ⟨ε, ε_pos, ε_subset⟩ := h
-    constructor <;> use ε, ε_pos
-    · exact Complex.image_ball_re ▸ (image_mono ε_subset).trans Complex.image_reProdIm_re
-    · exact Complex.image_ball_im ▸ (image_mono ε_subset).trans Complex.image_reProdIm_im
-  · simp_rw [mem_nhds_iff] at h ⊢
-    obtain ⟨⟨a', ha', ha'_open, ha'p⟩, ⟨b', hb', hb'_open, hb'_p⟩⟩ := h
-    use a' ×ℂ b', reProdIm_subset_iff'.mpr (Or.inl ⟨ha', hb'⟩), ha'_open.reProdIm hb'_open
-    exact ⟨ha'p, hb'_p⟩
+theorem HolomorphicOn.rectangleBorderIntegrable' {f : ℂ → ℂ} {z w p : ℂ}
+    (hf : HolomorphicOn f (Rectangle z w \ {p}))
+    (hp : Rectangle z w ∈ nhds p) : RectangleBorderIntegrable f z w :=
+  hf.continuousOn.rectangleBorderNoPIntegrable (not_mem_rectangleBorder_of_rectangle_mem_nhds hp)
 
-lemma rect_mem_nhds_iff {z w p : ℂ}:
-    Rectangle z w ∈ 𝓝 p ↔ p ∈ uIoo z.re w.re ×ℂ uIoo z.im w.im := by
-  simp_rw [Rectangle, reProdIm_mem_nhds_iff, uIcc, Real.Icc_mem_nhds_iff_mem_Ioo, uIoo]
-  rfl
+theorem HolomorphicOn.rectangleBorderIntegrable {f : ℂ → ℂ} {z w : ℂ}
+    (hf : HolomorphicOn f (Rectangle z w)) : RectangleBorderIntegrable f z w :=
+  hf.continuousOn.rectangleBorderIntegrable
 
 -- ## End Rectangle API ##
 
@@ -570,7 +554,7 @@ lemma RectanglePullToNhdOfPole' {f : ℂ → ℂ} {z₀ z₁ z₂ z₃ p : ℂ}
   have := rect_subset_iff.mp hz
   rw [Rectangle, uIcc_of_le hz₀_re, uIcc_of_le hz₀_im] at this
   obtain ⟨⟨⟨_, _⟩, ⟨_, _⟩⟩, ⟨_, _⟩, ⟨_, _⟩⟩ := this
-  obtain ⟨⟨_, _⟩, ⟨_, _⟩⟩ := (uIoo_of_le hz₁_re) ▸ (uIoo_of_le hz₁_im) ▸ rect_mem_nhds_iff.mp hp
+  obtain ⟨⟨_, _⟩, ⟨_, _⟩⟩ := (uIoo_of_le hz₁_re) ▸ (uIoo_of_le hz₁_im) ▸ rectangle_mem_nhds_iff.mp hp
   obtain ⟨_, _, _, _⟩ := show p.re < z₂.re ∧ p.re < z₃.re ∧ p.im < z₂.im ∧ p.im < z₃.im from
     ⟨by linarith, by linarith, by linarith, by linarith⟩
   obtain ⟨_, _, _, _⟩ := show z₀.re < p.re ∧ z₁.re < p.re ∧ z₀.im < p.im ∧ z₁.im < p.im from
@@ -635,6 +619,14 @@ that the inner square is strictly contained in the big rectangle.)
   exact RectanglePullToNhdOfPole' (by simp_all [cpos.le])
     (square_mem_nhds p (ne_of_gt cpos)) hc fHolo
 --%%\end{proof}
+
+lemma RectanglePullToNhdOfPole'' {f : ℂ → ℂ} {z w p : ℂ} (zRe_le_wRe : z.re ≤ w.re)
+    (zIm_le_wIm : z.im ≤ w.im) (pInRectInterior : Rectangle z w ∈ 𝓝 p)
+    (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
+    ∀ᶠ (c : ℝ) in 𝓝[>]0,
+    RectangleIntegral' f z w = RectangleIntegral' f (-c - I * c + p) (c + I * c + p) := by
+  filter_upwards [RectanglePullToNhdOfPole zRe_le_wRe zIm_le_wIm pInRectInterior fHolo] with c h
+  simp_rw [RectangleIntegral', h]
 
 theorem ResidueTheoremAtOrigin_aux1a :
     ∫ (x : ℝ) in (-1)..1, ((1 + x ^ 2)⁻¹ : ℂ) = ↑(arctan 1) - ↑(arctan (-1)) := by
@@ -792,6 +784,52 @@ which contributes another factor of $1/2$. (Fun! Each of the vertical/horizontal
 \end{proof}
 %%-/
 
+theorem RectangleIntegral.const_mul (f : ℂ → ℂ) (z w c : ℂ) :
+    RectangleIntegral (fun s => c * f s) z w = c * RectangleIntegral f z w := by
+  simpa [RectangleIntegral] using by ring
+
+theorem RectangleIntegral.const_mul' (f : ℂ → ℂ) (z w c : ℂ) :
+    RectangleIntegral' (fun s => c * f s) z w = c * RectangleIntegral' f z w := by
+  simpa only [RectangleIntegral', RectangleIntegral.const_mul] using by ring
+
+theorem RectangleIntegral.translate (f : ℂ → ℂ) (z w p : ℂ) :
+    RectangleIntegral (fun s => f (s - p)) z w = RectangleIntegral f (z - p) (w - p) := by
+  simp_rw [RectangleIntegral, sub_re, sub_im, ← intervalIntegral.integral_comp_sub_right]
+  congr <;> ext <;> congr 1 <;> simp [Complex.ext_iff]
+
+theorem RectangleIntegral.translate' (f : ℂ → ℂ) (z w p : ℂ) :
+    RectangleIntegral' (fun s => f (s - p)) z w = RectangleIntegral' f (z - p) (w - p) := by
+  simp_rw [RectangleIntegral', RectangleIntegral.translate]
+
+theorem ResidueTheoremInRectangle {z w p c : ℂ}
+    (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)
+    (pInRectInterior : Rectangle z w ∈ 𝓝 p)
+    (fHolo : HolomorphicOn (fun s ↦ c / (s - p)) (Rectangle z w \ {p})) :
+    RectangleIntegral' (λ s => c / (s - p)) z w = c := by
+  obtain ⟨s, this, hs⟩ := Eventually.exists_mem <|
+    RectanglePullToNhdOfPole'' zRe_le_wRe zIm_le_wIm pInRectInterior fHolo |>.and
+    <| Filter.eventually_mem_set.mpr (Ioo_mem_nhdsWithin_Ioi' (by norm_num : (0 : ℝ) < 1))
+  obtain ⟨ε', εpos, hε⟩ := Metric.mem_nhdsWithin_iff.mp this
+  let ε := (ε' / 2)
+  have εpos : 0 < ε := half_pos εpos
+  replace hε : ε ∈ s := hε ⟨by simpa [Real.ball_eq_Ioo] using ⟨by linarith, by linarith⟩, εpos⟩
+  replace : ε < 1 := (hs ε hε).2.2
+  rw [(hs ε hε).1]
+  conv in c / _ => { rw [← mul_one c, mul_div_assoc] }
+  rw [RectangleIntegral.const_mul', RectangleIntegral.translate']
+  suffices c * RectangleIntegral' (fun s ↦ 1 / s) (-↑ε - I * ↑ε) (↑ε + I * ↑ε) = c from
+    Eq.trans (by ring_nf) this
+  conv => { rw [RectangleIntegral']; rhs; rw [← mul_one c, ← ResidueTheoremAtOrigin] }
+  congr 2
+  refine (RectanglePullToNhdOfPole' (p := 0) ?_ ?_ ?_ ?_).symm
+  · simp [εpos.le]
+  · calc
+      _ = Square 0 ε := by simp [Square, mul_comm I]
+      _ ∈ _ := square_mem_nhds 0 (ne_of_gt εpos)
+  · apply RectSubRect' <;> simpa (config := { zeta := false }) using by linarith
+  · simp_rw [one_div]
+    exact differentiableOn_inv.mono fun _ h ↦ h.2
+
 /-%%
 \begin{lemma}[ResidueTheoremOnRectangleWithSimplePole]\label{ResidueTheoremOnRectangleWithSimplePole}
 \lean{ResidueTheoremOnRectangleWithSimplePole}\leanok
@@ -801,15 +839,43 @@ rectangle is $A$.
 \end{lemma}
 %%-/
 lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ}
-    (pInRectInterior : Rectangle z w ∈ nhds p)
-    (fHolo : HolomorphicOn f (Rectangle z w \ {p}))
+    (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)
+    (pInRectInterior : Rectangle z w ∈ 𝓝 p)
     (gHolo : HolomorphicOn g (Rectangle z w))
-    (principalPart : Set.EqOn (f - fun s ↦ A / (s - p)) (g)
-      (Rectangle z w \ {p})) :
+    (principalPart : Set.EqOn (f - fun s ↦ A / (s - p)) (g) (Rectangle z w \ {p})) :
     RectangleIntegral' f z w = A := by
-  sorry
+
+  have principalPart' : Set.EqOn f (g + (fun s ↦ A / (s - p))) (Rectangle z w \ {p}) := by
+    intro s hs
+    simp [← principalPart hs]
+
+  have : Set.EqOn f (g + (fun s ↦ A / (s - p))) (RectangleBorder z w) :=
+    principalPart'.mono <| Set.subset_diff.mpr ⟨rectangleBorder_subset_rectangle z w,
+      disjoint_singleton_right.mpr (not_mem_rectangleBorder_of_rectangle_mem_nhds pInRectInterior)⟩
+  rw [RectangleIntegral'_congr this]
+
+  have t1 : RectangleBorderIntegrable g z w := gHolo.rectangleBorderIntegrable
+  have t2 : HolomorphicOn (fun s ↦ A / (s - p)) (Rectangle z w \ {p}) := by
+    apply DifferentiableOn.mono (t := {p}ᶜ)
+    · apply DifferentiableOn.div
+      · exact differentiableOn_const _
+      · exact DifferentiableOn.sub differentiableOn_id (differentiableOn_const _)
+      · intro x hx
+        rw [sub_ne_zero]
+        exact hx
+    · rintro s ⟨_, hs⟩ ; exact hs
+  have t3 : RectangleBorderIntegrable (fun s ↦ A / (s - p)) z w :=
+    HolomorphicOn.rectangleBorderIntegrable' t2 pInRectInterior
+
+  rw [RectangleIntegral', RectangleBorderIntegrable.add t1 t3, mul_add]
+  rw [gHolo.vanishesOnRectangle (by rfl), mul_zero, zero_add]
+
+  exact ResidueTheoremInRectangle zRe_le_wRe zIm_le_wIm pInRectInterior t2
+
 /-%%
-\begin{proof}\uses{ResidueTheoremAtOrigin, RectanglePullToNhdOfPole, HolomorphicOn.vanishesOnRectangle}
+\begin{proof}
+\uses{ResidueTheoremAtOrigin, RectanglePullToNhdOfPole, HolomorphicOn.vanishesOnRectangle}
+\leanok
 Replace $f$ with $g + A/(s-p)$ in the integral.
 The integral of $g$ vanishes by Lemma \ref{HolomorphicOn.vanishesOnRectangle}.
  To evaluate the integral of $1/(s-p)$,
