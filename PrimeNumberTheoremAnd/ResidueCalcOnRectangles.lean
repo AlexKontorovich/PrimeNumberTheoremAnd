@@ -784,6 +784,76 @@ which contributes another factor of $1/2$. (Fun! Each of the vertical/horizontal
 \end{proof}
 %%-/
 
+section toto
+
+variable {x x₁ x₂ y : ℝ} {A : ℂ}
+
+lemma toto4 (hy : y ≠ 0) : x ^ 2 + y ^ 2 ≠ 0 := by linarith [sq_nonneg x, (sq_pos_iff y).mpr hy]
+
+lemma toto5 (hy : y ≠ 0) : Continuous fun x ↦ x / (x ^ 2 + y ^ 2) :=
+    continuous_id.div ((continuous_id.pow 2).add continuous_const) (λ _ => toto4 hy)
+
+lemma toto1 (hy : y ≠ 0) : ∫ x in x₁..x₂, x / (x ^ 2 + y ^ 2) =
+    Real.log (x₂ ^ 2 + y ^ 2) / 2 - Real.log (x₁ ^ 2 + y ^ 2) / 2 := by
+  let f (x : ℝ) : ℝ := Real.log (x ^ 2 + y ^ 2) / 2
+  have l7 (x) : HasDerivAt (fun x ↦ x ^ 2 + y ^ 2) (2 * x) x := by
+    apply HasDerivAt.add_const
+    convert hasDerivAt_pow 2 x
+    simp
+  have l5 (x) : HasDerivAt (λ x => Real.log (x ^ 2 + y ^ 2)) (2 * x / (x ^ 2 + y ^ 2)) x := by
+    apply HasDerivAt.log (l7 x) (toto4 hy)
+  have l0 (x) : HasDerivAt f (x / (x ^ 2 + y ^ 2)) x := by
+    convert (l5 x).div_const 2 using 1 ; field_simp ; ring
+  have l1 (x) : DifferentiableAt ℝ f x := (l0 x).differentiableAt
+  have l2 : deriv f = λ x => x / (x ^ 2 + y ^ 2) := funext (λ x => (l0 x).deriv)
+  have l4 : Continuous (deriv f) := by simpa only [l2] using toto5 hy
+  have l3 : IntervalIntegrable (deriv f) volume x₁ x₂ := l4.continuousOn.intervalIntegrable
+  simp_rw [← l2, intervalIntegral.integral_deriv_eq_sub (λ x _ => l1 x) l3]
+
+lemma toto2 (hy : y ≠ 0) : ∫ x in x₁..x₂, y / (x ^ 2 + y ^ 2) = arctan (x₂ / y) - arctan (x₁ / y) := by
+  nth_rewrite 1 [←div_mul_cancel x₁ hy, ←div_mul_cancel x₂ hy, ←intervalIntegral.mul_integral_comp_mul_right]
+  have l3 {x} : (x * y) ^ 2 + y ^ 2 = (1 + x^2) * y^2 := by ring
+  simp_rw [l3, ← intervalIntegral.integral_const_mul, ← integral_one_div_one_add_sq]
+  congr ; ext x
+  have l4 : 1 + x ^ 2 ≠ 0 := by linarith [sq_nonneg x]
+  field_simp ; ring
+
+lemma toto3 (hy : y ≠ 0) : (x + I * y)⁻¹ = (x - I * y) / (x ^ 2 + y ^ 2) := by
+  have e1 : (x + I * y) * (x - I * y) = x ^ 2 + y ^ 2 := by ring_nf ; simp
+  have e3 : x ^ 2 + y ^ 2 ≠ 0 := toto4 hy
+  apply inv_eq_of_mul_eq_one_right
+  simp_rw [← mul_div_assoc, e1]
+  exact div_self (by norm_cast)
+
+example {x₁ x₂ y : ℝ} {A : ℂ} (hy : y ≠ 0) : ∫ x : ℝ in x₁..x₂, A / (x + I * y) =
+    A * (Real.log (x₂ ^ 2 + y ^ 2) / 2 - Real.log (x₁ ^ 2 + y ^ 2) / 2) -
+    A * I * (arctan (x₂ / y) - arctan (x₁ / y)) := by
+  have l1 (x) (hx : x ∈ [[x₁, x₂]]) : A / (x + I * y) = A * x / (x^2 + y^2) - A * I * y / (x^2 + y^2) := by
+    ring_nf ; simp_rw [toto3 hy] ; ring
+  have l2 : IntervalIntegrable (fun x ↦ A * x / (x ^ 2 + y ^ 2)) volume x₁ x₂ := by
+    apply ContinuousOn.intervalIntegrable
+    apply Continuous.continuousOn
+    simp_rw [mul_div_assoc]
+    apply continuous_const.mul
+    norm_cast
+    apply Complex.continuous_ofReal.comp
+    exact toto5 hy
+  have l3 : IntervalIntegrable (fun x ↦ A * I * y / (x ^ 2 + y ^ 2)) volume x₁ x₂ := by
+    apply ContinuousOn.intervalIntegrable
+    apply Continuous.continuousOn
+    refine continuous_const.div ?_ ?_
+    · norm_cast
+      apply Complex.continuous_ofReal.comp
+      exact (continuous_id.pow 2).add continuous_const
+    · intro x ; norm_cast ; exact toto4 hy
+  simp_rw [intervalIntegral.integral_congr l1, intervalIntegral.integral_sub l2 l3, mul_div_assoc]
+  norm_cast
+  simp_rw [intervalIntegral.integral_const_mul, intervalIntegral.integral_ofReal, toto1 hy, toto2 hy]
+
+end toto
+
+theorem nhds_basis_square (p : ℂ) : HasBasis (𝓝 p) (λ c => 0 < c) (λ c => Square p c) := sorry
+
 theorem RectangleIntegral.const_mul (f : ℂ → ℂ) (z w c : ℂ) :
     RectangleIntegral (fun s => c * f s) z w = c * RectangleIntegral f z w := by
   simpa [RectangleIntegral] using by ring
