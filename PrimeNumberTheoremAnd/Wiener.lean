@@ -260,7 +260,6 @@ lemma second_fourier {ψ : ℝ → ℂ} (hcont: Continuous ψ) (hsupp: HasCompac
     (x^(σ' - 1) : ℝ) * ∫ t, (1 / (σ' + t * I - 1)) * ψ t * x^(t * I) ∂ volume := by
 /-%%
 \begin{proof}\leanok
-\uses{first-fourier}
 The left-hand side expands as
 $$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt\ du =
 x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt$$
@@ -355,7 +354,7 @@ lemma limiting_fourier {ψ:ℝ → ℂ} (hψ: ContDiff ℝ 2 ψ) (hsupp: HasComp
 %%-/
 
 /-%%
-\begin{corollary}\label{limiting-cor}\lean{limiting_cor}\leanok  With the hypotheses as above, we have
+\begin{corollary}[Corollary of limiting identity]\label{limiting-cor}\lean{limiting_cor}\leanok  With the hypotheses as above, we have
   $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
   as $x \to \infty$.
 \end{corollary}
@@ -369,66 +368,6 @@ lemma limiting_cor {ψ:ℝ → ℂ} (hψ: ContDiff ℝ 2 ψ) (hsupp: HasCompactS
 \begin{proof}
 \uses{limiting}
  Immediate from the Riemann-Lebesgue lemma, and also noting that $\int_{-\infty}^{-\log x} \hat \psi(\frac{u}{2\pi})\ du = o(1)$.
-\end{proof}
-%%-/
-
-/-%%
-\begin{lemma}\label{schwarz-id}\lean{limiting_cor_schwartz}\leanok  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.
-\end{lemma}
-%%-/
-
-lemma limiting_cor_schwartz {ψ: SchwartzMap ℝ ℂ} : Tendsto (fun x : ℝ ↦ ∑' n, f n / n * fourierIntegral ψ (1/(2*π) * log (n/x)) - A * ∫ u in Set.Ici (-log x), fourierIntegral ψ (u / (2*π)) ∂ volume) atTop (nhds 0) := by sorry
-
-/-%%
-\begin{proof}
-\uses{limiting-cor}
-For any $R>1$, one can use a smooth cutoff function to write $\psi = \psi_{\leq R} + \psi_{>R}$, where $\psi_{\leq R}$ is $C^2$ (in fact smooth) and compactly supported (on $[-R,R]$), and $\psi_{>R}$ obeys bounds of the form
-$$ |\psi_{>R}(t)|, |\psi''_{>R}(t)| \ll R^{-1} / (1 + |t|^2) $$
-where the implied constants depend on $\psi$.  By Lemma \ref{decay} we then have
-$$ \hat \psi_{>R}(u) \ll R^{-1} / (1+|u|^2).$$
-Using this and \eqref{cheby} one can show that
-$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{>R}( \frac{1}{2\pi} \log \frac{n}{x} ), A \int_{-\infty}^\infty \hat \psi_{>R} (\frac{u}{2\pi})\ du \ll R^{-1} $$
-(with implied constants also depending on $A$), while from Lemma \ref{limiting-cor} one has
-$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{\leq R}( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi_{\leq R} (\frac{u}{2\pi})\ du + o(1).$$
-Combining the two estimates and letting $R$ be large, we obtain the claim.
-\end{proof}
-%%-/
-
-/-%%
-\begin{lemma}\label{bij}\lean{fourier_surjection_on_schwartz}\leanok  The Fourier transform is a bijection on the Schwartz class.
-\end{lemma}
-%%-/
-
--- just the surjectivity is stated here, as this is all that is needed for the current application, but perhaps one should state and prove bijectivity instead
-
-lemma fourier_surjection_on_schwartz (f : SchwartzMap ℝ ℂ) : ∃ g : SchwartzMap ℝ ℂ, fourierIntegral g = f := by sorry
-
-/-%%
-\begin{proof}
-\uses{MellinInversion}
- This is a standard result in Fourier analysis.
-It can be proved here by appealing to Mellin inversion, Theorem \ref{MellinInversion}.
-\end{proof}
-%%-/
-
-/-%%
-\begin{corollary}\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
-  If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then, then
-$$ \sum_{n=1}^\infty f(n) \Psi( \frac{n}{x} ) = A x \int_0^\infty \Psi(y)\ dy + o(x)$$
-as $u \to \infty$.
-\end{corollary}
-%%-/
-
-lemma wiener_ikehara_smooth {Ψ: ℝ → ℂ} (hsmooth: ∀ n, ContDiff ℝ n Ψ) (hsupp: HasCompactSupport Ψ) (hplus: closure (Function.support Ψ) ⊆ Set.Ioi (0:ℝ)): Tendsto (fun x : ℝ ↦ (∑' n, f n / n * Ψ (n/x))/x - A * ∫ y in Set.Ioi 0, Ψ y ∂ volume) atTop (nhds 0) := by sorry
-
-/-%%
-\begin{proof}
-\uses{bij,schwarz-id}
- By Lemma \ref{bij}, we can write
-$$ y \Psi(y) = \hat \psi( \frac{1}{2\pi} \log y )$$
-for all $y>0$ and some Schwartz function $\psi$.  Making this substitution, the claim is then equivalent after standard manipulations to
-$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
-and the claim follows from Lemma \ref{schwarz-id}.
 \end{proof}
 %%-/
 
@@ -488,9 +427,70 @@ A standard analysis lemma, which can be proven by convolving $1_K$ with a smooth
 %%-/
 
 /-%%
+\begin{lemma}[Limiting identity for Schwartz functions]\label{schwarz-id}\lean{limiting_cor_schwartz}\leanok  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.
+\end{lemma}
+%%-/
+
+lemma limiting_cor_schwartz {ψ: SchwartzMap ℝ ℂ} : Tendsto (fun x : ℝ ↦ ∑' n, f n / n * fourierIntegral ψ (1/(2*π) * log (n/x)) - A * ∫ u in Set.Ici (-log x), fourierIntegral ψ (u / (2*π)) ∂ volume) atTop (nhds 0) := by sorry
+
+/-%%
+\begin{proof}
+\uses{limiting-cor, smooth-ury}
+For any $R>1$, one can use a smooth cutoff function (provided by Lemma \ref{smooth-ury} to write $\psi = \psi_{\leq R} + \psi_{>R}$, where $\psi_{\leq R}$ is $C^2$ (in fact smooth) and compactly supported (on $[-R,R]$), and $\psi_{>R}$ obeys bounds of the form
+$$ |\psi_{>R}(t)|, |\psi''_{>R}(t)| \ll R^{-1} / (1 + |t|^2) $$
+where the implied constants depend on $\psi$.  By Lemma \ref{decay} we then have
+$$ \hat \psi_{>R}(u) \ll R^{-1} / (1+|u|^2).$$
+Using this and \eqref{cheby} one can show that
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{>R}( \frac{1}{2\pi} \log \frac{n}{x} ), A \int_{-\infty}^\infty \hat \psi_{>R} (\frac{u}{2\pi})\ du \ll R^{-1} $$
+(with implied constants also depending on $A$), while from Lemma \ref{limiting-cor} one has
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{\leq R}( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi_{\leq R} (\frac{u}{2\pi})\ du + o(1).$$
+Combining the two estimates and letting $R$ be large, we obtain the claim.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[Bijectivity of Fourier transform]\label{bij}\lean{fourier_surjection_on_schwartz}\leanok  The Fourier transform is a bijection on the Schwartz class.
+\end{lemma}
+%%-/
+
+-- just the surjectivity is stated here, as this is all that is needed for the current application, but perhaps one should state and prove bijectivity instead
+
+lemma fourier_surjection_on_schwartz (f : SchwartzMap ℝ ℂ) : ∃ g : SchwartzMap ℝ ℂ, fourierIntegral g = f := by sorry
+
+/-%%
+\begin{proof}
+\uses{MellinInversion}
+ This is a standard result in Fourier analysis.
+It can be proved here by appealing to Mellin inversion, Theorem \ref{MellinInversion}.
+\end{proof}
+%%-/
+
+/-%%
+\begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
+  If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then, then
+$$ \sum_{n=1}^\infty f(n) \Psi( \frac{n}{x} ) = A x \int_0^\infty \Psi(y)\ dy + o(x)$$
+as $u \to \infty$.
+\end{corollary}
+%%-/
+
+lemma wiener_ikehara_smooth {Ψ: ℝ → ℂ} (hsmooth: ∀ n, ContDiff ℝ n Ψ) (hsupp: HasCompactSupport Ψ) (hplus: closure (Function.support Ψ) ⊆ Set.Ioi (0:ℝ)): Tendsto (fun x : ℝ ↦ (∑' n, f n / n * Ψ (n/x))/x - A * ∫ y in Set.Ioi 0, Ψ y ∂ volume) atTop (nhds 0) := by sorry
+
+/-%%
+\begin{proof}
+\uses{bij,schwarz-id}
+ By Lemma \ref{bij}, we can write
+$$ y \Psi(y) = \hat \psi( \frac{1}{2\pi} \log y )$$
+for all $y>0$ and some Schwartz function $\psi$.  Making this substitution, the claim is then equivalent after standard manipulations to
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
+and the claim follows from Lemma \ref{schwarz-id}.
+\end{proof}
+%%-/
+
+
+/-%%
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
-\begin{proposition}
+\begin{proposition}[Wiener-Ikehara in an interval]
 \label{WienerIkeharaInterval}\lean{WienerIkeharaInterval}\leanok
   For any closed interval $I \subset (0,+\infty)$, we have
   $$ \sum_{n=1}^\infty f(n) 1_I( \frac{n}{x} ) = A x |I|  + o(x).$$
@@ -510,7 +510,7 @@ lemma WienerIkeharaInterval (a b:ℝ) (ha: 0 < a) (hb: a < b) : Tendsto (fun x :
 %%-/
 
 /-%%
-\begin{corollary}\label{WienerIkehara}\lean{WienerIkeharaTheorem'}\leanok
+\begin{corollary}[Wiener-Ikehara theorem]\label{WienerIkehara}\lean{WienerIkeharaTheorem'}\leanok
   We have
 $$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
 \end{corollary}
