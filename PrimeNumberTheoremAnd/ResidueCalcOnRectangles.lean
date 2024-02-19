@@ -35,8 +35,7 @@ lemma Rectangle.symm_re {z w : ℂ} :
 def Square (p : ℂ) (c : ℝ) : Set ℂ := Rectangle (-c - c * I + p) (c + c * I + p)
 
 lemma Square_apply (p : ℂ) {c : ℝ} (cpos : c > 0) :
-    Square p c =
-      Icc (-c + p.re) (c + p.re) ×ℂ Icc (-c + p.im) (c + p.im) := by
+    Square p c = Icc (-c + p.re) (c + p.re) ×ℂ Icc (-c + p.im) (c + p.im) := by
   rw [Square, Rectangle, uIcc_of_le (by simp; linarith), uIcc_of_le (by simp; linarith)]
   simp
 
@@ -152,35 +151,6 @@ def Set.uIoo {α : Type*} [Lattice α] (a b : α) : Set α := Ioo (a ⊓ b) (a �
 @[simp]
 theorem uIoo_of_le {α : Type*} [Lattice α] {a b : α} (h : a ≤ b) : Set.uIoo a b = Ioo a b := by
   rw [uIoo, inf_eq_left.2 h, sup_eq_right.2 h]
-
-lemma square_mem_nhds (p : ℂ) {c : ℝ} (hc : c ≠ 0) :
-    Square p c ∈ 𝓝 p := by
-  rw [Square, Rectangle, mem_nhds_iff]
-  refine ⟨(uIoo (-c + p.re) (c + p.re)) ×ℂ (uIoo (-c + p.im) (c + p.im)), ?_, ?_, ?_⟩
-  · refine reProdIm_subset_iff'.mpr (Or.inl ⟨?_, ?_⟩) <;> simpa using Ioo_subset_Icc_self
-  · exact isOpen_Ioo.reProdIm isOpen_Ioo
-  · exact ⟨by simp [uIoo, hc, hc.symm], by simp [uIoo, hc, hc.symm]⟩
-
-lemma square_subset_closedBall (p : ℂ) (c : ℝ) :
-    Square p c ⊆ Metric.closedBall p (|c| * Real.sqrt 2) := by
-  wlog hc : c ≥ 0 with h
-  · rw [← square_neg, ← _root_.abs_neg]
-    exact h p (-c) (neg_nonneg.mpr (le_of_not_le hc))
-  intro x hx
-  unfold Square Rectangle at hx
-  replace hx : x ∈ [[-c + p.re, c + p.re]] ×ℂ [[-c + p.im, c + p.im]] := by simpa using hx
-  rw [uIcc_of_le (by linarith), uIcc_of_le (by linarith)] at hx
-  simp_rw [← sub_eq_neg_add, add_comm c, ← Real.closedBall_eq_Icc] at hx
-  obtain ⟨hx_re : x.re ∈ Metric.closedBall p.re c, hx_im : x.im ∈ Metric.closedBall p.im c⟩ := hx
-  rw [mem_closedBall_iff_norm] at hx_re hx_im ⊢
-  rw [_root_.mul_self_le_mul_self_iff (norm_nonneg _) (by positivity),
-    Complex.norm_eq_abs, ← sq, Complex.sq_abs, Complex.normSq_apply]
-  simp_rw [← abs_mul_abs_self (x - p).re, ← abs_mul_abs_self (x - p).im, ← Real.norm_eq_abs]
-  calc
-    _ ≤ c * c + c * c := by gcongr <;> assumption
-    _ = 2 * (‖c‖ * ‖c‖) := by rw [← two_mul]; congr 1; simp
-    _ = (Real.sqrt 2) * (Real.sqrt 2) * (‖c‖ * ‖c‖) := by rw [mul_self_sqrt zero_le_two]
-    _ = _ := by group
 
 /-%%
 \begin{lemma}[DiffVertRect_eq_UpperLowerUs]\label{DiffVertRect_eq_UpperLowerUs}\lean{DiffVertRect_eq_UpperLowerUs}\leanok
@@ -476,6 +446,40 @@ theorem HolomorphicOn.rectangleBorderIntegrable {f : ℂ → ℂ} {z w : ℂ}
     (hf : HolomorphicOn f (Rectangle z w)) : RectangleBorderIntegrable f z w :=
   hf.continuousOn.rectangleBorderIntegrable
 
+@[simp]
+theorem equivRealProdCLM_preimage_reProdIm (s t : Set ℝ) :
+    equivRealProdCLM.symm ⁻¹' (s ×ℂ t) = s ×ˢ t :=
+  rfl
+
+@[simp]
+theorem ContinuousLinearEquiv.coe_toLinearEquiv_symm {R : Type*} {S : Type*} [Semiring R] [Semiring S] {σ : R →+* S}
+    {σ' : S →+* R} [RingHomInvPair σ σ'] [RingHomInvPair σ' σ] (M : Type*) [TopologicalSpace M]
+    [AddCommMonoid M] {M₂ : Type*} [TopologicalSpace M₂] [AddCommMonoid M₂] [Module R M]
+    [Module S M₂] (e : M ≃SL[σ] M₂) :
+    ⇑e.toLinearEquiv.symm = e.symm :=
+  rfl
+
+theorem Complex.nhds_hasBasis_square (p : ℂ) : HasBasis (𝓝 p) (0 < ·) (Square p ·) := by
+  conv in Square p _ => rw [← Equiv.image_preimage equivRealProdCLM.toEquiv.symm (Square _ _)]
+  conv in 𝓝 p => rw [show p = equivRealProdCLM.toHomeomorph.symm ⟨p.re, p.im⟩ from rfl,
+    ← Homeomorph.map_nhds_eq, nhds_prod_eq]
+  apply Filter.HasBasis.map
+  refine ((nhds_basis_Icc_pos p.re).prod_same_index (nhds_basis_Icc_pos p.im) ?_).congr ?_ ?_
+  · intro ε ε' hε hε'
+    refine ⟨ε ⊓ ε', lt_inf_iff.mpr ⟨hε, hε'⟩, ?_, ?_⟩ <;> apply Set.Icc_subset_Icc
+    <;> linarith [(inf_le_left : ε ⊓ ε' ≤ ε), (inf_le_right : ε ⊓ ε' ≤ ε')]
+  · intro; rfl
+  · intro ε hε
+    rw [← uIcc_of_lt (by linarith), ← uIcc_of_lt (by linarith)]
+    simpa [Square, Rectangle] using by ring_nf
+
+lemma square_mem_nhds (p : ℂ) {c : ℝ} (hc : c ≠ 0) :
+    Square p c ∈ 𝓝 p := by
+  wlog hc_pos : 0 < c generalizing c with h
+  · rw [← square_neg]
+    exact h (neg_ne_zero.mpr hc) <| neg_pos.mpr <| hc.lt_of_le <| not_lt.mp hc_pos
+  exact (nhds_hasBasis_square p).mem_of_mem hc_pos
+
 -- ## End Rectangle API ##
 
 /--
@@ -538,12 +542,10 @@ lemma RectangleIntegralVSplit' {f : ℂ → ℂ} {b x₀ x₁ y₀ y₁ : ℝ} (
 
 lemma SmallSquareInRectangle {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ nhds p) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0, Square p c ⊆ Rectangle z w := by
-  obtain ⟨c₁, c₁Pos, c₁SubRect⟩ := Metric.mem_nhds_iff.mp pInRectInterior
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (half_pos c₁Pos)]
-  intro c ⟨cPos, cLt⟩
-  refine subset_trans (square_subset_closedBall p c) <| subset_trans ?_ c₁SubRect
-  have : Real.sqrt 2 < 2 := by refine (Real.sqrt_lt ?_ ?_).mpr ?_ <;> norm_num
-  exact (abs_of_pos cPos).symm ▸ Metric.closedBall_subset_ball (by nlinarith)
+  obtain ⟨ε, hε0, hε⟩ := ((Complex.nhds_hasBasis_square p).1 _).mp pInRectInterior
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (hε0)] with ε' ⟨hε'0, hε'⟩
+  refine subset_trans ?_ hε
+  apply RectSubRect' <;> simpa using by linarith
 
 lemma RectanglePullToNhdOfPole' {f : ℂ → ℂ} {z₀ z₁ z₂ z₃ p : ℂ}
     (h_orientation : z₀.re ≤ z₃.re ∧ z₀.im ≤ z₃.im ∧ z₁.re ≤ z₂.re ∧ z₁.im ≤ z₂.im)
