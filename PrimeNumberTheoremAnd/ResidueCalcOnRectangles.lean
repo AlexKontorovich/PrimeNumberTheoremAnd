@@ -662,6 +662,15 @@ that the inner square is strictly contained in the big rectangle.)
     (square_mem_nhds p (ne_of_gt cpos)) hc fHolo
 --%%\end{proof}
 
+lemma RectanglePullToNhdOfPole'' {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re ≤ w.re)
+    (zIm_lt_wIm : z.im ≤ w.im) (hp : Rectangle z w ∈ 𝓝 p)
+    (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
+    ∀ᶠ (c : ℝ) in 𝓝[>]0,
+    RectangleIntegral' f z w = RectangleIntegral' f (-c - I * c + p) (c + I * c + p) := by
+  simp_rw [RectangleIntegral']
+  filter_upwards [RectanglePullToNhdOfPole zRe_lt_wRe zIm_lt_wIm hp fHolo] with c hc
+  rw [hc]
+
 theorem ResidueTheoremAtOrigin_aux1a_aux1 (x : ℝ)
   : 1 / (1 + (ofReal' x) ^ 2) = ofReal' (1 / (1 + x ^ 2)) := by
   simp only [one_div, ofReal_inv, ofReal_add, ofReal_one, ofReal_pow]
@@ -828,7 +837,8 @@ which contributes another factor of $1/2$. (Fun! Each of the vertical/horizontal
 %%-/
 
 theorem ResidueTheoremInRectangle {z w p c : ℂ} (h : Rectangle z w ∈ 𝓝 p) :
-    RectangleIntegral' (λ s => c / (s - p)) z w = c := sorry
+    RectangleIntegral' (λ s => c / (s - p)) z w = c := by
+  sorry
 
 variable {f : ℂ → ℂ}
 
