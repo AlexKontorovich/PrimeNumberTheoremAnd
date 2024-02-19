@@ -324,8 +324,9 @@ lemma rectangleBorder_subset_punctured_rect {z₀ z₁ z₂ z₃ p : ℂ}
     (rectangleBorder_subset_rectangle _ _).trans (by apply RectSubRect' <;> tauto),
     rectangleBorder_disjoint_singleton hp⟩
 
-lemma rectangle_mem_nhds_iff {z w p : ℂ} :
-    Rectangle z w ∈ 𝓝 p ↔ p ∈ (Set.uIoo z.re w.re) ×ℂ (Set.uIoo z.im w.im) := sorry
+lemma rectangle_mem_nhds_iff {z w p : ℂ} : Rectangle z w ∈ 𝓝 p ↔
+    p ∈ (Set.uIoo z.re w.re) ×ℂ (Set.uIoo z.im w.im) := by
+  simp_rw [← mem_interior_iff_mem_nhds, Rectangle, Complex.interior_reProdIm, uIoo, uIcc, interior_Icc]
 
 /-- A real segment `[a₁, a₂]` translated by `b * I` is the complex line segment.
 Golfed from mathlib\#9598.-/
@@ -382,16 +383,6 @@ theorem RectangleBorderIntegrable.add {f g : ℂ → ℂ} {z w : ℂ} (hf : Rect
   rw [intervalIntegral.integral_add hf.1 hg.1, intervalIntegral.integral_add hf.2.1 hg.2.1,
     intervalIntegral.integral_add hf.2.2.1 hg.2.2.1, intervalIntegral.integral_add hf.2.2.2 hg.2.2.2]
   ring
-
-theorem HolomorphicOn.rectangleBorderIntegrable' {f : ℂ → ℂ} {z w p : ℂ}
-    (hf : HolomorphicOn f (Rectangle z w \ {p}))
-    (pInInterior : Rectangle z w ∈ nhds p) : RectangleBorderIntegrable f z w := by
-  sorry
-
-theorem HolomorphicOn.rectangleBorderIntegrable {f : ℂ → ℂ} {z w : ℂ}
-    (hf : HolomorphicOn f (Rectangle z w))
-    : RectangleBorderIntegrable f z w := by
-  sorry
 
 lemma mapsTo_rectangle_left_re (z w : ℂ) :
     MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) :=
@@ -462,6 +453,20 @@ theorem ContinuousOn.rectangleBorderNoPIntegrable {f : ℂ → ℂ} {z w p : ℂ
     (pNotOnBorder : p ∉ RectangleBorder z w) : RectangleBorderIntegrable f z w := by
   refine (hf.mono (Set.subset_diff.mpr ?_)).rectangleBorder_integrable
   exact ⟨rectangleBorder_subset_rectangle z w, disjoint_singleton_right.mpr pNotOnBorder⟩
+
+theorem HolomorphicOn.rectangleBorderIntegrable' {f : ℂ → ℂ} {z w p : ℂ}
+    (hf : HolomorphicOn f (Rectangle z w \ {p}))
+    (pInInterior : Rectangle z w ∈ nhds p) : RectangleBorderIntegrable f z w := by
+  refine ContinuousOn.rectangleBorderNoPIntegrable (p := p) hf.continuousOn ?_
+  have h1 := rectangle_mem_nhds_iff.mp pInInterior
+  refine (Set.disjoint_right (t := {p})).mp ?_ rfl
+  apply rectangleBorder_disjoint_singleton
+  simp [uIoo] at h1
+  sorry
+
+theorem HolomorphicOn.rectangleBorderIntegrable {f : ℂ → ℂ} {z w : ℂ}
+    (hf : HolomorphicOn f (Rectangle z w)) : RectangleBorderIntegrable f z w :=
+  hf.continuousOn.rectangleBorderIntegrable
 
 lemma Real.Icc_mem_nhds_iff_mem_Ioo (a b : ℝ) (p : ℝ) : Set.Icc a b ∈ 𝓝 p ↔ p ∈ Set.Ioo a b := by
   rw [← mem_interior_iff_mem_nhds, interior_Icc]
@@ -827,51 +832,51 @@ theorem ResidueTheoremInRectangle {z w p c : ℂ} (h : Rectangle z w ∈ 𝓝 p)
 
 variable {f : ℂ → ℂ}
 
-theorem ResidueTheoremOnRectangleWithSimplePole_aux1 {z w p z' w' : ℂ}
-    (pInRectInterior : Rectangle z w ∈ nhds p)
-    (fHolo : ContinuousOn f (Rectangle z w \ {p}))
-    (principalPart : Set.EqOn (f) (fun s ↦ 1 / (s - p))
-      (Rectangle z w \ {p}))
-    :
-    let L : ℂ → ℂ := fun s ↦ (s - z) / (w - z) * (w' - z') + z'
-    let Linv : ℂ → ℂ := fun s' ↦ (s' - z') / (w' - z') * (w - z) + z
-    let p' := L p
-    let f' := fun s' ↦ f (Linv s')
-    RectangleIntegral' f z w = RectangleIntegral' f' z' w' := by
-  sorry
+-- theorem ResidueTheoremOnRectangleWithSimplePole_aux1 {z w p z' w' : ℂ}
+--     (pInRectInterior : Rectangle z w ∈ nhds p)
+--     (fHolo : ContinuousOn f (Rectangle z w \ {p}))
+--     (principalPart : Set.EqOn (f) (fun s ↦ 1 / (s - p))
+--       (Rectangle z w \ {p}))
+--     :
+--     let L : ℂ → ℂ := fun s ↦ (s - z) / (w - z) * (w' - z') + z'
+--     let Linv : ℂ → ℂ := fun s' ↦ (s' - z') / (w' - z') * (w - z) + z
+--     let p' := L p
+--     let f' := fun s' ↦ f (Linv s')
+--     RectangleIntegral' f z w = RectangleIntegral' f' z' w' := by
+--   sorry
 
-example {z w p : ℂ}
-    (pInRectInterior : Rectangle z w ∈ nhds p)
-    (fHolo : ContinuousOn f (Rectangle z w \ {p}))
-    (principalPart : Set.EqOn (f) (fun s ↦ 1 / (s - p))
-      (Rectangle z w \ {p})) :
-    RectangleIntegral' f z w = 1 := by
-  sorry
+-- example {z w p : ℂ}
+--     (pInRectInterior : Rectangle z w ∈ nhds p)
+--     (fHolo : ContinuousOn f (Rectangle z w \ {p}))
+--     (principalPart : Set.EqOn (f) (fun s ↦ 1 / (s - p))
+--       (Rectangle z w \ {p})) :
+--     RectangleIntegral' f z w = 1 := by
+--   sorry
 
-theorem exists_of_eventually
-  {P : ℝ → Prop}
-  (this : ∀ᶠ (c : ℝ) in 𝓝[>] 0, P c)
-  :
-  ∃ c > 0, P c := by
-  have h := Filter.eventually_iff.mp this
-  have := (mem_nhdsWithin_Ioi_iff_exists_Ioo_subset' (by linarith : (0 : ℝ) < 1)).mp h
-  obtain ⟨a, ha₁, ha₂⟩ := this
-  use a/2
-  have : a > 0 := ha₁
-  constructor
-  · linarith
-  have : (a / 2) ∈ Ioo 0 a := by
-    simp
-    constructor
-    · linarith
-    assumption
-  exact ha₂ this
+-- theorem exists_of_eventually
+--   {P : ℝ → Prop}
+--   (this : ∀ᶠ (c : ℝ) in 𝓝[>] 0, P c)
+--   :
+--   ∃ c > 0, P c := by
+--   have h := Filter.eventually_iff.mp this
+--   have := (mem_nhdsWithin_Ioi_iff_exists_Ioo_subset' (by linarith : (0 : ℝ) < 1)).mp h
+--   obtain ⟨a, ha₁, ha₂⟩ := this
+--   use a/2
+--   have : a > 0 := ha₁
+--   constructor
+--   · linarith
+--   have : (a / 2) ∈ Ioo 0 a := by
+--     simp
+--     constructor
+--     · linarith
+--     assumption
+--   exact ha₂ this
 
-theorem exists_of_eventually_2
-  {P Q : ℝ → Prop}
-  (hP : ∀ᶠ (c : ℝ) in 𝓝[>] 0, P c)
-  (hQ : ∀ᶠ (c : ℝ) in 𝓝[>] 0, Q c) :
-  ∃ c > 0, P c ∧ Q c := exists_of_eventually (Filter.eventually_iff.mp (hP.and hQ))
+-- theorem exists_of_eventually_2
+--   {P Q : ℝ → Prop}
+--   (hP : ∀ᶠ (c : ℝ) in 𝓝[>] 0, P c)
+--   (hQ : ∀ᶠ (c : ℝ) in 𝓝[>] 0, Q c) :
+--   ∃ c > 0, P c ∧ Q c := exists_of_eventually (Filter.eventually_iff.mp (hP.and hQ))
 
 lemma RectanglePullToNhdOfPole'_former {f : ℂ → ℂ} {z w p : ℂ} (zRe_le_wRe : z.re ≤ w.re)
     (zIm_le_wIm : z.im ≤ w.im) (pInRectInterior : Rectangle z w ∈ nhds p)
