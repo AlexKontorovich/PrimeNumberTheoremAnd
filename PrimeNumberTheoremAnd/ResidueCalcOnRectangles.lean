@@ -852,8 +852,6 @@ example {x₁ x₂ y : ℝ} {A : ℂ} (hy : y ≠ 0) : ∫ x : ℝ in x₁..x₂
 
 end toto
 
-theorem nhds_basis_square (p : ℂ) : HasBasis (𝓝 p) (λ c => 0 < c) (λ c => Square p c) := sorry
-
 theorem RectangleIntegral.const_mul (f : ℂ → ℂ) (z w c : ℂ) :
     RectangleIntegral (fun s => c * f s) z w = c * RectangleIntegral f z w := by
   simpa [RectangleIntegral] using by ring
@@ -954,3 +952,11 @@ and rescale by $c$;
 what remains is handled by Lemma \ref{ResidueTheoremAtOrigin}.
 \end{proof}
 %%-/
+
+theorem nhds_basis_square (p : ℂ) : HasBasis (𝓝 p) (0 < ·) (Square p ·) := by
+  apply Filter.HasBasis.to_hasBasis' Metric.nhds_basis_closedBall <;> intro c hc
+  · refine ⟨c / Real.sqrt 2, div_pos hc (Real.sqrt_pos.mpr zero_lt_two), ?_⟩
+    convert square_subset_closedBall p (c / Real.sqrt 2)
+    field_simp [abs_div, abs_eq_self.mpr hc.le, abs_eq_self.mpr (sqrt_nonneg 2)]
+  · apply rectangle_mem_nhds_iff.mpr
+    simp [mem_reProdIm, uIoo, hc.ne, hc.ne.symm]
