@@ -324,6 +324,9 @@ lemma rectangleBorder_subset_punctured_rect {z₀ z₁ z₂ z₃ p : ℂ}
     (rectangleBorder_subset_rectangle _ _).trans (by apply RectSubRect' <;> tauto),
     rectangleBorder_disjoint_singleton hp⟩
 
+lemma rectangle_mem_nhds_iff {z w p : ℂ} :
+    Rectangle z w ∈ 𝓝 p ↔ p ∈ (Set.uIoo z.re w.re) ×ℂ (Set.uIoo z.im w.im) := sorry
+
 /-- A real segment `[a₁, a₂]` translated by `b * I` is the complex line segment.
 Golfed from mathlib\#9598.-/
 lemma horizontalSegment_eq (a₁ a₂ b : ℝ) :
@@ -819,6 +822,9 @@ which contributes another factor of $1/2$. (Fun! Each of the vertical/horizontal
 \end{proof}
 %%-/
 
+theorem ResidueTheoremInRectangle {z w p c : ℂ} (h : Rectangle z w ∈ 𝓝 p) :
+    RectangleIntegral' (λ s => c / (s - p)) z w = c := sorry
+
 variable {f : ℂ → ℂ}
 
 theorem ResidueTheoremOnRectangleWithSimplePole_aux1 {z w p z' w' : ℂ}
@@ -887,44 +893,66 @@ lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ
     (zRe_lt_wRe : z.re < w.re)
     (zIm_lt_wIm : z.im < w.im)
     (pInRectInterior : Rectangle z w ∈ nhds p)
-    (fHolo : HolomorphicOn f (Rectangle z w \ {p}))
+    -- (fHolo : HolomorphicOn f (Rectangle z w \ {p}))
     (gHolo : HolomorphicOn g (Rectangle z w))
-    (principalPart : Set.EqOn (f - fun s ↦ A / (s - p)) (g)
-      (Rectangle z w \ {p})) :
+    (principalPart : Set.EqOn (f - fun s ↦ A / (s - p)) (g) (Rectangle z w \ {p})) :
     RectangleIntegral' f z w = A := by
-  have h₁ := RectanglePullToNhdOfPole'_former zRe_lt_wRe.le zIm_lt_wIm.le pInRectInterior fHolo
-  have h₂ := SmallSquareInRectangle pInRectInterior
-  obtain ⟨c, cpos, hc₁, hc₂⟩ := exists_of_eventually_2 h₁ h₂
-  rw [hc₁]
-  have principalPart' : Set.EqOn f (g + (fun s ↦ A / (s - p)))
-    (Rectangle z w \ {p}) := by
-    intro s hs
-    have := principalPart hs
-    simp_all only [mul_eq_mul_left_iff, one_div, mul_inv_rev, inv_I, neg_mul, neg_eq_zero,
-      _root_.mul_eq_zero, I_ne_zero, inv_eq_zero, ofReal_eq_zero, OfNat.ofNat_ne_zero, or_false,
-      false_or, eventually_or_distrib_right, gt_iff_lt, mem_diff, mem_singleton_iff, Pi.sub_apply,
-      Pi.add_apply]
-    rw [← this]
-    ring
-  -- let's rewrite f using principalPart'
-  have principalPart'' : Set.EqOn f (g + (fun s ↦ A / (s - p))) (RectangleBorder (-↑c - I * ↑c + p) (↑c + I * ↑c + p)) := by
-    apply principalPart'.mono
-    sorry
-  rw [RectangleIntegral'_congr principalPart'']
-  have hg : HolomorphicOn g (Rectangle (-↑c - I * ↑c + p) (↑c + I * ↑c + p)) := by
-    sorry
-  have hfun : HolomorphicOn (fun s ↦ A / (s - p)) (Rectangle (-↑c - I * ↑c + p) (↑c + I * ↑c + p) \ {p}) := by
-    sorry
-  have pInSquare : Rectangle (-↑c - I * ↑c + p) (↑c + I * ↑c + p) ∈ 𝓝 p := by
-    sorry
-  have hgInt := hg.rectangleBorderIntegrable
-  have hfunInt := hfun.rectangleBorderIntegrable' pInSquare
-  have hgInt' := hgInt.add hfunInt
-  dsimp [RectangleIntegral']
-  rw [hgInt']
-  rw [hg.vanishesOnRectangle (fun ⦃a⦄ a => a)]
 
-  sorry
+  have principalPart' : Set.EqOn f (g + (fun s ↦ A / (s - p))) (Rectangle z w \ {p}) := by
+    intro s hs
+    simp [← principalPart hs]
+
+  have : Set.EqOn f (g + (fun s ↦ A / (s - p))) (RectangleBorder z w) := by
+    apply principalPart'.mono
+    have := rectangle_mem_nhds_iff.mp pInRectInterior
+    simp [Complex.mem_reProdIm, uIoo_of_le, zRe_lt_wRe.le, zIm_lt_wIm.le] at this
+    obtain ⟨⟨e1, e2⟩, ⟨e3, e4⟩⟩ := this
+    apply rectangleBorder_subset_punctured_rect
+    · simp [zRe_lt_wRe.le, zIm_lt_wIm.le]
+    · refine ⟨e1.ne.symm, e2.ne, e3.ne.symm, e4.ne⟩
+  rw [RectangleIntegral'_congr this]
+
+  have t1 : RectangleBorderIntegrable g z w := gHolo.rectangleBorderIntegrable
+  have t2 : RectangleBorderIntegrable (fun s ↦ A / (s - p)) z w := by
+    refine HolomorphicOn.rectangleBorderIntegrable' (p := p) ?_ pInRectInterior
+    simp [HolomorphicOn]
+    apply DifferentiableOn.mono (t := {p}ᶜ)
+    · apply DifferentiableOn.div
+      · exact differentiableOn_const _
+      · exact DifferentiableOn.sub differentiableOn_id (differentiableOn_const _)
+      · intro x hx
+        rw [sub_ne_zero]
+        exact hx
+    · rintro s ⟨_, hs⟩ ; exact hs
+
+  rw [RectangleIntegral', RectangleBorderIntegrable.add t1 t2, mul_add]
+  rw [gHolo.vanishesOnRectangle (by rfl), mul_zero, zero_add]
+
+  exact ResidueTheoremInRectangle pInRectInterior
+
+  -- have h₁ := RectanglePullToNhdOfPole'_former zRe_lt_wRe.le zIm_lt_wIm.le pInRectInterior fHolo
+  -- have h₂ := SmallSquareInRectangle pInRectInterior
+  -- obtain ⟨c, cpos, hc₁, hc₂⟩ := exists_of_eventually_2 h₁ h₂
+  -- rw [hc₁]
+  -- -- let's rewrite f using principalPart'
+  -- have principalPart'' : Set.EqOn f (g + (fun s ↦ A / (s - p))) (RectangleBorder (-↑c - I * ↑c + p) (↑c + I * ↑c + p)) := by
+  --   apply principalPart'.mono
+  --   sorry
+  -- rw [RectangleIntegral'_congr principalPart'']
+  -- have hg : HolomorphicOn g (Rectangle (-↑c - I * ↑c + p) (↑c + I * ↑c + p)) := by
+  --   sorry
+  -- have hfun : HolomorphicOn (fun s ↦ A / (s - p)) (Rectangle (-↑c - I * ↑c + p) (↑c + I * ↑c + p) \ {p}) := by
+  --   sorry
+  -- have pInSquare : Rectangle (-↑c - I * ↑c + p) (↑c + I * ↑c + p) ∈ 𝓝 p := by
+  --   sorry
+  -- have hgInt := hg.rectangleBorderIntegrable
+  -- have hfunInt := hfun.rectangleBorderIntegrable' pInSquare
+  -- have hgInt' := hgInt.add hfunInt
+  -- dsimp [RectangleIntegral']
+  -- rw [hgInt']
+  -- rw [hg.vanishesOnRectangle (fun ⦃a⦄ a => a)]
+
+  -- sorry
 
   -- have := exists_of_eventually h₁
   -- obtain ⟨c, cpos, hc⟩ := this
