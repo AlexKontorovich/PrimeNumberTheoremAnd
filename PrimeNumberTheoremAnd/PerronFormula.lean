@@ -77,17 +77,31 @@ as $U\to\infty$ is the ``UpperUIntegral'' of $f$.
 %%-/
 lemma RectangleIntegral_tendsTo_UpperU {σ σ' T : ℝ} {f : ℂ → ℂ}
     (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
-    (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
-    (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
+    (hleft_int : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
+    (hright_int : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ + I * T) (σ' + I * U)) atTop
       (𝓝 (UpperUIntegral f σ σ' T)) := by
-  sorry
 /-%%
 \begin{proof}
 \uses{RectangleIntegral, UpperUIntegral}
 Almost by definition.
-\end{proof}
 %%-/
+  have h_re  (s : ℝ) (t : ℝ) : (s  + I * t).re = s  := by simp
+  have h_im  (s : ℝ) (t : ℝ) : (s  + I * t).im = t  := by simp
+  simp_rw [RectangleIntegral, UpperUIntegral, h_re, h_im]
+
+  have hbot : Tendsto (fun (U : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + T * I)) atTop (𝓝 (∫ (x : ℝ) in σ..σ', f (x + T * I))) := by
+    exact tendsto_const_nhds
+  have hright : Tendsto (fun (U : ℝ) => I * ∫ (y : ℝ) in T..U, f (σ' + y * I)) atTop (𝓝 (I * ∫ (y : ℝ) in Ici T, f (σ' + y * I))) := by
+    sorry
+  have hleft : Tendsto (fun (U : ℝ) => I * ∫ (y : ℝ) in T..U, f (σ + y * I)) atTop (𝓝 (I * ∫ (y : ℝ) in Ici T, f (σ + y * I))) := by
+    sorry
+  have := Tendsto.sub hbot htop
+  simp only [sub_zero] at this
+  have := Tendsto.add this hright
+  have := Tendsto.sub this hleft
+  exact this
+--%%\end{proof}
 
 /-%%
 \begin{lemma}[RectangleIntegral_tendsTo_LowerU]\label{RectangleIntegral_tendsTo_LowerU}\lean{RectangleIntegral_tendsTo_LowerU}\leanok
