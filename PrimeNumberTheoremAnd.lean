@@ -2,6 +2,7 @@
 -- Import modules here that should be built as part of the library.
 --import «PrimeNumberTheoremAnd».Basic
 
+import «PrimeNumberTheoremAnd».Consequences
 import «PrimeNumberTheoremAnd».HadamardFactorization
 import «PrimeNumberTheoremAnd».HoffsteinLockhart
 import «PrimeNumberTheoremAnd».MellinCalculus

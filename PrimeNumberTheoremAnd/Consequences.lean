@@ -3,8 +3,8 @@ import Mathlib.Analysis.Asymptotics.Asymptotics
 import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
 
-open BigOperators Filter Real Classical Asymptotics
-open Nat.ArithmeticFunction hiding log
+open BigOperators Filter Real Classical Asymptotics MeasureTheory
+open ArithmeticFunction hiding log
 
 /-%%
 \begin{lemma}\label{range-eq-range}\lean{finsum_range_eq_sum_range, finsum_range_eq_sum_range'}\leanok For any arithmetic function $f$ and real number $x$, one has
@@ -13,22 +13,20 @@ and
 $$ \sum_{n < x} f(n) = \sum_{n < ⌈x⌉_+} f(n).$$
 \end{lemma}
 %%-/
-lemma finsum_range_eq_sum_range {R: Type*} [AddCommMonoid R] {f: Nat.ArithmeticFunction R} (x:ℝ) : ∑ᶠ (n:ℕ) (_: n < x), f n = ∑ n in Finset.range ⌈x⌉₊, f n := by
-  apply finsum_cond_eq_sum_of_cond_iff (fun i => f i)
+lemma finsum_range_eq_sum_range {R: Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
+    ∑ᶠ (n : ℕ) (_: n < x), f n = ∑ n in Finset.range ⌈x⌉₊, f n := by
+  apply finsum_cond_eq_sum_of_cond_iff f
   intros
   simp only [Finset.mem_range]
   exact Iff.symm Nat.lt_ceil
 
-lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f: Nat.ArithmeticFunction R} (x:ℝ) : ∑ᶠ (n:ℕ) (_: n ≤ x), f n = ∑ n in Finset.Iic ⌊x⌋₊, f n := by
-  apply finsum_cond_eq_sum_of_cond_iff (fun i => f i)
+lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
+    ∑ᶠ (n : ℕ) (_: n ≤ x), f n = ∑ n in Finset.Iic ⌊x⌋₊, f n := by
+  apply finsum_cond_eq_sum_of_cond_iff f
   intro n h
   simp only [Finset.mem_Iic]
-  apply Iff.intro (fun x => Nat.le_floor x)
-  have n_ne_0 : n ≠ 0 := by
-    contrapose! h
-    rw [h]
-    exact Nat.ArithmeticFunction.map_zero
-  apply (Nat.le_floor_iff' n_ne_0).mp
+  exact Iff.symm <| Nat.le_floor_iff'
+    fun (hc : n = 0) ↦ (h : f n ≠ 0) <| (congrArg f hc).trans ArithmeticFunction.map_zero
 
 /-%%
 \begin{proof}\leanok Straightforward. \end{proof}
@@ -39,10 +37,12 @@ lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f: Nat.Arithmetic
   $$ \sum_{p \leq x} \log p = x + o(x).$$
 \end{theorem}
 %%-/
-theorem chebyshev_asymptotic : (fun x ↦ ∑ p in (Finset.filter Nat.Prime (Finset.range ⌈x⌉₊)), log p) ~[atTop] (fun x ↦ x) := by
+theorem chebyshev_asymptotic :
+    (fun x ↦ ∑ p in (Finset.filter Nat.Prime (Finset.range ⌈x⌉₊)), log p) ~[atTop] (fun x ↦ x) := by
   sorry
 
-theorem chebyshev_asymptotic_finsum : (fun x ↦ ∑ᶠ (p:ℕ) (_: p ≤ x) (_: Nat.Prime p), log p) ~[atTop] (fun x ↦ x) := by
+theorem chebyshev_asymptotic_finsum :
+    (fun x ↦ ∑ᶠ (p:ℕ) (_: p ≤ x) (_: Nat.Prime p), log p) ~[atTop] (fun x ↦ x) := by
   sorry
 
 -- one could also consider adding a version with p < x instead of p \leq x
@@ -64,10 +64,14 @@ We have
   $$ \prod_{p \leq x} p = \exp( x + o(x) )$$
 \end{corollary}
 %%-/
-theorem primorial_bounds : ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧ ∀ x : ℝ, ∏ p in (Finset.filter Nat.Prime (Finset.range ⌊x⌋₊)), p = exp ( x + E x ) := by
+theorem primorial_bounds :
+    ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
+    ∀ x : ℝ, ∏ p in (Finset.filter Nat.Prime (Finset.range ⌊x⌋₊)), p = exp ( x + E x ) := by
   sorry
 
-theorem primorial_bounds_finprod : ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧ ∀ x : ℝ, ∏ᶠ (p:ℕ) (_:p ≤ x) (_:Nat.Prime p), p = exp ( x + E x ) := by
+theorem primorial_bounds_finprod :
+    ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
+    ∀ x : ℝ, ∏ᶠ (p:ℕ) (_:p ≤ x) (_:Nat.Prime p), p = exp ( x + E x ) := by
   sorry
 
 /-%%
@@ -85,7 +89,10 @@ Let $\pi(x)$ denote the number of primes up to $x$.
 as $x \to \infty$.
 \end{theorem}
 %%-/
-theorem pi_asymp : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧ ∀ x : ℝ, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * ∫ t in Set.Icc 2 x, 1 / (log t) ∂ volume  := by sorry
+theorem pi_asymp :
+    ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
+    ∀ x : ℝ, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * ∫ t in Set.Icc 2 x, 1 / (log t) ∂ volume := by
+  sorry
 
 /-%%
 \begin{proof}
@@ -110,7 +117,9 @@ $$ \pi(x) = (1+o(1)) \frac{x}{\log x}$$
 as $x \to \infty$.
 \end{corollary}
 %%-/
-theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧ ∀ x : ℝ, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * x / log x := by sorry
+theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
+    ∀ x : ℝ, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * x / log x := by
+  sorry
 
 /-%%
 \begin{proof}
@@ -137,7 +146,9 @@ Let $p_n$ denote the $n^{th}$ prime.
 as $n \to \infty$.
 \end{proposition}
 %%-/
-theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧ ∀ n : ℕ, Nat.nth Nat.Prime n = (1 + c n) * n * log n := by sorry
+theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
+    ∀ n : ℕ, Nat.nth Nat.Prime n = (1 + c n) * n * log n := by
+  sorry
 
 /-%%
 \begin{proof}
@@ -153,7 +164,9 @@ We have $p_{n+1} - p_n = o(p_n)$
 \end{corollary}
 %%-/
 
-theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧ ∀ n : ℕ, Nat.nth Nat.Prime (n+1) - Nat.nth Nat.Prime n = (c n) * Nat.nth Nat.Prime n := by sorry
+theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
+    ∀ n : ℕ, Nat.nth Nat.Prime (n+1) - Nat.nth Nat.Prime n = (c n) * Nat.nth Nat.Prime n := by
+  sorry
 
 /-%%
 \begin{proof}
@@ -168,7 +181,9 @@ For every $\eps>0$, there is a prime between $x$ and $(1+\eps)x$ for all suffici
 \end{corollary}
 %%-/
 
-theorem prime_between {ε:ℝ} (hε: 0 < ε): ∀ᶠ x:ℝ in atTop, ∃ p:ℕ, Nat.Prime p ∧ x < p ∧ p < (1+ε)* x := by sorry
+theorem prime_between {ε:ℝ} (hε: 0 < ε): ∀ᶠ x:ℝ in atTop, ∃ p:ℕ, Nat.Prime p ∧
+    x < p ∧ p < (1+ε)* x := by
+  sorry
 
 
 /-%%
@@ -235,7 +250,8 @@ We have $\sum_{n \leq x} \lambda(n) = o(x)$.
 \end{proposition}
 %%-/
 
-theorem lambda_pnt : (fun x:ℝ ↦ ∑ n in Finset.range ⌊ x ⌋₊, (-1)^(Ω n)) =o[atTop] (fun x ↦ x) := by sorry
+theorem lambda_pnt : (fun x:ℝ ↦ ∑ n in Finset.range ⌊ x ⌋₊, (-1)^(Ω n)) =o[atTop] (fun x ↦ x) := by
+  sorry
 
 
 /-%%
