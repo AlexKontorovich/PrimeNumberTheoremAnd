@@ -939,8 +939,10 @@ holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
   simp_rw [Square, add_zero] at fHolo gHolo RectMemNhds Rect
 
 --%% Now apply Lemma \ref{ResidueTheoremOnRectangleWithSimplePole}.
-  apply ResidueTheoremOnRectangleWithSimplePole (pInRectInterior := RectMemNhds) (fHolo := fHolo) (g := g) (A := 1) (gHolo := gHolo)
-  convert g_eq_fDiff using 3 <;> simp [Square]
+  refine ResidueTheoremOnRectangleWithSimplePole ?_ ?_ RectMemNhds gHolo ?_
+  · simpa using cpos.le
+  · simpa using cpos.le
+  · convert g_eq_fDiff using 3 <;> simp [Square]
 --%%\end{proof}
 
 /-%%
