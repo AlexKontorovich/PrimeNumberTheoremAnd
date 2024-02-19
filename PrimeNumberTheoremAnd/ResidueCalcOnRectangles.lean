@@ -462,6 +462,7 @@ theorem HolomorphicOn.rectangleBorderIntegrable' {f : ℂ → ℂ} {z w p : ℂ}
   refine (Set.disjoint_right (t := {p})).mp ?_ rfl
   apply rectangleBorder_disjoint_singleton
   simp [uIoo] at h1
+  -- [VB] Now this should be API around uIoo rather than case-bashing
   sorry
 
 theorem HolomorphicOn.rectangleBorderIntegrable {f : ℂ → ℂ} {z w : ℂ}
@@ -838,6 +839,8 @@ which contributes another factor of $1/2$. (Fun! Each of the vertical/horizontal
 
 theorem ResidueTheoremInRectangle {z w p c : ℂ} (h : Rectangle z w ∈ 𝓝 p) :
     RectangleIntegral' (λ s => c / (s - p)) z w = c := by
+  -- [VB] This might follow easily from `ResidueTheoremAtOrigin`, but it would perhaps be better to
+  -- prove it directly and deduce `ResidueTheoremAtOrigin` from it.
   sorry
 
 variable {f : ℂ → ℂ}
