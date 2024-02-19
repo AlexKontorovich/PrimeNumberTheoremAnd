@@ -88,23 +88,13 @@ Almost by definition.
 %%-/
   have h_re  (s : ℝ) (t : ℝ) : (s  + I * t).re = s  := by simp
   have h_im  (s : ℝ) (t : ℝ) : (s  + I * t).im = t  := by simp
-  simp_rw [RectangleIntegral, UpperUIntegral, h_re, h_im]
-
-  have hbot : Tendsto (fun (U : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + T * I)) atTop (𝓝 (∫ (x : ℝ) in σ..σ', f (x + T * I))) := by
+  have hbot : Tendsto (fun (_ : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + T * I)) atTop (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x + T * I)) := by
     exact tendsto_const_nhds
-  have hright : Tendsto (fun (U : ℝ) => I * ∫ (y : ℝ) in T..U, f (σ' + y * I)) atTop (𝓝 (I * ∫ (y : ℝ) in Ici T, f (σ' + y * I))) := by
-    rw [integral_Ici_eq_integral_Ioi]
-    apply Tendsto.const_mul
-    exact intervalIntegral_tendsto_integral_Ioi T (Integrable.restrict hright) tendsto_id
-  have hleft : Tendsto (fun (U : ℝ) => I * ∫ (y : ℝ) in T..U, f (σ + y * I)) atTop (𝓝 (I * ∫ (y : ℝ) in Ici T, f (σ + y * I))) := by
-    rw [integral_Ici_eq_integral_Ioi]
-    apply Tendsto.const_mul
-    exact intervalIntegral_tendsto_integral_Ioi T (Integrable.restrict hleft) tendsto_id
-  have := Tendsto.sub hbot htop
-  simp only [sub_zero] at this
-  have := Tendsto.add this hright
-  have := Tendsto.sub this hleft
-  exact this
+  have hvert (s : ℝ) (int : Integrable (fun (y : ℝ) ↦ f (s + y * I))) :
+      Tendsto (fun (U : ℝ) => I * ∫ (y : ℝ) in T..U, f (s + y * I)) atTop (𝓝 <| I * ∫ (y : ℝ) in Ioi T, f (s + y * I)) := by
+    exact (intervalIntegral_tendsto_integral_Ioi T int.restrict tendsto_id).const_smul I
+  have := ((hbot.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
+  simpa only [RectangleIntegral, UpperUIntegral, h_re, h_im, sub_zero, ←integral_Ici_eq_integral_Ioi]
 --%%\end{proof}
 
 /-%%
