@@ -81,13 +81,21 @@ lemma RectangleIntegral_tendsTo_UpperU {σ σ' T : ℝ} {f : ℂ → ℂ}
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ + I * T) (σ' + I * U)) atTop
       (𝓝 (UpperUIntegral f σ σ' T)) := by
-  sorry
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{RectangleIntegral, UpperUIntegral}
 Almost by definition.
-\end{proof}
 %%-/
+  have h_re  (s : ℝ) (t : ℝ) : (s  + I * t).re = s  := by simp
+  have h_im  (s : ℝ) (t : ℝ) : (s  + I * t).im = t  := by simp
+  have hbot : Tendsto (fun (_ : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + T * I)) atTop (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x + T * I)) := by
+    exact tendsto_const_nhds
+  have hvert (s : ℝ) (int : Integrable (fun (y : ℝ) ↦ f (s + y * I))) :
+      Tendsto (fun (U : ℝ) => I * ∫ (y : ℝ) in T..U, f (s + y * I)) atTop (𝓝 <| I * ∫ (y : ℝ) in Ioi T, f (s + y * I)) := by
+    exact (intervalIntegral_tendsto_integral_Ioi T int.restrict tendsto_id).const_smul I
+  have := ((hbot.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
+  simpa only [RectangleIntegral, UpperUIntegral, h_re, h_im, sub_zero, ←integral_Ici_eq_integral_Ioi]
+--%%\end{proof}
 
 /-%%
 \begin{lemma}[RectangleIntegral_tendsTo_LowerU]\label{RectangleIntegral_tendsTo_LowerU}\lean{RectangleIntegral_tendsTo_LowerU}\leanok
@@ -104,15 +112,32 @@ lemma RectangleIntegral_tendsTo_LowerU {σ σ' T : ℝ} {f : ℂ → ℂ}
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ - I * U) (σ' - I * T)) atTop
-      (𝓝 (LowerUIntegral f σ σ' T)) := by
-  sorry
+      (𝓝 (- LowerUIntegral f σ σ' T)) := by
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{RectangleIntegral, LowerUIntegral}
 Almost by definition.
-\end{proof}
 %%-/
-
+  have h_re  (s : ℝ) (t : ℝ) : (s  - I * t).re = s  := by simp
+  have h_im  (s : ℝ) (t : ℝ) : (s  - I * t).im = -t  := by simp
+  have hbot' : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x - y * I)) atTop (𝓝 0) := by
+    convert (hbot.comp tendsto_neg_atTop_atBot) using 1
+    ext; simp only [Function.comp_apply, ofReal_neg, neg_mul]; rfl
+  have htop : Tendsto (fun (_ : ℝ) => ∫ (x : ℝ) in σ..σ', f (x - T * I)) atTop (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x - T * I)) := by
+    exact tendsto_const_nhds
+  have hvert (s : ℝ) (int : Integrable (fun (y : ℝ) ↦ f (s + y * I))) :
+      Tendsto (fun (U : ℝ) => I * ∫ (y : ℝ) in -U..-T, f (s + y * I)) atTop (𝓝 <| I * ∫ (y : ℝ) in Iic (-T), f (s + y * I)) := by
+    have := (intervalIntegral_tendsto_integral_Iic (-T) int.restrict tendsto_id).const_smul I
+    convert (this.comp tendsto_neg_atTop_atBot) using 1
+  have := ((hbot'.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
+  have final : (((-∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I)) + I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) -
+      I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) = (-(I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) +
+      ((I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) - ∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I))) := by
+    ring_nf
+  rw [zero_sub] at this
+  simp_rw [RectangleIntegral, LowerUIntegral, h_re, h_im, ofReal_neg, neg_mul, neg_add_rev, neg_sub]
+  exact final ▸ this
+--%%\end{proof}
 
 /-%%
 TODO : Move to general section
@@ -645,6 +670,7 @@ theorem HolomorphicOn.lowerUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} 
     (hleft : Integrable fun y : ℝ => f (↑σ + ↑y * I))
     (hright : Integrable fun y : ℝ => f (↑σ' + ↑y * I)) :
     LowerUIntegral f σ σ' T = 0 := by
+  suffices h : - LowerUIntegral f σ σ' T = 0 by exact neg_eq_zero.mp h
   apply tendsto_nhds_unique (RectangleIntegral_tendsTo_LowerU hbot hleft hright)
   apply EventuallyEq.tendsto
   filter_upwards [eventually_ge_atTop T]
