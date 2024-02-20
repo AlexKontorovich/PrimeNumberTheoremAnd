@@ -6,8 +6,7 @@ import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.MeasureTheory.Measure.Lebesgue.Integral
 import EulerProducts.LSeries
 
-open Complex BigOperators Nat Classical Real Topology Filter Set MeasureTheory
-
+open Complex BigOperators Nat Classical Real Topology Filter Set MeasureTheory intervalIntegral
 
 open scoped Interval
 
@@ -893,60 +892,53 @@ what remains is handled by Lemma \ref{ResidueTheoremAtOrigin}.
 
 section toto
 
-variable {x x₁ x₂ y : ℝ} {A : ℂ}
+variable {x x₁ x₂ y y₁ y₂ : ℝ} {A : ℂ}
 
-lemma toto4 (hy : y ≠ 0) : x ^ 2 + y ^ 2 ≠ 0 := by linarith [sq_nonneg x, (sq_pos_iff y).mpr hy]
+lemma Complex.inv_re_add_im : (x + y * I)⁻¹ = (x - I * y) / (x ^ 2 + y ^ 2) := by
+  rw [Complex.inv_def, div_eq_mul_inv] ; congr <;> simp [conj_ofReal, normSq] <;> ring
 
-lemma toto7 (hy : y ≠ 0) : Continuous fun x : ℝ ↦ A / (x ^ 2 + y ^ 2) := by
-  refine continuous_const.div (by continuity) ?_
-  intro x ; norm_cast ; exact toto4 hy
+lemma sq_add_sq_ne_zero (hy : y ≠ 0) : x ^ 2 + y ^ 2 ≠ 0 := by linarith [sq_nonneg x, (sq_pos_iff y).mpr hy]
 
-lemma toto5 (hy : y ≠ 0) : Continuous fun x ↦ x / (x ^ 2 + y ^ 2) :=
-    continuous_id.div (continuous_id.pow 2 |>.add continuous_const) (λ _ => toto4 hy)
+lemma continuous_self_div_sq_add_sq (hy : y ≠ 0) : Continuous fun x => x / (x ^ 2 + y ^ 2) :=
+  continuous_id.div (continuous_id.pow 2 |>.add continuous_const) (λ _ => sq_add_sq_ne_zero hy)
 
-lemma toto6 (hy : y ≠ 0) : Continuous fun x : ℝ ↦ A * x / (x ^ 2 + y ^ 2) := by
-  simp_rw [mul_div_assoc] ; norm_cast
-  exact continuous_const.mul <| continuous_ofReal.comp <| toto5 hy
-
-lemma toto1 (hy : y ≠ 0) : ∫ x in x₁..x₂, x / (x ^ 2 + y ^ 2) =
+lemma integral_self_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, x / (x ^ 2 + y ^ 2) =
     Real.log (x₂ ^ 2 + y ^ 2) / 2 - Real.log (x₁ ^ 2 + y ^ 2) / 2 := by
   let f (x : ℝ) : ℝ := Real.log (x ^ 2 + y ^ 2) / 2
-  have l7 {x} : HasDerivAt (fun x ↦ x ^ 2 + y ^ 2) (2 * x) x :=
-    HasDerivAt.add_const (by simpa using hasDerivAt_pow 2 x) (y ^ 2)
-  have l0 {x} : HasDerivAt f (x / (x ^ 2 + y ^ 2)) x := by
-    convert (l7.log (toto4 hy)).div_const 2 using 1 ; field_simp ; ring
-  have l2 : deriv f = λ x => x / (x ^ 2 + y ^ 2) := funext (λ _ => l0.deriv)
-  have l4 : Continuous (deriv f) := by simpa only [l2] using toto5 hy
-  have l3 : IntervalIntegrable (deriv f) volume x₁ x₂ := l4.continuousOn.intervalIntegrable
-  simp_rw [← l2, intervalIntegral.integral_deriv_eq_sub (λ _ _ => l0.differentiableAt) l3]
+  have e1 {x} := HasDerivAt.add_const (by simpa using hasDerivAt_pow 2 x) (y ^ 2)
+  have e2 {x} : HasDerivAt f (x / (x ^ 2 + y ^ 2)) x := by
+    convert (e1.log (sq_add_sq_ne_zero hy)).div_const 2 using 1 ; field_simp ; ring
+  have e3 : deriv f = λ x => x / (x ^ 2 + y ^ 2) := funext (λ _ => e2.deriv)
+  have e4 : Continuous (deriv f) := by simpa only [e3] using continuous_self_div_sq_add_sq hy
+  simp_rw [← e2.deriv]
+  exact integral_deriv_eq_sub (λ _ _ => e2.differentiableAt) <| e4.intervalIntegrable _ _
 
-lemma toto2 (hy : y ≠ 0) : ∫ x in x₁..x₂, y / (x ^ 2 + y ^ 2) = arctan (x₂ / y) - arctan (x₁ / y) := by
-  nth_rewrite 1 [←div_mul_cancel x₁ hy, ←div_mul_cancel x₂ hy, ←intervalIntegral.mul_integral_comp_mul_right]
-  have l3 {x} : (x * y) ^ 2 + y ^ 2 = (1 + x^2) * y^2 := by ring
-  simp_rw [l3, ← intervalIntegral.integral_const_mul, ← integral_one_div_one_add_sq]
-  congr ; ext x
-  have l4 : 1 + x ^ 2 ≠ 0 := by linarith [sq_nonneg x]
+lemma integral_const_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, y / (x ^ 2 + y ^ 2) =
+    arctan (x₂ / y) - arctan (x₁ / y) := by
+  nth_rewrite 1 [← div_mul_cancel x₁ hy, ← div_mul_cancel x₂ hy]
+  simp_rw [← mul_integral_comp_mul_right, ← integral_const_mul, ← integral_one_div_one_add_sq]
+  refine integral_congr <| λ x _ => ?_
   field_simp ; ring
 
-lemma toto3 (hy : y ≠ 0) : (x + y * I)⁻¹ = (x - I * y) / (x ^ 2 + y ^ 2) := by
-  have e1 : (x:ℂ) ^ 2 + y ^ 2 ≠ 0 := by norm_cast ; exact toto4 hy
-  have e2 : ↑x + ↑y * I ≠ 0 := by contrapose! hy ; simpa using congr_arg im hy
-  field_simp ; ring_nf ; simp
-
-lemma toto8 {x₁ x₂ y : ℝ} {A : ℂ} (hy : y ≠ 0) : ∫ x : ℝ in x₁..x₂, A / (x + y * I) =
+lemma integral_const_div_self_add_im (hy : y ≠ 0) : ∫ x : ℝ in x₁..x₂, A / (x + y * I) =
     A * (Real.log (x₂ ^ 2 + y ^ 2) / 2 - Real.log (x₁ ^ 2 + y ^ 2) / 2) -
     A * I * (arctan (x₂ / y) - arctan (x₁ / y)) := by
-  have l1 (x) (hx : x ∈ [[x₁, x₂]]) : A / (x + y * I) = A * x / (x^2 + y^2) - A * I * y / (x^2 + y^2) := by
-    ring_nf ; simp_rw [toto3 hy] ; ring
-  have l2 : IntervalIntegrable (fun x ↦ A * x / (x ^ 2 + y ^ 2)) volume x₁ x₂ :=
-    (toto6 hy).intervalIntegrable _ _
-  have l3 : IntervalIntegrable (fun x ↦ A * I * y / (x ^ 2 + y ^ 2)) volume x₁ x₂ :=
-    (toto7 hy).intervalIntegrable _ _
-  simp_rw [intervalIntegral.integral_congr l1, intervalIntegral.integral_sub l2 l3, mul_div_assoc]
+  have e1 {x : ℝ} : A / (x + y * I) = A * x / (x ^ 2 + y ^ 2) - A * I * y / (x ^ 2 + y ^ 2) := by
+    ring_nf ; simp_rw [inv_re_add_im] ; ring
+  have e2 : IntervalIntegrable (fun x ↦ A * x / (x ^ 2 + y ^ 2)) volume x₁ x₂ := by
+    apply Continuous.intervalIntegrable
+    simp_rw [mul_div_assoc] ; norm_cast
+    exact continuous_const.mul <| continuous_ofReal.comp <| continuous_self_div_sq_add_sq hy
+  have e3 : IntervalIntegrable (fun x ↦ A * I * y / (x ^ 2 + y ^ 2)) volume x₁ x₂ := by
+    apply Continuous.intervalIntegrable
+    refine continuous_const.div (by continuity) (λ x => ?_)
+    norm_cast ; exact sq_add_sq_ne_zero hy
+  simp_rw [integral_congr (λ _ _ => e1), integral_sub e2 e3, mul_div_assoc]
   norm_cast
-  simp_rw [intervalIntegral.integral_const_mul, intervalIntegral.integral_ofReal, toto1 hy, toto2 hy]
+  simp_rw [integral_const_mul, intervalIntegral.integral_ofReal, integral_self_div_sq_add_sq hy,
+    integral_const_div_sq_add_sq hy]
 
-lemma toto9 {y₁ y₂ x : ℝ} {A : ℂ} (hx : x ≠ 0) : ∫ y : ℝ in y₁..y₂, A / (x + y * I) =
+lemma integral_const_div_re_add_self (hx : x ≠ 0) : ∫ y : ℝ in y₁..y₂, A / (x + y * I) =
     A / I * (Real.log (y₂ ^ 2 + (-x) ^ 2) / 2 - Real.log (y₁ ^ 2 + (-x) ^ 2) / 2) -
     A / I * I * (arctan (y₂ / -x) - arctan (y₁ / -x)) := by
   have l1 {y : ℝ} : A / (x + y * I) = A / I / (y + ↑(-x) * I) := by
@@ -954,12 +946,13 @@ lemma toto9 {y₁ y₂ x : ℝ} {A : ℂ} (hx : x ≠ 0) : ∫ y : ℝ in y₁..
     have e2 : y + -(x * I) ≠ 0 := by contrapose! hx ; simpa using congr_arg im hx
     field_simp ; ring_nf ; simp
   have l2 : -x ≠ 0 := by rwa [neg_ne_zero]
-  simp_rw [l1, toto8 l2]
+  simp_rw [l1, integral_const_div_self_add_im l2]
 
-lemma toto10 {z w c : ℂ} (h1 : z.re < 0) (h2 : z.im < 0) (h3 : 0 < w.re) (h4 : 0 < w.im) :
+lemma ResidueTheoremAtOrigin' {z w c : ℂ} (h1 : z.re < 0) (h2 : z.im < 0) (h3 : 0 < w.re) (h4 : 0 < w.im) :
     RectangleIntegral (λ s => c / s) z w = 2 * I * π * c := by
   simp only [RectangleIntegral._eq_1, smul_eq_mul]
-  rw [toto8 h2.ne, toto8 h4.ne.symm, toto9 h1.ne, toto9 h3.ne.symm]
+  rw [integral_const_div_re_add_self h1.ne, integral_const_div_re_add_self h3.ne.symm]
+  rw [integral_const_div_self_add_im h2.ne, integral_const_div_self_add_im h4.ne.symm]
   have l1 : z.im * w.re⁻¹ = (w.re * z.im⁻¹)⁻¹ := by group
   have l3 := arctan_inv_of_neg <| mul_neg_of_pos_of_neg h3 <| inv_lt_zero.mpr h2
   have l4 : w.im * z.re⁻¹ = (z.re * w.im⁻¹)⁻¹ := by group
@@ -980,6 +973,6 @@ theorem ResidueTheoremInRectangle' {z w p c : ℂ} (zRe_le_wRe : z.re ≤ w.re) 
   simp [rectangle_mem_nhds_iff, mem_reProdIm, uIoo_of_le zRe_le_wRe, uIoo_of_le zIm_le_wIm] at pInRectInterior
   rw [RectangleIntegral.translate', RectangleIntegral']
   have : 1 / (2 * ↑π * I) * (2 * I * ↑π * c) = c := by field_simp [two_pi_I_ne_zero] ; ring
-  rwa [toto10] ; all_goals { simp [*] }
+  rwa [ResidueTheoremAtOrigin'] ; all_goals { simp [*] }
 
 end toto
