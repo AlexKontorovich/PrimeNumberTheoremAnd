@@ -112,6 +112,19 @@ lemma verticalIntegral_split_three {f : ℂ → ℂ} {σ : ℝ} (a b : ℝ) (hf 
 /-- The preimage under `equivRealProd` of `s ×ˢ t` is `s ×ℂ t`. -/
 lemma preimage_equivRealProd_prod (s t : Set ℝ) : equivRealProd ⁻¹' (s ×ˢ t) = s ×ℂ t := rfl
 
+@[simp]
+theorem preimage_equivRealProdCLM_reProdIm (s t : Set ℝ) :
+    equivRealProdCLM.symm ⁻¹' (s ×ℂ t) = s ×ˢ t :=
+  rfl
+
+@[simp]
+theorem ContinuousLinearEquiv.coe_toLinearEquiv_symm {R : Type*} {S : Type*} [Semiring R] [Semiring S] {σ : R →+* S}
+    {σ' : S →+* R} [RingHomInvPair σ σ'] [RingHomInvPair σ' σ] (M : Type*) [TopologicalSpace M]
+    [AddCommMonoid M] {M₂ : Type*} [TopologicalSpace M₂] [AddCommMonoid M₂] [Module R M]
+    [Module S M₂] (e : M ≃SL[σ] M₂) :
+    ⇑e.toLinearEquiv.symm = e.symm :=
+  rfl
+
 -- From PR #9598
 /-- The inequality `s × t ⊆ s₁ × t₁` holds in `ℂ` iff it holds in `ℝ × ℝ`. -/
 lemma reProdIm_subset_iff {s s₁ t t₁ : Set ℝ} : s ×ℂ t ⊆ s₁ ×ℂ t₁ ↔ s ×ˢ t ⊆ s₁ ×ˢ t₁ := by
@@ -446,32 +459,16 @@ theorem HolomorphicOn.rectangleBorderIntegrable {f : ℂ → ℂ} {z w : ℂ}
     (hf : HolomorphicOn f (Rectangle z w)) : RectangleBorderIntegrable f z w :=
   hf.continuousOn.rectangleBorderIntegrable
 
-@[simp]
-theorem equivRealProdCLM_preimage_reProdIm (s t : Set ℝ) :
-    equivRealProdCLM.symm ⁻¹' (s ×ℂ t) = s ×ˢ t :=
-  rfl
-
-@[simp]
-theorem ContinuousLinearEquiv.coe_toLinearEquiv_symm {R : Type*} {S : Type*} [Semiring R] [Semiring S] {σ : R →+* S}
-    {σ' : S →+* R} [RingHomInvPair σ σ'] [RingHomInvPair σ' σ] (M : Type*) [TopologicalSpace M]
-    [AddCommMonoid M] {M₂ : Type*} [TopologicalSpace M₂] [AddCommMonoid M₂] [Module R M]
-    [Module S M₂] (e : M ≃SL[σ] M₂) :
-    ⇑e.toLinearEquiv.symm = e.symm :=
-  rfl
-
-theorem Complex.nhds_hasBasis_square (p : ℂ) : HasBasis (𝓝 p) (0 < ·) (Square p ·) := by
-  conv in Square p _ => rw [← Equiv.image_preimage equivRealProdCLM.toEquiv.symm (Square _ _)]
-  conv in 𝓝 p => rw [show p = equivRealProdCLM.toHomeomorph.symm ⟨p.re, p.im⟩ from rfl,
-    ← Homeomorph.map_nhds_eq, nhds_prod_eq]
-  apply Filter.HasBasis.map
-  refine ((nhds_basis_Icc_pos p.re).prod_same_index (nhds_basis_Icc_pos p.im) ?_).congr ?_ ?_
-  · intro ε ε' hε hε'
-    refine ⟨ε ⊓ ε', lt_inf_iff.mpr ⟨hε, hε'⟩, ?_, ?_⟩ <;> apply Set.Icc_subset_Icc
-    <;> linarith [(inf_le_left : ε ⊓ ε' ≤ ε), (inf_le_right : ε ⊓ ε' ≤ ε')]
+theorem Complex.nhds_hasBasis_square (p : ℂ) : (𝓝 p).HasBasis (0 < ·) (Square p ·) := by
+  suffices (𝓝 p.re ×ˢ 𝓝 p.im).HasBasis (0 < .) (equivRealProdCLM.symm.toHomeomorph ⁻¹' Square p .)
+    by simpa only [← nhds_prod_eq, Homeomorph.map_nhds_eq, Homeomorph.image_preimage]
+      using this.map equivRealProdCLM.symm.toHomeomorph
+  apply ((nhds_basis_Icc_pos p.re).prod_same_index_mono (nhds_basis_Icc_pos p.im) ?_ ?_).congr
   · intro; rfl
   · intros
     rw [← uIcc_of_lt (by linarith), ← uIcc_of_lt (by linarith)]
     simpa [Square, Rectangle] using by ring_nf
+  all_goals exact (antitone_const_tsub.Icc (monotone_id.const_add _)).monotoneOn _
 
 lemma square_mem_nhds (p : ℂ) {c : ℝ} (hc : c ≠ 0) :
     Square p c ∈ 𝓝 p := by
