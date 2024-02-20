@@ -28,17 +28,17 @@ The project github page is https://github.com/AlexKontorovich/PrimeNumberTheorem
 The project docs page is https://alexkontorovich.github.io/PrimeNumberTheoremAnd/docs.
 
 The first main goal is to prove the Prime Number Theorem in Lean.
-(This remains one of the outstanding problems on Wiedijk's list of 100 theorems to formalize.) 
+(This remains one of the outstanding problems on Wiedijk's list of 100 theorems to formalize.)
 Note that PNT has been formalized before, first by Avigad et al in Isabelle,
 https://arxiv.org/abs/cs/0509025
-following the Selberg / Erdos method, then 
-by Harrison in HOL Light 
+following the Selberg / Erdos method, then
+by Harrison in HOL Light
 https://www.cl.cam.ac.uk/~jrh13/papers/mikefest.html
 via Newman's proof.
 Carniero gave another formalization in Metamath of the Selberg / Erdos method:
 https://arxiv.org/abs/1608.02029,
 and Eberl-Paulson gave a formalization of Newman's proof in Isabelle:
-https://www.isa-afp.org/entries/Prime\_Number\_Theorem.html 
+https://www.isa-afp.org/entries/Prime\_Number\_Theorem.html
 
 Continuations of this project aim to extend
 this work to primes in progressions (Dirichlet's theorem), Chebotarev's density theorem, etc
@@ -52,7 +52,7 @@ The second develops some complex analysis (residue calculus on rectangles, argum
 
 The third approach, which will be the most general of the three, is to: (1) develop the residue calculus et al, as above, (2) add the Hadamard factorization theorem, (3) use it to prove the zero-free region for zeta via Hoffstein-Lockhart+Goldfeld-Hoffstein-Liemann (which generalizes to higher degree L-functions), and (4) use this to prove the prime number theorem with exp-root-log savings.
 
-A word about the expected ``rate-limiting-steps'' in each of the approaches. 
+A word about the expected ``rate-limiting-steps'' in each of the approaches.
 
 (*) In approach (1), I think it will be the fact that the Fourier transform is a bijection on the Schwartz class. There is a recent PR (https://github.com/leanprover-community/mathlib4/pull/9773) with David Loeffler and Heather Macbeth making the first steps in that direction, just computing the (Frechet) derivative of the Fourier transform. One will need to iterate on that to get arbitrary derivatives, to conclude that the transform of a Schwartz function is Schwartz. Then to get the bijection, we need an inversion formula. We can derive Fourier inversion *from* Mellin inversion! So it seems that the most important thing to start is Perron's formula.
 
@@ -68,6 +68,7 @@ A word about the expected ``rate-limiting-steps'' in each of the approaches.
 \chapter{Second approach}
 
 \section{Residue calculus on rectangles}
+\input{Rectangle.tex}
 \input{ResidueCalcOnRectangles.tex}
 
 
