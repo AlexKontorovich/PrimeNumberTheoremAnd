@@ -102,7 +102,17 @@ def Set.uIoo {α : Type*} [Lattice α] (a b : α) : Set α := Ioo (a ⊓ b) (a �
 theorem uIoo_of_le {α : Type*} [Lattice α] {a b : α} (h : a ≤ b) : Set.uIoo a b = Ioo a b := by
   rw [uIoo, inf_eq_left.2 h, sup_eq_right.2 h]
 
--- ## Rectangle API ##
+theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b :=
+  fun ⟨h1, h2⟩ ↦ (left_lt_sup.mp h2) (le_of_not_le (inf_lt_left.mp h1))
+
+theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b :=
+  fun ⟨h1, h2⟩ ↦ (right_lt_sup.mp h2) (le_of_not_le (inf_lt_right.mp h1))
+
+theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a :=
+  fun h ↦ Set.left_not_mem_uIoo (h ▸ hc)
+
+theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b :=
+  fun h ↦ Set.right_not_mem_uIoo (h ▸ hc)
 
 lemma left_mem_rect (z w : ℂ) : z ∈ Rectangle z w := ⟨left_mem_uIcc, left_mem_uIcc⟩
 
@@ -246,3 +256,35 @@ lemma mapsTo_rectangle_right_im_NoP (z w : ℂ) {p : ℂ} (pNotOnBorder : p ∉ 
     MapsTo (fun (x : ℝ) => ↑x + w.im * I) [[z.re, w.re]] (Rectangle z w \ {p}) := by
   refine (mapsTo_rectangleBorder_right_im z w).mono_right (Set.subset_diff.mpr ?_)
   exact ⟨rectangleBorder_subset_rectangle z w, disjoint_singleton_right.mpr pNotOnBorder⟩
+
+theorem not_mem_rectangleBorder_of_rectangle_mem_nhds {z w p : ℂ} (hp : Rectangle z w ∈ 𝓝 p) :
+    p ∉ RectangleBorder z w := by
+  refine Set.disjoint_right.mp (rectangleBorder_disjoint_singleton ?_) rfl
+  have h1 := rectangle_mem_nhds_iff.mp hp
+  exact ⟨Set.ne_left_of_mem_uIoo h1.1, Set.ne_right_of_mem_uIoo h1.1,
+    Set.ne_left_of_mem_uIoo h1.2, Set.ne_right_of_mem_uIoo h1.2⟩
+
+theorem Complex.nhds_hasBasis_square (p : ℂ) : (𝓝 p).HasBasis (0 < ·) (Square p ·) := by
+  suffices (𝓝 p.re ×ˢ 𝓝 p.im).HasBasis (0 < .) (equivRealProdCLM.symm.toHomeomorph ⁻¹' Square p .)
+    by simpa only [← nhds_prod_eq, Homeomorph.map_nhds_eq, Homeomorph.image_preimage]
+      using this.map equivRealProdCLM.symm.toHomeomorph
+  apply ((nhds_basis_Icc_pos p.re).prod_same_index_mono (nhds_basis_Icc_pos p.im) ?_ ?_).congr
+  · intro; rfl
+  · intros
+    rw [← uIcc_of_lt (by linarith), ← uIcc_of_lt (by linarith)]
+    simpa [Square, Rectangle] using by ring_nf
+  all_goals exact (antitone_const_tsub.Icc (monotone_id.const_add _)).monotoneOn _
+
+lemma square_mem_nhds (p : ℂ) {c : ℝ} (hc : c ≠ 0) :
+    Square p c ∈ 𝓝 p := by
+  wlog hc_pos : 0 < c generalizing c with h
+  · rw [← square_neg]
+    exact h (neg_ne_zero.mpr hc) <| neg_pos.mpr <| hc.lt_of_le <| not_lt.mp hc_pos
+  exact (nhds_hasBasis_square p).mem_of_mem hc_pos
+
+lemma SmallSquareInRectangle {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ nhds p) :
+    ∀ᶠ (c : ℝ) in 𝓝[>]0, Square p c ⊆ Rectangle z w := by
+  obtain ⟨ε, hε0, hε⟩ := ((Complex.nhds_hasBasis_square p).1 _).mp pInRectInterior
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (hε0)] with _ ⟨_, _⟩
+  refine subset_trans ?_ hε
+  apply RectSubRect' <;> simpa using by linarith

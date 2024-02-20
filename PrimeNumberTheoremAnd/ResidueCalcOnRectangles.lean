@@ -195,25 +195,6 @@ theorem ContinuousOn.rectangleBorderNoPIntegrable {f : ℂ → ℂ} {z w p : ℂ
   refine (hf.mono (Set.subset_diff.mpr ?_)).rectangleBorder_integrable
   exact ⟨rectangleBorder_subset_rectangle z w, disjoint_singleton_right.mpr pNotOnBorder⟩
 
-theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b :=
-  fun ⟨h1, h2⟩ ↦ (left_lt_sup.mp h2) (le_of_not_le (inf_lt_left.mp h1))
-
-theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b :=
-  fun ⟨h1, h2⟩ ↦ (right_lt_sup.mp h2) (le_of_not_le (inf_lt_right.mp h1))
-
-theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a :=
-  fun h ↦ Set.left_not_mem_uIoo (h ▸ hc)
-
-theorem Set.ne_right_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ b :=
-  fun h ↦ Set.right_not_mem_uIoo (h ▸ hc)
-
-theorem not_mem_rectangleBorder_of_rectangle_mem_nhds {z w p : ℂ} (hp : Rectangle z w ∈ 𝓝 p) :
-    p ∉ RectangleBorder z w := by
-  refine Set.disjoint_right.mp (rectangleBorder_disjoint_singleton ?_) rfl
-  have h1 := rectangle_mem_nhds_iff.mp hp
-  exact ⟨Set.ne_left_of_mem_uIoo h1.1, Set.ne_right_of_mem_uIoo h1.1,
-    Set.ne_left_of_mem_uIoo h1.2, Set.ne_right_of_mem_uIoo h1.2⟩
-
 theorem HolomorphicOn.rectangleBorderIntegrable' {f : ℂ → ℂ} {z w p : ℂ}
     (hf : HolomorphicOn f (Rectangle z w \ {p}))
     (hp : Rectangle z w ∈ nhds p) : RectangleBorderIntegrable f z w :=
@@ -222,26 +203,6 @@ theorem HolomorphicOn.rectangleBorderIntegrable' {f : ℂ → ℂ} {z w p : ℂ}
 theorem HolomorphicOn.rectangleBorderIntegrable {f : ℂ → ℂ} {z w : ℂ}
     (hf : HolomorphicOn f (Rectangle z w)) : RectangleBorderIntegrable f z w :=
   hf.continuousOn.rectangleBorderIntegrable
-
-theorem Complex.nhds_hasBasis_square (p : ℂ) : (𝓝 p).HasBasis (0 < ·) (Square p ·) := by
-  suffices (𝓝 p.re ×ˢ 𝓝 p.im).HasBasis (0 < .) (equivRealProdCLM.symm.toHomeomorph ⁻¹' Square p .)
-    by simpa only [← nhds_prod_eq, Homeomorph.map_nhds_eq, Homeomorph.image_preimage]
-      using this.map equivRealProdCLM.symm.toHomeomorph
-  apply ((nhds_basis_Icc_pos p.re).prod_same_index_mono (nhds_basis_Icc_pos p.im) ?_ ?_).congr
-  · intro; rfl
-  · intros
-    rw [← uIcc_of_lt (by linarith), ← uIcc_of_lt (by linarith)]
-    simpa [Square, Rectangle] using by ring_nf
-  all_goals exact (antitone_const_tsub.Icc (monotone_id.const_add _)).monotoneOn _
-
-lemma square_mem_nhds (p : ℂ) {c : ℝ} (hc : c ≠ 0) :
-    Square p c ∈ 𝓝 p := by
-  wlog hc_pos : 0 < c generalizing c with h
-  · rw [← square_neg]
-    exact h (neg_ne_zero.mpr hc) <| neg_pos.mpr <| hc.lt_of_le <| not_lt.mp hc_pos
-  exact (nhds_hasBasis_square p).mem_of_mem hc_pos
-
--- ## End Rectangle API ##
 
 /--
 Given `x₀ a x₁ : ℝ`, and `y₀ y₁ : ℝ` and a function `f : ℂ → ℂ` so that
@@ -300,13 +261,6 @@ lemma RectangleIntegralVSplit' {f : ℂ → ℂ} {b x₀ x₁ y₀ y₁ : ℝ} (
     (IntervalIntegrable.mono (by simpa using hf.2.2.2) (uIcc_subset_uIcc hb right_mem_uIcc) le_rfl)
     (IntervalIntegrable.mono (by simpa using hf.2.2.1) (uIcc_subset_uIcc left_mem_uIcc hb) le_rfl)
     (IntervalIntegrable.mono (by simpa using hf.2.2.1) (uIcc_subset_uIcc hb right_mem_uIcc) le_rfl)
-
-lemma SmallSquareInRectangle {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ nhds p) :
-    ∀ᶠ (c : ℝ) in 𝓝[>]0, Square p c ⊆ Rectangle z w := by
-  obtain ⟨ε, hε0, hε⟩ := ((Complex.nhds_hasBasis_square p).1 _).mp pInRectInterior
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (hε0)] with _ ⟨_, _⟩
-  refine subset_trans ?_ hε
-  apply RectSubRect' <;> simpa using by linarith
 
 lemma RectanglePullToNhdOfPole' {f : ℂ → ℂ} {z₀ z₁ z₂ z₃ p : ℂ}
     (h_orientation : z₀.re ≤ z₃.re ∧ z₀.im ≤ z₃.im ∧ z₁.re ≤ z₂.re ∧ z₁.im ≤ z₂.im)
@@ -655,7 +609,7 @@ what remains is handled by Lemma \ref{ResidueTheoremAtOrigin}.
 --     field_simp [abs_div, abs_eq_self.mpr hc.le, abs_eq_self.mpr (sqrt_nonneg 2)]
 --   · refine square_mem_nhds _ hc.ne.symm
 
-section toto
+section ResidueTheoremInRectangle_direct
 
 variable {x x₁ x₂ y y₁ y₂ : ℝ} {A : ℂ}
 
@@ -740,4 +694,4 @@ theorem ResidueTheoremInRectangle' {z w p c : ℂ} (zRe_le_wRe : z.re ≤ w.re) 
   have : 1 / (2 * ↑π * I) * (2 * I * ↑π * c) = c := by field_simp [two_pi_I_ne_zero] ; ring
   rwa [ResidueTheoremAtOrigin'] ; all_goals { simp [*] }
 
-end toto
+end ResidueTheoremInRectangle_direct
