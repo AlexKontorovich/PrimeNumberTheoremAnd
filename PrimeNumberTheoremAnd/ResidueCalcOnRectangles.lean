@@ -884,12 +884,12 @@ what remains is handled by Lemma \ref{ResidueTheoremAtOrigin}.
 \end{proof}
 %%-/
 
-theorem nhds_basis_square (p : ℂ) : HasBasis (𝓝 p) (0 < ·) (Square p ·) := by
-  apply Filter.HasBasis.to_hasBasis' Metric.nhds_basis_closedBall <;> intro c hc
-  · refine ⟨c / Real.sqrt 2, div_pos hc (Real.sqrt_pos.mpr zero_lt_two), ?_⟩
-    convert square_subset_closedBall p (c / Real.sqrt 2)
-    field_simp [abs_div, abs_eq_self.mpr hc.le, abs_eq_self.mpr (sqrt_nonneg 2)]
-  · refine square_mem_nhds _ hc.ne.symm
+-- theorem nhds_basis_square (p : ℂ) : HasBasis (𝓝 p) (0 < ·) (Square p ·) := by
+--   apply Filter.HasBasis.to_hasBasis' Metric.nhds_basis_closedBall <;> intro c hc
+--   · refine ⟨c / Real.sqrt 2, div_pos hc (Real.sqrt_pos.mpr zero_lt_two), ?_⟩
+--     convert square_subset_closedBall p (c / Real.sqrt 2)
+--     field_simp [abs_div, abs_eq_self.mpr hc.le, abs_eq_self.mpr (sqrt_nonneg 2)]
+--   · refine square_mem_nhds _ hc.ne.symm
 
 section toto
 
@@ -956,8 +956,8 @@ lemma toto9 {y₁ y₂ x : ℝ} {A : ℂ} (hx : x ≠ 0) : ∫ y : ℝ in y₁..
   have l2 : -x ≠ 0 := by rwa [neg_ne_zero]
   simp_rw [l1, toto8 l2]
 
-lemma toto10 {z w : ℂ} (h1 : z.re < 0) (h2 : z.im < 0) (h3 : 0 < w.re) (h4 : 0 < w.im) :
-    RectangleIntegral (λ s => 1 / s) z w = 2 * I * π := by
+lemma toto10 {z w c : ℂ} (h1 : z.re < 0) (h2 : z.im < 0) (h3 : 0 < w.re) (h4 : 0 < w.im) :
+    RectangleIntegral (λ s => c / s) z w = 2 * I * π * c := by
   simp only [RectangleIntegral._eq_1, smul_eq_mul]
   rw [toto8 h2.ne, toto8 h4.ne.symm, toto9 h1.ne, toto9 h3.ne.symm]
   have l1 : z.im * w.re⁻¹ = (w.re * z.im⁻¹)⁻¹ := by group
@@ -974,5 +974,12 @@ lemma toto10 {z w : ℂ} (h1 : z.re < 0) (h2 : z.im < 0) (h3 : 0 < w.re) (h4 : 0
   ring_nf
   simp only [I_sq, ofReal_sub, ofReal_mul, ofReal_ofNat, ofReal_div, ofReal_neg, ofReal_one]
   ring_nf
+
+theorem ResidueTheoremInRectangle' {z w p c : ℂ} (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)
+    (pInRectInterior : Rectangle z w ∈ 𝓝 p) : RectangleIntegral' (λ s => c / (s - p)) z w = c := by
+  simp [rectangle_mem_nhds_iff, mem_reProdIm, uIoo_of_le zRe_le_wRe, uIoo_of_le zIm_le_wIm] at pInRectInterior
+  rw [RectangleIntegral.translate', RectangleIntegral']
+  have : 1 / (2 * ↑π * I) * (2 * I * ↑π * c) = c := by field_simp [two_pi_I_ne_zero] ; ring
+  rwa [toto10] ; all_goals { simp [*] }
 
 end toto
