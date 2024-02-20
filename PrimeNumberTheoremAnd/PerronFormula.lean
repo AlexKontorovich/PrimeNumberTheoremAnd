@@ -671,6 +671,7 @@ theorem HolomorphicOn.lowerUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} 
     (hleft : Integrable fun y : ℝ => f (↑σ + ↑y * I))
     (hright : Integrable fun y : ℝ => f (↑σ' + ↑y * I)) :
     LowerUIntegral f σ σ' T = 0 := by
+  suffices h : - LowerUIntegral f σ σ' T = 0 by exact neg_eq_zero.mp h
   apply tendsto_nhds_unique (RectangleIntegral_tendsTo_LowerU hbot hleft hright)
   apply EventuallyEq.tendsto
   filter_upwards [eventually_ge_atTop T]
