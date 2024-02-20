@@ -82,7 +82,7 @@ lemma RectangleIntegral_tendsTo_UpperU {σ σ' T : ℝ} {f : ℂ → ℂ}
     Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ + I * T) (σ' + I * U)) atTop
       (𝓝 (UpperUIntegral f σ σ' T)) := by
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{RectangleIntegral, UpperUIntegral}
 Almost by definition.
 %%-/
@@ -114,7 +114,7 @@ lemma RectangleIntegral_tendsTo_LowerU {σ σ' T : ℝ} {f : ℂ → ℂ}
     Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ - I * U) (σ' - I * T)) atTop
       (𝓝 (- LowerUIntegral f σ σ' T)) := by
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{RectangleIntegral, LowerUIntegral}
 Almost by definition.
 %%-/
