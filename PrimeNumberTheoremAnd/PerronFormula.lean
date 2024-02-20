@@ -120,7 +120,6 @@ Almost by definition.
 %%-/
   have h_re  (s : ℝ) (t : ℝ) : (s  - I * t).re = s  := by simp
   have h_im  (s : ℝ) (t : ℝ) : (s  - I * t).im = -t  := by simp
-  simp_rw [RectangleIntegral, LowerUIntegral, h_re, h_im, ofReal_neg, neg_mul]
   have hbot' : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x - y * I)) atTop (𝓝 0) := by
     convert (hbot.comp tendsto_neg_atTop_atBot) using 1
     ext; simp only [Function.comp_apply, ofReal_neg, neg_mul]; rfl
@@ -131,13 +130,13 @@ Almost by definition.
     have := (intervalIntegral_tendsto_integral_Iic (-T) int.restrict tendsto_id).const_smul I
     convert (this.comp tendsto_neg_atTop_atBot) using 1
   have := ((hbot'.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
-  simp only [zero_sub] at this
-  simp only [smul_eq_mul, neg_add_rev, neg_sub]
-  have H : (((-∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I)) + I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) -
+  have final : (((-∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I)) + I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) -
       I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) = (-(I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) +
       ((I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) - ∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I))) := by
     ring_nf
-  exact H ▸ this
+  rw [zero_sub] at this
+  simp_rw [RectangleIntegral, LowerUIntegral, h_re, h_im, ofReal_neg, neg_mul, neg_add_rev, neg_sub]
+  exact final ▸ this
 --%%\end{proof}
 
 /-%%
