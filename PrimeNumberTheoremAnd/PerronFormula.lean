@@ -81,13 +81,21 @@ lemma RectangleIntegral_tendsTo_UpperU {σ σ' T : ℝ} {f : ℂ → ℂ}
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ + I * T) (σ' + I * U)) atTop
       (𝓝 (UpperUIntegral f σ σ' T)) := by
-  sorry
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{RectangleIntegral, UpperUIntegral}
 Almost by definition.
-\end{proof}
 %%-/
+  have h_re  (s : ℝ) (t : ℝ) : (s  + I * t).re = s  := by simp
+  have h_im  (s : ℝ) (t : ℝ) : (s  + I * t).im = t  := by simp
+  have hbot : Tendsto (fun (_ : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + T * I)) atTop (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x + T * I)) := by
+    exact tendsto_const_nhds
+  have hvert (s : ℝ) (int : Integrable (fun (y : ℝ) ↦ f (s + y * I))) :
+      Tendsto (fun (U : ℝ) => I * ∫ (y : ℝ) in T..U, f (s + y * I)) atTop (𝓝 <| I * ∫ (y : ℝ) in Ioi T, f (s + y * I)) := by
+    exact (intervalIntegral_tendsto_integral_Ioi T int.restrict tendsto_id).const_smul I
+  have := ((hbot.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
+  simpa only [RectangleIntegral, UpperUIntegral, h_re, h_im, sub_zero, ←integral_Ici_eq_integral_Ioi]
+--%%\end{proof}
 
 /-%%
 \begin{lemma}[RectangleIntegral_tendsTo_LowerU]\label{RectangleIntegral_tendsTo_LowerU}\lean{RectangleIntegral_tendsTo_LowerU}\leanok
@@ -104,15 +112,32 @@ lemma RectangleIntegral_tendsTo_LowerU {σ σ' T : ℝ} {f : ℂ → ℂ}
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ - I * U) (σ' - I * T)) atTop
-      (𝓝 (LowerUIntegral f σ σ' T)) := by
-  sorry
+      (𝓝 (- LowerUIntegral f σ σ' T)) := by
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{RectangleIntegral, LowerUIntegral}
 Almost by definition.
-\end{proof}
 %%-/
-
+  have h_re  (s : ℝ) (t : ℝ) : (s  - I * t).re = s  := by simp
+  have h_im  (s : ℝ) (t : ℝ) : (s  - I * t).im = -t  := by simp
+  have hbot' : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x - y * I)) atTop (𝓝 0) := by
+    convert (hbot.comp tendsto_neg_atTop_atBot) using 1
+    ext; simp only [Function.comp_apply, ofReal_neg, neg_mul]; rfl
+  have htop : Tendsto (fun (_ : ℝ) => ∫ (x : ℝ) in σ..σ', f (x - T * I)) atTop (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x - T * I)) := by
+    exact tendsto_const_nhds
+  have hvert (s : ℝ) (int : Integrable (fun (y : ℝ) ↦ f (s + y * I))) :
+      Tendsto (fun (U : ℝ) => I * ∫ (y : ℝ) in -U..-T, f (s + y * I)) atTop (𝓝 <| I * ∫ (y : ℝ) in Iic (-T), f (s + y * I)) := by
+    have := (intervalIntegral_tendsto_integral_Iic (-T) int.restrict tendsto_id).const_smul I
+    convert (this.comp tendsto_neg_atTop_atBot) using 1
+  have := ((hbot'.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
+  have final : (((-∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I)) + I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) -
+      I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) = (-(I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) +
+      ((I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) - ∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I))) := by
+    ring_nf
+  rw [zero_sub] at this
+  simp_rw [RectangleIntegral, LowerUIntegral, h_re, h_im, ofReal_neg, neg_mul, neg_add_rev, neg_sub]
+  exact final ▸ this
+--%%\end{proof}
 
 /-%%
 TODO : Move to general section
@@ -645,6 +670,7 @@ theorem HolomorphicOn.lowerUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} 
     (hleft : Integrable fun y : ℝ => f (↑σ + ↑y * I))
     (hright : Integrable fun y : ℝ => f (↑σ' + ↑y * I)) :
     LowerUIntegral f σ σ' T = 0 := by
+  suffices h : - LowerUIntegral f σ σ' T = 0 by exact neg_eq_zero.mp h
   apply tendsto_nhds_unique (RectangleIntegral_tendsTo_LowerU hbot hleft hright)
   apply EventuallyEq.tendsto
   filter_upwards [eventually_ge_atTop T]
@@ -745,24 +771,15 @@ By ring.
 \end{proof}
 %%-/
 
-lemma diffBddAtZero_aux_ge {x : ℝ} (xpos : 0 < x) (xge : 1 ≤ x) :
-    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Square 0 c,
-    Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ x ^ (2 : ℝ) * 2 := sorry
-
-lemma diffBddAtZero_aux_lt {x : ℝ} (xpos : 0 < x) (xlt : x < 1) :
-    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Square 0 c,
-    Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ x ^ (-(2 : ℝ)) * 2 := sorry
-
-lemma diffBddAtZero_aux {x : ℝ} (xpos : 0 < x) :
-    ∀ᶠ (c : ℝ) in 𝓝[>] 0, ∀ s ∈ Square 0 c,
-    Complex.abs ((x : ℂ) ^ s / s - s⁻¹) ≤ if h : 1 ≤ x then x ^ (2 : ℝ) * 2 else x ^ (-(2 : ℝ)) * 2 := by
-  by_cases h : 1 ≤ x
-  · filter_upwards [diffBddAtZero_aux_ge xpos h]
-    intro c sRectBnd sRect
-    simpa [h, ↓reduceDite, rpow_two, ge_iff_le] using (sRectBnd sRect)
-  · filter_upwards [diffBddAtZero_aux_lt xpos (by linarith : x < 1)]
-    intro c sRectBnd sRect
-    simpa [h, ↓reduceDite, rpow_two, ge_iff_le] using (sRectBnd sRect)
+lemma _root_.Filter.Tendsto.eventually_bddAbove {α β : Type*} [LinearOrder β] [NoMaxOrder β]
+    [TopologicalSpace β] [ClosedIciTopology β] {f : α → β} {y : β} {l : Filter α}
+    (hf : Tendsto f l (𝓝 y)) : ∀ᶠ s in l.smallSets, BddAbove (f '' s) := by
+  obtain ⟨y', hy'⟩ := exists_gt y
+  obtain ⟨s, hsl, hs⟩ := (eventually_le_of_tendsto_lt hy' hf).exists_mem
+  simp_rw [Filter.eventually_smallSets, bddAbove_def]
+  refine ⟨s, hsl, fun t ht ↦ ⟨y', fun y hy ↦ ?_⟩⟩
+  obtain ⟨x, hxt, hxy⟩ := hy
+  exact hxy ▸ hs x (ht hxt)
 
 /-%%
 \begin{lemma}[diffBddAtZero]\label{diffBddAtZero}\lean{Perron.diffBddAtZero}\leanok
@@ -774,106 +791,41 @@ is bounded above on the rectangle with corners at $-c-i*c$ and $c+i*c$ (except a
 \end{lemma}
 %%-/
 lemma diffBddAtZero {x : ℝ} (xpos : 0 < x) :
-     ∀ᶠ (c : ℝ) in 𝓝[>] 0,
-    BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - 1 / s)) ''
-      (Square 0 c \ {0})) := by
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2), diffBddAtZero_aux xpos]
-  intro c hc sRectBnd
-  simp only [mem_Ioo] at hc
-  have cpos : 0 < c := hc.1
-  have c_lt : c < 1 / 2 := hc.2
-  rw [bddAbove_def]
-  let bnd := if h : 1 ≤ x then x ^ (2 : ℝ) * 4 else x ^ (-(2 : ℝ)) * 4
-  use bnd
-  intro y hy
-  simp only [one_div, Function.comp_apply, Complex.norm_eq_abs, mem_image, mem_diff,
-    mem_singleton_iff] at hy
-  obtain ⟨s, ⟨s_memRect, s_nonzero⟩, rfl⟩ := hy
-  change s ≠ 0 at s_nonzero
-  have s_ne_neg_one : s ≠ -1 := by
-    intro h
-    rw [h] at s_memRect
-    rw [Square, mem_Rect (by simp; linarith) (by simp; linarith)] at s_memRect
-    simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
-      sub_self, sub_zero, one_re, neg_le_neg_iff, add_re, add_zero, sub_im, neg_im, neg_zero,
-      mul_im, one_mul, zero_add, zero_sub, one_im, Left.neg_nonpos_iff, add_im, and_self] at s_memRect
-    linarith
-  rw [keyIdentity x s_nonzero s_ne_neg_one]
-
-  calc
-    _ = Complex.abs ((x : ℂ) ^ s / s - s⁻¹ + -(x : ℂ) ^ s / (s + 1)) := by congr; ring
-    _ ≤ Complex.abs ((x : ℂ) ^ s / s - s⁻¹) + Complex.abs (-(x : ℂ) ^ s / (s + 1)) := AbsoluteValue.add_le Complex.abs _ _
-    _ ≤ Complex.abs ((x : ℂ) ^ s / s - s⁻¹) +  bnd / 2 := ?_
-    _ ≤ bnd / 2 + bnd / 2 := by
-      gcongr
-      convert sRectBnd s s_memRect
-      by_cases one_le_x : 1 ≤ x <;> simp only [dite_eq_ite, one_le_x, ↓reduceIte, ↓reduceDite] <;> field_simp <;> ring
-    _ = bnd := by ring
-
-  gcongr
-  rw [← Complex.abs_neg]
-  simp only [map_neg_eq_map, map_div₀]
-  rw [Square, mem_Rect] at s_memRect
-  · simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero,
-      sub_self, sub_zero, add_re, add_zero, sub_im, neg_im, neg_zero, mul_im, one_mul, zero_add,
-      zero_sub, add_im] at s_memRect
-    have bnd2 : (Complex.abs (s + 1))⁻¹ ≤ 2
-    · rw [inv_le (by simp [sPlusOneNeZero s_ne_neg_one]) (by linarith)]
-      calc
-        2⁻¹ ≤ (s + 1).re := by
-          simp only [add_re, one_re]
-          have aux1 : -(1 : ℝ) / 2 ≤ s.re := by linarith [s_memRect.1]
-          have aux2 : -(1 : ℝ) / 2 = -1 + 2⁻¹ := by norm_num
-          rw [aux2] at aux1
-          linarith
-        _ ≤ Complex.abs (s + 1) := Complex.re_le_abs _
-    by_cases one_le_x : 1 ≤ x
-    · simp only [one_le_x, ↓reduceDite, mul_div_assoc]
-      rw [(by norm_num : (4 : ℝ) / 2 = 2)]
-      have bnd1 : Complex.abs ((x : ℂ) ^ s) ≤ x ^ (2 : ℝ) := by
-        rw [Complex.abs_cpow_eq_rpow_re_of_pos xpos]
-        have : s.re ≤ 2 := by linarith [s_memRect.2.1]
-        exact Real.rpow_le_rpow_of_exponent_le one_le_x this
-      change Complex.abs ((x : ℂ) ^ s) * (Complex.abs (s + 1))⁻¹ ≤ _
-      refine mul_le_mul bnd1 bnd2 (inv_nonneg_of_nonneg (AbsoluteValue.nonneg Complex.abs _)) ?_
-      convert sq_nonneg x
-      exact rpow_two x
-    · simp only [one_le_x, ↓reduceDite, one_div]
-      simp only [not_le] at one_le_x
-      rw [mul_div_assoc, (by norm_num : (4 : ℝ) / 2 = 2)]
-      set t := x⁻¹
-      have tpos : 0 < t := inv_pos_of_pos xpos
-      have tGeOne : 1 ≤ t := one_le_inv xpos one_le_x.le
-      have bnd1 : Complex.abs ((x : ℂ) ^ s) ≤ x ^ (-(2 : ℝ)) := by
-        rw [Complex.abs_cpow_eq_rpow_re_of_pos xpos]
-        rw [(by field_simp : x = t⁻¹), Real.inv_rpow tpos.le, inv_le (Real.rpow_pos_of_pos tpos _) (by simp [Real.rpow_pos_of_pos xpos _])]
-        have : (t⁻¹ ^ (-(2 : ℝ)))⁻¹ = t ^ (-(2 : ℝ))
-        · simp only [inv_inv]
-          rw [Real.rpow_neg xpos.le, inv_inv, Real.rpow_neg tpos.le, Real.inv_rpow xpos.le, inv_inv]
-        rw [this]
-        apply Real.rpow_le_rpow_of_exponent_le tGeOne -- (Real.rpow_pos_of_pos tpos s.re)
-        linarith [s_memRect.1]
-      change Complex.abs ((x : ℂ) ^ s) * (Complex.abs (s + 1))⁻¹ ≤ _
-      refine mul_le_mul bnd1 bnd2 (inv_nonneg_of_nonneg (AbsoluteValue.nonneg Complex.abs _)) ?_
-      convert sq_nonneg t
-      rw [← rpow_two t, Real.rpow_neg]
-      simp only [rpow_two, inv_pow]
-      exact xpos.le
-  · simp only [sub_re, neg_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im, mul_zero, sub_self,
-      sub_zero, add_re, add_zero, neg_le_self_iff]
-    linarith
-  · simp only [sub_im, neg_im, ofReal_im, neg_zero, mul_im, I_re, mul_zero, I_im, ofReal_re, one_mul,
-      zero_add, zero_sub, add_im, neg_le_self_iff]
-    linarith
-
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - 1 / s)) ''
+    (Square 0 c \ {0})) := by
 /-%%
-\begin{proof}\uses{keyIdentity}
+\begin{proof}\uses{keyIdentity}\leanok
 Applying Lemma \ref{keyIdentity}, the
  function $s ↦ x^s/s(s+1) - 1/s = x^s/s - x^0/s - x^s/(1+s)$. The last term is bounded for $s$
  away from $-1$. The first two terms are the difference quotient of the function $s ↦ x^s$ at
  $0$; since it's differentiable, the difference remains bounded as $s\to 0$.
 \end{proof}
 %%-/
+  suffices Tendsto (norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - 1 / s))
+      (𝓝[≠] 0) (𝓝 (‖(deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) 0) - 1 / (1 + 0)‖)) by
+    obtain ⟨t, ht0, ht⟩ := eventually_smallSets.mp this.eventually_bddAbove
+    obtain ⟨ε, hε0, hε⟩ := nhdsWithin_hasBasis (nhds_hasBasis_square 0) {0}ᶜ |>.1 t |>.mp ht0
+    filter_upwards [Ioo_mem_nhdsWithin_Ioi' hε0] with ε' ⟨hε'0, hε'⟩
+    exact ht _ <| (diff_subset_diff (square_subset_square hε'0 hε'.le) subset_rfl).trans hε
+  suffices Tendsto
+      (norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / s - (x : ℂ) ^ (0 : ℂ) / s - (x : ℂ) ^ s / (1 + s)))
+      (𝓝[≠] 0) (𝓝 (‖(deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) 0) - 1 / (1 + 0)‖)) by
+    apply this.congr'
+    filter_upwards [diff_mem_nhdsWithin_compl (isOpen_compl_singleton.mem_nhds
+      (Set.mem_compl_singleton_iff.mpr (by norm_num : (0 : ℂ) ≠ -1))) {0}] with s hs
+    rw [Function.comp_apply, Function.comp_apply, keyIdentity _ hs.2 hs.1, cpow_zero]
+    ring_nf
+  refine (Tendsto.sub ?_ ?_).norm
+  · have hd : DifferentiableAt ℂ (fun s ↦ (x : ℂ) ^ s) (0 : ℂ) :=
+      differentiableAt_id'.const_cpow <| Or.inl <| ofReal_ne_zero.mpr <| ne_of_gt xpos
+    convert hasDerivAt_iff_tendsto_slope.mp hd.hasDerivAt using 1
+    ext
+    rw [slope_def_field]
+    ring
+  · refine tendsto_nhdsWithin_of_tendsto_nhds (Tendsto.div ?_ ?_ (by norm_num))
+    · refine cpow_zero _ ▸ (Continuous.tendsto ?_ 0)
+      exact continuous_id.const_cpow <| Or.inl <| ofReal_ne_zero.mpr <| ne_of_gt xpos
+    · exact tendsto_const_nhds.add tendsto_id
 
 
 /-%%
@@ -885,18 +837,42 @@ $$
 is bounded above on the rectangle with corners at $-1-c-i*c$ and $-1+c+i*c$ (except at $s=-1$).
 \end{lemma}
 %%-/
-lemma diffBddAtNegOne (x : ℝ) {c : ℝ} (cpos : 0 < c) (c_lt : c < 1/2) :
+lemma diffBddAtNegOne {x : ℝ} (xpos : 0 < x) :
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0,
     BddAbove ((norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - (-x⁻¹) / (s+1))) ''
       (Square (-1) c \ {-1})) := by
-  sorry
 /-%%
-\begin{proof}\uses{keyIdentity}
+\begin{proof}\uses{keyIdentity}\leanok
 Applying Lemma \ref{keyIdentity}, the
  function $s ↦ x^s/s(s+1) - x^{-1}/(s+1) = x^s/s - x^s/(s+1) - (-x^{-1})/(s+1)$. The first term is bounded for $s$
  away from $0$. The last two terms are the difference quotient of the function $s ↦ x^s$ at
  $-1$; since it's differentiable, the difference remains bounded as $s\to -1$.
 \end{proof}
 %%-/
+  suffices Tendsto (norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - (-x⁻¹) / (s+1)))
+      (𝓝[≠] (-1)) (𝓝 (‖x⁻¹ / -1 - (deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) (-1))‖)) by
+    obtain ⟨t, ht0, ht⟩ := eventually_smallSets.mp this.eventually_bddAbove
+    obtain ⟨ε, hε0, hε⟩ := nhdsWithin_hasBasis (nhds_hasBasis_square (-1)) {-1}ᶜ |>.1 t |>.mp ht0
+    filter_upwards [Ioo_mem_nhdsWithin_Ioi' hε0] with ε' ⟨hε'0, hε'⟩
+    exact ht _ <| (diff_subset_diff (square_subset_square hε'0 hε'.le) subset_rfl).trans hε
+  suffices Tendsto
+      (norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / s - ((x : ℂ) ^ s / (s + 1) - x⁻¹ / (s + 1))))
+      (𝓝[≠] (-1)) (𝓝 (‖x⁻¹ / -1 - (deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) (-1))‖)) by
+    apply this.congr'
+    filter_upwards [diff_mem_nhdsWithin_compl (isOpen_compl_singleton.mem_nhds
+      (Set.mem_compl_singleton_iff.mpr (by norm_num : (-1 : ℂ) ≠ 0))) {-1}] with s hs
+    rw [Function.comp_apply, Function.comp_apply, keyIdentity _ hs.1 hs.2]
+    ring_nf
+  refine (Tendsto.sub ?_ ?_).norm
+  · refine tendsto_nhdsWithin_of_tendsto_nhds (Tendsto.div ?_ tendsto_id (by norm_num))
+    convert (continuous_id.const_cpow <| Or.inl <| ofReal_ne_zero.mpr <| ne_of_gt xpos).tendsto (-1)
+    simp [cpow_neg_one]
+  · have hd : DifferentiableAt ℂ (fun s ↦ (x : ℂ) ^ s) (-1 : ℂ) :=
+      differentiableAt_id'.const_cpow <| Or.inl <| ofReal_ne_zero.mpr <| ne_of_gt xpos
+    convert hasDerivAt_iff_tendsto_slope.mp hd.hasDerivAt using 1
+    ext
+    rw [slope_def_field, cpow_neg_one, ofReal_inv]
+    ring
 
 /-%%
 \begin{lemma}[residueAtZero]\label{residueAtZero}\lean{Perron.residueAtZero}\leanok
@@ -940,6 +916,31 @@ holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
   · simpa using cpos.le
   · convert g_eq_fDiff using 3 <;> simp [Square]
 --%%\end{proof}
+
+lemma residueAtNegOne (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
+    RectangleIntegral' (f x) (-c - c * I - 1) (c + c * I - 1) = -x⁻¹ := by
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2), diffBddAtNegOne xpos]
+  intro c hc bddAbove
+  obtain ⟨cpos, _⟩ := hc
+  have h_mem {s : ℂ} (hs : s ∈ Square (-1) c) :
+      -c ≤ s.re + 1 ∧ s.re + 1 ≤ c ∧ -c ≤ s.im ∧ s.im ≤ c := by
+    rw [Square, mem_Rect (by simpa using by linarith) (by simp [cpos.le])] at hs
+    simpa using hs
+  have RectSub : Square (-1) c \ {-1} ⊆ {0, -1}ᶜ := by
+    refine fun s ⟨hs, hs1⟩ ↦ not_or.mpr ⟨?_, hs1⟩
+    simpa [Complex.ext_iff] using fun _ _ ↦ by linarith [h_mem hs]
+  have fHolo : HolomorphicOn (f x) (Square (-1) c \ {-1}) := (isHolomorphicOn xpos).mono RectSub
+  have f1Holo : HolomorphicOn ((f x) - (fun (s : ℂ) ↦ -x⁻¹ / (s + 1))) (Square (-1) c \ {-1}) := by
+    refine fHolo.sub <| (differentiableOn_const _).neg.div ?_ fun x hx ↦ sPlusOneNeZero hx.2
+    exact differentiableOn_id.add (differentiableOn_const 1)
+  have RectMemNhds : Square (-1) c ∈ 𝓝 (-1) := square_mem_nhds (-1) (ne_of_gt cpos)
+  obtain ⟨g, gHolo, g_eq_fDiff⟩ := existsDifferentiableOn_of_bddAbove RectMemNhds f1Holo bddAbove
+  simp_rw [Square] at fHolo gHolo RectMemNhds
+  refine ResidueTheoremOnRectangleWithSimplePole ?_ ?_ RectMemNhds gHolo ?_
+  · simpa using cpos.le
+  · simpa using cpos.le
+  · convert g_eq_fDiff using 3
+    simp
 
 /-%%
 \begin{lemma}[residuePull1]\label{residuePull1}\lean{Perron.residuePull1}\leanok

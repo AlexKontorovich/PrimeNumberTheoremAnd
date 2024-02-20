@@ -282,9 +282,13 @@ lemma square_mem_nhds (p : ℂ) {c : ℝ} (hc : c ≠ 0) :
     exact h (neg_ne_zero.mpr hc) <| neg_pos.mpr <| hc.lt_of_le <| not_lt.mp hc_pos
   exact (nhds_hasBasis_square p).mem_of_mem hc_pos
 
+lemma square_subset_square {p : ℂ} {c₁ c₂ : ℝ} (hc₁ : 0 < c₁) (hc : c₁ ≤ c₂) :
+    Square p c₁ ⊆ Square p c₂ := by
+  apply RectSubRect' <;> simpa using by linarith
+
 lemma SmallSquareInRectangle {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ nhds p) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0, Square p c ⊆ Rectangle z w := by
   obtain ⟨ε, hε0, hε⟩ := ((Complex.nhds_hasBasis_square p).1 _).mp pInRectInterior
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (hε0)] with _ ⟨_, _⟩
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (hε0)] with _ ⟨hε'0, hε'⟩
   refine subset_trans ?_ hε
-  apply RectSubRect' <;> simpa using by linarith
+  exact square_subset_square hε'0 hε'.le
