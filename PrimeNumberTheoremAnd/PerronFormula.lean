@@ -1004,10 +1004,30 @@ $$
 lemma residuePull2 (x_gt_one : 1 < x) :
     VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
     = -1 / x + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-3 / 2) := by
-  sorry
+  apply eq_add_of_sub_eq
+  have xpos : 0 < x := zero_lt_one.trans x_gt_one
+  rw [VerticalIntegral', ← mul_sub, sigmaNegThreeHalfsPull xpos (by norm_num : (0 : ℝ) < 1)]
+  have h_nhds : Rectangle (-3 / 2 - I * ↑1) (-1/2 + I * ↑1) ∈ 𝓝 (-1) := by
+    rw [rectangle_mem_nhds_iff]
+    refine mem_reProdIm.mpr ?_
+    norm_num
+  have fHolo : HolomorphicOn (f x) (Rectangle (-3 / 2 - I * ↑1) (-1 / 2 + I * ↑1) \ {-1}) := by
+    apply (isHolomorphicOn xpos).mono
+    refine fun s ⟨hs, hs0⟩ ↦ not_or.mpr ⟨?_, hs0⟩
+    intro h
+    rw [mem_Rect (by simpa using by linarith) (by simp), h] at hs
+    simp [Complex.ext_iff] at hs; linarith
+  have := RectanglePullToNhdOfPole (by simpa using by linarith) (by simp) h_nhds fHolo
+  obtain ⟨c, hcf, hc⟩ := ((residueAtNegOne xpos).and this).exists_mem
+  obtain ⟨ε, hε, hεc⟩ := Metric.mem_nhdsWithin_iff.mp hcf
+  replace hεc : ε/2 ∈ c := hεc ⟨mem_ball_iff_norm.mpr (by simp [abs_of_pos hε, hε]), half_pos hε⟩
+  obtain ⟨h1, h2⟩ := hc (ε/2) hεc
+  push_cast at *
+  rw [h2, ← RectangleIntegral']
+  convert h1 using 1; repeat ring_nf
 /-%%
-\begin{proof}
-\uses{diffBddAtNegOne}
+\begin{proof}\leanok
+\uses{residueAtNegOne}
 Pull contour from $(-1/2)$ to $(-3/2)$.
 \end{proof}
 %%-/
