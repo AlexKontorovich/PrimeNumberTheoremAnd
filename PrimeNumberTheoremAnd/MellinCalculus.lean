@@ -17,7 +17,7 @@ might have clunkier calculations, which ``magically'' turn out just right - of c
 
 
 /-%%
-\begin{definition}\label{MellinTransform}\lean{MellinTransform}\leanok
+\begin{definition}[MellinTransform]\label{MellinTransform}\lean{MellinTransform}\leanok
 Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mellin transform of $f$ to be the function $\mathcal{M}(f)$ from $\mathbb{C}$ to $\mathbb{C}$ defined by
 $$\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx.$$
 \end{definition}
@@ -27,7 +27,7 @@ noncomputable def MellinTransform (f : ℝ → ℂ) (s : ℂ) : ℂ :=
   ∫ x in Set.Ioi 0, f x * x ^ (s - 1)
 
 /-%%
-\begin{theorem}\label{MellinInversion}\lean{MellinInversion}\leanok
+\begin{theorem}[MellinInversion]\label{MellinInversion}\lean{MellinInversion}\leanok
 Let $f$ be a ``nice'' function from $\mathbb{R}_{>0}$ to $\mathbb{C}$, and let $\sigma$ be sufficiently large. Then
 $$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
 \end{theorem}
@@ -41,11 +41,11 @@ theorem MellinInversion {f : ℝ → ℂ} (σ : ℝ) (hσ : σ > 0) (hf : Contin
 \begin{proof}
 \uses{formulaLtOne, formulaGtOne, MellinTransform}
 The proof is from [Goldfeld-Kontorovich 2012].
-Integrate by parts twice.
+Integrate by parts twice (assuming $f$ is twice differentiable, and all occurring integrals converge absolutely).
 $$
 \mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx = - \int_0^\infty f'(x)x^s\frac{1}{s}dx = \int_0^\infty f''(x)x^{s+1}\frac{1}{s(s+1)}dx.
 $$
-Assuming $f$ is Schwartz, say, we now have at least quadratic decay in $s$ of the Mellin transform. Inserting this formula into the inversion formula and Fubini-Tonelli (we now have absolute convergence!) gives:
+We now have at least quadratic decay in $s$ of the Mellin transform. Inserting this formula into the inversion formula and Fubini-Tonelli (we now have absolute convergence!) gives:
 $$
 RHS = \frac{1}{2\pi i}\left(\int_{(\sigma)}\int_0^\infty f''(t)t^{s+1}\frac{1}{s(s+1)}dt\right) x^{-s}ds
 $$
@@ -64,24 +64,27 @@ where we integrated by parts (undoing the first partial integration), and finall
 
 /-%%
 Finally, we need Mellin Convolutions and properties thereof.
-\begin{definition}\label{MellinConvolution}
+\begin{definition}[MellinConvolution]\label{MellinConvolution}\lean{MellinConvolution}\leanok
 Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$. Then we define the Mellin convolution of $f$ and $g$ to be the function $f\ast g$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
 $$(f\ast g)(x) = \int_0^\infty f(y)g(x/y)\frac{dy}{y}.$$
 \end{definition}
 %%-/
-
+noncomputable def MellinConvolution (f g : ℝ → ℂ) (x : ℝ) : ℂ :=
+  ∫ y in Set.Ioi 0, f y * g (x / y) / y
 /-%%
 The Mellin transform of a convolution is the product of the Mellin transforms.
-\begin{theorem}\label{MellinConvolutionTransform}
+\begin{theorem}[MellinConvolutionTransform]\label{MellinConvolutionTransform}\lean{MellinConvolutionTransform}\leanok
 Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$. Then
 $$\mathcal{M}(f\ast g)(s) = \mathcal{M}(f)(s)\mathcal{M}(g)(s).$$
+** Needs conditions so that the integrals converge absolutely.**
 \end{theorem}
 %%-/
-
+lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ) : MellinTransform (MellinConvolution f g) s = MellinTransform f s * MellinTransform g s := by
+  sorry
 /-%%
 \begin{proof}
 \uses{MellinTransform}
-This is a straightforward calculation.
+This is a straightforward calculation; open the two integrals.
 \end{proof}
 %%-/
 
@@ -208,7 +211,7 @@ Same idea as Urysohn-type argument.
 
 /-%%
 The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at least) like $1/|s|$.
-\begin{theorem}\label{MellinOfPsi}
+\begin{theorem}[MellinOfPsi]\label{MellinOfPsi}\lean{MellinOfPsi}
 The Mellin transform of $\psi$ is
 $$\mathcal{M}(\psi)(s) =  O\left(\frac{1}{|s|}\right),$$
 as $|s|\to\infty$.
@@ -216,7 +219,10 @@ as $|s|\to\infty$.
 
 [Of course it decays faster than any power of $|s|$, but it turns out that we will just need one power.]
 %%-/
-
+-- Better way to spell this? Using BigO and cocompact filter?
+lemma MellinOfPsi {Ψ : ℝ → ℂ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) :
+    ∃ (C : ℝ), ∀ (s : ℂ), C ≤ Complex.abs s → Complex.abs (MellinTransform Ψ s) ≤ C / Complex.abs s := by
+  sorry
 /-%%
 \begin{proof}
 \uses{MellinTransform, SmoothExistence}
@@ -226,20 +232,23 @@ Integrate by parts once.
 
 /-%%
 We can make a delta spike out of this bumpfunction, as follows.
-\begin{definition}\label{DeltaSpike}
+\begin{definition}[DeltaSpike]\label{DeltaSpike}\lean{DeltaSpike}\leanok
 \uses{SmoothExistence}
 Let $\psi$ be a bumpfunction supported in $[1/2,2]$. Then for any $\epsilon>0$, we define the delta spike $\psi_\epsilon$ to be the function from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
 $$\psi_\epsilon(x) = \frac{1}{\epsilon}\psi\left(x^{\frac{1}{\epsilon}}\right).$$
 \end{definition}
+%%-/
 
+noncomputable def DeltaSpike (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
+  fun x => Ψ (x ^ (1 / ε)) / ε
+
+/-%%
 This spike still has mass one:
-\begin{lemma}\label{DeltaSpikeMass}
+\begin{lemma}[DeltaSpikeMass]\label{DeltaSpikeMass}\lean{DeltaSpikeMass}\leanok
 For any $\epsilon>0$, we have
 $$\int_0^\infty \psi_\epsilon(x)\frac{dx}{x} = 1.$$
 \end{lemma}
 %%-/
-noncomputable def DeltaSpike (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
-  fun x => Ψ (x ^ (1 / ε)) / ε
 
 lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (mass_one: ∫ x in Set.Ioi 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
     ∫ x in Set.Ioi 0, ((DeltaSpike Ψ ε) x) / x = 1 :=
@@ -259,20 +268,26 @@ lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (mass_one: ∫ x in Set.Ioi 0, Ψ x / x 
       simp only [ne_eq, div_eq_zero_iff, one_ne_zero, εpos.ne', or_self, not_false_eq_true]
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{DeltaSpike}
 Substitute $y=x^{1/\epsilon}$, and use the fact that $\psi$ has mass one, and that $dx/x$ is Haar measure.
 \end{proof}
 %%-/
 
+-- How do deal with this coersion?...
+noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ (f x : ℂ)
+
 /-%%
 The Mellin transform of the delta spike is easy to compute.
-\begin{theorem}\label{MellinOfDeltaSpike}
+\begin{theorem}[MellinOfDeltaSpike]\label{MellinOfDeltaSpike}\lean{MellinOfDeltaSpike}\leanok
 For any $\epsilon>0$, the Mellin transform of $\psi_\epsilon$ is
 $$\mathcal{M}(\psi_\epsilon)(s) = \mathcal{M}(\psi)\left(\epsilon s\right).$$
 \end{theorem}
 %%-/
-
+theorem MellinOfDeltaSpike {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+    (ε : ℝ) (s : ℂ) :
+    MellinTransform (funCoe (DeltaSpike Ψ ε)) s = MellinTransform (funCoe Ψ) (ε * s) := by
+  sorry
 /-%%
 \begin{proof}
 \uses{DeltaSpike, MellinTransform}
@@ -282,18 +297,37 @@ Substitute $y=x^{1/\epsilon}$, use Haar measure; direct calculation.
 
 /-%%
 In particular, for $s=1$, we have that the Mellin transform of $\psi_\epsilon$ is $1+O(\epsilon)$.
-\begin{corollary}\label{MellinOfDeltaSpikeAt1}
+\begin{corollary}[MellinOfDeltaSpikeAt1]\label{MellinOfDeltaSpikeAt1}\lean{MellinOfDeltaSpikeAt1}\leanok
 For any $\epsilon>0$, we have
 $$\mathcal{M}(\psi_\epsilon)(1) =
-\mathcal{M}(\psi)(\epsilon)= 1+O(\epsilon).$$
+\mathcal{M}(\psi)(\epsilon).$$
 \end{corollary}
 %%-/
 
+lemma MellinOfDeltaSpikeAt1 {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ) :
+    MellinTransform (funCoe (DeltaSpike Ψ ε)) 1 = MellinTransform (funCoe Ψ) ε := by
+  sorry
 /-%%
 \begin{proof}
 \uses{MellinOfDeltaSpike, DeltaSpikeMass}
-This is immediate from the above theorem, the fact that $\mathcal{M}(\psi)(0)=1$ (total mass one),
-and that $\psi$ is Lipschitz.
+This is immediate from the above theorem.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}\label{MellinOfDeltaSpikeAt1_asymp}\lean{MellinOfDeltaSpikeAt1_asymp}\leanok
+As $\epsilon\to 0$, we have
+$$\mathcal{M}(\psi_\epsilon)(1) = 1+O(\epsilon).$$
+\end{lemma}
+%%-/
+lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
+    (fun (ε : ℝ) ↦ (MellinTransform (funCoe Ψ) ε) - 1) =O[𝓝[>]0] id := by
+  sorry
+/-%%
+\begin{proof}
+\uses{MellinOfDeltaSpike, DeltaSpikeMass}
+This follows from the fact that $\mathcal{M}(\psi)(0)=1$ (total mass one), and the differentiability of $\psi$.
 \end{proof}
 %%-/
 
@@ -304,36 +338,64 @@ $$1_{(0,1]}(x) = \begin{cases}
 0 & \text{ if }x>1
 \end{cases}.$$
 This has Mellin transform
-\begin{theorem}\label{MellinOf1}
+\begin{theorem}[MellinOf1]\label{MellinOf1}\lean[MellinOf1]\leanok
 The Mellin transform of $1_{(0,1]}$ is
 $$\mathcal{M}(1_{(0,1]})(s) = \frac{1}{s}.$$
 \end{theorem}
 [Note: this already exists in mathlib]
 %%-/
+lemma MellinOf1 (s : ℂ) : MellinTransform (funCoe (fun x => if x ≤ 1 then 1 else 0)) s = 1 / s := by
+  sorry -- hasMellin_one_Ioc
+
+/-%%
+\begin{proof}
+\uses{MellinTransform}
+This is a straightforward calculation.
+\end{proof}
+%%-/
 
 /-%%
 What will be essential for us is properties of the smooth version of $1_{(0,1]}$, obtained as the
  Mellin convolution of $1_{(0,1]}$ with $\psi_\epsilon$.
-\begin{definition}\label{Smooth1}\uses{MellinOf1, MellinConvolution}
+\begin{definition}[Smooth1]\label{Smooth1}\uses{MellinOf1, MellinConvolution}\leanok
 Let $\epsilon>0$. Then we define the smooth function $\widetilde{1_{\epsilon}}$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
 $$\widetilde{1_{\epsilon}} = 1_{(0,1]}\ast\psi_\epsilon.$$
 \end{definition}
 %%-/
+noncomputable def Smooth1 (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℂ :=
+  MellinConvolution (fun x => if x ≤ 1 then 1 else 0) (funCoe (DeltaSpike Ψ ε))
+
 
 /-%%
-In particular, we have the following
-\begin{lemma}\label{Smooth1Properties}
+In particular, we have the following two properties.
+\begin{lemma}[Smooth1Properties_below]\label{Smooth1Properties_below}\lean{Smooth1Properties_below}\leanok
 Fix $\epsilon>0$. There is an absolute constant $c>0$ so that:
-
-(1) If $x\leq (1-c\epsilon)$, then
+If $x\leq (1-c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 1.$$
+\end{lemma}
+%%-/
+lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ)
+    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) : ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≤ 1 - c * ε →
+      Smooth1 Ψ ε x = 1 := by
+  sorry
+/-%%
+\begin{proof}
+\uses{Smooth1, MellinConvolution}
+This is a straightforward calculation, using the fact that $\psi_\epsilon$ is supported in $[1/2^\epsilon,2^\epsilon]$.
+\end{proof}
+%%-/
 
-And (2):
+/-%%
+\begin{lemma}[Smooth1Properties_above]\label{Smooth1Properties_above}\lean{Smooth1Properties_above}\leanok
+Fix $\epsilon>0$. There is an absolute constant $c>0$ so that:
 if $x\geq (1+c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 0.$$
 \end{lemma}
 %%-/
-
+lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ)
+    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) : ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≥ 1 + c * ε →
+      Smooth1 Ψ ε x = 0 := by
+  sorry
 /-%%
 \begin{proof}
 \uses{Smooth1, MellinConvolution}
@@ -343,7 +405,7 @@ This is a straightforward calculation, using the fact that $\psi_\epsilon$ is su
 
 /-%%
 Combining the above, we have the following Main Lemma of this section on the Mellin transform of $\widetilde{1_{\epsilon}}$.
-\begin{lemma}\label{MellinOfSmooth1}\uses{Smooth1Properties, MellinConvolutionTransform, MellinOfDeltaSpikeAt1, MellinOfPsi}
+\begin{lemma}\label{MellinOfSmooth1}\uses{Smooth1Properties_below, Smooth1Properties_above, MellinConvolutionTransform, MellinOfDeltaSpikeAt1, MellinOfPsi}
 Fix  $\epsilon>0$. Then the Mellin transform of $\widetilde{1_{\epsilon}}$ is
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = \frac{1}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
 
