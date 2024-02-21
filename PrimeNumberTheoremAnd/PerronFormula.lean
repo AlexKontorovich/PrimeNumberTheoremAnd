@@ -759,10 +759,7 @@ $$
 lemma keyIdentity (x : ℝ) {s : ℂ} (s_ne_zero : s ≠ 0) (s_ne_neg_one : s ≠ -1) :
     (x : ℂ) ^ s / (s * (s + 1))
       = (x : ℂ) ^ s / s - (x : ℂ) ^ s / (s + 1) := by
-  have : s + 1 ≠ 0 := sPlusOneNeZero s_ne_neg_one
-  have : s * (s + 1) ≠ 0 := mul_ne_zero s_ne_zero this
-  field_simp
-  ring
+    field_simp [sPlusOneNeZero, mul_ne_zero]; ring_nf
 /-%%
 \begin{proof}\leanok
 By ring.
