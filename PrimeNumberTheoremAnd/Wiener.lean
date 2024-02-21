@@ -462,6 +462,7 @@ lemma fourier_surjection_on_schwartz (f : SchwartzMap ℝ ℂ) : ∃ g : Schwart
 \uses{MellinInversion}
  This is a standard result in Fourier analysis.
 It can be proved here by appealing to Mellin inversion, Theorem \ref{MellinInversion}.
+In particular, given $f$ in the Schwartz class, let $F : \R_+ \to \C : x \mapsto f(\log x)$ be a function in the ``Mellin space''; then the Mellin transform of $F$ on the imaginary axis $s=it$ is the Fourier transform of $f$.  The Mellin inversion theorem gives Fourier inversion.
 \end{proof}
 %%-/
 

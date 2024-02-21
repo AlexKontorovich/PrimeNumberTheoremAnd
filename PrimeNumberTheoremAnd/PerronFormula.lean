@@ -445,9 +445,9 @@ $$\left|
 Note that the implied constant here does depend on $\sigma$. (So it's not as useful a lemma.)
 \end{lemma}
 %-/
-lemma vertIntBound2 (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ ≠ -1) :
-    ∃ C > 0, Complex.abs (VerticalIntegral (f x) σ) ≤ x ^ σ * C := by
-  sorry
+-- lemma vertIntBound2 (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ ≠ -1) :
+--     ∃ C > 0, Complex.abs (VerticalIntegral (f x) σ) ≤ x ^ σ * C := by
+--   sorry
 /-%
 \begin{proof}
 \uses{vertIntBound}
