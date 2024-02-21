@@ -745,10 +745,8 @@ lemma sigmaNegOneHalfPull (xpos : 0 < x) (σpos : 0 < σ) (Tpos : 0 < T):
     (isIntegrable xpos σpos.ne.symm (by linarith)) (tendsto_zero_Upper xpos ..)
     (tendsto_zero_Lower xpos ..) (isHolomorphicOn xpos) σpos Tpos
 
-lemma sPlusOneNeZero {s : ℂ} (s_ne_neg_one : s ≠ -1) : s + 1 ≠ 0 := by
-  intro h
-  have : s = -1 := add_eq_zero_iff_eq_neg.mp h
-  exact s_ne_neg_one this
+lemma sPlusOneNeZero {s : ℂ} (s_ne_neg_one : s ≠ -1) : s + 1 ≠ 0 :=
+  fun h => s_ne_neg_one (add_eq_zero_iff_eq_neg.mp h)
 
 /-%%
 \begin{lemma}[keyIdentity]\label{keyIdentity}\lean{Perron.keyIdentity}\leanok
