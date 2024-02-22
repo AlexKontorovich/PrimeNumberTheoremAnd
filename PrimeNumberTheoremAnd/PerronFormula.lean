@@ -745,10 +745,45 @@ lemma sigmaNegOneHalfPull (xpos : 0 < x) (σpos : 0 < σ) (Tpos : 0 < T):
     (isIntegrable xpos σpos.ne.symm (by linarith)) (tendsto_zero_Upper xpos ..)
     (tendsto_zero_Lower xpos ..) (isHolomorphicOn xpos) σpos Tpos
 
-lemma sPlusOneNeZero {s : ℂ} (s_ne_neg_one : s ≠ -1) : s + 1 ≠ 0 := by
-  intro h
-  have : s = -1 := add_eq_zero_iff_eq_neg.mp h
-  exact s_ne_neg_one this
+lemma NegOneHalfNegThreeHalfsPull_aux {f : ℂ → ℂ} (hf1 : Integrable (fun t : ℝ ↦ f ((-3/2:ℝ) + t * I)))
+  (hf2 : Integrable (fun t : ℝ ↦ f ((-1/2:ℝ) + t * I)))
+  (hftop : Tendsto (fun y : ℝ => ∫ (x : ℝ) in (-3/2:ℝ)..(-1/2:ℝ), f (↑x + ↑y * I)) atTop (𝓝 0))
+  (hfbot : Tendsto (fun y : ℝ => ∫ (x : ℝ) in (-3/2:ℝ)..(-1/2:ℝ), f (x + y * I)) atBot (𝓝 0))
+  (hf_holo : HolomorphicOn f {0, -1}ᶜ) (Tpos : 0 < T):
+    VerticalIntegral f (-1 / 2)
+    - VerticalIntegral f (-3 / 2)
+    = RectangleIntegral f (-3 / 2 - I * T) (-1 / 2 + I * T) := by
+
+  suffices : VerticalIntegral f (-1 / 2)
+    - VerticalIntegral f (-3 / 2)
+    - RectangleIntegral f (-3 / 2 - I * T) (-1 / 2 + I * T) = 0
+  · linear_combination this
+  calc
+    _ = UpperUIntegral f (-3/2) (-1/2) T
+        - LowerUIntegral f (-3/2) (-1/2) T := ?_
+    _ = 0 := ?_
+  · convert DiffVertRect_eq_UpperLowerUs hf1 hf2
+    repeat norm_num
+  · rw[HolomorphicOn.upperUIntegral_eq_zero (by linarith) _ hftop hf1 hf2,
+      HolomorphicOn.lowerUIntegral_eq_zero (by linarith) _ hfbot hf1 hf2]
+    · ring
+    all_goals
+    · apply hf_holo.mono
+      intro z
+      simp only [mem_setOf_eq, mem_compl_iff, mem_insert_iff, mem_singleton_iff, and_imp]
+      push_neg
+      intro _ _ _
+      constructor <;> apply_fun Complex.im <;> norm_num <;> linarith
+
+lemma NegOneHalfNegThreeHalfsPull (xpos : 0 < x) (Tpos : 0 < T):
+    VerticalIntegral (f x) (-1 / 2) - VerticalIntegral (f x) (-3 / 2)
+    = RectangleIntegral (f x) (-3 / 2 - I * T) (-1 / 2 + I * T) := by
+  refine NegOneHalfNegThreeHalfsPull_aux ?_ ?_
+    (tendsto_zero_Upper xpos ..) (tendsto_zero_Lower xpos ..) (isHolomorphicOn xpos) Tpos
+  repeat exact (isIntegrable xpos (by norm_num) (by norm_num))
+
+lemma sPlusOneNeZero {s : ℂ} (s_ne_neg_one : s ≠ -1) : s + 1 ≠ 0 :=
+  fun h => s_ne_neg_one (add_eq_zero_iff_eq_neg.mp h)
 
 /-%%
 \begin{lemma}[keyIdentity]\label{keyIdentity}\lean{Perron.keyIdentity}\leanok
@@ -761,10 +796,7 @@ $$
 lemma keyIdentity (x : ℝ) {s : ℂ} (s_ne_zero : s ≠ 0) (s_ne_neg_one : s ≠ -1) :
     (x : ℂ) ^ s / (s * (s + 1))
       = (x : ℂ) ^ s / s - (x : ℂ) ^ s / (s + 1) := by
-  have : s + 1 ≠ 0 := sPlusOneNeZero s_ne_neg_one
-  have : s * (s + 1) ≠ 0 := mul_ne_zero s_ne_zero this
-  field_simp
-  ring
+    field_simp [sPlusOneNeZero, mul_ne_zero]; ring_nf
 /-%%
 \begin{proof}\leanok
 By ring.
@@ -972,8 +1004,7 @@ By Lemma \ref{residueAtZero}, the integral over this square is equal to $1$.
   rw [VerticalIntegral', ← mul_sub, sigmaNegOneHalfPull xpos σ_pos (by norm_num : (0 : ℝ) < 1)]
   have h_nhds : Rectangle (-1 / 2 - I * ↑1) (↑σ + I * ↑1) ∈ 𝓝 0 := by
     rw [rectangle_mem_nhds_iff]
-    suffices 0 ∈ Ioo (-1 / 2) σ ×ℂ Ioo (-1) 1 by simpa [(by linarith : -1/2 ≤ σ)] using this
-    refine ⟨⟨?_, ?_⟩, ⟨?_, ?_⟩⟩ <;> norm_num
+    refine mem_reProdIm.mpr (⟨⟨?_, ?_⟩, ⟨?_, ?_⟩⟩) <;> norm_num
     exact σ_pos
   have fHolo : HolomorphicOn (f x) (Rectangle (-1 / 2 - I * ↑1) (↑σ + I * ↑1) \ {0}) := by
     apply (isHolomorphicOn xpos).mono
@@ -986,14 +1017,9 @@ By Lemma \ref{residueAtZero}, the integral over this square is equal to $1$.
   obtain ⟨ε, hε, hεc⟩ := Metric.mem_nhdsWithin_iff.mp hcf
   replace hεc : ε/2 ∈ c := hεc ⟨mem_ball_iff_norm.mpr (by simp [abs_of_pos hε, hε]), half_pos hε⟩
   obtain ⟨h1, h2⟩ := hc (ε/2) hεc
-  unfold RectangleIntegral' at h1
-  replace : (2 * π * I) ≠ 0 := by norm_num; exact pi_ne_zero
-  replace h1 :
-      RectangleIntegral (f x) (-↑(ε / 2) - ↑(ε / 2) * I) (↑(ε / 2) + ↑(ε / 2) * I) = 2 * ↑π * I
-  · field_simp at h1 ⊢
-    exact h1
   push_cast at *
-  simp_rw [h2, add_zero, mul_comm I, h1, one_div_mul_cancel this]
+  rw [h2, ← RectangleIntegral']
+  convert h1 using 1; ring_nf
 
 /-%%
 \begin{lemma}[residuePull2]\label{residuePull2}\lean{Perron.residuePull2}\leanok
@@ -1009,10 +1035,29 @@ $$
 lemma residuePull2 (x_gt_one : 1 < x) :
     VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
     = -1 / x + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-3 / 2) := by
-  sorry
+  apply eq_add_of_sub_eq
+  have xpos : 0 < x := zero_lt_one.trans x_gt_one
+  rw [VerticalIntegral', ← mul_sub, NegOneHalfNegThreeHalfsPull xpos (by norm_num : (0 : ℝ) < 1)]
+  have h_nhds : Rectangle (-3 / 2 - I * ↑1) (-1/2 + I * ↑1) ∈ 𝓝 (-1) := by
+    rw [rectangle_mem_nhds_iff]
+    exact mem_reProdIm.mpr (by norm_num)
+  have fHolo : HolomorphicOn (f x) (Rectangle (-3 / 2 - I * ↑1) (-1 / 2 + I * ↑1) \ {-1}) := by
+    apply (isHolomorphicOn xpos).mono
+    refine fun s ⟨hs, hs0⟩ ↦ not_or.mpr ⟨?_, hs0⟩
+    intro h
+    rw [mem_Rect (by simpa using by linarith) (by simp), h] at hs
+    simp [Complex.ext_iff] at hs; linarith
+  have := RectanglePullToNhdOfPole (by simpa using by linarith) (by simp) h_nhds fHolo
+  obtain ⟨c, hcf, hc⟩ := ((residueAtNegOne xpos).and this).exists_mem
+  obtain ⟨ε, hε, hεc⟩ := Metric.mem_nhdsWithin_iff.mp hcf
+  replace hεc : ε/2 ∈ c := hεc ⟨mem_ball_iff_norm.mpr (by simp [abs_of_pos hε, hε]), half_pos hε⟩
+  obtain ⟨h1, h2⟩ := hc (ε/2) hεc
+  push_cast at *
+  rw [h2, ← RectangleIntegral']
+  convert h1 using 1; repeat ring_nf
 /-%%
-\begin{proof}
-\uses{diffBddAtNegOne}
+\begin{proof}\leanok
+\uses{residueAtNegOne}
 Pull contour from $(-1/2)$ to $(-3/2)$.
 \end{proof}
 %%-/
