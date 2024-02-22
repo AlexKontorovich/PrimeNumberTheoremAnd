@@ -6,6 +6,8 @@ import PrimeNumberTheoremAnd.Wiener
 
 open Asymptotics Complex ComplexConjugate Topology Filter Real MeasureTheory Set
 
+open scoped Interval
+
 /-%%
 In this section, we prove the Perron formula, which plays a key role in our proof of Mellin inversion.
 %%-/
@@ -64,6 +66,45 @@ Almost by definition.
     exact (intervalIntegral_tendsto_integral hright tendsto_neg_atTop_atBot tendsto_id).const_smul I
   · exact (intervalIntegral_tendsto_integral hleft tendsto_neg_atTop_atBot tendsto_id).const_smul I
 --%%\end{proof}
+
+lemma verticalIntegral_eq_verticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
+    (hf : HolomorphicOn f ([[σ,  σ']] ×ℂ univ))
+    (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
+    (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
+    (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
+    VerticalIntegral f σ = VerticalIntegral f σ' := by
+  refine zeroTendstoDiff _ _ _ (univ_mem' fun _ ↦ ?_)
+    (RectangleIntegral_tendsTo_VerticalIntegral hbot htop hleft hright)
+  exact integral_boundary_rect_eq_zero_of_differentiableOn f _ _
+    (hf.mono fun z hrect ↦ ⟨by simpa using hrect.1, trivial⟩)
+
+lemma verticalIntegral_sub_verticalIntegral_eq_squareIntegral {σ σ' : ℝ} {f : ℂ → ℂ} {p : ℂ}
+    (hσ: σ < p.re ∧ p.re < σ') (hf : HolomorphicOn f (Icc σ  σ' ×ℂ univ \ {p}))
+    (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
+    (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
+    (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, VerticalIntegral f σ' - VerticalIntegral f σ =
+    RectangleIntegral f (-c - c * I + p) (c + c * I + p) := by
+  have : Icc σ σ' ×ℂ univ ∈ 𝓝 p := by
+    rw [← mem_interior_iff_mem_nhds, Complex.interior_reProdIm, interior_Icc, interior_univ]
+    refine ⟨⟨?_, ?_⟩, trivial⟩ <;> linarith
+  obtain ⟨c', hc'0, hc'⟩ := ((nhds_hasBasis_square p).1 _).mp this
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' hc'0] with c ⟨hc0, hcc'⟩
+  have hsub : Square p c ⊆ Icc σ σ' ×ℂ univ := (square_subset_square hc0 hcc'.le).trans hc'
+  apply tendsto_nhds_unique (RectangleIntegral_tendsTo_VerticalIntegral hbot htop hleft hright)
+  apply Filter.EventuallyEq.tendsto
+  filter_upwards [Filter.Ioi_mem_atTop ((c - p.im) ⊔ (c + p.im))] with y hy
+  have : c - p.im < y ∧ c + p.im < y := sup_lt_iff.mp hy
+  have : c + σ ≤ p.re := by simpa using (hsub ⟨left_mem_uIcc, left_mem_uIcc⟩).1.1
+  have : c + p.re ≤ σ' := by simpa using (hsub ⟨right_mem_uIcc, right_mem_uIcc⟩).1.2
+  apply RectanglePullToNhdOfPole'
+  · simpa using ⟨by linarith, by linarith, by linarith⟩
+  · exact square_mem_nhds p (ne_of_gt hc0)
+  · apply RectSubRect' <;> simpa using by linarith
+  · refine hf.mono (diff_subset_diff ?_ subset_rfl)
+    simpa [Rectangle, uIcc_of_lt (hσ.1.trans hσ.2)] using fun x ⟨hx, _⟩ ↦ ⟨hx, trivial⟩
 
 /-%%
 \begin{lemma}[RectangleIntegral_tendsTo_UpperU]\label{RectangleIntegral_tendsTo_UpperU}\lean{RectangleIntegral_tendsTo_UpperU}\leanok
@@ -435,26 +476,6 @@ Triangle inequality and pointwise estimate.
 \end{proof}
 %%-/
 
-
-/-% -- this is purposefully the wrong delimiter, so it doesn't get scraped into blueprint
-TODO : Remove this lemma if it's not needed
-\begin{lemma}[vertIntBound2]%\label{vertIntBound2}\lean{Perron.vertIntBound2}\leanok
-Let $x>0$ and $\sigma\in \R$, $\sigma \ne 0, -1$. Then
-$$\left|
-\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \ll_\sigma x^\sigma.$$
-Note that the implied constant here does depend on $\sigma$. (So it's not as useful a lemma.)
-\end{lemma}
-%-/
--- lemma vertIntBound2 (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ ≠ -1) :
---     ∃ C > 0, Complex.abs (VerticalIntegral (f x) σ) ≤ x ^ σ * C := by
---   sorry
-/-%
-\begin{proof}
-\uses{vertIntBound}
-Similar to ``vertIntBound''.
-\end{proof}
-%-/
-
 lemma map_conj (hx : 0 ≤ x) (s : ℂ) : f x (conj s) = conj (f x s) := by
   simp? [f] says simp only [f, map_div₀, map_mul, map_add, map_one]
   congr
@@ -463,9 +484,9 @@ lemma map_conj (hx : 0 ≤ x) (s : ℂ) : f x (conj s) = conj (f x s) := by
     exact pi_ne_zero.symm
 
 theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
-    (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop)]
+    (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 [[σ', σ'']] ×ˢ (atBot ⊔ atTop)]
     ((fun y ↦ 1 / y^2) ∘ Prod.snd) := by
-  set l := 𝓟 (uIcc σ' σ'') ×ˢ (atBot ⊔ atTop : Filter ℝ) with hl
+  set l := 𝓟 [[σ', σ'']] ×ˢ (atBot ⊔ atTop : Filter ℝ) with hl
   refine IsTheta.div (isTheta_norm_left.mp ?_) ?_
   · suffices (fun (σ, _y) => |x| ^ σ) =Θ[l] fun _ => (1 : ℝ) by
       simpa [Complex.abs_cpow_of_ne_zero <| ofReal_ne_zero.mpr (ne_of_gt xpos),
@@ -582,6 +603,14 @@ The numerator is bounded and the denominator tends to infinity.
   refine isBigO_sup.mp (horizontal_integral_isBigO xpos σ' σ'' volume)
     |>.2.trans_eventuallyEq hcast |>.trans_tendsto <| tendsto_rpow_neg_atTop (by norm_num)
 
+lemma contourPull {σ' σ'' : ℝ} (xpos : 0 < x) (hσ0 : 0 ∉ [[σ', σ'']]) (hσ1 : -1 ∉ [[σ', σ'']]) :
+    VerticalIntegral (f x) σ' = VerticalIntegral (f x) σ'' := by
+  refine verticalIntegral_eq_verticalIntegral ((isHolomorphicOn xpos).mono ?_)
+    (tendsto_zero_Lower xpos σ' σ'') (tendsto_zero_Upper xpos σ' σ'')
+    (isIntegrable xpos (fun h ↦ hσ0 (h ▸ left_mem_uIcc)) (fun h ↦ hσ1 (h ▸ left_mem_uIcc)))
+    (isIntegrable xpos (fun h ↦ hσ0 (h ▸ right_mem_uIcc)) (fun h ↦ hσ1 (h ▸ right_mem_uIcc)))
+  rintro ⟨x, y⟩ ⟨hx, hy⟩ ⟨hc | hc⟩ <;> simp_all [Complex.ext_iff]
+
 /-%%
 We are ready for the first case of the Perron formula, namely when $x<1$:
 \begin{lemma}[formulaLtOne]\label{formulaLtOne}\lean{Perron.formulaLtOne}\leanok
@@ -592,24 +621,6 @@ $$
 $$
 \end{lemma}
 %%-/
-
-lemma contourPull {σ' σ'' : ℝ} (xpos : 0 < x) (hσ0 : 0 ∉ uIcc σ' σ'') (hσ1 : -1 ∉ uIcc σ' σ'') :
-    VerticalIntegral (f x) σ' = VerticalIntegral (f x) σ'' := by
-  have fHolo : HolomorphicOn (f x) {0, -1}ᶜ := isHolomorphicOn xpos
-  have hσ'0 : σ' ≠ 0 := fun h ↦ hσ0 (h ▸ left_mem_uIcc)
-  have hσ'1 : σ' ≠ -1 := fun h ↦ hσ1 (h ▸ left_mem_uIcc)
-  have hσ''0 : σ'' ≠ 0 := fun h ↦ hσ0 (h ▸ right_mem_uIcc)
-  have hσ''1 : σ'' ≠ -1 := fun h ↦ hσ1 (h ▸ right_mem_uIcc)
-  have rectInt (T : ℝ) : RectangleIntegral (f x) (σ' - I * T) (σ'' + I * T) = 0 := by
-    apply integral_boundary_rect_eq_zero_of_differentiableOn (f x) _ _ (fHolo.mono fun z hrect ↦ ?_)
-    have : z ∈ uIcc σ' σ'' ×ℂ uIcc (-T) T := by simpa using hrect
-    have h_re : z.re ≠ 0 := fun h ↦ hσ0 (h ▸ this.1)
-    have h_im : z.re ≠ -1 := fun h ↦ hσ1 (h ▸ this.1)
-    simp_all [Complex.ext_iff]
-  exact zeroTendstoDiff _ _ _ (univ_mem' rectInt) <| RectangleIntegral_tendsTo_VerticalIntegral
-    (tendsto_zero_Lower xpos σ' σ'') (tendsto_zero_Upper xpos σ' σ'')
-    (isIntegrable xpos hσ'0 hσ'1) (isIntegrable xpos hσ''0 hσ''1)
-
 lemma formulaLtOne (xpos : 0 < x) (x_lt_one : x < 1) (σ_pos : 0 < σ)
     : VerticalIntegral (f x) σ = 0 := by
 /-%%
@@ -677,110 +688,6 @@ theorem HolomorphicOn.lowerUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} 
   refine fun _ hTU ↦ hf.vanishesOnRectangle fun _ ↦ ?_
   rw [mem_Rect (by simp [hσ]) (by simp [hTU])]
   simpa using by tauto
-
-/-%%
-\begin{lemma}[sigmaNegOneHalfPull]\label{sigmaNegOneHalfPull}
-\lean{Perron.sigmaNegOneHalfPull}\leanok
-Let $x>0$ and $\sigma > 0$. Then for all $T>0$, we have that
-$$
-\frac1{2\pi i}
-\int_{(-1/2)}\frac{x^s}{s(s+1)}ds -
-\frac 1{2\pi i}
-\int_{(\sigma)}\frac{x^s}{s(s+1)}ds =
-\int_{-1/2-iT}^{\sigma +iT}\frac{x^s}{s(s+1)}ds,
-$$
-that is, a rectangle with corners $-1/2-iT$ and $\sigma+iT$.
-\end{lemma}
-%%-/
-lemma sigmaNegOneHalfPull_aux {f : ℂ → ℂ} (hf1 : Integrable (fun t : ℝ ↦ f ((-1/2:ℝ) + t * I)))
-  (hf2 : Integrable (fun t : ℝ ↦ f (σ + t * I)))
-  (hftop : Tendsto (fun y : ℝ => ∫ (x : ℝ) in (-1/2:ℝ)..σ, f (↑x + ↑y * I)) atTop (𝓝 0))
-  (hfbot : Tendsto (fun y : ℝ => ∫ (x : ℝ) in (-1/2:ℝ)..σ, f (x + y * I)) atBot (𝓝 0))
-  (hf_holo : HolomorphicOn f {0, -1}ᶜ) (σpos : 0 < σ) (Tpos : 0 < T):
-    VerticalIntegral f σ
-    - VerticalIntegral f (-1 / 2)
-    = RectangleIntegral f (-1 / 2 - I * T) (σ + I * T) := by
-
-/-%%
-\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, UpperUIntegral,
-RectangleIntegral_tendsTo_VerticalIntegral, LowerUIntegral, RectangleIntegral_tendsTo_LowerU,
-RectangleIntegral_tendsTo_UpperU, tendsto_zero_Upper, tendsto_zero_Lower,
-isIntegrable}\leanok
-%%-/
-  suffices : VerticalIntegral f σ
-    - VerticalIntegral f (-1 / 2)
-    - RectangleIntegral f (-1 / 2 - I * T) (σ + I * T) = 0
-  · linear_combination this
-  calc
-    _ = UpperUIntegral f (-1/2) σ T
-        - LowerUIntegral f (-1/2) σ T := ?_
-    _ = 0 := ?_
-/-%%
-The integral on $(\sigma)$ minus that on $(-1/2)$, minus the integral on the rectangle, is
-the integral over an UpperU and a LowerU.
-%%-/
-  · convert DiffVertRect_eq_UpperLowerUs hf1 hf2
-    norm_num
-/-%%
-The integrals over the U's are limits of integrals over rectangles with corners at $-1/2+iT$
-and $\sigma+iU$ (for UpperU); this uses Lemma \ref{RectangleIntegral_tendsTo_UpperU}. The
-integrals over the rectangles vanish by Lemmas \ref{tendsto_zero_Upper} and
-\end{proof}
-%%-/
-  · rw[HolomorphicOn.upperUIntegral_eq_zero (by linarith) _ hftop hf1 hf2,
-      HolomorphicOn.lowerUIntegral_eq_zero (by linarith) _ hfbot hf1 hf2]
-    · ring
-    all_goals
-    · apply hf_holo.mono
-      intro z
-      simp only [mem_setOf_eq, mem_compl_iff, mem_insert_iff, mem_singleton_iff, and_imp]
-      push_neg
-      intro _ _ _
-      constructor <;> apply_fun Complex.im <;> norm_num <;> linarith
-
-lemma sigmaNegOneHalfPull (xpos : 0 < x) (σpos : 0 < σ) (Tpos : 0 < T):
-    VerticalIntegral (f x) σ - VerticalIntegral (f x) (-1 / 2)
-    = RectangleIntegral (f x) (-1 / 2 - I * T) (σ + I * T) :=
-  sigmaNegOneHalfPull_aux (isIntegrable xpos (by norm_num) (by norm_num))
-    (isIntegrable xpos σpos.ne.symm (by linarith)) (tendsto_zero_Upper xpos ..)
-    (tendsto_zero_Lower xpos ..) (isHolomorphicOn xpos) σpos Tpos
-
-lemma NegOneHalfNegThreeHalfsPull_aux {f : ℂ → ℂ} (hf1 : Integrable (fun t : ℝ ↦ f ((-3/2:ℝ) + t * I)))
-  (hf2 : Integrable (fun t : ℝ ↦ f ((-1/2:ℝ) + t * I)))
-  (hftop : Tendsto (fun y : ℝ => ∫ (x : ℝ) in (-3/2:ℝ)..(-1/2:ℝ), f (↑x + ↑y * I)) atTop (𝓝 0))
-  (hfbot : Tendsto (fun y : ℝ => ∫ (x : ℝ) in (-3/2:ℝ)..(-1/2:ℝ), f (x + y * I)) atBot (𝓝 0))
-  (hf_holo : HolomorphicOn f {0, -1}ᶜ) (Tpos : 0 < T):
-    VerticalIntegral f (-1 / 2)
-    - VerticalIntegral f (-3 / 2)
-    = RectangleIntegral f (-3 / 2 - I * T) (-1 / 2 + I * T) := by
-
-  suffices : VerticalIntegral f (-1 / 2)
-    - VerticalIntegral f (-3 / 2)
-    - RectangleIntegral f (-3 / 2 - I * T) (-1 / 2 + I * T) = 0
-  · linear_combination this
-  calc
-    _ = UpperUIntegral f (-3/2) (-1/2) T
-        - LowerUIntegral f (-3/2) (-1/2) T := ?_
-    _ = 0 := ?_
-  · convert DiffVertRect_eq_UpperLowerUs hf1 hf2
-    repeat norm_num
-  · rw[HolomorphicOn.upperUIntegral_eq_zero (by linarith) _ hftop hf1 hf2,
-      HolomorphicOn.lowerUIntegral_eq_zero (by linarith) _ hfbot hf1 hf2]
-    · ring
-    all_goals
-    · apply hf_holo.mono
-      intro z
-      simp only [mem_setOf_eq, mem_compl_iff, mem_insert_iff, mem_singleton_iff, and_imp]
-      push_neg
-      intro _ _ _
-      constructor <;> apply_fun Complex.im <;> norm_num <;> linarith
-
-lemma NegOneHalfNegThreeHalfsPull (xpos : 0 < x) (Tpos : 0 < T):
-    VerticalIntegral (f x) (-1 / 2) - VerticalIntegral (f x) (-3 / 2)
-    = RectangleIntegral (f x) (-3 / 2 - I * T) (-1 / 2 + I * T) := by
-  refine NegOneHalfNegThreeHalfsPull_aux ?_ ?_
-    (tendsto_zero_Upper xpos ..) (tendsto_zero_Lower xpos ..) (isHolomorphicOn xpos) Tpos
-  repeat exact (isIntegrable xpos (by norm_num) (by norm_num))
 
 lemma sPlusOneNeZero {s : ℂ} (s_ne_neg_one : s ≠ -1) : s + 1 ≠ 0 :=
   fun h => s_ne_neg_one (add_eq_zero_iff_eq_neg.mp h)
@@ -980,36 +887,25 @@ lemma residuePull1 (x_gt_one : 1 < x) (σ_pos : 0 < σ) :
     VerticalIntegral' (f x) σ = 1 + VerticalIntegral' (f x) (-1 / 2) := by
 /-%%
 \begin{proof}\leanok
-\uses{sigmaNegOneHalfPull, residueAtZero}
-By Lemma \ref{sigmaNegOneHalfPull}, the difference of the two vertical integrals is equal
-to the integral over a rectangle with corners at $-1/2-iT$ and $\sigma+iT$ (for any $T>0$). By
-Lemma \ref{RectanglePullToNhdOfPole}, for $c>0$ sufficiently small, the integral over
-this rectangle is equal to the integral over a square with corners at $-c-i*c$ and $c+i*c$ for $c>0$
+\uses{residueAtZero}
+We pull to a square with corners at $-c-i*c$ and $c+i*c$ for $c>0$
 sufficiently small.
 By Lemma \ref{residueAtZero}, the integral over this square is equal to $1$.
 \end{proof}
 %%-/
   apply eq_add_of_sub_eq
   have xpos : 0 < x := zero_lt_one.trans x_gt_one
-  rw [VerticalIntegral', ← mul_sub, sigmaNegOneHalfPull xpos σ_pos (by norm_num : (0 : ℝ) < 1)]
-  have h_nhds : Rectangle (-1 / 2 - I * ↑1) (↑σ + I * ↑1) ∈ 𝓝 0 := by
-    rw [rectangle_mem_nhds_iff]
-    refine mem_reProdIm.mpr (⟨⟨?_, ?_⟩, ⟨?_, ?_⟩⟩) <;> norm_num
-    exact σ_pos
-  have fHolo : HolomorphicOn (f x) (Rectangle (-1 / 2 - I * ↑1) (↑σ + I * ↑1) \ {0}) := by
-    apply (isHolomorphicOn xpos).mono
-    refine fun s ⟨hs, hs0⟩ ↦ not_or.mpr ⟨hs0, ?_⟩
-    rw [mem_Rect (by simpa using by linarith) (by simp)] at hs
-    replace hs : -1 / 2 ≤ s.re ∧ s.re ≤ σ ∧ -1 ≤ s.im ∧ s.im ≤ 1 := by simpa using hs
-    simpa [Complex.ext_iff] using fun h ↦ by linarith
-  have := RectanglePullToNhdOfPole (by simpa using by linarith) (by simp) h_nhds fHolo
-  obtain ⟨c, hcf, hc⟩ := ((residueAtZero xpos).and this).exists_mem
+  have hf : HolomorphicOn (f x) (Icc (-1 / 2) σ ×ℂ univ \ {0}) :=
+    (isHolomorphicOn xpos).mono fun s ⟨⟨⟨_, _⟩, _⟩, hs0⟩ hc ↦ hc.casesOn
+      (fun hc ↦ hs0 hc) (fun hc ↦ by linarith [show s.re = -1 from congrArg _ hc])
+  have := (residueAtZero xpos).and <| verticalIntegral_sub_verticalIntegral_eq_squareIntegral
+    (by simpa using ⟨by linarith, by linarith⟩) hf
+    (tendsto_zero_Lower xpos _ _) (tendsto_zero_Upper xpos _ _)
+    (isIntegrable xpos (by norm_num) (by norm_num)) (isIntegrable xpos (by linarith) (by linarith))
+  obtain ⟨c, hcf, hc⟩ := this.exists_mem
   obtain ⟨ε, hε, hεc⟩ := Metric.mem_nhdsWithin_iff.mp hcf
-  replace hεc : ε/2 ∈ c := hεc ⟨mem_ball_iff_norm.mpr (by simp [abs_of_pos hε, hε]), half_pos hε⟩
-  obtain ⟨h1, h2⟩ := hc (ε/2) hεc
-  push_cast at *
-  rw [h2, ← RectangleIntegral']
-  convert h1 using 1; ring_nf
+  obtain hε := hc (ε/2) (hεc ⟨mem_ball_iff_norm.mpr (by simp [abs_of_pos hε, hε]), half_pos hε⟩)
+  rw [VerticalIntegral', ← mul_sub, hε.2, ← RectangleIntegral', add_zero, add_zero, hε.1]
 
 /-%%
 \begin{lemma}[residuePull2]\label{residuePull2}\lean{Perron.residuePull2}\leanok
@@ -1027,24 +923,18 @@ lemma residuePull2 (x_gt_one : 1 < x) :
     = -1 / x + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-3 / 2) := by
   apply eq_add_of_sub_eq
   have xpos : 0 < x := zero_lt_one.trans x_gt_one
-  rw [VerticalIntegral', ← mul_sub, NegOneHalfNegThreeHalfsPull xpos (by norm_num : (0 : ℝ) < 1)]
-  have h_nhds : Rectangle (-3 / 2 - I * ↑1) (-1/2 + I * ↑1) ∈ 𝓝 (-1) := by
-    rw [rectangle_mem_nhds_iff]
-    exact mem_reProdIm.mpr (by norm_num)
-  have fHolo : HolomorphicOn (f x) (Rectangle (-3 / 2 - I * ↑1) (-1 / 2 + I * ↑1) \ {-1}) := by
-    apply (isHolomorphicOn xpos).mono
-    refine fun s ⟨hs, hs0⟩ ↦ not_or.mpr ⟨?_, hs0⟩
-    intro h
-    rw [mem_Rect (by simpa using by linarith) (by simp), h] at hs
-    simp [Complex.ext_iff] at hs; linarith
-  have := RectanglePullToNhdOfPole (by simpa using by linarith) (by simp) h_nhds fHolo
-  obtain ⟨c, hcf, hc⟩ := ((residueAtNegOne xpos).and this).exists_mem
+  have hf : HolomorphicOn (f x) (Icc (-3 / 2) (-1 / 2) ×ℂ univ \ {-1}) :=
+    (isHolomorphicOn xpos).mono fun s ⟨⟨⟨_, _⟩, _⟩, hs1⟩ hc ↦ hc.casesOn
+      (fun hc ↦ by linarith [show s.re = 0 from congrArg _ hc]) (fun hc ↦ hs1 hc)
+  have := (residueAtNegOne xpos).and <| verticalIntegral_sub_verticalIntegral_eq_squareIntegral
+    (by simpa using ⟨by linarith, by linarith⟩) hf
+    (tendsto_zero_Lower xpos _ _) (tendsto_zero_Upper xpos _ _)
+    (isIntegrable xpos (by norm_num) (by norm_num)) (isIntegrable xpos (by norm_num) (by norm_num))
+  obtain ⟨c, hcf, hc⟩ := this.exists_mem
   obtain ⟨ε, hε, hεc⟩ := Metric.mem_nhdsWithin_iff.mp hcf
-  replace hεc : ε/2 ∈ c := hεc ⟨mem_ball_iff_norm.mpr (by simp [abs_of_pos hε, hε]), half_pos hε⟩
-  obtain ⟨h1, h2⟩ := hc (ε/2) hεc
-  push_cast at *
-  rw [h2, ← RectangleIntegral']
-  convert h1 using 1; repeat ring_nf
+  replace hε := hc (ε/2) (hεc ⟨mem_ball_iff_norm.mpr (by simp [abs_of_pos, hε]), half_pos hε⟩)
+  rw [VerticalIntegral', ← mul_sub, hε.2, ← RectangleIntegral', neg_div, one_div, ← ofReal_inv]
+  exact hε.1
 /-%%
 \begin{proof}\leanok
 \uses{residueAtNegOne}
