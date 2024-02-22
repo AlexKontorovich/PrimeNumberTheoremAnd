@@ -771,15 +771,24 @@ By ring.
 \end{proof}
 %%-/
 
-lemma _root_.Filter.Tendsto.eventually_bddAbove {α β : Type*} [LinearOrder β] [NoMaxOrder β]
-    [TopologicalSpace β] [ClosedIciTopology β] {f : α → β} {y : β} {l : Filter α}
-    (hf : Tendsto f l (𝓝 y)) : ∀ᶠ s in l.smallSets, BddAbove (f '' s) := by
+variable  {α β : Type*} [LinearOrder β] [NoMaxOrder β] [TopologicalSpace β] [ClosedIciTopology β]
+  {y : β} {l : Filter α}
+
+lemma _root_.Filter.Tendsto.eventually_bddAbove {f : α → β} (hf : Tendsto f l (𝓝 y)) :
+    ∀ᶠ s in l.smallSets, BddAbove (f '' s) := by
   obtain ⟨y', hy'⟩ := exists_gt y
   obtain ⟨s, hsl, hs⟩ := (eventually_le_of_tendsto_lt hy' hf).exists_mem
   simp_rw [Filter.eventually_smallSets, bddAbove_def]
   refine ⟨s, hsl, fun t ht ↦ ⟨y', fun y hy ↦ ?_⟩⟩
   obtain ⟨x, hxt, hxy⟩ := hy
   exact hxy ▸ hs x (ht hxt)
+
+lemma bddAbove_square_of_tendsto {f : ℂ → β} {x : ℂ} (hf : Tendsto f (𝓝[≠] x) (𝓝 y)) :
+    ∀ᶠ (c : ℝ) in 𝓝[>] 0, BddAbove (f '' (Square x c \ {x})) := by
+  obtain ⟨t, htf, ht⟩ := eventually_smallSets.mp hf.eventually_bddAbove
+  obtain ⟨ε, hε0, hε⟩ := nhdsWithin_hasBasis (nhds_hasBasis_square x) {x}ᶜ |>.1 t |>.mp htf
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' hε0] with ε' ⟨hε'0, hε'⟩
+  exact ht _ <| (diff_subset_diff (square_subset_square hε'0 hε'.le) subset_rfl).trans hε
 
 /-%%
 \begin{lemma}[diffBddAtZero]\label{diffBddAtZero}\lean{Perron.diffBddAtZero}\leanok
@@ -801,32 +810,22 @@ Applying Lemma \ref{keyIdentity}, the
  $0$; since it's differentiable, the difference remains bounded as $s\to 0$.
 \end{proof}
 %%-/
-  suffices Tendsto (norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - 1 / s))
-      (𝓝[≠] 0) (𝓝 (‖(deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) 0) - 1 / (1 + 0)‖)) by
-    obtain ⟨t, ht0, ht⟩ := eventually_smallSets.mp this.eventually_bddAbove
-    obtain ⟨ε, hε0, hε⟩ := nhdsWithin_hasBasis (nhds_hasBasis_square 0) {0}ᶜ |>.1 t |>.mp ht0
-    filter_upwards [Ioo_mem_nhdsWithin_Ioi' hε0] with ε' ⟨hε'0, hε'⟩
-    exact ht _ <| (diff_subset_diff (square_subset_square hε'0 hε'.le) subset_rfl).trans hε
-  suffices Tendsto
-      (norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / s - (x : ℂ) ^ (0 : ℂ) / s - (x : ℂ) ^ s / (1 + s)))
-      (𝓝[≠] 0) (𝓝 (‖(deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) 0) - 1 / (1 + 0)‖)) by
+  apply bddAbove_square_of_tendsto
+  suffices Tendsto (norm ∘ (fun (s : ℂ) ↦ ↑x ^ s / s - ↑x ^ (0 : ℂ) / s - ↑x ^ s / (1 + s)))
+      (𝓝[≠] 0) (𝓝 (‖(deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) 0) - x ^ (0 : ℂ) / (1 + 0)‖)) by
     apply this.congr'
     filter_upwards [diff_mem_nhdsWithin_compl (isOpen_compl_singleton.mem_nhds
       (Set.mem_compl_singleton_iff.mpr (by norm_num : (0 : ℂ) ≠ -1))) {0}] with s hs
     rw [Function.comp_apply, Function.comp_apply, keyIdentity _ hs.2 hs.1, cpow_zero]
     ring_nf
-  refine (Tendsto.sub ?_ ?_).norm
-  · have hd : DifferentiableAt ℂ (fun s ↦ (x : ℂ) ^ s) (0 : ℂ) :=
-      differentiableAt_id'.const_cpow <| Or.inl <| ofReal_ne_zero.mpr <| ne_of_gt xpos
-    convert hasDerivAt_iff_tendsto_slope.mp hd.hasDerivAt using 1
-    ext
+  have hx0 : (x : ℂ) ≠ 0 := slitPlane_ne_zero (.inl xpos)
+  refine (Tendsto.sub ?_ (tendsto_nhdsWithin_of_tendsto_nhds ?_)).norm
+  · convert hasDerivAt_iff_tendsto_slope.mp
+      (differentiableAt_id'.const_cpow (.inl hx0)).hasDerivAt using 2
     rw [slope_def_field]
     ring
-  · refine tendsto_nhdsWithin_of_tendsto_nhds (Tendsto.div ?_ ?_ (by norm_num))
-    · refine cpow_zero _ ▸ (Continuous.tendsto ?_ 0)
-      exact continuous_id.const_cpow <| Or.inl <| ofReal_ne_zero.mpr <| ne_of_gt xpos
-    · exact tendsto_const_nhds.add tendsto_id
-
+  · exact (continuous_id.const_cpow (.inl hx0)).tendsto 0
+      |>.div (tendsto_const_nhds.add tendsto_id) (by norm_num)
 
 /-%%
 \begin{lemma}[diffBddAtNegOne]\label{diffBddAtNegOne}\lean{Perron.diffBddAtNegOne}\leanok
@@ -849,28 +848,19 @@ Applying Lemma \ref{keyIdentity}, the
  $-1$; since it's differentiable, the difference remains bounded as $s\to -1$.
 \end{proof}
 %%-/
-  suffices Tendsto (norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / (s * (s + 1)) - (-x⁻¹) / (s+1)))
-      (𝓝[≠] (-1)) (𝓝 (‖x⁻¹ / -1 - (deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) (-1))‖)) by
-    obtain ⟨t, ht0, ht⟩ := eventually_smallSets.mp this.eventually_bddAbove
-    obtain ⟨ε, hε0, hε⟩ := nhdsWithin_hasBasis (nhds_hasBasis_square (-1)) {-1}ᶜ |>.1 t |>.mp ht0
-    filter_upwards [Ioo_mem_nhdsWithin_Ioi' hε0] with ε' ⟨hε'0, hε'⟩
-    exact ht _ <| (diff_subset_diff (square_subset_square hε'0 hε'.le) subset_rfl).trans hε
-  suffices Tendsto
-      (norm ∘ (fun (s : ℂ) ↦ (x : ℂ) ^ s / s - ((x : ℂ) ^ s / (s + 1) - x⁻¹ / (s + 1))))
-      (𝓝[≠] (-1)) (𝓝 (‖x⁻¹ / -1 - (deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) (-1))‖)) by
+  apply bddAbove_square_of_tendsto
+  suffices Tendsto (norm ∘ (fun (s : ℂ) ↦ ↑x ^ s / s - (↑x ^ s / (s + 1) - x⁻¹ / (s + 1))))
+      (𝓝[≠] (-1)) (𝓝 (‖x ^ (-1 : ℂ) / -1 - (deriv (fun (s : ℂ) ↦ (x : ℂ) ^ s) (-1))‖)) by
     apply this.congr'
     filter_upwards [diff_mem_nhdsWithin_compl (isOpen_compl_singleton.mem_nhds
       (Set.mem_compl_singleton_iff.mpr (by norm_num : (-1 : ℂ) ≠ 0))) {-1}] with s hs
     rw [Function.comp_apply, Function.comp_apply, keyIdentity _ hs.1 hs.2]
     ring_nf
-  refine (Tendsto.sub ?_ ?_).norm
-  · refine tendsto_nhdsWithin_of_tendsto_nhds (Tendsto.div ?_ tendsto_id (by norm_num))
-    convert (continuous_id.const_cpow <| Or.inl <| ofReal_ne_zero.mpr <| ne_of_gt xpos).tendsto (-1)
-    simp [cpow_neg_one]
-  · have hd : DifferentiableAt ℂ (fun s ↦ (x : ℂ) ^ s) (-1 : ℂ) :=
-      differentiableAt_id'.const_cpow <| Or.inl <| ofReal_ne_zero.mpr <| ne_of_gt xpos
-    convert hasDerivAt_iff_tendsto_slope.mp hd.hasDerivAt using 1
-    ext
+  have hx0 : (x : ℂ) ≠ 0 := slitPlane_ne_zero (.inl xpos)
+  refine (Tendsto.sub (tendsto_nhdsWithin_of_tendsto_nhds ?_) ?_).norm
+  · exact ((continuous_id.const_cpow (.inl hx0)).tendsto _).div tendsto_id (by norm_num)
+  · convert hasDerivAt_iff_tendsto_slope.mp
+      (differentiableAt_id'.const_cpow (.inl hx0)).hasDerivAt using 2
     rw [slope_def_field, cpow_neg_one, ofReal_inv]
     ring
 
