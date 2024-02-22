@@ -255,11 +255,48 @@ Standard.
 \end{proof}
 %%-/
 
+-- TODO: move near `Complex.cpow_neg`?
+lemma Complex.cpow_inv_ofReal_pos {a : ℝ} (ha : 0 ≤ a) (r : ℂ) :
+    ((a : ℂ) ^ r)⁻¹ = (a : ℂ)⁻¹ ^ r := by
+  sorry
+
+lemma Complex.cpow_eq_exp_log_ofReal (x : ℝ) (hx : 0 < x) (y : ℂ) :
+    (x : ℂ) ^ y = Complex.exp (Real.log x * y) := by
+  simp [← Complex.cpow_eq_pow, Complex.cpow, hx.ne.symm, ← Complex.ofReal_log hx.le]
+
+-- TODO: move near `Complex.mul_cpow_ofReal_nonneg`
+lemma Complex.cpow_neg_eq_inv_pow_ofReal_pos {a : ℝ} (ha : 0 < a) (r : ℂ) :
+    (a : ℂ) ^ (-r) = (a⁻¹ : ℂ) ^ r := by
+  rw [cpow_neg, ← Complex.inv_cpow]
+  exact slitPlane_arg_ne_pi (Or.inl ha)
+
 namespace Perron
 
 variable {x σ σ' σ'' T : ℝ}
 
 noncomputable abbrev f (x : ℝ) := fun (s : ℂ) => x ^ s / (s * (s + 1))
+
+
+lemma f_mul_eq_f {x t : ℝ} (tpos : 0 < t) (xpos : 0 < x) (s : ℂ) : f t s * (x : ℂ) ^ (-s) = f (t / x) s := by
+  by_cases s_eq_zero : s = 0
+  · simp [f, s_eq_zero]
+  by_cases s_eq_neg_one : s = -1
+  · simp [f, s_eq_neg_one]
+  dsimp [f]
+  have h : s * (s + 1) ≠ 0 := by
+    change s ≠ 0 at s_eq_zero
+    apply mul_ne_zero s_eq_zero
+    intro h'
+    have := (add_neg_eq_zero (a := s) (b := -1)).mp
+    simp only [neg_neg] at this
+    exact s_eq_neg_one (this h')
+  field_simp
+  have xinv_pos : 0 < x⁻¹ := inv_pos.mpr xpos
+  convert (Complex.mul_cpow_ofReal_nonneg tpos.le xinv_pos.le s).symm using 2
+  · convert Complex.cpow_neg_eq_inv_pow_ofReal_pos xpos s
+    exact ofReal_inv x
+  simp only [ofReal_inv]
+  rfl
 
 /-%%
 \begin{lemma}[isHolomorphicOn]\label{isHolomorphicOn}\lean{Perron.isHolomorphicOn}\leanok

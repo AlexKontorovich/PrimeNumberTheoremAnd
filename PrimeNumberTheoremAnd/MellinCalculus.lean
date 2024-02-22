@@ -3,22 +3,29 @@ import PrimeNumberTheoremAnd.PerronFormula
 open Complex Topology Filter Real MeasureTheory Set
 
 /-%%
-In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler), prove its inversion formula, and
+In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler), prove its
+inversion formula, and
 derive a number of important properties of some special functions and bumpfunctions.
 
 Def: (Already in Mathlib)
-Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mellin transform of $f$ to be the function $\mathcal{M}(f)$ from $\mathbb{C}$ to $\mathbb{C}$ defined by
+Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mellin transform of
+$f$ to be the function $\mathcal{M}(f)$ from $\mathbb{C}$ to $\mathbb{C}$ defined by
 $$\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx.$$
 
-[Note: My preferred way to think about this is that we are integrating over the multiplicative group $\mathbb{R}_{>0}$, multiplying by a (not necessarily unitary!) character $|\cdot|^s$, and integrating with respect to the invariant Haar measure $dx/x$. This is very useful in the kinds of calculations carried out below. But may be more difficult to formalize as things now stand. So we
-might have clunkier calculations, which ``magically'' turn out just right - of course they're explained by the aforementioned structure...]
+[Note: My preferred way to think about this is that we are integrating over the multiplicative group
+$\mathbb{R}_{>0}$, multiplying by a (not necessarily unitary!) character $|\cdot|^s$, and
+integrating with respect to the invariant Haar measure $dx/x$. This is very useful in the kinds
+of calculations carried out below. But may be more difficult to formalize as things now stand. So we
+might have clunkier calculations, which ``magically'' turn out just right - of course they're
+explained by the aforementioned structure...]
 
 %%-/
 
 
 /-%%
 \begin{definition}[MellinTransform]\label{MellinTransform}\lean{MellinTransform}\leanok
-Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mellin transform of $f$ to be the function $\mathcal{M}(f)$ from $\mathbb{C}$ to $\mathbb{C}$ defined by
+Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mellin transform of $f$ to be
+the function $\mathcal{M}(f)$ from $\mathbb{C}$ to $\mathbb{C}$ defined by
 $$\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx.$$
 \end{definition}
 [Note: already exists in Mathlib, with some good API.]
@@ -27,23 +34,202 @@ noncomputable def MellinTransform (f : ℝ → ℂ) (s : ℂ) : ℂ :=
   ∫ x in Set.Ioi 0, f x * x ^ (s - 1)
 
 /-%%
-\begin{theorem}[MellinInversion]\label{MellinInversion}\lean{MellinInversion}\leanok
-Let $f$ be a ``nice'' function from $\mathbb{R}_{>0}$ to $\mathbb{C}$, and let $\sigma$ be sufficiently large. Then
-$$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
-\end{theorem}
-
-[Note: How ``nice''? Schwartz (on $(0,\infty)$) is certainly enough. As we formalize this, we can add whatever conditions are necessary for the proof to go through.]
+\begin{definition}[MellinInverseTransform]\label{MellinInverseTransform}\lean{MellinInverseTransform}\leanok
+Let $F$ be a function from $\mathbb{C}$ to $\mathbb{C}$. We define the Mellin inverse transform of
+$F$ to be the function $\mathcal{M}^{-1}(F)$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
+$$\mathcal{M}^{-1}(F)(x) = \frac{1}{2\pi i}\int_{(\sigma)}F(s)x^{-s}ds,$$
+where $\sigma$ is sufficiently large (say $\sigma>2$).
+\end{definition}
 %%-/
-theorem MellinInversion {f : ℝ → ℂ} (σ : ℝ) (hσ : σ > 0) (hf : Continuous f) :
-    f = fun (x : ℝ) => VerticalIntegral (fun s ↦ x ^ (-s) * MellinTransform f s) σ  := by
+noncomputable def MellinInverseTransform (F : ℂ → ℂ) (σ : ℝ) (x : ℝ) : ℂ :=
+  VerticalIntegral' (fun s ↦ x ^ (-s) * F s) σ
+
+/-%%
+\begin{lemma}[PerronInverseMellin_lt]\label{PerronInverseMellin_lt}\lean{PerronInverseMellin_lt}\leanok
+Let $0 < t < x$ and $\sigma>0$. Then the inverse Mellin transform of the Perron function
+$$F: s\mapsto t^s/s(s+1)$$ is equal to
+$$\frac{1}{2\pi i}\int_{(\sigma)}\frac{t^s}{s(s+1)}x^{-s}ds
+= 0.$$
+\end{lemma}
+%%-/
+lemma PerronInverseMellin_lt {t x : ℝ} (t_pos : 0 < t) (t_lt_x : t < x) {σ : ℝ} (σ_pos : 0 < σ) :
+    MellinInverseTransform (Perron.f t) σ x = 0 := by
+  dsimp [MellinInverseTransform, VerticalIntegral']
+  have xpos : 0 < x := by linarith
+  have txinvpos : 0 < t / x := div_pos t_pos xpos
+  have txinv_ltOne : t / x < 1 := (div_lt_one xpos).mpr t_lt_x
+  simp only [one_div, mul_inv_rev, inv_I, neg_mul, neg_eq_zero, mul_eq_zero, I_ne_zero, inv_eq_zero,
+    ofReal_eq_zero, pi_ne_zero, OfNat.ofNat_ne_zero, or_self, false_or]
+  convert Perron.formulaLtOne txinvpos txinv_ltOne σ_pos using 2
+  ext1 s
+  convert Perron.f_mul_eq_f t_pos xpos s using 1
+  ring
+/-%%
+\begin{proof}
+\uses{Perron.formulaLtOne}
+\leanok
+This is a straightforward calculation.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[PerronInverseMellin_gt]\label{PerronInverseMellin_gt}\lean{PerronInverseMellin_gt}\leanok
+Let $0 < x < t$ and $\sigma>0$. Then the inverse Mellin transform of the Perron function is equal to
+$$\frac{1}{2\pi i}\int_{(\sigma)}\frac{t^s}{s(s+1)}x^{-s}ds = 1 - x / t.$$
+\end{lemma}
+%%-/
+lemma PerronInverseMellin_gt {t x : ℝ} (x_pos : 0 < x) (x_lt_t : x < t) {σ : ℝ} (σ_pos : 0 < σ) :
+    MellinInverseTransform (Perron.f t) σ x = 1 - x / t := by
+  dsimp [MellinInverseTransform]
+  have tpos : 0 < t := by linarith
+  have txinv_gtOne : 1 < t / x := (one_lt_div x_pos).mpr x_lt_t
+  convert Perron.formulaGtOne txinv_gtOne σ_pos using 2
+  · ext1 s
+    convert Perron.f_mul_eq_f tpos x_pos s using 1
+    ring
+  · field_simp
+/-%%
+\begin{proof}
+\uses{Perron.formulaGtOne}\leanok
+This is a straightforward calculation.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[PartialIntegration]\label{PartialIntegration}\lean{PartialIntegration}\leanok
+Let $f, g$ be once differentiable functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$.
+**Add minimal integrability assumptions, and decay at $0$ and $\infty$.** Then
+$$
+\int_0^\infty f(x)g'(x) dx = -\int_0^\infty f'(x)g(x)dx.
+$$
+\end{lemma}
+%%-/
+/-- *Need differentiability, and decay at `0` and `∞`* -/
+lemma PartialIntegration (f g : ℝ → ℂ) (fDiff : DifferentiableOn ℝ f (Set.Ioi 0))
+    (gDiff : DifferentiableOn ℝ g (Set.Ioi 0)) :
+    ∫ x in Set.Ioi 0, f x * (deriv g x) = -∫ x in Set.Ioi 0, f x * (g x) := by
+  sorry
+  -- useful here: `intervalIntegral.integral_mul_deriv_eq_deriv_mul` partial integration on compact intervals and
+  -- `MeasureTheory.intervalIntegral_tendsto_integral_Ioi` that the integral over `Ioi` is the limit of integrals over
+  -- compact intervals
+/-%%
+\begin{proof}
+Partial integration.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[MellinInversion_aux1]\label{MellinInversion_aux1}\lean{MellinInversion_aux1}\leanok
+Let $f$ be differentiable on $(0,\infty)$, and assume that $f(x)x^s\to 0$ as $x\to 0$, and that
+$f(x)x^s\to 0$. ** Need integrability assumptions.**
+Then
+$$
+\int_0^\infty f(x)x^s\frac{dx}{x} = \frac{1}{s}\int_0^\infty f'(x)x^{s} dx.
+$$
+\end{lemma}
+%%-/
+lemma MellinInversion_aux1 {f : ℝ → ℂ} {s : ℂ} (s_ne_zero : s ≠ 0) (fDiff : DifferentiableOn ℝ f (Set.Ioi 0))
+    (hfs : Tendsto (fun x ↦ f x * x ^ s) (𝓝[>]0) (𝓝 0)) (hfinf : Tendsto (fun x ↦ f x * x ^ s) atTop (𝓝 0)) :
+    ∫ x in Set.Ioi 0, f x * x ^ s / x = - ∫ x in Set.Ioi 0, (deriv f x) * x ^ s / s := by
+  sorry
+
+/-%%
+\begin{proof}
+\uses{PartialIntegration}
+Partial integration.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[MellinInversion_aux2]\label{MellinInversion_aux2}\lean{MellinInversion_aux2}\leanok
+Let $f$ be twice differentiable on $(0,\infty)$, and assume that $f'(x)x^s\to 0$ as $x\to 0$, and
+that $f'(x)x^s\to 0$. ** Need integrability assumptions.**
+Then
+$$
+\int_0^\infty f'(x)x^{s} dx = -\int_0^\infty f''(x)x^{s+1}\frac{1}{(s+1)}dx.
+$$
+\end{lemma}
+%%-/
+lemma MellinInversion_aux2 {f : ℝ → ℂ} (s : ℂ) (fDiff : DifferentiableOn ℝ f (Set.Ioi 0))
+    (fDiff2 : DifferentiableOn ℝ (deriv f) (Set.Ioi 0))
+    (hfs : Tendsto (fun x ↦ deriv f x * x ^ s) (𝓝[>]0) (𝓝 0))
+    (hfinf : Tendsto (fun x ↦ deriv f x * x ^ s) atTop (𝓝 0)) :
+    ∫ x in Set.Ioi 0, (deriv f x) * x ^ s =
+      -∫ x in Set.Ioi 0, (deriv (deriv f) x) * x ^ (s + 1) / (s + 1) := by
   sorry
 /-%%
 \begin{proof}
-\uses{formulaLtOne, formulaGtOne, MellinTransform}
-The proof is from [Goldfeld-Kontorovich 2012].
-Integrate by parts twice (assuming $f$ is twice differentiable, and all occurring integrals converge absolutely).
+\uses{PartialIntegration, MellinInversion_aux1}
+Partial integration. (Apply Lemma \ref{MellinInversion_aux1} to the function $f'$ and $s+1$.)
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[MellinInversion_aux3]\label{MellinInversion_aux3}\lean{MellinInversion_aux3}\leanok
+Given $f$ and $\sigma$, assume that $f(x)x^\sigma$ is absolutely integrable on $(0,\infty)$.
+Then the map  $(x,s) \mapsto f(x)x^s/(s(s+1))$ is absolutely integrable on
+$(0,\infty)\times\{\Re s = \sigma\}$ for any $\sigma>0$.
+\end{lemma}
+%%-/
+lemma MellinInversion_aux3 {f : ℝ → ℂ} (σ : ℝ) (σ_ne_zero : σ ≠ 0) (σ_ne_negOne : σ ≠ -1)
+    (fInt : IntegrableOn (fun x ↦ f x * (x : ℂ) ^ (σ : ℂ)) (Set.Ioi 0)) :
+    IntegrableOn (fun (⟨x, t⟩ : ℝ × ℝ) => f x * x ^ (σ + t * I) / ((σ + t * I) * ((σ + t * I) + 1)))
+      ((Set.Ioi 0).prod (univ : Set ℝ)) := by
+  sorry
+/-%%
+\begin{proof}
+Put absolute values and estimate.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[MellinInversion_aux4]\label{MellinInversion_aux4}\lean{MellinInversion_aux4}\leanok
+Given $f$ and $\sigma$, assume that $f(x)x^\sigma$ is absolutely integrable on $(0,\infty)$.
+Then we can interchange orders of integration
 $$
-\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx = - \int_0^\infty f'(x)x^s\frac{1}{s}dx = \int_0^\infty f''(x)x^{s+1}\frac{1}{s(s+1)}dx.
+\int_{(\sigma)}\int_0^\infty f(x)x^{s+1}\frac{1}{s(s+1)}dx ds =
+\int_0^\infty
+\int_{(\sigma)}f(x)x^{s+1}\frac{1}{s(s+1)}ds dx.
+$$
+\end{lemma}
+%%-/
+lemma MellinInversion_aux4 {f : ℝ → ℂ} (σ : ℝ) (σ_ne_zero : σ ≠ 0) (σ_ne_negOne : σ ≠ -1)
+    (fInt : IntegrableOn (fun x ↦ f x * (x : ℂ) ^ (σ : ℂ)) (Set.Ioi 0)) :
+    VerticalIntegral (fun s ↦ ∫ x in Set.Ioi 0, f x * (x : ℂ) ^ (s + 1) / (s * (s + 1))) σ =
+      ∫ x in Set.Ioi 0, VerticalIntegral (fun s ↦ f x * (x : ℂ) ^ (s + 1) / (s * (s + 1))) σ := by
+  sorry -- `MeasureTheory.integral_prod` and `MeasureTheory.integral_swap` should be useful here
+/-%%
+\begin{proof}
+\uses{MellinInversion_aux3}
+Fubini-Tonelli.
+\end{proof}
+%%-/
+
+/-%%
+\begin{theorem}[MellinInversion]\label{MellinInversion}\lean{MellinInversion}\leanok
+Let $f$ be a twice differentiable function from $\mathbb{R}_{>0}$ to $\mathbb{C}$, and let $\sigma$
+be sufficiently large. Then
+$$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
+\end{theorem}
+
+[Note: How ``nice''? Schwartz (on $(0,\infty)$) is certainly enough. As we formalize this, we can add whatever
+ conditions are necessary for the proof to go through.]
+%%-/
+theorem MellinInversion {f : ℝ → ℂ} (σ : ℝ) (hσ : σ > 0) (fDiff : DifferentiableOn ℝ f (Set.Ioi 0))
+    (fDiff2 : DifferentiableOn ℝ (deriv f) (Set.Ioi 0)) :
+    MellinInverseTransform (MellinTransform f) σ = f := by
+
+  sorry
+/-%%
+\begin{proof}
+\uses{formulaLtOne, formulaGtOne, MellinTransform, MellinInverseTransform, MellinInversion_aux1, MellinInversion_aux2,
+MellinInversion_aux3, MellinInversion_aux4, PerronInverseMellin_gt, PerronInverseMellin_lt}
+The proof is from [Goldfeld-Kontorovich 2012].
+Integrate by parts twice (assuming $f$ is twice differentiable, and all occurring integrals converge absolutely, and
+boundary terms vanish).
+$$
+\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx = - \int_0^\infty f'(x)x^s\frac{1}{s}dx
+= \int_0^\infty f''(x)x^{s+1}\frac{1}{s(s+1)}dx.
 $$
 We now have at least quadratic decay in $s$ of the Mellin transform. Inserting this formula into the inversion formula and Fubini-Tonelli (we now have absolute convergence!) gives:
 $$
