@@ -1,3 +1,4 @@
+import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import PrimeNumberTheoremAnd.PerronFormula
 
 open Complex Topology Filter Real MeasureTheory Set
@@ -107,55 +108,14 @@ $$
 /-- *Need differentiability, and decay at `0` and `∞`* -/
 lemma PartialIntegration (f g : ℝ → ℂ) (fDiff : DifferentiableOn ℝ f (Set.Ioi 0))
     (gDiff : DifferentiableOn ℝ g (Set.Ioi 0))
-    (fDerivInt : IntegrableOn (deriv f) (Set.Ioi 0))
-    (gDerivInt : IntegrableOn (deriv g) (Set.Ioi 0))
     (fDerivgInt : IntegrableOn (f * deriv g) (Set.Ioi 0))
     (gDerivfInt : IntegrableOn (deriv f * g) (Set.Ioi 0))
     (lim_at_zero : Tendsto (f * g) (𝓝[>]0) (𝓝 0))
     (lim_at_inf : Tendsto (f * g) atTop (𝓝 0)) :
-    ∫ x in Set.Ioi 0, f x * (deriv g x) = -∫ x in Set.Ioi 0, f x * (g x) := by
-
-  -- integrals over `Ioi` are limits of integrals over compact intervals
-  have := MeasureTheory.intervalIntegral_tendsto_integral_Ioi (f := f * deriv g)
-    (b := (id : ℝ → ℝ)) (l := atTop) (μ := volume) (a := 0) (hfi := fDerivgInt)
-    (hb := fun ⦃U⦄ a ↦ a)
-  have := MeasureTheory.intervalIntegral_tendsto_integral_Ioi (f := deriv f * g)
-    (b := (id : ℝ → ℝ)) (l := atTop) (μ := volume) (a := 0) (hfi := gDerivfInt)
-    (hb := fun ⦃U⦄ a ↦ a)
-
-  -- need `uIcc`, and don't have differentiability at `0`; so need a limit
-  let ε : ℝ := sorry
-  let ε_pos : 0 < ε := sorry
-  let b : ℝ := sorry
-  have b_gt : ε < b := sorry
-  have uIcc_sub_Ioi : uIcc ε b ⊆ Ioi 0
-  · rw [uIcc_of_le b_gt.le]
-    intro x hx
-    simp_all only [Pi.mul_apply, id_eq, gt_iff_lt, lt_self_iff_false]
-
-  have hu : ∀ x ∈ uIcc ε b, HasDerivAt f (deriv f x) x
-  · intro x hx
-    apply fDiff.hasDerivAt
-    rw [mem_nhds_iff]
-    refine ⟨Ioi 0, fun ⦃a⦄ a ↦ a, isOpen_Ioi, uIcc_sub_Ioi hx⟩
-
-  have hv : ∀ x ∈ uIcc ε b, HasDerivAt g (deriv g x) x
-  · intro x hx
-    apply gDiff.hasDerivAt
-    rw [mem_nhds_iff]
-    refine ⟨Ioi 0, fun ⦃a⦄ a ↦ a, isOpen_Ioi, uIcc_sub_Ioi hx⟩
-
-  have hu' : IntervalIntegrable (deriv f) volume ε b :=
-    (fDerivInt.mono_set uIcc_sub_Ioi).intervalIntegrable
-  have hv' : IntervalIntegrable (deriv g) volume ε b :=
-    (gDerivInt.mono_set uIcc_sub_Ioi).intervalIntegrable
-
-  have := @intervalIntegral.integral_mul_deriv_eq_deriv_mul (u := f) (v := g) (u' := deriv f)
-    (v' := deriv g) _ _ _ (a := ε) (b := b) (hu := hu) (hv := hv) (hu' := hu') (hv' := hv')
-  sorry
-  -- useful here: `intervalIntegral.integral_mul_deriv_eq_deriv_mul` partial integration on compact intervals and
-  -- `MeasureTheory.intervalIntegral_tendsto_integral_Ioi` that the integral over `Ioi` is the limit of integrals over
-  -- compact intervals
+    ∫ x in Set.Ioi 0, f x * deriv g x = -∫ x in Set.Ioi 0, deriv f x * g x := by
+  simpa using integral_Ioi_mul_deriv_eq_deriv_mul
+    (fun x hx ↦ fDiff.hasDerivAt (Ioi_mem_nhds hx)) (fun x hx ↦ gDiff.hasDerivAt (Ioi_mem_nhds hx))
+    fDerivgInt gDerivfInt lim_at_zero lim_at_inf
 /-%%
 \begin{proof}
 Partial integration.
