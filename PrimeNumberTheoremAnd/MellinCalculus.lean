@@ -484,6 +484,8 @@ theorem MellinOfDeltaSpike {Ψ : ℝ → ℝ} {ε : ℝ} (εpos:ε>0) (s : ℂ) 
   rw [← MeasureTheory.integral_comp_rpow_Ioi (fun z => ((Ψ z): ℂ) * (z:ℂ)^((ε : ℂ)*s-1)) (one_div_ne_zero (ne_of_gt εpos))]
   apply MeasureTheory.set_integral_congr_ae measurableSet_Ioi
   filter_upwards with x hx
+
+  -- Simple algebra, would be nice if some tactic could handle this
   have log_x_real: (Complex.log (x:ℂ)).im=0 := by
     rw [← ofReal_log, ofReal_im]
     exact LT.lt.le hx
@@ -491,10 +493,10 @@ theorem MellinOfDeltaSpike {Ψ : ℝ → ℝ} {ε : ℝ} (εpos:ε>0) (s : ℂ) 
   symm
   rw [abs_of_pos (one_div_pos.mpr εpos)]
   simp only [real_smul, ofReal_mul, ofReal_div, ofReal_one]
-  simp only [ Complex.ofReal_rpow hx]
+  simp only [Complex.ofReal_rpow hx]
   rw [← Complex.cpow_mul, mul_sub]
   simp only [← mul_assoc, ofReal_sub, ofReal_div, ofReal_one, mul_one, ofReal_inv]
-  rw [one_div_mul_cancel,mul_comm (1 / (ε:ℂ)) _, mul_comm, ← mul_assoc, ← mul_assoc, ← Complex.cpow_add]
+  rw [one_div_mul_cancel, mul_comm (1 / (ε:ℂ)) _, mul_comm, ← mul_assoc, ← mul_assoc, ← Complex.cpow_add]
   ring
   exact slitPlane_ne_zero (Or.inl hx)
   exact slitPlane_ne_zero (Or.inl εpos)
