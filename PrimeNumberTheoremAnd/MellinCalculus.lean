@@ -467,6 +467,13 @@ Substitute $y=x^{1/\epsilon}$, and use the fact that $\psi$ has mass one, and th
 -- How do deal with this coersion?...
 noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ (f x : ℂ)
 
+theorem Complex.ofReal_rpow {x : ℝ} (h:x>0) (y: ℝ) : (((x:ℝ) ^ (y:ℝ)):ℝ) = (x:ℂ) ^ (y:ℂ) := by
+  rw [Real.rpow_def_of_pos h]
+  simp only [ofReal_exp, ofReal_mul]
+  rw [Complex.ofReal_log h.le, Complex.cpow_def_of_ne_zero]
+  simp only [ne_eq, ofReal_eq_zero]
+  exact ne_of_gt h
+
 /-%%
 The Mellin transform of the delta spike is easy to compute.
 \begin{theorem}[MellinOfDeltaSpike]\label{MellinOfDeltaSpike}\lean{MellinOfDeltaSpike}\leanok
@@ -474,10 +481,29 @@ For any $\epsilon>0$, the Mellin transform of $\psi_\epsilon$ is
 $$\mathcal{M}(\psi_\epsilon)(s) = \mathcal{M}(\psi)\left(\epsilon s\right).$$
 \end{theorem}
 %%-/
-theorem MellinOfDeltaSpike {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
-    (ε : ℝ) (s : ℂ) :
+theorem MellinOfDeltaSpike {Ψ : ℝ → ℝ} {ε : ℝ} (εpos:ε>0) (s : ℂ) :
     MellinTransform (funCoe (DeltaSpike Ψ ε)) s = MellinTransform (funCoe Ψ) (ε * s) := by
-  sorry
+  unfold MellinTransform funCoe DeltaSpike
+  rw [← MeasureTheory.integral_comp_rpow_Ioi (fun z => ((Ψ z): ℂ) * (z:ℂ)^((ε : ℂ)*s-1)) (one_div_ne_zero (ne_of_gt εpos))]
+  apply MeasureTheory.set_integral_congr_ae measurableSet_Ioi
+  filter_upwards with x hx
+  have log_x_real: (Complex.log (x:ℂ)).im=0 := by
+    rw [← ofReal_log, ofReal_im]
+    exact LT.lt.le hx
+  rw [div_eq_mul_inv, ofReal_mul]
+  symm
+  rw [abs_of_pos (one_div_pos.mpr εpos)]
+  simp only [real_smul, ofReal_mul, ofReal_div, ofReal_one]
+  simp only [ Complex.ofReal_rpow hx]
+  rw [← Complex.cpow_mul, mul_sub]
+  simp only [← mul_assoc, ofReal_sub, ofReal_div, ofReal_one, mul_one, ofReal_inv]
+  rw [one_div_mul_cancel,mul_comm (1 / (ε:ℂ)) _, mul_comm, ← mul_assoc, ← mul_assoc, ← Complex.cpow_add]
+  ring
+  exact slitPlane_ne_zero (Or.inl hx)
+  exact slitPlane_ne_zero (Or.inl εpos)
+  simp only [im_mul_ofReal, log_x_real, zero_mul, Left.neg_neg_iff, pi_pos]
+  simp only [im_mul_ofReal, log_x_real, zero_mul, pi_nonneg]
+
 /-%%
 \begin{proof}
 \uses{DeltaSpike, MellinTransform}
@@ -494,9 +520,10 @@ $$\mathcal{M}(\psi_\epsilon)(1) =
 \end{corollary}
 %%-/
 
-lemma MellinOfDeltaSpikeAt1 {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ) :
+lemma MellinOfDeltaSpikeAt1 {Ψ : ℝ → ℝ} {ε : ℝ} (εpos:ε>0) :
     MellinTransform (funCoe (DeltaSpike Ψ ε)) 1 = MellinTransform (funCoe Ψ) ε := by
-  sorry
+  convert MellinOfDeltaSpike εpos 1
+  simp only [mul_one]
 /-%%
 \begin{proof}
 \uses{MellinOfDeltaSpike, DeltaSpikeMass}
