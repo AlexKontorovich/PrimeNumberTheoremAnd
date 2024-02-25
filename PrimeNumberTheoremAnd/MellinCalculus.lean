@@ -534,8 +534,14 @@ $$\mathcal{M}(1_{(0,1]})(s) = \frac{1}{s}.$$
 \end{theorem}
 [Note: this already exists in mathlib]
 %%-/
-lemma MellinOf1 (s : ℂ) : MellinTransform (funCoe (fun x => if x ≤ 1 then 1 else 0)) s = 1 / s := by
-  sorry -- hasMellin_one_Ioc
+lemma MellinOf1 (s : ℂ) (h : s.re > 0) : MellinTransform ((fun x => if x ≤ 1 then 1 else 0)) s = 1 / s := by
+  convert (hasMellin_one_Ioc h).right using 1
+  apply MeasureTheory.set_integral_congr_ae measurableSet_Ioi
+  filter_upwards with x hx
+  rw [smul_eq_mul, mul_comm]
+  congr
+  simp only [mem_Ioc, eq_iff_iff, iff_and_self]
+  apply fun _ => hx
 
 /-%%
 \begin{proof}
