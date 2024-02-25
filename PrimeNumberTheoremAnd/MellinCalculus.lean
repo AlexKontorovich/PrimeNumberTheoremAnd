@@ -468,11 +468,8 @@ Substitute $y=x^{1/\epsilon}$, and use the fact that $\psi$ has mass one, and th
 noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ (f x : ℂ)
 
 theorem Complex.ofReal_rpow {x : ℝ} (h:x>0) (y: ℝ) : (((x:ℝ) ^ (y:ℝ)):ℝ) = (x:ℂ) ^ (y:ℂ) := by
-  rw [Real.rpow_def_of_pos h]
-  simp only [ofReal_exp, ofReal_mul]
-  rw [Complex.ofReal_log h.le, Complex.cpow_def_of_ne_zero]
-  simp only [ne_eq, ofReal_eq_zero]
-  exact ne_of_gt h
+  rw [Real.rpow_def_of_pos h, ofReal_exp, ofReal_mul, Complex.ofReal_log h.le, Complex.cpow_def_of_ne_zero]
+  simp only [ne_eq, ofReal_eq_zero, ne_of_gt h, not_false_eq_true]
 
 /-%%
 The Mellin transform of the delta spike is easy to compute.
