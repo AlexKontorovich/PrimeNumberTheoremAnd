@@ -18,6 +18,11 @@ noncomputable def HIntegral (f : ℂ → E) (x₁ x₂ y : ℝ) : E := ∫ x in 
 
 noncomputable def VIntegral (f : ℂ → E) (x y₁ y₂ : ℝ) : E := I • ∫ y in y₁..y₂, f (x + y * I)
 
+lemma HIntegral_symm : HIntegral f x₁ x₂ y = - HIntegral f x₂ x₁ y := integral_symm _ _
+
+lemma VIntegral_symm : VIntegral f x y₁ y₂ = - VIntegral f x y₂ y₁ := by
+  simp_rw [VIntegral, integral_symm y₁ y₂, smul_neg, neg_neg]
+
 /-%%
 \begin{definition}[RectangleIntegral]\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
 A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ and $w$ in $\C$.
@@ -40,9 +45,8 @@ An UpperUIntegral is the integral of a function over a |\_| shape.
 An UpperUIntegral of a function $f$ comes from $\sigma+i\infty$ down to $\sigma+iT$, over to $\sigma'+iT$, and back up to $\sigma'+i\infty$.
 \end{definition}
 %%-/
-noncomputable def UpperUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E :=
-    ((∫ x : ℝ in σ..σ', f (x + T * I))
-     + I • (∫ y : ℝ in Ici T, f (σ' + y * I)) - I • ∫ y : ℝ in Ici T, f (σ + y * I))
+noncomputable def UpperUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegral f σ σ' T +
+    I • (∫ y : ℝ in Ici T, f (σ' + y * I)) - I • (∫ y : ℝ in Ici T, f (σ + y * I))
 
 /-%%
 A LowerUIntegral is the integral of a function over a |-| shape.
@@ -50,10 +54,8 @@ A LowerUIntegral is the integral of a function over a |-| shape.
 A LowerUIntegral of a function $f$ comes from $\sigma-i\infty$ up to $\sigma-iT$, over to $\sigma'-iT$, and back down to $\sigma'-i\infty$.
 \end{definition}
 %%-/
-noncomputable def LowerUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E :=
-    ((∫ x : ℝ in σ..σ', f (x - T * I))
-     - I • (∫ y : ℝ in Iic (-T), f (σ' + y * I)) + I • ∫ y : ℝ in Iic (-T), f (σ + y * I))
-
+noncomputable def LowerUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegral f σ σ' (-T) -
+    I • (∫ y : ℝ in Iic (-T), f (σ' + y * I)) + I • (∫ y : ℝ in Iic (-T), f (σ + y * I))
 
 /-%%
 It is very convenient to define integrals along vertical lines in the complex plane, as follows.
@@ -62,17 +64,16 @@ Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a r
 $$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
 \end{definition}
 %%-/
-noncomputable def VerticalIntegral (f : ℂ → E) (σ : ℝ) : E :=
-    I • ∫ t : ℝ, f (σ + t * I)
+noncomputable def VerticalIntegral (f : ℂ → E) (σ : ℝ) : E := I • ∫ t : ℝ, f (σ + t * I)
 
 --%% We also have a version with a factor of $1/(2\pi i)$.
 noncomputable abbrev VerticalIntegral' (f : ℂ → E) (σ : ℝ) : E :=
     (1 / (2 * π * I)) • VerticalIntegral f σ
 
 lemma verticalIntegral_split_three (a b : ℝ) (hf : Integrable (fun t : ℝ ↦ f (σ + t * I))) :
-    VerticalIntegral f σ = I • (∫ t in Iic a, f (σ + t * I)) + I • (∫ t in a..b, f (σ + t * I))
+    VerticalIntegral f σ = I • (∫ t in Iic a, f (σ + t * I)) + VIntegral f σ a b
     + I • ∫ t in Ici b, f (σ + t * I) := by
-  simp_rw [VerticalIntegral, ← smul_add]
+  simp_rw [VerticalIntegral, VIntegral, ← smul_add]
   congr
   rw [← intervalIntegral.integral_Iic_sub_Iic hf.restrict hf.restrict, add_sub_cancel'_right,
     integral_Iic_eq_integral_Iio, intervalIntegral.integral_Iio_add_Ici hf.restrict hf.restrict]
@@ -82,17 +83,16 @@ lemma verticalIntegral_split_three (a b : ℝ) (hf : Integrable (fun t : ℝ ↦
 The difference of two vertical integrals and a rectangle is the difference of an upper and a lower U integrals.
 \end{lemma}
 %%-/
-lemma DiffVertRect_eq_UpperLowerUs {f : ℂ → ℂ} {σ σ' T : ℝ}
+lemma DiffVertRect_eq_UpperLowerUs {σ σ' T : ℝ}
     (f_int_σ : Integrable (fun (t : ℝ) ↦ f (σ + t * I)))
     (f_int_σ' : Integrable (fun (t : ℝ) ↦ f (σ' + t * I))) :
-  (VerticalIntegral f σ') - (VerticalIntegral f σ) - (RectangleIntegral f (σ - I * T) (σ' + I * T)) = (UpperUIntegral f σ σ' T) - (LowerUIntegral f σ σ' T) := by
-  rw[verticalIntegral_split_three (-T) T f_int_σ, verticalIntegral_split_three (-T) T f_int_σ',
-    RectangleIntegral, UpperUIntegral, LowerUIntegral, HIntegral]
-  norm_num
-  have {a b c d e g h i : ℂ} :
-    a + b + c - (d + e + g) - (h - i + b - e) = i + c - g - (h - a + d) := by ring
-  convert this using 1
-
+    (VerticalIntegral f σ') - (VerticalIntegral f σ) - (RectangleIntegral f (σ - I * T) (σ' + I * T)) =
+    (UpperUIntegral f σ σ' T) - (LowerUIntegral f σ σ' T) := by
+  rw [verticalIntegral_split_three (-T) T f_int_σ, verticalIntegral_split_three (-T) T f_int_σ']
+  simp only [smul_eq_mul, RectangleIntegral, sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im,
+    ofReal_im, mul_zero, sub_self, sub_zero, add_re, add_zero, sub_im, mul_im, one_mul, zero_add,
+    zero_sub, add_im, UpperUIntegral, LowerUIntegral]
+  abel
 /-%%
 \begin{proof}\uses{UpperUIntegral, LowerUIntegral}\leanok
 Follows directly from the definitions.
@@ -155,13 +155,11 @@ theorem rectangleIntegral_symm (f : ℂ → E) (z w : ℂ) :
     intervalIntegral.integral_symm w.im, sub_neg_eq_add, smul_neg, sub_neg_eq_add, ← sub_eq_add_neg,
     neg_add_eq_sub, sub_add_eq_add_sub]
 
-theorem rectangleIntegral_symm_re (f : ℂ → ℂ) (z w : ℂ) :
+theorem rectangleIntegral_symm_re (f : ℂ → E) (z w : ℂ) :
     RectangleIntegral f (w.re + z.im * I) (z.re + w.im * I) = - RectangleIntegral f z w := by
-  simp? [RectangleIntegral, intervalIntegral.integral_symm w.re] says
-    simp only [RectangleIntegral._eq_1, HIntegral, VIntegral, add_im, ofReal_im, mul_im, ofReal_re, I_im,
-      mul_one, I_re, mul_zero, add_zero, zero_add, add_re, mul_re, sub_self, smul_eq_mul,
-      intervalIntegral.integral_symm w.re, sub_neg_eq_add, neg_sub]
-  group
+  simp [RectangleIntegral, ← sub_eq_zero]
+  rw [HIntegral_symm (y := z.im), HIntegral_symm (y := w.im)]
+  abel
 
 def RectangleBorderIntegrable (f : ℂ → E) (z w : ℂ) : Prop :=
     IntervalIntegrable (fun x => f (x + z.im * I)) volume z.re w.re ∧
@@ -169,13 +167,15 @@ def RectangleBorderIntegrable (f : ℂ → E) (z w : ℂ) : Prop :=
     IntervalIntegrable (fun y => f (w.re + y * I)) volume z.im w.im ∧
     IntervalIntegrable (fun y => f (z.re + y * I)) volume z.im w.im
 
-theorem RectangleBorderIntegrable.add {f g : ℂ → ℂ} (hf : RectangleBorderIntegrable f z w)
+theorem RectangleBorderIntegrable.add {f g : ℂ → E} (hf : RectangleBorderIntegrable f z w)
     (hg : RectangleBorderIntegrable g z w) :
     RectangleIntegral (f + g) z w = RectangleIntegral f z w + RectangleIntegral g z w := by
   dsimp [RectangleIntegral, HIntegral, VIntegral]
   rw [intervalIntegral.integral_add hf.1 hg.1, intervalIntegral.integral_add hf.2.1 hg.2.1,
     intervalIntegral.integral_add hf.2.2.1 hg.2.2.1, intervalIntegral.integral_add hf.2.2.2 hg.2.2.2]
-  ring
+  rw [← sub_eq_zero]
+  simp only [smul_add]
+  abel_nf ; simp
 
 theorem ContinuousOn.rectangleBorder_integrable (hf : ContinuousOn f (RectangleBorder z w)) :
     RectangleBorderIntegrable f z w :=
@@ -234,7 +234,7 @@ lemma RectangleIntegralHSplit' {a x₀ x₁ y₀ y₁ : ℝ} (ha : a ∈ [[x₀,
     (IntervalIntegrable.mono (by simpa using hf.2.1) (uIcc_subset_uIcc left_mem_uIcc ha) le_rfl)
     (IntervalIntegrable.mono (by simpa using hf.2.1) (uIcc_subset_uIcc ha right_mem_uIcc) le_rfl)
 
-lemma RectangleIntegralVSplit {f : ℂ → ℂ} {b x₀ x₁ y₀ y₁ : ℝ}
+lemma RectangleIntegralVSplit {b x₀ x₁ y₀ y₁ : ℝ}
     (f_int_y₀_b_left : IntervalIntegrable (fun y => f (x₀ + y * I)) volume y₀ b)
     (f_int_b_y₁_left : IntervalIntegrable (fun y => f (x₀ + y * I)) volume b y₁)
     (f_int_y₀_b_right : IntervalIntegrable (fun y => f (x₁ + y * I)) volume y₀ b)
@@ -245,10 +245,10 @@ lemma RectangleIntegralVSplit {f : ℂ → ℂ} {b x₀ x₁ y₀ y₁ : ℝ}
   dsimp [RectangleIntegral, HIntegral, VIntegral]
   simp only [mul_one, mul_zero, add_zero, zero_add, sub_self]
   rw [← intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_left f_int_b_y₁_left,
-    ← intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_right f_int_b_y₁_right]
-  ring
+    ← intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_right f_int_b_y₁_right, ← sub_eq_zero]
+  simp only [smul_add] ; abel_nf ; simp
 
-lemma RectangleIntegralVSplit' {f : ℂ → ℂ} {b x₀ x₁ y₀ y₁ : ℝ} (hb : b ∈ [[y₀, y₁]])
+lemma RectangleIntegralVSplit' {b x₀ x₁ y₀ y₁ : ℝ} (hb : b ∈ [[y₀, y₁]])
     (hf : RectangleBorderIntegrable f (↑x₀ + ↑y₀ * I) (↑x₁ + ↑y₁ * I)) :
     RectangleIntegral f (x₀ + y₀ * I) (x₁ + y₁ * I) =
       RectangleIntegral f (x₀ + y₀ * I) (x₁ + b * I) +
@@ -259,7 +259,7 @@ lemma RectangleIntegralVSplit' {f : ℂ → ℂ} {b x₀ x₁ y₀ y₁ : ℝ} (
     (IntervalIntegrable.mono (by simpa using hf.2.2.1) (uIcc_subset_uIcc left_mem_uIcc hb) le_rfl)
     (IntervalIntegrable.mono (by simpa using hf.2.2.1) (uIcc_subset_uIcc hb right_mem_uIcc) le_rfl)
 
-lemma RectanglePullToNhdOfPole' {f : ℂ → ℂ} {z₀ z₁ z₂ z₃ p : ℂ}
+lemma RectanglePullToNhdOfPole' [CompleteSpace E] {z₀ z₁ z₂ z₃ p : ℂ}
     (h_orientation : z₀.re ≤ z₃.re ∧ z₀.im ≤ z₃.im ∧ z₁.re ≤ z₂.re ∧ z₁.im ≤ z₂.im)
     (hp : Rectangle z₁ z₂ ∈ 𝓝 p) (hz : Rectangle z₁ z₂ ⊆ Rectangle z₀ z₃)
     (fHolo : HolomorphicOn f (Rectangle z₀ z₃ \ {p})) :
@@ -315,7 +315,7 @@ centered at $p$.
 /-- Given `f` holomorphic on a rectangle `z` and `w` except at a point `p`, the integral of `f` over
 the rectangle with corners `z` and `w` is the same as the integral of `f` over a small square
 centered at `p`. -/
-lemma RectanglePullToNhdOfPole {f : ℂ → ℂ} {z w p : ℂ} (zRe_lt_wRe : z.re ≤ w.re)
+lemma RectanglePullToNhdOfPole [CompleteSpace E] {z w p : ℂ} (zRe_lt_wRe : z.re ≤ w.re)
     (zIm_lt_wIm : z.im ≤ w.im) (hp : Rectangle z w ∈ 𝓝 p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0,
@@ -334,7 +334,7 @@ that the inner square is strictly contained in the big rectangle.)
     (square_mem_nhds p (ne_of_gt cpos)) hc fHolo
 --%%\end{proof}
 
-lemma RectanglePullToNhdOfPole'' {f : ℂ → ℂ} {z w p : ℂ} (zRe_le_wRe : z.re ≤ w.re)
+lemma RectanglePullToNhdOfPole'' [CompleteSpace E] {z w p : ℂ} (zRe_le_wRe : z.re ≤ w.re)
     (zIm_le_wIm : z.im ≤ w.im) (pInRectInterior : Rectangle z w ∈ 𝓝 p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0,
@@ -435,7 +435,7 @@ lemma integral_const_div_re_add_self (hx : x ≠ 0) : ∫ y : ℝ in y₁..y₂,
 
 lemma ResidueTheoremAtOrigin' {z w c : ℂ} (h1 : z.re < 0) (h2 : z.im < 0) (h3 : 0 < w.re) (h4 : 0 < w.im) :
     RectangleIntegral (λ s => c / s) z w = 2 * I * π * c := by
-  simp only [RectangleIntegral._eq_1, HIntegral, VIntegral, smul_eq_mul]
+  simp only [RectangleIntegral, HIntegral, VIntegral, smul_eq_mul]
   rw [integral_const_div_re_add_self h1.ne, integral_const_div_re_add_self h3.ne.symm]
   rw [integral_const_div_self_add_im h2.ne, integral_const_div_self_add_im h4.ne.symm]
   have l1 : z.im * w.re⁻¹ = (w.re * z.im⁻¹)⁻¹ := by group
