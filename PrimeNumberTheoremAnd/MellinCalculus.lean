@@ -119,13 +119,13 @@ lemma PartialIntegration (f g : ℝ → ℂ) (fDiff : DifferentiableOn ℝ f (Se
     (fun x hx ↦ fDiff.hasDerivAt (Ioi_mem_nhds hx)) (fun x hx ↦ gDiff.hasDerivAt (Ioi_mem_nhds hx))
     fDerivgInt gDerivfInt lim_at_zero lim_at_inf
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Partial integration.
 \end{proof}
 %%-/
 
 /-%%
-\begin{lemma}[MellinInversion_aux1]\label{MellinInversion_aux1}\lean{MellinInversion_aux1}\leanok
+\begin{lemma}[MellinInversion_aux1]%\label{MellinInversion_aux1}\lean{MellinInversion_aux1}\leanok
 Let $f$ be differentiable on $(0,\infty)$, and assume that $f(x)x^s\to 0$ as $x\to 0$, and that
 $f(x)x^s\to 0$. ** Need integrability assumptions.**
 Then
@@ -147,7 +147,7 @@ Partial integration.
 %%-/
 
 /-%%
-\begin{lemma}[MellinInversion_aux2]\label{MellinInversion_aux2}\lean{MellinInversion_aux2}\leanok
+\begin{lemma}[MellinInversion_aux2]%\label{MellinInversion_aux2}\lean{MellinInversion_aux2}\leanok
 Let $f$ be twice differentiable on $(0,\infty)$, and assume that $f'(x)x^s\to 0$ as $x\to 0$, and
 that $f'(x)x^s\to 0$. ** Need integrability assumptions.**
 Then
@@ -171,7 +171,7 @@ Partial integration. (Apply Lemma \ref{MellinInversion_aux1} to the function $f'
 %%-/
 
 /-%%
-\begin{lemma}[MellinInversion_aux3]\label{MellinInversion_aux3}\lean{MellinInversion_aux3}\leanok
+\begin{lemma}[MellinInversion_aux3]%\label{MellinInversion_aux3}\lean{MellinInversion_aux3}\leanok
 Given $f$ and $\sigma$, assume that $f(x)x^\sigma$ is absolutely integrable on $(0,\infty)$.
 Then the map  $(x,s) \mapsto f(x)x^s/(s(s+1))$ is absolutely integrable on
 $(0,\infty)\times\{\Re s = \sigma\}$ for any $\sigma>0$.
@@ -189,7 +189,7 @@ Put absolute values and estimate.
 %%-/
 
 /-%%
-\begin{lemma}[MellinInversion_aux4]\label{MellinInversion_aux4}\lean{MellinInversion_aux4}\leanok
+\begin{lemma}[MellinInversion_aux4]%\label{MellinInversion_aux4}\lean{MellinInversion_aux4}\leanok
 Given $f$ and $\sigma$, assume that $f(x)x^\sigma$ is absolutely integrable on $(0,\infty)$.
 Then we can interchange orders of integration
 $$
@@ -224,12 +224,12 @@ $$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
 theorem MellinInversion {f : ℝ → ℂ} (σ : ℝ) (hσ : σ > 0) (fDiff : DifferentiableOn ℝ f (Set.Ioi 0))
     (fDiff2 : DifferentiableOn ℝ (deriv f) (Set.Ioi 0)) :
     MellinInverseTransform (MellinTransform f) σ = f := by
-
+  -- Done in PR#10944
   sorry
 /-%%
-\begin{proof}
-\uses{formulaLtOne, formulaGtOne, MellinTransform, MellinInverseTransform, MellinInversion_aux1, MellinInversion_aux2,
-MellinInversion_aux3, MellinInversion_aux4, PerronInverseMellin_gt, PerronInverseMellin_lt}
+\begin{proof}\leanok
+\uses{formulaLtOne, formulaGtOne, MellinTransform, MellinInverseTransform, PerronInverseMellin_gt, PerronInverseMellin_lt}
+%MellinInversion_aux1, MellinInversion_aux2, MellinInversion_aux3, MellinInversion_aux4, }
 The proof is from [Goldfeld-Kontorovich 2012].
 Integrate by parts twice (assuming $f$ is twice differentiable, and all occurring integrals converge absolutely, and
 boundary terms vanish).
