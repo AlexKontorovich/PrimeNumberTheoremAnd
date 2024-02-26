@@ -14,6 +14,10 @@ open scoped Interval
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] {f g : ℂ → E}
   {z w p c A : ℂ} {x x₁ x₂ y y₁ y₂ σ : ℝ}
 
+noncomputable def HIntegral (f : ℂ → E) (x₁ x₂ y : ℝ) : E := ∫ x in x₁..x₂, f (x + y * I)
+
+noncomputable def VIntegral (f : ℂ → E) (x y₁ y₂ : ℝ) : E := I • ∫ y in y₁..y₂, f (x + y * I)
+
 /-%%
 \begin{definition}[RectangleIntegral]\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
 A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ and $w$ in $\C$.
@@ -22,14 +26,13 @@ We will sometimes denote it by $\int_{z}^{w} f$. (There is also a primed version
 %%-/
 /-- A `RectangleIntegral` of a function `f` is one over a rectangle determined by
   `z` and `w` in `ℂ`. -/
-noncomputable def RectangleIntegral (f : ℂ → E) (z w : ℂ) : E :=
-    ((∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I))
-     + I • (∫ y : ℝ in z.im..w.im, f (w.re + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (z.re + y * I))
+noncomputable def RectangleIntegral (f : ℂ → E) (z w : ℂ) : E := HIntegral f z.re w.re z.im -
+    HIntegral f z.re w.re w.im + VIntegral f w.re z.im w.im - VIntegral f z.re z.im w.im
 
 /-- A `RectangleIntegral'` of a function `f` is one over a rectangle determined by
   `z` and `w` in `ℂ`, divided by `2 * π * I`. -/
 noncomputable abbrev RectangleIntegral' (f : ℂ → E) (z w : ℂ) : E :=
-    (1/(2 * π * I)) • RectangleIntegral f z w
+    (1 / (2 * π * I)) • RectangleIntegral f z w
 
 /-%%
 An UpperUIntegral is the integral of a function over a |\_| shape.
@@ -84,7 +87,7 @@ lemma DiffVertRect_eq_UpperLowerUs {f : ℂ → ℂ} {σ σ' T : ℝ}
     (f_int_σ' : Integrable (fun (t : ℝ) ↦ f (σ' + t * I))) :
   (VerticalIntegral f σ') - (VerticalIntegral f σ) - (RectangleIntegral f (σ - I * T) (σ' + I * T)) = (UpperUIntegral f σ σ' T) - (LowerUIntegral f σ σ' T) := by
   rw[verticalIntegral_split_three (-T) T f_int_σ, verticalIntegral_split_three (-T) T f_int_σ',
-    RectangleIntegral, UpperUIntegral, LowerUIntegral]
+    RectangleIntegral, UpperUIntegral, LowerUIntegral, HIntegral]
   norm_num
   have {a b c d e g h i : ℂ} :
     a + b + c - (d + e + g) - (h - i + b - e) = i + c - g - (h - a + d) := by ring
@@ -134,6 +137,7 @@ This is in a Mathlib PR.
 theorem RectangleIntegral_congr (h : Set.EqOn f g (RectangleBorder z w)) :
     RectangleIntegral f z w = RectangleIntegral g z w := by
   unfold RectangleIntegral
+  unfold VIntegral
   congr 2; swap; congr 1; swap; congr 1
   all_goals refine intervalIntegral.integral_congr fun _ _ ↦ h ?_
   · exact Or.inl <| Or.inl <| Or.inl ⟨by simpa, by simp⟩
@@ -147,14 +151,14 @@ theorem RectangleIntegral'_congr (h : Set.EqOn f g (RectangleBorder z w)) :
 
 theorem rectangleIntegral_symm (f : ℂ → E) (z w : ℂ) :
     RectangleIntegral f z w = RectangleIntegral f w z := by
-  simp_rw [RectangleIntegral, intervalIntegral.integral_symm w.re,
+  simp_rw [RectangleIntegral, HIntegral, VIntegral, intervalIntegral.integral_symm w.re,
     intervalIntegral.integral_symm w.im, sub_neg_eq_add, smul_neg, sub_neg_eq_add, ← sub_eq_add_neg,
     neg_add_eq_sub, sub_add_eq_add_sub]
 
 theorem rectangleIntegral_symm_re (f : ℂ → ℂ) (z w : ℂ) :
     RectangleIntegral f (w.re + z.im * I) (z.re + w.im * I) = - RectangleIntegral f z w := by
   simp? [RectangleIntegral, intervalIntegral.integral_symm w.re] says
-    simp only [RectangleIntegral._eq_1, add_im, ofReal_im, mul_im, ofReal_re, I_im,
+    simp only [RectangleIntegral._eq_1, HIntegral, VIntegral, add_im, ofReal_im, mul_im, ofReal_re, I_im,
       mul_one, I_re, mul_zero, add_zero, zero_add, add_re, mul_re, sub_self, smul_eq_mul,
       intervalIntegral.integral_symm w.re, sub_neg_eq_add, neg_sub]
   group
@@ -168,7 +172,7 @@ def RectangleBorderIntegrable (f : ℂ → E) (z w : ℂ) : Prop :=
 theorem RectangleBorderIntegrable.add {f g : ℂ → ℂ} (hf : RectangleBorderIntegrable f z w)
     (hg : RectangleBorderIntegrable g z w) :
     RectangleIntegral (f + g) z w = RectangleIntegral f z w + RectangleIntegral g z w := by
-  dsimp [RectangleIntegral]
+  dsimp [RectangleIntegral, HIntegral, VIntegral]
   rw [intervalIntegral.integral_add hf.1 hg.1, intervalIntegral.integral_add hf.2.1 hg.2.1,
     intervalIntegral.integral_add hf.2.2.1 hg.2.2.1, intervalIntegral.integral_add hf.2.2.2 hg.2.2.2]
   ring
@@ -213,7 +217,7 @@ lemma RectangleIntegralHSplit {a x₀ x₁ y₀ y₁ : ℝ}
     RectangleIntegral f (x₀ + y₀ * I) (x₁ + y₁ * I) =
       RectangleIntegral f (x₀ + y₀ * I) (a + y₁ * I) +
       RectangleIntegral f (a + y₀ * I) (x₁ + y₁ * I) := by
-  dsimp [RectangleIntegral]
+  dsimp [RectangleIntegral, HIntegral, VIntegral]
   simp only [mul_one, mul_zero, add_zero, zero_add, sub_self]
   rw [← intervalIntegral.integral_add_adjacent_intervals f_int_x₀_a_bot f_int_a_x₁_bot,
     ← intervalIntegral.integral_add_adjacent_intervals f_int_x₀_a_top f_int_a_x₁_top]
@@ -238,7 +242,7 @@ lemma RectangleIntegralVSplit {f : ℂ → ℂ} {b x₀ x₁ y₀ y₁ : ℝ}
     RectangleIntegral f (x₀ + y₀ * I) (x₁ + y₁ * I) =
       RectangleIntegral f (x₀ + y₀ * I) (x₁ + b * I) +
       RectangleIntegral f (x₀ + b * I) (x₁ + y₁ * I) := by
-  dsimp [RectangleIntegral]
+  dsimp [RectangleIntegral, HIntegral, VIntegral]
   simp only [mul_one, mul_zero, add_zero, zero_add, sub_self]
   rw [← intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_left f_int_b_y₁_left,
     ← intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_right f_int_b_y₁_right]
@@ -360,7 +364,7 @@ theorem ResidueTheoremAtOrigin_aux2c' (a b : ℝ) :
 
 theorem RectangleIntegral.const_mul (f : ℂ → ℂ) (z w c : ℂ) :
     RectangleIntegral (fun s => c * f s) z w = c * RectangleIntegral f z w := by
-  simpa [RectangleIntegral] using by ring
+  simpa [RectangleIntegral, HIntegral, VIntegral] using by ring
 
 theorem RectangleIntegral.const_mul' (f : ℂ → ℂ) (z w c : ℂ) :
     RectangleIntegral' (fun s => c * f s) z w = c * RectangleIntegral' f z w := by
@@ -368,7 +372,7 @@ theorem RectangleIntegral.const_mul' (f : ℂ → ℂ) (z w c : ℂ) :
 
 theorem RectangleIntegral.translate (f : ℂ → E) (z w p : ℂ) :
     RectangleIntegral (fun s => f (s - p)) z w = RectangleIntegral f (z - p) (w - p) := by
-  simp_rw [RectangleIntegral, sub_re, sub_im, ← intervalIntegral.integral_comp_sub_right]
+  simp_rw [RectangleIntegral, HIntegral, VIntegral, sub_re, sub_im, ← intervalIntegral.integral_comp_sub_right]
   congr <;> ext <;> congr 1 <;> simp [Complex.ext_iff]
 
 theorem RectangleIntegral.translate' (f : ℂ → ℂ) (z w p : ℂ) :
@@ -431,7 +435,7 @@ lemma integral_const_div_re_add_self (hx : x ≠ 0) : ∫ y : ℝ in y₁..y₂,
 
 lemma ResidueTheoremAtOrigin' {z w c : ℂ} (h1 : z.re < 0) (h2 : z.im < 0) (h3 : 0 < w.re) (h4 : 0 < w.im) :
     RectangleIntegral (λ s => c / s) z w = 2 * I * π * c := by
-  simp only [RectangleIntegral._eq_1, smul_eq_mul]
+  simp only [RectangleIntegral._eq_1, HIntegral, VIntegral, smul_eq_mul]
   rw [integral_const_div_re_add_self h1.ne, integral_const_div_re_add_self h3.ne.symm]
   rw [integral_const_div_self_add_im h2.ne, integral_const_div_self_add_im h4.ne.symm]
   have l1 : z.im * w.re⁻¹ = (w.re * z.im⁻¹)⁻¹ := by group
