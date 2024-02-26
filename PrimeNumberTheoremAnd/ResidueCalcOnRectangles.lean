@@ -338,90 +338,25 @@ lemma RectanglePullToNhdOfPole'' {f : ℂ → ℂ} {z w p : ℂ} (zRe_le_wRe : z
   filter_upwards [RectanglePullToNhdOfPole zRe_le_wRe zIm_le_wIm pInRectInterior fHolo] with c h
   simp_rw [RectangleIntegral', h]
 
-theorem ResidueTheoremAtOrigin_aux1a :
-    ∫ (x : ℝ) in (-1)..1, ((1 + x ^ 2)⁻¹ : ℂ) = ↑(arctan 1) - ↑(arctan (-1)) := by
-  norm_cast
-  rw [intervalIntegral.integral_ofReal, integral_inv_one_add_sq]
-
-theorem ResidueTheoremAtOrigin_aux1b (x : ℝ) :
-    (x + -I)⁻¹ - (x + I)⁻¹ = (2 * I) * ↑((1 + x ^ 2)⁻¹ : ℝ) := by
-  have hu₁ : IsUnit (x + -I) := Ne.isUnit (by simp [Complex.ext_iff])
-  have hu₂ : IsUnit (x + I) := Ne.isUnit (by simp [Complex.ext_iff])
-  apply hu₁.mul_left_cancel
-  rw [mul_sub, hu₁.mul_inv_cancel]
-  apply hu₂.mul_left_cancel
-  calc
-    _ = (x + I) * 1 - (x + I)⁻¹ * (x + I) * (x + -I) := by group
-    _ = (1 : ℝ) * (2 * I) := by simp [hu₂.inv_mul_cancel, two_mul]
-    _ = ((1 + x ^ 2)⁻¹ * (1 + x ^ 2) : ℝ) * (2 * I) := by
-      congr 2
-      exact (Ne.isUnit (by nlinarith)).inv_mul_cancel.symm
-    _ = ((1 + x ^ 2 : ℂ)⁻¹ * ((x + I) * (x + -I))) * (2 * I) := by
-      push_cast
-      congr 2
-      trans - I ^ 2 + x ^ 2; simp; group
-    _ = _ := by norm_cast; group
-
 theorem ResidueTheoremAtOrigin_aux1c (a b : ℝ) :
     let f : ℝ → ℂ := fun y => (y + I)⁻¹
     IntervalIntegrable f volume a b :=
   (ContinuousOn.inv₀ (by fun_prop) (by simp [Complex.ext_iff])).intervalIntegrable
 
 theorem ResidueTheoremAtOrigin_aux1c' (a b : ℝ) :
-    let f : ℝ → ℂ := fun y => (↑y + -I)⁻¹
+    let f : ℝ → ℂ := fun y => (y - I)⁻¹
     IntervalIntegrable f volume a b :=
   (ContinuousOn.inv₀ (by fun_prop) (by simp [Complex.ext_iff])).intervalIntegrable
 
-theorem ResidueTheoremAtOrigin_aux1 :
-    (∫ (x : ℝ) in (-1 - 0)..(1 + 0), 1 / (x + (-0 - 1 : ℝ) * I)) -
-    ∫ (x : ℝ) in (-1 - 0)..(1 + 0), 1 / (x + (0 + 1 : ℝ) * I) = π * I := by
-  suffices (∫ (x : ℝ) in (-1 : ℝ)..1, (x + -I)⁻¹) - ∫ (x : ℝ) in (-1 : ℝ)..1, (x + I)⁻¹ = π * I by
-    simpa
-  rw [← intervalIntegral.integral_sub
-    (ResidueTheoremAtOrigin_aux1c' (-1) 1) (ResidueTheoremAtOrigin_aux1c (-1) 1)]
-  trans 2 * I * (π / 4 + π / 4)
-  · simp [ResidueTheoremAtOrigin_aux1b, ResidueTheoremAtOrigin_aux1a]
-  · group
-
-theorem ResidueTheoremAtOrigin_aux2b (y : ℝ) :
-    (1 + y * I)⁻¹ - (-1 + y * I)⁻¹ = 2 * ((1 + y ^ 2)⁻¹ : ℝ) := by
-  have hu₁ : IsUnit (1 + y * I) := Ne.isUnit (by simp [Complex.ext_iff])
-  have hu₂ : IsUnit (-1 + y * I) := Ne.isUnit (by simp [Complex.ext_iff])
-  apply hu₁.mul_left_cancel
-  rw [mul_sub, hu₁.mul_inv_cancel]
-  apply hu₂.mul_left_cancel
-  calc
-    _ = (-1 + ↑y * I) * 1 - (-1 + ↑y * I)⁻¹ * (-1 + ↑y * I) * (1 + ↑y * I) := by group
-    _ = ((1 * -2) : ℝ) := by trans -1 - 1; simp [hu₂.inv_mul_cancel]; norm_num
-    _ = (((1 + y ^ 2)⁻¹ * (1 + y ^ 2) : ℝ) * (-2) : ℝ) := by
-      congr 2
-      exact (Ne.isUnit (by nlinarith)).inv_mul_cancel.symm
-    _ = (1 + (y : ℂ) ^ 2)⁻¹ * (1 + (y : ℂ) ^ 2) * (-2) := by norm_cast
-    _ = (1 + (y : ℂ) ^ 2)⁻¹ * (-(1 + y * I) * (-1 + y * I)) * (-2) := by
-      congr 2
-      trans 1 - ↑y ^ 2 * I ^ 2; simp; group
-    _ = _ := by push_cast; group
-
 theorem ResidueTheoremAtOrigin_aux2c (a b : ℝ) :
-    let f : ℝ → ℂ := fun y => (1 + ↑y * I)⁻¹
+    let f : ℝ → ℂ := fun y => (1 + y * I)⁻¹
     IntervalIntegrable f volume a b :=
   (ContinuousOn.inv₀ (by fun_prop) (by simp [Complex.ext_iff])).intervalIntegrable
 
 theorem ResidueTheoremAtOrigin_aux2c' (a b : ℝ) :
-    let f : ℝ → ℂ := fun y => (-1 + ↑y * I)⁻¹
+    let f : ℝ → ℂ := fun y => (-1 + y * I)⁻¹
     IntervalIntegrable f volume a b :=
   (ContinuousOn.inv₀ (by fun_prop) (by simp [Complex.ext_iff])).intervalIntegrable
-
-theorem ResidueTheoremAtOrigin_aux2 :
-    (I * ∫ (y : ℝ) in (-0 - 1)..0 + 1, 1 / ((1 + 0 : ℝ) + y * I)) -
-    I * ∫ (y : ℝ) in (-0 - 1)..0 + 1, 1 / ((-1 - 0 : ℝ) + y * I) = π * I := by
-  rw [← mul_sub, mul_comm (π : ℂ) I]
-  suffices (∫ y in (-1 : ℝ)..1, (1 + ↑y * I)⁻¹) - ∫ y in (-1 : ℝ)..1, (-1 + ↑y * I)⁻¹ = ↑π by simpa
-  rw [← intervalIntegral.integral_sub
-    (ResidueTheoremAtOrigin_aux2c (-1) 1) (ResidueTheoremAtOrigin_aux2c' (-1) 1)]
-  trans 2 * (↑π / 4 + ↑π / 4)
-  · simp [ResidueTheoremAtOrigin_aux2b, ResidueTheoremAtOrigin_aux1a]
-  · group
 
 theorem RectangleIntegral.const_mul (f : ℂ → ℂ) (z w c : ℂ) :
     RectangleIntegral (fun s => c * f s) z w = c * RectangleIntegral f z w := by
