@@ -176,7 +176,7 @@ Almost by definition.
       ((I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) - ∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I))) := by
     ring_nf
   rw [zero_sub] at this
-  simp_rw [RectangleIntegral, LowerUIntegral, h_re, h_im, ofReal_neg, neg_mul, neg_add_rev, neg_sub]
+  simp_rw [RectangleIntegral, LowerUIntegral, HIntegral, VIntegral, h_re, h_im, ofReal_neg, neg_mul, neg_add_rev, neg_sub]
   exact final ▸ this
 --%%\end{proof}
 
@@ -468,6 +468,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
     simp only [one_div, mul_inv_rev, inv_I, neg_mul, map_neg_eq_map, map_mul, abs_I, map_inv₀,
       abs_ofReal, abs_ofNat, one_mul, ge_iff_le, abs_of_pos Real.pi_pos] at h ⊢
     convert_to π⁻¹ * 2⁻¹ * Complex.abs (VerticalIntegral (f x) σ) ≤ π⁻¹ * 2⁻¹ * (x ^ σ * ∫ (t : ℝ), |sqrt (4⁻¹ + t ^ 2) * sqrt (2 + t ^ 2)|⁻¹)
+    · simp [pi_nonneg]
     · ring
     · gcongr
   calc
@@ -942,7 +943,7 @@ By Lemma \ref{residueAtZero}, the integral over this square is equal to $1$.
   obtain ⟨c, hcf, hc⟩ := this.exists_mem
   obtain ⟨ε, hε, hεc⟩ := Metric.mem_nhdsWithin_iff.mp hcf
   obtain hε := hc (ε/2) (hεc ⟨mem_ball_iff_norm.mpr (by simp [abs_of_pos hε, hε]), half_pos hε⟩)
-  rw [VerticalIntegral', ← mul_sub, hε.2, ← RectangleIntegral', add_zero, add_zero, hε.1]
+  rw [VerticalIntegral', ← smul_sub, hε.2, ← RectangleIntegral', add_zero, add_zero, hε.1]
 
 /-%%
 \begin{lemma}[residuePull2]\label{residuePull2}\lean{Perron.residuePull2}\leanok
@@ -970,7 +971,7 @@ lemma residuePull2 (x_gt_one : 1 < x) :
   obtain ⟨c, hcf, hc⟩ := this.exists_mem
   obtain ⟨ε, hε, hεc⟩ := Metric.mem_nhdsWithin_iff.mp hcf
   replace hε := hc (ε/2) (hεc ⟨mem_ball_iff_norm.mpr (by simp [abs_of_pos, hε]), half_pos hε⟩)
-  rw [VerticalIntegral', ← mul_sub, hε.2, ← RectangleIntegral', neg_div, one_div, ← ofReal_inv]
+  rw [VerticalIntegral', ← smul_sub, hε.2, ← RectangleIntegral', neg_div, one_div, ← ofReal_inv]
   exact hε.1
 /-%%
 \begin{proof}\leanok
