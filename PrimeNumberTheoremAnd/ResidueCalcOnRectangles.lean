@@ -423,77 +423,6 @@ theorem ResidueTheoremAtOrigin_aux2 :
   · simp [ResidueTheoremAtOrigin_aux2b, ResidueTheoremAtOrigin_aux1a]
   · group
 
-/-%%
-\begin{lemma}[ResidueTheoremAtOrigin]\label{ResidueTheoremAtOrigin}
-\lean{ResidueTheoremAtOrigin}\leanok
-The rectangle (square) integral of $f(s) = 1/s$ with corners $-1-i$ and $1+i$ is equal to $2\pi i$.
-\end{lemma}
-%%-/
-lemma ResidueTheoremAtOrigin :
-    RectangleIntegral' (fun s ↦ 1 / s) (-1 - I) (1 + I) = 1 := by
-  dsimp [RectangleIntegral', RectangleIntegral]
-  rw [ResidueTheoremAtOrigin_aux1, add_sub_assoc, ResidueTheoremAtOrigin_aux2]
-  trans  1 / (2 * ↑π * I) * (2 * ↑π * I)
-  · group
-  · exact one_div_mul_cancel (by norm_num; exact pi_ne_zero)
-/-%%
-\begin{proof}\leanok
-The bottom is:
-$$
-\frac1{2\pi i}
-\int_{-1-i}^{1-i} \frac1z dz
-=
-\frac1{2\pi i}
-\int_{-1}^1 \frac1{x-i} dx,
-$$
-and the top is the negative of:
-$$
-\frac1{2\pi i}
-\int_{-1+i}^{1+i} \frac1z dz
-=
-\frac1{2\pi i}
-\int_{-1}^1 \frac1{x+i} dx.
-$$
-The two together add up to:
-$$
-\frac1{2\pi i}
-\int_{-1}^1
-\left(\frac1{x-i}-\frac1{x+i} \right)dx
-=
-\frac1{\pi}
-\int_{-1}^1
-\frac{1}{x^2+1}dx,
-$$
-which is the arctan at $1$ (namely $\pi/4$) minus that at $-1$. In total, this contributes $1/2$ to the integral.
-
-The vertical sides are:
-$$
-\frac1{2\pi i}
-\int_{1-i}^{1+i} \frac1z dz
-=
-\frac1{2\pi}
-\int_{-1}^1 \frac1{1+iy} dy
-$$
-and the negative of
-$$
-\frac1{2\pi i}
-\int_{-1-i}^{-1+i} \frac1z dz
-=
-\frac1{2\pi}
-\int_{-1}^1 \frac1{-1+iy} dy.
-$$
-This difference comes out to:
-$$
-\frac1{2\pi}
-\int_{-1}^1 \left(\frac1{1+iy}-\frac1{-1+iy}\right) dy
-=
-\frac1{2\pi}
-\int_{-1}^1 \left(\frac{-2}{-1-y^2}\right) dy,
-$$
-which contributes another factor of $1/2$. (Fun! Each of the vertical/horizontal sides contributes half of the winding.)
-\end{proof}
-%%-/
-
 theorem RectangleIntegral.const_mul (f : ℂ → ℂ) (z w c : ℂ) :
     RectangleIntegral (fun s => c * f s) z w = c * RectangleIntegral f z w := by
   simpa [RectangleIntegral] using by ring
@@ -592,6 +521,21 @@ theorem ResidueTheoremInRectangle (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.i
   rw [RectangleIntegral.translate', RectangleIntegral']
   have : 1 / (2 * ↑π * I) * (2 * I * ↑π * c) = c := by field_simp [two_pi_I_ne_zero] ; ring
   rwa [ResidueTheoremAtOrigin'] ; all_goals { simp [*] }
+
+/-%%
+\begin{lemma}[ResidueTheoremAtOrigin]\label{ResidueTheoremAtOrigin}
+\lean{ResidueTheoremAtOrigin}\leanok
+The rectangle (square) integral of $f(s) = 1/s$ with corners $-1-i$ and $1+i$ is equal to $2\pi i$.
+\end{lemma}
+%%-/
+lemma ResidueTheoremAtOrigin : RectangleIntegral' (fun s ↦ 1 / s) (-1 - I) (1 + I) = 1 := by
+  rw [RectangleIntegral', ResidueTheoremAtOrigin']
+  all_goals { field_simp [pi_ne_zero] <;> ring }
+/-%%
+\begin{proof}\leanok
+This is a special case of the more general result above.
+\end{proof}
+%%-/
 
 /-%%
 \begin{lemma}[ResidueTheoremOnRectangleWithSimplePole]\label{ResidueTheoremOnRectangleWithSimplePole}
