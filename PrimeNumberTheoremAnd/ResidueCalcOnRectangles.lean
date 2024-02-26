@@ -11,8 +11,7 @@ open Complex BigOperators Nat Classical Real Topology Filter Set MeasureTheory i
 
 open scoped Interval
 
-lemma Complex.abs_neg (z : ℂ) : Complex.abs (-z) = Complex.abs z :=
-  AbsoluteValue.map_neg abs z
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] {f g : ℂ → E} {z w p : ℂ} {σ : ℝ}
 
 /-%%
 \begin{definition}[RectangleIntegral]\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
@@ -22,13 +21,14 @@ We will sometimes denote it by $\int_{z}^{w} f$. (There is also a primed version
 %%-/
 /-- A `RectangleIntegral` of a function `f` is one over a rectangle determined by
   `z` and `w` in `ℂ`. -/
-noncomputable def RectangleIntegral (f : ℂ → ℂ) (z w : ℂ) : ℂ :=
+noncomputable def RectangleIntegral (f : ℂ → E) (z w : ℂ) : E :=
     ((∫ x : ℝ in z.re..w.re, f (x + z.im * I)) - (∫ x : ℝ in z.re..w.re, f (x + w.im * I))
      + I • (∫ y : ℝ in z.im..w.im, f (w.re + y * I)) - I • ∫ y : ℝ in z.im..w.im, f (z.re + y * I))
 
-noncomputable abbrev RectangleIntegral' (f : ℂ → ℂ) (z w : ℂ) : ℂ :=
-    (1/(2 * π * I)) * RectangleIntegral f z w
-
+/-- A `RectangleIntegral'` of a function `f` is one over a rectangle determined by
+  `z` and `w` in `ℂ`, divided by `2 * π * I`. -/
+noncomputable abbrev RectangleIntegral' (f : ℂ → E) (z w : ℂ) : E :=
+    (1/(2 * π * I)) • RectangleIntegral f z w
 
 /-%%
 An UpperUIntegral is the integral of a function over a |\_| shape.
@@ -36,7 +36,7 @@ An UpperUIntegral is the integral of a function over a |\_| shape.
 An UpperUIntegral of a function $f$ comes from $\sigma+i\infty$ down to $\sigma+iT$, over to $\sigma'+iT$, and back up to $\sigma'+i\infty$.
 \end{definition}
 %%-/
-noncomputable def UpperUIntegral (f : ℂ → ℂ) (σ σ' T : ℝ) : ℂ :=
+noncomputable def UpperUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E :=
     ((∫ x : ℝ in σ..σ', f (x + T * I))
      + I • (∫ y : ℝ in Ici T, f (σ' + y * I)) - I • ∫ y : ℝ in Ici T, f (σ + y * I))
 
@@ -46,7 +46,7 @@ A LowerUIntegral is the integral of a function over a |-| shape.
 A LowerUIntegral of a function $f$ comes from $\sigma-i\infty$ up to $\sigma-iT$, over to $\sigma'-iT$, and back down to $\sigma'-i\infty$.
 \end{definition}
 %%-/
-noncomputable def LowerUIntegral (f : ℂ → ℂ) (σ σ' T : ℝ) : ℂ :=
+noncomputable def LowerUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E :=
     ((∫ x : ℝ in σ..σ', f (x - T * I))
      - I • (∫ y : ℝ in Iic (-T), f (σ' + y * I)) + I • ∫ y : ℝ in Iic (-T), f (σ + y * I))
 
@@ -58,16 +58,15 @@ Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a r
 $$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
 \end{definition}
 %%-/
-
-noncomputable def VerticalIntegral (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
-  I • ∫ t : ℝ, f (σ + t * I)
+noncomputable def VerticalIntegral (f : ℂ → E) (σ : ℝ) : E :=
+    I • ∫ t : ℝ, f (σ + t * I)
 
 --%% We also have a version with a factor of $1/(2\pi i)$.
-noncomputable abbrev VerticalIntegral' (f : ℂ → ℂ) (σ : ℝ) : ℂ :=
-  (1 / (2 * π * I)) * VerticalIntegral f σ
+noncomputable abbrev VerticalIntegral' (f : ℂ → E) (σ : ℝ) : E :=
+    (1 / (2 * π * I)) • VerticalIntegral f σ
 
-lemma verticalIntegral_split_three {f : ℂ → ℂ} {σ : ℝ} (a b : ℝ) (hf : Integrable (fun t : ℝ ↦ f (σ + t * I))) :
-    VerticalIntegral f σ = I • (∫ t in Iic (a), f (σ + t * I)) + I • (∫ t in a..b, f (σ + t * I))
+lemma verticalIntegral_split_three (a b : ℝ) (hf : Integrable (fun t : ℝ ↦ f (σ + t * I))) :
+    VerticalIntegral f σ = I • (∫ t in Iic a, f (σ + t * I)) + I • (∫ t in a..b, f (σ + t * I))
     + I • ∫ t in Ici b, f (σ + t * I) := by
   simp_rw [VerticalIntegral, ← smul_add]
   congr
@@ -97,18 +96,14 @@ Follows directly from the definitions.
 %%-/
 
 /-- A function is `HolomorphicOn` a set if it is complex differentiable on that set. -/
-abbrev HolomorphicOn {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] (f : ℂ → E) (s : Set ℂ) :
-    Prop := DifferentiableOn ℂ f s
-
-
+abbrev HolomorphicOn (f : ℂ → E) (s : Set ℂ) : Prop := DifferentiableOn ℂ f s
 
 /-%%
 \begin{theorem}[existsDifferentiableOn_of_bddAbove]\label{existsDifferentiableOn_of_bddAbove}\lean{existsDifferentiableOn_of_bddAbove}\leanok
 If $f$ is differentiable on a set $s$ except at $c\in s$, and $f$ is bounded above on $s\setminus\{c\}$, then there exists a differentiable function $g$ on $s$ such that $f$ and $g$ agree on $s\setminus\{c\}$.
 \end{theorem}
 %%-/
-theorem existsDifferentiableOn_of_bddAbove {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
-    [CompleteSpace E] {f : ℂ → E} {s : Set ℂ} {c : ℂ} (hc : s ∈ nhds c)
+theorem existsDifferentiableOn_of_bddAbove [CompleteSpace E] {s : Set ℂ} {c : ℂ} (hc : s ∈ nhds c)
     (hd : HolomorphicOn f (s \ {c})) (hb : BddAbove (norm ∘ f '' (s \ {c}))) :
     ∃ (g : ℂ → E), HolomorphicOn g s ∧ (Set.EqOn f g (s \ {c})) :=
   ⟨Function.update f c (limUnder (𝓝[{c}ᶜ] c) f),
@@ -116,7 +111,7 @@ theorem existsDifferentiableOn_of_bddAbove {E : Type*} [NormedAddCommGroup E] [N
     fun z hz ↦ if h : z = c then (hz.2 h).elim else by simp [h]⟩
 /-%%
 \begin{proof}\leanok
-This is the Reimann Removable Singularity Theorem, slightly rephrased from what's in Mathlib. (We don't care what the function $g$ is, just that it's holomorphic.)
+This is the Riemann Removable Singularity Theorem, slightly rephrased from what's in Mathlib. (We don't care what the function $g$ is, just that it's holomorphic.)
 \end{proof}
 %%-/
 
@@ -125,7 +120,7 @@ This is the Reimann Removable Singularity Theorem, slightly rephrased from what'
 If $f$ is holomorphic on a rectangle $z$ and $w$, then the integral of $f$ over the rectangle with corners $z$ and $w$ is $0$.
 \end{theorem}
 %%-/
-theorem HolomorphicOn.vanishesOnRectangle {f : ℂ → ℂ} {U : Set ℂ} {z w : ℂ}
+theorem HolomorphicOn.vanishesOnRectangle [CompleteSpace E] {U : Set ℂ}
     (f_holo : HolomorphicOn f U) (hU : Rectangle z w ⊆ U) :
     RectangleIntegral f z w = 0 :=
   integral_boundary_rect_eq_zero_of_differentiableOn f z w (f_holo.mono hU)
@@ -135,7 +130,7 @@ This is in a Mathlib PR.
 \end{proof}
 %%-/
 
-theorem RectangleIntegral_congr {f g : ℂ → ℂ} {z w : ℂ} (h : Set.EqOn f g (RectangleBorder z w)) :
+theorem RectangleIntegral_congr (h : Set.EqOn f g (RectangleBorder z w)) :
     RectangleIntegral f z w = RectangleIntegral g z w := by
   unfold RectangleIntegral
   congr 2; swap; congr 1; swap; congr 1
@@ -145,15 +140,15 @@ theorem RectangleIntegral_congr {f g : ℂ → ℂ} {z w : ℂ} (h : Set.EqOn f 
   · exact Or.inr ⟨by simp, by simpa⟩
   · exact Or.inl <| Or.inl <| Or.inr ⟨by simp, by simpa⟩
 
-theorem RectangleIntegral'_congr {f g : ℂ → ℂ} {z w : ℂ} (h : Set.EqOn f g (RectangleBorder z w)) :
+theorem RectangleIntegral'_congr (h : Set.EqOn f g (RectangleBorder z w)) :
     RectangleIntegral' f z w = RectangleIntegral' g z w := by
   rw [RectangleIntegral', RectangleIntegral_congr h]
 
-theorem rectangleIntegral_symm (f : ℂ → ℂ) (z w : ℂ) :
+theorem rectangleIntegral_symm (f : ℂ → E) (z w : ℂ) :
     RectangleIntegral f z w = RectangleIntegral f w z := by
   simp_rw [RectangleIntegral, intervalIntegral.integral_symm w.re,
-    intervalIntegral.integral_symm w.im, smul_eq_mul]
-  group
+    intervalIntegral.integral_symm w.im, sub_neg_eq_add, smul_neg, sub_neg_eq_add, ← sub_eq_add_neg,
+    neg_add_eq_sub, sub_add_eq_add_sub]
 
 theorem rectangleIntegral_symm_re (f : ℂ → ℂ) (z w : ℂ) :
     RectangleIntegral f (w.re + z.im * I) (z.re + w.im * I) = - RectangleIntegral f z w := by
@@ -163,13 +158,13 @@ theorem rectangleIntegral_symm_re (f : ℂ → ℂ) (z w : ℂ) :
       intervalIntegral.integral_symm w.re, sub_neg_eq_add, neg_sub]
   group
 
-def RectangleBorderIntegrable (f : ℂ → ℂ) (z w : ℂ) : Prop :=
+def RectangleBorderIntegrable (f : ℂ → E) (z w : ℂ) : Prop :=
     IntervalIntegrable (fun x => f (x + z.im * I)) volume z.re w.re ∧
     IntervalIntegrable (fun x => f (x + w.im * I)) volume z.re w.re ∧
     IntervalIntegrable (fun y => f (w.re + y * I)) volume z.im w.im ∧
     IntervalIntegrable (fun y => f (z.re + y * I)) volume z.im w.im
 
-theorem RectangleBorderIntegrable.add {f g : ℂ → ℂ} {z w : ℂ} (hf : RectangleBorderIntegrable f z w)
+theorem RectangleBorderIntegrable.add {f g : ℂ → ℂ} (hf : RectangleBorderIntegrable f z w)
     (hg : RectangleBorderIntegrable g z w) :
     RectangleIntegral (f + g) z w = RectangleIntegral f z w + RectangleIntegral g z w := by
   dsimp [RectangleIntegral]
@@ -177,31 +172,28 @@ theorem RectangleBorderIntegrable.add {f g : ℂ → ℂ} {z w : ℂ} (hf : Rect
     intervalIntegral.integral_add hf.2.2.1 hg.2.2.1, intervalIntegral.integral_add hf.2.2.2 hg.2.2.2]
   ring
 
-theorem ContinuousOn.rectangleBorder_integrable {f : ℂ → ℂ} {z w : ℂ}
-    (hf : ContinuousOn f (RectangleBorder z w)) : RectangleBorderIntegrable f z w :=
+theorem ContinuousOn.rectangleBorder_integrable (hf : ContinuousOn f (RectangleBorder z w)) :
+    RectangleBorderIntegrable f z w :=
   ⟨(hf.comp (by fun_prop) (mapsTo_rectangleBorder_left_im z w)).intervalIntegrable,
     (hf.comp (by fun_prop) (mapsTo_rectangleBorder_right_im z w)).intervalIntegrable,
     (hf.comp (by fun_prop) (mapsTo_rectangleBorder_right_re z w)).intervalIntegrable,
     (hf.comp (by fun_prop) (mapsTo_rectangleBorder_left_re z w)).intervalIntegrable⟩
 
-theorem ContinuousOn.rectangleBorderIntegrable {f : ℂ → ℂ} {z w : ℂ}
-    (hf : ContinuousOn f (Rectangle z w)) :
+theorem ContinuousOn.rectangleBorderIntegrable (hf : ContinuousOn f (Rectangle z w)) :
     RectangleBorderIntegrable f z w :=
   (hf.mono (rectangleBorder_subset_rectangle z w)).rectangleBorder_integrable
 
-theorem ContinuousOn.rectangleBorderNoPIntegrable {f : ℂ → ℂ} {z w p : ℂ}
-    (hf : ContinuousOn f (Rectangle z w \ {p}))
+theorem ContinuousOn.rectangleBorderNoPIntegrable (hf : ContinuousOn f (Rectangle z w \ {p}))
     (pNotOnBorder : p ∉ RectangleBorder z w) : RectangleBorderIntegrable f z w := by
   refine (hf.mono (Set.subset_diff.mpr ?_)).rectangleBorder_integrable
   exact ⟨rectangleBorder_subset_rectangle z w, disjoint_singleton_right.mpr pNotOnBorder⟩
 
-theorem HolomorphicOn.rectangleBorderIntegrable' {f : ℂ → ℂ} {z w p : ℂ}
-    (hf : HolomorphicOn f (Rectangle z w \ {p}))
+theorem HolomorphicOn.rectangleBorderIntegrable' (hf : HolomorphicOn f (Rectangle z w \ {p}))
     (hp : Rectangle z w ∈ nhds p) : RectangleBorderIntegrable f z w :=
   hf.continuousOn.rectangleBorderNoPIntegrable (not_mem_rectangleBorder_of_rectangle_mem_nhds hp)
 
-theorem HolomorphicOn.rectangleBorderIntegrable {f : ℂ → ℂ} {z w : ℂ}
-    (hf : HolomorphicOn f (Rectangle z w)) : RectangleBorderIntegrable f z w :=
+theorem HolomorphicOn.rectangleBorderIntegrable (hf : HolomorphicOn f (Rectangle z w)) :
+    RectangleBorderIntegrable f z w :=
   hf.continuousOn.rectangleBorderIntegrable
 
 /--
@@ -212,7 +204,7 @@ both `(t : ℝ) ↦ f(t + y₀ * I)` and `(t : ℝ) ↦ f(t + y₁ * I)` are int
 `RectangleIntegral f (x₀ + y₀ * I) (a + y₁ * I)` and
 `RectangleIntegral f (a + y₀ * I) (x₁ + y₁ * I)`.
 -/
-lemma RectangleIntegralHSplit {f : ℂ → ℂ} {a x₀ x₁ y₀ y₁ : ℝ}
+lemma RectangleIntegralHSplit {a x₀ x₁ y₀ y₁ : ℝ}
     (f_int_x₀_a_bot : IntervalIntegrable (fun x => f (↑x + ↑y₀ * I)) volume x₀ a)
     (f_int_a_x₁_bot : IntervalIntegrable (fun x => f (↑x + ↑y₀ * I)) volume a x₁)
     (f_int_x₀_a_top : IntervalIntegrable (fun x => f (↑x + ↑y₁ * I)) volume x₀ a)
@@ -224,9 +216,9 @@ lemma RectangleIntegralHSplit {f : ℂ → ℂ} {a x₀ x₁ y₀ y₁ : ℝ}
   simp only [mul_one, mul_zero, add_zero, zero_add, sub_self]
   rw [← intervalIntegral.integral_add_adjacent_intervals f_int_x₀_a_bot f_int_a_x₁_bot,
     ← intervalIntegral.integral_add_adjacent_intervals f_int_x₀_a_top f_int_a_x₁_top]
-  ring
+  abel
 
-lemma RectangleIntegralHSplit' {f : ℂ → ℂ} {a x₀ x₁ y₀ y₁ : ℝ} (ha : a ∈ [[x₀, x₁]])
+lemma RectangleIntegralHSplit' {a x₀ x₁ y₀ y₁ : ℝ} (ha : a ∈ [[x₀, x₁]])
     (hf : RectangleBorderIntegrable f (↑x₀ + ↑y₀ * I) (↑x₁ + ↑y₁ * I)) :
     RectangleIntegral f (x₀ + y₀ * I) (x₁ + y₁ * I) =
       RectangleIntegral f (x₀ + y₀ * I) (a + y₁ * I) +
@@ -507,9 +499,9 @@ theorem RectangleIntegral.const_mul (f : ℂ → ℂ) (z w c : ℂ) :
 
 theorem RectangleIntegral.const_mul' (f : ℂ → ℂ) (z w c : ℂ) :
     RectangleIntegral' (fun s => c * f s) z w = c * RectangleIntegral' f z w := by
-  simpa only [RectangleIntegral', RectangleIntegral.const_mul] using by ring
+  simpa [RectangleIntegral', RectangleIntegral.const_mul] using by ring
 
-theorem RectangleIntegral.translate (f : ℂ → ℂ) (z w p : ℂ) :
+theorem RectangleIntegral.translate (f : ℂ → E) (z w p : ℂ) :
     RectangleIntegral (fun s => f (s - p)) z w = RectangleIntegral f (z - p) (w - p) := by
   simp_rw [RectangleIntegral, sub_re, sub_im, ← intervalIntegral.integral_comp_sub_right]
   congr <;> ext <;> congr 1 <;> simp [Complex.ext_iff]
@@ -584,8 +576,8 @@ lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ
   have t3 : RectangleBorderIntegrable (fun s ↦ A / (s - p)) z w :=
     HolomorphicOn.rectangleBorderIntegrable' t2 pInRectInterior
 
-  rw [RectangleIntegral', RectangleBorderIntegrable.add t1 t3, mul_add]
-  rw [gHolo.vanishesOnRectangle (by rfl), mul_zero, zero_add]
+  rw [RectangleIntegral', RectangleBorderIntegrable.add t1 t3, smul_add]
+  rw [gHolo.vanishesOnRectangle (by rfl), smul_zero, zero_add]
 
   exact ResidueTheoremInRectangle zRe_le_wRe zIm_le_wIm pInRectInterior t2
 
