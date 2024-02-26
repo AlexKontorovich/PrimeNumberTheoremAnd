@@ -176,7 +176,7 @@ Almost by definition.
       ((I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) - ∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I))) := by
     ring_nf
   rw [zero_sub] at this
-  simp_rw [RectangleIntegral, LowerUIntegral, h_re, h_im, ofReal_neg, neg_mul, neg_add_rev, neg_sub]
+  simp_rw [RectangleIntegral, LowerUIntegral, HIntegral, VIntegral, h_re, h_im, ofReal_neg, neg_mul, neg_add_rev, neg_sub]
   exact final ▸ this
 --%%\end{proof}
 
