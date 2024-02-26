@@ -84,8 +84,10 @@ lemma PerronInverseMellin_gt {t x : ℝ} (x_pos : 0 < x) (x_lt_t : x < t) {σ : 
   dsimp [MellinInverseTransform]
   have tpos : 0 < t := by linarith
   have txinv_gtOne : 1 < t / x := (one_lt_div x_pos).mpr x_lt_t
+  rw [← smul_eq_mul]
   convert Perron.formulaGtOne txinv_gtOne σ_pos using 2
-  · ext1 s
+  · congr
+    ext1 s
     convert Perron.f_mul_eq_f tpos x_pos s using 1
     ring
   · field_simp

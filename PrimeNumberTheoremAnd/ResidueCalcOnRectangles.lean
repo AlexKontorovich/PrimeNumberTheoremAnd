@@ -12,7 +12,7 @@ open Complex BigOperators Nat Classical Real Topology Filter Set MeasureTheory i
 open scoped Interval
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] {f g : ℂ → E}
-  {z w p A : ℂ} {x x₁ x₂ y y₁ y₂ σ : ℝ}
+  {z w p c A : ℂ} {x x₁ x₂ y y₁ y₂ σ : ℝ}
 
 /-%%
 \begin{definition}[RectangleIntegral]\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
@@ -585,41 +585,13 @@ lemma ResidueTheoremAtOrigin' {z w c : ℂ} (h1 : z.re < 0) (h2 : z.im < 0) (h3 
   simp only [I_sq, ofReal_sub, ofReal_mul, ofReal_ofNat, ofReal_div, ofReal_neg, ofReal_one]
   ring_nf
 
-theorem ResidueTheoremInRectangle' {z w p c : ℂ} (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)
+theorem ResidueTheoremInRectangle (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)
     (pInRectInterior : Rectangle z w ∈ 𝓝 p) : RectangleIntegral' (λ s => c / (s - p)) z w = c := by
-  simp [rectangle_mem_nhds_iff, mem_reProdIm, uIoo_of_le zRe_le_wRe, uIoo_of_le zIm_le_wIm] at pInRectInterior
+  simp [rectangle_mem_nhds_iff, mem_reProdIm, uIoo_of_le zRe_le_wRe, uIoo_of_le zIm_le_wIm]
+    at pInRectInterior
   rw [RectangleIntegral.translate', RectangleIntegral']
   have : 1 / (2 * ↑π * I) * (2 * I * ↑π * c) = c := by field_simp [two_pi_I_ne_zero] ; ring
   rwa [ResidueTheoremAtOrigin'] ; all_goals { simp [*] }
-
-theorem ResidueTheoremInRectangle {z w p c : ℂ}
-    (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)
-    (pInRectInterior : Rectangle z w ∈ 𝓝 p)
-    (fHolo : HolomorphicOn (fun s ↦ c / (s - p)) (Rectangle z w \ {p})) :
-    RectangleIntegral' (λ s => c / (s - p)) z w = c := by
-  obtain ⟨s, this, hs⟩ := Eventually.exists_mem <|
-    RectanglePullToNhdOfPole'' zRe_le_wRe zIm_le_wIm pInRectInterior fHolo |>.and
-    <| Filter.eventually_mem_set.mpr (Ioo_mem_nhdsWithin_Ioi' (by norm_num : (0 : ℝ) < 1))
-  obtain ⟨ε', εpos, hε⟩ := Metric.mem_nhdsWithin_iff.mp this
-  let ε := (ε' / 2)
-  have εpos : 0 < ε := half_pos εpos
-  replace hε : ε ∈ s := hε ⟨by simpa [Real.ball_eq_Ioo] using ⟨by linarith, by linarith⟩, εpos⟩
-  replace : ε < 1 := (hs ε hε).2.2
-  rw [(hs ε hε).1]
-  conv in c / _ => { rw [← mul_one c, mul_div_assoc] }
-  rw [RectangleIntegral.const_mul', RectangleIntegral.translate']
-  suffices c * RectangleIntegral' (fun s ↦ 1 / s) (-↑ε - I * ↑ε) (↑ε + I * ↑ε) = c from
-    Eq.trans (by ring_nf) this
-  conv => { rw [RectangleIntegral']; rhs; rw [← mul_one c, ← ResidueTheoremAtOrigin] }
-  congr 2
-  refine (RectanglePullToNhdOfPole' (p := 0) ?_ ?_ ?_ ?_).symm
-  · simp [εpos.le]
-  · calc
-      _ = Square 0 ε := by simp [Square, mul_comm I]
-      _ ∈ _ := square_mem_nhds 0 (ne_of_gt εpos)
-  · apply RectSubRect' <;> simpa (config := { zeta := false }) using by linarith
-  · simp_rw [one_div]
-    exact differentiableOn_inv.mono fun _ h ↦ h.2
 
 /-%%
 \begin{lemma}[ResidueTheoremOnRectangleWithSimplePole]\label{ResidueTheoremOnRectangleWithSimplePole}
@@ -661,7 +633,7 @@ lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ
   rw [RectangleIntegral', RectangleBorderIntegrable.add t1 t3, smul_add]
   rw [gHolo.vanishesOnRectangle (by rfl), smul_zero, zero_add]
 
-  exact ResidueTheoremInRectangle zRe_le_wRe zIm_le_wIm pInRectInterior t2
+  exact ResidueTheoremInRectangle zRe_le_wRe zIm_le_wIm pInRectInterior
 
 /-%%
 \begin{proof}
