@@ -362,20 +362,20 @@ theorem ResidueTheoremAtOrigin_aux2c' (a b : ℝ) :
     IntervalIntegrable f volume a b :=
   (ContinuousOn.inv₀ (by fun_prop) (by simp [Complex.ext_iff])).intervalIntegrable
 
-theorem RectangleIntegral.const_mul (f : ℂ → ℂ) (z w c : ℂ) :
-    RectangleIntegral (fun s => c * f s) z w = c * RectangleIntegral f z w := by
-  simpa [RectangleIntegral, HIntegral, VIntegral] using by ring
+theorem RectangleIntegral.const_smul (f : ℂ → E) (z w c : ℂ) :
+    RectangleIntegral (fun s => c • f s) z w = c • RectangleIntegral f z w := by
+  simp [RectangleIntegral, HIntegral, VIntegral, smul_add, smul_sub, smul_smul, mul_comm]
 
-theorem RectangleIntegral.const_mul' (f : ℂ → ℂ) (z w c : ℂ) :
-    RectangleIntegral' (fun s => c * f s) z w = c * RectangleIntegral' f z w := by
-  simpa [RectangleIntegral', RectangleIntegral.const_mul] using by ring
+theorem RectangleIntegral.const_mul' (f : ℂ → E) (z w c : ℂ) :
+    RectangleIntegral' (fun s => c • f s) z w = c • RectangleIntegral' f z w := by
+  simp [RectangleIntegral', RectangleIntegral.const_smul, smul_smul] ; ring_nf
 
 theorem RectangleIntegral.translate (f : ℂ → E) (z w p : ℂ) :
     RectangleIntegral (fun s => f (s - p)) z w = RectangleIntegral f (z - p) (w - p) := by
   simp_rw [RectangleIntegral, HIntegral, VIntegral, sub_re, sub_im, ← intervalIntegral.integral_comp_sub_right]
   congr <;> ext <;> congr 1 <;> simp [Complex.ext_iff]
 
-theorem RectangleIntegral.translate' (f : ℂ → ℂ) (z w p : ℂ) :
+theorem RectangleIntegral.translate' (f : ℂ → E) (z w p : ℂ) :
     RectangleIntegral' (fun s => f (s - p)) z w = RectangleIntegral' f (z - p) (w - p) := by
   simp_rw [RectangleIntegral', RectangleIntegral.translate]
 
@@ -484,6 +484,7 @@ at $p$. By the latter, we mean that there is a function $g$ holomorphic on the r
 rectangle is $A$.
 \end{lemma}
 %%-/
+-- TODO: generalize to `f g : ℂ → E`
 lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ}
     (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)
     (pInRectInterior : Rectangle z w ∈ 𝓝 p)
