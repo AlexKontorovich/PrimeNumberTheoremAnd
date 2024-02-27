@@ -1,7 +1,32 @@
 import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import PrimeNumberTheoremAnd.PerronFormula
 
+-- TODO: move near `MeasureTheory.set_integral_prod`
+theorem MeasureTheory.set_integral_integral_swap {α : Type*} {β : Type*} {E : Type*}
+    [MeasurableSpace α] [MeasurableSpace β] {μ : MeasureTheory.Measure α}
+    {ν : MeasureTheory.Measure β} [NormedAddCommGroup E] [MeasureTheory.SigmaFinite ν]
+    [NormedSpace ℝ E] [MeasureTheory.SigmaFinite μ] (f : α × β → E) {s : Set α} {t : Set β}
+    (hf : IntegrableOn f (s ×ˢ t) (μ.prod ν)) :
+    (∫ (x : α) in s, ∫ (y : β) in t, f (x, y) ∂ν ∂μ)
+      = ∫ (y : β) in t, ∫ (x : α) in s, f (x, y) ∂μ ∂ν := by
+  sorry -- mimic `MeasureTheory.integral_integral_swap`
+
+-- How do deal with this coersion?...
+noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ (f x : ℂ)
+
+section from_PR10944
+
+open Real Complex Set MeasureTheory
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
+
+def VerticalIntegrable (f : ℂ → E) (σ : ℝ) (μ : Measure ℝ := by volume_tac) : Prop :=
+  Integrable (fun (y : ℝ) ↦ f (σ + y * I)) μ
+
+end from_PR10944
+
 open Complex Topology Filter Real MeasureTheory Set
+
 
 /-%%
 In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler), prove its
@@ -222,9 +247,9 @@ $$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
 [Note: How ``nice''? Schwartz (on $(0,\infty)$) is certainly enough. As we formalize this, we can add whatever
  conditions are necessary for the proof to go through.]
 %%-/
-theorem MellinInversion {f : ℝ → ℂ} (σ : ℝ) (hσ : σ > 0) (fDiff : DifferentiableOn ℝ f (Set.Ioi 0))
-    (fDiff2 : DifferentiableOn ℝ (deriv f) (Set.Ioi 0)) :
-    MellinInverseTransform (MellinTransform f) σ = f := by
+theorem MellinInversion (σ : ℝ) {f : ℝ → ℂ} {x : ℝ} (hx : 0 < x) (hf : MellinConvergent f σ)
+    (hFf : VerticalIntegrable (mellin f) σ) (hfx : ContinuousAt f x) :
+    MellinInverseTransform (MellinTransform f) σ x = f x := by
   -- Done in PR#10944
   sorry
 /-%%
@@ -264,6 +289,8 @@ $$(f\ast g)(x) = \int_0^\infty f(y)g(x/y)\frac{dy}{y}.$$
 %%-/
 noncomputable def MellinConvolution (f g : ℝ → ℂ) (x : ℝ) : ℂ :=
   ∫ y in Set.Ioi 0, f y * g (x / y) / y
+
+
 /-%%
 The Mellin transform of a convolution is the product of the Mellin transforms.
 \begin{theorem}[MellinConvolutionTransform]\label{MellinConvolutionTransform}\lean{MellinConvolutionTransform}\leanok
@@ -272,8 +299,43 @@ $$\mathcal{M}(f\ast g)(s) = \mathcal{M}(f)(s)\mathcal{M}(g)(s).$$
 ** Needs conditions so that the integrals converge absolutely.**
 \end{theorem}
 %%-/
-lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ) : MellinTransform (MellinConvolution f g) s = MellinTransform f s * MellinTransform g s := by
-  sorry
+lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
+    (hf : IntegrableOn (fun ⟨x, y⟩ ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1))
+      (Ioi 0 ×ˢ Ioi 0)) :
+    MellinTransform (MellinConvolution f g) s = MellinTransform f s * MellinTransform g s := by
+  dsimp [MellinTransform, MellinConvolution]
+  set f₁ : ℝ × ℝ → ℂ := fun ⟨x, y⟩ ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
+  -- have := @MeasureTheory.set_integral_integral_swap (s := Set.Ioi (0 : ℝ)) (t := Set.Ioi (0 : ℝ))
+  --   (E := ℂ) (μ := volume) (ν := volume) _ _ _ _ _ _ (f := f₁) h
+  -- have := (@MeasureTheory.set_integral_prod (s := Set.Ioi (0 : ℝ)) (t := Set.Ioi (0 : ℝ)) (E := ℂ)
+  --   (μ := volume) (ν := volume) _ _ _ _ _ _ (f := f₁) h).symm
+  calc
+    _ = ∫ (x : ℝ) in Ioi 0, ∫ (y : ℝ) in Ioi 0, f₁ (x, y) := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f₁ (x, y) := set_integral_integral_swap _ hf
+    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * g (x / y) / ↑y * ↑x ^ (s - 1) := rfl
+    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * g (x * y / y) / ↑y * ↑(x * y) ^ (s - 1) * y := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * (g x * ↑x ^ (s - 1)) := ?_
+    _ = _ := ?_
+  · rw [set_integral_congr (by simp)]
+    intro x hx
+    simp only
+    rw [integral_mul_right]
+  · sorry
+  · rw [set_integral_congr (by simp)]
+    intro x hx
+    simp only
+    rw [set_integral_congr (by simp)]
+    intro y hy
+    have x_ne_zeroℝ : x ≠ 0 := ne_of_gt (mem_Ioi.mp hx)
+    have x_ne_zeroℂ : (x : ℂ) ≠ 0 := by exact_mod_cast x_ne_zeroℝ
+    simp only [ofReal_mul]
+    field_simp
+    have : ((y : ℂ) * ↑x) ^ (s - 1) = (y : ℂ) ^ (s - 1) * (↑x ^ (s - 1)) := by sorry
+    rw [this]
+    ring
+  · --have := @MeasureTheory.integral_prod_mul
+    sorry
+
 /-%%
 \begin{proof}
 \uses{MellinTransform}
@@ -401,9 +463,6 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
 Same idea as Urysohn-type argument.
 \end{proof}
 %%-/
-
--- How do deal with this coersion?...
-noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ (f x : ℂ)
 
 /-%%
 The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at least) like $1/|s|$.
@@ -643,8 +702,9 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ)
     MellinTransform (Smooth1 Ψ ε) s = 1 / s * MellinTransform (funCoe Ψ) (ε * s) := by
   dsimp [Smooth1]
   rw [MellinConvolutionTransform, MellinOf1 _ hs, MellinOfDeltaSpike Ψ (εpos) s]
+  sorry
 /-%%
-\begin{proof}\uses{MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1}\leanok
+\begin{proof}\uses{MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1}
 Use Lemmata \ref{MellinConvolutionTransform}, \ref{MellinOf1}, and \ref{MellinOfDeltaSpike}.
 \end{proof}
 %%-/
