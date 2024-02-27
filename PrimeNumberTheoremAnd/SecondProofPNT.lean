@@ -48,7 +48,7 @@ and apply the Mellin inversion formula (Theorem \ref{MellinInversion}).
 
 /-%%
 The smoothed Chebyshev function is close to the actual Chebyshev function.
-\begin{theorem}\label{SmoothedChebyshevClose}
+\begin{theorem}[SmoothedChebyshevClose]\label{SmoothedChebyshevClose}
 We have that
 $$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X).$$
 \end{theorem}
@@ -56,8 +56,8 @@ $$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X).$$
 
 /-%%
 \begin{proof}
-\uses{SmoothedChebyshevDirichlet, Smooth1Properties, ChebyshevPsi}
-Take the difference. By Lemma \ref{Smooth1Properties}, the sums agree except when $1-c \epsilon \leq n/X \leq 1+c \epsilon$. This is an interval of length $\ll \epsilon X$, and the summands are bounded by $\Lambda(n) \ll \log X$.
+\uses{SmoothedChebyshevDirichlet, Smooth1Properties_above, ChebyshevPsi}
+Take the difference. By Lemma \ref{Smooth1Properties_above} and \ref{Smooth1Properties_below}, the sums agree except when $1-c \epsilon \leq n/X \leq 1+c \epsilon$. This is an interval of length $\ll \epsilon X$, and the summands are bounded by $\Lambda(n) \ll \log X$.
 
 This is not enough, as it loses a log! (Which is fine if our target is the strong PNT, with exp-root-log savings, but not here with the ``softer'' approach.) So we will need something like the Selberg sieve (already in Mathlib? Or close?) to conclude that the number of primes in this interval is $\ll \epsilon X / \log X + 1$.
 (The number of prime powers is $\ll X^{1/2}$.)
@@ -161,7 +161,7 @@ X^{s}ds = \frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
 
 /-%%
 \begin{proof}
-\uses{ZeroFreeBox, Rectangle, RectangleBorder, RectangleIntegral, ResidueOfLogDerivative, MellinOfSmooth1, MellinOfDeltaSpikeAt1, SmoothedChebyshevPull1}
+\uses{ZeroFreeBox, Rectangle, RectangleBorder, RectangleIntegral, ResidueOfLogDerivative, MellinOfSmooth1a, MellinOfSmooth1b, MellinOfSmooth1c, MellinOfDeltaSpikeAt1, SmoothedChebyshevPull1}
 Residue calculus / the argument principle.
 \end{proof}
 %%-/
