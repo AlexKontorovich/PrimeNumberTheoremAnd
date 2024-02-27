@@ -332,7 +332,7 @@ lemma decay_bounds : ∃ C:ℝ, ∀ (ψ:ℝ → ℂ) (hψ: ContDiff ℝ 2 ψ) (h
 /-%%
 \begin{proof} From two integration by parts we obtain the identity
 $$ (1+u^2) \hat \psi(u) = \int_{\bf R} (\psi(t) - \frac{u}{4\pi^2} \psi''(t)) e(-tu)\ dt.$$
-Now apply the triangle inequality and the identity $\int_{\bf R} frac{dt}{1+t^2}\ dt = \pi$ to obtain the claim with $C = \pi + 1 / 4 \pi$.
+Now apply the triangle inequality and the identity $\int_{\bf R} \frac{dt}{1+t^2}\ dt = \pi$ to obtain the claim with $C = \pi + 1 / 4 \pi$.
 \end{proof}
 %%-/
 
