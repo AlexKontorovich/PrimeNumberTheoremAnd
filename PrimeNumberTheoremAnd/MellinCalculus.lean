@@ -289,7 +289,7 @@ attribute [- simp] one_div
 
 /-%%
 Let $\psi$ be a bumpfunction.
-\begin{theorem}\label{SmoothExistence}\leanok
+\begin{theorem}[SmoothExistence]\label{SmoothExistence}\lean{SmoothExistence}\leanok
 There exists a smooth (once differentiable would be enough), nonnegative ``bumpfunction'' $\psi$,
  supported in $[1/2,2]$ with total mass one:
 $$
@@ -402,6 +402,9 @@ Same idea as Urysohn-type argument.
 \end{proof}
 %%-/
 
+-- How do deal with this coersion?...
+noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ (f x : ℂ)
+
 /-%%
 The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at least) like $1/|s|$.
 \begin{theorem}[MellinOfPsi]\label{MellinOfPsi}\lean{MellinOfPsi}\leanok
@@ -413,8 +416,8 @@ as $|s|\to\infty$.
 [Of course it decays faster than any power of $|s|$, but it turns out that we will just need one power.]
 %%-/
 -- Better way to spell this? Using BigO and cocompact filter?
-lemma MellinOfPsi {Ψ : ℝ → ℂ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) :
-    ∃ (C : ℝ), ∀ (s : ℂ), C ≤ Complex.abs s → Complex.abs (MellinTransform Ψ s) ≤ C / Complex.abs s := by
+lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) :
+    ∃ (C : ℝ), ∀ (s : ℂ), C ≤ Complex.abs s → Complex.abs (MellinTransform (funCoe Ψ) s) ≤ C / Complex.abs s := by
   sorry
 /-%%
 \begin{proof}
@@ -467,8 +470,6 @@ Substitute $y=x^{1/\epsilon}$, and use the fact that $\psi$ has mass one, and th
 \end{proof}
 %%-/
 
--- How do deal with this coersion?...
-noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ (f x : ℂ)
 
 theorem Complex.ofReal_rpow {x : ℝ} (h:x>0) (y: ℝ) : (((x:ℝ) ^ (y:ℝ)):ℝ) = (x:ℂ) ^ (y:ℂ) := by
   rw [Real.rpow_def_of_pos h, ofReal_exp, ofReal_mul, Complex.ofReal_log h.le, Complex.cpow_def_of_ne_zero]
@@ -481,7 +482,7 @@ For any $\epsilon>0$, the Mellin transform of $\psi_\epsilon$ is
 $$\mathcal{M}(\psi_\epsilon)(s) = \mathcal{M}(\psi)\left(\epsilon s\right).$$
 \end{theorem}
 %%-/
-theorem MellinOfDeltaSpike {Ψ : ℝ → ℝ} {ε : ℝ} (εpos:ε>0) (s : ℂ) :
+theorem MellinOfDeltaSpike (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : ℂ) :
     MellinTransform (funCoe (DeltaSpike Ψ ε)) s = MellinTransform (funCoe Ψ) (ε * s) := by
   unfold MellinTransform funCoe DeltaSpike
   rw [← MeasureTheory.integral_comp_rpow_Ioi (fun z => ((Ψ z): ℂ) * (z:ℂ)^((ε : ℂ)*s-1)) (one_div_ne_zero (ne_of_gt εpos))]
@@ -500,7 +501,7 @@ theorem MellinOfDeltaSpike {Ψ : ℝ → ℝ} {ε : ℝ} (εpos:ε>0) (s : ℂ) 
   rw [← Complex.cpow_mul, mul_sub]
   simp only [← mul_assoc, ofReal_sub, ofReal_div, ofReal_one, mul_one, ofReal_inv]
   rw [one_div_mul_cancel, mul_comm (1 / (ε:ℂ)) _, mul_comm, ← mul_assoc, ← mul_assoc, ← Complex.cpow_add]
-  ring
+  ring_nf
   exact slitPlane_ne_zero (Or.inl hx)
   exact slitPlane_ne_zero (Or.inl εpos)
   simp only [im_mul_ofReal, log_x_real, zero_mul, Left.neg_neg_iff, pi_pos]
@@ -522,9 +523,9 @@ $$\mathcal{M}(\psi_\epsilon)(1) =
 \end{corollary}
 %%-/
 
-lemma MellinOfDeltaSpikeAt1 {Ψ : ℝ → ℝ} {ε : ℝ} (εpos:ε>0) :
+lemma MellinOfDeltaSpikeAt1 (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) :
     MellinTransform (funCoe (DeltaSpike Ψ ε)) 1 = MellinTransform (funCoe Ψ) ε := by
-  convert MellinOfDeltaSpike εpos 1
+  convert MellinOfDeltaSpike Ψ εpos 1
   simp only [mul_one]
 /-%%
 \begin{proof}\leanok
@@ -534,7 +535,7 @@ This is immediate from the above theorem.
 %%-/
 
 /-%%
-\begin{lemma}\label{MellinOfDeltaSpikeAt1_asymp}\lean{MellinOfDeltaSpikeAt1_asymp}\leanok
+\begin{lemma}[MellinOfDeltaSpikeAt1_asymp]\label{MellinOfDeltaSpikeAt1_asymp}\lean{MellinOfDeltaSpikeAt1_asymp}\leanok
 As $\epsilon\to 0$, we have
 $$\mathcal{M}(\psi_\epsilon)(1) = 1+O(\epsilon).$$
 \end{lemma}
@@ -557,7 +558,7 @@ $$1_{(0,1]}(x) = \begin{cases}
 0 & \text{ if }x>1
 \end{cases}.$$
 This has Mellin transform
-\begin{theorem}[MellinOf1]\label{MellinOf1}\lean[MellinOf1]\leanok
+\begin{theorem}[MellinOf1]\label{MellinOf1}\lean{MellinOf1}\leanok
 The Mellin transform of $1_{(0,1]}$ is
 $$\mathcal{M}(1_{(0,1]})(s) = \frac{1}{s}.$$
 \end{theorem}
@@ -629,25 +630,55 @@ This is a straightforward calculation, using the fact that $\psi_\epsilon$ is su
 %%-/
 
 /-%%
-Combining the above, we have the following Main Lemma of this section on the Mellin transform of $\widetilde{1_{\epsilon}}$.
-\begin{lemma}[MellinOfSmooth1a]\label{MellinOfSmooth1a}
+Combining the above, we have the following three Main Lemmata of this section on the Mellin transform of $\widetilde{1_{\epsilon}}$.
+\begin{lemma}[MellinOfSmooth1a]\label{MellinOfSmooth1a}\lean{MellinOfSmooth1a}\leanok
 Fix  $\epsilon>0$. Then the Mellin transform of $\widetilde{1_{\epsilon}}$ is
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = \frac{1}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
 \end{lemma}
 %%-/
+lemma MellinOfSmooth1a (Ψ : ℝ → ℝ)
+    -- (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+    -- (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1)
+    {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) :
+    MellinTransform (Smooth1 Ψ ε) s = 1 / s * MellinTransform (funCoe Ψ) (ε * s) := by
+  dsimp [Smooth1]
+  rw [MellinConvolutionTransform, MellinOf1 _ hs, MellinOfDeltaSpike Ψ (εpos) s]
 /-%%
-\begin{proof}\uses{Smooth1Properties_below, Smooth1Properties_above, MellinConvolutionTransform, MellinOfDeltaSpikeAt1, MellinOfPsi}
+\begin{proof}\uses{MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1}\leanok
+Use Lemmata \ref{MellinConvolutionTransform}, \ref{MellinOf1}, and \ref{MellinOfDeltaSpike}.
 \end{proof}
 %%-/
 /-%%
-\begin{lemma}[MellinOfSmooth1b]\label{MellinOfSmooth1b}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1}
+\begin{lemma}[MellinOfSmooth1b]\label{MellinOfSmooth1b}\lean{MellinOfSmooth1b}\leanok
 For any $s$, we have the bound
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\right).$$
 \end{lemma}
 %%-/
+-- ** Statement needs `cocompact` filter *within* `ℜ s > 0`... **
+lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
+    (fun (s : ℂ) ↦ Complex.abs (MellinTransform (Smooth1 Ψ ε) s)) =O[cocompact ℂ] fun s ↦ 1 / (ε * Complex.abs s) ^ 2 := by
+  --have := MellinOfSmooth1a Ψ εpos hs
+  --obtain ⟨C, hC⟩  := MellinOfPsi diffΨ suppΨ
+  --have := hC s
+  sorry
 /-%%
-\begin{lemma}[MellinOfSmooth1c]\label{MellinOfSmooth1c}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1_asymp}
+\begin{proof}\uses{MellinOfSmooth1a, MellinOfPsi}
+Use Lemma \ref{MellinOfSmooth1a} and the bound in Lemma \ref{MellinOfPsi}.
+\end{proof}
+%%-/
+/-%%
+\begin{lemma}[MellinOfSmooth1c]\label{MellinOfSmooth1c}\lean{MellinOfSmooth1c}\leanok
 At $s=1$, we have
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(1) = (1+O(\epsilon)).$$
 \end{lemma}
+%%-/
+lemma MellinOfSmooth1c {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
+    (fun ε ↦ MellinTransform (Smooth1 Ψ ε) 1 - 1) =O[𝓝[>]0] id := by
+  sorry
+/-%%
+\begin{proof}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1_asymp}
+Use Lemma \ref{MellinOfSmooth1a} and \ref{MellinOfDeltaSpikeAt1_asymp}.
+\end{proof}
 %%-/
