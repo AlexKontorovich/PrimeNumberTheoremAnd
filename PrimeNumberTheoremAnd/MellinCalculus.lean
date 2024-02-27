@@ -100,8 +100,8 @@ This is a straightforward calculation.
 
 /-%%
 \begin{lemma}[PartialIntegration]\label{PartialIntegration}\lean{PartialIntegration}\leanok
-Let $f, g$ be once differentiable functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$.
-**Add minimal integrability assumptions, and decay at $0$ and $\infty$.** Then
+Let $f, g$ be once differentiable functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$ so that $fg'$ and $f'g$ are both integrable, and $f*g (x)\to 0$ as $x\to 0^+,\infty$.
+Then
 $$
 \int_0^\infty f(x)g'(x) dx = -\int_0^\infty f'(x)g(x)dx.
 $$
@@ -124,38 +124,39 @@ Partial integration.
 \end{proof}
 %%-/
 
-/-%%
-\begin{lemma}[MellinInversion_aux1]%\label{MellinInversion_aux1}\lean{MellinInversion_aux1}\leanok
+/-% ** Wrong delimiters on purpose **
+Unnecessary lemma:
+%\begin{lemma}[MellinInversion_aux1]\label{MellinInversion_aux1}\lean{MellinInversion_aux1}\leanok
 Let $f$ be differentiable on $(0,\infty)$, and assume that $f(x)x^s\to 0$ as $x\to 0$, and that
-$f(x)x^s\to 0$. ** Need integrability assumptions.**
+$f(x)x^s\to 0$.
 Then
 $$
 \int_0^\infty f(x)x^s\frac{dx}{x} = \frac{1}{s}\int_0^\infty f'(x)x^{s} dx.
 $$
-\end{lemma}
-%%-/
+%\end{lemma}
+%-/
 lemma MellinInversion_aux1 {f : ℝ → ℂ} {s : ℂ} (s_ne_zero : s ≠ 0) (fDiff : DifferentiableOn ℝ f (Set.Ioi 0))
     (hfs : Tendsto (fun x ↦ f x * x ^ s) (𝓝[>]0) (𝓝 0)) (hfinf : Tendsto (fun x ↦ f x * x ^ s) atTop (𝓝 0)) :
     ∫ x in Set.Ioi 0, f x * x ^ s / x = - ∫ x in Set.Ioi 0, (deriv f x) * x ^ s / s := by
   sorry
 
-/-%%
+/-% ** Wrong delimiters on purpose **
 \begin{proof}
 \uses{PartialIntegration}
 Partial integration.
 \end{proof}
-%%-/
+%-/
 
-/-%%
-\begin{lemma}[MellinInversion_aux2]%\label{MellinInversion_aux2}\lean{MellinInversion_aux2}\leanok
+/-% ** Wrong delimiters on purpose **
+\begin{lemma}[MellinInversion_aux2]\label{MellinInversion_aux2}\lean{MellinInversion_aux2}\leanok
 Let $f$ be twice differentiable on $(0,\infty)$, and assume that $f'(x)x^s\to 0$ as $x\to 0$, and
-that $f'(x)x^s\to 0$. ** Need integrability assumptions.**
+that $f'(x)x^s\to 0$.
 Then
 $$
 \int_0^\infty f'(x)x^{s} dx = -\int_0^\infty f''(x)x^{s+1}\frac{1}{(s+1)}dx.
 $$
 \end{lemma}
-%%-/
+%-/
 lemma MellinInversion_aux2 {f : ℝ → ℂ} (s : ℂ) (fDiff : DifferentiableOn ℝ f (Set.Ioi 0))
     (fDiff2 : DifferentiableOn ℝ (deriv f) (Set.Ioi 0))
     (hfs : Tendsto (fun x ↦ deriv f x * x ^ s) (𝓝[>]0) (𝓝 0))
@@ -163,32 +164,32 @@ lemma MellinInversion_aux2 {f : ℝ → ℂ} (s : ℂ) (fDiff : DifferentiableOn
     ∫ x in Set.Ioi 0, (deriv f x) * x ^ s =
       -∫ x in Set.Ioi 0, (deriv (deriv f) x) * x ^ (s + 1) / (s + 1) := by
   sorry
-/-%%
+/-%
 \begin{proof}
 \uses{PartialIntegration, MellinInversion_aux1}
 Partial integration. (Apply Lemma \ref{MellinInversion_aux1} to the function $f'$ and $s+1$.)
 \end{proof}
-%%-/
+%-/
 
-/-%%
+/-% ** Wrong delimiters on purpose **
 \begin{lemma}[MellinInversion_aux3]%\label{MellinInversion_aux3}\lean{MellinInversion_aux3}\leanok
 Given $f$ and $\sigma$, assume that $f(x)x^\sigma$ is absolutely integrable on $(0,\infty)$.
 Then the map  $(x,s) \mapsto f(x)x^s/(s(s+1))$ is absolutely integrable on
 $(0,\infty)\times\{\Re s = \sigma\}$ for any $\sigma>0$.
 \end{lemma}
-%%-/
+%-/
 lemma MellinInversion_aux3 {f : ℝ → ℂ} (σ : ℝ) (σ_ne_zero : σ ≠ 0) (σ_ne_negOne : σ ≠ -1)
     (fInt : IntegrableOn (fun x ↦ f x * (x : ℂ) ^ (σ : ℂ)) (Set.Ioi 0)) :
     IntegrableOn (fun (⟨x, t⟩ : ℝ × ℝ) => f x * x ^ (σ + t * I) / ((σ + t * I) * ((σ + t * I) + 1)))
       ((Set.Ioi 0).prod (univ : Set ℝ)) := by
   sorry
-/-%%
+/-%
 \begin{proof}
 Put absolute values and estimate.
 \end{proof}
-%%-/
+%-/
 
-/-%%
+/-% ** Wrong delimiters on purpose **
 \begin{lemma}[MellinInversion_aux4]%\label{MellinInversion_aux4}\lean{MellinInversion_aux4}\leanok
 Given $f$ and $\sigma$, assume that $f(x)x^\sigma$ is absolutely integrable on $(0,\infty)$.
 Then we can interchange orders of integration
@@ -198,18 +199,18 @@ $$
 \int_{(\sigma)}f(x)x^{s+1}\frac{1}{s(s+1)}ds dx.
 $$
 \end{lemma}
-%%-/
+%-/
 lemma MellinInversion_aux4 {f : ℝ → ℂ} (σ : ℝ) (σ_ne_zero : σ ≠ 0) (σ_ne_negOne : σ ≠ -1)
     (fInt : IntegrableOn (fun x ↦ f x * (x : ℂ) ^ (σ : ℂ)) (Set.Ioi 0)) :
     VerticalIntegral (fun s ↦ ∫ x in Set.Ioi 0, f x * (x : ℂ) ^ (s + 1) / (s * (s + 1))) σ =
       ∫ x in Set.Ioi 0, VerticalIntegral (fun s ↦ f x * (x : ℂ) ^ (s + 1) / (s * (s + 1))) σ := by
   sorry -- `MeasureTheory.integral_prod` and `MeasureTheory.integral_swap` should be useful here
-/-%%
+/-%
 \begin{proof}
 \uses{MellinInversion_aux3}
 Fubini-Tonelli.
 \end{proof}
-%%-/
+%-/
 
 /-%%
 \begin{theorem}[MellinInversion]\label{MellinInversion}\lean{MellinInversion}\leanok
@@ -228,7 +229,7 @@ theorem MellinInversion {f : ℝ → ℂ} (σ : ℝ) (hσ : σ > 0) (fDiff : Dif
   sorry
 /-%%
 \begin{proof}\leanok
-\uses{formulaLtOne, formulaGtOne, MellinTransform, MellinInverseTransform, PerronInverseMellin_gt, PerronInverseMellin_lt}
+\uses{PartialIntegration, formulaLtOne, formulaGtOne, MellinTransform, MellinInverseTransform, PerronInverseMellin_gt, PerronInverseMellin_lt}
 %MellinInversion_aux1, MellinInversion_aux2, MellinInversion_aux3, MellinInversion_aux4, }
 The proof is from [Goldfeld-Kontorovich 2012].
 Integrate by parts twice (assuming $f$ is twice differentiable, and all occurring integrals converge absolutely, and
@@ -403,7 +404,7 @@ Same idea as Urysohn-type argument.
 
 /-%%
 The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at least) like $1/|s|$.
-\begin{theorem}[MellinOfPsi]\label{MellinOfPsi}\lean{MellinOfPsi}
+\begin{theorem}[MellinOfPsi]\label{MellinOfPsi}\lean{MellinOfPsi}\leanok
 The Mellin transform of $\psi$ is
 $$\mathcal{M}(\psi)(s) =  O\left(\frac{1}{|s|}\right),$$
 as $|s|\to\infty$.
@@ -506,7 +507,7 @@ theorem MellinOfDeltaSpike {Ψ : ℝ → ℝ} {ε : ℝ} (εpos:ε>0) (s : ℂ) 
   simp only [im_mul_ofReal, log_x_real, zero_mul, pi_nonneg]
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{DeltaSpike, MellinTransform}
 Substitute $y=x^{1/\epsilon}$, use Haar measure; direct calculation.
 \end{proof}
@@ -526,7 +527,7 @@ lemma MellinOfDeltaSpikeAt1 {Ψ : ℝ → ℝ} {ε : ℝ} (εpos:ε>0) :
   convert MellinOfDeltaSpike εpos 1
   simp only [mul_one]
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{MellinOfDeltaSpike, DeltaSpikeMass}
 This is immediate from the above theorem.
 \end{proof}
@@ -572,7 +573,7 @@ lemma MellinOf1 (s : ℂ) (h : s.re > 0) : MellinTransform ((fun x => if x ≤ 1
   apply fun _ => hx
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{MellinTransform}
 This is a straightforward calculation.
 \end{proof}
@@ -629,13 +630,23 @@ This is a straightforward calculation, using the fact that $\psi_\epsilon$ is su
 
 /-%%
 Combining the above, we have the following Main Lemma of this section on the Mellin transform of $\widetilde{1_{\epsilon}}$.
-\begin{lemma}\label{MellinOfSmooth1}\uses{Smooth1Properties_below, Smooth1Properties_above, MellinConvolutionTransform, MellinOfDeltaSpikeAt1, MellinOfPsi}
+\begin{lemma}[MellinOfSmooth1a]\label{MellinOfSmooth1a}
 Fix  $\epsilon>0$. Then the Mellin transform of $\widetilde{1_{\epsilon}}$ is
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = \frac{1}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
-
+\end{lemma}
+%%-/
+/-%%
+\begin{proof}\uses{Smooth1Properties_below, Smooth1Properties_above, MellinConvolutionTransform, MellinOfDeltaSpikeAt1, MellinOfPsi}
+\end{proof}
+%%-/
+/-%%
+\begin{lemma}[MellinOfSmooth1b]\label{MellinOfSmooth1b}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1}
 For any $s$, we have the bound
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\right).$$
-
+\end{lemma}
+%%-/
+/-%%
+\begin{lemma}[MellinOfSmooth1c]\label{MellinOfSmooth1c}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1_asymp}
 At $s=1$, we have
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(1) = (1+O(\epsilon)).$$
 \end{lemma}
