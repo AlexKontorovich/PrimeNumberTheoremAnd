@@ -16,21 +16,21 @@ In this section, we prove the Perron formula, which plays a key role in our proo
 The following is preparatory material used in the proof of the Perron formula, see Lemma \ref{formulaLtOne}.
 %%-/
 
-/-%%
+/-%
 TODO: move to general section.
 \begin{lemma}[zeroTendstoDiff]\label{zeroTendstoDiff}\lean{zeroTendstoDiff}\leanok
 If the limit of $0$ is $L₁ - L₂$, then $L₁ = L₂$.
 \end{lemma}
-%%-/
+%-/
 lemma zeroTendstoDiff (L₁ L₂ : ℂ) (f : ℝ → ℂ) (h : ∀ᶠ T in atTop,  f T = 0)
     (h' : Tendsto f atTop (𝓝 (L₂ - L₁))) : L₁ = L₂ := by
   rw [← zero_add L₁, ← @eq_sub_iff_add_eq]
   apply tendsto_nhds_unique (EventuallyEq.tendsto h) h'
-/-%%
+/-%
 \begin{proof}\leanok
 Obvious.
 \end{proof}
-%%-/
+%-/
 
 /-%
 TODO: Move this to general section.
@@ -664,7 +664,7 @@ lemma formulaLtOne (xpos : 0 < x) (x_lt_one : x < 1) (σ_pos : 0 < σ)
 /-%%
 \begin{proof}\leanok
 \uses{isHolomorphicOn, HolomorphicOn.vanishesOnRectangle, integralPosAux,
-vertIntBound, limitOfConstant, zeroTendstoDiff,
+vertIntBound, limitOfConstant,
 tendsto_rpow_atTop_nhds_zero_of_norm_lt_one,
 tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
