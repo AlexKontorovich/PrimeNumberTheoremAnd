@@ -474,14 +474,13 @@ as $|s|\to\infty$.
 
 [Of course it decays faster than any power of $|s|$, but it turns out that we will just need one power.]
 %%-/
--- Better way to spell this? Using BigO and cocompact filter?
 lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) :
-    ∃ (C : ℝ), ∀ (s : ℂ), C ≤ Complex.abs s → Complex.abs (MellinTransform (funCoe Ψ) s) ≤ C / Complex.abs s := by
+    (fun s ↦ Complex.abs (MellinTransform (funCoe Ψ) s)) =O[cocompact ℂ] fun s ↦ 1 / Complex.abs s := by
   sorry
 /-%%
 \begin{proof}
 \uses{MellinTransform, SmoothExistence}
-Integrate by parts once.
+Integrate by parts once and estimate trivially.
 \end{proof}
 %%-/
 
