@@ -9,7 +9,9 @@ theorem MeasureTheory.set_integral_integral_swap {α : Type*} {β : Type*} {E : 
     (hf : IntegrableOn f (s ×ˢ t) (μ.prod ν)) :
     (∫ (x : α) in s, ∫ (y : β) in t, f (x, y) ∂ν ∂μ)
       = ∫ (y : β) in t, ∫ (x : α) in s, f (x, y) ∂μ ∂ν := by
-  sorry -- mimic `MeasureTheory.integral_integral_swap`
+  refine integral_integral_swap ? hf
+  convert hf.integrable
+  exact Measure.prod_restrict s t
 
 -- How do deal with this coersion?...
 noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ (f x : ℂ)
