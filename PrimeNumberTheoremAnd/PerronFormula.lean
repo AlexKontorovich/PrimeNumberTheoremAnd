@@ -32,7 +32,7 @@ Obvious.
 \end{proof}
 %%-/
 
-/-%%
+/-%
 TODO: Move this to general section.
 \begin{lemma}[RectangleIntegral_tendsTo_VerticalIntegral]\label{RectangleIntegral_tendsTo_VerticalIntegral}\lean{RectangleIntegral_tendsTo_VerticalIntegral}\leanok
 \uses{RectangleIntegral}
@@ -43,7 +43,7 @@ Then the limit of rectangle integrals
 $$\lim_{T\to\infty}\int_{\sigma-iT}^{\sigma'+iT}f(s)ds =
 \int_{(\sigma')}f(s)ds - \int_{(\sigma)}f(s)ds.$$
 \end{lemma}
-%%-/
+%-/
 lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
     (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
     (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
@@ -51,10 +51,10 @@ lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ - I * T) (σ' + I * T)) atTop
       (𝓝 (VerticalIntegral f σ' - VerticalIntegral f σ)) := by
-/-%%
+/-%
 \begin{proof}\leanok
 Almost by definition.
-%%-/
+%-/
   have h_lower (x : ℝ) : (σ - I * x).im = -x := by simp
   have h_upper (x : ℝ) : (σ' + I * x).im = x := by simp
   have h_left (x : ℝ) : (σ - I * x).re = σ := by simp
@@ -664,7 +664,7 @@ lemma formulaLtOne (xpos : 0 < x) (x_lt_one : x < 1) (σ_pos : 0 < σ)
 /-%%
 \begin{proof}\leanok
 \uses{isHolomorphicOn, HolomorphicOn.vanishesOnRectangle, integralPosAux,
-vertIntBound, limitOfConstant, RectangleIntegral_tendsTo_VerticalIntegral, zeroTendstoDiff,
+vertIntBound, limitOfConstant, zeroTendstoDiff,
 tendsto_rpow_atTop_nhds_zero_of_norm_lt_one,
 tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
   Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
