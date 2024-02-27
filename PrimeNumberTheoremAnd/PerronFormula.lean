@@ -106,7 +106,7 @@ lemma verticalIntegral_sub_verticalIntegral_eq_squareIntegral {σ σ' : ℝ} {f 
   · refine hf.mono (diff_subset_diff ?_ subset_rfl)
     simpa [Rectangle, uIcc_of_lt (hσ.1.trans hσ.2)] using fun x ⟨hx, _⟩ ↦ ⟨hx, trivial⟩
 
-/-%%
+/-% ** Wrong delimiter on purpose **
 \begin{lemma}[RectangleIntegral_tendsTo_UpperU]\label{RectangleIntegral_tendsTo_UpperU}\lean{RectangleIntegral_tendsTo_UpperU}\leanok
 Let $\sigma,\sigma' ∈ \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
 the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
@@ -115,18 +115,18 @@ Then the limit of rectangle integrals
 $$\int_{\sigma+iT}^{\sigma'+iU}f(s)ds$$
 as $U\to\infty$ is the ``UpperUIntegral'' of $f$.
 \end{lemma}
-%%-/
+%-/
 lemma RectangleIntegral_tendsTo_UpperU {σ σ' T : ℝ} {f : ℂ → ℂ}
     (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ + I * T) (σ' + I * U)) atTop
       (𝓝 (UpperUIntegral f σ σ' T)) := by
-/-%%
+/-%
 \begin{proof}\leanok
 \uses{RectangleIntegral, UpperUIntegral}
 Almost by definition.
-%%-/
+%-/
   have h_re  (s : ℝ) (t : ℝ) : (s  + I * t).re = s  := by simp
   have h_im  (s : ℝ) (t : ℝ) : (s  + I * t).im = t  := by simp
   have hbot : Tendsto (fun (_ : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + T * I)) atTop (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x + T * I)) := by
@@ -138,7 +138,7 @@ Almost by definition.
   simpa only [RectangleIntegral, UpperUIntegral, h_re, h_im, sub_zero, ←integral_Ici_eq_integral_Ioi]
 --%%\end{proof}
 
-/-%%
+/-% ** Wrong delimiter on purpose **
 \begin{lemma}[RectangleIntegral_tendsTo_LowerU]\label{RectangleIntegral_tendsTo_LowerU}\lean{RectangleIntegral_tendsTo_LowerU}\leanok
 Let $\sigma,\sigma' ∈ \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
 the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
@@ -147,18 +147,18 @@ Then the limit of rectangle integrals
 $$\int_{\sigma-iU}^{\sigma'-iT}f(s)ds$$
 as $U\to\infty$ is the ``LowerUIntegral'' of $f$.
 \end{lemma}
-%%-/
+%-/
 lemma RectangleIntegral_tendsTo_LowerU {σ σ' T : ℝ} {f : ℂ → ℂ}
     (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ - I * U) (σ' - I * T)) atTop
       (𝓝 (- LowerUIntegral f σ σ' T)) := by
-/-%%
+/-%
 \begin{proof}\leanok
 \uses{RectangleIntegral, LowerUIntegral}
 Almost by definition.
-%%-/
+%-/
   have h_re  (s : ℝ) (t : ℝ) : (s  - I * t).re = s  := by simp
   have h_im  (s : ℝ) (t : ℝ) : (s  - I * t).im = -t  := by simp
   have hbot' : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x - y * I)) atTop (𝓝 0) := by

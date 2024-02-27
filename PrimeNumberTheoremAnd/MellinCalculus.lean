@@ -29,8 +29,8 @@ open Complex Topology Filter Real MeasureTheory Set
 
 
 /-%%
-In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler), prove its
-inversion formula, and
+In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler),
+prove its inversion formula, and
 derive a number of important properties of some special functions and bumpfunctions.
 
 Def: (Already in Mathlib)
@@ -38,11 +38,11 @@ Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mell
 $f$ to be the function $\mathcal{M}(f)$ from $\mathbb{C}$ to $\mathbb{C}$ defined by
 $$\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx.$$
 
-[Note: My preferred way to think about this is that we are integrating over the multiplicative group
-$\mathbb{R}_{>0}$, multiplying by a (not necessarily unitary!) character $|\cdot|^s$, and
+[Note: My preferred way to think about this is that we are integrating over the multiplicative
+group $\mathbb{R}_{>0}$, multiplying by a (not necessarily unitary!) character $|\cdot|^s$, and
 integrating with respect to the invariant Haar measure $dx/x$. This is very useful in the kinds
-of calculations carried out below. But may be more difficult to formalize as things now stand. So we
-might have clunkier calculations, which ``magically'' turn out just right - of course they're
+of calculations carried out below. But may be more difficult to formalize as things now stand. So
+we might have clunkier calculations, which ``magically'' turn out just right - of course they're
 explained by the aforementioned structure...]
 
 %%-/
@@ -50,7 +50,8 @@ explained by the aforementioned structure...]
 
 /-%%
 \begin{definition}[MellinTransform]\label{MellinTransform}\lean{MellinTransform}\leanok
-Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mellin transform of $f$ to be
+Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mellin transform of
+$f$ to be
 the function $\mathcal{M}(f)$ from $\mathbb{C}$ to $\mathbb{C}$ defined by
 $$\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx.$$
 \end{definition}
@@ -60,7 +61,8 @@ noncomputable def MellinTransform (f : ℝ → ℂ) (s : ℂ) : ℂ :=
   ∫ x in Set.Ioi 0, f x * x ^ (s - 1)
 
 /-%%
-\begin{definition}[MellinInverseTransform]\label{MellinInverseTransform}\lean{MellinInverseTransform}\leanok
+\begin{definition}[MellinInverseTransform]\label{MellinInverseTransform}
+\lean{MellinInverseTransform}\leanok
 Let $F$ be a function from $\mathbb{C}$ to $\mathbb{C}$. We define the Mellin inverse transform of
 $F$ to be the function $\mathcal{M}^{-1}(F)$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
 $$\mathcal{M}^{-1}(F)(x) = \frac{1}{2\pi i}\int_{(\sigma)}F(s)x^{-s}ds,$$
@@ -71,7 +73,8 @@ noncomputable def MellinInverseTransform (F : ℂ → ℂ) (σ : ℝ) (x : ℝ) 
   VerticalIntegral' (fun s ↦ x ^ (-s) * F s) σ
 
 /-%%
-\begin{lemma}[PerronInverseMellin_lt]\label{PerronInverseMellin_lt}\lean{PerronInverseMellin_lt}\leanok
+\begin{lemma}[PerronInverseMellin_lt]\label{PerronInverseMellin_lt}\lean{PerronInverseMellin_lt}
+\leanok
 Let $0 < t < x$ and $\sigma>0$. Then the inverse Mellin transform of the Perron function
 $$F: s\mapsto t^s/s(s+1)$$ is equal to
 $$\frac{1}{2\pi i}\int_{(\sigma)}\frac{t^s}{s(s+1)}x^{-s}ds
@@ -84,8 +87,8 @@ lemma PerronInverseMellin_lt {t x : ℝ} (t_pos : 0 < t) (t_lt_x : t < x) {σ : 
   have xpos : 0 < x := by linarith
   have txinvpos : 0 < t / x := div_pos t_pos xpos
   have txinv_ltOne : t / x < 1 := (div_lt_one xpos).mpr t_lt_x
-  simp only [one_div, mul_inv_rev, inv_I, neg_mul, neg_eq_zero, mul_eq_zero, I_ne_zero, inv_eq_zero,
-    ofReal_eq_zero, pi_ne_zero, OfNat.ofNat_ne_zero, or_self, false_or]
+  simp only [one_div, mul_inv_rev, inv_I, neg_mul, neg_eq_zero, mul_eq_zero, I_ne_zero,
+    inv_eq_zero, ofReal_eq_zero, pi_ne_zero, OfNat.ofNat_ne_zero, or_self, false_or]
   convert Perron.formulaLtOne txinvpos txinv_ltOne σ_pos using 2
   ext1 s
   convert Perron.f_mul_eq_f t_pos xpos s using 1
@@ -99,8 +102,10 @@ This is a straightforward calculation.
 %%-/
 
 /-%%
-\begin{lemma}[PerronInverseMellin_gt]\label{PerronInverseMellin_gt}\lean{PerronInverseMellin_gt}\leanok
-Let $0 < x < t$ and $\sigma>0$. Then the inverse Mellin transform of the Perron function is equal to
+\begin{lemma}[PerronInverseMellin_gt]\label{PerronInverseMellin_gt}\lean{PerronInverseMellin_gt}
+\leanok
+Let $0 < x < t$ and $\sigma>0$. Then the inverse Mellin transform of the Perron function is equal
+to
 $$\frac{1}{2\pi i}\int_{(\sigma)}\frac{t^s}{s(s+1)}x^{-s}ds = 1 - x / t.$$
 \end{lemma}
 %%-/
@@ -125,7 +130,8 @@ This is a straightforward calculation.
 
 /-%%
 \begin{lemma}[PartialIntegration]\label{PartialIntegration}\lean{PartialIntegration}\leanok
-Let $f, g$ be once differentiable functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$ so that $fg'$ and $f'g$ are both integrable, and $f*g (x)\to 0$ as $x\to 0^+,\infty$.
+Let $f, g$ be once differentiable functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$ so that $fg'$
+and $f'g$ are both integrable, and $f*g (x)\to 0$ as $x\to 0^+,\infty$.
 Then
 $$
 \int_0^\infty f(x)g'(x) dx = -\int_0^\infty f'(x)g(x)dx.
@@ -141,7 +147,8 @@ lemma PartialIntegration (f g : ℝ → ℂ) (fDiff : DifferentiableOn ℝ f (Se
     (lim_at_inf : Tendsto (f * g) atTop (𝓝 0)) :
     ∫ x in Set.Ioi 0, f x * deriv g x = -∫ x in Set.Ioi 0, deriv f x * g x := by
   simpa using integral_Ioi_mul_deriv_eq_deriv_mul
-    (fun x hx ↦ fDiff.hasDerivAt (Ioi_mem_nhds hx)) (fun x hx ↦ gDiff.hasDerivAt (Ioi_mem_nhds hx))
+    (fun x hx ↦ fDiff.hasDerivAt (Ioi_mem_nhds hx))
+    (fun x hx ↦ gDiff.hasDerivAt (Ioi_mem_nhds hx))
     fDerivgInt gDerivfInt lim_at_zero lim_at_inf
 /-%%
 \begin{proof}\leanok
@@ -160,8 +167,10 @@ $$
 $$
 %\end{lemma}
 %-/
-lemma MellinInversion_aux1 {f : ℝ → ℂ} {s : ℂ} (s_ne_zero : s ≠ 0) (fDiff : DifferentiableOn ℝ f (Set.Ioi 0))
-    (hfs : Tendsto (fun x ↦ f x * x ^ s) (𝓝[>]0) (𝓝 0)) (hfinf : Tendsto (fun x ↦ f x * x ^ s) atTop (𝓝 0)) :
+lemma MellinInversion_aux1 {f : ℝ → ℂ} {s : ℂ} (s_ne_zero : s ≠ 0)
+    (fDiff : DifferentiableOn ℝ f (Set.Ioi 0))
+    (hfs : Tendsto (fun x ↦ f x * x ^ s) (𝓝[>]0) (𝓝 0))
+    (hfinf : Tendsto (fun x ↦ f x * x ^ s) atTop (𝓝 0)) :
     ∫ x in Set.Ioi 0, f x * x ^ s / x = - ∫ x in Set.Ioi 0, (deriv f x) * x ^ s / s := by
   sorry
 
@@ -205,7 +214,8 @@ $(0,\infty)\times\{\Re s = \sigma\}$ for any $\sigma>0$.
 %-/
 lemma MellinInversion_aux3 {f : ℝ → ℂ} (σ : ℝ) (σ_ne_zero : σ ≠ 0) (σ_ne_negOne : σ ≠ -1)
     (fInt : IntegrableOn (fun x ↦ f x * (x : ℂ) ^ (σ : ℂ)) (Set.Ioi 0)) :
-    IntegrableOn (fun (⟨x, t⟩ : ℝ × ℝ) => f x * x ^ (σ + t * I) / ((σ + t * I) * ((σ + t * I) + 1)))
+    IntegrableOn (fun (⟨x, t⟩ : ℝ × ℝ) =>
+      f x * x ^ (σ + t * I) / ((σ + t * I) * ((σ + t * I) + 1)))
       ((Set.Ioi 0).prod (univ : Set ℝ)) := by
   sorry
 /-%
@@ -239,13 +249,15 @@ Fubini-Tonelli.
 
 /-%%
 \begin{theorem}[MellinInversion]\label{MellinInversion}\lean{MellinInversion}\leanok
-Let $f$ be a twice differentiable function from $\mathbb{R}_{>0}$ to $\mathbb{C}$, and let $\sigma$
+Let $f$ be a twice differentiable function from $\mathbb{R}_{>0}$ to $\mathbb{C}$, and
+let $\sigma$
 be sufficiently large. Then
 $$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
 \end{theorem}
 
-[Note: How ``nice''? Schwartz (on $(0,\infty)$) is certainly enough. As we formalize this, we can add whatever
- conditions are necessary for the proof to go through.]
+%[Note: How ``nice''? Schwartz (on $(0,\infty)$) is certainly enough. As we formalize
+%this, we can add whatever
+% conditions are necessary for the proof to go through.]
 %%-/
 theorem MellinInversion (σ : ℝ) {f : ℝ → ℂ} {x : ℝ} (hx : 0 < x) (hf : MellinConvergent f σ)
     (hFf : VerticalIntegrable (mellin f) σ) (hfx : ContinuousAt f x) :
@@ -254,21 +266,28 @@ theorem MellinInversion (σ : ℝ) {f : ℝ → ℂ} {x : ℝ} (hx : 0 < x) (hf 
   sorry
 /-%%
 \begin{proof}\leanok
-\uses{PartialIntegration, formulaLtOne, formulaGtOne, MellinTransform, MellinInverseTransform, PerronInverseMellin_gt, PerronInverseMellin_lt}
-%MellinInversion_aux1, MellinInversion_aux2, MellinInversion_aux3, MellinInversion_aux4, }
+\uses{PartialIntegration, formulaLtOne, formulaGtOne, MellinTransform,
+MellinInverseTransform, PerronInverseMellin_gt, PerronInverseMellin_lt}
+%MellinInversion_aux1, MellinInversion_aux2, MellinInversion_aux3,
+%MellinInversion_aux4, }
 The proof is from [Goldfeld-Kontorovich 2012].
-Integrate by parts twice (assuming $f$ is twice differentiable, and all occurring integrals converge absolutely, and
+Integrate by parts twice (assuming $f$ is twice differentiable, and all occurring
+integrals converge absolutely, and
 boundary terms vanish).
 $$
 \mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx = - \int_0^\infty f'(x)x^s\frac{1}{s}dx
 = \int_0^\infty f''(x)x^{s+1}\frac{1}{s(s+1)}dx.
 $$
-We now have at least quadratic decay in $s$ of the Mellin transform. Inserting this formula into the inversion formula and Fubini-Tonelli (we now have absolute convergence!) gives:
+We now have at least quadratic decay in $s$ of the Mellin transform. Inserting this
+formula into the inversion formula and Fubini-Tonelli (we now have absolute
+convergence!) gives:
 $$
-RHS = \frac{1}{2\pi i}\left(\int_{(\sigma)}\int_0^\infty f''(t)t^{s+1}\frac{1}{s(s+1)}dt\right) x^{-s}ds
+RHS = \frac{1}{2\pi i}\left(\int_{(\sigma)}\int_0^\infty
+  f''(t)t^{s+1}\frac{1}{s(s+1)}dt\right) x^{-s}ds
 $$
 $$
-= \int_0^\infty f''(t) t \left( \frac{1}{2\pi i}\int_{(\sigma)}(t/x)^s\frac{1}{s(s+1)}ds\right) dt.
+= \int_0^\infty f''(t) t \left( \frac{1}{2\pi i}
+\int_{(\sigma)}(t/x)^s\frac{1}{s(s+1)}ds\right) dt.
 $$
 Apply the Perron formula to the inside:
 $$
@@ -276,14 +295,18 @@ $$
 = -\int_x^\infty f'(t) dt
 = f(x),
 $$
-where we integrated by parts (undoing the first partial integration), and finally applied the fundamental theorem of calculus (undoing the second).
+where we integrated by parts (undoing the first partial integration), and finally
+applied the fundamental theorem of calculus (undoing the second).
 \end{proof}
 %%-/
 
 /-%%
 Finally, we need Mellin Convolutions and properties thereof.
-\begin{definition}[MellinConvolution]\label{MellinConvolution}\lean{MellinConvolution}\leanok
-Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$. Then we define the Mellin convolution of $f$ and $g$ to be the function $f\ast g$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
+\begin{definition}[MellinConvolution]\label{MellinConvolution}\lean{MellinConvolution}
+\leanok
+Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$. Then we define the
+Mellin convolution of $f$ and $g$ to be the function $f\ast g$ from $\mathbb{R}_{>0}$
+to $\mathbb{C}$ defined by
 $$(f\ast g)(x) = \int_0^\infty f(y)g(x/y)\frac{dy}{y}.$$
 \end{definition}
 %%-/
@@ -293,10 +316,11 @@ noncomputable def MellinConvolution (f g : ℝ → ℂ) (x : ℝ) : ℂ :=
 
 /-%%
 The Mellin transform of a convolution is the product of the Mellin transforms.
-\begin{theorem}[MellinConvolutionTransform]\label{MellinConvolutionTransform}\lean{MellinConvolutionTransform}\leanok
-Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$. Then
+\begin{theorem}[MellinConvolutionTransform]\label{MellinConvolutionTransform}
+\lean{MellinConvolutionTransform}\leanok
+Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$ such that
+the . Then
 $$\mathcal{M}(f\ast g)(s) = \mathcal{M}(f)(s)\mathcal{M}(g)(s).$$
-** Needs conditions so that the integrals converge absolutely.**
 \end{theorem}
 %%-/
 lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
@@ -313,7 +337,8 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     _ = ∫ (x : ℝ) in Ioi 0, ∫ (y : ℝ) in Ioi 0, f₁ (x, y) := ?_
     _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f₁ (x, y) := set_integral_integral_swap _ hf
     _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * g (x / y) / ↑y * ↑x ^ (s - 1) := rfl
-    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * g (x * y / y) / ↑y * ↑(x * y) ^ (s - 1) * y := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0,
+      f y * g (x * y / y) / ↑y * ↑(x * y) ^ (s - 1) * y := ?_
     _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * (g x * ↑x ^ (s - 1)) := ?_
     _ = _ := ?_
   · rw [set_integral_congr (by simp)]
@@ -360,8 +385,10 @@ $$
 \end{theorem}
 %%-/
 
-lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧ Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ ∫ x in Set.Ici 0, Ψ x / x = 1 := by
-  suffices h : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧ Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, Ψ x / x
+lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
+    Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ ∫ x in Set.Ici 0, Ψ x / x = 1 := by
+  suffices h : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
+    Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, Ψ x / x
   · rcases h with ⟨Ψ, hΨ, hΨnonneg, hΨsupp, hΨpos⟩
     let c := (∫ x in Set.Ici 0, Ψ x / x)
     use fun y => Ψ y / c
@@ -384,7 +411,8 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
           apply div_self
           exact ne_of_gt hΨpos
 
-  have := smooth_urysohn_support_Ioo (a := 1 / 2) (b := 1) (c := 3/2) (d := 2) (by linarith) (by linarith)
+  have := smooth_urysohn_support_Ioo (a := 1 / 2) (b := 1) (c := 3/2) (d := 2) (by linarith)
+    (by linarith)
   rcases this with ⟨Ψ, hΨContDiff, _, hΨ0, hΨ1, hΨSupport⟩
   use Ψ
   use hΨContDiff
@@ -402,9 +430,11 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
     · simp only [Function.support_div, measurableSet_Ici, MeasureTheory.Measure.restrict_apply']
       rw [hΨSupport]
       rw [Function.support_id]
-      have : (Set.Ioo (1 / 2 : ℝ) 2 ∩ (Set.Iio 0 ∪ Set.Ioi 0) ∩ Set.Ici 0) = Set.Ioo (1 / 2) 2 := by
+      have : (Set.Ioo (1 / 2 : ℝ) 2 ∩ (Set.Iio 0 ∪ Set.Ioi 0) ∩ Set.Ici 0) =
+        Set.Ioo (1 / 2) 2 := by
         ext x
-        simp only [Set.mem_inter_iff, Set.mem_Ioo, Set.mem_Ici, Set.mem_Iio, Set.mem_Ioi, Set.mem_union, not_lt, and_true, not_le]
+        simp only [Set.mem_inter_iff, Set.mem_Ioo, Set.mem_Ici, Set.mem_Iio, Set.mem_Ioi,
+          Set.mem_union, not_lt, and_true, not_le]
         constructor
         · intros h
           exact h.left.left
@@ -465,17 +495,20 @@ Same idea as Urysohn-type argument.
 %%-/
 
 /-%%
-The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at least) like $1/|s|$.
+The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at
+least) like $1/|s|$.
 \begin{theorem}[MellinOfPsi]\label{MellinOfPsi}\lean{MellinOfPsi}\leanok
 The Mellin transform of $\psi$ is
 $$\mathcal{M}(\psi)(s) =  O\left(\frac{1}{|s|}\right),$$
 as $|s|\to\infty$.
 \end{theorem}
 
-[Of course it decays faster than any power of $|s|$, but it turns out that we will just need one power.]
+[Of course it decays faster than any power of $|s|$, but it turns out that we will just need one
+power.]
 %%-/
 lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) :
-    (fun s ↦ Complex.abs (MellinTransform (funCoe Ψ) s)) =O[cocompact ℂ] fun s ↦ 1 / Complex.abs s := by
+    (fun s ↦ Complex.abs (MellinTransform (funCoe Ψ) s)) =O[cocompact ℂ]
+      fun s ↦ 1 / Complex.abs s := by
   sorry
 /-%%
 \begin{proof}
@@ -488,7 +521,8 @@ Integrate by parts once and estimate trivially.
 We can make a delta spike out of this bumpfunction, as follows.
 \begin{definition}[DeltaSpike]\label{DeltaSpike}\lean{DeltaSpike}\leanok
 \uses{SmoothExistence}
-Let $\psi$ be a bumpfunction supported in $[1/2,2]$. Then for any $\epsilon>0$, we define the delta spike $\psi_\epsilon$ to be the function from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
+Let $\psi$ be a bumpfunction supported in $[1/2,2]$. Then for any $\epsilon>0$, we define the
+delta spike $\psi_\epsilon$ to be the function from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
 $$\psi_\epsilon(x) = \frac{1}{\epsilon}\psi\left(x^{\frac{1}{\epsilon}}\right).$$
 \end{definition}
 %%-/
@@ -504,10 +538,11 @@ $$\int_0^\infty \psi_\epsilon(x)\frac{dx}{x} = 1.$$
 \end{lemma}
 %%-/
 
-lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (mass_one: ∫ x in Set.Ioi 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
-    ∫ x in Set.Ioi 0, ((DeltaSpike Ψ ε) x) / x = 1 :=
+lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (mass_one: ∫ x in Set.Ioi 0, Ψ x / x = 1) {ε : ℝ}
+    (εpos : 0 < ε) : ∫ x in Set.Ioi 0, ((DeltaSpike Ψ ε) x) / x = 1 :=
   calc
-    _ = ∫ (x : ℝ) in Set.Ioi 0, (|1/ε| * x ^ (1 / ε - 1)) • ((fun z => (Ψ z) / z) (x ^ (1 / ε))) := by
+    _ = ∫ (x : ℝ) in Set.Ioi 0, (|1/ε| * x ^ (1 / ε - 1)) •
+      ((fun z => (Ψ z) / z) (x ^ (1 / ε))) := by
       apply MeasureTheory.set_integral_congr_ae measurableSet_Ioi
       filter_upwards with x hx
       simp only [Set.mem_Ioi, smul_eq_mul, abs_of_pos (one_div_pos.mpr εpos)]
@@ -524,13 +559,15 @@ lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (mass_one: ∫ x in Set.Ioi 0, Ψ x / x 
 /-%%
 \begin{proof}\leanok
 \uses{DeltaSpike}
-Substitute $y=x^{1/\epsilon}$, and use the fact that $\psi$ has mass one, and that $dx/x$ is Haar measure.
+Substitute $y=x^{1/\epsilon}$, and use the fact that $\psi$ has mass one, and that $dx/x$ is Haar
+measure.
 \end{proof}
 %%-/
 
 
 theorem Complex.ofReal_rpow {x : ℝ} (h:x>0) (y: ℝ) : (((x:ℝ) ^ (y:ℝ)):ℝ) = (x:ℂ) ^ (y:ℂ) := by
-  rw [Real.rpow_def_of_pos h, ofReal_exp, ofReal_mul, Complex.ofReal_log h.le, Complex.cpow_def_of_ne_zero]
+  rw [Real.rpow_def_of_pos h, ofReal_exp, ofReal_mul, Complex.ofReal_log h.le,
+    Complex.cpow_def_of_ne_zero]
   simp only [ne_eq, ofReal_eq_zero, ne_of_gt h, not_false_eq_true]
 
 /-%%
@@ -543,7 +580,8 @@ $$\mathcal{M}(\psi_\epsilon)(s) = \mathcal{M}(\psi)\left(\epsilon s\right).$$
 theorem MellinOfDeltaSpike (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : ℂ) :
     MellinTransform (funCoe (DeltaSpike Ψ ε)) s = MellinTransform (funCoe Ψ) (ε * s) := by
   unfold MellinTransform funCoe DeltaSpike
-  rw [← MeasureTheory.integral_comp_rpow_Ioi (fun z => ((Ψ z): ℂ) * (z:ℂ)^((ε : ℂ)*s-1)) (one_div_ne_zero (ne_of_gt εpos))]
+  rw [← MeasureTheory.integral_comp_rpow_Ioi (fun z => ((Ψ z): ℂ) * (z:ℂ)^((ε : ℂ)*s-1))
+    (one_div_ne_zero (ne_of_gt εpos))]
   apply MeasureTheory.set_integral_congr_ae measurableSet_Ioi
   filter_upwards with x hx
 
@@ -558,7 +596,8 @@ theorem MellinOfDeltaSpike (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : �
   simp only [Complex.ofReal_rpow hx]
   rw [← Complex.cpow_mul, mul_sub]
   simp only [← mul_assoc, ofReal_sub, ofReal_div, ofReal_one, mul_one, ofReal_inv]
-  rw [one_div_mul_cancel, mul_comm (1 / (ε:ℂ)) _, mul_comm, ← mul_assoc, ← mul_assoc, ← Complex.cpow_add]
+  rw [one_div_mul_cancel, mul_comm (1 / (ε:ℂ)) _, mul_comm, ← mul_assoc, ← mul_assoc,
+    ← Complex.cpow_add]
   ring_nf
   exact slitPlane_ne_zero (Or.inl hx)
   exact slitPlane_ne_zero (Or.inl εpos)
@@ -574,7 +613,8 @@ Substitute $y=x^{1/\epsilon}$, use Haar measure; direct calculation.
 
 /-%%
 In particular, for $s=1$, we have that the Mellin transform of $\psi_\epsilon$ is $1+O(\epsilon)$.
-\begin{corollary}[MellinOfDeltaSpikeAt1]\label{MellinOfDeltaSpikeAt1}\lean{MellinOfDeltaSpikeAt1}\leanok
+\begin{corollary}[MellinOfDeltaSpikeAt1]\label{MellinOfDeltaSpikeAt1}\lean{MellinOfDeltaSpikeAt1}
+\leanok
 For any $\epsilon>0$, we have
 $$\mathcal{M}(\psi_\epsilon)(1) =
 \mathcal{M}(\psi)(\epsilon).$$
@@ -593,19 +633,22 @@ This is immediate from the above theorem.
 %%-/
 
 /-%%
-\begin{lemma}[MellinOfDeltaSpikeAt1_asymp]\label{MellinOfDeltaSpikeAt1_asymp}\lean{MellinOfDeltaSpikeAt1_asymp}\leanok
+\begin{lemma}[MellinOfDeltaSpikeAt1_asymp]\label{MellinOfDeltaSpikeAt1_asymp}
+\lean{MellinOfDeltaSpikeAt1_asymp}\leanok
 As $\epsilon\to 0$, we have
 $$\mathcal{M}(\psi_\epsilon)(1) = 1+O(\epsilon).$$
 \end{lemma}
 %%-/
-lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
+    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
     (fun (ε : ℝ) ↦ (MellinTransform (funCoe Ψ) ε) - 1) =O[𝓝[>]0] id := by
   sorry
 /-%%
 \begin{proof}
 \uses{MellinOfDeltaSpike, DeltaSpikeMass}
-This follows from the fact that $\mathcal{M}(\psi)(0)=1$ (total mass one), and the differentiability of $\psi$.
+This follows from the fact that $\mathcal{M}(\psi)(0)=1$ (total mass one), and the
+differentiability of $\psi$.
 \end{proof}
 %%-/
 
@@ -622,7 +665,8 @@ $$\mathcal{M}(1_{(0,1]})(s) = \frac{1}{s}.$$
 \end{theorem}
 [Note: this already exists in mathlib]
 %%-/
-lemma MellinOf1 (s : ℂ) (h : s.re > 0) : MellinTransform ((fun x => if x ≤ 1 then 1 else 0)) s = 1 / s := by
+lemma MellinOf1 (s : ℂ) (h : s.re > 0) :
+    MellinTransform ((fun x => if x ≤ 1 then 1 else 0)) s = 1 / s := by
   convert (hasMellin_one_Ioc h).right using 1
   apply MeasureTheory.set_integral_congr_ae measurableSet_Ioi
   filter_upwards with x hx
@@ -642,7 +686,8 @@ This is a straightforward calculation.
 What will be essential for us is properties of the smooth version of $1_{(0,1]}$, obtained as the
  Mellin convolution of $1_{(0,1]}$ with $\psi_\epsilon$.
 \begin{definition}[Smooth1]\label{Smooth1}\uses{MellinOf1, MellinConvolution}\leanok
-Let $\epsilon>0$. Then we define the smooth function $\widetilde{1_{\epsilon}}$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
+Let $\epsilon>0$. Then we define the smooth function $\widetilde{1_{\epsilon}}$ from
+$\mathbb{R}_{>0}$ to $\mathbb{C}$ by
 $$\widetilde{1_{\epsilon}} = 1_{(0,1]}\ast\psi_\epsilon.$$
 \end{definition}
 %%-/
@@ -652,46 +697,54 @@ noncomputable def Smooth1 (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℂ :=
 
 /-%%
 In particular, we have the following two properties.
-\begin{lemma}[Smooth1Properties_below]\label{Smooth1Properties_below}\lean{Smooth1Properties_below}\leanok
+\begin{lemma}[Smooth1Properties_below]\label{Smooth1Properties_below}
+\lean{Smooth1Properties_below}\leanok
 Fix $\epsilon>0$. There is an absolute constant $c>0$ so that:
 If $x\leq (1-c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 1.$$
 \end{lemma}
 %%-/
-lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ)
-    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) : ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≤ 1 - c * ε →
-      Smooth1 Ψ ε x = 1 := by
+lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
+    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ)
+    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
+    ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
   sorry
 /-%%
 \begin{proof}
 \uses{Smooth1, MellinConvolution}
-This is a straightforward calculation, using the fact that $\psi_\epsilon$ is supported in $[1/2^\epsilon,2^\epsilon]$.
+This is a straightforward calculation, using the fact that $\psi_\epsilon$ is supported in
+$[1/2^\epsilon,2^\epsilon]$.
 \end{proof}
 %%-/
 
 /-%%
-\begin{lemma}[Smooth1Properties_above]\label{Smooth1Properties_above}\lean{Smooth1Properties_above}\leanok
+\begin{lemma}[Smooth1Properties_above]\label{Smooth1Properties_above}
+\lean{Smooth1Properties_above}\leanok
 Fix $\epsilon>0$. There is an absolute constant $c>0$ so that:
 if $x\geq (1+c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 0.$$
 \end{lemma}
 %%-/
-lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ)
-    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) : ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≥ 1 + c * ε →
-      Smooth1 Ψ ε x = 0 := by
+lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
+    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ)
+    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
+    ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≥ 1 + c * ε → Smooth1 Ψ ε x = 0 := by
   sorry
 /-%%
 \begin{proof}
 \uses{Smooth1, MellinConvolution}
-This is a straightforward calculation, using the fact that $\psi_\epsilon$ is supported in $[1/2^\epsilon,2^\epsilon]$.
+This is a straightforward calculation, using the fact that $\psi_\epsilon$ is supported in
+$[1/2^\epsilon,2^\epsilon]$.
 \end{proof}
 %%-/
 
 /-%%
-Combining the above, we have the following three Main Lemmata of this section on the Mellin transform of $\widetilde{1_{\epsilon}}$.
+Combining the above, we have the following three Main Lemmata of this section on the Mellin
+transform of $\widetilde{1_{\epsilon}}$.
 \begin{lemma}[MellinOfSmooth1a]\label{MellinOfSmooth1a}\lean{MellinOfSmooth1a}\leanok
 Fix  $\epsilon>0$. Then the Mellin transform of $\widetilde{1_{\epsilon}}$ is
-$$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = \frac{1}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
+$$\mathcal{M}(\widetilde{1_{\epsilon}})(s) =
+\frac{1}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
 \end{lemma}
 %%-/
 lemma MellinOfSmooth1a (Ψ : ℝ → ℝ)
@@ -714,9 +767,11 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\righ
 \end{lemma}
 %%-/
 -- ** Statement needs `cocompact` filter *within* `ℜ s > 0`... **
-lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
+    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
-    (fun (s : ℂ) ↦ Complex.abs (MellinTransform (Smooth1 Ψ ε) s)) =O[cocompact ℂ] fun s ↦ 1 / (ε * Complex.abs s) ^ 2 := by
+    (fun (s : ℂ) ↦ Complex.abs (MellinTransform (Smooth1 Ψ ε) s)) =O[cocompact ℂ]
+      fun s ↦ 1 / (ε * Complex.abs s) ^ 2 := by
   --have := MellinOfSmooth1a Ψ εpos hs
   --obtain ⟨C, hC⟩  := MellinOfPsi diffΨ suppΨ
   --have := hC s
@@ -732,7 +787,8 @@ At $s=1$, we have
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(1) = (1+O(\epsilon)).$$
 \end{lemma}
 %%-/
-lemma MellinOfSmooth1c {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+lemma MellinOfSmooth1c {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
+    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
     (fun ε ↦ MellinTransform (Smooth1 Ψ ε) 1 - 1) =O[𝓝[>]0] id := by
   sorry
