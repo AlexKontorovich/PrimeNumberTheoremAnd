@@ -566,8 +566,8 @@ measure.
 
 
 theorem Complex.ofReal_rpow {x : ℝ} (h:x>0) (y: ℝ) : (((x:ℝ) ^ (y:ℝ)):ℝ) = (x:ℂ) ^ (y:ℂ) := by
-  rw [Real.rpow_def_of_pos h, ofReal_exp, ofReal_mul, Complex.ofReal_log h.le, Complex.
-    cpow_def_of_ne_zero]
+  rw [Real.rpow_def_of_pos h, ofReal_exp, ofReal_mul, Complex.ofReal_log h.le,
+    Complex.cpow_def_of_ne_zero]
   simp only [ne_eq, ofReal_eq_zero, ne_of_gt h, not_false_eq_true]
 
 /-%%
@@ -596,8 +596,8 @@ theorem MellinOfDeltaSpike (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : �
   simp only [Complex.ofReal_rpow hx]
   rw [← Complex.cpow_mul, mul_sub]
   simp only [← mul_assoc, ofReal_sub, ofReal_div, ofReal_one, mul_one, ofReal_inv]
-  rw [one_div_mul_cancel, mul_comm (1 / (ε:ℂ)) _, mul_comm, ← mul_assoc, ← mul_assoc, ← Complex.
-    cpow_add]
+  rw [one_div_mul_cancel, mul_comm (1 / (ε:ℂ)) _, mul_comm, ← mul_assoc, ← mul_assoc,
+    ← Complex.cpow_add]
   ring_nf
   exact slitPlane_ne_zero (Or.inl hx)
   exact slitPlane_ne_zero (Or.inl εpos)
