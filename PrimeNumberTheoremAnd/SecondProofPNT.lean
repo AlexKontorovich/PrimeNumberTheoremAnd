@@ -61,7 +61,11 @@ $$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X).$$
 
 /-%%
 \begin{proof}
-\uses{SmoothedChebyshevDirichlet, Smooth1Properties_above, Smooth1Properties_below, ChebyshevPsi}
+\uses{SmoothedChebyshevDirichlet, Smooth1Properties_above,
+Smooth1Properties_below,
+Smooth1Nonneg,
+Smooth1LeOne,
+ChebyshevPsi}
 Take the difference. By Lemma \ref{Smooth1Properties_above} and \ref{Smooth1Properties_below},
 the sums agree except when $1-c \epsilon \leq n/X \leq 1+c \epsilon$. This is an interval of
 length $\ll \epsilon X$, and the summands are bounded by $\Lambda(n) \ll \log X$.
@@ -98,41 +102,6 @@ This fact is already proved in Stoll's work.
 %%-/
 
 /-%%
-General theorem:
-\begin{theorem}\label{NoZerosInBoxOfNoneOnBoundary}
-\lean{NoZerosInBoxOfNoneOnBoundary}
-You have a set $S$ of points in $\C$ with no accumulation point.
-Suppose that none of these points line on a given line $L$.
-Then for any desired interval $I \subset L $, there is a box $B$ having $I$ as its right boundary
-with no points of $S$ in $B$.
-\end{theorem}
-%%-/
-theorem NoZerosInBoxOfNoneOnBoundary
-  {S : Set ℂ}
-  --{hS : } -- S has no accumulation point
-  {x₀ : ℝ} -- that's the x-coordinate of the line L
-  (hL : ∀ z : ℂ, z ∈ S → z.re ≠ x₀) -- none of the points of S lie on L
-  {y₀ y₁ : ℝ} -- determine the y-coordinates of the interval I
-  :
-  ∃ (δ : ℝ) (hδ : 0 < δ), -- width of the box
-  ∀ z : ℂ, x₀ - δ ≤ z.re → z.re ≤ x₀ → y₀ ≤ z.im → z.im ≤ y₁ → z ∉ S := by
-/-%%
-\begin{proof}
-We argue by contraposition.
-%%-/
-    contrapose! hL -- not quite, want to contrapose `hS`
-/-%%
-If for every $\delta>0$, the box $[x_0-\delta,x_0] \times_{ℂ} [y_0,y_1]$ contains a point of $S$,
-then we can find an
-accumulation point
- of $S$, a contradiction.
-\end{proof}
-%%-/
-    sorry
-
-
-
-/-%%
 Then, since $\zeta$ doesn't vanish on the 1-line, there is a $\delta$ (depending on $T$), so that
 the box $[1-\delta,1] \times_{ℂ} [-T,T]$ is free of zeros of $\zeta$.
 \begin{theorem}\label{ZetaNoZerosInBox}
@@ -143,7 +112,7 @@ $\zeta$.
 
 /-%%
 \begin{proof}
-\uses{NoZerosInBoxOfNoneOnBoundary, ZetaNoZerosOn1Line}
+\uses{ZetaNoZerosOn1Line}
 We have that zeta doesn't vanish on the 1 line and is holomorphic inside the box (except for the
 pole at $s=1$). If for a height $T>0$, there was no such $\delta$, then there would be a sequence
 of zeros of $\zeta$ approaching the 1 line, and by compactness, we could find a subsequence of
