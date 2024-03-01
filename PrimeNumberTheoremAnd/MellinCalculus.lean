@@ -358,30 +358,22 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * (g x * ↑x ^ (s - 1)) := ?_
     _ = ∫ (y : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * ∫ (x : ℝ) in Ioi 0, g x * ↑x ^ (s - 1) := ?_
     _ = _ := integral_mul_right _ _
-  · rw [set_integral_congr (by simp)]
-    intro x hx
-    simp_rw [integral_mul_right]
-  · rw [set_integral_congr (by simp)]
-    intro y hy
-    simp_rw [integral_mul_right]
+  <;> try (rw [set_integral_congr (by simp)]; intro y hy)
+  · simp only [integral_mul_right]
+  · simp only [integral_mul_right]
     rw [mul_comm]
     set fx : ℝ → ℂ := fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
     refine integral_Ioi_change_of_variables y (mem_Ioi.mp hy) fx ?_
     -- Use MeasureTheory.integrable_prod_iff with correct measures and MeasureTheory.Integrable.integrableOn?
     sorry
-  · rw [set_integral_congr (by simp)]
-    intro x hx
-    simp only [ofReal_mul]
+  · simp only [ofReal_mul]
     rw [set_integral_congr (by simp)]
-    intro y hy
-    have x_ne_zeroℝ : x ≠ 0 := ne_of_gt (mem_Ioi.mp hx)
-    have x_ne_zeroℂ : (x : ℂ) ≠ 0 := by exact_mod_cast x_ne_zeroℝ
-    field_simp [mul_cpow_ofReal_nonneg (LT.lt.le hy) (LT.lt.le hx)]
-    ring
-  · refine set_integral_congr_ae₀ (by simp only [measurableSet_Ioi, MeasurableSet.nullMeasurableSet]) ?_
-    apply ae_of_all volume
     intro x hx
-    exact integral_mul_left _ _
+    have y_ne_zeroℝ : y ≠ 0 := ne_of_gt (mem_Ioi.mp hy)
+    have y_ne_zeroℂ : (y : ℂ) ≠ 0 := by exact_mod_cast y_ne_zeroℝ
+    field_simp [mul_cpow_ofReal_nonneg (LT.lt.le hx) (LT.lt.le hy)]
+    ring
+  · exact integral_mul_left _ _
 
 /-%%
 \begin{proof}
