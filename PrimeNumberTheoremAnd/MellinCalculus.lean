@@ -512,7 +512,7 @@ power.]
 %%-/
 /-- Need to intersect `cocompact` filter `within` `s.re` bounded -/
 lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) :
-    (fun s ↦ Complex.abs (MellinTransform (funCoe Ψ) s)) =O[cocompact ℂ]
+    (fun s ↦ Complex.abs (MellinTransform (Ψ ·) s)) =O[cocompact ℂ]
       fun s ↦ 1 / Complex.abs s := by
   sorry
 /-%%
@@ -592,8 +592,8 @@ $$\mathcal{M}(\psi_\epsilon)(s) = \mathcal{M}(\psi)\left(\epsilon s\right).$$
 \end{theorem}
 %%-/
 theorem MellinOfDeltaSpike (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : ℂ) :
-    MellinTransform (funCoe (DeltaSpike Ψ ε)) s = MellinTransform (funCoe Ψ) (ε * s) := by
-  unfold MellinTransform funCoe DeltaSpike
+    MellinTransform ((DeltaSpike Ψ ε) ·) s = MellinTransform (Ψ ·) (ε * s) := by
+  unfold MellinTransform DeltaSpike
   rw [← MeasureTheory.integral_comp_rpow_Ioi (fun z => ((Ψ z): ℂ) * (z:ℂ)^((ε : ℂ)*s-1))
     (one_div_ne_zero (ne_of_gt εpos))]
   apply MeasureTheory.set_integral_congr_ae measurableSet_Ioi
@@ -636,7 +636,7 @@ $$\mathcal{M}(\psi_\epsilon)(1) =
 %%-/
 
 lemma MellinOfDeltaSpikeAt1 (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) :
-    MellinTransform (funCoe (DeltaSpike Ψ ε)) 1 = MellinTransform (funCoe Ψ) ε := by
+    MellinTransform ((DeltaSpike Ψ ε) ·) 1 = MellinTransform (Ψ ·) ε := by
   convert MellinOfDeltaSpike Ψ εpos 1
   simp only [mul_one]
 /-%%
@@ -656,7 +656,7 @@ $$\mathcal{M}(\psi_\epsilon)(1) = 1+O(\epsilon).$$
 lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
-    (fun (ε : ℝ) ↦ (MellinTransform (funCoe Ψ) ε) - 1) =O[𝓝[>]0] id := by
+    (fun (ε : ℝ) ↦ (MellinTransform (Ψ ·) ε) - 1) =O[𝓝[>]0] id := by
   sorry -- use `mellin_differentiableAt_of_isBigO_rpow` for differentiability at 0
 /-%%
 \begin{proof}
@@ -802,7 +802,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ)
     -- (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     -- (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1)
     {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) :
-    MellinTransform (funCoe (Smooth1 Ψ ε)) s = 1 / s * MellinTransform (funCoe Ψ) (ε * s) := by
+    MellinTransform ((Smooth1 Ψ ε) ·) s = 1 / s * MellinTransform (Ψ ·) (ε * s) := by
   dsimp [Smooth1]
 --  rw [MellinConvolutionTransform, MellinOf1 _ hs, MellinOfDeltaSpike Ψ (εpos) s]
   sorry
@@ -821,7 +821,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\righ
 lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
-    (fun (s : ℂ) ↦ Complex.abs (MellinTransform (funCoe (Smooth1 Ψ ε)) s)) =O[cocompact ℂ]
+    (fun (s : ℂ) ↦ Complex.abs (MellinTransform ((Smooth1 Ψ ε) ·) s)) =O[cocompact ℂ]
       fun s ↦ 1 / (ε * Complex.abs s) ^ 2 := by
   --have := MellinOfSmooth1a Ψ εpos hs
   --obtain ⟨C, hC⟩  := MellinOfPsi diffΨ suppΨ
@@ -841,7 +841,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(1) = (1+O(\epsilon)).$$
 lemma MellinOfSmooth1c {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
-    (fun ε ↦ MellinTransform (funCoe (Smooth1 Ψ ε)) 1 - 1) =O[𝓝[>]0] id := by
+    (fun ε ↦ MellinTransform ((Smooth1 Ψ ε) ·) 1 - 1) =O[𝓝[>]0] id := by
   sorry
 /-%%
 \begin{proof}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1_asymp}
