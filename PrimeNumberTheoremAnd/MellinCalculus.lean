@@ -373,20 +373,28 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     _ = _ := ?_
   · rw [set_integral_congr (by simp)]
     intro x hx
-    simp only
-    rw [integral_mul_right]
-  · sorry
+    simp_rw [integral_mul_right]
+  · rw [set_integral_congr (by simp)]
+    intro y hy
+    simp_rw [integral_mul_right]
+    set fy : ℝ → ℂ := fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
+    have hfy : IntegrableOn fy (Ioi 0) := by
+      simp at hf ⊢
+      -- Use MeasureTheory.integrable_prod_iff with correct measures and MeasureTheory.Integrable.integrableOn?
+      sorry
+    have := integral_Ioi_change_of_variables y (mem_Ioi.mp hy) fy hfy
+    field_simp at this ⊢
+    rw [mul_comm]
+    exact this
   · rw [set_integral_congr (by simp)]
     intro x hx
-    simp only
+    simp
     rw [set_integral_congr (by simp)]
     intro y hy
     have x_ne_zeroℝ : x ≠ 0 := ne_of_gt (mem_Ioi.mp hx)
     have x_ne_zeroℂ : (x : ℂ) ≠ 0 := by exact_mod_cast x_ne_zeroℝ
-    simp only [ofReal_mul]
-    field_simp
-    have : ((y : ℂ) * ↑x) ^ (s - 1) = (y : ℂ) ^ (s - 1) * (↑x ^ (s - 1)) := by sorry
-    rw [this]
+    have : ((y : ℂ) * x) ^ (s - 1) = (y : ℂ) ^ (s - 1) * (x ^ (s - 1)) := by sorry
+    field_simp [this]
     ring
   · --have := @MeasureTheory.integral_prod_mul
     sorry
