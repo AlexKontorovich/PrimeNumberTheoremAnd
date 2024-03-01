@@ -319,7 +319,7 @@ noncomputable def MellinConvolution (f g : ℝ → ℂ) (x : ℝ) : ℂ :=
 lemma integral_Ioi_change_of_variables (x : ℝ) (hx : 0 < x) (f : ℝ → ℂ) (hf : IntegrableOn f (Ioi 0)) :
     ∫ u in Ioi 0, f (u) = x • ∫ v in Ioi 0, f (v * x) := by
   let g := (Ioi 0).indicator f
-  have hm : MeasurableSet (Ioi (0 : ℝ )) := by exact measurableSet_Ioi
+  have hm : MeasurableSet (Ioi (0 : ℝ )) := measurableSet_Ioi
   have x_ne_zeroℝ : x ≠ 0 := ne_of_gt (mem_Ioi.mp hx)
   calc
       _ = ∫ (u : ℝ), g u := (MeasureTheory.integral_indicator hm).symm
@@ -361,31 +361,25 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0,
       f y * g (x * y / y) / ↑y * ↑(x * y) ^ (s - 1) * y := ?_
     _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * (g x * ↑x ^ (s - 1)) := ?_
-    _ = _ := ?_
   · rw [set_integral_congr (by simp)]
     intro x hx
     simp_rw [integral_mul_right]
   · rw [set_integral_congr (by simp)]
     intro y hy
     simp_rw [integral_mul_right]
-    set fy : ℝ → ℂ := fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
-    have hfy : IntegrableOn fy (Ioi 0) := by
-      simp at hf ⊢
-      -- Use MeasureTheory.integrable_prod_iff with correct measures and MeasureTheory.Integrable.integrableOn?
-      sorry
-    have := integral_Ioi_change_of_variables y (mem_Ioi.mp hy) fy hfy
-    field_simp at this ⊢
     rw [mul_comm]
-    exact this
+    set fx : ℝ → ℂ := fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
+    refine integral_Ioi_change_of_variables y (mem_Ioi.mp hy) fx ?_
+    -- Use MeasureTheory.integrable_prod_iff with correct measures and MeasureTheory.Integrable.integrableOn?
+    sorry
   · rw [set_integral_congr (by simp)]
     intro x hx
-    simp
+    simp only [ofReal_mul]
     rw [set_integral_congr (by simp)]
     intro y hy
     have x_ne_zeroℝ : x ≠ 0 := ne_of_gt (mem_Ioi.mp hx)
     have x_ne_zeroℂ : (x : ℂ) ≠ 0 := by exact_mod_cast x_ne_zeroℝ
-    have : ((y : ℂ) * x) ^ (s - 1) = (y : ℂ) ^ (s - 1) * (x ^ (s - 1)) := by sorry
-    field_simp [this]
+    field_simp [mul_cpow_ofReal_nonneg (LT.lt.le hy) (LT.lt.le hx)]
     ring
   · --have := @MeasureTheory.integral_prod_mul
     sorry
