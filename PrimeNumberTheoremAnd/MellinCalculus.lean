@@ -317,31 +317,22 @@ noncomputable def MellinConvolution (f g : ℝ → ℂ) (x : ℝ) : ℂ :=
 
 
 lemma integral_Ioi_change_of_variables (x : ℝ) (hx : 0 < x) (f : ℝ → ℂ) (hf : IntegrableOn f (Ioi 0)) :
-    ∫ y in Ioi 0, f (y) = x • ∫ u in Ioi 0, f (x * u) := by
-  have abs: |x⁻¹| = x⁻¹ := by field_simp only [abs_of_pos (one_div_pos.mpr hx)]
-  have x_ne_zeroℝ : x ≠ 0 := ne_of_gt (mem_Ioi.mp hx)
-  have hm : MeasurableSet (Ioi (0 : ℝ )) := by exact measurableSet_Ioi
+    ∫ u in Ioi 0, f (u) = x • ∫ v in Ioi 0, f (v * x) := by
   let g := (Ioi 0).indicator f
-  have hg : IntegrableOn g (Ioi 0) := by exact hf.indicator hm
-  have int_res : ∫ (y : ℝ), g y = ∫ y in Ioi 0, f y := MeasureTheory.integral_indicator hm
-  have := abs ▸ (Measure.integral_comp_mul_right g x).symm
-  have int_res2 : ∫ (y : ℝ), g (y*x) = ∫ y in Ioi 0, f (y*x) := by
+  have hm : MeasurableSet (Ioi (0 : ℝ )) := by exact measurableSet_Ioi
+  have x_ne_zeroℝ : x ≠ 0 := ne_of_gt (mem_Ioi.mp hx)
+  calc
+      _ = ∫ (u : ℝ), g u := (MeasureTheory.integral_indicator hm).symm
+      _ = (1 : ℝ) * ∫ (u : ℝ), g u := by rw [ofReal_one, one_mul]
+      _ = x * (x⁻¹ * ∫ (u : ℝ), g u) := by simp only [(mul_inv_cancel x_ne_zeroℝ).symm, ofReal_mul]; ring
+      _ = x * ∫ (v : ℝ), g (v * x) := ?_
+      _ = x * ∫ (v : ℝ) in (Ioi 0), f (v * x) := ?_
+  · have abs: |x⁻¹| = x⁻¹ := by field_simp only [abs_of_pos (one_div_pos.mpr hx)]
+    exact congrArg _ (abs ▸ (Measure.integral_comp_mul_right g x).symm)
+  · simp only [mul_eq_mul_left_iff, ofReal_eq_zero, x_ne_zeroℝ, or_false]
+    -- simp [← MeasureTheory.integral_indicator hm]
+    -- refine integral_congr_ae (?_ : _ =ᵐ[volume] _)
     sorry
-  have : ∫ (y : ℝ), g y = x * ∫ (x_1 : ℝ), g (x_1 * x) := by
-    calc
-      _ = (1:ℝ) * ∫ (y : ℝ), g y := by rw [ofReal_one, one_mul]
-      _ = x * x⁻¹ * ∫ (y : ℝ), g y := ?_
-      _ = x * ∫ (x_1 : ℝ), g (x_1 * x) := ?_
-    · have : 1 = ↑x * ↑x⁻¹ := by field_simp
-      simp [this]
-    · rw [← this]
-      norm_num
-      ring_nf
-  have : ∫ (y : ℝ) in Ioi 0, f y = ↑x * ∫ (x_1 : ℝ) in (Ioi 0), f (x_1 * x) := by
-    rw [← int_res, this]
-    simp only [mul_eq_mul_left_iff, ofReal_eq_zero, x_ne_zeroℝ, or_false, int_res2]
-  simp [this, x_ne_zeroℝ]
-  exact set_integral_congr hm (by intro x hx; ring_nf)
 
 
 /-%%
