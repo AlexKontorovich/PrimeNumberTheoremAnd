@@ -350,10 +350,6 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     MellinTransform (MellinConvolution f g) s = MellinTransform f s * MellinTransform g s := by
   dsimp [MellinTransform, MellinConvolution]
   set f₁ : ℝ × ℝ → ℂ := fun ⟨x, y⟩ ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
-  -- have := @MeasureTheory.set_integral_integral_swap (s := Set.Ioi (0 : ℝ)) (t := Set.Ioi (0 : ℝ))
-  --   (E := ℂ) (μ := volume) (ν := volume) _ _ _ _ _ _ (f := f₁) h
-  -- have := (@MeasureTheory.set_integral_prod (s := Set.Ioi (0 : ℝ)) (t := Set.Ioi (0 : ℝ)) (E := ℂ)
-  --   (μ := volume) (ν := volume) _ _ _ _ _ _ (f := f₁) h).symm
   calc
     _ = ∫ (x : ℝ) in Ioi 0, ∫ (y : ℝ) in Ioi 0, f₁ (x, y) := ?_
     _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f₁ (x, y) := set_integral_integral_swap _ hf
@@ -381,8 +377,14 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     have x_ne_zeroℂ : (x : ℂ) ≠ 0 := by exact_mod_cast x_ne_zeroℝ
     field_simp [mul_cpow_ofReal_nonneg (LT.lt.le hy) (LT.lt.le hx)]
     ring
-  · --have := @MeasureTheory.integral_prod_mul
-    sorry
+  · calc
+      _ = ∫ (y : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * ∫ (x : ℝ) in Ioi 0, g x * ↑x ^ (s - 1) := ?_
+      _ = _ := ?_
+    · refine set_integral_congr_ae₀ (by simp only [measurableSet_Ioi, MeasurableSet.nullMeasurableSet]) ?_
+      apply ae_of_all volume
+      intro x hx
+      exact integral_mul_left _ _
+    · exact integral_mul_right _ _
 
 /-%%
 \begin{proof}
