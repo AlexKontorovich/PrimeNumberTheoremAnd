@@ -13,8 +13,8 @@ theorem MeasureTheory.set_integral_integral_swap {α : Type*} {β : Type*} {E : 
   convert hf.integrable
   exact Measure.prod_restrict s t
 
--- How do deal with this coersion?...
-noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ f x
+-- How do deal with this coersion?... Ans: (f ·)
+--- noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ f x
 
 section from_PR10944
 
