@@ -694,9 +694,31 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
   sorry -- use `mellin_differentiableAt_of_isBigO_rpow` for differentiability at 0
 /-%%
 \begin{proof}
-\uses{MellinOfDeltaSpike, DeltaSpikeMass}
-This follows from the fact that $\mathcal{M}(\psi)(0)=1$ (total mass one), and the
-differentiability of $\psi$.
+\uses{MellinTransform,MellinOfDeltaSpikeAt1,SmoothExistence}
+By Lemma \ref{MellinOfDeltaSpikeAt1},
+$$
+  \mathcal M(\psi_\epsilon)(1)=\mathcal M(\psi)(\epsilon)
+$$
+which by Definition \ref{MellinTransform} is
+$$
+  \mathcal M(\psi)(\epsilon)=\int_0^\infty\psi(x)x^{\epsilon-1}dx
+  .
+$$
+Since $\psi(x) x^{\epsilon-1}$ is integrable (because $\psi$ is continuous and compactly supported),
+$$
+  \mathcal M(\psi)(\epsilon)-\int_0^\infty\psi(x)\frac{dx}x=\int_0^\infty\psi(x)(x^{\epsilon-1}-x^{-1})dx
+  .
+$$
+By Taylor's theorem,
+$$
+  x^{\epsilon-1}-x^{-1}=O(\epsilon)
+$$
+so, since $\psi$ is absolutely integrable,
+$$
+  \mathcal M(\psi)(\epsilon)-\int_0^\infty\psi(x)\frac{dx}x=O(\epsilon)
+  .
+$$
+We conclude the proof using Theroem \ref{SmoothExistence}.
 \end{proof}
 %%-/
 
