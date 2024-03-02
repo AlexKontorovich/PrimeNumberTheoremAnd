@@ -68,7 +68,7 @@ lemma sum_eq_int_deriv_aux1 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k
   $[a, b]$.
   Then
   \[
-  \sum_{a < n \le b} \phi(n) = \int_a^b \phi(x) \, dx + \left(\lfloor b \rfloor + \frac{1}{2} - b\right) \phi(b) - \left(\lceil a \rceil + \frac{1}{2} - a\right) \phi(a) - \int_a^b \left(\lceil x \rceil + \frac{1}{2} - x\right) \phi'(x) \, dx.
+  \sum_{a < n \le b} \phi(n) = \int_a^b \phi(x) \, dx + \left(\lfloor b \rfloor + \frac{1}{2} - b\right) \phi(b) - \left(\lfloor a \rfloor + \frac{1}{2} - a\right) \phi(a) - \int_a^b \left(\lfloor x \rfloor + \frac{1}{2} - x\right) \phi'(x) \, dx.
   \]
 \end{lemma}
 %%-/
@@ -103,12 +103,13 @@ Partial integration.
   Let $a < b$, and let $\phi$ be continuously differentiable on $[a, b]$.
   Then
   \[
-  \sum_{a < n \le b} \phi(n) = \int_a^b \phi(x) \, dx + \left(\lfloor b \rfloor + \frac{1}{2} - b\right) \phi(b) - \left(\lceil a \rceil + \frac{1}{2} - a\right) \phi(a) - \int_a^b \left(\lceil x \rceil + \frac{1}{2} - x\right) \phi'(x) \, dx.
+  \sum_{a < n \le b} \phi(n) = \int_a^b \phi(x) \, dx + \left(\lfloor b \rfloor + \frac{1}{2} - b\right) \phi(b) - \left(\lfloor a \rfloor + \frac{1}{2} - a\right) \phi(a) - \int_a^b \left(\lfloor x \rfloor + \frac{1}{2} - x\right) \phi'(x) \, dx.
   \]
 \end{lemma}
 %%-/
 /-- ** Partial summation ** (TODO : Add to Mathlib) -/
-theorem sum_eq_int_deriv (φ : ℝ → ℂ) (a b : ℝ) (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
+    (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
     ∑ n in Finset.Icc (⌊a⌋ + 1) ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
       - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
@@ -116,5 +117,48 @@ theorem sum_eq_int_deriv (φ : ℝ → ℂ) (a b : ℝ) (φDiff : ContDiffOn ℝ
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv_aux}
   Apply Lemma \ref{sum_eq_int_deriv_aux} in blocks of length $\le 1$.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[ZetaSum_aux1]\label{ZetaSum_aux1}\lean{ZetaSum_aux1}\leanok
+  Let $a < b$ be natural numbers and $s\in \C$ with $s \ne 1$.
+  Then
+  \[
+  \sum_{a < n \le b} \frac{1}{n^s} =  \frac{b^{1-s} - a^{1-s}}{1-s} + \frac{b^{-s}-a^{-s}}{2} + s \int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx.
+  \]
+%%-/
+lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (a_lt_b : a < b) :
+    ∑ n in Finset.Icc (a + 1) b, 1 / (n : ℂ)^s =
+    (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) + (b ^ (-s) - a ^ (-s)) / 2
+      + s * ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
+  let φ := fun (x : ℝ) ↦ (x : ℂ) ^ (-s)
+  let φ' := fun (x : ℝ) ↦ -s / (x : ℂ)^(s + 1)
+  have φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b) := sorry
+  convert sum_eq_int_deriv (by exact_mod_cast a_lt_b) φDiff using 1
+  · sorry
+  sorry
+/-%%
+\begin{proof}\uses{sum_eq_int_deriv}
+  Apply Lemma \ref{sum_eq_int_deriv} to the function $x \mapsto x^{-s}$.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
+  Let $N$ be a natural number and $s\in \C$, $\Re(s)>0$, and $s\ne 1$.
+  Then
+  \[
+  \sum_{N < n} \frac{1}{n^s} =  \frac{- N^{1-s}}{1-s} + \frac{-N^{-s}}{2} + s \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx.
+  \]
+%%-/
+lemma ZetaSum_aux2 {N : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_re_pos : 0 < s.re) :
+    ∑' (n : ℕ), 1 / (n + N : ℂ)^s =
+    (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
+      + s * ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
+  sorry
+/-%%
+\begin{proof}\uses{ZetaSum_aux1}
+  Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
 \end{proof}
 %%-/
