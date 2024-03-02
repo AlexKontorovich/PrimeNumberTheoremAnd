@@ -718,7 +718,7 @@ $$
   \mathcal M(\psi)(\epsilon)-\int_0^\infty\psi(x)\frac{dx}x=O(\epsilon)
   .
 $$
-We conclude the proof using Theroem \ref{SmoothExistence}.
+We conclude the proof using Theorem \ref{SmoothExistence}.
 \end{proof}
 %%-/
 
@@ -770,14 +770,14 @@ In particular, we have the following two properties.
 \begin{lemma}[Smooth1Properties_below]\label{Smooth1Properties_below}
 \lean{Smooth1Properties_below}\leanok
 Fix $\epsilon>0$. There is an absolute constant $c>0$ so that:
-If $x\leq (1-c\epsilon)$, then
+If $0<x\leq (1-c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 1.$$
 \end{lemma}
 %%-/
 lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
-    ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
+    ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), 0 < x → x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
   sorry
 /-%%
 \begin{proof}
@@ -789,7 +789,39 @@ $$
 \int_0^1 \psi_\epsilon(x/y)\frac{dy}{y}.
 $$
 The support of $\psi_\epsilon$ is contained in $[1/2^\epsilon,2^\epsilon]$, so
-$y \in [1/2^\epsilon x,2^\epsilon x]$. If $x \le 2^{-\epsilon}$, then the integral is the same as that over $(0,\infty)$, which is equal to one by Lemma \ref{DeltaSpikeMass}.
+$y \in [1/2^\epsilon x,2^\epsilon x]$. If $x \le 2^{-\epsilon}$, then the integral is the same as that over $(0,\infty)$:
+$$
+\int_0^\infty 1_{(0,1]}(y)\psi_\epsilon(x/y)\frac{dy}{y}
+=
+\int_0^\infty \psi_\epsilon(x/y)\frac{dy}{y}.
+$$
+in which we change variables to $z=x/y$ (using $x>0$):
+$$
+\int_0^\infty 1_{(0,1]}(y)\psi_\epsilon(x/y)\frac{dy}{y}
+=
+\int_0^\infty \psi_\epsilon(z)\frac{dz}{z}.
+$$
+which is equal to one by Lemma \ref{DeltaSpikeMass}.
+We are left with proving that
+\begin{equation}
+  c:=\log 2\geqslant\frac{1-2^{-\epsilon}}\epsilon
+  .
+\end{equation}
+Here's one proof: let $\alpha:=2^\epsilon>1$, in terms of which we wish to prove
+\begin{equation}
+  1\geqslant\frac{1-1/\alpha}{\log \alpha}
+\end{equation}
+(where $\log$ is the natural logarithm).
+In addition,
+\begin{equation}
+  \frac d{d\alpha}\left(1-\frac1\alpha-\log \alpha\right)=\frac1{\alpha^2}(1-\alpha)<0
+\end{equation}
+so $1-1/\alpha-\log\alpha$ is monotone decreasing so it is smaller than its value at $\alpha=1$:
+\begin{equation}
+  1-\frac1\alpha-\log\alpha<0
+  .
+\end{equation}
+We conclude the proof using $\log\alpha>0$.
 \end{proof}
 %%-/
 
