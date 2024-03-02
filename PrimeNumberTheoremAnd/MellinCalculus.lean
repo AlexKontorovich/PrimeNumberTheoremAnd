@@ -322,7 +322,12 @@ The Mellin transform of a convolution is the product of the Mellin transforms.
 \begin{theorem}[MellinConvolutionTransform]\label{MellinConvolutionTransform}
 \lean{MellinConvolutionTransform}\leanok
 Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$ such that
-the . Then
+\begin{equation}
+  (x,y)\mapsto f(y)\frac{g(x/y)}yx^{s-1}
+  \label{eq:assm_integrable_Mconv}
+\end{equation}
+is absolutely integrable on $[0,\infty)^2$.
+Then
 $$\mathcal{M}(f\ast g)(s) = \mathcal{M}(f)(s)\mathcal{M}(g)(s).$$
 \end{theorem}
 %%-/
@@ -367,8 +372,37 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
 
 /-%%
 \begin{proof}
-\uses{MellinTransform}
-This is a straightforward calculation; open the two integrals.
+\uses{MellinTransform,MellinConvolution}
+By Definitions \ref{MellinTransform} and \ref{MellinConvolution}
+$$
+  \mathcal M(f\ast g)(s)=
+  \int_0^\infty \int_0^\infty f(y)g(x/y)x^{s-1}\frac{dy}ydx
+$$
+in which we change variables from $x$ to $z=x/y$:
+$$
+  \mathcal M(f\ast g)(s)=
+  \int_0^\infty \int_0^\infty f(y)g(z)y^{s-1}z^{s-1}dydz
+  .
+$$
+Now,
+$$
+  \int_{[0,\infty)^2} \left|f(y)g(z)y^{s-1}z^{s-1}\right|dydz
+  =
+  \int_{[0,\infty)^2} \left|f(y)\frac{g(x/y)}yx^{s-1}\right|dydx
+$$
+which is finite by (\ref{eq:assm_integrable_Mconv}).
+Therefore, by Fubini's theorem,
+$$
+  \mathcal M(f\ast g)(s)=
+  \left(\int_0^\infty f(y)y^{s-1}dy\right)\left(\int_0^\infty g(z)z^{s-1}dz\right)
+$$
+which, by Definition \ref{MellinTransform}, is
+$$
+  \mathcal M(f\ast g)(s)=
+  \mathcal M(f)(s)\mathcal M(g)(s)
+  .
+$$
+
 \end{proof}
 %%-/
 
