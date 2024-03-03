@@ -136,8 +136,7 @@ This is in a Mathlib PR.
 
 theorem RectangleIntegral_congr (h : Set.EqOn f g (RectangleBorder z w)) :
     RectangleIntegral f z w = RectangleIntegral g z w := by
-  unfold RectangleIntegral
-  unfold VIntegral
+  unfold RectangleIntegral VIntegral
   congr 2; swap; congr 1; swap; congr 1
   all_goals refine intervalIntegral.integral_congr fun _ _ ↦ h ?_
   · exact Or.inl <| Or.inl <| Or.inl ⟨by simpa, by simp⟩
@@ -174,8 +173,7 @@ theorem RectangleBorderIntegrable.add {f g : ℂ → E} (hf : RectangleBorderInt
   rw [intervalIntegral.integral_add hf.1 hg.1, intervalIntegral.integral_add hf.2.1 hg.2.1,
     intervalIntegral.integral_add hf.2.2.1 hg.2.2.1, intervalIntegral.integral_add hf.2.2.2 hg.2.2.2]
   rw [← sub_eq_zero]
-  simp only [smul_add]
-  abel_nf ; simp
+  simp only [smul_add]; abel_nf; simp
 
 theorem ContinuousOn.rectangleBorder_integrable (hf : ContinuousOn f (RectangleBorder z w)) :
     RectangleBorderIntegrable f z w :=
@@ -246,7 +244,7 @@ lemma RectangleIntegralVSplit {b x₀ x₁ y₀ y₁ : ℝ}
   simp only [mul_one, mul_zero, add_zero, zero_add, sub_self]
   rw [← intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_left f_int_b_y₁_left,
     ← intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_right f_int_b_y₁_right, ← sub_eq_zero]
-  simp only [smul_add] ; abel_nf ; simp
+  simp only [smul_add]; abel_nf; simp
 
 lemma RectangleIntegralVSplit' {b x₀ x₁ y₀ y₁ : ℝ} (hb : b ∈ [[y₀, y₁]])
     (hf : RectangleBorderIntegrable f (↑x₀ + ↑y₀ * I) (↑x₁ + ↑y₁ * I)) :
@@ -402,8 +400,7 @@ lemma integral_const_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, y / (x 
     arctan (x₂ / y) - arctan (x₁ / y) := by
   nth_rewrite 1 [← div_mul_cancel x₁ hy, ← div_mul_cancel x₂ hy]
   simp_rw [← mul_integral_comp_mul_right, ← integral_const_mul, ← integral_one_div_one_add_sq]
-  refine integral_congr <| λ x _ => ?_
-  field_simp ; ring
+  exact integral_congr <| λ x _ => by field_simp; ring
 
 lemma integral_const_div_self_add_im (hy : y ≠ 0) : ∫ x : ℝ in x₁..x₂, A / (x + y * I) =
     A * (Real.log (x₂ ^ 2 + y ^ 2) / 2 - Real.log (x₁ ^ 2 + y ^ 2) / 2) -
@@ -492,9 +489,8 @@ lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ
     (principalPart : Set.EqOn (f - fun s ↦ A / (s - p)) (g) (Rectangle z w \ {p})) :
     RectangleIntegral' f z w = A := by
 
-  have principalPart' : Set.EqOn f (g + (fun s ↦ A / (s - p))) (Rectangle z w \ {p}) := by
-    intro s hs
-    simp [← principalPart hs]
+  have principalPart' : Set.EqOn f (g + (fun s ↦ A / (s - p))) (Rectangle z w \ {p}) :=
+    fun s hs => by rw [Pi.add_apply, ← principalPart hs, Pi.sub_apply, sub_add_cancel]
 
   have : Set.EqOn f (g + (fun s ↦ A / (s - p))) (RectangleBorder z w) :=
     principalPart'.mono <| Set.subset_diff.mpr ⟨rectangleBorder_subset_rectangle z w,
@@ -507,9 +503,7 @@ lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ
     · apply DifferentiableOn.div
       · exact differentiableOn_const _
       · exact DifferentiableOn.sub differentiableOn_id (differentiableOn_const _)
-      · intro x hx
-        rw [sub_ne_zero]
-        exact hx
+      · exact fun x hx => by rw [sub_ne_zero]; exact hx
     · rintro s ⟨_, hs⟩ ; exact hs
   have t3 : RectangleBorderIntegrable (fun s ↦ A / (s - p)) z w :=
     HolomorphicOn.rectangleBorderIntegrable' t2 pInRectInterior
