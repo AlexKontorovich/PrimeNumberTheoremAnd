@@ -315,26 +315,6 @@ $$(f\ast g)(x) = \int_0^\infty f(y)g(x/y)\frac{dy}{y}.$$
 noncomputable def MellinConvolution (f g : ℝ → ℂ) (x : ℝ) : ℂ :=
   ∫ y in Set.Ioi 0, f y * g (x / y) / y
 
-
-lemma integral_Ioi_change_of_variables (x : ℝ) (hx : 0 < x) (f : ℝ → ℂ) (hf : IntegrableOn f (Ioi 0)) :
-    ∫ u in Ioi 0, f (u) = x • ∫ v in Ioi 0, f (v * x) := by
-  let g := (Ioi 0).indicator f
-  have hm : MeasurableSet (Ioi (0 : ℝ )) := measurableSet_Ioi
-  have x_ne_zeroℝ : x ≠ 0 := ne_of_gt (mem_Ioi.mp hx)
-  calc
-      _ = ∫ (u : ℝ), g u := (MeasureTheory.integral_indicator hm).symm
-      _ = (1 : ℝ) * ∫ (u : ℝ), g u := by rw [ofReal_one, one_mul]
-      _ = x * (x⁻¹ * ∫ (u : ℝ), g u) := by simp only [(mul_inv_cancel x_ne_zeroℝ).symm, ofReal_mul]; ring
-      _ = x * ∫ (v : ℝ), g (v * x) := ?_
-      _ = x * ∫ (v : ℝ) in (Ioi 0), f (v * x) := ?_
-  · have abs: |x⁻¹| = x⁻¹ := by field_simp only [abs_of_pos (one_div_pos.mpr hx)]
-    exact congrArg _ (abs ▸ (Measure.integral_comp_mul_right g x).symm)
-  · simp only [mul_eq_mul_left_iff, ofReal_eq_zero, x_ne_zeroℝ, or_false]
-    -- simp [← MeasureTheory.integral_indicator hm]
-    -- refine integral_congr_ae (?_ : _ =ᵐ[volume] _)
-    sorry
-
-
 /-%%
 The Mellin transform of a convolution is the product of the Mellin transforms.
 \begin{theorem}[MellinConvolutionTransform]\label{MellinConvolutionTransform}
@@ -362,10 +342,12 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
   · simp only [integral_mul_right]
   · simp only [integral_mul_right]
     rw [mul_comm]
-    set fx : ℝ → ℂ := fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
-    refine integral_Ioi_change_of_variables y (mem_Ioi.mp hy) fx ?_
-    -- Use MeasureTheory.integrable_prod_iff with correct measures and MeasureTheory.Integrable.integrableOn?
-    sorry
+    have abs : |y⁻¹| = y⁻¹ := abs_of_pos <| inv_pos.mpr hy
+    let fx : ℝ → ℂ := fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
+    have := abs ▸ MeasureTheory.integral_comp_mul_right_Ioi fx 0 hy
+    have y_ne_zeroℂ : (y : ℂ) ≠ 0 := slitPlane_ne_zero (Or.inl hy)
+    simp [fx] at this
+    simp only [ofReal_mul, this, ← mul_assoc, mul_inv_cancel y_ne_zeroℂ, one_mul]
   · simp only [ofReal_mul]
     rw [set_integral_congr (by simp)]
     intro x hx
