@@ -718,7 +718,7 @@ $$
   \mathcal M(\psi)(\epsilon)-\int_0^\infty\psi(x)\frac{dx}x=O(\epsilon)
   .
 $$
-We conclude the proof using Theroem \ref{SmoothExistence}.
+We conclude the proof using Theorem \ref{SmoothExistence}.
 \end{proof}
 %%-/
 
@@ -766,22 +766,58 @@ noncomputable def Smooth1 (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
   MellinConvolution (fun x => if x ≤ 1 then 1 else 0) (DeltaSpike Ψ ε)
 
 /-%%
+\begin{lemma}[Smooth1Properties_estimate]\label{Smooth1Properties_estimate}
+\lean{Smooth1Properties_estimate}\leanok
+For $\epsilon>0$,
+$$
+  \log2>\frac{1-2^{-\epsilon}}\epsilon
+$$
+\end{lemma}
+%%-/
+
+lemma Smooth1Properties_estimate {ε : ℝ}
+    {eps_pos : 0<ε} :
+    (1-2^(-ε))/ε < Real.log 2 :=
+  sorry
+
+/-%%
+\begin{proof}
+Let $\alpha:=2^\epsilon>1$, in terms of which we wish to prove
+$$
+  1\geqslant\frac{1-1/\alpha}{\log \alpha}
+  .
+$$
+In addition,
+$$
+  \frac d{d\alpha}\left(1-\frac1\alpha-\log \alpha\right)=\frac1{\alpha^2}(1-\alpha)<0
+$$
+so $1-1/\alpha-\log\alpha$ is monotone decreasing so it is smaller than its value at $\alpha=1$:
+$$
+  1-\frac1\alpha-\log\alpha<0
+  .
+$$
+We conclude the proof using $\log\alpha>0$.
+\end{proof}
+%%-/
+
+
+/-%%
 In particular, we have the following two properties.
 \begin{lemma}[Smooth1Properties_below]\label{Smooth1Properties_below}
 \lean{Smooth1Properties_below}\leanok
 Fix $\epsilon>0$. There is an absolute constant $c>0$ so that:
-If $x\leq (1-c\epsilon)$, then
+If $0<x\leq (1-c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 1.$$
 \end{lemma}
 %%-/
 lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
-    ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
+    ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), 0 < x → x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
   sorry
 /-%%
 \begin{proof}
-\uses{Smooth1, MellinConvolution,DeltaSpikeMass}
+\uses{Smooth1, MellinConvolution,DeltaSpikeMass, Smooth1Properties_estimate}
 Opening the definition, we have that the Mellin convolution of $1_{(0,1]}$ with $\psi_\epsilon$ is
 $$
 \int_0^\infty 1_{(0,1]}(y)\psi_\epsilon(x/y)\frac{dy}{y}
@@ -789,30 +825,72 @@ $$
 \int_0^1 \psi_\epsilon(x/y)\frac{dy}{y}.
 $$
 The support of $\psi_\epsilon$ is contained in $[1/2^\epsilon,2^\epsilon]$, so
-$y \in [1/2^\epsilon x,2^\epsilon x]$. If $x \le 2^{-\epsilon}$, then the integral is the same as that over $(0,\infty)$, which is equal to one by Lemma \ref{DeltaSpikeMass}.
+$y \in [1/2^\epsilon x,2^\epsilon x]$. If $x \le 2^{-\epsilon}$, then the integral is the same as that over $(0,\infty)$:
+$$
+\int_0^\infty 1_{(0,1]}(y)\psi_\epsilon(x/y)\frac{dy}{y}
+=
+\int_0^\infty \psi_\epsilon(x/y)\frac{dy}{y}.
+$$
+in which we change variables to $z=x/y$ (using $x>0$):
+$$
+\int_0^\infty 1_{(0,1]}(y)\psi_\epsilon(x/y)\frac{dy}{y}
+=
+\int_0^\infty \psi_\epsilon(z)\frac{dz}{z}.
+$$
+which is equal to one by Lemma \ref{DeltaSpikeMass}.
+We then choose
+$$
+  c:=\log 2
+$$
+which satisfies
+$$
+  c\geqslant\frac{1-2^{-\epsilon}}\epsilon
+$$
+by Lemma \ref{Smooth1Properties_estimate}, so
+$$
+  1-c\epsilon\leqslant 2^{-\epsilon}
+  .
+$$
 \end{proof}
 %%-/
 
 /-%%
 \begin{lemma}[Smooth1Properties_above]\label{Smooth1Properties_above}
 \lean{Smooth1Properties_above}\leanok
-Fix $\epsilon>0$. There is an absolute constant $c>0$ so that:
+Fix $0<\epsilon<1$. There is an absolute constant $c>0$ so that:
 if $x\geq (1+c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 0.$$
 \end{lemma}
 %%-/
 lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ)
+    (eps_pos: 0 < ε) (eps_lt1: ε < 1)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
     ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≥ 1 + c * ε → Smooth1 Ψ ε x = 0 := by
   sorry
 /-%%
 \begin{proof}
-\uses{Smooth1, MellinConvolution}
+\uses{Smooth1, MellinConvolution, Smooth1Properties_estimate}
 Again the Mellin convolution is
 $$\int_0^1 \psi_\epsilon(x/y)\frac{dy}{y},$$
 but now if $x \ge 2^\epsilon$, then the support of $\psi_\epsilon$ is disjoint
 from the region of integration, and hence the integral is zero.
+We choose
+$$
+  c:=2\log 2
+  .
+$$
+By Lemma \ref{Smooth1Properties_estimate},
+$$
+  c\geqslant 2\frac{1-2^{-\epsilon}}\epsilon\geqslant 2^\epsilon\frac{1-2^{-\epsilon}}\epsilon
+  =
+  \frac{2^\epsilon-1}\epsilon
+$$
+so
+$$
+  1+c\epsilon\geqslant 2^\epsilon
+  .
+$$
 \end{proof}
 %%-/
 
