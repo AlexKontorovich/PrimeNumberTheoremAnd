@@ -346,7 +346,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     _ = ∫ (y : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * ∫ (x : ℝ) in Ioi 0, g x * ↑x ^ (s - 1) := ?_
     _ = _ := integral_mul_right _ _
   <;> try (rw [set_integral_congr (by simp)]; intro y hy)
-  · simp only [integral_mul_right]
+  · simp only [integral_mul_right]; rfl
   · simp only [integral_mul_right]
     rw [mul_comm]
     have abs : |y⁻¹| = y⁻¹ := abs_of_pos <| inv_pos.mpr hy
