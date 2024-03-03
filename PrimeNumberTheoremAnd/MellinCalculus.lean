@@ -335,40 +335,34 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     (hf : IntegrableOn (fun x y ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)).uncurry
       (Ioi 0 ×ˢ Ioi 0)) :
     MellinTransform (MellinConvolution f g) s = MellinTransform f s * MellinTransform g s := by
-  sorry
-  -- dsimp [MellinTransform, MellinConvolution]
-  -- set f₁ : ℝ × ℝ → ℂ := fun ⟨x, y⟩ ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
-  -- -- have := @MeasureTheory.set_integral_integral_swap (s := Set.Ioi (0 : ℝ)) (t := Set.Ioi (0 : ℝ))
-  -- --   (E := ℂ) (μ := volume) (ν := volume) _ _ _ _ _ _ (f := f₁) h
-  -- -- have := (@MeasureTheory.set_integral_prod (s := Set.Ioi (0 : ℝ)) (t := Set.Ioi (0 : ℝ)) (E := ℂ)
-  -- --   (μ := volume) (ν := volume) _ _ _ _ _ _ (f := f₁) h).symm
-  -- calc
-  --   _ = ∫ (x : ℝ) in Ioi 0, ∫ (y : ℝ) in Ioi 0, f₁ (x, y) := ?_
-  --   _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f₁ (x, y) := set_integral_integral_swap _ hf
-  --   _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * g (x / y) / ↑y * ↑x ^ (s - 1) := rfl
-  --   _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0,
-  --     f y * g (x * y / y) / ↑y * ↑(x * y) ^ (s - 1) * y := ?_
-  --   _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * (g x * ↑x ^ (s - 1)) := ?_
-  --   _ = _ := ?_
-  -- · rw [set_integral_congr (by simp)]
-  --   intro x hx
-  --   simp only
-  --   rw [integral_mul_right]
-  -- · sorry
-  -- · rw [set_integral_congr (by simp)]
-  --   intro x hx
-  --   simp only
-  --   rw [set_integral_congr (by simp)]
-  --   intro y hy
-  --   have x_ne_zeroℝ : x ≠ 0 := ne_of_gt (mem_Ioi.mp hx)
-  --   have x_ne_zeroℂ : (x : ℂ) ≠ 0 := by exact_mod_cast x_ne_zeroℝ
-  --   simp only [ofReal_mul]
-  --   field_simp
-  --   have : ((y : ℂ) * ↑x) ^ (s - 1) = (y : ℂ) ^ (s - 1) * (↑x ^ (s - 1)) := by sorry
-  --   rw [this]
-  --   ring
-  -- · --have := @MeasureTheory.integral_prod_mul
-  --   sorry
+  dsimp [MellinTransform, MellinConvolution]
+  set f₁ : ℝ × ℝ → ℂ := fun ⟨x, y⟩ ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
+  calc
+    _ = ∫ (x : ℝ) in Ioi 0, ∫ (y : ℝ) in Ioi 0, f₁ (x, y) := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f₁ (x, y) := set_integral_integral_swap _ hf
+    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * g (x / y) / ↑y * ↑x ^ (s - 1) := rfl
+    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * g (x * y / y) / ↑y * ↑(x * y) ^ (s - 1) * y := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * (g x * ↑x ^ (s - 1)) := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * ∫ (x : ℝ) in Ioi 0, g x * ↑x ^ (s - 1) := ?_
+    _ = _ := integral_mul_right _ _
+  <;> try (rw [set_integral_congr (by simp)]; intro y hy)
+  · simp only [integral_mul_right]; rfl
+  · simp only [integral_mul_right]
+    rw [mul_comm]
+    have abs : |y⁻¹| = y⁻¹ := abs_of_pos <| inv_pos.mpr hy
+    let fx : ℝ → ℂ := fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
+    have := abs ▸ MeasureTheory.integral_comp_mul_right_Ioi fx 0 hy
+    have y_ne_zeroℂ : (y : ℂ) ≠ 0 := slitPlane_ne_zero (Or.inl hy)
+    simp [fx] at this
+    simp only [ofReal_mul, this, ← mul_assoc, mul_inv_cancel y_ne_zeroℂ, one_mul]
+  · simp only [ofReal_mul]
+    rw [set_integral_congr (by simp)]
+    intro x hx
+    have y_ne_zeroℝ : y ≠ 0 := ne_of_gt (mem_Ioi.mp hy)
+    have y_ne_zeroℂ : (y : ℂ) ≠ 0 := by exact_mod_cast y_ne_zeroℝ
+    field_simp [mul_cpow_ofReal_nonneg (LT.lt.le hx) (LT.lt.le hy)]
+    ring
+  · exact integral_mul_left _ _
 
 /-%%
 \begin{proof}
