@@ -1,6 +1,8 @@
 import Mathlib.Analysis.Calculus.ContDiff.Defs
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
 import Mathlib.Analysis.Calculus.Deriv.Basic
+import Mathlib.NumberTheory.ZetaFunction
+import EulerProducts.PNT
 
 open BigOperators
 
@@ -127,6 +129,7 @@ theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
   \[
   \sum_{a < n \le b} \frac{1}{n^s} =  \frac{b^{1-s} - a^{1-s}}{1-s} + \frac{b^{-s}-a^{-s}}{2} + s \int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx.
   \]
+\end{lemma}
 %%-/
 lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (a_lt_b : a < b) :
     ∑ n in Finset.Icc (a + 1) b, 1 / (n : ℂ)^s =
@@ -145,20 +148,82 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (a_lt_b : a < b) :
 %%-/
 
 /-%%
+\begin{lemma}[ZetaSum_aux1a]\label{ZetaSum_aux1a}\lean{ZetaSum_aux1a}\leanok
+For any $0 < a < b$ and  $s \in \C$ with $\sigma=\Re(s)>0$,
+$$
+\left|\int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx\right|
+\le \frac{a^{-\sigma}-b^{-\sigma}}/{\sigma}.
+$$
+\end{lemma}
+%%-/
+lemma ZetaSum_aux1a {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
+    Complex.abs (∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) ≤
+      (a ^ (-s.re) - b ^ (-s.re)) / s.re := by
+  sorry
+/-%%
+\begin{proof}
+Apply the triangle inequality
+$$
+\left|\int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx\right|
+\le \int_a^b \frac{1}{x^{\sigma+1}} \, dx,
+$$
+and evaluate the integral.
+\end{proof}
+%%-/
+
+/-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
-  Let $N$ be a natural number and $s\in \C$, $\Re(s)>0$, and $s\ne 1$.
+  Let $N$ be a natural number and $s\in \C$, $\Re(s)>1$.
   Then
   \[
   \sum_{N < n} \frac{1}{n^s} =  \frac{- N^{1-s}}{1-s} + \frac{-N^{-s}}{2} + s \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx.
   \]
+\end{lemma}
 %%-/
-lemma ZetaSum_aux2 {N : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_re_pos : 0 < s.re) :
-    ∑' (n : ℕ), 1 / (n + N : ℂ)^s =
+lemma ZetaSum_aux2 {N : ℕ} {s : ℂ} (s_re_pos : 1 < s.re) :
+    ∑' (n : ℕ), 1 / (n + N : ℂ) ^ s =
     (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
   sorry
 /-%%
-\begin{proof}\uses{ZetaSum_aux1}
+\begin{proof}\uses{ZetaSum_aux1, ZetaSum_aux1a}
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
+\end{proof}
+%%-/
+
+/-%%
+\begin{def}[RiemannZeta0]\label{RiemannZeta0}\lean{RiemannZeta0}\leanok
+\uses{ZetaSum_aux2}
+For any natural $N\ge1$, we define
+$$
+\zeta_0(N,s) :=
+\sum_{1\le n < N} \frac1{n^s}
++
+\frac{- N^{1-s}}{1-s} + \frac{-N^{-s}}{2} + s \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
+$$
+\end{def}
+%%-/
+noncomputable def RiemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
+  (∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ s) +
+  (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
+      + s * ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)
+
+/-%%
+\begin{lemma}[Zeta0EqZeta]\label{Zeta0EqZeta}\lean{Zeta0EqZeta}\leanok
+If $\Re(s)>0$, then for any $N$,
+$$
+\zeta_0(N,s) = \zeta(s).
+$$
+[** What about junk values at $s=1$? Maybe add $s\ne1$. **]
+\end{lemma}
+%%-/
+/-- ** Add `s ≠ 1`? -/
+lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) :
+    RiemannZeta0 N s = riemannZeta s := by
+  sorry
+/-%%
+\begin{proof}
+\uses{ZetaSum_aux2, RiemannZeta0}
+Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{RiemannZeta0}.
 \end{proof}
 %%-/
