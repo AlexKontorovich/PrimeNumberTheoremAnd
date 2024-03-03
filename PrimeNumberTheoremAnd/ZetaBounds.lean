@@ -192,7 +192,7 @@ lemma ZetaSum_aux2 {N : ℕ} {s : ℂ} (s_re_pos : 1 < s.re) :
 %%-/
 
 /-%%
-\begin{def}[RiemannZeta0]\label{RiemannZeta0}\lean{RiemannZeta0}\leanok
+\begin{definition}[RiemannZeta0]\label{RiemannZeta0}\lean{RiemannZeta0}\leanok
 \uses{ZetaSum_aux2}
 For any natural $N\ge1$, we define
 $$
@@ -201,7 +201,7 @@ $$
 +
 \frac{- N^{1-s}}{1-s} + \frac{-N^{-s}}{2} + s \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
 $$
-\end{def}
+\end{definition}
 %%-/
 noncomputable def RiemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
   (∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ s) +
