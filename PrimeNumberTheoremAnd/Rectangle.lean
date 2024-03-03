@@ -290,5 +290,4 @@ lemma SmallSquareInRectangle {z w p : ℂ} (pInRectInterior : Rectangle z w ∈ 
     ∀ᶠ (c : ℝ) in 𝓝[>]0, Square p c ⊆ Rectangle z w := by
   obtain ⟨ε, hε0, hε⟩ := ((Complex.nhds_hasBasis_square p).1 _).mp pInRectInterior
   filter_upwards [Ioo_mem_nhdsWithin_Ioi' (hε0)] with _ ⟨hε'0, hε'⟩
-  refine subset_trans ?_ hε
-  exact square_subset_square hε'0 hε'.le
+  exact subset_trans (square_subset_square hε'0 hε'.le) hε
