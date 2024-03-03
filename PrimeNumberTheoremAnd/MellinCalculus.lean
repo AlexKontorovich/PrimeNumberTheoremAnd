@@ -5,16 +5,16 @@ import PrimeNumberTheoremAnd.PerronFormula
 theorem MeasureTheory.set_integral_integral_swap {α : Type*} {β : Type*} {E : Type*}
     [MeasurableSpace α] [MeasurableSpace β] {μ : MeasureTheory.Measure α}
     {ν : MeasureTheory.Measure β} [NormedAddCommGroup E] [MeasureTheory.SigmaFinite ν]
-    [NormedSpace ℝ E] [MeasureTheory.SigmaFinite μ] (f : α × β → E) {s : Set α} {t : Set β}
-    (hf : IntegrableOn f (s ×ˢ t) (μ.prod ν)) :
-    (∫ (x : α) in s, ∫ (y : β) in t, f (x, y) ∂ν ∂μ)
-      = ∫ (y : β) in t, ∫ (x : α) in s, f (x, y) ∂μ ∂ν := by
-  refine integral_integral_swap ? hf
+    [NormedSpace ℝ E] [MeasureTheory.SigmaFinite μ] (f : α → β → E) {s : Set α} {t : Set β}
+    (hf : IntegrableOn (f.uncurry) (s ×ˢ t) (μ.prod ν)) :
+    (∫ (x : α) in s, ∫ (y : β) in t, f x y ∂ν ∂μ)
+      = ∫ (y : β) in t, ∫ (x : α) in s, f x y ∂μ ∂ν := by
+  apply integral_integral_swap
   convert hf.integrable
   exact Measure.prod_restrict s t
 
--- How do deal with this coersion?...
-noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ (f x : ℂ)
+-- How do deal with this coersion?... Ans: (f ·)
+--- noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ f x
 
 section from_PR10944
 
@@ -302,6 +302,8 @@ applied the fundamental theorem of calculus (undoing the second).
 \end{proof}
 %%-/
 
+variable {𝕂 : Type*} [IsROrC 𝕂]
+
 /-%%
 Finally, we need Mellin Convolutions and properties thereof.
 \begin{definition}[MellinConvolution]\label{MellinConvolution}\lean{MellinConvolution}
@@ -312,7 +314,7 @@ to $\mathbb{C}$ defined by
 $$(f\ast g)(x) = \int_0^\infty f(y)g(x/y)\frac{dy}{y}.$$
 \end{definition}
 %%-/
-noncomputable def MellinConvolution (f g : ℝ → ℂ) (x : ℝ) : ℂ :=
+noncomputable def MellinConvolution (f g : ℝ → 𝕂) (x : ℝ) : 𝕂 :=
   ∫ y in Set.Ioi 0, f y * g (x / y) / y
 
 /-%%
@@ -320,12 +322,17 @@ The Mellin transform of a convolution is the product of the Mellin transforms.
 \begin{theorem}[MellinConvolutionTransform]\label{MellinConvolutionTransform}
 \lean{MellinConvolutionTransform}\leanok
 Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$ such that
-the . Then
+\begin{equation}
+  (x,y)\mapsto f(y)\frac{g(x/y)}yx^{s-1}
+  \label{eq:assm_integrable_Mconv}
+\end{equation}
+is absolutely integrable on $[0,\infty)^2$.
+Then
 $$\mathcal{M}(f\ast g)(s) = \mathcal{M}(f)(s)\mathcal{M}(g)(s).$$
 \end{theorem}
 %%-/
 lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
-    (hf : IntegrableOn (fun ⟨x, y⟩ ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1))
+    (hf : IntegrableOn (fun x y ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)).uncurry
       (Ioi 0 ×ˢ Ioi 0)) :
     MellinTransform (MellinConvolution f g) s = MellinTransform f s * MellinTransform g s := by
   dsimp [MellinTransform, MellinConvolution]
@@ -359,8 +366,37 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
 
 /-%%
 \begin{proof}
-\uses{MellinTransform}
-This is a straightforward calculation; open the two integrals.
+\uses{MellinTransform,MellinConvolution}
+By Definitions \ref{MellinTransform} and \ref{MellinConvolution}
+$$
+  \mathcal M(f\ast g)(s)=
+  \int_0^\infty \int_0^\infty f(y)g(x/y)x^{s-1}\frac{dy}ydx
+$$
+in which we change variables from $x$ to $z=x/y$:
+$$
+  \mathcal M(f\ast g)(s)=
+  \int_0^\infty \int_0^\infty f(y)g(z)y^{s-1}z^{s-1}dydz
+  .
+$$
+Now,
+$$
+  \int_{[0,\infty)^2} \left|f(y)g(z)y^{s-1}z^{s-1}\right|dydz
+  =
+  \int_{[0,\infty)^2} \left|f(y)\frac{g(x/y)}yx^{s-1}\right|dydx
+$$
+which is finite by (\ref{eq:assm_integrable_Mconv}).
+Therefore, by Fubini's theorem,
+$$
+  \mathcal M(f\ast g)(s)=
+  \left(\int_0^\infty f(y)y^{s-1}dy\right)\left(\int_0^\infty g(z)z^{s-1}dz\right)
+$$
+which, by Definition \ref{MellinTransform}, is
+$$
+  \mathcal M(f\ast g)(s)=
+  \mathcal M(f)(s)\mathcal M(g)(s)
+  .
+$$
+
 \end{proof}
 %%-/
 
@@ -496,20 +532,30 @@ least) like $1/|s|$.
 \begin{theorem}[MellinOfPsi]\label{MellinOfPsi}\lean{MellinOfPsi}\leanok
 The Mellin transform of $\psi$ is
 $$\mathcal{M}(\psi)(s) =  O\left(\frac{1}{|s|}\right),$$
-as $|s|\to\infty$.
+as $|s|\to\infty$ with $\sigma_1 \le \Re(s) \le \sigma_2$.
 \end{theorem}
 
 [Of course it decays faster than any power of $|s|$, but it turns out that we will just need one
 power.]
 %%-/
+/-- Need to intersect `cocompact` filter `within` `s.re` bounded -/
 lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) :
-    (fun s ↦ Complex.abs (MellinTransform (funCoe Ψ) s)) =O[cocompact ℂ]
+    (fun s ↦ Complex.abs (MellinTransform (Ψ ·) s)) =O[cocompact ℂ]
       fun s ↦ 1 / Complex.abs s := by
   sorry
 /-%%
 \begin{proof}
 \uses{MellinTransform, SmoothExistence}
-Integrate by parts once and estimate trivially.
+Integrate by parts:
+$$
+\left|\int_0^\infty \psi(x)x^s\frac{dx}{x}\right| =
+\left|-\int_0^\infty \psi'(x)\frac{x^{s}}sdx\right|
+$$
+$$
+\le \frac{1}{|s|} \int_{1/2}^2|\psi'(x)|x^{\Re(s)}dx.
+$$
+Since $\Re(s)$ is bounded, the right-hand side is bounded by a
+constant times $1/|s|$.
 \end{proof}
 %%-/
 
@@ -574,8 +620,8 @@ $$\mathcal{M}(\psi_\epsilon)(s) = \mathcal{M}(\psi)\left(\epsilon s\right).$$
 \end{theorem}
 %%-/
 theorem MellinOfDeltaSpike (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : ℂ) :
-    MellinTransform (funCoe (DeltaSpike Ψ ε)) s = MellinTransform (funCoe Ψ) (ε * s) := by
-  unfold MellinTransform funCoe DeltaSpike
+    MellinTransform ((DeltaSpike Ψ ε) ·) s = MellinTransform (Ψ ·) (ε * s) := by
+  unfold MellinTransform DeltaSpike
   rw [← MeasureTheory.integral_comp_rpow_Ioi (fun z => ((Ψ z): ℂ) * (z:ℂ)^((ε : ℂ)*s-1))
     (one_div_ne_zero (ne_of_gt εpos))]
   apply MeasureTheory.set_integral_congr_ae measurableSet_Ioi
@@ -618,7 +664,7 @@ $$\mathcal{M}(\psi_\epsilon)(1) =
 %%-/
 
 lemma MellinOfDeltaSpikeAt1 (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) :
-    MellinTransform (funCoe (DeltaSpike Ψ ε)) 1 = MellinTransform (funCoe Ψ) ε := by
+    MellinTransform ((DeltaSpike Ψ ε) ·) 1 = MellinTransform (Ψ ·) ε := by
   convert MellinOfDeltaSpike Ψ εpos 1
   simp only [mul_one]
 /-%%
@@ -638,13 +684,35 @@ $$\mathcal{M}(\psi_\epsilon)(1) = 1+O(\epsilon).$$
 lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
-    (fun (ε : ℝ) ↦ (MellinTransform (funCoe Ψ) ε) - 1) =O[𝓝[>]0] id := by
-  sorry
+    (fun (ε : ℝ) ↦ (MellinTransform (Ψ ·) ε) - 1) =O[𝓝[>]0] id := by
+  sorry -- use `mellin_differentiableAt_of_isBigO_rpow` for differentiability at 0
 /-%%
 \begin{proof}
-\uses{MellinOfDeltaSpike, DeltaSpikeMass}
-This follows from the fact that $\mathcal{M}(\psi)(0)=1$ (total mass one), and the
-differentiability of $\psi$.
+\uses{MellinTransform,MellinOfDeltaSpikeAt1,SmoothExistence}
+By Lemma \ref{MellinOfDeltaSpikeAt1},
+$$
+  \mathcal M(\psi_\epsilon)(1)=\mathcal M(\psi)(\epsilon)
+$$
+which by Definition \ref{MellinTransform} is
+$$
+  \mathcal M(\psi)(\epsilon)=\int_0^\infty\psi(x)x^{\epsilon-1}dx
+  .
+$$
+Since $\psi(x) x^{\epsilon-1}$ is integrable (because $\psi$ is continuous and compactly supported),
+$$
+  \mathcal M(\psi)(\epsilon)-\int_0^\infty\psi(x)\frac{dx}x=\int_0^\infty\psi(x)(x^{\epsilon-1}-x^{-1})dx
+  .
+$$
+By Taylor's theorem,
+$$
+  x^{\epsilon-1}-x^{-1}=O(\epsilon)
+$$
+so, since $\psi$ is absolutely integrable,
+$$
+  \mathcal M(\psi)(\epsilon)-\int_0^\infty\psi(x)\frac{dx}x=O(\epsilon)
+  .
+$$
+We conclude the proof using Theorem \ref{SmoothExistence}.
 \end{proof}
 %%-/
 
@@ -681,14 +749,50 @@ This is a straightforward calculation.
 /-%%
 What will be essential for us is properties of the smooth version of $1_{(0,1]}$, obtained as the
  Mellin convolution of $1_{(0,1]}$ with $\psi_\epsilon$.
-\begin{definition}[Smooth1]\label{Smooth1}\uses{MellinOf1, MellinConvolution}\leanok
+\begin{definition}[Smooth1]\label{Smooth1}\lean{Smooth1}
+\uses{MellinOf1, MellinConvolution}\leanok
 Let $\epsilon>0$. Then we define the smooth function $\widetilde{1_{\epsilon}}$ from
 $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
 $$\widetilde{1_{\epsilon}} = 1_{(0,1]}\ast\psi_\epsilon.$$
 \end{definition}
 %%-/
-noncomputable def Smooth1 (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℂ :=
-  MellinConvolution (fun x => if x ≤ 1 then 1 else 0) (funCoe (DeltaSpike Ψ ε))
+noncomputable def Smooth1 (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
+  MellinConvolution (fun x => if x ≤ 1 then 1 else 0) (DeltaSpike Ψ ε)
+
+/-%%
+\begin{lemma}[Smooth1Properties_estimate]\label{Smooth1Properties_estimate}
+\lean{Smooth1Properties_estimate}\leanok
+For $\epsilon>0$,
+$$
+  \log2>\frac{1-2^{-\epsilon}}\epsilon
+$$
+\end{lemma}
+%%-/
+
+lemma Smooth1Properties_estimate {ε : ℝ}
+    {eps_pos : 0<ε} :
+    (1-2^(-ε))/ε < Real.log 2 :=
+  sorry
+
+/-%%
+\begin{proof}
+Let $\alpha:=2^\epsilon>1$, in terms of which we wish to prove
+$$
+  1\geqslant\frac{1-1/\alpha}{\log \alpha}
+  .
+$$
+In addition,
+$$
+  \frac d{d\alpha}\left(1-\frac1\alpha-\log \alpha\right)=\frac1{\alpha^2}(1-\alpha)<0
+$$
+so $1-1/\alpha-\log\alpha$ is monotone decreasing so it is smaller than its value at $\alpha=1$:
+$$
+  1-\frac1\alpha-\log\alpha<0
+  .
+$$
+We conclude the proof using $\log\alpha>0$.
+\end{proof}
+%%-/
 
 
 /-%%
@@ -696,41 +800,120 @@ In particular, we have the following two properties.
 \begin{lemma}[Smooth1Properties_below]\label{Smooth1Properties_below}
 \lean{Smooth1Properties_below}\leanok
 Fix $\epsilon>0$. There is an absolute constant $c>0$ so that:
-If $x\leq (1-c\epsilon)$, then
+If $0<x\leq (1-c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 1.$$
 \end{lemma}
 %%-/
 lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
-    ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
+    ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), 0 < x → x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
   sorry
 /-%%
 \begin{proof}
-\uses{Smooth1, MellinConvolution}
-This is a straightforward calculation, using the fact that $\psi_\epsilon$ is supported in
-$[1/2^\epsilon,2^\epsilon]$.
+\uses{Smooth1, MellinConvolution,DeltaSpikeMass, Smooth1Properties_estimate}
+Opening the definition, we have that the Mellin convolution of $1_{(0,1]}$ with $\psi_\epsilon$ is
+$$
+\int_0^\infty 1_{(0,1]}(y)\psi_\epsilon(x/y)\frac{dy}{y}
+=
+\int_0^1 \psi_\epsilon(x/y)\frac{dy}{y}.
+$$
+The support of $\psi_\epsilon$ is contained in $[1/2^\epsilon,2^\epsilon]$, so
+$y \in [1/2^\epsilon x,2^\epsilon x]$. If $x \le 2^{-\epsilon}$, then the integral is the same as that over $(0,\infty)$:
+$$
+\int_0^\infty 1_{(0,1]}(y)\psi_\epsilon(x/y)\frac{dy}{y}
+=
+\int_0^\infty \psi_\epsilon(x/y)\frac{dy}{y}.
+$$
+in which we change variables to $z=x/y$ (using $x>0$):
+$$
+\int_0^\infty 1_{(0,1]}(y)\psi_\epsilon(x/y)\frac{dy}{y}
+=
+\int_0^\infty \psi_\epsilon(z)\frac{dz}{z}.
+$$
+which is equal to one by Lemma \ref{DeltaSpikeMass}.
+We then choose
+$$
+  c:=\log 2
+$$
+which satisfies
+$$
+  c\geqslant\frac{1-2^{-\epsilon}}\epsilon
+$$
+by Lemma \ref{Smooth1Properties_estimate}, so
+$$
+  1-c\epsilon\leqslant 2^{-\epsilon}
+  .
+$$
 \end{proof}
 %%-/
 
 /-%%
 \begin{lemma}[Smooth1Properties_above]\label{Smooth1Properties_above}
 \lean{Smooth1Properties_above}\leanok
-Fix $\epsilon>0$. There is an absolute constant $c>0$ so that:
+Fix $0<\epsilon<1$. There is an absolute constant $c>0$ so that:
 if $x\geq (1+c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 0.$$
 \end{lemma}
 %%-/
 lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ)
+    (eps_pos: 0 < ε) (eps_lt1: ε < 1)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
     ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≥ 1 + c * ε → Smooth1 Ψ ε x = 0 := by
   sorry
 /-%%
 \begin{proof}
-\uses{Smooth1, MellinConvolution}
-This is a straightforward calculation, using the fact that $\psi_\epsilon$ is supported in
-$[1/2^\epsilon,2^\epsilon]$.
+\uses{Smooth1, MellinConvolution, Smooth1Properties_estimate}
+Again the Mellin convolution is
+$$\int_0^1 \psi_\epsilon(x/y)\frac{dy}{y},$$
+but now if $x \ge 2^\epsilon$, then the support of $\psi_\epsilon$ is disjoint
+from the region of integration, and hence the integral is zero.
+We choose
+$$
+  c:=2\log 2
+  .
+$$
+By Lemma \ref{Smooth1Properties_estimate},
+$$
+  c\geqslant 2\frac{1-2^{-\epsilon}}\epsilon\geqslant 2^\epsilon\frac{1-2^{-\epsilon}}\epsilon
+  =
+  \frac{2^\epsilon-1}\epsilon
+$$
+so
+$$
+  1+c\epsilon\geqslant 2^\epsilon
+  .
+$$
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[Smooth1Nonneg]\label{Smooth1Nonneg}\lean{Smooth1Nonneg}\leanok
+If $\psi$ is nonnegative, then $\widetilde{1_{\epsilon}}$ is nonnegative.
+\end{lemma}
+%%-/
+lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) (ε : ℝ) :
+    ∀ (x : ℝ), 0 ≤ Smooth1 Ψ ε x := by
+  sorry
+/-%%
+\begin{proof}\uses{Smooth1}
+Obvious
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[Smooth1LeOne]\label{Smooth1LeOne}\lean{Smooth1LeOne}\leanok
+As long as $\psi$ has mass one, then $\widetilde{1_{\epsilon}}$ is bounded by one.
+\end{lemma}
+%%-/
+lemma Smooth1LeOne {Ψ : ℝ → ℝ}
+    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) (ε : ℝ) :
+    ∀ (x : ℝ), Smooth1 Ψ ε x ≤ 1 := by
+  sorry
+/-%%
+\begin{proof}\uses{Smooth1}
+Extend integral from  $(0,1]$ to $(0,\infty)$, and use the fact that $\psi$ has mass one.
 \end{proof}
 %%-/
 
@@ -747,9 +930,9 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ)
     -- (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     -- (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1)
     {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) :
-    MellinTransform (Smooth1 Ψ ε) s = 1 / s * MellinTransform (funCoe Ψ) (ε * s) := by
+    MellinTransform ((Smooth1 Ψ ε) ·) s = 1 / s * MellinTransform (Ψ ·) (ε * s) := by
   dsimp [Smooth1]
-  rw [MellinConvolutionTransform, MellinOf1 _ hs, MellinOfDeltaSpike Ψ (εpos) s]
+--  rw [MellinConvolutionTransform, MellinOf1 _ hs, MellinOfDeltaSpike Ψ (εpos) s]
   sorry
 /-%%
 \begin{proof}\uses{MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1}
@@ -762,11 +945,11 @@ For any $s$, we have the bound
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\right).$$
 \end{lemma}
 %%-/
--- ** Statement needs `cocompact` filter *within* `ℜ s > 0`... **
+-- ** Statement needs `cocompact` filter *within* `0<σ₁ ≤ ℜ s≤ σ₂` **
 lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
-    (fun (s : ℂ) ↦ Complex.abs (MellinTransform (Smooth1 Ψ ε) s)) =O[cocompact ℂ]
+    (fun (s : ℂ) ↦ Complex.abs (MellinTransform ((Smooth1 Ψ ε) ·) s)) =O[cocompact ℂ]
       fun s ↦ 1 / (ε * Complex.abs s) ^ 2 := by
   --have := MellinOfSmooth1a Ψ εpos hs
   --obtain ⟨C, hC⟩  := MellinOfPsi diffΨ suppΨ
@@ -786,7 +969,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(1) = (1+O(\epsilon)).$$
 lemma MellinOfSmooth1c {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
-    (fun ε ↦ MellinTransform (Smooth1 Ψ ε) 1 - 1) =O[𝓝[>]0] id := by
+    (fun ε ↦ MellinTransform ((Smooth1 Ψ ε) ·) 1 - 1) =O[𝓝[>]0] id := by
   sorry
 /-%%
 \begin{proof}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1_asymp}
