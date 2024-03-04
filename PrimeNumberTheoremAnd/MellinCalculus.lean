@@ -318,6 +318,36 @@ noncomputable def MellinConvolution (f g : ℝ → 𝕂) (x : ℝ) : 𝕂 :=
   ∫ y in Set.Ioi 0, f y * g (x / y) / y
 
 /-%%
+Let us start with a simple property of the Mellin convolution.
+\begin{lemma}[MellinConvolutionSymmetric]\label{MellinConvolutionSymmetric}
+\lean{MellinConvolutionSymmetric}\leanok
+Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$, for $x\neq0$,
+\begin{equation}
+  (f\ast g)(x)=(g\ast f)(x)
+  .
+\end{equation}
+%%-/
+lemma MellinConvolutionSymmetric (f g : ℝ → ℂ) {x : ℝ} (xpos: 0<x) :
+    MellinConvolution f g x = MellinConvolution g f x :=
+  sorry
+
+/-%%
+\begin{proof}
+  \uses{MellinConvolution}
+  By Definition \ref{MellinConvolution},
+  $$
+    (f\ast g)(x) = \int_0^\infty f(y)g(x/y)\frac{dy}{y}
+  $$
+  in which we change variables to $z=x/y$:
+  $$
+    (f\ast g)(x) = \int_0^\infty f(x/z)g(z)\frac{dz}{z}
+    =(g\ast f)(x)
+    .
+  $$
+\end{proof}
+%%-/
+
+/-%%
 The Mellin transform of a convolution is the product of the Mellin transforms.
 \begin{theorem}[MellinConvolutionTransform]\label{MellinConvolutionTransform}
 \lean{MellinConvolutionTransform}\leanok
@@ -944,10 +974,51 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ)
 --  rw [MellinConvolutionTransform, MellinOf1 _ hs, MellinOfDeltaSpike Ψ (εpos) s]
   sorry
 /-%%
-\begin{proof}\uses{MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1}
-Use Lemmata \ref{MellinConvolutionTransform}, \ref{MellinOf1}, and \ref{MellinOfDeltaSpike}.
+\begin{proof}\uses{Smooth1,MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1, MellinConvolutionSymmetric}
+By Definition \ref{Smooth1},
+$$
+  \mathcal M(\widetilde{1_\epsilon})(s)
+  =\mathcal M(1_{(0,1]}\ast\psi_\epsilon)(s)
+  .
+$$
+We wish to apply Theorem \ref{MellinConvolutionTransform}.
+To do so, we must prove that
+$$
+  (x,y)\mapsto 1_{(0,1]}(y)\psi_\epsilon(x/y)/y
+$$
+is integrable on $[0,\infty)^2$.
+It is actually easier to do this for the convolution: $\psi_\epsilon\ast 1_{(0,1]}$, so we use Lemma \ref{MellinConvolutionSymmetric}: for $x\neq0$,
+$$
+  1_{(0,1]}\ast\psi_\epsilon(x)=\psi_\epsilon\ast 1_{(0,1]}(x)
+  .
+$$
+Now, for $x=0$, both sides of the equation are 0, so the equation also holds for $x=0$.
+Therefore,
+$$
+  \mathcal M(\widetilde{1_\epsilon})(s)
+  =\mathcal M(\psi_\epsilon\ast 1_{(0,1]})(s)
+  .
+$$
+Now,
+$$
+  (x,y)\mapsto \psi_\epsilon(y)1_{(0,1]}(x/y)\frac{x^{s-1}}y
+$$
+has compact support that is bounded away from $y=0$ (specifically $y\in[2^{-\epsilon},2^\epsilon]$ and $x\in(0,y]$), so it is integrable.
+We can thus apply Theorem \ref{MellinConvolutionTransform} and find
+$$
+  \mathcal M(\widetilde{1_\epsilon})(s)
+  =\mathcal M(\psi_\epsilon)(s)\mathcal M(1_{(0,1]})(s)
+  .
+$$
+By Lemmas \ref{MellinOf1} and \ref{MellinOfDeltaSpike},
+$$
+  \mathcal M(\widetilde{1_\epsilon})(s)
+  =\frac1s\mathcal M(\psi)(\epsilon s)
+  .
+$$
 \end{proof}
 %%-/
+
 /-%%
 \begin{lemma}[MellinOfSmooth1b]\label{MellinOfSmooth1b}\lean{MellinOfSmooth1b}\leanok
 For any $s$, we have the bound
