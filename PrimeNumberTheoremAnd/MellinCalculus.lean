@@ -322,10 +322,11 @@ Let us start with a simple property of the Mellin convolution.
 \begin{lemma}[MellinConvolutionSymmetric]\label{MellinConvolutionSymmetric}
 \lean{MellinConvolutionSymmetric}\leanok
 Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$, for $x\neq0$,
-\begin{equation}
+$$
   (f\ast g)(x)=(g\ast f)(x)
   .
-\end{equation}
+$$
+\end{lemma}
 %%-/
 lemma MellinConvolutionSymmetric (f g : ℝ → ℂ) {x : ℝ} (xpos: 0<x) :
     MellinConvolution f g x = MellinConvolution g f x :=
