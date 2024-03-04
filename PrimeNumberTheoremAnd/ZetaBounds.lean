@@ -4,7 +4,7 @@ import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.NumberTheory.ZetaFunction
 import EulerProducts.PNT
 
-open BigOperators
+open BigOperators Complex Topology Filter
 
 lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
     (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
@@ -209,6 +209,28 @@ noncomputable def RiemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
       + s * ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)
 
 /-%%
+\begin{lemma}[ZetaBndAux]\label{ZetaBndAux}\lean{ZetaBndAux}\leanok
+For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in[1/2,2]$,
+$$
+s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
+\ll |t| \frac{N^{-\sigma}}{\sigma},
+$$
+as $|t|\to\infty$.
+\end{lemma}
+%%-/
+lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (σ_ge : 1 / 2 ≤ σ) (σ_le : σ ≤ 2) :
+    (fun (t : ℝ) ↦ Complex.abs ((σ + t * I) *
+      ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^((σ + t * I) + 1)))
+      =O[cocompact ℝ] fun (t : ℝ) ↦ |t| * N ^ (-σ) / σ := by
+  have := @ZetaSum_aux1a (a := N)
+  sorry
+/-%%
+\begin{proof}\uses{ZetaSum_aux1a}
+Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\ll |t|$.
+\end{proof}
+%%-/
+
+/-%%
 \begin{lemma}[Zeta0EqZeta]\label{Zeta0EqZeta}\lean{Zeta0EqZeta}\leanok
 If $\Re(s)>0$, then for any $N$,
 $$
@@ -223,7 +245,111 @@ lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) :
   sorry
 /-%%
 \begin{proof}
-\uses{ZetaSum_aux2, RiemannZeta0}
+\uses{ZetaSum_aux2, RiemannZeta0, ZetaBnd_aux1}
 Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{RiemannZeta0}.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[ZetaBnd_aux2]\label{ZetaBnd_aux2}\lean{ZetaBnd_aux2}\leanok
+Given $n ≤ t$ and $\sigma$ with $1-A/\log t \le \sigma$, we have
+that
+$$
+|n^{-s}| \le n^{-1} e^A.
+$$
+\end{lemma}
+%%-/
+lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_le_t : n ≤ t)
+    (σ_ge : (1 : ℝ) - A / Real.log |t| ≤ σ) :
+    Complex.abs (n ^ (-(σ + t * I))) ≤ (n : ℝ)⁻¹ * Real.exp A := by
+  by_cases n0 : n = 0
+  · simp [n0]
+    sorry
+  sorry
+/-%%
+\begin{proof}
+Use $|n^{-s}| = n^{-\sigma}
+= e^{-\sigma \log n}
+\le
+\exp(-\left(1-\frac{A}{\log t}\right)\log n)
+\le
+n^{-1} e^A$,
+since $n\le t$.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[ZetaUpperBnd]\label{ZetaUpperBnd}\lean{ZetaUpperBnd}\leanok
+For any $s\in \C$, $1/2 \le \Re(s)=\sigma\le 2$,
+and any $A>0$ sufficiently small, and $1-A/\log t \le \sigma$, we have
+$$
+|\zeta(s)| \ll \log t,
+$$
+as $|t|\to\infty$.
+\end{lemma}
+%%-/
+lemma ZetaUpperBnd :
+    ∀ᶠ (A : ℝ) in 𝓝[>]0, ∃ C > 0, ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
+    (σ_ge : 1 - A / Real.log |t| ≤ σ) (σ_le : σ ≤ 2),
+    Complex.abs (riemannZeta (σ + t * I)) ≤ C * Real.log |t| := by
+  sorry
+/-%%
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
+First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
+We estimate:
+$$
+|\zeta_0(N,s)| \ll
+\sum_{1\le n < |t|} |n^{-s}|
++
+\frac{- |t|^{1-\sigma}}{|1-s|} + \frac{-|t|^{-\sigma}}{2} +
+|t| * |t| ^ (-σ) / σ
+$$
+$$
+\ll
+e^A \sum_{1\le n < |t|} n^{-1}
++|t|^{1-\sigma}
+$$
+,
+where we used Lemma \ref{ZetaBnd_aux2} and Lemma \ref{ZetaBnd_aux1}.
+The first term is $\ll \log |t|$.
+For the second term, estimate
+$$
+|t|^{1-\sigma}
+\le |t|^{1-(1-A/\log |t|)}
+= |t|^{A/\log |t|} \ll 1.
+$$
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[ZetaDerivUpperBnd]\label{ZetaDerivUpperBnd}\lean{ZetaDerivUpperBnd}\leanok
+For any $s\in \C$, $1/2 \le \Re(s)=\sigma\le 2$,
+and any $A>0$ sufficiently small, and $1-A/\log t \le \sigma$, we have
+$$
+|\zeta'(s)| \ll \log^2 t,
+$$
+as $|t|\to\infty$.
+\end{lemma}
+%%-/
+lemma ZetaDerivUpperBnd :
+    ∀ᶠ (A : ℝ) in 𝓝[>]0, ∃ C > 0, ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
+    (σ_ge : 1 - A / Real.log |t| ≤ σ) (σ_le : σ ≤ 2),
+    Complex.abs (deriv riemannZeta (σ + t * I)) ≤ C * (Real.log |t|) ^ 2 := by
+  sorry
+/-%%
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
+First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
+Differentiating term by term, we get:
+$$
+\zeta'(s) = -\sum_{1\le n < N} n^{-s} \log n
+-
+\frac{N^{1 - s}}{1 - s)^2} + \frac{N^{1 - s} \log N} {1 - s}
++ \frac{-N^{-s}\log N}{2} +
+\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
+-
+s(s+1) \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+2}} \, dx
+.
+$$
+Estimate as before, with an extra factor of $\log |t|$.
 \end{proof}
 %%-/
