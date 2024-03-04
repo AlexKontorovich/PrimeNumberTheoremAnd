@@ -398,7 +398,7 @@ lemma decay_bounds : ∃ C : ℝ, ∀ (ψ : ℝ → ℂ) (hψ: ContDiff ℝ 2 ψ
   use π + 1 / (4 * π)
   intro ψ h1 h2 A hA hA' u
   have key := decay_bounds_aux1 (u := u) h1 h2
-  have l1 : 0 < 1 + u ^ 2 := by sorry
+  have l1 : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa using sq_nonneg u)
   have l2 : 1 + u ^ 2 = ‖(1 : ℂ) + u ^ 2‖ := sorry
   have l3 := norm_mul ((1 : ℂ) + u ^ 2) (𝓕 ψ u)
   rw [le_div_iff l1, mul_comm, l2, ← norm_mul, key]
