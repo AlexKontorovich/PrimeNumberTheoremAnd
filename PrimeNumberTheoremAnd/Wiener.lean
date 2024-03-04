@@ -403,11 +403,17 @@ lemma decay_bounds : ∃ C : ℝ, ∀ (ψ : ℝ → ℂ) (hψ: ContDiff ℝ 2 ψ
     simp only [Complex.norm_eq_abs]
     norm_cast
     exact (abs_eq_self.2 l1.le).symm
-  have l3 := norm_mul ((1 : ℂ) + u ^ 2) (𝓕 ψ u)
   rw [le_div_iff l1, mul_comm, l2, ← norm_mul, key]
-  let f (t : ℝ) := (ψ t - 1 / (4 * ↑π ^ 2) * deriv^[2] ψ t) * ↑(fourierChar (Multiplicative.ofAdd (-t * u)))
+  let f (t : ℝ) := (ψ t - 1 / (4 * π ^ 2) * deriv^[2] ψ t) * ↑(fourierChar (Multiplicative.ofAdd (-t * u)))
   let g (t : ℝ) := A * (1 + 1 / (4 * π ^ 2)) / (1 + t ^ 2)
-  have l4 (t : ℝ) : ‖f t‖ ≤ g t := by sorry
+  have l5 (t : ℝ) : ‖(fourierChar (Multiplicative.ofAdd (-t * u)) : ℂ)‖ = 1 := by simp
+  have l4 (t : ℝ) : ‖f t‖ ≤ g t := by
+    simp only [norm_mul, l5, mul_one, mul_add, _root_.add_div]
+    apply (norm_sub_le _ _).trans
+    apply _root_.add_le_add (hA t)
+    rw [norm_mul]
+    convert mul_le_mul_of_nonneg_left (hA' t) (norm_nonneg _) using 1
+    field_simp
   have l5 : Integrable g := by simpa [g, div_eq_mul_inv] using integrable_inv_one_add_sq.const_mul _
   convert norm_integral_le_of_norm_le l5 (eventually_of_forall l4)
   dsimp [g]
