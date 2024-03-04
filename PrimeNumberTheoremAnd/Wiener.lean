@@ -337,8 +337,7 @@ lemma decay_bounds_aux3 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 1 ψ) (h2 : HasCom
     𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u := by
   let e (v : ℝ) := fourierChar [-v * u]
   simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral]
-  clear f hf hG hG' G
-  convert_to ← ∫ (v : ℝ), e v * deriv ψ v = 2 * ↑π * I * ↑u * ∫ (v : ℝ), e v * ψ v
+  convert_to ∫ (v : ℝ), e v * deriv ψ v = 2 * ↑π * I * ↑u * ∫ (v : ℝ), e v * ψ v
   · simp only [neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere]
   · simp only [neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere]
   have l3 (x : ℝ) : deriv e x = -2 * π * u * I * e x := hasDerivAt_fourierChar'.deriv
