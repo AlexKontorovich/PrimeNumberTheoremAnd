@@ -395,10 +395,21 @@ for all $u \in \R$, where $C$ is an absolute constant.
 lemma decay_bounds : ∃ C : ℝ, ∀ (ψ : ℝ → ℂ) (hψ: ContDiff ℝ 2 ψ) (hsupp: HasCompactSupport ψ) (A : ℝ)
     (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2)) (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) (u : ℝ),
     ‖𝓕 ψ u‖ ≤ C * A / (1 + u^2) := by
-  use ?C
+  use π + 1 / (4 * π)
   intro ψ h1 h2 A hA hA' u
   have key := decay_bounds_aux1 (u := u) h1 h2
-  sorry
+  have l1 : 0 < 1 + u ^ 2 := sorry
+  have l2 : 1 + u ^ 2 = ‖(1 : ℂ) + u ^ 2‖ := sorry
+  have l3 := norm_mul ((1 : ℂ) + u ^ 2) (𝓕 ψ u)
+  rw [le_div_iff l1, mul_comm, l2, ← norm_mul, key]
+  let f (t : ℝ) := (ψ t - 1 / (4 * ↑π ^ 2) * deriv^[2] ψ t) * ↑(fourierChar (Multiplicative.ofAdd (-t * u)))
+  let g (t : ℝ) := A * (1 + 1 / (4 * π ^ 2)) / (1 + t ^ 2)
+  have l4 (t : ℝ) : ‖f t‖ ≤ g t := by sorry
+  have l5 : Integrable g := sorry
+  convert norm_integral_le_of_norm_le l5 (eventually_of_forall l4)
+  dsimp [g]
+  simp_rw [div_eq_mul_inv, integral_mul_left, integral_univ_inv_one_add_sq]
+  field_simp [pi_ne_zero] ; ring
 
 /-%%
 \begin{proof} From two integration by parts we obtain the identity
