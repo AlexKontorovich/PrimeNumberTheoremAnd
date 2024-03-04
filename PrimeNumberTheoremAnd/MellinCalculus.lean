@@ -1053,7 +1053,7 @@ lemma MellinOfSmooth1c {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (fun ε ↦ MellinTransform ((Smooth1 Ψ ε) ·) 1 - 1) =O[𝓝[>]0] id := by
   sorry
 /-%%
-\begin{proof}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1_asymp}
-Use Lemma \ref{MellinOfSmooth1a} and \ref{MellinOfDeltaSpikeAt1_asymp}.
+\begin{proof}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1, MellinOfDeltaSpikeAt1_asymp}
+Follows from Lemmas \ref{MellinOfSmooth1a}, \ref{MellinOfDeltaSpikeAt1} and \ref{MellinOfDeltaSpikeAt1_asymp}.
 \end{proof}
 %%-/
