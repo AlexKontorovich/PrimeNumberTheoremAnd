@@ -890,7 +890,7 @@ $$
 
 /-%%
 \begin{lemma}[Smooth1Nonneg]\label{Smooth1Nonneg}\lean{Smooth1Nonneg}\leanok
-If $\psi$ is nonnegative, then $\widetilde{1_{\epsilon}}$ is nonnegative.
+If $\psi$ is nonnegative, then $\widetilde{1_{\epsilon}}(x)$ is nonnegative.
 \end{lemma}
 %%-/
 lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) (ε : ℝ) :
@@ -908,16 +908,29 @@ and all the factors in the integrand are nonnegative.
 
 /-%%
 \begin{lemma}[Smooth1LeOne]\label{Smooth1LeOne}\lean{Smooth1LeOne}\leanok
-As long as $\psi$ has mass one, then $\widetilde{1_{\epsilon}}$ is bounded by one.
+If $\psi$ is nonnegative and has mass one, then $\widetilde{1_{\epsilon}}(x)\le 1$, $\forall x>0$.
 \end{lemma}
 %%-/
 lemma Smooth1LeOne {Ψ : ℝ → ℝ}
+    (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) (ε : ℝ) :
-    ∀ (x : ℝ), Smooth1 Ψ ε x ≤ 1 := by
+    ∀ (x : ℝ), 0<x → Smooth1 Ψ ε x ≤ 1 := by
   sorry
 /-%%
-\begin{proof}\uses{Smooth1}
-Extend integral from  $(0,1]$ to $(0,\infty)$, and use the fact that $\psi$ has mass one.
+\begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike,SmoothExistence}
+By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
+$$
+  \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
+$$
+and since $1_{(0,1]}(y)\le 1$, and all the factors in the integrand are nonnegative,
+$$
+  \widetilde{1_\epsilon}(x)\le\int_0^\infty \frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
+$$
+in which we change variables to $z=(x/y)^{\frac1\epsilon}$:
+$$
+  \widetilde{1_\epsilon}(x)\le\int_0^\infty \psi(z) \frac{dz}z
+$$
+which by Theorem \ref{SmoothExistence} is 1.
 \end{proof}
 %%-/
 
