@@ -322,14 +322,6 @@ variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Se
 theorem HasCompactSupport.integral_mul_deriv {u v : ℝ → ℂ} (hu : ContDiff ℝ 1 u) (hv : ContDiff ℝ 1 v)
     (h : HasCompactSupport v) : ∫ x, u x * deriv v x = - ∫ x, deriv u x * v x := by sorry
 
-theorem contDiff_ofReal : ContDiff ℝ ⊤ (ofReal : ℝ → ℂ) := by
-  have l0 (x : ℝ) : HasDerivAt (ofReal : ℝ → ℂ) 1 x := (hasDerivAt_id (x : ℂ)).comp_ofReal
-  refine contDiff_top_iff_deriv.mpr ⟨fun x => (l0 x).differentiableAt, ?_⟩
-  simpa only [(funext (fun x => (l0 x).deriv) : deriv _ = _)] using contDiff_const
-
-lemma fourierChar_eq_cexp {u v : ℝ} : fourierChar [-v * u] = cexp (-2 * π * v * u * I) := by
-  rw [fourierChar_apply] ; simp [mul_assoc]
-
 theorem hasDerivAt_fourierChar' {u x : ℝ} : let e (v : ℝ) := fourierChar [-v * u];
     HasDerivAt e (-2 * π * u * I * e x) x := by
   have l2 : HasDerivAt (fun v => -v * u) (-u) x := by simpa only [neg_mul_comm] using hasDerivAt_mul_const (-u)
@@ -344,27 +336,26 @@ theorem contDiff_fourierChar' {u : ℝ} : ContDiff ℝ 1 (fun v => fourierChar [
 lemma decay_bounds_aux3 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 1 ψ) (h2 : HasCompactSupport ψ) {u : ℝ} :
     𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u := by
   let e (v : ℝ) := fourierChar [-v * u]
-  convert_to ∫ (v : ℝ), e v * deriv ψ v = 2 * ↑π * I * ↑u * ∫ (v : ℝ), e v * ψ v
-  · simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral]
-  · simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral]
+  simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral]
+  clear f hf hG hG' G
+  convert_to ← ∫ (v : ℝ), e v * deriv ψ v = 2 * ↑π * I * ↑u * ∫ (v : ℝ), e v * ψ v
+  · simp only [neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere]
+  · simp only [neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere]
   have l3 (x : ℝ) : deriv e x = -2 * π * u * I * e x := hasDerivAt_fourierChar'.deriv
-  have l2 : ContDiff ℝ 1 e := by
-    refine contDiff_one_iff_deriv.mpr ⟨fun x => hasDerivAt_fourierChar'.differentiableAt, ?_⟩
-    rw [(funext l3 : deriv _ = _)]
-    exact continuous_const.mul <| continuous_iff_continuousAt.mpr (fun x => hasDerivAt_fourierChar'.continuousAt)
-  simp_rw [HasCompactSupport.integral_mul_deriv l2 h1 h2, l3, ← integral_mul_left, ← integral_neg]
+  simp_rw [h2.integral_mul_deriv contDiff_fourierChar' h1, l3, ← integral_mul_left, ← integral_neg]
   congr ; ext ; ring
+
+lemma decay_bounds_aux4 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
+    u ^ 2 * 𝓕 ψ u = - (1 / (4 * π ^ 2) * 𝓕 (deriv^[2] ψ) u) := by
+  have l1 : ContDiff ℝ 1 (deriv ψ) := (contDiff_succ_iff_deriv.mp h1).2
+  simp_rw [iterate, decay_bounds_aux3 l1 h2.deriv, decay_bounds_aux3 h1.of_succ h2]
+  field_simp [pi_ne_zero] ; ring_nf ; simp
 
 lemma decay_bounds_aux2 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
     u ^ 2 * 𝓕 ψ u = - (1 / (4 * π ^ 2) * ∫ (t : ℝ), deriv^[2] ψ t * fourierChar [-t * u]) := by
-  convert_to ↑u ^ 2 * 𝓕 ψ u = - (1 / (4 * ↑π ^ 2) * 𝓕 (deriv^[2] ψ) u)
-  · congr ; ext ; field_simp
-  have l1 : ContDiff ℝ 1 (deriv ψ) := (contDiff_succ_iff_deriv.mp h1).2
-  have l2 : HasCompactSupport (deriv ψ) := h2.deriv
-  simp_rw [iterate, decay_bounds_aux3 l1 l2, decay_bounds_aux3 h1.of_succ h2]
-  field_simp [pi_ne_zero] ; ring_nf ; simp
+  convert decay_bounds_aux4 h1 h2 ; congr ; ext ; field_simp
 
-lemma decay_bounds_aux1 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
+lemma decay_bounds_aux1 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) (u : ℝ) :
     (1 + u ^ 2) * 𝓕 ψ u = ∫ (t : ℝ), (ψ t - (1 / (4 * π ^ 2)) * deriv^[2] ψ t) * fourierChar [-t * u] := by
   have l0 : Continuous fun t ↦ fourierChar [-t * u] := contDiff_fourierChar'.continuous
   have l1 : Integrable fun t ↦ fourierChar [-t * u] * ψ t :=
@@ -385,31 +376,24 @@ for all $u \in \R$, where $C$ is an absolute constant.
 \end{lemma}
 %%-/
 
-lemma decay_bounds : ∃ C : ℝ, ∀ (ψ : ℝ → ℂ) (hψ: ContDiff ℝ 2 ψ) (hsupp: HasCompactSupport ψ) (A : ℝ)
-    (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2)) (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) (u : ℝ),
-    ‖𝓕 ψ u‖ ≤ C * A / (1 + u^2) := by
-  use π + 1 / (4 * π)
-  intro ψ h1 h2 A hA hA' u
-  have key := decay_bounds_aux1 (u := u) h1 h2
+lemma decay_bounds {ψ : ℝ → ℂ} {A u : ℝ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ)
+    (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2)) (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) :
+    ‖𝓕 ψ u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
+  have key := decay_bounds_aux1 h1 h2 u
   have l1 : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa using sq_nonneg u)
   have l2 : 1 + u ^ 2 = ‖(1 : ℂ) + u ^ 2‖ := by
-    simp only [Complex.norm_eq_abs]
-    norm_cast
-    exact (abs_eq_self.2 l1.le).symm
+    norm_cast ; simp only [Complex.norm_eq_abs, Complex.abs_ofReal, abs_eq_self.2 l1.le]
   rw [le_div_iff l1, mul_comm, l2, ← norm_mul, key]
-  let f (t : ℝ) := (ψ t - 1 / (4 * π ^ 2) * deriv^[2] ψ t) * ↑(fourierChar (Multiplicative.ofAdd (-t * u)))
+  let f (t : ℝ) := (ψ t - 1 / (4 * π ^ 2) * deriv^[2] ψ t) * fourierChar [-t * u]
   let g (t : ℝ) := A * (1 + 1 / (4 * π ^ 2)) / (1 + t ^ 2)
-  have l5 (t : ℝ) : ‖(fourierChar (Multiplicative.ofAdd (-t * u)) : ℂ)‖ = 1 := by simp
+  have l5 (t : ℝ) : ‖fourierChar [-t * u]‖ = 1 := by simp
   have l4 (t : ℝ) : ‖f t‖ ≤ g t := by
     simp only [norm_mul, l5, mul_one, mul_add, _root_.add_div]
-    apply (norm_sub_le _ _).trans
-    apply _root_.add_le_add (hA t)
+    refine (norm_sub_le _ _).trans <| _root_.add_le_add (hA t) ?_
     rw [norm_mul]
-    convert mul_le_mul_of_nonneg_left (hA' t) (norm_nonneg _) using 1
-    field_simp
+    convert mul_le_mul_of_nonneg_left (hA' t) (norm_nonneg _) using 1 ; field_simp
   have l5 : Integrable g := by simpa [g, div_eq_mul_inv] using integrable_inv_one_add_sq.const_mul _
   convert norm_integral_le_of_norm_le l5 (eventually_of_forall l4)
-  dsimp [g]
   simp_rw [div_eq_mul_inv, integral_mul_left, integral_univ_inv_one_add_sq]
   field_simp [pi_ne_zero] ; ring
 
