@@ -794,7 +794,7 @@ $$
 
 lemma Smooth1Properties_estimate {ε : ℝ}
     {eps_pos : 0<ε} :
-    (1-2^(-ε))/ε < Real.log 2 :=
+    (1-2^(-ε))/ε ≤ Real.log 2 :=
   sorry
 
 /-%%
@@ -884,6 +884,40 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (eps_pos: 0 < ε) (eps_lt1: ε < 1)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
     ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≥ 1 + c * ε → Smooth1 Ψ ε x = 0 := by
+  set c := 2 * Real.log 2; use c
+  constructor
+  · simp only [zero_lt_two, mul_pos_iff_of_pos_left]
+    exact log_pos (by norm_num)
+  intro x hx
+
+  have : x ≥ 2 ^ ε := by
+    refine ge_trans hx <| tsub_le_iff_left.mp <|(div_le_iff eps_pos).mp ?_
+    calc
+      c ≥ 2 * (1 - 2 ^ (-ε)) / ε := ?_
+      _ ≥ 2 ^ ε * (1 - 2 ^ (-ε)) / ε := ?_
+      _ = (2 ^ ε - 1) / ε := ?_
+    · simp [c, ge_iff_le]
+      have := (mul_le_mul_left (a:=2) (by norm_num)).mpr <| @Smooth1Properties_estimate ε eps_pos
+      ring_nf at this ⊢
+      exact this
+    · have : (2 : ℝ) ^ ε < 2 := by
+        nth_rewrite 1 [← pow_one 2]
+        convert Real.rpow_lt_rpow_of_exponent_lt (x:=2) (by norm_num) eps_lt1
+        all_goals norm_num
+      have pos: 0 < (1 - 2 ^ (-ε)) / ε := by
+        refine div_pos ?_ eps_pos
+        rw [sub_pos, ← pow_zero 2]
+        convert rpow_lt_rpow_of_exponent_lt (x:=2) (by norm_num) (neg_lt_zero.mpr eps_pos)
+        norm_num
+      have := (mul_lt_mul_right pos).mpr this
+      ring_nf at this ⊢
+      exact le_of_lt this
+    · have : (2 : ℝ) ^ ε * (2 : ℝ) ^ (-ε) = (2 : ℝ) ^ (ε - ε):= by
+        rw [← Real.rpow_add (by norm_num), add_neg_self, sub_self]
+      conv => lhs; lhs; ring_nf; rhs; simp [this]
+
+  unfold Smooth1 MellinConvolution DeltaSpike
+  simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq]
   sorry
 /-%%
 \begin{proof}
