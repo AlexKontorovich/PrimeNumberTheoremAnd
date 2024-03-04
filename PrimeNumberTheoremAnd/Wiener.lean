@@ -318,9 +318,20 @@ variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Se
 
 -- variable (hcheby: ∃ C:ℝ, ∀ x:ℕ, ∑ n in Finset.Iic x, |f n| ≤ C * x)
 
--- This is in #10099, up to some plumbing
+theorem HasCompactSupport.integral_deriv_eq_zero {u : ℝ → ℂ} (h1 : ContDiff ℝ 1 u) (h2 : HasCompactSupport u) :
+    ∫ x, deriv u x = 0 := by sorry
+
 theorem HasCompactSupport.integral_mul_deriv {u v : ℝ → ℂ} (hu : ContDiff ℝ 1 u) (hv : ContDiff ℝ 1 v)
-    (h : HasCompactSupport v) : ∫ x, u x * deriv v x = - ∫ x, deriv u x * v x := by sorry
+    (h : HasCompactSupport v) : ∫ x, u x * deriv v x = - ∫ x, deriv u x * v x := by
+  have l1 : Integrable fun x ↦ u x * deriv v x :=
+    hu.continuous.mul (contDiff_one_iff_deriv.1 hv).2 |>.integrable_of_hasCompactSupport h.deriv.mul_left
+  have l2 : Integrable fun x ↦ deriv u x * v x :=
+    (contDiff_one_iff_deriv.1 hu).2.mul hv.continuous |>.integrable_of_hasCompactSupport h.mul_left
+  have l3 (a : ℝ) : deriv u a * v a + u a * deriv v a = deriv (u * v) a := by
+    rw [← deriv_mul (hu.differentiable le_rfl a) (hv.differentiable le_rfl a)] ; rfl
+  rw [eq_neg_iff_add_eq_zero, add_comm, ← integral_add l2 l1]
+  simp_rw [l3]
+  exact HasCompactSupport.integral_deriv_eq_zero (hu.mul hv) (h.mul_left)
 
 theorem hasDerivAt_fourierChar' {u x : ℝ} : let e (v : ℝ) := fourierChar [-v * u];
     HasDerivAt e (-2 * π * u * I * e x) x := by
