@@ -542,6 +542,48 @@ power.]
 lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) :
     (fun s ↦ Complex.abs (MellinTransform (Ψ ·) s)) =O[cocompact ℂ]
       fun s ↦ 1 / Complex.abs s := by
+  unfold MellinTransform
+  refine Eventually.isBigO ?_
+  let g (s : ℂ) := fun (x : ℝ)  ↦ ↑x ^ s / s
+  have gderiv (s : ℂ): deriv (g s) = (fun (x : ℝ) ↦ (x : ℂ) ^ (s - 1)) := by
+    dsimp [g]
+    ext
+    sorry
+
+  have (s : ℂ): ∫ (x : ℝ) in Ioi 0, (Ψ x) * (x : ℂ) ^ (s - 1) =
+      - (1/s) * ∫ (x : ℝ) in Ioi 0, (deriv Ψ x) * (x : ℂ) ^ s := by
+    calc
+      _ =  ∫ (x : ℝ) in Ioi 0, ↑(Ψ x) * deriv (g s) x := ?_
+      _ = -∫ (x : ℝ) in Ioi 0, deriv (fun x ↦ ↑(Ψ x)) x * g s x := ?_
+      _ = -∫ (x : ℝ) in Ioi 0, deriv ↑Ψ x * g s x := ?_
+      _ = -∫ (x : ℝ) in Ioi 0, ↑(deriv Ψ x) * x ^ s / s := ?_
+      _ = _ := ?_
+    · rw [set_integral_congr (by simp), gderiv]
+      exact fun ⦃x⦄ ↦ congrFun rfl
+    · apply PartialIntegration (Ψ ·) (g s)
+      repeat sorry
+    · congr
+      funext
+      congr
+      apply congrFun
+      sorry
+    · simp [mul_div]
+    · simp only [neg_mul, neg_inj]
+      conv => lhs; rhs; intro; rw [← mul_one_div, mul_comm]
+      rw [integral_mul_left]
+
+  have : ∀s : ℂ, s ≠ (0 : ℂ) → (∃c : ℝ, ‖Complex.abs s.re‖ ≤ c) →
+      ∃C : ℝ, ‖Complex.abs (∫ (x : ℝ) in Ioi 0, (fun x ↦ ↑(Ψ x)) x * ↑x ^ (s - 1))‖ ≤  C / ‖Complex.abs s‖ := by
+    intro s hsne0 hs
+    obtain ⟨c, hc⟩ := hs
+    rw [this]
+    simp only [neg_mul, map_neg_eq_map, map_mul, map_div₀, map_one, norm_mul, norm_div, norm_one,
+      Real.norm_eq_abs, Complex.abs_abs]
+    use 1000 -- the correct constant will be computed later
+    conv => rhs; rw [← mul_one_div, mul_comm]
+    gcongr
+    sorry
+
   sorry
 /-%%
 \begin{proof}
@@ -549,7 +591,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.s
 Integrate by parts:
 $$
 \left|\int_0^\infty \psi(x)x^s\frac{dx}{x}\right| =
-\left|-\int_0^\infty \psi'(x)\frac{x^{s}}sdx\right|
+\left|-\int_0^\infty \psi'(x)\frac{x^{s}}{s}dx\right|
 $$
 $$
 \le \frac{1}{|s|} \int_{1/2}^2|\psi'(x)|x^{\Re(s)}dx.
