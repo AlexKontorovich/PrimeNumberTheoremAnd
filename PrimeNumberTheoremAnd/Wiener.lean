@@ -334,20 +334,17 @@ theorem contDiff_ofReal : ContDiff ℝ 1 fun (x : ℝ) ↦ (x : ℂ) := by
 
 theorem extracted_1 {u x : ℝ} : let e := fun (v : ℝ) ↦ cexp (-2 * π * v * u * I);
     HasDerivAt e (-2 * π * u * I * e x) x := by
-  have l1 : HasDerivAt (fun v => -2 * ↑π * ↑v * ↑u * I) (-2 * ↑π * ↑u * I) x := by
-    apply HasDerivAt.mul_const
-    apply HasDerivAt.mul_const
+  have l2 : HasDerivAt (fun (y : ℂ) ↦ -2 * ↑π * y) (-2 * ↑π) ↑x := by
     convert (hasDerivAt_id _).const_mul (-2 * π : ℂ) using 1 ; ring
+  have l1 : HasDerivAt (fun v => -2 * ↑π * ↑v * ↑u * I) (-2 * ↑π * ↑u * I) x := by exact (l2.mul_const _).mul_const _
   convert l1.comp_ofReal.cexp using 1 ; ring
 
 lemma decay_bounds_aux3 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 1 ψ) (h2 : HasCompactSupport ψ) {u : ℝ} :
     𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u := by
   let e (v : ℝ) := cexp (- 2 * π * v * u * I)
   convert_to ∫ (v : ℝ), e v * deriv ψ v = 2 * ↑π * I * ↑u * ∫ (v : ℝ), e v * ψ v
-  · simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral, fourierChar, Complex.exp_neg,
-      mul_assoc]
-  · simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral, fourierChar, Complex.exp_neg,
-      mul_assoc]
+  · simp only [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral, fourierChar_apply] ; simp [mul_assoc]
+  · simp only [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral, fourierChar_apply] ; simp [mul_assoc]
   have l1 : ContDiff ℝ 1 e := (((contDiff_const.mul contDiff_ofReal).mul contDiff_const).mul contDiff_const).cexp
   have l3 (x : ℝ) : deriv e x = -2 * π * u * I * e x := extracted_1.deriv
   simp_rw [HasCompactSupport.integral_mul_deriv l1 h1 h2, l3, ← integral_mul_left, ← integral_neg]
@@ -364,21 +361,13 @@ lemma decay_bounds_aux2 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h
 
 lemma decay_bounds_aux1 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
     (1 + u ^ 2) * 𝓕 ψ u = ∫ (t : ℝ), (ψ t - (1 / (4 * π ^ 2)) * deriv^[2] ψ t) * fourierChar [-t * u] := by
-  have l0 : Continuous (fun t ↦ ↑(fourierChar (Multiplicative.ofAdd (-t * u))) : ℝ → ℂ) := by
-    simp [fourierChar, ← Complex.exp_neg] ; continuity
-  have l1 : Integrable fun t ↦ ↑(fourierChar (Multiplicative.ofAdd (-t * u))) * ψ t := by
-    apply Continuous.integrable_of_hasCompactSupport
-    · exact Continuous.mul l0 h1.continuous
-    · exact h2.mul_left
-  have l2 : Integrable fun t ↦ 1 / (4 * ↑π ^ 2) * (deriv^[2] ψ t * ↑(fourierChar (Multiplicative.ofAdd (-t * u)))) := by
-    apply Continuous.integrable_of_hasCompactSupport
-    · apply continuous_const.mul
-      refine Continuous.mul ?_ l0
-      exact (h1.iterate_deriv' 0 2).continuous
-    · apply HasCompactSupport.mul_left
-      apply HasCompactSupport.mul_right
-      apply HasCompactSupport.deriv
-      exact h2.deriv
+  have l0 : Continuous (fun t ↦ fourierChar [-t * u] : ℝ → ℂ) := by
+    simp_rw [fourierChar_apply] ; continuity
+  have l1 : Integrable fun t ↦ ↑(fourierChar (Multiplicative.ofAdd (-t * u))) * ψ t :=
+    l0.mul h1.continuous |>.integrable_of_hasCompactSupport h2.mul_left
+  have l2 : Integrable fun t ↦ 1 / (4 * π ^ 2) * (deriv^[2] ψ t * fourierChar [-t * u]) := by
+    refine Continuous.integrable_of_hasCompactSupport ?_ h2.deriv.deriv.mul_right.mul_left
+    exact continuous_const.mul <| (h1.iterate_deriv' 0 2).continuous.mul l0
   simp_rw [sub_mul, mul_assoc, add_mul, one_mul, mul_comm (ψ _)]
   rw [integral_sub l1 l2, integral_mul_left, sub_eq_add_neg, ← decay_bounds_aux2 h1 h2]
   simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral]
