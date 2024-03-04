@@ -7,7 +7,7 @@ import Mathlib.Geometry.Manifold.PartitionOfUnity
 import Mathlib.Tactic.FunProp.AEMeasurable
 import Mathlib.Tactic.FunProp.Measurable
 
-open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set
+open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform
 open Complex hiding log
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems impossible to hide, and hence parameters that are traditionally called σ will have to be called σ' instead in this file.
 
@@ -317,6 +317,19 @@ variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Se
 
 variable (hcheby: ∃ C:ℝ, ∀ x:ℕ, ∑ n in Finset.Iic x, |f n| ≤ C * x)
 
+lemma decay_bounds_aux3 {ψ : ℝ → ℂ} {u : ℝ} : 𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u := by
+  sorry
+
+lemma decay_bounds_aux2 {u : ℝ} {ψ : ℝ → ℂ} :
+    u ^ 2 * 𝓕 ψ u = - (1 / (4 * π ^ 2)) * ∫ (t : ℝ), deriv^[2] ψ t * fourierChar [-t * u] := by
+  convert_to ↑u ^ 2 * 𝓕 ψ u = -(1 / (4 * ↑π ^ 2)) * 𝓕 (deriv^[2] ψ) u
+  · congr ; ext ; field_simp
+  field_simp [iterate, decay_bounds_aux3, pi_ne_zero] ; ring_nf ; simp
+
+lemma decay_bounds_aux1 {u : ℝ} {ψ : ℝ → ℂ} :
+    (1 + u ^ 2) * 𝓕 ψ u = ∫ (t : ℝ), (ψ t - (u / (4 * π ^ 2)) * deriv^[2] ψ t) * fourierChar [-t * u] := by
+  sorry
+
 /-%%
 \begin{lemma}[Decay bounds]\label{decay}\lean{decay_bounds}\leanok  If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
   $$ |\psi(t)|, |\psi''(t)| \leq A / (1 + |t|^2)$$
@@ -326,7 +339,7 @@ for all $u \in \R$, where $C$ is an absolute constant.
 \end{lemma}
 %%-/
 
-lemma decay_bounds : ∃ C:ℝ, ∀ (ψ:ℝ → ℂ) (hψ: ContDiff ℝ 2 ψ) (hsupp: HasCompactSupport ψ) (A:ℝ) (hA: ∀ t, ‖ψ t‖ ≤ A / (1 + t^2)) (hA': ∀ t, ‖deriv^[2] ψ t‖  ≤ A / (1 + t^2)) (u:ℝ), ‖fourierIntegral ψ u‖ ≤ C * A / (1 + u^2) := by
+lemma decay_bounds : ∃ C:ℝ, ∀ (ψ:ℝ → ℂ) (hψ: ContDiff ℝ 2 ψ) (hsupp: HasCompactSupport ψ) (A:ℝ) (hA: ∀ t, ‖ψ t‖ ≤ A / (1 + t^2)) (hA': ∀ t, ‖deriv^[2] ψ t‖  ≤ A / (1 + t^2)) (u:ℝ), ‖𝓕 ψ u‖ ≤ C * A / (1 + u^2) := by
   sorry
 
 /-%%
