@@ -1,5 +1,6 @@
 import EulerProducts.PNT
 import Mathlib.Analysis.Fourier.FourierTransform
+import Mathlib.Analysis.Fourier.FourierTransformDeriv
 import Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.Topology.Support
 import Mathlib.Analysis.Calculus.ContDiff.Defs
@@ -317,14 +318,46 @@ variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Se
 
 variable (hcheby: ∃ C:ℝ, ∀ x:ℕ, ∑ n in Finset.Iic x, |f n| ≤ C * x)
 
-lemma decay_bounds_aux3 {ψ : ℝ → ℂ} {u : ℝ} : 𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u := by
-  sorry
+-- This is in #10099, up to some plumbing
+theorem HasCompactSupport.integral_mul_deriv {u v : ℝ → ℂ} (hu : ContDiff ℝ 1 u) (hv : ContDiff ℝ 1 v)
+    (h : HasCompactSupport v) : ∫ x, u x * deriv v x = - ∫ x, deriv u x * v x := by sorry
+
+theorem contDiff_ofReal : ContDiff ℝ 1 fun (x : ℝ) ↦ (x : ℂ) := by
+  rw [contDiff_one_iff_fderiv]
+  have {x : ℝ} : HasDerivAt (ofReal : ℝ → ℂ) 1 x := (hasDerivAt_id (x : ℂ)).comp_ofReal
+  constructor
+  · intro x ; exact this.differentiableAt
+  · have l1 (x : ℝ) := (this.hasFDerivAt (x := x)).fderiv
+    have l2 : fderiv ℝ (fun (x : ℝ) => (x : ℂ)) = _ := funext l1
+    rw [l2]
+    exact continuous_const
+
+theorem extracted_1 {u x : ℝ} : let e := fun (v : ℝ) ↦ cexp (-2 * π * v * u * I);
+    HasDerivAt e (-2 * π * u * I * e x) x := by
+  have l1 : HasDerivAt (fun v => -2 * ↑π * ↑v * ↑u * I) (-2 * ↑π * ↑u * I) x := by
+    apply HasDerivAt.mul_const
+    apply HasDerivAt.mul_const
+    convert (hasDerivAt_id _).const_mul (-2 * π : ℂ) using 1 ; ring
+  convert l1.comp_ofReal.cexp using 1 ; ring
+
+lemma decay_bounds_aux3 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 1 ψ) (h2 : HasCompactSupport ψ) {u : ℝ} :
+    𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u := by
+  let e (v : ℝ) := cexp (- 2 * π * v * u * I)
+  convert_to ∫ (v : ℝ), e v * deriv ψ v = 2 * ↑π * I * ↑u * ∫ (v : ℝ), e v * ψ v
+  · simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral, fourierChar, Complex.exp_neg,
+      mul_assoc]
+  · simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral, fourierChar, Complex.exp_neg,
+      mul_assoc]
+  have l1 : ContDiff ℝ 1 e := (((contDiff_const.mul contDiff_ofReal).mul contDiff_const).mul contDiff_const).cexp
+  have l3 (x : ℝ) : deriv e x = -2 * π * u * I * e x := extracted_1.deriv
+  simp_rw [HasCompactSupport.integral_mul_deriv l1 h1 h2, l3, ← integral_mul_left, ← integral_neg]
+  congr ; ext ; ring
 
 lemma decay_bounds_aux2 {u : ℝ} {ψ : ℝ → ℂ} :
     u ^ 2 * 𝓕 ψ u = - (1 / (4 * π ^ 2)) * ∫ (t : ℝ), deriv^[2] ψ t * fourierChar [-t * u] := by
   convert_to ↑u ^ 2 * 𝓕 ψ u = -(1 / (4 * ↑π ^ 2)) * 𝓕 (deriv^[2] ψ) u
   · congr ; ext ; field_simp
-  field_simp [iterate, decay_bounds_aux3, pi_ne_zero] ; ring_nf ; simp
+  sorry
 
 lemma decay_bounds_aux1 {u : ℝ} {ψ : ℝ → ℂ} :
     (1 + u ^ 2) * 𝓕 ψ u = ∫ (t : ℝ), (ψ t - (u / (4 * π ^ 2)) * deriv^[2] ψ t) * fourierChar [-t * u] := by
