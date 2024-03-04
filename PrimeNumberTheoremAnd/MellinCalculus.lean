@@ -372,23 +372,15 @@ $$
   \mathcal M(f\ast g)(s)=
   \int_0^\infty \int_0^\infty f(y)g(x/y)x^{s-1}\frac{dy}ydx
 $$
+By (\ref{eq:assm_integrable_Mconv}) and Fubini's theorem,
+$$
+  \mathcal M(f\ast g)(s)=
+  \int_0^\infty \int_0^\infty f(y)g(x/y)x^{s-1}dx\frac{dy}y
+$$
 in which we change variables from $x$ to $z=x/y$:
 $$
   \mathcal M(f\ast g)(s)=
-  \int_0^\infty \int_0^\infty f(y)g(z)y^{s-1}z^{s-1}dydz
-  .
-$$
-Now,
-$$
-  \int_{[0,\infty)^2} \left|f(y)g(z)y^{s-1}z^{s-1}\right|dydz
-  =
-  \int_{[0,\infty)^2} \left|f(y)\frac{g(x/y)}yx^{s-1}\right|dydx
-$$
-which is finite by (\ref{eq:assm_integrable_Mconv}).
-Therefore, by Fubini's theorem,
-$$
-  \mathcal M(f\ast g)(s)=
-  \left(\int_0^\infty f(y)y^{s-1}dy\right)\left(\int_0^\infty g(z)z^{s-1}dz\right)
+  \int_0^\infty \int_0^\infty f(y)g(z)y^{s-1}z^{s-1}dzdy
 $$
 which, by Definition \ref{MellinTransform}, is
 $$
