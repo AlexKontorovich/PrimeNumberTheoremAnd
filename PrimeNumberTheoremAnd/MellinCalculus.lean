@@ -897,8 +897,12 @@ lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) (ε : 
     ∀ (x : ℝ), 0 ≤ Smooth1 Ψ ε x := by
   sorry
 /-%%
-\begin{proof}\uses{Smooth1}
-Obvious
+\begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike}
+By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
+$$
+  \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
+$$
+and all the factors in the integrand are nonnegative.
 \end{proof}
 %%-/
 
