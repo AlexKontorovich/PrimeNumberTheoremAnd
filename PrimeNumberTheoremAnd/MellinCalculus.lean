@@ -1022,7 +1022,7 @@ $$
 
 /-%%
 \begin{lemma}[MellinOfSmooth1b]\label{MellinOfSmooth1b}\lean{MellinOfSmooth1b}\leanok
-For any $s$, we have the bound
+Given $0<\sigma_1\leqslant\sigma_2$, for any $s$ such yjay $\sigma_1\le\mathcal Re(s)\le\sigma_2$, we have
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\right).$$
 \end{lemma}
 %%-/
