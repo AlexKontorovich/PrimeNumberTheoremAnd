@@ -322,15 +322,10 @@ variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Se
 theorem HasCompactSupport.integral_mul_deriv {u v : ℝ → ℂ} (hu : ContDiff ℝ 1 u) (hv : ContDiff ℝ 1 v)
     (h : HasCompactSupport v) : ∫ x, u x * deriv v x = - ∫ x, deriv u x * v x := by sorry
 
-theorem contDiff_ofReal : ContDiff ℝ 1 fun (x : ℝ) ↦ (x : ℂ) := by
-  rw [contDiff_one_iff_fderiv]
-  have {x : ℝ} : HasDerivAt (ofReal : ℝ → ℂ) 1 x := (hasDerivAt_id (x : ℂ)).comp_ofReal
-  constructor
-  · intro x ; exact this.differentiableAt
-  · have l1 (x : ℝ) := (this.hasFDerivAt (x := x)).fderiv
-    have l2 : fderiv ℝ (fun (x : ℝ) => (x : ℂ)) = _ := funext l1
-    rw [l2]
-    exact continuous_const
+theorem contDiff_ofReal : ContDiff ℝ ⊤ (ofReal : ℝ → ℂ) := by
+  have l0 (x : ℝ) : HasDerivAt (ofReal : ℝ → ℂ) 1 x := (hasDerivAt_id (x : ℂ)).comp_ofReal
+  refine contDiff_top_iff_deriv.mpr ⟨fun x => (l0 x).differentiableAt, ?_⟩
+  simpa only [(funext (fun x => (l0 x).deriv) : deriv _ = _)] using contDiff_const
 
 theorem extracted_1 {u x : ℝ} : let e := fun (v : ℝ) ↦ cexp (-2 * π * v * u * I);
     HasDerivAt e (-2 * π * u * I * e x) x := by
@@ -345,9 +340,10 @@ lemma decay_bounds_aux3 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 1 ψ) (h2 : HasCom
   convert_to ∫ (v : ℝ), e v * deriv ψ v = 2 * ↑π * I * ↑u * ∫ (v : ℝ), e v * ψ v
   · simp only [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral, fourierChar_apply] ; simp [mul_assoc]
   · simp only [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral, fourierChar_apply] ; simp [mul_assoc]
-  have l1 : ContDiff ℝ 1 e := (((contDiff_const.mul contDiff_ofReal).mul contDiff_const).mul contDiff_const).cexp
+  have l1 : ContDiff ℝ 1 fun (x : ℝ) ↦ (x : ℂ) := contDiff_ofReal.of_le le_top
+  have l2 : ContDiff ℝ 1 e := (((contDiff_const.mul l1).mul contDiff_const).mul contDiff_const).cexp
   have l3 (x : ℝ) : deriv e x = -2 * π * u * I * e x := extracted_1.deriv
-  simp_rw [HasCompactSupport.integral_mul_deriv l1 h1 h2, l3, ← integral_mul_left, ← integral_neg]
+  simp_rw [HasCompactSupport.integral_mul_deriv l2 h1 h2, l3, ← integral_mul_left, ← integral_neg]
   congr ; ext ; ring
 
 lemma decay_bounds_aux2 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
