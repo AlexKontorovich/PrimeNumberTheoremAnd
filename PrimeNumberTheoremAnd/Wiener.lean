@@ -316,7 +316,7 @@ for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies th
 
 variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ ArithmeticFunction.LSeries f s - A / (s - 1)) {s | 1 < s.re})
 
-variable (hcheby: ∃ C:ℝ, ∀ x:ℕ, ∑ n in Finset.Iic x, |f n| ≤ C * x)
+-- variable (hcheby: ∃ C:ℝ, ∀ x:ℕ, ∑ n in Finset.Iic x, |f n| ≤ C * x)
 
 -- This is in #10099, up to some plumbing
 theorem HasCompactSupport.integral_mul_deriv {u v : ℝ → ℂ} (hu : ContDiff ℝ 1 u) (hv : ContDiff ℝ 1 v)
@@ -353,15 +353,35 @@ lemma decay_bounds_aux3 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 1 ψ) (h2 : HasCom
   simp_rw [HasCompactSupport.integral_mul_deriv l1 h1 h2, l3, ← integral_mul_left, ← integral_neg]
   congr ; ext ; ring
 
-lemma decay_bounds_aux2 {u : ℝ} {ψ : ℝ → ℂ} :
-    u ^ 2 * 𝓕 ψ u = - (1 / (4 * π ^ 2)) * ∫ (t : ℝ), deriv^[2] ψ t * fourierChar [-t * u] := by
-  convert_to ↑u ^ 2 * 𝓕 ψ u = -(1 / (4 * ↑π ^ 2)) * 𝓕 (deriv^[2] ψ) u
+lemma decay_bounds_aux2 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
+    u ^ 2 * 𝓕 ψ u = - (1 / (4 * π ^ 2) * ∫ (t : ℝ), deriv^[2] ψ t * fourierChar [-t * u]) := by
+  convert_to ↑u ^ 2 * 𝓕 ψ u = - (1 / (4 * ↑π ^ 2) * 𝓕 (deriv^[2] ψ) u)
   · congr ; ext ; field_simp
-  sorry
+  have l1 : ContDiff ℝ 1 (deriv ψ) := (contDiff_succ_iff_deriv.mp h1).2
+  have l2 : HasCompactSupport (deriv ψ) := h2.deriv
+  simp_rw [iterate, decay_bounds_aux3 l1 l2, decay_bounds_aux3 h1.of_succ h2]
+  field_simp [pi_ne_zero] ; ring_nf ; simp
 
-lemma decay_bounds_aux1 {u : ℝ} {ψ : ℝ → ℂ} :
-    (1 + u ^ 2) * 𝓕 ψ u = ∫ (t : ℝ), (ψ t - (u / (4 * π ^ 2)) * deriv^[2] ψ t) * fourierChar [-t * u] := by
-  sorry
+lemma decay_bounds_aux1 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
+    (1 + u ^ 2) * 𝓕 ψ u = ∫ (t : ℝ), (ψ t - (1 / (4 * π ^ 2)) * deriv^[2] ψ t) * fourierChar [-t * u] := by
+  have l0 : Continuous (fun t ↦ ↑(fourierChar (Multiplicative.ofAdd (-t * u))) : ℝ → ℂ) := by
+    simp [fourierChar, ← Complex.exp_neg] ; continuity
+  have l1 : Integrable fun t ↦ ↑(fourierChar (Multiplicative.ofAdd (-t * u))) * ψ t := by
+    apply Continuous.integrable_of_hasCompactSupport
+    · exact Continuous.mul l0 h1.continuous
+    · exact h2.mul_left
+  have l2 : Integrable fun t ↦ 1 / (4 * ↑π ^ 2) * (deriv^[2] ψ t * ↑(fourierChar (Multiplicative.ofAdd (-t * u)))) := by
+    apply Continuous.integrable_of_hasCompactSupport
+    · apply continuous_const.mul
+      refine Continuous.mul ?_ l0
+      exact (h1.iterate_deriv' 0 2).continuous
+    · apply HasCompactSupport.mul_left
+      apply HasCompactSupport.mul_right
+      apply HasCompactSupport.deriv
+      exact h2.deriv
+  simp_rw [sub_mul, mul_assoc, add_mul, one_mul, mul_comm (ψ _)]
+  rw [integral_sub l1 l2, integral_mul_left, sub_eq_add_neg, ← decay_bounds_aux2 h1 h2]
+  simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral]
 
 /-%%
 \begin{lemma}[Decay bounds]\label{decay}\lean{decay_bounds}\leanok  If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
@@ -372,7 +392,12 @@ for all $u \in \R$, where $C$ is an absolute constant.
 \end{lemma}
 %%-/
 
-lemma decay_bounds : ∃ C:ℝ, ∀ (ψ:ℝ → ℂ) (hψ: ContDiff ℝ 2 ψ) (hsupp: HasCompactSupport ψ) (A:ℝ) (hA: ∀ t, ‖ψ t‖ ≤ A / (1 + t^2)) (hA': ∀ t, ‖deriv^[2] ψ t‖  ≤ A / (1 + t^2)) (u:ℝ), ‖𝓕 ψ u‖ ≤ C * A / (1 + u^2) := by
+lemma decay_bounds : ∃ C : ℝ, ∀ (ψ : ℝ → ℂ) (hψ: ContDiff ℝ 2 ψ) (hsupp: HasCompactSupport ψ) (A : ℝ)
+    (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2)) (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) (u : ℝ),
+    ‖𝓕 ψ u‖ ≤ C * A / (1 + u^2) := by
+  use ?C
+  intro ψ h1 h2 A hA hA' u
+  have key := decay_bounds_aux1 (u := u) h1 h2
   sorry
 
 /-%%
