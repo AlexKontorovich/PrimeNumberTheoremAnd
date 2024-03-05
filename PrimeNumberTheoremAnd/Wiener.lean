@@ -1,5 +1,6 @@
 import EulerProducts.PNT
 import Mathlib.Analysis.Fourier.FourierTransform
+import Mathlib.Analysis.Fourier.FourierTransformDeriv
 import Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.Topology.Support
 import Mathlib.Analysis.Calculus.ContDiff.Defs
@@ -7,7 +8,7 @@ import Mathlib.Geometry.Manifold.PartitionOfUnity
 import Mathlib.Tactic.FunProp.AEMeasurable
 import Mathlib.Tactic.FunProp.Measurable
 
-open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set
+open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform
 open Complex hiding log
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems impossible to hide, and hence parameters that are traditionally called σ will have to be called σ' instead in this file.
 
@@ -315,7 +316,66 @@ for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies th
 
 variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ ArithmeticFunction.LSeries f s - A / (s - 1)) {s | 1 < s.re})
 
-variable (hcheby: ∃ C:ℝ, ∀ x:ℕ, ∑ n in Finset.Iic x, |f n| ≤ C * x)
+-- variable (hcheby: ∃ C:ℝ, ∀ x:ℕ, ∑ n in Finset.Iic x, |f n| ≤ C * x)
+
+theorem HasCompactSupport.integral_deriv_eq_zero {u : ℝ → ℂ} (h1 : ContDiff ℝ 1 u) (h2 : HasCompactSupport u) :
+    ∫ x, deriv u x = 0 := by sorry
+
+theorem HasCompactSupport.integral_mul_deriv {u v : ℝ → ℂ} (hu : ContDiff ℝ 1 u) (hv : ContDiff ℝ 1 v)
+    (h : HasCompactSupport v) : ∫ x, u x * deriv v x = - ∫ x, deriv u x * v x := by
+  have l1 : Integrable fun x ↦ u x * deriv v x :=
+    hu.continuous.mul (contDiff_one_iff_deriv.1 hv).2 |>.integrable_of_hasCompactSupport h.deriv.mul_left
+  have l2 : Integrable fun x ↦ deriv u x * v x :=
+    (contDiff_one_iff_deriv.1 hu).2.mul hv.continuous |>.integrable_of_hasCompactSupport h.mul_left
+  have l3 (a : ℝ) : deriv u a * v a + u a * deriv v a = deriv (u * v) a := by
+    rw [← deriv_mul (hu.differentiable le_rfl a) (hv.differentiable le_rfl a)] ; rfl
+  rw [eq_neg_iff_add_eq_zero, add_comm, ← integral_add l2 l1]
+  simp_rw [l3]
+  exact HasCompactSupport.integral_deriv_eq_zero (hu.mul hv) (h.mul_left)
+
+theorem hasDerivAt_fourierChar' {u x : ℝ} : let e (v : ℝ) := fourierChar [-v * u];
+    HasDerivAt e (-2 * π * u * I * e x) x := by
+  have l2 : HasDerivAt (fun v => -v * u) (-u) x := by simpa only [neg_mul_comm] using hasDerivAt_mul_const (-u)
+  convert (hasDerivAt_fourierChar (-x * u)).scomp x l2 using 1 ; simp ; ring
+
+theorem contDiff_fourierChar' {u : ℝ} : ContDiff ℝ 1 (fun v => fourierChar [-v * u]) := by
+  have l3 (x : ℝ) := (hasDerivAt_fourierChar' (u := u) (x := x)).deriv
+  refine contDiff_one_iff_deriv.mpr ⟨fun x => hasDerivAt_fourierChar'.differentiableAt, ?_⟩
+  rw [(funext l3 : deriv _ = _)]
+  exact continuous_const.mul <| continuous_iff_continuousAt.mpr (fun x => hasDerivAt_fourierChar'.continuousAt)
+
+lemma decay_bounds_aux3 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 1 ψ) (h2 : HasCompactSupport ψ) {u : ℝ} :
+    𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u := by
+  let e (v : ℝ) := fourierChar [-v * u]
+  simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral]
+  convert_to ∫ (v : ℝ), e v * deriv ψ v = 2 * ↑π * I * ↑u * ∫ (v : ℝ), e v * ψ v
+  · simp only [neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere]
+  · simp only [neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere]
+  have l3 (x : ℝ) : deriv e x = -2 * π * u * I * e x := hasDerivAt_fourierChar'.deriv
+  simp_rw [h2.integral_mul_deriv contDiff_fourierChar' h1, l3, ← integral_mul_left, ← integral_neg]
+  congr ; ext ; ring
+
+lemma decay_bounds_aux4 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
+    u ^ 2 * 𝓕 ψ u = - (1 / (4 * π ^ 2) * 𝓕 (deriv^[2] ψ) u) := by
+  have l1 : ContDiff ℝ 1 (deriv ψ) := (contDiff_succ_iff_deriv.mp h1).2
+  simp_rw [iterate, decay_bounds_aux3 l1 h2.deriv, decay_bounds_aux3 h1.of_succ h2]
+  field_simp [pi_ne_zero] ; ring_nf ; simp
+
+lemma decay_bounds_aux2 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
+    u ^ 2 * 𝓕 ψ u = - (1 / (4 * π ^ 2) * ∫ (t : ℝ), deriv^[2] ψ t * fourierChar [-t * u]) := by
+  convert decay_bounds_aux4 h1 h2 ; congr ; ext ; field_simp
+
+lemma decay_bounds_aux1 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) (u : ℝ) :
+    (1 + u ^ 2) * 𝓕 ψ u = ∫ (t : ℝ), (ψ t - (1 / (4 * π ^ 2)) * deriv^[2] ψ t) * fourierChar [-t * u] := by
+  have l0 : Continuous fun t ↦ fourierChar [-t * u] := contDiff_fourierChar'.continuous
+  have l1 : Integrable fun t ↦ fourierChar [-t * u] * ψ t :=
+    l0.mul h1.continuous |>.integrable_of_hasCompactSupport h2.mul_left
+  have l2 : Integrable fun t ↦ 1 / (4 * π ^ 2) * (deriv^[2] ψ t * fourierChar [-t * u]) := by
+    refine Continuous.integrable_of_hasCompactSupport ?_ h2.deriv.deriv.mul_right.mul_left
+    exact continuous_const.mul <| (h1.iterate_deriv' 0 2).continuous.mul l0
+  simp_rw [sub_mul, mul_assoc, add_mul, one_mul, mul_comm (ψ _)]
+  rw [integral_sub l1 l2, integral_mul_left, sub_eq_add_neg, ← decay_bounds_aux2 h1 h2]
+  simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral]
 
 /-%%
 \begin{lemma}[Decay bounds]\label{decay}\lean{decay_bounds}\leanok  If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
@@ -326,8 +386,26 @@ for all $u \in \R$, where $C$ is an absolute constant.
 \end{lemma}
 %%-/
 
-lemma decay_bounds : ∃ C:ℝ, ∀ (ψ:ℝ → ℂ) (hψ: ContDiff ℝ 2 ψ) (hsupp: HasCompactSupport ψ) (A:ℝ) (hA: ∀ t, ‖ψ t‖ ≤ A / (1 + t^2)) (hA': ∀ t, ‖deriv^[2] ψ t‖  ≤ A / (1 + t^2)) (u:ℝ), ‖fourierIntegral ψ u‖ ≤ C * A / (1 + u^2) := by
-  sorry
+lemma decay_bounds {ψ : ℝ → ℂ} {A u : ℝ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ)
+    (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2)) (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) :
+    ‖𝓕 ψ u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
+  have key := decay_bounds_aux1 h1 h2 u
+  have l1 : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa using sq_nonneg u)
+  have l2 : 1 + u ^ 2 = ‖(1 : ℂ) + u ^ 2‖ := by
+    norm_cast ; simp only [Complex.norm_eq_abs, Complex.abs_ofReal, abs_eq_self.2 l1.le]
+  rw [le_div_iff l1, mul_comm, l2, ← norm_mul, key]
+  let f (t : ℝ) := (ψ t - 1 / (4 * π ^ 2) * deriv^[2] ψ t) * fourierChar [-t * u]
+  let g (t : ℝ) := A * (1 + 1 / (4 * π ^ 2)) / (1 + t ^ 2)
+  have l5 (t : ℝ) : ‖fourierChar [-t * u]‖ = 1 := by simp
+  have l4 (t : ℝ) : ‖f t‖ ≤ g t := by
+    simp only [norm_mul, l5, mul_one, mul_add, _root_.add_div]
+    refine (norm_sub_le _ _).trans <| _root_.add_le_add (hA t) ?_
+    rw [norm_mul]
+    convert mul_le_mul_of_nonneg_left (hA' t) (norm_nonneg _) using 1 ; field_simp
+  have l5 : Integrable g := by simpa [g, div_eq_mul_inv] using integrable_inv_one_add_sq.const_mul _
+  convert norm_integral_le_of_norm_le l5 (eventually_of_forall l4)
+  simp_rw [div_eq_mul_inv, integral_mul_left, integral_univ_inv_one_add_sq]
+  field_simp [pi_ne_zero] ; ring
 
 /-%%
 \begin{proof} From two integration by parts we obtain the identity

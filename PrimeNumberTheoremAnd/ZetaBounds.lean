@@ -34,12 +34,8 @@ lemma sum_eq_int_deriv_aux_eq {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
       - ∫ x in a..b, (k + 1 / 2 - x) * deriv φ x := by
   have flb_eq_k : ⌊b⌋ = k + 1 := Int.floor_eq_iff.mpr ⟨by exact_mod_cast b_eq_kpOne.symm.le,
     by rw [b_eq_kpOne]; simp⟩
-  simp_rw [flb_eq_k]
-  simp only [Finset.Icc_self, Finset.sum_singleton, Int.cast_add, Int.cast_one]
-  rw [sum_eq_int_deriv_aux2 φDiff]
-  ring_nf
-  rw [b_eq_kpOne]
-  congr! 1
+  simp only [flb_eq_k, Finset.Icc_self, Finset.sum_singleton, Int.cast_add, Int.cast_one]
+  rw [sum_eq_int_deriv_aux2 φDiff, b_eq_kpOne]
   ring_nf
 
 lemma sum_eq_int_deriv_aux_lt {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k ≤ a) (a_lt_b : a < b)
@@ -48,8 +44,7 @@ lemma sum_eq_int_deriv_aux_lt {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a :
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (k + 1 / 2 - a) * φ a
       - ∫ x in a..b, (k + 1 / 2 - x) * deriv φ x := by
   have flb_eq_k : ⌊b⌋ = k := Int.floor_eq_iff.mpr ⟨by linarith, by linarith⟩
-  simp_rw [flb_eq_k]
-  simp only [gt_iff_lt, lt_add_iff_pos_right, zero_lt_one, Finset.Icc_eq_empty_of_lt,
+  simp only [flb_eq_k, gt_iff_lt, lt_add_iff_pos_right, zero_lt_one, Finset.Icc_eq_empty_of_lt,
     Finset.sum_empty]
   rw [sum_eq_int_deriv_aux2 φDiff]
   ring_nf
@@ -61,8 +56,7 @@ lemma sum_eq_int_deriv_aux1 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k
       - ∫ x in a..b, (k + 1 / 2 - x) * deriv φ x := by
   by_cases h : b = k + 1
   · exact sum_eq_int_deriv_aux_eq h φDiff
-  · have : b < k + 1 := Ne.lt_of_le h b_le_kpOne
-    exact sum_eq_int_deriv_aux_lt k_le_a a_lt_b this φDiff
+  · exact sum_eq_int_deriv_aux_lt k_le_a a_lt_b (Ne.lt_of_le h b_le_kpOne) φDiff
 
 /-%%
 \begin{lemma}[sum_eq_int_deriv_aux]\label{sum_eq_int_deriv_aux}\lean{sum_eq_int_deriv_aux}\leanok
@@ -81,19 +75,15 @@ lemma sum_eq_int_deriv_aux {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k 
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
       - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
   have fl_a_eq_k : ⌊a⌋ = k := Int.floor_eq_iff.mpr ⟨k_le_a, by linarith⟩
-  convert sum_eq_int_deriv_aux1 k_le_a a_lt_b b_le_kpOne φDiff using 2
-  · congr
-  · congr
+  convert sum_eq_int_deriv_aux1 k_le_a a_lt_b b_le_kpOne φDiff using 2 <;> try {congr}
   apply intervalIntegral.integral_congr_ae
   have :  ∀ᵐ (x : ℝ) ∂MeasureTheory.volume, x ≠ b := by
     convert Set.Countable.ae_not_mem (s := {b}) (by simp) (μ := MeasureTheory.volume) using 1
   filter_upwards [this]
   intro x x_ne_b hx
-  congr
   rw [Set.uIoc_of_le a_lt_b.le, Set.mem_Ioc] at hx
-  refine Int.floor_eq_iff.mpr ⟨by linarith, ?_⟩
-  have : x < b := Ne.lt_of_le x_ne_b hx.2
-  linarith
+  congr
+  exact Int.floor_eq_iff.mpr ⟨by linarith, by have := Ne.lt_of_le x_ne_b hx.2; linarith⟩
 /-%%
 \begin{proof}\leanok
 Partial integration.
@@ -148,7 +138,7 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (a_lt_b : a < b) :
   have φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b) := sorry
   convert sum_eq_int_deriv (by exact_mod_cast a_lt_b) φDiff using 1
   · sorry
-  sorry
+  · sorry
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv}
   Apply Lemma \ref{sum_eq_int_deriv} to the function $x \mapsto x^{-s}$.

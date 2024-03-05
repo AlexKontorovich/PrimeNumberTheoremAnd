@@ -318,6 +318,37 @@ noncomputable def MellinConvolution (f g : ℝ → 𝕂) (x : ℝ) : 𝕂 :=
   ∫ y in Set.Ioi 0, f y * g (x / y) / y
 
 /-%%
+Let us start with a simple property of the Mellin convolution.
+\begin{lemma}[MellinConvolutionSymmetric]\label{MellinConvolutionSymmetric}
+\lean{MellinConvolutionSymmetric}\leanok
+Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$, for $x\neq0$,
+$$
+  (f\ast g)(x)=(g\ast f)(x)
+  .
+$$
+\end{lemma}
+%%-/
+lemma MellinConvolutionSymmetric (f g : ℝ → ℂ) {x : ℝ} (xpos: 0<x) :
+    MellinConvolution f g x = MellinConvolution g f x :=
+  sorry
+
+/-%%
+\begin{proof}
+  \uses{MellinConvolution}
+  By Definition \ref{MellinConvolution},
+  $$
+    (f\ast g)(x) = \int_0^\infty f(y)g(x/y)\frac{dy}{y}
+  $$
+  in which we change variables to $z=x/y$:
+  $$
+    (f\ast g)(x) = \int_0^\infty f(x/z)g(z)\frac{dz}{z}
+    =(g\ast f)(x)
+    .
+  $$
+\end{proof}
+%%-/
+
+/-%%
 The Mellin transform of a convolution is the product of the Mellin transforms.
 \begin{theorem}[MellinConvolutionTransform]\label{MellinConvolutionTransform}
 \lean{MellinConvolutionTransform}\leanok
@@ -335,40 +366,34 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     (hf : IntegrableOn (fun x y ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)).uncurry
       (Ioi 0 ×ˢ Ioi 0)) :
     MellinTransform (MellinConvolution f g) s = MellinTransform f s * MellinTransform g s := by
-  sorry
-  -- dsimp [MellinTransform, MellinConvolution]
-  -- set f₁ : ℝ × ℝ → ℂ := fun ⟨x, y⟩ ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
-  -- -- have := @MeasureTheory.set_integral_integral_swap (s := Set.Ioi (0 : ℝ)) (t := Set.Ioi (0 : ℝ))
-  -- --   (E := ℂ) (μ := volume) (ν := volume) _ _ _ _ _ _ (f := f₁) h
-  -- -- have := (@MeasureTheory.set_integral_prod (s := Set.Ioi (0 : ℝ)) (t := Set.Ioi (0 : ℝ)) (E := ℂ)
-  -- --   (μ := volume) (ν := volume) _ _ _ _ _ _ (f := f₁) h).symm
-  -- calc
-  --   _ = ∫ (x : ℝ) in Ioi 0, ∫ (y : ℝ) in Ioi 0, f₁ (x, y) := ?_
-  --   _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f₁ (x, y) := set_integral_integral_swap _ hf
-  --   _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * g (x / y) / ↑y * ↑x ^ (s - 1) := rfl
-  --   _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0,
-  --     f y * g (x * y / y) / ↑y * ↑(x * y) ^ (s - 1) * y := ?_
-  --   _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * (g x * ↑x ^ (s - 1)) := ?_
-  --   _ = _ := ?_
-  -- · rw [set_integral_congr (by simp)]
-  --   intro x hx
-  --   simp only
-  --   rw [integral_mul_right]
-  -- · sorry
-  -- · rw [set_integral_congr (by simp)]
-  --   intro x hx
-  --   simp only
-  --   rw [set_integral_congr (by simp)]
-  --   intro y hy
-  --   have x_ne_zeroℝ : x ≠ 0 := ne_of_gt (mem_Ioi.mp hx)
-  --   have x_ne_zeroℂ : (x : ℂ) ≠ 0 := by exact_mod_cast x_ne_zeroℝ
-  --   simp only [ofReal_mul]
-  --   field_simp
-  --   have : ((y : ℂ) * ↑x) ^ (s - 1) = (y : ℂ) ^ (s - 1) * (↑x ^ (s - 1)) := by sorry
-  --   rw [this]
-  --   ring
-  -- · --have := @MeasureTheory.integral_prod_mul
-  --   sorry
+  dsimp [MellinTransform, MellinConvolution]
+  set f₁ : ℝ × ℝ → ℂ := fun ⟨x, y⟩ ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
+  calc
+    _ = ∫ (x : ℝ) in Ioi 0, ∫ (y : ℝ) in Ioi 0, f₁ (x, y) := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f₁ (x, y) := set_integral_integral_swap _ hf
+    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * g (x / y) / ↑y * ↑x ^ (s - 1) := rfl
+    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * g (x * y / y) / ↑y * ↑(x * y) ^ (s - 1) * y := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * (g x * ↑x ^ (s - 1)) := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * ∫ (x : ℝ) in Ioi 0, g x * ↑x ^ (s - 1) := ?_
+    _ = _ := integral_mul_right _ _
+  <;> try (rw [set_integral_congr (by simp)]; intro y hy)
+  · simp only [integral_mul_right]; rfl
+  · simp only [integral_mul_right]
+    rw [mul_comm]
+    have abs : |y⁻¹| = y⁻¹ := abs_of_pos <| inv_pos.mpr hy
+    let fx : ℝ → ℂ := fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
+    have := abs ▸ MeasureTheory.integral_comp_mul_right_Ioi fx 0 hy
+    have y_ne_zeroℂ : (y : ℂ) ≠ 0 := slitPlane_ne_zero (Or.inl hy)
+    simp [fx] at this
+    simp only [ofReal_mul, this, ← mul_assoc, mul_inv_cancel y_ne_zeroℂ, one_mul]
+  · simp only [ofReal_mul]
+    rw [set_integral_congr (by simp)]
+    intro x hx
+    have y_ne_zeroℝ : y ≠ 0 := ne_of_gt (mem_Ioi.mp hy)
+    have y_ne_zeroℂ : (y : ℂ) ≠ 0 := by exact_mod_cast y_ne_zeroℝ
+    field_simp [mul_cpow_ofReal_nonneg (LT.lt.le hx) (LT.lt.le hy)]
+    ring
+  · exact integral_mul_left _ _
 
 /-%%
 \begin{proof}
@@ -378,23 +403,15 @@ $$
   \mathcal M(f\ast g)(s)=
   \int_0^\infty \int_0^\infty f(y)g(x/y)x^{s-1}\frac{dy}ydx
 $$
+By (\ref{eq:assm_integrable_Mconv}) and Fubini's theorem,
+$$
+  \mathcal M(f\ast g)(s)=
+  \int_0^\infty \int_0^\infty f(y)g(x/y)x^{s-1}dx\frac{dy}y
+$$
 in which we change variables from $x$ to $z=x/y$:
 $$
   \mathcal M(f\ast g)(s)=
-  \int_0^\infty \int_0^\infty f(y)g(z)y^{s-1}z^{s-1}dydz
-  .
-$$
-Now,
-$$
-  \int_{[0,\infty)^2} \left|f(y)g(z)y^{s-1}z^{s-1}\right|dydz
-  =
-  \int_{[0,\infty)^2} \left|f(y)\frac{g(x/y)}yx^{s-1}\right|dydx
-$$
-which is finite by (\ref{eq:assm_integrable_Mconv}).
-Therefore, by Fubini's theorem,
-$$
-  \mathcal M(f\ast g)(s)=
-  \left(\int_0^\infty f(y)y^{s-1}dy\right)\left(\int_0^\infty g(z)z^{s-1}dz\right)
+  \int_0^\infty \int_0^\infty f(y)g(z)y^{s-1}z^{s-1}dzdy
 $$
 which, by Definition \ref{MellinTransform}, is
 $$
@@ -896,30 +913,47 @@ $$
 
 /-%%
 \begin{lemma}[Smooth1Nonneg]\label{Smooth1Nonneg}\lean{Smooth1Nonneg}\leanok
-If $\psi$ is nonnegative, then $\widetilde{1_{\epsilon}}$ is nonnegative.
+If $\psi$ is nonnegative, then $\widetilde{1_{\epsilon}}(x)$ is nonnegative.
 \end{lemma}
 %%-/
 lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) (ε : ℝ) :
     ∀ (x : ℝ), 0 ≤ Smooth1 Ψ ε x := by
   sorry
 /-%%
-\begin{proof}\uses{Smooth1}
-Obvious
+\begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike}
+By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
+$$
+  \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
+$$
+and all the factors in the integrand are nonnegative.
 \end{proof}
 %%-/
 
 /-%%
 \begin{lemma}[Smooth1LeOne]\label{Smooth1LeOne}\lean{Smooth1LeOne}\leanok
-As long as $\psi$ has mass one, then $\widetilde{1_{\epsilon}}$ is bounded by one.
+If $\psi$ is nonnegative and has mass one, then $\widetilde{1_{\epsilon}}(x)\le 1$, $\forall x>0$.
 \end{lemma}
 %%-/
 lemma Smooth1LeOne {Ψ : ℝ → ℝ}
+    (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) (ε : ℝ) :
-    ∀ (x : ℝ), Smooth1 Ψ ε x ≤ 1 := by
+    ∀ (x : ℝ), 0<x → Smooth1 Ψ ε x ≤ 1 := by
   sorry
 /-%%
-\begin{proof}\uses{Smooth1}
-Extend integral from  $(0,1]$ to $(0,\infty)$, and use the fact that $\psi$ has mass one.
+\begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike,SmoothExistence}
+By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
+$$
+  \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
+$$
+and since $1_{(0,1]}(y)\le 1$, and all the factors in the integrand are nonnegative,
+$$
+  \widetilde{1_\epsilon}(x)\le\int_0^\infty \frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
+$$
+in which we change variables to $z=(x/y)^{\frac1\epsilon}$:
+$$
+  \widetilde{1_\epsilon}(x)\le\int_0^\infty \psi(z) \frac{dz}z
+$$
+which by Theorem \ref{SmoothExistence} is 1.
 \end{proof}
 %%-/
 
@@ -941,13 +975,54 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ)
 --  rw [MellinConvolutionTransform, MellinOf1 _ hs, MellinOfDeltaSpike Ψ (εpos) s]
   sorry
 /-%%
-\begin{proof}\uses{MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1}
-Use Lemmata \ref{MellinConvolutionTransform}, \ref{MellinOf1}, and \ref{MellinOfDeltaSpike}.
+\begin{proof}\uses{Smooth1,MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1, MellinConvolutionSymmetric}
+By Definition \ref{Smooth1},
+$$
+  \mathcal M(\widetilde{1_\epsilon})(s)
+  =\mathcal M(1_{(0,1]}\ast\psi_\epsilon)(s)
+  .
+$$
+We wish to apply Theorem \ref{MellinConvolutionTransform}.
+To do so, we must prove that
+$$
+  (x,y)\mapsto 1_{(0,1]}(y)\psi_\epsilon(x/y)/y
+$$
+is integrable on $[0,\infty)^2$.
+It is actually easier to do this for the convolution: $\psi_\epsilon\ast 1_{(0,1]}$, so we use Lemma \ref{MellinConvolutionSymmetric}: for $x\neq0$,
+$$
+  1_{(0,1]}\ast\psi_\epsilon(x)=\psi_\epsilon\ast 1_{(0,1]}(x)
+  .
+$$
+Now, for $x=0$, both sides of the equation are 0, so the equation also holds for $x=0$.
+Therefore,
+$$
+  \mathcal M(\widetilde{1_\epsilon})(s)
+  =\mathcal M(\psi_\epsilon\ast 1_{(0,1]})(s)
+  .
+$$
+Now,
+$$
+  (x,y)\mapsto \psi_\epsilon(y)1_{(0,1]}(x/y)\frac{x^{s-1}}y
+$$
+has compact support that is bounded away from $y=0$ (specifically $y\in[2^{-\epsilon},2^\epsilon]$ and $x\in(0,y]$), so it is integrable.
+We can thus apply Theorem \ref{MellinConvolutionTransform} and find
+$$
+  \mathcal M(\widetilde{1_\epsilon})(s)
+  =\mathcal M(\psi_\epsilon)(s)\mathcal M(1_{(0,1]})(s)
+  .
+$$
+By Lemmas \ref{MellinOf1} and \ref{MellinOfDeltaSpike},
+$$
+  \mathcal M(\widetilde{1_\epsilon})(s)
+  =\frac1s\mathcal M(\psi)(\epsilon s)
+  .
+$$
 \end{proof}
 %%-/
+
 /-%%
 \begin{lemma}[MellinOfSmooth1b]\label{MellinOfSmooth1b}\lean{MellinOfSmooth1b}\leanok
-For any $s$, we have the bound
+Given $0<\sigma_1\le\sigma_2$, for any $s$ such that $\sigma_1\le\mathcal Re(s)\le\sigma_2$, we have
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\right).$$
 \end{lemma}
 %%-/
@@ -978,7 +1053,7 @@ lemma MellinOfSmooth1c {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (fun ε ↦ MellinTransform ((Smooth1 Ψ ε) ·) 1 - 1) =O[𝓝[>]0] id := by
   sorry
 /-%%
-\begin{proof}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1_asymp}
-Use Lemma \ref{MellinOfSmooth1a} and \ref{MellinOfDeltaSpikeAt1_asymp}.
+\begin{proof}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1, MellinOfDeltaSpikeAt1_asymp}
+Follows from Lemmas \ref{MellinOfSmooth1a}, \ref{MellinOfDeltaSpikeAt1} and \ref{MellinOfDeltaSpikeAt1_asymp}.
 \end{proof}
 %%-/

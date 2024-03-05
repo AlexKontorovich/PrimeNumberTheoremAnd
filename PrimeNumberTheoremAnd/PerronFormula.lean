@@ -25,7 +25,7 @@ If the limit of $0$ is $L₁ - L₂$, then $L₁ = L₂$.
 lemma zeroTendstoDiff (L₁ L₂ : ℂ) (f : ℝ → ℂ) (h : ∀ᶠ T in atTop,  f T = 0)
     (h' : Tendsto f atTop (𝓝 (L₂ - L₁))) : L₁ = L₂ := by
   rw [← zero_add L₁, ← @eq_sub_iff_add_eq]
-  apply tendsto_nhds_unique (EventuallyEq.tendsto h) h'
+  exact tendsto_nhds_unique (EventuallyEq.tendsto h) h'
 /-%
 \begin{proof}\leanok
 Obvious.
@@ -55,11 +55,9 @@ lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ
 \begin{proof}\leanok
 Almost by definition.
 %-/
-  have h_lower (x : ℝ) : (σ - I * x).im = -x := by simp
-  have h_upper (x : ℝ) : (σ' + I * x).im = x := by simp
-  have h_left (x : ℝ) : (σ - I * x).re = σ := by simp
-  have h_right (x : ℝ) : (σ' + I * x).re = σ' := by simp
-  simp_rw [RectangleIntegral, h_left, h_right, h_lower, h_upper]
+  simp only [RectangleIntegral, sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im,
+    mul_zero, sub_self, sub_zero, add_re, add_zero, sub_im, mul_im, one_mul, zero_add, zero_sub,
+    add_im]
   apply Tendsto.sub
   · rewrite [← zero_add (VerticalIntegral _ _), ← zero_sub_zero]
     apply Tendsto.add <| Tendsto.sub (hbot.comp tendsto_neg_atTop_atBot) htop
@@ -164,19 +162,19 @@ Almost by definition.
   have hbot' : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x - y * I)) atTop (𝓝 0) := by
     convert (hbot.comp tendsto_neg_atTop_atBot) using 1
     ext; simp only [Function.comp_apply, ofReal_neg, neg_mul]; rfl
-  have htop : Tendsto (fun (_ : ℝ) => ∫ (x : ℝ) in σ..σ', f (x - T * I)) atTop (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x - T * I)) := by
-    exact tendsto_const_nhds
+  have htop : Tendsto (fun (_ : ℝ) => ∫ (x : ℝ) in σ..σ', f (x - T * I)) atTop (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x - T * I)) :=
+    tendsto_const_nhds
   have hvert (s : ℝ) (int : Integrable (fun (y : ℝ) ↦ f (s + y * I))) :
       Tendsto (fun (U : ℝ) => I * ∫ (y : ℝ) in -U..-T, f (s + y * I)) atTop (𝓝 <| I * ∫ (y : ℝ) in Iic (-T), f (s + y * I)) := by
     have := (intervalIntegral_tendsto_integral_Iic (-T) int.restrict tendsto_id).const_smul I
     convert (this.comp tendsto_neg_atTop_atBot) using 1
   have := ((hbot'.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
+  rw [zero_sub] at this
+  simp_rw [RectangleIntegral, LowerUIntegral, HIntegral, VIntegral, h_re, h_im, ofReal_neg, neg_mul, neg_add_rev, neg_sub]
   have final : (((-∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I)) + I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) -
       I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) = (-(I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) +
       ((I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) - ∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I))) := by
     ring_nf
-  rw [zero_sub] at this
-  simp_rw [RectangleIntegral, LowerUIntegral, HIntegral, VIntegral, h_re, h_im, ofReal_neg, neg_mul, neg_add_rev, neg_sub]
   exact final ▸ this
 --%%\end{proof}
 
@@ -282,21 +280,11 @@ lemma f_mul_eq_f {x t : ℝ} (tpos : 0 < t) (xpos : 0 < x) (s : ℂ) : f t s * (
   · simp [f, s_eq_zero]
   by_cases s_eq_neg_one : s = -1
   · simp [f, s_eq_neg_one]
-  dsimp [f]
-  have h : s * (s + 1) ≠ 0 := by
-    change s ≠ 0 at s_eq_zero
-    apply mul_ne_zero s_eq_zero
-    intro h'
-    have := (add_neg_eq_zero (a := s) (b := -1)).mp
-    simp only [neg_neg] at this
-    exact s_eq_neg_one (this h')
-  field_simp
-  have xinv_pos : 0 < x⁻¹ := inv_pos.mpr xpos
-  convert (Complex.mul_cpow_ofReal_nonneg tpos.le xinv_pos.le s).symm using 2
+  field_simp [f, mul_ne_zero s_eq_zero (fun hs => add_eq_zero_iff_eq_neg.mp hs |> s_eq_neg_one)]
+  convert (Complex.mul_cpow_ofReal_nonneg tpos.le (inv_pos.mpr xpos).le s).symm using 2
   · convert Complex.cpow_neg_eq_inv_pow_ofReal_pos xpos s
     exact ofReal_inv x
-  simp only [ofReal_inv]
-  rfl
+  · simp only [ofReal_inv]; rfl
 
 /-%%
 \begin{lemma}[isHolomorphicOn]\label{isHolomorphicOn}\lean{Perron.isHolomorphicOn}\leanok
@@ -349,7 +337,7 @@ lemma integralPosAux'_of_le (c₁ c₂ : ℝ) (c₁_pos : 0 < c₁) (hle : c₁ 
     · gcongr
       apply Real.sqrt_le_sqrt
       gcongr
-    · rw[←Real.sqrt_mul, sqrt_mul_self] <;> positivity
+    · rw [← Real.sqrt_mul, sqrt_mul_self] <;> positivity
 
   have hupper (t : ℝ) : 1 / (Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)) ≤ 1 / (c₁ + t^2)  := by
     gcongr
@@ -359,26 +347,23 @@ lemma integralPosAux'_of_le (c₁ c₂ : ℝ) (c₁_pos : 0 < c₁) (hle : c₁ 
     · gcongr
       apply Real.sqrt_le_sqrt
       gcongr
-    · rw[←Real.sqrt_mul, sqrt_mul_self] <;> positivity
+    · rw [← Real.sqrt_mul, sqrt_mul_self] <;> positivity
 
   calc 0 < ∫ t, 1 / (c₂ + t^2) := integral_one_div_const_add_sq_pos c₂ c₂_pos
        _ ≤ ∫ t, 1 / (Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)) := ?_
 
-  apply integral_mono
-  · apply Integrable.one_div_const_add_sq c₂ c₂_pos
-  · apply MeasureTheory.Integrable.mono (g := fun t:ℝ ↦ 1/(c₁ + t^2))
-    · apply Integrable.one_div_const_add_sq c₁ c₁_pos
-    · refine (measurable_const.div <| Measurable.mul ?_ ?_).aestronglyMeasurable <;>
-        exact (measurable_const.add <| measurable_id'.pow_const 2).sqrt
-    refine ae_of_all _ (fun x ↦ ?_)
+  refine integral_mono (Integrable.one_div_const_add_sq c₂ c₂_pos) ?_ hlower
+  apply MeasureTheory.Integrable.mono (g := fun t:ℝ ↦ 1/(c₁ + t^2)) <| Integrable.one_div_const_add_sq c₁ c₁_pos
+  · refine (measurable_const.div <| Measurable.mul ?_ ?_).aestronglyMeasurable <;>
+      exact (measurable_const.add <| measurable_id'.pow_const 2).sqrt
+  · refine ae_of_all _ (fun x ↦ ?_)
     repeat rewrite [norm_of_nonneg (by positivity)]
     exact hupper x
-  apply hlower
 
 
 lemma integralPosAux' (c₁ c₂ : ℝ) (c₁_pos : 0 < c₁) (c₂_pos : 0 < c₂) : 0 < ∫ (t : ℝ), 1 / |Real.sqrt (c₁ + t^2) * Real.sqrt (c₂ + t^2)| := by
   by_cases hc : c₁ ≤ c₂
-  · apply integralPosAux'_of_le c₁ c₂ c₁_pos hc
+  · exact integralPosAux'_of_le c₁ c₂ c₁_pos hc
   · convert integralPosAux'_of_le c₂ c₁ c₂_pos (by linarith) using 4
     rw [mul_comm]
 
@@ -413,30 +398,22 @@ lemma vertIntBound (xpos : 0 < x) (σ_gt_one : 1 < σ) :
     rw [norm_div, Complex.norm_eq_abs, Complex.abs_cpow_eq_rpow_re_of_pos xpos, add_re, ofReal_re,
       re_ofReal_mul, I_re, mul_zero, add_zero]
   · simp_rw [div_eq_mul_inv, integral_mul_left, one_mul, Complex.norm_eq_abs, map_mul]
-  clear! x
   -- Note: I didn't try to prove this because the result is trivial if it isn't true.
   by_cases hint : Integrable fun (a : ℝ) => 1 / (Complex.abs (σ + ↑a * I) * Complex.abs (↑σ + ↑a * I + 1))
   swap
   · rw [integral_undef hint]
-    apply integral_nonneg
-    rw [Pi.le_def]
-    intro t
-    simp only [Pi.zero_apply, one_div, inv_nonneg, abs_nonneg]
+    exact integral_nonneg <| fun t => by simp only [Pi.le_def, Pi.zero_apply, one_div, inv_nonneg, abs_nonneg]
   apply integral_mono hint
   · have := integralPosAux
     contrapose! this
-    have := integral_undef this
-    simp_rw [this, le_rfl]
+    simp_rw [integral_undef this, le_rfl]
   rw [Pi.le_def]
   intro t
   rw [abs_eq_self.mpr (by positivity)]
   simp only [Complex.abs_apply]
-  gcongr
-  · apply sqrt_le_sqrt
-    rw [normSq_add_mul_I, add_le_add_iff_right]
-    exact one_le_pow_of_one_le σ_gt_one.le _
-  · apply sqrt_le_sqrt
-    rw [add_right_comm, ← ofReal_one, ← ofReal_add, normSq_add_mul_I, add_le_add_iff_right]
+  gcongr <;> apply sqrt_le_sqrt
+  · simp_rw [normSq_add_mul_I, add_le_add_iff_right, one_le_pow_of_one_le σ_gt_one.le _]
+  · rw [add_right_comm, ← ofReal_one, ← ofReal_add, normSq_add_mul_I, add_le_add_iff_right]
     nlinarith
 
 /-%%
@@ -486,40 +463,34 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
   by_cases hint : Integrable fun (a : ℝ) => 1 / (Complex.abs (σ + ↑a * I) * Complex.abs (↑σ + ↑a * I + 1))
   swap
   · rw [integral_undef hint]
-    apply integral_nonneg
-    rw [Pi.le_def]
-    intro t
-    simp only [Pi.zero_apply, one_div, inv_nonneg, abs_nonneg]
+    exact integral_nonneg <| fun t => by simp only [Pi.le_def, Pi.zero_apply, one_div, inv_nonneg, abs_nonneg]
   apply integral_mono hint
   · have := integralPosAux' (4⁻¹) 2 (by norm_num) (by norm_num)
     contrapose! this
-    have := integral_undef this
-    simp_rw [this, le_rfl]
+    simp_rw [integral_undef this, le_rfl]
   rw [Pi.le_def]
   intro t
   rw [abs_eq_self.mpr (by positivity)]
   simp only [Complex.abs_apply]
   rw[mul_comm]
-  gcongr
-  swap
-  · apply sqrt_le_sqrt
-    rw [normSq_add_mul_I, add_le_add_iff_right]
-    nlinarith only [hσ]
-  · apply sqrt_le_sqrt
-    rw [add_right_comm, ← ofReal_one, ← ofReal_add, normSq_add_mul_I, add_le_add_iff_right]
+  gcongr <;> apply sqrt_le_sqrt
+  · rw [add_right_comm, ← ofReal_one, ← ofReal_add, normSq_add_mul_I, add_le_add_iff_right]
     ring_nf
     nlinarith
+  · rw [normSq_add_mul_I, add_le_add_iff_right]
+    nlinarith only [hσ]
+
 /-%%
 Triangle inequality and pointwise estimate.
 \end{proof}
 %%-/
 
 lemma map_conj (hx : 0 ≤ x) (s : ℂ) : f x (conj s) = conj (f x s) := by
-  simp? [f] says simp only [f, map_div₀, map_mul, map_add, map_one]
+  simp only [f, map_div₀, map_mul, map_add, map_one]
   congr
   rw [cpow_conj, Complex.conj_ofReal]
-  · rewrite [Complex.arg_ofReal_of_nonneg hx]
-    exact pi_ne_zero.symm
+  rewrite [Complex.arg_ofReal_of_nonneg hx]
+  exact pi_ne_zero.symm
 
 theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 [[σ', σ'']] ×ˢ (atBot ⊔ atTop)]
@@ -614,8 +585,7 @@ The numerator is bounded and the denominator tends to infinity.
 %%-/
   have hcast : (fun (y : ℝ) ↦ 1 / y ^ 2) =ᶠ[atBot] fun y ↦ (-y) ^ (-2 : ℝ) := by
     filter_upwards [Iic_mem_atBot 0]
-    intro y hy
-    rw [rpow_neg (neg_nonneg.mpr hy), inv_eq_one_div, rpow_two, neg_sq]
+    exact fun y hy => by rw [rpow_neg (neg_nonneg.mpr hy), inv_eq_one_div, rpow_two, neg_sq]
   exact isBigO_sup.mp (horizontal_integral_isBigO xpos σ' σ'' volume)
     |>.1.trans_eventuallyEq hcast |>.trans_tendsto
     <| tendsto_rpow_neg_atTop (by norm_num) |>.comp tendsto_neg_atBot_atTop
@@ -636,8 +606,7 @@ The numerator is bounded and the denominator tends to infinity.
 %%-/
   have hcast : (fun (y : ℝ) ↦ 1 / y ^ 2) =ᶠ[atTop] fun y ↦ y ^ (-2 : ℝ) := by
     filter_upwards [Ici_mem_atTop 0]
-    intro y hy
-    rw [rpow_neg hy, inv_eq_one_div, rpow_two]
+    exact fun y hy => by rw [rpow_neg hy, inv_eq_one_div, rpow_two]
   refine isBigO_sup.mp (horizontal_integral_isBigO xpos σ' σ'' volume)
     |>.2.trans_eventuallyEq hcast |>.trans_tendsto <| tendsto_rpow_neg_atTop (by norm_num)
 
@@ -906,8 +875,7 @@ lemma residueAtNegOne (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
   refine ResidueTheoremOnRectangleWithSimplePole ?_ ?_ RectMemNhds gHolo ?_
   · simpa using cpos.le
   · simpa using cpos.le
-  · convert g_eq_fDiff using 3
-    simp
+  · convert g_eq_fDiff using 3; simp
 
 /-%%
 \begin{lemma}[residuePull1]\label{residuePull1}\lean{Perron.residuePull1}\leanok
