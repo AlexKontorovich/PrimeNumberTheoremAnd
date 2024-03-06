@@ -424,7 +424,18 @@ lemma limiting_fourier_aux (σ' : ℝ) (hσ' : 1 < σ') (hψ : ContDiff ℝ 2 ψ
   have l3 : 0 < x := zero_lt_one.trans_le hx
   have l1 (σ') (hσ' : 1 < σ') := first_fourier hf hψ.continuous hsupp l3 hσ'
   have l2 (σ') (hσ' : 1 < σ') := second_fourier hψ.continuous hsupp l3 hσ'
-  have l4 : Integrable fun t ↦ LSeries (⇑f) (↑σ' + ↑t * I) * ψ t * ↑x ^ (↑t * I) := sorry
+  have l6 : Continuous fun t ↦ LSeries f (↑σ' + ↑t * I) * ψ t * ↑x ^ (↑t * I) := by
+    apply Continuous.mul
+    · apply Continuous.mul
+      · sorry
+      · exact hψ.continuous
+    · apply continuous_const.cpow
+      · apply Continuous.mul
+        · sorry
+        · sorry
+      · sorry
+  have l4 : Integrable fun t ↦ LSeries f (↑σ' + ↑t * I) * ψ t * ↑x ^ (↑t * I) :=
+    l6.integrable_of_hasCompactSupport hsupp.mul_left.mul_right
   have l5 : Integrable fun a ↦ A * ↑(x ^ (1 - σ')) * (↑(x ^ (σ' - 1)) * (1 / (σ' + a * I - 1) * ψ a * x ^ (a * I))) := sorry
 
   simp_rw [l1 σ' hσ', l2 σ' hσ', ← integral_mul_left, ← integral_sub l4 l5]
