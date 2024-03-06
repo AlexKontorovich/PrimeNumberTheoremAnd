@@ -123,7 +123,7 @@ theorem LocallyIntegrable.integrable_of_isBigO_atTop_of_norm_eq_norm_neg
   rewrite [h_map_neg] at h_int_neg
   refine integrableOn_univ.mp ?_
   convert integrableOn_union.mpr ⟨h_int_neg, h_int⟩
-  exact (Set.Iic_union_Ici_of_le (by simp)).symm
+  exact (Set.Iic_union_Ici_of_le (by simp [a])).symm
 
 end LinearOrderedAddCommGroup
 
