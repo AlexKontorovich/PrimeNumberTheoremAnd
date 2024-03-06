@@ -8,7 +8,7 @@ import Mathlib.Geometry.Manifold.PartitionOfUnity
 import Mathlib.Tactic.FunProp.AEMeasurable
 import Mathlib.Tactic.FunProp.Measurable
 
-open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform
+open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries
 open Complex hiding log
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems impossible to hide, and hence parameters that are traditionally called σ will have to be called σ' instead in this file.
 
@@ -82,7 +82,10 @@ $$ F(s) := \sum_{n=1}^\infty \frac{f(n)}{n^s}$$
 is absolutely convergent for $\sigma>1$.
 %%-/
 
-variable {f: ArithmeticFunction ℝ} (hf: ∀ (σ':ℝ), 1 < σ' → Summable (fun n ↦ |f n| / n^σ'))
+noncomputable
+def nterm (f : ℕ → ℂ) (σ' : ℝ) (n : ℕ) : ℝ := if n = 0 then 0 else ‖f n‖ / n ^ σ'
+
+variable {f : ArithmeticFunction ℂ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
 
 @[simp]
 theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
@@ -91,14 +94,14 @@ theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_
 theorem nnnorm_circle_smul (z : circle) (s : ℂ) : ‖z • s‖₊ = ‖s‖₊ := by
   simp [show z • s = z.val * s from rfl]
 
-lemma hf_coe1 {σ' : ℝ} (hσ : 1 < σ') :
-    (∑' (i : ℕ), ↑‖(f i : ℂ) / ↑((i : ℝ) ^ σ')‖₊ : ENNReal) ≠ ⊤ := by
+lemma hf_coe1 {σ' : ℝ} (hσ : 1 < σ') : (∑' (i : ℕ), ‖term f σ' i‖₊ : ENNReal) ≠ ⊤ := by
   apply ENNReal.tsum_coe_ne_top_iff_summable_coe.mpr
   norm_cast
   simp_rw [← norm_toNNReal]
   apply Summable.toNNReal
-  have (n : ℕ) : 0 ≤ (n : ℝ) ^ σ' := by positivity
-  simp_rw [norm_div, Real.norm_eq_abs, _root_.abs_of_nonneg (this _), hf σ' hσ]
+  convert hf σ' hσ using 1 ; ext i
+  simp [nterm, term]
+  by_cases h : i = 0 <;> simp [h]
 
 lemma first_fourier_aux1 {ψ : ℝ → ℂ} (hψ: Continuous ψ) {x : ℝ} (n : ℕ) : Measurable fun (u : ℝ) ↦
     (‖fourierChar (-(u * ((1 : ℝ) / ((2 : ℝ) * π) * (n / x).log))) • ψ u‖₊ : ENNReal) := by
@@ -114,9 +117,8 @@ lemma first_fourier_aux2a {x y : ℝ} {n : ℕ} :
     _ = _ := by rw [div_self (by norm_num; exact pi_ne_zero), one_mul]
 
 lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hσ : 1 < σ') (hx : 0 < x) (n : ℕ) :
-    (f n : ℂ) / ↑((n : ℝ) ^ σ') *
-    fourierChar (-(y * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (↑n / x)))) • ψ y =
-    ((f n : ℂ) / n ^ (↑σ' + ↑y * I)) • (ψ y * ↑x ^ (↑y * I)) := by
+    term f σ' n * fourierChar (-(y * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (↑n / x)))) • ψ y =
+    (term f (↑σ' + ↑y * I) n) • (ψ y * ↑x ^ (↑y * I)) := by
   show _ * ((fourierChar <| Multiplicative.ofAdd (_) : ℂ) • ψ y) = ((f n : ℂ) / _) • _
   rw [fourierChar_apply]
   show _ / _ * cexp (↑(_ * -(y * _)) * I) • ψ y = _
@@ -154,8 +156,8 @@ lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hσ : 1 < σ') (hx 
 %%-/
 lemma first_fourier {ψ : ℝ → ℂ} (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ)
     {x σ':ℝ} (hx: 0 < x) (hσ: 1 < σ') :
-    ∑' n : ℕ, f n / (n^σ':ℝ) * (fourierIntegral ψ (1 / (2 * π) * log (n / x))) =
-    ∫ t:ℝ, ArithmeticFunction.LSeries f (σ' + t * I) * ψ t * x^(t * I) ∂ volume := by
+    ∑' n : ℕ, term f σ' n * (fourierIntegral ψ (1 / (2 * π) * log (n / x))) =
+    ∫ t:ℝ, LSeries f (σ' + t * I) * ψ t * x^(t * I) ∂ volume := by
 /-%%
 \begin{proof}\leanok  By the definition of the Fourier transform, the left-hand side expands as
 $$ \sum_{n=1}^\infty \int_\R \frac{f(n)}{n^\sigma} \psi(t) e( - \frac{1}{2\pi} t \log \frac{n}{x})\ dt$$
@@ -167,13 +169,13 @@ the claim then follows from Fubini's theorem.
 \end{proof}
 %%-/
   calc
-    _ = ∑' (n : ℕ), (f n : ℂ) / ↑((n : ℝ) ^ σ') *
+    _ = ∑' (n : ℕ), term f σ' n *
         ∫ (v : ℝ), fourierChar (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
       rfl
-    _ = ∑' (n : ℕ), ∫ (v : ℝ), (f n : ℂ) / ↑((n : ℝ) ^ σ') *
+    _ = ∑' (n : ℕ), ∫ (v : ℝ), term f σ' n *
         fourierChar (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
       congr 1; ext : 1; exact (integral_mul_left _ _).symm
-    _ = ∫ (v : ℝ), ∑' (n : ℕ), (f n : ℂ) / ↑((n : ℝ) ^ σ') *
+    _ = ∫ (v : ℝ), ∑' (n : ℕ), term f σ' n *
         fourierChar (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
       refine (integral_tsum ?_ ?_).symm
       · -- TODO: attribute [fun_prop] Real.continuous_fourierChar once `fun_prop` bugfix is merged
@@ -184,14 +186,13 @@ the claim then follows from Fubini's theorem.
         push_cast
         simp_rw [lintegral_const_mul _ (first_fourier_aux1 hcont _)]
         calc
-          _ = (∑' (i : ℕ), (‖(f i : ℂ) / ↑((i : ℝ) ^ σ')‖₊ : ENNReal)) *
-              ∫⁻ (a : ℝ), ‖ψ a‖₊ ∂volume := by
+          _ = (∑' (i : ℕ), (‖term f σ' i‖₊ : ENNReal)) * ∫⁻ (a : ℝ), ‖ψ a‖₊ ∂volume := by
             simp [ENNReal.tsum_mul_right]
-          _ ≠ ⊤ := ENNReal.mul_ne_top
-            (hf_coe1 hf hσ) (ne_top_of_lt (hcont.integrable_of_hasCompactSupport hsupp).2)
+          _ ≠ ⊤ := ENNReal.mul_ne_top (hf_coe1 hf hσ)
+            (ne_top_of_lt (hcont.integrable_of_hasCompactSupport hsupp).2)
     _ = _ := by
       congr 1; ext y
-      simp_rw [mul_assoc (L _ _), ← smul_eq_mul (a := (L _ _)), ArithmeticFunction.LSeries]
+      simp_rw [mul_assoc (LSeries _ _), ← smul_eq_mul (a := (LSeries _ _)), LSeries]
       rw [← tsum_smul_const]
       · congr 1; ext n
         exact first_fourier_aux2 hσ hx n
