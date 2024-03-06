@@ -118,7 +118,20 @@ lemma first_fourier_aux2a {x y : ℝ} {n : ℕ} :
 
 lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hσ : 1 < σ') (hx : 0 < x) (n : ℕ) :
     term f σ' n * fourierChar (-(y * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (↑n / x)))) • ψ y =
-    (term f (↑σ' + ↑y * I) n) • (ψ y * ↑x ^ (↑y * I)) := by
+    term f (σ' + y * I) n • (ψ y * ↑x ^ (↑y * I)) := by
+  by_cases hn : n = 0
+  · simp [term, hn]
+  simp only [term, hn, ↓reduceIte]
+  have : ((↑n : ℂ) ^ (σ' : ℂ) : ℂ) = ((↑n : ℝ) ^ (σ' : ℝ) : ℝ) := by
+    have e1 : (n : ℂ) ≠ 0 := by simp [hn]
+    have e2 : 0 ≤ (n : ℝ) := cast_nonneg n
+    rw [Complex.cpow_def_of_ne_zero e1]
+    rw [Real.rpow_def_of_nonneg e2]
+    simp [hn]
+  convert_to (f n : ℂ) / ↑((n : ℝ) ^ σ') *
+    fourierChar (-(y * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (↑n / x)))) • ψ y =
+    ((f n : ℂ) / n ^ (↑σ' + ↑y * I)) • (ψ y * ↑x ^ (↑y * I))
+  · simp [this]
   show _ * ((fourierChar <| Multiplicative.ofAdd (_) : ℂ) • ψ y) = ((f n : ℂ) / _) • _
   rw [fourierChar_apply]
   show _ / _ * cexp (↑(_ * -(y * _)) * I) • ψ y = _
@@ -126,7 +139,7 @@ lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hσ : 1 < σ') (hx 
     _ = ((f n : ℂ) *
         (cexp (↑((2 : ℝ) * π * -(y * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) * I) /
         ↑((n : ℝ) ^ σ'))) • ψ y := by
-      simp_rw [smul_eq_mul]; group
+      simp [smul_eq_mul, mul_assoc, this] ; ring_nf
     _ = ((f n : ℂ) * (↑x ^ (↑y * I) / ↑n ^ (↑σ' + ↑y * I))) • ψ y := by
       congr 2
       cases n with
@@ -146,8 +159,7 @@ lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hσ : 1 < σ') (hx 
         rw [Complex.ofReal_log (by linarith), Complex.ofReal_log hx.le]
         push_cast
         ring
-    _ = _ := by simp_rw [smul_eq_mul]; group
-
+    _ = _ := by simp ; group
 
 /-%%
 \begin{lemma}[First Fourier identity]\label{first-fourier}\lean{first_fourier}\leanok  If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
@@ -198,7 +210,9 @@ the claim then follows from Fubini's theorem.
         exact first_fourier_aux2 hσ hx n
       · apply Summable.of_norm
         convert hf σ' hσ with n
-        cases n <;> simp [-cast_succ, Complex.abs_cpow_of_ne_zero (NeZero.natCast_ne _ ℂ)]
+        by_cases h : n = 0
+        · simp [nterm, term, h]
+        · simp [nterm, term, h, Complex.abs_cpow_of_ne_zero (by simp [h])]
 
 /-%%
 \begin{lemma}[Second Fourier identity]\label{second-fourier}\lean{second_fourier}\leanok If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
@@ -315,7 +329,7 @@ Now let $A \in \C$, and suppose that there is a continuous function $G(s)$ defin
 for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies the arguments and can be obtained fairly easily in applications).
 %%-/
 
-variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ ArithmeticFunction.LSeries f s - A / (s - 1)) {s | 1 < s.re})
+variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
 
 -- variable (hcheby: ∃ C:ℝ, ∀ x:ℕ, ∑ n in Finset.Iic x, |f n| ≤ C * x)
 
@@ -579,7 +593,7 @@ Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 \end{proposition}
 %%-/
 
-variable (hpos: ∀ n, 0 ≤ f n)
+-- variable (hpos: ∀ n, 0 ≤ f n)
 
 lemma WienerIkeharaInterval (a b:ℝ) (ha: 0 < a) (hb: a < b) : Tendsto (fun x : ℝ ↦ ∑' n, f n / n * (Set.indicator (Set.Icc a b) 1 (n/x))/x - A * (b-a)) atTop (nhds 0) := by
   sorry
@@ -602,7 +616,7 @@ open Filter Nat ArithmeticFunction in
 function whose L-series has a simple pole at `s = 1` with residue `A` and otherwise extends
 continuously to the closed half-plane `re s ≥ 1`, then `∑ n < N, f n` is asymptotic to `A*N`. -/
 theorem WienerIkeharaTheorem' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ → ℂ} (hf : ∀ n, 0 ≤ f n)
-    (hF : Set.EqOn F (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hF : Set.EqOn F (fun s ↦ LSeries (fun n => f n) s - A / (s - 1)) {s | 1 < s.re})
     (hF' : ContinuousOn F {s | 1 ≤ s.re}) :
     Tendsto (fun N : ℕ ↦ ((Finset.range N).sum f) / N) atTop (nhds A) := by
   sorry
