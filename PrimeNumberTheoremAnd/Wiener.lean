@@ -85,10 +85,10 @@ is absolutely convergent for $\sigma>1$.
 noncomputable
 def nterm (f : ℕ → ℂ) (σ' : ℝ) (n : ℕ) : ℝ := if n = 0 then 0 else ‖f n‖ / n ^ σ'
 
-variable {f : ArithmeticFunction ℂ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
-
 lemma nterm_eq_norm_term {f : ℕ → ℂ} {σ' : ℝ} {n : ℕ} : nterm f σ' n = ‖term f σ' n‖ := by
   by_cases h : n = 0 <;> simp [nterm, term, h]
+
+variable {f : ArithmeticFunction ℂ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
 
 @[simp]
 theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
@@ -429,11 +429,18 @@ variable {ψ : ℝ → ℂ} {x : ℝ}
 
 lemma continuous_LSeries_aux {f : ArithmeticFunction ℂ} {σ' : ℝ}  (hf : Summable (nterm f σ')) :
     Continuous fun x : ℝ => LSeries f (σ' + x * I) := by
-  sorry
 
-lemma continuous_LSeries {f : ArithmeticFunction ℂ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm (⇑f) σ'))
-    {σ' : ℝ} (hσ' : 1 < σ') : Continuous fun x : ℝ => LSeries (⇑f) (↑σ' + ↑x * I) :=
-  continuous_LSeries_aux (hf σ' hσ')
+  have l1 i : Continuous fun x : ℝ ↦ term f (σ' + x * I) i := by
+    by_cases h : i = 0
+    · simpa [h] using continuous_const
+    · simpa [h] using continuous_const.div (continuous_const.cpow (by continuity) (by simp [h])) (fun x => by simp [h])
+  have l2 n (x : ℝ) : ‖term f (σ' + x * I) n‖ = nterm f σ' n := by
+    by_cases h : n = 0
+    · simp [h, nterm]
+    · field_simp [h, nterm, cpow_add _ _ (cast_ne_zero.mpr h)]
+      rw [← Complex.norm_eq_abs, Complex.norm_natCast_cpow_of_pos (Nat.pos_of_ne_zero h)]
+      simp
+  exact continuous_tsum l1 hf (fun n x => le_of_eq (l2 n x))
 
 lemma limiting_fourier_aux (σ' : ℝ) (hσ' : 1 < σ') (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
     ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
@@ -446,7 +453,7 @@ lemma limiting_fourier_aux (σ' : ℝ) (hσ' : 1 < σ') (hψ : ContDiff ℝ 2 ψ
   have l8 : Continuous fun t : ℝ ↦ (x : ℂ) ^ (t * I) :=
     continuous_const.cpow (continuous_ofReal.mul continuous_const) (by simp [l3])
   have l6 : Continuous fun t ↦ LSeries f (↑σ' + ↑t * I) * ψ t * ↑x ^ (↑t * I) := by
-    apply ((continuous_LSeries hf hσ').mul hψ.continuous).mul l8
+    apply ((continuous_LSeries_aux (hf _ hσ')).mul hψ.continuous).mul l8
   have l4 : Integrable fun t ↦ LSeries f (↑σ' + ↑t * I) * ψ t * ↑x ^ (↑t * I) :=
     l6.integrable_of_hasCompactSupport hsupp.mul_left.mul_right
   have e2 (u : ℝ) : σ' + u * I - 1 ≠ 0 := by
