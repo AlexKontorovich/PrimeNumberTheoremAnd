@@ -416,32 +416,36 @@ $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )
 
 variable {ψ : ℝ → ℂ} {x : ℝ}
 
+lemma limiting_fourier_aux (σ' : ℝ) (hσ' : 1 < σ') (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
+    ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
+    A * (x ^ (1 - σ') : ℝ) * ∫ u in Ici (- log x), rexp (-u * (σ' - 1)) * 𝓕 ψ (u / (2 * π)) =
+    ∫ t : ℝ, G (σ' + t * I) * ψ t * x ^ (t * I) := by
+
+  have l3 : 0 < x := zero_lt_one.trans_le hx
+  have l1 (σ') (hσ' : 1 < σ') := first_fourier hf hψ.continuous hsupp l3 hσ'
+  have l2 (σ') (hσ' : 1 < σ') := second_fourier hψ.continuous hsupp l3 hσ'
+  have l4 : Integrable fun t ↦ LSeries (⇑f) (↑σ' + ↑t * I) * ψ t * ↑x ^ (↑t * I) := sorry
+  have l5 : Integrable fun a ↦ A * ↑(x ^ (1 - σ')) * (↑(x ^ (σ' - 1)) * (1 / (σ' + a * I - 1) * ψ a * x ^ (a * I))) := sorry
+
+  simp_rw [l1 σ' hσ', l2 σ' hσ', ← integral_mul_left, ← integral_sub l4 l5]
+  apply integral_congr_ae
+  apply eventually_of_forall
+  intro u
+  have e1 : 1 < ((σ' : ℂ) + (u : ℂ) * I).re := by simp [hσ']
+  have e2 : ↑σ' + ↑u * I - 1 ≠ 0 := by
+    intro h ; have := congr_arg Complex.re h ; simp at this ; linarith
+  simp_rw [hG' e1, sub_mul, ← mul_assoc]
+  field_simp [e2] ; left ; left
+  norm_cast
+  simp [mul_assoc, ← rpow_add l3]
+
 lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
     ∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π)) =
       ∫ (t : ℝ), (G (1 + I * t)) * (ψ t) * x ^ (I * t) := by
 
-  have l3 : 0 < x := zero_lt_one.trans_le hx
-  have l1 (σ') (hσ' : 1 < σ') := first_fourier hf hψ.continuous hsupp l3 hσ'
-  have l2 (σ') (hσ' : 1 < σ') := second_fourier hψ.continuous hsupp l3 hσ'
+  have key (σ') (hσ' : 1 < σ') := limiting_fourier_aux hf hG' σ' hσ' hψ hsupp hx
 
-  have key (σ' : ℝ) (hσ' : 1 < σ') : ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
-      A * (x ^ (1 - σ') : ℝ) * ∫ u in Ici (- log x), rexp (-u * (σ' - 1)) * 𝓕 ψ (u / (2 * π)) =
-      ∫ t : ℝ, G (σ' + t * I) * ψ t * x ^ (t * I) := by
-    simp_rw [l1 σ' hσ', l2 σ' hσ', ← integral_mul_left]
-    rw [← integral_sub]
-    · apply integral_congr_ae
-      apply eventually_of_forall
-      intro u
-      have e1 : 1 < ((σ' : ℂ) + (u : ℂ) * I).re := by simp [hσ']
-      have e2 : ↑σ' + ↑u * I - 1 ≠ 0 := by
-        intro h ; have := congr_arg Complex.re h ; simp at this ; linarith
-      simp_rw [hG' e1, sub_mul, ← mul_assoc]
-      field_simp [e2] ; left ; left
-      norm_cast
-      simp [mul_assoc, ← rpow_add l3]
-    · sorry
-    · sorry
   sorry
 
 /-%%
