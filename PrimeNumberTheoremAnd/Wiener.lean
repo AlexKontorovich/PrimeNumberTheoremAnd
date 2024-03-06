@@ -212,7 +212,9 @@ the claim then follows from Fubini's theorem.
         convert hf σ' hσ with n
         by_cases h : n = 0
         · simp [nterm, term, h]
-        · simp [nterm, term, h, Complex.abs_cpow_of_ne_zero (by simp [h])]
+        · simp [nterm, term, h]
+          have : (n : ℂ) ≠ 0 := by simp [h]
+          simp [Complex.abs_cpow_of_ne_zero this]
 
 /-%%
 \begin{lemma}[Second Fourier identity]\label{second-fourier}\lean{second_fourier}\leanok If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
@@ -288,7 +290,7 @@ so by Fubini's theorem it suffices to verify the identity
 \end{align*}
 \end{proof}
 %%-/
-  conv in ↑(rexp _) * _ => { rw [fourierIntegral_def, ← smul_eq_mul, ← integral_smul] }
+  conv in ↑(rexp _) * _ => { rw [Real.fourierIntegral_real_eq, ← smul_eq_mul, ← integral_smul] }
   rw [MeasureTheory.integral_integral_swap (second_fourier_integrable_aux1 hcont hsupp hσ),
     ← integral_mul_left]
   congr 1; ext t
