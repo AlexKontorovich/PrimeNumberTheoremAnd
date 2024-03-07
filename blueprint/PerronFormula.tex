@@ -1,0 +1,358 @@
+
+In this section, we prove the Perron formula, which plays a key role in our proof of Mellin inversion.
+
+
+The following is preparatory material used in the proof of the Perron formula, see Lemma \ref{formulaLtOne}.
+
+\end{proof}
+
+\end{proof}
+
+\end{proof}
+
+
+TODO : Move to general section
+\begin{lemma}[limitOfConstant]\label{limitOfConstant}\lean{limitOfConstant}\leanok
+Let $a:\R\to\C$ be a function, and let $\sigma>0$ be a real number. Suppose that, for all
+$\sigma, \sigma'>0$, we have $a(\sigma')=a(\sigma)$, and that
+$\lim_{\sigma\to\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
+\end{lemma}
+
+
+\begin{proof}\leanok\begin{align*}
+\lim_{\sigma'\to\infty}a(\sigma) &= \lim_{\sigma'\to\infty}a(\sigma') \\
+
+ &= 0
+
+\end{align*}\end{proof}
+
+
+\begin{lemma}[limitOfConstantLeft]\label{limitOfConstantLeft}\lean{limitOfConstantLeft}\leanok
+Let $a:\R\to\C$ be a function, and let $\sigma<-3/2$ be a real number. Suppose that, for all
+$\sigma, \sigma'>0$, we have $a(\sigma')=a(\sigma)$, and that
+$\lim_{\sigma\to-\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
+\end{lemma}
+
+
+\begin{proof}\leanok
+\begin{align*}
+\lim_{\sigma'\to-\infty}a(\sigma) &= \lim_{\sigma'\to-\infty}a(\sigma') \\
+
+ &= 0
+
+\end{align*}\end{proof}
+
+
+\begin{lemma}[tendsto_rpow_atTop_nhds_zero_of_norm_lt_one]\label{tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}\lean{tendsto_rpow_atTop_nhds_zero_of_norm_lt_one}\leanok
+Let $x>0$ and $x<1$. Then
+$$\lim_{\sigma\to\infty}x^\sigma=0.$$
+\end{lemma}
+
+
+\begin{proof}\leanok
+Standard.
+
+\end{proof}
+
+
+\begin{lemma}[tendsto_rpow_atTop_nhds_zero_of_norm_gt_one]\label{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\lean{tendsto_rpow_atTop_nhds_zero_of_norm_gt_one}\leanok
+Let $x>1$. Then
+$$\lim_{\sigma\to-\infty}x^\sigma=0.$$
+\end{lemma}
+
+
+\begin{proof}\leanok
+Standard.
+\end{proof}
+
+
+\begin{lemma}[isHolomorphicOn]\label{isHolomorphicOn}\lean{Perron.isHolomorphicOn}\leanok
+Let $x>0$. Then the function $f(s) = x^s/(s(s+1))$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
+\end{lemma}
+
+
+\begin{proof}\leanok
+Composition of differentiabilities.
+
+\end{proof}
+
+
+\begin{lemma}[integralPosAux]\label{integralPosAux}\lean{Perron.integralPosAux}\leanok
+The integral
+$$\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$$
+is positive (and hence convergent - since a divergent integral is zero in Lean, by definition).
+\end{lemma}
+
+
+\begin{proof}\leanok
+This integral is between $\frac{1}{2}$ and $1$ of the integral of $\frac{1}{1+t^2}$, which is $\pi$.
+
+\end{proof}
+
+
+\begin{lemma}[vertIntBound]\label{vertIntBound}\lean{Perron.vertIntBound}\leanok
+Let $x>0$ and $\sigma>1$. Then
+$$\left|
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt.$$
+\end{lemma}
+
+
+\begin{proof}\leanok
+\uses{VerticalIntegral}
+Triangle inequality and pointwise estimate.
+\end{proof}
+
+
+\begin{lemma}[vertIntBoundLeft]\label{vertIntBoundLeft}\lean{Perron.vertIntBoundLeft}\leanok
+Let $x>1$ and $\sigma<-3/2$. Then
+$$\left|
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds\right| \leq x^\sigma \int_\R\frac{1}{|(1/4+t^2)(2+t^2)|^{1/2}}dt.$$
+\end{lemma}
+
+
+\begin{proof}\leanok
+\uses{VerticalIntegral}
+
+
+Triangle inequality and pointwise estimate.
+\end{proof}
+
+
+\begin{lemma}[isIntegrable]\label{isIntegrable}\lean{Perron.isIntegrable}\leanok
+Let $x>0$ and $\sigma\in\R$. Then
+$$\int_{\R}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
+is integrable.
+\end{lemma}
+
+
+\begin{proof}\uses{isHolomorphicOn}\leanok
+By \ref{isHolomorphicOn}, $f$ is continuous, so it is integrable on any interval.
+
+ Also, $|f(x)| = \Theta(x^{-2})$ as $x\to\infty$,
+
+ and $|f(-x)| = \Theta(x^{-2})$ as $x\to\infty$.
+
+ Since $g(x) = x^{-2}$ is integrable on $[a,\infty)$ for any $a>0$, we conclude.
+
+\end{proof}
+
+
+\begin{lemma}[tendsto_zero_Lower]\label{tendsto_zero_Lower}\lean{Perron.tendsto_zero_Lower}\leanok
+Let $x>0$ and $\sigma',\sigma''\in\R$. Then
+$$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
+goes to $0$ as $t\to-\infty$.
+\end{lemma}
+
+
+\begin{proof}\leanok
+The numerator is bounded and the denominator tends to infinity.
+\end{proof}
+
+
+\begin{lemma}[tendsto_zero_Upper]\label{tendsto_zero_Upper}\lean{Perron.tendsto_zero_Upper}\leanok
+Let $x>0$ and $\sigma',\sigma''\in\R$. Then
+$$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
+goes to $0$ as $t\to\infty$.
+\end{lemma}
+
+
+\begin{proof}\leanok
+The numerator is bounded and the denominator tends to infinity.
+\end{proof}
+
+
+We are ready for the first case of the Perron formula, namely when $x<1$:
+\begin{lemma}[formulaLtOne]\label{formulaLtOne}\lean{Perron.formulaLtOne}\leanok
+For $x>0$, $\sigma>0$, and $x<1$, we have
+$$
+\frac1{2\pi i}
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds =0.
+$$
+\end{lemma}
+
+
+\begin{proof}\leanok
+\uses{isHolomorphicOn, HolomorphicOn.vanishesOnRectangle, integralPosAux,
+vertIntBound, limitOfConstant,
+tendsto_rpow_atTop_nhds_zero_of_norm_lt_one,
+tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
+  Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on the half-plane $\{s\in\mathbb{C}:\Re(s)>0\}$.
+  The rectangle integral of $f$ with corners $\sigma-iT$ and $\sigma+iT$ is zero.
+  The limit of this rectangle integral as $T\to\infty$ is $\int_{(\sigma')}-\int_{(\sigma)}$.
+  Therefore, $\int_{(\sigma')}=\int_{(\sigma)}$.
+
+ But we also have the bound $\int_{(\sigma')} \leq x^{\sigma'} * C$, where
+
+ $C=\int_\R\frac{1}{|(1+t)(1+t+1)|}dt$.
+
+ Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
+
+\end{proof}
+
+
+The second case is when $x>1$.
+Here are some auxiliary lemmata for the second case.
+TODO: Move to more general section
+
+
+\begin{lemma}[keyIdentity]\label{keyIdentity}\lean{Perron.keyIdentity}\leanok
+Let $x\in \R$ and $s \ne 0, -1$. Then
+$$
+\frac{x^\sigma}{s(1+s)} = \frac{x^\sigma}{s} - \frac{x^\sigma}{1+s}
+$$
+\end{lemma}
+
+
+\begin{proof}\leanok
+By ring.
+\end{proof}
+
+
+\begin{lemma}[diffBddAtZero]\label{diffBddAtZero}\lean{Perron.diffBddAtZero}\leanok
+Let $x>0$. Then for $0 < c < 1 /2$, we have that the function
+$$
+s ↦ \frac{x^s}{s(s+1)} - \frac1s
+$$
+is bounded above on the rectangle with corners at $-c-i*c$ and $c+i*c$ (except at $s=0$).
+\end{lemma}
+
+
+\begin{proof}\uses{keyIdentity}\leanok
+Applying Lemma \ref{keyIdentity}, the
+ function $s ↦ x^s/s(s+1) - 1/s = x^s/s - x^0/s - x^s/(1+s)$. The last term is bounded for $s$
+ away from $-1$. The first two terms are the difference quotient of the function $s ↦ x^s$ at
+ $0$; since it's differentiable, the difference remains bounded as $s\to 0$.
+\end{proof}
+
+
+\begin{lemma}[diffBddAtNegOne]\label{diffBddAtNegOne}\lean{Perron.diffBddAtNegOne}\leanok
+Let $x>0$. Then for $0 < c < 1 /2$, we have that the function
+$$
+s ↦ \frac{x^s}{s(s+1)} - \frac{-x^{-1}}{s+1}
+$$
+is bounded above on the rectangle with corners at $-1-c-i*c$ and $-1+c+i*c$ (except at $s=-1$).
+\end{lemma}
+
+
+\begin{proof}\uses{keyIdentity}\leanok
+Applying Lemma \ref{keyIdentity}, the
+ function $s ↦ x^s/s(s+1) - x^{-1}/(s+1) = x^s/s - x^s/(s+1) - (-x^{-1})/(s+1)$. The first term is bounded for $s$
+ away from $0$. The last two terms are the difference quotient of the function $s ↦ x^s$ at
+ $-1$; since it's differentiable, the difference remains bounded as $s\to -1$.
+\end{proof}
+
+
+\begin{lemma}[residueAtZero]\label{residueAtZero}\lean{Perron.residueAtZero}\leanok
+Let $x>0$. Then for all sufficiently small $c>0$, we have that
+$$
+\frac1{2\pi i}
+\int_{-c-i*c}^{c+ i*c}\frac{x^s}{s(s+1)}ds = 1.
+$$
+\end{lemma}
+
+
+\begin{proof}\leanok
+\uses{diffBddAtZero, ResidueTheoremOnRectangleWithSimplePole,
+existsDifferentiableOn_of_bddAbove}
+For $c>0$ sufficiently small,
+
+ $x^s/(s(s+1))$ is equal to $1/s$ plus a function, $g$, say,
+holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
+
+ Now apply Lemma \ref{ResidueTheoremOnRectangleWithSimplePole}.
+
+\end{proof}
+
+
+\begin{lemma}[residuePull1]\label{residuePull1}\lean{Perron.residuePull1}\leanok
+For $x>1$ (of course $x>0$ would suffice) and $\sigma>0$, we have
+$$
+\frac1{2\pi i}
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds =1
++
+\frac 1{2\pi i}
+\int_{(-1/2)}\frac{x^s}{s(s+1)}ds.
+$$
+\end{lemma}
+
+
+\begin{proof}\leanok
+\uses{residueAtZero}
+We pull to a square with corners at $-c-i*c$ and $c+i*c$ for $c>0$
+sufficiently small.
+By Lemma \ref{residueAtZero}, the integral over this square is equal to $1$.
+\end{proof}
+
+
+\begin{lemma}[residuePull2]\label{residuePull2}\lean{Perron.residuePull2}\leanok
+For $x>1$, we have
+$$
+\frac1{2\pi i}
+\int_{(-1/2)}\frac{x^s}{s(s+1)}ds = -1/x +
+\frac 1{2\pi i}
+\int_{(-3/2)}\frac{x^s}{s(s+1)}ds.
+$$
+\end{lemma}
+
+
+\begin{proof}\leanok
+\uses{residueAtNegOne}
+Pull contour from $(-1/2)$ to $(-3/2)$.
+\end{proof}
+
+
+\begin{lemma}[contourPull3]\label{contourPull3}\lean{Perron.contourPull3}\leanok
+For $x>1$ and $\sigma<-3/2$, we have
+$$
+\frac1{2\pi i}
+\int_{(-3/2)}\frac{x^s}{s(s+1)}ds = \frac 1{2\pi i}
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds.
+$$
+\end{lemma}
+
+
+\begin{proof}\leanok
+Pull contour from $(-3/2)$ to $(\sigma)$.
+\end{proof}
+
+
+\begin{lemma}[formulaGtOne]\label{formulaGtOne}\lean{Perron.formulaGtOne}\leanok
+For $x>1$ and $\sigma>0$, we have
+$$
+\frac1{2\pi i}
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds =1-1/x.
+$$
+\end{lemma}
+
+
+\begin{proof}\leanok
+\uses{isHolomorphicOn, residuePull1,
+residuePull2, contourPull3, integralPosAux, vertIntBoundLeft,
+tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
+  Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,1}$.
+
+ First pull the contour from $(\sigma)$ to $(-1/2)$, picking up a residue $1$ at $s=0$.
+
+ Next pull the contour from $(-1/2)$ to $(-3/2)$, picking up a residue $-1/x$ at $s=-1$.
+
+ Then pull the contour all the way to $(\sigma')$ with $\sigma'<-3/2$.
+
+ For $\sigma' < -3/2$, the integral is bounded by $x^{\sigma'}\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$.
+
+ Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
+
+
+\end{proof}
+
+
+The two together give the Perron formula. (Which doesn't need to be a separate lemma.)
+
+For $x>0$ and $\sigma>0$, we have
+$$
+\frac1{2\pi i}
+\int_{(\sigma)}\frac{x^s}{s(s+1)}ds = \begin{cases}
+1-\frac1x & \text{ if }x>1\\
+0 & \text{ if } x<1
+\end{cases}.
+$$
+

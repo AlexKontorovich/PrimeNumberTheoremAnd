@@ -1,0 +1,292 @@
+
+\begin{lemma}[sum_eq_int_deriv_aux]\label{sum_eq_int_deriv_aux}\lean{sum_eq_int_deriv_aux}\leanok
+  Let $k \le a < b\le k+1$, with $k$ an integer, and let $\phi$ be continuously differentiable on
+  $[a, b]$.
+  Then
+  \[
+  \sum_{a < n \le b} \phi(n) = \int_a^b \phi(x) \, dx + \left(\lfloor b \rfloor + \frac{1}{2} - b\right) \phi(b) - \left(\lfloor a \rfloor + \frac{1}{2} - a\right) \phi(a) - \int_a^b \left(\lfloor x \rfloor + \frac{1}{2} - x\right) \phi'(x) \, dx.
+  \]
+\end{lemma}
+
+
+\begin{proof}\leanok
+Partial integration.
+\end{proof}
+
+
+\begin{lemma}[sum_eq_int_deriv]\label{sum_eq_int_deriv}\lean{sum_eq_int_deriv}\leanok
+  Let $a < b$, and let $\phi$ be continuously differentiable on $[a, b]$.
+  Then
+  \[
+  \sum_{a < n \le b} \phi(n) = \int_a^b \phi(x) \, dx + \left(\lfloor b \rfloor + \frac{1}{2} - b\right) \phi(b) - \left(\lfloor a \rfloor + \frac{1}{2} - a\right) \phi(a) - \int_a^b \left(\lfloor x \rfloor + \frac{1}{2} - x\right) \phi'(x) \, dx.
+  \]
+\end{lemma}
+
+
+\begin{proof}\uses{sum_eq_int_deriv_aux}
+  Apply Lemma \ref{sum_eq_int_deriv_aux} in blocks of length $\le 1$.
+\end{proof}
+
+
+\begin{lemma}[ZetaSum_aux1]\label{ZetaSum_aux1}\lean{ZetaSum_aux1}\leanok
+  Let $a < b$ be natural numbers and $s\in \C$ with $s \ne 1$.
+  Then
+  \[
+  \sum_{a < n \le b} \frac{1}{n^s} =  \frac{b^{1-s} - a^{1-s}}{1-s} + \frac{b^{-s}-a^{-s}}{2} + s \int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx.
+  \]
+\end{lemma}
+
+
+\begin{proof}\uses{sum_eq_int_deriv}
+  Apply Lemma \ref{sum_eq_int_deriv} to the function $x \mapsto x^{-s}$.
+\end{proof}
+
+
+\begin{lemma}[ZetaSum_aux1a]\label{ZetaSum_aux1a}\lean{ZetaSum_aux1a}\leanok
+For any $0 < a < b$ and  $s \in \C$ with $\sigma=\Re(s)>0$,
+$$
+\left|\int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx\right|
+\le \frac{a^{-\sigma}-b^{-\sigma}}/{\sigma}.
+$$
+\end{lemma}
+
+
+\begin{proof}
+Apply the triangle inequality
+$$
+\left|\int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx\right|
+\le \int_a^b \frac{1}{x^{\sigma+1}} \, dx,
+$$
+and evaluate the integral.
+\end{proof}
+
+
+\begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
+  Let $N$ be a natural number and $s\in \C$, $\Re(s)>1$.
+  Then
+  \[
+  \sum_{N < n} \frac{1}{n^s} =  \frac{- N^{1-s}}{1-s} + \frac{-N^{-s}}{2} + s \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx.
+  \]
+\end{lemma}
+
+
+\begin{proof}\uses{ZetaSum_aux1, ZetaSum_aux1a}
+  Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
+\end{proof}
+
+
+\begin{definition}[RiemannZeta0]\label{RiemannZeta0}\lean{RiemannZeta0}\leanok
+\uses{ZetaSum_aux2}
+For any natural $N\ge1$, we define
+$$
+\zeta_0(N,s) :=
+\sum_{1\le n < N} \frac1{n^s}
++
+\frac{- N^{1-s}}{1-s} + \frac{-N^{-s}}{2} + s \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
+$$
+\end{definition}
+
+
+\begin{lemma}[ZetaBndAux]\label{ZetaBndAux}\lean{ZetaBndAux}\leanok
+For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in[1/2,2]$,
+$$
+s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
+\ll |t| \frac{N^{-\sigma}}{\sigma},
+$$
+as $|t|\to\infty$.
+\end{lemma}
+
+
+\begin{proof}\uses{ZetaSum_aux1a}
+Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\ll |t|$.
+\end{proof}
+
+
+\begin{lemma}[Zeta0EqZeta]\label{Zeta0EqZeta}\lean{Zeta0EqZeta}\leanok
+If $\Re(s)>0$, then for any $N$,
+$$
+\zeta_0(N,s) = \zeta(s).
+$$
+[** What about junk values at $s=1$? Maybe add $s\ne1$. **]
+\end{lemma}
+
+
+\begin{proof}
+\uses{ZetaSum_aux2, RiemannZeta0, ZetaBnd_aux1}
+Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{RiemannZeta0}.
+\end{proof}
+
+
+\begin{lemma}[ZetaBnd_aux2]\label{ZetaBnd_aux2}\lean{ZetaBnd_aux2}\leanok
+Given $n ≤ t$ and $\sigma$ with $1-A/\log t \le \sigma$, we have
+that
+$$
+|n^{-s}| \le n^{-1} e^A.
+$$
+\end{lemma}
+
+
+\begin{proof}
+Use $|n^{-s}| = n^{-\sigma}
+= e^{-\sigma \log n}
+\le
+\exp(-\left(1-\frac{A}{\log t}\right)\log n)
+\le
+n^{-1} e^A$,
+since $n\le t$.
+\end{proof}
+
+
+\begin{lemma}[ZetaUpperBnd]\label{ZetaUpperBnd}\lean{ZetaUpperBnd}\leanok
+For any $s\in \C$, $1/2 \le \Re(s)=\sigma\le 2$,
+and any $A>0$ sufficiently small, and $1-A/\log t \le \sigma$, we have
+$$
+|\zeta(s)| \ll \log t,
+$$
+as $|t|\to\infty$.
+\end{lemma}
+
+
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
+First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
+We estimate:
+$$
+|\zeta_0(N,s)| \ll
+\sum_{1\le n < |t|} |n^{-s}|
++
+\frac{- |t|^{1-\sigma}}{|1-s|} + \frac{-|t|^{-\sigma}}{2} +
+|t| * |t| ^ (-σ) / σ
+$$
+$$
+\ll
+e^A \sum_{1\le n < |t|} n^{-1}
++|t|^{1-\sigma}
+$$
+,
+where we used Lemma \ref{ZetaBnd_aux2} and Lemma \ref{ZetaBnd_aux1}.
+The first term is $\ll \log |t|$.
+For the second term, estimate
+$$
+|t|^{1-\sigma}
+\le |t|^{1-(1-A/\log |t|)}
+= |t|^{A/\log |t|} \ll 1.
+$$
+\end{proof}
+
+
+\begin{lemma}[ZetaDerivUpperBnd]\label{ZetaDerivUpperBnd}\lean{ZetaDerivUpperBnd}\leanok
+For any $s\in \C$, $1/2 \le \Re(s)=\sigma\le 2$,
+and any $A>0$ sufficiently small, and $1-A/\log t \le \sigma$, we have
+$$
+|\zeta'(s)| \ll \log^2 t,
+$$
+as $|t|\to\infty$.
+\end{lemma}
+
+
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
+First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
+Differentiating term by term, we get:
+$$
+\zeta'(s) = -\sum_{1\le n < N} n^{-s} \log n
+-
+\frac{N^{1 - s}}{1 - s)^2} + \frac{N^{1 - s} \log N} {1 - s}
++ \frac{-N^{-s}\log N}{2} +
+\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
+-
+s(s+1) \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+2}} \, dx
+.
+$$
+Estimate as before, with an extra factor of $\log |t|$.
+\end{proof}
+
+
+\begin{lemma}[ZetaNear1Bnd]\label{ZetaNear1Bnd}\lean{ZetaNear1Bnd}\leanok
+As $\simga\to1^+$,
+$$
+|\zeta(\sigma)| \ll (\sigma-1).
+$$
+\end{lemma}
+
+
+\begin{proof}\uses{ZetaBnd_aux1, Zeta0EqZeta}
+Zeta has a simple pole at $s=1$. Equivalently, $\zeta(s)(s-1)$ remains bounded near $1$.
+Lots of ways to prove this.
+Probably the easiest one: use the expression for $\zeta_0 (N,s)$ with $N=1$ (the term $N^{1-s}/(1-s)$ being the only unbounded one).
+\end{proof}
+
+
+\begin{lemma}[ZetaInvBound1]\label{ZetaInvBound1}\lean{ZetaInvBound1}\leanok
+For all $\sigma>1$,
+$$
+1/|\zeta(\sigma+it)| \le |\zeta(\sigma)|^{3/4}|\zeta(\sigma+2it)|^{1/4}
+$$
+\end{lemma}
+
+
+\begin{proof}
+The identity
+$$
+1 \le |\zeta(\sigma)|^3 |\zeta(\sigma+it)|^4 |\zeta(\sigma+2it)|
+$$
+for $\sigma>1$
+is already proved by Michael Stoll in the EulerProducts PNT file.
+\end{proof}
+
+
+\begin{lemma}[ZetaInvBound2]\label{ZetaInvBound2}\lean{ZetaInvBound2}\leanok
+For $\sigma>1$ (and $\sigma \le 2$),
+$$
+1/|\zeta(\sigma+it)| \ll (\sigma-1)^{3/4}(\log |t|)^{1/4},
+$$
+as $|t|\to\infty$.
+\end{lemma}
+
+
+\begin{proof}\uses{ZetaInvBound1, ZetaNear1Bnd, ZetaUpperBnd}
+Combine Lemma \ref{ZetaInvBound1} with the bounds in Lemmata \ref{ZetaNear1Bnd} and
+\ref{ZetaUpperBnd}.
+
+
+\begin{lemma}[Zeta_eq_int_derivZeta]\label{Zeta_eq_int_derivZeta}\lean{Zeta_eq_int_derivZeta}
+\leanok
+For any $t\ne0$ (so we don't pass through the pole), and $\sigma_1 < \sigma_2$,
+$$
+\int_{\sigma_1}^{\sigma_2}\zeta'(\sigma + it) dt =
+\zeta(\sigma_2+it) - \zeta(\sigma_1+it).
+$$
+\end{lemma}
+
+
+\begin{proof}
+This is the fundamental theorem of calculus.
+\end{proof}
+
+
+\begin{lemma}[Zeta_diff_Bnd]\label{Zeta_diff_Bnd}\lean{Zeta_diff_Bnd}\leanok
+For any $A>0$ sufficiently small, there is a constant $C>0$ so that
+whenever $1- A / \log t \le \sigma_1, \sigma_2\le 2$, we have that:
+$$
+|\zeta (\sigma_2 + it) - \zeta (\sigma_1 + it)|
+\le C (\log |t|)^2 (\sigma_2 - \sigma_1).
+$$
+\end{lemma}
+
+
+\begin{proof}
+\uses{Zeta_eq_int_derivZeta, ZetaDerivUpperBnd}
+Use Lemma \ref{Zeta_eq_int_derivZeta} and
+estimate trivially using Lemma \ref{ZetaDerivUpperBnd}.
+\end{proof}
+
+
+\begin{lemma}[ZetaInvBnd]\label{ZetaInvBnd}\lean{ZetaInvBnd}\leanok
+Lemma.
+\end{lemma}
+
+
+\begin{proof}
+\uses{Zeta_diff_Bnd}
+Proof.
+\end{proof}
+
