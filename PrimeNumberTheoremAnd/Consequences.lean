@@ -2,6 +2,8 @@ import PrimeNumberTheoremAnd.Wiener
 import Mathlib.Analysis.Asymptotics.Asymptotics
 import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
+import Mathlib.Data.Nat.Interval
+import Mathlib.NumberTheory.ArithmeticFunction
 
 open BigOperators Filter Real Classical Asymptotics MeasureTheory
 open ArithmeticFunction hiding log
@@ -198,7 +200,52 @@ Use Corollary \ref{pi-alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infini
 \end{proposition}
 %%-/
 
-theorem sum_mobius_div_self_le : ∃ C : ℝ, ∀ N:ℕ, |∑ n in Finset.range N, μ n / n| ≤ C := by sorry
+open Finset in
+theorem sum_Icc_mul_zeta
+    {R : Type*} [Semiring R] (f : ArithmeticFunction R) (N : ℕ) :
+    ∑ d in Icc 1 N, (f * ζ) d = ∑ d in Icc 1 N, (N / d) • f d := by
+  sorry
+
+open Finset Nat in
+theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / n| ≤ 1 := by
+  cases' N with N
+  /- simple cases -/
+  simp only [range_zero, sum_empty, abs_zero, zero_le_one]
+  by_cases hN : 1 ≤ N
+  swap
+  simp only [not_le, lt_one_iff] at hN
+  subst hN
+  simp only [reduceSucc, range_one, sum_singleton, ArithmeticFunction.map_zero, cast_zero,
+    EuclideanDomain.div_zero, abs_zero, zero_le_one]
+  /- annoying case -/
+  have aux1 {n : ℕ} (hn : 1 ≤ n) : 1 = ∑ m in Icc 1 n, ∑ d in m.divisors, μ d := by
+    have {N : ℕ} : (1 : ArithmeticFunction _) N = ∑ d in N.divisors, μ d := by
+      rw [← coe_mul_zeta_apply, moebius_mul_coe_zeta]
+    rw [Icc_eq_cons_Ioc hn, Finset.sum_cons, divisors_one, sum_singleton, moebius_apply_one]
+    have {x : ℕ} (hx : x ∈ Ioc 1 n) : ∑ d in divisors x, μ d = 0 := by
+      rw [mem_Ioc] at hx
+      simp only [← this, one_apply, hx.left.ne.symm, if_false]
+    rw [sum_congr rfl (fun _ ↦ this), sum_const, smul_zero, add_zero]
+  have aux2 {n : ℕ} (hn : 1 ≤ n) : 1 = ∑ d in range (n + 1), μ d * (n / d) := by
+    simp_rw [aux1 hn, ← coe_mul_zeta_apply, sum_Icc_mul_zeta, nsmul_eq_mul, mul_comm]
+    rw [range_eq_Ico, ← Ico_insert_succ_left (succ_pos _), sum_insert, ArithmeticFunction.map_zero,
+      mul_zero, zero_add]
+    · congr
+    · simp
+  have aux2_rat : 1 = ∑ d in range (N + 1), (μ : ArithmeticFunction ℚ) d * (N / d : ℕ) := by
+    simp_rw [← Int.cast_one (R := ℚ), aux2 hN]
+    convert map_sum (Int.castRingHom ℚ) (fun x ↦ μ x * (N / x : ℕ)) (range (N + 1))
+    simp
+    left
+    norm_cast
+  /- rewrite Nat division (N / d) as ⌊N / d⌋ -/
+  rw [sum_congr rfl (g := fun d ↦ (μ : ArithmeticFunction ℚ) d * ⌊(N : ℚ) / (d : ℚ)⌋)] at aux2_rat
+  swap
+  intros
+  rw [show (N : ℚ) = ((N : ℤ) : ℚ) by norm_cast, Rat.floor_int_div_nat_eq_div]
+  norm_cast
+
+  sorry
 
 /-%%
 \begin{proof}
