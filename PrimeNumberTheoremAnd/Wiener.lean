@@ -443,7 +443,7 @@ lemma continuous_LSeries_aux {f : ArithmeticFunction ℂ} {σ' : ℝ}  (hf : Sum
       simp
   exact continuous_tsum l1 hf (fun n x => le_of_eq (l2 n x))
 
-lemma limiting_fourier_aux (σ' : ℝ) (hσ' : 1 < σ') (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
+lemma limiting_fourier_aux (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) (σ' : ℝ) (hσ' : 1 < σ') :
     ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
     A * (x ^ (1 - σ') : ℝ) * ∫ u in Ici (- log x), rexp (-u * (σ' - 1)) * 𝓕 ψ (u / (2 * π)) =
     ∫ t : ℝ, G (σ' + t * I) * ψ t * x ^ (t * I) := by
@@ -480,12 +480,21 @@ lemma limiting_fourier_aux (σ' : ℝ) (hσ' : 1 < σ') (hψ : ContDiff ℝ 2 ψ
 lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
     ∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π)) =
-      ∫ (t : ℝ), (G (1 + I * t)) * (ψ t) * x ^ (I * t) := by
+      ∫ (t : ℝ), (G (1 + I * t)) * (ψ t) * x ^ (t * I) := by
 
-  have key (σ') (hσ' : 1 < σ') := limiting_fourier_aux hf hG' σ' hσ' hψ hsupp hx
+  let f₁ (σ' : ℝ) := ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))
+  let f₂ (σ' : ℝ) := A * ↑(x ^ (1 - σ')) * ∫ (u : ℝ) in Ici (-Real.log x), rexp (-u * (σ' - 1)) * 𝓕 ψ (u / (2 * π))
+  let f₃ (σ' : ℝ) := ∫ (t : ℝ), G (σ' + t * I) * ψ t * x ^ (t * I)
 
-  have l1 : Tendsto (fun σ' : ℝ => ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x)))
-      (𝓝[>] 1) (𝓝 (∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x)))) := by
+  have key : f₁ - f₂ =ᶠ[𝓝[>] 1] f₃ := by
+    simpa only [eventuallyEq_nhdsWithin_iff, Pi.sub_apply]
+    using eventually_of_forall (limiting_fourier_aux hf hG' hψ hsupp hx)
+
+  set ℓ₁ := ∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))
+  set ℓ₂ := A * ∫ (u : ℝ) in Ici (-Real.log x), 𝓕 ψ (u / (2 * π))
+  set ℓ₃ := ∫ (t : ℝ), G (1 + I * t) * ψ t * x ^ (t * I)
+
+  have l1 : Tendsto f₁ (𝓝[>] 1) (𝓝 ℓ₁) := by
     apply tendsto_tsum_of_dominated_convergence
     · sorry
     · intro n
@@ -496,10 +505,15 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
         apply tendsto_const_nhds.div
         · simpa using ((continuous_ofReal.tendsto 1).mono_left nhdsWithin_le_nhds).const_cpow
         · simp[h]
-    · sorry
+    · intro σ' n
+      sorry
     · sorry
 
-  sorry
+  have l2 : Tendsto f₂ (𝓝[>] 1) (𝓝 ℓ₂) := sorry
+
+  have l3 : Tendsto f₃ (𝓝[>] 1) (𝓝 ℓ₃) := sorry
+
+  exact tendsto_nhds_unique_of_eventuallyEq (l1.sub l2) l3 key
 
 /-%%
 \begin{proof}
