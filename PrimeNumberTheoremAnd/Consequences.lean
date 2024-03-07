@@ -276,7 +276,7 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| 
   <;> linarith [h_bound.left]
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 From M\"obius inversion $1_{n=1} = \sum_{d|n} \mu(d)$ and summing we have
   $$ 1 = \sum_{d \leq x} \mu(d) \lfloor \frac{x}{d} \rfloor$$
   for any $x \geq 1$. Since $\lfloor \frac{x}{d} \rfloor = \frac{x}{d} - \epsilon_d$ with
