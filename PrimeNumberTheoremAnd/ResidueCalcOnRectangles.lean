@@ -173,7 +173,7 @@ theorem RectangleBorderIntegrable.add {f g : ℂ → E} (hf : RectangleBorderInt
   rw [intervalIntegral.integral_add hf.1 hg.1, intervalIntegral.integral_add hf.2.1 hg.2.1,
     intervalIntegral.integral_add hf.2.2.1 hg.2.2.1, intervalIntegral.integral_add hf.2.2.2 hg.2.2.2]
   rw [← sub_eq_zero]
-  simp only [smul_add]; abel_nf; simp
+  simp only [smul_add]; abel
 
 theorem ContinuousOn.rectangleBorder_integrable (hf : ContinuousOn f (RectangleBorder z w)) :
     RectangleBorderIntegrable f z w :=
@@ -244,7 +244,7 @@ lemma RectangleIntegralVSplit {b x₀ x₁ y₀ y₁ : ℝ}
   simp only [mul_one, mul_zero, add_zero, zero_add, sub_self]
   rw [← intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_left f_int_b_y₁_left,
     ← intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_right f_int_b_y₁_right, ← sub_eq_zero]
-  simp only [smul_add]; abel_nf; simp
+  simp only [smul_add]; abel
 
 lemma RectangleIntegralVSplit' {b x₀ x₁ y₀ y₁ : ℝ} (hb : b ∈ [[y₀, y₁]])
     (hf : RectangleBorderIntegrable f (↑x₀ + ↑y₀ * I) (↑x₁ + ↑y₁ * I)) :

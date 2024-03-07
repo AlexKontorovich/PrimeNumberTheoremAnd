@@ -8,7 +8,7 @@ import Mathlib.Geometry.Manifold.PartitionOfUnity
 import Mathlib.Tactic.FunProp.AEMeasurable
 import Mathlib.Tactic.FunProp.Measurable
 
-open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform
+open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries
 open Complex hiding log
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems impossible to hide, and hence parameters that are traditionally called σ will have to be called σ' instead in this file.
 
@@ -82,7 +82,13 @@ $$ F(s) := \sum_{n=1}^\infty \frac{f(n)}{n^s}$$
 is absolutely convergent for $\sigma>1$.
 %%-/
 
-variable {f: ArithmeticFunction ℝ} (hf: ∀ (σ':ℝ), 1 < σ' → Summable (fun n ↦ |f n| / n^σ'))
+noncomputable
+def nterm (f : ℕ → ℂ) (σ' : ℝ) (n : ℕ) : ℝ := if n = 0 then 0 else ‖f n‖ / n ^ σ'
+
+variable {f : ArithmeticFunction ℂ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+
+lemma nterm_eq_norm_term {f : ℕ → ℂ} {σ' : ℝ} {n : ℕ} : nterm f σ' n = ‖term f σ' n‖ := by
+  by_cases h : n = 0 <;> simp [nterm, term, h]
 
 @[simp]
 theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
@@ -91,14 +97,12 @@ theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_
 theorem nnnorm_circle_smul (z : circle) (s : ℂ) : ‖z • s‖₊ = ‖s‖₊ := by
   simp [show z • s = z.val * s from rfl]
 
-lemma hf_coe1 {σ' : ℝ} (hσ : 1 < σ') :
-    (∑' (i : ℕ), ↑‖(f i : ℂ) / ↑((i : ℝ) ^ σ')‖₊ : ENNReal) ≠ ⊤ := by
-  apply ENNReal.tsum_coe_ne_top_iff_summable_coe.mpr
+lemma hf_coe1 {σ' : ℝ} (hσ : 1 < σ') : ∑' i, (‖term f σ' i‖₊ : ENNReal) ≠ ⊤ := by
+  simp_rw [ENNReal.tsum_coe_ne_top_iff_summable_coe, ← norm_toNNReal]
   norm_cast
-  simp_rw [← norm_toNNReal]
   apply Summable.toNNReal
-  have (n : ℕ) : 0 ≤ (n : ℝ) ^ σ' := by positivity
-  simp_rw [norm_div, Real.norm_eq_abs, _root_.abs_of_nonneg (this _), hf σ' hσ]
+  convert hf σ' hσ with i
+  simp [nterm_eq_norm_term]
 
 lemma first_fourier_aux1 {ψ : ℝ → ℂ} (hψ: Continuous ψ) {x : ℝ} (n : ℕ) : Measurable fun (u : ℝ) ↦
     (‖fourierChar (-(u * ((1 : ℝ) / ((2 : ℝ) * π) * (n / x).log))) • ψ u‖₊ : ENNReal) := by
@@ -108,44 +112,36 @@ lemma first_fourier_aux1 {ψ : ℝ → ℂ} (hψ: Continuous ψ) {x : ℝ} (n : 
   exact Continuous.measurable Real.continuous_fourierChar
 
 lemma first_fourier_aux2a {x y : ℝ} {n : ℕ} :
-    (2 : ℂ) * π * -(y * (1 / (2 * π) * Real.log ((n + 1) / x))) = -(y * ((n + 1) / x).log) := by
+    (2 : ℂ) * π * -(y * (1 / (2 * π) * Real.log ((n) / x))) = -(y * ((n) / x).log) := by
   calc
-    _ = -(y * (((2 : ℂ) * π) / (2 * π) * Real.log ((n + 1) / x))) := by ring
+    _ = -(y * (((2 : ℂ) * π) / (2 * π) * Real.log ((n) / x))) := by ring
     _ = _ := by rw [div_self (by norm_num; exact pi_ne_zero), one_mul]
 
-lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hσ : 1 < σ') (hx : 0 < x) (n : ℕ) :
-    (f n : ℂ) / ↑((n : ℝ) ^ σ') *
-    fourierChar (-(y * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (↑n / x)))) • ψ y =
-    ((f n : ℂ) / n ^ (↑σ' + ↑y * I)) • (ψ y * ↑x ^ (↑y * I)) := by
-  show _ * ((fourierChar <| Multiplicative.ofAdd (_) : ℂ) • ψ y) = ((f n : ℂ) / _) • _
-  rw [fourierChar_apply]
-  show _ / _ * cexp (↑(_ * -(y * _)) * I) • ψ y = _
+lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hx : 0 < x) (n : ℕ) :
+    term f σ' n * 𝐞 [-(y * (1 / (2 * π) * Real.log (n / x)))] • ψ y =
+    term f (σ' + y * I) n • (ψ y * x ^ (y * I)) := by
+  by_cases hn : n = 0 ; simp [term, hn]
+  simp only [term, hn, ↓reduceIte, fourierChar_apply]
   calc
-    _ = ((f n : ℂ) *
-        (cexp (↑((2 : ℝ) * π * -(y * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) * I) /
-        ↑((n : ℝ) ^ σ'))) • ψ y := by
-      simp_rw [smul_eq_mul]; group
-    _ = ((f n : ℂ) * (↑x ^ (↑y * I) / ↑n ^ (↑σ' + ↑y * I))) • ψ y := by
+    _ = (f n * (cexp ((2 * π * -(y * (1 / (2 * π) * Real.log (n / x)))) * I) / ↑((n : ℝ) ^ σ'))) • ψ y := by
+      have : ((↑n : ℂ) ^ (σ' : ℂ) : ℂ) = ((↑n : ℝ) ^ (σ' : ℝ) : ℝ) := by
+        rw [Complex.cpow_def_of_ne_zero (by simp [hn]), Real.rpow_def_of_nonneg (cast_nonneg n)]
+        simp [hn]
+      simp [smul_eq_mul, mul_assoc, this] ; ring_nf
+    _ = (f n * (x ^ (y * I) / n ^ (σ' + y * I))) • ψ y := by
       congr 2
-      cases n with
-      | zero =>
-        have : σ' = 0 → ¬y = 0 := fun _ ↦ False.elim (by linarith)
-        simp [Real.zero_rpow (by linarith : σ' ≠ 0),
-          Complex.zero_cpow (by simpa [Complex.ext_iff] using this : σ' + ↑y * I ≠ 0)]
-      | succ n =>
-        rw [Real.rpow_def_of_pos (cast_pos.mpr (Nat.zero_lt_succ n)),
-          Complex.cpow_def_of_ne_zero (ofReal_ne_zero.mpr (ne_of_gt hx)),
-          Complex.cpow_def_of_ne_zero (NeZero.natCast_ne (succ n) ℂ)]
-        push_cast
-        simp_rw [← Complex.exp_sub]
-        congr 1
-        rw [first_fourier_aux2a, Real.log_div (cast_add_one_ne_zero n) (ne_of_gt hx)]
-        push_cast
-        rw [Complex.ofReal_log (by linarith), Complex.ofReal_log hx.le]
-        push_cast
-        ring
-    _ = _ := by simp_rw [smul_eq_mul]; group
-
+      have l1 : 0 < (n : ℝ) := by simpa using Nat.pos_iff_ne_zero.mpr hn
+      have l2 : (x : ℂ) ≠ 0 := by simp [hx.ne.symm]
+      have l3 : (n : ℂ) ≠ 0 := by simp [hn]
+      rw [Real.rpow_def_of_pos l1, Complex.cpow_def_of_ne_zero l2, Complex.cpow_def_of_ne_zero l3]
+      push_cast
+      simp_rw [← Complex.exp_sub]
+      congr 1
+      rw [first_fourier_aux2a, Real.log_div l1.ne.symm hx.ne.symm]
+      push_cast
+      rw [Complex.ofReal_log hx.le]
+      ring
+    _ = _ := by simp ; group
 
 /-%%
 \begin{lemma}[First Fourier identity]\label{first-fourier}\lean{first_fourier}\leanok  If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
@@ -154,8 +150,8 @@ lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hσ : 1 < σ') (hx 
 %%-/
 lemma first_fourier {ψ : ℝ → ℂ} (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ)
     {x σ':ℝ} (hx: 0 < x) (hσ: 1 < σ') :
-    ∑' n : ℕ, f n / (n^σ':ℝ) * (fourierIntegral ψ (1 / (2 * π) * log (n / x))) =
-    ∫ t:ℝ, ArithmeticFunction.LSeries f (σ' + t * I) * ψ t * x^(t * I) ∂ volume := by
+    ∑' n : ℕ, term f σ' n * (fourierIntegral ψ (1 / (2 * π) * log (n / x))) =
+    ∫ t : ℝ, LSeries f (σ' + t * I) * ψ t * x ^ (t * I) := by
 /-%%
 \begin{proof}\leanok  By the definition of the Fourier transform, the left-hand side expands as
 $$ \sum_{n=1}^\infty \int_\R \frac{f(n)}{n^\sigma} \psi(t) e( - \frac{1}{2\pi} t \log \frac{n}{x})\ dt$$
@@ -167,14 +163,10 @@ the claim then follows from Fubini's theorem.
 \end{proof}
 %%-/
   calc
-    _ = ∑' (n : ℕ), (f n : ℂ) / ↑((n : ℝ) ^ σ') *
-        ∫ (v : ℝ), fourierChar (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
-      rfl
-    _ = ∑' (n : ℕ), ∫ (v : ℝ), (f n : ℂ) / ↑((n : ℝ) ^ σ') *
-        fourierChar (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
-      congr 1; ext : 1; exact (integral_mul_left _ _).symm
-    _ = ∫ (v : ℝ), ∑' (n : ℕ), (f n : ℂ) / ↑((n : ℝ) ^ σ') *
-        fourierChar (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
+    _ = ∑' n, term f σ' n * ∫ (v : ℝ), 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by rfl
+    _ = ∑' n, ∫ (v : ℝ), term f σ' n * 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
+      simp [integral_mul_left]
+    _ = ∫ (v : ℝ), ∑' (n : ℕ), term f σ' n * 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
       refine (integral_tsum ?_ ?_).symm
       · -- TODO: attribute [fun_prop] Real.continuous_fourierChar once `fun_prop` bugfix is merged
         refine fun _ ↦ Measurable.aestronglyMeasurable ?_
@@ -184,20 +176,22 @@ the claim then follows from Fubini's theorem.
         push_cast
         simp_rw [lintegral_const_mul _ (first_fourier_aux1 hcont _)]
         calc
-          _ = (∑' (i : ℕ), (‖(f i : ℂ) / ↑((i : ℝ) ^ σ')‖₊ : ENNReal)) *
-              ∫⁻ (a : ℝ), ‖ψ a‖₊ ∂volume := by
+          _ = (∑' (i : ℕ), (‖term f σ' i‖₊ : ENNReal)) * ∫⁻ (a : ℝ), ‖ψ a‖₊ ∂volume := by
             simp [ENNReal.tsum_mul_right]
-          _ ≠ ⊤ := ENNReal.mul_ne_top
-            (hf_coe1 hf hσ) (ne_top_of_lt (hcont.integrable_of_hasCompactSupport hsupp).2)
+          _ ≠ ⊤ := ENNReal.mul_ne_top (hf_coe1 hf hσ)
+            (ne_top_of_lt (hcont.integrable_of_hasCompactSupport hsupp).2)
     _ = _ := by
       congr 1; ext y
-      simp_rw [mul_assoc (L _ _), ← smul_eq_mul (a := (L _ _)), ArithmeticFunction.LSeries]
+      simp_rw [mul_assoc (LSeries _ _), ← smul_eq_mul (a := (LSeries _ _)), LSeries]
       rw [← tsum_smul_const]
-      · congr 1; ext n
-        exact first_fourier_aux2 hσ hx n
+      · congr with n ; exact first_fourier_aux2 hx n
       · apply Summable.of_norm
         convert hf σ' hσ with n
-        cases n <;> simp [-cast_succ, Complex.abs_cpow_of_ne_zero (NeZero.natCast_ne _ ℂ)]
+        by_cases h : n = 0
+        · simp [nterm, term, h]
+        · simp [nterm, term, h]
+          have : (n : ℂ) ≠ 0 := by simp [h]
+          simp [Complex.abs_cpow_of_ne_zero this]
 
 /-%%
 \begin{lemma}[Second Fourier identity]\label{second-fourier}\lean{second_fourier}\leanok If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
@@ -222,7 +216,7 @@ lemma second_fourier_integrable_aux1 {ψ : ℝ → ℂ}
     (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ) {σ' x : ℝ} (hσ : 1 < σ') :
     let ν : Measure (ℝ × ℝ) := (volume.restrict (Ici (-Real.log x))).prod volume
     Integrable (Function.uncurry fun (u : ℝ) (a : ℝ) ↦ ((rexp (-u * (σ' - 1))) : ℂ) •
-    (fourierChar (Multiplicative.ofAdd (-(a * (u / (2 * π))))) : ℂ) • ψ a) ν := by
+    (𝐞 (Multiplicative.ofAdd (-(a * (u / (2 * π))))) : ℂ) • ψ a) ν := by
   intro ν
   constructor
   · apply Measurable.aestronglyMeasurable
@@ -273,7 +267,7 @@ so by Fubini's theorem it suffices to verify the identity
 \end{align*}
 \end{proof}
 %%-/
-  conv in ↑(rexp _) * _ => { rw [fourierIntegral_def, ← smul_eq_mul, ← integral_smul] }
+  conv in ↑(rexp _) * _ => { rw [Real.fourierIntegral_real_eq, ← smul_eq_mul, ← integral_smul] }
   rw [MeasureTheory.integral_integral_swap (second_fourier_integrable_aux1 hcont hsupp hσ),
     ← integral_mul_left]
   congr 1; ext t
@@ -314,12 +308,23 @@ Now let $A \in \C$, and suppose that there is a continuous function $G(s)$ defin
 for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies the arguments and can be obtained fairly easily in applications).
 %%-/
 
-variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ ArithmeticFunction.LSeries f s - A / (s - 1)) {s | 1 < s.re})
+variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
 
 -- variable (hcheby: ∃ C:ℝ, ∀ x:ℕ, ∑ n in Finset.Iic x, |f n| ≤ C * x)
 
 theorem HasCompactSupport.integral_deriv_eq_zero {u : ℝ → ℂ} (h1 : ContDiff ℝ 1 u) (h2 : HasCompactSupport u) :
-    ∫ x, deriv u x = 0 := by sorry
+    ∫ x, deriv u x = 0 := by
+  have l1 : Tendsto (fun i ↦ u i - u (-i)) atTop (𝓝 (∫ x, deriv u x)) := by
+    have e1 : Integrable (deriv u) := (contDiff_one_iff_deriv.1 h1).2 |>.integrable_of_hasCompactSupport h2.deriv
+    have e2 (i : ℝ) : ∫ x in -i..i, deriv u x = u i - u (-i) :=
+      intervalIntegral.integral_deriv_eq_sub (fun x _ => h1.differentiable le_rfl x) e1.intervalIntegrable
+    simpa [← e2] using intervalIntegral_tendsto_integral e1 tendsto_neg_atTop_atBot tendsto_id
+  have l2 : Tendsto (fun i => u i - u (-i)) atTop (𝓝 0) := by
+    have e1 : Tendsto u atTop (𝓝 0) := h2.is_zero_at_infty.mono_left _root_.atTop_le_cocompact
+    have e2 : Tendsto (fun i => u (-i)) atTop (𝓝 0) :=
+      h2.is_zero_at_infty.mono_left _root_.atBot_le_cocompact |>.comp tendsto_neg_atTop_atBot
+    simpa using e1.sub e2
+  exact tendsto_nhds_unique l1 l2
 
 theorem HasCompactSupport.integral_mul_deriv {u v : ℝ → ℂ} (hu : ContDiff ℝ 1 u) (hv : ContDiff ℝ 1 v)
     (h : HasCompactSupport v) : ∫ x, u x * deriv v x = - ∫ x, deriv u x * v x := by
@@ -333,12 +338,12 @@ theorem HasCompactSupport.integral_mul_deriv {u v : ℝ → ℂ} (hu : ContDiff 
   simp_rw [l3]
   exact HasCompactSupport.integral_deriv_eq_zero (hu.mul hv) (h.mul_left)
 
-theorem hasDerivAt_fourierChar' {u x : ℝ} : let e (v : ℝ) := fourierChar [-v * u];
+theorem hasDerivAt_fourierChar' {u x : ℝ} : let e v := 𝐞 [-v * u];
     HasDerivAt e (-2 * π * u * I * e x) x := by
   have l2 : HasDerivAt (fun v => -v * u) (-u) x := by simpa only [neg_mul_comm] using hasDerivAt_mul_const (-u)
   convert (hasDerivAt_fourierChar (-x * u)).scomp x l2 using 1 ; simp ; ring
 
-theorem contDiff_fourierChar' {u : ℝ} : ContDiff ℝ 1 (fun v => fourierChar [-v * u]) := by
+theorem contDiff_fourierChar' {u : ℝ} : ContDiff ℝ 1 (fun v => 𝐞 [-v * u]) := by
   have l3 (x : ℝ) := (hasDerivAt_fourierChar' (u := u) (x := x)).deriv
   refine contDiff_one_iff_deriv.mpr ⟨fun x => hasDerivAt_fourierChar'.differentiableAt, ?_⟩
   rw [(funext l3 : deriv _ = _)]
@@ -346,11 +351,11 @@ theorem contDiff_fourierChar' {u : ℝ} : ContDiff ℝ 1 (fun v => fourierChar [
 
 lemma decay_bounds_aux3 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 1 ψ) (h2 : HasCompactSupport ψ) {u : ℝ} :
     𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u := by
-  let e (v : ℝ) := fourierChar [-v * u]
-  simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral]
+  let e (v : ℝ) := 𝐞 [-v * u]
+  simp_rw [Real.fourierIntegral_real_eq]
   convert_to ∫ (v : ℝ), e v * deriv ψ v = 2 * ↑π * I * ↑u * ∫ (v : ℝ), e v * ψ v
-  · simp only [neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere]
-  · simp only [neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere]
+  · simp only [neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere, smul_eq_mul]
+  · simp only [neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere, smul_eq_mul]
   have l3 (x : ℝ) : deriv e x = -2 * π * u * I * e x := hasDerivAt_fourierChar'.deriv
   simp_rw [h2.integral_mul_deriv contDiff_fourierChar' h1, l3, ← integral_mul_left, ← integral_neg]
   congr ; ext ; ring
@@ -362,20 +367,20 @@ lemma decay_bounds_aux4 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h
   field_simp [pi_ne_zero] ; ring_nf ; simp
 
 lemma decay_bounds_aux2 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
-    u ^ 2 * 𝓕 ψ u = - (1 / (4 * π ^ 2) * ∫ (t : ℝ), deriv^[2] ψ t * fourierChar [-t * u]) := by
+    u ^ 2 * 𝓕 ψ u = - (1 / (4 * π ^ 2) * ∫ (t : ℝ), deriv^[2] ψ t * 𝐞 [-t * u]) := by
   convert decay_bounds_aux4 h1 h2 ; congr ; ext ; field_simp
 
 lemma decay_bounds_aux1 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) (u : ℝ) :
-    (1 + u ^ 2) * 𝓕 ψ u = ∫ (t : ℝ), (ψ t - (1 / (4 * π ^ 2)) * deriv^[2] ψ t) * fourierChar [-t * u] := by
-  have l0 : Continuous fun t ↦ fourierChar [-t * u] := contDiff_fourierChar'.continuous
-  have l1 : Integrable fun t ↦ fourierChar [-t * u] * ψ t :=
+    (1 + u ^ 2) * 𝓕 ψ u = ∫ (t : ℝ), (ψ t - (1 / (4 * π ^ 2)) * deriv^[2] ψ t) * 𝐞 [-t * u] := by
+  have l0 : Continuous fun t ↦ 𝐞 [-t * u] := contDiff_fourierChar'.continuous
+  have l1 : Integrable fun t ↦ 𝐞 [-t * u] * ψ t :=
     l0.mul h1.continuous |>.integrable_of_hasCompactSupport h2.mul_left
-  have l2 : Integrable fun t ↦ 1 / (4 * π ^ 2) * (deriv^[2] ψ t * fourierChar [-t * u]) := by
+  have l2 : Integrable fun t ↦ 1 / (4 * π ^ 2) * (deriv^[2] ψ t * 𝐞 [-t * u]) := by
     refine Continuous.integrable_of_hasCompactSupport ?_ h2.deriv.deriv.mul_right.mul_left
     exact continuous_const.mul <| (h1.iterate_deriv' 0 2).continuous.mul l0
   simp_rw [sub_mul, mul_assoc, add_mul, one_mul, mul_comm (ψ _)]
   rw [integral_sub l1 l2, integral_mul_left, sub_eq_add_neg, ← decay_bounds_aux2 h1 h2]
-  simp [fourierIntegral, Fourier.fourierIntegral, VectorFourier.fourierIntegral]
+  simp [Real.fourierIntegral_real_eq]
 
 /-%%
 \begin{lemma}[Decay bounds]\label{decay}\lean{decay_bounds}\leanok  If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
@@ -394,7 +399,7 @@ lemma decay_bounds {ψ : ℝ → ℂ} {A u : ℝ} (h1 : ContDiff ℝ 2 ψ) (h2 :
   have l2 : 1 + u ^ 2 = ‖(1 : ℂ) + u ^ 2‖ := by
     norm_cast ; simp only [Complex.norm_eq_abs, Complex.abs_ofReal, abs_eq_self.2 l1.le]
   rw [le_div_iff l1, mul_comm, l2, ← norm_mul, key]
-  let f (t : ℝ) := (ψ t - 1 / (4 * π ^ 2) * deriv^[2] ψ t) * fourierChar [-t * u]
+  let f (t : ℝ) := (ψ t - 1 / (4 * π ^ 2) * deriv^[2] ψ t) * 𝐞 [-t * u]
   let g (t : ℝ) := A * (1 + 1 / (4 * π ^ 2)) / (1 + t ^ 2)
   have l5 (t : ℝ) : ‖fourierChar [-t * u]‖ = 1 := by simp
   have l4 (t : ℝ) : ‖f t‖ ≤ g t := by
@@ -578,7 +583,7 @@ Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 \end{proposition}
 %%-/
 
-variable (hpos: ∀ n, 0 ≤ f n)
+-- variable (hpos: ∀ n, 0 ≤ f n)
 
 lemma WienerIkeharaInterval (a b:ℝ) (ha: 0 < a) (hb: a < b) : Tendsto (fun x : ℝ ↦ ∑' n, f n / n * (Set.indicator (Set.Icc a b) 1 (n/x))/x - A * (b-a)) atTop (nhds 0) := by
   sorry
@@ -601,7 +606,7 @@ open Filter Nat ArithmeticFunction in
 function whose L-series has a simple pole at `s = 1` with residue `A` and otherwise extends
 continuously to the closed half-plane `re s ≥ 1`, then `∑ n < N, f n` is asymptotic to `A*N`. -/
 theorem WienerIkeharaTheorem' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ → ℂ} (hf : ∀ n, 0 ≤ f n)
-    (hF : Set.EqOn F (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hF : Set.EqOn F (fun s ↦ LSeries (fun n => f n) s - A / (s - 1)) {s | 1 < s.re})
     (hF' : ContinuousOn F {s | 1 ≤ s.re}) :
     Tendsto (fun N : ℕ ↦ ((Finset.range N).sum f) / N) atTop (nhds A) := by
   sorry
