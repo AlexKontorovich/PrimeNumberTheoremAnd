@@ -7,6 +7,7 @@ import Mathlib.Analysis.Calculus.ContDiff.Defs
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import Mathlib.Tactic.FunProp.AEMeasurable
 import Mathlib.Tactic.FunProp.Measurable
+import Mathlib.Analysis.Normed.Group.Tannery
 
 open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries
 open Complex hiding log
@@ -482,6 +483,21 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
       ∫ (t : ℝ), (G (1 + I * t)) * (ψ t) * x ^ (I * t) := by
 
   have key (σ') (hσ' : 1 < σ') := limiting_fourier_aux hf hG' σ' hσ' hψ hsupp hx
+
+  have l1 : Tendsto (fun σ' : ℝ => ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x)))
+      (𝓝[>] 1) (𝓝 (∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x)))) := by
+    apply tendsto_tsum_of_dominated_convergence
+    · sorry
+    · intro n
+      apply Tendsto.mul_const
+      by_cases h : n = 0
+      · simp [term, h]
+      · simp [term, h]
+        apply tendsto_const_nhds.div
+        · simpa using ((continuous_ofReal.tendsto 1).mono_left nhdsWithin_le_nhds).const_cpow
+        · simp[h]
+    · sorry
+    · sorry
 
   sorry
 
