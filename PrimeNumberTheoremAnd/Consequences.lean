@@ -198,10 +198,10 @@ Use Corollary \ref{pi-alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infini
 %%-/
 
 /-%%
-\begin{proposition}\label{mun}\lean{sum_mobius_div_self_le}\leanok  We have $|\sum_{n \leq x} \frac{\mu(n)}{n}| \ll 1$.
+\begin{proposition}\label{mun}\lean{sum_mobius_div_self_le}\leanok
+We have $|\sum_{n \leq x} \frac{\mu(n)}{n}| \leq 1$.
 \end{proposition}
 %%-/
-
 theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| ≤ 1 := by
   cases' N with N
   /- simple cases -/
@@ -213,26 +213,25 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| 
   simp only [reduceSucc, range_one, sum_singleton, ArithmeticFunction.map_zero, cast_zero,
     EuclideanDomain.div_zero, abs_zero, zero_le_one]
   /- annoying case -/
-  have aux1 {n : ℕ} (hn : 1 ≤ n) : 1 = ∑ m in Icc 1 n, ∑ d in m.divisors, μ d := by
-    have {N : ℕ} : (1 : ArithmeticFunction _) N = ∑ d in N.divisors, μ d := by
-      rw [← coe_mul_zeta_apply, moebius_mul_coe_zeta]
-    rw [Icc_eq_cons_Ioc hn, Finset.sum_cons, divisors_one, sum_singleton, moebius_apply_one]
-    have {x : ℕ} (hx : x ∈ Ioc 1 n) : ∑ d in divisors x, μ d = 0 := by
-      rw [mem_Ioc] at hx
-      simp only [← this, one_apply, hx.left.ne.symm, if_false]
-    rw [sum_congr rfl (fun _ ↦ this), sum_const, smul_zero, add_zero]
-  have aux2 {n : ℕ} (hn : 1 ≤ n) : 1 = ∑ d in range (n + 1), μ d * (n / d) := by
-    simp_rw [aux1 hn, ← coe_mul_zeta_apply, ArithmeticFunction.sum_Icc_mul_zeta, nsmul_eq_mul, mul_comm]
-    rw [range_eq_Ico, ← Ico_insert_succ_left (succ_pos _), sum_insert, ArithmeticFunction.map_zero,
-      mul_zero, zero_add]
-    · congr
-    · simp
-  have h_sum : 1 = ∑ d in range (N + 1), (μ d : ℚ) * (N / d : ℕ) := by
-    simp_rw [← Int.cast_one (R := ℚ), aux2 hN]
-    convert map_sum (Int.castRingHom ℚ) (fun x ↦ μ x * (N / x : ℕ)) (range (N + 1))
-    simp
-    left
-    norm_cast
+  have h_sum : 1 = ∑ d in range (N + 1), (μ d : ℚ) * (N / d : ℕ) := by calc
+    (1 : ℚ) = ∑ m in Icc 1 N, ∑ d in m.divisors, μ d := by
+      have {N : ℕ} : (1 : ArithmeticFunction _) N = ∑ d in N.divisors, μ d := by
+        rw [← coe_mul_zeta_apply, moebius_mul_coe_zeta]
+      rw [Icc_eq_cons_Ioc hN, Finset.sum_cons, divisors_one, sum_singleton, moebius_apply_one]
+      have {x : ℕ} (hx : x ∈ Ioc 1 N) : ∑ d in divisors x, μ d = 0 := by
+        rw [mem_Ioc] at hx
+        simp only [← this, one_apply, hx.left.ne.symm, if_false]
+      rw [sum_congr rfl (fun _ ↦ this), sum_const, smul_zero, add_zero, Int.cast_one]
+    _ = ∑ d in range (N + 1), μ d * (N / d) := by
+      simp_rw [← coe_mul_zeta_apply, ArithmeticFunction.sum_Icc_mul_zeta, nsmul_eq_mul, mul_comm]
+      rw [range_eq_Ico, ← Ico_insert_succ_left (succ_pos _), sum_insert, ArithmeticFunction.map_zero,
+        mul_zero, zero_add]
+      · congr
+      · simp
+    _ = ∑ d in range (N + 1), (μ d : ℚ) * (N / d : ℕ) := by
+      save
+      norm_num [Int.cast_sum]
+      rfl
 
   /- rewrite Nat division (N / d) as ⌊N / d⌋ -/
   rw [sum_congr rfl (g := fun d ↦ (μ d : ℚ) * ⌊(N : ℚ) / (d : ℚ)⌋)] at h_sum
@@ -270,10 +269,8 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| 
   simp_rw [← mul_comm_div, sum_sub_distrib, ← sum_mul] at h_sum
   rw [eq_sub_iff_add_eq, eq_comm, ← eq_div_iff (by norm_num [Nat.pos_iff_ne_zero.mp hN])] at h_sum
 
-  save
   rw [succ_eq_add_one, h_sum, abs_le]
   rw [abs_le, neg_sub] at h_bound
-  clear h_sum aux1 aux2
   constructor
   <;> simp only [le_div_iff, div_le_iff, cast_pos.mpr hN]
   <;> linarith [h_bound.left]
@@ -282,8 +279,9 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| 
 \begin{proof}
 From M\"obius inversion $1_{n=1} = \sum_{d|n} \mu(d)$ and summing we have
   $$ 1 = \sum_{d \leq x} \mu(d) \lfloor \frac{x}{d} \rfloor$$
-  for any $x \geq 1$.  Since $\lfloor \frac{x}{d} \rfloor = \frac{x}{d} + O(1)$, we conclude that
-  $$ 1 = x \sum_{d \leq x} \frac{\mu(d)}{d} + O(x)$$
+  for any $x \geq 1$. Since $\lfloor \frac{x}{d} \rfloor = \frac{x}{d} - \epsilon_d$ with
+  $0 \leq \epsilon_d < 1$ and $\epsilon_x = 0$, we conclude that
+  $$ 1 = x \sum_{d \leq x} \frac{\mu(d)}{d} - (x - 1)$$
   and the claim follows.
 \end{proof}
 %%-/
