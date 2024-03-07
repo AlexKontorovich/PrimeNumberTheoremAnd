@@ -1,7 +1,17 @@
 # PrimeNumberTheoremAnd
 
 This project has a blueprint, which is available at <https://AlexKontorovich.github.io/PrimeNumberTheoremAnd/web/>.
-It requires [plasTeX](https://plastex.github.io/plastex/) and can be built using `make blueprint`.
+
+To use the tool, irst install local requirements using
+```sh
+python -pip install -r blueprint/requirements.txt
+```
+
+Then compile documentations using `make doc` in the top-level directory. Alternatively, if the PDF is needed, type
+```sh
+cd blueprint
+make pdf
+```
 
 # Use of LaTeX inside Lean
 
