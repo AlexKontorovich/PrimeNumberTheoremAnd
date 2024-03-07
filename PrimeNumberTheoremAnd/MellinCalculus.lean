@@ -890,11 +890,14 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     exact log_pos (by norm_num)
   intro x hx
 
-  have : x ≥ 2 ^ ε := by
-    refine ge_trans hx <| tsub_le_iff_left.mp <|(div_le_iff eps_pos).mp ?_
+  have hx2 : x > 2 ^ ε := by
+    calc
+      x ≥ 1 + c * ε := hx
+      _ > 2 ^ ε := ?_
+    refine lt_add_of_sub_left_lt <| (div_lt_iff eps_pos).mp ?_
     calc
       c ≥ 2 * (1 - 2 ^ (-ε)) / ε := ?_
-      _ ≥ 2 ^ ε * (1 - 2 ^ (-ε)) / ε := ?_
+      _ > 2 ^ ε * (1 - 2 ^ (-ε)) / ε := ?_
       _ = (2 ^ ε - 1) / ε := ?_
     · simp [c, ge_iff_le]
       have := (mul_le_mul_left (a:=2) (by norm_num)).mpr <| @Smooth1Properties_estimate ε eps_pos
@@ -911,14 +914,53 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
         norm_num
       have := (mul_lt_mul_right pos).mpr this
       ring_nf at this ⊢
-      exact le_of_lt this
-    · have : (2 : ℝ) ^ ε * (2 : ℝ) ^ (-ε) = (2 : ℝ) ^ (ε - ε):= by
+      exact this
+    · have : (2 : ℝ) ^ ε * (2 : ℝ) ^ (-ε) = (2 : ℝ) ^ (ε - ε) := by
         rw [← Real.rpow_add (by norm_num), add_neg_self, sub_self]
       conv => lhs; lhs; ring_nf; rhs; simp [this]
 
   unfold Smooth1 MellinConvolution DeltaSpike
   simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq]
-  sorry
+  apply MeasureTheory.set_integral_eq_zero_of_forall_eq_zero
+  intro y hy
+  by_cases y1 : y ≤ 1
+  · simp only [if_pos y1, div_eq_zero_iff]; left; left
+
+    have h : (x / y) ^ (1 / ε) > 2 := by
+      calc
+        _ > (2 ^ ε / y) ^ (1 / ε) := ?_
+        _ = 2 / y ^ (1 / ε) := ?_
+        _ ≥ 2 / y := ?_
+        _ ≥ 2 := ?_
+      · have pos : 0 < y ^ (1 / ε) := by apply Real.rpow_pos_of_pos <| mem_Ioi.mp hy
+        rw [gt_iff_lt, Real.div_rpow, Real.div_rpow, lt_div_iff, mul_comm_div, div_self, mul_one]
+        · exact Real.rpow_lt_rpow (by positivity) hx2 (by positivity)
+        · positivity
+        · exact pos
+        · exact LT.lt.le <| lt_trans (by positivity) hx2
+        · exact LT.lt.le <| mem_Ioi.mp hy
+        · positivity
+        · exact LT.lt.le <| mem_Ioi.mp hy
+      · rw [Real.div_rpow, ← Real.rpow_mul, mul_div_cancel' 1 <| ne_of_gt eps_pos, rpow_one]
+        repeat positivity
+        exact LT.lt.le <| mem_Ioi.mp hy
+      · have : y ^ (1 / ε) ≤ y := by
+          nth_rewrite 2 [← rpow_one y]
+          have : 1 / ε > 1 := one_lt_one_div eps_pos eps_lt1
+          exact Real.rpow_le_rpow_of_exponent_ge (mem_Ioi.mp hy) y1 (by linarith)
+        rw [ge_iff_le, div_le_iff, div_mul_eq_mul_div, le_div_iff', mul_comm]
+        exact (mul_le_mul_left (by norm_num)).mpr this
+        apply Real.rpow_pos_of_pos <| mem_Ioi.mp hy
+        exact mem_Ioi.mp hy
+      · rw [ge_iff_le, le_div_iff <| mem_Ioi.mp hy]
+        exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
+
+    rw [Function.support_subset_iff] at suppΨ
+    contrapose h
+    push_neg
+    exact (suppΨ _ h).2
+  · simp [if_neg y1]
+
 /-%%
 \begin{proof}
 \uses{Smooth1, MellinConvolution, Smooth1Properties_estimate}
