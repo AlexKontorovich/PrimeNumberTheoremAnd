@@ -509,7 +509,20 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
       sorry
     · sorry
 
-  have l2 : Tendsto f₂ (𝓝[>] 1) (𝓝 ℓ₂) := sorry
+  have l2 : Tendsto f₂ (𝓝[>] 1) (𝓝 ℓ₂) := by
+    apply Tendsto.mul
+    · have : Tendsto (fun σ' : ℝ ↦ 1 - σ') (𝓝[>] 1) (𝓝 0) := sorry
+      have : Tendsto (fun σ' : ℝ ↦ x ^ (1 - σ')) (𝓝[>] 1) (𝓝 1) := by
+        simpa using tendsto_const_nhds.rpow this (Or.inl (zero_lt_one.trans_le hx).ne.symm)
+      have : Tendsto (fun σ' : ℝ ↦ ofReal' (x ^ (1 - σ'))) (𝓝[>] 1) (𝓝 1) := by
+        apply (continuous_ofReal.tendsto 1).comp this
+      simpa using this.const_mul ↑A
+    · apply tendsto_integral_filter_of_dominated_convergence
+      · sorry
+      · sorry
+      · sorry
+      · sorry
+      · sorry
 
   have l3 : Tendsto f₃ (𝓝[>] 1) (𝓝 ℓ₃) := sorry
 
