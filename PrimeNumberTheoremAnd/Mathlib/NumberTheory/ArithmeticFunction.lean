@@ -1,11 +1,9 @@
-import Mathlib.Data.Nat.Interval
+import PrimeNumberTheoremAnd.Mathlib.Data.Nat.Interval
 import Mathlib.NumberTheory.ArithmeticFunction
 
 open ArithmeticFunction BigOperators Nat Finset
 
-namespace ArithmeticFunction
-
-theorem sum_range_mul_zeta
+theorem ArithmeticFunction.sum_range_mul_zeta
     {R : Type*} [Semiring R] (f : ArithmeticFunction R) (N : ℕ) :
     ∑ d in range (N + 1), (f * ζ) d = ∑ d in range (N + 1), (N / d) • f d := by
   calc
@@ -36,13 +34,12 @@ theorem sum_range_mul_zeta
         · exact ⟨one_le_iff_ne_zero.mpr h₂, lt_succ.mp h₁⟩
         · exact ⟨lt_succ.mpr h₂, one_le_iff_ne_zero.mp h₁⟩
       by_cases hy' : 1 ≤ y
-      · have hy'' := lt_succ.mp (mem_range.mp hy)
-        rw [this, card_Icc_filter_dvd hy' $ hy'.trans hy'']
+      · rw [this, Nat.card_Icc_filter_dvd hy']
       · rw [not_le, lt_one_iff] at hy'
         subst hy'
         simp
 
-theorem sum_Icc_mul_zeta
+theorem ArithmeticFunction.sum_Icc_mul_zeta
     {R : Type*} [Semiring R] (f : ArithmeticFunction R) (N : ℕ) :
     ∑ d in Icc 1 N, (f * ζ) d = ∑ d in Icc 1 N, (N / d) • f d := by
   have := sum_range_mul_zeta f N

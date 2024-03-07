@@ -2,9 +2,7 @@ import Mathlib.Data.Nat.Interval
 
 open Nat Finset
 
-namespace Nat
-
-theorem card_Icc_filter_dvd {n k : ℕ} (hk : 0 < k) (hn : 1 ≤ n) :
+theorem Nat.card_Icc_filter_dvd {n k : ℕ} (hk : 0 < k) :
     card ((Icc 1 n).filter (k ∣ ·)) = n / k := by
   have h : (Icc 1 n).filter (k ∣ ·) = image (k * ·) (Icc 1 (n / k)) := by
     ext x

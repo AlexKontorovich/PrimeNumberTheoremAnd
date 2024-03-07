@@ -1,12 +1,14 @@
 import PrimeNumberTheoremAnd.Wiener
+import PrimeNumberTheoremAnd.Mathlib.Data.Nat.Interval
+import PrimeNumberTheoremAnd.Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.Analysis.Asymptotics.Asymptotics
 import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
-import Mathlib.Data.Nat.Interval
-import Mathlib.NumberTheory.ArithmeticFunction
 
-open BigOperators Filter Real Classical Asymptotics MeasureTheory
 open ArithmeticFunction hiding log
+open Nat hiding log
+open Finset
+open BigOperators Filter Real Classical Asymptotics MeasureTheory
 
 /-%%
 \begin{lemma}\label{range-eq-range}\lean{finsum_range_eq_sum_range, finsum_range_eq_sum_range'}\leanok For any arithmetic function $f$ and real number $x$, one has
@@ -16,17 +18,17 @@ $$ \sum_{n < x} f(n) = \sum_{n < ⌈x⌉_+} f(n).$$
 \end{lemma}
 %%-/
 lemma finsum_range_eq_sum_range {R: Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
-    ∑ᶠ (n : ℕ) (_: n < x), f n = ∑ n in Finset.range ⌈x⌉₊, f n := by
+    ∑ᶠ (n : ℕ) (_: n < x), f n = ∑ n in range ⌈x⌉₊, f n := by
   apply finsum_cond_eq_sum_of_cond_iff f
   intros
-  simp only [Finset.mem_range]
+  simp only [mem_range]
   exact Iff.symm Nat.lt_ceil
 
 lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
-    ∑ᶠ (n : ℕ) (_: n ≤ x), f n = ∑ n in Finset.Iic ⌊x⌋₊, f n := by
+    ∑ᶠ (n : ℕ) (_: n ≤ x), f n = ∑ n in Iic ⌊x⌋₊, f n := by
   apply finsum_cond_eq_sum_of_cond_iff f
   intro n h
-  simp only [Finset.mem_Iic]
+  simp only [mem_Iic]
   exact Iff.symm <| Nat.le_floor_iff'
     fun (hc : n = 0) ↦ (h : f n ≠ 0) <| (congrArg f hc).trans ArithmeticFunction.map_zero
 
@@ -40,7 +42,7 @@ lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f : ArithmeticFun
 \end{theorem}
 %%-/
 theorem chebyshev_asymptotic :
-    (fun x ↦ ∑ p in (Finset.filter Nat.Prime (Finset.range ⌈x⌉₊)), log p) ~[atTop] (fun x ↦ x) := by
+    (fun x ↦ ∑ p in (filter Nat.Prime (range ⌈x⌉₊)), log p) ~[atTop] (fun x ↦ x) := by
   sorry
 
 theorem chebyshev_asymptotic_finsum :
@@ -68,7 +70,7 @@ We have
 %%-/
 theorem primorial_bounds :
     ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
-    ∀ x : ℝ, ∏ p in (Finset.filter Nat.Prime (Finset.range ⌊x⌋₊)), p = exp ( x + E x ) := by
+    ∀ x : ℝ, ∏ p in (filter Nat.Prime (range ⌊x⌋₊)), p = exp ( x + E x ) := by
   sorry
 
 theorem primorial_bounds_finprod :
@@ -200,14 +202,7 @@ Use Corollary \ref{pi-alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infini
 \end{proposition}
 %%-/
 
-open Finset in
-theorem sum_Icc_mul_zeta
-    {R : Type*} [Semiring R] (f : ArithmeticFunction R) (N : ℕ) :
-    ∑ d in Icc 1 N, (f * ζ) d = ∑ d in Icc 1 N, (N / d) • f d := by
-  sorry
-
-open Finset Nat in
-theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / n| ≤ 1 := by
+theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| ≤ 1 := by
   cases' N with N
   /- simple cases -/
   simp only [range_zero, sum_empty, abs_zero, zero_le_one]
@@ -227,25 +222,61 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / n| ≤ 1 :=
       simp only [← this, one_apply, hx.left.ne.symm, if_false]
     rw [sum_congr rfl (fun _ ↦ this), sum_const, smul_zero, add_zero]
   have aux2 {n : ℕ} (hn : 1 ≤ n) : 1 = ∑ d in range (n + 1), μ d * (n / d) := by
-    simp_rw [aux1 hn, ← coe_mul_zeta_apply, sum_Icc_mul_zeta, nsmul_eq_mul, mul_comm]
+    simp_rw [aux1 hn, ← coe_mul_zeta_apply, ArithmeticFunction.sum_Icc_mul_zeta, nsmul_eq_mul, mul_comm]
     rw [range_eq_Ico, ← Ico_insert_succ_left (succ_pos _), sum_insert, ArithmeticFunction.map_zero,
       mul_zero, zero_add]
     · congr
     · simp
-  have aux2_rat : 1 = ∑ d in range (N + 1), (μ : ArithmeticFunction ℚ) d * (N / d : ℕ) := by
+  have h_sum : 1 = ∑ d in range (N + 1), (μ d : ℚ) * (N / d : ℕ) := by
     simp_rw [← Int.cast_one (R := ℚ), aux2 hN]
     convert map_sum (Int.castRingHom ℚ) (fun x ↦ μ x * (N / x : ℕ)) (range (N + 1))
     simp
     left
     norm_cast
+
   /- rewrite Nat division (N / d) as ⌊N / d⌋ -/
-  rw [sum_congr rfl (g := fun d ↦ (μ : ArithmeticFunction ℚ) d * ⌊(N : ℚ) / (d : ℚ)⌋)] at aux2_rat
+  rw [sum_congr rfl (g := fun d ↦ (μ d : ℚ) * ⌊(N : ℚ) / (d : ℚ)⌋)] at h_sum
   swap
   intros
   rw [show (N : ℚ) = ((N : ℤ) : ℚ) by norm_cast, Rat.floor_int_div_nat_eq_div]
-  norm_cast
+  congr
 
-  sorry
+  /- Next, we establish bounds for the error term -/
+  have hf' (d : ℕ) : |Int.fract ((N : ℚ) / d)| < 1 := by
+    rw [abs_of_nonneg (Int.fract_nonneg _)]
+    exact Int.fract_lt_one _
+  have h_bound : |∑ d in range (N + 1), μ d * Int.fract ((N : ℚ) / d)| ≤ N - 1 := by
+    /- range (N + 1) → Icc 1 N + part that evals to 0 -/
+    rw [range_eq_Ico, ← Ico_insert_succ_left, sum_insert, ArithmeticFunction.map_zero,
+      Int.cast_zero, zero_mul, zero_add, Ico_succ_right]
+    all_goals simp
+    /- Ico 1 (N + 1) → Ico 1 N ∪ {N + 1} that evals to 0 -/
+    rw [← Ico_insert_right, sum_insert, div_self, Int.fract_one, mul_zero]
+    all_goals simp [hN, Nat.pos_iff_ne_zero.mp hN]
+    /- bound sum -/
+    have (d : ℕ) : |μ d * Int.fract ((N : ℚ) / d)| ≤ 1 := by
+      rw [abs_mul, ← one_mul 1]
+      apply mul_le_mul ?_ (hf' _).le (abs_nonneg _) zero_le_one
+      norm_cast
+      simp [moebius]
+      split_ifs <;> simp only [abs_zero, zero_le_one, abs_pow, abs_neg, abs_one, one_pow, le_refl]
+    apply (abs_sum_le_sum_abs _ _).trans
+    apply (sum_le_sum fun d _ ↦ this d).trans
+    all_goals simp [sum_ite, cast_sub hN]
+
+  rw [sum_congr rfl (g := fun d : ℕ ↦ μ d * ((N : ℚ) / d - Int.fract ((N : ℚ) / d)))
+    fun d _ ↦ by simp only [Int.fract, sub_sub_self]] at h_sum
+  simp_rw (config := {singlePass := true}) [mul_sub] at h_sum
+  simp_rw [← mul_comm_div, sum_sub_distrib, ← sum_mul] at h_sum
+  rw [eq_sub_iff_add_eq, eq_comm, ← eq_div_iff (by norm_num [Nat.pos_iff_ne_zero.mp hN])] at h_sum
+
+  save
+  rw [succ_eq_add_one, h_sum, abs_le]
+  rw [abs_le, neg_sub] at h_bound
+  clear h_sum aux1 aux2
+  constructor
+  <;> simp only [le_div_iff, div_le_iff, cast_pos.mpr hN]
+  <;> linarith [h_bound.left]
 
 /-%%
 \begin{proof}
@@ -262,7 +293,7 @@ From M\"obius inversion $1_{n=1} = \sum_{d|n} \mu(d)$ and summing we have
 \end{proposition}
 %%-/
 
-theorem mu_pnt : (fun x:ℝ ↦ ∑ n in Finset.range ⌊ x ⌋₊, μ n) =o[atTop] (fun x ↦ x) := by sorry
+theorem mu_pnt : (fun x:ℝ ↦ ∑ n in range ⌊ x ⌋₊, μ n) =o[atTop] (fun x ↦ x) := by sorry
 
 /-%%
 \begin{proof}
@@ -297,7 +328,7 @@ We have $\sum_{n \leq x} \lambda(n) = o(x)$.
 \end{proposition}
 %%-/
 
-theorem lambda_pnt : (fun x:ℝ ↦ ∑ n in Finset.range ⌊ x ⌋₊, (-1)^(Ω n)) =o[atTop] (fun x ↦ x) := by
+theorem lambda_pnt : (fun x:ℝ ↦ ∑ n in range ⌊ x ⌋₊, (-1)^(Ω n)) =o[atTop] (fun x ↦ x) := by
   sorry
 
 
