@@ -543,6 +543,26 @@ lemma tendsto_tsum_of_dominated_convergence' {α β G : Type*} {p : Filter α}
     · refine ((norm_tsum_le_tsum_norm <| h_sumg.subtype _).trans ?_).trans_lt h1
       exact tsum_le_tsum (h_g_le ·) (h_sumg.subtype _) (h_sum.subtype _)
 
+lemma summation_by_parts {a A b : ℕ → ℂ} (ha : ∀ n, a n = A (n + 1) - A n) {n : ℕ} :
+    ∑ i in Finset.Iio (n + 1), a i * b i = A (n + 1) * b n - A 0 * b 0 -
+    ∑ i in Finset.Iio n, A (i + 1) * (b (i + 1) - b i)  := by
+
+  have l1 : ∑ x in Finset.Iio (n + 1), A (x + 1) * b x = ∑ x in Finset.Iio n, A (x + 1) * b x + A (n + 1) * b n := by
+    rw [Finset.sum_eq_sum_diff_singleton_add (i := n)]
+    · congr ; ext ; simpa [Nat.lt_add_one_iff] using lt_iff_le_and_ne.symm
+    · simp
+  have l2 : ∑ x in Finset.Iio (n + 1), A x * b x = ∑ x in Finset.Iio n, A (x + 1) * b (x + 1) + A 0 * b 0 := by
+    rw [Finset.sum_eq_sum_diff_singleton_add (i := 0)]
+    · congr 1
+      rw [← @Finset.sum_image ℂ ℕ ℕ (fun i => A i * b i) _ _ (Finset.Iio n) (fun i => i + 1)]
+      · congr ; ext i ; simp
+        cases i with
+        | zero => simp
+        | succ i => simpa using Nat.succ_lt_succ_iff
+      · intro x _ y _ ; exact Nat.succ_inj.mp
+    · simp
+  simp [ha, sub_mul, mul_sub, l1, l2] ; ring
+
 variable (hcheby: ∃ C : ℝ, ∀ x : ℕ, ∑ n in Finset.Iic x, ‖f n‖ ≤ C * x)
 
 lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
