@@ -531,7 +531,6 @@ lemma tendsto_tsum_of_dominated_convergence' {α β G : Type*} {p : Filter α}
   have h2 : Tendsto (∑ k in T, f · k) p (𝓝 (T.sum g)) := tendsto_finset_sum _ (fun i _ ↦ hab i)
   rw [Metric.tendsto_nhds] at h2
   filter_upwards [h2 (ε / 3) (by positivity), h_suma, h_bound] with n h2 h_suma h_bound
-  -- refine (h2 (ε / 3) (by positivity)).mp (eventually_of_forall (fun n hn ↦ ?_))
   rw [dist_eq_norm, ← tsum_sub h_suma.of_norm h_sumg.of_norm,
     ← sum_add_tsum_compl (s := T) (h_suma.of_norm.sub h_sumg.of_norm),
     (by ring : ε = ε / 3 + (ε / 3 + ε / 3))]
@@ -551,6 +550,8 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π)) =
       ∫ (t : ℝ), (G (1 + I * t)) * (ψ t) * x ^ (t * I) := by
 
+  obtain ⟨C, hC⟩ := decay_bounds_cor hψ hsupp
+
   let f₁ (σ' : ℝ) := ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))
   let f₂ (σ' : ℝ) := A * ↑(x ^ (1 - σ')) * ∫ (u : ℝ) in Ici (-Real.log x), rexp (-u * (σ' - 1)) * 𝓕 ψ (u / (2 * π))
   let f₃ (σ' : ℝ) := ∫ (t : ℝ), G (σ' + t * I) * ψ t * x ^ (t * I)
@@ -564,7 +565,8 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
   set ℓ₃ := ∫ (t : ℝ), G (1 + I * t) * ψ t * x ^ (t * I)
 
   have l1 : Tendsto f₁ (𝓝[>] 1) (𝓝 ℓ₁) := by
-    apply tendsto_tsum_of_dominated_convergence' (bound := fun n => ‖f n‖ * 18)
+    apply tendsto_tsum_of_dominated_convergence'
+      (bound := fun n => (‖f n‖ / n) * (C / (1 + (1 / (2 * π) * Real.log (n / x)) ^ 2)))
     · sorry
     · intro n
       apply Tendsto.mul_const
@@ -578,7 +580,13 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
       apply eventually_of_forall
       intro σ' (hσ' : 1 < σ') n
       rw [norm_mul, ← nterm_eq_norm_term]
-      sorry
+      refine mul_le_mul ?_ (hC _) (norm_nonneg _) (div_nonneg (norm_nonneg _) (cast_nonneg _))
+      by_cases h : n = 0
+      · simp [h, nterm]
+      · simp [h, nterm]
+        refine div_le_div (by simp only [apply_nonneg]) le_rfl (by simpa [Nat.pos_iff_ne_zero]) ?_
+        have : 1 ≤ (n : ℝ) := by simpa using Nat.pos_iff_ne_zero.mpr h
+        simpa using Real.rpow_le_rpow_of_exponent_le this hσ'.le
 
   have l2 : Tendsto f₂ (𝓝[>] 1) (𝓝 ℓ₂) := by
     apply Tendsto.mul
