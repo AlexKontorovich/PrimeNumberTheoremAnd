@@ -374,3 +374,4 @@ for any given $j$, so in particular
 $$ \sum_{x/(j+1) < d \leq x/j} \mu(d) (x/d - j) = O(x/N^2)$$
 for all $j=1,\dots,N-1$ if $x$ is large enough depending on $N$.  Summing all the bounds, we obtain the claim.
 \end{proof}
+%%-/
