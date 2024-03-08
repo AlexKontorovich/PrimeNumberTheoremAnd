@@ -311,8 +311,6 @@ for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies th
 
 variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
 
--- variable (hcheby: ∃ C:ℝ, ∀ x:ℕ, ∑ n in Finset.Iic x, |f n| ≤ C * x)
-
 theorem HasCompactSupport.integral_deriv_eq_zero {u : ℝ → ℂ} (h1 : ContDiff ℝ 1 u) (h2 : HasCompactSupport u) :
     ∫ x, deriv u x = 0 := by
   have l1 : Tendsto (fun i ↦ u i - u (-i)) atTop (𝓝 (∫ x, deriv u x)) := by
@@ -477,6 +475,57 @@ lemma limiting_fourier_aux (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport 
   norm_cast
   simp [mul_assoc, ← rpow_add l3]
 
+-- pending PR #11236 which makes this update to `Mathlib/Analysis/Normed/Group/Tannery.lean`
+lemma tendsto_tsum_of_dominated_convergence' {α β G : Type*} {p : Filter α}
+    [NormedAddCommGroup G] [CompleteSpace G]
+    {f : α → β → G} {g : β → G} {bound : β → ℝ} (h_sum : Summable bound)
+    (hab : ∀ k : β, Tendsto (f · k) p (𝓝 (g k)))
+    (h_bound : ∀ᶠ n in p, ∀ k, ‖f n k‖ ≤ bound k) :
+    Tendsto (∑' k, f · k) p (𝓝 (∑' k, g k)) := by
+  -- WLOG β is nonempty
+  rcases isEmpty_or_nonempty β
+  · simpa only [tsum_empty] using tendsto_const_nhds
+  -- WLOG p ≠ ⊥
+  rcases p.eq_or_neBot with rfl | _
+  · simp only [tendsto_bot]
+  -- Auxiliary lemmas
+  have h_g_le (k : β) : ‖g k‖ ≤ bound k :=
+    le_of_tendsto (tendsto_norm.comp (hab k)) <| h_bound.mono (fun n h => h k)
+  have h_sumg : Summable (‖g ·‖) :=
+    h_sum.of_norm_bounded _ (fun k ↦ (norm_norm (g k)).symm ▸ h_g_le k)
+  have h_suma : ∀ᶠ n in p, Summable (‖f n ·‖) := by
+    filter_upwards [h_bound] with n h
+    exact h_sum.of_norm_bounded _ <| by simpa only [norm_norm] using h
+  -- Now main proof, by an `ε / 3` argument
+  rw [Metric.tendsto_nhds]
+  intro ε hε
+  let ⟨S, hS⟩ := h_sum
+  obtain ⟨T, hT⟩ : ∃ (T : Finset β), dist (∑ b in T, bound b) S < ε / 3 := by
+    rw [HasSum, Metric.tendsto_nhds] at hS
+    classical exact Eventually.exists <| hS _ (by positivity)
+  have h1 : ∑' (k : (Tᶜ : Set β)), bound k < ε / 3 := by
+    calc _ ≤ ‖∑' (k : (Tᶜ : Set β)), bound k‖ := Real.le_norm_self _
+         _ = ‖S - ∑ b in T, bound b‖          := congrArg _ ?_
+         _ < ε / 3                            := by rwa [dist_eq_norm, norm_sub_rev] at hT
+    simpa only [sum_add_tsum_compl h_sum, eq_sub_iff_add_eq'] using hS.tsum_eq
+  have h2 : Tendsto (∑ k in T, f · k) p (𝓝 (T.sum g)) := tendsto_finset_sum _ (fun i _ ↦ hab i)
+  rw [Metric.tendsto_nhds] at h2
+  filter_upwards [h2 (ε / 3) (by positivity), h_suma, h_bound] with n h2 h_suma h_bound
+  -- refine (h2 (ε / 3) (by positivity)).mp (eventually_of_forall (fun n hn ↦ ?_))
+  rw [dist_eq_norm, ← tsum_sub h_suma.of_norm h_sumg.of_norm,
+    ← sum_add_tsum_compl (s := T) (h_suma.of_norm.sub h_sumg.of_norm),
+    (by ring : ε = ε / 3 + (ε / 3 + ε / 3))]
+  refine (norm_add_le _ _).trans_lt (add_lt_add ?_ ?_)
+  · simpa only [dist_eq_norm, Finset.sum_sub_distrib] using h2
+  · rw [tsum_sub (h_suma.subtype _).of_norm (h_sumg.subtype _).of_norm]
+    refine (norm_sub_le _ _).trans_lt (add_lt_add ?_ ?_)
+    · refine ((norm_tsum_le_tsum_norm (h_suma.subtype _)).trans ?_).trans_lt h1
+      exact tsum_le_tsum (h_bound ·) (h_suma.subtype _) (h_sum.subtype _)
+    · refine ((norm_tsum_le_tsum_norm <| h_sumg.subtype _).trans ?_).trans_lt h1
+      exact tsum_le_tsum (h_g_le ·) (h_sumg.subtype _) (h_sum.subtype _)
+
+variable (hcheby: ∃ C : ℝ, ∀ x : ℕ, ∑ n in Finset.Iic x, ‖f n‖ ≤ C * x)
+
 lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
     ∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π)) =
@@ -495,7 +544,7 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
   set ℓ₃ := ∫ (t : ℝ), G (1 + I * t) * ψ t * x ^ (t * I)
 
   have l1 : Tendsto f₁ (𝓝[>] 1) (𝓝 ℓ₁) := by
-    apply tendsto_tsum_of_dominated_convergence
+    apply tendsto_tsum_of_dominated_convergence' (bound := fun n => ‖f n‖ * 18)
     · sorry
     · intro n
       apply Tendsto.mul_const
@@ -505,9 +554,11 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
         apply tendsto_const_nhds.div
         · simpa using ((continuous_ofReal.tendsto 1).mono_left nhdsWithin_le_nhds).const_cpow
         · simp[h]
-    · intro σ' n
+    · rw [eventually_nhdsWithin_iff]
+      apply eventually_of_forall
+      intro σ' (hσ' : 1 < σ') n
+      rw [norm_mul, ← nterm_eq_norm_term]
       sorry
-    · sorry
 
   have l2 : Tendsto f₂ (𝓝[>] 1) (𝓝 ℓ₂) := by
     apply Tendsto.mul
