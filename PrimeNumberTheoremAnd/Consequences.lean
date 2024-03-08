@@ -287,7 +287,7 @@ From M\"obius inversion $1_{n=1} = \sum_{d|n} \mu(d)$ and summing we have
 %%-/
 
 /-%%
-\begin{proposition}\label{mu-pnt}\lean{mu_pnt}\leanok  We have $\sum_{n \leq x} \mu(n) = o(x)$.
+\begin{proposition}[M\"obius form of prime number theorem]\label{mu-pnt}\lean{mu_pnt}\leanok  We have $\sum_{n \leq x} \mu(n) = o(x)$.
 \end{proposition}
 %%-/
 
@@ -345,3 +345,32 @@ Sending $\eps \to 0$ we obtain the claim.
 \end{proof}
 
 %%-/
+
+/-%%
+\begin{proposition}[Alternate M\"obius form of prime number theorem]\label{mu-pnt-alt}\lean{mu_pnt_alt}\leanok  We have $\sum_{n \leq x} \mu(n)/n = o(1)$.
+\end{proposition}
+%%-/
+
+theorem mu_pnt_alt : (fun x:ℝ ↦ ∑ n in range ⌊ x ⌋₊, μ n / n) =o[atTop] (fun x ↦ 1) := by sorry
+
+/-%%
+\begin{proof}
+\uses{mu-pnt}
+As in the proof of Theorem \ref{mun}, we have
+  $$ 1 = \sum_{d \leq x} \mu(d) \lfloor \frac{x}{d} \rfloor$$
+  $$ = x \sum_{d \leq x} \frac{\mu(d)}{d} - \sum_{d \leq x} \mu(d) \{ \frac{x}{d} \}$$
+so it will suffice to show that
+$$ \sum_{d \leq x} \mu(d) \{ \frac{x}{d} \} = o(x).$$
+Let $N$  be a natural number.  It suffices to show that
+$$ \sum_{d \leq x} \mu(d) \{ \frac{x}{d} \} = O(x/N).$$
+if $x$ is large enough depending on $N$.
+We can split the left-hand side as the sum of
+$$ \sum_{d \leq x/N} \mu(d) \{ \frac{x}{d} \} $$
+and
+$$ \sum_{j=1}^{N-1} \sum_{x/(j+1) < d \leq x/j} \mu(d) (x/d - j).$$
+The first term is clearly $O(x/N)$.  For the second term, we can use Theorem \ref{mu-pnt} and summation by parts (using the fact that $x/d-j$ is monotone and bounded) to find that
+$$ \sum_{x/(j+1) < d \leq x/j} \mu(d) (x/d - j) = o(x)$$
+for any given $j$, so in particular
+$$ \sum_{x/(j+1) < d \leq x/j} \mu(d) (x/d - j) = O(x/N^2)$$
+for all $j=1,\dots,N-1$ if $x$ is large enough depending on $N$.  Summing all the bounds, we obtain the claim.
+\end{proof}
