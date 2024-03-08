@@ -843,11 +843,12 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     rw [sub_le_iff_le_add, add_comm, ← sub_le_iff_le_add]
     exact (div_le_iff eps_pos).mp <| @Smooth1Properties_estimate ε eps_pos
 
-  unfold Smooth1 MellinConvolution DeltaSpike
+  rewrite [← DeltaSpikeMass mass_one eps_pos]
+  unfold Smooth1 MellinConvolution
 
   calc
-    _ = ∫ (y : ℝ) in Ioi 0, indicator (Ioc 0 1) (fun y ↦ (Ψ ((x / y) ^ (1 / ε)) / ε) / ↑y) y := ?_
-    _ = ∫ (y : ℝ) in Ioc 0 1, (Ψ ((x / y) ^ (1 / ε)) / ε) / ↑y := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, indicator (Ioc 0 1) (fun y ↦ DeltaSpike Ψ ε (x / y) / ↑y) y := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, DeltaSpike Ψ ε (x / y) / y := ?_
     _ = _ := ?_
   · rw [set_integral_congr (by simp)]
     intro y hy
@@ -858,8 +859,30 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
         simp only [Set.mem_Ioc, not_and, not_le] at h
         simp [h]
       rw [if_neg h, if_neg this]; simp
-  · rw [integral_indicator (by simp)]; simp
+  · rw [set_integral_congr (by simp)]
+    intro y hy
+    simp only [indicator_apply_eq_self, mem_Ioc, not_and, not_le, div_eq_zero_iff]
+    intro hy2
+    by_cases h : y = 0
+    · right; exact h
+    have ypos: 0 < y := mem_Ioi.mp hy
+    left; replace hy2 := hy2 <| ypos
+    apply div_eq_zero_iff.mpr; left
+    rw [Function.support_subset_iff] at suppΨ
+    contrapose hy2
+    push_neg at hy2 ⊢
+    have key := (suppΨ _ hy2).1
+    rw [Real.div_rpow, le_div_iff, div_mul_eq_mul_div, one_mul, div_le_iff'] at key
+    have : 2 = ((2 : ℝ) ^ ε) ^ (1 / ε ) := by
+      rw [← Real.rpow_mul zero_le_two, mul_one_div_cancel (ne_of_gt eps_pos), Real.rpow_one 2]
+    rw [this, ← Real.mul_rpow, Real.rpow_le_rpow_iff] at key
+    convert le_mul_of_le_mul_of_nonneg_left key hx2 (by positivity)
+    rw [← Real.rpow_add, add_right_neg, rpow_zero]
+    all_goals try linarith
+    all_goals positivity
   · sorry
+
+#exit
 
 /-%%
 \begin{proof}
