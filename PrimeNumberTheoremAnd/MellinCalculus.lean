@@ -879,10 +879,8 @@ if $x\geq (1+c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 0.$$
 \end{lemma}
 %%-/
-lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
-    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ)
-    (eps_pos: 0 < ε) (eps_lt1: ε < 1)
-    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
+lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+    (ε : ℝ) (eps_pos: 0 < ε) (eps_lt1: ε < 1) :
     ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≥ 1 + c * ε → Smooth1 Ψ ε x = 0 := by
   set c := 2 * Real.log 2; use c
   constructor
