@@ -949,7 +949,8 @@ and since $1_{(0,1]}(y)\le 1$, and all the factors in the integrand are nonnegat
 $$
   \widetilde{1_\epsilon}(x)\le\int_0^\infty \frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
 $$
-in which we change variables to $z=(x/y)^{\frac1\epsilon}$:
+(because in mathlib the integral of a non-integrable function is $0$, for the inequality above to be true, we must prove that $\psi((x/y)^{\frac1\epsilon})/y$ is integrable; this follows from the computation below).
+We then change variables to $z=(x/y)^{\frac1\epsilon}$:
 $$
   \widetilde{1_\epsilon}(x)\le\int_0^\infty \psi(z) \frac{dz}z
 $$
