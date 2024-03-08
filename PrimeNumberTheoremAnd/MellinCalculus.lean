@@ -955,7 +955,7 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Set.Ic
 \uses{Smooth1, MellinConvolution, Smooth1Properties_estimate}
 Again the Mellin convolution is
 $$\int_0^1 \psi_\epsilon(x/y)\frac{dy}{y},$$
-but now if $x \ge 2^\epsilon$, then the support of $\psi_\epsilon$ is disjoint
+but now if $x > 2^\epsilon$, then the support of $\psi_\epsilon$ is disjoint
 from the region of integration, and hence the integral is zero.
 We choose
 $$
@@ -964,13 +964,13 @@ $$
 $$
 By Lemma \ref{Smooth1Properties_estimate},
 $$
-  c\geqslant 2\frac{1-2^{-\epsilon}}\epsilon\geqslant 2^\epsilon\frac{1-2^{-\epsilon}}\epsilon
+  c\geqslant 2\frac{1-2^{-\epsilon}}\epsilon > 2^\epsilon\frac{1-2^{-\epsilon}}\epsilon
   =
   \frac{2^\epsilon-1}\epsilon
 $$
 so
 $$
-  1+c\epsilon\geqslant 2^\epsilon
+  1+c\epsilon > 2^\epsilon
   .
 $$
 \end{proof}
