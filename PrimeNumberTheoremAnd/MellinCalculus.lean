@@ -921,43 +921,34 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Set.Ic
   simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq]
   apply MeasureTheory.set_integral_eq_zero_of_forall_eq_zero
   intro y hy
-  by_cases y1 : y ≤ 1
-  · simp only [if_pos y1, div_eq_zero_iff]; left; left
-
-    have h : (x / y) ^ (1 / ε) > 2 := by
-      calc
-        _ > (2 ^ ε / y) ^ (1 / ε) := ?_
-        _ = 2 / y ^ (1 / ε) := ?_
-        _ ≥ 2 / y := ?_
-        _ ≥ 2 := ?_
-      · have pos : 0 < y ^ (1 / ε) := by apply Real.rpow_pos_of_pos <| mem_Ioi.mp hy
-        rw [gt_iff_lt, Real.div_rpow, Real.div_rpow, lt_div_iff, mul_comm_div, div_self, mul_one]
-        · exact Real.rpow_lt_rpow (by positivity) hx2 (by positivity)
-        · positivity
-        · exact pos
-        · exact LT.lt.le <| lt_trans (by positivity) hx2
-        · exact LT.lt.le <| mem_Ioi.mp hy
-        · positivity
-        · exact LT.lt.le <| mem_Ioi.mp hy
-      · rw [Real.div_rpow, ← Real.rpow_mul, mul_div_cancel' 1 <| ne_of_gt eps_pos, rpow_one]
-        repeat positivity
-        exact LT.lt.le <| mem_Ioi.mp hy
-      · have : y ^ (1 / ε) ≤ y := by
-          nth_rewrite 2 [← rpow_one y]
-          have : 1 / ε > 1 := one_lt_one_div eps_pos eps_lt1
-          exact Real.rpow_le_rpow_of_exponent_ge (mem_Ioi.mp hy) y1 (by linarith)
-        rw [ge_iff_le, div_le_iff, div_mul_eq_mul_div, le_div_iff', mul_comm]
-        exact (mul_le_mul_left (by norm_num)).mpr this
-        apply Real.rpow_pos_of_pos <| mem_Ioi.mp hy
-        exact mem_Ioi.mp hy
-      · rw [ge_iff_le, le_div_iff <| mem_Ioi.mp hy]
-        exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
-
-    rw [Function.support_subset_iff] at suppΨ
-    contrapose h
-    push_neg
-    exact (suppΨ _ h).2
+  by_cases y1 : y ≤ 1; swap
   · simp [if_neg y1]
+  simp only [if_pos y1, div_eq_zero_iff]; left; left
+  have pos : 0 < y ^ (1 / ε) := by apply Real.rpow_pos_of_pos <| mem_Ioi.mp hy
+  have ypos := mem_Ioi.mp hy
+
+  have h : (x / y) ^ (1 / ε) > 2 := by
+    calc
+      _ > (2 ^ ε / y) ^ (1 / ε) := ?_
+      _ = 2 / y ^ (1 / ε) := ?_
+      _ ≥ 2 / y := ?_
+      _ ≥ 2 := ?_
+    · rw [gt_iff_lt, Real.div_rpow, Real.div_rpow, lt_div_iff, mul_comm_div, div_self, mul_one]
+      <;> try positivity
+      · exact Real.rpow_lt_rpow (by positivity) hx2 (by positivity)
+      · exact LT.lt.le <| lt_trans (by positivity) hx2
+    · rw [Real.div_rpow, ← Real.rpow_mul, mul_div_cancel' 1 <| ne_of_gt eps_pos, rpow_one] <;> positivity
+    · have : y ^ (1 / ε) ≤ y := by
+        nth_rewrite 2 [← rpow_one y]
+        have : 1 / ε > 1 := one_lt_one_div eps_pos eps_lt1
+        exact Real.rpow_le_rpow_of_exponent_ge (ypos) y1 (by linarith)
+      rw [ge_iff_le, div_le_iff, div_mul_eq_mul_div, le_div_iff', mul_comm] <;> try linarith
+    · rw [ge_iff_le, le_div_iff <| ypos]
+      exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
+
+  rw [Function.support_subset_iff] at suppΨ
+  contrapose h
+  simpa [h] using (suppΨ _ h).2
 
 /-%%
 \begin{proof}\leanok
