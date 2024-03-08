@@ -565,8 +565,8 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
   set ℓ₃ := ∫ (t : ℝ), G (1 + I * t) * ψ t * x ^ (t * I)
 
   have l1 : Tendsto f₁ (𝓝[>] 1) (𝓝 ℓ₁) := by
-    apply tendsto_tsum_of_dominated_convergence'
-      (bound := fun n => (‖f n‖ / n) * (C / (1 + (1 / (2 * π) * Real.log (n / x)) ^ 2)))
+    let bound n := (‖f n‖ / n) * (C / (1 + (1 / (2 * π) * Real.log (n / x)) ^ 2))
+    apply tendsto_tsum_of_dominated_convergence' (bound := bound)
     · sorry
     · intro n
       apply Tendsto.mul_const
@@ -598,23 +598,36 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
       have : Tendsto (fun σ' : ℝ ↦ ofReal' (x ^ (1 - σ'))) (𝓝[>] 1) (𝓝 1) := by
         apply (continuous_ofReal.tendsto 1).comp this
       simpa using this.const_mul ↑A
-    · apply tendsto_integral_filter_of_dominated_convergence (bound := fun t => 18 * t)
+    · let bound t := |x| * (C / (1 + (t / (2 * π)) ^ 2))
+      apply tendsto_integral_filter_of_dominated_convergence (bound := bound)
       · apply eventually_of_forall ; intro σ'
         apply Continuous.aestronglyMeasurable
         apply Continuous.mul
         · continuity
         · sorry
-      · rw [eventually_nhdsWithin_iff]
-        apply eventually_of_forall
-        intro σ' (hσ' : 1 < σ')
-        rw [ae_restrict_iff sorry]
-        apply eventually_of_forall
-        intro t (ht : - Real.log x ≤ t)
-        sorry
+      · apply eventually_of_mem (U := Ioo 1 2)
+        · apply Ioo_mem_nhdsWithin_Ioi ; simp
+        · intro σ' ⟨h1, h2⟩
+          rw [ae_restrict_iff' measurableSet_Ici]
+          apply eventually_of_forall
+          intro t (ht : - Real.log x ≤ t)
+          rw [norm_mul]
+          refine mul_le_mul ?_ (hC _) (norm_nonneg _) (abs_nonneg _)
+          simp [Complex.abs_exp]
+          have : -Real.log x * (σ' - 1) ≤ t * (σ' - 1) := mul_le_mul_of_nonneg_right ht (by linarith)
+          have : -(t * (σ' - 1)) ≤ Real.log x * (σ' - 1) := by simpa using neg_le_neg this
+          have := Real.exp_monotone this
+          apply this.trans
+          have l1 : σ' - 1 ≤ 1 := by linarith
+          have : 0 ≤ Real.log x := Real.log_nonneg hx
+          have := mul_le_mul_of_nonneg_left l1 this
+          apply (Real.exp_monotone this).trans
+          simp [Real.exp_log (zero_lt_one.trans_le hx), abs_eq_self.mpr (zero_le_one.trans hx)]
       · sorry
       · sorry
 
-  have l3 : Tendsto f₃ (𝓝[>] 1) (𝓝 ℓ₃) := sorry
+  have l3 : Tendsto f₃ (𝓝[>] 1) (𝓝 ℓ₃) := by
+    sorry
 
   exact tendsto_nhds_unique_of_eventuallyEq (l1.sub l2) l3 key
 
