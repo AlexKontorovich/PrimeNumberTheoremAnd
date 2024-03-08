@@ -8,6 +8,7 @@ import Mathlib.Geometry.Manifold.PartitionOfUnity
 import Mathlib.Tactic.FunProp.AEMeasurable
 import Mathlib.Tactic.FunProp.Measurable
 import Mathlib.Analysis.Normed.Group.Tannery
+import Mathlib.Algebra.Order.Field.Basic
 
 open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries
 open Complex hiding log
@@ -381,6 +382,8 @@ lemma decay_bounds_aux1 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCom
   rw [integral_sub l1 l2, integral_mul_left, sub_eq_add_neg, ← decay_bounds_aux2 h1 h2]
   simp [Real.fourierIntegral_real_eq]
 
+lemma one_add_sq_pos (u : ℝ) : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa using sq_nonneg u)
+
 /-%%
 \begin{lemma}[Decay bounds]\label{decay}\lean{decay_bounds}\leanok  If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
   $$ |\psi(t)|, |\psi''(t)| \leq A / (1 + |t|^2)$$
@@ -394,7 +397,7 @@ lemma decay_bounds {ψ : ℝ → ℂ} {A u : ℝ} (h1 : ContDiff ℝ 2 ψ) (h2 :
     (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2)) (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) :
     ‖𝓕 ψ u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
   have key := decay_bounds_aux1 h1 h2 u
-  have l1 : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa using sq_nonneg u)
+  have l1 : 0 < 1 + u ^ 2 := one_add_sq_pos _
   have l2 : 1 + u ^ 2 = ‖(1 : ℂ) + u ^ 2‖ := by
     norm_cast ; simp only [Complex.norm_eq_abs, Complex.abs_ofReal, abs_eq_self.2 l1.le]
   rw [le_div_iff l1, mul_comm, l2, ← norm_mul, key]
@@ -410,6 +413,23 @@ lemma decay_bounds {ψ : ℝ → ℂ} {A u : ℝ} (h1 : ContDiff ℝ 2 ψ) (h2 :
   convert norm_integral_le_of_norm_le l5 (eventually_of_forall l4)
   simp_rw [div_eq_mul_inv, integral_mul_left, integral_univ_inv_one_add_sq]
   field_simp [pi_ne_zero] ; ring
+
+lemma decay_bounds_cor_aux {ψ : ℝ → ℂ} (h1 : Continuous ψ) (h2 : HasCompactSupport ψ) :
+    ∃ C : ℝ, ∀ u, ‖ψ u‖ ≤ C / (1 + u ^ 2) := by
+  have l1 : HasCompactSupport (fun u : ℝ => ((1 + u ^ 2) : ℝ) * ψ u) := by exact h2.mul_left
+  obtain ⟨C, hC⟩ := l1.exists_bound_of_continuous (by continuity)
+  refine ⟨C, fun u => ?_⟩
+  specialize hC u
+  simp only [norm_mul, Complex.norm_eq_abs, Complex.abs_ofReal, abs_eq_self.mpr (one_add_sq_pos u).le] at hC
+  rwa [le_div_iff' (one_add_sq_pos _)]
+
+lemma decay_bounds_cor {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
+    ∃ C : ℝ, ∀ u, ‖𝓕 ψ u‖ ≤ C / (1 + u ^ 2) := by
+  obtain ⟨C₁, hC₁⟩ := decay_bounds_cor_aux h1.continuous h2
+  obtain ⟨C₂, hC₂⟩ := decay_bounds_cor_aux (ContDiff.iterate_deriv' 0 2 h1).continuous h2.deriv.deriv
+  refine ⟨(π + 1 / (4 * π)) * (C₁ ⊔ C₂), fun u => decay_bounds h1 h2 (fun u => ?_) (fun u => ?_)⟩
+  · exact hC₁ u |>.trans ((div_le_div_right (one_add_sq_pos _)).mpr le_sup_left)
+  · exact hC₂ u |>.trans ((div_le_div_right (one_add_sq_pos _)).mpr le_sup_right)
 
 /-%%
 \begin{proof} From two integration by parts we obtain the identity
@@ -570,14 +590,19 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
       have : Tendsto (fun σ' : ℝ ↦ ofReal' (x ^ (1 - σ'))) (𝓝[>] 1) (𝓝 1) := by
         apply (continuous_ofReal.tendsto 1).comp this
       simpa using this.const_mul ↑A
-    · apply tendsto_integral_filter_of_dominated_convergence
+    · apply tendsto_integral_filter_of_dominated_convergence (bound := fun t => 18 * t)
       · apply eventually_of_forall ; intro σ'
         apply Continuous.aestronglyMeasurable
         apply Continuous.mul
         · continuity
         · sorry
-      · sorry
-      · sorry
+      · rw [eventually_nhdsWithin_iff]
+        apply eventually_of_forall
+        intro σ' (hσ' : 1 < σ')
+        rw [ae_restrict_iff sorry]
+        apply eventually_of_forall
+        intro t (ht : - Real.log x ≤ t)
+        sorry
       · sorry
       · sorry
 
