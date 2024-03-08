@@ -827,11 +827,40 @@ If $0<x\leq (1-c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 1.$$
 \end{lemma}
 %%-/
+
 lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
-    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ)
+    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ) (eps_pos: 0 < ε)
     (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
     ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), 0 < x → x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
-  sorry
+  set c := Real.log 2; use c
+  constructor; exact log_pos (by norm_num)
+  intro x xpos hx
+
+  have hx2 : x ≤ 2 ^ (-ε) := by
+    calc
+      x ≤ 1 - c * ε := hx
+      _ ≤ 2 ^ (-ε) := ?_
+    rw [sub_le_iff_le_add, add_comm, ← sub_le_iff_le_add]
+    exact (div_le_iff eps_pos).mp <| @Smooth1Properties_estimate ε eps_pos
+
+  unfold Smooth1 MellinConvolution DeltaSpike
+
+  calc
+    _ = ∫ (y : ℝ) in Ioi 0, indicator (Ioc 0 1) (fun y ↦ (Ψ ((x / y) ^ (1 / ε)) / ε) / ↑y) y := ?_
+    _ = ∫ (y : ℝ) in Ioc 0 1, (Ψ ((x / y) ^ (1 / ε)) / ε) / ↑y := ?_
+    _ = _ := ?_
+  · rw [set_integral_congr (by simp)]
+    intro y hy
+    simp only [indicator]
+    by_cases h : y ≤ 1
+    · rw [if_pos h, if_pos ⟨mem_Ioi.mp hy, h⟩]; simp
+    · have : y ∉ Ioc 0 1 := by
+        simp only [Set.mem_Ioc, not_and, not_le] at h
+        simp [h]
+      rw [if_neg h, if_neg this]; simp
+  · rw [integral_indicator (by simp)]; simp
+  · sorry
+
 /-%%
 \begin{proof}
 \uses{Smooth1, MellinConvolution,DeltaSpikeMass, Smooth1Properties_estimate}
