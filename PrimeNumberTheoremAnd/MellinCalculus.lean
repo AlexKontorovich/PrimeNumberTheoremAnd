@@ -706,7 +706,7 @@ $$\mathcal{M}(\psi_\epsilon)(1) = 1+O(\epsilon).$$
 %%-/
 lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
-    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
+    (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) :
     (fun (ε : ℝ) ↦ (MellinTransform (Ψ ·) ε) - 1) =O[𝓝[>]0] id := by
   sorry -- use `mellin_differentiableAt_of_isBigO_rpow` for differentiability at 0
 /-%%
@@ -830,7 +830,7 @@ $$\widetilde{1_{\epsilon}}(x) = 1.$$
 
 lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ) (eps_pos: 0 < ε)
-    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
+    (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) :
     ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), 0 < x → x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
   set c := Real.log 2; use c
   constructor; exact log_pos (by norm_num)
@@ -1030,7 +1030,7 @@ If $\psi$ is nonnegative and has mass one, then $\widetilde{1_{\epsilon}}(x)\le 
 %%-/
 lemma Smooth1LeOne {Ψ : ℝ → ℝ}
     (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
-    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) (ε : ℝ) :
+    (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) (ε : ℝ) :
     ∀ (x : ℝ), 0<x → Smooth1 Ψ ε x ≤ 1 := by
   sorry
 /-%%
@@ -1123,7 +1123,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\righ
 -- ** Statement needs `cocompact` filter *within* `0<σ₁ ≤ ℜ s≤ σ₂` **
 lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
-    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
+    (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
     (fun (s : ℂ) ↦ Complex.abs (MellinTransform ((Smooth1 Ψ ε) ·) s)) =O[cocompact ℂ]
       fun s ↦ 1 / (ε * Complex.abs s) ^ 2 := by
   --have := MellinOfSmooth1a Ψ εpos hs
@@ -1143,7 +1143,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(1) = (1+O(\epsilon)).$$
 %%-/
 lemma MellinOfSmooth1c {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
-    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
+    (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
     (fun ε ↦ MellinTransform ((Smooth1 Ψ ε) ·) 1 - 1) =O[𝓝[>]0] id := by
   sorry
 /-%%
