@@ -396,7 +396,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
   · exact integral_mul_left _ _
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{MellinTransform,MellinConvolution}
 By Definitions \ref{MellinTransform} and \ref{MellinConvolution}
 $$
@@ -962,7 +962,7 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
   · simp [if_neg y1]
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{Smooth1, MellinConvolution, Smooth1Properties_estimate}
 Again the Mellin convolution is
 $$\int_0^1 \psi_\epsilon(x/y)\frac{dy}{y},$$
