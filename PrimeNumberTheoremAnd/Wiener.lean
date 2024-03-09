@@ -91,7 +91,7 @@ def nterm (f : ℕ → ℂ) (σ' : ℝ) (n : ℕ) : ℝ := if n = 0 then 0 else 
 lemma nterm_eq_norm_term {f : ℕ → ℂ} {σ' : ℝ} {n : ℕ} : nterm f σ' n = ‖term f σ' n‖ := by
   by_cases h : n = 0 <;> simp [nterm, term, h]
 
-variable {f : ArithmeticFunction ℂ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+variable {f : ArithmeticFunction ℂ}
 
 @[simp]
 theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
@@ -100,7 +100,8 @@ theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_
 theorem nnnorm_circle_smul (z : circle) (s : ℂ) : ‖z • s‖₊ = ‖s‖₊ := by
   simp [show z • s = z.val * s from rfl]
 
-lemma hf_coe1 {σ' : ℝ} (hσ : 1 < σ') : ∑' i, (‖term f σ' i‖₊ : ENNReal) ≠ ⊤ := by
+lemma hf_coe1 {σ' : ℝ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hσ : 1 < σ') : ∑' i, (‖term f σ' i‖₊ : ENNReal) ≠ ⊤ := by
   simp_rw [ENNReal.tsum_coe_ne_top_iff_summable_coe, ← norm_toNNReal]
   norm_cast
   apply Summable.toNNReal
@@ -151,8 +152,9 @@ lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hx : 0 < x) (n : �
   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = \int_\R F(\sigma + it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
 %%-/
-lemma first_fourier {ψ : ℝ → ℂ} (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ)
-    {x σ':ℝ} (hx: 0 < x) (hσ: 1 < σ') :
+lemma first_fourier {ψ : ℝ → ℂ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hcont: Continuous ψ) (hsupp: HasCompactSupport ψ)
+    {x σ' : ℝ} (hx : 0 < x) (hσ : 1 < σ') :
     ∑' n : ℕ, term f σ' n * (𝓕 ψ (1 / (2 * π) * log (n / x))) =
     ∫ t : ℝ, LSeries f (σ' + t * I) * ψ t * x ^ (t * I) := by
 /-%%
@@ -311,7 +313,7 @@ Now let $A \in \C$, and suppose that there is a continuous function $G(s)$ defin
 for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies the arguments and can be obtained fairly easily in applications).
 %%-/
 
-variable {A:ℝ} {G:ℂ → ℂ} (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+variable {A : ℝ} {G : ℂ → ℂ}
 
 theorem HasCompactSupport.integral_deriv_eq_zero {u : ℝ → ℂ} (h1 : ContDiff ℝ 1 u) (h2 : HasCompactSupport u) :
     ∫ x, deriv u x = 0 := by
@@ -462,7 +464,9 @@ lemma continuous_LSeries_aux {f : ArithmeticFunction ℂ} {σ' : ℝ}  (hf : Sum
       simp
   exact continuous_tsum l1 hf (fun n x => le_of_eq (l2 n x))
 
-lemma limiting_fourier_aux (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) (σ' : ℝ) (hσ' : 1 < σ') :
+lemma limiting_fourier_aux (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hψ : ContDiff ℝ 2 ψ)
+    (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) (σ' : ℝ) (hσ' : 1 < σ') :
     ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
     A * (x ^ (1 - σ') : ℝ) * ∫ u in Ici (- log x), rexp (-u * (σ' - 1)) * 𝓕 ψ (u / (2 * π)) =
     ∫ t : ℝ, G (σ' + t * I) * ψ t * x ^ (t * I) := by
@@ -648,9 +652,8 @@ lemma dirichlet_test' {a b : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
   apply bounded_of_shift
   simpa only [summation_by_parts'', sub_eq_add_neg, neg_cumsum, ← mul_neg, neg_nabla] using hAb.add h
 
-variable (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.range x, ‖f n‖ ≤ C * x)
-
-example : Summable (fun n => ‖f n‖ * (1 / (n + 1) ^ 2)) := by
+example (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.range x, ‖f n‖ ≤ C * x) :
+    Summable (fun n => ‖f n‖ * (1 / (n + 1) ^ 2)) := by
 
   let a n := ‖f n‖
   let A := cumsum a
@@ -685,7 +688,12 @@ example : Summable (fun n => ‖f n‖ * (1 / (n + 1) ^ 2)) := by
   apply dirichlet_test e1 e2 e3 nabla_cumsum.symm l4 e5
   sorry
 
-lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
+lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (h : HasCompactSupport ψ) : Continuous (𝓕 ψ) := sorry
+
+lemma limiting_fourier (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.range x, ‖f n‖ ≤ C * x)
+    (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
     ∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π)) =
       ∫ (t : ℝ), (G (1 + I * t)) * (ψ t) * x ^ (t * I) := by
@@ -698,7 +706,7 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
 
   have key : f₁ - f₂ =ᶠ[𝓝[>] 1] f₃ := by
     simpa only [eventuallyEq_nhdsWithin_iff, Pi.sub_apply]
-    using eventually_of_forall (limiting_fourier_aux hf hG' hψ hsupp hx)
+    using eventually_of_forall (limiting_fourier_aux hG' hf hψ hsupp hx)
 
   set ℓ₁ := ∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))
   set ℓ₂ := A * ∫ (u : ℝ) in Ici (-Real.log x), 𝓕 ψ (u / (2 * π))
@@ -742,9 +750,8 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
       apply tendsto_integral_filter_of_dominated_convergence (bound := bound)
       · apply eventually_of_forall ; intro σ'
         apply Continuous.aestronglyMeasurable
-        apply Continuous.mul
-        · continuity
-        · sorry
+        have := continuous_FourierIntegral hsupp
+        continuity
       · apply eventually_of_mem (U := Ioo 1 2)
         · apply Ioo_mem_nhdsWithin_Ioi ; simp
         · intro σ' ⟨h1, h2⟩
@@ -764,7 +771,12 @@ lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) 
           apply (Real.exp_monotone this).trans
           simp [Real.exp_log (zero_lt_one.trans_le hx), abs_eq_self.mpr (zero_le_one.trans hx)]
       · sorry
-      · sorry
+      · apply eventually_of_forall
+        intro x
+        suffices h : Tendsto (fun n ↦ ((rexp (-x * (n - 1))) : ℂ)) (𝓝[>] 1) (𝓝 1) by simpa using h.mul_const _
+        apply Tendsto.mono_left ?_ nhdsWithin_le_nhds
+        suffices h : Continuous (fun n ↦ ((rexp (-x * (n - 1))) : ℂ)) by simpa using h.tendsto 1
+        continuity
 
   have l3 : Tendsto f₃ (𝓝[>] 1) (𝓝 ℓ₃) := by
     sorry
