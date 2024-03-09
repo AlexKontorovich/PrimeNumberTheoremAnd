@@ -9,8 +9,9 @@ import Mathlib.Tactic.FunProp.AEMeasurable
 import Mathlib.Tactic.FunProp.Measurable
 import Mathlib.Analysis.Normed.Group.Tannery
 import Mathlib.Algebra.Order.Field.Basic
+import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 
-open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries
+open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries Asymptotics
 open Complex hiding log
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems impossible to hide, and hence parameters that are traditionally called σ will have to be called σ' instead in this file.
 
@@ -543,27 +544,92 @@ lemma tendsto_tsum_of_dominated_convergence' {α β G : Type*} {p : Filter α}
     · refine ((norm_tsum_le_tsum_norm <| h_sumg.subtype _).trans ?_).trans_lt h1
       exact tsum_le_tsum (h_g_le ·) (h_sumg.subtype _) (h_sum.subtype _)
 
-lemma summation_by_parts {a A b : ℕ → ℂ} (ha : ∀ n, a n = A (n + 1) - A n) {n : ℕ} :
-    ∑ i in Finset.Iio (n + 1), a i * b i = A (n + 1) * b n - A 0 * b 0 -
-    ∑ i in Finset.Iio n, A (i + 1) * (b (i + 1) - b i)  := by
+lemma Finset.sum_shift_front {E : Type*} [Ring E] {u : ℕ → E} {n : ℕ} :
+    ∑ i in Finset.range (n + 1), u i = ∑ i in Finset.range n, u (i + 1) + u 0 := by
 
-  have l1 : ∑ x in Finset.Iio (n + 1), A (x + 1) * b x = ∑ x in Finset.Iio n, A (x + 1) * b x + A (n + 1) * b n := by
-    rw [Finset.sum_eq_sum_diff_singleton_add (i := n)]
-    · congr ; ext ; simpa [Nat.lt_add_one_iff] using lt_iff_le_and_ne.symm
-    · simp
-  have l2 : ∑ x in Finset.Iio (n + 1), A x * b x = ∑ x in Finset.Iio n, A (x + 1) * b (x + 1) + A 0 * b 0 := by
-    rw [Finset.sum_eq_sum_diff_singleton_add (i := 0)]
-    · congr 1
-      rw [← @Finset.sum_image ℂ ℕ ℕ (fun i => A i * b i) _ _ (Finset.Iio n) (fun i => i + 1)]
-      · congr ; ext i ; simp
-        cases i with
-        | zero => simp
-        | succ i => simpa using Nat.succ_lt_succ_iff
-      · intro x _ y _ ; exact Nat.succ_inj.mp
-    · simp
-  simp [ha, sub_mul, mul_sub, l1, l2] ; ring
+  rw [Finset.sum_eq_sum_diff_singleton_add (i := 0) (by simp), ← Finset.sum_image (s := Finset.range n)]
+  · congr ; ext i
+    cases i with
+    | zero => simp
+    | succ i => simpa using Nat.succ_lt_succ_iff
+  · intro x _ y _ ; exact Nat.succ_inj.mp
 
-variable (hcheby: ∃ C : ℝ, ∀ x : ℕ, ∑ n in Finset.Iic x, ‖f n‖ ≤ C * x)
+lemma Finset.sum_shift_back {E : Type*} [Ring E] {u : ℕ → E} {n : ℕ} :
+    ∑ i in Finset.range (n + 1), u i = ∑ i in Finset.range n, u i + u n := by
+  simp [Finset.range_succ, add_comm]
+
+lemma summation_by_parts {E : Type*} [Ring E] {a A b : ℕ → E} (ha : ∀ n, a n = A (n + 1) - A n) {n : ℕ} :
+    ∑ i in Finset.range (n + 1), a i * b i = A (n + 1) * b n - A 0 * b 0 -
+    ∑ i in Finset.range n, A (i + 1) * (b (i + 1) - b i)  := by
+
+  have l1 : ∑ x in Finset.range (n + 1), A (x + 1) * b x = ∑ x in Finset.range n, A (x + 1) * b x + A (n + 1) * b n :=
+    Finset.sum_shift_back
+  have l2 : ∑ x in Finset.range (n + 1), A x * b x = ∑ x in Finset.range n, A (x + 1) * b (x + 1) + A 0 * b 0 :=
+    Finset.sum_shift_front
+  simp [ha, sub_mul, mul_sub, l1, l2] ; abel
+
+lemma summable_iff_bounded {u : ℕ → ℝ} (hu : ∀ n, 0 ≤ u n) :
+    Summable u ↔ BoundedAtFilter atTop (∑ i in Finset.range ·, u i) := by sorry
+
+variable (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.range x, ‖f n‖ ≤ C * x)
+
+lemma dirichlet_test {a b A : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hA : 0 ≤ A) (hAa : ∀ n, a n = A (n + 1) - A n)
+    (hAb : BoundedAtFilter atTop (fun n ↦ A (n + 1) * b n)) (hbb : Antitone b)
+    (h : Summable (fun n ↦ A (n + 1) * (b n - b (n + 1)))) :
+    Summable (fun n => a n * b n) := by
+
+  have l1 n : 0 ≤ a n * b n := mul_nonneg (ha n) (hb n)
+  have l2 n : 0 ≤ A (n + 1) * (b n - b (n + 1)) := mul_nonneg (hA _) <| sub_nonneg.mpr (hbb (le.step le.refl))
+
+  rw [summable_iff_bounded l1]
+  suffices h : BoundedAtFilter atTop (fun n ↦ ∑ i in Finset.range (n + 1), a i * b i) by
+    simp only [BoundedAtFilter, isBigO_iff, eventually_atTop] at h ⊢
+    obtain ⟨C, N, hC⟩ := h
+    refine ⟨C, N + 1, fun n hn => ?_⟩
+    have r1 : n - 1 ≥ N := le_sub_one_of_lt hn
+    have r2 : n - 1 + 1 = n := Nat.sub_add_cancel <| NeZero.one_le.trans hn.le
+    simpa [r2] using hC (n - 1) r1
+  simp only [summation_by_parts hAa, sub_eq_add_neg]
+
+  apply (hAb.add (isBigO_const_one _ _ _)).add
+  simp only [← Finset.sum_neg_distrib, ← mul_neg, neg_add, neg_neg, ← sub_eq_neg_add]
+  rwa [← summable_iff_bounded l2]
+
+example : Summable (fun n => ‖f n‖ * (1 / (n + 1) ^ 2)) := by
+
+  let a n := ‖f n‖
+  let A n := ∑ i in Finset.range n, a i
+  let b (n : ℕ) := 1 / (n + 1 : ℝ) ^ 2
+  obtain ⟨C, hC, hAC⟩ := hcheby
+
+  have e1 n : 0 ≤ a n := norm_nonneg _
+  have e2 n : 0 ≤ b n := by simp [sq_nonneg]
+  have e3 n : 0 ≤ A n := by apply Finset.sum_nonneg ; simp
+  have e4 n : a n = A (n + 1) - A n := by simp [Finset.range_succ]
+
+  have l1 n : ‖A (n + 1) * b n‖ ≤ C / (n + 1) := by
+    rw [norm_mul]
+    trans (C * (n + 1)) * (1 / (n + 1) ^ 2)
+    · refine mul_le_mul ?_ (by simp) (norm_nonneg _) (by positivity)
+      rw [Real.norm_eq_abs, abs_eq_self.mpr <| e3 (n + 1)]
+      norm_cast
+      exact hAC (n + 1)
+    · apply le_of_eq ; field_simp ; ring
+  have l3 n : ‖A (n + 1) * b n‖ ≤ C := (l1 n).trans <| div_le_self hC (by simp)
+  have l4 : BoundedAtFilter atTop (fun n => A (n + 1) * b n) := by
+    simpa only [BoundedAtFilter, isBigO_iff]
+    using ⟨C, eventually_of_forall <| fun n => by simpa using l3 n⟩
+
+  have e5 : Antitone b := by
+    intro i j hij
+    have r3 : 0 < (i : ℝ) + 1 := cast_add_one_pos i
+    have r4 : 0 < (j : ℝ) + 1 := cast_add_one_pos j
+    have r1 : 0 < ((i : ℝ) + 1) ^ 2 := sq_pos_of_pos r3
+    have r2 : 0 < ((j : ℝ) + 1) ^ 2 := sq_pos_of_pos r4
+    simp [inv_le_inv r2 r1, sq_le_sq, abs_eq_self.mpr r3.le, abs_eq_self.mpr r4.le, hij]
+
+  apply dirichlet_test e1 e2 e3 e4 l4 e5
+  sorry
 
 lemma limiting_fourier (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
     ∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
