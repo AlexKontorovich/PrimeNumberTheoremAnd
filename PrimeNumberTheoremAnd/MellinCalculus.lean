@@ -29,6 +29,31 @@ end from_PR10944
 
 open Complex Topology Filter Real MeasureTheory Set
 
+lemma MeasureTheory.integral_comp_mul_right_I0i_haar
+    (f : ℝ → ℝ) {a : ℝ} (ha : 0 < a) :
+    ∫ (y : ℝ) in Ioi 0, f (y * a) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
+  have abs := abs_of_pos <| inv_pos.mpr ha
+  have := abs ▸ MeasureTheory.integral_comp_mul_right_Ioi (fun y => f y / y) 0 ha
+  simp [eq_inv_mul_iff_mul_eq₀ (ne_of_gt ha)] at this
+  rw [← this, ← integral_mul_left, set_integral_congr (by simp)]
+  intro _ _
+  ring_nf
+  conv => rhs; rw [mul_comm, ← mul_assoc, ← mul_assoc, inv_mul_cancel (ne_of_gt ha), one_mul]
+
+lemma MeasureTheory.integral_comp_mul_left_I0i_haar
+    (f : ℝ → ℝ) {a : ℝ} (ha : 0 < a) :
+    ∫ (y : ℝ) in Ioi 0, f (a * y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
+  conv => lhs; rhs; intro y; rw [mul_comm]
+  exact MeasureTheory.integral_comp_mul_right_I0i_haar f ha
+
+lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → ℝ) :
+    ∫ (y : ℝ) in Ioi 0, f (1 / y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
+  have := MeasureTheory.integral_comp_rpow_Ioi (fun y => f y / y) (p := -1) (by simp)
+  rw [← this, set_integral_congr (by simp)]
+  intro y hy
+  simp only [abs_neg, abs_one, one_mul, smul_eq_mul, mul_comm, mul_comm_div]
+  rw [← Real.rpow_sub <| mem_Ioi.mp hy]; norm_num; rw [Real.rpow_neg_one]
+  ring_nf
 
 /-%%
 In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler),
@@ -879,23 +904,12 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Set.Ic
     rw [← Real.rpow_add, add_right_neg, rpow_zero]
     all_goals try linarith
     all_goals positivity
-  · let g := (fun y => DeltaSpike Ψ ε (x / y) / y)
-    have := MeasureTheory.integral_comp_mul_right_Ioi g 0 xpos
-    have xinvpos : x⁻¹ > 0 := inv_pos.mpr xpos
-    rw [abs_of_pos xinvpos] at this
-    simp [eq_inv_mul_iff_mul_eq₀ (ne_of_gt xpos)] at this
-    rw [← this, ← integral_mul_left, set_integral_congr (by simp)]
-    intro _ _
-    ring_nf
-    rw [mul_inv_cancel (ne_of_gt xpos), one_mul]
-  · let g := (fun y => DeltaSpike Ψ ε ((1 : ℝ) / y) / y)
-    have := MeasureTheory.integral_comp_rpow_Ioi g  (p := -1) (by simp)
-    rw [← this, set_integral_congr (by simp)]
-    intro y hy
-    simp only [abs_neg, abs_one, one_mul, smul_eq_mul, mul_comm, mul_comm_div]
-    rw [← Real.rpow_sub]; norm_num; rw [Real.rpow_neg_one]
-    simp only [div_inv_eq_mul, one_mul]
-    congr; exact mem_Ioi.mp hy
+  · rw [← MeasureTheory.integral_comp_mul_right_I0i_haar (fun y => DeltaSpike Ψ ε (x / y)) xpos]
+    rw [set_integral_congr (by simp)]
+    intro y _
+    simp only
+    rw [div_mul_left <| ne_of_gt xpos]
+  · exact integral_comp_inv_I0i_haar (fun y => DeltaSpike Ψ ε y)
 
 /-%%
 \begin{proof}\leanok
