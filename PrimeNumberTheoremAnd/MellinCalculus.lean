@@ -818,8 +818,36 @@ $$
 %%-/
 
 lemma Smooth1Properties_estimate {ε : ℝ} (eps_pos : 0 < ε) :
-    (1 - 2 ^ (-ε)) / ε ≤ Real.log 2 :=
-  sorry
+    (1 - 2 ^ (-ε)) / ε ≤ Real.log 2 := by
+  apply (div_le_iff' eps_pos).mpr
+  rw [← Real.log_rpow (by norm_num), rpow_neg (by norm_num), inv_eq_one_div (2 ^ ε)]
+  have : 1 - 1 / (2 : ℝ) ^ ε = ((2 : ℝ) ^ ε - 1) / (2 : ℝ) ^ ε := by
+    rw [sub_div, div_self (by positivity)]
+  rw [this]
+  set c := (2 : ℝ) ^ ε
+  have hc : 1 < c := by
+    rw [← rpow_zero (2 : ℝ)]
+    apply Real.rpow_lt_rpow_of_exponent_lt (by norm_num) eps_pos
+  apply (div_le_iff' (by positivity)).mpr
+  apply le_sub_iff_add_le'.mp
+  let f := (fun x => x * Real.log x - x)
+  have f1 : -1 = f 1 := by simp
+  have fc : c * Real.log c - c = f c := by simp
+  rw [f1, fc]
+  have mono: StrictMonoOn f <| Ici 1 := by
+    refine strictMonoOn_of_deriv_pos ?_ ?_ ?_
+    · sorry
+    · sorry
+    · intro x hx; simp only [nonempty_Iio, interior_Ici', mem_Ioi] at hx
+      funext; dsimp [f]
+      rw [deriv_sub, deriv_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel, add_sub_cancel]
+      · exact log_pos hx
+      · linarith
+      · simp only [differentiableAt_id']
+      · simp only [differentiableAt_log_iff, ne_eq]; linarith
+      · sorry
+      · simp only [differentiableAt_id']
+  exact le_of_lt <| mono (by rw [mem_Ici]) (mem_Ici.mpr <| le_of_lt hc) hc
 
 /-%%
 \begin{proof}
