@@ -544,9 +544,21 @@ lemma tendsto_tsum_of_dominated_convergence' {α β G : Type*} {p : Filter α}
     · refine ((norm_tsum_le_tsum_norm <| h_sumg.subtype _).trans ?_).trans_lt h1
       exact tsum_le_tsum (h_g_le ·) (h_sumg.subtype _) (h_sum.subtype _)
 
-lemma Finset.sum_shift_front {E : Type*} [Ring E] {u : ℕ → E} {n : ℕ} :
-    ∑ i in Finset.range (n + 1), u i = ∑ i in Finset.range n, u (i + 1) + u 0 := by
+def cumsum {E : Type*} [AddCommMonoid E] (u : ℕ → E) (n : ℕ) : E := ∑ i in Finset.range n, u i
 
+def nabla {E : Type*} [HSub E E E] (u : ℕ → E) (n : ℕ) : E := u (n + 1) - u n
+
+def shift {E : Type*} (u : ℕ → E) (n : ℕ) : E := u (n + 1)
+
+@[simp] lemma cumsum_zero {E : Type*} [AddCommMonoid E] {u : ℕ → E} : cumsum u 0 = 0 := by simp [cumsum]
+
+@[simp] lemma nabla_cumsum {E : Type*} [AddCommGroup E] {u : ℕ → E} : nabla (cumsum u) = u := by
+  ext n ; simp [nabla, cumsum, Finset.range_succ]
+
+lemma Finset.sum_shift_front {E : Type*} [Ring E] {u : ℕ → E} {n : ℕ} :
+    cumsum u (n + 1) = cumsum (shift u) n + u 0 := by
+
+  unfold cumsum shift
   rw [Finset.sum_eq_sum_diff_singleton_add (i := 0) (by simp), ← Finset.sum_image (s := Finset.range n)]
   · congr ; ext i
     cases i with
@@ -554,26 +566,41 @@ lemma Finset.sum_shift_front {E : Type*} [Ring E] {u : ℕ → E} {n : ℕ} :
     | succ i => simpa using Nat.succ_lt_succ_iff
   · intro x _ y _ ; exact Nat.succ_inj.mp
 
+lemma Finset.sum_shift_front' {E : Type*} [Ring E] {u : ℕ → E} :
+    shift (cumsum u) = cumsum (shift u) + (fun _ => u 0) := by
+  ext n ; apply Finset.sum_shift_front
+
 lemma Finset.sum_shift_back {E : Type*} [Ring E] {u : ℕ → E} {n : ℕ} :
-    ∑ i in Finset.range (n + 1), u i = ∑ i in Finset.range n, u i + u n := by
-  simp [Finset.range_succ, add_comm]
+    cumsum u (n + 1) = cumsum u n + u n := by
+  simp [cumsum, Finset.range_succ, add_comm]
 
-lemma summation_by_parts {E : Type*} [Ring E] {a A b : ℕ → E} (ha : ∀ n, a n = A (n + 1) - A n) {n : ℕ} :
-    ∑ i in Finset.range (n + 1), a i * b i = A (n + 1) * b n - A 0 * b 0 -
-    ∑ i in Finset.range n, A (i + 1) * (b (i + 1) - b i)  := by
+lemma Finset.sum_shift_back' {E : Type*} [Ring E] {u : ℕ → E} : shift (cumsum u) = cumsum u + u := by
+  ext n ; apply Finset.sum_shift_back
 
+lemma summation_by_parts {E : Type*} [Ring E] {a A b : ℕ → E} (ha : a = nabla A) {n : ℕ} :
+    cumsum (a * b) (n + 1) = A (n + 1) * b n - A 0 * b 0 - cumsum (shift A * fun i => (b (i + 1) - b i)) n := by
+
+  unfold cumsum shift
   have l1 : ∑ x in Finset.range (n + 1), A (x + 1) * b x = ∑ x in Finset.range n, A (x + 1) * b x + A (n + 1) * b n :=
     Finset.sum_shift_back
   have l2 : ∑ x in Finset.range (n + 1), A x * b x = ∑ x in Finset.range n, A (x + 1) * b (x + 1) + A 0 * b 0 :=
     Finset.sum_shift_front
-  simp [ha, sub_mul, mul_sub, l1, l2] ; abel
+  simp [ha, nabla, sub_mul, mul_sub, l1, l2] ; abel
 
-lemma summable_iff_bounded {u : ℕ → ℝ} (hu : ∀ n, 0 ≤ u n) :
-    Summable u ↔ BoundedAtFilter atTop (∑ i in Finset.range ·, u i) := by sorry
+lemma summation_by_parts' {E : Type*} [Ring E] {a b : ℕ → E} {n : ℕ} :
+    cumsum (a * b) (n + 1) = cumsum a (n + 1) * b n - cumsum (shift (cumsum a) * nabla b) n := by
+  simpa using summation_by_parts (a := a) (b := b) (A := cumsum a) (by simp [Finset.sum_shift_back])
+
+lemma summation_by_parts'' {E : Type*} [Ring E] {a b : ℕ → E} :
+    shift (cumsum (a * b)) = shift (cumsum a) * b - cumsum (shift (cumsum a) * nabla b) := by
+  ext n ; apply summation_by_parts'
+
+lemma summable_iff_bounded {u : ℕ → ℝ} (hu : 0 ≤ u) :
+    Summable u ↔ BoundedAtFilter atTop (cumsum u) := by sorry
 
 variable (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.range x, ‖f n‖ ≤ C * x)
 
-lemma dirichlet_test {a b A : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hA : 0 ≤ A) (hAa : ∀ n, a n = A (n + 1) - A n)
+lemma dirichlet_test {a b A : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hA : 0 ≤ A) (hAa : a = nabla A)
     (hAb : BoundedAtFilter atTop (fun n ↦ A (n + 1) * b n)) (hbb : Antitone b)
     (h : Summable (fun n ↦ A (n + 1) * (b n - b (n + 1)))) :
     Summable (fun n => a n * b n) := by
@@ -582,7 +609,7 @@ lemma dirichlet_test {a b A : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hA : 0
   have l2 n : 0 ≤ A (n + 1) * (b n - b (n + 1)) := mul_nonneg (hA _) <| sub_nonneg.mpr (hbb (le.step le.refl))
 
   rw [summable_iff_bounded l1]
-  suffices h : BoundedAtFilter atTop (fun n ↦ ∑ i in Finset.range (n + 1), a i * b i) by
+  suffices h : BoundedAtFilter atTop (fun n ↦ cumsum (a * b) (n + 1)) by
     simp only [BoundedAtFilter, isBigO_iff, eventually_atTop] at h ⊢
     obtain ⟨C, N, hC⟩ := h
     refine ⟨C, N + 1, fun n hn => ?_⟩
@@ -592,8 +619,8 @@ lemma dirichlet_test {a b A : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hA : 0
   simp only [summation_by_parts hAa, sub_eq_add_neg]
 
   apply (hAb.add (isBigO_const_one _ _ _)).add
-  simp only [← Finset.sum_neg_distrib, ← mul_neg, neg_add, neg_neg, ← sub_eq_neg_add]
-  rwa [← summable_iff_bounded l2]
+  simp only [shift, Pi.mul_apply, cumsum, ← Finset.sum_neg_distrib, ← mul_neg, neg_add, neg_neg, ← sub_eq_neg_add]
+  exact (summable_iff_bounded l2).mp h
 
 example : Summable (fun n => ‖f n‖ * (1 / (n + 1) ^ 2)) := by
 
