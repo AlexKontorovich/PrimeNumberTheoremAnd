@@ -4,7 +4,7 @@ import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.NumberTheory.ZetaFunction
 import EulerProducts.PNT
 
-open BigOperators
+open BigOperators Complex Topology Filter
 
 lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
     (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
@@ -105,6 +105,14 @@ theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
     ∑ n in Finset.Icc (⌊a⌋ + 1) ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
       - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
+  let k₀ := ⌊a⌋
+  let k₁ := ⌈b⌉
+  have :
+    ∑ n in Finset.Icc (⌊a⌋ + 1) ⌊b⌋, φ n
+    =
+    ∑ k in Finset.Icc k₀ k₁,
+    ∑ n in Finset.Icc (max (⌊a⌋ + 1) k) (min ⌊b⌋ (k+1)), φ n := by
+    sorry
   sorry
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv_aux}
@@ -199,6 +207,28 @@ noncomputable def RiemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
       + s * ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)
 
 /-%%
+\begin{lemma}[ZetaBndAux]\label{ZetaBndAux}\lean{ZetaBndAux}\leanok
+For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in[1/2,2]$,
+$$
+s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
+\ll |t| \frac{N^{-\sigma}}{\sigma},
+$$
+as $|t|\to\infty$.
+\end{lemma}
+%%-/
+lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (σ_ge : 1 / 2 ≤ σ) (σ_le : σ ≤ 2) :
+    (fun (t : ℝ) ↦ Complex.abs ((σ + t * I) *
+      ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^((σ + t * I) + 1)))
+      =O[cocompact ℝ] fun (t : ℝ) ↦ |t| * N ^ (-σ) / σ := by
+  have := @ZetaSum_aux1a (a := N)
+  sorry
+/-%%
+\begin{proof}\uses{ZetaSum_aux1a}
+Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\ll |t|$.
+\end{proof}
+%%-/
+
+/-%%
 \begin{lemma}[Zeta0EqZeta]\label{Zeta0EqZeta}\lean{Zeta0EqZeta}\leanok
 If $\Re(s)>0$, then for any $N$,
 $$
@@ -213,7 +243,236 @@ lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) :
   sorry
 /-%%
 \begin{proof}
-\uses{ZetaSum_aux2, RiemannZeta0}
+\uses{ZetaSum_aux2, RiemannZeta0, ZetaBnd_aux1}
 Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{RiemannZeta0}.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[ZetaBnd_aux2]\label{ZetaBnd_aux2}\lean{ZetaBnd_aux2}\leanok
+Given $n ≤ t$ and $\sigma$ with $1-A/\log t \le \sigma$, we have
+that
+$$
+|n^{-s}| \le n^{-1} e^A.
+$$
+\end{lemma}
+%%-/
+lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_le_t : n ≤ t)
+    (σ_ge : (1 : ℝ) - A / Real.log |t| ≤ σ) :
+    Complex.abs (n ^ (-(σ + t * I))) ≤ (n : ℝ)⁻¹ * Real.exp A := by
+  by_cases n0 : n = 0
+  · simp [n0]
+    sorry
+  sorry
+/-%%
+\begin{proof}
+Use $|n^{-s}| = n^{-\sigma}
+= e^{-\sigma \log n}
+\le
+\exp(-\left(1-\frac{A}{\log t}\right)\log n)
+\le
+n^{-1} e^A$,
+since $n\le t$.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[ZetaUpperBnd]\label{ZetaUpperBnd}\lean{ZetaUpperBnd}\leanok
+For any $s\in \C$, $1/2 \le \Re(s)=\sigma\le 2$,
+and any $A>0$ sufficiently small, and $1-A/\log t \le \sigma$, we have
+$$
+|\zeta(s)| \ll \log t,
+$$
+as $|t|\to\infty$.
+\end{lemma}
+%%-/
+lemma ZetaUpperBnd :
+    ∀ᶠ (A : ℝ) in 𝓝[>]0, ∃ C > 0, ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
+    (σ_ge : 1 - A / Real.log |t| ≤ σ) (σ_le : σ ≤ 2),
+    Complex.abs (riemannZeta (σ + t * I)) ≤ C * Real.log |t| := by
+  sorry
+/-%%
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
+First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
+We estimate:
+$$
+|\zeta_0(N,s)| \ll
+\sum_{1\le n < |t|} |n^{-s}|
++
+\frac{- |t|^{1-\sigma}}{|1-s|} + \frac{-|t|^{-\sigma}}{2} +
+|t| * |t| ^ (-σ) / σ
+$$
+$$
+\ll
+e^A \sum_{1\le n < |t|} n^{-1}
++|t|^{1-\sigma}
+$$
+,
+where we used Lemma \ref{ZetaBnd_aux2} and Lemma \ref{ZetaBnd_aux1}.
+The first term is $\ll \log |t|$.
+For the second term, estimate
+$$
+|t|^{1-\sigma}
+\le |t|^{1-(1-A/\log |t|)}
+= |t|^{A/\log |t|} \ll 1.
+$$
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[ZetaDerivUpperBnd]\label{ZetaDerivUpperBnd}\lean{ZetaDerivUpperBnd}\leanok
+For any $s\in \C$, $1/2 \le \Re(s)=\sigma\le 2$,
+and any $A>0$ sufficiently small, and $1-A/\log t \le \sigma$, we have
+$$
+|\zeta'(s)| \ll \log^2 t,
+$$
+as $|t|\to\infty$.
+\end{lemma}
+%%-/
+lemma ZetaDerivUpperBnd :
+    ∀ᶠ (A : ℝ) in 𝓝[>]0, ∃ C > 0, ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
+    (σ_ge : 1 - A / Real.log |t| ≤ σ) (σ_le : σ ≤ 2),
+    Complex.abs (deriv riemannZeta (σ + t * I)) ≤ C * (Real.log |t|) ^ 2 := by
+  sorry
+/-%%
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
+First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
+Differentiating term by term, we get:
+$$
+\zeta'(s) = -\sum_{1\le n < N} n^{-s} \log n
+-
+\frac{N^{1 - s}}{1 - s)^2} + \frac{N^{1 - s} \log N} {1 - s}
++ \frac{-N^{-s}\log N}{2} +
+\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
+-
+s(s+1) \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+2}} \, dx
+.
+$$
+Estimate as before, with an extra factor of $\log |t|$.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[ZetaNear1Bnd]\label{ZetaNear1Bnd}\lean{ZetaNear1Bnd}\leanok
+As $\simga\to1^+$,
+$$
+|\zeta(\sigma)| \ll (\sigma-1).
+$$
+\end{lemma}
+%%-/
+lemma ZetaNear1Bnd :
+    (fun σ : ℝ ↦ Complex.abs (riemannZeta σ)) =O[𝓝[>](1:ℝ)] (fun σ ↦ 1 / (σ - 1)) :=
+  sorry
+/-%%
+\begin{proof}\uses{ZetaBnd_aux1, Zeta0EqZeta}
+Zeta has a simple pole at $s=1$. Equivalently, $\zeta(s)(s-1)$ remains bounded near $1$.
+Lots of ways to prove this.
+Probably the easiest one: use the expression for $\zeta_0 (N,s)$ with $N=1$ (the term $N^{1-s}/(1-s)$ being the only unbounded one).
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[ZetaInvBound1]\label{ZetaInvBound1}\lean{ZetaInvBound1}\leanok
+For all $\sigma>1$,
+$$
+1/|\zeta(\sigma+it)| \le |\zeta(\sigma)|^{3/4}|\zeta(\sigma+2it)|^{1/4}
+$$
+\end{lemma}
+%%-/
+lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
+    1 / Complex.abs (riemannZeta (σ + t * I)) ≤
+      Complex.abs (riemannZeta σ) ^ ((3 : ℝ) / 4) *
+        Complex.abs (riemannZeta (σ + 2 * t * I)) ^ ((1 : ℝ) / 4) := by
+  sorry -- use `norm_zeta_product_ge_one`
+/-%%
+\begin{proof}
+The identity
+$$
+1 \le |\zeta(\sigma)|^3 |\zeta(\sigma+it)|^4 |\zeta(\sigma+2it)|
+$$
+for $\sigma>1$
+is already proved by Michael Stoll in the EulerProducts PNT file.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[ZetaInvBound2]\label{ZetaInvBound2}\lean{ZetaInvBound2}\leanok
+For $\sigma>1$ (and $\sigma \le 2$),
+$$
+1/|\zeta(\sigma+it)| \ll (\sigma-1)^{3/4}(\log |t|)^{1/4},
+$$
+as $|t|\to\infty$.
+\end{lemma}
+%%-/
+lemma ZetaInvBound2 {σ : ℝ} (σ_gt : 1 < σ) (σ_le : σ ≤ 2) :
+    (fun (t : ℝ) ↦ 1 / Complex.abs (riemannZeta (σ + t * I))) =O[cocompact ℝ]
+      fun (t : ℝ) ↦ (σ - 1) ^ ((3 : ℝ) / 4) * (Real.log |t|) ^ ((1 : ℝ) / 4) := by
+  sorry
+/-%%
+\begin{proof}\uses{ZetaInvBound1, ZetaNear1Bnd, ZetaUpperBnd}
+Combine Lemma \ref{ZetaInvBound1} with the bounds in Lemmata \ref{ZetaNear1Bnd} and
+\ref{ZetaUpperBnd}.
+%%-/
+
+/-%%
+\begin{lemma}[Zeta_eq_int_derivZeta]\label{Zeta_eq_int_derivZeta}\lean{Zeta_eq_int_derivZeta}
+\leanok
+For any $t\ne0$ (so we don't pass through the pole), and $\sigma_1 < \sigma_2$,
+$$
+\int_{\sigma_1}^{\sigma_2}\zeta'(\sigma + it) dt =
+\zeta(\sigma_2+it) - \zeta(\sigma_1+it).
+$$
+\end{lemma}
+%%-/
+lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (σ₁_lt_σ₂ : σ₁ < σ₂) (t_ne_zero : t ≠ 0) :
+    (∫ σ in Set.Icc σ₁ σ₂, deriv riemannZeta (σ + t * I)) =
+      riemannZeta (σ₂ + t * I) - riemannZeta (σ₁ + t * I) := by
+  sorry
+/-%%
+\begin{proof}
+This is the fundamental theorem of calculus.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[Zeta_diff_Bnd]\label{Zeta_diff_Bnd}\lean{Zeta_diff_Bnd}\leanok
+For any $A>0$ sufficiently small, there is a constant $C>0$ so that
+whenever $1- A / \log t \le \sigma_1, \sigma_2\le 2$, we have that:
+$$
+|\zeta (\sigma_2 + it) - \zeta (\sigma_1 + it)|
+\le C (\log |t|)^2 (\sigma_2 - \sigma_1).
+$$
+\end{lemma}
+%%-/
+lemma Zeta_diff_Bnd :
+    ∀ᶠ (A : ℝ) in 𝓝[>]0, ∃ C > 0, ∀ (σ₁ σ₂ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
+    (σ₁_ge : 1 - A / Real.log |t| ≤ σ₁) (σ₁_le : σ₁ ≤ 2)
+    (σ₂_ge : 1 - A / Real.log |t| ≤ σ₂) (σ₂_le : σ₂ ≤ 2) (σ₁_lt_σ₂ : σ₁ < σ₂),
+    Complex.abs (riemannZeta (σ₂ + t * I) - riemannZeta (σ₁ + t * I)) ≤
+      C * (Real.log |t|) ^ 2 * (σ₂ - σ₁) := by
+  filter_upwards [ZetaDerivUpperBnd]
+  intro A ⟨C, Cpos, hC⟩
+  refine ⟨C, Cpos, ?_⟩
+  intro σ₁ σ₂ t t_gt σ₁_ge σ₁_le σ₂_ge σ₂_le σ₁_lt_σ₂
+  have : t ≠ 0 := by sorry
+  rw [← Zeta_eq_int_derivZeta σ₁_lt_σ₂ this]
+  sorry
+/-%%
+\begin{proof}
+\uses{Zeta_eq_int_derivZeta, ZetaDerivUpperBnd}
+Use Lemma \ref{Zeta_eq_int_derivZeta} and
+estimate trivially using Lemma \ref{ZetaDerivUpperBnd}.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[ZetaInvBnd]\label{ZetaInvBnd}\lean{ZetaInvBnd}\leanok
+Lemma.
+\end{lemma}
+%%-/
+/-%%
+\begin{proof}
+\uses{Zeta_diff_Bnd}
+Proof.
 \end{proof}
 %%-/

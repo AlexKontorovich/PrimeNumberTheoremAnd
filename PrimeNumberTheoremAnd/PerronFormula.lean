@@ -647,12 +647,12 @@ tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
       (not_mem_uIcc_of_lt (by linarith) (by linarith))
 --%% But we also have the bound $\int_{(\sigma')} \leq x^{\sigma'} * C$, where
 --%% $C=\int_\R\frac{1}{|(1+t)(1+t+1)|}dt$.
-  have VertIntBound : ∃ C > 0, ∀ σ' > 1, Complex.abs (VerticalIntegral (f x) σ') ≤ x^σ' * C
-  · let C := ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)|
+  have VertIntBound : ∃ C > 0, ∀ σ' > 1, Complex.abs (VerticalIntegral (f x) σ') ≤ x^σ' * C := by
+    let C := ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)|
     exact ⟨C, integralPosAux, fun _ ↦ vertIntBound xpos⟩
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
-  have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral (f x))) atTop (𝓝 0)
-  · obtain ⟨C, _, hC⟩ := VertIntBound
+  have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral (f x))) atTop (𝓝 0) := by
+    obtain ⟨C, _, hC⟩ := VertIntBound
     have := tendsto_rpow_atTop_nhds_zero_of_norm_lt_one xpos x_lt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
     · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _
@@ -1007,8 +1007,8 @@ tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
       Complex.abs (VerticalIntegral' f σ') ≤ x^σ' * C :=
     vertIntBoundLeft (by linarith : 0 < x)
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
-  have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral' f)) atBot (𝓝 0)
-  · obtain ⟨C, hC⟩ := VertIntBound
+  have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral' f)) atBot (𝓝 0) := by
+    obtain ⟨C, hC⟩ := VertIntBound
     have := tendsto_rpow_atTop_nhds_zero_of_norm_gt_one x_gt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
     · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _

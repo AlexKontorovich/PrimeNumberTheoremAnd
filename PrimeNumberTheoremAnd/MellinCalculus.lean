@@ -468,8 +468,8 @@ $$
 lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
     Ψ.support ⊆ Icc (1 / 2) 2 ∧ ∫ x in Ici 0, Ψ x / x = 1 := by
   suffices h : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
-    Ψ.support ⊆ Icc (1 / 2) 2 ∧ 0 < ∫ x in Ici 0, Ψ x / x
-  · rcases h with ⟨Ψ, hΨ, hΨnonneg, hΨsupp, hΨpos⟩
+      Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, Ψ x / x by
+    rcases h with ⟨Ψ, hΨ, hΨnonneg, hΨsupp, hΨpos⟩
     let c := (∫ x in Ici 0, Ψ x / x)
     use fun y => Ψ y / c
     constructor
@@ -1090,7 +1090,8 @@ and since $1_{(0,1]}(y)\le 1$, and all the factors in the integrand are nonnegat
 $$
   \widetilde{1_\epsilon}(x)\le\int_0^\infty \frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
 $$
-in which we change variables to $z=(x/y)^{\frac1\epsilon}$:
+(because in mathlib the integral of a non-integrable function is $0$, for the inequality above to be true, we must prove that $\psi((x/y)^{\frac1\epsilon})/y$ is integrable; this follows from the computation below).
+We then change variables to $z=(x/y)^{\frac1\epsilon}$:
 $$
   \widetilde{1_\epsilon}(x)\le\int_0^\infty \psi(z) \frac{dz}z
 $$
@@ -1163,7 +1164,7 @@ $$
 
 /-%%
 \begin{lemma}[MellinOfSmooth1b]\label{MellinOfSmooth1b}\lean{MellinOfSmooth1b}\leanok
-Given $0<\sigma_1\leqslant\sigma_2$, for any $s$ such yjay $\sigma_1\le\mathcal Re(s)\le\sigma_2$, we have
+Given $0<\sigma_1\le\sigma_2$, for any $s$ such that $\sigma_1\le\mathcal Re(s)\le\sigma_2$, we have
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\right).$$
 \end{lemma}
 %%-/
