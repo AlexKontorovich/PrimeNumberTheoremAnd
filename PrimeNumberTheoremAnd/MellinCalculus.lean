@@ -792,9 +792,8 @@ $$
 \end{lemma}
 %%-/
 
-lemma Smooth1Properties_estimate {ε : ℝ}
-    {eps_pos : 0<ε} :
-    (1-2^(-ε))/ε ≤ Real.log 2 :=
+lemma Smooth1Properties_estimate {ε : ℝ} (eps_pos : 0 < ε) :
+    (1 - 2 ^ (-ε)) / ε ≤ Real.log 2 :=
   sorry
 
 /-%%
@@ -823,14 +822,13 @@ In particular, we have the following two properties.
 \begin{lemma}[Smooth1Properties_below]\label{Smooth1Properties_below}
 \lean{Smooth1Properties_below}\leanok
 Fix $\epsilon>0$. There is an absolute constant $c>0$ so that:
-If $0<x\leq (1-c\epsilon)$, then
+If $0 < x \leq (1-c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 1.$$
 \end{lemma}
 %%-/
 
-lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
-    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) (ε : ℝ) (eps_pos: 0 < ε)
-    (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) :
+lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+    (ε : ℝ) (eps_pos: 0 < ε) (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) :
     ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), 0 < x → x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
   set c := Real.log 2; use c
   constructor; exact log_pos (by norm_num)
@@ -841,7 +839,7 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
       x ≤ 1 - c * ε := hx
       _ ≤ 2 ^ (-ε) := ?_
     rw [sub_le_iff_le_add, add_comm, ← sub_le_iff_le_add]
-    exact (div_le_iff eps_pos).mp <| @Smooth1Properties_estimate ε eps_pos
+    exact (div_le_iff eps_pos).mp <| Smooth1Properties_estimate eps_pos
 
   rewrite [← DeltaSpikeMass mass_one eps_pos]
   unfold Smooth1 MellinConvolution
@@ -911,15 +909,15 @@ $$
 The support of $\psi_\epsilon$ is contained in $[1/2^\epsilon,2^\epsilon]$, so
 $y \in [1/2^\epsilon x,2^\epsilon x]$. If $x \le 2^{-\epsilon}$, then the integral is the same as that over $(0,\infty)$:
 $$
-\int_0^\infty 1_{(0,1]}(y)\psi_\epsilon(x/y)\frac{dy}{y}
+\int_0^1 \psi_\epsilon(x/y)\frac{dy}{y}
 =
-\int_0^\infty \psi_\epsilon(x/y)\frac{dy}{y}.
+\int_0^\infty \psi_\epsilon(x/y)\frac{dy}{y},
 $$
 in which we change variables to $z=x/y$ (using $x>0$):
 $$
-\int_0^\infty 1_{(0,1]}(y)\psi_\epsilon(x/y)\frac{dy}{y}
+\int_0^\infty \psi_\epsilon(x/y)\frac{dy}{y}
 =
-\int_0^\infty \psi_\epsilon(z)\frac{dz}{z}.
+\int_0^\infty \psi_\epsilon(z)\frac{dz}{z},
 $$
 which is equal to one by Lemma \ref{DeltaSpikeMass}.
 We then choose
@@ -965,7 +963,7 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Set.Ic
       _ > 2 ^ ε * (1 - 2 ^ (-ε)) / ε := ?_
       _ = (2 ^ ε - 1) / ε := ?_
     · simp [c, ge_iff_le]
-      have := (mul_le_mul_left (a:=2) (by norm_num)).mpr <| @Smooth1Properties_estimate ε eps_pos
+      have := (mul_le_mul_left (a:=2) (by norm_num)).mpr <| Smooth1Properties_estimate eps_pos
       ring_nf at this ⊢
       exact this
     · have : (2 : ℝ) ^ ε < 2 := by
