@@ -418,7 +418,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := by exact_mod_cast y_ne_zeroℝ
     field_simp [mul_cpow_ofReal_nonneg (LT.lt.le hx) (LT.lt.le hy)]
     ring
-  · exact integral_mul_left _ _
+  · apply integral_mul_left
 
 /-%%
 \begin{proof}\leanok
@@ -905,10 +905,7 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Set.Ic
     all_goals try linarith
     all_goals positivity
   · rw [← MeasureTheory.integral_comp_mul_right_I0i_haar (fun y => DeltaSpike Ψ ε (x / y)) xpos]
-    rw [set_integral_congr (by simp)]
-    intro y _
-    simp only
-    rw [div_mul_left <| ne_of_gt xpos]
+    congr; funext y; rw [div_mul_left <| ne_of_gt xpos]
   · exact integral_comp_inv_I0i_haar (fun y => DeltaSpike Ψ ε y)
 
 /-%%
@@ -977,17 +974,17 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Set.Ic
       _ > 2 ^ ε * (1 - 2 ^ (-ε)) / ε := ?_
       _ = (2 ^ ε - 1) / ε := ?_
     · simp [c, ge_iff_le]
-      have := (mul_le_mul_left (a:=2) (by norm_num)).mpr <| Smooth1Properties_estimate eps_pos
+      have := (mul_le_mul_left (a := 2) (by norm_num)).mpr <| Smooth1Properties_estimate eps_pos
       ring_nf at this ⊢
       exact this
     · have : (2 : ℝ) ^ ε < 2 := by
         nth_rewrite 1 [← pow_one 2]
-        convert Real.rpow_lt_rpow_of_exponent_lt (x:=2) (by norm_num) eps_lt1
+        convert Real.rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) eps_lt1
         all_goals norm_num
       have pos: 0 < (1 - 2 ^ (-ε)) / ε := by
         refine div_pos ?_ eps_pos
         rw [sub_pos, ← pow_zero 2]
-        convert rpow_lt_rpow_of_exponent_lt (x:=2) (by norm_num) (neg_lt_zero.mpr eps_pos)
+        convert rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) (neg_lt_zero.mpr eps_pos)
         norm_num
       have := (mul_lt_mul_right pos).mpr this
       ring_nf at this ⊢
