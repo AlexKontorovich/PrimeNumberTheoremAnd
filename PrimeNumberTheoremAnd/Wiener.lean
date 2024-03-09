@@ -690,15 +690,110 @@ example (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.range x, ‖f n
 
 lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (h : HasCompactSupport ψ) : Continuous (𝓕 ψ) := sorry
 
+lemma limiting_fourier_lim1_aux
+    (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ n in Finset.range x, ‖f n‖ ≤ C * ↑x)
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm (⇑f) σ')) (hx : 1 ≤ x) (C : ℝ) :
+    Summable fun n ↦ ‖f n‖ / ↑n * (C / (1 + (1 / (2 * π) * Real.log (↑n / x)) ^ 2)) := by
+  sorry
+
+theorem limiting_fourier_lim1 (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ n in Finset.range x, ‖f n‖ ≤ C * ↑x)
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm (⇑f) σ'))
+    (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
+    Tendsto (fun σ' : ℝ ↦ ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))) (𝓝[>] 1)
+      (𝓝 (∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x)))) := by
+
+  obtain ⟨C, hC⟩ := decay_bounds_cor hψ hsupp
+  refine tendsto_tsum_of_dominated_convergence' (limiting_fourier_lim1_aux hcheby hf hx C) (fun n => ?_) ?_
+  · apply Tendsto.mul_const
+    by_cases h : n = 0 <;> simp [term, h]
+    refine tendsto_const_nhds.div ?_ (by simp [h])
+    simpa using ((continuous_ofReal.tendsto 1).mono_left nhdsWithin_le_nhds).const_cpow
+  · rw [eventually_nhdsWithin_iff]
+    apply eventually_of_forall
+    intro σ' (hσ' : 1 < σ') n
+    rw [norm_mul, ← nterm_eq_norm_term]
+    refine mul_le_mul ?_ (hC _) (norm_nonneg _) (div_nonneg (norm_nonneg _) (cast_nonneg _))
+    by_cases h : n = 0 <;> simp [h, nterm]
+    have : 1 ≤ (n : ℝ) := by simpa using Nat.pos_iff_ne_zero.mpr h
+    refine div_le_div (by simp only [apply_nonneg]) le_rfl (by simpa [Nat.pos_iff_ne_zero]) ?_
+    simpa using Real.rpow_le_rpow_of_exponent_le this hσ'.le
+
+theorem limiting_fourier_lim2_aux (x : ℝ) (C : ℝ) :
+    Integrable (fun t ↦ |x| * (C / (1 + (t / (2 * π)) ^ 2))) (Measure.restrict volume (Ici (-Real.log x))) := by
+  simp_rw [div_eq_mul_inv C]
+  exact (((integrable_inv_one_add_sq.comp_div (by simp [pi_ne_zero])).const_mul _).const_mul _).restrict
+
+theorem limiting_fourier_lim2 (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
+    Tendsto (fun σ' ↦ A * ↑(x ^ (1 - σ')) * ∫ u in Ici (-Real.log x), rexp (-u * (σ' - 1)) * 𝓕 ψ (u / (2 * π)))
+      (𝓝[>] 1) (𝓝 (A * ∫ u in Ici (-Real.log x), 𝓕 ψ (u / (2 * π)))) := by
+
+  obtain ⟨C, hC⟩ := decay_bounds_cor hψ hsupp
+  apply Tendsto.mul
+  · suffices h : Tendsto (fun σ' : ℝ ↦ ofReal' (x ^ (1 - σ'))) (𝓝[>] 1) (𝓝 1) by simpa using h.const_mul ↑A
+    suffices h : Tendsto (fun σ' : ℝ ↦ x ^ (1 - σ')) (𝓝[>] 1) (𝓝 1) from (continuous_ofReal.tendsto 1).comp h
+    have : Tendsto (fun σ' : ℝ ↦ σ') (𝓝 1) (𝓝 1) := fun _ a ↦ a
+    have : Tendsto (fun σ' : ℝ ↦ 1 - σ') (𝓝[>] 1) (𝓝 0) :=
+      tendsto_nhdsWithin_of_tendsto_nhds (by simpa using this.const_sub 1)
+    simpa using tendsto_const_nhds.rpow this (Or.inl (zero_lt_one.trans_le hx).ne.symm)
+  · refine tendsto_integral_filter_of_dominated_convergence _ ?_ ?_ (limiting_fourier_lim2_aux x C) ?_
+    · apply eventually_of_forall ; intro σ'
+      apply Continuous.aestronglyMeasurable
+      have := continuous_FourierIntegral hsupp
+      continuity
+    · apply eventually_of_mem (U := Ioo 1 2)
+      · apply Ioo_mem_nhdsWithin_Ioi ; simp
+      · intro σ' ⟨h1, h2⟩
+        rw [ae_restrict_iff' measurableSet_Ici]
+        apply eventually_of_forall
+        intro t (ht : - Real.log x ≤ t)
+        rw [norm_mul]
+        refine mul_le_mul ?_ (hC _) (norm_nonneg _) (abs_nonneg _)
+        simp [Complex.abs_exp]
+        have : -Real.log x * (σ' - 1) ≤ t * (σ' - 1) := mul_le_mul_of_nonneg_right ht (by linarith)
+        have : -(t * (σ' - 1)) ≤ Real.log x * (σ' - 1) := by simpa using neg_le_neg this
+        have := Real.exp_monotone this
+        apply this.trans
+        have l1 : σ' - 1 ≤ 1 := by linarith
+        have : 0 ≤ Real.log x := Real.log_nonneg hx
+        have := mul_le_mul_of_nonneg_left l1 this
+        apply (Real.exp_monotone this).trans
+        simp [Real.exp_log (zero_lt_one.trans_le hx), abs_eq_self.mpr (zero_le_one.trans hx)]
+    · apply eventually_of_forall
+      intro x
+      suffices h : Tendsto (fun n ↦ ((rexp (-x * (n - 1))) : ℂ)) (𝓝[>] 1) (𝓝 1) by simpa using h.mul_const _
+      apply Tendsto.mono_left ?_ nhdsWithin_le_nhds
+      suffices h : Continuous (fun n ↦ ((rexp (-x * (n - 1))) : ℂ)) by simpa using h.tendsto 1
+      continuity
+
+theorem limiting_fourier_lim3
+    (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ n in Finset.range x, ‖f n‖ ≤ C * ↑x)
+    (hG : ContinuousOn G {s | 1 ≤ s.re})
+    (hG' : EqOn G (fun s ↦ LSeries (⇑f) s - ↑A / (s - 1)) {s | 1 < s.re})
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm (⇑f) σ'))
+    (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ)
+    (hx : 1 ≤ x) :
+    Tendsto (fun σ' : ℝ ↦ ∫ t : ℝ, G (σ' + t * I) * ψ t * x ^ (t * I)) (𝓝[>] 1)
+      (𝓝 (∫ t : ℝ, G (1 + t * I) * ψ t * x ^ (t * I))) := by
+
+  let bound : ℝ → ℝ := fun t => 18
+  apply tendsto_integral_filter_of_dominated_convergence (bound := bound)
+  · sorry
+  · sorry
+  · sorry
+  · apply eventually_of_forall ; intro t
+    apply Tendsto.mul_const
+    apply Tendsto.mul_const
+    refine (hG (1 + t * I) (by simp)).tendsto.comp <| tendsto_nhdsWithin_iff.mpr ⟨?_, ?_⟩
+    · exact ((continuous_ofReal.tendsto _).add tendsto_const_nhds).mono_left nhdsWithin_le_nhds
+    · exact eventually_nhdsWithin_of_forall (fun x (hx : 1 < x) => by simp [hx.le])
+
 lemma limiting_fourier (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.range x, ‖f n‖ ≤ C * x)
     (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
     ∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π)) =
-      ∫ (t : ℝ), (G (1 + I * t)) * (ψ t) * x ^ (t * I) := by
-
-  obtain ⟨C, hC⟩ := decay_bounds_cor hψ hsupp
+      ∫ (t : ℝ), (G (1 + t * I)) * (ψ t) * x ^ (t * I) := by
 
   let f₁ (σ' : ℝ) := ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))
   let f₂ (σ' : ℝ) := A * ↑(x ^ (1 - σ')) * ∫ (u : ℝ) in Ici (-Real.log x), rexp (-u * (σ' - 1)) * 𝓕 ψ (u / (2 * π))
@@ -710,76 +805,11 @@ lemma limiting_fourier (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.
 
   set ℓ₁ := ∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))
   set ℓ₂ := A * ∫ (u : ℝ) in Ici (-Real.log x), 𝓕 ψ (u / (2 * π))
-  set ℓ₃ := ∫ (t : ℝ), G (1 + I * t) * ψ t * x ^ (t * I)
+  set ℓ₃ := ∫ (t : ℝ), G (1 + t * I) * ψ t * x ^ (t * I)
 
-  have l1 : Tendsto f₁ (𝓝[>] 1) (𝓝 ℓ₁) := by
-    let bound n := (‖f n‖ / n) * (C / (1 + (1 / (2 * π) * Real.log (n / x)) ^ 2))
-    apply tendsto_tsum_of_dominated_convergence' (bound := bound)
-    · sorry
-    · intro n
-      apply Tendsto.mul_const
-      by_cases h : n = 0
-      · simp [term, h]
-      · simp [term, h]
-        apply tendsto_const_nhds.div
-        · simpa using ((continuous_ofReal.tendsto 1).mono_left nhdsWithin_le_nhds).const_cpow
-        · simp[h]
-    · rw [eventually_nhdsWithin_iff]
-      apply eventually_of_forall
-      intro σ' (hσ' : 1 < σ') n
-      rw [norm_mul, ← nterm_eq_norm_term]
-      refine mul_le_mul ?_ (hC _) (norm_nonneg _) (div_nonneg (norm_nonneg _) (cast_nonneg _))
-      by_cases h : n = 0
-      · simp [h, nterm]
-      · simp [h, nterm]
-        refine div_le_div (by simp only [apply_nonneg]) le_rfl (by simpa [Nat.pos_iff_ne_zero]) ?_
-        have : 1 ≤ (n : ℝ) := by simpa using Nat.pos_iff_ne_zero.mpr h
-        simpa using Real.rpow_le_rpow_of_exponent_le this hσ'.le
-
-  have l2 : Tendsto f₂ (𝓝[>] 1) (𝓝 ℓ₂) := by
-    apply Tendsto.mul
-    · have : Tendsto (fun σ' : ℝ ↦ σ') (𝓝[>] 1) (𝓝 1) := tendsto_nhdsWithin_of_tendsto_nhds fun ⦃U⦄ a ↦ a
-      have : Tendsto (fun σ' : ℝ ↦ 1 - σ') (𝓝[>] 1) (𝓝 0) := by
-        simpa using this.const_sub 1
-      have : Tendsto (fun σ' : ℝ ↦ x ^ (1 - σ')) (𝓝[>] 1) (𝓝 1) := by
-        simpa using tendsto_const_nhds.rpow this (Or.inl (zero_lt_one.trans_le hx).ne.symm)
-      have : Tendsto (fun σ' : ℝ ↦ ofReal' (x ^ (1 - σ'))) (𝓝[>] 1) (𝓝 1) := by
-        apply (continuous_ofReal.tendsto 1).comp this
-      simpa using this.const_mul ↑A
-    · let bound t := |x| * (C / (1 + (t / (2 * π)) ^ 2))
-      apply tendsto_integral_filter_of_dominated_convergence (bound := bound)
-      · apply eventually_of_forall ; intro σ'
-        apply Continuous.aestronglyMeasurable
-        have := continuous_FourierIntegral hsupp
-        continuity
-      · apply eventually_of_mem (U := Ioo 1 2)
-        · apply Ioo_mem_nhdsWithin_Ioi ; simp
-        · intro σ' ⟨h1, h2⟩
-          rw [ae_restrict_iff' measurableSet_Ici]
-          apply eventually_of_forall
-          intro t (ht : - Real.log x ≤ t)
-          rw [norm_mul]
-          refine mul_le_mul ?_ (hC _) (norm_nonneg _) (abs_nonneg _)
-          simp [Complex.abs_exp]
-          have : -Real.log x * (σ' - 1) ≤ t * (σ' - 1) := mul_le_mul_of_nonneg_right ht (by linarith)
-          have : -(t * (σ' - 1)) ≤ Real.log x * (σ' - 1) := by simpa using neg_le_neg this
-          have := Real.exp_monotone this
-          apply this.trans
-          have l1 : σ' - 1 ≤ 1 := by linarith
-          have : 0 ≤ Real.log x := Real.log_nonneg hx
-          have := mul_le_mul_of_nonneg_left l1 this
-          apply (Real.exp_monotone this).trans
-          simp [Real.exp_log (zero_lt_one.trans_le hx), abs_eq_self.mpr (zero_le_one.trans hx)]
-      · sorry
-      · apply eventually_of_forall
-        intro x
-        suffices h : Tendsto (fun n ↦ ((rexp (-x * (n - 1))) : ℂ)) (𝓝[>] 1) (𝓝 1) by simpa using h.mul_const _
-        apply Tendsto.mono_left ?_ nhdsWithin_le_nhds
-        suffices h : Continuous (fun n ↦ ((rexp (-x * (n - 1))) : ℂ)) by simpa using h.tendsto 1
-        continuity
-
-  have l3 : Tendsto f₃ (𝓝[>] 1) (𝓝 ℓ₃) := by
-    sorry
+  have l1 : Tendsto f₁ (𝓝[>] 1) (𝓝 ℓ₁) := limiting_fourier_lim1 hcheby hf hψ hsupp hx
+  have l2 : Tendsto f₂ (𝓝[>] 1) (𝓝 ℓ₂) := limiting_fourier_lim2 hψ hsupp hx
+  have l3 : Tendsto f₃ (𝓝[>] 1) (𝓝 ℓ₃) := by apply limiting_fourier_lim3 <;> assumption
 
   exact tendsto_nhds_unique_of_eventuallyEq (l1.sub l2) l3 key
 
