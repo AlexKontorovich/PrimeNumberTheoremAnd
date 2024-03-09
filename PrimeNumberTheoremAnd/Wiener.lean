@@ -775,11 +775,40 @@ theorem limiting_fourier_lim3
     Tendsto (fun σ' : ℝ ↦ ∫ t : ℝ, G (σ' + t * I) * ψ t * x ^ (t * I)) (𝓝[>] 1)
       (𝓝 (∫ t : ℝ, G (1 + t * I) * ψ t * x ^ (t * I))) := by
 
-  let bound : ℝ → ℝ := fun t => 18
+  by_cases hh : tsupport ψ = ∅ ; simp [tsupport_eq_empty_iff.mp hh]
+  obtain ⟨a₀, ha₀⟩ := Set.nonempty_iff_ne_empty.mpr hh
+
+  let S : Set ℂ := Set.reProdIm (Icc 1 2) (tsupport ψ)
+  have l1 : IsCompact S := sorry
+  have l2 : S ⊆ {s : ℂ | 1 ≤ s.re} := fun z hz => (mem_reProdIm.mp hz).1.1
+  have l3 : ContinuousOn (‖G ·‖) S := (hG.mono l2).norm
+  have l4 : S.Nonempty := sorry
+  obtain ⟨z, hz, hmax⟩ := l1.exists_isMaxOn l4 l3
+  let MG := ‖G z‖
+  obtain ⟨Mψ, hMψ⟩ := hsupp.exists_bound_of_continuous hψ.continuous
+  let bound (a : ℝ) : ℝ := MG * ‖ψ a‖
+
   apply tendsto_integral_filter_of_dominated_convergence (bound := bound)
-  · sorry
-  · sorry
-  · sorry
+  · apply eventually_of_mem (U := Icc 1 2) (Icc_mem_nhdsWithin_Ioi (by simp)) ; intro u hu
+    apply Continuous.aestronglyMeasurable
+    apply Continuous.mul
+    · exact (hG.comp_continuous (by continuity) (by simp [hu.1])).mul hψ.continuous
+    · apply Continuous.const_cpow (by continuity) ; simp ; linarith
+  · apply eventually_of_mem (U := Icc 1 2) (Icc_mem_nhdsWithin_Ioi (by simp))
+    intro u hu
+    apply eventually_of_forall ; intro v
+    by_cases h : v ∈ tsupport ψ
+    · have r1 : u + v * I ∈ S := by simp [mem_reProdIm, hu.1, hu.2, h]
+      have r2 := isMaxOn_iff.mp hmax _ r1
+      have r4 : (x : ℂ) ≠ 0 := by simp ; linarith
+      have r5 : arg x = 0 := by simp [arg_eq_zero_iff] ; linarith
+      have r3 : ‖(x : ℂ) ^ (v * I)‖ = 1 := by simp [abs_cpow_of_ne_zero r4, r5]
+      simp_rw [norm_mul, r3, mul_one]
+      exact mul_le_mul_of_nonneg_right r2 (norm_nonneg _)
+    · have : v ∉ Function.support ψ := fun a ↦ h (subset_tsupport ψ a)
+      simp [show ψ v = 0 by simpa using this]
+  · suffices h : Continuous bound by exact h.integrable_of_hasCompactSupport hsupp.norm.mul_left
+    have := hψ.continuous ; continuity
   · apply eventually_of_forall ; intro t
     apply Tendsto.mul_const
     apply Tendsto.mul_const
