@@ -849,6 +849,7 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
   calc
     _ = ∫ (y : ℝ) in Ioi 0, indicator (Ioc 0 1) (fun y ↦ DeltaSpike Ψ ε (x / y) / ↑y) y := ?_
     _ = ∫ (y : ℝ) in Ioi 0, DeltaSpike Ψ ε (x / y) / y := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, DeltaSpike Ψ ε (1 / y) / y := ?_
     _ = _ := ?_
   · rw [set_integral_congr (by simp)]
     intro y hy
@@ -880,12 +881,26 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     rw [← Real.rpow_add, add_right_neg, rpow_zero]
     all_goals try linarith
     all_goals positivity
-  · sorry
-
-#exit
+  · let g := (fun y => DeltaSpike Ψ ε (x / y) / y)
+    have := MeasureTheory.integral_comp_mul_right_Ioi g 0 xpos
+    have xinvpos : x⁻¹ > 0 := inv_pos.mpr xpos
+    rw [abs_of_pos xinvpos] at this
+    simp [eq_inv_mul_iff_mul_eq₀ (ne_of_gt xpos)] at this
+    rw [← this, ← integral_mul_left, set_integral_congr (by simp)]
+    intro _ _
+    ring_nf
+    rw [mul_inv_cancel (ne_of_gt xpos), one_mul]
+  · let g := (fun y => DeltaSpike Ψ ε ((1 : ℝ) / y) / y)
+    have := MeasureTheory.integral_comp_rpow_Ioi g  (p := -1) (by simp)
+    rw [← this, set_integral_congr (by simp)]
+    intro y hy
+    simp only [abs_neg, abs_one, one_mul, smul_eq_mul, mul_comm, mul_comm_div]
+    rw [← Real.rpow_sub]; norm_num; rw [Real.rpow_neg_one]
+    simp only [div_inv_eq_mul, one_mul]
+    congr; exact mem_Ioi.mp hy
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{Smooth1, MellinConvolution,DeltaSpikeMass, Smooth1Properties_estimate}
 Opening the definition, we have that the Mellin convolution of $1_{(0,1]}$ with $\psi_\epsilon$ is
 $$
