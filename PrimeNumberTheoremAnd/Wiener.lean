@@ -606,8 +606,23 @@ lemma summation_by_parts'' {E : Type*} [Ring E] {a b : ℕ → E} :
     shift (cumsum (a * b)) = shift (cumsum a) * b - cumsum (shift (cumsum a) * nabla b) := by
   ext n ; apply summation_by_parts'
 
-lemma summable_iff_bounded {u : ℕ → ℝ} (hu : 0 ≤ u) :
-    Summable u ↔ BoundedAtFilter atTop (cumsum u) := by sorry
+lemma summable_iff_bounded {u : ℕ → ℝ} (hu : 0 ≤ u) : Summable u ↔ BoundedAtFilter atTop (cumsum u) := by
+
+  have l0 : (cumsum u =O[atTop] 1) ↔ _ := isBigO_one_nat_atTop_iff (f := cumsum u)
+  have l1 : Monotone (cumsum u) :=
+    fun n₁ n₂ h₁₂ => Finset.sum_le_sum_of_subset_of_nonneg (by simp [h₁₂]) (fun i _ _ => hu i)
+  have l2 i : |u i| = u i := abs_eq_self.mpr (hu i)
+  have l4 n : 0 ≤ cumsum u n := Finset.sum_nonneg (fun i _ => hu i)
+  have l3 n : ‖cumsum u n‖ = cumsum u n := by simp [Real.norm_eq_abs, abs_eq_self, l4]
+
+  simp only [BoundedAtFilter, l0, l3]
+  constructor <;> intro ⟨C, h1⟩
+  · exact ⟨C, fun n => sum_le_hasSum _ (fun i _ => hu i) h1⟩
+  · cases' tendsto_of_monotone l1 with h h
+    · obtain ⟨n₀, h⟩ := tendsto_atTop_atTop.mp h (C + 1)
+      linarith [h1 n₀, h n₀ le_rfl]
+    · apply summable_of_absolute_convergence_real
+      simpa only [l2]
 
 lemma dirichlet_test {a b A : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hA : 0 ≤ A) (hAa : a = nabla A)
     (hAb : BoundedAtFilter atTop (fun n ↦ A (n + 1) * b n)) (hbb : Antitone b)
@@ -690,9 +705,8 @@ example (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.range x, ‖f n
 
 lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (h : HasCompactSupport ψ) : Continuous (𝓕 ψ) := sorry
 
-lemma limiting_fourier_lim1_aux
-    (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ n in Finset.range x, ‖f n‖ ≤ C * ↑x)
-    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm (⇑f) σ')) (hx : 1 ≤ x) (C : ℝ) :
+lemma limiting_fourier_lim1_aux (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ n in Finset.range x, ‖f n‖ ≤ C * ↑x)
+    (hx : 1 ≤ x) (C : ℝ) :
     Summable fun n ↦ ‖f n‖ / ↑n * (C / (1 + (1 / (2 * π) * Real.log (↑n / x)) ^ 2)) := by
   sorry
 
@@ -723,7 +737,7 @@ theorem limiting_fourier_lim2_aux (x : ℝ) (C : ℝ) :
   simp_rw [div_eq_mul_inv C]
   exact (((integrable_inv_one_add_sq.comp_div (by simp [pi_ne_zero])).const_mul _).const_mul _).restrict
 
-theorem limiting_fourier_lim2 (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
+theorem limiting_fourier_lim2 (A : ℝ) (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
     Tendsto (fun σ' ↦ A * ↑(x ^ (1 - σ')) * ∫ u in Ici (-Real.log x), rexp (-u * (σ' - 1)) * 𝓕 ψ (u / (2 * π)))
       (𝓝[>] 1) (𝓝 (A * ∫ u in Ici (-Real.log x), 𝓕 ψ (u / (2 * π)))) := by
 
@@ -765,13 +779,8 @@ theorem limiting_fourier_lim2 (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSuppo
       suffices h : Continuous (fun n ↦ ((rexp (-x * (n - 1))) : ℂ)) by simpa using h.tendsto 1
       continuity
 
-theorem limiting_fourier_lim3
-    (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ n in Finset.range x, ‖f n‖ ≤ C * ↑x)
-    (hG : ContinuousOn G {s | 1 ≤ s.re})
-    (hG' : EqOn G (fun s ↦ LSeries (⇑f) s - ↑A / (s - 1)) {s | 1 < s.re})
-    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm (⇑f) σ'))
-    (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ)
-    (hx : 1 ≤ x) :
+theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re})
+    (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
     Tendsto (fun σ' : ℝ ↦ ∫ t : ℝ, G (σ' + t * I) * ψ t * x ^ (t * I)) (𝓝[>] 1)
       (𝓝 (∫ t : ℝ, G (1 + t * I) * ψ t * x ^ (t * I))) := by
 
@@ -779,10 +788,13 @@ theorem limiting_fourier_lim3
   obtain ⟨a₀, ha₀⟩ := Set.nonempty_iff_ne_empty.mpr hh
 
   let S : Set ℂ := Set.reProdIm (Icc 1 2) (tsupport ψ)
-  have l1 : IsCompact S := sorry
+  have l1 : IsCompact S := by
+    refine Metric.isCompact_iff_isClosed_bounded.mpr ⟨?_, ?_⟩
+    · exact isClosed_Icc.reProdIm (isClosed_tsupport ψ)
+    · exact (Metric.isBounded_Icc 1 2).reProdIm hsupp.isBounded
   have l2 : S ⊆ {s : ℂ | 1 ≤ s.re} := fun z hz => (mem_reProdIm.mp hz).1.1
   have l3 : ContinuousOn (‖G ·‖) S := (hG.mono l2).norm
-  have l4 : S.Nonempty := sorry
+  have l4 : S.Nonempty := ⟨1 + a₀ * I, by simp [mem_reProdIm, ha₀]⟩
   obtain ⟨z, hz, hmax⟩ := l1.exists_isMaxOn l4 l3
   let MG := ‖G z‖
   obtain ⟨Mψ, hMψ⟩ := hsupp.exists_bound_of_continuous hψ.continuous
@@ -824,23 +836,11 @@ lemma limiting_fourier (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π)) =
       ∫ (t : ℝ), (G (1 + t * I)) * (ψ t) * x ^ (t * I) := by
 
-  let f₁ (σ' : ℝ) := ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))
-  let f₂ (σ' : ℝ) := A * ↑(x ^ (1 - σ')) * ∫ (u : ℝ) in Ici (-Real.log x), rexp (-u * (σ' - 1)) * 𝓕 ψ (u / (2 * π))
-  let f₃ (σ' : ℝ) := ∫ (t : ℝ), G (σ' + t * I) * ψ t * x ^ (t * I)
-
-  have key : f₁ - f₂ =ᶠ[𝓝[>] 1] f₃ := by
-    simpa only [eventuallyEq_nhdsWithin_iff, Pi.sub_apply]
-    using eventually_of_forall (limiting_fourier_aux hG' hf hψ hsupp hx)
-
-  set ℓ₁ := ∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))
-  set ℓ₂ := A * ∫ (u : ℝ) in Ici (-Real.log x), 𝓕 ψ (u / (2 * π))
-  set ℓ₃ := ∫ (t : ℝ), G (1 + t * I) * ψ t * x ^ (t * I)
-
-  have l1 : Tendsto f₁ (𝓝[>] 1) (𝓝 ℓ₁) := limiting_fourier_lim1 hcheby hf hψ hsupp hx
-  have l2 : Tendsto f₂ (𝓝[>] 1) (𝓝 ℓ₂) := limiting_fourier_lim2 hψ hsupp hx
-  have l3 : Tendsto f₃ (𝓝[>] 1) (𝓝 ℓ₃) := by apply limiting_fourier_lim3 <;> assumption
-
-  exact tendsto_nhds_unique_of_eventuallyEq (l1.sub l2) l3 key
+  have l1 := limiting_fourier_lim1 hcheby hf hψ hsupp hx
+  have l2 := limiting_fourier_lim2 A hψ hsupp hx
+  have l3 := limiting_fourier_lim3 hG hψ hsupp hx
+  apply tendsto_nhds_unique_of_eventuallyEq (l1.sub l2) l3
+  simpa [eventuallyEq_nhdsWithin_iff] using eventually_of_forall (limiting_fourier_aux hG' hf hψ hsupp hx)
 
 /-%%
 \begin{proof}
