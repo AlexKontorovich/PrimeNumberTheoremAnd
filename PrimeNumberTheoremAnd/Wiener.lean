@@ -703,7 +703,10 @@ example (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.range x, ‖f n
   apply dirichlet_test e1 e2 e3 nabla_cumsum.symm l4 e5
   sorry
 
-lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (h : HasCompactSupport ψ) : Continuous (𝓕 ψ) := sorry
+lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (h1 : Continuous ψ) (h2 : HasCompactSupport ψ) :
+    Continuous (𝓕 ψ) :=
+  VectorFourier.fourierIntegral_continuous continuous_fourierChar (by exact continuous_mul) <|
+    h1.integrable_of_hasCompactSupport h2
 
 lemma limiting_fourier_lim1_aux (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ n in Finset.range x, ‖f n‖ ≤ C * ↑x)
     (hx : 1 ≤ x) (C : ℝ) :
@@ -711,13 +714,12 @@ lemma limiting_fourier_lim1_aux (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ 
   sorry
 
 theorem limiting_fourier_lim1 (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ n in Finset.range x, ‖f n‖ ≤ C * ↑x)
-    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm (⇑f) σ'))
     (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
     Tendsto (fun σ' : ℝ ↦ ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))) (𝓝[>] 1)
       (𝓝 (∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x)))) := by
 
   obtain ⟨C, hC⟩ := decay_bounds_cor hψ hsupp
-  refine tendsto_tsum_of_dominated_convergence' (limiting_fourier_lim1_aux hcheby hf hx C) (fun n => ?_) ?_
+  refine tendsto_tsum_of_dominated_convergence' (limiting_fourier_lim1_aux hcheby hx C) (fun n => ?_) ?_
   · apply Tendsto.mul_const
     by_cases h : n = 0 <;> simp [term, h]
     refine tendsto_const_nhds.div ?_ (by simp [h])
@@ -752,7 +754,7 @@ theorem limiting_fourier_lim2 (A : ℝ) (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCo
   · refine tendsto_integral_filter_of_dominated_convergence _ ?_ ?_ (limiting_fourier_lim2_aux x C) ?_
     · apply eventually_of_forall ; intro σ'
       apply Continuous.aestronglyMeasurable
-      have := continuous_FourierIntegral hsupp
+      have := continuous_FourierIntegral hψ.continuous hsupp
       continuity
     · apply eventually_of_mem (U := Ioo 1 2)
       · apply Ioo_mem_nhdsWithin_Ioi ; simp
@@ -836,7 +838,7 @@ lemma limiting_fourier (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π)) =
       ∫ (t : ℝ), (G (1 + t * I)) * (ψ t) * x ^ (t * I) := by
 
-  have l1 := limiting_fourier_lim1 hcheby hf hψ hsupp hx
+  have l1 := limiting_fourier_lim1 hcheby hψ hsupp hx
   have l2 := limiting_fourier_lim2 A hψ hsupp hx
   have l3 := limiting_fourier_lim3 hG hψ hsupp hx
   apply tendsto_nhds_unique_of_eventuallyEq (l1.sub l2) l3
