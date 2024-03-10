@@ -2,7 +2,7 @@
 
 This project has a blueprint, which is available at <https://AlexKontorovich.github.io/PrimeNumberTheoremAnd/web/>.
 
-To use the tool, irst install local requirements using
+To use the tool, first install local requirements using
 ```sh
 python -pip install -r blueprint/requirements.txt
 ```
