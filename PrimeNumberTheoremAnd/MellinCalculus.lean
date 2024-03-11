@@ -378,7 +378,7 @@ lemma MellinConvolutionSymmetric (f g : ℝ → ℂ) {x : ℝ} (xpos: 0<x) :
     ring
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
   \uses{MellinConvolution}
   By Definition \ref{MellinConvolution},
   $$
