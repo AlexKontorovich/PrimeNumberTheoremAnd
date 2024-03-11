@@ -617,8 +617,11 @@ lemma summable_iff_bounded {u : ℕ → ℝ} (hu : 0 ≤ u) : Summable u ↔ Bou
   · exact ⟨C, fun n => sum_le_hasSum _ (fun i _ => hu i) h1⟩
   · exact summable_of_sum_range_le hu h1
 
-lemma summable_congr_ae {u v : ℕ → ℝ} (h : u =ᶠ[atTop] v) : Summable u ↔ Summable v := by
-  sorry
+lemma Filter.EventuallyEq.summable {u v : ℕ → ℝ} (h : u =ᶠ[atTop] v) (hu : Summable v) : Summable u :=
+  summable_of_isBigO_nat hu h.isBigO
+
+lemma summable_congr_ae {u v : ℕ → ℝ} (huv : u =ᶠ[atTop] v) : Summable u ↔ Summable v := by
+  constructor <;> intro h <;> simp [huv.summable, huv.symm.summable, h]
 
 lemma summable_iff_bounded' {u : ℕ → ℝ} (hu : ∀ᶠ n in atTop, 0 ≤ u n) :
     Summable u ↔ BoundedAtFilter atTop (cumsum u) := by
@@ -674,14 +677,15 @@ lemma bounded_of_shift {u : ℕ → ℝ} (h : BoundedAtFilter atTop (shift u)) :
   simpa [r2] using hC (n - 1) r1
 
 lemma dirichlet_test' {a b : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
-    (hAb : BoundedAtFilter atTop (shift (cumsum a) * b)) (hbb : Antitone b)
+    (hAb : BoundedAtFilter atTop (shift (cumsum a) * b)) (hbb : ∀ᶠ n in atTop, b (n + 1) ≤ b n)
     (h : Summable (shift (cumsum a) * nnabla b)) : Summable (a * b) := by
 
-  have l2 : 0 ≤ shift (cumsum a) * nnabla b :=
-    fun n => mul_nonneg (by simpa [shift] using Finset.sum_nonneg' ha) <| sub_nonneg.mpr (hbb (le.step le.refl))
+  have l1 : ∀ᶠ n in atTop, 0 ≤ (shift (cumsum a) * nnabla b) n := by
+    filter_upwards [hbb] with n hb
+    exact mul_nonneg (by simpa [shift] using Finset.sum_nonneg' ha) (sub_nonneg.mpr hb)
 
   rw [summable_iff_bounded (mul_nonneg ha hb)]
-  rw [summable_iff_bounded l2] at h
+  rw [summable_iff_bounded' l1] at h
   apply bounded_of_shift
   simpa only [summation_by_parts'', sub_eq_add_neg, neg_cumsum, ← mul_neg, neg_nabla] using hAb.add h
 
@@ -705,7 +709,6 @@ lemma limiting_fourier_lim1_aux (hcheby : ∃ C ≥ 0, ∀ n, cumsum (‖f ·‖
   have l4 : nnabla a =O[atTop] (fun n : ℕ => (n ^ 2 * (Real.log n) ^ 2)⁻¹) := sorry
 
   simp_rw [div_mul_eq_mul_div, mul_div_assoc, one_mul]
-  -- change Summable fun n ↦ ‖f n‖ * a n
   apply dirichlet_test'
   · intro n ; exact norm_nonneg _
   · intro n ; positivity
@@ -714,7 +717,13 @@ lemma limiting_fourier_lim1_aux (hcheby : ∃ C ≥ 0, ∀ n, cumsum (‖f ·‖
     intro x (hx : 1 ≤ x)
     have : x ≠ 0 := by linarith
     simp [this]
-  · sorry
+  · have : ∀ᶠ n : ℕ in atTop, x ≤ n := sorry
+    filter_upwards [this] with n hn
+    have e1 : 0 < (n : ℝ) := by linarith
+    have e2 : 1 ≤ n / x := (one_le_div (by linarith)).mpr hn
+    have e3 := Nat.le_succ n
+    gcongr
+    refine div_nonneg (Real.log_nonneg e2) (by norm_num [pi_nonneg])
   · apply summable_of_isBigO_nat summable_inv_mul_log_sq
     apply (l2.mul l4).trans_eventuallyEq
     apply eventually_of_mem (Ici_mem_atTop 2)
