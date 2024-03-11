@@ -452,8 +452,6 @@ lemma Function.support_id : Function.support (fun x : ℝ => x) = Iio 0 ∪ Ioi 
   ext x
   simp only [mem_support, ne_eq, Iio_union_Ioi, mem_compl_iff, mem_singleton_iff]
 
-attribute [- simp] one_div
-
 /-%%
 Let $\psi$ be a bumpfunction.
 \begin{theorem}[SmoothExistence]\label{SmoothExistence}\lean{SmoothExistence}\leanok
@@ -464,6 +462,8 @@ $$
 $$
 \end{theorem}
 %%-/
+
+attribute [- simp] one_div in
 
 lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
     Ψ.support ⊆ Icc (1 / 2) 2 ∧ ∫ x in Ici 0, Ψ x / x = 1 := by
