@@ -766,6 +766,10 @@ lemma log_sq_isbigo_mul {a b : ℝ} (ha : 0 ≤ a) (hb : 0 < b) :
   have l3 : 0 ≤ a + Real.log (↑n / b) ^ 2 := by linarith
   simpa [abs_eq_self.mpr l3]
 
+lemma Asymptotics.IsBigO.sq {f g : ℕ → ℝ} (h : f =O[atTop] g) :
+    (fun n ↦ f n ^ 2) =O[atTop] (fun n => g n ^ 2) := by
+  simpa [pow_two] using h.mul h
+
 lemma nnabla_mul_log_sq {a b : ℝ} (hb : 1 ≤ b) :
     nabla (fun n : ℕ => n * (a + Real.log (n / b) ^ 2)) =O[atTop] (fun n => Real.log n ^ 2) := by
 
@@ -782,7 +786,8 @@ lemma nnabla_mul_log_sq {a b : ℝ} (hb : 1 ≤ b) :
     rw [tendsto_atTop] at this
     specialize this |a|
     convert this using 1 ; ext ; simp
-  · sorry
+  · apply Asymptotics.IsBigO.sq
+    sorry
   · sorry
 
 lemma nnabla_bound {C : ℝ} (hx : 1 ≤ x) :
