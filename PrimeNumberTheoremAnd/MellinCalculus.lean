@@ -1143,13 +1143,21 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) =
 \end{lemma}
 %%-/
 lemma MellinOfSmooth1a (Ψ : ℝ → ℝ)
-    -- (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
-    -- (mass_one : ∫ x in Ici 0, Ψ x / x = 1)
     {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) :
     MellinTransform ((Smooth1 Ψ ε) ·) s = 1 / s * MellinTransform (Ψ ·) (ε * s) := by
-  dsimp [Smooth1]
---  rw [MellinConvolutionTransform, MellinOf1 _ hs, MellinOfDeltaSpike Ψ (εpos) s]
-  sorry
+  unfold Smooth1
+  -- let g := DeltaSpike Ψ ε
+  let g: ℝ → ℂ  := fun x ↦ DeltaSpike Ψ ε x
+  have : IntegrableOn (Function.uncurry fun x y ↦ (if y ≤ 1 then 1 else 0) *
+      g (x / y) / ↑y * ↑x ^ (s - 1)) (Ioi 0 ×ˢ Ioi 0) := by
+    sorry
+  have := MellinConvolutionTransform (fun x ↦ if x ≤ 1 then 1 else 0) g s this
+  convert this using 1
+  · simp [g]
+    congr; funext x
+    sorry
+  · rw [MellinOf1 s hs, MellinOfDeltaSpike Ψ εpos s]
+
 /-%%
 \begin{proof}\uses{Smooth1,MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1, MellinConvolutionSymmetric}
 By Definition \ref{Smooth1},
