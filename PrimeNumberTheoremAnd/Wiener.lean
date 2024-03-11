@@ -875,8 +875,6 @@ lemma nnabla_mul_log_sq {a b : ℝ} (hb : 1 ≤ b) :
     rw [mul_div_cancel_left _ r3, abs_eq_self.mpr r4, pow_two]
     apply le_mul_of_one_le_right r4 r1
 
-/--
-
 lemma nnabla_bound {C : ℝ} (hx : 1 ≤ x) :
     nnabla (fun n : ℕ => C / (1 + (Real.log (↑n / x) / (2 * π)) ^ 2) / ↑n) =O[atTop]
     (fun n : ℕ => (n ^ 2 * (Real.log n) ^ 2)⁻¹) := by
