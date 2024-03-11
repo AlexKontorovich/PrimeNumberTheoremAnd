@@ -818,8 +818,8 @@ $$
 %%-/
 
 lemma Smooth1Properties_estimate {ε : ℝ} (eps_pos : 0 < ε) :
-    (1 - 2 ^ (-ε)) / ε ≤ Real.log 2 := by
-  apply (div_le_iff' eps_pos).mpr
+    (1 - 2 ^ (-ε)) / ε < Real.log 2 := by
+  apply (div_lt_iff' eps_pos).mpr
   rw [← Real.log_rpow (by norm_num), rpow_neg (by norm_num), inv_eq_one_div (2 ^ ε)]
   have : 1 - 1 / (2 : ℝ) ^ ε = ((2 : ℝ) ^ ε - 1) / (2 : ℝ) ^ ε := by
     rw [sub_div, div_self (by positivity)]
@@ -828,8 +828,8 @@ lemma Smooth1Properties_estimate {ε : ℝ} (eps_pos : 0 < ε) :
   have hc : 1 < c := by
     rw [← rpow_zero (2 : ℝ)]
     apply Real.rpow_lt_rpow_of_exponent_lt (by norm_num) eps_pos
-  apply (div_le_iff' (by positivity)).mpr
-  apply le_sub_iff_add_le'.mp
+  apply (div_lt_iff' (by positivity)).mpr
+  apply lt_sub_iff_add_lt'.mp
   let f := (fun x => x * Real.log x - x)
   have f1 : -1 = f 1 := by simp
   have fc : c * Real.log c - c = f c := by simp
@@ -856,25 +856,20 @@ lemma Smooth1Properties_estimate {ε : ℝ} (eps_pos : 0 < ε) :
         apply DifferentiableAt.log differentiableAt_id'
         linarith
       · simp only [differentiableAt_id']
-  exact le_of_lt <| mono (by rw [mem_Ici]) (mem_Ici.mpr <| le_of_lt hc) hc
+  exact mono (by rw [mem_Ici]) (mem_Ici.mpr <| le_of_lt hc) hc
 
 /-%%
-\begin{proof}
-Let $\alpha:=2^\epsilon>1$, in terms of which we wish to prove
+\begin{proof}\leanok
+Let $c:=2^\epsilon > 1$, in terms of which we wish to prove
 $$
-  1\geqslant\frac{1-1/\alpha}{\log \alpha}
-  .
+  -1 < c \log c - c .
 $$
-In addition,
+Letting $f(x):=x\log x - x$, we can rewrite this as $f(1) < f(c)$.
+Since
 $$
-  \frac d{d\alpha}\left(1-\frac1\alpha-\log \alpha\right)=\frac1{\alpha^2}(1-\alpha)<0
+  \frac {d}{dx}f(x) = \log x > 0 ,
 $$
-so $1-1/\alpha-\log\alpha$ is monotone decreasing so it is smaller than its value at $\alpha=1$:
-$$
-  1-\frac1\alpha-\log\alpha<0
-  .
-$$
-We conclude the proof using $\log\alpha>0$.
+$f$ is monotone increasing on [1, \infty), and we are done.
 \end{proof}
 %%-/
 
@@ -896,12 +891,12 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
   constructor; exact log_pos (by norm_num)
   intro x xpos hx
 
-  have hx2 : x ≤ 2 ^ (-ε) := by
+  have hx2 : x < 2 ^ (-ε) := by
     calc
       x ≤ 1 - c * ε := hx
-      _ ≤ 2 ^ (-ε) := ?_
-    rw [sub_le_iff_le_add, add_comm, ← sub_le_iff_le_add]
-    exact (div_le_iff eps_pos).mp <| Smooth1Properties_estimate eps_pos
+      _ < 2 ^ (-ε) := ?_
+    rw [sub_lt_iff_lt_add, add_comm, ← sub_lt_iff_lt_add]
+    exact (div_lt_iff eps_pos).mp <| Smooth1Properties_estimate eps_pos
 
   rewrite [← DeltaSpikeMass mass_one eps_pos]
   unfold Smooth1 MellinConvolution
@@ -937,7 +932,7 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     have : 2 = ((2 : ℝ) ^ ε) ^ (1 / ε ) := by
       rw [← rpow_mul zero_le_two, mul_one_div_cancel (ne_of_gt eps_pos), rpow_one 2]
     rw [this, ← mul_rpow, rpow_le_rpow_iff] at key
-    convert le_mul_of_le_mul_of_nonneg_left key hx2 (by positivity)
+    convert le_mul_of_le_mul_of_nonneg_left key (le_of_lt hx2) (by positivity)
     rw [← rpow_add, add_right_neg, rpow_zero]
     all_goals try linarith
     all_goals positivity
@@ -954,8 +949,8 @@ $$
 =
 \int_0^1 \psi_\epsilon(x/y)\frac{dy}{y}.
 $$
-The support of $\psi_\epsilon$ is contained in $[1/2^\epsilon,2^\epsilon]$, so
-$y \in [1/2^\epsilon x,2^\epsilon x]$. If $x \le 2^{-\epsilon}$, then the integral is the same as that over $(0,\infty)$:
+The support of $\psi_\epsilon$ is contained in $[1/2^\epsilon,2^\epsilon]$, so it suffices to consider
+$y \in [1/2^\epsilon x,2^\epsilon x]$ for nonzero contributions. If $x < 2^{-\epsilon}$, then the integral is the same as that over $(0,\infty)$:
 $$
 \int_0^1 \psi_\epsilon(x/y)\frac{dy}{y}
 =
@@ -970,16 +965,15 @@ $$
 which is equal to one by Lemma \ref{DeltaSpikeMass}.
 We then choose
 $$
-  c:=\log 2
+  c:=\log 2,
 $$
 which satisfies
 $$
-  c\geqslant\frac{1-2^{-\epsilon}}\epsilon
+  c > \frac{1-2^{-\epsilon}}\epsilon
 $$
 by Lemma \ref{Smooth1Properties_estimate}, so
 $$
-  1-c\epsilon\leqslant 2^{-\epsilon}
-  .
+  1-c\epsilon < 2^{-\epsilon}.
 $$
 \end{proof}
 %%-/
@@ -1007,11 +1001,11 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
       _ > 2 ^ ε := ?_
     refine lt_add_of_sub_left_lt <| (div_lt_iff eps_pos).mp ?_
     calc
-      c ≥ 2 * (1 - 2 ^ (-ε)) / ε := ?_
+      c > 2 * (1 - 2 ^ (-ε)) / ε := ?_
       _ > 2 ^ ε * (1 - 2 ^ (-ε)) / ε := ?_
       _ = (2 ^ ε - 1) / ε := ?_
     · simp [c, ge_iff_le]
-      have := (mul_le_mul_left (a := 2) (by norm_num)).mpr <| Smooth1Properties_estimate eps_pos
+      have := (mul_lt_mul_left (a := 2) (by norm_num)).mpr <| Smooth1Properties_estimate eps_pos
       ring_nf at this ⊢
       exact this
     · have : (2 : ℝ) ^ ε < 2 := by
@@ -1077,14 +1071,13 @@ $$
 $$
 By Lemma \ref{Smooth1Properties_estimate},
 $$
-  c\geqslant 2\frac{1-2^{-\epsilon}}\epsilon > 2^\epsilon\frac{1-2^{-\epsilon}}\epsilon
+  c > 2\frac{1-2^{-\epsilon}}\epsilon > 2^\epsilon\frac{1-2^{-\epsilon}}\epsilon
   =
-  \frac{2^\epsilon-1}\epsilon
+  \frac{2^\epsilon-1}\epsilon,
 $$
 so
 $$
-  1+c\epsilon > 2^\epsilon
-  .
+  1+c\epsilon > 2^\epsilon.
 $$
 \end{proof}
 %%-/
