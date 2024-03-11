@@ -800,6 +800,39 @@ theorem log_add_div_isBigO_log {a b : ℝ} (hb : 1 ≤ b) :
   rw [Real.log_div r4 (by linarith)]
   linarith
 
+lemma log_add_one_sub_log_le {x : ℝ} (hx : 0 < x) : log (x + 1) - log x ≤ x⁻¹ := by
+  have l1 : ContinuousOn Real.log (Icc x (x + 1)) := by
+    apply continuousOn_log.mono ; intro t ⟨h1, _⟩ ; simp ; linarith
+  have l2 : ∀ t ∈ Ioo x (x + 1), HasDerivAt Real.log t⁻¹ t := by
+    intro t ⟨h1, _⟩ ; apply Real.hasDerivAt_log ; linarith
+  obtain ⟨t, ⟨ht1, _⟩, htx⟩ := exists_hasDerivAt_eq_slope Real.log (·⁻¹) (by linarith) l1 l2
+  simp at htx ; simp [← htx]
+  rw [inv_le_inv (by linarith) hx]
+  linarith
+
+lemma nabla_log_main : (fun x ↦ Real.log (x + 1) - Real.log x) =O[atTop] fun x ↦ 1 / x := by
+  rw [isBigO_iff] ; use 1 ; simp_rw [one_mul]
+  have l1 : ∀ᶠ x : ℝ in atTop, 0 < x := eventually_gt_atTop 0
+  filter_upwards [l1] with x l1
+  have l2 : log x ≤ log (x + 1) := log_le_log l1 (by linarith)
+  simpa [abs_eq_self.mpr l1.le, abs_eq_self.mpr (sub_nonneg.mpr l2)] using log_add_one_sub_log_le l1
+
+lemma nabla_log_real {b : ℝ} (hb : 1 ≤ b) :
+    (fun x => Real.log ((x + 1) / b) - Real.log (x / b)) =O[atTop] (fun x => 1 / x) := by
+
+  have l2 : ∀ᶠ x : ℝ in atTop, 0 < x := eventually_gt_atTop 0
+  have l1 : ∀ᶠ x in atTop, Real.log ((x + 1) / b) - Real.log (x / b) = log (x + 1) - log x := by
+    filter_upwards [l2] with x l2
+    have r1 : 0 < x + 1 := by linarith
+    rw [log_div r1.ne.symm (by linarith), log_div l2.ne.symm (by linarith)]
+    ring
+  apply EventuallyEq.trans_isBigO l1
+  exact nabla_log_main
+
+lemma nabla_log {b : ℝ} (hb : 1 ≤ b) :
+    (fun n : ℕ => Real.log ((↑n + 1) / b) - Real.log (↑n / b)) =O[atTop] (fun n => 1 / (n : ℝ)) :=
+  (nabla_log_real hb).natCast
+
 lemma nnabla_mul_log_sq {a b : ℝ} (hb : 1 ≤ b) :
     nabla (fun n : ℕ => n * (a + Real.log (n / b) ^ 2)) =O[atTop] (fun n => Real.log n ^ 2) := by
 
@@ -824,12 +857,23 @@ lemma nnabla_mul_log_sq {a b : ℝ} (hb : 1 ≤ b) :
       apply IsBigO.add
       · exact log_add_div_isBigO_log hb
       · simpa using log_add_div_isBigO_log (a := 0) hb
-    have e3 : (fun n : ℕ => Real.log ((↑n + 1) / b) - Real.log (↑n / b)) =O[atTop] (fun n => 1 / (n : ℝ)) := sorry
+    have e3 : (fun n : ℕ => Real.log ((↑n + 1) / b) - Real.log (↑n / b)) =O[atTop] (fun n => 1 / (n : ℝ)) :=
+      nabla_log hb
 
     apply (e1.mul (e2.mul e3)).trans
     rw [isBigO_iff]
+    use 1
 
-    sorry
+    have r1 : ∀ᶠ n : ℕ in atTop, 1 ≤ Real.log n :=
+      tendsto_atTop.mp (tendsto_log_atTop.comp tendsto_nat_cast_atTop_atTop) _
+    have r2 : ∀ᶠ n : ℕ in atTop, 1 ≤ (n : ℝ) := tendsto_atTop.mp tendsto_nat_cast_atTop_atTop _
+    filter_upwards [r1, r2] with n r1 r2
+    have r3 : (n : ℝ) ≠ 0 := by linarith
+    have r4 : 0 ≤ Real.log n := by linarith
+
+    field_simp [r3]
+    rw [mul_div_cancel_left _ r3, abs_eq_self.mpr r4, pow_two]
+    apply le_mul_of_one_le_right r4 r1
 
 /--
 
