@@ -13,7 +13,7 @@ theorem MeasureTheory.set_integral_integral_swap {α : Type*} {β : Type*} {E : 
   convert hf.integrable
   exact Measure.prod_restrict s t
 
--- How do deal with this coersion?... Ans: (f ·)
+-- How to deal with this coersion?... Ans: (f ·)
 --- noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ f x
 
 section from_PR10944
@@ -29,31 +29,41 @@ end from_PR10944
 
 open Complex Topology Filter Real MeasureTheory Set
 
+variable {𝕂 : Type*} [IsROrC 𝕂]
+
 lemma MeasureTheory.integral_comp_mul_right_I0i_haar
-    (f : ℝ → ℝ) {a : ℝ} (ha : 0 < a) :
+    (f : ℝ → 𝕂) {a : ℝ} (ha : 0 < a) :
     ∫ (y : ℝ) in Ioi 0, f (y * a) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
-  have abs := abs_of_pos <| inv_pos.mpr ha
-  have := abs ▸ integral_comp_mul_right_Ioi (fun y => f y / y) 0 ha
-  simp [eq_inv_mul_iff_mul_eq₀ (ne_of_gt ha)] at this
-  rw [← this, ← integral_mul_left, set_integral_congr (by simp)]
+  have := integral_comp_mul_right_Ioi (fun y => f y / y) 0 ha
+  simp only [IsROrC.ofReal_mul, zero_mul, eq_inv_smul_iff₀ (ne_of_gt ha)] at this
+  rw [← integral_smul] at this
+  rw [← this, set_integral_congr (by simp)]
   intro _ _
-  ring_nf
-  conv => rhs; rw [mul_comm, ← mul_assoc, ← mul_assoc, inv_mul_cancel (ne_of_gt ha), one_mul]
+  have a_ne_zero: (a : 𝕂) ≠ 0 := by norm_num; exact ne_of_gt ha
+  simp only [IsROrC.real_smul_eq_coe_mul]
+  conv => rhs; rw [mul_comm, div_mul, mul_div_assoc]
+          rhs; rw [div_eq_mul_inv, mul_inv_cancel a_ne_zero, mul_one]
+
+lemma MeasureTheory.integral_comp_mul_right_I0i_haar_real
+    (f : ℝ → ℝ) {a : ℝ} (ha : 0 < a) :
+    ∫ (y : ℝ) in Ioi 0, f (y * a) / y = ∫ (y : ℝ) in Ioi 0, f y / y :=
+  MeasureTheory.integral_comp_mul_right_I0i_haar f ha
 
 lemma MeasureTheory.integral_comp_mul_left_I0i_haar
-    (f : ℝ → ℝ) {a : ℝ} (ha : 0 < a) :
+    (f : ℝ → 𝕂) {a : ℝ} (ha : 0 < a) :
     ∫ (y : ℝ) in Ioi 0, f (a * y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
-  conv => lhs; rhs; intro y; rw [mul_comm]
-  exact integral_comp_mul_right_I0i_haar f ha
+  convert integral_comp_mul_right_I0i_haar f ha using 5; ring
 
-lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → ℝ) :
+lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → 𝕂) :
     ∫ (y : ℝ) in Ioi 0, f (1 / y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   have := integral_comp_rpow_Ioi (fun y => f y / y) (p := -1) (by simp)
   rw [← this, set_integral_congr (by simp)]
   intro y hy
   simp only [abs_neg, abs_one, one_mul, smul_eq_mul, mul_comm, mul_comm_div]
-  rw [← rpow_sub <| mem_Ioi.mp hy]; norm_num; rw [rpow_neg_one]
-  ring_nf
+  simp [IsROrC.real_smul_eq_coe_mul]
+  rw [rpow_neg_one]; ring_nf; rw [mul_assoc, rpow_neg <| le_of_lt <| mem_Ioi.mp hy]
+  have : (y : 𝕂) ≠ 0 := by norm_num; exact LT.lt.ne' hy
+  field_simp [pow_two]
 
 /-%%
 In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler),
@@ -327,7 +337,6 @@ applied the fundamental theorem of calculus (undoing the second).
 \end{proof}
 %%-/
 
-variable {𝕂 : Type*} [IsROrC 𝕂]
 
 /-%%
 Finally, we need Mellin Convolutions and properties thereof.
@@ -936,7 +945,7 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     rw [← rpow_add, add_right_neg, rpow_zero]
     all_goals try linarith
     all_goals positivity
-  · rw [← MeasureTheory.integral_comp_mul_right_I0i_haar (fun y => DeltaSpike Ψ ε (x / y)) xpos]
+  · rw [← integral_comp_mul_right_I0i_haar_real (fun y => DeltaSpike Ψ ε (x / y)) xpos]
     congr; funext y; rw [div_mul_left <| ne_of_gt xpos]
   · exact integral_comp_inv_I0i_haar (fun y => DeltaSpike Ψ ε y)
 
