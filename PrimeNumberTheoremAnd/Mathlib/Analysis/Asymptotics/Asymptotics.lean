@@ -1,5 +1,6 @@
 import Mathlib.Analysis.Asymptotics.Asymptotics
 import Mathlib.Topology.Algebra.Order.Compact
+import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 open Filter Topology
 
@@ -29,3 +30,7 @@ theorem isLittleO_const_id_atTop2 [LinearOrder F''] [NoMaxOrder F''] [ClosedIciT
 theorem isLittleO_const_id_atBot2 [LinearOrder F''] [NoMinOrder F''] [ClosedIicTopology F'']
     [ProperSpace F''] (c : E'') : (fun _x : F'' => c) =o[atBot] id :=
   (isLittleO_const_id_cocompact c).mono atBot_le_cocompact
+
+theorem IsBigO.natCast {f g : ℝ → E} (h : f =O[atTop] g) :
+    (fun n : ℕ => f n) =O[atTop] fun n : ℕ => g n :=
+  h.comp_tendsto tendsto_nat_cast_atTop_atTop
