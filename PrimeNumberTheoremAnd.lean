@@ -10,3 +10,4 @@ import «PrimeNumberTheoremAnd».ResidueCalcOnRectangles
 import «PrimeNumberTheoremAnd».SecondProofPNT
 import «PrimeNumberTheoremAnd».StrongPNT
 import «PrimeNumberTheoremAnd».Wiener
+import «PrimeNumberTheoremAnd».ZetaBounds
