@@ -617,6 +617,31 @@ lemma summable_iff_bounded {u : ℕ → ℝ} (hu : 0 ≤ u) : Summable u ↔ Bou
   · exact ⟨C, fun n => sum_le_hasSum _ (fun i _ => hu i) h1⟩
   · exact summable_of_sum_range_le hu h1
 
+lemma summable_congr_ae {u v : ℕ → ℝ} (h : u =ᶠ[atTop] v) : Summable u ↔ Summable v := by
+  sorry
+
+lemma summable_iff_bounded' {u : ℕ → ℝ} (hu : ∀ᶠ n in atTop, 0 ≤ u n) :
+    Summable u ↔ BoundedAtFilter atTop (cumsum u) := by
+
+  obtain ⟨N, hu⟩ := eventually_atTop.mp hu
+  let v (n : ℕ) := if n < N then 0 else u n
+  let S := ∑ i in Finset.range N, u i
+
+  have l1 : u =ᶠ[atTop] v := eventually_atTop.mpr ⟨N, fun n hn => by simp [not_lt_of_le hn]⟩
+  have l2 : Summable u ↔ Summable v := summable_congr_ae l1
+  have l5 : cumsum v =ᶠ[atTop] cumsum u - (fun _ => S) := by
+    refine eventually_atTop.mpr ⟨N, fun n (hn : N ≤ n) => ?_⟩
+    obtain ⟨k, hk⟩ := le_iff_exists_add.mp hn
+    simpa [cumsum, hk, Finset.sum_range_add] using Finset.sum_eq_zero (fun x hx => by simp [Finset.mem_range.mp hx])
+  have l3 : BoundedAtFilter atTop (cumsum u) ↔ BoundedAtFilter atTop (cumsum v) := by
+    constructor <;> intro h
+    · apply l5.trans_isBigO ; simpa [sub_eq_add_neg] using h.add (isBigO_const_one _ _ _)
+    · have : cumsum u =ᶠ[atTop] cumsum v + (fun _ => S) := by filter_upwards [l5] with n hn ; simp [hn]
+      exact this.trans_isBigO <| h.add (isBigO_const_one _ _ _)
+  have l4 n : 0 ≤ v n := by by_cases h : n < N <;> simp [h] ; exact hu n (Nat.le_of_not_lt h)
+
+  simpa only [l2, l3] using summable_iff_bounded l4
+
 lemma dirichlet_test {a b A : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hA : 0 ≤ A) (hAa : a = nabla A)
     (hAb : BoundedAtFilter atTop (fun n ↦ A (n + 1) * b n)) (hbb : Antitone b)
     (h : Summable (fun n ↦ A (n + 1) * (b n - b (n + 1)))) :
@@ -660,42 +685,6 @@ lemma dirichlet_test' {a b : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
   apply bounded_of_shift
   simpa only [summation_by_parts'', sub_eq_add_neg, neg_cumsum, ← mul_neg, neg_nabla] using hAb.add h
 
-example (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.range x, ‖f n‖ ≤ C * x) :
-    Summable (fun n => ‖f n‖ * (1 / (n + 1) ^ 2)) := by
-
-  let a n := ‖f n‖
-  let A := cumsum a
-  let b (n : ℕ) := 1 / (n + 1 : ℝ) ^ 2
-  obtain ⟨C, hC, hAC⟩ := hcheby
-
-  have e1 n : 0 ≤ a n := norm_nonneg _
-  have e2 n : 0 ≤ b n := by simp [sq_nonneg]
-  have e3 n : 0 ≤ A n := by apply Finset.sum_nonneg ; simp
-
-  have l1 n : ‖A (n + 1) * b n‖ ≤ C / (n + 1) := by
-    rw [norm_mul]
-    trans (C * (n + 1)) * (1 / (n + 1) ^ 2)
-    · refine mul_le_mul ?_ (by simp) (norm_nonneg _) (by positivity)
-      rw [Real.norm_eq_abs, abs_eq_self.mpr <| e3 (n + 1)]
-      norm_cast
-      exact hAC (n + 1)
-    · apply le_of_eq ; field_simp ; ring
-  have l3 n : ‖A (n + 1) * b n‖ ≤ C := (l1 n).trans <| div_le_self hC (by simp)
-  have l4 : BoundedAtFilter atTop (fun n => A (n + 1) * b n) := by
-    simpa only [BoundedAtFilter, isBigO_iff]
-    using ⟨C, eventually_of_forall <| fun n => by simpa using l3 n⟩
-
-  have e5 : Antitone b := by
-    intro i j hij
-    have r3 : 0 < (i : ℝ) + 1 := cast_add_one_pos i
-    have r4 : 0 < (j : ℝ) + 1 := cast_add_one_pos j
-    have r1 : 0 < ((i : ℝ) + 1) ^ 2 := sq_pos_of_pos r3
-    have r2 : 0 < ((j : ℝ) + 1) ^ 2 := sq_pos_of_pos r4
-    simp [inv_le_inv r2 r1, sq_le_sq, abs_eq_self.mpr r3.le, abs_eq_self.mpr r4.le, hij]
-
-  apply dirichlet_test e1 e2 e3 nabla_cumsum.symm l4 e5
-  sorry
-
 lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (h1 : Continuous ψ) (h2 : HasCompactSupport ψ) :
     Continuous (𝓕 ψ) :=
   VectorFourier.fourierIntegral_continuous continuous_fourierChar (by exact continuous_mul) <|
@@ -704,13 +693,13 @@ lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (h1 : Continuous ψ) (h2 : H
 lemma summable_inv_mul_log_sq : Summable (fun n : ℕ => (n * (Real.log n) ^ 2)⁻¹) := by
   sorry
 
-lemma limiting_fourier_lim1_aux (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ n in Finset.range x, ‖f n‖ ≤ C * ↑x)
-    (hx : 1 ≤ x) (C : ℝ) :
+lemma limiting_fourier_lim1_aux (hcheby : ∃ C ≥ 0, ∀ n, cumsum (‖f ·‖) n ≤ C * ↑n)
+    (hx : 1 ≤ x) (C : ℝ) (hC : 0 ≤ C) :
     Summable fun n ↦ ‖f n‖ / ↑n * (C / (1 + (1 / (2 * π) * Real.log (↑n / x)) ^ 2)) := by
 
   let a (n : ℕ) := (C / (1 + (Real.log (↑n / x) / (2 * π)) ^ 2) / ↑n)
 
-  have l1 : 0 ≤ C := sorry -- not a hypothesis but actually true
+  have l1 : 0 ≤ C := hC
   have l2 : shift (cumsum (‖f ·‖)) =O[atTop] (fun n => (n : ℝ)) := sorry
   have l3 : a =O[atTop] (fun n => 1 / (n : ℝ)) := sorry
   have l4 : nnabla a =O[atTop] (fun n : ℕ => (n ^ 2 * (Real.log n) ^ 2)⁻¹) := sorry
@@ -744,7 +733,8 @@ theorem limiting_fourier_lim1 (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ n 
       (𝓝 (∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x)))) := by
 
   obtain ⟨C, hC⟩ := decay_bounds_cor hψ hsupp
-  refine tendsto_tsum_of_dominated_convergence' (limiting_fourier_lim1_aux hcheby hx C) (fun n => ?_) ?_
+  have : 0 ≤ C := by simpa using (norm_nonneg _).trans (hC 0)
+  refine tendsto_tsum_of_dominated_convergence' (limiting_fourier_lim1_aux hcheby hx C this) (fun n => ?_) ?_
   · apply Tendsto.mul_const
     by_cases h : n = 0 <;> simp [term, h]
     refine tendsto_const_nhds.div ?_ (by simp [h])
