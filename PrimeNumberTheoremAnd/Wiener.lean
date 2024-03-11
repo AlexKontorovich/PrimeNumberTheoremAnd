@@ -694,8 +694,40 @@ lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (h1 : Continuous ψ) (h2 : H
   VectorFourier.fourierIntegral_continuous continuous_fourierChar (by exact continuous_mul) <|
     h1.integrable_of_hasCompactSupport h2
 
+lemma exists_antitone_of_eventually {u : ℕ → ℝ} (hu : ∀ᶠ n in atTop, u (n + 1) ≤ u n) :
+    ∃ v : ℕ → ℝ, range v ⊆ range u ∧ Antitone v ∧ v =ᶠ[atTop] u := by
+  obtain ⟨N, hN⟩ := eventually_atTop.mp hu
+  let v (n : ℕ) := if n < N then u N else u n
+  refine ⟨v, ?_, ?_, ?_⟩
+  · refine fun x ⟨n, hn⟩ => ⟨if n < N then N else n, ?_⟩
+    by_cases h : n < N <;> simpa [h] using hn
+  · refine antitone_nat_of_succ_le (fun n => ?_)
+    by_cases h : n < N
+    · by_cases h' : n + 1 < N <;> simp [h, h']
+      have : n + 1 = N := by linarith
+      simp [this]
+    · have : ¬(n + 1 < N) := by linarith
+      simp [h, this] ; apply hN ; linarith
+  · have : ∀ᶠ n in atTop, ¬(n < N) := by simpa using ⟨N, fun b hb => by linarith⟩
+    filter_upwards [this] with n hn ; simp [hn]
+
 lemma summable_inv_mul_log_sq : Summable (fun n : ℕ => (n * (Real.log n) ^ 2)⁻¹) := by
-  sorry
+  let u (n : ℕ) := (n * (Real.log n) ^ 2)⁻¹
+  have l1 : ∀ᶠ n in atTop, u (n + 1) ≤ u n := by
+    apply eventually_of_mem (Ici_mem_atTop 2) ; intro n (hn : 2 ≤ n)
+    have e1 : n ≤ n + 1 := by simp
+    have e2 : 2 ≤ (n : ℝ) := by simp [hn]
+    have e3 : 0 < Real.log n := by rw [Real.log_pos_iff] <;> linarith
+    dsimp ; gcongr
+  obtain ⟨v, l1, l2, l3⟩ := exists_antitone_of_eventually l1
+  rw [summable_congr_ae l3.symm]
+  have l4 (n : ℕ) : 0 ≤ v n := by obtain ⟨k, hk⟩ := l1 ⟨n, rfl⟩ ; rw [← hk] ; positivity
+  apply (summable_condensed_iff_of_nonneg l4 (fun _ _ _ a ↦ l2 a)).mp
+  suffices this : ∀ᶠ k : ℕ in atTop, 2 ^ k * v (2 ^ k) = ((k : ℝ) ^ 2)⁻¹ * ((Real.log 2) ^ 2)⁻¹ by
+    exact (summable_congr_ae this).mpr <| (Real.summable_nat_pow_inv.mpr one_lt_two).mul_right _
+  have l5 : ∀ᶠ k in atTop, v (2 ^ k) = u (2 ^ k) := l3.comp_tendsto <| Nat.tendsto_pow_atTop_atTop_of_one_lt le.refl
+  have l6 : ∀ᶠ k in atTop, 1 ≤ k := by exact eventually_ge_atTop 1
+  filter_upwards [l5, l6] with k l5 l6 ; field_simp [l5] ; ring
 
 lemma limiting_fourier_lim1_aux (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ))
     (hx : 1 ≤ x) (C : ℝ) (hC : 0 ≤ C) :
