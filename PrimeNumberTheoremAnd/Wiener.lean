@@ -697,14 +697,16 @@ lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (h1 : Continuous ψ) (h2 : H
 lemma summable_inv_mul_log_sq : Summable (fun n : ℕ => (n * (Real.log n) ^ 2)⁻¹) := by
   sorry
 
-lemma limiting_fourier_lim1_aux (hcheby : ∃ C ≥ 0, ∀ n, cumsum (‖f ·‖) n ≤ C * ↑n)
+lemma limiting_fourier_lim1_aux (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ))
     (hx : 1 ≤ x) (C : ℝ) (hC : 0 ≤ C) :
     Summable fun n ↦ ‖f n‖ / ↑n * (C / (1 + (1 / (2 * π) * Real.log (↑n / x)) ^ 2)) := by
 
   let a (n : ℕ) := (C / (1 + (Real.log (↑n / x) / (2 * π)) ^ 2) / ↑n)
 
-  have l1 : 0 ≤ C := hC
-  have l2 : shift (cumsum (‖f ·‖)) =O[atTop] (fun n => (n : ℝ)) := sorry
+  have l1 : shift (cumsum (‖f ·‖)) =O[atTop] (fun n : ℕ => (↑(n + 1) : ℝ)) :=
+    hcheby.comp_tendsto <| tendsto_add_atTop_nat 1
+  have l2 : shift (cumsum (‖f ·‖)) =O[atTop] (fun n => (n : ℝ)) :=
+    l1.trans (by simpa using (isBigO_refl _ _).add <| isBigO_iff.mpr ⟨1, by simpa using ⟨1, by tauto⟩⟩)
   have l3 : a =O[atTop] (fun n => 1 / (n : ℝ)) := sorry
   have l4 : nnabla a =O[atTop] (fun n : ℕ => (n ^ 2 * (Real.log n) ^ 2)⁻¹) := sorry
 
@@ -717,7 +719,7 @@ lemma limiting_fourier_lim1_aux (hcheby : ∃ C ≥ 0, ∀ n, cumsum (‖f ·‖
     intro x (hx : 1 ≤ x)
     have : x ≠ 0 := by linarith
     simp [this]
-  · have : ∀ᶠ n : ℕ in atTop, x ≤ n := sorry
+  · have : ∀ᶠ n : ℕ in atTop, x ≤ n := by simpa using eventually_ge_atTop ⌈x⌉₊
     filter_upwards [this] with n hn
     have e1 : 0 < (n : ℝ) := by linarith
     have e2 : 1 ≤ n / x := (one_le_div (by linarith)).mpr hn
@@ -736,7 +738,7 @@ lemma limiting_fourier_lim1_aux (hcheby : ∃ C ≥ 0, ∀ n, cumsum (‖f ·‖
       refine ⟨this, ?_, ?_⟩ <;> linarith
     field_simp ; ring
 
-theorem limiting_fourier_lim1 (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ n in Finset.range x, ‖f n‖ ≤ C * ↑x)
+theorem limiting_fourier_lim1 (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ))
     (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
     Tendsto (fun σ' : ℝ ↦ ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))) (𝓝[>] 1)
       (𝓝 (∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x)))) := by
@@ -854,7 +856,7 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re})
     · exact ((continuous_ofReal.tendsto _).add tendsto_const_nhds).mono_left nhdsWithin_le_nhds
     · exact eventually_nhdsWithin_of_forall (fun x (hx : 1 < x) => by simp [hx.le])
 
-lemma limiting_fourier (hcheby: ∃ C, 0 ≤ C ∧ ∀ x : ℕ, ∑ n in Finset.range x, ‖f n‖ ≤ C * x)
+lemma limiting_fourier (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ))
     (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
