@@ -363,8 +363,19 @@ $$
 \end{lemma}
 %%-/
 lemma MellinConvolutionSymmetric (f g : ℝ → ℂ) {x : ℝ} (xpos: 0<x) :
-    MellinConvolution f g x = MellinConvolution g f x :=
-  sorry
+    MellinConvolution f g x = MellinConvolution g f x := by
+  unfold MellinConvolution
+  calc
+    _ = ∫ y in Ioi 0, f (y * x) * g (1 / y) / y := ?_
+    _ = _ := ?_
+  · rw [← integral_comp_mul_right_I0i_haar (fun y => f y * g (x / y)) xpos]
+    congr; funext z; ring_nf; congr
+    rw [mul_assoc, mul_comm, mul_assoc, inv_mul_cancel <| ne_of_gt xpos, mul_one]
+  · have := integral_comp_inv_I0i_haar fun y => f (y * x) * g (1 / y)
+    convert this.symm using 3
+    rw [one_div_one_div, mul_comm]
+    congr
+    ring
 
 /-%%
 \begin{proof}
