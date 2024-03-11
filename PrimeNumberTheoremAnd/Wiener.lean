@@ -609,20 +609,13 @@ lemma summation_by_parts'' {E : Type*} [Ring E] {a b : ℕ → E} :
 lemma summable_iff_bounded {u : ℕ → ℝ} (hu : 0 ≤ u) : Summable u ↔ BoundedAtFilter atTop (cumsum u) := by
 
   have l0 : (cumsum u =O[atTop] 1) ↔ _ := isBigO_one_nat_atTop_iff (f := cumsum u)
-  have l1 : Monotone (cumsum u) :=
-    fun n₁ n₂ h₁₂ => Finset.sum_le_sum_of_subset_of_nonneg (by simp [h₁₂]) (fun i _ _ => hu i)
-  have l2 i : |u i| = u i := abs_eq_self.mpr (hu i)
   have l4 n : 0 ≤ cumsum u n := Finset.sum_nonneg (fun i _ => hu i)
   have l3 n : ‖cumsum u n‖ = cumsum u n := by simp [Real.norm_eq_abs, abs_eq_self, l4]
 
   simp only [BoundedAtFilter, l0, l3]
   constructor <;> intro ⟨C, h1⟩
   · exact ⟨C, fun n => sum_le_hasSum _ (fun i _ => hu i) h1⟩
-  · cases' tendsto_of_monotone l1 with h h
-    · obtain ⟨n₀, h⟩ := tendsto_atTop_atTop.mp h (C + 1)
-      linarith [h1 n₀, h n₀ le_rfl]
-    · apply summable_of_absolute_convergence_real
-      simpa only [l2]
+  · exact summable_of_sum_range_le hu h1
 
 lemma dirichlet_test {a b A : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hA : 0 ≤ A) (hAa : a = nabla A)
     (hAb : BoundedAtFilter atTop (fun n ↦ A (n + 1) * b n)) (hbb : Antitone b)
@@ -708,10 +701,42 @@ lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (h1 : Continuous ψ) (h2 : H
   VectorFourier.fourierIntegral_continuous continuous_fourierChar (by exact continuous_mul) <|
     h1.integrable_of_hasCompactSupport h2
 
+lemma summable_inv_mul_log_sq : Summable (fun n : ℕ => (n * (Real.log n) ^ 2)⁻¹) := by
+  sorry
+
 lemma limiting_fourier_lim1_aux (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ n in Finset.range x, ‖f n‖ ≤ C * ↑x)
     (hx : 1 ≤ x) (C : ℝ) :
     Summable fun n ↦ ‖f n‖ / ↑n * (C / (1 + (1 / (2 * π) * Real.log (↑n / x)) ^ 2)) := by
-  sorry
+
+  let a (n : ℕ) := (C / (1 + (Real.log (↑n / x) / (2 * π)) ^ 2) / ↑n)
+
+  have l1 : 0 ≤ C := sorry -- not a hypothesis but actually true
+  have l2 : shift (cumsum (‖f ·‖)) =O[atTop] (fun n => (n : ℝ)) := sorry
+  have l3 : a =O[atTop] (fun n => 1 / (n : ℝ)) := sorry
+  have l4 : nnabla a =O[atTop] (fun n : ℕ => (n ^ 2 * (Real.log n) ^ 2)⁻¹) := sorry
+
+  simp_rw [div_mul_eq_mul_div, mul_div_assoc, one_mul]
+  -- change Summable fun n ↦ ‖f n‖ * a n
+  apply dirichlet_test'
+  · intro n ; exact norm_nonneg _
+  · intro n ; positivity
+  · apply (l2.mul l3).trans_eventuallyEq
+    apply eventually_of_mem (Ici_mem_atTop 1)
+    intro x (hx : 1 ≤ x)
+    have : x ≠ 0 := by linarith
+    simp [this]
+  · sorry
+  · apply summable_of_isBigO_nat summable_inv_mul_log_sq
+    apply (l2.mul l4).trans_eventuallyEq
+    apply eventually_of_mem (Ici_mem_atTop 2)
+    intro x (hx : 2 ≤ x)
+    have : (x : ℝ) ≠ 0 := by simp ; linarith
+    have : Real.log x ≠ 0 := by
+      have ll : 2 ≤ (x : ℝ) := by simp [hx]
+      simp only [ne_eq, log_eq_zero]
+      push_neg
+      refine ⟨this, ?_, ?_⟩ <;> linarith
+    field_simp ; ring
 
 theorem limiting_fourier_lim1 (hcheby : ∃ C, 0 ≤ C ∧ ∀ (x : ℕ), ∑ n in Finset.range x, ‖f n‖ ≤ C * ↑x)
     (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
