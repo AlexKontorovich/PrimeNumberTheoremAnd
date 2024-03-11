@@ -837,7 +837,14 @@ lemma Smooth1Properties_estimate {ε : ℝ} (eps_pos : 0 < ε) :
   have mono: StrictMonoOn f <| Ici 1 := by
     refine strictMonoOn_of_deriv_pos ?_ ?_ ?_
     · apply convex_Ici
-    · sorry
+    · apply ContinuousOn.sub
+      · apply ContinuousOn.mul
+        · exact continuousOn_id
+        · apply ContinuousOn.log continuousOn_id
+          intro x hx; simp only [mem_Ici] at hx
+          simp only [id_eq, ne_eq]
+          linarith
+      · exact continuousOn_id
     · intro x hx; simp only [nonempty_Iio, interior_Ici', mem_Ioi] at hx
       funext; dsimp [f]
       rw [deriv_sub, deriv_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel, add_sub_cancel]
@@ -845,7 +852,9 @@ lemma Smooth1Properties_estimate {ε : ℝ} (eps_pos : 0 < ε) :
       · linarith
       · simp only [differentiableAt_id']
       · simp only [differentiableAt_log_iff, ne_eq]; linarith
-      · sorry
+      · apply DifferentiableAt.mul differentiableAt_id'
+        apply DifferentiableAt.log differentiableAt_id'
+        linarith
       · simp only [differentiableAt_id']
   exact le_of_lt <| mono (by rw [mem_Ici]) (mem_Ici.mpr <| le_of_lt hc) hc
 
