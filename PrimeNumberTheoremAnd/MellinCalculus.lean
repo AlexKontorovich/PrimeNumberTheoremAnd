@@ -65,6 +65,16 @@ lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → 𝕂) :
   rw [rpow_neg_one, mul_assoc, rpow_neg <| le_of_lt <| mem_Ioi.mp hy]
   field_simp [pow_two]
 
+lemma MeasureTheory.integral_comp_div_I0i_haar
+    (f : ℝ → 𝕂) {a : ℝ} (ha : 0 < a):
+    ∫ (y : ℝ) in Ioi 0, f (a / y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
+  calc
+    _ = ∫ (y : ℝ) in Ioi 0, f (a * y) / y := ?_
+    _ = _ := integral_comp_mul_left_I0i_haar f ha
+  have := integral_comp_inv_I0i_haar fun y => f (a * (1 / y))
+  field_simp at this
+  rw [← this]
+
 /-%%
 In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler),
 prove its inversion formula, and
@@ -905,8 +915,7 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
   calc
     _ = ∫ (y : ℝ) in Ioi 0, indicator (Ioc 0 1) (fun y ↦ DeltaSpike Ψ ε (x / y) / ↑y) y := ?_
     _ = ∫ (y : ℝ) in Ioi 0, DeltaSpike Ψ ε (x / y) / y := ?_
-    _ = ∫ (y : ℝ) in Ioi 0, DeltaSpike Ψ ε (1 / y) / y := ?_
-    _ = _ := ?_
+    _ = _ := integral_comp_div_I0i_haar (fun y => DeltaSpike Ψ ε y) xpos
   · rw [set_integral_congr (by simp)]
     intro y hy
     simp only [indicator]
@@ -936,9 +945,6 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     convert le_mul_of_le_mul_of_nonneg_left key (le_of_lt hx2) (by positivity)
     rw [← rpow_add, add_right_neg, rpow_zero]
     all_goals (try linarith) <;> positivity
-  · rw [← integral_comp_mul_right_I0i_haar_real (fun y => DeltaSpike Ψ ε (x / y)) xpos]
-    congr; funext y; rw [div_mul_left <| ne_of_gt xpos]
-  · exact integral_comp_inv_I0i_haar (fun y => DeltaSpike Ψ ε y)
 
 /-%%
 \begin{proof}\leanok
