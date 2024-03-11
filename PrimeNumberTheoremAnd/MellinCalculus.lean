@@ -836,7 +836,7 @@ lemma Smooth1Properties_estimate {ε : ℝ} (eps_pos : 0 < ε) :
   rw [f1, fc]
   have mono: StrictMonoOn f <| Ici 1 := by
     refine strictMonoOn_of_deriv_pos ?_ ?_ ?_
-    · sorry
+    · apply convex_Ici
     · sorry
     · intro x hx; simp only [nonempty_Iio, interior_Ici', mem_Ioi] at hx
       funext; dsimp [f]
