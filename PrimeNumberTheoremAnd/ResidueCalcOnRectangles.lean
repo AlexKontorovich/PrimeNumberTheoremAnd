@@ -18,6 +18,10 @@ noncomputable def HIntegral (f : ℂ → E) (x₁ x₂ y : ℝ) : E := ∫ x in 
 
 noncomputable def VIntegral (f : ℂ → E) (x y₁ y₂ : ℝ) : E := I • ∫ y in y₁..y₂, f (x + y * I)
 
+noncomputable def HIntegral' (f : ℂ → E) (x₁ x₂ y : ℝ) : E := (1 / (2 * π * I)) • HIntegral f x₁ x₂ y
+
+noncomputable def VIntegral' (f : ℂ → E) (x y₁ y₂ : ℝ) : E :=  (1 / (2 * π * I)) • VIntegral f x y₁ y₂
+
 lemma HIntegral_symm : HIntegral f x₁ x₂ y = - HIntegral f x₂ x₁ y := integral_symm _ _
 
 lemma VIntegral_symm : VIntegral f x y₁ y₂ = - VIntegral f x y₂ y₁ := by
@@ -45,8 +49,8 @@ An UpperUIntegral is the integral of a function over a |\_| shape.
 An UpperUIntegral of a function $f$ comes from $\sigma+i\infty$ down to $\sigma+iT$, over to $\sigma'+iT$, and back up to $\sigma'+i\infty$.
 \end{definition}
 %-/
-noncomputable def UpperUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegral f σ σ' T +
-    I • (∫ y : ℝ in Ici T, f (σ' + y * I)) - I • (∫ y : ℝ in Ici T, f (σ + y * I))
+-- noncomputable def UpperUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegral f σ σ' T +
+--     I • (∫ y : ℝ in Ici T, f (σ' + y * I)) - I • (∫ y : ℝ in Ici T, f (σ + y * I))
 
 /-% ** Wrong delimiter on purpose **
 A LowerUIntegral is the integral of a function over a |-| shape.
@@ -54,12 +58,12 @@ A LowerUIntegral is the integral of a function over a |-| shape.
 A LowerUIntegral of a function $f$ comes from $\sigma-i\infty$ up to $\sigma-iT$, over to $\sigma'-iT$, and back down to $\sigma'-i\infty$.
 \end{definition}
 %-/
-noncomputable def LowerUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegral f σ σ' (-T) -
-    I • (∫ y : ℝ in Iic (-T), f (σ' + y * I)) + I • (∫ y : ℝ in Iic (-T), f (σ + y * I))
+-- noncomputable def LowerUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegral f σ σ' (-T) -
+--     I • (∫ y : ℝ in Iic (-T), f (σ' + y * I)) + I • (∫ y : ℝ in Iic (-T), f (σ + y * I))
 
 /-%%
 It is very convenient to define integrals along vertical lines in the complex plane, as follows.
-\begin{definition}[VerticalIntegral]\label{VerticalIntegral}\leanok
+\begin{definition}[VerticalIntegral]\label{VerticalIntegral}\lean{VerticalIntegral}\leanok
 Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a real number. Then we define
 $$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
 \end{definition}
@@ -83,16 +87,16 @@ lemma verticalIntegral_split_three (a b : ℝ) (hf : Integrable (fun t : ℝ ↦
 The difference of two vertical integrals and a rectangle is the difference of an upper and a lower U integrals.
 \end{lemma}
 %-/
-lemma DiffVertRect_eq_UpperLowerUs {σ σ' T : ℝ}
-    (f_int_σ : Integrable (fun (t : ℝ) ↦ f (σ + t * I)))
-    (f_int_σ' : Integrable (fun (t : ℝ) ↦ f (σ' + t * I))) :
-    (VerticalIntegral f σ') - (VerticalIntegral f σ) - (RectangleIntegral f (σ - I * T) (σ' + I * T)) =
-    (UpperUIntegral f σ σ' T) - (LowerUIntegral f σ σ' T) := by
-  rw [verticalIntegral_split_three (-T) T f_int_σ, verticalIntegral_split_three (-T) T f_int_σ']
-  simp only [smul_eq_mul, RectangleIntegral, sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im,
-    ofReal_im, mul_zero, sub_self, sub_zero, add_re, add_zero, sub_im, mul_im, one_mul, zero_add,
-    zero_sub, add_im, UpperUIntegral, LowerUIntegral]
-  abel
+-- lemma DiffVertRect_eq_UpperLowerUs {σ σ' T : ℝ}
+--     (f_int_σ : Integrable (fun (t : ℝ) ↦ f (σ + t * I)))
+--     (f_int_σ' : Integrable (fun (t : ℝ) ↦ f (σ' + t * I))) :
+--     (VerticalIntegral f σ') - (VerticalIntegral f σ) - (RectangleIntegral f (σ - I * T) (σ' + I * T)) =
+--     (UpperUIntegral f σ σ' T) - (LowerUIntegral f σ σ' T) := by
+--   rw [verticalIntegral_split_three (-T) T f_int_σ, verticalIntegral_split_three (-T) T f_int_σ']
+--   simp only [smul_eq_mul, RectangleIntegral, sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im,
+--     ofReal_im, mul_zero, sub_self, sub_zero, add_re, add_zero, sub_im, mul_im, one_mul, zero_add,
+--     zero_sub, add_im, UpperUIntegral, LowerUIntegral]
+--   abel
 /-%
 \begin{proof}\uses{UpperUIntegral, LowerUIntegral}\leanok
 Follows directly from the definitions.
