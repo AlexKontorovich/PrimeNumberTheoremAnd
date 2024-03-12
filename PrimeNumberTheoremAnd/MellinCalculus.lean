@@ -54,6 +54,16 @@ lemma MeasureTheory.integral_comp_mul_left_I0i_haar
     ∫ (y : ℝ) in Ioi 0, f (a * y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   convert integral_comp_mul_right_I0i_haar f ha using 5; ring
 
+-- TODO: generalize to `IsROrC`
+lemma MeasureTheory.integral_comp_rpow_I0i_haar_real (f : ℝ → ℝ) {p : ℝ} (hp : p ≠ 0) :
+    ∫ (y : ℝ) in Ioi 0, |p| * f (y ^ p) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
+  have := integral_comp_rpow_Ioi (fun y => f y / y) hp
+  rw [← this, set_integral_congr (by simp)]
+  intro y hy
+  have ypos : 0 < y := mem_Ioi.mp hy
+  field_simp [rpow_sub_one]
+  ring
+
 lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → 𝕂) :
     ∫ (y : ℝ) in Ioi 0, f (1 / y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   have := integral_comp_rpow_Ioi (fun y => f y / y) (p := -1) (by simp)
