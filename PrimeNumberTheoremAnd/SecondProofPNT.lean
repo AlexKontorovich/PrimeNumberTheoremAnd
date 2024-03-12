@@ -63,7 +63,7 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (ε : ℝ) (eps_pos: 0 < �
 
 /-%%
 \begin{proof}
-\uses{SmoothedChebyshev, MellinInversion}
+\uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet}
 We have that
 $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(2)}\sum_{n=1}^\infty \frac{\Lambda(n)}{n^s}
 \mathcal{M}(\widetilde{1_{\epsilon}})(s)
@@ -241,7 +241,7 @@ theorem MediumPNT : ∃ (c : ℝ) (hc : c > 0),
   sorry
 /-%%
 \begin{proof}
-\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBnd}
+\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBnd, ZetaBoxEval}
   Evaluate the integrals.
 \end{proof}
 %%-/
