@@ -642,30 +642,6 @@ lemma summable_iff_bounded' {u : ℕ → ℝ} (hu : ∀ᶠ n in atTop, 0 ≤ u n
   rw [← summable_nat_add_iff N, summable_iff_bounded (fun n => hu _ <| Nat.le_add_left N n), e2]
   simp_rw [sub_eq_add_neg, BoundedAtFilter.add_const, BoundedAtFilter.comp_add]
 
--- XXX THE REFACTOR LINE IS HERE
-
-lemma dirichlet_test {a b A : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hA : 0 ≤ A) (hAa : a = nabla A)
-    (hAb : BoundedAtFilter atTop (fun n ↦ A (n + 1) * b n)) (hbb : Antitone b)
-    (h : Summable (fun n ↦ A (n + 1) * (b n - b (n + 1)))) :
-    Summable (fun n => a n * b n) := by
-
-  have l1 n : 0 ≤ a n * b n := mul_nonneg (ha n) (hb n)
-  have l2 n : 0 ≤ A (n + 1) * (b n - b (n + 1)) := mul_nonneg (hA _) <| sub_nonneg.mpr (hbb (le.step le.refl))
-
-  rw [summable_iff_bounded l1]
-  suffices h : BoundedAtFilter atTop (fun n ↦ cumsum (a * b) (n + 1)) by
-    simp only [BoundedAtFilter, isBigO_iff, eventually_atTop] at h ⊢
-    obtain ⟨C, N, hC⟩ := h
-    refine ⟨C, N + 1, fun n hn => ?_⟩
-    have r1 : n - 1 ≥ N := le_sub_one_of_lt hn
-    have r2 : n - 1 + 1 = n := Nat.sub_add_cancel <| NeZero.one_le.trans hn.le
-    simpa [r2] using hC (n - 1) r1
-  simp only [summation_by_parts hAa, sub_eq_add_neg]
-
-  apply (hAb.add (isBigO_const_one _ _ _)).add
-  simp only [shift, Pi.mul_apply, cumsum, ← Finset.sum_neg_distrib, ← mul_neg, neg_add, neg_neg, ← sub_eq_neg_add]
-  exact (summable_iff_bounded l2).mp h
-
 lemma bounded_of_shift {u : ℕ → ℝ} (h : BoundedAtFilter atTop (shift u)) : BoundedAtFilter atTop u := by
   simp only [BoundedAtFilter, isBigO_iff, eventually_atTop] at h ⊢
   obtain ⟨C, N, hC⟩ := h
@@ -678,11 +654,9 @@ lemma bounded_of_shift {u : ℕ → ℝ} (h : BoundedAtFilter atTop (shift u)) :
 lemma dirichlet_test' {a b : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
     (hAb : BoundedAtFilter atTop (shift (cumsum a) * b)) (hbb : ∀ᶠ n in atTop, b (n + 1) ≤ b n)
     (h : Summable (shift (cumsum a) * nnabla b)) : Summable (a * b) := by
-
   have l1 : ∀ᶠ n in atTop, 0 ≤ (shift (cumsum a) * nnabla b) n := by
     filter_upwards [hbb] with n hb
     exact mul_nonneg (by simpa [shift] using Finset.sum_nonneg' ha) (sub_nonneg.mpr hb)
-
   rw [summable_iff_bounded (mul_nonneg ha hb)]
   rw [summable_iff_bounded' l1] at h
   apply bounded_of_shift
@@ -696,10 +670,9 @@ lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (h1 : Continuous ψ) (h2 : H
 lemma exists_antitone_of_eventually {u : ℕ → ℝ} (hu : ∀ᶠ n in atTop, u (n + 1) ≤ u n) :
     ∃ v : ℕ → ℝ, range v ⊆ range u ∧ Antitone v ∧ v =ᶠ[atTop] u := by
   obtain ⟨N, hN⟩ := eventually_atTop.mp hu
-  let v (n : ℕ) := if n < N then u N else u n
+  let v (n : ℕ) := u (if n < N then N else n)
   refine ⟨v, ?_, ?_, ?_⟩
-  · refine fun x ⟨n, hn⟩ => ⟨if n < N then N else n, ?_⟩
-    by_cases h : n < N <;> simpa [h] using hn
+  · exact fun x ⟨n, hn⟩ => ⟨if n < N then N else n, hn⟩
   · refine antitone_nat_of_succ_le (fun n => ?_)
     by_cases h : n < N
     · by_cases h' : n + 1 < N <;> simp [h, h']
@@ -712,21 +685,19 @@ lemma exists_antitone_of_eventually {u : ℕ → ℝ} (hu : ∀ᶠ n in atTop, u
 
 lemma summable_inv_mul_log_sq : Summable (fun n : ℕ => (n * (Real.log n) ^ 2)⁻¹) := by
   let u (n : ℕ) := (n * (Real.log n) ^ 2)⁻¹
-  have l1 : ∀ᶠ n in atTop, u (n + 1) ≤ u n := by
-    apply eventually_of_mem (Ici_mem_atTop 2) ; intro n (hn : 2 ≤ n)
-    have e1 : n ≤ n + 1 := by simp
-    have e2 : 2 ≤ (n : ℝ) := by simp [hn]
-    have e3 : 0 < Real.log n := by rw [Real.log_pos_iff] <;> linarith
-    dsimp ; gcongr
-  obtain ⟨v, l1, l2, l3⟩ := exists_antitone_of_eventually l1
+  have l7 : ∀ᶠ n : ℕ in atTop, 1 ≤ Real.log n := tendsto_atTop.mp (tendsto_log_atTop.comp tendsto_nat_cast_atTop_atTop) 1
+  have l8 : ∀ᶠ n : ℕ in atTop, 1 ≤ n := eventually_ge_atTop 1
+  have l9 : ∀ᶠ n in atTop, u (n + 1) ≤ u n := by filter_upwards [l7, l8] with n l2 l8 ; dsimp ; gcongr <;> simp
+  obtain ⟨v, l1, l2, l3⟩ := exists_antitone_of_eventually l9
   rw [summable_congr_ae l3.symm]
   have l4 (n : ℕ) : 0 ≤ v n := by obtain ⟨k, hk⟩ := l1 ⟨n, rfl⟩ ; rw [← hk] ; positivity
   apply (summable_condensed_iff_of_nonneg l4 (fun _ _ _ a ↦ l2 a)).mp
   suffices this : ∀ᶠ k : ℕ in atTop, 2 ^ k * v (2 ^ k) = ((k : ℝ) ^ 2)⁻¹ * ((Real.log 2) ^ 2)⁻¹ by
     exact (summable_congr_ae this).mpr <| (Real.summable_nat_pow_inv.mpr one_lt_two).mul_right _
   have l5 : ∀ᶠ k in atTop, v (2 ^ k) = u (2 ^ k) := l3.comp_tendsto <| Nat.tendsto_pow_atTop_atTop_of_one_lt le.refl
-  have l6 : ∀ᶠ k in atTop, 1 ≤ k := by exact eventually_ge_atTop 1
-  filter_upwards [l5, l6] with k l5 l6 ; field_simp [l5] ; ring
+  filter_upwards [l5, l8] with k l5 l8 ; field_simp [l5] ; ring
+
+-- XXX THE REFACTOR LINE IS HERE
 
 lemma log_isbigo_log_div {b : ℝ} (hb : 0 < b) : (fun n : ℕ ↦ Real.log n) =O[atTop] (fun n ↦ Real.log (n / b)) := by
   have l1 : ∀ᶠ n : ℕ in atTop, Real.log n - Real.log b = Real.log (n / b) := by
