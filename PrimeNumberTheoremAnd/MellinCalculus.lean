@@ -1131,11 +1131,34 @@ and all the factors in the integrand are nonnegative.
 If $\psi$ is nonnegative and has mass one, then $\widetilde{1_{\epsilon}}(x)\le 1$, $\forall x>0$.
 \end{lemma}
 %%-/
-lemma Smooth1LeOne {Ψ : ℝ → ℝ}
-    (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
-    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) (ε : ℝ) :
-    ∀ (x : ℝ), 0<x → Smooth1 Ψ ε x ≤ 1 := by
-  sorry
+lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
+    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
+    ∀ (x : ℝ), 0 < x → Smooth1 Ψ ε x ≤ 1 := by
+  unfold Smooth1 MellinConvolution DeltaSpike
+  intro x xpos
+  simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq]
+  calc
+    _ ≤ ∫ (y : ℝ) in Ioi 0, (Ψ ((x / y) ^ (1 / ε)) / ε) / ↑y := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, (Ψ (y ^ (1 / ε)) / ε) / y := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, Ψ y / y := ?_
+    _ = 1 := mass_one
+  · refine set_integral_mono_on ?_ ?_ (by simp) ?_
+    · sorry
+    · sorry
+    · intro y hy
+      by_cases h : y ≤ 1
+      <;> simp only [h, ↓reduceIte, one_div, le_refl]
+      field_simp
+      apply mul_nonneg
+      · apply Ψnonneg
+        apply rpow_pos_of_pos <| div_pos xpos <| mem_Ioi.mp hy
+      · apply inv_nonneg.mpr <| mul_nonneg εpos.le (mem_Ioi.mp hy).le
+  · have := integral_comp_div_I0i_haar (fun y => Ψ ((x / y) ^ (1 / ε)) / ε) xpos
+    convert this.symm using 1
+    congr; funext y; congr
+    field_simp [mul_comm]
+  · have := integral_comp_rpow_I0i_haar_real (fun y => Ψ y) (one_div_ne_zero εpos.ne')
+    field_simp [ ← this, abs_of_pos <| one_div_pos.mpr εpos]
 /-%%
 \begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike,SmoothExistence}
 By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
