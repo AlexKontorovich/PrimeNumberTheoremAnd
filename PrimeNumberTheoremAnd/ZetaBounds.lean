@@ -2,33 +2,80 @@ import Mathlib.Analysis.Calculus.ContDiff.Defs
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
 import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.NumberTheory.ZetaFunction
+import Mathlib.Algebra.Group.Basic
 import EulerProducts.PNT
+import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 
 open BigOperators Complex Topology Filter
 
+theorem ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContDiffOn ℝ 1 φ s) {x : ℝ}
+    (x_in_s : s ∈ nhds x) : HasDerivAt φ (deriv φ x) x :=
+  (ContDiffAt.hasStrictDerivAt (φDiff.contDiffAt x_in_s) (by simp)).hasDerivAt
+
+theorem ContDiffOn.continuousOn_deriv {φ : ℝ → ℂ} {a b : ℝ}
+    (φDiff : ContDiffOn ℝ 1 φ (Set.uIoo a b)) :
+    ContinuousOn (deriv φ) (Set.uIoo a b) := by
+  apply ContDiffOn.continuousOn (𝕜 := ℝ) (n := 0)
+  exact (fun h => ((contDiffOn_succ_iff_deriv_of_isOpen isOpen_Ioo).1 h).2) φDiff
+
+theorem LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ) ↦ a * t + b) a x := by
+  refine HasDerivAt.add_const ?_ b
+  have := @ContinuousLinearMap.hasDerivAt (e := Complex.ofRealCLM) x
+  have := this.const_mul (c := a)
+  convert this using 1; simp
+
 lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
-    (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+    (φDiff : ContDiffOn ℝ 1 φ (Set.uIcc a b)) :
     ∫ (x : ℝ) in a..b, (k + 1 / 2 - x) * deriv φ x =
       (k + 1 / 2 - b) * φ b - (k + 1 / 2 - a) * φ a + ∫ (x : ℝ) in a..b, φ x := by
+  by_cases h : a = b
+  · rw [h]; simp
+  push_neg at h
+  wlog a_lt_b : a < b
+  · simp only [not_lt] at a_lt_b
+    have b_lt_a : b < a := Ne.lt_of_le (id (Ne.symm h)) a_lt_b
+    have φDiff' : ContDiffOn ℝ 1 φ (Set.uIcc b a) := by
+      convert φDiff using 1
+      exact Set.uIcc_comm b a
+    have := @this φ b a k φDiff' (id (Ne.symm h)) b_lt_a
+    rw [intervalIntegral.integral_symm] at this
+    nth_rewrite 2 [intervalIntegral.integral_symm] at this
+    have : -∫ (x : ℝ) in a..b, (↑k + 1 / 2 - ↑x) * deriv φ x =
+    (↑k + 1 / 2 - ↑a) * φ a - (↑k + 1 / 2 - ↑b) * φ b + -∫ (x : ℝ) in a..b, φ x := this
+    have := (neg_inj (a := - ∫ (x : ℝ) in a..b, (↑k + 1 / 2 - ↑x) * deriv φ x)
+      (b := (↑k + 1 / 2 - ↑a) * φ a - (↑k + 1 / 2 - ↑b) * φ b + -∫ (x : ℝ) in a..b, φ x)).mpr this
+    simp only [one_div, neg_neg, neg_add_rev, neg_sub] at this
+    simp only [one_div]
+    ring_nf
+    ring_nf at this
+    convert this using 1
+    ring
+
   set v' := deriv φ
   set v := φ
   set u := fun (x : ℝ) ↦ (k + 1 / 2 - x : ℂ)
   set u' := fun (x : ℝ) ↦ (-1 : ℂ)
   have hu : ∀ x ∈ Set.uIcc a b, HasDerivAt u (u' x) x := by
     intros x hx
-    -- convert HasDerivAt.add (f := fun (x : ℝ) ↦ (k + 1 / 2 : ℂ)) (g := fun (x : ℝ) ↦ (-x : ℂ))
-    --   (f' := (0 : ℂ)) (g' := (-1 : ℂ)) ?_ ?_
-    sorry
+    convert LinearDerivative_ofReal x (-1 : ℂ) (k + 1 / 2); ring
   have hv : ∀ x ∈ Set.uIcc a b, HasDerivAt v (v' x) x := by
-    intros x hx
+    refine fun x hx ↦ φDiff.hasDeriv_deriv ?_
+    --- argh, what if x=a or b :( Need to somehow replace `uIcc` with `uIoo`
     sorry
-  have hu' : IntervalIntegrable u' MeasureTheory.volume a b := sorry
-  have hv' : IntervalIntegrable v' MeasureTheory.volume a b := sorry
---  have := intervalIntegral.integral_mul_deriv_eq_deriv_mul hu hu' hv hv'
-  sorry
+  have hu' : IntervalIntegrable u' MeasureTheory.volume a b := by
+    apply Continuous.intervalIntegrable
+    continuity
+  have hv' : IntervalIntegrable v' MeasureTheory.volume a b := by
+    apply ContinuousOn.intervalIntegrable
+    -- same problem, need to replace `uIcc` with `uIoo`
+    --have := φDiff.continuousOn_deriv
+    --convert ContDiffOn.continuousOn_deriv
+    sorry
+  convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu hv hu' hv' using 1
+  simp
 
 lemma sum_eq_int_deriv_aux_eq {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
-    (b_eq_kpOne : b = k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+    (b_eq_kpOne : b = k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.uIcc a b)) :
     ∑ n in Finset.Icc (k + 1) ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (k + 1 / 2 - a) * φ a
       - ∫ x in a..b, (k + 1 / 2 - x) * deriv φ x := by
@@ -39,7 +86,7 @@ lemma sum_eq_int_deriv_aux_eq {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
   ring_nf
 
 lemma sum_eq_int_deriv_aux_lt {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k ≤ a) (a_lt_b : a < b)
-    (b_lt_kpOne : b < k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+    (b_lt_kpOne : b < k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.uIcc a b)) :
     ∑ n in Finset.Icc (k + 1) ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (k + 1 / 2 - a) * φ a
       - ∫ x in a..b, (k + 1 / 2 - x) * deriv φ x := by
@@ -50,7 +97,7 @@ lemma sum_eq_int_deriv_aux_lt {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a :
   ring_nf
 
 lemma sum_eq_int_deriv_aux1 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k ≤ a) (a_lt_b : a < b)
-    (b_le_kpOne : b ≤ k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+    (b_le_kpOne : b ≤ k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.uIcc a b)) :
     ∑ n in Finset.Icc (k + 1) ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (k + 1 / 2 - a) * φ a
       - ∫ x in a..b, (k + 1 / 2 - x) * deriv φ x := by
@@ -68,9 +115,8 @@ lemma sum_eq_int_deriv_aux1 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k
   \]
 \end{lemma}
 %%-/
-/-- Note: Need to finish proof of `sum_eq_int_deriv_aux2` -/
 lemma sum_eq_int_deriv_aux {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k ≤ a) (a_lt_b : a < b)
-    (b_le_kpOne : b ≤ k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+    (b_le_kpOne : b ≤ k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.uIcc a b)) :
     ∑ n in Finset.Icc (⌊a⌋ + 1) ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
       - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
@@ -99,20 +145,21 @@ Partial integration.
   \]
 \end{lemma}
 %%-/
-/-- ** Partial summation ** (TODO : Add to Mathlib) -/
+/-- ** Partial summation ** (TODO : Add to Mathlib).
+  Note: Need to finish proof of `sum_eq_int_deriv_aux2` -/
 theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
     (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
     ∑ n in Finset.Icc (⌊a⌋ + 1) ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
       - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
-  let k₀ := ⌊a⌋
-  let k₁ := ⌈b⌉
-  have :
-    ∑ n in Finset.Icc (⌊a⌋ + 1) ⌊b⌋, φ n
-    =
-    ∑ k in Finset.Icc k₀ k₁,
-    ∑ n in Finset.Icc (max (⌊a⌋ + 1) k) (min ⌊b⌋ (k+1)), φ n := by
-    sorry
+  -- let k₀ := ⌊a⌋
+  -- let k₁ := ⌈b⌉
+  -- have :
+  --   ∑ n in Finset.Icc (⌊a⌋ + 1) ⌊b⌋, φ n
+  --   =
+  --   ∑ k in Finset.Icc k₀ k₁,
+  --   ∑ n in Finset.Icc (max (⌊a⌋ + 1) k) (min ⌊b⌋ (k+1)), φ n := by
+  --   sorry
   sorry
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv_aux}
@@ -150,7 +197,7 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (a_lt_b : a < b) :
 For any $0 < a < b$ and  $s \in \C$ with $\sigma=\Re(s)>0$,
 $$
 \left|\int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx\right|
-\le \frac{a^{-\sigma}-b^{-\sigma}}/{\sigma}.
+\le \frac{a^{-\sigma}-b^{-\sigma}}{\sigma}.
 $$
 \end{lemma}
 %%-/
@@ -210,7 +257,7 @@ noncomputable def RiemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
 \begin{lemma}[ZetaBndAux]\label{ZetaBndAux}\lean{ZetaBndAux}\leanok
 For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in[1/2,2]$,
 $$
-s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
+\left| s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
 \ll |t| \frac{N^{-\sigma}}{\sigma},
 $$
 as $|t|\to\infty$.
@@ -230,20 +277,18 @@ Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\
 
 /-%%
 \begin{lemma}[Zeta0EqZeta]\label{Zeta0EqZeta}\lean{Zeta0EqZeta}\leanok
-If $\Re(s)>0$, then for any $N$,
+For $\Re(s)>0$, $s\ne1$, and for any $N$,
 $$
 \zeta_0(N,s) = \zeta(s).
 $$
-[** What about junk values at $s=1$? Maybe add $s\ne1$. **]
 \end{lemma}
 %%-/
-/-- ** Add `s ≠ 1`? -/
-lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) :
+lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) :
     RiemannZeta0 N s = riemannZeta s := by
   sorry
 /-%%
 \begin{proof}
-\uses{ZetaSum_aux2, RiemannZeta0, ZetaBnd_aux1}
+\uses{ZetaSum_aux2, RiemannZeta0, ZetaBnd_aux1, ZetaBndAux}
 Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{RiemannZeta0}.
 \end{proof}
 %%-/
@@ -287,9 +332,22 @@ as $|t|\to\infty$.
 \end{lemma}
 %%-/
 lemma ZetaUpperBnd :
-    ∀ᶠ (A : ℝ) in 𝓝[>]0, ∃ C > 0, ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
+    ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (σ_le : σ ≤ 2),
     Complex.abs (riemannZeta (σ + t * I)) ≤ C * Real.log |t| := by
+  refine ⟨1/2, by norm_num, 10, by norm_num, ?_⟩ -- placeholder values for `A` and `C`
+  intro σ t t_ge σ_ge σ_le
+  set N := ⌊ Real.log |t| ⌋₊
+  have σPos :  0 < (↑σ + ↑t * I).re := by
+    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+      add_zero]
+    have : 1 < Real.log |t| := by
+      sorry
+    -- nlinarith
+    sorry
+  have neOne : ↑σ + ↑t * I ≠ 1 := by
+    sorry
+  rw [← Zeta0EqZeta N (σ + t * I) σPos neOne]
   sorry
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
@@ -322,7 +380,7 @@ $$
 /-%%
 \begin{lemma}[ZetaDerivUpperBnd]\label{ZetaDerivUpperBnd}\lean{ZetaDerivUpperBnd}\leanok
 For any $s\in \C$, $1/2 \le \Re(s)=\sigma\le 2$,
-and any $A>0$ sufficiently small, and $1-A/\log t \le \sigma$, we have
+there is an $A>0$ so that for $1-A/\log t \le \sigma$, we have
 $$
 |\zeta'(s)| \ll \log^2 t,
 $$
@@ -330,7 +388,7 @@ as $|t|\to\infty$.
 \end{lemma}
 %%-/
 lemma ZetaDerivUpperBnd :
-    ∀ᶠ (A : ℝ) in 𝓝[>]0, ∃ C > 0, ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
+    ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (σ_le : σ ≤ 2),
     Complex.abs (deriv riemannZeta (σ + t * I)) ≤ C * (Real.log |t|) ^ 2 := by
   sorry
@@ -354,9 +412,9 @@ Estimate as before, with an extra factor of $\log |t|$.
 
 /-%%
 \begin{lemma}[ZetaNear1Bnd]\label{ZetaNear1Bnd}\lean{ZetaNear1Bnd}\leanok
-As $\simga\to1^+$,
+As $\sigma\to1^+$,
 $$
-|\zeta(\sigma)| \ll (\sigma-1).
+|\zeta(\sigma)| \ll 1/(\sigma-1).
 $$
 \end{lemma}
 %%-/
@@ -406,12 +464,13 @@ as $|t|\to\infty$.
 %%-/
 lemma ZetaInvBound2 {σ : ℝ} (σ_gt : 1 < σ) (σ_le : σ ≤ 2) :
     (fun (t : ℝ) ↦ 1 / Complex.abs (riemannZeta (σ + t * I))) =O[cocompact ℝ]
-      fun (t : ℝ) ↦ (σ - 1) ^ ((3 : ℝ) / 4) * (Real.log |t|) ^ ((1 : ℝ) / 4) := by
+      fun (t : ℝ) ↦ (σ - 1) ^ (-(3 : ℝ) / 4) * (Real.log |t|) ^ ((1 : ℝ) / 4) := by
   sorry
 /-%%
 \begin{proof}\uses{ZetaInvBound1, ZetaNear1Bnd, ZetaUpperBnd}
 Combine Lemma \ref{ZetaInvBound1} with the bounds in Lemmata \ref{ZetaNear1Bnd} and
 \ref{ZetaUpperBnd}.
+\end{proof}
 %%-/
 
 /-%%
@@ -437,7 +496,7 @@ This is the fundamental theorem of calculus.
 /-%%
 \begin{lemma}[Zeta_diff_Bnd]\label{Zeta_diff_Bnd}\lean{Zeta_diff_Bnd}\leanok
 For any $A>0$ sufficiently small, there is a constant $C>0$ so that
-whenever $1- A / \log t \le \sigma_1, \sigma_2\le 2$, we have that:
+whenever $1- A / \log t \le \sigma_1 < \sigma_2\le 2$, we have that:
 $$
 |\zeta (\sigma_2 + it) - \zeta (\sigma_1 + it)|
 \le C (\log |t|)^2 (\sigma_2 - \sigma_1).
@@ -445,14 +504,13 @@ $$
 \end{lemma}
 %%-/
 lemma Zeta_diff_Bnd :
-    ∀ᶠ (A : ℝ) in 𝓝[>]0, ∃ C > 0, ∀ (σ₁ σ₂ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
+    ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ₁ σ₂ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (σ₁_ge : 1 - A / Real.log |t| ≤ σ₁) (σ₁_le : σ₁ ≤ 2)
     (σ₂_ge : 1 - A / Real.log |t| ≤ σ₂) (σ₂_le : σ₂ ≤ 2) (σ₁_lt_σ₂ : σ₁ < σ₂),
     Complex.abs (riemannZeta (σ₂ + t * I) - riemannZeta (σ₁ + t * I)) ≤
       C * (Real.log |t|) ^ 2 * (σ₂ - σ₁) := by
-  filter_upwards [ZetaDerivUpperBnd]
-  intro A ⟨C, Cpos, hC⟩
-  refine ⟨C, Cpos, ?_⟩
+  obtain ⟨A, Apos, C, Cpos, hC⟩ := ZetaDerivUpperBnd
+  refine ⟨A, Apos, C, Cpos, ?_⟩
   intro σ₁ σ₂ t t_gt σ₁_ge σ₁_le σ₂_ge σ₂_le σ₁_lt_σ₂
   have : t ≠ 0 := by sorry
   rw [← Zeta_eq_int_derivZeta σ₁_lt_σ₂ this]
@@ -467,12 +525,59 @@ estimate trivially using Lemma \ref{ZetaDerivUpperBnd}.
 
 /-%%
 \begin{lemma}[ZetaInvBnd]\label{ZetaInvBnd}\lean{ZetaInvBnd}\leanok
-Lemma.
+For any $A>0$ sufficiently small, there is a constant $C>0$ so that
+whenever $1- A / \log^9 |t| \le \sigma < 1$, we have that:
+$$
+1/|\zeta(\sigma+it)| \le C \log^7 |t|.
+$$
 \end{lemma}
 %%-/
+lemma ZetaInvBnd :
+    ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
+    (σ_ge : 1 - A / (Real.log |t|) ^ 9 ≤ σ) (σ_lt : σ < 1),
+    1 / Complex.abs (riemannZeta (σ + t * I)) ≤ C * (Real.log |t|) ^ 7 := by
+  sorry
 /-%%
 \begin{proof}
-\uses{Zeta_diff_Bnd}
-Proof.
+\uses{Zeta_diff_Bnd, ZetaInvBound2}
+Let $\sigma$ be given in the prescribed range, and set $\sigma' := 1+ A / \log^9 |t|$.
+Then
+$$
+|\zeta(\sigma+it)| \ge
+|\zeta(\sigma'+it)| - |\zeta(\sigma+it) - \zeta(\sigma'+it)|
+\ge
+C (\sigma'-1)^{-3/4}\log |t|^{-1/4} - C \log^2 |t| (\sigma'-\sigma)
+$$
+$$
+\ge
+C A^{-3/4} \log |t|^{-7} - C \log^2 |t| (2 A / \log^9 |t|),
+$$
+where we used Lemma \ref{ZetaInvBound2}  and Lemma \ref{Zeta_diff_Bnd}.
+Now by making $A$ sufficiently small (in particular, something like $A = 1/16$ should work), we can guarantee that
+$$
+|\zeta(\sigma+it)| \ge \frac C 2 (\log |t|)^{-7},
+$$
+as desired.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[LogDerivZetaBnd]\label{LogDerivZetaBnd}\lean{LogDerivZetaBnd}\leanok
+There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1$,
+$$
+|\frac {\zeta'}{\zeta} (\sigma+it)| \ll \log^9 |t|.
+$$
+\end{lemma}
+%%-/
+lemma LogDerivZetaBnd :
+    ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
+    (σ_ge : 1 - A / (Real.log |t|) ^ 9 ≤ σ) (σ_lt : σ < 1),
+    Complex.abs (deriv riemannZeta (σ + t * I) / riemannZeta (σ + t * I)) ≤
+      C * (Real.log |t|) ^ 9 := by
+  sorry
+/-%%
+\begin{proof}
+\uses{ZetaInvBnd, ZetaDerivUpperBnd}
+Combine the bound on $|\zeta'|$ from Lemma \ref{ZetaDerivUpperBnd} with the bound on $1/|\zeta|$ from Lemma \ref{ZetaInvBnd}.
 \end{proof}
 %%-/
