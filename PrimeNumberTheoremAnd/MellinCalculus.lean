@@ -1091,11 +1091,23 @@ $$
 If $\psi$ is nonnegative, then $\widetilde{1_{\epsilon}}(x)$ is nonnegative.
 \end{lemma}
 %%-/
-lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) (ε : ℝ) :
+lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x, 0 ≤ Ψ x)
+    {ε : ℝ} (εpos : 0 < ε) :
     ∀ (x : ℝ), 0 ≤ Smooth1 Ψ ε x := by
-  sorry
+  unfold Smooth1 MellinConvolution DeltaSpike
+  intro x
+  apply set_integral_nonneg (by simp)
+  intro y hy
+  by_cases h : y ≤ 1
+  <;> simp only [h, ↓reduceIte, one_div, one_mul, IsROrC.ofReal_real_eq_id, id_eq]
+  · field_simp
+    apply mul_nonneg
+    · apply Ψnonneg
+    · apply inv_nonneg.mpr <| mul_nonneg εpos.le (mem_Ioi.mp hy).le
+  · simp
+
 /-%%
-\begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike}
+\begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike}\leanok
 By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
 $$
   \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
