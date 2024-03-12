@@ -1191,16 +1191,19 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ)
     {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) :
     MellinTransform ((Smooth1 Ψ ε) ·) s = 1 / s * MellinTransform (Ψ ·) (ε * s) := by
   unfold Smooth1
-  -- let g := DeltaSpike Ψ ε
-  let g: ℝ → ℂ  := fun x ↦ DeltaSpike Ψ ε x
+  let g : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x
   have : IntegrableOn (Function.uncurry fun x y ↦ (if y ≤ 1 then 1 else 0) *
       g (x / y) / ↑y * ↑x ^ (s - 1)) (Ioi 0 ×ˢ Ioi 0) := by
     sorry
   have := MellinConvolutionTransform (fun x ↦ if x ≤ 1 then 1 else 0) g s this
   convert this using 1
   · simp [g]
-    congr; funext x
-    sorry
+    congr
+    funext x
+    convert integral_ofReal.symm
+    push_cast
+    simp_rw [@apply_ite ℝ ℂ]
+    rfl
   · rw [MellinOf1 s hs, MellinOfDeltaSpike Ψ εpos s]
 
 /-%%
