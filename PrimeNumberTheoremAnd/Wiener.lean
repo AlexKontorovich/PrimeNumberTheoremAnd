@@ -554,7 +554,7 @@ def cumsum {E : Type*} [AddCommMonoid E] (u : ℕ → E) (n : ℕ) : E := ∑ i 
 
 def nabla {E : Type*} [HSub E E E] (u : ℕ → E) (n : ℕ) : E := u (n + 1) - u n
 
-def nnabla {E : Type*} [HSub E E E] (u : ℕ → E) (n : ℕ) : E := u n - u (n + 1)
+def nnabla {E : Type*} [HSub E E E] (u : ℕ → E) (n : ℕ) : E := u n - u (n + 1) /- TODO nnabla is redundant -/
 
 def shift {E : Type*} (u : ℕ → E) (n : ℕ) : E := u (n + 1)
 
@@ -566,6 +566,9 @@ def shift {E : Type*} (u : ℕ → E) (n : ℕ) : E := u (n + 1)
 lemma neg_cumsum {E : Type*} [AddCommGroup E] {u : ℕ → E} : -(cumsum u) = cumsum (-u) :=
   funext (fun n => by simp [cumsum])
 
+lemma cumsum_nonneg {u : ℕ → ℝ} (hu : 0 ≤ u) : 0 ≤ cumsum u :=
+  fun _ => Finset.sum_nonneg (fun i _ => hu i)
+
 lemma neg_nabla {E : Type*} [AddCommGroup E] {u : ℕ → E} : -(nabla u) = nnabla u :=
   funext (fun n => by simp [nabla, nnabla])
 
@@ -573,18 +576,11 @@ lemma neg_nabla {E : Type*} [AddCommGroup E] {u : ℕ → E} : -(nabla u) = nnab
   ext n ; simp [nnabla, mul_sub]
 
 lemma Finset.sum_shift_front {E : Type*} [Ring E] {u : ℕ → E} {n : ℕ} :
-    cumsum u (n + 1) = cumsum (shift u) n + u 0 := by
-
-  unfold cumsum shift
-  rw [Finset.sum_eq_sum_diff_singleton_add (i := 0) (by simp), ← Finset.sum_image (s := Finset.range n)]
-  · congr ; ext i
-    cases i with
-    | zero => simp
-    | succ i => simpa using Nat.succ_lt_succ_iff
-  · intro x _ y _ ; exact Nat.succ_inj.mp
+    cumsum u (n + 1) = u 0 + cumsum (shift u) n := by
+  simp_rw [add_comm n, cumsum, sum_range_add, sum_range_one, add_comm 1] ; rfl
 
 lemma Finset.sum_shift_front' {E : Type*} [Ring E] {u : ℕ → E} :
-    shift (cumsum u) = cumsum (shift u) + (fun _ => u 0) := by
+    shift (cumsum u) = (fun _ => u 0) + cumsum (shift u) := by
   ext n ; apply Finset.sum_shift_front
 
 lemma Finset.sum_shift_back {E : Type*} [Ring E] {u : ℕ → E} {n : ℕ} :
@@ -596,13 +592,11 @@ lemma Finset.sum_shift_back' {E : Type*} [Ring E] {u : ℕ → E} : shift (cumsu
 
 lemma summation_by_parts {E : Type*} [Ring E] {a A b : ℕ → E} (ha : a = nabla A) {n : ℕ} :
     cumsum (a * b) (n + 1) = A (n + 1) * b n - A 0 * b 0 - cumsum (shift A * fun i => (b (i + 1) - b i)) n := by
-
-  unfold cumsum shift
   have l1 : ∑ x in Finset.range (n + 1), A (x + 1) * b x = ∑ x in Finset.range n, A (x + 1) * b x + A (n + 1) * b n :=
     Finset.sum_shift_back
-  have l2 : ∑ x in Finset.range (n + 1), A x * b x = ∑ x in Finset.range n, A (x + 1) * b (x + 1) + A 0 * b 0 :=
+  have l2 : ∑ x in Finset.range (n + 1), A x * b x = A 0 * b 0 + ∑ x in Finset.range n, A (x + 1) * b (x + 1) :=
     Finset.sum_shift_front
-  simp [ha, nabla, sub_mul, mul_sub, l1, l2] ; abel
+  simp [cumsum, shift, ha, nabla, sub_mul, mul_sub, l1, l2] ; abel
 
 lemma summation_by_parts' {E : Type*} [Ring E] {a b : ℕ → E} {n : ℕ} :
     cumsum (a * b) (n + 1) = cumsum a (n + 1) * b n - cumsum (shift (cumsum a) * nabla b) n := by
@@ -613,12 +607,9 @@ lemma summation_by_parts'' {E : Type*} [Ring E] {a b : ℕ → E} :
   ext n ; apply summation_by_parts'
 
 lemma summable_iff_bounded {u : ℕ → ℝ} (hu : 0 ≤ u) : Summable u ↔ BoundedAtFilter atTop (cumsum u) := by
-
-  have l0 : (cumsum u =O[atTop] 1) ↔ _ := isBigO_one_nat_atTop_iff (f := cumsum u)
-  have l4 n : 0 ≤ cumsum u n := Finset.sum_nonneg (fun i _ => hu i)
-  have l3 n : ‖cumsum u n‖ = cumsum u n := by simp [Real.norm_eq_abs, abs_eq_self, l4]
-
-  simp only [BoundedAtFilter, l0, l3]
+  have l1 : (cumsum u =O[atTop] 1) ↔ _ := isBigO_one_nat_atTop_iff
+  have l2 n : ‖cumsum u n‖ = cumsum u n := by simpa using cumsum_nonneg hu n
+  simp only [BoundedAtFilter, l1, l2]
   constructor <;> intro ⟨C, h1⟩
   · exact ⟨C, fun n => sum_le_hasSum _ (fun i _ => hu i) h1⟩
   · exact summable_of_sum_range_le hu h1
@@ -629,27 +620,29 @@ lemma Filter.EventuallyEq.summable {u v : ℕ → ℝ} (h : u =ᶠ[atTop] v) (hu
 lemma summable_congr_ae {u v : ℕ → ℝ} (huv : u =ᶠ[atTop] v) : Summable u ↔ Summable v := by
   constructor <;> intro h <;> simp [huv.summable, huv.symm.summable, h]
 
+lemma BoundedAtFilter.add_const {u : ℕ → ℝ} {c : ℝ} :
+    BoundedAtFilter atTop (fun n => u n + c) ↔ BoundedAtFilter atTop u := by
+  have : u = fun n => (u n + c) + (-c) := by ext n ; ring
+  simp [BoundedAtFilter] ; constructor <;> intro h ; rw [this]
+  all_goals { exact h.add (const_boundedAtFilter _ _) }
+
+lemma BoundedAtFilter.comp_add {u : ℕ → ℝ} {N : ℕ} :
+    BoundedAtFilter atTop (fun n => u (n + N)) ↔ BoundedAtFilter atTop u := by
+  simp [BoundedAtFilter, isBigO_iff] ; constructor <;> intro ⟨C, n₀, h⟩ <;> use C
+  · refine ⟨n₀ + N, fun n hn => ?_⟩
+    obtain ⟨k, hk⟩ := Nat.exists_eq_add_of_le' (m := N) (by linarith) ; subst n
+    exact h _ <| Nat.add_le_add_iff_right.mp hn
+  · exact ⟨n₀, fun n hn => h _ (by linarith)⟩
+
 lemma summable_iff_bounded' {u : ℕ → ℝ} (hu : ∀ᶠ n in atTop, 0 ≤ u n) :
     Summable u ↔ BoundedAtFilter atTop (cumsum u) := by
-
   obtain ⟨N, hu⟩ := eventually_atTop.mp hu
-  let v (n : ℕ) := if n < N then 0 else u n
-  let S := ∑ i in Finset.range N, u i
+  have e2 : cumsum (fun i ↦ u (i + N)) = fun n => cumsum u (n + N) - cumsum u N := by
+    ext n ; simp_rw [cumsum, add_comm _ N, Finset.sum_range_add] ; ring
+  rw [← summable_nat_add_iff N, summable_iff_bounded (fun n => hu _ <| Nat.le_add_left N n), e2]
+  simp_rw [sub_eq_add_neg, BoundedAtFilter.add_const, BoundedAtFilter.comp_add]
 
-  have l1 : u =ᶠ[atTop] v := eventually_atTop.mpr ⟨N, fun n hn => by simp [not_lt_of_le hn]⟩
-  have l2 : Summable u ↔ Summable v := summable_congr_ae l1
-  have l5 : cumsum v =ᶠ[atTop] cumsum u - (fun _ => S) := by
-    refine eventually_atTop.mpr ⟨N, fun n (hn : N ≤ n) => ?_⟩
-    obtain ⟨k, hk⟩ := le_iff_exists_add.mp hn
-    simpa [cumsum, hk, Finset.sum_range_add] using Finset.sum_eq_zero (fun x hx => by simp [Finset.mem_range.mp hx])
-  have l3 : BoundedAtFilter atTop (cumsum u) ↔ BoundedAtFilter atTop (cumsum v) := by
-    constructor <;> intro h
-    · apply l5.trans_isBigO ; simpa [sub_eq_add_neg] using h.add (isBigO_const_one _ _ _)
-    · have : cumsum u =ᶠ[atTop] cumsum v + (fun _ => S) := by filter_upwards [l5] with n hn ; simp [hn]
-      exact this.trans_isBigO <| h.add (isBigO_const_one _ _ _)
-  have l4 n : 0 ≤ v n := by by_cases h : n < N <;> simp [h] ; exact hu n (Nat.le_of_not_lt h)
-
-  simpa only [l2, l3] using summable_iff_bounded l4
+-- XXX THE REFACTOR LINE IS HERE
 
 lemma dirichlet_test {a b A : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b) (hA : 0 ≤ A) (hAa : a = nabla A)
     (hAb : BoundedAtFilter atTop (fun n ↦ A (n + 1) * b n)) (hbb : Antitone b)
@@ -1123,6 +1116,8 @@ lemma limiting_fourier (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → 
   have l3 := limiting_fourier_lim3 hG hψ hsupp hx
   apply tendsto_nhds_unique_of_eventuallyEq (l1.sub l2) l3
   simpa [eventuallyEq_nhdsWithin_iff] using eventually_of_forall (limiting_fourier_aux hG' hf hψ hsupp hx)
+
+-- XXX THE REFACTOR TARGET IS HERE
 
 /-%%
 \begin{proof}
