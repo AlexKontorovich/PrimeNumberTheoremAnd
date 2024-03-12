@@ -98,7 +98,7 @@ We have that
 $$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X \log X).$$
 \end{theorem}
 %%-/
-lemma SmoothedChebyshevClose {ψ : ℝ → ℝ} (ε : ℝ) (eps_pos: 0 < ε)
+lemma SmoothedChebyshevClose {ψ : ℝ → ℝ} (ε : ℝ) (ε_pos: 0 < ε)
     (suppΨ : Function.support ψ ⊆ Icc (1 / 2) 2) (Ψnonneg : ∀ x > 0, 0 ≤ ψ x)
     (mass_one : ∫ x in Ioi 0, ψ x / x = 1) (X : ℝ) :
     (fun X ↦ Complex.abs (SmoothedChebyshev ψ ε X - ChebyshevPsi X)) =O[atTop]

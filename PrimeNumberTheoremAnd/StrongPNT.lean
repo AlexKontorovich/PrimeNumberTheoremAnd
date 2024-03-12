@@ -5,6 +5,10 @@ open Nat Filter
 
 open scoped ArithmeticFunction
 
+/-%%
+This section has been removed.
+%%-/
+
 /-%
 
 Main Theorem: The Prime Number Theorem in strong form.
