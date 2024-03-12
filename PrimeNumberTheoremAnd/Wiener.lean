@@ -697,32 +697,47 @@ lemma summable_inv_mul_log_sq : Summable (fun n : ℕ => (n * (Real.log n) ^ 2)�
   have l5 : ∀ᶠ k in atTop, v (2 ^ k) = u (2 ^ k) := l3.comp_tendsto <| Nat.tendsto_pow_atTop_atTop_of_one_lt le.refl
   filter_upwards [l5, l8] with k l5 l8 ; field_simp [l5] ; ring
 
--- XXX THE REFACTOR LINE IS HERE
+lemma tendsto_mul_add_atTop {a : ℝ} (ha : 0 < a) (b : ℝ) : Tendsto (fun x => a * x + b) atTop atTop :=
+  tendsto_atTop_add_const_right  _ b (tendsto_id.const_mul_atTop ha)
 
-lemma log_isbigo_log_div {b : ℝ} (hb : 0 < b) : (fun n : ℕ ↦ Real.log n) =O[atTop] (fun n ↦ Real.log (n / b)) := by
-  have l1 : ∀ᶠ n : ℕ in atTop, Real.log n - Real.log b = Real.log (n / b) := by
-    apply eventually_of_mem (Ici_mem_atTop 2) ; intro n (hn : 2 ≤ n)
-    have e1 : (n : ℝ) ≠ 0 := by simp ; linarith
-    rw [Real.log_div e1 hb.ne.symm]
-  have l2 : ∀ᶠ n : ℕ in atTop, 2 * Real.log b ≤ Real.log n := by
-    have e1 := Real.tendsto_log_atTop
-    rw [tendsto_atTop] at e1
-    specialize e1 (2 * Real.log b)
-    have : Tendsto ((↑) : ℕ → ℝ) atTop atTop := by exact tendsto_nat_cast_atTop_atTop
-    exact this.eventually e1
-  have l3 : ∀ᶠ n : ℕ in atTop, 0 ≤ Real.log n := by
-    apply eventually_of_mem (Ici_mem_atTop 1) ; intro n (hn : 1 ≤ n)
-    apply Real.log_nonneg ; simp [hn]
-  rw [isBigO_iff] ; use 2
-  filter_upwards [l1, l2, l3] with n l1 l2 l3
-  have l4 : 0 ≤ Real.log n - Real.log b := by linarith
-  simp [← l1, abs_eq_self.mpr l3, abs_eq_self.mpr l4]
-  linarith
+lemma isLittleO_const_of_tendsto_atTop {a : ℝ} {f : ℝ → ℝ} (hf : Tendsto f atTop atTop) : (fun _ => a) =o[atTop] f := by
+  simp [tendsto_norm_atTop_atTop.comp hf]
+
+lemma isBigO_pow_pow_of_le {m n : ℕ} (h : m ≤ n) : (fun x : ℝ => x ^ m) =O[atTop] (fun x : ℝ => x ^ n) := by
+  apply IsBigO.of_bound 1
+  filter_upwards [eventually_ge_atTop 1] with x l1
+  simpa [abs_eq_self.mpr (zero_le_one.trans l1)] using pow_le_pow_right l1 h
+
+lemma isLittleO_mul_add_sq (a b : ℝ) : (fun x => a * x + b) =o[atTop] (fun x => x ^ 2) := by
+  apply IsLittleO.add
+  · apply IsLittleO.const_mul_left ; simpa using isLittleO_pow_pow_atTop_of_lt (𝕜 := ℝ) one_lt_two
+  · apply isLittleO_const_of_tendsto_atTop <| tendsto_pow_atTop (by linarith)
+
+lemma log_mul_add_isBigO_log {a b : ℝ} (ha : 0 < a) : (fun x => Real.log (a * x + b)) =O[atTop] Real.log := by
+  apply IsBigO.of_bound (2 : ℕ)
+  have l2 : ∀ᶠ x : ℝ in atTop, 0 ≤ log x := tendsto_atTop.mp tendsto_log_atTop 0
+  have l3 : ∀ᶠ x : ℝ in atTop, 0 ≤ log (a * x + b) :=
+    tendsto_atTop.mp (tendsto_log_atTop.comp (tendsto_mul_add_atTop ha b)) 0
+  have l5 : ∀ᶠ x : ℝ in atTop, 1 ≤ a * x + b := tendsto_atTop.mp (tendsto_mul_add_atTop ha b) 1
+  have l1 : ∀ᶠ x : ℝ in atTop, a * x + b ≤ x ^ 2 := by
+    filter_upwards [(isLittleO_mul_add_sq a b).eventuallyLE, l5] with x r2 l5
+    simpa [abs_eq_self.mpr (zero_le_one.trans l5)] using r2
+  filter_upwards [l1, l2, l3, l5] with x l1 l2 l3 l5
+  simpa [abs_eq_self.mpr l2, abs_eq_self.mpr l3, Real.log_pow] using Real.log_le_log (by linarith) l1
+
+lemma isBigO_log_mul_add {a : ℝ} (ha : 0 < a) (b : ℝ) : Real.log =O[atTop] (fun x => Real.log (a * x + b)) := by
+  convert (log_mul_add_isBigO_log (b := -b / a) (inv_pos.mpr ha)).comp_tendsto (tendsto_mul_add_atTop (b := b) ha) using 1
+  ext x ; field_simp [ha.ne.symm] ; rw [mul_div_assoc, mul_div_cancel'] ; linarith
+
+lemma log_isbigo_log_div {d : ℝ} (hb : 0 < d) : (fun n ↦ Real.log n) =O[atTop] (fun n ↦ Real.log (n / d)) := by
+  convert isBigO_log_mul_add (inv_pos.mpr hb) 0 using 1 ; field_simp
+
+-- XXX THE REFACTOR LINE IS HERE
 
 lemma log_sq_isbigo_mul {a b : ℝ} (ha : 0 ≤ a) (hb : 0 < b) :
     (fun n : ℕ ↦ Real.log n ^ 2) =O[atTop] (fun n ↦ a + Real.log (n / b) ^ 2) := by
 
-  have l1 := log_isbigo_log_div hb
+  have l1 := (log_isbigo_log_div hb).natCast
   have l2 := l1.mul l1
 
   simp_rw [pow_two] ; apply l2.trans ; simp_rw [← pow_two]
