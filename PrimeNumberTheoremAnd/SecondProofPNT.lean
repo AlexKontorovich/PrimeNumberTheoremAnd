@@ -4,7 +4,7 @@ import PrimeNumberTheoremAnd.ZetaBounds
 import EulerProducts.PNT
 import Mathlib.Algebra.Function.Support
 
-open Set Function
+open Set Function Filter
 
 open scoped ArithmeticFunction
 
@@ -81,13 +81,29 @@ and apply the Mellin inversion formula (Theorem \ref{MellinInversion}).
 %%-/
 
 /-%%
+\begin{definition}\label{ChebyshevPsi}\lean{ChebyshevPsi}\leanok
+The Chebyshev Psi function is defined as
+$$
+\psi(x) := \sum_{n \le x} \Lambda(n),
+$$
+where $\Lambda(n)$ is the von Mangoldt function.
+\end{definition}
+%%-/
+noncomputable def ChebyshevPsi (x : ℝ) : ℝ := (Finset.range (Nat.floor x)).sum Λ
+
+/-%%
 The smoothed Chebyshev function is close to the actual Chebyshev function.
-\begin{theorem}[SmoothedChebyshevClose]\label{SmoothedChebyshevClose}
+\begin{theorem}[SmoothedChebyshevClose]\label{SmoothedChebyshevClose}\lean{SmoothedChebyshevClose}\leanok
 We have that
-$$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X).$$
+$$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X \log X).$$
 \end{theorem}
 %%-/
-
+lemma SmoothedChebyshevClose {ψ : ℝ → ℝ} (ε : ℝ) (ε_pos: 0 < ε)
+    (suppΨ : Function.support ψ ⊆ Icc (1 / 2) 2) (Ψnonneg : ∀ x > 0, 0 ≤ ψ x)
+    (mass_one : ∫ x in Ioi 0, ψ x / x = 1) (X : ℝ) :
+    (fun X ↦ Complex.abs (SmoothedChebyshev ψ ε X - ChebyshevPsi X)) =O[atTop]
+      (fun X ↦ ε * X * Real.log X) := by
+  sorry
 /-%%
 \begin{proof}
 \uses{SmoothedChebyshevDirichlet, Smooth1Properties_above,
@@ -99,12 +115,13 @@ Take the difference. By Lemma \ref{Smooth1Properties_above} and \ref{Smooth1Prop
 the sums agree except when $1-c \epsilon \leq n/X \leq 1+c \epsilon$. This is an interval of
 length $\ll \epsilon X$, and the summands are bounded by $\Lambda(n) \ll \log X$.
 
-This is not enough, as it loses a log! (Which is fine if our target is the strong PNT, with
+[No longer relevant, as we will do better than any power of log savings...: This is not enough,
+as it loses a log! (Which is fine if our target is the strong PNT, with
 exp-root-log savings, but not here with the ``softer'' approach.) So we will need something like
 the Selberg sieve (already in Mathlib? Or close?) to conclude that the number of primes in this
 interval is $\ll \epsilon X / \log X + 1$.
 (The number of prime powers is $\ll X^{1/2}$.)
-And multiplying that by $\Lambda (n) \ll \log X$ gives the desired bound.
+And multiplying that by $\Lambda (n) \ll \log X$ gives the desired bound.]
 \end{proof}
 %%-/
 
@@ -115,12 +132,17 @@ from $2$ up to $2+iT$, then over to $1+iT$, and up from there to $1+i\infty$ (an
 in the lower half plane).  The
 rectangles involved are all where the integrand is holomorphic, so there is no change.
 \begin{theorem}\label{SmoothedChebyshevPull1}
-\uses{SmoothedChebyshev, RectangleIntegral}
 We have that
 $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{\text{curve}}\frac{-\zeta'(s)}{\zeta(s)}
 \mathcal{M}(\widetilde{1_{\epsilon}})(s)
 X^{s}ds.$$
 \end{theorem}
+%%-/
+/-%%
+\begin{proof}
+\uses{SmoothedChebyshev, RectangleIntegral}
+Pull rectangle contours.
+\end{proof}
 %%-/
 
 /-%
@@ -205,17 +227,21 @@ where:
 \end{itemize}
 
 %%-/
+
 /-%%
 \section{MediumPNT}
 
 \begin{theorem}[MediumPNT]\label{MediumPNT}  We have
-$$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
+$$ \sum_{n \leq x} \Lambda(n) = x + O(x \exp(-c(\log x)^{1/18})).$$
 \end{theorem}
 %%-/
-
+/-- *** Prime Number Theorem (Medium Strength) *** The `ChebyshevPsi` function is asymptotic to `x`. -/
+theorem MediumPNT : ∃ (c : ℝ) (hc : c > 0),
+    (ChebyshevPsi - id) =O[atTop] (fun (x : ℝ) ↦ x * Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / 18))) := by
+  sorry
 /-%%
 \begin{proof}
-\uses{ChebyshevPsi, SmoothedChebyshevClose}
+\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBnd}
   Evaluate the integrals.
 \end{proof}
 %%-/
