@@ -33,7 +33,7 @@ Note that PNT has been formalized before, first by Avigad et al in Isabelle,
 https://arxiv.org/abs/cs/0509025
 following the Selberg / Erdos method, then
 by Harrison in HOL Light
-https://www.cl.cam.ac.uk/~jrh13/papers/mikefest.html
+https://www.cl.cam.ac.uk/$\sim$jrh13/papers/mikefest.html
 via Newman's proof.
 Carniero gave another formalization in Metamath of the Selberg / Erdos method:
 https://arxiv.org/abs/1608.02029,
@@ -48,7 +48,7 @@ There are (at least) three approaches to PNT that we may want to pursue simultan
 follow
  the ``Euler Products'' project by Michael Stoll, which has a proof of PNT missing only the Wiener-Ikehara Tauberian theorem.
 
-The second develops some complex analysis (residue calculus on rectangles, argument principle, Mellin transforms), to pull contours and derive a PNT with just an asymptotic formula.
+The second develops some complex analysis (residue calculus on rectangles, argument principle, Mellin transforms), to pull contours and derive a PNT with an error term which is stronger than any power of log savings.
 
 The third approach, which will be the most general of the three, is to: (1) develop the residue calculus et al, as above, (2) add the Hadamard factorization theorem, (3) use it to prove the zero-free region for zeta via Hoffstein-Lockhart+Goldfeld-Hoffstein-Liemann (which generalizes to higher degree L-functions), and (4) use this to prove the prime number theorem with exp-root-log savings.
 
@@ -81,17 +81,17 @@ A word about the expected ``rate-limiting-steps'' in each of the approaches.
 \section{Zeta Bounds}
 \input{ZetaBounds.tex}
 
-\section{Second Proof of PNT}
+\section{Proof of Medium PNT}
 \input{SecondProofPNT.tex}
 
 
-\chapter{Third Approach}
+%\chapter{Third Approach}
 
-\section{Hadamard factorization}
-\input{HadamardFactorization.tex}
+%\section{Hadamard factorization}
+%\input{HadamardFactorization.tex}
 
-\section{Hoffstein-Lockhart}
-\input{HoffsteinLockhart.tex}
+%\section{Hoffstein-Lockhart}
+%\input{HoffsteinLockhart.tex}
 
 \section{Strong PNT}
 \input{StrongPNT.tex}

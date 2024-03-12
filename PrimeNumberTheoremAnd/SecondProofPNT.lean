@@ -1,4 +1,13 @@
 import Mathlib.Analysis.Complex.CauchyIntegral
+import PrimeNumberTheoremAnd.MellinCalculus
+import PrimeNumberTheoremAnd.ZetaBounds
+import EulerProducts.PNT
+import Mathlib.Algebra.Function.Support
+
+open Set Function
+
+open scoped ArithmeticFunction
+
 
 /-%%
 The approach here is completely standard. We follow the use of
@@ -8,14 +17,26 @@ $\mathcal{M}(\widetilde{1_{\epsilon}})$ as in Kontorovich 2015.
 /-%%
 It has already been established that zeta doesn't vanish on the 1 line, and has a pole at $s=1$
 of order 1.
-We also have that
+We also have the following.
+\begin{theorem}[LogDerivativeDirichlet]\label{LogDerivativeDirichlet}\lean{LogDerivativeDirichlet}\leanok
+We have that, for $\Re(s)>1$,
 $$
 -\frac{\zeta'(s)}{\zeta(s)} = \sum_{n=1}^\infty \frac{\Lambda(n)}{n^s}.
 $$
+\end{theorem}
+%%-/
+theorem LogDerivativeDirichlet (s : ℂ) (hs : 1 < s.re) :
+    - deriv riemannZeta s / riemannZeta s = ∑' n, Λ n / (n : ℂ) ^ s := by
+  sorry
+/-%%
+\begin{proof}
+Already in EulerProducts.
+\end{proof}
+
 
 The main object of study is the following inverse Mellin-type transform, which will turn out to
 be a smoothed Chebyshev function.
-\begin{definition}\label{SmoothedChebyshev}
+\begin{definition}[SmoothedChebyshev]\label{SmoothedChebyshev}\lean{SmoothedChebyshev}\leanok
 Fix $\epsilon>0$, and a bumpfunction $\psi$ supported in $[1/2,2]$. Then we define the smoothed
 Chebyshev function $\psi_{\epsilon}$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
 $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(2)}\frac{-\zeta'(s)}{\zeta(s)}
@@ -23,14 +44,22 @@ $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(2)}\frac{-\zeta'(s)}{\zeta(s)}
 X^{s}ds.$$
 \end{definition}
 %%-/
+noncomputable def SmoothedChebyshev (ψ : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
+    VerticalIntegral' (fun s ↦ (- deriv riemannZeta s) / riemannZeta s *
+      (MellinTransform ((Smooth1 ψ ε) ·) s) *(X : ℂ) ^ s ) 2
 
 /-%%
 Inserting the Dirichlet series expansion of the log derivative of zeta, we get the following.
-\begin{theorem}\label{SmoothedChebyshevDirichlet}
+\begin{theorem}[SmoothedChebyshevDirichlet]\label{SmoothedChebyshevDirichlet}
+\lean{SmoothedChebyshevDirichlet}\leanok
 We have that
 $$\psi_{\epsilon}(X) = \sum_{n=1}^\infty \Lambda(n)\widetilde{1_{\epsilon}}(n/X).$$
 \end{theorem}
 %%-/
+theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (ε : ℝ) (eps_pos: 0 < ε)
+    (suppΨ : Function.support ψ ⊆ Icc (1 / 2) 2) (X : ℝ) :
+    SmoothedChebyshev ψ ε X = ∑' n, Λ n * ψ (n / X) := by
+  sorry
 
 /-%%
 \begin{proof}
@@ -94,23 +123,23 @@ X^{s}ds.$$
 \end{theorem}
 %%-/
 
-/-%%
+/-%
 \begin{theorem}\label{ZetaNoZerosOn1Line}
 The zeta function does not vanish on the 1-line.
 \end{theorem}
 This fact is already proved in Stoll's work.
-%%-/
+%-/
 
-/-%%
+/-%
 Then, since $\zeta$ doesn't vanish on the 1-line, there is a $\delta$ (depending on $T$), so that
 the box $[1-\delta,1] \times_{ℂ} [-T,T]$ is free of zeros of $\zeta$.
 \begin{theorem}\label{ZetaNoZerosInBox}
 For any $T>0$, there is a $\delta>0$ so that $[1-\delta,1] \times_{ℂ} [-T,T]$ is free of zeros of
 $\zeta$.
 \end{theorem}
-%%-/
+%-/
 
-/-%%
+/-%
 \begin{proof}
 \uses{ZetaNoZerosOn1Line}
 We have that zeta doesn't vanish on the 1 line and is holomorphic inside the box (except for the
@@ -119,23 +148,23 @@ of zeros of $\zeta$ approaching the 1 line, and by compactness, we could find a 
 zeros converging to a point on the 1 line. But then $\zeta$ would vanish at that point, a
 contradiction. (Worse yet, zeta would then be entirely zero...)
 \end{proof}
-%%-/
+%-/
 
-/-%%
+/-%
 The rectangle with opposite corners $1-\delta - i T$ and $2+iT$ contains a single pole of
 $-\zeta'/\zeta$ at $s=1$, and the residue is $1$ (from Theorem \ref{ResidueOfLogDerivative}).
 \begin{theorem}\label{ZeroFreeBox}
 $-\zeta'/\zeta$ is holomorphic on the box $[1-\delta,2] \times_{ℂ} [-T,T]$, except a simple pole
 with residue $1$ at $s$=1.
 \end{theorem}
-%%-/
+%-/
 
-/-%%
+/-%
 \begin{proof}
 \uses{ZetaNoZerosInBox, ResidueOfLogDerivative}
 The proof is as described.
 \end{proof}
-%%-/
+%-/
 
 /-%%
 We insert this information in $\psi_{\epsilon}$. We add and subtract the integral over the box
@@ -177,16 +206,16 @@ where:
 
 %%-/
 /-%%
-\section{Weak PNT proof 2}
+\section{MediumPNT}
 
-\begin{theorem}[Weak PNT2]\label{WeakPNT2}  We have
+\begin{theorem}[MediumPNT2]\label{MediumPNT}  We have
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 \end{theorem}
 %%-/
 
 /-%%
 \begin{proof}
-\uses{ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval}
+\uses{ChebyshevPsi, SmoothedChebyshevClose}
   Evaluate the integrals.
 \end{proof}
 %%-/
