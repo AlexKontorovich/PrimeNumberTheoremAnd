@@ -4,11 +4,9 @@ import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.NumberTheory.ZetaFunction
 import Mathlib.Algebra.Group.Basic
 import EulerProducts.PNT
+import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 
 open BigOperators Complex Topology Filter
-
-/-- This is sitting in PR #9598 -/
-def Set.uIoo {α : Type*} [Preorder α] [Inf α] [Sup α] (a b : α) : Set α := Set.Ioo (a ⊓ b) (a ⊔ b)
 
 theorem ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContDiffOn ℝ 1 φ s) {x : ℝ}
     (x_in_s : s ∈ nhds x) : HasDerivAt φ (deriv φ x) x :=
