@@ -49,8 +49,8 @@ An UpperUIntegral is the integral of a function over a |\_| shape.
 An UpperUIntegral of a function $f$ comes from $\sigma+i\infty$ down to $\sigma+iT$, over to $\sigma'+iT$, and back up to $\sigma'+i\infty$.
 \end{definition}
 %-/
--- noncomputable def UpperUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegral f σ σ' T +
---     I • (∫ y : ℝ in Ici T, f (σ' + y * I)) - I • (∫ y : ℝ in Ici T, f (σ + y * I))
+noncomputable def UpperUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegral f σ σ' T +
+    I • (∫ y : ℝ in Ici T, f (σ' + y * I)) - I • (∫ y : ℝ in Ici T, f (σ + y * I))
 
 /-% ** Wrong delimiter on purpose **
 A LowerUIntegral is the integral of a function over a |-| shape.
@@ -58,8 +58,8 @@ A LowerUIntegral is the integral of a function over a |-| shape.
 A LowerUIntegral of a function $f$ comes from $\sigma-i\infty$ up to $\sigma-iT$, over to $\sigma'-iT$, and back down to $\sigma'-i\infty$.
 \end{definition}
 %-/
--- noncomputable def LowerUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegral f σ σ' (-T) -
---     I • (∫ y : ℝ in Iic (-T), f (σ' + y * I)) + I • (∫ y : ℝ in Iic (-T), f (σ + y * I))
+noncomputable def LowerUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegral f σ σ' (-T) -
+    I • (∫ y : ℝ in Iic (-T), f (σ' + y * I)) + I • (∫ y : ℝ in Iic (-T), f (σ + y * I))
 
 /-%%
 It is very convenient to define integrals along vertical lines in the complex plane, as follows.
@@ -87,16 +87,16 @@ lemma verticalIntegral_split_three (a b : ℝ) (hf : Integrable (fun t : ℝ ↦
 The difference of two vertical integrals and a rectangle is the difference of an upper and a lower U integrals.
 \end{lemma}
 %-/
--- lemma DiffVertRect_eq_UpperLowerUs {σ σ' T : ℝ}
---     (f_int_σ : Integrable (fun (t : ℝ) ↦ f (σ + t * I)))
---     (f_int_σ' : Integrable (fun (t : ℝ) ↦ f (σ' + t * I))) :
---     (VerticalIntegral f σ') - (VerticalIntegral f σ) - (RectangleIntegral f (σ - I * T) (σ' + I * T)) =
---     (UpperUIntegral f σ σ' T) - (LowerUIntegral f σ σ' T) := by
---   rw [verticalIntegral_split_three (-T) T f_int_σ, verticalIntegral_split_three (-T) T f_int_σ']
---   simp only [smul_eq_mul, RectangleIntegral, sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im,
---     ofReal_im, mul_zero, sub_self, sub_zero, add_re, add_zero, sub_im, mul_im, one_mul, zero_add,
---     zero_sub, add_im, UpperUIntegral, LowerUIntegral]
---   abel
+lemma DiffVertRect_eq_UpperLowerUs {σ σ' T : ℝ}
+    (f_int_σ : Integrable (fun (t : ℝ) ↦ f (σ + t * I)))
+    (f_int_σ' : Integrable (fun (t : ℝ) ↦ f (σ' + t * I))) :
+    (VerticalIntegral f σ') - (VerticalIntegral f σ) - (RectangleIntegral f (σ - I * T) (σ' + I * T)) =
+    (UpperUIntegral f σ σ' T) - (LowerUIntegral f σ σ' T) := by
+  rw [verticalIntegral_split_three (-T) T f_int_σ, verticalIntegral_split_three (-T) T f_int_σ']
+  simp only [smul_eq_mul, RectangleIntegral, sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im,
+    ofReal_im, mul_zero, sub_self, sub_zero, add_re, add_zero, sub_im, mul_im, one_mul, zero_add,
+    zero_sub, add_im, UpperUIntegral, LowerUIntegral]
+  abel
 /-%
 \begin{proof}\uses{UpperUIntegral, LowerUIntegral}\leanok
 Follows directly from the definitions.
