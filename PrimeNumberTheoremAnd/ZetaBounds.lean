@@ -419,8 +419,13 @@ $$
 \end{lemma}
 %%-/
 lemma ZetaNear1Bnd :
-    (fun σ : ℝ ↦ Complex.abs (riemannZeta σ)) =O[𝓝[>](1:ℝ)] (fun σ ↦ 1 / (σ - 1)) :=
-  sorry
+    (fun σ : ℝ ↦ riemannZeta σ) =O[𝓝[>](1 : ℝ)] (fun σ ↦ (1 : ℂ) / (σ - 1)) := by
+  have : Tendsto (fun (x : ℝ) ↦ x - 1) (𝓝[>](1 : ℝ)) (𝓝[>](0 : ℝ)) := by
+    refine tendsto_iff_forall_eventually_mem.mpr ?_
+    intro s hs
+    sorry
+  have := riemannZeta_isBigO_near_one_horizontal.comp_tendsto this
+  convert this using 1 <;> {ext1 _; simp}
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, Zeta0EqZeta}
 Zeta has a simple pole at $s=1$. Equivalently, $\zeta(s)(s-1)$ remains bounded near $1$.
