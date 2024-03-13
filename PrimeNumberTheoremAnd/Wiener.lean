@@ -702,44 +702,32 @@ lemma log_sq_isbigo_mul {a b : ℝ} (hb : 0 < b) :
   refine IsBigO.add_isLittleO_right <| isLittleO_const_of_tendsto_atTop ?_
   exact (tendsto_pow_atTop (two_ne_zero)).comp <| tendsto_log_atTop.comp <| tendsto_id.atTop_div_const hb
 
-theorem log_add_div_isBigO_log {a b : ℝ} (hb : 1 ≤ b) :
+theorem log_add_div_isBigO_log {a b : ℝ} (hb : 0 < b) :
     (fun x ↦ Real.log ((x + a) / b)) =O[atTop] fun x ↦ Real.log x := by
-  convert log_mul_add_isBigO_log (a := b⁻¹) (inv_pos.mpr (by linarith)) (a / b) using 3 ; ring
-
--- XXX THE REFACTOR LINE IS HERE
+  convert log_mul_add_isBigO_log (inv_pos.mpr hb) (a / b) using 3 ; ring
 
 lemma log_add_one_sub_log_le {x : ℝ} (hx : 0 < x) : log (x + 1) - log x ≤ x⁻¹ := by
   have l1 : ContinuousOn Real.log (Icc x (x + 1)) := by
     apply continuousOn_log.mono ; intro t ⟨h1, _⟩ ; simp ; linarith
-  have l2 : ∀ t ∈ Ioo x (x + 1), HasDerivAt Real.log t⁻¹ t := by
-    intro t ⟨h1, _⟩ ; apply Real.hasDerivAt_log ; linarith
+  have l2 t (ht : t ∈ Ioo x (x + 1)) : HasDerivAt Real.log t⁻¹ t := Real.hasDerivAt_log (by linarith [ht.1])
   obtain ⟨t, ⟨ht1, _⟩, htx⟩ := exists_hasDerivAt_eq_slope Real.log (·⁻¹) (by linarith) l1 l2
-  simp at htx ; simp [← htx]
-  rw [inv_le_inv (by linarith) hx]
-  linarith
+  simp at htx ; rw [← htx, inv_le_inv (by linarith) hx] ; linarith
 
 lemma nabla_log_main : (fun x ↦ Real.log (x + 1) - Real.log x) =O[atTop] fun x ↦ 1 / x := by
-  rw [isBigO_iff] ; use 1 ; simp_rw [one_mul]
-  have l1 : ∀ᶠ x : ℝ in atTop, 0 < x := eventually_gt_atTop 0
-  filter_upwards [l1] with x l1
+  apply IsBigO.of_bound 1
+  filter_upwards [eventually_gt_atTop 0] with x l1
   have l2 : log x ≤ log (x + 1) := log_le_log l1 (by linarith)
   simpa [abs_eq_self.mpr l1.le, abs_eq_self.mpr (sub_nonneg.mpr l2)] using log_add_one_sub_log_le l1
 
-lemma nabla_log_real {b : ℝ} (hb : 1 ≤ b) :
+lemma nabla_log {b : ℝ} (hb : 0 < b) :
     (fun x => Real.log ((x + 1) / b) - Real.log (x / b)) =O[atTop] (fun x => 1 / x) := by
+  refine EventuallyEq.trans_isBigO ?_ nabla_log_main
+  filter_upwards [eventually_gt_atTop 0] with x l2
+  rw [log_div (by linarith) (by linarith), log_div l2.ne.symm (by linarith)] ; ring
 
-  have l2 : ∀ᶠ x : ℝ in atTop, 0 < x := eventually_gt_atTop 0
-  have l1 : ∀ᶠ x in atTop, Real.log ((x + 1) / b) - Real.log (x / b) = log (x + 1) - log x := by
-    filter_upwards [l2] with x l2
-    have r1 : 0 < x + 1 := by linarith
-    rw [log_div r1.ne.symm (by linarith), log_div l2.ne.symm (by linarith)]
-    ring
-  apply EventuallyEq.trans_isBigO l1
-  exact nabla_log_main
+-- XXX THE REFACTOR LINE IS HERE
 
-lemma nabla_log {b : ℝ} (hb : 1 ≤ b) :
-    (fun n : ℕ => Real.log ((↑n + 1) / b) - Real.log (↑n / b)) =O[atTop] (fun n => 1 / (n : ℝ)) :=
-  (nabla_log_real hb).natCast
+/---/
 
 lemma nnabla_mul_log_sq {a b : ℝ} (hb : 1 ≤ b) :
     nabla (fun n : ℕ => n * (a + Real.log (n / b) ^ 2)) =O[atTop] (fun n => Real.log n ^ 2) := by
@@ -757,16 +745,16 @@ lemma nnabla_mul_log_sq {a b : ℝ} (hb : 1 ≤ b) :
     rw [tendsto_atTop] at this
     specialize this |a|
     convert this using 1 ; ext ; simp
-  · exact (log_add_div_isBigO_log hb).sq.natCast
+  · exact (log_add_div_isBigO_log (by linarith)).sq.natCast
   · simp_rw [_root_.sq_sub_sq]
 
     have e1 := isBigO_refl ((↑) : ℕ → ℝ) atTop
     have e2 : (fun n : ℕ => Real.log ((↑n + 1) / b) + Real.log (↑n / b)) =O[atTop] (fun n => Real.log n) := by
       apply IsBigO.add
-      · exact (log_add_div_isBigO_log hb).natCast
-      · simpa using (log_add_div_isBigO_log (a := 0) hb).natCast
+      · exact (log_add_div_isBigO_log (by linarith)).natCast
+      · simpa using (log_add_div_isBigO_log (a := 0) (by linarith)).natCast
     have e3 : (fun n : ℕ => Real.log ((↑n + 1) / b) - Real.log (↑n / b)) =O[atTop] (fun n => 1 / (n : ℝ)) :=
-      nabla_log hb
+      (nabla_log (by linarith)).natCast
 
     apply (e1.mul (e2.mul e3)).trans
     rw [isBigO_iff]
