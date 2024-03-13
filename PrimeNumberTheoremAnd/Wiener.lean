@@ -692,21 +692,17 @@ lemma Asymptotics.IsBigO.add_isLittleO_right {f g : ℝ → ℝ} (h : g =o[atTop
        _ ≤ |(|f x| - |g x|)| := le_abs_self _
        _ ≤ _ := by rw [← sub_neg_eq_add, ← abs_neg (g x)] ; exact abs_abs_sub_abs_le (f x) (-g x)
 
--- XXX THE REFACTOR LINE IS HERE
-
-lemma log_sq_isbigo_mul {a b : ℝ} (ha : 0 ≤ a) (hb : 0 < b) :
-    (fun n ↦ Real.log n ^ 2) =O[atTop] (fun n ↦ a + Real.log (n / b) ^ 2) := by
-  have l1 := log_isbigo_log_div hb
-  simp_rw [pow_two] ; apply (l1.mul l1).trans ; simp_rw [← pow_two]
-  apply isBigO_of_le ; intro n
-
-  have l4 : 0 ≤ Real.log (↑n / b) ^ 2 := sq_nonneg _
-  have l3 : 0 ≤ a + Real.log (↑n / b) ^ 2 := by linarith
-  simpa [abs_eq_self.mpr l3]
-
-lemma Asymptotics.IsBigO.sq {f g : ℕ → ℝ} (h : f =O[atTop] g) :
+lemma Asymptotics.IsBigO.sq {α : Type*} [Preorder α] {f g : α → ℝ} (h : f =O[atTop] g) :
     (fun n ↦ f n ^ 2) =O[atTop] (fun n => g n ^ 2) := by
   simpa [pow_two] using h.mul h
+
+lemma log_sq_isbigo_mul {a b : ℝ} (hb : 0 < b) :
+    (fun x ↦ Real.log x ^ 2) =O[atTop] (fun x ↦ a + Real.log (x / b) ^ 2) := by
+  apply (log_isbigo_log_div hb).sq.trans ; simp_rw [add_comm a]
+  refine IsBigO.add_isLittleO_right <| isLittleO_const_of_tendsto_atTop ?_
+  exact (tendsto_pow_atTop (two_ne_zero)).comp <| tendsto_log_atTop.comp <| tendsto_id.atTop_div_const hb
+
+-- XXX THE REFACTOR LINE IS HERE
 
 theorem log_add_div_isBigO_log {a b : ℝ} (hb : 1 ≤ b) :
     (fun n : ℕ ↦ Real.log (((n : ℝ) + a) / b)) =O[atTop] fun n ↦ Real.log ↑n := by
@@ -838,7 +834,7 @@ lemma nnabla_bound {C : ℝ} (hx : 1 ≤ x) :
 
   have l4 : (fun n => (d n)⁻¹) =O[atTop] (fun n : ℕ => (n * (Real.log n) ^ 2)⁻¹) := by
     apply IsBigO.inv_rev
-    · refine (isBigO_refl _ _).mul <| (log_sq_isbigo_mul (sq_nonneg _) (by linarith)).natCast
+    · refine (isBigO_refl _ _).mul <| (log_sq_isbigo_mul (by linarith)).natCast
     · apply eventually_of_mem (Ici_mem_atTop 2) ; intro n (hn : 2 ≤ n)
       have e1 : n ≠ 0 := by linarith
       have e2 : n ≠ 1 := by linarith
