@@ -532,6 +532,9 @@ lemma neg_nabla [Ring E] {u : α → E} : -(nabla u) = nnabla u := by ext n ; si
 @[simp] lemma nnabla_mul [Ring E] {u : α → E} {c : E} : nnabla (fun n => c * u n) = c • nnabla u := by
   ext n ; simp [nnabla, mul_sub]
 
+lemma nnabla_cast (u : ℝ → E) [Sub E] : nnabla u ∘ ((↑) : ℕ → ℝ) = nnabla (u ∘ (↑)) := by
+  ext n ; simp [nnabla]
+
 end nabla
 
 lemma Finset.sum_shift_front {E : Type*} [Ring E] {u : ℕ → E} {n : ℕ} :
@@ -821,7 +824,7 @@ lemma nnabla_bound_aux {x : ℝ} (hx : 0 < x) :
     simp [e1, e2, e3]
   field_simp ; ring
 
-lemma nnabla_bound {C x : ℝ} (hx : 0 < x) :
+lemma nnabla_bound (C : ℝ) {x : ℝ} (hx : 0 < x) :
     nnabla (fun n => C / (1 + (Real.log (n / x) / (2 * π)) ^ 2) / n) =O[atTop]
     (fun n => (n ^ 2 * (Real.log n) ^ 2)⁻¹) := by
   field_simp
@@ -852,7 +855,8 @@ lemma limiting_fourier_lim1_aux (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) :
     apply le_add_of_le_of_nonneg le_rfl (sq_nonneg _)
   have l3 : a =O[atTop] (fun n => 1 / (n : ℝ)) := by
     simpa [a] using IsBigO.mul l5 (isBigO_refl (fun n : ℕ => 1 / (n : ℝ)) _)
-  have l4 : nnabla a =O[atTop] (fun n : ℕ => (n ^ 2 * (Real.log n) ^ 2)⁻¹) := nnabla_bound hx
+  have l4 : nnabla a =O[atTop] (fun n : ℕ => (n ^ 2 * (Real.log n) ^ 2)⁻¹) := by
+    convert (nnabla_bound C hx).natCast ; simp [nnabla, a]
 
   simp_rw [div_mul_eq_mul_div, mul_div_assoc, one_mul]
   apply dirichlet_test'
