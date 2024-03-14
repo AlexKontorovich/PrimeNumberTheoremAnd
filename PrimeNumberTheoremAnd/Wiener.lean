@@ -754,8 +754,6 @@ lemma nnabla_mul_log_sq (a : ℝ) {b : ℝ} (hb : 0 < b) :
   simp_rw [l1, _root_.sq_sub_sq]
   exact ((l2.add l3).add (isBigO_refl (·) atTop |>.mul (l4.mul (nabla_log hb)) |>.trans l5))
 
--- XXX THE REFACTOR LINE IS HERE
-
 lemma nnabla_bound_aux1 (a : ℝ) {b : ℝ} (hb : 0 < b) : Tendsto (fun x => x * (a + Real.log (x / b) ^ 2)) atTop atTop :=
   tendsto_id.atTop_mul_atTop <| tendsto_atTop_add_const_left _ _ <| (tendsto_pow_atTop two_ne_zero).comp <|
     tendsto_log_atTop.comp <| tendsto_id.atTop_div_const hb
@@ -832,8 +830,6 @@ lemma nnabla_bound (C : ℝ) {x : ℝ} (hx : 0 < x) :
   apply IsBigO.const_mul_left
   field_simp
   exact nnabla_bound_aux hx
-
-/-- XXX THIS IS THE HIDING SCREEN -/
 
 lemma limiting_fourier_lim1_aux (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ))
     (hx : 0 < x) (C : ℝ) (hC : 0 ≤ C) :
@@ -1018,8 +1014,6 @@ lemma limiting_fourier (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → 
   have l3 := limiting_fourier_lim3 hG hψ hsupp hx
   apply tendsto_nhds_unique_of_eventuallyEq (l1.sub l2) l3
   simpa [eventuallyEq_nhdsWithin_iff] using eventually_of_forall (limiting_fourier_aux hG' hf hψ hsupp hx)
-
--- XXX THE REFACTOR TARGET IS HERE
 
 /-%%
 \begin{proof}
