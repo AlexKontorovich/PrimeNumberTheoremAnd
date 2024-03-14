@@ -749,31 +749,26 @@ lemma nnabla_mul_log_sq (a : ℝ) {b : ℝ} (hb : 0 < b) :
 
 -- XXX THE REFACTOR LINE IS HERE
 
-/-- XXX THIS IS THE HIDING SCREEN -/
+lemma nnabla_bound_aux1 (a : ℝ) {b : ℝ} (hb : 0 < b) : Tendsto (fun x => x * (a + Real.log (x / b) ^ 2)) atTop atTop :=
+  tendsto_id.atTop_mul_atTop <| tendsto_atTop_add_const_left _ _ <| (tendsto_pow_atTop two_ne_zero).comp <|
+    tendsto_log_atTop.comp <| tendsto_id.atTop_div_const hb
 
-lemma nnabla_bound {C : ℝ} (hx : 1 ≤ x) :
-    nnabla (fun n : ℕ => C / (1 + (Real.log (↑n / x) / (2 * π)) ^ 2) / ↑n) =O[atTop]
-    (fun n : ℕ => (n ^ 2 * (Real.log n) ^ 2)⁻¹) := by
+lemma nnabla_bound_aux2 (a : ℝ) {b : ℝ} (hb : 0 < b) : ∀ᶠ x in atTop, 0 < x * (a + Real.log (x / b) ^ 2) :=
+  (nnabla_bound_aux1 a hb).eventually (eventually_gt_atTop 0)
 
-  field_simp
-  simp [div_eq_mul_inv]
-  apply IsBigO.const_mul_left
-  field_simp
+lemma nnabla_bound_aux {x : ℝ} (hx : 0 < x) :
+    nnabla (fun n ↦ 1 / (n * ((2 * π) ^ 2 + Real.log (n / x) ^ 2))) =O[atTop]
+    (fun n ↦ 1 / (Real.log n ^ 2 * n ^ 2)) := by
 
   let d (n : ℕ) : ℝ := n * ((2 * π) ^ 2 + Real.log (n / x) ^ 2)
   change (fun x_1 ↦ nnabla (fun n ↦ 1 / d n) x_1) =O[atTop] _
 
-  have l2 : ∀ᶠ n in atTop, d n ≠ 0 := by
-    apply eventually_of_mem (Ici_mem_atTop 1) ; intro n (hn : 1 ≤ n)
-    have e1 : n ≠ 0 := by linarith
-    have e2 : 0 ≤ Real.log (↑n / x) ^ 2 := sq_nonneg _
-    have e3 : 0 < (2 * π) ^ 2 := by apply sq_pos_of_ne_zero ; norm_num [pi_ne_zero]
-    have e4 : 0 < (2 * π) ^ 2 + Real.log (↑n / x) ^ 2 := by linarith
-    simp [d, e1, e4.ne.symm]
-  have l3 : ∀ᶠ n in atTop, d (n + 1) ≠ 0 := (tendsto_add_atTop_nat 1).eventually l2
+  have l2 : ∀ᶠ n in atTop, 0 < d n := (nnabla_bound_aux2 ((2 * π) ^ 2) hx).natCast
+  have l3 : ∀ᶠ n in atTop, 0 < d (n + 1) := (tendsto_add_atTop_nat 1).eventually l2
+
   have l1 : ∀ᶠ n in atTop, nnabla (fun n ↦ 1 / d n) n = (d (n + 1) - d n) * (d n)⁻¹ * (d (n + 1))⁻¹ := by
     filter_upwards [l2, l3] with n l2 l3
-    rw [nnabla, one_div, one_div, inv_sub_inv l2 l3, div_eq_mul_inv, mul_inv, mul_assoc]
+    rw [nnabla, one_div, one_div, inv_sub_inv l2.ne.symm l3.ne.symm, div_eq_mul_inv, mul_inv, mul_assoc]
   apply EventuallyEq.trans_isBigO l1
 
   have l4 : (fun n => (d n)⁻¹) =O[atTop] (fun n : ℕ => (n * (Real.log n) ^ 2)⁻¹) := by
@@ -818,8 +813,19 @@ lemma nnabla_bound {C : ℝ} (hx : 1 ≤ x) :
     simp [e1, e2, e3]
   field_simp ; ring
 
+lemma nnabla_bound {C x : ℝ} (hx : 0 < x) :
+    nnabla (fun n : ℕ => C / (1 + (Real.log (n / x) / (2 * π)) ^ 2) / n) =O[atTop]
+    (fun n : ℕ => (n ^ 2 * (Real.log n) ^ 2)⁻¹) := by
+  field_simp
+  simp [div_eq_mul_inv]
+  apply IsBigO.const_mul_left
+  field_simp
+  exact nnabla_bound_aux hx
+
+/-- XXX THIS IS THE HIDING SCREEN - /
+
 lemma limiting_fourier_lim1_aux (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ))
-    (hx : 1 ≤ x) (C : ℝ) (hC : 0 ≤ C) :
+    (hx : 0 < x) (C : ℝ) (hC : 0 ≤ C) :
     Summable fun n ↦ ‖f n‖ / ↑n * (C / (1 + (1 / (2 * π) * Real.log (↑n / x)) ^ 2)) := by
 
   let a (n : ℕ) := (C / (1 + (Real.log (↑n / x) / (2 * π)) ^ 2) / ↑n)
@@ -869,7 +875,7 @@ lemma limiting_fourier_lim1_aux (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) :
     field_simp ; ring
 
 theorem limiting_fourier_lim1 (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ))
-    (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
+    (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 0 < x) :
     Tendsto (fun σ' : ℝ ↦ ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))) (𝓝[>] 1)
       (𝓝 (∑' n, term f 1 n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x)))) := by
 
@@ -995,7 +1001,7 @@ lemma limiting_fourier (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → 
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π)) =
       ∫ (t : ℝ), (G (1 + t * I)) * (ψ t) * x ^ (t * I) := by
 
-  have l1 := limiting_fourier_lim1 hcheby hψ hsupp hx
+  have l1 := limiting_fourier_lim1 hcheby hψ hsupp (by linarith)
   have l2 := limiting_fourier_lim2 A hψ hsupp hx
   have l3 := limiting_fourier_lim3 hG hψ hsupp hx
   apply tendsto_nhds_unique_of_eventuallyEq (l1.sub l2) l3
