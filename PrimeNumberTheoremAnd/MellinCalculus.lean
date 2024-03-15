@@ -1136,29 +1136,48 @@ lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
     ∀ (x : ℝ), 0 < x → Smooth1 Ψ ε x ≤ 1 := by
   unfold Smooth1 MellinConvolution DeltaSpike
   intro x xpos
-  simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq]
+
+  have : ∫ (y : ℝ) in Ioi 0, Ψ ((x / y) ^ (1 / ε)) / ε / y = 1 := by
+    calc
+      _ = ∫ (y : ℝ) in Ioi 0, (Ψ (y ^ (1 / ε)) / ε) / y := ?_
+      _ = ∫ (y : ℝ) in Ioi 0, Ψ y / y := ?_
+      _ = 1 := mass_one
+    · have := integral_comp_div_I0i_haar (fun y => Ψ ((x / y) ^ (1 / ε)) / ε) xpos
+      convert this.symm using 1
+      congr; funext y; congr
+      field_simp [mul_comm]
+    · have := integral_comp_rpow_I0i_haar_real (fun y => Ψ y) (one_div_ne_zero εpos.ne')
+      field_simp [ ← this, abs_of_pos <| one_div_pos.mpr εpos]
+
   calc
-    _ ≤ ∫ (y : ℝ) in Ioi 0, (Ψ ((x / y) ^ (1 / ε)) / ε) / ↑y := ?_
-    _ = ∫ (y : ℝ) in Ioi 0, (Ψ (y ^ (1 / ε)) / ε) / y := ?_
-    _ = ∫ (y : ℝ) in Ioi 0, Ψ y / y := ?_
-    _ = 1 := mass_one
+    _ = ∫ (y : ℝ) in Ioi 0, (fun y ↦ if y ∈ Ioc 0 1 then 1 else 0) y * (Ψ ((x / y) ^ (1 / ε)) / ε / y) := ?_
+    _ ≤ ∫ (y : ℝ) in Ioi 0, (Ψ ((x / y) ^ (1 / ε)) / ε) / y := ?_
+    _ = 1 := this
+  · rw [set_integral_congr (by simp)]
+    simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq, mem_Ioc]
+    intro y hy
+    aesop
   · refine set_integral_mono_on ?_ ?_ (by simp) ?_
-    · sorry
-    · sorry
-    · intro y hy
+    · refine Integrable.bdd_mul ?_ ?_ ?_
+      · apply integrable_of_integral_eq_one this
+      · simp only [mem_Ioc]
+        have : (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) = indicator (Ioc 0 1) (1 : ℝ → ℝ) := by
+          aesop
+        rw [this]
+        simp only [measurableSet_Ioc, aestronglyMeasurable_indicator_iff]
+        exact aestronglyMeasurable_one
+      · use 1; aesop
+    · apply integrable_of_integral_eq_one this
+    · simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq]
+      intro y hy
       by_cases h : y ≤ 1
-      <;> simp only [h, ↓reduceIte, one_div, le_refl]
-      field_simp
-      apply mul_nonneg
-      · apply Ψnonneg
-        apply rpow_pos_of_pos <| div_pos xpos <| mem_Ioi.mp hy
-      · apply inv_nonneg.mpr <| mul_nonneg εpos.le (mem_Ioi.mp hy).le
-  · have := integral_comp_div_I0i_haar (fun y => Ψ ((x / y) ^ (1 / ε)) / ε) xpos
-    convert this.symm using 1
-    congr; funext y; congr
-    field_simp [mul_comm]
-  · have := integral_comp_rpow_I0i_haar_real (fun y => Ψ y) (one_div_ne_zero εpos.ne')
-    field_simp [ ← this, abs_of_pos <| one_div_pos.mpr εpos]
+      · aesop
+      · field_simp [mem_Ioc, h, and_false, reduceIte]
+        apply mul_nonneg
+        · apply Ψnonneg
+          apply rpow_pos_of_pos <| div_pos xpos <| mem_Ioi.mp hy
+        · apply inv_nonneg.mpr <| mul_nonneg εpos.le (mem_Ioi.mp hy).le
+
 /-%%
 \begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike,SmoothExistence}
 By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
