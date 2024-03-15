@@ -1043,7 +1043,7 @@ lemma limiting_cor_aux {f : ℝ → ℂ} : Tendsto (fun x : ℝ ↦ ∫ t, f t *
     refine integral_congr_ae (eventually_of_forall (fun x => by simp [hx]))
 
   simp_rw [tendsto_congr' l2]
-  convert_to Tendsto (fun x => 𝓕 f ((-Real.log x / (2 * π)))) atTop (𝓝 0)
+  convert_to Tendsto (fun x => 𝓕 f (-Real.log x / (2 * π))) atTop (𝓝 0)
   · funext ; congr ; funext ; rw [smul_eq_mul, mul_comm (f _)] ; congr ; simp ; norm_cast ; field_simp ; ring
   refine (zero_at_infty_fourierIntegral f).comp <| Tendsto.mono_right ?_ _root_.atBot_le_cocompact
   exact (tendsto_neg_atBot_iff.mpr tendsto_log_atTop).atBot_mul_const (inv_pos.mpr two_pi_pos)
