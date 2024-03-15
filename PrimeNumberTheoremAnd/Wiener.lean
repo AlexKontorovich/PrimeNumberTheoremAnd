@@ -10,6 +10,7 @@ import Mathlib.Tactic.FunProp.Measurable
 import Mathlib.Analysis.Normed.Group.Tannery
 import Mathlib.Algebra.Order.Field.Basic
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
+import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
 
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 
@@ -1033,11 +1034,27 @@ lemma limiting_fourier (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → 
 
 open Filter
 
-lemma limiting_cor_aux (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ)
-    (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
-    Tendsto (fun x : ℝ ↦ ∫ (t : ℝ), G (1 + t * I) * ψ t * x ^ (t * I)) atTop (𝓝 0) := by
+lemma limiting_cor_aux1 : ∀ᶠ x : ℝ in atTop, ∀ t : ℝ, x ^ (t * I) = exp (log x * t * I) := by
+    filter_upwards [eventually_ne_atTop 0, eventually_ge_atTop 0] with x hx hx' t
+    rw [Complex.cpow_def_of_ne_zero (ofReal_ne_zero.mpr hx), ofReal_log hx'] ; ring_nf
 
-  sorry
+lemma limiting_cor_aux : Tendsto (fun x : ℝ ↦ ∫ (t : ℝ), G (1 + t * I) * ψ t * x ^ (t * I)) atTop (𝓝 0) := by
+
+  have key : Tendsto (fun w ↦ ∫ (v : ℝ), exp (↑(2 * π * (-(v * w))) * I) • (G (1 + v * I) * ψ v)) (cocompact ℝ) (𝓝 0) :=
+    tendsto_integral_exp_smul_cocompact _
+
+  have l2 : ∀ᶠ x : ℝ in atTop,
+      ∫ (t : ℝ), G (1 + t * I) * ψ t * x ^ (t * I) = ∫ (t : ℝ), G (1 + t * I) * ψ t * exp (log x * t * I) := by
+    filter_upwards [limiting_cor_aux1] with x hx
+    refine integral_congr_ae (eventually_of_forall (fun x => by simp [hx]))
+
+  have l3 (x w : ℝ) : (log x : ℂ) * w = ↑(2 * π * -(w * (- log x / (2 * π)))) := by norm_cast ; field_simp ; ring
+
+  simp_rw [tendsto_congr' l2, mul_comm _ (cexp _), ← smul_eq_mul (a := cexp _), l3]
+  apply key.comp
+
+  refine Tendsto.mono_right ?_ _root_.atBot_le_cocompact
+  refine (tendsto_neg_atBot_iff.mpr tendsto_log_atTop).atBot_mul_const (inv_pos.mpr two_pi_pos)
 
 lemma limiting_cor (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ)
     (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ))
@@ -1045,7 +1062,7 @@ lemma limiting_cor (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ)
     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))) atTop (nhds 0) := by
 
-  apply (limiting_cor_aux hψ hsupp hG hG').congr'
+  apply limiting_cor_aux.congr'
   filter_upwards [eventually_ge_atTop 1] with x hx using limiting_fourier hcheby hG hG' hf hψ hsupp hx |>.symm
 
 /-%%
