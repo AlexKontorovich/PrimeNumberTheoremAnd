@@ -437,7 +437,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     let fx : ℝ → ℂ := fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
     have := integral_comp_mul_right_Ioi fx 0 hy
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := slitPlane_ne_zero (Or.inl hy)
-    field_simp at this ⊢
+    field_simp [fx] at this ⊢
     rw [this]
   · rw [set_integral_congr (by simp)]
     intro x hx
@@ -844,7 +844,7 @@ lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
   apply (div_lt_iff' (by positivity)).mpr
   apply lt_sub_iff_add_lt'.mp
   let f := (fun x => x * Real.log x - x)
-  have f1 : -1 = f 1 := by simp
+  have f1 : -1 = f 1 := by simp [f]
   have fc : c * Real.log c - c = f c := by simp
   rw [f1, fc]
   have mono: StrictMonoOn f <| Ici 1 := by
@@ -997,7 +997,7 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≥ 1 + c * ε → Smooth1 Ψ ε x = 0 := by
   set c := 2 * Real.log 2; use c
   constructor
-  · simp only [zero_lt_two, mul_pos_iff_of_pos_left]
+  · simp only [c, zero_lt_two, mul_pos_iff_of_pos_left]
     exact log_pos (by norm_num)
   intro x hx
 

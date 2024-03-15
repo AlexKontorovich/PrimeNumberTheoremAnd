@@ -72,7 +72,7 @@ lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
     --convert ContDiffOn.continuousOn_deriv
     sorry
   convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu hv hu' hv' using 1
-  simp
+  simp [v, u]
 
 lemma sum_eq_int_deriv_aux_eq {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
     (b_eq_kpOne : b = k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.uIcc a b)) :
