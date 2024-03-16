@@ -1198,6 +1198,22 @@ which by Theorem \ref{SmoothExistence} is 1.
 \end{proof}
 %%-/
 
+-- TODO: this might require reviewing the whole file and deciding how to handle negative inputs
+lemma Smooth1Symmetric (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : 0 < ε) :
+    MellinConvolution (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) (DeltaSpike Ψ ε) =
+     MellinConvolution (DeltaSpike Ψ ε) (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) := by
+  apply funext
+  intro x
+  by_cases hx : 0 < x
+  · apply MellinConvolutionSymmetric
+    exact hx
+  · -- TODO: what about x negative?
+    have : x = 0 := by sorry
+    unfold MellinConvolution DeltaSpike
+    field_simp [this]
+    -- Is Ψ 0 = 0?
+    sorry
+
 /-%%
 Combining the above, we have the following three Main Lemmata of this section on the Mellin
 transform of $\widetilde{1_{\epsilon}}$.
