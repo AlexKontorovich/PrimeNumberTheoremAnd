@@ -685,6 +685,30 @@ measure.
 \end{proof}
 %%-/
 
+lemma DeltaSpikeSupport (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : 0 < ε) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2):
+    (DeltaSpike Ψ ε).support ⊆ Icc (2 ^ (-ε)) (2 ^ ε) := by
+  unfold DeltaSpike
+  rw [Function.support_subset_iff] at suppΨ ⊢
+  intro x hx
+  simp only [ne_eq, div_eq_zero_iff, ne_of_gt εpos, or_false] at hx
+  have := suppΨ _ hx
+  rw [mem_Icc] at this ⊢
+  obtain ⟨h1, h2⟩ := this
+  have two: 2 = ((2 : ℝ) ^ ε) ^ (1 / ε ) := by
+    rw [← rpow_mul zero_le_two, mul_one_div_cancel (ne_of_gt εpos), rpow_one 2]
+  have xpos : 0 < x := by sorry -- needs care for edge cases
+  have εinvpos : 0 < 1 / ε := by exact one_div_pos.mpr εpos
+  constructor
+  · have half: 1 / 2 = (2 : ℝ) ^ (-1 : ℝ) := by norm_num
+    have : ε * (1 / ε * -1) = -ε * (1 / ε) := by ring
+    rw [half, two, ← rpow_mul, ← rpow_mul, this, rpow_mul] at h1
+    apply (rpow_le_rpow_iff ?_ (le_of_lt xpos) εinvpos).mp h1
+    any_goals apply le_of_lt; apply rpow_pos_of_pos (by norm_num)
+    any_goals norm_num
+  · rw [two] at h2
+    apply (rpow_le_rpow_iff (le_of_lt xpos) ?_ εinvpos).mp h2
+    apply le_of_lt
+    apply rpow_pos_of_pos (by norm_num)
 
 theorem Complex.ofReal_rpow {x : ℝ} (h:x>0) (y: ℝ) : (((x:ℝ) ^ (y:ℝ)):ℝ) = (x:ℂ) ^ (y:ℂ) := by
   rw [rpow_def_of_pos h, ofReal_exp, ofReal_mul, Complex.ofReal_log h.le,
