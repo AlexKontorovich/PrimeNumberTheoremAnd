@@ -1247,13 +1247,14 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) =
 \frac{1}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
 \end{lemma}
 %%-/
-lemma MellinOfSmooth1a (Ψ : ℝ → ℝ)
+lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) :
     MellinTransform ((Smooth1 Ψ ε) ·) s = 1 / s * MellinTransform (Ψ ·) (ε * s) := by
   unfold Smooth1
   rw [Smooth1Symmetric Ψ εpos]
   let f : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x
   let g : ℝ → ℂ := fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0
+
   have : IntegrableOn (Function.uncurry fun x y ↦
     f y * g (x / y) / y * (x : ℂ) ^ (s - 1)) (Ioi 0 ×ˢ Ioi 0) := by
     refine (integrableOn_def _ (Ioi 0 ×ˢ Ioi 0) volume).mpr ?_
@@ -1265,13 +1266,39 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ)
         · continuity
         · sorry -- not true, needs restriction
     · dsimp [HasCompactSupport, tsupport, Function.support]
+      have : s ≠ 1 := by sorry -- TODO: the other case
       have : {z | ¬Function.uncurry (fun x y ↦ f y * g (x / y) / y * x ^ (s - 1)) z = 0} =
              {z | z.1 ∈ Ioc 0 z.2 ∧ z.2 ∈ Icc (2 ^ (-ε)) (2 ^ ε)} := by
         ext ⟨x, y⟩
         simp only [mul_ite, mul_one, mul_zero, mem_setOf_eq, Function.uncurry_apply_pair,
           mul_eq_zero, div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff,
-          ne_eq, mem_Ioc, mem_Icc]
-        sorry
+          ne_eq, mem_Ioc, mem_Icc, sub_ne_zero_of_ne this, not_false_eq_true, and_true]
+        have := DeltaSpikeSupport Ψ εpos suppΨ
+        simp only [Function.support_subset_iff, ne_eq, mem_Icc] at this
+        constructor -- needs positivity of x, y
+        · intro h
+          push_neg at h
+          constructor
+          · constructor
+            · have := h.1.1.1
+              sorry
+            · have := h.1.1.2.1
+              sorry
+          · exact this y h.1.1.2.2
+        · intro h
+          push_neg
+          constructor
+          · constructor
+            · constructor
+              · have := h.1.1
+                sorry
+              · constructor
+                · have := h.1.2
+                  sorry
+                · sorry -- is this true?
+            · sorry
+          · sorry
+
       dsimp [f, g] at this ⊢
       rw [this]
       apply isCompact_of_totallyBounded_isClosed ?_ isClosed_closure
