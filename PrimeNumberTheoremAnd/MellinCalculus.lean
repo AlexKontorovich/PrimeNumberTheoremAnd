@@ -1250,7 +1250,29 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ)
         sorry
       dsimp [f, g] at this ⊢
       rw [this]
-      sorry
+      apply isCompact_of_totallyBounded_isClosed ?_ isClosed_closure
+      have : {(x, y) | (0 < x ∧ x ≤ y) ∧ (2 : ℝ) ^ (-ε) ≤ y ∧ y ≤ (2 : ℝ) ^ ε} ⊆
+             {(x, y) | (0 < x ∧ x ≤ (2 : ℝ) ^ ε) ∧ (2 : ℝ) ^ (-ε) ≤ y ∧ y ≤ (2 : ℝ) ^ ε} := by
+        simp only [mem_setOf_eq, and_imp, mem_Ioc, mem_Icc, subset_def]
+        intro ⟨x, y⟩ h1 h2 h3 h4
+        simp only
+        split_ands
+        · exact h1
+        · exact le_trans h2 h4
+        · exact h3
+        · exact h4
+      apply totallyBounded_subset <| closure_mono this
+      have : {z | z.1 ∈ Ioc 0 ((2 : ℝ) ^ ε) ∧ z.2 ∈ Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)} =
+             (Ioc 0 ((2 : ℝ) ^ ε) ×ˢ Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)) := by
+        ext ⟨x, y⟩
+        simp only [mem_Ioc, mem_Icc, mem_setOf_eq, mem_prod, and_congr_left_iff,
+          and_congr_right_iff, and_imp]
+      simp [mem_Ioc, mem_Icc] at this
+      rw [this, closure_prod_eq, closure_Ioc, closure_Icc]
+      apply IsCompact.totallyBounded <| IsCompact.prod isCompact_Icc isCompact_Icc
+      apply ne_of_lt
+      apply rpow_pos_of_pos (by norm_num)
+
   convert MellinConvolutionTransform f g s this using 1
   · congr
     funext x
