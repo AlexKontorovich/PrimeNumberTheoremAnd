@@ -1276,28 +1276,33 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
         have := DeltaSpikeSupport Ψ εpos suppΨ
         simp only [Function.support_subset_iff, ne_eq, mem_Icc] at this
         constructor -- needs positivity of x, y
-        · intro h
+        all_goals
+          intro h
           push_neg at h
-          constructor
-          · constructor
-            · have := h.1.1.1
-              sorry
-            · have := h.1.1.2.1
-              sorry
-          · exact this y h.1.1.2.2
-        · intro h
-          push_neg
-          constructor
-          · constructor
-            · constructor
-              · have := h.1.1
-                sorry
-              · constructor
-                · have := h.1.2
-                  sorry
-                · sorry -- is this true?
-            · sorry
+          repeat rw [and_assoc] at h
+        · obtain ⟨h1, h2, h3, h4, h5⟩ := h
+          replace this := this y h3
+          split_ands
           · sorry
+          · sorry
+          · exact this.left
+          · exact this.right
+        · push_neg
+          obtain ⟨h1, h2, h3, h4⟩ := h
+          split_ands
+          · sorry
+          · sorry
+          · -- this is false, the main have statement probably needs correction
+            contrapose this
+            simp only [div_eq_zero_iff, not_forall, not_and, not_le, exists_prop]
+            use y
+            constructor
+            · sorry
+            · intro
+              sorry
+              -- contradiction with h4
+          · linarith
+          · linarith
 
       dsimp [f, g] at this ⊢
       rw [this]
