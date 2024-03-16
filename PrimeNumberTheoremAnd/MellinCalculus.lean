@@ -807,14 +807,12 @@ $$\mathcal{M}(1_{(0,1]})(s) = \frac{1}{s}.$$
 [Note: this already exists in mathlib]
 %%-/
 lemma MellinOf1 (s : ℂ) (h : s.re > 0) :
-    MellinTransform ((fun x => if x ≤ 1 then 1 else 0)) s = 1 / s := by
+    MellinTransform ((fun x => if 0 < x ∧ x ≤ 1 then 1 else 0)) s = 1 / s := by
   convert (hasMellin_one_Ioc h).right using 1
   apply set_integral_congr_ae measurableSet_Ioi
-  filter_upwards with x hx
+  filter_upwards with x _
   rw [smul_eq_mul, mul_comm]
   congr
-  simp only [mem_Ioc, eq_iff_iff, iff_and_self]
-  apply fun _ => hx
 
 /-%%
 \begin{proof}\leanok
@@ -834,7 +832,7 @@ $$\widetilde{1_{\epsilon}} = 1_{(0,1]}\ast\psi_\epsilon.$$
 \end{definition}
 %%-/
 noncomputable def Smooth1 (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
-  MellinConvolution (fun x => if x ≤ 1 then 1 else 0) (DeltaSpike Ψ ε)
+  MellinConvolution (fun x => if 0 < x ∧ x ≤ 1 then 1 else 0) (DeltaSpike Ψ ε)
 
 /-%%
 \begin{lemma}[Smooth1Properties_estimate]\label{Smooth1Properties_estimate}
@@ -934,13 +932,7 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     _ = _ := integral_comp_div_I0i_haar (fun y => DeltaSpike Ψ ε y) xpos
   · rw [set_integral_congr (by simp)]
     intro y hy
-    simp only [indicator]
-    by_cases h : y ≤ 1
-    · rw [if_pos h, if_pos ⟨mem_Ioi.mp hy, h⟩]; simp
-    · have : y ∉ Ioc 0 1 := by
-        simp only [mem_Ioc, not_and, not_le] at h
-        simp [h]
-      rw [if_neg h, if_neg this]; simp
+    by_cases h : y ≤ 1 <;> simp [indicator, mem_Ioi.mp hy, h]
   · rw [set_integral_congr (by simp)]
     intro y hy
     simp only [indicator_apply_eq_self, mem_Ioc, not_and, not_le, div_eq_zero_iff]
@@ -1049,8 +1041,11 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
   simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq]
   apply set_integral_eq_zero_of_forall_eq_zero
   intro y hy
-  by_cases y1 : y ≤ 1; swap; simp [if_neg y1]
-  simp only [if_pos y1, div_eq_zero_iff]; left; left
+  by_cases y1 : y ≤ 1
+  swap
+  · simp [mem_Ioi.mp hy, y1]
+  simp only [mem_Ioi.mp hy, y1, and_self, ↓reduceIte, div_eq_zero_iff]
+  left; left
   have pos : 0 < y ^ (1 / ε) := by apply rpow_pos_of_pos <| mem_Ioi.mp hy
   have ypos := mem_Ioi.mp hy
 
@@ -1116,7 +1111,7 @@ lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x, 0 ≤ Ψ x)
   intro y hy
   by_cases h : y ≤ 1
   <;> simp only [h, ↓reduceIte, one_div, one_mul, IsROrC.ofReal_real_eq_id, id_eq]
-  · field_simp
+  · field_simp [mem_Ioi.mp hy]
     apply mul_nonneg
     · apply Ψnonneg
     · apply inv_nonneg.mpr <| mul_nonneg εpos.le (mem_Ioi.mp hy).le
