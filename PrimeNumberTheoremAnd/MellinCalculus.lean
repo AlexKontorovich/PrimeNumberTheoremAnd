@@ -553,19 +553,12 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
   let g {s : ℂ} (hs : s ≠ 0) := fun (x : ℝ)  ↦ x ^ s / s
   have gderiv {s : ℂ} (hs : s ≠ 0) {x: ℝ} (hx : x ∈ Ioi 0) :
       deriv (g hs) x = x ^ (s - 1) := by
-    dsimp [g]
-    have : HasDerivAt (fun (x : ℂ) ↦ x ^ s) (s * x ^ (s - 1) * 1) x := by
-      refine HasDerivAt.cpow_const ?_ ?_
-      · apply (hasDerivAt_id (x : ℂ))
-      · exact Or.inl hx
-    -- rw [mul_one] at this
+    have := HasDerivAt.cpow_const (c := s) (hasDerivAt_id (x : ℂ)) (Or.inl hx)
+    simp_rw [mul_one, id_eq] at this
     rw [deriv_div_const, deriv.comp_ofReal (e := fun x ↦ x ^ s)]
-    · rw [this.deriv]
-      rw [mul_div_right_comm, mul_div_right_comm]
-      simp [div_self hs]
+    · rw [this.deriv, mul_div_right_comm, div_self hs, one_mul]
     · apply hasDerivAt_deriv_iff.mp
-      simp [this.deriv]
-      simpa [this]
+      simp only [this.deriv, this]
 
   have {s : ℂ} (hs : s ≠ 0) : ∫ (x : ℝ) in Ioi 0, (Ψ x) * (x : ℂ) ^ (s - 1) =
       - (1 / s) * ∫ (x : ℝ) in Ioi 0, (deriv Ψ x) * (x : ℂ) ^ s := by
@@ -576,7 +569,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
       _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * x ^ s / s := by simp [mul_div]
       _ = _ := ?_
     · rw [set_integral_congr (by simp)]
-      intro x hx
+      intro _ hx
       simp only [gderiv hs hx]
     · apply PartialIntegration (Ψ ·) (g hs)
       · intro a _
@@ -585,11 +578,9 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
       · refine DifferentiableOn.div_const ?_ s
         intro a ha
         refine DifferentiableAt.differentiableWithinAt ?_
-        apply DifferentiableAt.comp_ofReal (e := fun x ↦ x^s)
-        apply DifferentiableAt.cpow
-        · exact differentiableAt_id'
-        · exact differentiableAt_const s
-        · exact Or.inl ha
+        apply DifferentiableAt.comp_ofReal (e := fun x ↦ x ^ s)
+        apply DifferentiableAt.cpow differentiableAt_id' <| differentiableAt_const s
+        exact Or.inl ha
       · sorry
       · sorry
       · sorry
