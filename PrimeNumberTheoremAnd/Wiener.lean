@@ -1082,6 +1082,32 @@ A standard analysis lemma, which can be proven by convolving $1_K$ with a smooth
 \end{proof}
 %%-/
 
+lemma decay_bounds_schwartz (ψ : SchwartzMap ℝ ℂ) {A u : ℝ} (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2))
+    (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) : ‖𝓕 ψ u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
+
+  obtain ⟨g₁, l1, l2, l3, l4⟩ := smooth_urysohn (-2) (-1) (1) (2) (by simp) (by simp)
+  let G (R : ℝ) (u : ℝ) : ℝ := g₁ (u / R)
+  let ψ_inf (R) (t : ℝ) := G R t * ψ t
+  let ψ_sup (R) (t : ℝ) := (1 - G R t) * ψ t
+
+  have l3 : Integrable ψ := ψ.integrable
+  have l4 : HasCompactSupport ψ_inf := by
+    simp [ψ_inf, G]
+    apply HasCompactSupport.mul_right
+    sorry
+  have l5 (R) : Integrable (ψ_inf R) := sorry
+  have l6 : Tendsto (fun R => ∫ x, ‖(ψ - ψ_inf R) x‖) atTop (𝓝 0) := sorry
+
+  have l1 (R u) : deriv (ψ_sup R) u = - deriv (G R) u * ψ u - (G R) u * deriv ψ u := sorry
+  have l2 (R u) : deriv^[2] (ψ_sup R) u =
+    - deriv^[2] (G R) u * ψ u - 2 * deriv (G R) u * deriv ψ u - (G R) u * deriv^[2] ψ u := sorry
+
+  have (R u) : ‖𝓕 (ψ_sup R) u‖ ≤ ∫ (x : ℝ), ‖ψ_sup R x‖ :=
+    Fourier.norm_fourierIntegral_le_integral_norm Real.fourierChar volume (ψ_sup R) u
+
+  sorry
+
+
 /-%%
 \begin{lemma}[Limiting identity for Schwartz functions]\label{schwarz-id}\lean{limiting_cor_schwartz}\leanok  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.
 \end{lemma}
@@ -1091,18 +1117,35 @@ lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) :
     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))) atTop (𝓝 0) := by
 
-  let R : ℝ := sorry
-  have hR : 1 < R := sorry
+  obtain ⟨g₁, l1, l2, l3, l4⟩ := smooth_urysohn (-2) (-1) (1) (2) (by simp) (by simp)
+  let G (R : ℝ) (u : ℝ) : ℝ := g₁ (u / R)
+  have l1R (R) : ContDiff ℝ ⊤ (G R) := sorry
+  have l2R (R) : HasCompactSupport (G R) := sorry
+  have l3R (R) : Set.indicator (Set.Icc (-R) R) 1 ≤ G R := sorry
+  have l4R (R) : G R ≤ Set.indicator (Set.Ioo (-2 * R) (2 * R)) 1 := sorry
+  have l11 (R u) : deriv (G R) u = (1 / R) * deriv g₁ (u / R) := sorry
+  have l12 (R u) : deriv^[2] (G R) u = (1 / R) ^ 2 * deriv^[2] g₁ (u / R) := sorry
 
-  obtain ⟨g, l1, l2, l3, l4⟩ := smooth_urysohn (-R) (-R+1) (R-1) (R) (by linarith) (by linarith)
-  let ψ_inf (t : ℝ) := g t * ψ t
-  let ψ_sup (t : ℝ) := (1 - g t) * ψ t
-  have l5 : ψ = ψ_inf + ψ_sup := by ext t ; unfold_let ; simp ; ring
-  have l6 : ContDiff ℝ ⊤ ψ_inf := sorry
-  have l7 : Function.support ψ_inf ⊆ Icc (-R) (R) := sorry
-  have l8 : HasCompactSupport ψ_inf := sorry
-  have l9 : Function.support ψ_sup ⊆ (Icc (-R+1) (R-1))ᶜ := sorry
+  let ψ_inf (R) (t : ℝ) := G R t * ψ t
+  let ψ_sup (R) (t : ℝ) := (1 - G R t) * ψ t
 
+  have l5 (R) : ψ = ψ_inf R + ψ_sup R := by ext t ; unfold_let ; simp ; ring
+  have l6 (R) : ContDiff ℝ ⊤ (ψ_inf R) := sorry
+  have l7 (R) : Function.support (ψ_inf R) ⊆ Icc (-2 * R) (2 * R) := sorry
+  have l8 (R) : HasCompactSupport (ψ_inf R) := sorry
+  have l9 (R) : Function.support (ψ_sup R) ⊆ (Icc (-R) (R))ᶜ := sorry
+  have l10 (R) : ContDiff ℝ ⊤ (ψ_sup R) := sorry
+  have l11 (R u) : deriv (ψ_sup R) u = - deriv (G R) u * ψ u - (G R) u * deriv ψ u := sorry
+  have l12 (R u) : deriv^[2] (ψ_sup R) u =
+    - deriv^[2] (G R) u * ψ u - 2 * deriv (G R) u * deriv ψ u - (G R) u * deriv^[2] ψ u := sorry
+
+  have l13 : ∃ M₀, ∀ u, |g₁ u| ≤ M₀ := sorry
+  have l14 : ∃ M₁, ∀ u, |deriv g₁ u| ≤ M₁ := sorry
+  have l15 : ∃ M₂, ∀ u, |deriv^[2] g₁ u| ≤ M₂ := sorry
+
+  have key : ∃ M, ∀ R u, ‖ψ_sup R u‖ ≤ M / R / (1 + u ^ 2) ∧ ‖deriv^[2] (ψ_sup R) u‖ ≤ M / R / (1 + u ^ 2) := sorry
+
+  have := @decay_bounds
   sorry
 
 /-%%
