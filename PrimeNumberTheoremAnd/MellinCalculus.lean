@@ -550,26 +550,35 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
   -- filter_upwards [Filter.mem_cocompact]
   -- refine Eventually.isBigOWith ?_
   -- simp [Filter.mem_cocompact]
-  let g (s : ℂ) := fun (x : ℝ)  ↦ ↑x ^ s / s
-  have gderiv (s : ℂ): deriv (g s) = (fun (x : ℝ) ↦ (x : ℂ) ^ (s - 1)) := by
+  let g {s : ℂ} (hs : s ≠ 0) := fun (x : ℝ)  ↦ x ^ s / s
+  have gderiv {s : ℂ} (hs : s ≠ 0) {x: ℝ} (hx : x ∈ Ioi 0) :
+      deriv (g hs) x = x ^ (s - 1) := by
     dsimp [g]
-    ext
-    rw [deriv_div_const]
-    -- HasDerivAt.const_cpow
-    -- , deriv_pow']
-    sorry
+    have : HasDerivAt (fun (x : ℂ) ↦ x ^ s) (s * x ^ (s - 1) * 1) x := by
+      refine HasDerivAt.cpow_const ?_ ?_
+      · apply (hasDerivAt_id (x : ℂ))
+      · exact Or.inl hx
+    -- rw [mul_one] at this
+    rw [deriv_div_const, deriv.comp_ofReal (e := fun x ↦ x ^ s)]
+    · rw [this.deriv]
+      rw [mul_div_right_comm, mul_div_right_comm]
+      simp [div_self hs]
+    · apply hasDerivAt_deriv_iff.mp
+      simp [this.deriv]
+      simpa [this]
 
-  have (s : ℂ): ∫ (x : ℝ) in Ioi 0, (Ψ x) * (x : ℂ) ^ (s - 1) =
+  have {s : ℂ} (hs : s ≠ 0) : ∫ (x : ℝ) in Ioi 0, (Ψ x) * (x : ℂ) ^ (s - 1) =
       - (1 / s) * ∫ (x : ℝ) in Ioi 0, (deriv Ψ x) * (x : ℂ) ^ s := by
     calc
-      _ =  ∫ (x : ℝ) in Ioi 0, ↑(Ψ x) * deriv (g s) x := ?_
-      _ = -∫ (x : ℝ) in Ioi 0, deriv (fun x ↦ ↑(Ψ x)) x * g s x := ?_
-      _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * g s x := ?_
+      _ =  ∫ (x : ℝ) in Ioi 0, ↑(Ψ x) * deriv (g hs) x := ?_
+      _ = -∫ (x : ℝ) in Ioi 0, deriv (fun x ↦ ↑(Ψ x)) x * g hs x := ?_
+      _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * g hs x := ?_
       _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * x ^ s / s := by simp [mul_div]
       _ = _ := ?_
-    · rw [set_integral_congr (by simp), gderiv]
-      exact fun ⦃x⦄ ↦ congrFun rfl
-    · apply PartialIntegration (Ψ ·) (g s)
+    · rw [set_integral_congr (by simp)]
+      intro x hx
+      simp only [gderiv hs hx]
+    · apply PartialIntegration (Ψ ·) (g hs)
       · intro a _
         refine DifferentiableAt.differentiableWithinAt ?_
         exact diffΨ.contDiffAt.differentiableAt (by norm_num) (x := a).ofReal_comp
