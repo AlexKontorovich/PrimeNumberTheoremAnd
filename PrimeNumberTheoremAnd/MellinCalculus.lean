@@ -538,36 +538,42 @@ as $|s|\to\infty$ with $\sigma_1 \le \Re(s) \le \sigma_2$.
 [Of course it decays faster than any power of $|s|$, but it turns out that we will just need one
 power.]
 %%-/
-/-- Need to intersect `cocompact` filter `within` `s.re` bounded -/
-lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) :
-    (fun s ↦ Complex.abs (MellinTransform (Ψ ·) s)) =O[cocompact ℂ]
+lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (hσ : σ₁ < σ₂)
+   (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) :
+   (fun s ↦ Complex.abs (MellinTransform (Ψ ·) s))
+    =O[cocompact ℂ ⊓ Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂})]
       fun s ↦ 1 / Complex.abs s := by
   unfold MellinTransform
-  refine Eventually.isBigO ?_
+  rw [Asymptotics.isBigO_iff]
+  use 10
+  filter_upwards
+  -- filter_upwards [Filter.mem_cocompact]
+  -- refine Eventually.isBigOWith ?_
+  -- simp [Filter.mem_cocompact]
   let g (s : ℂ) := fun (x : ℝ)  ↦ ↑x ^ s / s
   have gderiv (s : ℂ): deriv (g s) = (fun (x : ℝ) ↦ (x : ℂ) ^ (s - 1)) := by
     dsimp [g]
     ext
+    rw [deriv_div_const]
+    -- HasDerivAt.const_cpow
+    -- , deriv_pow']
     sorry
 
   have (s : ℂ): ∫ (x : ℝ) in Ioi 0, (Ψ x) * (x : ℂ) ^ (s - 1) =
-      - (1/s) * ∫ (x : ℝ) in Ioi 0, (deriv Ψ x) * (x : ℂ) ^ s := by
+      - (1 / s) * ∫ (x : ℝ) in Ioi 0, (deriv Ψ x) * (x : ℂ) ^ s := by
     calc
       _ =  ∫ (x : ℝ) in Ioi 0, ↑(Ψ x) * deriv (g s) x := ?_
       _ = -∫ (x : ℝ) in Ioi 0, deriv (fun x ↦ ↑(Ψ x)) x * g s x := ?_
-      _ = -∫ (x : ℝ) in Ioi 0, deriv ↑Ψ x * g s x := ?_
-      _ = -∫ (x : ℝ) in Ioi 0, ↑(deriv Ψ x) * x ^ s / s := ?_
+      _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * g s x := ?_
+      _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * x ^ s / s := by simp [mul_div]
       _ = _ := ?_
     · rw [set_integral_congr (by simp), gderiv]
       exact fun ⦃x⦄ ↦ congrFun rfl
     · apply PartialIntegration (Ψ ·) (g s)
       repeat sorry
-    · congr
-      funext
-      congr
-      apply congrFun
-      sorry
-    · simp [mul_div]
+    · congr; funext; congr
+      apply HasDerivAt.deriv <| HasDerivAt.ofReal_comp <| hasDerivAt_deriv_iff.mpr ?_
+      exact ContDiffAt.differentiableAt (ContDiff.contDiffAt diffΨ) (by norm_num)
     · simp only [neg_mul, neg_inj]
       conv => lhs; rhs; intro; rw [← mul_one_div, mul_comm]
       rw [integral_mul_left]
