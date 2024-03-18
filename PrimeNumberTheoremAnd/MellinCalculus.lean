@@ -573,7 +573,14 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
       · intro a _
         refine DifferentiableAt.differentiableWithinAt ?_
         exact diffΨ.contDiffAt.differentiableAt (by norm_num) (x := a).ofReal_comp
-      · sorry
+      · refine DifferentiableOn.div_const ?_ s
+        intro a ha
+        refine DifferentiableAt.differentiableWithinAt ?_
+        apply DifferentiableAt.comp_ofReal (e := fun x ↦ x^s)
+        apply DifferentiableAt.cpow
+        · exact differentiableAt_id'
+        · exact differentiableAt_const s
+        · exact Or.inl ha
       · sorry
       · sorry
       · sorry
