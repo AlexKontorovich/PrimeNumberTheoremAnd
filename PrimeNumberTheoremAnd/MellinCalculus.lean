@@ -583,7 +583,24 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
         exact Or.inl ha
       · sorry
       · sorry
-      · sorry
+      · apply Tendsto.comp ?_ tendsto_id
+        apply tendsto_nhds_of_eventually_eq
+        have : 0 < ((1 / 2) : ℝ) := by norm_num
+        filter_upwards [Ioo_mem_nhdsWithin_Ioi' this]
+        intro a ha
+        dsimp [Function.support, Set.subset_def] at suppΨ
+        simp [hs, ne_of_gt ha.left]
+        contrapose suppΨ
+        push_neg
+        use a
+        constructor
+        · exact suppΨ
+        · simp only [mem_Ioo] at ha
+          simp only [mem_Icc, not_and, not_le]
+          contrapose ha
+          push_neg at ha ⊢
+          intro h
+          exact ha.left
       · sorry
     · congr; funext; congr
       apply (hasDerivAt_deriv_iff.mpr ?_).ofReal_comp.deriv
