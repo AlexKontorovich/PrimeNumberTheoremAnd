@@ -583,29 +583,24 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
         exact Or.inl ha
       · sorry
       · sorry
-      · apply Tendsto.comp ?_ tendsto_id
-        apply tendsto_nhds_of_eventually_eq
+      · apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
         have : 0 < ((1 / 2) : ℝ) := by norm_num
-        filter_upwards [Ioo_mem_nhdsWithin_Ioi' this]
-        intro a ha
-        dsimp [Function.support, Set.subset_def] at suppΨ
-        simp [hs, ne_of_gt ha.left]
+        filter_upwards [Ioo_mem_nhdsWithin_Ioi' this] with a ha
+        simp only [mem_Ioo] at ha
+        simp only [ne_eq, Pi.mul_apply, mul_eq_zero, ofReal_eq_zero, div_eq_zero_iff,
+          cpow_eq_zero_iff, ne_of_gt ha.left, hs, not_false_eq_true, and_true, or_self, or_false]
+        dsimp [Set.subset_def] at suppΨ
         contrapose suppΨ
         push_neg
         use a
         constructor
         · exact suppΨ
-        · simp only [mem_Ioo] at ha
-          simp only [mem_Icc, not_and, not_le]
-          contrapose ha
-          push_neg at ha ⊢
-          intro h
-          exact ha.left
-      · apply Tendsto.comp ?_ tendsto_id
-        apply tendsto_nhds_of_eventually_eq
-        filter_upwards [Filter.Ioi_mem_atTop 2]
-        intro a ha
-        dsimp [Function.support, Set.subset_def] at suppΨ
+        · intro h
+          simp only [mem_Icc, not_and, not_le] at h
+          linarith
+      · apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
+        filter_upwards [Filter.Ioi_mem_atTop 2] with a ha
+        dsimp [Set.subset_def] at suppΨ
         simp only [mem_Ioi] at ha
         have a_ne_zero : a ≠ 0 := ne_of_gt (lt_trans (by norm_num) ha)
         simp [hs, a_ne_zero]
@@ -614,10 +609,9 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
         use a
         constructor
         · exact suppΨ
-        · simp only [mem_Icc, not_and, not_le]
-          contrapose ha
-          push_neg at ha ⊢
-          exact ha.right
+        · intro h
+          simp only [mem_Icc, not_and, not_le] at h
+          linarith
     · congr; funext; congr
       apply (hasDerivAt_deriv_iff.mpr ?_).ofReal_comp.deriv
       exact diffΨ.contDiffAt.differentiableAt (by norm_num)
