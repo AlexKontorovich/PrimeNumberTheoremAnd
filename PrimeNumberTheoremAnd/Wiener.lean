@@ -1069,49 +1069,12 @@ lemma limiting_cor (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ)
 \end{lemma}
 %%-/
 
-lemma smooth_urysohn {a b c d:ℝ} (h1: a < b) (h2: b<c) (h3: c < d) : ∃ Ψ:ℝ → ℝ, (∀ n, ContDiff ℝ n Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧ Ψ ≤ Set.indicator (Set.Ioo a d) 1 := by
-  have := exists_smooth_zero_one_of_isClosed (modelWithCornersSelf ℝ ℝ) (s := Set.Iic a ∪ Set.Ici d) (t := Set.Icc b c)
-    (IsClosed.union isClosed_Iic isClosed_Ici)
-    (isClosed_Icc)
-    (by
-      simp_rw [Set.disjoint_union_left, Set.disjoint_iff, Set.subset_def, Set.mem_inter_iff, Set.mem_Iic, Set.mem_Icc,
-        Set.mem_empty_iff_false, and_imp, imp_false, not_le, Set.mem_Ici]
-      constructor <;> intros <;> linarith)
-  rcases this with ⟨⟨Ψ, hΨcontMDiff⟩, hΨ0, hΨ1, hΨ01⟩
-  simp only [Set.EqOn, Set.mem_setOf_eq, Set.mem_union, Set.mem_Iic, Set.mem_Ici,
-    ContMDiffMap.coeFn_mk, Pi.zero_apply, Set.mem_Icc, Pi.one_apply, and_imp] at *
-  use Ψ
-  constructor
-  · rw [contDiff_all_iff_nat, ←contDiff_top]
-    exact ContMDiff.contDiff hΨcontMDiff
-  · constructor
-    · rw [hasCompactSupport_def]
-      apply IsCompact.closure_of_subset (K := Set.Icc a d) isCompact_Icc
-      rw [Function.support_subset_iff]
-      intro x hx
-      contrapose! hx
-      simp only [Set.mem_Icc, not_and_or] at hx
-      apply hΨ0
-      by_contra! h'
-      cases' hx <;> linarith
-    · constructor
-      · intro x
-        rw [Set.indicator_apply]
-        split_ifs with h
-        simp only [Set.mem_Icc, Pi.one_apply] at *
-        rw [hΨ1 h.left h.right]
-        exact (hΨ01 x).left
-      · intro x
-        rw [Set.indicator_apply]
-        split_ifs with h
-        simp at *
-        exact (hΨ01 x).right
-        rw [hΨ0]
-        simp only [Set.mem_Ioo, not_and_or] at h
-        by_contra! h'
-        cases' h <;> linarith
-  done
+lemma smooth_urysohn (a b c d : ℝ) (h1 : a < b) (h3 : c < d) : ∃ Ψ : ℝ → ℝ,
+    (ContDiff ℝ ⊤ Ψ) ∧ (HasCompactSupport Ψ) ∧
+      Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧ Ψ ≤ Set.indicator (Set.Ioo a d) 1 := by
 
+  obtain ⟨ψ, l1, l2, l3, l4, -⟩ := smooth_urysohn_support_Ioo h1 h3
+  refine ⟨ψ, l1 ⊤, l2, l3, l4⟩
 
 /-%%
 \begin{proof}  \leanok
@@ -1124,7 +1087,23 @@ A standard analysis lemma, which can be proven by convolving $1_K$ with a smooth
 \end{lemma}
 %%-/
 
-lemma limiting_cor_schwartz {ψ: SchwartzMap ℝ ℂ} : Tendsto (fun x : ℝ ↦ ∑' n, f n / n * fourierIntegral ψ (1/(2*π) * log (n/x)) - A * ∫ u in Set.Ici (-log x), fourierIntegral ψ (u / (2*π)) ∂ volume) atTop (nhds 0) := by sorry
+lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) :
+    Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
+      A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))) atTop (𝓝 0) := by
+
+  let R : ℝ := sorry
+  have hR : 1 < R := sorry
+
+  obtain ⟨g, l1, l2, l3, l4⟩ := smooth_urysohn (-R) (-R+1) (R-1) (R) (by linarith) (by linarith)
+  let ψ_inf (t : ℝ) := g t * ψ t
+  let ψ_sup (t : ℝ) := (1 - g t) * ψ t
+  have l5 : ψ = ψ_inf + ψ_sup := by ext t ; unfold_let ; simp ; ring
+  have l6 : ContDiff ℝ ⊤ ψ_inf := sorry
+  have l7 : Function.support ψ_inf ⊆ Icc (-R) (R) := sorry
+  have l8 : HasCompactSupport ψ_inf := sorry
+  have l9 : Function.support ψ_sup ⊆ (Icc (-R+1) (R-1))ᶜ := sorry
+
+  sorry
 
 /-%%
 \begin{proof}
