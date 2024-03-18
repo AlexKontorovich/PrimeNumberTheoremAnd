@@ -572,8 +572,8 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
     · apply PartialIntegration (Ψ ·) (g s)
       repeat sorry
     · congr; funext; congr
-      apply HasDerivAt.deriv <| HasDerivAt.ofReal_comp <| hasDerivAt_deriv_iff.mpr ?_
-      exact ContDiffAt.differentiableAt (ContDiff.contDiffAt diffΨ) (by norm_num)
+      apply (hasDerivAt_deriv_iff.mpr ?_).ofReal_comp.deriv
+      exact diffΨ.contDiffAt.differentiableAt (by norm_num)
     · simp only [neg_mul, neg_inj]
       conv => lhs; rhs; intro; rw [← mul_one_div, mul_comm]
       rw [integral_mul_left]
