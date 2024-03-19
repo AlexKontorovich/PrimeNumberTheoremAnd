@@ -1072,15 +1072,29 @@ For any $s$, we have the bound
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\right).$$
 \end{lemma}
 %%-/
--- ** Statement needs `cocompact` filter *within* `0<σ₁ ≤ ℜ s≤ σ₂` **
 lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
-    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) (ε : ℝ) (εpos : 0 < ε) :
-    (fun (s : ℂ) ↦ Complex.abs (MellinTransform ((Smooth1 Ψ ε) ·) s)) =O[cocompact ℂ]
-      fun s ↦ 1 / (ε * Complex.abs s) ^ 2 := by
-  --have := MellinOfSmooth1a Ψ εpos hs
-  --obtain ⟨C, hC⟩  := MellinOfPsi diffΨ suppΨ
-  --have := hC s
+    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1)
+    {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (hσ : σ₁ < σ₂)
+    (ε : ℝ) (εpos : 0 < ε) :
+    (fun (s : ℂ) ↦ Complex.abs (MellinTransform ((Smooth1 Ψ ε) ·) s))
+      =O[cocompact ℂ ⊓ Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂})]
+      fun s ↦ 1 / (ε * (Complex.abs s) ^ 2) := by
+  have := MellinOfPsi diffΨ suppΨ σ₁pos hσ
+  rw [Asymptotics.isBigO_iff] at this ⊢
+  obtain ⟨c, hc⟩ := this
+  use c
+  have hsmem := mem_cocompact_within_strip σ₁ σ₂ 0
+  filter_upwards [hsmem, hc] with s hs h
+  rw [MellinOfSmooth1a Ψ εpos (by linarith)]
+  simp only [Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one, map_mul, map_div₀, map_one,
+    norm_mul, norm_pow, abs_of_pos, εpos]
+  have : c * (1 / (ε * (Complex.abs s) ^ 2)) = 1 / Complex.abs s * c / (ε * Complex.abs s) := by
+    ring_nf
+  rw [this]; clear this
+  conv => rhs; rw [← mul_div]
+  apply mul_le_mul_of_nonneg_left ?_ (div_nonneg (by norm_num) (AbsoluteValue.nonneg Complex.abs s))
+  -- generalize s = z at h
   sorry
 /-%%
 \begin{proof}\uses{MellinOfSmooth1a, MellinOfPsi}
