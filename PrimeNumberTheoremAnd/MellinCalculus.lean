@@ -554,9 +554,10 @@ as $|s|\to\infty$ with $\sigma_1 \le \Re(s) \le \sigma_2$.
 [Of course it decays faster than any power of $|s|$, but it turns out that we will just need one
 power.]
 %%-/
-lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (hσ : σ₁ < σ₂)
-   (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2) :
-   (fun s ↦ Complex.abs (MellinTransform (Ψ ·) s))
+lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
+    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+    {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (hσ : σ₁ < σ₂) :
+    (fun s ↦ Complex.abs (MellinTransform (Ψ ·) s))
     =O[cocompact ℂ ⊓ Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂})]
       fun s ↦ 1 / Complex.abs s := by
 
@@ -637,48 +638,38 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
   obtain ⟨a, ha⟩ := fbound
   rw [Asymptotics.isBigO_iff]
   use f a * 2 ^ σ₂
-
-  have hsmem := mem_cocompact_within_strip σ₁ σ₂ 0
-
-  filter_upwards [hsmem] with s hs
+  filter_upwards [mem_cocompact_within_strip σ₁ σ₂ 0] with s hs
   unfold MellinTransform
-  rw [key]
+  rewrite [key (by aesop)]
   simp only [neg_mul, map_neg_eq_map, map_mul, map_div₀, map_one, norm_mul, norm_div, norm_one,
     Real.norm_eq_abs, Complex.abs_abs, abs_ofReal]
   conv => rhs; rw [mul_comm]
   gcongr
-  swap
-  · contrapose hs
-    simp only [ne_eq, not_not] at hs
-    rw [hs]
-    simp only [zero_re, not_and, not_le]
-    intro _ _
-    linarith
-  · calc
-      _ ≤ ∫ (x : ℝ) in Ioi 0, Complex.abs (deriv Ψ x * ↑x ^ s) := ?_
-      _ = ∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x) * Complex.abs (↑x ^ s) := ?_
-      _ = ∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x) * Complex.abs (↑x) ^ s.re := ?_
-      _ ≤ (∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x)) * 2 ^ σ₂ := ?_
-      _ ≤ _ := ?_
-    · sorry
-    -- have := norm_integral_le_integral_norm (fun x ↦ (deriv Ψ x) * (x : ℂ) ^ s)
-    -- have := L1.norm_integral_le
-    -- apply norm_integral_le_of_norm_le
-    · rw [set_integral_congr (by simp)]
-      intro x hx
-      aesop
-    · rw [set_integral_congr (by simp)]
-      intro x hx
-      simp only [abs_ofReal, mul_eq_mul_left_iff, abs_eq_zero]
-      left
-      rw [abs_of_pos ?_]
-      apply Complex.abs_cpow_eq_rpow_re_of_pos
-      all_goals exact mem_Ioi.mp hx
-    · sorry
-    · simp only [abs_ofReal] at ha
-      simp only [abs_ofReal]
-      refine mul_le_mul ha (le_refl _) ?_ <| abs_nonneg _
-      apply rpow_nonneg (by norm_num)
+  calc
+    _ ≤ ∫ (x : ℝ) in Ioi 0, Complex.abs (deriv Ψ x * ↑x ^ s) := ?_
+    _ = ∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x) * Complex.abs (↑x ^ s) := ?_
+    _ = ∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x) * Complex.abs (↑x) ^ s.re := ?_
+    _ ≤ (∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x)) * 2 ^ σ₂ := ?_
+    _ ≤ _ := ?_
+  · sorry
+  -- have := norm_integral_le_integral_norm (fun x ↦ (deriv Ψ x) * (x : ℂ) ^ s)
+  -- have := L1.norm_integral_le
+  -- apply norm_integral_le_of_norm_le
+  · rw [set_integral_congr (by simp)]
+    intro x hx
+    aesop
+  · rw [set_integral_congr (by simp)]
+    intro x hx
+    simp only [abs_ofReal, mul_eq_mul_left_iff, abs_eq_zero]
+    left
+    rw [abs_of_pos ?_]
+    apply Complex.abs_cpow_eq_rpow_re_of_pos
+    all_goals exact mem_Ioi.mp hx
+  · sorry
+  · simp only [abs_ofReal] at ha
+    simp only [abs_ofReal]
+    refine mul_le_mul ha (le_refl _) ?_ <| abs_nonneg _
+    apply rpow_nonneg (by norm_num)
 /-%%
 \begin{proof}
 \uses{MellinTransform, SmoothExistence}
