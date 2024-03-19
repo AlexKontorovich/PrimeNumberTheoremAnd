@@ -526,6 +526,22 @@ Same idea as Urysohn-type argument.
 \end{proof}
 %%-/
 
+lemma mem_cocompact_within_strip (σ₁ σ₂ r : ℝ):
+    {s | r < Complex.abs s ∧ σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈
+      cocompact ℂ ⊓ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} := by
+  rw [Filter.mem_inf_iff]
+  use {s | r < Complex.abs s}
+  constructor
+  · rw [Filter.mem_cocompact]
+    use {s | Complex.abs s ≤ r}
+    constructor
+    · refine Metric.isCompact_of_isClosed_isBounded ?h.left.hc ?h.left.hb
+      · exact isClosed_le Complex.continuous_abs continuous_const
+      · exact isBounded_iff_forall_norm_le.mpr (Exists.intro r fun x a ↦ a)
+    · refine Eq.subset ?_
+      aesop
+  · use {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}
+    aesop
 /-%%
 The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at
 least) like $1/|s|$.
@@ -622,19 +638,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
   rw [Asymptotics.isBigO_iff]
   use f a * 2 ^ σ₂
 
-  have hsmem: {s | 1 < Complex.abs s ∧ σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈
-      cocompact ℂ ⊓ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} := by
-    rw [Filter.mem_inf_iff]
-    use {s | 1 < Complex.abs s}
-    constructor
-    · rw [Filter.mem_cocompact]
-      use {s | Complex.abs s ≤ 1}
-      constructor
-      · sorry
-      · sorry
-    · use {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}
-      simp only [mem_principal, setOf_subset_setOf, imp_self, forall_const, true_and]
-      aesop
+  have hsmem := mem_cocompact_within_strip σ₁ σ₂ 0
 
   filter_upwards [hsmem] with s hs
   unfold MellinTransform
