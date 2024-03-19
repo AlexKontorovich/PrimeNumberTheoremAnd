@@ -543,13 +543,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
    (fun s ↦ Complex.abs (MellinTransform (Ψ ·) s))
     =O[cocompact ℂ ⊓ Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂})]
       fun s ↦ 1 / Complex.abs s := by
-  unfold MellinTransform
-  rw [Asymptotics.isBigO_iff]
-  use 10
-  filter_upwards
-  -- filter_upwards [Filter.mem_cocompact]
-  -- refine Eventually.isBigOWith ?_
-  -- simp [Filter.mem_cocompact]
+
   let g {s : ℂ} (hs : s ≠ 0) := fun (x : ℝ)  ↦ x ^ s / s
   have gderiv {s : ℂ} (hs : s ≠ 0) {x: ℝ} (hx : x ∈ Ioi 0) :
       deriv (g hs) x = x ^ (s - 1) := by
@@ -560,7 +554,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
     · apply hasDerivAt_deriv_iff.mp
       simp only [this.deriv, this]
 
-  have {s : ℂ} (hs : s ≠ 0) : ∫ (x : ℝ) in Ioi 0, (Ψ x) * (x : ℂ) ^ (s - 1) =
+  have key {s : ℂ} (hs : s ≠ 0) : ∫ (x : ℝ) in Ioi 0, (Ψ x) * (x : ℂ) ^ (s - 1) =
       - (1 / s) * ∫ (x : ℝ) in Ioi 0, (deriv Ψ x) * (x : ℂ) ^ s := by
     calc
       _ =  ∫ (x : ℝ) in Ioi 0, ↑(Ψ x) * deriv (g hs) x := ?_
@@ -619,19 +613,68 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) 
       conv => lhs; rhs; intro; rw [← mul_one_div, mul_comm]
       rw [integral_mul_left]
 
-  have : ∀s : ℂ, s ≠ (0 : ℂ) → (∃c : ℝ, ‖Complex.abs s.re‖ ≤ c) →
-      ∃C : ℝ, ‖Complex.abs (∫ (x : ℝ) in Ioi 0, (fun x ↦ ↑(Ψ x)) x * ↑x ^ (s - 1))‖ ≤  C / ‖Complex.abs s‖ := by
-    intro s hsne0 hs
-    obtain ⟨c, hc⟩ := hs
-    rw [this]
-    simp only [neg_mul, map_neg_eq_map, map_mul, map_div₀, map_one, norm_mul, norm_div, norm_one,
-      Real.norm_eq_abs, Complex.abs_abs]
-    use 1000 -- the correct constant will be computed later
-    conv => rhs; rw [← mul_one_div, mul_comm]
-    gcongr
+  let f := fun x ↦ Complex.abs ↑(deriv Ψ x)
+  have hf : Integrable f (volume.restrict <| Ioi 0) := by sorry
+  have fbound: ∃ a, ∫ (x : ℝ), f x ∂(volume.restrict <| Ioi 0) ≤ f a := by
+    -- apply exists_integral_le {μ := volume.restrict Ioi 0} hf
     sorry
+  obtain ⟨a, ha⟩ := fbound
+  rw [Asymptotics.isBigO_iff]
+  use f a * 2 ^ σ₂
 
-  sorry
+  have hsmem: {s | 1 < Complex.abs s ∧ σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈
+      cocompact ℂ ⊓ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} := by
+    rw [Filter.mem_inf_iff]
+    use {s | 1 < Complex.abs s}
+    constructor
+    · rw [Filter.mem_cocompact]
+      use {s | Complex.abs s ≤ 1}
+      constructor
+      · sorry
+      · sorry
+    · use {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}
+      simp only [mem_principal, setOf_subset_setOf, imp_self, forall_const, true_and]
+      aesop
+
+  filter_upwards [hsmem] with s hs
+  unfold MellinTransform
+  rw [key]
+  simp only [neg_mul, map_neg_eq_map, map_mul, map_div₀, map_one, norm_mul, norm_div, norm_one,
+    Real.norm_eq_abs, Complex.abs_abs, abs_ofReal]
+  conv => rhs; rw [mul_comm]
+  gcongr
+  swap
+  · contrapose hs
+    simp only [ne_eq, not_not] at hs
+    rw [hs]
+    simp only [zero_re, not_and, not_le]
+    intro _ _
+    linarith
+  · calc
+      _ ≤ ∫ (x : ℝ) in Ioi 0, Complex.abs (deriv Ψ x * ↑x ^ s) := ?_
+      _ = ∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x) * Complex.abs (↑x ^ s) := ?_
+      _ = ∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x) * Complex.abs (↑x) ^ s.re := ?_
+      _ ≤ (∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x)) * 2 ^ σ₂ := ?_
+      _ ≤ _ := ?_
+    · sorry
+    -- have := norm_integral_le_integral_norm (fun x ↦ (deriv Ψ x) * (x : ℂ) ^ s)
+    -- have := L1.norm_integral_le
+    -- apply norm_integral_le_of_norm_le
+    · rw [set_integral_congr (by simp)]
+      intro x hx
+      aesop
+    · rw [set_integral_congr (by simp)]
+      intro x hx
+      simp only [abs_ofReal, mul_eq_mul_left_iff, abs_eq_zero]
+      left
+      rw [abs_of_pos ?_]
+      apply Complex.abs_cpow_eq_rpow_re_of_pos
+      all_goals exact mem_Ioi.mp hx
+    · sorry
+    · simp only [abs_ofReal] at ha
+      simp only [abs_ofReal]
+      refine mul_le_mul ha (le_refl _) ?_ <| abs_nonneg _
+      apply rpow_nonneg (by norm_num)
 /-%%
 \begin{proof}
 \uses{MellinTransform, SmoothExistence}
