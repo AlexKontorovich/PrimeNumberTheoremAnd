@@ -349,21 +349,10 @@ theorem contDiff_fourierChar' {u : ℝ} : ContDiff ℝ 1 (fun v => 𝐞 [-v * u]
   rw [(funext l3 : deriv _ = _)]
   exact continuous_const.mul <| continuous_iff_continuousAt.mpr (fun x => hasDerivAt_fourierChar'.continuousAt)
 
-lemma decay_bounds_aux3 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 1 ψ) (h2 : HasCompactSupport ψ) {u : ℝ} :
-    𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u := by
-  let e (v : ℝ) := 𝐞 [-v * u]
-  simp_rw [Real.fourierIntegral_real_eq]
-  convert_to ∫ (v : ℝ), e v * deriv ψ v = 2 * ↑π * I * ↑u * ∫ (v : ℝ), e v * ψ v
-  · simp only [e, neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere, smul_eq_mul]
-  · simp only [e, neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere, smul_eq_mul]
-  have l3 (x : ℝ) : deriv e x = -2 * π * u * I * e x := hasDerivAt_fourierChar'.deriv
-  simp_rw [h2.integral_mul_deriv contDiff_fourierChar' h1, l3, ← integral_mul_left, ← integral_neg]
-  congr ; ext ; ring
-
 lemma decay_bounds_aux4 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
     u ^ 2 * 𝓕 ψ u = - (1 / (4 * π ^ 2) * 𝓕 (deriv^[2] ψ) u) := by
   have l1 : ContDiff ℝ 1 (deriv ψ) := (contDiff_succ_iff_deriv.mp h1).2
-  simp_rw [iterate, decay_bounds_aux3 l1 h2.deriv, decay_bounds_aux3 h1.of_succ h2]
+  simp_rw [iterate, fourierIntegral_deriv_compactSupport l1 h2.deriv, fourierIntegral_deriv_compactSupport h1.of_succ h2]
   field_simp [pi_ne_zero] ; ring_nf ; simp
 
 lemma decay_bounds_aux2 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :

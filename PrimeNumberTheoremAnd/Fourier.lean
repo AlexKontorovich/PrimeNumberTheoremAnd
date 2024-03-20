@@ -30,18 +30,29 @@ lemma fourierIntegral_deriv_aux2 (e : ℝ →ᵇ ℂ) {f : ℝ → ℂ} (hf : In
 lemma fourierIntegral_deriv_aux1 (e : ℝ →ᵇ ℂ) (ψ : 𝓢(ℝ, ℂ)) : Integrable (⇑e * ⇑ψ) :=
   fourierIntegral_deriv_aux2 e ψ.integrable
 
-theorem fourierIntegral_deriv (ψ : 𝓢(ℝ, ℂ)) (u : ℝ) : 𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u := by
-  let ψ' := SchwartzMap.derivCLM ℝ ψ
-  convert_to ∫ v, e u v * ψ' v = 2 * ↑π * I * ↑u * ∫ v, e u v * ψ v <;>
-    try { simp [fourierIntegral_real_eq, ψ'] }
+theorem fourierIntegral_deriv {f f' : ℝ → ℂ} (h1 : ∀ x, HasDerivAt f (f' x) x) (h2 : Integrable f)
+    (h3 : Integrable f') (h4 : Tendsto f (cocompact ℝ) (𝓝 0)) (u : ℝ) :
+    𝓕 f' u = 2 * π * I * u * 𝓕 f u := by
+  convert_to ∫ v, e u v * f' v = 2 * ↑π * I * ↑u * ∫ v, e u v * f v
+    <;> try { simp [fourierIntegral_real_eq] }
   have l1 (x) : HasDerivAt (e u) (-2 * π * u * I * e u x) x := hasDerivAt_e
-  have l2 (x) : HasDerivAt ψ (ψ' x) x := ψ.differentiableAt.hasDerivAt
-  have l3 : Integrable (⇑(e u) * ⇑ψ') := fourierIntegral_deriv_aux1 (e u) ψ'
-  have l4 : Integrable (fun x ↦ -2 * π * u * I * e u x * ψ x) := by
-    simpa [mul_assoc] using (fourierIntegral_deriv_aux1 (e u) ψ).const_mul (-2 * π * u * I)
-  have l7 : Tendsto (⇑(e u) * ⇑ψ) (cocompact ℝ) (𝓝 0) := by
-    simpa [tendsto_zero_iff_norm_tendsto_zero] using ψ.toZeroAtInfty.zero_at_infty'
-  have l5 : Tendsto (⇑(e u) * ⇑ψ) atBot (𝓝 0) := l7.mono_left _root_.atBot_le_cocompact
-  have l6 : Tendsto (⇑(e u) * ⇑ψ) atTop (𝓝 0) := l7.mono_left _root_.atTop_le_cocompact
-  rw [integral_mul_deriv_eq_deriv_mul l1 l2 l3 l4 l5 l6]
-  simp [integral_neg, ← integral_mul_left] ; congr ; ext u ; ring
+  have l3 : Integrable (⇑(e u) * f') := fourierIntegral_deriv_aux2 (e u) h3
+  have l4 : Integrable (fun x ↦ -2 * π * u * I * e u x * f x) := by
+    simpa [mul_assoc] using (fourierIntegral_deriv_aux2 (e u) h2).const_mul (-2 * π * u * I)
+  have l7 : Tendsto (⇑(e u) * f) (cocompact ℝ) (𝓝 0) := by
+    simpa [tendsto_zero_iff_norm_tendsto_zero] using h4
+  have l5 : Tendsto (⇑(e u) * f) atBot (𝓝 0) := l7.mono_left _root_.atBot_le_cocompact
+  have l6 : Tendsto (⇑(e u) * f) atTop (𝓝 0) := l7.mono_left _root_.atTop_le_cocompact
+  rw [integral_mul_deriv_eq_deriv_mul l1 h1 l3 l4 l5 l6]
+  simp [integral_neg, ← integral_mul_left] ; congr ; ext ; ring
+
+theorem fourierIntegral_deriv_schwartz (ψ : 𝓢(ℝ, ℂ)) (u : ℝ) : 𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u :=
+  fourierIntegral_deriv (fun _ => ψ.differentiableAt.hasDerivAt) ψ.integrable
+    (SchwartzMap.derivCLM ℝ ψ).integrable ψ.toZeroAtInfty.zero_at_infty' u
+
+theorem fourierIntegral_deriv_compactSupport {f : ℝ → ℂ} (h1 : ContDiff ℝ 1 f) (h2 : HasCompactSupport f) (u : ℝ) :
+    𝓕 (deriv f) u = 2 * π * I * u * 𝓕 f u := by
+  have l1 (x) : HasDerivAt f (deriv f x) x := (h1.differentiable le_rfl).differentiableAt.hasDerivAt
+  have l2 : Integrable f := h1.continuous.integrable_of_hasCompactSupport h2
+  have l3 : Integrable (deriv f) := (h1.continuous_deriv le_rfl).integrable_of_hasCompactSupport h2.deriv
+  exact fourierIntegral_deriv l1 l2 l3 h2.is_zero_at_infty u
