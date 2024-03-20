@@ -595,8 +595,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
       · sorry
       · sorry
       · apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
-        have : 0 < ((1 / 2) : ℝ) := by norm_num
-        filter_upwards [Ioo_mem_nhdsWithin_Ioi' this] with a ha
+        filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2)] with a ha
         simp only [mem_Ioo] at ha
         simp only [ne_eq, Pi.mul_apply, mul_eq_zero, ofReal_eq_zero, div_eq_zero_iff,
           cpow_eq_zero_iff, ne_of_gt ha.left, hs, not_false_eq_true, and_true, or_self, or_false]
@@ -808,25 +807,19 @@ As $\epsilon\to 0$, we have
 $$\mathcal{M}(\psi_\epsilon)(1) = 1+O(\epsilon).$$
 \end{lemma}
 %%-/
-lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ}
-    (diffΨ : ContDiff ℝ 1 Ψ)
+lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) :
     (fun (ε : ℝ) ↦ (MellinTransform (Ψ ·) ε) - 1) =O[𝓝[>]0] id := by
-
   have := HasDerivAtFilter.isBigO_sub (x := (0 : ℝ)) (L := 𝓝[>]0)
       (f := fun (ε : ℝ) ↦ (MellinTransform (Ψ ·) ε))
       (f' := 1) ?_
   convert this using 1
   · funext x
     congr
-    push_cast
+    rw [← ofReal_eq_one.mpr mass_one]
     unfold MellinTransform
-    have : ∫ (x : ℝ) in Ioi 0, Ψ x / x = (1 : ℂ) := by
-      simp only [ofReal_eq_one]
-      exact mass_one
-    rw [← this]
-    simp only [zero_sub, cpow_neg_one, ← div_eq_mul_inv]
+    simp only [ofReal_zero, zero_sub, cpow_neg_one, ← div_eq_mul_inv]
     sorry
   · aesop
   · apply HasDerivAt.hasDerivAtFilter ?_ nhdsWithin_le_nhds
