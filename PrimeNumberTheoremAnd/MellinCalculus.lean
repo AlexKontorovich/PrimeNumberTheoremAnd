@@ -808,11 +808,29 @@ As $\epsilon\to 0$, we have
 $$\mathcal{M}(\psi_\epsilon)(1) = 1+O(\epsilon).$$
 \end{lemma}
 %%-/
-lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
+lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ}
+    (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
-    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) :
+    (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) :
     (fun (ε : ℝ) ↦ (MellinTransform (Ψ ·) ε) - 1) =O[𝓝[>]0] id := by
-  sorry -- use `mellin_differentiableAt_of_isBigO_rpow` for differentiability at 0
+
+  have := HasDerivAtFilter.isBigO_sub (x := (0 : ℝ)) (L := 𝓝[>]0)
+      (f := fun (ε : ℝ) ↦ (MellinTransform (Ψ ·) ε))
+      (f' := 1) ?_
+  convert this using 1
+  · funext x
+    congr
+    push_cast
+    unfold MellinTransform
+    have : ∫ (x : ℝ) in Ioi 0, Ψ x / x = (1 : ℂ) := by
+      simp only [ofReal_eq_one]
+      exact mass_one
+    rw [← this]
+    simp only [zero_sub, cpow_neg_one, ← div_eq_mul_inv]
+    sorry
+  · aesop
+  · apply HasDerivAt.hasDerivAtFilter ?_ nhdsWithin_le_nhds
+    · sorry
 /-%%
 \begin{proof}
 \uses{MellinTransform,MellinOfDeltaSpikeAt1,SmoothExistence}
