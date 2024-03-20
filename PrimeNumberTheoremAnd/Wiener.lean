@@ -1088,19 +1088,43 @@ lemma fourierIntegral_deriv (ψ : SchwartzMap ℝ ℂ) (u : ℝ) : 𝓕 (deriv �
   convert_to ∫ (v : ℝ), e v * deriv ψ v = 2 * ↑π * I * ↑u * ∫ (v : ℝ), e v * ψ v
   · simp only [e, neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere, smul_eq_mul]
   · simp only [e, neg_mul, ofAdd_neg, map_inv, coe_inv_unitSphere, smul_eq_mul]
-  have l3 (x : ℝ) : deriv e x = -2 * π * u * I * e x := hasDerivAt_fourierChar'.deriv
 
+  let ψ' := SchwartzMap.derivCLM ℝ ψ
   have l1 (x) : HasDerivAt e (-2 * ↑π * ↑u * I * e x) x := by exact hasDerivAt_fourierChar'
   have l2 (x) : HasDerivAt ψ (deriv ψ x) x := (ψ.differentiableAt (x := x)).hasDerivAt
   have l3 : Integrable (e * deriv ψ) := by
     simp [Integrable] ; constructor
-    · sorry
+    · apply Continuous.aestronglyMeasurable
+      apply Continuous.mul
+      · simp [e, Multiplicative.ofAdd]
+        have := Real.continuous_fourierChar
+        continuity
+      · exact ψ'.continuous
     · simp [HasFiniteIntegral, e]
-      have :=(SchwartzMap.derivCLM ℝ ψ)
-      sorry
-  have l4 : Integrable (fun x ↦ -2 * π * u * I * e x * ψ x) := sorry
-  have l5 : Tendsto (e * ⇑ψ) atBot (𝓝 0) := sorry
-  have l6 : Tendsto (e * ⇑ψ) atTop (𝓝 0) := sorry
+      exact ψ'.integrable.2
+  have l4 : Integrable (fun x ↦ -2 * π * u * I * e x * ψ x) := by
+    simp [Integrable] ; constructor
+    · apply Continuous.aestronglyMeasurable
+      simp [e, Multiplicative.ofAdd]
+      have := Real.continuous_fourierChar
+      have := ψ.continuous
+      continuity
+    · apply HasFiniteIntegral.neg
+      simp_rw [mul_assoc]
+      apply HasFiniteIntegral.const_mul
+      apply HasFiniteIntegral.const_mul
+      apply HasFiniteIntegral.const_mul
+      apply HasFiniteIntegral.const_mul
+      simp [HasFiniteIntegral, e]
+      exact ψ.integrable.2
+  have l5 : Tendsto (e * ⇑ψ) atBot (𝓝 0) := by
+    have := ψ.toZeroAtInfty.zero_at_infty'
+    simp [tendsto_zero_iff_norm_tendsto_zero, e] at this ⊢
+    apply this.mono_left ; simp
+  have l6 : Tendsto (e * ⇑ψ) atTop (𝓝 0) := by
+    have := ψ.toZeroAtInfty.zero_at_infty'
+    simp [tendsto_zero_iff_norm_tendsto_zero, e] at this ⊢
+    apply this.mono_left ; simp
   simp [integral_mul_deriv_eq_deriv_mul l1 l2 l3 l4 l5 l6, integral_neg, ← integral_mul_left]
   congr ; ext u ; ring
 
