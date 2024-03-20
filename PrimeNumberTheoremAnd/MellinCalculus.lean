@@ -1104,16 +1104,28 @@ Use Lemma \ref{MellinOfSmooth1a} and the bound in Lemma \ref{MellinOfPsi}.
 /-%%
 \begin{lemma}[MellinOfSmooth1c]\label{MellinOfSmooth1c}\lean{MellinOfSmooth1c}\leanok
 At $s=1$, we have
-$$\mathcal{M}(\widetilde{1_{\epsilon}})(1) = (1+O(\epsilon)).$$
+$$\mathcal{M}(\widetilde{1_{\epsilon}})(1) = 1+O(\epsilon)).$$
 \end{lemma}
 %%-/
-lemma MellinOfSmooth1c {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
-    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
-    (mass_one : ∫ x in Set.Ici 0, Ψ x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
+lemma MellinOfSmooth1c {Ψ : ℝ → ℝ}
+    (diffΨ : ContDiff ℝ 1 Ψ)
+    (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
+    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) :
     (fun ε ↦ MellinTransform ((Smooth1 Ψ ε) ·) 1 - 1) =O[𝓝[>]0] id := by
-  sorry
+  have h := MellinOfDeltaSpikeAt1_asymp diffΨ suppΨ mass_one
+  rw [Asymptotics.isBigO_iff] at h ⊢
+  obtain ⟨ c, hc ⟩ := h
+  use c
+  have := Ioo_mem_nhdsWithin_Ioi (a:=(0:ℝ)) (b:=(0:ℝ)) (c:=1/2) (by norm_num)
+  filter_upwards [hc, this] with ε hε hε'
+  have εpos : ε > 0 := hε'.1
+  have h1 := MellinOfSmooth1a Ψ εpos (s := 1) (by norm_num)
+  simp_rw [h1]
+  simp only [ofReal_one, id_eq] at hε
+  simp only [ne_eq, one_ne_zero, not_false_eq_true, div_self, mul_one, one_mul,
+    id_eq, ge_iff_le, hε]
 /-%%
-\begin{proof}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1_asymp}
+\begin{proof}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1_asymp}\leanok
 Use Lemma \ref{MellinOfSmooth1a} and \ref{MellinOfDeltaSpikeAt1_asymp}.
 \end{proof}
 %%-/
