@@ -650,10 +650,8 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     _ = ∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x) * Complex.abs (↑x) ^ s.re := ?_
     _ ≤ (∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x)) * 2 ^ σ₂ := ?_
     _ ≤ _ := ?_
-  · sorry
-  -- have := norm_integral_le_integral_norm (fun x ↦ (deriv Ψ x) * (x : ℂ) ^ s)
-  -- have := L1.norm_integral_le
-  -- apply norm_integral_le_of_norm_le
+  · simp_rw [← Complex.norm_eq_abs]
+    apply norm_integral_le_integral_norm
   · rw [set_integral_congr (by simp)]
     intro x hx
     aesop
