@@ -8,6 +8,12 @@ open Asymptotics Complex ComplexConjugate Topology Filter Real MeasureTheory Set
 
 open scoped Interval
 
+-- TODO: why do we need to bump this?
+instance : MeasurableDiv₂ ℝ := by
+  haveI (G : Type) [DivInvMonoid G] [MeasurableSpace G] [MeasurableInv G] [MeasurableMul₂ G] :
+    MeasurableDiv₂ G := inferInstance
+  exact this ℝ
+
 /-%%
 In this section, we prove the Perron formula, which plays a key role in our proof of Mellin inversion.
 %%-/
