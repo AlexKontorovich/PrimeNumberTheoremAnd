@@ -1239,36 +1239,27 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
   let F : ℝ × ℝ → ℂ := Function.uncurry fun x y ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
   -- let F : Ioi 0 × Ioi 0 → ℂ := Function.uncurry fun x y ↦
   --       f y * g ((x : ℝ) / (y : ℝ )) / (y : ℂ) * (x : ℂ) ^ (s - 1)
-  let S := {(z : ℝ × ℝ) | z.1 ∈ Ioc 0 z.2 ∧ z.2 ∈ Icc (2 ^ (-ε)) (2 ^ ε)}
+  let S := {(x, y) : ℝ × ℝ | x ∈ Ioc 0 y ∧ y ∈ Icc (2 ^ (-ε)) (2 ^ ε)}
+  let T := {(x, y) : ℝ × ℝ | x ∈ Ioc 0 (2 ^ ε) ∧ y ∈ Icc (2 ^ (-ε)) (2 ^ ε)}
 
   have S_compact: IsCompact (closure S) := by
-    apply isCompact_of_totallyBounded_isClosed ?_ isClosed_closure
-    have : {(x, y) | (0 < x ∧ x ≤ y) ∧ (2 : ℝ) ^ (-ε) ≤ y ∧ y ≤ (2 : ℝ) ^ ε} ⊆
-            {(x, y) | (0 < x ∧ x ≤ (2 : ℝ) ^ ε) ∧ (2 : ℝ) ^ (-ε) ≤ y ∧ y ≤ (2 : ℝ) ^ ε} := by
+    refine isCompact_of_totallyBounded_isClosed ?_ isClosed_closure
+    have SsubT: S ⊆ T := by
       simp only [mem_setOf_eq, and_imp, mem_Ioc, mem_Icc, subset_def]
       intro ⟨x, y⟩ h1 h2 h3 h4
-      simp only
-      split_ands
-      · exact h1
-      · exact le_trans h2 h4
-      · exact h3
-      · exact h4
-    apply totallyBounded_subset <| closure_mono this
-    have : {z | z.1 ∈ Ioc 0 ((2 : ℝ) ^ ε) ∧ z.2 ∈ Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)} =
-            (Ioc 0 ((2 : ℝ) ^ ε) ×ˢ Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)) := by
+      have := le_trans h2 h4
+      aesop
+    have : T = Ioc 0 ((2 : ℝ) ^ ε) ×ˢ Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε) := by
       ext ⟨x, y⟩
       simp only [mem_Ioc, mem_Icc, mem_setOf_eq, mem_prod, and_congr_left_iff,
         and_congr_right_iff, and_imp]
-    simp [mem_Ioc, mem_Icc] at this
-    rw [this, closure_prod_eq, closure_Ioc, closure_Icc]
+    apply totallyBounded_subset <| closure_mono (this ▸ SsubT)
+    rw [closure_prod_eq, closure_Ioc, closure_Icc]
     apply IsCompact.totallyBounded <| IsCompact.prod isCompact_Icc isCompact_Icc
-    apply ne_of_lt
-    apply rpow_pos_of_pos (by norm_num)
+    exact ne_of_lt (by apply rpow_pos_of_pos (by norm_num))
 
   have F_supp : F.support = S := by
-  -- needs positivity of x, y?
-    ext z
-    obtain ⟨x, y⟩ := z
+    ext ⟨x, y⟩
     rw [Function.mem_support]
     constructor
     all_goals intro h
@@ -1280,15 +1271,11 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     sorry
 
   have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
-    apply IntegrableOn.of_forall_diff_eq_zero (hf := int_F_S)
-    · apply measurableSet_prod.mpr
-      left
-      simp
-    · intro z hz
-      contrapose hz
-      push_neg at hz
-      have := F_supp ▸ Function.mem_support.mpr hz
-      aesop
+    apply IntegrableOn.of_forall_diff_eq_zero int_F_S <| measurableSet_prod.mpr (by left; simp)
+    intro z hz
+    contrapose hz
+    have := F_supp ▸ Function.mem_support.mpr hz
+    aesop
 
   have : MellinTransform (MellinConvolution g f) s = MellinTransform g s * MellinTransform f s := by
     rw [mul_comm, ← MellinConvolutionTransform f g s int_F]
@@ -1303,14 +1290,9 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
   convert this using 1
   · congr
     funext x
-    simp
-    unfold Smooth1
     convert integral_ofReal.symm
-    simp
-    push_cast
-    simp_rw [@apply_ite ℝ ℂ]
-    simp
-    simp [MellinConvolution]
+    simp only [MellinConvolution, IsROrC.ofReal_div, ite_mul, one_mul, zero_mul, @apply_ite ℝ ℂ,
+      algebraMap.coe_zero]
     rfl
   · rw [MellinOf1 s hs, MellinOfDeltaSpike Ψ εpos s]
 /-%%
