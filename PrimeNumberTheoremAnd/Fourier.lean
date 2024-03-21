@@ -3,7 +3,7 @@ import Mathlib.Analysis.Fourier.FourierTransformDeriv
 import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import Mathlib.Topology.ContinuousFunction.Bounded
 
-open FourierTransform Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap
+open FourierTransform Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap VectorFourier
 
 @[simp]
 theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
@@ -56,3 +56,53 @@ theorem fourierIntegral_deriv_compactSupport {f : ℝ → ℂ} (h1 : ContDiff �
   have l2 : Integrable f := h1.continuous.integrable_of_hasCompactSupport h2
   have l3 : Integrable (deriv f) := (h1.continuous_deriv le_rfl).integrable_of_hasCompactSupport h2.deriv
   exact fourierIntegral_deriv l1 l2 l3 h2.is_zero_at_infty u
+
+@[simp] lemma F_neg {f : ℝ → ℂ} {u : ℝ} : 𝓕 (fun x => -f x) u = - 𝓕 f u := by
+  simp [fourierIntegral_eq, integral_neg]
+
+@[simp] lemma F_add {f g : ℝ → ℂ} (hf : Integrable f) (hg : Integrable g) (x : ℝ) :
+    𝓕 (fun x => f x + g x) x = 𝓕 f x + 𝓕 g x :=
+  congr_fun (fourierIntegral_add continuous_fourierChar (by exact continuous_mul) hf hg).symm x
+
+@[simp] lemma F_sub {f g : ℝ → ℂ} (hf : Integrable f) (hg : Integrable g) (x : ℝ) :
+    𝓕 (fun x => f x - g x) x = 𝓕 f x - 𝓕 g x := by
+  simp_rw [sub_eq_add_neg] ; rw [F_add] ; simp ; exact hf ; exact hg.neg
+
+@[simp] lemma F_mul {f : ℝ → ℂ} {c : ℂ} {u : ℝ} : 𝓕 (fun x => c * f x) u = c * 𝓕 f u := by
+  simp [fourierIntegral_eq, ← integral_mul_left] ; congr ; ext ; ring
+
+structure W21 where
+  f : ℝ → ℂ
+  hh : ContDiff ℝ 2 f
+  hf : Integrable f
+  hf' : Integrable (deriv f)
+  hf'' : Integrable (deriv (deriv f))
+  h3 : Tendsto f (cocompact ℝ) (𝓝 0)
+  h4 : Tendsto (deriv f) (cocompact ℝ) (𝓝 0)
+
+noncomputable def W21_of_schwartz (f : 𝓢(ℝ, ℂ)) : W21 where
+  f := f
+  hh := f.smooth 2
+  hf := f.integrable
+  hf' := (SchwartzMap.derivCLM ℝ f).integrable
+  hf'' := (SchwartzMap.derivCLM ℝ (SchwartzMap.derivCLM ℝ f)).integrable
+  h3 := f.toZeroAtInfty.zero_at_infty'
+  h4 := (SchwartzMap.derivCLM ℝ f).toZeroAtInfty.zero_at_infty'
+
+noncomputable def W21_of_compactSupport {f : ℝ → ℂ} (h1 : ContDiff ℝ 2 f) (h2 : HasCompactSupport f) : W21 where
+  f := f
+  hh := h1
+  hf := h1.continuous.integrable_of_hasCompactSupport h2
+  hf' := (h1.continuous_deriv one_le_two).integrable_of_hasCompactSupport h2.deriv
+  hf'' := (h1.iterate_deriv' 0 2).continuous.integrable_of_hasCompactSupport h2.deriv.deriv
+  h3 := h2.is_zero_at_infty
+  h4 := h2.deriv.is_zero_at_infty
+
+theorem fourierIntegral_self_add_deriv_deriv (F : W21) (u : ℝ) :
+    (1 + u ^ 2) * 𝓕 F.f u = 𝓕 (fun u => F.f u - (1 / (4 * π ^ 2)) * deriv^[2] F.f u) u := by
+  have l1 : Integrable (fun x => (((π : ℂ) ^ 2)⁻¹ * 4⁻¹) * deriv (deriv F.f) x) := (F.hf''.const_mul _)
+  have l2 x : HasDerivAt F.f (deriv F.f x) x := F.hh.differentiable one_le_two |>.differentiableAt.hasDerivAt
+  have l3 x : HasDerivAt (deriv F.f) (deriv (deriv F.f) x) x := by
+    exact (F.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
+  simp [F.hf, l1, add_mul, fourierIntegral_deriv l2 F.hf F.hf' F.h3, fourierIntegral_deriv l3 F.hf' F.hf'' F.h4]
+  field_simp [pi_ne_zero] ; ring_nf ; simp

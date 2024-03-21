@@ -15,7 +15,7 @@ import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Fourier
 
-open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries Asymptotics
+open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries Asymptotics SchwartzMap
 open Complex hiding log
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems impossible to hide, and hence parameters that are traditionally called σ will have to be called σ' instead in this file.
 
@@ -312,65 +312,6 @@ for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies th
 
 variable {A : ℝ} {G : ℂ → ℂ}
 
-theorem HasCompactSupport.integral_deriv_eq_zero {u : ℝ → ℂ} (h1 : ContDiff ℝ 1 u) (h2 : HasCompactSupport u) :
-    ∫ x, deriv u x = 0 := by
-  have l1 : Tendsto (fun i ↦ u i - u (-i)) atTop (𝓝 (∫ x, deriv u x)) := by
-    have e1 : Integrable (deriv u) := (contDiff_one_iff_deriv.1 h1).2 |>.integrable_of_hasCompactSupport h2.deriv
-    have e2 (i : ℝ) : ∫ x in -i..i, deriv u x = u i - u (-i) :=
-      intervalIntegral.integral_deriv_eq_sub (fun x _ => h1.differentiable le_rfl x) e1.intervalIntegrable
-    simpa [← e2] using intervalIntegral_tendsto_integral e1 tendsto_neg_atTop_atBot tendsto_id
-  have l2 : Tendsto (fun i => u i - u (-i)) atTop (𝓝 0) := by
-    have e1 : Tendsto u atTop (𝓝 0) := h2.is_zero_at_infty.mono_left _root_.atTop_le_cocompact
-    have e2 : Tendsto (fun i => u (-i)) atTop (𝓝 0) :=
-      h2.is_zero_at_infty.mono_left _root_.atBot_le_cocompact |>.comp tendsto_neg_atTop_atBot
-    simpa using e1.sub e2
-  exact tendsto_nhds_unique l1 l2
-
-theorem HasCompactSupport.integral_mul_deriv {u v : ℝ → ℂ} (hu : ContDiff ℝ 1 u) (hv : ContDiff ℝ 1 v)
-    (h : HasCompactSupport v) : ∫ x, u x * deriv v x = - ∫ x, deriv u x * v x := by
-  have l1 : Integrable fun x ↦ u x * deriv v x :=
-    hu.continuous.mul (contDiff_one_iff_deriv.1 hv).2 |>.integrable_of_hasCompactSupport h.deriv.mul_left
-  have l2 : Integrable fun x ↦ deriv u x * v x :=
-    (contDiff_one_iff_deriv.1 hu).2.mul hv.continuous |>.integrable_of_hasCompactSupport h.mul_left
-  have l3 (a : ℝ) : deriv u a * v a + u a * deriv v a = deriv (u * v) a := by
-    rw [← deriv_mul (hu.differentiable le_rfl a) (hv.differentiable le_rfl a)] ; rfl
-  rw [eq_neg_iff_add_eq_zero, add_comm, ← integral_add l2 l1]
-  simp_rw [l3]
-  exact HasCompactSupport.integral_deriv_eq_zero (hu.mul hv) (h.mul_left)
-
-theorem hasDerivAt_fourierChar' {u x : ℝ} : let e v := 𝐞 [-v * u];
-    HasDerivAt e (-2 * π * u * I * e x) x := by
-  have l2 : HasDerivAt (fun v => -v * u) (-u) x := by simpa only [neg_mul_comm] using hasDerivAt_mul_const (-u)
-  convert (hasDerivAt_fourierChar (-x * u)).scomp x l2 using 1 ; simp ; ring
-
-theorem contDiff_fourierChar' {u : ℝ} : ContDiff ℝ 1 (fun v => 𝐞 [-v * u]) := by
-  have l3 (x : ℝ) := (hasDerivAt_fourierChar' (u := u) (x := x)).deriv
-  refine contDiff_one_iff_deriv.mpr ⟨fun x => hasDerivAt_fourierChar'.differentiableAt, ?_⟩
-  rw [(funext l3 : deriv _ = _)]
-  exact continuous_const.mul <| continuous_iff_continuousAt.mpr (fun x => hasDerivAt_fourierChar'.continuousAt)
-
-lemma decay_bounds_aux4 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
-    u ^ 2 * 𝓕 ψ u = - (1 / (4 * π ^ 2) * 𝓕 (deriv^[2] ψ) u) := by
-  have l1 : ContDiff ℝ 1 (deriv ψ) := (contDiff_succ_iff_deriv.mp h1).2
-  simp_rw [iterate, fourierIntegral_deriv_compactSupport l1 h2.deriv, fourierIntegral_deriv_compactSupport h1.of_succ h2]
-  field_simp [pi_ne_zero] ; ring_nf ; simp
-
-lemma decay_bounds_aux2 {u : ℝ} {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
-    u ^ 2 * 𝓕 ψ u = - (1 / (4 * π ^ 2) * ∫ (t : ℝ), deriv^[2] ψ t * 𝐞 [-t * u]) := by
-  convert decay_bounds_aux4 h1 h2 ; congr ; ext ; field_simp
-
-lemma decay_bounds_aux1 {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) (u : ℝ) :
-    (1 + u ^ 2) * 𝓕 ψ u = ∫ (t : ℝ), (ψ t - (1 / (4 * π ^ 2)) * deriv^[2] ψ t) * 𝐞 [-t * u] := by
-  have l0 : Continuous fun t ↦ 𝐞 [-t * u] := contDiff_fourierChar'.continuous
-  have l1 : Integrable fun t ↦ 𝐞 [-t * u] * ψ t :=
-    l0.mul h1.continuous |>.integrable_of_hasCompactSupport h2.mul_left
-  have l2 : Integrable fun t ↦ 1 / (4 * π ^ 2) * (deriv^[2] ψ t * 𝐞 [-t * u]) := by
-    refine Continuous.integrable_of_hasCompactSupport ?_ h2.deriv.deriv.mul_right.mul_left
-    exact continuous_const.mul <| (h1.iterate_deriv' 0 2).continuous.mul l0
-  simp_rw [sub_mul, mul_assoc, add_mul, one_mul, mul_comm (ψ _)]
-  rw [integral_sub l1 l2, integral_mul_left, sub_eq_add_neg, ← decay_bounds_aux2 h1 h2]
-  simp [Real.fourierIntegral_real_eq]
-
 lemma one_add_sq_pos (u : ℝ) : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa using sq_nonneg u)
 
 /-%%
@@ -382,26 +323,45 @@ for all $u \in \R$, where $C$ is an absolute constant.
 \end{lemma}
 %%-/
 
-lemma decay_bounds {ψ : ℝ → ℂ} {A u : ℝ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ)
-    (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2)) (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) :
-    ‖𝓕 ψ u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
-  have key := decay_bounds_aux1 h1 h2 u
+lemma decay_bounds_aux {f : ℝ → ℂ} (hf : AEStronglyMeasurable f volume) (h : ∀ t, ‖f t‖ ≤ A * (1 + t ^ 2)⁻¹) :
+    ∫ t, ‖f t‖ ≤ π * A := by
+  have l1 : Integrable (fun x ↦ A * (1 + x ^ 2)⁻¹) := integrable_inv_one_add_sq.const_mul A
+  simp_rw [← integral_univ_inv_one_add_sq, mul_comm, ← integral_mul_left]
+  exact integral_mono (l1.mono' hf (eventually_of_forall h)).norm l1 h
+
+theorem decay_bounds_W21 (F : W21) (hA : ∀ t, ‖F.f t‖ ≤ A / (1 + t ^ 2))
+    (hA' : ∀ t, ‖deriv (deriv F.f) t‖ ≤ A / (1 + t ^ 2)) (u) :
+    ‖𝓕 F.f u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
+  have key := fourierIntegral_self_add_deriv_deriv F
+  simp only [Function.iterate_succ _ 1, Function.iterate_one, Function.comp_apply] at key
   have l1 : 0 < 1 + u ^ 2 := one_add_sq_pos _
   have l2 : 1 + u ^ 2 = ‖(1 : ℂ) + u ^ 2‖ := by
     norm_cast ; simp only [Complex.norm_eq_abs, Complex.abs_ofReal, abs_eq_self.2 l1.le]
-  rw [le_div_iff l1, mul_comm, l2, ← norm_mul, key]
-  let f (t : ℝ) := (ψ t - 1 / (4 * π ^ 2) * deriv^[2] ψ t) * 𝐞 [-t * u]
-  let g (t : ℝ) := A * (1 + 1 / (4 * π ^ 2)) / (1 + t ^ 2)
-  have l5 (t : ℝ) : ‖fourierChar [-t * u]‖ = 1 := by simp
-  have l4 (t : ℝ) : ‖f t‖ ≤ g t := by
-    simp only [f, g, norm_mul, l5, mul_one, mul_add, _root_.add_div]
-    refine (norm_sub_le _ _).trans <| _root_.add_le_add (hA t) ?_
-    rw [norm_mul]
-    convert mul_le_mul_of_nonneg_left (hA' t) (norm_nonneg _) using 1 ; field_simp
-  have l5 : Integrable g := by simpa [g, div_eq_mul_inv] using integrable_inv_one_add_sq.const_mul _
-  convert norm_integral_le_of_norm_le l5 (eventually_of_forall l4)
-  simp_rw [g, div_eq_mul_inv, integral_mul_left, integral_univ_inv_one_add_sq]
-  field_simp [pi_ne_zero] ; ring
+  have := F_sub F.hf (F.hf''.const_mul (1 / (4 * ↑π ^ 2))) u
+  rw [le_div_iff l1, mul_comm, l2, ← norm_mul, key, this, sub_eq_add_neg, add_mul]
+  apply norm_add_le _ _ |>.trans
+  rw [norm_neg] ; gcongr <;> apply VectorFourier.norm_fourierIntegral_le_integral_norm _ _ _ _ _ |>.trans
+  · exact decay_bounds_aux (F.hh.continuous.aestronglyMeasurable) (by simpa [← div_eq_mul_inv])
+  · let g v := 1 / (4 * ↑π ^ 2) * deriv (deriv F.f) v
+    have r1 : AEStronglyMeasurable g volume :=
+      (continuous_const).mul (F.hh.iterate_deriv' 0 2).continuous |>.aestronglyMeasurable
+    have r3 : 0 ≤ (π ^ 2)⁻¹ * 4⁻¹ := by positivity
+    have r2 t : ‖g t‖ ≤ A / (4 * ↑π ^ 2) * (1 + t ^ 2)⁻¹ := by
+      specialize hA' t ; simp [g] at hA' ⊢
+      convert mul_le_mul_of_nonneg_left hA' r3 using 1
+      field_simp ; ring_nf ; tauto
+    convert decay_bounds_aux r1 r2 using 1
+    field_simp ; ring
+
+lemma decay_bounds {ψ : ℝ → ℂ} {A u : ℝ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ)
+    (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2)) (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) :
+    ‖𝓕 ψ u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
+  exact decay_bounds_W21 (W21_of_compactSupport h1 h2) hA hA' u
+
+lemma decay_bounds_schwartz (ψ : 𝓢(ℝ, ℂ)) (u : ℝ)
+    (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2)) (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) :
+    ‖𝓕 ψ u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
+  exact decay_bounds_W21 (W21_of_schwartz ψ) hA hA' u
 
 lemma decay_bounds_cor_aux {ψ : ℝ → ℂ} (h1 : Continuous ψ) (h2 : HasCompactSupport ψ) :
     ∃ C : ℝ, ∀ u, ‖ψ u‖ ≤ C / (1 + u ^ 2) := by
@@ -1065,31 +1025,6 @@ A standard analysis lemma, which can be proven by convolving $1_K$ with a smooth
 \end{proof}
 %%-/
 
-lemma decay_bounds_schwartz (ψ : SchwartzMap ℝ ℂ) {A u : ℝ} (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2))
-    (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) : ‖𝓕 ψ u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
-
-  obtain ⟨g₁, l1, l2, l3, l4⟩ := smooth_urysohn (-2) (-1) (1) (2) (by simp) (by simp)
-  let G (R : ℝ) (u : ℝ) : ℝ := g₁ (u / R)
-  let ψ_inf (R) (t : ℝ) := G R t * ψ t
-  let ψ_sup (R) (t : ℝ) := (1 - G R t) * ψ t
-
-  have l3 : Integrable ψ := ψ.integrable
-  have l4 : HasCompactSupport ψ_inf := by
-    simp [ψ_inf, G]
-    apply HasCompactSupport.mul_right
-    sorry
-  have l5 (R) : Integrable (ψ_inf R) := sorry
-  have l6 : Tendsto (fun R => ∫ x, ‖(ψ - ψ_inf R) x‖) atTop (𝓝 0) := sorry
-
-  have l1 (R u) : deriv (ψ_sup R) u = - deriv (G R) u * ψ u - (G R) u * deriv ψ u := sorry
-  have l2 (R u) : deriv^[2] (ψ_sup R) u =
-    - deriv^[2] (G R) u * ψ u - 2 * deriv (G R) u * deriv ψ u - (G R) u * deriv^[2] ψ u := sorry
-
-  have (R u) : ‖𝓕 (ψ_sup R) u‖ ≤ ∫ (x : ℝ), ‖ψ_sup R x‖ :=
-    Fourier.norm_fourierIntegral_le_integral_norm Real.fourierChar volume (ψ_sup R) u
-
-  sorry
-
 /-%%
 \begin{lemma}[Limiting identity for Schwartz functions]\label{schwarz-id}\lean{limiting_cor_schwartz}\leanok  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.
 \end{lemma}
@@ -1098,36 +1033,6 @@ lemma decay_bounds_schwartz (ψ : SchwartzMap ℝ ℂ) {A u : ℝ} (hA : ∀ t, 
 lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) :
     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))) atTop (𝓝 0) := by
-
-  obtain ⟨g₁, l1, l2, l3, l4⟩ := smooth_urysohn (-2) (-1) (1) (2) (by simp) (by simp)
-  let G (R : ℝ) (u : ℝ) : ℝ := g₁ (u / R)
-  have l1R (R) : ContDiff ℝ ⊤ (G R) := sorry
-  have l2R (R) : HasCompactSupport (G R) := sorry
-  have l3R (R) : Set.indicator (Set.Icc (-R) R) 1 ≤ G R := sorry
-  have l4R (R) : G R ≤ Set.indicator (Set.Ioo (-2 * R) (2 * R)) 1 := sorry
-  have l11 (R u) : deriv (G R) u = (1 / R) * deriv g₁ (u / R) := sorry
-  have l12 (R u) : deriv^[2] (G R) u = (1 / R) ^ 2 * deriv^[2] g₁ (u / R) := sorry
-
-  let ψ_inf (R) (t : ℝ) := G R t * ψ t
-  let ψ_sup (R) (t : ℝ) := (1 - G R t) * ψ t
-
-  have l5 (R) : ψ = ψ_inf R + ψ_sup R := by ext t ; unfold_let ; simp ; ring
-  have l6 (R) : ContDiff ℝ ⊤ (ψ_inf R) := sorry
-  have l7 (R) : Function.support (ψ_inf R) ⊆ Icc (-2 * R) (2 * R) := sorry
-  have l8 (R) : HasCompactSupport (ψ_inf R) := sorry
-  have l9 (R) : Function.support (ψ_sup R) ⊆ (Icc (-R) (R))ᶜ := sorry
-  have l10 (R) : ContDiff ℝ ⊤ (ψ_sup R) := sorry
-  have l11 (R u) : deriv (ψ_sup R) u = - deriv (G R) u * ψ u - (G R) u * deriv ψ u := sorry
-  have l12 (R u) : deriv^[2] (ψ_sup R) u =
-    - deriv^[2] (G R) u * ψ u - 2 * deriv (G R) u * deriv ψ u - (G R) u * deriv^[2] ψ u := sorry
-
-  have l13 : ∃ M₀, ∀ u, |g₁ u| ≤ M₀ := sorry
-  have l14 : ∃ M₁, ∀ u, |deriv g₁ u| ≤ M₁ := sorry
-  have l15 : ∃ M₂, ∀ u, |deriv^[2] g₁ u| ≤ M₂ := sorry
-
-  have key : ∃ M, ∀ R u, ‖ψ_sup R u‖ ≤ M / R / (1 + u ^ 2) ∧ ‖deriv^[2] (ψ_sup R) u‖ ≤ M / R / (1 + u ^ 2) := sorry
-
-  have := @decay_bounds
   sorry
 
 /-%%
