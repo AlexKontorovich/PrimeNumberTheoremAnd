@@ -1,4 +1,4 @@
-import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.IntegralEqImproper
+import Mathlib.Analysis.MellinInversion
 import PrimeNumberTheoremAnd.PerronFormula
 
 -- TODO: move near `MeasureTheory.set_integral_prod`
@@ -15,17 +15,6 @@ theorem MeasureTheory.set_integral_integral_swap {α : Type*} {β : Type*} {E : 
 
 -- How to deal with this coersion?... Ans: (f ·)
 --- noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ f x
-
-section from_PR10944
-
-open Real Complex Set MeasureTheory
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
-
-def VerticalIntegrable (f : ℂ → E) (σ : ℝ) (μ : Measure ℝ := by volume_tac) : Prop :=
-  Integrable (fun (y : ℝ) ↦ f (σ + y * I)) μ
-
-end from_PR10944
 
 open Complex Topology Filter Real MeasureTheory Set
 
@@ -294,6 +283,20 @@ Fubini-Tonelli.
 \end{proof}
 %-/
 
+lemma MellinTransform_eq : MellinTransform = mellin := by
+  unfold mellin MellinTransform
+  simp_rw [smul_eq_mul, mul_comm]
+
+lemma MellinInverseTransform_eq (σ : ℝ) (f : ℂ → ℂ) :
+    MellinInverseTransform f σ = mellinInv σ f := by
+  unfold mellinInv MellinInverseTransform VerticalIntegral' VerticalIntegral
+  beta_reduce; ext x
+  have : (1 / (2 * ↑π * I) * I) = 1 / (2 * π) := calc
+    _ = (1 / (2 * π)) * (I / I) := by ring
+    _ = _ := by simp
+  rw [← smul_assoc, smul_eq_mul (a' := I), this]
+  norm_cast
+
 /-%%
 \begin{theorem}[MellinInversion]\label{MellinInversion}\lean{MellinInversion}\leanok
 Let $f$ be a twice differentiable function from $\mathbb{R}_{>0}$ to $\mathbb{C}$, and
@@ -309,8 +312,7 @@ $$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
 theorem MellinInversion (σ : ℝ) {f : ℝ → ℂ} {x : ℝ} (hx : 0 < x) (hf : MellinConvergent f σ)
     (hFf : VerticalIntegrable (mellin f) σ) (hfx : ContinuousAt f x) :
     MellinInverseTransform (MellinTransform f) σ x = f x := by
-  -- Done in PR#10944
-  sorry
+  rw [MellinTransform_eq, MellinInverseTransform_eq, mellin_inversion σ f hx hf hFf hfx]
 /-%%
 \begin{proof}\leanok
 \uses{PartialIntegration, formulaLtOne, formulaGtOne, MellinTransform,
