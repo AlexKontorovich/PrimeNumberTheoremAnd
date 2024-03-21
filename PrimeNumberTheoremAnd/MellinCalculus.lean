@@ -1241,39 +1241,33 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
   have T_compact : IsCompact T := IsCompact.prod isCompact_Icc isCompact_Icc
 
   have F_supp : F.support ⊆ T := by
-    intro ⟨ x, y⟩ h
-    simp only [Icc_prod_Icc, mem_Icc, Prod.mk_le_mk]
+    intro ⟨x, y⟩ h
     contrapose h
+    simp only [Icc_prod_Icc, mem_Icc, Prod.mk_le_mk, not_and, not_le, and_imp] at h
     simp only [mul_ite, mul_one, mul_zero, Function.mem_support, Function.uncurry_apply_pair, ne_eq,
       mul_eq_zero, div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff,
       not_not]
     left; left
     intro h1 h2
-    simp only [not_and, not_le, and_imp] at h
-    have := DeltaSpikeSupport Ψ εpos suppΨ
-    simp only [Function.support_subset_iff, ne_eq, mem_Icc] at this
-    contrapose this
-    simp only [not_forall, not_and, not_le, exists_prop]
+    have suppDelta := DeltaSpikeSupport Ψ εpos suppΨ
+    contrapose suppDelta
+    simp only [Function.support_subset_iff, ne_eq, mem_Icc, not_forall, not_and, not_le, exists_prop]
     use y
-    simp only [this, not_false_eq_true, true_and]
+    simp only [suppDelta, not_false_eq_true, true_and]
     intro hy
-    have : 0 < (2 : ℝ) ^ (-ε) := by apply rpow_pos_of_pos; norm_num
-    have ypos : 0 < y := by linarith
-    rw [div_pos_iff] at h1
-    rw [div_le_iff ypos, one_mul] at h2
+    rewrite [div_pos_iff] at h1
     cases h1 with
     | inl hpos =>
       obtain ⟨xpos, ypos⟩ := hpos
       have := h xpos.le hy
       contrapose this
-      simp only [gt_iff_lt, not_lt, not_forall, exists_prop] at this ⊢
-      simp only [this, and_true]
-      linarith
-    | inr hneg =>
-      obtain ⟨xneg, yneg⟩ := hneg
-      linarith
+      simp only [gt_iff_lt, not_lt] at this
+      simp only [not_forall, not_lt, exists_prop, this, and_true]
+      linarith [(div_le_iff ypos).mp h2]
+    | inr hneg => linarith [(show 0 < (2 : ℝ) ^ (-ε) by apply rpow_pos_of_pos; norm_num)]
 
-  have int_F_T: IntegrableOn F T := by
+  have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
+    refine Integrable.integrableOn <| (integrableOn_iff_integrable_of_support_subset F_supp).mp ?_
     refine ContinuousOn.integrableOn_compact T_compact ?_
     repeat apply ContinuousOn.mul
     -- all_goals intro ⟨x, y⟩ h changes this to ContinuousOnWithinAt
@@ -1287,13 +1281,6 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
       · sorry
       · apply continuousOn_const
       · sorry
-
-  have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
-    apply IntegrableOn.of_forall_diff_eq_zero int_F_T <| measurableSet_prod.mpr (by left; simp)
-    intro z hz
-    contrapose hz
-    simp only [mem_diff, F_supp <| Function.mem_support.mpr hz]
-    tauto
 
   have : MellinTransform (MellinConvolution g f) s = MellinTransform g s * MellinTransform f s := by
     rw [mul_comm, ← MellinConvolutionTransform f g s int_F]
