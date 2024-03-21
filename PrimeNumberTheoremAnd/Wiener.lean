@@ -376,11 +376,7 @@ lemma decay_bounds_cor_aux {ψ : ℝ → ℂ} (h1 : Continuous ψ) (h2 : HasComp
 
 lemma decay_bounds_cor {ψ : ℝ → ℂ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ) :
     ∃ C : ℝ, ∀ u, ‖𝓕 ψ u‖ ≤ C / (1 + u ^ 2) := by
-  obtain ⟨C₁, hC₁⟩ := decay_bounds_cor_aux h1.continuous h2
-  obtain ⟨C₂, hC₂⟩ := decay_bounds_cor_aux (ContDiff.iterate_deriv' 0 2 h1).continuous h2.deriv.deriv
-  refine ⟨(π + 1 / (4 * π)) * (C₁ ⊔ C₂), fun u => decay_bounds h1 h2 (fun u => ?_) (fun u => ?_)⟩
-  · exact hC₁ u |>.trans ((div_le_div_right (one_add_sq_pos _)).mpr le_sup_left)
-  · exact hC₂ u |>.trans ((div_le_div_right (one_add_sq_pos _)).mpr le_sup_right)
+  simpa only [div_eq_mul_inv] using ⟨_, decay_bounds_key (W21_of_compactSupport h1 h2)⟩
 
 /-%%
 \begin{proof} \leanok From two integration by parts we obtain the identity
