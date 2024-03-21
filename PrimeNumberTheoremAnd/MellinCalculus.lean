@@ -1267,14 +1267,28 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     · sorry
 
   have F_has_compact_supp: HasCompactSupport F := by rwa [HasCompactSupport, tsupport, F_supp]
-  have int_F_S: IntegrableOn F S := by
-    sorry
+  have int_F_S: IntegrableOn F <| closure S := by
+    refine ContinuousOn.integrableOn_compact S_compact ?_
+    -- perhaps use T instead of closure S?
+    repeat apply ContinuousOn.mul
+    -- all_goals intro ⟨x, y⟩ h changes this to ContinuousOnWithinAt
+    · sorry
+    · apply ContinuousOn.comp (g := g) (s:= closure S)
+      --  (f:=fun (z : ℝ ×ˢ ℝ) => z.1 / z.2) ?_ ?_ ?_
+      repeat sorry
+    · apply ContinuousOn.comp
+      repeat sorry
+    · apply ContinuousOn.cpow
+      · sorry
+      · apply continuousOn_const
+      · sorry
 
   have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
     apply IntegrableOn.of_forall_diff_eq_zero int_F_S <| measurableSet_prod.mpr (by left; simp)
     intro z hz
     contrapose hz
     have := F_supp ▸ Function.mem_support.mpr hz
+    have := subset_closure (s := S)
     aesop
 
   have : MellinTransform (MellinConvolution g f) s = MellinTransform g s * MellinTransform f s := by
