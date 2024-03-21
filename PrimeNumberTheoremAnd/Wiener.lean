@@ -323,35 +323,37 @@ for all $u \in \R$, where $C$ is an absolute constant.
 \end{lemma}
 %%-/
 
+lemma decay_bounds_key {f : ℝ → ℂ} (hf : W21 f) (u : ℝ) :
+    ‖𝓕 f u‖ ≤ ((∫ v, ‖f v‖) + (4 * π ^ 2)⁻¹ * (∫ v, ‖deriv (deriv f) v‖)) * (1 + u ^ 2)⁻¹ := by
+  have l1 : 0 < 1 + u ^ 2 := one_add_sq_pos _
+  have l2 : 1 + u ^ 2 = ‖(1 : ℂ) + u ^ 2‖ := by
+    norm_cast ; simp only [Complex.norm_eq_abs, Complex.abs_ofReal, abs_eq_self.2 l1.le]
+  have l3 : ‖1 / ((4 : ℂ) * ↑π ^ 2)‖ ≤ (4 * π ^ 2)⁻¹ := by simp
+  have key := fourierIntegral_self_add_deriv_deriv hf u
+  simp only [Function.iterate_succ _ 1, Function.iterate_one, Function.comp_apply] at key
+  rw [F_sub hf.hf (hf.hf''.const_mul (1 / (4 * ↑π ^ 2)))] at key
+  rw [← div_eq_mul_inv, le_div_iff l1, mul_comm, l2, ← norm_mul, key, sub_eq_add_neg]
+  apply norm_add_le _ _ |>.trans
+  rw [norm_neg, F_mul, norm_mul]
+  gcongr <;> apply VectorFourier.norm_fourierIntegral_le_integral_norm
+
 lemma decay_bounds_aux {f : ℝ → ℂ} (hf : AEStronglyMeasurable f volume) (h : ∀ t, ‖f t‖ ≤ A * (1 + t ^ 2)⁻¹) :
     ∫ t, ‖f t‖ ≤ π * A := by
   have l1 : Integrable (fun x ↦ A * (1 + x ^ 2)⁻¹) := integrable_inv_one_add_sq.const_mul A
   simp_rw [← integral_univ_inv_one_add_sq, mul_comm, ← integral_mul_left]
   exact integral_mono (l1.mono' hf (eventually_of_forall h)).norm l1 h
 
-theorem decay_bounds_W21 (F : W21) (hA : ∀ t, ‖F.f t‖ ≤ A / (1 + t ^ 2))
-    (hA' : ∀ t, ‖deriv (deriv F.f) t‖ ≤ A / (1 + t ^ 2)) (u) :
-    ‖𝓕 F.f u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
-  have key := fourierIntegral_self_add_deriv_deriv F
-  simp only [Function.iterate_succ _ 1, Function.iterate_one, Function.comp_apply] at key
-  have l1 : 0 < 1 + u ^ 2 := one_add_sq_pos _
-  have l2 : 1 + u ^ 2 = ‖(1 : ℂ) + u ^ 2‖ := by
-    norm_cast ; simp only [Complex.norm_eq_abs, Complex.abs_ofReal, abs_eq_self.2 l1.le]
-  have := F_sub F.hf (F.hf''.const_mul (1 / (4 * ↑π ^ 2))) u
-  rw [le_div_iff l1, mul_comm, l2, ← norm_mul, key, this, sub_eq_add_neg, add_mul]
-  apply norm_add_le _ _ |>.trans
-  rw [norm_neg] ; gcongr <;> apply VectorFourier.norm_fourierIntegral_le_integral_norm _ _ _ _ _ |>.trans
-  · exact decay_bounds_aux (F.hh.continuous.aestronglyMeasurable) (by simpa [← div_eq_mul_inv])
-  · let g v := 1 / (4 * ↑π ^ 2) * deriv (deriv F.f) v
-    have r1 : AEStronglyMeasurable g volume :=
-      (continuous_const).mul (F.hh.iterate_deriv' 0 2).continuous |>.aestronglyMeasurable
-    have r3 : 0 ≤ (π ^ 2)⁻¹ * 4⁻¹ := by positivity
-    have r2 t : ‖g t‖ ≤ A / (4 * ↑π ^ 2) * (1 + t ^ 2)⁻¹ := by
-      specialize hA' t ; simp [g] at hA' ⊢
-      convert mul_le_mul_of_nonneg_left hA' r3 using 1
-      field_simp ; ring_nf ; tauto
-    convert decay_bounds_aux r1 r2 using 1
-    field_simp ; ring
+theorem decay_bounds_W21 {f : ℝ → ℂ} (hf : W21 f) (hA : ∀ t, ‖f t‖ ≤ A / (1 + t ^ 2))
+    (hA' : ∀ t, ‖deriv (deriv f) t‖ ≤ A / (1 + t ^ 2)) (u) :
+    ‖𝓕 f u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
+  have l0 : 1 * (4 * π)⁻¹ * A = (4 * π ^ 2)⁻¹ * (π * A) := by field_simp ; ring
+  have l1 : ∫ (v : ℝ), ‖f v‖ ≤ π * A := by
+    apply decay_bounds_aux hf.hh.continuous.aestronglyMeasurable
+    simp_rw [← div_eq_mul_inv] ; exact hA
+  have l2 : ∫ (v : ℝ), ‖deriv (deriv f) v‖ ≤ π * A := by
+    apply decay_bounds_aux ((hf.hh.iterate_deriv' 0 2).continuous |>.aestronglyMeasurable)
+    simp_rw [← div_eq_mul_inv] ; exact hA'
+  apply decay_bounds_key hf u |>.trans ; simp_rw [div_eq_mul_inv, add_mul, l0] ; gcongr
 
 lemma decay_bounds {ψ : ℝ → ℂ} {A u : ℝ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ)
     (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2)) (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) :

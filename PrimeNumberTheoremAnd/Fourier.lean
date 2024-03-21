@@ -71,8 +71,7 @@ theorem fourierIntegral_deriv_compactSupport {f : ℝ → ℂ} (h1 : ContDiff �
 @[simp] lemma F_mul {f : ℝ → ℂ} {c : ℂ} {u : ℝ} : 𝓕 (fun x => c * f x) u = c * 𝓕 f u := by
   simp [fourierIntegral_eq, ← integral_mul_left] ; congr ; ext ; ring
 
-structure W21 where
-  f : ℝ → ℂ
+structure W21 (f : ℝ → ℂ) : Prop where
   hh : ContDiff ℝ 2 f
   hf : Integrable f
   hf' : Integrable (deriv f)
@@ -80,8 +79,7 @@ structure W21 where
   h3 : Tendsto f (cocompact ℝ) (𝓝 0)
   h4 : Tendsto (deriv f) (cocompact ℝ) (𝓝 0)
 
-noncomputable def W21_of_schwartz (f : 𝓢(ℝ, ℂ)) : W21 where
-  f := f
+noncomputable def W21_of_schwartz (f : 𝓢(ℝ, ℂ)) : W21 f where
   hh := f.smooth 2
   hf := f.integrable
   hf' := (SchwartzMap.derivCLM ℝ f).integrable
@@ -89,8 +87,7 @@ noncomputable def W21_of_schwartz (f : 𝓢(ℝ, ℂ)) : W21 where
   h3 := f.toZeroAtInfty.zero_at_infty'
   h4 := (SchwartzMap.derivCLM ℝ f).toZeroAtInfty.zero_at_infty'
 
-noncomputable def W21_of_compactSupport {f : ℝ → ℂ} (h1 : ContDiff ℝ 2 f) (h2 : HasCompactSupport f) : W21 where
-  f := f
+noncomputable def W21_of_compactSupport {f : ℝ → ℂ} (h1 : ContDiff ℝ 2 f) (h2 : HasCompactSupport f) : W21 f where
   hh := h1
   hf := h1.continuous.integrable_of_hasCompactSupport h2
   hf' := (h1.continuous_deriv one_le_two).integrable_of_hasCompactSupport h2.deriv
@@ -98,11 +95,11 @@ noncomputable def W21_of_compactSupport {f : ℝ → ℂ} (h1 : ContDiff ℝ 2 f
   h3 := h2.is_zero_at_infty
   h4 := h2.deriv.is_zero_at_infty
 
-theorem fourierIntegral_self_add_deriv_deriv (F : W21) (u : ℝ) :
-    (1 + u ^ 2) * 𝓕 F.f u = 𝓕 (fun u => F.f u - (1 / (4 * π ^ 2)) * deriv^[2] F.f u) u := by
-  have l1 : Integrable (fun x => (((π : ℂ) ^ 2)⁻¹ * 4⁻¹) * deriv (deriv F.f) x) := (F.hf''.const_mul _)
-  have l2 x : HasDerivAt F.f (deriv F.f x) x := F.hh.differentiable one_le_two |>.differentiableAt.hasDerivAt
-  have l3 x : HasDerivAt (deriv F.f) (deriv (deriv F.f) x) x := by
-    exact (F.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
-  simp [F.hf, l1, add_mul, fourierIntegral_deriv l2 F.hf F.hf' F.h3, fourierIntegral_deriv l3 F.hf' F.hf'' F.h4]
+theorem fourierIntegral_self_add_deriv_deriv {f : ℝ → ℂ} (hf : W21 f) (u : ℝ) :
+    (1 + u ^ 2) * 𝓕 f u = 𝓕 (fun u => f u - (1 / (4 * π ^ 2)) * deriv^[2] f u) u := by
+  have l1 : Integrable (fun x => (((π : ℂ) ^ 2)⁻¹ * 4⁻¹) * deriv (deriv f) x) := (hf.hf''.const_mul _)
+  have l2 x : HasDerivAt f (deriv f x) x := hf.hh.differentiable one_le_two |>.differentiableAt.hasDerivAt
+  have l3 x : HasDerivAt (deriv f) (deriv (deriv f) x) x := by
+    exact (hf.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
+  simp [hf.hf, l1, add_mul, fourierIntegral_deriv l2 hf.hf hf.hf' hf.h3, fourierIntegral_deriv l3 hf.hf' hf.hf'' hf.h4]
   field_simp [pi_ne_zero] ; ring_nf ; simp
