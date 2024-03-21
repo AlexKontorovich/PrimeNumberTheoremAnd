@@ -1237,43 +1237,48 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
   let f : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x
   let g : ℝ → ℂ := fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0
   let F : ℝ × ℝ → ℂ := Function.uncurry fun x y ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
-  -- let F : Ioi 0 × Ioi 0 → ℂ := Function.uncurry fun x y ↦
-  --       f y * g ((x : ℝ) / (y : ℝ )) / (y : ℂ) * (x : ℂ) ^ (s - 1)
-  let S := {(x, y) : ℝ × ℝ | x ∈ Ioc 0 y ∧ y ∈ Icc (2 ^ (-ε)) (2 ^ ε)}
-  let T := {(x, y) : ℝ × ℝ | x ∈ Ioc 0 (2 ^ ε) ∧ y ∈ Icc (2 ^ (-ε)) (2 ^ ε)}
+  let T := Icc 0 ((2 : ℝ) ^ ε) ×ˢ Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)
+  have T_compact : IsCompact T := IsCompact.prod isCompact_Icc isCompact_Icc
 
-  have S_compact: IsCompact (closure S) := by
-    refine isCompact_of_totallyBounded_isClosed ?_ isClosed_closure
-    have SsubT: S ⊆ T := by
-      simp only [mem_setOf_eq, and_imp, mem_Ioc, mem_Icc, subset_def]
-      intro ⟨x, y⟩ h1 h2 h3 h4
-      have := le_trans h2 h4
-      aesop
-    have : T = Ioc 0 ((2 : ℝ) ^ ε) ×ˢ Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε) := by
-      ext ⟨x, y⟩
-      simp only [mem_Ioc, mem_Icc, mem_setOf_eq, mem_prod, and_congr_left_iff,
-        and_congr_right_iff, and_imp]
-    apply totallyBounded_subset <| closure_mono (this ▸ SsubT)
-    rw [closure_prod_eq, closure_Ioc, closure_Icc]
-    apply IsCompact.totallyBounded <| IsCompact.prod isCompact_Icc isCompact_Icc
-    exact ne_of_lt (by apply rpow_pos_of_pos (by norm_num))
+  have F_supp : F.support ⊆ T := by
+    intro ⟨ x, y⟩ h
+    simp only [Icc_prod_Icc, mem_Icc, Prod.mk_le_mk]
+    contrapose h
+    simp only [mul_ite, mul_one, mul_zero, Function.mem_support, Function.uncurry_apply_pair, ne_eq,
+      mul_eq_zero, div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff,
+      not_not]
+    left; left
+    intro h1 h2
+    simp only [not_and, not_le, and_imp] at h
+    have := DeltaSpikeSupport Ψ εpos suppΨ
+    simp only [Function.support_subset_iff, ne_eq, mem_Icc] at this
+    contrapose this
+    simp only [not_forall, not_and, not_le, exists_prop]
+    use y
+    simp only [this, not_false_eq_true, true_and]
+    intro hy
+    have : 0 < (2 : ℝ) ^ (-ε) := by apply rpow_pos_of_pos; norm_num
+    have ypos : 0 < y := by linarith
+    rw [div_pos_iff] at h1
+    rw [div_le_iff ypos, one_mul] at h2
+    cases h1 with
+    | inl hpos =>
+      obtain ⟨xpos, ypos⟩ := hpos
+      have := h xpos.le hy
+      contrapose this
+      simp only [gt_iff_lt, not_lt, not_forall, exists_prop] at this ⊢
+      simp only [this, and_true]
+      linarith
+    | inr hneg =>
+      obtain ⟨xneg, yneg⟩ := hneg
+      linarith
 
-  have F_supp : F.support = S := by
-    ext ⟨x, y⟩
-    rw [Function.mem_support]
-    constructor
-    all_goals intro h
-    · sorry
-    · sorry
-
-  have F_has_compact_supp: HasCompactSupport F := by rwa [HasCompactSupport, tsupport, F_supp]
-  have int_F_S: IntegrableOn F <| closure S := by
-    refine ContinuousOn.integrableOn_compact S_compact ?_
-    -- perhaps use T instead of closure S?
+  have int_F_T: IntegrableOn F T := by
+    refine ContinuousOn.integrableOn_compact T_compact ?_
     repeat apply ContinuousOn.mul
     -- all_goals intro ⟨x, y⟩ h changes this to ContinuousOnWithinAt
     · sorry
-    · apply ContinuousOn.comp (g := g) (s:= closure S)
+    · apply ContinuousOn.comp (g := g) (s:= T)
       --  (f:=fun (z : ℝ ×ˢ ℝ) => z.1 / z.2) ?_ ?_ ?_
       repeat sorry
     · apply ContinuousOn.comp
@@ -1284,12 +1289,11 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
       · sorry
 
   have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
-    apply IntegrableOn.of_forall_diff_eq_zero int_F_S <| measurableSet_prod.mpr (by left; simp)
+    apply IntegrableOn.of_forall_diff_eq_zero int_F_T <| measurableSet_prod.mpr (by left; simp)
     intro z hz
     contrapose hz
-    have := F_supp ▸ Function.mem_support.mpr hz
-    have := subset_closure (s := S)
-    aesop
+    simp only [mem_diff, F_supp <| Function.mem_support.mpr hz]
+    tauto
 
   have : MellinTransform (MellinConvolution g f) s = MellinTransform g s * MellinTransform f s := by
     rw [mul_comm, ← MellinConvolutionTransform f g s int_F]
