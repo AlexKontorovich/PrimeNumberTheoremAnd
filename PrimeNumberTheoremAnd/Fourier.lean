@@ -118,6 +118,7 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
 
   -- Preliminaries
   have cR {R : ℝ} : Continuous (fun v => v * R⁻¹) := continuous_id.mul continuous_const
+  have vR v : Tendsto (fun R : ℝ => v * R⁻¹) atTop (𝓝 0) := by simpa using tendsto_inv_atTop_zero.const_mul v
 
   -- About f
   let f' v := deriv f v
@@ -189,27 +190,20 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
 
   have l9 R v : 0 ≤ h R v := by simpa [h] using g1 _
   have l10 R v : h R v ≤ 1 := by simpa [h] using g0 _
-  have l11 R v : |h R v| ≤ 1 := by
-    rw [abs_le] ; constructor <;> linarith [l9 R v, l10 R v]
-  have eh v : ∀ᶠ R in atTop, h R v = 0 := by
-    have e1 : Tendsto (fun R => v * R⁻¹) atTop (𝓝 0) := by simpa using tendsto_inv_atTop_zero.const_mul v
-    filter_upwards [e1.eventually evg] with R hR ; simp [h, hR]
-  have eh' v : ∀ᶠ R in atTop, h' R v = 0 := by
-    have e1 : Tendsto (fun R => v * R⁻¹) atTop (𝓝 0) := by simpa using tendsto_inv_atTop_zero.const_mul v
-    filter_upwards [e1.eventually evg'] with R hR ; simp [h', hR]
-  have eh'' v : ∀ᶠ R in atTop, h'' R v = 0 := by
-    have e1 : Tendsto (fun R => v * R⁻¹) atTop (𝓝 0) := by simpa using tendsto_inv_atTop_zero.const_mul v
-    filter_upwards [e1.eventually evg''] with R hR ; simp [h'', hR]
+  have l11 R v : |h R v| ≤ 1 := by rw [abs_le] ; constructor <;> linarith [l9 R v, l10 R v]
+  have eh v : ∀ᶠ R in atTop, h R v = 0 := by filter_upwards [(vR v).eventually evg] with R hR ; simp [h, hR]
+  have eh' v : ∀ᶠ R in atTop, h' R v = 0 := by filter_upwards [(vR v).eventually evg'] with R hR ; simp [h', hR]
+  have eh'' v : ∀ᶠ R in atTop, h'' R v = 0 := by filter_upwards [(vR v).eventually evg''] with R hR ; simp [h'', hR]
 
+  -- Computations
   have l3 R v : HasDerivAt (fun v => h R v * f v) (h' R v * f v + h R v * f' v) v := (dh R v).ofReal_comp.mul (df v)
   have l5 R v : HasDerivAt (fun v => h' R v * f v) (h'' R v * f v + h' R v * f' v) v := (dh' R v).ofReal_comp.mul (df v)
   have l7 R v : HasDerivAt (fun v => h R v * f' v) (h' R v * f' v + h R v * f'' v) v := (dh R v).ofReal_comp.mul (df' v)
-
   have d1 R : deriv (fun v => h R v * f v) = fun v => h' R v * f v + h R v * f' v := funext (fun v => (l3 R v).deriv)
-
   have l16 R v : deriv (deriv (fun v => h R v * f v)) v = h'' R v * f v + 2 * h' R v * f' v + h R v * f'' v := by
     rw [d1] ; convert ((l5 R v).add (l7 R v)).deriv using 1 ; ring
 
+  -- Proof
   convert_to Tendsto (fun R => W21.norm (fun v => h R v * f v)) atTop (𝓝 0) ; simp [h]
   rw [show (0 : ℝ) = 0 + ((4 * π ^ 2)⁻¹ : ℝ) * 0 by simp]
   refine Tendsto.add ?_ (Tendsto.const_mul _ ?_)
