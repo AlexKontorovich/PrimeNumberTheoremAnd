@@ -113,26 +113,52 @@ structure trunc (g : ℝ → ℝ) : Prop :=
   h3 : (Set.Icc (-1) (1)).indicator 1 ≤ g
   h4 : g ≤ Set.indicator (Set.Ioo (-2) (2)) 1
 
-noncomputable def scale (R : ℝ) (g : ℝ → ℝ) (x : ℝ) : ℝ := g (x * R⁻¹)
-
 theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg : trunc g) :
-    Tendsto (fun R => W21.norm (fun v => (1 - scale R g v) * f v)) atTop (𝓝 0) := by
+    Tendsto (fun R => W21.norm (fun v => (1 - g (v * R⁻¹)) * f v)) atTop (𝓝 0) := by
 
+  -- Preliminaries
+  have cR {R : ℝ} : Continuous (fun v => v * R⁻¹) := continuous_id.mul continuous_const
+
+  -- About f
   let f' v := deriv f v
   let f'' v := deriv (deriv f) v
+  have cf : Continuous f := hf.hh.continuous
+  have cf' : Continuous f' := (hf.hh.iterate_deriv' 1 1).continuous
+  have cf'' : Continuous f'' := (hf.hh.iterate_deriv' 0 2).continuous
+  have df v : HasDerivAt f (f' v) v := hf.hh.differentiable one_le_two |>.differentiableAt.hasDerivAt
+  have df' v : HasDerivAt f' (f'' v) v := (hf.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
 
+  -- About g
   let g' v := deriv g v
   let g'' v := deriv (deriv g) v
+  have cg : Continuous g := hg.h1.continuous
+  have cg' : Continuous g' := (hg.h1.iterate_deriv 1).continuous
+  have cg'' : Continuous g'' := (hg.h1.iterate_deriv 2).continuous
+  have dg v : HasDerivAt g (g' v) v := hg.h1.hasStrictDerivAt le_top |>.hasDerivAt
+  have dg' v : HasDerivAt g' (g'' v) v := (hg.h1.iterate_deriv 1).hasStrictDerivAt le_top |>.hasDerivAt
 
-  let h R v := 1 - scale R g v
+  -- About h
+  let h R v := 1 - g (v * R⁻¹)
   let h' R v := - g' (v * R⁻¹) * R⁻¹
   let h'' R v := - g'' (v * R⁻¹) * R⁻¹ * R⁻¹
+  have ch {R} : Continuous (h R) := continuous_const.sub <| cg.comp cR
+  have ch' {R} : Continuous (h' R) := (cg'.comp cR).neg.mul continuous_const
+  have ch'' {R} : Continuous (h'' R) := ((cg''.comp cR).neg.mul continuous_const).mul continuous_const
+  have dh R v : HasDerivAt (h R) (h' R v) v := by
+    simpa [h, h'] using ((dg _).comp _ <| hasDerivAt_mul_const _).const_sub _
+  have dh' R v : HasDerivAt (h' R) (h'' R v) v := by
+    simpa [h', h''] using HasDerivAt.mul_const ((dg' _).comp _ <| hasDerivAt_mul_const _).neg (R⁻¹)
+
+  have l17 : ∃ C1, ∀ R v, ‖h' R v‖ ≤ C1 * R⁻¹ := sorry
+  obtain ⟨C1, l17⟩ := l17
+  have l18 : ∃ C2, ∀ R v, ‖h'' R v‖ ≤ C2 * R⁻¹ * R⁻¹ := sorry
+  obtain ⟨C2, l18⟩ := l18
 
   have l9 R v : 0 ≤ h R v := by
-    simp [h, scale] ; apply (hg.h4 (v * R⁻¹)).trans
+    simp [h] ; apply (hg.h4 (v * R⁻¹)).trans
     by_cases h : v * R⁻¹ ∈ Set.Ioo (-2) 2 <;> simp [h]
   have l10 R v : h R v ≤ 1 := by
-    simp [h, scale] ; refine le_trans ?_ (hg.h3 (v * R⁻¹))
+    simp [h] ; refine le_trans ?_ (hg.h3 (v * R⁻¹))
     by_cases h : v * R⁻¹ ∈ Set.Icc (-1) 1 <;> simp [h]
   have l11 R v : |h R v| ≤ 1 := by
     rw [abs_le] ; constructor <;> linarith [l9 R v, l10 R v]
@@ -141,25 +167,12 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
     have e2 : Set.Icc (-1) 1 ∈ 𝓝 (0 : ℝ) := by apply Icc_mem_nhds <;> linarith
     have : ∀ᶠ R in atTop, v * R⁻¹ ∈ Set.Icc (-1) 1 := e1.eventually_mem e2
     filter_upwards [this] with R hR
-    have : h R v ≤ 0 := by simp [h, scale] ; refine le_trans ?_ (hg.h3 (v * R⁻¹)) ; simp [hR]
+    have : h R v ≤ 0 := by simp [h] ; refine le_trans ?_ (hg.h3 (v * R⁻¹)) ; simp [hR]
     linarith [l9 R v]
 
-  have l4 v : HasDerivAt f (f' v) v := hf.hh.differentiable one_le_two |>.differentiableAt.hasDerivAt
-  have l8 v : HasDerivAt f' (f'' v) v := (hf.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
-
-  have l14 v : HasDerivAt g (g' v) v := hg.h1.hasStrictDerivAt le_top |>.hasDerivAt
-  have l15 v : HasDerivAt g' (g'' v) v := (hg.h1.iterate_deriv 1).hasStrictDerivAt le_top |>.hasDerivAt
-
-  have l1 R v : HasDerivAt (scale R g) (g' (v * R⁻¹) * R⁻¹) v := (l14 _).comp _ <| hasDerivAt_mul_const _
-
-  have l12 R : Continuous (h R) := continuous_const.sub <| hg.h1.continuous.comp <| continuous_id.mul continuous_const
-  have l2 R v : HasDerivAt (h R) (h' R v) v := by simpa [h, h'] using (l1 R v).const_sub 1
-  have l6 R v : HasDerivAt (h' R) (h'' R v) v := by
-    simpa [h', h''] using HasDerivAt.mul_const ((l15 _).comp _ <| hasDerivAt_mul_const _).neg (R⁻¹)
-
-  have l3 R v : HasDerivAt (fun v => h R v * f v) (h' R v * f v + h R v * f' v) v := (l2 R v).ofReal_comp.mul (l4 v)
-  have l5 R v : HasDerivAt (fun v => h' R v * f v) (h'' R v * f v + h' R v * f' v) v := (l6 R v).ofReal_comp.mul (l4 v)
-  have l7 R v : HasDerivAt (fun v => h R v * f' v) (h' R v * f' v + h R v * f'' v) v := (l2 R v).ofReal_comp.mul (l8 v)
+  have l3 R v : HasDerivAt (fun v => h R v * f v) (h' R v * f v + h R v * f' v) v := (dh R v).ofReal_comp.mul (df v)
+  have l5 R v : HasDerivAt (fun v => h' R v * f v) (h'' R v * f v + h' R v * f' v) v := (dh' R v).ofReal_comp.mul (df v)
+  have l7 R v : HasDerivAt (fun v => h R v * f' v) (h' R v * f' v + h R v * f'' v) v := (dh R v).ofReal_comp.mul (df' v)
 
   have d1 R : deriv (fun v => h R v * f v) = fun v => h' R v * f v + h R v * f' v := funext (fun v => (l3 R v).deriv)
 
@@ -169,10 +182,10 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
   convert_to Tendsto (fun R => W21.norm (fun v => h R v * f v)) atTop (𝓝 0) ; simp [h]
   rw [show (0 : ℝ) = 0 + ((4 * π ^ 2)⁻¹ : ℝ) * 0 by simp]
   refine Tendsto.add ?_ (Tendsto.const_mul _ ?_)
-  · let F R v := ‖(fun v ↦ h R v * f v) v‖
+  · let F R v := ‖h R v * f v‖
     have e1 : ∀ᶠ (n : ℝ) in atTop, AEStronglyMeasurable (F n) volume := by
       apply eventually_of_forall ; intro R
-      exact ((continuous_ofReal.comp <| l12 R).mul hf.hh.continuous).norm.aestronglyMeasurable
+      exact ((continuous_ofReal.comp ch).mul hf.hh.continuous).norm.aestronglyMeasurable
     have e2 : ∀ᶠ (n : ℝ) in atTop, ∀ᵐ (a : ℝ), ‖F n a‖ ≤ ‖f a‖ := by
       apply eventually_of_forall ; intro R
       apply eventually_of_forall ; intro v
@@ -182,4 +195,15 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
       apply tendsto_nhds_of_eventually_eq
       filter_upwards [l13 v] with R hR ; simp [F, hR]
     simpa [F] using tendsto_integral_filter_of_dominated_convergence _ e1 e2 hf.hf.norm e4
-  · sorry
+  · simp_rw [l16]
+    let F R v := ‖h'' R v * f v + 2 * h' R v * f' v + h R v * f'' v‖
+    let bound v := C2 * ‖f v‖ + 2 * C1 * ‖f' v‖ + ‖f'' v‖
+    have e1 : ∀ᶠ (n : ℝ) in atTop, AEStronglyMeasurable (F n) volume := by
+      apply eventually_of_forall ; intro R ; refine ((Continuous.add ?_ ?_).add ?_).norm.aestronglyMeasurable
+      · exact (continuous_ofReal.comp ch'').mul cf
+      · exact (continuous_const.mul (continuous_ofReal.comp ch')).mul cf'
+      · exact (continuous_ofReal.comp ch).mul cf''
+    have e2 : ∀ᶠ (n : ℝ) in atTop, ∀ᵐ (a : ℝ), ‖F n a‖ ≤ bound a := sorry
+    have e3 : Integrable bound volume := sorry
+    have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := sorry
+    simpa [F] using tendsto_integral_filter_of_dominated_convergence bound e1 e2 e3 e4
