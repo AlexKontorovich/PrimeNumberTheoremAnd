@@ -2,6 +2,7 @@ import Mathlib.Analysis.Distribution.SchwartzSpace
 import Mathlib.Analysis.Fourier.FourierTransformDeriv
 import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import Mathlib.Topology.ContinuousFunction.Bounded
+import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 
 open FourierTransform Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap VectorFourier
 
@@ -105,3 +106,59 @@ theorem fourierIntegral_self_add_deriv_deriv {f : ℝ → ℂ} (hf : W21 f) (u :
     exact (hf.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
   simp [hf.hf, l1, add_mul, fourierIntegral_deriv l2 hf.hf hf.hf' hf.h3, fourierIntegral_deriv l3 hf.hf' hf.hf'' hf.h4]
   field_simp [pi_ne_zero] ; ring_nf ; simp
+
+structure trunc (g : ℝ → ℝ) : Prop :=
+  h1 : ContDiff ℝ ⊤ g
+  h2 : HasCompactSupport g
+  h3 : (Set.Icc (-1) (1)).indicator 1 ≤ g
+  h4 : g ≤ Set.indicator (Set.Ioo (-2) (2)) 1
+
+noncomputable def scale (R : ℝ) (g : ℝ → ℝ) (x : ℝ) : ℝ := g (x * R⁻¹)
+
+theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg : trunc g) :
+    Tendsto (fun R => W21.norm (fun v => (1 - scale R g v) * f v)) atTop (𝓝 0) := by
+
+  let f' v := deriv f v
+  let f'' v := deriv (deriv f) v
+
+  let g' v := deriv g v
+  let g'' v := deriv (deriv g) v
+
+  let h R v := 1 - scale R g v
+  let h' R v := - (g' (v * R⁻¹) * R⁻¹)
+  let h'' R v := g'' (v * R⁻¹) * R⁻¹ ^ 2
+
+  have l9 R v : 0 ≤ h R v := sorry
+  have l10 R v : h R v ≤ 1 := sorry
+  have l11 R v : |h R v| ≤ 1 := sorry
+
+  have l4 v : HasDerivAt f (f' v) v := hf.hh.differentiable one_le_two |>.differentiableAt.hasDerivAt
+  have l8 v : HasDerivAt f' (f'' v) v := (hf.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
+
+  have l1 R v : HasDerivAt (scale R g) (deriv g (v * R⁻¹) * R⁻¹) v :=
+    (hg.h1.hasStrictDerivAt le_top).hasDerivAt.comp _ <| hasDerivAt_mul_const _
+
+  have l2 R v : HasDerivAt (h R) (h' R v) v := (l1 R v).const_sub _
+  have l6 R v : HasDerivAt (h' R) (h'' R v) v := sorry
+
+  have l3 R v : HasDerivAt (fun v => h R v * f v) (h' R v * f v + h R v * f' v) v := (l2 R v).ofReal_comp.mul (l4 v)
+  have l5 R v : HasDerivAt (fun v => h' R v * f v) (h'' R v * f v + h' R v * f' v) v := (l6 R v).ofReal_comp.mul (l4 v)
+  have l7 R v : HasDerivAt (fun v => h R v * f' v) (h' R v * f' v + h R v * f'' v) v := (l2 R v).ofReal_comp.mul (l8 v)
+
+  have d1 R : deriv (fun v => h R v * f v) = fun v => h' R v * f v + h R v * f' v := funext (fun v => (l3 R v).deriv)
+
+  have computation R v : deriv (deriv (fun v => h R v * f v)) v = h'' R v * f v + 2 * h' R v * f' v + h R v * f'' v := by
+    sorry
+
+  convert_to Tendsto (fun R => W21.norm (fun v => h R v * f v)) atTop (𝓝 0) ; simp [h]
+  rw [show (0 : ℝ) = 0 + ((4 * π ^ 2)⁻¹ : ℝ) * 0 by simp]
+  refine Tendsto.add ?_ (Tendsto.const_mul _ ?_)
+  · let F R v := ‖(fun v ↦ h R v * f v) v‖
+    have e1 : ∀ᶠ (n : ℝ) in atTop, AEStronglyMeasurable (F n) volume := sorry
+    have e2 : ∀ᶠ (n : ℝ) in atTop, ∀ᵐ (a : ℝ), ‖F n a‖ ≤ ‖f a‖ := by
+      apply eventually_of_forall ; intro R
+      apply eventually_of_forall ; intro v
+      simpa [F] using mul_le_mul (l11 R v) le_rfl (by simp) zero_le_one
+    have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := sorry
+    simpa [F] using tendsto_integral_filter_of_dominated_convergence _ e1 e2 hf.hf.norm e4
+  · sorry
