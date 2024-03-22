@@ -147,9 +147,7 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
   have g1 v : g v ≤ 1 := by have := hg.h4 v ; by_cases h : v ∈ Set.Ioo (-2) 2 <;> simp [h] at this <;> linarith
   have evg : g =ᶠ[𝓝 0] 1 := by
     have : Set.Icc (-1) 1 ∈ 𝓝 (0 : ℝ) := by apply Icc_mem_nhds <;> linarith
-    refine eventually_of_mem this (fun x hx => ?_)
-    have e2 : 1 ≤ g x := by simpa [hx] using hg.h3 x
-    apply le_antisymm (g1 x) e2
+    exact eventually_of_mem this (fun x hx => le_antisymm (g1 x) (by simpa [hx] using hg.h3 x))
   have evg' : g' =ᶠ[𝓝 0] 0 := by convert ← evg.deriv ; exact deriv_const' _
   have evg'' : g'' =ᶠ[𝓝 0] 0 := by convert ← evg'.deriv ; exact deriv_const' _
 
@@ -157,51 +155,44 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
   let h R v := 1 - g (v * R⁻¹)
   let h' R v := - g' (v * R⁻¹) * R⁻¹
   let h'' R v := - g'' (v * R⁻¹) * R⁻¹ * R⁻¹
-  have ch {R} : Continuous (h R) := continuous_const.sub <| cg.comp cR
-  have ch' {R} : Continuous (h' R) := (cg'.comp cR).neg.mul continuous_const
-  have ch'' {R} : Continuous (h'' R) := ((cg''.comp cR).neg.mul continuous_const).mul continuous_const
+  have ch {R} : Continuous (fun v => (h R v : ℂ)) := continuous_ofReal.comp <| continuous_const.sub <| cg.comp cR
+  have ch' {R} : Continuous (fun v => (h' R v : ℂ)) := continuous_ofReal.comp <| (cg'.comp cR).neg.mul continuous_const
+  have ch'' {R} : Continuous (fun v => (h'' R v : ℂ)) :=
+    continuous_ofReal.comp <| ((cg''.comp cR).neg.mul continuous_const).mul continuous_const
   have dh R v : HasDerivAt (h R) (h' R v) v := by
     simpa [h, h'] using ((dg _).comp _ <| hasDerivAt_mul_const _).const_sub _
   have dh' R v : HasDerivAt (h' R) (h'' R v) v := by
     simpa [h', h''] using HasDerivAt.mul_const ((dg' _).comp _ <| hasDerivAt_mul_const _).neg (R⁻¹)
-
   have hc1 : ∀ᶠ R in atTop, ∀ v, |h' R v| ≤ c1 := by
     filter_upwards [eventually_ge_atTop 1] with R hR v
     have : 0 ≤ R := by linarith
     simp [h', abs_mul, abs_inv, abs_eq_self.mpr this]
-    rw [mul_inv_le_iff (by linarith)]
-    have := mg' (v * R⁻¹)
-    refine this.trans ?_
-    convert_to (1 * c1 ≤ R * c1) ; simp
-    gcongr
-    exact (abs_nonneg _).trans this
+    convert_to _ ≤ c1 * 1 ; simp
+    apply mul_le_mul (mg' _) (inv_le_of_inv_le (by linarith) (by simpa using hR)) (by positivity)
+    exact (abs_nonneg _).trans (mg' 0)
   have hc2 : ∀ᶠ R in atTop, ∀ v, |h'' R v| ≤ c2 := by
     filter_upwards [eventually_ge_atTop 1] with R hR v
-    have : 0 ≤ R := by linarith
-    simp [h'', abs_mul, abs_inv, abs_eq_self.mpr this, mul_assoc]
+    have e1 : 0 ≤ R := by linarith
+    have e2 : R⁻¹ ≤ 1 := inv_le_of_inv_le (by linarith) (by simpa using hR)
+    simp [h'', abs_mul, abs_inv, abs_eq_self.mpr e1, mul_assoc]
     convert_to _ ≤ c2 * (1 * 1) ; simp
-    apply mul_le_mul (mg'' _) ?_ (by positivity) ?_
-    · apply mul_le_mul
-      · apply inv_le_of_inv_le (by linarith) (by simpa using hR)
-      · apply inv_le_of_inv_le (by linarith) (by simpa using hR)
-      · positivity
-      · exact zero_le_one
-    · exact (abs_nonneg _).trans (mg'' 0)
+    apply mul_le_mul (mg'' _) ?_ (by positivity) ((abs_nonneg _).trans (mg'' 0))
+    exact mul_le_mul e2 e2 (by positivity) zero_le_one
 
-  have l9 R v : 0 ≤ h R v := by simpa [h] using g1 _
-  have l10 R v : h R v ≤ 1 := by simpa [h] using g0 _
-  have l11 R v : |h R v| ≤ 1 := by rw [abs_le] ; constructor <;> linarith [l9 R v, l10 R v]
+  have h0 R v : 0 ≤ h R v := by simpa [h] using g1 _
+  have h1 R v : h R v ≤ 1 := by simpa [h] using g0 _
+  have hh1 R v : |h R v| ≤ 1 := by rw [abs_le] ; constructor <;> linarith [h0 R v, h1 R v]
   have eh v : ∀ᶠ R in atTop, h R v = 0 := by filter_upwards [(vR v).eventually evg] with R hR ; simp [h, hR]
   have eh' v : ∀ᶠ R in atTop, h' R v = 0 := by filter_upwards [(vR v).eventually evg'] with R hR ; simp [h', hR]
   have eh'' v : ∀ᶠ R in atTop, h'' R v = 0 := by filter_upwards [(vR v).eventually evg''] with R hR ; simp [h'', hR]
 
   -- Computations
-  have l3 R v : HasDerivAt (fun v => h R v * f v) (h' R v * f v + h R v * f' v) v := (dh R v).ofReal_comp.mul (df v)
-  have l5 R v : HasDerivAt (fun v => h' R v * f v) (h'' R v * f v + h' R v * f' v) v := (dh' R v).ofReal_comp.mul (df v)
-  have l7 R v : HasDerivAt (fun v => h R v * f' v) (h' R v * f' v + h R v * f'' v) v := (dh R v).ofReal_comp.mul (df' v)
-  have d1 R : deriv (fun v => h R v * f v) = fun v => h' R v * f v + h R v * f' v := funext (fun v => (l3 R v).deriv)
   have l16 R v : deriv (deriv (fun v => h R v * f v)) v = h'' R v * f v + 2 * h' R v * f' v + h R v * f'' v := by
-    rw [d1] ; convert ((l5 R v).add (l7 R v)).deriv using 1 ; ring
+    have l3 v : HasDerivAt (fun v => h R v * f v) (h' R v * f v + h R v * f' v) v := (dh R v).ofReal_comp.mul (df v)
+    have l5 : HasDerivAt (fun v => h' R v * f v) (h'' R v * f v + h' R v * f' v) v := (dh' R v).ofReal_comp.mul (df v)
+    have l7 : HasDerivAt (fun v => h R v * f' v) (h' R v * f' v + h R v * f'' v) v := (dh R v).ofReal_comp.mul (df' v)
+    have d1 : deriv (fun v => h R v * f v) = fun v => h' R v * f v + h R v * f' v := funext (fun v => (l3 v).deriv)
+    rw [d1] ; convert (l5.add l7).deriv using 1 ; ring
 
   -- Proof
   convert_to Tendsto (fun R => W21.norm (fun v => h R v * f v)) atTop (𝓝 0) ; simp [h]
@@ -210,37 +201,32 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
   · let F R v := ‖h R v * f v‖
     have e1 : ∀ᶠ (n : ℝ) in atTop, AEStronglyMeasurable (F n) volume := by
       apply eventually_of_forall ; intro R
-      exact ((continuous_ofReal.comp ch).mul hf.hh.continuous).norm.aestronglyMeasurable
+      exact (ch.mul hf.hh.continuous).norm.aestronglyMeasurable
     have e2 : ∀ᶠ (n : ℝ) in atTop, ∀ᵐ (a : ℝ), ‖F n a‖ ≤ ‖f a‖ := by
       apply eventually_of_forall ; intro R
       apply eventually_of_forall ; intro v
-      simpa [F] using mul_le_mul (l11 R v) le_rfl (by simp) zero_le_one
+      simpa [F] using mul_le_mul (hh1 R v) le_rfl (by simp) zero_le_one
     have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := by
       apply eventually_of_forall ; intro v
-      apply tendsto_nhds_of_eventually_eq
-      filter_upwards [eh v] with R hR ; simp [F, hR]
+      apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh v] with R hR ; simp [F, hR]
     simpa [F] using tendsto_integral_filter_of_dominated_convergence _ e1 e2 hf.hf.norm e4
   · simp_rw [l16]
     let F R v := ‖h'' R v * f v + 2 * h' R v * f' v + h R v * f'' v‖
     let bound v := c2 * ‖f v‖ + 2 * c1 * ‖f' v‖ + ‖f'' v‖
     have e1 : ∀ᶠ (n : ℝ) in atTop, AEStronglyMeasurable (F n) volume := by
-      apply eventually_of_forall ; intro R ; refine ((Continuous.add ?_ ?_).add ?_).norm.aestronglyMeasurable
-      · exact (continuous_ofReal.comp ch'').mul cf
-      · exact (continuous_const.mul (continuous_ofReal.comp ch')).mul cf'
-      · exact (continuous_ofReal.comp ch).mul cf''
+      apply eventually_of_forall ; intro R
+      exact (((ch''.mul cf).add ((continuous_const.mul ch').mul cf')).add (ch.mul cf'')).norm.aestronglyMeasurable
     have e2 : ∀ᶠ (n : ℝ) in atTop, ∀ᵐ (a : ℝ), ‖F n a‖ ≤ bound a := by
       filter_upwards [hc1, hc2] with R hc1 hc2
       apply eventually_of_forall ; intro v ; specialize hc1 v ; specialize hc2 v
       simp only [F, bound, norm_norm]
       refine (norm_add_le _ _).trans ?_ ; apply add_le_add
       · refine (norm_add_le _ _).trans ?_ ; apply add_le_add <;> simp <;> gcongr
-      · simpa using mul_le_mul (l11 R v) le_rfl (by simp) zero_le_one
+      · simpa using mul_le_mul (hh1 R v) le_rfl (by simp) zero_le_one
     have e3 : Integrable bound volume := (((hf.hf.norm).const_mul _).add ((hf.hf'.norm).const_mul _)).add hf.hf''.norm
     have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := by
       apply eventually_of_forall ; intro v
-      apply tendsto_norm_zero.comp
-      change ZeroAtFilter _ _
-      refine (ZeroAtFilter.add ?_ ?_).add ?_
+      refine tendsto_norm_zero.comp <| (ZeroAtFilter.add ?_ ?_).add ?_
       · apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh'' v] with R hR ; simp [hR]
       · apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh' v] with R hR ; simp [hR]
       · apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh v] with R hR ; simp [hR]
