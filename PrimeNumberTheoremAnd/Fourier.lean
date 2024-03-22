@@ -136,6 +136,11 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
   have cg'' : Continuous g'' := (hg.h1.iterate_deriv 2).continuous
   have dg v : HasDerivAt g (g' v) v := hg.h1.hasStrictDerivAt le_top |>.hasDerivAt
   have dg' v : HasDerivAt g' (g'' v) v := (hg.h1.iterate_deriv 1).hasStrictDerivAt le_top |>.hasDerivAt
+  have mg' : ∃ c1, ∀ v, |g' v| ≤ c1 := by
+    obtain ⟨x, hx⟩ := cg'.abs.exists_forall_ge_of_hasCompactSupport hg.h2.deriv.norm ; exact ⟨_, hx⟩
+  have mg'' : ∃ c2, ∀ v, |g'' v| ≤ c2 := by
+    obtain ⟨x, hx⟩ := cg''.abs.exists_forall_ge_of_hasCompactSupport hg.h2.deriv.deriv.norm ; exact ⟨_, hx⟩
+  obtain ⟨c1, mg'⟩ := mg' ; obtain ⟨c2, mg''⟩ := mg''
 
   -- About h
   let h R v := 1 - g (v * R⁻¹)
@@ -149,10 +154,28 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
   have dh' R v : HasDerivAt (h' R) (h'' R v) v := by
     simpa [h', h''] using HasDerivAt.mul_const ((dg' _).comp _ <| hasDerivAt_mul_const _).neg (R⁻¹)
 
-  have hc1 : ∃ c1, ∀ᶠ R in atTop, ∀ v, |h' R v| ≤ c1 := sorry
-  obtain ⟨c1, hc1⟩ := hc1
-  have hc2 : ∃ c2, ∀ᶠ R in atTop, ∀ v, |h'' R v| ≤ c2 := sorry
-  obtain ⟨c2, hc2⟩ := hc2
+  have hc1 : ∀ᶠ R in atTop, ∀ v, |h' R v| ≤ c1 := by
+    filter_upwards [eventually_ge_atTop 1] with R hR v
+    have : 0 ≤ R := by linarith
+    simp [h', abs_mul, abs_inv, abs_eq_self.mpr this]
+    rw [mul_inv_le_iff (by linarith)]
+    have := mg' (v * R⁻¹)
+    refine this.trans ?_
+    convert_to (1 * c1 ≤ R * c1) ; simp
+    gcongr
+    exact (abs_nonneg _).trans this
+  have hc2 : ∀ᶠ R in atTop, ∀ v, |h'' R v| ≤ c2 := by
+    filter_upwards [eventually_ge_atTop 1] with R hR v
+    have : 0 ≤ R := by linarith
+    simp [h'', abs_mul, abs_inv, abs_eq_self.mpr this, mul_assoc]
+    convert_to _ ≤ c2 * (1 * 1) ; simp
+    apply mul_le_mul (mg'' _) ?_ (by positivity) ?_
+    · apply mul_le_mul
+      · apply inv_le_of_inv_le (by linarith) (by simpa using hR)
+      · apply inv_le_of_inv_le (by linarith) (by simpa using hR)
+      · positivity
+      · exact zero_le_one
+    · exact (abs_nonneg _).trans (mg'' 0)
 
   have l9 R v : 0 ≤ h R v := by
     simp [h] ; apply (hg.h4 (v * R⁻¹)).trans
@@ -210,6 +233,6 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
       refine (norm_add_le _ _).trans ?_ ; apply add_le_add
       · refine (norm_add_le _ _).trans ?_ ; apply add_le_add <;> simp <;> gcongr
       · simpa using mul_le_mul (l11 R v) le_rfl (by simp) zero_le_one
-    have e3 : Integrable bound volume := sorry
+    have e3 : Integrable bound volume := (((hf.hf.norm).const_mul _).add ((hf.hf'.norm).const_mul _)).add hf.hf''.norm
     have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := sorry
     simpa [F] using tendsto_integral_filter_of_dominated_convergence bound e1 e2 e3 e4
