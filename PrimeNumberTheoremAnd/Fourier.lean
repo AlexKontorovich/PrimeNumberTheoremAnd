@@ -79,6 +79,8 @@ structure W21 (f : ℝ → ℂ) : Prop where
   h3 : Tendsto f (cocompact ℝ) (𝓝 0)
   h4 : Tendsto (deriv f) (cocompact ℝ) (𝓝 0)
 
+noncomputable def W21.norm (f : ℝ → ℂ) : ℝ := (∫ v, ‖f v‖) + (4 * π ^ 2)⁻¹ * (∫ v, ‖deriv (deriv f) v‖)
+
 noncomputable def W21_of_schwartz (f : 𝓢(ℝ, ℂ)) : W21 f where
   hh := f.smooth 2
   hf := f.integrable
