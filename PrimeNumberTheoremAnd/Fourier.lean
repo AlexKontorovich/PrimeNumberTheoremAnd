@@ -129,7 +129,7 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
   have df' v : HasDerivAt f' (f'' v) v := (hf.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
 
   -- About g
-  let g' v := deriv g v
+  let g' := deriv g
   let g'' v := deriv (deriv g) v
   have cg : Continuous g := hg.h1.continuous
   have cg' : Continuous g' := (hg.h1.iterate_deriv 1).continuous
@@ -141,6 +141,16 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
   have mg'' : ∃ c2, ∀ v, |g'' v| ≤ c2 := by
     obtain ⟨x, hx⟩ := cg''.abs.exists_forall_ge_of_hasCompactSupport hg.h2.deriv.deriv.norm ; exact ⟨_, hx⟩
   obtain ⟨c1, mg'⟩ := mg' ; obtain ⟨c2, mg''⟩ := mg''
+
+  have g0 v : 0 ≤ g v := by have := hg.h3 v ; by_cases h : v ∈ Set.Icc (-1) 1 <;> simp [h] at this <;> linarith
+  have g1 v : g v ≤ 1 := by have := hg.h4 v ; by_cases h : v ∈ Set.Ioo (-2) 2 <;> simp [h] at this <;> linarith
+  have evg : g =ᶠ[𝓝 0] 1 := by
+    have : Set.Icc (-1) 1 ∈ 𝓝 (0 : ℝ) := by apply Icc_mem_nhds <;> linarith
+    refine eventually_of_mem this (fun x hx => ?_)
+    have e2 : 1 ≤ g x := by simpa [hx] using hg.h3 x
+    apply le_antisymm (g1 x) e2
+  have evg' : g' =ᶠ[𝓝 0] 0 := by convert ← evg.deriv ; exact deriv_const' _
+  have evg'' : g'' =ᶠ[𝓝 0] 0 := by convert ← evg'.deriv ; exact deriv_const' _
 
   -- About h
   let h R v := 1 - g (v * R⁻¹)
@@ -177,21 +187,19 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
       · exact zero_le_one
     · exact (abs_nonneg _).trans (mg'' 0)
 
-  have l9 R v : 0 ≤ h R v := by
-    simp [h] ; apply (hg.h4 (v * R⁻¹)).trans
-    by_cases h : v * R⁻¹ ∈ Set.Ioo (-2) 2 <;> simp [h]
-  have l10 R v : h R v ≤ 1 := by
-    simp [h] ; refine le_trans ?_ (hg.h3 (v * R⁻¹))
-    by_cases h : v * R⁻¹ ∈ Set.Icc (-1) 1 <;> simp [h]
+  have l9 R v : 0 ≤ h R v := by simpa [h] using g1 _
+  have l10 R v : h R v ≤ 1 := by simpa [h] using g0 _
   have l11 R v : |h R v| ≤ 1 := by
     rw [abs_le] ; constructor <;> linarith [l9 R v, l10 R v]
-  have l13 v : ∀ᶠ R in atTop, h R v = 0 := by
+  have eh v : ∀ᶠ R in atTop, h R v = 0 := by
     have e1 : Tendsto (fun R => v * R⁻¹) atTop (𝓝 0) := by simpa using tendsto_inv_atTop_zero.const_mul v
-    have e2 : Set.Icc (-1) 1 ∈ 𝓝 (0 : ℝ) := by apply Icc_mem_nhds <;> linarith
-    have : ∀ᶠ R in atTop, v * R⁻¹ ∈ Set.Icc (-1) 1 := e1.eventually_mem e2
-    filter_upwards [this] with R hR
-    have : h R v ≤ 0 := by simp [h] ; refine le_trans ?_ (hg.h3 (v * R⁻¹)) ; simp [hR]
-    linarith [l9 R v]
+    filter_upwards [e1.eventually evg] with R hR ; simp [h, hR]
+  have eh' v : ∀ᶠ R in atTop, h' R v = 0 := by
+    have e1 : Tendsto (fun R => v * R⁻¹) atTop (𝓝 0) := by simpa using tendsto_inv_atTop_zero.const_mul v
+    filter_upwards [e1.eventually evg'] with R hR ; simp [h', hR]
+  have eh'' v : ∀ᶠ R in atTop, h'' R v = 0 := by
+    have e1 : Tendsto (fun R => v * R⁻¹) atTop (𝓝 0) := by simpa using tendsto_inv_atTop_zero.const_mul v
+    filter_upwards [e1.eventually evg''] with R hR ; simp [h'', hR]
 
   have l3 R v : HasDerivAt (fun v => h R v * f v) (h' R v * f v + h R v * f' v) v := (dh R v).ofReal_comp.mul (df v)
   have l5 R v : HasDerivAt (fun v => h' R v * f v) (h'' R v * f v + h' R v * f' v) v := (dh' R v).ofReal_comp.mul (df v)
@@ -216,7 +224,7 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
     have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := by
       apply eventually_of_forall ; intro v
       apply tendsto_nhds_of_eventually_eq
-      filter_upwards [l13 v] with R hR ; simp [F, hR]
+      filter_upwards [eh v] with R hR ; simp [F, hR]
     simpa [F] using tendsto_integral_filter_of_dominated_convergence _ e1 e2 hf.hf.norm e4
   · simp_rw [l16]
     let F R v := ‖h'' R v * f v + 2 * h' R v * f' v + h R v * f'' v‖
@@ -234,5 +242,12 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
       · refine (norm_add_le _ _).trans ?_ ; apply add_le_add <;> simp <;> gcongr
       · simpa using mul_le_mul (l11 R v) le_rfl (by simp) zero_le_one
     have e3 : Integrable bound volume := (((hf.hf.norm).const_mul _).add ((hf.hf'.norm).const_mul _)).add hf.hf''.norm
-    have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := sorry
+    have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := by
+      apply eventually_of_forall ; intro v
+      apply tendsto_norm_zero.comp
+      change ZeroAtFilter _ _
+      refine (ZeroAtFilter.add ?_ ?_).add ?_
+      · apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh'' v] with R hR ; simp [hR]
+      · apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh' v] with R hR ; simp [hR]
+      · apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh v] with R hR ; simp [hR]
     simpa [F] using tendsto_integral_filter_of_dominated_convergence bound e1 e2 e3 e4
