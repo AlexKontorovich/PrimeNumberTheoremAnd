@@ -149,10 +149,10 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
   have dh' R v : HasDerivAt (h' R) (h'' R v) v := by
     simpa [h', h''] using HasDerivAt.mul_const ((dg' _).comp _ <| hasDerivAt_mul_const _).neg (R⁻¹)
 
-  have l17 : ∃ C1, ∀ R v, ‖h' R v‖ ≤ C1 * R⁻¹ := sorry
-  obtain ⟨C1, l17⟩ := l17
-  have l18 : ∃ C2, ∀ R v, ‖h'' R v‖ ≤ C2 * R⁻¹ * R⁻¹ := sorry
-  obtain ⟨C2, l18⟩ := l18
+  have hc1 : ∃ c1, ∀ᶠ R in atTop, ∀ v, |h' R v| ≤ c1 := sorry
+  obtain ⟨c1, hc1⟩ := hc1
+  have hc2 : ∃ c2, ∀ᶠ R in atTop, ∀ v, |h'' R v| ≤ c2 := sorry
+  obtain ⟨c2, hc2⟩ := hc2
 
   have l9 R v : 0 ≤ h R v := by
     simp [h] ; apply (hg.h4 (v * R⁻¹)).trans
@@ -197,13 +197,19 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
     simpa [F] using tendsto_integral_filter_of_dominated_convergence _ e1 e2 hf.hf.norm e4
   · simp_rw [l16]
     let F R v := ‖h'' R v * f v + 2 * h' R v * f' v + h R v * f'' v‖
-    let bound v := C2 * ‖f v‖ + 2 * C1 * ‖f' v‖ + ‖f'' v‖
+    let bound v := c2 * ‖f v‖ + 2 * c1 * ‖f' v‖ + ‖f'' v‖
     have e1 : ∀ᶠ (n : ℝ) in atTop, AEStronglyMeasurable (F n) volume := by
       apply eventually_of_forall ; intro R ; refine ((Continuous.add ?_ ?_).add ?_).norm.aestronglyMeasurable
       · exact (continuous_ofReal.comp ch'').mul cf
       · exact (continuous_const.mul (continuous_ofReal.comp ch')).mul cf'
       · exact (continuous_ofReal.comp ch).mul cf''
-    have e2 : ∀ᶠ (n : ℝ) in atTop, ∀ᵐ (a : ℝ), ‖F n a‖ ≤ bound a := sorry
+    have e2 : ∀ᶠ (n : ℝ) in atTop, ∀ᵐ (a : ℝ), ‖F n a‖ ≤ bound a := by
+      filter_upwards [hc1, hc2] with R hc1 hc2
+      apply eventually_of_forall ; intro v ; specialize hc1 v ; specialize hc2 v
+      simp only [F, bound, norm_norm]
+      refine (norm_add_le _ _).trans ?_ ; apply add_le_add
+      · refine (norm_add_le _ _).trans ?_ ; apply add_le_add <;> simp <;> gcongr
+      · simpa using mul_le_mul (l11 R v) le_rfl (by simp) zero_le_one
     have e3 : Integrable bound volume := sorry
     have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := sorry
     simpa [F] using tendsto_integral_filter_of_dominated_convergence bound e1 e2 e3 e4
