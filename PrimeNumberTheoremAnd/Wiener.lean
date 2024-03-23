@@ -567,7 +567,7 @@ lemma dirichlet_test' {a b : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
   apply bounded_of_shift
   simpa only [summation_by_parts'', sub_eq_add_neg, neg_cumsum, ← mul_neg, neg_nabla] using hAb.add h
 
-lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (hψ : W21 ψ) : Continuous (𝓕 ψ) :=
+@[continuity] lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (hψ : W21 ψ) : Continuous (𝓕 ψ) :=
   VectorFourier.fourierIntegral_continuous continuous_fourierChar (by exact continuous_mul) hψ.hf
 
 lemma exists_antitone_of_eventually {u : ℕ → ℝ} (hu : ∀ᶠ n in atTop, u (n + 1) ≤ u n) :
@@ -1022,6 +1022,49 @@ lemma smooth_urysohn (a b c d : ℝ) (h1 : a < b) (h3 : c < d) : ∃ Ψ : ℝ �
 A standard analysis lemma, which can be proven by convolving $1_K$ with a smooth approximation to the identity for some interval $K$ between $I$ and $J$. Note that we have ``SmoothBumpFunction''s on smooth manifolds in Mathlib, so this shouldn't be too hard...
 \end{proof}
 %%-/
+
+lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ)) :
+    ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x))‖ ≤
+    W21.norm ψ * ∑' (i : ℕ), ‖f i / i * ((1 + (1 / (2 * π) * Real.log (i / x)) ^ 2)⁻¹ : ℂ)‖ := by
+
+  have key1 (n : ℕ) := decay_bounds_key hψ (1 / (2 * π) * log (n / x))
+  have key2 := limiting_fourier_lim1_aux hcheby hx 1 zero_le_one
+  have l4 : Summable fun n ↦ ‖f n / ↑n * (((1 : ℝ) + (↑(Real.log (↑n / x)) * (1 / (2 * ↑π))) ^ 2)⁻¹ : ℂ)‖ := by
+    norm_cast ; simp_rw [norm_mul, norm_div] ; convert key2
+    · simp
+    · rw [Complex.norm_eq_abs, Complex.abs_ofReal, inv_eq_one_div, mul_comm] ; apply abs_eq_self.mpr ; positivity
+  have l2 : Summable fun i ↦ ‖f i / ↑i * (W21.norm ψ * (((1 : ℝ) + (1 / (2 * π) * Real.log (i / x)) ^ 2)⁻¹ : ℂ))‖ := by
+    simp_rw [← mul_assoc, mul_comm (_ / _), mul_assoc, norm_mul _ (_ * _), ← smul_eq_mul (a := ‖_‖)]
+    apply l4.const_smul
+  have l3 i : ‖f i / ↑i * 𝓕 ψ (1 / (2 * π) * Real.log (↑i / x))‖ ≤
+      ‖f i / ↑i * (↑(W21.norm ψ) * ((1 : ℂ) + (1 / (2 * ↑π) * ↑(Real.log (↑i / x))) ^ 2)⁻¹)‖ := by
+    rw [norm_mul, norm_mul] ; gcongr ; convert key1 i
+    simp_rw [norm_mul, Complex.norm_eq_abs, abs_ofReal, abs_eq_self.mpr (W21.norm_nonneg)]
+    congr ; norm_cast ; apply abs_eq_self.mpr ; positivity
+  have l1 : Summable fun i ↦ ‖f i / ↑i * 𝓕 ψ (1 / (2 * π) * Real.log (↑i / x))‖ := by
+    exact l2.of_nonneg_of_le (fun _ => norm_nonneg _) l3
+  refine (norm_tsum_le_tsum_norm l1).trans <| (tsum_mono l1 l2 l3).trans ?_
+  simp_rw [← mul_assoc, mul_comm (_ / _), mul_assoc, norm_mul _ (_ * _), ← smul_eq_mul (a := ‖_‖), tsum_const_smul _ l4]
+  simp [abs_eq_self.mpr (W21.norm_nonneg)] ; apply le_of_eq ; congr ; ext n ; ring
+
+lemma bound_I2 (x : ℝ) (ψ : ℝ → ℂ) (hψ : W21 ψ) :
+    ‖∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))‖ ≤ W21.norm ψ * (2 * π ^ 2) := by
+
+  have key a : ‖𝓕 ψ (a / (2 * π))‖ ≤ W21.norm ψ * (1 + (a / (2 * π)) ^ 2)⁻¹ := decay_bounds_key hψ _
+  have twopi : 0 ≤ 2 * π := by simp [pi_nonneg]
+  have l3 : Integrable (fun a ↦ (1 + (a / (2 * π)) ^ 2)⁻¹) := integrable_inv_one_add_sq.comp_div (by norm_num [pi_ne_zero])
+  have l2 : IntegrableOn (fun i ↦ W21.norm ψ * (1 + (i / (2 * π)) ^ 2)⁻¹) (Ici (-Real.log x)) := by
+    exact (l3.const_mul _).integrableOn
+  have l1 : IntegrableOn (fun i ↦ ‖𝓕 ψ (i / (2 * π))‖) (Ici (-Real.log x)) := by
+    refine ((l3.const_mul (W21.norm ψ)).mono' ?_ ?_).integrableOn
+    · apply Continuous.aestronglyMeasurable ; continuity
+    · simp only [norm_norm, key] ; simp
+  have l5 : 0 ≤ᵐ[volume] fun a ↦ (1 + (a / (2 * π)) ^ 2)⁻¹ := by apply eventually_of_forall ; intro x ; positivity
+  refine (norm_integral_le_integral_norm _).trans <| (set_integral_mono l1 l2 key).trans ?_
+  rw [integral_mul_left] ; gcongr ; apply W21.norm_nonneg
+  refine (set_integral_le_integral l3 l5).trans ?_
+  rw [Measure.integral_comp_div (fun x => (1 + x ^ 2)⁻¹) (2 * π)]
+  simp [abs_eq_self.mpr twopi] ; ring_nf ; rfl
 
 /-%%
 \begin{lemma}[Limiting identity for Schwartz functions]\label{schwarz-id}\lean{limiting_cor_schwartz}\leanok  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.

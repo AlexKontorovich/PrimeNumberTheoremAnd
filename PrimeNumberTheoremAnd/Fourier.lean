@@ -82,6 +82,9 @@ structure W21 (f : ℝ → ℂ) : Prop where
 
 noncomputable def W21.norm (f : ℝ → ℂ) : ℝ := (∫ v, ‖f v‖) + (4 * π ^ 2)⁻¹ * (∫ v, ‖deriv (deriv f) v‖)
 
+lemma W21.norm_nonneg {f : ℝ → ℂ} : 0 ≤ W21.norm f :=
+  add_nonneg (integral_nonneg (fun t => by simp)) (mul_nonneg (by positivity) (integral_nonneg (fun t => by simp)))
+
 noncomputable def W21_of_schwartz (f : 𝓢(ℝ, ℂ)) : W21 f where
   hh := f.smooth 2
   hf := f.integrable
