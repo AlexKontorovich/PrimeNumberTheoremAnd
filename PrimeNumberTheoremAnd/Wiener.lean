@@ -1025,38 +1025,18 @@ A standard analysis lemma, which can be proven by convolving $1_K$ with a smooth
 
 lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ)) :
     ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x))‖ ≤
-    W21.norm ψ * ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ := by
+    W21.norm ψ • ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ := by
 
-  have key1 (n : ℕ) := decay_bounds_key hψ (1 / (2 * π) * log (n / x))
-  have key2 := limiting_fourier_lim1_aux hcheby hx 1 zero_le_one
-  have l4 : Summable fun n ↦ ‖f n / ↑n * (((1 : ℝ) + (↑(Real.log (↑n / x)) * (1 / (2 * ↑π))) ^ 2)⁻¹ : ℂ)‖ := by
-    norm_cast ; simp_rw [norm_mul, norm_div] ; convert key2
-    · simp
-    · rw [Complex.norm_eq_abs, Complex.abs_ofReal, inv_eq_one_div, mul_comm] ; apply abs_eq_self.mpr ; positivity
-  have l2 : Summable fun i ↦ ‖f i / ↑i * (W21.norm ψ * (((1 : ℝ) + (1 / (2 * π) * Real.log (i / x)) ^ 2)⁻¹ : ℂ))‖ := by
-    simp_rw [← mul_assoc, mul_comm (_ / _), mul_assoc, norm_mul _ (_ * _), ← smul_eq_mul (a := ‖_‖)]
-    apply l4.const_smul
-  have l3 i : ‖f i / ↑i * 𝓕 ψ (1 / (2 * π) * Real.log (↑i / x))‖ ≤
-      ‖f i / ↑i * (↑(W21.norm ψ) * ((1 : ℂ) + (1 / (2 * ↑π) * ↑(Real.log (↑i / x))) ^ 2)⁻¹)‖ := by
-    rw [norm_mul, norm_mul] ; gcongr ; convert key1 i
-    simp_rw [norm_mul, Complex.norm_eq_abs, abs_ofReal, abs_eq_self.mpr (W21.norm_nonneg)]
-    congr ; norm_cast ; apply abs_eq_self.mpr ; positivity
-  have l1 : Summable fun i ↦ ‖f i / ↑i * 𝓕 ψ (1 / (2 * π) * Real.log (↑i / x))‖ := by
-    exact l2.of_nonneg_of_le (fun _ => norm_nonneg _) l3
   have l5 : Summable fun i ↦ ‖f i‖ / ↑i * ((1 + (1 / (2 * ↑π) * ↑(Real.log (↑i / x))) ^ 2)⁻¹) := by
-    convert key2 using 3 ; simp
-  refine (norm_tsum_le_tsum_norm l1).trans <| (tsum_mono l1 l2 l3).trans ?_
-  apply le_of_eq
-  rw [← smul_eq_mul (a := W21.norm ψ), ← tsum_const_smul _ l5]
-  congr ; ext n
-  simp_rw [norm_mul]
-  norm_cast
-  simp_rw [Complex.norm_eq_abs, Complex.abs_ofReal, abs_inv]
-  simp [abs_eq_self.mpr (W21.norm_nonneg)]
-  ring_nf
-  congr
-  simp
-  positivity
+    simpa using limiting_fourier_lim1_aux hcheby hx 1 zero_le_one
+  have l6 i : ‖f i / i * 𝓕 ψ (1 / (2 * π) * Real.log (i / x))‖ ≤
+      W21.norm ψ * (‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹) := by
+    convert mul_le_mul_of_nonneg_left (decay_bounds_key hψ (1 / (2 * π) * log (i / x))) (norm_nonneg (f i / i)) using 1
+      <;> simp [norm_mul] ; ring
+  have l1 : Summable fun i ↦ ‖f i / ↑i * 𝓕 ψ (1 / (2 * π) * Real.log (↑i / x))‖ := by
+    exact Summable.of_nonneg_of_le (fun _ => norm_nonneg _) l6 (by simpa using l5.const_smul (W21.norm ψ))
+  apply (norm_tsum_le_tsum_norm l1).trans
+  simpa only [← tsum_const_smul _ l5] using tsum_mono l1 (by simpa using l5.const_smul (W21.norm ψ)) l6
 
 lemma bound_I2 (x : ℝ) (ψ : ℝ → ℂ) (hψ : W21 ψ) :
     ‖∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))‖ ≤ W21.norm ψ * (2 * π ^ 2) := by
