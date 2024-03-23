@@ -43,6 +43,16 @@ lemma MeasureTheory.integral_comp_mul_left_I0i_haar
     ∫ (y : ℝ) in Ioi 0, f (a * y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   convert integral_comp_mul_right_I0i_haar f ha using 5; ring
 
+-- TODO: generalize to `IsROrC`
+lemma MeasureTheory.integral_comp_rpow_I0i_haar_real (f : ℝ → ℝ) {p : ℝ} (hp : p ≠ 0) :
+    ∫ (y : ℝ) in Ioi 0, |p| * f (y ^ p) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
+  have := integral_comp_rpow_Ioi (fun y => f y / y) hp
+  rw [← this, set_integral_congr (by simp)]
+  intro y hy
+  have ypos : 0 < y := mem_Ioi.mp hy
+  field_simp [rpow_sub_one]
+  ring
+
 lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → 𝕂) :
     ∫ (y : ℝ) in Ioi 0, f (1 / y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   have := integral_comp_rpow_Ioi (fun y => f y / y) (p := -1) (by simp)
@@ -374,15 +384,21 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma MellinConvolutionSymmetric (f g : ℝ → ℂ) {x : ℝ} (xpos: 0<x) :
+lemma MellinConvolutionSymmetric (f g : ℝ → 𝕂) {x : ℝ} (xpos: 0 < x) :
     MellinConvolution f g x = MellinConvolution g f x := by
   unfold MellinConvolution
   calc
     _ = ∫ y in Ioi 0, f (y * x) * g (1 / y) / y := ?_
     _ = _ := ?_
   · rw [← integral_comp_mul_right_I0i_haar (fun y => f y * g (x / y)) xpos]
-    congr; funext z; ring_nf; congr
-    rw [mul_assoc, mul_comm, mul_assoc, inv_mul_cancel <| ne_of_gt xpos, mul_one]
+    rw [set_integral_congr (by simp)]
+    intro y hy
+    field_simp
+    congr 3
+    rw [div_eq_div_iff]
+    · ring
+    · exact mul_ne_zero (ne_of_gt (mem_Ioi.mp hy)) <| ne_of_gt xpos
+    · exact ne_of_gt (mem_Ioi.mp hy)
   · have := integral_comp_inv_I0i_haar fun y => f (y * x) * g (1 / y)
     convert this.symm using 3
     rw [one_div_one_div, mul_comm]
@@ -671,6 +687,30 @@ measure.
 \end{proof}
 %%-/
 
+lemma DeltaSpikeSupport (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : 0 < ε) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2):
+    (DeltaSpike Ψ ε).support ⊆ Icc (2 ^ (-ε)) (2 ^ ε) := by
+  unfold DeltaSpike
+  rw [Function.support_subset_iff] at suppΨ ⊢
+  intro x hx
+  simp only [ne_eq, div_eq_zero_iff, ne_of_gt εpos, or_false] at hx
+  have := suppΨ _ hx
+  rw [mem_Icc] at this ⊢
+  obtain ⟨h1, h2⟩ := this
+  have two: 2 = ((2 : ℝ) ^ ε) ^ (1 / ε ) := by
+    rw [← rpow_mul zero_le_two, mul_one_div_cancel (ne_of_gt εpos), rpow_one 2]
+  have xpos : 0 < x := by sorry -- needs care for edge cases
+  have εinvpos : 0 < 1 / ε := by exact one_div_pos.mpr εpos
+  constructor
+  · have half: 1 / 2 = (2 : ℝ) ^ (-1 : ℝ) := by norm_num
+    have : ε * (1 / ε * -1) = -ε * (1 / ε) := by ring
+    rw [half, two, ← rpow_mul, ← rpow_mul, this, rpow_mul] at h1
+    apply (rpow_le_rpow_iff ?_ (le_of_lt xpos) εinvpos).mp h1
+    any_goals apply le_of_lt; apply rpow_pos_of_pos (by norm_num)
+    any_goals norm_num
+  · rw [two] at h2
+    apply (rpow_le_rpow_iff (le_of_lt xpos) ?_ εinvpos).mp h2
+    apply le_of_lt
+    apply rpow_pos_of_pos (by norm_num)
 
 theorem Complex.ofReal_rpow {x : ℝ} (h:x>0) (y: ℝ) : (((x:ℝ) ^ (y:ℝ)):ℝ) = (x:ℂ) ^ (y:ℂ) := by
   rw [rpow_def_of_pos h, ofReal_exp, ofReal_mul, Complex.ofReal_log h.le,
@@ -793,14 +833,12 @@ $$\mathcal{M}(1_{(0,1]})(s) = \frac{1}{s}.$$
 [Note: this already exists in mathlib]
 %%-/
 lemma MellinOf1 (s : ℂ) (h : s.re > 0) :
-    MellinTransform ((fun x => if x ≤ 1 then 1 else 0)) s = 1 / s := by
+    MellinTransform ((fun x => if 0 < x ∧ x ≤ 1 then 1 else 0)) s = 1 / s := by
   convert (hasMellin_one_Ioc h).right using 1
   apply set_integral_congr_ae measurableSet_Ioi
-  filter_upwards with x hx
+  filter_upwards with x _
   rw [smul_eq_mul, mul_comm]
   congr
-  simp only [mem_Ioc, eq_iff_iff, iff_and_self]
-  apply fun _ => hx
 
 /-%%
 \begin{proof}\leanok
@@ -820,7 +858,7 @@ $$\widetilde{1_{\epsilon}} = 1_{(0,1]}\ast\psi_\epsilon.$$
 \end{definition}
 %%-/
 noncomputable def Smooth1 (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
-  MellinConvolution (fun x => if x ≤ 1 then 1 else 0) (DeltaSpike Ψ ε)
+  MellinConvolution (fun x => if 0 < x ∧ x ≤ 1 then 1 else 0) (DeltaSpike Ψ ε)
 
 /-%%
 \begin{lemma}[Smooth1Properties_estimate]\label{Smooth1Properties_estimate}
@@ -920,13 +958,7 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     _ = _ := integral_comp_div_I0i_haar (fun y => DeltaSpike Ψ ε y) xpos
   · rw [set_integral_congr (by simp)]
     intro y hy
-    simp only [indicator]
-    by_cases h : y ≤ 1
-    · rw [if_pos h, if_pos ⟨mem_Ioi.mp hy, h⟩]; simp
-    · have : y ∉ Ioc 0 1 := by
-        simp only [mem_Ioc, not_and, not_le] at h
-        simp [h]
-      rw [if_neg h, if_neg this]; simp
+    by_cases h : y ≤ 1 <;> simp [indicator, mem_Ioi.mp hy, h]
   · rw [set_integral_congr (by simp)]
     intro y hy
     simp only [indicator_apply_eq_self, mem_Ioc, not_and, not_le, div_eq_zero_iff]
@@ -1035,8 +1067,11 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
   simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq]
   apply set_integral_eq_zero_of_forall_eq_zero
   intro y hy
-  by_cases y1 : y ≤ 1; swap; simp [if_neg y1]
-  simp only [if_pos y1, div_eq_zero_iff]; left; left
+  by_cases y1 : y ≤ 1
+  swap
+  · simp [mem_Ioi.mp hy, y1]
+  simp only [mem_Ioi.mp hy, y1, and_self, ↓reduceIte, div_eq_zero_iff]
+  left; left
   have pos : 0 < y ^ (1 / ε) := by apply rpow_pos_of_pos <| mem_Ioi.mp hy
   have ypos := mem_Ioi.mp hy
 
@@ -1093,11 +1128,23 @@ $$
 If $\psi$ is nonnegative, then $\widetilde{1_{\epsilon}}(x)$ is nonnegative.
 \end{lemma}
 %%-/
-lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) (ε : ℝ) :
+lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x, 0 ≤ Ψ x)
+    {ε : ℝ} (εpos : 0 < ε) :
     ∀ (x : ℝ), 0 ≤ Smooth1 Ψ ε x := by
-  sorry
+  unfold Smooth1 MellinConvolution DeltaSpike
+  intro x
+  apply set_integral_nonneg (by simp)
+  intro y hy
+  by_cases h : y ≤ 1
+  <;> simp only [h, ↓reduceIte, one_div, one_mul, IsROrC.ofReal_real_eq_id, id_eq]
+  · field_simp [mem_Ioi.mp hy]
+    apply mul_nonneg
+    · apply Ψnonneg
+    · apply inv_nonneg.mpr <| mul_nonneg εpos.le (mem_Ioi.mp hy).le
+  · simp
+
 /-%%
-\begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike}
+\begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike}\leanok
 By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
 $$
   \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
@@ -1111,13 +1158,55 @@ and all the factors in the integrand are nonnegative.
 If $\psi$ is nonnegative and has mass one, then $\widetilde{1_{\epsilon}}(x)\le 1$, $\forall x>0$.
 \end{lemma}
 %%-/
-lemma Smooth1LeOne {Ψ : ℝ → ℝ}
-    (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
-    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) (ε : ℝ) :
-    ∀ (x : ℝ), 0<x → Smooth1 Ψ ε x ≤ 1 := by
-  sorry
+lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
+    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
+    ∀ (x : ℝ), 0 < x → Smooth1 Ψ ε x ≤ 1 := by
+  unfold Smooth1 MellinConvolution DeltaSpike
+  intro x xpos
+
+  have : ∫ (y : ℝ) in Ioi 0, Ψ ((x / y) ^ (1 / ε)) / ε / y = 1 := by
+    calc
+      _ = ∫ (y : ℝ) in Ioi 0, (Ψ (y ^ (1 / ε)) / ε) / y := ?_
+      _ = ∫ (y : ℝ) in Ioi 0, Ψ y / y := ?_
+      _ = 1 := mass_one
+    · have := integral_comp_div_I0i_haar (fun y => Ψ ((x / y) ^ (1 / ε)) / ε) xpos
+      convert this.symm using 1
+      congr; funext y; congr
+      field_simp [mul_comm]
+    · have := integral_comp_rpow_I0i_haar_real (fun y => Ψ y) (one_div_ne_zero εpos.ne')
+      field_simp [ ← this, abs_of_pos <| one_div_pos.mpr εpos]
+
+  calc
+    _ = ∫ (y : ℝ) in Ioi 0, (fun y ↦ if y ∈ Ioc 0 1 then 1 else 0) y * (Ψ ((x / y) ^ (1 / ε)) / ε / y) := ?_
+    _ ≤ ∫ (y : ℝ) in Ioi 0, (Ψ ((x / y) ^ (1 / ε)) / ε) / y := ?_
+    _ = 1 := this
+  · rw [set_integral_congr (by simp)]
+    simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq, mem_Ioc]
+    intro y hy
+    aesop
+  · refine set_integral_mono_on ?_ ?_ (by simp) ?_
+    · refine Integrable.bdd_mul ?_ ?_ ?_
+      · apply integrable_of_integral_eq_one this
+      · simp only [mem_Ioc]
+        have : (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) = indicator (Ioc 0 1) (1 : ℝ → ℝ) := by
+          aesop
+        rw [this]
+        simp only [measurableSet_Ioc, aestronglyMeasurable_indicator_iff]
+        exact aestronglyMeasurable_one
+      · use 1; aesop
+    · apply integrable_of_integral_eq_one this
+    · simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq]
+      intro y hy
+      by_cases h : y ≤ 1
+      · aesop
+      · field_simp [mem_Ioc, h, and_false, reduceIte]
+        apply mul_nonneg
+        · apply Ψnonneg
+          apply rpow_pos_of_pos <| div_pos xpos <| mem_Ioi.mp hy
+        · apply inv_nonneg.mpr <| mul_nonneg εpos.le (mem_Ioi.mp hy).le
+
 /-%%
-\begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike,SmoothExistence}
+\begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike,SmoothExistence}\leanok
 By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
 $$
   \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
@@ -1144,14 +1233,114 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) =
 \frac{1}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
 \end{lemma}
 %%-/
-lemma MellinOfSmooth1a (Ψ : ℝ → ℝ)
-    -- (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
-    -- (mass_one : ∫ x in Ici 0, Ψ x / x = 1)
+lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) :
     MellinTransform ((Smooth1 Ψ ε) ·) s = 1 / s * MellinTransform (Ψ ·) (ε * s) := by
-  dsimp [Smooth1]
---  rw [MellinConvolutionTransform, MellinOf1 _ hs, MellinOfDeltaSpike Ψ (εpos) s]
-  sorry
+  let f : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x
+  let g : ℝ → ℂ := fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0
+  let F : ℝ × ℝ → ℂ := Function.uncurry fun x y ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
+  let T := Icc 0 ((2 : ℝ) ^ ε) ×ˢ Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)
+  let Ty := Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)
+  have T_compact : IsCompact T := IsCompact.prod isCompact_Icc isCompact_Icc
+
+  have F_supp : F.support ⊆ T := by
+    intro ⟨x, y⟩ h
+    contrapose h
+    simp only [Icc_prod_Icc, mem_Icc, Prod.mk_le_mk, not_and, not_le, and_imp] at h
+    simp only [mul_ite, mul_one, mul_zero, Function.mem_support, Function.uncurry_apply_pair, ne_eq,
+      mul_eq_zero, div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff,
+      not_not]
+    left; left
+    intro h1 h2
+    have suppDelta := DeltaSpikeSupport Ψ εpos suppΨ
+    contrapose suppDelta
+    simp only [Function.support_subset_iff, ne_eq, mem_Icc, not_forall, not_and, not_le, exists_prop]
+    use y
+    simp only [suppDelta, not_false_eq_true, true_and]
+    intro hy
+    rewrite [div_pos_iff] at h1
+    cases h1 with
+    | inl hpos =>
+      obtain ⟨xpos, ypos⟩ := hpos
+      have := h xpos.le hy
+      contrapose this
+      simp only [gt_iff_lt, not_lt] at this
+      simp only [not_forall, not_lt, exists_prop, this, and_true]
+      linarith [(div_le_iff ypos).mp h2]
+    | inr hneg => linarith [(show 0 < (2 : ℝ) ^ (-ε) by apply rpow_pos_of_pos; norm_num)]
+
+  have F_supp_y (x : ℝ): (fun y ↦ F ⟨x, y⟩).support ⊆ Ty := by
+    intro y hy
+    contrapose hy
+    rw [Function.nmem_support]
+    simp only [mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair, mul_eq_zero,
+      div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff, ne_eq]
+    left; left
+    intro h1 h2
+    have suppDelta := DeltaSpikeSupport Ψ εpos suppΨ
+    contrapose suppDelta
+    simp only [Function.support_subset_iff, ne_eq, mem_Icc, not_forall, not_and, not_le, exists_prop]
+    use y
+    simp at hy
+    simpa only [suppDelta, not_false_eq_true, true_and]
+
+  have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
+    -- refine Integrable.integrableOn <| (integrableOn_iff_integrable_of_support_subset F_supp).mp ?_
+    apply Integrable.integrableOn
+    apply (integrable_prod_iff' ?_).mpr
+    constructor
+    · apply eventually_of_forall
+      intro y
+      simp
+      apply Integrable.bdd_mul
+      · have := (intervalIntegral.integrableOn_Ioo_cpow_iff (t := ((2 : ℝ) ^ ε))
+        (s := s - 1) (by apply rpow_pos_of_pos (by norm_num))).mpr (by simpa)
+      -- refine IntegrableOn.integrable this
+        sorry
+      · -- refine Continuous.aestronglyMeasurable ?_
+        -- apply Continuous.div
+        sorry
+      · use ‖(DeltaSpike Ψ ε y / y)‖
+        intro x
+        by_cases h : 0 < x / y ∧ x / y ≤ 1 <;> simp [h]
+        apply div_nonneg <;> apply abs_nonneg
+
+    · -- apply IntegrableOn.integrable (s := Ty) (f := fun y ↦ ∫ (x : ℝ), ‖F (x, y)‖)
+      -- have : IntegrableOn (fun y ↦ F (x, y)) Ty := sorry
+      -- refine IntegrableOn.integrable this
+      -- apply Continuous.integrable_of_hasCompactSupport
+      apply (integrableOn_iff_integrable_of_support_subset (s := Ty) ?_).mp
+      apply ContinuousOn.integrableOn_compact isCompact_Icc
+      · sorry
+      · intro y hy
+        contrapose hy
+        simp only [Function.nmem_support, not_and, not_le, not_lt, not_false_iff, not_not]
+        apply (integral_eq_zero_iff_of_nonneg ?_ ?_).mpr
+        · sorry
+        · simp only [Pi.le_def, Pi.zero_apply, norm_nonneg, forall_const]
+        · apply (integrable_norm_iff ?_).mpr
+          · sorry
+          · sorry
+    · sorry
+
+  have : MellinTransform (MellinConvolution g f) s = MellinTransform g s * MellinTransform f s := by
+    rw [mul_comm, ← MellinConvolutionTransform f g s int_F]
+    dsimp [MellinTransform]
+    rw [set_integral_congr (by simp)]
+    intro x hx
+    simp only [mul_eq_mul_right_iff, cpow_eq_zero_iff, ofReal_eq_zero, ne_eq]
+    constructor
+    apply MellinConvolutionSymmetric
+    exact mem_Ioi.mp hx
+
+  convert this using 1
+  · congr
+    funext x
+    convert integral_ofReal.symm
+    simp only [MellinConvolution, IsROrC.ofReal_div, ite_mul, one_mul, zero_mul, @apply_ite ℝ ℂ,
+      algebraMap.coe_zero]
+    rfl
+  · rw [MellinOf1 s hs, MellinOfDeltaSpike Ψ εpos s]
 /-%%
 \begin{proof}\uses{Smooth1,MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1, MellinConvolutionSymmetric}
 By Definition \ref{Smooth1},
