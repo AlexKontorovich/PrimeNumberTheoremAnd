@@ -772,11 +772,24 @@ lemma nnabla_bound (C : ℝ) {x : ℝ} (hx : 0 < x) :
   field_simp
   exact nnabla_bound_aux hx
 
-lemma limiting_fourier_lim1_aux (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ))
+def chebyWith (C : ℝ) (f : ℕ → ℂ) : Prop := ∀ n, cumsum (‖f ·‖) n ≤ C * n
+
+def cheby (f : ℕ → ℂ) : Prop := ∃ C, chebyWith C f
+
+lemma cheby.bigO (h : cheby f) : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ) := by
+  have l1 : 0 ≤ cumsum (‖f ·‖) := cumsum_nonneg (fun _ => norm_nonneg _)
+  obtain ⟨C, hC⟩ := h
+  apply isBigO_of_le' (c := C) atTop
+  intro n
+  rw [Real.norm_eq_abs, abs_eq_self.mpr (l1 n)]
+  simpa using hC n
+
+lemma limiting_fourier_lim1_aux (hcheby : cheby f)
     (hx : 0 < x) (C : ℝ) (hC : 0 ≤ C) :
     Summable fun n ↦ ‖f n‖ / ↑n * (C / (1 + (1 / (2 * π) * Real.log (↑n / x)) ^ 2)) := by
 
   let a (n : ℕ) := (C / (1 + (Real.log (↑n / x) / (2 * π)) ^ 2) / ↑n)
+  replace hcheby := hcheby.bigO
 
   have l1 : shift (cumsum (‖f ·‖)) =O[atTop] (fun n : ℕ => (↑(n + 1) : ℝ)) :=
     hcheby.comp_tendsto <| tendsto_add_atTop_nat 1
@@ -823,7 +836,7 @@ lemma limiting_fourier_lim1_aux (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) :
       refine ⟨this, ?_, ?_⟩ <;> linarith
     field_simp ; ring
 
-theorem limiting_fourier_lim1 (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ)) (hψ : W21 ψ) (hx : 0 < x) :
+theorem limiting_fourier_lim1 (hcheby : cheby f) (hψ : W21 ψ) (hx : 0 < x) :
     Tendsto (fun σ' : ℝ ↦ ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))) (𝓝[>] 1)
       (𝓝 (∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x)))) := by
 
@@ -943,7 +956,7 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re})
     · exact eventually_nhdsWithin_of_forall (fun x (hx : 1 < x) => by simp [hx.le])
 
 -- Here compact support is needed to use `limiting_fourier_lim3` and `limiting_fourier_aux`
-lemma limiting_fourier (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ))
+lemma limiting_fourier (hcheby : cheby f)
     (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
@@ -990,7 +1003,7 @@ lemma limiting_cor_aux {f : ℝ → ℂ} : Tendsto (fun x : ℝ ↦ ∫ t, f t *
   exact (tendsto_neg_atBot_iff.mpr tendsto_log_atTop).atBot_mul_const (inv_pos.mpr two_pi_pos)
 
 lemma limiting_cor (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ)
-    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ))
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
     (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))) atTop (nhds 0) := by
@@ -1023,7 +1036,50 @@ A standard analysis lemma, which can be proven by convolving $1_K$ with a smooth
 \end{proof}
 %%-/
 
-lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → ℝ)) :
+lemma one_div_sub_one (n : ℕ) : 1 / (↑(n - 1) : ℝ) ≤ 2 / n := by
+  match n with
+  | 0 => simp
+  | 1 => simp
+  | n + 2 => { norm_cast ; rw [div_le_div_iff] <;> simp [mul_add] <;> linarith }
+
+lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
+    ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ 2 * C + C * 37 := by
+
+  let g (i : ℕ) := 1 / (i : ℝ) * (1 + (1 / (2 * π) * Real.log (i / x)) ^ 2)⁻¹
+  let F (n : ℕ) := cumsum (‖f ·‖) n
+
+  have l1 n : |g n| ≤ 1 / n := by
+    unfold_let
+    match n with
+    | 0 => simp
+    | n + 1 => sorry
+    simp [abs_mul]
+    have := mul_le_mul (le_refl (1 / (n : ℝ)))
+    sorry
+  have l2 n : |g (n - 1)| ≤ 2 / n := (l1 (n - 1)).trans (one_div_sub_one n)
+  have l3 n : 0 ≤ F n := by apply cumsum_nonneg (fun _ => norm_nonneg _)
+  have l4 : 0 ≤ C := by simpa [cumsum] using hf 1
+
+  apply Real.tsum_le_of_sum_range_le (fun n => by positivity) ; intro n
+  convert_to ∑ i in Finset.range n, (g i • ‖f i‖) ≤ _
+  · congr ; ext i ; simp ; ring
+  rw [Finset.sum_range_by_parts]
+  convert_to g (n - 1) * F n - ∑ i in _, (g (i + 1) - g i) * F (i + 1) ≤ _
+
+  apply le_of_abs_le
+  apply (abs_sub _ _).trans
+  apply _root_.add_le_add
+  · rw [abs_mul, abs_eq_self.mpr (l3 n)]
+    apply mul_le_mul (l2 n) (hf n) (l3 n) (by positivity) |>.trans
+    cases n with
+    | zero => simp [l4]
+    | succ n =>
+      field_simp
+      rw [div_le_iff (by positivity)]
+      ring_nf ; rfl
+  · sorry
+
+lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cheby f) :
     ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x))‖ ≤
     W21.norm ψ • ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ := by
 
