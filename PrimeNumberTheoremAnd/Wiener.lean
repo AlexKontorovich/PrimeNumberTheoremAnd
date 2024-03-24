@@ -1042,17 +1042,39 @@ lemma one_div_sub_one (n : ℕ) : 1 / (↑(n - 1) : ℝ) ≤ 2 / n := by
   | 1 => simp
   | n + 2 => { norm_cast ; rw [div_le_div_iff] <;> simp [mul_add] <;> linarith }
 
-lemma quadratic_pos (a b c x : ℝ) (ha : 0 < a) (hΔ : discrim a b c < 0) : 0 < a * x * x + b * x + c := by
-  have l1 : a * x * x + b * x + c = a * (x + b / (2 * a)) ^ 2 - discrim a b c / (4 * a) := by
+lemma quadratic_pos (a b c x : ℝ) (ha : 0 < a) (hΔ : discrim a b c < 0) : 0 < a * x ^ 2 + b * x + c := by
+  have l1 : a * x ^ 2 + b * x + c = a * (x + b / (2 * a)) ^ 2 - discrim a b c / (4 * a) := by
     field_simp [discrim] ; ring
   have l2 : 0 < - discrim a b c := by linarith
   rw [l1, sub_eq_add_neg, ← neg_div] ; positivity
 
+noncomputable def pp (a x : ℝ) : ℝ := a ^ 2 * (x + 1) ^ 2 + (1 - a) * (1 + a)
+
+noncomputable def pp' (a x : ℝ) : ℝ := a ^ 2 * (2 * (x + 1))
+
+lemma pp_pos {a : ℝ} (ha : a ∈ Ioo (-1) 1) (x : ℝ) : 0 < pp a x := by
+  simp [pp]
+  have : 0 < 1 - a := by linarith [ha.2]
+  have : 0 < 1 + a := by linarith [ha.1]
+  positivity
+
+lemma pp_deriv (a x : ℝ) : HasDerivAt (pp a) (pp' a x) x := by
+  simpa using hasDerivAt_id x |>.add_const 1 |>.pow 2 |>.const_mul _ |>.add_const _
+
+lemma pp_deriv_eq (a : ℝ) : deriv (pp a) = pp' a := by
+  ext x ; exact pp_deriv a x |>.deriv
+
+lemma pp'_deriv (a x : ℝ) : HasDerivAt (pp' a) (a ^ 2 * 2) x := by
+  simpa using hasDerivAt_id x |>.add_const 1 |>.const_mul 2 |>.const_mul (a ^ 2)
+
+lemma pp'_deriv_eq (a : ℝ) : deriv (pp' a) = fun _ => a ^ 2 * 2 := by
+  ext x ; exact pp'_deriv a x |>.deriv
+
 noncomputable def hh (a t : ℝ) : ℝ := (t * (1 + (a * log t) ^ 2))⁻¹
 
-noncomputable def hh' (a t : ℝ) : ℝ := -(1 + 2 * a ^ 2 * log t + a ^ 2 * log t ^ 2) * hh a t ^ 2
+noncomputable def hh' (a t : ℝ) : ℝ := - pp a (log t) * hh a t ^ 2
 
-lemma hh_nonneg {a t : ℝ} (ht : 0 ≤ t) : 0 ≤ hh a t := by dsimp only [hh] ; positivity
+lemma hh_nonneg (a : ℝ) {t : ℝ} (ht : 0 ≤ t) : 0 ≤ hh a t := by dsimp only [hh] ; positivity
 
 lemma hh_le (a t : ℝ) (ht : 0 ≤ t) : |hh a t| ≤ t⁻¹ := by
   by_cases h0 : t = 0 ; simp [hh, h0]
@@ -1064,7 +1086,7 @@ lemma hh_le (a t : ℝ) (ht : 0 ≤ t) : |hh a t| ≤ t⁻¹ := by
   rw [abs_eq_self.mpr (by positivity)]
   simp ; positivity
 
-lemma hh_deriv (a t : ℝ) (ht : t ≠ 0) : HasDerivAt (hh a) (hh' a t) t := by
+lemma hh_deriv (a : ℝ) {t : ℝ} (ht : t ≠ 0) : HasDerivAt (hh a) (hh' a t) t := by
   have e1 : t * (1 + (a * log t) ^ 2) ≠ 0 := mul_ne_zero ht (_root_.ne_of_lt (by positivity)).symm
   have l5 : HasDerivAt (fun t : ℝ => log t) t⁻¹ t := Real.hasDerivAt_log ht
   have l4 : HasDerivAt (fun t : ℝ => a * log t) (a * t⁻¹) t := l5.const_mul _
@@ -1074,25 +1096,49 @@ lemma hh_deriv (a t : ℝ) (ht : t ≠ 0) : HasDerivAt (hh a) (hh' a t) t := by
   have l1 : HasDerivAt (fun t : ℝ => t * (1 + (a * log t) ^ 2))
       (1 + 2 * a ^ 2 * log t + a ^ 2 * log t ^ 2) t := by
     convert (hasDerivAt_id t).mul l2 using 1 ; field_simp ; ring
-  convert l1.inv e1 using 1 ; field_simp [hh', hh]
+  convert l1.inv e1 using 1 ; field_simp [hh', hh, pp] ; ring
 
 lemma hh_continuous (a : ℝ) : ContinuousOn (hh a) (Ioi 0) :=
-  fun t (ht : 0 < t) => (hh_deriv a t ht.ne.symm).continuousAt.continuousWithinAt
+  fun t (ht : 0 < t) => (hh_deriv a ht.ne.symm).continuousAt.continuousWithinAt
 
--- lemma hh'_le
+lemma hh'_nonpos {a x : ℝ} (ha : a ∈ Ioo (-1) 1) : hh' a x ≤ 0 := by
+  have := pp_pos ha (log x)
+  have := hh_nonneg a (sq_nonneg x)
+  simp [hh'] ; positivity
 
-lemma hh_incr (a u v : ℝ) (hu : 0 < u) (huv : u < v) : |hh a v - hh a u| ≤ 1 * (v - u) := by
+lemma hh_antitone {a : ℝ} (ha : a ∈ Ioo (-1) 1) : AntitoneOn (hh a) (Ioi 0) := by
+  have l1 x (hx : x ∈ interior (Ioi 0)) : HasDerivWithinAt (hh a) (hh' a x) (interior (Ioi 0)) x := by
+    have : x ≠ 0 := by contrapose! hx ; simp [hx]
+    exact (hh_deriv a this).hasDerivWithinAt
+  apply antitoneOn_of_hasDerivWithinAt_nonpos (convex_Ioi _) (hh_continuous _) l1 (fun x _ => hh'_nonpos ha)
+
+lemma hh_increment (a u v : ℝ) (hu : 0 < u) (huv : u < v) (ha : a ∈ Ioo (-1) 1) :
+    |hh a v - hh a u| ≤ max (pp a (log u)) (pp a (log v)) * (hh a u) ^ 2 * (v - u) := by
   have l1 : ContinuousOn (hh a) (Icc u v) := (hh_continuous a).mono <| (Icc_subset_Ioi_iff huv.le).mpr hu
-  have l2 t : t ∈ Ioo u v → HasDerivAt (hh a) (hh' a t) t := fun ⟨ht1, ht2⟩ => hh_deriv a t (by linarith)
+  have l2 t : t ∈ Ioo u v → HasDerivAt (hh a) (hh' a t) t := fun ⟨ht1, _⟩ => hh_deriv a (by linarith)
   have l3 : 0 ≤ v - u := by linarith
+  have l5 : 0 ≤ max (pp a (Real.log u)) (pp a (Real.log v)) := by simp [pp_pos ha (log u) |>.le]
+  have l4 : 0 ≤ max (pp a (Real.log u)) (pp a (Real.log v)) * hh a u ^ 2 := by positivity
 
-  obtain ⟨w, hw1, hw2⟩ := exists_hasDerivAt_eq_slope (hh a) (hh' a) huv l1 l2
-  rw [eq_div_iff (by linarith)] at hw2 ; rw [← hw2, abs_mul, abs_eq_self.mpr l3]
-  apply mul_le_mul ?_ le_rfl l3 zero_le_one
+  obtain ⟨w, ⟨hw1, hw2⟩, hw3⟩ := exists_hasDerivAt_eq_slope (hh a) (hh' a) huv l1 l2
+  rw [eq_div_iff (by linarith)] at hw3 ; rw [← hw3, abs_mul, abs_eq_self.mpr l3]
+  apply mul_le_mul ?_ le_rfl l3 l4
 
-  sorry
+  rw [hh', abs_mul, _root_.abs_pow, abs_neg, abs_eq_self.mpr (hh_nonneg a (by linarith))]
+  have : hh a w ^ 2 ≤ hh a u ^ 2 := by
+    refine sq_le_sq' ?_ <| hh_antitone ha hu (hu.trans hw1) hw1.le
+    have := hh_nonneg a hu.le
+    have := hh_nonneg a (hu.trans hw1).le
+    linarith
+  apply mul_le_mul ?_ this (by positivity) l5
+  rw [abs_eq_self.mpr (pp_pos ha _).le]
+  refine ConvexOn.le_max_of_mem_Icc ?_ ⟨log_le_log hu hw1.le, log_le_log (hu.trans hw1) hw2.le⟩
+  refine ConvexOn.subset (t := univ) ?_ (by simp) (convex_Icc _ _)
 
-#exit
+  apply convexOn_univ_of_deriv2_nonneg
+  · intro x ; exact (pp_deriv a x).differentiableAt
+  · rw [pp_deriv_eq] ; intro x ; exact (pp'_deriv a x).differentiableAt
+  · intro x ; simp [pp_deriv_eq, pp'_deriv_eq, sq_nonneg]
 
 noncomputable def gg (x i : ℝ) : ℝ := 1 / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹
 
@@ -1105,6 +1151,14 @@ lemma gg_l1 {x : ℝ} (hx : 0 < x) (n : ℕ) : |gg x n| ≤ 1 / n := by
   apply mul_le_mul le_rfl (hh_le _ _ (by positivity)) (by positivity) (by positivity) |>.trans (le_of_eq ?_)
   simp [abs_inv, abs_eq_self.mpr hx.le] ; field_simp
 
+lemma one_div_two_pi_mem_Ioo : 1 / (2 * π) ∈ Ioo (-1) 1 := by
+  constructor
+  · trans 0 ; linarith ; positivity
+  · rw [div_lt_iff (by positivity)]
+    convert_to 1 * 1 < 2 * π ; simp ; simp
+    apply mul_lt_mul one_lt_two ?_ zero_lt_one zero_le_two
+    trans 2 ; exact one_le_two ; exact two_le_pi
+
 lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ 2 * C + C * 37 := by
 
@@ -1115,6 +1169,31 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
   have l2 n : |g (n - 1)| ≤ 2 / n := (l1 (n - 1)).trans (one_div_sub_one n)
   have l3 n : 0 ≤ F n := by apply cumsum_nonneg (fun _ => norm_nonneg _)
   have l4 : 0 ≤ C := by simpa [cumsum] using hf 1
+  have l6 : 1 / (2 * π) ∈ Ioo (-1) 1 := one_div_two_pi_mem_Ioo
+  have l7 (i : ℕ) : F (i + 1) ≤ C * (2 * i) := by
+    by_cases hi : i = 0 ; simp [hi, F, cumsum]
+    replace hi := Nat.one_le_iff_ne_zero.mpr hi
+    apply hf _ |>.trans
+    apply mul_le_mul le_rfl ?_ (by positivity) l4
+    norm_cast
+    exact add_one_le_two_mul hi
+
+  have l5 (i : ℕ) : |x⁻¹ * (hh (1 / (2 * π)) (↑(i + 1) / x) - hh (1 / (2 * π)) (↑i / x)) * F (i + 1)| ≤
+      x⁻¹ * (max (pp (1 / (2 * π)) (Real.log (↑i / x))) (pp (1 / (2 * π)) (Real.log (↑(i + 1) / x))) *
+      hh (1 / (2 * π)) (↑i / x) ^ 2 * (↑(i + 1) / x - ↑i / x)) * (C * (2 * i)) := by
+    by_cases hi : i = 0 ; simp [hi, hh, F, cumsum]
+    replace hi : 0 < i := Nat.pos_of_ne_zero hi
+    simp_rw [abs_mul, abs_inv, abs_eq_self.mpr (l3 _), abs_eq_self.mpr (zero_le_one.trans hx)]
+    refine mul_le_mul ?_ (by simpa using l7 i) (l3 _) ?_
+    refine mul_le_mul le_rfl ?_ (by positivity) (by positivity)
+    · exact hh_increment (1 / (2 * π)) (↑i / x) (↑(i + 1) / x) (by positivity)
+        (div_lt_div_right (by positivity) |>.mpr (by simp)) l6
+    · apply mul_nonneg (by positivity)
+      apply mul_nonneg
+      · apply mul_nonneg
+        · simp only [le_max_iff, pp_pos l6 (log (i / x)) |>.le, true_or]
+        · positivity
+      · field_simp ; positivity
 
   apply Real.tsum_le_of_sum_range_le (fun n => by positivity) ; intro n
   convert_to ∑ i in Finset.range n, (g i • ‖f i‖) ≤ _
@@ -1135,6 +1214,14 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
       ring_nf ; rfl
   · have : x ≠ 0 := by linarith
     simp_rw [g, gg_of_hh _ _ this, ← mul_sub]
+    apply Finset.abs_sum_le_sum_abs _ _ |>.trans
+    apply Finset.sum_le_sum (fun i hi => l5 i) |>.trans
+    simp only [mul_inv_rev, cast_add, cast_one, _root_.add_div, add_sub_cancel']
+    convert_to ∑ i in Finset.range (n - 1),
+      C * x⁻¹ ^ 2 * 2 * (max (pp (1 / (2 * π)) (Real.log (i / x))) (pp (1 / (2 * π)) (Real.log ((i + 1) / x))) *
+        hh (1 / (2 * π)) (i / x) ^ 2 * i) ≤ _
+    · congr ; ext i ; simp [_root_.add_div] ; ring
+    rw [← Finset.mul_sum]
     sorry
 
 lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cheby f) :
