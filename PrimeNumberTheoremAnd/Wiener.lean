@@ -1042,7 +1042,17 @@ lemma one_div_sub_one (n : ℕ) : 1 / (↑(n - 1) : ℝ) ≤ 2 / n := by
   | 1 => simp
   | n + 2 => { norm_cast ; rw [div_le_div_iff] <;> simp [mul_add] <;> linarith }
 
+lemma quadratic_pos (a b c x : ℝ) (ha : 0 < a) (hΔ : discrim a b c < 0) : 0 < a * x * x + b * x + c := by
+  have l1 : a * x * x + b * x + c = a * (x + b / (2 * a)) ^ 2 - discrim a b c / (4 * a) := by
+    field_simp [discrim] ; ring
+  have l2 : 0 < - discrim a b c := by linarith
+  rw [l1, sub_eq_add_neg, ← neg_div] ; positivity
+
 noncomputable def hh (a t : ℝ) : ℝ := (t * (1 + (a * log t) ^ 2))⁻¹
+
+noncomputable def hh' (a t : ℝ) : ℝ := -(1 + 2 * a ^ 2 * log t + a ^ 2 * log t ^ 2) * hh a t ^ 2
+
+lemma hh_nonneg {a t : ℝ} (ht : 0 ≤ t) : 0 ≤ hh a t := by dsimp only [hh] ; positivity
 
 lemma hh_le (a t : ℝ) (ht : 0 ≤ t) : |hh a t| ≤ t⁻¹ := by
   by_cases h0 : t = 0 ; simp [hh, h0]
@@ -1054,8 +1064,7 @@ lemma hh_le (a t : ℝ) (ht : 0 ≤ t) : |hh a t| ≤ t⁻¹ := by
   rw [abs_eq_self.mpr (by positivity)]
   simp ; positivity
 
-lemma hh_deriv (a t : ℝ) (ht : t ≠ 0) : HasDerivAt (hh a)
-    (-(1 + 2 * a ^ 2 * log t + a ^ 2 * log t ^ 2) / (t * (1 + (a * log t) ^ 2)) ^ 2) t := by
+lemma hh_deriv (a t : ℝ) (ht : t ≠ 0) : HasDerivAt (hh a) (hh' a t) t := by
   have e1 : t * (1 + (a * log t) ^ 2) ≠ 0 := mul_ne_zero ht (_root_.ne_of_lt (by positivity)).symm
   have l5 : HasDerivAt (fun t : ℝ => log t) t⁻¹ t := Real.hasDerivAt_log ht
   have l4 : HasDerivAt (fun t : ℝ => a * log t) (a * t⁻¹) t := l5.const_mul _
@@ -1065,7 +1074,25 @@ lemma hh_deriv (a t : ℝ) (ht : t ≠ 0) : HasDerivAt (hh a)
   have l1 : HasDerivAt (fun t : ℝ => t * (1 + (a * log t) ^ 2))
       (1 + 2 * a ^ 2 * log t + a ^ 2 * log t ^ 2) t := by
     convert (hasDerivAt_id t).mul l2 using 1 ; field_simp ; ring
-  exact l1.inv e1
+  convert l1.inv e1 using 1 ; field_simp [hh', hh]
+
+lemma hh_continuous (a : ℝ) : ContinuousOn (hh a) (Ioi 0) :=
+  fun t (ht : 0 < t) => (hh_deriv a t ht.ne.symm).continuousAt.continuousWithinAt
+
+-- lemma hh'_le
+
+lemma hh_incr (a u v : ℝ) (hu : 0 < u) (huv : u < v) : |hh a v - hh a u| ≤ 1 * (v - u) := by
+  have l1 : ContinuousOn (hh a) (Icc u v) := (hh_continuous a).mono <| (Icc_subset_Ioi_iff huv.le).mpr hu
+  have l2 t : t ∈ Ioo u v → HasDerivAt (hh a) (hh' a t) t := fun ⟨ht1, ht2⟩ => hh_deriv a t (by linarith)
+  have l3 : 0 ≤ v - u := by linarith
+
+  obtain ⟨w, hw1, hw2⟩ := exists_hasDerivAt_eq_slope (hh a) (hh' a) huv l1 l2
+  rw [eq_div_iff (by linarith)] at hw2 ; rw [← hw2, abs_mul, abs_eq_self.mpr l3]
+  apply mul_le_mul ?_ le_rfl l3 zero_le_one
+
+  sorry
+
+#exit
 
 noncomputable def gg (x i : ℝ) : ℝ := 1 / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹
 
