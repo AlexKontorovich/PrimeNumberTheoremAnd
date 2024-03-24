@@ -1044,12 +1044,10 @@ lemma one_div_sub_one (n : ℕ) : 1 / (↑(n - 1) : ℝ) ≤ 2 / n := by
 
 noncomputable def hh (a t : ℝ) : ℝ := (t * (1 + (a * log t) ^ 2))⁻¹
 
-lemma hh_deriv (a t : ℝ) (ht : 0 < t) : HasDerivAt (hh a)
+lemma hh_deriv (a t : ℝ) (ht : t ≠ 0) : HasDerivAt (hh a)
     (-(1 + 2 * a ^ 2 * log t + a ^ 2 * log t ^ 2) / (t * (1 + (a * log t) ^ 2)) ^ 2) t := by
-  have e2 : 0 < t * (1 + (a * log t) ^ 2) := by positivity
-  have e1 : t * (1 + (a * log t) ^ 2) ≠ 0 := e2.ne.symm
-
-  have l5 : HasDerivAt (fun t : ℝ => log t) t⁻¹ t := Real.hasDerivAt_log ht.ne.symm
+  have e1 : t * (1 + (a * log t) ^ 2) ≠ 0 := mul_ne_zero ht (_root_.ne_of_lt (by positivity)).symm
+  have l5 : HasDerivAt (fun t : ℝ => log t) t⁻¹ t := Real.hasDerivAt_log ht
   have l4 : HasDerivAt (fun t : ℝ => a * log t) (a * t⁻¹) t := l5.const_mul _
   have l3 : HasDerivAt (fun t : ℝ => (a * log t) ^ 2) (2 * a ^ 2 * t⁻¹ * log t) t := by
     convert l4.pow 2 using 1 ; ring
