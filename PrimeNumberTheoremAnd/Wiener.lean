@@ -1042,27 +1042,45 @@ lemma one_div_sub_one (n : ℕ) : 1 / (↑(n - 1) : ℝ) ≤ 2 / n := by
   | 1 => simp
   | n + 2 => { norm_cast ; rw [div_le_div_iff] <;> simp [mul_add] <;> linarith }
 
+noncomputable def hh (a t : ℝ) : ℝ := (t * (1 + (a * log t) ^ 2))⁻¹
+
+lemma hh_deriv (a t : ℝ) (ht : 0 < t) : HasDerivAt (hh a)
+    (-(1 + 2 * a ^ 2 * log t + a ^ 2 * log t ^ 2) / (t * (1 + (a * log t) ^ 2)) ^ 2) t := by
+  have e2 : 0 < t * (1 + (a * log t) ^ 2) := by positivity
+  have e1 : t * (1 + (a * log t) ^ 2) ≠ 0 := e2.ne.symm
+
+  have l5 : HasDerivAt (fun t : ℝ => log t) t⁻¹ t := Real.hasDerivAt_log ht.ne.symm
+  have l4 : HasDerivAt (fun t : ℝ => a * log t) (a * t⁻¹) t := l5.const_mul _
+  have l3 : HasDerivAt (fun t : ℝ => (a * log t) ^ 2) (2 * a ^ 2 * t⁻¹ * log t) t := by
+    convert l4.pow 2 using 1 ; ring
+  have l2 : HasDerivAt (fun t : ℝ => 1 + (a * log t) ^ 2) (2 * a ^ 2 * t⁻¹ * log t) t := l3.const_add _
+  have l1 : HasDerivAt (fun t : ℝ => t * (1 + (a * log t) ^ 2))
+      (1 + 2 * a ^ 2 * log t + a ^ 2 * log t ^ 2) t := by
+    convert (hasDerivAt_id t).mul l2 using 1 ; field_simp ; ring
+  exact l1.inv e1
+
+noncomputable def gg (x i : ℝ) : ℝ := 1 / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹
+
+lemma gg_of_hh (x i : ℝ) (hx : x ≠ 0) : gg x i = x⁻¹ * hh (1 / (2 * π)) (i / x) := by
+  by_cases hi : i = 0 ; simp [gg, hh, hi]
+  field_simp [gg, hh] ; ring
+
+lemma gg_l1 {x : ℝ} (n : ℕ) : |gg x n| ≤ 1 / n := sorry
+
 lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ 2 * C + C * 37 := by
 
-  let g (i : ℕ) := 1 / (i : ℝ) * (1 + (1 / (2 * π) * Real.log (i / x)) ^ 2)⁻¹
+  let g (n : ℕ) := gg x n
   let F (n : ℕ) := cumsum (‖f ·‖) n
 
-  have l1 n : |g n| ≤ 1 / n := by
-    unfold_let
-    match n with
-    | 0 => simp
-    | n + 1 => sorry
-    simp [abs_mul]
-    have := mul_le_mul (le_refl (1 / (n : ℝ)))
-    sorry
+  have l1 (n : ℕ) : |g n| ≤ 1 / n := gg_l1 n
   have l2 n : |g (n - 1)| ≤ 2 / n := (l1 (n - 1)).trans (one_div_sub_one n)
   have l3 n : 0 ≤ F n := by apply cumsum_nonneg (fun _ => norm_nonneg _)
   have l4 : 0 ≤ C := by simpa [cumsum] using hf 1
 
   apply Real.tsum_le_of_sum_range_le (fun n => by positivity) ; intro n
   convert_to ∑ i in Finset.range n, (g i • ‖f i‖) ≤ _
-  · congr ; ext i ; simp ; ring
+  · congr ; ext i ; simp [g, gg] ; ring
   rw [Finset.sum_range_by_parts]
   convert_to g (n - 1) * F n - ∑ i in _, (g (i + 1) - g i) * F (i + 1) ≤ _
 
@@ -1077,7 +1095,9 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
       field_simp
       rw [div_le_iff (by positivity)]
       ring_nf ; rfl
-  · sorry
+  · have : x ≠ 0 := by linarith
+    simp_rw [g, gg_of_hh _ _ this, ← mul_sub]
+    sorry
 
 lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cheby f) :
     ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x))‖ ≤
