@@ -1044,6 +1044,16 @@ lemma one_div_sub_one (n : ℕ) : 1 / (↑(n - 1) : ℝ) ≤ 2 / n := by
 
 noncomputable def hh (a t : ℝ) : ℝ := (t * (1 + (a * log t) ^ 2))⁻¹
 
+lemma hh_le (a t : ℝ) (ht : 0 ≤ t) : |hh a t| ≤ t⁻¹ := by
+  by_cases h0 : t = 0 ; simp [hh, h0]
+  replace ht : 0 < t := lt_of_le_of_ne ht (by tauto)
+  unfold hh
+  rw [abs_inv, inv_le_inv (by positivity) ht, abs_mul, abs_eq_self.mpr ht.le]
+  convert_to t * 1 ≤ _ ; simp
+  apply mul_le_mul le_rfl ?_ zero_le_one ht.le
+  rw [abs_eq_self.mpr (by positivity)]
+  simp ; positivity
+
 lemma hh_deriv (a t : ℝ) (ht : t ≠ 0) : HasDerivAt (hh a)
     (-(1 + 2 * a ^ 2 * log t + a ^ 2 * log t ^ 2) / (t * (1 + (a * log t) ^ 2)) ^ 2) t := by
   have e1 : t * (1 + (a * log t) ^ 2) ≠ 0 := mul_ne_zero ht (_root_.ne_of_lt (by positivity)).symm
@@ -1063,7 +1073,10 @@ lemma gg_of_hh (x i : ℝ) (hx : x ≠ 0) : gg x i = x⁻¹ * hh (1 / (2 * π)) 
   by_cases hi : i = 0 ; simp [gg, hh, hi]
   field_simp [gg, hh] ; ring
 
-lemma gg_l1 {x : ℝ} (n : ℕ) : |gg x n| ≤ 1 / n := sorry
+lemma gg_l1 {x : ℝ} (hx : 0 < x) (n : ℕ) : |gg x n| ≤ 1 / n := by
+  simp [gg_of_hh _ _ hx.ne.symm, abs_mul]
+  apply mul_le_mul le_rfl (hh_le _ _ (by positivity)) (by positivity) (by positivity) |>.trans (le_of_eq ?_)
+  simp [abs_inv, abs_eq_self.mpr hx.le] ; field_simp
 
 lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ 2 * C + C * 37 := by
@@ -1071,7 +1084,7 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
   let g (n : ℕ) := gg x n
   let F (n : ℕ) := cumsum (‖f ·‖) n
 
-  have l1 (n : ℕ) : |g n| ≤ 1 / n := gg_l1 n
+  have l1 (n : ℕ) : |g n| ≤ 1 / n := gg_l1 (by linarith) n
   have l2 n : |g (n - 1)| ≤ 2 / n := (l1 (n - 1)).trans (one_div_sub_one n)
   have l3 n : 0 ≤ F n := by apply cumsum_nonneg (fun _ => norm_nonneg _)
   have l4 : 0 ≤ C := by simpa [cumsum] using hf 1
