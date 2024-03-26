@@ -1104,22 +1104,16 @@ lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
   filter_upwards [Fmap hsmem, hc] with s hs h
 
   rw [MellinOfSmooth1a Ψ εpos ?_]
-  swap
-  · simp only [map_mul, abs_ofReal, mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero,
-    preimage_setOf_eq, mem_setOf_eq] at hs
-    have := lt_of_lt_of_le σ₁pos hs.2.1
-    simp [εpos] at this
-    exact this
-  simp only [Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one, map_mul, map_div₀, map_one,
-    norm_mul, norm_pow, abs_of_pos, εpos]
-  have : c * (1 / (ε * (Complex.abs s) ^ 2)) = 1 / Complex.abs s * c / (ε * Complex.abs s) := by
-    ring_nf
-  rw [this]; clear this
-  conv => rhs; rw [← mul_div]
-  apply mul_le_mul_of_nonneg_left ?_ (div_nonneg (by norm_num) (AbsoluteValue.nonneg Complex.abs s))
-  simp only [Complex.norm_eq_abs, Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one] at h
-  simp_rw [← Complex.norm_eq_abs] at h ⊢
-  sorry
+  · simp only [Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one, map_mul, map_div₀, map_one,
+      norm_mul, norm_pow, abs_of_pos, εpos]
+    rw [(by ring : c * (1 / (ε * (Complex.abs s) ^ 2)) = 1 / Complex.abs s * c / (ε * Complex.abs s))]
+    conv => rhs; rw [← mul_div]
+    apply mul_le_mul_of_nonneg_left ?_ (div_nonneg (by norm_num) (AbsoluteValue.nonneg Complex.abs s))
+    simp only [Complex.norm_eq_abs, Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one] at h
+    simp_rw [← Complex.norm_eq_abs] at h ⊢
+    sorry
+  · simp only [preimage_setOf_eq, mem_setOf_eq, mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero] at hs
+    exact (mul_pos_iff_of_pos_left εpos).mp <| (mul_pos_iff_of_pos_left εpos).mp <| lt_of_lt_of_le σ₁pos hs.2.1
 /-%%
 \begin{proof}\uses{MellinOfSmooth1a, MellinOfPsi}
 Use Lemma \ref{MellinOfSmooth1a} and the bound in Lemma \ref{MellinOfPsi}.
