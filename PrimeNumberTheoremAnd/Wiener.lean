@@ -460,6 +460,10 @@ def shift (u : α → E) (n : α) : E := u (n + 1)
 
 @[simp] lemma cumsum_zero [AddCommMonoid E] {u : ℕ → E} : cumsum u 0 = 0 := by simp [cumsum]
 
+lemma cumsum_succ [AddCommMonoid E] {u : ℕ → E} (n : ℕ) :
+    cumsum u (n + 1) = cumsum u n + u n := by
+  simp [cumsum, Finset.sum_range_succ]
+
 @[simp] lemma nabla_cumsum [AddCommGroup E] {u : ℕ → E} : nabla (cumsum u) = u := by
   ext n ; simp [nabla, cumsum, Finset.range_succ]
 
@@ -1320,8 +1324,6 @@ lemma bound_I2 (x : ℝ) (ψ : ℝ → ℂ) (hψ : W21 ψ) :
 lemma sum_telescopic (a : ℕ → ℝ) (n : ℕ) : ∑ i in Finset.range n, (a (i + 1) - a i) = a n - a 0 := by
   apply Finset.sum_range_sub
 
-
-
 lemma cancel_aux {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hg : 0 ≤ g)
     (hf' : ∀ n, cumsum f n ≤ C * n) (hg' : Antitone g) (n : ℕ) :
     ∑ i in Finset.range n, f i * g i ≤ g (n - 1) * (C * n) + (C * (↑(n - 1 - 1) + 1) * g 0
@@ -1362,7 +1364,12 @@ lemma cancel_aux' {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hg : 0 ≤ g)
   have := cancel_aux hf hg hf' hg' n ; simp [← Finset.mul_sum, sum_range_succ] at this
   convert this using 1 ; unfold cumsum ; ring
 
-#exit
+lemma cancel_main {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hg : 0 ≤ g)
+    (hf' : ∀ n, cumsum f n ≤ C * n) (hg' : Antitone g) (n : ℕ) (hn : 2 ≤ n) :
+    cumsum (f * g) n ≤ C * cumsum g n := by
+  convert cancel_aux' hf hg hf' hg' n using 1
+  match n with
+  | n + 2 => simp [cumsum_succ] ; ring
 
 /-%%
 \begin{lemma}[Limiting identity for Schwartz functions]\label{schwarz-id}\lean{limiting_cor_schwartz}\leanok  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.

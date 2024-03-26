@@ -18,3 +18,4 @@ blueprint/*.tex
 !blueprint/web.tex
 !blueprint/blueprint.tex
 !blueprint/print.tex
+.vscode/settings.json
