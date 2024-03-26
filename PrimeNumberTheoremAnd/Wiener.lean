@@ -1371,6 +1371,16 @@ lemma cancel_main {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hg : 0 ≤ g)
   match n with
   | n + 2 => simp [cumsum_succ] ; ring
 
+lemma cancel_main' {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hf0 : f 0 = 0) (hg : 0 ≤ g)
+    (hf' : ∀ n, cumsum f n ≤ C * n) (hg' : Antitone g) (n : ℕ) :
+    cumsum (f * g) n ≤ C * cumsum g n := by
+  match n with
+  | 0 => simp [cumsum]
+  | 1 => specialize hg 0 ; specialize hf' 1 ; simp [cumsum, hf0] at hf' hg ⊢ ; positivity
+  | n + 2 => convert cancel_aux' hf hg hf' hg' (n + 2) using 1 ; simp [cumsum_succ] ; ring
+
+#exit
+
 /-%%
 \begin{lemma}[Limiting identity for Schwartz functions]\label{schwarz-id}\lean{limiting_cor_schwartz}\leanok  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.
 \end{lemma}
