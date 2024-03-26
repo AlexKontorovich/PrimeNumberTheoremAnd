@@ -542,6 +542,8 @@ lemma mem_cocompact_within_strip (σ₁ σ₂ r : ℝ):
       aesop
   · use {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}
     aesop
+
+lemma mem_within_strip (σ₁ σ₂ : ℝ): {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} := by simp
 /-%%
 The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at
 least) like $1/|s|$.
@@ -558,7 +560,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (hσ : σ₁ < σ₂) :
     (fun s ↦ Complex.abs (MellinTransform (Ψ ·) s))
-    =O[cocompact ℂ ⊓ Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂})]
+    =O[Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂})]
       fun s ↦ 1 / Complex.abs s := by
 
   let g {s : ℂ} (hs : s ≠ 0) := fun (x : ℝ)  ↦ x ^ s / s
@@ -637,8 +639,14 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
   obtain ⟨a, ha⟩ := fbound
   rw [Asymptotics.isBigO_iff]
   use f a * 2 ^ σ₂
-  filter_upwards [mem_cocompact_within_strip σ₁ σ₂ 0] with s hs
+  filter_upwards [mem_within_strip σ₁ σ₂] with s hs
   unfold MellinTransform
+  have : s ≠ 0 := by
+    have := hs.1
+    contrapose this
+    simp only [ne_eq, not_not] at this
+    rw [this]
+    simpa only [zero_re, not_le]
   rewrite [key (by aesop)]
   simp only [neg_mul, map_neg_eq_map, map_mul, map_div₀, map_one, norm_mul, norm_div, norm_one,
     Real.norm_eq_abs, Complex.abs_abs, abs_ofReal]
@@ -1087,45 +1095,36 @@ lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (hσ : σ₁ < σ₂)
     (ε : ℝ) (εpos : 0 < ε) :
     (fun (s : ℂ) ↦ Complex.abs (MellinTransform ((Smooth1 Ψ ε) ·) s))
-      =O[cocompact ℂ ⊓ Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂})]
+      =O[Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂})]
       fun s ↦ 1 / (ε * (Complex.abs s) ^ 2) := by
-  have := MellinOfPsi diffΨ suppΨ σ₁pos hσ
+  have := MellinOfPsi diffΨ suppΨ (σ₁ := ε * σ₁) (σ₂ := ε * σ₂) (Real.mul_pos εpos σ₁pos) ((mul_lt_mul_left εpos).mpr hσ)
   rw [Asymptotics.isBigO_iff] at this ⊢
   obtain ⟨c, hc⟩ := this
   use c
-  have hsmem := mem_cocompact_within_strip σ₁ σ₂ 0
-  have hsmem2 := mem_cocompact_within_strip σ₁ σ₂ (-1 : ℝ)
-  have hsmem3 : {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈ cocompact ℂ ⊓ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} := sorry
-
-  let F := Filter.map (fun (s:ℂ) => (ε * s)) (cocompact ℂ ⊓ Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}))
-  let F := fun (s : ℂ) => (ε * s)
-  have Fmap := (Filter.mem_map (m := F) (f := (cocompact ℂ ⊓ Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂})))
-    (t := {s | 0 < Complex.abs (ε * s) ∧ σ₁ ≤ (ε * s).re ∧ (ε * s).re ≤ σ₂})).mpr
-  have : (F⁻¹' {s | 0 < Complex.abs (ε * s) ∧ σ₁ ≤ (ε * s).re ∧ (ε * s).re ≤ σ₂}) =
-      {s | 0 < Complex.abs s ∧ σ₁ ≤ s.re ∧ s.re ≤ σ₂} := by sorry
-  rw [this] at Fmap
-
-  have hc2 : ∀ᶠ (x : ℂ) in map F (cocompact ℂ ⊓ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}),
-      ‖Complex.abs (MellinTransform (fun x ↦ ↑(Ψ x)) x)‖ ≤ c * ‖1 / Complex.abs x‖ := by
-    convert hc using 1
-    sorry
-  have := Filter.eventually_map.mp hc2
-  filter_upwards [Fmap hsmem, this] with s hs h
+  simp only [Function.support_subset_iff, ne_eq, mem_Icc, Real.norm_eq_abs, Complex.abs_abs,
+    norm_div, norm_one, eventually_principal, mem_setOf_eq, and_imp, norm_mul, norm_pow] at *
+  intro s h1 h2
 
   rw [MellinOfSmooth1a Ψ εpos ?_]
   · simp only [Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one, map_mul, map_div₀, map_one,
       norm_mul, norm_pow, abs_of_pos, εpos]
-    rw [(by ring : c * (1 / (ε * (Complex.abs s) ^ 2)) = 1 / Complex.abs s * c / (ε * Complex.abs s))]
-    conv => rhs; rw [← mul_div]
+
+    have : ‖MellinTransform (fun x ↦ ↑(Ψ x)) (↑ε * s)‖ ≤ c * (1 / ‖↑ε * s‖) := by
+      refine hc (ε * s) ?_ ?_
+      simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
+      exact (mul_le_mul_left εpos).mpr h1
+      simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
+      exact (mul_le_mul_left εpos).mpr h2
+
+    simp only [← Complex.norm_eq_abs] at *
+    rw [(by ring : c * (1 / (ε * ‖s‖ ^ 2)) = (1 / ‖s‖) * (c / (ε * ‖s‖)))]
     apply mul_le_mul_of_nonneg_left ?_ (div_nonneg (by norm_num) (AbsoluteValue.nonneg Complex.abs s))
-    simp only [Complex.norm_eq_abs, Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one] at h
-    convert h using 1
-    simp only [map_mul, abs_ofReal, abs_of_pos εpos]
+    convert this using 1
+    simp only [Complex.norm_eq_abs, map_mul, abs_ofReal, abs_of_pos εpos]
     ring
-  · simp only [preimage_setOf_eq, mem_setOf_eq, mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero] at hs
-    exact (mul_pos_iff_of_pos_left εpos).mp <| (mul_pos_iff_of_pos_left εpos).mp <| lt_of_lt_of_le σ₁pos hs.2.1
+  · exact nonempty_Ioc.mp (Exists.intro σ₁ { left := σ₁pos, right := h1 })
 /-%%
-\begin{proof}\uses{MellinOfSmooth1a, MellinOfPsi}
+\begin{proof}\uses{MellinOfSmooth1a, MellinOfPsi}\leanok
 Use Lemma \ref{MellinOfSmooth1a} and the bound in Lemma \ref{MellinOfPsi}.
 \end{proof}
 %%-/
