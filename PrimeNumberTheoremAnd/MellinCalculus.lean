@@ -1094,14 +1094,23 @@ lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
   obtain ⟨c, hc⟩ := this
   use c
   have hsmem := mem_cocompact_within_strip σ₁ σ₂ 0
+  have hsmem2 := mem_cocompact_within_strip σ₁ σ₂ (-1 : ℝ)
+  have hsmem3 : {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈ cocompact ℂ ⊓ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} := sorry
 
   let F := Filter.map (fun (s:ℂ) => (ε * s)) (cocompact ℂ ⊓ Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}))
-  have Fmap:= (Filter.mem_map (m := fun (s:ℂ) => (ε * s)) (f := (cocompact ℂ ⊓ Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂})))
+  let F := fun (s : ℂ) => (ε * s)
+  have Fmap := (Filter.mem_map (m := F) (f := (cocompact ℂ ⊓ Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂})))
     (t := {s | 0 < Complex.abs (ε * s) ∧ σ₁ ≤ (ε * s).re ∧ (ε * s).re ≤ σ₂})).mpr
-  have : ((fun (s:ℂ) ↦ ε * s) ⁻¹' {s | 0 < Complex.abs (ε * s) ∧ σ₁ ≤ (ε * s).re ∧ (ε * s).re ≤ σ₂}) =
+  have : (F⁻¹' {s | 0 < Complex.abs (ε * s) ∧ σ₁ ≤ (ε * s).re ∧ (ε * s).re ≤ σ₂}) =
       {s | 0 < Complex.abs s ∧ σ₁ ≤ s.re ∧ s.re ≤ σ₂} := by sorry
   rw [this] at Fmap
-  filter_upwards [Fmap hsmem, hc] with s hs h
+
+  have hc2 : ∀ᶠ (x : ℂ) in map F (cocompact ℂ ⊓ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}),
+      ‖Complex.abs (MellinTransform (fun x ↦ ↑(Ψ x)) x)‖ ≤ c * ‖1 / Complex.abs x‖ := by
+    convert hc using 1
+    sorry
+  have := Filter.eventually_map.mp hc2
+  filter_upwards [Fmap hsmem, this] with s hs h
 
   rw [MellinOfSmooth1a Ψ εpos ?_]
   · simp only [Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one, map_mul, map_div₀, map_one,
@@ -1110,8 +1119,9 @@ lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     conv => rhs; rw [← mul_div]
     apply mul_le_mul_of_nonneg_left ?_ (div_nonneg (by norm_num) (AbsoluteValue.nonneg Complex.abs s))
     simp only [Complex.norm_eq_abs, Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one] at h
-    simp_rw [← Complex.norm_eq_abs] at h ⊢
-    sorry
+    convert h using 1
+    simp only [map_mul, abs_ofReal, abs_of_pos εpos]
+    ring
   · simp only [preimage_setOf_eq, mem_setOf_eq, mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero] at hs
     exact (mul_pos_iff_of_pos_left εpos).mp <| (mul_pos_iff_of_pos_left εpos).mp <| lt_of_lt_of_le σ₁pos hs.2.1
 /-%%
