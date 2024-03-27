@@ -1341,15 +1341,15 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
     apply hfi.mono_set
     apply Icc_subset_Icc ; linarith ; simp
 
-lemma hh_integrable {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
-    IntegrableOn (fun t ↦ a * hh b (t / c)) (Ici 0) := by
+lemma hh_integrable_aux {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
+    (IntegrableOn (fun t ↦ a * hh b (t / c)) (Ici 0)) ∧
+    (∫ (t : ℝ) in Ioi 0, a * hh b (t / c) = a * c / b * π) := by
+
   simp only [integrableOn_Ici_iff_integrableOn_Ioi, hh]
 
   let g (x : ℝ) := (a * c / b) * arctan (b * log (x / c))
-  let g₀ (x : ℝ) := if x = 0 then ((a * c / b) * (- π / 2)) else g x
+  let g₀ (x : ℝ) := if x = 0 then ((a * c / b) * (- (π / 2))) else g x
   let g' (x : ℝ) := a * (x / c * (1 + (b * Real.log (x / c)) ^ 2))⁻¹
-
-  convert_to IntegrableOn g' _
 
   have l3 (x) (hx : 0 < x) : HasDerivAt Real.log x⁻¹ x := by apply Real.hasDerivAt_log (by linarith)
   have l4 (x) : HasDerivAt (fun t => t / c) (1 / c) x := (hasDerivAt_id x).div_const c
@@ -1380,10 +1380,24 @@ lemma hh_integrable {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     apply Tendsto.atTop_div_const hc
     apply tendsto_id
 
-  have k2 : Tendsto g₀ (𝓝[>] 0) (𝓝 (g₀ 0)) := sorry
+  have k2 : Tendsto g₀ (𝓝[>] 0) (𝓝 (g₀ 0)) := by
+    have : g =ᶠ[𝓝[>] 0] g₀ := by
+      apply eventually_of_mem self_mem_nhdsWithin
+      intro x (hx : 0 < x) ; simp [g₀, hx.ne.symm]
+    simp only [g₀]
+    apply Tendsto.congr' this
+    apply Tendsto.const_mul
+    apply (tendsto_arctan_atBot.mono_right nhdsWithin_le_nhds).comp
+    apply Tendsto.const_mul_atBot hb
+    apply tendsto_log_nhdsWithin_zero_right.comp
+    rw [Metric.tendsto_nhdsWithin_nhdsWithin]
+    intro ε hε
+    refine ⟨c * ε, by positivity, fun hx1 hx2 => ⟨?_, ?_⟩⟩
+    · simp at hx1 ⊢ ; positivity
+    · simp [abs_eq_self.mpr hc.le] at hx2 ⊢ ; rwa [div_lt_iff hc, mul_comm]
 
-  apply integrableOn_Ioi_deriv_of_nonneg ?_ key ?_ k1
-  · rw [Metric.continuousWithinAt_iff]
+  have k3 : ContinuousWithinAt g₀ (Ici 0) 0 := by
+    rw [Metric.continuousWithinAt_iff]
     rw [Metric.tendsto_nhdsWithin_nhds] at k2
     peel k2 with ε hε δ hδ x h
     intro (hx : 0 ≤ x)
@@ -1391,9 +1405,28 @@ lemma hh_integrable {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     cases this with
     | inl hx => exact h hx
     | inr hx => simp [g₀, hx.symm, hε]
-  · intro x (hx : 0 < x) ; simp [g'] ; positivity
 
-#exit
+  have k4 : ∀ x ∈ Ioi 0, 0 ≤ g' x := by
+    intro x (hx : 0 < x) ; simp [g'] ; positivity
+
+  constructor
+  · convert_to IntegrableOn g' _
+    exact integrableOn_Ioi_deriv_of_nonneg k3 key k4 k1
+  · have := integral_Ioi_of_hasDerivAt_of_nonneg k3 key k4 k1
+    simp [g₀, g'] at this ⊢
+    convert this using 1 ; field_simp ; ring
+
+lemma hh_integrable {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
+    IntegrableOn (fun t ↦ a * hh b (t / c)) (Ici 0) :=
+  hh_integrable_aux ha hb hc |>.1
+
+lemma hh_integral {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
+    ∫ (t : ℝ) in Ioi 0, a * hh b (t / c) = a * c / b * π :=
+  hh_integrable_aux ha hb hc |>.2
+
+lemma hh_integral' : ∫ t in Ioi 0, hh (1 / (2 * π)) t = 2 * π ^ 2 := by
+  have := hh_integral (a := 1) (b := 1 / (2 * π)) (c := 1) (by positivity) (by positivity) (by positivity)
+  convert this using 1 <;> simp ; ring
 
 lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ C * (1 + ∫ t in Ioi 0, hh (1 / (2 * π)) t) := by
@@ -1425,7 +1458,7 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     apply (div_le_div_right (by positivity)).mpr huv
 
   have l6 {n : ℕ} : IntegrableOn (fun t ↦ x⁻¹ * hh (π⁻¹ * 2⁻¹) (t / x)) (Icc 0 n) volume := by
-    sorry -- apply hh_integrable.mono_set ; rw [Icc_subset_Ici_iff] ; simp
+    apply IntegrableOn.mono_set (hh_integrable (by positivity) (by positivity) (by positivity)) Icc_subset_Ici_self
 
   apply Real.tsum_le_of_sum_range_le (fun n => by positivity) ; intro n
   convert_to ∑ i in Finset.range n, ‖f i‖ * ggg i ≤ _
@@ -1453,6 +1486,9 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
   apply this.trans
   rw [@intervalIntegral.integral_comp_div ℝ _ _ 0 ↑(n - 1) x (fun t => x⁻¹ * hh (π⁻¹ * 2⁻¹) (t)) l0]
   simp [← mul_assoc, mul_inv_cancel l0]
+  have : (0 : ℝ) ≤ ↑(n - 1) / x := by positivity
+  rw [intervalIntegral.intervalIntegral_eq_integral_uIoc]
+  simp [this]
   sorry
 
 lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cheby f) :
@@ -1488,8 +1524,6 @@ lemma bound_I2 (x : ℝ) (ψ : ℝ → ℂ) (hψ : W21 ψ) :
   refine (set_integral_le_integral l3 l5).trans ?_
   rw [Measure.integral_comp_div (fun x => (1 + x ^ 2)⁻¹) (2 * π)]
   simp [abs_eq_self.mpr twopi] ; ring_nf ; rfl
-
-#exit
 
 /-%%
 \begin{lemma}[Limiting identity for Schwartz functions]\label{schwarz-id}\lean{limiting_cor_schwartz}\leanok  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.
