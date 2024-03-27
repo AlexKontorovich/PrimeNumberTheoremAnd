@@ -1346,6 +1346,7 @@ lemma hh_integrable {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   simp only [integrableOn_Ici_iff_integrableOn_Ioi, hh]
 
   let g (x : ℝ) := (a * c / b) * arctan (b * log (x / c))
+  let g₀ (x : ℝ) := if x = 0 then ((a * c / b) * (- π / 2)) else g x
   let g' (x : ℝ) := a * (x / c * (1 + (b * Real.log (x / c)) ^ 2))⁻¹
 
   convert_to IntegrableOn g' _
@@ -1357,11 +1358,21 @@ lemma hh_integrable {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     convert this using 1 ; field_simp ; ring
   have l5 (x) (hx : 0 < x) := (l2 x hx).const_mul b
   have l1 (x) (hx : 0 < x) := (l5 x hx).arctan
-  have key (x) (hx : 0 < x) : HasDerivAt g (g' x) x := by
+  have l6 (x) (hx : 0 < x) : HasDerivAt g (g' x) x := by
     convert (l1 x hx).const_mul (a * c / b) using 1
     field_simp [g'] ; ring
+  have key (x) (hx : 0 < x) : HasDerivAt g₀ (g' x) x := by
+    apply (l6 x hx).congr_of_eventuallyEq
+    apply eventually_of_mem <| Ioi_mem_nhds hx
+    intro y (hy : 0 < y)
+    simp [g₀, hy.ne.symm]
 
-  have k1 : Tendsto g atTop (𝓝 ((a * c / b) * (π / 2))) := by
+  have k1 : Tendsto g₀ atTop (𝓝 ((a * c / b) * (π / 2))) := by
+    have : g =ᶠ[atTop] g₀ := by
+      apply eventually_of_mem (Ioi_mem_atTop 0)
+      intro y (hy : 0 < y)
+      simp [g₀, hy.ne.symm]
+    apply Tendsto.congr' this
     apply Tendsto.const_mul
     apply (tendsto_arctan_atTop.mono_right nhdsWithin_le_nhds).comp
     apply Tendsto.const_mul_atTop hb
@@ -1369,10 +1380,18 @@ lemma hh_integrable {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     apply Tendsto.atTop_div_const hc
     apply tendsto_id
 
+  have k2 : Tendsto g₀ (𝓝[>] 0) (𝓝 (g₀ 0)) := sorry
+
   apply integrableOn_Ioi_deriv_of_nonneg ?_ key ?_ k1
-  · unfold ContinuousWithinAt
-    sorry
-  · sorry
+  · rw [Metric.continuousWithinAt_iff]
+    rw [Metric.tendsto_nhdsWithin_nhds] at k2
+    peel k2 with ε hε δ hδ x h
+    intro (hx : 0 ≤ x)
+    have := le_iff_lt_or_eq.mp hx
+    cases this with
+    | inl hx => exact h hx
+    | inr hx => simp [g₀, hx.symm, hε]
+  · intro x (hx : 0 < x) ; simp [g'] ; positivity
 
 #exit
 
