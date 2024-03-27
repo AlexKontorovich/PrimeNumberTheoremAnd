@@ -1341,7 +1341,33 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
     apply hfi.mono_set
     apply Icc_subset_Icc ; linarith ; simp
 
-lemma hh_integrable {a b c : ℝ} : IntegrableOn (fun t ↦ a * hh b (t / c)) (Ici 0) := sorry
+lemma hh_integrable {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
+    IntegrableOn (fun t ↦ a * hh b (t / c)) (Ici 0) := by
+  simp only [integrableOn_Ici_iff_integrableOn_Ioi, hh]
+
+  let g (x : ℝ) := (a * c / b) * arctan (b * log (x / c))
+  let g' (x : ℝ) := a * (x / c * (1 + (b * Real.log (x / c)) ^ 2))⁻¹
+
+  convert_to IntegrableOn g' _
+
+  have l3 (x) (hx : 0 < x) : HasDerivAt Real.log x⁻¹ x := by apply Real.hasDerivAt_log (by linarith)
+  have l4 (x) : HasDerivAt (fun t => t / c) (1 / c) x := (hasDerivAt_id x).div_const c
+  have l2 (x) (hx : 0 < x) : HasDerivAt (fun t => log (t / c)) x⁻¹ x := by
+    have := @HasDerivAt.comp _ _ _ _ _ _ (fun t => t / c) _ _ _  (l3 (x / c) (by positivity)) (l4 x)
+    convert this using 1 ; field_simp ; ring
+  have l5 (x) (hx : 0 < x) := (l2 x hx).const_mul b
+  have l1 (x) (hx : 0 < x) := (l5 x hx).arctan
+  have key (x) (hx : 0 < x) : HasDerivAt g (g' x) x := by
+    convert (l1 x hx).const_mul (a * c / b) using 1
+    field_simp [g'] ; ring
+
+  have k1 : Tendsto g atTop (𝓝 ((a * c / b) * (π / 2))) := sorry
+
+  apply integrableOn_Ioi_deriv_of_nonneg ?_ key ?_ k1
+  · sorry
+  · sorry
+
+#exit
 
 lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ C * (1 + ∫ t in Ioi 0, hh (1 / (2 * π)) t) := by
@@ -1373,7 +1399,7 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     apply (div_le_div_right (by positivity)).mpr huv
 
   have l6 {n : ℕ} : IntegrableOn (fun t ↦ x⁻¹ * hh (π⁻¹ * 2⁻¹) (t / x)) (Icc 0 n) volume := by
-    apply hh_integrable.mono_set ; rw [Icc_subset_Ici_iff] ; simp
+    sorry -- apply hh_integrable.mono_set ; rw [Icc_subset_Ici_iff] ; simp
 
   apply Real.tsum_le_of_sum_range_le (fun n => by positivity) ; intro n
   convert_to ∑ i in Finset.range n, ‖f i‖ * ggg i ≤ _
