@@ -526,24 +526,8 @@ Same idea as Urysohn-type argument.
 \end{proof}
 %%-/
 
-lemma mem_cocompact_within_strip (σ₁ σ₂ r : ℝ):
-    {s | r < Complex.abs s ∧ σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈
-      cocompact ℂ ⊓ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} := by
-  rw [Filter.mem_inf_iff]
-  use {s | r < Complex.abs s}
-  constructor
-  · rw [Filter.mem_cocompact]
-    use {s | Complex.abs s ≤ r}
-    constructor
-    · refine Metric.isCompact_of_isClosed_isBounded ?h.left.hc ?h.left.hb
-      · exact isClosed_le Complex.continuous_abs continuous_const
-      · exact isBounded_iff_forall_norm_le.mpr (Exists.intro r fun x a ↦ a)
-    · refine Eq.subset ?_
-      aesop
-  · use {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}
-    aesop
-
-lemma mem_within_strip (σ₁ σ₂ : ℝ): {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} := by simp
+lemma mem_within_strip (σ₁ σ₂ : ℝ) :
+  {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} := by simp
 /-%%
 The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at
 least) like $1/|s|$.
@@ -560,7 +544,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (hσ : σ₁ < σ₂) :
     (fun s ↦ Complex.abs (MellinTransform (Ψ ·) s))
-    =O[Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂})]
+    =O[Filter.principal {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}]
       fun s ↦ 1 / Complex.abs s := by
 
   let g {s : ℂ} (hs : s ≠ 0) := fun (x : ℝ)  ↦ x ^ s / s
@@ -1094,16 +1078,15 @@ lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (hσ : σ₁ < σ₂)
     (ε : ℝ) (εpos : 0 < ε) :
     (fun (s : ℂ) ↦ Complex.abs (MellinTransform ((Smooth1 Ψ ε) ·) s))
-      =O[Filter.principal ({s | σ₁ ≤ s.re ∧ s.re ≤ σ₂})]
+      =O[Filter.principal {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}]
       fun s ↦ 1 / (ε * (Complex.abs s) ^ 2) := by
-  have := MellinOfPsi diffΨ suppΨ (Real.mul_pos εpos σ₁pos) ((mul_lt_mul_left εpos).mpr hσ)
+  have := MellinOfPsi diffΨ suppΨ (mul_pos εpos σ₁pos) ((mul_lt_mul_left εpos).mpr hσ)
   rw [Asymptotics.isBigO_iff] at this ⊢
   obtain ⟨c, hc⟩ := this
   use c
   simp only [Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one, eventually_principal,
     mem_setOf_eq, and_imp] at hc ⊢
   intro s h1 h2
-
   have : ‖MellinTransform (fun x ↦ ↑(Ψ x)) (ε * s)‖ ≤ c * (1 / ‖ε * s‖) := by
     refine hc (ε * s) ?_ ?_
     · simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
@@ -1112,7 +1095,6 @@ lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
       exact (mul_le_mul_left εpos).mpr h2
   simp only [Complex.norm_eq_abs, norm_mul, abs_ofReal, abs_eq_self.mpr <| le_of_lt εpos] at this
   simp only [← Complex.norm_eq_abs] at this ⊢
-
   rw [MellinOfSmooth1a Ψ εpos <| gt_of_ge_of_gt h1 σ₁pos]
   simp only [Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one, map_mul, map_div₀, map_one,
     norm_mul, norm_pow, abs_of_pos, εpos]
