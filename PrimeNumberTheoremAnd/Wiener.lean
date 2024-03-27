@@ -1451,7 +1451,7 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     set_integral_nonneg measurableSet_Ioi (fun x hx => hh_nonneg _ (LT.lt.le hx))
 
   have l5 {n : ℕ} : AntitoneOn (fun t ↦ x⁻¹ * hh (1 / (2 * π)) (t / x)) (Ioc 0 n) := by
-    intro u ⟨hu1, hu2⟩ v ⟨hv1, hv2⟩ huv
+    intro u ⟨hu1, _⟩ v ⟨hv1, _⟩ huv
     simp only
     apply mul_le_mul le_rfl ?_ (hh_nonneg _ (by positivity)) (by positivity)
     apply hh_antitone one_div_two_pi_mem_Ioo (by simp ; positivity) (by simp ; positivity)
@@ -1494,7 +1494,12 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
   · apply eventually_of_mem (self_mem_ae_restrict measurableSet_Ioi)
     intro x (hx : 0 < x)
     apply hh_nonneg _ hx.le
-  · sorry
+  · have := (@hh_integrable 1 (1 / (2 * π)) 1 (by positivity) (by positivity) (by positivity))
+    simpa using this.mono_set Ioi_subset_Ici_self
+
+lemma bound_sum_log' {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
+    ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ C * (1 + 2 * π ^ 2) := by
+  simpa only [hh_integral'] using bound_sum_log hf hx
 
 lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cheby f) :
     ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x))‖ ≤
