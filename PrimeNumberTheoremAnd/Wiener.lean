@@ -1489,7 +1489,12 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
   have : (0 : ℝ) ≤ ↑(n - 1) / x := by positivity
   rw [intervalIntegral.intervalIntegral_eq_integral_uIoc]
   simp [this]
-  sorry
+  apply integral_mono_measure
+  · apply Measure.restrict_mono Ioc_subset_Ioi_self le_rfl
+  · apply eventually_of_mem (self_mem_ae_restrict measurableSet_Ioi)
+    intro x (hx : 0 < x)
+    apply hh_nonneg _ hx.le
+  · sorry
 
 lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cheby f) :
     ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x))‖ ≤
