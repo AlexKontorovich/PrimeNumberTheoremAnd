@@ -11,6 +11,7 @@ import Mathlib.Analysis.Normed.Group.Tannery
 import Mathlib.Algebra.Order.Field.Basic
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
+import Mathlib.Analysis.SumIntegralComparisons
 
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Fourier
@@ -1294,9 +1295,53 @@ lemma cancel_main' {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hf0 : f 0 = 0) 
   | 1 => specialize hg 0 ; specialize hf' 1 ; simp [cumsum, hf0] at hf' hg ⊢ ; positivity
   | n + 2 => convert cancel_aux' hf hg hf' hg' (n + 2) using 1 ; simp [cumsum_succ] ; ring
 
-theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {a : ℕ} (hf : AntitoneOn f (Ioc x₀ (x₀ + a))) :
-    (∑ i in Finset.range a, f (x₀ + ↑(i + 1))) ≤ ∫ x in x₀..x₀ + a, f x := by
-  sorry
+theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneOn f (Ioc x₀ (x₀ + n)))
+    (hfi : IntegrableOn f (Icc x₀ (x₀ +  n))) :
+    (∑ i in Finset.range n, f (x₀ + ↑(i + 1))) ≤ ∫ x in x₀..x₀ + n, f x := by
+
+  cases' n with n <;> simp [succ_eq_add_one] at hf ⊢
+  have : Finset.range (n + 1) = {0} ∪ Finset.Ico 1 (n + 1) := by
+    ext i ; by_cases hi : i = 0 <;> simp [hi] ; omega
+  simp [this, Finset.sum_union]
+
+  have l4 : IntervalIntegrable f volume x₀ (x₀ + 1) := by
+    apply IntegrableOn.intervalIntegrable
+    simp
+    apply hfi.mono_set
+    apply Icc_subset_Icc ; linarith ; simp
+  have l5 x (hx : x ∈ Ioc x₀ (x₀ + 1)) : (fun x ↦ f (x₀ + 1)) x ≤ f x := by
+    rcases hx with ⟨hx1, hx2⟩
+    refine hf ⟨hx1, by linarith⟩ ⟨by linarith, by linarith⟩ hx2
+  have l6 : ∫ x in x₀..x₀ + 1, f (x₀ + 1) = f (x₀ + 1) := by simp
+
+  have l1 : f (x₀ + 1) ≤ ∫ x in x₀..x₀ + 1, f x := by
+    rw [← l6] ; apply intervalIntegral.integral_mono_ae_restrict (by linarith) (by simp) l4
+    apply eventually_of_mem _ l5
+    have : (Ioc x₀ (x₀ + 1))ᶜ ∩ Icc x₀ (x₀ + 1) = {x₀} := by simp [← diff_eq_compl_inter]
+    simp [Measure.ae, this]
+
+  have l2 : AntitoneOn (fun x ↦ f (x₀ + x)) (Icc 1 ↑(n + 1)) := by
+    intro u ⟨hu1, _⟩ v ⟨_, hv2⟩ huv ; push_cast at hv2
+    refine hf ⟨?_, ?_⟩ ⟨?_, ?_⟩ ?_ <;> linarith
+
+  have l3 := @AntitoneOn.sum_le_integral_Ico 1 (n + 1) (fun x => f (x₀ + x)) (by simp) (by simpa using l2)
+
+  simp at l3
+  convert _root_.add_le_add l1 l3
+
+  have := @intervalIntegral.integral_comp_mul_add ℝ _ _ 1 (n + 1) 1 f one_ne_zero x₀
+  simp [add_comm _ x₀] at this ; rw [this]
+  rw [intervalIntegral.integral_add_adjacent_intervals]
+  · apply IntegrableOn.intervalIntegrable
+    simp
+    apply hfi.mono_set
+    apply Icc_subset_Icc ; linarith ; simp
+  · apply IntegrableOn.intervalIntegrable
+    simp
+    apply hfi.mono_set
+    apply Icc_subset_Icc ; linarith ; simp
+
+lemma hh_integrable {a b c : ℝ} : IntegrableOn (fun t ↦ a * hh b (t / c)) (Ici 0) := sorry
 
 lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ C * (1 + ∫ t in Ioi 0, hh (1 / (2 * π)) t) := by
@@ -1317,6 +1362,19 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
       · gcongr
   have l3 : 0 ≤ C := by simpa [cumsum] using hf 1
 
+  have l4 : 0 ≤ ∫ (t : ℝ) in Ioi 0, hh (π⁻¹ * 2⁻¹) t :=
+    set_integral_nonneg measurableSet_Ioi (fun x hx => hh_nonneg _ (LT.lt.le hx))
+
+  have l5 {n : ℕ} : AntitoneOn (fun t ↦ x⁻¹ * hh (1 / (2 * π)) (t / x)) (Ioc 0 n) := by
+    intro u ⟨hu1, hu2⟩ v ⟨hv1, hv2⟩ huv
+    simp only
+    apply mul_le_mul le_rfl ?_ (hh_nonneg _ (by positivity)) (by positivity)
+    apply hh_antitone one_div_two_pi_mem_Ioo (by simp ; positivity) (by simp ; positivity)
+    apply (div_le_div_right (by positivity)).mpr huv
+
+  have l6 {n : ℕ} : IntegrableOn (fun t ↦ x⁻¹ * hh (π⁻¹ * 2⁻¹) (t / x)) (Icc 0 n) volume := by
+    apply hh_integrable.mono_set ; rw [Icc_subset_Ici_iff] ; simp
+
   apply Real.tsum_le_of_sum_range_le (fun n => by positivity) ; intro n
   convert_to ∑ i in Finset.range n, ‖f i‖ * ggg i ≤ _
   · congr ; ext i
@@ -1327,8 +1385,7 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
   apply cancel_main' (fun _ => norm_nonneg _) (by simp) l1 hf l2 n |>.trans
   gcongr ; simp [ggg, cumsum, gg_of_hh l0]
 
-  by_cases hn : n = 0
-  · simp [hn] ; sorry
+  by_cases hn : n = 0 ; simp [hn] ; positivity
   replace hn : 0 < n := by omega
   have : Finset.range n = {0} ∪ Finset.Ico 1 n := by
     ext i ; simp ; by_cases hi : i = 0 <;> simp [hi, hn] ; omega
@@ -1339,7 +1396,7 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     have : i ≠ 0 := by omega
     simp [this]
   simp_rw [Finset.sum_Ico_eq_sum_range, add_comm 1]
-  have := @sum_le_integral 0 (fun t => x⁻¹ * hh (π⁻¹ * 2⁻¹) (t / x)) (n - 1) sorry
+  have := @sum_le_integral 0 (fun t => x⁻¹ * hh (π⁻¹ * 2⁻¹) (t / x)) (n - 1) (by simpa using l5) (by simpa using l6)
   simp only [zero_add] at this
   apply this.trans
   rw [@intervalIntegral.integral_comp_div ℝ _ _ 0 ↑(n - 1) x (fun t => x⁻¹ * hh (π⁻¹ * 2⁻¹) (t)) l0]
