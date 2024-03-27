@@ -1361,10 +1361,17 @@ lemma hh_integrable {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     convert (l1 x hx).const_mul (a * c / b) using 1
     field_simp [g'] ; ring
 
-  have k1 : Tendsto g atTop (𝓝 ((a * c / b) * (π / 2))) := sorry
+  have k1 : Tendsto g atTop (𝓝 ((a * c / b) * (π / 2))) := by
+    apply Tendsto.const_mul
+    apply (tendsto_arctan_atTop.mono_right nhdsWithin_le_nhds).comp
+    apply Tendsto.const_mul_atTop hb
+    apply tendsto_log_atTop.comp
+    apply Tendsto.atTop_div_const hc
+    apply tendsto_id
 
   apply integrableOn_Ioi_deriv_of_nonneg ?_ key ?_ k1
-  · sorry
+  · unfold ContinuousWithinAt
+    sorry
   · sorry
 
 #exit
