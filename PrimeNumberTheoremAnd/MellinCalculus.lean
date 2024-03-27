@@ -528,6 +528,15 @@ Same idea as Urysohn-type argument.
 
 lemma mem_within_strip (σ₁ σ₂ : ℝ) :
   {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} := by simp
+
+lemma Complex.deriv_ofReal' {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) {x : ℝ} :
+    deriv (fun x ↦ (Ψ x : ℂ)) x = ((deriv Ψ) x : ℂ) := by
+  apply HasDerivAt.deriv
+  apply HasDerivAt.ofReal_comp
+  simp only [hasDerivAt_deriv_iff]
+  have := diffΨ.differentiable (by norm_num)
+  apply this.differentiableAt
+
 /-%%
 The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at
 least) like $1/|s|$.
