@@ -801,19 +801,18 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) :
     (fun (ε : ℝ) ↦ (MellinTransform (Ψ ·) ε) - 1) =O[𝓝[>]0] id := by
-  have := HasDerivAtFilter.isBigO_sub (x := (0 : ℝ)) (L := 𝓝[>]0)
-      (f := fun (ε : ℝ) ↦ (MellinTransform (Ψ ·) ε))
-      (f' := 1) ?_
-  convert this using 1
-  · funext x
-    congr
-    rw [← ofReal_eq_one.mpr mass_one]
-    unfold MellinTransform
-    simp only [ofReal_zero, zero_sub, cpow_neg_one, ← div_eq_mul_inv]
+  have diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) => MellinTransform (Ψ ·) ε - 1) (Ioi 0) 0 := by
+    have := @mellin_differentiableAt_of_isBigO_rpow (f := (fun x ↦ (Ψ x : ℂ) )) (a := 1) (b := -1) (s := 0) _ _ ?_ ?_ ?_ (by simp) ?_ (by simp)
+  -- have := this.hasDerivAt
     sorry
-  · aesop
-  · apply HasDerivAt.hasDerivAtFilter ?_ nhdsWithin_le_nhds
-    · sorry
+  have := diff.isBigO_sub
+  simp only [ofReal_zero, sub_sub_sub_cancel_right, sub_zero] at this ⊢
+  convert this using 2
+  unfold MellinTransform
+  simp only [zero_sub, sub_right_inj]
+  simp_rw [cpow_neg_one, ← div_eq_mul_inv, ← ofReal_div]
+  rw [(by simp : (1 : ℂ) = (1 : ℝ)), ← mass_one]
+  convert integral_ofReal.symm
 /-%%
 \begin{proof}
 \uses{MellinTransform,MellinOfDeltaSpikeAt1,SmoothExistence}
