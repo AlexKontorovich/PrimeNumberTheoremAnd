@@ -1410,6 +1410,16 @@ lemma bound_sum_log' {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ C * (1 + 2 * π ^ 2) := by
   simpa only [hh_integral'] using bound_sum_log hf hx
 
+lemma summable_fourier (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cheby f) :
+    Summable fun i ↦ ‖f i / ↑i * 𝓕 ψ (1 / (2 * π) * Real.log (↑i / x))‖ := by
+  have l5 : Summable fun i ↦ ‖f i‖ / ↑i * ((1 + (1 / (2 * ↑π) * ↑(Real.log (↑i / x))) ^ 2)⁻¹) := by
+    simpa using limiting_fourier_lim1_aux hcheby hx 1 zero_le_one
+  have l6 i : ‖f i / i * 𝓕 ψ (1 / (2 * π) * Real.log (i / x))‖ ≤
+      W21.norm ψ * (‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹) := by
+    convert mul_le_mul_of_nonneg_left (decay_bounds_key hψ (1 / (2 * π) * log (i / x))) (norm_nonneg (f i / i)) using 1
+      <;> simp [norm_mul] ; ring
+  exact Summable.of_nonneg_of_le (fun _ => norm_nonneg _) l6 (by simpa using l5.const_smul (W21.norm ψ))
+
 lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cheby f) :
     ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x))‖ ≤
     W21.norm ψ • ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ := by
@@ -1421,7 +1431,7 @@ lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby 
     convert mul_le_mul_of_nonneg_left (decay_bounds_key hψ (1 / (2 * π) * log (i / x))) (norm_nonneg (f i / i)) using 1
       <;> simp [norm_mul] ; ring
   have l1 : Summable fun i ↦ ‖f i / ↑i * 𝓕 ψ (1 / (2 * π) * Real.log (↑i / x))‖ := by
-    exact Summable.of_nonneg_of_le (fun _ => norm_nonneg _) l6 (by simpa using l5.const_smul (W21.norm ψ))
+    exact summable_fourier x hx ψ hψ hcheby
   apply (norm_tsum_le_tsum_norm l1).trans
   simpa only [← tsum_const_smul _ l5] using tsum_mono l1 (by simpa using l5.const_smul (W21.norm ψ)) l6
 
@@ -1521,7 +1531,7 @@ lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) (hf : ∀ (σ' : ℝ), 1 
   let M := C * (1 + 2 * π ^ 2) + ‖(A : ℂ)‖ * (2 * π ^ 2)
   specialize key2 ((ε / 2) / (1 + M)) (by positivity)
   obtain ⟨R, hR, hRψ⟩ := ((eventually_ge_atTop 1).and key2).exists
-  simp only [dist_zero_right, Real.norm_eq_abs, abs_eq_self.mpr W21.norm_nonneg] at hRψ
+  simp only [dist_zero_right, Real.norm_eq_abs, abs_eq_self.mpr W21.norm_nonneg] at hRψ key
 
   -- Apply the compact support case
   filter_upwards [eventually_ge_atTop 1, key R (by linarith) (ε / 2) (by positivity)] with x hx key
@@ -1536,9 +1546,32 @@ lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) (hf : ∀ (σ' : ℝ), 1 
     convert (mul_lt_mul_right this).mpr hRψ using 1 ; field_simp ; ring
 
   -- Conclude the proof
-  convert_to ‖S x ((⇑ψ - ψR R) + (ψR R))‖ < ε ; simp
+  have S1_sub_1 x : 𝓕 (⇑ψ - ψR R) x = 𝓕 ψ x - 𝓕 (ψR R) x := by
+    have l1 : AEStronglyMeasurable (fun x_1 : ℝ ↦ cexp (-(2 * ↑π * (↑x_1 * ↑x) * I))) volume := by
+      · apply Continuous.aestronglyMeasurable
+        apply Continuous.cexp
+        apply Continuous.neg
+        apply Continuous.mul ?_ continuous_const
+        apply Continuous.mul continuous_const ?_
+        apply Continuous.mul ?_ continuous_const
+        exact contDiff_ofReal.continuous
+    simp [Real.fourierIntegral_eq', mul_sub] ; apply integral_sub
+    · apply ψ.integrable.bdd_mul l1 ; use 1 ; simp [Complex.norm_eq_abs, Complex.abs_exp]
+    · apply ψR_W21 R (by positivity) |>.hf |>.bdd_mul l1
+      use 1 ; simp [Complex.norm_eq_abs, Complex.abs_exp]
+  have S1_sub : S1 x (ψ - ψR R) = S1 x ψ - S1 x (ψR R) := by
+    simp [S1, S1_sub_1, mul_sub] ; apply tsum_sub
+    · have := summable_fourier x (by positivity) ψ (W21_of_schwartz ψ) ⟨_, hcheby⟩
+      rw [summable_norm_iff] at this
+      simpa using this
+    · have := summable_fourier x (by positivity) (ψR R) (ψR_W21 R (by positivity)) ⟨_, hcheby⟩
+      rw [summable_norm_iff] at this
+      simpa using this
 
-  sorry
+  have S2_sub : S2 x (ψ - ψR R) = S2 x ψ - S2 x (ψR R) := by sorry
+
+  have S_sub : S x (ψ - ψR R) = S x ψ - S x (ψR R) := by simp [S, S1_sub, S2_sub] ; ring
+  simpa [S_sub] using norm_add_le _ _ |>.trans_lt (_root_.add_lt_add key3 key)
 
 /-%%
 \begin{proof}
