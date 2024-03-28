@@ -902,7 +902,16 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
       exact ⟨suppΨ, fun h => by linarith⟩
   replace diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) => MellinTransform (Ψ ·) ε - 1) (Ioi 0) 0 := by
     apply DifferentiableAt.differentiableWithinAt
-    sorry
+    simp only [differentiableAt_sub_const_iff] at diff ⊢
+    let h := fun (y : ℝ) ↦ (fun (ε : ℂ) ↦ MellinTransform (fun x ↦ ↑(Ψ x)) ε) y
+    have diff2 : DifferentiableAt ℝ h 0 := by
+      have := @DifferentiableAt.comp (x := (0 : ℝ)) (𝕜 := ℝ) (f := ofReal')
+        (g := (fun (ε : ℂ) ↦ MellinTransform (fun x ↦ ↑(Ψ x)) ε)) _ _ _ _ _ _ _
+      apply this diff
+      apply HasDerivAt.differentiableAt
+      apply HasDerivAt.ofReal_comp (u := 1)
+      apply hasDerivAt_id
+    convert diff2
   have := diff.isBigO_sub
   simp only [ofReal_zero, sub_sub_sub_cancel_right, sub_zero] at this ⊢
   convert this using 2
@@ -912,7 +921,7 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
   rw [(by norm_num : (1 : ℂ) = (1 : ℝ)), ← mass_one]
   convert integral_ofReal.symm
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{MellinTransform,MellinOfDeltaSpikeAt1,SmoothExistence}
 By Lemma \ref{MellinOfDeltaSpikeAt1},
 $$
