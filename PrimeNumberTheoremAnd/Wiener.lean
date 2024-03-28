@@ -378,6 +378,19 @@ lemma decay_bounds_cor {ψ : ℝ → ℂ} (hψ : W21 ψ) :
     ∃ C : ℝ, ∀ u, ‖𝓕 ψ u‖ ≤ C / (1 + u ^ 2) := by
   simpa only [div_eq_mul_inv] using ⟨_, decay_bounds_key hψ⟩
 
+@[continuity] lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (hψ : W21 ψ) : Continuous (𝓕 ψ) :=
+  VectorFourier.fourierIntegral_continuous continuous_fourierChar (by exact continuous_mul) hψ.hf
+
+lemma W21.integrable_fourier {ψ : ℝ → ℂ} (hψ : W21 ψ) {c : ℝ} (hc : c ≠ 0) :
+    Integrable fun u ↦ 𝓕 ψ (u / c) := by
+  have l1 (C) : Integrable (fun u ↦ C / (1 + (u / c) ^ 2)) volume := by
+    simpa using (integrable_inv_one_add_sq.comp_div hc).const_mul C
+  have l2 : AEStronglyMeasurable (fun u ↦ 𝓕 ψ (u / c)) volume := by
+    apply Continuous.aestronglyMeasurable ; continuity
+  obtain ⟨C, h⟩ := decay_bounds_cor hψ
+  apply @Integrable.mono' ℝ ℂ _ volume _ _ (fun u => C / (1 + (u / c) ^ 2)) (l1 C) l2 ?_
+  apply eventually_of_forall (fun x => h _)
+
 /-%%
 \begin{proof} \leanok From two integration by parts we obtain the identity
 $$ (1+u^2) \hat \psi(u) = \int_{\bf R} (\psi(t) - \frac{u}{4\pi^2} \psi''(t)) e(-tu)\ dt.$$
@@ -571,9 +584,6 @@ lemma dirichlet_test' {a b : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
   rw [summable_iff_bounded' l1] at h
   apply bounded_of_shift
   simpa only [summation_by_parts'', sub_eq_add_neg, neg_cumsum, ← mul_neg, neg_nabla] using hAb.add h
-
-@[continuity] lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (hψ : W21 ψ) : Continuous (𝓕 ψ) :=
-  VectorFourier.fourierIntegral_continuous continuous_fourierChar (by exact continuous_mul) hψ.hf
 
 lemma exists_antitone_of_eventually {u : ℕ → ℝ} (hu : ∀ᶠ n in atTop, u (n + 1) ≤ u n) :
     ∃ v : ℕ → ℝ, range v ⊆ range u ∧ Antitone v ∧ v =ᶠ[atTop] u := by
@@ -1508,7 +1518,6 @@ lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) (hf : ∀ (σ' : ℝ), 1 
     simp_rw [mul_comm _ R⁻¹, ← smul_eq_mul]
     apply hg.h2.comp_smul ; simpa
   have l1 R : ContDiff ℝ 2 fun x ↦ (g (x * R⁻¹) : ℂ) := by
-    have r1 : ContDiff ℝ 2 ((↑) : ℝ → ℂ) := contDiff_ofReal.of_le le_top
     apply (contDiff_ofReal.of_le le_top) |>.comp
     exact (hg.h1.of_le le_top).comp <| contDiff_id.mul contDiff_const
   have ψR_c R (hR : R ≠ 0) : HasCompactSupport (ψR R) := (l2 R hR).mul_right
@@ -1517,8 +1526,6 @@ lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) (hf : ∀ (σ' : ℝ), 1 
   have ψR_W21 R (hR : R ≠ 0) : W21 (ψR R) := (W21_of_schwartz ψ).mul_compact_support (l1 R) (l2 R hR)
   have ψR_W21_2 R (hR : R ≠ 0) : W21 (ψ - ψR R) := (W21_of_schwartz ψ).sub (ψR_W21 R hR)
 
-  have ψR_t : Tendsto (fun R ↦ W21.norm (ψ - ψR R)) atTop (𝓝 0) := by
-    simpa [ψR, sub_mul] using W21_approximation (W21_of_schwartz ψ) hg
   have key R (hR : R ≠ 0) : Tendsto (fun x ↦ S x (ψR R)) atTop (𝓝 0) :=
     limiting_cor (ψR_d R) (ψR_c R hR) hf hcheby hG hG'
 
@@ -1548,17 +1555,13 @@ lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) (hf : ∀ (σ' : ℝ), 1 
   -- Conclude the proof
   have S1_sub_1 x : 𝓕 (⇑ψ - ψR R) x = 𝓕 ψ x - 𝓕 (ψR R) x := by
     have l1 : AEStronglyMeasurable (fun x_1 : ℝ ↦ cexp (-(2 * ↑π * (↑x_1 * ↑x) * I))) volume := by
-      · apply Continuous.aestronglyMeasurable
-        apply Continuous.cexp
-        apply Continuous.neg
-        apply Continuous.mul ?_ continuous_const
-        apply Continuous.mul continuous_const ?_
-        apply Continuous.mul ?_ continuous_const
-        exact contDiff_ofReal.continuous
+      refine (Continuous.mul ?_ continuous_const).neg.cexp.aestronglyMeasurable
+      apply continuous_const.mul <| contDiff_ofReal.continuous.mul continuous_const
     simp [Real.fourierIntegral_eq', mul_sub] ; apply integral_sub
     · apply ψ.integrable.bdd_mul l1 ; use 1 ; simp [Complex.norm_eq_abs, Complex.abs_exp]
     · apply ψR_W21 R (by positivity) |>.hf |>.bdd_mul l1
       use 1 ; simp [Complex.norm_eq_abs, Complex.abs_exp]
+
   have S1_sub : S1 x (ψ - ψR R) = S1 x ψ - S1 x (ψR R) := by
     simp [S1, S1_sub_1, mul_sub] ; apply tsum_sub
     · have := summable_fourier x (by positivity) ψ (W21_of_schwartz ψ) ⟨_, hcheby⟩
@@ -1568,14 +1571,17 @@ lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) (hf : ∀ (σ' : ℝ), 1 
       rw [summable_norm_iff] at this
       simpa using this
 
-  have S2_sub : S2 x (ψ - ψR R) = S2 x ψ - S2 x (ψR R) := by sorry
+  have S2_sub : S2 x (ψ - ψR R) = S2 x ψ - S2 x (ψR R) := by
+    simp [S2, S1_sub_1] ; rw [integral_sub] ; ring
+    · exact (W21_of_schwartz ψ).integrable_fourier (by positivity) |>.restrict
+    · exact (ψR_W21 R (by positivity)).integrable_fourier (by positivity) |>.restrict
 
   have S_sub : S x (ψ - ψR R) = S x ψ - S x (ψR R) := by simp [S, S1_sub, S2_sub] ; ring
   simpa [S_sub] using norm_add_le _ _ |>.trans_lt (_root_.add_lt_add key3 key)
 
 /-%%
 \begin{proof}
-\uses{limiting-cor, smooth-ury}
+\uses{limiting-cor, smooth-ury}\leanok
 For any $R>1$, one can use a smooth cutoff function (provided by Lemma \ref{smooth-ury} to write $\psi = \psi_{\leq R} + \psi_{>R}$, where $\psi_{\leq R}$ is $C^2$ (in fact smooth) and compactly supported (on $[-R,R]$), and $\psi_{>R}$ obeys bounds of the form
 $$ |\psi_{>R}(t)|, |\psi''_{>R}(t)| \ll R^{-1} / (1 + |t|^2) $$
 where the implied constants depend on $\psi$.  By Lemma \ref{decay} we then have
