@@ -687,14 +687,16 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
       conv => lhs; rhs; intro; rw [← mul_one_div, mul_comm]
       rw [integral_mul_left]
 
-  let f := fun x ↦ Complex.abs ↑(deriv Ψ x)
-  have hf : Integrable f (volume.restrict <| Ioi 0) := by sorry
-  have fbound: ∃ a, ∫ (x : ℝ), f x ∂(volume.restrict <| Ioi 0) ≤ f a := by
-    -- apply exists_integral_le {μ := volume.restrict Ioi 0} hf
-    sorry
-  obtain ⟨a, ha⟩ := fbound
+  let f := fun (x : ℝ) ↦ ‖deriv Ψ x‖
+  have : IsCompact (Icc (1 / 2) (2 : ℝ)) := isCompact_Icc
+  have cont : ContinuousOn f (Icc (1 / 2) 2) := by
+    apply Continuous.continuousOn
+    apply Continuous.comp (by continuity)
+    apply diffΨ.continuous_deriv (by norm_num)
+  have := this.exists_isMaxOn (f := f) (by norm_num) cont
+  obtain ⟨a, ha, max⟩ := this
   rw [Asymptotics.isBigO_iff]
-  use f a * 2 ^ σ₂
+  use f a * 2 ^ σ₂ * (3 / 2)
   filter_upwards [mem_within_strip σ₁ σ₂] with s hs
   unfold MellinTransform
   have : s ≠ 0 := by
@@ -708,29 +710,42 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     Real.norm_eq_abs, Complex.abs_abs, abs_ofReal]
   conv => rhs; rw [mul_comm]
   gcongr
+
   calc
-    _ ≤ ∫ (x : ℝ) in Ioi 0, Complex.abs (deriv Ψ x * ↑x ^ s) := ?_
-    _ = ∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x) * Complex.abs (↑x ^ s) := ?_
-    _ = ∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x) * Complex.abs (↑x) ^ s.re := ?_
-    _ ≤ (∫ (x : ℝ) in Ioi 0, Complex.abs ↑(deriv Ψ x)) * 2 ^ σ₂ := ?_
+    _ ≤ ∫ (x : ℝ) in Ioi 0, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
+    _ = ∫ (x : ℝ) in Ioc (1 / 2) 2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
+    _ = ∫ (x : ℝ) in (1 / 2)..2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
+    _ ≤ ‖∫ (x : ℝ) in (1 / 2)..2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖‖ := le_abs_self _
     _ ≤ _ := ?_
+
   · simp_rw [← Complex.norm_eq_abs]
     apply norm_integral_le_integral_norm
-  · rw [set_integral_congr (by simp)]
-    intro x hx
-    aesop
-  · rw [set_integral_congr (by simp)]
-    intro x hx
-    simp only [abs_ofReal, mul_eq_mul_left_iff, abs_eq_zero]
-    left
-    rw [abs_of_pos ?_]
-    apply Complex.abs_cpow_eq_rpow_re_of_pos
-    all_goals exact mem_Ioi.mp hx
   · sorry
-  · simp only [abs_ofReal] at ha
-    simp only [abs_ofReal]
-    refine mul_le_mul ha (le_refl _) ?_ <| abs_nonneg _
-    apply rpow_nonneg (by norm_num)
+  · rw [← intervalIntegral.integral_of_le (by norm_num)]
+  · have := intervalIntegral.norm_integral_le_of_norm_le_const
+      (C := f a * 2 ^ σ₂) (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 2 : ℝ)) ( b := 2) ?_
+    · rw [(by norm_num: |(2 : ℝ) - 1 / 2| = 3 / 2)] at this
+      simp only [Real.norm_eq_abs, Complex.norm_eq_abs, abs_ofReal, map_mul] at this ⊢
+      exact this
+    · suffices h : ∀ x ∈ Icc (1 / 2) 2, ‖(fun x ↦ f x * ‖(x : ℂ) ^ s‖) x‖ ≤ f a * 2 ^ σ₂
+      · intro x hx
+        apply h x
+        rw [uIoc_of_le (by norm_num)] at hx
+        exact mem_Icc_of_Ioc hx
+      · intro x hx
+        have f_bound := isMaxOn_iff.mp max x hx
+        have pow_bound : ‖(x : ℂ) ^ s‖ ≤ 2 ^ σ₂ := by
+          simp only [Complex.norm_eq_abs]
+          rw [Complex.abs_cpow_eq_rpow_re_of_pos (by linarith [mem_Icc.mp hx])]
+          have h1 : 0 ≤ x := by linarith [(mem_Icc.mp hx).1]
+          have h2 : 0 ≤ s.re := by linarith
+          have h := rpow_le_rpow h1 (mem_Icc.mp hx).2 h2
+          apply le_trans h ?_
+          apply rpow_le_rpow_of_exponent_le (by norm_num) hs.2
+        simp only at f_bound
+        simp only [Complex.norm_eq_abs, abs_ofReal, norm_mul, Real.norm_eq_abs, _root_.abs_abs,
+          Complex.abs_abs, ge_iff_le]
+        convert mul_le_mul f_bound pow_bound ?_ ?_ <;> simp
 /-%%
 \begin{proof}
 \uses{MellinTransform, SmoothExistence}
