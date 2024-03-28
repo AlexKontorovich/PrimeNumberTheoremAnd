@@ -1041,6 +1041,10 @@ A standard analysis lemma, which can be proven by convolving $1_K$ with a smooth
 \end{proof}
 %%-/
 
+lemma exists_trunc : ∃ g : ℝ → ℝ, trunc g := by
+  obtain ⟨ψ, h1, h2, h3, h4⟩ := smooth_urysohn (-2) (-1) (1) (2) (by linarith) (by linarith)
+  exact ⟨ψ, h1, h2, h3, h4⟩
+
 lemma one_div_sub_one (n : ℕ) : 1 / (↑(n - 1) : ℝ) ≤ 2 / n := by
   match n with
   | 0 => simp
@@ -1448,14 +1452,92 @@ lemma bound_I2 (x : ℝ) (ψ : ℝ → ℂ) (hψ : W21 ψ) :
   rw [Measure.integral_comp_div (fun x => (1 + x ^ 2)⁻¹) (2 * π)]
   simp [abs_eq_self.mpr twopi] ; ring_nf ; rfl
 
+lemma bound_main {C : ℝ} (A : ℂ) (x : ℝ) (hx : 1 ≤ x) (ψ : ℝ → ℂ) (hψ : W21 ψ)
+    (hcheby : chebyWith C f) :
+    ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
+      A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))‖ ≤
+      W21.norm ψ * (C * (1 + 2 * π ^ 2) + ‖A‖ * (2 * π ^ 2)) := by
+
+  have l1 := bound_I1' x hx ψ hψ hcheby
+  have l2 := mul_le_mul (le_refl ‖A‖) (bound_I2 x ψ hψ) (by positivity) (by positivity)
+  apply norm_sub_le _ _ |>.trans ; rw [norm_mul]
+  convert _root_.add_le_add l1 l2 using 1 ; ring
+
 /-%%
 \begin{lemma}[Limiting identity for Schwartz functions]\label{schwarz-id}\lean{limiting_cor_schwartz}\leanok  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.
 \end{lemma}
 %%-/
 
-lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) :
+lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
+  have key x : HasDerivAt ofReal' 1 x := hasDerivAt_id x |>.ofReal_comp
+  have key' : deriv ofReal' = fun _ => 1 := by ext x ; exact (key x).deriv
+  refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
+  simpa [key'] using contDiff_const
+
+-- lemma limiting_cor (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ)
+--     (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
+--     (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
+--     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
+--       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))) atTop (nhds 0) := by
+
+lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
+    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))) atTop (𝓝 0) := by
+
+  -- Shorter notation for clarity
+  let S1 x (ψ : ℝ → ℂ) := ∑' (n : ℕ), f n / ↑n * 𝓕 ψ (1 / (2 * π) * Real.log (↑n / x))
+  let S2 x (ψ : ℝ → ℂ) := ↑A * ∫ (u : ℝ) in Ici (-Real.log x), 𝓕 ψ (u / (2 * π))
+  let S x ψ := S1 x ψ - S2 x ψ ; change Tendsto (fun x ↦ S x ψ) atTop (𝓝 0)
+
+  -- Build the truncation
+  obtain ⟨g, hg⟩ := exists_trunc ; let ψR R v := g (v * R⁻¹) * ψ v
+  have l2 R (hR : R ≠ 0) : HasCompactSupport fun v ↦ (g (v * R⁻¹) : ℂ) := by
+    apply HasCompactSupport.comp_left (g := ofReal') ?_ (by simp)
+    simp_rw [mul_comm _ R⁻¹, ← smul_eq_mul]
+    apply hg.h2.comp_smul ; simpa
+  have l1 R : ContDiff ℝ 2 fun x ↦ (g (x * R⁻¹) : ℂ) := by
+    have r1 : ContDiff ℝ 2 ((↑) : ℝ → ℂ) := contDiff_ofReal.of_le le_top
+    apply (contDiff_ofReal.of_le le_top) |>.comp
+    exact (hg.h1.of_le le_top).comp <| contDiff_id.mul contDiff_const
+  have ψR_c R (hR : R ≠ 0) : HasCompactSupport (ψR R) := (l2 R hR).mul_right
+  have ψR_d R : ContDiff ℝ 2 (ψR R) := (l1 R).mul (ψ.smooth 2)
+
+  have ψR_W21 R (hR : R ≠ 0) : W21 (ψR R) := (W21_of_schwartz ψ).mul_compact_support (l1 R) (l2 R hR)
+  have ψR_W21_2 R (hR : R ≠ 0) : W21 (ψ - ψR R) := (W21_of_schwartz ψ).sub (ψR_W21 R hR)
+
+  have ψR_t : Tendsto (fun R ↦ W21.norm (ψ - ψR R)) atTop (𝓝 0) := by
+    simpa [ψR, sub_mul] using W21_approximation (W21_of_schwartz ψ) hg
+  have key R (hR : R ≠ 0) : Tendsto (fun x ↦ S x (ψR R)) atTop (𝓝 0) :=
+    limiting_cor (ψR_d R) (ψR_c R hR) hf hcheby hG hG'
+
+  -- Choose the truncation radius
+  obtain ⟨C, hcheby⟩ := hcheby
+  have hC : 0 ≤ C := by simpa [cumsum] using hcheby 1
+  have key2 : Tendsto (fun R ↦ W21.norm (ψ - ψR R)) atTop (𝓝 0) := by
+    simpa [sub_mul] using W21_approximation (W21_of_schwartz ψ) hg
+  simp_rw [Metric.tendsto_nhds] at key key2 ⊢ ; intro ε hε
+  let M := C * (1 + 2 * π ^ 2) + ‖(A : ℂ)‖ * (2 * π ^ 2)
+  specialize key2 ((ε / 2) / (1 + M)) (by positivity)
+  obtain ⟨R, hR, hRψ⟩ := ((eventually_ge_atTop 1).and key2).exists
+  simp only [dist_zero_right, Real.norm_eq_abs, abs_eq_self.mpr W21.norm_nonneg] at hRψ
+
+  -- Apply the compact support case
+  filter_upwards [eventually_ge_atTop 1, key R (by linarith) (ε / 2) (by positivity)] with x hx key
+
+  -- Control the tail term
+  have key3 : ‖S x (ψ - ψR R)‖ < ε / 2 := by
+    have : ‖S x _‖ ≤ _ * M := @bound_main f C A x hx (ψ - ψR R) (ψR_W21_2 R (by linarith)) hcheby
+    apply this.trans_lt
+    apply mul_le_mul (d := 1 + M) (le_refl (W21.norm (⇑ψ - ψR R))) (by simp) (by positivity)
+      W21.norm_nonneg |>.trans_lt
+    have : 0 < 1 + M := by positivity
+    convert (mul_lt_mul_right this).mpr hRψ using 1 ; field_simp ; ring
+
+  -- Conclude the proof
+  convert_to ‖S x ((⇑ψ - ψR R) + (ψR R))‖ < ε ; simp
+
   sorry
 
 /-%%

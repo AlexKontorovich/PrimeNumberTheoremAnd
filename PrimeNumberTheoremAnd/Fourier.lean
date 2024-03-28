@@ -80,6 +80,21 @@ structure W21 (f : ℝ → ℂ) : Prop where
   h3 : Tendsto f (cocompact ℝ) (𝓝 0)
   h4 : Tendsto (deriv f) (cocompact ℝ) (𝓝 0)
 
+lemma W21.sub {f g : ℝ → ℂ} (hf : W21 f) (hg : W21 g) : W21 (f - g) := by
+  have l1 : deriv (f - g) = deriv f - deriv g := by
+    ext x ; apply deriv_sub
+    · exact (hf.hh.differentiable one_le_two).differentiableAt
+    · exact (hg.hh.differentiable one_le_two).differentiableAt
+  have l2 : deriv (deriv (f - g)) = deriv (deriv f) - deriv (deriv g) := by
+    rw [l1] ; ext x ; apply deriv_sub
+    · exact (hf.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt
+    · exact (hg.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt
+  refine ⟨hf.hh.sub hg.hh, hf.hf.sub hg.hf, ?_, ?_, ?_, ?_⟩
+  · simpa [l1] using hf.hf'.sub hg.hf'
+  · simpa [l2] using hf.hf''.sub hg.hf''
+  · simpa using hf.h3.sub hg.h3
+  · simpa [l1] using hf.h4.sub hg.h4
+
 noncomputable def W21.norm (f : ℝ → ℂ) : ℝ := (∫ v, ‖f v‖) + (4 * π ^ 2)⁻¹ * (∫ v, ‖deriv (deriv f) v‖)
 
 lemma W21.norm_nonneg {f : ℝ → ℂ} : 0 ≤ W21.norm f :=
@@ -115,6 +130,11 @@ structure trunc (g : ℝ → ℝ) : Prop :=
   h2 : HasCompactSupport g
   h3 : (Set.Icc (-1) (1)).indicator 1 ≤ g
   h4 : g ≤ Set.indicator (Set.Ioo (-2) (2)) 1
+
+lemma W21.mul_compact_support {f g : ℝ → ℂ} (hf : W21 f) (hg1 : ContDiff ℝ 2 g) (hg2 : HasCompactSupport g) :
+    W21 (fun x => g x * f x) := by
+  refine ⟨hg1.mul hf.hh, ?_, ?_, ?_, ?_, ?_⟩
+  all_goals { sorry }
 
 theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg : trunc g) :
     Tendsto (fun R => W21.norm (fun v => (1 - g (v * R⁻¹)) * f v)) atTop (𝓝 0) := by
