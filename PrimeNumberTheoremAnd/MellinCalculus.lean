@@ -537,6 +537,12 @@ lemma Complex.deriv_ofReal' {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) {x :
   have := diffΨ.differentiable (by norm_num)
   apply this.differentiableAt
 
+@[simp]
+lemma Function.support_abs {α : Type*} (f : α → 𝕂):
+    (fun x ↦ ‖f x‖).support = f.support := by
+  simp only [support, ne_eq, mem_setOf_eq]
+  simp_rw [norm_ne_zero_iff]
+
 /-%%
 The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at
 least) like $1/|s|$.
