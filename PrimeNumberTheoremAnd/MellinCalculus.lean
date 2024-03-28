@@ -867,9 +867,25 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) :
     (fun (ε : ℝ) ↦ (MellinTransform (Ψ ·) ε) - 1) =O[𝓝[>]0] id := by
-  have diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) => MellinTransform (Ψ ·) ε - 1) (Ioi 0) 0 := by
-    have := @mellin_differentiableAt_of_isBigO_rpow (f := (fun x ↦ (Ψ x : ℂ) )) (a := 1) (b := -1) (s := 0) _ _ ?_ ?_ ?_ (by simp) ?_ (by simp)
-  -- have := this.hasDerivAt
+  have diff : DifferentiableAt ℝ (fun (ε : ℂ) => MellinTransform (Ψ ·) ε - 1) 0 := by
+    have := @mellin_differentiableAt_of_isBigO_rpow (f := (fun x ↦ (Ψ x : ℂ) )) (a := 1) (b := -1)
+      (s := 0) _ _ _ ?_ ?_ (by simp) ?_ (by simp)
+    · have := DifferentiableAt.restrictScalars (𝕜' := ℂ) (𝕜 := ℝ) (E := ℂ) (F := ℂ) this
+      simp only [differentiableAt_sub_const_iff]
+      unfold mellin at this
+      unfold MellinTransform
+      simp only
+      simp at this
+      convert this using 3
+      simp_rw [mul_comm]
+    · apply ContinuousOn.locallyIntegrableOn ?_ (by simp)
+      apply Continuous.continuousOn
+      have := diffΨ.continuous
+      continuity
+    · sorry
+    · sorry
+  replace diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) => MellinTransform (Ψ ·) ε - 1) (Ioi 0) 0 := by
+    apply DifferentiableAt.differentiableWithinAt
     sorry
   have := diff.isBigO_sub
   simp only [ofReal_zero, sub_sub_sub_cancel_right, sub_zero] at this ⊢
@@ -877,7 +893,7 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
   unfold MellinTransform
   simp only [zero_sub, sub_right_inj]
   simp_rw [cpow_neg_one, ← div_eq_mul_inv, ← ofReal_div]
-  rw [(by simp : (1 : ℂ) = (1 : ℝ)), ← mass_one]
+  rw [(by norm_num : (1 : ℂ) = (1 : ℝ)), ← mass_one]
   convert integral_ofReal.symm
 /-%%
 \begin{proof}
