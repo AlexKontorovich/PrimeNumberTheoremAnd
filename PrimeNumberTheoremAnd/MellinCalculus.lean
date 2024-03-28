@@ -882,8 +882,24 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
       apply Continuous.continuousOn
       have := diffΨ.continuous
       continuity
-    · sorry
-    · sorry
+    · apply Asymptotics.IsBigO.trans_le (g' := fun x => (0 : ℝ)) ?_ (by simp)
+      refine Eventually.isBigO ?_
+      filter_upwards [Ioi_mem_atTop 2] with a ha
+      simp only [mem_Ioi, Complex.norm_eq_abs, abs_ofReal, abs_nonpos_iff] at ha ⊢
+      contrapose suppΨ
+      simp only [Function.support_subset_iff, ne_eq, mem_Icc, not_forall, not_and, not_le,
+        exists_prop]
+      use a
+      exact ⟨suppΨ, fun h => ha⟩
+    · apply Asymptotics.IsBigO.trans_le (g' := fun x => (0 : ℝ)) ?_ (by simp)
+      refine Eventually.isBigO ?_
+      filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2)] with a ha
+      simp only [mem_Ioo, Complex.norm_eq_abs, abs_ofReal, abs_nonpos_iff] at ha ⊢
+      contrapose suppΨ
+      simp only [Function.support_subset_iff, ne_eq, mem_Icc, not_forall, not_and, not_le,
+        exists_prop]
+      use a
+      exact ⟨suppΨ, fun h => by linarith⟩
   replace diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) => MellinTransform (Ψ ·) ε - 1) (Ioi 0) 0 := by
     apply DifferentiableAt.differentiableWithinAt
     sorry
