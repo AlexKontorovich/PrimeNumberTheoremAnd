@@ -133,8 +133,49 @@ structure trunc (g : ℝ → ℝ) : Prop :=
 
 lemma W21.mul_compact_support {f g : ℝ → ℂ} (hf : W21 f) (hg1 : ContDiff ℝ 2 g) (hg2 : HasCompactSupport g) :
     W21 (fun x => g x * f x) := by
+
+  let f' := deriv f
+  let f'' := deriv (deriv f)
+  have f_d x : HasDerivAt f (f' x) x := hf.hh.differentiable one_le_two |>.differentiableAt.hasDerivAt
+  have f_i : Integrable f := hf.hf
+  have f'_d x : HasDerivAt f' (f'' x) x := (hf.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
+  have f'_i : Integrable f' := hf.hf'
+  have f''_i : Integrable f'' := hf.hf''
+
+  let g' := deriv g
+  let g'' := deriv (deriv g)
+  have g_0 : g =ᶠ[cocompact ℝ] 0 := by simpa using hasCompactSupport_iff_eventuallyEq.mp hg2
+  have g_c : Continuous g := hg1.continuous
+  have g_b : ∃ C, ∀ x, ‖g x‖ ≤ C := g_c.bounded_above_of_compact_support hg2
+  have g_d x : HasDerivAt g (g' x) x := hg1.differentiable one_le_two |>.differentiableAt.hasDerivAt
+  have g_a : AEStronglyMeasurable g volume := g_c.aestronglyMeasurable
+  have g'_0 : g' =ᶠ[cocompact ℝ] 0 := by simpa using hasCompactSupport_iff_eventuallyEq.mp hg2.deriv
+  have g'_c : Continuous g' := hg1.continuous_deriv one_le_two
+  have g'_d x : HasDerivAt g' (g'' x) x := (hg1.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
+  have g'_a : AEStronglyMeasurable g' volume := g'_c.aestronglyMeasurable
+  have g'_b : ∃ C, ∀ x, ‖g' x‖ ≤ C := g'_c.bounded_above_of_compact_support hg2.deriv
+  have g''_c : Continuous g'' := hg1.iterate_deriv' 0 2 |>.continuous
+  have g''_a : AEStronglyMeasurable g'' volume := g''_c.aestronglyMeasurable
+  have g''_b : ∃ C, ∀ x, ‖g'' x‖ ≤ C := g''_c.bounded_above_of_compact_support hg2.deriv.deriv
+
+  let h := fun x => g x * f x
+  let h' := fun x => g' x * f x + g x * f' x
+  let h'' := fun x => g'' x * f x + 2 * g' x * f' x + g x * f'' x
+  have h_d x : HasDerivAt h (h' x) x := (g_d x).mul (f_d x)
+  have h_d' : deriv h = h' := funext (fun x => (h_d x).deriv)
+  have h'_d x : HasDerivAt h' (h'' x) x := by
+    convert ((g'_d x).mul (f_d x)).add ((g_d x).mul (f'_d x)) using 1 ; simp [h', h''] ; ring
+  have h'_d' : deriv h' = h'' := funext (fun x => (h'_d x).deriv)
+
   refine ⟨hg1.mul hf.hh, ?_, ?_, ?_, ?_, ?_⟩
-  all_goals { sorry }
+  · exact hf.hf.bdd_mul g_c.aestronglyMeasurable g_b
+  · rw [h_d'] ; exact (f_i.bdd_mul g'_a g'_b).add (f'_i.bdd_mul g_a g_b)
+  · rw [h_d', h'_d'] ; refine Integrable.add ?_ (f''_i.bdd_mul g_a g_b)
+    apply (f_i.bdd_mul g''_a g''_b).add
+    simp_rw [mul_assoc] ; apply (f'_i.bdd_mul g'_a g'_b).const_mul
+  · apply tendsto_nhds_of_eventually_eq ; filter_upwards [g_0] with x hgx ; simp [hgx]
+  · simp only [h_d', h'] ; apply tendsto_nhds_of_eventually_eq
+    filter_upwards [g_0, g'_0] with x hgx hg'x; simp [hgx, hg'x]
 
 theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg : trunc g) :
     Tendsto (fun R => W21.norm (fun v => (1 - g (v * R⁻¹)) * f v)) atTop (𝓝 0) := by
