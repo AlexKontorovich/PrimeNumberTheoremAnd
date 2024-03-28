@@ -587,8 +587,65 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
         apply DifferentiableAt.comp_ofReal (e := fun x ↦ x ^ s)
         apply DifferentiableAt.cpow differentiableAt_id' <| differentiableAt_const s
         exact Or.inl ha
-      · sorry
-      · sorry
+      · have : ((fun x ↦ (Ψ x : ℂ)) * deriv (g hs)).support ⊆ Icc (1 / 2) 2 := by
+          simp only [ne_eq, Function.support_mul', suppΨ, inter_subset]
+          apply subset_union_of_subset_right (by aesop)
+        apply (integrableOn_iff_integrable_of_support_subset this).mp
+        apply ContinuousOn.integrableOn_Icc
+        apply ContinuousOn.mul
+        · apply Continuous.continuousOn
+          have := diffΨ.continuous
+          continuity
+        · apply ContinuousOn.congr (f := fun (x : ℝ) ↦ (x : ℂ) ^ (s - 1))
+          apply ContinuousOn.cpow
+          · apply Continuous.continuousOn
+            continuity
+          · exact continuousOn_const
+          · simp only [mem_Icc, ofReal_mem_slitPlane, and_imp]
+            intro a h1 h2
+            linarith
+          · intro x hx
+            have xpos : x ∈ Ioi 0 := by
+              simp only [mem_Ioi]
+              simp only [mem_Icc] at hx
+              linarith
+            simp_rw [gderiv hs xpos]
+      · have : ((deriv fun x ↦ (Ψ x : ℂ)) * g hs).support ⊆ Icc (1 / 2) 2 := by
+          have : (deriv fun x ↦ ↑(Ψ x)).support ⊆ Icc (1 / 2) 2 := by
+            have := support_deriv_subset (f := fun x ↦ Ψ x)
+            dsimp [tsupport] at this
+            have := subset_trans this <| closure_mono suppΨ
+            rwa [closure_Icc] at this
+          simp only [this, subset_trans, ne_eq, Function.support_mul', suppΨ, inter_subset]
+          apply subset_union_of_subset_right
+          convert this
+          dsimp [Function.support]
+          push_neg
+          simp_rw [deriv_ofReal' diffΨ, ← ofReal_ne_zero]
+        apply (integrableOn_iff_integrable_of_support_subset this).mp
+        apply ContinuousOn.integrableOn_Icc
+        apply ContinuousOn.mul
+        · have : Continuous (deriv (fun x ↦ (Ψ x : ℂ))) := by
+            have diff := diffΨ.continuous_deriv (by norm_num)
+            have := continuous_ofReal
+            let comp := ofReal' ∘ (deriv Ψ)
+            have : Continuous comp := by continuity
+            simp only at this
+            convert this
+            ext x
+            simp only [Function.comp_apply]
+            apply deriv_ofReal' diffΨ
+          apply this.continuousOn
+        · apply ContinuousOn.div
+          · apply ContinuousOn.cpow
+            · apply Continuous.continuousOn
+              continuity
+            · exact continuousOn_const
+            · simp only [mem_Icc, ofReal_mem_slitPlane, and_imp]
+              intro a h1 h2
+              linarith
+          · exact continuousOn_const
+          · exact fun x hx => hs
       · apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
         filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2)] with a ha
         simp only [mem_Ioo] at ha
