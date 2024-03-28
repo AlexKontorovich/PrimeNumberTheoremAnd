@@ -688,15 +688,15 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
       rw [integral_mul_left]
 
   let f := fun (x : ℝ) ↦ ‖deriv Ψ x‖
-  have : IsCompact (Icc (1 / 2) (2 : ℝ)) := isCompact_Icc
-  have cont : ContinuousOn f (Icc (1 / 2) 2) := by
+  have : IsCompact (Icc (1 / 4) (2 : ℝ)) := isCompact_Icc
+  have cont : ContinuousOn f (Icc (1 / 4) 2) := by
     apply Continuous.continuousOn
     apply Continuous.comp (by continuity)
     apply diffΨ.continuous_deriv (by norm_num)
   have := this.exists_isMaxOn (f := f) (by norm_num) cont
   obtain ⟨a, ha, max⟩ := this
   rw [Asymptotics.isBigO_iff]
-  use f a * 2 ^ σ₂ * (3 / 2)
+  use f a * 2 ^ σ₂ * (7 / 4)
   filter_upwards [mem_within_strip σ₁ σ₂] with s hs
   unfold MellinTransform
   have : s ≠ 0 := by
@@ -713,21 +713,48 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
 
   calc
     _ ≤ ∫ (x : ℝ) in Ioi 0, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
-    _ = ∫ (x : ℝ) in Ioc (1 / 2) 2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
-    _ = ∫ (x : ℝ) in (1 / 2)..2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
-    _ ≤ ‖∫ (x : ℝ) in (1 / 2)..2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖‖ := le_abs_self _
+    _ = ∫ (x : ℝ) in Ioc (1 / 4) 2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
+    _ = ∫ (x : ℝ) in (1 / 4)..2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
+    _ ≤ ‖∫ (x : ℝ) in (1 / 4)..2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖‖ := le_abs_self _
     _ ≤ _ := ?_
 
   · simp_rw [← Complex.norm_eq_abs]
     apply norm_integral_le_integral_norm
-  · sorry
+  · have suppΨderiv : (deriv Ψ).support ⊆ Set.Icc (1 / 2) 2 := by
+      have := support_deriv_subset (f := fun x ↦ Ψ x)
+      dsimp [tsupport] at this
+      have := subset_trans this <| closure_mono suppΨ
+      rw [closure_Icc] at this
+      apply subset_trans this ?_
+      apply Icc_subset_Icc (by norm_num) (by norm_num)
+    have supp : (fun (x : ℝ) ↦ ‖((deriv Ψ) x : ℂ)‖ * ‖(x : ℂ) ^ s‖).support ⊆ Set.Icc (1 / 2) 2 := by
+      simp only [Complex.norm_eq_abs, abs_ofReal, ← Real.norm_eq_abs, Function.support_mul, Function.support_abs]
+      apply subset_union_compl_iff_inter_subset.mp
+      intro a ha
+      exact Or.inl (suppΨderiv ha)
+    have : (fun (x : ℝ) ↦ ‖((deriv Ψ) x : ℂ)‖ * ‖(x : ℂ) ^ s‖).support ⊆ Set.Ioc (1 / 4) 2 := by
+      apply subset_trans supp ?_
+      have := Icc_subset_Ioc_iff (a₁ := (1 / 2 : ℝ)) (b₁ := (2 : ℝ))
+                                 (a₂ := (1 / 4 : ℝ)) (b₂ := (2 : ℝ)) (by norm_num)
+      apply this.mpr
+      norm_num
+
+    have := intervalIntegral.integral_eq_integral_of_support_subset this (μ := volume.restrict <| Ioi 0)
+    convert this.symm using 2
+    · simp
+    · rw [intervalIntegral.integral_of_le (by norm_num)]
+      simp only [norm_mul, Complex.norm_eq_abs, abs_ofReal, measurableSet_Ioc,
+        Measure.restrict_restrict, Ioc_inter_Ioi]
+      have : 1 / 4 ⊔ (0 : ℝ) = 1 / 4 := by norm_num
+      rw [this]
+
   · rw [← intervalIntegral.integral_of_le (by norm_num)]
   · have := intervalIntegral.norm_integral_le_of_norm_le_const
-      (C := f a * 2 ^ σ₂) (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 2 : ℝ)) ( b := 2) ?_
-    · rw [(by norm_num: |(2 : ℝ) - 1 / 2| = 3 / 2)] at this
+      (C := f a * 2 ^ σ₂) (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 4 : ℝ)) ( b := 2) ?_
+    · rw [(by norm_num: |(2 : ℝ) - 1 / 4| = 7 / 4)] at this
       simp only [Real.norm_eq_abs, Complex.norm_eq_abs, abs_ofReal, map_mul] at this ⊢
       exact this
-    · suffices h : ∀ x ∈ Icc (1 / 2) 2, ‖(fun x ↦ f x * ‖(x : ℂ) ^ s‖) x‖ ≤ f a * 2 ^ σ₂
+    · suffices h : ∀ x ∈ Icc (1 / 4) 2, ‖(fun x ↦ f x * ‖(x : ℂ) ^ s‖) x‖ ≤ f a * 2 ^ σ₂
       · intro x hx
         apply h x
         rw [uIoc_of_le (by norm_num)] at hx
@@ -736,7 +763,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
         have f_bound := isMaxOn_iff.mp max x hx
         have pow_bound : ‖(x : ℂ) ^ s‖ ≤ 2 ^ σ₂ := by
           simp only [Complex.norm_eq_abs]
-          rw [Complex.abs_cpow_eq_rpow_re_of_pos (by linarith [mem_Icc.mp hx])]
+          rw [abs_cpow_eq_rpow_re_of_pos (by linarith [mem_Icc.mp hx])]
           have h1 : 0 ≤ x := by linarith [(mem_Icc.mp hx).1]
           have h2 : 0 ≤ s.re := by linarith
           have h := rpow_le_rpow h1 (mem_Icc.mp hx).2 h2
@@ -747,7 +774,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
           Complex.abs_abs, ge_iff_le]
         convert mul_le_mul f_bound pow_bound ?_ ?_ <;> simp
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{MellinTransform, SmoothExistence}
 Integrate by parts:
 $$
