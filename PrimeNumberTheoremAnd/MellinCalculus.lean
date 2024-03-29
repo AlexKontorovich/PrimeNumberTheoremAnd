@@ -1020,17 +1020,11 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) :
     (fun (ε : ℝ) ↦ (MellinTransform (Ψ ·) ε) - 1) =O[𝓝[>]0] id := by
-  have diff : DifferentiableAt ℝ (fun (ε : ℂ) => MellinTransform (Ψ ·) ε - 1) 0 := by
-    have := mellin_differentiableAt_of_isBigO_rpow (f := fun x ↦ (Ψ x : ℂ)) (a := 1) (b := -1)
-      (s := 0)  ?_ ?_ (by simp) ?_ (by simp)
-    · have := DifferentiableAt.restrictScalars (𝕜' := ℂ) (𝕜 := ℝ) (E := ℂ) (F := ℂ) this
-      simp only [differentiableAt_sub_const_iff]
-      unfold mellin at this
-      unfold MellinTransform
-      simp only
-      simp at this
-      convert this using 3
-      simp_rw [mul_comm]
+  have diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) => MellinTransform (Ψ ·) ε - 1) (Ioi 0) 0 := by
+    apply DifferentiableAt.differentiableWithinAt
+    simp only [differentiableAt_sub_const_iff, MellinTransform_eq]
+    refine DifferentiableAt.comp_ofReal ?_
+    refine mellin_differentiableAt_of_isBigO_rpow (a := 1) (b := -1) ?_ ?_ (by simp) ?_ (by simp)
     · apply ContinuousOn.locallyIntegrableOn ?_ (by simp)
       apply Continuous.continuousOn
       have := diffΨ.continuous
@@ -1053,25 +1047,11 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
         exists_prop]
       use a
       exact ⟨suppΨ, fun h => by linarith⟩
-  replace diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) => MellinTransform (Ψ ·) ε - 1) (Ioi 0) 0 := by
-    apply DifferentiableAt.differentiableWithinAt
-    simp only [differentiableAt_sub_const_iff] at diff ⊢
-    let h := fun (y : ℝ) ↦ (fun (ε : ℂ) ↦ MellinTransform (fun x ↦ ↑(Ψ x)) ε) y
-    have diff2 : DifferentiableAt ℝ h 0 := by
-      have := DifferentiableAt.comp (x := (0 : ℝ)) (𝕜 := ℝ) (f := ofReal')
-        (g := (fun (ε : ℂ) ↦ MellinTransform (fun x ↦ ↑(Ψ x)) ε))
-      apply this diff
-      apply HasDerivAt.differentiableAt
-      apply HasDerivAt.ofReal_comp (u := 1)
-      apply hasDerivAt_id
-    convert diff2
-  have := diff.isBigO_sub
-  simp only [ofReal_zero, sub_sub_sub_cancel_right, sub_zero] at this ⊢
-  convert this using 2
-  unfold MellinTransform
-  simp only [zero_sub, sub_right_inj]
-  simp_rw [cpow_neg_one, ← div_eq_mul_inv, ← ofReal_div]
-  rw [(by norm_num : (1 : ℂ) = (1 : ℝ)), ← mass_one]
+  have := ofReal_zero ▸ diff.isBigO_sub
+  simp only [sub_sub_sub_cancel_right, sub_zero] at this
+  convert this
+  simp only [MellinTransform, zero_sub, sub_right_inj, cpow_neg_one, ← div_eq_mul_inv, ← ofReal_div]
+  rw [← ofReal_one, ← mass_one]
   convert integral_ofReal.symm
 /-%%
 \begin{proof}\leanok
