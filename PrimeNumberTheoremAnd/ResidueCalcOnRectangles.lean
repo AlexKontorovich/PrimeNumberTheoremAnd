@@ -18,6 +18,10 @@ noncomputable def HIntegral (f : ℂ → E) (x₁ x₂ y : ℝ) : E := ∫ x in 
 
 noncomputable def VIntegral (f : ℂ → E) (x y₁ y₂ : ℝ) : E := I • ∫ y in y₁..y₂, f (x + y * I)
 
+noncomputable def HIntegral' (f : ℂ → E) (x₁ x₂ y : ℝ) : E := (1 / (2 * π * I)) • HIntegral f x₁ x₂ y
+
+noncomputable def VIntegral' (f : ℂ → E) (x y₁ y₂ : ℝ) : E :=  (1 / (2 * π * I)) • VIntegral f x y₁ y₂
+
 lemma HIntegral_symm : HIntegral f x₁ x₂ y = - HIntegral f x₂ x₁ y := integral_symm _ _
 
 lemma VIntegral_symm : VIntegral f x y₁ y₂ = - VIntegral f x y₂ y₁ := by
@@ -59,7 +63,7 @@ noncomputable def LowerUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegr
 
 /-%%
 It is very convenient to define integrals along vertical lines in the complex plane, as follows.
-\begin{definition}[VerticalIntegral]\label{VerticalIntegral}\leanok
+\begin{definition}[VerticalIntegral]\label{VerticalIntegral}\lean{VerticalIntegral}\leanok
 Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a real number. Then we define
 $$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
 \end{definition}

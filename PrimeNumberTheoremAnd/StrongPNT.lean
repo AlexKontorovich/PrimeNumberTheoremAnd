@@ -3,19 +3,13 @@ import Mathlib.NumberTheory.ArithmeticFunction
 
 open Nat Filter
 
-open scoped ArithmeticFunction
+--open scoped ArithmeticFunction
 
 /-%%
-\begin{definition}\label{ChebyshevPsi}\lean{ChebyshevPsi}\leanok
-The Chebyshev Psi function is defined as
-$$
-\psi(x) := \sum_{n \le x} \Lambda(n),
-$$
-where $\Lambda(n)$ is the von Mangoldt function.
-\end{definition}
+This section has been removed.
 %%-/
-noncomputable def ChebyshevPsi (x : ℝ) : ℝ := (Finset.range (Nat.floor x)).sum Λ
-/-%%
+
+/-%
 
 Main Theorem: The Prime Number Theorem in strong form.
 \begin{theorem}[PrimeNumberTheorem]\label{StrongPNT}\lean{PrimeNumberTheorem}\uses{thm:StrongZeroFree, ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval}
@@ -26,9 +20,8 @@ $$
 as $x\to \infty$.
 \end{theorem}
 
-%%-/
-/-- *** Prime Number Theorem *** The `ChebyshevPsi` function is asymptotic to `x`. -/
-theorem PrimeNumberTheorem : ∃ (c : ℝ) (hc : c > 0),
-    (ChebyshevPsi - id) =O[atTop] (fun (x : ℝ) ↦ x * Real.exp (-c * Real.sqrt (Real.log x))) := by
-
-  sorry
+%-/
+-- *** Prime Number Theorem *** The `ChebyshevPsi` function is asymptotic to `x`.
+-- theorem PrimeNumberTheorem : ∃ (c : ℝ) (hc : c > 0),
+--     (ChebyshevPsi - id) =O[atTop] (fun (x : ℝ) ↦ x * Real.exp (-c * Real.sqrt (Real.log x))) := by
+--  sorry
