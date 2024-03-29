@@ -687,7 +687,7 @@ measure.
 \end{proof}
 %%-/
 
-lemma DeltaSpikeSupport (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : 0 < ε) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2):
+lemma DeltaSpikeSupport {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2):
     (DeltaSpike Ψ ε).support ⊆ Icc (2 ^ (-ε)) (2 ^ ε) := by
   unfold DeltaSpike
   rw [Function.support_subset_iff] at suppΨ ⊢
@@ -965,20 +965,12 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     intro hy2
     by_cases h : y = 0
     · right; exact h
-    have ypos: 0 < y := mem_Ioi.mp hy
-    left; replace hy2 := hy2 <| ypos
-    apply div_eq_zero_iff.mpr; left
-    rw [Function.support_subset_iff] at suppΨ
-    contrapose hy2
-    push_neg at hy2 ⊢
-    have key := (suppΨ _ hy2).1
-    have : 2 = ((2 : ℝ) ^ ε) ^ (1 / ε ) := by
-      rw [← rpow_mul zero_le_two, mul_one_div_cancel (ne_of_gt εpos), rpow_one 2]
-    rw [div_rpow, le_div_iff, div_mul_eq_mul_div, one_mul, div_le_iff',
-        this, ← mul_rpow, rpow_le_rpow_iff] at key
-    convert le_mul_of_le_mul_of_nonneg_left key (le_of_lt hx2) (by positivity)
-    rw [← rpow_add, add_right_neg, rpow_zero]
-    all_goals (try linarith) <;> positivity
+    left; replace hy2 := hy2 <| mem_Ioi.mp hy
+    apply Function.nmem_support.mp
+    apply not_mem_subset (DeltaSpikeSupport εpos suppΨ)
+    simp only [mem_Icc, not_and, not_le]
+    intro
+    linarith [(by apply (div_lt_iff (by linarith)).mpr; nlinarith : x / y < 2 ^ (-ε))]
 
 /-%%
 \begin{proof}\leanok
@@ -1063,18 +1055,28 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
         rw [← rpow_add (by norm_num), add_neg_self, sub_self]
       conv => lhs; lhs; ring_nf; rhs; simp [this]
 
-  unfold Smooth1 MellinConvolution DeltaSpike
+  unfold Smooth1 MellinConvolution
   simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq]
   apply set_integral_eq_zero_of_forall_eq_zero
   intro y hy
-  by_cases y1 : y ≤ 1
-  swap
+  by_cases y1 : y ≤ 1; swap
   · simp [mem_Ioi.mp hy, y1]
-  simp only [mem_Ioi.mp hy, y1, and_self, ↓reduceIte, div_eq_zero_iff]
-  left; left
+  simp only [mem_Ioi.mp hy, y1, and_self, ↓reduceIte, div_eq_zero_iff]; left
+  apply Function.nmem_support.mp
+  apply not_mem_subset <| DeltaSpikeSupport εpos suppΨ
+  simp only [mem_Icc, not_and, not_le]
+  intro
+  have : x / y = ((x / y) ^ (1 / ε)) ^ ε := by
+    rw [← rpow_mul]
+    simp only [one_div, inv_mul_cancel (ne_of_gt εpos), rpow_one]
+    apply div_nonneg_iff.mpr; left;
+    simp only [mem_Ioi] at hy
+    simp only [gt_iff_lt] at hx2
+    exact ⟨(le_trans (rpow_pos_of_pos (by norm_num) ε).le) hx2.le, hy.le⟩
+  rw [this]
+  refine rpow_lt_rpow (by norm_num) ?_ εpos
   have pos : 0 < y ^ (1 / ε) := by apply rpow_pos_of_pos <| mem_Ioi.mp hy
   have ypos := mem_Ioi.mp hy
-
   have h : (x / y) ^ (1 / ε) > 2 := by
     calc
       _ > (2 ^ ε / y) ^ (1 / ε) := ?_
@@ -1093,10 +1095,7 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
       rw [ge_iff_le, div_le_iff, div_mul_eq_mul_div, le_div_iff', mul_comm] <;> try linarith
     · rw [ge_iff_le, le_div_iff <| ypos]
       exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
-
-  rw [Function.support_subset_iff] at suppΨ
-  contrapose h
-  simpa [h] using (suppΨ _ h).2
+  rwa [gt_iff_lt] at h
 
 /-%%
 \begin{proof}\leanok
@@ -1248,7 +1247,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     simp only [F, f, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair, mul_eq_zero,
       div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff, ne_eq]
     left; left; left
-    apply Function.nmem_support.mp <| not_mem_subset (h := DeltaSpikeSupport Ψ εpos suppΨ) hy
+    apply Function.nmem_support.mp <| not_mem_subset (DeltaSpikeSupport εpos suppΨ) hy
 
   have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
     -- refine Integrable.integrableOn <| (integrableOn_iff_integrable_of_support_subset F_supp).mp ?_
