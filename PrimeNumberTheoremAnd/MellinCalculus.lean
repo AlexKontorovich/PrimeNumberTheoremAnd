@@ -643,7 +643,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
       _ =  ∫ (x : ℝ) in Ioi 0, ↑(Ψ x) * deriv (@g s) x := ?_
       _ = -∫ (x : ℝ) in Ioi 0, deriv (fun x ↦ ↑(Ψ x)) x * @g s x := ?_
       _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * @g s x := ?_
-      _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * x ^ s / s := by simp [mul_div]
+      _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * x ^ s / s := by simp only [mul_div, g]
       _ = _ := ?_
     · rw [set_integral_congr (by simp)]
       intro _ hx
@@ -651,7 +651,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     · apply PartialIntegration (Ψ ·) g
       · intro a _
         refine DifferentiableAt.differentiableWithinAt ?_
-        exact diffΨ.contDiffAt.differentiableAt (by norm_num) (x := a).ofReal_comp
+        exact (diffΨ.contDiffAt.differentiableAt (by norm_num) (x := a)).ofReal_comp
       · refine DifferentiableOn.div_const ?_ s
         intro a ha
         refine DifferentiableAt.differentiableWithinAt ?_
@@ -713,9 +713,9 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
           cpow_eq_zero_iff, ne_of_gt ha.left, hs, not_false_eq_true, and_true, or_self, or_false]
         dsimp [Set.subset_def] at suppΨ
         contrapose suppΨ
-        push_neg
+        push_neg at suppΨ ⊢
         use a
-        constructor; exact suppΨ
+        constructor; simp [Function.support, suppΨ]
         intro h
         simp only [mem_Icc, not_and, not_le] at h
         linarith
@@ -725,9 +725,9 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
         simp only [mem_Ioi] at ha
         simp [hs, ne_of_gt (lt_trans (by norm_num : 0 < (2 : ℝ)) ha)]
         contrapose suppΨ
-        push_neg
+        push_neg at suppΨ ⊢
         use a
-        constructor; exact suppΨ
+        constructor; simp [Function.support, suppΨ]
         intro h
         simp only [mem_Icc, not_and, not_le] at h
         linarith
@@ -795,24 +795,23 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     · rw [(by norm_num: |(2 : ℝ) - 1 / 4| = 7 / 4)] at this
       simp only [Real.norm_eq_abs, Complex.norm_eq_abs, abs_ofReal, map_mul] at this ⊢
       exact this
-    · suffices h : ∀ x ∈ Icc (1 / 4) 2, ‖(fun x ↦ f x * ‖(x : ℂ) ^ s‖) x‖ ≤ f a * 2 ^ σ₂
-      · intro x hx
+    · suffices h : ∀ x ∈ Icc (1 / 4) 2, ‖(fun x ↦ f x * ‖(x : ℂ) ^ s‖) x‖ ≤ f a * 2 ^ σ₂ by
+        intro x hx
         apply h x
         rw [uIoc_of_le (by norm_num)] at hx
         exact mem_Icc_of_Ioc hx
-      · intro x hx
-        have f_bound := isMaxOn_iff.mp max x hx
-        have pow_bound : ‖(x : ℂ) ^ s‖ ≤ 2 ^ σ₂ := by
-          simp only [Complex.norm_eq_abs]
-          rw [abs_cpow_eq_rpow_re_of_pos (by linarith [mem_Icc.mp hx])]
-          have xpos : 0 ≤ x := by linarith [(mem_Icc.mp hx).1]
-          have h := rpow_le_rpow xpos (mem_Icc.mp hx).2 (by linarith : 0 ≤ s.re)
-          apply le_trans h <| rpow_le_rpow_of_exponent_le (by norm_num) hs.2
-        simp only at f_bound
-        simp only [Complex.norm_eq_abs, abs_ofReal, norm_mul, Real.norm_eq_abs, _root_.abs_abs,
-          Complex.abs_abs, ge_iff_le]
-        convert mul_le_mul f_bound pow_bound ?_ ?_ <;> simp
-
+      intro x hx
+      have f_bound := isMaxOn_iff.mp max x hx
+      have pow_bound : ‖(x : ℂ) ^ s‖ ≤ 2 ^ σ₂ := by
+        simp only [Complex.norm_eq_abs]
+        rw [abs_cpow_eq_rpow_re_of_pos (by linarith [mem_Icc.mp hx])]
+        have xpos : 0 ≤ x := by linarith [(mem_Icc.mp hx).1]
+        have h := rpow_le_rpow xpos (mem_Icc.mp hx).2 (by linarith : 0 ≤ s.re)
+        apply le_trans h <| rpow_le_rpow_of_exponent_le (by norm_num) hs.2
+      simp only at f_bound
+      simp only [Complex.norm_eq_abs, abs_ofReal, norm_mul, Real.norm_eq_abs, _root_.abs_abs,
+        Complex.abs_abs, ge_iff_le]
+      convert mul_le_mul f_bound pow_bound ?_ ?_ using 2 <;> simp [f]
 /-%%
 \begin{proof}\leanok
 \uses{MellinTransform, SmoothExistence}
