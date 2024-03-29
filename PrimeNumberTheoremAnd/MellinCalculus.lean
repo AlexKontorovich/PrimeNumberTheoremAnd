@@ -602,6 +602,44 @@ lemma Complex.deriv_ofReal' {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) {x :
   have := diffΨ.differentiable (by norm_num)
   apply this.differentiableAt
 
+-- steal coerction lemmas from EulerProducts.Auxiliary because of build issues
+namespace Complex
+-- see https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Differentiability.20of.20the.20natural.20map.20.E2.84.9D.20.E2.86.92.20.E2.84.82/near/418095234
+
+lemma hasDerivAt_ofReal (x : ℝ) : HasDerivAt ofReal' 1 x :=
+  HasDerivAt.ofReal_comp <| hasDerivAt_id x
+
+lemma deriv_ofReal (x : ℝ) : deriv ofReal' x = 1 :=
+  (hasDerivAt_ofReal x).deriv
+
+lemma differentiableAt_ofReal (x : ℝ) : DifferentiableAt ℝ ofReal' x :=
+  (hasDerivAt_ofReal x).differentiableAt
+
+lemma differentiable_ofReal : Differentiable ℝ ofReal' :=
+  ofRealCLM.differentiable
+
+end Complex
+
+lemma DifferentiableAt.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e z) :
+    DifferentiableAt ℝ (fun x : ℝ ↦ e x) z :=
+  hf.hasDerivAt.comp_ofReal.differentiableAt
+
+lemma deriv.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e z) :
+    deriv (fun x : ℝ ↦ e x) z = deriv e z :=
+  hf.hasDerivAt.comp_ofReal.deriv
+
+lemma Differentiable.comp_ofReal {e : ℂ → ℂ} (h : Differentiable ℂ e) :
+    Differentiable ℝ (fun x : ℝ ↦ e x) :=
+  fun _ ↦ h.differentiableAt.comp_ofReal
+
+lemma DifferentiableAt.ofReal_comp {z : ℝ} {f : ℝ → ℝ} (hf : DifferentiableAt ℝ f z) :
+    DifferentiableAt ℝ (fun (y : ℝ) ↦ (f y : ℂ)) z :=
+  hf.hasDerivAt.ofReal_comp.differentiableAt
+
+lemma Differentiable.ofReal_comp {f : ℝ → ℝ} (hf : Differentiable ℝ f) :
+    Differentiable ℝ (fun (y : ℝ) ↦ (f y : ℂ)) :=
+  fun _ ↦ hf.differentiableAt.ofReal_comp
+
 @[simp]
 lemma Function.support_abs {α : Type*} (f : α → 𝕂):
     (fun x ↦ ‖f x‖).support = f.support := by
