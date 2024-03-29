@@ -1245,16 +1245,10 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     intro y hy
     contrapose hy
     rw [Function.nmem_support]
-    simp only [mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair, mul_eq_zero,
+    simp only [F, f, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair, mul_eq_zero,
       div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff, ne_eq]
-    left; left
-    intro h1 h2
-    have suppDelta := DeltaSpikeSupport Ψ εpos suppΨ
-    contrapose suppDelta
-    simp only [Function.support_subset_iff, ne_eq, mem_Icc, not_forall, not_and, not_le, exists_prop]
-    use y
-    simp at hy
-    simpa only [suppDelta, not_false_eq_true, true_and]
+    left; left; left
+    apply Function.nmem_support.mp <| not_mem_subset (h := DeltaSpikeSupport Ψ εpos suppΨ) hy
 
   have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
     -- refine Integrable.integrableOn <| (integrableOn_iff_integrable_of_support_subset F_supp).mp ?_
@@ -1263,7 +1257,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     constructor
     · apply eventually_of_forall
       intro y
-      simp
+      simp only [F, f, g]
       apply Integrable.bdd_mul
       · have := (intervalIntegral.integrableOn_Ioo_cpow_iff (t := ((2 : ℝ) ^ ε))
         (s := s - 1) (by apply rpow_pos_of_pos (by norm_num))).mpr (by simpa)
@@ -1310,7 +1304,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     funext x
     convert integral_ofReal.symm
     simp only [MellinConvolution, IsROrC.ofReal_div, ite_mul, one_mul, zero_mul, @apply_ite ℝ ℂ,
-      algebraMap.coe_zero]
+      algebraMap.coe_zero, f, g]
     rfl
   · rw [MellinOf1 s hs, MellinOfDeltaSpike Ψ εpos s]
 /-%%
