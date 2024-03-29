@@ -714,7 +714,8 @@ lemma DeltaSpikeSupport {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (suppΨ :
     replace := rpow_def_of_neg this ε
     sorry
 
-theorem Complex.ofReal_rpow {x : ℝ} (h:x>0) (y: ℝ) : (((x:ℝ) ^ (y:ℝ)):ℝ) = (x:ℂ) ^ (y:ℂ) := by
+theorem Complex.ofReal_rpow {x : ℝ} (h : x > 0) (y : ℝ) :
+    (((x : ℝ) ^ (y : ℝ)) : ℝ) = (x : ℂ) ^ (y : ℂ) := by
   rw [rpow_def_of_pos h, ofReal_exp, ofReal_mul, Complex.ofReal_log h.le,
     Complex.cpow_def_of_ne_zero]
   simp only [ne_eq, ofReal_eq_zero, ne_of_gt h, not_false_eq_true]
@@ -729,13 +730,13 @@ $$\mathcal{M}(\psi_\epsilon)(s) = \mathcal{M}(\psi)\left(\epsilon s\right).$$
 theorem MellinOfDeltaSpike (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : ℂ) :
     MellinTransform ((DeltaSpike Ψ ε) ·) s = MellinTransform (Ψ ·) (ε * s) := by
   unfold MellinTransform DeltaSpike
-  rw [← integral_comp_rpow_Ioi (fun z => ((Ψ z): ℂ) * (z:ℂ)^((ε : ℂ)*s-1))
+  rw [← integral_comp_rpow_Ioi (fun z => ((Ψ z) : ℂ) * (z : ℂ)^((ε : ℂ) * s - 1))
     (one_div_ne_zero (ne_of_gt εpos))]
   apply set_integral_congr_ae measurableSet_Ioi
   filter_upwards with x hx
 
   -- Simple algebra, would be nice if some tactic could handle this
-  have log_x_real: (Complex.log (x:ℂ)).im=0 := by
+  have log_x_real: (Complex.log (x : ℂ)).im = 0 := by
     rw [← ofReal_log, ofReal_im]
     exact LT.lt.le hx
   rw [div_eq_mul_inv, ofReal_mul, abs_of_pos (one_div_pos.mpr εpos)]
