@@ -24,40 +24,17 @@ theorem LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ
   have := this.const_mul (c := a)
   convert this using 1; simp
 
-lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
-    (φDiff : ContDiffOn ℝ 1 φ (Set.uIcc a b)) :
-    ∫ (x : ℝ) in a..b, (k + 1 / 2 - x) * deriv φ x =
-      (k + 1 / 2 - b) * φ b - (k + 1 / 2 - a) * φ a + ∫ (x : ℝ) in a..b, φ x := by
-  by_cases h : a = b
-  · rw [h]; simp
-  push_neg at h
-  wlog a_lt_b : a < b
-  · simp only [not_lt] at a_lt_b
-    have b_lt_a : b < a := Ne.lt_of_le (id (Ne.symm h)) a_lt_b
-    have φDiff' : ContDiffOn ℝ 1 φ (Set.uIcc b a) := by
-      convert φDiff using 1
-      exact Set.uIcc_comm b a
-    have := @this φ b a k φDiff' (id (Ne.symm h)) b_lt_a
-    rw [intervalIntegral.integral_symm] at this
-    nth_rewrite 2 [intervalIntegral.integral_symm] at this
-    have : -∫ (x : ℝ) in a..b, (↑k + 1 / 2 - ↑x) * deriv φ x =
-    (↑k + 1 / 2 - ↑a) * φ a - (↑k + 1 / 2 - ↑b) * φ b + -∫ (x : ℝ) in a..b, φ x := this
-    have := (neg_inj (a := - ∫ (x : ℝ) in a..b, (↑k + 1 / 2 - ↑x) * deriv φ x)
-      (b := (↑k + 1 / 2 - ↑a) * φ a - (↑k + 1 / 2 - ↑b) * φ b + -∫ (x : ℝ) in a..b, φ x)).mpr this
-    simp only [one_div, neg_neg, neg_add_rev, neg_sub] at this
-    simp only [one_div]
-    ring_nf
-    ring_nf at this
-    convert this using 1
-    ring
-
+lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b) (c : ℂ)
+    (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+    ∫ (x : ℝ) in a..b, (c - x) * deriv φ x =
+      (c - b) * φ b - (c - a) * φ a + ∫ (x : ℝ) in a..b, φ x := by
   set v' := deriv φ
   set v := φ
-  set u := fun (x : ℝ) ↦ (k + 1 / 2 - x : ℂ)
+  set u := fun (x : ℝ) ↦ c - x
   set u' := fun (x : ℝ) ↦ (-1 : ℂ)
   have hu : ∀ x ∈ Set.uIcc a b, HasDerivAt u (u' x) x := by
     intros x hx
-    convert LinearDerivative_ofReal x (-1 : ℂ) (k + 1 / 2); ring
+    convert LinearDerivative_ofReal x (-1 : ℂ) c; ring
   have hv : ∀ x ∈ Set.uIcc a b, HasDerivAt v (v' x) x := by
     refine fun x hx ↦ φDiff.hasDeriv_deriv ?_
     --- argh, what if x=a or b :( Need to somehow replace `uIcc` with `uIoo`
@@ -74,35 +51,49 @@ lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
   convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu hv hu' hv' using 1
   simp [v, u]
 
-lemma sum_eq_int_deriv_aux_eq {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
-    (b_eq_kpOne : b = k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.uIcc a b)) :
-    ∑ n in Finset.Icc (k + 1) ⌊b⌋, φ n =
+lemma sum_eq_int_deriv_aux_eq {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (a_lt_b : a < b)
+    (b_eq_kpOne : b = k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+    ∑ n in Finset.Ioc k ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (k + 1 / 2 - a) * φ a
       - ∫ x in a..b, (k + 1 / 2 - x) * deriv φ x := by
   have flb_eq_k : ⌊b⌋ = k + 1 := Int.floor_eq_iff.mpr ⟨by exact_mod_cast b_eq_kpOne.symm.le,
     by rw [b_eq_kpOne]; simp⟩
   simp only [flb_eq_k, Finset.Icc_self, Finset.sum_singleton, Int.cast_add, Int.cast_one]
-  rw [sum_eq_int_deriv_aux2 φDiff, b_eq_kpOne]
+  rw [sum_eq_int_deriv_aux2 a_lt_b (k + 1 / 2) φDiff, b_eq_kpOne]
   ring_nf
+  have : Finset.Ioc k (1 + k) = {k + 1} := by
+    ext m
+    simp only [Finset.mem_Ioc, Finset.mem_singleton]
+    constructor
+    · intro ⟨h₁, h₂⟩
+      rw [add_comm] at h₂
+      exact Int.le_antisymm h₂ h₁
+    · exact fun h ↦ ⟨by simp [h], by simp [h, add_comm]⟩
+  simp_rw [this]
+  simp only [Finset.sum_singleton, Int.cast_add, Int.cast_one, add_comm]
 
 lemma sum_eq_int_deriv_aux_lt {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k ≤ a) (a_lt_b : a < b)
-    (b_lt_kpOne : b < k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.uIcc a b)) :
-    ∑ n in Finset.Icc (k + 1) ⌊b⌋, φ n =
+    (b_lt_kpOne : b < k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+    ∑ n in Finset.Ioc k ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (k + 1 / 2 - a) * φ a
       - ∫ x in a..b, (k + 1 / 2 - x) * deriv φ x := by
   have flb_eq_k : ⌊b⌋ = k := Int.floor_eq_iff.mpr ⟨by linarith, by linarith⟩
   simp only [flb_eq_k, gt_iff_lt, lt_add_iff_pos_right, zero_lt_one, Finset.Icc_eq_empty_of_lt,
     Finset.sum_empty]
-  rw [sum_eq_int_deriv_aux2 φDiff]
+  rw [sum_eq_int_deriv_aux2 a_lt_b (k + 1 / 2) φDiff]
+  have : Finset.Ioc k k = {} := by
+    simp only [ge_iff_le, le_refl, Finset.Ioc_eq_empty_of_le]
+  simp only [this, Finset.sum_empty, one_div]
   ring_nf
 
 lemma sum_eq_int_deriv_aux1 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k ≤ a) (a_lt_b : a < b)
-    (b_le_kpOne : b ≤ k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.uIcc a b)) :
-    ∑ n in Finset.Icc (k + 1) ⌊b⌋, φ n =
+    --(a_lt_kpOne : a < k + 1)
+    (b_le_kpOne : b ≤ k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+    ∑ n in Finset.Ioc k ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (k + 1 / 2 - a) * φ a
       - ∫ x in a..b, (k + 1 / 2 - x) * deriv φ x := by
   by_cases h : b = k + 1
-  · exact sum_eq_int_deriv_aux_eq h φDiff
+  · exact sum_eq_int_deriv_aux_eq a_lt_b h φDiff
   · exact sum_eq_int_deriv_aux_lt k_le_a a_lt_b (Ne.lt_of_le h b_le_kpOne) φDiff
 
 /-%%
@@ -116,8 +107,8 @@ lemma sum_eq_int_deriv_aux1 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k
 \end{lemma}
 %%-/
 lemma sum_eq_int_deriv_aux {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k ≤ a) (a_lt_b : a < b)
-    (b_le_kpOne : b ≤ k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.uIcc a b)) :
-    ∑ n in Finset.Icc (⌊a⌋ + 1) ⌊b⌋, φ n =
+    (b_le_kpOne : b ≤ k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+    ∑ n in Finset.Ioc ⌊a⌋ ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
       - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
   have fl_a_eq_k : ⌊a⌋ = k := Int.floor_eq_iff.mpr ⟨k_le_a, by linarith⟩
@@ -136,6 +127,66 @@ Partial integration.
 \end{proof}
 %%-/
 
+-- Thanks to Arend Mellendijk
+variable {α : Type*} [LinearOrderedRing α] [FloorRing α] in
+theorem Int.le_floor_add_one (a : α) : a ≤ ⌊a⌋ + 1 := by
+  calc a ≤ ⌈a⌉ := by exact le_ceil a
+    _ ≤ ⌊a⌋ + 1 := by norm_cast; exact ceil_le_floor_add_one a
+
+variable {α : Type*} [LinearOrderedSemiring α] [FloorSemiring α] in
+theorem Nat.le_floor_add_one (a : α) : a ≤ ⌊a⌋₊ + 1 := by
+  calc a ≤ ⌈a⌉₊ := by exact le_ceil a
+    _ ≤ ⌊a⌋₊ + 1 := by norm_cast; exact ceil_le_floor_add_one a
+
+lemma interval_induction_aux_int (n : ℕ) : ∀ (P : ℝ → ℝ → Prop)
+    (_ : ∀ a b : ℝ, ∀ k : ℤ, k ≤ a → a < b → b ≤ k + 1 → P a b)
+    (_ : ∀ (a : ℝ) (k : ℤ) (c : ℝ), a < k → k < c → P a k → P k c → P a c)
+    (a b : ℝ) (_ : a < b) (_ : n = ⌊b⌋ - ⌊a⌋),
+    P a b := by
+  induction n using Nat.case_strong_induction_on with
+  | hz =>
+    intro P base _ a b hab hn
+    apply base a b ⌊a⌋ (Int.floor_le a) hab
+    simp only [CharP.cast_eq_zero] at hn
+    rw [(by linarith : ⌊a⌋ = ⌊b⌋)]
+    exact Int.le_floor_add_one b
+  | hi n ih =>
+    intro P base step a b _ hn
+    have Pa : P a (⌊a⌋ + 1) :=
+      base a (⌊a⌋ + 1) ⌊a⌋ (Int.floor_le a) (Int.lt_floor_add_one a) (le_of_eq rfl)
+    by_cases b_le_flaP1 : b = ⌊a⌋ + 1
+    · rwa [b_le_flaP1]
+    have flaP1_lt_b : ⌊a⌋ + 1 < b := by
+      simp only [Nat.cast_succ] at hn
+      have := Int.floor_le b
+      have : 0 ≤ n := Nat.zero_le n
+      have : ⌊a⌋ + 1 ≤ ⌊b⌋ := by linarith
+      have : (⌊a⌋ : ℝ) + 1 ≤ ⌊b⌋ := by exact_mod_cast this
+      push_neg at b_le_flaP1
+      exact Ne.lt_of_le (id (Ne.symm b_le_flaP1)) (by linarith : ⌊a⌋ + 1 ≤ b)
+    have Pfla_b : P (⌊a⌋ + 1) b := by
+      apply ih n (le_of_eq rfl) P base step (⌊a⌋ + 1) b flaP1_lt_b
+      simp only [Int.floor_add_one, Int.floor_intCast, Nat.cast_succ] at hn ⊢
+      rw [sub_eq_add_neg, neg_add, ← add_assoc, ← sub_eq_add_neg (a := ⌊b⌋), ← hn]
+      ring
+    refine step a (⌊a⌋ + 1) b ?_ (by exact_mod_cast flaP1_lt_b) (by exact_mod_cast Pa)
+      (by exact_mod_cast Pfla_b)
+    have := Int.lt_floor_add_one a
+    exact_mod_cast this
+
+lemma interval_induction (P : ℝ → ℝ → Prop)
+    (base : ∀ a b : ℝ, ∀ k : ℤ, k ≤ a → a < b → b ≤ k + 1 → P a b)
+    (step : ∀ (a : ℝ) (k : ℤ) (b : ℝ), a < k → k < b → P a k → P k b → P a b)
+    (a b : ℝ) (hab : a < b) : P a b := by
+  let n := ⌊b⌋ - ⌊a⌋
+  have : 0 ≤ n := by
+    have : ⌊a⌋ ≤ ⌊b⌋ := Int.floor_le_floor _ _ (hab.le)
+    dsimp [n]
+    linarith
+  -- What's the right way to do this lifting?
+  obtain ⟨m, hm⟩ : ∃ (m : ℕ), m = n := by exact CanLift.prf n this
+  exact interval_induction_aux_int m P base step a b hab hm
+
 /-%%
 \begin{lemma}[sum_eq_int_deriv]\label{sum_eq_int_deriv}\lean{sum_eq_int_deriv}\leanok
   Let $a < b$, and let $\phi$ be continuously differentiable on $[a, b]$.
@@ -147,20 +198,74 @@ Partial integration.
 %%-/
 /-- ** Partial summation ** (TODO : Add to Mathlib).
   Note: Need to finish proof of `sum_eq_int_deriv_aux2` -/
-theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
-    (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
-    ∑ n in Finset.Icc (⌊a⌋ + 1) ⌊b⌋, φ n =
-    (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
-      - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
-  -- let k₀ := ⌊a⌋
-  -- let k₁ := ⌈b⌉
-  -- have :
-  --   ∑ n in Finset.Icc (⌊a⌋ + 1) ⌊b⌋, φ n
-  --   =
-  --   ∑ k in Finset.Icc k₀ k₁,
-  --   ∑ n in Finset.Icc (max (⌊a⌋ + 1) k) (min ⌊b⌋ (k+1)), φ n := by
-  --   sorry
+
+-- stupid lemma -- what's the better way to do this?
+lemma add_two {a b c d : ℂ} (h : a = b) (h' : c = d) : a + c = b + d := by
+  exact Mathlib.Tactic.LinearCombination.add_pf h h'
+
+-- In Yaël Dillies's API (https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Finset.2Esum_add_adjacent_intervals/near/430127101)
+lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (h : a ≤ b) (h' : b ≤ c) :
+  (∑ n in Finset.Ioc a b, f n) + (∑ n in Finset.Ioc b c, f n) = ∑ n in Finset.Ioc a c, f n := by
   sorry
+
+lemma integrability_aux {a b : ℝ} (a_lt_b : a < b) :
+    IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ) + 1 / 2 - x) MeasureTheory.volume a b := sorry
+
+lemma ContinuousOn_derivWithin_of_deriv (φ : ℝ → ℂ) (a b : ℝ)
+    (h : ContinuousOn (deriv φ) (Set.uIcc a b)) :
+    ContinuousOn (derivWithin φ (Set.uIcc a b)) (Set.uIcc a b) := by sorry
+
+theorem sum_eq_int_deriv {φ : ℝ → ℂ} (a b : ℝ) (a_lt_b : a < b)
+    (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+    ∑ n in Finset.Ioc ⌊a⌋ ⌊b⌋, φ n =
+      (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
+        - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
+  let P : ℝ → ℝ → Prop := fun a₁ b₁ ↦ (ContDiffOn ℝ 1 φ (Set.Icc a₁ b₁)) →
+    ∑ n in Finset.Ioc ⌊a₁⌋ ⌊b₁⌋, φ n =
+    (∫ x in a₁..b₁, φ x) + (⌊b₁⌋ + 1 / 2 - b₁) * φ b₁ - (⌊a₁⌋ + 1 / 2 - a₁) * φ a₁
+      - ∫ x in a₁..b₁, (⌊x⌋ + 1 / 2 - x) * deriv φ x
+  apply interval_induction P ?_ ?_ a b a_lt_b φDiff
+  · exact fun _ _ _ k_le_a₁ a₁_le_b₁ b₁_le_k1 φDiff₁ ↦
+      sum_eq_int_deriv_aux k_le_a₁ a₁_le_b₁ b₁_le_k1 φDiff₁
+  · intro a₁ k₁ b₁ a_lt_k₁ k_lt_b₁ ih₁ ih₂ φDiff₁
+    have : ContDiffOn ℝ 1 φ (Set.Icc a₁ k₁) := by
+      apply φDiff₁.mono
+      rw [Set.Icc_subset_Icc_iff] <;> simp [k_lt_b₁.le, a_lt_k₁.le]
+    have s₁ := ih₁ this
+    have : ContDiffOn ℝ 1 φ (Set.Icc k₁ b₁) := by
+      apply φDiff₁.mono
+      rw [Set.Icc_subset_Icc_iff] <;> simp [k_lt_b₁.le, a_lt_k₁.le]
+    have s₂ := ih₂ this
+    convert add_two s₁ s₂ using 1
+    · rw [← Finset.sum_Ioc_add_sum_Ioc]
+      · exact Int.floor_mono a_lt_k₁.le
+      · exact Int.floor_mono k_lt_b₁.le
+    · set I₁ := ∫ (x : ℝ) in a₁..b₁, φ x
+      set I₂ := ∫ (x : ℝ) in a₁..k₁, φ x
+      set I₃ := ∫ (x : ℝ) in k₁..b₁, φ x
+      set J₁ := ∫ (x : ℝ) in a₁..b₁, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x
+      set J₂ := ∫ (x : ℝ) in a₁..k₁, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x
+      set J₃ := ∫ (x : ℝ) in k₁..b₁, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x
+      have : I₂ + I₃ = I₁ := by
+        apply intervalIntegral.integral_add_adjacent_intervals <;>
+        apply ContinuousOn.intervalIntegrable <;>
+        apply ContDiffOn.continuousOn (n := 1) (𝕜 := ℝ) <;>
+        apply φDiff₁.mono <;>
+        simp [Set.uIcc_of_le, a_lt_k₁.le, k_lt_b₁.le, Set.Icc_subset_Icc_iff]
+      rw [← this]
+      have : J₂ + J₃ = J₁ := by
+        apply intervalIntegral.integral_add_adjacent_intervals <;>
+        apply IntervalIntegrable.mul_continuousOn
+        · apply integrability_aux a_lt_k₁
+        · -- have := ((contDiff_succ_iff_deriv (f₂ := φ) (n := 0)).mp ?_).2.
+          -- have : UniqueDiffOn ℝ (Set.uIcc a₁ k₁) := by
+          --   sorry
+          -- have := ((contDiffOn_succ_iff_derivWithin this (f₂ := φ) (n := 0)).mp ?_).2.continuousOn
+          sorry
+        · sorry
+        · sorry
+      rw [← this]
+      ring
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv_aux}
   Apply Lemma \ref{sum_eq_int_deriv_aux} in blocks of length $\le 1$.
@@ -183,9 +288,10 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (a_lt_b : a < b) :
   let φ := fun (x : ℝ) ↦ (x : ℂ) ^ (-s)
   let φ' := fun (x : ℝ) ↦ -s / (x : ℂ)^(s + 1)
   have φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b) := sorry
-  convert sum_eq_int_deriv (by exact_mod_cast a_lt_b) φDiff using 1
-  · sorry
-  · sorry
+  -- convert sum_eq_int_deriv (by exact_mod_cast a_lt_b) φDiff using 1
+  -- · sorry
+  -- · sorry
+  sorry
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv}
   Apply Lemma \ref{sum_eq_int_deriv} to the function $x \mapsto x^{-s}$.
@@ -419,8 +525,13 @@ $$
 \end{lemma}
 %%-/
 lemma ZetaNear1Bnd :
-    (fun σ : ℝ ↦ Complex.abs (riemannZeta σ)) =O[𝓝[>](1:ℝ)] (fun σ ↦ 1 / (σ - 1)) :=
-  sorry
+    (fun σ : ℝ ↦ riemannZeta σ) =O[𝓝[>](1 : ℝ)] (fun σ ↦ (1 : ℂ) / (σ - 1)) := by
+  have : Tendsto (fun (x : ℝ) ↦ x - 1) (𝓝[>](1 : ℝ)) (𝓝[>](0 : ℝ)) := by
+    refine tendsto_iff_forall_eventually_mem.mpr ?_
+    intro s hs
+    sorry
+  have := riemannZeta_isBigO_near_one_horizontal.comp_tendsto this
+  convert this using 1 <;> {ext1 _; simp}
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, Zeta0EqZeta}
 Zeta has a simple pole at $s=1$. Equivalently, $\zeta(s)(s-1)$ remains bounded near $1$.
