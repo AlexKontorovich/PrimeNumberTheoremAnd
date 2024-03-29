@@ -1,5 +1,6 @@
 import Mathlib.Analysis.MellinInversion
 import PrimeNumberTheoremAnd.PerronFormula
+import Mathlib.Algebra.GroupWithZero.Units.Basic
 
 -- TODO: move near `MeasureTheory.set_integral_prod`
 theorem MeasureTheory.set_integral_integral_swap {α : Type*} {β : Type*} {E : Type*}
@@ -367,22 +368,24 @@ noncomputable def MellinConvolution (f g : ℝ → 𝕂) (x : ℝ) : 𝕂 :=
 Let us start with a simple property of the Mellin convolution.
 \begin{lemma}[MellinConvolutionSymmetric]\label{MellinConvolutionSymmetric}
 \lean{MellinConvolutionSymmetric}\leanok
-Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$, for $x\neq0$,
+Let $f$ and $g$ be functions from $\mathbb{R}_{>0}$ to $\mathbb{R}$ or $\mathbb{C}$, for $x\neq0$,
 $$
   (f\ast g)(x)=(g\ast f)(x)
   .
 $$
 \end{lemma}
 %%-/
-lemma MellinConvolutionSymmetric (f g : ℝ → ℂ) {x : ℝ} (xpos: 0<x) :
+lemma MellinConvolutionSymmetric (f g : ℝ → 𝕂) {x : ℝ} (xpos: 0 < x) :
     MellinConvolution f g x = MellinConvolution g f x := by
   unfold MellinConvolution
   calc
     _ = ∫ y in Ioi 0, f (y * x) * g (1 / y) / y := ?_
     _ = _ := ?_
   · rw [← integral_comp_mul_right_I0i_haar (fun y => f y * g (x / y)) xpos]
-    congr; funext z; ring_nf; congr
-    rw [mul_assoc, mul_comm, mul_assoc, inv_mul_cancel <| ne_of_gt xpos, mul_one]
+    congr; funext z;
+    congr! 3;
+    rw [div_mul_left]
+    exact PartialHomeomorph.unitBallBall.proof_2 x xpos
   · have := integral_comp_inv_I0i_haar fun y => f (y * x) * g (1 / y)
     convert this.symm using 3
     rw [one_div_one_div, mul_comm]
@@ -959,7 +962,7 @@ $$\mathcal{M}(\psi_\epsilon)(s) = \mathcal{M}(\psi)\left(\epsilon s\right).$$
 theorem MellinOfDeltaSpike (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : ℂ) :
     MellinTransform ((DeltaSpike Ψ ε) ·) s = MellinTransform (Ψ ·) (ε * s) := by
   unfold MellinTransform DeltaSpike
-  rw [← integral_comp_rpow_Ioi (fun z => ((Ψ z): ℂ) * (z:ℂ)^((ε : ℂ)*s-1))
+  rw [← integral_comp_rpow_Ioi (fun z => ((Ψ z) : ℂ) * (z : ℂ) ^ ((ε : ℂ) * s - 1))
     (one_div_ne_zero (ne_of_gt εpos))]
   apply set_integral_congr_ae measurableSet_Ioi
   filter_upwards with x hx
@@ -1443,9 +1446,26 @@ If $\psi$ is nonnegative and has mass one, then $\widetilde{1_{\epsilon}}(x)\le 
 %%-/
 lemma Smooth1LeOne {Ψ : ℝ → ℝ}
     (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
-    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) (ε : ℝ) :
-    ∀ (x : ℝ), 0<x → Smooth1 Ψ ε x ≤ 1 := by
-  sorry
+    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) {ε : ℝ} (εpos : 0 < ε) {x : ℝ} (xpos : 0 < x) :
+    Smooth1 Ψ ε x ≤ 1 := by
+  dsimp [Smooth1]
+  rw [MellinConvolutionSymmetric _ _ xpos]
+  dsimp [MellinConvolution]
+  calc
+    _ ≤ ∫ (y : ℝ) in Ioi 0, (DeltaSpike Ψ ε y * 1) / y := ?_
+    _ = 1 := ?_
+  · apply MeasureTheory.set_integral_mono_on
+    · sorry
+    · sorry
+    · exact measurableSet_Ioi
+    · intro y ypos
+      simp only [mem_Ioi] at ypos
+      gcongr
+      · exact DeltaSpikeNonNeg_of_NonNeg Ψnonneg ypos εpos
+      · by_cases h : x / y ≤ 1 <;> simp [h]
+  · have := DeltaSpikeMass mass_one εpos
+    convert this using 3
+    simp
 /-%%
 \begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike,SmoothExistence}
 By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
