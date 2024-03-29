@@ -128,15 +128,6 @@ Partial integration.
 %%-/
 
 -- Thanks to Arend Mellendijk
-variable {α : Type*} [LinearOrderedRing α] [FloorRing α] in
-theorem Int.le_floor_add_one (a : α) : a ≤ ⌊a⌋ + 1 := by
-  calc a ≤ ⌈a⌉ := by exact le_ceil a
-    _ ≤ ⌊a⌋ + 1 := by norm_cast; exact ceil_le_floor_add_one a
-
-variable {α : Type*} [LinearOrderedSemiring α] [FloorSemiring α] in
-theorem Nat.le_floor_add_one (a : α) : a ≤ ⌊a⌋₊ + 1 := by
-  calc a ≤ ⌈a⌉₊ := by exact le_ceil a
-    _ ≤ ⌊a⌋₊ + 1 := by norm_cast; exact ceil_le_floor_add_one a
 
 lemma interval_induction_aux_int (n : ℕ) : ∀ (P : ℝ → ℝ → Prop)
     (_ : ∀ a b : ℝ, ∀ k : ℤ, k ≤ a → a < b → b ≤ k + 1 → P a b)
@@ -149,7 +140,7 @@ lemma interval_induction_aux_int (n : ℕ) : ∀ (P : ℝ → ℝ → Prop)
     apply base a b ⌊a⌋ (Int.floor_le a) hab
     simp only [CharP.cast_eq_zero] at hn
     rw [(by linarith : ⌊a⌋ = ⌊b⌋)]
-    exact Int.le_floor_add_one b
+    exact (Int.lt_floor_add_one b).le
   | hi n ih =>
     intro P base step a b _ hn
     have Pa : P a (⌊a⌋ + 1) :=
@@ -178,14 +169,14 @@ lemma interval_induction (P : ℝ → ℝ → Prop)
     (base : ∀ a b : ℝ, ∀ k : ℤ, k ≤ a → a < b → b ≤ k + 1 → P a b)
     (step : ∀ (a : ℝ) (k : ℤ) (b : ℝ), a < k → k < b → P a k → P k b → P a b)
     (a b : ℝ) (hab : a < b) : P a b := by
-  let n := ⌊b⌋ - ⌊a⌋
+  set n := ⌊b⌋ - ⌊a⌋ with hn
+  clear_value n
   have : 0 ≤ n := by
     have : ⌊a⌋ ≤ ⌊b⌋ := Int.floor_le_floor _ _ (hab.le)
-    dsimp [n]
-    linarith
-  -- What's the right way to do this lifting?
-  obtain ⟨m, hm⟩ : ∃ (m : ℕ), m = n := by exact CanLift.prf n this
-  exact interval_induction_aux_int m P base step a b hab hm
+    simp only [hn, sub_nonneg, ge_iff_le]
+    exact this
+  lift n to ℕ using this
+  exact interval_induction_aux_int n P base step a b hab hn
 
 /-%%
 \begin{lemma}[sum_eq_int_deriv]\label{sum_eq_int_deriv}\lean{sum_eq_int_deriv}\leanok
