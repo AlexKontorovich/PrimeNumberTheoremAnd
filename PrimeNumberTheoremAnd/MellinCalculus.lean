@@ -594,13 +594,11 @@ Same idea as Urysohn-type argument.
 lemma mem_within_strip (σ₁ σ₂ : ℝ) :
   {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} := by simp
 
-lemma Complex.deriv_ofReal' {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) {x : ℝ} :
-    deriv (fun x ↦ (Ψ x : ℂ)) x = ((deriv Ψ) x : ℂ) := by
-  apply HasDerivAt.deriv
-  apply HasDerivAt.ofReal_comp
-  simp only [hasDerivAt_deriv_iff]
-  have := diffΨ.differentiable (by norm_num)
-  apply this.differentiableAt
+@[simp]
+lemma Function.support_abs {α : Type*} (f : α → 𝕂):
+    (fun x ↦ ‖f x‖).support = f.support := by
+  simp only [support, ne_eq, mem_setOf_eq]
+  simp_rw [norm_ne_zero_iff]
 
 -- steal coerction lemmas from EulerProducts.Auxiliary because of build issues, and add new ones
 namespace Complex
@@ -624,22 +622,6 @@ lemma DifferentiableAt.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : Differentia
     DifferentiableAt ℝ (fun x : ℝ ↦ e x) z :=
   hf.hasDerivAt.comp_ofReal.differentiableAt
 
-lemma deriv.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e z) :
-    deriv (fun x : ℝ ↦ e x) z = deriv e z :=
-  hf.hasDerivAt.comp_ofReal.deriv
-
-lemma deriv.comp_ofReal' {e : ℂ → ℂ} (hf : Differentiable ℂ e) :
-    deriv (fun x : ℝ ↦ e x) = fun (x : ℝ) ↦ deriv e x :=
-  funext fun _ => deriv.comp_ofReal (hf.differentiableAt)
-
-lemma deriv.ofReal_comp {z : ℝ} {f : ℝ → ℝ} (hf : DifferentiableAt ℝ f z) :
-    deriv (fun x : ℝ ↦ (f x : ℂ)) z = (fun x ↦ ((deriv f) x : ℂ)) z :=
-  hf.hasDerivAt.ofReal_comp.deriv
-
-lemma deriv.ofReal_comp' {f : ℝ → ℝ} (hf : Differentiable ℝ f) :
-    deriv (fun x : ℝ ↦ (f x : ℂ)) = (fun x ↦ ((deriv f) x : ℂ)) :=
-  funext fun _ => deriv.ofReal_comp (hf.differentiableAt)
-
 lemma Differentiable.comp_ofReal {e : ℂ → ℂ} (h : Differentiable ℂ e) :
     Differentiable ℝ (fun x : ℝ ↦ e x) :=
   fun _ ↦ h.differentiableAt.comp_ofReal
@@ -652,11 +634,47 @@ lemma Differentiable.ofReal_comp {f : ℝ → ℝ} (hf : Differentiable ℝ f) :
     Differentiable ℝ (fun (y : ℝ) ↦ (f y : ℂ)) :=
   fun _ ↦ hf.differentiableAt.ofReal_comp
 
-@[simp]
-lemma Function.support_abs {α : Type*} (f : α → 𝕂):
-    (fun x ↦ ‖f x‖).support = f.support := by
-  simp only [support, ne_eq, mem_setOf_eq]
-  simp_rw [norm_ne_zero_iff]
+open Complex ContinuousLinearMap in
+lemma HasDerivAt.of_hasDerivAt_ofReal_comp {z : ℝ} {f : ℝ → ℝ} {u : ℂ}
+    (hf : HasDerivAt (fun y ↦ (f y : ℂ)) u z) :
+    ∃ u' : ℝ, u = u' ∧ HasDerivAt f u' z := by
+  lift u to ℝ
+  · have H := (imCLM.hasFDerivAt.comp z hf.hasFDerivAt).hasDerivAt.deriv
+    simp only [Function.comp_def, imCLM_apply, ofReal_im, deriv_const] at H
+    rwa [eq_comm, comp_apply, imCLM_apply, smulRight_apply, one_apply, one_smul] at H
+  refine ⟨u, rfl, ?_⟩
+  convert (reCLM.hasFDerivAt.comp z hf.hasFDerivAt).hasDerivAt
+  rw [comp_apply, smulRight_apply, one_apply, one_smul, reCLM_apply, ofReal_re]
+
+lemma DifferentiableAt.ofReal_comp_iff {z : ℝ} {f : ℝ → ℝ} :
+    DifferentiableAt ℝ (fun (y : ℝ) ↦ (f y : ℂ)) z ↔ DifferentiableAt ℝ f z := by
+  refine ⟨fun H ↦ ?_, ofReal_comp⟩
+  obtain ⟨u, _, hu₂⟩ := H.hasDerivAt.of_hasDerivAt_ofReal_comp
+  exact HasDerivAt.differentiableAt hu₂
+
+lemma Differentiable.ofReal_comp_iff {f : ℝ → ℝ} :
+    Differentiable ℝ (fun (y : ℝ) ↦ (f y : ℂ)) ↔ Differentiable ℝ f :=
+  forall_congr' fun _ ↦ DifferentiableAt.ofReal_comp_iff
+
+lemma deriv.ofReal_comp {z : ℝ} {f : ℝ → ℝ} :
+    deriv (fun (y : ℝ) ↦ (f y : ℂ)) z = deriv f z := by
+  by_cases hf : DifferentiableAt ℝ f z
+  · exact hf.hasDerivAt.ofReal_comp.deriv
+  · have hf' := mt DifferentiableAt.ofReal_comp_iff.mp hf
+    rw [deriv_zero_of_not_differentiableAt hf, deriv_zero_of_not_differentiableAt hf',
+      Complex.ofReal_zero]
+
+lemma deriv.ofReal_comp' {f : ℝ → ℝ} :
+    deriv (fun x : ℝ ↦ (f x : ℂ)) = (fun x ↦ ((deriv f) x : ℂ)) :=
+  funext fun _ => deriv.ofReal_comp
+
+lemma deriv.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e z) :
+    deriv (fun x : ℝ ↦ e x) z = deriv e z :=
+  hf.hasDerivAt.comp_ofReal.deriv
+
+lemma deriv.comp_ofReal' {e : ℂ → ℂ} (hf : Differentiable ℂ e) :
+    deriv (fun x : ℝ ↦ e x) = fun (x : ℝ) ↦ deriv e x :=
+  funext fun _ => deriv.comp_ofReal (hf.differentiableAt)
 
 /-%%
 The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at
@@ -740,7 +758,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
           simp only [this, subset_trans, ne_eq, Function.support_mul', suppΨ, inter_subset]
           apply subset_union_of_subset_right
           convert this
-          simp_rw [Function.support, deriv_ofReal' diffΨ, ← ofReal_ne_zero]
+          simp_rw [Function.support, deriv.ofReal_comp', ← ofReal_ne_zero]
         apply (integrableOn_iff_integrable_of_support_subset this).mp
         apply ContinuousOn.integrableOn_Icc
         apply ContinuousOn.mul
@@ -748,7 +766,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
           have diff := diffΨ.continuous_deriv (by norm_num)
           convert (by continuity : Continuous (ofReal' ∘ (deriv Ψ)))
           ext x
-          simp only [Function.comp_apply, deriv_ofReal' diffΨ]
+          simp only [Function.comp_apply, deriv.ofReal_comp']
         · apply ContinuousOn.div ?_ continuousOn_const (fun x _ => hs)
           apply ContinuousOn.cpow ?_ continuousOn_const ?_
           · apply Continuous.continuousOn
