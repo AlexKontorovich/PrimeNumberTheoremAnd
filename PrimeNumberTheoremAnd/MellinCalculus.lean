@@ -1592,9 +1592,10 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
         apply (integral_eq_zero_iff_of_nonneg ?_ ?_).mpr
         · sorry
         · simp only [Pi.le_def, Pi.zero_apply, norm_nonneg, forall_const]
-        · apply (integrable_norm_iff ?_).mpr
-          · sorry
-          · sorry
+        · apply Integrable.norm
+          simp only [F, f, g]
+          -- use integrableOn_Ioo_cpow_iff
+          sorry
     · sorry
 
   have : MellinTransform (MellinConvolution g f) s = MellinTransform g s * MellinTransform f s := by
