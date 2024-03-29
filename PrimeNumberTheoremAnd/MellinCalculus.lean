@@ -1239,35 +1239,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
   let f : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x
   let g : ℝ → ℂ := fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0
   let F : ℝ × ℝ → ℂ := Function.uncurry fun x y ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
-  let T := Icc 0 ((2 : ℝ) ^ ε) ×ˢ Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)
   let Ty := Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)
-  have T_compact : IsCompact T := IsCompact.prod isCompact_Icc isCompact_Icc
-
-  have F_supp : F.support ⊆ T := by
-    intro ⟨x, y⟩ h
-    contrapose h
-    simp only [Icc_prod_Icc, mem_Icc, Prod.mk_le_mk, not_and, not_le, and_imp] at h
-    simp only [mul_ite, mul_one, mul_zero, Function.mem_support, Function.uncurry_apply_pair, ne_eq,
-      mul_eq_zero, div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff,
-      not_not]
-    left; left
-    intro h1 h2
-    have suppDelta := DeltaSpikeSupport Ψ εpos suppΨ
-    contrapose suppDelta
-    simp only [Function.support_subset_iff, ne_eq, mem_Icc, not_forall, not_and, not_le, exists_prop]
-    use y
-    simp only [suppDelta, not_false_eq_true, true_and]
-    intro hy
-    rewrite [div_pos_iff] at h1
-    cases h1 with
-    | inl hpos =>
-      obtain ⟨xpos, ypos⟩ := hpos
-      have := h xpos.le hy
-      contrapose this
-      simp only [gt_iff_lt, not_lt] at this
-      simp only [not_forall, not_lt, exists_prop, this, and_true]
-      linarith [(div_le_iff ypos).mp h2]
-    | inr hneg => linarith [(show 0 < (2 : ℝ) ^ (-ε) by apply rpow_pos_of_pos; norm_num)]
 
   have F_supp_y (x : ℝ): (fun y ↦ F ⟨x, y⟩).support ⊆ Ty := by
     intro y hy
