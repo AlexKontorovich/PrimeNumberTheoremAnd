@@ -258,11 +258,12 @@ theorem sum_eq_int_deriv {φ : ℝ → ℂ} (a b : ℝ) (a_lt_b : a < b)
         apply IntervalIntegrable.mul_continuousOn
         · apply integrability_aux a_lt_k₁
         · -- have := ((contDiff_succ_iff_deriv (f₂ := φ) (n := 0)).mp ?_).2.
-          have : UniqueDiffOn ℝ (Set.uIcc a₁ k₁) := by
-            sorry
-          have := ((contDiffOn_succ_iff_derivWithin this (f₂ := φ) (n := 0)).mp ?_).2.continuousOn
+          -- have : UniqueDiffOn ℝ (Set.uIcc a₁ k₁) := by
+          --   sorry
+          -- have := ((contDiffOn_succ_iff_derivWithin this (f₂ := φ) (n := 0)).mp ?_).2.continuousOn
           sorry
-        sorry
+        · sorry
+        · sorry
       rw [← this]
       ring
 /-%%
@@ -287,9 +288,10 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (a_lt_b : a < b) :
   let φ := fun (x : ℝ) ↦ (x : ℂ) ^ (-s)
   let φ' := fun (x : ℝ) ↦ -s / (x : ℂ)^(s + 1)
   have φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b) := sorry
-  convert sum_eq_int_deriv (by exact_mod_cast a_lt_b) φDiff using 1
-  · sorry
-  · sorry
+  -- convert sum_eq_int_deriv (by exact_mod_cast a_lt_b) φDiff using 1
+  -- · sorry
+  -- · sorry
+  sorry
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv}
   Apply Lemma \ref{sum_eq_int_deriv} to the function $x \mapsto x^{-s}$.

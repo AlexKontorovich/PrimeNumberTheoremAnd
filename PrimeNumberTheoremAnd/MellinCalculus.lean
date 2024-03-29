@@ -1080,16 +1080,42 @@ $$
 \end{proof}
 %%-/
 
+lemma DeltaSpikeNonNeg_of_NonNeg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
+     {x ε : ℝ} (xpos : 0 < x) (εpos : 0 < ε) :
+    0 ≤ DeltaSpike Ψ ε x := by
+  dsimp [DeltaSpike]
+  have : 0 < x ^ (1 / ε) := by positivity
+  have : 0 ≤ Ψ (x ^ (1 / ε)) := Ψnonneg _ this
+  positivity
+
+lemma MellinConvNonNeg_of_NonNeg {f g : ℝ → ℝ} (f_nonneg : ∀ x > 0, 0 ≤ f x)
+    (g_nonneg : ∀ x > 0, 0 ≤ g x) {x : ℝ} (xpos : 0 < x) :
+    0 ≤ MellinConvolution f g x := by
+  dsimp [MellinConvolution]
+  apply MeasureTheory.set_integral_nonneg
+  · exact measurableSet_Ioi
+  · intro y ypos
+    simp only [mem_Ioi] at ypos
+    have : 0 ≤ f y := f_nonneg _ ypos
+    have : 0 < x / y := by positivity
+    have : 0 ≤ g (x / y) := g_nonneg _ this
+    positivity
+
 /-%%
 \begin{lemma}[Smooth1Nonneg]\label{Smooth1Nonneg}\lean{Smooth1Nonneg}\leanok
 If $\psi$ is nonnegative, then $\widetilde{1_{\epsilon}}(x)$ is nonnegative.
 \end{lemma}
 %%-/
-lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) (ε : ℝ) :
-    ∀ (x : ℝ), 0 ≤ Smooth1 Ψ ε x := by
-  sorry
+lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) {ε x : ℝ} (xpos : 0 < x)
+    (εpos : 0 < ε) : 0 ≤ Smooth1 Ψ ε x := by
+  dsimp [Smooth1]
+  apply MellinConvNonNeg_of_NonNeg
+  · intro y ypos
+    by_cases h : y ≤ 1 <;> simp [h]
+  · intro y ypos
+    apply DeltaSpikeNonNeg_of_NonNeg Ψnonneg ypos εpos
 /-%%
-\begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike}
+\begin{proof}\uses{Smooth1, MellinConvolution, DeltaSpike}\leanok
 By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
 $$
   \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y

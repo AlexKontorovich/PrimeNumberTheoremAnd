@@ -63,7 +63,7 @@ Almost by definition.
     apply Tendsto.add <| Tendsto.sub (hbot.comp tendsto_neg_atTop_atBot) htop
     exact (intervalIntegral_tendsto_integral hright tendsto_neg_atTop_atBot tendsto_id).const_smul I
   · exact (intervalIntegral_tendsto_integral hleft tendsto_neg_atTop_atBot tendsto_id).const_smul I
---%%\end{proof}
+--%\end{proof}
 
 lemma verticalIntegral_eq_verticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
     (hf : HolomorphicOn f ([[σ,  σ']] ×ℂ univ))
@@ -134,7 +134,7 @@ Almost by definition.
     exact (intervalIntegral_tendsto_integral_Ioi T int.restrict tendsto_id).const_smul I
   have := ((hbot.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
   simpa only [RectangleIntegral, UpperUIntegral, h_re, h_im, sub_zero, ←integral_Ici_eq_integral_Ioi]
---%%\end{proof}
+--%\end{proof}
 
 /-% ** Wrong delimiter on purpose **
 \begin{lemma}[RectangleIntegral_tendsTo_LowerU]\label{RectangleIntegral_tendsTo_LowerU}\lean{RectangleIntegral_tendsTo_LowerU}\leanok
@@ -176,7 +176,7 @@ Almost by definition.
       ((I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) - ∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I))) := by
     ring_nf
   exact final ▸ this
---%%\end{proof}
+--%\end{proof}
 
 /-%%
 TODO : Move to general section
