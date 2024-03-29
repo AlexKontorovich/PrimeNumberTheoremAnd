@@ -1,11 +1,20 @@
 .lake
 *.olean
 *.paux
-blueprint/web
-blueprint/print
 *.aux
 *.fls
 *.fdb_latexmk
 *.log
 *.swp
 .DS_STORE
+
+# leanblueprint artifacts
+lean_decls
+blueprint/web
+blueprint/print
+# PDF docs
+blueprint/*.tex
+# except configurations
+!blueprint/web.tex
+!blueprint/blueprint.tex
+!blueprint/print.tex
