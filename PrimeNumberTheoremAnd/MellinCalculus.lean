@@ -600,7 +600,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
         apply ContinuousOn.integrableOn_Icc
         apply ContinuousOn.mul
         · apply Continuous.continuousOn
-          have := diffΨ.continuous
+          replace := diffΨ.continuous
           continuity
         · apply ContinuousOn.congr (f := fun (x : ℝ) ↦ (x : ℂ) ^ (s - 1))
           apply ContinuousOn.cpow
@@ -620,38 +620,27 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
           have : (deriv fun x ↦ ↑(Ψ x)).support ⊆ Icc (1 / 2) 2 := by
             have := support_deriv_subset (f := fun x ↦ Ψ x)
             dsimp [tsupport] at this
-            have := subset_trans this <| closure_mono suppΨ
+            replace := subset_trans this <| closure_mono suppΨ
             rwa [closure_Icc] at this
           simp only [this, subset_trans, ne_eq, Function.support_mul', suppΨ, inter_subset]
           apply subset_union_of_subset_right
           convert this
-          dsimp [Function.support]
-          push_neg
-          simp_rw [deriv_ofReal' diffΨ, ← ofReal_ne_zero]
+          simp_rw [Function.support, deriv_ofReal' diffΨ, ← ofReal_ne_zero]
         apply (integrableOn_iff_integrable_of_support_subset this).mp
         apply ContinuousOn.integrableOn_Icc
         apply ContinuousOn.mul
-        · have : Continuous (deriv (fun x ↦ (Ψ x : ℂ))) := by
-            have diff := diffΨ.continuous_deriv (by norm_num)
-            have := continuous_ofReal
-            let comp := ofReal' ∘ (deriv Ψ)
-            have : Continuous comp := by continuity
-            simp only at this
-            convert this
-            ext x
-            simp only [Function.comp_apply]
-            apply deriv_ofReal' diffΨ
-          apply this.continuousOn
-        · apply ContinuousOn.div
-          · apply ContinuousOn.cpow
-            · apply Continuous.continuousOn
-              continuity
-            · exact continuousOn_const
-            · simp only [mem_Icc, ofReal_mem_slitPlane, and_imp]
-              intro a h1 _
-              linarith
-          · exact continuousOn_const
-          · exact fun x _ => hs
+        · apply Continuous.continuousOn
+          have diff := diffΨ.continuous_deriv (by norm_num)
+          convert (by continuity : Continuous (ofReal' ∘ (deriv Ψ)))
+          ext x
+          simp only [Function.comp_apply, deriv_ofReal' diffΨ]
+        · apply ContinuousOn.div ?_ continuousOn_const (fun x _ => hs)
+          apply ContinuousOn.cpow ?_ continuousOn_const ?_
+          · apply Continuous.continuousOn
+            continuity
+          · simp only [mem_Icc, ofReal_mem_slitPlane, and_imp]
+            intro a h1 _
+            linarith
       · apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
         filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2)] with a ha
         simp only [mem_Ioo] at ha
@@ -661,25 +650,22 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
         contrapose suppΨ
         push_neg
         use a
-        constructor
-        · exact suppΨ
-        · intro h
-          simp only [mem_Icc, not_and, not_le] at h
-          linarith
+        constructor; exact suppΨ
+        intro h
+        simp only [mem_Icc, not_and, not_le] at h
+        linarith
       · apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
         filter_upwards [Filter.Ioi_mem_atTop 2] with a ha
         dsimp [Set.subset_def] at suppΨ
         simp only [mem_Ioi] at ha
-        have a_ne_zero : a ≠ 0 := ne_of_gt (lt_trans (by norm_num) ha)
-        simp [hs, a_ne_zero]
+        simp [hs, ne_of_gt (lt_trans (by norm_num : 0 < (2 : ℝ)) ha)]
         contrapose suppΨ
         push_neg
         use a
-        constructor
-        · exact suppΨ
-        · intro h
-          simp only [mem_Icc, not_and, not_le] at h
-          linarith
+        constructor; exact suppΨ
+        intro h
+        simp only [mem_Icc, not_and, not_le] at h
+        linarith
     · congr; funext; congr
       apply (hasDerivAt_deriv_iff.mpr ?_).ofReal_comp.deriv
       exact diffΨ.contDiffAt.differentiableAt (by norm_num)
@@ -688,13 +674,10 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
       rw [integral_mul_left]
 
   let f := fun (x : ℝ) ↦ ‖deriv Ψ x‖
-  have : IsCompact (Icc (1 / 4) (2 : ℝ)) := isCompact_Icc
   have cont : ContinuousOn f (Icc (1 / 4) 2) := by
     apply Continuous.continuousOn
-    apply Continuous.comp (by continuity)
-    apply diffΨ.continuous_deriv (by norm_num)
-  have := this.exists_isMaxOn (f := f) (by norm_num) cont
-  obtain ⟨a, _, max⟩ := this
+    apply Continuous.comp (by continuity) <| diffΨ.continuous_deriv (by norm_num)
+  obtain ⟨a, _, max⟩ := isCompact_Icc.exists_isMaxOn (f := f) (by norm_num) cont
   rw [Asymptotics.isBigO_iff]
   use f a * 2 ^ σ₂ * (7 / 4)
   filter_upwards [mem_within_strip σ₁ σ₂] with s hs
@@ -717,7 +700,6 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     _ = ∫ (x : ℝ) in (1 / 4)..2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
     _ ≤ ‖∫ (x : ℝ) in (1 / 4)..2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖‖ := le_abs_self _
     _ ≤ _ := ?_
-
   · simp_rw [← Complex.norm_eq_abs]
     apply norm_integral_le_integral_norm
   · have suppΨderiv : (deriv Ψ).support ⊆ Set.Icc (1 / 2) 2 := by
@@ -725,29 +707,23 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
       dsimp [tsupport] at this
       have := subset_trans this <| closure_mono suppΨ
       rw [closure_Icc] at this
-      apply subset_trans this ?_
-      apply Icc_subset_Icc (by norm_num) (by norm_num)
+      apply subset_trans this <| Icc_subset_Icc (by norm_num) (by norm_num)
     have supp : (fun (x : ℝ) ↦ ‖((deriv Ψ) x : ℂ)‖ * ‖(x : ℂ) ^ s‖).support ⊆ Set.Icc (1 / 2) 2 := by
       simp only [Complex.norm_eq_abs, abs_ofReal, ← Real.norm_eq_abs, Function.support_mul, Function.support_abs]
-      apply subset_union_compl_iff_inter_subset.mp
-      intro a ha
-      exact Or.inl (suppΨderiv ha)
+      exact subset_union_compl_iff_inter_subset.mp fun ⦃a⦄ ha ↦ Or.inl (suppΨderiv ha)
     have : (fun (x : ℝ) ↦ ‖((deriv Ψ) x : ℂ)‖ * ‖(x : ℂ) ^ s‖).support ⊆ Set.Ioc (1 / 4) 2 := by
       apply subset_trans supp ?_
       have := Icc_subset_Ioc_iff (a₁ := (1 / 2 : ℝ)) (b₁ := (2 : ℝ))
                                  (a₂ := (1 / 4 : ℝ)) (b₂ := (2 : ℝ)) (by norm_num)
-      apply this.mpr
-      norm_num
-
-    have := intervalIntegral.integral_eq_integral_of_support_subset this (μ := volume.restrict <| Ioi 0)
+      apply this.mpr (by norm_num)
+    replace := intervalIntegral.integral_eq_integral_of_support_subset this
+       (μ := volume.restrict <| Ioi 0)
     convert this.symm using 2
     · simp
     · rw [intervalIntegral.integral_of_le (by norm_num)]
       simp only [norm_mul, Complex.norm_eq_abs, abs_ofReal, measurableSet_Ioc,
         Measure.restrict_restrict, Ioc_inter_Ioi]
-      have : 1 / 4 ⊔ (0 : ℝ) = 1 / 4 := by norm_num
-      rw [this]
-
+      rw [(by norm_num : 1 / 4 ⊔ (0 : ℝ) = 1 / 4 )]
   · rw [← intervalIntegral.integral_of_le (by norm_num)]
   · have := intervalIntegral.norm_integral_le_of_norm_le_const
       (C := f a * 2 ^ σ₂) (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 4 : ℝ)) ( b := 2) ?_
@@ -764,15 +740,14 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
         have pow_bound : ‖(x : ℂ) ^ s‖ ≤ 2 ^ σ₂ := by
           simp only [Complex.norm_eq_abs]
           rw [abs_cpow_eq_rpow_re_of_pos (by linarith [mem_Icc.mp hx])]
-          have h1 : 0 ≤ x := by linarith [(mem_Icc.mp hx).1]
-          have h2 : 0 ≤ s.re := by linarith
-          have h := rpow_le_rpow h1 (mem_Icc.mp hx).2 h2
-          apply le_trans h ?_
-          apply rpow_le_rpow_of_exponent_le (by norm_num) hs.2
+          have xpos : 0 ≤ x := by linarith [(mem_Icc.mp hx).1]
+          have h := rpow_le_rpow xpos (mem_Icc.mp hx).2 (by linarith : 0 ≤ s.re)
+          apply le_trans h <| rpow_le_rpow_of_exponent_le (by norm_num) hs.2
         simp only at f_bound
         simp only [Complex.norm_eq_abs, abs_ofReal, norm_mul, Real.norm_eq_abs, _root_.abs_abs,
           Complex.abs_abs, ge_iff_le]
         convert mul_le_mul f_bound pow_bound ?_ ?_ <;> simp
+
 /-%%
 \begin{proof}\leanok
 \uses{MellinTransform, SmoothExistence}
@@ -916,8 +891,8 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
     (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) :
     (fun (ε : ℝ) ↦ (MellinTransform (Ψ ·) ε) - 1) =O[𝓝[>]0] id := by
   have diff : DifferentiableAt ℝ (fun (ε : ℂ) => MellinTransform (Ψ ·) ε - 1) 0 := by
-    have := @mellin_differentiableAt_of_isBigO_rpow (f := fun x ↦ (Ψ x : ℂ)) (a := 1) (b := -1)
-      (s := 0) _ _ _ ?_ ?_ (by simp) ?_ (by simp)
+    have := mellin_differentiableAt_of_isBigO_rpow (f := fun x ↦ (Ψ x : ℂ)) (a := 1) (b := -1)
+      (s := 0)  ?_ ?_ (by simp) ?_ (by simp)
     · have := DifferentiableAt.restrictScalars (𝕜' := ℂ) (𝕜 := ℝ) (E := ℂ) (F := ℂ) this
       simp only [differentiableAt_sub_const_iff]
       unfold mellin at this
@@ -953,8 +928,8 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
     simp only [differentiableAt_sub_const_iff] at diff ⊢
     let h := fun (y : ℝ) ↦ (fun (ε : ℂ) ↦ MellinTransform (fun x ↦ ↑(Ψ x)) ε) y
     have diff2 : DifferentiableAt ℝ h 0 := by
-      have := @DifferentiableAt.comp (x := (0 : ℝ)) (𝕜 := ℝ) (f := ofReal')
-        (g := (fun (ε : ℂ) ↦ MellinTransform (fun x ↦ ↑(Ψ x)) ε)) _ _ _ _ _ _ _
+      have := DifferentiableAt.comp (x := (0 : ℝ)) (𝕜 := ℝ) (f := ofReal')
+        (g := (fun (ε : ℂ) ↦ MellinTransform (fun x ↦ ↑(Ψ x)) ε))
       apply this diff
       apply HasDerivAt.differentiableAt
       apply HasDerivAt.ofReal_comp (u := 1)
