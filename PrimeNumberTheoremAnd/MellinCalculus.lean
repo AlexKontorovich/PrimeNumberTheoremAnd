@@ -1109,8 +1109,8 @@ If $\psi$ is nonnegative, then $\widetilde{1_{\epsilon}}(x)$ is nonnegative.
 lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) {ε x : ℝ} (xpos : 0 < x)
     (εpos : 0 < ε) : 0 ≤ Smooth1 Ψ ε x := by
   dsimp [Smooth1]
-  apply MellinConvNonNeg_of_NonNeg
-  · intro y ypos
+  apply MellinConvNonNeg_of_NonNeg ?_ ?_ xpos
+  · intro y _
     by_cases h : y ≤ 1 <;> simp [h]
   · intro y ypos
     apply DeltaSpikeNonNeg_of_NonNeg Ψnonneg ypos εpos
