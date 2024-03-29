@@ -1568,7 +1568,6 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     apply Function.nmem_support.mp <| not_mem_subset (DeltaSpikeSupport εpos suppΨ) hy
 
   have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
-    -- refine Integrable.integrableOn <| (integrableOn_iff_integrable_of_support_subset F_supp).mp ?_
     apply Integrable.integrableOn
     apply (integrable_prod_iff' ?_).mpr
     constructor
@@ -1578,26 +1577,18 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
       apply Integrable.bdd_mul
       · have := (intervalIntegral.integrableOn_Ioo_cpow_iff (t := ((2 : ℝ) ^ ε))
         (s := s - 1) (by apply rpow_pos_of_pos (by norm_num))).mpr (by simpa)
-      -- refine IntegrableOn.integrable this
         sorry
-      · -- refine Continuous.aestronglyMeasurable ?_
-        -- apply Continuous.div
-        sorry
+      · sorry
       · use ‖(DeltaSpike Ψ ε y / y)‖
         intro x
         by_cases h : 0 < x / y ∧ x / y ≤ 1 <;> simp [h]
         apply div_nonneg <;> apply abs_nonneg
-
-    · -- apply IntegrableOn.integrable (s := Ty) (f := fun y ↦ ∫ (x : ℝ), ‖F (x, y)‖)
-      -- have : IntegrableOn (fun y ↦ F (x, y)) Ty := sorry
-      -- refine IntegrableOn.integrable this
-      -- apply Continuous.integrable_of_hasCompactSupport
-      apply (integrableOn_iff_integrable_of_support_subset (s := Ty) ?_).mp
+    · apply (integrableOn_iff_integrable_of_support_subset (s := Ty) ?_).mp
       apply ContinuousOn.integrableOn_compact isCompact_Icc
       · sorry
       · intro y hy
         contrapose hy
-        simp only [Function.nmem_support, not_and, not_le, not_lt, not_false_iff, not_not]
+        rw [Function.nmem_support]
         apply (integral_eq_zero_iff_of_nonneg ?_ ?_).mpr
         · sorry
         · simp only [Pi.le_def, Pi.zero_apply, norm_nonneg, forall_const]
