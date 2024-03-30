@@ -537,25 +537,15 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
         linarith [h.left]
       . simp only [Function.mem_support, ne_eq, not_not] at h
         simp [h]
-    · have : (fun x => Ψ x / x) = piecewise (Icc (1 / 2) 2) (fun x => Ψ x / x) 0 := by
-        ext x
-        simp only [piecewise]
-        by_cases hxIcc : x ∈ Icc (1 / 2) 2
-        · exact (if_pos hxIcc).symm
-        · rw [if_neg hxIcc]
-          simp only [Pi.zero_apply, div_eq_zero_iff]; left
-          apply Function.nmem_support.mp
-          intro hxIoo; simp_rw [hΨSupport] at hxIoo
-          contrapose! hxIcc
-          exact mem_Icc_of_Ioo hxIoo
-      rw [this]
-      apply Integrable.piecewise measurableSet_Icc ?_ integrableOn_zero
+    · have : (fun x ↦ Ψ x / x).support ⊆ Icc (1 / 2) 2 := by
+        rw [Function.support_div, hΨSupport]
+        apply subset_trans (by apply inter_subset_left) Ioo_subset_Icc_self
+      apply (integrableOn_iff_integrable_of_support_subset this).mp
       apply ContinuousOn.integrableOn_compact isCompact_Icc
       apply ContinuousOn.div (contDiff_zero.mp <| hΨContDiff 0).continuousOn continuousOn_id ?_
       simp only [mem_Icc, ne_eq, and_imp, id_eq]
       intros
       linarith
-
 /-%%
 \begin{proof}\leanok
 \uses{smooth-ury}
