@@ -1028,21 +1028,11 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
       have := diffΨ.continuous
       continuity
     · apply Asymptotics.IsBigO.trans_le (g' := fun _ => (0 : ℝ)) ?_ (by simp)
-      refine Eventually.isBigO ?_
-      filter_upwards [Ioi_mem_atTop 2] with a ha
-      simp only [mem_Ioi, Complex.norm_eq_abs, abs_ofReal, abs_nonpos_iff] at ha ⊢
-      contrapose suppΨ
-      simp only [Function.support_subset_iff, ne_eq, mem_Icc, not_forall, not_and, not_le,
-        exists_prop]
-      exact ⟨a, suppΨ, fun _ => ha⟩
+      apply BigO_zero_atTop_of_support_in_Icc (a := 1 / 2) (b := 2) (ha := (by norm_num))
+      rwa [Ψ.support_ofReal]
     · apply Asymptotics.IsBigO.trans_le (g' := fun _ => (0 : ℝ)) ?_ (by simp)
-      refine Eventually.isBigO ?_
-      filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2)] with a ha
-      simp only [mem_Ioo, Complex.norm_eq_abs, abs_ofReal, abs_nonpos_iff] at ha ⊢
-      contrapose suppΨ
-      simp only [Function.support_subset_iff, ne_eq, mem_Icc, not_forall, not_and, not_le,
-        exists_prop]
-      exact ⟨a, suppΨ, fun h => by linarith⟩
+      apply BigO_zero_atZero_of_support_in_Icc (a := 1 / 2) (b := 2) (ha := (by norm_num))
+      rwa [Ψ.support_ofReal]
   have := ofReal_zero ▸ diff.isBigO_sub
   simp only [sub_sub_sub_cancel_right, sub_zero] at this
   convert this
