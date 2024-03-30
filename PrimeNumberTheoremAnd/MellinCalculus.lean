@@ -171,7 +171,8 @@ This is a straightforward calculation.
 %%-/
 
 lemma Filter.TendstoAtZero_of_support_in_Icc {a b : ℝ} (f: ℝ → ℂ) (ha : 0 < a)
-    (fSupp : f.support ⊆ Set.Icc a b) : Tendsto f (𝓝[>]0) (𝓝 0) := by
+    (fSupp : f.support ⊆ Set.Icc a b) :
+    Tendsto f (𝓝[>]0) (𝓝 0) := by
   apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
   filter_upwards [Ioo_mem_nhdsWithin_Ioi' ha] with c hc; replace hc := (mem_Ioo.mp hc).2
   have := Function.support_subset_iff.mp fSupp c
@@ -180,7 +181,8 @@ lemma Filter.TendstoAtZero_of_support_in_Icc {a b : ℝ} (f: ℝ → ℂ) (ha : 
   linarith
 
 lemma Filter.TendstoAtTop_of_support_in_Icc {a b : ℝ} (f: ℝ → ℂ)
-    (fSupp : f.support ⊆ Set.Icc a b) : Tendsto f atTop (𝓝 0) := by
+    (fSupp : f.support ⊆ Set.Icc a b) :
+    Tendsto f atTop (𝓝 0) := by
   apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
   filter_upwards [Ioi_mem_atTop b] with c hc; rw [mem_Ioi] at hc
   have := Function.support_subset_iff.mp fSupp c
