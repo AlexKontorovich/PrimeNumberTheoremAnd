@@ -29,10 +29,9 @@ lemma MeasureTheory.integral_comp_mul_right_I0i_haar
   rw [← integral_smul] at this
   rw [← this, set_integral_congr (by simp)]
   intro _ _
-  have a_ne_zero: (a : 𝕂) ≠ 0 := by norm_num; exact ne_of_gt ha
   simp only [IsROrC.real_smul_eq_coe_mul]
-  conv => rhs; rw [mul_comm, div_mul, mul_div_assoc]
-          rhs; rw [div_eq_mul_inv, mul_inv_cancel a_ne_zero, mul_one]
+  rw [mul_comm (a : 𝕂), div_mul, mul_div_assoc, div_self ?_, mul_one]
+  exact (IsROrC.ofReal_ne_zero).mpr <| ne_of_gt ha
 
 lemma MeasureTheory.integral_comp_mul_right_I0i_haar_real
     (f : ℝ → ℝ) {a : ℝ} (ha : 0 < a) :
@@ -47,8 +46,7 @@ lemma MeasureTheory.integral_comp_mul_left_I0i_haar
 -- TODO: generalize to `IsROrC`
 lemma MeasureTheory.integral_comp_rpow_I0i_haar_real (f : ℝ → ℝ) {p : ℝ} (hp : p ≠ 0) :
     ∫ (y : ℝ) in Ioi 0, |p| * f (y ^ p) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
-  have := integral_comp_rpow_Ioi (fun y => f y / y) hp
-  rw [← this, set_integral_congr (by simp)]
+  rw [← integral_comp_rpow_Ioi (fun y => f y / y) hp, set_integral_congr (by simp)]
   intro y hy
   have ypos : 0 < y := mem_Ioi.mp hy
   field_simp [rpow_sub_one]
@@ -59,7 +57,7 @@ lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → 𝕂) :
   have := integral_comp_rpow_Ioi (fun y => f y / y) (p := -1) (by simp)
   rw [← this, set_integral_congr (by simp)]
   intro y hy
-  have : (y : 𝕂) ≠ 0 := by norm_num; exact LT.lt.ne' hy
+  have : (y : 𝕂) ≠ 0 := (IsROrC.ofReal_ne_zero).mpr <| LT.lt.ne' hy
   field_simp [IsROrC.real_smul_eq_coe_mul]
   ring_nf
   rw [rpow_neg_one, mul_assoc, rpow_neg <| le_of_lt <| mem_Ioi.mp hy]
@@ -71,9 +69,9 @@ lemma MeasureTheory.integral_comp_div_I0i_haar
   calc
     _ = ∫ (y : ℝ) in Ioi 0, f (a * y) / y := ?_
     _ = _ := integral_comp_mul_left_I0i_haar f ha
-  have := integral_comp_inv_I0i_haar fun y => f (a * (1 / y))
-  field_simp at this
-  rw [← this]
+  convert (integral_comp_inv_I0i_haar fun y => f (a * (1 / y))).symm using 4
+  · rw [mul_one_div]
+  · rw [one_div_one_div]
 
 /-%%
 In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler),
@@ -131,19 +129,16 @@ $$\frac{1}{2\pi i}\int_{(\sigma)}\frac{t^s}{s(s+1)}x^{-s}ds
 lemma PerronInverseMellin_lt {t x : ℝ} (tpos : 0 < t) (t_lt_x : t < x) {σ : ℝ} (σpos : 0 < σ) :
     MellinInverseTransform (Perron.f t) σ x = 0 := by
   dsimp [MellinInverseTransform, VerticalIntegral']
-  have xpos : 0 < x := by linarith
-  have txinvpos : 0 < t / x := div_pos tpos xpos
-  have txinv_ltOne : t / x < 1 := (div_lt_one xpos).mpr t_lt_x
+  have xpos : 0 < x := lt_trans tpos t_lt_x
   simp only [one_div, mul_inv_rev, inv_I, neg_mul, neg_eq_zero, mul_eq_zero, I_ne_zero,
     inv_eq_zero, ofReal_eq_zero, pi_ne_zero, OfNat.ofNat_ne_zero, or_self, false_or]
-  convert Perron.formulaLtOne txinvpos txinv_ltOne σpos using 2
+  convert Perron.formulaLtOne (div_pos tpos xpos) ((div_lt_one xpos).mpr t_lt_x) σpos using 2
   ext1 s
   convert Perron.f_mul_eq_f tpos xpos s using 1
   ring
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{Perron.formulaLtOne}
-\leanok
 This is a straightforward calculation.
 \end{proof}
 %%-/
@@ -442,10 +437,9 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
   <;> try (rw [set_integral_congr (by simp)]; intro y hy; simp only [ofReal_mul])
   · simp only [integral_mul_right]; rfl
   · simp only [integral_mul_right]
-    let fx : ℝ → ℂ := fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
-    have := integral_comp_mul_right_Ioi fx 0 hy
+    have := integral_comp_mul_right_Ioi (fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)) 0 hy
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := slitPlane_ne_zero (Or.inl hy)
-    field_simp [fx] at this ⊢
+    field_simp at this ⊢
     rw [this]
   · rw [set_integral_congr (by simp)]
     intro x hx
@@ -507,20 +501,10 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
     rcases h with ⟨Ψ, hΨ, hΨnonneg, hΨsupp, hΨpos⟩
     let c := (∫ x in Ici 0, Ψ x / x)
     use fun y => Ψ y / c
-    constructor
-    · exact fun n => ContDiff.div_const (hΨ n) c
-    · constructor
-      · exact fun y => div_nonneg (hΨnonneg y) (le_of_lt hΨpos)
-      · constructor
-        · simp only [Function.support, subset_def, div_ne_zero] at hΨsupp ⊢
-          intro y hy
-          simp only [ne_eq, div_eq_zero_iff, mem_setOf_eq] at hy
-          push_neg at hy
-          apply hΨsupp y
-          simp [hy.left]
-        · simp only [div_right_comm _ c _]
-          rw [integral_div c]
-          exact div_self <| ne_of_gt hΨpos
+    refine ⟨fun n => (hΨ n).div_const c, fun y => div_nonneg (hΨnonneg y) (le_of_lt hΨpos), ?_, ?_⟩
+    · rw [Function.support_div, Function.support_const (ne_of_lt hΨpos).symm, inter_univ]
+      convert hΨsupp
+    · simp only [div_right_comm _ c _, integral_div c, div_self <| ne_of_gt hΨpos]
 
   have := smooth_urysohn_support_Ioo (a := 1 / 2) (b := 1) (c := 3/2) (d := 2) (by linarith)
     (by linarith)
@@ -528,19 +512,13 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
   use Ψ, hΨContDiff
   unfold indicator at hΨ0 hΨ1
   simp only [mem_Icc, Pi.one_apply, Pi.le_def, mem_Ioo] at hΨ0 hΨ1
-  constructor
-  · intro x
-    apply le_trans _ (hΨ0 x)
-    simp [apply_ite]
-  constructor
-  · simp only [hΨSupport, subset_def, mem_Ioo, mem_Icc, and_imp]
-    intro y hy hy'
-    exact ⟨by linarith, by linarith⟩
+  simp only [hΨSupport, subset_def, mem_Ioo, mem_Icc, and_imp]
+  split_ands
+  · exact fun x => le_trans (by simp [apply_ite]) (hΨ0 x)
+  · exact fun y hy hy' => ⟨by linarith, by linarith⟩
   · rw [integral_pos_iff_support_of_nonneg]
-    · simp only [Function.support_div, measurableSet_Ici, Measure.restrict_apply']
-      rw [hΨSupport, Function.support_id]
-      have : (Ioo (1 / 2 : ℝ) 2 ∩ (Iio 0 ∪ Ioi 0) ∩ Ici 0) =
-        Ioo (1 / 2) 2 := by
+    · simp only [Function.support_div, measurableSet_Ici, Measure.restrict_apply', hΨSupport, Function.support_id]
+      have : (Ioo (1 / 2 : ℝ) 2 ∩ (Iio 0 ∪ Ioi 0) ∩ Ici 0) = Ioo (1 / 2) 2 := by
         ext x
         simp only [mem_inter_iff, mem_Ioo, mem_Ici, mem_Iio, mem_Ioi,
           mem_union, not_lt, and_true, not_le]
@@ -551,13 +529,10 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
           constructor <;> linarith [h.left]
       simp only [this, volume_Ioo, ENNReal.ofReal_pos, sub_pos, gt_iff_lt]
       linarith
-    · rw [Pi.le_def]
+    · simp_rw [Pi.le_def, Pi.zero_apply]
       intro y
-      simp only [Pi.zero_apply]
       by_cases h : y ∈ Function.support Ψ
-      . apply div_nonneg
-        · apply le_trans _ (hΨ0 y)
-          simp [apply_ite]
+      . apply div_nonneg <| le_trans (by simp [apply_ite]) (hΨ0 y)
         rw [hΨSupport, mem_Ioo] at h
         linarith [h.left]
       . simp only [Function.mem_support, ne_eq, not_not] at h
@@ -568,27 +543,19 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
         by_cases hxIcc : x ∈ Icc (1 / 2) 2
         · exact (if_pos hxIcc).symm
         · rw [if_neg hxIcc]
-          have hΨx0 : Ψ x = 0 := by
-            have hxIoo : x ∉ Ioo (1 / 2) 2 := by
-              simp only [mem_Icc, not_and_or, not_le] at hxIcc
-              simp [mem_Ioo, mem_Icc]
-              intro
-              cases hxIcc <;> linarith
-            simp only [Function.mem_support, ne_eq, not_not, ← hΨSupport] at hxIoo
-            exact hxIoo
-          simp [hΨx0]
+          simp only [Pi.zero_apply, div_eq_zero_iff]; left
+          apply Function.nmem_support.mp
+          intro hxIoo
+          simp_rw [hΨSupport] at hxIoo
+          contrapose! hxIcc
+          exact mem_Icc_of_Ioo hxIoo
       rw [this]
       apply Integrable.piecewise measurableSet_Icc ?_ integrableOn_zero
-      · apply ContinuousOn.integrableOn_compact isCompact_Icc
-        apply ContinuousOn.div
-        · replace hΨContDiff := hΨContDiff 0
-          simp only [contDiff_zero] at hΨContDiff
-          exact Continuous.continuousOn hΨContDiff
-        · apply continuousOn_id
-        · simp only [mem_Icc, ne_eq, and_imp]
-          intros
-          linarith
-
+      apply ContinuousOn.integrableOn_compact isCompact_Icc
+      apply ContinuousOn.div (contDiff_zero.mp <| hΨContDiff 0).continuousOn continuousOn_id ?_
+      simp only [mem_Icc, ne_eq, and_imp, id_eq]
+      intros
+      linarith
 
 /-%%
 \begin{proof}\leanok
