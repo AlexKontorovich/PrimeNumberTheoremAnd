@@ -392,16 +392,9 @@ lemma MellinConvolutionSymmetric (f g : ℝ → 𝕂) {x : ℝ} (xpos: 0 < x) :
     _ = ∫ y in Ioi 0, f (y * x) * g (1 / y) / y := ?_
     _ = _ := ?_
   · rw [← integral_comp_mul_right_I0i_haar (fun y => f y * g (x / y)) xpos]
-    congr; funext z;
-    congr! 3;
-    rw [div_mul_left]
-    exact PartialHomeomorph.unitBallBall.proof_2 x xpos
-  · have := integral_comp_inv_I0i_haar fun y => f (y * x) * g (1 / y)
-    convert this.symm using 3
-    rw [one_div_one_div, mul_comm]
-    congr
-    ring
-
+    simp_rw [div_mul_left <| ne_of_gt xpos]
+  · convert (integral_comp_inv_I0i_haar fun y => f (y * x) * g (1 / y)).symm using 3
+    rw [one_div_one_div, mul_comm, mul_comm_div, one_mul]
 /-%%
 \begin{proof}\leanok
   \uses{MellinConvolution}
