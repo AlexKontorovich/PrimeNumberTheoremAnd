@@ -190,6 +190,31 @@ lemma Filter.TendstoAtTop_of_support_in_Icc {a b : ℝ} (f: ℝ → ℂ)
   replace := this fSupp; rw [mem_Icc] at this
   linarith
 
+lemma Filter.BigO_zero_atZero_of_support_in_Icc {a b : ℝ} (f: ℝ → ℂ) (ha : 0 < a)
+    (fSupp : f.support ⊆ Set.Icc a b):
+    f =O[𝓝[>] 0] fun _ ↦ (0 : ℝ) := by
+  refine Eventually.isBigO ?_
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < a)] with c hc
+  replace hc := (mem_Ioo.mp hc).2
+  rw [le_iff_lt_or_eq]; right
+  simp only [Complex.norm_eq_abs, map_eq_zero]
+  apply Function.support_subset_iff'.mp fSupp c
+  simp only [mem_Icc, not_and, not_le]
+  exact fun _ => by linarith
+
+lemma Filter.BigO_zero_atTop_of_support_in_Icc {a b : ℝ} (f: ℝ → ℂ) (ha : 0 < a)
+    (fSupp : f.support ⊆ Set.Icc a b):
+    f =O[atTop] fun _ ↦ (0 : ℝ) := by
+  refine Eventually.isBigO ?_
+  filter_upwards [Ioi_mem_atTop b] with c hc
+  simp only [mem_Ioi, Complex.norm_eq_abs, abs_ofReal, abs_nonpos_iff] at ha ⊢
+  replace hc := mem_Ioi.mp hc
+  rw [le_iff_lt_or_eq]; right
+  simp
+  apply Function.support_subset_iff'.mp fSupp c
+  simp only [mem_Icc, not_and, not_le]
+  exact fun _ => hc
+
 /-%%
 \begin{lemma}[PartialIntegration]\label{PartialIntegration}\lean{PartialIntegration}\leanok
 Let $f, g$ be once differentiable functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$ so that $fg'$
