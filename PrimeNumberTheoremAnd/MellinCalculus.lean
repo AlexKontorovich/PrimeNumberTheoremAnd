@@ -170,7 +170,7 @@ This is a straightforward calculation.
 \end{proof}
 %%-/
 
-lemma Filter.TendstoAtZero_of_support_in_Icc {a b : ℝ} (f: ℝ → ℂ) (ha : 0 < a)
+lemma Filter.TendstoAtZero_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂) (ha : 0 < a)
     (fSupp : f.support ⊆ Set.Icc a b) :
     Tendsto f (𝓝[>]0) (𝓝 0) := by
   apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
@@ -180,7 +180,7 @@ lemma Filter.TendstoAtZero_of_support_in_Icc {a b : ℝ} (f: ℝ → ℂ) (ha : 
   replace := this fSupp; rw [mem_Icc] at this
   linarith
 
-lemma Filter.TendstoAtTop_of_support_in_Icc {a b : ℝ} (f: ℝ → ℂ)
+lemma Filter.TendstoAtTop_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂)
     (fSupp : f.support ⊆ Set.Icc a b) :
     Tendsto f atTop (𝓝 0) := by
   apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
@@ -190,27 +190,23 @@ lemma Filter.TendstoAtTop_of_support_in_Icc {a b : ℝ} (f: ℝ → ℂ)
   replace := this fSupp; rw [mem_Icc] at this
   linarith
 
-lemma Filter.BigO_zero_atZero_of_support_in_Icc {a b : ℝ} (f: ℝ → ℂ) (ha : 0 < a)
+lemma Filter.BigO_zero_atZero_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂) (ha : 0 < a)
     (fSupp : f.support ⊆ Set.Icc a b):
     f =O[𝓝[>] 0] fun _ ↦ (0 : ℝ) := by
   refine Eventually.isBigO ?_
   filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < a)] with c hc
   replace hc := (mem_Ioo.mp hc).2
-  rw [le_iff_lt_or_eq]; right
-  simp only [Complex.norm_eq_abs, map_eq_zero]
+  simp only [norm_le_zero_iff]
   apply Function.support_subset_iff'.mp fSupp c
   simp only [mem_Icc, not_and, not_le]
   exact fun _ => by linarith
 
-lemma Filter.BigO_zero_atTop_of_support_in_Icc {a b : ℝ} (f: ℝ → ℂ) (ha : 0 < a)
+lemma Filter.BigO_zero_atTop_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂)
     (fSupp : f.support ⊆ Set.Icc a b):
     f =O[atTop] fun _ ↦ (0 : ℝ) := by
   refine Eventually.isBigO ?_
-  filter_upwards [Ioi_mem_atTop b] with c hc
-  simp only [mem_Ioi, Complex.norm_eq_abs, abs_ofReal, abs_nonpos_iff] at ha ⊢
-  replace hc := mem_Ioi.mp hc
-  rw [le_iff_lt_or_eq]; right
-  simp
+  filter_upwards [Ioi_mem_atTop b] with c hc; replace hc := mem_Ioi.mp hc
+  simp only [norm_le_zero_iff]
   apply Function.support_subset_iff'.mp fSupp c
   simp only [mem_Icc, not_and, not_le]
   exact fun _ => hc
@@ -1028,7 +1024,7 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
       have := diffΨ.continuous
       continuity
     · apply Asymptotics.IsBigO.trans_le (g' := fun _ => (0 : ℝ)) ?_ (by simp)
-      apply BigO_zero_atTop_of_support_in_Icc (a := 1 / 2) (b := 2) (ha := (by norm_num))
+      apply BigO_zero_atTop_of_support_in_Icc (a := 1 / 2) (b := 2)
       rwa [Ψ.support_ofReal]
     · apply Asymptotics.IsBigO.trans_le (g' := fun _ => (0 : ℝ)) ?_ (by simp)
       apply BigO_zero_atZero_of_support_in_Icc (a := 1 / 2) (b := 2) (ha := (by norm_num))
