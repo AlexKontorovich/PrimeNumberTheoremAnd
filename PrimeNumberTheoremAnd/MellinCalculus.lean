@@ -181,7 +181,8 @@ $$
 \end{lemma}
 %%-/
 /-- *Need differentiability, and decay at `0` and `∞`* -/
-lemma PartialIntegration (f g : ℝ → ℂ) (fDiff : DifferentiableOn ℝ f (Ioi 0))
+lemma PartialIntegration (f g : ℝ → ℂ)
+    (fDiff : DifferentiableOn ℝ f (Ioi 0))
     (gDiff : DifferentiableOn ℝ g (Ioi 0))
     (fDerivgInt : IntegrableOn (f * deriv g) (Ioi 0))
     (gDerivfInt : IntegrableOn (deriv f * g) (Ioi 0))
@@ -197,6 +198,53 @@ lemma PartialIntegration (f g : ℝ → ℂ) (fDiff : DifferentiableOn ℝ f (Io
 Partial integration.
 \end{proof}
 %%-/
+
+lemma PartialIntegration_of_support_in_Icc {a b : ℝ} (f g : ℝ → ℂ) (ha : 0 < a) (h : a ≤ b)
+    (fSupp : f.support ⊆ Set.Icc a b)
+    (fDiff : DifferentiableOn ℝ f (Ioi 0))
+    (gDiff : DifferentiableOn ℝ g (Ioi 0))
+    (fderivCont : ContinuousOn (deriv f) (Ioi 0))
+    (gderivCont : ContinuousOn (deriv g) (Ioi 0)) :
+    ∫ x in Ioi 0, f x * deriv g x = -∫ x in Ioi 0, deriv f x * g x := by
+  have Icc_sub : Icc a b ⊆ Ioi 0 := (Icc_subset_Ioi_iff h).mpr ha
+  have fderivSupp : (deriv f).support ⊆ Icc a b := by
+    have := support_deriv_subset (f := f)
+    apply subset_trans this ?_
+    rw [tsupport, ← closure_Icc]
+    exact closure_mono fSupp
+  have fDerivgInt : IntegrableOn (f * deriv g) (Ioi 0) := by
+    have : (fun x => f x * deriv g x).support ⊆ Icc a b := by
+      rw [Function.support_mul (f := f) (g := deriv g), inter_subset]
+      apply subset_union_of_subset_right fSupp
+    apply (integrableOn_iff_integrable_of_support_subset this).mp
+    apply ContinuousOn.integrableOn_Icc <| ContinuousOn.mul ?_ ?_
+    · exact fDiff.continuousOn.mono Icc_sub
+    · exact gderivCont.mono Icc_sub
+  have gDerivfInt : IntegrableOn (deriv f * g) (Ioi 0) := by
+    have : (fun x => deriv f x * g x).support ⊆ Icc a b := by
+      rw [Function.support_mul (f := deriv f) (g := g), inter_subset]
+      apply subset_union_of_subset_right fderivSupp
+    apply (integrableOn_iff_integrable_of_support_subset this).mp
+    apply ContinuousOn.integrableOn_Icc <| ContinuousOn.mul ?_ ?_
+    · exact fderivCont.mono Icc_sub
+    · exact gDiff.continuousOn.mono Icc_sub
+  have lim_at_zero : Tendsto (f * g) (𝓝[>]0) (𝓝 0) := by
+    apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
+    filter_upwards [Ioo_mem_nhdsWithin_Ioi' ha] with c hc; replace hc := (mem_Ioo.mp hc).2
+    simp only [Pi.mul_apply, mul_eq_zero]; left
+    have := Function.support_subset_iff.mp fSupp c
+    contrapose! fSupp
+    replace := this fSupp; rw [mem_Icc] at this
+    linarith
+  have lim_at_inf : Tendsto (f * g) atTop (𝓝 0) := by
+    apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
+    filter_upwards [Ioi_mem_atTop b] with c hc; rw [mem_Ioi] at hc
+    simp only [Pi.mul_apply, mul_eq_zero]; left
+    have := Function.support_subset_iff.mp fSupp c
+    contrapose! fSupp
+    replace := this fSupp; rw [mem_Icc] at this
+    linarith
+  apply PartialIntegration f g fDiff gDiff fDerivgInt gDerivfInt lim_at_zero lim_at_inf
 
 /-% ** Wrong delimiters on purpose **
 Unnecessary lemma:
