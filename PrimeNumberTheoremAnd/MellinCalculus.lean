@@ -686,6 +686,52 @@ lemma deriv.comp_ofReal' {e : ℂ → ℂ} (hf : Differentiable ℂ e) :
     deriv (fun x : ℝ ↦ e x) = fun (x : ℝ) ↦ deriv e x :=
   funext fun _ => deriv.comp_ofReal (hf.differentiableAt)
 
+lemma MellinOfPsi_aux {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
+    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+    {s : ℂ} (hs : s ≠ 0) :
+    ∫ (x : ℝ) in Ioi 0, (Ψ x) * (x : ℂ) ^ (s - 1) =
+    - (1 / s) * ∫ (x : ℝ) in Ioi 0, (deriv Ψ x) * (x : ℂ) ^ s := by
+  let g {s : ℂ} := fun (x : ℝ)  ↦ x ^ s / s
+  have gderiv {s : ℂ} (hs : s ≠ 0) {x: ℝ} (hx : x ∈ Ioi 0) :
+      deriv g x = x ^ (s - 1) := by
+    have := HasDerivAt.cpow_const (c := s) (hasDerivAt_id (x : ℂ)) (Or.inl hx)
+    simp_rw [mul_one, id_eq] at this
+    rw [deriv_div_const, deriv.comp_ofReal (e := fun x ↦ x ^ s)]
+    · rw [this.deriv, mul_div_right_comm, div_self hs, one_mul]
+    · apply hasDerivAt_deriv_iff.mp
+      simp only [this.deriv, this]
+  calc
+    _ =  ∫ (x : ℝ) in Ioi 0, ↑(Ψ x) * deriv (@g s) x := ?_
+    _ = -∫ (x : ℝ) in Ioi 0, deriv (fun x ↦ ↑(Ψ x)) x * @g s x := ?_
+    _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * @g s x := ?_
+    _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * x ^ s / s := by simp only [mul_div, g]
+    _ = _ := ?_
+  · rw [set_integral_congr (by simp)]
+    intro _ hx
+    simp only [gderiv hs hx]
+  · apply PartialIntegration_of_support_in_Icc (Ψ ·) g
+      (a := 1 / 2) (b := 2) (by norm_num) (by norm_num)
+    · simpa only [Function.support_subset_iff, ne_eq, ofReal_eq_zero]
+    · exact (Differentiable.ofReal_comp_iff.mpr (diffΨ.differentiable (by norm_num))).differentiableOn
+    · refine DifferentiableOn.div_const ?_ s
+      intro a ha
+      refine DifferentiableAt.differentiableWithinAt ?_
+      apply DifferentiableAt.comp_ofReal (e := fun x ↦ x ^ s)
+      apply DifferentiableAt.cpow differentiableAt_id' <| differentiableAt_const s
+      exact Or.inl ha
+    · simp only [deriv.ofReal_comp']
+      apply Continuous.continuousOn
+      apply Continuous.comp (g := ofReal') continuous_ofReal <| diffΨ.continuous_deriv (by norm_num)
+    · apply ContinuousOn.congr (f := fun (x : ℝ) ↦ (x : ℂ) ^ (s - 1)) ?_ fun x hx => gderiv hs hx
+      refine ContinuousOn.cpow ?_ continuousOn_const (by simp)
+      exact Continuous.continuousOn (by continuity)
+  · congr; funext; congr
+    apply (hasDerivAt_deriv_iff.mpr ?_).ofReal_comp.deriv
+    exact diffΨ.contDiffAt.differentiableAt (by norm_num)
+  · simp only [neg_mul, neg_inj]
+    conv => lhs; rhs; intro; rw [← mul_one_div, mul_comm]
+    rw [integral_mul_left]
+
 /-%%
 The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at
 least) like $1/|s|$.
@@ -704,101 +750,6 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (fun s ↦ Complex.abs (MellinTransform (Ψ ·) s))
     =O[Filter.principal {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}]
       fun s ↦ 1 / Complex.abs s := by
-
-  let g {s : ℂ} := fun (x : ℝ)  ↦ x ^ s / s
-  have gderiv {s : ℂ} (hs : s ≠ 0) {x: ℝ} (hx : x ∈ Ioi 0) :
-      deriv g x = x ^ (s - 1) := by
-    have := HasDerivAt.cpow_const (c := s) (hasDerivAt_id (x : ℂ)) (Or.inl hx)
-    simp_rw [mul_one, id_eq] at this
-    rw [deriv_div_const, deriv.comp_ofReal (e := fun x ↦ x ^ s)]
-    · rw [this.deriv, mul_div_right_comm, div_self hs, one_mul]
-    · apply hasDerivAt_deriv_iff.mp
-      simp only [this.deriv, this]
-
-  have key {s : ℂ} (hs : s ≠ 0) : ∫ (x : ℝ) in Ioi 0, (Ψ x) * (x : ℂ) ^ (s - 1) =
-      - (1 / s) * ∫ (x : ℝ) in Ioi 0, (deriv Ψ x) * (x : ℂ) ^ s := by
-    calc
-      _ =  ∫ (x : ℝ) in Ioi 0, ↑(Ψ x) * deriv (@g s) x := ?_
-      _ = -∫ (x : ℝ) in Ioi 0, deriv (fun x ↦ ↑(Ψ x)) x * @g s x := ?_
-      _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * @g s x := ?_
-      _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * x ^ s / s := by simp only [mul_div, g]
-      _ = _ := ?_
-    · rw [set_integral_congr (by simp)]
-      intro _ hx
-      simp only [gderiv hs hx]
-    · apply PartialIntegration (Ψ ·) g
-      · exact fun _ _ => (diffΨ.contDiffAt.differentiableAt (by norm_num)).ofReal_comp.differentiableWithinAt
-      · refine DifferentiableOn.div_const ?_ s
-        intro a ha
-        refine DifferentiableAt.differentiableWithinAt ?_
-        apply DifferentiableAt.comp_ofReal (e := fun x ↦ x ^ s)
-        apply DifferentiableAt.cpow differentiableAt_id' <| differentiableAt_const s
-        exact Or.inl ha
-      · have : ((fun x ↦ (Ψ x : ℂ)) * deriv (@g s)).support ⊆ Icc (1 / 2) 2 := by
-          simp only [ne_eq, Function.support_mul', suppΨ, inter_subset]
-          apply subset_union_of_subset_right (by aesop)
-        apply (integrableOn_iff_integrable_of_support_subset this).mp
-        apply ContinuousOn.integrableOn_Icc <| ContinuousOn.mul ?_ ?_
-        · exact Continuous.continuousOn (by replace := diffΨ.continuous; continuity)
-        · apply ContinuousOn.congr (f := fun (x : ℝ) ↦ (x : ℂ) ^ (s - 1))
-          apply ContinuousOn.cpow
-          · exact Continuous.continuousOn (by continuity)
-          · exact continuousOn_const
-          · simp only [mem_Icc, ofReal_mem_slitPlane, and_imp]
-            intro a h1 _
-            linarith
-          · intro x hx
-            simp_rw [gderiv hs <| (Icc_subset_Ioi_iff (by norm_num)).mpr (by norm_num) hx]
-      · have : ((deriv fun x ↦ (Ψ x : ℂ)) * @g s).support ⊆ Icc (1 / 2) 2 := by
-          have : (deriv fun x ↦ ↑(Ψ x)).support ⊆ Icc (1 / 2) 2 := by
-            have := support_deriv_subset (f := fun x ↦ Ψ x)
-            dsimp [tsupport] at this
-            replace := subset_trans this <| closure_mono suppΨ
-            rwa [closure_Icc] at this
-          simp only [this, subset_trans, ne_eq, Function.support_mul', suppΨ, inter_subset]
-          apply subset_union_of_subset_right
-          convert this
-          simp_rw [Function.support, deriv.ofReal_comp', ← ofReal_ne_zero]
-        apply (integrableOn_iff_integrable_of_support_subset this).mp
-        apply (ContinuousOn.mul ?_ ?_).integrableOn_Icc
-        · apply Continuous.continuousOn
-          have diff := diffΨ.continuous_deriv (by norm_num)
-          convert (by continuity : Continuous (ofReal' ∘ (deriv Ψ)))
-          ext x
-          simp only [Function.comp_apply, deriv.ofReal_comp']
-        · apply ContinuousOn.div ?_ continuousOn_const (fun x _ => hs)
-          apply ContinuousOn.cpow ?_ continuousOn_const ?_
-          · exact Continuous.continuousOn (by continuity)
-          · simp only [mem_Icc, ofReal_mem_slitPlane, and_imp]
-            intro _ _ _
-            linarith
-      · apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
-        filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2)] with a ha
-        simp only [mem_Ioo] at ha
-        simp only [ne_eq, Pi.mul_apply, mul_eq_zero, ofReal_eq_zero, div_eq_zero_iff,
-          cpow_eq_zero_iff, ne_of_gt ha.left, hs, not_false_eq_true, and_true, or_self, or_false]
-        dsimp [Set.subset_def] at suppΨ
-        contrapose! suppΨ
-        use a
-        constructor; simp [Function.support, suppΨ]
-        intro h; simp only [mem_Icc, not_and, not_le] at h
-        linarith
-      · apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
-        filter_upwards [Filter.Ioi_mem_atTop 2] with a ha
-        dsimp [Set.subset_def] at suppΨ
-        simp only [mem_Ioi] at ha
-        simp [hs, ne_of_gt (lt_trans (by norm_num : 0 < (2 : ℝ)) ha)]
-        contrapose! suppΨ
-        use a
-        constructor; simp [Function.support, suppΨ]
-        intro h; simp only [mem_Icc, not_and, not_le] at h
-        linarith
-    · congr; funext; congr
-      apply (hasDerivAt_deriv_iff.mpr ?_).ofReal_comp.deriv
-      exact diffΨ.contDiffAt.differentiableAt (by norm_num)
-    · simp only [neg_mul, neg_inj]
-      conv => lhs; rhs; intro; rw [← mul_one_div, mul_comm]
-      rw [integral_mul_left]
   let f := fun (x : ℝ) ↦ ‖deriv Ψ x‖
   have cont : ContinuousOn f (Icc (1 / 4) 2) := by
     apply Continuous.continuousOn
@@ -812,9 +763,8 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     have := hs.1
     contrapose! this
     rwa [this, zero_re]
-  rewrite [key (by aesop)]
-  simp only [neg_mul, map_neg_eq_map, map_mul, map_div₀, map_one, norm_mul, norm_div, norm_one,
-    Real.norm_eq_abs, Complex.abs_abs, abs_ofReal]
+  simp only [MellinOfPsi_aux diffΨ suppΨ hs2, neg_mul, map_neg_eq_map, map_mul, map_div₀, map_one,
+             norm_mul, norm_div, norm_one, Real.norm_eq_abs, Complex.abs_abs, abs_ofReal]
   conv => rhs; rw [mul_comm]
   gcongr
 
@@ -849,9 +799,8 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
   · rw [← intervalIntegral.integral_of_le (by norm_num)]
   · have := intervalIntegral.norm_integral_le_of_norm_le_const
       (C := f a * 2 ^ σ₂) (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 4 : ℝ)) ( b := 2) ?_
-    · rw [(by norm_num: |(2 : ℝ) - 1 / 4| = 7 / 4)] at this
-      simp only [Real.norm_eq_abs, Complex.norm_eq_abs, abs_ofReal, map_mul] at this ⊢
-      exact this
+    · simp only [Real.norm_eq_abs, Complex.norm_eq_abs, abs_ofReal, map_mul] at this ⊢
+      rwa [(by norm_num: |(2 : ℝ) - 1 / 4| = 7 / 4)] at this
     · suffices h : ∀ x ∈ Icc (1 / 4) 2, ‖(fun x ↦ f x * ‖(x : ℂ) ^ s‖) x‖ ≤ f a * 2 ^ σ₂ by
         intro x hx
         apply h x
@@ -868,7 +817,6 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
       simp only [Complex.norm_eq_abs, abs_ofReal, norm_mul, Real.norm_eq_abs, _root_.abs_abs,
         Complex.abs_abs, ge_iff_le]
       convert mul_le_mul f_bound pow_bound ?_ ?_ using 2 <;> simp [f]
-
 /-%%
 \begin{proof}\leanok
 \uses{MellinTransform, SmoothExistence}
