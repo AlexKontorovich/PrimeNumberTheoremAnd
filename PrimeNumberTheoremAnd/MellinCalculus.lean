@@ -230,6 +230,8 @@ lemma PartialIntegration_of_support_in_Icc {a b : ℝ} (f g : ℝ → ℂ) (ha :
     apply subset_trans this ?_
     rw [tsupport, ← closure_Icc]
     exact closure_mono fSupp
+  have fgSupp : (f * g).support ⊆ Icc a b := by
+    simp only [Function.support_mul', subset_trans (inter_subset_left _ _) fSupp]
   have fDerivgInt : IntegrableOn (f * deriv g) (Ioi 0) := by
     have : (fun x => f x * deriv g x).support ⊆ Icc a b := by
       rw [Function.support_mul (f := f) (g := deriv g), inter_subset]
@@ -246,22 +248,8 @@ lemma PartialIntegration_of_support_in_Icc {a b : ℝ} (f g : ℝ → ℂ) (ha :
     apply ContinuousOn.integrableOn_Icc <| ContinuousOn.mul ?_ ?_
     · exact fderivCont.mono Icc_sub
     · exact gDiff.continuousOn.mono Icc_sub
-  have lim_at_zero : Tendsto (f * g) (𝓝[>]0) (𝓝 0) := by
-    apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
-    filter_upwards [Ioo_mem_nhdsWithin_Ioi' ha] with c hc; replace hc := (mem_Ioo.mp hc).2
-    simp only [Pi.mul_apply, mul_eq_zero]; left
-    have := Function.support_subset_iff.mp fSupp c
-    contrapose! fSupp
-    replace := this fSupp; rw [mem_Icc] at this
-    linarith
-  have lim_at_inf : Tendsto (f * g) atTop (𝓝 0) := by
-    apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
-    filter_upwards [Ioi_mem_atTop b] with c hc; rw [mem_Ioi] at hc
-    simp only [Pi.mul_apply, mul_eq_zero]; left
-    have := Function.support_subset_iff.mp fSupp c
-    contrapose! fSupp
-    replace := this fSupp; rw [mem_Icc] at this
-    linarith
+  have lim_at_zero : Tendsto (f * g) (𝓝[>]0) (𝓝 0) := TendstoAtZero_of_support_in_Icc (f * g) ha fgSupp
+  have lim_at_inf : Tendsto (f * g) atTop (𝓝 0) := TendstoAtTop_of_support_in_Icc (f * g) fgSupp
   apply PartialIntegration f g fDiff gDiff fDerivgInt gDerivfInt lim_at_zero lim_at_inf
 
 /-% ** Wrong delimiters on purpose **
