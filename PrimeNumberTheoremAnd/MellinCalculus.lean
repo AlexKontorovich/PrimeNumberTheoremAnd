@@ -643,6 +643,12 @@ lemma Function.support_abs {α : Type*} (f : α → 𝕂):
   simp only [support, ne_eq, mem_setOf_eq]
   simp_rw [norm_ne_zero_iff]
 
+@[simp]
+lemma Function.support_ofReal {f : ℝ → ℝ} :
+    (fun x ↦ ((f x) : ℂ)).support = f.support := by
+  apply Function.support_comp_eq (g := ofReal')
+  simp [ofReal_zero]
+
 -- steal coerction lemmas from EulerProducts.Auxiliary because of build issues, and add new ones
 namespace Complex
 -- see https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Differentiability.20of.20the.20natural.20map.20.E2.84.9D.20.E2.86.92.20.E2.84.82/near/418095234
