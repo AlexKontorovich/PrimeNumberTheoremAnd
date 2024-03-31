@@ -1534,7 +1534,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) =
 \frac{1}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
 \end{lemma}
 %%-/
-lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
+lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) :
     MellinTransform ((Smooth1 Ψ ε) ·) s = 1 / s * MellinTransform (Ψ ·) (ε * s) := by
   let f : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x
@@ -1600,10 +1600,32 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
       rw [Measure.prod_restrict, ← Measure.volume_eq_prod]
     rw [this]
     apply (integrableOn_prod_iff' ?_).mpr
-    swap; sorry
+    swap
+    · suffices h : AEStronglyMeasurable F' (Measure.prod (Measure.restrict
+          (Measure.restrict volume Tx) Tx) (Measure.restrict (Measure.restrict volume Ty) Ty)) by
+        sorry
+      rw [F'piecewise]
+      apply AEStronglyMeasurable.piecewise (s := T) (by simp [T, Tx, Ty, measurableSet_prod])
+      · apply ContinuousOn.aestronglyMeasurable
+        simp only [DeltaSpike, one_div, ofReal_div, mul_ite, mul_one, mul_zero, F, f, g, T, Tx, Ty]
+        apply ContinuousOn.mul
+        · suffices h : ContinuousOn (fun ⟨x, y⟩ ↦ (Ψ (y ^ ε⁻¹)) / ε) T by
+            sorry
+          apply ContinuousOn.div_const ?_
+          apply ContinuousOn.comp (g := fun x ↦ Ψ x) (t := (fun x ↦ x.2 ^ ε⁻¹) '' T) ?_
+          · sorry
+          · apply mapsTo_image
+          · exact diffΨ.continuous.continuousOn
+        · apply ContinuousOn.cpow_const
+          · exact (Continuous.comp continuous_ofReal continuous_fst).continuousOn
+          · simp only [mem_prod, mem_Ioc, mem_Icc, ofReal_mem_slitPlane, and_imp, Prod.forall]
+            exact fun _ _ h1 _ _ _ => h1
+        · simp [T, Tx, Ty, measurableSet_prod]
+      · exact aestronglyMeasurable_zero
     constructor
     · apply eventually_iff_exists_mem.mpr
       use {y : ℝ | y ≠ 0}
+      -- this might be a wrong filter
       constructor
       · simp [mem_ae_iff]
         rw [measure_zero_iff_ae_nmem]
@@ -1625,13 +1647,6 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
           intro x
           by_cases h : 0 < x / y ∧ x / y ≤ 1 <;> simp [h]
           apply div_nonneg <;> apply abs_nonneg
-    -- · intro x hx; contrapose! hx
-    --   rw [Function.nmem_support]
-    --   have := (Fsupp_x y)
-    --   simp only [F] at this
-    --   sorry
-          -- simp at this
-          -- apply Function.support_subset_iff'.mp
     · apply ContinuousOn.integrableOn_compact isCompact_Icc
       -- this seems to be wrong
       apply continuousOn_integral_of_compact_support (k := Ty) isCompact_Icc
@@ -1729,7 +1744,7 @@ lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
       exact (mul_le_mul_left εpos).mpr h2
   simp only [Complex.norm_eq_abs, norm_mul, abs_ofReal, abs_eq_self.mpr <| le_of_lt εpos] at this
   simp only [← Complex.norm_eq_abs] at this ⊢
-  rw [MellinOfSmooth1a Ψ suppΨ εpos <| gt_of_ge_of_gt h1 σ₁pos]
+  rw [MellinOfSmooth1a Ψ diffΨ suppΨ εpos <| gt_of_ge_of_gt h1 σ₁pos]
   simp only [Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one, map_mul, map_div₀, map_one,
     norm_mul, norm_pow, abs_of_pos, εpos]
   rw [(abs_eq_self.mpr <| mul_nonneg (by linarith) (by simp) : |ε * ‖s‖ ^ 2| = ε * ‖s‖ ^ 2)]
@@ -1757,7 +1772,7 @@ lemma MellinOfSmooth1c {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
   obtain ⟨c, hc⟩ := h
   use c
   filter_upwards [hc, Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1)] with ε hε hε'
-  simp_rw [MellinOfSmooth1a Ψ suppΨ hε'.1 (s := 1) (by norm_num), mul_one]
+  simp_rw [MellinOfSmooth1a Ψ diffΨ suppΨ hε'.1 (s := 1) (by norm_num), mul_one]
   simp only [ne_eq, one_ne_zero, not_false_eq_true, div_self, one_mul, ofReal_one ▸ hε]
 /-%%
 \begin{proof}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1, MellinOfDeltaSpikeAt1_asymp}\leanok
