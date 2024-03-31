@@ -286,26 +286,17 @@ lemma PartialIntegration_of_support_in_Icc {a b : ℝ} (f g : ℝ → ℂ) (ha :
     (gderivCont : ContinuousOn (deriv g) (Ioi 0)) :
     ∫ x in Ioi 0, f x * deriv g x = -∫ x in Ioi 0, deriv f x * g x := by
   have Icc_sub : Icc a b ⊆ Ioi 0 := (Icc_subset_Ioi_iff h).mpr ha
-  have fderivSupp : (deriv f).support ⊆ Icc a b := by
-    have := support_deriv_subset (f := f)
-    apply subset_trans this ?_
-    rw [tsupport, ← closure_Icc]
-    exact closure_mono fSupp
-  have fgSupp : (f * g).support ⊆ Icc a b := by
-    simp only [Function.support_mul', subset_trans (inter_subset_left _ _) fSupp]
+  have fderivSupp := Function.support_deriv_subset_Icc fSupp
+  have fgSupp : (f * g).support ⊆ Icc a b := Function.support_mul_subset_of_subset fSupp
   have fDerivgInt : IntegrableOn (f * deriv g) (Ioi 0) := by
-    have : (fun x => f x * deriv g x).support ⊆ Icc a b := by
-      rw [Function.support_mul (f := f) (g := deriv g), inter_subset]
-      apply subset_union_of_subset_right fSupp
-    apply (integrableOn_iff_integrable_of_support_subset this).mp
+    apply (integrableOn_iff_integrable_of_support_subset <|
+           Function.support_mul_subset_of_subset fSupp).mp
     apply ContinuousOn.integrableOn_Icc <| ContinuousOn.mul ?_ ?_
     · exact fDiff.continuousOn.mono Icc_sub
     · exact gderivCont.mono Icc_sub
   have gDerivfInt : IntegrableOn (deriv f * g) (Ioi 0) := by
-    have : (fun x => deriv f x * g x).support ⊆ Icc a b := by
-      rw [Function.support_mul (f := deriv f) (g := g), inter_subset]
-      apply subset_union_of_subset_right fderivSupp
-    apply (integrableOn_iff_integrable_of_support_subset this).mp
+    apply (integrableOn_iff_integrable_of_support_subset <|
+           Function.support_mul_subset_of_subset fderivSupp).mp
     apply ContinuousOn.integrableOn_Icc <| ContinuousOn.mul ?_ ?_
     · exact fderivCont.mono Icc_sub
     · exact gDiff.continuousOn.mono Icc_sub
@@ -854,8 +845,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
   · simp_rw [← Complex.norm_eq_abs, norm_integral_le_integral_norm]
   · apply SetIntegral.integral_eq_integral_inter_of_support_subset_Icc
     · simp only [Function.support_abs, Function.support_mul, Function.support_ofReal]
-      refine subset_union_compl_iff_inter_subset.mp fun ⦃a⦄ ha ↦ Or.inl ?_
-      exact Function.support_deriv_subset_Icc suppΨ ha
+      apply subset_trans (by apply inter_subset_left) <| Function.support_deriv_subset_Icc suppΨ
     · exact (Icc_subset_Ioi_iff (by norm_num)).mpr (by norm_num)
   · have := intervalIntegral.norm_integral_le_of_norm_le_const
       (C := f a * 2 ^ σ₂) (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 2 : ℝ)) ( b := 2) ?_
