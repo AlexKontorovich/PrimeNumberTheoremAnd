@@ -672,6 +672,18 @@ lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {�
           Function.support_eq_empty_iff] at h
       simp [h]
 
+lemma SetIntegral.integral_eq_integral_inter_of_support_subset {μ : Measure ℝ}
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {s t : Set ℝ} {f : ℝ → E} (h : f.support ⊆ t) (ht : MeasurableSet t):
+    ∫ x in s, f x ∂μ = ∫ x in s ∩ t, f x ∂μ := by
+  rw [← set_integral_indicator ht, indicator_eq_self.2 h]
+
+lemma SetIntegral.integral_eq_integral_inter_of_support_subset_Icc {a b} {μ : Measure ℝ}
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {s : Set ℝ} {f : ℝ → E} (h : f.support ⊆ Icc a b) (hs : Icc a b ⊆ s) :
+    ∫ x in s, f x ∂μ = ∫ x in Icc a b, f x ∂μ := by
+  rw [SetIntegral.integral_eq_integral_inter_of_support_subset h measurableSet_Icc, inter_eq_self_of_subset_right hs]
+
 -- steal coerction lemmas from EulerProducts.Auxiliary because of build issues, and add new ones
 namespace Complex
 -- see https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Differentiability.20of.20the.20natural.20map.20.E2.84.9D.20.E2.86.92.20.E2.84.82/near/418095234
