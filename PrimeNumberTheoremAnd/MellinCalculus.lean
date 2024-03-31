@@ -89,6 +89,10 @@ lemma Function.support_id : Function.support (fun x : ℝ => x) = Iio 0 ∪ Ioi 
   ext x
   simp only [mem_support, ne_eq, Iio_union_Ioi, mem_compl_iff, mem_singleton_iff]
 
+lemma Function.support_mul_subset_of_subset {s : Set ℝ} {f g : ℝ → 𝕂} (fSupp : f.support ⊆ s) :
+    (f * g).support ⊆ s := by
+  simp_rw [support_mul', inter_subset, subset_union_of_subset_right fSupp]
+
 lemma Function.support_deriv_subset_Icc {a b : ℝ} {f : ℝ → 𝕂}
     (fSupp : f.support ⊆ Set.Icc a b) :
     (deriv f).support ⊆ Set.Icc a b := by
