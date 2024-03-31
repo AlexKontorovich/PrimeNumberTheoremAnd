@@ -73,6 +73,242 @@ lemma MeasureTheory.integral_comp_div_I0i_haar
   · rw [mul_one_div]
   · rw [one_div_one_div]
 
+@[simp]
+lemma Function.support_abs {α : Type*} (f : α → 𝕂):
+    (fun x ↦ ‖f x‖).support = f.support := by
+  simp only [support, ne_eq, mem_setOf_eq]
+  simp_rw [norm_ne_zero_iff]
+
+@[simp]
+lemma Function.support_ofReal {f : ℝ → ℝ} :
+    (fun x ↦ ((f x) : ℂ)).support = f.support := by
+  apply Function.support_comp_eq (g := ofReal')
+  simp [ofReal_zero]
+
+lemma Function.support_id : Function.support (fun x : ℝ => x) = Iio 0 ∪ Ioi 0 := by
+  ext x
+  simp only [mem_support, ne_eq, Iio_union_Ioi, mem_compl_iff, mem_singleton_iff]
+
+lemma Function.support_deriv_subset_Icc {a b : ℝ} {f : ℝ → 𝕂}
+    (fSupp : f.support ⊆ Set.Icc a b) :
+    (deriv f).support ⊆ Set.Icc a b := by
+    have := support_deriv_subset (f := fun x ↦ f x)
+    dsimp [tsupport] at this
+    have := subset_trans this <| closure_mono fSupp
+    rwa [closure_Icc] at this
+
+lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {μ : Measure ℝ} [NoAtoms μ]
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    {f : ℝ → E} (h : f.support ⊆ Icc a b) :
+    ∫ x in a..b, f x ∂μ = ∫ x, f x ∂μ := by
+  rcases le_total a b with hab | hab
+  · rw [intervalIntegral.integral_of_le hab, ← integral_Icc_eq_integral_Ioc,
+    ← integral_indicator measurableSet_Icc, indicator_eq_self.2 h]
+  · by_cases hab2 : b = a
+    · rw [hab2] at h ⊢
+      simp [intervalIntegral.integral_same]
+      simp only [Icc_self] at h
+      have : ∫ (x : ℝ), f x ∂μ = ∫ (x : ℝ) in {a}, f x ∂μ := by
+        rw [ ← integral_indicator (by simp), indicator_eq_self.2 h]
+      rw [this, integral_singleton]; simp
+    · have : ¬a ≤ b := by exact fun x => hab2 <| le_antisymm hab x
+      rw [Icc_eq_empty_iff.mpr <| by exact fun x => hab2 <| le_antisymm hab x, subset_empty_iff,
+          Function.support_eq_empty_iff] at h
+      simp [h]
+
+lemma SetIntegral.integral_eq_integral_inter_of_support_subset {μ : Measure ℝ}
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {s t : Set ℝ} {f : ℝ → E} (h : f.support ⊆ t) (ht : MeasurableSet t):
+    ∫ x in s, f x ∂μ = ∫ x in s ∩ t, f x ∂μ := by
+  rw [← set_integral_indicator ht, indicator_eq_self.2 h]
+
+lemma SetIntegral.integral_eq_integral_inter_of_support_subset_Icc {a b} {μ : Measure ℝ}
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {s : Set ℝ} {f : ℝ → E} (h : f.support ⊆ Icc a b) (hs : Icc a b ⊆ s) :
+    ∫ x in s, f x ∂μ = ∫ x in Icc a b, f x ∂μ := by
+  rw [SetIntegral.integral_eq_integral_inter_of_support_subset h measurableSet_Icc, inter_eq_self_of_subset_right hs]
+
+lemma Filter.TendstoAtZero_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂) (ha : 0 < a)
+    (fSupp : f.support ⊆ Set.Icc a b) :
+    Tendsto f (𝓝[>]0) (𝓝 0) := by
+  apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' ha] with c hc; replace hc := (mem_Ioo.mp hc).2
+  have := Function.support_subset_iff.mp fSupp c
+  contrapose! fSupp
+  replace := this fSupp; rw [mem_Icc] at this
+  linarith
+
+lemma Filter.TendstoAtTop_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂)
+    (fSupp : f.support ⊆ Set.Icc a b) :
+    Tendsto f atTop (𝓝 0) := by
+  apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
+  filter_upwards [Ioi_mem_atTop b] with c hc; rw [mem_Ioi] at hc
+  have := Function.support_subset_iff.mp fSupp c
+  contrapose! fSupp
+  replace := this fSupp; rw [mem_Icc] at this
+  linarith
+
+lemma Filter.BigO_zero_atZero_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂) (ha : 0 < a)
+    (fSupp : f.support ⊆ Set.Icc a b):
+    f =O[𝓝[>] 0] fun _ ↦ (0 : ℝ) := by
+  refine Eventually.isBigO ?_
+  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < a)] with c hc
+  replace hc := (mem_Ioo.mp hc).2
+  simp only [norm_le_zero_iff]
+  apply Function.support_subset_iff'.mp fSupp c
+  simp only [mem_Icc, not_and, not_le]
+  exact fun _ => by linarith
+
+lemma Filter.BigO_zero_atTop_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂)
+    (fSupp : f.support ⊆ Set.Icc a b):
+    f =O[atTop] fun _ ↦ (0 : ℝ) := by
+  refine Eventually.isBigO ?_
+  filter_upwards [Ioi_mem_atTop b] with c hc; replace hc := mem_Ioi.mp hc
+  simp only [norm_le_zero_iff]
+  apply Function.support_subset_iff'.mp fSupp c
+  simp only [mem_Icc, not_and, not_le]
+  exact fun _ => hc
+
+-- steal coerction lemmas from EulerProducts.Auxiliary because of build issues, and add new ones
+namespace Complex
+-- see https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Differentiability.20of.20the.20natural.20map.20.E2.84.9D.20.E2.86.92.20.E2.84.82/near/418095234
+
+lemma hasDerivAt_ofReal (x : ℝ) : HasDerivAt ofReal' 1 x :=
+  HasDerivAt.ofReal_comp <| hasDerivAt_id x
+
+lemma deriv_ofReal (x : ℝ) : deriv ofReal' x = 1 :=
+  (hasDerivAt_ofReal x).deriv
+
+lemma differentiableAt_ofReal (x : ℝ) : DifferentiableAt ℝ ofReal' x :=
+  (hasDerivAt_ofReal x).differentiableAt
+
+lemma differentiable_ofReal : Differentiable ℝ ofReal' :=
+  ofRealCLM.differentiable
+
+end Complex
+
+lemma DifferentiableAt.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e z) :
+    DifferentiableAt ℝ (fun x : ℝ ↦ e x) z :=
+  hf.hasDerivAt.comp_ofReal.differentiableAt
+
+lemma Differentiable.comp_ofReal {e : ℂ → ℂ} (h : Differentiable ℂ e) :
+    Differentiable ℝ (fun x : ℝ ↦ e x) :=
+  fun _ ↦ h.differentiableAt.comp_ofReal
+
+lemma DifferentiableAt.ofReal_comp {z : ℝ} {f : ℝ → ℝ} (hf : DifferentiableAt ℝ f z) :
+    DifferentiableAt ℝ (fun (y : ℝ) ↦ (f y : ℂ)) z :=
+  hf.hasDerivAt.ofReal_comp.differentiableAt
+
+lemma Differentiable.ofReal_comp {f : ℝ → ℝ} (hf : Differentiable ℝ f) :
+    Differentiable ℝ (fun (y : ℝ) ↦ (f y : ℂ)) :=
+  fun _ ↦ hf.differentiableAt.ofReal_comp
+
+open Complex ContinuousLinearMap in
+lemma HasDerivAt.of_hasDerivAt_ofReal_comp {z : ℝ} {f : ℝ → ℝ} {u : ℂ}
+    (hf : HasDerivAt (fun y ↦ (f y : ℂ)) u z) :
+    ∃ u' : ℝ, u = u' ∧ HasDerivAt f u' z := by
+  lift u to ℝ
+  · have H := (imCLM.hasFDerivAt.comp z hf.hasFDerivAt).hasDerivAt.deriv
+    simp only [Function.comp_def, imCLM_apply, ofReal_im, deriv_const] at H
+    rwa [eq_comm, comp_apply, imCLM_apply, smulRight_apply, one_apply, one_smul] at H
+  refine ⟨u, rfl, ?_⟩
+  convert (reCLM.hasFDerivAt.comp z hf.hasFDerivAt).hasDerivAt
+  rw [comp_apply, smulRight_apply, one_apply, one_smul, reCLM_apply, ofReal_re]
+
+lemma DifferentiableAt.ofReal_comp_iff {z : ℝ} {f : ℝ → ℝ} :
+    DifferentiableAt ℝ (fun (y : ℝ) ↦ (f y : ℂ)) z ↔ DifferentiableAt ℝ f z := by
+  refine ⟨fun H ↦ ?_, ofReal_comp⟩
+  obtain ⟨u, _, hu₂⟩ := H.hasDerivAt.of_hasDerivAt_ofReal_comp
+  exact HasDerivAt.differentiableAt hu₂
+
+lemma Differentiable.ofReal_comp_iff {f : ℝ → ℝ} :
+    Differentiable ℝ (fun (y : ℝ) ↦ (f y : ℂ)) ↔ Differentiable ℝ f :=
+  forall_congr' fun _ ↦ DifferentiableAt.ofReal_comp_iff
+
+lemma deriv.ofReal_comp {z : ℝ} {f : ℝ → ℝ} :
+    deriv (fun (y : ℝ) ↦ (f y : ℂ)) z = deriv f z := by
+  by_cases hf : DifferentiableAt ℝ f z
+  · exact hf.hasDerivAt.ofReal_comp.deriv
+  · have hf' := mt DifferentiableAt.ofReal_comp_iff.mp hf
+    rw [deriv_zero_of_not_differentiableAt hf, deriv_zero_of_not_differentiableAt hf',
+      Complex.ofReal_zero]
+
+lemma deriv.ofReal_comp' {f : ℝ → ℝ} :
+    deriv (fun x : ℝ ↦ (f x : ℂ)) = (fun x ↦ ((deriv f) x : ℂ)) :=
+  funext fun _ => deriv.ofReal_comp
+
+lemma deriv.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e z) :
+    deriv (fun x : ℝ ↦ e x) z = deriv e z :=
+  hf.hasDerivAt.comp_ofReal.deriv
+
+lemma deriv.comp_ofReal' {e : ℂ → ℂ} (hf : Differentiable ℂ e) :
+    deriv (fun x : ℝ ↦ e x) = fun (x : ℝ) ↦ deriv e x :=
+  funext fun _ => deriv.comp_ofReal (hf.differentiableAt)
+
+/-%%
+\begin{lemma}[PartialIntegration]\label{PartialIntegration}\lean{PartialIntegration}\leanok
+Let $f, g$ be once differentiable functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$ so that $fg'$
+and $f'g$ are both integrable, and $f*g (x)\to 0$ as $x\to 0^+,\infty$.
+Then
+$$
+\int_0^\infty f(x)g'(x) dx = -\int_0^\infty f'(x)g(x)dx.
+$$
+\end{lemma}
+%%-/
+/-- *Need differentiability, and decay at `0` and `∞`* -/
+lemma PartialIntegration (f g : ℝ → ℂ)
+    (fDiff : DifferentiableOn ℝ f (Ioi 0))
+    (gDiff : DifferentiableOn ℝ g (Ioi 0))
+    (fDerivgInt : IntegrableOn (f * deriv g) (Ioi 0))
+    (gDerivfInt : IntegrableOn (deriv f * g) (Ioi 0))
+    (lim_at_zero : Tendsto (f * g) (𝓝[>]0) (𝓝 0))
+    (lim_at_inf : Tendsto (f * g) atTop (𝓝 0)) :
+    ∫ x in Ioi 0, f x * deriv g x = -∫ x in Ioi 0, deriv f x * g x := by
+  simpa using integral_Ioi_mul_deriv_eq_deriv_mul
+    (fun x hx ↦ fDiff.hasDerivAt (Ioi_mem_nhds hx))
+    (fun x hx ↦ gDiff.hasDerivAt (Ioi_mem_nhds hx))
+    fDerivgInt gDerivfInt lim_at_zero lim_at_inf
+/-%%
+\begin{proof}\leanok
+Partial integration.
+\end{proof}
+%%-/
+
+lemma PartialIntegration_of_support_in_Icc {a b : ℝ} (f g : ℝ → ℂ) (ha : 0 < a) (h : a ≤ b)
+    (fSupp : f.support ⊆ Set.Icc a b)
+    (fDiff : DifferentiableOn ℝ f (Ioi 0))
+    (gDiff : DifferentiableOn ℝ g (Ioi 0))
+    (fderivCont : ContinuousOn (deriv f) (Ioi 0))
+    (gderivCont : ContinuousOn (deriv g) (Ioi 0)) :
+    ∫ x in Ioi 0, f x * deriv g x = -∫ x in Ioi 0, deriv f x * g x := by
+  have Icc_sub : Icc a b ⊆ Ioi 0 := (Icc_subset_Ioi_iff h).mpr ha
+  have fderivSupp : (deriv f).support ⊆ Icc a b := by
+    have := support_deriv_subset (f := f)
+    apply subset_trans this ?_
+    rw [tsupport, ← closure_Icc]
+    exact closure_mono fSupp
+  have fgSupp : (f * g).support ⊆ Icc a b := by
+    simp only [Function.support_mul', subset_trans (inter_subset_left _ _) fSupp]
+  have fDerivgInt : IntegrableOn (f * deriv g) (Ioi 0) := by
+    have : (fun x => f x * deriv g x).support ⊆ Icc a b := by
+      rw [Function.support_mul (f := f) (g := deriv g), inter_subset]
+      apply subset_union_of_subset_right fSupp
+    apply (integrableOn_iff_integrable_of_support_subset this).mp
+    apply ContinuousOn.integrableOn_Icc <| ContinuousOn.mul ?_ ?_
+    · exact fDiff.continuousOn.mono Icc_sub
+    · exact gderivCont.mono Icc_sub
+  have gDerivfInt : IntegrableOn (deriv f * g) (Ioi 0) := by
+    have : (fun x => deriv f x * g x).support ⊆ Icc a b := by
+      rw [Function.support_mul (f := deriv f) (g := g), inter_subset]
+      apply subset_union_of_subset_right fderivSupp
+    apply (integrableOn_iff_integrable_of_support_subset this).mp
+    apply ContinuousOn.integrableOn_Icc <| ContinuousOn.mul ?_ ?_
+    · exact fderivCont.mono Icc_sub
+    · exact gDiff.continuousOn.mono Icc_sub
+  have lim_at_zero : Tendsto (f * g) (𝓝[>]0) (𝓝 0) := TendstoAtZero_of_support_in_Icc (f * g) ha fgSupp
+  have lim_at_inf : Tendsto (f * g) atTop (𝓝 0) := TendstoAtTop_of_support_in_Icc (f * g) fgSupp
+  apply PartialIntegration f g fDiff gDiff fDerivgInt gDerivfInt lim_at_zero lim_at_inf
+
 /-%%
 In this section, we define the Mellin transform (already in Mathlib, thanks to David Loeffler),
 prove its inversion formula, and
@@ -169,111 +405,6 @@ lemma PerronInverseMellin_gt {t x : ℝ} (xpos : 0 < x) (x_lt_t : x < t) {σ : �
 This is a straightforward calculation.
 \end{proof}
 %%-/
-
-lemma Filter.TendstoAtZero_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂) (ha : 0 < a)
-    (fSupp : f.support ⊆ Set.Icc a b) :
-    Tendsto f (𝓝[>]0) (𝓝 0) := by
-  apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' ha] with c hc; replace hc := (mem_Ioo.mp hc).2
-  have := Function.support_subset_iff.mp fSupp c
-  contrapose! fSupp
-  replace := this fSupp; rw [mem_Icc] at this
-  linarith
-
-lemma Filter.TendstoAtTop_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂)
-    (fSupp : f.support ⊆ Set.Icc a b) :
-    Tendsto f atTop (𝓝 0) := by
-  apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
-  filter_upwards [Ioi_mem_atTop b] with c hc; rw [mem_Ioi] at hc
-  have := Function.support_subset_iff.mp fSupp c
-  contrapose! fSupp
-  replace := this fSupp; rw [mem_Icc] at this
-  linarith
-
-lemma Filter.BigO_zero_atZero_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂) (ha : 0 < a)
-    (fSupp : f.support ⊆ Set.Icc a b):
-    f =O[𝓝[>] 0] fun _ ↦ (0 : ℝ) := by
-  refine Eventually.isBigO ?_
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < a)] with c hc
-  replace hc := (mem_Ioo.mp hc).2
-  simp only [norm_le_zero_iff]
-  apply Function.support_subset_iff'.mp fSupp c
-  simp only [mem_Icc, not_and, not_le]
-  exact fun _ => by linarith
-
-lemma Filter.BigO_zero_atTop_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂)
-    (fSupp : f.support ⊆ Set.Icc a b):
-    f =O[atTop] fun _ ↦ (0 : ℝ) := by
-  refine Eventually.isBigO ?_
-  filter_upwards [Ioi_mem_atTop b] with c hc; replace hc := mem_Ioi.mp hc
-  simp only [norm_le_zero_iff]
-  apply Function.support_subset_iff'.mp fSupp c
-  simp only [mem_Icc, not_and, not_le]
-  exact fun _ => hc
-
-/-%%
-\begin{lemma}[PartialIntegration]\label{PartialIntegration}\lean{PartialIntegration}\leanok
-Let $f, g$ be once differentiable functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$ so that $fg'$
-and $f'g$ are both integrable, and $f*g (x)\to 0$ as $x\to 0^+,\infty$.
-Then
-$$
-\int_0^\infty f(x)g'(x) dx = -\int_0^\infty f'(x)g(x)dx.
-$$
-\end{lemma}
-%%-/
-/-- *Need differentiability, and decay at `0` and `∞`* -/
-lemma PartialIntegration (f g : ℝ → ℂ)
-    (fDiff : DifferentiableOn ℝ f (Ioi 0))
-    (gDiff : DifferentiableOn ℝ g (Ioi 0))
-    (fDerivgInt : IntegrableOn (f * deriv g) (Ioi 0))
-    (gDerivfInt : IntegrableOn (deriv f * g) (Ioi 0))
-    (lim_at_zero : Tendsto (f * g) (𝓝[>]0) (𝓝 0))
-    (lim_at_inf : Tendsto (f * g) atTop (𝓝 0)) :
-    ∫ x in Ioi 0, f x * deriv g x = -∫ x in Ioi 0, deriv f x * g x := by
-  simpa using integral_Ioi_mul_deriv_eq_deriv_mul
-    (fun x hx ↦ fDiff.hasDerivAt (Ioi_mem_nhds hx))
-    (fun x hx ↦ gDiff.hasDerivAt (Ioi_mem_nhds hx))
-    fDerivgInt gDerivfInt lim_at_zero lim_at_inf
-/-%%
-\begin{proof}\leanok
-Partial integration.
-\end{proof}
-%%-/
-
-lemma PartialIntegration_of_support_in_Icc {a b : ℝ} (f g : ℝ → ℂ) (ha : 0 < a) (h : a ≤ b)
-    (fSupp : f.support ⊆ Set.Icc a b)
-    (fDiff : DifferentiableOn ℝ f (Ioi 0))
-    (gDiff : DifferentiableOn ℝ g (Ioi 0))
-    (fderivCont : ContinuousOn (deriv f) (Ioi 0))
-    (gderivCont : ContinuousOn (deriv g) (Ioi 0)) :
-    ∫ x in Ioi 0, f x * deriv g x = -∫ x in Ioi 0, deriv f x * g x := by
-  have Icc_sub : Icc a b ⊆ Ioi 0 := (Icc_subset_Ioi_iff h).mpr ha
-  have fderivSupp : (deriv f).support ⊆ Icc a b := by
-    have := support_deriv_subset (f := f)
-    apply subset_trans this ?_
-    rw [tsupport, ← closure_Icc]
-    exact closure_mono fSupp
-  have fgSupp : (f * g).support ⊆ Icc a b := by
-    simp only [Function.support_mul', subset_trans (inter_subset_left _ _) fSupp]
-  have fDerivgInt : IntegrableOn (f * deriv g) (Ioi 0) := by
-    have : (fun x => f x * deriv g x).support ⊆ Icc a b := by
-      rw [Function.support_mul (f := f) (g := deriv g), inter_subset]
-      apply subset_union_of_subset_right fSupp
-    apply (integrableOn_iff_integrable_of_support_subset this).mp
-    apply ContinuousOn.integrableOn_Icc <| ContinuousOn.mul ?_ ?_
-    · exact fDiff.continuousOn.mono Icc_sub
-    · exact gderivCont.mono Icc_sub
-  have gDerivfInt : IntegrableOn (deriv f * g) (Ioi 0) := by
-    have : (fun x => deriv f x * g x).support ⊆ Icc a b := by
-      rw [Function.support_mul (f := deriv f) (g := g), inter_subset]
-      apply subset_union_of_subset_right fderivSupp
-    apply (integrableOn_iff_integrable_of_support_subset this).mp
-    apply ContinuousOn.integrableOn_Icc <| ContinuousOn.mul ?_ ?_
-    · exact fderivCont.mono Icc_sub
-    · exact gDiff.continuousOn.mono Icc_sub
-  have lim_at_zero : Tendsto (f * g) (𝓝[>]0) (𝓝 0) := TendstoAtZero_of_support_in_Icc (f * g) ha fgSupp
-  have lim_at_inf : Tendsto (f * g) atTop (𝓝 0) := TendstoAtTop_of_support_in_Icc (f * g) fgSupp
-  apply PartialIntegration f g fDiff gDiff fDerivgInt gDerivfInt lim_at_zero lim_at_inf
 
 /-% ** Wrong delimiters on purpose **
 Unnecessary lemma:
@@ -554,10 +685,6 @@ $$
 \end{proof}
 %%-/
 
-lemma Function.support_id : Function.support (fun x : ℝ => x) = Iio 0 ∪ Ioi 0 := by
-  ext x
-  simp only [mem_support, ne_eq, Iio_union_Ioi, mem_compl_iff, mem_singleton_iff]
-
 /-%%
 Let $\psi$ be a bumpfunction.
 \begin{theorem}[SmoothExistence]\label{SmoothExistence}\lean{SmoothExistence}\leanok
@@ -632,133 +759,6 @@ Same idea as Urysohn-type argument.
 
 lemma mem_within_strip (σ₁ σ₂ : ℝ) :
   {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} := by simp
-
-@[simp]
-lemma Function.support_abs {α : Type*} (f : α → 𝕂):
-    (fun x ↦ ‖f x‖).support = f.support := by
-  simp only [support, ne_eq, mem_setOf_eq]
-  simp_rw [norm_ne_zero_iff]
-
-@[simp]
-lemma Function.support_ofReal {f : ℝ → ℝ} :
-    (fun x ↦ ((f x) : ℂ)).support = f.support := by
-  apply Function.support_comp_eq (g := ofReal')
-  simp [ofReal_zero]
-
-lemma Function.support_deriv_subset_Icc {a b : ℝ} {f : ℝ → 𝕂}
-    (fSupp : f.support ⊆ Set.Icc a b) :
-    (deriv f).support ⊆ Set.Icc a b := by
-    have := support_deriv_subset (f := fun x ↦ f x)
-    dsimp [tsupport] at this
-    have := subset_trans this <| closure_mono fSupp
-    rwa [closure_Icc] at this
-
-lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {μ : Measure ℝ} [NoAtoms μ]
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-    {f : ℝ → E} (h : f.support ⊆ Icc a b) :
-    ∫ x in a..b, f x ∂μ = ∫ x, f x ∂μ := by
-  rcases le_total a b with hab | hab
-  · rw [intervalIntegral.integral_of_le hab, ← integral_Icc_eq_integral_Ioc,
-    ← integral_indicator measurableSet_Icc, indicator_eq_self.2 h]
-  · by_cases hab2 : b = a
-    · rw [hab2] at h ⊢
-      simp [intervalIntegral.integral_same]
-      simp only [Icc_self] at h
-      have : ∫ (x : ℝ), f x ∂μ = ∫ (x : ℝ) in {a}, f x ∂μ := by
-        rw [ ← integral_indicator (by simp), indicator_eq_self.2 h]
-      rw [this, integral_singleton]; simp
-    · have : ¬a ≤ b := by exact fun x => hab2 <| le_antisymm hab x
-      rw [Icc_eq_empty_iff.mpr <| by exact fun x => hab2 <| le_antisymm hab x, subset_empty_iff,
-          Function.support_eq_empty_iff] at h
-      simp [h]
-
-lemma SetIntegral.integral_eq_integral_inter_of_support_subset {μ : Measure ℝ}
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {s t : Set ℝ} {f : ℝ → E} (h : f.support ⊆ t) (ht : MeasurableSet t):
-    ∫ x in s, f x ∂μ = ∫ x in s ∩ t, f x ∂μ := by
-  rw [← set_integral_indicator ht, indicator_eq_self.2 h]
-
-lemma SetIntegral.integral_eq_integral_inter_of_support_subset_Icc {a b} {μ : Measure ℝ}
-    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {s : Set ℝ} {f : ℝ → E} (h : f.support ⊆ Icc a b) (hs : Icc a b ⊆ s) :
-    ∫ x in s, f x ∂μ = ∫ x in Icc a b, f x ∂μ := by
-  rw [SetIntegral.integral_eq_integral_inter_of_support_subset h measurableSet_Icc, inter_eq_self_of_subset_right hs]
-
--- steal coerction lemmas from EulerProducts.Auxiliary because of build issues, and add new ones
-namespace Complex
--- see https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Differentiability.20of.20the.20natural.20map.20.E2.84.9D.20.E2.86.92.20.E2.84.82/near/418095234
-
-lemma hasDerivAt_ofReal (x : ℝ) : HasDerivAt ofReal' 1 x :=
-  HasDerivAt.ofReal_comp <| hasDerivAt_id x
-
-lemma deriv_ofReal (x : ℝ) : deriv ofReal' x = 1 :=
-  (hasDerivAt_ofReal x).deriv
-
-lemma differentiableAt_ofReal (x : ℝ) : DifferentiableAt ℝ ofReal' x :=
-  (hasDerivAt_ofReal x).differentiableAt
-
-lemma differentiable_ofReal : Differentiable ℝ ofReal' :=
-  ofRealCLM.differentiable
-
-end Complex
-
-lemma DifferentiableAt.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e z) :
-    DifferentiableAt ℝ (fun x : ℝ ↦ e x) z :=
-  hf.hasDerivAt.comp_ofReal.differentiableAt
-
-lemma Differentiable.comp_ofReal {e : ℂ → ℂ} (h : Differentiable ℂ e) :
-    Differentiable ℝ (fun x : ℝ ↦ e x) :=
-  fun _ ↦ h.differentiableAt.comp_ofReal
-
-lemma DifferentiableAt.ofReal_comp {z : ℝ} {f : ℝ → ℝ} (hf : DifferentiableAt ℝ f z) :
-    DifferentiableAt ℝ (fun (y : ℝ) ↦ (f y : ℂ)) z :=
-  hf.hasDerivAt.ofReal_comp.differentiableAt
-
-lemma Differentiable.ofReal_comp {f : ℝ → ℝ} (hf : Differentiable ℝ f) :
-    Differentiable ℝ (fun (y : ℝ) ↦ (f y : ℂ)) :=
-  fun _ ↦ hf.differentiableAt.ofReal_comp
-
-open Complex ContinuousLinearMap in
-lemma HasDerivAt.of_hasDerivAt_ofReal_comp {z : ℝ} {f : ℝ → ℝ} {u : ℂ}
-    (hf : HasDerivAt (fun y ↦ (f y : ℂ)) u z) :
-    ∃ u' : ℝ, u = u' ∧ HasDerivAt f u' z := by
-  lift u to ℝ
-  · have H := (imCLM.hasFDerivAt.comp z hf.hasFDerivAt).hasDerivAt.deriv
-    simp only [Function.comp_def, imCLM_apply, ofReal_im, deriv_const] at H
-    rwa [eq_comm, comp_apply, imCLM_apply, smulRight_apply, one_apply, one_smul] at H
-  refine ⟨u, rfl, ?_⟩
-  convert (reCLM.hasFDerivAt.comp z hf.hasFDerivAt).hasDerivAt
-  rw [comp_apply, smulRight_apply, one_apply, one_smul, reCLM_apply, ofReal_re]
-
-lemma DifferentiableAt.ofReal_comp_iff {z : ℝ} {f : ℝ → ℝ} :
-    DifferentiableAt ℝ (fun (y : ℝ) ↦ (f y : ℂ)) z ↔ DifferentiableAt ℝ f z := by
-  refine ⟨fun H ↦ ?_, ofReal_comp⟩
-  obtain ⟨u, _, hu₂⟩ := H.hasDerivAt.of_hasDerivAt_ofReal_comp
-  exact HasDerivAt.differentiableAt hu₂
-
-lemma Differentiable.ofReal_comp_iff {f : ℝ → ℝ} :
-    Differentiable ℝ (fun (y : ℝ) ↦ (f y : ℂ)) ↔ Differentiable ℝ f :=
-  forall_congr' fun _ ↦ DifferentiableAt.ofReal_comp_iff
-
-lemma deriv.ofReal_comp {z : ℝ} {f : ℝ → ℝ} :
-    deriv (fun (y : ℝ) ↦ (f y : ℂ)) z = deriv f z := by
-  by_cases hf : DifferentiableAt ℝ f z
-  · exact hf.hasDerivAt.ofReal_comp.deriv
-  · have hf' := mt DifferentiableAt.ofReal_comp_iff.mp hf
-    rw [deriv_zero_of_not_differentiableAt hf, deriv_zero_of_not_differentiableAt hf',
-      Complex.ofReal_zero]
-
-lemma deriv.ofReal_comp' {f : ℝ → ℝ} :
-    deriv (fun x : ℝ ↦ (f x : ℂ)) = (fun x ↦ ((deriv f) x : ℂ)) :=
-  funext fun _ => deriv.ofReal_comp
-
-lemma deriv.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e z) :
-    deriv (fun x : ℝ ↦ e x) z = deriv e z :=
-  hf.hasDerivAt.comp_ofReal.deriv
-
-lemma deriv.comp_ofReal' {e : ℂ → ℂ} (hf : Differentiable ℂ e) :
-    deriv (fun x : ℝ ↦ e x) = fun (x : ℝ) ↦ deriv e x :=
-  funext fun _ => deriv.comp_ofReal (hf.differentiableAt)
 
 lemma MellinOfPsi_aux {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
