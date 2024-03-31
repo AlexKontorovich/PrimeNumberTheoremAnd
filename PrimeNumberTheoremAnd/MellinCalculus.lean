@@ -1201,9 +1201,8 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
   · rw [set_integral_congr (by simp)]
     intro y hy
     simp only [indicator_apply_eq_self, mem_Ioc, not_and, not_le, div_eq_zero_iff]
-    intro hy2
-    by_cases h : y = 0; right; exact h
-    left; replace hy2 := hy2 <| mem_Ioi.mp hy
+    intro hy2; replace hy2 := hy2 <| mem_Ioi.mp hy
+    by_cases h : y = 0; right; exact h; left
     apply Function.nmem_support.mp <| not_mem_subset (DeltaSpikeSupport εpos suppΨ) ?_
     simp only [mem_Icc, not_and, not_le]
     intro
