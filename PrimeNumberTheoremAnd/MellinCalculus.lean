@@ -849,12 +849,7 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     _ ≤ ‖∫ (x : ℝ) in (1 / 4)..2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖‖ := le_abs_self _
     _ ≤ _ := ?_
   · simp_rw [← Complex.norm_eq_abs, norm_integral_le_integral_norm]
-  · have suppΨderiv : (deriv Ψ).support ⊆ Set.Icc (1 / 2) 2 := by
-      have := support_deriv_subset (f := fun x ↦ Ψ x)
-      dsimp [tsupport] at this
-      have := subset_trans this <| closure_mono suppΨ
-      rw [closure_Icc] at this
-      apply subset_trans this <| Icc_subset_Icc (by norm_num) (by norm_num)
+  · have suppΨderiv := Function.support_deriv_subset_Icc suppΨ
     have supp : (fun (x : ℝ) ↦ ‖((deriv Ψ) x : ℂ)‖ * ‖(x : ℂ) ^ s‖).support ⊆ Set.Icc (1 / 2) 2 := by
       simp only [Complex.norm_eq_abs, abs_ofReal, ← Real.norm_eq_abs, Function.support_mul, Function.support_abs]
       exact subset_union_compl_iff_inter_subset.mp fun ⦃a⦄ ha ↦ Or.inl (suppΨderiv ha)
