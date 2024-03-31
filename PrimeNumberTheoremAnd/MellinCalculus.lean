@@ -941,37 +941,32 @@ measure.
 \end{proof}
 %%-/
 
-lemma DeltaSpikeSupport {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2):
-    (DeltaSpike Ψ ε).support ⊆ Icc (2 ^ (-ε)) (2 ^ ε) := by
+lemma DeltaSpikeSupport_aux {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2):
+    (fun x ↦ if x < 0 then 0 else DeltaSpike Ψ ε x).support ⊆ Icc (2 ^ (-ε)) (2 ^ ε) := by
   unfold DeltaSpike
-  have : (fun x ↦ Ψ (x ^ (1 / ε)) / ε).support  = (fun x ↦ Ψ (x ^ (1 / ε))).support := by
-    simp only [one_div, Function.support_div, inter_eq_left, Function.support_subset_iff, ne_eq,
-      Function.mem_support]
-    exact fun _ _ ↦ ne_of_gt εpos
-  rw [this]
-  have := Function.support_comp_eq_preimage (fun x => Ψ x) (fun x => x ^ (1 / ε))
-  rw [← (by rfl : (fun x ↦ Ψ x) ∘ (fun x ↦ x ^ (1 / ε)) = fun x ↦ Ψ (x ^ (1 / ε))), this]
-  refine subset_trans (preimage_mono suppΨ (f := fun x ↦ x ^ (1 / ε))) ?_
-  intro x hx; replace hx := mem_preimage.mp hx
-  simp only [one_div, mem_Icc] at hx ⊢
-  replace := (le_rpow_inv_iff_of_pos (by norm_num) ?_ εpos).mp hx.1
-  rw [inv_rpow (by norm_num) ε, ← rpow_neg] at this
-  constructor
-  · exact this
-  · refine (rpow_inv_le_iff_of_pos ?_ (by norm_num) εpos).mp hx.2
-    linarith [(by apply rpow_nonneg (by norm_num) : 0 ≤ (2 : ℝ) ^ (-ε))]
-  · norm_num
-  · replace : 0 ≤ x ^ ε⁻¹ := le_trans (by norm_num) hx.1
-    contrapose this
-    simp at this ⊢
-    replace := rpow_def_of_neg this ε
-    sorry
+  simp only [one_div, Function.support_subset_iff, ne_eq, ite_eq_left_iff, not_lt, div_eq_zero_iff,
+    not_forall, exists_prop, mem_Icc, and_imp]
+  intro x hx h; push_neg at h
+  have := suppΨ <| Function.mem_support.mpr h.1
+  simp only [one_div, mem_Icc] at this
+  have hl := (le_rpow_inv_iff_of_pos (by norm_num) hx εpos).mp this.1
+  rw [inv_rpow (by norm_num) ε, ← rpow_neg (by norm_num)] at hl
+  refine ⟨hl, (rpow_inv_le_iff_of_pos ?_ (by norm_num) εpos).mp this.2⟩
+  linarith [(by apply rpow_nonneg (by norm_num) : 0 ≤ (2 : ℝ) ^ (-ε))]
 
-theorem Complex.ofReal_rpow {x : ℝ} (h : x > 0) (y : ℝ) :
-    (((x : ℝ) ^ (y : ℝ)) : ℝ) = (x : ℂ) ^ (y : ℂ) := by
-  rw [rpow_def_of_pos h, ofReal_exp, ofReal_mul, Complex.ofReal_log h.le,
-    Complex.cpow_def_of_ne_zero]
-  simp only [ne_eq, ofReal_eq_zero, ne_of_gt h, not_false_eq_true]
+lemma DeltaSpikeSupport' {Ψ : ℝ → ℝ} {ε x : ℝ} (εpos : 0 < ε) (xnonneg : 0 ≤ x)
+    (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2) :
+    DeltaSpike Ψ ε x ≠ 0 → x ∈ Icc (2 ^ (-ε)) (2 ^ ε) := by
+  intro h
+  have : (fun x ↦ if x < 0 then 0 else DeltaSpike Ψ ε x) x = DeltaSpike Ψ ε x := by simp [xnonneg]
+  rw [← this] at h
+  exact (Function.support_subset_iff.mp <| DeltaSpikeSupport_aux εpos suppΨ) _ h
+
+lemma DeltaSpikeSupport {Ψ : ℝ → ℝ} {ε x : ℝ} (εpos : 0 < ε) (xnonneg : 0 ≤ x)
+    (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2) :
+    x ∉ Icc (2 ^ (-ε)) (2 ^ ε) → DeltaSpike Ψ ε x = 0 := by
+  contrapose!
+  exact DeltaSpikeSupport' εpos xnonneg suppΨ
 
 /-%%
 The Mellin transform of the delta spike is easy to compute.
