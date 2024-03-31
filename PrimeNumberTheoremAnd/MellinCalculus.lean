@@ -1224,11 +1224,11 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     simp only [indicator_apply_eq_self, mem_Ioc, not_and, not_le, div_eq_zero_iff]
     intro hy2; replace hy2 := hy2 <| mem_Ioi.mp hy
     by_cases h : y = 0; right; exact h; left
-    apply Function.nmem_support.mp <| not_mem_subset (DeltaSpikeSupport εpos suppΨ) ?_
-    simp only [mem_Icc, not_and, not_le]
-    intro
-    linarith [(by apply (div_lt_iff (by linarith)).mpr; nlinarith : x / y < 2 ^ (-ε))]
-
+    apply DeltaSpikeSupport εpos ?_ suppΨ
+    · simp only [mem_Icc, not_and, not_le]; intro
+      linarith [(by apply (div_lt_iff (by linarith)).mpr; nlinarith : x / y < 2 ^ (-ε))]
+    · rw [le_div_iff (by linarith), zero_mul]
+      exact xpos.le
 /-%%
 \begin{proof}\leanok
 \uses{Smooth1, MellinConvolution,DeltaSpikeMass, Smooth1Properties_estimate}
@@ -1319,10 +1319,12 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
   by_cases y1 : y ≤ 1; swap
   · simp [mem_Ioi.mp hy, y1]
   simp only [mem_Ioi.mp hy, y1, and_self, ↓reduceIte, div_eq_zero_iff]; left
-  apply Function.nmem_support.mp
-  apply not_mem_subset <| DeltaSpikeSupport εpos suppΨ
+  apply DeltaSpikeSupport εpos ?_ suppΨ
   simp only [mem_Icc, not_and, not_le]
-  intro
+  swap; suffices h : 2 ^ ε < x / y by
+    linarith [(by apply rpow_pos_of_pos (by norm_num) : 0 < (2 : ℝ) ^ ε)]
+  all_goals
+  try intro
   have : x / y = ((x / y) ^ (1 / ε)) ^ ε := by
     rw [← rpow_mul]
     simp only [one_div, inv_mul_cancel (ne_of_gt εpos), rpow_one]
@@ -1353,7 +1355,6 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     · rw [ge_iff_le, le_div_iff <| ypos]
       exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
   rwa [gt_iff_lt] at h
-
 /-%%
 \begin{proof}\leanok
 \uses{Smooth1, MellinConvolution, Smooth1Properties_estimate}
@@ -1518,7 +1519,8 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     simp only [F, f, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair, mul_eq_zero,
       div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff, ne_eq]
     left; left; left
-    apply Function.nmem_support.mp <| not_mem_subset (DeltaSpikeSupport εpos suppΨ) hy
+    refine DeltaSpikeSupport εpos ?_ suppΨ hy
+    sorry
 
   have F_supp_x (y : ℝ) : (fun x ↦ F ⟨x, y⟩).support ⊆ Tx := by
     intro x hx
@@ -1527,7 +1529,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     simp only [F, f, g, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair, mul_eq_zero,
        div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff, ne_eq]
     left; left; intro h1 h2
-    apply Function.nmem_support.mp <| not_mem_subset (DeltaSpikeSupport εpos suppΨ) ?_
+    apply DeltaSpikeSupport εpos (by sorry) suppΨ
     simp only [mem_Icc, not_and, not_le]
     intro hy
     have ypos : 0 < y := sorry
