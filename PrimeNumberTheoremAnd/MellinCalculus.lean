@@ -1526,34 +1526,61 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
   let f : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x
   let g : ℝ → ℂ := fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0
   let F : ℝ × ℝ → ℂ := Function.uncurry fun x y ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
+  let F' : ℝ × ℝ → ℂ := fun ⟨x, y⟩ ↦ if ⟨x, y⟩ ∈ Ioi 0 ×ˢ Ioi 0 then F ⟨x, y⟩ else 0
   let Tx := Ioc 0 ((2 : ℝ) ^ ε)
   let Ty := Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)
+  let T := Tx ×ˢ Ty
 
-  have F_supp_y (x : ℝ): (fun y ↦ F ⟨x, y⟩).support ⊆ Ty := by
+  have Tsub : T ⊆ Ioi 0 ×ˢ Ioi 0 := by
+    intro z hz
+    simp only [T, Tx, Ty, mem_Ioc, mem_Icc, mem_prod, mem_Ioi] at hz ⊢
+    refine ⟨hz.1.1, ?_⟩
+    have : 0 < (2 : ℝ) ^ (-ε) := by apply rpow_pos_of_pos; norm_num
+    linarith
+
+  have F_supp_y (x : ℝ): (fun y ↦ F' ⟨x, y⟩).support ⊆ Ty := by
     intro y hy
     contrapose hy
     rw [Function.nmem_support]
-    simp only [F, f, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair, mul_eq_zero,
+    simp only [F', F, f, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair, mul_eq_zero,
       div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff, ne_eq]
+    intro h; simp only [mem_prod, mem_Ioi] at h
     left; left; left
-    refine DeltaSpikeSupport εpos ?_ suppΨ hy
-    sorry
+    exact DeltaSpikeSupport εpos h.2.le suppΨ hy
 
-  have F_supp_x (y : ℝ) : (fun x ↦ F ⟨x, y⟩).support ⊆ Tx := by
+  have F_supp_x (y : ℝ) : (fun x ↦ F' ⟨x, y⟩).support ⊆ Tx := by
     intro x hx
     contrapose hx; simp only [Tx, mem_Ioc, not_and, not_le] at hx
     rw [Function.nmem_support]
-    simp only [F, f, g, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair, mul_eq_zero,
+    simp only [F', F, f, g, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair, mul_eq_zero,
        div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff, ne_eq]
+    intro h; simp only [mem_prod, mem_Ioi] at h
     left; left; intro h1 h2
-    apply DeltaSpikeSupport εpos (by sorry) suppΨ
+    refine DeltaSpikeSupport εpos h.2.le suppΨ ?_
     simp only [mem_Icc, not_and, not_le]
     intro hy
-    have ypos : 0 < y := sorry
-    have xpos : 0 < x := by rwa [propext (div_pos_iff_of_pos_right ypos)] at h1
-    replace hx := hx xpos
-    have : x ≤ y := by rwa [propext (div_le_one ypos)] at h2
+    replace hx := hx h.1
+    have : x ≤ y := by rwa [propext (div_le_one h.2)] at h2
     linarith
+
+  have F_supp : F'.support ⊆ T := by
+    intro ⟨x, y⟩ hxy
+    simp only [mem_prod, T]
+    constructor
+    · have := F_supp_x y
+      exact this (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
+    · have := F_supp_y x
+      exact this (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
+
+  -- Should this be the definition of F' instead?
+  have F'piecewise : F' = piecewise T F (fun _ => 0) := by
+    ext x
+    simp only [piecewise]
+    by_cases hx : x ∈ T <;> simp only [hx, ↓reduceIte]
+    · simp only [Prod.mk.eta, ite_eq_left_iff, not_and, not_lt, F']
+      intro h; exfalso
+      exact h <| Tsub hx
+    · exact Function.support_subset_iff'.mp F_supp x hx
 
   have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
     apply Integrable.integrableOn
