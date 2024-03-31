@@ -73,6 +73,12 @@ lemma MeasureTheory.integral_comp_div_I0i_haar
   · rw [mul_one_div]
   · rw [one_div_one_div]
 
+theorem Complex.ofReal_rpow {x : ℝ} (h : x > 0) (y : ℝ) :
+    (((x : ℝ) ^ (y : ℝ)) : ℝ) = (x : ℂ) ^ (y : ℂ) := by
+  rw [rpow_def_of_pos h, ofReal_exp, ofReal_mul, Complex.ofReal_log h.le,
+    Complex.cpow_def_of_ne_zero]
+  simp only [ne_eq, ofReal_eq_zero, ne_of_gt h, not_false_eq_true]
+
 @[simp]
 lemma Function.support_abs {α : Type*} (f : α → 𝕂):
     (fun x ↦ ‖f x‖).support = f.support := by
