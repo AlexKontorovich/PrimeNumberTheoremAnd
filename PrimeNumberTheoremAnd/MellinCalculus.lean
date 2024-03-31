@@ -1487,6 +1487,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
   let f : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x
   let g : ℝ → ℂ := fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0
   let F : ℝ × ℝ → ℂ := Function.uncurry fun x y ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
+  let Tx := Ioc 0 ((2 : ℝ) ^ ε)
   let Ty := Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)
 
   have F_supp_y (x : ℝ): (fun y ↦ F ⟨x, y⟩).support ⊆ Ty := by
@@ -1498,12 +1499,30 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     left; left; left
     apply Function.nmem_support.mp <| not_mem_subset (DeltaSpikeSupport εpos suppΨ) hy
 
+  have F_supp_x (y : ℝ) : (fun x ↦ F ⟨x, y⟩).support ⊆ Tx := by
+    intro x hx
+    contrapose hx; simp only [Tx, mem_Ioc, not_and, not_le] at hx
+    rw [Function.nmem_support]
+    simp only [F, f, g, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair, mul_eq_zero,
+       div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff, ne_eq]
+    left; left; intro h1 h2
+    apply Function.nmem_support.mp <| not_mem_subset (DeltaSpikeSupport εpos suppΨ) ?_
+    simp only [mem_Icc, not_and, not_le]
+    intro hy
+    have ypos : 0 < y := sorry
+    have xpos : 0 < x := by rwa [propext (div_pos_iff_of_pos_right ypos)] at h1
+    replace hx := hx xpos
+    have : x ≤ y := by rwa [propext (div_le_one ypos)] at h2
+    linarith
+
   have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
     apply Integrable.integrableOn
     apply (integrable_prod_iff' ?_).mpr
     constructor
-    · apply eventually_of_forall
-      intro y
+    · apply eventually_iff_exists_mem.mpr
+      use {y : ℝ | y ≠ 0}
+      constructor; simp [mem_ae_iff]
+      intro y hy; simp only [mem_setOf_eq] at hy
       simp only [F, f, g]
       apply Integrable.bdd_mul
       · have := (intervalIntegral.integrableOn_Ioo_cpow_iff (t := ((2 : ℝ) ^ ε))
@@ -1514,19 +1533,27 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
         intro x
         by_cases h : 0 < x / y ∧ x / y ≤ 1 <;> simp [h]
         apply div_nonneg <;> apply abs_nonneg
-    · apply (integrableOn_iff_integrable_of_support_subset (s := Ty) ?_).mp
+    · apply (integrableOn_iff_integrable_of_support_subset (s := Icc 0 (2 ^ ε)) ?_).mp
       apply ContinuousOn.integrableOn_compact isCompact_Icc
-      · sorry
-      · intro y hy
-        contrapose hy
-        rw [Function.nmem_support]
-        apply (integral_eq_zero_iff_of_nonneg ?_ ?_).mpr
+      · apply continuousOn_integral_of_compact_support (k := Icc 0 (2 ^ ε)) isCompact_Icc
         · sorry
-        · simp only [Pi.le_def, Pi.zero_apply, norm_nonneg, forall_const]
-        · apply Integrable.norm
-          simp only [F, f, g]
-          -- use integrableOn_Ioo_cpow_iff
-          sorry
+        · intro y x hy hx
+          rw [norm_eq_zero]
+          apply Function.support_subset_iff'.mp (F_supp_x y)
+          simp only [Tx]
+          contrapose! hx
+          apply mem_Icc_of_Ioc hx
+      · intro y hy; contrapose! hy
+        rw [Function.nmem_support]
+        have := @set_integral_congr (X := ℝ) (E := ℝ) _ _ _ (g := fun x => 0) (μ := volume) (s := {x : ℝ | True})
+              ( f := fun x => ‖F (x, y)‖) (by simp)
+        simp only [setOf_true, eqOn_univ, Measure.restrict_univ, integral_zero] at this
+        apply this
+        ext x; rw [norm_eq_zero]
+        apply Function.support_subset_iff'.mp (F_supp_y x) y
+        simp only [Ty, mem_Icc] at hy ⊢
+        contrapose! hy
+        exact ⟨le_trans (by apply rpow_nonneg (by norm_num)) hy.1, hy.2⟩
     · sorry
 
   have : MellinTransform (MellinConvolution g f) s = MellinTransform g s * MellinTransform f s := by
