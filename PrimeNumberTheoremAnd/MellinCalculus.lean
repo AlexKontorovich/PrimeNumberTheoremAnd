@@ -825,12 +825,12 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     =O[Filter.principal {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}]
       fun s ↦ 1 / Complex.abs s := by
   let f := fun (x : ℝ) ↦ ‖deriv Ψ x‖
-  have cont : ContinuousOn f (Icc (1 / 4) 2) := by
+  have cont : ContinuousOn f (Icc (1 / 2) 2) := by
     apply Continuous.continuousOn
     apply Continuous.comp (by continuity) <| diffΨ.continuous_deriv (by norm_num)
   obtain ⟨a, _, max⟩ := isCompact_Icc.exists_isMaxOn (f := f) (by norm_num) cont
   rw [Asymptotics.isBigO_iff]
-  use f a * 2 ^ σ₂ * (7 / 4)
+  use f a * 2 ^ σ₂ * (3 / 2)
   filter_upwards [mem_within_strip σ₁ σ₂] with s hs
   unfold MellinTransform
   have hs2: s ≠ 0 := by
@@ -844,38 +844,26 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
 
   calc
     _ ≤ ∫ (x : ℝ) in Ioi 0, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
-    _ = ∫ (x : ℝ) in Ioc (1 / 4) 2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
-    _ = ∫ (x : ℝ) in (1 / 4)..2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
-    _ ≤ ‖∫ (x : ℝ) in (1 / 4)..2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖‖ := le_abs_self _
+    _ = ∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
+    _ ≤ ‖∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖‖ := le_abs_self _
     _ ≤ _ := ?_
   · simp_rw [← Complex.norm_eq_abs, norm_integral_le_integral_norm]
-  · have suppΨderiv := Function.support_deriv_subset_Icc suppΨ
-    have supp : (fun (x : ℝ) ↦ ‖((deriv Ψ) x : ℂ)‖ * ‖(x : ℂ) ^ s‖).support ⊆ Set.Icc (1 / 2) 2 := by
-      simp only [Complex.norm_eq_abs, abs_ofReal, ← Real.norm_eq_abs, Function.support_mul, Function.support_abs]
-      exact subset_union_compl_iff_inter_subset.mp fun ⦃a⦄ ha ↦ Or.inl (suppΨderiv ha)
-    have : (fun (x : ℝ) ↦ ‖((deriv Ψ) x : ℂ)‖ * ‖(x : ℂ) ^ s‖).support ⊆ Set.Ioc (1 / 4) 2 := by
-      apply subset_trans supp ?_
-      have := Icc_subset_Ioc_iff (a₁ := (1 / 2 : ℝ)) (b₁ := (2 : ℝ))
-                                 (a₂ := (1 / 4 : ℝ)) (b₂ := (2 : ℝ)) (by norm_num)
-      apply this.mpr (by norm_num)
-    convert (intervalIntegral.integral_eq_integral_of_support_subset this
-            (μ := volume.restrict <| Ioi 0)).symm using 2
-    · simp
-    · rw [intervalIntegral.integral_of_le (by norm_num)]
-      simp only [norm_mul, Complex.norm_eq_abs, abs_ofReal, measurableSet_Ioc,
-        Measure.restrict_restrict, Ioc_inter_Ioi]
-      rw [(by norm_num : 1 / 4 ⊔ (0 : ℝ) = 1 / 4 )]
-  · rw [← intervalIntegral.integral_of_le (by norm_num)]
+  · apply SetIntegral.integral_eq_integral_inter_of_support_subset_Icc
+    · simp only [Function.support_abs, Function.support_mul, Function.support_ofReal]
+      refine subset_union_compl_iff_inter_subset.mp fun ⦃a⦄ ha ↦ Or.inl ?_
+      exact Function.support_deriv_subset_Icc suppΨ ha
+    · exact (Icc_subset_Ioi_iff (by norm_num)).mpr (by norm_num)
   · have := intervalIntegral.norm_integral_le_of_norm_le_const
-      (C := f a * 2 ^ σ₂) (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 4 : ℝ)) ( b := 2) ?_
+      (C := f a * 2 ^ σ₂) (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 2 : ℝ)) ( b := 2) ?_
     · simp only [Real.norm_eq_abs, Complex.norm_eq_abs, abs_ofReal, map_mul] at this ⊢
-      rwa [(by norm_num: |(2 : ℝ) - 1 / 4| = 7 / 4)] at this
-    · suffices h : ∀ x ∈ Icc (1 / 4) 2, ‖(fun x ↦ f x * ‖(x : ℂ) ^ s‖) x‖ ≤ f a * 2 ^ σ₂ by
+      rwa [(by norm_num: |(2 : ℝ) - 1 / 2| = 3 / 2),
+          intervalIntegral.integral_of_le (by norm_num), ← integral_Icc_eq_integral_Ioc] at this
+    · suffices h : ∀ x ∈ Icc (1 / 2) 2, ‖(fun x ↦ f x * ‖(x : ℂ) ^ s‖) x‖ ≤ f a * 2 ^ σ₂ by
         intro x hx
         apply h x
         rw [uIoc_of_le (by norm_num)] at hx
         exact mem_Icc_of_Ioc hx
-      intro x hx
+      intro x hx;
       have f_bound := isMaxOn_iff.mp max x hx
       have pow_bound : ‖(x : ℂ) ^ s‖ ≤ 2 ^ σ₂ := by
         simp only [Complex.norm_eq_abs]
