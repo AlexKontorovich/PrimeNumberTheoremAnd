@@ -132,6 +132,16 @@ lemma SetIntegral.integral_eq_integral_inter_of_support_subset_Icc {a b} {μ : M
     ∫ x in s, f x ∂μ = ∫ x in Icc a b, f x ∂μ := by
   rw [SetIntegral.integral_eq_integral_inter_of_support_subset h measurableSet_Icc, inter_eq_self_of_subset_right hs]
 
+lemma intervalIntegral.norm_integral_le_of_norm_le_const' {a b C : ℝ}
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {f : ℝ → E} (hab : a ≤ b) (h : ∀ x ∈ (Icc a b), ‖f x‖ ≤ C) :
+    ‖∫ x in a..b, f x‖ ≤ C * |b - a| := by
+  apply intervalIntegral.norm_integral_le_of_norm_le_const
+  intro x hx
+  apply h x
+  rw [uIoc_of_le hab] at hx
+  exact mem_Icc_of_Ioc hx
+
 lemma Filter.TendstoAtZero_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂) (ha : 0 < a)
     (fSupp : f.support ⊆ Set.Icc a b) :
     Tendsto f (𝓝[>]0) (𝓝 0) := by
