@@ -99,6 +99,19 @@ lemma Function.support_mul_subset_of_subset {s : Set ℝ} {f g : ℝ → 𝕂} (
     (f * g).support ⊆ s := by
   simp_rw [support_mul', inter_subset, subset_union_of_subset_right fSupp]
 
+lemma Function.support_of_along_fiber_subset_subset {α β M : Type*} [Zero M]
+    {f : α × β → M} {s : Set α} {t : Set β}
+    (hx : ∀ (y : β), (fun x ↦ f (x, y)).support ⊆ s)
+    (hy : ∀ (x : α), (fun y ↦ f (x, y)).support ⊆ t) :
+    f.support ⊆ s ×ˢ t := by
+  intro ⟨x, y⟩ hxy
+  simp only [mem_prod]
+  constructor
+  · have := hx y
+    exact this (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
+  · have := nmem_hyperfilter_of_finite x
+    exact this (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
+
 lemma Function.support_deriv_subset_Icc {a b : ℝ} {f : ℝ → 𝕂}
     (fSupp : f.support ⊆ Set.Icc a b) :
     (deriv f).support ⊆ Set.Icc a b := by
@@ -1563,14 +1576,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     have : x ≤ y := by rwa [propext (div_le_one h.2)] at h2
     linarith
 
-  have F_supp : F'.support ⊆ T := by
-    intro ⟨x, y⟩ hxy
-    simp only [mem_prod, T]
-    constructor
-    · have := F_supp_x y
-      exact this (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
-    · have := F_supp_y x
-      exact this (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
+  have F_supp : F'.support ⊆ T := Function.support_of_along_fiber_subset_subset F_supp_x F_supp_y
 
   -- Should this be the definition of F' instead?
   have F'piecewise : F' = piecewise T F (fun _ => 0) := by
