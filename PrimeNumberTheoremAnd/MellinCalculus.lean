@@ -109,7 +109,7 @@ lemma Function.support_of_along_fiber_subset_subset {α β M : Type*} [Zero M]
   constructor
   · have := hx y
     exact this (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
-  · have := nmem_hyperfilter_of_finite x
+  · have := hy x
     exact this (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
 
 lemma Function.support_deriv_subset_Icc {a b : ℝ} {f : ℝ → 𝕂}
@@ -1552,7 +1552,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     have : 0 < (2 : ℝ) ^ (-ε) := by apply rpow_pos_of_pos; norm_num
     linarith
 
-  have F_supp_y (x : ℝ): (fun y ↦ F' ⟨x, y⟩).support ⊆ Ty := by
+  have Fsupp_y (x : ℝ): (fun y ↦ F' ⟨x, y⟩).support ⊆ Ty := by
     intro y hy
     contrapose hy
     rw [Function.nmem_support]
@@ -1562,7 +1562,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     left; left; left
     exact DeltaSpikeSupport εpos h.2.le suppΨ hy
 
-  have F_supp_x (y : ℝ) : (fun x ↦ F' ⟨x, y⟩).support ⊆ Tx := by
+  have Fsupp_x (y : ℝ) : (fun x ↦ F' ⟨x, y⟩).support ⊆ Tx := by
     intro x hx
     contrapose hx; simp only [Tx, mem_Ioc, not_and, not_le] at hx
     rw [Function.nmem_support]
@@ -1577,7 +1577,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     have : x ≤ y := by rwa [propext (div_le_one h.2)] at h2
     linarith
 
-  have F_supp : F'.support ⊆ T := Function.support_of_along_fiber_subset_subset F_supp_x F_supp_y
+  have Fsupp : F'.support ⊆ T := Function.support_of_along_fiber_subset_subset Fsupp_x Fsupp_y
 
   -- Should this be the definition of F' instead?
   have F'piecewise : F' = piecewise T F (fun _ => 0) := by
@@ -1587,7 +1587,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
     · simp only [Prod.mk.eta, ite_eq_left_iff, not_and, not_lt, F']
       intro h; exfalso
       exact h <| Tsub hx
-    · exact Function.support_subset_iff'.mp F_supp x hx
+    · exact Function.support_subset_iff'.mp Fsupp x hx
 
   have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
     apply IntegrableOn.congr_fun (f := F') ?int ?eq (by simp [measurableSet_prod])
@@ -1614,7 +1614,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
       --   apply div_nonneg <;> apply abs_nonneg
       · intro x hx; contrapose! hx
         rw [Function.nmem_support]
-        have := (F_supp_x y)
+        have := (Fsupp_x y)
         simp only [F] at this
         sorry
         -- simp at this
@@ -1626,7 +1626,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
         -- · sorry
         -- · intro y x hy hx
         --   rw [norm_eq_zero]
-        --   apply Function.support_subset_iff'.mp (F_supp_x y)
+        --   apply Function.support_subset_iff'.mp (Fsupp_x y)
         --   simp only [Tx]
         --   contrapose! hx
         --   apply mem_Icc_of_Ioc hx
@@ -1637,7 +1637,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2
         simp only [setOf_true, eqOn_univ, Measure.restrict_univ, integral_zero] at this
         apply this
         ext x; rw [norm_eq_zero]
-        apply Function.support_subset_iff'.mp (F_supp_y x) y
+        apply Function.support_subset_iff'.mp (Fsupp_y x) y
         simp only [Ty, mem_Icc] at hy ⊢
         exact hy
     · rw [F'piecewise]
