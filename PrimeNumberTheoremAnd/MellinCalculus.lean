@@ -1494,6 +1494,23 @@ which by Theorem \ref{SmoothExistence} is 1.
 \end{proof}
 %%-/
 
+-- Might need extra assumptions?
+lemma MeasureTheory.integrableOn_prod_iff' {α β E : Type*} [MeasurableSpace α] [MeasurableSpace β]
+    {μ : Measure α} {ν : Measure β} [SigmaFinite μ] [SigmaFinite ν]
+    {s : Set α} {t : Set β}
+    ⦃f : α × β → E⦄ [NormedAddCommGroup E]
+    (h1f : AEStronglyMeasurable f ((μ.restrict s).prod (ν.restrict t))) :
+    IntegrableOn f (s ×ˢ t) (μ.prod ν) ↔
+      (∀ᵐ y ∂ν, IntegrableOn (fun x => f (x, y)) s μ) ∧
+        IntegrableOn (fun y => ∫ x, ‖f (x, y)‖ ∂μ) t ν := by
+  have := @integrable_prod_iff' (μ := μ.restrict s) (ν := ν.restrict t) (E := E)
+    (α := α) (β := β) _ _ _ _ _ (f := f) ?_
+  · simp [IntegrableOn]
+    convert this using 2
+    · simp [Measure.prod_restrict]
+    · sorry
+    · sorry
+  · exact h1f
 /-%%
 Combining the above, we have the following three Main Lemmata of this section on the Mellin
 transform of $\widetilde{1_{\epsilon}}$.
