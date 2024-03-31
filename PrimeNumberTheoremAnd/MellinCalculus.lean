@@ -846,7 +846,6 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
              norm_mul, norm_div, norm_one, Real.norm_eq_abs, Complex.abs_abs, abs_ofReal]
   conv => rhs; rw [mul_comm]
   gcongr
-
   calc
     _ ≤ ∫ (x : ℝ) in Ioi 0, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
     _ = ∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
@@ -857,17 +856,12 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     · simp only [Function.support_abs, Function.support_mul, Function.support_ofReal]
       apply subset_trans (by apply inter_subset_left) <| Function.support_deriv_subset_Icc suppΨ
     · exact (Icc_subset_Ioi_iff (by norm_num)).mpr (by norm_num)
-  · have := intervalIntegral.norm_integral_le_of_norm_le_const
-      (C := f a * 2 ^ σ₂) (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 2 : ℝ)) ( b := 2) ?_
+  · have := intervalIntegral.norm_integral_le_of_norm_le_const' (C := f a * 2 ^ σ₂)
+      (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 2 : ℝ)) ( b := 2) (by norm_num) ?_
     · simp only [Real.norm_eq_abs, Complex.norm_eq_abs, abs_ofReal, map_mul] at this ⊢
       rwa [(by norm_num: |(2 : ℝ) - 1 / 2| = 3 / 2),
           intervalIntegral.integral_of_le (by norm_num), ← integral_Icc_eq_integral_Ioc] at this
-    · suffices h : ∀ x ∈ Icc (1 / 2) 2, ‖(fun x ↦ f x * ‖(x : ℂ) ^ s‖) x‖ ≤ f a * 2 ^ σ₂ by
-        intro x hx
-        apply h x
-        rw [uIoc_of_le (by norm_num)] at hx
-        exact mem_Icc_of_Ioc hx
-      intro x hx;
+    · intro x hx;
       have f_bound := isMaxOn_iff.mp max x hx
       have pow_bound : ‖(x : ℂ) ^ s‖ ≤ 2 ^ σ₂ := by
         simp only [Complex.norm_eq_abs]
