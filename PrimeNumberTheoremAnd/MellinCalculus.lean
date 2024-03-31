@@ -653,6 +653,25 @@ lemma Function.support_deriv_subset_Icc {a b : ℝ} {f : ℝ → 𝕂}
     have := subset_trans this <| closure_mono fSupp
     rwa [closure_Icc] at this
 
+lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {μ : Measure ℝ} [NoAtoms μ]
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+    {f : ℝ → E} (h : f.support ⊆ Icc a b) :
+    ∫ x in a..b, f x ∂μ = ∫ x, f x ∂μ := by
+  rcases le_total a b with hab | hab
+  · rw [intervalIntegral.integral_of_le hab, ← integral_Icc_eq_integral_Ioc,
+    ← integral_indicator measurableSet_Icc, indicator_eq_self.2 h]
+  · by_cases hab2 : b = a
+    · rw [hab2] at h ⊢
+      simp [intervalIntegral.integral_same]
+      simp only [Icc_self] at h
+      have : ∫ (x : ℝ), f x ∂μ = ∫ (x : ℝ) in {a}, f x ∂μ := by
+        rw [ ← integral_indicator (by simp), indicator_eq_self.2 h]
+      rw [this, integral_singleton]; simp
+    · have : ¬a ≤ b := by exact fun x => hab2 <| le_antisymm hab x
+      rw [Icc_eq_empty_iff.mpr <| by exact fun x => hab2 <| le_antisymm hab x, subset_empty_iff,
+          Function.support_eq_empty_iff] at h
+      simp [h]
+
 -- steal coerction lemmas from EulerProducts.Auxiliary because of build issues, and add new ones
 namespace Complex
 -- see https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Differentiability.20of.20the.20natural.20map.20.E2.84.9D.20.E2.86.92.20.E2.84.82/near/418095234
