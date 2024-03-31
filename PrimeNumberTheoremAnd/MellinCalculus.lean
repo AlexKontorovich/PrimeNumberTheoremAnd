@@ -645,6 +645,14 @@ lemma Function.support_ofReal {f : ℝ → ℝ} :
   apply Function.support_comp_eq (g := ofReal')
   simp [ofReal_zero]
 
+lemma Function.support_deriv_subset_Icc {a b : ℝ} {f : ℝ → 𝕂}
+    (fSupp : f.support ⊆ Set.Icc a b) :
+    (deriv f).support ⊆ Set.Icc a b := by
+    have := support_deriv_subset (f := fun x ↦ f x)
+    dsimp [tsupport] at this
+    have := subset_trans this <| closure_mono fSupp
+    rwa [closure_Icc] at this
+
 -- steal coerction lemmas from EulerProducts.Auxiliary because of build issues, and add new ones
 namespace Complex
 -- see https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Differentiability.20of.20the.20natural.20map.20.E2.84.9D.20.E2.86.92.20.E2.84.82/near/418095234
