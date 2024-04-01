@@ -27,6 +27,10 @@ $$
 %%-/
 theorem LogDerivativeDirichlet (s : ℂ) (hs : 1 < s.re) :
     - deriv riemannZeta s / riemannZeta s = ∑' n, Λ n / (n : ℂ) ^ s := by
+  convert (ArithmeticFunction.LSeries_vonMangoldt_eq hs).symm using 1
+  · congr
+    · sorry
+    · sorry
   sorry
 /-%%
 \begin{proof}
@@ -44,9 +48,12 @@ $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(2)}\frac{-\zeta'(s)}{\zeta(s)}
 X^{s}ds.$$
 \end{definition}
 %%-/
+noncomputable abbrev SmoothedChebyshevIntegrand (ψ : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ → ℂ :=
+  fun s ↦ (- deriv riemannZeta s) / riemannZeta s *
+    (MellinTransform ((Smooth1 ψ ε) ·) s) * (X : ℂ) ^ s
+
 noncomputable def SmoothedChebyshev (ψ : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
-    VerticalIntegral' (fun s ↦ (- deriv riemannZeta s) / riemannZeta s *
-      (MellinTransform ((Smooth1 ψ ε) ·) s) *(X : ℂ) ^ s ) 2
+  VerticalIntegral' (SmoothedChebyshevIntegrand ψ ε X) 2
 
 /-%%
 Inserting the Dirichlet series expansion of the log derivative of zeta, we get the following.
