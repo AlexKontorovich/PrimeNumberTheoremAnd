@@ -1625,22 +1625,26 @@ def toSchwartz (f : ℝ → ℂ) (h1 : ContDiff ℝ ⊤ f) (h2 : HasCompactSuppo
 
 @[simp] lemma toSchwartz_apply (f : ℝ → ℂ) {h1 h2 x} : SchwartzMap.mk f h1 h2 x = f x := rfl
 
+theorem comp_exp_support0 {Ψ : ℝ → ℂ} (hsupp : HasCompactSupport Ψ) (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
+    ∀ᶠ x in 𝓝 0, Ψ x = 0 := by
+
+  simp [← disjoint_compl_right_iff_subset] at hplus
+  obtain ⟨δ, hδ, hdisj⟩ := hplus.exists_thickenings hsupp isClosed_Iic
+  have l1 : Metric.thickening δ (Iic (0 : ℝ)) ∈ 𝓝 0 := by
+    refine mem_of_superset (Metric.ball_mem_nhds 0 hδ) ?_
+    exact Metric.ball_subset_thickening (mem_Iic.mpr le_rfl) δ
+  apply eventually_of_mem l1 ; intro x hx
+  have := hdisj.subset_compl_left hx
+  have := compl_subset_compl.mpr (Metric.self_subset_thickening hδ _) this
+  have := compl_subset_compl.mpr subset_closure this
+  simpa using this
+
 theorem comp_exp_support {Ψ : ℝ → ℂ} (hsupp : HasCompactSupport Ψ) (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
     HasCompactSupport (Ψ ∘ rexp) := by
 
   simp only [hasCompactSupport_iff_eventuallyEq, EventuallyEq, coclosedCompact_eq_cocompact,
     cocompact_eq_atBot_atTop, eventually_sup, Pi.zero_apply] ; constructor
-  · simp [← disjoint_compl_right_iff_subset] at hplus
-    obtain ⟨δ, hδ, hdisj⟩ := hplus.exists_thickenings hsupp isClosed_Iic
-    have l1 : Metric.thickening δ (Iic (0 : ℝ)) ∈ 𝓝 0 := by
-      refine mem_of_superset (Metric.ball_mem_nhds 0 hδ) ?_
-      exact Metric.ball_subset_thickening (mem_Iic.mpr le_rfl) δ
-    have l2 : ∀ᶠ x in atBot, rexp x ∈ Metric.thickening δ (Iic 0) := Real.tendsto_exp_atBot l1
-    filter_upwards [l2] with x hx
-    have := hdisj.subset_compl_left hx
-    have := compl_subset_compl.mpr (Metric.self_subset_thickening hδ _) this
-    have := compl_subset_compl.mpr subset_closure this
-    simpa using this
+  · exact Real.tendsto_exp_atBot <| comp_exp_support0 hsupp hplus
   · simp [hasCompactSupport_iff_eventuallyEq] at hsupp
     exact Real.tendsto_exp_atTop hsupp.2
 
@@ -1662,6 +1666,44 @@ lemma wiener_ikehara_smooth_aux {Ψ : ℝ → ℂ} (hsmooth : ContDiff ℝ ⊤ �
     exact (comp_exp_support hsupp hplus).smul_left
   have := MeasureTheory.integral_comp_smul_deriv_Ioi l1 l2 l3 l4 l5 l6
   simpa [Real.exp_neg, Real.exp_log hx] using this
+
+theorem wiener_ikehara_smooth_sub {A : ℝ} {Ψ : ℝ → ℂ} (hsmooth : ContDiff ℝ ⊤ Ψ) (hsupp : HasCompactSupport Ψ)
+    (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
+    Tendsto (fun x ↦ (↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y) - ↑A * ∫ (y : ℝ) in Ioi 0, Ψ y) atTop (𝓝 0) := by
+
+  have l0 : Integrable Ψ := hsmooth.continuous.integrable_of_hasCompactSupport hsupp
+  have l1 x : Integrable (indicator (Ioi x⁻¹) (fun x : ℝ => Ψ x)) := l0.indicator measurableSet_Ioi
+  have l2 : Integrable (indicator (Ioi 0) (fun x : ℝ => Ψ x)) := l0.indicator measurableSet_Ioi
+  have l4 (x : ℝ) : Disjoint (Ioc 0 x⁻¹) (Ioi x⁻¹) := by simp
+  simp_rw [← MeasureTheory.integral_indicator measurableSet_Ioi, ← mul_sub]
+  simp_rw [← integral_sub (l1 _) l2]
+  apply tendsto_nhds_of_eventually_eq
+  have l6 := comp_exp_support0 hsupp hplus
+  simp [Metric.eventually_nhds_iff] at l6 ; obtain ⟨ε, hε, hh⟩ := l6
+  filter_upwards [eventually_gt_atTop ε⁻¹] with x hxε
+  simp ; right ; apply MeasureTheory.integral_eq_zero_of_ae ; apply eventually_of_forall ; intro t ; simp
+  have hε' : 0 < ε⁻¹ := by positivity
+  have hx : 0 < x := by linarith
+  have hεx : x⁻¹ < ε := by apply (inv_lt hε hx).mp hxε
+  have l3 : Ioi 0 = Ioc 0 x⁻¹ ∪ Ioi x⁻¹ := by
+    ext t ; simp ; constructor <;> intro h
+    · simp [h, le_or_lt]
+    · cases h with
+    | inl h => exact h.1
+    | inr h =>
+      have : 0 < x⁻¹ := by positivity
+      linarith
+  have l5 := Set.indicator_union_of_disjoint (l4 x) Ψ
+  rw [l3, l5] ; ring_nf
+  by_cases ht : t ∈ Ioc 0 x⁻¹
+  · simp [ht]
+    simp at ht
+    have : |t| ≤ x⁻¹ := by rw [abs_le] ; constructor <;> linarith
+    have : |t| < ε := by linarith
+    exact hh this
+  · simp [ht]
+
+#exit
 
 /-%%
 \begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
@@ -1712,7 +1754,8 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     apply wiener_ikehara_smooth_aux <;> assumption
 
   have l4 : Tendsto (fun x => (↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y) - ↑A * ∫ (y : ℝ) in Ioi 0, Ψ y)
-      atTop (𝓝 0) := sorry
+      atTop (𝓝 0) := by
+    apply wiener_ikehara_smooth_sub <;> assumption
 
   simpa [tsum_div_const] using (key.congr' <| EventuallyEq.sub l2 l3) |>.add l4
 
