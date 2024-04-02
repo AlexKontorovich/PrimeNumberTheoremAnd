@@ -1637,10 +1637,20 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
     Tendsto (fun x : ℝ ↦ (∑' n, f n / n * Ψ (n / x)) / x - A * ∫ y in Set.Ioi 0, Ψ y ∂ volume) atTop (nhds 0) := by
 
-  let g : 𝓢(ℝ, ℂ) := toSchwartz (fun y => y * Ψ y) (contDiff_ofReal.mul hsmooth) (hsupp.mul_left)
+  let h (x : ℝ) : ℂ := Ψ (exp (2 * π * x))
+  have h1 : ContDiff ℝ ⊤ h := sorry
+  have h2 : HasCompactSupport h := sorry
+  let H : 𝓢(ℝ, ℂ) := toSchwartz h h1 h2
+  obtain ⟨g, hg⟩ := fourier_surjection_on_schwartz (toSchwartz h h1 h2)
+
+  have l1 (n : ℕ) (hn : 0 < n) (x : ℝ) (hx : 0 < x) : Ψ (n / x) = 𝓕 g (1 / (2 * π) * Real.log (n / x)) := by
+    simp only [hg] ; congr ; convert_to ↑n / x = rexp (Real.log (↑n / x))
+    · congr ; field_simp ; ring
+    rw [Real.exp_log] ; positivity
+
+  have := @limiting_cor_schwartz f A G g hf hcheby hG hG'
 
   -- obtain ⟨Φ, rfl⟩ := fourier_surjection_on_schwartz (toSchwartz Ψ hsmooth hsupp)
-  have := @limiting_cor_schwartz
   sorry
 
 /-%%
