@@ -1671,39 +1671,33 @@ theorem wiener_ikehara_smooth_sub {A : ℝ} {Ψ : ℝ → ℂ} (hsmooth : ContDi
     (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
     Tendsto (fun x ↦ (↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y) - ↑A * ∫ (y : ℝ) in Ioi 0, Ψ y) atTop (𝓝 0) := by
 
+  obtain ⟨ε, hε, hh⟩ := Metric.eventually_nhds_iff.mp <| comp_exp_support0 hsupp hplus
+  apply tendsto_nhds_of_eventually_eq ; filter_upwards [eventually_gt_atTop ε⁻¹] with x hxε
+
   have l0 : Integrable Ψ := hsmooth.continuous.integrable_of_hasCompactSupport hsupp
-  have l1 x : Integrable (indicator (Ioi x⁻¹) (fun x : ℝ => Ψ x)) := l0.indicator measurableSet_Ioi
+  have l1 : Integrable (indicator (Ioi x⁻¹) (fun x : ℝ => Ψ x)) := l0.indicator measurableSet_Ioi
   have l2 : Integrable (indicator (Ioi 0) (fun x : ℝ => Ψ x)) := l0.indicator measurableSet_Ioi
-  have l4 (x : ℝ) : Disjoint (Ioc 0 x⁻¹) (Ioi x⁻¹) := by simp
-  simp_rw [← MeasureTheory.integral_indicator measurableSet_Ioi, ← mul_sub]
-  simp_rw [← integral_sub (l1 _) l2]
-  apply tendsto_nhds_of_eventually_eq
-  have l6 := comp_exp_support0 hsupp hplus
-  simp [Metric.eventually_nhds_iff] at l6 ; obtain ⟨ε, hε, hh⟩ := l6
-  filter_upwards [eventually_gt_atTop ε⁻¹] with x hxε
+
+  simp_rw [← MeasureTheory.integral_indicator measurableSet_Ioi, ← mul_sub, ← integral_sub l1 l2]
   simp ; right ; apply MeasureTheory.integral_eq_zero_of_ae ; apply eventually_of_forall ; intro t ; simp
+
   have hε' : 0 < ε⁻¹ := by positivity
   have hx : 0 < x := by linarith
+  have hx' : 0 < x⁻¹ := by positivity
   have hεx : x⁻¹ < ε := by apply (inv_lt hε hx).mp hxε
+
   have l3 : Ioi 0 = Ioc 0 x⁻¹ ∪ Ioi x⁻¹ := by
     ext t ; simp ; constructor <;> intro h
     · simp [h, le_or_lt]
-    · cases h with
-    | inl h => exact h.1
-    | inr h =>
-      have : 0 < x⁻¹ := by positivity
-      linarith
-  have l5 := Set.indicator_union_of_disjoint (l4 x) Ψ
+    · cases h <;> linarith
+  have l4 : Disjoint (Ioc 0 x⁻¹) (Ioi x⁻¹) := by simp
+  have l5 := Set.indicator_union_of_disjoint l4 Ψ
   rw [l3, l5] ; ring_nf
   by_cases ht : t ∈ Ioc 0 x⁻¹
-  · simp [ht]
-    simp at ht
+  · simp [ht] ; apply hh ; simp at ht ⊢
     have : |t| ≤ x⁻¹ := by rw [abs_le] ; constructor <;> linarith
-    have : |t| < ε := by linarith
-    exact hh this
+    linarith
   · simp [ht]
-
-#exit
 
 /-%%
 \begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
@@ -1748,16 +1742,16 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
   have l3 : ∀ᶠ x in atTop, ↑A * ∫ (u : ℝ) in Ici (-Real.log x), 𝓕 (⇑g) (u / (2 * π)) =
       ↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y := by
     filter_upwards [eventually_gt_atTop 0] with x hx
-    congr 1
-    simp [hg, toSchwartz, h] ; norm_cast ; field_simp [why] ; norm_cast
+    congr 1 ; simp [hg, toSchwartz, h] ; norm_cast ; field_simp [why] ; norm_cast
     rw [MeasureTheory.integral_Ici_eq_integral_Ioi]
-    apply wiener_ikehara_smooth_aux <;> assumption
+    exact wiener_ikehara_smooth_aux hsmooth hsupp hplus x hx
 
-  have l4 : Tendsto (fun x => (↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y) - ↑A * ∫ (y : ℝ) in Ioi 0, Ψ y)
-      atTop (𝓝 0) := by
-    apply wiener_ikehara_smooth_sub <;> assumption
+  have l4 : Tendsto (fun x => (↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y) - ↑A * ∫ (y : ℝ) in Ioi 0, Ψ y) atTop (𝓝 0) := by
+    exact wiener_ikehara_smooth_sub hsmooth hsupp hplus
 
   simpa [tsum_div_const] using (key.congr' <| EventuallyEq.sub l2 l3) |>.add l4
+
+#print axioms wiener_ikehara_smooth
 
 /-%%
 \begin{proof}
@@ -1800,7 +1794,7 @@ lemma WienerIkeharaInterval (a b : ℝ) (ha: 0 < a) (hb: a < b) :
 $$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
 \end{corollary}
 %%-/
-open Filter Nat ArithmeticFunction in
+
 /-- A version of the *Wiener-Ikehara Tauberian Theorem*: If `f` is a nonnegative arithmetic
 function whose L-series has a simple pole at `s = 1` with residue `A` and otherwise extends
 continuously to the closed half-plane `re s ≥ 1`, then `∑ n < N, f n` is asymptotic to `A*N`. -/
@@ -1826,7 +1820,9 @@ $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 \end{theorem}
 %%-/
 
-theorem WeakPNT : Tendsto (fun N : ℕ ↦ ((Finset.range N).sum Λ) / N) atTop (nhds 1) := by
+theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (nhds 1) := by sorry
+
+/- Here is glue to go between `ℕ → ℝ` and `ArithmeticFunction ℝ`.
 
   apply PNT_vonMangoldt ; intro f A F f_nonneg hF hF'
 
@@ -1846,6 +1842,7 @@ theorem WeakPNT : Tendsto (fun N : ℕ ↦ ((Finset.range N).sum Λ) / N) atTop 
     simp [l3 n hn, sub_div]
   have l5 := @WienerIkeharaTheorem' ff A F ff_nonneg (by simpa [l1] using hF) hF'
   simpa using l5.congr' l4 |>.add (tendsto_const_div_atTop_nhds_zero_nat (f 0))
+-/
 
 /-%%
 \begin{proof}
