@@ -1623,6 +1623,8 @@ def toSchwartz (f : ℝ → ℂ) (h1 : ContDiff ℝ ⊤ f) (h2 : HasCompactSuppo
     have l2 : HasCompactSupport (fun x ↦ ‖x‖ ^ k * ‖iteratedFDeriv ℝ n f x‖) := (h2.iteratedFDeriv _).norm.mul_left
     simpa using l1.bounded_above_of_compact_support l2
 
+@[simp] lemma toSchwartz_apply (f : ℝ → ℂ) {h1 h2 x} : SchwartzMap.mk f h1 h2 x = f x := rfl
+
 /-%%
 \begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
   If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then, then
@@ -1635,23 +1637,40 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     {Ψ: ℝ → ℂ} (hsmooth: ContDiff ℝ ⊤ Ψ) (hsupp: HasCompactSupport Ψ)
     (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
-    Tendsto (fun x : ℝ ↦ (∑' n, f n / n * Ψ (n / x)) / x - A * ∫ y in Set.Ioi 0, Ψ y ∂ volume) atTop (nhds 0) := by
+    Tendsto (fun x : ℝ ↦ (∑' n, f n * Ψ (n / x)) / x - A * ∫ y in Set.Ioi 0, Ψ y ∂ volume) atTop (nhds 0) := by
 
-  let h (x : ℝ) : ℂ := Ψ (exp (2 * π * x))
-  have h1 : ContDiff ℝ ⊤ h := sorry
+  let h (x : ℝ) : ℂ := rexp (2 * π * x) * Ψ (exp (2 * π * x))
+  have h1 : ContDiff ℝ ⊤ h := by
+    have : ContDiff ℝ ⊤ (fun x : ℝ => (rexp (2 * π * x))) := (contDiff_const.mul contDiff_id).exp
+    exact (contDiff_ofReal.comp this).mul (hsmooth.comp this)
   have h2 : HasCompactSupport h := sorry
-  let H : 𝓢(ℝ, ℂ) := toSchwartz h h1 h2
   obtain ⟨g, hg⟩ := fourier_surjection_on_schwartz (toSchwartz h h1 h2)
 
-  have l1 (n : ℕ) (hn : 0 < n) (x : ℝ) (hx : 0 < x) : Ψ (n / x) = 𝓕 g (1 / (2 * π) * Real.log (n / x)) := by
-    simp only [hg] ; congr ; convert_to ↑n / x = rexp (Real.log (↑n / x))
-    · congr ; field_simp ; ring
-    rw [Real.exp_log] ; positivity
+  have why (x : ℝ) : 2 * π * x / (2 * π) = x := by field_simp ; ring
+  have l1 {y} (hy : 0 < y) : y * Ψ y = 𝓕 g (1 / (2 * π) * Real.log y) := by
+    field_simp [hg, toSchwartz, h] ; norm_cast ; field_simp [why] ; norm_cast
+    rw [Real.exp_log hy]
 
-  have := @limiting_cor_schwartz f A G g hf hcheby hG hG'
+  have key := @limiting_cor_schwartz f A G g hf hcheby hG hG'
 
-  -- obtain ⟨Φ, rfl⟩ := fourier_surjection_on_schwartz (toSchwartz Ψ hsmooth hsupp)
-  sorry
+  have l2 : ∀ᶠ x in atTop, ∑' (n : ℕ), f n / ↑n * 𝓕 (⇑g) (1 / (2 * π) * Real.log (↑n / x)) =
+      ∑' (n : ℕ), f n * Ψ (↑n / x) / x := by
+    filter_upwards [eventually_gt_atTop 0] with x hx
+    congr ; ext n
+    by_cases hn : n = 0 ; simp [hn]
+    rw [← l1 (by positivity)]
+    have : (n : ℂ) ≠ 0 := by simpa using hn
+    have : (x : ℂ) ≠ 0 := by simpa using hx.ne.symm
+    field_simp ; ring
+
+  have l3 : ∀ᶠ x in atTop, ↑A * ∫ (u : ℝ) in Ici (-Real.log x), 𝓕 (⇑g) (u / (2 * π)) =
+      ↑A * ∫ (y : ℝ) in Ioi 0, Ψ y := by
+    filter_upwards [eventually_gt_atTop 0] with x hx
+    congr 1
+
+    sorry
+
+  simpa [tsum_div_const] using key.congr' <| EventuallyEq.sub l2 l3
 
 /-%%
 \begin{proof}
@@ -1720,8 +1739,7 @@ $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 \end{theorem}
 %%-/
 
-theorem WeakPNT :
-    Tendsto (fun N : ℕ ↦ ((Finset.range N).sum Λ) / N) atTop (nhds 1) := by
+theorem WeakPNT : Tendsto (fun N : ℕ ↦ ((Finset.range N).sum Λ) / N) atTop (nhds 1) := by
 
   apply PNT_vonMangoldt ; intro f A F f_nonneg hF hF'
 
@@ -1736,9 +1754,11 @@ theorem WeakPNT :
     simp [Finset.sum_eq_sum_diff_singleton_add this, ff]
     apply Finset.sum_congr rfl
     intro i hi ; simp at hi ; simp [hi]
-  have := @WienerIkeharaTheorem' ff A F ff_nonneg (by simpa [l1] using hF) hF'
-
-  sorry
+  have l4 : ∀ᶠ n in atTop, Finset.sum (Finset.range n) ff / n = (Finset.sum (Finset.range n) f) / n - f 0 / n := by
+    filter_upwards [eventually_gt_atTop 0] with n hn
+    simp [l3 n hn, sub_div]
+  have l5 := @WienerIkeharaTheorem' ff A F ff_nonneg (by simpa [l1] using hF) hF'
+  simpa using l5.congr' l4 |>.add (tendsto_const_div_atTop_nhds_zero_nat (f 0))
 
 /-%%
 \begin{proof}
