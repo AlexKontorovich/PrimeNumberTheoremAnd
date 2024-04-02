@@ -875,29 +875,21 @@ lemma LogDerivZetaBnd :
   use min A A', lt_min hA hA', C * C', mul_pos hC hC'
   intro σ t t_gt σ_ge σ_lt
   have logt_gt : (1 : ℝ) < Real.log |t| := by
-    have : Real.exp (1 : ℝ) < 3 := by apply lt_trans Real.exp_one_lt_d9 (by norm_num)
-    exact (Real.lt_log_iff_exp_lt (by linarith)).mpr (lt_trans this t_gt)
+    refine (Real.lt_log_iff_exp_lt (by linarith)).mpr (lt_trans ?_ t_gt)
+    exact lt_trans Real.exp_one_lt_d9 (by norm_num)
   have σ_ge' : 1 - A / Real.log |t| ^ 9 ≤ σ := by
-    apply le_trans ?_ σ_ge
-    apply tsub_le_tsub_left (c := 1) ?_
-    exact div_le_div hA.le (min_le_left A A') (pow_pos (lt_trans (by norm_num) logt_gt) 9) (by rfl)
+    apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
+    apply div_le_div hA.le (min_le_left A A') ?_ (by rfl)
+    exact pow_pos (lt_trans (by norm_num) logt_gt) 9
   have σ_ge'' : 1 - A' / Real.log |t| ≤ σ := by
-    apply le_trans ?_ σ_ge
-    apply tsub_le_tsub_left (c := 1) ?_
-    apply div_le_div hA'.le (min_le_right A A') ?_ ?_
-    · exact lt_trans (by norm_num) logt_gt
-    · exact le_self_pow logt_gt.le (by norm_num)
+    apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
+    apply div_le_div hA'.le (min_le_right A A') (lt_trans (by norm_num) logt_gt) ?_
+    exact le_self_pow logt_gt.le (by norm_num)
   replace h := h σ t t_gt σ_ge' σ_lt
   replace h' := h' σ t t_gt σ_ge'' (by linarith)
-  have : 0 ≤ Real.log |t| := by
-    apply (Odd.pow_nonneg_iff (by rw [@Nat.odd_iff 7])).mp (nonneg_of_mul_nonneg_right ?_ hC)
-    exact le_trans (by simp only [one_div, inv_nonneg, apply_nonneg]) h
-  have := mul_le_mul h h' (by simp [apply_nonneg]) ?_
-  · simp only [one_div, map_inv₀] at this
-    rw [@mul_mul_mul_comm] at this
-    simp only [map_div₀]
-    convert this using 1 <;> ring_nf
-  · exact le_trans (by simp only [one_div, inv_nonneg, apply_nonneg]) h
+  simp only [map_div₀]
+  convert mul_le_mul h h' (by simp [apply_nonneg]) ?_ using 1 <;> ring_nf
+  exact le_trans (by simp only [one_div, inv_nonneg, apply_nonneg]) h
 /-%%
 \begin{proof}\leanok
 \uses{ZetaInvBnd, ZetaDerivUpperBnd}
