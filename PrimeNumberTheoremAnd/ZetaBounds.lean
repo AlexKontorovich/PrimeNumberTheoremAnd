@@ -6,7 +6,7 @@ import Mathlib.Algebra.Group.Basic
 import EulerProducts.PNT
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 
-open BigOperators Complex Topology Filter
+open BigOperators Complex Topology Filter Interval
 
 theorem ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContDiffOn ℝ 1 φ s) {x : ℝ}
     (x_in_s : s ∈ nhds x) : HasDerivAt φ (deriv φ x) x :=
@@ -289,6 +289,176 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (a_lt_b : a < b) :
 \end{proof}
 %%-/
 
+lemma ZetaSum_aux1a_aux1 {a b x : ℝ} (apos : 0 < a) (a_lt_b : a < b) (hx : x ∈ [[a,b]])
+    : x > 0 := by
+  rcases hx with ⟨h, _⟩
+  have : a ⊓ b > 0 := by
+    rw [inf_eq_min]
+    have : b > 0 := by
+      exact lt_of_lt_of_le apos (le_of_lt a_lt_b)
+    exact lt_min apos this
+  exact lt_of_lt_of_le this h
+
+lemma ZetaSum_aux1a_aux1' {a b x : ℝ} (apos : 0 < a) (hx : x ∈ Set.Icc a b)
+    : x > 0 := by
+  rcases hx with ⟨h, _⟩
+  exact lt_of_lt_of_le apos h
+
+lemma ZetaSum_aux1a_aux2a  {x r : ℝ} (hx : x > 0) : 1 / x^r = x^(-r) := by
+  have h : x^(-r) * x^(r) = 1 := by
+    rw [← Real.rpow_add hx (-r) (r)]
+    simp only [add_left_neg, Real.rpow_zero]
+  have h' : x^r ≠ 0 := by
+    intro h'
+    rw [h', mul_zero] at h
+    exact zero_ne_one h
+  exact div_eq_of_eq_mul h' h.symm
+
+lemma ZetaSum_aux1a_aux2 {a b : ℝ} {c : ℝ} (apos : 0 < a) (a_lt_b : a < b)
+    (h : c ≠ 0 ∧ 0 ∉ [[a, b]]) :
+    ∫ (x : ℝ) in a..b, 1/x^(c+1) = (a ^ (-c) - b ^ (-c)) / c := by
+  have : (a ^ (-c) - b ^ (-c)) / c = (b ^ (-c) - a ^ (-c)) / (-c) := by
+    ring
+  rw [this]
+  have : -c-1 ≠ -1 := by 
+    simp only [ne_eq, sub_eq_neg_self, neg_eq_zero]
+    exact h.1
+  have : -c-1 ≠ -1 ∧ 0 ∉ [[a, b]] := ⟨ this, h.2 ⟩
+  have := integral_rpow (a := a) (b := b) (r := -c-1) (Or.inr this)
+  simp only [sub_add_cancel] at this
+  rw [← this]
+  apply intervalIntegral.integral_congr
+  intro x h
+  simp only
+  have : x > 0 := by
+    exact ZetaSum_aux1a_aux1 apos a_lt_b h
+  rw [ZetaSum_aux1a_aux2a this]   
+  congr
+  ring
+
+lemma ZetaSum_aux1a_aux3a (x : ℝ) : -(1/2) < ⌊ x ⌋ + 1/2 - x := by
+  have : 0 < (⌊ x ⌋ + 1) - x := by
+    exact sub_pos_of_lt (Int.lt_floor_add_one x)
+  calc
+    _ = -1/2 := by norm_num                   
+    _ < -1/2 + ((⌊ x ⌋ + 1) - x) := lt_add_of_pos_right (-1/2) this
+    _ = _ := by ring
+
+lemma ZetaSum_aux1a_aux3b (x : ℝ) : ⌊x⌋ + 1/2 - x ≤ 1/2 := by
+  have : ⌊x⌋ - x ≤ 0 := by
+    exact sub_nonpos.mpr (Int.floor_le x)
+  ring_nf
+  exact add_le_of_nonpos_right this
+
+lemma ZetaSum_aux1a_aux3 (x : ℝ) : |(⌊x⌋ + 1/2 - x)| ≤ 1/2 := by
+  apply abs_le.mpr
+  constructor
+  · exact le_of_lt (ZetaSum_aux1a_aux3a x)
+  exact ZetaSum_aux1a_aux3b x
+
+lemma ZetaSum_aux1a_aux4a (x : ℝ) (c : ℂ) (s : ℂ) (hx : 0 < x) : (Complex.abs (c / ((x : ℂ) ^ (s+1)))) = (Complex.abs c) / x^((s + 1).re) := by
+  simp only [map_div₀, abs_ofReal]
+  congr
+  exact Complex.abs_cpow_eq_rpow_re_of_pos hx (s+1)
+
+lemma ZetaSum_aux1a_aux4b (c : ℝ) : (Complex.abs c) = |c| := by
+  exact abs_ofReal c
+
+lemma ZetaSum_aux1a_aux4b' (x : ℝ) : (Complex.abs (⌊x⌋ + 1 / 2 - x)) = |⌊x⌋ + 1 / 2 - x| := by
+  have := ZetaSum_aux1a_aux4b (⌊x⌋ + 1 / 2 - x)
+  rw [← this]
+  simp only [one_div, ofReal_sub, ofReal_add, ofReal_int_cast, ofReal_inv, ofReal_ofNat]
+
+lemma ZetaSum_aux1a_aux4c (x : ℝ) (hx : 0 < x) (s : ℂ) : Complex.abs ((⌊x⌋ + 1 / 2 - (x : ℝ)) / (x : ℂ)^(s + 1)) = |⌊x⌋ + 1 / 2 - x| / x^((s + 1).re) := by
+  calc
+    _ = (Complex.abs (⌊x⌋ + 1 / 2 - x)) / x^((s + 1).re) := by
+      exact ZetaSum_aux1a_aux4a x (⌊x⌋ + 1 / 2 - x) s hx
+    _ = |⌊x⌋ + 1 / 2 - x| / x^((s + 1).re) := by
+      congr
+      exact ZetaSum_aux1a_aux4b' x
+
+theorem ZetaSum_aux1a_aux4 {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} :
+  ∫ (x : ℝ) in a..b, Complex.abs ((↑⌊x⌋ + 1 / 2 - ↑x) / ↑x ^ (s + 1)) =
+    ∫ (x : ℝ) in a..b, |⌊x⌋ + 1 / 2 - x| / x ^ (s + 1).re := by
+  apply intervalIntegral.integral_congr
+  intro x hx
+  simp only
+  exact ZetaSum_aux1a_aux4c x (ZetaSum_aux1a_aux1 apos a_lt_b hx) s
+
+theorem ZetaSum_aux1a_aux5a {a b : ℝ} (apos : 0 < a) {s : ℂ} (x : ℝ)
+  (h : x ∈ Set.Icc a b) : |↑⌊x⌋ + 1 / 2 - x| / x ^ (s.re + 1) ≤ 1 / x ^ (s.re + 1) := by
+  apply div_le_div_of_nonneg_right _ _
+  · calc
+    _ ≤ 1/2 := ZetaSum_aux1a_aux3 x
+    _ ≤ 1 := by norm_num
+  · apply Real.rpow_nonneg
+    exact le_of_lt (ZetaSum_aux1a_aux1' apos h)
+
+theorem ZetaSum_aux1a_aux5b {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
+  IntervalIntegrable (fun u ↦ 1 / u ^ (s.re + 1)) MeasureTheory.volume a b := by
+  apply ContinuousOn.intervalIntegrable_of_Icc (le_of_lt a_lt_b) _
+  apply ContinuousOn.div
+  · apply continuousOn_const
+  · apply ContinuousOn.rpow_const
+    · apply continuousOn_id
+    · intro x hx
+      have : x > 0 := by
+        exact ZetaSum_aux1a_aux1' apos hx
+      exact Or.inl (ne_of_gt this)
+  · intro x hx
+    by_contra h
+    have h1 : x > 0 := by
+      exact (ZetaSum_aux1a_aux1' apos hx)
+    have : s.re + 1 ≠ 0 := by
+      exact ne_of_gt (add_pos σpos zero_lt_one)
+    have := (Real.rpow_eq_zero (le_of_lt h1) this).mp h
+    exact (ne_of_gt h1) this
+
+theorem ZetaSum_aux1a_aux5c {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
+  let g : ℝ → ℝ := fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1);
+  MeasureTheory.AEStronglyMeasurable g (MeasureTheory.Measure.restrict MeasureTheory.volume (Ι a b)) := by
+  intro g
+  let g1 : ℝ → ℝ := fun u ↦ |↑⌊u⌋ + 1 / 2 - u|;
+  let g2 : ℝ → ℝ := fun u ↦ u ^ (s.re + 1);
+  have : g = g1 / g2 := by
+    ext x
+    simp only [Pi.div_apply]
+  rw [this]
+  sorry
+
+theorem ZetaSum_aux1a_aux5d {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
+  IntervalIntegrable (fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1)) MeasureTheory.volume a b := by
+  set g : ℝ → ℝ := (fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1))
+  suffices IntervalIntegrable g MeasureTheory.volume a b
+    by exact this
+  apply IntervalIntegrable.mono_fun (ZetaSum_aux1a_aux5b apos a_lt_b σpos)
+  · exact ZetaSum_aux1a_aux5c apos a_lt_b σpos
+  simp
+  show (fun x ↦ |g x|) ≤ᶠ[MeasureTheory.Measure.ae (MeasureTheory.Measure.restrict MeasureTheory.volume (Ι a b))] fun x ↦
+  |x ^ (s.re + 1)|⁻¹
+  filter_upwards
+  unfold_let
+  intro x
+  simp only
+  rw [abs_div, div_eq_mul_inv]
+  nth_rw 2 [← one_mul |x ^ (s.re + 1)|⁻¹]
+  apply mul_le_mul
+  · rw [_root_.abs_abs]
+    calc
+      _ ≤ 1/2 := ZetaSum_aux1a_aux3 x
+      _ ≤ 1 := by norm_num
+  · simp only [le_refl]
+  · simp only [inv_nonneg, abs_nonneg]
+  · norm_num
+
+theorem ZetaSum_aux1a_aux5 {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
+  ∫ (x : ℝ) in a..b, |⌊x⌋ + 1 / 2 - x| / x ^ (s.re + 1) ≤ ∫ (x : ℝ) in a..b, 1 / x ^ (s.re + 1) := by
+  apply intervalIntegral.integral_mono_on _ _ _
+  · exact ZetaSum_aux1a_aux5a apos
+  · exact le_of_lt a_lt_b
+  · exact ZetaSum_aux1a_aux5d apos a_lt_b σpos
+  · exact ZetaSum_aux1a_aux5b apos a_lt_b σpos
+
 /-%%
 \begin{lemma}[ZetaSum_aux1a]\label{ZetaSum_aux1a}\lean{ZetaSum_aux1a}\leanok
 For any $0 < a < b$ and  $s \in \C$ with $\sigma=\Re(s)>0$,
@@ -301,7 +471,31 @@ $$
 lemma ZetaSum_aux1a {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
     Complex.abs (∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) ≤
       (a ^ (-s.re) - b ^ (-s.re)) / s.re := by
-  sorry
+  calc
+    _ ≤ ∫ x in a..b, Complex.abs ((⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) := 
+        intervalIntegral.norm_integral_le_integral_norm (μ := MeasureTheory.volume) 
+          (a := a) (b := b) (f := λ x => (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) (le_of_lt a_lt_b)
+    _ = ∫ x in a..b, |(⌊x⌋ + 1 / 2 - x)| / x^((s+1).re) := by 
+      exact ZetaSum_aux1a_aux4 apos a_lt_b      
+    _ = ∫ x in a..b, |(⌊x⌋ + 1 / 2 - x)| / x^(s.re + 1) := by rfl
+    _ ≤ ∫ x in a..b, 1 / x^(s.re + 1) := by
+      exact ZetaSum_aux1a_aux5 apos a_lt_b σpos
+    _ = (a ^ (-s.re) - b ^ (-s.re)) / s.re := by
+      have h1 : s.re ≠ 0 := by
+        exact ne_of_gt σpos
+      have h2 : 0 ∉ [[a,b]] := by
+        by_contra h
+        rw [Set.mem_uIcc] at h
+        rcases h with ⟨h, _⟩ | ⟨h, _⟩
+        · exact not_le_of_lt apos h
+        have : a < a := by
+          calc
+            a < b := a_lt_b
+            _ ≤ 0 := h
+            _ < a := apos
+        exact lt_irrefl a this
+      apply ZetaSum_aux1a_aux2 (c := s.re) apos a_lt_b ⟨ h1, h2 ⟩
+
 /-%%
 \begin{proof}
 Apply the triangle inequality
