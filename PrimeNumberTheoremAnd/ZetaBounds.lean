@@ -870,7 +870,24 @@ lemma LogDerivZetaBnd :
     (σ_ge : 1 - A / (Real.log |t|) ^ 9 ≤ σ) (σ_lt : σ < 1),
     Complex.abs (deriv riemannZeta (σ + t * I) / riemannZeta (σ + t * I)) ≤
       C * (Real.log |t|) ^ 9 := by
-  sorry
+  obtain ⟨A, hA, C, hC, h⟩ := ZetaInvBnd
+  obtain ⟨A', hA', C', hC', h'⟩ := ZetaDerivUpperBnd
+  use A * A', mul_pos hA hA', C * C', mul_pos hC hC'
+  intro σ t t_gt σ_ge σ_lt
+  have σ_ge' : 1 - A / Real.log |t| ^ 9 ≤ σ := by
+    sorry
+  have σ_ge'' : 1 - A' / Real.log |t| ≤ σ := by
+    sorry
+  replace h := h σ t t_gt σ_ge' σ_lt
+  replace h' := h' σ t t_gt σ_ge'' (by linarith)
+  have : 0 ≤ Real.log |t| := by
+    apply (Odd.pow_nonneg_iff (by rw [@Nat.odd_iff 7])).mp (nonneg_of_mul_nonneg_right ?_ hC)
+    exact le_trans (by simp only [one_div, inv_nonneg, apply_nonneg]) h
+  have := mul_le_mul h h' (by simp [apply_nonneg]) ?_
+  · simp only [one_div, Real.log_abs, map_div₀, ge_iff_le] at this ⊢
+    ring_nf at this ⊢
+    exact this
+  · exact le_trans (by simp only [one_div, inv_nonneg, apply_nonneg]) h
 /-%%
 \begin{proof}
 \uses{ZetaInvBnd, ZetaDerivUpperBnd}
