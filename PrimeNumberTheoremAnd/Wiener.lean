@@ -1602,7 +1602,7 @@ Combining the two estimates and letting $R$ be large, we obtain the claim.
 
 -- just the surjectivity is stated here, as this is all that is needed for the current application, but perhaps one should state and prove bijectivity instead
 
-lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f := by sorry
+axiom fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f
 
 /-%%
 \begin{proof}
@@ -1613,6 +1613,16 @@ In particular, given $f$ in the Schwartz class, let $F : \R_+ \to \C : x \mapsto
 \end{proof}
 %%-/
 
+def toSchwartz (f : ℝ → ℂ) (h1 : ContDiff ℝ ⊤ f) (h2 : HasCompactSupport f) : 𝓢(ℝ, ℂ) where
+  toFun := f
+  smooth' := h1
+  decay' k n := by
+    have l1 : Continuous (fun x => ‖x‖ ^ k * ‖iteratedFDeriv ℝ n f x‖) := by
+      have : ContDiff ℝ ⊤ (iteratedFDeriv ℝ n f) := h1.iteratedFDeriv_right le_top
+      exact Continuous.mul (by continuity) this.continuous.norm
+    have l2 : HasCompactSupport (fun x ↦ ‖x‖ ^ k * ‖iteratedFDeriv ℝ n f x‖) := (h2.iteratedFDeriv _).norm.mul_left
+    simpa using l1.bounded_above_of_compact_support l2
+
 /-%%
 \begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
   If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then, then
@@ -1621,9 +1631,16 @@ as $u \to \infty$.
 \end{corollary}
 %%-/
 
-lemma wiener_ikehara_smooth {Ψ: ℝ → ℂ} (hsmooth: ∀ n, ContDiff ℝ n Ψ) (hsupp: HasCompactSupport Ψ)
-    (hplus: closure (Function.support Ψ) ⊆ Set.Ioi (0:ℝ)) :
+lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
+    (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    {Ψ: ℝ → ℂ} (hsmooth: ContDiff ℝ ⊤ Ψ) (hsupp: HasCompactSupport Ψ)
+    (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
     Tendsto (fun x : ℝ ↦ (∑' n, f n / n * Ψ (n / x)) / x - A * ∫ y in Set.Ioi 0, Ψ y ∂ volume) atTop (nhds 0) := by
+
+  let g : 𝓢(ℝ, ℂ) := toSchwartz (fun y => y * Ψ y) (contDiff_ofReal.mul hsmooth) (hsupp.mul_left)
+
+  -- obtain ⟨Φ, rfl⟩ := fourier_surjection_on_schwartz (toSchwartz Ψ hsmooth hsupp)
+  have := @limiting_cor_schwartz
   sorry
 
 /-%%
