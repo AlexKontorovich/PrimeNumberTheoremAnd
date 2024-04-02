@@ -5,7 +5,6 @@ import Mathlib.NumberTheory.ZetaFunction
 import Mathlib.Algebra.Group.Basic
 import EulerProducts.PNT
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
--- import Mathlib.MeasureTheory.Function.StronglyMeasurable.Basic
 
 open BigOperators Complex Topology Filter Interval
 
@@ -122,7 +121,7 @@ lemma sum_eq_int_deriv_aux {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k 
   rw [Set.uIoc_of_le a_lt_b.le, Set.mem_Ioc] at hx
   congr
   exact Int.floor_eq_iff.mpr ⟨by linarith, by have := Ne.lt_of_le x_ne_b hx.2; linarith⟩
- /-%%
+/-%%
 \begin{proof}\leanok
 Partial integration.
 \end{proof}
