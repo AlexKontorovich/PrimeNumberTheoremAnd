@@ -5,6 +5,7 @@ import Mathlib.NumberTheory.ZetaFunction
 import Mathlib.Algebra.Group.Basic
 import EulerProducts.PNT
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+import Mathlib.MeasureTheory.Function.Floor
 
 open BigOperators Complex Topology Filter Interval
 
@@ -414,7 +415,16 @@ theorem ZetaSum_aux1a_aux5b {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ
     have := (Real.rpow_eq_zero (le_of_lt h1) this).mp h
     exact (ne_of_gt h1) this
 
-theorem ZetaSum_aux1a_aux5c {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
+
+-- TODO: why do we need to bump this?
+instance : MeasurableDiv₂ ℝ := by
+  haveI (G : Type) [DivInvMonoid G] [MeasurableSpace G] [MeasurableInv G] [MeasurableMul₂ G] :
+    MeasurableDiv₂ G := inferInstance
+  exact this ℝ
+
+
+
+theorem ZetaSum_aux1a_aux5c {a b : ℝ} {s : ℂ} :
   let g : ℝ → ℝ := fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1);
   MeasureTheory.AEStronglyMeasurable g (MeasureTheory.Measure.restrict MeasureTheory.volume (Ι a b)) := by
   intro g
@@ -424,7 +434,17 @@ theorem ZetaSum_aux1a_aux5c {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ
     ext x
     simp only [Pi.div_apply]
   rw [this]
-  sorry
+  apply Measurable.aestronglyMeasurable
+  apply Measurable.div
+  · apply (_root_.continuous_abs).measurable.comp
+    · apply Measurable.sub
+      · apply Measurable.add
+        · apply Measurable.comp
+          · exact fun _ _ ↦ trivial
+          · exact Int.measurable_floor
+        · exact measurable_const
+      · exact measurable_id
+  · exact measurable_id.pow_const _
 
 theorem ZetaSum_aux1a_aux5d {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
   IntervalIntegrable (fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1)) MeasureTheory.volume a b := by
@@ -432,7 +452,7 @@ theorem ZetaSum_aux1a_aux5d {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ
   suffices IntervalIntegrable g MeasureTheory.volume a b
     by exact this
   apply IntervalIntegrable.mono_fun (ZetaSum_aux1a_aux5b apos a_lt_b σpos)
-  · exact ZetaSum_aux1a_aux5c apos a_lt_b σpos
+  · exact ZetaSum_aux1a_aux5c
   simp
   show (fun x ↦ |g x|) ≤ᶠ[MeasureTheory.Measure.ae (MeasureTheory.Measure.restrict MeasureTheory.volume (Ι a b))] fun x ↦
   |x ^ (s.re + 1)|⁻¹
