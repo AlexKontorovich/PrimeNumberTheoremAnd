@@ -1705,8 +1705,10 @@ theorem WeakPNT :
   have l1 : LSeries (fun n ↦ ff n) = LSeries (fun n => f n) := by
     ext s ; simp [LSeries, l2]
   have l3 n (hn : 0 < n) : Finset.sum (Finset.range n) ff = (Finset.sum (Finset.range n) f) - f 0 := by
-
-
+    have : 0 ∈ Finset.range n := by simp [hn]
+    simp [Finset.sum_eq_sum_diff_singleton_add this, ff]
+    apply Finset.sum_congr rfl
+    intro i hi ; simp at hi ; simp [hi]
   have := @WienerIkeharaTheorem' ff A F ff_nonneg (by simpa [l1] using hF) hF'
 
   sorry
