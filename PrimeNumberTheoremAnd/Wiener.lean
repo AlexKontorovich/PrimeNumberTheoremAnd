@@ -1625,9 +1625,24 @@ def toSchwartz (f : ℝ → ℂ) (h1 : ContDiff ℝ ⊤ f) (h2 : HasCompactSuppo
 
 @[simp] lemma toSchwartz_apply (f : ℝ → ℂ) {h1 h2 x} : SchwartzMap.mk f h1 h2 x = f x := rfl
 
-theorem comp_exp_support {Ψ : ℝ → ℂ} (hsmooth : ContDiff ℝ ⊤ Ψ) (hsupp : HasCompactSupport Ψ)
-    (hplus : closure (Function.support Ψ) ⊆ Ioi 0) : HasCompactSupport (Ψ ∘ rexp) := by
-  sorry
+theorem comp_exp_support {Ψ : ℝ → ℂ} (hsupp : HasCompactSupport Ψ) (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
+    HasCompactSupport (Ψ ∘ rexp) := by
+
+  simp only [hasCompactSupport_iff_eventuallyEq, EventuallyEq, coclosedCompact_eq_cocompact,
+    cocompact_eq_atBot_atTop, eventually_sup, Pi.zero_apply] ; constructor
+  · simp [← disjoint_compl_right_iff_subset] at hplus
+    obtain ⟨δ, hδ, hdisj⟩ := hplus.exists_thickenings hsupp isClosed_Iic
+    have l1 : Metric.thickening δ (Iic (0 : ℝ)) ∈ 𝓝 0 := by
+      refine mem_of_superset (Metric.ball_mem_nhds 0 hδ) ?_
+      exact Metric.ball_subset_thickening (mem_Iic.mpr le_rfl) δ
+    have l2 : ∀ᶠ x in atBot, rexp x ∈ Metric.thickening δ (Iic 0) := Real.tendsto_exp_atBot l1
+    filter_upwards [l2] with x hx
+    have := hdisj.subset_compl_left hx
+    have := compl_subset_compl.mpr (Metric.self_subset_thickening hδ _) this
+    have := compl_subset_compl.mpr subset_closure this
+    simpa using this
+  · simp [hasCompactSupport_iff_eventuallyEq] at hsupp
+    exact Real.tendsto_exp_atTop hsupp.2
 
 lemma wiener_ikehara_smooth_aux {Ψ : ℝ → ℂ} (hsmooth : ContDiff ℝ ⊤ Ψ) (hsupp : HasCompactSupport Ψ)
     (hplus : closure (Function.support Ψ) ⊆ Ioi 0) (x : ℝ) (hx : 0 < x) :
@@ -1644,11 +1659,9 @@ lemma wiener_ikehara_smooth_aux {Ψ : ℝ → ℂ} (hsmooth : ContDiff ℝ ⊤ �
   have l6 : IntegrableOn (fun x ↦ rexp x • (Ψ ∘ rexp) x) (Ici (-Real.log x)) volume := by
     refine (Continuous.integrable_of_hasCompactSupport (by continuity) ?_).integrableOn
     change HasCompactSupport (rexp • (Ψ ∘ rexp))
-    exact (comp_exp_support hsmooth hsupp hplus).smul_left
+    exact (comp_exp_support hsupp hplus).smul_left
   have := MeasureTheory.integral_comp_smul_deriv_Ioi l1 l2 l3 l4 l5 l6
   simpa [Real.exp_neg, Real.exp_log hx] using this
-
-#exit
 
 /-%%
 \begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
@@ -1669,7 +1682,8 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     have : ContDiff ℝ ⊤ (fun x : ℝ => (rexp (2 * π * x))) := (contDiff_const.mul contDiff_id).exp
     exact (contDiff_ofReal.comp this).mul (hsmooth.comp this)
   have h2 : HasCompactSupport h := by
-    apply comp_exp_support <;> assumption
+    have : 2 * π ≠ 0 := by simp [pi_ne_zero]
+    simpa using (comp_exp_support hsupp hplus).comp_smul this |>.mul_left
   obtain ⟨g, hg⟩ := fourier_surjection_on_schwartz (toSchwartz h h1 h2)
 
   have why (x : ℝ) : 2 * π * x / (2 * π) = x := by field_simp ; ring
