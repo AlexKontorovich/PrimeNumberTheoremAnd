@@ -4,16 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Arend Mellendijk
 -/
 
-import Mathlib.NumberTheory.Primorial
-import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.Analysis.Asymptotics.Asymptotics
-import Mathlib.Data.Complex.ExponentialBounds
 import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
+import Mathlib.NumberTheory.PrimeCounting
+import Mathlib.NumberTheory.Primorial
+import Mathlib.Data.Complex.ExponentialBounds
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Selberg
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.SelbergBounds
 
-set_option autoImplicit false
-open PrimeUpperBound
+open Sieve
 open scoped Nat ArithmeticFunction BigOperators
 
 noncomputable section

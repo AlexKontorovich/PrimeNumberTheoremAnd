@@ -216,10 +216,9 @@ theorem conv_selbergTerms_eq_selbergTerms_mul_nu {d : ℕ} (hd : d ∣ P) :
   calc
     (∑ l in divisors P, if l ∣ d then g l else 0) =
         ∑ l in divisors P, if l ∣ d then g (d / l) else 0 := by
-      rw [← sum_over_dvd_ite s.prodPrimes_ne_zero hd]
-      rw [← Nat.sum_divisorsAntidiagonal fun x _ => g x]
-      rw [Nat.sum_divisorsAntidiagonal' fun x _ => g x]
-      rw [sum_over_dvd_ite s.prodPrimes_ne_zero hd]
+      rw [← sum_over_dvd_ite s.prodPrimes_ne_zero hd,
+        ← Nat.sum_divisorsAntidiagonal fun x _ => g x, Nat.sum_divisorsAntidiagonal' fun x _ => g x,
+        sum_over_dvd_ite s.prodPrimes_ne_zero hd]
     _ = g d * ∑ l in divisors P, if l ∣ d then 1 / g l else 0 := by
       rw [mul_sum]; apply sum_congr rfl; intro l hl
       rw [mul_ite_zero]; apply if_ctx_congr Iff.rfl _ (fun _ => rfl); intro h

@@ -20,12 +20,10 @@ This file proves a number of results to help bound `Sieve.selbergSum`
 * `rem_sum_le_of_const`: If `R_d ≤ C` then the error term is at most `C * y * (1 + log y)^3`
 -/
 
-
-set_option autoImplicit false
 open scoped Nat ArithmeticFunction BigOperators Classical
 
 noncomputable section
-namespace PrimeUpperBound
+namespace Sieve
 
 lemma prodDistinctPrimes_squarefree (s : Finset ℕ) (h : ∀ p ∈ s, p.Prime) :
     Squarefree (∏ p in s, p) := by
@@ -526,5 +524,5 @@ theorem rem_sum_le_of_const (s : SelbergSieve) (C : ℝ) (hrem : ∀ d > 0, |s.r
   apply Aux.sum_pow_cardDistinctFactors_le_self_mul_log_pow (hx := s.one_le_level)
   apply Sieve.prodPrimes_squarefree
 
-end PrimeUpperBound
+end Sieve
 end
