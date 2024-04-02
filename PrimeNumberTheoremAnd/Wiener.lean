@@ -1625,6 +1625,31 @@ def toSchwartz (f : ℝ → ℂ) (h1 : ContDiff ℝ ⊤ f) (h2 : HasCompactSuppo
 
 @[simp] lemma toSchwartz_apply (f : ℝ → ℂ) {h1 h2 x} : SchwartzMap.mk f h1 h2 x = f x := rfl
 
+theorem comp_exp_support {Ψ : ℝ → ℂ} (hsmooth : ContDiff ℝ ⊤ Ψ) (hsupp : HasCompactSupport Ψ)
+    (hplus : closure (Function.support Ψ) ⊆ Ioi 0) : HasCompactSupport (Ψ ∘ rexp) := by
+  sorry
+
+lemma wiener_ikehara_smooth_aux {Ψ : ℝ → ℂ} (hsmooth : ContDiff ℝ ⊤ Ψ) (hsupp : HasCompactSupport Ψ)
+    (hplus : closure (Function.support Ψ) ⊆ Ioi 0) (x : ℝ) (hx : 0 < x) :
+    ∫ (u : ℝ) in Ioi (-Real.log x), ↑(rexp u) * Ψ (rexp u) = ∫ (y : ℝ) in Ioi (1 / x), Ψ y := by
+
+  have l0 : Continuous Ψ := hsmooth.continuous
+  have l1 : ContinuousOn rexp (Ici (-Real.log x)) := by apply Continuous.continuousOn ; continuity
+  have l2 : Tendsto rexp atTop atTop := Real.tendsto_exp_atTop
+  have l3 t (_ : t ∈ Ioi (-log x)) : HasDerivWithinAt rexp (rexp t) (Ioi t) t :=
+    (Real.hasDerivAt_exp t).hasDerivWithinAt
+  have l4 : ContinuousOn Ψ (rexp '' Ioi (-Real.log x)) := hsmooth.continuous.continuousOn
+  have l5 : IntegrableOn Ψ (rexp '' Ici (-Real.log x)) volume :=
+    (l0.integrable_of_hasCompactSupport hsupp).integrableOn
+  have l6 : IntegrableOn (fun x ↦ rexp x • (Ψ ∘ rexp) x) (Ici (-Real.log x)) volume := by
+    refine (Continuous.integrable_of_hasCompactSupport (by continuity) ?_).integrableOn
+    change HasCompactSupport (rexp • (Ψ ∘ rexp))
+    exact (comp_exp_support hsmooth hsupp hplus).smul_left
+  have := MeasureTheory.integral_comp_smul_deriv_Ioi l1 l2 l3 l4 l5 l6
+  simpa [Real.exp_neg, Real.exp_log hx] using this
+
+#exit
+
 /-%%
 \begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
   If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then, then
@@ -1643,7 +1668,8 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
   have h1 : ContDiff ℝ ⊤ h := by
     have : ContDiff ℝ ⊤ (fun x : ℝ => (rexp (2 * π * x))) := (contDiff_const.mul contDiff_id).exp
     exact (contDiff_ofReal.comp this).mul (hsmooth.comp this)
-  have h2 : HasCompactSupport h := sorry
+  have h2 : HasCompactSupport h := by
+    apply comp_exp_support <;> assumption
   obtain ⟨g, hg⟩ := fourier_surjection_on_schwartz (toSchwartz h h1 h2)
 
   have why (x : ℝ) : 2 * π * x / (2 * π) = x := by field_simp ; ring
@@ -1664,13 +1690,17 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     field_simp ; ring
 
   have l3 : ∀ᶠ x in atTop, ↑A * ∫ (u : ℝ) in Ici (-Real.log x), 𝓕 (⇑g) (u / (2 * π)) =
-      ↑A * ∫ (y : ℝ) in Ioi 0, Ψ y := by
+      ↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y := by
     filter_upwards [eventually_gt_atTop 0] with x hx
     congr 1
+    simp [hg, toSchwartz, h] ; norm_cast ; field_simp [why] ; norm_cast
+    rw [MeasureTheory.integral_Ici_eq_integral_Ioi]
+    apply wiener_ikehara_smooth_aux <;> assumption
 
-    sorry
+  have l4 : Tendsto (fun x => (↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y) - ↑A * ∫ (y : ℝ) in Ioi 0, Ψ y)
+      atTop (𝓝 0) := sorry
 
-  simpa [tsum_div_const] using key.congr' <| EventuallyEq.sub l2 l3
+  simpa [tsum_div_const] using (key.congr' <| EventuallyEq.sub l2 l3) |>.add l4
 
 /-%%
 \begin{proof}
