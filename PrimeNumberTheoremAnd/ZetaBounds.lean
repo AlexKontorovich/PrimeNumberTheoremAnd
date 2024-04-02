@@ -6,6 +6,11 @@ import Mathlib.Algebra.Group.Basic
 import EulerProducts.PNT
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import Mathlib.MeasureTheory.Function.Floor
+import Mathlib.Analysis.Complex.CauchyIntegral
+
+-- only importing the following for the MeasurableDiv₂ ℝ instance.
+-- should remove eventually
+import PrimeNumberTheoremAnd.PerronFormula
 
 open BigOperators Complex Topology Filter Interval
 
@@ -414,14 +419,6 @@ theorem ZetaSum_aux1a_aux5b {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ
       exact ne_of_gt (add_pos σpos zero_lt_one)
     have := (Real.rpow_eq_zero (le_of_lt h1) this).mp h
     exact (ne_of_gt h1) this
-
-
--- TODO: why do we need to bump this?
-instance : MeasurableDiv₂ ℝ := by
-  haveI (G : Type) [DivInvMonoid G] [MeasurableSpace G] [MeasurableInv G] [MeasurableMul₂ G] :
-    MeasurableDiv₂ G := inferInstance
-  exact this ℝ
-
 
 
 theorem ZetaSum_aux1a_aux5c {a b : ℝ} {s : ℂ} :
