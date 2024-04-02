@@ -49,7 +49,7 @@ open Classical in
 theorem siftedSum_eq_card :
     (primeInterSieve x y z hz).siftedSum =
       ((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card := by
-  apply PrimeUpperBound.siftedSum_eq
+  apply Sieve.siftedSum_eq
   exact fun _ _ => rfl
   exact hz
   rfl
