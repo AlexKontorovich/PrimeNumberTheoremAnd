@@ -22,7 +22,7 @@ open Complex hiding log
 
 open scoped Topology
 
-variable {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ : ℝ → ℂ} {G : ℂ → ℂ} {f : ArithmeticFunction ℂ}
+variable {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ : ℝ → ℂ} {G : ℂ → ℂ} {f : ℕ → ℂ}
 
 -- This version makes the support of Ψ explicit, and this is easier for some later proofs
 lemma smooth_urysohn_support_Ioo (h1 : a < b) (h3: c < d) :
@@ -1338,7 +1338,7 @@ lemma hh_integral' : ∫ t in Ioi 0, hh (1 / (2 * π)) t = 2 * π ^ 2 := by
   have := hh_integral (a := 1) (b := 1 / (2 * π)) (c := 1) (by positivity) (by positivity) (by positivity)
   convert this using 1 <;> simp ; ring
 
-lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
+lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ C * (1 + ∫ t in Ioi 0, hh (1 / (2 * π)) t) := by
 
   let ggg (i : ℕ) : ℝ := if i = 0 then 1 else gg x i
@@ -1355,7 +1355,7 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
       · simp ; positivity
       · simp ; positivity
       · gcongr
-  have l3 : 0 ≤ C := by simpa [cumsum] using hf 1
+  have l3 : 0 ≤ C := by simpa [cumsum, hf0] using hf 1
 
   have l4 : 0 ≤ ∫ (t : ℝ) in Ioi 0, hh (π⁻¹ * 2⁻¹) t :=
     set_integral_nonneg measurableSet_Ioi (fun x hx => hh_nonneg _ (LT.lt.le hx))
@@ -1374,10 +1374,10 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
   convert_to ∑ i in Finset.range n, ‖f i‖ * ggg i ≤ _
   · congr ; ext i
     by_cases hi : i = 0
-    · simp [hi]
+    · simp [hi, hf0]
     · field_simp [hi, ggg, gg]
 
-  apply cancel_main' (fun _ => norm_nonneg _) (by simp) l1 hf l2 n |>.trans
+  apply cancel_main' (fun _ => norm_nonneg _) (by simp [hf0]) l1 hf l2 n |>.trans
   gcongr ; simp [ggg, cumsum, gg_of_hh l0]
 
   by_cases hn : n = 0 ; simp [hn] ; positivity
@@ -1407,9 +1407,9 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
   · have := (@hh_integrable 1 (1 / (2 * π)) 1 (by positivity) (by positivity) (by positivity))
     simpa using this.mono_set Ioi_subset_Ici_self
 
-lemma bound_sum_log' {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
+lemma bound_sum_log' {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ C * (1 + 2 * π ^ 2) := by
-  simpa only [hh_integral'] using bound_sum_log hf hx
+  simpa only [hh_integral'] using bound_sum_log hf0 hf hx
 
 lemma summable_fourier (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cheby f) :
     Summable fun i ↦ ‖f i / ↑i * 𝓕 ψ (1 / (2 * π) * Real.log (↑i / x))‖ := by
@@ -1436,12 +1436,12 @@ lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby 
   apply (norm_tsum_le_tsum_norm l1).trans
   simpa only [← tsum_const_smul _ l5] using tsum_mono l1 (by simpa using l5.const_smul (W21.norm ψ)) l6
 
-lemma bound_I1' {C : ℝ} (x : ℝ) (hx : 1 ≤ x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : chebyWith C f) :
+lemma bound_I1' {C : ℝ} (hf0 : f 0 = 0) (x : ℝ) (hx : 1 ≤ x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : chebyWith C f) :
     ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x))‖ ≤ W21.norm ψ * C * (1 + 2 * π ^ 2) := by
 
   apply bound_I1 x (by linarith) ψ hψ ⟨_, hcheby⟩ |>.trans
   rw [smul_eq_mul, mul_assoc]
-  apply mul_le_mul le_rfl (bound_sum_log' hcheby hx) ?_ W21.norm_nonneg
+  apply mul_le_mul le_rfl (bound_sum_log' hf0 hcheby hx) ?_ W21.norm_nonneg
   apply tsum_nonneg (fun i => by positivity)
 
 lemma bound_I2 (x : ℝ) (ψ : ℝ → ℂ) (hψ : W21 ψ) :
@@ -1463,13 +1463,13 @@ lemma bound_I2 (x : ℝ) (ψ : ℝ → ℂ) (hψ : W21 ψ) :
   rw [Measure.integral_comp_div (fun x => (1 + x ^ 2)⁻¹) (2 * π)]
   simp [abs_eq_self.mpr twopi] ; ring_nf ; rfl
 
-lemma bound_main {C : ℝ} (A : ℂ) (x : ℝ) (hx : 1 ≤ x) (ψ : ℝ → ℂ) (hψ : W21 ψ)
+lemma bound_main {C : ℝ} (hf0 : f 0 = 0) (A : ℂ) (x : ℝ) (hx : 1 ≤ x) (ψ : ℝ → ℂ) (hψ : W21 ψ)
     (hcheby : chebyWith C f) :
     ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))‖ ≤
       W21.norm ψ * (C * (1 + 2 * π ^ 2) + ‖A‖ * (2 * π ^ 2)) := by
 
-  have l1 := bound_I1' x hx ψ hψ hcheby
+  have l1 := bound_I1' hf0 x hx ψ hψ hcheby
   have l2 := mul_le_mul (le_refl ‖A‖) (bound_I2 x ψ hψ) (by positivity) (by positivity)
   apply norm_sub_le _ _ |>.trans ; rw [norm_mul]
   convert _root_.add_le_add l1 l2 using 1 ; ring
@@ -1485,7 +1485,7 @@ lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
   refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
   simpa [key'] using contDiff_const
 
-lemma limiting_cor_W21 (ψ : ℝ → ℂ) (hψ : W21 ψ) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+lemma limiting_cor_W21 (hf0 : f 0 = 0) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
@@ -1516,7 +1516,7 @@ lemma limiting_cor_W21 (ψ : ℝ → ℂ) (hψ : W21 ψ) (hf : ∀ (σ' : ℝ), 
 
   -- Choose the truncation radius
   obtain ⟨C, hcheby⟩ := hcheby
-  have hC : 0 ≤ C := by simpa [cumsum] using hcheby 1
+  have hC : 0 ≤ C := by simpa [cumsum, hf0] using hcheby 1
   have key2 : Tendsto (fun R ↦ W21.norm (ψ - ψR R)) atTop (𝓝 0) := by
     simpa [sub_mul] using W21_approximation hψ hg
   simp_rw [Metric.tendsto_nhds] at key key2 ⊢ ; intro ε hε
@@ -1530,7 +1530,7 @@ lemma limiting_cor_W21 (ψ : ℝ → ℂ) (hψ : W21 ψ) (hf : ∀ (σ' : ℝ), 
 
   -- Control the tail term
   have key3 : ‖S x (ψ - ψR R)‖ < ε / 2 := by
-    have : ‖S x _‖ ≤ _ * M := @bound_main f C A x hx (ψ - ψR R) (ψR_W21_2 R (by linarith)) hcheby
+    have : ‖S x _‖ ≤ _ * M := @bound_main f C hf0 A x hx (ψ - ψR R) (ψR_W21_2 R (by linarith)) hcheby
     apply this.trans_lt
     apply mul_le_mul (d := 1 + M) (le_refl (W21.norm (ψ - ψR R))) (by simp) (by positivity)
       W21.norm_nonneg |>.trans_lt
@@ -1564,12 +1564,12 @@ lemma limiting_cor_W21 (ψ : ℝ → ℂ) (hψ : W21 ψ) (hf : ∀ (σ' : ℝ), 
   have S_sub : S x (ψ - ψR R) = S x ψ - S x (ψR R) := by simp [S, S1_sub, S2_sub] ; ring
   simpa [S_sub] using norm_add_le _ _ |>.trans_lt (_root_.add_lt_add key3 key)
 
-lemma limiting_cor_schwartz (ψ : 𝓢(ℝ, ℂ)) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+lemma limiting_cor_schwartz (hf0 : f 0 = 0) (ψ : 𝓢(ℝ, ℂ)) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))) atTop (𝓝 0) :=
-  limiting_cor_W21 ψ (W21_of_schwartz ψ) hf hcheby hG hG'
+  limiting_cor_W21 hf0 ψ (W21_of_schwartz ψ) hf hcheby hG hG'
 
 /-%%
 \begin{proof}
@@ -1693,7 +1693,7 @@ as $u \to \infty$.
 \end{corollary}
 %%-/
 
-lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
+lemma wiener_ikehara_smooth (hf0 : f 0 = 0) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
     (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     {Ψ: ℝ → ℂ} (hsmooth: ContDiff ℝ ⊤ Ψ) (hsupp: HasCompactSupport Ψ)
     (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
@@ -1713,13 +1713,13 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     field_simp [hg, toSchwartz, h] ; norm_cast ; field_simp [why] ; norm_cast
     rw [Real.exp_log hy]
 
-  have key := limiting_cor_schwartz g hf hcheby hG hG'
+  have key := limiting_cor_schwartz hf0 g hf hcheby hG hG'
 
   have l2 : ∀ᶠ x in atTop, ∑' (n : ℕ), f n / ↑n * 𝓕 (⇑g) (1 / (2 * π) * Real.log (↑n / x)) =
       ∑' (n : ℕ), f n * Ψ (↑n / x) / x := by
     filter_upwards [eventually_gt_atTop 0] with x hx
     congr ; ext n
-    by_cases hn : n = 0 ; simp [hn]
+    by_cases hn : n = 0 ; simp [hn, hf0]
     rw [← l1 (by positivity)]
     have : (n : ℂ) ≠ 0 := by simpa using hn
     have : (x : ℂ) ≠ 0 := by simpa using hx.ne.symm
