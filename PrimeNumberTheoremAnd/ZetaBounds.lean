@@ -226,10 +226,6 @@ lemma integrability_aux {a b : ℝ} (a_lt_b : a < b) :
     IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ) + 1 / 2 - x) MeasureTheory.volume a b := by
   convert (integrability_aux₁ a_lt_b).add integrability_aux₂ using 2; ring
 
-lemma ContinuousOn_derivWithin_of_deriv (φ : ℝ → ℂ) (a b : ℝ)
-    (h : ContinuousOn (deriv φ) (Set.uIcc a b)) :
-    ContinuousOn (derivWithin φ (Set.uIcc a b)) (Set.uIcc a b) := by sorry
-
 theorem sum_eq_int_deriv {φ : ℝ → ℂ} (a b : ℝ) (a_lt_b : a < b)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
     (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
