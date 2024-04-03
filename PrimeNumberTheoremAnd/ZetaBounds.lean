@@ -230,7 +230,7 @@ lemma integrability_aux {a b : ℝ} (a_lt_b : a < b) :
     IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ) + 1 / 2 - x) MeasureTheory.volume a b := by
   convert (integrability_aux₁ a_lt_b).add integrability_aux₂ using 2; ring
 
-theorem sum_eq_int_deriv {φ : ℝ → ℂ} (a b : ℝ) (a_lt_b : a < b)
+theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
     (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
     ∑ n in Finset.Ioc ⌊a⌋ ⌊b⌋, φ n =
@@ -311,7 +311,9 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (a_lt_b : a < b) :
       + s * ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
   let φ := fun (x : ℝ) ↦ (x : ℂ) ^ (-s)
   let φ' := fun (x : ℝ) ↦ -s / (x : ℂ)^(s + 1)
-  have φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b) := sorry
+  have φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x := by sorry
+  have derivφCont : ContinuousOn (deriv φ) [[a, b]] := by sorry
+  have := sum_eq_int_deriv (by exact_mod_cast a_lt_b) φDiff derivφCont
   -- convert sum_eq_int_deriv (by exact_mod_cast a_lt_b) φDiff using 1
   -- · sorry
   -- · sorry
