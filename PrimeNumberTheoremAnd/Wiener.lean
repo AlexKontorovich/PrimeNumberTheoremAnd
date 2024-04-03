@@ -1817,7 +1817,7 @@ theorem WienerIkeharaTheorem' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ �
 \end{proof}
 %%-/
 
-theorem cumsum_vonMangoldt_cheby : cheby (fun n ↦ Λ n) := by
+theorem vonMangoldt_cheby : cheby (fun n ↦ Λ n) := by
   obtain ⟨C, hC⟩ := BrunTitchmarsh.card_range_filter_isPrimePow_le
   have hC_nonneg : 0 ≤ C := by
     have := hC 2
@@ -1834,18 +1834,17 @@ theorem cumsum_vonMangoldt_cheby : cheby (fun n ↦ Λ n) := by
   calc
     _ = ∑ i in Finset.range n, Λ i := by
       apply Finset.sum_congr rfl
-      intro n hn
       simp
     _ ≤ ∑ i in Finset.range n, if IsPrimePow i then Real.log i else 0 := by
       apply Finset.sum_le_sum
-      intro i hi
+      intro i _
       rw [ArithmeticFunction.vonMangoldt_apply]
       split_ifs with h
       · have := (Nat.minFac_prime (h.ne_one)).pos
         gcongr
         apply Nat.minFac_le h.pos
       · rfl
-    _ ≤ ∑ i in (Finset.range n).filter IsPrimePow, Real.log n := by
+    _ ≤ ∑ _i in (Finset.range n).filter IsPrimePow, Real.log n := by
       rw [← Finset.sum_filter]
       apply Finset.sum_le_sum
       simp only [Finset.mem_filter, Finset.mem_range, and_imp]
