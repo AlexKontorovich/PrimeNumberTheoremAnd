@@ -13,10 +13,11 @@ import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
 import Mathlib.Analysis.SumIntegralComparisons
 
+import PrimeNumberTheoremAnd.BrunTitchmarsh
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Fourier
 
-open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries Asymptotics SchwartzMap
+open Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries Asymptotics SchwartzMap
 open Complex hiding log
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems impossible to hide, and hence parameters that are traditionally called σ will have to be called σ' instead in this file.
 
@@ -127,7 +128,7 @@ lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hx : 0 < x) (n : �
   calc
     _ = (f n * (cexp ((2 * π * -(y * (1 / (2 * π) * Real.log (n / x)))) * I) / ↑((n : ℝ) ^ σ'))) • ψ y := by
       have : ((↑n : ℂ) ^ (σ' : ℂ) : ℂ) = ((↑n : ℝ) ^ (σ' : ℝ) : ℝ) := by
-        rw [Complex.cpow_def_of_ne_zero (by simp [hn]), Real.rpow_def_of_nonneg (cast_nonneg n)]
+        rw [Complex.cpow_def_of_ne_zero (by simp [hn]), Real.rpow_def_of_nonneg (Nat.cast_nonneg n)]
         simp [hn]
       simp [smul_eq_mul, mul_assoc, this] ; ring_nf
     _ = (f n * (x ^ (y * I) / n ^ (σ' + y * I))) • ψ y := by
@@ -416,7 +417,7 @@ lemma continuous_LSeries_aux {f : ArithmeticFunction ℂ} {σ' : ℝ}  (hf : Sum
   have l2 n (x : ℝ) : ‖term f (σ' + x * I) n‖ = nterm f σ' n := by
     by_cases h : n = 0
     · simp [h, nterm]
-    · field_simp [h, nterm, cpow_add _ _ (cast_ne_zero.mpr h)]
+    · field_simp [h, nterm, cpow_add _ _ (Nat.cast_ne_zero.mpr h)]
       rw [← Complex.norm_eq_abs, Complex.norm_natCast_cpow_of_pos (Nat.pos_of_ne_zero h)]
       simp
   exact continuous_tsum l1 hf (fun n x => le_of_eq (l2 n x))
@@ -570,7 +571,7 @@ lemma bounded_of_shift {u : ℕ → ℝ} (h : BoundedAtFilter atTop (shift u)) :
   obtain ⟨C, N, hC⟩ := h
   refine ⟨C, N + 1, fun n hn => ?_⟩
   simp only [shift] at hC
-  have r1 : n - 1 ≥ N := le_sub_one_of_lt hn
+  have r1 : n - 1 ≥ N := Nat.le_sub_one_of_lt hn
   have r2 : n - 1 + 1 = n := Nat.sub_add_cancel <| NeZero.one_le.trans hn.le
   simpa [r2] using hC (n - 1) r1
 
@@ -612,7 +613,7 @@ lemma summable_inv_mul_log_sq : Summable (fun n : ℕ => (n * (Real.log n) ^ 2)�
   apply (summable_condensed_iff_of_nonneg l4 (fun _ _ _ a ↦ l2 a)).mp
   suffices this : ∀ᶠ k : ℕ in atTop, 2 ^ k * v (2 ^ k) = ((k : ℝ) ^ 2)⁻¹ * ((Real.log 2) ^ 2)⁻¹ by
     exact (summable_congr_ae this).mpr <| (Real.summable_nat_pow_inv.mpr one_lt_two).mul_right _
-  have l5 : ∀ᶠ k in atTop, v (2 ^ k) = u (2 ^ k) := l3.comp_tendsto <| Nat.tendsto_pow_atTop_atTop_of_one_lt le.refl
+  have l5 : ∀ᶠ k in atTop, v (2 ^ k) = u (2 ^ k) := l3.comp_tendsto <| Nat.tendsto_pow_atTop_atTop_of_one_lt Nat.le.refl
   filter_upwards [l5, l8] with k l5 l8 ; field_simp [u, l5] ; ring
 
 lemma tendsto_mul_add_atTop {a : ℝ} (ha : 0 < a) (b : ℝ) : Tendsto (fun x => a * x + b) atTop atTop :=
@@ -866,7 +867,7 @@ theorem limiting_fourier_lim1 (hcheby : cheby f) (hψ : W21 ψ) (hx : 0 < x) :
     apply eventually_of_forall
     intro σ' (hσ' : 1 < σ') n
     rw [norm_mul, ← nterm_eq_norm_term]
-    refine mul_le_mul ?_ (hC _) (norm_nonneg _) (div_nonneg (norm_nonneg _) (cast_nonneg _))
+    refine mul_le_mul ?_ (hC _) (norm_nonneg _) (div_nonneg (norm_nonneg _) (Nat.cast_nonneg _))
     by_cases h : n = 0 <;> simp [h, nterm]
     have : 1 ≤ (n : ℝ) := by simpa using Nat.pos_iff_ne_zero.mpr h
     refine div_le_div (by simp only [apply_nonneg]) le_rfl (by simpa [Nat.pos_iff_ne_zero]) ?_
@@ -1218,7 +1219,7 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
     (hfi : IntegrableOn f (Icc x₀ (x₀ +  n))) :
     (∑ i in Finset.range n, f (x₀ + ↑(i + 1))) ≤ ∫ x in x₀..x₀ + n, f x := by
 
-  cases' n with n <;> simp [succ_eq_add_one] at hf ⊢
+  cases' n with n <;> simp [Nat.succ_eq_add_one] at hf ⊢
   have : Finset.range (n + 1) = {0} ∪ Finset.Ico 1 (n + 1) := by
     ext i ; by_cases hi : i = 0 <;> simp [hi] ; omega
   simp [this, Finset.sum_union]
@@ -1677,6 +1678,59 @@ theorem WienerIkeharaTheorem' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ �
   Apply the preceding proposition with $I = [\varepsilon,1]$ and then send $\varepsilon$ to zero (using \eqref{cheby} to control the error).
 \end{proof}
 %%-/
+
+theorem cumsum_vonMangoldt_cheby : cheby (fun n ↦ Λ n) := by
+  obtain ⟨C, hC⟩ := BrunTitchmarsh.card_range_filter_isPrimePow_le
+  have hC_nonneg : 0 ≤ C := by
+    have := hC 2
+    norm_cast at this
+    have hpos : 0 < 2 / Real.log 2 := by positivity
+    have : (0 : ℝ) ≤ ↑(Finset.filter IsPrimePow (Finset.range 2)).card := by norm_cast
+    rw [← mul_le_mul_right hpos]
+    simp
+    linarith
+  use C
+  dsimp [chebyWith, cumsum]
+  intro n
+  simp only [abs_ofReal]
+  calc
+    _ = ∑ i in Finset.range n, Λ i := by
+      apply Finset.sum_congr rfl
+      intro n hn
+      simp
+    _ ≤ ∑ i in Finset.range n, if IsPrimePow i then Real.log i else 0 := by
+      apply Finset.sum_le_sum
+      intro i hi
+      rw [ArithmeticFunction.vonMangoldt_apply]
+      split_ifs with h
+      · have := (Nat.minFac_prime (h.ne_one)).pos
+        gcongr
+        apply Nat.minFac_le h.pos
+      · rfl
+    _ ≤ ∑ i in (Finset.range n).filter IsPrimePow, Real.log n := by
+      rw [← Finset.sum_filter]
+      apply Finset.sum_le_sum
+      simp only [Finset.mem_filter, Finset.mem_range, and_imp]
+      intro i hi hi_p
+      have := hi_p.pos
+      gcongr
+    _ ≤ C * (n / Real.log n) * Real.log n := by
+      simp
+      gcongr
+      apply hC
+    _ ≤ _ := by
+      rw [mul_assoc]
+      by_cases hn : n = 0
+      · simp [hn]
+      by_cases hn1 : n = 1
+      · simp [hn1, hC_nonneg]
+      have : 0 < Real.log n := by
+        apply Real.log_pos
+        norm_cast
+        omega
+      field_simp
+
+
 
 /-%%
 \section{Weak PNT}
