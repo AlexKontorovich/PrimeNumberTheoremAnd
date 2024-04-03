@@ -1495,7 +1495,7 @@ lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
   refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
   simpa [key'] using contDiff_const
 
-lemma limiting_cor_W21 (hf0 : f 0 = 0) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+lemma limiting_cor_W21 (ψ : ℝ → ℂ) (hψ : W21 ψ) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
@@ -1526,7 +1526,10 @@ lemma limiting_cor_W21 (hf0 : f 0 = 0) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hf : �
 
   -- Choose the truncation radius
   obtain ⟨C, hcheby⟩ := hcheby
-  have hC : 0 ≤ C := by simpa [cumsum, hf0] using hcheby 1
+  have hC : 0 ≤ C := by
+    have : ‖f 0‖ ≤ C := by simpa [cumsum] using hcheby 1
+    have : 0 ≤ ‖f 0‖ := by positivity
+    linarith
   have key2 : Tendsto (fun R ↦ W21.norm (ψ - ψR R)) atTop (𝓝 0) := by
     simpa [sub_mul] using W21_approximation hψ hg
   simp_rw [Metric.tendsto_nhds] at key key2 ⊢ ; intro ε hε
@@ -1574,12 +1577,12 @@ lemma limiting_cor_W21 (hf0 : f 0 = 0) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hf : �
   have S_sub : S x (ψ - ψR R) = S x ψ - S x (ψR R) := by simp [S, S1_sub, S2_sub] ; ring
   simpa [S_sub] using norm_add_le _ _ |>.trans_lt (_root_.add_lt_add key3 key)
 
-lemma limiting_cor_schwartz (hf0 : f 0 = 0) (ψ : 𝓢(ℝ, ℂ)) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+lemma limiting_cor_schwartz (ψ : 𝓢(ℝ, ℂ)) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))) atTop (𝓝 0) :=
-  limiting_cor_W21 hf0 ψ (W21_of_schwartz ψ) hf hcheby hG hG'
+  limiting_cor_W21 ψ (W21_of_schwartz ψ) hf hcheby hG hG'
 
 /-%%
 \begin{proof}
@@ -1723,7 +1726,7 @@ lemma wiener_ikehara_smooth (hf0 : f 0 = 0) (hf : ∀ (σ' : ℝ), 1 < σ' → S
     field_simp [hg, toSchwartz, h] ; norm_cast ; field_simp [why] ; norm_cast
     rw [Real.exp_log hy]
 
-  have key := limiting_cor_schwartz hf0 g hf hcheby hG hG'
+  have key := limiting_cor_schwartz g hf hcheby hG hG'
 
   have l2 : ∀ᶠ x in atTop, ∑' (n : ℕ), f n / ↑n * 𝓕 (⇑g) (1 / (2 * π) * Real.log (↑n / x)) =
       ∑' (n : ℕ), f n * Ψ (↑n / x) / x := by
