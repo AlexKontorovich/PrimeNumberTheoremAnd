@@ -887,9 +887,28 @@ lemma LogDerivZetaBnd :
     (σ_ge : 1 - A / (Real.log |t|) ^ 9 ≤ σ) (σ_lt : σ < 1),
     Complex.abs (deriv riemannZeta (σ + t * I) / riemannZeta (σ + t * I)) ≤
       C * (Real.log |t|) ^ 9 := by
-  sorry
+  obtain ⟨A, hA, C, hC, h⟩ := ZetaInvBnd
+  obtain ⟨A', hA', C', hC', h'⟩ := ZetaDerivUpperBnd
+  use min A A', lt_min hA hA', C * C', mul_pos hC hC'
+  intro σ t t_gt σ_ge σ_lt
+  have logt_gt : (1 : ℝ) < Real.log |t| := by
+    refine (Real.lt_log_iff_exp_lt (by linarith)).mpr (lt_trans ?_ t_gt)
+    exact lt_trans Real.exp_one_lt_d9 (by norm_num)
+  have σ_ge' : 1 - A / Real.log |t| ^ 9 ≤ σ := by
+    apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
+    apply div_le_div hA.le (min_le_left A A') ?_ (by rfl)
+    exact pow_pos (lt_trans (by norm_num) logt_gt) 9
+  have σ_ge'' : 1 - A' / Real.log |t| ≤ σ := by
+    apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
+    apply div_le_div hA'.le (min_le_right A A') (lt_trans (by norm_num) logt_gt) ?_
+    exact le_self_pow logt_gt.le (by norm_num)
+  replace h := h σ t t_gt σ_ge' σ_lt
+  replace h' := h' σ t t_gt σ_ge'' (by linarith)
+  simp only [map_div₀]
+  convert mul_le_mul h h' (by simp [apply_nonneg]) ?_ using 1 <;> ring_nf
+  exact le_trans (by simp only [one_div, inv_nonneg, apply_nonneg]) h
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{ZetaInvBnd, ZetaDerivUpperBnd}
 Combine the bound on $|\zeta'|$ from Lemma \ref{ZetaDerivUpperBnd} with the bound on $1/|\zeta|$ from Lemma \ref{ZetaInvBnd}.
 \end{proof}
