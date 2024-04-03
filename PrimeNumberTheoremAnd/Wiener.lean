@@ -1417,9 +1417,9 @@ lemma bound_sum_log0 {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
   have l2 i : ‖f i‖ / i = ‖f0 i‖ / i := by by_cases hi : i = 0 <;> simp [hi, f0]
   simp_rw [l2] ; apply bound_sum_log rfl l1 hx
 
-lemma bound_sum_log' {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
+lemma bound_sum_log' {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ C * (1 + 2 * π ^ 2) := by
-  simpa only [hh_integral'] using bound_sum_log hf0 hf hx
+  simpa only [hh_integral'] using bound_sum_log0 hf hx
 
 lemma summable_fourier (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cheby f) :
     Summable fun i ↦ ‖f i / ↑i * 𝓕 ψ (1 / (2 * π) * Real.log (↑i / x))‖ := by
@@ -1446,12 +1446,12 @@ lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby 
   apply (norm_tsum_le_tsum_norm l1).trans
   simpa only [← tsum_const_smul _ l5] using tsum_mono l1 (by simpa using l5.const_smul (W21.norm ψ)) l6
 
-lemma bound_I1' {C : ℝ} (hf0 : f 0 = 0) (x : ℝ) (hx : 1 ≤ x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : chebyWith C f) :
+lemma bound_I1' {C : ℝ} (x : ℝ) (hx : 1 ≤ x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : chebyWith C f) :
     ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x))‖ ≤ W21.norm ψ * C * (1 + 2 * π ^ 2) := by
 
   apply bound_I1 x (by linarith) ψ hψ ⟨_, hcheby⟩ |>.trans
   rw [smul_eq_mul, mul_assoc]
-  apply mul_le_mul le_rfl (bound_sum_log' hf0 hcheby hx) ?_ W21.norm_nonneg
+  apply mul_le_mul le_rfl (bound_sum_log' hcheby hx) ?_ W21.norm_nonneg
   apply tsum_nonneg (fun i => by positivity)
 
 lemma bound_I2 (x : ℝ) (ψ : ℝ → ℂ) (hψ : W21 ψ) :
@@ -1473,13 +1473,13 @@ lemma bound_I2 (x : ℝ) (ψ : ℝ → ℂ) (hψ : W21 ψ) :
   rw [Measure.integral_comp_div (fun x => (1 + x ^ 2)⁻¹) (2 * π)]
   simp [abs_eq_self.mpr twopi] ; ring_nf ; rfl
 
-lemma bound_main {C : ℝ} (hf0 : f 0 = 0) (A : ℂ) (x : ℝ) (hx : 1 ≤ x) (ψ : ℝ → ℂ) (hψ : W21 ψ)
+lemma bound_main {C : ℝ} (A : ℂ) (x : ℝ) (hx : 1 ≤ x) (ψ : ℝ → ℂ) (hψ : W21 ψ)
     (hcheby : chebyWith C f) :
     ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))‖ ≤
       W21.norm ψ * (C * (1 + 2 * π ^ 2) + ‖A‖ * (2 * π ^ 2)) := by
 
-  have l1 := bound_I1' hf0 x hx ψ hψ hcheby
+  have l1 := bound_I1' x hx ψ hψ hcheby
   have l2 := mul_le_mul (le_refl ‖A‖) (bound_I2 x ψ hψ) (by positivity) (by positivity)
   apply norm_sub_le _ _ |>.trans ; rw [norm_mul]
   convert _root_.add_le_add l1 l2 using 1 ; ring
@@ -1540,7 +1540,7 @@ lemma limiting_cor_W21 (hf0 : f 0 = 0) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hf : �
 
   -- Control the tail term
   have key3 : ‖S x (ψ - ψR R)‖ < ε / 2 := by
-    have : ‖S x _‖ ≤ _ * M := @bound_main f C hf0 A x hx (ψ - ψR R) (ψR_W21_2 R (by linarith)) hcheby
+    have : ‖S x _‖ ≤ _ * M := @bound_main f C A x hx (ψ - ψR R) (ψR_W21_2 R (by linarith)) hcheby
     apply this.trans_lt
     apply mul_le_mul (d := 1 + M) (le_refl (W21.norm (ψ - ψR R))) (by simp) (by positivity)
       W21.norm_nonneg |>.trans_lt
