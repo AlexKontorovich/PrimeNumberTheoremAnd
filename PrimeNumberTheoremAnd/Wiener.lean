@@ -1625,28 +1625,23 @@ def toSchwartz (f : ℝ → ℂ) (h1 : ContDiff ℝ ⊤ f) (h2 : HasCompactSuppo
 
 @[simp] lemma toSchwartz_apply (f : ℝ → ℂ) {h1 h2 x} : SchwartzMap.mk f h1 h2 x = f x := rfl
 
-theorem comp_exp_support0 {Ψ : ℝ → ℂ} (hsupp : HasCompactSupport Ψ) (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
-    ∀ᶠ x in 𝓝 0, Ψ x = 0 := by
+lemma comp_exp_support0 {Ψ : ℝ → ℂ} (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
+    ∀ᶠ x in 𝓝 0, Ψ x = 0 :=
+  not_mem_tsupport_iff_eventuallyEq.mp (fun h => lt_irrefl 0 <| mem_Ioi.mp (hplus h))
 
-  simp [← disjoint_compl_right_iff_subset] at hplus
-  obtain ⟨δ, hδ, hdisj⟩ := hplus.exists_thickenings hsupp isClosed_Iic
-  have l1 : Metric.thickening δ (Iic (0 : ℝ)) ∈ 𝓝 0 := by
-    refine mem_of_superset (Metric.ball_mem_nhds 0 hδ) ?_
-    exact Metric.ball_subset_thickening (mem_Iic.mpr le_rfl) δ
-  apply eventually_of_mem l1 ; intro x hx
-  have := hdisj.subset_compl_left hx
-  have := compl_subset_compl.mpr (Metric.self_subset_thickening hδ _) this
-  have := compl_subset_compl.mpr subset_closure this
-  simpa using this
+lemma comp_exp_support1 {Ψ : ℝ → ℂ} (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
+    ∀ᶠ x in atBot, Ψ (exp x) = 0 :=
+  Real.tendsto_exp_atBot <| comp_exp_support0 hplus
+
+lemma comp_exp_support2 {Ψ : ℝ → ℂ} (hsupp : HasCompactSupport Ψ) :
+    ∀ᶠ (x : ℝ) in atTop, (Ψ ∘ rexp) x = 0 := by
+  simp only [hasCompactSupport_iff_eventuallyEq, coclosedCompact_eq_cocompact, cocompact_eq_atBot_atTop] at hsupp
+  exact Real.tendsto_exp_atTop hsupp.2
 
 theorem comp_exp_support {Ψ : ℝ → ℂ} (hsupp : HasCompactSupport Ψ) (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
     HasCompactSupport (Ψ ∘ rexp) := by
-
-  simp only [hasCompactSupport_iff_eventuallyEq, EventuallyEq, coclosedCompact_eq_cocompact,
-    cocompact_eq_atBot_atTop, eventually_sup, Pi.zero_apply] ; constructor
-  · exact Real.tendsto_exp_atBot <| comp_exp_support0 hsupp hplus
-  · simp [hasCompactSupport_iff_eventuallyEq] at hsupp
-    exact Real.tendsto_exp_atTop hsupp.2
+  simp only [hasCompactSupport_iff_eventuallyEq, coclosedCompact_eq_cocompact, cocompact_eq_atBot_atTop]
+  exact ⟨comp_exp_support1 hplus, comp_exp_support2 hsupp⟩
 
 lemma wiener_ikehara_smooth_aux {Ψ : ℝ → ℂ} (hsmooth : ContDiff ℝ ⊤ Ψ) (hsupp : HasCompactSupport Ψ)
     (hplus : closure (Function.support Ψ) ⊆ Ioi 0) (x : ℝ) (hx : 0 < x) :
@@ -1671,7 +1666,7 @@ theorem wiener_ikehara_smooth_sub {A : ℝ} {Ψ : ℝ → ℂ} (hsmooth : ContDi
     (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
     Tendsto (fun x ↦ (↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y) - ↑A * ∫ (y : ℝ) in Ioi 0, Ψ y) atTop (𝓝 0) := by
 
-  obtain ⟨ε, hε, hh⟩ := Metric.eventually_nhds_iff.mp <| comp_exp_support0 hsupp hplus
+  obtain ⟨ε, hε, hh⟩ := Metric.eventually_nhds_iff.mp <| comp_exp_support0 hplus
   apply tendsto_nhds_of_eventually_eq ; filter_upwards [eventually_gt_atTop ε⁻¹] with x hxε
 
   have l0 : Integrable Ψ := hsmooth.continuous.integrable_of_hasCompactSupport hsupp
@@ -1750,8 +1745,6 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     exact wiener_ikehara_smooth_sub hsmooth hsupp hplus
 
   simpa [tsum_div_const] using (key.congr' <| EventuallyEq.sub l2 l3) |>.add l4
-
-#print axioms wiener_ikehara_smooth
 
 /-%%
 \begin{proof}
