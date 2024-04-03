@@ -22,7 +22,7 @@ open Complex hiding log
 
 open scoped Topology
 
-variable {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ : ℝ → ℂ} {G : ℂ → ℂ} {f : ℕ → ℂ}
+variable {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ Ψ: ℝ → ℂ} {F G : ℂ → ℂ} {f : ℕ → ℂ}
 
 -- This version makes the support of Ψ explicit, and this is easier for some later proofs
 lemma smooth_urysohn_support_Ioo (h1 : a < b) (h3: c < d) :
@@ -1648,7 +1648,7 @@ theorem comp_exp_support {Ψ : ℝ → ℂ} (hsupp : HasCompactSupport Ψ) (hplu
   simp only [hasCompactSupport_iff_eventuallyEq, coclosedCompact_eq_cocompact, cocompact_eq_atBot_atTop]
   exact ⟨comp_exp_support1 hplus, comp_exp_support2 hsupp⟩
 
-lemma wiener_ikehara_smooth_aux {Ψ : ℝ → ℂ} (hsmooth : ContDiff ℝ ⊤ Ψ) (hsupp : HasCompactSupport Ψ)
+lemma wiener_ikehara_smooth_aux (hsmooth : ContDiff ℝ ⊤ Ψ) (hsupp : HasCompactSupport Ψ)
     (hplus : closure (Function.support Ψ) ⊆ Ioi 0) (x : ℝ) (hx : 0 < x) :
     ∫ (u : ℝ) in Ioi (-Real.log x), ↑(rexp u) * Ψ (rexp u) = ∫ (y : ℝ) in Ioi (1 / x), Ψ y := by
 
@@ -1667,7 +1667,7 @@ lemma wiener_ikehara_smooth_aux {Ψ : ℝ → ℂ} (hsmooth : ContDiff ℝ ⊤ �
   have := MeasureTheory.integral_comp_smul_deriv_Ioi l1 l2 l3 l4 l5 l6
   simpa [Real.exp_neg, Real.exp_log hx] using this
 
-theorem wiener_ikehara_smooth_sub {A : ℝ} {Ψ : ℝ → ℂ} (hsmooth : ContDiff ℝ ⊤ Ψ) (hsupp : HasCompactSupport Ψ)
+theorem wiener_ikehara_smooth_sub (hsmooth : ContDiff ℝ ⊤ Ψ) (hsupp : HasCompactSupport Ψ)
     (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
     Tendsto (fun x ↦ (↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y) - ↑A * ∫ (y : ℝ) in Ioi 0, Ψ y) atTop (𝓝 0) := by
 
@@ -1709,9 +1709,8 @@ as $u \to \infty$.
 
 lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
     (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
-    {Ψ: ℝ → ℂ} (hsmooth: ContDiff ℝ ⊤ Ψ) (hsupp: HasCompactSupport Ψ)
-    (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
-    Tendsto (fun x : ℝ ↦ (∑' n, f n * Ψ (n / x)) / x - A * ∫ y in Set.Ioi 0, Ψ y ∂ volume) atTop (nhds 0) := by
+    (hsmooth: ContDiff ℝ ⊤ Ψ) (hsupp: HasCompactSupport Ψ) (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
+    Tendsto (fun x : ℝ ↦ (∑' n, f n * Ψ (n / x)) / x - A * ∫ y in Set.Ioi 0, Ψ y) atTop (nhds 0) := by
 
   let h (x : ℝ) : ℂ := rexp (2 * π * x) * Ψ (exp (2 * π * x))
   have h1 : ContDiff ℝ ⊤ h := by
@@ -1762,6 +1761,11 @@ and the claim follows from Lemma \ref{schwarz-id}.
 \end{proof}
 %%-/
 
+lemma wiener_ikehara_smooth' (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
+    (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hsmooth: ContDiff ℝ ⊤ Ψ) (hsupp: HasCompactSupport Ψ) (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
+    Tendsto (fun x : ℝ ↦ (∑' n, f n * Ψ (n / x)) / x) atTop (nhds (A * ∫ y in Set.Ioi 0, Ψ y)) := by
+  sorry
 
 /-%%
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
@@ -1775,8 +1779,10 @@ Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
 -- variable (hpos: ∀ n, 0 ≤ f n)
 
-lemma WienerIkeharaInterval (a b : ℝ) (ha: 0 < a) (hb: a < b) :
+lemma WienerIkeharaInterval (ha: 0 < a) (hb: a < b) :
     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * (indicator (Icc a b) 1 (n / x)) / x - A * (b - a)) atTop (nhds 0) := by
+
+
   sorry
 
 /-%%
