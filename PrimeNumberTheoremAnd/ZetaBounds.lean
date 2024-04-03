@@ -34,7 +34,7 @@ theorem LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ
 
 lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (c : ℂ)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
-    (derivφCont : ContinuousOn (deriv φ) [[a, b]]):
+    (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
     ∫ (x : ℝ) in a..b, (c - x) * deriv φ x =
       (c - b) * φ b - (c - a) * φ a + ∫ (x : ℝ) in a..b, φ x := by
   set u := fun (x : ℝ) ↦ c - x
@@ -50,15 +50,16 @@ lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (c : ℂ)
   convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu φDiff hu' hv' using 1
   simp [u]
 
-lemma sum_eq_int_deriv_aux_eq {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (a_lt_b : a < b)
-    (b_eq_kpOne : b = k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+lemma sum_eq_int_deriv_aux_eq {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
+    (b_eq_kpOne : b = k + 1) (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
+    (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
     ∑ n in Finset.Ioc k ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (k + 1 / 2 - a) * φ a
       - ∫ x in a..b, (k + 1 / 2 - x) * deriv φ x := by
   have flb_eq_k : ⌊b⌋ = k + 1 := Int.floor_eq_iff.mpr ⟨by exact_mod_cast b_eq_kpOne.symm.le,
     by rw [b_eq_kpOne]; simp⟩
   simp only [flb_eq_k, Finset.Icc_self, Finset.sum_singleton, Int.cast_add, Int.cast_one]
-  rw [sum_eq_int_deriv_aux2 a_lt_b (k + 1 / 2) φDiff, b_eq_kpOne]
+  rw [sum_eq_int_deriv_aux2 (k + 1 / 2) φDiff derivφCont, b_eq_kpOne]
   ring_nf
   have : Finset.Ioc k (1 + k) = {k + 1} := by
     ext m
