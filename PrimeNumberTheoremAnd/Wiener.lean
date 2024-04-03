@@ -22,8 +22,10 @@ open Complex hiding log
 
 open scoped Topology
 
+variable {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ Ψ: ℝ → ℂ} {F G : ℂ → ℂ} {f : ℕ → ℂ}
+
 -- This version makes the support of Ψ explicit, and this is easier for some later proofs
-lemma smooth_urysohn_support_Ioo {a b c d : ℝ} (h1 : a < b) (h3: c < d) :
+lemma smooth_urysohn_support_Ioo (h1 : a < b) (h3: c < d) :
     ∃ Ψ : ℝ → ℝ, (∀ n, ContDiff ℝ n Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧
     Ψ ≤ Set.indicator (Set.Ioo a d) 1 ∧ (Function.support Ψ = Set.Ioo a d) := by
 
@@ -93,33 +95,31 @@ is absolutely convergent for $\sigma>1$.
 noncomputable
 def nterm (f : ℕ → ℂ) (σ' : ℝ) (n : ℕ) : ℝ := if n = 0 then 0 else ‖f n‖ / n ^ σ'
 
-lemma nterm_eq_norm_term {f : ℕ → ℂ} {σ' : ℝ} {n : ℕ} : nterm f σ' n = ‖term f σ' n‖ := by
+lemma nterm_eq_norm_term {f : ℕ → ℂ} : nterm f σ' n = ‖term f σ' n‖ := by
   by_cases h : n = 0 <;> simp [nterm, term, h]
 
-variable {f : ArithmeticFunction ℂ}
-
-lemma hf_coe1 {σ' : ℝ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
-    (hσ : 1 < σ') : ∑' i, (‖term f σ' i‖₊ : ENNReal) ≠ ⊤ := by
+lemma hf_coe1 (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hσ : 1 < σ') :
+    ∑' i, (‖term f σ' i‖₊ : ENNReal) ≠ ⊤ := by
   simp_rw [ENNReal.tsum_coe_ne_top_iff_summable_coe, ← norm_toNNReal]
   norm_cast
   apply Summable.toNNReal
   convert hf σ' hσ with i
   simp [nterm_eq_norm_term]
 
-lemma first_fourier_aux1 {ψ : ℝ → ℂ} (hψ: Continuous ψ) {x : ℝ} (n : ℕ) : Measurable fun (u : ℝ) ↦
+lemma first_fourier_aux1 (hψ: Continuous ψ) {x : ℝ} (n : ℕ) : Measurable fun (u : ℝ) ↦
     (‖fourierChar (-(u * ((1 : ℝ) / ((2 : ℝ) * π) * (n / x).log))) • ψ u‖₊ : ENNReal) := by
   -- TODO: attribute [fun_prop] Real.continuous_fourierChar once `fun_prop` bugfix is merged
   refine Measurable.comp ?_ (by fun_prop) |>.smul (by fun_prop)
     |>.nnnorm |>.coe_nnreal_ennreal
   exact Continuous.measurable Real.continuous_fourierChar
 
-lemma first_fourier_aux2a {x y : ℝ} {n : ℕ} :
+lemma first_fourier_aux2a :
     (2 : ℂ) * π * -(y * (1 / (2 * π) * Real.log ((n) / x))) = -(y * ((n) / x).log) := by
   calc
     _ = -(y * (((2 : ℂ) * π) / (2 * π) * Real.log ((n) / x))) := by ring
     _ = _ := by rw [div_self (by norm_num; exact pi_ne_zero), one_mul]
 
-lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hx : 0 < x) (n : ℕ) :
+lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
     term f σ' n * 𝐞 [-(y * (1 / (2 * π) * Real.log (n / x)))] • ψ y =
     term f (σ' + y * I) n • (ψ y * x ^ (y * I)) := by
   by_cases hn : n = 0 ; simp [term, hn]
@@ -150,9 +150,8 @@ lemma first_fourier_aux2 {ψ : ℝ → ℂ} {σ' x y : ℝ} (hx : 0 < x) (n : �
   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = \int_\R F(\sigma + it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
 %%-/
-lemma first_fourier {ψ : ℝ → ℂ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
-    (hcont: Continuous ψ) (hsupp: Integrable ψ)
-    {x σ' : ℝ} (hx : 0 < x) (hσ : 1 < σ') :
+lemma first_fourier (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcont: Continuous ψ)
+    (hsupp: Integrable ψ) (hx : 0 < x) (hσ : 1 < σ') :
     ∑' n : ℕ, term f σ' n * (𝓕 ψ (1 / (2 * π) * log (n / x))) =
     ∫ t : ℝ, LSeries f (σ' + t * I) * ψ t * x ^ (t * I) := by
 /-%%
@@ -207,7 +206,7 @@ lemma continuous_multiplicative_ofAdd : Continuous (⇑Multiplicative.ofAdd : �
 
 attribute [fun_prop] measurable_coe_nnreal_ennreal
 
-lemma second_fourier_integrable_aux1a {x σ' : ℝ} (hσ : 1 < σ') :
+lemma second_fourier_integrable_aux1a (hσ : 1 < σ') :
     IntegrableOn (fun (x : ℝ) ↦ cexp (-((x : ℂ) * ((σ' : ℂ) - 1)))) (Ici (-Real.log x)) := by
   norm_cast
   suffices IntegrableOn (fun (x : ℝ) ↦ (rexp (-(x * (σ' - 1))))) (Ici (-x.log)) _ from this.ofReal
@@ -215,8 +214,7 @@ lemma second_fourier_integrable_aux1a {x σ' : ℝ} (hσ : 1 < σ') :
   apply exp_neg_integrableOn_Ioi
   linarith
 
-lemma second_fourier_integrable_aux1 {ψ : ℝ → ℂ}
-    (hcont: Continuous ψ) (hsupp: Integrable ψ) {σ' x : ℝ} (hσ : 1 < σ') :
+lemma second_fourier_integrable_aux1 (hcont: Continuous ψ) (hsupp: Integrable ψ) (hσ : 1 < σ') :
     let ν : Measure (ℝ × ℝ) := (volume.restrict (Ici (-Real.log x))).prod volume
     Integrable (Function.uncurry fun (u : ℝ) (a : ℝ) ↦ ((rexp (-u * (σ' - 1))) : ℂ) •
     (𝐞 (Multiplicative.ofAdd (-(a * (u / (2 * π))))) : ℂ) • ψ a) ν := by
@@ -234,14 +232,14 @@ lemma second_fourier_integrable_aux1 {ψ : ℝ → ℂ}
     exact ENNReal.mul_lt_top (ne_top_of_lt (second_fourier_integrable_aux1a hσ).2)
       (ne_top_of_lt hsupp.2)
 
-lemma second_fourier_integrable_aux2 {σ' t x : ℝ} (hσ : 1 < σ') :
+lemma second_fourier_integrable_aux2 (hσ : 1 < σ') :
     IntegrableOn (fun (u : ℝ) ↦ cexp ((1 - ↑σ' - ↑t * I) * ↑u)) (Ioi (-Real.log x)) := by
   refine (integrable_norm_iff (Measurable.aestronglyMeasurable <| by fun_prop)).mp ?_
   suffices IntegrableOn (fun a ↦ rexp (-(σ' - 1) * a)) (Ioi (-x.log)) _ by simpa [Complex.abs_exp]
   apply exp_neg_integrableOn_Ioi
   linarith
 
-lemma second_fourier_aux {x σ' t : ℝ} (hx : 0 < x) :
+lemma second_fourier_aux (hx : 0 < x) :
     -(cexp (-((1 - ↑σ' - ↑t * I) * ↑(Real.log x))) / (1 - ↑σ' - ↑t * I)) =
     ↑(x ^ (σ' - 1)) * (↑σ' + ↑t * I - 1)⁻¹ * ↑x ^ (↑t * I) := by
   calc
@@ -252,7 +250,7 @@ lemma second_fourier_aux {x σ' t : ℝ} (hx : 0 < x) :
       rw [Complex.cpow_add _ _ (ofReal_ne_zero.mpr (ne_of_gt hx))]
     _ = _ := by rw [ofReal_cpow hx.le]; push_cast; ring
 
-lemma second_fourier {ψ : ℝ → ℂ} (hcont: Continuous ψ) (hsupp: Integrable ψ)
+lemma second_fourier (hcont: Continuous ψ) (hsupp: Integrable ψ)
     {x σ' : ℝ} (hx : 0 < x) (hσ : 1 < σ') :
     ∫ u in Ici (-log x), Real.exp (-u * (σ' - 1)) * 𝓕 ψ (u / (2 * π)) =
     (x^(σ' - 1) : ℝ) * ∫ t, (1 / (σ' + t * I - 1)) * ψ t * x^(t * I) ∂ volume := by
@@ -311,8 +309,6 @@ Now let $A \in \C$, and suppose that there is a continuous function $G(s)$ defin
 for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies the arguments and can be obtained fairly easily in applications).
 %%-/
 
-variable {A : ℝ} {G : ℂ → ℂ}
-
 lemma one_add_sq_pos (u : ℝ) : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa using sq_nonneg u)
 
 /-%%
@@ -355,7 +351,7 @@ theorem decay_bounds_W21 {f : ℝ → ℂ} (hf : W21 f) (hA : ∀ t, ‖f t‖ �
     simp_rw [← div_eq_mul_inv] ; exact hA'
   apply decay_bounds_key hf u |>.trans ; simp_rw [W21.norm, div_eq_mul_inv, add_mul, l0] ; gcongr
 
-lemma decay_bounds {ψ : ℝ → ℂ} {A u : ℝ} (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ)
+lemma decay_bounds (h1 : ContDiff ℝ 2 ψ) (h2 : HasCompactSupport ψ)
     (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2)) (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) :
     ‖𝓕 ψ u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
   exact decay_bounds_W21 (W21_of_compactSupport h1 h2) hA hA' u
@@ -365,7 +361,7 @@ lemma decay_bounds_schwartz (ψ : 𝓢(ℝ, ℂ)) (u : ℝ)
     ‖𝓕 ψ u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
   exact decay_bounds_W21 (W21_of_schwartz ψ) hA hA' u
 
-lemma decay_bounds_cor_aux {ψ : ℝ → ℂ} (h1 : Continuous ψ) (h2 : HasCompactSupport ψ) :
+lemma decay_bounds_cor_aux (h1 : Continuous ψ) (h2 : HasCompactSupport ψ) :
     ∃ C : ℝ, ∀ u, ‖ψ u‖ ≤ C / (1 + u ^ 2) := by
   have l1 : HasCompactSupport (fun u : ℝ => ((1 + u ^ 2) : ℝ) * ψ u) := by exact h2.mul_left
   obtain ⟨C, hC⟩ := l1.exists_bound_of_continuous (by continuity)
@@ -374,14 +370,14 @@ lemma decay_bounds_cor_aux {ψ : ℝ → ℂ} (h1 : Continuous ψ) (h2 : HasComp
   simp only [norm_mul, Complex.norm_eq_abs, Complex.abs_ofReal, abs_eq_self.mpr (one_add_sq_pos u).le] at hC
   rwa [le_div_iff' (one_add_sq_pos _)]
 
-lemma decay_bounds_cor {ψ : ℝ → ℂ} (hψ : W21 ψ) :
+lemma decay_bounds_cor (hψ : W21 ψ) :
     ∃ C : ℝ, ∀ u, ‖𝓕 ψ u‖ ≤ C / (1 + u ^ 2) := by
   simpa only [div_eq_mul_inv] using ⟨_, decay_bounds_key hψ⟩
 
 @[continuity] lemma continuous_FourierIntegral {ψ : ℝ → ℂ} (hψ : W21 ψ) : Continuous (𝓕 ψ) :=
   VectorFourier.fourierIntegral_continuous continuous_fourierChar (by exact continuous_mul) hψ.hf
 
-lemma W21.integrable_fourier {ψ : ℝ → ℂ} (hψ : W21 ψ) {c : ℝ} (hc : c ≠ 0) :
+lemma W21.integrable_fourier (hψ : W21 ψ) (hc : c ≠ 0) :
     Integrable fun u ↦ 𝓕 ψ (u / c) := by
   have l1 (C) : Integrable (fun u ↦ C / (1 + (u / c) ^ 2)) volume := by
     simpa using (integrable_inv_one_add_sq.comp_div hc).const_mul C
@@ -404,9 +400,7 @@ $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )
 \end{lemma}
 %%-/
 
-variable {ψ : ℝ → ℂ} {x : ℝ}
-
-lemma continuous_LSeries_aux {f : ArithmeticFunction ℂ} {σ' : ℝ}  (hf : Summable (nterm f σ')) :
+lemma continuous_LSeries_aux (hf : Summable (nterm f σ')) :
     Continuous fun x : ℝ => LSeries f (σ' + x * I) := by
 
   have l1 i : Continuous fun x : ℝ ↦ term f (σ' + x * I) i := by
@@ -799,8 +793,7 @@ lemma cheby.bigO (h : cheby f) : cumsum (‖f ·‖) =O[atTop] ((↑) : ℕ → 
   rw [Real.norm_eq_abs, abs_eq_self.mpr (l1 n)]
   simpa using hC n
 
-lemma limiting_fourier_lim1_aux (hcheby : cheby f)
-    (hx : 0 < x) (C : ℝ) (hC : 0 ≤ C) :
+lemma limiting_fourier_lim1_aux (hcheby : cheby f) (hx : 0 < x) (C : ℝ) (hC : 0 ≤ C) :
     Summable fun n ↦ ‖f n‖ / ↑n * (C / (1 + (1 / (2 * π) * Real.log (↑n / x)) ^ 2)) := by
 
   let a (n : ℕ) := (C / (1 + (Real.log (↑n / x) / (2 * π)) ^ 2) / ↑n)
@@ -919,7 +912,6 @@ theorem limiting_fourier_lim2 (A : ℝ) (hψ : W21 ψ) (hx : 1 ≤ x) :
       suffices h : Continuous (fun n ↦ ((rexp (-x * (n - 1))) : ℂ)) by simpa using h.tendsto 1
       continuity
 
--- Here compact support is necessary to avoid bounds on `G`
 theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re})
     (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
     Tendsto (fun σ' : ℝ ↦ ∫ t : ℝ, G (σ' + t * I) * ψ t * x ^ (t * I)) (𝓝[>] 1)
@@ -970,7 +962,6 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re})
     · exact ((continuous_ofReal.tendsto _).add tendsto_const_nhds).mono_left nhdsWithin_le_nhds
     · exact eventually_nhdsWithin_of_forall (fun x (hx : 1 < x) => by simp [hx.le])
 
--- Here compact support is needed to use `limiting_fourier_lim3` and `limiting_fourier_aux`
 lemma limiting_fourier (hcheby : cheby f)
     (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
@@ -1260,7 +1251,7 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
     apply hfi.mono_set
     apply Icc_subset_Icc ; linarith ; simp
 
-lemma hh_integrable_aux {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
+lemma hh_integrable_aux (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     (IntegrableOn (fun t ↦ a * hh b (t / c)) (Ici 0)) ∧
     (∫ (t : ℝ) in Ioi 0, a * hh b (t / c) = a * c / b * π) := by
 
@@ -1335,11 +1326,11 @@ lemma hh_integrable_aux {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     simp [g₀, g'] at this ⊢
     convert this using 1 ; field_simp ; ring
 
-lemma hh_integrable {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
+lemma hh_integrable (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     IntegrableOn (fun t ↦ a * hh b (t / c)) (Ici 0) :=
   hh_integrable_aux ha hb hc |>.1
 
-lemma hh_integral {a b c : ℝ} (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
+lemma hh_integral (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     ∫ (t : ℝ) in Ioi 0, a * hh b (t / c) = a * c / b * π :=
   hh_integrable_aux ha hb hc |>.2
 
@@ -1347,7 +1338,7 @@ lemma hh_integral' : ∫ t in Ioi 0, hh (1 / (2 * π)) t = 2 * π ^ 2 := by
   have := hh_integral (a := 1) (b := 1 / (2 * π)) (c := 1) (by positivity) (by positivity) (by positivity)
   convert this using 1 <;> simp ; ring
 
-lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
+lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ C * (1 + ∫ t in Ioi 0, hh (1 / (2 * π)) t) := by
 
   let ggg (i : ℕ) : ℝ := if i = 0 then 1 else gg x i
@@ -1364,7 +1355,7 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
       · simp ; positivity
       · simp ; positivity
       · gcongr
-  have l3 : 0 ≤ C := by simpa [cumsum] using hf 1
+  have l3 : 0 ≤ C := by simpa [cumsum, hf0] using hf 1
 
   have l4 : 0 ≤ ∫ (t : ℝ) in Ioi 0, hh (π⁻¹ * 2⁻¹) t :=
     set_integral_nonneg measurableSet_Ioi (fun x hx => hh_nonneg _ (LT.lt.le hx))
@@ -1383,10 +1374,10 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
   convert_to ∑ i in Finset.range n, ‖f i‖ * ggg i ≤ _
   · congr ; ext i
     by_cases hi : i = 0
-    · simp [hi]
+    · simp [hi, hf0]
     · field_simp [hi, ggg, gg]
 
-  apply cancel_main' (fun _ => norm_nonneg _) (by simp) l1 hf l2 n |>.trans
+  apply cancel_main' (fun _ => norm_nonneg _) (by simp [hf0]) l1 hf l2 n |>.trans
   gcongr ; simp [ggg, cumsum, gg_of_hh l0]
 
   by_cases hn : n = 0 ; simp [hn] ; positivity
@@ -1416,9 +1407,19 @@ lemma bound_sum_log {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
   · have := (@hh_integrable 1 (1 / (2 * π)) 1 (by positivity) (by positivity) (by positivity))
     simpa using this.mono_set Ioi_subset_Ici_self
 
+lemma bound_sum_log0 {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
+    ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ C * (1 + ∫ t in Ioi 0, hh (1 / (2 * π)) t) := by
+
+  let f0 i := if i = 0 then 0 else f i
+  have l1 : chebyWith C f0 := by
+    intro n ; refine Finset.sum_le_sum (fun i _ => ?_) |>.trans (hf n)
+    by_cases hi : i = 0 <;> simp [hi, f0]
+  have l2 i : ‖f i‖ / i = ‖f0 i‖ / i := by by_cases hi : i = 0 <;> simp [hi, f0]
+  simp_rw [l2] ; apply bound_sum_log rfl l1 hx
+
 lemma bound_sum_log' {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ C * (1 + 2 * π ^ 2) := by
-  simpa only [hh_integral'] using bound_sum_log hf hx
+  simpa only [hh_integral'] using bound_sum_log0 hf hx
 
 lemma summable_fourier (x : ℝ) (hx : 0 < x) (ψ : ℝ → ℂ) (hψ : W21 ψ) (hcheby : cheby f) :
     Summable fun i ↦ ‖f i / ↑i * 𝓕 ψ (1 / (2 * π) * Real.log (↑i / x))‖ := by
@@ -1494,13 +1495,7 @@ lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
   refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
   simpa [key'] using contDiff_const
 
--- lemma limiting_cor (hψ : ContDiff ℝ 2 ψ) (hsupp : HasCompactSupport ψ)
---     (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
---     (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
---     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
---       A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))) atTop (nhds 0) := by
-
-lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+lemma limiting_cor_W21 (ψ : ℝ → ℂ) (hψ : W21 ψ) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
@@ -1521,19 +1516,22 @@ lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) (hf : ∀ (σ' : ℝ), 1 
     apply (contDiff_ofReal.of_le le_top) |>.comp
     exact (hg.h1.of_le le_top).comp <| contDiff_id.mul contDiff_const
   have ψR_c R (hR : R ≠ 0) : HasCompactSupport (ψR R) := (l2 R hR).mul_right
-  have ψR_d R : ContDiff ℝ 2 (ψR R) := (l1 R).mul (ψ.smooth 2)
+  have ψR_d R : ContDiff ℝ 2 (ψR R) := (l1 R).mul hψ.hh
 
-  have ψR_W21 R (hR : R ≠ 0) : W21 (ψR R) := (W21_of_schwartz ψ).mul_compact_support (l1 R) (l2 R hR)
-  have ψR_W21_2 R (hR : R ≠ 0) : W21 (ψ - ψR R) := (W21_of_schwartz ψ).sub (ψR_W21 R hR)
+  have ψR_W21 R (hR : R ≠ 0) : W21 (ψR R) := hψ.mul_compact_support (l1 R) (l2 R hR)
+  have ψR_W21_2 R (hR : R ≠ 0) : W21 (ψ - ψR R) := hψ.sub (ψR_W21 R hR)
 
   have key R (hR : R ≠ 0) : Tendsto (fun x ↦ S x (ψR R)) atTop (𝓝 0) :=
     limiting_cor (ψR_d R) (ψR_c R hR) hf hcheby hG hG'
 
   -- Choose the truncation radius
   obtain ⟨C, hcheby⟩ := hcheby
-  have hC : 0 ≤ C := by simpa [cumsum] using hcheby 1
+  have hC : 0 ≤ C := by
+    have : ‖f 0‖ ≤ C := by simpa [cumsum] using hcheby 1
+    have : 0 ≤ ‖f 0‖ := by positivity
+    linarith
   have key2 : Tendsto (fun R ↦ W21.norm (ψ - ψR R)) atTop (𝓝 0) := by
-    simpa [sub_mul] using W21_approximation (W21_of_schwartz ψ) hg
+    simpa [sub_mul] using W21_approximation hψ hg
   simp_rw [Metric.tendsto_nhds] at key key2 ⊢ ; intro ε hε
   let M := C * (1 + 2 * π ^ 2) + ‖(A : ℂ)‖ * (2 * π ^ 2)
   specialize key2 ((ε / 2) / (1 + M)) (by positivity)
@@ -1547,24 +1545,24 @@ lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) (hf : ∀ (σ' : ℝ), 1 
   have key3 : ‖S x (ψ - ψR R)‖ < ε / 2 := by
     have : ‖S x _‖ ≤ _ * M := @bound_main f C A x hx (ψ - ψR R) (ψR_W21_2 R (by linarith)) hcheby
     apply this.trans_lt
-    apply mul_le_mul (d := 1 + M) (le_refl (W21.norm (⇑ψ - ψR R))) (by simp) (by positivity)
+    apply mul_le_mul (d := 1 + M) (le_refl (W21.norm (ψ - ψR R))) (by simp) (by positivity)
       W21.norm_nonneg |>.trans_lt
     have : 0 < 1 + M := by positivity
     convert (mul_lt_mul_right this).mpr hRψ using 1 ; field_simp ; ring
 
   -- Conclude the proof
-  have S1_sub_1 x : 𝓕 (⇑ψ - ψR R) x = 𝓕 ψ x - 𝓕 (ψR R) x := by
+  have S1_sub_1 x : 𝓕 (ψ - ψR R) x = 𝓕 ψ x - 𝓕 (ψR R) x := by
     have l1 : AEStronglyMeasurable (fun x_1 : ℝ ↦ cexp (-(2 * ↑π * (↑x_1 * ↑x) * I))) volume := by
       refine (Continuous.mul ?_ continuous_const).neg.cexp.aestronglyMeasurable
       apply continuous_const.mul <| contDiff_ofReal.continuous.mul continuous_const
     simp [Real.fourierIntegral_eq', mul_sub] ; apply integral_sub
-    · apply ψ.integrable.bdd_mul l1 ; use 1 ; simp [Complex.norm_eq_abs, Complex.abs_exp]
+    · apply hψ.hf.bdd_mul l1 ; use 1 ; simp [Complex.norm_eq_abs, Complex.abs_exp]
     · apply ψR_W21 R (by positivity) |>.hf |>.bdd_mul l1
       use 1 ; simp [Complex.norm_eq_abs, Complex.abs_exp]
 
   have S1_sub : S1 x (ψ - ψR R) = S1 x ψ - S1 x (ψR R) := by
     simp [S1, S1_sub_1, mul_sub] ; apply tsum_sub
-    · have := summable_fourier x (by positivity) ψ (W21_of_schwartz ψ) ⟨_, hcheby⟩
+    · have := summable_fourier x (by positivity) ψ hψ ⟨_, hcheby⟩
       rw [summable_norm_iff] at this
       simpa using this
     · have := summable_fourier x (by positivity) (ψR R) (ψR_W21 R (by positivity)) ⟨_, hcheby⟩
@@ -1573,11 +1571,18 @@ lemma limiting_cor_schwartz (ψ : SchwartzMap ℝ ℂ) (hf : ∀ (σ' : ℝ), 1 
 
   have S2_sub : S2 x (ψ - ψR R) = S2 x ψ - S2 x (ψR R) := by
     simp [S2, S1_sub_1] ; rw [integral_sub] ; ring
-    · exact (W21_of_schwartz ψ).integrable_fourier (by positivity) |>.restrict
+    · exact hψ.integrable_fourier (by positivity) |>.restrict
     · exact (ψR_W21 R (by positivity)).integrable_fourier (by positivity) |>.restrict
 
   have S_sub : S x (ψ - ψR R) = S x ψ - S x (ψR R) := by simp [S, S1_sub, S2_sub] ; ring
   simpa [S_sub] using norm_add_le _ _ |>.trans_lt (_root_.add_lt_add key3 key)
+
+lemma limiting_cor_schwartz (ψ : 𝓢(ℝ, ℂ)) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
+    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
+    Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
+      A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π))) atTop (𝓝 0) :=
+  limiting_cor_W21 ψ (W21_of_schwartz ψ) hf hcheby hG hG'
 
 /-%%
 \begin{proof}
@@ -1601,7 +1606,8 @@ Combining the two estimates and letting $R$ be large, we obtain the claim.
 
 -- just the surjectivity is stated here, as this is all that is needed for the current application, but perhaps one should state and prove bijectivity instead
 
-lemma fourier_surjection_on_schwartz (f : SchwartzMap ℝ ℂ) : ∃ g : SchwartzMap ℝ ℂ, fourierIntegral g = f := by sorry
+lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f := sorry
+-- axiom fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f
 
 /-%%
 \begin{proof}
@@ -1612,6 +1618,87 @@ In particular, given $f$ in the Schwartz class, let $F : \R_+ \to \C : x \mapsto
 \end{proof}
 %%-/
 
+def toSchwartz (f : ℝ → ℂ) (h1 : ContDiff ℝ ⊤ f) (h2 : HasCompactSupport f) : 𝓢(ℝ, ℂ) where
+  toFun := f
+  smooth' := h1
+  decay' k n := by
+    have l1 : Continuous (fun x => ‖x‖ ^ k * ‖iteratedFDeriv ℝ n f x‖) := by
+      have : ContDiff ℝ ⊤ (iteratedFDeriv ℝ n f) := h1.iteratedFDeriv_right le_top
+      exact Continuous.mul (by continuity) this.continuous.norm
+    have l2 : HasCompactSupport (fun x ↦ ‖x‖ ^ k * ‖iteratedFDeriv ℝ n f x‖) := (h2.iteratedFDeriv _).norm.mul_left
+    simpa using l1.bounded_above_of_compact_support l2
+
+@[simp] lemma toSchwartz_apply (f : ℝ → ℂ) {h1 h2 x} : SchwartzMap.mk f h1 h2 x = f x := rfl
+
+lemma comp_exp_support0 {Ψ : ℝ → ℂ} (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
+    ∀ᶠ x in 𝓝 0, Ψ x = 0 :=
+  not_mem_tsupport_iff_eventuallyEq.mp (fun h => lt_irrefl 0 <| mem_Ioi.mp (hplus h))
+
+lemma comp_exp_support1 {Ψ : ℝ → ℂ} (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
+    ∀ᶠ x in atBot, Ψ (exp x) = 0 :=
+  Real.tendsto_exp_atBot <| comp_exp_support0 hplus
+
+lemma comp_exp_support2 {Ψ : ℝ → ℂ} (hsupp : HasCompactSupport Ψ) :
+    ∀ᶠ (x : ℝ) in atTop, (Ψ ∘ rexp) x = 0 := by
+  simp only [hasCompactSupport_iff_eventuallyEq, coclosedCompact_eq_cocompact, cocompact_eq_atBot_atTop] at hsupp
+  exact Real.tendsto_exp_atTop hsupp.2
+
+theorem comp_exp_support {Ψ : ℝ → ℂ} (hsupp : HasCompactSupport Ψ) (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
+    HasCompactSupport (Ψ ∘ rexp) := by
+  simp only [hasCompactSupport_iff_eventuallyEq, coclosedCompact_eq_cocompact, cocompact_eq_atBot_atTop]
+  exact ⟨comp_exp_support1 hplus, comp_exp_support2 hsupp⟩
+
+lemma wiener_ikehara_smooth_aux (hsmooth : ContDiff ℝ ⊤ Ψ) (hsupp : HasCompactSupport Ψ)
+    (hplus : closure (Function.support Ψ) ⊆ Ioi 0) (x : ℝ) (hx : 0 < x) :
+    ∫ (u : ℝ) in Ioi (-Real.log x), ↑(rexp u) * Ψ (rexp u) = ∫ (y : ℝ) in Ioi (1 / x), Ψ y := by
+
+  have l0 : Continuous Ψ := hsmooth.continuous
+  have l1 : ContinuousOn rexp (Ici (-Real.log x)) := by fun_prop
+  have l2 : Tendsto rexp atTop atTop := Real.tendsto_exp_atTop
+  have l3 t (_ : t ∈ Ioi (-log x)) : HasDerivWithinAt rexp (rexp t) (Ioi t) t :=
+    (Real.hasDerivAt_exp t).hasDerivWithinAt
+  have l4 : ContinuousOn Ψ (rexp '' Ioi (-Real.log x)) := by fun_prop
+  have l5 : IntegrableOn Ψ (rexp '' Ici (-Real.log x)) volume :=
+    (l0.integrable_of_hasCompactSupport hsupp).integrableOn
+  have l6 : IntegrableOn (fun x ↦ rexp x • (Ψ ∘ rexp) x) (Ici (-Real.log x)) volume := by
+    refine (Continuous.integrable_of_hasCompactSupport (by continuity) ?_).integrableOn
+    change HasCompactSupport (rexp • (Ψ ∘ rexp))
+    exact (comp_exp_support hsupp hplus).smul_left
+  have := MeasureTheory.integral_comp_smul_deriv_Ioi l1 l2 l3 l4 l5 l6
+  simpa [Real.exp_neg, Real.exp_log hx] using this
+
+theorem wiener_ikehara_smooth_sub (hsmooth : ContDiff ℝ ⊤ Ψ) (hsupp : HasCompactSupport Ψ)
+    (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
+    Tendsto (fun x ↦ (↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y) - ↑A * ∫ (y : ℝ) in Ioi 0, Ψ y) atTop (𝓝 0) := by
+
+  obtain ⟨ε, hε, hh⟩ := Metric.eventually_nhds_iff.mp <| comp_exp_support0 hplus
+  apply tendsto_nhds_of_eventually_eq ; filter_upwards [eventually_gt_atTop ε⁻¹] with x hxε
+
+  have l0 : Integrable Ψ := hsmooth.continuous.integrable_of_hasCompactSupport hsupp
+  have l1 : Integrable (indicator (Ioi x⁻¹) (fun x : ℝ => Ψ x)) := l0.indicator measurableSet_Ioi
+  have l2 : Integrable (indicator (Ioi 0) (fun x : ℝ => Ψ x)) := l0.indicator measurableSet_Ioi
+
+  simp_rw [← MeasureTheory.integral_indicator measurableSet_Ioi, ← mul_sub, ← integral_sub l1 l2]
+  simp ; right ; apply MeasureTheory.integral_eq_zero_of_ae ; apply eventually_of_forall ; intro t ; simp
+
+  have hε' : 0 < ε⁻¹ := by positivity
+  have hx : 0 < x := by linarith
+  have hx' : 0 < x⁻¹ := by positivity
+  have hεx : x⁻¹ < ε := by apply (inv_lt hε hx).mp hxε
+
+  have l3 : Ioi 0 = Ioc 0 x⁻¹ ∪ Ioi x⁻¹ := by
+    ext t ; simp ; constructor <;> intro h
+    · simp [h, le_or_lt]
+    · cases h <;> linarith
+  have l4 : Disjoint (Ioc 0 x⁻¹) (Ioi x⁻¹) := by simp
+  have l5 := Set.indicator_union_of_disjoint l4 Ψ
+  rw [l3, l5] ; ring_nf
+  by_cases ht : t ∈ Ioc 0 x⁻¹
+  · simp [ht] ; apply hh ; simp at ht ⊢
+    have : |t| ≤ x⁻¹ := by rw [abs_le] ; constructor <;> linarith
+    linarith
+  · simp [ht]
+
 /-%%
 \begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
   If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then, then
@@ -1620,11 +1707,52 @@ as $u \to \infty$.
 \end{corollary}
 %%-/
 
-lemma wiener_ikehara_smooth {Ψ: ℝ → ℂ} (hsmooth: ∀ n, ContDiff ℝ n Ψ) (hsupp: HasCompactSupport Ψ) (hplus: closure (Function.support Ψ) ⊆ Set.Ioi (0:ℝ)): Tendsto (fun x : ℝ ↦ (∑' n, f n / n * Ψ (n/x))/x - A * ∫ y in Set.Ioi 0, Ψ y ∂ volume) atTop (nhds 0) := by sorry
+lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
+    (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hsmooth: ContDiff ℝ ⊤ Ψ) (hsupp: HasCompactSupport Ψ) (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
+    Tendsto (fun x : ℝ ↦ (∑' n, f n * Ψ (n / x)) / x - A * ∫ y in Set.Ioi 0, Ψ y) atTop (nhds 0) := by
+
+  let h (x : ℝ) : ℂ := rexp (2 * π * x) * Ψ (exp (2 * π * x))
+  have h1 : ContDiff ℝ ⊤ h := by
+    have : ContDiff ℝ ⊤ (fun x : ℝ => (rexp (2 * π * x))) := (contDiff_const.mul contDiff_id).exp
+    exact (contDiff_ofReal.comp this).mul (hsmooth.comp this)
+  have h2 : HasCompactSupport h := by
+    have : 2 * π ≠ 0 := by simp [pi_ne_zero]
+    simpa using (comp_exp_support hsupp hplus).comp_smul this |>.mul_left
+  obtain ⟨g, hg⟩ := fourier_surjection_on_schwartz (toSchwartz h h1 h2)
+
+  have why (x : ℝ) : 2 * π * x / (2 * π) = x := by field_simp ; ring
+  have l1 {y} (hy : 0 < y) : y * Ψ y = 𝓕 g (1 / (2 * π) * Real.log y) := by
+    field_simp [hg, toSchwartz, h] ; norm_cast ; field_simp [why] ; norm_cast
+    rw [Real.exp_log hy]
+
+  have key := limiting_cor_schwartz g hf hcheby hG hG'
+
+  have l2 : ∀ᶠ x in atTop, ∑' (n : ℕ), f n / ↑n * 𝓕 (⇑g) (1 / (2 * π) * Real.log (↑n / x)) =
+      ∑' (n : ℕ), f n * Ψ (↑n / x) / x := by
+    filter_upwards [eventually_gt_atTop 0] with x hx
+    congr ; ext n
+    by_cases hn : n = 0 ; simp [hn, (comp_exp_support0 hplus).self_of_nhds]
+    rw [← l1 (by positivity)]
+    have : (n : ℂ) ≠ 0 := by simpa using hn
+    have : (x : ℂ) ≠ 0 := by simpa using hx.ne.symm
+    field_simp ; ring
+
+  have l3 : ∀ᶠ x in atTop, ↑A * ∫ (u : ℝ) in Ici (-Real.log x), 𝓕 (⇑g) (u / (2 * π)) =
+      ↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y := by
+    filter_upwards [eventually_gt_atTop 0] with x hx
+    congr 1 ; simp [hg, toSchwartz, h] ; norm_cast ; field_simp [why] ; norm_cast
+    rw [MeasureTheory.integral_Ici_eq_integral_Ioi]
+    exact wiener_ikehara_smooth_aux hsmooth hsupp hplus x hx
+
+  have l4 : Tendsto (fun x => (↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y) - ↑A * ∫ (y : ℝ) in Ioi 0, Ψ y) atTop (𝓝 0) := by
+    exact wiener_ikehara_smooth_sub hsmooth hsupp hplus
+
+  simpa [tsum_div_const] using (key.congr' <| EventuallyEq.sub l2 l3) |>.add l4
 
 /-%%
 \begin{proof}
-\uses{bij,schwarz-id}
+\uses{bij,schwarz-id}\leanok
  By Lemma \ref{bij}, we can write
 $$ y \Psi(y) = \hat \psi( \frac{1}{2\pi} \log y )$$
 for all $y>0$ and some Schwartz function $\psi$.  Making this substitution, the claim is then equivalent after standard manipulations to
@@ -1633,6 +1761,11 @@ and the claim follows from Lemma \ref{schwarz-id}.
 \end{proof}
 %%-/
 
+lemma wiener_ikehara_smooth' (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
+    (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hsmooth: ContDiff ℝ ⊤ Ψ) (hsupp: HasCompactSupport Ψ) (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
+    Tendsto (fun x : ℝ ↦ (∑' n, f n * Ψ (n / x)) / x) atTop (nhds (A * ∫ y in Set.Ioi 0, Ψ y)) := by
+  sorry
 
 /-%%
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
@@ -1646,7 +1779,10 @@ Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
 -- variable (hpos: ∀ n, 0 ≤ f n)
 
-lemma WienerIkeharaInterval (a b:ℝ) (ha: 0 < a) (hb: a < b) : Tendsto (fun x : ℝ ↦ ∑' n, f n / n * (Set.indicator (Set.Icc a b) 1 (n/x))/x - A * (b-a)) atTop (nhds 0) := by
+lemma WienerIkeharaInterval (ha: 0 < a) (hb: a < b) :
+    Tendsto (fun x : ℝ ↦ ∑' n, f n / n * (indicator (Icc a b) 1 (n / x)) / x - A * (b - a)) atTop (nhds 0) := by
+
+
   sorry
 
 /-%%
@@ -1662,15 +1798,17 @@ lemma WienerIkeharaInterval (a b:ℝ) (ha: 0 < a) (hb: a < b) : Tendsto (fun x :
 $$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
 \end{corollary}
 %%-/
-open Filter Nat ArithmeticFunction in
+
 /-- A version of the *Wiener-Ikehara Tauberian Theorem*: If `f` is a nonnegative arithmetic
 function whose L-series has a simple pole at `s = 1` with residue `A` and otherwise extends
 continuously to the closed half-plane `re s ≥ 1`, then `∑ n < N, f n` is asymptotic to `A*N`. -/
+
 theorem WienerIkeharaTheorem' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ → ℂ} (hf : ∀ n, 0 ≤ f n)
     (hF : Set.EqOn F (fun s ↦ LSeries (fun n => f n) s - A / (s - 1)) {s | 1 < s.re})
     (hF' : ContinuousOn F {s | 1 ≤ s.re}) :
     Tendsto (fun N : ℕ ↦ ((Finset.range N).sum f) / N) atTop (nhds A) := by
   sorry
+
 /-%%
 \begin{proof}
 \uses{WienerIkeharaInterval}
@@ -1685,9 +1823,9 @@ theorem WienerIkeharaTheorem' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ �
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 \end{theorem}
 %%-/
-theorem WeakPNT :
-    Tendsto (fun N : ℕ ↦ ((Finset.range N).sum Λ) / N) atTop (nhds 1) := by
-  sorry
+
+theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (nhds 1) := by sorry
+
 /-%%
 \begin{proof}
 \uses{WienerIkehara, ChebyshevPsi}
