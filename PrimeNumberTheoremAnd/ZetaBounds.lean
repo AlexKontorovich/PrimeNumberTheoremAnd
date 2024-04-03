@@ -212,26 +212,40 @@ lemma ContinuousOn_derivWithin_of_deriv (φ : ℝ → ℂ) (a b : ℝ)
     ContinuousOn (derivWithin φ (Set.uIcc a b)) (Set.uIcc a b) := by sorry
 
 theorem sum_eq_int_deriv {φ : ℝ → ℂ} (a b : ℝ) (a_lt_b : a < b)
-    (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+    (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
+    (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
     ∑ n in Finset.Ioc ⌊a⌋ ⌊b⌋, φ n =
       (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
         - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
-  let P : ℝ → ℝ → Prop := fun a₁ b₁ ↦ (ContDiffOn ℝ 1 φ (Set.Icc a₁ b₁)) →
+  let P : ℝ → ℝ → Prop := fun a₁ b₁ ↦ (∀ x ∈ [[a₁, b₁]], HasDerivAt φ (deriv φ x) x) →
+    (ContinuousOn (deriv φ) [[a₁, b₁]]) →
     ∑ n in Finset.Ioc ⌊a₁⌋ ⌊b₁⌋, φ n =
     (∫ x in a₁..b₁, φ x) + (⌊b₁⌋ + 1 / 2 - b₁) * φ b₁ - (⌊a₁⌋ + 1 / 2 - a₁) * φ a₁
       - ∫ x in a₁..b₁, (⌊x⌋ + 1 / 2 - x) * deriv φ x
-  apply interval_induction P ?_ ?_ a b a_lt_b φDiff
-  · exact fun _ _ _ k_le_a₁ a₁_le_b₁ b₁_le_k1 φDiff₁ ↦
-      sum_eq_int_deriv_aux k_le_a₁ a₁_le_b₁ b₁_le_k1 φDiff₁
-  · intro a₁ k₁ b₁ a_lt_k₁ k_lt_b₁ ih₁ ih₂ φDiff₁
-    have : ContDiffOn ℝ 1 φ (Set.Icc a₁ k₁) := by
-      apply φDiff₁.mono
-      rw [Set.Icc_subset_Icc_iff] <;> simp [k_lt_b₁.le, a_lt_k₁.le]
-    have s₁ := ih₁ this
-    have : ContDiffOn ℝ 1 φ (Set.Icc k₁ b₁) := by
-      apply φDiff₁.mono
-      rw [Set.Icc_subset_Icc_iff] <;> simp [k_lt_b₁.le, a_lt_k₁.le]
-    have s₂ := ih₂ this
+  apply interval_induction P ?_ ?_ a b a_lt_b φDiff derivφCont
+  · exact fun _ _ _ k_le_a₁ a₁_lt_b₁ b₁_le_k1 φDiff₁ derivφCont₁ ↦
+      sum_eq_int_deriv_aux k_le_a₁ a₁_lt_b₁ b₁_le_k1 φDiff₁ derivφCont₁
+  · intro a₁ k₁ b₁ a_lt_k₁ k_lt_b₁ ih₁ ih₂ φDiff₁ derivφCont₁
+    have φDiff₁₁ : ∀ x ∈ [[a₁, k₁]], HasDerivAt φ (deriv φ x) x := by
+      intro x hx
+      refine φDiff₁ x ?_
+      rw [Set.uIcc_of_le (by linarith), Set.mem_Icc] at hx ⊢
+      refine ⟨by linarith, by linarith⟩
+    have derivφCont₁₁ : ContinuousOn (deriv φ) [[a₁, k₁]] := by
+      apply derivφCont₁.mono
+      rw [Set.uIcc_of_le a_lt_k₁.le, Set.uIcc_of_le (by linarith)]
+      apply Set.Icc_subset_Icc (by linarith) (by linarith)
+    have s₁ := ih₁ φDiff₁₁ derivφCont₁₁
+    have φDiff₁₂ : ∀ x ∈ [[(k₁ : ℝ), b₁]], HasDerivAt φ (deriv φ x) x := by
+      intro x hx
+      refine φDiff₁ x ?_
+      rw [Set.uIcc_of_le (by linarith), Set.mem_Icc] at hx ⊢
+      refine ⟨by linarith, by linarith⟩
+    have derivφCont₁₂ : ContinuousOn (deriv φ) [[(k₁ : ℝ), b₁]] := by
+      apply derivφCont₁.mono
+      rw [Set.uIcc_of_le (by linarith), Set.uIcc_of_le (by linarith)]
+      apply Set.Icc_subset_Icc (by linarith) (by linarith)
+    have s₂ := ih₂ φDiff₁₂ derivφCont₁₂
     convert add_two s₁ s₂ using 1
     · rw [← Finset.sum_Ioc_add_sum_Ioc]
       · exact Int.floor_mono a_lt_k₁.le
@@ -244,26 +258,21 @@ theorem sum_eq_int_deriv {φ : ℝ → ℂ} (a b : ℝ) (a_lt_b : a < b)
       set J₃ := ∫ (x : ℝ) in k₁..b₁, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x
       have : I₂ + I₃ = I₁ := by
         apply intervalIntegral.integral_add_adjacent_intervals <;>
-        apply ContinuousOn.intervalIntegrable <;>
-        apply ContDiffOn.continuousOn (n := 1) (𝕜 := ℝ) <;>
-        apply φDiff₁.mono <;>
-        simp [Set.uIcc_of_le, a_lt_k₁.le, k_lt_b₁.le, Set.Icc_subset_Icc_iff]
+        apply ContinuousOn.intervalIntegrable
+        · exact HasDerivAt.continuousOn φDiff₁₁
+        · exact HasDerivAt.continuousOn φDiff₁₂
       rw [← this]
       have : J₂ + J₃ = J₁ := by
         apply intervalIntegral.integral_add_adjacent_intervals <;>
         apply IntervalIntegrable.mul_continuousOn
         · apply integrability_aux a_lt_k₁
-        · -- have := ((contDiff_succ_iff_deriv (f₂ := φ) (n := 0)).mp ?_).2.
-          -- have : UniqueDiffOn ℝ (Set.uIcc a₁ k₁) := by
-          --   sorry
-          -- have := ((contDiffOn_succ_iff_derivWithin this (f₂ := φ) (n := 0)).mp ?_).2.continuousOn
-          sorry
-        · sorry
-        · sorry
+        · exact derivφCont₁₁
+        · apply integrability_aux k_lt_b₁
+        · exact derivφCont₁₂
       rw [← this]
       ring
 /-%%
-\begin{proof}\uses{sum_eq_int_deriv_aux}
+\begin{proof}\uses{sum_eq_int_deriv_aux}\leanok
   Apply Lemma \ref{sum_eq_int_deriv_aux} in blocks of length $\le 1$.
 \end{proof}
 %%-/
