@@ -16,17 +16,19 @@ import Mathlib.Analysis.SumIntegralComparisons
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Fourier
 
+-- note: the opening of ArithmeticFunction introduces a notation σ that seems
+-- impossible to hide, and hence parameters that are traditionally called σ will
+-- have to be called σ' instead in this file.
+
 open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries Asymptotics SchwartzMap
 open Complex hiding log
--- note: the opening of ArithmeticFunction introduces a notation σ that seems impossible to hide, and hence parameters that are traditionally called σ will have to be called σ' instead in this file.
-
 open scoped Topology
 
 variable {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ Ψ: ℝ → ℂ} {F G : ℂ → ℂ} {f : ℕ → ℂ}
 
 -- This version makes the support of Ψ explicit, and this is easier for some later proofs
 lemma smooth_urysohn_support_Ioo (h1 : a < b) (h3: c < d) :
-    ∃ Ψ : ℝ → ℝ, (∀ n, ContDiff ℝ n Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧
+    ∃ Ψ : ℝ → ℝ, (ContDiff ℝ ⊤ Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧
     Ψ ≤ Set.indicator (Set.Ioo a d) 1 ∧ (Function.support Ψ = Set.Ioo a d) := by
 
   have := exists_msmooth_zero_iff_one_iff_of_isClosed
@@ -44,8 +46,7 @@ lemma smooth_urysohn_support_Ioo (h1 : a < b) (h3: c < d) :
     ContMDiffMap.coeFn_mk, Pi.zero_apply, Set.mem_Icc, Pi.one_apply, and_imp] at *
   use Ψ
   constructor
-  · rw [contDiff_all_iff_nat, ←contDiff_top]
-    exact ContMDiff.contDiff hΨSmooth
+  · exact ContMDiff.contDiff hΨSmooth
   · constructor
     · rw [hasCompactSupport_def]
       apply IsCompact.closure_of_subset (K := Set.Icc a d) isCompact_Icc
@@ -1034,7 +1035,7 @@ lemma smooth_urysohn (a b c d : ℝ) (h1 : a < b) (h3 : c < d) : ∃ Ψ : ℝ �
       Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧ Ψ ≤ Set.indicator (Set.Ioo a d) 1 := by
 
   obtain ⟨ψ, l1, l2, l3, l4, -⟩ := smooth_urysohn_support_Ioo h1 h3
-  refine ⟨ψ, l1 ⊤, l2, l3, l4⟩
+  refine ⟨ψ, l1, l2, l3, l4⟩
 
 /-%%
 \begin{proof}  \leanok
@@ -1764,8 +1765,31 @@ and the claim follows from Lemma \ref{schwarz-id}.
 lemma wiener_ikehara_smooth' (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
     (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     (hsmooth: ContDiff ℝ ⊤ Ψ) (hsupp: HasCompactSupport Ψ) (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
-    Tendsto (fun x : ℝ ↦ (∑' n, f n * Ψ (n / x)) / x) atTop (nhds (A * ∫ y in Set.Ioi 0, Ψ y)) := by
-  sorry
+    Tendsto (fun x : ℝ ↦ (∑' n, f n * Ψ (n / x)) / x) atTop (nhds (A * ∫ y in Set.Ioi 0, Ψ y)) :=
+  tendsto_sub_nhds_zero_iff.mp <| wiener_ikehara_smooth hf hcheby hG hG' hsmooth hsupp hplus
+
+lemma interval_approx_inf (ha : 0 < a) (hab : a < b) :
+    ∀ᶠ ε in 𝓝[>] 0, ∃ ψ : ℝ → ℝ, ContDiff ℝ ⊤ ψ ∧ HasCompactSupport ψ ∧ closure (Function.support ψ) ⊆ Set.Ioi 0 ∧
+      0 ≤ ψ ∧ ψ ≤ indicator (Ioo a b) 1 ∧ b - a - ε ≤ ∫ y in Ioi 0, ψ y := by
+
+  have l1 : Iio ((b - a) / 3) ∈ 𝓝[>] 0 := nhdsWithin_le_nhds <| Iio_mem_nhds (by linarith)
+  filter_upwards [self_mem_nhdsWithin, l1] with ε (hε : 0 < ε) (hε' : ε < (b - a) / 3)
+  have l2 : a < a + ε / 2 := by linarith
+  have l3 : b - ε / 2 < b := by linarith
+  obtain ⟨ψ, h1, h2, h3, h4, h5⟩ := smooth_urysohn_support_Ioo l2 l3
+  refine ⟨ψ, h1, h2, ?_, le_trans (indicator_nonneg (by simp)) h3, h4, ?_⟩
+  · simp [h5, hab.ne, Icc_subset_Ioi_iff hab.le, ha]
+  · have l4 : 0 ≤ b - a - ε := by linarith
+    have l5 : Icc (a + ε / 2) (b - ε / 2) ⊆ Ioi 0 := by intro t ht ; simp at ht ⊢ ; linarith
+    have l6 : Icc (a + ε / 2) (b - ε / 2) ∩ Ioi 0 = Icc (a + ε / 2) (b - ε / 2) := inter_eq_left.mpr l5
+    have l7 : ∫ y in Ioi 0, indicator (Icc (a + ε / 2) (b - ε / 2)) 1 y = b - a - ε := by
+      simp [l6] ; convert ENNReal.toReal_ofReal l4 using 3 ; ring
+    have l8 : IntegrableOn ψ (Ioi 0) volume := (h1.continuous.integrable_of_hasCompactSupport h2).integrableOn
+    rw [← l7] ; apply set_integral_mono ?_ l8 h3
+    rw [IntegrableOn, integrable_indicator_iff measurableSet_Icc]
+    apply IntegrableOn.mono ?_ subset_rfl Measure.restrict_le_self
+    apply integrableOn_const.mpr
+    simp
 
 /-%%
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
@@ -1779,10 +1803,8 @@ Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
 -- variable (hpos: ∀ n, 0 ≤ f n)
 
-lemma WienerIkeharaInterval (ha: 0 < a) (hb: a < b) :
-    Tendsto (fun x : ℝ ↦ ∑' n, f n / n * (indicator (Icc a b) 1 (n / x)) / x - A * (b - a)) atTop (nhds 0) := by
-
-
+lemma WienerIkeharaInterval {f : ℕ → ℝ} (ha: 0 < a) (hb: a < b) :
+    Tendsto (fun x : ℝ ↦ ∑' n, f n / n * (indicator (Icc a b) 1 (n / x)) / x) atTop (nhds (A * (b - a))) := by
   sorry
 
 /-%%
@@ -1803,10 +1825,17 @@ $$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
 function whose L-series has a simple pole at `s = 1` with residue `A` and otherwise extends
 continuously to the closed half-plane `re s ≥ 1`, then `∑ n < N, f n` is asymptotic to `A*N`. -/
 
-theorem WienerIkeharaTheorem' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ → ℂ} (hf : ∀ n, 0 ≤ f n)
+theorem WienerIkeharaTheorem' {f : ℕ → ℝ} {A : ℝ} {F : ℂ → ℂ} (hf : ∀ n, 0 ≤ f n)
     (hF : Set.EqOn F (fun s ↦ LSeries (fun n => f n) s - A / (s - 1)) {s | 1 < s.re})
     (hF' : ContinuousOn F {s | 1 ≤ s.re}) :
-    Tendsto (fun N : ℕ ↦ ((Finset.range N).sum f) / N) atTop (nhds A) := by
+    Tendsto (fun N => cumsum f N / N) atTop (nhds A) := by
+
+  let I ε : Set ℝ := Icc ε 1
+  let ψ ε t : ℝ := indicator (I ε) 1 t
+
+  have l1 (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1) : False := by
+    have := @WienerIkeharaInterval A ε 1 f hε hε'
+
   sorry
 
 /-%%
