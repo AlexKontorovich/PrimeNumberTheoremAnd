@@ -193,8 +193,7 @@ lemma interval_induction (P : ℝ → ℝ → Prop)
   \]
 \end{lemma}
 %%-/
-/-- ** Partial summation ** (TODO : Add to Mathlib).
-  Note: Need to finish proof of `sum_eq_int_deriv_aux2` -/
+/-- ** Partial summation ** (TODO : Add to Mathlib). -/
 
 -- stupid lemma -- what's the better way to do this?
 lemma add_two {a b c d : ℂ} (h : a = b) (h' : c = d) : a + c = b + d := by
