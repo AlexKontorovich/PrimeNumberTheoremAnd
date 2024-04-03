@@ -1706,7 +1706,7 @@ as $u \to \infty$.
 \end{corollary}
 %%-/
 
-lemma wiener_ikehara_smooth (hf0 : f 0 = 0) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
+lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
     (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     {Ψ: ℝ → ℂ} (hsmooth: ContDiff ℝ ⊤ Ψ) (hsupp: HasCompactSupport Ψ)
     (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
@@ -1732,7 +1732,7 @@ lemma wiener_ikehara_smooth (hf0 : f 0 = 0) (hf : ∀ (σ' : ℝ), 1 < σ' → S
       ∑' (n : ℕ), f n * Ψ (↑n / x) / x := by
     filter_upwards [eventually_gt_atTop 0] with x hx
     congr ; ext n
-    by_cases hn : n = 0 ; simp [hn, hf0]
+    by_cases hn : n = 0 ; simp [hn, (comp_exp_support0 hplus).self_of_nhds]
     rw [← l1 (by positivity)]
     have : (n : ℂ) ≠ 0 := by simpa using hn
     have : (x : ℂ) ≠ 0 := by simpa using hx.ne.symm
@@ -1818,28 +1818,6 @@ $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 %%-/
 
 theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (nhds 1) := by sorry
-
-/- Here is glue to go between `ℕ → ℝ` and `ArithmeticFunction ℝ`.
-
-  apply PNT_vonMangoldt ; intro f A F f_nonneg hF hF'
-
-  let ff : ArithmeticFunction ℝ := ⟨fun n => if n = 0 then 0 else f n, rfl⟩
-  have ff_nonneg n : 0 ≤ ff n := by by_cases hn : n = 0 <;> simp [ff, hn, f_nonneg n]
-  have l2 s i : term (fun n ↦ ↑(ff n)) s i =  term (fun n ↦ ↑(f n)) s i := by
-    by_cases hi : i = 0 <;> simp [term, hi, ff]
-  have l1 : LSeries (fun n ↦ ff n) = LSeries (fun n => f n) := by
-    ext s ; simp [LSeries, l2]
-  have l3 n (hn : 0 < n) : Finset.sum (Finset.range n) ff = (Finset.sum (Finset.range n) f) - f 0 := by
-    have : 0 ∈ Finset.range n := by simp [hn]
-    simp [Finset.sum_eq_sum_diff_singleton_add this, ff]
-    apply Finset.sum_congr rfl
-    intro i hi ; simp at hi ; simp [hi]
-  have l4 : ∀ᶠ n in atTop, Finset.sum (Finset.range n) ff / n = (Finset.sum (Finset.range n) f) / n - f 0 / n := by
-    filter_upwards [eventually_gt_atTop 0] with n hn
-    simp [l3 n hn, sub_div]
-  have l5 := @WienerIkeharaTheorem' ff A F ff_nonneg (by simpa [l1] using hF) hF'
-  simpa using l5.congr' l4 |>.add (tendsto_const_div_atTop_nhds_zero_nat (f 0))
--/
 
 /-%%
 \begin{proof}
