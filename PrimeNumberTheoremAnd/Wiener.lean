@@ -1753,7 +1753,7 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
 
 /-%%
 \begin{proof}
-\uses{bij,schwarz-id}
+\uses{bij,schwarz-id}\leanok
  By Lemma \ref{bij}, we can write
 $$ y \Psi(y) = \hat \psi( \frac{1}{2\pi} \log y )$$
 for all $y>0$ and some Schwartz function $\psi$.  Making this substitution, the claim is then equivalent after standard manipulations to
