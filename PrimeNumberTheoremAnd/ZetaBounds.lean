@@ -204,6 +204,11 @@ lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (h : a ≤ b) (
   (∑ n in Finset.Ioc a b, f n) + (∑ n in Finset.Ioc b c, f n) = ∑ n in Finset.Ioc a c, f n := by
   sorry
 
+theorem integrability_aux₀ {a b : ℝ} (a_lt_b : a < b) :
+    ∀ᵐ (x : ℝ) ∂MeasureTheory.Measure.restrict MeasureTheory.volume [[a, b]],
+      ‖(⌊x⌋ : ℂ)‖ ≤ b := by
+  sorry
+
 lemma integrability_aux₁ {a b : ℝ} (a_lt_b : a < b) :
     IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ)) MeasureTheory.volume a b := by
   rw [intervalIntegrable_iff']
@@ -211,10 +216,9 @@ lemma integrability_aux₁ {a b : ℝ} (a_lt_b : a < b) :
   · simp only [Real.volume_interval, ne_eq, ENNReal.ofReal_ne_top, not_false_eq_true]
   · apply Measurable.aestronglyMeasurable
     apply Measurable.comp
-    · exact fun ⦃t⦄ a ↦ trivial
+    · exact fun ⦃t⦄ _ ↦ trivial
     · exact Int.measurable_floor
-  · sorry
-
+  · exact integrability_aux₀ a_lt_b
 
 lemma integrability_aux₂ {a b : ℝ} :
     IntervalIntegrable (fun (x : ℝ) ↦ (1 : ℂ) / 2 - x) MeasureTheory.volume a b := by
