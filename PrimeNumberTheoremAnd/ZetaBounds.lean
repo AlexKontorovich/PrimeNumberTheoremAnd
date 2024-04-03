@@ -110,20 +110,23 @@ lemma sum_eq_int_deriv_aux1 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k
 \end{lemma}
 %%-/
 lemma sum_eq_int_deriv_aux {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k ≤ a) (a_lt_b : a < b)
-    (b_le_kpOne : b ≤ k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+    (b_le_kpOne : b ≤ k + 1) (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
+    (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
     ∑ n in Finset.Ioc ⌊a⌋ ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
       - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
   have fl_a_eq_k : ⌊a⌋ = k := Int.floor_eq_iff.mpr ⟨k_le_a, by linarith⟩
-  convert sum_eq_int_deriv_aux1 k_le_a a_lt_b b_le_kpOne φDiff using 2 <;> try {congr}
-  apply intervalIntegral.integral_congr_ae
-  have :  ∀ᵐ (x : ℝ) ∂MeasureTheory.volume, x ≠ b := by
-    convert Set.Countable.ae_not_mem (s := {b}) (by simp) (μ := MeasureTheory.volume) using 1
-  filter_upwards [this]
-  intro x x_ne_b hx
-  rw [Set.uIoc_of_le a_lt_b.le, Set.mem_Ioc] at hx
-  congr
-  exact Int.floor_eq_iff.mpr ⟨by linarith, by have := Ne.lt_of_le x_ne_b hx.2; linarith⟩
+  convert sum_eq_int_deriv_aux1 k_le_a a_lt_b b_le_kpOne φDiff derivφCont using 2
+  · rw [fl_a_eq_k]
+  · congr
+  · apply intervalIntegral.integral_congr_ae
+    have : ∀ᵐ (x : ℝ) ∂MeasureTheory.volume, x ≠ b := by
+      convert Set.Countable.ae_not_mem (s := {b}) (by simp) (μ := MeasureTheory.volume) using 1
+    filter_upwards [this]
+    intro x x_ne_b hx
+    rw [Set.uIoc_of_le a_lt_b.le, Set.mem_Ioc] at hx
+    congr
+    exact Int.floor_eq_iff.mpr ⟨by linarith, by have := Ne.lt_of_le x_ne_b hx.2; linarith⟩
 /-%%
 \begin{proof}\leanok
 Partial integration.
