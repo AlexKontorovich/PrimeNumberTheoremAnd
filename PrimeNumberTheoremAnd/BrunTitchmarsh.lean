@@ -19,7 +19,7 @@ open scoped Nat ArithmeticFunction BigOperators
 
 noncomputable section
 namespace BrunTitchmarsh
-#eval π 4
+
 /- Sifting primes ≤ z from the interval [x, x+y] -/
 def primeInterSieve (x y z : ℝ) (hz : 1 ≤ z): SelbergSieve := {
   support := Finset.Icc (Nat.ceil x) (Nat.floor (x+y))
