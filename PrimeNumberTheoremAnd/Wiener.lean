@@ -1407,6 +1407,16 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
   · have := (@hh_integrable 1 (1 / (2 * π)) 1 (by positivity) (by positivity) (by positivity))
     simpa using this.mono_set Ioi_subset_Ici_self
 
+lemma bound_sum_log0 {C : ℝ} (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
+    ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ C * (1 + ∫ t in Ioi 0, hh (1 / (2 * π)) t) := by
+
+  let f0 i := if i = 0 then 0 else f i
+  have l1 : chebyWith C f0 := by
+    intro n ; refine Finset.sum_le_sum (fun i _ => ?_) |>.trans (hf n)
+    by_cases hi : i = 0 <;> simp [hi, f0]
+  have l2 i : ‖f i‖ / i = ‖f0 i‖ / i := by by_cases hi : i = 0 <;> simp [hi, f0]
+  simp_rw [l2] ; apply bound_sum_log rfl l1 hx
+
 lemma bound_sum_log' {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx : 1 ≤ x) :
     ∑' i, ‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹ ≤ C * (1 + 2 * π ^ 2) := by
   simpa only [hh_integral'] using bound_sum_log hf0 hf hx
