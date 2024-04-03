@@ -1508,22 +1508,22 @@ which by Theorem \ref{SmoothExistence} is 1.
 %%-/
 
 -- Might need extra assumptions?
-lemma MeasureTheory.integrableOn_prod_iff' {α β E : Type*} [MeasurableSpace α] [MeasurableSpace β]
+lemma MeasureTheory.integrableOn_prod_iff_mpr {α β E : Type*} [MeasurableSpace α] [MeasurableSpace β]
     {μ : Measure α} {ν : Measure β} [SigmaFinite μ] [SigmaFinite ν]
     {s : Set α} {t : Set β}
     ⦃f : α × β → E⦄ [NormedAddCommGroup E]
     (h1f : AEStronglyMeasurable f ((μ.restrict s).prod (ν.restrict t))) :
-    IntegrableOn f (s ×ˢ t) (μ.prod ν) ↔
-      (∀ᵐ y ∂ν, IntegrableOn (fun x => f (x, y)) s μ) ∧
-        IntegrableOn (fun y => ∫ x, ‖f (x, y)‖ ∂μ) t ν := by
-  have := @integrable_prod_iff' (μ := μ.restrict s) (ν := ν.restrict t) (E := E)
-    (α := α) (β := β) _ _ _ _ _ (f := f) ?_
-  · simp [IntegrableOn]
-    convert this using 2
-    · simp [Measure.prod_restrict]
-    · sorry
-    · sorry
-  · exact h1f
+    (∀ᵐ y ∂ν, IntegrableOn (fun x => f (x, y)) s μ) ∧
+        IntegrableOn (fun y => ∫ x, ‖f (x, y)‖ ∂μ) t ν
+        → IntegrableOn f (s ×ˢ t) (μ.prod ν) := by
+  have := (@integrable_prod_iff' (μ := μ.restrict s) (ν := ν.restrict t) (E := E)
+    (α := α) (β := β) _ _ _ _ _ (f := f) h1f).mpr
+  simp only [Measure.prod_restrict, and_imp] at this
+  simp only [IntegrableOn, and_imp]
+  intro h1 h2
+  apply this; clear this
+  · apply MeasureTheory.ae_restrict_of_ae h1
+  · sorry
 
 /-%%
 Combining the above, we have the following three Main Lemmata of this section on the Mellin
@@ -1599,7 +1599,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
     have : volume.restrict (Tx ×ˢ Ty) = (volume.restrict Tx).prod (volume.restrict Ty):= by
       rw [Measure.prod_restrict, ← Measure.volume_eq_prod]
     rw [this]
-    apply (integrableOn_prod_iff' ?_).mpr
+    apply MeasureTheory.integrableOn_prod_iff_mpr ?_
     swap
     · suffices h : AEStronglyMeasurable F' (Measure.prod (Measure.restrict
           (Measure.restrict volume Tx) Tx) (Measure.restrict (Measure.restrict volume Ty) Ty)) by
