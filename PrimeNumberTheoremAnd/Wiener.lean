@@ -1791,6 +1791,43 @@ lemma interval_approx_inf (ha : 0 < a) (hab : a < b) :
     apply integrableOn_const.mpr
     simp
 
+lemma interval_approx_inf' (ha : 0 < a) (hab : a < b) {ε : ℝ} (hε : 0 < ε) :
+    ∃ ψ : ℝ → ℝ, ContDiff ℝ ⊤ ψ ∧ HasCompactSupport ψ ∧ closure (Function.support ψ) ⊆ Set.Ioi 0 ∧
+      0 ≤ ψ ∧ ψ ≤ indicator (Ioo a b) 1 ∧ b - a - ε ≤ ∫ y in Ioi 0, ψ y := by
+  have l1 : ∀ᶠ η in 𝓝[>] 0, η < ε := nhdsWithin_le_nhds <| Iio_mem_nhds hε
+  obtain ⟨η, hη, l2⟩ := (l1.and <| interval_approx_inf ha hab).exists ; peel l2 ; linarith
+
+lemma interval_approx_sup (ha : 0 < a) (hab : a < b) :
+    ∀ᶠ ε in 𝓝[>] 0, ∃ ψ : ℝ → ℝ, ContDiff ℝ ⊤ ψ ∧ HasCompactSupport ψ ∧ closure (Function.support ψ) ⊆ Set.Ioi 0 ∧
+      indicator (Icc a b) 1 ≤ ψ ∧ ∫ y in Ioi 0, ψ y ≤ b - a + ε := by
+
+  have l1 : Iio (a / 2) ∈ 𝓝[>] 0 := nhdsWithin_le_nhds <| Iio_mem_nhds (by linarith)
+  filter_upwards [self_mem_nhdsWithin, l1] with ε (hε : 0 < ε) (hε' : ε < a / 2)
+  have l2 : a - ε / 2 < a := by linarith
+  have l3 : b < b + ε / 2 := by linarith
+  obtain ⟨ψ, h1, h2, h3, h4, h5⟩ := smooth_urysohn_support_Ioo l2 l3
+  refine ⟨ψ, h1, h2, ?_, h3, ?_⟩
+  · have l4 : a - ε / 2 < b + ε / 2 := by linarith
+    have l5 : ε / 2 < a := by linarith
+    simp [h5, l4.ne, Icc_subset_Ioi_iff l4.le, l5]
+  · have l4 : 0 ≤ b - a + ε := by linarith
+    have l5 : Ioo (a - ε / 2) (b + ε / 2) ⊆ Ioi 0 := by intro t ht ; simp at ht ⊢ ; linarith
+    have l6 : Ioo (a - ε / 2) (b + ε / 2) ∩ Ioi 0 = Ioo (a - ε / 2) (b + ε / 2) := inter_eq_left.mpr l5
+    have l7 : ∫ y in Ioi 0, indicator (Ioo (a - ε / 2) (b + ε / 2)) 1 y = b - a + ε := by
+      simp [l6] ; convert ENNReal.toReal_ofReal l4 using 3 ; ring
+    have l8 : IntegrableOn ψ (Ioi 0) volume := (h1.continuous.integrable_of_hasCompactSupport h2).integrableOn
+    rw [← l7] ; refine set_integral_mono l8 ?_ h4
+    rw [IntegrableOn, integrable_indicator_iff measurableSet_Ioo]
+    apply IntegrableOn.mono ?_ subset_rfl Measure.restrict_le_self
+    apply integrableOn_const.mpr
+    simp
+
+lemma interval_approx_sup' (ha : 0 < a) (hab : a < b) {ε : ℝ} (hε : 0 < ε) :
+    ∃ ψ : ℝ → ℝ, ContDiff ℝ ⊤ ψ ∧ HasCompactSupport ψ ∧ closure (Function.support ψ) ⊆ Set.Ioi 0 ∧
+      indicator (Icc a b) 1 ≤ ψ ∧ ∫ y in Ioi 0, ψ y ≤ b - a + ε := by
+  have l1 : ∀ᶠ η in 𝓝[>] 0, η < ε := nhdsWithin_le_nhds <| Iio_mem_nhds hε
+  obtain ⟨η, hη, l2⟩ := (l1.and <| interval_approx_sup ha hab).exists ; peel l2 ; linarith
+
 /-%%
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
