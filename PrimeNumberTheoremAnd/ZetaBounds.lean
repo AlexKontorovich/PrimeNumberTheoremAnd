@@ -14,10 +14,12 @@ import PrimeNumberTheoremAnd.PerronFormula
 
 open BigOperators Complex Topology Filter Interval
 
+-- No longer used
 theorem ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContDiffOn ℝ 1 φ s) {x : ℝ}
     (x_in_s : s ∈ nhds x) : HasDerivAt φ (deriv φ x) x :=
   (ContDiffAt.hasStrictDerivAt (φDiff.contDiffAt x_in_s) (by simp)).hasDerivAt
 
+-- No longer used
 theorem ContDiffOn.continuousOn_deriv {φ : ℝ → ℂ} {a b : ℝ}
     (φDiff : ContDiffOn ℝ 1 φ (Set.uIoo a b)) :
     ContinuousOn (deriv φ) (Set.uIoo a b) := by
@@ -30,32 +32,23 @@ theorem LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ
   have := this.const_mul (c := a)
   convert this using 1; simp
 
-lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b) (c : ℂ)
-    (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
+lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (c : ℂ)
+    (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
+    (derivφCont : ContinuousOn (deriv φ) [[a, b]]):
     ∫ (x : ℝ) in a..b, (c - x) * deriv φ x =
       (c - b) * φ b - (c - a) * φ a + ∫ (x : ℝ) in a..b, φ x := by
-  set v' := deriv φ
-  set v := φ
   set u := fun (x : ℝ) ↦ c - x
   set u' := fun (x : ℝ) ↦ (-1 : ℂ)
   have hu : ∀ x ∈ Set.uIcc a b, HasDerivAt u (u' x) x := by
-    intros x hx
+    intros x _
     convert LinearDerivative_ofReal x (-1 : ℂ) c; ring
-  have hv : ∀ x ∈ Set.uIcc a b, HasDerivAt v (v' x) x := by
-    refine fun x hx ↦ φDiff.hasDeriv_deriv ?_
-    --- argh, what if x=a or b :( Need to somehow replace `uIcc` with `uIoo`
-    sorry
   have hu' : IntervalIntegrable u' MeasureTheory.volume a b := by
     apply Continuous.intervalIntegrable
     continuity
-  have hv' : IntervalIntegrable v' MeasureTheory.volume a b := by
-    apply ContinuousOn.intervalIntegrable
-    -- same problem, need to replace `uIcc` with `uIoo`
-    --have := φDiff.continuousOn_deriv
-    --convert ContDiffOn.continuousOn_deriv
-    sorry
-  convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu hv hu' hv' using 1
-  simp [v, u]
+  have hv' : IntervalIntegrable (deriv φ) MeasureTheory.volume a b :=
+    derivφCont.intervalIntegrable
+  convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu φDiff hu' hv' using 1
+  simp [u]
 
 lemma sum_eq_int_deriv_aux_eq {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (a_lt_b : a < b)
     (b_eq_kpOne : b = k + 1) (φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b)) :
@@ -326,7 +319,7 @@ lemma ZetaSum_aux1a_aux2 {a b : ℝ} {c : ℝ} (apos : 0 < a) (a_lt_b : a < b)
   have : (a ^ (-c) - b ^ (-c)) / c = (b ^ (-c) - a ^ (-c)) / (-c) := by
     ring
   rw [this]
-  have : -c-1 ≠ -1 := by 
+  have : -c-1 ≠ -1 := by
     simp only [ne_eq, sub_eq_neg_self, neg_eq_zero]
     exact h.1
   have : -c-1 ≠ -1 ∧ 0 ∉ [[a, b]] := ⟨ this, h.2 ⟩
@@ -338,7 +331,7 @@ lemma ZetaSum_aux1a_aux2 {a b : ℝ} {c : ℝ} (apos : 0 < a) (a_lt_b : a < b)
   simp only
   have : x > 0 := by
     exact ZetaSum_aux1a_aux1 apos a_lt_b h
-  rw [ZetaSum_aux1a_aux2a this]   
+  rw [ZetaSum_aux1a_aux2a this]
   congr
   ring
 
@@ -346,7 +339,7 @@ lemma ZetaSum_aux1a_aux3a (x : ℝ) : -(1/2) < ⌊ x ⌋ + 1/2 - x := by
   have : 0 < (⌊ x ⌋ + 1) - x := by
     exact sub_pos_of_lt (Int.lt_floor_add_one x)
   calc
-    _ = -1/2 := by norm_num                   
+    _ = -1/2 := by norm_num
     _ < -1/2 + ((⌊ x ⌋ + 1) - x) := lt_add_of_pos_right (-1/2) this
     _ = _ := by ring
 
@@ -489,11 +482,11 @@ lemma ZetaSum_aux1a {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos
     Complex.abs (∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) ≤
       (a ^ (-s.re) - b ^ (-s.re)) / s.re := by
   calc
-    _ ≤ ∫ x in a..b, Complex.abs ((⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) := 
-        intervalIntegral.norm_integral_le_integral_norm (μ := MeasureTheory.volume) 
+    _ ≤ ∫ x in a..b, Complex.abs ((⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) :=
+        intervalIntegral.norm_integral_le_integral_norm (μ := MeasureTheory.volume)
           (a := a) (b := b) (f := λ x => (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) (le_of_lt a_lt_b)
-    _ = ∫ x in a..b, |(⌊x⌋ + 1 / 2 - x)| / x^((s+1).re) := by 
-      exact ZetaSum_aux1a_aux4 apos a_lt_b      
+    _ = ∫ x in a..b, |(⌊x⌋ + 1 / 2 - x)| / x^((s+1).re) := by
+      exact ZetaSum_aux1a_aux4 apos a_lt_b
     _ = ∫ x in a..b, |(⌊x⌋ + 1 / 2 - x)| / x^(s.re + 1) := by rfl
     _ ≤ ∫ x in a..b, 1 / x^(s.re + 1) := by
       exact ZetaSum_aux1a_aux5 apos a_lt_b σpos
