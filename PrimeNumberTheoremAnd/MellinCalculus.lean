@@ -1589,70 +1589,66 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
       exact h <| Tsub hx
     · exact Function.support_subset_iff'.mp Fsupp x hx
 
-  have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by sorry
-    -- apply IntegrableOn.congr_fun (f := F') ?int ?eq (by simp [measurableSet_prod])
-    -- swap; sorry
-    -- -- swap; simp [F']; intro z hz; aesop
-    -- apply (integrableOn_iff_integrable_of_support_subset Fsupp).mp
-    -- rw [F'piecewise]
-    -- apply Integrable.piecewise (by simp [T, Tx, Ty, measurableSet_prod]) ?_ integrableOn_zero
-    -- simp_rw [Measure.restrict_restrict_of_subset Tsub, T]
-    -- have : volume.restrict (Tx ×ˢ Ty) = (volume.restrict Tx).prod (volume.restrict Ty):= by
-    --   rw [Measure.prod_restrict, ← Measure.volume_eq_prod]
-    -- rw [this]
-    -- apply (integrableOn_prod_iff' ?_).mpr
-    -- swap
-    -- · suffices h : AEStronglyMeasurable F' (Measure.prod (Measure.restrict
-    --       (Measure.restrict volume Tx) Tx) (Measure.restrict (Measure.restrict volume Ty) Ty)) by
-    --     sorry
-    --   rw [F'piecewise]
-    --   apply AEStronglyMeasurable.piecewise (s := T) (by simp [T, Tx, Ty, measurableSet_prod])
-    --   · apply ContinuousOn.aestronglyMeasurable
-    --     simp only [DeltaSpike, one_div, ofReal_div, mul_ite, mul_one, mul_zero, F, f, g, T, Tx, Ty]
-    --     apply ContinuousOn.mul
-    --     · suffices h : ContinuousOn (fun ⟨x, y⟩ ↦ (Ψ (y ^ ε⁻¹)) / ε) T by
-    --         sorry
-    --       apply ContinuousOn.div_const ?_
-    --       apply ContinuousOn.comp (g := fun x ↦ Ψ x) (t := (fun x ↦ x.2 ^ ε⁻¹) '' T) ?_
-    --       · sorry
-    --       · apply mapsTo_image
-    --       · exact diffΨ.continuous.continuousOn
-    --     · apply ContinuousOn.cpow_const
-    --       · exact (Continuous.comp continuous_ofReal continuous_fst).continuousOn
-    --       · simp only [mem_prod, mem_Ioc, mem_Icc, ofReal_mem_slitPlane, and_imp, Prod.forall]
-    --         exact fun _ _ h1 _ _ _ => h1
-    --     · simp [T, Tx, Ty, measurableSet_prod]
-    --   · exact aestronglyMeasurable_zero
-    -- constructor
-    -- · apply eventually_iff_exists_mem.mpr
-    --   use {y : ℝ | y ≠ 0}
-    --   -- this might be a wrong filter
-    --   constructor
-    --   · simp [mem_ae_iff]
-    --     rw [measure_zero_iff_ae_nmem]
-    --     sorry
-    --   · intro y hy; simp only [mem_setOf_eq] at hy
-    --     simp only [F, f, g, mem_prod, mem_Ioi, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair]
-    --     apply Integrable.bdd_mul
-    --     any_goals rw [Measure.restrict_restrict_of_subset <| subset_rfl]
-    --     · replace := (intervalIntegral.integrableOn_Ioo_cpow_iff (t := ((2 : ℝ) ^ ε))
-    --       (s := s - 1) (by apply rpow_pos_of_pos (by norm_num))).mpr (by simpa)
-    --       simp only [Tx]
-    --       sorry
-    --       -- times out
-    --       -- apply IntegrableOn.restrict (h := this) (hs := sorry) (s := Tx)
-    --       -- replace := this.restrict (s := Tx) ?_
-    --     · apply ContinuousOn.aestronglyMeasurable ?_ (by simp [Tx])
-    --       sorry
-    --     · use ‖(DeltaSpike Ψ ε y / y)‖
-    --       intro x
-    --       by_cases h : 0 < x / y ∧ x / y ≤ 1 <;> simp [h]
-    --       apply div_nonneg <;> apply abs_nonneg
-    -- · apply ContinuousOn.integrableOn_compact isCompact_Icc
-    --   -- this seems to be wrong
-    --   apply continuousOn_integral_of_compact_support (k := Ty) isCompact_Icc
-    --   · sorry
-    --   · sorry
+  have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
+    apply IntegrableOn.congr_fun (f := F') ?int ?eq (by simp [measurableSet_prod])
+    swap; simp [F']; intro z hz; aesop
+    apply (integrableOn_iff_integrable_of_support_subset Fsupp).mp
+    rw [F'piecewise]
+    apply Integrable.piecewise (by simp [T, Tx, Ty, measurableSet_prod]) ?_ integrableOn_zero
+    simp_rw [Measure.restrict_restrict_of_subset Tsub, T]
+    have : volume.restrict (Tx ×ˢ Ty) = (volume.restrict Tx).prod (volume.restrict Ty):= by
+      rw [Measure.prod_restrict, ← Measure.volume_eq_prod]
+    rw [this]
+    apply (integrableOn_prod_iff' ?_).mpr
+    swap
+    · suffices h : AEStronglyMeasurable F' (Measure.prod (Measure.restrict
+          (Measure.restrict volume Tx) Tx) (Measure.restrict (Measure.restrict volume Ty) Ty)) by
+        sorry
+      rw [F'piecewise]
+      apply AEStronglyMeasurable.piecewise (s := T) (by simp [T, Tx, Ty, measurableSet_prod])
+      · apply ContinuousOn.aestronglyMeasurable
+        simp only [DeltaSpike, one_div, ofReal_div, mul_ite, mul_one, mul_zero, F, f, g, T, Tx, Ty]
+        apply ContinuousOn.mul
+        · suffices h : ContinuousOn (fun ⟨x, y⟩ ↦ (Ψ (y ^ ε⁻¹)) / ε) T by
+            sorry
+          apply ContinuousOn.div_const ?_
+          apply ContinuousOn.comp (g := fun x ↦ Ψ x) (t := (fun x ↦ x.2 ^ ε⁻¹) '' T) ?_
+          · sorry
+          · apply mapsTo_image
+          · exact diffΨ.continuous.continuousOn
+        · apply ContinuousOn.cpow_const
+          · exact (Continuous.comp continuous_ofReal continuous_fst).continuousOn
+          · simp only [mem_prod, mem_Ioc, mem_Icc, ofReal_mem_slitPlane, and_imp, Prod.forall]
+            exact fun _ _ h1 _ _ _ => h1
+        · simp [T, Tx, Ty, measurableSet_prod]
+      · exact aestronglyMeasurable_zero
+    constructor
+    · apply eventually_iff_exists_mem.mpr
+      use {y : ℝ | y ≠ 0}
+      -- this might be a wrong filter
+      constructor
+      · have : {0} ∩ Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε) = ∅ := by
+          rw [@singleton_inter_eq_empty, mem_Icc, not_and]
+          exact fun _ => by linarith [(by apply rpow_pos_of_pos; norm_num : 0 < (2 : ℝ) ^ (-ε))]
+        simp [mem_ae_iff, this]
+      · intro y hy; simp only [mem_setOf_eq] at hy
+        simp only [F, f, g, mem_prod, mem_Ioi, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair]
+        apply Integrable.bdd_mul
+        any_goals rw [Measure.restrict_restrict_of_subset <| subset_rfl]
+        · replace := (intervalIntegral.integrableOn_Ioo_cpow_iff (t := ((2 : ℝ) ^ ε))
+          (s := s - 1) (by apply rpow_pos_of_pos (by norm_num))).mpr (by simpa)
+          exact integrableOn_Ioc_iff_integrableOn_Ioo.mpr this
+        · apply ContinuousOn.aestronglyMeasurable ?_ (by simp [Tx])
+          sorry
+        · use ‖(DeltaSpike Ψ ε y / y)‖
+          intro x
+          by_cases h : 0 < x / y ∧ x / y ≤ 1 <;> simp [h]
+          apply div_nonneg <;> apply abs_nonneg
+    · apply ContinuousOn.integrableOn_compact isCompact_Icc
+      -- this seems to be wrong
+      apply continuousOn_integral_of_compact_support (k := Ty) isCompact_Icc
+      · sorry
+      · sorry
 
   have : MellinTransform (MellinConvolution g f) s = MellinTransform g s * MellinTransform f s := by
     rw [mul_comm, ← MellinConvolutionTransform f g s int_F]
