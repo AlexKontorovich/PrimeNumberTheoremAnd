@@ -306,17 +306,20 @@ theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
 \end{lemma}
 %%-/
 lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (a_lt_b : a < b) :
-    ∑ n in Finset.Icc (a + 1) b, 1 / (n : ℂ)^s =
+    ∑ n in Finset.Ioc (a : ℤ) b, 1 / (n : ℂ)^s =
     (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) + (b ^ (-s) - a ^ (-s)) / 2
       + s * ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
-  let φ := fun (x : ℝ) ↦ (x : ℂ) ^ (-s)
+  let φ := fun (x : ℝ) ↦ 1 / (x : ℂ) ^ s
   let φ' := fun (x : ℝ) ↦ -s / (x : ℂ)^(s + 1)
-  have φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x := by sorry
+  have φDiff : ∀ x ∈ [[(a : ℝ), b]], HasDerivAt φ (deriv φ x) x := by sorry
   have derivφCont : ContinuousOn (deriv φ) [[a, b]] := by sorry
-  have := sum_eq_int_deriv (by exact_mod_cast a_lt_b) φDiff derivφCont
-  -- convert sum_eq_int_deriv (by exact_mod_cast a_lt_b) φDiff using 1
-  -- · sorry
-  -- · sorry
+  have : (a : ℝ) < (b : ℝ) := by exact_mod_cast a_lt_b
+  convert sum_eq_int_deriv this φDiff derivφCont using 1
+  · congr
+    · simp only [Int.floor_natCast]
+    · simp only [Int.floor_natCast]
+  · rw [Int.floor_natCast, Int.floor_natCast]
+
   sorry
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv}
