@@ -1589,6 +1589,9 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
       exact h <| Tsub hx
     · exact Function.support_subset_iff'.mp Fsupp x hx
 
+  have F'piecewise' : F' = piecewise (Ioi 0 ×ˢ Ioi 0) F (fun _ => 0) := by
+    ext x; simp only [piecewise]
+
   have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
     apply IntegrableOn.congr_fun (f := F') ?int ?eq (by simp [measurableSet_prod])
     swap; simp [F']; intro z hz; aesop
@@ -1600,13 +1603,16 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
       rw [Measure.prod_restrict, ← Measure.volume_eq_prod]
     rw [this]
     apply MeasureTheory.integrableOn_prod_iff_mpr ?_
-    swap
-    · suffices h : AEStronglyMeasurable F' (Measure.prod (Measure.restrict
-          (Measure.restrict volume Tx) Tx) (Measure.restrict (Measure.restrict volume Ty) Ty)) by
+    -- measurability part
+    swap; rw [Measure.prod_restrict, ← this, Measure.restrict_restrict_of_subset subset_rfl]
+    · suffices h : AEStronglyMeasurable F' (Measure.restrict volume (Tx ×ˢ Ty)) by
+        rw [F'piecewise'] at h
+        apply MeasureTheory.AEStronglyMeasurable.congr h
         sorry
       rw [F'piecewise]
       apply AEStronglyMeasurable.piecewise (s := T) (by simp [T, Tx, Ty, measurableSet_prod])
-      · apply ContinuousOn.aestronglyMeasurable
+      ·
+        apply ContinuousOn.aestronglyMeasurable
         simp only [DeltaSpike, one_div, ofReal_div, mul_ite, mul_one, mul_zero, F, f, g, T, Tx, Ty]
         apply ContinuousOn.mul
         · suffices h : ContinuousOn (fun ⟨x, y⟩ ↦ (Ψ (y ^ ε⁻¹)) / ε) T by
@@ -1622,6 +1628,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
             exact fun _ _ h1 _ _ _ => h1
         · simp [T, Tx, Ty, measurableSet_prod]
       · exact aestronglyMeasurable_zero
+    -- integrability part
     constructor
     · apply eventually_iff_exists_mem.mpr
       use {y : ℝ | y ≠ 0}
