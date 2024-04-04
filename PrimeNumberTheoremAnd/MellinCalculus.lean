@@ -722,14 +722,14 @@ $$
 
 attribute [- simp] one_div in
 
-lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
+lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ⊤ Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
     Ψ.support ⊆ Icc (1 / 2) 2 ∧ ∫ x in Ici 0, Ψ x / x = 1 := by
-  suffices h : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
+  suffices h : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ⊤ Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
       Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, Ψ x / x by
     rcases h with ⟨Ψ, hΨ, hΨnonneg, hΨsupp, hΨpos⟩
     let c := (∫ x in Ici 0, Ψ x / x)
     use fun y => Ψ y / c
-    refine ⟨fun n => (hΨ n).div_const c, fun y => div_nonneg (hΨnonneg y) (le_of_lt hΨpos), ?_, ?_⟩
+    refine ⟨hΨ.div_const c, fun y => div_nonneg (hΨnonneg y) (le_of_lt hΨpos), ?_, ?_⟩
     · rw [Function.support_div, Function.support_const (ne_of_lt hΨpos).symm, inter_univ]
       convert hΨsupp
     · simp only [div_right_comm _ c _, integral_div c, div_self <| ne_of_gt hΨpos]
@@ -770,7 +770,7 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (∀ n, ContDiff ℝ n Ψ) ∧ (
         apply subset_trans (by apply inter_subset_left) Ioo_subset_Icc_self
       apply (integrableOn_iff_integrable_of_support_subset this).mp
       apply ContinuousOn.integrableOn_compact isCompact_Icc
-      apply ContinuousOn.div (contDiff_zero.mp <| hΨContDiff 0).continuousOn continuousOn_id ?_
+      apply ContinuousOn.div hΨContDiff.continuous.continuousOn continuousOn_id ?_
       simp only [mem_Icc, ne_eq, and_imp, id_eq]
       intros
       linarith
