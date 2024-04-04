@@ -1570,21 +1570,33 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
       intro ⟨x, y⟩ hz
       simp [piecewise, hz]
       by_cases hS : ⟨x, y⟩ ∈ S
-      · have : 0 < x / y ∧ x / y ≤ 1 := by sorry
+      · have : 0 < x / y ∧ x / y ≤ 1 := by
+          simp only [mem_prod, mem_Ioi, mem_setOf_eq, S] at hz hS
+          constructor
+          · apply div_pos hz.1 hz.2
+          · exact (div_le_one hz.2).mpr hS.2.1
         simp [hS, this]
-      · have : ¬ (0 < x / y ∧ x / y ≤ 1) := by sorry
-        simp [hS, this]
+      · simp only [hS, ↓reduceIte]
+        simp only [mem_prod, mem_Ioi, mem_setOf_eq, not_and, not_le, S] at hz hS ⊢
+        by_cases hxy : x / y ≤ 1
+        · simp only [gt_iff_lt, hz, div_pos_iff_of_pos_left, hxy, and_self, ↓reduceIte,
+          zero_eq_mul, div_eq_zero_iff, ofReal_eq_zero, cpow_eq_zero_iff, ne_eq]
+          left; left;
+          apply DeltaSpikeSupport εpos hz.2.le suppΨ
+          simp only [mem_Icc, not_and, not_le]
+          exact hS hz.1 <| (div_le_one hz.2).mp hxy
+        · simp [hxy]
     · apply Integrable.piecewise Smeas ?_ integrableOn_zero
       simp only [IntegrableOn, Measure.restrict_restrict_of_subset SsubI]
       clear F F' f' g
       have meas_le : volume.restrict S ≤ volume.restrict (Tx ×ˢ Ty) := by
-        -- have := MeasureTheory.Measure.restrict_apply_superset SsubT
-        sorry
+        exact MeasureTheory.Measure.restrict_mono' (HasSubset.Subset.eventuallyLE SsubT) le_rfl
       apply MeasureTheory.Integrable.mono_measure ?_ meas_le
       have : volume.restrict (Tx ×ˢ Ty) = (volume.restrict Tx).prod (volume.restrict Ty) := by
         rw [Measure.prod_restrict, MeasureTheory.Measure.volume_eq_prod]
       rw [this]
-      replace : (fun (⟨x, y⟩ : ℝ × ℝ) ↦ f y * (x : ℂ) ^ (s - 1)) = (fun ⟨x, y⟩ ↦ ↑x ^ (s - 1) * f y) := by sorry
+      replace : (fun (⟨x, y⟩ : ℝ × ℝ) ↦ f y * (x : ℂ) ^ (s - 1)) =
+                (fun ⟨x, y⟩ ↦ ↑x ^ (s - 1) * f y) := by ext; ring
       rw [this]; clear this
       simp only
       apply MeasureTheory.Integrable.prod_mul (f := fun x ↦ (x : ℂ) ^ (s - 1)) (μ := Measure.restrict volume Tx)
