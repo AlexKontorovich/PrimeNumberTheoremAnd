@@ -1772,8 +1772,9 @@ local instance {E : Type*} : Coe (E → ℝ) (E → ℂ) := ⟨fun f n => f n⟩
 theorem set_integral_ofReal {f : ℝ → ℝ} {s : Set ℝ} : ∫ x in s, (f x : ℂ) = ∫ x in s, f x :=
   integral_ofReal
 
-lemma wiener_ikehara_smooth_real {f : ℕ → ℝ} {Ψ : ℝ → ℝ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
-    (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+lemma wiener_ikehara_smooth_real {f : ℕ → ℝ} {Ψ : ℝ → ℝ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
+    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     (hsmooth: ContDiff ℝ ⊤ Ψ) (hsupp: HasCompactSupport Ψ) (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
     Tendsto (fun x : ℝ ↦ (∑' n, f n * Ψ (n / x)) / x) atTop (nhds (A * ∫ y in Set.Ioi 0, Ψ y)) := by
 
@@ -1847,7 +1848,8 @@ lemma interval_approx_sup' (ha : 0 < a) (hab : a < b) {ε : ℝ} (hε : 0 < ε) 
 lemma WH_summable {f : ℕ → ℝ} {g : ℝ → ℝ} (hg : HasCompactSupport g) (hx : 0 < x) :
     Summable (fun n => f n * g (n / x)) := by
   obtain ⟨M, hM⟩ := hg.bddAbove.mono subset_closure
-  apply summable_of_finite_support ; simp ; apply Finite.inter_of_right ; rw [finite_iff_bddAbove]
+  apply summable_of_finite_support
+  simp ; apply Finite.inter_of_right ; rw [finite_iff_bddAbove]
   exact ⟨Nat.ceil (M * x), fun i hi => by simpa using Nat.ceil_mono ((div_le_iff hx).mp (hM hi))⟩
 
 lemma WH_sum_le {f : ℕ → ℝ} {g₁ g₂ : ℝ → ℝ} (hf : 0 ≤ f) (hg : g₁ ≤ g₂) (hx : 0 < x)
@@ -1855,6 +1857,30 @@ lemma WH_sum_le {f : ℕ → ℝ} {g₁ g₂ : ℝ → ℝ} (hf : 0 ≤ f) (hg :
     (∑' n, f n * g₁ (n / x)) / x ≤ (∑' n, f n * g₂ (n / x)) / x := by
   apply div_le_div_of_nonneg_right ?_ hx.le
   exact tsum_le_tsum (fun n => mul_le_mul_of_nonneg_left (hg _) (hf _)) (WH_summable hg₁ hx) (WH_summable hg₂ hx)
+
+lemma WH_sum_Iab_le {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : chebyWith C f) (hb : 0 < b) (hxb : 2 / b < x) :
+    (∑' n, f n * indicator (Icc a b) 1 (n / x)) / x ≤ C * 2 * b := by
+  have hb' : 0 < 2 / b := by positivity
+  have hx : 0 < x := by linarith
+  have hxb' : 2 < x * b := (div_lt_iff hb).mp hxb
+  have l1 (i : ℕ) (hi : i ∉ Finset.range ⌈b * x + 1⌉₊) : f i * indicator (Icc a b) 1 (i / x) = 0 := by
+    simp at hi ⊢ ; right ; rintro - ; rw [lt_div_iff hx] ; linarith
+  have l2 (i : ℕ) (_ : i ∈ Finset.range ⌈b * x + 1⌉₊) : f i * indicator (Icc a b) 1 (i / x) ≤ |f i| := by
+    rw [abs_eq_self.mpr (hpos _)]
+    convert_to _ ≤ f i * 1 ; ring
+    apply mul_le_mul_of_nonneg_left ?_ (hpos _)
+    by_cases hi : (i / x) ∈ (Icc a b) <;> simp [hi]
+  rw [tsum_eq_sum l1, div_le_iff hx, mul_assoc, mul_assoc]
+  apply Finset.sum_le_sum l2 |>.trans
+  have := hcheby ⌈b * x + 1⌉₊ ; simp at this ; apply this.trans
+  have : 0 ≤ C := by have := hcheby 1 ; simp [cumsum] at this ; exact (abs_nonneg _).trans this
+  refine mul_le_mul_of_nonneg_left ?_ this
+  apply (Nat.ceil_lt_add_one (by positivity)).le.trans
+  linarith
+
+lemma WH_sum_Iab_le' {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : chebyWith C f) (hb : 0 < b) :
+    ∀ᶠ x : ℝ in atTop, (∑' n, f n * indicator (Icc a b) 1 (n / x)) / x ≤ C * 2 * b := by
+  filter_upwards [eventually_gt_atTop (2 / b)] with x hx using WH_sum_Iab_le hpos hcheby hb hx
 
 /-%%
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
@@ -1868,9 +1894,9 @@ Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
 -- variable (hpos: ∀ n, 0 ≤ f n)
 
-lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
-    (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
-    (ha: 0 < a) (hb: a < b) :
+lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
+    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha: 0 < a) (hb: a < b) :
     Tendsto (fun x : ℝ ↦ (∑' n, f n * (indicator (Icc a b) 1 (n / x))) / x) atTop (nhds (A * (b - a))) := by
 
   have hA : 0 ≤ A := sorry
@@ -1890,20 +1916,23 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
   have Iab_nonneg : ∀ᶠ x : ℝ in atTop, 0 ≤ S Iab x := hSnonneg (indicator_nonneg (by simp))
 
   have Iab1 : IsCoboundedUnder (· ≤ ·) atTop (S Iab) := isCoboundedUnder_le_of_eventually_le _ Iab_nonneg
-  have Iab2 : IsBoundedUnder (fun x x_1 ↦ x ≤ x_1) atTop (S Iab) := sorry
-  have Iab3 : IsBoundedUnder (fun x x_1 ↦ x ≥ x_1) atTop (S Iab) := sorry
+  have Iab2 : IsBoundedUnder (· ≤ ·) atTop (S Iab) := by
+    obtain ⟨C, hC⟩ := hcheby ; exact ⟨C * 2 * b, WH_sum_Iab_le' hpos hC (by linarith)⟩
+  have Iab3 : IsBoundedUnder (· ≥ ·) atTop (S Iab) := ⟨0, Iab_nonneg⟩
 
   have l_sup : ∀ᶠ ε in 𝓝[>] 0, limsup (S Iab) atTop ≤ A * (b - a + ε) := by
-    filter_upwards [interval_approx_sup ha hb] with ε ⟨ψ, h1, h2, h3, h4, hε⟩
+    filter_upwards [interval_approx_sup ha hb] with ε ⟨ψ, h1, h2, h3, h4, h6⟩
     have l1 : Tendsto (S ψ) atTop _ := wiener_ikehara_smooth_real hf hcheby hG hG' h1 h2 h3
-    have l2 (x : ℝ) (hx : 0 < x) : S Iab x ≤ S ψ x := WH_sum_le hpos h4 hx hIab h2
-    have l6 : S Iab ≤ᶠ[atTop] S ψ := by filter_upwards [eventually_gt_atTop 0] with x hx using l2 x hx
+    have l6 : S Iab ≤ᶠ[atTop] S ψ := by
+      filter_upwards [eventually_gt_atTop 0] with x hx using WH_sum_le hpos h4 hx hIab h2
     have l5 : IsBoundedUnder (· ≤ ·) atTop (S ψ) := l1.isBoundedUnder_le
     have l3 : limsup (S Iab) atTop ≤ limsup (S ψ) atTop := limsup_le_limsup l6 Iab1 l5
     apply l3.trans ; rw [l1.limsup_eq] ; gcongr
   have l_sup' : limsup (S Iab) atTop ≤ A * (b - a) := sorry
 
   have l_inf : ∀ᶠ ε in 𝓝[>] 0, A * (b - a - ε) ≤ liminf (S Iab) atTop := by
+    filter_upwards [interval_approx_inf ha hb] with ε ⟨ψ, h1, h2, h3, h4, h5, h6⟩
+    have l1 : Tendsto (S ψ) atTop _ := wiener_ikehara_smooth_real hf hcheby hG hG' h1 h2 h3
     sorry
   have l_inf' : A * (b - a) ≤ liminf (S Iab) atTop := sorry
 
