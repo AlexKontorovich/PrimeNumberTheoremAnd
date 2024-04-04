@@ -350,6 +350,11 @@ theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
 \end{proof}
 %%-/
 
+lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_lt_b : a < b) :
+    (∫ (x : ℝ) in a..b, 1 / (x : ℂ) ^ s) =
+    (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) := by
+  sorry
+
 /-%%
 \begin{lemma}[ZetaSum_aux1]\label{ZetaSum_aux1}\lean{ZetaSum_aux1}\leanok
   Let $0 < a < b$ be natural numbers and $s\in \C$ with $s \ne 1$.
@@ -360,8 +365,8 @@ theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
 \end{lemma}
 %%-/
 lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_lt_b : a < b) :
-    ∑ n in Finset.Ioc (a : ℤ) b, 1 / (n : ℂ)^s =
-    (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) + (b ^ (-s) - a ^ (-s)) / 2
+    ∑ n in Finset.Ioc (a : ℤ) b, 1 / (n : ℂ) ^ s =
+    (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / b ^ (s)) - 1 / 2 * (1 / a ^ s)
       + s * ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
   let φ := fun (x : ℝ) ↦ 1 / (x : ℂ) ^ s
   let φ' := fun (x : ℝ) ↦ -s / (x : ℂ)^(s + 1)
@@ -374,9 +379,19 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_
     · simp only [Int.floor_natCast]
   · rw [Int.floor_natCast, Int.floor_natCast, ← intervalIntegral.integral_const_mul]
     simp_rw [mul_div, mul_comm s _, ← mul_div]
-
-
-    sorry
+    rw [ZetaSum_aux1₁ s_ne_one apos a_lt_b]
+    set int1 := ∫ (x : ℝ) in (a : ℝ)..b, ((⌊x⌋ : ℂ) + 1 / 2 - x) * deriv φ x
+    rw [sub_eq_add_neg (b := int1)]
+    set int2 := ∫ (x : ℝ) in a..b, (⌊x⌋ + 1 / 2 - x) * (s / ↑x ^ (s + 1))
+    have : int2 = - int1 := by sorry
+    rw [this]
+    norm_cast
+    set term1 := (b + 1 / 2 - b) * φ b
+    set term2 := (a + 1 / 2 - a) * φ a
+    have : term1 = 1 / 2 * (1 / b ^ s) := by sorry
+    rw [this]
+    have : term2 = 1 / 2 * (1 / a ^ s) := by sorry
+    rw [this]
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv}
   Apply Lemma \ref{sum_eq_int_deriv} to the function $x \mapsto x^{-s}$.
