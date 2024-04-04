@@ -32,6 +32,7 @@ theorem LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ
   have := this.const_mul (c := a)
   convert this using 1; simp
 
+-- No longer used
 section
 -- from Floris van Doorn
 
@@ -350,10 +351,32 @@ theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
 \end{proof}
 %%-/
 
+lemma one_div_cpow_eq {s : ℂ} {x : ℝ} (xpos : 0 < x) :
+    1 / (x : ℂ) ^ s = (x : ℂ) ^ (-s) := by
+  sorry
+
 lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_lt_b : a < b) :
     (∫ (x : ℝ) in a..b, 1 / (x : ℂ) ^ s) =
     (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) := by
-  sorry
+  convert integral_cpow (a := a) (b := b) (r := -s) ?_ using 1
+  · apply intervalIntegral.integral_congr
+    intro x hx
+    simp only
+    apply one_div_cpow_eq
+    rw [Set.uIcc_of_le (by exact_mod_cast a_lt_b.le), Set.mem_Icc] at hx
+    have : (0 : ℝ) < a := by exact_mod_cast apos
+    linarith
+  · norm_cast
+    rw [(by ring : -s + 1 = 1 - s)]
+  · right; refine ⟨?_, ?_⟩
+    · intro hs
+      have : s = 1 := neg_inj.mp hs
+      exact s_ne_one this
+    · rw [Set.uIcc_of_le (by exact_mod_cast a_lt_b.le), Set.mem_Icc]
+      push_neg
+      intro ha
+      norm_cast at ha ⊢
+      linarith
 
 /-%%
 \begin{lemma}[ZetaSum_aux1]\label{ZetaSum_aux1}\lean{ZetaSum_aux1}\leanok
