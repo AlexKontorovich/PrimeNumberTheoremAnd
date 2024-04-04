@@ -14,6 +14,13 @@ import PrimeNumberTheoremAnd.PerronFormula
 
 open BigOperators Complex Topology Filter Interval
 
+lemma Complex.one_div_cpow_eq {s : ℂ} {x : ℝ} (xpos : 0 < x) :
+    1 / (x : ℂ) ^ s = (x : ℂ) ^ (-s) := by
+  refine (eq_one_div_of_mul_eq_one_left ?_).symm
+  rw [← Complex.cpow_add]
+  simp only [add_left_neg, Complex.cpow_zero]
+  exact_mod_cast xpos.ne'
+
 -- No longer used
 theorem ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContDiffOn ℝ 1 φ s) {x : ℝ}
     (x_in_s : s ∈ nhds x) : HasDerivAt φ (deriv φ x) x :=
@@ -350,10 +357,6 @@ theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
   Apply Lemma \ref{sum_eq_int_deriv_aux} in blocks of length $\le 1$.
 \end{proof}
 %%-/
-
-lemma one_div_cpow_eq {s : ℂ} {x : ℝ} (xpos : 0 < x) :
-    1 / (x : ℂ) ^ s = (x : ℂ) ^ (-s) := by
-  sorry
 
 lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_lt_b : a < b) :
     (∫ (x : ℝ) in a..b, 1 / (x : ℂ) ^ s) =
