@@ -372,7 +372,9 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_
   · congr
     · simp only [Int.floor_natCast]
     · simp only [Int.floor_natCast]
-  · rw [Int.floor_natCast, Int.floor_natCast]
+  · rw [Int.floor_natCast, Int.floor_natCast, ← intervalIntegral.integral_const_mul]
+    simp_rw [mul_div, mul_comm s _, ← mul_div]
+
 
     sorry
 /-%%
