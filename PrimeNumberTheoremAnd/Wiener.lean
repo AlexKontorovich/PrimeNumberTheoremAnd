@@ -2096,7 +2096,18 @@ $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 \end{theorem}
 %%-/
 
-theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (nhds 1) := by sorry
+-- Proof extracted from the `EulerProducts` project so we can adapt it to the
+-- version of the Wiener-Ikehara theorem proved above (with the `cheby`
+-- hypothesis)
+
+theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (nhds 1) := by
+  have hnv := riemannZeta_ne_zero_of_one_le_re
+  have l1 (n : ℕ) : 0 ≤ Λ n := vonMangoldt_nonneg
+  have l2 s (hs : 1 < s.re) : (-deriv ζ₁ / ζ₁) s = LSeries Λ s - 1 / (s - 1) := by
+    have hs₁ : s ≠ 1 := by contrapose! hs ; simp [hs]
+    simp [LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs, neg_logDeriv_ζ₁_eq hs₁ (hnv hs₁ hs.le)]
+  have l3 : ContinuousOn (-deriv ζ₁ / ζ₁) {s | 1 ≤ s.re} := continuousOn_neg_logDeriv_ζ₁.mono (by tauto)
+  exact WienerIkeharaTheorem' l1 l2 l3
 
 /-%%
 \begin{proof}
