@@ -1846,20 +1846,20 @@ lemma interval_approx_sup' (ha : 0 < a) (hab : a < b) {ε : ℝ} (hε : 0 < ε) 
   have l1 : ∀ᶠ η in 𝓝[>] 0, η < ε := nhdsWithin_le_nhds <| Iio_mem_nhds hε
   obtain ⟨η, hη, l2⟩ := (l1.and <| interval_approx_sup ha hab).exists ; peel l2 ; linarith
 
-lemma WH_summable {f : ℕ → ℝ} {g : ℝ → ℝ} (hg : HasCompactSupport g) (hx : 0 < x) :
+lemma WI_summable {f : ℕ → ℝ} {g : ℝ → ℝ} (hg : HasCompactSupport g) (hx : 0 < x) :
     Summable (fun n => f n * g (n / x)) := by
   obtain ⟨M, hM⟩ := hg.bddAbove.mono subset_closure
   apply summable_of_finite_support
   simp ; apply Finite.inter_of_right ; rw [finite_iff_bddAbove]
   exact ⟨Nat.ceil (M * x), fun i hi => by simpa using Nat.ceil_mono ((div_le_iff hx).mp (hM hi))⟩
 
-lemma WH_sum_le {f : ℕ → ℝ} {g₁ g₂ : ℝ → ℝ} (hf : 0 ≤ f) (hg : g₁ ≤ g₂) (hx : 0 < x)
+lemma WI_sum_le {f : ℕ → ℝ} {g₁ g₂ : ℝ → ℝ} (hf : 0 ≤ f) (hg : g₁ ≤ g₂) (hx : 0 < x)
     (hg₁ : HasCompactSupport g₁) (hg₂ : HasCompactSupport g₂) :
     (∑' n, f n * g₁ (n / x)) / x ≤ (∑' n, f n * g₂ (n / x)) / x := by
   apply div_le_div_of_nonneg_right ?_ hx.le
-  exact tsum_le_tsum (fun n => mul_le_mul_of_nonneg_left (hg _) (hf _)) (WH_summable hg₁ hx) (WH_summable hg₂ hx)
+  exact tsum_le_tsum (fun n => mul_le_mul_of_nonneg_left (hg _) (hf _)) (WI_summable hg₁ hx) (WI_summable hg₂ hx)
 
-lemma WH_sum_Iab_le {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : chebyWith C f) (hb : 0 < b) (hxb : 2 / b < x) :
+lemma WI_sum_Iab_le {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : chebyWith C f) (hb : 0 < b) (hxb : 2 / b < x) :
     (∑' n, f n * indicator (Icc a b) 1 (n / x)) / x ≤ C * 2 * b := by
   have hb' : 0 < 2 / b := by positivity
   have hx : 0 < x := by linarith
@@ -1879,9 +1879,9 @@ lemma WH_sum_Iab_le {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : cheby
   apply (Nat.ceil_lt_add_one (by positivity)).le.trans
   linarith
 
-lemma WH_sum_Iab_le' {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : chebyWith C f) (hb : 0 < b) :
+lemma WI_sum_Iab_le' {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : chebyWith C f) (hb : 0 < b) :
     ∀ᶠ x : ℝ in atTop, (∑' n, f n * indicator (Icc a b) 1 (n / x)) / x ≤ C * 2 * b := by
-  filter_upwards [eventually_gt_atTop (2 / b)] with x hx using WH_sum_Iab_le hpos hcheby hb hx
+  filter_upwards [eventually_gt_atTop (2 / b)] with x hx using WI_sum_Iab_le hpos hcheby hb hx
 
 /-%%
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
@@ -1905,7 +1905,7 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
   let S (g : ℝ → ℝ) (x : ℝ) :=  (∑' n, f n * g (n / x)) / x
   have hS {g₁ g₂ : ℝ → ℝ} {x : ℝ} (hx : 0 < x) (h : g₁ ≤ g₂) (h₁ : HasCompactSupport g₁)
       (h₂ : HasCompactSupport g₂) : S g₁ x ≤ S g₂ x :=
-    WH_sum_le hpos h hx h₁ h₂
+    WI_sum_le hpos h hx h₁ h₂
   have hSnonneg {g : ℝ → ℝ} (hg : 0 ≤ g) : ∀ᶠ x : ℝ in atTop, 0 ≤ S g x := by
     filter_upwards [eventually_ge_atTop 0] with x hx
     refine div_nonneg ?_ hx
@@ -1916,17 +1916,17 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
   have hIab : HasCompactSupport Iab := by simpa [Iab, HasCompactSupport, tsupport] using isCompact_Icc
   have Iab_nonneg : ∀ᶠ x : ℝ in atTop, 0 ≤ S Iab x := hSnonneg (indicator_nonneg (by simp))
 
-  have Iab0 : IsCoboundedUnder (fun x x_1 ↦ x ≥ x_1) atTop (S Iab) := sorry
-  have Iab1 : IsCoboundedUnder (· ≤ ·) atTop (S Iab) := isCoboundedUnder_le_of_eventually_le _ Iab_nonneg
   have Iab2 : IsBoundedUnder (· ≤ ·) atTop (S Iab) := by
-    obtain ⟨C, hC⟩ := hcheby ; exact ⟨C * 2 * b, WH_sum_Iab_le' hpos hC (by linarith)⟩
+    obtain ⟨C, hC⟩ := hcheby ; exact ⟨C * 2 * b, WI_sum_Iab_le' hpos hC (by linarith)⟩
   have Iab3 : IsBoundedUnder (· ≥ ·) atTop (S Iab) := ⟨0, Iab_nonneg⟩
+  have Iab0 : IsCoboundedUnder (· ≥ ·) atTop (S Iab) := Iab2.isCoboundedUnder_ge
+  have Iab1 : IsCoboundedUnder (· ≤ ·) atTop (S Iab) := Iab3.isCoboundedUnder_le
 
   have l_sup : ∀ᶠ ε in 𝓝[>] 0, limsup (S Iab) atTop ≤ A * (b - a + ε) := by
     filter_upwards [interval_approx_sup ha hb] with ε ⟨ψ, h1, h2, h3, h4, h6⟩
     have l1 : Tendsto (S ψ) atTop _ := wiener_ikehara_smooth_real hf hcheby hG hG' h1 h2 h3
     have l6 : S Iab ≤ᶠ[atTop] S ψ := by
-      filter_upwards [eventually_gt_atTop 0] with x hx using WH_sum_le hpos h4 hx hIab h2
+      filter_upwards [eventually_gt_atTop 0] with x hx using WI_sum_le hpos h4 hx hIab h2
     have l5 : IsBoundedUnder (· ≤ ·) atTop (S ψ) := l1.isBoundedUnder_le
     have l3 : limsup (S Iab) atTop ≤ limsup (S ψ) atTop := limsup_le_limsup l6 Iab1 l5
     apply l3.trans ; rw [l1.limsup_eq] ; gcongr
@@ -1936,7 +1936,7 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
     filter_upwards [interval_approx_inf ha hb] with ε ⟨ψ, h1, h2, h3, h4, h5, h6⟩
     have l1 : Tendsto (S ψ) atTop _ := wiener_ikehara_smooth_real hf hcheby hG hG' h1 h2 h3
     have l2 : S ψ ≤ᶠ[atTop] S Iab := by
-      filter_upwards [eventually_gt_atTop 0] with x hx using WH_sum_le hpos h5 hx h2 hIab
+      filter_upwards [eventually_gt_atTop 0] with x hx using WI_sum_le hpos h5 hx h2 hIab
     have l4 : IsBoundedUnder (· ≥ ·) atTop (S ψ) := l1.isBoundedUnder_ge
     have l3 : liminf (S ψ) atTop ≤ liminf (S Iab) atTop := liminf_le_liminf l2 l4 Iab0
     apply le_trans ?_ l3 ; rw [l1.liminf_eq] ; gcongr
