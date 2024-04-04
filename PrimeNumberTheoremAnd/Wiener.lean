@@ -1885,3 +1885,83 @@ theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (nhds 1) := by sorry
   Already done by Stoll, assuming Wiener-Ikehara.
 \end{proof}
 %%-/
+
+/-%%
+\section{Removing the Chebyshev hypothesis}
+
+In this section we do *not* assume bound \eqref{cheby}, but instead derive it from the other hypotheses.
+
+\begin{lemma}[Variant of limiting Fourier identity]\label{limiting-variant}\lean{limiting_fourier_variant}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, and $x \geq 1$, then
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
+\end{lemma}
+%%-/
+
+lemma limiting_fourier_variant (hpos: ∀ n, 0 ≤ (f n).re ∧ f n = 0) (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hψ : ContDiff ℝ 2 ψ) (hψpos : ∀ y, 0 ≤ (𝓕 ψ y).re ∧ (𝓕 ψ y).im = 0) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
+    ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
+      A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π)) =
+      ∫ (t : ℝ), (G (1 + t * I)) * (ψ t) * x ^ (t * I) := by sorry
+
+/-%%
+\begin{proof}
+\uses{first-fourier,second-fourier,decay}  Repeat the proof of Lemma ref{limiting-variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.)
+\end{proof}
+%%-/
+
+/-%%
+\begin{corollary}[Crude upper bound]\label{crude-upper}\lean{crude_upper_bound}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, then there exists a constant $B$ such that
+$$ |\sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )| \leq B$$
+for all $x \geq 1$.
+\end{corollary}
+%%-/
+
+lemma crude_upper_bound (hpos: ∀ n, 0 ≤ (f n).re ∧ (f n).im = 0) (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hψ : ContDiff ℝ 2 ψ) (hψpos : ∀ y, 0 ≤ (𝓕 ψ y).re ∧ (𝓕 ψ y).im = 0) (hsupp : HasCompactSupport ψ) : ∃ B : ℝ, ∀ x : ℝ, 0 < x → ‖ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x))‖ ≤  B := by sorry
+
+/-%%
+\begin{proof}
+\uses{limiting-variant} For $x \geq 1$, this readily follows from the previous lemma and the triangle inequality. For $x < 1$, only a bounded number of summands can contribute and the claim is trivial.
+\end{proof}
+%%-/
+
+/-%%
+\begin{corollary}[Automatic Chebyshev bound]\label{auto-cheby}\lean{auto_cheby}\leanok  One has
+$$ \sum_{n \leq x} f(n) = O(x)$$
+for all $x \geq 1$.
+\end{corollary}
+%%-/
+
+lemma auto_cheby (hpos: ∀ n, 0 ≤ (f n).re ∧ (f n).im = 0) (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+ : cheby f := by sorry
+
+/-%%
+\begin{proof}
+\uses{crude-upper-bound} For $x \geq 1$ apply the previous corollary for all $y < C x$ and $\psi$ chosen be both nonnegative and have nonnegative Fourier transform, while being not identically zero, and $C$ a large constant.  This gives
+$$ |\sum_{n=1}^\infty \frac{f(n)}{n} \int_0^{Cx} \hat \psi( \frac{1}{2\pi} \log \frac{n}{y} )\ dy| \leq CB x.$$
+But observe that the quantity $\int_0^{Cx} \hat \psi( \frac{1}{2\pi}$ is non-negative and equal to the positive constant $\int_{{\bf R}}
+\hat \psi( \frac{1}{2\pi} u ) e^u\ du$ if $n \leq x$ and $C$ is large enough.  The claim follows.
+\end{proof}
+%%-/
+
+/-%%
+\begin{corollary}[Wiener-Ikehara theorem, II]\label{WienerIkehara-alt}\lean{WienerIkeharaTheorem''}\leanok
+  We have
+$$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
+\end{corollary}
+%%-/
+
+
+theorem WienerIkeharaTheorem'' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ → ℂ} (hf : ∀ n, 0 ≤ f n)
+    (hF : Set.EqOn F (fun s ↦ LSeries (fun n => f n) s - A / (s - 1)) {s | 1 < s.re})
+    (hF' : ContinuousOn F {s | 1 ≤ s.re}) :
+    Tendsto (fun N : ℕ ↦ ((Finset.range N).sum f) / N) atTop (nhds A) := by
+  sorry
+
+/-%%
+\begin{proof}
+\uses{auto-cheby, WienerIkehara} Use Corollary \ref{auto-cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
+\end{proof}
+%%-/
