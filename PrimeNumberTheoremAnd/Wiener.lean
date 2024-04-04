@@ -1893,6 +1893,41 @@ lemma le_of_eventually_nhdsWithin {a b : ℝ} (h : ∀ᶠ c in 𝓝[>] b, a ≤ 
   obtain ⟨x, h1, h2⟩ := (h.and key).exists
   linarith
 
+lemma ge_of_eventually_nhdsWithin {a b : ℝ} (h : ∀ᶠ c in 𝓝[<] b, c ≤ a) : b ≤ a := by
+  apply le_of_forall_lt ; intro d hd
+  have key : ∀ᶠ c in 𝓝[<] b, c > d := by
+    apply eventually_of_mem (U := Ioi d) ?_ (fun x hx => hx)
+    rw [mem_nhdsWithin]
+    refine ⟨Ioi d, isOpen_Ioi, hd, inter_subset_left _ _⟩
+  obtain ⟨x, h1, h2⟩ := (h.and key).exists
+  linarith
+
+lemma WI_tendsto_aux (a b : ℝ) {A : ℝ} (hA : 0 < A) :
+    Tendsto (fun c => c / A - (b - a)) (𝓝[>] (A * (b - a))) (𝓝[>] 0) := by
+  rw [Metric.tendsto_nhdsWithin_nhdsWithin]
+  intro ε hε
+  refine ⟨A * ε, by positivity, ?_⟩
+  intro x hx1 hx2
+  constructor
+  · simpa [lt_div_iff' hA]
+  · simp [Real.dist_eq] at hx2 ⊢
+    have : |x / A - (b - a)| = |x - A * (b - a)| / A := by
+      rw [← abs_eq_self.mpr hA.le, ← abs_div, abs_eq_self.mpr hA.le] ; congr ; field_simp
+    rwa [this, div_lt_iff' hA]
+
+lemma WI_tendsto_aux' (a b : ℝ) {A : ℝ} (hA : 0 < A) :
+    Tendsto (fun c => (b - a) - c / A) (𝓝[<] (A * (b - a))) (𝓝[>] 0) := by
+  rw [Metric.tendsto_nhdsWithin_nhdsWithin]
+  intro ε hε
+  refine ⟨A * ε, by positivity, ?_⟩
+  intro x hx1 hx2
+  constructor
+  · simpa [div_lt_iff' hA]
+  · simp [Real.dist_eq] at hx2 ⊢
+    have : |(b - a) - x / A| = |A * (b - a) - x| / A := by
+      rw [← abs_eq_self.mpr hA.le, ← abs_div, abs_eq_self.mpr hA.le] ; congr ; field_simp ; ring
+    rwa [this, div_lt_iff' hA, ← neg_sub, abs_neg]
+
 /-%%
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
@@ -1942,18 +1977,7 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
     apply l3.trans ; rw [l1.limsup_eq] ; gcongr
   have l_sup' (hA0 : A ≠ 0) : ∀ᶠ x : ℝ in 𝓝[>] (A * (b - a)), limsup (S Iab) atTop ≤ x := by
     have key : 0 < A := lt_of_le_of_ne hA hA0.symm
-    have key' : Tendsto (fun c => c / A - (b - a)) (𝓝[>] (A * (b - a))) (𝓝[>] 0) := by
-      rw [Metric.tendsto_nhdsWithin_nhdsWithin]
-      intro ε hε
-      refine ⟨A * ε, by positivity, ?_⟩
-      intro x hx1 hx2
-      constructor
-      · simpa [lt_div_iff' key]
-      · simp [Real.dist_eq] at hx2 ⊢
-        have : |x / A - (b - a)| = |x - A * (b - a)| / A := by
-          rw [← abs_eq_self.mpr hA, ← abs_div, abs_eq_self.mpr hA] ; congr ; field_simp
-        rwa [this, div_lt_iff' key]
-    filter_upwards [key' l_sup] with x hx
+    filter_upwards [WI_tendsto_aux a b key l_sup] with x hx
     simp at hx ; convert hx ; field_simp ; ring
   have l_sup'' : limsup (S Iab) atTop ≤ A * (b - a) := by
     by_cases hA0 : A = 0 ; · simpa [hA0] using l_sup
@@ -1967,7 +1991,13 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
     have l4 : IsBoundedUnder (· ≥ ·) atTop (S ψ) := l1.isBoundedUnder_ge
     have l3 : liminf (S ψ) atTop ≤ liminf (S Iab) atTop := liminf_le_liminf l2 l4 Iab0
     apply le_trans ?_ l3 ; rw [l1.liminf_eq] ; gcongr
-  have l_inf' : A * (b - a) ≤ liminf (S Iab) atTop := sorry
+  have l_inf' (hA0 : A ≠ 0) : ∀ᶠ c in 𝓝[<] (A * (b - a)), c ≤ liminf (S Iab) atTop := by
+    have key : 0 < A := lt_of_le_of_ne hA hA0.symm
+    filter_upwards [WI_tendsto_aux' a b key l_inf] with x hx
+    simp at hx ; convert hx ; field_simp ; ring
+  have l_inf'' : A * (b - a) ≤ liminf (S Iab) atTop := by
+    by_cases hA0 : A = 0 ; · simpa [hA0] using l_inf
+    exact ge_of_eventually_nhdsWithin (l_inf' hA0)
 
   have : liminf (S Iab) atTop ≤ limsup (S Iab) atTop := liminf_le_limsup Iab2 Iab3
 
