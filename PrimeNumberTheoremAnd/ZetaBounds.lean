@@ -32,6 +32,30 @@ theorem LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ
   have := this.const_mul (c := a)
   convert this using 1; simp
 
+section
+-- from Floris van Doorn
+
+variable {A : Type*} [NormedRing A] [NormedAlgebra ℝ A] [CompleteSpace A] {a b : ℝ}
+
+set_option autoImplicit false in
+open BigOperators Interval Topology Set intervalIntegral MeasureTheory in
+theorem integral_deriv_mul_eq_sub' {u v u' v' : ℝ → A}
+    (hu : ∀ x ∈ [[a, b]], HasDerivWithinAt u (u' x) [[a, b]] x)
+    (hv : ∀ x ∈ [[a, b]], HasDerivWithinAt v (v' x) [[a, b]] x)
+    (hu' : IntervalIntegrable u' volume a b)
+    (hv' : IntervalIntegrable v' volume a b) :
+    ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a := by
+  have h2u : ContinuousOn u [[a, b]] :=
+    fun x hx ↦ (hu x hx).continuousWithinAt
+  have h2v : ContinuousOn v [[a, b]] :=
+    fun x hx ↦ (hv x hx).continuousWithinAt
+  apply integral_eq_sub_of_hasDeriv_right (h2u.mul h2v)
+  · exact fun x hx ↦ (hu x <| mem_Icc_of_Ioo hx).mul (hv x <| mem_Icc_of_Ioo hx) |>.hasDerivAt
+      (Icc_mem_nhds hx.1 hx.2) |>.hasDerivWithinAt
+  · exact (hu'.mul_continuousOn h2v).add (hv'.continuousOn_mul h2u)
+
+end
+
 lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (c : ℂ)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
     (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
@@ -204,14 +228,63 @@ lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (h : a ≤ b) (
   (∑ n in Finset.Ioc a b, f n) + (∑ n in Finset.Ioc b c, f n) = ∑ n in Finset.Ioc a c, f n := by
   sorry
 
+theorem integrability_aux₀ {a b : ℝ} (a_lt_b : a < b) :
+    ∀ᵐ (x : ℝ) ∂MeasureTheory.Measure.restrict MeasureTheory.volume [[a, b]],
+      ‖(⌊x⌋ : ℂ)‖ ≤ max ‖a‖ ‖b‖ + 1 := by
+  rw [MeasureTheory.ae_restrict_iff']
+  swap; · exact measurableSet_Icc
+  refine MeasureTheory.ae_of_all _ (fun x hx ↦ ?_)
+  rw [Set.uIcc_of_le a_lt_b.le, Set.mem_Icc] at hx
+  simp only [norm_int, Real.norm_eq_abs]
+  have : |x| ≤ max |a| |b| := by
+    rw [abs_le]
+    cases' abs_cases a with ha ha
+    · cases' abs_cases b with hb hb
+      · simp only [ha.1, hb.1, le_max_iff]
+        have : 0 ≤ max a b := by simp [ha.2, hb.2]
+        refine ⟨by linarith, by right; linarith⟩
+      · simp only [ha.1, hb.1, le_max_iff]
+        have : 0 ≤ max a (-b) := by simp [ha.2, hb.2]
+        refine ⟨by linarith, by linarith⟩
+    · cases' abs_cases b with hb hb
+      · simp only [ha.1, hb.1, ← min_neg_neg, neg_neg, min_le_iff, le_max_iff]
+        refine ⟨by left; exact hx.1, by right; exact hx.2⟩
+      · simp only [ha.1, hb.1, ← min_neg_neg, neg_neg, min_le_iff, le_max_iff]
+        refine ⟨by left; exact hx.1, by right; linarith⟩
+  have aux1 : ⌊x⌋ ≤ x := Int.floor_le x
+  have aux2 : x ≤ ⌊x⌋ + 1 := (Int.lt_floor_add_one x).le
+  cases' abs_cases x with hx hx
+  · have : (0 : ℝ) ≤ ⌊x⌋ := by
+      exact_mod_cast Int.floor_nonneg.mpr hx.2
+    rw [_root_.abs_of_nonneg this]
+    linarith
+  · have : (⌊x⌋ : ℝ) ≤ 0 := by
+      exact_mod_cast Int.floor_nonpos hx.2.le
+    rw [_root_.abs_of_nonpos this]
+    linarith
+
+lemma integrability_aux₁ {a b : ℝ} (a_lt_b : a < b) :
+    IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ)) MeasureTheory.volume a b := by
+  rw [intervalIntegrable_iff']
+  apply MeasureTheory.Measure.integrableOn_of_bounded (M := max ‖a‖ ‖b‖ + 1)
+  · simp only [Real.volume_interval, ne_eq, ENNReal.ofReal_ne_top, not_false_eq_true]
+  · apply Measurable.aestronglyMeasurable
+    apply Measurable.comp
+    · exact fun ⦃t⦄ _ ↦ trivial
+    · exact Int.measurable_floor
+  · exact integrability_aux₀ a_lt_b
+
+lemma integrability_aux₂ {a b : ℝ} :
+    IntervalIntegrable (fun (x : ℝ) ↦ (1 : ℂ) / 2 - x) MeasureTheory.volume a b := by
+  apply ContinuousOn.intervalIntegrable
+  apply Continuous.continuousOn
+  exact Continuous.sub continuous_const Complex.ofRealCLM.continuous
+
 lemma integrability_aux {a b : ℝ} (a_lt_b : a < b) :
-    IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ) + 1 / 2 - x) MeasureTheory.volume a b := sorry
+    IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ) + 1 / 2 - x) MeasureTheory.volume a b := by
+  convert (integrability_aux₁ a_lt_b).add integrability_aux₂ using 2; ring
 
-lemma ContinuousOn_derivWithin_of_deriv (φ : ℝ → ℂ) (a b : ℝ)
-    (h : ContinuousOn (deriv φ) (Set.uIcc a b)) :
-    ContinuousOn (derivWithin φ (Set.uIcc a b)) (Set.uIcc a b) := by sorry
-
-theorem sum_eq_int_deriv {φ : ℝ → ℂ} (a b : ℝ) (a_lt_b : a < b)
+theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
     (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
     ∑ n in Finset.Ioc ⌊a⌋ ⌊b⌋, φ n =
@@ -277,26 +350,48 @@ theorem sum_eq_int_deriv {φ : ℝ → ℂ} (a b : ℝ) (a_lt_b : a < b)
 \end{proof}
 %%-/
 
+lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_lt_b : a < b) :
+    (∫ (x : ℝ) in a..b, 1 / (x : ℂ) ^ s) =
+    (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) := by
+  sorry
+
 /-%%
 \begin{lemma}[ZetaSum_aux1]\label{ZetaSum_aux1}\lean{ZetaSum_aux1}\leanok
-  Let $a < b$ be natural numbers and $s\in \C$ with $s \ne 1$.
+  Let $0 < a < b$ be natural numbers and $s\in \C$ with $s \ne 1$.
   Then
   \[
   \sum_{a < n \le b} \frac{1}{n^s} =  \frac{b^{1-s} - a^{1-s}}{1-s} + \frac{b^{-s}-a^{-s}}{2} + s \int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx.
   \]
 \end{lemma}
 %%-/
-lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (a_lt_b : a < b) :
-    ∑ n in Finset.Icc (a + 1) b, 1 / (n : ℂ)^s =
-    (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) + (b ^ (-s) - a ^ (-s)) / 2
+lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_lt_b : a < b) :
+    ∑ n in Finset.Ioc (a : ℤ) b, 1 / (n : ℂ) ^ s =
+    (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / b ^ (s)) - 1 / 2 * (1 / a ^ s)
       + s * ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
-  let φ := fun (x : ℝ) ↦ (x : ℂ) ^ (-s)
+  let φ := fun (x : ℝ) ↦ 1 / (x : ℂ) ^ s
   let φ' := fun (x : ℝ) ↦ -s / (x : ℂ)^(s + 1)
-  have φDiff : ContDiffOn ℝ 1 φ (Set.Icc a b) := sorry
-  -- convert sum_eq_int_deriv (by exact_mod_cast a_lt_b) φDiff using 1
-  -- · sorry
-  -- · sorry
-  sorry
+  have φDiff : ∀ x ∈ [[(a : ℝ), b]], HasDerivAt φ (deriv φ x) x := by sorry
+  have derivφCont : ContinuousOn (deriv φ) [[a, b]] := by sorry
+  have : (a : ℝ) < (b : ℝ) := by exact_mod_cast a_lt_b
+  convert sum_eq_int_deriv this φDiff derivφCont using 1
+  · congr
+    · simp only [Int.floor_natCast]
+    · simp only [Int.floor_natCast]
+  · rw [Int.floor_natCast, Int.floor_natCast, ← intervalIntegral.integral_const_mul]
+    simp_rw [mul_div, mul_comm s _, ← mul_div]
+    rw [ZetaSum_aux1₁ s_ne_one apos a_lt_b]
+    set int1 := ∫ (x : ℝ) in (a : ℝ)..b, ((⌊x⌋ : ℂ) + 1 / 2 - x) * deriv φ x
+    rw [sub_eq_add_neg (b := int1)]
+    set int2 := ∫ (x : ℝ) in a..b, (⌊x⌋ + 1 / 2 - x) * (s / ↑x ^ (s + 1))
+    have : int2 = - int1 := by sorry
+    rw [this]
+    norm_cast
+    set term1 := (b + 1 / 2 - b) * φ b
+    set term2 := (a + 1 / 2 - a) * φ a
+    have : term1 = 1 / 2 * (1 / b ^ s) := by sorry
+    rw [this]
+    have : term2 = 1 / 2 * (1 / a ^ s) := by sorry
+    rw [this]
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv}
   Apply Lemma \ref{sum_eq_int_deriv} to the function $x \mapsto x^{-s}$.
