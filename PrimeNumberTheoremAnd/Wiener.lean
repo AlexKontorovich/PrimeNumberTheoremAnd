@@ -929,9 +929,8 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re})
   have l2 : S ⊆ {s : ℂ | 1 ≤ s.re} := fun z hz => (mem_reProdIm.mp hz).1.1
   have l3 : ContinuousOn (‖G ·‖) S := (hG.mono l2).norm
   have l4 : S.Nonempty := ⟨1 + a₀ * I, by simp [S, mem_reProdIm, ha₀]⟩
-  obtain ⟨z, hz, hmax⟩ := l1.exists_isMaxOn l4 l3
+  obtain ⟨z, -, hmax⟩ := l1.exists_isMaxOn l4 l3
   let MG := ‖G z‖
-  obtain ⟨Mψ, hMψ⟩ := hsupp.exists_bound_of_continuous hψ.continuous
   let bound (a : ℝ) : ℝ := MG * ‖ψ a‖
 
   apply tendsto_integral_filter_of_dominated_convergence (bound := bound)
@@ -1694,11 +1693,10 @@ theorem wiener_ikehara_smooth_sub (hsmooth : ContDiff ℝ ⊤ Ψ) (hsupp : HasCo
   have l4 : Disjoint (Ioc 0 x⁻¹) (Ioi x⁻¹) := by simp
   have l5 := Set.indicator_union_of_disjoint l4 Ψ
   rw [l3, l5] ; ring_nf
-  by_cases ht : t ∈ Ioc 0 x⁻¹
-  · simp [ht] ; apply hh ; simp at ht ⊢
-    have : |t| ≤ x⁻¹ := by rw [abs_le] ; constructor <;> linarith
-    linarith
-  · simp [ht]
+  by_cases ht : t ∈ Ioc 0 x⁻¹ <;> simp [ht]
+  apply hh ; simp at ht ⊢
+  have : |t| ≤ x⁻¹ := by rw [abs_le] ; constructor <;> linarith
+  linarith
 
 /-%%
 \begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
@@ -1846,6 +1844,18 @@ lemma interval_approx_sup' (ha : 0 < a) (hab : a < b) {ε : ℝ} (hε : 0 < ε) 
   have l1 : ∀ᶠ η in 𝓝[>] 0, η < ε := nhdsWithin_le_nhds <| Iio_mem_nhds hε
   obtain ⟨η, hη, l2⟩ := (l1.and <| interval_approx_sup ha hab).exists ; peel l2 ; linarith
 
+lemma WH_summable {f : ℕ → ℝ} {g : ℝ → ℝ} (hg : HasCompactSupport g) (hx : 0 < x) :
+    Summable (fun n => f n * g (n / x)) := by
+  obtain ⟨M, hM⟩ := hg.bddAbove.mono subset_closure
+  apply summable_of_finite_support ; simp ; apply Finite.inter_of_right ; rw [finite_iff_bddAbove]
+  exact ⟨Nat.ceil (M * x), fun i hi => by simpa using Nat.ceil_mono ((div_le_iff hx).mp (hM hi))⟩
+
+lemma WH_sum_le {f : ℕ → ℝ} {g₁ g₂ : ℝ → ℝ} (hf : 0 ≤ f) (hg : g₁ ≤ g₂) (hx : 0 < x)
+    (hg₁ : HasCompactSupport g₁) (hg₂ : HasCompactSupport g₂) :
+    (∑' n, f n * g₁ (n / x)) / x ≤ (∑' n, f n * g₂ (n / x)) / x := by
+  apply div_le_div_of_nonneg_right ?_ hx.le
+  exact tsum_le_tsum (fun n => mul_le_mul_of_nonneg_left (hg _) (hf _)) (WH_summable hg₁ hx) (WH_summable hg₂ hx)
+
 /-%%
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
@@ -1858,16 +1868,48 @@ Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
 -- variable (hpos: ∀ n, 0 ≤ f n)
 
-lemma WienerIkeharaInterval {f : ℕ → ℝ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
+lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
     (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     (ha: 0 < a) (hb: a < b) :
-    Tendsto (fun x : ℝ ↦ ∑' n, f n / n * (indicator (Icc a b) 1 (n / x)) / x) atTop (nhds (A * (b - a))) := by
+    Tendsto (fun x : ℝ ↦ (∑' n, f n * (indicator (Icc a b) 1 (n / x))) / x) atTop (nhds (A * (b - a))) := by
 
-  simp only [Metric.tendsto_nhds] ; intro ε hε
+  have hA : 0 ≤ A := sorry
 
-  obtain ⟨ϕ, hϕ1, hϕ2, hϕ3, hϕ4, hϕ5, hϕ6⟩ := interval_approx_inf' ha hb hε
-  have := @wiener_ikehara_smooth_real A G f ϕ hf hcheby hG hG' hϕ1 hϕ2 hϕ3
-  sorry
+  let S (g : ℝ → ℝ) (x : ℝ) :=  (∑' n, f n * g (n / x)) / x
+  have hS {g₁ g₂ : ℝ → ℝ} {x : ℝ} (hx : 0 < x) (h : g₁ ≤ g₂) (h₁ : HasCompactSupport g₁)
+      (h₂ : HasCompactSupport g₂) : S g₁ x ≤ S g₂ x :=
+    WH_sum_le hpos h hx h₁ h₂
+  have hSnonneg {g : ℝ → ℝ} (hg : 0 ≤ g) : ∀ᶠ x : ℝ in atTop, 0 ≤ S g x := by
+    filter_upwards [eventually_ge_atTop 0] with x hx
+    refine div_nonneg ?_ hx
+    refine tsum_nonneg (fun i => mul_nonneg (hpos _) (hg _))
+
+  let Iab : ℝ → ℝ := indicator (Icc a b) 1
+  change Tendsto (S Iab) atTop (𝓝 (A * (b - a)))
+  have hIab : HasCompactSupport Iab := by simpa [Iab, HasCompactSupport, tsupport] using isCompact_Icc
+  have Iab_nonneg : ∀ᶠ x : ℝ in atTop, 0 ≤ S Iab x := hSnonneg (indicator_nonneg (by simp))
+
+  have Iab1 : IsCoboundedUnder (· ≤ ·) atTop (S Iab) := isCoboundedUnder_le_of_eventually_le _ Iab_nonneg
+  have Iab2 : IsBoundedUnder (fun x x_1 ↦ x ≤ x_1) atTop (S Iab) := sorry
+  have Iab3 : IsBoundedUnder (fun x x_1 ↦ x ≥ x_1) atTop (S Iab) := sorry
+
+  have l_sup : ∀ᶠ ε in 𝓝[>] 0, limsup (S Iab) atTop ≤ A * (b - a + ε) := by
+    filter_upwards [interval_approx_sup ha hb] with ε ⟨ψ, h1, h2, h3, h4, hε⟩
+    have l1 : Tendsto (S ψ) atTop _ := wiener_ikehara_smooth_real hf hcheby hG hG' h1 h2 h3
+    have l2 (x : ℝ) (hx : 0 < x) : S Iab x ≤ S ψ x := WH_sum_le hpos h4 hx hIab h2
+    have l6 : S Iab ≤ᶠ[atTop] S ψ := by filter_upwards [eventually_gt_atTop 0] with x hx using l2 x hx
+    have l5 : IsBoundedUnder (· ≤ ·) atTop (S ψ) := l1.isBoundedUnder_le
+    have l3 : limsup (S Iab) atTop ≤ limsup (S ψ) atTop := limsup_le_limsup l6 Iab1 l5
+    apply l3.trans ; rw [l1.limsup_eq] ; gcongr
+  have l_sup' : limsup (S Iab) atTop ≤ A * (b - a) := sorry
+
+  have l_inf : ∀ᶠ ε in 𝓝[>] 0, A * (b - a - ε) ≤ liminf (S Iab) atTop := by
+    sorry
+  have l_inf' : A * (b - a) ≤ liminf (S Iab) atTop := sorry
+
+  have : liminf (S Iab) atTop ≤ limsup (S Iab) atTop := liminf_le_limsup Iab2 Iab3
+
+  refine tendsto_of_liminf_eq_limsup ?_ ?_ Iab2 Iab3 <;> linarith
 
 /-%%
 \begin{proof}
