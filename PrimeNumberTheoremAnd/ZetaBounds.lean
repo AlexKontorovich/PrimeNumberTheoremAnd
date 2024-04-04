@@ -32,6 +32,30 @@ theorem LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ
   have := this.const_mul (c := a)
   convert this using 1; simp
 
+section
+-- from Floris van Doorn
+
+variable {A : Type*} [NormedRing A] [NormedAlgebra ℝ A] [CompleteSpace A] {a b : ℝ}
+
+set_option autoImplicit false in
+open BigOperators Interval Topology Set intervalIntegral MeasureTheory in
+theorem integral_deriv_mul_eq_sub' {u v u' v' : ℝ → A}
+    (hu : ∀ x ∈ [[a, b]], HasDerivWithinAt u (u' x) [[a, b]] x)
+    (hv : ∀ x ∈ [[a, b]], HasDerivWithinAt v (v' x) [[a, b]] x)
+    (hu' : IntervalIntegrable u' volume a b)
+    (hv' : IntervalIntegrable v' volume a b) :
+    ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a := by
+  have h2u : ContinuousOn u [[a, b]] :=
+    fun x hx ↦ (hu x hx).continuousWithinAt
+  have h2v : ContinuousOn v [[a, b]] :=
+    fun x hx ↦ (hv x hx).continuousWithinAt
+  apply integral_eq_sub_of_hasDeriv_right (h2u.mul h2v)
+  · exact fun x hx ↦ (hu x <| mem_Icc_of_Ioo hx).mul (hv x <| mem_Icc_of_Ioo hx) |>.hasDerivAt
+      (Icc_mem_nhds hx.1 hx.2) |>.hasDerivWithinAt
+  · exact (hu'.mul_continuousOn h2v).add (hv'.continuousOn_mul h2u)
+
+end
+
 lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (c : ℂ)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
     (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
