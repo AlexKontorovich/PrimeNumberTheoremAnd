@@ -14,6 +14,18 @@ import PrimeNumberTheoremAnd.PerronFormula
 
 open BigOperators Complex Topology Filter Interval
 
+-- move near `Real.differentiableAt_rpow_const_of_ne`
+theorem Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (hx : x ≠ 0) :
+    DifferentiableAt ℝ (fun (x : ℝ) => (x : ℂ) ^ s) x := by
+  sorry
+
+lemma Complex.one_div_cpow_eq {s : ℂ} {x : ℝ} (x_ne : x ≠ 0) :
+    1 / (x : ℂ) ^ s = (x : ℂ) ^ (-s) := by
+  refine (eq_one_div_of_mul_eq_one_left ?_).symm
+  rw [← Complex.cpow_add]
+  simp only [add_left_neg, Complex.cpow_zero]
+  exact_mod_cast x_ne
+
 -- No longer used
 theorem ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContDiffOn ℝ 1 φ s) {x : ℝ}
     (x_in_s : s ∈ nhds x) : HasDerivAt φ (deriv φ x) x :=
@@ -32,6 +44,7 @@ theorem LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ
   have := this.const_mul (c := a)
   convert this using 1; simp
 
+-- No longer used
 section
 -- from Floris van Doorn
 
@@ -350,28 +363,119 @@ theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
 \end{proof}
 %%-/
 
+lemma xpos_of_uIcc {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) {x : ℝ} (x_in : x ∈ [[(a : ℝ), b]]) :
+    0 < x := by
+  rw [Set.uIcc_of_le (by exact_mod_cast a_lt_b.le), Set.mem_Icc] at x_in
+  have : (0 : ℝ) < a := by exact_mod_cast apos
+  linarith
+
+lemma neg_s_ne_neg_one {s : ℂ} (s_ne_one : s ≠ 1) : -s ≠ -1 := by
+  intro hs
+  have : s = 1 := neg_inj.mp hs
+  exact s_ne_one this
+
 lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_lt_b : a < b) :
     (∫ (x : ℝ) in a..b, 1 / (x : ℂ) ^ s) =
     (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) := by
-  sorry
+  convert integral_cpow (a := a) (b := b) (r := -s) ?_ using 1
+  · apply intervalIntegral.integral_congr
+    intro x hx
+    simp only
+    apply one_div_cpow_eq
+    exact (xpos_of_uIcc apos a_lt_b hx).ne'
+  · norm_cast
+    rw [(by ring : -s + 1 = 1 - s)]
+  · right; refine ⟨neg_s_ne_neg_one s_ne_one, ?_⟩
+    rw [Set.uIcc_of_le (by exact_mod_cast a_lt_b.le), Set.mem_Icc]
+    push_neg
+    intro ha
+    norm_cast at ha ⊢
+    linarith
+
+lemma ZetaSum_aux1φDiff {s : ℂ} {x : ℝ} (xpos : 0 < x) :
+    HasDerivAt (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x) x := by
+  apply hasDerivAt_deriv_iff.mpr
+  apply DifferentiableAt.div
+  · fun_prop
+  · exact Real.differentiableAt_cpow_const_of_ne s xpos.ne'
+  rw [Complex.cpow_def_of_ne_zero (by exact_mod_cast xpos.ne' : (x : ℂ) ≠ 0) s]
+  apply Complex.exp_ne_zero
+
+lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_zero : s ≠ 0) {x : ℝ} (xpos : 0 < x) :
+    deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x = (fun (x : ℝ) ↦ -s / (x : ℂ) ^ (s + 1)) x := by
+  let r := -s - 1
+  have s_eq : s = -r - 1 := by ring
+  have r_ne_neg1 : r ≠ -1 := by
+    intro hr
+    have : s = 0 := by
+      rw [hr] at s_eq
+      convert s_eq; ring
+    exact s_ne_zero this
+  have r_add1_ne_zero : r + 1 ≠ 0 := fun hr ↦ r_ne_neg1 (eq_neg_of_add_eq_zero_left hr)
+  have hasDeriv := hasDerivAt_ofReal_cpow xpos.ne' r_ne_neg1
+  have diffAt := hasDeriv.differentiableAt
+  have := deriv_const_mul (-s) diffAt
+  rw [hasDeriv.deriv] at this
+  convert this using 2
+  · ext y
+    by_cases y_zero : y = 0
+    · simp only [y_zero, ofReal_zero, ne_eq, s_ne_zero, not_false_eq_true, zero_cpow, div_zero,
+      r_add1_ne_zero, zero_div, mul_zero]
+    · have y_ne : (y : ℂ) ≠ 0 := by exact_mod_cast y_zero
+      have : (y : ℂ) ^ s ≠ 0 := by
+        intro hy
+        rw [Complex.cpow_eq_zero_iff] at hy
+        simp only [ofReal_eq_zero, ne_eq, s_ne_zero, not_false_eq_true, and_true] at hy
+        norm_cast at y_ne
+      field_simp
+      rw [s_eq, mul_assoc, ← Complex.cpow_add _ _ y_ne, (by ring : r + 1 + (-r - 1) = 0), Complex.cpow_zero]
+      ring
+  · simp only [neg_mul]
+    rw [div_eq_mul_inv, ← one_div, one_div_cpow_eq xpos.ne', s_eq]
+    ring_nf
+
+lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_zero : s ≠ 0) {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) :
+    ContinuousOn (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s)) [[a, b]] := by
+  have : Set.EqOn (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s)) (fun (t : ℝ) ↦ -s / (t : ℂ) ^ (s + 1)) [[(a : ℝ), b]] := by
+    intro x hx
+    have xpos : 0 < x := xpos_of_uIcc apos a_lt_b hx
+    exact ZetaSum_aux1φderiv s_ne_zero xpos
+  refine ContinuousOn.congr ?_ this
+  simp_rw [div_eq_mul_inv]
+  apply ContinuousOn.const_smul (c := -s)
+  apply ContinuousOn.inv₀
+  · apply ContinuousOn.cpow_const
+    · apply Continuous.continuousOn
+      fun_prop
+    · intro x hx
+      simp only [ofReal_mem_slitPlane]
+      exact xpos_of_uIcc apos a_lt_b hx
+  · intro x hx hx0
+    rw [Complex.cpow_eq_zero_iff] at hx0
+    have xzero := hx0.1
+    norm_num at xzero
+    have : 0 < x := xpos_of_uIcc apos a_lt_b hx
+    exact_mod_cast this.ne' xzero
 
 /-%%
 \begin{lemma}[ZetaSum_aux1]\label{ZetaSum_aux1}\lean{ZetaSum_aux1}\leanok
-  Let $0 < a < b$ be natural numbers and $s\in \C$ with $s \ne 1$.
+  Let $0 < a < b$ be natural numbers and $s\in \C$ with $s \ne 1$ and $s \ne 0$.
   Then
   \[
   \sum_{a < n \le b} \frac{1}{n^s} =  \frac{b^{1-s} - a^{1-s}}{1-s} + \frac{b^{-s}-a^{-s}}{2} + s \int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx.
   \]
 \end{lemma}
 %%-/
-lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_lt_b : a < b) :
+lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠ 0) (apos : 0 < a) (a_lt_b : a < b) :
     ∑ n in Finset.Ioc (a : ℤ) b, 1 / (n : ℂ) ^ s =
     (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / b ^ (s)) - 1 / 2 * (1 / a ^ s)
       + s * ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
   let φ := fun (x : ℝ) ↦ 1 / (x : ℂ) ^ s
-  let φ' := fun (x : ℝ) ↦ -s / (x : ℂ)^(s + 1)
-  have φDiff : ∀ x ∈ [[(a : ℝ), b]], HasDerivAt φ (deriv φ x) x := by sorry
-  have derivφCont : ContinuousOn (deriv φ) [[a, b]] := by sorry
+  let φ' := fun (x : ℝ) ↦ -s / (x : ℂ) ^ (s + 1)
+  have xpos : ∀ x ∈ [[(a : ℝ), b]], 0 < x := fun x hx ↦ xpos_of_uIcc apos a_lt_b hx
+  have φDiff : ∀ x ∈ [[(a : ℝ), b]], HasDerivAt φ (deriv φ x) x := fun x hx ↦ ZetaSum_aux1φDiff (xpos x hx)
+  have φderiv : ∀ x ∈ [[(a : ℝ), b]], deriv φ x = φ' x := fun x hx ↦ ZetaSum_aux1φderiv s_ne_zero (xpos x hx)
+  have derivφCont : ContinuousOn (deriv φ) [[a, b]] := ZetaSum_aux1derivφCont s_ne_zero apos a_lt_b
   have : (a : ℝ) < (b : ℝ) := by exact_mod_cast a_lt_b
   convert sum_eq_int_deriv this φDiff derivφCont using 1
   · congr
@@ -383,14 +487,23 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_
     set int1 := ∫ (x : ℝ) in (a : ℝ)..b, ((⌊x⌋ : ℂ) + 1 / 2 - x) * deriv φ x
     rw [sub_eq_add_neg (b := int1)]
     set int2 := ∫ (x : ℝ) in a..b, (⌊x⌋ + 1 / 2 - x) * (s / ↑x ^ (s + 1))
-    have : int2 = - int1 := by sorry
+    have : int2 = - int1 := by
+      rw [← intervalIntegral.integral_neg, intervalIntegral.integral_congr]
+      intro x hx
+      simp_rw [φderiv x hx]
+      simp only [φ']
+      ring
     rw [this]
     norm_cast
     set term1 := (b + 1 / 2 - b) * φ b
     set term2 := (a + 1 / 2 - a) * φ a
-    have : term1 = 1 / 2 * (1 / b ^ s) := by sorry
+    have : term1 = 1 / 2 * (1 / b ^ s) := by
+      ring_nf
+      congr
     rw [this]
-    have : term2 = 1 / 2 * (1 / a ^ s) := by sorry
+    have : term2 = 1 / 2 * (1 / a ^ s) := by
+      ring_nf
+      congr
     rw [this]
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv}
