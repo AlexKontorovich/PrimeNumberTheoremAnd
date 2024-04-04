@@ -371,6 +371,7 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_
   let φ := fun (x : ℝ) ↦ 1 / (x : ℂ) ^ s
   let φ' := fun (x : ℝ) ↦ -s / (x : ℂ)^(s + 1)
   have φDiff : ∀ x ∈ [[(a : ℝ), b]], HasDerivAt φ (deriv φ x) x := by sorry
+  have φderiv : ∀ x ∈ [[(a : ℝ), b]], deriv φ x = φ' x := by sorry
   have derivφCont : ContinuousOn (deriv φ) [[a, b]] := by sorry
   have : (a : ℝ) < (b : ℝ) := by exact_mod_cast a_lt_b
   convert sum_eq_int_deriv this φDiff derivφCont using 1
@@ -383,14 +384,23 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_
     set int1 := ∫ (x : ℝ) in (a : ℝ)..b, ((⌊x⌋ : ℂ) + 1 / 2 - x) * deriv φ x
     rw [sub_eq_add_neg (b := int1)]
     set int2 := ∫ (x : ℝ) in a..b, (⌊x⌋ + 1 / 2 - x) * (s / ↑x ^ (s + 1))
-    have : int2 = - int1 := by sorry
+    have : int2 = - int1 := by
+      rw [← intervalIntegral.integral_neg, intervalIntegral.integral_congr]
+      intro x hx
+      simp_rw [φderiv x hx]
+      simp only [φ']
+      ring
     rw [this]
     norm_cast
     set term1 := (b + 1 / 2 - b) * φ b
     set term2 := (a + 1 / 2 - a) * φ a
-    have : term1 = 1 / 2 * (1 / b ^ s) := by sorry
+    have : term1 = 1 / 2 * (1 / b ^ s) := by
+      ring_nf
+      congr
     rw [this]
-    have : term2 = 1 / 2 * (1 / a ^ s) := by sorry
+    have : term2 = 1 / 2 * (1 / a ^ s) := by
+      ring_nf
+      congr
     rw [this]
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv}
