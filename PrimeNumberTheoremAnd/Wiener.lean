@@ -24,7 +24,7 @@ open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTr
 open Complex hiding log
 open scoped Topology
 
-variable {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ Ψ: ℝ → ℂ} {F G : ℂ → ℂ} {f : ℕ → ℂ}
+variable {𝕜 : Type*} [IsROrC 𝕜] {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ Ψ : ℝ → ℂ} {F G : ℂ → ℂ} {f : ℕ → ℂ}
 
 -- This version makes the support of Ψ explicit, and this is easier for some later proofs
 lemma smooth_urysohn_support_Ioo (h1 : a < b) (h3: c < d) :
@@ -1768,6 +1768,24 @@ lemma wiener_ikehara_smooth' (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm 
     Tendsto (fun x : ℝ ↦ (∑' n, f n * Ψ (n / x)) / x) atTop (nhds (A * ∫ y in Set.Ioi 0, Ψ y)) :=
   tendsto_sub_nhds_zero_iff.mp <| wiener_ikehara_smooth hf hcheby hG hG' hsmooth hsupp hplus
 
+local instance {E : Type*} : Coe (E → ℝ) (E → ℂ) := ⟨fun f n => f n⟩
+
+@[norm_cast]
+theorem set_integral_ofReal {f : ℝ → ℝ} {s : Set ℝ} : ∫ x in s, (f x : ℂ) = ∫ x in s, f x :=
+  integral_ofReal
+
+lemma wiener_ikehara_smooth_real {f : ℕ → ℝ} {Ψ : ℝ → ℝ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
+    (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hsmooth: ContDiff ℝ ⊤ Ψ) (hsupp: HasCompactSupport Ψ) (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
+    Tendsto (fun x : ℝ ↦ (∑' n, f n * Ψ (n / x)) / x) atTop (nhds (A * ∫ y in Set.Ioi 0, Ψ y)) := by
+
+  let Ψ' := ofReal' ∘ Ψ
+  have l1 : ContDiff ℝ ⊤ Ψ' := contDiff_ofReal.comp hsmooth
+  have l2 : HasCompactSupport Ψ' := hsupp.comp_left rfl
+  have l3 : closure (Function.support Ψ') ⊆ Ioi 0 := by rwa [Function.support_comp_eq] ; simp
+  have key := (continuous_re.tendsto _).comp (@wiener_ikehara_smooth' A Ψ G f hf hcheby hG hG' l1 l2 l3)
+  simp at key ; norm_cast at key
+
 lemma interval_approx_inf (ha : 0 < a) (hab : a < b) :
     ∀ᶠ ε in 𝓝[>] 0, ∃ ψ : ℝ → ℝ, ContDiff ℝ ⊤ ψ ∧ HasCompactSupport ψ ∧ closure (Function.support ψ) ⊆ Set.Ioi 0 ∧
       0 ≤ ψ ∧ ψ ≤ indicator (Ioo a b) 1 ∧ b - a - ε ≤ ∫ y in Ioi 0, ψ y := by
@@ -1840,8 +1858,15 @@ Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
 -- variable (hpos: ∀ n, 0 ≤ f n)
 
-lemma WienerIkeharaInterval {f : ℕ → ℝ} (ha: 0 < a) (hb: a < b) :
+lemma WienerIkeharaInterval {f : ℕ → ℝ} (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
+    (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (ha: 0 < a) (hb: a < b) :
     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * (indicator (Icc a b) 1 (n / x)) / x) atTop (nhds (A * (b - a))) := by
+
+  simp only [Metric.tendsto_nhds] ; intro ε hε
+
+  obtain ⟨ϕ, hϕ1, hϕ2, hϕ3, hϕ4, hϕ5, hϕ6⟩ := interval_approx_inf' ha hb hε
+  have := @wiener_ikehara_smooth_real A G f ϕ hf hcheby hG hG' hϕ1 hϕ2 hϕ3
   sorry
 
 /-%%
@@ -1866,13 +1891,6 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} {A : ℝ} {F : ℂ → ℂ} (hf 
     (hF : Set.EqOn F (fun s ↦ LSeries (fun n => f n) s - A / (s - 1)) {s | 1 < s.re})
     (hF' : ContinuousOn F {s | 1 ≤ s.re}) :
     Tendsto (fun N => cumsum f N / N) atTop (nhds A) := by
-
-  let I ε : Set ℝ := Icc ε 1
-  let ψ ε t : ℝ := indicator (I ε) 1 t
-
-  have l1 (ε : ℝ) (hε : 0 < ε) (hε' : ε < 1) : False := by
-    have := @WienerIkeharaInterval A ε 1 f hε hε'
-
   sorry
 
 /-%%
