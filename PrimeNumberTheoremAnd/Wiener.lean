@@ -12,6 +12,7 @@ import Mathlib.Algebra.Order.Field.Basic
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
 import Mathlib.Analysis.SumIntegralComparisons
+import Mathlib.Algebra.GroupWithZero.Units.Basic
 
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Fourier
@@ -1883,6 +1884,15 @@ lemma WI_sum_Iab_le' {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : cheb
     ∀ᶠ x : ℝ in atTop, (∑' n, f n * indicator (Icc a b) 1 (n / x)) / x ≤ C * 2 * b := by
   filter_upwards [eventually_gt_atTop (2 / b)] with x hx using WI_sum_Iab_le hpos hcheby hb hx
 
+lemma le_of_eventually_nhdsWithin {a b : ℝ} (h : ∀ᶠ c in 𝓝[>] b, a ≤ c) : a ≤ b := by
+  apply le_of_forall_lt' ; intro d hd
+  have key : ∀ᶠ c in 𝓝[>] b, c < d := by
+    apply eventually_of_mem (U := Iio d) ?_ (fun x hx => hx)
+    rw [mem_nhdsWithin]
+    refine ⟨Iio d, isOpen_Iio, hd, inter_subset_left _ _⟩
+  obtain ⟨x, h1, h2⟩ := (h.and key).exists
+  linarith
+
 /-%%
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
@@ -1930,7 +1940,24 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
     have l5 : IsBoundedUnder (· ≤ ·) atTop (S ψ) := l1.isBoundedUnder_le
     have l3 : limsup (S Iab) atTop ≤ limsup (S ψ) atTop := limsup_le_limsup l6 Iab1 l5
     apply l3.trans ; rw [l1.limsup_eq] ; gcongr
-  have l_sup' : limsup (S Iab) atTop ≤ A * (b - a) := sorry
+  have l_sup' (hA0 : A ≠ 0) : ∀ᶠ x : ℝ in 𝓝[>] (A * (b - a)), limsup (S Iab) atTop ≤ x := by
+    have key : 0 < A := lt_of_le_of_ne hA hA0.symm
+    have key' : Tendsto (fun c => c / A - (b - a)) (𝓝[>] (A * (b - a))) (𝓝[>] 0) := by
+      rw [Metric.tendsto_nhdsWithin_nhdsWithin]
+      intro ε hε
+      refine ⟨A * ε, by positivity, ?_⟩
+      intro x hx1 hx2
+      constructor
+      · simpa [lt_div_iff' key]
+      · simp [Real.dist_eq] at hx2 ⊢
+        have : |x / A - (b - a)| = |x - A * (b - a)| / A := by
+          rw [← abs_eq_self.mpr hA, ← abs_div, abs_eq_self.mpr hA] ; congr ; field_simp
+        rwa [this, div_lt_iff' key]
+    filter_upwards [key' l_sup] with x hx
+    simp at hx ; convert hx ; field_simp ; ring
+  have l_sup'' : limsup (S Iab) atTop ≤ A * (b - a) := by
+    by_cases hA0 : A = 0 ; · simpa [hA0] using l_sup
+    exact le_of_eventually_nhdsWithin (l_sup' hA0)
 
   have l_inf : ∀ᶠ ε in 𝓝[>] 0, A * (b - a - ε) ≤ liminf (S Iab) atTop := by
     filter_upwards [interval_approx_inf ha hb] with ε ⟨ψ, h1, h2, h3, h4, h5, h6⟩
