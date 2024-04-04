@@ -19,12 +19,12 @@ theorem Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (hx : x ≠ 0
     DifferentiableAt ℝ (fun (x : ℝ) => (x : ℂ) ^ s) x := by
   sorry
 
-lemma Complex.one_div_cpow_eq {s : ℂ} {x : ℝ} (xpos : 0 < x) :
+lemma Complex.one_div_cpow_eq {s : ℂ} {x : ℝ} (x_ne : x ≠ 0) :
     1 / (x : ℂ) ^ s = (x : ℂ) ^ (-s) := by
   refine (eq_one_div_of_mul_eq_one_left ?_).symm
   rw [← Complex.cpow_add]
   simp only [add_left_neg, Complex.cpow_zero]
-  exact_mod_cast xpos.ne'
+  exact_mod_cast x_ne
 
 -- No longer used
 theorem ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContDiffOn ℝ 1 φ s) {x : ℝ}
@@ -401,12 +401,40 @@ lemma ZetaSum_aux1φDiff {s : ℂ} {x : ℝ} (xpos : 0 < x) :
   rw [Complex.cpow_def_of_ne_zero (by exact_mod_cast xpos.ne' : (x : ℂ) ≠ 0) s]
   apply Complex.exp_ne_zero
 
-lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_one : s ≠ 1) {x : ℝ} (xpos : 0 < x) :
+lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_zero : s ≠ 0) {x : ℝ} (xpos : 0 < x) :
     deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x = (fun (x : ℝ) ↦ -s / (x : ℂ) ^ (s + 1)) x := by
   let r := -s - 1
-  have : r ≠ -1 := by sorry
-  have := hasDerivAt_ofReal_cpow xpos.ne' this
-  have := HasDerivAt.deriv this
+  have s_eq : s = -r - 1 := by ring
+  have r_ne_neg1 : r ≠ -1 := by
+    intro hr
+    have : s = 0 := by
+      rw [hr] at s_eq
+      convert s_eq; ring
+    exact s_ne_zero this
+  have r_add1_ne_zero : r + 1 ≠ 0 := by
+    intro hr
+    have : r = -1 := by sorry
+    exact r_ne_neg1 this
+  have hasDeriv := hasDerivAt_ofReal_cpow xpos.ne' r_ne_neg1
+  have diffAt := hasDeriv.differentiableAt
+  have := deriv_const_mul (-s) diffAt
+  rw [hasDeriv.deriv] at this
+  convert this using 2
+  · ext y
+    by_cases y_zero : y = 0
+    · simp only [y_zero, ofReal_zero, ne_eq, s_ne_zero, not_false_eq_true, zero_cpow, div_zero,
+      r_add1_ne_zero, zero_div, mul_zero]
+    · have y_ne : (y : ℂ) ≠ 0 := by exact_mod_cast y_zero
+      have : (y : ℂ) ^ s ≠ 0 := by sorry
+      field_simp
+      rw [s_eq, mul_assoc, ← Complex.cpow_add _ _ y_ne, (by ring : r + 1 + (-r - 1) = 0), Complex.cpow_zero]
+      ring
+  · simp only [neg_mul]
+    rw [div_eq_mul_inv, ← one_div]
+
+
+#exit
+  have := @deriv_const_mul
   sorry
 
 lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_one : s ≠ 1) {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) :
