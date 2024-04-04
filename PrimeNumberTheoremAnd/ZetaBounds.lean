@@ -403,7 +403,10 @@ lemma ZetaSum_aux1φDiff {s : ℂ} {x : ℝ} (xpos : 0 < x) :
 
 lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_one : s ≠ 1) {x : ℝ} (xpos : 0 < x) :
     deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x = (fun (x : ℝ) ↦ -s / (x : ℂ) ^ (s + 1)) x := by
-  have := hasDerivAt_ofReal_cpow xpos.ne' (neg_s_ne_neg_one s_ne_one)
+  let r := -s - 1
+  have : r ≠ -1 := by sorry
+  have := hasDerivAt_ofReal_cpow xpos.ne' this
+  have := HasDerivAt.deriv this
   sorry
 
 lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_one : s ≠ 1) {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) :
