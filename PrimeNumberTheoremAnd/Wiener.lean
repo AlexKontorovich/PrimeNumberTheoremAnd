@@ -1787,15 +1787,16 @@ lemma wiener_ikehara_smooth_real {f : ℕ → ℝ} {Ψ : ℝ → ℝ} (hf : ∀ 
 
 lemma interval_approx_inf (ha : 0 < a) (hab : a < b) :
     ∀ᶠ ε in 𝓝[>] 0, ∃ ψ : ℝ → ℝ, ContDiff ℝ ⊤ ψ ∧ HasCompactSupport ψ ∧ closure (Function.support ψ) ⊆ Set.Ioi 0 ∧
-      0 ≤ ψ ∧ ψ ≤ indicator (Ioo a b) 1 ∧ b - a - ε ≤ ∫ y in Ioi 0, ψ y := by
+      0 ≤ ψ ∧ ψ ≤ indicator (Icc a b) 1 ∧ b - a - ε ≤ ∫ y in Ioi 0, ψ y := by
 
   have l1 : Iio ((b - a) / 3) ∈ 𝓝[>] 0 := nhdsWithin_le_nhds <| Iio_mem_nhds (by linarith)
   filter_upwards [self_mem_nhdsWithin, l1] with ε (hε : 0 < ε) (hε' : ε < (b - a) / 3)
   have l2 : a < a + ε / 2 := by linarith
   have l3 : b - ε / 2 < b := by linarith
   obtain ⟨ψ, h1, h2, h3, h4, h5⟩ := smooth_urysohn_support_Ioo l2 l3
-  refine ⟨ψ, h1, h2, ?_, le_trans (indicator_nonneg (by simp)) h3, h4, ?_⟩
+  refine ⟨ψ, h1, h2, ?_, le_trans (indicator_nonneg (by simp)) h3, ?_, ?_⟩
   · simp [h5, hab.ne, Icc_subset_Ioi_iff hab.le, ha]
+  · exact h4.trans <| indicator_le_indicator_of_subset Ioo_subset_Icc_self (by simp)
   · have l4 : 0 ≤ b - a - ε := by linarith
     have l5 : Icc (a + ε / 2) (b - ε / 2) ⊆ Ioi 0 := by intro t ht ; simp at ht ⊢ ; linarith
     have l6 : Icc (a + ε / 2) (b - ε / 2) ∩ Ioi 0 = Icc (a + ε / 2) (b - ε / 2) := inter_eq_left.mpr l5
@@ -1810,7 +1811,7 @@ lemma interval_approx_inf (ha : 0 < a) (hab : a < b) :
 
 lemma interval_approx_inf' (ha : 0 < a) (hab : a < b) {ε : ℝ} (hε : 0 < ε) :
     ∃ ψ : ℝ → ℝ, ContDiff ℝ ⊤ ψ ∧ HasCompactSupport ψ ∧ closure (Function.support ψ) ⊆ Set.Ioi 0 ∧
-      0 ≤ ψ ∧ ψ ≤ indicator (Ioo a b) 1 ∧ b - a - ε ≤ ∫ y in Ioi 0, ψ y := by
+      0 ≤ ψ ∧ ψ ≤ indicator (Icc a b) 1 ∧ b - a - ε ≤ ∫ y in Ioi 0, ψ y := by
   have l1 : ∀ᶠ η in 𝓝[>] 0, η < ε := nhdsWithin_le_nhds <| Iio_mem_nhds hε
   obtain ⟨η, hη, l2⟩ := (l1.and <| interval_approx_inf ha hab).exists ; peel l2 ; linarith
 
@@ -1915,6 +1916,7 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
   have hIab : HasCompactSupport Iab := by simpa [Iab, HasCompactSupport, tsupport] using isCompact_Icc
   have Iab_nonneg : ∀ᶠ x : ℝ in atTop, 0 ≤ S Iab x := hSnonneg (indicator_nonneg (by simp))
 
+  have Iab0 : IsCoboundedUnder (fun x x_1 ↦ x ≥ x_1) atTop (S Iab) := sorry
   have Iab1 : IsCoboundedUnder (· ≤ ·) atTop (S Iab) := isCoboundedUnder_le_of_eventually_le _ Iab_nonneg
   have Iab2 : IsBoundedUnder (· ≤ ·) atTop (S Iab) := by
     obtain ⟨C, hC⟩ := hcheby ; exact ⟨C * 2 * b, WH_sum_Iab_le' hpos hC (by linarith)⟩
@@ -1933,7 +1935,11 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
   have l_inf : ∀ᶠ ε in 𝓝[>] 0, A * (b - a - ε) ≤ liminf (S Iab) atTop := by
     filter_upwards [interval_approx_inf ha hb] with ε ⟨ψ, h1, h2, h3, h4, h5, h6⟩
     have l1 : Tendsto (S ψ) atTop _ := wiener_ikehara_smooth_real hf hcheby hG hG' h1 h2 h3
-    sorry
+    have l2 : S ψ ≤ᶠ[atTop] S Iab := by
+      filter_upwards [eventually_gt_atTop 0] with x hx using WH_sum_le hpos h5 hx h2 hIab
+    have l4 : IsBoundedUnder (· ≥ ·) atTop (S ψ) := l1.isBoundedUnder_ge
+    have l3 : liminf (S ψ) atTop ≤ liminf (S Iab) atTop := liminf_le_liminf l2 l4 Iab0
+    apply le_trans ?_ l3 ; rw [l1.liminf_eq] ; gcongr
   have l_inf' : A * (b - a) ≤ liminf (S Iab) atTop := sorry
 
   have : liminf (S Iab) atTop ≤ limsup (S Iab) atTop := liminf_le_limsup Iab2 Iab3
