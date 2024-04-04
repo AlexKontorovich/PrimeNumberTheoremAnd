@@ -1507,24 +1507,6 @@ which by Theorem \ref{SmoothExistence} is 1.
 \end{proof}
 %%-/
 
--- Might need extra assumptions?
-lemma MeasureTheory.integrableOn_prod_iff_mpr {α β E : Type*} [MeasurableSpace α] [MeasurableSpace β]
-    {μ : Measure α} {ν : Measure β} [SigmaFinite μ] [SigmaFinite ν]
-    {s : Set α} {t : Set β}
-    ⦃f : α × β → E⦄ [NormedAddCommGroup E]
-    (h1f : AEStronglyMeasurable f ((μ.restrict s).prod (ν.restrict t))) :
-    (∀ᵐ y ∂ν, IntegrableOn (fun x => f (x, y)) s μ) ∧
-        IntegrableOn (fun y => ∫ x, ‖f (x, y)‖ ∂μ) t ν
-        → IntegrableOn f (s ×ˢ t) (μ.prod ν) := by
-  have := (@integrable_prod_iff' (μ := μ.restrict s) (ν := ν.restrict t) (E := E)
-    (α := α) (β := β) _ _ _ _ _ (f := f) h1f).mpr
-  simp only [Measure.prod_restrict, and_imp] at this
-  simp only [IntegrableOn, and_imp]
-  intro h1 h2
-  apply this; clear this
-  · apply MeasureTheory.ae_restrict_of_ae h1
-  · sorry
-
 /-%%
 Combining the above, we have the following three Main Lemmata of this section on the Mellin
 transform of $\widetilde{1_{\epsilon}}$.
@@ -1537,159 +1519,50 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) =
 lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) :
     MellinTransform ((Smooth1 Ψ ε) ·) s = 1 / s * MellinTransform (Ψ ·) (ε * s) := by
-  let f : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x / x
   let f' : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x
+  let f : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x / x
   let g : ℝ → ℂ := fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0
-  let fg : ℝ × ℝ → ℂ := fun ⟨x, y⟩ ↦ f y * g (x / y)
-  let F : ℝ × ℝ → ℂ := Function.uncurry fun x y ↦ fg ⟨x, y⟩ * (x : ℂ) ^ (s - 1)
-  let F' : ℝ × ℝ → ℂ := fun ⟨x, y⟩ ↦ if ⟨x, y⟩ ∈ Ioi 0 ×ˢ Ioi 0 then F ⟨x, y⟩ else 0
-  let Tx := Ioc 0 ((2 : ℝ) ^ ε)
-  let Ty := Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)
-  let T := Tx ×ˢ Ty
-  let S := {⟨x, y⟩ : ℝ × ℝ | 0 < x / y ∧ x / y ≤ 1}
-  let Sx (y : ℝ) := {x : ℝ | 0 < x / y ∧ x / y ≤ 1}
+  let F : ℝ × ℝ → ℂ := Function.uncurry fun x y ↦ f y * g (x / y) * (x : ℂ) ^ (s - 1)
+  let S := {⟨x, y⟩ : ℝ × ℝ | 0 < x  ∧ x ≤ y ∧ 2 ^ (-ε) ≤ y ∧ y ≤ 2 ^ ε}
+  let F' : ℝ × ℝ → ℂ := piecewise S (fun ⟨x, y⟩ ↦ f y * (x : ℂ) ^ (s - 1))
+     (fun _ ↦ 0)
 
-  have Smeas : MeasurableSet S := by sorry
-  have SxMeas {y : ℝ} (hy : y ≠ 0) : MeasurableSet <| Sx y:= by sorry
-  have Ioi_prodMeas : MeasurableSet (Ioi (0 : ℝ) ×ˢ Ioi (0 : ℝ)) := by simp [measurableSet_prod]
-  have Tmeas : MeasurableSet T := by simp [T, Tx, Ty, measurableSet_prod]
-  have SsubT : S ⊆ T := by sorry
-  have Tsub : T ⊆ Ioi 0 ×ˢ Ioi 0 := by
+  have Ssub : S ⊆ Ioi 0 ×ˢ Ioi 0 := by
     intro z hz
-    simp only [T, Tx, Ty, mem_Ioc, mem_Icc, mem_prod, mem_Ioi] at hz ⊢
-    refine ⟨hz.1.1, ?_⟩
-    have : 0 < (2 : ℝ) ^ (-ε) := by apply rpow_pos_of_pos; norm_num
-    linarith
-
-  have Fsupp_y (x : ℝ): (fun y ↦ F' ⟨x, y⟩).support ⊆ Ty := by
-    intro y hy
-    contrapose hy
-    rw [Function.nmem_support]
-    simp only [F', F, f, fg, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair, mul_eq_zero,
-      div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff, ne_eq]
-    intro h; simp only [mem_prod, mem_Ioi] at h
-    left; left; left
-    exact DeltaSpikeSupport εpos h.2.le suppΨ hy
-
-  have Fsupp_x (y : ℝ) : (fun x ↦ F' ⟨x, y⟩).support ⊆ Tx := by
-    intro x hx
-    contrapose hx; simp only [Tx, mem_Ioc, not_and, not_le] at hx
-    rw [Function.nmem_support]
-    simp only [F', F, f, fg, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair, mul_eq_zero,
-       div_eq_zero_iff, ite_eq_right_iff, ofReal_eq_zero, and_imp, cpow_eq_zero_iff, ne_eq]
-    intro h; simp only [mem_prod, mem_Ioi] at h
-    by_cases hxy : x ≤ y
-    · left; left; left
-      refine DeltaSpikeSupport εpos h.2.le suppΨ ?_
-      simp only [mem_Icc, not_and, not_le]
-      intro hy
-      replace hx := hx h.1
-      linarith
-    · left; right
-      simp [g, hxy]
-      intro _
-      rw [lt_div_iff h.2, one_mul]
-      linarith
-
-  have Fsupp : F'.support ⊆ T := Function.support_of_along_fiber_subset_subset Fsupp_x Fsupp_y
-  have fgpiecewise : fg = piecewise S (fun ⟨x, _⟩ ↦ f x) (fun _ ↦ 0) := by sorry
-  have Fpiecewise : F = piecewise S (fun ⟨x, _⟩ ↦ DeltaSpike Ψ ε x / x * (x : ℂ) ^ (s - 1))
-     (fun _ ↦ 0) := by sorry
-
-  have F'piecewise : F' = piecewise T F (fun _ => 0) := by
-    ext x
-    simp only [piecewise]
-    by_cases hx : x ∈ T <;> simp only [hx, ↓reduceIte]
-    · simp only [Prod.mk.eta, ite_eq_left_iff, not_and, not_lt, F']
-      intro h; exfalso
-      exact h <| Tsub hx
-    · exact Function.support_subset_iff'.mp Fsupp x hx
-
-  have F'piecewise' : F' = piecewise (Ioi 0 ×ˢ Ioi 0) F (fun _ => 0) := by
-    ext x; simp only [piecewise]
-
-  have FcontOnS : ContinuousOn (fun ⟨x, _⟩ ↦ DeltaSpike Ψ ε x / x * (x : ℂ) ^ (s - 1)) S := by
-    simp only [DeltaSpike, one_div, ofReal_div]
-    apply ContinuousOn.mul
-    · apply ContinuousOn.div
-      · apply ContinuousOn.div_const
-        apply ContinuousOn.comp (g := fun x ↦ ofReal (Ψ x)) (t := (fun x ↦ x.1 ^ ε⁻¹) '' S) ?_
-        · apply ContinuousOn.comp (g := fun x ↦ x ^ ε⁻¹) (t := (fun x ↦ x.1) '' S)
-          · apply ContinuousOn.rpow_const continuousOn_id
-            · intro _ _; right; exact (inv_pos.mpr εpos).le
-          · exact continuousOn_fst
-          · apply mapsTo_image
-        · apply mapsTo_image
-        · apply ContinuousOn.comp (g := ofReal)
-          · apply Continuous.continuousOn; apply continuous_ofReal
-          · exact diffΨ.continuous.continuousOn
-          · apply mapsTo_image
-      · sorry
-      · simp [S, mem_setOf_eq]
-        intro a _ ha _ ha2
-        rw [ha2, zero_div] at ha
-        simp at ha
-    · apply ContinuousOn.cpow_const
-      · apply ContinuousOn.comp (g := ofReal)
-        · apply Continuous.continuousOn; apply continuous_ofReal
-        · apply continuousOn_fst
-        · apply mapsTo_image
-      · simp only [ofReal_mem_slitPlane, Prod.forall, S, mem_setOf_eq, and_imp]
-        -- this is an issue as S might contain negative numbers, it needs to be redefined
-        sorry
+    simp only [S, mem_setOf_eq] at hz ⊢
+    refine ⟨hz.1, lt_of_lt_of_le ?_ hz.2.2.1⟩
+    apply rpow_pos_of_pos; norm_num
+  have Smeas : MeasurableSet S := by sorry
 
   have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
-    apply IntegrableOn.congr_fun (f := F') ?int ?eq Ioi_prodMeas; swap
-    · simp [F'piecewise']
-      intro z hz
+    apply IntegrableOn.congr_fun (f := F') ?int ?eq (by simp [measurableSet_prod]); swap
+    · simp only [F, F', f, g, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair]
+      intro ⟨x, y⟩ hz
       simp [piecewise, hz]
-    apply (integrableOn_iff_integrable_of_support_subset Fsupp).mp
-    rw [F'piecewise]
-    apply Integrable.piecewise Tmeas ?_ integrableOn_zero
-    simp_rw [Measure.restrict_restrict_of_subset Tsub]
-    have : volume.restrict T = (volume.restrict Tx).prod (volume.restrict Ty):= by
-      rw [Measure.prod_restrict, ← Measure.volume_eq_prod]
-    rw [this]
-    apply MeasureTheory.integrableOn_prod_iff_mpr ?_; swap
-    -- measurability part
-    · rw [Measure.prod_restrict, ← this, Measure.restrict_restrict_of_subset subset_rfl]
-      rw [Fpiecewise]
-      apply AEStronglyMeasurable.piecewise Smeas
-      · rw [Measure.restrict_restrict_of_subset SsubT]
-        exact ContinuousOn.aestronglyMeasurable FcontOnS Smeas
-      · exact aestronglyMeasurable_zero
-    -- integrability part
-    constructor
-    · apply eventually_iff_exists_mem.mpr
-      use {y : ℝ | y ≠ 0}
-      constructor
-      · have : {0} ∩ Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε) = ∅ := by
-          rw [@singleton_inter_eq_empty, mem_Icc, not_and]
-          exact fun _ => by linarith [(by apply rpow_pos_of_pos; norm_num : 0 < (2 : ℝ) ^ (-ε))]
-        simp [mem_ae_iff, this]
-      · intro y hy; simp only [mem_setOf_eq] at hy
-        simp only [F, f, g, mem_prod, mem_Ioi, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair]
-        apply Integrable.bdd_mul
-        any_goals rw [Measure.restrict_restrict_of_subset <| subset_rfl]
-        · replace := (intervalIntegral.integrableOn_Ioo_cpow_iff (t := ((2 : ℝ) ^ ε))
-          (s := s - 1) (by apply rpow_pos_of_pos (by norm_num))).mpr (by simpa)
-          exact integrableOn_Ioc_iff_integrableOn_Ioo.mpr this
-        · suffices h : AEStronglyMeasurable (piecewise (Sx y) (fun _ ↦ f y) 0)
-              (Measure.restrict volume Tx) by
-            rw [fgpiecewise]
-            simp only
-            --  the functions are equal on Sx
-            sorry
-          apply AEStronglyMeasurable.piecewise <| SxMeas hy
-          · refine ContinuousOn.aestronglyMeasurable continuousOn_const <| SxMeas hy
-          · exact aestronglyMeasurable_zero
-        · use ‖(DeltaSpike Ψ ε y / y)‖
-          intro x
-          by_cases h : 0 < x / y ∧ x / y ≤ 1 <;> simp [h, fg, f, g]
-          apply div_nonneg <;> apply abs_nonneg
-    · apply ContinuousOn.integrableOn_compact isCompact_Icc
-      -- rewrite this to be able to apply intervalIntegral.continuousOn_primitive
-      sorry
+      by_cases hS : ⟨x, y⟩ ∈ S
+      · have : 0 < x / y ∧ x / y ≤ 1 := by sorry
+        simp [hS, this]
+      · have : ¬ (0 < x / y ∧ x / y ≤ 1) := by sorry
+        simp [hS, this]
+    · apply Integrable.piecewise Smeas ?_ integrableOn_zero
+      simp only [IntegrableOn, Measure.restrict_restrict_of_subset Ssub]
+      clear F F' f' g
+      let Tx := Ioc 0 ((2 : ℝ) ^ ε)
+      let Ty := Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)
+      have Ssub2: S ⊆ Tx ×ˢ Ty := by sorry
+      have meas_le : volume.restrict S ≤ volume.restrict (Tx ×ˢ Ty) := by
+        -- have := MeasureTheory.Measure.restrict_apply_superset Ssub2
+        sorry
+      apply MeasureTheory.Integrable.mono_measure ?_ meas_le
+      have : volume.restrict (Tx ×ˢ Ty) = (volume.restrict Tx).prod (volume.restrict Ty) := by
+        rw [Measure.prod_restrict, MeasureTheory.Measure.volume_eq_prod]
+      rw [this]
+      replace : (fun (⟨x, y⟩ : ℝ × ℝ) ↦ f y * (x : ℂ) ^ (s - 1)) = (fun ⟨x, y⟩ ↦ ↑x ^ (s - 1) * f y) := by sorry
+      rw [this]; clear this
+      simp only
+      apply MeasureTheory.Integrable.prod_mul (f := fun x ↦ (x : ℂ) ^ (s - 1)) (μ := Measure.restrict volume Tx)
+      · sorry
+      · sorry
 
   have : MellinTransform (MellinConvolution g f') s = MellinTransform g s * MellinTransform f' s := by
     rw [mul_comm, ← MellinConvolutionTransform f' g s ?_]
@@ -1700,8 +1573,8 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
       constructor
       apply MellinConvolutionSymmetric
       exact mem_Ioi.mp hx
-    · convert int_F
-      field_simp [F, fg, f, f']
+    · convert int_F using 1
+      field_simp [F, f, f']
 
   convert this using 1
   · congr
