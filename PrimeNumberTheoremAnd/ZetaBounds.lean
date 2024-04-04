@@ -14,7 +14,7 @@ import PrimeNumberTheoremAnd.PerronFormula
 
 open BigOperators Complex Topology Filter Interval
 
--- move near `Real.differentiableAt_cpow_const_of_ne`
+-- move near `Real.differentiableAt_rpow_const_of_ne`
 theorem Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (hx : x ≠ 0) :
     DifferentiableAt ℝ (fun (x : ℝ) => (x : ℂ) ^ s) x := by
   sorry
@@ -392,13 +392,14 @@ lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) 
     norm_cast at ha ⊢
     linarith
 
-lemma ZetaSum_aux1φDiff {s : ℂ} (s_ne_one : s ≠ 1) {x : ℝ} (xpos : 0 < x) :
+lemma ZetaSum_aux1φDiff {s : ℂ} {x : ℝ} (xpos : 0 < x) :
     HasDerivAt (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x) x := by
   apply hasDerivAt_deriv_iff.mpr
   apply DifferentiableAt.div
   · fun_prop
-  ·
-  sorry
+  · exact Real.differentiableAt_cpow_const_of_ne s xpos.ne'
+  rw [Complex.cpow_def_of_ne_zero (by exact_mod_cast xpos.ne' : (x : ℂ) ≠ 0) s]
+  apply Complex.exp_ne_zero
 
 lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_one : s ≠ 1) {x : ℝ} (xpos : 0 < x) :
     deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x = (fun (x : ℝ) ↦ -s / (x : ℂ) ^ (s + 1)) x := by
