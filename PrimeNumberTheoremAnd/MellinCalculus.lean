@@ -981,6 +981,14 @@ lemma DeltaSpikeSupport {Ψ : ℝ → ℝ} {ε x : ℝ} (εpos : 0 < ε) (xnonne
   contrapose!
   exact DeltaSpikeSupport' εpos xnonneg suppΨ
 
+lemma DeltaSpikeContinuousOn {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (diffΨ : ContDiff ℝ 1 Ψ) :
+    ContinuousOn (fun x ↦ DeltaSpike Ψ ε x) (Icc ((2 : ℝ) ^ (-ε)) (2 ^ ε)) := by
+  apply ContinuousOn.div_const
+  apply ContinuousOn.comp (g := Ψ) ?_ ?_ (by apply mapsTo_image)
+  · exact diffΨ.continuous.continuousOn
+  · apply ContinuousOn.rpow_const continuousOn_id
+    simp only [one_div]; intro _ _; right; exact (inv_pos.mpr εpos).le
+
 /-%%
 The Mellin transform of the delta spike is easy to compute.
 \begin{theorem}[MellinOfDeltaSpike]\label{MellinOfDeltaSpike}\lean{MellinOfDeltaSpike}\leanok
@@ -1561,8 +1569,20 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
       rw [this]; clear this
       simp only
       apply MeasureTheory.Integrable.prod_mul (f := fun x ↦ (x : ℂ) ^ (s - 1)) (μ := Measure.restrict volume Tx)
-      · sorry
-      · sorry
+      · apply integrableOn_Ioc_iff_integrableOn_Ioo.mpr ?_
+        apply (intervalIntegral.integrableOn_Ioo_cpow_iff (s := s - 1) (t := (2 : ℝ) ^ ε) ?_).mpr
+        · simp [hs]
+        · apply rpow_pos_of_pos (by norm_num)
+      · apply ContinuousOn.integrableOn_compact isCompact_Icc
+        apply ContinuousOn.div
+        · apply ContinuousOn.comp (g := ofReal) ?_ ?_ (by apply mapsTo_image)
+          · apply Continuous.continuousOn; apply continuous_ofReal
+          · apply DeltaSpikeContinuousOn εpos diffΨ
+        · apply Continuous.continuousOn; apply continuous_ofReal
+        · intro x hx; simp only [mem_Icc] at hx
+          simp only [ofReal_ne_zero]
+          have : (0 : ℝ) < 2 ^ (-ε) := by apply rpow_pos_of_pos (by norm_num)
+          linarith
 
   have : MellinTransform (MellinConvolution g f') s = MellinTransform g s * MellinTransform f' s := by
     rw [mul_comm, ← MellinConvolutionTransform f' g s ?_]
