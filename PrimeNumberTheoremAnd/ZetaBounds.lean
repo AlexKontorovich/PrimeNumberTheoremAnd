@@ -235,9 +235,33 @@ theorem integrability_aux₀ {a b : ℝ} (a_lt_b : a < b) :
   swap; · exact measurableSet_Icc
   refine MeasureTheory.ae_of_all _ (fun x hx ↦ ?_)
   rw [Set.uIcc_of_le a_lt_b.le, Set.mem_Icc] at hx
-  simp only [norm_int, Real.norm_eq_abs, le_max_iff]
-  rw [abs_le, abs_le]
-  sorry
+  simp only [norm_int, Real.norm_eq_abs]
+  have : |x| ≤ max |a| |b| := by
+    rw [abs_le]
+    cases' abs_cases a with ha ha
+    · cases' abs_cases b with hb hb
+      · simp only [ha.1, hb.1, le_max_iff]
+        have : 0 ≤ max a b := by simp [ha.2, hb.2]
+        refine ⟨by linarith, by right; linarith⟩
+      · simp only [ha.1, hb.1, le_max_iff]
+        have : 0 ≤ max a (-b) := by simp [ha.2, hb.2]
+        refine ⟨by linarith, by linarith⟩
+    · cases' abs_cases b with hb hb
+      · simp only [ha.1, hb.1, ← min_neg_neg, neg_neg, min_le_iff, le_max_iff]
+        refine ⟨by left; exact hx.1, by right; exact hx.2⟩
+      · simp only [ha.1, hb.1, ← min_neg_neg, neg_neg, min_le_iff, le_max_iff]
+        refine ⟨by left; exact hx.1, by right; linarith⟩
+  have aux1 : ⌊x⌋ ≤ x := Int.floor_le x
+  have aux2 : x ≤ ⌊x⌋ + 1 := (Int.lt_floor_add_one x).le
+  cases' abs_cases x with hx hx
+  · have : (0 : ℝ) ≤ ⌊x⌋ := by
+      exact_mod_cast Int.floor_nonneg.mpr hx.2
+    rw [_root_.abs_of_nonneg this]
+    linarith
+  · have : (⌊x⌋ : ℝ) ≤ 0 := by
+      exact_mod_cast Int.floor_nonpos hx.2.le
+    rw [_root_.abs_of_nonpos this]
+    linarith
 
 lemma integrability_aux₁ {a b : ℝ} (a_lt_b : a < b) :
     IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ)) MeasureTheory.volume a b := by
