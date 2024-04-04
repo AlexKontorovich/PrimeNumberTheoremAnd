@@ -389,9 +389,13 @@ lemma ZetaSum_aux1φDiff {s : ℂ} (s_ne_one : s ≠ 1) {x : ℝ} (xpos : 0 < x)
     HasDerivAt (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x) x := by
   sorry
 
-
 lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_one : s ≠ 1) {x : ℝ} (xpos : 0 < x) :
     deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x = (fun (x : ℝ) ↦ -s / (x : ℂ) ^ (s + 1)) x := by
+  sorry
+
+lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_one : s ≠ 1) {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) :
+    ContinuousOn (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s)) [[a, b]] := by
+
   sorry
 
 /-%%
@@ -412,7 +416,7 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_
   have xpos : ∀ x ∈ [[(a : ℝ), b]], 0 < x := fun x hx ↦ xpos_of_uIcc apos a_lt_b hx
   have φDiff : ∀ x ∈ [[(a : ℝ), b]], HasDerivAt φ (deriv φ x) x := fun x hx ↦ ZetaSum_aux1φDiff s_ne_one (xpos x hx)
   have φderiv : ∀ x ∈ [[(a : ℝ), b]], deriv φ x = φ' x := fun x hx ↦ ZetaSum_aux1φderiv s_ne_one (xpos x hx)
-  have derivφCont : ContinuousOn (deriv φ) [[a, b]] := by sorry
+  have derivφCont : ContinuousOn (deriv φ) [[a, b]] := ZetaSum_aux1derivφCont s_ne_one apos a_lt_b
   have : (a : ℝ) < (b : ℝ) := by exact_mod_cast a_lt_b
   convert sum_eq_int_deriv this φDiff derivφCont using 1
   · congr
