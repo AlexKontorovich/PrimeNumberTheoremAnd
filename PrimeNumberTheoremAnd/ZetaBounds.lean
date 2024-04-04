@@ -382,7 +382,7 @@ lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) 
     intro x hx
     simp only
     apply one_div_cpow_eq
-    exact xpos_of_uIcc apos a_lt_b hx
+    exact (xpos_of_uIcc apos a_lt_b hx).ne'
   · norm_cast
     rw [(by ring : -s + 1 = 1 - s)]
   · right; refine ⟨neg_s_ne_neg_one s_ne_one, ?_⟩
@@ -411,10 +411,7 @@ lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_zero : s ≠ 0) {x : ℝ} (xpos : 0 < 
       rw [hr] at s_eq
       convert s_eq; ring
     exact s_ne_zero this
-  have r_add1_ne_zero : r + 1 ≠ 0 := by
-    intro hr
-    have : r = -1 := by sorry
-    exact r_ne_neg1 this
+  have r_add1_ne_zero : r + 1 ≠ 0 := fun hr ↦ r_ne_neg1 (eq_neg_of_add_eq_zero_left hr)
   have hasDeriv := hasDerivAt_ofReal_cpow xpos.ne' r_ne_neg1
   have diffAt := hasDeriv.differentiableAt
   have := deriv_const_mul (-s) diffAt
@@ -425,17 +422,17 @@ lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_zero : s ≠ 0) {x : ℝ} (xpos : 0 < 
     · simp only [y_zero, ofReal_zero, ne_eq, s_ne_zero, not_false_eq_true, zero_cpow, div_zero,
       r_add1_ne_zero, zero_div, mul_zero]
     · have y_ne : (y : ℂ) ≠ 0 := by exact_mod_cast y_zero
-      have : (y : ℂ) ^ s ≠ 0 := by sorry
+      have : (y : ℂ) ^ s ≠ 0 := by
+        intro hy
+        rw [Complex.cpow_eq_zero_iff] at hy
+        simp only [ofReal_eq_zero, ne_eq, s_ne_zero, not_false_eq_true, and_true] at hy
+        norm_cast at y_ne
       field_simp
       rw [s_eq, mul_assoc, ← Complex.cpow_add _ _ y_ne, (by ring : r + 1 + (-r - 1) = 0), Complex.cpow_zero]
       ring
   · simp only [neg_mul]
-    rw [div_eq_mul_inv, ← one_div]
-
-
-#exit
-  have := @deriv_const_mul
-  sorry
+    rw [div_eq_mul_inv, ← one_div, one_div_cpow_eq xpos.ne', s_eq]
+    ring_nf
 
 lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_one : s ≠ 1) {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) :
     ContinuousOn (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s)) [[a, b]] := by
