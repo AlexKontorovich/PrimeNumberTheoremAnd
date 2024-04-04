@@ -434,9 +434,28 @@ lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_zero : s ≠ 0) {x : ℝ} (xpos : 0 < 
     rw [div_eq_mul_inv, ← one_div, one_div_cpow_eq xpos.ne', s_eq]
     ring_nf
 
-lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_one : s ≠ 1) {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) :
+lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_zero : s ≠ 0) {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) :
     ContinuousOn (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s)) [[a, b]] := by
-  sorry
+  have : Set.EqOn (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s)) (fun (t : ℝ) ↦ -s / (t : ℂ) ^ (s + 1)) [[(a : ℝ), b]] := by
+    intro x hx
+    have xpos : 0 < x := xpos_of_uIcc apos a_lt_b hx
+    exact ZetaSum_aux1φderiv s_ne_zero xpos
+  refine ContinuousOn.congr ?_ this
+  simp_rw [div_eq_mul_inv]
+  apply ContinuousOn.const_smul (c := -s)
+  apply ContinuousOn.inv₀
+  · apply ContinuousOn.cpow_const
+    · apply Continuous.continuousOn
+      fun_prop
+    · intro x hx
+      simp only [ofReal_mem_slitPlane]
+      exact xpos_of_uIcc apos a_lt_b hx
+  · intro x hx hx0
+    rw [Complex.cpow_eq_zero_iff] at hx0
+    have xzero := hx0.1
+    norm_num at xzero
+    have : 0 < x := xpos_of_uIcc apos a_lt_b hx
+    exact_mod_cast this.ne' xzero
 
 /-%%
 \begin{lemma}[ZetaSum_aux1]\label{ZetaSum_aux1}\lean{ZetaSum_aux1}\leanok
