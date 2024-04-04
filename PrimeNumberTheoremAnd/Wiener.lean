@@ -2044,16 +2044,11 @@ theorem vonMangoldt_cheby : cheby (fun n ↦ Λ n) := by
     have hpos : 0 < 2 / Real.log 2 := by positivity
     have : (0 : ℝ) ≤ ↑(Finset.filter IsPrimePow (Finset.range 2)).card := by norm_cast
     rw [← mul_le_mul_right hpos]
-    simp
     linarith
   use C
-  dsimp [chebyWith, cumsum]
   intro n
-  simp only [abs_ofReal]
   calc
-    _ = ∑ i in Finset.range n, Λ i := by
-      apply Finset.sum_congr rfl
-      simp
+    _ = ∑ i in Finset.range n, Λ i := Finset.sum_congr rfl (by simp)
     _ ≤ ∑ i in Finset.range n, if IsPrimePow i then Real.log i else 0 := by
       apply Finset.sum_le_sum
       intro i _
@@ -2075,18 +2070,13 @@ theorem vonMangoldt_cheby : cheby (fun n ↦ Λ n) := by
       gcongr
       apply hC
     _ ≤ _ := by
-      rw [mul_assoc]
-      by_cases hn : n = 0
-      · simp [hn]
-      by_cases hn1 : n = 1
-      · simp [hn1, hC_nonneg]
+      by_cases hn : n = 0 ; · simp [hn]
+      by_cases hn1 : n = 1 ; · simp [hn1, hC_nonneg]
       have : 0 < Real.log n := by
         apply Real.log_pos
         norm_cast
         omega
       field_simp
-
-
 
 /-%%
 \section{Weak PNT}
