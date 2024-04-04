@@ -1938,14 +1938,10 @@ Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 \end{proposition}
 %%-/
 
--- variable (hpos: ∀ n, 0 ≤ f n)
-
 lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha: 0 < a) (hb: a < b) :
     Tendsto (fun x : ℝ ↦ (∑' n, f n * (indicator (Icc a b) 1 (n / x))) / x) atTop (nhds (A * (b - a))) := by
-
-  have hA : 0 ≤ A := sorry
 
   let S (g : ℝ → ℝ) (x : ℝ) :=  (∑' n, f n * g (n / x)) / x
   have hS {g₁ g₂ : ℝ → ℝ} {x : ℝ} (hx : 0 < x) (h : g₁ ≤ g₂) (h₁ : HasCompactSupport g₁)
@@ -1955,6 +1951,22 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
     filter_upwards [eventually_ge_atTop 0] with x hx
     refine div_nonneg ?_ hx
     refine tsum_nonneg (fun i => mul_nonneg (hpos _) (hg _))
+
+  have hA : 0 ≤ A := by
+    obtain ⟨ε, ψ, h1, h2, h3, h4, UU⟩ := (interval_approx_sup zero_lt_one one_lt_two).exists
+    have key := @wiener_ikehara_smooth_real A G f ψ hf hcheby hG hG' h1 h2 h3
+    have l2 : 0 ≤ ψ := by apply le_trans _ h4 ; intro x ; by_cases hx : x ∈ Icc 1 2 <;> simp [hx]
+    have l1 : ∀ᶠ x in atTop, 0 ≤ S ψ x := hSnonneg l2
+    have l3 : 0 ≤ A * ∫ (y : ℝ) in Ioi 0, ψ y := ge_of_tendsto key l1
+    have l4 : 0 < ∫ (y : ℝ) in Ioi 0, ψ y := by
+      have r1 : 0 ≤ᵐ[Measure.restrict volume (Ioi 0)] ψ := eventually_of_forall l2
+      have r2 : IntegrableOn (fun y ↦ ψ y) (Ioi 0) volume :=
+        (h1.continuous.integrable_of_hasCompactSupport h2).integrableOn
+      have r3 : Icc 1 2 ⊆ Function.support ψ := by intro x hx ; have := h4 x ; simp [hx] at this ⊢ ; linarith
+      have r4 : Icc 1 2 ⊆ Function.support ψ ∩ Ioi 0 := by simp [r3, Icc_subset_Ioi_iff]
+      have r5 : 1 ≤ volume ((Function.support fun y ↦ ψ y) ∩ Ioi 0) := by convert volume.mono r4 ; norm_num
+      simpa [set_integral_pos_iff_support_of_nonneg_ae r1 r2] using zero_lt_one.trans_le r5
+    have := div_nonneg l3 l4.le ; field_simp at this ; exact this
 
   let Iab : ℝ → ℝ := indicator (Icc a b) 1
   change Tendsto (S Iab) atTop (𝓝 (A * (b - a)))
