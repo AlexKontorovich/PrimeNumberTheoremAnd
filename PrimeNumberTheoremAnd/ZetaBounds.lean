@@ -230,18 +230,19 @@ lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (h : a ≤ b) (
 
 theorem integrability_aux₀ {a b : ℝ} (a_lt_b : a < b) :
     ∀ᵐ (x : ℝ) ∂MeasureTheory.Measure.restrict MeasureTheory.volume [[a, b]],
-      ‖(⌊x⌋ : ℂ)‖ ≤ max (‖a‖ + 1) (‖b‖ + 1) := by
+      ‖(⌊x⌋ : ℂ)‖ ≤ max ‖a‖ ‖b‖ + 1 := by
   rw [MeasureTheory.ae_restrict_iff']
   swap; · exact measurableSet_Icc
   refine MeasureTheory.ae_of_all _ (fun x hx ↦ ?_)
   rw [Set.uIcc_of_le a_lt_b.le, Set.mem_Icc] at hx
-
+  simp only [norm_int, Real.norm_eq_abs, le_max_iff]
+  rw [abs_le, abs_le]
   sorry
 
 lemma integrability_aux₁ {a b : ℝ} (a_lt_b : a < b) :
     IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ)) MeasureTheory.volume a b := by
   rw [intervalIntegrable_iff']
-  apply MeasureTheory.Measure.integrableOn_of_bounded (M := max (‖a‖ + 1) (‖b‖ + 1))
+  apply MeasureTheory.Measure.integrableOn_of_bounded (M := max ‖a‖ ‖b‖ + 1)
   · simp only [Real.volume_interval, ne_eq, ENNReal.ofReal_ne_top, not_false_eq_true]
   · apply Measurable.aestronglyMeasurable
     apply Measurable.comp
