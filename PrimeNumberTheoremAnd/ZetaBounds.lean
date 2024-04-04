@@ -440,7 +440,7 @@ lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_one : s ≠ 1) {a b : ℕ} (apos :
 
 /-%%
 \begin{lemma}[ZetaSum_aux1]\label{ZetaSum_aux1}\lean{ZetaSum_aux1}\leanok
-  Let $0 < a < b$ be natural numbers and $s\in \C$ with $s \ne 1$.
+  Let $0 < a < b$ be natural numbers and $s\in \C$ with $s \ne 1$ and $s \ne 0$.
   Then
   \[
   \sum_{a < n \le b} \frac{1}{n^s} =  \frac{b^{1-s} - a^{1-s}}{1-s} + \frac{b^{-s}-a^{-s}}{2} + s \int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx.
