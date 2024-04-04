@@ -1536,13 +1536,33 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
   let S := {⟨x, y⟩ : ℝ × ℝ | 0 < x  ∧ x ≤ y ∧ 2 ^ (-ε) ≤ y ∧ y ≤ 2 ^ ε}
   let F' : ℝ × ℝ → ℂ := piecewise S (fun ⟨x, y⟩ ↦ f y * (x : ℂ) ^ (s - 1))
      (fun _ ↦ 0)
+  let Tx := Ioc 0 ((2 : ℝ) ^ ε)
+  let Ty := Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)
 
-  have Ssub : S ⊆ Ioi 0 ×ˢ Ioi 0 := by
+  have Seq : S = (Tx ×ˢ Ty) ∩ {(x, y) : ℝ × ℝ | x ≤ y} := by
+    ext ⟨x, y⟩
+    simp only [S, Tx, Ty, mem_setOf_eq, mem_inter_iff, mem_prod, mem_Ioc, mem_Icc, mem_setOf_eq]
+    constructor
+    · exact fun h ↦ ⟨⟨⟨h.1, le_trans h.2.1 h.2.2.2⟩, ⟨h.2.2.1, h.2.2.2⟩⟩, h.2.1⟩
+    · exact fun h ↦  ⟨h.1.1.1, ⟨h.2, h.1.2.1, h.1.2.2⟩⟩
+
+  have SsubI : S ⊆ Ioi 0 ×ˢ Ioi 0 := by
     intro z hz
     simp only [S, mem_setOf_eq] at hz ⊢
     refine ⟨hz.1, lt_of_lt_of_le ?_ hz.2.2.1⟩
     apply rpow_pos_of_pos; norm_num
-  have Smeas : MeasurableSet S := by sorry
+
+  have SsubT: S ⊆ Tx ×ˢ Ty := by
+    intro z hz
+    simp only [S, mem_setOf_eq] at hz ⊢
+    simp only [mem_prod, Tx, Ty, mem_Ioc, mem_Icc]
+    exact ⟨⟨hz.1, (by linarith)⟩, hz.2.2⟩
+
+  have Smeas : MeasurableSet S := by
+    rw [Seq]
+    apply MeasurableSet.inter
+    · simp [measurableSet_prod, Tx, Ty]
+    · exact measurableSet_le measurable_fst measurable_snd
 
   have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
     apply IntegrableOn.congr_fun (f := F') ?int ?eq (by simp [measurableSet_prod]); swap
@@ -1555,13 +1575,10 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
       · have : ¬ (0 < x / y ∧ x / y ≤ 1) := by sorry
         simp [hS, this]
     · apply Integrable.piecewise Smeas ?_ integrableOn_zero
-      simp only [IntegrableOn, Measure.restrict_restrict_of_subset Ssub]
+      simp only [IntegrableOn, Measure.restrict_restrict_of_subset SsubI]
       clear F F' f' g
-      let Tx := Ioc 0 ((2 : ℝ) ^ ε)
-      let Ty := Icc ((2 : ℝ) ^ (-ε)) ((2 : ℝ) ^ ε)
-      have Ssub2: S ⊆ Tx ×ˢ Ty := by sorry
       have meas_le : volume.restrict S ≤ volume.restrict (Tx ×ˢ Ty) := by
-        -- have := MeasureTheory.Measure.restrict_apply_superset Ssub2
+        -- have := MeasureTheory.Measure.restrict_apply_superset SsubT
         sorry
       apply MeasureTheory.Integrable.mono_measure ?_ meas_le
       have : volume.restrict (Tx ×ˢ Ty) = (volume.restrict Tx).prod (volume.restrict Ty) := by
