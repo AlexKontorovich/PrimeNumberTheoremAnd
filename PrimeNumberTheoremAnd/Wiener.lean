@@ -14,6 +14,7 @@ import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
 import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.Algebra.GroupWithZero.Units.Basic
 
+import PrimeNumberTheoremAnd.BrunTitchmarsh
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Fourier
 
@@ -21,7 +22,7 @@ import PrimeNumberTheoremAnd.Fourier
 -- impossible to hide, and hence parameters that are traditionally called σ will
 -- have to be called σ' instead in this file.
 
-open Nat Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries Asymptotics SchwartzMap
+open Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries Asymptotics SchwartzMap
 open Complex hiding log
 open scoped Topology
 
@@ -129,7 +130,7 @@ lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
   calc
     _ = (f n * (cexp ((2 * π * -(y * (1 / (2 * π) * Real.log (n / x)))) * I) / ↑((n : ℝ) ^ σ'))) • ψ y := by
       have : ((↑n : ℂ) ^ (σ' : ℂ) : ℂ) = ((↑n : ℝ) ^ (σ' : ℝ) : ℝ) := by
-        rw [Complex.cpow_def_of_ne_zero (by simp [hn]), Real.rpow_def_of_nonneg (cast_nonneg n)]
+        rw [Complex.cpow_def_of_ne_zero (by simp [hn]), Real.rpow_def_of_nonneg (Nat.cast_nonneg n)]
         simp [hn]
       simp [smul_eq_mul, mul_assoc, this] ; ring_nf
     _ = (f n * (x ^ (y * I) / n ^ (σ' + y * I))) • ψ y := by
@@ -412,7 +413,7 @@ lemma continuous_LSeries_aux (hf : Summable (nterm f σ')) :
   have l2 n (x : ℝ) : ‖term f (σ' + x * I) n‖ = nterm f σ' n := by
     by_cases h : n = 0
     · simp [h, nterm]
-    · field_simp [h, nterm, cpow_add _ _ (cast_ne_zero.mpr h)]
+    · field_simp [h, nterm, cpow_add _ _ (Nat.cast_ne_zero.mpr h)]
       rw [← Complex.norm_eq_abs, Complex.norm_natCast_cpow_of_pos (Nat.pos_of_ne_zero h)]
       simp
   exact continuous_tsum l1 hf (fun n x => le_of_eq (l2 n x))
@@ -566,7 +567,7 @@ lemma bounded_of_shift {u : ℕ → ℝ} (h : BoundedAtFilter atTop (shift u)) :
   obtain ⟨C, N, hC⟩ := h
   refine ⟨C, N + 1, fun n hn => ?_⟩
   simp only [shift] at hC
-  have r1 : n - 1 ≥ N := le_sub_one_of_lt hn
+  have r1 : n - 1 ≥ N := Nat.le_sub_one_of_lt hn
   have r2 : n - 1 + 1 = n := Nat.sub_add_cancel <| NeZero.one_le.trans hn.le
   simpa [r2] using hC (n - 1) r1
 
@@ -608,7 +609,7 @@ lemma summable_inv_mul_log_sq : Summable (fun n : ℕ => (n * (Real.log n) ^ 2)�
   apply (summable_condensed_iff_of_nonneg l4 (fun _ _ _ a ↦ l2 a)).mp
   suffices this : ∀ᶠ k : ℕ in atTop, 2 ^ k * v (2 ^ k) = ((k : ℝ) ^ 2)⁻¹ * ((Real.log 2) ^ 2)⁻¹ by
     exact (summable_congr_ae this).mpr <| (Real.summable_nat_pow_inv.mpr one_lt_two).mul_right _
-  have l5 : ∀ᶠ k in atTop, v (2 ^ k) = u (2 ^ k) := l3.comp_tendsto <| Nat.tendsto_pow_atTop_atTop_of_one_lt le.refl
+  have l5 : ∀ᶠ k in atTop, v (2 ^ k) = u (2 ^ k) := l3.comp_tendsto <| Nat.tendsto_pow_atTop_atTop_of_one_lt Nat.le.refl
   filter_upwards [l5, l8] with k l5 l8 ; field_simp [u, l5] ; ring
 
 lemma tendsto_mul_add_atTop {a : ℝ} (ha : 0 < a) (b : ℝ) : Tendsto (fun x => a * x + b) atTop atTop :=
@@ -861,7 +862,7 @@ theorem limiting_fourier_lim1 (hcheby : cheby f) (hψ : W21 ψ) (hx : 0 < x) :
     apply eventually_of_forall
     intro σ' (hσ' : 1 < σ') n
     rw [norm_mul, ← nterm_eq_norm_term]
-    refine mul_le_mul ?_ (hC _) (norm_nonneg _) (div_nonneg (norm_nonneg _) (cast_nonneg _))
+    refine mul_le_mul ?_ (hC _) (norm_nonneg _) (div_nonneg (norm_nonneg _) (Nat.cast_nonneg _))
     by_cases h : n = 0 <;> simp [h, nterm]
     have : 1 ≤ (n : ℝ) := by simpa using Nat.pos_iff_ne_zero.mpr h
     refine div_le_div (by simp only [apply_nonneg]) le_rfl (by simpa [Nat.pos_iff_ne_zero]) ?_
@@ -1210,7 +1211,7 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
     (hfi : IntegrableOn f (Icc x₀ (x₀ +  n))) :
     (∑ i in Finset.range n, f (x₀ + ↑(i + 1))) ≤ ∫ x in x₀..x₀ + n, f x := by
 
-  cases' n with n <;> simp [succ_eq_add_one] at hf ⊢
+  cases' n with n <;> simp [Nat.succ_eq_add_one] at hf ⊢
   have : Finset.range (n + 1) = {0} ∪ Finset.Ico 1 (n + 1) := by
     ext i ; by_cases hi : i = 0 <;> simp [hi] ; omega
   simp [this, Finset.sum_union]
@@ -2006,7 +2007,7 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
 
 /-%%
 \begin{proof}
-\uses{smooth-ury, WienerIkeharaSmooth}
+\uses{smooth-ury, WienerIkeharaSmooth} \leanok
   Use Lemma \ref{smooth-ury} to bound $1_I$ above and below by smooth compactly supported functions whose integral is close to the measure of $|I|$, and use the non-negativity of $f$.
 \end{proof}
 %%-/
@@ -2035,6 +2036,58 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} {A : ℝ} {F : ℂ → ℂ} (hf 
 \end{proof}
 %%-/
 
+theorem vonMangoldt_cheby : cheby (fun n ↦ Λ n) := by
+  obtain ⟨C, hC⟩ := BrunTitchmarsh.card_range_filter_isPrimePow_le
+  have hC_nonneg : 0 ≤ C := by
+    have := hC 2
+    norm_cast at this
+    have hpos : 0 < 2 / Real.log 2 := by positivity
+    have : (0 : ℝ) ≤ ↑(Finset.filter IsPrimePow (Finset.range 2)).card := by norm_cast
+    rw [← mul_le_mul_right hpos]
+    simp
+    linarith
+  use C
+  dsimp [chebyWith, cumsum]
+  intro n
+  simp only [abs_ofReal]
+  calc
+    _ = ∑ i in Finset.range n, Λ i := by
+      apply Finset.sum_congr rfl
+      simp
+    _ ≤ ∑ i in Finset.range n, if IsPrimePow i then Real.log i else 0 := by
+      apply Finset.sum_le_sum
+      intro i _
+      rw [ArithmeticFunction.vonMangoldt_apply]
+      split_ifs with h
+      · have := (Nat.minFac_prime (h.ne_one)).pos
+        gcongr
+        apply Nat.minFac_le h.pos
+      · rfl
+    _ ≤ ∑ _i in (Finset.range n).filter IsPrimePow, Real.log n := by
+      rw [← Finset.sum_filter]
+      apply Finset.sum_le_sum
+      simp only [Finset.mem_filter, Finset.mem_range, and_imp]
+      intro i hi hi_p
+      have := hi_p.pos
+      gcongr
+    _ ≤ C * (n / Real.log n) * Real.log n := by
+      simp
+      gcongr
+      apply hC
+    _ ≤ _ := by
+      rw [mul_assoc]
+      by_cases hn : n = 0
+      · simp [hn]
+      by_cases hn1 : n = 1
+      · simp [hn1, hC_nonneg]
+      have : 0 < Real.log n := by
+        apply Real.log_pos
+        norm_cast
+        omega
+      field_simp
+
+
+
 /-%%
 \section{Weak PNT}
 
@@ -2049,5 +2102,85 @@ theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (nhds 1) := by sorry
 \begin{proof}
 \uses{WienerIkehara, ChebyshevPsi}
   Already done by Stoll, assuming Wiener-Ikehara.
+\end{proof}
+%%-/
+
+/-%%
+\section{Removing the Chebyshev hypothesis}
+
+In this section we do *not* assume bound \eqref{cheby}, but instead derive it from the other hypotheses.
+
+\begin{lemma}[Variant of limiting Fourier identity]\label{limiting-variant}\lean{limiting_fourier_variant}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, and $x \geq 1$, then
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
+\end{lemma}
+%%-/
+
+lemma limiting_fourier_variant (hpos: ∀ n, 0 ≤ (f n).re ∧ f n = 0) (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hψ : ContDiff ℝ 2 ψ) (hψpos : ∀ y, 0 ≤ (𝓕 ψ y).re ∧ (𝓕 ψ y).im = 0) (hsupp : HasCompactSupport ψ) (hx : 1 ≤ x) :
+    ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x)) -
+      A * ∫ u in Set.Ici (-log x), 𝓕 ψ (u / (2 * π)) =
+      ∫ (t : ℝ), (G (1 + t * I)) * (ψ t) * x ^ (t * I) := by sorry
+
+/-%%
+\begin{proof}
+\uses{first-fourier,second-fourier,decay}  Repeat the proof of Lemma ref{limiting-variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.)
+\end{proof}
+%%-/
+
+/-%%
+\begin{corollary}[Crude upper bound]\label{crude-upper}\lean{crude_upper_bound}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, then there exists a constant $B$ such that
+$$ |\sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )| \leq B$$
+for all $x \geq 1$.
+\end{corollary}
+%%-/
+
+lemma crude_upper_bound (hpos: ∀ n, 0 ≤ (f n).re ∧ (f n).im = 0) (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hψ : ContDiff ℝ 2 ψ) (hψpos : ∀ y, 0 ≤ (𝓕 ψ y).re ∧ (𝓕 ψ y).im = 0) (hsupp : HasCompactSupport ψ) : ∃ B : ℝ, ∀ x : ℝ, 0 < x → ‖ ∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x))‖ ≤  B := by sorry
+
+/-%%
+\begin{proof}
+\uses{limiting-variant} For $x \geq 1$, this readily follows from the previous lemma and the triangle inequality. For $x < 1$, only a bounded number of summands can contribute and the claim is trivial.
+\end{proof}
+%%-/
+
+/-%%
+\begin{corollary}[Automatic Chebyshev bound]\label{auto-cheby}\lean{auto_cheby}\leanok  One has
+$$ \sum_{n \leq x} f(n) = O(x)$$
+for all $x \geq 1$.
+\end{corollary}
+%%-/
+
+lemma auto_cheby (hpos: ∀ n, 0 ≤ (f n).re ∧ (f n).im = 0) (hG: ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+ : cheby f := by sorry
+
+/-%%
+\begin{proof}
+\uses{crude-upper-bound} For $x \geq 1$ apply the previous corollary for all $y < C x$ and $\psi$ chosen be both nonnegative and have nonnegative Fourier transform, while being not identically zero, and $C$ a large constant.  This gives
+$$ |\sum_{n=1}^\infty \frac{f(n)}{n} \int_0^{Cx} \hat \psi( \frac{1}{2\pi} \log \frac{n}{y} )\ dy| \leq CB x.$$
+But observe that the quantity $\int_0^{Cx} \hat \psi( \frac{1}{2\pi}$ is non-negative and equal to the positive constant $\int_{{\bf R}}
+\hat \psi( \frac{1}{2\pi} u ) e^u\ du$ if $n \leq x$ and $C$ is large enough.  The claim follows.
+\end{proof}
+%%-/
+
+/-%%
+\begin{corollary}[Wiener-Ikehara theorem, II]\label{WienerIkehara-alt}\lean{WienerIkeharaTheorem''}\leanok
+  We have
+$$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
+\end{corollary}
+%%-/
+
+
+theorem WienerIkeharaTheorem'' {f : ArithmeticFunction ℝ} {A : ℝ} {F : ℂ → ℂ} (hf : ∀ n, 0 ≤ f n)
+    (hF : Set.EqOn F (fun s ↦ LSeries (fun n => f n) s - A / (s - 1)) {s | 1 < s.re})
+    (hF' : ContinuousOn F {s | 1 ≤ s.re}) :
+    Tendsto (fun N : ℕ ↦ ((Finset.range N).sum f) / N) atTop (nhds A) := by
+  sorry
+
+/-%%
+\begin{proof}
+\uses{auto-cheby, WienerIkehara} Use Corollary \ref{auto-cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
 \end{proof}
 %%-/
