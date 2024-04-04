@@ -358,6 +358,12 @@ theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
 \end{proof}
 %%-/
 
+lemma xpos_of_uIcc {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) {x : ℝ} (x_in : x ∈ [[(a : ℝ), b]]) :
+    0 < x := by
+  rw [Set.uIcc_of_le (by exact_mod_cast a_lt_b.le), Set.mem_Icc] at x_in
+  have : (0 : ℝ) < a := by exact_mod_cast apos
+  linarith
+
 lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_lt_b : a < b) :
     (∫ (x : ℝ) in a..b, 1 / (x : ℂ) ^ s) =
     (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) := by
@@ -366,9 +372,7 @@ lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) 
     intro x hx
     simp only
     apply one_div_cpow_eq
-    rw [Set.uIcc_of_le (by exact_mod_cast a_lt_b.le), Set.mem_Icc] at hx
-    have : (0 : ℝ) < a := by exact_mod_cast apos
-    linarith
+    exact xpos_of_uIcc apos a_lt_b hx
   · norm_cast
     rw [(by ring : -s + 1 = 1 - s)]
   · right; refine ⟨?_, ?_⟩
@@ -383,6 +387,11 @@ lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) 
 
 lemma ZetaSum_aux1φDiff {s : ℂ} (s_ne_one : s ≠ 1) {x : ℝ} (xpos : 0 < x) :
     HasDerivAt (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x) x := by
+  sorry
+
+
+lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_one : s ≠ 1) {x : ℝ} (xpos : 0 < x) :
+    deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x = (fun (x : ℝ) ↦ -s / (x : ℂ) ^ (s + 1)) x := by
   sorry
 
 /-%%
@@ -400,9 +409,9 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_
       + s * ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
   let φ := fun (x : ℝ) ↦ 1 / (x : ℂ) ^ s
   let φ' := fun (x : ℝ) ↦ -s / (x : ℂ) ^ (s + 1)
-  have xpos : ∀ x ∈ [[(a : ℝ), b]], 0 < x := by sorry
+  have xpos : ∀ x ∈ [[(a : ℝ), b]], 0 < x := fun x hx ↦ xpos_of_uIcc apos a_lt_b hx
   have φDiff : ∀ x ∈ [[(a : ℝ), b]], HasDerivAt φ (deriv φ x) x := fun x hx ↦ ZetaSum_aux1φDiff s_ne_one (xpos x hx)
-  have φderiv : ∀ x ∈ [[(a : ℝ), b]], deriv φ x = φ' x := by sorry
+  have φderiv : ∀ x ∈ [[(a : ℝ), b]], deriv φ x = φ' x := fun x hx ↦ ZetaSum_aux1φderiv s_ne_one (xpos x hx)
   have derivφCont : ContinuousOn (deriv φ) [[a, b]] := by sorry
   have : (a : ℝ) < (b : ℝ) := by exact_mod_cast a_lt_b
   convert sum_eq_int_deriv this φDiff derivφCont using 1
