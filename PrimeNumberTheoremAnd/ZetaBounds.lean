@@ -395,7 +395,6 @@ lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_one : s ≠ 1) {x : ℝ} (xpos : 0 < x
 
 lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_one : s ≠ 1) {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) :
     ContinuousOn (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s)) [[a, b]] := by
-
   sorry
 
 /-%%
