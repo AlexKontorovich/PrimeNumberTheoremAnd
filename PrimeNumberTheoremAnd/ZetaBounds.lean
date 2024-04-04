@@ -14,6 +14,11 @@ import PrimeNumberTheoremAnd.PerronFormula
 
 open BigOperators Complex Topology Filter Interval
 
+-- move near `Real.differentiableAt_cpow_const_of_ne`
+theorem Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (hx : x ≠ 0) :
+    DifferentiableAt ℝ (fun (x : ℝ) => (x : ℂ) ^ s) x := by
+  sorry
+
 lemma Complex.one_div_cpow_eq {s : ℂ} {x : ℝ} (xpos : 0 < x) :
     1 / (x : ℂ) ^ s = (x : ℂ) ^ (-s) := by
   refine (eq_one_div_of_mul_eq_one_left ?_).symm
@@ -364,6 +369,11 @@ lemma xpos_of_uIcc {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) {x : ℝ} (x_in :
   have : (0 : ℝ) < a := by exact_mod_cast apos
   linarith
 
+lemma neg_s_ne_neg_one {s : ℂ} (s_ne_one : s ≠ 1) : -s ≠ -1 := by
+  intro hs
+  have : s = 1 := neg_inj.mp hs
+  exact s_ne_one this
+
 lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_lt_b : a < b) :
     (∫ (x : ℝ) in a..b, 1 / (x : ℂ) ^ s) =
     (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) := by
@@ -375,22 +385,24 @@ lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) 
     exact xpos_of_uIcc apos a_lt_b hx
   · norm_cast
     rw [(by ring : -s + 1 = 1 - s)]
-  · right; refine ⟨?_, ?_⟩
-    · intro hs
-      have : s = 1 := neg_inj.mp hs
-      exact s_ne_one this
-    · rw [Set.uIcc_of_le (by exact_mod_cast a_lt_b.le), Set.mem_Icc]
-      push_neg
-      intro ha
-      norm_cast at ha ⊢
-      linarith
+  · right; refine ⟨neg_s_ne_neg_one s_ne_one, ?_⟩
+    rw [Set.uIcc_of_le (by exact_mod_cast a_lt_b.le), Set.mem_Icc]
+    push_neg
+    intro ha
+    norm_cast at ha ⊢
+    linarith
 
 lemma ZetaSum_aux1φDiff {s : ℂ} (s_ne_one : s ≠ 1) {x : ℝ} (xpos : 0 < x) :
     HasDerivAt (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x) x := by
+  apply hasDerivAt_deriv_iff.mpr
+  apply DifferentiableAt.div
+  · fun_prop
+  ·
   sorry
 
 lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_one : s ≠ 1) {x : ℝ} (xpos : 0 < x) :
     deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x = (fun (x : ℝ) ↦ -s / (x : ℂ) ^ (s + 1)) x := by
+  have := hasDerivAt_ofReal_cpow xpos.ne' (neg_s_ne_neg_one s_ne_one)
   sorry
 
 lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_one : s ≠ 1) {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) :
