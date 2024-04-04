@@ -381,6 +381,10 @@ lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) 
       norm_cast at ha ⊢
       linarith
 
+lemma ZetaSum_aux1₂ {s : ℂ} (s_ne_one : s ≠ 1) {x : ℝ} (xpos : 0 < x) :
+    HasDerivAt (fun t ↦ 1 / (t : ℂ) ^ s) (deriv (fun t ↦ 1 / (t : ℂ) ^ s) x) x := by
+  sorry
+
 /-%%
 \begin{lemma}[ZetaSum_aux1]\label{ZetaSum_aux1}\lean{ZetaSum_aux1}\leanok
   Let $0 < a < b$ be natural numbers and $s\in \C$ with $s \ne 1$.
@@ -396,7 +400,9 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_
       + s * ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
   let φ := fun (x : ℝ) ↦ 1 / (x : ℂ) ^ s
   let φ' := fun (x : ℝ) ↦ -s / (x : ℂ)^(s + 1)
-  have φDiff : ∀ x ∈ [[(a : ℝ), b]], HasDerivAt φ (deriv φ x) x := by sorry
+  have φDiff : ∀ x ∈ [[(a : ℝ), b]], HasDerivAt φ (deriv φ x) x := by
+    extract_goal
+    sorry
   have φderiv : ∀ x ∈ [[(a : ℝ), b]], deriv φ x = φ' x := by sorry
   have derivφCont : ContinuousOn (deriv φ) [[a, b]] := by sorry
   have : (a : ℝ) < (b : ℝ) := by exact_mod_cast a_lt_b
