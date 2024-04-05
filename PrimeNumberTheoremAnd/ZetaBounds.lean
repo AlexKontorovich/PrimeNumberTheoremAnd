@@ -777,20 +777,23 @@ lemma ZetaSum_aux2 {N : ℕ} {s : ℂ} (s_re_pos : 1 < s.re) :
     (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
 
+  have s_ne_zero : s ≠ 0 := by sorry
+  have s_ne_one : s ≠ 1 := by sorry
+  have N_pos : 0 < N := by sorry
+
   apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
     (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
       + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1))
     (b := (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1))
-  · have := @Filter.Tendsto.congr'
+  · apply Filter.Tendsto.congr' (f₁ := fun (k : ℕ) ↦ ∑ n in Finset.Ioc (N : ℤ) k, 1 / (n : ℂ) ^ s) (l₁ := atTop)
+    · apply Filter.eventually_atTop.mpr
+      refine ⟨(N + 1), fun k hk ↦ ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos hk⟩
 
 
 
   #exit
   let k : ℕ := sorry
-  have s_ne_zero : s ≠ 0 := by sorry
-  have s_ne_one : s ≠ 1 := by sorry
-  have N_pos : 0 < N := by sorry
   have N_lt_k : N < k := by sorry
   let f : ℝ → ℂ := fun x ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
 --  have := ZetaSum_aux1 (a := N) (b := k) (s := s) ?_ ?_ ?_ ?_
