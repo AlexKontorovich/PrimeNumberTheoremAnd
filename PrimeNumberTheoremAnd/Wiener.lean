@@ -2073,7 +2073,7 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' 
     Tendsto (fun N => cumsum f N / N) atTop (𝓝 A) := by
 
   obtain ⟨C, hC⟩ := id hcheby
-  have : 0 ≤ C := sorry
+  have : 0 ≤ C := by have := hC 1 ; simp [cumsum] at this ; exact abs_nonneg _ |>.trans this
 
   let S (ε : ℝ) (N : ℕ) := (∑ n in Finset.Ico ⌈ε * N⌉₊ N, f n) / N
   convert_to Tendsto (S 0) atTop (𝓝 A) ; · simp [S, cumsum]
@@ -2083,9 +2083,22 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' 
     have r1 : Finset.range N = Finset.range ⌈ε * N⌉₊ ∪ Finset.Ico ⌈ε * N⌉₊ N := by
       rw [Finset.range_eq_Ico] ; symm ; apply Finset.Ico_union_Ico_eq_Ico (by simp)
       simp ; have := hε.2 ; convert_to ε * ↑N ≤ 1 * ↑N ; ring ; gcongr
-    have r2 : Disjoint (Finset.range ⌈ε * N⌉₊) (Finset.Ico ⌈ε * N⌉₊ N) := sorry
+    have r2 : Disjoint (Finset.range ⌈ε * N⌉₊) (Finset.Ico ⌈ε * N⌉₊ N) := by
+      rw [Finset.range_eq_Ico] ; apply Finset.Ico_disjoint_Ico_consecutive
     simp [S, r1, Finset.sum_union r2, cumsum, add_div]
-  have l3 (ε : ℝ) (hε : ε ∈ Ioc 0 1) N : |cumsum f ⌈ε * N⌉₊ / N| ≤ C * ε := sorry
+  have l3 (ε : ℝ) (hε : ε ∈ Ioc 0 1) (N : ℕ) (hN : 1 ≤ ε * N) : |cumsum f ⌈ε * N⌉₊ / N| ≤ C * 2 * ε := by
+    have r1 := hC ⌈ε * N⌉₊
+    have r2 : 0 ≤ cumsum f ⌈ε * N⌉₊ := by apply cumsum_nonneg hpos
+    have r3 : 0 ≤ (N : ℝ) := by simp
+    simp [abs_div, abs_eq_self.mpr r2, abs_eq_self.mpr (hpos _)] at r1 ⊢
+    apply div_le_div_of_nonneg_right r1 r3 |>.trans
+    rw [mul_div_assoc, mul_assoc]
+    apply mul_le_mul_of_nonneg_left ?_ this
+    have r5 : 0 ≤ ε := hε.1.le
+    apply div_le_of_nonneg_of_le_mul r3 (by positivity)
+    have r4 : 0 ≤ ε * N := mul_nonneg r5 (by simp)
+    apply Nat.ceil_lt_add_one r4 |>.le |>.trans
+    linarith
   have l4 (ε : ℝ) (hε : ε ∈ Ioc 0 1) N : |S 0 N - S ε N| ≤ C * ε := by simpa [l2 ε hε] using l3 ε hε N
   have l5 : Tendsto (fun ε => A * (1 - ε)) (𝓝[>] 0) (𝓝 A) := sorry
 
