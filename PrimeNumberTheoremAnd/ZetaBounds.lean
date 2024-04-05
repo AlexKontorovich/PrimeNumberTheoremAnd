@@ -320,7 +320,7 @@ lemma ZetaSum_aux1a_aux2 {a b : ℝ} {c : ℝ} (apos : 0 < a) (a_lt_b : a < b)
   have : (a ^ (-c) - b ^ (-c)) / c = (b ^ (-c) - a ^ (-c)) / (-c) := by
     ring
   rw [this]
-  have : -c-1 ≠ -1 := by 
+  have : -c-1 ≠ -1 := by
     simp only [ne_eq, sub_eq_neg_self, neg_eq_zero]
     exact h.1
   have : -c-1 ≠ -1 ∧ 0 ∉ [[a, b]] := ⟨ this, h.2 ⟩
@@ -332,7 +332,7 @@ lemma ZetaSum_aux1a_aux2 {a b : ℝ} {c : ℝ} (apos : 0 < a) (a_lt_b : a < b)
   simp only
   have : x > 0 := by
     exact ZetaSum_aux1a_aux1 apos a_lt_b h
-  rw [ZetaSum_aux1a_aux2a this]   
+  rw [ZetaSum_aux1a_aux2a this]
   congr
   ring
 
@@ -340,7 +340,7 @@ lemma ZetaSum_aux1a_aux3a (x : ℝ) : -(1/2) < ⌊ x ⌋ + 1/2 - x := by
   have : 0 < (⌊ x ⌋ + 1) - x := by
     exact sub_pos_of_lt (Int.lt_floor_add_one x)
   calc
-    _ = -1/2 := by norm_num                   
+    _ = -1/2 := by norm_num
     _ < -1/2 + ((⌊ x ⌋ + 1) - x) := lt_add_of_pos_right (-1/2) this
     _ = _ := by ring
 
@@ -472,11 +472,11 @@ lemma ZetaSum_aux1a {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos
     Complex.abs (∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) ≤
       (a ^ (-s.re) - b ^ (-s.re)) / s.re := by
   calc
-    _ ≤ ∫ x in a..b, Complex.abs ((⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) := 
-        intervalIntegral.norm_integral_le_integral_norm (μ := MeasureTheory.volume) 
+    _ ≤ ∫ x in a..b, Complex.abs ((⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) :=
+        intervalIntegral.norm_integral_le_integral_norm (μ := MeasureTheory.volume)
           (a := a) (b := b) (f := λ x => (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) (le_of_lt a_lt_b)
-    _ = ∫ x in a..b, |(⌊x⌋ + 1 / 2 - x)| / x^((s+1).re) := by 
-      exact ZetaSum_aux1a_aux4 apos a_lt_b      
+    _ = ∫ x in a..b, |(⌊x⌋ + 1 / 2 - x)| / x^((s+1).re) := by
+      exact ZetaSum_aux1a_aux4 apos a_lt_b
     _ = ∫ x in a..b, |(⌊x⌋ + 1 / 2 - x)| / x^(s.re + 1) := by rfl
     _ ≤ ∫ x in a..b, 1 / x^(s.re + 1) := by
       exact ZetaSum_aux1a_aux5 apos a_lt_b σpos
