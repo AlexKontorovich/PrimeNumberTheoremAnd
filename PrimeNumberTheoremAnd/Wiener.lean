@@ -2012,6 +2012,37 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
 \end{proof}
 %%-/
 
+lemma le_floor_mul_iff (hb : 0 ≤ b) (hx : 0 < x) : n ≤ ⌊b * x⌋₊ ↔ n / x ≤ b := by
+  rw [div_le_iff hx, Nat.le_floor_iff] ; positivity
+
+lemma ceil_mul_le_iff (hx : 0 < x) : ⌈a * x⌉₊ ≤ n ↔ a ≤ n / x := by
+  rw [le_div_iff hx, Nat.ceil_le]
+
+lemma mem_Icc_iff_div (hb : 0 ≤ b) (hx : 0 < x) : n ∈ Finset.Icc ⌈a * x⌉₊ ⌊b * x⌋₊ ↔ n / x ∈ Icc a b := by
+  rw [Finset.mem_Icc, mem_Icc, ceil_mul_le_iff hx, le_floor_mul_iff hb hx]
+
+lemma tsum_indicator {f : ℕ → ℝ} (hb : 0 ≤ b) (hx : 0 < x) :
+    ∑' n, f n * (indicator (Icc a b) 1 (n / x)) = ∑ n in Finset.Icc ⌈a * x⌉₊ ⌊b * x⌋₊, f n := by
+  have l1 : ∀ n ∉ Finset.Icc ⌈a * x⌉₊ ⌊b * x⌋₊, f n * indicator (Icc a b) 1 (↑n / x) = 0 := by
+    simp [mem_Icc_iff_div hb hx] ; tauto
+  rw [tsum_eq_sum l1] ; apply Finset.sum_congr rfl ; simp only [mem_Icc_iff_div hb hx] ; intro n hn ; simp [hn]
+
+lemma WienerIkeharaInterval_discrete {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
+    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha: 0 < a) (hb: a < b) :
+    Tendsto (fun x : ℝ ↦ (∑ n in Finset.Icc ⌈a * x⌉₊ ⌊b * x⌋₊, f n) / x) atTop (nhds (A * (b - a))) := by
+  apply (WienerIkeharaInterval hpos hf hcheby hG hG' ha hb).congr'
+  filter_upwards [eventually_gt_atTop 0] with x hx
+  rw [tsum_indicator (by linarith) hx]
+
+lemma WienerIkeharaInterval_discrete' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
+    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha: 0 < a) (hb: a < b) :
+    Tendsto (fun N : ℕ ↦ (∑ n in Finset.Icc ⌈a * N⌉₊ ⌊b * N⌋₊, f n) / N) atTop (nhds (A * (b - a))) :=
+  WienerIkeharaInterval_discrete hpos hf hcheby hG hG' ha hb |>.comp tendsto_nat_cast_atTop_atTop
+
+-- TODO with `Ico`
+
 /-%%
 \begin{corollary}[Wiener-Ikehara theorem]\label{WienerIkehara}\lean{WienerIkeharaTheorem'}\leanok
   We have
@@ -2023,10 +2054,16 @@ $$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
 function whose L-series has a simple pole at `s = 1` with residue `A` and otherwise extends
 continuously to the closed half-plane `re s ≥ 1`, then `∑ n < N, f n` is asymptotic to `A*N`. -/
 
-theorem WienerIkeharaTheorem' {f : ℕ → ℝ} {A : ℝ} {F : ℂ → ℂ} (hf : ∀ n, 0 ≤ f n)
-    (hF : Set.EqOn F (fun s ↦ LSeries (fun n => f n) s - A / (s - 1)) {s | 1 < s.re})
-    (hF' : ContinuousOn F {s | 1 ≤ s.re}) :
+theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
+    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
     Tendsto (fun N => cumsum f N / N) atTop (nhds A) := by
+
+  let S (ε : ℝ) (N : ℕ) := (∑ n in Finset.Icc ⌈ε * N⌉₊ N, f n) / N
+
+  have l1 (ε : ℝ) (hε : ε ∈ Ioo 0 1) : Tendsto (S ε) atTop (𝓝 (A * (1 - ε))) := by
+    simpa using WienerIkeharaInterval_discrete' (a := ε) (b := 1) hpos hf hcheby hG hG' hε.1 hε.2
+
   sorry
 
 /-%%
@@ -2097,7 +2134,9 @@ theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (nhds 1) := by
     have hs₁ : s ≠ 1 := by contrapose! hs ; simp [hs]
     simp [LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs, neg_logDeriv_ζ₁_eq hs₁ (hnv hs₁ hs.le)]
   have l3 : ContinuousOn (-deriv ζ₁ / ζ₁) {s | 1 ≤ s.re} := continuousOn_neg_logDeriv_ζ₁.mono (by tauto)
-  exact WienerIkeharaTheorem' l1 l2 l3
+  have l4 : cheby Λ := vonMangoldt_cheby
+  have l5 : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm Λ σ') := sorry
+  apply WienerIkeharaTheorem' l1 l5 l4 l3 l2
 
 /-%%
 \begin{proof}
