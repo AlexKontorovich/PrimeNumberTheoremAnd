@@ -830,6 +830,11 @@ Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\
 \end{proof}
 %%-/
 
+lemma tsum_eq_partial_add_tail (N : ℕ) (f : ℕ → ℂ) (hf : Summable f) :
+  ∑' (n : ℕ), f n =
+   (∑ n in Finset.Icc 1 (N - 1), f n) + ∑' (n : ℕ), f (n + N) := by
+  sorry
+
 /-%%
 \begin{lemma}[Zeta0EqZeta]\label{Zeta0EqZeta}\lean{Zeta0EqZeta}\leanok
 For $\Re(s)>0$, $s\ne1$, and for any $N$,
@@ -862,7 +867,10 @@ lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) 
   dsimp [f, g]
   simp only [gt_iff_lt, Set.mem_setOf_eq, u] at hz
   rw [zeta_eq_tsum_one_div_nat_cpow hz, RiemannZeta0_apply]
-  set part1 := ∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ z
+  have := @ZetaSum_aux2 (N := N) _ hz
+  rw [← this]
+  extract_goal
+--  set part1 := ∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ z
   -- set part2 := -(N : ℂ) ^ (1 - z) / (1 - z) + -↑N ^ (-z) / 2 + z * ∫ (x : ℝ) in Set.Ici ↑N, (↑⌊x⌋ + 1 / 2 - ↑x) / ↑x ^ (z + 1)
   -- have := @ZetaSum_aux2 (N := N) _ hz
   sorry
