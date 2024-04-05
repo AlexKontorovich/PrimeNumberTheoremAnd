@@ -880,7 +880,9 @@ lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) 
   rw [← this]
   convert tsum_eq_partial_add_tail N (f := fun n => 1 / (n : ℂ) ^ z) ?_
   · norm_cast
-  apply summable_zeta hz
+    sorry
+  --apply summable_zeta hz
+  sorry
 /-%%
 \begin{proof}
 \uses{ZetaSum_aux2, RiemannZeta0, ZetaBnd_aux1, ZetaBndAux}
