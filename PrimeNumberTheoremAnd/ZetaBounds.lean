@@ -883,6 +883,7 @@ lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) 
     sorry
   --apply summable_zeta hz
   sorry
+  sorry
 /-%%
 \begin{proof}
 \uses{ZetaSum_aux2, RiemannZeta0, ZetaBnd_aux1, ZetaBndAux}
