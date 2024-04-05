@@ -506,7 +506,7 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠
       congr
     rw [this]
 /-%%
-\begin{proof}\uses{sum_eq_int_deriv}
+\begin{proof}\uses{sum_eq_int_deriv}\leanok
   Apply Lemma \ref{sum_eq_int_deriv} to the function $x \mapsto x^{-s}$.
 \end{proof}
 %%-/
