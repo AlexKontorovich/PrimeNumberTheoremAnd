@@ -753,7 +753,7 @@ is already proved by Michael Stoll in the EulerProducts PNT file.
 \begin{lemma}[ZetaInvBound2]\label{ZetaInvBound2}\lean{ZetaInvBound2}\leanok
 For $\sigma>1$ (and $\sigma \le 2$),
 $$
-1/|\zeta(\sigma+it)| \ll (\sigma-1)^{3/4}(\log |t|)^{1/4},
+1/|\zeta(\sigma+it)| \ll (\sigma-1)^{-3/4}(\log |t|)^{1/4},
 $$
 as $|t|\to\infty$.
 \end{lemma}
@@ -761,7 +761,46 @@ as $|t|\to\infty$.
 lemma ZetaInvBound2 {σ : ℝ} (σ_gt : 1 < σ) (σ_le : σ ≤ 2) :
     (fun (t : ℝ) ↦ 1 / Complex.abs (riemannZeta (σ + t * I))) =O[cocompact ℝ]
       fun (t : ℝ) ↦ (σ - 1) ^ (-(3 : ℝ) / 4) * (Real.log |t|) ^ ((1 : ℝ) / 4) := by
-  sorry
+  obtain ⟨A, ha, C, hC, h⟩ := ZetaUpperBnd
+  rw [Asymptotics.isBigO_iff]
+  use 2 * C
+  filter_upwards with t
+  have ht' : 4 < |2 * t| := sorry
+  have ht : 3 < |2 * t| := by linarith
+
+  calc
+    _ ≤ ‖Complex.abs (riemannZeta ↑σ) ^ (3 / 4 : ℝ) * Complex.abs (riemannZeta (↑σ + 2 * ↑t * I)) ^ (1 / 4 : ℝ)‖ := ?_
+    _ ≤ ‖(σ - 1) ^ (-3 / 4 : ℝ) * Complex.abs (riemannZeta (↑σ + 2 * ↑t * I)) ^ (1 / 4 : ℝ)‖ := ?_
+    _ ≤ ‖(σ - 1) ^ (-3 / 4 : ℝ) * C * (Real.log |2 * t|) ^ (1 / 4)‖ := ?_
+    _ ≤ ‖(σ - 1) ^ (-3 / 4 : ℝ) * C * (Real.log |t| ^ 2) ^ (1 / 4)‖ := ?_
+    _ = _ := ?_
+  · have := @ZetaInvBound1 (σ_gt := σ_gt) t
+    sorry
+  · have bnd1: Complex.abs (riemannZeta σ) ^ (3 / 4 : ℝ) ≤ (σ - 1) ^ (-(3 : ℝ) / 4) := by
+      have : (1 / (σ - 1)) ^ (3 / 4 : ℝ) = (σ - 1) ^ (-(3 : ℝ) / 4) := by
+        rw [one_div, ← Real.rpow_neg_one, ← Real.rpow_mul, neg_mul, one_mul, neg_div']
+        linarith
+      rw [← this]
+      apply Real.rpow_le_rpow (by simp [apply_nonneg]) ?_ (by norm_num)
+      have bnd := ZetaNear1Bnd
+      sorry
+    sorry
+  · have le_one : 1 - A / Real.log |t| ≤ 1 := by
+      simp only [Real.log_abs, tsub_le_iff_right, le_add_iff_nonneg_right]
+      rw [← Real.log_abs]
+      apply div_nonneg ha.le (Real.log_nonneg ?_)
+      rw [abs_mul, Nat.abs_ofNat] at ht
+      linarith
+    replace h := h σ (2 * t) ht ?_ σ_le
+    · sorry
+    · have : 1 - A / Real.log |2 * t| ≤ 1 := by
+        simp only [Real.log_abs, tsub_le_iff_right, le_add_iff_nonneg_right]
+        rw [← Real.log_abs]
+        apply div_nonneg ha.le (Real.log_nonneg ?_)
+        linarith
+      linarith
+  · sorry
+  · sorry
 /-%%
 \begin{proof}\uses{ZetaInvBound1, ZetaNear1Bnd, ZetaUpperBnd}
 Combine Lemma \ref{ZetaInvBound1} with the bounds in Lemmata \ref{ZetaNear1Bnd} and
