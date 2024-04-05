@@ -2079,16 +2079,19 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' 
   convert_to Tendsto (S 0) atTop (𝓝 A) ; · simp [S, cumsum]
   have l1 (ε : ℝ) (hε : ε ∈ Ioc 0 1) : Tendsto (S ε) atTop (𝓝 (A * (1 - ε))) := by
     simpa using WienerIkeharaInterval_discrete' (a := ε) (b := 1) hpos hf hcheby hG hG' hε.1 hε.2
-  have l2 (ε : ℝ) (hε : ε ∈ Ioo 0 1) N : S 0 N - S ε N = cumsum f ⌈ε * N⌉₊ / N := by
-    have r1 : Finset.range N = Finset.range ⌈ε * N⌉₊ ∪ Finset.Ico ⌈ε * N⌉₊ N := by sorry
+  have l2 (ε : ℝ) (hε : ε ∈ Ioc 0 1) N : S 0 N - S ε N = cumsum f ⌈ε * N⌉₊ / N := by
+    have r1 : Finset.range N = Finset.range ⌈ε * N⌉₊ ∪ Finset.Ico ⌈ε * N⌉₊ N := by
+      rw [Finset.range_eq_Ico] ; symm ; apply Finset.Ico_union_Ico_eq_Ico (by simp)
+      simp ; have := hε.2 ; convert_to ε * ↑N ≤ 1 * ↑N ; ring ; gcongr
     have r2 : Disjoint (Finset.range ⌈ε * N⌉₊) (Finset.Ico ⌈ε * N⌉₊ N) := sorry
     simp [S, r1, Finset.sum_union r2, cumsum, add_div]
-  have l3 (ε : ℝ) (hε : ε ∈ Ioo 0 1) N : |cumsum f ⌈ε * N⌉₊ / N| ≤ C * ε := sorry
-  have l4 (ε : ℝ) (hε : ε ∈ Ioo 0 1) N : |S 0 N - S ε N| ≤ C * ε := by simpa [l2 ε hε] using l3 ε hε N
+  have l3 (ε : ℝ) (hε : ε ∈ Ioc 0 1) N : |cumsum f ⌈ε * N⌉₊ / N| ≤ C * ε := sorry
+  have l4 (ε : ℝ) (hε : ε ∈ Ioc 0 1) N : |S 0 N - S ε N| ≤ C * ε := by simpa [l2 ε hε] using l3 ε hε N
   have l5 : Tendsto (fun ε => A * (1 - ε)) (𝓝[>] 0) (𝓝 A) := sorry
 
   rw [Metric.tendsto_nhds] ; intro ρ hρ
-  have l6 : ∀ᶠ ε : ℝ in 𝓝[>] 0, dist (A * (1 - ε)) A < ρ / 3 := sorry
+  have l6 : ∀ᶠ ε : ℝ in 𝓝[>] 0, dist (A * (1 - ε)) A < ρ / 3 := by
+    rw [Metric.tendsto_nhds] at l5 ; exact l5 (ρ / 3) (by linarith)
   have l7 : ∀ᶠ ε : ℝ in 𝓝[>] 0, C * ε < ρ / 3 := sorry
   have l8 : ∀ᶠ ε : ℝ in 𝓝[>] 0, ε ≤ 1 := by
     apply eventually_of_mem (U := Iic 1) ?_ (by simp)
@@ -2102,7 +2105,7 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' 
     rw [Metric.tendsto_nhds] at this ; specialize this (ρ / 3) r1
     simpa using this
   filter_upwards [key] with N hd2
-  have hd1 : dist (S 0 N) (S ε N) < ρ / 3 := sorry
+  have hd1 : dist (S 0 N) (S ε N) < ρ / 3 := LE.le.trans_lt (by simpa using l4 ε ⟨hε, l8⟩ N) l7
   have hd4 := dist_triangle (S 0 N) (S ε N) (A * (1 - ε))
   have hd5 := dist_triangle (S 0 N) (A * (1 - ε)) A
   linarith
