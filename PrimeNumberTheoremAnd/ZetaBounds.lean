@@ -775,7 +775,35 @@ and evaluate the integral.
 lemma ZetaSum_aux2 {N : ℕ} {s : ℂ} (s_re_pos : 1 < s.re) :
     ∑' (n : ℕ), 1 / (n + N : ℂ) ^ s =
     (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
-      + s * ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
+
+  apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
+    (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
+      + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1))
+    (b := (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1))
+  · have := @Filter.Tendsto.congr'
+
+
+
+  #exit
+  let k : ℕ := sorry
+  have s_ne_zero : s ≠ 0 := by sorry
+  have s_ne_one : s ≠ 1 := by sorry
+  have N_pos : 0 < N := by sorry
+  have N_lt_k : N < k := by sorry
+  let f : ℝ → ℂ := fun x ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
+--  have := ZetaSum_aux1 (a := N) (b := k) (s := s) ?_ ?_ ?_ ?_
+  -- Make suggestion (due to Heather) in zulip: ADD code action to turn `?_` into a pregenerated have statement beforehand!!!
+  have := ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos N_lt_k
+  have := MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
+    (b := (fun (n : ℕ) ↦ (n : ℝ))) (f := f) (μ := MeasureTheory.volume) (l := atTop) ?_ ?_
+-- TODO : complain on Zulip that `exact?` deterministic times out
+  have := @tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
+    (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
+      + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1))
+    (b := (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) _ _ (a := ?a) _ ?_ ?_
 
   sorry
 /-%%
@@ -783,6 +811,8 @@ lemma ZetaSum_aux2 {N : ℕ} {s : ℂ} (s_re_pos : 1 < s.re) :
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
 \end{proof}
 %%-/
+
+#exit
 
 /-%%
 \begin{definition}[RiemannZeta0]\label{RiemannZeta0}\lean{RiemannZeta0}\leanok
