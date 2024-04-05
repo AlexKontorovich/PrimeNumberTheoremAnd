@@ -2090,8 +2090,10 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' 
   rw [Metric.tendsto_nhds] ; intro ρ hρ
   have l6 : ∀ᶠ ε : ℝ in 𝓝[>] 0, dist (A * (1 - ε)) A < ρ / 3 := sorry
   have l7 : ∀ᶠ ε : ℝ in 𝓝[>] 0, C * ε < ρ / 3 := sorry
-  have l8 : ∀ᶠ ε : ℝ in 𝓝[>] 0, ε ≤ 1 := sorry
-  have l9 : ∀ᶠ ε : ℝ in 𝓝[>] 0, 0 < ε := sorry
+  have l8 : ∀ᶠ ε : ℝ in 𝓝[>] 0, ε ≤ 1 := by
+    apply eventually_of_mem (U := Iic 1) ?_ (by simp)
+    exact mem_nhdsWithin.mpr ⟨Iio 1, isOpen_Iio, by simp, fun t ⟨(ht1 : t < 1), ht2⟩ => ht1.le⟩
+  have l9 : ∀ᶠ ε : ℝ in 𝓝[>] 0, 0 < ε := self_mem_nhdsWithin
   obtain ⟨ε, l6, l7, l8, hε⟩ := (l6.and (l7.and (l8.and l9))).exists
 
   have key : ∀ᶠ (x : ℕ) in atTop, dist (S ε x) (A * (1 - ε)) < ρ / 3 := by
