@@ -835,6 +835,9 @@ lemma tsum_eq_partial_add_tail (N : ℕ) (f : ℕ → ℂ) (hf : Summable f) :
    (∑ n in Finset.Icc 1 (N - 1), f n) + ∑' (n : ℕ), f (n + N) := by
   sorry
 
+lemma summable_zeta {s : ℂ} (hs : 1 < s.re) : Summable (fun (n : ℕ) => 1 / (n : ℂ) ^ s) := by
+  sorry
+
 /-%%
 \begin{lemma}[Zeta0EqZeta]\label{Zeta0EqZeta}\lean{Zeta0EqZeta}\leanok
 For $\Re(s)>0$, $s\ne1$, and for any $N$,
@@ -869,11 +872,9 @@ lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) 
   rw [zeta_eq_tsum_one_div_nat_cpow hz, RiemannZeta0_apply]
   have := @ZetaSum_aux2 (N := N) _ hz
   rw [← this]
-  extract_goal
---  set part1 := ∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ z
-  -- set part2 := -(N : ℂ) ^ (1 - z) / (1 - z) + -↑N ^ (-z) / 2 + z * ∫ (x : ℝ) in Set.Ici ↑N, (↑⌊x⌋ + 1 / 2 - ↑x) / ↑x ^ (z + 1)
-  -- have := @ZetaSum_aux2 (N := N) _ hz
-  sorry
+  convert tsum_eq_partial_add_tail N (f := fun n => 1 / (n : ℂ) ^ z) ?_
+  · norm_cast
+  apply summable_zeta hz
 /-%%
 \begin{proof}
 \uses{ZetaSum_aux2, RiemannZeta0, ZetaBnd_aux1, ZetaBndAux}
