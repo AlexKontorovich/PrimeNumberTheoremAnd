@@ -832,10 +832,15 @@ Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\
 
 lemma tsum_eq_partial_add_tail (N : ℕ) (f : ℕ → ℂ) (hf : Summable f) :
   ∑' (n : ℕ), f n =
-   (∑ n in Finset.Icc 1 (N - 1), f n) + ∑' (n : ℕ), f (n + N) := by
+   (∑ n in Finset.Icc 0 (N - 1), f n) + ∑' (n : ℕ), f (n + N) := by
+  rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N)]
+  congr
+  rw [Finset.range_eq_Ico]
+  simp only [Nat.Ico_zero_eq_range]
   sorry
 
 lemma summable_zeta {s : ℂ} (hs : 1 < s.re) : Summable (fun (n : ℕ) => 1 / (n : ℂ) ^ s) := by
+  -- use `LSeriesSummable_of_le_const_mul_rpow`
   sorry
 
 /-%%
