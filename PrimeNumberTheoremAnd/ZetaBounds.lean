@@ -730,7 +730,7 @@ lemma ZetaSum_aux1a {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos
       apply ZetaSum_aux1a_aux2 (c := s.re) apos a_lt_b ⟨ h1, h2 ⟩
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Apply the triangle inequality
 $$
 \left|\int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx\right|

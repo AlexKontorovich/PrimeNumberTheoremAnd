@@ -29,7 +29,8 @@ theorem LogDerivativeDirichlet (s : ℂ) (hs : 1 < s.re) :
     - deriv riemannZeta s / riemannZeta s = ∑' n, Λ n / (n : ℂ) ^ s := by
   convert (ArithmeticFunction.LSeries_vonMangoldt_eq hs).symm using 1
   · congr
-    · sorry
+    ·
+      sorry
     · sorry
   sorry
 /-%%
