@@ -14,28 +14,28 @@ import PrimeNumberTheoremAnd.PerronFormula
 
 open BigOperators Complex Topology Filter Interval
 
-theorem AnalyticContinuation {f g : ℂ → ℂ} {s t : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
-    (g_on_t : AnalyticOn ℂ g t) (f_eq_g_on_cap : Set.EqOn f g (s ∩ t))
-    (s_open : IsOpen s) (t_open : IsOpen t) (cap_nonempty : Set.Nonempty (s ∩ t)) :
-    ∃! h : ℂ → ℂ, AnalyticOn ℂ h (s ∪ t) ∧ Set.EqOn h f s ∧ Set.EqOn h g t := by
-  classical
-  let h : ℂ → ℂ := fun z ↦ if z ∈ s then f z else g z
-  refine ⟨h, ⟨?_, fun z hz ↦ by simp [h, hz], ?_⟩, ?_⟩
-  · sorry
-  · intro z hz
-    by_cases z_in_s : z ∈ s
-    · have : z ∈ s ∩ t := by simp [z_in_s, hz]
-      have := f_eq_g_on_cap this
-      simp [h, z_in_s, this]
-    · simp [h, z_in_s]
-  · intro h' ⟨h'_analytic, h'_eq_f_on_s, h'_eq_g_on_t⟩
-    sorry
+-- theorem AnalyticContinuation {f g : ℂ → ℂ} {s t : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
+--     (g_on_t : AnalyticOn ℂ g t) (f_eq_g_on_cap : Set.EqOn f g (s ∩ t))
+--     (s_open : IsOpen s) (t_open : IsOpen t) (cap_nonempty : Set.Nonempty (s ∩ t)) :
+--     ∃! h : ℂ → ℂ, AnalyticOn ℂ h (s ∪ t) ∧ Set.EqOn h f s ∧ Set.EqOn h g t := by
+--   classical
+--   let h : ℂ → ℂ := fun z ↦ if z ∈ s then f z else g z
+--   refine ⟨h, ⟨?_, fun z hz ↦ by simp [h, hz], ?_⟩, ?_⟩
+--   · sorry
+--   · intro z hz
+--     by_cases z_in_s : z ∈ s
+--     · have : z ∈ s ∩ t := by simp [z_in_s, hz]
+--       have := f_eq_g_on_cap this
+--       simp [h, z_in_s, this]
+--     · simp [h, z_in_s]
+--   · intro h' ⟨h'_analytic, h'_eq_f_on_s, h'_eq_g_on_t⟩
+--     sorry
 
-theorem AnalyticContinuation' {f g : ℂ → ℂ} {s t u : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
-    (g_on_t : AnalyticOn ℂ g t) (u_sub : u ⊆ s ∩ t) (u_open : IsOpen u)
-    (u_nonempty : Set.Nonempty u) (f_eq_g_on_u : Set.EqOn f g u) :
-    Set.EqOn f g (s ∩ t) := by
-  sorry
+-- theorem AnalyticContinuation' {f g : ℂ → ℂ} {s t u : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
+--     (g_on_t : AnalyticOn ℂ g t) (u_sub : u ⊆ s ∩ t) (u_open : IsOpen u)
+--     (u_nonempty : Set.Nonempty u) (f_eq_g_on_u : Set.EqOn f g u) :
+--     Set.EqOn f g (s ∩ t) := by
+--   sorry
 
 -- move near `Real.differentiableAt_rpow_const_of_ne`
 theorem Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (hx : x ≠ 0) :
