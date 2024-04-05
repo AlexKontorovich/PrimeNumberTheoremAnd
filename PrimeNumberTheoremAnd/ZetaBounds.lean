@@ -14,6 +14,29 @@ import PrimeNumberTheoremAnd.PerronFormula
 
 open BigOperators Complex Topology Filter Interval
 
+theorem AnalyticContinuation {f g : ℂ → ℂ} {s t : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
+    (g_on_t : AnalyticOn ℂ g t) (f_eq_g_on_cap : Set.EqOn f g (s ∩ t))
+    (s_open : IsOpen s) (t_open : IsOpen t) (cap_nonempty : Set.Nonempty (s ∩ t)) :
+    ∃! h : ℂ → ℂ, AnalyticOn ℂ h (s ∪ t) ∧ Set.EqOn h f s ∧ Set.EqOn h g t := by
+  classical
+  let h : ℂ → ℂ := fun z ↦ if z ∈ s then f z else g z
+  refine ⟨h, ⟨?_, fun z hz ↦ by simp [h, hz], ?_⟩, ?_⟩
+  · sorry
+  · intro z hz
+    by_cases z_in_s : z ∈ s
+    · have : z ∈ s ∩ t := by simp [z_in_s, hz]
+      have := f_eq_g_on_cap this
+      simp [h, z_in_s, this]
+    · simp [h, z_in_s]
+  · intro h' ⟨h'_analytic, h'_eq_f_on_s, h'_eq_g_on_t⟩
+    sorry
+
+theorem AnalyticContinuation' {f g : ℂ → ℂ} {s t u : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
+    (g_on_t : AnalyticOn ℂ g t) (u_sub : u ⊆ s ∩ t) (u_open : IsOpen u)
+    (u_nonempty : Set.Nonempty u) (f_eq_g_on_u : Set.EqOn f g u) :
+    Set.EqOn f g (s ∩ t) := by
+  sorry
+
 -- move near `Real.differentiableAt_rpow_const_of_ne`
 theorem Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (hx : x ≠ 0) :
     DifferentiableAt ℝ (fun (x : ℝ) => (x : ℂ) ^ s) x := by
@@ -778,6 +801,11 @@ noncomputable def RiemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
   (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)
 
+lemma RiemannZeta0_apply (N : ℕ) (s : ℂ) : RiemannZeta0 (N : ℕ) (s : ℂ) =
+    (∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ s) +
+    (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
+      + s * ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := rfl
+
 /-%%
 \begin{lemma}[ZetaBnd_aux1]\label{ZetaBnd_aux1}\lean{ZetaBnd_aux1}\leanok
 For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in[1/2,2]$,
@@ -810,6 +838,26 @@ $$
 %%-/
 lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) :
     RiemannZeta0 N s = riemannZeta s := by
+  let f := riemannZeta
+  let g := RiemannZeta0 N
+  let setf := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
+  let setg := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
+  let setu := {z : ℂ | 1 < z.re}
+  have uOpen : IsOpen setu := by sorry
+  have u_nonempty : Set.Nonempty setu := by sorry
+  have u_sub : setu ⊆ setf ∩ setg := by sorry
+  have f_an : AnalyticOn ℂ f setf := by sorry
+  have g_an : AnalyticOn ℂ g setg := by sorry
+  have s_mem : s ∈ setf ∩ setg := by sorry
+  convert (@AnalyticContinuation' (f := f) (g := g) (s := setf) (t := setg) (u := setu) f_an g_an
+    u_sub uOpen u_nonempty ?_ s s_mem).symm
+  intro z hz
+  dsimp [f, g]
+  simp only [gt_iff_lt, Set.mem_setOf_eq, setu] at hz
+  rw [zeta_eq_tsum_one_div_nat_cpow hz, RiemannZeta0_apply]
+  set part1 := ∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ z
+  -- set part2 := -(N : ℂ) ^ (1 - z) / (1 - z) + -↑N ^ (-z) / 2 + z * ∫ (x : ℝ) in Set.Ici ↑N, (↑⌊x⌋ + 1 / 2 - ↑x) / ↑x ^ (z + 1)
+  -- have := @ZetaSum_aux2 (N := N) _ hz
   sorry
 /-%%
 \begin{proof}
