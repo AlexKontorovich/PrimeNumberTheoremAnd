@@ -2099,13 +2099,14 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' 
     have r4 : 0 ≤ ε * N := mul_nonneg r5 (by simp)
     apply Nat.ceil_lt_add_one r4 |>.le |>.trans
     linarith
-  have l4 (ε : ℝ) (hε : ε ∈ Ioc 0 1) N : |S 0 N - S ε N| ≤ C * ε := by simpa [l2 ε hε] using l3 ε hε N
+  have l4 (ε : ℝ) (hε : ε ∈ Ioc 0 1) (N : ℕ) (hN : 1 ≤ ε * N) : |S 0 N - S ε N| ≤ C * 2 * ε := by
+    sorry -- simpa [l2 ε hε] using l3 ε hε N
   have l5 : Tendsto (fun ε => A * (1 - ε)) (𝓝[>] 0) (𝓝 A) := sorry
 
   rw [Metric.tendsto_nhds] ; intro ρ hρ
   have l6 : ∀ᶠ ε : ℝ in 𝓝[>] 0, dist (A * (1 - ε)) A < ρ / 3 := by
     rw [Metric.tendsto_nhds] at l5 ; exact l5 (ρ / 3) (by linarith)
-  have l7 : ∀ᶠ ε : ℝ in 𝓝[>] 0, C * ε < ρ / 3 := sorry
+  have l7 : ∀ᶠ ε : ℝ in 𝓝[>] 0, C * 2 * ε < ρ / 3 := sorry
   have l8 : ∀ᶠ ε : ℝ in 𝓝[>] 0, ε ≤ 1 := by
     apply eventually_of_mem (U := Iic 1) ?_ (by simp)
     exact mem_nhdsWithin.mpr ⟨Iio 1, isOpen_Iio, by simp, fun t ⟨(ht1 : t < 1), ht2⟩ => ht1.le⟩
@@ -2117,8 +2118,9 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' 
     have  := WienerIkeharaInterval_discrete' hpos hf hcheby hG hG' hε l8
     rw [Metric.tendsto_nhds] at this ; specialize this (ρ / 3) r1
     simpa using this
-  filter_upwards [key] with N hd2
-  have hd1 : dist (S 0 N) (S ε N) < ρ / 3 := LE.le.trans_lt (by simpa using l4 ε ⟨hε, l8⟩ N) l7
+  have key' : ∀ᶠ (x : ℕ) in atTop, 1 ≤ ε * x := sorry
+  filter_upwards [key, key'] with N hd2 hN
+  have hd1 : dist (S 0 N) (S ε N) < ρ / 3 := LE.le.trans_lt (by simpa using l4 ε ⟨hε, l8⟩ N hN) l7
   have hd4 := dist_triangle (S 0 N) (S ε N) (A * (1 - ε))
   have hd5 := dist_triangle (S 0 N) (A * (1 - ε)) A
   linarith
