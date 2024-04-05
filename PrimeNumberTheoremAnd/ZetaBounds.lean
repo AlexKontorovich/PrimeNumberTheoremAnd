@@ -840,20 +840,25 @@ lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) 
     RiemannZeta0 N s = riemannZeta s := by
   let f := riemannZeta
   let g := RiemannZeta0 N
-  let setf := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
-  let setg := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
-  let setu := {z : ℂ | 1 < z.re}
-  have uOpen : IsOpen setu := by sorry
-  have u_nonempty : Set.Nonempty setu := by sorry
-  have u_sub : setu ⊆ setf ∩ setg := by sorry
-  have f_an : AnalyticOn ℂ f setf := by sorry
-  have g_an : AnalyticOn ℂ g setg := by sorry
-  have s_mem : s ∈ setf ∩ setg := by sorry
-  convert (@AnalyticContinuation' (f := f) (g := g) (s := setf) (t := setg) (u := setu) f_an g_an
-    u_sub uOpen u_nonempty ?_ s s_mem).symm
+  let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
+  have f_an : AnalyticOn ℂ f U := by sorry
+  have g_an : AnalyticOn ℂ g U := by sorry
+  have preconU : IsPreconnected U := by sorry
+  let z₀ := (2 : ℂ)
+  have hz₀ : z₀ ∈ U := by sorry
+  -- have uOpen : IsOpen setu := by sorry
+  -- have u_nonempty : Set.Nonempty setu := by sorry
+  -- have u_sub : setu ⊆ setf ∩ setg := by sorry
+  have s_mem : s ∈ U := by sorry
+
+  convert (AnalyticOn.eqOn_of_preconnected_of_eventuallyEq f_an g_an preconU hz₀ ?_ s_mem).symm
+
+  let u := {z : ℂ | 1 < z.re}
+  have u_mem : u ∈ 𝓝 z₀ := by sorry
+  filter_upwards [u_mem]
   intro z hz
   dsimp [f, g]
-  simp only [gt_iff_lt, Set.mem_setOf_eq, setu] at hz
+  simp only [gt_iff_lt, Set.mem_setOf_eq, u] at hz
   rw [zeta_eq_tsum_one_div_nat_cpow hz, RiemannZeta0_apply]
   set part1 := ∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ z
   -- set part2 := -(N : ℂ) ^ (1 - z) / (1 - z) + -↑N ^ (-z) / 2 + z * ∫ (x : ℝ) in Set.Ici ↑N, (↑⌊x⌋ + 1 / 2 - ↑x) / ↑x ^ (z + 1)
