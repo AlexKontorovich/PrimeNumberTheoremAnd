@@ -1931,8 +1931,12 @@ Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
 lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
-    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha : 0 < a) (hb : a < b) :
+    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha : 0 < a) (hb : a ≤ b) :
     Tendsto (fun x : ℝ ↦ (∑' n, f n * (indicator (Ico a b) 1 (n / x))) / x) atTop (nhds (A * (b - a))) := by
+
+  -- Take care of the trivial case `a = b`
+  by_cases hab : a = b ; · simp [hab]
+  replace hb : a < b := lt_of_le_of_ne hb hab
 
   -- Notation to make the proof more readable
   let S (g : ℝ → ℝ) (x : ℝ) :=  (∑' n, f n * g (n / x)) / x
@@ -2038,7 +2042,7 @@ lemma tsum_indicator {f : ℕ → ℝ} (hx : 0 < x) :
 
 lemma WienerIkeharaInterval_discrete {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
-    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha : 0 < a) (hb : a < b) :
+    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha : 0 < a) (hb : a ≤ b) :
     Tendsto (fun x : ℝ ↦ (∑ n in Finset.Ico ⌈a * x⌉₊ ⌈b * x⌉₊, f n) / x) atTop (nhds (A * (b - a))) := by
   apply (WienerIkeharaInterval hpos hf hcheby hG hG' ha hb).congr'
   filter_upwards [eventually_gt_atTop 0] with x hx
@@ -2046,7 +2050,7 @@ lemma WienerIkeharaInterval_discrete {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : �
 
 lemma WienerIkeharaInterval_discrete' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
-    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha : 0 < a) (hb : a < b) :
+    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha : 0 < a) (hb : a ≤ b) :
     Tendsto (fun N : ℕ ↦ (∑ n in Finset.Ico ⌈a * N⌉₊ ⌈b * N⌉₊, f n) / N) atTop (nhds (A * (b - a))) :=
   WienerIkeharaInterval_discrete hpos hf hcheby hG hG' ha hb |>.comp tendsto_nat_cast_atTop_atTop
 
@@ -2068,11 +2072,38 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' 
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
     Tendsto (fun N => cumsum f N / N) atTop (𝓝 A) := by
 
+  obtain ⟨C, hC⟩ := id hcheby
+  have : 0 ≤ C := sorry
+
   let S (ε : ℝ) (N : ℕ) := (∑ n in Finset.Ico ⌈ε * N⌉₊ N, f n) / N
   convert_to Tendsto (S 0) atTop (𝓝 A) ; · simp [S, cumsum]
-  have l1 (ε : ℝ) (hε : ε ∈ Ioo 0 1) : Tendsto (S ε) atTop (𝓝 (A * (1 - ε))) := by
+  have l1 (ε : ℝ) (hε : ε ∈ Ioc 0 1) : Tendsto (S ε) atTop (𝓝 (A * (1 - ε))) := by
     simpa using WienerIkeharaInterval_discrete' (a := ε) (b := 1) hpos hf hcheby hG hG' hε.1 hε.2
-  sorry
+  have l2 (ε : ℝ) (hε : ε ∈ Ioo 0 1) N : S 0 N - S ε N = cumsum f ⌈ε * N⌉₊ / N := by
+    have r1 : Finset.range N = Finset.range ⌈ε * N⌉₊ ∪ Finset.Ico ⌈ε * N⌉₊ N := by sorry
+    have r2 : Disjoint (Finset.range ⌈ε * N⌉₊) (Finset.Ico ⌈ε * N⌉₊ N) := sorry
+    simp [S, r1, Finset.sum_union r2, cumsum, add_div]
+  have l3 (ε : ℝ) (hε : ε ∈ Ioo 0 1) N : |cumsum f ⌈ε * N⌉₊ / N| ≤ C * ε := sorry
+  have l4 (ε : ℝ) (hε : ε ∈ Ioo 0 1) N : |S 0 N - S ε N| ≤ C * ε := by simpa [l2 ε hε] using l3 ε hε N
+  have l5 : Tendsto (fun ε => A * (1 - ε)) (𝓝[>] 0) (𝓝 A) := sorry
+
+  rw [Metric.tendsto_nhds] ; intro ρ hρ
+  have l6 : ∀ᶠ ε : ℝ in 𝓝[>] 0, dist (A * (1 - ε)) A < ρ / 3 := sorry
+  have l7 : ∀ᶠ ε : ℝ in 𝓝[>] 0, C * ε < ρ / 3 := sorry
+  have l8 : ∀ᶠ ε : ℝ in 𝓝[>] 0, ε ≤ 1 := sorry
+  have l9 : ∀ᶠ ε : ℝ in 𝓝[>] 0, 0 < ε := sorry
+  obtain ⟨ε, l6, l7, l8, hε⟩ := (l6.and (l7.and (l8.and l9))).exists
+
+  have key : ∀ᶠ (x : ℕ) in atTop, dist (S ε x) (A * (1 - ε)) < ρ / 3 := by
+    have r1 : 0 < ρ / 3 := by linarith
+    have  := WienerIkeharaInterval_discrete' hpos hf hcheby hG hG' hε l8
+    rw [Metric.tendsto_nhds] at this ; specialize this (ρ / 3) r1
+    simpa using this
+  filter_upwards [key] with N hd2
+  have hd1 : dist (S 0 N) (S ε N) < ρ / 3 := sorry
+  have hd4 := dist_triangle (S 0 N) (S ε N) (A * (1 - ε))
+  have hd5 := dist_triangle (S 0 N) (A * (1 - ε)) A
+  linarith
 
 /-%%
 \begin{proof}
@@ -2143,7 +2174,8 @@ theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (nhds 1) := by
     simp [LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs, neg_logDeriv_ζ₁_eq hs₁ (hnv hs₁ hs.le)]
   have l3 : ContinuousOn (-deriv ζ₁ / ζ₁) {s | 1 ≤ s.re} := continuousOn_neg_logDeriv_ζ₁.mono (by tauto)
   have l4 : cheby Λ := vonMangoldt_cheby
-  have l5 (σ' : ℝ) (hσ' : 1 < σ') : Summable (nterm Λ σ') := by sorry
+  have l5 (σ' : ℝ) (hσ' : 1 < σ') : Summable (nterm Λ σ') := by
+    simpa only [← nterm_eq_norm_term] using (@ArithmeticFunction.LSeriesSummable_vonMangoldt σ' hσ').norm
   apply WienerIkeharaTheorem' l1 l5 l4 l3 l2
 
 /-%%
