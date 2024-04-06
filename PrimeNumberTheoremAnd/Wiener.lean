@@ -1608,8 +1608,8 @@ Combining the two estimates and letting $R$ be large, we obtain the claim.
 
 -- just the surjectivity is stated here, as this is all that is needed for the current application, but perhaps one should state and prove bijectivity instead
 
-lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f := sorry
--- axiom fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f
+-- lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f := sorry
+axiom fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f
 
 /-%%
 \begin{proof}
@@ -2077,8 +2077,6 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' 
 
   let S (ε : ℝ) (N : ℕ) := (∑ n in Finset.Ico ⌈ε * N⌉₊ N, f n) / N
   convert_to Tendsto (S 0) atTop (𝓝 A) ; · simp [S, cumsum]
-  have l1 (ε : ℝ) (hε : ε ∈ Ioc 0 1) : Tendsto (S ε) atTop (𝓝 (A * (1 - ε))) := by
-    simpa using WienerIkeharaInterval_discrete' (a := ε) (b := 1) hpos hf hcheby hG hG' hε.1 hε.2
   have l2 (ε : ℝ) (hε : ε ∈ Ioc 0 1) N : S 0 N - S ε N = cumsum f ⌈ε * N⌉₊ / N := by
     have r1 : Finset.range N = Finset.range ⌈ε * N⌉₊ ∪ Finset.Ico ⌈ε * N⌉₊ N := by
       rw [Finset.range_eq_Ico] ; symm ; apply Finset.Ico_union_Ico_eq_Ico (by simp)
@@ -2100,16 +2098,21 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' 
     apply Nat.ceil_lt_add_one r4 |>.le |>.trans
     linarith
   have l4 (ε : ℝ) (hε : ε ∈ Ioc 0 1) (N : ℕ) (hN : 1 ≤ ε * N) : |S 0 N - S ε N| ≤ C * 2 * ε := by
-    sorry -- simpa [l2 ε hε] using l3 ε hε N
-  have l5 : Tendsto (fun ε => A * (1 - ε)) (𝓝[>] 0) (𝓝 A) := sorry
+    rw [l2 ε hε] ; exact l3 ε hε N hN
+  have l5 : Tendsto (fun ε => A * (1 - ε)) (𝓝[>] 0) (𝓝 A) := by
+    have : Tendsto (fun ε : ℝ => ε) (𝓝[>] 0) (𝓝 0) := nhdsWithin_le_nhds
+    simpa using (this.const_sub 1).const_mul A
 
   rw [Metric.tendsto_nhds] ; intro ρ hρ
   have l6 : ∀ᶠ ε : ℝ in 𝓝[>] 0, dist (A * (1 - ε)) A < ρ / 3 := by
     rw [Metric.tendsto_nhds] at l5 ; exact l5 (ρ / 3) (by linarith)
-  have l7 : ∀ᶠ ε : ℝ in 𝓝[>] 0, C * 2 * ε < ρ / 3 := sorry
+  have l7 : ∀ᶠ ε : ℝ in 𝓝[>] 0, C * 2 * ε < ρ / 3 := by
+    have : Tendsto (fun ε : ℝ => ε) (𝓝[>] 0) (𝓝 0) := nhdsWithin_le_nhds
+    have := this.const_mul (C * 2) ; simp at this
+    apply eventually_lt_of_tendsto_lt (by positivity) this
   have l8 : ∀ᶠ ε : ℝ in 𝓝[>] 0, ε ≤ 1 := by
     apply eventually_of_mem (U := Iic 1) ?_ (by simp)
-    exact mem_nhdsWithin.mpr ⟨Iio 1, isOpen_Iio, by simp, fun t ⟨(ht1 : t < 1), ht2⟩ => ht1.le⟩
+    exact mem_nhdsWithin.mpr ⟨Iio 1, isOpen_Iio, by simp, fun t ⟨(ht1 : t < 1), _⟩ => ht1.le⟩
   have l9 : ∀ᶠ ε : ℝ in 𝓝[>] 0, 0 < ε := self_mem_nhdsWithin
   obtain ⟨ε, l6, l7, l8, hε⟩ := (l6.and (l7.and (l8.and l9))).exists
 
@@ -2118,7 +2121,10 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' 
     have  := WienerIkeharaInterval_discrete' hpos hf hcheby hG hG' hε l8
     rw [Metric.tendsto_nhds] at this ; specialize this (ρ / 3) r1
     simpa using this
-  have key' : ∀ᶠ (x : ℕ) in atTop, 1 ≤ ε * x := sorry
+  have key' : ∀ᶠ (x : ℕ) in atTop, 1 ≤ ε * x := by
+    simp_rw [mul_comm ε]
+    have : Tendsto (fun x : ℕ => (x : ℝ)) atTop atTop := tendsto_nat_cast_atTop_atTop
+    exact (tendsto_mul_const_atTop_iff_pos this).mpr hε (eventually_ge_atTop 1)
   filter_upwards [key, key'] with N hd2 hN
   have hd1 : dist (S 0 N) (S ε N) < ρ / 3 := LE.le.trans_lt (by simpa using l4 ε ⟨hε, l8⟩ N hN) l7
   have hd4 := dist_triangle (S 0 N) (S ε N) (A * (1 - ε))
@@ -2197,6 +2203,8 @@ theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (nhds 1) := by
   have l5 (σ' : ℝ) (hσ' : 1 < σ') : Summable (nterm Λ σ') := by
     simpa only [← nterm_eq_norm_term] using (@ArithmeticFunction.LSeriesSummable_vonMangoldt σ' hσ').norm
   apply WienerIkeharaTheorem' l1 l5 l4 l3 l2
+
+#print axioms WeakPNT
 
 /-%%
 \begin{proof}
