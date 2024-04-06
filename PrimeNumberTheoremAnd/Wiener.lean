@@ -26,7 +26,7 @@ open Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransf
 open Complex hiding log
 open scoped Topology
 
-variable {𝕜 : Type*} [IsROrC 𝕜] {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ Ψ : ℝ → ℂ} {F G : ℂ → ℂ} {f : ℕ → ℂ}
+variable {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ Ψ : ℝ → ℂ} {F G : ℂ → ℂ} {f : ℕ → ℂ}
 
 -- This version makes the support of Ψ explicit, and this is easier for some later proofs
 lemma smooth_urysohn_support_Ioo (h1 : a < b) (h3: c < d) :
@@ -123,7 +123,7 @@ lemma first_fourier_aux2a :
     _ = _ := by rw [div_self (by norm_num; exact pi_ne_zero), one_mul]
 
 lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
-    term f σ' n * 𝐞 [-(y * (1 / (2 * π) * Real.log (n / x)))] • ψ y =
+    term f σ' n * 𝐞 (-(y * (1 / (2 * π) * Real.log (n / x)))) • ψ y =
     term f (σ' + y * I) n • (ψ y * x ^ (y * I)) := by
   by_cases hn : n = 0 ; simp [term, hn]
   simp only [term, hn, ↓reduceIte, fourierChar_apply]
@@ -132,7 +132,7 @@ lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
       have : ((↑n : ℂ) ^ (σ' : ℂ) : ℂ) = ((↑n : ℝ) ^ (σ' : ℝ) : ℝ) := by
         rw [Complex.cpow_def_of_ne_zero (by simp [hn]), Real.rpow_def_of_nonneg (Nat.cast_nonneg n)]
         simp [hn]
-      simp [smul_eq_mul, mul_assoc, this] ; ring_nf
+      simp [Real.fourierChar, expMapCircle, smul_eq_mul, mul_assoc, this] ; ring
     _ = (f n * (x ^ (y * I) / n ^ (σ' + y * I))) • ψ y := by
       congr 2
       have l1 : 0 < (n : ℝ) := by simpa using Nat.pos_iff_ne_zero.mpr hn
@@ -226,8 +226,20 @@ lemma second_fourier_integrable_aux1 (hcont: Continuous ψ) (hsupp: Integrable �
   · apply Measurable.aestronglyMeasurable
     apply MeasureTheory.measurable_uncurry_of_continuous_of_measurable <;> intro i
     swap; apply Continuous.measurable
-    all_goals exact Continuous.smul (by fun_prop) <|
-      (Continuous.subtype_val (by continuity)).smul (by fun_prop)
+    · apply Continuous.smul
+      · continuity
+      · apply Continuous.smul
+        · apply Continuous.subtype_val
+          simp [Real.fourierChar, expMapCircle, Multiplicative.ofAdd]
+          continuity
+        · continuity
+    · apply Continuous.smul
+      · continuity
+      · apply Continuous.smul
+        · apply Continuous.subtype_val
+          simp [Real.fourierChar, expMapCircle, Multiplicative.ofAdd]
+          continuity
+        · continuity
   · let f1 : ℝ → ENNReal := fun a1 ↦ ↑‖cexp (-(↑a1 * (↑σ' - 1)))‖₊
     let f2 : ℝ → ENNReal := fun a2 ↦ ↑‖ψ a2‖₊
     suffices ∫⁻ (a : ℝ × ℝ), f1 a.1 * f2 a.2 ∂ν < ⊤ by simpa [Function.uncurry, HasFiniteIntegral]
@@ -272,10 +284,11 @@ so by Fubini's theorem it suffices to verify the identity
 \end{proof}
 %%-/
   conv in ↑(rexp _) * _ => { rw [Real.fourierIntegral_real_eq, ← smul_eq_mul, ← integral_smul] }
-  rw [MeasureTheory.integral_integral_swap (second_fourier_integrable_aux1 hcont hsupp hσ),
-    ← integral_mul_left]
+  rw [MeasureTheory.integral_integral_swap] ; swap ; exact second_fourier_integrable_aux1 hcont hsupp hσ
+  rw [← integral_mul_left]
   congr 1; ext t
-  simp_rw [fourierChar_apply, smul_eq_mul, ← mul_assoc _ _ (ψ _), integral_mul_right]
+  dsimp [Real.fourierChar, expMapCircle]
+  simp_rw [← mul_assoc _ _ (ψ _), integral_mul_right]
   rw [fun (a b d : ℂ) ↦ show a * (b * (ψ t) * d) = (a * b * d) * ψ t by ring]
   congr 1
   push_cast
@@ -643,7 +656,7 @@ lemma log_mul_add_isBigO_log {a : ℝ} (ha : 0 < a) (b : ℝ) : (fun x => Real.l
 
 lemma isBigO_log_mul_add {a : ℝ} (ha : 0 < a) (b : ℝ) : Real.log =O[atTop] (fun x => Real.log (a * x + b)) := by
   convert (log_mul_add_isBigO_log (b := -b / a) (inv_pos.mpr ha)).comp_tendsto (tendsto_mul_add_atTop (b := b) ha) using 1
-  ext x ; field_simp [ha.ne.symm] ; rw [mul_div_assoc, mul_div_cancel'] ; linarith
+  ext x ; field_simp [ha.ne.symm] ; rw [mul_div_assoc, mul_div_cancel₀] ; linarith
 
 lemma log_isbigo_log_div {d : ℝ} (hb : 0 < d) : (fun n ↦ Real.log n) =O[atTop] (fun n ↦ Real.log (n / d)) := by
   convert isBigO_log_mul_add (inv_pos.mpr hb) 0 using 1 ; field_simp
@@ -1006,7 +1019,8 @@ lemma limiting_cor_aux {f : ℝ → ℂ} : Tendsto (fun x : ℝ ↦ ∫ t, f t *
 
   simp_rw [tendsto_congr' l2]
   convert_to Tendsto (fun x => 𝓕 f (-Real.log x / (2 * π))) atTop (𝓝 0)
-  · funext ; congr ; funext ; rw [smul_eq_mul, mul_comm (f _)] ; congr ; simp ; norm_cast ; field_simp ; ring
+  · ext ; congr ; ext ; simp [Real.fourierChar, expMapCircle, mul_comm (f _)] ; left ; congr
+    rw [← neg_mul] ; congr ; norm_cast ; field_simp ; ring
   refine (zero_at_infty_fourierIntegral f).comp <| Tendsto.mono_right ?_ _root_.atBot_le_cocompact
   exact (tendsto_neg_atBot_iff.mpr tendsto_log_atTop).atBot_mul_const (inv_pos.mpr two_pi_pos)
 

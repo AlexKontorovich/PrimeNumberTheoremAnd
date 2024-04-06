@@ -14,11 +14,10 @@ theorem nnnorm_circle_smul (z : circle) (s : ℂ) : ‖z • s‖₊ = ‖s‖�
   simp [show z • s = z.val * s from rfl]
 
 noncomputable def e (u : ℝ) : ℝ →ᵇ ℂ where
-  toFun v := 𝐞 [-v * u]
-  continuous_toFun := by simp only [Multiplicative.ofAdd] ; have := continuous_fourierChar ; continuity
+  toFun v := 𝐞 (-v * u)
   map_bounded' := ⟨2, fun x y => (dist_le_norm_add_norm _ _).trans (by simp [one_add_one_eq_two])⟩
 
-@[simp] lemma e_apply (u : ℝ) (v : ℝ) : e u v = 𝐞 [-v * u] := rfl
+@[simp] lemma e_apply (u : ℝ) (v : ℝ) : e u v = 𝐞 (-v * u) := rfl
 
 theorem hasDerivAt_e {u x : ℝ} : HasDerivAt (e u) (-2 * π * u * I * e u x) x := by
   have l2 : HasDerivAt (fun v => -v * u) (-u) x := by simpa only [neg_mul_comm] using hasDerivAt_mul_const (-u)
@@ -35,7 +34,8 @@ theorem fourierIntegral_deriv {f f' : ℝ → ℂ} (h1 : ∀ x, HasDerivAt f (f'
     (h3 : Integrable f') (h4 : Tendsto f (cocompact ℝ) (𝓝 0)) (u : ℝ) :
     𝓕 f' u = 2 * π * I * u * 𝓕 f u := by
   convert_to ∫ v, e u v * f' v = 2 * ↑π * I * ↑u * ∫ v, e u v * f v
-    <;> try { simp [fourierIntegral_real_eq] }
+  · simp [fourierIntegral_real_eq] ; norm_cast
+  · simp [fourierIntegral_real_eq] ; left ; norm_cast
   have l1 (x) : HasDerivAt (e u) (-2 * π * u * I * e u x) x := hasDerivAt_e
   have l3 : Integrable (⇑(e u) * f') := fourierIntegral_deriv_aux2 (e u) h3
   have l4 : Integrable (fun x ↦ -2 * π * u * I * e u x * f x) := by
@@ -45,7 +45,10 @@ theorem fourierIntegral_deriv {f f' : ℝ → ℂ} (h1 : ∀ x, HasDerivAt f (f'
   have l5 : Tendsto (⇑(e u) * f) atBot (𝓝 0) := l7.mono_left _root_.atBot_le_cocompact
   have l6 : Tendsto (⇑(e u) * f) atTop (𝓝 0) := l7.mono_left _root_.atTop_le_cocompact
   rw [integral_mul_deriv_eq_deriv_mul l1 h1 l3 l4 l5 l6]
-  simp [integral_neg, ← integral_mul_left] ; congr ; ext ; ring
+  simp [integral_neg, ← integral_mul_left]
+  congr
+  ext
+  ring
 
 theorem fourierIntegral_deriv_schwartz (ψ : 𝓢(ℝ, ℂ)) (u : ℝ) : 𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u :=
   fourierIntegral_deriv (fun _ => ψ.differentiableAt.hasDerivAt) ψ.integrable
@@ -70,7 +73,8 @@ theorem fourierIntegral_deriv_compactSupport {f : ℝ → ℂ} (h1 : ContDiff �
   simp_rw [sub_eq_add_neg] ; rw [F_add] ; simp ; exact hf ; exact hg.neg
 
 @[simp] lemma F_mul {f : ℝ → ℂ} {c : ℂ} {u : ℝ} : 𝓕 (fun x => c * f x) u = c * 𝓕 f u := by
-  simp [fourierIntegral_eq, ← integral_mul_left] ; congr ; ext ; ring
+  simp [fourierIntegral_real_eq, ← integral_mul_left] ; congr ; ext
+  simp [Real.fourierChar, expMapCircle] ; ring
 
 structure W21 (f : ℝ → ℂ) : Prop where
   hh : ContDiff ℝ 2 f
@@ -295,3 +299,18 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
       · apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh' v] with R hR ; simp [hR]
       · apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh v] with R hR ; simp [hR]
     simpa [F] using tendsto_integral_filter_of_dominated_convergence bound e1 e2 e3 e4
+
+-- From Sébastien Gouëzel:
+
+theorem iteratedDeriv_fourierIntegral {f : ℝ → ℂ} {N : ℕ∞} {n : ℕ}
+    (hf : ∀ (n : ℕ), n ≤ N → Integrable (fun x ↦ x^n • f x)) (hn : n ≤ N) :
+    iteratedDeriv n (𝓕 f) = 𝓕 (fun x : ℝ ↦ (-2 * π * I * x) ^ n • f x) := by sorry
+
+theorem fourierIntegral_iteratedDeriv {f : ℝ → ℂ} {N : ℕ∞} (hf : ContDiff ℝ N f)
+    (h'f : ∀ (n : ℕ), n ≤ N → Integrable (iteratedDeriv n f)) {n : ℕ} (hn : n ≤ N) :
+    𝓕 (iteratedDeriv n f) = fun (x : ℝ) ↦ (2 * π * I * x) ^ n • (𝓕 f x) := by sorry
+
+noncomputable def FS (f : 𝓢(ℝ, ℂ)) : 𝓢(ℝ, ℂ) where
+  toFun := 𝓕 f
+  smooth' := sorry
+  decay' := sorry
