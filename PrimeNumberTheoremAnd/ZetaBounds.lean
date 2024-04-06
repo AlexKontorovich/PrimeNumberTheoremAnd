@@ -780,19 +780,19 @@ theorem tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop :=
   \]
 \end{lemma}
 %%-/
-lemma ZetaSum_aux2 {N : ℕ} {s : ℂ} (s_re_pos : 1 < s.re) :
+lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_pos : 1 < s.re) :
     ∑' (n : ℕ), 1 / (n + N : ℂ) ^ s =
     (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
-
   have s_ne_zero : s ≠ 0 := by
     intro s_eq
     rw [s_eq] at s_re_pos
     simp only [zero_re] at s_re_pos
     linarith
-  have s_ne_one : s ≠ 1 := by sorry
-  have N_pos : 0 < N := by sorry
-
+  have s_ne_one : s ≠ 1 := by
+    intro s_eq
+    rw [s_eq] at s_re_pos
+    simp only [one_re, lt_self_iff_false] at s_re_pos
   apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
     (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
       + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1))
