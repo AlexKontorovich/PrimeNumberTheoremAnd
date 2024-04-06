@@ -793,6 +793,10 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_pos : 1 < s.re) :
     intro s_eq
     rw [s_eq] at s_re_pos
     simp only [one_re, lt_self_iff_false] at s_re_pos
+  have one_sub_s_ne : 1 - s ≠ 0 := by
+    intro h
+    rw [sub_eq_iff_eq_add, zero_add] at h
+    exact s_ne_one h.symm
   apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
     (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
       + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1))
@@ -806,6 +810,14 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_pos : 1 < s.re) :
       · sorry
   · apply Tendsto.add
     · apply Tendsto.sub
+      · have : (-↑N ^ (1 - s) / (1 - s)) = (0 - ↑N ^ (1 - s) / (1 - s)) + 0 := by ring
+        rw [this]
+        apply Tendsto.add
+        · have := @Filter.tendsto_div_const_iff (hb := s_ne_zero)
+          · sorry
+          · sorry
+
+        sorry
       sorry
     · apply Tendsto.const_mul
       let f : ℝ → ℂ := fun x ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
