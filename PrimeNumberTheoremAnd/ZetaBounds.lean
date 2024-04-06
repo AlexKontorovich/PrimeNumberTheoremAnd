@@ -782,7 +782,7 @@ theorem tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop :=
 %%-/
 lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_pos : 1 < s.re) :
     ∑' (n : ℕ), 1 / (n + N : ℂ) ^ s =
-    (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
+    (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
   have s_ne_zero : s ≠ 0 := by
     intro s_eq
@@ -796,7 +796,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_pos : 1 < s.re) :
   apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
     (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
       + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1))
-    (b := (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
+    (b := (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1))
   · apply Filter.Tendsto.congr' (f₁ := fun (k : ℕ) ↦ ∑ n in Finset.Ioc (N : ℤ) k, 1 / (n : ℂ) ^ s) (l₁ := atTop)
     · apply Filter.eventually_atTop.mpr
@@ -805,7 +805,8 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_pos : 1 < s.re) :
       · simp
       · sorry
   · apply Tendsto.add
-    · sorry
+    · apply Tendsto.sub
+      sorry
     · apply Tendsto.const_mul
       let f : ℝ → ℂ := fun x ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
       convert MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
