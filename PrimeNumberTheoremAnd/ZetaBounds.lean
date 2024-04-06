@@ -785,7 +785,11 @@ lemma ZetaSum_aux2 {N : ℕ} {s : ℂ} (s_re_pos : 1 < s.re) :
     (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
 
-  have s_ne_zero : s ≠ 0 := by sorry
+  have s_ne_zero : s ≠ 0 := by
+    intro s_eq
+    rw [s_eq] at s_re_pos
+    simp only [zero_re] at s_re_pos
+    linarith
   have s_ne_one : s ≠ 1 := by sorry
   have N_pos : 0 < N := by sorry
 
