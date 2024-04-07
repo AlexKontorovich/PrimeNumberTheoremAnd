@@ -1,8 +1,9 @@
 import Mathlib.Analysis.Distribution.SchwartzSpace
-import Mathlib.Analysis.Fourier.FourierTransformDeriv
 import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import Mathlib.Topology.ContinuousFunction.Bounded
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
+
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Fourier.FourierTransformDeriv
 
 open FourierTransform Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap VectorFourier
 
@@ -300,15 +301,10 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
       · apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh v] with R hR ; simp [hR]
     simpa [F] using tendsto_integral_filter_of_dominated_convergence bound e1 e2 e3 e4
 
--- From Sébastien Gouëzel:
-
-theorem iteratedDeriv_fourierIntegral {f : ℝ → ℂ} {N : ℕ∞} {n : ℕ}
-    (hf : ∀ (n : ℕ), n ≤ N → Integrable (fun x ↦ x^n • f x)) (hn : n ≤ N) :
-    iteratedDeriv n (𝓕 f) = 𝓕 (fun x : ℝ ↦ (-2 * π * I * x) ^ n • f x) := by sorry
-
-theorem fourierIntegral_iteratedDeriv {f : ℝ → ℂ} {N : ℕ∞} (hf : ContDiff ℝ N f)
-    (h'f : ∀ (n : ℕ), n ≤ N → Integrable (iteratedDeriv n f)) {n : ℕ} (hn : n ≤ N) :
-    𝓕 (iteratedDeriv n f) = fun (x : ℝ) ↦ (2 * π * I * x) ^ n • (𝓕 f x) := by sorry
+-- Things we should use, most of them from Sébastien Gouëzel:
+-- Real.iteratedDeriv_fourierIntegral
+-- Real.fourierIntegral_iteratedDeriv
+-- contDiff_fourierIntegral
 
 noncomputable def FS (f : 𝓢(ℝ, ℂ)) : 𝓢(ℝ, ℂ) where
   toFun := 𝓕 f
