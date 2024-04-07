@@ -28,40 +28,6 @@ theorem hasDerivAt_e {u x : ℝ} : HasDerivAt (e u) (-2 * π * u * I * e u x) x 
 lemma fourierIntegral_deriv_aux2 (e : ℝ →ᵇ ℂ) {f : ℝ → ℂ} (hf : Integrable f) : Integrable (⇑e * f) :=
   hf.bdd_mul e.continuous.aestronglyMeasurable ⟨_, e.norm_coe_le_norm⟩
 
-lemma fourierIntegral_deriv_aux1 (e : ℝ →ᵇ ℂ) (ψ : 𝓢(ℝ, ℂ)) : Integrable (⇑e * ⇑ψ) :=
-  fourierIntegral_deriv_aux2 e ψ.integrable
-
-theorem fourierIntegral_deriv {f f' : ℝ → ℂ} (h1 : ∀ x, HasDerivAt f (f' x) x) (h2 : Integrable f)
-    (h3 : Integrable f') (h4 : Tendsto f (cocompact ℝ) (𝓝 0)) (u : ℝ) :
-    𝓕 f' u = 2 * π * I * u * 𝓕 f u := by
-  convert_to ∫ v, e u v * f' v = 2 * ↑π * I * ↑u * ∫ v, e u v * f v
-  · simp [fourierIntegral_real_eq] ; norm_cast
-  · simp [fourierIntegral_real_eq] ; left ; norm_cast
-  have l1 (x) : HasDerivAt (e u) (-2 * π * u * I * e u x) x := hasDerivAt_e
-  have l3 : Integrable (⇑(e u) * f') := fourierIntegral_deriv_aux2 (e u) h3
-  have l4 : Integrable (fun x ↦ -2 * π * u * I * e u x * f x) := by
-    simpa [mul_assoc] using (fourierIntegral_deriv_aux2 (e u) h2).const_mul (-2 * π * u * I)
-  have l7 : Tendsto (⇑(e u) * f) (cocompact ℝ) (𝓝 0) := by
-    simpa [tendsto_zero_iff_norm_tendsto_zero] using h4
-  have l5 : Tendsto (⇑(e u) * f) atBot (𝓝 0) := l7.mono_left _root_.atBot_le_cocompact
-  have l6 : Tendsto (⇑(e u) * f) atTop (𝓝 0) := l7.mono_left _root_.atTop_le_cocompact
-  rw [integral_mul_deriv_eq_deriv_mul l1 h1 l3 l4 l5 l6]
-  simp [integral_neg, ← integral_mul_left]
-  congr
-  ext
-  ring
-
-theorem fourierIntegral_deriv_schwartz (ψ : 𝓢(ℝ, ℂ)) (u : ℝ) : 𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u :=
-  fourierIntegral_deriv (fun _ => ψ.differentiableAt.hasDerivAt) ψ.integrable
-    (SchwartzMap.derivCLM ℝ ψ).integrable ψ.toZeroAtInfty.zero_at_infty' u
-
-theorem fourierIntegral_deriv_compactSupport {f : ℝ → ℂ} (h1 : ContDiff ℝ 1 f) (h2 : HasCompactSupport f) (u : ℝ) :
-    𝓕 (deriv f) u = 2 * π * I * u * 𝓕 f u := by
-  have l1 (x) : HasDerivAt f (deriv f x) x := (h1.differentiable le_rfl).differentiableAt.hasDerivAt
-  have l2 : Integrable f := h1.continuous.integrable_of_hasCompactSupport h2
-  have l3 : Integrable (deriv f) := (h1.continuous_deriv le_rfl).integrable_of_hasCompactSupport h2.deriv
-  exact fourierIntegral_deriv l1 l2 l3 h2.is_zero_at_infty u
-
 @[simp] lemma F_neg {f : ℝ → ℂ} {u : ℝ} : 𝓕 (fun x => -f x) u = - 𝓕 f u := by
   simp [fourierIntegral_eq, integral_neg]
 
@@ -124,10 +90,9 @@ noncomputable def W21_of_compactSupport {f : ℝ → ℂ} (h1 : ContDiff ℝ 2 f
 theorem fourierIntegral_self_add_deriv_deriv {f : ℝ → ℂ} (hf : W21 f) (u : ℝ) :
     (1 + u ^ 2) * 𝓕 f u = 𝓕 (fun u => f u - (1 / (4 * π ^ 2)) * deriv^[2] f u) u := by
   have l1 : Integrable (fun x => (((π : ℂ) ^ 2)⁻¹ * 4⁻¹) * deriv (deriv f) x) := (hf.hf''.const_mul _)
-  have l2 x : HasDerivAt f (deriv f x) x := hf.hh.differentiable one_le_two |>.differentiableAt.hasDerivAt
-  have l3 x : HasDerivAt (deriv f) (deriv (deriv f) x) x := by
-    exact (hf.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
-  simp [hf.hf, l1, add_mul, fourierIntegral_deriv l2 hf.hf hf.hf' hf.h3, fourierIntegral_deriv l3 hf.hf' hf.hf'' hf.h4]
+  have l4 : Differentiable ℝ f := hf.hh.differentiable one_le_two
+  have l5 : Differentiable ℝ (deriv f) := (hf.hh.iterate_deriv' 1 1).differentiable le_rfl
+  simp [hf.hf, l1, add_mul, Real.fourierIntegral_deriv hf.hf' l5 hf.hf'', Real.fourierIntegral_deriv hf.hf l4 hf.hf']
   field_simp [pi_ne_zero] ; ring_nf ; simp
 
 structure trunc (g : ℝ → ℝ) : Prop :=
