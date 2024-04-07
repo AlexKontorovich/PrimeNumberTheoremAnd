@@ -49,7 +49,6 @@ structure W21 (f : ℝ → ℂ) : Prop where
   hf' : Integrable (deriv f)
   hf'' : Integrable (deriv (deriv f))
   h3 : Tendsto f (cocompact ℝ) (𝓝 0)
-  h4 : Tendsto (deriv f) (cocompact ℝ) (𝓝 0)
 
 lemma W21.sub {f g : ℝ → ℂ} (hf : W21 f) (hg : W21 g) : W21 (f - g) := by
   have l1 : deriv (f - g) = deriv f - deriv g := by
@@ -60,11 +59,10 @@ lemma W21.sub {f g : ℝ → ℂ} (hf : W21 f) (hg : W21 g) : W21 (f - g) := by
     rw [l1] ; ext x ; apply deriv_sub
     · exact (hf.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt
     · exact (hg.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt
-  refine ⟨hf.hh.sub hg.hh, hf.hf.sub hg.hf, ?_, ?_, ?_, ?_⟩
+  refine ⟨hf.hh.sub hg.hh, hf.hf.sub hg.hf, ?_, ?_, ?_⟩
   · simpa [l1] using hf.hf'.sub hg.hf'
   · simpa [l2] using hf.hf''.sub hg.hf''
   · simpa using hf.h3.sub hg.h3
-  · simpa [l1] using hf.h4.sub hg.h4
 
 noncomputable def W21.norm (f : ℝ → ℂ) : ℝ := (∫ v, ‖f v‖) + (4 * π ^ 2)⁻¹ * (∫ v, ‖deriv (deriv f) v‖)
 
@@ -77,7 +75,6 @@ noncomputable def W21_of_schwartz (f : 𝓢(ℝ, ℂ)) : W21 f where
   hf' := (SchwartzMap.derivCLM ℝ f).integrable
   hf'' := (SchwartzMap.derivCLM ℝ (SchwartzMap.derivCLM ℝ f)).integrable
   h3 := f.toZeroAtInfty.zero_at_infty'
-  h4 := (SchwartzMap.derivCLM ℝ f).toZeroAtInfty.zero_at_infty'
 
 noncomputable def W21_of_compactSupport {f : ℝ → ℂ} (h1 : ContDiff ℝ 2 f) (h2 : HasCompactSupport f) : W21 f where
   hh := h1
@@ -85,7 +82,6 @@ noncomputable def W21_of_compactSupport {f : ℝ → ℂ} (h1 : ContDiff ℝ 2 f
   hf' := (h1.continuous_deriv one_le_two).integrable_of_hasCompactSupport h2.deriv
   hf'' := (h1.iterate_deriv' 0 2).continuous.integrable_of_hasCompactSupport h2.deriv.deriv
   h3 := h2.is_zero_at_infty
-  h4 := h2.deriv.is_zero_at_infty
 
 theorem fourierIntegral_self_add_deriv_deriv {f : ℝ → ℂ} (hf : W21 f) (u : ℝ) :
     (1 + u ^ 2) * 𝓕 f u = 𝓕 (fun u => f u - (1 / (4 * π ^ 2)) * deriv^[2] f u) u := by
@@ -137,15 +133,13 @@ lemma W21.mul_compact_support {f g : ℝ → ℂ} (hf : W21 f) (hg1 : ContDiff �
     convert ((g'_d x).mul (f_d x)).add ((g_d x).mul (f'_d x)) using 1 ; simp [h', h''] ; ring
   have h'_d' : deriv h' = h'' := funext (fun x => (h'_d x).deriv)
 
-  refine ⟨hg1.mul hf.hh, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨hg1.mul hf.hh, ?_, ?_, ?_, ?_⟩
   · exact hf.hf.bdd_mul g_c.aestronglyMeasurable g_b
   · rw [h_d'] ; exact (f_i.bdd_mul g'_a g'_b).add (f'_i.bdd_mul g_a g_b)
   · rw [h_d', h'_d'] ; refine Integrable.add ?_ (f''_i.bdd_mul g_a g_b)
     apply (f_i.bdd_mul g''_a g''_b).add
     simp_rw [mul_assoc] ; apply (f'_i.bdd_mul g'_a g'_b).const_mul
   · apply tendsto_nhds_of_eventually_eq ; filter_upwards [g_0] with x hgx ; simp [hgx]
-  · simp only [h_d', h'] ; apply tendsto_nhds_of_eventually_eq
-    filter_upwards [g_0, g'_0] with x hgx hg'x; simp [hgx, hg'x]
 
 theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg : trunc g) :
     Tendsto (fun R => W21.norm (fun v => (1 - g (v * R⁻¹)) * f v)) atTop (𝓝 0) := by
