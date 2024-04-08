@@ -1616,12 +1616,12 @@ Combining the two estimates and letting $R$ be large, we obtain the claim.
 
 -- just the surjectivity is stated here, as this is all that is needed for the current application, but perhaps one should state and prove bijectivity instead
 
--- lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f := sorry
-axiom fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f
+lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f := by
+  use FS (FS (FS f)) ; ext x ; nth_rewrite 2 [← FS4 f] ; simp
 
 /-%%
 \begin{proof}
-\uses{MellinInversion}
+  \leanok
  This is a standard result in Fourier analysis.
 It can be proved here by appealing to Mellin inversion, Theorem \ref{MellinInversion}.
 In particular, given $f$ in the Schwartz class, let $F : \R_+ \to \C : x \mapsto f(\log x)$ be a function in the ``Mellin space''; then the Mellin transform of $F$ on the imaginary axis $s=it$ is the Fourier transform of $f$.  The Mellin inversion theorem gives Fourier inversion.
@@ -2141,7 +2141,7 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' 
 
 /-%%
 \begin{proof}
-\uses{WienerIkeharaInterval}
+\uses{WienerIkeharaInterval} \leanok
   Apply the preceding proposition with $I = [\varepsilon,1]$ and then send $\varepsilon$ to zero (using \eqref{cheby} to control the error).
 \end{proof}
 %%-/
@@ -2216,7 +2216,7 @@ theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (nhds 1) := by
 
 /-%%
 \begin{proof}
-\uses{WienerIkehara, ChebyshevPsi}
+\uses{WienerIkehara, ChebyshevPsi} \leanok
   Already done by Stoll, assuming Wiener-Ikehara.
 \end{proof}
 %%-/

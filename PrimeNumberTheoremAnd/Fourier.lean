@@ -2,6 +2,7 @@ import Mathlib.Analysis.Distribution.SchwartzSpace
 import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import Mathlib.Topology.ContinuousFunction.Bounded
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
+import Mathlib.Analysis.Fourier.Inversion
 
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Fourier.FourierTransformDeriv
 
@@ -354,3 +355,25 @@ noncomputable def FS (f : 𝓢(ℝ, ℂ)) : 𝓢(ℝ, ℂ) where
     simp_rw [@Real.iteratedDeriv_fourierIntegral ℂ _ _ f n n l1 le_rfl]
     convert_to ∃ C, ∀ (x : ℝ), ‖x‖ ^ k * ‖𝓕 ((MS (-2 * π * I))^[n] f) x‖ ≤ C ; · simp [MS_iterate]
     apply fourierIntegral_decay
+
+@[simp] lemma FS_apply (f : 𝓢(ℝ, ℂ)) (x : ℝ) : FS f x = 𝓕 f x := rfl
+
+@[simp] lemma FS_toFun (f : 𝓢(ℝ, ℂ)) : ⇑(FS f) = 𝓕 f := rfl
+
+@[simp] lemma schwarz_reduce (f : ℝ → ℂ) h1 h2 x : SchwartzMap.mk f h1 h2 x = f x := rfl
+
+theorem fourierfourier {f : ℝ → ℂ} (hfi : Integrable f) (hfi' : Integrable (𝓕 f))
+    (hfc : Continuous f) (x : ℝ) :
+    𝓕 (𝓕 f) x = f (-x) := by
+  rw [← MeasureTheory.Integrable.fourier_inversion (v := -x) hfi hfi' hfc.continuousAt]
+  simp [fourierIntegralInv, Real.fourierIntegral, VectorFourier.fourierIntegral]
+
+lemma FS4 (f : 𝓢(ℝ, ℂ)) : FS^[4] f = f := by
+  have li0 : Integrable (⇑f) volume := f.integrable
+  have li1 : Integrable (𝓕 ⇑f) := (FS f).integrable
+  have li2 : Integrable (𝓕 (𝓕 ⇑f)) := (FS (FS f)).integrable
+  have li3 : Integrable (𝓕 (𝓕 (𝓕 ⇑f))) volume := (FS (FS (FS f))).integrable
+  have lc2 : Continuous (𝓕 (𝓕 ⇑f)) := (FS (FS f)).continuous
+  ext x ; change 𝓕 (𝓕 (𝓕 (𝓕 f))) x = f x
+  rw [fourierfourier li2 li3 lc2, fourierfourier li0 li1 f.continuous]
+  simp
