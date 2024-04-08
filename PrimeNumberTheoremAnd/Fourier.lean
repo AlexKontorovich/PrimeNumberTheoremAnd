@@ -256,9 +256,40 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
 -- Things we should use, most of them from Sébastien Gouëzel:
 -- Real.iteratedDeriv_fourierIntegral
 -- Real.fourierIntegral_iteratedDeriv
--- contDiff_fourierIntegral
+
+noncomputable def MS (f : 𝓢(ℝ, ℂ)) : 𝓢(ℝ, ℂ) where
+  toFun x := (-2 * π * I * x) * f x
+  smooth' := sorry
+  decay' := sorry
+
+@[simp] lemma MS_apply (f : 𝓢(ℝ, ℂ)) (x : ℝ) : MS f x = (-2 * π * I * x) • f x := rfl
+
+lemma MS_iterate (f : 𝓢(ℝ, ℂ)) (n : ℕ) : MS^[n] f = fun x : ℝ => (-2 * π * I * x) ^ n • f x := by
+  induction n generalizing f with
+  | zero => simp
+  | succ n ih => ext x ; simp [ih, pow_succ] ; ring
+
+lemma fourierIntegral_decay_aux (f : ℝ → ℂ) (k : ℕ) (h1 : ContDiff ℝ k f)
+    (h2 : ∀ n ≤ k, Integrable (iteratedDeriv n f)) (x : ℝ) :
+    ‖(2 * π * I * x) ^ k • 𝓕 f x‖ ≤ (∫ y : ℝ, ‖iteratedDeriv k f y‖) := by
+  have l2 (x : ℝ) : (2 * π * I * x) ^ k • 𝓕 f x = 𝓕 (iteratedDeriv k f) x := by
+    simp [Real.fourierIntegral_iteratedDeriv h1 (fun n hn => h2 n <| Nat.cast_le.mp hn) le_rfl]
+  simpa only [l2] using Fourier.norm_fourierIntegral_le_integral_norm ..
+
+theorem fourierIntegral_decay (f : 𝓢(ℝ, ℂ)) (k : ℕ) : ∃ C, ∀ (x : ℝ), ‖x‖ ^ k * ‖𝓕 f x‖ ≤ C := by
+  convert_to ∃ C, ∀ x, ‖x ^ k * 𝓕 f x‖ ≤ C ; · simp
+  sorry
 
 noncomputable def FS (f : 𝓢(ℝ, ℂ)) : 𝓢(ℝ, ℂ) where
   toFun := 𝓕 f
-  smooth' := sorry
-  decay' := sorry
+  smooth' := by
+    rw [contDiff_top] ; intro n
+    apply Real.contDiff_fourierIntegral ; intro k hk
+    apply SchwartzMap.integrable_pow_mul
+  decay' := by
+    simp only [norm_iteratedFDeriv_eq_norm_iteratedDeriv]
+    have l1 : ∀ (n : ℕ), n ≤ (⊤ : ℕ∞) → Integrable (fun x ↦ x ^ n • f x) volume := sorry
+    simp_rw [@Real.iteratedDeriv_fourierIntegral ℂ _ _ f ⊤ _ l1 le_top]
+    intro k n
+    convert_to ∃ C, ∀ (x : ℝ), ‖x‖ ^ k * ‖𝓕 (MS^[n] f) x‖ ≤ C ; · simp [MS_iterate]
+    apply fourierIntegral_decay
