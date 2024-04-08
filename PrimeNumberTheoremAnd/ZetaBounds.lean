@@ -840,13 +840,12 @@ $$
 %%-/
 lemma Zeta_diff_Bnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ₁ σ₂ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
-    (σ₁_ge : 1 - A / Real.log |t| ≤ σ₁) (σ₁_le : σ₁ ≤ 2)
-    (σ₂_ge : 1 - A / Real.log |t| ≤ σ₂) (σ₂_le : σ₂ ≤ 2) (σ₁_lt_σ₂ : σ₁ < σ₂),
+    (σ₁_ge : 1 - A / Real.log |t| ≤ σ₁) (σ₂_le : σ₂ ≤ 2) (σ₁_lt_σ₂ : σ₁ < σ₂),
     Complex.abs (riemannZeta (σ₂ + t * I) - riemannZeta (σ₁ + t * I)) ≤
       C * (Real.log |t|) ^ 2 * (σ₂ - σ₁) := by
   obtain ⟨A, Apos, C, Cpos, hC⟩ := ZetaDerivUpperBnd
   refine ⟨A, Apos, C, Cpos, ?_⟩
-  intro σ₁ σ₂ t t_gt σ₁_ge _ _ σ₂_le σ₁_lt_σ₂
+  intro σ₁ σ₂ t t_gt σ₁_ge σ₂_le σ₁_lt_σ₂
   have t_ne_zero : t ≠ 0 := by contrapose! t_gt; simp only [t_gt, abs_zero, Nat.ofNat_nonneg]
   rw [← Zeta_eq_int_derivZeta σ₁_lt_σ₂ (t_ne_zero)]
   simp_rw [← Complex.norm_eq_abs] at hC ⊢
