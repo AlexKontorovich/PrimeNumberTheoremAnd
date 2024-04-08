@@ -137,7 +137,7 @@ lemma sum_mul_subst (k n: ℕ) {f : ℕ → ℝ} (h : ∀ l, l ∣ n → ¬ k �
       intro m _; rw [ite_id]
     rw [sum_eq_single (l/k)]
     · rw[if_pos]; rw [Nat.mul_div_cancel' hkl]
-    · intro m hmn hmlk
+    · intro m _ hmlk
       apply if_neg; revert hmlk; contrapose!; intro hlkm
       rw [hlkm, mul_comm, Nat.mul_div_cancel];
       apply Nat.pos_of_dvd_of_pos hkn (Nat.pos_of_ne_zero hn)

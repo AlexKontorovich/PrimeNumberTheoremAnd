@@ -19,19 +19,19 @@ theorem MeasureTheory.set_integral_integral_swap {α : Type*} {β : Type*} {E : 
 
 open Complex Topology Filter Real MeasureTheory Set
 
-variable {𝕂 : Type*} [IsROrC 𝕂]
+variable {𝕂 : Type*} [RCLike 𝕂]
 
 lemma MeasureTheory.integral_comp_mul_right_I0i_haar
     (f : ℝ → 𝕂) {a : ℝ} (ha : 0 < a) :
     ∫ (y : ℝ) in Ioi 0, f (y * a) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   have := integral_comp_mul_right_Ioi (fun y => f y / y) 0 ha
-  simp only [IsROrC.ofReal_mul, zero_mul, eq_inv_smul_iff₀ (ne_of_gt ha)] at this
+  simp only [RCLike.ofReal_mul, zero_mul, eq_inv_smul_iff₀ (ne_of_gt ha)] at this
   rw [← integral_smul] at this
   rw [← this, set_integral_congr (by simp)]
   intro _ _
-  simp only [IsROrC.real_smul_eq_coe_mul]
+  simp only [RCLike.real_smul_eq_coe_mul]
   rw [mul_comm (a : 𝕂), div_mul, mul_div_assoc, div_self ?_, mul_one]
-  exact (IsROrC.ofReal_ne_zero).mpr <| ne_of_gt ha
+  exact (RCLike.ofReal_ne_zero).mpr <| ne_of_gt ha
 
 lemma MeasureTheory.integral_comp_mul_right_I0i_haar_real
     (f : ℝ → ℝ) {a : ℝ} (ha : 0 < a) :
@@ -43,7 +43,7 @@ lemma MeasureTheory.integral_comp_mul_left_I0i_haar
     ∫ (y : ℝ) in Ioi 0, f (a * y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   convert integral_comp_mul_right_I0i_haar f ha using 5; ring
 
--- TODO: generalize to `IsROrC`
+-- TODO: generalize to `RCLike`
 lemma MeasureTheory.integral_comp_rpow_I0i_haar_real (f : ℝ → ℝ) {p : ℝ} (hp : p ≠ 0) :
     ∫ (y : ℝ) in Ioi 0, |p| * f (y ^ p) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   rw [← integral_comp_rpow_Ioi (fun y => f y / y) hp, set_integral_congr (by simp)]
@@ -57,8 +57,8 @@ lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → 𝕂) :
   have := integral_comp_rpow_Ioi (fun y => f y / y) (p := -1) (by simp)
   rw [← this, set_integral_congr (by simp)]
   intro y hy
-  have : (y : 𝕂) ≠ 0 := (IsROrC.ofReal_ne_zero).mpr <| LT.lt.ne' hy
-  field_simp [IsROrC.real_smul_eq_coe_mul]
+  have : (y : 𝕂) ≠ 0 := (RCLike.ofReal_ne_zero).mpr <| LT.lt.ne' hy
+  field_simp [RCLike.real_smul_eq_coe_mul]
   ring_nf
   rw [rpow_neg_one, mul_assoc, rpow_neg <| le_of_lt <| mem_Ioi.mp hy]
   field_simp [pow_two]
@@ -619,7 +619,7 @@ lemma MellinConvolutionSymmetric (f g : ℝ → 𝕂) {x : ℝ} (xpos: 0 < x) :
     _ = ∫ y in Ioi 0, f (y * x) * g (1 / y) / y := ?_
     _ = _ := ?_
   · rw [← integral_comp_mul_right_I0i_haar (fun y => f y * g (x / y)) xpos]
-    simp_rw [div_mul_left <| ne_of_gt xpos]
+    simp [div_mul_cancel_right₀ <| ne_of_gt xpos]
   · convert (integral_comp_inv_I0i_haar fun y => f (y * x) * g (1 / y)).symm using 3
     rw [one_div_one_div, mul_comm, mul_comm_div, one_mul]
 /-%%
@@ -940,7 +940,7 @@ lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (mass_one: ∫ x in Ioi 0, Ψ x / x = 1)
         _ = (Ψ (x ^ (1 / ε)) / x ^ (1 / ε)) * x ^ (1 / ε - 1) * (1 / ε) := by ring
         _ = _ := by rw [rpow_sub hx, rpow_one]
         _ = (Ψ (x ^ (1 / ε)) / x ^ (1 / ε) * x ^ (1 / ε) / x) * (1/ ε) := by ring
-        _ = _ := by rw [div_mul_cancel _ (ne_of_gt (rpow_pos_of_pos hx (1/ε)))]
+        _ = _ := by rw [div_mul_cancel₀ _ (ne_of_gt (rpow_pos_of_pos hx (1/ε)))]
         _ = (Ψ (x ^ (1 / ε)) / ε / x) := by ring
     _ = 1 := by
       rw [integral_comp_rpow_Ioi (fun z => (Ψ z) / z), ← mass_one]
@@ -1184,7 +1184,7 @@ lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
       linarith
     · intro x hx; simp only [nonempty_Iio, interior_Ici', mem_Ioi] at hx
       funext; dsimp [f]
-      rw [deriv_sub, deriv_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel, add_sub_cancel]
+      rw [deriv_sub, deriv_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel] ; simp
       · exact log_pos hx
       · linarith
       · simp only [differentiableAt_id']
@@ -1336,7 +1336,7 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
       conv => lhs; lhs; ring_nf; rhs; simp [this]
 
   unfold Smooth1 MellinConvolution
-  simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq]
+  simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
   apply set_integral_eq_zero_of_forall_eq_zero
   intro y hy
   by_cases y1 : y ≤ 1; swap
@@ -1369,7 +1369,7 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
       <;> try positivity
       · exact rpow_lt_rpow (by positivity) hx2 (by positivity)
       · exact LT.lt.le <| lt_trans (by positivity) hx2
-    · rw [div_rpow, ← rpow_mul, mul_div_cancel' 1 <| ne_of_gt εpos, rpow_one] <;> positivity
+    · rw [div_rpow, ← rpow_mul, mul_div_cancel₀ 1 <| ne_of_gt εpos, rpow_one] <;> positivity
     · have : y ^ (1 / ε) ≤ y := by
         nth_rewrite 2 [← rpow_one y]
         have : 1 / ε > 1 := one_lt_one_div εpos eps_lt1
@@ -1474,7 +1474,7 @@ lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
     _ ≤ ∫ (y : ℝ) in Ioi 0, (Ψ ((x / y) ^ (1 / ε)) / ε) / y := ?_
     _ = 1 := this
   · rw [set_integral_congr (by simp)]
-    simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq, mem_Ioc]
+    simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq, mem_Ioc]
     intro y hy
     aesop
   · refine set_integral_mono_on ?_ ?_ (by simp) ?_
@@ -1488,7 +1488,7 @@ lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
         exact aestronglyMeasurable_one
       · use 1; aesop
     · apply integrable_of_integral_eq_one this
-    · simp only [ite_mul, one_mul, zero_mul, IsROrC.ofReal_real_eq_id, id_eq]
+    · simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
       intro y hy
       by_cases h : y ≤ 1
       · aesop
@@ -1596,7 +1596,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
 
   convert this using 1
   · congr; funext x; convert integral_ofReal.symm
-    simp only [MellinConvolution, IsROrC.ofReal_div, ite_mul, one_mul, zero_mul, @apply_ite ℝ ℂ,
+    simp only [MellinConvolution, RCLike.ofReal_div, ite_mul, one_mul, zero_mul, @apply_ite ℝ ℂ,
       algebraMap.coe_zero, f, g]; rfl
   · rw [MellinOf1 s hs, MellinOfDeltaSpike Ψ εpos s]
 /-%%

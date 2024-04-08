@@ -10,7 +10,6 @@ import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.NonIntegrable
 import Mathlib.Analysis.SumIntegralComparisons
-import Mathlib.Data.List.Func
 import Mathlib.Data.Nat.Prime
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
 import Mathlib.NumberTheory.ArithmeticFunction
