@@ -290,28 +290,28 @@ theorem bla (a : ℂ) (f : ℝ → ℂ) (n : ℕ) (hf : ContDiff ℝ n f) :
     simp [deriv_add l1 l2, deriv_mul l3 l4, ← iteratedDeriv_succ]
     cases n <;> simp <;> ring
 
-noncomputable def MS (f : 𝓢(ℝ, ℂ)) : 𝓢(ℝ, ℂ) where
-  toFun x := (-2 * π * I * x) * f x
+noncomputable def MS (a : ℂ) (f : 𝓢(ℝ, ℂ)) : 𝓢(ℝ, ℂ) where
+  toFun x := a * x * f x
   smooth' := contDiff_const.mul contDiff_ofReal |>.mul f.smooth'
   decay' k n := by
     simp only [norm_iteratedFDeriv_eq_norm_iteratedDeriv]
-    simp_rw [bla (-2 * π * I) f n <| f.smooth'.of_le le_top]
+    simp_rw [bla a f n <| f.smooth'.of_le le_top]
     obtain ⟨C₁, hC₁⟩ := f.decay' (k + 1) n
     obtain ⟨C₂, hC₂⟩ := f.decay' k (n - 1)
-    use 2 * π * C₁ + 2 * π * n * C₂ ; intro x
-    have l2 := norm_add_le (-2 * π * I * x * iteratedDeriv n f x) (n * (-2 * π * I) * iteratedDeriv (n - 1) f x)
+    use ‖a‖ * C₁ + ‖a‖ * n * C₂ ; intro x
+    have l2 := norm_add_le (a * x * iteratedDeriv n f x) (n * a * iteratedDeriv (n - 1) f x)
     have l3 : 0 ≤ ‖x‖ ^ k := by positivity
     apply (mul_le_mul_of_nonneg_left l2 l3).trans ; rw [mul_add] ; apply add_le_add
-    · have : 0 ≤ 2 * π := by positivity
+    · have : 0 ≤ ‖a‖ := by positivity
       convert mul_le_mul_of_nonneg_left (hC₁ x) this using 1
       simp [norm_iteratedFDeriv_eq_norm_iteratedDeriv, abs_eq_self.mpr pi_nonneg] ; ring_nf ; rfl
-    · have : 0 ≤ 2 * π * n := by positivity
+    · have : 0 ≤ ‖a‖ * n := by positivity
       convert mul_le_mul_of_nonneg_left (hC₂ x) this using 1
       simp [norm_iteratedFDeriv_eq_norm_iteratedDeriv, abs_eq_self.mpr pi_nonneg] ; ring_nf ; rfl
 
-@[simp] lemma MS_apply (f : 𝓢(ℝ, ℂ)) (x : ℝ) : MS f x = (-2 * π * I * x) • f x := rfl
+@[simp] lemma MS_apply (a : ℂ) (f : 𝓢(ℝ, ℂ)) (x : ℝ) : MS a f x = (a * x) • f x := rfl
 
-lemma MS_iterate (f : 𝓢(ℝ, ℂ)) (n : ℕ) : MS^[n] f = fun x : ℝ => (-2 * π * I * x) ^ n • f x := by
+lemma MS_iterate (a : ℂ) (f : 𝓢(ℝ, ℂ)) (n : ℕ) : (MS a)^[n] f = fun x : ℝ => (a * x) ^ n • f x := by
   induction n generalizing f with
   | zero => simp
   | succ n ih => ext x ; simp [ih, pow_succ] ; ring
@@ -323,20 +323,34 @@ lemma fourierIntegral_decay_aux (f : ℝ → ℂ) (k : ℕ) (h1 : ContDiff ℝ k
     simp [Real.fourierIntegral_iteratedDeriv h1 (fun n hn => h2 n <| Nat.cast_le.mp hn) le_rfl]
   simpa only [l2] using Fourier.norm_fourierIntegral_le_integral_norm ..
 
+lemma iteratedDeriv_schwartz (f : 𝓢(ℝ, ℂ)) (n : ℕ) : iteratedDeriv n f = (SchwartzMap.derivCLM ℝ)^[n] f := by
+  induction n with
+  | zero => rfl
+  | succ n ih => rw [iteratedDeriv_succ, ih, Function.iterate_succ'] ; rfl
+
 theorem fourierIntegral_decay (f : 𝓢(ℝ, ℂ)) (k : ℕ) : ∃ C, ∀ (x : ℝ), ‖x‖ ^ k * ‖𝓕 f x‖ ≤ C := by
-  convert_to ∃ C, ∀ x, ‖x ^ k * 𝓕 f x‖ ≤ C ; · simp
-  sorry
+  convert_to ∃ C, ∀ x : ℝ, ‖x ^ k * 𝓕 f x‖ ≤ C ; · simp
+  convert_to ∃ C, ∀ x : ℝ, ‖(2 * π * I * x) ^ k * 𝓕 f x‖ / (2 * π) ^ k ≤ C using 4
+  · field_simp [mul_pow, abs_eq_self.mpr pi_nonneg] ; ring
+  convert_to ∃ C, ∀ x : ℝ, ‖(2 * π * I * x) ^ k • 𝓕 f x‖ / (2 * π) ^ k ≤ C
+  use (∫ (y : ℝ), ‖iteratedDeriv k (⇑f) y‖) / (2 * π) ^ k ; intro x
+  have l1 : ∀ n ≤ k, Integrable (iteratedDeriv n f) volume := by
+    simp_rw [iteratedDeriv_schwartz] ; simp [SchwartzMap.integrable]
+  have := fourierIntegral_decay_aux f k (f.smooth'.of_le le_top) l1 x
+  apply div_le_div_of_nonneg_right this (by positivity)
 
 noncomputable def FS (f : 𝓢(ℝ, ℂ)) : 𝓢(ℝ, ℂ) where
   toFun := 𝓕 f
   smooth' := by
     rw [contDiff_top] ; intro n
-    apply Real.contDiff_fourierIntegral ; intro k hk
+    apply Real.contDiff_fourierIntegral ; intro k _
     apply SchwartzMap.integrable_pow_mul
   decay' := by
     simp only [norm_iteratedFDeriv_eq_norm_iteratedDeriv]
-    have l1 : ∀ (n : ℕ), n ≤ (⊤ : ℕ∞) → Integrable (fun x ↦ x ^ n • f x) volume := sorry
-    simp_rw [@Real.iteratedDeriv_fourierIntegral ℂ _ _ f ⊤ _ l1 le_top]
     intro k n
-    convert_to ∃ C, ∀ (x : ℝ), ‖x‖ ^ k * ‖𝓕 (MS^[n] f) x‖ ≤ C ; · simp [MS_iterate]
+    have l1 (k : ℕ) (_ : k ≤ (n : ℕ∞)) : Integrable (fun x ↦ x ^ k • f x) volume := by
+      convert_to Integrable ((MS 1)^[k] f) ; · simp [MS_iterate]
+      apply SchwartzMap.integrable
+    simp_rw [@Real.iteratedDeriv_fourierIntegral ℂ _ _ f n n l1 le_rfl]
+    convert_to ∃ C, ∀ (x : ℝ), ‖x‖ ^ k * ‖𝓕 ((MS (-2 * π * I))^[n] f) x‖ ≤ C ; · simp [MS_iterate]
     apply fourierIntegral_decay
