@@ -41,63 +41,6 @@ variable [TopologicalSpace α] [SecondCountableTopology α]
 
 namespace MeasureTheory
 
-/-- If `f` is locally integrable, and `f =O[cocompact] g` for some `g` integrable at `cocompact`,
-then `f` is integrable. -/
-theorem LocallyIntegrable.integrable_of_isBigO_cocompact [IsMeasurablyGenerated (cocompact α)]
-    (hf : LocallyIntegrable f μ) (ho : f =O[cocompact α] g)
-    (hg : IntegrableAtFilter g (cocompact α) μ) : Integrable f μ := by
-  refine integrable_iff_integrableAtFilter_cocompact.mpr ⟨ho.integrableAtFilter ?_ hg, hf⟩
-  exact hf.aestronglyMeasurable.stronglyMeasurableAtFilter
-
-section LinearOrder
-
-variable [LinearOrder α] [CompactIccSpace α] {g' : α → F}
-
-/-- If `f` is locally integrable, and `f =O[atBot] g`, `f =O[atTop] g'` for some
-`g`, `g'` integrable at `atBot` and `atTop` respectively, then `f` is integrable. -/
-theorem LocallyIntegrable.integrable_of_isBigO_atBot_atTop
-    [IsMeasurablyGenerated (atBot (α := α))] [IsMeasurablyGenerated (atTop (α := α))]
-    (hf : LocallyIntegrable f μ)
-    (ho : f =O[atBot] g) (hg : IntegrableAtFilter g atBot μ)
-    (ho' : f =O[atTop] g') (hg' : IntegrableAtFilter g' atTop μ) : Integrable f μ := by
-  refine integrable_iff_integrableAtFilter_atBot_atTop.mpr
-    ⟨⟨ho.integrableAtFilter ?_ hg, ho'.integrableAtFilter ?_ hg'⟩, hf⟩
-  all_goals exact hf.aestronglyMeasurable.stronglyMeasurableAtFilter
-
-/-- If `f` is locally integrable on `(∞, a]`, and `f =O[atBot] g`, for some
-`g` integrable at `atBot`, then `f` is integrable on `(∞, a]`. -/
-theorem LocallyIntegrableOn.integrableOn_of_isBigO_atBot [IsMeasurablyGenerated (atBot (α := α))]
-    (hf : LocallyIntegrableOn f (Iic a) μ) (ho : f =O[atBot] g)
-    (hg : IntegrableAtFilter g atBot μ) : IntegrableOn f (Iic a) μ := by
-  refine integrableOn_Iic_iff_integrableAtFilter_atBot.mpr ⟨ho.integrableAtFilter ?_ hg, hf⟩
-  exact ⟨Iic a, Iic_mem_atBot a, hf.aestronglyMeasurable⟩
-
-/-- If `f` is locally integrable on `[a, ∞)`, and `f =O[atTop] g`, for some
-`g` integrable at `atTop`, then `f` is integrable on `[a, ∞)`. -/
-theorem LocallyIntegrableOn.integrableOn_of_isBigO_atTop [IsMeasurablyGenerated (atTop (α := α))]
-    (hf : LocallyIntegrableOn f (Ici a) μ) (ho : f =O[atTop] g)
-    (hg : IntegrableAtFilter g atTop μ) : IntegrableOn f (Ici a) μ := by
-  refine integrableOn_Ici_iff_integrableAtFilter_atTop.mpr ⟨ho.integrableAtFilter ?_ hg, hf⟩
-  exact ⟨Ici a, Ici_mem_atTop a, hf.aestronglyMeasurable⟩
-
-/-- If `f` is locally integrable, `f` has a top element, and `f =O[atBot] g`, for some
-`g` integrable at `atBot`, then `f` is integrable. -/
-theorem LocallyIntegrable.integrable_of_isBigO_atBot [IsMeasurablyGenerated (atBot (α := α))]
-    [OrderTop α] (hf : LocallyIntegrable f μ) (ho : f =O[atBot] g)
-    (hg : IntegrableAtFilter g atBot μ) : Integrable f μ := by
-  refine integrable_iff_integrableAtFilter_atBot.mpr ⟨ho.integrableAtFilter ?_ hg, hf⟩
-  exact hf.aestronglyMeasurable.stronglyMeasurableAtFilter
-
-/-- If `f` is locally integrable, `f` has a bottom element, and `f =O[atTop] g`, for some
-`g` integrable at `atTop`, then `f` is integrable. -/
-theorem LocallyIntegrable.integrable_of_isBigO_atTop [IsMeasurablyGenerated (atTop (α := α))]
-    [OrderBot α] (hf : LocallyIntegrable f μ) (ho : f =O[atTop] g)
-    (hg : IntegrableAtFilter g atTop μ) : Integrable f μ := by
-  refine integrable_iff_integrableAtFilter_atTop.mpr ⟨ho.integrableAtFilter ?_ hg, hf⟩
-  exact hf.aestronglyMeasurable.stronglyMeasurableAtFilter
-
-end LinearOrder
-
 section LinearOrderedAddCommGroup
 
 /-- If `f` is locally integrable, `‖f(-x)‖ = ‖f(x)‖`, and `f =O[atTop] g`, for some

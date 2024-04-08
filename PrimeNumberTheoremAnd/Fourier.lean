@@ -1,10 +1,12 @@
 import Mathlib.Analysis.Distribution.SchwartzSpace
-import Mathlib.Analysis.Fourier.FourierTransformDeriv
 import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import Mathlib.Topology.ContinuousFunction.Bounded
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
+import Mathlib.Analysis.Fourier.Inversion
 
-open FourierTransform Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap VectorFourier
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Fourier.FourierTransformDeriv
+
+open FourierTransform Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap VectorFourier BigOperators
 
 @[simp]
 theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
@@ -14,11 +16,10 @@ theorem nnnorm_circle_smul (z : circle) (s : ℂ) : ‖z • s‖₊ = ‖s‖�
   simp [show z • s = z.val * s from rfl]
 
 noncomputable def e (u : ℝ) : ℝ →ᵇ ℂ where
-  toFun v := 𝐞 [-v * u]
-  continuous_toFun := by simp only [Multiplicative.ofAdd] ; have := continuous_fourierChar ; continuity
+  toFun v := 𝐞 (-v * u)
   map_bounded' := ⟨2, fun x y => (dist_le_norm_add_norm _ _).trans (by simp [one_add_one_eq_two])⟩
 
-@[simp] lemma e_apply (u : ℝ) (v : ℝ) : e u v = 𝐞 [-v * u] := rfl
+@[simp] lemma e_apply (u : ℝ) (v : ℝ) : e u v = 𝐞 (-v * u) := rfl
 
 theorem hasDerivAt_e {u x : ℝ} : HasDerivAt (e u) (-2 * π * u * I * e u x) x := by
   have l2 : HasDerivAt (fun v => -v * u) (-u) x := by simpa only [neg_mul_comm] using hasDerivAt_mul_const (-u)
@@ -27,36 +28,6 @@ theorem hasDerivAt_e {u x : ℝ} : HasDerivAt (e u) (-2 * π * u * I * e u x) x 
 
 lemma fourierIntegral_deriv_aux2 (e : ℝ →ᵇ ℂ) {f : ℝ → ℂ} (hf : Integrable f) : Integrable (⇑e * f) :=
   hf.bdd_mul e.continuous.aestronglyMeasurable ⟨_, e.norm_coe_le_norm⟩
-
-lemma fourierIntegral_deriv_aux1 (e : ℝ →ᵇ ℂ) (ψ : 𝓢(ℝ, ℂ)) : Integrable (⇑e * ⇑ψ) :=
-  fourierIntegral_deriv_aux2 e ψ.integrable
-
-theorem fourierIntegral_deriv {f f' : ℝ → ℂ} (h1 : ∀ x, HasDerivAt f (f' x) x) (h2 : Integrable f)
-    (h3 : Integrable f') (h4 : Tendsto f (cocompact ℝ) (𝓝 0)) (u : ℝ) :
-    𝓕 f' u = 2 * π * I * u * 𝓕 f u := by
-  convert_to ∫ v, e u v * f' v = 2 * ↑π * I * ↑u * ∫ v, e u v * f v
-    <;> try { simp [fourierIntegral_real_eq] }
-  have l1 (x) : HasDerivAt (e u) (-2 * π * u * I * e u x) x := hasDerivAt_e
-  have l3 : Integrable (⇑(e u) * f') := fourierIntegral_deriv_aux2 (e u) h3
-  have l4 : Integrable (fun x ↦ -2 * π * u * I * e u x * f x) := by
-    simpa [mul_assoc] using (fourierIntegral_deriv_aux2 (e u) h2).const_mul (-2 * π * u * I)
-  have l7 : Tendsto (⇑(e u) * f) (cocompact ℝ) (𝓝 0) := by
-    simpa [tendsto_zero_iff_norm_tendsto_zero] using h4
-  have l5 : Tendsto (⇑(e u) * f) atBot (𝓝 0) := l7.mono_left _root_.atBot_le_cocompact
-  have l6 : Tendsto (⇑(e u) * f) atTop (𝓝 0) := l7.mono_left _root_.atTop_le_cocompact
-  rw [integral_mul_deriv_eq_deriv_mul l1 h1 l3 l4 l5 l6]
-  simp [integral_neg, ← integral_mul_left] ; congr ; ext ; ring
-
-theorem fourierIntegral_deriv_schwartz (ψ : 𝓢(ℝ, ℂ)) (u : ℝ) : 𝓕 (deriv ψ) u = 2 * π * I * u * 𝓕 ψ u :=
-  fourierIntegral_deriv (fun _ => ψ.differentiableAt.hasDerivAt) ψ.integrable
-    (SchwartzMap.derivCLM ℝ ψ).integrable ψ.toZeroAtInfty.zero_at_infty' u
-
-theorem fourierIntegral_deriv_compactSupport {f : ℝ → ℂ} (h1 : ContDiff ℝ 1 f) (h2 : HasCompactSupport f) (u : ℝ) :
-    𝓕 (deriv f) u = 2 * π * I * u * 𝓕 f u := by
-  have l1 (x) : HasDerivAt f (deriv f x) x := (h1.differentiable le_rfl).differentiableAt.hasDerivAt
-  have l2 : Integrable f := h1.continuous.integrable_of_hasCompactSupport h2
-  have l3 : Integrable (deriv f) := (h1.continuous_deriv le_rfl).integrable_of_hasCompactSupport h2.deriv
-  exact fourierIntegral_deriv l1 l2 l3 h2.is_zero_at_infty u
 
 @[simp] lemma F_neg {f : ℝ → ℂ} {u : ℝ} : 𝓕 (fun x => -f x) u = - 𝓕 f u := by
   simp [fourierIntegral_eq, integral_neg]
@@ -70,15 +41,14 @@ theorem fourierIntegral_deriv_compactSupport {f : ℝ → ℂ} (h1 : ContDiff �
   simp_rw [sub_eq_add_neg] ; rw [F_add] ; simp ; exact hf ; exact hg.neg
 
 @[simp] lemma F_mul {f : ℝ → ℂ} {c : ℂ} {u : ℝ} : 𝓕 (fun x => c * f x) u = c * 𝓕 f u := by
-  simp [fourierIntegral_eq, ← integral_mul_left] ; congr ; ext ; ring
+  simp [fourierIntegral_real_eq, ← integral_mul_left] ; congr ; ext
+  simp [Real.fourierChar, expMapCircle] ; ring
 
 structure W21 (f : ℝ → ℂ) : Prop where
   hh : ContDiff ℝ 2 f
   hf : Integrable f
   hf' : Integrable (deriv f)
   hf'' : Integrable (deriv (deriv f))
-  h3 : Tendsto f (cocompact ℝ) (𝓝 0)
-  h4 : Tendsto (deriv f) (cocompact ℝ) (𝓝 0)
 
 lemma W21.sub {f g : ℝ → ℂ} (hf : W21 f) (hg : W21 g) : W21 (f - g) := by
   have l1 : deriv (f - g) = deriv f - deriv g := by
@@ -89,11 +59,9 @@ lemma W21.sub {f g : ℝ → ℂ} (hf : W21 f) (hg : W21 g) : W21 (f - g) := by
     rw [l1] ; ext x ; apply deriv_sub
     · exact (hf.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt
     · exact (hg.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt
-  refine ⟨hf.hh.sub hg.hh, hf.hf.sub hg.hf, ?_, ?_, ?_, ?_⟩
+  refine ⟨hf.hh.sub hg.hh, hf.hf.sub hg.hf, ?_, ?_⟩
   · simpa [l1] using hf.hf'.sub hg.hf'
   · simpa [l2] using hf.hf''.sub hg.hf''
-  · simpa using hf.h3.sub hg.h3
-  · simpa [l1] using hf.h4.sub hg.h4
 
 noncomputable def W21.norm (f : ℝ → ℂ) : ℝ := (∫ v, ‖f v‖) + (4 * π ^ 2)⁻¹ * (∫ v, ‖deriv (deriv f) v‖)
 
@@ -105,24 +73,19 @@ noncomputable def W21_of_schwartz (f : 𝓢(ℝ, ℂ)) : W21 f where
   hf := f.integrable
   hf' := (SchwartzMap.derivCLM ℝ f).integrable
   hf'' := (SchwartzMap.derivCLM ℝ (SchwartzMap.derivCLM ℝ f)).integrable
-  h3 := f.toZeroAtInfty.zero_at_infty'
-  h4 := (SchwartzMap.derivCLM ℝ f).toZeroAtInfty.zero_at_infty'
 
 noncomputable def W21_of_compactSupport {f : ℝ → ℂ} (h1 : ContDiff ℝ 2 f) (h2 : HasCompactSupport f) : W21 f where
   hh := h1
   hf := h1.continuous.integrable_of_hasCompactSupport h2
   hf' := (h1.continuous_deriv one_le_two).integrable_of_hasCompactSupport h2.deriv
   hf'' := (h1.iterate_deriv' 0 2).continuous.integrable_of_hasCompactSupport h2.deriv.deriv
-  h3 := h2.is_zero_at_infty
-  h4 := h2.deriv.is_zero_at_infty
 
 theorem fourierIntegral_self_add_deriv_deriv {f : ℝ → ℂ} (hf : W21 f) (u : ℝ) :
     (1 + u ^ 2) * 𝓕 f u = 𝓕 (fun u => f u - (1 / (4 * π ^ 2)) * deriv^[2] f u) u := by
   have l1 : Integrable (fun x => (((π : ℂ) ^ 2)⁻¹ * 4⁻¹) * deriv (deriv f) x) := (hf.hf''.const_mul _)
-  have l2 x : HasDerivAt f (deriv f x) x := hf.hh.differentiable one_le_two |>.differentiableAt.hasDerivAt
-  have l3 x : HasDerivAt (deriv f) (deriv (deriv f) x) x := by
-    exact (hf.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
-  simp [hf.hf, l1, add_mul, fourierIntegral_deriv l2 hf.hf hf.hf' hf.h3, fourierIntegral_deriv l3 hf.hf' hf.hf'' hf.h4]
+  have l4 : Differentiable ℝ f := hf.hh.differentiable one_le_two
+  have l5 : Differentiable ℝ (deriv f) := (hf.hh.iterate_deriv' 1 1).differentiable le_rfl
+  simp [hf.hf, l1, add_mul, Real.fourierIntegral_deriv hf.hf' l5 hf.hf'', Real.fourierIntegral_deriv hf.hf l4 hf.hf']
   field_simp [pi_ne_zero] ; ring_nf ; simp
 
 structure trunc (g : ℝ → ℝ) : Prop :=
@@ -144,12 +107,10 @@ lemma W21.mul_compact_support {f g : ℝ → ℂ} (hf : W21 f) (hg1 : ContDiff �
 
   let g' := deriv g
   let g'' := deriv (deriv g)
-  have g_0 : g =ᶠ[cocompact ℝ] 0 := by simpa using hasCompactSupport_iff_eventuallyEq.mp hg2
   have g_c : Continuous g := hg1.continuous
   have g_b : ∃ C, ∀ x, ‖g x‖ ≤ C := g_c.bounded_above_of_compact_support hg2
   have g_d x : HasDerivAt g (g' x) x := hg1.differentiable one_le_two |>.differentiableAt.hasDerivAt
   have g_a : AEStronglyMeasurable g volume := g_c.aestronglyMeasurable
-  have g'_0 : g' =ᶠ[cocompact ℝ] 0 := by simpa using hasCompactSupport_iff_eventuallyEq.mp hg2.deriv
   have g'_c : Continuous g' := hg1.continuous_deriv one_le_two
   have g'_d x : HasDerivAt g' (g'' x) x := (hg1.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
   have g'_a : AEStronglyMeasurable g' volume := g'_c.aestronglyMeasurable
@@ -167,15 +128,12 @@ lemma W21.mul_compact_support {f g : ℝ → ℂ} (hf : W21 f) (hg1 : ContDiff �
     convert ((g'_d x).mul (f_d x)).add ((g_d x).mul (f'_d x)) using 1 ; simp [h', h''] ; ring
   have h'_d' : deriv h' = h'' := funext (fun x => (h'_d x).deriv)
 
-  refine ⟨hg1.mul hf.hh, ?_, ?_, ?_, ?_, ?_⟩
+  refine ⟨hg1.mul hf.hh, ?_, ?_, ?_⟩
   · exact hf.hf.bdd_mul g_c.aestronglyMeasurable g_b
   · rw [h_d'] ; exact (f_i.bdd_mul g'_a g'_b).add (f'_i.bdd_mul g_a g_b)
   · rw [h_d', h'_d'] ; refine Integrable.add ?_ (f''_i.bdd_mul g_a g_b)
     apply (f_i.bdd_mul g''_a g''_b).add
     simp_rw [mul_assoc] ; apply (f'_i.bdd_mul g'_a g'_b).const_mul
-  · apply tendsto_nhds_of_eventually_eq ; filter_upwards [g_0] with x hgx ; simp [hgx]
-  · simp only [h_d', h'] ; apply tendsto_nhds_of_eventually_eq
-    filter_upwards [g_0, g'_0] with x hgx hg'x; simp [hgx, hg'x]
 
 theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg : trunc g) :
     Tendsto (fun R => W21.norm (fun v => (1 - g (v * R⁻¹)) * f v)) atTop (𝓝 0) := by
@@ -295,3 +253,127 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
       · apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh' v] with R hR ; simp [hR]
       · apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh v] with R hR ; simp [hR]
     simpa [F] using tendsto_integral_filter_of_dominated_convergence bound e1 e2 e3 e4
+
+-- Things we should use, most of them from Sébastien Gouëzel:
+-- Real.iteratedDeriv_fourierIntegral
+-- Real.fourierIntegral_iteratedDeriv
+
+lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
+  have key x : HasDerivAt ofReal' 1 x := hasDerivAt_id x |>.ofReal_comp
+  have key' : deriv ofReal' = fun _ => 1 := by ext x ; exact (key x).deriv
+  refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
+  simpa [key'] using contDiff_const
+
+@[simp] lemma deriv_ofReal : deriv ofReal' = fun _ => 1 := by
+  ext x ; exact ((hasDerivAt_id x).ofReal_comp).deriv
+
+theorem bla (a : ℂ) (f : ℝ → ℂ) (n : ℕ) (hf : ContDiff ℝ n f) :
+    iteratedDeriv n (fun x ↦ a * x * f x) = fun x =>
+      a * x * iteratedDeriv n f x + n * a * iteratedDeriv (n - 1) f x := by
+
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    have l0 : ContDiff ℝ n f := hf.of_succ
+    rw [iteratedDeriv_succ, ih l0] ; ext x
+    have l5 : ContDiff ℝ (↑(1 + n)) f := by convert hf using 1 ; simp ; ring
+    have l4 : DifferentiableAt ℝ (fun x ↦ iteratedDeriv n f x) x := by
+      have := ((l5.iterate_deriv' 1 n).differentiable le_rfl).differentiableAt (x := x)
+      simpa [iteratedDeriv_eq_iterate] using this
+    have l3 : DifferentiableAt ℝ (fun x ↦ a * ↑x) x := by
+      apply DifferentiableAt.const_mul
+      exact (contDiff_ofReal.differentiable le_top).differentiableAt
+    have l1 : DifferentiableAt ℝ (fun x ↦ a * ↑x * iteratedDeriv n f x) x := l3.mul l4
+    have l2 : DifferentiableAt ℝ (fun x ↦ ↑n * a * iteratedDeriv (n - 1) f x) x := by
+      apply DifferentiableAt.const_mul
+      apply l5.differentiable_iteratedDeriv
+      norm_cast ; exact Nat.sub_le _ _ |>.trans_lt (by simp)
+    simp [deriv_add l1 l2, deriv_mul l3 l4, ← iteratedDeriv_succ]
+    cases n <;> simp <;> ring
+
+noncomputable def MS (a : ℂ) (f : 𝓢(ℝ, ℂ)) : 𝓢(ℝ, ℂ) where
+  toFun x := a * x * f x
+  smooth' := contDiff_const.mul contDiff_ofReal |>.mul f.smooth'
+  decay' k n := by
+    simp only [norm_iteratedFDeriv_eq_norm_iteratedDeriv]
+    simp_rw [bla a f n <| f.smooth'.of_le le_top]
+    obtain ⟨C₁, hC₁⟩ := f.decay' (k + 1) n
+    obtain ⟨C₂, hC₂⟩ := f.decay' k (n - 1)
+    use ‖a‖ * C₁ + ‖a‖ * n * C₂ ; intro x
+    have l2 := norm_add_le (a * x * iteratedDeriv n f x) (n * a * iteratedDeriv (n - 1) f x)
+    have l3 : 0 ≤ ‖x‖ ^ k := by positivity
+    apply (mul_le_mul_of_nonneg_left l2 l3).trans ; rw [mul_add] ; apply add_le_add
+    · have : 0 ≤ ‖a‖ := by positivity
+      convert mul_le_mul_of_nonneg_left (hC₁ x) this using 1
+      simp [norm_iteratedFDeriv_eq_norm_iteratedDeriv, abs_eq_self.mpr pi_nonneg] ; ring_nf ; rfl
+    · have : 0 ≤ ‖a‖ * n := by positivity
+      convert mul_le_mul_of_nonneg_left (hC₂ x) this using 1
+      simp [norm_iteratedFDeriv_eq_norm_iteratedDeriv, abs_eq_self.mpr pi_nonneg] ; ring_nf ; rfl
+
+@[simp] lemma MS_apply (a : ℂ) (f : 𝓢(ℝ, ℂ)) (x : ℝ) : MS a f x = (a * x) • f x := rfl
+
+lemma MS_iterate (a : ℂ) (f : 𝓢(ℝ, ℂ)) (n : ℕ) : (MS a)^[n] f = fun x : ℝ => (a * x) ^ n • f x := by
+  induction n generalizing f with
+  | zero => simp
+  | succ n ih => ext x ; simp [ih, pow_succ] ; ring
+
+lemma fourierIntegral_decay_aux (f : ℝ → ℂ) (k : ℕ) (h1 : ContDiff ℝ k f)
+    (h2 : ∀ n ≤ k, Integrable (iteratedDeriv n f)) (x : ℝ) :
+    ‖(2 * π * I * x) ^ k • 𝓕 f x‖ ≤ (∫ y : ℝ, ‖iteratedDeriv k f y‖) := by
+  have l2 (x : ℝ) : (2 * π * I * x) ^ k • 𝓕 f x = 𝓕 (iteratedDeriv k f) x := by
+    simp [Real.fourierIntegral_iteratedDeriv h1 (fun n hn => h2 n <| Nat.cast_le.mp hn) le_rfl]
+  simpa only [l2] using Fourier.norm_fourierIntegral_le_integral_norm ..
+
+lemma iteratedDeriv_schwartz (f : 𝓢(ℝ, ℂ)) (n : ℕ) : iteratedDeriv n f = (SchwartzMap.derivCLM ℝ)^[n] f := by
+  induction n with
+  | zero => rfl
+  | succ n ih => rw [iteratedDeriv_succ, ih, Function.iterate_succ'] ; rfl
+
+theorem fourierIntegral_decay (f : 𝓢(ℝ, ℂ)) (k : ℕ) : ∃ C, ∀ (x : ℝ), ‖x‖ ^ k * ‖𝓕 f x‖ ≤ C := by
+  convert_to ∃ C, ∀ x : ℝ, ‖x ^ k * 𝓕 f x‖ ≤ C ; · simp
+  convert_to ∃ C, ∀ x : ℝ, ‖(2 * π * I * x) ^ k * 𝓕 f x‖ / (2 * π) ^ k ≤ C using 4
+  · field_simp [mul_pow, abs_eq_self.mpr pi_nonneg] ; ring
+  convert_to ∃ C, ∀ x : ℝ, ‖(2 * π * I * x) ^ k • 𝓕 f x‖ / (2 * π) ^ k ≤ C
+  use (∫ (y : ℝ), ‖iteratedDeriv k (⇑f) y‖) / (2 * π) ^ k ; intro x
+  have l1 : ∀ n ≤ k, Integrable (iteratedDeriv n f) volume := by
+    simp_rw [iteratedDeriv_schwartz] ; simp [SchwartzMap.integrable]
+  have := fourierIntegral_decay_aux f k (f.smooth'.of_le le_top) l1 x
+  apply div_le_div_of_nonneg_right this (by positivity)
+
+noncomputable def FS (f : 𝓢(ℝ, ℂ)) : 𝓢(ℝ, ℂ) where
+  toFun := 𝓕 f
+  smooth' := by
+    rw [contDiff_top] ; intro n
+    apply Real.contDiff_fourierIntegral ; intro k _
+    apply SchwartzMap.integrable_pow_mul
+  decay' := by
+    simp only [norm_iteratedFDeriv_eq_norm_iteratedDeriv]
+    intro k n
+    have l1 (k : ℕ) (_ : k ≤ (n : ℕ∞)) : Integrable (fun x ↦ x ^ k • f x) volume := by
+      convert_to Integrable ((MS 1)^[k] f) ; · simp [MS_iterate]
+      apply SchwartzMap.integrable
+    simp_rw [@Real.iteratedDeriv_fourierIntegral ℂ _ _ f n n l1 le_rfl]
+    convert_to ∃ C, ∀ (x : ℝ), ‖x‖ ^ k * ‖𝓕 ((MS (-2 * π * I))^[n] f) x‖ ≤ C ; · simp [MS_iterate]
+    apply fourierIntegral_decay
+
+@[simp] lemma FS_apply (f : 𝓢(ℝ, ℂ)) (x : ℝ) : FS f x = 𝓕 f x := rfl
+
+@[simp] lemma FS_toFun (f : 𝓢(ℝ, ℂ)) : ⇑(FS f) = 𝓕 f := rfl
+
+@[simp] lemma schwarz_reduce (f : ℝ → ℂ) h1 h2 x : SchwartzMap.mk f h1 h2 x = f x := rfl
+
+theorem fourierfourier {f : ℝ → ℂ} (hfi : Integrable f) (hfi' : Integrable (𝓕 f))
+    (hfc : Continuous f) (x : ℝ) :
+    𝓕 (𝓕 f) x = f (-x) := by
+  rw [← MeasureTheory.Integrable.fourier_inversion (v := -x) hfi hfi' hfc.continuousAt]
+  simp [fourierIntegralInv, Real.fourierIntegral, VectorFourier.fourierIntegral]
+
+lemma FS4 (f : 𝓢(ℝ, ℂ)) : FS^[4] f = f := by
+  have li0 : Integrable (⇑f) volume := f.integrable
+  have li1 : Integrable (𝓕 ⇑f) := (FS f).integrable
+  have li2 : Integrable (𝓕 (𝓕 ⇑f)) := (FS (FS f)).integrable
+  have li3 : Integrable (𝓕 (𝓕 (𝓕 ⇑f))) volume := (FS (FS (FS f))).integrable
+  have lc2 : Continuous (𝓕 (𝓕 ⇑f)) := (FS (FS f)).continuous
+  ext x ; change 𝓕 (𝓕 (𝓕 (𝓕 f))) x = f x
+  rw [fourierfourier li2 li3 lc2, fourierfourier li0 li1 f.continuous]
+  simp

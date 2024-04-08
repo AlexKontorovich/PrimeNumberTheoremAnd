@@ -118,7 +118,7 @@ theorem Ioc_filter_dvd_eq (d a b: ℕ) (hd : d ≠ 0) :
     · exact Nat.mul_le_of_le_div d r b ha'
     · exact Nat.dvd_mul_left d r
 
-theorem BrunTitchmarsh.card_Ioc_filter_dvd (d a b: ℕ) (hd : d ≠ 0) :
+theorem card_Ioc_filter_dvd (d a b: ℕ) (hd : d ≠ 0) :
     (Finset.filter (fun x => d ∣ x) (Finset.Ioc a b)).card = b / d - a / d  := by
   rw [Ioc_filter_dvd_eq _ _ _ hd]
   rw [Finset.card_image_of_injective _ <| mul_left_injective₀ hd]
@@ -343,7 +343,7 @@ theorem card_range_filter_prime_isBigO : (fun N ↦ ((Finset.range N).filter Nat
   _ =O[atTop] (fun N ↦ 4 * (N / Real.log N) + 6 * (N ^ (1/2 : ℝ) * (1 + 1/2 * Real.log N)^3) : ℕ→ℝ) := by
     apply isBigO_of_le
     intro N
-    simp only [IsROrC.norm_natCast, one_div, Real.norm_eq_abs]
+    simp only [RCLike.norm_natCast, one_div, Real.norm_eq_abs]
     rw [abs_of_nonneg]
     convert tmp N using 4 <;> norm_num
     positivity
@@ -353,7 +353,8 @@ theorem card_range_filter_prime_isBigO : (fun N ↦ ((Finset.range N).filter Nat
 
 theorem prime_or_pow (N n : ℕ) (hnN : n < N) (hnprime : IsPrimePow n) :
     Nat.Prime n ∨ (∃ (m : ℕ), m < Real.sqrt N ∧ ∃ k ≤ Nat.log 2 N, n = m ^ k) := by
-  obtain ⟨p, hpn, k, hkn, hp, hk_pos, hpkn⟩ := (isPrimePow_nat_iff_bounded n).to_eq ▸ hnprime
+  rw [isPrimePow_nat_iff_bounded n] at hnprime
+  obtain ⟨p, -, k, -, hp, hk_pos, hpkn⟩ := hnprime
   by_cases hk : k = 1
   · left
     rw [← hpkn, hk, pow_one]
@@ -500,7 +501,7 @@ theorem card_pows_aux :  (fun N ↦(((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×�
   apply IsBigO.trans ?_ pow_half_mul_one_add_log_div_isBigO.natCast
   apply isBigO_of_le
   intro N
-  simp only [IsROrC.norm_natCast, one_div, norm_mul, Real.norm_eq_abs]
+  simp only [RCLike.norm_natCast, one_div, norm_mul, Real.norm_eq_abs]
   rw [Real.abs_rpow_of_nonneg (by positivity), Nat.abs_cast, abs_of_nonneg]
   convert pows_small_primes_le N using 3
   norm_num
@@ -514,13 +515,13 @@ theorem card_isPrimePow_isBigO :
   (fun N ↦ (((Finset.range N).filter IsPrimePow).card:ℝ)) =O[atTop] (fun N ↦ (((Finset.range N).filter Nat.Prime ∪
     ((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ Finset.range (Nat.log 2 N + 1)).image (fun p ↦ p.1 ^ p.2)).card:ℝ)) := by
     apply isBigO_of_le
-    simp only [IsROrC.norm_natCast, Nat.cast_le]
+    simp only [RCLike.norm_natCast, Nat.cast_le]
     intro N
     apply Finset.card_le_card
     apply range_filter_isPrimePow_subset_union
   _ =O[atTop] fun N ↦ (((Finset.range N).filter Nat.Prime).card + (((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ Finset.range (Nat.log 2 N + 1)).image (fun p ↦ p.1 ^ p.2)).card : ℝ):= by
     apply isBigO_of_le
-    simp only [IsROrC.norm_natCast, Real.norm_eq_abs]
+    simp only [RCLike.norm_natCast, Real.norm_eq_abs]
     intro N
     rw [abs_of_nonneg (by positivity)]
     norm_cast
