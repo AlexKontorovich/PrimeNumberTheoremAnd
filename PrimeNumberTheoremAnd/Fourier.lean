@@ -5,7 +5,7 @@ import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Fourier.FourierTransformDeriv
 
-open FourierTransform Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap VectorFourier
+open FourierTransform Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap VectorFourier BigOperators
 
 @[simp]
 theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
@@ -257,10 +257,50 @@ theorem W21_approximation {f : ℝ → ℂ} (hf : W21 f) {g : ℝ → ℝ} (hg :
 -- Real.iteratedDeriv_fourierIntegral
 -- Real.fourierIntegral_iteratedDeriv
 
+lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
+  have key x : HasDerivAt ofReal' 1 x := hasDerivAt_id x |>.ofReal_comp
+  have key' : deriv ofReal' = fun _ => 1 := by ext x ; exact (key x).deriv
+  refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
+  simpa [key'] using contDiff_const
+
+@[simp] lemma deriv_ofReal : deriv ofReal' = fun _ => 1 := sorry
+
+theorem bli (f g : ℝ → ℂ) (n : ℕ) :
+    iteratedDeriv n (fun x => f x + g x) = iteratedDeriv n f + iteratedDeriv n g := sorry
+
+theorem blo (f g : ℝ → ℂ) (n : ℕ) : iteratedDeriv n (fun x => f x * g x) = fun x =>
+    ∑ k in Finset.Icc 0 n, ((n.choose k) * iteratedDeriv k f x * iteratedDeriv (n - k) g x) := by sorry
+
+theorem bla (a : ℂ) (f : ℝ → ℂ) (n : ℕ) (hf : ContDiff ℝ n f) :
+    iteratedDeriv n (fun x ↦ a * x * f x) = fun x =>
+      a * x * iteratedDeriv n f x + n * a * iteratedDeriv (n - 1) f x := by
+
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    have l0 : ContDiff ℝ n f := hf.of_succ
+    rw [iteratedDeriv_succ, ih l0] ; ext x
+    have l5 : ContDiff ℝ (↑(1 + n)) f := by convert hf using 1 ; simp ; ring
+    have l4 : DifferentiableAt ℝ (fun x ↦ iteratedDeriv n f x) x := by
+      have := ((l5.iterate_deriv' 1 n).differentiable le_rfl).differentiableAt (x := x)
+      simpa [iteratedDeriv_eq_iterate] using this
+    have l3 : DifferentiableAt ℝ (fun x ↦ a * ↑x) x := by
+      apply DifferentiableAt.const_mul
+      exact (contDiff_ofReal.differentiable le_top).differentiableAt
+    have l1 : DifferentiableAt ℝ (fun x ↦ a * ↑x * iteratedDeriv n f x) x := l3.mul l4
+    have l2 : DifferentiableAt ℝ (fun x ↦ ↑n * a * iteratedDeriv (n - 1) f x) x := by
+      apply DifferentiableAt.const_mul
+      apply l5.differentiable_iteratedDeriv
+      norm_cast ; exact Nat.sub_le _ _ |>.trans_lt (by simp)
+    simp [deriv_add l1 l2, deriv_mul l3 l4, ← iteratedDeriv_succ]
+    cases n <;> simp <;> ring
+
 noncomputable def MS (f : 𝓢(ℝ, ℂ)) : 𝓢(ℝ, ℂ) where
   toFun x := (-2 * π * I * x) * f x
-  smooth' := sorry
-  decay' := sorry
+  smooth' := contDiff_const.mul contDiff_ofReal |>.mul f.smooth'
+  decay' k n := by
+    simp only [norm_iteratedFDeriv_eq_norm_iteratedDeriv]
+    sorry
 
 @[simp] lemma MS_apply (f : 𝓢(ℝ, ℂ)) (x : ℝ) : MS f x = (-2 * π * I * x) • f x := rfl
 

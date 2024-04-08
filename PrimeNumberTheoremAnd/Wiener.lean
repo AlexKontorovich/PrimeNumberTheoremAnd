@@ -1505,12 +1505,6 @@ lemma bound_main {C : ℝ} (A : ℂ) (x : ℝ) (hx : 1 ≤ x) (ψ : ℝ → ℂ)
 \end{lemma}
 %%-/
 
-lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
-  have key x : HasDerivAt ofReal' 1 x := hasDerivAt_id x |>.ofReal_comp
-  have key' : deriv ofReal' = fun _ => 1 := by ext x ; exact (key x).deriv
-  refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
-  simpa [key'] using contDiff_const
-
 lemma limiting_cor_W21 (ψ : ℝ → ℂ) (hψ : W21 ψ) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
