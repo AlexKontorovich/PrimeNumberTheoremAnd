@@ -263,13 +263,8 @@ lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
   refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
   simpa [key'] using contDiff_const
 
-@[simp] lemma deriv_ofReal : deriv ofReal' = fun _ => 1 := sorry
-
-theorem bli (f g : ℝ → ℂ) (n : ℕ) :
-    iteratedDeriv n (fun x => f x + g x) = iteratedDeriv n f + iteratedDeriv n g := sorry
-
-theorem blo (f g : ℝ → ℂ) (n : ℕ) : iteratedDeriv n (fun x => f x * g x) = fun x =>
-    ∑ k in Finset.Icc 0 n, ((n.choose k) * iteratedDeriv k f x * iteratedDeriv (n - k) g x) := by sorry
+@[simp] lemma deriv_ofReal : deriv ofReal' = fun _ => 1 := by
+  ext x ; exact ((hasDerivAt_id x).ofReal_comp).deriv
 
 theorem bla (a : ℂ) (f : ℝ → ℂ) (n : ℕ) (hf : ContDiff ℝ n f) :
     iteratedDeriv n (fun x ↦ a * x * f x) = fun x =>
@@ -300,7 +295,19 @@ noncomputable def MS (f : 𝓢(ℝ, ℂ)) : 𝓢(ℝ, ℂ) where
   smooth' := contDiff_const.mul contDiff_ofReal |>.mul f.smooth'
   decay' k n := by
     simp only [norm_iteratedFDeriv_eq_norm_iteratedDeriv]
-    sorry
+    simp_rw [bla (-2 * π * I) f n <| f.smooth'.of_le le_top]
+    obtain ⟨C₁, hC₁⟩ := f.decay' (k + 1) n
+    obtain ⟨C₂, hC₂⟩ := f.decay' k (n - 1)
+    use 2 * π * C₁ + 2 * π * n * C₂ ; intro x
+    have l2 := norm_add_le (-2 * π * I * x * iteratedDeriv n f x) (n * (-2 * π * I) * iteratedDeriv (n - 1) f x)
+    have l3 : 0 ≤ ‖x‖ ^ k := by positivity
+    apply (mul_le_mul_of_nonneg_left l2 l3).trans ; rw [mul_add] ; apply add_le_add
+    · have : 0 ≤ 2 * π := by positivity
+      convert mul_le_mul_of_nonneg_left (hC₁ x) this using 1
+      simp [norm_iteratedFDeriv_eq_norm_iteratedDeriv, abs_eq_self.mpr pi_nonneg] ; ring_nf ; rfl
+    · have : 0 ≤ 2 * π * n := by positivity
+      convert mul_le_mul_of_nonneg_left (hC₂ x) this using 1
+      simp [norm_iteratedFDeriv_eq_norm_iteratedDeriv, abs_eq_self.mpr pi_nonneg] ; ring_nf ; rfl
 
 @[simp] lemma MS_apply (f : 𝓢(ℝ, ℂ)) (x : ℝ) : MS f x = (-2 * π * I * x) • f x := rfl
 
