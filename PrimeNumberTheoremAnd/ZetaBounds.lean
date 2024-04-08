@@ -830,9 +830,90 @@ lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_l
     (σ_ge : (1 : ℝ) - A / Real.log |t| ≤ σ) :
     Complex.abs (n ^ (-(σ + t * I))) ≤ (n : ℝ)⁻¹ * Real.exp A := by
   by_cases n0 : n = 0
-  · simp [n0]
-    sorry
-  sorry
+  · simp only [n0]
+    have : (-(σ + t * I)) ≠ 0 := by
+      by_contra h
+      have : (-(σ + t * I)).re = -σ := by
+        simp only [neg_add_rev, add_re, neg_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im,
+          mul_one, sub_self, neg_zero, zero_add]
+      rw [h] at this
+      simp at this
+      have h := (NeZero.of_pos σpos).ne
+      exact h this
+    simp only [CharP.cast_eq_zero]
+    rw [Complex.zero_cpow this]
+    simp only [map_zero, inv_zero, zero_mul, le_refl]
+  have n_gt_0 : 0 < n := Nat.pos_of_ne_zero n0
+  have n_gt_0' : (0 : ℝ) < (n : ℝ) := by
+    simp only [Nat.cast_pos]
+    exact n_gt_0
+  have := Complex.abs_cpow_eq_rpow_re_of_pos n_gt_0' (-(σ + t * I))
+  simp only  [ofReal_nat_cast] at this
+  rw [this]
+  simp only [neg_add_rev, add_re, neg_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im,
+    mul_one, sub_self, neg_zero, zero_add, ge_iff_le]
+  have n_ge_1 : (n : ℝ) ≥ 1 := by
+    simp only [ge_iff_le, Nat.one_le_cast]
+    apply Nat.succ_le_of_lt
+    exact n_gt_0
+  have t_ge_1 : t ≥ 1 := by
+    exact le_trans n_ge_1 n_le_t
+  have t_ne_0 : t ≠ 0 := by
+    by_contra h
+    rw [h] at t_ge_1
+    absurd t_ge_1
+    norm_num
+  have h : Real.log n *  -(1 - A/(Real.log t)) ≤ - Real.log n + A := by
+    simp only [neg_sub, le_neg_add_iff_add_le]
+    ring_nf
+    rw [mul_comm, ← mul_assoc]
+    nth_rw 2 [← one_mul A]
+    have : A ≥ 0 := by
+      exact le_of_lt Apos
+    apply mul_le_mul_of_nonneg_right _ this
+    by_cases ht1 : t = 1
+    · rw [ht1]
+      simp only [Real.log_one, inv_zero, zero_mul, zero_le_one]
+    have : (Real.log t) ≠ 0 := by
+      simp only [ne_eq, Real.log_eq_zero]
+      by_contra h
+      rcases h with (h | h | h)
+      · rw [h] at t_ne_0
+        exact t_ne_0 rfl
+      · rw [h] at ht1
+        exact ht1 rfl
+      rw [h] at t_ge_1
+      absurd t_ge_1
+      norm_num
+    rw [← inv_mul_cancel this]
+    apply mul_le_mul_of_nonneg_left
+    · apply Real.log_le_log
+      · exact n_gt_0'
+      exact n_le_t
+    simp only [inv_nonneg]
+    apply Real.log_nonneg
+    exact le_trans n_ge_1 n_le_t
+  calc
+    _ = |((n : ℝ) ^ (-σ))| := by
+      symm
+      apply (abs_eq_self (a := (n : ℝ) ^ (-σ))).mpr
+      apply Real.rpow_nonneg
+      simp only [Nat.cast_nonneg]
+    _ ≤ Real.exp ((Real.log n * -σ)) := by
+      exact Real.abs_rpow_le_exp_log_mul (n : ℝ) (-σ)
+    _ ≤ Real.exp (Real.log n *  -(1 - A/(Real.log t))) := by
+      apply Real.exp_le_exp_of_le
+      have : Real.log (n : ℝ) ≥ 0 := by
+        apply Real.log_nonneg
+        exact n_ge_1
+      apply mul_le_mul_of_nonneg_left _ this
+      simp only [neg_sub, neg_le_sub_iff_le_add]
+      simp only [Real.log_abs, tsub_le_iff_right] at σ_ge
+      rw [add_comm]
+      exact σ_ge
+    _ ≤ Real.exp (- Real.log n + A) := Real.exp_le_exp_of_le h
+    _ ≤ (n : ℝ)⁻¹ * Real.exp A := by
+      rw [Real.exp_add, Real.exp_neg, Real.exp_log n_gt_0']
 /-%%
 \begin{proof}
 Use $|n^{-s}| = n^{-\sigma}
