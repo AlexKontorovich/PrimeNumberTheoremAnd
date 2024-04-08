@@ -847,9 +847,21 @@ lemma Zeta_diff_Bnd :
   obtain ⟨A, Apos, C, Cpos, hC⟩ := ZetaDerivUpperBnd
   refine ⟨A, Apos, C, Cpos, ?_⟩
   intro σ₁ σ₂ t t_gt σ₁_ge σ₁_le σ₂_ge σ₂_le σ₁_lt_σ₂
-  have : t ≠ 0 := by sorry
-  rw [← Zeta_eq_int_derivZeta σ₁_lt_σ₂ this]
-  sorry
+  have t_ne_zero : t ≠ 0 := by contrapose! t_gt; simp only [t_gt, abs_zero, Nat.ofNat_nonneg]
+  rw [← Zeta_eq_int_derivZeta σ₁_lt_σ₂ (t_ne_zero), ← Complex.norm_eq_abs]
+  calc
+    _ = ‖∫ σ in σ₁..σ₂, deriv riemannZeta (σ + t * I)‖ := ?_
+    _ ≤ ∫ σ in σ₁..σ₂, ‖deriv riemannZeta (σ + t * I)‖ := ?_
+    _ ≤ ∫ σ in σ₁..σ₂, C * (Real.log |t|) ^ 2 := ?_
+    _ = _ := ?_
+  · rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le σ₁_lt_σ₂.le]
+  · exact intervalIntegral.norm_integral_le_integral_norm σ₁_lt_σ₂.le
+  · refine intervalIntegral.integral_mono_on σ₁_lt_σ₂.le ?_ intervalIntegrable_const ?_
+    · sorry
+    · intro σ hσ; simp only [Set.mem_Icc] at hσ
+      exact hC σ t t_gt (le_trans σ₁_ge hσ.1) (le_trans hσ.2 σ₂_le)
+  · convert intervalIntegral.integral_const (c := C * (Real.log |t|) ^ 2 ) using 1
+    simp only [smul_eq_mul, mul_comm]
 /-%%
 \begin{proof}
 \uses{Zeta_eq_int_derivZeta, ZetaDerivUpperBnd}
