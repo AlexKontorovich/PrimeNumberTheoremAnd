@@ -813,7 +813,10 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_pos : 1 < s.re) :
       · have : (-↑N ^ (1 - s) / (1 - s)) = (0 - ↑N ^ (1 - s) / (1 - s)) + 0 := by ring
         rw [this]
         apply Tendsto.add
-        · have := @Filter.tendsto_div_const_iff (hb := s_ne_zero)
+        · have := @Continuous.tendsto
+          have := @continuous_div_right'
+
+          have := (Filter.tendsto_div_const_iff (hb := one_sub_s_ne)).mpr
           · sorry
           · sorry
 
