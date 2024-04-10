@@ -4,7 +4,6 @@ import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.Analytic.Meromorphic
 import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.MeasureTheory.Measure.Lebesgue.Integral
-import EulerProducts.LSeries
 import PrimeNumberTheoremAnd.Rectangle
 
 open Complex BigOperators Nat Classical Real Topology Filter Set MeasureTheory intervalIntegral
@@ -79,7 +78,7 @@ lemma verticalIntegral_split_three (a b : ℝ) (hf : Integrable (fun t : ℝ ↦
     + I • ∫ t in Ici b, f (σ + t * I) := by
   simp_rw [VerticalIntegral, VIntegral, ← smul_add]
   congr
-  rw [← intervalIntegral.integral_Iic_sub_Iic hf.restrict hf.restrict, add_sub_cancel'_right,
+  rw [← intervalIntegral.integral_Iic_sub_Iic hf.restrict hf.restrict, add_sub_cancel,
     integral_Iic_eq_integral_Iio, intervalIntegral.integral_Iio_add_Ici hf.restrict hf.restrict]
 
 /-% ** Wrong delimiter on purpose **
@@ -402,7 +401,7 @@ lemma integral_self_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, x / (x ^
 
 lemma integral_const_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, y / (x ^ 2 + y ^ 2) =
     arctan (x₂ / y) - arctan (x₁ / y) := by
-  nth_rewrite 1 [← div_mul_cancel x₁ hy, ← div_mul_cancel x₂ hy]
+  nth_rewrite 1 [← div_mul_cancel₀ x₁ hy, ← div_mul_cancel₀ x₂ hy]
   simp_rw [← mul_integral_comp_mul_right, ← integral_const_mul, ← integral_one_div_one_add_sq]
   exact integral_congr <| λ x _ => by field_simp; ring
 
