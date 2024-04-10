@@ -749,6 +749,18 @@ is already proved by Michael Stoll in the EulerProducts PNT file.
 \end{proof}
 %%-/
 
+lemma Ioi_union_Iio_mem_cocompact {a : ℝ} (ha : 0 ≤ a) : Set.Ioi (a : ℝ) ∪ Set.Iio (-a : ℝ) ∈ cocompact ℝ := by
+  simp only [Filter.mem_cocompact]
+  use Set.Icc (-a) a
+  constructor
+  · exact isCompact_Icc
+  · rw [@Set.compl_subset_iff_union, ← Set.union_assoc, Set.Icc_union_Ioi_eq_Ici, Set.union_comm, Set.Iio_union_Ici]
+    linarith
+
+lemma lt_abs_mem_cocompact {a : ℝ} (ha : 0 ≤ a) : {t | a < |t|} ∈ cocompact ℝ := by
+  convert Ioi_union_Iio_mem_cocompact ha using 1; ext t
+  simp only [Set.mem_setOf_eq, Set.mem_union, Set.mem_Ioi, Set.mem_Iio, lt_abs, lt_neg]
+
 /-%%
 \begin{lemma}[ZetaInvBound2]\label{ZetaInvBound2}\lean{ZetaInvBound2}\leanok
 For $\sigma>1$ (and $\sigma \le 2$),
