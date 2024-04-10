@@ -809,7 +809,12 @@ lemma ZetaInvBound2 {σ : ℝ} (σ_gt : 1 < σ) (σ_le : σ ≤ 2) :
     · exact abs_eq_self.mpr <| Real.rpow_nonneg (div_nonneg (by linarith) hc'.le) _
     · apply lt_iff_le_and_ne.mpr ⟨(by simp), ?_⟩
       have : riemannZeta (↑σ + 2 * ↑t * I) ≠ 0 := by
-        sorry
+        apply riemannZeta_ne_zero_of_one_le_re ?_ (by simp [σ_gt.le])
+        contrapose! σ_gt
+        simp only [ext_iff, add_re, ofReal_re, mul_re, re_ofNat, im_ofNat, ofReal_im, mul_zero,
+          sub_zero, I_re, mul_im, zero_mul, add_zero, I_im, mul_one, sub_self, one_re, add_im,
+          zero_add, one_im, mul_eq_zero, OfNat.ofNat_ne_zero, false_or] at σ_gt
+        linarith
       symm; intro h
       rw [Real.abs_rpow_of_nonneg (by norm_num), Real.rpow_eq_zero (by norm_num) (by norm_num)] at h
       simp only [Complex.abs_abs, map_eq_zero] at h
