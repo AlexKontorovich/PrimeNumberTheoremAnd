@@ -1600,7 +1600,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
       algebraMap.coe_zero, f, g]; rfl
   · rw [MellinOf1 s hs, MellinOfDeltaSpike Ψ εpos s]
 /-%%
-\begin{proof}\uses{Smooth1,MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1, MellinConvolutionSymmetric}
+\begin{proof}\uses{Smooth1,MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1, MellinConvolutionSymmetric}\leanok
 By Definition \ref{Smooth1},
 $$
   \mathcal M(\widetilde{1_\epsilon})(s)

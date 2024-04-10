@@ -1016,7 +1016,7 @@ Estimate as before, with an extra factor of $\log |t|$.
 %%-/
 
 /-%%
-\begin{lemma}[ZetaNear1Bnd]\label{ZetaNear1Bnd}\lean{ZetaNear1Bnd}\leanok
+\begin{lemma}[ZetaNear1Bnd']\label{ZetaNear1Bnd'}\lean{ZetaNear1Bnd'}\leanok
 As $\sigma\to1^+$,
 $$
 |\zeta(\sigma)| \ll 1/(\sigma-1).
