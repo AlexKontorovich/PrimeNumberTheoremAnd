@@ -1016,14 +1016,14 @@ Estimate as before, with an extra factor of $\log |t|$.
 %%-/
 
 /-%%
-\begin{lemma}[ZetaNear1Bnd]\label{ZetaNear1Bnd}\lean{ZetaNear1Bnd}\leanok
+\begin{lemma}[ZetaNear1Bnd']\label{ZetaNear1Bnd'}\lean{ZetaNear1Bnd'}\leanok
 As $\sigma\to1^+$,
 $$
 |\zeta(\sigma)| \ll 1/(\sigma-1).
 $$
 \end{lemma}
 %%-/
-lemma ZetaNear1Bnd :
+lemma ZetaNear1Bnd':
     (fun σ : ℝ ↦ riemannZeta σ) =O[𝓝[>](1 : ℝ)] (fun σ ↦ (1 : ℂ) / (σ - 1)) := by
   have : Tendsto (fun (x : ℝ) ↦ x - 1) (𝓝[>](1 : ℝ)) (𝓝[>](0 : ℝ)) := by
     refine tendsto_iff_forall_eventually_mem.mpr ?_
@@ -1031,6 +1031,28 @@ lemma ZetaNear1Bnd :
     sorry
   have := riemannZeta_isBigO_near_one_horizontal.comp_tendsto this
   convert this using 1 <;> {ext1 _; simp}
+/-%%
+\begin{proof}\uses{ZetaBnd_aux1, Zeta0EqZeta}
+Zeta has a simple pole at $s=1$. Equivalently, $\zeta(s)(s-1)$ remains bounded near $1$.
+Lots of ways to prove this.
+Probably the easiest one: use the expression for $\zeta_0 (N,s)$ with $N=1$ (the term $N^{1-s}/(1-s)$ being the only unbounded one).
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[ZetaNear1Bnd]\label{ZetaNear1Bnd}\lean{ZetaNear1Bnd}\leanok
+There exists a $c>0$ such that for all $1 \sigma ≤ 2$,
+$$
+|\zeta(\sigma)| ≤ c/(\sigma-1).
+$$
+\end{lemma}
+%%-/
+lemma ZetaNear1Bnd:
+    ∃ (c : ℝ) (cpos : 0 < c), ∀ (σ : ℝ) (σ_ge : 1 < σ) (σ_le : σ ≤ 2),
+    ‖riemannZeta σ‖ ≤ c / (σ - 1) := by
+  use 10, (by norm_num)
+  intro σ σ_ge σ_le
+  sorry
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, Zeta0EqZeta}
 Zeta has a simple pole at $s=1$. Equivalently, $\zeta(s)(s-1)$ remains bounded near $1$.
@@ -1063,11 +1085,23 @@ is already proved by Michael Stoll in the EulerProducts PNT file.
 \end{proof}
 %%-/
 
+lemma Ioi_union_Iio_mem_cocompact {a : ℝ} (ha : 0 ≤ a) : Set.Ioi (a : ℝ) ∪ Set.Iio (-a : ℝ) ∈ cocompact ℝ := by
+  simp only [Filter.mem_cocompact]
+  use Set.Icc (-a) a
+  constructor
+  · exact isCompact_Icc
+  · rw [@Set.compl_subset_iff_union, ← Set.union_assoc, Set.Icc_union_Ioi_eq_Ici, Set.union_comm, Set.Iio_union_Ici]
+    linarith
+
+lemma lt_abs_mem_cocompact {a : ℝ} (ha : 0 ≤ a) : {t | a < |t|} ∈ cocompact ℝ := by
+  convert Ioi_union_Iio_mem_cocompact ha using 1; ext t
+  simp only [Set.mem_setOf_eq, Set.mem_union, Set.mem_Ioi, Set.mem_Iio, lt_abs, lt_neg]
+
 /-%%
 \begin{lemma}[ZetaInvBound2]\label{ZetaInvBound2}\lean{ZetaInvBound2}\leanok
 For $\sigma>1$ (and $\sigma \le 2$),
 $$
-1/|\zeta(\sigma+it)| \ll (\sigma-1)^{3/4}(\log |t|)^{1/4},
+1/|\zeta(\sigma+it)| \ll (\sigma-1)^{-3/4}(\log |t|)^{1/4},
 $$
 as $|t|\to\infty$.
 \end{lemma}
@@ -1075,9 +1109,91 @@ as $|t|\to\infty$.
 lemma ZetaInvBound2 {σ : ℝ} (σ_gt : 1 < σ) (σ_le : σ ≤ 2) :
     (fun (t : ℝ) ↦ 1 / Complex.abs (riemannZeta (σ + t * I))) =O[cocompact ℝ]
       fun (t : ℝ) ↦ (σ - 1) ^ (-(3 : ℝ) / 4) * (Real.log |t|) ^ ((1 : ℝ) / 4) := by
-  sorry
+  obtain ⟨A, ha, C, hC, h⟩ := ZetaUpperBnd
+  obtain ⟨c, hc, h_inv⟩ := ZetaNear1Bnd
+  rw [Asymptotics.isBigO_iff]
+  use (2 * C) ^ ((1 : ℝ)/ 4) * c ^ ((3 : ℝ)/ 4)
+  filter_upwards [lt_abs_mem_cocompact (by norm_num : 0 ≤ (2 : ℝ))] with t ht
+  have ht' : 3 < |2 * t| := by rw [abs_mul, Nat.abs_ofNat]; linarith
+  have hnezero: ((σ - 1) / c) ^ (-3 / 4 : ℝ) ≠ 0 := by
+    have : (σ - 1) / c ≠ 0 := ne_of_gt <| div_pos (by linarith) hc
+    contrapose! this
+    rwa [Real.rpow_eq_zero (div_nonneg (by linarith) hc.le) (by norm_num)] at this
+  calc
+    _ ≤ ‖Complex.abs (riemannZeta ↑σ) ^ (3 / 4 : ℝ) * Complex.abs (riemannZeta (↑σ + 2 * ↑t * I)) ^ (1 / 4 : ℝ)‖ := ?_
+    _ ≤ ‖((σ - 1) / c) ^ (-3 / 4 : ℝ) * Complex.abs (riemannZeta (↑σ + 2 * ↑t * I)) ^ (1 / 4 : ℝ)‖ := ?_
+    _ ≤ ‖((σ - 1) / c) ^ (-3 / 4 : ℝ) * C ^ (1 / 4 : ℝ) * (Real.log |2 * t|) ^ (1 / 4 : ℝ)‖ := ?_
+    _ ≤ ‖((σ - 1) / c) ^ (-3 / 4 : ℝ) * C ^ (1 / 4 : ℝ) * (Real.log (|t| ^ 2)) ^ (1 / 4 : ℝ)‖ := ?_
+    _ = ‖((σ - 1)) ^ (-3 / 4 : ℝ) * c ^ (3 / 4 : ℝ) * (C ^ (1 / 4 : ℝ) * (Real.log (|t| ^ 2)) ^ (1 / 4 : ℝ))‖ := ?_
+    _ = ‖((σ - 1)) ^ (-3 / 4 : ℝ) * c ^ (3 / 4 : ℝ) * ((2 * C) ^ (1 / 4 : ℝ) * Real.log |t| ^ (1 / 4 : ℝ))‖ := ?_
+    _ = _ := ?_
+  · simp only [norm_div, norm_one, norm_eq_abs, Real.norm_eq_abs, Complex.abs_abs, norm_mul]
+    convert ZetaInvBound1 σ_gt using 2
+    <;> exact abs_eq_self.mpr <| Real.rpow_nonneg (apply_nonneg _ _) _
+  · have bnd1: Complex.abs (riemannZeta σ) ^ (3 / 4 : ℝ) ≤ ((σ - 1) / c) ^ (-(3 : ℝ) / 4) := by
+      have : ((σ - 1) / c) ^ (-(3 : ℝ) / 4) = (((σ - 1) / c) ^ (-1 : ℝ)) ^ (3 / 4 : ℝ) := by
+        rw [← Real.rpow_mul ?_]; ring_nf; exact div_nonneg (by linarith) hc.le
+      rw [this]
+      apply Real.rpow_le_rpow (by simp [apply_nonneg]) ?_ (by norm_num)
+      simp only [Real.rpow_neg_one, inv_div]
+      exact h_inv σ σ_gt σ_le
+    simp only [norm_div, norm_one, norm_eq_abs, Real.norm_eq_abs, Complex.abs_abs, norm_mul]
+    apply (mul_le_mul_right ?_).mpr
+    convert bnd1 using 1
+    · exact abs_eq_self.mpr <| Real.rpow_nonneg (apply_nonneg _ _) _
+    · exact abs_eq_self.mpr <| Real.rpow_nonneg (div_nonneg (by linarith) hc.le) _
+    · apply lt_iff_le_and_ne.mpr ⟨(by simp), ?_⟩
+      have : riemannZeta (↑σ + 2 * ↑t * I) ≠ 0 := by
+        apply riemannZeta_ne_zero_of_one_le_re ?_ (by simp [σ_gt.le])
+        contrapose! σ_gt
+        simp only [ext_iff, add_re, ofReal_re, mul_re, re_ofNat, im_ofNat, ofReal_im, mul_zero,
+          sub_zero, I_re, mul_im, zero_mul, add_zero, I_im, mul_one, sub_self, one_re, add_im,
+          zero_add, one_im, mul_eq_zero, OfNat.ofNat_ne_zero, false_or] at σ_gt
+        linarith
+      symm; intro h
+      rw [Real.abs_rpow_of_nonneg (by norm_num), Real.rpow_eq_zero (by norm_num) (by norm_num)] at h
+      simp only [Complex.abs_abs, map_eq_zero, this] at h
+  · replace h := h σ (2 * t) (by linarith) ?_ σ_le
+    · have : 0 ≤ Real.log |2 * t| := Real.log_nonneg (by linarith)
+      conv => rhs; rw [mul_assoc, ← Real.mul_rpow hC.le this]
+      rw [norm_mul, norm_mul]
+      conv => rhs; rhs; rw [Real.norm_rpow_of_nonneg <| mul_nonneg hC.le this]
+      conv => lhs; rhs; rw [← norm_eq_abs, Real.norm_rpow_of_nonneg <| norm_nonneg _]
+      apply (mul_le_mul_left ?_).mpr
+      apply Real.rpow_le_rpow (norm_nonneg _) ?_ (by norm_num)
+      · convert h using 1; simp
+        rw [Real.norm_eq_abs, abs_eq_self.mpr <| mul_nonneg hC.le this]
+      · simpa only [Real.norm_eq_abs, abs_pos]
+    · linarith [(div_nonneg ha.le (Real.log_nonneg (by linarith)) : 0 ≤ A / Real.log |2 * t|)]
+  · simp only [Real.log_abs, norm_mul]
+    apply (mul_le_mul_left ?_).mpr
+    · rw [← Real.log_abs, Real.norm_rpow_of_nonneg <| Real.log_nonneg (by linarith)]
+      have : 1 ≤ |(|t| ^ 2)| := by
+        simp only [_root_.sq_abs, _root_.abs_pow, one_le_sq_iff_one_le_abs]
+        linarith
+      conv => rhs; rw [← Real.log_abs, Real.norm_rpow_of_nonneg <| Real.log_nonneg this]
+      apply Real.rpow_le_rpow (abs_nonneg _) ?_ (by norm_num)
+      · rw [Real.norm_eq_abs, abs_eq_self.mpr <| Real.log_nonneg (by linarith)]
+        rw [abs_eq_self.mpr <| Real.log_nonneg this, abs_mul, Real.log_abs, Nat.abs_ofNat]
+        apply Real.log_le_log (mul_pos (by norm_num) (by linarith)) (by nlinarith)
+    . apply mul_pos (abs_pos.mpr hnezero) (abs_pos.mpr ?_)
+      have : C ≠ 0 := ne_of_gt hC
+      contrapose! this
+      rwa [Real.rpow_eq_zero (by linarith) (by norm_num)] at this
+  · have : (-3 : ℝ) / 4 = -((3 : ℝ)/ 4) := by norm_num
+    simp only [norm_mul, mul_eq_mul_right_iff, abs_eq_zero, this, ← mul_assoc]; left; left
+    conv => lhs; rw [Real.div_rpow (by linarith) hc.le, Real.rpow_neg hc.le, div_inv_eq_mul, norm_mul]
+  · simp only [Real.log_pow, Nat.cast_ofNat, norm_mul, Real.norm_eq_abs]
+    congr! 1
+    rw [Real.mul_rpow (by norm_num) hC.le, Real.mul_rpow (by norm_num) <|
+        Real.log_nonneg (by linarith), abs_mul, abs_mul, ← mul_assoc, mul_comm _ |2 ^ (1 / 4)|]
+  · simp only [norm_mul, Real.norm_eq_abs]
+    have : (2 * C) ^ ((1 : ℝ)/ 4) * c ^ ((3 : ℝ)/ 4) =|(2 * C) ^ ((1 : ℝ)/ 4) * c ^ ((3 : ℝ)/ 4)| := by
+      rw [abs_eq_self.mpr (by apply mul_nonneg <;> (apply Real.rpow_nonneg; linarith))]
+    rw [this, abs_mul]
+    ring
 /-%%
-\begin{proof}\uses{ZetaInvBound1, ZetaNear1Bnd, ZetaUpperBnd}
+\begin{proof}\uses{ZetaInvBound1, ZetaNear1Bnd, ZetaUpperBnd}\leanok
 Combine Lemma \ref{ZetaInvBound1} with the bounds in Lemmata \ref{ZetaNear1Bnd} and
 \ref{ZetaUpperBnd}.
 \end{proof}
@@ -1115,19 +1231,23 @@ $$
 %%-/
 lemma Zeta_diff_Bnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ₁ σ₂ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
-    (σ₁_ge : 1 - A / Real.log |t| ≤ σ₁) (σ₁_le : σ₁ ≤ 2)
-    (σ₂_ge : 1 - A / Real.log |t| ≤ σ₂) (σ₂_le : σ₂ ≤ 2) (σ₁_lt_σ₂ : σ₁ < σ₂),
+    (σ₁_ge : 1 - A / Real.log |t| ≤ σ₁) (σ₂_le : σ₂ ≤ 2) (σ₁_lt_σ₂ : σ₁ < σ₂),
     Complex.abs (riemannZeta (σ₂ + t * I) - riemannZeta (σ₁ + t * I)) ≤
       C * (Real.log |t|) ^ 2 * (σ₂ - σ₁) := by
   obtain ⟨A, Apos, C, Cpos, hC⟩ := ZetaDerivUpperBnd
   refine ⟨A, Apos, C, Cpos, ?_⟩
-  intro σ₁ σ₂ t t_gt σ₁_ge σ₁_le σ₂_ge σ₂_le σ₁_lt_σ₂
-  have : t ≠ 0 := by sorry
-  rw [← Zeta_eq_int_derivZeta σ₁_lt_σ₂ this]
-  sorry
+  intro σ₁ σ₂ t t_gt σ₁_ge σ₂_le σ₁_lt_σ₂
+  have t_ne_zero : t ≠ 0 := by contrapose! t_gt; simp only [t_gt, abs_zero, Nat.ofNat_nonneg]
+  rw [← Zeta_eq_int_derivZeta σ₁_lt_σ₂ (t_ne_zero)]
+  simp_rw [← Complex.norm_eq_abs] at hC ⊢
+  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le σ₁_lt_σ₂.le]
+  convert intervalIntegral.norm_integral_le_of_norm_le_const ?_ using 1
+  · congr; rw [_root_.abs_of_nonneg (by linarith)]
+  · intro σ hσ; rw [Set.uIoc_of_le σ₁_lt_σ₂.le, Set.mem_Ioc] at hσ
+    exact hC σ t t_gt (le_trans σ₁_ge hσ.1.le) (le_trans hσ.2 σ₂_le)
 /-%%
 \begin{proof}
-\uses{Zeta_eq_int_derivZeta, ZetaDerivUpperBnd}
+\uses{Zeta_eq_int_derivZeta, ZetaDerivUpperBnd}\leanok
 Use Lemma \ref{Zeta_eq_int_derivZeta} and
 estimate trivially using Lemma \ref{ZetaDerivUpperBnd}.
 \end{proof}
