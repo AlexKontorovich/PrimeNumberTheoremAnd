@@ -827,6 +827,15 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
   have one_sub_s_re_ne : (1 - s).re ≠ 0 := by
     simp only [sub_re, one_re, ne_eq]
     linarith
+  have xpow_tendsto : Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) := by
+    rw [tendsto_zero_iff_norm_tendsto_zero]
+    simp_rw [Complex.norm_natCast_cpow_of_re_ne_zero _ one_sub_s_re_ne]
+    have : (1 - s).re = - (s - 1).re := by simp
+    simp_rw [this]
+    apply (tendsto_rpow_neg_atTop _).comp tendsto_nat_cast_atTop_atTop
+    simp only [sub_re, one_re, sub_pos, s_re_gt]
+  have xpow_inv_tendsto : Tendsto (fun (x : ℕ) ↦ ((x : ℂ) ^ s)⁻¹) atTop (𝓝 0) := by
+    sorry
   apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
     (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
       + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1))
@@ -841,33 +850,21 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
     · convert finsetSum_tendsto_tsum (N := N) (f := fun n ↦ 1 / (n : ℂ) ^ s) (Summable_rpow s_re_gt)
       simp
-  · have xpow_tendsto : Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) := by
-      rw [tendsto_zero_iff_norm_tendsto_zero]
-      simp_rw [Complex.norm_natCast_cpow_of_re_ne_zero _ one_sub_s_re_ne]
-      have : (1 - s).re = - (s - 1).re := by simp
-      simp_rw [this]
-      apply (tendsto_rpow_neg_atTop _).comp tendsto_nat_cast_atTop_atTop
-      simp only [sub_re, one_re, sub_pos, s_re_gt]
-    apply Tendsto.add
+  · apply Tendsto.add
     · apply Tendsto.sub
       · have : (-↑N ^ (1 - s) / (1 - s)) = ((0 - ↑N ^ (1 - s)) / (1 - s)) + 0 := by ring
         rw [this]
         apply Tendsto.add
         · apply Tendsto.div_const
           apply Tendsto.sub_const
-
-
-
-#exit
-          have := @Continuous.tendsto
-          have := @continuous_div_right'
-
-          have := (Filter.tendsto_div_const_iff (hb := one_sub_s_ne)).mpr
-          · sorry
-          · sorry
-
-        sorry
-      sorry
+          exact xpow_tendsto
+        · simp_rw [mul_comm_div, one_mul, one_div]
+          have : 𝓝 (0 : ℂ) = 𝓝 ((0 : ℂ) / 2) := by congr; ring
+          simp_rw [this]
+          apply Tendsto.div_const
+          exact xpow_inv_tendsto
+      · simp_rw [mul_comm_div, one_mul, one_div, Complex.cpow_neg]
+        exact tendsto_const_nhds
     · apply Tendsto.const_mul
       let f : ℝ → ℂ := fun x ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
       convert MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
