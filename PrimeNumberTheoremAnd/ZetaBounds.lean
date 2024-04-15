@@ -781,7 +781,22 @@ lemma Summable_rpow {s : ℂ} (s_re_gt : 1 < s.re) : Summable (fun (n : ℕ) ↦
 
 lemma Finset_coe_Nat_Int (f : ℤ → ℂ) (m n : ℕ) :
     (∑ x in Finset.Ioc m n, f x) = ∑ x in Finset.Ioc (m : ℤ) n, f x := by
-  sorry
+/-
+instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated using `Finset.map`
+-/
+  apply Finset.sum_nbij (i := (fun (x : ℕ) ↦ (x : ℤ)))
+  · intro x hx
+    simp only [Finset.mem_Ioc, Nat.cast_lt, Nat.cast_le] at hx ⊢
+    exact hx
+  · intro x₁ _ x₂ _ h
+    simp only [Nat.cast_inj] at h
+    exact h
+  · intro x hx
+    simp only [Finset.coe_Ioc, Set.mem_image, Set.mem_Ioc] at hx ⊢
+    have : 0 ≤ x := by linarith
+    lift x to ℕ using this
+    exact ⟨x, by exact_mod_cast hx, rfl⟩
+  · exact fun _ _ ↦ rfl
 
 /-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
