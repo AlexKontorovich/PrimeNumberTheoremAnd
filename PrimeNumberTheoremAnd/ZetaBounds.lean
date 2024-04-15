@@ -869,7 +869,8 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       let f : ℝ → ℂ := fun x ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
       convert MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
         (b := (fun (n : ℕ) ↦ (n : ℝ))) (f := f) (μ := MeasureTheory.volume) (l := atTop) ?_ ?_
-      · sorry
+      ·
+        sorry
       · convert tendsto_coe_atTop
 /-%%
 \begin{proof}\uses{ZetaSum_aux1, ZetaSum_aux1a}
@@ -923,19 +924,13 @@ Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\
 \end{proof}
 %%-/
 
-lemma tsum_eq_partial_add_tail {N : ℕ} (hN : 1 ≤ N) (f : ℕ → ℂ) (hf : Summable f) :
+lemma tsum_eq_partial_add_tail {N : ℕ} (N_pos : 0 < N) (f : ℕ → ℂ) (hf : Summable f) :
   ∑' (n : ℕ), f n =
-   (∑ n in Finset.Icc 0 (N - 1), f n) + ∑' (n : ℕ), f (n + N) := by
+   (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
+  have hN : 1 ≤ N := by sorry
   rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N)]
   congr
-  rw [Finset.range_eq_Ico, ← Nat.Ico_succ_right]
-  congr
-  rw [← Nat.sub_add_cancel hN]
-  simp only [add_tsub_cancel_right]
-
-lemma summable_zeta {s : ℂ} (hs : 1 < s.re) : Summable (fun (n : ℕ) => 1 / (n : ℂ) ^ s) := by
-  -- use `LSeriesSummable_of_le_const_mul_rpow`
-  sorry
+  rw [Finset.range_eq_Ico]
 
 /-%%
 \begin{lemma}[Zeta0EqZeta]\label{Zeta0EqZeta}\lean{Zeta0EqZeta}\leanok
@@ -945,7 +940,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) :
+lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) :
     RiemannZeta0 N s = riemannZeta s := by
   let f := riemannZeta
   let g := RiemannZeta0 N
@@ -969,7 +964,10 @@ lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) 
   dsimp [f, g]
   simp only [gt_iff_lt, Set.mem_setOf_eq, u] at hz
   rw [zeta_eq_tsum_one_div_nat_cpow hz, RiemannZeta0_apply]
-  have := @ZetaSum_aux2 (N := N) _ hz
+  have := ZetaSum_aux2 N_pos hz
+  nth_rewrite 2 [neg_div]
+  rw [← sub_eq_add_neg]
+  have := tsum_eq_partial_add_tail N_pos (f := fun n => 1 / (n : ℂ) ^ z) ?_
   rw [← this]
   convert tsum_eq_partial_add_tail N (f := fun n => 1 / (n : ℂ) ^ z) ?_
   · norm_cast
