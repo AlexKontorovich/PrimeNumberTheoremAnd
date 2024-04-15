@@ -27,7 +27,7 @@ open Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransf
 open Complex hiding log
 open scoped Topology
 
-variable {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ Ψ : ℝ → ℂ} {F G : ℂ → ℂ} {f : ℕ → ℂ}
+variable {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ Ψ : ℝ → ℂ} {F G : ℂ → ℂ} {f : ℕ → ℂ} {𝕜 : Type} [RCLike 𝕜]
 
 -- This version makes the support of Ψ explicit, and this is easier for some later proofs
 lemma smooth_urysohn_support_Ioo (h1 : a < b) (h3: c < d) :
@@ -2091,50 +2091,44 @@ lemma tendsto_mul_ceil_div :
   simp [div_lt_iff l3]
   convert (Nat.ceil_lt_add_one l5).trans_le (add_le_add l6 h2) using 1 ; ring
 
+noncomputable def S (f : ℕ → 𝕜) (ε : ℝ) (N : ℕ) : 𝕜 := (∑ n in Finset.Ico ⌈ε * N⌉₊ N, f n) / N
+
+lemma S_sub_S {f : ℕ → 𝕜} {ε : ℝ} {N : ℕ} (hε : ε ≤ 1) : S f 0 N - S f ε N = cumsum f ⌈ε * N⌉₊ / N := by
+  have r1 : Finset.range N = Finset.range ⌈ε * N⌉₊ ∪ Finset.Ico ⌈ε * N⌉₊ N := by
+    rw [Finset.range_eq_Ico] ; symm ; apply Finset.Ico_union_Ico_eq_Ico (by simp)
+    simp ; convert_to ε * ↑N ≤ 1 * ↑N ; ring ; gcongr
+  have r2 : Disjoint (Finset.range ⌈ε * N⌉₊) (Finset.Ico ⌈ε * N⌉₊ N) := by
+    rw [Finset.range_eq_Ico] ; apply Finset.Ico_disjoint_Ico_consecutive
+  simp [S, r1, Finset.sum_union r2, cumsum, add_div, abs_div]
+
+lemma tendsto_S_S_zero {f : ℕ → ℝ} (hpos : 0 ≤ f) (hcheby : cheby f) :
+    TendstoUniformlyOnFilter (S f) (S f 0) (𝓝[>] 0) atTop := by
+  rw [Metric.tendstoUniformlyOnFilter_iff] ; intro δ hδ
+  obtain ⟨C, hC⟩ := hcheby
+  have l1 : ∀ᶠ (p : ℝ × ℕ) in 𝓝[>] 0 ×ˢ atTop, C * ⌈p.1 * p.2⌉₊ / p.2 < δ := by
+    have r1 := tendsto_mul_ceil_div.const_mul C
+    simp [mul_div_assoc'] at r1 ; exact r1 (Iio_mem_nhds hδ)
+  have : Ioc 0 1 ∈ 𝓝[>] (0 : ℝ) := inter_mem_nhdsWithin _ (Iic_mem_nhds zero_lt_one)
+  filter_upwards [l1, Eventually.prod_inl this _] with (ε, N) h1 h2
+  have l2 : |cumsum f ⌈ε * ↑N⌉₊ / ↑N| ≤ C * ⌈ε * N⌉₊ / N := by
+    have r1 := hC ⌈ε * N⌉₊
+    have r2 : 0 ≤ cumsum f ⌈ε * N⌉₊ := by apply cumsum_nonneg hpos
+    simp [abs_div, abs_eq_self.mpr r2, abs_eq_self.mpr (hpos _)] at r1 ⊢
+    apply div_le_div_of_nonneg_right r1 (by positivity)
+  simpa [← S_sub_S h2.2] using l2.trans_lt h1
+
 theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
     Tendsto (fun N => cumsum f N / N) atTop (𝓝 A) := by
 
-  let S (ε : ℝ) (N : ℕ) := (∑ n in Finset.Ico ⌈ε * N⌉₊ N, f n) / N
-  convert_to Tendsto (S 0) atTop (𝓝 A) ; · simp [S, cumsum]
-
-  have L0 : Ioc 0 1 ∈ 𝓝[>] (0 : ℝ) := inter_mem_nhdsWithin _ (Iic_mem_nhds zero_lt_one)
-
-  have L1 : TendstoUniformlyOnFilter S (S 0) (𝓝[>] 0) atTop := by
-    rw [Metric.tendstoUniformlyOnFilter_iff] ; intro δ hδ
-
-    obtain ⟨C, hC⟩ := hcheby
-
-    have l5 : ∀ᶠ (p : ℝ × ℕ) in 𝓝[>] 0 ×ˢ atTop, C * ⌈p.1 * p.2⌉₊ / p.2 < δ := by
-      have r1 := tendsto_mul_ceil_div.const_mul C
-      simp [mul_div_assoc'] at r1
-      exact r1 (Iio_mem_nhds hδ)
-
-    filter_upwards [l5, Eventually.prod_inl L0 _] with (ε, N) h1 h2
-
-    convert_to |cumsum f ⌈ε * ↑N⌉₊ / ↑N| < δ
-    · have r1 : Finset.range N = Finset.range ⌈ε * N⌉₊ ∪ Finset.Ico ⌈ε * N⌉₊ N := by
-        rw [Finset.range_eq_Ico] ; symm ; apply Finset.Ico_union_Ico_eq_Ico (by simp)
-        simp ; have := h2.2 ; convert_to ε * ↑N ≤ 1 * ↑N ; ring ; gcongr
-      have r2 : Disjoint (Finset.range ⌈ε * N⌉₊) (Finset.Ico ⌈ε * N⌉₊ N) := by
-        rw [Finset.range_eq_Ico] ; apply Finset.Ico_disjoint_Ico_consecutive
-      simp [S, r1, Finset.sum_union r2, cumsum, add_div, abs_div]
-
-    refine LE.le.trans_lt ?_ h1
-
-    have r1 := hC ⌈ε * N⌉₊
-    have r2 : 0 ≤ cumsum f ⌈ε * N⌉₊ := by apply cumsum_nonneg hpos
-    simp [abs_div, abs_eq_self.mpr r2, abs_eq_self.mpr (hpos _)] at r1 ⊢
-    apply div_le_div_of_nonneg_right r1 (by positivity)
-
-  apply L1.tendsto_of_eventually_tendsto
-  · apply eventually_of_mem L0 ; intro ε hε
+  convert_to Tendsto (S f 0) atTop (𝓝 A) ; · ext N ; simp [S, cumsum]
+  apply (tendsto_S_S_zero hpos hcheby).tendsto_of_eventually_tendsto
+  · have L0 : Ioc 0 1 ∈ 𝓝[>] (0 : ℝ) := inter_mem_nhdsWithin _ (Iic_mem_nhds zero_lt_one)
+    apply eventually_of_mem L0 ; intro ε hε
     simpa using WienerIkeharaInterval_discrete' hpos hf hcheby hG hG' hε.1 hε.2
   · have : Tendsto (fun ε : ℝ => ε) (𝓝[>] 0) (𝓝 0) := nhdsWithin_le_nhds
     simpa using (this.const_sub 1).const_mul A
-
-#exit
 
 /-%%
 \begin{proof}
@@ -2143,7 +2137,7 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' 
 \end{proof}
 %%-/
 
-theorem vonMangoldt_cheby : cheby (fun n ↦ Λ n) := by
+theorem vonMangoldt_cheby : cheby Λ := by
   obtain ⟨C, hC⟩ := BrunTitchmarsh.card_range_filter_isPrimePow_le
   have hC_nonneg : 0 ≤ C := by
     have := hC 2
@@ -2197,7 +2191,7 @@ $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 -- version of the Wiener-Ikehara theorem proved above (with the `cheby`
 -- hypothesis)
 
-theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (nhds 1) := by
+theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (𝓝 1) := by
   have hnv := riemannZeta_ne_zero_of_one_le_re
   have l1 (n : ℕ) : 0 ≤ Λ n := vonMangoldt_nonneg
   have l2 s (hs : 1 < s.re) : (-deriv ζ₁ / ζ₁) s = LSeries Λ s - 1 / (s - 1) := by

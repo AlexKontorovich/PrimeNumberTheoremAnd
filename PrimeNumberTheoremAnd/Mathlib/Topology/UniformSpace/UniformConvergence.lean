@@ -16,3 +16,8 @@ theorem TendstoUniformlyOnFilter.tendsto_of_eventually_tendsto
   have l3 : ∀ᶠ i in l, ∀ᶠ x in p, (f x, F i x) ∈ t := (h1 t ht).curry
   obtain ⟨i, l4, l5, l6⟩ := (l1.and (l2.and l3)).exists
   filter_upwards [l5, l6] with x l5 l6 using hts ⟨F i x, l6, L i, l5, l4⟩
+
+theorem TendstoUniformly.tendsto_of_eventually_tendsto
+    (h1 : TendstoUniformly F f l) (h2 : ∀ᶠ i in l, Tendsto (F i) p (𝓝 (L i)))
+    (h3 : Tendsto L l (𝓝 ℓ)) : Tendsto f p (𝓝 ℓ) :=
+  (h1.tendstoUniformlyOnFilter.mono_right le_top).tendsto_of_eventually_tendsto h2 h3
