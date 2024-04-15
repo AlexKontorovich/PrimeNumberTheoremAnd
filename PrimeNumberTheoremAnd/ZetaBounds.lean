@@ -763,16 +763,24 @@ and evaluate the integral.
 \end{proof}
 %%-/
 
-lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℤ → ℂ} (hf : Summable f) :
-    Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc (N : ℤ) k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
+lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
+    Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
 
   sorry
 
-theorem tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
+lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
   sorry
 
 -- related to `ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt`
-theorem Summable_rpow {s : ℂ} (sre_gt : 1 < s.re) : Summable (fun (x : ℕ) ↦ 1 / (x : ℂ) ^ s) := by
+lemma Summable_rpow {s : ℂ} (s_re_gt : 1 < s.re) : Summable (fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s) := by
+  apply Summable.of_norm
+  have := (Real.summable_nat_rpow_inv (p := s.re)).mpr s_re_gt
+
+
+  sorry
+
+lemma Finset_coe_Nat_Int (f : ℤ → ℂ) (m n : ℕ) :
+    (∑ x in Finset.Ioc m n, f x) = ∑ x in Finset.Ioc (m : ℤ) n, f x := by
   sorry
 
 /-%%
@@ -809,15 +817,17 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1))
     (b := (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1))
-  · apply Filter.Tendsto.congr' (f₁ := fun (k : ℕ) ↦ ∑ n in Finset.Ioc (N : ℤ) k, 1 / (n : ℂ) ^ s) (l₁ := atTop)
+  · apply Filter.Tendsto.congr' (f₁ := fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, 1 / (n : ℂ) ^ s) (l₁ := atTop)
     · apply Filter.eventually_atTop.mpr
-      refine ⟨(N + 1), fun k hk ↦ ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos hk⟩
+      use N + 1
+      intro k hk
+      convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos hk
+      simp only
+      convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
     · convert finsetSum_tendsto_tsum (N := N) (f := fun n ↦ 1 / (n : ℂ) ^ s) ?_
       · simp
-      ·
+      · exact Summable_rpow s_re_gt
         -- *** already exists, just find it, you idiot.
-        apply Summable.of_norm
-        have := (Real.summable_nat_rpow_inv (p := s.re)).mpr s_re_gt
 
         sorry
   · have xpow_tendsto : Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) := by
