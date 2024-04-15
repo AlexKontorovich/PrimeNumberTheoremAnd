@@ -7,8 +7,6 @@ import EulerProducts.PNT
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import Mathlib.MeasureTheory.Function.Floor
 import Mathlib.Analysis.Complex.CauchyIntegral
-import Mathlib.NumberTheory.LSeries.Dirichlet
-
 
 -- only importing the following for the MeasurableDiv₂ ℝ instance.
 -- should remove eventually
@@ -773,6 +771,10 @@ lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℤ → ℂ} (hf : Summable f) :
 theorem tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
   sorry
 
+-- related to `ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt`
+theorem Summable_rpow {s : ℂ} (sre_gt : 1 < s.re) : Summable (fun (x : ℕ) ↦ (x : ℂ) ^ s) := by
+  sorry
+
 /-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
   Let $N$ be a natural number and $s\in \C$, $\Re(s)>1$.
@@ -812,7 +814,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       refine ⟨(N + 1), fun k hk ↦ ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos hk⟩
     · convert finsetSum_tendsto_tsum (N := N) (f := fun n ↦ 1 / (n : ℂ) ^ s) ?_
       · simp
-      · have := ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt
+      ·
         -- *** already exists, just find it, you idiot.
         apply Summable.of_norm
         have := (Real.summable_nat_rpow_inv (p := s.re)).mpr s_re_gt
