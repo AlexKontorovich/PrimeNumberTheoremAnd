@@ -16,6 +16,7 @@ import Mathlib.Algebra.GroupWithZero.Units.Basic
 
 import PrimeNumberTheoremAnd.BrunTitchmarsh
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
+import PrimeNumberTheoremAnd.Mathlib.Topology.UniformSpace.UniformConvergence
 import PrimeNumberTheoremAnd.Fourier
 
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems
@@ -2075,69 +2076,65 @@ $$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
 function whose L-series has a simple pole at `s = 1` with residue `A` and otherwise extends
 continuously to the closed half-plane `re s ≥ 1`, then `∑ n < N, f n` is asymptotic to `A*N`. -/
 
+lemma tendsto_mul_ceil_div :
+    Tendsto (fun (p : ℝ × ℕ) => ⌈p.1 * p.2⌉₊ / (p.2 : ℝ)) (𝓝[>] 0 ×ˢ atTop) (𝓝 0) := by
+  rw [Metric.tendsto_nhds] ; intro δ hδ
+  have l1 : ∀ᶠ ε : ℝ in 𝓝[>] 0, ε ∈ Ioo 0 (δ / 2) := inter_mem_nhdsWithin _ (Iio_mem_nhds (by positivity))
+  have l2 : ∀ᶠ N : ℕ in atTop, 1 ≤ δ / 2 * N := by
+    apply Tendsto.eventually_ge_atTop
+    exact tendsto_nat_cast_atTop_atTop.const_mul_atTop (by positivity)
+  filter_upwards [l1.prod_mk l2] with (ε, N) ⟨⟨hε, h1⟩, h2⟩ ; dsimp only at *
+  have l3 : 0 < (N : ℝ) := by
+    simp ; rw [Nat.pos_iff_ne_zero] ; rintro rfl ; simp at h2 ; linarith
+  have l5 : 0 ≤ ε * ↑N := by positivity
+  have l6 : ε * N ≤ δ / 2 * N := mul_le_mul h1.le le_rfl (by positivity) (by positivity)
+  simp [div_lt_iff l3]
+  convert (Nat.ceil_lt_add_one l5).trans_le (add_le_add l6 h2) using 1 ; ring
+
 theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
     Tendsto (fun N => cumsum f N / N) atTop (𝓝 A) := by
 
-  obtain ⟨C, hC⟩ := id hcheby
-  have : 0 ≤ C := by have := hC 1 ; simp [cumsum] at this ; exact abs_nonneg _ |>.trans this
-
   let S (ε : ℝ) (N : ℕ) := (∑ n in Finset.Ico ⌈ε * N⌉₊ N, f n) / N
   convert_to Tendsto (S 0) atTop (𝓝 A) ; · simp [S, cumsum]
-  have l2 (ε : ℝ) (hε : ε ∈ Ioc 0 1) N : S 0 N - S ε N = cumsum f ⌈ε * N⌉₊ / N := by
-    have r1 : Finset.range N = Finset.range ⌈ε * N⌉₊ ∪ Finset.Ico ⌈ε * N⌉₊ N := by
-      rw [Finset.range_eq_Ico] ; symm ; apply Finset.Ico_union_Ico_eq_Ico (by simp)
-      simp ; have := hε.2 ; convert_to ε * ↑N ≤ 1 * ↑N ; ring ; gcongr
-    have r2 : Disjoint (Finset.range ⌈ε * N⌉₊) (Finset.Ico ⌈ε * N⌉₊ N) := by
-      rw [Finset.range_eq_Ico] ; apply Finset.Ico_disjoint_Ico_consecutive
-    simp [S, r1, Finset.sum_union r2, cumsum, add_div]
-  have l3 (ε : ℝ) (hε : ε ∈ Ioc 0 1) (N : ℕ) (hN : 1 ≤ ε * N) : |cumsum f ⌈ε * N⌉₊ / N| ≤ C * 2 * ε := by
+
+  have L0 : Ioc 0 1 ∈ 𝓝[>] (0 : ℝ) := inter_mem_nhdsWithin _ (Iic_mem_nhds zero_lt_one)
+
+  have L1 : TendstoUniformlyOnFilter S (S 0) (𝓝[>] 0) atTop := by
+    rw [Metric.tendstoUniformlyOnFilter_iff] ; intro δ hδ
+
+    obtain ⟨C, hC⟩ := hcheby
+
+    have l5 : ∀ᶠ (p : ℝ × ℕ) in 𝓝[>] 0 ×ˢ atTop, C * ⌈p.1 * p.2⌉₊ / p.2 < δ := by
+      have r1 := tendsto_mul_ceil_div.const_mul C
+      simp [mul_div_assoc'] at r1
+      exact r1 (Iio_mem_nhds hδ)
+
+    filter_upwards [l5, Eventually.prod_inl L0 _] with (ε, N) h1 h2
+
+    convert_to |cumsum f ⌈ε * ↑N⌉₊ / ↑N| < δ
+    · have r1 : Finset.range N = Finset.range ⌈ε * N⌉₊ ∪ Finset.Ico ⌈ε * N⌉₊ N := by
+        rw [Finset.range_eq_Ico] ; symm ; apply Finset.Ico_union_Ico_eq_Ico (by simp)
+        simp ; have := h2.2 ; convert_to ε * ↑N ≤ 1 * ↑N ; ring ; gcongr
+      have r2 : Disjoint (Finset.range ⌈ε * N⌉₊) (Finset.Ico ⌈ε * N⌉₊ N) := by
+        rw [Finset.range_eq_Ico] ; apply Finset.Ico_disjoint_Ico_consecutive
+      simp [S, r1, Finset.sum_union r2, cumsum, add_div, abs_div]
+
+    refine LE.le.trans_lt ?_ h1
+
     have r1 := hC ⌈ε * N⌉₊
     have r2 : 0 ≤ cumsum f ⌈ε * N⌉₊ := by apply cumsum_nonneg hpos
-    have r3 : 0 ≤ (N : ℝ) := by simp
     simp [abs_div, abs_eq_self.mpr r2, abs_eq_self.mpr (hpos _)] at r1 ⊢
-    apply div_le_div_of_nonneg_right r1 r3 |>.trans
-    rw [mul_div_assoc, mul_assoc]
-    apply mul_le_mul_of_nonneg_left ?_ this
-    have r5 : 0 ≤ ε := hε.1.le
-    apply div_le_of_nonneg_of_le_mul r3 (by positivity)
-    have r4 : 0 ≤ ε * N := mul_nonneg r5 (by simp)
-    apply Nat.ceil_lt_add_one r4 |>.le |>.trans
-    linarith
-  have l4 (ε : ℝ) (hε : ε ∈ Ioc 0 1) (N : ℕ) (hN : 1 ≤ ε * N) : |S 0 N - S ε N| ≤ C * 2 * ε := by
-    rw [l2 ε hε] ; exact l3 ε hε N hN
-  have l5 : Tendsto (fun ε => A * (1 - ε)) (𝓝[>] 0) (𝓝 A) := by
-    have : Tendsto (fun ε : ℝ => ε) (𝓝[>] 0) (𝓝 0) := nhdsWithin_le_nhds
+    apply div_le_div_of_nonneg_right r1 (by positivity)
+
+  apply L1.tendsto_of_eventually_tendsto
+  · apply eventually_of_mem L0 ; intro ε hε
+    simpa using WienerIkeharaInterval_discrete' hpos hf hcheby hG hG' hε.1 hε.2
+  · have : Tendsto (fun ε : ℝ => ε) (𝓝[>] 0) (𝓝 0) := nhdsWithin_le_nhds
     simpa using (this.const_sub 1).const_mul A
 
-  rw [Metric.tendsto_nhds] ; intro ρ hρ
-  have l6 : ∀ᶠ ε : ℝ in 𝓝[>] 0, dist (A * (1 - ε)) A < ρ / 3 := by
-    rw [Metric.tendsto_nhds] at l5 ; exact l5 (ρ / 3) (by linarith)
-  have l7 : ∀ᶠ ε : ℝ in 𝓝[>] 0, C * 2 * ε < ρ / 3 := by
-    have : Tendsto (fun ε : ℝ => ε) (𝓝[>] 0) (𝓝 0) := nhdsWithin_le_nhds
-    have := this.const_mul (C * 2) ; simp at this
-    apply eventually_lt_of_tendsto_lt (by positivity) this
-  have l8 : ∀ᶠ ε : ℝ in 𝓝[>] 0, ε ≤ 1 := by
-    apply eventually_of_mem (U := Iic 1) ?_ (by simp)
-    exact mem_nhdsWithin.mpr ⟨Iio 1, isOpen_Iio, by simp, fun t ⟨(ht1 : t < 1), _⟩ => ht1.le⟩
-  have l9 : ∀ᶠ ε : ℝ in 𝓝[>] 0, 0 < ε := self_mem_nhdsWithin
-  obtain ⟨ε, l6, l7, l8, hε⟩ := (l6.and (l7.and (l8.and l9))).exists
-
-  have key : ∀ᶠ (x : ℕ) in atTop, dist (S ε x) (A * (1 - ε)) < ρ / 3 := by
-    have r1 : 0 < ρ / 3 := by linarith
-    have  := WienerIkeharaInterval_discrete' hpos hf hcheby hG hG' hε l8
-    rw [Metric.tendsto_nhds] at this ; specialize this (ρ / 3) r1
-    simpa using this
-  have key' : ∀ᶠ (x : ℕ) in atTop, 1 ≤ ε * x := by
-    simp_rw [mul_comm ε]
-    have : Tendsto (fun x : ℕ => (x : ℝ)) atTop atTop := tendsto_nat_cast_atTop_atTop
-    exact (tendsto_mul_const_atTop_iff_pos this).mpr hε (eventually_ge_atTop 1)
-  filter_upwards [key, key'] with N hd2 hN
-  have hd1 : dist (S 0 N) (S ε N) < ρ / 3 := LE.le.trans_lt (by simpa using l4 ε ⟨hε, l8⟩ N hN) l7
-  have hd4 := dist_triangle (S 0 N) (S ε N) (A * (1 - ε))
-  have hd5 := dist_triangle (S 0 N) (A * (1 - ε)) A
-  linarith
+#exit
 
 /-%%
 \begin{proof}
