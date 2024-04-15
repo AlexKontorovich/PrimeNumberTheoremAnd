@@ -772,7 +772,7 @@ theorem tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop :=
   sorry
 
 -- related to `ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt`
-theorem Summable_rpow {s : ℂ} (sre_gt : 1 < s.re) : Summable (fun (x : ℕ) ↦ (x : ℂ) ^ s) := by
+theorem Summable_rpow {s : ℂ} (sre_gt : 1 < s.re) : Summable (fun (x : ℕ) ↦ 1 / (x : ℂ) ^ s) := by
   sorry
 
 /-%%
