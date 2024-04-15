@@ -780,23 +780,26 @@ theorem tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop :=
   \]
 \end{lemma}
 %%-/
-lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_pos : 1 < s.re) :
+lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     ∑' (n : ℕ), 1 / (n + N : ℂ) ^ s =
     (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
   have s_ne_zero : s ≠ 0 := by
     intro s_eq
-    rw [s_eq] at s_re_pos
-    simp only [zero_re] at s_re_pos
+    rw [s_eq] at s_re_gt
+    simp only [zero_re] at s_re_gt
     linarith
   have s_ne_one : s ≠ 1 := by
     intro s_eq
-    rw [s_eq] at s_re_pos
-    simp only [one_re, lt_self_iff_false] at s_re_pos
+    rw [s_eq] at s_re_gt
+    simp only [one_re, lt_self_iff_false] at s_re_gt
   have one_sub_s_ne : 1 - s ≠ 0 := by
     intro h
     rw [sub_eq_iff_eq_add, zero_add] at h
     exact s_ne_one h.symm
+  have one_sub_s_re_ne : (1 - s).re ≠ 0 := by
+    simp only [sub_re, one_re, ne_eq]
+    linarith
   apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
     (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
       + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1))
@@ -807,13 +810,30 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_pos : 1 < s.re) :
       refine ⟨(N + 1), fun k hk ↦ ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos hk⟩
     · convert finsetSum_tendsto_tsum (N := N) (f := fun n ↦ 1 / (n : ℂ) ^ s) ?_
       · simp
-      · sorry
-  · apply Tendsto.add
+      · -- *** already exists, just find it, you idiot.
+        apply Summable.of_norm
+        have := (Real.summable_nat_rpow_inv (p := s.re)).mpr s_re_gt
+
+        sorry
+  · have xpow_tendsto : Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) := by
+      rw [tendsto_zero_iff_norm_tendsto_zero]
+      simp_rw [Complex.norm_natCast_cpow_of_re_ne_zero _ one_sub_s_re_ne]
+      have : (1 - s).re = - (s - 1).re := by simp
+      simp_rw [this]
+      apply (tendsto_rpow_neg_atTop _).comp tendsto_nat_cast_atTop_atTop
+      simp only [sub_re, one_re, sub_pos, s_re_gt]
+    apply Tendsto.add
     · apply Tendsto.sub
-      · have : (-↑N ^ (1 - s) / (1 - s)) = (0 - ↑N ^ (1 - s) / (1 - s)) + 0 := by ring
+      · have : (-↑N ^ (1 - s) / (1 - s)) = ((0 - ↑N ^ (1 - s)) / (1 - s)) + 0 := by ring
         rw [this]
         apply Tendsto.add
-        · have := @Continuous.tendsto
+        · apply Tendsto.div_const
+          apply Tendsto.sub_const
+
+
+
+#exit
+          have := @Continuous.tendsto
           have := @continuous_div_right'
 
           have := (Filter.tendsto_div_const_iff (hb := one_sub_s_ne)).mpr
