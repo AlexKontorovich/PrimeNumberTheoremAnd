@@ -14,6 +14,29 @@ import PrimeNumberTheoremAnd.PerronFormula
 
 open BigOperators Complex Topology Filter Interval
 
+-- theorem AnalyticContinuation {f g : ℂ → ℂ} {s t : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
+--     (g_on_t : AnalyticOn ℂ g t) (f_eq_g_on_cap : Set.EqOn f g (s ∩ t))
+--     (s_open : IsOpen s) (t_open : IsOpen t) (cap_nonempty : Set.Nonempty (s ∩ t)) :
+--     ∃! h : ℂ → ℂ, AnalyticOn ℂ h (s ∪ t) ∧ Set.EqOn h f s ∧ Set.EqOn h g t := by
+--   classical
+--   let h : ℂ → ℂ := fun z ↦ if z ∈ s then f z else g z
+--   refine ⟨h, ⟨?_, fun z hz ↦ by simp [h, hz], ?_⟩, ?_⟩
+--   · sorry
+--   · intro z hz
+--     by_cases z_in_s : z ∈ s
+--     · have : z ∈ s ∩ t := by simp [z_in_s, hz]
+--       have := f_eq_g_on_cap this
+--       simp [h, z_in_s, this]
+--     · simp [h, z_in_s]
+--   · intro h' ⟨h'_analytic, h'_eq_f_on_s, h'_eq_g_on_t⟩
+--     sorry
+
+-- theorem AnalyticContinuation' {f g : ℂ → ℂ} {s t u : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
+--     (g_on_t : AnalyticOn ℂ g t) (u_sub : u ⊆ s ∩ t) (u_open : IsOpen u)
+--     (u_nonempty : Set.Nonempty u) (f_eq_g_on_u : Set.EqOn f g u) :
+--     Set.EqOn f g (s ∩ t) := by
+--   sorry
+
 -- move near `Real.differentiableAt_rpow_const_of_ne`
 theorem Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (hx : x ≠ 0) :
     DifferentiableAt ℝ (fun (x : ℝ) => (x : ℂ) ^ s) x := by
@@ -506,7 +529,7 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠
       congr
     rw [this]
 /-%%
-\begin{proof}\uses{sum_eq_int_deriv}
+\begin{proof}\uses{sum_eq_int_deriv}\leanok
   Apply Lemma \ref{sum_eq_int_deriv} to the function $x \mapsto x^{-s}$.
 \end{proof}
 %%-/
@@ -730,7 +753,7 @@ lemma ZetaSum_aux1a {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos
       apply ZetaSum_aux1a_aux2 (c := s.re) apos a_lt_b ⟨ h1, h2 ⟩
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Apply the triangle inequality
 $$
 \left|\int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx\right|
@@ -739,6 +762,41 @@ $$
 and evaluate the integral.
 \end{proof}
 %%-/
+
+lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
+    Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
+
+  sorry
+
+lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
+  sorry
+
+-- related to `ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt`
+lemma Summable_rpow {s : ℂ} (s_re_gt : 1 < s.re) : Summable (fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s) := by
+  apply Summable.of_norm
+  have : s.re ≠ 0 := by linarith
+  simp only [one_div, norm_inv]
+  simp_rw [norm_natCast_cpow_of_re_ne_zero _ this]
+  exact (Real.summable_nat_rpow_inv (p := s.re)).mpr s_re_gt
+
+lemma Finset_coe_Nat_Int (f : ℤ → ℂ) (m n : ℕ) :
+    (∑ x in Finset.Ioc m n, f x) = ∑ x in Finset.Ioc (m : ℤ) n, f x := by
+/-
+instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated using `Finset.map`
+-/
+  apply Finset.sum_nbij (i := (fun (x : ℕ) ↦ (x : ℤ)))
+  · intro x hx
+    simp only [Finset.mem_Ioc, Nat.cast_lt, Nat.cast_le] at hx ⊢
+    exact hx
+  · intro x₁ _ x₂ _ h
+    simp only [Nat.cast_inj] at h
+    exact h
+  · intro x hx
+    simp only [Finset.coe_Ioc, Set.mem_image, Set.mem_Ioc] at hx ⊢
+    have : 0 ≤ x := by linarith
+    lift x to ℕ using this
+    exact ⟨x, by exact_mod_cast hx, rfl⟩
+  · exact fun _ _ ↦ rfl
 
 /-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
@@ -749,11 +807,71 @@ and evaluate the integral.
   \]
 \end{lemma}
 %%-/
-lemma ZetaSum_aux2 {N : ℕ} {s : ℂ} (s_re_pos : 1 < s.re) :
+lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     ∑' (n : ℕ), 1 / (n + N : ℂ) ^ s =
-    (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
-      + s * ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
-  sorry
+    (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
+  have s_ne_zero : s ≠ 0 := by
+    intro s_eq
+    rw [s_eq] at s_re_gt
+    simp only [zero_re] at s_re_gt
+    linarith
+  have s_ne_one : s ≠ 1 := by
+    intro s_eq
+    rw [s_eq] at s_re_gt
+    simp only [one_re, lt_self_iff_false] at s_re_gt
+  have one_sub_s_ne : 1 - s ≠ 0 := by
+    intro h
+    rw [sub_eq_iff_eq_add, zero_add] at h
+    exact s_ne_one h.symm
+  have one_sub_s_re_ne : (1 - s).re ≠ 0 := by
+    simp only [sub_re, one_re, ne_eq]
+    linarith
+  have xpow_tendsto : Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) := by
+    rw [tendsto_zero_iff_norm_tendsto_zero]
+    simp_rw [Complex.norm_natCast_cpow_of_re_ne_zero _ one_sub_s_re_ne]
+    have : (1 - s).re = - (s - 1).re := by simp
+    simp_rw [this]
+    apply (tendsto_rpow_neg_atTop _).comp tendsto_nat_cast_atTop_atTop
+    simp only [sub_re, one_re, sub_pos, s_re_gt]
+  have xpow_inv_tendsto : Tendsto (fun (x : ℕ) ↦ ((x : ℂ) ^ s)⁻¹) atTop (𝓝 0) := by
+    sorry
+  apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
+    (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
+      + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1))
+    (b := (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1))
+  · apply Filter.Tendsto.congr' (f₁ := fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, 1 / (n : ℂ) ^ s) (l₁ := atTop)
+    · apply Filter.eventually_atTop.mpr
+      use N + 1
+      intro k hk
+      convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos hk
+      simp only
+      convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
+    · convert finsetSum_tendsto_tsum (N := N) (f := fun n ↦ 1 / (n : ℂ) ^ s) (Summable_rpow s_re_gt)
+      simp
+  · apply Tendsto.add
+    · apply Tendsto.sub
+      · have : (-↑N ^ (1 - s) / (1 - s)) = ((0 - ↑N ^ (1 - s)) / (1 - s)) + 0 := by ring
+        rw [this]
+        apply Tendsto.add
+        · apply Tendsto.div_const
+          apply Tendsto.sub_const
+          exact xpow_tendsto
+        · simp_rw [mul_comm_div, one_mul, one_div]
+          have : 𝓝 (0 : ℂ) = 𝓝 ((0 : ℂ) / 2) := by congr; ring
+          simp_rw [this]
+          apply Tendsto.div_const
+          exact xpow_inv_tendsto
+      · simp_rw [mul_comm_div, one_mul, one_div, Complex.cpow_neg]
+        exact tendsto_const_nhds
+    · apply Tendsto.const_mul
+      let f : ℝ → ℂ := fun x ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
+      convert MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
+        (b := (fun (n : ℕ) ↦ (n : ℝ))) (f := f) (μ := MeasureTheory.volume) (l := atTop) ?_ ?_
+      ·
+        sorry
+      · convert tendsto_coe_atTop
 /-%%
 \begin{proof}\uses{ZetaSum_aux1, ZetaSum_aux1a}
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
@@ -775,7 +893,14 @@ $$
 noncomputable def RiemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
   (∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ s) +
   (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
-      + s * ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)
+
+lemma RiemannZeta0_apply (N : ℕ) (s : ℂ) : RiemannZeta0 (N : ℕ) (s : ℂ) =
+    (∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ s) +
+    ((- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) := by
+  dsimp [RiemannZeta0]
+  ring
 
 /-%%
 \begin{lemma}[ZetaBnd_aux1]\label{ZetaBnd_aux1}\lean{ZetaBnd_aux1}\leanok
@@ -789,7 +914,7 @@ as $|t|\to\infty$.
 %%-/
 lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (σ_ge : 1 / 2 ≤ σ) (σ_le : σ ≤ 2) :
     (fun (t : ℝ) ↦ Complex.abs ((σ + t * I) *
-      ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^((σ + t * I) + 1)))
+      ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^((σ + t * I) + 1)))
       =O[cocompact ℝ] fun (t : ℝ) ↦ |t| * N ^ (-σ) / σ := by
   have := @ZetaSum_aux1a (a := N)
   sorry
@@ -799,6 +924,14 @@ Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\
 \end{proof}
 %%-/
 
+lemma tsum_eq_partial_add_tail {N : ℕ} (N_pos : 0 < N) (f : ℕ → ℂ) (hf : Summable f) :
+  ∑' (n : ℕ), f n =
+   (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
+  have hN : 1 ≤ N := by sorry
+  rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N)]
+  congr
+  rw [Finset.range_eq_Ico]
+
 /-%%
 \begin{lemma}[Zeta0EqZeta]\label{Zeta0EqZeta}\lean{Zeta0EqZeta}\leanok
 For $\Re(s)>0$, $s\ne1$, and for any $N$,
@@ -807,8 +940,41 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma Zeta0EqZeta (N : ℕ) (s : ℂ) (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) :
+lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) :
     RiemannZeta0 N s = riemannZeta s := by
+  let f := riemannZeta
+  let g := RiemannZeta0 N
+  let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
+  have f_an : AnalyticOn ℂ f U := by sorry
+  have g_an : AnalyticOn ℂ g U := by sorry
+  have preconU : IsPreconnected U := by sorry
+  let z₀ := (2 : ℂ)
+  have hz₀ : z₀ ∈ U := by sorry
+  -- have uOpen : IsOpen setu := by sorry
+  -- have u_nonempty : Set.Nonempty setu := by sorry
+  -- have u_sub : setu ⊆ setf ∩ setg := by sorry
+  have s_mem : s ∈ U := by sorry
+
+  convert (AnalyticOn.eqOn_of_preconnected_of_eventuallyEq f_an g_an preconU hz₀ ?_ s_mem).symm
+
+  let u := {z : ℂ | 1 < z.re}
+  have u_mem : u ∈ 𝓝 z₀ := by sorry
+  filter_upwards [u_mem]
+  intro z hz
+  dsimp [f, g]
+  simp only [gt_iff_lt, Set.mem_setOf_eq, u] at hz
+  rw [zeta_eq_tsum_one_div_nat_cpow hz, RiemannZeta0_apply]
+  have := ZetaSum_aux2 N_pos hz
+  nth_rewrite 2 [neg_div]
+  rw [← sub_eq_add_neg]
+
+  -- have := tsum_eq_partial_add_tail N_pos (f := fun n => 1 / (n : ℂ) ^ z) ?_
+  -- rw [← this]
+  -- convert tsum_eq_partial_add_tail N (f := fun n => 1 / (n : ℂ) ^ z) ?_
+  -- · norm_cast
+  --   sorry
+  -- --apply summable_zeta hz
+  -- sorry
   sorry
 /-%%
 \begin{proof}
@@ -940,7 +1106,7 @@ lemma ZetaUpperBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (σ_le : σ ≤ 2),
     Complex.abs (riemannZeta (σ + t * I)) ≤ C * Real.log |t| := by
-  refine ⟨1/2, by norm_num, 10, by norm_num, ?_⟩ -- placeholder values for `A` and `C`
+  refine ⟨1 / 2, by norm_num, 10, by norm_num, ?_⟩ -- placeholder values for `A` and `C`
   intro σ t t_ge σ_ge σ_le
   set N := ⌊ Real.log |t| ⌋₊
   have σPos :  0 < (↑σ + ↑t * I).re := by
@@ -950,9 +1116,9 @@ lemma ZetaUpperBnd :
       sorry
     -- nlinarith
     sorry
-  have neOne : ↑σ + ↑t * I ≠ 1 := by
-    sorry
-  rw [← Zeta0EqZeta N (σ + t * I) σPos neOne]
+  -- have neOne : ↑σ + ↑t * I ≠ 1 := by
+  --   sorry
+  -- rw [← Zeta0EqZeta N (σ + t * I) σPos neOne]
   sorry
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
