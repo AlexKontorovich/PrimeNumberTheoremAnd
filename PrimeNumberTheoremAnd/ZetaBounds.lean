@@ -824,12 +824,8 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos hk
       simp only
       convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
-    · convert finsetSum_tendsto_tsum (N := N) (f := fun n ↦ 1 / (n : ℂ) ^ s) ?_
-      · simp
-      · exact Summable_rpow s_re_gt
-        -- *** already exists, just find it, you idiot.
-
-        sorry
+    · convert finsetSum_tendsto_tsum (N := N) (f := fun n ↦ 1 / (n : ℂ) ^ s) (Summable_rpow s_re_gt)
+      simp
   · have xpow_tendsto : Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) := by
       rw [tendsto_zero_iff_norm_tendsto_zero]
       simp_rw [Complex.norm_natCast_cpow_of_re_ne_zero _ one_sub_s_re_ne]
