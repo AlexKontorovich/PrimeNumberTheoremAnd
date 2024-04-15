@@ -893,12 +893,12 @@ $$
 noncomputable def RiemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
   (∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ s) +
   (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
-      + s * ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)
 
 lemma RiemannZeta0_apply (N : ℕ) (s : ℂ) : RiemannZeta0 (N : ℕ) (s : ℂ) =
     (∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ s) +
     ((- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
-      + s * ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) := by
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) := by
   dsimp [RiemannZeta0]
   ring
 
@@ -914,7 +914,7 @@ as $|t|\to\infty$.
 %%-/
 lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (σ_ge : 1 / 2 ≤ σ) (σ_le : σ ≤ 2) :
     (fun (t : ℝ) ↦ Complex.abs ((σ + t * I) *
-      ∫ x in Set.Ici (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^((σ + t * I) + 1)))
+      ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^((σ + t * I) + 1)))
       =O[cocompact ℝ] fun (t : ℝ) ↦ |t| * N ^ (-σ) / σ := by
   have := @ZetaSum_aux1a (a := N)
   sorry
@@ -967,13 +967,14 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   have := ZetaSum_aux2 N_pos hz
   nth_rewrite 2 [neg_div]
   rw [← sub_eq_add_neg]
-  have := tsum_eq_partial_add_tail N_pos (f := fun n => 1 / (n : ℂ) ^ z) ?_
-  rw [← this]
-  convert tsum_eq_partial_add_tail N (f := fun n => 1 / (n : ℂ) ^ z) ?_
-  · norm_cast
-    sorry
-  --apply summable_zeta hz
-  sorry
+
+  -- have := tsum_eq_partial_add_tail N_pos (f := fun n => 1 / (n : ℂ) ^ z) ?_
+  -- rw [← this]
+  -- convert tsum_eq_partial_add_tail N (f := fun n => 1 / (n : ℂ) ^ z) ?_
+  -- · norm_cast
+  --   sorry
+  -- --apply summable_zeta hz
+  -- sorry
   sorry
 /-%%
 \begin{proof}
@@ -1024,7 +1025,7 @@ lemma ZetaUpperBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (σ_le : σ ≤ 2),
     Complex.abs (riemannZeta (σ + t * I)) ≤ C * Real.log |t| := by
-  refine ⟨1/2, by norm_num, 10, by norm_num, ?_⟩ -- placeholder values for `A` and `C`
+  refine ⟨1 / 2, by norm_num, 10, by norm_num, ?_⟩ -- placeholder values for `A` and `C`
   intro σ t t_ge σ_ge σ_le
   set N := ⌊ Real.log |t| ⌋₊
   have σPos :  0 < (↑σ + ↑t * I).re := by
@@ -1034,9 +1035,9 @@ lemma ZetaUpperBnd :
       sorry
     -- nlinarith
     sorry
-  have neOne : ↑σ + ↑t * I ≠ 1 := by
-    sorry
-  rw [← Zeta0EqZeta N (σ + t * I) σPos neOne]
+  -- have neOne : ↑σ + ↑t * I ≠ 1 := by
+  --   sorry
+  -- rw [← Zeta0EqZeta N (σ + t * I) σPos neOne]
   sorry
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
