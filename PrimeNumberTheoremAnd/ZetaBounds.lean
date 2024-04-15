@@ -774,10 +774,10 @@ lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := b
 -- related to `ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt`
 lemma Summable_rpow {s : ℂ} (s_re_gt : 1 < s.re) : Summable (fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s) := by
   apply Summable.of_norm
-  have := (Real.summable_nat_rpow_inv (p := s.re)).mpr s_re_gt
-
-
-  sorry
+  have : s.re ≠ 0 := by linarith
+  simp only [one_div, norm_inv]
+  simp_rw [norm_natCast_cpow_of_re_ne_zero _ this]
+  exact (Real.summable_nat_rpow_inv (p := s.re)).mpr s_re_gt
 
 lemma Finset_coe_Nat_Int (f : ℤ → ℂ) (m n : ℕ) :
     (∑ x in Finset.Ioc m n, f x) = ∑ x in Finset.Ioc (m : ℤ) n, f x := by
