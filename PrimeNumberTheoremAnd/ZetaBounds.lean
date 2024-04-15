@@ -7,6 +7,8 @@ import EulerProducts.PNT
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import Mathlib.MeasureTheory.Function.Floor
 import Mathlib.Analysis.Complex.CauchyIntegral
+import Mathlib.NumberTheory.LSeries.Dirichlet
+
 
 -- only importing the following for the MeasurableDiv₂ ℝ instance.
 -- should remove eventually
@@ -810,7 +812,8 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       refine ⟨(N + 1), fun k hk ↦ ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos hk⟩
     · convert finsetSum_tendsto_tsum (N := N) (f := fun n ↦ 1 / (n : ℂ) ^ s) ?_
       · simp
-      · -- *** already exists, just find it, you idiot.
+      · have := ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt
+        -- *** already exists, just find it, you idiot.
         apply Summable.of_norm
         have := (Real.summable_nat_rpow_inv (p := s.re)).mpr s_re_gt
 
