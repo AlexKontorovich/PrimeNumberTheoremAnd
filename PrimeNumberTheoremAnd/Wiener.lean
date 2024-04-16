@@ -1514,20 +1514,8 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
 
   -- Build the truncation
   obtain g := exists_trunc
-  have l2 R (hR : R ≠ 0) : HasCompactSupport fun v ↦ (g (v * R⁻¹) : ℂ) := by
-    apply HasCompactSupport.comp_left (g := ofReal') ?_ (by simp)
-    simp_rw [mul_comm _ R⁻¹, ← smul_eq_mul]
-    apply g.h2.comp_smul ; simpa
-  have l1 R : ContDiff ℝ 2 fun x ↦ (g (x * R⁻¹) : ℂ) := by
-    apply (contDiff_ofReal.of_le le_top) |>.comp
-    exact g.h1.comp <| contDiff_id.mul contDiff_const
-
-  let ψR R v := g (v * R⁻¹) * ψ v
-  let Ψ R (hR : R ≠ 0) : CS2 ℂ := ⟨ψR R, (l1 R).mul ψ.hh, (l2 R hR).mul_right⟩
-
-  let ψR_W21_2 R (hR : R ≠ 0) : W21 := ψ - Ψ R hR
-
-  have key R (hR : R ≠ 0) : Tendsto (fun x ↦ S x (Ψ R hR)) atTop (𝓝 0) := limiting_cor (Ψ R hR) hf hcheby hG hG'
+  let Ψ R := g.scale R * ψ
+  have key R : Tendsto (fun x ↦ S x (Ψ R)) atTop (𝓝 0) := limiting_cor (Ψ R) hf hcheby hG hG'
 
   -- Choose the truncation radius
   obtain ⟨C, hcheby⟩ := hcheby
@@ -1535,52 +1523,49 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
     have : ‖f 0‖ ≤ C := by simpa [cumsum] using hcheby 1
     have : 0 ≤ ‖f 0‖ := by positivity
     linarith
-  have key2 : Tendsto (fun R ↦ W21.norm (ψ - ψR R)) atTop (𝓝 0) := by
-    convert W21_approximation ψ g using 1
-    simp [funscale, ψR, mul_comm _⁻¹] ; rfl
+  have key2 : Tendsto (fun R ↦ W21.norm (ψ - Ψ R)) atTop (𝓝 0) := W21_approximation ψ g
   simp_rw [Metric.tendsto_nhds] at key key2 ⊢ ; intro ε hε
   let M := C * (1 + 2 * π ^ 2) + ‖(A : ℂ)‖ * (2 * π ^ 2)
-  specialize key2 ((ε / 2) / (1 + M)) (by positivity)
-  obtain ⟨R, hR, hRψ⟩ := ((eventually_ge_atTop 1).and key2).exists
+  obtain ⟨R, hRψ⟩ := (key2 ((ε / 2) / (1 + M)) (by positivity)).exists
   simp only [dist_zero_right, Real.norm_eq_abs, abs_eq_self.mpr W21.norm_nonneg] at hRψ key
 
   -- Apply the compact support case
-  filter_upwards [eventually_ge_atTop 1, key R (by linarith) (ε / 2) (by positivity)] with x hx key
+  filter_upwards [eventually_ge_atTop 1, key R (ε / 2) (by positivity)] with x hx key
 
   -- Control the tail term
-  have key3 : ‖S x (ψ - ψR R)‖ < ε / 2 := by
-    have : ‖S x _‖ ≤ _ * M := @bound_main f C A x hx (ψR_W21_2 R (by linarith)) hcheby
+  have key3 : ‖S x (ψ - Ψ R)‖ < ε / 2 := by
+    have : ‖S x _‖ ≤ _ * M := @bound_main f C A x hx (ψ - Ψ R) hcheby
     apply this.trans_lt
     apply (mul_le_mul (d := 1 + M) le_rfl (by simp) (by positivity) W21.norm_nonneg).trans_lt
     have : 0 < 1 + M := by positivity
     convert (mul_lt_mul_right this).mpr hRψ using 1 ; field_simp ; ring
 
   -- Conclude the proof
-  have S1_sub_1 x : 𝓕 (⇑ψ - ψR R) x = 𝓕 ψ x - 𝓕 (ψR R) x := by
+  have S1_sub_1 x : 𝓕 (⇑ψ - ⇑(Ψ R)) x = 𝓕 ψ x - 𝓕 (Ψ R) x := by
     have l1 : AEStronglyMeasurable (fun x_1 : ℝ ↦ cexp (-(2 * ↑π * (↑x_1 * ↑x) * I))) volume := by
       refine (Continuous.mul ?_ continuous_const).neg.cexp.aestronglyMeasurable
       apply continuous_const.mul <| contDiff_ofReal.continuous.mul continuous_const
     simp [Real.fourierIntegral_eq', mul_sub] ; apply integral_sub
     · apply ψ.hf.bdd_mul l1 ; use 1 ; simp [Complex.norm_eq_abs, Complex.abs_exp]
-    · apply (Ψ R (by positivity) : W21) |>.hf |>.bdd_mul l1
+    · apply (Ψ R : W21) |>.hf |>.bdd_mul l1
       use 1 ; simp [Complex.norm_eq_abs, Complex.abs_exp]
 
-  have S1_sub : S1 x (ψ - ψR R) = S1 x ψ - S1 x (ψR R) := by
+  have S1_sub : S1 x (ψ - Ψ R) = S1 x ψ - S1 x (Ψ R) := by
     simp [S1, S1_sub_1, mul_sub] ; apply tsum_sub
     · have := summable_fourier x (by positivity) ψ ⟨_, hcheby⟩
       rw [summable_norm_iff] at this
       simpa using this
-    · have := summable_fourier x (by positivity) (Ψ R (by positivity)) ⟨_, hcheby⟩
+    · have := summable_fourier x (by positivity) (Ψ R) ⟨_, hcheby⟩
       rw [summable_norm_iff] at this
       simpa using this
 
-  have S2_sub : S2 x (ψ - ψR R) = S2 x ψ - S2 x (ψR R) := by
+  have S2_sub : S2 x (ψ - Ψ R) = S2 x ψ - S2 x (Ψ R) := by
     simp [S2, S1_sub_1] ; rw [integral_sub] ; ring
     · exact ψ.integrable_fourier (by positivity) |>.restrict
-    · exact (Ψ R (by positivity) : W21).integrable_fourier (by positivity) |>.restrict
+    · exact (Ψ R : W21).integrable_fourier (by positivity) |>.restrict
 
-  have S_sub : S x (ψ - ψR R) = S x ψ - S x (ψR R) := by simp [S, S1_sub, S2_sub] ; ring
-  simpa [S_sub] using norm_add_le _ _ |>.trans_lt (_root_.add_lt_add key3 key)
+  have S_sub : S x (ψ - Ψ R) = S x ψ - S x (Ψ R) := by simp [S, S1_sub, S2_sub] ; ring
+  simpa [S_sub, Ψ] using norm_add_le _ _ |>.trans_lt (_root_.add_lt_add key3 key)
 
 lemma limiting_cor_schwartz (ψ : 𝓢(ℝ, ℂ)) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})

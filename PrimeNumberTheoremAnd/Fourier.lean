@@ -159,12 +159,16 @@ theorem fourierIntegral_self_add_deriv_deriv (f : W21) (u : ℝ) :
     Real.fourierIntegral_deriv f.hf l4 f.hf']
   field_simp [pi_ne_zero] ; ring_nf ; simp
 
-instance : HMul (CS2 ℂ) W21 W21 where hMul g f := .ofCS2 ⟨g * f, g.h1.mul f.hh, g.h2.mul_right⟩
+instance : HMul (CS2 ℂ) W21 (CS2 ℂ) where hMul g f := ⟨g * f, g.h1.mul f.hh, g.h2.mul_right⟩
 
-instance : HMul (CS2 ℝ) W21 W21 where hMul g f := (g : CS2 ℂ) * f
+instance : HMul (CS2 ℝ) W21 (CS2 ℂ) where hMul g f := (g : CS2 ℂ) * f
 
 theorem W21_approximation (f : W21) (g : trunc) :
-    Tendsto (fun R => W21.norm (f - funscale g R * f)) atTop (𝓝 0) := by
+    Tendsto (fun R => W21.norm (f - g.scale R * f)) atTop (𝓝 0) := by
+
+  -- First unfold the definition of CS2.scale to match previous proof
+  suffices h : Tendsto (fun R => W21.norm (f - funscale g R * f)) atTop (𝓝 0) by
+    apply h.congr' ; filter_upwards [eventually_gt_atTop 0] with R hR ; simp [CS2.scale, hR.ne.symm]
 
   -- Preliminaries
   have cR {R : ℝ} : Continuous (fun v => v * R⁻¹) := continuous_id.mul continuous_const
