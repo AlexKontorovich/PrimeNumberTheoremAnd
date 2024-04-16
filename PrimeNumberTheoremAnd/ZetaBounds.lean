@@ -904,7 +904,7 @@ lemma RiemannZeta0_apply (N : ℕ) (s : ℂ) : RiemannZeta0 (N : ℕ) (s : ℂ) 
   ring
 
 lemma HolomorphicOn_Zeta0 {N : ℕ} (N_pos : 0 < N) :
-    HolomorphicOn (RiemannZeta0 N) {s : ℂ | 0 < s.re} := by
+    HolomorphicOn (RiemannZeta0 N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
   sorry
 
 /-%%
@@ -951,7 +951,9 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   let g := RiemannZeta0 N
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
   have f_an : AnalyticOn ℂ f U := by sorry
-  have g_an : AnalyticOn ℂ g U := by sorry
+  have g_an : AnalyticOn ℂ g U := by
+    apply (HolomorphicOn_Zeta0 N_pos).analyticOn
+    sorry
   have preconU : IsPreconnected U := by sorry
   let z₀ := (2 : ℂ)
   have hz₀ : z₀ ∈ U := by sorry
