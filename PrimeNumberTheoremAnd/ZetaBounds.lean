@@ -967,35 +967,32 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   let f := riemannZeta
   let g := RiemannZeta0 N
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
-  have U_open : IsOpen U := by sorry
+  have U_open : IsOpen U := by
+    refine IsOpen.inter isOpen_ne ?_
+    exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
   have f_an : AnalyticOn ℂ f U := by
-    apply (HolomophicOn_Zeta.analyticOn ?_).mono
-    · sorry
-    · sorry
-  have g_an : AnalyticOn ℂ g U :=
-    (HolomorphicOn_Zeta0 N_pos).analyticOn U_open
-  have preconU : IsPreconnected U := by sorry
-  let z₀ := (2 : ℂ)
-  have hz₀ : z₀ ∈ U := by sorry
-  -- have uOpen : IsOpen setu := by sorry
-  -- have u_nonempty : Set.Nonempty setu := by sorry
-  -- have u_sub : setu ⊆ setf ∩ setg := by sorry
-  have s_mem : s ∈ U := by sorry
-
-  convert (AnalyticOn.eqOn_of_preconnected_of_eventuallyEq f_an g_an preconU hz₀ ?_ s_mem).symm
-
-  let u := {z : ℂ | 1 < z.re}
-  have u_mem : u ∈ 𝓝 z₀ := by sorry
+    apply (HolomophicOn_Zeta.analyticOn isOpen_ne).mono
+    simp only [ne_eq, Set.setOf_subset_setOf, and_imp, U]
+    exact fun a ha _ ↦ ha
+  have g_an : AnalyticOn ℂ g U := (HolomorphicOn_Zeta0 N_pos).analyticOn U_open
+  have preconU : IsPreconnected U := by
+    apply IsConnected.isPreconnected
+    apply (IsOpen.isConnected_iff_isPathConnected U_open).mp
+    sorry
+  have h2 : (2 : ℂ) ∈ U := by simp [U]
+  have s_mem : s ∈ U := by simp [U, reS_pos, s_ne_one]
+  convert (AnalyticOn.eqOn_of_preconnected_of_eventuallyEq f_an g_an preconU h2 ?_ s_mem).symm
+  have u_mem : {z : ℂ | 1 < z.re} ∈ 𝓝 (2 : ℂ) := by
+    apply mem_nhds_iff.mpr
+    use {z : ℂ | 1 < z.re}
+    simp only [Set.setOf_subset_setOf, imp_self, forall_const, Set.mem_setOf_eq, re_ofNat,
+      Nat.one_lt_ofNat, and_true, true_and]
+    exact isOpen_lt (by continuity) (by continuity)
   filter_upwards [u_mem]
   intro z hz
-  dsimp [f, g]
-  simp only [gt_iff_lt, Set.mem_setOf_eq, u] at hz
-  rw [zeta_eq_tsum_one_div_nat_cpow hz, RiemannZeta0_apply]
-  have := ZetaSum_aux2 N_pos hz
+  simp only [f,g, zeta_eq_tsum_one_div_nat_cpow hz, RiemannZeta0_apply]
   nth_rewrite 2 [neg_div]
-  rw [← sub_eq_add_neg]
-  rw [← this]
-  rw [← sum_add_tsum_nat_add N (Summable_rpow hz)]
+  rw [← sub_eq_add_neg, ← ZetaSum_aux2 N_pos hz, ← sum_add_tsum_nat_add N (Summable_rpow hz)]
   congr
   simp
 /-%%
