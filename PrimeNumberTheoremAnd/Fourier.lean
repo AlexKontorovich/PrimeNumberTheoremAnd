@@ -80,9 +80,9 @@ instance : Coe (CS n ℝ) (CS n ℂ) where coe f := ⟨f,
 
 namespace CS
 
-variable {f : CS n E}
+variable {f : CS n E} {R : ℝ} {v : ℝ}
 
-lemma continuous : Continuous f := f.h1.continuous
+lemma continuous (f : CS n E) : Continuous f := f.h1.continuous
 
 noncomputable def deriv (f : CS (n + 1) E) : CS n E where
   toFun := _root_.deriv f
@@ -101,11 +101,18 @@ noncomputable def scale (g : CS n E) (R : ℝ) : CS n E := by
     · exact g.h1.comp (contDiff_const.smul contDiff_id)
     · exact g.h2.comp_smul (inv_ne_zero h)
 
+lemma deriv_scale {f : CS (n + 1) E} : (f.scale R).deriv v = R⁻¹ • f.deriv (R⁻¹ • v) := by
+  by_cases hR : R = 0 <;> simp [hR, scale]
+  · exact deriv_const _ _
+  · exact ((f.hasDerivAt (R⁻¹ • v)).scomp v (by simpa using (hasDerivAt_id v).const_smul R⁻¹)).deriv
+
 lemma hasDerivAt_scale (f : CS (n + 1) E) (R x : ℝ) :
     HasDerivAt (f.scale R) (R⁻¹ • _root_.deriv f (R⁻¹ • x)) x := by
-  by_cases hR : R = 0 <;> simp [CS.scale, hR]
-  · exact hasDerivAt_const _ _
-  · exact (f.hasDerivAt (R⁻¹ • x)).scomp x (by simpa using (hasDerivAt_id x).const_smul R⁻¹)
+  simpa [deriv_scale] using hasDerivAt (f.scale R) x
+
+lemma bounded : ∃ C, ∀ v, ‖f v‖ ≤ C := by
+  obtain ⟨x, hx⟩ := (continuous_norm.comp f.continuous).exists_forall_ge_of_hasCompactSupport f.h2.norm
+  exact ⟨_, hx⟩
 
 end CS
 
@@ -198,19 +205,13 @@ theorem W21_approximation (f : W21) (g : trunc) :
   have df' v : HasDerivAt f' (f'' v) v := (f.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
 
   -- About g
-  let g' := deriv g
-  let g'' v := deriv (deriv g) v
-  have cg' : Continuous g' := (g.h1.iterate_deriv' 1 1).continuous
-  have cg'' : Continuous g'' := (g.h1.iterate_deriv' 0 2).continuous
-  have dg' v : HasDerivAt g' (g'' v) v := (g.h1.iterate_deriv' 1 1).hasStrictDerivAt le_rfl |>.hasDerivAt
-  have mg' : ∃ c1, ∀ v, |g' v| ≤ c1 := by
-    obtain ⟨x, hx⟩ := cg'.abs.exists_forall_ge_of_hasCompactSupport g.h2.deriv.norm ; exact ⟨_, hx⟩
-  have mg'' : ∃ c2, ∀ v, |g'' v| ≤ c2 := by
-    obtain ⟨x, hx⟩ := cg''.abs.exists_forall_ge_of_hasCompactSupport g.h2.deriv.deriv.norm ; exact ⟨_, hx⟩
-  obtain ⟨c1, mg'⟩ := mg' ; obtain ⟨c2, mg''⟩ := mg''
+  let g' := (g : CS 2 ℝ).deriv
+  let g'' := g'.deriv
+  obtain ⟨c1, mg'⟩ := g'.bounded
+  obtain ⟨c2, mg''⟩ := g''.bounded
 
-  have g0 v : 0 ≤ g v := by have := g.h3 v ; by_cases h : v ∈ Set.Icc (-1) 1 <;> simp [h] at this <;> linarith
-  have g1 v : g v ≤ 1 := by have := g.h4 v ; by_cases h : v ∈ Set.Ioo (-2) 2 <;> simp [h] at this <;> linarith
+  have g0 : 0 ≤ ⇑g := le_trans (Set.indicator_nonneg (by simp)) g.h3
+  have g1 : ⇑g ≤ 1 := g.h4.trans <| Set.indicator_le_self' (by simp)
   have evg : g =ᶠ[𝓝 0] 1 := by
     have : Set.Icc (-1) 1 ∈ 𝓝 (0 : ℝ) := by apply Icc_mem_nhds <;> linarith
     exact eventually_of_mem this (fun x hx => le_antisymm (g1 x) (by simpa [hx] using g.h3 x))
@@ -221,17 +222,16 @@ theorem W21_approximation (f : W21) (g : trunc) :
   let h R v := 1 - g.scale R v
   let h' R v := - g' (v * R⁻¹) * R⁻¹
   let h'' R v := - g'' (v * R⁻¹) * R⁻¹ * R⁻¹
-  have ch {R} : Continuous (fun v => (h R v : ℂ)) := by
-    apply continuous_ofReal.comp
-    apply continuous_const.sub
-    apply CS.continuous
-  have ch' {R} : Continuous (fun v => (h' R v : ℂ)) := continuous_ofReal.comp <| (cg'.comp cR).neg.mul continuous_const
+  have ch {R} : Continuous (fun v => (h R v : ℂ)) :=
+    continuous_ofReal.comp <| continuous_const.sub (CS.continuous _)
+  have ch' {R} : Continuous (fun v => (h' R v : ℂ)) :=
+    continuous_ofReal.comp <| (g'.continuous.comp cR).neg.mul continuous_const
   have ch'' {R} : Continuous (fun v => (h'' R v : ℂ)) :=
-    continuous_ofReal.comp <| ((cg''.comp cR).neg.mul continuous_const).mul continuous_const
+    continuous_ofReal.comp <| ((g''.continuous.comp cR).neg.mul continuous_const).mul continuous_const
   have dh R v : HasDerivAt (h R) (h' R v) v := by
-    convert CS.hasDerivAt_scale (g : CS 2 ℝ) R v |>.const_sub 1 using 1 ; simp [h', g'] ; ring_nf
+    convert CS.hasDerivAt_scale (g : CS 2 ℝ) R v |>.const_sub 1 using 1 ; simp [h', g', CS.deriv] ; ring_nf
   have dh' R v : HasDerivAt (h' R) (h'' R v) v := by
-    simpa [h', h''] using HasDerivAt.mul_const ((dg' _).comp _ <| hasDerivAt_mul_const _).neg (R⁻¹)
+    simpa [h', h''] using HasDerivAt.mul_const ((g'.hasDerivAt _).comp _ <| hasDerivAt_mul_const _).neg (R⁻¹)
   have hc1 : ∀ᶠ R in atTop, ∀ v, |h' R v| ≤ c1 := by
     filter_upwards [eventually_ge_atTop 1] with R hR v
     have : 0 ≤ R := by linarith
@@ -248,8 +248,8 @@ theorem W21_approximation (f : W21) (g : trunc) :
     apply mul_le_mul (mg'' _) ?_ (by positivity) ((abs_nonneg _).trans (mg'' 0))
     exact mul_le_mul e2 e2 (by positivity) zero_le_one
 
-  have h0 R v : 0 ≤ h R v := by by_cases hR : R = 0 <;> simp [hR, h, CS.scale, funscale, g1]
-  have h1 R v : h R v ≤ 1 := by by_cases hR : R = 0 <;> simp [hR, h, CS.scale, funscale, g0]
+  have h0 R v : 0 ≤ h R v := by by_cases hR : R = 0 <;> simp [hR, h, CS.scale] ; apply g1
+  have h1 R v : h R v ≤ 1 := by by_cases hR : R = 0 <;> simp [hR, h, CS.scale] ; apply g0
   have hh1 R v : |h R v| ≤ 1 := by rw [abs_le] ; constructor <;> linarith [h0 R v, h1 R v]
   have eh v : ∀ᶠ R in atTop, h R v = 0 := by
     filter_upwards [(vR v).eventually evg, eventually_ne_atTop 0] with R hR hR'
