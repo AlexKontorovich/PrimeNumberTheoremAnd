@@ -904,6 +904,8 @@ lemma RiemannZeta0_apply (N : ℕ) (s : ℂ) : RiemannZeta0 (N : ℕ) (s : ℂ) 
   ring
 
 lemma HolomorphicOn_Zeta0 {N : ℕ} (N_pos : 0 < N) :
+    HolomorphicOn (RiemannZeta0 N) {s : ℂ | 0 < s.re} := by
+  sorry
 
 /-%%
 \begin{lemma}[ZetaBnd_aux1]\label{ZetaBnd_aux1}\lean{ZetaBnd_aux1}\leanok
