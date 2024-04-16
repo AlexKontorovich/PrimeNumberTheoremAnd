@@ -870,8 +870,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       let f : ℝ → ℂ := fun x ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
       convert MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
         (b := (fun (n : ℕ) ↦ (n : ℝ))) (f := f) (μ := MeasureTheory.volume) (l := atTop) ?_ ?_
-      ·
-        sorry
+      · sorry
       · convert tendsto_coe_atTop
 /-%%
 \begin{proof}\uses{ZetaSum_aux1, ZetaSum_aux1a}
@@ -946,13 +945,11 @@ lemma HolomophicOn_Zeta :
   simp only [Set.mem_setOf_eq] at hz
   exact (differentiableAt_riemannZeta hz).differentiableWithinAt
 
-lemma tsum_eq_partial_add_tail {N : ℕ} (N_pos : 0 < N) (f : ℕ → ℂ) (hf : Summable f) :
-  ∑' (n : ℕ), f n =
-   (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
-  have hN : 1 ≤ N := by sorry
-  rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N)]
-  congr
-  rw [Finset.range_eq_Ico]
+
+-- no longer used
+lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
+    ∑' (n : ℕ), f n = (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
+  rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N), Finset.range_eq_Ico]
 
 /-%%
 \begin{lemma}[Zeta0EqZeta]\label{Zeta0EqZeta}\lean{Zeta0EqZeta}\leanok
@@ -967,35 +964,32 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   let f := riemannZeta
   let g := RiemannZeta0 N
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
-  have U_open : IsOpen U := by sorry
+  have U_open : IsOpen U := by
+    refine IsOpen.inter isOpen_ne ?_
+    exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
   have f_an : AnalyticOn ℂ f U := by
-    apply (HolomophicOn_Zeta.analyticOn ?_).mono
-    · sorry
-    · sorry
-  have g_an : AnalyticOn ℂ g U :=
-    (HolomorphicOn_Zeta0 N_pos).analyticOn U_open
-  have preconU : IsPreconnected U := by sorry
-  let z₀ := (2 : ℂ)
-  have hz₀ : z₀ ∈ U := by sorry
-  -- have uOpen : IsOpen setu := by sorry
-  -- have u_nonempty : Set.Nonempty setu := by sorry
-  -- have u_sub : setu ⊆ setf ∩ setg := by sorry
-  have s_mem : s ∈ U := by sorry
-
-  convert (AnalyticOn.eqOn_of_preconnected_of_eventuallyEq f_an g_an preconU hz₀ ?_ s_mem).symm
-
-  let u := {z : ℂ | 1 < z.re}
-  have u_mem : u ∈ 𝓝 z₀ := by sorry
+    apply (HolomophicOn_Zeta.analyticOn isOpen_ne).mono
+    simp only [ne_eq, Set.setOf_subset_setOf, and_imp, U]
+    exact fun a ha _ ↦ ha
+  have g_an : AnalyticOn ℂ g U := (HolomorphicOn_Zeta0 N_pos).analyticOn U_open
+  have preconU : IsPreconnected U := by
+    apply IsConnected.isPreconnected
+    apply (IsOpen.isConnected_iff_isPathConnected U_open).mp
+    sorry
+  have h2 : (2 : ℂ) ∈ U := by simp [U]
+  have s_mem : s ∈ U := by simp [U, reS_pos, s_ne_one]
+  convert (AnalyticOn.eqOn_of_preconnected_of_eventuallyEq f_an g_an preconU h2 ?_ s_mem).symm
+  have u_mem : {z : ℂ | 1 < z.re} ∈ 𝓝 (2 : ℂ) := by
+    apply mem_nhds_iff.mpr
+    use {z : ℂ | 1 < z.re}
+    simp only [Set.setOf_subset_setOf, imp_self, forall_const, Set.mem_setOf_eq, re_ofNat,
+      Nat.one_lt_ofNat, and_true, true_and]
+    exact isOpen_lt (by continuity) (by continuity)
   filter_upwards [u_mem]
   intro z hz
-  dsimp [f, g]
-  simp only [gt_iff_lt, Set.mem_setOf_eq, u] at hz
-  rw [zeta_eq_tsum_one_div_nat_cpow hz, RiemannZeta0_apply]
-  have := ZetaSum_aux2 N_pos hz
+  simp only [f,g, zeta_eq_tsum_one_div_nat_cpow hz, RiemannZeta0_apply]
   nth_rewrite 2 [neg_div]
-  rw [← sub_eq_add_neg]
-  rw [← this]
-  rw [← sum_add_tsum_nat_add N (Summable_rpow hz)]
+  rw [← sub_eq_add_neg, ← ZetaSum_aux2 N_pos hz, ← sum_add_tsum_nat_add N (Summable_rpow hz)]
   congr
   simp
 /-%%
@@ -1103,7 +1097,7 @@ lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_l
     _ ≤ (n : ℝ)⁻¹ * Real.exp A := by
       rw [Real.exp_add, Real.exp_neg, Real.exp_log n_gt_0']
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Use $|n^{-s}| = n^{-\sigma}
 = e^{-\sigma \log n}
 \le
@@ -1131,19 +1125,26 @@ lemma ZetaUpperBnd :
   refine ⟨1 / 2, by norm_num, 10, by norm_num, ?_⟩ -- placeholder values for `A` and `C`
   intro σ t t_ge σ_ge σ_le
   set N := ⌊ Real.log |t| ⌋₊
+  have logt_gt_one: 1 < Real.log |t| := by
+    rw [← Real.log_exp (x := 1)]
+    apply Real.log_lt_log (Real.exp_pos _)
+    linarith [(by exact lt_trans Real.exp_one_lt_d9 (by norm_num) : Real.exp 1 < 3)]
   have σPos :  0 < (↑σ + ↑t * I).re := by
     simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
       add_zero]
-    have : 1 < Real.log |t| := by
-      sorry
-    -- nlinarith
-    sorry
-  -- have neOne : ↑σ + ↑t * I ≠ 1 := by
-  --   sorry
-  -- rw [← Zeta0EqZeta N (σ + t * I) σPos neOne]
+    apply lt_of_lt_of_le _ σ_ge
+    simp only [sub_pos, div_div]
+    apply (one_div_lt (by linarith) (by norm_num)).mpr
+    linarith
+  have neOne : ↑σ + ↑t * I ≠ 1 := by
+    contrapose! t_ge
+    simp [ext_iff] at t_ge
+    rw [t_ge.2]
+    simp
+  rw [← Zeta0EqZeta (N := N) (Nat.floor_pos.mpr logt_gt_one.le) (s := σ + t * I) σPos neOne]
   sorry
 /-%%
-\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
 We estimate:
 $$
@@ -1184,9 +1185,33 @@ lemma ZetaDerivUpperBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (σ_le : σ ≤ 2),
     Complex.abs (deriv riemannZeta (σ + t * I)) ≤ C * (Real.log |t|) ^ 2 := by
+  refine ⟨1 / 2, by norm_num, 10, by norm_num, ?_⟩ -- placeholder values for `A` and `C`
+  intro σ t t_ge σ_ge σ_le
+  set N := ⌊ Real.log |t| ⌋₊
+  have logt_gt_one: 1 < Real.log |t| := by
+    rw [← Real.log_exp (x := 1)]
+    apply Real.log_lt_log (Real.exp_pos _)
+    linarith [(by exact lt_trans Real.exp_one_lt_d9 (by norm_num) : Real.exp 1 < 3)]
+  have σPos :  0 < (↑σ + ↑t * I).re := by
+    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+      add_zero]
+    apply lt_of_lt_of_le _ σ_ge
+    simp only [sub_pos, div_div]
+    apply (one_div_lt (by linarith) (by norm_num)).mpr
+    linarith
+  have neOne : ↑σ + ↑t * I ≠ 1 := by
+    contrapose! t_ge
+    simp [ext_iff] at t_ge
+    rw [t_ge.2]
+    simp
+  have : deriv riemannZeta (↑σ + ↑t * I) = deriv (RiemannZeta0 N) (↑σ + ↑t * I) := by
+    have := Zeta0EqZeta (N := N) (Nat.floor_pos.mpr logt_gt_one.le) (s := σ + t * I) σPos neOne
+    rw [HasDerivAt.deriv]
+    sorry
+  rw [this]
   sorry
 /-%%
-\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
 Differentiating term by term, we get:
 $$
@@ -1242,10 +1267,9 @@ lemma ZetaNear1BndExact:
   intro σ σ_ge σ_le
   sorry
 /-%%
-\begin{proof}\uses{ZetaBnd_aux1, Zeta0EqZeta}
-Zeta has a simple pole at $s=1$. Equivalently, $\zeta(s)(s-1)$ remains bounded near $1$.
-Lots of ways to prove this.
-Probably the easiest one: use the expression for $\zeta_0 (N,s)$ with $N=1$ (the term $N^{1-s}/(1-s)$ being the only unbounded one).
+\begin{proof}\uses{ZetaBnd_aux1, ZetaNear1BndFilter, Zeta0EqZeta}
+Split into two cases, use Lemma \ref{ZetaNear1BndFilter} for $\sigma$ sufficiently small
+and continuity on a compact interval otherwise.
 \end{proof}
 %%-/
 
