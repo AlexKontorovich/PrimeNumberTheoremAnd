@@ -903,6 +903,8 @@ lemma RiemannZeta0_apply (N : ℕ) (s : ℂ) : RiemannZeta0 (N : ℕ) (s : ℂ) 
   dsimp [RiemannZeta0]
   ring
 
+lemma HolomorphicOn_Zeta0 {N : ℕ} (N_pos : 0 < N) :
+
 /-%%
 \begin{lemma}[ZetaBnd_aux1]\label{ZetaBnd_aux1}\lean{ZetaBnd_aux1}\leanok
 For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in[1/2,2]$,
@@ -968,17 +970,12 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   have := ZetaSum_aux2 N_pos hz
   nth_rewrite 2 [neg_div]
   rw [← sub_eq_add_neg]
-
-  -- have := tsum_eq_partial_add_tail N_pos (f := fun n => 1 / (n : ℂ) ^ z) ?_
-  -- rw [← this]
-  -- convert tsum_eq_partial_add_tail N (f := fun n => 1 / (n : ℂ) ^ z) ?_
-  -- · norm_cast
-  --   sorry
-  -- --apply summable_zeta hz
-  -- sorry
-  sorry
+  rw [← this]
+  rw [← sum_add_tsum_nat_add N (Summable_rpow hz)]
+  congr
+  simp
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{ZetaSum_aux2, RiemannZeta0, ZetaBnd_aux1, ZetaBndAux}
 Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{RiemannZeta0}.
 \end{proof}
