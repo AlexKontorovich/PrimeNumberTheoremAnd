@@ -164,11 +164,7 @@ instance : HMul (CS2 ℂ) W21 (CS2 ℂ) where hMul g f := ⟨g * f, g.h1.mul f.h
 instance : HMul (CS2 ℝ) W21 (CS2 ℂ) where hMul g f := (g : CS2 ℂ) * f
 
 theorem W21_approximation (f : W21) (g : trunc) :
-    Tendsto (fun R => W21.norm (f - g.scale R * f)) atTop (𝓝 0) := by
-
-  -- First unfold the definition of CS2.scale to match previous proof
-  suffices h : Tendsto (fun R => W21.norm (f - funscale g R * f)) atTop (𝓝 0) by
-    apply h.congr' ; filter_upwards [eventually_gt_atTop 0] with R hR ; simp [CS2.scale, hR.ne.symm]
+    Tendsto (fun R => ‖f - (g.scale R * f : W21)‖) atTop (𝓝 0) := by
 
   -- Preliminaries
   have cR {R : ℝ} : Continuous (fun v => v * R⁻¹) := continuous_id.mul continuous_const
@@ -186,10 +182,8 @@ theorem W21_approximation (f : W21) (g : trunc) :
   -- About g
   let g' := deriv g
   let g'' v := deriv (deriv g) v
-  have cg : Continuous g := g.h1.continuous
   have cg' : Continuous g' := (g.h1.iterate_deriv' 1 1).continuous
   have cg'' : Continuous g'' := (g.h1.iterate_deriv' 0 2).continuous
-  have dg v : HasDerivAt g (g' v) v := g.h1.hasStrictDerivAt one_le_two |>.hasDerivAt
   have dg' v : HasDerivAt g' (g'' v) v := (g.h1.iterate_deriv' 1 1).hasStrictDerivAt le_rfl |>.hasDerivAt
   have mg' : ∃ c1, ∀ v, |g' v| ≤ c1 := by
     obtain ⟨x, hx⟩ := cg'.abs.exists_forall_ge_of_hasCompactSupport g.h2.deriv.norm ; exact ⟨_, hx⟩
@@ -206,15 +200,18 @@ theorem W21_approximation (f : W21) (g : trunc) :
   have evg'' : g'' =ᶠ[𝓝 0] 0 := by convert ← evg'.deriv ; exact deriv_const' _
 
   -- About h
-  let h R v := 1 - g (v * R⁻¹)
+  let h R v := 1 - g.scale R v
   let h' R v := - g' (v * R⁻¹) * R⁻¹
   let h'' R v := - g'' (v * R⁻¹) * R⁻¹ * R⁻¹
-  have ch {R} : Continuous (fun v => (h R v : ℂ)) := continuous_ofReal.comp <| continuous_const.sub <| cg.comp cR
+  have ch {R} : Continuous (fun v => (h R v : ℂ)) := by
+    apply continuous_ofReal.comp
+    apply continuous_const.sub
+    apply CS2.continuous
   have ch' {R} : Continuous (fun v => (h' R v : ℂ)) := continuous_ofReal.comp <| (cg'.comp cR).neg.mul continuous_const
   have ch'' {R} : Continuous (fun v => (h'' R v : ℂ)) :=
     continuous_ofReal.comp <| ((cg''.comp cR).neg.mul continuous_const).mul continuous_const
   have dh R v : HasDerivAt (h R) (h' R v) v := by
-    simpa [h, h'] using ((dg _).comp _ <| hasDerivAt_mul_const _).const_sub _
+    convert hasDerivAt_scale (E := ℝ) g R v |>.const_sub 1 using 1 ; simp [h', g'] ; ring_nf
   have dh' R v : HasDerivAt (h' R) (h'' R v) v := by
     simpa [h', h''] using HasDerivAt.mul_const ((dg' _).comp _ <| hasDerivAt_mul_const _).neg (R⁻¹)
   have hc1 : ∀ᶠ R in atTop, ∀ v, |h' R v| ≤ c1 := by
@@ -233,10 +230,12 @@ theorem W21_approximation (f : W21) (g : trunc) :
     apply mul_le_mul (mg'' _) ?_ (by positivity) ((abs_nonneg _).trans (mg'' 0))
     exact mul_le_mul e2 e2 (by positivity) zero_le_one
 
-  have h0 R v : 0 ≤ h R v := by simpa [h] using g1 _
-  have h1 R v : h R v ≤ 1 := by simpa [h] using g0 _
+  have h0 R v : 0 ≤ h R v := by by_cases hR : R = 0 <;> simp [hR, h, CS2.scale, funscale, g1]
+  have h1 R v : h R v ≤ 1 := by by_cases hR : R = 0 <;> simp [hR, h, CS2.scale, funscale, g0]
   have hh1 R v : |h R v| ≤ 1 := by rw [abs_le] ; constructor <;> linarith [h0 R v, h1 R v]
-  have eh v : ∀ᶠ R in atTop, h R v = 0 := by filter_upwards [(vR v).eventually evg] with R hR ; simp [h, hR]
+  have eh v : ∀ᶠ R in atTop, h R v = 0 := by
+    filter_upwards [(vR v).eventually evg, eventually_ne_atTop 0] with R hR hR'
+    simp [h, hR, CS2.scale, hR', funscale, mul_comm R⁻¹]
   have eh' v : ∀ᶠ R in atTop, h' R v = 0 := by filter_upwards [(vR v).eventually evg'] with R hR ; simp [h', hR]
   have eh'' v : ∀ᶠ R in atTop, h'' R v = 0 := by filter_upwards [(vR v).eventually evg''] with R hR ; simp [h'', hR]
 
@@ -250,7 +249,7 @@ theorem W21_approximation (f : W21) (g : trunc) :
 
   -- Proof
   convert_to Tendsto (fun R => W21.norm (fun v => h R v * f v)) atTop (𝓝 0)
-  · ext R ; congr ; ext v ; simp [sub_mul, h, funscale] ; ring_nf ; tauto
+  · ext R ; change W21.norm _ = _ ; congr ; ext v ; simp [h, sub_mul] ; rfl
   rw [show (0 : ℝ) = 0 + ((4 * π ^ 2)⁻¹ : ℝ) * 0 by simp]
   refine Tendsto.add ?_ (Tendsto.const_mul _ ?_)
   · let F R v := ‖h R v * f v‖
