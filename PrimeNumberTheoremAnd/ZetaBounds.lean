@@ -1193,11 +1193,15 @@ lemma ZetaInvBound2 {σ : ℝ} (σ_gt : 1 < σ) (σ_le : σ ≤ 2) :
     rw [this, abs_mul]
     ring
 /-%%
-\begin{proof}\uses{ZetaInvBound1, ZetaNear1Bnd, ZetaUpperBnd}\leanok
-Combine Lemma \ref{ZetaInvBound1} with the bounds in Lemmata \ref{ZetaNear1Bnd} and
+\begin{proof}\uses{ZetaInvBound1, ZetaNear1BndExact, ZetaUpperBnd}\leanok
+Combine Lemma \ref{ZetaInvBound1} with the bounds in Lemmata \ref{ZetaNear1BndExact} and
 \ref{ZetaUpperBnd}.
 \end{proof}
 %%-/
+
+lemma deriv_fun_re {t : ℝ} {f : ℂ → ℂ} (diff : ∀ (σ : ℝ), DifferentiableAt ℂ f (↑σ + ↑t * I)) :
+    (deriv fun {σ₂ : ℝ} ↦ f (σ₂ + t * I)) = fun (y : ℝ) ↦ deriv f (y + t * I) := by
+  sorry
 
 /-%%
 \begin{lemma}[Zeta_eq_int_derivZeta]\label{Zeta_eq_int_derivZeta}\lean{Zeta_eq_int_derivZeta}
@@ -1212,9 +1216,40 @@ $$
 lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (σ₁_lt_σ₂ : σ₁ < σ₂) (t_ne_zero : t ≠ 0) :
     (∫ σ in Set.Icc σ₁ σ₂, deriv riemannZeta (σ + t * I)) =
       riemannZeta (σ₂ + t * I) - riemannZeta (σ₁ + t * I) := by
-  sorry
+  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le σ₁_lt_σ₂.le]
+  have diff : ∀ (σ : ℝ), DifferentiableAt ℂ riemannZeta (σ + t * I) := by
+    intro σ
+    apply differentiableAt_riemannZeta
+    contrapose! t_ne_zero
+    simp only [ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+      sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at t_ne_zero
+    exact t_ne_zero.2
+  apply intervalIntegral.integral_deriv_eq_sub'
+  · exact deriv_fun_re diff
+  · intro s _
+    apply DifferentiableAt.comp
+    · exact (diff s).restrictScalars ℝ
+    · exact DifferentiableAt.add_const (c := t * I) <| differentiableAt_ofReal _
+  · apply ContinuousOn.comp (g := deriv riemannZeta) ?_ ?_ (Set.mapsTo_image _ _)
+    · apply HasDerivAt.continuousOn (f' := deriv <| deriv riemannZeta)
+      intro x hx
+      apply hasDerivAt_deriv_iff.mpr
+      replace hx : x ≠ 1 := by
+        contrapose! hx
+        simp only [hx, Set.mem_image, ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im,
+          I_im, mul_one, sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im, not_exists,
+          not_and]
+        exact fun _ _ _ ↦ t_ne_zero
+      have := (Complex.analyticAt_iff_eventually_differentiableAt (c := x) (f := riemannZeta)).mpr ?_
+      · obtain ⟨r, hr, h⟩ := this.exists_ball_analyticOn
+        apply (h.deriv x ?_).differentiableAt
+        simp [hr]
+      · filter_upwards [compl_singleton_mem_nhds hx] with z hz
+        apply differentiableAt_riemannZeta
+        simpa [Set.mem_compl_iff, Set.mem_singleton_iff] using hz
+    · exact ContinuousOn.add continuous_ofReal.continuousOn continuousOn_const
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 This is the fundamental theorem of calculus.
 \end{proof}
 %%-/
