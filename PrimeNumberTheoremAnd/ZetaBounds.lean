@@ -892,12 +892,12 @@ $$
 \end{definition}
 %%-/
 noncomputable def RiemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
-  (∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ s) +
+  (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
   (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)
 
 lemma RiemannZeta0_apply (N : ℕ) (s : ℂ) : RiemannZeta0 (N : ℕ) (s : ℂ) =
-    (∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ s) +
+    (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
     ((- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) := by
   dsimp [RiemannZeta0]
