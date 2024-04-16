@@ -1,4 +1,5 @@
 import Mathlib.Analysis.Complex.CauchyIntegral
+import Mathlib.NumberTheory.LSeries.Dirichlet
 import PrimeNumberTheoremAnd.MellinCalculus
 import PrimeNumberTheoremAnd.ZetaBounds
 import EulerProducts.PNT
@@ -27,15 +28,17 @@ $$
 %%-/
 theorem LogDerivativeDirichlet (s : ℂ) (hs : 1 < s.re) :
     - deriv riemannZeta s / riemannZeta s = ∑' n, Λ n / (n : ℂ) ^ s := by
-  convert (ArithmeticFunction.LSeries_vonMangoldt_eq hs).symm using 1
-  · congr
-    ·
-      sorry
-    · sorry
-  sorry
+  rw [← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs]
+  dsimp [LSeries, LSeries.term]
+  nth_rewrite 2 [tsum_eq_add_tsum_ite (b := 0) ?_]
+  · simp
+  · have := ArithmeticFunction.LSeriesSummable_vonMangoldt hs
+    dsimp [LSeriesSummable] at this
+    convert this; rename ℕ => n
+    by_cases h : n = 0 <;> simp [LSeries.term, h]
 /-%%
-\begin{proof}
-Already in EulerProducts.
+\begin{proof}\leanok
+Already in Mathlib.
 \end{proof}
 
 
