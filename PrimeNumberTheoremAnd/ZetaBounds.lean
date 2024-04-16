@@ -903,20 +903,9 @@ lemma RiemannZeta0_apply (N : ℕ) (s : ℂ) : RiemannZeta0 (N : ℕ) (s : ℂ) 
   dsimp [RiemannZeta0]
   ring
 
-lemma HolomorphicOn_Zeta0 {N : ℕ} (N_pos : 0 < N) :
-    HolomorphicOn (RiemannZeta0 N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
-  sorry
-
--- MOVE TO MATHLIB near `differentiableAt_riemannZeta`
-lemma HolomophicOn_Zeta :
-    HolomorphicOn riemannZeta {s : ℂ | s ≠ 1} := by
-  intro z hz
-  simp only [Set.mem_setOf_eq] at hz
-  exact (differentiableAt_riemannZeta hz).differentiableWithinAt
-
 /-%%
 \begin{lemma}[ZetaBnd_aux1]\label{ZetaBnd_aux1}\lean{ZetaBnd_aux1}\leanok
-For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in[1/2,2]$,
+For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in(0,2]$,
 $$
 \left| s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
 \ll |t| \frac{N^{-\sigma}}{\sigma},
@@ -924,7 +913,7 @@ $$
 as $|t|\to\infty$.
 \end{lemma}
 %%-/
-lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (σ_ge : 1 / 2 ≤ σ) (σ_le : σ ≤ 2) :
+lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (σ_gt : 0 < σ) (σ_le : σ ≤ 2) :
     (fun (t : ℝ) ↦ Complex.abs ((σ + t * I) *
       ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^((σ + t * I) + 1)))
       =O[cocompact ℝ] fun (t : ℝ) ↦ |t| * N ^ (-σ) / σ := by
@@ -935,6 +924,27 @@ lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (σ_ge : 1 / 2 ≤ σ) 
 Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\ll |t|$.
 \end{proof}
 %%-/
+
+
+/-
+\begin{lemma}[HolomorphicOn_Zeta0]\label{HolomorphicOn_Zeta0}\lean{HolomorphicOn_Zeta0}\leanok
+For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \Re(s)>0\}$.
+\end{lemma}
+-/
+lemma HolomorphicOn_Zeta0 {N : ℕ} (N_pos : 0 < N) :
+    HolomorphicOn (RiemannZeta0 N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
+  sorry
+/-
+\begin{proof}\uses{ZetaSum_aux1}
+  The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral that's absolutely convergent on $\{s\in \C\mid \Re(s)>0\}$ by Lemma \ref{ZetaSum_aux1}.
+-/
+
+-- MOVE TO MATHLIB near `differentiableAt_riemannZeta`
+lemma HolomophicOn_Zeta :
+    HolomorphicOn riemannZeta {s : ℂ | s ≠ 1} := by
+  intro z hz
+  simp only [Set.mem_setOf_eq] at hz
+  exact (differentiableAt_riemannZeta hz).differentiableWithinAt
 
 lemma tsum_eq_partial_add_tail {N : ℕ} (N_pos : 0 < N) (f : ℕ → ℂ) (hf : Summable f) :
   ∑' (n : ℕ), f n =
