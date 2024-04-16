@@ -134,14 +134,14 @@ noncomputable def of_Schwartz (f : 𝓢(ℝ, ℂ)) : W21 where
 
 noncomputable instance : Coe 𝓢(ℝ, ℂ) W21 where coe := of_Schwartz
 
-def of_compactSupport (f : CS2 ℂ) : W21 where
+def ofCS2 (f : CS2 ℂ) : W21 where
   toFun := f
   hh := f.h1
   hf := f.h1.continuous.integrable_of_hasCompactSupport f.h2
   hf' := (f.h1.continuous_deriv one_le_two).integrable_of_hasCompactSupport f.h2.deriv
   hf'' := (f.h1.iterate_deriv' 0 2).continuous.integrable_of_hasCompactSupport f.h2.deriv.deriv
 
-instance : Coe (CS2 ℂ) W21 where coe := of_compactSupport
+instance : Coe (CS2 ℂ) W21 where coe := ofCS2
 
 end W21
 
@@ -154,44 +154,7 @@ theorem fourierIntegral_self_add_deriv_deriv (f : W21) (u : ℝ) :
     Real.fourierIntegral_deriv f.hf l4 f.hf']
   field_simp [pi_ne_zero] ; ring_nf ; simp
 
-def W21.cs_mul (g : CS2 ℂ) (f : W21) : W21 := by
-  let f' := deriv f
-  let f'' := deriv (deriv f)
-  have f_d x : HasDerivAt f (f' x) x := f.hh.differentiable one_le_two |>.differentiableAt.hasDerivAt
-  have f_i : Integrable f := f.hf
-  have f'_d x : HasDerivAt f' (f'' x) x := (f.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
-  have f'_i : Integrable f' := f.hf'
-  have f''_i : Integrable f'' := f.hf''
-
-  let g' := deriv g
-  let g'' := deriv (deriv g)
-  have g_c : Continuous g := g.h1.continuous
-  have g_b : ∃ C, ∀ x, ‖g x‖ ≤ C := g_c.bounded_above_of_compact_support g.h2
-  have g_d x : HasDerivAt g (g' x) x := g.h1.differentiable one_le_two |>.differentiableAt.hasDerivAt
-  have g_a : AEStronglyMeasurable g volume := g_c.aestronglyMeasurable
-  have g'_c : Continuous g' := g.h1.continuous_deriv one_le_two
-  have g'_d x : HasDerivAt g' (g'' x) x := (g.h1.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
-  have g'_a : AEStronglyMeasurable g' volume := g'_c.aestronglyMeasurable
-  have g'_b : ∃ C, ∀ x, ‖g' x‖ ≤ C := g'_c.bounded_above_of_compact_support g.h2.deriv
-  have g''_c : Continuous g'' := g.h1.iterate_deriv' 0 2 |>.continuous
-  have g''_a : AEStronglyMeasurable g'' volume := g''_c.aestronglyMeasurable
-  have g''_b : ∃ C, ∀ x, ‖g'' x‖ ≤ C := g''_c.bounded_above_of_compact_support g.h2.deriv.deriv
-
-  let h := fun x => g x * f x
-  let h' := fun x => g' x * f x + g x * f' x
-  let h'' := fun x => g'' x * f x + 2 * g' x * f' x + g x * f'' x
-  have h_d x : HasDerivAt h (h' x) x := (g_d x).mul (f_d x)
-  have h_d' : deriv h = h' := funext (fun x => (h_d x).deriv)
-  have h'_d x : HasDerivAt h' (h'' x) x := by
-    convert ((g'_d x).mul (f_d x)).add ((g_d x).mul (f'_d x)) using 1 ; simp [h', h''] ; ring
-  have h'_d' : deriv h' = h'' := funext (fun x => (h'_d x).deriv)
-
-  refine ⟨fun x => g x * f x, g.h1.mul f.hh, ?_, ?_, ?_⟩
-  · exact f.hf.bdd_mul g_c.aestronglyMeasurable g_b
-  · rw [h_d'] ; exact (f_i.bdd_mul g'_a g'_b).add (f'_i.bdd_mul g_a g_b)
-  · rw [h_d', h'_d'] ; refine Integrable.add ?_ (f''_i.bdd_mul g_a g_b)
-    apply (f_i.bdd_mul g''_a g''_b).add
-    simp_rw [mul_assoc] ; apply (f'_i.bdd_mul g'_a g'_b).const_mul
+def W21.cs_mul (g : CS2 ℂ) (f : W21) : W21 := .ofCS2 ⟨g * f, g.h1.mul f.hh, g.h2.mul_right⟩
 
 instance : HMul (CS2 ℂ) W21 W21 where hMul g f := f.cs_mul g
 
