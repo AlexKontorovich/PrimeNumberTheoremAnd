@@ -870,8 +870,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       let f : ℝ → ℂ := fun x ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
       convert MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
         (b := (fun (n : ℕ) ↦ (n : ℝ))) (f := f) (μ := MeasureTheory.volume) (l := atTop) ?_ ?_
-      ·
-        sorry
+      · sorry
       · convert tendsto_coe_atTop
 /-%%
 \begin{proof}\uses{ZetaSum_aux1, ZetaSum_aux1a}
@@ -1098,7 +1097,7 @@ lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_l
     _ ≤ (n : ℝ)⁻¹ * Real.exp A := by
       rw [Real.exp_add, Real.exp_neg, Real.exp_log n_gt_0']
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Use $|n^{-s}| = n^{-\sigma}
 = e^{-\sigma \log n}
 \le
@@ -1145,7 +1144,7 @@ lemma ZetaUpperBnd :
   rw [← Zeta0EqZeta (N := N) (Nat.floor_pos.mpr logt_gt_one.le) (s := σ + t * I) σPos neOne]
   sorry
 /-%%
-\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
 We estimate:
 $$
@@ -1188,7 +1187,7 @@ lemma ZetaDerivUpperBnd :
     Complex.abs (deriv riemannZeta (σ + t * I)) ≤ C * (Real.log |t|) ^ 2 := by
   sorry
 /-%%
-\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
 Differentiating term by term, we get:
 $$
@@ -1244,10 +1243,9 @@ lemma ZetaNear1BndExact:
   intro σ σ_ge σ_le
   sorry
 /-%%
-\begin{proof}\uses{ZetaBnd_aux1, Zeta0EqZeta}
-Zeta has a simple pole at $s=1$. Equivalently, $\zeta(s)(s-1)$ remains bounded near $1$.
-Lots of ways to prove this.
-Probably the easiest one: use the expression for $\zeta_0 (N,s)$ with $N=1$ (the term $N^{1-s}/(1-s)$ being the only unbounded one).
+\begin{proof}\uses{ZetaBnd_aux1, ZetaNear1BndFilter, Zeta0EqZeta}
+Split into two cases, use Lemma \ref{ZetaNear1BndFilter} for $\sigma$ sufficiently small
+and continuity on a compact interval otherwise.
 \end{proof}
 %%-/
 
