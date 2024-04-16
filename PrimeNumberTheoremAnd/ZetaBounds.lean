@@ -959,8 +959,9 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
   have U_open : IsOpen U := by sorry
   have f_an : AnalyticOn ℂ f U := by
-    have :=
-    sorry
+    apply (HolomophicOn_Zeta.analyticOn ?_).mono
+    · sorry
+    · sorry
   have g_an : AnalyticOn ℂ g U :=
     (HolomorphicOn_Zeta0 N_pos).analyticOn U_open
   have preconU : IsPreconnected U := by sorry
