@@ -907,6 +907,13 @@ lemma HolomorphicOn_Zeta0 {N : ℕ} (N_pos : 0 < N) :
     HolomorphicOn (RiemannZeta0 N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
   sorry
 
+-- MOVE TO MATHLIB near `differentiableAt_riemannZeta`
+lemma HolomophicOn_Zeta :
+    HolomorphicOn riemannZeta {s : ℂ | s ≠ 1} := by
+  intro z hz
+  simp only [Set.mem_setOf_eq] at hz
+  exact (differentiableAt_riemannZeta hz).differentiableWithinAt
+
 /-%%
 \begin{lemma}[ZetaBnd_aux1]\label{ZetaBnd_aux1}\lean{ZetaBnd_aux1}\leanok
 For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in[1/2,2]$,
@@ -950,10 +957,12 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   let f := riemannZeta
   let g := RiemannZeta0 N
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
-  have f_an : AnalyticOn ℂ f U := by sorry
-  have g_an : AnalyticOn ℂ g U := by
-    apply (HolomorphicOn_Zeta0 N_pos).analyticOn
+  have U_open : IsOpen U := by sorry
+  have f_an : AnalyticOn ℂ f U := by
+    have :=
     sorry
+  have g_an : AnalyticOn ℂ g U :=
+    (HolomorphicOn_Zeta0 N_pos).analyticOn U_open
   have preconU : IsPreconnected U := by sorry
   let z₀ := (2 : ℂ)
   have hz₀ : z₀ ∈ U := by sorry
