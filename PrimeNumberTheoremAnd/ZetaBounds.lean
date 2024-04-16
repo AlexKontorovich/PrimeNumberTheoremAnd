@@ -5,6 +5,7 @@ import Mathlib.NumberTheory.ZetaFunction
 import Mathlib.Algebra.Group.Basic
 import EulerProducts.PNT
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+import PrimeNumberTheoremAnd.MellinCalculus
 import Mathlib.MeasureTheory.Function.Floor
 import Mathlib.Analysis.Complex.CauchyIntegral
 
@@ -848,7 +849,7 @@ lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_l
     simp only [Nat.cast_pos]
     exact n_gt_0
   have := Complex.abs_cpow_eq_rpow_re_of_pos n_gt_0' (-(σ + t * I))
-  simp only  [ofReal_nat_cast] at this
+  simp only [ofReal_nat_cast] at this
   rw [this]
   simp only [neg_add_rev, add_re, neg_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im,
     mul_one, sub_self, neg_zero, zero_add, ge_iff_le]
@@ -1016,14 +1017,14 @@ Estimate as before, with an extra factor of $\log |t|$.
 %%-/
 
 /-%%
-\begin{lemma}[ZetaNear1Bnd']\label{ZetaNear1Bnd'}\lean{ZetaNear1Bnd'}\leanok
+\begin{lemma}[ZetaNear1BndFilter]\label{ZetaNear1BndFilter}\lean{ZetaNear1BndFilter}\leanok
 As $\sigma\to1^+$,
 $$
 |\zeta(\sigma)| \ll 1/(\sigma-1).
 $$
 \end{lemma}
 %%-/
-lemma ZetaNear1Bnd':
+lemma ZetaNear1BndFilter:
     (fun σ : ℝ ↦ riemannZeta σ) =O[𝓝[>](1 : ℝ)] (fun σ ↦ (1 : ℂ) / (σ - 1)) := by
   have : Tendsto (fun (x : ℝ) ↦ x - 1) (𝓝[>](1 : ℝ)) (𝓝[>](0 : ℝ)) := by
     refine tendsto_iff_forall_eventually_mem.mpr ?_
@@ -1040,14 +1041,14 @@ Probably the easiest one: use the expression for $\zeta_0 (N,s)$ with $N=1$ (the
 %%-/
 
 /-%%
-\begin{lemma}[ZetaNear1Bnd]\label{ZetaNear1Bnd}\lean{ZetaNear1Bnd}\leanok
-There exists a $c>0$ such that for all $1 \sigma ≤ 2$,
+\begin{lemma}[ZetaNear1BndExact]\label{ZetaNear1BndExact}\lean{ZetaNear1BndExact}\leanok
+There exists a $c>0$ such that for all $1 < \sigma ≤ 2$,
 $$
 |\zeta(\sigma)| ≤ c/(\sigma-1).
 $$
 \end{lemma}
 %%-/
-lemma ZetaNear1Bnd:
+lemma ZetaNear1BndExact:
     ∃ (c : ℝ) (cpos : 0 < c), ∀ (σ : ℝ) (σ_ge : 1 < σ) (σ_le : σ ≤ 2),
     ‖riemannZeta σ‖ ≤ c / (σ - 1) := by
   use 10, (by norm_num)
@@ -1110,7 +1111,7 @@ lemma ZetaInvBound2 {σ : ℝ} (σ_gt : 1 < σ) (σ_le : σ ≤ 2) :
     (fun (t : ℝ) ↦ 1 / Complex.abs (riemannZeta (σ + t * I))) =O[cocompact ℝ]
       fun (t : ℝ) ↦ (σ - 1) ^ (-(3 : ℝ) / 4) * (Real.log |t|) ^ ((1 : ℝ) / 4) := by
   obtain ⟨A, ha, C, hC, h⟩ := ZetaUpperBnd
-  obtain ⟨c, hc, h_inv⟩ := ZetaNear1Bnd
+  obtain ⟨c, hc, h_inv⟩ := ZetaNear1BndExact
   rw [Asymptotics.isBigO_iff]
   use (2 * C) ^ ((1 : ℝ)/ 4) * c ^ ((3 : ℝ)/ 4)
   filter_upwards [lt_abs_mem_cocompact (by norm_num : 0 ≤ (2 : ℝ))] with t ht
@@ -1200,7 +1201,7 @@ Combine Lemma \ref{ZetaInvBound1} with the bounds in Lemmata \ref{ZetaNear1BndEx
 %%-/
 
 lemma deriv_fun_re {t : ℝ} {f : ℂ → ℂ} (diff : ∀ (σ : ℝ), DifferentiableAt ℂ f (↑σ + ↑t * I)) :
-    (deriv fun {σ₂ : ℝ} ↦ f (σ₂ + t * I)) = fun (y : ℝ) ↦ deriv f (y + t * I) := by
+    (deriv fun {σ₂ : ℝ} ↦ f (σ₂ + t * I)) = fun (σ : ℝ) ↦ deriv f (σ + t * I) := by
   sorry
 
 /-%%
