@@ -1285,9 +1285,33 @@ lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
     1 / Complex.abs (riemannZeta (σ + t * I)) ≤
       Complex.abs (riemannZeta σ) ^ ((3 : ℝ) / 4) *
         Complex.abs (riemannZeta (σ + 2 * t * I)) ^ ((1 : ℝ) / 4) := by
-  sorry -- use `norm_zeta_product_ge_one`
+  simp_rw [← Complex.norm_eq_abs]
+  apply (div_le_iff ?_).mpr
+  apply (Real.rpow_le_rpow_iff (z := 4) (by norm_num) ?_ (by norm_num)).mp
+  · simp only [Real.one_rpow]
+    rw [Real.mul_rpow, Real.mul_rpow, ← Real.rpow_mul, ← Real.rpow_mul]
+    simp only [isUnit_iff_ne_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
+      IsUnit.div_mul_cancel, IsUnit.inv_mul_cancel, Real.rpow_one]
+    conv => rw [mul_assoc]; rhs; rhs; rw [mul_comm]
+    rw [← mul_assoc]
+    have := norm_zeta_product_ge_one (x := σ - 1) (by linarith) t
+    simp_rw [ge_iff_le, norm_mul, norm_pow, ofReal_sub, ofReal_one, add_sub_cancel, ← Real.rpow_nat_cast] at this
+    convert this using 3 <;> ring_nf
+    any_goals ring_nf
+    any_goals apply norm_nonneg
+    any_goals apply Real.rpow_nonneg <| norm_nonneg _
+    apply mul_nonneg <;> apply Real.rpow_nonneg <| norm_nonneg _
+  · refine mul_nonneg (mul_nonneg ?_ ?_) ?_ <;> simp [Real.rpow_nonneg]
+  · have s_ne_one : (σ : ℂ) + (t : ℂ) * I ≠ 1 := by
+      contrapose! σ_gt
+      simp only [ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+        sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at σ_gt
+      simp [σ_gt]
+    have zeta_ne_zero:= riemannZeta_ne_zero_of_one_le_re s_ne_one (by simp [σ_gt.le])
+    suffices 0 ≤ ‖riemannZeta (↑σ + ↑t * I)‖ by simp [le_iff_lt_or_eq.mp this, zeta_ne_zero]
+    apply norm_nonneg
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 The identity
 $$
 1 \le |\zeta(\sigma)|^3 |\zeta(\sigma+it)|^4 |\zeta(\sigma+2it)|
