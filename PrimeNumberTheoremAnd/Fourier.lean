@@ -8,6 +8,8 @@ import PrimeNumberTheoremAnd.Mathlib.Analysis.Fourier.FourierTransformDeriv
 
 open FourierTransform Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap VectorFourier BigOperators
 
+local instance {E : Type*} : Coe (E → ℝ) (E → ℂ) := ⟨fun f n => f n⟩
+
 @[simp]
 theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
 
@@ -81,13 +83,16 @@ instance : CoeFun trunc (fun _ => ℝ → ℝ) where coe f := f.toFun
 
 instance : Coe trunc (CS2 ℝ) where coe f := ⟨fun x => f x, f.h1, f.h2⟩
 
-instance : Coe (CS2 ℝ) (CS2 ℂ) where coe f := ⟨fun x => f x,
+instance : Coe (CS2 ℝ) (CS2 ℂ) where coe f := ⟨f,
   contDiff_ofReal.of_le le_top |>.comp f.h1, f.h2.comp_left (g := ofReal') rfl⟩
+
+noncomputable def funscale {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (g : ℝ → E) (R x : ℝ) : E :=
+    g (R⁻¹ • x)
 
 noncomputable def CS2.scale {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (g : CS2 E) (R : ℝ) : CS2 E := by
   by_cases h : R = 0
   · exact ⟨0, contDiff_const, by simp [HasCompactSupport, tsupport]⟩
-  · refine ⟨fun x => g (R⁻¹ • x), ?_, ?_⟩
+  · refine ⟨fun x => funscale g R x, ?_, ?_⟩
     · exact g.h1.comp (contDiff_const.smul contDiff_id)
     · exact g.h2.comp_smul (inv_ne_zero h)
 
@@ -159,7 +164,7 @@ instance : HMul (CS2 ℂ) W21 W21 where hMul g f := .ofCS2 ⟨g * f, g.h1.mul f.
 instance : HMul (CS2 ℝ) W21 W21 where hMul g f := (g : CS2 ℂ) * f
 
 theorem W21_approximation (f : W21) (g : trunc) :
-    Tendsto (fun R => W21.norm (f - fun v => (g (v * R⁻¹)) * f v)) atTop (𝓝 0) := by
+    Tendsto (fun R => W21.norm (f - funscale g R * f)) atTop (𝓝 0) := by
 
   -- Preliminaries
   have cR {R : ℝ} : Continuous (fun v => v * R⁻¹) := continuous_id.mul continuous_const
@@ -241,7 +246,7 @@ theorem W21_approximation (f : W21) (g : trunc) :
 
   -- Proof
   convert_to Tendsto (fun R => W21.norm (fun v => h R v * f v)) atTop (𝓝 0)
-  · ext R ; congr ; ext v ; simp [sub_mul, h]
+  · ext R ; congr ; ext v ; simp [sub_mul, h, funscale] ; ring_nf ; tauto
   rw [show (0 : ℝ) = 0 + ((4 * π ^ 2)⁻¹ : ℝ) * 0 by simp]
   refine Tendsto.add ?_ (Tendsto.const_mul _ ?_)
   · let F R v := ‖h R v * f v‖

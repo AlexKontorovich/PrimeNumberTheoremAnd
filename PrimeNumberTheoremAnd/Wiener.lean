@@ -1536,7 +1536,8 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
     have : 0 ≤ ‖f 0‖ := by positivity
     linarith
   have key2 : Tendsto (fun R ↦ W21.norm (ψ - ψR R)) atTop (𝓝 0) := by
-    simpa [sub_mul] using W21_approximation ψ g
+    convert W21_approximation ψ g using 1
+    simp [funscale, ψR, mul_comm _⁻¹] ; rfl
   simp_rw [Metric.tendsto_nhds] at key key2 ⊢ ; intro ε hε
   let M := C * (1 + 2 * π ^ 2) + ‖(A : ℂ)‖ * (2 * π ^ 2)
   specialize key2 ((ε / 2) / (1 + M)) (by positivity)
