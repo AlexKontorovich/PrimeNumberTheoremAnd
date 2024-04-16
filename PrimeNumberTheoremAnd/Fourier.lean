@@ -10,6 +10,8 @@ open FourierTransform Real Complex MeasureTheory Filter Topology BoundedContinuo
 
 local instance {E : Type*} : Coe (E → ℝ) (E → ℂ) := ⟨fun f n => f n⟩
 
+section lemmas
+
 @[simp]
 theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
 
@@ -52,6 +54,63 @@ lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
   refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
   simpa [key'] using contDiff_const
 
+end lemmas
+
+section CS
+
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {n : ℕ}
+
+@[ext] structure CS (n : ℕ) (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ E] where
+  toFun : ℝ → E
+  h1 : ContDiff ℝ n toFun
+  h2 : HasCompactSupport toFun
+
+@[ext] structure trunc extends (CS 2 ℝ) where
+  h3 : (Set.Icc (-1) (1)).indicator 1 ≤ toFun
+  h4 : toFun ≤ Set.indicator (Set.Ioo (-2) (2)) 1
+
+instance : CoeFun (CS n E) (fun _ => ℝ → E) where coe := CS.toFun
+
+instance : CoeFun trunc (fun _ => ℝ → ℝ) where coe f := f.toFun
+
+instance : Coe trunc (CS 2 ℝ) where coe := trunc.toCS
+
+instance : Coe (CS n ℝ) (CS n ℂ) where coe f := ⟨f,
+  contDiff_ofReal.of_le le_top |>.comp f.h1, f.h2.comp_left (g := ofReal') rfl⟩
+
+namespace CS
+
+variable {f : CS n E}
+
+lemma continuous : Continuous f := f.h1.continuous
+
+noncomputable def deriv (f : CS (n + 1) E) : CS n E where
+  toFun := _root_.deriv f
+  h1 := (contDiff_succ_iff_deriv.mp f.h1).2
+  h2 := f.h2.deriv
+
+lemma hasDerivAt (f : CS (n + 1) E) (x : ℝ) : HasDerivAt f (f.deriv x) x :=
+  (f.h1.differentiable (by simp)).differentiableAt.hasDerivAt
+
+noncomputable def _root_.funscale (g : ℝ → E) (R x : ℝ) : E := g (R⁻¹ • x)
+
+noncomputable def scale (g : CS n E) (R : ℝ) : CS n E := by
+  by_cases h : R = 0
+  · exact ⟨0, contDiff_const, by simp [HasCompactSupport, tsupport]⟩
+  · refine ⟨fun x => funscale g R x, ?_, ?_⟩
+    · exact g.h1.comp (contDiff_const.smul contDiff_id)
+    · exact g.h2.comp_smul (inv_ne_zero h)
+
+lemma hasDerivAt_scale (f : CS (n + 1) E) (R x : ℝ) :
+    HasDerivAt (f.scale R) (R⁻¹ • _root_.deriv f (R⁻¹ • x)) x := by
+  by_cases hR : R = 0 <;> simp [CS.scale, hR]
+  · exact hasDerivAt_const _ _
+  · exact (f.hasDerivAt (R⁻¹ • x)).scomp x (by simpa using (hasDerivAt_id x).const_smul R⁻¹)
+
+end CS
+
+end CS
+
 structure W21 where
   toFun : ℝ → ℂ
   hh : ContDiff ℝ 2 toFun
@@ -60,47 +119,6 @@ structure W21 where
   hf'' : Integrable (deriv (deriv toFun))
 
 instance : CoeFun W21 (fun _ => ℝ → ℂ) where coe := W21.toFun
-
-structure CS2 (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ E] where
-  toFun : ℝ → E
-  h1 : ContDiff ℝ 2 toFun
-  h2 : HasCompactSupport toFun
-
-instance {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] : CoeFun (CS2 E) (fun _ => ℝ → E) where coe := CS2.toFun
-
-lemma CS2.continuous {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : CS2 E) : Continuous f :=
-  f.h1.continuous
-
-lemma CS2.hasDerivAt {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : CS2 E) (x : ℝ) :
-    HasDerivAt f (deriv f x) x :=
-  (f.h1.differentiable one_le_two).differentiableAt.hasDerivAt
-
-structure trunc extends (CS2 ℝ) where
-  h3 : (Set.Icc (-1) (1)).indicator 1 ≤ toFun
-  h4 : toFun ≤ Set.indicator (Set.Ioo (-2) (2)) 1
-
-instance : CoeFun trunc (fun _ => ℝ → ℝ) where coe f := f.toFun
-
-instance : Coe trunc (CS2 ℝ) where coe f := ⟨fun x => f x, f.h1, f.h2⟩
-
-instance : Coe (CS2 ℝ) (CS2 ℂ) where coe f := ⟨f,
-  contDiff_ofReal.of_le le_top |>.comp f.h1, f.h2.comp_left (g := ofReal') rfl⟩
-
-noncomputable def funscale {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (g : ℝ → E) (R x : ℝ) : E :=
-    g (R⁻¹ • x)
-
-noncomputable def CS2.scale {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (g : CS2 E) (R : ℝ) : CS2 E := by
-  by_cases h : R = 0
-  · exact ⟨0, contDiff_const, by simp [HasCompactSupport, tsupport]⟩
-  · refine ⟨fun x => funscale g R x, ?_, ?_⟩
-    · exact g.h1.comp (contDiff_const.smul contDiff_id)
-    · exact g.h2.comp_smul (inv_ne_zero h)
-
-lemma hasDerivAt_scale {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : CS2 E) (R x : ℝ) :
-    HasDerivAt (f.scale R) (R⁻¹ • deriv f (R⁻¹ • x)) x := by
-  by_cases h : R = 0 <;> simp [CS2.scale, h]
-  · exact hasDerivAt_const _ _
-  · exact (f.hasDerivAt (R⁻¹ • x)).scomp x (by simpa using (hasDerivAt_id x).const_smul R⁻¹)
 
 namespace W21
 
@@ -139,14 +157,14 @@ noncomputable def of_Schwartz (f : 𝓢(ℝ, ℂ)) : W21 where
 
 noncomputable instance : Coe 𝓢(ℝ, ℂ) W21 where coe := of_Schwartz
 
-def ofCS2 (f : CS2 ℂ) : W21 where
+def ofCS2 (f : CS 2 ℂ) : W21 where
   toFun := f
   hh := f.h1
   hf := f.h1.continuous.integrable_of_hasCompactSupport f.h2
   hf' := (f.h1.continuous_deriv one_le_two).integrable_of_hasCompactSupport f.h2.deriv
   hf'' := (f.h1.iterate_deriv' 0 2).continuous.integrable_of_hasCompactSupport f.h2.deriv.deriv
 
-instance : Coe (CS2 ℂ) W21 where coe := ofCS2
+instance : Coe (CS 2 ℂ) W21 where coe := ofCS2
 
 end W21
 
@@ -159,9 +177,9 @@ theorem fourierIntegral_self_add_deriv_deriv (f : W21) (u : ℝ) :
     Real.fourierIntegral_deriv f.hf l4 f.hf']
   field_simp [pi_ne_zero] ; ring_nf ; simp
 
-instance : HMul (CS2 ℂ) W21 (CS2 ℂ) where hMul g f := ⟨g * f, g.h1.mul f.hh, g.h2.mul_right⟩
+instance : HMul (CS 2 ℂ) W21 (CS 2 ℂ) where hMul g f := ⟨g * f, g.h1.mul f.hh, g.h2.mul_right⟩
 
-instance : HMul (CS2 ℝ) W21 (CS2 ℂ) where hMul g f := (g : CS2 ℂ) * f
+instance : HMul (CS 2 ℝ) W21 (CS 2 ℂ) where hMul g f := (g : CS 2 ℂ) * f
 
 theorem W21_approximation (f : W21) (g : trunc) :
     Tendsto (fun R => ‖f - (g.scale R * f : W21)‖) atTop (𝓝 0) := by
@@ -206,12 +224,12 @@ theorem W21_approximation (f : W21) (g : trunc) :
   have ch {R} : Continuous (fun v => (h R v : ℂ)) := by
     apply continuous_ofReal.comp
     apply continuous_const.sub
-    apply CS2.continuous
+    apply CS.continuous
   have ch' {R} : Continuous (fun v => (h' R v : ℂ)) := continuous_ofReal.comp <| (cg'.comp cR).neg.mul continuous_const
   have ch'' {R} : Continuous (fun v => (h'' R v : ℂ)) :=
     continuous_ofReal.comp <| ((cg''.comp cR).neg.mul continuous_const).mul continuous_const
   have dh R v : HasDerivAt (h R) (h' R v) v := by
-    convert hasDerivAt_scale (E := ℝ) g R v |>.const_sub 1 using 1 ; simp [h', g'] ; ring_nf
+    convert CS.hasDerivAt_scale (g : CS 2 ℝ) R v |>.const_sub 1 using 1 ; simp [h', g'] ; ring_nf
   have dh' R v : HasDerivAt (h' R) (h'' R v) v := by
     simpa [h', h''] using HasDerivAt.mul_const ((dg' _).comp _ <| hasDerivAt_mul_const _).neg (R⁻¹)
   have hc1 : ∀ᶠ R in atTop, ∀ v, |h' R v| ≤ c1 := by
@@ -230,12 +248,12 @@ theorem W21_approximation (f : W21) (g : trunc) :
     apply mul_le_mul (mg'' _) ?_ (by positivity) ((abs_nonneg _).trans (mg'' 0))
     exact mul_le_mul e2 e2 (by positivity) zero_le_one
 
-  have h0 R v : 0 ≤ h R v := by by_cases hR : R = 0 <;> simp [hR, h, CS2.scale, funscale, g1]
-  have h1 R v : h R v ≤ 1 := by by_cases hR : R = 0 <;> simp [hR, h, CS2.scale, funscale, g0]
+  have h0 R v : 0 ≤ h R v := by by_cases hR : R = 0 <;> simp [hR, h, CS.scale, funscale, g1]
+  have h1 R v : h R v ≤ 1 := by by_cases hR : R = 0 <;> simp [hR, h, CS.scale, funscale, g0]
   have hh1 R v : |h R v| ≤ 1 := by rw [abs_le] ; constructor <;> linarith [h0 R v, h1 R v]
   have eh v : ∀ᶠ R in atTop, h R v = 0 := by
     filter_upwards [(vR v).eventually evg, eventually_ne_atTop 0] with R hR hR'
-    simp [h, hR, CS2.scale, hR', funscale, mul_comm R⁻¹]
+    simp [h, hR, CS.scale, hR', funscale, mul_comm R⁻¹]
   have eh' v : ∀ᶠ R in atTop, h' R v = 0 := by filter_upwards [(vR v).eventually evg'] with R hR ; simp [h', hR]
   have eh'' v : ∀ᶠ R in atTop, h'' R v = 0 := by filter_upwards [(vR v).eventually evg''] with R hR ; simp [h'', hR]
 
