@@ -66,6 +66,13 @@ structure CS2 (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ E] where
 
 instance {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] : CoeFun (CS2 E) (fun _ => ℝ → E) where coe := CS2.toFun
 
+lemma CS2.continuous {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : CS2 E) : Continuous f :=
+  f.h1.continuous
+
+lemma CS2.hasDerivAt {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : CS2 E) (x : ℝ) :
+    HasDerivAt f (deriv f x) x :=
+  (f.h1.differentiable one_le_two).differentiableAt.hasDerivAt
+
 structure trunc extends (CS2 ℝ) where
   h3 : (Set.Icc (-1) (1)).indicator 1 ≤ toFun
   h4 : toFun ≤ Set.indicator (Set.Ioo (-2) (2)) 1
@@ -83,6 +90,12 @@ noncomputable def CS2.scale {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ 
   · refine ⟨fun x => g (R⁻¹ • x), ?_, ?_⟩
     · exact g.h1.comp (contDiff_const.smul contDiff_id)
     · exact g.h2.comp_smul (inv_ne_zero h)
+
+lemma hasDerivAt_scale {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (f : CS2 E) (R x : ℝ) :
+    HasDerivAt (f.scale R) (R⁻¹ • deriv f (R⁻¹ • x)) x := by
+  by_cases h : R = 0 <;> simp [CS2.scale, h]
+  · exact hasDerivAt_const _ _
+  · exact (f.hasDerivAt (R⁻¹ • x)).scomp x (by simpa using (hasDerivAt_id x).const_smul R⁻¹)
 
 namespace W21
 
