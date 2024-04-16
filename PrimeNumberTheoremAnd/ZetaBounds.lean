@@ -1126,16 +1126,23 @@ lemma ZetaUpperBnd :
   refine ⟨1 / 2, by norm_num, 10, by norm_num, ?_⟩ -- placeholder values for `A` and `C`
   intro σ t t_ge σ_ge σ_le
   set N := ⌊ Real.log |t| ⌋₊
+  have logt_gt_one: 1 < Real.log |t| := by
+    rw [← Real.log_exp (x := 1)]
+    apply Real.log_lt_log (Real.exp_pos _)
+    linarith [(by exact lt_trans Real.exp_one_lt_d9 (by norm_num) : Real.exp 1 < 3)]
   have σPos :  0 < (↑σ + ↑t * I).re := by
     simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
       add_zero]
-    have : 1 < Real.log |t| := by
-      sorry
-    -- nlinarith
-    sorry
-  -- have neOne : ↑σ + ↑t * I ≠ 1 := by
-  --   sorry
-  -- rw [← Zeta0EqZeta N (σ + t * I) σPos neOne]
+    apply lt_of_lt_of_le _ σ_ge
+    simp only [sub_pos, div_div]
+    apply (one_div_lt (by linarith) (by norm_num)).mpr
+    linarith
+  have neOne : ↑σ + ↑t * I ≠ 1 := by
+    contrapose! t_ge
+    simp [ext_iff] at t_ge
+    rw [t_ge.2]
+    simp
+  rw [← Zeta0EqZeta (N := N) (Nat.floor_pos.mpr logt_gt_one.le) (s := σ + t * I) σPos neOne]
   sorry
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2}
