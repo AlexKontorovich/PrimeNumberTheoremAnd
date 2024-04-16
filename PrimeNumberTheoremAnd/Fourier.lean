@@ -59,32 +59,30 @@ structure W21 where
 
 instance : CoeFun W21 (fun _ => ℝ → ℂ) where coe := W21.toFun
 
-structure trunc where
-  toFun : ℝ → ℝ
+structure CS2 (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ E] where
+  toFun : ℝ → E
   h1 : ContDiff ℝ 2 toFun
   h2 : HasCompactSupport toFun
+
+instance {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] : CoeFun (CS2 E) (fun _ => ℝ → E) where coe := CS2.toFun
+
+structure trunc extends (CS2 ℝ) where
   h3 : (Set.Icc (-1) (1)).indicator 1 ≤ toFun
   h4 : toFun ≤ Set.indicator (Set.Ioo (-2) (2)) 1
 
-instance : CoeFun trunc (fun _ => ℝ → ℝ) where coe := trunc.toFun
+instance : CoeFun trunc (fun _ => ℝ → ℝ) where coe f := f.toFun
 
-structure CS2 where
-  toFun : ℝ → ℂ
-  h1 : ContDiff ℝ 2 toFun
-  h2 : HasCompactSupport toFun
+instance : Coe trunc (CS2 ℝ) where coe f := ⟨fun x => f x, f.h1, f.h2⟩
 
-instance : CoeFun CS2 (fun _ => ℝ → ℂ) where coe := CS2.toFun
-
-instance : Coe trunc CS2 where coe f := ⟨fun x => f x,
+instance : Coe (CS2 ℝ) (CS2 ℂ) where coe f := ⟨fun x => f x,
   contDiff_ofReal.of_le le_top |>.comp f.h1, f.h2.comp_left (g := ofReal') rfl⟩
 
-noncomputable def trunc.scale (g : trunc) {R : ℝ} (hR : 0 < R) : CS2 := by
-  refine ⟨fun x => g (R⁻¹ • x), ?_, ?_⟩
-  · apply contDiff_ofReal.of_le le_top |>.comp
-    apply g.h1.comp
-    apply contDiff_const.smul contDiff_id
-  · apply HasCompactSupport.comp_left (g := ofReal') ?_ rfl
-    apply g.h2.comp_smul (by positivity)
+noncomputable def CS2.scale {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] (g : CS2 E) (R : ℝ) : CS2 E := by
+  by_cases h : R = 0
+  · exact ⟨0, contDiff_const, by simp [HasCompactSupport, tsupport]⟩
+  · refine ⟨fun x => g (R⁻¹ • x), ?_, ?_⟩
+    · exact g.h1.comp (contDiff_const.smul contDiff_id)
+    · exact g.h2.comp_smul (inv_ne_zero h)
 
 namespace W21
 
@@ -112,7 +110,7 @@ lemma norm_nonneg {f : ℝ → ℂ} : 0 ≤ norm f :=
   add_nonneg (integral_nonneg (fun t => by simp))
     (mul_nonneg (by positivity) (integral_nonneg (fun t => by simp)))
 
-noncomputable instance : Norm W21 where norm := fun f => norm f
+noncomputable instance : Norm W21 where norm := norm ∘ toFun
 
 noncomputable def of_Schwartz (f : 𝓢(ℝ, ℂ)) : W21 where
   toFun := f
@@ -123,14 +121,14 @@ noncomputable def of_Schwartz (f : 𝓢(ℝ, ℂ)) : W21 where
 
 noncomputable instance : Coe 𝓢(ℝ, ℂ) W21 where coe := of_Schwartz
 
-def of_compactSupport (f : CS2) : W21 where
+def of_compactSupport (f : CS2 ℂ) : W21 where
   toFun := f
   hh := f.h1
   hf := f.h1.continuous.integrable_of_hasCompactSupport f.h2
   hf' := (f.h1.continuous_deriv one_le_two).integrable_of_hasCompactSupport f.h2.deriv
   hf'' := (f.h1.iterate_deriv' 0 2).continuous.integrable_of_hasCompactSupport f.h2.deriv.deriv
 
-instance : Coe CS2 W21 where coe := of_compactSupport
+instance : Coe (CS2 ℂ) W21 where coe := of_compactSupport
 
 end W21
 
@@ -143,7 +141,7 @@ theorem fourierIntegral_self_add_deriv_deriv (f : W21) (u : ℝ) :
     Real.fourierIntegral_deriv f.hf l4 f.hf']
   field_simp [pi_ne_zero] ; ring_nf ; simp
 
-def W21.cs_mul (g : CS2) (f : W21) : W21 := by
+def W21.cs_mul (g : CS2 ℂ) (f : W21) : W21 := by
   let f' := deriv f
   let f'' := deriv (deriv f)
   have f_d x : HasDerivAt f (f' x) x := f.hh.differentiable one_le_two |>.differentiableAt.hasDerivAt
@@ -182,7 +180,9 @@ def W21.cs_mul (g : CS2) (f : W21) : W21 := by
     apply (f_i.bdd_mul g''_a g''_b).add
     simp_rw [mul_assoc] ; apply (f'_i.bdd_mul g'_a g'_b).const_mul
 
-instance : HMul CS2 W21 W21 where hMul g f := f.cs_mul g
+instance : HMul (CS2 ℂ) W21 W21 where hMul g f := f.cs_mul g
+
+instance : HMul (CS2 ℝ) W21 W21 where hMul g f := (g : CS2 ℂ) * f
 
 theorem W21_approximation (f : W21) (g : trunc) :
     Tendsto (fun R => W21.norm (fun v => (1 - g (v * R⁻¹)) * f v)) atTop (𝓝 0) := by
