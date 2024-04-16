@@ -154,14 +154,12 @@ theorem fourierIntegral_self_add_deriv_deriv (f : W21) (u : ℝ) :
     Real.fourierIntegral_deriv f.hf l4 f.hf']
   field_simp [pi_ne_zero] ; ring_nf ; simp
 
-def W21.cs_mul (g : CS2 ℂ) (f : W21) : W21 := .ofCS2 ⟨g * f, g.h1.mul f.hh, g.h2.mul_right⟩
-
-instance : HMul (CS2 ℂ) W21 W21 where hMul g f := f.cs_mul g
+instance : HMul (CS2 ℂ) W21 W21 where hMul g f := .ofCS2 ⟨g * f, g.h1.mul f.hh, g.h2.mul_right⟩
 
 instance : HMul (CS2 ℝ) W21 W21 where hMul g f := (g : CS2 ℂ) * f
 
 theorem W21_approximation (f : W21) (g : trunc) :
-    Tendsto (fun R => W21.norm (fun v => (1 - g (v * R⁻¹)) * f v)) atTop (𝓝 0) := by
+    Tendsto (fun R => W21.norm (f - fun v => (g (v * R⁻¹)) * f v)) atTop (𝓝 0) := by
 
   -- Preliminaries
   have cR {R : ℝ} : Continuous (fun v => v * R⁻¹) := continuous_id.mul continuous_const
@@ -242,7 +240,8 @@ theorem W21_approximation (f : W21) (g : trunc) :
     rw [d1] ; convert (l5.add l7).deriv using 1 ; ring
 
   -- Proof
-  convert_to Tendsto (fun R => W21.norm (fun v => h R v * f v)) atTop (𝓝 0) ; simp [h]
+  convert_to Tendsto (fun R => W21.norm (fun v => h R v * f v)) atTop (𝓝 0)
+  · ext R ; congr ; ext v ; simp [sub_mul, h]
   rw [show (0 : ℝ) = 0 + ((4 * π ^ 2)⁻¹ : ℝ) * 0 by simp]
   refine Tendsto.add ?_ (Tendsto.const_mul _ ?_)
   · let F R v := ‖h R v * f v‖
