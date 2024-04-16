@@ -892,12 +892,12 @@ $$
 \end{definition}
 %%-/
 noncomputable def RiemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
-  (∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ s) +
+  (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
   (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)
 
 lemma RiemannZeta0_apply (N : ℕ) (s : ℂ) : RiemannZeta0 (N : ℕ) (s : ℂ) =
-    (∑ n in Finset.Icc 1 (N - 1), 1 / (n : ℂ) ^ s) +
+    (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
     ((- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) := by
   dsimp [RiemannZeta0]
@@ -905,7 +905,7 @@ lemma RiemannZeta0_apply (N : ℕ) (s : ℂ) : RiemannZeta0 (N : ℕ) (s : ℂ) 
 
 /-%%
 \begin{lemma}[ZetaBnd_aux1]\label{ZetaBnd_aux1}\lean{ZetaBnd_aux1}\leanok
-For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in[1/2,2]$,
+For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in(0,2]$,
 $$
 \left| s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
 \ll |t| \frac{N^{-\sigma}}{\sigma},
@@ -913,7 +913,7 @@ $$
 as $|t|\to\infty$.
 \end{lemma}
 %%-/
-lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (σ_ge : 1 / 2 ≤ σ) (σ_le : σ ≤ 2) :
+lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (σ_gt : 0 < σ) (σ_le : σ ≤ 2) :
     (fun (t : ℝ) ↦ Complex.abs ((σ + t * I) *
       ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^((σ + t * I) + 1)))
       =O[cocompact ℝ] fun (t : ℝ) ↦ |t| * N ^ (-σ) / σ := by
@@ -924,6 +924,27 @@ lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (σ_ge : 1 / 2 ≤ σ) 
 Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\ll |t|$.
 \end{proof}
 %%-/
+
+
+/-
+\begin{lemma}[HolomorphicOn_Zeta0]\label{HolomorphicOn_Zeta0}\lean{HolomorphicOn_Zeta0}\leanok
+For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \Re(s)>0\}$.
+\end{lemma}
+-/
+lemma HolomorphicOn_Zeta0 {N : ℕ} (N_pos : 0 < N) :
+    HolomorphicOn (RiemannZeta0 N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
+  sorry
+/-
+\begin{proof}\uses{ZetaSum_aux1}
+  The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral that's absolutely convergent on $\{s\in \C\mid \Re(s)>0\}$ by Lemma \ref{ZetaSum_aux1}.
+-/
+
+-- MOVE TO MATHLIB near `differentiableAt_riemannZeta`
+lemma HolomophicOn_Zeta :
+    HolomorphicOn riemannZeta {s : ℂ | s ≠ 1} := by
+  intro z hz
+  simp only [Set.mem_setOf_eq] at hz
+  exact (differentiableAt_riemannZeta hz).differentiableWithinAt
 
 lemma tsum_eq_partial_add_tail {N : ℕ} (N_pos : 0 < N) (f : ℕ → ℂ) (hf : Summable f) :
   ∑' (n : ℕ), f n =
@@ -946,8 +967,13 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   let f := riemannZeta
   let g := RiemannZeta0 N
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
-  have f_an : AnalyticOn ℂ f U := by sorry
-  have g_an : AnalyticOn ℂ g U := by sorry
+  have U_open : IsOpen U := by sorry
+  have f_an : AnalyticOn ℂ f U := by
+    apply (HolomophicOn_Zeta.analyticOn ?_).mono
+    · sorry
+    · sorry
+  have g_an : AnalyticOn ℂ g U :=
+    (HolomorphicOn_Zeta0 N_pos).analyticOn U_open
   have preconU : IsPreconnected U := by sorry
   let z₀ := (2 : ℂ)
   have hz₀ : z₀ ∈ U := by sorry
@@ -968,18 +994,13 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   have := ZetaSum_aux2 N_pos hz
   nth_rewrite 2 [neg_div]
   rw [← sub_eq_add_neg]
-
-  -- have := tsum_eq_partial_add_tail N_pos (f := fun n => 1 / (n : ℂ) ^ z) ?_
-  -- rw [← this]
-  -- convert tsum_eq_partial_add_tail N (f := fun n => 1 / (n : ℂ) ^ z) ?_
-  -- · norm_cast
-  --   sorry
-  -- --apply summable_zeta hz
-  -- sorry
-  sorry
+  rw [← this]
+  rw [← sum_add_tsum_nat_add N (Summable_rpow hz)]
+  congr
+  simp
 /-%%
-\begin{proof}
-\uses{ZetaSum_aux2, RiemannZeta0, ZetaBnd_aux1, ZetaBndAux}
+\begin{proof}\leanok
+\uses{ZetaSum_aux2, RiemannZeta0, ZetaBnd_aux1, ZetaBndAux, HolomorphicOn_Zeta0}
 Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{RiemannZeta0}.
 \end{proof}
 %%-/
