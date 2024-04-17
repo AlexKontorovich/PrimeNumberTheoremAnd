@@ -29,6 +29,10 @@ lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
   refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
   simpa [key'] using contDiff_const
 
+lemma tendsto_funscale {f : ℝ → E} (hf : ContinuousAt f 0) (x : ℝ) :
+    Tendsto (fun R => funscale f R x) atTop (𝓝 (f 0)) :=
+  hf.tendsto.comp (by simpa using tendsto_inv_atTop_zero.mul_const x)
+
 end lemmas
 
 namespace CS
@@ -90,6 +94,10 @@ lemma hasDerivAt_scale (f : CS (n + 1) E) (R x : ℝ) :
     HasDerivAt (f.scale R) (R⁻¹ • _root_.deriv f (R⁻¹ • x)) x := by
   convert hasDerivAt (f.scale R) x ; rw [deriv_scale'] ; rfl
 
+lemma tendsto_scale (f : CS n E) (x : ℝ) : Tendsto (fun R => f.scale R x) atTop (𝓝 (f 0)) := by
+  apply (tendsto_funscale f.continuous.continuousAt x).congr'
+  filter_upwards [eventually_ne_atTop 0] with R hR ; simp [scale, hR]
+
 lemma bounded : ∃ C, ∀ v, ‖f v‖ ≤ C := by
   obtain ⟨x, hx⟩ := (continuous_norm.comp f.continuous).exists_forall_ge_of_hasCompactSupport f.h2.norm
   exact ⟨_, hx⟩
@@ -102,13 +110,15 @@ instance : CoeFun trunc (fun _ => ℝ → ℝ) where coe f := f.toFun
 
 instance : Coe trunc (CS 2 ℝ) where coe := trunc.toCS
 
-lemma nonneg (g : trunc) : 0 ≤ ⇑g := le_trans (Set.indicator_nonneg (by simp)) g.h3
+lemma nonneg (g : trunc) (x : ℝ) : 0 ≤ g x := (Set.indicator_nonneg (by simp) x).trans (g.h3 x)
 
-lemma le_one (g : trunc) : ⇑g ≤ 1 := g.h4.trans <| Set.indicator_le_self' (by simp)
+lemma le_one (g : trunc) (x : ℝ) : g x ≤ 1 := (g.h4 x).trans <| Set.indicator_le_self' (by simp) x
 
 lemma zero (g : trunc) : g =ᶠ[𝓝 0] 1 := by
   have : Set.Icc (-1) 1 ∈ 𝓝 (0 : ℝ) := by apply Icc_mem_nhds <;> linarith
   exact eventually_of_mem this (fun x hx => le_antisymm (g.le_one x) (by simpa [hx] using g.h3 x))
+
+@[simp] lemma zero_at {g : trunc} : g 0 = 1 := g.zero.eq_of_nhds
 
 end trunc
 
@@ -139,6 +149,9 @@ noncomputable def deriv (f : W1 (n + 1) E) : W1 n E where
   smooth := contDiff_succ_iff_deriv.mp f.smooth |>.2
   integrable k hk := by
     simpa [iteratedDeriv_succ'] using f.integrable (Nat.succ_le_succ hk)
+
+lemma hasDerivAt (f : W1 (n + 1) E) (x : ℝ) : HasDerivAt f (f.deriv x) x :=
+  f.differentiable.differentiableAt.hasDerivAt
 
 def sub (f g : W1 n E) : W1 n E where
   toFun := f - g
