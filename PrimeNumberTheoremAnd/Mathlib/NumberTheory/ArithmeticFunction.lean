@@ -1,4 +1,4 @@
-import PrimeNumberTheoremAnd.Mathlib.Data.Nat.Interval
+import Mathlib.Data.Nat.Factorization.Basic
 import Mathlib.NumberTheory.ArithmeticFunction
 
 open ArithmeticFunction BigOperators Nat Finset
@@ -23,21 +23,14 @@ theorem ArithmeticFunction.sum_range_mul_zeta
       rw [sum_filter, sum_product_right]
       refine sum_congr rfl (fun y _ ↦ by simp only [← sum_filter])
     _ = ∑ d in range (N + 1), (N / d) • f d := by
-      rw [sum_congr rfl fun y hy ↦ ?_]
+      rw [sum_congr rfl fun y _ ↦ ?_]
       rw [sum_const]
       congr
       simp_rw [mem_divisors, and_comm (b := _ ≠ 0), ← filter_filter]
-      have : (range (N + 1)).filter (· ≠ 0) = Icc 1 N := by
+      have : (range (N + 1)).filter (· ≠ 0) = Ioc 0 N := by
         ext a
-        rw [mem_filter, mem_Icc, mem_range]
-        constructor <;> intro ⟨h₁, h₂⟩
-        · exact ⟨one_le_iff_ne_zero.mpr h₂, lt_succ.mp h₁⟩
-        · exact ⟨lt_succ.mpr h₂, one_le_iff_ne_zero.mp h₁⟩
-      by_cases hy' : 1 ≤ y
-      · rw [this, Nat.card_Icc_filter_dvd hy']
-      · rw [not_le, lt_one_iff] at hy'
-        subst hy'
-        simp
+        rw [mem_filter, mem_Ioc, mem_range, pos_iff_ne_zero, lt_succ, and_comm]
+      rw [this, Nat.Ioc_filter_dvd_card_eq_div]
 
 theorem ArithmeticFunction.sum_Icc_mul_zeta
     {R : Type*} [Semiring R] (f : ArithmeticFunction R) (N : ℕ) :

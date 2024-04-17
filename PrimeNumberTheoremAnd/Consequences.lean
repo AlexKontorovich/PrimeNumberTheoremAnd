@@ -1,5 +1,4 @@
 import PrimeNumberTheoremAnd.Wiener
-import PrimeNumberTheoremAnd.Mathlib.Data.Nat.Interval
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.Analysis.Asymptotics.Asymptotics
 import Mathlib.NumberTheory.PrimeCounting
