@@ -1266,7 +1266,7 @@ lemma ZetaNear1BndFilter:
   have := riemannZeta_isBigO_near_one_horizontal.comp_tendsto this
   convert this using 1 <;> {ext; simp}
 /-%%
-\begin{proof}\uses{ZetaBnd_aux1, Zeta0EqZeta}
+\begin{proof}\uses{ZetaBnd_aux1, Zeta0EqZeta}\leanok
 Zeta has a simple pole at $s=1$. Equivalently, $\zeta(s)(s-1)$ remains bounded near $1$.
 Lots of ways to prove this.
 Probably the easiest one: use the expression for $\zeta_0 (N,s)$ with $N=1$ (the term $N^{1-s}/(1-s)$ being the only unbounded one).
