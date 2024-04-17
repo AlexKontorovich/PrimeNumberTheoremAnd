@@ -1296,9 +1296,8 @@ lemma ZetaNear1BndExact:
   rw [Asymptotics.isBigO_iff] at this
   obtain ⟨c, U, hU, V, hV, h⟩ := this
   obtain ⟨T, hT, T_open, h1T⟩ := mem_nhds_iff.mp hU
-  simp only [mem_principal] at hV
   obtain ⟨ε, εpos, hε⟩ := Metric.isOpen_iff.mp T_open 1 h1T
-  simp [Metric.ball] at hε
+  simp only [Metric.ball] at hε
   replace hε : Set.Ico 1 (1 + ε) ⊆ U := by
     refine subset_trans (subset_trans ?_ hε) hT
     intro x hx
@@ -1306,23 +1305,19 @@ lemma ZetaNear1BndExact:
     simp only [dist, abs_lt]
     exact ⟨by linarith, by linarith⟩
   let W := Set.Icc (1 + ε) 2
-  have W_compact : IsCompact W := isCompact_Icc
-  replace W_compact : IsCompact {ofReal' z | z ∈ W} := by
-    apply IsCompact.image W_compact continuous_ofReal
+  have W_compact : IsCompact {ofReal' z | z ∈ W} :=
+    IsCompact.image isCompact_Icc continuous_ofReal
   have cont : ContinuousOn riemannZeta {ofReal' z | z ∈ W} := by
     apply HasDerivAt.continuousOn (f' := deriv riemannZeta)
     intro σ hσ
-    apply DifferentiableAt.hasDerivAt
-    apply differentiableAt_riemannZeta
-    contrapose! hσ
-    simp [W, hσ, εpos]
+    exact (differentiableAt_riemannZeta (by contrapose! hσ; simp [W, hσ, εpos])).hasDerivAt
   obtain ⟨C, hC⟩ := IsCompact.exists_bound_of_continuousOn W_compact cont
   let C' := max (C + 1) 1
   replace hC : ∀ (σ : ℝ), σ ∈ W → ‖riemannZeta σ‖ < C' := by
     intro σ hσ
+    simp only [lt_max_iff, C']
     have := hC σ
     simp only [Set.mem_setOf_eq, ofReal_inj, exists_eq_right] at this
-    simp only [lt_max_iff, C', Or.inl]
     exact Or.inl <| lt_of_le_of_lt (this hσ) (by norm_num)
   have Cpos : 0 < C' := by simp [C']
   use max (2 * C') c, (by simp [Cpos])
@@ -1333,16 +1328,15 @@ lemma ZetaNear1BndExact:
     norm_cast
     have : 0 ≤ 1 / (σ - 1) := by apply one_div_nonneg.mpr; linarith
     simp only [norm_eq_abs, Complex.abs_ofReal, abs_eq_self.mpr this, mul_div, mul_one]
-    refine div_le_div (by simp [Cpos.le]) (by simp) (by linarith) (by rfl)
+    exact div_le_div (by simp [Cpos.le]) (by simp) (by linarith) (by rfl)
   · replace hσ : σ ∈ W := by
       simp only [Set.mem_inter_iff, hV σ_ge, and_true] at hσ
       simp only [Set.mem_Icc, σ_le, and_true, W]
       contrapose! hσ
       exact hε ⟨σ_ge.le, hσ⟩
-    apply le_trans (hC σ hσ).le
-    apply (le_div_iff (by linarith)).mpr
-    rw [le_max_iff, mul_comm 2]; left
-    exact mul_le_mul_of_nonneg_left (by linarith) Cpos.le
+    apply le_trans (hC σ hσ).le ((le_div_iff (by linarith)).mpr ?_)
+    rw [le_max_iff, mul_comm 2]
+    exact Or.inl <| mul_le_mul_of_nonneg_left (by linarith) Cpos.le
 /-%%
 \begin{proof}\uses{ZetaNear1BndFilter}\leanok
 Split into two cases, use Lemma \ref{ZetaNear1BndFilter} for $\sigma$ sufficiently small
