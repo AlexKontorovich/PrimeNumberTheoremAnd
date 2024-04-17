@@ -1241,7 +1241,24 @@ lemma ZetaNear1BndFilter:
   have : Tendsto (fun (x : ℝ) ↦ x - 1) (𝓝[>](1 : ℝ)) (𝓝[>](0 : ℝ)) := by
     refine tendsto_iff_forall_eventually_mem.mpr ?_
     intro s hs
-    sorry
+    simp only [mem_nhdsWithin] at hs
+    obtain ⟨u, hu, hu2, hu3⟩ := hs
+    let t := {x | x - 1 ∈ u}
+    have : t ∩ Set.Ioi 1 ∈ 𝓝[>](1 : ℝ) := by
+      simp only [mem_nhdsWithin]
+      use t
+      simp only [Set.subset_inter_iff, Set.inter_subset_left, Set.inter_subset_right, and_self,
+        and_true, t]
+      refine ⟨?_, by simp [hu2]⟩
+      simp [Metric.isOpen_iff] at hu ⊢
+      intro x hx
+      obtain ⟨ε, εpos, hε⟩ := hu (x - 1) hx
+      simp only [Metric.ball, dist_sub_eq_dist_add_right, Set.setOf_subset_setOf] at hε ⊢
+      exact ⟨ε, εpos, fun _ ha ↦ hε (by simp [ha])⟩
+    filter_upwards [this]
+    intro a ha
+    simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_Ioi, t] at ha
+    exact hu3 (by simp [ha])
   have := riemannZeta_isBigO_near_one_horizontal.comp_tendsto this
   convert this using 1 <;> {ext1 _; simp}
 /-%%
