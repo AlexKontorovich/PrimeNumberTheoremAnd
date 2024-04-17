@@ -1228,28 +1228,36 @@ Estimate as before, with an extra factor of $\log |t|$.
 \end{proof}
 %%-/
 
-lemma Tendsto_nhdsWithin_punctured_add (a x : ℝ) :
-    Tendsto (fun y ↦ y + a) (𝓝[>] x) (𝓝[>] (x + a)) := by
+lemma Tendsto_nhdsWithin_punctured_map_add {f : ℝ → ℝ} (a x : ℝ)
+    (f_mono : StrictMono f) (f_iso : Isometry f):
+    Tendsto (fun y ↦ f y + a) (𝓝[>] x) (𝓝[>] (f x + a)) := by
   refine tendsto_iff_forall_eventually_mem.mpr ?_
   intro v hv
   simp only [mem_nhdsWithin] at hv
   obtain ⟨u, hu, hu2, hu3⟩ := hv
-  let t := {x | x + a ∈ u}
+  let t := {x | f x + a ∈ u}
   have : t ∩ Set.Ioi x ∈ 𝓝[>] x := by
     simp only [mem_nhdsWithin]
     use t
     simp only [Set.subset_inter_iff, Set.inter_subset_left, Set.inter_subset_right, and_self,
       and_true, t]
+    simp
     refine ⟨?_, by simp [hu2]⟩
     simp [Metric.isOpen_iff] at hu ⊢
     intro x hx
-    obtain ⟨ε, εpos, hε⟩ := hu (x + a) hx
+    obtain ⟨ε, εpos, hε⟩ := hu (f x + a) hx
     simp only [Metric.ball, dist_sub_eq_dist_add_right, Set.setOf_subset_setOf] at hε ⊢
-    exact ⟨ε, εpos, fun _ ha ↦ hε (by simp [ha])⟩
+    exact ⟨ε, εpos, fun _ hy ↦ hε (by simp [isometry_iff_dist_eq.mp f_iso, hy])⟩
   filter_upwards [this]
   intro b hb
   simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_Ioi, t] at hb
-  exact hu3 (by simp [hb])
+  refine hu3 ?_
+  simp only [Set.mem_inter_iff, Set.mem_Ioi, add_lt_add_iff_right]
+  exact ⟨hb.1, f_mono hb.2⟩
+
+lemma Tendsto_nhdsWithin_punctured_add (a x : ℝ) :
+    Tendsto (fun y ↦ y + a) (𝓝[>] x) (𝓝[>] (x + a)) :=
+  Tendsto_nhdsWithin_punctured_map_add a x strictMono_id isometry_id
 
 /-%%
 \begin{lemma}[ZetaNear1BndFilter]\label{ZetaNear1BndFilter}\lean{ZetaNear1BndFilter}\leanok
@@ -1261,7 +1269,7 @@ $$
 %%-/
 lemma ZetaNear1BndFilter:
     (fun σ : ℝ ↦ riemannZeta σ) =O[𝓝[>](1 : ℝ)] (fun σ ↦ (1 : ℂ) / (σ - 1)) := by
-  have := Tendsto_nhdsWithin_punctured_add (f := fun (x : ℝ) ↦ x) (a := -1) (x := 1)
+  have := Tendsto_nhdsWithin_punctured_add (a := -1) (x := 1)
   simp only [add_right_neg, ← sub_eq_add_neg] at this
   have := riemannZeta_isBigO_near_one_horizontal.comp_tendsto this
   convert this using 1 <;> {ext; simp}
