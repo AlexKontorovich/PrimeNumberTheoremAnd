@@ -5,6 +5,7 @@ import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 import Mathlib.Analysis.Fourier.Inversion
 
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Fourier.FourierTransformDeriv
+import PrimeNumberTheoremAnd.Sobolev
 
 open FourierTransform Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap VectorFourier BigOperators
 
@@ -156,39 +157,31 @@ end CS
 
 end CS
 
-structure W21 where
-  toFun : ℝ → ℂ
-  hh : ContDiff ℝ 2 toFun
-  hf : Integrable toFun
-  hf' : Integrable (deriv toFun)
-  hf'' : Integrable (deriv (deriv toFun))
+abbrev W21 := W1 2 ℂ
 
-instance : CoeFun W21 (fun _ => ℝ → ℂ) where coe := W21.toFun
+-- structure W21 where
+--   toFun : ℝ → ℂ
+--   hh : ContDiff ℝ 2 toFun
+--   hf : Integrable toFun
+--   hf' : Integrable (deriv toFun)
+--   hf'' : Integrable (deriv (deriv toFun))
+
+instance : CoeFun W21 (fun _ => ℝ → ℂ) where coe := W1.toFun
 
 namespace W21
 
 variable {f : W21}
 
-@[continuity] lemma continuous (f : W21) : Continuous f := f.hh.continuous
+@[continuity] lemma continuous (f : W21) : Continuous f :=
+  W1.continuous f
 
-@[continuity] lemma continuous' (f : W21) : Continuous (deriv f) := (f.hh.iterate_deriv' 1 1).continuous
+@[continuity] lemma continuous' (f : W21) : Continuous (deriv f) :=
+  f.deriv.continuous
 
-@[continuity] lemma continuous'' (f : W21) : Continuous (deriv^[2] f) := (f.hh.iterate_deriv' 0 2).continuous
+@[continuity] lemma continuous'' (f : W21) : Continuous (deriv^[2] f) :=
+  f.deriv.deriv.continuous
 
-def sub (f g : W21) : W21 := by
-  have l1 : deriv (⇑f - ⇑g) = deriv f - deriv g := by
-    ext x ; apply deriv_sub
-    · exact (f.hh.differentiable one_le_two).differentiableAt
-    · exact (g.hh.differentiable one_le_two).differentiableAt
-  have l2 : deriv (deriv (⇑f - ⇑g)) = deriv (deriv f) - deriv (deriv g) := by
-    rw [l1] ; ext x ; apply deriv_sub
-    · exact (f.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt
-    · exact (g.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt
-  refine ⟨f - g, f.hh.sub g.hh, f.hf.sub g.hf, ?_, ?_⟩
-  · simpa [l1] using f.hf'.sub g.hf'
-  · simpa [l2] using f.hf''.sub g.hf''
-
-instance : HSub W21 W21 W21 where hSub := sub
+noncomputable instance : HSub W21 W21 W21 where hSub := W1.sub
 
 noncomputable def norm (f : ℝ → ℂ) : ℝ :=
     (∫ v, ‖f v‖) + (4 * π ^ 2)⁻¹ * (∫ v, ‖deriv (deriv f) v‖)
@@ -197,38 +190,39 @@ lemma norm_nonneg {f : ℝ → ℂ} : 0 ≤ norm f :=
   add_nonneg (integral_nonneg (fun t => by simp))
     (mul_nonneg (by positivity) (integral_nonneg (fun t => by simp)))
 
-noncomputable instance : Norm W21 where norm := norm ∘ toFun
+noncomputable instance : Norm W21 where norm := norm ∘ W1.toFun
 
-noncomputable def of_Schwartz (f : 𝓢(ℝ, ℂ)) : W21 where
-  toFun := f
-  hh := f.smooth 2
-  hf := f.integrable
-  hf' := (SchwartzMap.derivCLM ℝ f).integrable
-  hf'' := (SchwartzMap.derivCLM ℝ (SchwartzMap.derivCLM ℝ f)).integrable
+noncomputable def of_Schwartz (f : 𝓢(ℝ, ℂ)) : W21 := W1.of_Schwartz f
 
 noncomputable instance : Coe 𝓢(ℝ, ℂ) W21 where coe := of_Schwartz
 
-def ofCS2 (f : CS 2 ℂ) : W21 where
-  toFun := f
-  hh := f.h1
-  hf := f.h1.continuous.integrable_of_hasCompactSupport f.h2
-  hf' := (f.h1.continuous_deriv one_le_two).integrable_of_hasCompactSupport f.h2.deriv
-  hf'' := (f.h1.iterate_deriv' 0 2).continuous.integrable_of_hasCompactSupport f.h2.deriv.deriv
+def ofCS2 (f : CS 2 ℂ) : W21 := by
+  refine ⟨f, f.h1, fun k hk => ?_⟩ ; match k with
+  | 0 => exact f.h1.continuous.integrable_of_hasCompactSupport f.h2
+  | 1 => simpa using (f.h1.continuous_deriv one_le_two).integrable_of_hasCompactSupport f.h2.deriv
+  | 2 => simpa [iteratedDeriv_succ] using
+    (f.h1.iterate_deriv' 0 2).continuous.integrable_of_hasCompactSupport f.h2.deriv.deriv
 
 instance : Coe (CS 2 ℂ) W21 where coe := ofCS2
+
+lemma hf (f : W21) : Integrable f := by simpa [iteratedDeriv_succ] using f.integrable zero_le_two
+
+lemma hf' (f : W21) : Integrable (deriv f) := by simpa [iteratedDeriv_succ] using f.integrable one_le_two
+
+lemma hf'' (f : W21) : Integrable (deriv (deriv f))  := by simpa [iteratedDeriv_succ] using f.integrable le_rfl
 
 end W21
 
 theorem fourierIntegral_self_add_deriv_deriv (f : W21) (u : ℝ) :
     (1 + u ^ 2) * 𝓕 f u = 𝓕 (fun u => f u - (1 / (4 * π ^ 2)) * deriv^[2] f u) u := by
-  have l1 : Integrable (fun x => (((π : ℂ) ^ 2)⁻¹ * 4⁻¹) * deriv (deriv f) x) := (f.hf''.const_mul _)
-  have l4 : Differentiable ℝ f := f.hh.differentiable one_le_two
-  have l5 : Differentiable ℝ (deriv f) := (f.hh.iterate_deriv' 1 1).differentiable le_rfl
-  simp [f.hf, l1, add_mul, Real.fourierIntegral_deriv f.hf' l5 f.hf'',
-    Real.fourierIntegral_deriv f.hf l4 f.hf']
+  have l1 : Integrable (fun x => (((π : ℂ) ^ 2)⁻¹ * 4⁻¹) * deriv (deriv f) x) := by
+    apply Integrable.const_mul ; simpa [iteratedDeriv_succ] using f.integrable le_rfl
+  have l4 : Differentiable ℝ f := f.differentiable
+  have l5 : Differentiable ℝ (deriv f) := f.deriv.differentiable
+  simp [f.hf, l1, add_mul, Real.fourierIntegral_deriv f.hf' l5 f.hf'', Real.fourierIntegral_deriv f.hf l4 f.hf']
   field_simp [pi_ne_zero] ; ring_nf ; simp
 
-instance : HMul (CS 2 ℂ) W21 (CS 2 ℂ) where hMul g f := ⟨g * f, g.h1.mul f.hh, g.h2.mul_right⟩
+instance : HMul (CS 2 ℂ) W21 (CS 2 ℂ) where hMul g f := ⟨g * f, g.h1.mul f.smooth, g.h2.mul_right⟩
 
 instance : HMul (CS 2 ℝ) W21 (CS 2 ℂ) where hMul g f := (g : CS 2 ℂ) * f
 
@@ -238,8 +232,8 @@ theorem W21_approximation (f : W21) (g : trunc) :
   -- About f
   let f' := deriv f
   let f'' := deriv (deriv f)
-  have df v : HasDerivAt f (f' v) v := f.hh.differentiable one_le_two |>.differentiableAt.hasDerivAt
-  have df' v : HasDerivAt f' (f'' v) v := (f.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
+  have df v : HasDerivAt f (f' v) v := f.differentiable.differentiableAt.hasDerivAt
+  have df' v : HasDerivAt f' (f'' v) v := f.deriv.differentiable.differentiableAt.hasDerivAt
 
   -- About g
   let g' := (g : CS 2 ℝ).deriv
@@ -313,7 +307,7 @@ theorem W21_approximation (f : W21) (g : trunc) :
   · let F R v := ‖h R v * f v‖
     have e1 : ∀ᶠ (n : ℝ) in atTop, AEStronglyMeasurable (F n) volume := by
       apply eventually_of_forall ; intro R
-      exact (ch.mul f.hh.continuous).norm.aestronglyMeasurable
+      exact (ch.mul f.continuous).norm.aestronglyMeasurable
     have e2 : ∀ᶠ (n : ℝ) in atTop, ∀ᵐ (a : ℝ), ‖F n a‖ ≤ ‖f a‖ := by
       apply eventually_of_forall ; intro R
       apply eventually_of_forall ; intro v

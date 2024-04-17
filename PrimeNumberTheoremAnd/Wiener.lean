@@ -362,10 +362,10 @@ theorem decay_bounds_W21 (f : W21) (hA : ∀ t, ‖f t‖ ≤ A / (1 + t ^ 2))
     ‖𝓕 f u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
   have l0 : 1 * (4 * π)⁻¹ * A = (4 * π ^ 2)⁻¹ * (π * A) := by field_simp ; ring
   have l1 : ∫ (v : ℝ), ‖f v‖ ≤ π * A := by
-    apply decay_bounds_aux f.hh.continuous.aestronglyMeasurable
+    apply decay_bounds_aux f.continuous.aestronglyMeasurable
     simp_rw [← div_eq_mul_inv] ; exact hA
   have l2 : ∫ (v : ℝ), ‖deriv (deriv f) v‖ ≤ π * A := by
-    apply decay_bounds_aux ((f.hh.iterate_deriv' 0 2).continuous |>.aestronglyMeasurable)
+    apply decay_bounds_aux f.deriv.deriv.continuous.aestronglyMeasurable
     simp_rw [← div_eq_mul_inv] ; exact hA'
   apply decay_bounds_key f u |>.trans
   change W21.norm _ * _ ≤ _
