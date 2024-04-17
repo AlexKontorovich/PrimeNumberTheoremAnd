@@ -222,31 +222,31 @@ theorem W21_approximation (f : W21) (g : trunc) :
 
   -- About h
   let h R v := 1 - g.scale R v
-  let h' R v := - R⁻¹ • g' (R⁻¹ * v)
+  let h' R v := - (g.scale R).deriv v
   let h'' R v := - g'' (v * R⁻¹) * R⁻¹ * R⁻¹
   have ch {R} : Continuous (fun v => (h R v : ℂ)) :=
     continuous_ofReal.comp <| continuous_const.sub (CS.continuous _)
   have ch' {R} : Continuous (fun v => (h' R v : ℂ)) := by
     apply continuous_ofReal.comp
-    apply Continuous.const_smul
-    apply g'.continuous.comp cR'
+    apply Continuous.neg
+    apply CS.continuous
   have ch'' {R} : Continuous (fun v => (h'' R v : ℂ)) :=
     continuous_ofReal.comp <| ((g''.continuous.comp cR).neg.mul continuous_const).mul continuous_const
   have dh R v : HasDerivAt (h R) (h' R v) v := by
     convert CS.hasDerivAt_scale (g : CS 2 ℝ) R v |>.const_sub 1 using 1
-    simp [h', g', CS.deriv]
+    simp [h', CS.deriv_scale] ; left ; rfl
   have dh' R v : HasDerivAt (h' R) (h'' R v) v := by
     have l1 := (g'.hasDerivAt (R⁻¹ • v))
     have l2 := (dR R⁻¹ v)
     have := l1.scomp v l2
     have := this.const_smul (-R⁻¹)
     convert this using 1
-    -- · ext v ; simp [h'] ; ring_nf ; tauto
+    · ext v ; simp [h', CS.deriv_scale] --; ring_nf ; tauto
     · simp [h''] ; ring_nf
   have hc1 : ∀ᶠ R in atTop, ∀ v, |h' R v| ≤ c1 := by
     filter_upwards [eventually_ge_atTop 1] with R hR v
     have : 0 ≤ R := by linarith
-    simp [h', abs_mul, abs_inv, abs_eq_self.mpr this]
+    simp [h', CS.deriv_scale, abs_mul, abs_inv, abs_eq_self.mpr this]
     convert_to _ ≤ c1 * 1 ; simp ; rw [mul_comm]
     apply mul_le_mul (mg' _) (inv_le_of_inv_le (by linarith) (by simpa using hR)) (by positivity)
     exact (abs_nonneg _).trans (mg' 0)
@@ -267,7 +267,7 @@ theorem W21_approximation (f : W21) (g : trunc) :
     simp [h, hR, CS.scale, hR', funscale, mul_comm R⁻¹]
   have eh' v : ∀ᶠ R in atTop, h' R v = 0 := by
     filter_upwards [(vR v).eventually evg'] with R hR
-    simp [h', hR] ; rw [mul_comm, hR] ; simp
+    simp [h', hR, CS.deriv_scale] ; rw [mul_comm, hR] ; simp
   have eh'' v : ∀ᶠ R in atTop, h'' R v = 0 := by filter_upwards [(vR v).eventually evg''] with R hR ; simp [h'', hR]
 
   -- Computations
