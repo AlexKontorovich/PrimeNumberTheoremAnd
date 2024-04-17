@@ -193,6 +193,7 @@ theorem W21_approximation (f : W21) (g : trunc) :
 
   -- Preliminaries
   have cR {R : ℝ} : Continuous (fun v => v * R⁻¹) := continuous_id.mul continuous_const
+  have dR (R : ℝ) (x : ℝ) : HasDerivAt (fun v => R * v) R x := by simpa using (hasDerivAt_id x).const_mul R
   have vR v : Tendsto (fun R : ℝ => v * R⁻¹) atTop (𝓝 0) := by simpa using tendsto_inv_atTop_zero.const_mul v
 
   -- About f
@@ -220,23 +221,32 @@ theorem W21_approximation (f : W21) (g : trunc) :
 
   -- About h
   let h R v := 1 - g.scale R v
-  let h' R v := - g' (v * R⁻¹) * R⁻¹
+  let h' R v := - R⁻¹ • g' (v * R⁻¹)
   let h'' R v := - g'' (v * R⁻¹) * R⁻¹ * R⁻¹
   have ch {R} : Continuous (fun v => (h R v : ℂ)) :=
     continuous_ofReal.comp <| continuous_const.sub (CS.continuous _)
-  have ch' {R} : Continuous (fun v => (h' R v : ℂ)) :=
-    continuous_ofReal.comp <| (g'.continuous.comp cR).neg.mul continuous_const
+  have ch' {R} : Continuous (fun v => (h' R v : ℂ)) := by
+    apply continuous_ofReal.comp
+    apply Continuous.const_smul
+    apply g'.continuous.comp cR
   have ch'' {R} : Continuous (fun v => (h'' R v : ℂ)) :=
     continuous_ofReal.comp <| ((g''.continuous.comp cR).neg.mul continuous_const).mul continuous_const
   have dh R v : HasDerivAt (h R) (h' R v) v := by
-    convert CS.hasDerivAt_scale (g : CS 2 ℝ) R v |>.const_sub 1 using 1 ; simp [h', g', CS.deriv] ; ring_nf
+    convert CS.hasDerivAt_scale (g : CS 2 ℝ) R v |>.const_sub 1 using 1
+    simp [h', g', CS.deriv] ; ring_nf ; tauto
   have dh' R v : HasDerivAt (h' R) (h'' R v) v := by
-    simpa [h', h''] using HasDerivAt.mul_const ((g'.hasDerivAt _).comp _ <| hasDerivAt_mul_const _).neg (R⁻¹)
+    have l1 := (g'.hasDerivAt (R⁻¹ • v))
+    have l2 := (dR R⁻¹ v)
+    have := l1.scomp v l2
+    have := this.const_smul (-R⁻¹)
+    convert this using 1
+    · ext v ; simp [h'] ; ring_nf ; tauto
+    · simp [h''] ; ring_nf
   have hc1 : ∀ᶠ R in atTop, ∀ v, |h' R v| ≤ c1 := by
     filter_upwards [eventually_ge_atTop 1] with R hR v
     have : 0 ≤ R := by linarith
     simp [h', abs_mul, abs_inv, abs_eq_self.mpr this]
-    convert_to _ ≤ c1 * 1 ; simp
+    convert_to _ ≤ c1 * 1 ; simp ; rw [mul_comm]
     apply mul_le_mul (mg' _) (inv_le_of_inv_le (by linarith) (by simpa using hR)) (by positivity)
     exact (abs_nonneg _).trans (mg' 0)
   have hc2 : ∀ᶠ R in atTop, ∀ v, |h'' R v| ≤ c2 := by
