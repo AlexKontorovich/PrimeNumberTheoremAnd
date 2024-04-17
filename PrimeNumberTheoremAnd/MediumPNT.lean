@@ -1,10 +1,11 @@
 import Mathlib.Analysis.Complex.CauchyIntegral
+import Mathlib.NumberTheory.LSeries.Dirichlet
 import PrimeNumberTheoremAnd.MellinCalculus
 import PrimeNumberTheoremAnd.ZetaBounds
 import EulerProducts.PNT
 import Mathlib.Algebra.Function.Support
 
-open Set Function Filter
+open Set Function Filter Complex
 
 open scoped ArithmeticFunction
 
@@ -27,15 +28,17 @@ $$
 %%-/
 theorem LogDerivativeDirichlet (s : ℂ) (hs : 1 < s.re) :
     - deriv riemannZeta s / riemannZeta s = ∑' n, Λ n / (n : ℂ) ^ s := by
-  convert (ArithmeticFunction.LSeries_vonMangoldt_eq hs).symm using 1
-  · congr
-    ·
-      sorry
-    · sorry
-  sorry
+  rw [← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs]
+  dsimp [LSeries, LSeries.term]
+  nth_rewrite 2 [tsum_eq_add_tsum_ite (b := 0) ?_]
+  · simp
+  · have := ArithmeticFunction.LSeriesSummable_vonMangoldt hs
+    dsimp [LSeriesSummable] at this
+    convert this; rename ℕ => n
+    by_cases h : n = 0 <;> simp [LSeries.term, h]
 /-%%
-\begin{proof}
-Already in EulerProducts.
+\begin{proof}\leanok
+Already in Mathlib.
 \end{proof}
 
 
@@ -65,10 +68,36 @@ $$\psi_{\epsilon}(X) = \sum_{n=1}^\infty \Lambda(n)\widetilde{1_{\epsilon}}(n/X)
 \end{theorem}
 %%-/
 theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (ε : ℝ) (eps_pos: 0 < ε)
-    (suppΨ : Function.support ψ ⊆ Icc (1 / 2) 2) (X : ℝ) :
+    (suppΨ : Function.support ψ ⊆ Icc (1 / 2) 2) (X : ℝ) (X_pos : 0 < X) :
     SmoothedChebyshev ψ ε X = ∑' n, Λ n * ψ (n / X) := by
-  sorry
-
+  dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
+  rw [MellinTransform_eq]
+  calc
+    _ = 1 / (2 * Real.pi * I) * (I * ∫ (t : ℝ), ∑' n, Λ n / (n : ℂ) ^ (2 + ↑t * I) *
+      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
+    _ = 1 / (2 * Real.pi * I) * (I * ∑' n, ∫ (t : ℝ), Λ n / (n : ℂ) ^ (2 + ↑t * I) *
+      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
+    _ = 1 / (2 * Real.pi * I) * (I * ∑' n, Λ n * ∫ (t : ℝ),
+      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
+    _ = _ := ?_
+  · congr; ext t
+    rw [LogDerivativeDirichlet (s := 2 + t * I) (by simp)]
+    rw [← tsum_mul_right, ← tsum_mul_right]
+  · sorry
+  · field_simp; congr; ext n; congr; rw [← MeasureTheory.integral_mul_left ]; congr; ext t
+    by_cases n_ne_zero : n = 0; simp [n_ne_zero]
+    rw [mul_div_assoc, mul_assoc]
+    congr
+    rw [(div_eq_iff ?_).mpr]
+    have := @Complex.mul_cpow_ofReal_nonneg (a := X / (n : ℝ)) (b := (n : ℝ)) (r := 2 + t * I) ?_ ?_
+    push_cast at this ⊢
+    rw [← this, div_mul_cancel₀]
+    · simp only [ne_eq, Nat.cast_eq_zero, n_ne_zero, not_false_eq_true]
+    · apply div_nonneg X_pos.le; simp
+    · simp
+    · simp only [ne_eq, cpow_eq_zero_iff, Nat.cast_eq_zero, not_and, not_not]
+      intro hn; exfalso; exact n_ne_zero hn
+  · sorry
 /-%%
 \begin{proof}
 \uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet}

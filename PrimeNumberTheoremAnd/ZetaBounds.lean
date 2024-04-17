@@ -1228,6 +1228,37 @@ Estimate as before, with an extra factor of $\log |t|$.
 \end{proof}
 %%-/
 
+lemma Tendsto_nhdsWithin_punctured_map_add {f : ℝ → ℝ} (a x : ℝ)
+    (f_mono : StrictMono f) (f_iso : Isometry f):
+    Tendsto (fun y ↦ f y + a) (𝓝[>] x) (𝓝[>] (f x + a)) := by
+  refine tendsto_iff_forall_eventually_mem.mpr ?_
+  intro v hv
+  simp only [mem_nhdsWithin] at hv
+  obtain ⟨u, hu, hu2, hu3⟩ := hv
+  let t := {x | f x + a ∈ u}
+  have : t ∩ Set.Ioi x ∈ 𝓝[>] x := by
+    simp only [mem_nhdsWithin]
+    use t
+    simp only [Set.subset_inter_iff, Set.inter_subset_left, Set.inter_subset_right, and_self,
+      and_true, t]
+    simp
+    refine ⟨?_, by simp [hu2]⟩
+    simp [Metric.isOpen_iff] at hu ⊢
+    intro x hx
+    obtain ⟨ε, εpos, hε⟩ := hu (f x + a) hx
+    simp only [Metric.ball, dist_sub_eq_dist_add_right, Set.setOf_subset_setOf] at hε ⊢
+    exact ⟨ε, εpos, fun _ hy ↦ hε (by simp [isometry_iff_dist_eq.mp f_iso, hy])⟩
+  filter_upwards [this]
+  intro b hb
+  simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_Ioi, t] at hb
+  refine hu3 ?_
+  simp only [Set.mem_inter_iff, Set.mem_Ioi, add_lt_add_iff_right]
+  exact ⟨hb.1, f_mono hb.2⟩
+
+lemma Tendsto_nhdsWithin_punctured_add (a x : ℝ) :
+    Tendsto (fun y ↦ y + a) (𝓝[>] x) (𝓝[>] (x + a)) :=
+  Tendsto_nhdsWithin_punctured_map_add a x strictMono_id isometry_id
+
 /-%%
 \begin{lemma}[ZetaNear1BndFilter]\label{ZetaNear1BndFilter}\lean{ZetaNear1BndFilter}\leanok
 As $\sigma\to1^+$,
@@ -1238,14 +1269,12 @@ $$
 %%-/
 lemma ZetaNear1BndFilter:
     (fun σ : ℝ ↦ riemannZeta σ) =O[𝓝[>](1 : ℝ)] (fun σ ↦ (1 : ℂ) / (σ - 1)) := by
-  have : Tendsto (fun (x : ℝ) ↦ x - 1) (𝓝[>](1 : ℝ)) (𝓝[>](0 : ℝ)) := by
-    refine tendsto_iff_forall_eventually_mem.mpr ?_
-    intro s hs
-    sorry
+  have := Tendsto_nhdsWithin_punctured_add (a := -1) (x := 1)
+  simp only [add_right_neg, ← sub_eq_add_neg] at this
   have := riemannZeta_isBigO_near_one_horizontal.comp_tendsto this
-  convert this using 1 <;> {ext1 _; simp}
+  convert this using 1 <;> {ext; simp}
 /-%%
-\begin{proof}\uses{ZetaBnd_aux1, Zeta0EqZeta}
+\begin{proof}\uses{ZetaBnd_aux1, Zeta0EqZeta}\leanok
 Zeta has a simple pole at $s=1$. Equivalently, $\zeta(s)(s-1)$ remains bounded near $1$.
 Lots of ways to prove this.
 Probably the easiest one: use the expression for $\zeta_0 (N,s)$ with $N=1$ (the term $N^{1-s}/(1-s)$ being the only unbounded one).
@@ -1285,9 +1314,33 @@ lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
     1 / Complex.abs (riemannZeta (σ + t * I)) ≤
       Complex.abs (riemannZeta σ) ^ ((3 : ℝ) / 4) *
         Complex.abs (riemannZeta (σ + 2 * t * I)) ^ ((1 : ℝ) / 4) := by
-  sorry -- use `norm_zeta_product_ge_one`
+  simp_rw [← Complex.norm_eq_abs]
+  apply (div_le_iff ?_).mpr
+  apply (Real.rpow_le_rpow_iff (z := 4) (by norm_num) ?_ (by norm_num)).mp
+  · simp only [Real.one_rpow]
+    rw [Real.mul_rpow, Real.mul_rpow, ← Real.rpow_mul, ← Real.rpow_mul]
+    simp only [isUnit_iff_ne_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
+      IsUnit.div_mul_cancel, IsUnit.inv_mul_cancel, Real.rpow_one]
+    conv => rw [mul_assoc]; rhs; rhs; rw [mul_comm]
+    rw [← mul_assoc]
+    have := norm_zeta_product_ge_one (x := σ - 1) (by linarith) t
+    simp_rw [ge_iff_le, norm_mul, norm_pow, ofReal_sub, ofReal_one, add_sub_cancel, ← Real.rpow_nat_cast] at this
+    convert this using 3 <;> ring_nf
+    any_goals ring_nf
+    any_goals apply norm_nonneg
+    any_goals apply Real.rpow_nonneg <| norm_nonneg _
+    apply mul_nonneg <;> apply Real.rpow_nonneg <| norm_nonneg _
+  · refine mul_nonneg (mul_nonneg ?_ ?_) ?_ <;> simp [Real.rpow_nonneg]
+  · have s_ne_one : (σ : ℂ) + (t : ℂ) * I ≠ 1 := by
+      contrapose! σ_gt
+      simp only [ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+        sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at σ_gt
+      simp [σ_gt]
+    have zeta_ne_zero:= riemannZeta_ne_zero_of_one_le_re s_ne_one (by simp [σ_gt.le])
+    suffices 0 ≤ ‖riemannZeta (↑σ + ↑t * I)‖ by simp [le_iff_lt_or_eq.mp this, zeta_ne_zero]
+    apply norm_nonneg
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 The identity
 $$
 1 \le |\zeta(\sigma)|^3 |\zeta(\sigma+it)|^4 |\zeta(\sigma+2it)|
