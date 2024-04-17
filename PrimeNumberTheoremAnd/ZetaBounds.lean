@@ -1228,6 +1228,29 @@ Estimate as before, with an extra factor of $\log |t|$.
 \end{proof}
 %%-/
 
+lemma Tendsto_nhdsWithin_punctured_add (a x : ℝ) :
+    Tendsto (fun y ↦ y + a) (𝓝[>] x) (𝓝[>] (x + a)) := by
+  refine tendsto_iff_forall_eventually_mem.mpr ?_
+  intro v hv
+  simp only [mem_nhdsWithin] at hv
+  obtain ⟨u, hu, hu2, hu3⟩ := hv
+  let t := {x | x + a ∈ u}
+  have : t ∩ Set.Ioi x ∈ 𝓝[>] x := by
+    simp only [mem_nhdsWithin]
+    use t
+    simp only [Set.subset_inter_iff, Set.inter_subset_left, Set.inter_subset_right, and_self,
+      and_true, t]
+    refine ⟨?_, by simp [hu2]⟩
+    simp [Metric.isOpen_iff] at hu ⊢
+    intro x hx
+    obtain ⟨ε, εpos, hε⟩ := hu (x + a) hx
+    simp only [Metric.ball, dist_sub_eq_dist_add_right, Set.setOf_subset_setOf] at hε ⊢
+    exact ⟨ε, εpos, fun _ ha ↦ hε (by simp [ha])⟩
+  filter_upwards [this]
+  intro b hb
+  simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_Ioi, t] at hb
+  exact hu3 (by simp [hb])
+
 /-%%
 \begin{lemma}[ZetaNear1BndFilter]\label{ZetaNear1BndFilter}\lean{ZetaNear1BndFilter}\leanok
 As $\sigma\to1^+$,
@@ -1238,29 +1261,10 @@ $$
 %%-/
 lemma ZetaNear1BndFilter:
     (fun σ : ℝ ↦ riemannZeta σ) =O[𝓝[>](1 : ℝ)] (fun σ ↦ (1 : ℂ) / (σ - 1)) := by
-  have : Tendsto (fun (x : ℝ) ↦ x - 1) (𝓝[>](1 : ℝ)) (𝓝[>](0 : ℝ)) := by
-    refine tendsto_iff_forall_eventually_mem.mpr ?_
-    intro s hs
-    simp only [mem_nhdsWithin] at hs
-    obtain ⟨u, hu, hu2, hu3⟩ := hs
-    let t := {x | x - 1 ∈ u}
-    have : t ∩ Set.Ioi 1 ∈ 𝓝[>](1 : ℝ) := by
-      simp only [mem_nhdsWithin]
-      use t
-      simp only [Set.subset_inter_iff, Set.inter_subset_left, Set.inter_subset_right, and_self,
-        and_true, t]
-      refine ⟨?_, by simp [hu2]⟩
-      simp [Metric.isOpen_iff] at hu ⊢
-      intro x hx
-      obtain ⟨ε, εpos, hε⟩ := hu (x - 1) hx
-      simp only [Metric.ball, dist_sub_eq_dist_add_right, Set.setOf_subset_setOf] at hε ⊢
-      exact ⟨ε, εpos, fun _ ha ↦ hε (by simp [ha])⟩
-    filter_upwards [this]
-    intro a ha
-    simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_Ioi, t] at ha
-    exact hu3 (by simp [ha])
+  have := Tendsto_nhdsWithin_punctured_add (f := fun (x : ℝ) ↦ x) (a := -1) (x := 1)
+  simp only [add_right_neg, ← sub_eq_add_neg] at this
   have := riemannZeta_isBigO_near_one_horizontal.comp_tendsto this
-  convert this using 1 <;> {ext1 _; simp}
+  convert this using 1 <;> {ext; simp}
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, Zeta0EqZeta}
 Zeta has a simple pole at $s=1$. Equivalently, $\zeta(s)(s-1)$ remains bounded near $1$.
