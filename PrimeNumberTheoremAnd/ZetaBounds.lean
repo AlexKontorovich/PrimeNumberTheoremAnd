@@ -1297,30 +1297,47 @@ lemma ZetaNear1BndExact:
   obtain ⟨c, U, hU, V, hV, h⟩ := this
   obtain ⟨T, hT, T_open, h1T⟩ := mem_nhds_iff.mp hU
   simp only [mem_principal] at hV
-  let S := T ∩ Set.Ioi 1
-  have SUV : S ⊆ U ∩ V := Set.inter_subset_inter hT hV
-  have S_open : IsOpen S := IsOpen.inter T_open isOpen_Ioi
-  let W := Sᶜ ∩ Set.Icc 1 2
-  -- have W_closed : IsClosed W := by
-  --   exact IsClosed.inter (isClosed_compl_iff.mpr S_open) isClosed_Icc
-  have W_compact : IsCompact W := by
-    exact IsCompact.inter_left isCompact_Icc (isClosed_compl_iff.mpr S_open)
-  have bound: ∃ (C : ℝ), ∀ (σ : ℝ), σ ∈ W → ‖riemannZeta σ‖ ≤ c := by sorry
-  obtain ⟨C, hC⟩ := bound
+  obtain ⟨ε, εpos, hε⟩ := Metric.isOpen_iff.mp T_open 1 h1T
+  simp [Metric.ball] at hε
+  replace hε : Set.Ico 1 (1 + ε) ⊆ U := by
+    refine subset_trans (subset_trans ?_ hε) hT
+    intro x hx
+    simp only [Set.mem_Ico] at hx
+    simp only [dist, abs_lt]
+    exact ⟨by linarith, by linarith⟩
+  let W := Set.Icc (1 + ε) 2
+  have W_compact : IsCompact W := isCompact_Icc
+  replace W_compact : IsCompact {ofReal' z | z ∈ W} := by
+    apply IsCompact.image W_compact continuous_ofReal
+  have cont : ContinuousOn riemannZeta {ofReal' z | z ∈ W} := by
+    apply HasDerivAt.continuousOn (f' := deriv riemannZeta)
+    intro σ hσ
+    apply DifferentiableAt.hasDerivAt
+    apply differentiableAt_riemannZeta
+    contrapose! hσ
+    simp [W, hσ, εpos]
+  obtain ⟨C, hC⟩ := IsCompact.exists_bound_of_continuousOn W_compact cont
   have Cpos : 0 < C := by sorry
   use max (2 * C) c, (by simp [Cpos])
   intro σ σ_ge σ_le
-  by_cases hσ : σ ∈ S
-  · have := Set.mem_setOf_eq ▸ h.symm ▸ SUV hσ
-    simp only at this
-    apply le_trans this ?_
+  by_cases hσ : σ ∈ U ∩ V
+  · simp only [← h, Set.mem_setOf_eq] at hσ
+    apply le_trans hσ ?_
     norm_cast
     have : 0 ≤ 1 / (σ - 1) := by apply one_div_nonneg.mpr; linarith
     simp only [norm_eq_abs, Complex.abs_ofReal, abs_eq_self.mpr this, mul_div, mul_one]
     refine div_le_div (by simp [Cpos.le]) (by simp) (by linarith) (by rfl)
-  · replace hσ : σ ∈ W := by
-      exact Set.mem_inter (Set.mem_compl hσ) (by exact ⟨σ_ge.le, σ_le⟩)
-    sorry
+  · simp only [Set.mem_setOf_eq, forall_exists_index, and_imp,
+      forall_apply_eq_imp_iff₂] at hC
+    replace hσ : σ ∈ W := by
+      simp only [Set.mem_inter_iff, hV σ_ge, and_true] at hσ
+      simp only [Set.mem_Icc, σ_le, and_true, W]
+      contrapose! hσ
+      exact hε ⟨σ_ge.le, hσ⟩
+    apply le_trans (hC σ hσ)
+    apply (le_div_iff (by linarith)).mpr
+    rw [le_max_iff, mul_comm 2 C]; left
+    exact mul_le_mul_of_nonneg_left (by linarith) Cpos.le
   -- have := Zeta0EqZeta (N := 1) (by omega) (s := (σ : ℂ)) (by simp [ofReal_re]; linarith)
   --   (by simp only [ne_eq, ofReal_eq_one]; rw [← ne_eq]; linarith)
   -- simp only [← this, RiemannZeta0]
