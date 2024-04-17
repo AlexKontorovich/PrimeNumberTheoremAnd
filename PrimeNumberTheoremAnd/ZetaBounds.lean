@@ -1294,19 +1294,32 @@ lemma ZetaNear1BndExact:
     ‖riemannZeta σ‖ ≤ c / (σ - 1) := by
   have := ZetaNear1BndFilter
   rw [Asymptotics.isBigO_iff] at this
-  obtain ⟨c, U, cpos, V, hV, h⟩ := this
-  use (max 10 c), (by norm_num)
+  obtain ⟨c, U, hU, V, hV, h⟩ := this
+  obtain ⟨T, hT, T_open, h1T⟩ := mem_nhds_iff.mp hU
+  simp only [mem_principal] at hV
+  let S := T ∩ Set.Ioi 1
+  have SUV : S ⊆ U ∩ V := Set.inter_subset_inter hT hV
+  have S_open : IsOpen S := IsOpen.inter T_open isOpen_Ioi
+  let W := Sᶜ ∩ Set.Icc 1 2
+  -- have W_closed : IsClosed W := by
+  --   exact IsClosed.inter (isClosed_compl_iff.mpr S_open) isClosed_Icc
+  have W_compact : IsCompact W := by
+    exact IsCompact.inter_left isCompact_Icc (isClosed_compl_iff.mpr S_open)
+  have bound: ∃ (C : ℝ), ∀ (σ : ℝ), σ ∈ W → ‖riemannZeta σ‖ ≤ c := by sorry
+  obtain ⟨C, hC⟩ := bound
+  have Cpos : 0 < C := by sorry
+  use max (2 * C) c, (by simp [Cpos])
   intro σ σ_ge σ_le
-  by_cases hσ : σ ∈ U ∩ V
-  · rw [← h] at hσ
-    simp only [Set.mem_setOf_eq] at hσ
-    apply le_trans hσ ?_
+  by_cases hσ : σ ∈ S
+  · have := Set.mem_setOf_eq ▸ h.symm ▸ SUV hσ
+    simp only at this
+    apply le_trans this ?_
     norm_cast
     have : 0 ≤ 1 / (σ - 1) := by apply one_div_nonneg.mpr; linarith
     simp only [norm_eq_abs, Complex.abs_ofReal, abs_eq_self.mpr this, mul_div, mul_one]
-    exact div_le_div (by simp) (by simp) (by linarith) (by rfl)
-  ·
-    -- σ is in a closed interval, riemannZeta has a maximum there
+    refine div_le_div (by simp [Cpos.le]) (by simp) (by linarith) (by rfl)
+  · replace hσ : σ ∈ W := by
+      exact Set.mem_inter (Set.mem_compl hσ) (by exact ⟨σ_ge.le, σ_le⟩)
     sorry
   -- have := Zeta0EqZeta (N := 1) (by omega) (s := (σ : ℂ)) (by simp [ofReal_re]; linarith)
   --   (by simp only [ne_eq, ofReal_eq_one]; rw [← ne_eq]; linarith)
