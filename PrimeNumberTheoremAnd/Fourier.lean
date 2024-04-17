@@ -49,139 +49,13 @@ lemma fourierIntegral_deriv_aux2 (e : ℝ →ᵇ ℂ) {f : ℝ → ℂ} (hf : In
   simp [fourierIntegral_real_eq, ← integral_mul_left] ; congr ; ext
   simp [Real.fourierChar, expMapCircle] ; ring
 
-lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
-  have key x : HasDerivAt ofReal' 1 x := hasDerivAt_id x |>.ofReal_comp
-  have key' : deriv ofReal' = fun _ => 1 := by ext x ; exact (key x).deriv
-  refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
-  simpa [key'] using contDiff_const
-
 end lemmas
 
-section CS
-
-variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {n : ℕ}
-
-@[ext] structure CS (n : ℕ) (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ E] where
-  toFun : ℝ → E
-  h1 : ContDiff ℝ n toFun
-  h2 : HasCompactSupport toFun
-
-@[ext] structure trunc extends (CS 2 ℝ) where
-  h3 : (Set.Icc (-1) (1)).indicator 1 ≤ toFun
-  h4 : toFun ≤ Set.indicator (Set.Ioo (-2) (2)) 1
-
-instance : CoeFun (CS n E) (fun _ => ℝ → E) where coe := CS.toFun
-
-instance : CoeFun trunc (fun _ => ℝ → ℝ) where coe f := f.toFun
-
-instance : Coe trunc (CS 2 ℝ) where coe := trunc.toCS
-
-instance : Coe (CS n ℝ) (CS n ℂ) where coe f := ⟨f,
-  contDiff_ofReal.of_le le_top |>.comp f.h1, f.h2.comp_left (g := ofReal') rfl⟩
-
-namespace trunc
-
-variable (g : trunc)
-
-lemma nonneg : 0 ≤ ⇑g := le_trans (Set.indicator_nonneg (by simp)) g.h3
-
-lemma le_one : ⇑g ≤ 1 := g.h4.trans <| Set.indicator_le_self' (by simp)
-
-lemma zero : g =ᶠ[𝓝 0] 1 := by
-  have : Set.Icc (-1) 1 ∈ 𝓝 (0 : ℝ) := by apply Icc_mem_nhds <;> linarith
-  exact eventually_of_mem this (fun x hx => le_antisymm (g.le_one x) (by simpa [hx] using g.h3 x))
-
-end trunc
-
-namespace CS
-
-variable {f : CS n E} {R : ℝ} {v x : ℝ}
-
-def neg (f : CS n E) : CS n E where
-  toFun := -f
-  h1 := f.h1.neg
-  h2 := by simpa [HasCompactSupport, tsupport] using f.h2
-
-instance : Neg (CS n E) where neg := neg
-
-@[simp] lemma neg_apply {x : ℝ} : (-f) x = - (f x) := rfl
-
-def smul (R : ℝ) (f : CS n E) : CS n E := ⟨R • f, f.h1.const_smul R, f.h2.smul_left⟩
-
-instance : HSMul ℝ (CS n E) (CS n E) where hSMul := smul
-
-@[simp] lemma smul_apply : (R • f) x = R • f x := rfl
-
-lemma continuous (f : CS n E) : Continuous f := f.h1.continuous
-
-noncomputable def deriv (f : CS (n + 1) E) : CS n E where
-  toFun := _root_.deriv f
-  h1 := (contDiff_succ_iff_deriv.mp f.h1).2
-  h2 := f.h2.deriv
-
-lemma hasDerivAt (f : CS (n + 1) E) (x : ℝ) : HasDerivAt f (f.deriv x) x :=
-  (f.h1.differentiable (by simp)).differentiableAt.hasDerivAt
-
-lemma deriv_apply {f : CS (n + 1) E} {x : ℝ} : f.deriv x = _root_.deriv f x := rfl
-
-lemma deriv_smul {f : CS (n + 1) E} : (R • f).deriv = R • f.deriv := by
-  ext x ; exact (f.hasDerivAt x |>.const_smul R).deriv
-
-noncomputable def _root_.funscale (g : ℝ → E) (R x : ℝ) : E := g (R⁻¹ • x)
-
-noncomputable def scale (g : CS n E) (R : ℝ) : CS n E := by
-  by_cases h : R = 0
-  · exact ⟨0, contDiff_const, by simp [HasCompactSupport, tsupport]⟩
-  · refine ⟨fun x => funscale g R x, ?_, ?_⟩
-    · exact g.h1.comp (contDiff_const.smul contDiff_id)
-    · exact g.h2.comp_smul (inv_ne_zero h)
-
-lemma deriv_scale {f : CS (n + 1) E} : (f.scale R).deriv = R⁻¹ • f.deriv.scale R := by
-  ext v ; by_cases hR : R = 0 <;> simp [hR, scale]
-  · simp [deriv, smul] ; exact deriv_const _ _
-  · exact ((f.hasDerivAt (R⁻¹ • v)).scomp v (by simpa using (hasDerivAt_id v).const_smul R⁻¹)).deriv
-
-lemma deriv_scale' {f : CS (n + 1) E} : (f.scale R).deriv v = R⁻¹ • f.deriv (R⁻¹ • v) := by
-  rw [deriv_scale, smul_apply]
-  by_cases hR : R = 0 <;> simp [hR, scale, funscale]
-
-lemma hasDerivAt_scale (f : CS (n + 1) E) (R x : ℝ) :
-    HasDerivAt (f.scale R) (R⁻¹ • _root_.deriv f (R⁻¹ • x)) x := by
-  convert hasDerivAt (f.scale R) x ; rw [deriv_scale'] ; rfl
-
-lemma bounded : ∃ C, ∀ v, ‖f v‖ ≤ C := by
-  obtain ⟨x, hx⟩ := (continuous_norm.comp f.continuous).exists_forall_ge_of_hasCompactSupport f.h2.norm
-  exact ⟨_, hx⟩
-
-end CS
-
-end CS
-
 abbrev W21 := W1 2 ℂ
-
--- structure W21 where
---   toFun : ℝ → ℂ
---   hh : ContDiff ℝ 2 toFun
---   hf : Integrable toFun
---   hf' : Integrable (deriv toFun)
---   hf'' : Integrable (deriv (deriv toFun))
-
-instance : CoeFun W21 (fun _ => ℝ → ℂ) where coe := W1.toFun
 
 namespace W21
 
 variable {f : W21}
-
-@[continuity] lemma continuous (f : W21) : Continuous f :=
-  W1.continuous f
-
-@[continuity] lemma continuous' (f : W21) : Continuous (deriv f) :=
-  f.deriv.continuous
-
-@[continuity] lemma continuous'' (f : W21) : Continuous (deriv^[2] f) :=
-  f.deriv.deriv.continuous
-
-noncomputable instance : HSub W21 W21 W21 where hSub := W1.sub
 
 noncomputable def norm (f : ℝ → ℂ) : ℝ :=
     (∫ v, ‖f v‖) + (4 * π ^ 2)⁻¹ * (∫ v, ‖deriv (deriv f) v‖)
@@ -205,7 +79,7 @@ def ofCS2 (f : CS 2 ℂ) : W21 := by
 
 instance : Coe (CS 2 ℂ) W21 where coe := ofCS2
 
-lemma hf (f : W21) : Integrable f := by simpa [iteratedDeriv_succ] using f.integrable zero_le_two
+lemma hf (f : W21) : Integrable f := f.integrable zero_le_two
 
 lemma hf' (f : W21) : Integrable (deriv f) := by simpa [iteratedDeriv_succ] using f.integrable one_le_two
 
@@ -321,7 +195,8 @@ theorem W21_approximation (f : W21) (g : trunc) :
     let bound v := c2 * ‖f v‖ + 2 * c1 * ‖f' v‖ + ‖f'' v‖
     have e1 : ∀ᶠ (n : ℝ) in atTop, AEStronglyMeasurable (F n) volume := by
       apply eventually_of_forall ; intro R ; apply (Continuous.norm ?_).aestronglyMeasurable
-      exact ((ch''.mul f.continuous).add ((continuous_const.mul ch').mul f.continuous')).add (ch.mul f.continuous'')
+      exact ((ch''.mul f.continuous).add ((continuous_const.mul ch').mul f.deriv.continuous)).add
+        (ch.mul f.deriv.deriv.continuous)
     have e2 : ∀ᶠ (n : ℝ) in atTop, ∀ᵐ (a : ℝ), ‖F n a‖ ≤ bound a := by
       filter_upwards [hc1, hc2] with R hc1 hc2
       apply eventually_of_forall ; intro v ; specialize hc1 v ; specialize hc2 v

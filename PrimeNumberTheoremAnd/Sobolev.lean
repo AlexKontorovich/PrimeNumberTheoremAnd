@@ -1,15 +1,118 @@
 import Mathlib.Analysis.Distribution.SchwartzSpace
+import Mathlib.Analysis.Calculus.Deriv.Support
 
 open Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap  BigOperators
+
+@[ext] structure CS (n : ℕ) (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ E] where
+  toFun : ℝ → E
+  h1 : ContDiff ℝ n toFun
+  h2 : HasCompactSupport toFun
+
+structure trunc extends (CS 2 ℝ) where
+  h3 : (Set.Icc (-1) (1)).indicator 1 ≤ toFun
+  h4 : toFun ≤ Set.indicator (Set.Ioo (-2) (2)) 1
 
 structure W1 (n : ℕ) (E : Type*) [NormedAddCommGroup E] [NormedSpace ℝ E] where
   toFun : ℝ → E
   smooth : ContDiff ℝ n toFun
   integrable : ∀ ⦃k⦄, k ≤ n → Integrable (iteratedDeriv k toFun)
 
-namespace W1
+noncomputable def funscale {E : Type*} (g : ℝ → E) (R x : ℝ) : E := g (R⁻¹ • x)
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {n : ℕ}
+
+section lemmas
+
+lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
+  have key x : HasDerivAt ofReal' 1 x := hasDerivAt_id x |>.ofReal_comp
+  have key' : deriv ofReal' = fun _ => 1 := by ext x ; exact (key x).deriv
+  refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
+  simpa [key'] using contDiff_const
+
+end lemmas
+
+namespace CS
+
+variable {f : CS n E} {R x v : ℝ}
+
+instance : CoeFun (CS n E) (fun _ => ℝ → E) where coe := CS.toFun
+
+instance : Coe (CS n ℝ) (CS n ℂ) where coe f := ⟨fun x => f x,
+  contDiff_ofReal.of_le le_top |>.comp f.h1, f.h2.comp_left (g := ofReal') rfl⟩
+
+def neg (f : CS n E) : CS n E where
+  toFun := -f
+  h1 := f.h1.neg
+  h2 := by simpa [HasCompactSupport, tsupport] using f.h2
+
+instance : Neg (CS n E) where neg := neg
+
+@[simp] lemma neg_apply {x : ℝ} : (-f) x = - (f x) := rfl
+
+def smul (R : ℝ) (f : CS n E) : CS n E := ⟨R • f, f.h1.const_smul R, f.h2.smul_left⟩
+
+instance : HSMul ℝ (CS n E) (CS n E) where hSMul := smul
+
+@[simp] lemma smul_apply : (R • f) x = R • f x := rfl
+
+lemma continuous (f : CS n E) : Continuous f := f.h1.continuous
+
+noncomputable def deriv (f : CS (n + 1) E) : CS n E where
+  toFun := _root_.deriv f
+  h1 := (contDiff_succ_iff_deriv.mp f.h1).2
+  h2 := f.h2.deriv
+
+lemma hasDerivAt (f : CS (n + 1) E) (x : ℝ) : HasDerivAt f (f.deriv x) x :=
+  (f.h1.differentiable (by simp)).differentiableAt.hasDerivAt
+
+lemma deriv_apply {f : CS (n + 1) E} {x : ℝ} : f.deriv x = _root_.deriv f x := rfl
+
+lemma deriv_smul {f : CS (n + 1) E} : (R • f).deriv = R • f.deriv := by
+  ext x ; exact (f.hasDerivAt x |>.const_smul R).deriv
+
+noncomputable def scale (g : CS n E) (R : ℝ) : CS n E := by
+  by_cases h : R = 0
+  · exact ⟨0, contDiff_const, by simp [HasCompactSupport, tsupport]⟩
+  · refine ⟨fun x => funscale g R x, ?_, ?_⟩
+    · exact g.h1.comp (contDiff_const.smul contDiff_id)
+    · exact g.h2.comp_smul (inv_ne_zero h)
+
+lemma deriv_scale {f : CS (n + 1) E} : (f.scale R).deriv = R⁻¹ • f.deriv.scale R := by
+  ext v ; by_cases hR : R = 0 <;> simp [hR, scale]
+  · simp [deriv, smul] ; exact deriv_const _ _
+  · exact ((f.hasDerivAt (R⁻¹ • v)).scomp v (by simpa using (hasDerivAt_id v).const_smul R⁻¹)).deriv
+
+lemma deriv_scale' {f : CS (n + 1) E} : (f.scale R).deriv v = R⁻¹ • f.deriv (R⁻¹ • v) := by
+  rw [deriv_scale, smul_apply]
+  by_cases hR : R = 0 <;> simp [hR, scale, funscale]
+
+lemma hasDerivAt_scale (f : CS (n + 1) E) (R x : ℝ) :
+    HasDerivAt (f.scale R) (R⁻¹ • _root_.deriv f (R⁻¹ • x)) x := by
+  convert hasDerivAt (f.scale R) x ; rw [deriv_scale'] ; rfl
+
+lemma bounded : ∃ C, ∀ v, ‖f v‖ ≤ C := by
+  obtain ⟨x, hx⟩ := (continuous_norm.comp f.continuous).exists_forall_ge_of_hasCompactSupport f.h2.norm
+  exact ⟨_, hx⟩
+
+end CS
+
+namespace trunc
+
+instance : CoeFun trunc (fun _ => ℝ → ℝ) where coe f := f.toFun
+
+instance : Coe trunc (CS 2 ℝ) where coe := trunc.toCS
+
+lemma nonneg (g : trunc) : 0 ≤ ⇑g := le_trans (Set.indicator_nonneg (by simp)) g.h3
+
+lemma le_one (g : trunc) : ⇑g ≤ 1 := g.h4.trans <| Set.indicator_le_self' (by simp)
+
+lemma zero (g : trunc) : g =ᶠ[𝓝 0] 1 := by
+  have : Set.Icc (-1) 1 ∈ 𝓝 (0 : ℝ) := by apply Icc_mem_nhds <;> linarith
+  exact eventually_of_mem this (fun x hx => le_antisymm (g.le_one x) (by simpa [hx] using g.h3 x))
+
+end trunc
+
+namespace W1
 
 instance : CoeFun (W1 n E) (fun _ => ℝ → E) where coe := W1.toFun
 
