@@ -78,6 +78,10 @@ instance : Coe trunc (CS 2 ℝ) where coe := trunc.toCS
 instance : Coe (CS n ℝ) (CS n ℂ) where coe f := ⟨f,
   contDiff_ofReal.of_le le_top |>.comp f.h1, f.h2.comp_left (g := ofReal') rfl⟩
 
+namespace CS
+
+variable {f : CS n E} {R : ℝ} {v : ℝ}
+
 def neg (f : CS n E) : CS n E where
   toFun := -f
   h1 := f.h1.neg
@@ -85,9 +89,7 @@ def neg (f : CS n E) : CS n E where
 
 instance : Neg (CS n E) where neg := neg
 
-namespace CS
-
-variable {f : CS n E} {R : ℝ} {v : ℝ}
+@[simp] lemma neg_apply {x : ℝ} : (-f) x = - (f x) := rfl
 
 lemma continuous (f : CS n E) : Continuous f := f.h1.continuous
 
@@ -98,6 +100,8 @@ noncomputable def deriv (f : CS (n + 1) E) : CS n E where
 
 lemma hasDerivAt (f : CS (n + 1) E) (x : ℝ) : HasDerivAt f (f.deriv x) x :=
   (f.h1.differentiable (by simp)).differentiableAt.hasDerivAt
+
+lemma deriv_apply {f : CS (n + 1) E} {x : ℝ} : f.deriv x = _root_.deriv f x := rfl
 
 noncomputable def _root_.funscale (g : ℝ → E) (R x : ℝ) : E := g (R⁻¹ • x)
 
@@ -115,7 +119,7 @@ lemma deriv_scale {f : CS (n + 1) E} : (f.scale R).deriv v = R⁻¹ • f.deriv 
 
 lemma hasDerivAt_scale (f : CS (n + 1) E) (R x : ℝ) :
     HasDerivAt (f.scale R) (R⁻¹ • _root_.deriv f (R⁻¹ • x)) x := by
-  simpa [deriv_scale] using hasDerivAt (f.scale R) x
+  convert hasDerivAt (f.scale R) x ; rw [deriv_scale] ; rfl
 
 lemma bounded : ∃ C, ∀ v, ‖f v‖ ≤ C := by
   obtain ⟨x, hx⟩ := (continuous_norm.comp f.continuous).exists_forall_ge_of_hasCompactSupport f.h2.norm
@@ -231,34 +235,25 @@ theorem W21_approximation (f : W21) (g : trunc) :
   let h R v := 1 - g.scale R v
   let h' R := - (g.scale R).deriv
   let h'' R v := - g'' (v * R⁻¹) * R⁻¹ * R⁻¹
-  have ch {R} : Continuous (fun v => (h R v : ℂ)) :=
-    continuous_ofReal.comp <| continuous_const.sub (CS.continuous _)
-  have ch' {R} : Continuous (fun v => (h' R v : ℂ)) := by
-    apply continuous_ofReal.comp
-    apply Continuous.neg
-    apply CS.continuous
+  have ch {R} : Continuous (fun v => (h R v : ℂ)) := continuous_ofReal.comp <| continuous_const.sub (CS.continuous _)
+  have ch' {R} : Continuous (fun v => (h' R v : ℂ)) := continuous_ofReal.comp (CS.continuous _)
   have ch'' {R} : Continuous (fun v => (h'' R v : ℂ)) :=
     continuous_ofReal.comp <| ((g''.continuous.comp cR).neg.mul continuous_const).mul continuous_const
   have dh R v : HasDerivAt (h R) (h' R v) v := by
     convert CS.hasDerivAt_scale (g : CS 2 ℝ) R v |>.const_sub 1 using 1
-    simp [h', CS.deriv_scale, Neg.neg, neg] ; rfl
+    simp [h', CS.deriv_scale] ; left ; rfl
   have dh' R v : HasDerivAt (h' R) (h'' R v) v := by
     have l1 := (g'.hasDerivAt (R⁻¹ • v))
     have l2 := (dR R⁻¹ v)
     have := l1.scomp v l2
     have := this.const_smul (-R⁻¹)
     convert this using 1
-    -- · ext v ; simp [h', CS.deriv_scale] --; ring_nf ; tauto
-    · simp [h', neg_mul, Neg.neg, neg, CS.deriv_scale] ; ext v
-      change -_ = -_ * _
-      simp
+    · ext v ; simp [h', CS.deriv_scale]
     simp [h''] ; ring_nf
   have hc1 : ∀ᶠ R in atTop, ∀ v, |h' R v| ≤ c1 := by
     filter_upwards [eventually_ge_atTop 1] with R hR v
     have : 0 ≤ R := by linarith
-    simp_rw [h']
-    change |-_| ≤ _
-    simp [h', abs_neg, CS.deriv_scale, abs_mul, abs_inv, abs_eq_self.mpr this]
+    simp [h', CS.deriv_scale, abs_mul, abs_inv, abs_eq_self.mpr this]
     convert_to _ ≤ c1 * 1 ; simp ; rw [mul_comm]
     apply mul_le_mul (mg' _) (inv_le_of_inv_le (by linarith) (by simpa using hR)) (by positivity)
     exact (abs_nonneg _).trans (mg' 0)
@@ -279,8 +274,7 @@ theorem W21_approximation (f : W21) (g : trunc) :
     simp [h, hR, CS.scale, hR', funscale, mul_comm R⁻¹]
   have eh' v : ∀ᶠ R in atTop, h' R v = 0 := by
     filter_upwards [(vR v).eventually evg'] with R hR ; simp [g'] at hR
-    simp [h', hR, Neg.neg, neg, CS.deriv_scale] ; simp [mul_comm, hR]
-    exact neg_zero
+    simp [h', CS.deriv_scale, mul_comm R⁻¹, hR]
   have eh'' v : ∀ᶠ R in atTop, h'' R v = 0 := by filter_upwards [(vR v).eventually evg''] with R hR ; simp [h'', hR]
 
   -- Computations
