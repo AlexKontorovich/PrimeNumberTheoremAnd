@@ -173,6 +173,8 @@ variable {f : W21}
 
 @[continuity] lemma continuous' (f : W21) : Continuous (deriv f) := (f.hh.iterate_deriv' 1 1).continuous
 
+@[continuity] lemma continuous'' (f : W21) : Continuous (deriv^[2] f) := (f.hh.iterate_deriv' 0 2).continuous
+
 def sub (f g : W21) : W21 := by
   have l1 : deriv (⇑f - ⇑g) = deriv f - deriv g := by
     ext x ; apply deriv_sub
@@ -236,7 +238,6 @@ theorem W21_approximation (f : W21) (g : trunc) :
   -- About f
   let f' := deriv f
   let f'' := deriv (deriv f)
-  have cf'' : Continuous f'' := (f.hh.iterate_deriv' 0 2).continuous
   have df v : HasDerivAt f (f' v) v := f.hh.differentiable one_le_two |>.differentiableAt.hasDerivAt
   have df' v : HasDerivAt f' (f'' v) v := (f.hh.iterate_deriv' 1 1).differentiable le_rfl |>.differentiableAt.hasDerivAt
 
@@ -325,8 +326,8 @@ theorem W21_approximation (f : W21) (g : trunc) :
     let F R v := ‖h'' R v * f v + 2 * h' R v * f' v + h R v * f'' v‖
     let bound v := c2 * ‖f v‖ + 2 * c1 * ‖f' v‖ + ‖f'' v‖
     have e1 : ∀ᶠ (n : ℝ) in atTop, AEStronglyMeasurable (F n) volume := by
-      apply eventually_of_forall ; intro R ; apply Continuous.aestronglyMeasurable
-      exact (((ch''.mul f.continuous).add ((continuous_const.mul ch').mul f.continuous')).add (ch.mul cf'')).norm
+      apply eventually_of_forall ; intro R ; apply (Continuous.norm ?_).aestronglyMeasurable
+      exact ((ch''.mul f.continuous).add ((continuous_const.mul ch').mul f.continuous')).add (ch.mul f.continuous'')
     have e2 : ∀ᶠ (n : ℝ) in atTop, ∀ᵐ (a : ℝ), ‖F n a‖ ≤ bound a := by
       filter_upwards [hc1, hc2] with R hc1 hc2
       apply eventually_of_forall ; intro v ; specialize hc1 v ; specialize hc2 v
