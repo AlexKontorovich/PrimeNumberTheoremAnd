@@ -1292,56 +1292,70 @@ $$
 lemma ZetaNear1BndExact:
     ∃ (c : ℝ) (cpos : 0 < c), ∀ (σ : ℝ) (σ_ge : 1 < σ) (σ_le : σ ≤ 2),
     ‖riemannZeta σ‖ ≤ c / (σ - 1) := by
-  use 10, (by norm_num)
+  have := ZetaNear1BndFilter
+  rw [Asymptotics.isBigO_iff] at this
+  obtain ⟨c, U, cpos, V, hV, h⟩ := this
+  use (max 10 c), (by norm_num)
   intro σ σ_ge σ_le
-  have := Zeta0EqZeta (N := 1) (by omega) (s := (σ : ℂ)) (by simp [ofReal_re]; linarith)
-    (by simp only [ne_eq, ofReal_eq_one]; rw [← ne_eq]; linarith)
-  simp only [← this, RiemannZeta0]
-  apply (le_div_iff (by linarith)).mpr
-  simp only [ge_iff_le, le_refl, tsub_eq_zero_of_le, gt_iff_lt, zero_lt_one,
-    Finset.Icc_eq_empty_of_lt, Finset.sum_empty, Nat.cast_one, one_cpow, zero_add]
-  replace : (σ - 1) = Complex.abs ((σ - 1 : ℝ)) := by rw [Complex.abs_of_nonneg (by linarith)]
-  rw [this, ← norm_eq_abs, ← norm_mul]
-  simp only [ofReal_sub, ofReal_one, add_mul]
-  replace : -1 / (1 - (σ : ℂ)) * ((σ : ℂ) - 1) = 1 := by
-    field_simp
-    rw [div_self ?_]
-    simp only [← ofReal_one, ← ofReal_sub, ne_eq, ofReal_eq_zero]
-    linarith
-  rw [this]
-  simp only [Finset.range_one, one_div, Finset.sum_singleton, CharP.cast_eq_zero]
-  replace : ((0 : ℂ) ^ (σ : ℂ))⁻¹ = 0 := by
-    simp only [inv_eq_zero, cpow_eq_zero_iff, ne_eq, ofReal_eq_zero, true_and]
-    linarith
-  simp only [this, zero_mul, zero_add]
-  let r := (σ * ∫ (x : ℝ) in Set.Ioi 1, (↑⌊x⌋ + 2⁻¹ - x) / x ^ (σ + 1)) * (σ - 1)
-  calc
-    _ ≤ ‖(1 : ℂ) + -(1 : ℂ) / 2 * ((σ : ℂ) - 1)‖ + ‖r‖ := ?_
-    _ ≤ ‖(1 : ℂ)‖ + ‖-(1 : ℂ) / 2 * ((σ : ℂ) - 1)‖ + ‖r‖ := ?_
-    _ ≤ ‖(3 : ℝ) / 2‖ + ‖r‖ := ?_
-    _ ≤ _ := ?_
-  · have := @norm_add_le (a := (1 : ℂ) + -(1 : ℂ) / 2 * ((σ : ℂ) - 1)) (b := r) _
-    convert this
-    · norm_cast
-      simp only [ofReal_mul, ofReal_sub, ofReal_one, mul_eq_mul_right_iff, mul_eq_mul_left_iff,
-      ext_iff, ofReal_re, ofReal_im, zero_re, zero_im, and_true, sub_re, one_re, sub_im, one_im,
-      sub_self, r]
-      sorry
-    · simp
-  · simp only [add_le_add_iff_right]
-    apply norm_add_le
-  · simp only [add_le_add_iff_right]
-    apply add_le_of_le_sub_left
-    norm_num
+  by_cases hσ : σ ∈ U ∩ V
+  · rw [← h] at hσ
+    simp only [Set.mem_setOf_eq] at hσ
+    apply le_trans hσ ?_
     norm_cast
-    simp only [_root_.abs, neg_sub, sup_le_iff, tsub_le_iff_right, le_add_iff_nonneg_right]
-    norm_num
-    exact ⟨σ_le, by linarith⟩
-  · apply add_le_of_le_sub_left
-    norm_num
-    replace := ZetaBnd_aux1 (N := 1) (by norm_num) (by linarith) σ_le
-    rw [Asymptotics.isBigO_iff] at this
+    have : 0 ≤ 1 / (σ - 1) := by apply one_div_nonneg.mpr; linarith
+    simp only [norm_eq_abs, Complex.abs_ofReal, abs_eq_self.mpr this, mul_div, mul_one]
+    exact div_le_div (by simp) (by simp) (by linarith) (by rfl)
+  ·
+    -- σ is in a closed interval, riemannZeta has a maximum there
     sorry
+  -- have := Zeta0EqZeta (N := 1) (by omega) (s := (σ : ℂ)) (by simp [ofReal_re]; linarith)
+  --   (by simp only [ne_eq, ofReal_eq_one]; rw [← ne_eq]; linarith)
+  -- simp only [← this, RiemannZeta0]
+  -- apply (le_div_iff (by linarith)).mpr
+  -- simp only [ge_iff_le, le_refl, tsub_eq_zero_of_le, gt_iff_lt, zero_lt_one,
+  --   Finset.Icc_eq_empty_of_lt, Finset.sum_empty, Nat.cast_one, one_cpow, zero_add]
+  -- replace : (σ - 1) = Complex.abs ((σ - 1 : ℝ)) := by rw [Complex.abs_of_nonneg (by linarith)]
+  -- rw [this, ← norm_eq_abs, ← norm_mul]
+  -- simp only [ofReal_sub, ofReal_one, add_mul]
+  -- replace : -1 / (1 - (σ : ℂ)) * ((σ : ℂ) - 1) = 1 := by
+  --   field_simp
+  --   rw [div_self ?_]
+  --   simp only [← ofReal_one, ← ofReal_sub, ne_eq, ofReal_eq_zero]
+  --   linarith
+  -- rw [this]
+  -- simp only [Finset.range_one, one_div, Finset.sum_singleton, CharP.cast_eq_zero]
+  -- replace : ((0 : ℂ) ^ (σ : ℂ))⁻¹ = 0 := by
+  --   simp only [inv_eq_zero, cpow_eq_zero_iff, ne_eq, ofReal_eq_zero, true_and]
+  --   linarith
+  -- simp only [this, zero_mul, zero_add]
+  -- let r := (σ * ∫ (x : ℝ) in Set.Ioi 1, (↑⌊x⌋ + 2⁻¹ - x) / x ^ (σ + 1)) * (σ - 1)
+  -- calc
+  --   _ ≤ ‖(1 : ℂ) + -(1 : ℂ) / 2 * ((σ : ℂ) - 1)‖ + ‖r‖ := ?_
+  --   _ ≤ ‖(1 : ℂ)‖ + ‖-(1 : ℂ) / 2 * ((σ : ℂ) - 1)‖ + ‖r‖ := ?_
+  --   _ ≤ ‖(3 : ℝ) / 2‖ + ‖r‖ := ?_
+  --   _ ≤ _ := ?_
+  -- · have := @norm_add_le (a := (1 : ℂ) + -(1 : ℂ) / 2 * ((σ : ℂ) - 1)) (b := r) _
+  --   convert this
+  --   · norm_cast
+  --     simp only [ofReal_mul, ofReal_sub, ofReal_one, mul_eq_mul_right_iff, mul_eq_mul_left_iff,
+  --     ext_iff, ofReal_re, ofReal_im, zero_re, zero_im, and_true, sub_re, one_re, sub_im, one_im,
+  --     sub_self, r]
+  --     sorry
+  --   · simp
+  -- · simp only [add_le_add_iff_right]
+  --   apply norm_add_le
+  -- · simp only [add_le_add_iff_right]
+  --   apply add_le_of_le_sub_left
+  --   norm_num
+  --   norm_cast
+  --   simp only [_root_.abs, neg_sub, sup_le_iff, tsub_le_iff_right, le_add_iff_nonneg_right]
+  --   norm_num
+  --   exact ⟨σ_le, by linarith⟩
+  -- · apply add_le_of_le_sub_left
+  --   norm_num
+  --   replace := ZetaBnd_aux1 (N := 1) (by norm_num) (by linarith) σ_le
+  --   rw [Asymptotics.isBigO_iff] at this
+  --   sorry
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaNear1BndFilter, Zeta0EqZeta}
 Split into two cases, use Lemma \ref{ZetaNear1BndFilter} for $\sigma$ sufficiently small
