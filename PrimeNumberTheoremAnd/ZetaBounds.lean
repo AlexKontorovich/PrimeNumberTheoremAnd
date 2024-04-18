@@ -781,11 +781,21 @@ and evaluate the integral.
 
 lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
     Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
-
+  have := @Summable.tendsto_atTop_zero (f := f) _ _ _ hf
   sorry
 
 lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
-  sorry
+  rw [Filter.tendsto_atTop_atTop]
+  intro b
+  use ⌊b⌋.toNat + 1
+  intro a ha
+  by_cases a_zero : a = 0
+  · simp [a_zero] at ha
+  · by_cases h : ⌊b⌋.toNat < a
+    · exact (Int.floor_lt.mp <| (Int.toNat_lt' a_zero).mp h).le
+    · simp only [not_lt] at h
+      absurd le_trans ha h
+      simp
 
 -- related to `ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt`
 lemma Summable_rpow {s : ℂ} (s_re_gt : 1 < s.re) : Summable (fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s) := by
