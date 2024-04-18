@@ -764,15 +764,19 @@ and evaluate the integral.
 \end{proof}
 %%-/
 
-lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
-    Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
-
+lemma finsetSum_tendsto_tsum {f : ℕ → ℂ} (hf : Summable f) :
+    Tendsto (fun (N : ℕ) ↦ ∑ n in Finset.range N, f n) atTop (𝓝 (∑' (n : ℕ), f n)) := by
+  have hasSumF := hf.hasSum
+  set a := ∑' (b : ℕ), f b
+  have := hasSumF.tsum_eq
+  dsimp [HasSum] at hasSumF
+  convert hasSumF
   sorry
 
 
 lemma finsetSum_tendsto_tsum' {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
     Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
-
+  convert finsetSum_tendsto_tsum (f := fun n ↦ f (n + N)) ?_ using 1
   sorry
 
 -- related to `ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt`
