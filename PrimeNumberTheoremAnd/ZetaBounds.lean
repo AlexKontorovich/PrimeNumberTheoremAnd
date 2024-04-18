@@ -779,9 +779,21 @@ and evaluate the integral.
 \end{proof}
 %%-/
 
+-- no longer used
+lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
+    ∑' (n : ℕ), f n = (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
+  rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N), Finset.range_eq_Ico]
+
 lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
     Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
-  have := @Summable.tendsto_atTop_zero (f := f) _ _ _ hf
+  have := (@Summable.hasSum_iff_tendsto_nat (f := fun m ↦ f (m + N))
+     (m := ∑' (n : ℕ), f (n + N)) _ _ _ ?_).mp ?_
+  · convert this using 2
+    rename ℕ  => M
+    simp_rw [Finset.range_eq_Ico]
+    sorry
+  swap; apply (Summable.hasSum_iff ?_).mpr; rfl
+  all_goals
   sorry
 
 lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
@@ -970,12 +982,6 @@ lemma HolomophicOn_Zeta :
   intro z hz
   simp only [Set.mem_setOf_eq] at hz
   exact (differentiableAt_riemannZeta hz).differentiableWithinAt
-
-
--- no longer used
-lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
-    ∑' (n : ℕ), f n = (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
-  rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N), Finset.range_eq_Ico]
 
 
 /-%%
