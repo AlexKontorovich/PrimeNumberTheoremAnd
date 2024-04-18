@@ -874,7 +874,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       convert MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
         (b := (fun (n : ℕ) ↦ (n : ℝ))) (f := f) (μ := MeasureTheory.volume) (l := atTop) ?_ ?_
       · sorry
-      · convert tendsto_nat_cast_atTop_atTop
+      · exact tendsto_nat_cast_atTop_atTop
 /-%%
 \begin{proof}\uses{ZetaSum_aux1, ZetaSum_aux1a}
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
