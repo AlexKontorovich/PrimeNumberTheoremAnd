@@ -39,9 +39,10 @@ open BigOperators Complex Topology Filter Interval
 --   sorry
 
 -- move near `Real.differentiableAt_rpow_const_of_ne`
-lemma Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (hx : x ≠ 0) :
+lemma Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (xpos : 0 < x) :
     DifferentiableAt ℝ (fun (x : ℝ) => (x : ℂ) ^ s) x := by
-  sorry
+  apply DifferentiableAt.comp_ofReal (e := fun z ↦ z ^ s)
+  apply DifferentiableAt.cpow (by simp) (by simp) (by simp [xpos])
 
 lemma Complex.one_div_cpow_eq {s : ℂ} {x : ℝ} (x_ne : x ≠ 0) :
     1 / (x : ℂ) ^ s = (x : ℂ) ^ (-s) := by
@@ -421,7 +422,7 @@ lemma ZetaSum_aux1φDiff {s : ℂ} {x : ℝ} (xpos : 0 < x) :
   apply hasDerivAt_deriv_iff.mpr
   apply DifferentiableAt.div
   · fun_prop
-  · exact Real.differentiableAt_cpow_const_of_ne s xpos.ne'
+  · exact Real.differentiableAt_cpow_const_of_ne s xpos
   rw [Complex.cpow_def_of_ne_zero (by exact_mod_cast xpos.ne' : (x : ℂ) ≠ 0) s]
   apply Complex.exp_ne_zero
 
