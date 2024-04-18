@@ -951,6 +951,37 @@ lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
     ∑' (n : ℕ), f n = (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
   rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N), Finset.range_eq_Ico]
 
+lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
+  use (2 : ℂ)
+  constructor; simp
+  intro y hy; simp only [ne_eq, Set.mem_setOf_eq] at hy
+  by_cases h : y.re ≤ 1
+  · apply JoinedIn.trans (y := I)
+    · sorry
+    · sorry
+  · let f : ℝ → ℂ := fun t ↦ y * t + 2 * (1 - t)
+    have cont : Continuous f := by continuity
+    apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
+    simp [f, unitInterval]
+    intro x hx; simp only [Set.mem_Icc] at hx
+    simp only [Set.mem_setOf_eq]
+    constructor
+    · suffices ¬ (2 - y) * x = 1 by
+        convert this using 1
+        ring_nf
+        sorry
+      simp [ext_iff]
+      contrapose!
+      intro hxy
+      rcases hxy with (hx1 | hy1)
+      · have hyre: 2 - y.re < 1 := by linarith
+        by_cases hx2 : x = 0
+        · simp only [hx2]; linarith
+        · have := mul_lt_mul (a := 2 - y.re) (b := x) (c := 1) (d := 1) hyre hx.2
+            (lt_of_le_of_ne hx.1 <| ((Ne.def _ _).symm ▸ hx2).symm) (by norm_num)
+          linarith
+      · simp [hy1]
+    · sorry
 /-%%
 \begin{lemma}[Zeta0EqZeta]\label{Zeta0EqZeta}\lean{Zeta0EqZeta}\leanok
 For $\Re(s)>0$, $s\ne1$, and for any $N$,
@@ -974,8 +1005,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   have g_an : AnalyticOn ℂ g U := (HolomorphicOn_Zeta0 N_pos).analyticOn U_open
   have preconU : IsPreconnected U := by
     apply IsConnected.isPreconnected
-    apply (IsOpen.isConnected_iff_isPathConnected U_open).mp
-    sorry
+    apply (IsOpen.isConnected_iff_isPathConnected U_open).mp isPathConnected_aux
   have h2 : (2 : ℂ) ∈ U := by simp [U]
   have s_mem : s ∈ U := by simp [U, reS_pos, s_ne_one]
   convert (AnalyticOn.eqOn_of_preconnected_of_eventuallyEq f_an g_an preconU h2 ?_ s_mem).symm
