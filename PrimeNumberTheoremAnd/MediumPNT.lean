@@ -114,7 +114,24 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (ε : ℝ) (eps_pos: 0 < �
         ((n / X) ^ (-1 : ℂ)) ^ (2 + ↑t * I) := by
       rw [cpow_mul] <;> {rw [this n]; simp [Real.pi_pos, Real.pi_nonneg]}
     conv => rhs; rhs; intro n; rhs; rhs; rhs; intro t; rhs; rw [ht t, h n t]; lhs; rw [hn]
-  · sorry
+  · push_cast
+    congr
+    ext n
+    by_cases n_zero : n = 0; simp [n_zero]
+    have n_pos : 0 < n := by
+      simpa only [n_zero, gt_iff_lt, false_or] using (Nat.eq_zero_or_pos n)
+    congr
+    rw [(by rw [div_mul]; simp : 1 / (2 * Real.pi) = 1 / (2 * Real.pi * I) * I), mul_assoc]
+    conv => lhs; rhs; rhs; rhs; intro t; rw [mul_comm]; norm_cast
+    have := MellinInversion 2 (f := fun x ↦ (Smooth1 ψ ε x : ℂ)) (x := n / X)
+      (by simp [n_pos, X_pos]) ?_ ?_ ?_
+    · beta_reduce at this
+      dsimp [MellinInverseTransform, VerticalIntegral] at this
+      rw [← MellinTransform_eq, this]
+      sorry
+    · sorry
+    · sorry
+    · sorry
 /-%%
 \begin{proof}
 \uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet}
