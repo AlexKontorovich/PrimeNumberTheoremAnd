@@ -15,7 +15,7 @@ import PrimeNumberTheoremAnd.PerronFormula
 
 open BigOperators Complex Topology Filter Interval
 
--- theorem AnalyticContinuation {f g : ℂ → ℂ} {s t : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
+-- lemma AnalyticContinuation {f g : ℂ → ℂ} {s t : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
 --     (g_on_t : AnalyticOn ℂ g t) (f_eq_g_on_cap : Set.EqOn f g (s ∩ t))
 --     (s_open : IsOpen s) (t_open : IsOpen t) (cap_nonempty : Set.Nonempty (s ∩ t)) :
 --     ∃! h : ℂ → ℂ, AnalyticOn ℂ h (s ∪ t) ∧ Set.EqOn h f s ∧ Set.EqOn h g t := by
@@ -32,14 +32,14 @@ open BigOperators Complex Topology Filter Interval
 --   · intro h' ⟨h'_analytic, h'_eq_f_on_s, h'_eq_g_on_t⟩
 --     sorry
 
--- theorem AnalyticContinuation' {f g : ℂ → ℂ} {s t u : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
+-- lemma AnalyticContinuation' {f g : ℂ → ℂ} {s t u : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
 --     (g_on_t : AnalyticOn ℂ g t) (u_sub : u ⊆ s ∩ t) (u_open : IsOpen u)
 --     (u_nonempty : Set.Nonempty u) (f_eq_g_on_u : Set.EqOn f g u) :
 --     Set.EqOn f g (s ∩ t) := by
 --   sorry
 
 -- move near `Real.differentiableAt_rpow_const_of_ne`
-theorem Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (hx : x ≠ 0) :
+lemma Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (hx : x ≠ 0) :
     DifferentiableAt ℝ (fun (x : ℝ) => (x : ℂ) ^ s) x := by
   sorry
 
@@ -51,18 +51,18 @@ lemma Complex.one_div_cpow_eq {s : ℂ} {x : ℝ} (x_ne : x ≠ 0) :
   exact_mod_cast x_ne
 
 -- No longer used
-theorem ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContDiffOn ℝ 1 φ s) {x : ℝ}
+lemma ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContDiffOn ℝ 1 φ s) {x : ℝ}
     (x_in_s : s ∈ nhds x) : HasDerivAt φ (deriv φ x) x :=
   (ContDiffAt.hasStrictDerivAt (φDiff.contDiffAt x_in_s) (by simp)).hasDerivAt
 
 -- No longer used
-theorem ContDiffOn.continuousOn_deriv {φ : ℝ → ℂ} {a b : ℝ}
+lemma ContDiffOn.continuousOn_deriv {φ : ℝ → ℂ} {a b : ℝ}
     (φDiff : ContDiffOn ℝ 1 φ (Set.uIoo a b)) :
     ContinuousOn (deriv φ) (Set.uIoo a b) := by
   apply ContDiffOn.continuousOn (𝕜 := ℝ) (n := 0)
   exact (fun h => ((contDiffOn_succ_iff_deriv_of_isOpen isOpen_Ioo).1 h).2) φDiff
 
-theorem LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ) ↦ a * t + b) a x := by
+lemma LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ) ↦ a * t + b) a x := by
   refine HasDerivAt.add_const ?_ b
   have := @ContinuousLinearMap.hasDerivAt (e := Complex.ofRealCLM) x
   have := this.const_mul (c := a)
@@ -76,7 +76,7 @@ variable {A : Type*} [NormedRing A] [NormedAlgebra ℝ A] [CompleteSpace A] {a b
 
 set_option autoImplicit false in
 open BigOperators Interval Topology Set intervalIntegral MeasureTheory in
-theorem integral_deriv_mul_eq_sub' {u v u' v' : ℝ → A}
+lemma integral_deriv_mul_eq_sub' {u v u' v' : ℝ → A}
     (hu : ∀ x ∈ [[a, b]], HasDerivWithinAt u (u' x) [[a, b]] x)
     (hv : ∀ x ∈ [[a, b]], HasDerivWithinAt v (v' x) [[a, b]] x)
     (hu' : IntervalIntegrable u' volume a b)
@@ -265,7 +265,7 @@ lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (h : a ≤ b) (
   (∑ n in Finset.Ioc a b, f n) + (∑ n in Finset.Ioc b c, f n) = ∑ n in Finset.Ioc a c, f n := by
   sorry
 
-theorem integrability_aux₀ {a b : ℝ} (a_lt_b : a < b) :
+lemma integrability_aux₀ {a b : ℝ} (a_lt_b : a < b) :
     ∀ᵐ (x : ℝ) ∂MeasureTheory.Measure.restrict MeasureTheory.volume [[a, b]],
       ‖(⌊x⌋ : ℂ)‖ ≤ max ‖a‖ ‖b‖ + 1 := by
   rw [MeasureTheory.ae_restrict_iff']
@@ -321,7 +321,7 @@ lemma integrability_aux {a b : ℝ} (a_lt_b : a < b) :
     IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ) + 1 / 2 - x) MeasureTheory.volume a b := by
   convert (integrability_aux₁ a_lt_b).add integrability_aux₂ using 2; ring
 
-theorem sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
+lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
     (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
     ∑ n in Finset.Ioc ⌊a⌋ ⌊b⌋, φ n =
@@ -623,7 +623,7 @@ lemma ZetaSum_aux1a_aux4c (x : ℝ) (hx : 0 < x) (s : ℂ) : Complex.abs ((⌊x�
       congr
       exact ZetaSum_aux1a_aux4b' x
 
-theorem ZetaSum_aux1a_aux4 {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} :
+lemma ZetaSum_aux1a_aux4 {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} :
   ∫ (x : ℝ) in a..b, Complex.abs ((↑⌊x⌋ + 1 / 2 - ↑x) / ↑x ^ (s + 1)) =
     ∫ (x : ℝ) in a..b, |⌊x⌋ + 1 / 2 - x| / x ^ (s + 1).re := by
   apply intervalIntegral.integral_congr
@@ -631,7 +631,7 @@ theorem ZetaSum_aux1a_aux4 {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ}
   simp only
   exact ZetaSum_aux1a_aux4c x (ZetaSum_aux1a_aux1 apos a_lt_b hx) s
 
-theorem ZetaSum_aux1a_aux5a {a b : ℝ} (apos : 0 < a) {s : ℂ} (x : ℝ)
+lemma ZetaSum_aux1a_aux5a {a b : ℝ} (apos : 0 < a) {s : ℂ} (x : ℝ)
   (h : x ∈ Set.Icc a b) : |↑⌊x⌋ + 1 / 2 - x| / x ^ (s.re + 1) ≤ 1 / x ^ (s.re + 1) := by
   apply div_le_div_of_nonneg_right _ _
   · calc
@@ -640,7 +640,7 @@ theorem ZetaSum_aux1a_aux5a {a b : ℝ} (apos : 0 < a) {s : ℂ} (x : ℝ)
   · apply Real.rpow_nonneg
     exact le_of_lt (ZetaSum_aux1a_aux1' apos h)
 
-theorem ZetaSum_aux1a_aux5b {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
+lemma ZetaSum_aux1a_aux5b {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
   IntervalIntegrable (fun u ↦ 1 / u ^ (s.re + 1)) MeasureTheory.volume a b := by
   apply ContinuousOn.intervalIntegrable_of_Icc (le_of_lt a_lt_b) _
   apply ContinuousOn.div
@@ -660,8 +660,7 @@ theorem ZetaSum_aux1a_aux5b {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ
     have := (Real.rpow_eq_zero (le_of_lt h1) this).mp h
     exact (ne_of_gt h1) this
 
-
-theorem ZetaSum_aux1a_aux5c {a b : ℝ} {s : ℂ} :
+lemma ZetaSum_aux1a_aux5c {a b : ℝ} {s : ℂ} :
   let g : ℝ → ℝ := fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1);
   MeasureTheory.AEStronglyMeasurable g (MeasureTheory.Measure.restrict MeasureTheory.volume (Ι a b)) := by
   intro g
@@ -683,7 +682,7 @@ theorem ZetaSum_aux1a_aux5c {a b : ℝ} {s : ℂ} :
       · exact measurable_id
   · exact measurable_id.pow_const _
 
-theorem ZetaSum_aux1a_aux5d {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
+lemma ZetaSum_aux1a_aux5d {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
   IntervalIntegrable (fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1)) MeasureTheory.volume a b := by
   set g : ℝ → ℝ := (fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1))
   suffices IntervalIntegrable g MeasureTheory.volume a b
@@ -708,7 +707,7 @@ theorem ZetaSum_aux1a_aux5d {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ
   · simp only [inv_nonneg, abs_nonneg]
   · norm_num
 
-theorem ZetaSum_aux1a_aux5 {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
+lemma ZetaSum_aux1a_aux5 {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
   ∫ (x : ℝ) in a..b, |⌊x⌋ + 1 / 2 - x| / x ^ (s.re + 1) ≤ ∫ (x : ℝ) in a..b, 1 / x ^ (s.re + 1) := by
   apply intervalIntegral.integral_mono_on _ _ _
   · exact ZetaSum_aux1a_aux5a apos
@@ -752,7 +751,6 @@ lemma ZetaSum_aux1a {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos
             _ < a := apos
         exact lt_irrefl a this
       apply ZetaSum_aux1a_aux2 (c := s.re) apos a_lt_b ⟨ h1, h2 ⟩
-
 /-%%
 \begin{proof}\leanok
 Apply the triangle inequality
@@ -873,7 +871,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       · sorry
       · convert tendsto_coe_atTop
 /-%%
-\begin{proof}\uses{ZetaSum_aux1, ZetaSum_aux1a}
+\begin{proof}\uses{ZetaSum_aux1}
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
 \end{proof}
 %%-/
@@ -925,18 +923,19 @@ Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\
 %%-/
 
 
-/-
+/-%%
 \begin{lemma}[HolomorphicOn_Zeta0]\label{HolomorphicOn_Zeta0}\lean{HolomorphicOn_Zeta0}\leanok
 For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \Re(s)>0\}$.
 \end{lemma}
--/
+%%-/
 lemma HolomorphicOn_Zeta0 {N : ℕ} (N_pos : 0 < N) :
     HolomorphicOn (RiemannZeta0 N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
   sorry
-/-
+/-%%
 \begin{proof}\uses{ZetaSum_aux1}
-  The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral that's absolutely convergent on $\{s\in \C\mid \Re(s)>0\}$ by Lemma \ref{ZetaSum_aux1}.
--/
+  The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral
+  that's absolutely convergent on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ by Lemma \ref{ZetaSum_aux1}.
+%%-/
 
 -- MOVE TO MATHLIB near `differentiableAt_riemannZeta`
 lemma HolomophicOn_Zeta :
@@ -951,6 +950,12 @@ lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
     ∑' (n : ℕ), f n = (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
   rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N), Finset.range_eq_Ico]
 
+
+/-%%
+\begin{lemma}[isPathConnected_aux]\label{isPathConnected_aux}\lean{isPathConnected_aux}\leanok
+The set $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ is path-connected.
+\end{lemma}
+%%-/
 lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
   use (2 : ℂ)
   constructor; simp
@@ -982,6 +987,12 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
           linarith
       · simp [hy1]
     · sorry
+/-%%
+\begin{proof}
+  Construct explicit paths from $2$ to any point, either a line segment or two joined ones.
+%%-/
+
+
 /-%%
 \begin{lemma}[Zeta0EqZeta]\label{Zeta0EqZeta}\lean{Zeta0EqZeta}\leanok
 For $\Re(s)>0$, $s\ne1$, and for any $N$,
@@ -1024,7 +1035,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   simp
 /-%%
 \begin{proof}\leanok
-\uses{ZetaSum_aux2, RiemannZeta0, ZetaBnd_aux1, ZetaBndAux, HolomorphicOn_Zeta0}
+\uses{ZetaSum_aux2, RiemannZeta0, HolomorphicOn_Zeta0}
 Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{RiemannZeta0}.
 \end{proof}
 %%-/
