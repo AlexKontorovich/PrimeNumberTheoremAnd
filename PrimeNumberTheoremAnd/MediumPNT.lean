@@ -128,13 +128,20 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (ε : ℝ) (eps_pos: 0 < �
     · beta_reduce at this
       dsimp [MellinInverseTransform, VerticalIntegral] at this
       rw [← MellinTransform_eq, this]
+    · dsimp [MellinConvergent]
+      norm_num
+      norm_cast
+      apply MeasureTheory.Integrable.ofReal
+      -- use Smooth1LeOne
       sorry
-    · sorry
-    · sorry
-    · sorry
+    · dsimp [VerticalIntegrable, mellin]
+      ring_nf
+      sorry
+    · dsimp
+      sorry
 /-%%
 \begin{proof}
-\uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet}
+\uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne}
 We have that
 $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(2)}\sum_{n=1}^\infty \frac{\Lambda(n)}{n^s}
 \mathcal{M}(\widetilde{1_{\epsilon}})(s)
