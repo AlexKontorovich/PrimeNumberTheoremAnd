@@ -769,6 +769,12 @@ lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
 
   sorry
 
+
+lemma finsetSum_tendsto_tsum' {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
+    Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
+
+  sorry
+
 -- related to `ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt`
 lemma Summable_rpow {s : ℂ} (s_re_gt : 1 < s.re) : Summable (fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s) := by
   apply Summable.of_norm
@@ -852,8 +858,8 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos hk
       simp only
       convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
-    · convert finsetSum_tendsto_tsum (N := N) (f := fun n ↦ 1 / (n : ℂ) ^ s) (Summable_rpow s_re_gt)
-      simp
+    · convert finsetSum_tendsto_tsum' (N := N) (f := fun n ↦ 1 / (n : ℂ) ^ s) (Summable_rpow s_re_gt)
+      simp only [Nat.cast_add]
   · apply Tendsto.add
     · apply Tendsto.sub
       · have : (-↑N ^ (1 - s) / (1 - s)) = ((0 - ↑N ^ (1 - s)) / (1 - s)) + 0 := by ring
