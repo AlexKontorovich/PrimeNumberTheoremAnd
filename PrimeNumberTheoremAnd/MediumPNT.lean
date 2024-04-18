@@ -67,7 +67,7 @@ We have that
 $$\psi_{\epsilon}(X) = \sum_{n=1}^\infty \Lambda(n)\widetilde{1_{\epsilon}}(n/X).$$
 \end{theorem}
 %%-/
-theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (ε : ℝ) (eps_pos: 0 < ε)
+theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 ψ) (ε : ℝ) (εpos: 0 < ε)
     (suppΨ : Function.support ψ ⊆ Icc (1 / 2) 2) (X : ℝ) (X_pos : 0 < X) :
     SmoothedChebyshev ψ ε X = ∑' n, Λ n * Smooth1 ψ ε (n / X) := by
   dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
@@ -90,6 +90,14 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (ε : ℝ) (eps_pos: 0 < �
     rw [LogDerivativeDirichlet (s := 2 + t * I) (by simp)]
     rw [← tsum_mul_right, ← tsum_mul_right]
   · congr
+    rw [← MellinTransform_eq]
+    have := @MellinOfSmooth1b ψ diffΨ suppΨ 2 2 (by norm_num) ε εpos
+    simp_rw [← norm_eq_abs, Asymptotics.isBigO_iff] at this
+    obtain ⟨c, hc⟩ := this
+    simp only [norm_eq_abs, Real.norm_eq_abs, Complex.abs_abs, one_div, mul_inv_rev, norm_mul,
+      norm_inv, norm_pow, eventually_principal, mem_setOf_eq, and_imp] at hc
+    simp_rw [← norm_eq_abs] at hc
+    replace hc (t : ℝ) := hc (2 + t * I) (by simp) (by simp)
     sorry
   · field_simp; congr; ext n; congr; rw [← MeasureTheory.integral_mul_left ]; congr; ext t
     by_cases n_ne_zero : n = 0; simp [n_ne_zero]
@@ -141,7 +149,7 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (ε : ℝ) (eps_pos: 0 < �
       sorry
 /-%%
 \begin{proof}
-\uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne}
+\uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne, MellinOfSmooth1b}
 We have that
 $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(2)}\sum_{n=1}^\infty \frac{\Lambda(n)}{n^s}
 \mathcal{M}(\widetilde{1_{\epsilon}})(s)
