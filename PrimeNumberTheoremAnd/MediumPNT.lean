@@ -79,17 +79,24 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (ε : ℝ) (eps_pos: 0 < �
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
     _ = 1 / (2 * Real.pi * I) * (I * ∑' n, Λ n * ∫ (t : ℝ),
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
+    _ = 1 / (2 * Real.pi) * (∑' n, Λ n * ∫ (t : ℝ),
+      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
+    _ = ∑' n, Λ n * (1 / (2 * Real.pi) * ∫ (t : ℝ),
+      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
+    _ = ∑' n, Λ n * (1 / (2 * Real.pi) * ∫ (t : ℝ),
+      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * ((n : ℂ) / X) ^ (-(2 + ↑t * I))) := ?_
     _ = _ := ?_
   · congr; ext t
     rw [LogDerivativeDirichlet (s := 2 + t * I) (by simp)]
     rw [← tsum_mul_right, ← tsum_mul_right]
-  · sorry
+  · congr
+    sorry
   · field_simp; congr; ext n; congr; rw [← MeasureTheory.integral_mul_left ]; congr; ext t
     by_cases n_ne_zero : n = 0; simp [n_ne_zero]
     rw [mul_div_assoc, mul_assoc]
     congr
     rw [(div_eq_iff ?_).mpr]
-    have := @Complex.mul_cpow_ofReal_nonneg (a := X / (n : ℝ)) (b := (n : ℝ)) (r := 2 + t * I) ?_ ?_
+    have := @mul_cpow_ofReal_nonneg (a := X / (n : ℝ)) (b := (n : ℝ)) (r := 2 + t * I) ?_ ?_
     push_cast at this ⊢
     rw [← this, div_mul_cancel₀]
     · simp only [ne_eq, Nat.cast_eq_zero, n_ne_zero, not_false_eq_true]
@@ -97,6 +104,16 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (ε : ℝ) (eps_pos: 0 < �
     · simp
     · simp only [ne_eq, cpow_eq_zero_iff, Nat.cast_eq_zero, not_and, not_not]
       intro hn; exfalso; exact n_ne_zero hn
+  · conv => rw [← mul_assoc, div_mul]; lhs; lhs; rhs; simp
+  · simp_rw [← tsum_mul_left, ← mul_assoc, mul_comm]
+  · have ht (t : ℝ) : -(2 + t * I) = (-1) * (2 + t * I) := by simp
+    have hn (n : ℂ): (n / X) ^ (-1 : ℂ) = X / n := by simp [cpow_neg_one]
+    have (n : ℕ): (log ((n : ℂ) / (X : ℂ)) * -1).im = 0 := by
+      simp [Complex.log_im, arg_eq_zero_iff, div_nonneg (Nat.cast_nonneg _) X_pos.le]
+    have h (n : ℕ) (t : ℝ) : ((n : ℂ) / X) ^ ((-1 : ℂ) * (2 + t * I)) =
+        ((n / X) ^ (-1 : ℂ)) ^ (2 + ↑t * I) := by
+      rw [cpow_mul] <;> {rw [this n]; simp [Real.pi_pos, Real.pi_nonneg]}
+    conv => rhs; rhs; intro n; rhs; rhs; rhs; intro t; rhs; rw [ht t, h n t]; lhs; rw [hn]
   · sorry
 /-%%
 \begin{proof}
