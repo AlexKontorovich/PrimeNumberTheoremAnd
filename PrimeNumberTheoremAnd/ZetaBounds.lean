@@ -837,9 +837,9 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     simp only [sub_re, one_re, sub_pos, s_re_gt]
   have xpow_inv_tendsto : Tendsto (fun (x : ℕ) ↦ ((x : ℂ) ^ s)⁻¹) atTop (𝓝 0) := by
     rw [tendsto_zero_iff_norm_tendsto_zero]
-    simp_rw [norm_inv, Complex.norm_natCast_cpow_of_re_ne_zero _ s_re_ne_zero]
-
-    sorry
+    simp_rw [norm_inv, Complex.norm_natCast_cpow_of_re_ne_zero _ s_re_ne_zero, ← Real.rpow_neg (Nat.cast_nonneg _) _]
+    apply (tendsto_rpow_neg_atTop _).comp tendsto_nat_cast_atTop_atTop
+    linarith
   apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
     (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
       + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1))
