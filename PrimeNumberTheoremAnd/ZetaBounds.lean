@@ -769,9 +769,6 @@ lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
 
   sorry
 
-lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
-  sorry
-
 -- related to `ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt`
 lemma Summable_rpow {s : ℂ} (s_re_gt : 1 < s.re) : Summable (fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s) := by
   apply Summable.of_norm
@@ -817,6 +814,9 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     rw [s_eq] at s_re_gt
     simp only [zero_re] at s_re_gt
     linarith
+  have s_re_ne_zero : s.re ≠ 0 := by
+    simp only [ne_eq]
+    linarith
   have s_ne_one : s ≠ 1 := by
     intro s_eq
     rw [s_eq] at s_re_gt
@@ -836,6 +836,9 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     apply (tendsto_rpow_neg_atTop _).comp tendsto_nat_cast_atTop_atTop
     simp only [sub_re, one_re, sub_pos, s_re_gt]
   have xpow_inv_tendsto : Tendsto (fun (x : ℕ) ↦ ((x : ℂ) ^ s)⁻¹) atTop (𝓝 0) := by
+    rw [tendsto_zero_iff_norm_tendsto_zero]
+    simp_rw [norm_inv, Complex.norm_natCast_cpow_of_re_ne_zero _ s_re_ne_zero]
+
     sorry
   apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
     (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
@@ -871,7 +874,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       convert MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
         (b := (fun (n : ℕ) ↦ (n : ℝ))) (f := f) (μ := MeasureTheory.volume) (l := atTop) ?_ ?_
       · sorry
-      · convert tendsto_coe_atTop
+      · convert tendsto_nat_cast_atTop_atTop
 /-%%
 \begin{proof}\uses{ZetaSum_aux1, ZetaSum_aux1a}
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
