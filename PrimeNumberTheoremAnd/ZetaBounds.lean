@@ -1235,8 +1235,9 @@ lemma ZetaUpperBnd :
         |(N : ℝ)| ^ (-σ) / 2 + |t| * N ^ (-σ) / σ := ?_
     _ ≤ Real.exp A * ∑ n in Finset.range N, (n : ℝ)⁻¹ + |t| ^ (1 - σ) * 2 := ?_
     _ ≤ _ := ?_
-  · have := @norm_add_le
+  · -- have := @norm_add_le
     sorry
+  · sorry
   · sorry
   · sorry
   · sorry
