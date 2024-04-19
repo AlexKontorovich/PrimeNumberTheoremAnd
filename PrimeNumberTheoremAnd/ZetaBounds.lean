@@ -1215,27 +1215,31 @@ lemma ZetaUpperBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (σ_le : σ ≤ 2),
     Complex.abs (riemannZeta (σ + t * I)) ≤ C * Real.log |t| := by
-  refine ⟨1 / 2, by norm_num, 10, by norm_num, ?_⟩ -- placeholder values for `A` and `C`
+  let A := (1 : ℝ) / 2
+  have Apos : 0 < A := by norm_num
+  refine ⟨A, Apos, 10, by norm_num, ?_⟩
   intro σ t t_ge σ_ge σ_le
-  set N := ⌊ Real.log |t| ⌋₊
-  have logt_gt_one: 1 < Real.log |t| := by
-    rw [← Real.log_exp (x := 1)]
-    apply Real.log_lt_log (Real.exp_pos _)
-    linarith [(by exact lt_trans Real.exp_one_lt_d9 (by norm_num) : Real.exp 1 < 3)]
-  have σPos :  0 < (↑σ + ↑t * I).re := by
-    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-      add_zero]
-    apply lt_of_lt_of_le _ σ_ge
-    simp only [sub_pos, div_div]
-    apply (one_div_lt (by linarith) (by norm_num)).mpr
-    linarith
-  have neOne : ↑σ + ↑t * I ≠ 1 := by
-    contrapose! t_ge
-    simp [ext_iff] at t_ge
-    rw [t_ge.2]
-    simp
-  rw [← Zeta0EqZeta (N := N) (Nat.floor_pos.mpr logt_gt_one.le) (s := σ + t * I) σPos neOne]
-  sorry
+  set N := ⌊|t|⌋₊
+  set s := σ + t * I
+  obtain ⟨logt_gt_one, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
+  rw [← Zeta0EqZeta (N := N) (Nat.floor_pos.mpr (by linarith)) (by simp [σPos]) neOne]
+  simp only [RiemannZeta0, ← norm_eq_abs]
+  calc
+    _ ≤ ∑ n in Finset.range N, ‖1 / (n : ℂ) ^ s‖ - ‖N ^ (1 - s) / (1 - s)‖ -
+        ‖(N : ℂ) ^ (-s) / 2‖ +
+        ‖s * ∫ (x : ℝ) in Set.Ioi ↑N, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := ?_
+    _ = ∑ n in Finset.range N, ‖(n : ℂ) ^ (-s)‖ - |(N : ℝ)| ^ (1 - σ) / ‖(1 - s)‖ -
+        |(N : ℝ)| ^ (-σ) / 2 +
+        ‖s * ∫ (x : ℝ) in Set.Ioi ↑N, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := ?_
+    _ ≤ ∑ n in Finset.range N, (n : ℝ)⁻¹ * Real.exp A - |(N : ℝ)| ^ (1 - σ) / ‖(1 - s)‖ -
+        |(N : ℝ)| ^ (-σ) / 2 + |t| * N ^ (-σ) / σ := ?_
+    _ ≤ Real.exp A * ∑ n in Finset.range N, (n : ℝ)⁻¹ + |t| ^ (1 - σ) * 2 := ?_
+    _ ≤ _ := ?_
+  · have := @norm_add_le
+    sorry
+  · sorry
+  · sorry
+  · sorry
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
@@ -1245,7 +1249,7 @@ $$
 \sum_{1\le n < |t|} |n^{-s}|
 +
 \frac{- |t|^{1-\sigma}}{|1-s|} + \frac{-|t|^{-\sigma}}{2} +
-|t| * |t| ^ (-σ) / σ
+|t| \cdot |t| ^ (-σ) / σ
 $$
 $$
 \ll
