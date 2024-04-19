@@ -1184,18 +1184,18 @@ since $n\le t$.
 
 lemma UpperBnd_aux {A σ t: ℝ} (A_pos : 0 < A) (A_lt : A < 1) (t_ge : 3 < |t|)
       (σ_ge : 1 - A / Real.log |t| ≤ σ) :
-      1 < Real.log |t| ∧ 0 < σ ∧ σ + t * I ≠ 1 := by
+      1 < Real.log |t| ∧ 1 - A < σ ∧ 0 < σ ∧ σ + t * I ≠ 1:= by
   have logt_gt_one: 1 < Real.log |t| := by
     rw [← Real.log_exp (x := 1)]
     apply Real.log_lt_log (Real.exp_pos _)
     linarith [(by exact lt_trans Real.exp_one_lt_d9 (by norm_num) : Real.exp 1 < 3)]
+  have σ_gt : 1 - A < σ := by
+    apply lt_of_lt_of_le ((sub_lt_sub_iff_left (a := 1)).mpr ?_) σ_ge
+    exact (div_lt_iff (by linarith)).mpr <| lt_mul_right A_pos logt_gt_one
   split_ands
   · exact logt_gt_one
-  · apply lt_of_lt_of_le _ σ_ge
-    simp only [sub_pos, div_div]
-    apply (div_lt_iff (b := A) (c := Real.log |t|) (a := 1) <| Real.log_pos (by linarith)).mpr
-    simp only [one_mul]
-    exact lt_trans A_lt logt_gt_one
+  · exact σ_gt
+  · linarith
   · contrapose! t_ge
     simp only [ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
       sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at t_ge
@@ -1221,7 +1221,7 @@ lemma ZetaUpperBnd :
   intro σ t t_ge σ_ge σ_le
   set N := ⌊|t|⌋₊
   set s := σ + t * I
-  obtain ⟨logt_gt_one, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
+  obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
   rw [← Zeta0EqZeta (N := N) (Nat.floor_pos.mpr (by linarith)) (by simp [σPos]) neOne]
   simp only [RiemannZeta0, ← norm_eq_abs]
   calc
@@ -1288,7 +1288,7 @@ lemma ZetaDerivUpperBnd :
   intro σ t t_ge σ_ge σ_le
   set N := ⌊|t|⌋₊
   set s := σ + t * I
-  obtain ⟨logt_gt_one, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
+  obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
   have : deriv riemannZeta s = deriv (RiemannZeta0 N) s := by
     have := Zeta0EqZeta (N := N) (Nat.floor_pos.mpr (by linarith)) (by simp [σPos]) neOne
     -- these functions agree on an open set, their derivatives agree there too
