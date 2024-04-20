@@ -190,8 +190,7 @@ lemma interval_induction_aux_int (n : ℕ) : ∀ (P : ℝ → ℝ → Prop)
   | hz =>
     intro P base _ a b hab hn
     apply base a b ⌊a⌋ (Int.floor_le a) hab
-    simp only [CharP.cast_eq_zero] at hn
-    rw [(by linarith : ⌊a⌋ = ⌊b⌋)]
+    rw [(by simp only [CharP.cast_eq_zero] at hn; linarith : ⌊a⌋ = ⌊b⌋)]
     exact (Int.lt_floor_add_one b).le
   | hi n ih =>
     intro P base step a b _ hn
@@ -201,17 +200,12 @@ lemma interval_induction_aux_int (n : ℕ) : ∀ (P : ℝ → ℝ → Prop)
     · rwa [b_le_flaP1]
     have flaP1_lt_b : ⌊a⌋ + 1 < b := by
       simp only [Nat.cast_succ] at hn
-      have := Int.floor_le b
-      have : 0 ≤ n := Nat.zero_le n
-      have : ⌊a⌋ + 1 ≤ ⌊b⌋ := by linarith
-      have : (⌊a⌋ : ℝ) + 1 ≤ ⌊b⌋ := by exact_mod_cast this
-      push_neg at b_le_flaP1
-      exact Ne.lt_of_le (id (Ne.symm b_le_flaP1)) (by linarith : ⌊a⌋ + 1 ≤ b)
+      have : (⌊a⌋ : ℝ) + 1 ≤ ⌊b⌋ := by exact_mod_cast (by linarith)
+      exact Ne.lt_of_le (id (Ne.symm b_le_flaP1)) (by linarith [Int.floor_le b] : ⌊a⌋ + 1 ≤ b)
     have Pfla_b : P (⌊a⌋ + 1) b := by
       apply ih n (le_of_eq rfl) P base step (⌊a⌋ + 1) b flaP1_lt_b
       simp only [Int.floor_add_one, Int.floor_intCast, Nat.cast_succ] at hn ⊢
-      rw [sub_eq_add_neg, neg_add, ← add_assoc, ← sub_eq_add_neg (a := ⌊b⌋), ← hn]
-      ring
+      linarith
     refine step a (⌊a⌋ + 1) b ?_ (by exact_mod_cast flaP1_lt_b) (by exact_mod_cast Pa)
       (by exact_mod_cast Pfla_b)
     have := Int.lt_floor_add_one a
@@ -223,10 +217,7 @@ lemma interval_induction (P : ℝ → ℝ → Prop)
     (a b : ℝ) (hab : a < b) : P a b := by
   set n := ⌊b⌋ - ⌊a⌋ with hn
   clear_value n
-  have : 0 ≤ n := by
-    have : ⌊a⌋ ≤ ⌊b⌋ := Int.floor_le_floor _ _ (hab.le)
-    simp only [hn, sub_nonneg, ge_iff_le]
-    exact this
+  have : 0 ≤ n := by simp only [hn, sub_nonneg, ge_iff_le, Int.floor_le_floor _ _ (hab.le)]
   lift n to ℕ using this
   exact interval_induction_aux_int n P base step a b hab hn
 
