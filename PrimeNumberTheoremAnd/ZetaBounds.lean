@@ -593,6 +593,17 @@ instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated us
     exact ⟨x, by exact_mod_cast hx, rfl⟩
   · exact fun _ _ ↦ rfl
 
+lemma ZetaSum_aux2_1 {s : ℂ} (s_re_gt : 1 < s.re) :
+    Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) := by
+  have one_sub_s_re_ne : (1 - s).re ≠ 0 :=
+    fun h ↦ (ne_of_lt s_re_gt).symm (one_re ▸ zero_add s.re ▸ sub_eq_iff_eq_add.mp h).symm
+  rw [tendsto_zero_iff_norm_tendsto_zero]
+  simp_rw [Complex.norm_natCast_cpow_of_re_ne_zero _ one_sub_s_re_ne]
+  have : (1 - s).re = - (s - 1).re := by simp
+  simp_rw [this]
+  apply (tendsto_rpow_neg_atTop _).comp tendsto_nat_cast_atTop_atTop
+  simp only [sub_re, one_re, sub_pos, s_re_gt]
+
 /-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
   Let $N$ be a natural number and $s\in \C$, $\Re(s)>1$.
@@ -606,29 +617,11 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     ∑' (n : ℕ), 1 / (n + N : ℂ) ^ s =
     (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) := by
-  have s_ne_zero : s ≠ 0 := by
-    intro s_eq
-    rw [s_eq] at s_re_gt
-    simp only [zero_re] at s_re_gt
-    linarith
-  have s_ne_one : s ≠ 1 := by
-    intro s_eq
-    rw [s_eq] at s_re_gt
-    simp only [one_re, lt_self_iff_false] at s_re_gt
-  have one_sub_s_ne : 1 - s ≠ 0 := by
-    intro h
-    rw [sub_eq_iff_eq_add, zero_add] at h
-    exact s_ne_one h.symm
-  have one_sub_s_re_ne : (1 - s).re ≠ 0 := by
-    simp only [sub_re, one_re, ne_eq]
-    linarith
-  have xpow_tendsto : Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) := by
-    rw [tendsto_zero_iff_norm_tendsto_zero]
-    simp_rw [Complex.norm_natCast_cpow_of_re_ne_zero _ one_sub_s_re_ne]
-    have : (1 - s).re = - (s - 1).re := by simp
-    simp_rw [this]
-    apply (tendsto_rpow_neg_atTop _).comp tendsto_nat_cast_atTop_atTop
-    simp only [sub_re, one_re, sub_pos, s_re_gt]
+  have s_ne_zero : s ≠ 0 := fun hs ↦ by linarith [zero_re ▸ hs ▸ s_re_gt]
+  have s_ne_one : s ≠ 1 := fun hs ↦ (lt_self_iff_false _).mp <| one_re ▸ hs ▸ s_re_gt
+  have one_sub_s_ne : 1 - s ≠ 0 := by contrapose! s_ne_one; simp [sub_eq_iff_eq_add.mp s_ne_one]
+  have xpow_tendsto : Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) :=
+    ZetaSum_aux2_1 s_re_gt
   have xpow_inv_tendsto : Tendsto (fun (x : ℕ) ↦ ((x : ℂ) ^ s)⁻¹) atTop (𝓝 0) := by
     sorry
   apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
@@ -641,29 +634,20 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       use N + 1
       intro k hk
       convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos hk using 1
-      simp only
       convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
-    · convert finsetSum_tendsto_tsum (N := N) (f := fun n ↦ 1 / (n : ℂ) ^ s) (Summable_rpow s_re_gt)
-      simp
+    · convert finsetSum_tendsto_tsum (f := fun n ↦ 1 / (n : ℂ) ^ s) (Summable_rpow s_re_gt); simp
   · apply Tendsto.add
     · apply Tendsto.sub
       · have : (-↑N ^ (1 - s) / (1 - s)) = ((0 - ↑N ^ (1 - s)) / (1 - s)) + 0 := by ring
         rw [this]
-        apply Tendsto.add
-        · apply Tendsto.div_const
-          apply Tendsto.sub_const
-          exact xpow_tendsto
-        · simp_rw [mul_comm_div, one_mul, one_div]
-          have : 𝓝 (0 : ℂ) = 𝓝 ((0 : ℂ) / 2) := by congr; ring
-          simp_rw [this]
-          apply Tendsto.div_const
-          exact xpow_inv_tendsto
-      · simp_rw [mul_comm_div, one_mul, one_div, Complex.cpow_neg]
+        apply (Tendsto.div_const (Tendsto.sub_const xpow_tendsto _) _).add
+        simp_rw [mul_comm_div, one_mul, one_div, (by congr; ring : 𝓝 (0 : ℂ) = 𝓝 ((0 : ℂ) / 2))]
+        apply Tendsto.div_const xpow_inv_tendsto
+      · simp_rw [mul_comm_div, one_mul, one_div, cpow_neg]
         exact tendsto_const_nhds
     · apply Tendsto.const_mul
-      let f : ℝ → ℂ := fun x ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))
       convert MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
-        (b := (fun (n : ℕ) ↦ (n : ℝ))) (f := f) (μ := MeasureTheory.volume) (l := atTop) ?_ ?_
+        (b := (fun (n : ℕ) ↦ (n : ℝ))) (μ := MeasureTheory.volume) (l := atTop) ?_ ?_
       · sorry
       · convert tendsto_coe_atTop
 /-%%
