@@ -619,7 +619,6 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) := by
   have s_ne_zero : s ≠ 0 := fun hs ↦ by linarith [zero_re ▸ hs ▸ s_re_gt]
   have s_ne_one : s ≠ 1 := fun hs ↦ (lt_self_iff_false _).mp <| one_re ▸ hs ▸ s_re_gt
-  have one_sub_s_ne : 1 - s ≠ 0 := by contrapose! s_ne_one; simp [sub_eq_iff_eq_add.mp s_ne_one]
   have xpow_tendsto : Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) :=
     ZetaSum_aux2_1 s_re_gt
   have xpow_inv_tendsto : Tendsto (fun (x : ℕ) ↦ ((x : ℂ) ^ s)⁻¹) atTop (𝓝 0) := by
@@ -825,91 +824,41 @@ $$
 lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_le_t : n ≤ t)
     (σ_ge : (1 : ℝ) - A / Real.log |t| ≤ σ) :
     Complex.abs (n ^ (-(σ + t * I))) ≤ (n : ℝ)⁻¹ * Real.exp A := by
+  set s := σ + t * I
   by_cases n0 : n = 0
-  · simp only [n0]
-    have : (-(σ + t * I)) ≠ 0 := by
-      by_contra h
-      have : (-(σ + t * I)).re = -σ := by
-        simp only [neg_add_rev, add_re, neg_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im,
-          mul_one, sub_self, neg_zero, zero_add]
-      rw [h] at this
-      simp at this
-      have h := (NeZero.of_pos σpos).ne
-      exact h this
-    simp only [CharP.cast_eq_zero]
-    rw [Complex.zero_cpow this]
-    simp only [map_zero, inv_zero, zero_mul, le_refl]
+  · simp_rw [n0, CharP.cast_eq_zero, inv_zero, zero_mul]
+    rw [Complex.zero_cpow ?_, map_zero]
+    exact fun h ↦ (NeZero.of_pos σpos).ne <| zero_eq_neg.mp <| zero_re ▸ h ▸ (by simp [s])
   have n_gt_0 : 0 < n := Nat.pos_of_ne_zero n0
-  have n_gt_0' : (0 : ℝ) < (n : ℝ) := by
-    simp only [Nat.cast_pos]
-    exact n_gt_0
-  have := Complex.abs_cpow_eq_rpow_re_of_pos n_gt_0' (-(σ + t * I))
-  simp only [ofReal_nat_cast] at this
-  rw [this]
-  simp only [neg_add_rev, add_re, neg_re, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im,
-    mul_one, sub_self, neg_zero, zero_add, ge_iff_le]
-  have n_ge_1 : (n : ℝ) ≥ 1 := by
-    simp only [ge_iff_le, Nat.one_le_cast]
-    apply Nat.succ_le_of_lt
-    exact n_gt_0
-  have t_ge_1 : t ≥ 1 := by
-    exact le_trans n_ge_1 n_le_t
-  have t_ne_0 : t ≠ 0 := by
-    by_contra h
-    rw [h] at t_ge_1
-    absurd t_ge_1
-    norm_num
-  have h : Real.log n *  -(1 - A/(Real.log t)) ≤ - Real.log n + A := by
+  have n_gt_0' : (0 : ℝ) < (n : ℝ) := Nat.cast_pos.mpr n_gt_0
+  have := ofReal_nat_cast _ ▸ abs_cpow_eq_rpow_re_of_pos n_gt_0' (-s)
+  rw [this, neg_re]
+  have n_ge_1 : 1 ≤ (n : ℝ) := Nat.one_le_cast.mpr <| Nat.succ_le_of_lt n_gt_0
+  have t_ne_0 : t ≠ 0 := by linarith
+  have h : Real.log n *  -(1 - A / Real.log t) ≤ - Real.log n + A := by
     simp only [neg_sub, le_neg_add_iff_add_le]
     ring_nf
-    rw [mul_comm, ← mul_assoc]
-    nth_rw 2 [← one_mul A]
-    have : A ≥ 0 := by
-      exact le_of_lt Apos
-    apply mul_le_mul_of_nonneg_right _ this
+    conv => rw [mul_comm, ← mul_assoc]; rhs; rw [← one_mul A]
+    apply mul_le_mul_of_nonneg_right _ <| le_of_lt Apos
     by_cases ht1 : t = 1
-    · rw [ht1]
-      simp only [Real.log_one, inv_zero, zero_mul, zero_le_one]
+    · simp only [ht1, Real.log_one, inv_zero, zero_mul, zero_le_one]
     have : (Real.log t) ≠ 0 := by
-      simp only [ne_eq, Real.log_eq_zero]
-      by_contra h
-      rcases h with (h | h | h)
-      · rw [h] at t_ne_0
-        exact t_ne_0 rfl
-      · rw [h] at ht1
-        exact ht1 rfl
-      rw [h] at t_ge_1
-      absurd t_ge_1
-      norm_num
+      simp only [ne_eq, Real.log_eq_zero, not_or]
+      exact ⟨t_ne_0, ht1, by linarith⟩
     rw [← inv_mul_cancel this]
-    apply mul_le_mul_of_nonneg_left
-    · apply Real.log_le_log
-      · exact n_gt_0'
-      exact n_le_t
-    simp only [inv_nonneg]
-    apply Real.log_nonneg
-    exact le_trans n_ge_1 n_le_t
+    apply mul_le_mul_of_nonneg_left <| Real.log_le_log n_gt_0' n_le_t
+    apply inv_nonneg.mpr <| Real.log_nonneg <| le_trans n_ge_1 n_le_t
   calc
-    _ = |((n : ℝ) ^ (-σ))| := by
-      symm
-      apply (abs_eq_self (a := (n : ℝ) ^ (-σ))).mpr
-      apply Real.rpow_nonneg
-      simp only [Nat.cast_nonneg]
-    _ ≤ Real.exp ((Real.log n * -σ)) := by
-      exact Real.abs_rpow_le_exp_log_mul (n : ℝ) (-σ)
-    _ ≤ Real.exp (Real.log n *  -(1 - A/(Real.log t))) := by
-      apply Real.exp_le_exp_of_le
-      have : Real.log (n : ℝ) ≥ 0 := by
-        apply Real.log_nonneg
-        exact n_ge_1
-      apply mul_le_mul_of_nonneg_left _ this
-      simp only [neg_sub, neg_le_sub_iff_le_add]
-      simp only [Real.log_abs, tsub_le_iff_right] at σ_ge
-      rw [add_comm]
-      exact σ_ge
+    _ = |((n : ℝ) ^ (-σ))| := ?_
+    _ ≤ Real.exp ((Real.log n * -σ)) := Real.abs_rpow_le_exp_log_mul (n : ℝ) (-σ)
+    _ ≤ Real.exp (Real.log n *  -(1 - A/(Real.log t))) := ?_
     _ ≤ Real.exp (- Real.log n + A) := Real.exp_le_exp_of_le h
-    _ ≤ (n : ℝ)⁻¹ * Real.exp A := by
-      rw [Real.exp_add, Real.exp_neg, Real.exp_log n_gt_0']
+    _ ≤ _ := by rw [Real.exp_add, Real.exp_neg, Real.exp_log n_gt_0']
+  · have := (abs_eq_self (a := (n : ℝ) ^ (-σ))).mpr <| Real.rpow_nonneg (Nat.cast_nonneg n) _
+    simp [s, this]
+  · apply Real.exp_le_exp_of_le <| mul_le_mul_of_nonneg_left _ <| Real.log_nonneg n_ge_1
+    simp only [neg_sub, neg_le_sub_iff_le_add, add_comm]
+    simpa only [Real.log_abs, tsub_le_iff_right] using σ_ge
 /-%%
 \begin{proof}\leanok
 Use $|n^{-s}| = n^{-\sigma}
@@ -932,14 +881,11 @@ lemma UpperBnd_aux {A σ t: ℝ} (A_pos : 0 < A) (A_lt : A < 1) (t_ge : 3 < |t|)
   have σ_gt : 1 - A < σ := by
     apply lt_of_lt_of_le ((sub_lt_sub_iff_left (a := 1)).mpr ?_) σ_ge
     exact (div_lt_iff (by linarith)).mpr <| lt_mul_right A_pos logt_gt_one
-  split_ands
-  · exact logt_gt_one
-  · exact σ_gt
-  · linarith
-  · contrapose! t_ge
-    simp only [ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-      sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at t_ge
-    norm_num [t_ge.2]
+  refine ⟨logt_gt_one, σ_gt, by linarith, ?__⟩
+  contrapose! t_ge
+  simp only [ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+    sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at t_ge
+  norm_num [t_ge.2]
 
 /-%%
 \begin{lemma}[ZetaUpperBnd]\label{ZetaUpperBnd}\lean{ZetaUpperBnd}\leanok
