@@ -341,73 +341,41 @@ lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
 lemma xpos_of_uIcc {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) {x : ℝ} (x_in : x ∈ [[(a : ℝ), b]]) :
     0 < x := by
   rw [Set.uIcc_of_le (by exact_mod_cast a_lt_b.le), Set.mem_Icc] at x_in
-  have : (0 : ℝ) < a := by exact_mod_cast apos
-  linarith
+  linarith [(by exact_mod_cast apos : (0 : ℝ) < a)]
 
-lemma neg_s_ne_neg_one {s : ℂ} (s_ne_one : s ≠ 1) : -s ≠ -1 := by
-  intro hs
-  have : s = 1 := neg_inj.mp hs
-  exact s_ne_one this
+lemma neg_s_ne_neg_one {s : ℂ} (s_ne_one : s ≠ 1) : -s ≠ -1 := fun hs ↦ s_ne_one <| neg_inj.mp hs
 
 lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_lt_b : a < b) :
     (∫ (x : ℝ) in a..b, 1 / (x : ℂ) ^ s) =
     (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) := by
   convert integral_cpow (a := a) (b := b) (r := -s) ?_ using 1
-  · apply intervalIntegral.integral_congr
-    intro x hx
-    simp only
-    apply one_div_cpow_eq
+  · refine intervalIntegral.integral_congr fun x hx ↦ one_div_cpow_eq ?_
     exact (xpos_of_uIcc apos a_lt_b hx).ne'
-  · norm_cast
-    rw [(by ring : -s + 1 = 1 - s)]
+  · norm_cast; rw [(by ring : -s + 1 = 1 - s)]
   · right; refine ⟨neg_s_ne_neg_one s_ne_one, ?_⟩
-    rw [Set.uIcc_of_le (by exact_mod_cast a_lt_b.le), Set.mem_Icc]
-    push_neg
-    intro ha
-    norm_cast at ha ⊢
-    linarith
+    exact fun hx ↦ (lt_self_iff_false 0).mp <| xpos_of_uIcc apos a_lt_b hx
 
 lemma ZetaSum_aux1φDiff {s : ℂ} {x : ℝ} (xpos : 0 < x) :
     HasDerivAt (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x) x := by
-  apply hasDerivAt_deriv_iff.mpr
-  apply DifferentiableAt.div
-  · fun_prop
+  apply hasDerivAt_deriv_iff.mpr <| DifferentiableAt.div (differentiableAt_const _) ?_ ?_
   · exact Real.differentiableAt_cpow_const_of_ne s xpos
-  rw [Complex.cpow_def_of_ne_zero (by exact_mod_cast xpos.ne' : (x : ℂ) ≠ 0) s]
-  apply Complex.exp_ne_zero
+  · simp [cpow_eq_zero_iff, xpos.ne']
 
 lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_zero : s ≠ 0) {x : ℝ} (xpos : 0 < x) :
     deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x = (fun (x : ℝ) ↦ -s / (x : ℂ) ^ (s + 1)) x := by
   let r := -s - 1
-  have s_eq : s = -r - 1 := by ring
-  have r_ne_neg1 : r ≠ -1 := by
-    intro hr
-    have : s = 0 := by
-      rw [hr] at s_eq
-      convert s_eq; ring
-    exact s_ne_zero this
-  have r_add1_ne_zero : r + 1 ≠ 0 := fun hr ↦ r_ne_neg1 (eq_neg_of_add_eq_zero_left hr)
+  have r_add1_ne_zero : r + 1 ≠ 0 := fun hr ↦ by simp [neg_ne_zero.mpr s_ne_zero, r] at hr
+  have r_ne_neg1 : r ≠ -1 := fun hr ↦ (hr ▸ r_add1_ne_zero) <| by norm_num
   have hasDeriv := hasDerivAt_ofReal_cpow xpos.ne' r_ne_neg1
-  have diffAt := hasDeriv.differentiableAt
-  have := deriv_const_mul (-s) diffAt
-  rw [hasDeriv.deriv] at this
+  have := hasDeriv.deriv ▸ deriv_const_mul (-s) (hasDeriv).differentiableAt
   convert this using 2
   · ext y
-    by_cases y_zero : y = 0
+    by_cases y_zero : (y : ℂ) = 0
     · simp only [y_zero, ofReal_zero, ne_eq, s_ne_zero, not_false_eq_true, zero_cpow, div_zero,
       r_add1_ne_zero, zero_div, mul_zero]
-    · have y_ne : (y : ℂ) ≠ 0 := by exact_mod_cast y_zero
-      have : (y : ℂ) ^ s ≠ 0 := by
-        intro hy
-        rw [Complex.cpow_eq_zero_iff] at hy
-        simp only [ofReal_eq_zero, ne_eq, s_ne_zero, not_false_eq_true, and_true] at hy
-        norm_cast at y_ne
-      field_simp
-      rw [s_eq, mul_assoc, ← Complex.cpow_add _ _ y_ne, (by ring : r + 1 + (-r - 1) = 0), Complex.cpow_zero]
-      ring
-  · simp only [neg_mul]
-    rw [div_eq_mul_inv, ← one_div, one_div_cpow_eq xpos.ne', s_eq]
-    ring_nf
+    · have : (y : ℂ) ^ s ≠ 0 := fun hy ↦ y_zero ((cpow_eq_zero_iff _ _).mp hy).1
+      field_simp [r, mul_assoc, ← Complex.cpow_add]
+  · simp_rw [neg_mul, div_eq_mul_inv, ← one_div, one_div_cpow_eq xpos.ne', r]; ring_nf
 
 lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_zero : s ≠ 0) {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) :
     ContinuousOn (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s)) [[a, b]] := by
