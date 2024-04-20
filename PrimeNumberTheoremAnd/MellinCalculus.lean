@@ -529,11 +529,7 @@ lemma MellinInverseTransform_eq (σ : ℝ) (f : ℂ → ℂ) :
     MellinInverseTransform f σ = mellinInv σ f := by
   unfold mellinInv MellinInverseTransform VerticalIntegral' VerticalIntegral
   beta_reduce; ext x
-  have : (1 / (2 * ↑π * I) * I) = 1 / (2 * π) := calc
-    _ = (1 / (2 * π)) * (I / I) := by ring
-    _ = _ := by simp
-  rw [← smul_assoc, smul_eq_mul (a' := I), this]
-  norm_cast
+  rw [← smul_assoc, smul_eq_mul (a' := I), div_mul]; simp
 
 /-%%
 \begin{theorem}[MellinInversion]\label{MellinInversion}\lean{MellinInversion}\leanok
