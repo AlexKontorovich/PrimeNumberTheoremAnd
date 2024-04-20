@@ -288,6 +288,12 @@ lemma integrability_aux {a b : ℝ} :
     IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ) + 1 / 2 - x) MeasureTheory.volume a b := by
   convert integrability_aux₁.add integrability_aux₂ using 2; ring
 
+lemma uIcc_subsets {a b c : ℝ} (a_lt_c : a ≤ c) (c_lt_b : c ≤ b) :
+    [[a, c]] ⊆ [[a, b]] ∧ [[c, b]] ⊆ [[a, b]] := by
+  constructor <;> rw [Set.uIcc_of_le ?_, Set.uIcc_of_le ?_]
+  any_goals apply Set.Icc_subset_Icc
+  all_goals linarith
+
 lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
     (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
@@ -303,10 +309,7 @@ lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
   · exact fun _ _ _ k₁_le_a₁ a₁_lt_b₁ b₁_le_k₁ φDiff₁ derivφCont₁ ↦
       sum_eq_int_deriv_aux k₁_le_a₁ a₁_lt_b₁ b₁_le_k₁ φDiff₁ derivφCont₁
   · intro a₁ k₁ b₁ a₁_lt_k₁ k₁_lt_b₁ ih₁ ih₂ φDiff₁ derivφCont₁
-    have subs : [[a₁, ↑k₁]] ⊆ [[a₁, b₁]] ∧ [[↑k₁, b₁]] ⊆ [[a₁, b₁]] := by
-      constructor <;> rw [Set.uIcc_of_le ?_, Set.uIcc_of_le ?_]
-      any_goals apply Set.Icc_subset_Icc
-      all_goals linarith
+    have subs := uIcc_subsets a₁_lt_k₁.le k₁_lt_b₁.le
     have s₁ := ih₁ (fun x hx ↦ φDiff₁ x <| subs.1 hx) <| derivφCont₁.mono subs.1
     have s₂ := ih₂ (fun x hx ↦ φDiff₁ x <| subs.2 hx) <| derivφCont₁.mono subs.2
     convert Mathlib.Tactic.LinearCombination.add_pf s₁ s₂ using 1
