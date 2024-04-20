@@ -232,10 +232,6 @@ lemma interval_induction (P : ℝ → ℝ → Prop)
 %%-/
 /-- ** Partial summation ** (TODO : Add to Mathlib). -/
 
--- stupid lemma -- what's the better way to do this?
-lemma add_two {a b c d : ℂ} (h : a = b) (h' : c = d) : a + c = b + d := by
-  exact Mathlib.Tactic.LinearCombination.add_pf h h'
-
 -- In Yaël Dillies's API (https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Finset.2Esum_add_adjacent_intervals/near/430127101)
 lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (h : a ≤ b) (h' : b ≤ c) :
     (∑ n in Finset.Ioc a b, f n) + (∑ n in Finset.Ioc b c, f n) = ∑ n in Finset.Ioc a c, f n := by
@@ -298,60 +294,41 @@ lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
     ∑ n in Finset.Ioc ⌊a⌋ ⌊b⌋, φ n =
       (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
         - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
-  let P : ℝ → ℝ → Prop := fun a₁ b₁ ↦ (∀ x ∈ [[a₁, b₁]], HasDerivAt φ (deriv φ x) x) →
+  let P := fun a₁ b₁ ↦ (∀ x ∈ [[a₁, b₁]], HasDerivAt φ (deriv φ x) x) →
     (ContinuousOn (deriv φ) [[a₁, b₁]]) →
     ∑ n in Finset.Ioc ⌊a₁⌋ ⌊b₁⌋, φ n =
     (∫ x in a₁..b₁, φ x) + (⌊b₁⌋ + 1 / 2 - b₁) * φ b₁ - (⌊a₁⌋ + 1 / 2 - a₁) * φ a₁
       - ∫ x in a₁..b₁, (⌊x⌋ + 1 / 2 - x) * deriv φ x
-  apply interval_induction P ?_ ?_ a b a_lt_b φDiff derivφCont
-  · exact fun _ _ _ k_le_a₁ a₁_lt_b₁ b₁_le_k1 φDiff₁ derivφCont₁ ↦
-      sum_eq_int_deriv_aux k_le_a₁ a₁_lt_b₁ b₁_le_k1 φDiff₁ derivφCont₁
-  · intro a₁ k₁ b₁ a_lt_k₁ k_lt_b₁ ih₁ ih₂ φDiff₁ derivφCont₁
-    have φDiff₁₁ : ∀ x ∈ [[a₁, k₁]], HasDerivAt φ (deriv φ x) x := by
-      intro x hx
-      refine φDiff₁ x ?_
-      rw [Set.uIcc_of_le (by linarith), Set.mem_Icc] at hx ⊢
-      refine ⟨by linarith, by linarith⟩
-    have derivφCont₁₁ : ContinuousOn (deriv φ) [[a₁, k₁]] := by
-      apply derivφCont₁.mono
-      rw [Set.uIcc_of_le a_lt_k₁.le, Set.uIcc_of_le (by linarith)]
-      apply Set.Icc_subset_Icc (by linarith) (by linarith)
-    have s₁ := ih₁ φDiff₁₁ derivφCont₁₁
-    have φDiff₁₂ : ∀ x ∈ [[(k₁ : ℝ), b₁]], HasDerivAt φ (deriv φ x) x := by
-      intro x hx
-      refine φDiff₁ x ?_
-      rw [Set.uIcc_of_le (by linarith), Set.mem_Icc] at hx ⊢
-      refine ⟨by linarith, by linarith⟩
-    have derivφCont₁₂ : ContinuousOn (deriv φ) [[(k₁ : ℝ), b₁]] := by
-      apply derivφCont₁.mono
-      rw [Set.uIcc_of_le (by linarith), Set.uIcc_of_le (by linarith)]
-      apply Set.Icc_subset_Icc (by linarith) (by linarith)
-    have s₂ := ih₂ φDiff₁₂ derivφCont₁₂
-    convert add_two s₁ s₂ using 1
-    · rw [← Finset.sum_Ioc_add_sum_Ioc]
-      · exact Int.floor_mono a_lt_k₁.le
-      · exact Int.floor_mono k_lt_b₁.le
+  apply interval_induction P ?base ?step a b a_lt_b φDiff derivφCont
+  · exact fun _ _ _ k₁_le_a₁ a₁_lt_b₁ b₁_le_k₁ φDiff₁ derivφCont₁ ↦
+      sum_eq_int_deriv_aux k₁_le_a₁ a₁_lt_b₁ b₁_le_k₁ φDiff₁ derivφCont₁
+  · intro a₁ k₁ b₁ a₁_lt_k₁ k₁_lt_b₁ ih₁ ih₂ φDiff₁ derivφCont₁
+    have subs : [[a₁, ↑k₁]] ⊆ [[a₁, b₁]] ∧ [[↑k₁, b₁]] ⊆ [[a₁, b₁]] := by
+      constructor <;> rw [Set.uIcc_of_le ?_, Set.uIcc_of_le ?_]
+      any_goals apply Set.Icc_subset_Icc
+      all_goals linarith
+    have s₁ := ih₁ (fun x hx ↦ φDiff₁ x <| subs.1 hx) <| derivφCont₁.mono subs.1
+    have s₂ := ih₂ (fun x hx ↦ φDiff₁ x <| subs.2 hx) <| derivφCont₁.mono subs.2
+    convert Mathlib.Tactic.LinearCombination.add_pf s₁ s₂ using 1
+    · rw [← Finset.sum_Ioc_add_sum_Ioc] <;> exact Int.floor_mono (by linarith)
     · set I₁ := ∫ (x : ℝ) in a₁..b₁, φ x
       set I₂ := ∫ (x : ℝ) in a₁..k₁, φ x
       set I₃ := ∫ (x : ℝ) in k₁..b₁, φ x
       set J₁ := ∫ (x : ℝ) in a₁..b₁, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x
       set J₂ := ∫ (x : ℝ) in a₁..k₁, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x
       set J₃ := ∫ (x : ℝ) in k₁..b₁, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x
-      have : I₂ + I₃ = I₁ := by
+      have hI : I₂ + I₃ = I₁ := by
         apply intervalIntegral.integral_add_adjacent_intervals <;>
         apply ContinuousOn.intervalIntegrable
-        · exact HasDerivAt.continuousOn φDiff₁₁
-        · exact HasDerivAt.continuousOn φDiff₁₂
-      rw [← this]
-      have : J₂ + J₃ = J₁ := by
+        · exact HasDerivAt.continuousOn <| fun x hx ↦ φDiff₁ x <| subs.1 hx
+        · exact HasDerivAt.continuousOn <| fun x hx ↦ φDiff₁ x <| subs.2 hx
+      have hJ : J₂ + J₃ = J₁ := by
         apply intervalIntegral.integral_add_adjacent_intervals <;>
         apply IntervalIntegrable.mul_continuousOn
-        · apply integrability_aux
-        · exact derivφCont₁₁
-        · apply integrability_aux
-        · exact derivφCont₁₂
-      rw [← this]
-      ring
+        any_goals apply integrability_aux
+        · exact derivφCont₁.mono subs.1
+        · exact derivφCont₁.mono subs.2
+      rw [← hI, ← hJ]; ring
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv_aux}\leanok
   Apply Lemma \ref{sum_eq_int_deriv_aux} in blocks of length $\le 1$.
