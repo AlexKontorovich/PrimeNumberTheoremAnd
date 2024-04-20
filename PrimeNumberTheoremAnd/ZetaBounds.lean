@@ -279,19 +279,14 @@ lemma integrability_aux₀ {a b : ℝ} :
 lemma integrability_aux₁ {a b : ℝ} :
     IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ)) MeasureTheory.volume a b := by
   rw [intervalIntegrable_iff']
-  apply MeasureTheory.Measure.integrableOn_of_bounded (M := max ‖a‖ ‖b‖ + 1)
+  apply MeasureTheory.Measure.integrableOn_of_bounded ?_ ?_ integrability_aux₀
   · simp only [Real.volume_interval, ne_eq, ENNReal.ofReal_ne_top, not_false_eq_true]
   · apply Measurable.aestronglyMeasurable
-    apply Measurable.comp
-    · exact fun ⦃t⦄ _ ↦ trivial
-    · exact Int.measurable_floor
-  · exact integrability_aux₀
+    apply Measurable.comp (by exact fun ⦃t⦄ _ ↦ trivial) Int.measurable_floor
 
 lemma integrability_aux₂ {a b : ℝ} :
-    IntervalIntegrable (fun (x : ℝ) ↦ (1 : ℂ) / 2 - x) MeasureTheory.volume a b := by
-  apply ContinuousOn.intervalIntegrable
-  apply Continuous.continuousOn
-  exact Continuous.sub continuous_const Complex.ofRealCLM.continuous
+    IntervalIntegrable (fun (x : ℝ) ↦ (1 : ℂ) / 2 - x) MeasureTheory.volume a b :=
+  ContinuousOn.intervalIntegrable <| Continuous.continuousOn (by continuity)
 
 lemma integrability_aux {a b : ℝ} :
     IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ) + 1 / 2 - x) MeasureTheory.volume a b := by
