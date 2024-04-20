@@ -425,26 +425,16 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠
 \end{proof}
 %%-/
 
-lemma ZetaSum_aux1a_aux1 {a b x : ℝ} (apos : 0 < a) (a_lt_b : a < b) (hx : x ∈ [[a,b]])
-    : x > 0 := by
-  rcases hx with ⟨h, _⟩
-  have : a ⊓ b > 0 := by
-    rw [inf_eq_min]
-    have : b > 0 := by
-      exact lt_of_lt_of_le apos (le_of_lt a_lt_b)
-    exact lt_min apos this
-  exact lt_of_lt_of_le this h
-
 lemma ZetaSum_aux1a_aux1' {a b x : ℝ} (apos : 0 < a) (hx : x ∈ Set.Icc a b)
-    : x > 0 := by
-  rcases hx with ⟨h, _⟩
-  exact lt_of_lt_of_le apos h
+    : 0 < x := lt_of_lt_of_le apos hx.1
+
+lemma ZetaSum_aux1a_aux1 {a b x : ℝ} (apos : 0 < a) (a_lt_b : a < b) (hx : x ∈ [[a,b]])
+    : 0 < x :=  ZetaSum_aux1a_aux1' apos (Set.uIcc_of_le a_lt_b.le ▸ hx)
 
 lemma ZetaSum_aux1a_aux2 {a b : ℝ} {c : ℝ} (apos : 0 < a) (a_lt_b : a < b)
     (h : c ≠ 0 ∧ 0 ∉ [[a, b]]) :
     ∫ (x : ℝ) in a..b, 1/x^(c+1) = (a ^ (-c) - b ^ (-c)) / c := by
-  have : (a ^ (-c) - b ^ (-c)) / c = (b ^ (-c) - a ^ (-c)) / (-c) := by
-    ring
+  have : (a ^ (-c) - b ^ (-c)) / c = (b ^ (-c) - a ^ (-c)) / (-c) := by ring
   rw [this]
   have : -c-1 ≠ -1 := by
     simp only [ne_eq, sub_eq_neg_self, neg_eq_zero]
@@ -468,16 +458,10 @@ lemma ZetaSum_aux1a_aux3a (x : ℝ) : -(1/2) < ⌊ x ⌋ + 1/2 - x := by
     _ = _ := by ring
 
 lemma ZetaSum_aux1a_aux3b (x : ℝ) : ⌊x⌋ + 1/2 - x ≤ 1/2 := by
-  have : ⌊x⌋ - x ≤ 0 := by
-    exact sub_nonpos.mpr (Int.floor_le x)
-  ring_nf
-  exact add_le_of_nonpos_right this
+  ring_nf; exact add_le_of_nonpos_right <| sub_nonpos.mpr (Int.floor_le x)
 
-lemma ZetaSum_aux1a_aux3 (x : ℝ) : |(⌊x⌋ + 1/2 - x)| ≤ 1/2 := by
-  apply abs_le.mpr
-  constructor
-  · exact le_of_lt (ZetaSum_aux1a_aux3a x)
-  exact ZetaSum_aux1a_aux3b x
+lemma ZetaSum_aux1a_aux3 (x : ℝ) : |(⌊x⌋ + 1/2 - x)| ≤ 1/2 :=
+  abs_le.mpr ⟨le_of_lt (ZetaSum_aux1a_aux3a x), ZetaSum_aux1a_aux3b x⟩
 
 lemma ZetaSum_aux1a_aux4a (x : ℝ) (c : ℂ) (s : ℂ) (hx : 0 < x) : (Complex.abs (c / ((x : ℂ) ^ (s+1)))) = (Complex.abs c) / x^((s + 1).re) := by
   simp only [map_div₀, abs_ofReal]
