@@ -361,6 +361,12 @@ lemma ZetaSum_aux1φDiff {s : ℂ} {x : ℝ} (xpos : 0 < x) :
   · exact Real.differentiableAt_cpow_const_of_ne s xpos
   · simp [cpow_eq_zero_iff, xpos.ne']
 
+lemma div_cpow_eq_cpow_neg (a x s : ℂ) : a / x ^ s = a * x ^ (-s) := by
+  rw [div_eq_mul_inv, cpow_neg]
+
+lemma div_rpow_eq_rpow_neg (a x s : ℝ) (hx : 0 ≤ x): a / x ^ s = a * x ^ (-s) := by
+  rw [div_eq_mul_inv, Real.rpow_neg hx]
+
 lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_zero : s ≠ 0) {x : ℝ} (xpos : 0 < x) :
     deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x = (fun (x : ℝ) ↦ -s * (x : ℂ) ^ (-(s + 1))) x := by
   let r := -s - 1
@@ -397,7 +403,7 @@ lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_zero : s ≠ 0) {a b : ℕ} (apos 
 lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠ 0) (apos : 0 < a) (a_lt_b : a < b) :
     ∑ n in Finset.Ioc (a : ℤ) b, 1 / (n : ℂ) ^ s =
     (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / b ^ (s)) - 1 / 2 * (1 / a ^ s)
-      + s * ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
+      + s * ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) := by
   let φ := fun (x : ℝ) ↦ 1 / (x : ℂ) ^ s
   let φ' := fun (x : ℝ) ↦ -s * (x : ℂ) ^ (-(s + 1))
   have xpos : ∀ x ∈ [[(a : ℝ), b]], 0 < x := fun x hx ↦ xpos_of_uIcc apos a_lt_b hx
@@ -408,15 +414,11 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠
   convert sum_eq_int_deriv (by exact_mod_cast a_lt_b) φDiff derivφCont using 1
   · congr <;> simp only [Int.floor_natCast]
   · rw [Int.floor_natCast, Int.floor_natCast, ← intervalIntegral.integral_const_mul]
-    simp_rw [mul_div, mul_comm s _, ← mul_div, ZetaSum_aux1₁ s_ne_one apos a_lt_b]
+    simp_rw [mul_div, ← mul_div, ZetaSum_aux1₁ s_ne_one apos a_lt_b]
     conv => rhs; rw [sub_eq_add_neg]
-    congr; any_goals norm_cast; simp
+    congr; any_goals norm_cast; simp only [one_div, add_sub_cancel_left]
     rw [← intervalIntegral.integral_neg, intervalIntegral.integral_congr]
-    intro x hx; simp only [φderiv x hx, neg_add_rev, neg_mul, mul_neg, neg_neg, mul_eq_mul_left_iff,
-      φ']
-    left
-    have xpos : 0 < x := xpos_of_uIcc apos a_lt_b hx
-    simp_rw [div_eq_mul_inv, ← one_div, one_div_cpow_eq xpos.ne']; ring_nf
+    intro x hx; simp_rw [φderiv x hx, φ']; ring_nf
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv}\leanok
   Apply Lemma \ref{sum_eq_int_deriv} to the function $x \mapsto x^{-s}$.
@@ -438,16 +440,6 @@ lemma ZetaSum_aux1a_aux1' {a b x : ℝ} (apos : 0 < a) (hx : x ∈ Set.Icc a b)
   rcases hx with ⟨h, _⟩
   exact lt_of_lt_of_le apos h
 
-lemma ZetaSum_aux1a_aux2a  {x r : ℝ} (hx : x > 0) : 1 / x^r = x^(-r) := by
-  have h : x^(-r) * x^(r) = 1 := by
-    rw [← Real.rpow_add hx (-r) (r)]
-    simp only [add_left_neg, Real.rpow_zero]
-  have h' : x^r ≠ 0 := by
-    intro h'
-    rw [h', mul_zero] at h
-    exact zero_ne_one h
-  exact div_eq_of_eq_mul h' h.symm
-
 lemma ZetaSum_aux1a_aux2 {a b : ℝ} {c : ℝ} (apos : 0 < a) (a_lt_b : a < b)
     (h : c ≠ 0 ∧ 0 ∉ [[a, b]]) :
     ∫ (x : ℝ) in a..b, 1/x^(c+1) = (a ^ (-c) - b ^ (-c)) / c := by
@@ -464,11 +456,8 @@ lemma ZetaSum_aux1a_aux2 {a b : ℝ} {c : ℝ} (apos : 0 < a) (a_lt_b : a < b)
   apply intervalIntegral.integral_congr
   intro x h
   simp only
-  have : x > 0 := by
-    exact ZetaSum_aux1a_aux1 apos a_lt_b h
-  rw [ZetaSum_aux1a_aux2a this]
-  congr
-  ring
+  have : 0 ≤ x := (ZetaSum_aux1a_aux1 apos a_lt_b h).le
+  rw [div_rpow_eq_rpow_neg _ _ (c + 1) this, neg_add, one_mul, sub_eq_add_neg]
 
 lemma ZetaSum_aux1a_aux3a (x : ℝ) : -(1/2) < ⌊ x ⌋ + 1/2 - x := by
   have : 0 < (⌊ x ⌋ + 1) - x := by
@@ -719,7 +708,7 @@ instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated us
 lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     ∑' (n : ℕ), 1 / (n + N : ℂ) ^ s =
     (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
-      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) := by
   have s_ne_zero : s ≠ 0 := by
     intro s_eq
     rw [s_eq] at s_re_gt
@@ -747,14 +736,14 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     sorry
   apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
     (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
-      + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1))
+      + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
     (b := (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
-      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1))
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
   · apply Filter.Tendsto.congr' (f₁ := fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, 1 / (n : ℂ) ^ s) (l₁ := atTop)
     · apply Filter.eventually_atTop.mpr
       use N + 1
       intro k hk
-      convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos hk
+      convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos hk using 1
       simp only
       convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
     · convert finsetSum_tendsto_tsum (N := N) (f := fun n ↦ 1 / (n : ℂ) ^ s) (Summable_rpow s_re_gt)
@@ -775,7 +764,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       · simp_rw [mul_comm_div, one_mul, one_div, Complex.cpow_neg]
         exact tendsto_const_nhds
     · apply Tendsto.const_mul
-      let f : ℝ → ℂ := fun x ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
+      let f : ℝ → ℂ := fun x ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))
       convert MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
         (b := (fun (n : ℕ) ↦ (n : ℝ))) (f := f) (μ := MeasureTheory.volume) (l := atTop) ?_ ?_
       · sorry
@@ -806,9 +795,8 @@ noncomputable def RiemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
 lemma RiemannZeta0_apply (N : ℕ) (s : ℂ) : RiemannZeta0 (N : ℕ) (s : ℂ) =
     (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
     ((- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
-      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1)) := by
-  dsimp [RiemannZeta0]
-  ring
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) := by
+  simp_rw [RiemannZeta0, div_cpow_eq_cpow_neg]; ring
 
 /-%%
 \begin{lemma}[ZetaBnd_aux1]\label{ZetaBnd_aux1}\lean{ZetaBnd_aux1}\leanok
