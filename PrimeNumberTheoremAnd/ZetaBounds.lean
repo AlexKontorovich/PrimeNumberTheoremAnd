@@ -257,42 +257,26 @@ lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (h : a ≤ b) (
   simp only [mem_Ioc] at h ⊢
   exact ⟨by linarith, h.2⟩
 
-lemma integrability_aux₀ {a b : ℝ} (a_lt_b : a < b) :
+lemma integrability_aux₀ {a b : ℝ} :
     ∀ᵐ (x : ℝ) ∂MeasureTheory.Measure.restrict MeasureTheory.volume [[a, b]],
       ‖(⌊x⌋ : ℂ)‖ ≤ max ‖a‖ ‖b‖ + 1 := by
-  rw [MeasureTheory.ae_restrict_iff']
-  swap; · exact measurableSet_Icc
+  apply (MeasureTheory.ae_restrict_iff' measurableSet_Icc).mpr
   refine MeasureTheory.ae_of_all _ (fun x hx ↦ ?_)
-  rw [Set.uIcc_of_le a_lt_b.le, Set.mem_Icc] at hx
+  simp only [inf_le_iff, le_sup_iff, Set.mem_Icc] at hx
   simp only [norm_int, Real.norm_eq_abs]
   have : |x| ≤ max |a| |b| := by
-    rw [abs_le]
-    cases' abs_cases a with ha ha
-    · cases' abs_cases b with hb hb
-      · simp only [ha.1, hb.1, le_max_iff]
-        have : 0 ≤ max a b := by simp [ha.2, hb.2]
-        refine ⟨by linarith, by right; linarith⟩
-      · simp only [ha.1, hb.1, le_max_iff]
-        have : 0 ≤ max a (-b) := by simp [ha.2, hb.2]
-        refine ⟨by linarith, by linarith⟩
-    · cases' abs_cases b with hb hb
-      · simp only [ha.1, hb.1, ← min_neg_neg, neg_neg, min_le_iff, le_max_iff]
-        refine ⟨by left; exact hx.1, by right; exact hx.2⟩
-      · simp only [ha.1, hb.1, ← min_neg_neg, neg_neg, min_le_iff, le_max_iff]
-        refine ⟨by left; exact hx.1, by right; linarith⟩
-  have aux1 : ⌊x⌋ ≤ x := Int.floor_le x
-  have aux2 : x ≤ ⌊x⌋ + 1 := (Int.lt_floor_add_one x).le
+    cases' hx.1 with x_ge_a x_ge_b <;> cases' hx.2 with x_le_a x_le_b
+    · rw [(by linarith : x = a)]; apply le_max_left
+    · apply abs_le_max_abs_abs x_ge_a x_le_b
+    · rw [max_comm]; apply abs_le_max_abs_abs x_ge_b x_le_a
+    · rw [(by linarith : x = b)]; apply le_max_right
   cases' abs_cases x with hx hx
-  · have : (0 : ℝ) ≤ ⌊x⌋ := by
-      exact_mod_cast Int.floor_nonneg.mpr hx.2
-    rw [_root_.abs_of_nonneg this]
-    linarith
-  · have : (⌊x⌋ : ℝ) ≤ 0 := by
-      exact_mod_cast Int.floor_nonpos hx.2.le
-    rw [_root_.abs_of_nonpos this]
-    linarith
+  · rw [_root_.abs_of_nonneg <| by exact_mod_cast Int.floor_nonneg.mpr hx.2]
+    apply le_trans (Int.floor_le x) <| le_trans (hx.1 ▸ this) (by simp)
+  · rw [_root_.abs_of_nonpos <| by exact_mod_cast Int.floor_nonpos hx.2.le]
+    linarith [(Int.lt_floor_add_one x).le]
 
-lemma integrability_aux₁ {a b : ℝ} (a_lt_b : a < b) :
+lemma integrability_aux₁ {a b : ℝ} :
     IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ)) MeasureTheory.volume a b := by
   rw [intervalIntegrable_iff']
   apply MeasureTheory.Measure.integrableOn_of_bounded (M := max ‖a‖ ‖b‖ + 1)
@@ -301,7 +285,7 @@ lemma integrability_aux₁ {a b : ℝ} (a_lt_b : a < b) :
     apply Measurable.comp
     · exact fun ⦃t⦄ _ ↦ trivial
     · exact Int.measurable_floor
-  · exact integrability_aux₀ a_lt_b
+  · exact integrability_aux₀
 
 lemma integrability_aux₂ {a b : ℝ} :
     IntervalIntegrable (fun (x : ℝ) ↦ (1 : ℂ) / 2 - x) MeasureTheory.volume a b := by
@@ -309,9 +293,9 @@ lemma integrability_aux₂ {a b : ℝ} :
   apply Continuous.continuousOn
   exact Continuous.sub continuous_const Complex.ofRealCLM.continuous
 
-lemma integrability_aux {a b : ℝ} (a_lt_b : a < b) :
+lemma integrability_aux {a b : ℝ} :
     IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ) + 1 / 2 - x) MeasureTheory.volume a b := by
-  convert (integrability_aux₁ a_lt_b).add integrability_aux₂ using 2; ring
+  convert integrability_aux₁.add integrability_aux₂ using 2; ring
 
 lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
@@ -367,9 +351,9 @@ lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
       have : J₂ + J₃ = J₁ := by
         apply intervalIntegral.integral_add_adjacent_intervals <;>
         apply IntervalIntegrable.mul_continuousOn
-        · apply integrability_aux a_lt_k₁
+        · apply integrability_aux
         · exact derivφCont₁₁
-        · apply integrability_aux k_lt_b₁
+        · apply integrability_aux
         · exact derivφCont₁₂
       rw [← this]
       ring
