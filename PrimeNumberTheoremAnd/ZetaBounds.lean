@@ -47,9 +47,7 @@ lemma Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (xpos : 0 < x) 
 lemma Complex.one_div_cpow_eq {s : ℂ} {x : ℝ} (x_ne : x ≠ 0) :
     1 / (x : ℂ) ^ s = (x : ℂ) ^ (-s) := by
   refine (eq_one_div_of_mul_eq_one_left ?_).symm
-  rw [← Complex.cpow_add]
-  simp only [add_left_neg, Complex.cpow_zero]
-  exact_mod_cast x_ne
+  rw [← cpow_add _ _ <| mod_cast x_ne, add_left_neg, cpow_zero]
 
 -- No longer used
 lemma ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContDiffOn ℝ 1 φ s) {x : ℝ}
@@ -65,10 +63,7 @@ lemma ContDiffOn.continuousOn_deriv {φ : ℝ → ℂ} {a b : ℝ}
 
 lemma LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ) ↦ a * t + b) a x := by
   refine HasDerivAt.add_const ?_ b
-  have := @ContinuousLinearMap.hasDerivAt (e := Complex.ofRealCLM) x
-  have := this.const_mul (c := a)
-  convert this using 1; simp
-
+  convert (ContinuousLinearMap.hasDerivAt Complex.ofRealCLM).const_mul a using 1; simp
 -- No longer used
 section
 -- from Floris van Doorn
@@ -83,10 +78,8 @@ lemma integral_deriv_mul_eq_sub' {u v u' v' : ℝ → A}
     (hu' : IntervalIntegrable u' volume a b)
     (hv' : IntervalIntegrable v' volume a b) :
     ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a := by
-  have h2u : ContinuousOn u [[a, b]] :=
-    fun x hx ↦ (hu x hx).continuousWithinAt
-  have h2v : ContinuousOn v [[a, b]] :=
-    fun x hx ↦ (hv x hx).continuousWithinAt
+  have h2u : ContinuousOn u [[a, b]] := fun x hx ↦ (hu x hx).continuousWithinAt
+  have h2v : ContinuousOn v [[a, b]] := fun x hx ↦ (hv x hx).continuousWithinAt
   apply integral_eq_sub_of_hasDeriv_right (h2u.mul h2v)
   · exact fun x hx ↦ (hu x <| mem_Icc_of_Ioo hx).mul (hv x <| mem_Icc_of_Ioo hx) |>.hasDerivAt
       (Icc_mem_nhds hx.1 hx.2) |>.hasDerivWithinAt
@@ -102,15 +95,12 @@ lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (c : ℂ)
   set u := fun (x : ℝ) ↦ c - x
   set u' := fun (x : ℝ) ↦ (-1 : ℂ)
   have hu : ∀ x ∈ Set.uIcc a b, HasDerivAt u (u' x) x := by
-    intros x _
-    convert LinearDerivative_ofReal x (-1 : ℂ) c; ring
+    exact fun x _ ↦ by convert LinearDerivative_ofReal x (-1 : ℂ) c; ring
   have hu' : IntervalIntegrable u' MeasureTheory.volume a b := by
-    apply Continuous.intervalIntegrable
-    continuity
+    apply Continuous.intervalIntegrable; continuity
   have hv' : IntervalIntegrable (deriv φ) MeasureTheory.volume a b :=
     derivφCont.intervalIntegrable
-  convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu φDiff hu' hv' using 1
-  simp [u]
+  convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu φDiff hu' hv' using 1; simp [u]
 
 lemma sum_eq_int_deriv_aux_eq {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
     (b_eq_kpOne : b = k + 1) (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
@@ -127,12 +117,9 @@ lemma sum_eq_int_deriv_aux_eq {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
     ext m
     simp only [Finset.mem_Ioc, Finset.mem_singleton]
     constructor
-    · intro ⟨h₁, h₂⟩
-      rw [add_comm] at h₂
-      exact Int.le_antisymm h₂ h₁
+    · exact fun ⟨h₁, h₂⟩ ↦ by rw [add_comm] at h₂; exact Int.le_antisymm h₂ h₁
     · exact fun h ↦ ⟨by simp [h], by simp [h, add_comm]⟩
-  simp_rw [this]
-  simp only [Finset.sum_singleton, Int.cast_add, Int.cast_one, add_comm]
+  simp_rw [this, Finset.sum_singleton, Int.cast_add, Int.cast_one, add_comm]
 
 lemma sum_eq_int_deriv_aux_lt {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k ≤ a) (a_lt_b : a < b)
     (b_lt_kpOne : b < k + 1) (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
@@ -144,10 +131,8 @@ lemma sum_eq_int_deriv_aux_lt {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a :
   simp only [flb_eq_k, gt_iff_lt, lt_add_iff_pos_right, zero_lt_one, Finset.Icc_eq_empty_of_lt,
     Finset.sum_empty]
   rw [sum_eq_int_deriv_aux2 (k + 1 / 2) φDiff derivφCont]
-  have : Finset.Ioc k k = {} := by
-    simp only [ge_iff_le, le_refl, Finset.Ioc_eq_empty_of_le]
-  simp only [this, Finset.sum_empty, one_div]
-  ring_nf
+  have : Finset.Ioc k k = {} := by simp only [ge_iff_le, le_refl, Finset.Ioc_eq_empty_of_le]
+  simp only [this, Finset.sum_empty, one_div]; ring_nf
 
 lemma sum_eq_int_deriv_aux1 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k ≤ a) (a_lt_b : a < b)
     --(a_lt_kpOne : a < k + 1)
@@ -158,8 +143,7 @@ lemma sum_eq_int_deriv_aux1 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k
       - ∫ x in a..b, (k + 1 / 2 - x) * deriv φ x := by
   by_cases h : b = k + 1
   · exact sum_eq_int_deriv_aux_eq h φDiff derivφCont
-  · refine sum_eq_int_deriv_aux_lt k_le_a a_lt_b ?_ φDiff derivφCont
-    refine (Ne.lt_of_le h b_le_kpOne)
+  · exact sum_eq_int_deriv_aux_lt k_le_a a_lt_b (Ne.lt_of_le h b_le_kpOne) φDiff derivφCont
 
 /-%%
 \begin{lemma}[sum_eq_int_deriv_aux]\label{sum_eq_int_deriv_aux}\lean{sum_eq_int_deriv_aux}\leanok
