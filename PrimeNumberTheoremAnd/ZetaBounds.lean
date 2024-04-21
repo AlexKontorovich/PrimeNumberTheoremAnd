@@ -13,7 +13,7 @@ import Mathlib.Analysis.Complex.CauchyIntegral
 -- should remove eventually
 import PrimeNumberTheoremAnd.PerronFormula
 
-open BigOperators Complex Topology Filter Interval
+open BigOperators Complex Topology Filter Interval Set
 
 -- lemma AnalyticContinuation {f g : ℂ → ℂ} {s t : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
 --     (g_on_t : AnalyticOn ℂ g t) (f_eq_g_on_cap : Set.EqOn f g (s ∩ t))
@@ -121,21 +121,20 @@ lemma sum_eq_int_deriv_aux_eq {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
     · exact fun h ↦ ⟨by simp [h], by simp [h, add_comm]⟩
   simp_rw [this, Finset.sum_singleton, Int.cast_add, Int.cast_one, add_comm]
 
-lemma sum_eq_int_deriv_aux_lt {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k ≤ a) (a_lt_b : a < b)
+lemma sum_eq_int_deriv_aux_lt {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (ha : a ∈ Ico (k : ℝ) b)
     (b_lt_kpOne : b < k + 1) (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
     (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
     ∑ n in Finset.Ioc k ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (k + 1 / 2 - a) * φ a
       - ∫ x in a..b, (k + 1 / 2 - x) * deriv φ x := by
-  have flb_eq_k : ⌊b⌋ = k := Int.floor_eq_iff.mpr ⟨by linarith, by linarith⟩
+  have flb_eq_k : ⌊b⌋ = k := Int.floor_eq_iff.mpr ⟨by linarith [ha.1, ha.2], by linarith⟩
   simp only [flb_eq_k, gt_iff_lt, lt_add_iff_pos_right, zero_lt_one, Finset.Icc_eq_empty_of_lt,
     Finset.sum_empty]
   rw [sum_eq_int_deriv_aux2 (k + 1 / 2) φDiff derivφCont]
   have : Finset.Ioc k k = {} := by simp only [ge_iff_le, le_refl, Finset.Ioc_eq_empty_of_le]
   simp only [this, Finset.sum_empty, one_div]; ring_nf
 
-lemma sum_eq_int_deriv_aux1 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k ≤ a) (a_lt_b : a < b)
-    --(a_lt_kpOne : a < k + 1)
+lemma sum_eq_int_deriv_aux1 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (ha : a ∈ Ico (k : ℝ) b)
     (b_le_kpOne : b ≤ k + 1) (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
     (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
     ∑ n in Finset.Ioc k ⌊b⌋, φ n =
@@ -143,7 +142,7 @@ lemma sum_eq_int_deriv_aux1 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k
       - ∫ x in a..b, (k + 1 / 2 - x) * deriv φ x := by
   by_cases h : b = k + 1
   · exact sum_eq_int_deriv_aux_eq h φDiff derivφCont
-  · exact sum_eq_int_deriv_aux_lt k_le_a a_lt_b (Ne.lt_of_le h b_le_kpOne) φDiff derivφCont
+  · exact sum_eq_int_deriv_aux_lt ha (Ne.lt_of_le h b_le_kpOne) φDiff derivφCont
 
 /-%%
 \begin{lemma}[sum_eq_int_deriv_aux]\label{sum_eq_int_deriv_aux}\lean{sum_eq_int_deriv_aux}\leanok
@@ -155,14 +154,14 @@ lemma sum_eq_int_deriv_aux1 {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k
   \]
 \end{lemma}
 %%-/
-lemma sum_eq_int_deriv_aux {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k ≤ a) (a_lt_b : a < b)
+lemma sum_eq_int_deriv_aux {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (ha : a ∈ Ico (k : ℝ) b)
     (b_le_kpOne : b ≤ k + 1) (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
     (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
     ∑ n in Finset.Ioc ⌊a⌋ ⌊b⌋, φ n =
     (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
       - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
-  have fl_a_eq_k : ⌊a⌋ = k := Int.floor_eq_iff.mpr ⟨k_le_a, by linarith⟩
-  convert sum_eq_int_deriv_aux1 k_le_a a_lt_b b_le_kpOne φDiff derivφCont using 2
+  have fl_a_eq_k : ⌊a⌋ = k := Int.floor_eq_iff.mpr ⟨ha.1, by linarith [ha.2]⟩
+  convert sum_eq_int_deriv_aux1 ha b_le_kpOne φDiff derivφCont using 2
   · rw [fl_a_eq_k]
   · congr
   · apply intervalIntegral.integral_congr_ae
@@ -170,9 +169,9 @@ lemma sum_eq_int_deriv_aux {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (k_le_a : k 
       convert Set.Countable.ae_not_mem (s := {b}) (by simp) (μ := MeasureTheory.volume) using 1
     filter_upwards [this]
     intro x x_ne_b hx
-    rw [Set.uIoc_of_le a_lt_b.le, Set.mem_Ioc] at hx
+    rw [Set.uIoc_of_le ha.2.le, Set.mem_Ioc] at hx
     congr
-    exact Int.floor_eq_iff.mpr ⟨by linarith, by have := Ne.lt_of_le x_ne_b hx.2; linarith⟩
+    exact Int.floor_eq_iff.mpr ⟨by linarith [ha.1], by have := Ne.lt_of_le x_ne_b hx.2; linarith⟩
 /-%%
 \begin{proof}\leanok
 Partial integration.
@@ -233,8 +232,9 @@ lemma interval_induction (P : ℝ → ℝ → Prop)
 /-- ** Partial summation ** (TODO : Add to Mathlib). -/
 
 -- In Yaël Dillies's API (https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Finset.2Esum_add_adjacent_intervals/near/430127101)
-lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (h : a ≤ b) (h' : b ≤ c) :
+lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (hb : b ∈ Icc a c):
     (∑ n in Finset.Ioc a b, f n) + (∑ n in Finset.Ioc b c, f n) = ∑ n in Finset.Ioc a c, f n := by
+  simp only [mem_Icc] at hb
   have := @Finset.sum_sdiff (s₁ := Finset.Ioc b c) (s₂ := Finset.Ioc a c) (f := f) _ _ ?_
   convert this
   ext x
@@ -242,7 +242,7 @@ lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (h : a ≤ b) (
   constructor
   · intro ⟨h₁, h₂⟩
     constructor
-    · exact ⟨h₁, le_trans h₂ h'⟩
+    · exact ⟨h₁, le_trans h₂ hb.2⟩
     · exact fun _ ↦ by linarith
   · intro ⟨h₁, h₂⟩
     constructor
@@ -251,7 +251,7 @@ lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (h : a ≤ b) (
       exact ⟨h₂, h₁.2⟩
   intro x h
   simp only [mem_Ioc] at h ⊢
-  exact ⟨by linarith, h.2⟩
+  exact ⟨by linarith [hb.1], h.2⟩
 
 lemma integrability_aux₀ {a b : ℝ} :
     ∀ᵐ (x : ℝ) ∂MeasureTheory.Measure.restrict MeasureTheory.volume [[a, b]],
@@ -288,11 +288,11 @@ lemma integrability_aux {a b : ℝ} :
     IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ) + 1 / 2 - x) MeasureTheory.volume a b := by
   convert integrability_aux₁.add integrability_aux₂ using 2; ring
 
-lemma uIcc_subsets {a b c : ℝ} (a_lt_c : a ≤ c) (c_lt_b : c ≤ b) :
+lemma uIcc_subsets {a b c : ℝ} (hc : c ∈ Icc a b) :
     [[a, c]] ⊆ [[a, b]] ∧ [[c, b]] ⊆ [[a, b]] := by
   constructor <;> rw [Set.uIcc_of_le ?_, Set.uIcc_of_le ?_]
   any_goals apply Set.Icc_subset_Icc
-  all_goals linarith
+  all_goals linarith [hc.1, hc.2]
 
 lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
@@ -307,13 +307,15 @@ lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
       - ∫ x in a₁..b₁, (⌊x⌋ + 1 / 2 - x) * deriv φ x
   apply interval_induction P ?base ?step a b a_lt_b φDiff derivφCont
   · exact fun _ _ _ k₁_le_a₁ a₁_lt_b₁ b₁_le_k₁ φDiff₁ derivφCont₁ ↦
-      sum_eq_int_deriv_aux k₁_le_a₁ a₁_lt_b₁ b₁_le_k₁ φDiff₁ derivφCont₁
+      sum_eq_int_deriv_aux ⟨k₁_le_a₁, a₁_lt_b₁⟩ b₁_le_k₁ φDiff₁ derivφCont₁
   · intro a₁ k₁ b₁ a₁_lt_k₁ k₁_lt_b₁ ih₁ ih₂ φDiff₁ derivφCont₁
-    have subs := uIcc_subsets a₁_lt_k₁.le k₁_lt_b₁.le
+    have subs := uIcc_subsets ⟨a₁_lt_k₁.le, k₁_lt_b₁.le⟩
     have s₁ := ih₁ (fun x hx ↦ φDiff₁ x <| subs.1 hx) <| derivφCont₁.mono subs.1
     have s₂ := ih₂ (fun x hx ↦ φDiff₁ x <| subs.2 hx) <| derivφCont₁.mono subs.2
     convert Mathlib.Tactic.LinearCombination.add_pf s₁ s₂ using 1
-    · rw [← Finset.sum_Ioc_add_sum_Ioc] <;> exact Int.floor_mono (by linarith)
+    · rw [← Finset.sum_Ioc_add_sum_Ioc]
+      simp only [Finset.mem_Icc, Int.floor_intCast, Int.le_floor]
+      exact ⟨Int.cast_le.mp <| le_trans (Int.floor_le a₁) a₁_lt_k₁.le, k₁_lt_b₁.le⟩
     · set I₁ := ∫ (x : ℝ) in a₁..b₁, φ x
       set I₂ := ∫ (x : ℝ) in a₁..k₁, φ x
       set I₃ := ∫ (x : ℝ) in k₁..b₁, φ x
@@ -338,22 +340,22 @@ lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
 \end{proof}
 %%-/
 
-lemma xpos_of_uIcc {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) {x : ℝ} (x_in : x ∈ [[(a : ℝ), b]]) :
+lemma xpos_of_uIcc {a b : ℕ} (ha : a ∈ Ioo 0 b) {x : ℝ} (x_in : x ∈ [[(a : ℝ), b]]) :
     0 < x := by
-  rw [Set.uIcc_of_le (by exact_mod_cast a_lt_b.le), Set.mem_Icc] at x_in
-  linarith [(by exact_mod_cast apos : (0 : ℝ) < a)]
+  rw [Set.uIcc_of_le (by exact_mod_cast ha.2.le), Set.mem_Icc] at x_in
+  linarith [(by exact_mod_cast ha.1 : (0 : ℝ) < a)]
 
 lemma neg_s_ne_neg_one {s : ℂ} (s_ne_one : s ≠ 1) : -s ≠ -1 := fun hs ↦ s_ne_one <| neg_inj.mp hs
 
-lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (apos : 0 < a) (a_lt_b : a < b) :
+lemma ZetaSum_aux1₁ {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (ha : a ∈ Ioo 0 b) :
     (∫ (x : ℝ) in a..b, 1 / (x : ℂ) ^ s) =
     (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) := by
   convert integral_cpow (a := a) (b := b) (r := -s) ?_ using 1
   · refine intervalIntegral.integral_congr fun x hx ↦ one_div_cpow_eq ?_
-    exact (xpos_of_uIcc apos a_lt_b hx).ne'
+    exact (xpos_of_uIcc ha hx).ne'
   · norm_cast; rw [(by ring : -s + 1 = 1 - s)]
   · right; refine ⟨neg_s_ne_neg_one s_ne_one, ?_⟩
-    exact fun hx ↦ (lt_self_iff_false 0).mp <| xpos_of_uIcc apos a_lt_b hx
+    exact fun hx ↦ (lt_self_iff_false 0).mp <| xpos_of_uIcc ha hx
 
 lemma ZetaSum_aux1φDiff {s : ℂ} {x : ℝ} (xpos : 0 < x) :
     HasDerivAt (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x) x := by
@@ -383,13 +385,13 @@ lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_zero : s ≠ 0) {x : ℝ} (xpos : 0 < 
       field_simp [r, mul_assoc, ← Complex.cpow_add]
   · ring_nf
 
-lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_zero : s ≠ 0) {a b : ℕ} (apos : 0 < a) (a_lt_b : a < b) :
+lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_zero : s ≠ 0) {a b : ℕ} (ha : a ∈ Ioo 0 b) :
     ContinuousOn (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s)) [[a, b]] := by
   have : Set.EqOn _ (fun (t : ℝ) ↦ -s * (t : ℂ) ^ (-(s + 1))) [[a, b]] :=
-    fun x hx ↦ ZetaSum_aux1φderiv s_ne_zero <| xpos_of_uIcc apos a_lt_b hx
+    fun x hx ↦ ZetaSum_aux1φderiv s_ne_zero <| xpos_of_uIcc ha hx
   refine ContinuousOn.congr ?_ this
   refine (ContinuousOn.cpow_const continuous_ofReal.continuousOn ?_).const_smul (c := -s)
-  exact fun x hx ↦ ofReal_mem_slitPlane.mpr <| xpos_of_uIcc apos a_lt_b hx
+  exact fun x hx ↦ ofReal_mem_slitPlane.mpr <| xpos_of_uIcc ha hx
 
 /-%%
 \begin{lemma}[ZetaSum_aux1]\label{ZetaSum_aux1}\lean{ZetaSum_aux1}\leanok
@@ -400,21 +402,21 @@ lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_zero : s ≠ 0) {a b : ℕ} (apos 
   \]
 \end{lemma}
 %%-/
-lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠ 0) (apos : 0 < a) (a_lt_b : a < b) :
+lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠ 0) (ha : a ∈ Ioo 0 b) :
     ∑ n in Finset.Ioc (a : ℤ) b, 1 / (n : ℂ) ^ s =
     (b ^ (1 - s) - a ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / b ^ (s)) - 1 / 2 * (1 / a ^ s)
       + s * ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) := by
   let φ := fun (x : ℝ) ↦ 1 / (x : ℂ) ^ s
   let φ' := fun (x : ℝ) ↦ -s * (x : ℂ) ^ (-(s + 1))
-  have xpos : ∀ x ∈ [[(a : ℝ), b]], 0 < x := fun x hx ↦ xpos_of_uIcc apos a_lt_b hx
+  have xpos : ∀ x ∈ [[(a : ℝ), b]], 0 < x := fun x hx ↦ xpos_of_uIcc ha hx
   have φDiff : ∀ x ∈ [[(a : ℝ), b]], HasDerivAt φ (deriv φ x) x := fun x hx ↦ ZetaSum_aux1φDiff (xpos x hx)
   have φderiv : ∀ x ∈ [[(a : ℝ), b]], deriv φ x = φ' x := by
     exact fun x hx ↦ ZetaSum_aux1φderiv s_ne_zero (xpos x hx)
-  have derivφCont : ContinuousOn (deriv φ) [[a, b]] := ZetaSum_aux1derivφCont s_ne_zero apos a_lt_b
-  convert sum_eq_int_deriv (by exact_mod_cast a_lt_b) φDiff derivφCont using 1
+  have derivφCont : ContinuousOn (deriv φ) [[a, b]] := ZetaSum_aux1derivφCont s_ne_zero ha
+  convert sum_eq_int_deriv (by exact_mod_cast ha.2) φDiff derivφCont using 1
   · congr <;> simp only [Int.floor_natCast]
   · rw [Int.floor_natCast, Int.floor_natCast, ← intervalIntegral.integral_const_mul]
-    simp_rw [mul_div, ← mul_div, ZetaSum_aux1₁ s_ne_one apos a_lt_b]
+    simp_rw [mul_div, ← mul_div, ZetaSum_aux1₁ s_ne_one ha]
     conv => rhs; rw [sub_eq_add_neg]
     congr; any_goals norm_cast; simp only [one_div, add_sub_cancel_left]
     rw [← intervalIntegral.integral_neg, intervalIntegral.integral_congr]
@@ -632,7 +634,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     · apply Filter.eventually_atTop.mpr
       use N + 1
       intro k hk
-      convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero N_pos hk using 1
+      convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero ⟨N_pos, hk⟩ using 1
       convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
     · convert finsetSum_tendsto_tsum (f := fun n ↦ 1 / (n : ℂ) ^ s) (Summable_rpow s_re_gt); simp
   · apply Tendsto.add
@@ -688,7 +690,7 @@ $$
 as $|t|\to\infty$.
 \end{lemma}
 %%-/
-lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (σ_gt : 0 < σ) (σ_le : σ ≤ 2) :
+lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 1) :
     (fun (t : ℝ) ↦ Complex.abs ((σ + t * I) *
       ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)))
       =O[cocompact ℝ] fun (t : ℝ) ↦ |t| * N ^ (-σ) / σ := by
@@ -747,7 +749,7 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
         convert this using 1
         ring_nf
         sorry
-      simp [ext_iff]
+      simp [Complex.ext_iff]
       contrapose!
       intro hxy
       rcases hxy with (hx1 | hy1)
@@ -883,7 +885,7 @@ lemma UpperBnd_aux {A σ t: ℝ} (A_pos : 0 < A) (A_lt : A < 1) (t_ge : 3 < |t|)
     exact (div_lt_iff (by linarith)).mpr <| lt_mul_right A_pos logt_gt_one
   refine ⟨logt_gt_one, σ_gt, by linarith, ?__⟩
   contrapose! t_ge
-  simp only [ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+  simp only [Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
     sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at t_ge
   norm_num [t_ge.2]
 
@@ -899,12 +901,12 @@ as $|t|\to\infty$.
 %%-/
 lemma ZetaUpperBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
-    (σ_ge : 1 - A / Real.log |t| ≤ σ) (σ_le : σ ≤ 2),
+    (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2),
     Complex.abs (riemannZeta (σ + t * I)) ≤ C * Real.log |t| := by
   let A := (1 : ℝ) / 2
   have Apos : 0 < A := by norm_num
   refine ⟨A, Apos, 10, by norm_num, ?_⟩
-  intro σ t t_ge σ_ge σ_le
+  intro σ t t_ge ⟨σ_ge, σ_le⟩
   set N := ⌊|t|⌋₊
   set s := σ + t * I
   obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
@@ -967,12 +969,12 @@ as $|t|\to\infty$.
 %%-/
 lemma ZetaDerivUpperBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
-    (σ_ge : 1 - A / Real.log |t| ≤ σ) (σ_le : σ ≤ 2),
+    (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2),
     Complex.abs (deriv riemannZeta (σ + t * I)) ≤ C * (Real.log |t|) ^ 2 := by
   let A := (1 : ℝ) / 2
   have Apos : 0 < A := by norm_num
   refine ⟨A, Apos, 10, by norm_num, ?_⟩
-  intro σ t t_ge σ_ge σ_le
+  intro σ t t_ge ⟨σ_ge, σ_le⟩
   set N := ⌊|t|⌋₊
   set s := σ + t * I
   obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
@@ -1063,7 +1065,7 @@ $$
 \end{lemma}
 %%-/
 lemma ZetaNear1BndExact:
-    ∃ (c : ℝ) (cpos : 0 < c), ∀ (σ : ℝ) (σ_ge : 1 < σ) (σ_le : σ ≤ 2),
+    ∃ (c : ℝ) (cpos : 0 < c), ∀ (σ : ℝ) (_ : σ ∈ Ioc 1 2),
     ‖riemannZeta σ‖ ≤ c / (σ - 1) := by
   have := ZetaNear1BndFilter
   rw [Asymptotics.isBigO_iff] at this
@@ -1094,7 +1096,7 @@ lemma ZetaNear1BndExact:
     exact Or.inl <| lt_of_le_of_lt (this hσ) (by norm_num)
   have Cpos : 0 < C' := by simp [C']
   use max (2 * C') c, (by simp [Cpos])
-  intro σ σ_ge σ_le
+  intro σ ⟨σ_ge, σ_le⟩
   by_cases hσ : σ ∈ U ∩ V
   · simp only [← h, Set.mem_setOf_eq] at hσ
     apply le_trans hσ ?_
@@ -1148,7 +1150,7 @@ lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
   · refine mul_nonneg (mul_nonneg ?_ ?_) ?_ <;> simp [Real.rpow_nonneg]
   · have s_ne_one : (σ : ℂ) + (t : ℂ) * I ≠ 1 := by
       contrapose! σ_gt
-      simp only [ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+      simp only [Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
         sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at σ_gt
       simp [σ_gt]
     have zeta_ne_zero:= riemannZeta_ne_zero_of_one_le_re s_ne_one (by simp [σ_gt.le])
@@ -1186,11 +1188,12 @@ $$
 as $|t|\to\infty$.
 \end{lemma}
 %%-/
-lemma ZetaInvBound2 {σ : ℝ} (σ_gt : 1 < σ) (σ_le : σ ≤ 2) :
+lemma ZetaInvBound2 {σ : ℝ} (hσ : σ ∈ Ioc 1 2) :
     (fun (t : ℝ) ↦ 1 / Complex.abs (riemannZeta (σ + t * I))) =O[cocompact ℝ]
       fun (t : ℝ) ↦ (σ - 1) ^ (-(3 : ℝ) / 4) * (Real.log |t|) ^ ((1 : ℝ) / 4) := by
   obtain ⟨A, ha, C, hC, h⟩ := ZetaUpperBnd
   obtain ⟨c, hc, h_inv⟩ := ZetaNear1BndExact
+  obtain ⟨σ_gt, σ_le⟩ := hσ
   rw [Asymptotics.isBigO_iff]
   use (2 * C) ^ ((1 : ℝ)/ 4) * c ^ ((3 : ℝ)/ 4)
   filter_upwards [lt_abs_mem_cocompact (by norm_num : 0 ≤ (2 : ℝ))] with t ht
@@ -1216,7 +1219,7 @@ lemma ZetaInvBound2 {σ : ℝ} (σ_gt : 1 < σ) (σ_le : σ ≤ 2) :
       rw [this]
       apply Real.rpow_le_rpow (by simp [apply_nonneg]) ?_ (by norm_num)
       simp only [Real.rpow_neg_one, inv_div]
-      exact h_inv σ σ_gt σ_le
+      exact h_inv σ ⟨σ_gt, σ_le⟩
     simp only [norm_div, norm_one, norm_eq_abs, Real.norm_eq_abs, Complex.abs_abs, norm_mul]
     apply (mul_le_mul_right ?_).mpr
     convert bnd1 using 1
@@ -1226,14 +1229,14 @@ lemma ZetaInvBound2 {σ : ℝ} (σ_gt : 1 < σ) (σ_le : σ ≤ 2) :
       have : riemannZeta (↑σ + 2 * ↑t * I) ≠ 0 := by
         apply riemannZeta_ne_zero_of_one_le_re ?_ (by simp [σ_gt.le])
         contrapose! σ_gt
-        simp only [ext_iff, add_re, ofReal_re, mul_re, re_ofNat, im_ofNat, ofReal_im, mul_zero,
+        simp only [Complex.ext_iff, add_re, ofReal_re, mul_re, re_ofNat, im_ofNat, ofReal_im, mul_zero,
           sub_zero, I_re, mul_im, zero_mul, add_zero, I_im, mul_one, sub_self, one_re, add_im,
           zero_add, one_im, mul_eq_zero, OfNat.ofNat_ne_zero, false_or] at σ_gt
         linarith
       symm; intro h
       rw [Real.abs_rpow_of_nonneg (by norm_num), Real.rpow_eq_zero (by norm_num) (by norm_num)] at h
       simp only [Complex.abs_abs, map_eq_zero, this] at h
-  · replace h := h σ (2 * t) (by linarith) ?_ σ_le
+  · replace h := h σ (2 * t) (by linarith) ⟨?_, σ_le⟩
     · have : 0 ≤ Real.log |2 * t| := Real.log_nonneg (by linarith)
       conv => rhs; rw [mul_assoc, ← Real.mul_rpow hC.le this]
       rw [norm_mul, norm_mul]
@@ -1306,7 +1309,7 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (σ₁_lt_σ₂ : σ₁ < σ�
     intro σ
     apply differentiableAt_riemannZeta
     contrapose! t_ne_zero
-    simp only [ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+    simp only [Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
       sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at t_ne_zero
     exact t_ne_zero.2
   apply intervalIntegral.integral_deriv_eq_sub'
@@ -1321,7 +1324,7 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (σ₁_lt_σ₂ : σ₁ < σ�
       apply hasDerivAt_deriv_iff.mpr
       replace hx : x ≠ 1 := by
         contrapose! hx
-        simp only [hx, Set.mem_image, ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im,
+        simp only [hx, Set.mem_image, Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im,
           I_im, mul_one, sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im, not_exists,
           not_and]
         exact fun _ _ _ ↦ t_ne_zero
@@ -1364,7 +1367,7 @@ lemma Zeta_diff_Bnd :
   convert intervalIntegral.norm_integral_le_of_norm_le_const ?_ using 1
   · congr; rw [_root_.abs_of_nonneg (by linarith)]
   · intro σ hσ; rw [Set.uIoc_of_le σ₁_lt_σ₂.le, Set.mem_Ioc] at hσ
-    exact hC σ t t_gt (le_trans σ₁_ge hσ.1.le) (le_trans hσ.2 σ₂_le)
+    exact hC σ t t_gt ⟨le_trans σ₁_ge hσ.1.le, le_trans hσ.2 σ₂_le⟩
 /-%%
 \begin{proof}
 \uses{Zeta_eq_int_derivZeta, ZetaDerivUpperBnd}\leanok
@@ -1384,7 +1387,7 @@ $$
 %%-/
 lemma ZetaInvBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
-    (σ_ge : 1 - A / (Real.log |t|) ^ 9 ≤ σ) (σ_lt : σ < 1),
+    (hσ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
     1 / Complex.abs (riemannZeta (σ + t * I)) ≤ C * (Real.log |t|) ^ 7 := by
   sorry
 /-%%
@@ -1421,13 +1424,13 @@ $$
 %%-/
 lemma LogDerivZetaBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
-    (σ_ge : 1 - A / (Real.log |t|) ^ 9 ≤ σ) (σ_lt : σ < 1),
+    (hσ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
     Complex.abs (deriv riemannZeta (σ + t * I) / riemannZeta (σ + t * I)) ≤
       C * (Real.log |t|) ^ 9 := by
   obtain ⟨A, hA, C, hC, h⟩ := ZetaInvBnd
   obtain ⟨A', hA', C', hC', h'⟩ := ZetaDerivUpperBnd
   use min A A', lt_min hA hA', C * C', mul_pos hC hC'
-  intro σ t t_gt σ_ge σ_lt
+  intro σ t t_gt ⟨σ_ge, σ_lt⟩
   have logt_gt : (1 : ℝ) < Real.log |t| := by
     refine (Real.lt_log_iff_exp_lt (by linarith)).mpr (lt_trans ?_ t_gt)
     exact lt_trans Real.exp_one_lt_d9 (by norm_num)
@@ -1439,8 +1442,8 @@ lemma LogDerivZetaBnd :
     apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
     apply div_le_div hA'.le (min_le_right A A') (lt_trans (by norm_num) logt_gt) ?_
     exact le_self_pow logt_gt.le (by norm_num)
-  replace h := h σ t t_gt σ_ge' σ_lt
-  replace h' := h' σ t t_gt σ_ge'' (by linarith)
+  replace h := h σ t t_gt ⟨σ_ge', σ_lt⟩
+  replace h' := h' σ t t_gt ⟨σ_ge'', by linarith⟩
   simp only [map_div₀]
   convert mul_le_mul h h' (by simp [apply_nonneg]) ?_ using 1 <;> ring_nf
   exact le_trans (by simp only [one_div, inv_nonneg, apply_nonneg]) h

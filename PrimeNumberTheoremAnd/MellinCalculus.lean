@@ -1295,9 +1295,10 @@ $$\widetilde{1_{\epsilon}}(x) = 0.$$
 \end{lemma}
 %%-/
 lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
-    (ε : ℝ) (εpos: 0 < ε) (eps_lt1: ε < 1) :
+    {ε : ℝ} (hε : ε ∈ Ioo 0 1) :
     ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≥ 1 + c * ε → Smooth1 Ψ ε x = 0 := by
   set c := 2 * Real.log 2; use c
+  obtain ⟨εpos, ε_lt1⟩ := hε
   constructor
   · simp only [c, zero_lt_two, mul_pos_iff_of_pos_left]
     exact log_pos (by norm_num)
@@ -1317,7 +1318,7 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
       simp [c, ge_iff_le, this]
     · have : (2 : ℝ) ^ ε < 2 := by
         nth_rewrite 1 [← pow_one 2]
-        convert rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) eps_lt1
+        convert rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) ε_lt1
         all_goals norm_num
       have pos: 0 < (1 - 2 ^ (-ε)) / ε := by
         refine div_pos ?_ εpos
@@ -1368,7 +1369,7 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     · rw [div_rpow, ← rpow_mul, mul_div_cancel₀ 1 <| ne_of_gt εpos, rpow_one] <;> positivity
     · have : y ^ (1 / ε) ≤ y := by
         nth_rewrite 2 [← rpow_one y]
-        have : 1 / ε > 1 := one_lt_one_div εpos eps_lt1
+        have : 1 / ε > 1 := one_lt_one_div εpos ε_lt1
         exact rpow_le_rpow_of_exponent_ge (ypos) y1 (by linarith)
       rw [ge_iff_le, div_le_iff, div_mul_eq_mul_div, le_div_iff', mul_comm] <;> try linarith
     · rw [ge_iff_le, le_div_iff <| ypos]
