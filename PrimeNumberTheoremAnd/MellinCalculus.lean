@@ -1215,20 +1215,21 @@ $$\widetilde{1_{\epsilon}}(x) = 1.$$
 \end{lemma}
 %%-/
 
+lemma Smooth1Properties_below_aux {x ε : ℝ} (hx : x ≤ 1 - (2:ℝ).log * ε) (εpos: 0 < ε) :
+    x < 2 ^ (-ε) := by
+  calc
+    x ≤ 1 - (2 : ℝ).log * ε := hx
+    _ < 2 ^ (-ε) := ?_
+  rw [sub_lt_iff_lt_add, add_comm, ← sub_lt_iff_lt_add]
+  exact (div_lt_iff εpos).mp <| Smooth1Properties_estimate εpos
+
 lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     (ε : ℝ) (εpos: 0 < ε) (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) :
     ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), 0 < x → x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
-  set c := Real.log 2; use c
+  set c := (2 : ℝ).log; use c
   constructor; exact log_pos (by norm_num)
   intro x xpos hx
-
-  have hx2 : x < 2 ^ (-ε) := by
-    calc
-      x ≤ 1 - c * ε := hx
-      _ < 2 ^ (-ε) := ?_
-    rw [sub_lt_iff_lt_add, add_comm, ← sub_lt_iff_lt_add]
-    exact (div_lt_iff εpos).mp <| Smooth1Properties_estimate εpos
-
+  have hx2 := Smooth1Properties_below_aux hx εpos
   rewrite [← DeltaSpikeMass mass_one εpos]
   unfold Smooth1 MellinConvolution
   calc
@@ -1286,6 +1287,55 @@ $$
 \end{proof}
 %%-/
 
+lemma Smooth1Properties_above_aux {x ε : ℝ} (hx : 1 + (2 * (2:ℝ).log) * ε ≤ x) (hε : ε ∈ Ioo 0 1) :
+    2 ^ ε < x := by
+  calc
+    x ≥ 1 + (2 * (2 : ℝ).log) * ε := hx
+    _ > 2 ^ ε := ?_
+  refine lt_add_of_sub_left_lt <| (div_lt_iff hε.1).mp ?_
+  calc
+    2 * (2 : ℝ).log > 2 * (1 - 2 ^ (-ε)) / ε := ?_
+    _ > 2 ^ ε * (1 - 2 ^ (-ε)) / ε := ?_
+    _ = (2 ^ ε - 1) / ε := ?_
+  · have := (mul_lt_mul_left (a := 2) (by norm_num)).mpr <| Smooth1Properties_estimate hε.1
+    field_simp at this; simp [this]
+  · have : (2 : ℝ) ^ ε < 2 := by
+      nth_rewrite 1 [← pow_one 2]
+      convert rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) hε.2 <;> norm_num
+    have pos: 0 < (1 - 2 ^ (-ε)) / ε := by
+      refine div_pos ?_ hε.1
+      rw [sub_pos, ← pow_zero 2]
+      convert rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) (neg_lt_zero.mpr hε.1); norm_num
+    have := (mul_lt_mul_right pos).mpr this
+    ring_nf at this ⊢
+    exact this
+  · have : (2 : ℝ) ^ ε * (2 : ℝ) ^ (-ε) = (2 : ℝ) ^ (ε - ε) := by
+      rw [← rpow_add (by norm_num), add_neg_self, sub_self]
+    conv => lhs; lhs; ring_nf; rhs; simp [this]
+
+lemma Smooth1Properties_above_aux2 {x y ε : ℝ} (hε : ε ∈ Ioo 0 1) (hy : y ∈ Ioc 0 1)
+  (hx2 : 2 ^ ε < x) :
+    2 < (x / y) ^ (1 / ε) := by
+  obtain ⟨εpos, ε1⟩ := hε
+  obtain ⟨ypos, y1⟩ := hy
+  calc
+    _ > (2 ^ ε / y) ^ (1 / ε) := ?_
+    _ = 2 / y ^ (1 / ε) := ?_
+    _ ≥ 2 / y := ?_
+    _ ≥ 2 := ?_
+  · rw [gt_iff_lt, div_rpow, div_rpow, lt_div_iff, mul_comm_div, div_self, mul_one]
+    <;> try positivity
+    · exact rpow_lt_rpow (by positivity) hx2 (by positivity)
+    · exact LT.lt.le <| lt_trans (by positivity) hx2
+  · rw [div_rpow, ← rpow_mul, mul_div_cancel₀ 1 <| ne_of_gt εpos, rpow_one] <;> positivity
+  · have : y ^ (1 / ε) ≤ y := by
+      nth_rewrite 2 [← rpow_one y]
+      have : 1 / ε > 1 := one_lt_one_div εpos ε1
+      refine rpow_le_rpow_of_exponent_ge ypos y1 (by linarith)
+    have pos : 0 < y ^ (1 / ε) := by apply rpow_pos_of_pos <| ypos
+    rw [ge_iff_le, div_le_iff, div_mul_eq_mul_div, le_div_iff', mul_comm] <;> try linarith
+  · rw [ge_iff_le, le_div_iff <| ypos]
+    exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
 /-%%
 \begin{lemma}[Smooth1Properties_above]\label{Smooth1Properties_above}
 \lean{Smooth1Properties_above}\leanok
@@ -1296,50 +1346,21 @@ $$\widetilde{1_{\epsilon}}(x) = 0.$$
 %%-/
 lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     {ε : ℝ} (hε : ε ∈ Ioo 0 1) :
-    ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), x ≥ 1 + c * ε → Smooth1 Ψ ε x = 0 := by
+    ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), 1 + c * ε ≤ x → Smooth1 Ψ ε x = 0 := by
   set c := 2 * Real.log 2; use c
-  obtain ⟨εpos, ε_lt1⟩ := hε
   constructor
   · simp only [c, zero_lt_two, mul_pos_iff_of_pos_left]
     exact log_pos (by norm_num)
   intro x hx
-
-  have hx2 : x > 2 ^ ε := by
-    calc
-      x ≥ 1 + c * ε := hx
-      _ > 2 ^ ε := ?_
-    refine lt_add_of_sub_left_lt <| (div_lt_iff εpos).mp ?_
-    calc
-      c > 2 * (1 - 2 ^ (-ε)) / ε := ?_
-      _ > 2 ^ ε * (1 - 2 ^ (-ε)) / ε := ?_
-      _ = (2 ^ ε - 1) / ε := ?_
-    · have := (mul_lt_mul_left (a := 2) (by norm_num)).mpr <| Smooth1Properties_estimate εpos
-      field_simp at this
-      simp [c, ge_iff_le, this]
-    · have : (2 : ℝ) ^ ε < 2 := by
-        nth_rewrite 1 [← pow_one 2]
-        convert rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) ε_lt1
-        all_goals norm_num
-      have pos: 0 < (1 - 2 ^ (-ε)) / ε := by
-        refine div_pos ?_ εpos
-        rw [sub_pos, ← pow_zero 2]
-        convert rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) (neg_lt_zero.mpr εpos)
-        norm_num
-      have := (mul_lt_mul_right pos).mpr this
-      ring_nf at this ⊢
-      exact this
-    · have : (2 : ℝ) ^ ε * (2 : ℝ) ^ (-ε) = (2 : ℝ) ^ (ε - ε) := by
-        rw [← rpow_add (by norm_num), add_neg_self, sub_self]
-      conv => lhs; lhs; ring_nf; rhs; simp [this]
-
+  have hx2 := Smooth1Properties_above_aux hx hε
   unfold Smooth1 MellinConvolution
   simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
   apply set_integral_eq_zero_of_forall_eq_zero
   intro y hy
-  by_cases y1 : y ≤ 1; swap
-  · simp [mem_Ioi.mp hy, y1]
-  simp only [mem_Ioi.mp hy, y1, and_self, ↓reduceIte, div_eq_zero_iff]; left
-  apply DeltaSpikeSupport εpos ?_ suppΨ
+  have ypos := mem_Ioi.mp hy
+  by_cases y1 : y ≤ 1; swap; simp [ypos, y1]
+  simp only [ypos, y1, and_self, ↓reduceIte, div_eq_zero_iff]; left
+  apply DeltaSpikeSupport hε.1 ?_ suppΨ
   simp only [mem_Icc, not_and, not_le]
   swap; suffices h : 2 ^ ε < x / y by
     linarith [(by apply rpow_pos_of_pos (by norm_num) : 0 < (2 : ℝ) ^ ε)]
@@ -1347,34 +1368,12 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
   try intro
   have : x / y = ((x / y) ^ (1 / ε)) ^ ε := by
     rw [← rpow_mul]
-    simp only [one_div, inv_mul_cancel (ne_of_gt εpos), rpow_one]
+    simp only [one_div, inv_mul_cancel (ne_of_gt hε.1), rpow_one]
     apply div_nonneg_iff.mpr; left;
-    simp only [mem_Ioi] at hy
-    simp only [gt_iff_lt] at hx2
-    exact ⟨(le_trans (rpow_pos_of_pos (by norm_num) ε).le) hx2.le, hy.le⟩
+    exact ⟨(le_trans (rpow_pos_of_pos (by norm_num) ε).le) hx2.le, ypos.le⟩
   rw [this]
-  refine rpow_lt_rpow (by norm_num) ?_ εpos
-  have pos : 0 < y ^ (1 / ε) := by apply rpow_pos_of_pos <| mem_Ioi.mp hy
-  have ypos := mem_Ioi.mp hy
-  have h : (x / y) ^ (1 / ε) > 2 := by
-    calc
-      _ > (2 ^ ε / y) ^ (1 / ε) := ?_
-      _ = 2 / y ^ (1 / ε) := ?_
-      _ ≥ 2 / y := ?_
-      _ ≥ 2 := ?_
-    · rw [gt_iff_lt, div_rpow, div_rpow, lt_div_iff, mul_comm_div, div_self, mul_one]
-      <;> try positivity
-      · exact rpow_lt_rpow (by positivity) hx2 (by positivity)
-      · exact LT.lt.le <| lt_trans (by positivity) hx2
-    · rw [div_rpow, ← rpow_mul, mul_div_cancel₀ 1 <| ne_of_gt εpos, rpow_one] <;> positivity
-    · have : y ^ (1 / ε) ≤ y := by
-        nth_rewrite 2 [← rpow_one y]
-        have : 1 / ε > 1 := one_lt_one_div εpos ε_lt1
-        exact rpow_le_rpow_of_exponent_ge (ypos) y1 (by linarith)
-      rw [ge_iff_le, div_le_iff, div_mul_eq_mul_div, le_div_iff', mul_comm] <;> try linarith
-    · rw [ge_iff_le, le_div_iff <| ypos]
-      exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
-  rwa [gt_iff_lt] at h
+  refine rpow_lt_rpow (by norm_num) ?_ hε.1
+  exact Smooth1Properties_above_aux2 hε ⟨ypos, y1⟩ hx2
 /-%%
 \begin{proof}\leanok
 \uses{Smooth1, MellinConvolution, Smooth1Properties_estimate}
@@ -1443,18 +1442,9 @@ and all the factors in the integrand are nonnegative.
 \end{proof}
 %%-/
 
-/-%%
-\begin{lemma}[Smooth1LeOne]\label{Smooth1LeOne}\lean{Smooth1LeOne}\leanok
-If $\psi$ is nonnegative and has mass one, then $\widetilde{1_{\epsilon}}(x)\le 1$, $\forall x>0$.
-\end{lemma}
-%%-/
-lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
-    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
-    ∀ (x : ℝ), 0 < x → Smooth1 Ψ ε x ≤ 1 := by
-  unfold Smooth1 MellinConvolution DeltaSpike
-  intro x xpos
-
-  have : ∫ (y : ℝ) in Ioi 0, Ψ ((x / y) ^ (1 / ε)) / ε / y = 1 := by
+lemma Smooth1LeOne_aux {x ε : ℝ} {Ψ : ℝ → ℝ} (xpos : 0 < x) (εpos : 0 < ε)
+    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) :
+    ∫ (y : ℝ) in Ioi 0, Ψ ((x / y) ^ (1 / ε)) / ε / y = 1 := by
     calc
       _ = ∫ (y : ℝ) in Ioi 0, (Ψ (y ^ (1 / ε)) / ε) / y := ?_
       _ = ∫ (y : ℝ) in Ioi 0, Ψ y / y := ?_
@@ -1466,14 +1456,24 @@ lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
     · have := integral_comp_rpow_I0i_haar_real (fun y => Ψ y) (one_div_ne_zero εpos.ne')
       field_simp [ ← this, abs_of_pos <| one_div_pos.mpr εpos]
 
+/-%%
+\begin{lemma}[Smooth1LeOne]\label{Smooth1LeOne}\lean{Smooth1LeOne}\leanok
+If $\psi$ is nonnegative and has mass one, then $\widetilde{1_{\epsilon}}(x)\le 1$, $\forall x>0$.
+\end{lemma}
+%%-/
+lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
+    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
+    ∀ (x : ℝ), 0 < x → Smooth1 Ψ ε x ≤ 1 := by
+  unfold Smooth1 MellinConvolution DeltaSpike
+  intro x xpos
+  have := Smooth1LeOne_aux xpos εpos mass_one
   calc
     _ = ∫ (y : ℝ) in Ioi 0, (fun y ↦ if y ∈ Ioc 0 1 then 1 else 0) y * (Ψ ((x / y) ^ (1 / ε)) / ε / y) := ?_
     _ ≤ ∫ (y : ℝ) in Ioi 0, (Ψ ((x / y) ^ (1 / ε)) / ε) / y := ?_
     _ = 1 := this
   · rw [set_integral_congr (by simp)]
     simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq, mem_Ioc]
-    intro y hy
-    aesop
+    intro y hy; aesop
   · refine set_integral_mono_on ?_ ?_ (by simp) ?_
     · refine Integrable.bdd_mul ?_ ?_ ?_
       · apply integrable_of_integral_eq_one this
@@ -1487,14 +1487,12 @@ lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
     · apply integrable_of_integral_eq_one this
     · simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
       intro y hy
-      by_cases h : y ≤ 1
-      · aesop
-      · field_simp [mem_Ioc, h, and_false, reduceIte]
-        apply mul_nonneg
-        · apply Ψnonneg
-          apply rpow_pos_of_pos <| div_pos xpos <| mem_Ioi.mp hy
-        · apply inv_nonneg.mpr <| mul_nonneg εpos.le (mem_Ioi.mp hy).le
-
+      by_cases h : y ≤ 1; aesop
+      field_simp [mem_Ioc, h, and_false, reduceIte]
+      apply mul_nonneg
+      · apply Ψnonneg
+        exact rpow_pos_of_pos (div_pos xpos <| mem_Ioi.mp hy) _
+      · apply inv_nonneg.mpr <| mul_nonneg εpos.le (mem_Ioi.mp hy).le
 /-%%
 \begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike,SmoothExistence}\leanok
 By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
