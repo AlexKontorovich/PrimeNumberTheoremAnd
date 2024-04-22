@@ -841,32 +841,26 @@ power.]
 lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) :
-    (fun s ↦ Complex.abs (MellinTransform (Ψ ·) s))
+    (fun s ↦ ‖MellinTransform (Ψ ·) s‖)
     =O[Filter.principal {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}]
-      fun s ↦ 1 / Complex.abs s := by
+      fun s ↦ 1 / ‖s‖ := by
   let f := fun (x : ℝ) ↦ ‖deriv Ψ x‖
-  have cont : ContinuousOn f (Icc (1 / 2) 2) := by
-    apply Continuous.continuousOn
-    apply Continuous.comp (by continuity) <| diffΨ.continuous_deriv (by norm_num)
+  have cont : ContinuousOn f (Icc (1 / 2) 2) :=
+    (Continuous.comp (by continuity) <| diffΨ.continuous_deriv (by norm_num)).continuousOn
   obtain ⟨a, _, max⟩ := isCompact_Icc.exists_isMaxOn (f := f) (by norm_num) cont
   rw [Asymptotics.isBigO_iff]
   use f a * 2 ^ σ₂ * (3 / 2)
   filter_upwards [mem_within_strip σ₁ σ₂] with s hs
-  unfold MellinTransform
-  have hs2: s ≠ 0 := by
-    have := hs.1
-    contrapose! this
-    rwa [this, zero_re]
-  simp only [MellinOfPsi_aux diffΨ suppΨ hs2, neg_mul, map_neg_eq_map, map_mul, map_div₀, map_one,
-             norm_mul, norm_div, norm_one, Real.norm_eq_abs, Complex.abs_abs, abs_ofReal]
+  have s_ne_zero: s ≠ 0 := fun h ↦ by linarith [zero_re ▸ h ▸ hs.1]
+  simp only [MellinTransform, f, MellinOfPsi_aux diffΨ suppΨ s_ne_zero, norm_norm, norm_mul]
   conv => rhs; rw [mul_comm]
-  gcongr
+  gcongr; simp
   calc
     _ ≤ ∫ (x : ℝ) in Ioi 0, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
     _ = ∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
     _ ≤ ‖∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖‖ := le_abs_self _
     _ ≤ _ := ?_
-  · simp_rw [← Complex.norm_eq_abs, norm_integral_le_integral_norm]
+  · simp_rw [norm_integral_le_integral_norm]
   · apply SetIntegral.integral_eq_integral_inter_of_support_subset_Icc
     · simp only [Function.support_abs, Function.support_mul, Function.support_ofReal]
       apply subset_trans (by apply inter_subset_left) <| Function.support_deriv_subset_Icc suppΨ
@@ -879,14 +873,11 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     · intro x hx;
       have f_bound := isMaxOn_iff.mp max x hx
       have pow_bound : ‖(x : ℂ) ^ s‖ ≤ 2 ^ σ₂ := by
-        simp only [Complex.norm_eq_abs]
-        rw [abs_cpow_eq_rpow_re_of_pos (by linarith [mem_Icc.mp hx])]
+        rw [Complex.norm_eq_abs, abs_cpow_eq_rpow_re_of_pos (by linarith [mem_Icc.mp hx])]
         have xpos : 0 ≤ x := by linarith [(mem_Icc.mp hx).1]
         have h := rpow_le_rpow xpos (mem_Icc.mp hx).2 (by linarith : 0 ≤ s.re)
-        apply le_trans h <| rpow_le_rpow_of_exponent_le (by norm_num) hs.2
-      simp only [Complex.norm_eq_abs, abs_ofReal, norm_mul, Real.norm_eq_abs, _root_.abs_abs,
-        Complex.abs_abs, ge_iff_le]
-      convert mul_le_mul f_bound pow_bound ?_ ?_ using 2 <;> simp [f]
+        exact le_trans h <| rpow_le_rpow_of_exponent_le (by norm_num) hs.2
+      convert mul_le_mul f_bound pow_bound (norm_nonneg _) ?_ using 1 <;> simp [f]
 /-%%
 \begin{proof}\leanok
 \uses{MellinTransform, SmoothExistence}
@@ -1649,31 +1640,25 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\righ
 lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (ε : ℝ) (εpos : 0 < ε) :
-    (fun (s : ℂ) ↦ Complex.abs (MellinTransform ((Smooth1 Ψ ε) ·) s))
+    (fun (s : ℂ) ↦ ‖MellinTransform ((Smooth1 Ψ ε) ·) s‖)
       =O[Filter.principal {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}]
-      fun s ↦ 1 / (ε * (Complex.abs s) ^ 2) := by
+      fun s ↦ 1 / (ε * ‖s‖ ^ 2) := by
   have := MellinOfPsi diffΨ suppΨ (mul_pos εpos σ₁pos) (σ₂ := ε * σ₂)
   rw [Asymptotics.isBigO_iff] at this ⊢
   obtain ⟨c, hc⟩ := this
   use c
-  simp only [Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one, eventually_principal,
-    mem_setOf_eq, and_imp] at hc ⊢
-  intro s h1 h2
+  simp only [norm_norm, norm_div, norm_one, eventually_principal, mem_setOf_eq] at hc ⊢
+  intro s hs
+  rw [MellinOfSmooth1a Ψ diffΨ suppΨ εpos <| gt_of_ge_of_gt hs.1 σ₁pos]
   have : ‖MellinTransform (fun x ↦ ↑(Ψ x)) (ε * s)‖ ≤ c * (1 / ‖ε * s‖) := by
-    refine hc (ε * s) ?_ ?_
-    · simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
-      exact (mul_le_mul_left εpos).mpr h1
-    · simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
-      exact (mul_le_mul_left εpos).mpr h2
-  simp only [Complex.norm_eq_abs, norm_mul, abs_ofReal, abs_eq_self.mpr <| le_of_lt εpos] at this
-  simp only [← Complex.norm_eq_abs] at this ⊢
-  rw [MellinOfSmooth1a Ψ diffΨ suppΨ εpos <| gt_of_ge_of_gt h1 σ₁pos]
-  simp only [Real.norm_eq_abs, Complex.abs_abs, norm_div, norm_one, map_mul, map_div₀, map_one,
-    norm_mul, norm_pow, abs_of_pos, εpos]
-  rw [(abs_eq_self.mpr <| mul_nonneg (by linarith) (by simp) : |ε * ‖s‖ ^ 2| = ε * ‖s‖ ^ 2)]
-  rw [(by ring : c * (1 / (ε * ‖s‖ ^ 2)) = (1 / ‖s‖) * (c / (ε * ‖s‖)))]
-  refine mul_le_mul_of_nonneg_left ?_ <| div_nonneg (by norm_num) (norm_nonneg s)
-  convert this using 1; ring
+    refine hc (ε * s) ?_
+    simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
+    exact ⟨(mul_le_mul_left εpos).mpr hs.1, (mul_le_mul_left εpos).mpr hs.2⟩
+  convert mul_le_mul_of_nonneg_left (a := 1 / ‖s‖) this ?_ using 1
+  · simp
+  · simp only [Complex.norm_eq_abs, norm_mul, Real.norm_eq_abs, norm_pow, Complex.abs_abs, one_div,
+    mul_inv_rev, abs_ofReal]; ring_nf
+  · exact div_nonneg (by norm_num) (norm_nonneg s)
 /-%%
 \begin{proof}\uses{MellinOfSmooth1a, MellinOfPsi}\leanok
 Use Lemma \ref{MellinOfSmooth1a} and the bound in Lemma \ref{MellinOfPsi}.

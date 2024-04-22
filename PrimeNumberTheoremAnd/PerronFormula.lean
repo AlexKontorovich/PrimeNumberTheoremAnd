@@ -389,26 +389,21 @@ $$\left|
 \end{lemma}
 %%-/
 lemma vertIntBound (xpos : 0 < x) (σ_gt_one : 1 < σ) :
-    Complex.abs (VerticalIntegral (f x) σ)
+    ‖VerticalIntegral (f x) σ‖
       ≤ x ^ σ * ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| := by
   calc
     _ = ‖∫ (t : ℝ), x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ := ?_
     _ ≤ ∫ (t : ℝ), ‖x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ :=
         norm_integral_le_integral_norm _
     _ = ∫ (t : ℝ), x ^ σ / ‖((σ + t * I) * (σ + t * I + 1))‖ := ?_
-    _ = x ^ σ * ∫ (t : ℝ), 1 / (Complex.abs (σ + t * I) * Complex.abs (σ + t * I + 1)) := ?_
+    _ = x ^ σ * ∫ (t : ℝ), 1 / (‖σ + t * I‖ * ‖σ + t * I + 1‖) := ?_
     _ ≤ x ^ σ * ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)| :=
         mul_le_mul_of_nonneg_left ?_ (rpow_nonneg xpos.le _)
-  · simp only [VerticalIntegral, smul_eq_mul, map_mul, abs_I, one_mul, Complex.norm_eq_abs]
-  · congr with t
-    rw [norm_div, Complex.norm_eq_abs, Complex.abs_cpow_eq_rpow_re_of_pos xpos, add_re, ofReal_re,
-      re_ofReal_mul, I_re, mul_zero, add_zero]
-  · simp_rw [div_eq_mul_inv, integral_mul_left, one_mul, Complex.norm_eq_abs, map_mul]
-  -- Note: I didn't try to prove this because the result is trivial if it isn't true.
-  by_cases hint : Integrable fun (a : ℝ) => 1 / (Complex.abs (σ + ↑a * I) * Complex.abs (↑σ + ↑a * I + 1))
-  swap
-  · rw [integral_undef hint]
-    exact integral_nonneg <| fun t => by simp only [Pi.le_def, Pi.zero_apply, one_div, inv_nonneg, abs_nonneg]
+  · simp [VerticalIntegral]
+  · simp [Complex.abs_cpow_eq_rpow_re_of_pos xpos]
+  · simp [integral_mul_left, div_eq_mul_inv]
+  by_cases hint : Integrable fun (a : ℝ) => 1 / (‖σ + ↑a * I‖ * ‖↑σ + ↑a * I + 1‖)
+  swap; rw [integral_undef hint]; exact integral_nonneg <| fun t => by simp
   apply integral_mono hint
   · have := integralPosAux
     contrapose! this
@@ -416,12 +411,10 @@ lemma vertIntBound (xpos : 0 < x) (σ_gt_one : 1 < σ) :
   rw [Pi.le_def]
   intro t
   rw [abs_eq_self.mpr (by positivity)]
-  simp only [Complex.abs_apply]
   gcongr <;> apply sqrt_le_sqrt
   · simp_rw [normSq_add_mul_I, add_le_add_iff_right, one_le_pow_of_one_le σ_gt_one.le _]
   · rw [add_right_comm, ← ofReal_one, ← ofReal_add, normSq_add_mul_I, add_le_add_iff_right]
     nlinarith
-
 /-%%
 \begin{proof}\leanok
 \uses{VerticalIntegral}
@@ -458,7 +451,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
     _ = ‖∫ (t : ℝ), x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ := ?_
     _ ≤ ∫ (t : ℝ), ‖x ^ (σ + t * I) / ((σ + t * I) * (σ + t * I + 1))‖ := norm_integral_le_integral_norm _
     _ = ∫ (t : ℝ), x ^ σ / ‖((σ + t * I) * (σ + t * I + 1))‖ := ?_
-    _ = x ^ σ * ∫ (t : ℝ), 1 / (Complex.abs (σ + t * I) * Complex.abs (σ + t * I + 1)) := ?_
+    _ = x ^ σ * ∫ (t : ℝ), 1 / (‖σ + t * I‖ * ‖σ + t * I + 1‖) := ?_
     _ ≤ x ^ σ * ∫ (t : ℝ), 1 / |Real.sqrt (4⁻¹ + t^2) * Real.sqrt (2 + t^2)| := ?_
   · simp [VerticalIntegral', VerticalIntegral, show 0 ≤ π from le_of_lt Real.pi_pos]
   · congr with t
@@ -466,7 +459,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
       re_ofReal_mul, I_re, mul_zero, add_zero]
   · simp_rw [div_eq_mul_inv, integral_mul_left, one_mul, Complex.norm_eq_abs, map_mul]
   gcongr
-  by_cases hint : Integrable fun (a : ℝ) => 1 / (Complex.abs (σ + ↑a * I) * Complex.abs (↑σ + ↑a * I + 1))
+  by_cases hint : Integrable fun (a : ℝ) => 1 / (‖σ + ↑a * I‖ * ‖σ + ↑a * I + 1‖)
   swap
   · rw [integral_undef hint]
     exact integral_nonneg <| fun t => by simp only [Pi.le_def, Pi.zero_apply, one_div, inv_nonneg, abs_nonneg]
@@ -476,9 +469,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
     simp_rw [integral_undef this, le_rfl]
   rw [Pi.le_def]
   intro t
-  rw [abs_eq_self.mpr (by positivity)]
-  simp only [Complex.abs_apply]
-  rw[mul_comm]
+  rw [abs_eq_self.mpr (by positivity), mul_comm]
   gcongr <;> apply sqrt_le_sqrt
   · rw [add_right_comm, ← ofReal_one, ← ofReal_add, normSq_add_mul_I, add_le_add_iff_right]
     ring_nf
@@ -653,7 +644,7 @@ tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
       (not_mem_uIcc_of_lt (by linarith) (by linarith))
 --%% But we also have the bound $\int_{(\sigma')} \leq x^{\sigma'} * C$, where
 --%% $C=\int_\R\frac{1}{|(1+t)(1+t+1)|}dt$.
-  have VertIntBound : ∃ C > 0, ∀ σ' > 1, Complex.abs (VerticalIntegral (f x) σ') ≤ x^σ' * C := by
+  have VertIntBound : ∃ C > 0, ∀ σ' > 1, ‖VerticalIntegral (f x) σ'‖ ≤ x^σ' * C := by
     let C := ∫ (t : ℝ), 1 / |Real.sqrt (1 + t^2) * Real.sqrt (2 + t^2)|
     exact ⟨C, integralPosAux, fun _ ↦ vertIntBound xpos⟩
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
@@ -1009,8 +1000,7 @@ tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
       VerticalIntegral' f σ' = VerticalIntegral' f σ'' :=
     contourPull3 x_gt_one hσ' hσ''
 --%% For $\sigma' < -3/2$, the integral is bounded by $x^{\sigma'}\int_\R\frac{1}{|(1+t^2)(2+t^2)|^{1/2}}dt$.
-  have VertIntBound : ∃ C, ∀ σ' < -3/2,
-      Complex.abs (VerticalIntegral' f σ') ≤ x^σ' * C :=
+  have VertIntBound : ∃ C, ∀ σ' < -3/2, ‖VerticalIntegral' f σ'‖ ≤ x^σ' * C :=
     vertIntBoundLeft (by linarith : 0 < x)
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
   have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral' f)) atBot (𝓝 0) := by
