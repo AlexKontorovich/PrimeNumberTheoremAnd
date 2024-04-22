@@ -73,17 +73,17 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 �
   dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
   rw [MellinTransform_eq]
   calc
-    _ = 1 / (2 * Real.pi * I) * (I * ∫ (t : ℝ), ∑' n, Λ n / (n : ℂ) ^ (2 + ↑t * I) *
+    _ = 1 / (2 * π * I) * (I * ∫ (t : ℝ), ∑' n, Λ n / (n : ℂ) ^ (2 + ↑t * I) *
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
-    _ = 1 / (2 * Real.pi * I) * (I * ∑' n, ∫ (t : ℝ), Λ n / (n : ℂ) ^ (2 + ↑t * I) *
+    _ = 1 / (2 * π * I) * (I * ∑' n, ∫ (t : ℝ), Λ n / (n : ℂ) ^ (2 + ↑t * I) *
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
-    _ = 1 / (2 * Real.pi * I) * (I * ∑' n, Λ n * ∫ (t : ℝ),
+    _ = 1 / (2 * π * I) * (I * ∑' n, Λ n * ∫ (t : ℝ),
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
-    _ = 1 / (2 * Real.pi) * (∑' n, Λ n * ∫ (t : ℝ),
+    _ = 1 / (2 * π) * (∑' n, Λ n * ∫ (t : ℝ),
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
-    _ = ∑' n, Λ n * (1 / (2 * Real.pi) * ∫ (t : ℝ),
+    _ = ∑' n, Λ n * (1 / (2 * π) * ∫ (t : ℝ),
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
-    _ = ∑' n, Λ n * (1 / (2 * Real.pi) * ∫ (t : ℝ),
+    _ = ∑' n, Λ n * (1 / (2 * π) * ∫ (t : ℝ),
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * ((n : ℂ) / X) ^ (-(2 + ↑t * I))) := ?_
     _ = _ := ?_
   · congr; ext t
@@ -129,7 +129,7 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 �
     have n_pos : 0 < n := by
       simpa only [n_zero, gt_iff_lt, false_or] using (Nat.eq_zero_or_pos n)
     congr
-    rw [(by rw [div_mul]; simp : 1 / (2 * Real.pi) = 1 / (2 * Real.pi * I) * I), mul_assoc]
+    rw [(by rw [div_mul]; simp : 1 / (2 * π) = 1 / (2 * π * I) * I), mul_assoc]
     conv => lhs; rhs; rhs; rhs; intro t; rw [mul_comm]; norm_cast
     have := MellinInversion 2 (f := fun x ↦ (Smooth1 ψ ε x : ℂ)) (x := n / X)
       (by simp [n_pos, X_pos]) ?_ ?_ ?_
