@@ -13,7 +13,42 @@ import Mathlib.Analysis.Complex.CauchyIntegral
 -- should remove eventually
 import PrimeNumberTheoremAnd.PerronFormula
 
+-- set_option quotPrecheck false
 open BigOperators Complex Topology Filter Interval Set
+
+lemma div_cpow_eq_cpow_neg (a x s : ℂ) : a / x ^ s = a * x ^ (-s) := by
+  rw [div_eq_mul_inv, cpow_neg]
+
+lemma div_rpow_eq_rpow_neg (a x s : ℝ) (hx : 0 ≤ x): a / x ^ s = a * x ^ (-s) := by
+  rw [div_eq_mul_inv, Real.rpow_neg hx]
+
+/-%%
+\begin{definition}[RiemannZeta0]\label{RiemannZeta0}\lean{RiemannZeta0}\leanok
+\uses{ZetaSum_aux2}
+For any natural $N\ge1$, we define
+$$
+\zeta_0(N,s) :=
+\sum_{1\le n < N} \frac1{n^s}
++
+\frac{- N^{1-s}}{1-s} + \frac{-N^{-s}}{2} + s \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
+$$
+\end{definition}
+%%-/
+noncomputable def riemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
+  (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
+  (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
+
+/-- We use `ζ` to denote the Rieman zeta function and `ζ₀` to denote the alternative
+  Rieman zeta function.. -/
+local notation (name := riemannzeta) "ζ" => riemannZeta
+local notation (name := riemannzeta0) "ζ₀" => riemannZeta0
+
+lemma riemannZeta0_apply (N : ℕ) (s : ℂ) : ζ₀ N s =
+    (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
+    ((- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
+      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) := by
+  simp_rw [riemannZeta0, div_cpow_eq_cpow_neg]; ring
 
 -- lemma AnalyticContinuation {f g : ℂ → ℂ} {s t : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
 --     (g_on_t : AnalyticOn ℂ g t) (f_eq_g_on_cap : Set.EqOn f g (s ∩ t))
@@ -363,12 +398,6 @@ lemma ZetaSum_aux1φDiff {s : ℂ} {x : ℝ} (xpos : 0 < x) :
   · exact Real.differentiableAt_cpow_const_of_ne s xpos
   · simp [cpow_eq_zero_iff, xpos.ne']
 
-lemma div_cpow_eq_cpow_neg (a x s : ℂ) : a / x ^ s = a * x ^ (-s) := by
-  rw [div_eq_mul_inv, cpow_neg]
-
-lemma div_rpow_eq_rpow_neg (a x s : ℝ) (hx : 0 ≤ x): a / x ^ s = a * x ^ (-s) := by
-  rw [div_eq_mul_inv, Real.rpow_neg hx]
-
 lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_zero : s ≠ 0) {x : ℝ} (xpos : 0 < x) :
     deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s) x = (fun (x : ℝ) ↦ -s * (x : ℂ) ^ (-(s + 1))) x := by
   let r := -s - 1
@@ -658,29 +687,6 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
 %%-/
 
 /-%%
-\begin{definition}[RiemannZeta0]\label{RiemannZeta0}\lean{RiemannZeta0}\leanok
-\uses{ZetaSum_aux2}
-For any natural $N\ge1$, we define
-$$
-\zeta_0(N,s) :=
-\sum_{1\le n < N} \frac1{n^s}
-+
-\frac{- N^{1-s}}{1-s} + \frac{-N^{-s}}{2} + s \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
-$$
-\end{definition}
-%%-/
-noncomputable def RiemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
-  (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
-  (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
-      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
-
-lemma RiemannZeta0_apply (N : ℕ) (s : ℂ) : RiemannZeta0 (N : ℕ) (s : ℂ) =
-    (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
-    ((- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
-      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) := by
-  simp_rw [RiemannZeta0, div_cpow_eq_cpow_neg]; ring
-
-/-%%
 \begin{lemma}[ZetaBnd_aux1]\label{ZetaBnd_aux1}\lean{ZetaBnd_aux1}\leanok
 For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in(0,2]$,
 $$
@@ -708,8 +714,8 @@ Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\
 For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \Re(s)>0\}$.
 \end{lemma}
 %%-/
-lemma HolomorphicOn_Zeta0 {N : ℕ} (N_pos : 0 < N) :
-    HolomorphicOn (RiemannZeta0 N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
+lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
+    HolomorphicOn (ζ₀ N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
   sorry
 /-%%
 \begin{proof}\uses{ZetaSum_aux1}
@@ -718,8 +724,8 @@ lemma HolomorphicOn_Zeta0 {N : ℕ} (N_pos : 0 < N) :
 %%-/
 
 -- MOVE TO MATHLIB near `differentiableAt_riemannZeta`
-lemma HolomophicOn_Zeta :
-    HolomorphicOn riemannZeta {s : ℂ | s ≠ 1} := by
+lemma HolomophicOn_riemannZeta :
+    HolomorphicOn ζ {s : ℂ | s ≠ 1} := by
   intro z hz
   simp only [Set.mem_setOf_eq] at hz
   exact (differentiableAt_riemannZeta hz).differentiableWithinAt
@@ -776,18 +782,18 @@ $$
 \end{lemma}
 %%-/
 lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) :
-    RiemannZeta0 N s = riemannZeta s := by
+    ζ₀ N s = riemannZeta s := by
   let f := riemannZeta
-  let g := RiemannZeta0 N
+  let g := ζ₀ N
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
   have U_open : IsOpen U := by
     refine IsOpen.inter isOpen_ne ?_
     exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
   have f_an : AnalyticOn ℂ f U := by
-    apply (HolomophicOn_Zeta.analyticOn isOpen_ne).mono
+    apply (HolomophicOn_riemannZeta.analyticOn isOpen_ne).mono
     simp only [ne_eq, Set.setOf_subset_setOf, and_imp, U]
     exact fun a ha _ ↦ ha
-  have g_an : AnalyticOn ℂ g U := (HolomorphicOn_Zeta0 N_pos).analyticOn U_open
+  have g_an : AnalyticOn ℂ g U := (HolomorphicOn_riemannZeta0 N_pos).analyticOn U_open
   have preconU : IsPreconnected U := by
     apply IsConnected.isPreconnected
     apply (IsOpen.isConnected_iff_isPathConnected U_open).mp isPathConnected_aux
@@ -802,7 +808,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
     exact isOpen_lt (by continuity) (by continuity)
   filter_upwards [u_mem]
   intro z hz
-  simp only [f,g, zeta_eq_tsum_one_div_nat_cpow hz, RiemannZeta0_apply]
+  simp only [f,g, zeta_eq_tsum_one_div_nat_cpow hz, riemannZeta0_apply]
   nth_rewrite 2 [neg_div]
   rw [← sub_eq_add_neg, ← ZetaSum_aux2 N_pos hz, ← sum_add_tsum_nat_add N (Summable_rpow hz)]
   congr
@@ -902,7 +908,7 @@ as $|t|\to\infty$.
 lemma ZetaUpperBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2),
-    Complex.abs (riemannZeta (σ + t * I)) ≤ C * Real.log |t| := by
+    Complex.abs (ζ (σ + t * I)) ≤ C * Real.log |t| := by
   let A := (1 : ℝ) / 2
   have Apos : 0 < A := by norm_num
   refine ⟨A, Apos, 10, by norm_num, ?_⟩
@@ -911,7 +917,7 @@ lemma ZetaUpperBnd :
   set s := σ + t * I
   obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
   rw [← Zeta0EqZeta (N := N) (Nat.floor_pos.mpr (by linarith)) (by simp [σPos]) neOne]
-  simp only [RiemannZeta0, ← norm_eq_abs]
+  simp only [riemannZeta0, ← norm_eq_abs]
   calc
     _ ≤ ∑ n in Finset.range N, ‖1 / (n : ℂ) ^ s‖ - ‖N ^ (1 - s) / (1 - s)‖ -
         ‖(N : ℂ) ^ (-s) / 2‖ +
@@ -970,7 +976,7 @@ as $|t|\to\infty$.
 lemma ZetaDerivUpperBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2),
-    Complex.abs (deriv riemannZeta (σ + t * I)) ≤ C * (Real.log |t|) ^ 2 := by
+    Complex.abs (deriv ζ (σ + t * I)) ≤ C * (Real.log |t|) ^ 2 := by
   let A := (1 : ℝ) / 2
   have Apos : 0 < A := by norm_num
   refine ⟨A, Apos, 10, by norm_num, ?_⟩
@@ -978,7 +984,7 @@ lemma ZetaDerivUpperBnd :
   set N := ⌊|t|⌋₊
   set s := σ + t * I
   obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
-  have : deriv riemannZeta s = deriv (RiemannZeta0 N) s := by
+  have : deriv ζ s = deriv (ζ₀ N) s := by
     have := Zeta0EqZeta (N := N) (Nat.floor_pos.mpr (by linarith)) (by simp [σPos]) neOne
     -- these functions agree on an open set, their derivatives agree there too
     sorry
@@ -1043,7 +1049,7 @@ $$
 \end{lemma}
 %%-/
 lemma ZetaNear1BndFilter:
-    (fun σ : ℝ ↦ riemannZeta σ) =O[𝓝[>](1 : ℝ)] (fun σ ↦ (1 : ℂ) / (σ - 1)) := by
+    (fun σ : ℝ ↦ ζ σ) =O[𝓝[>](1 : ℝ)] (fun σ ↦ (1 : ℂ) / (σ - 1)) := by
   have := Tendsto_nhdsWithin_punctured_add (a := -1) (x := 1)
   simp only [add_right_neg, ← sub_eq_add_neg] at this
   have := riemannZeta_isBigO_near_one_horizontal.comp_tendsto this
@@ -1065,8 +1071,7 @@ $$
 \end{lemma}
 %%-/
 lemma ZetaNear1BndExact:
-    ∃ (c : ℝ) (cpos : 0 < c), ∀ (σ : ℝ) (_ : σ ∈ Ioc 1 2),
-    ‖riemannZeta σ‖ ≤ c / (σ - 1) := by
+    ∃ (c : ℝ) (cpos : 0 < c), ∀ (σ : ℝ) (_ : σ ∈ Ioc 1 2), ‖ζ σ‖ ≤ c / (σ - 1) := by
   have := ZetaNear1BndFilter
   rw [Asymptotics.isBigO_iff] at this
   obtain ⟨c, U, hU, V, hV, h⟩ := this
@@ -1082,13 +1087,13 @@ lemma ZetaNear1BndExact:
   let W := Set.Icc (1 + ε) 2
   have W_compact : IsCompact {ofReal' z | z ∈ W} :=
     IsCompact.image isCompact_Icc continuous_ofReal
-  have cont : ContinuousOn riemannZeta {ofReal' z | z ∈ W} := by
-    apply HasDerivAt.continuousOn (f' := deriv riemannZeta)
+  have cont : ContinuousOn ζ {ofReal' z | z ∈ W} := by
+    apply HasDerivAt.continuousOn (f' := deriv ζ)
     intro σ hσ
     exact (differentiableAt_riemannZeta (by contrapose! hσ; simp [W, hσ, εpos])).hasDerivAt
   obtain ⟨C, hC⟩ := IsCompact.exists_bound_of_continuousOn W_compact cont
   let C' := max (C + 1) 1
-  replace hC : ∀ (σ : ℝ), σ ∈ W → ‖riemannZeta σ‖ < C' := by
+  replace hC : ∀ (σ : ℝ), σ ∈ W → ‖ζ σ‖ < C' := by
     intro σ hσ
     simp only [lt_max_iff, C']
     have := hC σ
@@ -1128,9 +1133,8 @@ $$
 \end{lemma}
 %%-/
 lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
-    1 / Complex.abs (riemannZeta (σ + t * I)) ≤
-      Complex.abs (riemannZeta σ) ^ ((3 : ℝ) / 4) *
-        Complex.abs (riemannZeta (σ + 2 * t * I)) ^ ((1 : ℝ) / 4) := by
+    1 / Complex.abs (ζ (σ + t * I)) ≤ Complex.abs (ζ σ) ^ ((3 : ℝ) / 4) *
+        Complex.abs (ζ (σ + 2 * t * I)) ^ ((1 : ℝ) / 4) := by
   simp_rw [← Complex.norm_eq_abs]
   apply (div_le_iff ?_).mpr
   apply (Real.rpow_le_rpow_iff (z := 4) (by norm_num) ?_ (by norm_num)).mp
@@ -1154,7 +1158,7 @@ lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
         sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at σ_gt
       simp [σ_gt]
     have zeta_ne_zero:= riemannZeta_ne_zero_of_one_le_re s_ne_one (by simp [σ_gt.le])
-    suffices 0 ≤ ‖riemannZeta (↑σ + ↑t * I)‖ by simp [le_iff_lt_or_eq.mp this, zeta_ne_zero]
+    suffices 0 ≤ ‖ζ (↑σ + ↑t * I)‖ by simp [le_iff_lt_or_eq.mp this, zeta_ne_zero]
     apply norm_nonneg
 /-%%
 \begin{proof}\leanok
@@ -1189,7 +1193,7 @@ as $|t|\to\infty$.
 \end{lemma}
 %%-/
 lemma ZetaInvBound2 {σ : ℝ} (hσ : σ ∈ Ioc 1 2) :
-    (fun (t : ℝ) ↦ 1 / Complex.abs (riemannZeta (σ + t * I))) =O[cocompact ℝ]
+    (fun (t : ℝ) ↦ 1 / Complex.abs (ζ (σ + t * I))) =O[cocompact ℝ]
       fun (t : ℝ) ↦ (σ - 1) ^ (-(3 : ℝ) / 4) * (Real.log |t|) ^ ((1 : ℝ) / 4) := by
   obtain ⟨A, ha, C, hC, h⟩ := ZetaUpperBnd
   obtain ⟨c, hc, h_inv⟩ := ZetaNear1BndExact
@@ -1203,8 +1207,8 @@ lemma ZetaInvBound2 {σ : ℝ} (hσ : σ ∈ Ioc 1 2) :
     contrapose! this
     rwa [Real.rpow_eq_zero (div_nonneg (by linarith) hc.le) (by norm_num)] at this
   calc
-    _ ≤ ‖Complex.abs (riemannZeta ↑σ) ^ (3 / 4 : ℝ) * Complex.abs (riemannZeta (↑σ + 2 * ↑t * I)) ^ (1 / 4 : ℝ)‖ := ?_
-    _ ≤ ‖((σ - 1) / c) ^ (-3 / 4 : ℝ) * Complex.abs (riemannZeta (↑σ + 2 * ↑t * I)) ^ (1 / 4 : ℝ)‖ := ?_
+    _ ≤ ‖Complex.abs (ζ ↑σ) ^ (3 / 4 : ℝ) * Complex.abs (ζ (↑σ + 2 * ↑t * I)) ^ (1 / 4 : ℝ)‖ := ?_
+    _ ≤ ‖((σ - 1) / c) ^ (-3 / 4 : ℝ) * Complex.abs (ζ (↑σ + 2 * ↑t * I)) ^ (1 / 4 : ℝ)‖ := ?_
     _ ≤ ‖((σ - 1) / c) ^ (-3 / 4 : ℝ) * C ^ (1 / 4 : ℝ) * (Real.log |2 * t|) ^ (1 / 4 : ℝ)‖ := ?_
     _ ≤ ‖((σ - 1) / c) ^ (-3 / 4 : ℝ) * C ^ (1 / 4 : ℝ) * (Real.log (|t| ^ 2)) ^ (1 / 4 : ℝ)‖ := ?_
     _ = ‖((σ - 1)) ^ (-3 / 4 : ℝ) * c ^ (3 / 4 : ℝ) * (C ^ (1 / 4 : ℝ) * (Real.log (|t| ^ 2)) ^ (1 / 4 : ℝ))‖ := ?_
@@ -1213,7 +1217,7 @@ lemma ZetaInvBound2 {σ : ℝ} (hσ : σ ∈ Ioc 1 2) :
   · simp only [norm_div, norm_one, norm_eq_abs, Real.norm_eq_abs, Complex.abs_abs, norm_mul]
     convert ZetaInvBound1 σ_gt using 2
     <;> exact abs_eq_self.mpr <| Real.rpow_nonneg (apply_nonneg _ _) _
-  · have bnd1: Complex.abs (riemannZeta σ) ^ (3 / 4 : ℝ) ≤ ((σ - 1) / c) ^ (-(3 : ℝ) / 4) := by
+  · have bnd1: Complex.abs (ζ σ) ^ (3 / 4 : ℝ) ≤ ((σ - 1) / c) ^ (-(3 : ℝ) / 4) := by
       have : ((σ - 1) / c) ^ (-(3 : ℝ) / 4) = (((σ - 1) / c) ^ (-1 : ℝ)) ^ (3 / 4 : ℝ) := by
         rw [← Real.rpow_mul ?_]; ring_nf; exact div_nonneg (by linarith) hc.le
       rw [this]
@@ -1226,7 +1230,7 @@ lemma ZetaInvBound2 {σ : ℝ} (hσ : σ ∈ Ioc 1 2) :
     · exact abs_eq_self.mpr <| Real.rpow_nonneg (apply_nonneg _ _) _
     · exact abs_eq_self.mpr <| Real.rpow_nonneg (div_nonneg (by linarith) hc.le) _
     · apply lt_iff_le_and_ne.mpr ⟨(by simp), ?_⟩
-      have : riemannZeta (↑σ + 2 * ↑t * I) ≠ 0 := by
+      have : ζ (↑σ + 2 * ↑t * I) ≠ 0 := by
         apply riemannZeta_ne_zero_of_one_le_re ?_ (by simp [σ_gt.le])
         contrapose! σ_gt
         simp only [Complex.ext_iff, add_re, ofReal_re, mul_re, re_ofNat, im_ofNat, ofReal_im, mul_zero,
@@ -1302,10 +1306,9 @@ $$
 \end{lemma}
 %%-/
 lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (σ₁_lt_σ₂ : σ₁ < σ₂) (t_ne_zero : t ≠ 0) :
-    (∫ σ in Set.Icc σ₁ σ₂, deriv riemannZeta (σ + t * I)) =
-      riemannZeta (σ₂ + t * I) - riemannZeta (σ₁ + t * I) := by
+    (∫ σ in Set.Icc σ₁ σ₂, deriv ζ (σ + t * I)) = ζ (σ₂ + t * I) - ζ (σ₁ + t * I) := by
   rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le σ₁_lt_σ₂.le]
-  have diff : ∀ (σ : ℝ), DifferentiableAt ℂ riemannZeta (σ + t * I) := by
+  have diff : ∀ (σ : ℝ), DifferentiableAt ℂ ζ (σ + t * I) := by
     intro σ
     apply differentiableAt_riemannZeta
     contrapose! t_ne_zero
@@ -1318,8 +1321,8 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (σ₁_lt_σ₂ : σ₁ < σ�
     apply DifferentiableAt.comp
     · exact (diff s).restrictScalars ℝ
     · exact DifferentiableAt.add_const (c := t * I) <| differentiableAt_ofReal _
-  · apply ContinuousOn.comp (g := deriv riemannZeta) ?_ ?_ (Set.mapsTo_image _ _)
-    · apply HasDerivAt.continuousOn (f' := deriv <| deriv riemannZeta)
+  · apply ContinuousOn.comp (g := deriv ζ) ?_ ?_ (Set.mapsTo_image _ _)
+    · apply HasDerivAt.continuousOn (f' := deriv <| deriv ζ)
       intro x hx
       apply hasDerivAt_deriv_iff.mpr
       replace hx : x ≠ 1 := by
@@ -1328,7 +1331,7 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (σ₁_lt_σ₂ : σ₁ < σ�
           I_im, mul_one, sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im, not_exists,
           not_and]
         exact fun _ _ _ ↦ t_ne_zero
-      have := (Complex.analyticAt_iff_eventually_differentiableAt (c := x) (f := riemannZeta)).mpr ?_
+      have := (Complex.analyticAt_iff_eventually_differentiableAt (c := x) (f := ζ)).mpr ?_
       · obtain ⟨r, hr, h⟩ := this.exists_ball_analyticOn
         apply (h.deriv x ?_).differentiableAt
         simp [hr]
@@ -1355,7 +1358,7 @@ $$
 lemma Zeta_diff_Bnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ₁ σ₂ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (σ₁_ge : 1 - A / Real.log |t| ≤ σ₁) (σ₂_le : σ₂ ≤ 2) (σ₁_lt_σ₂ : σ₁ < σ₂),
-    Complex.abs (riemannZeta (σ₂ + t * I) - riemannZeta (σ₁ + t * I)) ≤
+    Complex.abs (ζ (σ₂ + t * I) - ζ (σ₁ + t * I)) ≤
       C * (Real.log |t|) ^ 2 * (σ₂ - σ₁) := by
   obtain ⟨A, Apos, C, Cpos, hC⟩ := ZetaDerivUpperBnd
   refine ⟨A, Apos, C, Cpos, ?_⟩
@@ -1388,7 +1391,7 @@ $$
 lemma ZetaInvBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (hσ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
-    1 / Complex.abs (riemannZeta (σ + t * I)) ≤ C * (Real.log |t|) ^ 7 := by
+    1 / Complex.abs (ζ (σ + t * I)) ≤ C * (Real.log |t|) ^ 7 := by
   sorry
 /-%%
 \begin{proof}
@@ -1425,7 +1428,7 @@ $$
 lemma LogDerivZetaBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (hσ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
-    Complex.abs (deriv riemannZeta (σ + t * I) / riemannZeta (σ + t * I)) ≤
+    Complex.abs (deriv ζ (σ + t * I) / ζ (σ + t * I)) ≤
       C * (Real.log |t|) ^ 9 := by
   obtain ⟨A, hA, C, hC, h⟩ := ZetaInvBnd
   obtain ⟨A', hA', C', hC', h'⟩ := ZetaDerivUpperBnd
