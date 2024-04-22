@@ -1102,11 +1102,9 @@ lemma ZetaNear1BndExact:
   · replace hσ : σ ∈ W := by
       simp only [Set.mem_inter_iff, hV σ_ge, and_true] at hσ
       simp only [Set.mem_Icc, σ_le, and_true, W]
-      contrapose! hσ
-      exact hε ⟨σ_ge.le, hσ⟩
+      contrapose! hσ; exact hε ⟨σ_ge.le, hσ⟩
     apply le_trans (hC σ hσ).le ((le_div_iff (by linarith)).mpr ?_)
-    rw [le_max_iff, mul_comm 2]
-    exact Or.inl <| mul_le_mul_of_nonneg_left (by linarith) Cpos.le
+    rw [le_max_iff, mul_comm 2]; exact Or.inl <| mul_le_mul_of_nonneg_left (by linarith) Cpos.le
 /-%%
 \begin{proof}\uses{ZetaNear1BndFilter}\leanok
 Split into two cases, use Lemma \ref{ZetaNear1BndFilter} for $\sigma$ sufficiently small
@@ -1141,10 +1139,7 @@ lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
     apply mul_nonneg <;> apply Real.rpow_nonneg <| norm_nonneg _
   · refine mul_nonneg (mul_nonneg ?_ ?_) ?_ <;> simp [Real.rpow_nonneg]
   · have s_ne_one : (σ : ℂ) + (t : ℂ) * I ≠ 1 := by
-      contrapose! σ_gt
-      simp only [Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-        sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at σ_gt
-      simp [σ_gt]
+      contrapose! σ_gt; apply le_of_eq; apply And.left; simpa [Complex.ext_iff] using σ_gt
     have zeta_ne_zero:= riemannZeta_ne_zero_of_one_le_re s_ne_one (by simp [σ_gt.le])
     suffices 0 ≤ ‖ζ (↑σ + ↑t * I)‖ by simp [le_iff_lt_or_eq.mp this, zeta_ne_zero]
     apply norm_nonneg
@@ -1219,8 +1214,7 @@ lemma ZetaInvBound2 {σ : ℝ} (hσ : σ ∈ Ioc 1 2) :
     · apply lt_iff_le_and_ne.mpr ⟨(by simp), ?_⟩
       have : ζ (↑σ + 2 * ↑t * I) ≠ 0 := by
         apply riemannZeta_ne_zero_of_one_le_re ?_ (by simp [σ_gt.le])
-        contrapose! σ_gt
-        apply le_of_eq; apply And.left; simpa [Complex.ext_iff] using σ_gt
+        contrapose! σ_gt; apply le_of_eq; apply And.left; simpa [Complex.ext_iff] using σ_gt
       symm; exact fun h2 ↦ this (by simpa using h2)
   · replace h := h σ (2 * t) (by linarith) ⟨?_, σ_le⟩
     · have : 0 ≤ Real.log |2 * t| := Real.log_nonneg (by linarith)
@@ -1247,8 +1241,7 @@ lemma ZetaInvBound2 {σ : ℝ} (hσ : σ ∈ Ioc 1 2) :
         apply Real.log_le_log (mul_pos (by norm_num) (by linarith)) (by nlinarith)
     . apply mul_pos (abs_pos.mpr hnezero) (abs_pos.mpr ?_)
       have : C ≠ 0 := ne_of_gt hC
-      contrapose! this
-      rwa [Real.rpow_eq_zero (by linarith) (by norm_num)] at this
+      contrapose! this; rwa [Real.rpow_eq_zero (by linarith) (by norm_num)] at this
   · have : (-3 : ℝ) / 4 = -((3 : ℝ)/ 4) := by norm_num
     simp only [norm_mul, mul_eq_mul_right_iff, abs_eq_zero, this, ← mul_assoc]; left; left
     conv => lhs; rw [Real.div_rpow (by linarith) hc.le, Real.rpow_neg hc.le, div_inv_eq_mul, norm_mul]
@@ -1291,11 +1284,8 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (σ₁_lt_σ₂ : σ₁ < σ�
   rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le σ₁_lt_σ₂.le]
   have diff : ∀ (σ : ℝ), DifferentiableAt ℂ ζ (σ + t * I) := by
     intro σ
-    apply differentiableAt_riemannZeta
-    contrapose! t_ne_zero
-    simp only [Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-      sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at t_ne_zero
-    exact t_ne_zero.2
+    refine differentiableAt_riemannZeta ?_
+    contrapose! t_ne_zero; apply And.right; simpa [Complex.ext_iff] using t_ne_zero
   apply intervalIntegral.integral_deriv_eq_sub'
   · exact deriv_fun_re diff
   · intro s _
@@ -1426,9 +1416,9 @@ lemma LogDerivZetaBnd :
     exact le_self_pow logt_gt.le (by norm_num)
   replace h := h σ t t_gt ⟨σ_ge', σ_lt⟩
   replace h' := h' σ t t_gt ⟨σ_ge'', by linarith⟩
-  simp only [map_div₀]
+  simp only [norm_div, norm_one, norm_mul, norm_inv]
   convert mul_le_mul h h' (by simp [apply_nonneg]) ?_ using 1 <;> ring_nf
-  exact le_trans (by simp only [one_div, inv_nonneg, apply_nonneg]) h
+  exact mul_nonneg hC.le <| pow_nonneg (Real.log_nonneg (by linarith)) 7
 /-%%
 \begin{proof}\leanok
 \uses{ZetaInvBnd, ZetaDerivUpperBnd}

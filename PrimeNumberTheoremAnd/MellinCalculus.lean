@@ -82,18 +82,15 @@ theorem Complex.ofReal_rpow {x : ℝ} (h : x > 0) (y : ℝ) :
 @[simp]
 lemma Function.support_abs {α : Type*} (f : α → 𝕂):
     (fun x ↦ ‖f x‖).support = f.support := by
-  simp only [support, ne_eq, mem_setOf_eq]
-  simp_rw [norm_ne_zero_iff]
+  simp only [support, ne_eq, mem_setOf_eq]; simp_rw [norm_ne_zero_iff]
 
 @[simp]
 lemma Function.support_ofReal {f : ℝ → ℝ} :
     (fun x ↦ ((f x) : ℂ)).support = f.support := by
-  apply Function.support_comp_eq (g := ofReal')
-  simp [ofReal_zero]
+  apply Function.support_comp_eq (g := ofReal'); simp [ofReal_zero]
 
 lemma Function.support_id : Function.support (fun x : ℝ => x) = Iio 0 ∪ Ioi 0 := by
-  ext x
-  simp only [mem_support, ne_eq, Iio_union_Ioi, mem_compl_iff, mem_singleton_iff]
+  ext x; simp only [mem_support, ne_eq, Iio_union_Ioi, mem_compl_iff, mem_singleton_iff]
 
 lemma Function.support_mul_subset_of_subset {s : Set ℝ} {f g : ℝ → 𝕂} (fSupp : f.support ⊆ s) :
     (f * g).support ⊆ s := by
@@ -105,12 +102,9 @@ lemma Function.support_of_along_fiber_subset_subset {α β M : Type*} [Zero M]
     (hy : ∀ (x : α), (fun y ↦ f (x, y)).support ⊆ t) :
     f.support ⊆ s ×ˢ t := by
   intro ⟨x, y⟩ hxy
-  simp only [mem_prod]
   constructor
-  · have := hx y
-    exact this (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
-  · have := hy x
-    exact this (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
+  · exact hx y (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
+  · exact hy x (by simp only [Function.mem_support, ne_eq] at hxy ⊢; exact hxy)
 
 lemma Function.support_deriv_subset_Icc {a b : ℝ} {f : ℝ → 𝕂}
     (fSupp : f.support ⊆ Set.Icc a b) :
@@ -136,8 +130,7 @@ lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {�
       rw [this, integral_singleton]; simp
     · have : ¬a ≤ b := by exact fun x => hab2 <| le_antisymm hab x
       rw [Icc_eq_empty_iff.mpr <| by exact fun x => hab2 <| le_antisymm hab x, subset_empty_iff,
-          Function.support_eq_empty_iff] at h
-      simp [h]
+          Function.support_eq_empty_iff] at h; simp [h]
 
 lemma SetIntegral.integral_eq_integral_inter_of_support_subset {μ : Measure ℝ}
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -149,58 +142,47 @@ lemma SetIntegral.integral_eq_integral_inter_of_support_subset_Icc {a b} {μ : M
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {s : Set ℝ} {f : ℝ → E} (h : f.support ⊆ Icc a b) (hs : Icc a b ⊆ s) :
     ∫ x in s, f x ∂μ = ∫ x in Icc a b, f x ∂μ := by
-  rw [SetIntegral.integral_eq_integral_inter_of_support_subset h measurableSet_Icc, inter_eq_self_of_subset_right hs]
+  rw [SetIntegral.integral_eq_integral_inter_of_support_subset h measurableSet_Icc,
+      inter_eq_self_of_subset_right hs]
 
 lemma intervalIntegral.norm_integral_le_of_norm_le_const' {a b C : ℝ}
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
     {f : ℝ → E} (hab : a ≤ b) (h : ∀ x ∈ (Icc a b), ‖f x‖ ≤ C) :
     ‖∫ x in a..b, f x‖ ≤ C * |b - a| := by
   apply intervalIntegral.norm_integral_le_of_norm_le_const
-  intro x hx
-  apply h x
-  rw [uIoc_of_le hab] at hx
-  exact mem_Icc_of_Ioc hx
+  exact fun x hx ↦ h x <| mem_Icc_of_Ioc <| uIoc_of_le hab ▸ hx
 
 lemma Filter.TendstoAtZero_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂) (ha : 0 < a)
     (fSupp : f.support ⊆ Set.Icc a b) :
     Tendsto f (𝓝[>]0) (𝓝 0) := by
   apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
   filter_upwards [Ioo_mem_nhdsWithin_Ioi' ha] with c hc; replace hc := (mem_Ioo.mp hc).2
-  have := Function.support_subset_iff.mp fSupp c
-  contrapose! fSupp
-  replace := this fSupp; rw [mem_Icc] at this
-  linarith
+  have h : c ∉ Icc a b := fun h ↦ by linarith [mem_Icc.mp h]
+  convert mt (Function.support_subset_iff.mp fSupp c) h; simp
 
 lemma Filter.TendstoAtTop_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂)
     (fSupp : f.support ⊆ Set.Icc a b) :
     Tendsto f atTop (𝓝 0) := by
   apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
   filter_upwards [Ioi_mem_atTop b] with c hc; rw [mem_Ioi] at hc
-  have := Function.support_subset_iff.mp fSupp c
-  contrapose! fSupp
-  replace := this fSupp; rw [mem_Icc] at this
-  linarith
+  have h : c ∉ Icc a b := fun h ↦ by linarith [mem_Icc.mp h]
+  convert mt (Function.support_subset_iff.mp fSupp c) h; simp
 
 lemma Filter.BigO_zero_atZero_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂) (ha : 0 < a)
     (fSupp : f.support ⊆ Set.Icc a b):
     f =O[𝓝[>] 0] fun _ ↦ (0 : ℝ) := by
   refine Eventually.isBigO ?_
   filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < a)] with c hc
-  replace hc := (mem_Ioo.mp hc).2
-  simp only [norm_le_zero_iff]
-  apply Function.support_subset_iff'.mp fSupp c
-  simp only [mem_Icc, not_and, not_le]
-  exact fun _ => by linarith
+  refine norm_le_zero_iff.mpr <| Function.support_subset_iff'.mp fSupp c ?_
+  exact fun h ↦ by linarith [mem_Icc.mp h, (mem_Ioo.mp hc).2]
 
 lemma Filter.BigO_zero_atTop_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂)
     (fSupp : f.support ⊆ Set.Icc a b):
     f =O[atTop] fun _ ↦ (0 : ℝ) := by
   refine Eventually.isBigO ?_
   filter_upwards [Ioi_mem_atTop b] with c hc; replace hc := mem_Ioi.mp hc
-  simp only [norm_le_zero_iff]
-  apply Function.support_subset_iff'.mp fSupp c
-  simp only [mem_Icc, not_and, not_le]
-  exact fun _ => hc
+  refine norm_le_zero_iff.mpr <| Function.support_subset_iff'.mp fSupp c ?_
+  exact fun h ↦ by linarith [mem_Icc.mp h]
 
 -- steal coerction lemmas from EulerProducts.Auxiliary because of build issues, and add new ones
 namespace Complex
@@ -263,7 +245,7 @@ lemma deriv.ofReal_comp {z : ℝ} {f : ℝ → ℝ} :
   by_cases hf : DifferentiableAt ℝ f z
   · exact hf.hasDerivAt.ofReal_comp.deriv
   · have hf' := mt DifferentiableAt.ofReal_comp_iff.mp hf
-    rw [deriv_zero_of_not_differentiableAt hf, deriv_zero_of_not_differentiableAt hf',
+    rw [deriv_zero_of_not_differentiableAt hf, deriv_zero_of_not_differentiableAt <| hf',
       Complex.ofReal_zero]
 
 lemma deriv.ofReal_comp' {f : ℝ → ℝ} :
@@ -965,13 +947,11 @@ lemma DeltaSpikeSupport' {Ψ : ℝ → ℝ} {ε x : ℝ} (εpos : 0 < ε) (xnonn
 lemma DeltaSpikeSupport {Ψ : ℝ → ℝ} {ε x : ℝ} (εpos : 0 < ε) (xnonneg : 0 ≤ x)
     (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2) :
     x ∉ Icc (2 ^ (-ε)) (2 ^ ε) → DeltaSpike Ψ ε x = 0 := by
-  contrapose!
-  exact DeltaSpikeSupport' εpos xnonneg suppΨ
+  contrapose!; exact DeltaSpikeSupport' εpos xnonneg suppΨ
 
 lemma DeltaSpikeContinuous {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (diffΨ : ContDiff ℝ 1 Ψ) :
     Continuous (fun x ↦ DeltaSpike Ψ ε x) := by
-  apply Continuous.div_const
-  apply Continuous.comp (g := Ψ) diffΨ.continuous
+  apply (Continuous.comp (g := Ψ) diffΨ.continuous _).div_const
   exact Continuous.rpow_const continuous_id fun _ ↦ Or.inr <| div_nonneg (by norm_num) εpos.le
 
 lemma DeltaSpikeOfRealContinuous {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (diffΨ : ContDiff ℝ 1 Ψ) :
@@ -1026,8 +1006,7 @@ $$\mathcal{M}(\psi_\epsilon)(1) =
 
 lemma MellinOfDeltaSpikeAt1 (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) :
     MellinTransform ((DeltaSpike Ψ ε) ·) 1 = MellinTransform (Ψ ·) ε := by
-  convert MellinOfDeltaSpike Ψ εpos 1
-  simp only [mul_one]
+  convert MellinOfDeltaSpike Ψ εpos 1; simp [mul_one]
 /-%%
 \begin{proof}\leanok
 \uses{MellinOfDeltaSpike, DeltaSpikeMass}
@@ -1052,8 +1031,7 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
     refine DifferentiableAt.comp_ofReal ?_
     refine mellin_differentiableAt_of_isBigO_rpow (a := 1) (b := -1) ?_ ?_ (by simp) ?_ (by simp)
     · apply ContinuousOn.locallyIntegrableOn (Continuous.continuousOn ?_) (by simp)
-      have := diffΨ.continuous
-      continuity
+      have := diffΨ.continuous; continuity
     · apply Asymptotics.IsBigO.trans_le (g' := fun _ => (0 : ℝ)) ?_ (by simp)
       apply BigO_zero_atTop_of_support_in_Icc (a := 1 / 2) (b := 2)
       rwa [Ψ.support_ofReal]
@@ -1064,9 +1042,7 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
   simp only [sub_sub_sub_cancel_right, sub_zero] at this
   convert this
   simp only [MellinTransform, zero_sub, sub_right_inj, cpow_neg_one, ← div_eq_mul_inv, ← ofReal_div]
-  rw [← ofReal_one, ← mass_one]
-  convert integral_ofReal.symm
-
+  rw [← ofReal_one, ← mass_one]; convert integral_ofReal.symm
 /-%%
 \begin{proof}\leanok
 \uses{MellinTransform,MellinOfDeltaSpikeAt1,SmoothExistence}
@@ -1114,9 +1090,7 @@ lemma MellinOf1 (s : ℂ) (h : s.re > 0) :
     MellinTransform ((fun x => if 0 < x ∧ x ≤ 1 then 1 else 0)) s = 1 / s := by
   convert (hasMellin_one_Ioc h).right using 1
   apply set_integral_congr_ae measurableSet_Ioi
-  filter_upwards with _ _
-  rw [smul_eq_mul, mul_comm]
-  congr
+  filter_upwards with _ _; rw [smul_eq_mul, mul_comm]; congr
 
 /-%%
 \begin{proof}\leanok
@@ -1151,10 +1125,9 @@ $$
 lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
     (1 - 2 ^ (-ε)) / ε < Real.log 2 := by
   apply (div_lt_iff' εpos).mpr
-  rw [← Real.log_rpow (by norm_num), rpow_neg (by norm_num), inv_eq_one_div (2 ^ ε)]
   have : 1 - 1 / (2 : ℝ) ^ ε = ((2 : ℝ) ^ ε - 1) / (2 : ℝ) ^ ε := by
     rw [sub_div, div_self (by positivity)]
-  rw [this]
+  rw [← Real.log_rpow (by norm_num), rpow_neg (by norm_num), inv_eq_one_div (2 ^ ε), this]
   set c := (2 : ℝ) ^ ε
   have hc : 1 < c := by
     rw [← rpow_zero (2 : ℝ)]
@@ -1166,12 +1139,10 @@ lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
     refine strictMonoOn_of_deriv_pos (convex_Ici _) ?_ ?_
     · apply ContinuousOn.sub (ContinuousOn.mul continuousOn_id ?_) continuousOn_id
       apply ContinuousOn.log continuousOn_id
-      intro x hx; simp only [mem_Ici] at hx
-      simp only [id_eq, ne_eq]
-      linarith
+      intro x hx; simp only [mem_Ici] at hx; simp only [id_eq, ne_eq]; linarith
     · intro x hx; simp only [nonempty_Iio, interior_Ici', mem_Ioi] at hx
-      funext; dsimp [f]
-      rw [deriv_sub, deriv_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel] ; simp
+      funext; dsimp only [f]
+      rw [deriv_sub, deriv_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel]; simp
       · exact log_pos hx
       · linarith
       · simp only [differentiableAt_id']
@@ -1238,8 +1209,7 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     apply DeltaSpikeSupport εpos ?_ suppΨ
     · simp only [mem_Icc, not_and, not_le]; intro
       linarith [(by apply (div_lt_iff (by linarith)).mpr; nlinarith : x / y < 2 ^ (-ε))]
-    · rw [le_div_iff (by linarith), zero_mul]
-      exact xpos.le
+    · rw [le_div_iff (by linarith), zero_mul]; exact xpos.le
 /-%%
 \begin{proof}\leanok
 \uses{Smooth1, MellinConvolution,DeltaSpikeMass, Smooth1Properties_estimate}
@@ -1321,12 +1291,10 @@ lemma Smooth1Properties_above_aux2 {x y ε : ℝ} (hε : ε ∈ Ioo 0 1) (hy : y
   · rw [div_rpow, ← rpow_mul, mul_div_cancel₀ 1 <| ne_of_gt εpos, rpow_one] <;> positivity
   · have : y ^ (1 / ε) ≤ y := by
       nth_rewrite 2 [← rpow_one y]
-      have : 1 / ε > 1 := one_lt_one_div εpos ε1
-      refine rpow_le_rpow_of_exponent_ge ypos y1 (by linarith)
+      exact rpow_le_rpow_of_exponent_ge ypos y1 (by linarith [one_lt_one_div εpos ε1])
     have pos : 0 < y ^ (1 / ε) := by apply rpow_pos_of_pos <| ypos
     rw [ge_iff_le, div_le_iff, div_mul_eq_mul_div, le_div_iff', mul_comm] <;> try linarith
-  · rw [ge_iff_le, le_div_iff <| ypos]
-    exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
+  · rw [ge_iff_le, le_div_iff <| ypos]; exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
 /-%%
 \begin{lemma}[Smooth1Properties_above]\label{Smooth1Properties_above}
 \lean{Smooth1Properties_above}\leanok
@@ -1340,8 +1308,7 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), 1 + c * ε ≤ x → Smooth1 Ψ ε x = 0 := by
   set c := 2 * Real.log 2; use c
   constructor
-  · simp only [c, zero_lt_two, mul_pos_iff_of_pos_left]
-    exact log_pos (by norm_num)
+  · simp only [c, zero_lt_two, mul_pos_iff_of_pos_left]; exact log_pos (by norm_num)
   intro x hx
   have hx2 := Smooth1Properties_above_aux hx hε
   unfold Smooth1 MellinConvolution
@@ -1350,7 +1317,7 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
   intro y hy
   have ypos := mem_Ioi.mp hy
   by_cases y1 : y ≤ 1; swap; simp [ypos, y1]
-  simp only [ypos, y1, and_self, ↓reduceIte, div_eq_zero_iff]; left
+  simp only [mem_Ioi.mp hy, y1, and_self, ↓reduceIte, div_eq_zero_iff]; left
   apply DeltaSpikeSupport hε.1 ?_ suppΨ
   simp only [mem_Icc, not_and, not_le]
   swap; suffices h : 2 ^ ε < x / y by
@@ -1419,10 +1386,8 @@ lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) {ε x 
     (εpos : 0 < ε) : 0 ≤ Smooth1 Ψ ε x := by
   dsimp [Smooth1]
   apply MellinConvNonNeg_of_NonNeg ?_ ?_ xpos
-  · intro y hy
-    by_cases h : y ≤ 1 <;> simp [h, hy]
-  · intro y ypos
-    apply DeltaSpikeNonNeg_of_NonNeg Ψnonneg ypos εpos
+  · intro y hy; by_cases h : y ≤ 1 <;> simp [h, hy]
+  · intro y ypos; exact DeltaSpikeNonNeg_of_NonNeg Ψnonneg ypos εpos
 /-%%
 \begin{proof}\uses{Smooth1, MellinConvolution, DeltaSpike}\leanok
 By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
@@ -1442,8 +1407,7 @@ lemma Smooth1LeOne_aux {x ε : ℝ} {Ψ : ℝ → ℝ} (xpos : 0 < x) (εpos : 0
       _ = 1 := mass_one
     · have := integral_comp_div_I0i_haar (fun y => Ψ ((x / y) ^ (1 / ε)) / ε) xpos
       convert this.symm using 1
-      congr; funext y; congr
-      field_simp [mul_comm]
+      congr; funext y; congr; field_simp [mul_comm]
     · have := integral_comp_rpow_I0i_haar_real (fun y => Ψ y) (one_div_ne_zero εpos.ne')
       field_simp [ ← this, abs_of_pos <| one_div_pos.mpr εpos]
 
@@ -1465,24 +1429,18 @@ lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
   · rw [set_integral_congr (by simp)]
     simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq, mem_Ioc]
     intro y hy; aesop
-  · refine set_integral_mono_on ?_ ?_ (by simp) ?_
-    · refine Integrable.bdd_mul ?_ ?_ ?_
-      · apply integrable_of_integral_eq_one this
-      · simp only [mem_Ioc]
-        have : (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) = indicator (Ioc 0 1) (1 : ℝ → ℝ) := by
-          aesop
-        rw [this]
-        simp only [measurableSet_Ioc, aestronglyMeasurable_indicator_iff]
-        exact aestronglyMeasurable_one
-      · use 1; aesop
-    · apply integrable_of_integral_eq_one this
+  · refine set_integral_mono_on ?_ (integrable_of_integral_eq_one this) (by simp) ?_
+    · refine Integrable.bdd_mul (integrable_of_integral_eq_one this) ?_ (by use 1; aesop)
+      have : (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) = indicator (Ioc 0 1) (1 : ℝ → ℝ) := by
+        aesop
+      simp only [mem_Ioc, this, measurableSet_Ioc, aestronglyMeasurable_indicator_iff]
+      exact aestronglyMeasurable_one
     · simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
       intro y hy
       by_cases h : y ≤ 1; aesop
       field_simp [mem_Ioc, h, and_false, reduceIte]
       apply mul_nonneg
-      · apply Ψnonneg
-        exact rpow_pos_of_pos (div_pos xpos <| mem_Ioi.mp hy) _
+      · apply Ψnonneg; exact rpow_pos_of_pos (div_pos xpos <| mem_Ioi.mp hy) _
       · apply inv_nonneg.mpr <| mul_nonneg εpos.le (mem_Ioi.mp hy).le
 /-%%
 \begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike,SmoothExistence}\leanok
@@ -1540,31 +1498,22 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
     apply IntegrableOn.congr_fun (f := F') ?_ ?_ (by simp [measurableSet_prod]); swap
     · simp only [F, F', f, g, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair]
       intro ⟨x, y⟩ hz
-      simp [piecewise, hz]
-      by_cases hS : ⟨x, y⟩ ∈ S <;> simp only [hS]
-      · have : 0 < x / y ∧ x / y ≤ 1 := by
-          simp only [mem_prod, mem_Ioi, mem_setOf_eq, S] at hz hS
-          constructor
-          · apply div_pos hz.1 hz.2
-          · exact (div_le_one hz.2).mpr hS.2.1
-        simp [this]
-      · simp only [mem_prod, mem_Ioi, mem_setOf_eq, not_and, not_le, S] at hz hS ⊢
-        by_cases hxy : x / y ≤ 1
-        · simp only [gt_iff_lt, hz, div_pos_iff_of_pos_left, hxy, and_self, ↓reduceIte,
-          zero_eq_mul, div_eq_zero_iff, ofReal_eq_zero, cpow_eq_zero_iff, ne_eq]
-          left; left; apply DeltaSpikeSupport εpos hz.2.le suppΨ
-          simp only [mem_Icc, not_and, not_le]
-          exact hS hz.1 <| (div_le_one hz.2).mp hxy
-        · simp [hxy]
+      by_cases hS : ⟨x, y⟩ ∈ S <;> simp only [hS, piecewise, hz]
+      <;> simp only [mem_prod, mem_Ioi, mem_setOf_eq, not_and, not_le, S] at hz hS
+      · simp [hS, div_pos hz.1 hz.2, (div_le_one hz.2).mpr hS.2.1]
+      · by_cases hxy : x / y ≤ 1; swap; simp [hxy]
+        have hy : y ∉ Icc (2 ^ (-ε)) (2 ^ ε) := by
+          simp only [mem_Icc, not_and, not_le]; exact hS hz.1 <| (div_le_one hz.2).mp hxy
+        simp [DeltaSpikeSupport εpos hz.2.le suppΨ hy]
     · apply Integrable.piecewise Smeas ?_ integrableOn_zero
       simp only [IntegrableOn, Measure.restrict_restrict_of_subset SsubI]
       apply MeasureTheory.Integrable.mono_measure ?_
       apply MeasureTheory.Measure.restrict_mono' (HasSubset.Subset.eventuallyLE SsubT) le_rfl
       have : volume.restrict (Tx ×ˢ Ty) = (volume.restrict Tx).prod (volume.restrict Ty) := by
         rw [Measure.prod_restrict, MeasureTheory.Measure.volume_eq_prod]
-      rw [this]
-      conv => lhs; intro; rw [mul_comm]
-      apply MeasureTheory.Integrable.prod_mul (f := fun x ↦ (x : ℂ) ^ (s - 1)) (μ := Measure.restrict volume Tx)
+      conv => rw [this]; lhs; intro; rw [mul_comm]
+      apply MeasureTheory.Integrable.prod_mul (f := fun x ↦ (x : ℂ) ^ (s - 1))
+        (μ := Measure.restrict volume Tx)
       · apply integrableOn_Ioc_iff_integrableOn_Ioo.mpr ?_
         apply (intervalIntegral.integrableOn_Ioo_cpow_iff (s := s - 1) (t := (2 : ℝ) ^ ε) ?_).mpr
         · simp [hs]
