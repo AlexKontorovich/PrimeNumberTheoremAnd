@@ -265,28 +265,20 @@ lemma interval_induction (P : ℝ → ℝ → Prop)
 \end{lemma}
 %%-/
 /-- ** Partial summation ** (TODO : Add to Mathlib). -/
+theorem Finset.Ioc_diff_Ioc {α : Type*} [LinearOrder α] [LocallyFiniteOrder α]
+    {a b c: α} [DecidableEq α] (hb : b ∈ Icc a c) : Ioc a b = Ioc a c \ Ioc b c := by
+  ext x
+  simp only [mem_Ioc, mem_sdiff, not_and, not_le]
+  constructor
+  · refine fun ⟨h₁, h₂⟩ ↦ ⟨⟨h₁, le_trans h₂ (mem_Icc.mp hb).2⟩, by contrapose! h₂; exact h₂.1⟩
+  · exact fun ⟨h₁, h₂⟩ ↦ ⟨h₁.1, by contrapose! h₂; exact ⟨h₂, h₁.2⟩⟩
 
 -- In Yaël Dillies's API (https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Finset.2Esum_add_adjacent_intervals/near/430127101)
 lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (hb : b ∈ Icc a c):
     (∑ n in Finset.Ioc a b, f n) + (∑ n in Finset.Ioc b c, f n) = ∑ n in Finset.Ioc a c, f n := by
-  simp only [mem_Icc] at hb
-  have := @Finset.sum_sdiff (s₁ := Finset.Ioc b c) (s₂ := Finset.Ioc a c) (f := f) _ _ ?_
-  convert this
-  ext x
-  simp only [mem_Ioc, mem_sdiff, not_and, not_le]
-  constructor
-  · intro ⟨h₁, h₂⟩
-    constructor
-    · exact ⟨h₁, le_trans h₂ hb.2⟩
-    · exact fun _ ↦ by linarith
-  · intro ⟨h₁, h₂⟩
-    constructor
-    · exact h₁.1
-    · contrapose! h₂
-      exact ⟨h₂, h₁.2⟩
-  intro x h
-  simp only [mem_Ioc] at h ⊢
-  exact ⟨by linarith [hb.1], h.2⟩
+  convert Finset.sum_sdiff (s₁ := Finset.Ioc b c) (s₂ := Finset.Ioc a c) ?_
+  · exact Finset.Ioc_diff_Ioc hb
+  · exact Finset.Ioc_subset_Ioc (mem_Icc.mp hb).1 (by rfl)
 
 lemma integrability_aux₀ {a b : ℝ} :
     ∀ᵐ (x : ℝ) ∂MeasureTheory.Measure.restrict MeasureTheory.volume [[a, b]],
