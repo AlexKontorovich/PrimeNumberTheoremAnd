@@ -7,6 +7,7 @@ import Mathlib.Algebra.Function.Support
 
 open Set Function Filter Complex
 
+local notation (name := mellintransform) "𝓜" => MellinTransform
 open scoped ArithmeticFunction
 
 
@@ -54,7 +55,7 @@ X^{s}ds.$$
 %%-/
 noncomputable abbrev SmoothedChebyshevIntegrand (ψ : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ → ℂ :=
   fun s ↦ (- deriv riemannZeta s) / riemannZeta s *
-    (MellinTransform ((Smooth1 ψ ε) ·) s) * (X : ℂ) ^ s
+    𝓜 ((Smooth1 ψ ε) ·) s * (X : ℂ) ^ s
 
 noncomputable def SmoothedChebyshev (ψ : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
   VerticalIntegral' (SmoothedChebyshevIntegrand ψ ε X) 2

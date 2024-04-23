@@ -347,6 +347,7 @@ $$\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx.$$
 noncomputable def MellinTransform (f : ℝ → ℂ) (s : ℂ) : ℂ :=
   ∫ x in Ioi 0, f x * x ^ (s - 1)
 
+local notation (name := mellintransform) "𝓜" => MellinTransform
 /-%%
 \begin{definition}[MellinInverseTransform]\label{MellinInverseTransform}
 \lean{MellinInverseTransform}\leanok
@@ -502,9 +503,7 @@ Fubini-Tonelli.
 \end{proof}
 %-/
 
-lemma MellinTransform_eq : MellinTransform = mellin := by
-  unfold mellin MellinTransform
-  simp_rw [smul_eq_mul, mul_comm]
+lemma MellinTransform_eq : 𝓜 = mellin := by unfold mellin MellinTransform; simp_rw [smul_eq_mul, mul_comm]
 
 lemma MellinInverseTransform_eq (σ : ℝ) (f : ℂ → ℂ) :
     MellinInverseTransform f σ = mellinInv σ f := by
@@ -526,7 +525,7 @@ $$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
 %%-/
 theorem MellinInversion (σ : ℝ) {f : ℝ → ℂ} {x : ℝ} (hx : 0 < x) (hf : MellinConvergent f σ)
     (hFf : VerticalIntegrable (mellin f) σ) (hfx : ContinuousAt f x) :
-    MellinInverseTransform (MellinTransform f) σ x = f x := by
+    MellinInverseTransform (𝓜 f) σ x = f x := by
   rw [MellinTransform_eq, MellinInverseTransform_eq, mellin_inversion σ f hx hf hFf hfx]
 /-%%
 \begin{proof}\leanok
@@ -632,7 +631,7 @@ $$\mathcal{M}(f\ast g)(s) = \mathcal{M}(f)(s)\mathcal{M}(g)(s).$$
 lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     (hf : IntegrableOn (fun x y ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)).uncurry
       (Ioi 0 ×ˢ Ioi 0)) :
-    MellinTransform (MellinConvolution f g) s = MellinTransform f s * MellinTransform g s := by
+    𝓜 (MellinConvolution f g) s = 𝓜 f s * 𝓜 g s := by
   dsimp [MellinTransform, MellinConvolution]
   set f₁ : ℝ × ℝ → ℂ := fun ⟨x, y⟩ ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
   calc
@@ -705,7 +704,7 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ⊤ Ψ) ∧ (∀ x
       Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, Ψ x / x by
     rcases h with ⟨Ψ, hΨ, hΨnonneg, hΨsupp, hΨpos⟩
     let c := (∫ x in Ici 0, Ψ x / x)
-    use fun y => Ψ y / c
+    use fun y ↦ Ψ y / c
     refine ⟨hΨ.div_const c, fun y ↦ div_nonneg (hΨnonneg y) (le_of_lt hΨpos), ?_, ?_⟩
     · rw [Function.support_div, Function.support_const (ne_of_lt hΨpos).symm, inter_univ]
       convert hΨsupp
@@ -822,7 +821,7 @@ power.]
 lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) :
-    (fun s ↦ ‖MellinTransform (Ψ ·) s‖)
+    (fun s ↦ ‖𝓜 (Ψ ·) s‖)
     =O[Filter.principal {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}]
       fun s ↦ 1 / ‖s‖ := by
   let f := fun (x : ℝ) ↦ ‖deriv Ψ x‖
@@ -886,7 +885,7 @@ $$\psi_\epsilon(x) = \frac{1}{\epsilon}\psi\left(x^{\frac{1}{\epsilon}}\right).$
 %%-/
 
 noncomputable def DeltaSpike (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
-  fun x => Ψ (x ^ (1 / ε)) / ε
+  fun x ↦ Ψ (x ^ (1 / ε)) / ε
 
 /-%%
 This spike still has mass one:
@@ -900,7 +899,7 @@ lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (mass_one: ∫ x in Ioi 0, Ψ x / x = 1)
     (εpos : 0 < ε) : ∫ x in Ioi 0, ((DeltaSpike Ψ ε) x) / x = 1 :=
   calc
     _ = ∫ (x : ℝ) in Ioi 0, (|1/ε| * x ^ (1 / ε - 1)) •
-      ((fun z => (Ψ z) / z) (x ^ (1 / ε))) := by
+      ((fun z ↦ (Ψ z) / z) (x ^ (1 / ε))) := by
       apply set_integral_congr_ae measurableSet_Ioi
       filter_upwards with x hx
       simp only [mem_Ioi, smul_eq_mul, abs_of_pos (one_div_pos.mpr εpos)]
@@ -911,7 +910,7 @@ lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (mass_one: ∫ x in Ioi 0, Ψ x / x = 1)
         _ = _ := by rw [div_mul_cancel₀ _ (ne_of_gt (rpow_pos_of_pos hx (1/ε)))]
         _ = (Ψ (x ^ (1 / ε)) / ε / x) := by ring
     _ = 1 := by
-      rw [integral_comp_rpow_Ioi (fun z => (Ψ z) / z), ← mass_one]
+      rw [integral_comp_rpow_Ioi (fun z ↦ (Ψ z) / z), ← mass_one]
       simp only [ne_eq, div_eq_zero_iff, one_ne_zero, εpos.ne', or_self, not_false_eq_true]
 
 /-%%
@@ -965,9 +964,9 @@ $$\mathcal{M}(\psi_\epsilon)(s) = \mathcal{M}(\psi)\left(\epsilon s\right).$$
 \end{theorem}
 %%-/
 theorem MellinOfDeltaSpike (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : ℂ) :
-    MellinTransform ((DeltaSpike Ψ ε) ·) s = MellinTransform (Ψ ·) (ε * s) := by
+    𝓜 ((DeltaSpike Ψ ε) ·) s = 𝓜 (Ψ ·) (ε * s) := by
   unfold MellinTransform DeltaSpike
-  rw [← integral_comp_rpow_Ioi (fun z => ((Ψ z) : ℂ) * (z : ℂ) ^ ((ε : ℂ) * s - 1))
+  rw [← integral_comp_rpow_Ioi (fun z ↦ ((Ψ z) : ℂ) * (z : ℂ) ^ ((ε : ℂ) * s - 1))
     (one_div_ne_zero (ne_of_gt εpos))]
   apply set_integral_congr_ae measurableSet_Ioi
   filter_upwards with x hx
@@ -1004,7 +1003,7 @@ $$\mathcal{M}(\psi_\epsilon)(1) =
 %%-/
 
 lemma MellinOfDeltaSpikeAt1 (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) :
-    MellinTransform ((DeltaSpike Ψ ε) ·) 1 = MellinTransform (Ψ ·) ε := by
+    𝓜 ((DeltaSpike Ψ ε) ·) 1 = 𝓜 (Ψ ·) ε := by
   convert MellinOfDeltaSpike Ψ εpos 1; simp [mul_one]
 /-%%
 \begin{proof}\leanok
@@ -1023,18 +1022,18 @@ $$\mathcal{M}(\psi_\epsilon)(1) = 1+O(\epsilon).$$
 lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) :
-    (fun (ε : ℝ) ↦ (MellinTransform (Ψ ·) ε) - 1) =O[𝓝[>]0] id := by
-  have diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) => MellinTransform (Ψ ·) ε - 1) (Ioi 0) 0 := by
+    (fun (ε : ℝ) ↦ (𝓜 (Ψ ·) ε) - 1) =O[𝓝[>]0] id := by
+  have diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) ↦ 𝓜 (Ψ ·) ε - 1) (Ioi 0) 0 := by
     apply DifferentiableAt.differentiableWithinAt
     simp only [differentiableAt_sub_const_iff, MellinTransform_eq]
     refine DifferentiableAt.comp_ofReal ?_
     refine mellin_differentiableAt_of_isBigO_rpow (a := 1) (b := -1) ?_ ?_ (by simp) ?_ (by simp)
     · apply ContinuousOn.locallyIntegrableOn (Continuous.continuousOn ?_) (by simp)
       have := diffΨ.continuous; continuity
-    · apply Asymptotics.IsBigO.trans_le (g' := fun _ => (0 : ℝ)) ?_ (by simp)
+    · apply Asymptotics.IsBigO.trans_le (g' := fun _ ↦ (0 : ℝ)) ?_ (by simp)
       apply BigO_zero_atTop_of_support_in_Icc (a := 1 / 2) (b := 2)
       rwa [Ψ.support_ofReal]
-    · apply Asymptotics.IsBigO.trans_le (g' := fun _ => (0 : ℝ)) ?_ (by simp)
+    · apply Asymptotics.IsBigO.trans_le (g' := fun _ ↦ (0 : ℝ)) ?_ (by simp)
       apply BigO_zero_atZero_of_support_in_Icc (a := 1 / 2) (b := 2) (ha := (by norm_num))
       rwa [Ψ.support_ofReal]
   have := ofReal_zero ▸ diff.isBigO_sub
@@ -1085,8 +1084,7 @@ $$\mathcal{M}(1_{(0,1]})(s) = \frac{1}{s}.$$
 \end{theorem}
 [Note: this already exists in mathlib]
 %%-/
-lemma MellinOf1 (s : ℂ) (h : s.re > 0) :
-    MellinTransform ((fun x => if 0 < x ∧ x ≤ 1 then 1 else 0)) s = 1 / s := by
+lemma MellinOf1 (s : ℂ) (h : s.re > 0) : 𝓜 ((fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0)) s = 1 / s := by
   convert (hasMellin_one_Ioc h).right using 1
   apply set_integral_congr_ae measurableSet_Ioi
   filter_upwards with _ _; rw [smul_eq_mul, mul_comm]; congr
@@ -1109,7 +1107,7 @@ $$\widetilde{1_{\epsilon}} = 1_{(0,1]}\ast\psi_\epsilon.$$
 \end{definition}
 %%-/
 noncomputable def Smooth1 (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
-  MellinConvolution (fun x => if 0 < x ∧ x ≤ 1 then 1 else 0) (DeltaSpike Ψ ε)
+  MellinConvolution (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) (DeltaSpike Ψ ε)
 
 /-%%
 \begin{lemma}[Smooth1Properties_estimate]\label{Smooth1Properties_estimate}
@@ -1132,7 +1130,7 @@ lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
     rw [← rpow_zero (2 : ℝ)]
     apply Real.rpow_lt_rpow_of_exponent_lt (by norm_num) εpos
   apply (div_lt_iff' (by positivity)).mpr <| lt_sub_iff_add_lt'.mp ?_
-  let f := (fun x => x * Real.log x - x)
+  let f := (fun x ↦ x * Real.log x - x)
   rw [(by simp [f] : -1 = f 1), (by simp : c * Real.log c - c = f c)]
   have mono: StrictMonoOn f <| Ici 1 := by
     refine strictMonoOn_of_deriv_pos (convex_Ici _) ?_ ?_
@@ -1196,7 +1194,7 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
   calc
     _ = ∫ (y : ℝ) in Ioi 0, indicator (Ioc 0 1) (fun y ↦ DeltaSpike Ψ ε (x / y) / ↑y) y := ?_
     _ = ∫ (y : ℝ) in Ioi 0, DeltaSpike Ψ ε (x / y) / y := ?_
-    _ = _ := integral_comp_div_I0i_haar (fun y => DeltaSpike Ψ ε y) xpos
+    _ = _ := integral_comp_div_I0i_haar (fun y ↦ DeltaSpike Ψ ε y) xpos
   · rw [set_integral_congr (by simp)]
     intro y hy
     by_cases h : y ≤ 1 <;> simp [indicator, mem_Ioi.mp hy, h]
@@ -1404,10 +1402,10 @@ lemma Smooth1LeOne_aux {x ε : ℝ} {Ψ : ℝ → ℝ} (xpos : 0 < x) (εpos : 0
       _ = ∫ (y : ℝ) in Ioi 0, (Ψ (y ^ (1 / ε)) / ε) / y := ?_
       _ = ∫ (y : ℝ) in Ioi 0, Ψ y / y := ?_
       _ = 1 := mass_one
-    · have := integral_comp_div_I0i_haar (fun y => Ψ ((x / y) ^ (1 / ε)) / ε) xpos
+    · have := integral_comp_div_I0i_haar (fun y ↦ Ψ ((x / y) ^ (1 / ε)) / ε) xpos
       convert this.symm using 1
       congr; funext y; congr; field_simp [mul_comm]
-    · have := integral_comp_rpow_I0i_haar_real (fun y => Ψ y) (one_div_ne_zero εpos.ne')
+    · have := integral_comp_rpow_I0i_haar_real (fun y ↦ Ψ y) (one_div_ne_zero εpos.ne')
       field_simp [ ← this, abs_of_pos <| one_div_pos.mpr εpos]
 
 /-%%
@@ -1470,8 +1468,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) =
 \end{lemma}
 %%-/
 lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
-    {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) :
-    MellinTransform ((Smooth1 Ψ ε) ·) s = 1 / s * MellinTransform (Ψ ·) (ε * s) := by
+    {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) : 𝓜 ((Smooth1 Ψ ε) ·) s = 1 / s * 𝓜 (Ψ ·) (ε * s) := by
   let f' : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x
   let f : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x / x
   let g : ℝ → ℂ := fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0
@@ -1523,7 +1520,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
         · intro x hx; simp only [mem_Icc] at hx; simp only [ofReal_ne_zero]
           linarith [(by apply rpow_pos_of_pos (by norm_num) : (0 : ℝ) < 2 ^ (-ε))]
 
-  have : MellinTransform (MellinConvolution g f') s = MellinTransform g s * MellinTransform f' s := by
+  have : 𝓜 (MellinConvolution g f') s = 𝓜 g s * 𝓜 f' s := by
     rw [mul_comm, ← MellinConvolutionTransform f' g s (by convert int_F using 1; field_simp [F, f, f'])]
     dsimp [MellinTransform]; rw [set_integral_congr (by simp)]
     intro x hx; simp_rw [MellinConvolutionSymmetric _ _ <| mem_Ioi.mp hx]
@@ -1588,7 +1585,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\righ
 lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (ε : ℝ) (εpos : 0 < ε) :
-    (fun (s : ℂ) ↦ ‖MellinTransform ((Smooth1 Ψ ε) ·) s‖)
+    (fun (s : ℂ) ↦ 𝓜 ((Smooth1 Ψ ε) ·) s‖)
       =O[Filter.principal {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}]
       fun s ↦ 1 / (ε * ‖s‖ ^ 2) := by
   have := MellinOfPsi diffΨ suppΨ (mul_pos εpos σ₁pos) (σ₂ := ε * σ₂)
@@ -1598,7 +1595,7 @@ lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
   simp only [norm_norm, norm_div, norm_one, eventually_principal, mem_setOf_eq] at hc ⊢
   intro s hs
   rw [MellinOfSmooth1a Ψ diffΨ suppΨ εpos <| gt_of_ge_of_gt hs.1 σ₁pos]
-  have : ‖MellinTransform (fun x ↦ ↑(Ψ x)) (ε * s)‖ ≤ c * (1 / ‖ε * s‖) := by
+  have : 𝓜 (fun x ↦ ↑(Ψ x)) (ε * s)‖ ≤ c * (1 / ‖ε * s‖) := by
     refine hc (ε * s) ?_
     simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
     exact ⟨(mul_le_mul_left εpos).mpr hs.1, (mul_le_mul_left εpos).mpr hs.2⟩
@@ -1622,7 +1619,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(1) = 1+O(\epsilon)).$$
 lemma MellinOfSmooth1c {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) :
-    (fun ε ↦ MellinTransform ((Smooth1 Ψ ε) ·) 1 - 1) =O[𝓝[>]0] id := by
+    (fun ε ↦ 𝓜 ((Smooth1 Ψ ε) ·) 1 - 1) =O[𝓝[>]0] id := by
   have h := MellinOfDeltaSpikeAt1_asymp diffΨ suppΨ mass_one
   rw [Asymptotics.isBigO_iff] at h ⊢
   obtain ⟨c, hc⟩ := h
