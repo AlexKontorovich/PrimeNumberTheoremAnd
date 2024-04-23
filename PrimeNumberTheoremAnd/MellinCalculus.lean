@@ -24,7 +24,7 @@ variable {𝕂 : Type*} [RCLike 𝕂]
 lemma MeasureTheory.integral_comp_mul_right_I0i_haar
     (f : ℝ → 𝕂) {a : ℝ} (ha : 0 < a) :
     ∫ (y : ℝ) in Ioi 0, f (y * a) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
-  have := integral_comp_mul_right_Ioi (fun y => f y / y) 0 ha
+  have := integral_comp_mul_right_Ioi (fun y ↦ f y / y) 0 ha
   simp only [RCLike.ofReal_mul, zero_mul, eq_inv_smul_iff₀ (ne_of_gt ha)] at this
   rw [← integral_smul] at this
   rw [← this, set_integral_congr (by simp)]
@@ -46,7 +46,7 @@ lemma MeasureTheory.integral_comp_mul_left_I0i_haar
 -- TODO: generalize to `RCLike`
 lemma MeasureTheory.integral_comp_rpow_I0i_haar_real (f : ℝ → ℝ) {p : ℝ} (hp : p ≠ 0) :
     ∫ (y : ℝ) in Ioi 0, |p| * f (y ^ p) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
-  rw [← integral_comp_rpow_Ioi (fun y => f y / y) hp, set_integral_congr (by simp)]
+  rw [← integral_comp_rpow_Ioi (fun y ↦ f y / y) hp, set_integral_congr (by simp)]
   intro y hy
   have ypos : 0 < y := mem_Ioi.mp hy
   field_simp [rpow_sub_one]
@@ -54,7 +54,7 @@ lemma MeasureTheory.integral_comp_rpow_I0i_haar_real (f : ℝ → ℝ) {p : ℝ}
 
 lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → 𝕂) :
     ∫ (y : ℝ) in Ioi 0, f (1 / y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
-  have := integral_comp_rpow_Ioi (fun y => f y / y) (p := -1) (by simp)
+  have := integral_comp_rpow_Ioi (fun y ↦ f y / y) (p := -1) (by simp)
   rw [← this, set_integral_congr (by simp)]
   intro y hy
   have : (y : 𝕂) ≠ 0 := (RCLike.ofReal_ne_zero).mpr <| LT.lt.ne' hy
@@ -69,7 +69,7 @@ lemma MeasureTheory.integral_comp_div_I0i_haar
   calc
     _ = ∫ (y : ℝ) in Ioi 0, f (a * y) / y := ?_
     _ = _ := integral_comp_mul_left_I0i_haar f ha
-  convert (integral_comp_inv_I0i_haar fun y => f (a * (1 / y))).symm using 4
+  convert (integral_comp_inv_I0i_haar fun y ↦ f (a * (1 / y))).symm using 4
   · rw [mul_one_div]
   · rw [one_div_one_div]
 
@@ -89,7 +89,7 @@ lemma Function.support_ofReal {f : ℝ → ℝ} :
     (fun x ↦ ((f x) : ℂ)).support = f.support := by
   apply Function.support_comp_eq (g := ofReal'); simp [ofReal_zero]
 
-lemma Function.support_id : Function.support (fun x : ℝ => x) = Iio 0 ∪ Ioi 0 := by
+lemma Function.support_id : Function.support (fun x : ℝ ↦ x) = Iio 0 ∪ Ioi 0 := by
   ext x; simp only [mem_support, ne_eq, Iio_union_Ioi, mem_compl_iff, mem_singleton_iff]
 
 lemma Function.support_mul_subset_of_subset {s : Set ℝ} {f g : ℝ → 𝕂} (fSupp : f.support ⊆ s) :
@@ -128,8 +128,8 @@ lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {�
       have : ∫ (x : ℝ), f x ∂μ = ∫ (x : ℝ) in {a}, f x ∂μ := by
         rw [ ← integral_indicator (by simp), indicator_eq_self.2 h]
       rw [this, integral_singleton]; simp
-    · have : ¬a ≤ b := by exact fun x => hab2 <| le_antisymm hab x
-      rw [Icc_eq_empty_iff.mpr <| by exact fun x => hab2 <| le_antisymm hab x, subset_empty_iff,
+    · have : ¬a ≤ b := by exact fun x ↦ hab2 <| le_antisymm hab x
+      rw [Icc_eq_empty_iff.mpr <| by exact fun x ↦ hab2 <| le_antisymm hab x, subset_empty_iff,
           Function.support_eq_empty_iff] at h; simp [h]
 
 lemma SetIntegral.integral_eq_integral_inter_of_support_subset {μ : Measure ℝ}
@@ -250,7 +250,7 @@ lemma deriv.ofReal_comp {z : ℝ} {f : ℝ → ℝ} :
 
 lemma deriv.ofReal_comp' {f : ℝ → ℝ} :
     deriv (fun x : ℝ ↦ (f x : ℂ)) = (fun x ↦ ((deriv f) x : ℂ)) :=
-  funext fun _ => deriv.ofReal_comp
+  funext fun _ ↦ deriv.ofReal_comp
 
 lemma deriv.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e z) :
     deriv (fun x : ℝ ↦ e x) z = deriv e z :=
@@ -258,7 +258,7 @@ lemma deriv.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e
 
 lemma deriv.comp_ofReal' {e : ℂ → ℂ} (hf : Differentiable ℂ e) :
     deriv (fun x : ℝ ↦ e x) = fun (x : ℝ) ↦ deriv e x :=
-  funext fun _ => deriv.comp_ofReal (hf.differentiableAt)
+  funext fun _ ↦ deriv.comp_ofReal (hf.differentiableAt)
 
 /-%%
 \begin{lemma}[PartialIntegration]\label{PartialIntegration}\lean{PartialIntegration}\leanok
@@ -470,8 +470,7 @@ $(0,\infty)\times\{\Re s = \sigma\}$ for any $\sigma>0$.
 %-/
 lemma MellinInversion_aux3 {f : ℝ → ℂ} (σ : ℝ) (σ_ne_zero : σ ≠ 0) (σ_ne_negOne : σ ≠ -1)
     (fInt : IntegrableOn (fun x ↦ f x * (x : ℂ) ^ (σ : ℂ)) (Ioi 0)) :
-    IntegrableOn (fun (⟨x, t⟩ : ℝ × ℝ) =>
-      f x * x ^ (σ + t * I) / ((σ + t * I) * ((σ + t * I) + 1)))
+    IntegrableOn (fun (⟨x, t⟩ : ℝ × ℝ) ↦ f x * x ^ (σ + t * I) / ((σ + t * I) * ((σ + t * I) + 1)))
       ((Ioi 0).prod (univ : Set ℝ)) := by
   sorry
 /-%
@@ -596,9 +595,9 @@ lemma MellinConvolutionSymmetric (f g : ℝ → 𝕂) {x : ℝ} (xpos: 0 < x) :
   calc
     _ = ∫ y in Ioi 0, f (y * x) * g (1 / y) / y := ?_
     _ = _ := ?_
-  · rw [← integral_comp_mul_right_I0i_haar (fun y => f y * g (x / y)) xpos]
+  · rw [← integral_comp_mul_right_I0i_haar (fun y ↦ f y * g (x / y)) xpos]
     simp [div_mul_cancel_right₀ <| ne_of_gt xpos]
-  · convert (integral_comp_inv_I0i_haar fun y => f (y * x) * g (1 / y)).symm using 3
+  · convert (integral_comp_inv_I0i_haar fun y ↦ f (y * x) * g (1 / y)).symm using 3
     rw [one_div_one_div, mul_comm, mul_comm_div, one_mul]
 /-%%
 \begin{proof}\leanok
@@ -707,7 +706,7 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ⊤ Ψ) ∧ (∀ x
     rcases h with ⟨Ψ, hΨ, hΨnonneg, hΨsupp, hΨpos⟩
     let c := (∫ x in Ici 0, Ψ x / x)
     use fun y => Ψ y / c
-    refine ⟨hΨ.div_const c, fun y => div_nonneg (hΨnonneg y) (le_of_lt hΨpos), ?_, ?_⟩
+    refine ⟨hΨ.div_const c, fun y ↦ div_nonneg (hΨnonneg y) (le_of_lt hΨpos), ?_, ?_⟩
     · rw [Function.support_div, Function.support_const (ne_of_lt hΨpos).symm, inter_univ]
       convert hΨsupp
     · simp only [div_right_comm _ c _, integral_div c, div_self <| ne_of_gt hΨpos]
@@ -720,8 +719,8 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ⊤ Ψ) ∧ (∀ x
   simp only [mem_Icc, Pi.one_apply, Pi.le_def, mem_Ioo] at hΨ0 hΨ1
   simp only [hΨSupport, subset_def, mem_Ioo, mem_Icc, and_imp]
   split_ands
-  · exact fun x => le_trans (by simp [apply_ite]) (hΨ0 x)
-  · exact fun y hy hy' => ⟨by linarith, by linarith⟩
+  · exact fun x ↦ le_trans (by simp [apply_ite]) (hΨ0 x)
+  · exact fun y hy hy' ↦ ⟨by linarith, by linarith⟩
   · rw [integral_pos_iff_support_of_nonneg]
     · simp only [Function.support_div, measurableSet_Ici, Measure.restrict_apply', hΨSupport, Function.support_id]
       have : (Ioo (1 / 2 : ℝ) 2 ∩ (Iio 0 ∪ Ioi 0) ∩ Ici 0) = Ioo (1 / 2) 2 := by
@@ -729,7 +728,7 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ⊤ Ψ) ∧ (∀ x
         simp only [mem_inter_iff, mem_Ioo, mem_Ici, mem_Iio, mem_Ioi,
           mem_union, not_lt, and_true, not_le]
         constructor
-        · exact fun h => h.left.left
+        · exact fun h ↦ h.left.left
         · intro h
           simp only [h, and_self, lt_or_lt_iff_ne, ne_eq, true_and]
           constructor <;> linarith [h.left]
@@ -798,7 +797,7 @@ lemma MellinOfPsi_aux {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     · simp only [deriv.ofReal_comp']
       apply Continuous.continuousOn
       apply Continuous.comp (g := ofReal') continuous_ofReal <| diffΨ.continuous_deriv (by norm_num)
-    · apply ContinuousOn.congr (f := fun (x : ℝ) ↦ (x : ℂ) ^ (s - 1)) ?_ fun x hx => gderiv hs hx
+    · apply ContinuousOn.congr (f := fun (x : ℝ) ↦ (x : ℂ) ^ (s - 1)) ?_ fun x hx ↦ gderiv hs hx
       refine ContinuousOn.cpow ?_ continuousOn_const (by simp)
       exact Continuous.continuousOn (by continuity)
   · congr; funext; congr

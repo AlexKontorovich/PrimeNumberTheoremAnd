@@ -51,8 +51,8 @@ $$\lim_{T\to\infty}\int_{\sigma-iT}^{\sigma'+iT}f(s)ds =
 \end{lemma}
 %-/
 lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
-    (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
-    (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
+    (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (htop : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ - I * T) (σ' + I * T)) atTop
@@ -73,8 +73,8 @@ Almost by definition.
 
 lemma verticalIntegral_eq_verticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
     (hf : HolomorphicOn f ([[σ,  σ']] ×ℂ univ))
-    (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
-    (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
+    (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (htop : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     VerticalIntegral f σ = VerticalIntegral f σ' := by
@@ -85,8 +85,8 @@ lemma verticalIntegral_eq_verticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
 
 lemma verticalIntegral_sub_verticalIntegral_eq_squareIntegral {σ σ' : ℝ} {f : ℂ → ℂ} {p : ℂ}
     (hσ: σ < p.re ∧ p.re < σ') (hf : HolomorphicOn f (Icc σ  σ' ×ℂ univ \ {p}))
-    (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
-    (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
+    (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (htop : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     ∀ᶠ (c : ℝ) in 𝓝[>] 0, VerticalIntegral f σ' - VerticalIntegral f σ =
@@ -121,7 +121,7 @@ as $U\to\infty$ is the ``UpperUIntegral'' of $f$.
 \end{lemma}
 %-/
 lemma RectangleIntegral_tendsTo_UpperU {σ σ' T : ℝ} {f : ℂ → ℂ}
-    (htop : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
+    (htop : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ + I * T) (σ' + I * U)) atTop
@@ -133,10 +133,10 @@ Almost by definition.
 %-/
   have h_re  (s : ℝ) (t : ℝ) : (s  + I * t).re = s  := by simp
   have h_im  (s : ℝ) (t : ℝ) : (s  + I * t).im = t  := by simp
-  have hbot : Tendsto (fun (_ : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + T * I)) atTop (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x + T * I)) := by
+  have hbot : Tendsto (fun (_ : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + T * I)) atTop (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x + T * I)) := by
     exact tendsto_const_nhds
   have hvert (s : ℝ) (int : Integrable (fun (y : ℝ) ↦ f (s + y * I))) :
-      Tendsto (fun (U : ℝ) => I * ∫ (y : ℝ) in T..U, f (s + y * I)) atTop (𝓝 <| I * ∫ (y : ℝ) in Ioi T, f (s + y * I)) := by
+      Tendsto (fun (U : ℝ) ↦ I * ∫ (y : ℝ) in T..U, f (s + y * I)) atTop (𝓝 <| I * ∫ (y : ℝ) in Ioi T, f (s + y * I)) := by
     exact (intervalIntegral_tendsto_integral_Ioi T int.restrict tendsto_id).const_smul I
   have := ((hbot.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
   simpa only [RectangleIntegral, UpperUIntegral, h_re, h_im, sub_zero, ←integral_Ici_eq_integral_Ioi]
@@ -153,7 +153,7 @@ as $U\to\infty$ is the ``LowerUIntegral'' of $f$.
 \end{lemma}
 %-/
 lemma RectangleIntegral_tendsTo_LowerU {σ σ' T : ℝ} {f : ℂ → ℂ}
-    (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ - I * U) (σ' - I * T)) atTop
@@ -168,10 +168,10 @@ Almost by definition.
   have hbot' : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x - y * I)) atTop (𝓝 0) := by
     convert (hbot.comp tendsto_neg_atTop_atBot) using 1
     ext; simp only [Function.comp_apply, ofReal_neg, neg_mul]; rfl
-  have htop : Tendsto (fun (_ : ℝ) => ∫ (x : ℝ) in σ..σ', f (x - T * I)) atTop (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x - T * I)) :=
+  have htop : Tendsto (fun (_ : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x - T * I)) atTop (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x - T * I)) :=
     tendsto_const_nhds
   have hvert (s : ℝ) (int : Integrable (fun (y : ℝ) ↦ f (s + y * I))) :
-      Tendsto (fun (U : ℝ) => I * ∫ (y : ℝ) in -U..-T, f (s + y * I)) atTop (𝓝 <| I * ∫ (y : ℝ) in Iic (-T), f (s + y * I)) := by
+      Tendsto (fun (U : ℝ) ↦ I * ∫ (y : ℝ) in -U..-T, f (s + y * I)) atTop (𝓝 <| I * ∫ (y : ℝ) in Iic (-T), f (s + y * I)) := by
     have := (intervalIntegral_tendsto_integral_Iic (-T) int.restrict tendsto_id).const_smul I
     convert (this.comp tendsto_neg_atTop_atBot) using 1
   have := ((hbot'.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
@@ -231,7 +231,7 @@ $$\lim_{\sigma\to\infty}x^\sigma=0.$$
 \end{lemma}
 %%-/
 lemma tendsto_rpow_atTop_nhds_zero_of_norm_lt_one {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1) (C : ℝ) :
-    Tendsto (fun (σ : ℝ) => x ^ σ * C) atTop (𝓝 0) := by
+    Tendsto (fun (σ : ℝ) ↦ x ^ σ * C) atTop (𝓝 0) := by
 /-%%
 \begin{proof}\leanok
 Standard.
@@ -247,7 +247,7 @@ $$\lim_{\sigma\to-\infty}x^\sigma=0.$$
 \end{lemma}
 %%-/
 lemma tendsto_rpow_atTop_nhds_zero_of_norm_gt_one {x : ℝ} (x_gt_one : 1 < x) (C : ℝ) :
-    Tendsto (fun (σ : ℝ) => x ^ σ * C) atBot (𝓝 0) := by
+    Tendsto (fun (σ : ℝ) ↦ x ^ σ * C) atBot (𝓝 0) := by
   have := (zero_lt_one.trans x_gt_one)
   have h := tendsto_rpow_atTop_nhds_zero_of_norm_lt_one (inv_pos.mpr this) (inv_lt_one x_gt_one) C
   convert (h.comp tendsto_neg_atBot_atTop) using 1
@@ -278,7 +278,7 @@ namespace Perron
 
 variable {x σ σ' σ'' T : ℝ}
 
-noncomputable abbrev f (x : ℝ) := fun (s : ℂ) => x ^ s / (s * (s + 1))
+noncomputable abbrev f (x : ℝ) := fun (s : ℂ) ↦ x ^ s / (s * (s + 1))
 
 
 lemma f_mul_eq_f {x t : ℝ} (tpos : 0 < t) (xpos : 0 < x) (s : ℂ) : f t s * (x : ℂ) ^ (-s) = f (t / x) s := by
@@ -286,7 +286,7 @@ lemma f_mul_eq_f {x t : ℝ} (tpos : 0 < t) (xpos : 0 < x) (s : ℂ) : f t s * (
   · simp [f, s_eq_zero]
   by_cases s_eq_neg_one : s = -1
   · simp [f, s_eq_neg_one]
-  field_simp [f, mul_ne_zero s_eq_zero (fun hs => add_eq_zero_iff_eq_neg.mp hs |> s_eq_neg_one)]
+  field_simp [f, mul_ne_zero s_eq_zero (fun hs ↦ add_eq_zero_iff_eq_neg.mp hs |> s_eq_neg_one)]
   convert (Complex.mul_cpow_ofReal_nonneg tpos.le (inv_pos.mpr xpos).le s).symm using 2
   · convert Complex.cpow_neg_eq_inv_pow_ofReal_pos xpos s
     exact ofReal_inv x
@@ -388,8 +388,8 @@ lemma vertIntBound (xpos : 0 < x) (σ_gt_one : 1 < σ) :
   · simp [VerticalIntegral]
   · simp [Complex.abs_cpow_eq_rpow_re_of_pos xpos]
   · simp [integral_mul_left, div_eq_mul_inv]
-  by_cases hint : Integrable fun (a : ℝ) => 1 / (‖σ + a * I‖ * ‖σ + a * I + 1‖)
-  swap; rw [integral_undef hint]; exact integral_nonneg <| fun t => by positivity
+  by_cases hint : Integrable fun (a : ℝ) ↦ 1 / (‖σ + a * I‖ * ‖σ + a * I + 1‖)
+  swap; rw [integral_undef hint]; exact integral_nonneg <| fun t ↦ by positivity
   conv => rhs; rhs; intro a; rhs
   apply integral_mono hint
   · have := integralPosAux
@@ -442,10 +442,10 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
       re_ofReal_mul, I_re, mul_zero, add_zero]
   · simp_rw [div_eq_mul_inv, integral_mul_left, one_mul, Complex.norm_eq_abs, map_mul]
   · gcongr
-    by_cases hint : Integrable fun (a : ℝ) => 1 / (‖σ + ↑a * I‖ * ‖σ + ↑a * I + 1‖)
+    by_cases hint : Integrable fun (a : ℝ) ↦ 1 / (‖σ + ↑a * I‖ * ‖σ + ↑a * I + 1‖)
     swap
     · rw [integral_undef hint]
-      exact integral_nonneg <| fun t => by simp only [Pi.le_def, Pi.zero_apply]; positivity
+      exact integral_nonneg <| fun t ↦ by simp only [Pi.le_def, Pi.zero_apply]; positivity
     apply integral_mono hint
     · have := integralPosAux' (4⁻¹) (4⁻¹) (by norm_num) (by norm_num)
       contrapose! this
@@ -476,13 +476,13 @@ theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     ((fun y ↦ 1 / y^2) ∘ Prod.snd) := by
   set l := 𝓟 [[σ', σ'']] ×ˢ (atBot ⊔ atTop : Filter ℝ) with hl
   refine IsTheta.div (isTheta_norm_left.mp ?_) ?_
-  · suffices (fun (σ, _y) => |x| ^ σ) =Θ[l] fun _ => (1 : ℝ) by
+  · suffices (fun (σ, _y) ↦ |x| ^ σ) =Θ[l] fun _ ↦ (1 : ℝ) by
       simpa [Complex.abs_cpow_of_ne_zero <| ofReal_ne_zero.mpr (ne_of_gt xpos),
         arg_ofReal_of_nonneg xpos.le] using this
     exact (continuousOn_const.rpow continuousOn_id fun _ _ ↦ Or.inl <| ne_of_gt (abs_pos_of_pos xpos))
       |>.const_isThetaUniformlyOn_isCompact isCompact_uIcc (by norm_num)
       (fun i _ ↦ ne_of_gt <| rpow_pos_of_pos (abs_pos_of_pos xpos) _) _
-  · have h_c {c : ℂ} : (fun (_ : ℝ × ℝ) => c) =o[l] Prod.snd := by
+  · have h_c {c : ℂ} : (fun (_ : ℝ × ℝ) ↦ c) =o[l] Prod.snd := by
       rewrite [hl, Filter.prod_sup, isLittleO_sup]
       exact ⟨isLittleO_const_snd_atBot c _, isLittleO_const_snd_atTop c _⟩
     have h_yI : (fun ((_σ, y) : ℝ × ℝ) ↦ y * I) =Θ[l] Prod.snd :=
@@ -536,11 +536,11 @@ By \ref{isHolomorphicOn}, $f$ is continuous, so it is integrable on any interval
 
 theorem horizontal_integral_isBigO
     {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) (μ : Measure ℝ) [IsLocallyFiniteMeasure μ] :
-    (fun (y : ℝ) => ∫ (σ : ℝ) in σ'..σ'', f x (σ + y * I) ∂μ) =O[atBot ⊔ atTop]
+    (fun (y : ℝ) ↦ ∫ (σ : ℝ) in σ'..σ'', f x (σ + y * I) ∂μ) =O[atBot ⊔ atTop]
     fun y ↦ 1 / y^2 := by
   let g := fun ((σ, y) : ℝ × ℝ) ↦ f x (σ + y * I)
   calc
-    _ =Θ[atBot ⊔ atTop] fun (y : ℝ) => ∫ (σ : ℝ) in uIoc σ' σ'', g (σ, y) ∂μ :=
+    _ =Θ[atBot ⊔ atTop] fun (y : ℝ) ↦ ∫ (σ : ℝ) in uIoc σ' σ'', g (σ, y) ∂μ :=
         isTheta_of_norm_eventuallyEq <| univ_mem'
           fun _ ↦ intervalIntegral.norm_intervalIntegral_eq _ _ _ _
     _ =O[atBot ⊔ atTop] _ :=
@@ -555,7 +555,7 @@ goes to $0$ as $t\to-\infty$.
 \end{lemma}
 %%-/
 lemma tendsto_zero_Lower (xpos : 0 < x) (σ' σ'' : ℝ) :
-    Tendsto (fun (t : ℝ) => ∫ (σ : ℝ) in σ'..σ'', f x (σ + t * I)) atBot (𝓝 0) := by
+    Tendsto (fun (t : ℝ) ↦ ∫ (σ : ℝ) in σ'..σ'', f x (σ + t * I)) atBot (𝓝 0) := by
 /-%%
 \begin{proof}\leanok
 The numerator is bounded and the denominator tends to infinity.
@@ -576,7 +576,7 @@ goes to $0$ as $t\to\infty$.
 \end{lemma}
 %%-/
 lemma tendsto_zero_Upper (xpos : 0 < x) (σ' σ'' : ℝ) :
-    Tendsto (fun (t : ℝ) => ∫ (σ : ℝ) in σ'..σ'', f x (σ + t * I)) atTop (𝓝 0) := by
+    Tendsto (fun (t : ℝ) ↦ ∫ (σ : ℝ) in σ'..σ'', f x (σ + t * I)) atTop (𝓝 0) := by
 /-%%
 \begin{proof}\leanok
 The numerator is bounded and the denominator tends to infinity.
@@ -648,9 +648,9 @@ TODO: Move to more general section
 
 theorem HolomorphicOn.upperUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} (hσ : σ ≤ σ')
     (hf : HolomorphicOn f {z : ℂ | σ ≤ z.re ∧ z.re ≤ σ' ∧ T ≤ z.im})
-    (htop : Tendsto (fun y : ℝ => ∫ (x : ℝ) in σ..σ', f (↑x + ↑y * I)) atTop (𝓝 0))
-    (hleft : Integrable fun y : ℝ => f (↑σ + ↑y * I))
-    (hright : Integrable fun y : ℝ => f (↑σ' + ↑y * I)) :
+    (htop : Tendsto (fun y : ℝ ↦ ∫ (x : ℝ) in σ..σ', f (↑x + ↑y * I)) atTop (𝓝 0))
+    (hleft : Integrable fun y : ℝ ↦ f (↑σ + ↑y * I))
+    (hright : Integrable fun y : ℝ ↦ f (↑σ' + ↑y * I)) :
     UpperUIntegral f σ σ' T = 0 := by
   apply tendsto_nhds_unique (RectangleIntegral_tendsTo_UpperU htop hleft hright)
   apply EventuallyEq.tendsto
@@ -661,9 +661,9 @@ theorem HolomorphicOn.upperUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} 
 
 theorem HolomorphicOn.lowerUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} (hσ : σ ≤ σ')
     (hf : HolomorphicOn f {z : ℂ | σ ≤ z.re ∧ z.re ≤ σ' ∧ z.im ≤ -T})
-    (hbot : Tendsto (fun (y : ℝ) => ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
-    (hleft : Integrable fun y : ℝ => f (↑σ + ↑y * I))
-    (hright : Integrable fun y : ℝ => f (↑σ' + ↑y * I)) :
+    (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
+    (hleft : Integrable fun y : ℝ ↦ f (↑σ + ↑y * I))
+    (hright : Integrable fun y : ℝ ↦ f (↑σ' + ↑y * I)) :
     LowerUIntegral f σ σ' T = 0 := by
   suffices h : - LowerUIntegral f σ σ' T = 0 by exact neg_eq_zero.mp h
   apply tendsto_nhds_unique (RectangleIntegral_tendsTo_LowerU hbot hleft hright)
@@ -674,7 +674,7 @@ theorem HolomorphicOn.lowerUIntegral_eq_zero {f : ℂ → ℂ} {σ σ' T : ℝ} 
   simpa using by tauto
 
 lemma sPlusOneNeZero {s : ℂ} (s_ne_neg_one : s ≠ -1) : s + 1 ≠ 0 :=
-  fun h => s_ne_neg_one (add_eq_zero_iff_eq_neg.mp h)
+  fun h ↦ s_ne_neg_one (add_eq_zero_iff_eq_neg.mp h)
 
 /-%%
 \begin{lemma}[keyIdentity]\label{keyIdentity}\lean{Perron.keyIdentity}\leanok
@@ -898,8 +898,8 @@ $$
 \end{lemma}
 %%-/
 lemma residuePull2 (x_gt_one : 1 < x) :
-    VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-1 / 2)
-    = -1 / x + VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) (-3 / 2) := by
+    VerticalIntegral' (fun s ↦ x ^ s / (s * (s + 1))) (-1 / 2)
+    = -1 / x + VerticalIntegral' (fun s ↦ x ^ s / (s * (s + 1))) (-3 / 2) := by
   apply eq_add_of_sub_eq
   have xpos : 0 < x := zero_lt_one.trans x_gt_one
   have hf : HolomorphicOn (f x) (Icc (-3 / 2) (-1 / 2) ×ℂ univ \ {-1}) :=
@@ -932,7 +932,7 @@ $$
 \end{lemma}
 %%-/
 lemma contourPull3 (x_gt_one : 1 < x) (σ'le : σ' ≤ -3/2) (σ''le : σ'' ≤ -3/2) :
-    VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ' = VerticalIntegral' (fun s => x ^ s / (s * (s + 1))) σ'' := by
+    VerticalIntegral' (fun s ↦ x ^ s / (s * (s + 1))) σ' = VerticalIntegral' (fun s ↦ x ^ s / (s * (s + 1))) σ'' := by
 /-%%
 \begin{proof}\leanok
 Pull contour from $(-3/2)$ to $(\sigma)$.

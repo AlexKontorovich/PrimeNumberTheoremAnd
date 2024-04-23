@@ -75,7 +75,7 @@ lemma riemannZeta0_apply (N : ℕ) (s : ℂ) : ζ₀ N s =
 
 -- move near `Real.differentiableAt_rpow_const_of_ne`
 lemma Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (xpos : 0 < x) :
-    DifferentiableAt ℝ (fun (x : ℝ) => (x : ℂ) ^ s) x := by
+    DifferentiableAt ℝ (fun (x : ℝ) ↦ (x : ℂ) ^ s) x := by
   apply DifferentiableAt.comp_ofReal (e := fun z ↦ z ^ s)
   apply DifferentiableAt.cpow (by simp) (by simp) (by simp [xpos])
 
@@ -94,7 +94,7 @@ lemma ContDiffOn.continuousOn_deriv {φ : ℝ → ℂ} {a b : ℝ}
     (φDiff : ContDiffOn ℝ 1 φ (uIoo a b)) :
     ContinuousOn (deriv φ) (uIoo a b) := by
   apply ContDiffOn.continuousOn (𝕜 := ℝ) (n := 0)
-  exact (fun h => ((contDiffOn_succ_iff_deriv_of_isOpen isOpen_Ioo).1 h).2) φDiff
+  exact (fun h ↦ ((contDiffOn_succ_iff_deriv_of_isOpen isOpen_Ioo).1 h).2) φDiff
 
 lemma LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ) ↦ a * t + b) a x := by
   refine HasDerivAt.add_const ?_ b
@@ -545,7 +545,7 @@ lemma ZetaSum_aux1a {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos
     _ ≤ ∫ x in a..b, 1 / x ^ (s.re + 1) := ZetaSum_aux1_5 apos a_lt_b σpos
     _ = (a ^ (-s.re) - b ^ (-s.re)) / s.re := ?_
   · exact intervalIntegral.norm_integral_le_integral_norm (μ := MeasureTheory.volume)
-      (a := a) (b := b) (f := λ x => (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)) (le_of_lt a_lt_b)
+      (a := a) (b := b) (f := fun x ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)) (le_of_lt a_lt_b)
   · refine ZetaSum_aux1_2 (c := s.re) apos a_lt_b ⟨ne_of_gt σpos, ?_⟩
     exact fun h ↦ (lt_self_iff_false 0).mp <| ZetaSum_aux1_1 apos a_lt_b h
 /-%%
@@ -569,7 +569,7 @@ lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
   have := (@Summable.hasSum_iff_tendsto_nat (f := fun m ↦ f (m + N))
      (m := ∑' (n : ℕ), f (n + N)) _ _ _ ?_).mp ?_
   · convert this using 2
-    rename ℕ  => M
+    rename ℕ => M
     simp_rw [Finset.range_eq_Ico]
     sorry
   swap; apply (Summable.hasSum_iff ?_).mpr; rfl
@@ -1255,7 +1255,7 @@ Combine Lemma \ref{ZetaInvBound1} with the bounds in Lemmata \ref{ZetaNear1BndEx
 lemma deriv_fun_re {t : ℝ} {f : ℂ → ℂ} (diff : ∀ (σ : ℝ), DifferentiableAt ℂ f (↑σ + ↑t * I)) :
     (deriv fun {σ₂ : ℝ} ↦ f (σ₂ + t * I)) = fun (σ : ℝ) ↦ deriv f (σ + t * I) := by
   ext σ
-  have := deriv.comp (h := fun (σ : ℝ) => σ + t * I) (h₂ := f) σ (diff σ) ?_
+  have := deriv.comp (h := fun (σ : ℝ) ↦ σ + t * I) (h₂ := f) σ (diff σ) ?_
   · simp only [deriv_add_const', _root_.deriv_ofReal, mul_one] at this
     rw [← this]
     rfl
