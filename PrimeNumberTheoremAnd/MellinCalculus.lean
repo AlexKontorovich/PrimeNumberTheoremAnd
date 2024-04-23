@@ -1585,7 +1585,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\righ
 lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
     {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (ε : ℝ) (εpos : 0 < ε) :
-    (fun (s : ℂ) ↦ 𝓜 ((Smooth1 Ψ ε) ·) s‖)
+    (fun (s : ℂ) ↦ ‖𝓜 ((Smooth1 Ψ ε) ·) s‖)
       =O[Filter.principal {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}]
       fun s ↦ 1 / (ε * ‖s‖ ^ 2) := by
   have := MellinOfPsi diffΨ suppΨ (mul_pos εpos σ₁pos) (σ₂ := ε * σ₂)
@@ -1595,7 +1595,7 @@ lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
   simp only [norm_norm, norm_div, norm_one, eventually_principal, mem_setOf_eq] at hc ⊢
   intro s hs
   rw [MellinOfSmooth1a Ψ diffΨ suppΨ εpos <| gt_of_ge_of_gt hs.1 σ₁pos]
-  have : 𝓜 (fun x ↦ ↑(Ψ x)) (ε * s)‖ ≤ c * (1 / ‖ε * s‖) := by
+  have : ‖𝓜 (fun x ↦ ↑(Ψ x)) (ε * s)‖ ≤ c * (1 / ‖ε * s‖) := by
     refine hc (ε * s) ?_
     simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
     exact ⟨(mul_le_mul_left εpos).mpr hs.1, (mul_le_mul_left εpos).mpr hs.2⟩

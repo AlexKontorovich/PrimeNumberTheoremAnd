@@ -5,9 +5,9 @@ import PrimeNumberTheoremAnd.ZetaBounds
 import EulerProducts.PNT
 import Mathlib.Algebra.Function.Support
 
-open Set Function Filter Complex
+open Set Function Filter Complex Real
 
-local notation (name := mellintransform) "𝓜" => MellinTransform
+local notation (name := mellintransform2) "𝓜" => MellinTransform
 open scoped ArithmeticFunction
 
 
@@ -93,11 +93,11 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 �
   · congr
     rw [← MellinTransform_eq]
     have := @MellinOfSmooth1b ψ diffΨ suppΨ 2 2 (by norm_num) ε εpos
-    simp_rw [← norm_eq_abs, Asymptotics.isBigO_iff] at this
+    simp_rw [Asymptotics.isBigO_iff] at this
     obtain ⟨c, hc⟩ := this
-    simp only [norm_eq_abs, Real.norm_eq_abs, Complex.abs_abs, one_div, mul_inv_rev, norm_mul,
+    simp only [Real.norm_eq_abs, Complex.abs_abs, one_div, mul_inv_rev, norm_mul,
       norm_inv, norm_pow, eventually_principal, mem_setOf_eq, and_imp] at hc
-    simp_rw [← norm_eq_abs] at hc
+    simp only [Complex.norm_eq_abs, Complex.abs_abs] at hc
     replace hc (t : ℝ) := hc (2 + t * I) (by simp) (by simp)
     sorry
   · field_simp; congr; ext n; congr; rw [← MeasureTheory.integral_mul_left ]; congr; ext t
