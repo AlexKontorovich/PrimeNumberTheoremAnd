@@ -19,6 +19,9 @@ open BigOperators Complex Topology Filter Interval Set
 lemma div_cpow_eq_cpow_neg (a x s : ℂ) : a / x ^ s = a * x ^ (-s) := by
   rw [div_eq_mul_inv, cpow_neg]
 
+lemma one_div_cpow_eq_cpow_neg (x s : ℂ) : 1 / x ^ s = x ^ (-s) := by
+  convert div_cpow_eq_cpow_neg 1 x s using 1; simp
+
 lemma div_rpow_eq_rpow_neg (a x s : ℝ) (hx : 0 ≤ x): a / x ^ s = a * x ^ (-s) := by
   rw [div_eq_mul_inv, Real.rpow_neg hx]
 
@@ -876,6 +879,23 @@ lemma UpperBnd_aux {A σ t: ℝ} (A_pos : 0 < A) (A_lt : A < 1) (t_ge : 3 < |t|)
   simp only [Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
     sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at t_ge
   norm_num [t_ge.2]
+
+lemma norm_add₄_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) :
+    ‖a + b + c + d‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ := by
+  apply le_trans <| norm_add_le (a + b + c) d
+  simp only [add_le_add_iff_right]; apply norm_add₃_le
+
+lemma add_le_add_le_add {α : Type*} [Add α] [Preorder α]
+    [CovariantClass α α (fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
+    [CovariantClass α α (Function.swap fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
+    {a b c d e f : α} (h₁ : a ≤ b) (h₂ : c ≤ d) (h₃ : e ≤ f) : a + c + e ≤ b + d + f :=
+  add_le_add (add_le_add h₁ h₂) h₃
+
+lemma add_le_add_le_add_le_add {α : Type*} [Add α] [Preorder α]
+    [CovariantClass α α (fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
+    [CovariantClass α α (Function.swap fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
+    {a b c d e f g h : α} (h₁ : a ≤ b) (h₂ : c ≤ d) (h₃ : e ≤ f) (h₄ : g ≤ h) :
+    a + c + e + g ≤ b + d + f + h:= add_le_add (add_le_add_le_add h₁ h₂ h₃) h₄
 
 /-%%
 \begin{lemma}[ZetaUpperBnd]\label{ZetaUpperBnd}\lean{ZetaUpperBnd}\leanok
