@@ -1130,7 +1130,7 @@ lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
     any_goals apply Real.rpow_nonneg <| norm_nonneg _
     apply mul_nonneg <;> apply Real.rpow_nonneg <| norm_nonneg _
   · refine mul_nonneg (mul_nonneg ?_ ?_) ?_ <;> simp [Real.rpow_nonneg]
-  · have s_ne_one : (σ : ℂ) + (t : ℂ) * I ≠ 1 := by
+  · have s_ne_one : σ + t * I ≠ 1 := by
       contrapose! σ_gt; apply le_of_eq; apply And.left; simpa [Complex.ext_iff] using σ_gt
     have zeta_ne_zero:= riemannZeta_ne_zero_of_one_le_re s_ne_one (by simp [σ_gt.le])
     suffices 0 ≤ ‖ζ (↑σ + ↑t * I)‖ by simp [le_iff_lt_or_eq.mp this, zeta_ne_zero]
@@ -1271,9 +1271,8 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (σ₁_lt_σ₂ : σ₁ < σ₂) (t_ne_zero : t ≠ 0) :
-    (∫ σ in Set.Icc σ₁ σ₂, deriv ζ (σ + t * I)) = ζ (σ₂ + t * I) - ζ (σ₁ + t * I) := by
-  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le σ₁_lt_σ₂.le]
+lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (t_ne_zero : t ≠ 0) :
+    (∫ σ in σ₁..σ₂, deriv ζ (σ + t * I)) = ζ (σ₂ + t * I) - ζ (σ₁ + t * I) := by
   have diff : ∀ (σ : ℝ), DifferentiableAt ℂ ζ (σ + t * I) := by
     intro σ
     refine differentiableAt_riemannZeta ?_
@@ -1326,8 +1325,7 @@ lemma Zeta_diff_Bnd :
   refine ⟨A, Apos, C, Cpos, ?_⟩
   intro σ₁ σ₂ t t_gt σ₁_ge σ₂_le σ₁_lt_σ₂
   have t_ne_zero : t ≠ 0 := by contrapose! t_gt; simp only [t_gt, abs_zero, Nat.ofNat_nonneg]
-  rw [← Zeta_eq_int_derivZeta σ₁_lt_σ₂ (t_ne_zero)]
-  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le σ₁_lt_σ₂.le]
+  rw [← Zeta_eq_int_derivZeta t_ne_zero]
   convert intervalIntegral.norm_integral_le_of_norm_le_const ?_ using 1
   · congr; rw [_root_.abs_of_nonneg (by linarith)]
   · intro σ hσ; rw [Set.uIoc_of_le σ₁_lt_σ₂.le, Set.mem_Ioc] at hσ
