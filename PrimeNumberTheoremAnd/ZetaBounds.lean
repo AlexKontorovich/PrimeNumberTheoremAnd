@@ -37,7 +37,7 @@ $$
 noncomputable def riemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
   (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
   (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
-      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
+      + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
 
 /-- We use `ζ` to denote the Rieman zeta function and `ζ₀` to denote the alternative
   Rieman zeta function.. -/
@@ -47,13 +47,13 @@ local notation (name := riemannzeta0) "ζ₀" => riemannZeta0
 lemma riemannZeta0_apply (N : ℕ) (s : ℂ) : ζ₀ N s =
     (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
     ((- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
-      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) := by
+      + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) := by
   simp_rw [riemannZeta0, div_cpow_eq_cpow_neg]; ring
 
 -- lemma AnalyticContinuation {f g : ℂ → ℂ} {s t : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
---     (g_on_t : AnalyticOn ℂ g t) (f_eq_g_on_cap : Set.EqOn f g (s ∩ t))
---     (s_open : IsOpen s) (t_open : IsOpen t) (cap_nonempty : Set.Nonempty (s ∩ t)) :
---     ∃! h : ℂ → ℂ, AnalyticOn ℂ h (s ∪ t) ∧ Set.EqOn h f s ∧ Set.EqOn h g t := by
+--     (g_on_t : AnalyticOn ℂ g t) (f_eq_g_on_cap : EqOn f g (s ∩ t))
+--     (s_open : IsOpen s) (t_open : IsOpen t) (cap_nonempty : Nonempty (s ∩ t)) :
+--     ∃! h : ℂ → ℂ, AnalyticOn ℂ h (s ∪ t) ∧ EqOn h f s ∧ EqOn h g t := by
 --   classical
 --   let h : ℂ → ℂ := fun z ↦ if z ∈ s then f z else g z
 --   refine ⟨h, ⟨?_, fun z hz ↦ by simp [h, hz], ?_⟩, ?_⟩
@@ -69,8 +69,8 @@ lemma riemannZeta0_apply (N : ℕ) (s : ℂ) : ζ₀ N s =
 
 -- lemma AnalyticContinuation' {f g : ℂ → ℂ} {s t u : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
 --     (g_on_t : AnalyticOn ℂ g t) (u_sub : u ⊆ s ∩ t) (u_open : IsOpen u)
---     (u_nonempty : Set.Nonempty u) (f_eq_g_on_u : Set.EqOn f g u) :
---     Set.EqOn f g (s ∩ t) := by
+--     (u_nonempty : Nonempty u) (f_eq_g_on_u : EqOn f g u) :
+--     EqOn f g (s ∩ t) := by
 --   sorry
 
 -- move near `Real.differentiableAt_rpow_const_of_ne`
@@ -91,8 +91,8 @@ lemma ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContD
 
 -- No longer used
 lemma ContDiffOn.continuousOn_deriv {φ : ℝ → ℂ} {a b : ℝ}
-    (φDiff : ContDiffOn ℝ 1 φ (Set.uIoo a b)) :
-    ContinuousOn (deriv φ) (Set.uIoo a b) := by
+    (φDiff : ContDiffOn ℝ 1 φ (uIoo a b)) :
+    ContinuousOn (deriv φ) (uIoo a b) := by
   apply ContDiffOn.continuousOn (𝕜 := ℝ) (n := 0)
   exact (fun h => ((contDiffOn_succ_iff_deriv_of_isOpen isOpen_Ioo).1 h).2) φDiff
 
@@ -129,7 +129,7 @@ lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (c : ℂ)
       (c - b) * φ b - (c - a) * φ a + ∫ (x : ℝ) in a..b, φ x := by
   set u := fun (x : ℝ) ↦ c - x
   set u' := fun (x : ℝ) ↦ (-1 : ℂ)
-  have hu : ∀ x ∈ Set.uIcc a b, HasDerivAt u (u' x) x := by
+  have hu : ∀ x ∈ uIcc a b, HasDerivAt u (u' x) x := by
     exact fun x _ ↦ by convert LinearDerivative_ofReal x (-1 : ℂ) c; ring
   have hu' : IntervalIntegrable u' MeasureTheory.volume a b := by
     apply Continuous.intervalIntegrable; continuity
@@ -201,10 +201,10 @@ lemma sum_eq_int_deriv_aux {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (ha : a ∈ 
   · congr
   · apply intervalIntegral.integral_congr_ae
     have : ∀ᵐ (x : ℝ) ∂MeasureTheory.volume, x ≠ b := by
-      convert Set.Countable.ae_not_mem (s := {b}) (by simp) (μ := MeasureTheory.volume) using 1
+      convert Countable.ae_not_mem (s := {b}) (by simp) (μ := MeasureTheory.volume) using 1
     filter_upwards [this]
     intro x x_ne_b hx
-    rw [Set.uIoc_of_le ha.2.le, Set.mem_Ioc] at hx
+    rw [uIoc_of_le ha.2.le, mem_Ioc] at hx
     congr
     exact Int.floor_eq_iff.mpr ⟨by linarith [ha.1], by have := Ne.lt_of_le x_ne_b hx.2; linarith⟩
 /-%%
@@ -285,7 +285,7 @@ lemma integrability_aux₀ {a b : ℝ} :
       ‖(⌊x⌋ : ℂ)‖ ≤ max ‖a‖ ‖b‖ + 1 := by
   apply (MeasureTheory.ae_restrict_iff' measurableSet_Icc).mpr
   refine MeasureTheory.ae_of_all _ (fun x hx ↦ ?_)
-  simp only [inf_le_iff, le_sup_iff, Set.mem_Icc] at hx
+  simp only [inf_le_iff, le_sup_iff, mem_Icc] at hx
   simp only [norm_int, Real.norm_eq_abs]
   have : |x| ≤ max |a| |b| := by
     cases' hx.1 with x_ge_a x_ge_b <;> cases' hx.2 with x_le_a x_le_b
@@ -317,8 +317,8 @@ lemma integrability_aux {a b : ℝ} :
 
 lemma uIcc_subsets {a b c : ℝ} (hc : c ∈ Icc a b) :
     [[a, c]] ⊆ [[a, b]] ∧ [[c, b]] ⊆ [[a, b]] := by
-  constructor <;> rw [Set.uIcc_of_le ?_, Set.uIcc_of_le ?_]
-  any_goals apply Set.Icc_subset_Icc
+  constructor <;> rw [uIcc_of_le ?_, uIcc_of_le ?_]
+  any_goals apply Icc_subset_Icc
   all_goals linarith [hc.1, hc.2]
 
 lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
@@ -369,7 +369,7 @@ lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
 
 lemma xpos_of_uIcc {a b : ℕ} (ha : a ∈ Ioo 0 b) {x : ℝ} (x_in : x ∈ [[(a : ℝ), b]]) :
     0 < x := by
-  rw [Set.uIcc_of_le (by exact_mod_cast ha.2.le), Set.mem_Icc] at x_in
+  rw [uIcc_of_le (by exact_mod_cast ha.2.le), mem_Icc] at x_in
   linarith [(by exact_mod_cast ha.1 : (0 : ℝ) < a)]
 
 lemma neg_s_ne_neg_one {s : ℂ} (s_ne_one : s ≠ 1) : -s ≠ -1 := fun hs ↦ s_ne_one <| neg_inj.mp hs
@@ -408,7 +408,7 @@ lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_zero : s ≠ 0) {x : ℝ} (xpos : 0 < 
 
 lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_zero : s ≠ 0) {a b : ℕ} (ha : a ∈ Ioo 0 b) :
     ContinuousOn (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s)) [[a, b]] := by
-  have : Set.EqOn _ (fun (t : ℝ) ↦ -s * (t : ℂ) ^ (-(s + 1))) [[a, b]] :=
+  have : EqOn _ (fun (t : ℝ) ↦ -s * (t : ℂ) ^ (-(s + 1))) [[a, b]] :=
     fun x hx ↦ ZetaSum_aux1φderiv s_ne_zero <| xpos_of_uIcc ha hx
   refine ContinuousOn.congr ?_ this
   refine (ContinuousOn.cpow_const continuous_ofReal.continuousOn ?_).const_smul (c := -s)
@@ -448,11 +448,11 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠
 \end{proof}
 %%-/
 
-lemma ZetaSum_aux1_1' {a b x : ℝ} (apos : 0 < a) (hx : x ∈ Set.Icc a b)
+lemma ZetaSum_aux1_1' {a b x : ℝ} (apos : 0 < a) (hx : x ∈ Icc a b)
     : 0 < x := lt_of_lt_of_le apos hx.1
 
 lemma ZetaSum_aux1_1 {a b x : ℝ} (apos : 0 < a) (a_lt_b : a < b) (hx : x ∈ [[a,b]])
-    : 0 < x :=  lt_of_lt_of_le apos (Set.uIcc_of_le a_lt_b.le ▸ hx).1
+    : 0 < x :=  lt_of_lt_of_le apos (uIcc_of_le a_lt_b.le ▸ hx).1
 
 lemma ZetaSum_aux1_2 {a b : ℝ} {c : ℝ} (apos : 0 < a) (a_lt_b : a < b)
     (h : c ≠ 0 ∧ 0 ∉ [[a, b]]) :
@@ -487,7 +487,7 @@ lemma ZetaSum_aux1_4 {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} :
   exact fun x hx ↦ ZetaSum_aux1_4' x (ZetaSum_aux1_1 apos a_lt_b hx) s
 
 lemma ZetaSum_aux1_5a {a b : ℝ} (apos : 0 < a) {s : ℂ} (x : ℝ)
-  (h : x ∈ Set.Icc a b) : |↑⌊x⌋ + 1 / 2 - x| / x ^ (s.re + 1) ≤ 1 / x ^ (s.re + 1) := by
+  (h : x ∈ Icc a b) : |↑⌊x⌋ + 1 / 2 - x| / x ^ (s.re + 1) ≤ 1 / x ^ (s.re + 1) := by
   apply div_le_div_of_nonneg_right _ _
   · exact le_trans (ZetaSum_aux1_3 x) (by norm_num)
   · apply Real.rpow_nonneg <| le_of_lt (ZetaSum_aux1_1' apos h)
@@ -610,7 +610,7 @@ instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated us
     simp only [Nat.cast_inj] at h
     exact h
   · intro x hx
-    simp only [Finset.coe_Ioc, Set.mem_image, Set.mem_Ioc] at hx ⊢
+    simp only [Finset.coe_Ioc, mem_image, mem_Ioc] at hx ⊢
     have : 0 ≤ x := by linarith
     lift x to ℕ using this
     exact ⟨x, by exact_mod_cast hx, rfl⟩
@@ -639,7 +639,7 @@ lemma ZetaSum_aux2_1 {s : ℂ} (s_re_gt : 1 < s.re) :
 lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     ∑' (n : ℕ), 1 / (n + N : ℂ) ^ s =
     (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
-      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) := by
+      + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) := by
   have s_ne_zero : s ≠ 0 := fun hs ↦ by linarith [zero_re ▸ hs ▸ s_re_gt]
   have s_ne_one : s ≠ 1 := fun hs ↦ (lt_self_iff_false _).mp <| one_re ▸ hs ▸ s_re_gt
   have xpow_tendsto : Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) :=
@@ -650,7 +650,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
       + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
     (b := (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
-      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
+      + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
   · apply Filter.Tendsto.congr' (f₁ := fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, 1 / (n : ℂ) ^ s) (l₁ := atTop)
     · apply Filter.eventually_atTop.mpr
       use N + 1
@@ -690,7 +690,7 @@ as $|t|\to\infty$.
 %%-/
 lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 1) :
     (fun (t : ℝ) ↦ ‖(σ + t * I) *
-      ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖)
+      ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖)
       =O[cocompact ℝ] fun (t : ℝ) ↦ |t| * N ^ (-σ) / σ := by
   have := @ZetaSum_aux1a (a := N)
   sorry
@@ -719,7 +719,7 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
 lemma HolomophicOn_riemannZeta :
     HolomorphicOn ζ {s : ℂ | s ≠ 1} := by
   intro z hz
-  simp only [Set.mem_setOf_eq] at hz
+  simp only [mem_setOf_eq] at hz
   exact (differentiableAt_riemannZeta hz).differentiableWithinAt
 
 
@@ -731,7 +731,7 @@ The set $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ is path-connected.
 lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
   use (2 : ℂ)
   constructor; simp
-  intro y hy; simp only [ne_eq, Set.mem_setOf_eq] at hy
+  intro y hy; simp only [ne_eq, mem_setOf_eq] at hy
   by_cases h : y.re ≤ 1
   · apply JoinedIn.trans (y := I)
     · sorry
@@ -740,8 +740,8 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
     have cont : Continuous f := by continuity
     apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
     simp [f, unitInterval]
-    intro x hx; simp only [Set.mem_Icc] at hx
-    simp only [Set.mem_setOf_eq]
+    intro x hx; simp only [mem_Icc] at hx
+    simp only [mem_setOf_eq]
     constructor
     · suffices ¬ (2 - y) * x = 1 by
         convert this using 1
@@ -783,7 +783,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
     exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
   have f_an : AnalyticOn ℂ f U := by
     apply (HolomophicOn_riemannZeta.analyticOn isOpen_ne).mono
-    simp only [ne_eq, Set.setOf_subset_setOf, and_imp, U]
+    simp only [ne_eq, setOf_subset_setOf, and_imp, U]
     exact fun a ha _ ↦ ha
   have g_an : AnalyticOn ℂ g U := (HolomorphicOn_riemannZeta0 N_pos).analyticOn U_open
   have preconU : IsPreconnected U := by
@@ -795,7 +795,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   have u_mem : {z : ℂ | 1 < z.re} ∈ 𝓝 (2 : ℂ) := by
     apply mem_nhds_iff.mpr
     use {z : ℂ | 1 < z.re}
-    simp only [Set.setOf_subset_setOf, imp_self, forall_const, Set.mem_setOf_eq, re_ofNat,
+    simp only [setOf_subset_setOf, imp_self, forall_const, mem_setOf_eq, re_ofNat,
       Nat.one_lt_ofNat, and_true, true_and]
     exact isOpen_lt (by continuity) (by continuity)
   filter_upwards [u_mem]
@@ -902,10 +902,10 @@ lemma ZetaUpperBnd :
   calc
     _ ≤ ∑ n in Finset.range N, ‖1 / (n : ℂ) ^ s‖ - ‖N ^ (1 - s) / (1 - s)‖ -
         ‖(N : ℂ) ^ (-s) / 2‖ +
-        ‖s * ∫ (x : ℝ) in Set.Ioi ↑N, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := ?_
+        ‖s * ∫ (x : ℝ) in Ioi ↑N, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := ?_
     _ = ∑ n in Finset.range N, ‖(n : ℂ) ^ (-s)‖ - |(N : ℝ)| ^ (1 - σ) / ‖(1 - s)‖ -
         |(N : ℝ)| ^ (-σ) / 2 +
-        ‖s * ∫ (x : ℝ) in Set.Ioi ↑N, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := ?_
+        ‖s * ∫ (x : ℝ) in Ioi ↑N, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := ?_
     _ ≤ ∑ n in Finset.range N, (n : ℝ)⁻¹ * Real.exp A - |(N : ℝ)| ^ (1 - σ) / ‖(1 - s)‖ -
         |(N : ℝ)| ^ (-σ) / 2 + |t| * N ^ (-σ) / σ := ?_
     _ ≤ Real.exp A * ∑ n in Finset.range N, (n : ℝ)⁻¹ + |t| ^ (1 - σ) * 2 := ?_
@@ -999,23 +999,23 @@ lemma Tendsto_nhdsWithin_punctured_map_add {f : ℝ → ℝ} (a x : ℝ)
   simp only [mem_nhdsWithin] at hv
   obtain ⟨u, hu, hu2, hu3⟩ := hv
   let t := {x | f x + a ∈ u}
-  have : t ∩ Set.Ioi x ∈ 𝓝[>] x := by
+  have : t ∩ Ioi x ∈ 𝓝[>] x := by
     simp only [mem_nhdsWithin]
     use t
-    simp only [Set.subset_inter_iff, Set.inter_subset_left, Set.inter_subset_right, and_self,
+    simp only [subset_inter_iff, inter_subset_left, inter_subset_right, and_self,
       and_true, t]
     simp
     refine ⟨?_, by simp [hu2]⟩
     simp [Metric.isOpen_iff] at hu ⊢
     intro x hx
     obtain ⟨ε, εpos, hε⟩ := hu (f x + a) hx
-    simp only [Metric.ball, dist_sub_eq_dist_add_right, Set.setOf_subset_setOf] at hε ⊢
+    simp only [Metric.ball, dist_sub_eq_dist_add_right, setOf_subset_setOf] at hε ⊢
     exact ⟨ε, εpos, fun _ hy ↦ hε (by simp [isometry_iff_dist_eq.mp f_iso, hy])⟩
   filter_upwards [this]
   intro b hb
-  simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_Ioi, t] at hb
+  simp only [mem_inter_iff, mem_setOf_eq, mem_Ioi, t] at hb
   refine hu3 ?_
-  simp only [Set.mem_inter_iff, Set.mem_Ioi, add_lt_add_iff_right]
+  simp only [mem_inter_iff, mem_Ioi, add_lt_add_iff_right]
   exact ⟨hb.1, f_mono hb.2⟩
 
 lemma Tendsto_nhdsWithin_punctured_add (a x : ℝ) :
@@ -1060,13 +1060,13 @@ lemma ZetaNear1BndExact:
   obtain ⟨T, hT, T_open, h1T⟩ := mem_nhds_iff.mp hU
   obtain ⟨ε, εpos, hε⟩ := Metric.isOpen_iff.mp T_open 1 h1T
   simp only [Metric.ball] at hε
-  replace hε : Set.Ico 1 (1 + ε) ⊆ U := by
+  replace hε : Ico 1 (1 + ε) ⊆ U := by
     refine subset_trans (subset_trans ?_ hε) hT
     intro x hx
-    simp only [Set.mem_Ico] at hx
+    simp only [mem_Ico] at hx
     simp only [dist, abs_lt]
     exact ⟨by linarith, by linarith⟩
-  let W := Set.Icc (1 + ε) 2
+  let W := Icc (1 + ε) 2
   have W_compact : IsCompact {ofReal' z | z ∈ W} :=
     IsCompact.image isCompact_Icc continuous_ofReal
   have cont : ContinuousOn ζ {ofReal' z | z ∈ W} := by
@@ -1079,21 +1079,21 @@ lemma ZetaNear1BndExact:
     intro σ hσ
     simp only [lt_max_iff, C']
     have := hC σ
-    simp only [Set.mem_setOf_eq, ofReal_inj, exists_eq_right] at this
+    simp only [mem_setOf_eq, ofReal_inj, exists_eq_right] at this
     exact Or.inl <| lt_of_le_of_lt (this hσ) (by norm_num)
   have Cpos : 0 < C' := by simp [C']
   use max (2 * C') c, (by simp [Cpos])
   intro σ ⟨σ_ge, σ_le⟩
   by_cases hσ : σ ∈ U ∩ V
-  · simp only [← h, Set.mem_setOf_eq] at hσ
+  · simp only [← h, mem_setOf_eq] at hσ
     apply le_trans hσ ?_
     norm_cast
     have : 0 ≤ 1 / (σ - 1) := by apply one_div_nonneg.mpr; linarith
     simp only [norm_eq_abs, Complex.abs_ofReal, abs_eq_self.mpr this, mul_div, mul_one]
     exact div_le_div (by simp [Cpos.le]) (by simp) (by linarith) (by rfl)
   · replace hσ : σ ∈ W := by
-      simp only [Set.mem_inter_iff, hV σ_ge, and_true] at hσ
-      simp only [Set.mem_Icc, σ_le, and_true, W]
+      simp only [mem_inter_iff, hV σ_ge, and_true] at hσ
+      simp only [mem_Icc, σ_le, and_true, W]
       contrapose! hσ; exact hε ⟨σ_ge.le, hσ⟩
     apply le_trans (hC σ hσ).le ((le_div_iff (by linarith)).mpr ?_)
     rw [le_max_iff, mul_comm 2]; exact Or.inl <| mul_le_mul_of_nonneg_left (by linarith) Cpos.le
@@ -1146,17 +1146,17 @@ is already proved by Michael Stoll in the EulerProducts PNT file.
 \end{proof}
 %%-/
 
-lemma Ioi_union_Iio_mem_cocompact {a : ℝ} (ha : 0 ≤ a) : Set.Ioi (a : ℝ) ∪ Set.Iio (-a : ℝ) ∈ cocompact ℝ := by
+lemma Ioi_union_Iio_mem_cocompact {a : ℝ} (ha : 0 ≤ a) : Ioi (a : ℝ) ∪ Iio (-a : ℝ) ∈ cocompact ℝ := by
   simp only [Filter.mem_cocompact]
-  use Set.Icc (-a) a
+  use Icc (-a) a
   constructor
   · exact isCompact_Icc
-  · rw [@Set.compl_subset_iff_union, ← Set.union_assoc, Set.Icc_union_Ioi_eq_Ici, Set.union_comm, Set.Iio_union_Ici]
+  · rw [@compl_subset_iff_union, ← union_assoc, Icc_union_Ioi_eq_Ici, union_comm, Iio_union_Ici]
     linarith
 
 lemma lt_abs_mem_cocompact {a : ℝ} (ha : 0 ≤ a) : {t | a < |t|} ∈ cocompact ℝ := by
   convert Ioi_union_Iio_mem_cocompact ha using 1; ext t
-  simp only [Set.mem_setOf_eq, Set.mem_union, Set.mem_Ioi, Set.mem_Iio, lt_abs, lt_neg]
+  simp only [mem_setOf_eq, mem_union, mem_Ioi, mem_Iio, lt_abs, lt_neg]
 
 /-%%
 \begin{lemma}[ZetaInvBound2]\label{ZetaInvBound2}\lean{ZetaInvBound2}\leanok
@@ -1283,13 +1283,13 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (t_ne_zero : t ≠ 0) :
     apply DifferentiableAt.comp
     · exact (diff s).restrictScalars ℝ
     · exact DifferentiableAt.add_const (c := t * I) <| differentiableAt_ofReal _
-  · apply ContinuousOn.comp (g := deriv ζ) ?_ ?_ (Set.mapsTo_image _ _)
+  · apply ContinuousOn.comp (g := deriv ζ) ?_ ?_ (mapsTo_image _ _)
     · apply HasDerivAt.continuousOn (f' := deriv <| deriv ζ)
       intro x hx
       apply hasDerivAt_deriv_iff.mpr
       replace hx : x ≠ 1 := by
         contrapose! hx
-        simp only [hx, Set.mem_image, Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im,
+        simp only [hx, mem_image, Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im,
           I_im, mul_one, sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im, not_exists,
           not_and]
         exact fun _ _ _ ↦ t_ne_zero
@@ -1299,7 +1299,7 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (t_ne_zero : t ≠ 0) :
         simp [hr]
       · filter_upwards [compl_singleton_mem_nhds hx] with z hz
         apply differentiableAt_riemannZeta
-        simpa [Set.mem_compl_iff, Set.mem_singleton_iff] using hz
+        simpa [mem_compl_iff, mem_singleton_iff] using hz
     · exact ContinuousOn.add continuous_ofReal.continuousOn continuousOn_const
 /-%%
 \begin{proof}\leanok
@@ -1328,7 +1328,7 @@ lemma Zeta_diff_Bnd :
   rw [← Zeta_eq_int_derivZeta t_ne_zero]
   convert intervalIntegral.norm_integral_le_of_norm_le_const ?_ using 1
   · congr; rw [_root_.abs_of_nonneg (by linarith)]
-  · intro σ hσ; rw [Set.uIoc_of_le σ₁_lt_σ₂.le, Set.mem_Ioc] at hσ
+  · intro σ hσ; rw [uIoc_of_le σ₁_lt_σ₂.le, mem_Ioc] at hσ
     exact hC σ t t_gt ⟨le_trans σ₁_ge hσ.1.le, le_trans hσ.2 σ₂_le⟩
 /-%%
 \begin{proof}
