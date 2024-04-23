@@ -824,8 +824,8 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_le_t : n ≤ t)
-    (σ_ge : (1 : ℝ) - A / Real.log |t| ≤ σ) :
+lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_le_t : n ≤ |t|)
+    (σ_ge : (1 : ℝ) - A / |t|.log ≤ σ) :
     ‖(n : ℂ) ^ (-(σ + t * I))‖ ≤ (n : ℝ)⁻¹ * Real.exp A := by
   set s := σ + t * I
   by_cases n0 : n = 0
@@ -847,9 +847,9 @@ lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_l
     rw [neg_sub, neg_le_sub_iff_le_add, add_comm, ← Real.log_abs]; linarith
   · simp only [neg_sub, le_neg_add_iff_add_le]
     ring_nf
-    conv => rw [mul_comm, ← mul_assoc]; rhs; rw [← one_mul A]
+    conv => rw [mul_comm, ← mul_assoc, ← Real.log_abs]; rhs; rw [← one_mul A]
     gcongr
-    by_cases ht1 : t = 1; simp [ht1]
+    by_cases ht1 : |t| = 1; simp [ht1]
     apply (inv_mul_le_iff ?_).mpr; convert Real.log_le_log n_gt_0' n_le_t using 1; rw [mul_one]
     exact Real.log_pos <| lt_of_le_of_ne (le_trans n_ge_1 n_le_t) <| fun t ↦ ht1 (t.symm)
 /-%%
