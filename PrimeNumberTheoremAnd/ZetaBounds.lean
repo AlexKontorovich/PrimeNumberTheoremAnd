@@ -934,9 +934,7 @@ lemma ZetaUpperBnd :
     (hσ : σ ∈ Icc (1 - A / |t|.log) 2), ‖ζ (σ + t * I)‖ ≤ C * |t|.log := by
   let A := (1 : ℝ) / 2
   have Apos : 0 < A := by norm_num
-  let C := (11 : ℝ)
-  have Cpos : 0 < C := by norm_num
-  refine ⟨A, Apos, C, Cpos, ?_⟩
+  refine ⟨A, Apos, A.exp * 11 + 1, (by positivity), ?_⟩
   intro σ t t_ge ⟨σ_ge, σ_le⟩
   set N := ⌊|t|⌋₊
   set s := σ + t * I
@@ -944,7 +942,7 @@ lemma ZetaUpperBnd :
   have N_le_t : N ≤ |t| := by exact Nat.floor_le <| abs_nonneg _
   obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
   rw [← Zeta0EqZeta (N := N) Npos (by simp [σPos]) neOne]
-  have bnd2: ‖∑ n in Finset.range N, (n : ℂ) ^ (-s)‖ ≤ A.exp * 5 * |t|.log := by
+  have bnd2: ‖∑ n in Finset.range N, (n : ℂ) ^ (-s)‖ ≤ A.exp * 11 * |t|.log := by
     have (n : ℕ) (hn : n ∈ Finset.range N) := ZetaBnd_aux2 (n := n) Apos σPos ?_ σ_ge
     · replace := norm_sum_le_of_le (Finset.range N) this
       rw [← Finset.sum_mul, mul_comm _ A.exp] at this
@@ -958,15 +956,15 @@ lemma ZetaUpperBnd :
     _ ≤ ‖∑ n in Finset.range N, 1 / (n : ℂ) ^ s‖ + ‖(- N ^ (1 - s)) / (1 - s)‖ +
       ‖(-(N : ℂ) ^ (-s)) / 2‖ +
       ‖s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := by apply norm_add₄_le
-    _ ≤ A.exp * 5 * |t|.log + ‖(- N ^ (1 - s)) / (1 - s)‖ + ‖(-(N : ℂ) ^ (-s)) / 2‖ +
+    _ ≤ A.exp * 11 * |t|.log + ‖(- N ^ (1 - s)) / (1 - s)‖ + ‖(-(N : ℂ) ^ (-s)) / 2‖ +
       ‖s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := ?_
-    _ ≤ A.exp * 5 * |t|.log + ‖(- N ^ (1 - s)) / (1 - s)‖ + ‖(-(N : ℂ) ^ (-s)) / 2‖ +
+    _ ≤ A.exp * 11 * |t|.log + ‖(- N ^ (1 - s)) / (1 - s)‖ + ‖(-(N : ℂ) ^ (-s)) / 2‖ +
       |t| * ↑N ^ (-σ) / σ  := ?_
-    _ = A.exp * 5 * |t|.log + |(N : ℝ)| ^ (1 - σ) / ‖(1 - s)‖ + |(N : ℝ)| ^ (-σ) / 2 +
+    _ = A.exp * 11 * |t|.log + |(N : ℝ)| ^ (1 - σ) / ‖(1 - s)‖ + |(N : ℝ)| ^ (-σ) / 2 +
       |t| * ↑N ^ (-σ) / σ  := ?_
-    _ ≤ A.exp * 5 * |t|.log + |t| ^ (1 - σ) * 2 + |t| ^ (1 - σ) + |t| * |t| ^ (-σ) * 8 := ?_
-    _ = A.exp * 5 * |t|.log + 11 * |t| ^ (1 - σ) := ?_
-    _ ≤ 11 * (|t|.log + |t| ^ (1 - σ)) := ?_
+    _ ≤ A.exp * 11 * |t|.log + |t| ^ (1 - σ) * 2 + |t| ^ (1 - σ) + |t| * |t| ^ (-σ) * 8 := ?_
+    _ = A.exp * 11 * |t|.log + 11 * |t| ^ (1 - σ) := ?_
+    _ ≤ A.exp * 11 * |t|.log + 11 * A.exp := by simp [UpperBnd_aux2 Apos (by norm_num) t_ge σ_ge]
     _ ≤ _ := ?_
   · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]; exact bnd2
   · simp only [add_le_add_iff_left]
@@ -1021,13 +1019,10 @@ lemma ZetaUpperBnd :
   · have : A.exp < 2 := by
       -- Real.exp_half
       sorry
-    have : A.exp * 5 < 10 := by linarith
-    simp only [A] at this
-    simp only [mul_add]
-    apply add_le_add ?_ (by rfl)
-    apply mul_le_mul_right (by positivity) |>.mpr
-    linarith
-  · sorry
+    rw [add_mul]
+    simp only [one_mul, add_le_add_iff_left, ge_iff_le]
+    apply Real.le_log_iff_exp_le (by positivity) |>.mpr
+    sorry
 #exit
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
