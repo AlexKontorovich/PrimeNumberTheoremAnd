@@ -8,6 +8,7 @@ import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import PrimeNumberTheoremAnd.MellinCalculus
 import Mathlib.MeasureTheory.Function.Floor
 import Mathlib.Analysis.Complex.CauchyIntegral
+import Mathlib.NumberTheory.Harmonic.Bounds
 
 -- only importing the following for the MeasurableDiv₂ ℝ instance.
 -- should remove eventually
@@ -902,6 +903,10 @@ lemma UpperBnd_aux2 {A σ t: ℝ} (A_pos : 0 < A) (A_lt : A < 1) (t_ge : 3 < |t|
     ← mul_assoc, inv_mul_cancel, one_mul]
   apply Real.log_ne_zero.mpr; split_ands <;> linarith
 
+lemma riemannZeta0_zero_aux (N : ℕ) :
+   ∑ x in Finset.Ico 0 N, ((x : ℝ))⁻¹ = ∑ x in Finset.Ico 1 N, ((x : ℝ))⁻¹ := by
+  sorry
+
 lemma norm_add₄_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) :
     ‖a + b + c + d‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ := by
   apply le_trans <| norm_add_le (a + b + c) d
@@ -948,9 +953,17 @@ lemma ZetaUpperBnd :
       rw [← Finset.sum_mul, mul_comm _ A.exp] at this
       rw [mul_assoc]
       apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
-      -- harmonic_le_one_add_log
-      -- Real.tendsto_harmonic_sub_log
-      sorry
+      have : 1 + (N - 1: ℝ).log ≤ 11 * |t|.log := by
+        rw [(by ring : 11 * Real.log |t| = 10 * Real.log |t| + Real.log |t|)]
+        by_cases hN : N = 1
+        · simp only [hN, Nat.cast_one, sub_self, Real.log_zero, add_zero]; linarith
+        · replace hN : 0 < (N : ℝ) - 1 := by simp only [sub_pos, Nat.one_lt_cast]; omega
+          exact add_le_add (by linarith) <| Real.log_le_log hN (by linarith)
+      refine le_trans ?_ this
+      convert harmonic_eq_sum_Icc ▸ harmonic_le_one_add_log (N - 1)
+      · simp only [Rat.cast_sum, Rat.cast_inv, Rat.cast_natCast, Finset.range_eq_Ico]
+        rw [riemannZeta0_zero_aux N]; congr! 1
+      · rw [Nat.cast_pred Npos]
     · exact le_trans (Nat.cast_le.mpr (Finset.mem_range.mp hn).le) N_le_t
   calc
     _ ≤ ‖∑ n in Finset.range N, 1 / (n : ℂ) ^ s‖ + ‖(- N ^ (1 - s)) / (1 - s)‖ +
