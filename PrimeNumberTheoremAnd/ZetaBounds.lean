@@ -907,6 +907,28 @@ lemma riemannZeta0_zero_aux (N : ℕ) :
    ∑ x in Finset.Ico 0 N, ((x : ℝ))⁻¹ = ∑ x in Finset.Ico 1 N, ((x : ℝ))⁻¹ := by
   sorry
 
+lemma UpperBnd_aux3 {A σ t: ℝ} (Apos : 0 < A) (A_lt_one : A < 1) {N : ℕ} (Npos : 0 < N)
+    (σ_ge : 1 - A / Real.log |t| ≤ σ) (t_ge : 3 < |t|) (N_le_t : (N : ℝ) ≤ |t|) :
+     ‖∑ n in Finset.range N, (n : ℂ) ^ (-(σ + t * I))‖ ≤ A.exp * 11 * |t|.log := by
+  obtain ⟨logt_gt_one, _, σPos, _⟩ := UpperBnd_aux Apos A_lt_one t_ge σ_ge
+  have (n : ℕ) (hn : n ∈ Finset.range N) := ZetaBnd_aux2 (n := n) Apos σPos ?_ σ_ge
+  · replace := norm_sum_le_of_le (Finset.range N) this
+    rw [← Finset.sum_mul, mul_comm _ A.exp] at this
+    rw [mul_assoc]
+    apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
+    have : 1 + (N - 1: ℝ).log ≤ 11 * |t|.log := by
+      rw [(by ring : 11 * Real.log |t| = 10 * Real.log |t| + Real.log |t|)]
+      by_cases hN : N = 1
+      · simp only [hN, Nat.cast_one, sub_self, Real.log_zero, add_zero]; linarith
+      · replace hN : 0 < (N : ℝ) - 1 := by simp only [sub_pos, Nat.one_lt_cast]; omega
+        exact add_le_add (by linarith) <| Real.log_le_log hN (by linarith)
+    refine le_trans ?_ this
+    convert harmonic_eq_sum_Icc ▸ harmonic_le_one_add_log (N - 1)
+    · simp only [Rat.cast_sum, Rat.cast_inv, Rat.cast_natCast, Finset.range_eq_Ico]
+      rw [riemannZeta0_zero_aux N]; congr! 1
+    · rw [Nat.cast_pred Npos]
+  · exact le_trans (Nat.cast_le.mpr (Finset.mem_range.mp hn).le) N_le_t
+
 lemma norm_add₄_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) :
     ‖a + b + c + d‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ := by
   apply le_trans <| norm_add_le (a + b + c) d
@@ -947,24 +969,6 @@ lemma ZetaUpperBnd :
   have N_le_t : N ≤ |t| := by exact Nat.floor_le <| abs_nonneg _
   obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
   rw [← Zeta0EqZeta (N := N) Npos (by simp [σPos]) neOne]
-  have bnd2: ‖∑ n in Finset.range N, (n : ℂ) ^ (-s)‖ ≤ A.exp * 11 * |t|.log := by
-    have (n : ℕ) (hn : n ∈ Finset.range N) := ZetaBnd_aux2 (n := n) Apos σPos ?_ σ_ge
-    · replace := norm_sum_le_of_le (Finset.range N) this
-      rw [← Finset.sum_mul, mul_comm _ A.exp] at this
-      rw [mul_assoc]
-      apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
-      have : 1 + (N - 1: ℝ).log ≤ 11 * |t|.log := by
-        rw [(by ring : 11 * Real.log |t| = 10 * Real.log |t| + Real.log |t|)]
-        by_cases hN : N = 1
-        · simp only [hN, Nat.cast_one, sub_self, Real.log_zero, add_zero]; linarith
-        · replace hN : 0 < (N : ℝ) - 1 := by simp only [sub_pos, Nat.one_lt_cast]; omega
-          exact add_le_add (by linarith) <| Real.log_le_log hN (by linarith)
-      refine le_trans ?_ this
-      convert harmonic_eq_sum_Icc ▸ harmonic_le_one_add_log (N - 1)
-      · simp only [Rat.cast_sum, Rat.cast_inv, Rat.cast_natCast, Finset.range_eq_Ico]
-        rw [riemannZeta0_zero_aux N]; congr! 1
-      · rw [Nat.cast_pred Npos]
-    · exact le_trans (Nat.cast_le.mpr (Finset.mem_range.mp hn).le) N_le_t
   calc
     _ ≤ ‖∑ n in Finset.range N, 1 / (n : ℂ) ^ s‖ + ‖(- N ^ (1 - s)) / (1 - s)‖ +
       ‖(-(N : ℂ) ^ (-s)) / 2‖ +
@@ -979,7 +983,8 @@ lemma ZetaUpperBnd :
     _ = A.exp * 11 * |t|.log + 11 * |t| ^ (1 - σ) := ?_
     _ ≤ A.exp * 11 * |t|.log + 11 * A.exp := by simp [UpperBnd_aux2 Apos (by norm_num) t_ge σ_ge]
     _ ≤ _ := ?_
-  · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]; exact bnd2
+  · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]
+    exact UpperBnd_aux3 Apos (by norm_num) Npos σ_ge t_ge N_le_t
   · simp only [add_le_add_iff_left]
     have := @ZetaBnd_aux1 N (by linarith) σ ⟨σPos, σ_le⟩
     sorry
