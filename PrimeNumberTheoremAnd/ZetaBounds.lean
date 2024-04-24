@@ -995,7 +995,13 @@ lemma ZetaUpperBnd :
     · field_simp [norm_div, norm_neg, norm_eq_abs, RCLike.norm_ofNat, Nat.abs_cast]
       convert norm_natCast_cpow_of_pos Npos (-s); simp [s]
   · simp only [Nat.abs_cast]
-    have bnd3 : (|t| / ↑N) ^ σ ≤ 4 := by sorry
+    have bnd3 : (|t| / ↑N) ^ σ ≤ 4 := by
+      rw [(by norm_num : (4 : ℝ) = 2 ^ (2 : ℝ))]
+      refine le_trans ?_ <| Real.rpow_le_rpow_of_exponent_le (by norm_num) σ_le
+      refine Real.rpow_le_rpow (by positivity) ?_ (by linarith)
+      apply div_le_iff (by positivity) |>.mpr
+      suffices |t| < ↑N + 1 by linarith
+      apply Nat.lt_floor_add_one
     have bnd3' : (|t| / ↑N) ^ σ ≤ 2 * |t| := by linarith
       -- apply Real.rpow_le_one_of_le (by linarith) (by linarith)
       -- exact (div_le_iff (by linarith)).mpr (by linarith)
@@ -1041,7 +1047,6 @@ lemma ZetaUpperBnd :
     simp only [one_mul, add_le_add_iff_left, ge_iff_le]
     apply Real.le_log_iff_exp_le (by positivity) |>.mpr
     sorry
-#exit
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
