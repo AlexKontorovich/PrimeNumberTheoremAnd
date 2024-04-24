@@ -891,6 +891,17 @@ lemma UpperBnd_aux {A σ t: ℝ} (A_pos : 0 < A) (A_lt : A < 1) (t_ge : 3 < |t|)
     sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at t_ge
   norm_num [t_ge.2]
 
+lemma UpperBnd_aux2 {A σ t: ℝ} (A_pos : 0 < A) (A_lt : A < 1) (t_ge : 3 < |t|)
+      (σ_ge : 1 - A / |t|.log ≤ σ) :
+      |t| ^ (1 - σ) ≤ A.exp := by
+  have : |t| ^ (1 - σ) ≤ |t| ^ (A / |t|.log) :=
+    Real.rpow_le_rpow_of_exponent_le (by linarith) (by linarith)
+  apply le_trans this ?_
+  conv => lhs; lhs; rw [← Real.exp_log (by linarith : 0 < |t|)]
+  rw [div_eq_mul_inv, Real.rpow_mul (by positivity), ← Real.exp_mul, ← Real.exp_mul, mul_comm,
+    ← mul_assoc, inv_mul_cancel, one_mul]
+  apply Real.log_ne_zero.mpr; split_ands <;> linarith
+
 lemma norm_add₄_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) :
     ‖a + b + c + d‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ := by
   apply le_trans <| norm_add_le (a + b + c) d
