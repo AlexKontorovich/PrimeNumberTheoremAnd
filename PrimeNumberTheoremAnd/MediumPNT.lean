@@ -5,8 +5,9 @@ import PrimeNumberTheoremAnd.ZetaBounds
 import EulerProducts.PNT
 import Mathlib.Algebra.Function.Support
 
-open Set Function Filter Complex
+open Set Function Filter Complex Real
 
+local notation (name := mellintransform2) "𝓜" => MellinTransform
 open scoped ArithmeticFunction
 
 
@@ -54,7 +55,7 @@ X^{s}ds.$$
 %%-/
 noncomputable abbrev SmoothedChebyshevIntegrand (ψ : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ → ℂ :=
   fun s ↦ (- deriv riemannZeta s) / riemannZeta s *
-    (MellinTransform ((Smooth1 ψ ε) ·) s) * (X : ℂ) ^ s
+    𝓜 ((Smooth1 ψ ε) ·) s * (X : ℂ) ^ s
 
 noncomputable def SmoothedChebyshev (ψ : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
   VerticalIntegral' (SmoothedChebyshevIntegrand ψ ε X) 2
@@ -73,17 +74,17 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 �
   dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
   rw [MellinTransform_eq]
   calc
-    _ = 1 / (2 * Real.pi * I) * (I * ∫ (t : ℝ), ∑' n, Λ n / (n : ℂ) ^ (2 + ↑t * I) *
+    _ = 1 / (2 * π * I) * (I * ∫ (t : ℝ), ∑' n, Λ n / (n : ℂ) ^ (2 + ↑t * I) *
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
-    _ = 1 / (2 * Real.pi * I) * (I * ∑' n, ∫ (t : ℝ), Λ n / (n : ℂ) ^ (2 + ↑t * I) *
+    _ = 1 / (2 * π * I) * (I * ∑' n, ∫ (t : ℝ), Λ n / (n : ℂ) ^ (2 + ↑t * I) *
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
-    _ = 1 / (2 * Real.pi * I) * (I * ∑' n, Λ n * ∫ (t : ℝ),
+    _ = 1 / (2 * π * I) * (I * ∑' n, Λ n * ∫ (t : ℝ),
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
-    _ = 1 / (2 * Real.pi) * (∑' n, Λ n * ∫ (t : ℝ),
+    _ = 1 / (2 * π) * (∑' n, Λ n * ∫ (t : ℝ),
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
-    _ = ∑' n, Λ n * (1 / (2 * Real.pi) * ∫ (t : ℝ),
+    _ = ∑' n, Λ n * (1 / (2 * π) * ∫ (t : ℝ),
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
-    _ = ∑' n, Λ n * (1 / (2 * Real.pi) * ∫ (t : ℝ),
+    _ = ∑' n, Λ n * (1 / (2 * π) * ∫ (t : ℝ),
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * ((n : ℂ) / X) ^ (-(2 + ↑t * I))) := ?_
     _ = _ := ?_
   · congr; ext t
@@ -92,11 +93,11 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 �
   · congr
     rw [← MellinTransform_eq]
     have := @MellinOfSmooth1b ψ diffΨ suppΨ 2 2 (by norm_num) ε εpos
-    simp_rw [← norm_eq_abs, Asymptotics.isBigO_iff] at this
+    simp_rw [Asymptotics.isBigO_iff] at this
     obtain ⟨c, hc⟩ := this
-    simp only [norm_eq_abs, Real.norm_eq_abs, Complex.abs_abs, one_div, mul_inv_rev, norm_mul,
+    simp only [Real.norm_eq_abs, Complex.abs_abs, one_div, mul_inv_rev, norm_mul,
       norm_inv, norm_pow, eventually_principal, mem_setOf_eq, and_imp] at hc
-    simp_rw [← norm_eq_abs] at hc
+    simp only [Complex.norm_eq_abs, Complex.abs_abs] at hc
     replace hc (t : ℝ) := hc (2 + t * I) (by simp) (by simp)
     sorry
   · field_simp; congr; ext n; congr; rw [← MeasureTheory.integral_mul_left ]; congr; ext t
@@ -129,7 +130,7 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 �
     have n_pos : 0 < n := by
       simpa only [n_zero, gt_iff_lt, false_or] using (Nat.eq_zero_or_pos n)
     congr
-    rw [(by rw [div_mul]; simp : 1 / (2 * Real.pi) = 1 / (2 * Real.pi * I) * I), mul_assoc]
+    rw [(by rw [div_mul]; simp : 1 / (2 * π) = 1 / (2 * π * I) * I), mul_assoc]
     conv => lhs; rhs; rhs; rhs; intro t; rw [mul_comm]; norm_cast
     have := MellinInversion 2 (f := fun x ↦ (Smooth1 ψ ε x : ℂ)) (x := n / X)
       (by simp [n_pos, X_pos]) ?_ ?_ ?_
@@ -187,7 +188,7 @@ $$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X \log X).$$
 lemma SmoothedChebyshevClose {ψ : ℝ → ℝ} (ε : ℝ) (ε_pos: 0 < ε)
     (suppΨ : Function.support ψ ⊆ Icc (1 / 2) 2) (Ψnonneg : ∀ x > 0, 0 ≤ ψ x)
     (mass_one : ∫ x in Ioi 0, ψ x / x = 1) (X : ℝ) :
-    (fun X ↦ Complex.abs (SmoothedChebyshev ψ ε X - ChebyshevPsi X)) =O[atTop]
+    (fun X ↦ ‖SmoothedChebyshev ψ ε X - ChebyshevPsi X‖) =O[atTop]
       (fun X ↦ ε * X * Real.log X) := by
   sorry
 /-%%
