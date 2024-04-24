@@ -24,6 +24,17 @@ lemma one_div_cpow_eq_cpow_neg (x s : ℂ) : 1 / x ^ s = x ^ (-s) := by
 
 lemma div_rpow_eq_rpow_neg (a x s : ℝ) (hx : 0 ≤ x): a / x ^ s = a * x ^ (-s) := by
   rw [div_eq_mul_inv, Real.rpow_neg hx]
+-- ↑N ^ (1 - σ) / |t| ^ (1 - σ)
+lemma div_rpow_eq_rpow_div_neg {x y s : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
+    x ^ s / y ^ s = (y / x) ^ (-s) := by
+  rw [Real.div_rpow hy hx]
+  sorry
+  -- , ← Real.div_rpow]
+  -- field_simp
+  -- rw [div_eq_mul_inv, Real.rpow_neg (by positivity), Real.div_rpow]
+  -- apply?
+-- a * x ^ (-s) := by
+  -- rw [div_eq_mul_inv, Real.rpow_neg hx]
 
 /-%%
 \begin{definition}[RiemannZeta0]\label{RiemannZeta0}\lean{RiemannZeta0}\leanok
@@ -912,7 +923,9 @@ lemma ZetaUpperBnd :
     (hσ : σ ∈ Icc (1 - A / |t|.log) 2), ‖ζ (σ + t * I)‖ ≤ C * |t|.log := by
   let A := (1 : ℝ) / 2
   have Apos : 0 < A := by norm_num
-  refine ⟨A, Apos, 10, by norm_num, ?_⟩
+  let C := (11 : ℝ)
+  have Cpos : 0 < C := by norm_num
+  refine ⟨A, Apos, C, Cpos, ?_⟩
   intro σ t t_ge ⟨σ_ge, σ_le⟩
   set N := ⌊|t|⌋₊
   set s := σ + t * I
@@ -940,8 +953,9 @@ lemma ZetaUpperBnd :
       |t| * ↑N ^ (-σ) / σ  := ?_
     _ = A.exp * 5 * |t|.log + |(N : ℝ)| ^ (1 - σ) / ‖(1 - s)‖ + |(N : ℝ)| ^ (-σ) / 2 +
       |t| * ↑N ^ (-σ) / σ  := ?_
-    _ ≤ A.exp * 5 * |t|.log + |t| ^ (1 - σ) * 2 + |t| ^ (1 - σ) + |t| * |t| ^ (-σ) * 2 := ?_
-    _ = A.exp * 5 * |t|.log + 5 * |t| ^ (1 - σ) := ?_
+    _ ≤ A.exp * 5 * |t|.log + |t| ^ (1 - σ) * 2 + |t| ^ (1 - σ) + |t| * |t| ^ (-σ) * 8 := ?_
+    _ = A.exp * 5 * |t|.log + 11 * |t| ^ (1 - σ) := ?_
+    _ ≤ 11 * (|t|.log + |t| ^ (1 - σ)) := ?_
     _ ≤ _ := ?_
   · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]; exact bnd2
   · simp only [add_le_add_iff_left]
@@ -954,21 +968,56 @@ lemma ZetaUpperBnd :
     · field_simp [norm_div, norm_neg, norm_eq_abs, RCLike.norm_ofNat, Nat.abs_cast]
       convert norm_natCast_cpow_of_pos Npos (-s); simp [s]
   · simp only [Nat.abs_cast]
+    have bnd3 : (|t| / ↑N) ^ σ ≤ 4 := by sorry
+    have bnd3' : (|t| / ↑N) ^ σ ≤ 2 * |t| := by linarith
+      -- apply Real.rpow_le_one_of_le (by linarith) (by linarith)
+      -- exact (div_le_iff (by linarith)).mpr (by linarith)
     apply add_le_add_le_add_le_add le_rfl ?_ ?_ ?_
-    · have : 0 < ‖1 - s‖ := norm_pos_iff.mpr <| sub_ne_zero_of_ne neOne.symm
-      apply (div_le_iff this).mpr
-      conv => rw [mul_assoc]; lhs; rw [← mul_one ((N : ℝ) ^ (1 - σ))]
-      apply mul_le_mul ?_ ?_ (by norm_num) (by apply Real.rpow_nonneg (by linarith))
-      · by_cases hσ: 1 < σ
-        · sorry
-          -- apply Real.rpow_le_rpow_iff_of_neg ?_ ?_ ?_ |>.mpr
-          -- (by simp [Npos]) (abs_nonneg _)
-        · apply Real.rpow_le_rpow (by linarith) (by linarith) (by simpa using hσ)
-      · sorry
-    · sorry
-    · sorry
+    · apply (div_le_iff <| norm_pos_iff.mpr <| sub_ne_zero_of_ne neOne.symm).mpr
+      conv => rw [mul_assoc]; rhs; rw [mul_comm]
+      apply (div_le_iff <| Real.rpow_pos_of_pos (by linarith) _).mp
+      rw [div_rpow_eq_rpow_div_neg (by positivity) (by positivity)]
+      simp only [neg_sub]
+      have : (|t| / ↑N) ^ (σ - 1) ≤ 2 * |t| := by
+        refine le_trans ?_ bnd3'
+        exact Real.rpow_le_rpow_of_exponent_le (one_le_div (by positivity) |>.mpr N_le_t) (by simp)
+      refine le_trans this <| (mul_le_mul_left (by norm_num)).mpr ?_
+      convert Complex.abs_im_le_abs (1 - (σ + t * I)) using 1; simp
+      -- simp only [norm_eq_abs, gt_iff_lt, Nat.ofNat_pos, mul_le_mul_left]
+      -- apply div_le_iff' (by norm_num) |>.mp
+      -- refine le_trans (by linarith : (4 / 2) ≤ |t|) ?_
+    · apply div_le_iff (by norm_num) |>.mpr
+      -- rw [Real.rpow_one_sub', div_mul_eq_mul_div, mul_comm]
+      rw [Real.rpow_sub (by linarith), Real.rpow_one, div_mul_eq_mul_div, mul_comm]
+      apply div_le_iff (by positivity) |>.mp
+      convert bnd3' using 1
+      simp only [div_inv_eq_mul]
+      -- field_simp
+      -- ring_nf
+      sorry
+    · rw [mul_assoc, mul_div_assoc]
+      apply (mul_le_mul_left (by linarith)).mpr
+      apply div_le_iff (by positivity) |>.mpr
+      rw [mul_assoc]
+      apply div_le_iff' (by positivity) |>.mp
+      simp only [A] at σ_gt
+      have : 4 ≤ 8 * σ := by linarith
+      apply le_trans ?_ this
+      convert bnd3 using 1
+      sorry
+  · conv => lhs; rhs; rw [mul_comm |t|, ← Real.rpow_add_one (by positivity)]
+    ring_nf
+  · have : A.exp < 2 := by
+      -- Real.exp_half
+      sorry
+    have : A.exp * 5 < 10 := by linarith
+    simp only [A] at this
+    simp only [mul_add]
+    apply add_le_add ?_ (by rfl)
+    apply mul_le_mul_right (by positivity) |>.mpr
+    linarith
   · sorry
-  · sorry
+#exit
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
