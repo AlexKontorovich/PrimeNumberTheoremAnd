@@ -1,4 +1,5 @@
 \usepackage{amsmath, amsthm}
+\usepackage{hyperref}
 
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
@@ -23,22 +24,22 @@
 
 \chapter{The project}
 
-The project github page is https://github.com/AlexKontorovich/PrimeNumberTheoremAnd.
+The project github page is \url{https://github.com/AlexKontorovich/PrimeNumberTheoremAnd}.
 
-The project docs page is https://alexkontorovich.github.io/PrimeNumberTheoremAnd/docs.
+The project docs page is \url{https://alexkontorovich.github.io/PrimeNumberTheoremAnd/docs}.
 
 The first main goal is to prove the Prime Number Theorem in Lean.
 (This remains one of the outstanding problems on Wiedijk's list of 100 theorems to formalize.)
 Note that PNT has been formalized before, first by Avigad et al in Isabelle,
-https://arxiv.org/abs/cs/0509025
+\url{https://arxiv.org/abs/cs/0509025}
 following the Selberg / Erdos method, then
 by Harrison in HOL Light
-https://www.cl.cam.ac.uk/$\sim$jrh13/papers/mikefest.html
+\url{https://www.cl.cam.ac.uk/$\sim$jrh13/papers/mikefest.html}
 via Newman's proof.
 Carniero gave another formalization in Metamath of the Selberg / Erdos method:
-https://arxiv.org/abs/1608.02029,
+\url{https://arxiv.org/abs/1608.02029},
 and Eberl-Paulson gave a formalization of Newman's proof in Isabelle:
-https://www.isa-afp.org/entries/Prime\_Number\_Theorem.html
+\url{https://www.isa-afp.org/entries/Prime\_Number\_Theorem.html}
 
 Continuations of this project aim to extend
 this work to primes in progressions (Dirichlet's theorem), Chebotarev's density theorem, etc
@@ -54,7 +55,7 @@ The third approach, which will be the most general of the three, is to: (1) deve
 
 A word about the expected ``rate-limiting-steps'' in each of the approaches.
 
-(*) In approach (1), I think it will be the fact that the Fourier transform is a bijection on the Schwartz class. There is a recent PR (https://github.com/leanprover-community/mathlib4/pull/9773) with David Loeffler and Heather Macbeth making the first steps in that direction, just computing the (Frechet) derivative of the Fourier transform. One will need to iterate on that to get arbitrary derivatives, to conclude that the transform of a Schwartz function is Schwartz. Then to get the bijection, we need an inversion formula. We can derive Fourier inversion *from* Mellin inversion! So it seems that the most important thing to start is Perron's formula.
+(*) In approach (1), I think it will be the fact that the Fourier transform is a bijection on the Schwartz class. There is a recent PR (\url{https://github.com/leanprover-community/mathlib4/pull/9773}) with David Loeffler and Heather Macbeth making the first steps in that direction, just computing the (Frechet) derivative of the Fourier transform. One will need to iterate on that to get arbitrary derivatives, to conclude that the transform of a Schwartz function is Schwartz. Then to get the bijection, we need an inversion formula. We can derive Fourier inversion *from* Mellin inversion! So it seems that the most important thing to start is Perron's formula.
 
 (*) In approach (2), there are two rate-limiting-steps, neither too serious (in my estimation). The first is how to handle meromorphic functions on rectangles. Perhaps in this project, it should not be done in any generality, but on a case by case basis. There are two simple poles whose residues need to be computed in the proof of the Perron formula, and one simple pole in the log-derivative of zeta, nothing too complicated, and maybe we shouldn't get bogged down in the general case. The other is the fact that the $\epsilon$-smoothed Chebyshev function differs from the unsmoothed by $\epsilon X$ (and not $\epsilon X \log X$, as follows from a trivial bound). This needs a Brun-Titchmarsh type theorem, perhaps can be done even more easily in this case with a Selberg sieve, on which there is (partial?) progress in Mathlib.
 
