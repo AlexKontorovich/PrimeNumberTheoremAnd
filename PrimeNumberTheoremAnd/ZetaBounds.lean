@@ -967,6 +967,31 @@ lemma UpperBnd_aux5 {σ t : ℝ}  (t_ge : 3 < |t|) (σ_le : σ ≤ 2) : (|t| / �
   refine le_trans₄ (c := 2 ^ 2) ?_ (Real.rpow_le_rpow (by linarith) h₂ (by norm_num)) (by norm_num)
   exact (Real.rpow_le_rpow_of_exponent_le h₁ σ_le)
 
+lemma UpperBnd_aux6 {σ t : ℝ} (t_ge : 3 < |t|) (σ_gt : 1 / 2 < σ) (σ_le : σ ≤ 2)
+  (neOne : σ + t * I ≠ 1) (Npos : 0 < ⌊|t|⌋₊) (N_le_t : ⌊|t|⌋₊ ≤ |t|) :
+    ⌊|t|⌋₊ ^ (1 - σ) / ‖1 - (σ + t * I)‖ ≤ |t| ^ (1 - σ) * 2 ∧
+    ⌊|t|⌋₊ ^ (-σ) / 2 ≤ |t| ^ (1 - σ) ∧ ⌊|t|⌋₊ ^ (-σ) / σ ≤ 8 * |t| ^ (-σ) := by
+  have bnd := UpperBnd_aux5 t_ge σ_le
+  have bnd' : (|t| / ⌊|t|⌋₊) ^ σ ≤ 2 * |t| := by linarith
+  split_ands
+  · apply (div_le_iff <| norm_pos_iff.mpr <| sub_ne_zero_of_ne neOne.symm).mpr
+    conv => rw [mul_assoc]; rhs; rw [mul_comm]
+    apply (div_le_iff <| Real.rpow_pos_of_pos (by linarith) _).mp
+    rw [div_rpow_eq_rpow_div_neg (by positivity) (by positivity), neg_sub]
+    refine le_trans₄ ?_ bnd' ?_
+    · exact Real.rpow_le_rpow_of_exponent_le (one_le_div (by positivity) |>.mpr N_le_t) (by simp)
+    · apply (mul_le_mul_left (by norm_num)).mpr; simpa using abs_im_le_abs (1 - (σ + t * I))
+  · apply div_le_iff (by norm_num) |>.mpr
+    rw [Real.rpow_sub (by linarith), Real.rpow_one, div_mul_eq_mul_div, mul_comm]
+    apply div_le_iff (by positivity) |>.mp
+    convert bnd' using 1
+    rw [← Real.rpow_neg (by linarith), div_rpow_neg_eq_rpow_div (by positivity) (by positivity)]
+  · apply div_le_iff (by positivity) |>.mpr
+    rw [mul_assoc, mul_comm, mul_assoc]
+    apply div_le_iff' (by positivity) |>.mp
+    apply le_trans ?_ (by linarith : 4 ≤ σ * 8)
+    convert bnd using 1; exact div_rpow_neg_eq_rpow_div (by positivity) (by positivity)
+
 lemma norm_add₄_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) :
     ‖a + b + c + d‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ := by
   apply le_trans <| norm_add_le (a + b + c) d
@@ -1007,7 +1032,7 @@ lemma ZetaUpperBnd :
   have Npos : 0 < N := Nat.floor_pos.mpr (by linarith)
   have N_le_t : N ≤ |t| := Nat.floor_le <| abs_nonneg _
   obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge' σ_ge
-  simp only [A] at σ_gt
+  norm_num [A] at σ_gt
   rw [← Zeta0EqZeta (N := N) Npos (by simp [σPos]) neOne]
   set s := σ + t * I
   calc
@@ -1036,28 +1061,10 @@ lemma ZetaUpperBnd :
     · field_simp [norm_div, norm_neg, norm_eq_abs, RCLike.norm_ofNat, Nat.abs_cast]
       convert norm_natCast_cpow_of_pos Npos (-s); simp [s]
   · simp only [Nat.abs_cast]
-    have bnd := UpperBnd_aux5 t_ge' σ_le
-    have bnd' : (|t| / ↑N) ^ σ ≤ 2 * |t| := by linarith
-    apply add_le_add_le_add_le_add le_rfl ?_ ?_ ?_
-    · apply (div_le_iff <| norm_pos_iff.mpr <| sub_ne_zero_of_ne neOne.symm).mpr
-      conv => rw [mul_assoc]; rhs; rw [mul_comm]
-      apply (div_le_iff <| Real.rpow_pos_of_pos (by linarith) _).mp
-      rw [div_rpow_eq_rpow_div_neg (by positivity) (by positivity), neg_sub]
-      refine le_trans₄ ?_ bnd' ?_
-      · exact Real.rpow_le_rpow_of_exponent_le (one_le_div (by positivity) |>.mpr N_le_t) (by simp)
-      · apply (mul_le_mul_left (by norm_num)).mpr; simpa using abs_im_le_abs (1 - (σ + t * I))
-    · apply div_le_iff (by norm_num) |>.mpr
-      rw [Real.rpow_sub (by linarith), Real.rpow_one, div_mul_eq_mul_div, mul_comm]
-      apply div_le_iff (by positivity) |>.mp
-      convert bnd' using 1
-      rw [← Real.rpow_neg (by linarith), div_rpow_neg_eq_rpow_div (by positivity) (by positivity)]
-    · rw [mul_div_assoc]
-      apply mul_le_mul_left (mul_pos (by norm_num [C_aux1]) (by positivity)) |>.mpr
-      apply div_le_iff (by positivity) |>.mpr
-      rw [mul_assoc, mul_comm, mul_assoc]
-      apply div_le_iff' (by positivity) |>.mp
-      apply le_trans ?_ (by linarith : 4 ≤ σ * 8)
-      convert bnd using 1; exact div_rpow_neg_eq_rpow_div (by positivity) (by positivity)
+    have ⟨h₁, h₂, h₃⟩ := UpperBnd_aux6 t_ge' σ_gt σ_le neOne Npos N_le_t
+    refine add_le_add_le_add_le_add le_rfl h₁ h₂ ?_
+    rw [mul_div_assoc]
+    exact mul_le_mul_left (mul_pos (by norm_num [C_aux1]) (by positivity)) |>.mpr h₃
   · ring_nf; conv => lhs; rhs; lhs; rw [mul_assoc, mul_comm |t|]
     rw [← Real.rpow_add_one (by positivity)]; ring_nf
   · simp only [Real.log_abs, add_le_add_iff_left, mul_one]
