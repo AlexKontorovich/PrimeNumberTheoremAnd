@@ -907,9 +907,24 @@ lemma UpperBnd_aux2 {A σ t: ℝ} (A_pos : 0 < A) (A_lt : A < 1) (t_ge : 3 < |t|
     ← mul_assoc, inv_mul_cancel, one_mul]
   apply Real.log_ne_zero.mpr; split_ands <;> linarith
 
-lemma riemannZeta0_zero_aux (N : ℕ) :
-   ∑ x in Finset.Ico 0 N, ((x : ℝ))⁻¹ = ∑ x in Finset.Ico 1 N, ((x : ℝ))⁻¹ := by
-  sorry
+lemma riemannZeta0_zero_aux (N : ℕ) (Npos : 0 < N):
+    ∑ x in Finset.Ico 0 N, ((x : ℝ))⁻¹ = ∑ x in Finset.Ico 1 N, ((x : ℝ))⁻¹ := by
+  have : Finset.Ico 1 N ⊆ Finset.Ico 0 N := by
+    intro x hx
+    simp only [Finset.mem_Ico, Nat.Ico_zero_eq_range, Finset.mem_range] at hx ⊢
+    exact hx.2
+  rw [← Finset.sum_sdiff (s₁ := Finset.Ico 1 N) (s₂ := Finset.Ico 0 N) this]
+  have : Finset.Ico 0 N \ Finset.Ico 1 N = Finset.range 1 := by
+    ext a
+    simp only [Nat.Ico_zero_eq_range, Finset.mem_sdiff, Finset.mem_range, Finset.mem_Ico, not_and,
+      not_lt, Finset.range_one, Finset.mem_singleton]
+    constructor
+    · intro ⟨ha₁, ha₂⟩; omega
+    · intro ha
+      constructor
+      · simp [ha, Npos]
+      · omega
+  rw [this]; simp
 
 lemma UpperBnd_aux3 {A C σ t : ℝ} (Apos : 0 < A) (A_lt_one : A < 1) {N : ℕ} (Npos : 0 < N)
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (t_ge : 3 < |t|) (N_le_t : (N : ℝ) ≤ |t|) (hC : 2 ≤ C) :
@@ -934,7 +949,7 @@ lemma UpperBnd_aux3 {A C σ t : ℝ} (Apos : 0 < A) (A_lt_one : A < 1) {N : ℕ}
   refine le_trans ?_ this
   convert harmonic_eq_sum_Icc ▸ harmonic_le_one_add_log (N - 1)
   · simp only [Rat.cast_sum, Rat.cast_inv, Rat.cast_natCast, Finset.range_eq_Ico]
-    rw [riemannZeta0_zero_aux N]; congr! 1
+    rw [riemannZeta0_zero_aux N Npos]; congr! 1
   · rw [Nat.cast_pred Npos]
 
 lemma norm_add₄_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) :
