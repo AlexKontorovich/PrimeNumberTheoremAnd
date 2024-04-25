@@ -995,7 +995,7 @@ as $|t|\to\infty$.
 %%-/
 lemma ZetaUpperBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_ge : ct_aux1 < |t|)
-    (hσ : σ ∈ Icc (1 - A / |t|.log) 2), ‖ζ (σ + t * I)‖ ≤ C * |t|.log := by
+    (_ : σ ∈ Icc (1 - A / |t|.log) 2), ‖ζ (σ + t * I)‖ ≤ C * |t|.log := by
   let A := (1 : ℝ) / 2
   have Apos : 0 < A := by norm_num
   let C := A.exp * (5 + 8 * C_aux1)
@@ -1003,11 +1003,12 @@ lemma ZetaUpperBnd :
   intro σ t t_ge ⟨σ_ge, σ_le⟩
   have t_ge' : 3 < |t| := lt_trans (by norm_num [ct_aux1]) t_ge
   set N := ⌊|t|⌋₊
-  set s := σ + t * I
   have Npos : 0 < N := Nat.floor_pos.mpr (by linarith)
-  have N_le_t : N ≤ |t| := by exact Nat.floor_le <| abs_nonneg _
+  have N_le_t : N ≤ |t| := Nat.floor_le <| abs_nonneg _
   obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge' σ_ge
+  simp only [A] at σ_gt
   rw [← Zeta0EqZeta (N := N) Npos (by simp [σPos]) neOne]
+  set s := σ + t * I
   calc
     _ ≤ ‖∑ n in Finset.range N, 1 / (n : ℂ) ^ s‖ + ‖(- N ^ (1 - s)) / (1 - s)‖ +
       ‖(-(N : ℂ) ^ (-s)) / 2‖ +
@@ -1026,8 +1027,7 @@ lemma ZetaUpperBnd :
     _ = _ := by ring
   · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]
     convert UpperBnd_aux3 (C := 2) Apos (by norm_num) Npos σ_ge t_ge' N_le_t le_rfl
-  · simp only [add_le_add_iff_left]
-    exact ZetaBnd_aux1 N (by linarith) ⟨σPos, σ_le⟩ t t_ge
+  · simp only [add_le_add_iff_left]; exact ZetaBnd_aux1 N (by linarith) ⟨σPos, σ_le⟩ t t_ge
   · simp only [add_left_inj]
     congr
     · simp only [norm_div, norm_neg, norm_eq_abs, Nat.abs_cast]
@@ -1052,17 +1052,15 @@ lemma ZetaUpperBnd :
       rw [Real.rpow_sub (by linarith), Real.rpow_one, div_mul_eq_mul_div, mul_comm]
       apply div_le_iff (by positivity) |>.mp
       convert bnd' using 1
-      simp only [div_inv_eq_mul]
-      sorry
+      rw [← Real.rpow_neg (by linarith), div_rpow_neg_eq_rpow_div (by positivity) (by positivity)]
     · rw [mul_div_assoc]
       apply mul_le_mul_left (mul_pos (by norm_num [C_aux1]) (by positivity)) |>.mpr
       apply div_le_iff (by positivity) |>.mpr
       rw [mul_assoc, mul_comm, mul_assoc]
       apply div_le_iff' (by positivity) |>.mp
-      simp only [A] at σ_gt
       apply le_trans ?_ (by linarith : 4 ≤ σ * 8)
       convert bnd using 1
-      sorry
+      exact div_rpow_neg_eq_rpow_div (by positivity) (by positivity)
   · ring_nf; conv => lhs; rhs; lhs; rw [mul_assoc, mul_comm |t|]
     rw [← Real.rpow_add_one (by positivity)]; ring_nf
   · simp only [Real.log_abs, add_le_add_iff_left, mul_one]
