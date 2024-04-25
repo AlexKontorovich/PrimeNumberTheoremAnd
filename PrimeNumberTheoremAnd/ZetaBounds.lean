@@ -954,10 +954,12 @@ lemma add_le_add_le_add_le_add {α : Type*} [Add α] [Preorder α]
     {a b c d e f g h : α} (h₁ : a ≤ b) (h₂ : c ≤ d) (h₃ : e ≤ f) (h₄ : g ≤ h) :
     a + c + e + g ≤ b + d + f + h:= add_le_add (add_le_add_le_add h₁ h₂ h₃) h₄
 
+lemma exp_one_half_estimate : Real.exp (1 / 2) ∈ Ioo 1 2 := by sorry
+
 /-%%
 \begin{lemma}[ZetaUpperBnd]\label{ZetaUpperBnd}\lean{ZetaUpperBnd}\leanok
 For any $s\in \C$, $1/2 \le \Re(s)=\sigma\le 2$,
-and any $A>0$ sufficiently small, and $1-A/\log t \le \sigma$, we have
+and any $0 < A < 1$ sufficiently small, and $1-A/\log |t| \le \sigma$, we have
 $$
 |\zeta(s)| \ll \log t,
 $$
@@ -969,7 +971,11 @@ lemma ZetaUpperBnd :
     (hσ : σ ∈ Icc (1 - A / |t|.log) 2), ‖ζ (σ + t * I)‖ ≤ C * |t|.log := by
   let A := (1 : ℝ) / 2
   have Apos : 0 < A := by norm_num
-  refine ⟨A, Apos, A.exp * 11 + 1, (by positivity), ?_⟩
+  -- let C' := (3 + 8 * C_aux1)
+  let C := A.exp * (5 + 8 * C_aux1)
+  -- have hC : 2 < C := by simp only [A, C, C_aux1]; norm_num; linarith [exp_one_half_estimate.1]
+  -- have hC : 2 < (3 + 8 * C_aux1) := by norm_num [C, C_aux1]
+  refine ⟨A, Apos, C, (by positivity), ?_⟩
   intro σ t t_ge ⟨σ_ge, σ_le⟩
   have t_ge' : 3 < |t| := lt_trans (by norm_num [ct_aux1]) t_ge
   set N := ⌊|t|⌋₊
@@ -982,21 +988,22 @@ lemma ZetaUpperBnd :
     _ ≤ ‖∑ n in Finset.range N, 1 / (n : ℂ) ^ s‖ + ‖(- N ^ (1 - s)) / (1 - s)‖ +
       ‖(-(N : ℂ) ^ (-s)) / 2‖ +
       ‖s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := by apply norm_add₄_le
-    _ ≤ A.exp * 11 * |t|.log + ‖(- N ^ (1 - s)) / (1 - s)‖ + ‖(-(N : ℂ) ^ (-s)) / 2‖ +
+    _ ≤ A.exp * 2 * |t|.log + ‖(- N ^ (1 - s)) / (1 - s)‖ + ‖(-(N : ℂ) ^ (-s)) / 2‖ +
       ‖s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := ?_
-    _ ≤ A.exp * 11 * |t|.log + ‖(- N ^ (1 - s)) / (1 - s)‖ + ‖(-(N : ℂ) ^ (-s)) / 2‖ +
-      |t| * ↑N ^ (-σ) / σ  := ?_
-    _ = A.exp * 11 * |t|.log + |(N : ℝ)| ^ (1 - σ) / ‖(1 - s)‖ + |(N : ℝ)| ^ (-σ) / 2 +
-      |t| * ↑N ^ (-σ) / σ  := ?_
-    _ ≤ A.exp * 11 * |t|.log + |t| ^ (1 - σ) * 2 + |t| ^ (1 - σ) + |t| * |t| ^ (-σ) * 8 := ?_
-    _ = A.exp * 11 * |t|.log + 11 * |t| ^ (1 - σ) := ?_
-    _ ≤ A.exp * 11 * |t|.log + 11 * A.exp := by simp [UpperBnd_aux2 Apos (by norm_num) t_ge σ_ge]
-    _ ≤ _ := ?_
+    _ ≤ A.exp * 2 * |t|.log + ‖(- N ^ (1 - s)) / (1 - s)‖ + ‖(-(N : ℂ) ^ (-s)) / 2‖ +
+      C_aux1 * |t| * ↑N ^ (-σ) / σ  := ?_
+    _ = A.exp * 2 * |t|.log + |(N : ℝ)| ^ (1 - σ) / ‖(1 - s)‖ + |(N : ℝ)| ^ (-σ) / 2 +
+      C_aux1 * |t| * ↑N ^ (-σ) / σ  := ?_
+    _ ≤ A.exp * 2 * |t|.log + |t| ^ (1 - σ) * 2 +
+        |t| ^ (1 - σ) + C_aux1 * |t| * (8 * |t| ^ (-σ)) := ?_
+    _ = A.exp * 2 * |t|.log + (3 + 8 * C_aux1) * |t| ^ (1 - σ) := ?_
+    _ ≤ A.exp * 2 * |t|.log + (3 + 8 * C_aux1) * A.exp * 1 := ?_
+    _ ≤ A.exp * 2 * |t|.log + (3 + 8 * C_aux1) * A.exp * |t|.log:= ?_
+    _ = _ := by ring
   · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]
-    exact UpperBnd_aux3 Apos (by norm_num) Npos σ_ge t_ge N_le_t
+    convert UpperBnd_aux3 (C := 2) Apos (by norm_num) Npos σ_ge t_ge' N_le_t le_rfl
   · simp only [add_le_add_iff_left]
-    have := @ZetaBnd_aux1 N (by linarith) σ ⟨σPos, σ_le⟩
-    sorry
+    exact ZetaBnd_aux1 N (by linarith) ⟨σPos, σ_le⟩ t t_ge
   · simp only [add_left_inj]
     congr
     · simp only [norm_div, norm_neg, norm_eq_abs, Nat.abs_cast]
@@ -1012,8 +1019,6 @@ lemma ZetaUpperBnd :
       suffices |t| < ↑N + 1 by linarith
       apply Nat.lt_floor_add_one
     have bnd3' : (|t| / ↑N) ^ σ ≤ 2 * |t| := by linarith
-      -- apply Real.rpow_le_one_of_le (by linarith) (by linarith)
-      -- exact (div_le_iff (by linarith)).mpr (by linarith)
     apply add_le_add_le_add_le_add le_rfl ?_ ?_ ?_
     · apply (div_le_iff <| norm_pos_iff.mpr <| sub_ne_zero_of_ne neOne.symm).mpr
       conv => rw [mul_assoc]; rhs; rw [mul_comm]
@@ -1025,37 +1030,32 @@ lemma ZetaUpperBnd :
         exact Real.rpow_le_rpow_of_exponent_le (one_le_div (by positivity) |>.mpr N_le_t) (by simp)
       refine le_trans this <| (mul_le_mul_left (by norm_num)).mpr ?_
       convert Complex.abs_im_le_abs (1 - (σ + t * I)) using 1; simp
-      -- simp only [norm_eq_abs, gt_iff_lt, Nat.ofNat_pos, mul_le_mul_left]
-      -- apply div_le_iff' (by norm_num) |>.mp
-      -- refine le_trans (by linarith : (4 / 2) ≤ |t|) ?_
     · apply div_le_iff (by norm_num) |>.mpr
-      -- rw [Real.rpow_one_sub', div_mul_eq_mul_div, mul_comm]
       rw [Real.rpow_sub (by linarith), Real.rpow_one, div_mul_eq_mul_div, mul_comm]
       apply div_le_iff (by positivity) |>.mp
       convert bnd3' using 1
       simp only [div_inv_eq_mul]
-      -- field_simp
-      -- ring_nf
       sorry
-    · rw [mul_assoc, mul_div_assoc]
-      apply (mul_le_mul_left (by linarith)).mpr
+    · rw [mul_div_assoc]
+      apply mul_le_mul_left (mul_pos (by norm_num [C_aux1]) (by positivity)) |>.mpr
       apply div_le_iff (by positivity) |>.mpr
-      rw [mul_assoc]
+      rw [mul_assoc, mul_comm, mul_assoc]
       apply div_le_iff' (by positivity) |>.mp
       simp only [A] at σ_gt
-      have : 4 ≤ 8 * σ := by linarith
-      apply le_trans ?_ this
+      apply le_trans ?_ (by linarith : 4 ≤ σ * 8)
       convert bnd3 using 1
       sorry
-  · conv => lhs; rhs; rw [mul_comm |t|, ← Real.rpow_add_one (by positivity)]
-    ring_nf
-  · have : A.exp < 2 := by
-      -- Real.exp_half
-      sorry
-    rw [add_mul]
-    simp only [one_mul, add_le_add_iff_left, ge_iff_le]
-    apply Real.le_log_iff_exp_le (by positivity) |>.mpr
-    sorry
+  · ring_nf; conv => lhs; rhs; lhs; rw [mul_assoc, mul_comm |t|]
+    rw [← Real.rpow_add_one (by positivity)]; ring_nf
+  · simp only [Real.log_abs, add_le_add_iff_left, mul_one]
+    exact mul_le_mul_left (by norm_num [C_aux1]) |>.mpr <|
+        UpperBnd_aux2 Apos (by norm_num) t_ge' σ_ge
+  · simp only [add_le_add_iff_left]
+    conv => rhs;
+    rw [mul_assoc, mul_assoc]
+    apply mul_le_mul_left (by norm_num [C_aux1]) |>.mpr ?_
+    exact mul_le_mul_left (Real.exp_pos _) |>.mpr logt_gt_one.le
+#exit
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
