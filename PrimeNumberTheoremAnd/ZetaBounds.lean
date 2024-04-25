@@ -703,10 +703,14 @@ $$
 as $|t|\to\infty$.
 \end{lemma}
 %%-/
-lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) :
-    (fun (t : ℝ) ↦ ‖(σ + t * I) *
-      ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖)
-      =O[cocompact ℝ] fun (t : ℝ) ↦ |t| * N ^ (-σ) / σ := by
+
+def ct_aux1 := 31381059609 -- 3 ^ 22
+def C_aux1 := 100
+
+lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) :
+    ∀ (t : ℝ) (ht : ct_aux1 < |t|),
+    ‖(σ + t * I) * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
+    ≤ C_aux1 * |t| * N ^ (-σ) / σ := by
   have := @ZetaSum_aux1a (a := N)
   sorry
 /-%%
@@ -957,17 +961,18 @@ as $|t|\to\infty$.
 \end{lemma}
 %%-/
 lemma ZetaUpperBnd :
-    ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
+    ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_ge : ct_aux1 < |t|)
     (hσ : σ ∈ Icc (1 - A / |t|.log) 2), ‖ζ (σ + t * I)‖ ≤ C * |t|.log := by
   let A := (1 : ℝ) / 2
   have Apos : 0 < A := by norm_num
   refine ⟨A, Apos, A.exp * 11 + 1, (by positivity), ?_⟩
   intro σ t t_ge ⟨σ_ge, σ_le⟩
+  have t_ge' : 3 < |t| := lt_trans (by norm_num [ct_aux1]) t_ge
   set N := ⌊|t|⌋₊
   set s := σ + t * I
   have Npos : 0 < N := Nat.floor_pos.mpr (by linarith)
   have N_le_t : N ≤ |t| := by exact Nat.floor_le <| abs_nonneg _
-  obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
+  obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge' σ_ge
   rw [← Zeta0EqZeta (N := N) Npos (by simp [σPos]) neOne]
   calc
     _ ≤ ‖∑ n in Finset.range N, 1 / (n : ℂ) ^ s‖ + ‖(- N ^ (1 - s)) / (1 - s)‖ +
