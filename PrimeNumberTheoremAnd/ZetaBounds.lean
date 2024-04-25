@@ -1067,7 +1067,7 @@ lemma ZetaUpperBnd :
   · simp only [add_le_add_iff_left]
     apply mul_le_mul_left (by norm_num [Real.exp_pos, C_aux1]) |>.mpr <| logt_gt_one.le
 /-%%
-\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}\leanok
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
 We estimate:
 $$
