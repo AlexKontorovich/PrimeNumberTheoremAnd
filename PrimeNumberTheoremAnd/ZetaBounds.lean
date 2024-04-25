@@ -952,6 +952,23 @@ lemma UpperBnd_aux3 {A C σ t : ℝ} (Apos : 0 < A) (A_lt_one : A < 1) {N : ℕ}
     rw [riemannZeta0_zero_aux N Npos]; congr! 1
   · rw [Nat.cast_pred Npos]
 
+lemma Nat.self_div_floor_bound {t : ℝ}  (t_ge : 1 ≤ |t|) : (|t| / ↑⌊|t|⌋₊) ∈ Icc 1 2 := by
+  set N := ⌊|t|⌋₊
+  have Npos : 0 < N := Nat.floor_pos.mpr (by linarith)
+  have N_le_t : N ≤ |t| := by exact Nat.floor_le <| abs_nonneg _
+  constructor
+  · apply le_div_iff (by simp [Npos]) |>.mpr; simp [N_le_t]
+  · apply div_le_iff (by positivity) |>.mpr
+    suffices |t| < ↑N + 1 by linarith [(by exact_mod_cast (by omega) : 1 ≤ (N : ℝ))]
+    apply Nat.lt_floor_add_one
+
+lemma UpperBnd_aux5 {σ t : ℝ}  (t_ge : 3 < |t|) (σ_le : σ ≤ 2) : (|t| / ⌊|t|⌋₊) ^ σ ≤ 4 := by
+  obtain ⟨h₁, h₂⟩ := Nat.self_div_floor_bound (by linarith)
+  calc
+    _ ≤  (|t| / ⌊|t|⌋₊) ^ (2 : ℝ) := Real.rpow_le_rpow_of_exponent_le h₁ σ_le
+    _ ≤ 2 ^ (2 : ℝ) := Real.rpow_le_rpow (by linarith) h₂ (by norm_num)
+    _ = 4 := by norm_num
+
 lemma norm_add₄_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) :
     ‖a + b + c + d‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ := by
   apply le_trans <| norm_add_le (a + b + c) d
@@ -1021,14 +1038,8 @@ lemma ZetaUpperBnd :
     · field_simp [norm_div, norm_neg, norm_eq_abs, RCLike.norm_ofNat, Nat.abs_cast]
       convert norm_natCast_cpow_of_pos Npos (-s); simp [s]
   · simp only [Nat.abs_cast]
-    have bnd3 : (|t| / ↑N) ^ σ ≤ 4 := by
-      rw [(by norm_num : (4 : ℝ) = 2 ^ (2 : ℝ))]
-      refine le_trans ?_ <| Real.rpow_le_rpow_of_exponent_le (by norm_num) σ_le
-      refine Real.rpow_le_rpow (by positivity) ?_ (by linarith)
-      apply div_le_iff (by positivity) |>.mpr
-      suffices |t| < ↑N + 1 by linarith
-      apply Nat.lt_floor_add_one
-    have bnd3' : (|t| / ↑N) ^ σ ≤ 2 * |t| := by linarith
+    have bnd := UpperBnd_aux5 t_ge' σ_le
+    have bnd' : (|t| / ↑N) ^ σ ≤ 2 * |t| := by linarith
     apply add_le_add_le_add_le_add le_rfl ?_ ?_ ?_
     · apply (div_le_iff <| norm_pos_iff.mpr <| sub_ne_zero_of_ne neOne.symm).mpr
       conv => rw [mul_assoc]; rhs; rw [mul_comm]
@@ -1036,14 +1047,14 @@ lemma ZetaUpperBnd :
       rw [div_rpow_eq_rpow_div_neg (by positivity) (by positivity)]
       simp only [neg_sub]
       have : (|t| / ↑N) ^ (σ - 1) ≤ 2 * |t| := by
-        refine le_trans ?_ bnd3'
+        refine le_trans ?_ bnd'
         exact Real.rpow_le_rpow_of_exponent_le (one_le_div (by positivity) |>.mpr N_le_t) (by simp)
       refine le_trans this <| (mul_le_mul_left (by norm_num)).mpr ?_
       convert Complex.abs_im_le_abs (1 - (σ + t * I)) using 1; simp
     · apply div_le_iff (by norm_num) |>.mpr
       rw [Real.rpow_sub (by linarith), Real.rpow_one, div_mul_eq_mul_div, mul_comm]
       apply div_le_iff (by positivity) |>.mp
-      convert bnd3' using 1
+      convert bnd' using 1
       simp only [div_inv_eq_mul]
       sorry
     · rw [mul_div_assoc]
@@ -1053,7 +1064,7 @@ lemma ZetaUpperBnd :
       apply div_le_iff' (by positivity) |>.mp
       simp only [A] at σ_gt
       apply le_trans ?_ (by linarith : 4 ≤ σ * 8)
-      convert bnd3 using 1
+      convert bnd using 1
       sorry
   · ring_nf; conv => lhs; rhs; lhs; rw [mul_assoc, mul_comm |t|]
     rw [← Real.rpow_add_one (by positivity)]; ring_nf
