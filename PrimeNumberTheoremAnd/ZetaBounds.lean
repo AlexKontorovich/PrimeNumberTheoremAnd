@@ -576,17 +576,24 @@ lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
     ∑' (n : ℕ), f n = (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
   rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N), Finset.range_eq_Ico]
 
+lemma Finset.Ioc_eq_Ico (M N : ℕ): Finset.Ioc N M = Finset.Ico (N + 1) (M + 1) := by
+  ext a; simp only [Finset.mem_Ioc, Finset.mem_Ico]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
+
 lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
     Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
-  have := (@Summable.hasSum_iff_tendsto_nat (f := fun m ↦ f (m + N))
-     (m := ∑' (n : ℕ), f (n + N)) _ _ _ ?_).mp ?_
-  · convert this using 2
-    rename ℕ => M
-    simp_rw [Finset.range_eq_Ico]
-    sorry
+  have := (Summable.hasSum_iff_tendsto_nat (f := fun n ↦ f (n + N))
+     (m := ∑' (n : ℕ), f (n + N)) ?_).mp ?_
+  -- How to make the lengths of the intervals match?
+  · convert this using 1 with M
+    ext M
+    rw [Finset.Ioc_eq_Ico, Finset.range_eq_Ico]
+    apply Finset.sum_equiv (g := fun n ↦ f (n + N)) ?_ ?_ ?_
+    · sorry
+    · sorry
+    · sorry
+    -- Finset.sum_hom_rel
   swap; apply (Summable.hasSum_iff ?_).mpr; rfl
-  all_goals
-  sorry
+  all_goals exact summable_nat_add_iff N |>.mpr hf
 
 lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
   rw [Filter.tendsto_atTop_atTop]
