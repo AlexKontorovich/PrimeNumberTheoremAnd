@@ -958,13 +958,11 @@ lemma Nat.self_div_floor_bound {t : ℝ}  (t_ge : 1 ≤ |t|) : (|t| / ↑⌊|t|�
   · apply div_le_iff (by positivity) |>.mpr
     suffices |t| < ↑N + 1 by linarith [(by exact_mod_cast (by omega) : 1 ≤ (N : ℝ))]
     apply Nat.lt_floor_add_one
-
 lemma UpperBnd_aux5 {σ t : ℝ}  (t_ge : 3 < |t|) (σ_le : σ ≤ 2) : (|t| / ⌊|t|⌋₊) ^ σ ≤ 4 := by
   obtain ⟨h₁, h₂⟩ := Nat.self_div_floor_bound (by linarith)
-  calc
-    _ ≤  (|t| / ⌊|t|⌋₊) ^ (2 : ℝ) := Real.rpow_le_rpow_of_exponent_le h₁ σ_le
-    _ ≤ 2 ^ (2 : ℝ) := Real.rpow_le_rpow (by linarith) h₂ (by norm_num)
-    _ = 4 := by norm_num
+  rw [(by norm_num : (4 : ℝ) = 2 ^ (2 : ℝ))]
+  refine le_trans (Real.rpow_le_rpow_of_exponent_le h₁ σ_le) ?_
+  exact (Real.rpow_le_rpow (by linarith) h₂ (by norm_num))
 
 lemma norm_add₄_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) :
     ‖a + b + c + d‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ := by
