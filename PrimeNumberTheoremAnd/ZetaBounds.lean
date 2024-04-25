@@ -823,7 +823,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   simp
 /-%%
 \begin{proof}\leanok
-\uses{ZetaSum_aux2, RiemannZeta0, HolomorphicOn_Zeta0}
+\uses{ZetaSum_aux2, RiemannZeta0, HolomorphicOn_Zeta0, isPathConnected_aux}
 Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{RiemannZeta0}.
 \end{proof}
 %%-/
