@@ -628,16 +628,20 @@ instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated us
     exact ⟨x, by exact_mod_cast hx, rfl⟩
   · exact fun _ _ ↦ rfl
 
-lemma ZetaSum_aux2_1 {s : ℂ} (s_re_gt : 1 < s.re) :
+lemma Complex.cpow_tendsto {s : ℂ} (s_re_gt : 1 < s.re) :
     Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) := by
-  have one_sub_s_re_ne : (1 - s).re ≠ 0 :=
-    fun h ↦ (ne_of_lt s_re_gt).symm (one_re ▸ zero_add s.re ▸ sub_eq_iff_eq_add.mp h).symm
+  have one_sub_s_re_ne : (1 - s).re ≠ 0 := by simp only [sub_re, one_re]; linarith
   rw [tendsto_zero_iff_norm_tendsto_zero]
-  simp_rw [Complex.norm_natCast_cpow_of_re_ne_zero _ one_sub_s_re_ne]
-  have : (1 - s).re = - (s - 1).re := by simp
-  simp_rw [this]
-  apply (tendsto_rpow_neg_atTop _).comp tendsto_nat_cast_atTop_atTop
-  simp only [sub_re, one_re, sub_pos, s_re_gt]
+  simp_rw [Complex.norm_natCast_cpow_of_re_ne_zero _ (one_sub_s_re_ne)]
+  rw [(by simp only [sub_re, one_re, neg_sub] : (1 - s).re = - (s - 1).re)]
+  apply (tendsto_rpow_neg_atTop _).comp tendsto_nat_cast_atTop_atTop; simp [s_re_gt]
+
+lemma Complex.cpow_inv_tendsto {s : ℂ} (hs : 0 < s.re) :
+    Tendsto (fun (x : ℕ) ↦ ((x : ℂ) ^ s)⁻¹) atTop (𝓝 0) := by
+  rw [tendsto_zero_iff_norm_tendsto_zero]
+  simp_rw [norm_inv, Complex.norm_natCast_cpow_of_re_ne_zero _ <| ne_of_gt hs]
+  apply Filter.Tendsto.inv_tendsto_atTop
+  exact (tendsto_rpow_atTop hs).comp tendsto_nat_cast_atTop_atTop
 
 /-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
