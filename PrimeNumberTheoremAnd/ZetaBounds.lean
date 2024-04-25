@@ -621,19 +621,12 @@ lemma Finset_coe_Nat_Int (f : ℤ → ℂ) (m n : ℕ) :
 /-
 instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated using `Finset.map`
 -/
-  apply Finset.sum_nbij (i := (fun (x : ℕ) ↦ (x : ℤ)))
-  · intro x hx
-    simp only [Finset.mem_Ioc, Nat.cast_lt, Nat.cast_le] at hx ⊢
-    exact hx
-  · intro x₁ _ x₂ _ h
-    simp only [Nat.cast_inj] at h
-    exact h
+  apply Finset.sum_nbij (i := (fun (x : ℕ) ↦ (x : ℤ))) ?_ ?_ ?_ fun _ _ ↦ rfl
+  · intro x hx; simp only [Finset.mem_Ioc, Nat.cast_lt, Nat.cast_le] at hx ⊢; exact hx
+  · intro x₁ _ x₂ _ h; simp only [Nat.cast_inj] at h; exact h
   · intro x hx
     simp only [Finset.coe_Ioc, mem_image, mem_Ioc] at hx ⊢
-    have : 0 ≤ x := by linarith
-    lift x to ℕ using this
-    exact ⟨x, by exact_mod_cast hx, rfl⟩
-  · exact fun _ _ ↦ rfl
+    lift x to ℕ using (by linarith); exact ⟨x, by exact_mod_cast hx, rfl⟩
 
 lemma Complex.cpow_tendsto {s : ℂ} (s_re_gt : 1 < s.re) :
     Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) := by
