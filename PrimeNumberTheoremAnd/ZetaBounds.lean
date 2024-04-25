@@ -1042,9 +1042,9 @@ lemma ZetaUpperBnd :
     _ ≤ A.exp * 2 * |t|.log + ‖(- N ^ (1 - s)) / (1 - s)‖ + ‖(-(N : ℂ) ^ (-s)) / 2‖ +
       ‖s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := ?_
     _ ≤ A.exp * 2 * |t|.log + ‖(- N ^ (1 - s)) / (1 - s)‖ + ‖(-(N : ℂ) ^ (-s)) / 2‖ +
-      C_aux1 * |t| * ↑N ^ (-σ) / σ  := ?_
-    _ = A.exp * 2 * |t|.log + |(N : ℝ)| ^ (1 - σ) / ‖(1 - s)‖ + |(N : ℝ)| ^ (-σ) / 2 +
-      C_aux1 * |t| * ↑N ^ (-σ) / σ  := ?_
+      C_aux1 * |t| * N ^ (-σ) / σ  := ?_
+    _ = A.exp * 2 * |t|.log + N ^ (1 - σ) / ‖(1 - s)‖ + N ^ (-σ) / 2 +
+      C_aux1 * |t| * N ^ (-σ) / σ  := ?_
     _ ≤ A.exp * 2 * |t|.log + |t| ^ (1 - σ) * 2 +
         |t| ^ (1 - σ) + C_aux1 * |t| * (8 * |t| ^ (-σ)) := ?_
     _ = A.exp * 2 * |t|.log + (3 + 8 * C_aux1) * |t| ^ (1 - σ) := ?_
@@ -1054,27 +1054,18 @@ lemma ZetaUpperBnd :
   · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]
     convert UpperBnd_aux3 (C := 2) Apos (by norm_num) Npos σ_ge t_ge' N_le_t le_rfl
   · simp only [add_le_add_iff_left]; exact ZetaBnd_aux1 N (by linarith) ⟨σPos, σ_le⟩ t t_ge
-  · simp only [add_left_inj]
-    congr
-    · simp only [norm_div, norm_neg, norm_eq_abs, Nat.abs_cast]
-      congr; convert norm_natCast_cpow_of_pos Npos (1 - s); simp [s]
-    · field_simp [norm_div, norm_neg, norm_eq_abs, RCLike.norm_ofNat, Nat.abs_cast]
-      convert norm_natCast_cpow_of_pos Npos (-s); simp [s]
-  · simp only [Nat.abs_cast]
-    have ⟨h₁, h₂, h₃⟩ := UpperBnd_aux6 t_ge' σ_gt σ_le neOne Npos N_le_t
+  · simp only [norm_div, norm_neg, norm_eq_abs, RCLike.norm_ofNat, Nat.abs_cast, s]
+    congr <;> (convert norm_natCast_cpow_of_pos Npos _; simp)
+  · have ⟨h₁, h₂, h₃⟩ := UpperBnd_aux6 t_ge' σ_gt σ_le neOne Npos N_le_t
     refine add_le_add_le_add_le_add le_rfl h₁ h₂ ?_
     rw [mul_div_assoc]
     exact mul_le_mul_left (mul_pos (by norm_num [C_aux1]) (by positivity)) |>.mpr h₃
   · ring_nf; conv => lhs; rhs; lhs; rw [mul_assoc, mul_comm |t|]
     rw [← Real.rpow_add_one (by positivity)]; ring_nf
   · simp only [Real.log_abs, add_le_add_iff_left, mul_one]
-    exact mul_le_mul_left (by norm_num [C_aux1]) |>.mpr <|
-        UpperBnd_aux2 Apos (by norm_num) t_ge' σ_ge
+    exact mul_le_mul_left (by positivity) |>.mpr <| UpperBnd_aux2 Apos (by norm_num) t_ge' σ_ge
   · simp only [add_le_add_iff_left]
-    conv => rhs;
-    rw [mul_assoc, mul_assoc]
-    apply mul_le_mul_left (by norm_num [C_aux1]) |>.mpr ?_
-    exact mul_le_mul_left (Real.exp_pos _) |>.mpr logt_gt_one.le
+    apply mul_le_mul_left (by norm_num [Real.exp_pos, C_aux1]) |>.mpr <| logt_gt_one.le
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
