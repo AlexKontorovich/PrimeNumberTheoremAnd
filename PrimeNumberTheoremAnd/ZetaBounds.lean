@@ -576,26 +576,25 @@ lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
     ∑' (n : ℕ), f n = (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
   rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N), Finset.range_eq_Ico]
 
-lemma sum_eq_Ioc_add_Ioc (n N : ℕ) (f : ℕ → ℂ):
-    ∑ i in Finset.range n, f i = ∑ i in Finset.Ioc 0 N, f i + ∑ i in Finset.Ioc N n, f i := by
-  sorry
-
 lemma Finset.Ioc_eq_Ico (M N : ℕ): Finset.Ioc N M = Finset.Ico (N + 1) (M + 1) := by
   ext a; simp only [Finset.mem_Ioc, Finset.mem_Ico]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
 
 lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
-    Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
+    Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ico N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
   have := Summable.hasSum_iff_tendsto_nat hf (m := ∑' (n : ℕ), f n) |>.mp ?_
-  · simp_rw [sum_eq_Ioc_add_Ioc _ N] at this
-    have const := @tendsto_const_nhds (x := ∑ i in Finset.Ioc 0 N, f i) ℕ _ atTop
-    have := Filter.Tendsto.sub this const
-    simp only [add_sub_cancel_left] at this
-    convert this
-    -- rw [tsum_eq_partial_add_tail f hf (N := N - 1), add_comm, add_sub_assoc]
-    rw [tsum_eq_partial_add_tail f hf (N := N), add_comm, add_sub_assoc]
-    simp only [zero_add, self_eq_add_right]
-    sorry
-  · apply (Summable.hasSum_iff hf).mpr; rfl
+  swap; apply (Summable.hasSum_iff hf).mpr; rfl
+  have const := @tendsto_const_nhds (x := ∑ i in Finset.Ico 0 N, f i) ℕ _ atTop
+  have := Filter.Tendsto.sub this const
+  rw [tsum_eq_partial_add_tail f hf (N := N), Finset.range_eq_Ico, add_comm, add_sub_cancel_right] at this
+  -- here we need filters to take take N ≤ M
+  convert this with M
+  simp only [eq_sub_iff_add_eq]
+  rw [add_comm]
+  by_cases h : N ≤ M
+  · apply Finset.sum_Ico_consecutive
+    omega
+    exact h
+  · sorry
 
 lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
   rw [Filter.tendsto_atTop_atTop]
