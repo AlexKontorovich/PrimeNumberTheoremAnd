@@ -644,11 +644,7 @@ lemma Complex.cpow_inv_tendsto {s : ℂ} (hs : 0 < s.re) :
   exact (tendsto_rpow_atTop hs).comp tendsto_nat_cast_atTop_atTop
 
 lemma ZetaSum_aux2a : ∃ C, ∀ (x : ℝ), |⌊x⌋ + 1 / 2 - x| ≤ C := by
-  use 1 / 2
-  intro x
-  rcases abs_cases (⌊x⌋ + 1 / 2 - x) with ⟨h₁, _⟩ | ⟨h₁, _⟩ <;> rw [h₁]
-  · linarith [Int.floor_le x]
-  · linarith [Int.lt_floor_add_one x]
+  use 1 / 2; exact ZetaSum_aux1_3
 
 /-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
