@@ -685,7 +685,10 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     · simp_rw [mul_comm_div, one_mul, one_div, cpow_neg]; exact tendsto_const_nhds
     · refine MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
         (b := (fun (n : ℕ) ↦ (n : ℝ))) ?_ tendsto_coe_atTop
-      sorry
+      apply MeasureTheory.Integrable.bdd_mul ?_ ?_
+      · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
+      · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt]; positivity)
+      · sorry
 /-%%
 \begin{proof}\uses{ZetaSum_aux1}
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
