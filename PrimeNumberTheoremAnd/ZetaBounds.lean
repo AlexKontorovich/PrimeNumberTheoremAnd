@@ -695,7 +695,10 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       apply MeasureTheory.Integrable.bdd_mul ?_ ?_
       · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
       · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt]; positivity)
-      · sorry
+      · apply Measurable.aestronglyMeasurable
+        refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
+        · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+        · exact Measurable.comp measurable_id measurable_ofReal
 /-%%
 \begin{proof}\uses{ZetaSum_aux1}
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
