@@ -704,7 +704,7 @@ as $|t|\to\infty$.
 \end{lemma}
 %%-/
 
-def ct_aux1 := 31381059609 -- 3 ^ 22
+def ct_aux1 := 31381059610 -- 3 ^ 22 + 1
 def C_aux1 := 100
 
 lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) :
@@ -1323,8 +1323,10 @@ lemma ZetaInvBound2 {σ : ℝ} (hσ : σ ∈ Ioc 1 2) :
   obtain ⟨σ_gt, σ_le⟩ := hσ
   rw [Asymptotics.isBigO_iff]
   use (2 * C) ^ ((1 : ℝ)/ 4) * c ^ ((3 : ℝ)/ 4)
-  filter_upwards [lt_abs_mem_cocompact (by norm_num : 0 ≤ (2 : ℝ))] with t ht
-  have ht' : 3 < |2 * t| := by rw [abs_mul, Nat.abs_ofNat]; linarith
+  filter_upwards [lt_abs_mem_cocompact (by norm_num [ct_aux1] : 0 ≤ (ct_aux1 : ℝ) / 2)] with t ht
+  have ht' : ct_aux1 < |2 * t| := by
+    convert div_lt_iff' (by positivity) |>.mp ht using 1; simp [abs_mul]
+  norm_num [ct_aux1] at ht ht'
   have hnezero: ((σ - 1) / c) ^ (-3 / 4 : ℝ) ≠ 0 := by
     have : (σ - 1) / c ≠ 0 := ne_of_gt <| div_pos (by linarith) hc
     contrapose! this
@@ -1356,7 +1358,7 @@ lemma ZetaInvBound2 {σ : ℝ} (hσ : σ ∈ Ioc 1 2) :
         apply riemannZeta_ne_zero_of_one_le_re ?_ (by simp [σ_gt.le])
         contrapose! σ_gt; apply le_of_eq; apply And.left; simpa [Complex.ext_iff] using σ_gt
       symm; exact fun h2 ↦ this (by simpa using h2)
-  · replace h := h σ (2 * t) (by linarith) ⟨?_, σ_le⟩
+  · replace h := h σ (2 * t) (by simp [ct_aux1, ht']) ⟨?_, σ_le⟩
     · have : 0 ≤ Real.log |2 * t| := Real.log_nonneg (by linarith)
       conv => rhs; rw [mul_assoc, ← Real.mul_rpow hC.le this]
       rw [norm_mul, norm_mul]
