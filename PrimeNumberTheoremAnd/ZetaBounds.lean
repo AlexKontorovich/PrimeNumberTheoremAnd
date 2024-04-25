@@ -25,17 +25,14 @@ lemma one_div_cpow_eq_cpow_neg (x s : ℂ) : 1 / x ^ s = x ^ (-s) := by
 
 lemma div_rpow_eq_rpow_neg (a x s : ℝ) (hx : 0 ≤ x): a / x ^ s = a * x ^ (-s) := by
   rw [div_eq_mul_inv, Real.rpow_neg hx]
--- ↑N ^ (1 - σ) / |t| ^ (1 - σ)
+
+lemma div_rpow_neg_eq_rpow_div {x y s : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
+    x ^ (-s) / y ^ (-s) = (y / x) ^ s := by
+  rw [div_eq_mul_inv, Real.rpow_neg hx, Real.rpow_neg hy, Real.div_rpow hy hx]; field_simp
+
 lemma div_rpow_eq_rpow_div_neg {x y s : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
     x ^ s / y ^ s = (y / x) ^ (-s) := by
-  rw [Real.div_rpow hy hx]
-  sorry
-  -- , ← Real.div_rpow]
-  -- field_simp
-  -- rw [div_eq_mul_inv, Real.rpow_neg (by positivity), Real.div_rpow]
-  -- apply?
--- a * x ^ (-s) := by
-  -- rw [div_eq_mul_inv, Real.rpow_neg hx]
+  convert div_rpow_neg_eq_rpow_div (s := -s) hx hy using 1; simp only [neg_neg]
 
 /-%%
 \begin{definition}[RiemannZeta0]\label{RiemannZeta0}\lean{RiemannZeta0}\leanok
