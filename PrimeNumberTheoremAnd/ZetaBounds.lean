@@ -969,8 +969,6 @@ lemma add_le_add_le_add_le_add {α : Type*} [Add α] [Preorder α]
     {a b c d e f g h : α} (h₁ : a ≤ b) (h₂ : c ≤ d) (h₃ : e ≤ f) (h₄ : g ≤ h) :
     a + c + e + g ≤ b + d + f + h:= add_le_add (add_le_add_le_add h₁ h₂ h₃) h₄
 
-lemma exp_one_half_estimate : Real.exp (1 / 2) ∈ Ioo 1 2 := by sorry
-
 /-%%
 \begin{lemma}[ZetaUpperBnd]\label{ZetaUpperBnd}\lean{ZetaUpperBnd}\leanok
 For any $s\in \C$, $1/2 \le \Re(s)=\sigma\le 2$,
@@ -986,10 +984,7 @@ lemma ZetaUpperBnd :
     (hσ : σ ∈ Icc (1 - A / |t|.log) 2), ‖ζ (σ + t * I)‖ ≤ C * |t|.log := by
   let A := (1 : ℝ) / 2
   have Apos : 0 < A := by norm_num
-  -- let C' := (3 + 8 * C_aux1)
   let C := A.exp * (5 + 8 * C_aux1)
-  -- have hC : 2 < C := by simp only [A, C, C_aux1]; norm_num; linarith [exp_one_half_estimate.1]
-  -- have hC : 2 < (3 + 8 * C_aux1) := by norm_num [C, C_aux1]
   refine ⟨A, Apos, C, (by positivity), ?_⟩
   intro σ t t_ge ⟨σ_ge, σ_le⟩
   have t_ge' : 3 < |t| := lt_trans (by norm_num [ct_aux1]) t_ge
@@ -1070,7 +1065,6 @@ lemma ZetaUpperBnd :
     rw [mul_assoc, mul_assoc]
     apply mul_le_mul_left (by norm_num [C_aux1]) |>.mpr ?_
     exact mul_le_mul_left (Real.exp_pos _) |>.mpr logt_gt_one.le
-#exit
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
