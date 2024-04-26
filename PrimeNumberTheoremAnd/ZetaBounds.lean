@@ -743,7 +743,7 @@ Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\
 
 /-%%
 \begin{lemma}[HolomorphicOn_Zeta0]\label{HolomorphicOn_Zeta0}\lean{HolomorphicOn_Zeta0}\leanok
-For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \Re(s)>0\}$.
+For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}.
 \end{lemma}
 %%-/
 lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
@@ -802,6 +802,7 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
 /-%%
 \begin{proof}
   Construct explicit paths from $2$ to any point, either a line segment or two joined ones.
+\end{proof}
 %%-/
 
 
@@ -1153,7 +1154,7 @@ Differentiating term by term, we get:
 $$
 \zeta'(s) = -\sum_{1\le n < N} n^{-s} \log n
 -
-\frac{N^{1 - s}}{1 - s)^2} + \frac{N^{1 - s} \log N} {1 - s}
+\frac{N^{1 - s}}{(1 - s)^2} + \frac{N^{1 - s} \log N} {1 - s}
 + \frac{-N^{-s}\log N}{2} +
 \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
 -
