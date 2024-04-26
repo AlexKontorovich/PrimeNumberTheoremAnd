@@ -902,21 +902,23 @@ since $n\le t$.
 \end{proof}
 %%-/
 
-lemma UpperBnd_aux {A σ t: ℝ} (A_pos : 0 < A) (A_lt : A < 1) (t_ge : 3 < |t|)
+lemma logt_gt_one {t : ℝ} (t_ge : 3 < |t|) : 1 < Real.log |t| := by
+  rw [← Real.log_exp (x := 1)]
+  apply Real.log_lt_log (Real.exp_pos _)
+  linarith [(by exact lt_trans Real.exp_one_lt_d9 (by norm_num) : Real.exp 1 < 3)]
+
+lemma UpperBnd_aux {A σ t: ℝ} (A_pos : 0 < A) (A_lt : A < 1) (t_gt : 3 < |t|)
       (σ_ge : 1 - A / Real.log |t| ≤ σ) :
-      1 < Real.log |t| ∧ 1 - A < σ ∧ 0 < σ ∧ σ + t * I ≠ 1:= by
-  have logt_gt_one: 1 < Real.log |t| := by
-    rw [← Real.log_exp (x := 1)]
-    apply Real.log_lt_log (Real.exp_pos _)
-    linarith [(by exact lt_trans Real.exp_one_lt_d9 (by norm_num) : Real.exp 1 < 3)]
+      1 - A < σ ∧ 0 < σ ∧ σ + t * I ≠ 1:= by
+  have logt_gt_one := logt_gt_one t_gt
   have σ_gt : 1 - A < σ := by
     apply lt_of_lt_of_le ((sub_lt_sub_iff_left (a := 1)).mpr ?_) σ_ge
     exact (div_lt_iff (by linarith)).mpr <| lt_mul_right A_pos logt_gt_one
-  refine ⟨logt_gt_one, σ_gt, by linarith, ?__⟩
-  contrapose! t_ge
+  refine ⟨σ_gt, by linarith, ?_⟩
+  contrapose! t_gt
   simp only [Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-    sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at t_ge
-  norm_num [t_ge.2]
+    sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at t_gt
+  norm_num [t_gt.2]
 
 lemma UpperBnd_aux2 {A σ t: ℝ} (A_pos : 0 < A) (A_lt : A < 1) (t_ge : 3 < |t|)
       (σ_ge : 1 - A / |t|.log ≤ σ) :
@@ -951,7 +953,8 @@ lemma riemannZeta0_zero_aux (N : ℕ) (Npos : 0 < N):
 lemma UpperBnd_aux3 {A C σ t : ℝ} (Apos : 0 < A) (A_lt_one : A < 1) {N : ℕ} (Npos : 0 < N)
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (t_ge : 3 < |t|) (N_le_t : (N : ℝ) ≤ |t|) (hC : 2 ≤ C) :
      ‖∑ n in Finset.range N, (n : ℂ) ^ (-(σ + t * I))‖ ≤ A.exp * C * |t|.log := by
-  obtain ⟨logt_gt_one, _, σPos, _⟩ := UpperBnd_aux Apos A_lt_one t_ge σ_ge
+  obtain ⟨_, σPos, _⟩ := UpperBnd_aux Apos A_lt_one t_ge σ_ge
+  have logt_gt_one := logt_gt_one t_ge
   have (n : ℕ) (hn : n ∈ Finset.range N) := ZetaBnd_aux2 (n := n) Apos σPos ?_ σ_ge
   swap; exact le_trans (Nat.cast_le.mpr (Finset.mem_range.mp hn).le) N_le_t
   replace := norm_sum_le_of_le (Finset.range N) this
@@ -1056,7 +1059,8 @@ lemma ZetaUpperBnd :
   set N := ⌊|t|⌋₊
   have Npos : 0 < N := Nat.floor_pos.mpr (by linarith)
   have N_le_t : N ≤ |t| := Nat.floor_le <| abs_nonneg _
-  obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge' σ_ge
+  obtain ⟨σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge' σ_ge
+  have logt_gt_one := logt_gt_one t_ge'
   norm_num [A] at σ_gt
   rw [← Zeta0EqZeta (N := N) Npos (by simp [σPos]) neOne]
   set s := σ + t * I
@@ -1139,7 +1143,8 @@ lemma ZetaDerivUpperBnd :
   intro σ t t_ge ⟨σ_ge, σ_le⟩
   set N := ⌊|t|⌋₊
   set s := σ + t * I
-  obtain ⟨logt_gt_one, σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
+  obtain ⟨σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
+  have logt_gt_one := logt_gt_one t_ge
   have : deriv ζ s = deriv (ζ₀ N) s := by
     have := Zeta0EqZeta (N := N) (Nat.floor_pos.mpr (by linarith)) (by simp [σPos]) neOne
     -- these functions agree on an open set, their derivatives agree there too
