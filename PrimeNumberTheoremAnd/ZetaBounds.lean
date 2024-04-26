@@ -764,20 +764,25 @@ and evaluate the integral.
 \end{proof}
 %%-/
 
-lemma finsetSum_tendsto_tsum {f : ℕ → ℂ} (hf : Summable f) :
-    Tendsto (fun (N : ℕ) ↦ ∑ n in Finset.range N, f n) atTop (𝓝 (∑' (n : ℕ), f n)) := by
-  have hasSumF := hf.hasSum
-  set a := ∑' (b : ℕ), f b
-  have := hasSumF.tsum_eq
-  dsimp [HasSum] at hasSumF
-  convert hasSumF
+-- TODO : Change to `Ico`, not `Ioc`
+
+-- remove? Ask on zulip
+theorem Ioc_eq_map_range (N k : ℕ) :
+    Finset.Ioc N k = Finset.map (addRightEmbedding N) (Finset.range k) := by
   sorry
 
+-- Remove this theorem, already "exists"
+lemma finsetSum_tendsto_tsum {f : ℕ → ℂ} (hf : Summable f) :
+    Tendsto (fun (N : ℕ) ↦ ∑ n in Finset.range N, f n) atTop (𝓝 (∑' (n : ℕ), f n)) :=
+  hf.hasSum.tendsto_sum_nat
 
 lemma finsetSum_tendsto_tsum' {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
     Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
-  convert finsetSum_tendsto_tsum (f := fun n ↦ f (n + N)) ?_ using 1
-  sorry
+  convert finsetSum_tendsto_tsum (f := fun n ↦ f (n + N)) ?_ using 2 with k
+  · let e := addRightEmbedding N
+    convert Finset.sum_map (f := f) (e := e) (s := Finset.range k) using 2
+    exact Ioc_eq_map_range N k
+  · exact (summable_nat_add_iff N).mpr hf
 
 -- related to `ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt`
 lemma Summable_rpow {s : ℂ} (s_re_gt : 1 < s.re) : Summable (fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s) := by
@@ -883,7 +888,17 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       let f : ℝ → ℂ := fun x ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
       convert MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
         (b := (fun (n : ℕ) ↦ (n : ℝ))) (f := f) (μ := MeasureTheory.volume) (l := atTop) ?_ ?_
-      · sorry
+      · rw [MeasureTheory.IntegrableOn]
+        apply MeasureTheory.Integrable.mono (g := fun (x : ℝ) ↦ x ^ (- s.re - 1))
+        · change MeasureTheory.IntegrableOn _ _ _
+          rw [integrableOn_Ioi_rpow_iff]
+          · linarith
+          · exact_mod_cast N_pos
+        · sorry
+        · filter_upwards with x
+          simp only [one_div, norm_div, norm_eq_abs, Real.norm_eq_abs, f]
+          have := ZetaSum_aux1a_aux3 x
+          sorry
       · exact tendsto_nat_cast_atTop_atTop
 /-%%
 \begin{proof}\uses{ZetaSum_aux1, ZetaSum_aux1a}
