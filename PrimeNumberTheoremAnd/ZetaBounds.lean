@@ -649,6 +649,28 @@ lemma Complex.cpow_inv_tendsto {s : ℂ} (hs : 0 < s.re) :
 lemma ZetaSum_aux2a : ∃ C, ∀ (x : ℝ), |⌊x⌋ + 1 / 2 - x| ≤ C := by
   use 1 / 2; exact ZetaSum_aux1_3
 
+lemma ZetaSum_aux3 {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
+    Tendsto (fun k ↦ ∑ n in Finset.Ioc N k, 1 / (n : ℂ) ^ s) atTop
+    (𝓝 (∑' (n : ℕ), 1 / (n + N : ℂ) ^ s)) := by
+  let f := fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s
+  -- let g := fun (n : ℕ) ↦ f (n + 1)
+  have hf := Summable_rpow s_re_gt
+  -- have hg := summable_nat_add_iff 1 |>.mpr <| hf
+  have := finsetSum_tendsto_tsum (f := f) (N := N) hf
+  -- map k to k + 1 before the conversion
+  -- might be useful: Finset.sum_insert_zero (f := f) ?_
+  · convert this using 1
+    · ext k
+      -- use a filter instead to get 1 ≤ k
+      have hk : 1 ≤ k := by sorry
+      simp only [Finset.Icc_eq_Ico, Finset.Ioc_eq_Icc]
+      have := Finset.sum_Ico_add f N k 1
+      simp_rw [add_comm] at this
+      rw [← this, Nat.sub_add_cancel hk]
+      sorry
+    · simp [f]
+  -- · simp only [g]; exact hg
+
 /-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
   Let $N$ be a natural number and $s\in \C$, $\Re(s)>1$.
@@ -675,24 +697,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       intro k hk
       convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero ⟨N_pos, hk⟩ using 1
       convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
-    · let f := fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s
-      -- let g := fun (n : ℕ) ↦ f (n + 1)
-      have hf := Summable_rpow s_re_gt
-      -- have hg := summable_nat_add_iff 1 |>.mpr <| hf
-      have := finsetSum_tendsto_tsum (f := f) (N := N) hf
-      -- map k to k + 1 before the conversion
-      -- might be useful: Finset.sum_insert_zero (f := f) ?_
-      · convert this using 1
-        · ext k
-          -- use a filter instead to get 1 ≤ k
-          have hk : 1 ≤ k := by sorry
-          simp only [Finset.Icc_eq_Ico, Finset.Ioc_eq_Icc]
-          have := Finset.sum_Ico_add f N k 1
-          simp_rw [add_comm] at this
-          rw [← this, Nat.sub_add_cancel hk]
-          sorry
-        · simp [f]
-      -- · simp only [g]; exact hg
+    · exact ZetaSum_aux3 N_pos s_re_gt
   · apply (Tendsto.sub ?_ ?_).add (Tendsto.const_mul _ ?_)
     · rw [(by ring : -↑N ^ (1 - s) / (1 - s) = (0 - ↑N ^ (1 - s)) / (1 - s) + 0)]
       apply cpow_tendsto s_re_gt |>.sub_const _ |>.div_const _ |>.add
