@@ -1530,9 +1530,43 @@ $$
 %%-/
 lemma ZetaInvBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
-    (hσ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
+    (hσ : σ ∈ Ico (1 - A / (|t|.log) ^ 9) 1),
     1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 7 := by
-  sorry
+  let A := (1 : ℝ) / 16
+  have Apos : 0 < A := by norm_num
+  let C := (1000 : ℝ) -- a placeholder
+  have Cpos : 0 < C := by norm_num
+  refine ⟨A, Apos, C, Cpos, ?_⟩
+  intro σ t t_gt hσ
+  have logt_gt_one := logt_gt_one t_gt
+  have σ_ge : 1 - A / |t|.log ≤ σ := by
+    apply le_trans ?_ hσ.1
+    field_simp
+    rw [← Real.log_abs]
+    suffices A / |t|.log ^ 9 ≤ A / |t|.log by nlinarith
+    apply div_le_div_left Apos (by positivity) (by positivity)|>.mpr
+    sorry
+  obtain ⟨σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_gt σ_ge
+  set σ' := 1 + A / |t|.log ^ 9
+  set s := σ + t * I
+  set s' := σ' + t * I
+  by_cases h0 : ‖ζ s‖ ≠ 0
+  swap; simp only [ne_eq, not_not] at h0; simp only [h0, div_zero]; positivity
+  apply div_le_iff (by positivity) |>.mpr
+  apply div_le_iff' (by positivity) |>.mp
+  apply ge_iff_le.mp
+  calc
+    _ ≥ ‖ζ s'‖ - ‖ζ s - ζ s'‖ := ?_
+    _ ≥ C * (σ' - 1) ^ ((-3 : ℝ)/ 4) * |t|.log  ^ ((-1 : ℝ)/ 4) - C * |t|.log ^ 2 * (σ' - σ) := ?_
+    _ ≥ C * A ^ ((-3 : ℝ)/ 4) * |t|.log  ^ (-7 : ℝ) - C * |t|.log ^ 2 * 2 * A / |t|.log ^ 9 := ?_
+    _ ≥ _ := ?_
+  · apply ge_iff_le.mpr
+    convert norm_sub_norm_le (a := ζ s') (b := ζ s' - ζ s) using 1
+    · rw [(by simp : ζ s' - ζ s = -(ζ s - ζ s'))]; simp only [norm_neg, sub_right_inj]
+    · simp
+  · sorry
+  · sorry
+  · sorry
 /-%%
 \begin{proof}
 \uses{Zeta_diff_Bnd, ZetaInvBound2}
