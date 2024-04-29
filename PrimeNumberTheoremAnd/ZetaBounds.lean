@@ -571,58 +571,46 @@ and evaluate the integral.
 \end{proof}
 %%-/
 
+
 lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
     ∑' (n : ℕ), f n = (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
   rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N), Finset.range_eq_Ico]
 
-lemma Finset.Ioc_eq_Ico (M N : ℕ) : Finset.Ioc N M = Finset.Ico (N + 1) (M + 1) := by
+lemma Finset.Ioc_eq_Ico (M N : ℕ): Finset.Ioc N M = Finset.Ico (N + 1) (M + 1) := by
   ext a; simp only [Finset.mem_Ioc, Finset.mem_Ico]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
 
-lemma Finset.Ioc_eq_Icc (M N : ℕ) : Finset.Ioc N M = Finset.Icc (N + 1) M := by
+lemma Finset.Ioc_eq_Icc (M N : ℕ): Finset.Ioc N M = Finset.Icc (N + 1) M := by
   ext a; simp only [Finset.mem_Ioc, Finset.mem_Icc]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
 
 lemma Finset.Icc_eq_Ico (M N : ℕ): Finset.Icc N M = Finset.Ico N (M + 1) := by
   ext a; simp only [Finset.mem_Icc, Finset.mem_Ico]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
 
--- lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
---     Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
---   have := (Summable.hasSum_iff_tendsto_nat (f := fun n ↦ f (n + N))
---      (m := ∑' (n : ℕ), f (n + N)) ?_).mp ?_
---   -- How to make the lengths of the intervals match?
---   · convert this using 1 with M
---     ext M
---     rw [Finset.Ioc_eq_Ico, Finset.range_eq_Ico]
---     apply Finset.sum_equiv (g := fun n ↦ f (n + N)) ?_ ?_ ?_
---     · sorry
---     · sorry
---     · sorry
---     -- Finset.sum_hom_rel
---   swap; apply (Summable.hasSum_iff ?_).mpr; rfl
---   all_goals exact summable_nat_add_iff N |>.mpr hf
+lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
+    Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Icc N (k - 1), f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
+  have := Summable.hasSum_iff_tendsto_nat hf (m := ∑' (n : ℕ), f n) |>.mp ?_
+  swap; apply (Summable.hasSum_iff hf).mpr; rfl
+  have const := @tendsto_const_nhds (x := ∑ i in Finset.Ico 0 N, f i) ℕ _ atTop
+  have := Filter.Tendsto.sub this const
+  rw [tsum_eq_partial_add_tail f hf (N := N), Finset.range_eq_Ico, add_comm, add_sub_cancel_right] at this
+  -- here we need filters to take take max 1 N ≤ M
+  convert this with M
+  have h : max 1 N ≤ M := by sorry
+  simp only [eq_sub_iff_add_eq, Finset.Icc_eq_Ico]
+  rw [add_comm, Nat.sub_add_cancel (max_le_iff.mp h).1]
+  exact Finset.sum_Ico_consecutive f (by omega) (max_le_iff.mp h).2
 
-
-
--- TODO : Change to `Ico`, not `Ioc`
-
--- remove? Ask on zulip
-theorem Ico_eq_map_range (N k : ℕ) :
-    Finset.Ico N k = Finset.map (addRightEmbedding N) (Finset.range k) := by
-  sorry
-
--- Remove this theorem, already "exists"
-lemma finsetSum_tendsto_tsum {f : ℕ → ℂ} (hf : Summable f) :
-    Tendsto (fun (N : ℕ) ↦ ∑ n in Finset.range N, f n) atTop (𝓝 (∑' (n : ℕ), f n)) :=
-  hf.hasSum.tendsto_sum_nat
-
-lemma finsetSum_tendsto_tsum' {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
-    Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
-  sorry
-  -- have := finsetSum_tendsto_tsum (f := fun n ↦ f (n + N)) ((summable_nat_add_iff N).mpr hf)
-  -- 2 with k
-  -- · let e := addRightEmbedding N
-  --   convert Finset.sum_map (f := f) (e := e) (s := Finset.range k) using 2
-  --   exact Ioc_eq_map_range N k
-  -- · exact (summable_nat_add_iff N).mpr hf
+lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
+  rw [Filter.tendsto_atTop_atTop]
+  intro b
+  use ⌊b⌋.toNat + 1
+  intro a ha
+  by_cases a_zero : a = 0
+  · simp [a_zero] at ha
+  · by_cases h : ⌊b⌋.toNat < a
+    · exact (Int.floor_lt.mp <| (Int.toNat_lt' a_zero).mp h).le
+    · simp only [not_lt] at h
+      absurd le_trans ha h
+      simp
 
 -- related to `ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt`
 lemma Summable_rpow {s : ℂ} (s_re_gt : 1 < s.re) : Summable (fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s) := by
@@ -696,7 +684,7 @@ lemma ZetaSum_aux3 {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
 lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     ∑' (n : ℕ), 1 / (n + N : ℂ) ^ s =
     (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
-      + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
+      + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) := by
   have s_ne_zero : s ≠ 0 := fun hs ↦ by linarith [zero_re ▸ hs ▸ s_re_gt]
   have s_ne_one : s ≠ 1 := fun hs ↦ (lt_self_iff_false _).mp <| one_re ▸ hs ▸ s_re_gt
   apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
