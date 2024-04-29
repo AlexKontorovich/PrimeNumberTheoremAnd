@@ -708,7 +708,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
         · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
         · exact Measurable.comp measurable_id measurable_ofReal
 /-%%
-\begin{proof}\uses{ZetaSum_aux1}
+\begin{proof}\uses{ZetaSum_aux1}\leanok
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
 \end{proof}
 %%-/
