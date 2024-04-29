@@ -40,7 +40,7 @@ lemma div_rpow_eq_rpow_div_neg {x y s : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
 For any natural $N\ge1$, we define
 $$
 \zeta_0(N,s) :=
-\sum_{1\le n < N} \frac1{n^s}
+\sum_{1\le n \le N} \frac1{n^s}
 +
 \frac{- N^{1-s}}{1-s} + \frac{-N^{-s}}{2} + s \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
 $$
