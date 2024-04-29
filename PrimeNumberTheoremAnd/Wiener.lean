@@ -1689,7 +1689,7 @@ theorem wiener_ikehara_smooth_sub (h1 : Integrable Ψ) (hplus : closure (Functio
 \begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
   If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then, then
 $$ \sum_{n=1}^\infty f(n) \Psi( \frac{n}{x} ) = A x \int_0^\infty \Psi(y)\ dy + o(x)$$
-as $u \to \infty$.
+as $x \to \infty$.
 \end{corollary}
 %%-/
 
