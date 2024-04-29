@@ -1590,7 +1590,7 @@ Combining the two estimates and letting $R$ be large, we obtain the claim.
 %%-/
 
 /-%%
-\begin{lemma}[Bijectivity of Fourier transform]\label{bij}\lean{fourier_surjection_on_schwartz}\leanok  The Fourier transform is a bijection on the Schwartz class.
+\begin{lemma}[Bijectivity of Fourier transform]\label{bij}\lean{fourier_surjection_on_schwartz}\leanok  The Fourier transform is a bijection on the Schwartz class. [Note: only surjectivity is actually used.]
 \end{lemma}
 %%-/
 
