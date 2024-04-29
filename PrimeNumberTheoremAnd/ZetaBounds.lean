@@ -575,10 +575,10 @@ lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
     ∑' (n : ℕ), f n = (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
   rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N), Finset.range_eq_Ico]
 
-lemma Finset.Ioc_eq_Ico (M N : ℕ): Finset.Ioc N M = Finset.Ico (N + 1) (M + 1) := by
+lemma Finset.Ioc_eq_Ico (M N : ℕ) : Finset.Ioc N M = Finset.Ico (N + 1) (M + 1) := by
   ext a; simp only [Finset.mem_Ioc, Finset.mem_Ico]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
 
-lemma Finset.Ioc_eq_Icc (M N : ℕ): Finset.Ioc N M = Finset.Icc (N + 1) M := by
+lemma Finset.Ioc_eq_Icc (M N : ℕ) : Finset.Ioc N M = Finset.Icc (N + 1) M := by
   ext a; simp only [Finset.mem_Ioc, Finset.mem_Icc]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
 
 lemma Finset.Icc_eq_Ico (M N : ℕ): Finset.Icc N M = Finset.Ico N (M + 1) := by
@@ -669,21 +669,19 @@ lemma ZetaSum_aux3 {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
   -- let g := fun (n : ℕ) ↦ f (n + 1)
   have hf := Summable_rpow s_re_gt
   -- have hg := summable_nat_add_iff 1 |>.mpr <| hf
-  have := finsetSum_tendsto_tsum (f := f) hf
-  sorry
+  have := finsetSum_tendsto_tsum (f := f) (N := N) hf
   -- map k to k + 1 before the conversion
   -- might be useful: Finset.sum_insert_zero (f := f) ?_
-  -- · convert this using 1
-  --   · ext k
+  · convert this using 1
+    · ext k
       -- use a filter instead to get 1 ≤ k
-      -- have hk : 1 ≤ k := by sorry
-      -- simp only [Finset.Icc_eq_Ico, Finset.Ioc_eq_Icc]
-      -- have := Finset.sum_Ico_add f N k 1
-      -- simp_rw [add_comm] at this
-      -- rw [← this, Nat.sub_add_cancel hk]
-      -- sorry
-    --· sorry
-      --simp [f]
+      have hk : 1 ≤ k := by sorry
+      simp only [Finset.Icc_eq_Ico, Finset.Ioc_eq_Icc]
+      have := Finset.sum_Ico_add f N k 1
+      simp_rw [add_comm] at this
+      rw [← this, Nat.sub_add_cancel hk]
+      sorry
+    · simp [f]
   -- · simp only [g]; exact hg
 
 /-%%
@@ -699,69 +697,35 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     ∑' (n : ℕ), 1 / (n + N : ℂ) ^ s =
     (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
       + s * ∫ x in Set.Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ)^(s + 1) := by
-  have s_ne_zero : s ≠ 0 := by
-    intro s_eq
-    rw [s_eq] at s_re_gt
-    simp only [zero_re] at s_re_gt
-    linarith
-  have s_re_ne_zero : s.re ≠ 0 := by
-    simp only [ne_eq]
-    linarith
-  have s_ne_one : s ≠ 1 := by
-    intro s_eq
-    rw [s_eq] at s_re_gt
-    simp only [one_re, lt_self_iff_false] at s_re_gt
-  have one_sub_s_ne : 1 - s ≠ 0 := by
-    intro h
-    rw [sub_eq_iff_eq_add, zero_add] at h
-    exact s_ne_one h.symm
-  have one_sub_s_re_ne : (1 - s).re ≠ 0 := by
-    simp only [sub_re, one_re, ne_eq]
-    linarith
-  have xpow_tendsto : Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) := by
-    rw [tendsto_zero_iff_norm_tendsto_zero]
-    simp_rw [Complex.norm_natCast_cpow_of_re_ne_zero _ one_sub_s_re_ne]
-    have : (1 - s).re = - (s - 1).re := by simp
-    simp_rw [this]
-    apply (tendsto_rpow_neg_atTop _).comp tendsto_nat_cast_atTop_atTop
-    simp only [sub_re, one_re, sub_pos, s_re_gt]
-  have xpow_inv_tendsto : Tendsto (fun (x : ℕ) ↦ ((x : ℂ) ^ s)⁻¹) atTop (𝓝 0) := by
-    sorry
-  sorry
-  --   rw [tendsto_zero_iff_norm_tendsto_zero]
-  --   simp_rw [norm_inv, Complex.norm_natCast_cpow_of_re_ne_zero _ s_re_ne_zero, ← Real.rpow_neg (Nat.cast_nonneg _) _]
-  --   apply (tendsto_rpow_neg_atTop _).comp tendsto_nat_cast_atTop_atTop
-  --   linarith
-  --     + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) := by
-  -- have s_ne_zero : s ≠ 0 := fun hs ↦ by linarith [zero_re ▸ hs ▸ s_re_gt]
-  -- have s_ne_one : s ≠ 1 := fun hs ↦ (lt_self_iff_false _).mp <| one_re ▸ hs ▸ s_re_gt
-  -- apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
-  --   (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
-  --     + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
-  --   (b := (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
-  --     + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
-  -- · apply Filter.Tendsto.congr' (f₁ := fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, 1 / (n : ℂ) ^ s) (l₁ := atTop)
-  --   · apply Filter.eventually_atTop.mpr
-  --     use N + 1
-  --     intro k hk
-  --     convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero ⟨N_pos, hk⟩ using 1
-  --     convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
-  --   · exact ZetaSum_aux3 N_pos s_re_gt
-  -- · apply (Tendsto.sub ?_ ?_).add (Tendsto.const_mul _ ?_)
-  --   · rw [(by ring : -↑N ^ (1 - s) / (1 - s) = (0 - ↑N ^ (1 - s)) / (1 - s) + 0)]
-  --     apply cpow_tendsto s_re_gt |>.sub_const _ |>.div_const _ |>.add
-  --     simp_rw [mul_comm_div, one_mul, one_div, (by congr; ring : 𝓝 (0 : ℂ) = 𝓝 ((0 : ℂ) / 2))]
-  --     apply Tendsto.div_const <| cpow_inv_tendsto (by positivity)
-  --   · simp_rw [mul_comm_div, one_mul, one_div, cpow_neg]; exact tendsto_const_nhds
-  --   · refine MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
-  --       (b := (fun (n : ℕ) ↦ (n : ℝ))) ?_ tendsto_coe_atTop
-  --     apply MeasureTheory.Integrable.bdd_mul ?_ ?_
-  --     · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
-  --     · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt]; positivity)
-  --     · apply Measurable.aestronglyMeasurable
-  --       refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
-  --       · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
-  --       · exact Measurable.comp measurable_id measurable_ofReal
+  have s_ne_zero : s ≠ 0 := fun hs ↦ by linarith [zero_re ▸ hs ▸ s_re_gt]
+  have s_ne_one : s ≠ 1 := fun hs ↦ (lt_self_iff_false _).mp <| one_re ▸ hs ▸ s_re_gt
+  apply tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
+    (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
+      + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
+    (b := (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
+      + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
+  · apply Filter.Tendsto.congr' (f₁ := fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, 1 / (n : ℂ) ^ s) (l₁ := atTop)
+    · apply Filter.eventually_atTop.mpr
+      use N + 1
+      intro k hk
+      convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero ⟨N_pos, hk⟩ using 1
+      convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
+    · exact ZetaSum_aux3 N_pos s_re_gt
+  · apply (Tendsto.sub ?_ ?_).add (Tendsto.const_mul _ ?_)
+    · rw [(by ring : -↑N ^ (1 - s) / (1 - s) = (0 - ↑N ^ (1 - s)) / (1 - s) + 0)]
+      apply cpow_tendsto s_re_gt |>.sub_const _ |>.div_const _ |>.add
+      simp_rw [mul_comm_div, one_mul, one_div, (by congr; ring : 𝓝 (0 : ℂ) = 𝓝 ((0 : ℂ) / 2))]
+      apply Tendsto.div_const <| cpow_inv_tendsto (by positivity)
+    · simp_rw [mul_comm_div, one_mul, one_div, cpow_neg]; exact tendsto_const_nhds
+    · refine MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
+        (b := (fun (n : ℕ) ↦ (n : ℝ))) ?_ tendsto_coe_atTop
+      apply MeasureTheory.Integrable.bdd_mul ?_ ?_
+      · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
+      · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt]; positivity)
+      · apply Measurable.aestronglyMeasurable
+        refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
+        · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+        · exact Measurable.comp measurable_id measurable_ofReal
 /-%%
 \begin{proof}\uses{ZetaSum_aux1}
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
