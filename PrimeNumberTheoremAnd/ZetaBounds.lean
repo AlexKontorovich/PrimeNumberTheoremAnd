@@ -573,8 +573,8 @@ and evaluate the integral.
 
 
 lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
-    ∑' (n : ℕ), f n = (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
-  rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N), Finset.range_eq_Ico]
+    ∑' (n : ℕ), f n = (∑ n in Finset.range N, f n) + ∑' (n : ℕ), f (n + N) := by
+  rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N)]
 
 lemma Finset.Ioc_eq_Ico (M N : ℕ): Finset.Ioc N M = Finset.Ico (N + 1) (M + 1) := by
   ext a; simp only [Finset.mem_Ioc, Finset.mem_Ico]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
@@ -586,18 +586,16 @@ lemma Finset.Icc_eq_Ico (M N : ℕ): Finset.Icc N M = Finset.Ico N (M + 1) := by
   ext a; simp only [Finset.mem_Icc, Finset.mem_Ico]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
 
 lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
-    Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Icc N (k - 1), f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
-  have := Summable.hasSum_iff_tendsto_nat hf (m := ∑' (n : ℕ), f n) |>.mp ?_
-  swap; apply (Summable.hasSum_iff hf).mpr; rfl
-  have const := @tendsto_const_nhds (x := ∑ i in Finset.Ico 0 N, f i) ℕ _ atTop
+    Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ico N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
+  have := Summable.hasSum_iff_tendsto_nat hf (m := ∑' (n : ℕ), f n) |>.mp hf.hasSum
+  have const := @tendsto_const_nhds (x := ∑ i in Finset.range N, f i) ℕ _ atTop
   have := Filter.Tendsto.sub this const
-  rw [tsum_eq_partial_add_tail f hf (N := N), Finset.range_eq_Ico, add_comm, add_sub_cancel_right] at this
-  -- here we need filters to take take max 1 N ≤ M
-  convert this with M
-  have h : max 1 N ≤ M := by sorry
-  simp only [eq_sub_iff_add_eq, Finset.Icc_eq_Ico]
-  rw [add_comm, Nat.sub_add_cancel (max_le_iff.mp h).1]
-  exact Finset.sum_Ico_consecutive f (by omega) (max_le_iff.mp h).2
+  rw [tsum_eq_partial_add_tail f hf (N := N), add_comm, add_sub_cancel_right] at this
+  apply this.congr'
+  filter_upwards [Filter.mem_atTop (N + 1)]
+  intro M hM
+  rw [Finset.sum_Ico_eq_sub]
+  linarith
 
 lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
   rw [Filter.tendsto_atTop_atTop]
@@ -658,6 +656,7 @@ lemma ZetaSum_aux3 {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
   have hf := Summable_rpow s_re_gt
   -- have hg := summable_nat_add_iff 1 |>.mpr <| hf
   have := finsetSum_tendsto_tsum (f := f) (N := N) hf
+  have := @Filter.Tendsto.congr' (h := this)
   -- map k to k + 1 before the conversion
   -- might be useful: Finset.sum_insert_zero (f := f) ?_
   · convert this using 1
