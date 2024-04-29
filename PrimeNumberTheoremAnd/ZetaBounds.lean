@@ -1163,7 +1163,7 @@ $$
 \sum_{1\le n \le |t|} |n^{-s}|
 +
 \frac{- |t|^{1-\sigma}}{|1-s|} + \frac{-|t|^{-\sigma}}{2} +
-|t| \cdot |t| ^ (-σ) / σ
+|t| \cdot |t| ^ {-σ} / σ
 $$
 $$
 \ll
