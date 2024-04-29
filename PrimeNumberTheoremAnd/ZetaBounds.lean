@@ -1015,26 +1015,29 @@ lemma UpperBnd_aux3 {A C σ t : ℝ} (Apos : 0 < A) (A_lt_one : A < 1) {N : ℕ}
   obtain ⟨_, σPos, _⟩ := UpperBnd_aux Apos A_lt_one t_ge σ_ge
   have logt_gt_one := logt_gt_one t_ge
   have (n : ℕ) (hn : n ∈ Finset.range (N + 1)) := ZetaBnd_aux2 (n := n) Apos σPos ?_ σ_ge
-  swap; exact le_trans (Nat.cast_le.mpr (Finset.mem_range.mp hn).le) N_le_t
-  replace := norm_sum_le_of_le (Finset.range (N + 1)) this
-  rw [← Finset.sum_mul, mul_comm _ A.exp] at this
-  rw [mul_assoc]
-  apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
-  have : 1 + (N - 1: ℝ).log ≤ C * |t|.log := by
-    by_cases hN : N = 1
-    · simp only [hN, Nat.cast_one, sub_self, Real.log_zero, add_zero];
-      rw [← mul_one 1]; exact mul_le_mul (by linarith) logt_gt_one.le (by norm_num) (by positivity)
-    · rw [(by ring : C * Real.log |t| = (C - 1) * Real.log |t| + Real.log |t|)]
-      replace hN : 0 < (N : ℝ) - 1 := by simp only [sub_pos, Nat.one_lt_cast]; omega
-      have : (N - 1: ℝ).log ≤ |t|.log := Real.log_le_log hN (by linarith)
-      apply add_le_add ?_ this
-      nth_rewrite 1 [← mul_one 1]
-      exact mul_le_mul (by linarith) logt_gt_one.le (by norm_num) (by linarith)
-  refine le_trans ?_ this
-  convert harmonic_eq_sum_Icc ▸ harmonic_le_one_add_log (N - 1)
-  · simp only [Rat.cast_sum, Rat.cast_inv, Rat.cast_natCast, Finset.range_eq_Ico]
-    rw [riemannZeta0_zero_aux N Npos]; congr! 1
-  · rw [Nat.cast_pred Npos]
+  --swap; exact le_trans (Nat.cast_le.mpr (Finset.mem_range.mp hn).le) N_le_t
+  · replace := norm_sum_le_of_le (Finset.range (N + 1)) this
+    rw [← Finset.sum_mul, mul_comm _ A.exp] at this
+    rw [mul_assoc]
+    apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
+    have : 1 + (N : ℝ).log ≤ C * |t|.log := by
+      by_cases hN : N = 1
+      · simp only [hN, Nat.cast_one, Real.log_one, add_zero]
+        have : 2 * 1 ≤ C * Real.log |t| := mul_le_mul hC logt_gt_one.le (by linarith) (by linarith)
+        linarith
+      · rw [(by ring : C * Real.log |t| = Real.log |t| + (C - 1) * Real.log |t|)]
+        apply add_le_add logt_gt_one.le
+        rw [(by ring : Real.log ↑N = 1 * Real.log ↑N)]
+        apply mul_le_mul (by linarith) (Real.log_le_log (by positivity) N_le_t) (by positivity) (by linarith)
+    refine le_trans ?_ this
+    convert harmonic_eq_sum_Icc ▸ harmonic_le_one_add_log N
+    · simp only [Rat.cast_sum, Rat.cast_inv, Rat.cast_natCast, Finset.range_eq_Ico]
+      rw [riemannZeta0_zero_aux (N + 1) (by linarith)]; congr! 1
+  · simp only [Finset.mem_range] at hn
+    have : (n : ℝ) ≤ N := by
+      have : n ≤ N := by omega
+      exact_mod_cast this
+    linarith
 
 lemma Nat.self_div_floor_bound {t : ℝ}  (t_ge : 1 ≤ |t|) : (|t| / ↑⌊|t|⌋₊) ∈ Icc 1 2 := by
   set N := ⌊|t|⌋₊
