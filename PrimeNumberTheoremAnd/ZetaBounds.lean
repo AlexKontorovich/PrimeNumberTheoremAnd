@@ -767,8 +767,8 @@ and evaluate the integral.
 -- TODO : Change to `Ico`, not `Ioc`
 
 -- remove? Ask on zulip
-theorem Ioc_eq_map_range (N k : ℕ) :
-    Finset.Ioc N k = Finset.map (addRightEmbedding N) (Finset.range k) := by
+theorem Ico_eq_map_range (N k : ℕ) :
+    Finset.Ico N k = Finset.map (addRightEmbedding N) (Finset.range k) := by
   sorry
 
 -- Remove this theorem, already "exists"
@@ -778,7 +778,10 @@ lemma finsetSum_tendsto_tsum {f : ℕ → ℂ} (hf : Summable f) :
 
 lemma finsetSum_tendsto_tsum' {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
     Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ioc N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
-  convert finsetSum_tendsto_tsum (f := fun n ↦ f (n + N)) ?_ using 2 with k
+  have := finsetSum_tendsto_tsum (f := fun n ↦ f (n + N)) ((summable_nat_add_iff N).mpr hf)
+
+#exit
+  2 with k
   · let e := addRightEmbedding N
     convert Finset.sum_map (f := f) (e := e) (s := Finset.range k) using 2
     exact Ioc_eq_map_range N k
