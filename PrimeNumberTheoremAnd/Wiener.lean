@@ -273,7 +273,7 @@ lemma second_fourier (hcont: Continuous ψ) (hsupp: Integrable ψ)
 /-%%
 \begin{proof}\leanok
 The left-hand side expands as
-$$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt\ du =
+$$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt\ du \atop{?}=
 x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt$$
 so by Fubini's theorem it suffices to verify the identity
 \begin{align*}
