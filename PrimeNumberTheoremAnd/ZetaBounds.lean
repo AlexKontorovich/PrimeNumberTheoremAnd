@@ -748,7 +748,7 @@ Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\
 
 /-%%
 \begin{lemma}[HolomorphicOn_Zeta0]\label{HolomorphicOn_Zeta0}\lean{HolomorphicOn_Zeta0}\leanok
-For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}.
+For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$.
 \end{lemma}
 %%-/
 lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
@@ -758,6 +758,7 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
 \begin{proof}\uses{ZetaSum_aux1}
   The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral
   that's absolutely convergent on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ by Lemma \ref{ZetaSum_aux1}.
+\end{proof}
 %%-/
 
 -- MOVE TO MATHLIB near `differentiableAt_riemannZeta`
