@@ -783,36 +783,78 @@ The set $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ is path-connected.
 lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
   use (2 : ℂ)
   constructor; simp
-  intro y hy; simp only [ne_eq, mem_setOf_eq] at hy
-  by_cases h : y.re ≤ 1
-  · apply JoinedIn.trans (y := I)
-    · sorry
-    · sorry
-  · let f : ℝ → ℂ := fun t ↦ y * t + 2 * (1 - t)
+  intro w hw; simp only [ne_eq, mem_setOf_eq] at hw
+  by_cases w_im : w.im = 0
+  · apply JoinedIn.trans (y := 1 + I)
+    · let f : ℝ → ℂ := fun t ↦ (1 + I) * t + 2 * (1 - t)
+      have cont : Continuous f := by continuity
+      apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
+      simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re, one_re,
+        I_re, add_zero, ofReal_re, one_mul, add_im, one_im, I_im, zero_add, ofReal_im, mul_zero,
+        sub_zero, re_ofNat, sub_re, im_ofNat, sub_im, sub_self, f]
+      intro x hx; simp only [mem_Icc] at hx
+      simp only [mem_setOf_eq]
+      refine ⟨?_, by linarith⟩
+      intro h
+      rw [Complex.ext_iff] at h
+      simp only [add_re, mul_re, one_re, I_re, add_zero, ofReal_re, one_mul, add_im, one_im, I_im,
+        zero_add, ofReal_im, mul_zero, sub_zero, re_ofNat, sub_re, im_ofNat, sub_im, sub_self,
+        mul_im, zero_mul] at h
+      simp only [h.2, sub_zero, mul_one, zero_add, OfNat.ofNat_ne_one, and_true] at h
+    · let f : ℝ → ℂ := fun t ↦ w * t + (1 + I) * (1 - t)
+      have cont : Continuous f := by continuity
+      apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
+      simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re,
+        ofReal_re, ofReal_im, mul_zero, sub_zero, one_re, I_re, add_zero, sub_re, one_mul, add_im,
+        one_im, I_im, zero_add, sub_im, sub_self, f]
+      intro x hx; simp only [mem_Icc] at hx
+      simp only [mem_setOf_eq]
+      refine ⟨?_, ?_⟩
+      · intro h
+        rw [Complex.ext_iff] at h
+        simp only [add_re, mul_re, ofReal_re, w_im, ofReal_im, mul_zero, sub_zero, one_re, I_re,
+          add_zero, sub_re, one_mul, add_im, one_im, I_im, zero_add, sub_im, sub_self, mul_im,
+          zero_mul] at h
+        have : x = 1 := by linarith
+        simp only [this, mul_one, sub_self, add_zero, and_true] at h
+        have : w = 1 := by
+          rw [Complex.ext_iff]
+          simp only [one_re, one_im]
+          exact ⟨h, w_im⟩
+        exact hw.1 this
+      · by_cases hxx : x = 0
+        · simp only [hxx]; linarith
+        · have : 0 < x := by
+            rw [← ne_eq] at hxx
+            exact lt_of_le_of_ne hx.1 (id (Ne.symm hxx))
+          have : 0 ≤ 1 - x := by linarith
+          have := hw.2
+          positivity
+  · let f : ℝ → ℂ := fun t ↦ w * t + 2 * (1 - t)
     have cont : Continuous f := by continuity
     apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
-    simp [f, unitInterval]
+    simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re, ofReal_re,
+      ofReal_im, mul_zero, sub_zero, re_ofNat, sub_re, one_re, im_ofNat, sub_im, one_im, sub_self,
+      f]
     intro x hx; simp only [mem_Icc] at hx
     simp only [mem_setOf_eq]
-    constructor
-    · suffices ¬ (2 - y) * x = 1 by
-        convert this using 1
-        ring_nf
-        sorry
-      simp [Complex.ext_iff]
-      contrapose!
-      intro hxy
-      rcases hxy with (hx1 | hy1)
-      · have hyre: 2 - y.re < 1 := by linarith
-        by_cases hx2 : x = 0
-        · simp only [hx2]; linarith
-        · have := mul_lt_mul (a := 2 - y.re) (b := x) (c := 1) (d := 1) hyre hx.2
-            (lt_of_le_of_ne hx.1 <| ((Ne.def _ _).symm ▸ hx2).symm) (by norm_num)
-          linarith
-      · simp [hy1]
-    · sorry
+    refine ⟨?_, ?_⟩
+    · intro h
+      rw [Complex.ext_iff] at h
+      simp only [add_re, mul_re, ofReal_re, ofReal_im, mul_zero, sub_zero, re_ofNat, sub_re, one_re,
+        im_ofNat, sub_im, one_im, sub_self, add_im, mul_im, zero_add, zero_mul, add_zero,
+        mul_eq_zero, w_im, false_or] at h
+      simp only [h.2, mul_zero, sub_zero, mul_one, zero_add, OfNat.ofNat_ne_one, and_true] at h
+    · by_cases hxx : x = 0
+      · simp only [hxx]; linarith
+      · have : 0 < x := by
+          rw [← ne_eq] at hxx
+          exact lt_of_le_of_ne hx.1 (id (Ne.symm hxx))
+        have : 0 ≤ 1 - x := by linarith
+        have := hw.2
+        positivity
 /-%%
-\begin{proof}
+\begin{proof}\leanok
   Construct explicit paths from $2$ to any point, either a line segment or two joined ones.
 \end{proof}
 %%-/
