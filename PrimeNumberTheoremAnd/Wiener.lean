@@ -2292,7 +2292,7 @@ end auto_cheby
 \section{The prime number theorem in arithmetic progressions}
 
 \begin{theorem}[Weak PNT in AP]\label{WeakPNT-AP}\lean{WeakPNT_AP}  If $q ≥ 1$ and $a$ is coprime to $q$, We have
-$$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = ¼{x}{\varphi(q)} + o(x).$$
+$$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$
 \end{theorem}
 %%-/
 
