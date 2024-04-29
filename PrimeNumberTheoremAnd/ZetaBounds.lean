@@ -691,7 +691,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       intro k hk
       convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero ⟨N_pos, hk⟩ using 1
       convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
-    · exact ZetaSum_aux3 N_pos s_re_gt
+    · exact ZetaSum_aux3 s_re_gt
   · apply (Tendsto.sub ?_ ?_).add (Tendsto.const_mul _ ?_)
     · rw [(by ring : -↑N ^ (1 - s) / (1 - s) = (0 - ↑N ^ (1 - s)) / (1 - s) + 0)]
       apply cpow_tendsto s_re_gt |>.sub_const _ |>.div_const _ |>.add
