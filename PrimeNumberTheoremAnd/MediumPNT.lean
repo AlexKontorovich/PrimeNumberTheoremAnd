@@ -5,8 +5,9 @@ import PrimeNumberTheoremAnd.ZetaBounds
 import EulerProducts.PNT
 import Mathlib.Algebra.Function.Support
 
-open Set Function Filter Complex
+open Set Function Filter Complex Real
 
+local notation (name := mellintransform2) "𝓜" => MellinTransform
 open scoped ArithmeticFunction
 
 
@@ -54,7 +55,7 @@ X^{s}ds.$$
 %%-/
 noncomputable abbrev SmoothedChebyshevIntegrand (ψ : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ → ℂ :=
   fun s ↦ (- deriv riemannZeta s) / riemannZeta s *
-    (MellinTransform ((Smooth1 ψ ε) ·) s) * (X : ℂ) ^ s
+    𝓜 ((Smooth1 ψ ε) ·) s * (X : ℂ) ^ s
 
 noncomputable def SmoothedChebyshev (ψ : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
   VerticalIntegral' (SmoothedChebyshevIntegrand ψ ε X) 2
@@ -67,29 +68,44 @@ We have that
 $$\psi_{\epsilon}(X) = \sum_{n=1}^\infty \Lambda(n)\widetilde{1_{\epsilon}}(n/X).$$
 \end{theorem}
 %%-/
-theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (ε : ℝ) (eps_pos: 0 < ε)
+theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 ψ) (ε : ℝ) (εpos: 0 < ε)
     (suppΨ : Function.support ψ ⊆ Icc (1 / 2) 2) (X : ℝ) (X_pos : 0 < X) :
-    SmoothedChebyshev ψ ε X = ∑' n, Λ n * ψ (n / X) := by
+    SmoothedChebyshev ψ ε X = ∑' n, Λ n * Smooth1 ψ ε (n / X) := by
   dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
   rw [MellinTransform_eq]
   calc
-    _ = 1 / (2 * Real.pi * I) * (I * ∫ (t : ℝ), ∑' n, Λ n / (n : ℂ) ^ (2 + ↑t * I) *
+    _ = 1 / (2 * π * I) * (I * ∫ (t : ℝ), ∑' n, Λ n / (n : ℂ) ^ (2 + ↑t * I) *
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
-    _ = 1 / (2 * Real.pi * I) * (I * ∑' n, ∫ (t : ℝ), Λ n / (n : ℂ) ^ (2 + ↑t * I) *
+    _ = 1 / (2 * π * I) * (I * ∑' n, ∫ (t : ℝ), Λ n / (n : ℂ) ^ (2 + ↑t * I) *
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
-    _ = 1 / (2 * Real.pi * I) * (I * ∑' n, Λ n * ∫ (t : ℝ),
+    _ = 1 / (2 * π * I) * (I * ∑' n, Λ n * ∫ (t : ℝ),
       mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
+    _ = 1 / (2 * π) * (∑' n, Λ n * ∫ (t : ℝ),
+      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
+    _ = ∑' n, Λ n * (1 / (2 * π) * ∫ (t : ℝ),
+      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
+    _ = ∑' n, Λ n * (1 / (2 * π) * ∫ (t : ℝ),
+      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * ((n : ℂ) / X) ^ (-(2 + ↑t * I))) := ?_
     _ = _ := ?_
   · congr; ext t
     rw [LogDerivativeDirichlet (s := 2 + t * I) (by simp)]
     rw [← tsum_mul_right, ← tsum_mul_right]
-  · sorry
+  · congr
+    rw [← MellinTransform_eq]
+    have := @MellinOfSmooth1b ψ diffΨ suppΨ 2 2 (by norm_num) ε εpos
+    simp_rw [Asymptotics.isBigO_iff] at this
+    obtain ⟨c, hc⟩ := this
+    simp only [Real.norm_eq_abs, Complex.abs_abs, one_div, mul_inv_rev, norm_mul,
+      norm_inv, norm_pow, eventually_principal, mem_setOf_eq, and_imp] at hc
+    simp only [Complex.norm_eq_abs, Complex.abs_abs] at hc
+    replace hc (t : ℝ) := hc (2 + t * I) (by simp) (by simp)
+    sorry
   · field_simp; congr; ext n; congr; rw [← MeasureTheory.integral_mul_left ]; congr; ext t
     by_cases n_ne_zero : n = 0; simp [n_ne_zero]
     rw [mul_div_assoc, mul_assoc]
     congr
     rw [(div_eq_iff ?_).mpr]
-    have := @Complex.mul_cpow_ofReal_nonneg (a := X / (n : ℝ)) (b := (n : ℝ)) (r := 2 + t * I) ?_ ?_
+    have := @mul_cpow_ofReal_nonneg (a := X / (n : ℝ)) (b := (n : ℝ)) (r := 2 + t * I) ?_ ?_
     push_cast at this ⊢
     rw [← this, div_mul_cancel₀]
     · simp only [ne_eq, Nat.cast_eq_zero, n_ne_zero, not_false_eq_true]
@@ -97,10 +113,44 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (ε : ℝ) (eps_pos: 0 < �
     · simp
     · simp only [ne_eq, cpow_eq_zero_iff, Nat.cast_eq_zero, not_and, not_not]
       intro hn; exfalso; exact n_ne_zero hn
-  · sorry
+  · conv => rw [← mul_assoc, div_mul]; lhs; lhs; rhs; simp
+  · simp_rw [← tsum_mul_left, ← mul_assoc, mul_comm]
+  · have ht (t : ℝ) : -(2 + t * I) = (-1) * (2 + t * I) := by simp
+    have hn (n : ℂ): (n / X) ^ (-1 : ℂ) = X / n := by simp [cpow_neg_one]
+    have (n : ℕ): (log ((n : ℂ) / (X : ℂ)) * -1).im = 0 := by
+      simp [Complex.log_im, arg_eq_zero_iff, div_nonneg (Nat.cast_nonneg _) X_pos.le]
+    have h (n : ℕ) (t : ℝ) : ((n : ℂ) / X) ^ ((-1 : ℂ) * (2 + t * I)) =
+        ((n / X) ^ (-1 : ℂ)) ^ (2 + ↑t * I) := by
+      rw [cpow_mul] <;> {rw [this n]; simp [Real.pi_pos, Real.pi_nonneg]}
+    conv => rhs; rhs; intro n; rhs; rhs; rhs; intro t; rhs; rw [ht t, h n t]; lhs; rw [hn]
+  · push_cast
+    congr
+    ext n
+    by_cases n_zero : n = 0; simp [n_zero]
+    have n_pos : 0 < n := by
+      simpa only [n_zero, gt_iff_lt, false_or] using (Nat.eq_zero_or_pos n)
+    congr
+    rw [(by rw [div_mul]; simp : 1 / (2 * π) = 1 / (2 * π * I) * I), mul_assoc]
+    conv => lhs; rhs; rhs; rhs; intro t; rw [mul_comm]; norm_cast
+    have := MellinInversion 2 (f := fun x ↦ (Smooth1 ψ ε x : ℂ)) (x := n / X)
+      (by simp [n_pos, X_pos]) ?_ ?_ ?_
+    · beta_reduce at this
+      dsimp [MellinInverseTransform, VerticalIntegral] at this
+      rw [← MellinTransform_eq, this]
+    · dsimp [MellinConvergent]
+      norm_num
+      norm_cast
+      apply MeasureTheory.Integrable.ofReal
+      -- use Smooth1LeOne
+      sorry
+    · dsimp [VerticalIntegrable, mellin]
+      ring_nf
+      sorry
+    · dsimp
+      sorry
 /-%%
 \begin{proof}
-\uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet}
+\uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne, MellinOfSmooth1b}
 We have that
 $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(2)}\sum_{n=1}^\infty \frac{\Lambda(n)}{n^s}
 \mathcal{M}(\widetilde{1_{\epsilon}})(s)
@@ -138,7 +188,7 @@ $$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X \log X).$$
 lemma SmoothedChebyshevClose {ψ : ℝ → ℝ} (ε : ℝ) (ε_pos: 0 < ε)
     (suppΨ : Function.support ψ ⊆ Icc (1 / 2) 2) (Ψnonneg : ∀ x > 0, 0 ≤ ψ x)
     (mass_one : ∫ x in Ioi 0, ψ x / x = 1) (X : ℝ) :
-    (fun X ↦ Complex.abs (SmoothedChebyshev ψ ε X - ChebyshevPsi X)) =O[atTop]
+    (fun X ↦ ‖SmoothedChebyshev ψ ε X - ChebyshevPsi X‖) =O[atTop]
       (fun X ↦ ε * X * Real.log X) := by
   sorry
 /-%%
