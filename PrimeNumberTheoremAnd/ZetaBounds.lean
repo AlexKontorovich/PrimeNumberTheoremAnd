@@ -1007,14 +1007,16 @@ lemma riemannZeta0_zero_aux (N : ℕ) (Npos : 0 < N):
       · omega
   rw [this]; simp
 
+--- TO DO : Fix N ↦ N + 1 here below!!!
+
 lemma UpperBnd_aux3 {A C σ t : ℝ} (Apos : 0 < A) (A_lt_one : A < 1) {N : ℕ} (Npos : 0 < N)
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (t_ge : 3 < |t|) (N_le_t : (N : ℝ) ≤ |t|) (hC : 2 ≤ C) :
-     ‖∑ n in Finset.range N, (n : ℂ) ^ (-(σ + t * I))‖ ≤ A.exp * C * |t|.log := by
+     ‖∑ n in Finset.range (N + 1), (n : ℂ) ^ (-(σ + t * I))‖ ≤ A.exp * C * |t|.log := by
   obtain ⟨_, σPos, _⟩ := UpperBnd_aux Apos A_lt_one t_ge σ_ge
   have logt_gt_one := logt_gt_one t_ge
-  have (n : ℕ) (hn : n ∈ Finset.range N) := ZetaBnd_aux2 (n := n) Apos σPos ?_ σ_ge
+  have (n : ℕ) (hn : n ∈ Finset.range (N + 1)) := ZetaBnd_aux2 (n := n) Apos σPos ?_ σ_ge
   swap; exact le_trans (Nat.cast_le.mpr (Finset.mem_range.mp hn).le) N_le_t
-  replace := norm_sum_le_of_le (Finset.range N) this
+  replace := norm_sum_le_of_le (Finset.range (N + 1)) this
   rw [← Finset.sum_mul, mul_comm _ A.exp] at this
   rw [mul_assoc]
   apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
@@ -1122,7 +1124,7 @@ lemma ZetaUpperBnd :
   rw [← Zeta0EqZeta (N := N) Npos (by simp [σPos]) neOne]
   set s := σ + t * I
   calc
-    _ ≤ ‖∑ n in Finset.range N, 1 / (n : ℂ) ^ s‖ + ‖(- N ^ (1 - s)) / (1 - s)‖ +
+    _ ≤ ‖∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s‖ + ‖(- N ^ (1 - s)) / (1 - s)‖ +
       ‖(-(N : ℂ) ^ (-s)) / 2‖ +
       ‖s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := by apply norm_add₄_le
     _ ≤ A.exp * 2 * |t|.log + ‖(- N ^ (1 - s)) / (1 - s)‖ + ‖(-(N : ℂ) ^ (-s)) / 2‖ +
@@ -1158,7 +1160,7 @@ First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
 We estimate:
 $$
 |\zeta_0(N,s)| \ll
-\sum_{1\le n < |t|} |n^{-s}|
+\sum_{1\le n \le |t|} |n^{-s}|
 +
 \frac{- |t|^{1-\sigma}}{|1-s|} + \frac{-|t|^{-\sigma}}{2} +
 |t| \cdot |t| ^ (-σ) / σ
