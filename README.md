@@ -4,7 +4,7 @@ This project has a blueprint, which is available at <https://AlexKontorovich.git
 
 To use the tool, first install local requirements using
 ```sh
-python -pip install -r blueprint/requirements.txt
+pip install -r blueprint/requirements.txt
 ```
 
 Then compile documentations using `make blueprint` in the top-level directory. Alternatively, if the PDF is needed, type
