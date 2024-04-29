@@ -747,7 +747,19 @@ For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \R
 %%-/
 lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
     HolomorphicOn (ζ₀ N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
-  sorry
+  unfold riemannZeta0
+  apply DifferentiableOn.add
+  · apply DifferentiableOn.add
+    · apply DifferentiableOn.add
+      · apply DifferentiableOn.sum
+        intro n hn
+        apply DifferentiableOn.div
+        sorry
+        sorry
+        sorry
+      · sorry
+    · sorry
+  · sorry
 /-%%
 \begin{proof}\uses{ZetaSum_aux1}
   The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral
