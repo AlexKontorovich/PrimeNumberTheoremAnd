@@ -1007,8 +1007,6 @@ lemma riemannZeta0_zero_aux (N : ℕ) (Npos : 0 < N):
       · omega
   rw [this]; simp
 
---- TO DO : Fix N ↦ N + 1 here below!!!
-
 lemma UpperBnd_aux3 {A C σ t : ℝ} (Apos : 0 < A) (A_lt_one : A < 1) {N : ℕ} (Npos : 0 < N)
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (t_ge : 3 < |t|) (N_le_t : (N : ℝ) ≤ |t|) (hC : 2 ≤ C) :
      ‖∑ n in Finset.range (N + 1), (n : ℂ) ^ (-(σ + t * I))‖ ≤ A.exp * C * |t|.log := by
