@@ -752,13 +752,35 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
     · apply DifferentiableOn.add
       · apply DifferentiableOn.sum
         intro n hn
+        by_cases n0 : n = 0
+        · apply DifferentiableOn.congr (f := fun _ ↦ 0)
+          · apply differentiableOn_const
+          · intro s hs
+            have : (n : ℂ) ^ s = 0 := by
+              apply Complex.cpow_eq_zero_iff _ _ |>.mpr ⟨by simp [n0], by contrapose! hs; simp [hs]⟩
+            simp [this]
         apply DifferentiableOn.div
-        sorry
-        sorry
-        sorry
-      · sorry
-    · sorry
-  · sorry
+        · apply differentiableOn_const
+        · apply DifferentiableOn.const_cpow
+          · apply differentiableOn_id
+          · right; intro s hs; contrapose! hs; simp [hs]
+        · simp [n0]
+      · apply DifferentiableOn.div
+        · apply DifferentiableOn.neg
+          apply DifferentiableOn.const_cpow
+          · fun_prop
+          · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
+        · fun_prop
+        · intro x hx; contrapose! hx; simp [sub_eq_zero.mp hx |>.symm]
+    · apply DifferentiableOn.div
+      · apply DifferentiableOn.neg
+        apply DifferentiableOn.const_cpow
+        · fun_prop
+        · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
+      · fun_prop
+      · norm_num
+  · apply DifferentiableOn.mul differentiableOn_id
+    sorry
 /-%%
 \begin{proof}\uses{ZetaSum_aux1}
   The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral
