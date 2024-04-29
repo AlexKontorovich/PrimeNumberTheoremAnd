@@ -20,3 +20,35 @@ jobs:
 
       - name: Build project
         run: make LAKEBIN='~/.elan/bin/lake' build
+
+  build_blueprint:
+    runs-on: ubuntu-latest
+    name: Build blueprint
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip' # cache pip dependencies
+
+      - name: Update pip
+        run: |
+          pip install --upgrade pip
+
+      - name: Install blueprint apt dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz libgraphviz-dev pdf2svg dvisvgm
+
+      - name: Install blueprint dependencies
+        run: |
+          cd blueprint && pip install -r requirements.txt
+
+      - name: Build blueprint
+        run: |
+          make blueprint
