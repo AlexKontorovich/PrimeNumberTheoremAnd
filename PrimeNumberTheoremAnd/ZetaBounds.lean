@@ -47,7 +47,7 @@ $$
 \end{definition}
 %%-/
 noncomputable def riemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
-  (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
+  (∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s) +
   (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
 
@@ -57,7 +57,7 @@ local notation (name := riemannzeta) "ζ" => riemannZeta
 local notation (name := riemannzeta0) "ζ₀" => riemannZeta0
 
 lemma riemannZeta0_apply (N : ℕ) (s : ℂ) : ζ₀ N s =
-    (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
+    (∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s) +
     ((- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) := by
   simp_rw [riemannZeta0, div_cpow_eq_cpow_neg]; ring
@@ -648,28 +648,22 @@ lemma Complex.cpow_inv_tendsto {s : ℂ} (hs : 0 < s.re) :
 lemma ZetaSum_aux2a : ∃ C, ∀ (x : ℝ), |⌊x⌋ + 1 / 2 - x| ≤ C := by
   use 1 / 2; exact ZetaSum_aux1_3
 
-lemma ZetaSum_aux3 {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
+lemma ZetaSum_aux3 {N : ℕ} {s : ℂ} (s_re_gt : 1 < s.re) :
     Tendsto (fun k ↦ ∑ n in Finset.Ioc N k, 1 / (n : ℂ) ^ s) atTop
-    (𝓝 (∑' (n : ℕ), 1 / (n + N : ℂ) ^ s)) := by
+    (𝓝 (∑' (n : ℕ), 1 / (n + N + 1 : ℂ) ^ s)) := by
   let f := fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s
   -- let g := fun (n : ℕ) ↦ f (n + 1)
   have hf := Summable_rpow s_re_gt
   -- have hg := summable_nat_add_iff 1 |>.mpr <| hf
-  have := finsetSum_tendsto_tsum (f := f) (N := N) hf
-  have := @Filter.Tendsto.congr' (h := this)
-  -- map k to k + 1 before the conversion
-  -- might be useful: Finset.sum_insert_zero (f := f) ?_
-  · convert this using 1
-    · ext k
-      -- use a filter instead to get 1 ≤ k
-      have hk : 1 ≤ k := by sorry
-      simp only [Finset.Icc_eq_Ico, Finset.Ioc_eq_Icc]
-      have := Finset.sum_Ico_add f N k 1
-      simp_rw [add_comm] at this
-      rw [← this, Nat.sub_add_cancel hk]
-      sorry
-    · simp [f]
-  -- · simp only [g]; exact hg
+  simp_rw [Finset.Ioc_eq_Ico]
+  convert finsetSum_tendsto_tsum (f := fun n ↦ f (n + 1)) (N := N) ?_ using 1
+  · ext k
+    simp only [f]
+    convert Finset.sum_map (e := addRightEmbedding 1) ?_  ?_ using 2
+    ext n
+    simp only [Finset.mem_Ico, Finset.map_add_right_Ico]
+  · congr; ext n; simp only [one_div, Nat.cast_add, Nat.cast_one, f]
+  · rwa [summable_nat_add_iff (k := 1)]
 
 /-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
@@ -681,7 +675,7 @@ lemma ZetaSum_aux3 {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
 \end{lemma}
 %%-/
 lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
-    ∑' (n : ℕ), 1 / (n + N : ℂ) ^ s =
+    ∑' (n : ℕ), 1 / (n + N + 1 : ℂ) ^ s =
     (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
       + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) := by
   have s_ne_zero : s ≠ 0 := fun hs ↦ by linarith [zero_re ▸ hs ▸ s_re_gt]
@@ -849,10 +843,9 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   intro z hz
   simp only [f,g, zeta_eq_tsum_one_div_nat_cpow hz, riemannZeta0_apply]
   nth_rewrite 2 [neg_div]
-  sorry
-  -- rw [← sub_eq_add_neg, ← ZetaSum_aux2 N_pos hz, ← sum_add_tsum_nat_add N (Summable_rpow hz)]
-  -- congr
-  -- simp
+  rw [← sub_eq_add_neg, ← ZetaSum_aux2 N_pos hz, ← sum_add_tsum_nat_add N (Summable_rpow hz)]
+  congr
+  simp
 /-%%
 \begin{proof}\leanok
 \uses{ZetaSum_aux2, RiemannZeta0, HolomorphicOn_Zeta0, isPathConnected_aux}
