@@ -150,7 +150,7 @@ lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
     _ = _ := by simp ; group
 
 /-%%
-\begin{lemma}[First Fourier identity]\label{first-fourier}\lean{first_fourier}\leanok  If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
+\begin{lemma}[First Fourier identity]\label{first-fourier}\lean{first_fourier}\leanok  If $\psi: \R \to \C$ is continuous and integrable and $x > 0$, then for any $\sigma>1$
   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = \int_\R F(\sigma + it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
 %%-/
@@ -273,7 +273,7 @@ lemma second_fourier (hcont: Continuous ψ) (hsupp: Integrable ψ)
 /-%%
 \begin{proof}\leanok
 The left-hand side expands as
-$$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt\ du =
+$$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt\ du \atop{?}=
 x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt$$
 so by Fubini's theorem it suffices to verify the identity
 \begin{align*}
@@ -1590,7 +1590,7 @@ Combining the two estimates and letting $R$ be large, we obtain the claim.
 %%-/
 
 /-%%
-\begin{lemma}[Bijectivity of Fourier transform]\label{bij}\lean{fourier_surjection_on_schwartz}\leanok  The Fourier transform is a bijection on the Schwartz class.
+\begin{lemma}[Bijectivity of Fourier transform]\label{bij}\lean{fourier_surjection_on_schwartz}\leanok  The Fourier transform is a bijection on the Schwartz class. [Note: only surjectivity is actually used.]
 \end{lemma}
 %%-/
 
@@ -1689,7 +1689,7 @@ theorem wiener_ikehara_smooth_sub (h1 : Integrable Ψ) (hplus : closure (Functio
 \begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
   If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then, then
 $$ \sum_{n=1}^\infty f(n) \Psi( \frac{n}{x} ) = A x \int_0^\infty \Psi(y)\ dy + o(x)$$
-as $u \to \infty$.
+as $x \to \infty$.
 \end{corollary}
 %%-/
 
@@ -2292,7 +2292,7 @@ end auto_cheby
 \section{The prime number theorem in arithmetic progressions}
 
 \begin{theorem}[Weak PNT in AP]\label{WeakPNT-AP}\lean{WeakPNT_AP}  If $q ≥ 1$ and $a$ is coprime to $q$, We have
-$$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = ¼{x}{\varphi(q)} + o(x).$$
+$$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$
 \end{theorem}
 %%-/
 

@@ -40,14 +40,14 @@ lemma div_rpow_eq_rpow_div_neg {x y s : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
 For any natural $N\ge1$, we define
 $$
 \zeta_0(N,s) :=
-\sum_{1\le n < N} \frac1{n^s}
+\sum_{1\le n \le N} \frac1{n^s}
 +
 \frac{- N^{1-s}}{1-s} + \frac{-N^{-s}}{2} + s \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
 $$
 \end{definition}
 %%-/
 noncomputable def riemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
-  (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
+  (∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s) +
   (- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
 
@@ -57,7 +57,7 @@ local notation (name := riemannzeta) "ζ" => riemannZeta
 local notation (name := riemannzeta0) "ζ₀" => riemannZeta0
 
 lemma riemannZeta0_apply (N : ℕ) (s : ℂ) : ζ₀ N s =
-    (∑ n in Finset.range N, 1 / (n : ℂ) ^ s) +
+    (∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s) +
     ((- N ^ (1 - s)) / (1 - s) + (- N ^ (-s)) / 2
       + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) := by
   simp_rw [riemannZeta0, div_cpow_eq_cpow_neg]; ring
@@ -571,9 +571,10 @@ and evaluate the integral.
 \end{proof}
 %%-/
 
+
 lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
-    ∑' (n : ℕ), f n = (∑ n in Finset.Ico 0 N, f n) + ∑' (n : ℕ), f (n + N) := by
-  rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N), Finset.range_eq_Ico]
+    ∑' (n : ℕ), f n = (∑ n in Finset.range N, f n) + ∑' (n : ℕ), f (n + N) := by
+  rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N)]
 
 lemma Finset.Ioc_eq_Ico (M N : ℕ): Finset.Ioc N M = Finset.Ico (N + 1) (M + 1) := by
   ext a; simp only [Finset.mem_Ioc, Finset.mem_Ico]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
@@ -585,18 +586,16 @@ lemma Finset.Icc_eq_Ico (M N : ℕ): Finset.Icc N M = Finset.Ico N (M + 1) := by
   ext a; simp only [Finset.mem_Icc, Finset.mem_Ico]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
 
 lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
-    Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Icc N (k - 1), f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
-  have := Summable.hasSum_iff_tendsto_nat hf (m := ∑' (n : ℕ), f n) |>.mp ?_
-  swap; apply (Summable.hasSum_iff hf).mpr; rfl
-  have const := @tendsto_const_nhds (x := ∑ i in Finset.Ico 0 N, f i) ℕ _ atTop
+    Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ico N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
+  have := Summable.hasSum_iff_tendsto_nat hf (m := ∑' (n : ℕ), f n) |>.mp hf.hasSum
+  have const := @tendsto_const_nhds (x := ∑ i in Finset.range N, f i) ℕ _ atTop
   have := Filter.Tendsto.sub this const
-  rw [tsum_eq_partial_add_tail f hf (N := N), Finset.range_eq_Ico, add_comm, add_sub_cancel_right] at this
-  -- here we need filters to take take max 1 N ≤ M
-  convert this with M
-  have h : max 1 N ≤ M := by sorry
-  simp only [eq_sub_iff_add_eq, Finset.Icc_eq_Ico]
-  rw [add_comm, Nat.sub_add_cancel (max_le_iff.mp h).1]
-  exact Finset.sum_Ico_consecutive f (by omega) (max_le_iff.mp h).2
+  rw [tsum_eq_partial_add_tail f hf (N := N), add_comm, add_sub_cancel_right] at this
+  apply this.congr'
+  filter_upwards [Filter.mem_atTop (N + 1)]
+  intro M hM
+  rw [Finset.sum_Ico_eq_sub]
+  linarith
 
 lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
   rw [Filter.tendsto_atTop_atTop]
@@ -649,27 +648,22 @@ lemma Complex.cpow_inv_tendsto {s : ℂ} (hs : 0 < s.re) :
 lemma ZetaSum_aux2a : ∃ C, ∀ (x : ℝ), |⌊x⌋ + 1 / 2 - x| ≤ C := by
   use 1 / 2; exact ZetaSum_aux1_3
 
-lemma ZetaSum_aux3 {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
+lemma ZetaSum_aux3 {N : ℕ} {s : ℂ} (s_re_gt : 1 < s.re) :
     Tendsto (fun k ↦ ∑ n in Finset.Ioc N k, 1 / (n : ℂ) ^ s) atTop
-    (𝓝 (∑' (n : ℕ), 1 / (n + N : ℂ) ^ s)) := by
+    (𝓝 (∑' (n : ℕ), 1 / (n + N + 1 : ℂ) ^ s)) := by
   let f := fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s
   -- let g := fun (n : ℕ) ↦ f (n + 1)
   have hf := Summable_rpow s_re_gt
   -- have hg := summable_nat_add_iff 1 |>.mpr <| hf
-  have := finsetSum_tendsto_tsum (f := f) (N := N) hf
-  -- map k to k + 1 before the conversion
-  -- might be useful: Finset.sum_insert_zero (f := f) ?_
-  · convert this using 1
-    · ext k
-      -- use a filter instead to get 1 ≤ k
-      have hk : 1 ≤ k := by sorry
-      simp only [Finset.Icc_eq_Ico, Finset.Ioc_eq_Icc]
-      have := Finset.sum_Ico_add f N k 1
-      simp_rw [add_comm] at this
-      rw [← this, Nat.sub_add_cancel hk]
-      sorry
-    · simp [f]
-  -- · simp only [g]; exact hg
+  simp_rw [Finset.Ioc_eq_Ico]
+  convert finsetSum_tendsto_tsum (f := fun n ↦ f (n + 1)) (N := N) ?_ using 1
+  · ext k
+    simp only [f]
+    convert Finset.sum_map (e := addRightEmbedding 1) ?_  ?_ using 2
+    ext n
+    simp only [Finset.mem_Ico, Finset.map_add_right_Ico]
+  · congr; ext n; simp only [one_div, Nat.cast_add, Nat.cast_one, f]
+  · rwa [summable_nat_add_iff (k := 1)]
 
 /-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
@@ -681,7 +675,7 @@ lemma ZetaSum_aux3 {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
 \end{lemma}
 %%-/
 lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
-    ∑' (n : ℕ), 1 / (n + N : ℂ) ^ s =
+    ∑' (n : ℕ), 1 / (n + N + 1 : ℂ) ^ s =
     (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
       + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) := by
   have s_ne_zero : s ≠ 0 := fun hs ↦ by linarith [zero_re ▸ hs ▸ s_re_gt]
@@ -697,7 +691,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       intro k hk
       convert ZetaSum_aux1 (a := N) (b := k) s_ne_one s_ne_zero ⟨N_pos, hk⟩ using 1
       convert Finset_coe_Nat_Int (fun n ↦ 1 / (n : ℂ) ^ s) N k
-    · exact ZetaSum_aux3 N_pos s_re_gt
+    · exact ZetaSum_aux3 s_re_gt
   · apply (Tendsto.sub ?_ ?_).add (Tendsto.const_mul _ ?_)
     · rw [(by ring : -↑N ^ (1 - s) / (1 - s) = (0 - ↑N ^ (1 - s)) / (1 - s) + 0)]
       apply cpow_tendsto s_re_gt |>.sub_const _ |>.div_const _ |>.add
@@ -714,7 +708,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
         · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
         · exact Measurable.comp measurable_id measurable_ofReal
 /-%%
-\begin{proof}\uses{ZetaSum_aux1}
+\begin{proof}\uses{ZetaSum_aux1}\leanok
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
 \end{proof}
 %%-/
@@ -745,7 +739,6 @@ Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\
 \end{proof}
 %%-/
 
-
 /-%%
 \begin{lemma}[HolomorphicOn_Zeta0]\label{HolomorphicOn_Zeta0}\lean{HolomorphicOn_Zeta0}\leanok
 For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$.
@@ -753,7 +746,19 @@ For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \R
 %%-/
 lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
     HolomorphicOn (ζ₀ N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
-  sorry
+  unfold riemannZeta0
+  apply DifferentiableOn.add
+  · apply DifferentiableOn.add
+    · apply DifferentiableOn.add
+      · apply DifferentiableOn.sum
+        intro n hn
+        apply DifferentiableOn.div
+        sorry
+        sorry
+        sorry
+      · sorry
+    · sorry
+  · sorry
 /-%%
 \begin{proof}\uses{ZetaSum_aux1}
   The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral
@@ -768,7 +773,6 @@ lemma HolomophicOn_riemannZeta :
   simp only [mem_setOf_eq] at hz
   exact (differentiableAt_riemannZeta hz).differentiableWithinAt
 
-
 /-%%
 \begin{lemma}[isPathConnected_aux]\label{isPathConnected_aux}\lean{isPathConnected_aux}\leanok
 The set $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ is path-connected.
@@ -777,36 +781,78 @@ The set $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ is path-connected.
 lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
   use (2 : ℂ)
   constructor; simp
-  intro y hy; simp only [ne_eq, mem_setOf_eq] at hy
-  by_cases h : y.re ≤ 1
-  · apply JoinedIn.trans (y := I)
-    · sorry
-    · sorry
-  · let f : ℝ → ℂ := fun t ↦ y * t + 2 * (1 - t)
+  intro w hw; simp only [ne_eq, mem_setOf_eq] at hw
+  by_cases w_im : w.im = 0
+  · apply JoinedIn.trans (y := 1 + I)
+    · let f : ℝ → ℂ := fun t ↦ (1 + I) * t + 2 * (1 - t)
+      have cont : Continuous f := by continuity
+      apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
+      simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re, one_re,
+        I_re, add_zero, ofReal_re, one_mul, add_im, one_im, I_im, zero_add, ofReal_im, mul_zero,
+        sub_zero, re_ofNat, sub_re, im_ofNat, sub_im, sub_self, f]
+      intro x hx; simp only [mem_Icc] at hx
+      simp only [mem_setOf_eq]
+      refine ⟨?_, by linarith⟩
+      intro h
+      rw [Complex.ext_iff] at h
+      simp only [add_re, mul_re, one_re, I_re, add_zero, ofReal_re, one_mul, add_im, one_im, I_im,
+        zero_add, ofReal_im, mul_zero, sub_zero, re_ofNat, sub_re, im_ofNat, sub_im, sub_self,
+        mul_im, zero_mul] at h
+      simp only [h.2, sub_zero, mul_one, zero_add, OfNat.ofNat_ne_one, and_true] at h
+    · let f : ℝ → ℂ := fun t ↦ w * t + (1 + I) * (1 - t)
+      have cont : Continuous f := by continuity
+      apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
+      simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re,
+        ofReal_re, ofReal_im, mul_zero, sub_zero, one_re, I_re, add_zero, sub_re, one_mul, add_im,
+        one_im, I_im, zero_add, sub_im, sub_self, f]
+      intro x hx; simp only [mem_Icc] at hx
+      simp only [mem_setOf_eq]
+      refine ⟨?_, ?_⟩
+      · intro h
+        rw [Complex.ext_iff] at h
+        simp only [add_re, mul_re, ofReal_re, w_im, ofReal_im, mul_zero, sub_zero, one_re, I_re,
+          add_zero, sub_re, one_mul, add_im, one_im, I_im, zero_add, sub_im, sub_self, mul_im,
+          zero_mul] at h
+        have : x = 1 := by linarith
+        simp only [this, mul_one, sub_self, add_zero, and_true] at h
+        have : w = 1 := by
+          rw [Complex.ext_iff]
+          simp only [one_re, one_im]
+          exact ⟨h, w_im⟩
+        exact hw.1 this
+      · by_cases hxx : x = 0
+        · simp only [hxx]; linarith
+        · have : 0 < x := by
+            rw [← ne_eq] at hxx
+            exact lt_of_le_of_ne hx.1 (id (Ne.symm hxx))
+          have : 0 ≤ 1 - x := by linarith
+          have := hw.2
+          positivity
+  · let f : ℝ → ℂ := fun t ↦ w * t + 2 * (1 - t)
     have cont : Continuous f := by continuity
     apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
-    simp [f, unitInterval]
+    simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re, ofReal_re,
+      ofReal_im, mul_zero, sub_zero, re_ofNat, sub_re, one_re, im_ofNat, sub_im, one_im, sub_self,
+      f]
     intro x hx; simp only [mem_Icc] at hx
     simp only [mem_setOf_eq]
-    constructor
-    · suffices ¬ (2 - y) * x = 1 by
-        convert this using 1
-        ring_nf
-        sorry
-      simp [Complex.ext_iff]
-      contrapose!
-      intro hxy
-      rcases hxy with (hx1 | hy1)
-      · have hyre: 2 - y.re < 1 := by linarith
-        by_cases hx2 : x = 0
-        · simp only [hx2]; linarith
-        · have := mul_lt_mul (a := 2 - y.re) (b := x) (c := 1) (d := 1) hyre hx.2
-            (lt_of_le_of_ne hx.1 <| ((Ne.def _ _).symm ▸ hx2).symm) (by norm_num)
-          linarith
-      · simp [hy1]
-    · sorry
+    refine ⟨?_, ?_⟩
+    · intro h
+      rw [Complex.ext_iff] at h
+      simp only [add_re, mul_re, ofReal_re, ofReal_im, mul_zero, sub_zero, re_ofNat, sub_re, one_re,
+        im_ofNat, sub_im, one_im, sub_self, add_im, mul_im, zero_add, zero_mul, add_zero,
+        mul_eq_zero, w_im, false_or] at h
+      simp only [h.2, mul_zero, sub_zero, mul_one, zero_add, OfNat.ofNat_ne_one, and_true] at h
+    · by_cases hxx : x = 0
+      · simp only [hxx]; linarith
+      · have : 0 < x := by
+          rw [← ne_eq] at hxx
+          exact lt_of_le_of_ne hx.1 (id (Ne.symm hxx))
+        have : 0 ≤ 1 - x := by linarith
+        have := hw.2
+        positivity
 /-%%
-\begin{proof}
+\begin{proof}\leanok
   Construct explicit paths from $2$ to any point, either a line segment or two joined ones.
 \end{proof}
 %%-/
@@ -849,9 +895,12 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   intro z hz
   simp only [f,g, zeta_eq_tsum_one_div_nat_cpow hz, riemannZeta0_apply]
   nth_rewrite 2 [neg_div]
-  rw [← sub_eq_add_neg, ← ZetaSum_aux2 N_pos hz, ← sum_add_tsum_nat_add N (Summable_rpow hz)]
+  rw [← sub_eq_add_neg, ← ZetaSum_aux2 N_pos hz, ← sum_add_tsum_nat_add (N + 1) (Summable_rpow hz)]
   congr
-  simp
+  ext i
+  simp only [Nat.cast_add, Nat.cast_one, one_div, inv_inj]
+  congr! 1
+  ring
 /-%%
 \begin{proof}\leanok
 \uses{ZetaSum_aux2, RiemannZeta0, HolomorphicOn_Zeta0, isPathConnected_aux}
@@ -958,30 +1007,33 @@ lemma riemannZeta0_zero_aux (N : ℕ) (Npos : 0 < N):
 
 lemma UpperBnd_aux3 {A C σ t : ℝ} (Apos : 0 < A) (A_lt_one : A < 1) {N : ℕ} (Npos : 0 < N)
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (t_ge : 3 < |t|) (N_le_t : (N : ℝ) ≤ |t|) (hC : 2 ≤ C) :
-     ‖∑ n in Finset.range N, (n : ℂ) ^ (-(σ + t * I))‖ ≤ A.exp * C * |t|.log := by
+     ‖∑ n in Finset.range (N + 1), (n : ℂ) ^ (-(σ + t * I))‖ ≤ A.exp * C * |t|.log := by
   obtain ⟨_, σPos, _⟩ := UpperBnd_aux Apos A_lt_one t_ge σ_ge
   have logt_gt_one := logt_gt_one t_ge
-  have (n : ℕ) (hn : n ∈ Finset.range N) := ZetaBnd_aux2 (n := n) Apos σPos ?_ σ_ge
-  swap; exact le_trans (Nat.cast_le.mpr (Finset.mem_range.mp hn).le) N_le_t
-  replace := norm_sum_le_of_le (Finset.range N) this
-  rw [← Finset.sum_mul, mul_comm _ A.exp] at this
-  rw [mul_assoc]
-  apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
-  have : 1 + (N - 1: ℝ).log ≤ C * |t|.log := by
-    by_cases hN : N = 1
-    · simp only [hN, Nat.cast_one, sub_self, Real.log_zero, add_zero];
-      rw [← mul_one 1]; exact mul_le_mul (by linarith) logt_gt_one.le (by norm_num) (by positivity)
-    · rw [(by ring : C * Real.log |t| = (C - 1) * Real.log |t| + Real.log |t|)]
-      replace hN : 0 < (N : ℝ) - 1 := by simp only [sub_pos, Nat.one_lt_cast]; omega
-      have : (N - 1: ℝ).log ≤ |t|.log := Real.log_le_log hN (by linarith)
-      apply add_le_add ?_ this
-      nth_rewrite 1 [← mul_one 1]
-      exact mul_le_mul (by linarith) logt_gt_one.le (by norm_num) (by linarith)
-  refine le_trans ?_ this
-  convert harmonic_eq_sum_Icc ▸ harmonic_le_one_add_log (N - 1)
-  · simp only [Rat.cast_sum, Rat.cast_inv, Rat.cast_natCast, Finset.range_eq_Ico]
-    rw [riemannZeta0_zero_aux N Npos]; congr! 1
-  · rw [Nat.cast_pred Npos]
+  have (n : ℕ) (hn : n ∈ Finset.range (N + 1)) := ZetaBnd_aux2 (n := n) Apos σPos ?_ σ_ge
+  --swap; exact le_trans (Nat.cast_le.mpr (Finset.mem_range.mp hn).le) N_le_t
+  · replace := norm_sum_le_of_le (Finset.range (N + 1)) this
+    rw [← Finset.sum_mul, mul_comm _ A.exp] at this
+    rw [mul_assoc]
+    apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
+    have : 1 + (N : ℝ).log ≤ C * |t|.log := by
+      by_cases hN : N = 1
+      · simp only [hN, Nat.cast_one, Real.log_one, add_zero]
+        have : 2 * 1 ≤ C * Real.log |t| := mul_le_mul hC logt_gt_one.le (by linarith) (by linarith)
+        linarith
+      · rw [(by ring : C * Real.log |t| = Real.log |t| + (C - 1) * Real.log |t|)]
+        apply add_le_add logt_gt_one.le
+        rw [(by ring : Real.log ↑N = 1 * Real.log ↑N)]
+        apply mul_le_mul (by linarith) (Real.log_le_log (by positivity) N_le_t) (by positivity) (by linarith)
+    refine le_trans ?_ this
+    convert harmonic_eq_sum_Icc ▸ harmonic_le_one_add_log N
+    · simp only [Rat.cast_sum, Rat.cast_inv, Rat.cast_natCast, Finset.range_eq_Ico]
+      rw [riemannZeta0_zero_aux (N + 1) (by linarith)]; congr! 1
+  · simp only [Finset.mem_range] at hn
+    have : (n : ℝ) ≤ N := by
+      have : n ≤ N := by omega
+      exact_mod_cast this
+    linarith
 
 lemma Nat.self_div_floor_bound {t : ℝ}  (t_ge : 1 ≤ |t|) : (|t| / ↑⌊|t|⌋₊) ∈ Icc 1 2 := by
   set N := ⌊|t|⌋₊
@@ -1071,7 +1123,7 @@ lemma ZetaUpperBnd :
   rw [← Zeta0EqZeta (N := N) Npos (by simp [σPos]) neOne]
   set s := σ + t * I
   calc
-    _ ≤ ‖∑ n in Finset.range N, 1 / (n : ℂ) ^ s‖ + ‖(- N ^ (1 - s)) / (1 - s)‖ +
+    _ ≤ ‖∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s‖ + ‖(- N ^ (1 - s)) / (1 - s)‖ +
       ‖(-(N : ℂ) ^ (-s)) / 2‖ +
       ‖s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := by apply norm_add₄_le
     _ ≤ A.exp * 2 * |t|.log + ‖(- N ^ (1 - s)) / (1 - s)‖ + ‖(-(N : ℂ) ^ (-s)) / 2‖ +
@@ -1107,10 +1159,10 @@ First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
 We estimate:
 $$
 |\zeta_0(N,s)| \ll
-\sum_{1\le n < |t|} |n^{-s}|
+\sum_{1\le n \le |t|} |n^{-s}|
 +
 \frac{- |t|^{1-\sigma}}{|1-s|} + \frac{-|t|^{-\sigma}}{2} +
-|t| \cdot |t| ^ (-σ) / σ
+|t| \cdot |t| ^ {-σ} / σ
 $$
 $$
 \ll
