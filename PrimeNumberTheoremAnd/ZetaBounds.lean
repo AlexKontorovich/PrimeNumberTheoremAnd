@@ -1203,7 +1203,7 @@ lemma ZetaUpperBnd :
     _ = _ := by ring
   · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]
     convert UpperBnd_aux3 (C := 2) Apos (by norm_num) Npos σ_ge t_ge' N_le_t le_rfl
-  · simp only [add_le_add_iff_left]; exact ZetaBnd_aux1 N (by linarith) ⟨σPos, σ_le⟩ t t_ge
+  · simp only [add_le_add_iff_left]; exact ZetaBnd_aux1 (by linarith) ⟨σPos, σ_le⟩ t t_ge
   · simp only [norm_div, norm_neg, norm_eq_abs, RCLike.norm_ofNat, Nat.abs_cast, s]
     congr <;> (convert norm_natCast_cpow_of_pos Npos _; simp)
   · have ⟨h₁, h₂, h₃⟩ := UpperBnd_aux6 t_ge' σ_gt σ_le neOne Npos N_le_t
