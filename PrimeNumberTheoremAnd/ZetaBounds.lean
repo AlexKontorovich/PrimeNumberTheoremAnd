@@ -713,6 +713,32 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
 \end{proof}
 %%-/
 
+def ct_aux1 := (31381059610 : ℝ) -- 3 ^ 22 + 1
+def C_aux1' := (100 : ℝ)
+def C_aux1 := (100 * 2 : ℝ) -- the first factor is C_aux1'
+
+/-%%
+\begin{lemma}[ZetaBnd_aux1b]\label{ZetaBnd_aux1b}\lean{ZetaBnd_aux1b}\leanok
+For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in(0,2]$,
+$$
+\left| s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
+\ll |t| \frac{N^{-\sigma}}{\sigma},
+$$
+as $|t|\to\infty$.
+\end{lemma}
+%%-/
+lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) :
+    ∀ (t : ℝ) (ht : ct_aux1 < |t|),
+    ‖∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
+    ≤ C_aux1' * N ^ (-σ) / σ := by
+  have := @ZetaSum_aux1a (a := N)
+  sorry
+/-%%
+\begin{proof}\uses{ZetaSum_aux1a}
+Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$.
+\end{proof}
+%%-/
+
 /-%%
 \begin{lemma}[ZetaBnd_aux1]\label{ZetaBnd_aux1}\lean{ZetaBnd_aux1}\leanok
 For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in(0,2]$,
@@ -723,19 +749,18 @@ $$
 as $|t|\to\infty$.
 \end{lemma}
 %%-/
-
-def ct_aux1 := 31381059610 -- 3 ^ 22 + 1
-def C_aux1 := 100
-
 lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) :
     ∀ (t : ℝ) (ht : ct_aux1 < |t|),
     ‖(σ + t * I) * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ C_aux1 * |t| * N ^ (-σ) / σ := by
-  have := @ZetaSum_aux1a (a := N)
+  intro t ht
+  conv => rhs; lhs; lhs; rw [C_aux1, mul_assoc, mul_comm]
+  rw [norm_mul, mul_assoc, mul_div_assoc]
+  apply mul_le_mul ?_ (ZetaBnd_aux1b N Npos hσ.1 t ht) (norm_nonneg _) (by positivity)
   sorry
 /-%%
-\begin{proof}\uses{ZetaSum_aux1a}
-Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\ll |t|$.
+\begin{proof}\uses{ZetaSum_aux1b}
+Apply Lemma \ref{ZetaSum_aux1b} and estimate $|s|\ll |t|$.
 \end{proof}
 %%-/
 
@@ -782,9 +807,9 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
   · apply DifferentiableOn.mul differentiableOn_id
     sorry
 /-%%
-\begin{proof}\uses{ZetaSum_aux1}
+\begin{proof}\uses{ZetaSum_aux1, ZetaBnd_aux1b}
   The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral
-  that's absolutely convergent on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ by Lemma \ref{ZetaSum_aux1}.
+  that's absolutely convergent on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ by Lemma \ref{ZetaSum_aux1b}.
 \end{proof}
 %%-/
 
