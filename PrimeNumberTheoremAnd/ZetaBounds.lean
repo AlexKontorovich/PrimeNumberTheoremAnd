@@ -767,7 +767,7 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) {t : 
     rw [div_eq_mul_inv (b := (x : ℂ) ^ (σ + t * I + 1)), Complex.cpow_neg]
   · exact fun ⦃U⦄ a ↦ a
 /-%%
-\begin{proof}\uses{ZetaSum_aux1a}
+\begin{proof}\uses{ZetaSum_aux1a}\leanok
 Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$.
 \end{proof}
 %%-/
@@ -845,6 +845,7 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
       · fun_prop
       · norm_num
   · apply DifferentiableOn.mul differentiableOn_id
+    --extract_goal
     sorry
 /-%%
 \begin{proof}\uses{ZetaSum_aux1, ZetaBnd_aux1b}
