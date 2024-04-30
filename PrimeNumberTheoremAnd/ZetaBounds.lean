@@ -795,40 +795,25 @@ For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \R
 lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
     HolomorphicOn (ζ₀ N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
   unfold riemannZeta0
-  apply DifferentiableOn.add
-  · apply DifferentiableOn.add
-    · apply DifferentiableOn.add
-      · apply DifferentiableOn.sum
-        intro n hn
-        by_cases n0 : n = 0
-        · apply DifferentiableOn.congr (f := fun _ ↦ 0)
-          · apply differentiableOn_const
-          · intro s hs
-            have : (n : ℂ) ^ s = 0 := by
-              apply Complex.cpow_eq_zero_iff _ _ |>.mpr ⟨by simp [n0], by contrapose! hs; simp [hs]⟩
-            simp [this]
-        apply DifferentiableOn.div
-        · apply differentiableOn_const
-        · apply DifferentiableOn.const_cpow
-          · apply differentiableOn_id
-          · right; intro s hs; contrapose! hs; simp [hs]
-        · simp [n0]
-      · apply DifferentiableOn.div
-        · apply DifferentiableOn.neg
-          apply DifferentiableOn.const_cpow
-          · fun_prop
-          · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
-        · fun_prop
-        · intro x hx; contrapose! hx; simp [sub_eq_zero.mp hx |>.symm]
-    · apply DifferentiableOn.div
-      · apply DifferentiableOn.neg
-        apply DifferentiableOn.const_cpow
-        · fun_prop
-        · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
-      · fun_prop
-      · norm_num
+  apply DifferentiableOn.add (DifferentiableOn.add (DifferentiableOn.sum ?_ |>.add ?_) ?_) ?_
+  · intro n hn
+    by_cases n0 : n = 0
+    · apply DifferentiableOn.congr (f := fun _ ↦ 0) (differentiableOn_const _) ?_
+      intro s hs
+      have : (n : ℂ) ^ s = 0 := by
+        apply cpow_eq_zero_iff _ _ |>.mpr ⟨by simp [n0], by contrapose! hs; simp [hs]⟩
+      simp [this]
+    · apply DifferentiableOn.div (differentiableOn_const _) ?_ (by simp [n0])
+      apply DifferentiableOn.const_cpow (by fun_prop) ?_
+      right; intro s hs; contrapose! hs; simp [hs]
+  · apply DifferentiableOn.div ?_ (by fun_prop) ?_
+    · apply DifferentiableOn.const_cpow (by fun_prop) ?_ |>.neg
+      left; simp only [ne_eq, Nat.cast_eq_zero]; omega
+    · intro x hx; contrapose! hx; simp [sub_eq_zero.mp hx |>.symm]
+  · apply DifferentiableOn.div ?_ (differentiableOn_const _) (by norm_num)
+    · apply DifferentiableOn.const_cpow (by fun_prop) ?_ |>.neg
+      left; simp only [ne_eq, Nat.cast_eq_zero]; omega
   · apply DifferentiableOn.mul differentiableOn_id
-    --extract_goal
     sorry
 /-%%
 \begin{proof}\uses{riemannZeta0, ZetaBnd_aux1b}
@@ -860,16 +845,11 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
       apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
       simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re, one_re,
         I_re, add_zero, ofReal_re, one_mul, add_im, one_im, I_im, zero_add, ofReal_im, mul_zero,
-        sub_zero, re_ofNat, sub_re, im_ofNat, sub_im, sub_self, f]
+        sub_zero, re_ofNat, sub_re, im_ofNat, sub_im, sub_self, f, mem_setOf_eq]
       intro x hx; simp only [mem_Icc] at hx
-      simp only [mem_setOf_eq]
       refine ⟨?_, by linarith⟩
       intro h
-      rw [Complex.ext_iff] at h
-      simp only [add_re, mul_re, one_re, I_re, add_zero, ofReal_re, one_mul, add_im, one_im, I_im,
-        zero_add, ofReal_im, mul_zero, sub_zero, re_ofNat, sub_re, im_ofNat, sub_im, sub_self,
-        mul_im, zero_mul] at h
-      simp only [h.2, sub_zero, mul_one, zero_add, OfNat.ofNat_ne_one, and_true] at h
+      rw [Complex.ext_iff] at h; simp [(by apply And.right; simpa [w_im] using h : x = 0)] at h
     · let f : ℝ → ℂ := fun t ↦ w * t + (1 + I) * (1 - t)
       have cont : Continuous f := by continuity
       apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
@@ -878,24 +858,15 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
         one_im, I_im, zero_add, sub_im, sub_self, f]
       intro x hx; simp only [mem_Icc] at hx
       simp only [mem_setOf_eq]
-      refine ⟨?_, ?_⟩
+      constructor
       · intro h
+        refine hw.1 ?_
         rw [Complex.ext_iff] at h
-        simp only [add_re, mul_re, ofReal_re, w_im, ofReal_im, mul_zero, sub_zero, one_re, I_re,
-          add_zero, sub_re, one_mul, add_im, one_im, I_im, zero_add, sub_im, sub_self, mul_im,
-          zero_mul] at h
-        have : x = 1 := by linarith
-        simp only [this, mul_one, sub_self, add_zero, and_true] at h
-        have : w = 1 := by
-          rw [Complex.ext_iff]
-          simp only [one_re, one_im]
-          exact ⟨h, w_im⟩
-        exact hw.1 this
+        have : x = 1 := by linarith [(by apply And.right; simpa [w_im] using h : 1 - x = 0)]
+        rw [Complex.ext_iff, one_re, one_im]; exact ⟨by simpa [this, w_im] using h, w_im⟩
       · by_cases hxx : x = 0
         · simp only [hxx]; linarith
-        · have : 0 < x := by
-            rw [← ne_eq] at hxx
-            exact lt_of_le_of_ne hx.1 (id (Ne.symm hxx))
+        · have : 0 < x := lt_of_le_of_ne hx.1 (Ne.symm hxx)
           have : 0 ≤ 1 - x := by linarith
           have := hw.2
           positivity
@@ -904,21 +875,15 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
     apply JoinedIn.ofLine cont.continuousOn (by simp [f]) (by simp [f])
     simp only [unitInterval, ne_eq, image_subset_iff, preimage_setOf_eq, add_re, mul_re, ofReal_re,
       ofReal_im, mul_zero, sub_zero, re_ofNat, sub_re, one_re, im_ofNat, sub_im, one_im, sub_self,
-      f]
+      f, mem_setOf_eq]
     intro x hx; simp only [mem_Icc] at hx
-    simp only [mem_setOf_eq]
-    refine ⟨?_, ?_⟩
+    constructor
     · intro h
-      rw [Complex.ext_iff] at h
-      simp only [add_re, mul_re, ofReal_re, ofReal_im, mul_zero, sub_zero, re_ofNat, sub_re, one_re,
-        im_ofNat, sub_im, one_im, sub_self, add_im, mul_im, zero_add, zero_mul, add_zero,
-        mul_eq_zero, w_im, false_or] at h
-      simp only [h.2, mul_zero, sub_zero, mul_one, zero_add, OfNat.ofNat_ne_one, and_true] at h
+      rw [Complex.ext_iff] at h;
+      simp [(by apply And.right; simpa [w_im] using h : x = 0)] at h
     · by_cases hxx : x = 0
       · simp only [hxx]; linarith
-      · have : 0 < x := by
-          rw [← ne_eq] at hxx
-          exact lt_of_le_of_ne hx.1 (id (Ne.symm hxx))
+      · have : 0 < x := lt_of_le_of_ne hx.1 (Ne.symm hxx)
         have : 0 ≤ 1 - x := by linarith
         have := hw.2
         positivity
@@ -967,11 +932,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   simp only [f,g, zeta_eq_tsum_one_div_nat_cpow hz, riemannZeta0_apply]
   nth_rewrite 2 [neg_div]
   rw [← sub_eq_add_neg, ← ZetaSum_aux2 N_pos hz, ← sum_add_tsum_nat_add (N + 1) (Summable_rpow hz)]
-  congr
-  ext i
-  simp only [Nat.cast_add, Nat.cast_one, one_div, inv_inj]
-  congr! 1
-  ring
+  norm_cast
 /-%%
 \begin{proof}\leanok
 \uses{ZetaSum_aux2, RiemannZeta0, HolomorphicOn_Zeta0, isPathConnected_aux}
@@ -1068,12 +1029,7 @@ lemma riemannZeta0_zero_aux (N : ℕ) (Npos : 0 < N):
     ext a
     simp only [Nat.Ico_zero_eq_range, Finset.mem_sdiff, Finset.mem_range, Finset.mem_Ico, not_and,
       not_lt, Finset.range_one, Finset.mem_singleton]
-    constructor
-    · intro ⟨ha₁, ha₂⟩; omega
-    · intro ha
-      constructor
-      · simp [ha, Npos]
-      · omega
+    exact ⟨fun _ ↦ by omega, fun ha ↦ ⟨by simp [ha, Npos], by omega⟩⟩
   rw [this]; simp
 
 lemma UpperBnd_aux3 {A C σ t : ℝ} (Apos : 0 < A) (A_lt_one : A < 1) {N : ℕ} (Npos : 0 < N)
