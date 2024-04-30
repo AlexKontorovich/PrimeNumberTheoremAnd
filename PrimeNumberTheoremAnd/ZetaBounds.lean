@@ -713,6 +713,32 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
 \end{proof}
 %%-/
 
+def ct_aux1 := (31381059610 : ℝ) -- 3 ^ 22 + 1
+def C_aux1' := (100 : ℝ)
+def C_aux1 := 200 -- two times C_aux1'
+
+/-%%
+\begin{lemma}[ZetaBnd_aux1b]\label{ZetaBnd_aux1b}\lean{ZetaBnd_aux1b}\leanok
+For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in(0,2]$,
+$$
+\left| s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
+\ll |t| \frac{N^{-\sigma}}{\sigma},
+$$
+as $|t|\to\infty$.
+\end{lemma}
+%%-/
+lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) :
+    ∀ (t : ℝ) (ht : ct_aux1 < |t|),
+    ‖∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
+    ≤ C_aux1' * N ^ (-σ) / σ := by
+  have := @ZetaSum_aux1a (a := N)
+  sorry
+/-%%
+\begin{proof}\uses{ZetaSum_aux1a}
+Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$.
+\end{proof}
+%%-/
+
 /-%%
 \begin{lemma}[ZetaBnd_aux1]\label{ZetaBnd_aux1}\lean{ZetaBnd_aux1}\leanok
 For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in(0,2]$,
@@ -723,19 +749,32 @@ $$
 as $|t|\to\infty$.
 \end{lemma}
 %%-/
-
-def ct_aux1 := 31381059610 -- 3 ^ 22 + 1
-def C_aux1 := 100
-
 lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) :
-    ∀ (t : ℝ) (ht : ct_aux1 < |t|),
+    ∀ (t : ℝ) (_ : ct_aux1 < |t|),
     ‖(σ + t * I) * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ C_aux1 * |t| * N ^ (-σ) / σ := by
-  have := @ZetaSum_aux1a (a := N)
-  sorry
+  intro t ht
+  dsimp only [ct_aux1] at ht
+  rw [C_aux1]
+  push_cast
+  conv => rhs; lhs; lhs; rw [(by norm_num : (200 : ℝ) = 100 * 2), mul_assoc, mul_comm]
+  rw [norm_mul, mul_assoc, mul_div_assoc]
+  apply mul_le_mul ?_ (ZetaBnd_aux1b N Npos hσ.1 t ht) (norm_nonneg _) (by positivity)
+  apply le_trans (b := ‖t + ↑t * I‖)
+  · simp only [norm_eq_abs, abs_eq_sqrt_sq_add_sq, add_re, ofReal_re, mul_re, I_re, mul_zero,
+    ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]
+    apply Real.sqrt_le_sqrt
+    apply add_le_add_right <| sq_le_sq.mpr <| le_trans (b := 2) ?_ (by linarith)
+    simp only [mem_Ioc] at hσ; simp only [abs_of_pos hσ.1, hσ.2]
+  · simp only [norm_eq_abs, abs_eq_sqrt_sq_add_sq, add_re, ofReal_re, mul_re, I_re, mul_zero,
+    ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]
+    ring_nf
+    simp only [Nat.ofNat_nonneg, Real.sqrt_mul', Real.sqrt_sq_eq_abs]
+    apply mul_le_mul_left (by linarith) |>.mpr
+    exact Real.sqrt_le_left (by norm_num) |>.mpr (by norm_num)
 /-%%
-\begin{proof}\uses{ZetaSum_aux1a}
-Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$, and estimate $|s|\ll |t|$.
+\begin{proof}\uses{ZetaSum_aux1b}\leanok
+Apply Lemma \ref{ZetaSum_aux1b} and estimate $|s|\ll |t|$.
 \end{proof}
 %%-/
 
@@ -752,17 +791,39 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
     · apply DifferentiableOn.add
       · apply DifferentiableOn.sum
         intro n hn
+        by_cases n0 : n = 0
+        · apply DifferentiableOn.congr (f := fun _ ↦ 0)
+          · apply differentiableOn_const
+          · intro s hs
+            have : (n : ℂ) ^ s = 0 := by
+              apply Complex.cpow_eq_zero_iff _ _ |>.mpr ⟨by simp [n0], by contrapose! hs; simp [hs]⟩
+            simp [this]
         apply DifferentiableOn.div
-        sorry
-        sorry
-        sorry
-      · sorry
-    · sorry
-  · sorry
+        · apply differentiableOn_const
+        · apply DifferentiableOn.const_cpow
+          · apply differentiableOn_id
+          · right; intro s hs; contrapose! hs; simp [hs]
+        · simp [n0]
+      · apply DifferentiableOn.div
+        · apply DifferentiableOn.neg
+          apply DifferentiableOn.const_cpow
+          · fun_prop
+          · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
+        · fun_prop
+        · intro x hx; contrapose! hx; simp [sub_eq_zero.mp hx |>.symm]
+    · apply DifferentiableOn.div
+      · apply DifferentiableOn.neg
+        apply DifferentiableOn.const_cpow
+        · fun_prop
+        · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
+      · fun_prop
+      · norm_num
+  · apply DifferentiableOn.mul differentiableOn_id
+    sorry
 /-%%
-\begin{proof}\uses{ZetaSum_aux1}
+\begin{proof}\uses{ZetaSum_aux1, ZetaBnd_aux1b}
   The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral
-  that's absolutely convergent on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ by Lemma \ref{ZetaSum_aux1}.
+  that's absolutely convergent on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ by Lemma \ref{ZetaSum_aux1b}.
 \end{proof}
 %%-/
 
