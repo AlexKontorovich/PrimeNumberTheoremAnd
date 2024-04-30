@@ -661,6 +661,17 @@ lemma ZetaSum_aux3 {N : ℕ} {s : ℂ} (s_re_gt : 1 < s.re) :
   · congr; ext n; simp only [one_div, Nat.cast_add, Nat.cast_one, f]
   · rwa [summable_nat_add_iff (k := 1)]
 
+lemma ZetaSum_aux4 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
+    MeasureTheory.IntegrableOn (fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) (Ioi N)
+      MeasureTheory.volume := by
+  apply MeasureTheory.Integrable.bdd_mul ?_ ?_
+  · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
+  · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt])
+  · apply Measurable.aestronglyMeasurable
+    refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
+    · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+    · exact Measurable.comp measurable_id measurable_ofReal
+
 /-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
   Let $N$ be a natural number and $s\in \C$, $\Re(s)>1$.
@@ -694,15 +705,8 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       simp_rw [mul_comm_div, one_mul, one_div, (by congr; ring : 𝓝 (0 : ℂ) = 𝓝 ((0 : ℂ) / 2))]
       apply Tendsto.div_const <| cpow_inv_tendsto (by positivity)
     · simp_rw [mul_comm_div, one_mul, one_div, cpow_neg]; exact tendsto_const_nhds
-    · refine MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
-        (b := (fun (n : ℕ) ↦ (n : ℝ))) ?_ tendsto_coe_atTop
-      apply MeasureTheory.Integrable.bdd_mul ?_ ?_
-      · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
-      · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt]; positivity)
-      · apply Measurable.aestronglyMeasurable
-        refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
-        · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
-        · exact Measurable.comp measurable_id measurable_ofReal
+    · exact MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
+        (b := (fun (n : ℕ) ↦ (n : ℝ))) (ZetaSum_aux4 N_pos <| by positivity) tendsto_coe_atTop
 /-%%
 \begin{proof}\uses{ZetaSum_aux1}\leanok
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
@@ -763,7 +767,11 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) :
       simp only [norm_div, norm_eq_abs]
       rw [abs_cpow_eq_rpow_re_of_pos ?_, abs_cpow_eq_rpow_re_of_pos ?_]; simp
       all_goals exact lt_of_lt_of_le (b := 1) (by norm_num) <| le_trans (by simp [Npos]) hx.1
-    · sorry -- same as in ZetaSum_aux2, refactor
+    · dsimp only [g]
+      apply MeasureTheory.Integrable.norm
+      apply MeasureTheory.IntegrableOn.integrable
+      convert ZetaSum_aux4 (s := σ + t * I) Npos (by simp [σpos]) using 1
+      simp_rw [div_eq_mul_inv, cpow_neg]
     · exact fun ⦃_⦄ a ↦ a
   · filter_upwards [mem_atTop (N + 1 : ℝ)] with t ht
     set s := σ + t * I
