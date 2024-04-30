@@ -733,14 +733,13 @@ with an absolute implied constant.
 \end{lemma}
 %%-/
 open MeasureTheory in
-lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) {t : ℝ} (ht : ct_aux1 < |t|) :
+lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) {t : ℝ} :
     ‖∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ C_aux1' * N ^ (-σ) / σ := by
   have' lim1 := intervalIntegral_tendsto_integral_Ioi
     (f := fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1))
     (a := N) (b := fun x ↦ (x : ℝ))
     (l := atTop) (μ := volume) ?_ ?_ |>.norm
---    (fun x ↦ (x : ℝ)) N atTop tendsto_coe_atTop
   convert le_of_tendsto lim1 (b := C_aux1' * N ^ (-σ) / σ) ?_ using 1
   · filter_upwards [Filter.mem_atTop (N + 1 : ℝ)]
     intro b hb
@@ -764,9 +763,9 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) {t : 
     convert this.congr_fun ?_ (by simp)
     intro x hx
     simp only [mem_Ioi] at hx
-    have xpos : 0 < x := by linarith
     simp only
     rw [div_eq_mul_inv (b := (x : ℂ) ^ (σ + t * I + 1)), Complex.cpow_neg]
+  · exact fun ⦃U⦄ a ↦ a
 /-%%
 \begin{proof}\uses{ZetaSum_aux1a}
 Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$.
@@ -798,7 +797,7 @@ lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) 
     calc _ ≤ ‖(σ : ℂ)‖ + ‖t * I‖ := norm_add_le ..
          _ = |σ| + |t| := by simp
          _ ≤ _ := by linarith [abs_of_pos hσ.1]
-  · exact ZetaBnd_aux1b N Npos hσ.1 ht
+  · exact ZetaBnd_aux1b N Npos hσ.1
 /-%%
 \begin{proof}\uses{ZetaSum_aux1b}\leanok
 Apply Lemma \ref{ZetaSum_aux1b} and estimate $|s|\ll |t|$.
