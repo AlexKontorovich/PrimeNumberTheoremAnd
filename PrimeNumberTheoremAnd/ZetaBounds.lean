@@ -786,18 +786,9 @@ lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ t : ℝ} (hσ : σ ∈ Ioc 0 2
     ≤ 2 * |t| * N ^ (-σ) / σ := by
   rw [norm_mul, mul_div_assoc]
   apply mul_le_mul ?_ (ZetaBnd_aux1b N Npos hσ.1) (norm_nonneg _) (by positivity)
-  apply le_trans (b := ‖t + ↑t * I‖)
-  · simp only [norm_eq_abs, abs_eq_sqrt_sq_add_sq, add_re, ofReal_re, mul_re, I_re, mul_zero,
-    ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]
-    apply Real.sqrt_le_sqrt
-    apply add_le_add_right <| sq_le_sq.mpr <| le_trans (b := 2) ?_ ht
-    simp only [mem_Ioc] at hσ; simp only [abs_of_pos hσ.1, hσ.2]
-  · simp only [norm_eq_abs, abs_eq_sqrt_sq_add_sq, add_re, ofReal_re, mul_re, I_re, mul_zero,
-    ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]
-    ring_nf
-    simp only [Nat.ofNat_nonneg, Real.sqrt_mul', Real.sqrt_sq_eq_abs]
-    apply mul_le_mul_left (by positivity) |>.mpr
-    exact Real.sqrt_le_left (by norm_num) |>.mpr (by norm_num)
+  refine le_trans (by apply norm_add_le) ?_
+  simp only [norm_eq_abs, abs_ofReal, norm_mul, abs_I, mul_one, abs_of_pos hσ.1]
+  linarith [hσ.2]
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1b}\leanok
 Apply Lemma \ref{ZetaBnd_aux1b} and estimate $|s|\ll |t|$.
