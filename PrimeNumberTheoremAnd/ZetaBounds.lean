@@ -542,7 +542,7 @@ lemma ZetaSum_aux1_5 {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpo
 \begin{lemma}[ZetaBnd_aux1a]\label{ZetaBnd_aux1a}\lean{ZetaBnd_aux1a}\leanok
 For any $0 < a < b$ and  $s \in \C$ with $\sigma=\Re(s)>0$,
 $$
-\left|\int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx\right|
+\int_a^b \left|\frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx\right|
 \le \frac{a^{-\sigma}-b^{-\sigma}}{\sigma}.
 $$
 \end{lemma}
