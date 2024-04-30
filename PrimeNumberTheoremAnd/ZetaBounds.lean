@@ -665,6 +665,17 @@ lemma ZetaSum_aux3 {N : ℕ} {s : ℂ} (s_re_gt : 1 < s.re) :
   · congr; ext n; simp only [one_div, Nat.cast_add, Nat.cast_one, f]
   · rwa [summable_nat_add_iff (k := 1)]
 
+lemma integrableOn_of_Zeta0_fun {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
+    MeasureTheory.IntegrableOn (fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) (Ioi ↑N)
+    MeasureTheory.volume := by
+  apply MeasureTheory.Integrable.bdd_mul ?_ ?_
+  · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
+  · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt])
+  · apply Measurable.aestronglyMeasurable
+    refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
+    · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+    · exact Measurable.comp measurable_id measurable_ofReal
+
 /-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
   Let $N$ be a natural number and $s\in \C$, $\Re(s)>1$.
@@ -700,13 +711,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     · simp_rw [mul_comm_div, one_mul, one_div, cpow_neg]; exact tendsto_const_nhds
     · refine MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
         (b := (fun (n : ℕ) ↦ (n : ℝ))) ?_ tendsto_coe_atTop
-      apply MeasureTheory.Integrable.bdd_mul ?_ ?_
-      · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
-      · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt]; positivity)
-      · apply Measurable.aestronglyMeasurable
-        refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
-        · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
-        · exact Measurable.comp measurable_id measurable_ofReal
+      exact integrableOn_of_Zeta0_fun N_pos (by linarith)
 /-%%
 \begin{proof}\uses{ZetaSum_aux1}\leanok
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
@@ -727,21 +732,51 @@ $$
 with an absolute implied constant.
 \end{lemma}
 %%-/
+open MeasureTheory in
 lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) {t : ℝ} (ht : ct_aux1 < |t|) :
     ‖∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ C_aux1' * N ^ (-σ) / σ := by
+  have' lim1 := intervalIntegral_tendsto_integral_Ioi
+    (f := fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1))
+    (a := N) (b := fun x ↦ (x : ℝ))
+    (l := atTop) (μ := volume) ?_ ?_ |>.norm
+--    (fun x ↦ (x : ℝ)) N atTop tendsto_coe_atTop
+  convert le_of_tendsto lim1 (b := C_aux1' * N ^ (-σ) / σ) ?_ using 1
+  · filter_upwards [Filter.mem_atTop (N + 1 : ℝ)]
+    intro b hb
+    have : (1 : ℝ) ≤ N := by exact_mod_cast Npos
+    have lim2 := @ZetaSum_aux1a (a := N) (b := b) (by linarith)
+      (by linarith) (s := σ + t * I) (by simp [σpos])
+    calc _ ≤ _ := lim2
+         _ ≤ _ := by
+            simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+              sub_self, add_zero]
+            gcongr
+            have : 0 < b ^ (- σ) := by
+              apply Real.rpow_pos_of_pos
+              linarith
+            have : 0 < (N : ℝ) ^ (- σ) := by
+              apply Real.rpow_pos_of_pos
+              linarith
+            rw [C_aux1']
+            linarith
+  · have := integrableOn_of_Zeta0_fun (by linarith : 0 < N) (s := (σ + t * I + 1)) (by simp [σpos])
+    convert this.congr_fun ?_ (by simp)
+    intro x hx
+    simp only [mem_Ioi] at hx
+    have xpos : 0 < x := by linarith
+    simp only
+    rw [div_eq_mul_inv (b := (x : ℂ) ^ (σ + t * I + 1)), Complex.cpow_neg]
+    congr! 3
+
+
+  -- have := @ZetaSum_aux1a (a := N) ?_ (by positivity) sorry ?_ sorry
+  -- have := @tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
+  --   (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
+  --     + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
+  --   (b := (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
+  --     + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
   sorry
---   have := @MeasureTheory.intervalIntegral_tendsto_integral_Ioi (f := fun x ↦ (⌊x⌋ + 1 / 2 - x) / x ^ (σ + 1)) (a := N) (b := fun x ↦ (x : ℝ))
---     (l := atTop)
--- --    (fun x ↦ (x : ℝ)) N atTop tendsto_coe_atTop
---   have := @le_of_tendsto
---   have := @ZetaSum_aux1a (a := N) ?_ (by positivity) sorry ?_ sorry
---   have := @tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
---     (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
---       + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
---     (b := (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
---       + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
-  -- sorry
 /-%%
 \begin{proof}\uses{ZetaSum_aux1a}
 Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$.
