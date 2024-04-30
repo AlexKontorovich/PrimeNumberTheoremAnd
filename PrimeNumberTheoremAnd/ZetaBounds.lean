@@ -737,34 +737,27 @@ open MeasureTheory in
 lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ t : ℝ} (σpos : 0 < σ) :
     ‖∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ N ^ (-σ) / σ := by
-  apply le_trans (b := ∫ x in Ioi (N : ℝ), ‖(⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖)
-  · apply norm_integral_le_integral_norm
+  apply le_trans (by apply norm_integral_le_integral_norm)
   apply le_of_tendsto (x := atTop (α := ℝ)) (f := fun (t : ℝ) ↦ ∫ (x : ℝ) in N..t,
-    ‖(↑⌊x⌋ + 1 / 2 - ↑x) / (x : ℂ) ^ (σ + t * I + 1)‖)
-  · have := intervalIntegral_tendsto_integral_Ioi (μ := volume) (l := atTop) (b := id)
-      (f := fun (x : ℝ) ↦ ‖(⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (σ + t * I + 1)‖) N ?_ ?_
-    · apply this.congr'
-      filter_upwards [Filter.mem_atTop ((N : ℝ))]
+    ‖(⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (σ + t * I + 1)‖) ?_ ?_
+  · apply intervalIntegral_tendsto_integral_Ioi (μ := volume) (l := atTop) (b := id)
+      (f := fun (x : ℝ) ↦ ‖(⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (σ + t * I + 1)‖) N ?_ ?_ |>.congr' ?_
+    · filter_upwards [Filter.mem_atTop ((N : ℝ))]
       intro u hu
-      simp only [id_eq, intervalIntegral.integral_of_le hu]
+      simp only [id_eq, intervalIntegral.integral_of_le hu, norm_div, norm_eq_abs]
       apply set_integral_congr (by simp)
-      intro x hx
-      simp only [norm_div, norm_eq_abs]
-      rw [abs_cpow_eq_rpow_re_of_pos ?_, abs_cpow_eq_rpow_re_of_pos ?_]; simp
-      all_goals linarith [hx.1]
+      intro x hx; beta_reduce
+      iterate 2 (rw [abs_cpow_eq_rpow_re_of_pos (by linarith [hx.1])])
+      simp
     · apply Integrable.norm <| IntegrableOn.integrable ?_
       convert ZetaSum_aux4 (s := σ + t * I) Npos (by simp [σpos]) using 1
       simp_rw [div_eq_mul_inv, cpow_neg]
     · exact fun ⦃_⦄ a ↦ a
   · filter_upwards [mem_atTop (N + 1 : ℝ)] with t ht
-    set s := σ + t * I
-    have := @ZetaBnd_aux1a (a := N) (b := t) (by positivity) (by linarith) s (by simp [s, σpos])
-    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im,
-      mul_one, sub_self, add_zero, s] at this
-    apply le_trans this ?_
-    ring_nf
-    simp only [tsub_le_iff_right, le_add_iff_nonneg_right]
-    exact mul_nonneg (by apply Real.rpow_nonneg; linarith) (by positivity)
+    have : (N ^ (-σ) - t ^ (-σ)) / σ ≤ N ^ (-σ) / σ :=
+      div_le_div_right σpos |>.mpr (by simp [Real.rpow_nonneg (by linarith)])
+    apply le_trans ?_ this
+    convert ZetaBnd_aux1a (a := N) (b := t) (by positivity) (by linarith) ?_ <;> simp [σpos]
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1a}\leanok
 Apply Lemma \ref{ZetaBnd_aux1a} with $a=N$ and $b\to \infty$.
