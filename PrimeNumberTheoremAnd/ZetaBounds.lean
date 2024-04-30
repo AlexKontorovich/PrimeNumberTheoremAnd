@@ -728,9 +728,43 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) :
     ‖∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ N ^ (-σ) / σ := by
   intro t ht
-  apply le_of_tendsto (x := atTop (α := ℝ)) (f := fun (t : ℝ) ↦ ‖∫ (x : ℝ) in N..t,
-    (↑⌊x⌋ + 1 / 2 - ↑x) / (x : ℂ) ^ (σ + t * I + 1)‖)
-  · sorry
+  apply le_trans (b := ∫ x in Ioi (N : ℝ), ‖(⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖)
+  · apply MeasureTheory.norm_integral_le_integral_norm
+  apply le_of_tendsto (x := atTop (α := ℝ)) (f := fun (t : ℝ) ↦ ∫ (x : ℝ) in N..t,
+    ‖(↑⌊x⌋ + 1 / 2 - ↑x) / (x : ℂ) ^ (σ + t * I + 1)‖)
+  · set g := fun (x : ℝ) ↦ ‖(⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (σ + t * I + 1)‖
+    have := @MeasureTheory.intervalIntegral_tendsto_integral_Ioi (f := g) ℝ MeasureTheory.volume (atTop (α := ℝ)) _ _ _ id N ?_ ?_
+    · convert this using 1
+      simp only [id_eq, g]
+      ext u -- use a filtered version?
+      -- by_cases intervalIntegral.integral_cases
+      by_cases h : N ≤ u
+      swap
+      · sorry
+      -- simp_rw [intervalIntegral.integral_of_ge (not_le.mp h).le]
+      -- simp only [neg_inj]
+      -- simp_rw [← intervalIntegral.integral_of_le (not_le.mp h).le]
+      -- simp_rw [intervalIntegral.integral_symm (N : ℝ) u]
+      -- simp only [neg_inj]
+      -- simp_rw [intervalIntegral.integral_of_ge (not_le.mp h).le]
+
+      -- · simp_rw [intervalIntegral.integral_of_le h]
+      --   sorry
+      -- ·
+      --   -- simp_rw [intervalIntegral.integral_of_le (not_le.mp h).le]
+      --   simp_rw [intervalIntegral.integral_of_ge (not_le.mp h).le]
+      --   simp only [neg_inj]
+      --   simp_rw [← intervalIntegral.integral_of_le (not_le.mp h).le]
+      --   simp_rw [intervalIntegral.integral_symm (N : ℝ) u]
+      -- -- intervalIntegral
+      apply intervalIntegral.integral_congr
+      intro x hx
+      simp only [ge_iff_le, h, uIcc_of_le, mem_Icc] at hx
+      simp only [norm_div, norm_eq_abs]
+      rw [abs_cpow_eq_rpow_re_of_pos ?_, abs_cpow_eq_rpow_re_of_pos ?_]; simp
+      all_goals exact lt_of_lt_of_le (b := 1) (by norm_num) <| le_trans (by simp [Npos]) hx.1
+    · sorry -- same as in ZetaSum_aux2, refactor
+    · exact fun ⦃_⦄ a ↦ a
   · filter_upwards [mem_atTop (N + 1 : ℝ)] with t ht
     set s := σ + t * I
     have := @ZetaBnd_aux1a (a := N) (b := t) (by positivity) (by linarith) s (by simp [s, σpos])
