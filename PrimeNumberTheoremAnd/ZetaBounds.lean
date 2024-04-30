@@ -738,35 +738,15 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) :
     ‖(↑⌊x⌋ + 1 / 2 - ↑x) / (x : ℂ) ^ (σ + t * I + 1)‖)
   · set g := fun (x : ℝ) ↦ ‖(⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (σ + t * I + 1)‖
     have := @MeasureTheory.intervalIntegral_tendsto_integral_Ioi (f := g) ℝ MeasureTheory.volume (atTop (α := ℝ)) _ _ _ id N ?_ ?_
-    · convert this using 1
-      simp only [id_eq, g]
-      ext u -- use a filtered version?
-      -- by_cases intervalIntegral.integral_cases
-      by_cases h : N ≤ u
-      swap
-      · sorry
-      -- simp_rw [intervalIntegral.integral_of_ge (not_le.mp h).le]
-      -- simp only [neg_inj]
-      -- simp_rw [← intervalIntegral.integral_of_le (not_le.mp h).le]
-      -- simp_rw [intervalIntegral.integral_symm (N : ℝ) u]
-      -- simp only [neg_inj]
-      -- simp_rw [intervalIntegral.integral_of_ge (not_le.mp h).le]
-
-      -- · simp_rw [intervalIntegral.integral_of_le h]
-      --   sorry
-      -- ·
-      --   -- simp_rw [intervalIntegral.integral_of_le (not_le.mp h).le]
-      --   simp_rw [intervalIntegral.integral_of_ge (not_le.mp h).le]
-      --   simp only [neg_inj]
-      --   simp_rw [← intervalIntegral.integral_of_le (not_le.mp h).le]
-      --   simp_rw [intervalIntegral.integral_symm (N : ℝ) u]
-      -- -- intervalIntegral
-      apply intervalIntegral.integral_congr
+    · apply this.congr'
+      filter_upwards [Filter.mem_atTop ((N : ℝ))]
+      intro u hu
+      simp only [id_eq, intervalIntegral.integral_of_le hu, g]
+      apply MeasureTheory.set_integral_congr (by simp)
       intro x hx
-      simp only [ge_iff_le, h, uIcc_of_le, mem_Icc] at hx
       simp only [norm_div, norm_eq_abs]
       rw [abs_cpow_eq_rpow_re_of_pos ?_, abs_cpow_eq_rpow_re_of_pos ?_]; simp
-      all_goals exact lt_of_lt_of_le (b := 1) (by norm_num) <| le_trans (by simp [Npos]) hx.1
+      all_goals linarith [hx.1]
     · dsimp only [g]
       apply MeasureTheory.Integrable.norm
       apply MeasureTheory.IntegrableOn.integrable
@@ -783,7 +763,7 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) :
     simp only [tsub_le_iff_right, le_add_iff_nonneg_right]
     exact mul_nonneg (by apply Real.rpow_nonneg; linarith) (by positivity)
 /-%%
-\begin{proof}\uses{ZetaBnd_aux1a}
+\begin{proof}\uses{ZetaBnd_aux1a}\leanok
 Apply Lemma \ref{ZetaBnd_aux1a} with $a=N$ and $b\to \infty$.
 \end{proof}
 %%-/
