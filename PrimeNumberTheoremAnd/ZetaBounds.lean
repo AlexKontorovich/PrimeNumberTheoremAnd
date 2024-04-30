@@ -661,6 +661,17 @@ lemma ZetaSum_aux3 {N : ℕ} {s : ℂ} (s_re_gt : 1 < s.re) :
   · congr; ext n; simp only [one_div, Nat.cast_add, Nat.cast_one, f]
   · rwa [summable_nat_add_iff (k := 1)]
 
+lemma integrableOn_of_Zeta0_fun {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
+    MeasureTheory.IntegrableOn (fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) (Ioi ↑N)
+    MeasureTheory.volume := by
+  apply MeasureTheory.Integrable.bdd_mul ?_ ?_
+  · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
+  · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt])
+  · apply Measurable.aestronglyMeasurable
+    refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
+    · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+    · exact Measurable.comp measurable_id measurable_ofReal
+
 lemma ZetaSum_aux4 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
     MeasureTheory.IntegrableOn (fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) (Ioi N)
       MeasureTheory.volume := by
@@ -834,6 +845,7 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
       · fun_prop
       · norm_num
   · apply DifferentiableOn.mul differentiableOn_id
+    --extract_goal
     sorry
 /-%%
 \begin{proof}\uses{riemannZeta0, ZetaBnd_aux1b}
