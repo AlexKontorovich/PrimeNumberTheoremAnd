@@ -729,9 +729,20 @@ as $|t|\to\infty$.
 lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) :
     ∀ (t : ℝ) (ht : ct_aux1 < |t|),
     ‖∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
-    ≤ C_aux1' * N ^ (-σ) / σ := by
-  have := @ZetaBnd_aux1a (a := N)
-  sorry
+    ≤ N ^ (-σ) / σ := by
+  intro t ht
+  apply le_of_tendsto (x := atTop (α := ℝ)) (f := fun (t : ℝ) ↦ ‖∫ (x : ℝ) in N..t,
+    (↑⌊x⌋ + 1 / 2 - ↑x) / (x : ℂ) ^ (σ + t * I + 1)‖)
+  · sorry
+  · filter_upwards [mem_atTop (N + 1 : ℝ)] with t ht
+    set s := σ + t * I
+    have := @ZetaBnd_aux1a (a := N) (b := t) (by positivity) (by linarith) s (by simp [s, σpos])
+    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im,
+      mul_one, sub_self, add_zero, s] at this
+    apply le_trans this ?_
+    ring_nf
+    simp only [tsub_le_iff_right, le_add_iff_nonneg_right]
+    exact mul_nonneg (by apply Real.rpow_nonneg; linarith) (by positivity)
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1a}
 Apply Lemma \ref{ZetaBnd_aux1a} with $a=N$ and $b\to \infty$.
