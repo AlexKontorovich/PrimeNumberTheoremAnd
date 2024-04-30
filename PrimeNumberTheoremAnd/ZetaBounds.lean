@@ -733,27 +733,26 @@ $$
 $$
 \end{lemma}
 %%-/
+open MeasureTheory in
 lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ t : ℝ} (σpos : 0 < σ) :
     ‖∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ N ^ (-σ) / σ := by
   apply le_trans (b := ∫ x in Ioi (N : ℝ), ‖(⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖)
-  · apply MeasureTheory.norm_integral_le_integral_norm
+  · apply norm_integral_le_integral_norm
   apply le_of_tendsto (x := atTop (α := ℝ)) (f := fun (t : ℝ) ↦ ∫ (x : ℝ) in N..t,
     ‖(↑⌊x⌋ + 1 / 2 - ↑x) / (x : ℂ) ^ (σ + t * I + 1)‖)
-  · set g := fun (x : ℝ) ↦ ‖(⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (σ + t * I + 1)‖
-    have := @MeasureTheory.intervalIntegral_tendsto_integral_Ioi (f := g) ℝ MeasureTheory.volume (atTop (α := ℝ)) _ _ _ id N ?_ ?_
+  · have := intervalIntegral_tendsto_integral_Ioi (μ := volume) (l := atTop) (b := id)
+      (f := fun (x : ℝ) ↦ ‖(⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (σ + t * I + 1)‖) N ?_ ?_
     · apply this.congr'
       filter_upwards [Filter.mem_atTop ((N : ℝ))]
       intro u hu
-      simp only [id_eq, intervalIntegral.integral_of_le hu, g]
-      apply MeasureTheory.set_integral_congr (by simp)
+      simp only [id_eq, intervalIntegral.integral_of_le hu]
+      apply set_integral_congr (by simp)
       intro x hx
       simp only [norm_div, norm_eq_abs]
       rw [abs_cpow_eq_rpow_re_of_pos ?_, abs_cpow_eq_rpow_re_of_pos ?_]; simp
       all_goals linarith [hx.1]
-    · dsimp only [g]
-      apply MeasureTheory.Integrable.norm
-      apply MeasureTheory.IntegrableOn.integrable
+    · apply Integrable.norm <| IntegrableOn.integrable ?_
       convert ZetaSum_aux4 (s := σ + t * I) Npos (by simp [σpos]) using 1
       simp_rw [div_eq_mul_inv, cpow_neg]
     · exact fun ⦃_⦄ a ↦ a
