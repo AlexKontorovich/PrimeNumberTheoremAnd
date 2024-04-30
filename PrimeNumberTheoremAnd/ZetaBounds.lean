@@ -730,13 +730,18 @@ with an absolute implied constant.
 lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) {t : ℝ} (ht : ct_aux1 < |t|) :
     ‖∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ C_aux1' * N ^ (-σ) / σ := by
-  have := @ZetaSum_aux1a (a := N) ?_ (by positivity) sorry ?_ sorry
-  have := @tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
-    (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
-      + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
-    (b := (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
-      + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
   sorry
+--   have := @MeasureTheory.intervalIntegral_tendsto_integral_Ioi (f := fun x ↦ (⌊x⌋ + 1 / 2 - x) / x ^ (σ + 1)) (a := N) (b := fun x ↦ (x : ℝ))
+--     (l := atTop)
+-- --    (fun x ↦ (x : ℝ)) N atTop tendsto_coe_atTop
+--   have := @le_of_tendsto
+--   have := @ZetaSum_aux1a (a := N) ?_ (by positivity) sorry ?_ sorry
+--   have := @tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
+--     (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
+--       + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
+--     (b := (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
+--       + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
+  -- sorry
 /-%%
 \begin{proof}\uses{ZetaSum_aux1a}
 Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$.
@@ -753,7 +758,7 @@ $$
 as $|t|\to\infty$.
 \end{lemma}
 %%-/
-lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) :
+lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) :
     ∀ (t : ℝ) (_ : ct_aux1 < |t|),
     ‖(σ + t * I) * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ C_aux1 * |t| * N ^ (-σ) / σ := by
@@ -763,19 +768,12 @@ lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) 
   push_cast
   conv => rhs; lhs; lhs; rw [(by norm_num : (200 : ℝ) = 100 * 2), mul_assoc, mul_comm]
   rw [norm_mul, mul_assoc, mul_div_assoc]
-  apply mul_le_mul ?_ (ZetaBnd_aux1b N Npos hσ.1 t ht) (norm_nonneg _) (by positivity)
-  apply le_trans (b := ‖t + ↑t * I‖)
-  · simp only [norm_eq_abs, abs_eq_sqrt_sq_add_sq, add_re, ofReal_re, mul_re, I_re, mul_zero,
-    ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]
-    apply Real.sqrt_le_sqrt
-    apply add_le_add_right <| sq_le_sq.mpr <| le_trans (b := 2) ?_ (by linarith)
-    simp only [mem_Ioc] at hσ; simp only [abs_of_pos hσ.1, hσ.2]
-  · simp only [norm_eq_abs, abs_eq_sqrt_sq_add_sq, add_re, ofReal_re, mul_re, I_re, mul_zero,
-    ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]
-    ring_nf
-    simp only [Nat.ofNat_nonneg, Real.sqrt_mul', Real.sqrt_sq_eq_abs]
-    apply mul_le_mul_left (by linarith) |>.mpr
-    exact Real.sqrt_le_left (by norm_num) |>.mpr (by norm_num)
+  gcongr
+  · simp only [mem_Ioc] at hσ
+    calc _ ≤ ‖(σ : ℂ)‖ + ‖t * I‖ := norm_add_le ..
+         _ = |σ| + |t| := by simp
+         _ ≤ _ := by linarith [abs_of_pos hσ.1]
+  · exact ZetaBnd_aux1b N Npos hσ.1 ht
 /-%%
 \begin{proof}\uses{ZetaSum_aux1b}\leanok
 Apply Lemma \ref{ZetaSum_aux1b} and estimate $|s|\ll |t|$.
