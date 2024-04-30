@@ -36,7 +36,6 @@ lemma div_rpow_eq_rpow_div_neg {x y s : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
 
 /-%%
 \begin{definition}[RiemannZeta0]\label{RiemannZeta0}\lean{RiemannZeta0}\leanok
-\uses{ZetaSum_aux2}
 For any natural $N\ge1$, we define
 $$
 \zeta_0(N,s) :=
@@ -540,7 +539,7 @@ lemma ZetaSum_aux1_5 {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpo
   · exact ZetaSum_aux1_5b apos a_lt_b σpos
 
 /-%%
-\begin{lemma}[ZetaSum_aux1a]\label{ZetaSum_aux1a}\lean{ZetaSum_aux1a}\leanok
+\begin{lemma}[ZetaBnd_aux1a]\label{ZetaBnd_aux1a}\lean{ZetaBnd_aux1a}\leanok
 For any $0 < a < b$ and  $s \in \C$ with $\sigma=\Re(s)>0$,
 $$
 \left|\int_a^b \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx\right|
@@ -548,7 +547,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma ZetaSum_aux1a {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
+lemma ZetaBnd_aux1a {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
     ‖∫ x in a..b, (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ ≤
       (a ^ (-s.re) - b ^ (-s.re)) / s.re := by
   calc
@@ -719,10 +718,10 @@ def C_aux1 := 200 -- two times C_aux1'
 
 /-%%
 \begin{lemma}[ZetaBnd_aux1b]\label{ZetaBnd_aux1b}\lean{ZetaBnd_aux1b}\leanok
-For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in(0,2]$,
+For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s) > 0$,
 $$
-\left| s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
-\ll |t| \frac{N^{-\sigma}}{\sigma},
+\left| \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
+\ll \frac{N^{-\sigma}}{\sigma},
 $$
 as $|t|\to\infty$.
 \end{lemma}
@@ -731,11 +730,11 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) :
     ∀ (t : ℝ) (ht : ct_aux1 < |t|),
     ‖∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ C_aux1' * N ^ (-σ) / σ := by
-  have := @ZetaSum_aux1a (a := N)
+  have := @ZetaBnd_aux1a (a := N)
   sorry
 /-%%
-\begin{proof}\uses{ZetaSum_aux1a}
-Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$.
+\begin{proof}\uses{ZetaBnd_aux1a}
+Apply Lemma \ref{ZetaBnd_aux1a} with $a=N$ and $b\to \infty$.
 \end{proof}
 %%-/
 
@@ -773,8 +772,8 @@ lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) 
     apply mul_le_mul_left (by linarith) |>.mpr
     exact Real.sqrt_le_left (by norm_num) |>.mpr (by norm_num)
 /-%%
-\begin{proof}\uses{ZetaSum_aux1b}\leanok
-Apply Lemma \ref{ZetaSum_aux1b} and estimate $|s|\ll |t|$.
+\begin{proof}\uses{ZetaBnd_aux1b}\leanok
+Apply Lemma \ref{ZetaBnd_aux1b} and estimate $|s|\ll |t|$.
 \end{proof}
 %%-/
 
@@ -821,9 +820,9 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
   · apply DifferentiableOn.mul differentiableOn_id
     sorry
 /-%%
-\begin{proof}\uses{ZetaSum_aux1, ZetaBnd_aux1b}
+\begin{proof}\uses{riemannZeta0, ZetaBnd_aux1b}
   The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral
-  that's absolutely convergent on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ by Lemma \ref{ZetaSum_aux1b}.
+  that's absolutely convergent on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ by Lemma \ref{ZetaBnd_aux1b}.
 \end{proof}
 %%-/
 
