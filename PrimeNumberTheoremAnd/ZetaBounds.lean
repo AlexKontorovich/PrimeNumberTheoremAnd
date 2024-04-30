@@ -750,16 +750,28 @@ as $|t|\to\infty$.
 \end{lemma}
 %%-/
 lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) :
-    ∀ (t : ℝ) (ht : ct_aux1 < |t|),
+    ∀ (t : ℝ) (_ : ct_aux1 < |t|),
     ‖(σ + t * I) * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ C_aux1 * |t| * N ^ (-σ) / σ := by
   intro t ht
+  dsimp only [ct_aux1] at ht
   conv => rhs; lhs; lhs; rw [C_aux1, mul_assoc, mul_comm]
   rw [norm_mul, mul_assoc, mul_div_assoc]
   apply mul_le_mul ?_ (ZetaBnd_aux1b N Npos hσ.1 t ht) (norm_nonneg _) (by positivity)
-  sorry
+  apply le_trans (b := ‖t + ↑t * I‖)
+  · simp only [norm_eq_abs, abs_eq_sqrt_sq_add_sq, add_re, ofReal_re, mul_re, I_re, mul_zero,
+    ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]
+    apply Real.sqrt_le_sqrt
+    apply add_le_add_right <| sq_le_sq.mpr <| le_trans (b := 2) ?_ (by linarith)
+    simp only [mem_Ioc] at hσ; simp only [abs_of_pos hσ.1, hσ.2]
+  · simp only [norm_eq_abs, abs_eq_sqrt_sq_add_sq, add_re, ofReal_re, mul_re, I_re, mul_zero,
+    ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]
+    ring_nf
+    simp only [Nat.ofNat_nonneg, Real.sqrt_mul', Real.sqrt_sq_eq_abs]
+    apply mul_le_mul_left (by linarith) |>.mpr
+    exact Real.sqrt_le_left (by norm_num) |>.mpr (by norm_num)
 /-%%
-\begin{proof}\uses{ZetaSum_aux1b}
+\begin{proof}\uses{ZetaSum_aux1b}\leanok
 Apply Lemma \ref{ZetaSum_aux1b} and estimate $|s|\ll |t|$.
 \end{proof}
 %%-/
