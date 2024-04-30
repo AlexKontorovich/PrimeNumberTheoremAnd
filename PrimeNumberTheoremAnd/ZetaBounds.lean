@@ -665,6 +665,17 @@ lemma ZetaSum_aux3 {N : ℕ} {s : ℂ} (s_re_gt : 1 < s.re) :
   · congr; ext n; simp only [one_div, Nat.cast_add, Nat.cast_one, f]
   · rwa [summable_nat_add_iff (k := 1)]
 
+lemma integrableOn_of_Zeta0_fun {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
+    MeasureTheory.IntegrableOn (fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) (Ioi ↑N)
+    MeasureTheory.volume := by
+  apply MeasureTheory.Integrable.bdd_mul ?_ ?_
+  · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
+  · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt])
+  · apply Measurable.aestronglyMeasurable
+    refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
+    · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+    · exact Measurable.comp measurable_id measurable_ofReal
+
 /-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
   Let $N$ be a natural number and $s\in \C$, $\Re(s)>1$.
@@ -700,13 +711,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
     · simp_rw [mul_comm_div, one_mul, one_div, cpow_neg]; exact tendsto_const_nhds
     · refine MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
         (b := (fun (n : ℕ) ↦ (n : ℝ))) ?_ tendsto_coe_atTop
-      apply MeasureTheory.Integrable.bdd_mul ?_ ?_
-      · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
-      · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt]; positivity)
-      · apply Measurable.aestronglyMeasurable
-        refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
-        · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
-        · exact Measurable.comp measurable_id measurable_ofReal
+      exact integrableOn_of_Zeta0_fun N_pos (by linarith)
 /-%%
 \begin{proof}\uses{ZetaSum_aux1}\leanok
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
@@ -721,20 +726,48 @@ def C_aux1 := 200 -- two times C_aux1'
 \begin{lemma}[ZetaBnd_aux1b]\label{ZetaBnd_aux1b}\lean{ZetaBnd_aux1b}\leanok
 For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in(0,2]$,
 $$
-\left| s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
-\ll |t| \frac{N^{-\sigma}}{\sigma},
+\left| \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
+\ll \frac{N^{-\sigma}}{\sigma},
 $$
-as $|t|\to\infty$.
+with an absolute implied constant.
 \end{lemma}
 %%-/
-lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) :
-    ∀ (t : ℝ) (ht : ct_aux1 < |t|),
+open MeasureTheory in
+lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) {t : ℝ} :
     ‖∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ C_aux1' * N ^ (-σ) / σ := by
-  have := @ZetaSum_aux1a (a := N)
-  sorry
+  have' lim1 := intervalIntegral_tendsto_integral_Ioi
+    (f := fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1))
+    (a := N) (b := fun x ↦ (x : ℝ))
+    (l := atTop) (μ := volume) ?_ ?_ |>.norm
+  convert le_of_tendsto lim1 (b := C_aux1' * N ^ (-σ) / σ) ?_ using 1
+  · filter_upwards [Filter.mem_atTop (N + 1 : ℝ)]
+    intro b hb
+    have : (1 : ℝ) ≤ N := by exact_mod_cast Npos
+    have lim2 := @ZetaSum_aux1a (a := N) (b := b) (by linarith)
+      (by linarith) (s := σ + t * I) (by simp [σpos])
+    calc _ ≤ _ := lim2
+         _ ≤ _ := by
+            simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+              sub_self, add_zero]
+            gcongr
+            have : 0 < b ^ (- σ) := by
+              apply Real.rpow_pos_of_pos
+              linarith
+            have : 0 < (N : ℝ) ^ (- σ) := by
+              apply Real.rpow_pos_of_pos
+              linarith
+            rw [C_aux1']
+            linarith
+  · have := integrableOn_of_Zeta0_fun (by linarith : 0 < N) (s := (σ + t * I)) (by simp [σpos])
+    convert this.congr_fun ?_ (by simp)
+    intro x hx
+    simp only [mem_Ioi] at hx
+    simp only
+    rw [div_eq_mul_inv (b := (x : ℂ) ^ (σ + t * I + 1)), Complex.cpow_neg]
+  · exact fun ⦃U⦄ a ↦ a
 /-%%
-\begin{proof}\uses{ZetaSum_aux1a}
+\begin{proof}\uses{ZetaSum_aux1a}\leanok
 Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$.
 \end{proof}
 %%-/
@@ -749,7 +782,7 @@ $$
 as $|t|\to\infty$.
 \end{lemma}
 %%-/
-lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) :
+lemma ZetaBnd_aux1 {N : ℕ} (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) :
     ∀ (t : ℝ) (_ : ct_aux1 < |t|),
     ‖(σ + t * I) * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ C_aux1 * |t| * N ^ (-σ) / σ := by
@@ -759,19 +792,12 @@ lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) 
   push_cast
   conv => rhs; lhs; lhs; rw [(by norm_num : (200 : ℝ) = 100 * 2), mul_assoc, mul_comm]
   rw [norm_mul, mul_assoc, mul_div_assoc]
-  apply mul_le_mul ?_ (ZetaBnd_aux1b N Npos hσ.1 t ht) (norm_nonneg _) (by positivity)
-  apply le_trans (b := ‖t + ↑t * I‖)
-  · simp only [norm_eq_abs, abs_eq_sqrt_sq_add_sq, add_re, ofReal_re, mul_re, I_re, mul_zero,
-    ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]
-    apply Real.sqrt_le_sqrt
-    apply add_le_add_right <| sq_le_sq.mpr <| le_trans (b := 2) ?_ (by linarith)
-    simp only [mem_Ioc] at hσ; simp only [abs_of_pos hσ.1, hσ.2]
-  · simp only [norm_eq_abs, abs_eq_sqrt_sq_add_sq, add_re, ofReal_re, mul_re, I_re, mul_zero,
-    ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]
-    ring_nf
-    simp only [Nat.ofNat_nonneg, Real.sqrt_mul', Real.sqrt_sq_eq_abs]
-    apply mul_le_mul_left (by linarith) |>.mpr
-    exact Real.sqrt_le_left (by norm_num) |>.mpr (by norm_num)
+  gcongr
+  · simp only [mem_Ioc] at hσ
+    calc _ ≤ ‖(σ : ℂ)‖ + ‖t * I‖ := norm_add_le ..
+         _ = |σ| + |t| := by simp
+         _ ≤ _ := by linarith [abs_of_pos hσ.1]
+  · exact ZetaBnd_aux1b N Npos hσ.1
 /-%%
 \begin{proof}\uses{ZetaSum_aux1b}\leanok
 Apply Lemma \ref{ZetaSum_aux1b} and estimate $|s|\ll |t|$.
@@ -819,6 +845,7 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
       · fun_prop
       · norm_num
   · apply DifferentiableOn.mul differentiableOn_id
+    --extract_goal
     sorry
 /-%%
 \begin{proof}\uses{ZetaSum_aux1, ZetaBnd_aux1b}
@@ -1201,7 +1228,7 @@ lemma ZetaUpperBnd :
     _ = _ := by ring
   · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]
     convert UpperBnd_aux3 (C := 2) Apos (by norm_num) Npos σ_ge t_ge' N_le_t le_rfl
-  · simp only [add_le_add_iff_left]; exact ZetaBnd_aux1 N (by linarith) ⟨σPos, σ_le⟩ t t_ge
+  · simp only [add_le_add_iff_left]; exact ZetaBnd_aux1 (by linarith) ⟨σPos, σ_le⟩ t t_ge
   · simp only [norm_div, norm_neg, norm_eq_abs, RCLike.norm_ofNat, Nat.abs_cast, s]
     congr <;> (convert norm_natCast_cpow_of_pos Npos _; simp)
   · have ⟨h₁, h₂, h₃⟩ := UpperBnd_aux6 t_ge' σ_gt σ_le neOne Npos N_le_t
