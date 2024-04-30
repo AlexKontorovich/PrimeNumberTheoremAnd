@@ -760,23 +760,13 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) {t : 
               linarith
             rw [C_aux1']
             linarith
-  · have := integrableOn_of_Zeta0_fun (by linarith : 0 < N) (s := (σ + t * I + 1)) (by simp [σpos])
+  · have := integrableOn_of_Zeta0_fun (by linarith : 0 < N) (s := (σ + t * I)) (by simp [σpos])
     convert this.congr_fun ?_ (by simp)
     intro x hx
     simp only [mem_Ioi] at hx
     have xpos : 0 < x := by linarith
     simp only
     rw [div_eq_mul_inv (b := (x : ℂ) ^ (σ + t * I + 1)), Complex.cpow_neg]
-    congr! 3
-
-
-  -- have := @ZetaSum_aux1a (a := N) ?_ (by positivity) sorry ?_ sorry
-  -- have := @tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
-  --   (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
-  --     + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
-  --   (b := (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
-  --     + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
-  sorry
 /-%%
 \begin{proof}\uses{ZetaSum_aux1a}
 Apply Lemma \ref{ZetaSum_aux1a} with $a=N$ and $b\to \infty$.
