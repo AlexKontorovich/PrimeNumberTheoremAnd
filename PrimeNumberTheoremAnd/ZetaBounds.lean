@@ -715,12 +715,11 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
 
 /-%%
 \begin{lemma}[ZetaBnd_aux1b]\label{ZetaBnd_aux1b}\lean{ZetaBnd_aux1b}\leanok
-For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s) > 0$,
+For any $N\ge1$ and $s = \sigma + tI \in \C$, $\sigma > 0$,
 $$
 \left| \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
-\ll \frac{N^{-\sigma}}{\sigma},
+\le \frac{N^{-\sigma}}{\sigma}.
 $$
-as $|t|\to\infty$.
 \end{lemma}
 %%-/
 lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ t : ℝ} (σpos : 0 < σ) :
@@ -764,12 +763,11 @@ Apply Lemma \ref{ZetaBnd_aux1a} with $a=N$ and $b\to \infty$.
 
 /-%%
 \begin{lemma}[ZetaBnd_aux1]\label{ZetaBnd_aux1}\lean{ZetaBnd_aux1}\leanok
-For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in(0,2]$,
+For any $N\ge1$ and $s = \sigma + tI \in \C$, $\sigma=\in(0,2], 2 < |t|$,
 $$
 \left| s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
-\ll |t| \frac{N^{-\sigma}}{\sigma},
+\ll |t| \frac{N^{-\sigma}}{\sigma}.
 $$
-as $|t|\to\infty$.
 \end{lemma}
 %%-/
 lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ t : ℝ} (hσ : σ ∈ Ioc 0 2) (ht : 2 ≤ |t|) :
@@ -1175,12 +1173,11 @@ lemma add_le_add_le_add_le_add {α : Type*} [Add α] [Preorder α]
 
 /-%%
 \begin{lemma}[ZetaUpperBnd]\label{ZetaUpperBnd}\lean{ZetaUpperBnd}\leanok
-For any $s\in \C$, $1/2 \le \Re(s)=\sigma\le 2$,
+For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$
 and any $0 < A < 1$ sufficiently small, and $1-A/\log |t| \le \sigma$, we have
 $$
-|\zeta(s)| \ll \log t,
+|\zeta(s)| \ll \log t.
 $$
-as $|t|\to\infty$.
 \end{lemma}
 %%-/
 lemma ZetaUpperBnd :
@@ -1260,12 +1257,11 @@ $$
 
 /-%%
 \begin{lemma}[ZetaDerivUpperBnd]\label{ZetaDerivUpperBnd}\lean{ZetaDerivUpperBnd}\leanok
-For any $s\in \C$, $1/2 \le \Re(s)=\sigma\le 2$,
+For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$,
 there is an $A>0$ so that for $1-A/\log t \le \sigma$, we have
 $$
-|\zeta'(s)| \ll \log^2 t,
+|\zeta'(s)| \ll \log^2 t.
 $$
-as $|t|\to\infty$.
 \end{lemma}
 %%-/
 lemma ZetaDerivUpperBnd :
@@ -1624,7 +1620,7 @@ This is the fundamental theorem of calculus.
 /-%%
 \begin{lemma}[Zeta_diff_Bnd]\label{Zeta_diff_Bnd}\lean{Zeta_diff_Bnd}\leanok
 For any $A>0$ sufficiently small, there is a constant $C>0$ so that
-whenever $1- A / \log t \le \sigma_1 < \sigma_2\le 2$, we have that:
+whenever $1- A / \log t \le \sigma_1 < \sigma_2\le 2$ and $3 < |t|$, we have that:
 $$
 |\zeta (\sigma_2 + it) - \zeta (\sigma_1 + it)|
 \le C (\log |t|)^2 (\sigma_2 - \sigma_1).
@@ -1655,7 +1651,7 @@ estimate trivially using Lemma \ref{ZetaDerivUpperBnd}.
 /-%%
 \begin{lemma}[ZetaInvBnd]\label{ZetaInvBnd}\lean{ZetaInvBnd}\leanok
 For any $A>0$ sufficiently small, there is a constant $C>0$ so that
-whenever $1- A / \log^9 |t| \le \sigma < 1$, we have that:
+whenever $1- A / \log^9 |t| \le \sigma < 1$ and $3 < |t|$, we have that:
 $$
 1/|\zeta(\sigma+it)| \le C \log^7 |t|.
 $$
@@ -1726,7 +1722,7 @@ as desired.
 
 /-%%
 \begin{lemma}[LogDerivZetaBnd]\label{LogDerivZetaBnd}\lean{LogDerivZetaBnd}\leanok
-There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1$,
+There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1$ and $3 < |t|$,
 $$
 |\frac {\zeta'}{\zeta} (\sigma+it)| \ll \log^9 |t|.
 $$
