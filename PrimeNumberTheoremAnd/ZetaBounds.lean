@@ -1082,7 +1082,6 @@ lemma UpperBnd_aux3 {A C σ t : ℝ} (Apos : 0 < A) (A_lt_one : A < 1) {N : ℕ}
   obtain ⟨_, σPos, _⟩ := UpperBnd_aux Apos A_lt_one t_ge σ_ge
   have logt_gt_one := logt_gt_one t_ge
   have (n : ℕ) (hn : n ∈ Finset.range (N + 1)) := ZetaBnd_aux2 (n := n) Apos σPos ?_ σ_ge
-  --swap; exact le_trans (Nat.cast_le.mpr (Finset.mem_range.mp hn).le) N_le_t
   · replace := norm_sum_le_of_le (Finset.range (N + 1)) this
     rw [← Finset.sum_mul, mul_comm _ A.exp] at this
     rw [mul_assoc]
