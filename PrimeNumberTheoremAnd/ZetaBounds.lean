@@ -721,17 +721,21 @@ def C_aux1 := 200 -- two times C_aux1'
 \begin{lemma}[ZetaBnd_aux1b]\label{ZetaBnd_aux1b}\lean{ZetaBnd_aux1b}\leanok
 For any $N\ge1$ and $s\in \C$, $\sigma=\Re(s)\in(0,2]$,
 $$
-\left| s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
-\ll |t| \frac{N^{-\sigma}}{\sigma},
+\left| \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
+\ll \frac{N^{-\sigma}}{\sigma},
 $$
-as $|t|\to\infty$.
+with an absolute implied constant.
 \end{lemma}
 %%-/
-lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) :
-    ∀ (t : ℝ) (ht : ct_aux1 < |t|),
+lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (σpos : 0 < σ) {t : ℝ} (ht : ct_aux1 < |t|) :
     ‖∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ C_aux1' * N ^ (-σ) / σ := by
-  have := @ZetaSum_aux1a (a := N)
+  have := @ZetaSum_aux1a (a := N) ?_ (by positivity) sorry ?_ sorry
+  have := @tendsto_nhds_unique (X := ℂ) (Y := ℕ) (l := atTop)
+    (f := fun k ↦ ((k : ℂ) ^ (1 - s) - (N : ℂ) ^ (1 - s)) / (1 - s) + 1 / 2 * (1 / ↑k ^ s) - 1 / 2 * (1 / ↑N ^ s)
+      + s * ∫ (x : ℝ) in (N : ℝ)..k, (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
+    (b := (- N ^ (1 - s)) / (1 - s) - N ^ (-s) / 2
+      + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)))
   sorry
 /-%%
 \begin{proof}\uses{ZetaSum_aux1a}
