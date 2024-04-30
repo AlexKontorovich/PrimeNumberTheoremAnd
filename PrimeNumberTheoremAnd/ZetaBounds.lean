@@ -715,7 +715,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
 
 def ct_aux1 := (31381059610 : ℝ) -- 3 ^ 22 + 1
 def C_aux1' := (100 : ℝ)
-def C_aux1 := (100 * 2 : ℝ) -- the first factor is C_aux1'
+def C_aux1 := 200 -- two times C_aux1'
 
 /-%%
 \begin{lemma}[ZetaBnd_aux1b]\label{ZetaBnd_aux1b}\lean{ZetaBnd_aux1b}\leanok
@@ -755,7 +755,9 @@ lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) 
     ≤ C_aux1 * |t| * N ^ (-σ) / σ := by
   intro t ht
   dsimp only [ct_aux1] at ht
-  conv => rhs; lhs; lhs; rw [C_aux1, mul_assoc, mul_comm]
+  rw [C_aux1]
+  push_cast
+  conv => rhs; lhs; lhs; rw [(by norm_num : (200 : ℝ) = 100 * 2), mul_assoc, mul_comm]
   rw [norm_mul, mul_assoc, mul_div_assoc]
   apply mul_le_mul ?_ (ZetaBnd_aux1b N Npos hσ.1 t ht) (norm_nonneg _) (by positivity)
   apply le_trans (b := ‖t + ↑t * I‖)
