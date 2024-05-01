@@ -1610,7 +1610,7 @@ $$
 lemma ZetaInvBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (hσ : σ ∈ Ico (1 - A / (|t|.log) ^ 9) 1),
-    1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 7 := by
+    1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ (7 : ℝ) := by
   let A := (1 : ℝ) / 16
   have Apos : 0 < A := by norm_num
   let C := (1000 : ℝ) -- a placeholder
@@ -1639,7 +1639,7 @@ lemma ZetaInvBnd :
   calc
     _ ≥ ‖ζ s'‖ - ‖ζ s - ζ s'‖ := ?_
     _ ≥ C * (σ' - 1) ^ ((-3 : ℝ)/ 4) * |t|.log  ^ ((-1 : ℝ)/ 4) - C * |t|.log ^ 2 * (σ' - σ) := ?_
-    _ ≥ C * A ^ ((-3 : ℝ)/ 4) * |t|.log  ^ (-7 : ℝ) - C * |t|.log ^ 2 * 2 * A / |t|.log ^ 9 := ?_
+    _ ≥ C * A ^ ((-3 : ℝ)/ 4) * |t|.log  ^ (-1 : ℝ) - C * |t|.log ^ 2 * 2 * A / |t|.log := ?_
     _ ≥ _ := ?_
   · apply ge_iff_le.mpr
     convert norm_sub_norm_le (a := ζ s') (b := ζ s' - ζ s) using 1
@@ -1649,6 +1649,9 @@ lemma ZetaInvBnd :
     · have := ZetaInvBound2 ⟨σ'_gt, σ'_le⟩
       rw [Asymptotics.isBigO_iff] at this
       obtain ⟨C', hC'⟩ := this
+      simp only [norm_div, norm_one, norm_norm, norm_mul] at hC'
+      have : 0 ≤ σ' - 1 := by linarith
+      rw [Real.norm_eq_abs, Real.abs_rpow_of_nonneg this, _root_.abs_of_nonneg this] at hC'
       sorry
     · obtain ⟨A', hA', C', hC', h'⟩ := Zeta_diff_Bnd
       rw [(by simp : ζ s - ζ s' = -(ζ s' - ζ s)), norm_neg]
@@ -1662,13 +1665,31 @@ lemma ZetaInvBnd :
         simp only [σ']
         field_simp
         rw [← Real.log_abs]
-        sorry
-      · sorry
+        apply div_le_iff (by positivity) |>.mpr
+        apply div_le_iff' (by positivity) |>.mp
+        rw [div_self (by positivity)]
+        exact mod_cast Real.one_le_rpow (x := |t|.log) (z := 9) (by linarith) (by positivity)
+      · exact Real.rpow_le_rpow_left_iff logt_gt_one |>.mpr (by norm_num)
       · have : 0 ≤ σ' - 1 := by linarith
         positivity
-    · have : (σ' - σ) ≤ A / Real.log |t| := by sorry
-      sorry
-  · sorry
+    · conv => rhs; rw [mul_div_assoc, mul_assoc]
+      apply mul_le_mul (by rfl) ?_ ?_ (by positivity)
+      · simp only [σ', sub_le_iff_le_add, add_comm]
+        rw [two_mul, ← add_assoc]
+        apply le_trans (b := 1 + A / |t|.log)
+        · rw [add_le_add_iff_left]
+          apply div_le_div Apos.le (by rfl) (by linarith)
+          nth_rewrite 1 [← Real.rpow_one |t|.log]
+          exact mod_cast Real.rpow_le_rpow_left_iff (y := 1) (z := 9) logt_gt_one |>.mpr (by norm_num)
+        · rw [add_le_add_iff_right]; linarith only [σ_ge]
+      · linarith [hσ.2, (by positivity : 0 ≤ A / Real.log |t| ^ 9)]
+  · apply div_le_iff (by positivity) |>.mpr
+    simp only [sub_mul, ← mul_assoc, mul_comm C (|t|.log ^ 7), mul_div_assoc, div_eq_mul_inv A]
+    rw [← Real.rpow_neg_one]
+    simp only [mul_assoc, ← mul_sub, mul_comm _ C]
+    rw [← Real.rpow_add (x := |t|.log) (y := -1) (z := 7) (by positivity)]
+    ring_nf
+    sorry
 /-%%
 \begin{proof}
 \uses{Zeta_diff_Bnd, ZetaInvBound2}
