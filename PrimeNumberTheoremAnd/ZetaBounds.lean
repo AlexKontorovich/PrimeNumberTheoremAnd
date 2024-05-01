@@ -787,6 +787,10 @@ Apply Lemma \ref{ZetaBnd_aux1b} and estimate $|s|\ll |t|$.
 \end{proof}
 %%-/
 
+lemma isOpen_aux : IsOpen {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
+  refine IsOpen.inter isOpen_ne ?_
+  exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
+
 /-%%
 \begin{lemma}[HolomorphicOn_Zeta0]\label{HolomorphicOn_Zeta0}\lean{HolomorphicOn_Zeta0}\leanok
 For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$.
@@ -893,7 +897,6 @@ lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := 
 \end{proof}
 %%-/
 
-
 /-%%
 \begin{lemma}[Zeta0EqZeta]\label{Zeta0EqZeta}\lean{Zeta0EqZeta}\leanok
 For $\Re(s)>0$, $s\ne1$, and for any $N$,
@@ -907,17 +910,14 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   let f := riemannZeta
   let g := ζ₀ N
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
-  have U_open : IsOpen U := by
-    refine IsOpen.inter isOpen_ne ?_
-    exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
   have f_an : AnalyticOn ℂ f U := by
     apply (HolomophicOn_riemannZeta.analyticOn isOpen_ne).mono
     simp only [ne_eq, setOf_subset_setOf, and_imp, U]
     exact fun a ha _ ↦ ha
-  have g_an : AnalyticOn ℂ g U := (HolomorphicOn_riemannZeta0 N_pos).analyticOn U_open
+  have g_an : AnalyticOn ℂ g U := (HolomorphicOn_riemannZeta0 N_pos).analyticOn isOpen_aux
   have preconU : IsPreconnected U := by
     apply IsConnected.isPreconnected
-    apply (IsOpen.isConnected_iff_isPathConnected U_open).mp isPathConnected_aux
+    apply (IsOpen.isConnected_iff_isPathConnected isOpen_aux).mp isPathConnected_aux
   have h2 : (2 : ℂ) ∈ U := by simp [U]
   have s_mem : s ∈ U := by simp [U, reS_pos, s_ne_one]
   convert (AnalyticOn.eqOn_of_preconnected_of_eventuallyEq f_an g_an preconU h2 ?_ s_mem).symm
@@ -943,14 +943,11 @@ Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{RiemannZeta0}.
 lemma DerivZeta0EqDerivZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) :
     deriv (ζ₀ N) s = deriv ζ s := by
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
-  have U_open : IsOpen U := by
-    refine IsOpen.inter isOpen_ne ?_
-    exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
   have {x : ℂ} (hx : x ∈ U) : ζ₀ N x = ζ x := by
     simp only [mem_setOf_eq, U] at hx; exact Zeta0EqZeta (N := N) N_pos hx.2 hx.1
-  refine deriv_eqOn U_open ?_ (by simp [U, s_ne_one, reS_pos])
+  refine deriv_eqOn isOpen_aux ?_ (by simp [U, s_ne_one, reS_pos])
   intro x hx
-  have hζ := HolomophicOn_riemannZeta.mono (by aesop)|>.hasDerivAt (s := U) <| U_open.mem_nhds hx
+  have hζ := HolomophicOn_riemannZeta.mono (by aesop)|>.hasDerivAt (s := U) <| isOpen_aux.mem_nhds hx
   exact hζ.hasDerivWithinAt.congr (fun y hy ↦ this hy) (this hx)
 
 /-%%
