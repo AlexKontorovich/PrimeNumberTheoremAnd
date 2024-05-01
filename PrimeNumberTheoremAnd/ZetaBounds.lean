@@ -1598,6 +1598,10 @@ estimate trivially using Lemma \ref{ZetaDerivUpperBnd}.
 \end{proof}
 %%-/
 
+lemma ZetaInvBnd_aux {t : ℝ} (logt_gt_one : 1 < |t|.log) : |t|.log ≤ |t|.log ^ 9 := by
+  nth_rewrite 1 [← Real.rpow_one |t|.log]
+  exact mod_cast Real.rpow_le_rpow_left_iff (y := 1) (z := 9) logt_gt_one |>.mpr (by norm_num)
+
 /-%%
 \begin{lemma}[ZetaInvBnd]\label{ZetaInvBnd}\lean{ZetaInvBnd}\leanok
 For any $A>0$ sufficiently small, there is a constant $C>0$ so that
@@ -1610,7 +1614,7 @@ $$
 lemma ZetaInvBnd :
     ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (hσ : σ ∈ Ico (1 - A / (|t|.log) ^ 9) 1),
-    1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 7 := by
+    1 / ‖ζ (σ + t * I)‖ ≤ C * (|t|.log) ^ 7 := by
   obtain ⟨A', hA', C', hC', h'⟩ := Zeta_diff_Bnd
   let A := min A' <| (1 : ℝ) / 16
   have Apos : 0 < A := by positivity
@@ -1621,11 +1625,8 @@ lemma ZetaInvBnd :
   have logt_gt_one := logt_gt_one t_gt
   have σ_ge : 1 - A / |t|.log ≤ σ := by
     apply le_trans ?_ hσ.1
-    field_simp
-    rw [← Real.log_abs]
-    suffices A / |t|.log ^ 9 ≤ A / |t|.log by nlinarith
-    apply div_le_div_left Apos (by positivity) (by positivity)|>.mpr
-    sorry
+    suffices A / |t|.log ^ 9 ≤ A / |t|.log by linarith
+    exact div_le_div Apos.le (by rfl) (by positivity) <| ZetaInvBnd_aux logt_gt_one
   obtain ⟨σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num [A]) t_gt σ_ge
   set σ' := 1 + A / |t|.log ^ 9
   have σ'_gt : 1 < σ' := by simp only [σ', lt_add_iff_pos_right]; positivity
@@ -1634,9 +1635,7 @@ lemma ZetaInvBnd :
   set s' := σ' + t * I
   by_cases h0 : ‖ζ s‖ ≠ 0
   swap; simp only [ne_eq, not_not] at h0; simp only [h0, div_zero]; positivity
-  apply div_le_iff (by positivity) |>.mpr
-  apply div_le_iff' (by positivity) |>.mp
-  apply ge_iff_le.mp
+  apply div_le_iff (by positivity) |>.mpr <| div_le_iff' (by positivity) |>.mp ?_
   calc
     _ ≥ ‖ζ s'‖ - ‖ζ s - ζ s'‖ := ?_
     _ ≥ C * (σ' - 1) ^ ((-3 : ℝ)/ 4) * |t|.log  ^ ((-1 : ℝ)/ 4) - C * |t|.log ^ 2 * (σ' - σ) := ?_
@@ -1658,19 +1657,14 @@ lemma ZetaInvBnd :
       refine le_trans (h' σ σ' t t_gt ?_ σ'_le <| lt_trans hσ.2 σ'_gt) (by linarith)
       apply le_trans ?_ hσ.1
       rw [tsub_le_iff_right, ← add_sub_right_comm, le_sub_iff_add_le, add_le_add_iff_left]
-      apply div_le_div (by positivity) (by simp [A]) (by positivity) ?_
-      nth_rewrite 1 [← Real.rpow_one |t|.log]
-      exact mod_cast Real.rpow_le_rpow_left_iff (y := 1) (z := 9) logt_gt_one |>.mpr (by norm_num)
+      exact div_le_div (by positivity) (by simp [A]) (by positivity) <| ZetaInvBnd_aux logt_gt_one
   · apply sub_le_sub
     · apply mul_le_mul ?_ ?_ (by positivity) ?_
       · apply mul_le_mul_of_nonneg_left ?_ Cpos.le
         apply Real.rpow_le_rpow_iff_of_neg Apos (by linarith) (by norm_num) |>.mpr
         simp only [σ']
-        field_simp
-        rw [← Real.log_abs]
-        apply div_le_iff (by positivity) |>.mpr
-        apply div_le_iff' (by positivity) |>.mp
-        rw [div_self (by positivity)]
+        suffices A / |t|.log ^ 9 ≤ A by linarith
+        refine div_le_self Apos.le ?_
         exact mod_cast Real.one_le_rpow (x := |t|.log) (z := 9) (by linarith) (by positivity)
       · exact Real.rpow_le_rpow_left_iff logt_gt_one |>.mpr (by norm_num)
       · have : 0 ≤ σ' - 1 := by linarith
@@ -1681,11 +1675,9 @@ lemma ZetaInvBnd :
         rw [two_mul, ← add_assoc]
         apply le_trans (b := 1 + A / |t|.log)
         · rw [add_le_add_iff_left]
-          apply div_le_div Apos.le (by rfl) (by linarith)
-          nth_rewrite 1 [← Real.rpow_one |t|.log]
-          exact mod_cast Real.rpow_le_rpow_left_iff (y := 1) (z := 9) logt_gt_one |>.mpr (by norm_num)
+          exact div_le_div Apos.le (by rfl) (by positivity) <| ZetaInvBnd_aux logt_gt_one
         · rw [add_le_add_iff_right]; linarith only [σ_ge]
-      · linarith [hσ.2, (by positivity : 0 ≤ A / Real.log |t| ^ 9)]
+      · linarith [hσ.2, (by positivity : 0 ≤ A / |t|.log ^ 9)]
   · apply div_le_iff (by positivity) |>.mpr
     simp only [sub_mul, ← mul_assoc, mul_comm C (|t|.log ^ 7), mul_div_assoc, div_eq_mul_inv A]
     rw [← Real.rpow_neg_one]
