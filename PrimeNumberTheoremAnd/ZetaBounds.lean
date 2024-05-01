@@ -940,6 +940,23 @@ Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{RiemannZeta0}.
 \end{proof}
 %%-/
 
+lemma DerivZeta0EqDerivZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) :
+    deriv (ζ₀ N) s = deriv ζ s := by
+  let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
+  have U_open : IsOpen U := by
+    refine IsOpen.inter isOpen_ne ?_
+    exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
+  have {x : ℂ} (hx : x ∈ U) : ζ₀ N x = ζ x := by
+    have x_ne_1: x ≠ 1 := by simp only [ne_eq, mem_setOf_eq, U] at hx; exact hx.1
+    have x_re_pos : 0 < x.re := by simp only [mem_setOf_eq, U] at hx; exact hx.2
+    exact Zeta0EqZeta (N := N) N_pos x_re_pos x_ne_1
+  apply deriv_eqOn U_open ?_ (by simp [U, s_ne_one, reS_pos])
+  · intro x hx
+    apply HasDerivWithinAt.congr (f := ζ) ?_ (fun y hy ↦ this hy) (this hx)
+    apply HasDerivAt.hasDerivWithinAt
+    apply DifferentiableOn.hasDerivAt (s := U) ?_ <| U_open.mem_nhds hx
+    exact DifferentiableOn.mono (t := {s | s ≠ 1}) HolomophicOn_riemannZeta (by aesop)
+
 /-%%
 \begin{lemma}[ZetaBnd_aux2]\label{ZetaBnd_aux2}\lean{ZetaBnd_aux2}\leanok
 Given $n ≤ t$ and $\sigma$ with $1-A/\log t \le \sigma$, we have
@@ -1163,7 +1180,7 @@ lemma ZetaUpperBnd :
         |t| ^ (1 - σ) + 2 * |t| * (8 * |t| ^ (-σ)) := ?_
     _ = A.exp * 2 * |t|.log + (3 + 8 * 2) * |t| ^ (1 - σ) := ?_
     _ ≤ A.exp * 2 * |t|.log + (3 + 8 * 2) * A.exp * 1 := ?_
-    _ ≤ A.exp * 2 * |t|.log + (3 + 8 * 2) * A.exp * |t|.log:= ?_
+    _ ≤ A.exp * 2 * |t|.log + (3 + 8 * 2) * A.exp * |t|.log := ?_
     _ = _ := by ring
   · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]
     convert UpperBnd_aux3 (C := 2) Apos (by norm_num) Npos σ_ge t_ge N_le_t le_rfl
@@ -1226,15 +1243,10 @@ lemma ZetaDerivUpperBnd :
   refine ⟨A, Apos, 10, by norm_num, ?_⟩
   intro σ t t_ge ⟨σ_ge, σ_le⟩
   set N := ⌊|t|⌋₊
-  set s := σ + t * I
   obtain ⟨σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
   have logt_gt_one := logt_gt_one t_ge
-  have : deriv ζ s = deriv (ζ₀ N) s := by
-    have := Zeta0EqZeta (N := N) (Nat.floor_pos.mpr (by linarith)) (by simp [σPos]) neOne
-    -- these functions agree on an open set, their derivatives agree there too
-    sorry
-  rw [this]
-  -- use calc similar to the one for ZetaUpperBnd
+  rw [← DerivZeta0EqDerivZeta (N := N) (Nat.floor_pos.mpr (by linarith)) (by simp [σPos]) neOne]
+  set s := σ + t * I
   sorry
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
