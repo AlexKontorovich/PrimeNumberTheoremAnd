@@ -1074,6 +1074,9 @@ lemma Nat.self_div_floor_bound {t : ℝ}  (t_ge : 1 ≤ |t|) : (|t| / ↑⌊|t|�
 lemma le_trans₄ {α : Type*} [Preorder α] {a b c d: α} : a ≤ b → b ≤ c → c ≤ d → a ≤ d :=
   fun hab hbc hcd ↦ le_trans (le_trans hab hbc) hcd
 
+lemma lt_trans₄ {α : Type*} [Preorder α] {a b c d: α} : a < b → b < c → c < d → a < d :=
+  fun hab hbc hcd ↦ lt_trans (lt_trans hab hbc) hcd
+
 lemma UpperBnd_aux5 {σ t : ℝ}  (t_ge : 3 < |t|) (σ_le : σ ≤ 2) : (|t| / ⌊|t|⌋₊) ^ σ ≤ 4 := by
   obtain ⟨h₁, h₂⟩ := Nat.self_div_floor_bound (by linarith)
   refine le_trans₄ (c := 2 ^ 2) ?_ (Real.rpow_le_rpow (by linarith) h₂ (by norm_num)) (by norm_num)
@@ -1598,9 +1601,12 @@ estimate trivially using Lemma \ref{ZetaDerivUpperBnd}.
 \end{proof}
 %%-/
 
-lemma ZetaInvBnd_aux {t : ℝ} (logt_gt_one : 1 < |t|.log) : |t|.log ≤ |t|.log ^ 9 := by
+lemma ZetaInvBnd_aux' {t : ℝ} (logt_gt_one : 1 < |t|.log) : |t|.log < |t|.log ^ 9 := by
   nth_rewrite 1 [← Real.rpow_one |t|.log]
-  exact mod_cast Real.rpow_le_rpow_left_iff (y := 1) (z := 9) logt_gt_one |>.mpr (by norm_num)
+  exact mod_cast Real.rpow_lt_rpow_left_iff (y := 1) (z := 9) logt_gt_one |>.mpr (by norm_num)
+
+lemma ZetaInvBnd_aux {t : ℝ} (logt_gt_one : 1 < |t|.log) : |t|.log ≤ |t|.log ^ 9 :=
+    ZetaInvBnd_aux' logt_gt_one |>.le
 
 /-%%
 \begin{lemma}[ZetaInvBnd]\label{ZetaInvBnd}\lean{ZetaInvBnd}\leanok
@@ -1630,7 +1636,11 @@ lemma ZetaInvBnd :
   obtain ⟨σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num [A]) t_gt σ_ge
   set σ' := 1 + A / |t|.log ^ 9
   have σ'_gt : 1 < σ' := by simp only [σ', lt_add_iff_pos_right]; positivity
-  have σ'_le : σ' ≤ 2 := by sorry
+  have σ'_le : σ' ≤ 2 := by
+    simp only [σ']
+    suffices A / |t|.log ^ 9 < 1 by linarith
+    apply div_lt_one (by positivity) |>.mpr
+    exact lt_trans₄ (by norm_num [A]) logt_gt_one <| ZetaInvBnd_aux' logt_gt_one
   set s := σ + t * I
   set s' := σ' + t * I
   by_cases h0 : ‖ζ s‖ ≠ 0
