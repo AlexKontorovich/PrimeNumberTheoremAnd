@@ -947,15 +947,11 @@ lemma DerivZeta0EqDerivZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s
     refine IsOpen.inter isOpen_ne ?_
     exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
   have {x : ℂ} (hx : x ∈ U) : ζ₀ N x = ζ x := by
-    have x_ne_1: x ≠ 1 := by simp only [ne_eq, mem_setOf_eq, U] at hx; exact hx.1
-    have x_re_pos : 0 < x.re := by simp only [mem_setOf_eq, U] at hx; exact hx.2
-    exact Zeta0EqZeta (N := N) N_pos x_re_pos x_ne_1
-  apply deriv_eqOn U_open ?_ (by simp [U, s_ne_one, reS_pos])
-  · intro x hx
-    apply HasDerivWithinAt.congr (f := ζ) ?_ (fun y hy ↦ this hy) (this hx)
-    apply HasDerivAt.hasDerivWithinAt
-    apply DifferentiableOn.hasDerivAt (s := U) ?_ <| U_open.mem_nhds hx
-    exact DifferentiableOn.mono (t := {s | s ≠ 1}) HolomophicOn_riemannZeta (by aesop)
+    simp only [mem_setOf_eq, U] at hx; exact Zeta0EqZeta (N := N) N_pos hx.2 hx.1
+  refine deriv_eqOn U_open ?_ (by simp [U, s_ne_one, reS_pos])
+  intro x hx
+  have hζ := HolomophicOn_riemannZeta.mono (by aesop)|>.hasDerivAt (s := U) <| U_open.mem_nhds hx
+  exact hζ.hasDerivWithinAt.congr (fun y hy ↦ this hy) (this hx)
 
 /-%%
 \begin{lemma}[ZetaBnd_aux2]\label{ZetaBnd_aux2}\lean{ZetaBnd_aux2}\leanok
