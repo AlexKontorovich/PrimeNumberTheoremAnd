@@ -1627,6 +1627,8 @@ lemma ZetaInvBnd :
     sorry
   obtain ⟨σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_gt σ_ge
   set σ' := 1 + A / |t|.log ^ 9
+  have σ'_gt : 1 < σ' := by simp only [σ', lt_add_iff_pos_right]; positivity
+  have σ'_le : σ' ≤ 2 := by sorry
   set s := σ + t * I
   set s' := σ' + t * I
   by_cases h0 : ‖ζ s‖ ≠ 0
@@ -1643,8 +1645,29 @@ lemma ZetaInvBnd :
     convert norm_sub_norm_le (a := ζ s') (b := ζ s' - ζ s) using 1
     · rw [(by simp : ζ s' - ζ s = -(ζ s - ζ s'))]; simp only [norm_neg, sub_right_inj]
     · simp
-  · sorry
-  · sorry
+  · apply sub_le_sub
+    · have := ZetaInvBound2 ⟨σ'_gt, σ'_le⟩
+      rw [Asymptotics.isBigO_iff] at this
+      obtain ⟨C', hC'⟩ := this
+      sorry
+    · obtain ⟨A', hA', C', hC', h'⟩ := Zeta_diff_Bnd
+      rw [(by simp : ζ s - ζ s' = -(ζ s' - ζ s)), norm_neg]
+      convert h' σ σ' t t_gt ?_ σ'_le <| lt_trans hσ.2 σ'_gt
+      · sorry
+      · sorry
+  · apply sub_le_sub
+    · apply mul_le_mul ?_ ?_ (by positivity) ?_
+      · apply mul_le_mul_of_nonneg_left ?_ Cpos.le
+        apply Real.rpow_le_rpow_iff_of_neg Apos (by linarith) (by norm_num) |>.mpr
+        simp only [σ']
+        field_simp
+        rw [← Real.log_abs]
+        sorry
+      · sorry
+      · have : 0 ≤ σ' - 1 := by linarith
+        positivity
+    · have : (σ' - σ) ≤ A / Real.log |t| := by sorry
+      sorry
   · sorry
 /-%%
 \begin{proof}
