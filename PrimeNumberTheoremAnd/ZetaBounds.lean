@@ -1251,7 +1251,11 @@ lemma ZetaDerivUpperBnd :
   have logt_gt_one := logt_gt_one t_ge
   rw [← DerivZeta0EqDerivZeta (N := N) (Nat.floor_pos.mpr (by linarith)) (by simp [σPos]) neOne]
   set s := σ + t * I
-  sorry
+  apply le_trans (NormDerivZeta0Le Npos (by simp [s, σPos]) neOne) ?_
+  conv => rw [sq, ← mul_assoc C _ _]; lhs; rw [mul_assoc, mul_comm _ ‖ζ₀ N s‖, ← mul_assoc]
+  refine mul_le_mul ?_ (Real.log_le_log (by positivity) N_le_t) (by positivity) (by positivity)
+  simp only [C, mul_assoc, Zeta0EqZeta (N := N) Npos (by simp [s, σPos]) neOne]
+  exact mul_le_mul_left (by norm_num) |>.mpr <| h σ t t_ge ⟨σ_ge, σ_le⟩
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
