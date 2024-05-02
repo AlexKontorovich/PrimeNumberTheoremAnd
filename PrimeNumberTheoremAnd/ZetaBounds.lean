@@ -1228,31 +1228,35 @@ $$
 \end{lemma}
 %%-/
 lemma ZetaDerivUpperBnd :
-    ∃ (A : ℝ) (Apos : 0 < A) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
+    ∃ (A : ℝ) (hA : A ∈ Ioo 0 1) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / |t|.log) 2),
     ‖deriv ζ (σ + t * I)‖ ≤ C * |t|.log ^ 2 := by
-  let A := (1 : ℝ) / 2
-  have Apos : 0 < A := by norm_num
-  refine ⟨A, Apos, 10, by norm_num, ?_⟩
+  obtain ⟨A, hA, C', hC', h⟩ := ZetaUpperBnd
+  let C := 4 * C'
+  refine ⟨A, hA, C, by positivity, ?_⟩
   intro σ t t_ge ⟨σ_ge, σ_le⟩
   set N := ⌊|t|⌋₊
-  obtain ⟨σ_gt, σPos, neOne⟩ := UpperBnd_aux Apos (by norm_num) t_ge σ_ge
+  have Npos : 0 < N := Nat.floor_pos.mpr (by linarith)
+  have N_le_t : N ≤ |t| := Nat.floor_le <| abs_nonneg _
+  obtain ⟨_, σPos, neOne⟩ := UpperBnd_aux hA t_ge σ_ge
   have logt_gt_one := logt_gt_one t_ge
   rw [← DerivZeta0EqDerivZeta (N := N) (Nat.floor_pos.mpr (by linarith)) (by simp [σPos]) neOne]
   set s := σ + t * I
-  sorry
+  apply le_trans (NormDerivZeta0Le Npos (by simp [s, σPos]) neOne) ?_
+  conv => rw [sq, ← mul_assoc C _ _]; lhs; rw [mul_assoc, mul_comm _ ‖ζ₀ N s‖, ← mul_assoc]
+  refine mul_le_mul ?_ (Real.log_le_log (by positivity) N_le_t) (by positivity) (by positivity)
+  simp only [C, mul_assoc, Zeta0EqZeta (N := N) Npos (by simp [s, σPos]) neOne]
+  exact mul_le_mul_left (by norm_num) |>.mpr <| h σ t t_ge ⟨σ_ge, σ_le⟩
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
 Differentiating term by term, we get:
 $$
 \zeta'(s) = -\sum_{1\le n < N} n^{-s} \log n
--
-\frac{N^{1 - s}}{(1 - s)^2} + \frac{N^{1 - s} \log N} {1 - s}
-+ \frac{-N^{-s}\log N}{2} +
++ \frac{N^{1 - s}}{(1 - s)^2} + \frac{N^{1 - s} \log N} {1 - s}
++ \frac{N^{-s}\log N}{2} +
 \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
--
-s(s+1) \int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+2}} \, dx
+-s \int_N^\infty \log x \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx
 .
 $$
 Estimate as before, with an extra factor of $\log |t|$.
