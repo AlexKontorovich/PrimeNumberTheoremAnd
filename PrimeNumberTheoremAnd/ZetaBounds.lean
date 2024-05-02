@@ -1235,7 +1235,13 @@ lemma DerivZeta0Eq {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   sorry
 
 lemma NormDerivZeta0Le {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
-    ‖deriv (ζ₀ N) s‖ ≤ 4 * (N : ℝ).log * ‖(ζ₀ N) s‖ := by
+    ‖deriv (ζ₀ N) s‖ ≤ 4 * (N : ℝ).log *
+    (‖∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s‖ +
+    ‖(N : ℂ) ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
+    ‖s * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖) := by
+  rw [DerivZeta0Eq Npos reS_pos s_ne_one, sub_eq_add_neg]
+  apply le_trans (by apply norm_add₅_le) ?_
+  simp only [norm_neg, norm_div, norm_pow, norm_mul, RCLike.norm_ofNat]
   sorry
 /-%%
 \begin{lemma}[ZetaDerivUpperBnd]\label{ZetaDerivUpperBnd}\lean{ZetaDerivUpperBnd}\leanok
@@ -1247,22 +1253,21 @@ $$
 \end{lemma}
 %%-/
 lemma ZetaDerivUpperBnd :
-    ∃ (A : ℝ) (hA : A ∈ Ioo 0 1) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
+    ∃ (A : ℝ) (hA : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / |t|.log) 2),
     ‖deriv ζ (σ + t * I)‖ ≤ C * |t|.log ^ 2 := by
-  obtain ⟨A, hA, C', hC', h⟩ := ZetaUpperBnd
-  let C := 4 * C'
+  obtain ⟨A, hA, _, _, _⟩ := ZetaUpperBnd
+  let C := 4 * A.exp * (5 + 8 * 2) -- 4 times C'
   refine ⟨A, hA, C, by positivity, ?_⟩
   intro σ t t_gt ⟨σ_ge, σ_le⟩
-  set N := ⌊|t|⌋₊
   obtain ⟨Npos, N_le_t, _, _, σPos, neOne⟩ := UpperBnd_aux hA t_gt σ_ge
   rw [← DerivZeta0EqDerivZeta Npos (by simp [σPos]) neOne]
-  set s := σ + t * I
-  apply le_trans (NormDerivZeta0Le Npos (by simp [s, σPos]) neOne) ?_
-  conv => rw [sq, ← mul_assoc C _ _]; lhs; rw [mul_assoc, mul_comm _ ‖ζ₀ N s‖, ← mul_assoc]
-  refine mul_le_mul ?_ (Real.log_le_log (by positivity) N_le_t) (by positivity) (by positivity)
-  simp only [C, mul_assoc, Zeta0EqZeta Npos (by simp [s, σPos]) neOne]
-  exact mul_le_mul_left (by norm_num) |>.mpr <| h σ t t_gt ⟨σ_ge, σ_le⟩
+  apply le_trans (NormDerivZeta0Le Npos (by simp [σPos]) neOne) ?_
+  conv => rw [mul_comm 4, mul_assoc _ 4 _]; rhs; rw [sq, ← mul_assoc, mul_comm C, mul_assoc]
+  refine mul_le_mul (Real.log_le_log (by positivity) N_le_t) ?_ (by positivity) (by positivity)
+  simp only [C, mul_assoc, Zeta0EqZeta Npos (by simp [σPos]) neOne]
+  refine mul_le_mul_left (by norm_num) |>.mpr ?_
+  convert ZetaUpperBnd' hA t_gt ⟨σ_ge, σ_le⟩ using 1; ring
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
