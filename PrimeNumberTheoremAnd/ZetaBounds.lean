@@ -320,7 +320,7 @@ lemma integrability_aux₁ {a b : ℝ} :
 
 lemma integrability_aux₂ {a b : ℝ} :
     IntervalIntegrable (fun (x : ℝ) ↦ (1 : ℂ) / 2 - x) MeasureTheory.volume a b :=
-  ContinuousOn.intervalIntegrable <| Continuous.continuousOn (by continuity)
+  Continuous.continuousOn (by continuity) |>.intervalIntegrable
 
 lemma integrability_aux {a b : ℝ} :
     IntervalIntegrable (fun (x : ℝ) ↦ (⌊x⌋ : ℂ) + 1 / 2 - x) MeasureTheory.volume a b := by
@@ -362,15 +362,14 @@ lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
       set J₃ := ∫ (x : ℝ) in k₁..b₁, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x
       have hI : I₂ + I₃ = I₁ := by
         apply intervalIntegral.integral_add_adjacent_intervals <;>
-        apply ContinuousOn.intervalIntegrable
-        · exact HasDerivAt.continuousOn <| fun x hx ↦ φDiff₁ x <| subs.1 hx
-        · exact HasDerivAt.continuousOn <| fun x hx ↦ φDiff₁ x <| subs.2 hx
+        apply (HasDerivAt.continuousOn <| fun x hx ↦ φDiff₁ x ?_ ).intervalIntegrable
+        · exact subs.1 hx
+        · exact subs.2 hx
       have hJ : J₂ + J₃ = J₁ := by
         apply intervalIntegral.integral_add_adjacent_intervals <;>
-        apply IntervalIntegrable.mul_continuousOn
-        any_goals apply integrability_aux
-        · exact derivφCont₁.mono subs.1
-        · exact derivφCont₁.mono subs.2
+        refine integrability_aux.mul_continuousOn <| derivφCont₁.mono ?_
+        · exact subs.1
+        · exact subs.2
       rw [← hI, ← hJ]; ring
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv_aux}\leanok
@@ -421,8 +420,7 @@ lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_zero : s ≠ 0) {a b : ℕ} (ha : 
     ContinuousOn (deriv (fun (t : ℝ) ↦ 1 / (t : ℂ) ^ s)) [[a, b]] := by
   have : EqOn _ (fun (t : ℝ) ↦ -s * (t : ℂ) ^ (-(s + 1))) [[a, b]] :=
     fun x hx ↦ ZetaSum_aux1φderiv s_ne_zero <| xpos_of_uIcc ha hx
-  refine ContinuousOn.congr ?_ this
-  refine (ContinuousOn.cpow_const continuous_ofReal.continuousOn ?_).const_smul (c := -s)
+  refine continuous_ofReal.continuousOn.cpow_const ?_ |>.const_smul (c := -s) |>.congr this
   exact fun x hx ↦ ofReal_mem_slitPlane.mpr <| xpos_of_uIcc ha hx
 
 /-%%
@@ -505,10 +503,8 @@ lemma ZetaSum_aux1_5a {a b : ℝ} (apos : 0 < a) {s : ℂ} (x : ℝ)
 
 lemma ZetaSum_aux1_5b {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
   IntervalIntegrable (fun u ↦ 1 / u ^ (s.re + 1)) MeasureTheory.volume a b := by
-  apply ContinuousOn.intervalIntegrable_of_Icc (le_of_lt a_lt_b) _
-  apply ContinuousOn.div continuousOn_const
-  · refine ContinuousOn.rpow_const continuousOn_id ?_
-    exact fun x hx ↦ Or.inl (ne_of_gt <| ZetaSum_aux1_1' apos hx)
+  refine continuousOn_const.div ?_ ?_ |>.intervalIntegrable_of_Icc (le_of_lt a_lt_b)
+  · exact continuousOn_id.rpow_const fun x hx ↦ Or.inl (ne_of_gt <| ZetaSum_aux1_1' apos hx)
   · exact fun x hx h ↦ by rw [Real.rpow_eq_zero] at h <;> linarith [ZetaSum_aux1_1' apos hx]
 
 lemma ZetaSum_aux1_5c {a b : ℝ} {s : ℂ} :
@@ -524,7 +520,7 @@ lemma ZetaSum_aux1_5c {a b : ℝ} {s : ℂ} :
 lemma ZetaSum_aux1_5d {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
   IntervalIntegrable (fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1)) MeasureTheory.volume a b := by
   set g : ℝ → ℝ := (fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1))
-  apply IntervalIntegrable.mono_fun (ZetaSum_aux1_5b apos a_lt_b σpos) ZetaSum_aux1_5c ?_
+  apply ZetaSum_aux1_5b apos a_lt_b σpos |>.mono_fun ZetaSum_aux1_5c ?_
   filter_upwards with x
   simp only [g, Real.norm_eq_abs, one_div, norm_inv, abs_div, _root_.abs_abs]
   conv => rw [div_eq_mul_inv, ← one_div]; rhs; rw [← one_mul |x ^ (s.re + 1)|⁻¹]
@@ -749,7 +745,7 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ t : ℝ} (σpos : 0 < σ) :
       intro x hx; beta_reduce
       iterate 2 (rw [abs_cpow_eq_rpow_re_of_pos (by linarith [hx.1])])
       simp
-    · apply Integrable.norm <| IntegrableOn.integrable ?_
+    · apply IntegrableOn.integrable ?_ |>.norm
       convert ZetaSum_aux4 (s := σ + t * I) Npos (by simp [σpos]) using 1
       simp_rw [div_eq_mul_inv, cpow_neg]
     · exact fun ⦃_⦄ a ↦ a
@@ -799,24 +795,22 @@ For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \R
 lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
     HolomorphicOn (ζ₀ N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
   unfold riemannZeta0
-  apply DifferentiableOn.add (DifferentiableOn.add (DifferentiableOn.sum ?_ |>.add ?_) ?_) ?_
+  apply DifferentiableOn.sum ?_ |>.add ?_|>.add ?_|>.add ?_
   · intro n hn
     by_cases n0 : n = 0
-    · apply DifferentiableOn.congr (f := fun _ ↦ 0) (differentiableOn_const _) ?_
+    · apply differentiableOn_const _|>.congr (f := fun _ ↦ 0) ?_
       intro s hs
       have : (n : ℂ) ^ s = 0 := by
         apply cpow_eq_zero_iff _ _ |>.mpr ⟨by simp [n0], by contrapose! hs; simp [hs]⟩
       simp [this]
-    · apply DifferentiableOn.div (differentiableOn_const _) ?_ (by simp [n0])
-      apply DifferentiableOn.const_cpow (by fun_prop) ?_
+    · apply differentiableOn_const _|>.div ?_ (by simp [n0])
+      refine DifferentiableOn.const_cpow (by fun_prop) ?_
       right; intro s hs; contrapose! hs; simp [hs]
-  · apply DifferentiableOn.div ?_ (by fun_prop) ?_
-    · apply DifferentiableOn.const_cpow (by fun_prop) ?_ |>.neg
-      left; simp only [ne_eq, Nat.cast_eq_zero]; omega
+  · refine DifferentiableOn.const_cpow (by fun_prop) ?_ |>.neg |>.div (by fun_prop) ?_
+    · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
     · intro x hx; contrapose! hx; simp [sub_eq_zero.mp hx |>.symm]
-  · apply DifferentiableOn.div ?_ (differentiableOn_const _) (by norm_num)
-    · apply DifferentiableOn.const_cpow (by fun_prop) ?_ |>.neg
-      left; simp only [ne_eq, Nat.cast_eq_zero]; omega
+  · refine DifferentiableOn.const_cpow (by fun_prop) ?_ |>.neg |>.div (by fun_prop) (by norm_num)
+    · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
   · apply DifferentiableOn.mul differentiableOn_id
     sorry
 /-%%
@@ -1594,7 +1588,7 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (t_ne_zero : t ≠ 0) :
       · filter_upwards [compl_singleton_mem_nhds hx] with z hz
         apply differentiableAt_riemannZeta
         simpa [mem_compl_iff, mem_singleton_iff] using hz
-    · exact ContinuousOn.add continuous_ofReal.continuousOn continuousOn_const
+    · exact continuous_ofReal.continuousOn.add continuousOn_const
 /-%%
 \begin{proof}\leanok
 This is the fundamental theorem of calculus.
