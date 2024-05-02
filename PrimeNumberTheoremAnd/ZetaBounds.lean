@@ -1648,11 +1648,11 @@ $$
 \end{lemma}
 %%-/
 lemma ZetaInvBnd :
-    ∃ (A : ℝ) (hA : A ∈ Ioo 0 1) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
+    ∃ (A : ℝ) (hA : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (hσ : σ ∈ Ico (1 - A / |t|.log ^ 9) 1),
     1 / ‖ζ (σ + t * I)‖ ≤ C * |t|.log ^ 7 := by
   obtain ⟨A', hA', C', hC', h'⟩ := Zeta_diff_Bnd
-  let A := min A' <| (1 : ℝ) / 16
+  let A := min A' <| (1 / 16 : ℝ)
   have Apos : 0 < A := by have := hA'.1; positivity
   let C := C'
   have Cpos : 0 < C := by positivity
