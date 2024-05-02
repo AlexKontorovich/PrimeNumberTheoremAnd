@@ -1218,6 +1218,15 @@ $$
 \end{proof}
 %%-/
 
+lemma DerivZeta0Eq {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
+    deriv (ζ₀ N) s = -∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s * (n : ℝ).log +
+    N ^ (1 - s) / (1 - s) ^ 2 + (N : ℝ).log * N ^ (1 - s) / (1 - s) + (N : ℝ).log * N ^ (-s) / 2
+      - s * ∫ x in Ioi (N : ℝ), x.log * (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1) := by
+  sorry
+
+lemma NormDerivZeta0Le {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
+    ‖deriv (ζ₀ N) s‖ ≤ 4 * (N : ℝ).log * ‖(ζ₀ N) s‖ := by
+  sorry
 /-%%
 \begin{lemma}[ZetaDerivUpperBnd]\label{ZetaDerivUpperBnd}\lean{ZetaDerivUpperBnd}\leanok
 For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$,
