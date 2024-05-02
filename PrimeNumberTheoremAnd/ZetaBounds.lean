@@ -1032,7 +1032,7 @@ lemma logt_gt_one {t : ℝ} (t_ge : 3 < |t|) : 1 < |t|.log := by
   apply Real.log_lt_log (Real.exp_pos _)
   linarith [(by exact lt_trans Real.exp_one_lt_d9 (by norm_num) : Real.exp 1 < 3)]
 
-lemma UpperBnd_aux {A σ t: ℝ} (hA : A ∈ Ioo 0 1) (t_gt : 3 < |t|)
+lemma UpperBnd_aux {A σ t: ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
       (σ_ge : 1 - A / |t|.log ≤ σ) : let N := ⌊|t|⌋₊;
       0 < N ∧ N ≤ |t| ∧ 1 < Real.log |t| ∧ 1 - A < σ ∧ 0 < σ ∧ σ + t * I ≠ 1 := by
   intro N
@@ -1072,7 +1072,7 @@ lemma riemannZeta0_zero_aux (N : ℕ) (Npos : 0 < N):
     exact ⟨fun _ ↦ by omega, fun ha ↦ ⟨by simp [ha, Npos], by omega⟩⟩
   rw [this]; simp
 
-lemma UpperBnd_aux3 {A C σ t : ℝ} (hA : A ∈ Ioo 0 1)
+lemma UpperBnd_aux3 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
     (σ_ge : 1 - A / |t|.log ≤ σ) (t_gt : 3 < |t|) (hC : 2 ≤ C) : let N := ⌊|t|⌋₊;
     ‖∑ n in Finset.range (N + 1), (n : ℂ) ^ (-(σ + t * I))‖ ≤ A.exp * C * |t|.log := by
   intro N
@@ -1149,8 +1149,7 @@ lemma ZetaUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     + ‖(N : ℂ) ^ (-s) / 2‖ + ‖s * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖
     ≤ C * Real.log |t| := by
   intros C N s
-  have hA' : A ∈ Ioo 0 1 := ⟨hA.1, by linarith [hA.2]⟩
-  obtain ⟨Npos, N_le_t, logt_gt, σ_gt, σPos, neOne⟩ := UpperBnd_aux hA' t_gt hσ.1
+  obtain ⟨Npos, N_le_t, logt_gt, σ_gt, σPos, neOne⟩ := UpperBnd_aux hA t_gt hσ.1
   replace σ_gt : 1 / 2 < σ := by linarith [hA.2]
   calc
     _ ≤ A.exp * 2 * |t|.log + ‖N ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
@@ -1166,7 +1165,7 @@ lemma ZetaUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     _ ≤ A.exp * 2 * |t|.log + (3 + 8 * 2) * A.exp * |t|.log := ?_
     _ = _ := by ring
   · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]
-    convert UpperBnd_aux3 (C := 2) hA' hσ.1 t_gt le_rfl using 1
+    convert UpperBnd_aux3 (C := 2) hA hσ.1 t_gt le_rfl using 1
   · simp only [add_le_add_iff_left]; exact ZetaBnd_aux1 N (by linarith) ⟨σPos, hσ.2⟩ (by linarith)
   · simp only [norm_div, norm_neg, norm_eq_abs, RCLike.norm_ofNat, Nat.abs_cast, s]
     congr <;> (convert norm_natCast_cpow_of_pos Npos _; simp)
@@ -1191,17 +1190,16 @@ $$
 \end{lemma}
 %%-/
 lemma ZetaUpperBnd :
-    ∃ (A : ℝ) (hA : A ∈ Ioo 0 1) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
+    ∃ (A : ℝ) (hA : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
     (_ : σ ∈ Icc (1 - A / |t|.log) 2), ‖ζ (σ + t * I)‖ ≤ C * |t|.log := by
-  let A := (1 : ℝ) / 2
-  have Apos : 0 < A := by norm_num
+  let A := (1 / 2 : ℝ)
   let C := A.exp * (5 + 8 * 2) -- the 2 comes from ZetaBnd_aux1
-  refine ⟨A, ⟨Apos, by norm_num⟩ , C, (by positivity), ?_⟩
+  refine ⟨A, ⟨by norm_num, by norm_num⟩ , C, (by positivity), ?_⟩
   intro σ t t_gt ⟨σ_ge, σ_le⟩
-  obtain ⟨Npos, _, _, _, σPos, neOne⟩ := UpperBnd_aux ⟨Apos, by norm_num⟩ t_gt σ_ge
+  obtain ⟨Npos, _, _, _, σPos, neOne⟩ := UpperBnd_aux ⟨by norm_num, by norm_num⟩ t_gt σ_ge
   rw [← Zeta0EqZeta Npos (by simp [σPos]) neOne]
   apply le_trans (by apply norm_add₄_le) ?_
-  convert ZetaUpperBnd' ⟨Apos, le_rfl⟩ t_gt ⟨σ_ge, σ_le⟩ using 1; simp
+  convert ZetaUpperBnd' ⟨by norm_num, le_rfl⟩ t_gt ⟨σ_ge, σ_le⟩ using 1; simp
 /-%%
 \begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}\leanok
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
@@ -1608,7 +1606,7 @@ $$
 \end{lemma}
 %%-/
 lemma Zeta_diff_Bnd :
-    ∃ (A : ℝ) (hA : A ∈ Ioo 0 1) (C : ℝ) (Cpos : 0 < C), ∀ (σ₁ σ₂ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
+    ∃ (A : ℝ) (hA : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (Cpos : 0 < C), ∀ (σ₁ σ₂ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (σ₁_ge : 1 - A / |t|.log ≤ σ₁) (σ₂_le : σ₂ ≤ 2) (σ₁_lt_σ₂ : σ₁ < σ₂),
     ‖ζ (σ₂ + t * I) - ζ (σ₁ + t * I)‖ ≤  C * |t|.log ^ 2 * (σ₂ - σ₁) := by
   obtain ⟨A, hA, C, Cpos, hC⟩ := ZetaDerivUpperBnd
@@ -1756,13 +1754,13 @@ $$
 \end{lemma}
 %%-/
 lemma LogDerivZetaBnd :
-    ∃ (A : ℝ) (hA : A ∈ Ioo 0 1) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
+    ∃ (A : ℝ) (hA : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (hσ : σ ∈ Ico (1 - A / |t|.log ^ 9) 1),
     ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤
       C * |t|.log ^ 9 := by
   obtain ⟨A, hA, C, hC, h⟩ := ZetaInvBnd
   obtain ⟨A', hA', C', hC', h'⟩ := ZetaDerivUpperBnd
-  use min A A', ⟨lt_min hA.1 hA'.1, min_lt_of_right_lt hA'.2⟩, C * C', mul_pos hC hC'
+  use min A A', ⟨lt_min hA.1 hA'.1, min_le_of_right_le hA'.2⟩, C * C', mul_pos hC hC'
   intro σ t t_gt ⟨σ_ge, σ_lt⟩
   have logt_gt : (1 : ℝ) < |t|.log := by
     refine (Real.lt_log_iff_exp_lt (by linarith)).mpr (lt_trans ?_ t_gt)
