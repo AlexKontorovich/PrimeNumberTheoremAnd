@@ -1122,6 +1122,11 @@ lemma norm_add₄_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (
   apply le_trans <| norm_add_le (a + b + c) d
   simp only [add_le_add_iff_right]; apply norm_add₃_le
 
+lemma norm_add₅_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) (e : E) :
+    ‖a + b + c + d + e‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ + ‖e‖ := by
+  apply le_trans <| norm_add_le (a + b + c + d) e
+  simp only [add_le_add_iff_right]; apply norm_add₄_le
+
 lemma add_le_add_le_add {α : Type*} [Add α] [Preorder α]
     [CovariantClass α α (fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
     [CovariantClass α α (Function.swap fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
