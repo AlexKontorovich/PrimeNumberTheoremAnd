@@ -801,8 +801,6 @@ lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt
   --   · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
   --   · exact Measurable.comp measurable_id measurable_ofReal
 
-#exit
-
 open MeasureTheory in
 lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {s | 0 < s.re}) :
   HasDerivAt (fun z ↦ ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (z + 1))
@@ -833,8 +831,11 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
     ext x
     ring_nf
   have hF'_meas : AEStronglyMeasurable (F' s) μ := by
-
-    sorry
+    have := integrableOn_of_Zeta0_fun_log N_pos hs
+    convert this.aestronglyMeasurable using 1
+    simp only [F', f]
+    ext x
+    ring_nf
   have h_bound : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, ‖F' z x‖ ≤ bound x := by
     sorry
   have bound_integrable : Integrable bound μ := by
