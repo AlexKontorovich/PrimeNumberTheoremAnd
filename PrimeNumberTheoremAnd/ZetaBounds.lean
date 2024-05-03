@@ -507,10 +507,11 @@ lemma ZetaSum_aux1_5b {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σp
   · exact continuousOn_id.rpow_const fun x hx ↦ Or.inl (ne_of_gt <| ZetaSum_aux1_1' apos hx)
   · exact fun x hx h ↦ by rw [Real.rpow_eq_zero] at h <;> linarith [ZetaSum_aux1_1' apos hx]
 
+open MeasureTheory in
 lemma ZetaSum_aux1_5c {a b : ℝ} {s : ℂ} :
     let g : ℝ → ℝ := fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1);
-    MeasureTheory.AEStronglyMeasurable g
-      (MeasureTheory.Measure.restrict MeasureTheory.volume (Ι a b)) := by
+    AEStronglyMeasurable g
+      (Measure.restrict volume (Ι a b)) := by
   intro
   refine (Measurable.div ?_ <| measurable_id.pow_const _).aestronglyMeasurable
   refine (_root_.continuous_abs).measurable.comp ?_
@@ -800,9 +801,20 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
   have ε_pos : 0 < ε := by aesop
   set bound : ℝ → ℝ := sorry -- fun x ↦ sorry
   let μ : Measure ℝ := volume.restrict (Ioi (N : ℝ))
-  have hF_meas : ∀ᶠ (x : ℂ) in 𝓝 s, AEStronglyMeasurable (F x) μ := by
-    sorry
+  have hF_meas : ∀ᶠ (z : ℂ) in 𝓝 s, AEStronglyMeasurable (F z) μ := by
+    have : {z : ℂ | 0 < z.re} ∈ 𝓝 s := by
+      rw [mem_nhds_iff]
+      refine ⟨{z | 0 < z.re}, fun ⦃a⦄ a ↦ a, isOpen_lt continuous_const Complex.continuous_re, hs⟩
+    filter_upwards [this] with z hz
+    have := integrableOn_of_Zeta0_fun N_pos hz
+    convert this.aestronglyMeasurable using 1
+    simp only [F, f]
+    ext x
+    rw [mul_comm]
+    congr
+    ring
   have hF_int : Integrable (F s) μ := by
+
     sorry
   have hF'_meas : AEStronglyMeasurable (F' s) μ := by
     sorry
