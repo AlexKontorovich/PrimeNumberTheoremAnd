@@ -789,6 +789,21 @@ lemma isOpen_aux : IsOpen {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
   exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
 
 open MeasureTheory in
+lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
+    IntegrableOn (fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) * (-Real.log x)) (Ioi N)
+    volume := by
+  sorry
+  -- apply Integrable.bdd_mul ?_ ?_
+  -- · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
+  -- · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt])
+  -- · apply Measurable.aestronglyMeasurable
+  --   refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
+  --   · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+  --   · exact Measurable.comp measurable_id measurable_ofReal
+
+#exit
+
+open MeasureTheory in
 lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {s | 0 < s.re}) :
   HasDerivAt (fun z ↦ ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (z + 1))
     (∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1) * (- Real.log x)) s := by
@@ -818,6 +833,7 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
     ext x
     ring_nf
   have hF'_meas : AEStronglyMeasurable (F' s) μ := by
+
     sorry
   have h_bound : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, ‖F' z x‖ ≤ bound x := by
     sorry
