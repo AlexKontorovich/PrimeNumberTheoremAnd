@@ -810,12 +810,13 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
     convert this.aestronglyMeasurable using 1
     simp only [F, f]
     ext x
-    rw [mul_comm]
-    congr
-    ring
+    ring_nf
   have hF_int : Integrable (F s) μ := by
-
-    sorry
+    apply IntegrableOn.integrable
+    convert integrableOn_of_Zeta0_fun N_pos hs using 1
+    simp only [F, f]
+    ext x
+    ring_nf
   have hF'_meas : AEStronglyMeasurable (F' s) μ := by
     sorry
   have h_bound : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, ‖F' z x‖ ≤ bound x := by
