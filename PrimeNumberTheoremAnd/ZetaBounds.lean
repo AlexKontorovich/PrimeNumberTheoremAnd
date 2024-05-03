@@ -840,9 +840,14 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
     filter_upwards
     intro x z hz
     simp only [F', f, bound]
-    calc _ = ‖(x : ℂ) ^ (-z - 1)‖ * ‖-(Real.log x)‖ * ‖(⌊x⌋ + 1 / 2 - x)‖ := ?_
+    calc _ = ‖(x : ℂ) ^ (-z - 1)‖ * ‖-(Real.log x)‖ * ‖(⌊x⌋ + 1 / 2 - x)‖ := by
+            simp only [mul_neg, one_div, neg_mul, norm_neg, norm_mul, norm_eq_abs, abs_ofReal,
+              Real.norm_eq_abs, mul_eq_mul_left_iff, mul_eq_zero, map_eq_zero, cpow_eq_zero_iff,
+              ofReal_eq_zero, ne_eq, abs_eq_zero, Real.log_eq_zero,
+              ← (by simp : (((⌊x⌋ + 2⁻¹ - x) : ℝ) : ℂ) = (⌊x⌋ : ℂ) + 2⁻¹ - ↑x),
+              Complex.abs_ofReal]
          _ = ‖x ^ (-z.re - 1)‖ * ‖-(Real.log x)‖ * ‖(⌊x⌋ + 1 / 2 - x)‖ := ?_
-         _ = |x ^ (-z.re - 1)| * ‖-(Real.log x)‖ * ‖(⌊x⌋ + 1 / 2 - x)‖ := ?_
+         _ = |x ^ (-z.re - 1)| * |(Real.log x)| * |(⌊x⌋ + 1 / 2 - x)| := by simp
          _ ≤ _ := ?_
 
     sorry
@@ -859,8 +864,6 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
     ring_nf
   · simp only [one_div, mul_neg, neg_mul, neg_inj, F', f, div_cpow_eq_cpow_neg]
     ring_nf
-
-#exit
 
 /-%%
 \begin{lemma}[HolomorphicOn_Zeta0]\label{HolomorphicOn_Zeta0}\lean{HolomorphicOn_Zeta0}\leanok
