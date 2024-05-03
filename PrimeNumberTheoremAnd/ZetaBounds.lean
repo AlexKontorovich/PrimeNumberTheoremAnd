@@ -787,6 +787,43 @@ lemma isOpen_aux : IsOpen {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
   refine IsOpen.inter isOpen_ne ?_
   exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
 
+open MeasureTheory in
+lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {s | 0 < s.re}) :
+  HasDerivAt (fun z ↦ ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (z + 1))
+    (∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1) * (- Real.log x)) s := by
+  simp only [mem_setOf_eq] at hs
+  set f : ℝ → ℂ := fun x ↦ (⌊x⌋ : ℂ) + 1 / 2 - x -- with f_def
+  --simp_rw [← f_def]
+  set F : ℂ → ℝ → ℂ := fun s x ↦ (x : ℂ) ^ (- s - 1) * f x -- with F_def
+  set F' : ℂ → ℝ → ℂ := fun s x ↦ (x : ℂ) ^ (- s - 1) * (- Real.log x) * f x -- with F'_def
+  set ε := s.re / 2 -- with ε_def
+  have ε_pos : 0 < ε := by aesop
+  set bound : ℝ → ℝ := sorry -- fun x ↦ sorry
+  let μ : Measure ℝ := volume.restrict (Ioi (N : ℝ))
+  have hF_meas : ∀ᶠ (x : ℂ) in 𝓝 s, AEStronglyMeasurable (F x) μ := by
+    sorry
+  have hF_int : Integrable (F s) μ := by
+    sorry
+  have hF'_meas : AEStronglyMeasurable (F' s) μ := by
+    sorry
+  have h_bound : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, ‖F' z x‖ ≤ bound x := by
+    sorry
+  have bound_integrable : Integrable bound μ := by
+    sorry
+  have h_diff : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε,
+    HasDerivAt (fun w ↦ F w x) (F' z x) z := by
+    sorry
+  convert (hasDerivAt_integral_of_dominated_loc_of_deriv_le (x₀ := s) (F := F) (F' := F') (ε := ε)
+    (ε_pos := ε_pos) (μ := μ) (bound := bound) (hF_meas := hF_meas) (hF_int := hF_int)
+    (hF'_meas := hF'_meas) (h_bound := h_bound) (bound_integrable := bound_integrable) (h_diff := h_diff)).2 using 3
+  · ext a
+    simp only [one_div, F, f, div_cpow_eq_cpow_neg]
+    ring_nf
+  · simp only [one_div, mul_neg, neg_mul, neg_inj, F', f, div_cpow_eq_cpow_neg]
+    ring_nf
+
+#exit
+
 /-%%
 \begin{lemma}[HolomorphicOn_Zeta0]\label{HolomorphicOn_Zeta0}\lean{HolomorphicOn_Zeta0}\leanok
 For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$.
@@ -796,7 +833,7 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
     HolomorphicOn (ζ₀ N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
   unfold riemannZeta0
   apply DifferentiableOn.sum ?_ |>.add ?_|>.add ?_|>.add ?_
-  · intro n hn
+  · intro n _
     by_cases n0 : n = 0
     · apply differentiableOn_const _|>.congr (f := fun _ ↦ 0) ?_
       intro s hs
@@ -812,7 +849,8 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
   · refine DifferentiableOn.const_cpow (by fun_prop) ?_ |>.neg |>.div (by fun_prop) (by norm_num)
     · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
   · apply DifferentiableOn.mul differentiableOn_id
-    sorry
+    apply DifferentiableOn.mono (t := {s : ℂ | 0 < s.re}) (st := by aesop)
+    exact fun _ hs ↦ (hasDerivAt_Zeta0Integral N_pos hs).differentiableAt.differentiableWithinAt
 /-%%
 \begin{proof}\uses{riemannZeta0, ZetaBnd_aux1b}
   The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral
