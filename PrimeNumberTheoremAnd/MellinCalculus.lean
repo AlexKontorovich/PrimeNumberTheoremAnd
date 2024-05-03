@@ -302,15 +302,11 @@ lemma PartialIntegration_of_support_in_Icc {a b : ℝ} (f g : ℝ → ℂ) (ha :
   have fDerivgInt : IntegrableOn (f * deriv g) (Ioi 0) := by
     apply (integrableOn_iff_integrable_of_support_subset <|
            Function.support_mul_subset_of_subset fSupp).mp
-    apply ContinuousOn.integrableOn_Icc <| ContinuousOn.mul ?_ ?_
-    · exact fDiff.continuousOn.mono Icc_sub
-    · exact gderivCont.mono Icc_sub
+    exact fDiff.continuousOn.mono Icc_sub |>.mul (gderivCont.mono Icc_sub) |>.integrableOn_Icc
   have gDerivfInt : IntegrableOn (deriv f * g) (Ioi 0) := by
     apply (integrableOn_iff_integrable_of_support_subset <|
            Function.support_mul_subset_of_subset fderivSupp).mp
-    apply ContinuousOn.integrableOn_Icc <| ContinuousOn.mul ?_ ?_
-    · exact fderivCont.mono Icc_sub
-    · exact gDiff.continuousOn.mono Icc_sub
+    exact fderivCont.mono Icc_sub |>.mul (gDiff.continuousOn.mono Icc_sub) |>.integrableOn_Icc
   have lim_at_zero : Tendsto (f * g) (𝓝[>]0) (𝓝 0) := TendstoAtZero_of_support_in_Icc (f * g) ha fgSupp
   have lim_at_inf : Tendsto (f * g) atTop (𝓝 0) := TendstoAtTop_of_support_in_Icc (f * g) fgSupp
   apply PartialIntegration f g fDiff gDiff fDerivgInt gDerivfInt lim_at_zero lim_at_inf
@@ -737,19 +733,15 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ⊤ Ψ) ∧ (∀ x
       intro y
       by_cases h : y ∈ Function.support Ψ
       . apply div_nonneg <| le_trans (by simp [apply_ite]) (hΨ0 y)
-        rw [hΨSupport, mem_Ioo] at h
-        linarith [h.left]
-      . simp only [Function.mem_support, ne_eq, not_not] at h
-        simp [h]
+        rw [hΨSupport, mem_Ioo] at h; linarith [h.left]
+      . simp only [Function.mem_support, ne_eq, not_not] at h; simp [h]
     · have : (fun x ↦ Ψ x / x).support ⊆ Icc (1 / 2) 2 := by
         rw [Function.support_div, hΨSupport]
         apply subset_trans (by apply inter_subset_left) Ioo_subset_Icc_self
       apply (integrableOn_iff_integrable_of_support_subset this).mp
       apply ContinuousOn.integrableOn_compact isCompact_Icc
-      apply ContinuousOn.div hΨContDiff.continuous.continuousOn continuousOn_id ?_
-      simp only [mem_Icc, ne_eq, and_imp, id_eq]
-      intros
-      linarith
+      apply hΨContDiff.continuous.continuousOn.div continuousOn_id ?_
+      simp only [mem_Icc, ne_eq, and_imp, id_eq]; intros;linarith
 /-%%
 \begin{proof}\leanok
 \uses{smooth-ury}
@@ -789,16 +781,12 @@ lemma MellinOfPsi_aux {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     · exact (Differentiable.ofReal_comp_iff.mpr (diffΨ.differentiable (by norm_num))).differentiableOn
     · refine DifferentiableOn.div_const ?_ s
       intro a ha
-      refine DifferentiableAt.differentiableWithinAt ?_
-      apply DifferentiableAt.comp_ofReal (e := fun x ↦ x ^ s)
-      apply DifferentiableAt.cpow differentiableAt_id' <| differentiableAt_const s
-      exact Or.inl ha
+      refine DifferentiableAt.comp_ofReal (e := fun x ↦ x ^ s) ?_ |>.differentiableWithinAt
+      apply differentiableAt_id'.cpow (differentiableAt_const s) <| by exact Or.inl ha
     · simp only [deriv.ofReal_comp']
-      apply Continuous.continuousOn
-      apply Continuous.comp (g := ofReal') continuous_ofReal <| diffΨ.continuous_deriv (by norm_num)
+      exact continuous_ofReal.comp (diffΨ.continuous_deriv (by norm_num)) |>.continuousOn
     · apply ContinuousOn.congr (f := fun (x : ℝ) ↦ (x : ℂ) ^ (s - 1)) ?_ fun x hx ↦ gderiv hs hx
-      refine ContinuousOn.cpow ?_ continuousOn_const (by simp)
-      exact Continuous.continuousOn (by continuity)
+      exact Continuous.continuousOn (by continuity) |>.cpow continuousOn_const (by simp)
   · congr; funext; congr
     apply (hasDerivAt_deriv_iff.mpr ?_).ofReal_comp.deriv
     exact diffΨ.contDiffAt.differentiableAt (by norm_num)
@@ -949,12 +937,12 @@ lemma DeltaSpikeSupport {Ψ : ℝ → ℝ} {ε x : ℝ} (εpos : 0 < ε) (xnonne
 
 lemma DeltaSpikeContinuous {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (diffΨ : ContDiff ℝ 1 Ψ) :
     Continuous (fun x ↦ DeltaSpike Ψ ε x) := by
-  apply (Continuous.comp (g := Ψ) diffΨ.continuous _).div_const
-  exact Continuous.rpow_const continuous_id fun _ ↦ Or.inr <| div_nonneg (by norm_num) εpos.le
+  apply diffΨ.continuous.comp (g := Ψ) _ |>.div_const
+  exact continuous_id.rpow_const fun _ ↦ Or.inr <| div_nonneg (by norm_num) εpos.le
 
 lemma DeltaSpikeOfRealContinuous {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (diffΨ : ContDiff ℝ 1 Ψ) :
     Continuous (fun x ↦ (DeltaSpike Ψ ε x : ℂ)) :=
-  Continuous.comp continuous_ofReal <| DeltaSpikeContinuous εpos diffΨ
+  continuous_ofReal.comp <| DeltaSpikeContinuous εpos diffΨ
 
 /-%%
 The Mellin transform of the delta spike is easy to compute.
@@ -1028,7 +1016,7 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
     simp only [differentiableAt_sub_const_iff, MellinTransform_eq]
     refine DifferentiableAt.comp_ofReal ?_
     refine mellin_differentiableAt_of_isBigO_rpow (a := 1) (b := -1) ?_ ?_ (by simp) ?_ (by simp)
-    · apply ContinuousOn.locallyIntegrableOn (Continuous.continuousOn ?_) (by simp)
+    · apply (Continuous.continuousOn ?_).locallyIntegrableOn (by simp)
       have := diffΨ.continuous; continuity
     · apply Asymptotics.IsBigO.trans_le (g' := fun _ ↦ (0 : ℝ)) ?_ (by simp)
       apply BigO_zero_atTop_of_support_in_Icc (a := 1 / 2) (b := 2)
@@ -1134,8 +1122,7 @@ lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
   rw [(by simp [f] : -1 = f 1), (by simp : c * Real.log c - c = f c)]
   have mono: StrictMonoOn f <| Ici 1 := by
     refine strictMonoOn_of_deriv_pos (convex_Ici _) ?_ ?_
-    · apply ContinuousOn.sub (ContinuousOn.mul continuousOn_id ?_) continuousOn_id
-      apply ContinuousOn.log continuousOn_id
+    · apply continuousOn_id.mul (continuousOn_id.log ?_) |>.sub continuousOn_id
       intro x hx; simp only [mem_Ici] at hx; simp only [id_eq, ne_eq]; linarith
     · intro x hx; simp only [nonempty_Iio, interior_Ici', mem_Ioi] at hx
       funext; dsimp only [f]
@@ -1144,8 +1131,7 @@ lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
       · linarith
       · simp only [differentiableAt_id']
       · simp only [differentiableAt_log_iff, ne_eq]; linarith
-      · apply DifferentiableAt.mul differentiableAt_id' <| DifferentiableAt.log differentiableAt_id' ?_
-        linarith
+      · exact differentiableAt_id'.mul <| differentiableAt_id'.log (by linarith)
       · simp only [differentiableAt_id']
   exact mono (by rw [mem_Ici]) (mem_Ici.mpr <| le_of_lt hc) hc
 /-%%
@@ -1427,7 +1413,7 @@ lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
     simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq, mem_Ioc]
     intro y hy; aesop
   · refine set_integral_mono_on ?_ (integrable_of_integral_eq_one this) (by simp) ?_
-    · refine Integrable.bdd_mul (integrable_of_integral_eq_one this) ?_ (by use 1; aesop)
+    · refine integrable_of_integral_eq_one this |>.bdd_mul ?_ (by use 1; aesop)
       have : (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) = indicator (Ioc 0 1) (1 : ℝ → ℝ) := by
         aesop
       simp only [mem_Ioc, this, measurableSet_Ioc, aestronglyMeasurable_indicator_iff]
@@ -1514,7 +1500,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
         apply (intervalIntegral.integrableOn_Ioo_cpow_iff (s := s - 1) (t := (2 : ℝ) ^ ε) ?_).mpr
         · simp [hs]
         · apply rpow_pos_of_pos (by norm_num)
-      · apply ContinuousOn.integrableOn_compact isCompact_Icc (ContinuousOn.div ?_ ?_ ?_)
+      · apply (ContinuousOn.div ?_ ?_ ?_).integrableOn_compact isCompact_Icc
         · exact (DeltaSpikeOfRealContinuous εpos diffΨ).continuousOn
         · exact continuous_ofReal.continuousOn
         · intro x hx; simp only [mem_Icc] at hx; simp only [ofReal_ne_zero]
