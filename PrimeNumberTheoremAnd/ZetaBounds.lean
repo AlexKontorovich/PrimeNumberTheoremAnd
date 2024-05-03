@@ -812,7 +812,7 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
   set F' : ℂ → ℝ → ℂ := fun s x ↦ (x : ℂ) ^ (- s - 1) * (- Real.log x) * f x -- with F'_def
   set ε := s.re / 2 -- with ε_def
   have ε_pos : 0 < ε := by aesop
-  set bound : ℝ → ℝ := fun x ↦ x ^ (- s.re - 1) * (Real.log x)
+  set bound : ℝ → ℝ := fun x ↦ x ^ (- s.re / 2 - 1) * |Real.log x|
   let μ : Measure ℝ := volume.restrict (Ioi (N : ℝ))
   have hF_meas : ∀ᶠ (z : ℂ) in 𝓝 s, AEStronglyMeasurable (F z) μ := by
     have : {z : ℂ | 0 < z.re} ∈ 𝓝 s := by
@@ -837,6 +837,12 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
     ext x
     ring_nf
   have h_bound : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, ‖F' z x‖ ≤ bound x := by
+    filter_upwards
+    intro x z hz
+    simp only [F', f, bound]
+    calc _ = ‖(x : ℂ) ^ (-z - 1)‖ * ‖-(Real.log x)‖ * ‖(⌊x⌋ + 1 / 2 - x)‖ := ?_
+         _ = ‖x ^ (-z.re - 1)‖ * ‖-(Real.log x)‖ * ‖(⌊x⌋ + 1 / 2 - x)‖ := ?_
+         _ ≤ _ := ?_
 
     sorry
   have bound_integrable : Integrable bound μ := by
