@@ -1804,12 +1804,10 @@ lemma ZetaInvBnd :
   · sorry
   · apply div_le_iff (by positivity) |>.mpr
     save
-    conv => rhs; rw [mul_assoc]; rhs; rw [← mul_assoc, mul_comm, ← mul_assoc]
-    rw [← Real.rpow_add]
+    conv => rw [mul_assoc]; rhs; rhs; rw [mul_comm C, ← mul_assoc, ← Real.rpow_add (by positivity)]
     · norm_num
       -- this is how A, C were chosen
       sorry
-    · positivity
 /-%%
 \begin{proof}
 \uses{Zeta_diff_Bnd, ZetaInvBound2}
