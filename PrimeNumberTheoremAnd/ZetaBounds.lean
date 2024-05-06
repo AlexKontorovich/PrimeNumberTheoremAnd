@@ -1052,6 +1052,11 @@ lemma add_le_add_le_add_le_add {α : Type*} [Add α] [Preorder α]
     {a b c d e f g h : α} (h₁ : a ≤ b) (h₂ : c ≤ d) (h₃ : e ≤ f) (h₄ : g ≤ h) :
     a + c + e + g ≤ b + d + f + h:= add_le_add (add_le_add_le_add h₁ h₂ h₃) h₄
 
+lemma mul_le_mul₃ {α : Type*} {a b c d e f : α} [MulZeroClass α] [Preorder α] [PosMulMono α]
+    [MulPosMono α] (h₁ : a ≤ b) (h₂ : c ≤ d) (h₃ : e ≤ f) (c0 : 0 ≤ c) (b0 : 0 ≤ b) (e0 : 0 ≤ e) :
+     a * c * e ≤ b * d * f := by
+  apply mul_le_mul (mul_le_mul h₁ h₂ c0 b0) h₃ e0 <| mul_nonneg b0 <| le_trans c0 h₂
+
 /-%%
 \begin{lemma}[ZetaBnd_aux2]\label{ZetaBnd_aux2}\lean{ZetaBnd_aux2}\leanok
 Given $n ≤ t$ and $\sigma$ with $1-A/\log t \le \sigma$, we have
