@@ -808,23 +808,14 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
       rw [mem_nhds_iff]
       refine ⟨{z | 0 < z.re}, fun ⦃a⦄ a ↦ a, isOpen_lt continuous_const Complex.continuous_re, hs⟩
     filter_upwards [this] with z hz
-    have := integrableOn_of_Zeta0_fun N_pos hz
-    convert this.aestronglyMeasurable using 1
-    simp only [F, f]
-    ext x
-    ring_nf
+    convert integrableOn_of_Zeta0_fun N_pos hz |>.aestronglyMeasurable using 1
+    simp only [F, f]; ext x; ring_nf
   have hF_int : Integrable (F s) μ := by
-    apply IntegrableOn.integrable
-    convert integrableOn_of_Zeta0_fun N_pos hs using 1
-    simp only [F, f]
-    ext x
-    ring_nf
+    convert integrableOn_of_Zeta0_fun N_pos hs |>.integrable using 1
+    simp only [F, f]; ext x; ring_nf
   have hF'_meas : AEStronglyMeasurable (F' s) μ := by
-    have := integrableOn_of_Zeta0_fun_log N_pos hs
-    convert this.aestronglyMeasurable using 1
-    simp only [F', f]
-    ext x
-    ring_nf
+    convert integrableOn_of_Zeta0_fun_log N_pos hs |>.aestronglyMeasurable using 1
+    simp only [F', f]; ext x; ring_nf
   have h_bound : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, ‖F' z x‖ ≤ bound x := by
     filter_upwards -- NEED TO MAKE x > 0
     intro x z hz
@@ -855,12 +846,10 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
     sorry
   convert (hasDerivAt_integral_of_dominated_loc_of_deriv_le (x₀ := s) (F := F) (F' := F') (ε := ε)
     (ε_pos := ε_pos) (μ := μ) (bound := bound) (hF_meas := hF_meas) (hF_int := hF_int)
-    (hF'_meas := hF'_meas) (h_bound := h_bound) (bound_integrable := bound_integrable) (h_diff := h_diff)).2 using 3
-  · ext a
-    simp only [one_div, F, f, div_cpow_eq_cpow_neg]
-    ring_nf
-  · simp only [one_div, mul_neg, neg_mul, neg_inj, F', f, div_cpow_eq_cpow_neg]
-    ring_nf
+    (hF'_meas := hF'_meas) (h_bound := h_bound) (bound_integrable := bound_integrable)
+    (h_diff := h_diff)).2 using 3
+  · ext a; simp only [one_div, F, f, div_cpow_eq_cpow_neg]; ring_nf
+  · simp only [one_div, mul_neg, neg_mul, neg_inj, F', f, div_cpow_eq_cpow_neg]; ring_nf
 
 /-%%
 \begin{lemma}[HolomorphicOn_Zeta0]\label{HolomorphicOn_Zeta0}\lean{HolomorphicOn_Zeta0}\leanok
