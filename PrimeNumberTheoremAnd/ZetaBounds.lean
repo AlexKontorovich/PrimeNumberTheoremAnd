@@ -1768,6 +1768,7 @@ lemma ZetaInvBnd :
   by_cases h0 : ‖ζ s‖ ≠ 0
   swap; simp only [ne_eq, not_not] at h0; simp only [h0, div_zero]; positivity
   apply div_le_iff (by positivity) |>.mpr <| div_le_iff' (by positivity) |>.mp ?_
+  have pos_aux : 0 < (σ' - 1) := by linarith
   save
   calc
     _ ≥ ‖ζ s'‖ - ‖ζ s - ζ s'‖ := ?_
@@ -1779,17 +1780,13 @@ lemma ZetaInvBnd :
     · rw [(by simp : ζ s' - ζ s = -(ζ s - ζ s'))]; simp only [norm_neg, sub_right_inj]
     · simp
   · apply sub_le_sub
-    apply le_trans ?_ <| one_div_le ?_ ?_ |>.mp <| hC' ⟨σ'_gt, σ'_le⟩ t t_gt
-    have pos_aux : 0 < (σ' - 1) := by linarith
+    apply le_trans ?_ <| one_div_le ?_ (by positivity) |>.mp <| hC' ⟨σ'_gt, σ'_le⟩ t t_gt
     · conv => rhs; rw [div_mul_eq_div_div, div_eq_mul_inv, div_eq_mul_inv, one_mul, mul_inv_rev]
               lhs; rw [mul_comm]
-      apply mul_le_mul ?_ ?_ (by positivity) (by positivity)
-      · apply mul_le_mul C'le2 ?_ (by positivity) (by positivity)
-        rw [← Real.rpow_neg (by linarith), neg_div, neg_neg]
+      apply mul_le_mul₃ C'le2 ?_ ?_ (by positivity) (by positivity) (by positivity)
+      · rw [← Real.rpow_neg (by linarith), neg_div, neg_neg]
       · rw [← Real.rpow_neg (by positivity), neg_div]
     · sorry
-    · apply mul_pos (mul_pos C₂pos <| Real.rpow_pos_of_pos (by linarith) _) ?_
-      apply Real.rpow_pos_of_pos (by positivity)
     · rw [(by simp : ζ s - ζ s' = -(ζ s' - ζ s)), norm_neg]
       refine le_trans (h' σ σ' t t_gt ?_ σ'_le <| lt_trans hσ.2 σ'_gt) ?_
       · apply le_trans ?_ hσ.1
