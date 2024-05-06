@@ -1123,7 +1123,7 @@ lemma UpperBnd_aux {A σ t: ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
   norm_num [t_gt.2]
 
 lemma UpperBnd_aux2 {A σ t : ℝ} (t_ge : 3 < |t|) (σ_ge : 1 - A / Real.log |t| ≤ σ) :
-      |t| ^ (1 - σ) ≤ A.exp := by
+      |t| ^ (1 - σ) ≤ Real.exp A := by
   have : |t| ^ (1 - σ) ≤ |t| ^ (A / Real.log |t|) :=
     Real.rpow_le_rpow_of_exponent_le (by linarith) (by linarith)
   apply le_trans this ?_
@@ -1148,13 +1148,13 @@ lemma riemannZeta0_zero_aux (N : ℕ) (Npos : 0 < N):
 
 lemma UpperBnd_aux3 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (t_gt : 3 < |t|) (hC : 2 ≤ C) : let N := ⌊|t|⌋₊;
-    ‖∑ n in Finset.range (N + 1), (n : ℂ) ^ (-(σ + t * I))‖ ≤ A.exp * C * Real.log |t| := by
+    ‖∑ n in Finset.range (N + 1), (n : ℂ) ^ (-(σ + t * I))‖ ≤ Real.exp A * C * Real.log |t| := by
   intro N
   obtain ⟨Npos, N_le_t, _, _, σPos, _⟩ := UpperBnd_aux hA t_gt σ_ge
   have logt_gt := logt_gt_one t_gt
   have (n : ℕ) (hn : n ∈ Finset.range (N + 1)) := ZetaBnd_aux2 (n := n) hA.1 σPos ?_ σ_ge
   · replace := norm_sum_le_of_le (Finset.range (N + 1)) this
-    rw [← Finset.sum_mul, mul_comm _ A.exp] at this
+    rw [← Finset.sum_mul, mul_comm _ (Real.exp A)] at this
     rw [mul_assoc]
     apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
     have : 1 + (N : ℝ).log ≤ C * Real.log |t| := by
@@ -1216,7 +1216,7 @@ lemma UpperBnd_aux6 {σ t : ℝ} (t_ge : 3 < |t|) (hσ : σ ∈ Ioc (1 / 2) 2)
 
 lemma ZetaUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
-    let C := A.exp * (5 + 8 * 2); -- the 2 comes from ZetaBnd_aux1
+    let C := Real.exp A * (5 + 8 * 2); -- the 2 comes from ZetaBnd_aux1
     let N := ⌊|t|⌋₊;
     let s := σ + t * I;
     ‖∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s‖ + ‖(N : ℂ) ^ (1 - s) / (1 - s)‖
@@ -1226,17 +1226,17 @@ lemma ZetaUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
   obtain ⟨Npos, N_le_t, logt_gt, σ_gt, σPos, neOne⟩ := UpperBnd_aux hA t_gt hσ.1
   replace σ_gt : 1 / 2 < σ := by linarith [hA.2]
   calc
-    _ ≤ A.exp * 2 * Real.log |t| + ‖N ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
+    _ ≤ Real.exp A * 2 * Real.log |t| + ‖N ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
       ‖s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := ?_
-    _ ≤ A.exp * 2 * Real.log |t| + ‖N ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
+    _ ≤ Real.exp A * 2 * Real.log |t| + ‖N ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
       2 * |t| * N ^ (-σ) / σ  := ?_
-    _ = A.exp * 2 * Real.log |t| + N ^ (1 - σ) / ‖(1 - s)‖ + N ^ (-σ) / 2 +
+    _ = Real.exp A * 2 * Real.log |t| + N ^ (1 - σ) / ‖(1 - s)‖ + N ^ (-σ) / 2 +
       2 * |t| * N ^ (-σ) / σ  := ?_
-    _ ≤ A.exp * 2 * Real.log |t| + |t| ^ (1 - σ) * 2 +
+    _ ≤ Real.exp A * 2 * Real.log |t| + |t| ^ (1 - σ) * 2 +
         |t| ^ (1 - σ) + 2 * |t| * (8 * |t| ^ (-σ)) := ?_
-    _ = A.exp * 2 * Real.log |t| + (3 + 8 * 2) * |t| ^ (1 - σ) := ?_
-    _ ≤ A.exp * 2 * Real.log |t| + (3 + 8 * 2) * A.exp * 1 := ?_
-    _ ≤ A.exp * 2 * Real.log |t| + (3 + 8 * 2) * A.exp * Real.log |t| := ?_
+    _ = Real.exp A * 2 * Real.log |t| + (3 + 8 * 2) * |t| ^ (1 - σ) := ?_
+    _ ≤ Real.exp A * 2 * Real.log |t| + (3 + 8 * 2) * Real.exp A * 1 := ?_
+    _ ≤ Real.exp A * 2 * Real.log |t| + (3 + 8 * 2) * Real.exp A * Real.log |t| := ?_
     _ = _ := by ring
   · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]
     convert UpperBnd_aux3 (C := 2) hA hσ.1 t_gt le_rfl using 1
@@ -1267,7 +1267,7 @@ lemma ZetaUpperBnd :
     ∃ (A : ℝ) (hA : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_ge : 3 < |t|)
     (_ : σ ∈ Icc (1 - A / Real.log |t|) 2), ‖ζ (σ + t * I)‖ ≤ C * Real.log |t| := by
   let A := (1 / 2 : ℝ)
-  let C := A.exp * (5 + 8 * 2) -- the 2 comes from ZetaBnd_aux1
+  let C := Real.exp A * (5 + 8 * 2) -- the 2 comes from ZetaBnd_aux1
   refine ⟨A, ⟨by norm_num, by norm_num⟩ , C, (by positivity), ?_⟩
   intro σ t t_gt ⟨σ_ge, σ_le⟩
   obtain ⟨Npos, _, _, _, σPos, neOne⟩ := UpperBnd_aux ⟨by norm_num, by norm_num⟩ t_gt σ_ge
@@ -1333,7 +1333,7 @@ lemma ZetaDerivUpperBnd :
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2),
     ‖deriv ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
   obtain ⟨A, hA, _, _, _⟩ := ZetaUpperBnd
-  let C := 4 * A.exp * (5 + 8 * 2) -- 4 times C'
+  let C := 4 * Real.exp A * (5 + 8 * 2) -- 4 times C'
   refine ⟨A, hA, C, by positivity, ?_⟩
   intro σ t t_gt ⟨σ_ge, σ_le⟩
   obtain ⟨Npos, N_le_t, _, _, σPos, neOne⟩ := UpperBnd_aux hA t_gt σ_ge
