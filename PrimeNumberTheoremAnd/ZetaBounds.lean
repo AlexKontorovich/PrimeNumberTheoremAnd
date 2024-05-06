@@ -1740,7 +1740,15 @@ lemma ZetaInvBnd :
     sorry
   refine ⟨A, ⟨Apos, by linarith [hA'.2]⟩ , C, Cpos, ?_⟩
   intro σ t t_gt hσ
+
+  sorry
+
+#exit
+
   have logt_gt_one := logt_gt_one t_gt
+
+
+
   have σ_ge : 1 - A / |t|.log ≤ σ := by
     apply le_trans ?_ hσ.1
     suffices A / |t|.log ^ 9 ≤ A / |t|.log by linarith
