@@ -1623,12 +1623,6 @@ Combine Lemma \ref{ZetaInvBound1} with the bounds in Lemmata \ref{ZetaNear1BndEx
 \end{proof}
 %%-/
 
-lemma ZetaInvBound2' :
-    ∃ C > 0, ∀ {σ : ℝ} (hσ : σ ∈ Ioc 1 2) (t : ℝ) (t_gt : 3 < |t|),
-    1 / ‖ζ (σ + t * I)‖ ≤ C * (σ - 1) ^ (-(3 : ℝ) / 4) * (Real.log |t|) ^ ((1 : ℝ) / 4) := by
-
-  sorry
-
 lemma deriv_fun_re {t : ℝ} {f : ℂ → ℂ} (diff : ∀ (σ : ℝ), DifferentiableAt ℂ f (↑σ + ↑t * I)) :
     (deriv fun {σ₂ : ℝ} ↦ f (σ₂ + t * I)) = fun (σ : ℝ) ↦ deriv f (σ + t * I) := by
   ext σ
