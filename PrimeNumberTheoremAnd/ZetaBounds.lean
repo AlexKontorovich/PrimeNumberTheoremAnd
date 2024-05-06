@@ -796,11 +796,10 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
   HasDerivAt (fun z ↦ ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (z + 1))
     (∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1) * (- Real.log x)) s := by
   simp only [mem_setOf_eq] at hs
-  set f : ℝ → ℂ := fun x ↦ (⌊x⌋ : ℂ) + 1 / 2 - x -- with f_def
-  --simp_rw [← f_def]
-  set F : ℂ → ℝ → ℂ := fun s x ↦ (x : ℂ) ^ (- s - 1) * f x -- with F_def
-  set F' : ℂ → ℝ → ℂ := fun s x ↦ (x : ℂ) ^ (- s - 1) * (- Real.log x) * f x -- with F'_def
-  set ε := s.re / 2 -- with ε_def
+  set f : ℝ → ℂ := fun x ↦ (⌊x⌋ : ℂ) + 1 / 2 - x
+  set F : ℂ → ℝ → ℂ := fun s x ↦ (x : ℂ) ^ (- s - 1) * f x
+  set F' : ℂ → ℝ → ℂ := fun s x ↦ (x : ℂ) ^ (- s - 1) * (- Real.log x) * f x
+  set ε := s.re / 2
   have ε_pos : 0 < ε := by aesop
   set bound : ℝ → ℝ := fun x ↦ |x ^ (- s.re / 2 - 1)| * |Real.log x|
   let μ : Measure ℝ := volume.restrict (Ioi (N : ℝ))
@@ -849,8 +848,10 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
     · sorry
   have bound_integrable : Integrable bound μ := by
     sorry
-  have h_diff : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε,
-    HasDerivAt (fun w ↦ F w x) (F' z x) z := by
+  have h_diff : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, HasDerivAt (fun w ↦ F w x) (F' z x) z := by
+    simp only [F, F', f]
+    filter_upwards [h_bound] with x hx
+    intro z hz
     sorry
   convert (hasDerivAt_integral_of_dominated_loc_of_deriv_le (x₀ := s) (F := F) (F' := F') (ε := ε)
     (ε_pos := ε_pos) (μ := μ) (bound := bound) (hF_meas := hF_meas) (hF_int := hF_int)
@@ -1764,7 +1765,6 @@ lemma ZetaInvBnd :
   swap; simp only [ne_eq, not_not] at h0; simp only [h0, div_zero]; positivity
   apply div_le_iff (by positivity) |>.mpr <| div_le_iff' (by positivity) |>.mp ?_
   have pos_aux : 0 < (σ' - 1) := by linarith
-  save
   calc
     _ ≥ ‖ζ s'‖ - ‖ζ s - ζ s'‖ := ?_
     _ ≥ C * (σ' - 1) ^ ((3 : ℝ)/ 4) * Real.log |t|  ^ ((-1 : ℝ)/ 4) - C * Real.log |t| ^ 2 * (σ' - σ) := ?_
