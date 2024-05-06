@@ -1730,11 +1730,15 @@ lemma ZetaInvBnd :
     (hσ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
     1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 7 := by
   obtain ⟨A', hA', C', hC', h'⟩ := Zeta_diff_Bnd
-  let A := min A' <| (1 / 16 : ℝ)
+  obtain ⟨C₂, C₂pos, hC'⟩ := ZetaInvBound2
+  let A := min A' <| (1 / 2 : ℝ) * (C' / 2 * C₂) ^ 4
   have Apos : 0 < A := by have := hA'.1; positivity
-  let C := C'
-  have Cpos : 0 < C := by positivity
-  refine ⟨A, ⟨Apos, by norm_num [A]⟩ , C, Cpos, ?_⟩
+  have A_le_A' : A ≤ A' := by simp [A]
+  let C := C' * A ^ (3 / 4 : ℝ) - 2 * A * C₂
+  have Cpos : 0 < C := by
+    apply sub_pos.mpr
+    sorry
+  refine ⟨A, ⟨Apos, by linarith [hA'.2]⟩ , C, Cpos, ?_⟩
   intro σ t t_gt hσ
   have logt_gt_one := logt_gt_one t_gt
   have σ_ge : 1 - A / |t|.log ≤ σ := by
