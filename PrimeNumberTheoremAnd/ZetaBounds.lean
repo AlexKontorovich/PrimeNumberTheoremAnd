@@ -1729,10 +1729,11 @@ lemma ZetaInvBnd :
     ∃ (A : ℝ) (hA : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (hσ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
     1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 7 := by
-  obtain ⟨A', hA', C', hC', h'⟩ := Zeta_diff_Bnd
+  obtain ⟨A', hA', C', _, h'⟩ := Zeta_diff_Bnd
   obtain ⟨C₂, C₂pos, hC'⟩ := ZetaInvBound2
   let A := min A' <| (1 / 2 : ℝ) * (C' / 2 * C₂) ^ 4
   have Apos : 0 < A := by have := hA'.1; positivity
+  have Ale : A ≤ 1 / 2 := by dsimp only [A]; apply min_le_iff.mpr; left; exact hA'.2
   have A_le_A' : A ≤ A' := by simp [A]
   let C := C' * A ^ (3 / 4 : ℝ) - 2 * A * C₂
   have Cpos : 0 < C := by
@@ -1740,27 +1741,19 @@ lemma ZetaInvBnd :
     sorry
   refine ⟨A, ⟨Apos, by linarith [hA'.2]⟩ , C, Cpos, ?_⟩
   intro σ t t_gt hσ
-
-  sorry
-
-#exit
-
   have logt_gt_one := logt_gt_one t_gt
-
-
-
   have σ_ge : 1 - A / Real.log |t| ≤ σ := by
     apply le_trans ?_ hσ.1
     suffices A / Real.log |t| ^ 9 ≤ A / Real.log |t| by linarith
     exact div_le_div Apos.le (by rfl) (by positivity) <| ZetaInvBnd_aux logt_gt_one
-  obtain ⟨σ_gt, σPos, neOne⟩ := UpperBnd_aux ⟨Apos, by norm_num [A]⟩ t_gt σ_ge
+  obtain ⟨σ_gt, σPos, neOne⟩ := UpperBnd_aux ⟨Apos, Ale⟩ t_gt σ_ge
   set σ' := 1 + A / Real.log |t| ^ 9
   have σ'_gt : 1 < σ' := by simp only [σ', lt_add_iff_pos_right]; positivity
   have σ'_le : σ' ≤ 2 := by
     simp only [σ']
     suffices A / Real.log |t| ^ 9 < 1 by linarith
     apply div_lt_one (by positivity) |>.mpr
-    exact lt_trans₄ (by norm_num [A]) logt_gt_one <| ZetaInvBnd_aux' logt_gt_one
+    exact lt_trans₄ (by linarith) logt_gt_one <| ZetaInvBnd_aux' logt_gt_one
   set s := σ + t * I
   set s' := σ' + t * I
   by_cases h0 : ‖ζ s‖ ≠ 0
