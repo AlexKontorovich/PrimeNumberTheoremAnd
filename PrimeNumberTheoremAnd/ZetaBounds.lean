@@ -792,6 +792,7 @@ open MeasureTheory in
 lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
     IntegrableOn (fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) * (-Real.log x)) (Ioi N)
     volume := by
+
   sorry
   -- apply Integrable.bdd_mul ?_ ?_
   -- · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
@@ -893,7 +894,7 @@ lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
     apply DifferentiableOn.mono (t := {s : ℂ | 0 < s.re}) (st := by aesop)
     exact fun _ hs ↦ (hasDerivAt_Zeta0Integral N_pos hs).differentiableAt.differentiableWithinAt
 /-%%
-\begin{proof}\uses{riemannZeta0, ZetaBnd_aux1b}
+\begin{proof}\uses{riemannZeta0, ZetaBnd_aux1b}\leanok
   The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral
   that's absolutely convergent on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ by Lemma \ref{ZetaBnd_aux1b}.
 \end{proof}
@@ -1317,6 +1318,7 @@ lemma NormDerivZeta0Le {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (
   apply le_trans (by apply norm_add₅_le) ?_
   simp only [norm_neg, norm_div, norm_pow, norm_mul, RCLike.norm_ofNat]
   sorry
+
 /-%%
 \begin{lemma}[ZetaDerivUpperBnd]\label{ZetaDerivUpperBnd}\lean{ZetaDerivUpperBnd}\leanok
 For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$,
@@ -1534,9 +1536,9 @@ $$
 as $|t|\to\infty$.
 \end{lemma}
 %%-/
-lemma ZetaInvBound2 {σ : ℝ} (hσ : σ ∈ Ioc 1 2) :
-    (fun (t : ℝ) ↦ 1 / ‖ζ (σ + t * I)‖) =O[cocompact ℝ]
-      fun (t : ℝ) ↦ (σ - 1) ^ (-(3 : ℝ) / 4) * |t|.log ^ ((1 : ℝ) / 4) := by
+lemma ZetaInvBound2 :
+    ∃ C > 0, ∀ {σ : ℝ} (hσ : σ ∈ Ioc 1 2) (t : ℝ) (t_gt : 3 < |t|),
+    1 / ‖ζ (σ + t * I)‖ ≤ C * (σ - 1) ^ (-(3 : ℝ) / 4) * (Real.log |t|) ^ ((1 : ℝ) / 4) := by
   obtain ⟨A, ha, C, hC, h⟩ := ZetaUpperBnd
   obtain ⟨c, hc, h_inv⟩ := ZetaNear1BndExact
   obtain ⟨σ_gt, σ_le⟩ := hσ
@@ -1618,6 +1620,12 @@ Combine Lemma \ref{ZetaInvBound1} with the bounds in Lemmata \ref{ZetaNear1BndEx
 \ref{ZetaUpperBnd}.
 \end{proof}
 %%-/
+
+lemma ZetaInvBound2' :
+    ∃ C > 0, ∀ {σ : ℝ} (hσ : σ ∈ Ioc 1 2) (t : ℝ) (t_gt : 3 < |t|),
+    1 / ‖ζ (σ + t * I)‖ ≤ C * (σ - 1) ^ (-(3 : ℝ) / 4) * (Real.log |t|) ^ ((1 : ℝ) / 4) := by
+
+  sorry
 
 lemma deriv_fun_re {t : ℝ} {f : ℂ → ℂ} (diff : ∀ (σ : ℝ), DifferentiableAt ℂ f (↑σ + ↑t * I)) :
     (deriv fun {σ₂ : ℝ} ↦ f (σ₂ + t * I)) = fun (σ : ℝ) ↦ deriv f (σ + t * I) := by
@@ -1723,8 +1731,8 @@ $$
 %%-/
 lemma ZetaInvBnd :
     ∃ (A : ℝ) (hA : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
-    (hσ : σ ∈ Ico (1 - A / |t|.log ^ 9) 1),
-    1 / ‖ζ (σ + t * I)‖ ≤ C * |t|.log ^ 7 := by
+    (hσ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
+    1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 7 := by
   obtain ⟨A', hA', C', hC', h'⟩ := Zeta_diff_Bnd
   let A := min A' <| (1 / 16 : ℝ)
   have Apos : 0 < A := by have := hA'.1; positivity
@@ -1809,7 +1817,7 @@ $$
 |\zeta(\sigma+it)| \ge
 |\zeta(\sigma'+it)| - |\zeta(\sigma+it) - \zeta(\sigma'+it)|
 \ge
-C (\sigma'-1)^{-3/4}\log |t|^{-1/4} - C \log^2 |t| (\sigma'-\sigma)
+C (\sigma'-1)^{3/4}\log |t|^{-1/4} - C \log^2 |t| (\sigma'-\sigma)
 $$
 $$
 \ge
