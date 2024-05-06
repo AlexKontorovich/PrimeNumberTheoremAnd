@@ -1160,10 +1160,10 @@ $$\widetilde{1_{\epsilon}}(x) = 1.$$
 \end{lemma}
 %%-/
 
-lemma Smooth1Properties_below_aux {x ε : ℝ} (hx : x ≤ 1 - (2:ℝ).log * ε) (εpos: 0 < ε) :
+lemma Smooth1Properties_below_aux {x ε : ℝ} (hx : x ≤ 1 - Real.log 2 * ε) (εpos: 0 < ε) :
     x < 2 ^ (-ε) := by
   calc
-    x ≤ 1 - (2 : ℝ).log * ε := hx
+    x ≤ 1 - Real.log 2 * ε := hx
     _ < 2 ^ (-ε) := ?_
   rw [sub_lt_iff_lt_add, add_comm, ← sub_lt_iff_lt_add]
   exact (div_lt_iff εpos).mp <| Smooth1Properties_estimate εpos
@@ -1171,7 +1171,7 @@ lemma Smooth1Properties_below_aux {x ε : ℝ} (hx : x ≤ 1 - (2:ℝ).log * ε)
 lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     (ε : ℝ) (εpos: 0 < ε) (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) :
     ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), 0 < x → x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
-  set c := (2 : ℝ).log; use c
+  set c := Real.log 2; use c
   constructor; exact log_pos (by norm_num)
   intro x xpos hx
   have hx2 := Smooth1Properties_below_aux hx εpos
@@ -1231,14 +1231,14 @@ $$
 \end{proof}
 %%-/
 
-lemma Smooth1Properties_above_aux {x ε : ℝ} (hx : 1 + (2 * (2:ℝ).log) * ε ≤ x) (hε : ε ∈ Ioo 0 1) :
+lemma Smooth1Properties_above_aux {x ε : ℝ} (hx : 1 + (2 * Real.log 2) * ε ≤ x) (hε : ε ∈ Ioo 0 1) :
     2 ^ ε < x := by
   calc
-    x ≥ 1 + (2 * (2 : ℝ).log) * ε := hx
+    x ≥ 1 + (2 * Real.log 2) * ε := hx
     _ > 2 ^ ε := ?_
   refine lt_add_of_sub_left_lt <| (div_lt_iff hε.1).mp ?_
   calc
-    2 * (2 : ℝ).log > 2 * (1 - 2 ^ (-ε)) / ε := ?_
+    2 * Real.log 2 > 2 * (1 - 2 ^ (-ε)) / ε := ?_
     _ > 2 ^ ε * (1 - 2 ^ (-ε)) / ε := ?_
     _ = (2 ^ ε - 1) / ε := ?_
   · have := (mul_lt_mul_left (a := 2) (by norm_num)).mpr <| Smooth1Properties_estimate hε.1
