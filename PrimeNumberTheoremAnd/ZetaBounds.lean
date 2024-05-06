@@ -1757,7 +1757,7 @@ lemma ZetaInvBnd :
   calc
     _ ≥ ‖ζ s'‖ - ‖ζ s - ζ s'‖ := ?_
     _ ≥ C * (σ' - 1) ^ ((3 : ℝ)/ 4) * Real.log |t|  ^ ((-1 : ℝ)/ 4) - C * Real.log |t| ^ 2 * (σ' - σ) := ?_
-    _ ≥ C * (A / Real.log |t| ^ 9) ^ ((3 : ℝ)/ 4) * Real.log |t| ^ ((-1 : ℝ)/ 4) - C * Real.log |t| ^ 2 * 2 * A / Real.log |t| ^ 9 := ?_
+    _ ≥ C * (A / Real.log |t| ^ (9 : ℝ)) ^ ((3 : ℝ)/ 4) * Real.log |t| ^ ((-1 : ℝ)/ 4) - C * Real.log |t| ^ (2 : ℝ) * 2 * A / Real.log |t| ^ (9 : ℝ) := ?_
     _ ≥ C * A ^ ((3 : ℝ)/ 4) * Real.log |t| ^ (-7 : ℝ) - C * 2 * A * Real.log |t| ^ (-7 : ℝ) := ?_
     _ = (C * A ^ ((3 : ℝ)/ 4) - C * 2 * A) * Real.log |t| ^ (-7 : ℝ) := by ring
     _ ≥ _ := ?_
@@ -1792,7 +1792,7 @@ lemma ZetaInvBnd :
       · exact Real.rpow_le_rpow_left_iff logt_gt_one |>.mpr (by norm_num)
       · positivity
     · conv => rhs; rw [mul_div_assoc, mul_assoc]
-      apply mul_le_mul (by rfl) ?_ ?_ (by positivity)
+      apply mul_le_mul (by simp) ?_ ?_ (by positivity)
       · simp only [σ', sub_le_iff_le_add, add_comm]
         rw [two_mul, ← add_assoc]
         apply le_trans (b := 1 + A / Real.log |t|)
@@ -1801,9 +1801,14 @@ lemma ZetaInvBnd :
         · sorry
           -- rw [add_le_add_iff_right]; linarith only [σ_ge]
       · linarith [hσ.2, (by positivity : 0 ≤ A / Real.log |t| ^ 9)]
-  · sorry
+  · save
+    have : Real.log |t| ^ (-(9 : ℝ) + 2) * C * 2 * A =  C * 2 * A * Real.log |t| ^ (-(7 : ℝ)) :=
+      by ring_nf
+    conv => lhs; rhs; rw [div_eq_mul_inv, mul_comm, ← mul_assoc, ← mul_assoc, mul_comm C,
+      ← mul_assoc, ← Real.rpow_neg (by positivity), ← Real.rpow_add (by positivity), this]
+    simp only [tsub_le_iff_right, sub_add_cancel]
+    sorry
   · apply div_le_iff (by positivity) |>.mpr
-    save
     conv => rw [mul_assoc]; rhs; rhs; rw [mul_comm C, ← mul_assoc, ← Real.rpow_add (by positivity)]
     · norm_num
       -- this is how A, C were chosen
