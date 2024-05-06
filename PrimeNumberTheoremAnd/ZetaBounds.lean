@@ -779,15 +779,17 @@ open MeasureTheory in
 lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
     IntegrableOn (fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) * (-Real.log x)) (Ioi N)
     volume := by
-
-  sorry
-  -- apply Integrable.bdd_mul ?_ ?_
-  -- · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
-  -- · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt])
-  -- · apply Measurable.aestronglyMeasurable
-  --   refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
-  --   · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
-  --   · exact Measurable.comp measurable_id measurable_ofReal
+  simp_rw [mul_assoc]
+  apply MeasureTheory.Integrable.bdd_mul ?_ ?_ ?_
+  · simp only [neg_add_rev, mul_neg]
+    apply MeasureTheory.Integrable.neg
+    have : (-s - 1).re < -1 := by simp only [sub_re, neg_re, one_re]; linarith
+    replace := integrableOn_Ioi_cpow_iff (s := -s-1) (t := (N : ℝ)) (by simp [N_pos]) |>.mpr this
+    sorry
+  · apply Measurable.aestronglyMeasurable
+    refine Measurable.sub (Measurable.add ?_ measurable_const) (by fun_prop)
+    exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+  · convert ZetaSum_aux2a with _ x; simp [← Complex.abs_ofReal]
 
 open MeasureTheory in
 lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {s | 0 < s.re}) :
