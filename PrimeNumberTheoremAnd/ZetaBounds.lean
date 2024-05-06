@@ -1784,8 +1784,7 @@ lemma ZetaInvBnd :
     · conv => rhs; rw [div_mul_eq_div_div, div_eq_mul_inv, div_eq_mul_inv, one_mul, mul_inv_rev]
               lhs; rw [mul_comm]
       apply mul_le_mul₃ C'le2 ?_ ?_ (by positivity) (by positivity) (by positivity)
-      · rw [← Real.rpow_neg (by linarith), neg_div, neg_neg]
-      · rw [← Real.rpow_neg (by positivity), neg_div]
+      (any_goals rw [← Real.rpow_neg (by linarith), neg_div]); rw [neg_neg]
     · exact norm_pos_iff.mpr <| riemannZeta_ne_zero_of_one_lt_re (by simp [σ'_gt])
     · rw [(by simp : ζ s - ζ s' = -(ζ s' - ζ s)), norm_neg]
       refine le_trans (h' σ σ' t t_gt ?_ σ'_le <| lt_trans hσ.2 σ'_gt) ?_
