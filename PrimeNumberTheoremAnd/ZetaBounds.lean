@@ -1718,7 +1718,7 @@ $$
 lemma ZetaInvBnd :
     ∃ (A : ℝ) (hA : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (hσ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
-    1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 7 := by
+    1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ (7 : ℝ) := by
   obtain ⟨A', hA', C', _, h'⟩ := Zeta_diff_Bnd
   obtain ⟨C₂, C₂pos, hC'⟩ := ZetaInvBound2
   let A := min A' <| (1 / 2 : ℝ) * (C' / 2 * C₂) ^ 4
@@ -1757,7 +1757,9 @@ lemma ZetaInvBnd :
   calc
     _ ≥ ‖ζ s'‖ - ‖ζ s - ζ s'‖ := ?_
     _ ≥ C * (σ' - 1) ^ ((3 : ℝ)/ 4) * Real.log |t|  ^ ((-1 : ℝ)/ 4) - C * Real.log |t| ^ 2 * (σ' - σ) := ?_
-    _ ≥ C * A ^ ((3 : ℝ)/ 4) * Real.log |t|  ^ (-7 : ℝ) - C * Real.log |t| ^ 2 * 2 * A / Real.log |t| ^ 9 := ?_
+    _ ≥ C * (A / Real.log |t| ^ 9) ^ ((3 : ℝ)/ 4) * Real.log |t| ^ ((-1 : ℝ)/ 4) - C * Real.log |t| ^ 2 * 2 * A / Real.log |t| ^ 9 := ?_
+    _ ≥ C * A ^ ((3 : ℝ)/ 4) * Real.log |t| ^ (-7 : ℝ) - C * 2 * A * Real.log |t| ^ (-7 : ℝ) := ?_
+    _ = (C * A ^ ((3 : ℝ)/ 4) - C * 2 * A) * Real.log |t| ^ (-7 : ℝ) := by ring
     _ ≥ _ := ?_
   · apply ge_iff_le.mpr
     convert norm_sub_norm_le (a := ζ s') (b := ζ s' - ζ s) using 1
@@ -1799,14 +1801,15 @@ lemma ZetaInvBnd :
         · sorry
           -- rw [add_le_add_iff_right]; linarith only [σ_ge]
       · linarith [hσ.2, (by positivity : 0 ≤ A / Real.log |t| ^ 9)]
+  · sorry
   · apply div_le_iff (by positivity) |>.mpr
-    simp only [sub_mul, ← mul_assoc, mul_comm C (Real.log |t| ^ 7), mul_div_assoc, div_eq_mul_inv A]
-    rw [← Real.rpow_neg_one]
-    simp only [mul_assoc, ← mul_sub, mul_comm _ C]
-    -- simp [Real.rpow_natCast]
-    -- rw [← Real.rpow_add (x := Real.log |t|) (y := -1) (z := (7 : ℕ)) (by positivity)]
-    ring_nf
-    sorry
+    save
+    conv => rhs; rw [mul_assoc]; rhs; rw [← mul_assoc, mul_comm, ← mul_assoc]
+    rw [← Real.rpow_add]
+    · norm_num
+      -- this is how A, C were chosen
+      sorry
+    · positivity
 /-%%
 \begin{proof}
 \uses{Zeta_diff_Bnd, ZetaInvBound2}
