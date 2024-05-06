@@ -829,6 +829,8 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
   have h_bound : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, ‖F' z x‖ ≤ bound x := by
     filter_upwards -- NEED TO MAKE x > 0
     intro x z hz
+    have x_pos : 0 < x := by
+      sorry
     simp only [F', f, bound]
     calc _ = ‖(x : ℂ) ^ (-z - 1)‖ * ‖-(Real.log x)‖ * ‖(⌊x⌋ + 1 / 2 - x)‖ := by
             simp only [mul_neg, one_div, neg_mul, norm_neg, norm_mul, norm_eq_abs, abs_ofReal,
@@ -839,7 +841,11 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
          _ = ‖x ^ (-z.re - 1)‖ * ‖-(Real.log x)‖ * ‖(⌊x⌋ + 1 / 2 - x)‖ := ?_
          _ = |x ^ (-z.re - 1)| * |(Real.log x)| * |(⌊x⌋ + 1 / 2 - x)| := by simp
          _ ≤ _ := ?_
-    · sorry
+    · congr! 2
+      simp only [norm_eq_abs, Real.norm_eq_abs, abs_cpow_eq_rpow_re_of_pos x_pos,
+        sub_re, neg_re, one_re]
+      apply abs_eq_self.mpr ?_ |>.symm
+      positivity
     · sorry
   have bound_integrable : Integrable bound μ := by
     sorry
