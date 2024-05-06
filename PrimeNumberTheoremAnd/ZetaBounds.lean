@@ -1537,14 +1537,13 @@ as $|t|\to\infty$.
 \end{lemma}
 %%-/
 lemma ZetaInvBound2 :
-    ∃ C > 0, ∀ {σ : ℝ} (hσ : σ ∈ Ioc 1 2) (t : ℝ) (t_gt : 3 < |t|),
+    ∃ C > 0, ∀ {σ : ℝ} (_ : σ ∈ Ioc 1 2) (t : ℝ) (_ : 3 < |t|),
     1 / ‖ζ (σ + t * I)‖ ≤ C * (σ - 1) ^ (-(3 : ℝ) / 4) * (Real.log |t|) ^ ((1 : ℝ) / 4) := by
   obtain ⟨A, ha, C, hC, h⟩ := ZetaUpperBnd
   obtain ⟨c, hc, h_inv⟩ := ZetaNear1BndExact
+  refine ⟨(2 * C) ^ ((1 : ℝ)/ 4) * c ^ ((3 : ℝ)/ 4), by positivity, ?_⟩
+  intro σ hσ t t_gt
   obtain ⟨σ_gt, σ_le⟩ := hσ
-  rw [Asymptotics.isBigO_iff]
-  use (2 * C) ^ ((1 : ℝ)/ 4) * c ^ ((3 : ℝ)/ 4)
-  filter_upwards [lt_abs_mem_cocompact (a := 2) (by norm_num)] with t ht
   have ht' : 3 < |2 * t| := by simp only [abs_mul, Nat.abs_ofNat]; linarith
   have hnezero: ((σ - 1) / c) ^ (-3 / 4 : ℝ) ≠ 0 := by
     have : (σ - 1) / c ≠ 0 := ne_of_gt <| div_pos (by linarith) hc
@@ -1611,9 +1610,12 @@ lemma ZetaInvBound2 :
     rw [Real.mul_rpow (by norm_num) hC.le, Real.mul_rpow (by norm_num) <|
         Real.log_nonneg (by linarith), abs_mul, abs_mul, ← mul_assoc, mul_comm _ |2 ^ (1 / 4)|]
   · simp only [norm_mul, Real.norm_eq_abs]
-    have : (2 * C) ^ ((1 : ℝ)/ 4) * c ^ ((3 : ℝ)/ 4) =|(2 * C) ^ ((1 : ℝ)/ 4) * c ^ ((3 : ℝ)/ 4)| := by
+    have : (2 * C) ^ ((1 : ℝ)/ 4) * c ^ ((3 : ℝ)/ 4) =
+      |(2 * C) ^ ((1 : ℝ)/ 4) * c ^ ((3 : ℝ)/ 4)| := by
       rw [abs_eq_self.mpr (by apply mul_nonneg <;> (apply Real.rpow_nonneg; linarith))]
-    rw [this, abs_mul]; ring
+    rw [this, abs_mul, abs_eq_self.mpr (by apply Real.rpow_nonneg; linarith), abs_eq_self.mpr (by positivity),
+      abs_eq_self.mpr (by positivity), abs_eq_self.mpr (by apply Real.rpow_nonneg (Real.log_nonneg (by linarith)))]
+    ring_nf
 /-%%
 \begin{proof}\uses{ZetaInvBound1, ZetaNear1BndExact, ZetaUpperBnd}\leanok
 Combine Lemma \ref{ZetaInvBound1} with the bounds in Lemmata \ref{ZetaNear1BndExact} and
