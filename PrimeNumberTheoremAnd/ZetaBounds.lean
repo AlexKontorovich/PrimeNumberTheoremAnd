@@ -514,8 +514,8 @@ lemma ZetaSum_aux1_5c {a b : ℝ} {s : ℂ} :
       (Measure.restrict volume (Ι a b)) := by
   intro
   refine (Measurable.div ?_ <| measurable_id.pow_const _).aestronglyMeasurable
-  refine (_root_.continuous_abs).measurable.comp ?_
-  refine Measurable.sub (Measurable.add ?_ measurable_const) measurable_id
+  refine _root_.continuous_abs.measurable.comp ?_
+  refine Measurable.add ?_ measurable_const |>.sub measurable_id
   exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
 
 lemma ZetaSum_aux1_5d {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
@@ -659,26 +659,13 @@ lemma ZetaSum_aux3 {N : ℕ} {s : ℂ} (s_re_gt : 1 < s.re) :
   · rwa [summable_nat_add_iff (k := 1)]
 
 lemma integrableOn_of_Zeta0_fun {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
-    MeasureTheory.IntegrableOn (fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) (Ioi ↑N)
+    MeasureTheory.IntegrableOn (fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) (Ioi N)
     MeasureTheory.volume := by
   apply MeasureTheory.Integrable.bdd_mul ?_ ?_
   · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
   · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt])
-  · apply Measurable.aestronglyMeasurable
-    refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
-    · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
-    · exact Measurable.comp measurable_id measurable_ofReal
-
-lemma ZetaSum_aux4 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
-    MeasureTheory.IntegrableOn (fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) (Ioi N)
-      MeasureTheory.volume := by
-  apply MeasureTheory.Integrable.bdd_mul ?_ ?_
-  · convert ZetaSum_aux2a; simp [← Complex.abs_ofReal]
-  · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt])
-  · apply Measurable.aestronglyMeasurable
-    refine Measurable.sub (Measurable.add ?_ measurable_const) ?_
-    · exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
-    · exact Measurable.comp measurable_id measurable_ofReal
+  · refine Measurable.add ?_ measurable_const |>.sub (by fun_prop) |>.aestronglyMeasurable
+    exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
 
 /-%%
 \begin{lemma}[ZetaSum_aux2]\label{ZetaSum_aux2}\lean{ZetaSum_aux2}\leanok
@@ -714,7 +701,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       apply Tendsto.div_const <| cpow_inv_tendsto (by positivity)
     · simp_rw [mul_comm_div, one_mul, one_div, cpow_neg]; exact tendsto_const_nhds
     · exact MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
-        (b := (fun (n : ℕ) ↦ (n : ℝ))) (ZetaSum_aux4 N_pos <| by positivity) tendsto_coe_atTop
+        (b := (fun (n : ℕ) ↦ (n : ℝ))) (integrableOn_of_Zeta0_fun N_pos <| by positivity) tendsto_coe_atTop
 /-%%
 \begin{proof}\uses{ZetaSum_aux1}\leanok
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
@@ -747,7 +734,7 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ t : ℝ} (σpos : 0 < σ) :
       iterate 2 (rw [abs_cpow_eq_rpow_re_of_pos (by linarith [hx.1])])
       simp
     · apply IntegrableOn.integrable ?_ |>.norm
-      convert ZetaSum_aux4 (s := σ + t * I) Npos (by simp [σpos]) using 1
+      convert integrableOn_of_Zeta0_fun (s := σ + t * I) Npos (by simp [σpos]) using 1
       simp_rw [div_eq_mul_inv, cpow_neg]
     · exact fun ⦃_⦄ a ↦ a
   · filter_upwards [mem_atTop (N + 1 : ℝ)] with t ht
