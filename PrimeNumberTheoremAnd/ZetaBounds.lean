@@ -1773,7 +1773,7 @@ lemma ZetaInvBnd :
   calc
     _ ≥ ‖ζ s'‖ - ‖ζ s - ζ s'‖ := ?_
     _ ≥ C * (σ' - 1) ^ ((3 : ℝ)/ 4) * Real.log |t|  ^ ((-1 : ℝ)/ 4) - C * Real.log |t| ^ 2 * (σ' - σ) := ?_
-    _ ≥ C * A ^ ((-3 : ℝ)/ 4) * Real.log |t|  ^ (-1 : ℝ) - C * Real.log |t| ^ 2 * 2 * A / Real.log |t| := ?_
+    _ ≥ C * A ^ ((3 : ℝ)/ 4) * Real.log |t|  ^ (-7 : ℝ) - C * Real.log |t| ^ 2 * 2 * A / Real.log |t| ^ 9 := ?_
     _ ≥ _ := ?_
   · apply ge_iff_le.mpr
     convert norm_sub_norm_le (a := ζ s') (b := ζ s' - ζ s) using 1
@@ -1794,17 +1794,17 @@ lemma ZetaInvBnd :
       · simp only [mul_assoc]
         refine mul_le_mul C'le le_rfl ?_ (by positivity)
         exact mul_nonneg (by positivity) (by linarith [hσ.2])
-  · apply sub_le_sub
+  · save
+    apply sub_le_sub
     · apply mul_le_mul ?_ ?_ (by positivity) ?_
-      · apply mul_le_mul_of_nonneg_left ?_ Cpos.le
-        apply Real.rpow_le_rpow_iff_of_neg Apos (by linarith) (by norm_num) |>.mpr
-        simp only [σ']
-        suffices A / Real.log |t| ^ 9 ≤ A by linarith
-        refine div_le_self Apos.le ?_
-        exact mod_cast Real.one_le_rpow (x := Real.log |t|) (z := 9) (by linarith) (by positivity)
+      · sorry
+        -- apply mul_le_mul_of_nonneg_left ?_ Cpos.le
+        -- apply Real.rpow_le_rpow_iff Apos.le (by linarith) (by norm_num) |>.mpr
+        -- simp only [σ', add_sub_cancel_left]
+        -- refine div_le_self Apos.le ?_
+        -- exact mod_cast Real.one_le_rpow (x := Real.log |t|) (z := 9) (by linarith) (by positivity)
       · exact Real.rpow_le_rpow_left_iff logt_gt_one |>.mpr (by norm_num)
-      · have : 0 ≤ σ' - 1 := by linarith
-        positivity
+      · positivity
     · conv => rhs; rw [mul_div_assoc, mul_assoc]
       apply mul_le_mul (by rfl) ?_ ?_ (by positivity)
       · simp only [σ', sub_le_iff_le_add, add_comm]
@@ -1812,7 +1812,8 @@ lemma ZetaInvBnd :
         apply le_trans (b := 1 + A / Real.log |t|)
         · rw [add_le_add_iff_left]
           exact div_le_div Apos.le (by rfl) (by positivity) <| ZetaInvBnd_aux logt_gt_one
-        · rw [add_le_add_iff_right]; linarith only [σ_ge]
+        · sorry
+          -- rw [add_le_add_iff_right]; linarith only [σ_ge]
       · linarith [hσ.2, (by positivity : 0 ≤ A / Real.log |t| ^ 9)]
   · apply div_le_iff (by positivity) |>.mpr
     simp only [sub_mul, ← mul_assoc, mul_comm C (Real.log |t| ^ 7), mul_div_assoc, div_eq_mul_inv A]
