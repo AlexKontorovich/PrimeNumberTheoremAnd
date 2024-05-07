@@ -1781,20 +1781,13 @@ lemma ZetaInvBnd :
       simp only [tsub_le_iff_right]
       convert le_sub_right_of_add_le h using 1; ring_nf; norm_cast; simp
     exact add_le_add (by linarith) (by linarith [hσ.1])
-  · have : Real.log |t| ^ (-(9 : ℝ) + 2) * C * 2 * A =  C * 2 * A * Real.log |t| ^ (-(7 : ℝ)) :=
-      by ring_nf
-    sorry
-    -- save
-    -- conv => lhs; rhs; rw [div_eq_mul_inv, mul_comm, ← mul_assoc, ← mul_assoc, mul_comm C,
-    --   ← mul_assoc, ← Real.rpow_neg (by positivity), ← Real.rpow_add (by positivity), this]
-    -- simp only [tsub_le_iff_right, sub_add_cancel]
-    -- rw [mul_assoc, mul_assoc, Real.div_rpow (by positivity) (by positivity), ← mul_div_right_comm]
-    -- apply mul_le_mul_left Cpos |>.mpr
-    -- conv => rhs; rw [div_eq_mul_inv, mul_assoc]
-    -- apply mul_le_mul_left (by positivity) |>.mpr
-    -- rw [← Real.rpow_neg (by positivity), ← Real.rpow_mul (by positivity),
-    --     ← Real.rpow_add (by positivity)]
-    -- norm_num
+  · simp_rw [tsub_le_iff_right, div_eq_mul_inv _ (Real.log |t| ^ (9 : ℝ))]
+    rw [← Real.rpow_neg (by positivity), Real.mul_rpow (by positivity) (by positivity)]
+    rw [← Real.rpow_mul (by positivity)]
+    ring_nf
+    conv => rhs; lhs; rw [mul_assoc, ← Real.rpow_add (by positivity)]
+    conv => rhs; rhs; rhs; rw [mul_comm _ A]; lhs; rw [mul_assoc, mul_assoc C₂]
+    rw [← Real.rpow_add (by positivity)]; norm_num; group; exact le_rfl
   · apply div_le_iff (by positivity) |>.mpr
     conv => rw [mul_assoc]; rhs; rhs; rw [mul_comm C, ← mul_assoc, ← Real.rpow_add (by positivity)]
     have := inv_inv C ▸ inv_mul_cancel (a := C) (by positivity) |>.symm.le
