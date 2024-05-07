@@ -1706,6 +1706,24 @@ lemma ZetaInvBnd_aux' {t : ℝ} (logt_gt_one : 1 < Real.log |t|) : Real.log |t| 
 lemma ZetaInvBnd_aux {t : ℝ} (logt_gt_one : 1 < Real.log |t|) : Real.log |t| ≤ Real.log |t| ^ 9 :=
     ZetaInvBnd_aux' logt_gt_one |>.le
 
+lemma ZetaInvBnd_aux2 {A C₁ C₂ : ℝ} (Apos : 0 < A) (C₁pos : 0 < C₁) (C₂pos : 0 < C₂)
+    (hA : A ≤ 1 / 2 * (C₁ / (C₂ * 2)) ^ (4 : ℝ)) :
+    0 < (C₁ * A ^ (3 / 4 : ℝ) - C₂ * 2 * A)⁻¹ := by
+  simp only [inv_pos, sub_pos]
+  apply div_lt_iff (by positivity) |>.mp
+  rw [div_eq_mul_inv, ← Real.rpow_neg (by positivity), mul_assoc]
+  apply lt_div_iff' (by positivity) |>.mp
+  nth_rewrite 1 [← Real.rpow_one A]
+  rw [← Real.rpow_add (by positivity)]
+  norm_num
+  apply Real.rpow_lt_rpow_iff (z := 4) (by positivity) (by positivity) (by positivity) |>.mp
+  rw [← Real.rpow_mul (by positivity)]
+  norm_num
+  apply lt_of_le_of_lt hA
+  rw [div_mul_comm, mul_one]
+  apply half_lt_self
+  positivity
+
 /-%%
 \begin{lemma}[ZetaInvBnd]\label{ZetaInvBnd}\lean{ZetaInvBnd}\leanok
 For any $A>0$ sufficiently small, there is a constant $C>0$ so that
@@ -1728,21 +1746,8 @@ lemma ZetaInvBnd :
   have A_le_A' : A ≤ A' := by simp [A]
   set C := (C₁ * A ^ (3 / 4 : ℝ) - C₂ * 2 * A)⁻¹
   have Cpos : 0 < C := by
-    simp only [inv_pos, sub_pos, C]
-    apply div_lt_iff (by positivity) |>.mp
-    rw [div_eq_mul_inv, ← Real.rpow_neg (by positivity), mul_assoc]
-    apply lt_div_iff' (by positivity) |>.mp
-    nth_rewrite 1 [← Real.rpow_one A]
-    rw [← Real.rpow_add (by positivity)]
-    norm_num
-    apply Real.rpow_lt_rpow_iff (z := 4) (by positivity) (by positivity) (by positivity) |>.mp
-    rw [← Real.rpow_mul (by positivity)]
-    norm_num
-    apply lt_of_le_of_lt (b := (1 / 2 : ℝ) * (C₁ / (C₂ * 2)) ^ (4 : ℝ))
-    · apply min_le_iff.mpr; right; exact le_rfl
-    · rw [div_mul_comm, mul_one]
-      apply half_lt_self
-      positivity
+    refine ZetaInvBnd_aux2 (by positivity) (by positivity) (by positivity) ?_
+    apply min_le_iff.mpr; right; exact le_rfl
   refine ⟨A, ⟨Apos, by linarith [hA'.2]⟩ , C, Cpos, ?_⟩
   intro σ t t_gt hσ
   have logt_gt_one := logt_gt_one t_gt
