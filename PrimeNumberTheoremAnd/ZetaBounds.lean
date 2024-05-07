@@ -1719,19 +1719,16 @@ lemma ZetaInvBnd :
     ∃ (A : ℝ) (hA : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
     (hσ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
     1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ (7 : ℝ) := by
-  obtain ⟨A', hA', C', _, h'⟩ := Zeta_diff_Bnd
-  obtain ⟨C₂, C₂pos, hC'⟩ := ZetaInvBound2
-  let A := min A' <| (1 / 2 : ℝ) * (C' / 2 * C₂) ^ 4
+  obtain ⟨C', C'pos, hC₁⟩ := ZetaInvBound2
+  obtain ⟨A', hA', C₂, C₂pos, hC₂⟩ := Zeta_diff_Bnd
+  set C₁ := 1 / C'
+  have C₁pos := one_div_pos.mpr C'pos
+  let A := min A' <| (1 / 2 : ℝ) * (C₁ / 2 * C₂) ^ 4
   have Apos : 0 < A := by have := hA'.1; positivity
   have Ale : A ≤ 1 / 2 := by dsimp only [A]; apply min_le_iff.mpr; left; exact hA'.2
   have A_le_A' : A ≤ A' := by simp [A]
-  let C := C' * A ^ (3 / 4 : ℝ) - 2 * A * C₂
+  set C := (C₁ * A ^ (3 / 4 : ℝ) - C₂ * 2 * A)⁻¹ with hC
   have Cpos : 0 < C := by
-    apply sub_pos.mpr
-    sorry
-  have C'le : C' ≤ C := by sorry
-  have C'le2 : C ≤ C₂⁻¹ := by
-    apply le_inv (by positivity) (by positivity) |>.mp
     sorry
   refine ⟨A, ⟨Apos, by linarith [hA'.2]⟩ , C, Cpos, ?_⟩
   intro σ t t_gt hσ
@@ -1756,30 +1753,27 @@ lemma ZetaInvBnd :
   have pos_aux : 0 < (σ' - 1) := by linarith
   calc
     _ ≥ ‖ζ s'‖ - ‖ζ s - ζ s'‖ := ?_
-    _ ≥ C * (σ' - 1) ^ ((3 : ℝ)/ 4) * Real.log |t|  ^ ((-1 : ℝ)/ 4) - C * Real.log |t| ^ 2 * (σ' - σ) := ?_
-    _ ≥ C * (A / Real.log |t| ^ (9 : ℝ)) ^ ((3 : ℝ)/ 4) * Real.log |t| ^ ((-1 : ℝ)/ 4) - C * Real.log |t| ^ (2 : ℝ) * 2 * A / Real.log |t| ^ (9 : ℝ) := ?_
-    _ ≥ C * A ^ ((3 : ℝ)/ 4) * Real.log |t| ^ (-7 : ℝ) - C * 2 * A * Real.log |t| ^ (-7 : ℝ) := ?_
-    _ = (C * A ^ ((3 : ℝ)/ 4) - C * 2 * A) * Real.log |t| ^ (-7 : ℝ) := by ring
+    _ ≥ C₁ * (σ' - 1) ^ ((3 : ℝ)/ 4) * Real.log |t|  ^ ((-1 : ℝ)/ 4) - C₂ * Real.log |t| ^ 2 * (σ' - σ) := ?_
+    _ ≥ C₁ * (A / Real.log |t| ^ (9 : ℝ)) ^ ((3 : ℝ)/ 4) * Real.log |t| ^ ((-1 : ℝ)/ 4) - C₂ * Real.log |t| ^ (2 : ℝ) * 2 * A / Real.log |t| ^ (9 : ℝ) := ?_
+    _ ≥ C₁ * A ^ ((3 : ℝ)/ 4) * Real.log |t| ^ (-7 : ℝ) - C₂ * 2 * A * Real.log |t| ^ (-7 : ℝ) := ?_
+    _ = (C₁ * A ^ ((3 : ℝ)/ 4) - C₂ * 2 * A) * Real.log |t| ^ (-7 : ℝ) := by ring
     _ ≥ _ := ?_
   · apply ge_iff_le.mpr
     convert norm_sub_norm_le (a := ζ s') (b := ζ s' - ζ s) using 1
     · rw [(by simp : ζ s' - ζ s = -(ζ s - ζ s'))]; simp only [norm_neg, sub_right_inj]
     · simp
   · apply sub_le_sub
-    apply le_trans ?_ <| one_div_le ?_ (by positivity) |>.mp <| hC' ⟨σ'_gt, σ'_le⟩ t t_gt
-    · conv => rhs; rw [div_mul_eq_div_div, div_eq_mul_inv, div_eq_mul_inv, one_mul, mul_inv_rev]
-              lhs; rw [mul_comm]
-      apply mul_le_mul₃ C'le2 ?_ ?_ (by positivity) (by positivity) (by positivity)
-      (any_goals rw [← Real.rpow_neg (by linarith), neg_div]); rw [neg_neg]
-    · exact norm_pos_iff.mpr <| riemannZeta_ne_zero_of_one_lt_re (by simp [σ'_gt])
+    · have := one_div_le ?_ (by positivity) |>.mp <| hC₁ ⟨σ'_gt, σ'_le⟩ t t_gt
+      · convert this using 1
+        rw [one_div, mul_inv_rev, mul_comm, mul_inv_rev, mul_comm _ C'⁻¹]
+        simp only [one_div C', C₁]
+        congr <;> (rw [← Real.rpow_neg (by linarith), neg_div]); rw [neg_neg]
+      · apply norm_pos_iff.mpr <| riemannZeta_ne_zero_of_one_lt_re (by simp [σ'_gt])
     · rw [(by simp : ζ s - ζ s' = -(ζ s' - ζ s)), norm_neg]
-      refine le_trans (h' σ σ' t t_gt ?_ σ'_le <| lt_trans hσ.2 σ'_gt) ?_
-      · apply le_trans ?_ hσ.1
-        rw [tsub_le_iff_right, ← add_sub_right_comm, le_sub_iff_add_le, add_le_add_iff_left]
-        exact div_le_div hA'.1.le (by simp [A]) (by positivity) <| ZetaInvBnd_aux logt_gt_one
-      · simp only [mul_assoc]
-        refine mul_le_mul C'le le_rfl ?_ (by positivity)
-        exact mul_nonneg (by positivity) (by linarith [hσ.2])
+      refine hC₂ σ σ' t t_gt ?_ σ'_le <| lt_trans hσ.2 σ'_gt
+      apply le_trans ?_ hσ.1
+      rw [tsub_le_iff_right, ← add_sub_right_comm, le_sub_iff_add_le, add_le_add_iff_left]
+      exact div_le_div hA'.1.le (by simp [A]) (by positivity) <| ZetaInvBnd_aux logt_gt_one
   · apply sub_le_sub (by simp only [add_sub_cancel_left, σ']; exact_mod_cast le_rfl) ?_
     rw [mul_div_assoc, mul_assoc _ 2 _]
     apply mul_le_mul (by exact_mod_cast le_rfl) ?_ (by linarith [hσ.2]) (by positivity)
@@ -1789,21 +1783,22 @@ lemma ZetaInvBnd :
     exact add_le_add (by linarith) (by linarith [hσ.1])
   · have : Real.log |t| ^ (-(9 : ℝ) + 2) * C * 2 * A =  C * 2 * A * Real.log |t| ^ (-(7 : ℝ)) :=
       by ring_nf
-    conv => lhs; rhs; rw [div_eq_mul_inv, mul_comm, ← mul_assoc, ← mul_assoc, mul_comm C,
-      ← mul_assoc, ← Real.rpow_neg (by positivity), ← Real.rpow_add (by positivity), this]
-    simp only [tsub_le_iff_right, sub_add_cancel]
-    rw [mul_assoc, mul_assoc, Real.div_rpow (by positivity) (by positivity), ← mul_div_right_comm]
-    apply mul_le_mul_left Cpos |>.mpr
-    conv => rhs; rw [div_eq_mul_inv, mul_assoc]
-    apply mul_le_mul_left (by positivity) |>.mpr
-    rw [← Real.rpow_neg (by positivity), ← Real.rpow_mul (by positivity),
-        ← Real.rpow_add (by positivity)]
-    norm_num
+    sorry
+    -- save
+    -- conv => lhs; rhs; rw [div_eq_mul_inv, mul_comm, ← mul_assoc, ← mul_assoc, mul_comm C,
+    --   ← mul_assoc, ← Real.rpow_neg (by positivity), ← Real.rpow_add (by positivity), this]
+    -- simp only [tsub_le_iff_right, sub_add_cancel]
+    -- rw [mul_assoc, mul_assoc, Real.div_rpow (by positivity) (by positivity), ← mul_div_right_comm]
+    -- apply mul_le_mul_left Cpos |>.mpr
+    -- conv => rhs; rw [div_eq_mul_inv, mul_assoc]
+    -- apply mul_le_mul_left (by positivity) |>.mpr
+    -- rw [← Real.rpow_neg (by positivity), ← Real.rpow_mul (by positivity),
+    --     ← Real.rpow_add (by positivity)]
+    -- norm_num
   · apply div_le_iff (by positivity) |>.mpr
     conv => rw [mul_assoc]; rhs; rhs; rw [mul_comm C, ← mul_assoc, ← Real.rpow_add (by positivity)]
-    · norm_num
-      -- this is how A, C were chosen
-      sorry
+    have := inv_inv C ▸ inv_mul_cancel (a := C) (by positivity) |>.symm.le
+    simpa [C] using this
 /-%%
 \begin{proof}
 \uses{Zeta_diff_Bnd, ZetaInvBound2}
