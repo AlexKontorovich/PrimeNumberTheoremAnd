@@ -9,9 +9,10 @@ vscode:
 
 tasks:
   - init: |
-    elan toolchain install $(cat lean-toolchain)
-    lake exe cache get
-  - command: lake build
+        elan toolchain install $(cat lean-toolchain)
+        lake exe cache get
+
+    command: lake build
 
 
 
