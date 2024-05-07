@@ -22,9 +22,7 @@ RUN curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -
 
 WORKDIR /workspace/PrimeNumberTheoremAnd
 
-RUN echo tt > tt
-
-RUN elan toolchain install $(cat lean-toolchain)
+RUN elan toolchain install $(cat /workspace/PrimeNumberTheoremAnd/lean-toolchain)
 
 RUN lake exe cache get
 RUN lake build
