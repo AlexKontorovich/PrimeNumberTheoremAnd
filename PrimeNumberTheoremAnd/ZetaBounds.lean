@@ -1780,34 +1780,25 @@ lemma ZetaInvBnd :
       · simp only [mul_assoc]
         refine mul_le_mul C'le le_rfl ?_ (by positivity)
         exact mul_nonneg (by positivity) (by linarith [hσ.2])
-  · save
-    apply sub_le_sub
-    · apply mul_le_mul ?_ ?_ (by positivity) ?_
-      · sorry
-        -- apply mul_le_mul_of_nonneg_left ?_ Cpos.le
-        -- apply Real.rpow_le_rpow_iff Apos.le (by linarith) (by norm_num) |>.mpr
-        -- simp only [σ', add_sub_cancel_left]
-        -- refine div_le_self Apos.le ?_
-        -- exact mod_cast Real.one_le_rpow (x := Real.log |t|) (z := 9) (by linarith) (by positivity)
-      · exact Real.rpow_le_rpow_left_iff logt_gt_one |>.mpr (by norm_num)
-      · positivity
-    · conv => rhs; rw [mul_div_assoc, mul_assoc]
-      apply mul_le_mul (by simp) ?_ ?_ (by positivity)
-      · simp only [σ', sub_le_iff_le_add, add_comm]
-        rw [two_mul, ← add_assoc]
-        apply le_trans (b := 1 + A / Real.log |t|)
-        · rw [add_le_add_iff_left]
-          exact div_le_div Apos.le (by rfl) (by positivity) <| ZetaInvBnd_aux logt_gt_one
-        · sorry
-          -- rw [add_le_add_iff_right]; linarith only [σ_ge]
-      · linarith [hσ.2, (by positivity : 0 ≤ A / Real.log |t| ^ 9)]
-  · save
-    have : Real.log |t| ^ (-(9 : ℝ) + 2) * C * 2 * A =  C * 2 * A * Real.log |t| ^ (-(7 : ℝ)) :=
+  · apply sub_le_sub (by simp only [add_sub_cancel_left, σ']; exact_mod_cast le_rfl) ?_
+    rw [mul_div_assoc, mul_assoc _ 2 _]
+    apply mul_le_mul (by exact_mod_cast le_rfl) ?_ (by linarith [hσ.2]) (by positivity)
+    suffices h : σ' + (1 - A / Real.log |t| ^ 9) ≤ (1 + A / Real.log |t| ^ 9) + σ by
+      simp only [tsub_le_iff_right]
+      convert le_sub_right_of_add_le h using 1; ring_nf; norm_cast; simp
+    exact add_le_add (by linarith) (by linarith [hσ.1])
+  · have : Real.log |t| ^ (-(9 : ℝ) + 2) * C * 2 * A =  C * 2 * A * Real.log |t| ^ (-(7 : ℝ)) :=
       by ring_nf
     conv => lhs; rhs; rw [div_eq_mul_inv, mul_comm, ← mul_assoc, ← mul_assoc, mul_comm C,
       ← mul_assoc, ← Real.rpow_neg (by positivity), ← Real.rpow_add (by positivity), this]
     simp only [tsub_le_iff_right, sub_add_cancel]
-    sorry
+    rw [mul_assoc, mul_assoc, Real.div_rpow (by positivity) (by positivity), ← mul_div_right_comm]
+    apply mul_le_mul_left Cpos |>.mpr
+    conv => rhs; rw [div_eq_mul_inv, mul_assoc]
+    apply mul_le_mul_left (by positivity) |>.mpr
+    rw [← Real.rpow_neg (by positivity), ← Real.rpow_mul (by positivity),
+        ← Real.rpow_add (by positivity)]
+    norm_num
   · apply div_le_iff (by positivity) |>.mpr
     conv => rw [mul_assoc]; rhs; rhs; rw [mul_comm C, ← mul_assoc, ← Real.rpow_add (by positivity)]
     · norm_num
