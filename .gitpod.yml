@@ -7,13 +7,11 @@ vscode:
   extensions:
     - leanprover.lean4 # install the Lean 4 VS Code extension
 
-#tasks:
-#  - init: |
-#    echo test > test
-#    curl 'https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh' -sSf | sh -s -- -y --default-toolchain none
-#    elan toolchain install $(cat lean-toolchain)
-#    lake exe cache get
-#    lake build
+tasks:
+  - init: |
+    elan toolchain install $(cat lean-toolchain)
+    lake exe cache get
+    lake build
 
 
 

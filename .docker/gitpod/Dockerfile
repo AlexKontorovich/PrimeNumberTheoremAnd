@@ -21,14 +21,14 @@ RUN curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -
 
 ENV PATH="/home/gitpod/.local/bin:/home/gitpod/.elan/bin:${PATH}"
 
-WORKDIR /workspace/PrimeNumberTheoremAnd
-
-RUN . ~/.profile
-
-RUN elan toolchain install $(cat /workspace/PrimeNumberTheoremAnd/lean-toolchain)
-
-RUN lake exe cache get
-RUN lake build
+#WORKDIR /workspace/PrimeNumberTheoremAnd
+#
+#RUN . ~/.profile
+#
+#RUN elan toolchain install $(cat /workspace/PrimeNumberTheoremAnd/lean-toolchain)
+#
+#RUN lake exe cache get
+#RUN lake build
 
 ## fix the infoview when the container is used on gitpod:
 #ENV VSCODE_API_VERSION="1.50.0"
