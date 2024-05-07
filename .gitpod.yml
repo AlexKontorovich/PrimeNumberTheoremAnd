@@ -8,9 +8,13 @@ vscode:
     - leanprover.lean4 # install the Lean 4 VS Code extension
 
 tasks:
-  - command: curl 'https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh' -sSf | sh -s -- -y --default-toolchain none
-  - command: elan toolchain install $(cat lean-toolchain)
-  - command: lake exe cache get
-  - command: lake build
+  - init: |
+    curl 'https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh' -sSf | sh -s -- -y --default-toolchain none
+    elan toolchain install $(cat lean-toolchain)
+    lake exe cache get
+    lake build
+
+
+
   #- command: . /home/gitpod/.profile && lake exe cache get # Download cache
 
