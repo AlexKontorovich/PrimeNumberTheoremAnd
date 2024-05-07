@@ -1723,13 +1723,27 @@ lemma ZetaInvBnd :
   obtain ⟨A', hA', C₂, C₂pos, hC₂⟩ := Zeta_diff_Bnd
   set C₁ := 1 / C'
   have C₁pos := one_div_pos.mpr C'pos
-  let A := min A' <| (1 / 2 : ℝ) * (C₁ / 2 * C₂) ^ 4
+  let A := min A' <| (1 / 2 : ℝ) * (C₁ / (C₂ * 2)) ^ (4 : ℝ)
   have Apos : 0 < A := by have := hA'.1; positivity
   have Ale : A ≤ 1 / 2 := by dsimp only [A]; apply min_le_iff.mpr; left; exact hA'.2
   have A_le_A' : A ≤ A' := by simp [A]
-  set C := (C₁ * A ^ (3 / 4 : ℝ) - C₂ * 2 * A)⁻¹ with hC
+  set C := (C₁ * A ^ (3 / 4 : ℝ) - C₂ * 2 * A)⁻¹
   have Cpos : 0 < C := by
-    sorry
+    simp only [inv_pos, sub_pos, C]
+    apply div_lt_iff (by positivity) |>.mp
+    rw [div_eq_mul_inv, ← Real.rpow_neg (by positivity), mul_assoc]
+    apply lt_div_iff' (by positivity) |>.mp
+    nth_rewrite 1 [← Real.rpow_one A]
+    rw [← Real.rpow_add (by positivity)]
+    norm_num
+    apply Real.rpow_lt_rpow_iff (z := 4) (by positivity) (by positivity) (by positivity) |>.mp
+    rw [← Real.rpow_mul (by positivity)]
+    norm_num
+    apply lt_of_le_of_lt (b := (1 / 2 : ℝ) * (C₁ / (C₂ * 2)) ^ (4 : ℝ))
+    · apply min_le_iff.mpr; right; exact le_rfl
+    · rw [div_mul_comm, mul_one]
+      apply half_lt_self
+      positivity
   refine ⟨A, ⟨Apos, by linarith [hA'.2]⟩ , C, Cpos, ?_⟩
   intro σ t t_gt hσ
   have logt_gt_one := logt_gt_one t_gt
@@ -1793,7 +1807,7 @@ lemma ZetaInvBnd :
     have := inv_inv C ▸ inv_mul_cancel (a := C) (by positivity) |>.symm.le
     simpa [C] using this
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{Zeta_diff_Bnd, ZetaInvBound2}
 Let $\sigma$ be given in the prescribed range, and set $\sigma' := 1+ A / \log^9 |t|$.
 Then
