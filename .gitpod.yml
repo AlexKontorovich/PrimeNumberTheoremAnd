@@ -11,9 +11,9 @@ tasks:
   - init: |
     elan toolchain install $(cat lean-toolchain)
     lake exe cache get
-    lake build
+  - command: lake build
 
 
 
-  #- command: . /home/gitpod/.profile && lake exe cache get # Download cache
+#- command: . /home/gitpod/.profile && lake exe cache get # Download cache
 
