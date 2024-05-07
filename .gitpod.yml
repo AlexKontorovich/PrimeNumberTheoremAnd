@@ -14,7 +14,3 @@ tasks:
 
     command: lake build
 
-
-
-#- command: . /home/gitpod/.profile && lake exe cache get # Download cache
-

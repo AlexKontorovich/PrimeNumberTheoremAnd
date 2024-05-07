@@ -13,29 +13,8 @@ WORKDIR /home/gitpod
 
 SHELL ["/bin/bash", "-c"]
 
-## gitpod bash prompt
-#RUN { echo && echo "PS1='\[\033[01;32m\]\u\[\033[00m\] \[\033[01;34m\]\w\[\033[00m\]\$(__git_ps1 \" (%s)\") $ '" ; } >> .bashrc
-
 # install elan
 RUN curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
 
 ENV PATH="/home/gitpod/.local/bin:/home/gitpod/.elan/bin:${PATH}"
-
-#WORKDIR /workspace/PrimeNumberTheoremAnd
-#
-#RUN . ~/.profile
-#
-#RUN elan toolchain install $(cat /workspace/PrimeNumberTheoremAnd/lean-toolchain)
-#
-#RUN lake exe cache get
-#RUN lake build
-
-## fix the infoview when the container is used on gitpod:
-#ENV VSCODE_API_VERSION="1.50.0"
-
-## ssh to github once to bypass the unknown fingerprint warning
-#RUN ssh -o StrictHostKeyChecking=no github.com || true
-#
-## run sudo once to suppress usage info
-#RUN sudo echo finished
 
