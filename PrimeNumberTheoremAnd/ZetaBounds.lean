@@ -1859,8 +1859,7 @@ lemma LogDerivZetaBnd :
   replace h := h σ t t_gt ⟨σ_ge', σ_lt⟩
   replace h' := h' σ t t_gt ⟨σ_ge'', by linarith⟩
   simp only [norm_div, norm_one, norm_mul, norm_inv]
-  convert mul_le_mul h h' (by simp [apply_nonneg]) ?_ using 1 <;> ring_nf
-  exact mul_nonneg hC.le <| pow_nonneg (Real.log_nonneg (by linarith)) 7
+  convert mul_le_mul h h' (by simp [apply_nonneg]) ?_ using 1 <;> (norm_cast; ring_nf); positivity
 /-%%
 \begin{proof}\leanok
 \uses{ZetaInvBnd, ZetaDerivUpperBnd}
