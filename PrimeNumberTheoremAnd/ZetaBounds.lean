@@ -1717,12 +1717,11 @@ $$
 %%-/
 lemma ZetaInvBnd :
     ∃ (A : ℝ) (hA : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (Cpos : 0 < C), ∀ (σ : ℝ) (t : ℝ) (t_gt : 3 < |t|)
-    (hσ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
+    (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
     1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ (7 : ℝ) := by
   obtain ⟨C', C'pos, hC₁⟩ := ZetaInvBound2
   obtain ⟨A', hA', C₂, C₂pos, hC₂⟩ := Zeta_diff_Bnd
   set C₁ := 1 / C'
-  have C₁pos := one_div_pos.mpr C'pos
   let A := min A' <| (1 / 2 : ℝ) * (C₁ / (C₂ * 2)) ^ (4 : ℝ)
   have Apos : 0 < A := by have := hA'.1; positivity
   have Ale : A ≤ 1 / 2 := by dsimp only [A]; apply min_le_iff.mpr; left; exact hA'.2
@@ -1751,7 +1750,7 @@ lemma ZetaInvBnd :
     apply le_trans ?_ hσ.1
     suffices A / Real.log |t| ^ 9 ≤ A / Real.log |t| by linarith
     exact div_le_div Apos.le (by rfl) (by positivity) <| ZetaInvBnd_aux logt_gt_one
-  obtain ⟨σ_gt, σPos, neOne⟩ := UpperBnd_aux ⟨Apos, Ale⟩ t_gt σ_ge
+  obtain ⟨_, _, neOne⟩ := UpperBnd_aux ⟨Apos, Ale⟩ t_gt σ_ge
   set σ' := 1 + A / Real.log |t| ^ 9
   have σ'_gt : 1 < σ' := by simp only [σ', lt_add_iff_pos_right]; positivity
   have σ'_le : σ' ≤ 2 := by
