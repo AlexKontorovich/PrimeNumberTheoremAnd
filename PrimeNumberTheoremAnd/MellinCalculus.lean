@@ -14,7 +14,7 @@ theorem MeasureTheory.set_integral_integral_swap {α : Type*} {β : Type*} {E : 
   convert hf.integrable
   exact Measure.prod_restrict s t
 
--- How to deal with this coersion?... Ans: (f ·)
+-- How to deal with this coercion?... Ans: (f ·)
 --- noncomputable def funCoe (f : ℝ → ℝ) : ℝ → ℂ := fun x ↦ f x
 
 open Complex Topology Filter Real MeasureTheory Set
@@ -184,7 +184,7 @@ lemma Filter.BigO_zero_atTop_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂)
   refine norm_le_zero_iff.mpr <| Function.support_subset_iff'.mp fSupp c ?_
   exact fun h ↦ by linarith [mem_Icc.mp h]
 
--- steal coerction lemmas from EulerProducts.Auxiliary because of build issues, and add new ones
+-- steal coercion lemmas from EulerProducts.Auxiliary because of build issues, and add new ones
 namespace Complex
 -- see https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Differentiability.20of.20the.20natural.20map.20.E2.84.9D.20.E2.86.92.20.E2.84.82/near/418095234
 
