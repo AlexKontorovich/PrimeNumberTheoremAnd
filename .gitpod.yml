@@ -1,0 +1,16 @@
+# This is run when starting a Gitpod workspace on this repository
+
+image:
+  file: .docker/gitpod/Dockerfile
+
+vscode:
+  extensions:
+    - leanprover.lean4 # install the Lean 4 VS Code extension
+
+tasks:
+  - init: |
+        elan toolchain install $(cat lean-toolchain)
+        lake exe cache get
+
+    command: lake build
+
