@@ -854,8 +854,8 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
   · simp only [one_div, mul_neg, neg_mul, neg_inj, F', f, div_cpow_eq_cpow_neg]; ring_nf
 
 noncomputable def ζ₀' (N : ℕ) (s : ℂ) : ℂ :=
-    -∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s * Real.log (n : ℝ) +
-    N ^ (1 - s) / (1 - s) ^ 2 + Real.log (N : ℝ) * N ^ (1 - s) / (1 - s) +
+    ∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ s * Real.log (n : ℝ) +
+    (N ^ (1 - s) / (1 - s) ^ 2 + Real.log (N : ℝ) * N ^ (1 - s) / (1 - s)) +
     Real.log (N : ℝ) * N ^ (-s) / 2 +
     (1 * (∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1)) +
     s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1) * (- Real.log x))
