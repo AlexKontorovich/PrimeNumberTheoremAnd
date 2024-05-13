@@ -857,14 +857,24 @@ noncomputable def ζ₀' (N : ℕ) (s : ℂ) : ℂ :=
       + (1 * (∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1))
       + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1) * (- Real.log x))
 
+lemma HasDerivAt_neg_cpow_over2 {N : ℕ} (Npos : 0 < N) (s : ℂ) :
+    HasDerivAt (fun x : ℂ ↦ -(N : ℂ) ^ (-x) / 2) (-((- Real.log N) * (N : ℂ) ^ (-s)) / 2) s := by
+  apply HasDerivAt.div_const
+  apply HasDerivAt.neg
+  convert @HasDerivAt.const_cpow (f := fun s ↦ -s) (f' := -1) (x := s) (c := N)
+    (hasDerivAt_neg' s) (by left; exact_mod_cast Npos.ne.symm) using 1
+  rw [mul_comm, mul_assoc]
+  congr! 1
+  simp only [Complex.natCast_log, mul_neg, mul_one]
+
 lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
     HasDerivAt (ζ₀ N) (ζ₀' N s) s := by
   unfold riemannZeta0 ζ₀'
   apply HasDerivAt.add
   · apply HasDerivAt.add
     · sorry
-    ·
-      sorry
+    · convert HasDerivAt_neg_cpow_over2 Npos s using 1
+      simp only [natCast_log, neg_mul, neg_neg]
   · simp_rw [div_cpow_eq_cpow_neg, neg_add, ← sub_eq_add_neg]
     have' := HasDerivAt.mul (c := (id : ℂ → ℂ)) (hc := hasDerivAt_id s) (hd := hasDerivAt_Zeta0Integral Npos reS_pos)
     convert this using 1
