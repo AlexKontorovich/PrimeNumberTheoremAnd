@@ -1304,6 +1304,8 @@ $$
 \end{proof}
 %%-/
 
+#exit
+
 lemma NormDerivZeta0Le {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
     ‖deriv (ζ₀ N) s‖ ≤ 4 * (N : ℝ).log *
     (‖∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s‖ +
