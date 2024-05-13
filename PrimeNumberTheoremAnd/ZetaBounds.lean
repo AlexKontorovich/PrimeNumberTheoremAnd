@@ -821,7 +821,7 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
       sorry
     apply MeasureTheory.ae_restrict_of_ae_restrict_of_subset this
     have : MeasurableSet {x : ℝ | 0 < x} := (isOpen_lt' 0).measurableSet
-    filter_upwards [MeasureTheory.self_mem_ae_restrict this] with x xpos
+    filter_upwards [MeasureTheory.self_mem_ae_restrict this] with x x_pos
     intro z hz
     simp only [F', f, bound]
     calc _ = ‖(x : ℂ) ^ (-z - 1)‖ * ‖-(Real.log x)‖ * ‖(⌊x⌋ + 1 / 2 - x)‖ := by
@@ -900,8 +900,6 @@ lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s
   -- · apply DifferentiableOn.mul differentiableOn_id
   --   apply DifferentiableOn.mono (t := {s : ℂ | 0 < s.re}) (st := by aesop)
   --   exact fun _ hs ↦ (hasDerivAt_Zeta0Integral N_pos hs).differentiableAt.differentiableWithinAt
-  sorry
-
 
 /-%%
 \begin{lemma}[HolomorphicOn_Zeta0]\label{HolomorphicOn_Zeta0}\lean{HolomorphicOn_Zeta0}\leanok
@@ -1210,7 +1208,9 @@ lemma Nat.self_div_floor_bound {t : ℝ} (t_ge : 1 ≤ |t|) : let N := ⌊|t|⌋
 lemma UpperBnd_aux5 {σ t : ℝ}  (t_ge : 3 < |t|) (σ_le : σ ≤ 2) : (|t| / ⌊|t|⌋₊) ^ σ ≤ 4 := by
   obtain ⟨h₁, h₂⟩ := Nat.self_div_floor_bound (by linarith)
   refine le_trans₄ (c := 2 ^ 2) ?_ (Real.rpow_le_rpow (by linarith) h₂ (by norm_num)) (by norm_num)
-  exact (Real.rpow_le_rpow_of_exponent_le h₁ σ_le)
+  gcongr
+  exact h₁
+--  exact (Real.rpow_le_rpow_of_exponent_le h₁ σ_le)
 
 lemma UpperBnd_aux6 {σ t : ℝ} (t_ge : 3 < |t|) (hσ : σ ∈ Ioc (1 / 2) 2)
   (neOne : σ + t * I ≠ 1) (Npos : 0 < ⌊|t|⌋₊) (N_le_t : ⌊|t|⌋₊ ≤ |t|) :
@@ -1325,16 +1325,14 @@ $$
 \end{proof}
 %%-/
 
-#exit
-
 lemma NormDerivZeta0Le {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
     ‖deriv (ζ₀ N) s‖ ≤ 4 * (N : ℝ).log *
     (‖∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s‖ +
     ‖(N : ℂ) ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
     ‖s * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖) := by
-  rw [DerivZeta0Eq Npos reS_pos s_ne_one, sub_eq_add_neg]
-  apply le_trans (by apply norm_add₅_le) ?_
-  simp only [norm_neg, norm_div, norm_pow, norm_mul, RCLike.norm_ofNat]
+  -- rw [DerivZeta0Eq Npos reS_pos s_ne_one, sub_eq_add_neg]
+  -- apply le_trans (by apply norm_add₅_le) ?_
+  -- simp only [norm_neg, norm_div, norm_pow, norm_mul, RCLike.norm_ofNat]
   sorry
 
 /-%%
