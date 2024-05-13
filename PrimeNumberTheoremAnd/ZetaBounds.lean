@@ -854,10 +854,11 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
   · simp only [one_div, mul_neg, neg_mul, neg_inj, F', f, div_cpow_eq_cpow_neg]; ring_nf
 
 noncomputable def ζ₀' (N : ℕ) (s : ℂ) : ℂ :=
-    -∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s * (n : ℝ).log +
-    N ^ (1 - s) / (1 - s) ^ 2 + (N : ℝ).log * N ^ (1 - s) / (1 - s) + (N : ℝ).log * N ^ (-s) / 2
-      + (1 * (∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1))
-      + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1) * (- Real.log x))
+    -∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s * Real.log (n : ℝ) +
+    N ^ (1 - s) / (1 - s) ^ 2 + Real.log (N : ℝ) * N ^ (1 - s) / (1 - s) +
+    Real.log (N : ℝ) * N ^ (-s) / 2 +
+    (1 * (∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1)) +
+    s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1) * (- Real.log x))
 
 lemma HasDerivAt_neg_cpow_over2 {N : ℕ} (Npos : 0 < N) (s : ℂ) :
     HasDerivAt (fun x : ℂ ↦ -(N : ℂ) ^ (-x) / 2) (-((- Real.log N) * (N : ℂ) ^ (-s)) / 2) s := by
@@ -1183,7 +1184,8 @@ lemma UpperBnd_aux3 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
       · simp only [hN, Nat.cast_one, Real.log_one, add_zero]
         have : 2 * 1 ≤ C * Real.log |t| := mul_le_mul hC logt_gt.le (by linarith) (by linarith)
         linarith
-      · rw [(by ring : C * Real.log |t| = Real.log |t| + (C - 1) * Real.log |t|), ← one_mul (N: ℝ).log]
+      · rw [(by ring : C * Real.log |t| = Real.log |t| + (C - 1) * Real.log |t|),
+          ← one_mul <| Real.log (N: ℝ)]
         apply add_le_add logt_gt.le
         refine mul_le_mul (by linarith) ?_ (by positivity) (by linarith)
         exact Real.log_le_log (by positivity) N_le_t
