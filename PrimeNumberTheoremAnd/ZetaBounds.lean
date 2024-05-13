@@ -851,6 +851,37 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
   · ext a; simp only [one_div, F, f, div_cpow_eq_cpow_neg]; ring_nf
   · simp only [one_div, mul_neg, neg_mul, neg_inj, F', f, div_cpow_eq_cpow_neg]; ring_nf
 
+noncomputable def ζ₀' (N : ℕ) (s : ℂ) : ℂ :=
+    -∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s * (n : ℝ).log +
+    N ^ (1 - s) / (1 - s) ^ 2 + (N : ℝ).log * N ^ (1 - s) / (1 - s) + (N : ℝ).log * N ^ (-s) / 2
+      - s * ∫ x in Ioi (N : ℝ), x.log * (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
+
+lemma DerivZeta0Eq {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
+    HasDerivAt (ζ₀ N) (ζ₀' N s) s := by
+  unfold riemannZeta0 ζ₀'
+
+  -- apply DifferentiableOn.sum ?_ |>.add ?_|>.add ?_|>.add ?_
+  -- · intro n _
+  --   by_cases n0 : n = 0
+  --   · apply differentiableOn_const _|>.congr (f := fun _ ↦ 0) ?_
+  --     intro s hs
+  --     have : (n : ℂ) ^ s = 0 := by
+  --       apply cpow_eq_zero_iff _ _ |>.mpr ⟨by simp [n0], by contrapose! hs; simp [hs]⟩
+  --     simp [this]
+  --   · apply differentiableOn_const _|>.div ?_ (by simp [n0])
+  --     refine DifferentiableOn.const_cpow (by fun_prop) ?_
+  --     right; intro s hs; contrapose! hs; simp [hs]
+  -- · refine DifferentiableOn.const_cpow (by fun_prop) ?_ |>.neg |>.div (by fun_prop) ?_
+  --   · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
+  --   · intro x hx; contrapose! hx; simp [sub_eq_zero.mp hx |>.symm]
+  -- · refine DifferentiableOn.const_cpow (by fun_prop) ?_ |>.neg |>.div (by fun_prop) (by norm_num)
+  --   · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
+  -- · apply DifferentiableOn.mul differentiableOn_id
+  --   apply DifferentiableOn.mono (t := {s : ℂ | 0 < s.re}) (st := by aesop)
+  --   exact fun _ hs ↦ (hasDerivAt_Zeta0Integral N_pos hs).differentiableAt.differentiableWithinAt
+  sorry
+
+
 /-%%
 \begin{lemma}[HolomorphicOn_Zeta0]\label{HolomorphicOn_Zeta0}\lean{HolomorphicOn_Zeta0}\leanok
 For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$.
@@ -858,26 +889,10 @@ For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \R
 %%-/
 lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
     HolomorphicOn (ζ₀ N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
-  unfold riemannZeta0
-  apply DifferentiableOn.sum ?_ |>.add ?_|>.add ?_|>.add ?_
-  · intro n _
-    by_cases n0 : n = 0
-    · apply differentiableOn_const _|>.congr (f := fun _ ↦ 0) ?_
-      intro s hs
-      have : (n : ℂ) ^ s = 0 := by
-        apply cpow_eq_zero_iff _ _ |>.mpr ⟨by simp [n0], by contrapose! hs; simp [hs]⟩
-      simp [this]
-    · apply differentiableOn_const _|>.div ?_ (by simp [n0])
-      refine DifferentiableOn.const_cpow (by fun_prop) ?_
-      right; intro s hs; contrapose! hs; simp [hs]
-  · refine DifferentiableOn.const_cpow (by fun_prop) ?_ |>.neg |>.div (by fun_prop) ?_
-    · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
-    · intro x hx; contrapose! hx; simp [sub_eq_zero.mp hx |>.symm]
-  · refine DifferentiableOn.const_cpow (by fun_prop) ?_ |>.neg |>.div (by fun_prop) (by norm_num)
-    · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
-  · apply DifferentiableOn.mul differentiableOn_id
-    apply DifferentiableOn.mono (t := {s : ℂ | 0 < s.re}) (st := by aesop)
-    exact fun _ hs ↦ (hasDerivAt_Zeta0Integral N_pos hs).differentiableAt.differentiableWithinAt
+  intro s ⟨hs₁, hs₂⟩
+  apply DifferentiableAt.differentiableWithinAt
+  apply HasDerivAt.differentiableAt (f' := ζ₀' N s)
+  exact DerivZeta0Eq N_pos hs₂ hs₁
 /-%%
 \begin{proof}\uses{riemannZeta0, ZetaBnd_aux1b}\leanok
   The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral
@@ -1291,13 +1306,6 @@ $$
 $$
 \end{proof}
 %%-/
-
-lemma DerivZeta0Eq {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
-    deriv (ζ₀ N) s = -∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s * (n : ℝ).log +
-    N ^ (1 - s) / (1 - s) ^ 2 + (N : ℝ).log * N ^ (1 - s) / (1 - s) + (N : ℝ).log * N ^ (-s) / 2
-      - s * ∫ x in Ioi (N : ℝ), x.log * (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1) := by
-  unfold riemannZeta0
-  sorry
 
 lemma NormDerivZeta0Le {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
     ‖deriv (ζ₀ N) s‖ ≤ 4 * (N : ℝ).log *
