@@ -888,11 +888,8 @@ For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \R
 \end{lemma}
 %%-/
 lemma HolomorphicOn_riemannZeta0 {N : ℕ} (N_pos : 0 < N) :
-    HolomorphicOn (ζ₀ N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} := by
-  intro s ⟨hs₁, hs₂⟩
-  apply DifferentiableAt.differentiableWithinAt
-  apply HasDerivAt.differentiableAt (f' := ζ₀' N s)
-  exact DerivZeta0Eq N_pos hs₂ hs₁
+    HolomorphicOn (ζ₀ N) {s : ℂ | s ≠ 1 ∧ 0 < s.re} :=
+  fun _ ⟨hs₁, hs₂⟩ ↦ (HasDerivAtZeta0 N_pos hs₂ hs₁).differentiableAt.differentiableWithinAt
 /-%%
 \begin{proof}\uses{riemannZeta0, ZetaBnd_aux1b}\leanok
   The function $\zeta_0(N,s)$ is a finite sum of entire functions, plus an integral
