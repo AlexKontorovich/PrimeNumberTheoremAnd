@@ -865,32 +865,36 @@ lemma HasDerivAt_neg_cpow_over2 {N : ℕ} (Npos : 0 < N) (s : ℂ) :
   convert hasDerivAt_neg' s |>.const_cpow (c := N) (by aesop) |>.neg |>.div_const _ using 1
   simp [mul_comm]
 
+lemma HasDerivAt_cpow_over_var {N : ℕ} (Npos : 0 < N) {z : ℂ} (z_ne_zero : z ≠ 0) :
+    HasDerivAt (fun z ↦ -(N : ℂ) ^ z / z) (-(log N * N ^ z / z) + -(↑N ^ z / z ^ 2)) z := by
+  have := @HasDerivAt.div (c := fun z ↦ -(N : ℂ) ^ z) (d := (id : ℂ → ℂ)) (d' := 1) ?_ z _ ?_ ?_ ?_ ?_ ?_
+  · convert this using 0
+    simp
+    sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+    -- apply hasDerivAt_id (x := 1-s)
+  · sorry
+
 lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
     HasDerivAt (ζ₀ N) (ζ₀' N s) s := by
   unfold riemannZeta0 ζ₀'
-  apply HasDerivAt.add
-  · apply HasDerivAt.add
-    · apply HasDerivAt.add
-      · apply HasDerivAt.sum
-        intro n hn
-        convert hasDerivAt_neg' s |>.const_cpow (c := n) (by aesop) using 1
-        all_goals (ring_nf; simp [cpow_neg])
-      · have := @HasDerivAt.comp (h₂ := fun z ↦ -(N : ℂ) ^ z / z) (h := fun z ↦ 1 - z) (h' := -1) _ s _ _ ?_ ?_ ?_
-        swap
-        · exact - ((N : ℂ) ^ (1 - s) / (1 - s) ^ 2 + Real.log (N : ℝ) * (N : ℂ) ^ (1 - s) / (1 - s))
-        · convert this using 1; ring_nf
-        · simp only [natCast_log, neg_add_rev]
-          sorry
-        · convert @HasDerivAt.sub (f := (1 : ℂ → ℂ)) (g := (id : ℂ → ℂ)) _ _ _ 0 1 s ?_ ?_ using 1
-          · simp
-          · apply hasDerivAt_const
-          · apply hasDerivAt_id
-    · convert HasDerivAt_neg_cpow_over2 Npos s using 1
-      simp only [natCast_log, neg_mul, neg_neg]
+  apply HasDerivAt.sum ?_ |>.add ?_ |>.add ?_ |>.add ?_
+  · intro n _
+    convert hasDerivAt_neg' s |>.const_cpow (c := n) (by aesop) using 1
+    all_goals (ring_nf; simp [cpow_neg])
+  · convert HasDerivAt.comp (h₂ := fun z ↦ -(N : ℂ) ^ z / z) (h := fun z ↦ 1 - z) (h' := -1)
+      (h₂' := -((N : ℂ) ^ (1 - s) / (1 - s) ^ 2 + Real.log (N : ℝ) * (N : ℂ) ^ (1 - s) / (1 - s)))
+      (x := s) ?_ ?_ using 1; ring_nf
+    · simp only [natCast_log, neg_add_rev]
+      convert HasDerivAt_cpow_over_var Npos (by rw [sub_ne_zero]; exact s_ne_one.symm) using 1
+    · convert hasDerivAt_const s _ |>.sub (hasDerivAt_id _) using 1; simp
+  · convert HasDerivAt_neg_cpow_over2 Npos s using 1; simp only [natCast_log, neg_mul, neg_neg]
   · simp_rw [div_cpow_eq_cpow_neg, neg_add, ← sub_eq_add_neg]
-    have' := HasDerivAt.mul (c := (id : ℂ → ℂ)) (hc := hasDerivAt_id s) (hd := hasDerivAt_Zeta0Integral Npos reS_pos)
-    convert this using 1
-
+    convert hasDerivAt_id s |>.mul <| hasDerivAt_Zeta0Integral Npos reS_pos using 1
   -- apply DifferentiableOn.sum ?_ |>.add ?_|>.add ?_|>.add ?_
   -- · intro n _
   --   by_cases n0 : n = 0
