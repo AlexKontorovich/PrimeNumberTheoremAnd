@@ -870,7 +870,21 @@ lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s
   unfold riemannZeta0 ζ₀'
   apply HasDerivAt.add
   · apply HasDerivAt.add
-    · sorry
+    · apply HasDerivAt.add
+      · apply HasDerivAt.sum
+        intro n hn
+        convert hasDerivAt_neg' s |>.const_cpow (c := n) (by aesop) using 1
+        all_goals (ring_nf; simp [cpow_neg])
+      · have := @HasDerivAt.comp (h₂ := fun z ↦ -(N : ℂ) ^ z / z) (h := fun z ↦ 1 - z) (h' := -1) _ s _ _ ?_ ?_ ?_
+        swap
+        · exact - ((N : ℂ) ^ (1 - s) / (1 - s) ^ 2 + Real.log (N : ℝ) * (N : ℂ) ^ (1 - s) / (1 - s))
+        · convert this using 1; ring_nf
+        · simp only [natCast_log, neg_add_rev]
+          sorry
+        · convert @HasDerivAt.sub (f := (1 : ℂ → ℂ)) (g := (id : ℂ → ℂ)) _ _ _ 0 1 s ?_ ?_ using 1
+          · simp
+          · apply hasDerivAt_const
+          · apply hasDerivAt_id
     · convert HasDerivAt_neg_cpow_over2 Npos s using 1
       simp only [natCast_log, neg_mul, neg_neg]
   · simp_rw [div_cpow_eq_cpow_neg, neg_add, ← sub_eq_add_neg]
