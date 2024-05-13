@@ -785,6 +785,7 @@ lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt
     apply MeasureTheory.Integrable.neg
     have : (-s - 1).re < -1 := by simp only [sub_re, neg_re, one_re]; linarith
     replace := integrableOn_Ioi_cpow_iff (s := -s-1) (t := (N : ℝ)) (by simp [N_pos]) |>.mpr this
+    simp_rw [add_comm, ← sub_eq_add_neg]
     sorry
   · apply Measurable.aestronglyMeasurable
     refine Measurable.sub (Measurable.add ?_ measurable_const) (by fun_prop)
@@ -838,8 +839,18 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
         sub_re, neg_re, one_re]
       apply abs_eq_self.mpr ?_ |>.symm
       positivity
-    · sorry
-  have bound_integrable : Integrable bound μ := by
+    · rw [mul_comm, ← mul_assoc]
+      apply mul_le_mul_of_nonneg_right ?_ <| abs_nonneg _
+      simp only [Metric.mem_ball, ε, Complex.dist_eq] at hz
+      save
+      apply le_trans (b := 1 * |x ^ (-z.re - 1)|)
+      · apply mul_le_mul_of_nonneg_right (le_trans (ZetaSum_aux1_3 _) (by norm_num)) <| abs_nonneg _
+      · simp_rw [one_mul, Real.abs_rpow_of_nonneg x_pos.le]
+        apply Real.rpow_le_rpow_of_exponent_le
+        · sorry
+        · sorry
+    have bound_integrable : Integrable bound μ := by
+    simp only [bound]
     sorry
   have h_diff : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, HasDerivAt (fun w ↦ F w x) (F' z x) z := by
     simp only [F, F', f]
