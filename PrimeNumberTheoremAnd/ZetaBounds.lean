@@ -866,18 +866,24 @@ lemma HasDerivAt_neg_cpow_over2 {N : ℕ} (Npos : 0 < N) (s : ℂ) :
   simp [mul_comm]
 
 lemma HasDerivAt_cpow_over_var {N : ℕ} (Npos : 0 < N) {z : ℂ} (z_ne_zero : z ≠ 0) :
-    HasDerivAt (fun z ↦ -(N : ℂ) ^ z / z) (-(log N * N ^ z / z) + -(↑N ^ z / z ^ 2)) z := by
-  have := @HasDerivAt.div (c := fun z ↦ -(N : ℂ) ^ z) (d := (id : ℂ → ℂ)) (d' := 1) ?_ z _ ?_ ?_ ?_ ?_ ?_
+    HasDerivAt (fun z ↦ -(N : ℂ) ^ z / z) (-(Real.log N * N ^ z / z) + -((N : ℂ) ^ z / z ^ 2)) z := by
+  -- rw [natCast_log, ← sub_eq_add_neg]
+  have := @HasDerivAt.div (c := fun z ↦ -(N : ℂ) ^ z) (d := (id : ℂ → ℂ)) (d' := 1) ?_ z ?_ ?_
+    (-Real.log N * N ^ z) ?_ ?_ ?_
   · convert this using 0
-    simp
+    simp only [natCast_log, id_eq, neg_mul]
+    simp_rw [← sub_eq_add_neg]
+    -- conv => rhs; lhs; rw [mul_one]; rw [sub_div (c := z ^ 2)]
     sorry
   · sorry
   · sorry
   · sorry
   · sorry
-  · sorry
-    -- apply hasDerivAt_id (x := 1-s)
-  · sorry
+  · -- apply hasDerivAt_id
+    sorry
+  · simp only [id_eq]
+    -- exact_mod_cast z_ne_zero
+    sorry
 
 lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
     HasDerivAt (ζ₀ N) (ζ₀' N s) s := by
@@ -889,8 +895,8 @@ lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s
   · convert HasDerivAt.comp (h₂ := fun z ↦ -(N : ℂ) ^ z / z) (h := fun z ↦ 1 - z) (h' := -1)
       (h₂' := -((N : ℂ) ^ (1 - s) / (1 - s) ^ 2 + Real.log (N : ℝ) * (N : ℂ) ^ (1 - s) / (1 - s)))
       (x := s) ?_ ?_ using 1; ring_nf
-    · simp only [natCast_log, neg_add_rev]
-      convert HasDerivAt_cpow_over_var Npos (by rw [sub_ne_zero]; exact s_ne_one.symm) using 1
+    · convert HasDerivAt_cpow_over_var Npos (by rw [sub_ne_zero]; exact s_ne_one.symm) using 1
+      simp only [natCast_log, neg_add_rev]
     · convert hasDerivAt_const s _ |>.sub (hasDerivAt_id _) using 1; simp
   · convert HasDerivAt_neg_cpow_over2 Npos s using 1; simp only [natCast_log, neg_mul, neg_neg]
   · simp_rw [div_cpow_eq_cpow_neg, neg_add, ← sub_eq_add_neg]
