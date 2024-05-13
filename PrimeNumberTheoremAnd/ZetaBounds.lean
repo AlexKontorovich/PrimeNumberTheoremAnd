@@ -854,17 +854,21 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
 noncomputable def ζ₀' (N : ℕ) (s : ℂ) : ℂ :=
     -∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s * (n : ℝ).log +
     N ^ (1 - s) / (1 - s) ^ 2 + (N : ℝ).log * N ^ (1 - s) / (1 - s) + (N : ℝ).log * N ^ (-s) / 2
-      + (1 * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1)
+      + (1 * (∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1))
       + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1) * (- Real.log x))
 
 lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
     HasDerivAt (ζ₀ N) (ζ₀' N s) s := by
   unfold riemannZeta0 ζ₀'
   apply HasDerivAt.add
-  · sorry
-  have' := HasDerivAt.mul (c := (id : ℂ → ℂ)) (hc := hasDerivAt_id s) (hd := hasDerivAt_Zeta0Integral Npos reS_pos)
-  convert this using 1
-  have := hasDerivAt_Zeta0Integral Npos reS_pos
+  · apply HasDerivAt.add
+    · sorry
+    ·
+      sorry
+  · simp_rw [div_cpow_eq_cpow_neg, neg_add, ← sub_eq_add_neg]
+    have' := HasDerivAt.mul (c := (id : ℂ → ℂ)) (hc := hasDerivAt_id s) (hd := hasDerivAt_Zeta0Integral Npos reS_pos)
+    convert this using 1
+
   -- apply DifferentiableOn.sum ?_ |>.add ?_|>.add ?_|>.add ?_
   -- · intro n _
   --   by_cases n0 : n = 0
