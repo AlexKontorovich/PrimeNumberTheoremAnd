@@ -862,9 +862,8 @@ noncomputable def ζ₀' (N : ℕ) (s : ℂ) : ℂ :=
 
 lemma HasDerivAt_neg_cpow_over2 {N : ℕ} (Npos : 0 < N) (s : ℂ) :
     HasDerivAt (fun x : ℂ ↦ -(N : ℂ) ^ (-x) / 2) (-((- Real.log N) * (N : ℂ) ^ (-s)) / 2) s := by
-  apply HasDerivAt.neg ?_ |>.div_const
-  convert HasDerivAt.const_cpow (f := fun s ↦ -s) (f' := -1) (x := s) (c := N)
-    (hasDerivAt_neg' s) (by left; exact_mod_cast Npos.ne.symm) using 1; simp [mul_comm]
+  convert hasDerivAt_neg' s |>.const_cpow (c := N) (by aesop) |>.neg |>.div_const _ using 1
+  simp [mul_comm]
 
 lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
     HasDerivAt (ζ₀ N) (ζ₀' N s) s := by
