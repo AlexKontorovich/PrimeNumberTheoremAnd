@@ -817,6 +817,11 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
     convert integrableOn_of_Zeta0_fun_log N_pos hs |>.aestronglyMeasurable using 1
     simp only [F', f]; ext x; ring_nf
   have h_bound : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, ‖F' z x‖ ≤ bound x := by
+    have : (Ioi (N : ℝ)) ⊆ {x | 0 < x} := by
+      sorry
+    apply MeasureTheory.ae_restrict_of_ae_restrict_of_subset this
+
+    rw [MeasureTheory.ae_restrict_iff]
     filter_upwards -- NEED TO MAKE x > 0
     intro x z hz
     have x_pos : 0 < x := by
