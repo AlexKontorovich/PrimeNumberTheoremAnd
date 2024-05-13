@@ -820,12 +820,9 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
     have : (Ioi (N : ℝ)) ⊆ {x | 0 < x} := by
       sorry
     apply MeasureTheory.ae_restrict_of_ae_restrict_of_subset this
-
-    rw [MeasureTheory.ae_restrict_iff]
-    filter_upwards -- NEED TO MAKE x > 0
-    intro x z hz
-    have x_pos : 0 < x := by
-      sorry
+    have : MeasurableSet {x : ℝ | 0 < x} := (isOpen_lt' 0).measurableSet
+    filter_upwards [MeasureTheory.self_mem_ae_restrict this] with x xpos
+    intro z hz
     simp only [F', f, bound]
     calc _ = ‖(x : ℂ) ^ (-z - 1)‖ * ‖-(Real.log x)‖ * ‖(⌊x⌋ + 1 / 2 - x)‖ := by
             simp only [mul_neg, one_div, neg_mul, norm_neg, norm_mul, norm_eq_abs, abs_ofReal,
