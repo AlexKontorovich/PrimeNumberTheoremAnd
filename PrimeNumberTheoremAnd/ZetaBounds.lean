@@ -856,7 +856,7 @@ noncomputable def ζ₀' (N : ℕ) (s : ℂ) : ℂ :=
     N ^ (1 - s) / (1 - s) ^ 2 + (N : ℝ).log * N ^ (1 - s) / (1 - s) + (N : ℝ).log * N ^ (-s) / 2
       - s * ∫ x in Ioi (N : ℝ), x.log * (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)
 
-lemma DerivZeta0Eq {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
+lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
     HasDerivAt (ζ₀ N) (ζ₀' N s) s := by
   unfold riemannZeta0 ζ₀'
 
