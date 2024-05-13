@@ -818,7 +818,7 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
     simp only [F', f]; ext x; ring_nf
   have h_bound : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, ‖F' z x‖ ≤ bound x := by
     have : (Ioi (N : ℝ)) ⊆ {x | 0 < x} := by
-      sorry
+      intro x hx; simp only [mem_Ioi] at hx; simp only [mem_setOf_eq]; linarith
     apply MeasureTheory.ae_restrict_of_ae_restrict_of_subset this
     have : MeasurableSet {x : ℝ | 0 < x} := (isOpen_lt' 0).measurableSet
     filter_upwards [MeasureTheory.self_mem_ae_restrict this] with x x_pos
