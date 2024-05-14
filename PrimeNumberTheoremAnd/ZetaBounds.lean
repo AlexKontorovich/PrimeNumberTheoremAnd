@@ -799,15 +799,20 @@ lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt 
       have xpos : 0 < x := by linarith [mem_Ioi.mp hx]
       simp [abs_cpow_eq_rpow_re_of_pos xpos, Real.abs_rpow_of_nonneg xpos.le,
         abs_eq_self.mpr xpos.le]
-    · apply Measurable.aestronglyMeasurable
-      apply Measurable.mul
-      · apply Continuous.measurable
-        apply Continuous.cpow (by continuity) (by continuity) ?_
-        sorry
-      · apply Continuous.measurable
-        apply RCLike.continuous_ofReal.comp (g := ofReal) ?_
-        apply continuous_id.log
-        sorry
+    · apply AEStronglyMeasurable.mul
+      · apply ContinuousOn.aestronglyMeasurable ?_ (by simp)
+        intro x hx
+        apply ContinuousWithinAt.cpow ?_ ?_ ?_
+        · exact RCLike.continuous_ofReal.continuousWithinAt
+        · exact continuous_const.continuousWithinAt
+        · simp only [ofReal_mem_slitPlane]; linarith [mem_Ioi.mp hx]
+      · apply AEStronglyMeasurable.comp_aemeasurable (g := ofReal) ?_ ?_
+        · exact Real.measurableSpace
+        · exact RCLike.continuous_ofReal.measurable.aestronglyMeasurable
+        · apply ContinuousOn.aemeasurable ?_ (by simp)
+          intro x hx
+          refine continuous_id.continuousWithinAt.log ?_
+          simp only [id_eq]; linarith [mem_Ioi.mp hx]
   · apply Measurable.aestronglyMeasurable
     refine Measurable.sub (Measurable.add ?_ measurable_const) (by fun_prop)
     exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
