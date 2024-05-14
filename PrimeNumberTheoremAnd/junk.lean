@@ -1,6 +1,12 @@
-import Mathlib.MeasureTheory.Measure.Haar.OfBasis
+import Mathlib.Analysis.Calculus.Deriv.Basic
+import Mathlib.Data.Complex.Basic
+import Mathlib.Analysis.Complex.Schwarz
 
-open MeasureTheory
+example (s : ℂ) : HasDerivAt (fun (z : ℂ) ↦ 1 - z) (-1) s := by
+  apply?
+  sorry
+
+#exit
 
 example : MeasurableSet {x : ℝ | 0 < x} := by
   apply (isOpen_lt' 0).measurableSet
