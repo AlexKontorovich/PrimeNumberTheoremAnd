@@ -775,14 +775,28 @@ lemma isOpen_aux : IsOpen {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
   refine IsOpen.inter isOpen_ne ?_
   exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
 
+set_option maxHeartbeats 800000
 open MeasureTheory in
 lemma integrable_log_over_pow {r : ℝ} (rneg: r < 0) {N : ℕ} (Npos : 0 < N):
-    IntegrableOn (fun x ↦ |x ^ (r - 1)| * |Real.log x|) <| Ioi N := by
-  have := integrableOn_Ioi_rpow_iff (s := r / 2 - 1) (t := N) (by simp [Npos]) |>.mpr (by linarith [rneg])
-  apply MeasureTheory.Integrable.mono' this
-  · sorry
-  ·
-    sorry
+    IntegrableOn (fun (x : ℝ) ↦ |x ^ (r - 1)| * |Real.log x|) <| Ioi N := by
+  have : Ici ((1 : ℝ) / 2) ⊆ Ioi N := by sorry
+  sorry
+--   apply IntegrableOn.mono_set (hst := this) (E := ℝ)
+
+-- #exit
+
+--   have := integrableOn_Ioi_rpow_iff (s := r / 2 - 1) (t := N) (by simp [Npos]) |>.mpr (by linarith [rneg])
+--   apply MeasureTheory.LocallyIntegrableOn.integrableOn_of_isBigO_atTop
+
+
+-- #exit
+
+--   apply MeasureTheory.Integrable.mono' this
+--   · sorry
+--   ·
+--     sorry
+
+
 
 open MeasureTheory in
 lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
