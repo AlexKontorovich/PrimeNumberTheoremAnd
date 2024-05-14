@@ -68,8 +68,9 @@ We have that
 $$\psi_{\epsilon}(X) = \sum_{n=1}^\infty \Lambda(n)\widetilde{1_{\epsilon}}(n/X).$$
 \end{theorem}
 %%-/
-theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 ψ) (ε : ℝ) (εpos: 0 < ε)
-    (suppΨ : Function.support ψ ⊆ Icc (1 / 2) 2) (X : ℝ) (X_pos : 0 < X) :
+theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 ψ) (ψpos : ∀ x, 0 ≤ ψ x)
+    (suppΨ : Function.support ψ ⊆ Icc (1 / 2) 2) (mass_one: ∫ x in Ioi (0 : ℝ), ψ x / x = 1)
+    (X : ℝ) (X_pos : 0 < X) (ε : ℝ) (εpos: 0 < ε) :
     SmoothedChebyshev ψ ε X = ∑' n, Λ n * Smooth1 ψ ε (n / X) := by
   dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
   rw [MellinTransform_eq]
@@ -140,14 +141,17 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 �
     · dsimp [MellinConvergent]
       norm_num
       norm_cast
-      apply MeasureTheory.Integrable.ofReal
-      -- simp_rw [mul_comm]
-      -- conv => lhs; intro x; rw [mul_comm]
+      dsimp [MeasureTheory.IntegrableOn]
+      conv => lhs; intro t; rw [mul_comm]
+      apply MeasureTheory.Integrable.ofReal ?_
       apply MeasureTheory.Integrable.bdd_mul
       · sorry
       · sorry
-      · sorry
-      -- use Smooth1LeOne
+      · use 1
+        intro x
+        have xpos : 0 < x := by sorry
+        rw [Real.norm_eq_abs, _root_.abs_of_nonneg <| Smooth1Nonneg (fun x _ ↦ ψpos x) xpos εpos]
+        exact Smooth1LeOne (fun x _ ↦ ψpos x) mass_one εpos x xpos
     · dsimp [VerticalIntegrable, mellin]
       ring_nf
       sorry
