@@ -944,25 +944,6 @@ lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s
   · convert HasDerivAt_neg_cpow_over2 Npos s using 1; simp only [natCast_log, neg_mul, neg_neg]
   · simp_rw [div_cpow_eq_cpow_neg, neg_add, ← sub_eq_add_neg]
     convert hasDerivAt_id s |>.mul <| hasDerivAt_Zeta0Integral Npos reS_pos using 1
-  -- apply DifferentiableOn.sum ?_ |>.add ?_|>.add ?_|>.add ?_
-  -- · intro n _
-  --   by_cases n0 : n = 0
-  --   · apply differentiableOn_const _|>.congr (f := fun _ ↦ 0) ?_
-  --     intro s hs
-  --     have : (n : ℂ) ^ s = 0 := by
-  --       apply cpow_eq_zero_iff _ _ |>.mpr ⟨by simp [n0], by contrapose! hs; simp [hs]⟩
-  --     simp [this]
-  --   · apply differentiableOn_const _|>.div ?_ (by simp [n0])
-  --     refine DifferentiableOn.const_cpow (by fun_prop) ?_
-  --     right; intro s hs; contrapose! hs; simp [hs]
-  -- · refine DifferentiableOn.const_cpow (by fun_prop) ?_ |>.neg |>.div (by fun_prop) ?_
-  --   · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
-  --   · intro x hx; contrapose! hx; simp [sub_eq_zero.mp hx |>.symm]
-  -- · refine DifferentiableOn.const_cpow (by fun_prop) ?_ |>.neg |>.div (by fun_prop) (by norm_num)
-  --   · left; simp only [ne_eq, Nat.cast_eq_zero]; omega
-  -- · apply DifferentiableOn.mul differentiableOn_id
-  --   apply DifferentiableOn.mono (t := {s : ℂ | 0 < s.re}) (st := by aesop)
-  --   exact fun _ hs ↦ (hasDerivAt_Zeta0Integral N_pos hs).differentiableAt.differentiableWithinAt
 
 /-%%
 \begin{lemma}[HolomorphicOn_Zeta0]\label{HolomorphicOn_Zeta0}\lean{HolomorphicOn_Zeta0}\leanok
