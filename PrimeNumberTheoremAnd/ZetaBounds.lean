@@ -791,9 +791,19 @@ lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt
     have : (-s - 1).re < -1 := by simp only [sub_re, neg_re, one_re]; linarith
     replace := integrableOn_Ioi_cpow_iff (s := -s-1) (t := (N : ℝ)) (by simp [N_pos]) |>.mpr this
     simp_rw [add_comm, ← sub_eq_add_neg]
-    apply integrable_norm_iff ?_ |>.mp ?_
-    sorry
-    sorry
+    apply integrable_norm_iff ?_ |>.mp
+    · simp only [norm_mul, norm_eq_abs, abs_ofReal]
+      convert integrable_log_over_pow (-s.re) N using 3 with z
+      sorry
+    · apply Measurable.aestronglyMeasurable
+      apply Measurable.mul
+      · apply Continuous.measurable
+        apply Continuous.cpow (by continuity) (by continuity) ?_
+        sorry
+      · apply Continuous.measurable
+        apply RCLike.continuous_ofReal.comp (g := ofReal) ?_
+        apply continuous_id.log
+        sorry
   · apply Measurable.aestronglyMeasurable
     refine Measurable.sub (Measurable.add ?_ measurable_const) (by fun_prop)
     exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
