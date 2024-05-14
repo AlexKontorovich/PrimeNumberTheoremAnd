@@ -778,8 +778,11 @@ lemma isOpen_aux : IsOpen {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
 open MeasureTheory in
 lemma integrable_log_over_pow {r : ℝ} (rneg: r < 0) {N : ℕ} (Npos : 0 < N):
     IntegrableOn (fun x ↦ |x ^ (r - 1)| * |Real.log x|) <| Ioi N := by
-  have := integrableOn_Ioi_rpow_iff (s := r-1) (t := N) (by simp [Npos]) |>.mpr (by linarith [rneg])
-  sorry
+  have := integrableOn_Ioi_rpow_iff (s := r / 2 - 1) (t := N) (by simp [Npos]) |>.mpr (by linarith [rneg])
+  apply MeasureTheory.Integrable.mono' this
+  · sorry
+  ·
+    sorry
 
 open MeasureTheory in
 lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
