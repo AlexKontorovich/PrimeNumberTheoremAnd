@@ -874,6 +874,7 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (Npos : 0 < N) {s : ℂ} (hs : s ∈ {s
     simp only [F, F', f]
     filter_upwards [h_bound] with x hx
     intro z hz
+    replace hx := hx z hz
     convert HasDerivAt.mul_const (c := fun (w : ℂ) ↦ (x : ℂ) ^ (-w-1))
       (c' := (x : ℂ) ^ (-z-1) * -Real.log x) (d := (⌊x⌋ : ℝ) + 1 / 2 - x) ?_ using 1
     convert HasDerivAt.comp (h := fun w ↦ -w-1) (h' := -1) (h₂ := fun w ↦ x ^ w)
@@ -885,16 +886,13 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (Npos : 0 < N) {s : ℂ} (hs : s ∈ {s
       · simp only [mul_one, mul_eq_mul_left_iff, cpow_eq_zero_iff, ofReal_eq_zero, ne_eq]
         left
         rw [Complex.ofReal_log]
-        have := hx z hz
         sorry
       · right
-        beta_reduce
         intro h
-        save
-        simp only [Metric.mem_ball, ε, Complex.dist_eq] at hz
-        rw [neg_eq_iff_eq_neg.mp <| sub_eq_zero.mp h] at hz
+        simp only [Metric.mem_ball, ε, Complex.dist_eq,
+          neg_eq_iff_eq_neg.mp <| sub_eq_zero.mp h] at hz
         have := (abs_le.mp <| le_trans (abs_re_le_abs (-1-s)) hz.le).1
-        simp at this
+        simp only [sub_re, neg_re, one_re, neg_le_sub_iff_le_add, le_neg_add_iff_add_le] at this
         linarith
     · apply hasDerivAt_id _ |>.neg |>.sub_const
   convert (hasDerivAt_integral_of_dominated_loc_of_deriv_le (x₀ := s) (F := F) (F' := F') (ε := ε)
