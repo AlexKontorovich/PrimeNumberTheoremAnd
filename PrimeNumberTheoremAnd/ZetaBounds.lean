@@ -914,12 +914,12 @@ lemma HasDerivAt_neg_cpow_over2 {N : ℕ} (Npos : 0 < N) (s : ℂ) :
   convert hasDerivAt_neg' s |>.const_cpow (c := N) (by aesop) |>.neg |>.div_const _ using 1
   simp [mul_comm]
 
-lemma HasDerivAt_cpow_over_var {N : ℕ} (Npos : 0 < N) {z : ℂ} (z_ne_zero : z ≠ 0) :
+lemma HasDerivAt_cpow_over_var (N : ℕ) {z : ℂ} (z_ne_zero : z ≠ 0) :
     HasDerivAt (fun z ↦ -(N : ℂ) ^ z / z)
       (((N : ℂ) ^ z / z ^ 2) - (Real.log N * N ^ z / z)) z := by
   simp_rw [div_eq_mul_inv]
   convert HasDerivAt.mul (c := fun z ↦ - (N : ℂ) ^ z) (d := fun z ↦ z⁻¹) (c' := - (N : ℂ) ^ z * Real.log N)
-    (d' := - (z ^ (2 : ℂ))⁻¹) ?_ ?_ using 1
+    (d' := - (z ^ 2)⁻¹) ?_ ?_ using 1
   · simp only [natCast_log, neg_mul, cpow_ofNat, mul_neg, neg_neg]
     ring_nf
   · simp only [natCast_log, neg_mul]
@@ -927,6 +927,7 @@ lemma HasDerivAt_cpow_over_var {N : ℕ} (Npos : 0 < N) {z : ℂ} (z_ne_zero : z
     convert HasDerivAt.const_cpow (c := (N : ℂ)) (f := id) (f' := 1) (x := z) (hasDerivAt_id z)
       (by simp [z_ne_zero]) using 1
     simp only [id_eq, mul_one]
+  · exact hasDerivAt_inv z_ne_zero
 
 lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
     HasDerivAt (ζ₀ N) (ζ₀' N s) s := by
