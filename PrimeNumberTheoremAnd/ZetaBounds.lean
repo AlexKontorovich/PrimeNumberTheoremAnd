@@ -885,10 +885,17 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (Npos : 0 < N) {s : ℂ} (hs : s ∈ {s
       · simp only [mul_one, mul_eq_mul_left_iff, cpow_eq_zero_iff, ofReal_eq_zero, ne_eq]
         left
         rw [Complex.ofReal_log]
+        have := hx z hz
         sorry
       · right
-        simp only
-        sorry
+        beta_reduce
+        intro h
+        save
+        simp only [Metric.mem_ball, ε, Complex.dist_eq] at hz
+        rw [neg_eq_iff_eq_neg.mp <| sub_eq_zero.mp h] at hz
+        have := (abs_le.mp <| le_trans (abs_re_le_abs (-1-s)) hz.le).1
+        simp at this
+        linarith
     · apply hasDerivAt_id _ |>.neg |>.sub_const
   convert (hasDerivAt_integral_of_dominated_loc_of_deriv_le (x₀ := s) (F := F) (F' := F') (ε := ε)
     (ε_pos := ε_pos) (μ := μ) (bound := bound) (hF_meas := hF_meas) (hF_int := hF_int)
