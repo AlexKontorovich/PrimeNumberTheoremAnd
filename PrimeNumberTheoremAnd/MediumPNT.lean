@@ -141,12 +141,20 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 �
       norm_num
       norm_cast
       apply MeasureTheory.Integrable.ofReal
+      -- simp_rw [mul_comm]
+      -- conv => lhs; intro x; rw [mul_comm]
+      apply MeasureTheory.Integrable.bdd_mul
+      · sorry
+      · sorry
+      · sorry
       -- use Smooth1LeOne
-      sorry
     · dsimp [VerticalIntegrable, mellin]
       ring_nf
       sorry
     · dsimp
+      apply Continuous.continuousAt
+      unfold Smooth1 DeltaSpike MellinConvolution
+      simp only [one_div, ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
       sorry
 /-%%
 \begin{proof}
