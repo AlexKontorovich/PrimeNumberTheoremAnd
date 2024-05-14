@@ -856,7 +856,22 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
     simp only [F, F', f]
     filter_upwards [h_bound] with x hx
     intro z hz
-    sorry
+    convert HasDerivAt.mul_const (c := fun (w : ℂ) ↦ (x : ℂ) ^ (-w-1))
+      (c' := (x : ℂ) ^ (-z-1) * -Real.log x) (d := (⌊x⌋ : ℝ) + 1 / 2 - x) ?_ using 1
+    convert HasDerivAt.comp (h := fun w ↦ -w-1) (h' := -1) (h₂ := fun w ↦ x ^ w)
+      (h₂' := x ^ (-z-1) * Real.log x) (x := z) ?_ ?_ using 0
+    · simp only [mul_neg, mul_one]; congr! 2
+    · simp only
+      convert HasDerivAt.const_cpow (c := (x : ℂ)) (f := fun w ↦ w) (f' := 1) (x := -z-1)
+        (hasDerivAt_id _) ?_ using 1
+      · simp only [mul_one, mul_eq_mul_left_iff, cpow_eq_zero_iff, ofReal_eq_zero, ne_eq]
+        left
+        rw [Complex.ofReal_log]
+        sorry
+      · right
+        simp only
+        sorry
+    · apply hasDerivAt_id _ |>.neg |>.sub_const
   convert (hasDerivAt_integral_of_dominated_loc_of_deriv_le (x₀ := s) (F := F) (F' := F') (ε := ε)
     (ε_pos := ε_pos) (μ := μ) (bound := bound) (hF_meas := hF_meas) (hF_int := hF_int)
     (hF'_meas := hF'_meas) (h_bound := h_bound) (bound_integrable := bound_integrable)
