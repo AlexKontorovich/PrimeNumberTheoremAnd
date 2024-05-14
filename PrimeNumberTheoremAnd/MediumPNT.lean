@@ -60,6 +60,28 @@ noncomputable abbrev SmoothedChebyshevIntegrand (ψ : ℝ → ℝ) (ε : ℝ) (X
 noncomputable def SmoothedChebyshev (ψ : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
   VerticalIntegral' (SmoothedChebyshevIntegrand ψ ε X) 2
 
+lemma integrable_x_mul_Smooth1 {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 ψ) (ψpos : ∀ (x : ℝ), 0 ≤ ψ x)
+    (suppΨ : support ψ ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, ψ x / x = 1)
+    (ε : ℝ) (εpos : 0 < ε) :
+    MeasureTheory.IntegrableOn (fun x ↦ x * Smooth1 ψ ε x) (Ioi 0) := by
+  sorry
+
+lemma vertical_integrable_Smooth1 {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 ψ) (ψpos : ∀ (x : ℝ), 0 ≤ ψ x)
+    (suppΨ : support ψ ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, ψ x / x = 1)
+    (ε : ℝ) (εpos : 0 < ε) :
+    MeasureTheory.Integrable
+      (fun (y : ℝ) ↦ ∫ (t : ℝ) in Ioi 0, (t : ℂ) ^ (1 + y * I) * (Smooth1 ψ ε t : ℂ)) := by
+  sorry
+
+lemma continuousAt_Smooth1 {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 ψ) (ψpos : ∀ (x : ℝ), 0 ≤ ψ x)
+    (suppΨ : support ψ ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, ψ x / x = 1)
+    (ε : ℝ) (εpos : 0 < ε) (y : ℝ) (ypos : 0 < y) :
+    ContinuousAt (fun x ↦ Smooth1 ψ ε x) y := by
+  apply Continuous.continuousAt
+  unfold Smooth1 DeltaSpike MellinConvolution
+  simp only [one_div, ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
+  sorry
+
 /-%%
 Inserting the Dirichlet series expansion of the log derivative of zeta, we get the following.
 \begin{theorem}[SmoothedChebyshevDirichlet]\label{SmoothedChebyshevDirichlet}
@@ -139,27 +161,11 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 �
       dsimp [MellinInverseTransform, VerticalIntegral] at this
       rw [← MellinTransform_eq, this]
     · dsimp [MellinConvergent]
-      norm_num
-      norm_cast
-      dsimp [MeasureTheory.IntegrableOn]
-      conv => lhs; intro t; rw [mul_comm]
-      apply MeasureTheory.Integrable.ofReal ?_
-      apply MeasureTheory.Integrable.bdd_mul
-      · sorry
-      · sorry
-      · use 1
-        intro x
-        have xpos : 0 < x := by sorry
-        rw [Real.norm_eq_abs, _root_.abs_of_nonneg <| Smooth1Nonneg (fun x _ ↦ ψpos x) xpos εpos]
-        exact Smooth1LeOne (fun x _ ↦ ψpos x) mass_one εpos x xpos
+      norm_num; norm_cast; exact (integrable_x_mul_Smooth1 diffΨ ψpos suppΨ mass_one ε εpos).ofReal
     · dsimp [VerticalIntegrable, mellin]
-      ring_nf
-      sorry
-    · dsimp
-      apply Continuous.continuousAt
-      unfold Smooth1 DeltaSpike MellinConvolution
-      simp only [one_div, ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
-      sorry
+      ring_nf; exact vertical_integrable_Smooth1 diffΨ ψpos suppΨ mass_one ε εpos
+    · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
+      exact continuousAt_Smooth1 diffΨ ψpos suppΨ mass_one ε εpos (n / X) (by positivity)
 /-%%
 \begin{proof}
 \uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne, MellinOfSmooth1b}
