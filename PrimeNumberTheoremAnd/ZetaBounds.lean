@@ -777,7 +777,7 @@ lemma isOpen_aux : IsOpen {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
 
 open MeasureTheory in
 lemma integrable_log_over_pow (r : ℝ) (N : ℕ):
-    Integrable (fun x ↦ |x ^ (r - 1)| * |Real.log x|) <| volume.restrict (Ioi (N : ℝ)) := by
+    IntegrableOn (fun x ↦ |x ^ (r - 1)| * |Real.log x|) <| Ioi N := by
   sorry
 
 open MeasureTheory in
@@ -786,15 +786,17 @@ lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt
     volume := by
   simp_rw [mul_assoc]
   apply Integrable.bdd_mul ?_ ?_ ?_
-  · simp only [neg_add_rev, mul_neg]
+  · simp only [neg_add_rev, mul_neg, add_comm, ← sub_eq_add_neg]
     apply Integrable.neg
-    have : (-s - 1).re < -1 := by simp only [sub_re, neg_re, one_re]; linarith
-    replace := integrableOn_Ioi_cpow_iff (s := -s-1) (t := (N : ℝ)) (by simp [N_pos]) |>.mpr this
-    simp_rw [add_comm, ← sub_eq_add_neg]
     apply integrable_norm_iff ?_ |>.mp
     · simp only [norm_mul, norm_eq_abs, abs_ofReal]
-      convert integrable_log_over_pow (-s.re) N using 3 with z
-      sorry
+      apply MeasureTheory.IntegrableOn.congr_fun (integrable_log_over_pow (-s.re) N) ?_ (by simp)
+      intro x hx
+      simp only [mul_eq_mul_right_iff, abs_eq_zero, Real.log_eq_zero]
+      left
+      have xpos : 0 < x := by linarith [mem_Ioi.mp hx]
+      simp [abs_cpow_eq_rpow_re_of_pos xpos, Real.abs_rpow_of_nonneg xpos.le,
+        abs_eq_self.mpr xpos.le]
     · apply Measurable.aestronglyMeasurable
       apply Measurable.mul
       · apply Continuous.measurable
@@ -868,7 +870,7 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
         linarith [this.1]
   have bound_integrable : Integrable bound μ := by
     simp only [bound]
-    convert integrable_log_over_pow (-s.re / 2) N
+    convert integrable_log_over_pow (-s.re / 2) N using 0
   have h_diff : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, HasDerivAt (fun w ↦ F w x) (F' z x) z := by
     simp only [F, F', f]
     filter_upwards [h_bound] with x hx
