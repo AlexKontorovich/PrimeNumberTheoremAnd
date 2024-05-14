@@ -835,12 +835,12 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (Npos : 0 < N) {s : ℂ} (hs : s ∈ {s
   have hF'_meas : AEStronglyMeasurable (F' s) μ := by
     convert integrableOn_of_Zeta0_fun_log Npos hs |>.aestronglyMeasurable using 1
     simp only [F', f]; ext x; ring_nf
-  have h_bound : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, ‖F' z x‖ ≤ bound x := by
-    have : (Ioi (N : ℝ)) ⊆ {x | 1 < x} :=
+  have IoiSubIoi1 : (Ioi (N : ℝ)) ⊆ {x | 1 < x} :=
       fun x hx ↦ lt_of_le_of_lt (by simp only [Nat.one_le_cast]; omega) <| mem_Ioi.mp hx
-    apply ae_restrict_of_ae_restrict_of_subset this
-    have : MeasurableSet {x : ℝ | 1 < x} := (isOpen_lt' 1).measurableSet
-    filter_upwards [self_mem_ae_restrict this] with x hx
+  have measSetIoi1 : MeasurableSet {x : ℝ | 1 < x} := (isOpen_lt' 1).measurableSet
+  have h_bound1 :
+    ∀ᵐ (x : ℝ) ∂volume.restrict {x | 1 < x}, ∀ z ∈ Metric.ball s ε, ‖F' z x‖ ≤ bound x := by
+    filter_upwards [self_mem_ae_restrict measSetIoi1] with x hx
     intro z hz
     simp only [F', f, bound]
     calc _ = ‖(x : ℂ) ^ (-z - 1)‖ * ‖-(Real.log x)‖ * ‖(⌊x⌋ + 1 / 2 - x)‖ := by
@@ -867,14 +867,17 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (Npos : 0 < N) {s : ℂ} (hs : s ∈ {s
         have := abs_le.mp <| le_trans (abs_re_le_abs (z-s)) hz.le
         simp only [sub_re, neg_le_sub_iff_le_add, tsub_le_iff_right] at this
         linarith [this.1]
+  have h_bound : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, ‖F' z x‖ ≤ bound x := by
+    apply ae_restrict_of_ae_restrict_of_subset IoiSubIoi1
+    exact h_bound1
   have bound_integrable : Integrable bound μ := by
     simp only [bound]
     convert integrable_log_over_pow (r := -s.re / 2) (by linarith) Npos using 0
   have h_diff : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, HasDerivAt (fun w ↦ F w x) (F' z x) z := by
     simp only [F, F', f]
-    filter_upwards [h_bound] with x hx
+    apply ae_restrict_of_ae_restrict_of_subset IoiSubIoi1
+    filter_upwards [h_bound1, self_mem_ae_restrict measSetIoi1] with x _ one_lt_x
     intro z hz
-    replace hx := hx z hz
     convert HasDerivAt.mul_const (c := fun (w : ℂ) ↦ (x : ℂ) ^ (-w-1))
       (c' := (x : ℂ) ^ (-z-1) * -Real.log x) (d := (⌊x⌋ : ℝ) + 1 / 2 - x) ?_ using 1
     convert HasDerivAt.comp (h := fun w ↦ -w-1) (h' := -1) (h₂ := fun w ↦ x ^ w)
@@ -886,7 +889,7 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (Npos : 0 < N) {s : ℂ} (hs : s ∈ {s
       · simp only [mul_one, mul_eq_mul_left_iff, cpow_eq_zero_iff, ofReal_eq_zero, ne_eq]
         left
         rw [Complex.ofReal_log]
-        sorry
+        linarith
       · right
         intro h
         simp only [Metric.mem_ball, ε, Complex.dist_eq,
