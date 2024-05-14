@@ -903,9 +903,9 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (Npos : 0 < N) {s : ℂ} (hs : s ∈ {s
   · simp only [one_div, mul_neg, neg_mul, neg_inj, F', f, div_cpow_eq_cpow_neg]; ring_nf
 
 noncomputable def ζ₀' (N : ℕ) (s : ℂ) : ℂ :=
-    ∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ s * Real.log (n : ℝ) +
-    (N ^ (1 - s) / (1 - s) ^ 2 + Real.log (N : ℝ) * N ^ (1 - s) / (1 - s)) +
-    Real.log (N : ℝ) * N ^ (-s) / 2 +
+    ∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ s * Real.log n +
+    (-N ^ (1 - s) / (1 - s) ^ 2 + Real.log N * N ^ (1 - s) / (1 - s)) +
+    Real.log N * N ^ (-s) / 2 +
     (1 * (∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1)) +
     s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (- s - 1) * (- Real.log x))
 
@@ -915,7 +915,8 @@ lemma HasDerivAt_neg_cpow_over2 {N : ℕ} (Npos : 0 < N) (s : ℂ) :
   simp [mul_comm]
 
 lemma HasDerivAt_cpow_over_var {N : ℕ} (Npos : 0 < N) {z : ℂ} (z_ne_zero : z ≠ 0) :
-    HasDerivAt (fun z ↦ -(N : ℂ) ^ z / z) (-(Real.log N * N ^ z / z) + -((N : ℂ) ^ z / z ^ 2)) z := by
+    HasDerivAt (fun z ↦ -(N : ℂ) ^ z / z)
+      (-(Real.log N * N ^ z / z) + ((N : ℂ) ^ z / z ^ 2)) z := by
   -- rw [natCast_log, ← sub_eq_add_neg]
   have := @HasDerivAt.div (c := fun z ↦ -(N : ℂ) ^ z) (d := (id : ℂ → ℂ)) (d' := 1) ?_ z ?_ ?_
     (-Real.log N * N ^ z) ?_ ?_ ?_
