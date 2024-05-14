@@ -775,28 +775,22 @@ lemma isOpen_aux : IsOpen {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
   refine IsOpen.inter isOpen_ne ?_
   exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
 
---set_option maxHeartbeats 800000
 open MeasureTheory in
 lemma integrable_log_over_pow {r : ℝ} (rneg: r < 0) {N : ℕ} (Npos : 0 < N):
     IntegrableOn (fun (x : ℝ) ↦ |x ^ (r - 1)| * |Real.log x|) <| Ioi N := by
-  have : Ici ((1 : ℝ) / 2) ⊆ Ioi N := by sorry
-  sorry
---   apply IntegrableOn.mono_set (hst := this) (E := ℝ)
-
--- #exit
-
---   have := integrableOn_Ioi_rpow_iff (s := r / 2 - 1) (t := N) (by simp [Npos]) |>.mpr (by linarith [rneg])
---   apply MeasureTheory.LocallyIntegrableOn.integrableOn_of_isBigO_atTop
-
-
--- #exit
-
---   apply MeasureTheory.Integrable.mono' this
---   · sorry
---   ·
---     sorry
-
-
+  have := integrableOn_Ioi_rpow_iff (s := r / 2 - 1) (t := N) (by simp [Npos]) |>.mpr
+    (by linarith [rneg])
+  apply IntegrableOn.mono_set (hst := Set.Ioi_subset_Ici <| le_refl (N : ℝ))
+  apply LocallyIntegrableOn.integrableOn_of_isBigO_atTop (g := fun x ↦ x ^ (r / 2 - 1))
+  · apply ContinuousOn.abs ?_ |>.mul ?_ |>.locallyIntegrableOn (by simp)
+    · apply ContinuousOn.rpow (by fun_prop) (by fun_prop)
+      intro x hx; left; contrapose! Npos with h; exact_mod_cast h ▸ mem_Ici.mp hx
+    · apply continuous_id.continuousOn.log ?_ |>.abs
+      intro x hx; simp only [id_eq]; contrapose! Npos with h; exact_mod_cast h ▸ mem_Ici.mp hx
+  · apply Asymptotics.IsLittleO.isBigO
+    -- apply isLittleO_log_rpow_atTop
+    sorry
+  · exact integrableOn_Ioi_iff_integrableAtFilter_atTop_nhdsWithin.mp this |>.1
 
 open MeasureTheory in
 lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
