@@ -818,11 +818,11 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
     convert integrableOn_of_Zeta0_fun_log N_pos hs |>.aestronglyMeasurable using 1
     simp only [F', f]; ext x; ring_nf
   have h_bound : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, ‖F' z x‖ ≤ bound x := by
-    have : (Ioi (N : ℝ)) ⊆ {x | 0 < x} := by
-      intro x hx; simp only [mem_Ioi] at hx; simp only [mem_setOf_eq]; linarith
-    apply MeasureTheory.ae_restrict_of_ae_restrict_of_subset this
-    have : MeasurableSet {x : ℝ | 0 < x} := (isOpen_lt' 0).measurableSet
-    filter_upwards [MeasureTheory.self_mem_ae_restrict this] with x x_pos
+    have : (Ioi (N : ℝ)) ⊆ {x | 1 < x} :=
+      fun x hx ↦ lt_of_le_of_lt (by simp only [Nat.one_le_cast]; omega) <| mem_Ioi.mp hx
+    apply ae_restrict_of_ae_restrict_of_subset this
+    have : MeasurableSet {x : ℝ | 1 < x} := (isOpen_lt' 1).measurableSet
+    filter_upwards [self_mem_ae_restrict this] with x hx
     intro z hz
     simp only [F', f, bound]
     calc _ = ‖(x : ℂ) ^ (-z - 1)‖ * ‖-(Real.log x)‖ * ‖(⌊x⌋ + 1 / 2 - x)‖ := by
@@ -835,21 +835,21 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (N_pos : 0 < N) {s : ℂ} (hs : s ∈ {
          _ = |x ^ (-z.re - 1)| * |(Real.log x)| * |(⌊x⌋ + 1 / 2 - x)| := by simp
          _ ≤ _ := ?_
     · congr! 2
-      simp only [norm_eq_abs, Real.norm_eq_abs, abs_cpow_eq_rpow_re_of_pos x_pos,
+      simp only [norm_eq_abs, Real.norm_eq_abs, abs_cpow_eq_rpow_re_of_pos (by linarith),
         sub_re, neg_re, one_re]
       apply abs_eq_self.mpr ?_ |>.symm
       positivity
     · rw [mul_comm, ← mul_assoc]
       apply mul_le_mul_of_nonneg_right ?_ <| abs_nonneg _
       simp only [Metric.mem_ball, ε, Complex.dist_eq] at hz
-      save
       apply le_trans (b := 1 * |x ^ (-z.re - 1)|)
       · apply mul_le_mul_of_nonneg_right (le_trans (ZetaSum_aux1_3 _) (by norm_num)) <| abs_nonneg _
-      · simp_rw [one_mul, Real.abs_rpow_of_nonneg x_pos.le]
-        apply Real.rpow_le_rpow_of_exponent_le
-        · sorry
-        · sorry
-    have bound_integrable : Integrable bound μ := by
+      · simp_rw [one_mul, Real.abs_rpow_of_nonneg (by linarith : 0 ≤ x)]
+        apply Real.rpow_le_rpow_of_exponent_le <| le_abs.mpr (by left; exact hx.le)
+        have := abs_le.mp <| le_trans (abs_re_le_abs (z-s)) hz.le
+        simp only [sub_re, neg_le_sub_iff_le_add, tsub_le_iff_right] at this
+        linarith [this.1]
+  have bound_integrable : Integrable bound μ := by
     simp only [bound]
     sorry
   have h_diff : ∀ᵐ x ∂μ, ∀ z ∈ Metric.ball s ε, HasDerivAt (fun w ↦ F w x) (F' z x) z := by
