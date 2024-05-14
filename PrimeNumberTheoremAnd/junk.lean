@@ -2,8 +2,8 @@ import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.Data.Complex.Basic
 import Mathlib.Analysis.Complex.Schwarz
 
-example (s : ℂ) : HasDerivAt (fun (z : ℂ) ↦ 1 - z) (-1) s := by
-  apply?
+example (s : ℂ) : HasDerivAt id 1 s := by
+  exact hasDerivAt_id s
   sorry
 
 #exit

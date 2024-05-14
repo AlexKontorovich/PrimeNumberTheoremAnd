@@ -917,23 +917,16 @@ lemma HasDerivAt_neg_cpow_over2 {N : ℕ} (Npos : 0 < N) (s : ℂ) :
 lemma HasDerivAt_cpow_over_var {N : ℕ} (Npos : 0 < N) {z : ℂ} (z_ne_zero : z ≠ 0) :
     HasDerivAt (fun z ↦ -(N : ℂ) ^ z / z)
       (((N : ℂ) ^ z / z ^ 2) - (Real.log N * N ^ z / z)) z := by
-  -- rw [natCast_log, ← sub_eq_add_neg]
-  have := @HasDerivAt.div (c := fun z ↦ -(N : ℂ) ^ z) (d := (id : ℂ → ℂ)) (d' := 1) ?_ z ?_ ?_
-    (-Real.log N * N ^ z) ?_ ?_ ?_
-  · convert this using 0
-    simp only [natCast_log, id_eq, neg_mul]
-    simp_rw [← sub_eq_add_neg]
-    -- conv => rhs; lhs; rw [mul_one]; rw [sub_div (c := z ^ 2)]
-    sorry
-  · sorry
-  · sorry
-  · sorry
-  · sorry
-  · -- apply hasDerivAt_id
-    sorry
-  · simp only [id_eq]
-    -- exact_mod_cast z_ne_zero
-    sorry
+  simp_rw [div_eq_mul_inv]
+  convert HasDerivAt.mul (c := fun z ↦ - (N : ℂ) ^ z) (d := fun z ↦ z⁻¹) (c' := - (N : ℂ) ^ z * Real.log N)
+    (d' := - (z ^ (2 : ℂ))⁻¹) ?_ ?_ using 1
+  · simp only [natCast_log, neg_mul, cpow_ofNat, mul_neg, neg_neg]
+    ring_nf
+  · simp only [natCast_log, neg_mul]
+    apply HasDerivAt.neg
+    convert HasDerivAt.const_cpow (c := (N : ℂ)) (f := id) (f' := 1) (x := z) (hasDerivAt_id z)
+      (by simp [z_ne_zero]) using 1
+    simp only [id_eq, mul_one]
 
 lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
     HasDerivAt (ζ₀ N) (ζ₀' N s) s := by
