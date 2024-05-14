@@ -788,34 +788,26 @@ lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt 
   simp_rw [mul_assoc]
   apply Integrable.bdd_mul ?_ ?_ ?_
   · simp only [neg_add_rev, mul_neg, add_comm, ← sub_eq_add_neg]
-    apply Integrable.neg
-    apply integrable_norm_iff ?_ |>.mp
+    apply integrable_norm_iff ?_ |>.mp ?_ |>.neg
+    · apply ContinuousOn.mul ?_ ?_ |>.aestronglyMeasurable (by simp)
+      · intro x hx
+        apply ContinuousWithinAt.cpow ?_ continuous_const.continuousWithinAt ?_
+        · exact RCLike.continuous_ofReal.continuousWithinAt
+        · simp only [ofReal_mem_slitPlane]; linarith [mem_Ioi.mp hx]
+      · apply RCLike.continuous_ofReal.continuousOn.comp ?_ (mapsTo_image _ _)
+        refine continuous_id.continuousOn.log ?_
+        intro x hx; simp only [id_eq]; linarith [mem_Ioi.mp hx]
     · simp only [norm_mul, norm_eq_abs, abs_ofReal]
       have := integrable_log_over_pow (r := -s.re) (by linarith) Npos
-      apply MeasureTheory.IntegrableOn.congr_fun this ?_ (by simp)
+      apply IntegrableOn.congr_fun this ?_ (by simp)
       intro x hx
       simp only [mul_eq_mul_right_iff, abs_eq_zero, Real.log_eq_zero]
       left
       have xpos : 0 < x := by linarith [mem_Ioi.mp hx]
       simp [abs_cpow_eq_rpow_re_of_pos xpos, Real.abs_rpow_of_nonneg xpos.le,
         abs_eq_self.mpr xpos.le]
-    · apply AEStronglyMeasurable.mul
-      · apply ContinuousOn.aestronglyMeasurable ?_ (by simp)
-        intro x hx
-        apply ContinuousWithinAt.cpow ?_ ?_ ?_
-        · exact RCLike.continuous_ofReal.continuousWithinAt
-        · exact continuous_const.continuousWithinAt
-        · simp only [ofReal_mem_slitPlane]; linarith [mem_Ioi.mp hx]
-      · apply AEStronglyMeasurable.comp_aemeasurable (g := ofReal) ?_ ?_
-        · exact Real.measurableSpace
-        · exact RCLike.continuous_ofReal.measurable.aestronglyMeasurable
-        · apply ContinuousOn.aemeasurable ?_ (by simp)
-          intro x hx
-          refine continuous_id.continuousWithinAt.log ?_
-          simp only [id_eq]; linarith [mem_Ioi.mp hx]
-  · apply Measurable.aestronglyMeasurable
-    refine Measurable.sub (Measurable.add ?_ measurable_const) (by fun_prop)
-    exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+  · apply Measurable.add ?_ measurable_const |>.sub (by fun_prop) |>.aestronglyMeasurable
+    exact Measurable.comp (fun _ _ ↦ trivial) Int.measurable_floor
   · convert ZetaSum_aux2a with _ x; simp [← Complex.abs_ofReal]
 
 open MeasureTheory in
