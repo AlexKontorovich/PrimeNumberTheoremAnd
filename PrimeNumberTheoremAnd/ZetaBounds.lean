@@ -785,12 +785,22 @@ lemma integrable_log_over_pow {r : ℝ} (rneg: r < 0) {N : ℕ} (Npos : 0 < N):
       intro x hx; left; contrapose! Npos with h; exact_mod_cast h ▸ mem_Ici.mp hx
     · apply continuous_id.continuousOn.log ?_ |>.abs
       intro x hx; simp only [id_eq]; contrapose! Npos with h; exact_mod_cast h ▸ mem_Ici.mp hx
-  · have (x : ℝ) : x ^ (r / 2 - 1) = x ^ (r - 1) * x ^ (-r / 2) := by
-      rw [← Real.rpow_add ?_]; ring_nf
-      sorry
-    simp only [this, ← abs_mul, Asymptotics.isBigO_abs_left]
-    apply Asymptotics.isBigO_refl _ _ |>.mul
-    exact isLittleO_log_rpow_atTop (r := -r/2) (by linarith) |>.isBigO
+  · have := isLittleO_log_rpow_atTop (r := -r / 2) (by linarith) |>.isBigO
+
+
+    rw [Asymptotics.isBigO_iff_eventually, Filter.eventually_atTop] at this
+    obtain ⟨C, hC⟩ := this
+    have := hC C (by simp)
+    rw [Filter.eventually_atTop] at this
+    obtain ⟨x₀, hx₀⟩ := this
+    sorry
+    -- filter_upwards [Filter.mem_atTop x₀]
+    -- have (x : ℝ) : x ^ (r / 2 - 1) = x ^ (r - 1) * x ^ (-r / 2) := by
+    --   rw [← Real.rpow_add ?_]; ring_nf
+    --   sorry
+    -- simp only [this, ← abs_mul, Asymptotics.isBigO_abs_left]
+    -- apply Asymptotics.isBigO_refl _ _ |>.mul
+    -- exact isLittleO_log_rpow_atTop (r := -r/2) (by linarith) |>.isBigO
   · have := integrableOn_Ioi_rpow_iff (s := r / 2 - 1) (t := N) (by simp [Npos]) |>.mpr
       (by linarith [rneg])
     exact integrableOn_Ioi_iff_integrableAtFilter_atTop_nhdsWithin.mp this |>.1
