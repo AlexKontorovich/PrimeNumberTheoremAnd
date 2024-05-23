@@ -5,6 +5,7 @@ import Mathlib.Analysis.Analytic.Meromorphic
 import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.MeasureTheory.Measure.Lebesgue.Integral
 import PrimeNumberTheoremAnd.Rectangle
+import PrimeNumberTheoremAnd.Tactic.AdditiveCombination
 
 open Complex BigOperators Nat Classical Real Topology Filter Set MeasureTheory intervalIntegral
 
@@ -81,6 +82,8 @@ lemma verticalIntegral_split_three (a b : ℝ) (hf : Integrable (fun t : ℝ ↦
   rw [← intervalIntegral.integral_Iic_sub_Iic hf.restrict hf.restrict, add_sub_cancel,
     integral_Iic_eq_integral_Iio, intervalIntegral.integral_Iio_add_Ici hf.restrict hf.restrict]
 
+-- set_option trace.Meta.Tactic.simp.rewrite true
+
 /-% ** Wrong delimiter on purpose **
 \begin{lemma}[DiffVertRect_eq_UpperLowerUs]\label{DiffVertRect_eq_UpperLowerUs}\lean{DiffVertRect_eq_UpperLowerUs}\leanok
 The difference of two vertical integrals and a rectangle is the difference of an upper and a lower U integrals.
@@ -92,9 +95,13 @@ lemma DiffVertRect_eq_UpperLowerUs {σ σ' T : ℝ}
     (VerticalIntegral f σ') - (VerticalIntegral f σ) - (RectangleIntegral f (σ - I * T) (σ' + I * T)) =
     (UpperUIntegral f σ σ' T) - (LowerUIntegral f σ σ' T) := by
   rw [verticalIntegral_split_three (-T) T f_int_σ, verticalIntegral_split_three (-T) T f_int_σ']
-  simp only [smul_eq_mul, RectangleIntegral, sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im,
-    ofReal_im, mul_zero, sub_self, sub_zero, add_re, add_zero, sub_im, mul_im, one_mul, zero_add,
-    zero_sub, add_im, UpperUIntegral, LowerUIntegral]
+  -- step 1: unfold defs
+  simp only [RectangleIntegral, UpperUIntegral, LowerUIntegral]
+  -- step 2: take real and imaginary parts (in indices)
+  simp only [sub_re, mul_re, I_re, add_re, ofReal_re, I_im, ofReal_im, sub_im, mul_im, add_im]
+  -- step 3: normalize indices
+  ring_nf
+  -- step 4: normalize expressions in `E`
   abel
 /-%
 \begin{proof}\uses{UpperUIntegral, LowerUIntegral}\leanok
@@ -140,7 +147,7 @@ This is in a Mathlib PR.
 theorem RectangleIntegral_congr (h : Set.EqOn f g (RectangleBorder z w)) :
     RectangleIntegral f z w = RectangleIntegral g z w := by
   unfold RectangleIntegral VIntegral
-  congr 2; swap; congr 1; swap; congr 1
+  congrm ?_ - ?_ + I • ?_ - I • ?_
   all_goals refine intervalIntegral.integral_congr fun _ _ ↦ h ?_
   · exact Or.inl <| Or.inl <| Or.inl ⟨by simpa, by simp⟩
   · exact Or.inl <| Or.inr ⟨by simpa, by simp⟩
@@ -173,10 +180,11 @@ theorem RectangleBorderIntegrable.add {f g : ℂ → E} (hf : RectangleBorderInt
     (hg : RectangleBorderIntegrable g z w) :
     RectangleIntegral (f + g) z w = RectangleIntegral f z w + RectangleIntegral g z w := by
   dsimp [RectangleIntegral, HIntegral, VIntegral]
-  rw [intervalIntegral.integral_add hf.1 hg.1, intervalIntegral.integral_add hf.2.1 hg.2.1,
-    intervalIntegral.integral_add hf.2.2.1 hg.2.2.1, intervalIntegral.integral_add hf.2.2.2 hg.2.2.2]
-  rw [← sub_eq_zero]
-  simp only [smul_add]; abel
+  have h₁ := intervalIntegral.integral_add hf.1 hg.1
+  have h₂ := intervalIntegral.integral_add hf.2.1 hg.2.1
+  have h₃ := intervalIntegral.integral_add hf.2.2.1 hg.2.2.1
+  have h₄ := intervalIntegral.integral_add hf.2.2.2 hg.2.2.2
+  additive_combination h₁ - h₂ + I • h₃ - I • h₄
 
 theorem ContinuousOn.rectangleBorder_integrable (hf : ContinuousOn f (RectangleBorder z w)) :
     RectangleBorderIntegrable f z w :=
@@ -219,10 +227,10 @@ lemma RectangleIntegralHSplit {a x₀ x₁ y₀ y₁ : ℝ}
       RectangleIntegral f (x₀ + y₀ * I) (a + y₁ * I) +
       RectangleIntegral f (a + y₀ * I) (x₁ + y₁ * I) := by
   dsimp [RectangleIntegral, HIntegral, VIntegral]
-  simp only [mul_one, mul_zero, add_zero, zero_add, sub_self]
-  rw [← intervalIntegral.integral_add_adjacent_intervals f_int_x₀_a_bot f_int_a_x₁_bot,
-    ← intervalIntegral.integral_add_adjacent_intervals f_int_x₀_a_top f_int_a_x₁_top]
-  abel
+  ring_nf
+  have h₁ := intervalIntegral.integral_add_adjacent_intervals f_int_x₀_a_bot f_int_a_x₁_bot
+  have h₂ := intervalIntegral.integral_add_adjacent_intervals f_int_x₀_a_top f_int_a_x₁_top
+  additive_combination - h₁ + h₂
 
 lemma RectangleIntegralHSplit' {a x₀ x₁ y₀ y₁ : ℝ} (ha : a ∈ [[x₀, x₁]])
     (hf : RectangleBorderIntegrable f (↑x₀ + ↑y₀ * I) (↑x₁ + ↑y₁ * I)) :
@@ -244,10 +252,10 @@ lemma RectangleIntegralVSplit {b x₀ x₁ y₀ y₁ : ℝ}
       RectangleIntegral f (x₀ + y₀ * I) (x₁ + b * I) +
       RectangleIntegral f (x₀ + b * I) (x₁ + y₁ * I) := by
   dsimp [RectangleIntegral, HIntegral, VIntegral]
-  simp only [mul_one, mul_zero, add_zero, zero_add, sub_self]
-  rw [← intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_left f_int_b_y₁_left,
-    ← intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_right f_int_b_y₁_right, ← sub_eq_zero]
-  simp only [smul_add]; abel
+  ring_nf
+  have h₁ := intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_left f_int_b_y₁_left
+  have h₂ := intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_right f_int_b_y₁_right
+  additive_combination I • h₁ - I • h₂
 
 lemma RectangleIntegralVSplit' {b x₀ x₁ y₀ y₁ : ℝ} (hb : b ∈ [[y₀, y₁]])
     (hf : RectangleBorderIntegrable f (↑x₀ + ↑y₀ * I) (↑x₁ + ↑y₁ * I)) :
@@ -297,12 +305,16 @@ lemma RectanglePullToNhdOfPole' [CompleteSpace E] {z₀ z₁ z₂ z₃ p : ℂ}
   have hright'' : Rectangle (↑z₂.re + ↑z₁.im * I) (↑z₃.re + ↑z₂.im * I) ⊆ Rectangle z₀ z₃ \ {p} := ?_
   all_goals try { apply rectangle_subset_punctured_rect <;> simp_all }
 
-  rw [← re_add_im z₀, ← re_add_im z₃,
-    RectangleIntegralVSplit' hbot' hbot, fHolo.vanishesOnRectangle hbot'', zero_add,
-    RectangleIntegralVSplit' htop' htop, fHolo.vanishesOnRectangle htop'', add_zero,
-    RectangleIntegralHSplit' hleft' hleft, fHolo.vanishesOnRectangle hleft'', zero_add,
-    RectangleIntegralHSplit' hright' hright, fHolo.vanishesOnRectangle hright'', add_zero,
-    re_add_im, re_add_im]
+  have h₁ := RectangleIntegralVSplit' hbot' hbot
+  have h₂ := fHolo.vanishesOnRectangle hbot''
+  have h₃ := RectangleIntegralVSplit' htop' htop
+  have h₄ := fHolo.vanishesOnRectangle htop''
+  have h₅ := RectangleIntegralHSplit' hleft' hleft
+  have h₆ := fHolo.vanishesOnRectangle hleft''
+  have h₇ := RectangleIntegralHSplit' hright' hright
+  have h₈ := fHolo.vanishesOnRectangle hright''
+  simp only [re_add_im] at *
+  additive_combination h₁ + h₂ + h₃ + h₄ + h₅ + h₆ + h₇ + h₈
 
 /-%%
 The next lemma allows to zoom a big rectangle down to a small square, centered at a pole.
