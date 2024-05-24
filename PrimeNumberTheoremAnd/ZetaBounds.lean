@@ -1499,19 +1499,18 @@ lemma ZetaDerivUpperBnd :
   set N : ℕ := ⌊|t|⌋₊
   rw [(HasDerivAtZeta0 Npos (s := σ + t * I) (by simp [σPos]) neOne).deriv]
   dsimp only [ζ₀']
-
+  rw [← add_assoc]
+  set aa := ∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)
+  set bb := -(N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2
+  set cc := (Real.log N) * (N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))
+  set dd := (Real.log N) * (N : ℂ) ^ (-(σ + t * I)) / 2
+  set ee := 1 * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1)
+  set ff := (σ + t * I) * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)
+  rw [(by ring : aa + (bb + cc) + dd + ee + ff = aa + bb + cc + dd + ee + ff)]
+  apply le_trans (by apply norm_add₆_le) ?_
   convert ZetaDerivUpperBnd' hA t_gt ⟨σ_ge, σ_le⟩
-  congr
-  sorry
-#exit
-  apply le_trans (NormDerivZeta0Le Npos hA σ_ge σPos t_gt) ?_
-  conv => rw [mul_comm 4, mul_assoc _ 4 _]; rhs; rw [sq, ← mul_assoc, mul_comm C, mul_assoc]
-  refine mul_le_mul (Real.log_le_log (by positivity) N_le_t) ?_ (by positivity) (by positivity)
-  simp only [C, mul_assoc, Zeta0EqZeta Npos (by simp [σPos]) neOne]
-  refine mul_le_mul_left (by norm_num) |>.mpr ?_
-  convert ZetaUpperBnd' hA t_gt ⟨σ_ge, σ_le⟩ using 1; ring
 /-%%
-\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}\leanok
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
 Differentiating term by term, we get:
 $$
