@@ -786,21 +786,27 @@ lemma integrable_log_over_pow {r : ℝ} (rneg: r < 0) {N : ℕ} (Npos : 0 < N):
     · apply continuous_id.continuousOn.log ?_ |>.abs
       intro x hx; simp only [id_eq]; contrapose! Npos with h; exact_mod_cast h ▸ mem_Ici.mp hx
   · have := isLittleO_log_rpow_atTop (r := -r / 2) (by linarith) |>.isBigO
-
-
     rw [Asymptotics.isBigO_iff_eventually, Filter.eventually_atTop] at this
     obtain ⟨C, hC⟩ := this
-    have := hC C (by simp)
-    rw [Filter.eventually_atTop] at this
-    obtain ⟨x₀, hx₀⟩ := this
-    sorry
-    -- filter_upwards [Filter.mem_atTop x₀]
-    -- have (x : ℝ) : x ^ (r / 2 - 1) = x ^ (r - 1) * x ^ (-r / 2) := by
-    --   rw [← Real.rpow_add ?_]; ring_nf
-    --   sorry
-    -- simp only [this, ← abs_mul, Asymptotics.isBigO_abs_left]
-    -- apply Asymptotics.isBigO_refl _ _ |>.mul
-    -- exact isLittleO_log_rpow_atTop (r := -r/2) (by linarith) |>.isBigO
+    have hh := hC C (by simp)
+    rw [Asymptotics.isBigO_atTop_iff_eventually_exists]
+    have := Filter.eventually_atTop.mp hh
+    obtain ⟨x₀, hx₀ ⟩ := this
+    filter_upwards [hh, Filter.mem_atTop x₀, Filter.mem_atTop 1]
+    intro x hx x_gt x_pos
+    use C
+    intro y hy
+    simp only [norm_mul, Real.norm_eq_abs, _root_.abs_abs]
+    simp only [Real.norm_eq_abs] at hx
+    have y_pos : 0 < y := by linarith
+    have : y ^ (r / 2 - 1) = y ^ (r - 1) * y ^ (-r / 2) := by
+      rw [← Real.rpow_add y_pos]; ring_nf
+    rw [this, abs_mul]
+    have y_gt : y ≥ x₀ := by linarith
+    have := hx₀ y y_gt
+    simp only [Real.norm_eq_abs] at this
+    rw [← mul_assoc, mul_comm C, mul_assoc]
+    exact mul_le_mul_of_nonneg_left (h := this) (a := |y ^ (r - 1)|) (a0 := by simp)
   · have := integrableOn_Ioi_rpow_iff (s := r / 2 - 1) (t := N) (by simp [Npos]) |>.mpr
       (by linarith [rneg])
     exact integrableOn_Ioi_iff_integrableAtFilter_atTop_nhdsWithin.mp this |>.1
