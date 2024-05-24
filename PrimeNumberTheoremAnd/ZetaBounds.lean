@@ -1444,7 +1444,12 @@ lemma ZetaDerivUpperBnd :
   intro σ t t_gt ⟨σ_ge, σ_le⟩
   obtain ⟨Npos, N_le_t, _, _, σPos, neOne⟩ := UpperBnd_aux hA t_gt σ_ge
   rw [← DerivZeta0EqDerivZeta Npos (by simp [σPos]) neOne]
-
+  set N : ℕ := ⌊|t|⌋₊
+  have : deriv (ζ₀ N) = ζ₀' N := by
+    sorry
+  rw [this]
+  dsimp only [ζ₀']
+  sorry
 #exit
   apply le_trans (NormDerivZeta0Le Npos hA σ_ge σPos t_gt) ?_
   conv => rw [mul_comm 4, mul_assoc _ 4 _]; rhs; rw [sq, ← mul_assoc, mul_comm C, mul_assoc]
