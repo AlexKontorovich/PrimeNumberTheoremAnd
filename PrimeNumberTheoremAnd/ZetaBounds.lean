@@ -1407,30 +1407,6 @@ $$
 \end{proof}
 %%-/
 
-
--- -- THE LAST INEQUALITY MIGHT NOT BE TRUE, NEEDS REFACTORING
--- lemma NormDerivZeta0Le {N : ℕ} (Npos : 0 < N) {A : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
---     {σ t : ℝ} (σ_ge : 1 - A / Real.log |t| ≤ σ) (σpos : 0 < σ) (t_gt : 3 < |t|) :
---     let s := σ + t * I;
---     ‖deriv (ζ₀ N) s‖ ≤ 4 * Real.log (N : ℝ) *
---     (‖∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s‖ +
---     ‖(N : ℂ) ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
---     ‖s * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖) := by
---   set s := σ + t * I
---   sorry
---   -- have s_ne_one : s ≠ 1 := by sorry
---   -- simp only [HasDerivAt.deriv <| HasDerivAtZeta0 Npos reS_pos s_ne_one, ζ₀', sub_eq_add_neg]
---   -- apply le_trans (by apply norm_add₄_le) ?_
---   -- simp only [norm_neg, norm_div, norm_pow, norm_mul, RCLike.norm_ofNat, norm_mul,
---   --   norm_one, norm_inv, natCast_log, mul_add]
---   -- rw [norm_natCast_cpow_of_pos Npos, norm_natCast_cpow_of_pos Npos, neg_re, one_mul]
---   -- gcongr
---   -- · sorry
---   -- · sorry
---   -- -- apply norm_add₄_le
---   -- sorry
-
-
 lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
     let C := Real.exp A * (5 + 8 * 2);
