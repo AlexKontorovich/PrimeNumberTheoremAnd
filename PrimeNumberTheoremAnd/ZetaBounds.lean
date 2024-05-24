@@ -1133,6 +1133,11 @@ lemma norm_add₅_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (
   apply le_trans <| norm_add_le (a + b + c + d) e
   simp only [add_le_add_iff_right]; apply norm_add₄_le
 
+lemma norm_add₆_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) (e : E) (f : E) :
+    ‖a + b + c + d + e + f‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ + ‖e‖ + ‖f‖ := by
+  apply le_trans <| norm_add_le (a + b + c + d + e) f
+  simp only [add_le_add_iff_right]; apply norm_add₅_le
+
 lemma add_le_add_le_add {α : Type*} [Add α] [Preorder α]
     [CovariantClass α α (fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
     [CovariantClass α α (Function.swap fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
@@ -1433,7 +1438,6 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
     let s := σ + t * I;
     ‖∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ +
       ‖-(N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2‖ +
-      --‖ (N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2 ‖ +
       ‖(Real.log N) * (N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))‖ +
       ‖(Real.log N) * (N : ℂ) ^ (-(σ + t * I)) / 2‖ +
       ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1))‖ +
@@ -1487,7 +1491,7 @@ lemma ZetaDerivUpperBnd :
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2),
     ‖deriv ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
   obtain ⟨A, hA, _, _, _⟩ := ZetaUpperBnd
-  let C := 4 * Real.exp A * (5 + 8 * 2) -- 4 times C'
+  let C := Real.exp A * (5 + 8 * 2)
   refine ⟨A, hA, C, by positivity, ?_⟩
   intro σ t t_gt ⟨σ_ge, σ_le⟩
   obtain ⟨Npos, N_le_t, _, _, σPos, neOne⟩ := UpperBnd_aux hA t_gt σ_ge
@@ -1496,6 +1500,8 @@ lemma ZetaDerivUpperBnd :
   rw [(HasDerivAtZeta0 Npos (s := σ + t * I) (by simp [σPos]) neOne).deriv]
   dsimp only [ζ₀']
 
+  convert ZetaDerivUpperBnd' hA t_gt ⟨σ_ge, σ_le⟩
+  congr
   sorry
 #exit
   apply le_trans (NormDerivZeta0Le Npos hA σ_ge σPos t_gt) ?_
