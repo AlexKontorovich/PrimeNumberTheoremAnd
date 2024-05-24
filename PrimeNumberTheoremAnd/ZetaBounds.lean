@@ -1368,7 +1368,7 @@ lemma ZetaUpperBnd :
     (_ : σ ∈ Icc (1 - A / Real.log |t|) 2), ‖ζ (σ + t * I)‖ ≤ C * Real.log |t| := by
   let A := (1 / 2 : ℝ)
   let C := Real.exp A * (5 + 8 * 2) -- the 2 comes from ZetaBnd_aux1
-  refine ⟨A, ⟨by norm_num, by norm_num⟩ , C, (by positivity), ?_⟩
+  refine ⟨A, ⟨by norm_num, by norm_num⟩, C, (by positivity), ?_⟩
   intro σ t t_gt ⟨σ_ge, σ_le⟩
   obtain ⟨Npos, _, _, _, σPos, neOne⟩ := UpperBnd_aux ⟨by norm_num, by norm_num⟩ t_gt σ_ge
   rw [← Zeta0EqZeta Npos (by simp [σPos]) neOne]
@@ -1425,6 +1425,49 @@ $$
 --   -- -- apply norm_add₄_le
 --   -- sorry
 
+
+lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
+    (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
+    let C := Real.exp A * (5 + 8 * 2);
+    let N := ⌊|t|⌋₊;
+    let s := σ + t * I;
+    ‖∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s‖ + ‖(N : ℂ) ^ (1 - s) / (1 - s)‖
+    + ‖(N : ℂ) ^ (-s) / 2‖ + ‖s * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖
+    ≤ C * Real.log |t| := by
+  intros C N s
+  sorry
+  -- obtain ⟨Npos, N_le_t, logt_gt, σ_gt, σPos, neOne⟩ := UpperBnd_aux hA t_gt hσ.1
+  -- replace σ_gt : 1 / 2 < σ := by linarith [hA.2]
+  -- calc
+  --   _ ≤ Real.exp A * 2 * Real.log |t| + ‖N ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
+  --     ‖s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := ?_
+  --   _ ≤ Real.exp A * 2 * Real.log |t| + ‖N ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
+  --     2 * |t| * N ^ (-σ) / σ  := ?_
+  --   _ = Real.exp A * 2 * Real.log |t| + N ^ (1 - σ) / ‖(1 - s)‖ + N ^ (-σ) / 2 +
+  --     2 * |t| * N ^ (-σ) / σ  := ?_
+  --   _ ≤ Real.exp A * 2 * Real.log |t| + |t| ^ (1 - σ) * 2 +
+  --       |t| ^ (1 - σ) + 2 * |t| * (8 * |t| ^ (-σ)) := ?_
+  --   _ = Real.exp A * 2 * Real.log |t| + (3 + 8 * 2) * |t| ^ (1 - σ) := ?_
+  --   _ ≤ Real.exp A * 2 * Real.log |t| + (3 + 8 * 2) * Real.exp A * 1 := ?_
+  --   _ ≤ Real.exp A * 2 * Real.log |t| + (3 + 8 * 2) * Real.exp A * Real.log |t| := ?_
+  --   _ = _ := by ring
+  -- · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]
+  --   convert UpperBnd_aux3 (C := 2) hA hσ.1 t_gt le_rfl using 1
+  -- · simp only [add_le_add_iff_left]; exact ZetaBnd_aux1 N (by linarith) ⟨σPos, hσ.2⟩ (by linarith)
+  -- · simp only [norm_div, norm_neg, norm_eq_abs, RCLike.norm_ofNat, Nat.abs_cast, s]
+  --   congr <;> (convert norm_natCast_cpow_of_pos Npos _; simp)
+  -- · have ⟨h₁, h₂, h₃⟩ := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t
+  --   refine add_le_add_le_add_le_add le_rfl h₁ h₂ ?_
+  --   rw [mul_div_assoc]
+  --   exact mul_le_mul_left (mul_pos (by norm_num) (by positivity)) |>.mpr h₃
+  -- · ring_nf; conv => lhs; rhs; lhs; rw [mul_comm |t|]
+  --   rw [← Real.rpow_add_one (by positivity)]; ring_nf
+  -- · simp only [Real.log_abs, add_le_add_iff_left, mul_one]
+  --   exact mul_le_mul_left (by positivity) |>.mpr <| UpperBnd_aux2 t_gt hσ.1
+  -- · simp only [add_le_add_iff_left]
+  --   apply mul_le_mul_left (by norm_num [Real.exp_pos]) |>.mpr <| logt_gt.le
+
+
 /-%%
 \begin{lemma}[ZetaDerivUpperBnd]\label{ZetaDerivUpperBnd}\lean{ZetaDerivUpperBnd}\leanok
 For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$,
@@ -1447,6 +1490,7 @@ lemma ZetaDerivUpperBnd :
   set N : ℕ := ⌊|t|⌋₊
   rw [(HasDerivAtZeta0 Npos (s := σ + t * I) (by simp [σPos]) neOne).deriv]
   dsimp only [ζ₀']
+
   sorry
 #exit
   apply le_trans (NormDerivZeta0Le Npos hA σ_ge σPos t_gt) ?_
