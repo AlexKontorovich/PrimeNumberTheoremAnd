@@ -9,6 +9,16 @@ import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 
 open MeasureTheory Set Filter
 
+
+lemma norm_complex_log_ofNat (n : ℕ) : ‖(n : ℂ).log‖ = (n : ℝ).log := by
+  have := Complex.ofReal_log (x := (n : ℝ)) (Nat.cast_nonneg n)
+  rw [(by simp : ((n : ℝ) : ℂ) = (n : ℂ))] at this
+  rw [← this, Complex.norm_eq_abs, Complex.abs_of_nonneg]
+  exact Real.log_natCast_nonneg n
+
+
+
+#exit
 example (f g : ℝ → ℝ) (g_integrableOn : IntegrableOn g (Ioi (0 : ℝ)))
     (f_le_g_atTop : f =O[atTop] g) : IntegrableOn f (Ioi (0 : ℝ)) := by
   sorry
