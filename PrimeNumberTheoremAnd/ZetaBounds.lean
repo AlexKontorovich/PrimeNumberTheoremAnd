@@ -1404,7 +1404,44 @@ $$
 
 lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (t_gt : 3 < |t|) (hC : 2 ≤ C) : let N := ⌊|t|⌋₊;
-    ‖∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ ≤ Real.exp A * C * (Real.log |t|) ^ 2 := by sorry
+    ‖∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖
+      ≤ Real.exp A * C * (Real.log |t|) ^ 2 := by
+  intro N
+  obtain ⟨Npos, N_le_t, _, _, σPos, _⟩ := UpperBnd_aux hA t_gt σ_ge
+  have logt_gt := logt_gt_one t_gt
+  have fact0 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) : n ≤ |t| := by
+    simp only [Finset.mem_range] at hn
+    linarith [(by exact_mod_cast (by omega : n ≤ N) : (n : ℝ) ≤ N)]
+  have fact1 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) := ZetaBnd_aux2 (n := n) hA.1 σPos (fact0 _ hn) σ_ge
+  have fact2 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) : Real.log n ≤ Real.log N := by
+    sorry
+  have fact3 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) : ‖ -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ ≤ (n : ℝ)⁻¹ * A * (Real.log N) := by
+    have := mul_le_mul (h₁ := fact1 _ hn) (h₂ := fact2 _ hn)
+
+    sorry
+#exit
+  · replace := norm_sum_le_of_le (Finset.range (N + 1)) this
+    rw [← Finset.sum_mul, mul_comm _ (Real.exp A)] at this
+    rw [mul_assoc]
+    apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
+    have : 1 + Real.log (N : ℝ) ≤ C * Real.log |t| := by
+      by_cases hN : N = 1
+      · simp only [hN, Nat.cast_one, Real.log_one, add_zero]
+        have : 2 * 1 ≤ C * Real.log |t| := mul_le_mul hC logt_gt.le (by linarith) (by linarith)
+        linarith
+      · rw [(by ring : C * Real.log |t| = Real.log |t| + (C - 1) * Real.log |t|),
+          ← one_mul <| Real.log (N: ℝ)]
+        apply add_le_add logt_gt.le
+        refine mul_le_mul (by linarith) ?_ (by positivity) (by linarith)
+        exact Real.log_le_log (by positivity) N_le_t
+    refine le_trans ?_ this
+    convert harmonic_eq_sum_Icc ▸ harmonic_le_one_add_log N
+    · simp only [Rat.cast_sum, Rat.cast_inv, Rat.cast_natCast, Finset.range_eq_Ico]
+      rw [riemannZeta0_zero_aux (N + 1) (by linarith)]; congr! 1
+  · simp only [Finset.mem_range] at hn
+    linarith [(by exact_mod_cast (by omega : n ≤ N) : (n : ℝ) ≤ N)]
+
+  sorry
 
 lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
@@ -1416,7 +1453,8 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       ‖(Real.log N) * (N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))‖ +
       ‖(Real.log N) * (N : ℂ) ^ (-(σ + t * I)) / 2‖ +
       ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1))‖ +
-      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖
+      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖
         ≤ C * Real.log |t| ^ 2 := by
   intros C N s
   obtain ⟨Npos, N_le_t, logt_gt, σ_gt, σPos, neOne⟩ := UpperBnd_aux hA t_gt hσ.1
@@ -1427,14 +1465,16 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       ‖(Real.log N) * (N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))‖ +
       ‖(Real.log N) * (N : ℂ) ^ (-(σ + t * I)) / 2‖ +
       ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1))‖ +
-      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖ := by
+      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖ := by
         gcongr; exact DerivUpperBnd_aux1 hA hσ.1 t_gt (by simp : (2 : ℝ) ≤ 2)
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       ‖-(N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2‖ + -- STOPPED HERE
       ‖(Real.log N) * (N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))‖ +
       ‖(Real.log N) * (N : ℂ) ^ (-(σ + t * I)) / 2‖ +
       ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1))‖ +
-      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖ := ?_
+      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖ := ?_
     _ ≤ _ := by sorry
 
 
