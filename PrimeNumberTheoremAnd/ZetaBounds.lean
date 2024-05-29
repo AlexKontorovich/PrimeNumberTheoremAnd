@@ -1413,8 +1413,16 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
     simp only [Finset.mem_range] at hn
     linarith [(by exact_mod_cast (by omega : n ≤ N) : (n : ℝ) ≤ N)]
   have fact1 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) := ZetaBnd_aux2 (n := n) hA.1 σPos (fact0 _ hn) σ_ge
-  have fact2 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) : Real.log n ≤ Real.log N := by
-    sorry
+  have fact2 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) : Real.log n ≤ Real.log (N + 1) := by
+    cases n
+    · simp only [CharP.cast_eq_zero, Real.log_zero]
+      apply Real.log_nonneg
+      have : 0 ≤ (N : ℝ) := by simp only [Nat.cast_nonneg]
+      linarith
+    · apply Real.log_le_log <;> simp only [Nat.cast_add, Nat.cast_one]
+      · exact Nat.cast_add_one_pos _
+      · simp only [Finset.mem_range] at hn
+        exact_mod_cast hn.le
   have fact3 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) : ‖ -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ ≤ (n : ℝ)⁻¹ * A * (Real.log N) := by
     have := mul_le_mul (h₁ := fact1 _ hn) (h₂ := fact2 _ hn)
 
