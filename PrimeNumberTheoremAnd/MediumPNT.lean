@@ -3,7 +3,7 @@ import Mathlib.NumberTheory.LSeries.Dirichlet
 import PrimeNumberTheoremAnd.MellinCalculus
 import PrimeNumberTheoremAnd.ZetaBounds
 import EulerProducts.PNT
-import Mathlib.Algebra.Function.Support
+import Mathlib.Algebra.Group.Support
 
 open Set Function Filter Complex Real
 

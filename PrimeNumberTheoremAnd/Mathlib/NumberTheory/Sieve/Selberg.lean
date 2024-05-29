@@ -95,11 +95,9 @@ theorem selbergWeights_eq_zero (d : ℕ) (hd : ¬d ^ 2 ≤ y) :
 
 @[aesop safe]
 theorem selbergWeights_mul_mu_nonneg (d : ℕ) (hdP : d ∣ P) :
-    0 ≤ γ d * μ d :=
-  by
-  have := s.selbergBoundingSum_nonneg
+    0 ≤ γ d * μ d := by
   dsimp only [selbergWeights]
-  rw [if_pos hdP]; rw [mul_assoc]
+  rw [if_pos hdP, mul_assoc]
   trans ((μ d :ℝ)^2 * (ν d)⁻¹ * g d * S⁻¹ * ∑ m in divisors P,
           if (d * m) ^ 2 ≤ y ∧ Coprime m d then g m else 0)
   swap; apply le_of_eq; ring
@@ -421,11 +419,10 @@ theorem selberg_bound_muPlus (n : ℕ) (hn : n ∈ divisors P) :
       (s.selberg_bound_weights d2)
     rw [if_neg h, if_neg h]
   · rw [← Finset.sum_product']
-  · dsimp only []
-    rw [← sum_filter, Finset.sum_const, Nat.smul_one_eq_coe]
+  · dsimp only
+    rw [← sum_filter, Finset.sum_const, smul_one_eq_cast]
   · norm_cast
-    rw [←card_lcm_eq (s.squarefree_of_mem_divisors_prodPrimes hn)]
-    congr; ext; rw[eq_comm]
+    simp [← card_lcm_eq (s.squarefree_of_mem_divisors_prodPrimes hn), eq_comm]
   norm_num
 
 theorem selberg_bound_simple_errSum :

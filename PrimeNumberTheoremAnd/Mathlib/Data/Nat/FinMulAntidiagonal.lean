@@ -191,8 +191,9 @@ private theorem primeFactorsPiBij_img (d n : ℕ) (hn : Squarefree n)
   apply fun _ _ => mem_univ _
 
 private theorem primeFactorsPiBij_inj (d n : ℕ)
-    (f g : (p : ℕ) → p ∈ n.primeFactors → Fin d) (hf : f ∈ pi n.primeFactors fun _ => univ)
-    (hg : g ∈ pi n.primeFactors fun _ => univ) : Nat.primeFactorsPiBij d n f hf = Nat.primeFactorsPiBij d n g hg → f = g := by
+    (f : (p : ℕ) → p ∈ n.primeFactors → Fin d) (hf : f ∈ pi n.primeFactors fun _ => univ)
+    (g : (p : ℕ) → p ∈ n.primeFactors → Fin d) (hg : g ∈ pi n.primeFactors fun _ => univ) :
+    Nat.primeFactorsPiBij d n f hf = Nat.primeFactorsPiBij d n g hg → f = g := by
   contrapose!
   simp_rw [Function.ne_iff]
   intro ⟨p, hp, hfg⟩
@@ -235,7 +236,7 @@ private theorem primeFactorsPiBij_surj (d n : ℕ) (hn : Squarefree n)
 theorem card_finMulAntidiagonal_pi (d n : ℕ) (hn : Squarefree n) :
     (n.factors.toFinset.pi (fun _ => (univ : Finset <| Fin d))).card =
       (finMulAntidiagonal d n).card := by
-  apply Finset.card_congr (Nat.primeFactorsPiBij d n) (primeFactorsPiBij_img d n hn)
+  apply Finset.card_bij (Nat.primeFactorsPiBij d n) (primeFactorsPiBij_img d n hn)
     (primeFactorsPiBij_inj d n) (primeFactorsPiBij_surj d n hn)
 
 theorem card_finMulAntidiagonal {d n : ℕ} (hn : Squarefree n) :
@@ -268,10 +269,8 @@ private theorem f_img {n : ℕ} (hn : Squarefree n) : ∀ (a : Fin 3 → ℕ) (h
   refine coprime_of_squarefree_mul (hn.squarefree_of_dvd ?_)
   use a 0; rw [←finMulAntidiagonal_three a ha]; ring
 
-private theorem f_inj {n : ℕ} :
-    ∀ (a b : Fin 3 → ℕ) (ha : a ∈ finMulAntidiagonal 3 n) (hb : b ∈ finMulAntidiagonal 3 n),
-      f a ha = f b hb → a = b := by
-  intro a b ha hb hfab
+private theorem f_inj {n : ℕ} (a : Fin 3 → ℕ) (ha : a ∈ finMulAntidiagonal 3 n)
+    (b : Fin 3 → ℕ) (hb : b ∈ finMulAntidiagonal 3 n) (hfab : f a ha = f b hb) : a = b := by
   obtain ⟨hfab1, hfab2⟩ := Prod.mk.inj hfab
   have hprods : a 0 * a 1 * a 2 = a 0 * a 1 * b 2 := by
     rw [finMulAntidiagonal_three a ha, hfab1, finMulAntidiagonal_three b hb]
@@ -315,6 +314,6 @@ theorem card_lcm_eq {n : ℕ} (hn : Squarefree n) :
     Finset.card ((n.divisors ×ˢ n.divisors).filter fun ⟨x, y⟩ => x.lcm y = n) =
       3 ^ ω n := by
   rw [← card_finMulAntidiagonal hn, eq_comm]
-  apply Finset.card_congr f (f_img hn) (f_inj) (f_surj hn.ne_zero)
+  exact Finset.card_bij f (f_img hn) f_inj (f_surj hn.ne_zero)
 
 end Nat

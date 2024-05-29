@@ -10,12 +10,7 @@ import Mathlib.MeasureTheory.Function.Floor
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.NumberTheory.Harmonic.Bounds
 
--- only importing the following for the MeasurableDiv₂ ℝ instance.
--- should remove eventually
-import PrimeNumberTheoremAnd.PerronFormula
-
--- set_option quotPrecheck false
-open BigOperators Complex Topology Filter Interval Set
+open Complex Topology Filter Interval Set
 
 lemma div_cpow_eq_cpow_neg (a x s : ℂ) : a / x ^ s = a * x ^ (-s) := by
   rw [div_eq_mul_inv, cpow_neg]
@@ -629,14 +624,14 @@ lemma Complex.cpow_tendsto {s : ℂ} (s_re_gt : 1 < s.re) :
   rw [tendsto_zero_iff_norm_tendsto_zero]
   simp_rw [Complex.norm_natCast_cpow_of_re_ne_zero _ (one_sub_s_re_ne)]
   rw [(by simp only [sub_re, one_re, neg_sub] : (1 - s).re = - (s - 1).re)]
-  apply (tendsto_rpow_neg_atTop _).comp tendsto_nat_cast_atTop_atTop; simp [s_re_gt]
+  apply (tendsto_rpow_neg_atTop _).comp tendsto_natCast_atTop_atTop; simp [s_re_gt]
 
 lemma Complex.cpow_inv_tendsto {s : ℂ} (hs : 0 < s.re) :
     Tendsto (fun (x : ℕ) ↦ ((x : ℂ) ^ s)⁻¹) atTop (𝓝 0) := by
   rw [tendsto_zero_iff_norm_tendsto_zero]
   simp_rw [norm_inv, Complex.norm_natCast_cpow_of_re_ne_zero _ <| ne_of_gt hs]
   apply Filter.Tendsto.inv_tendsto_atTop
-  exact (tendsto_rpow_atTop hs).comp tendsto_nat_cast_atTop_atTop
+  exact (tendsto_rpow_atTop hs).comp tendsto_natCast_atTop_atTop
 
 lemma ZetaSum_aux2a : ∃ C, ∀ (x : ℝ), |⌊x⌋ + 1 / 2 - x| ≤ C := by
   use 1 / 2; exact ZetaSum_aux1_3
@@ -729,7 +724,7 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ t : ℝ} (σpos : 0 < σ) :
     · filter_upwards [Filter.mem_atTop ((N : ℝ))]
       intro u hu
       simp only [id_eq, intervalIntegral.integral_of_le hu, norm_div, norm_eq_abs]
-      apply set_integral_congr (by simp)
+      apply setIntegral_congr (by simp)
       intro x hx; beta_reduce
       iterate 2 (rw [abs_cpow_eq_rpow_re_of_pos (by linarith [hx.1])])
       simp
@@ -1592,7 +1587,7 @@ lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
     conv => rw [mul_assoc]; rhs; rhs; rw [mul_comm]
     rw [← mul_assoc]
     have := norm_zeta_product_ge_one (x := σ - 1) (by linarith) t
-    simp_rw [ge_iff_le, norm_mul, norm_pow, ofReal_sub, ofReal_one, add_sub_cancel, ← Real.rpow_nat_cast] at this
+    simp_rw [ge_iff_le, norm_mul, norm_pow, ofReal_sub, ofReal_one, add_sub_cancel, ← Real.rpow_natCast] at this
     convert this using 3 <;> ring_nf
     any_goals ring_nf
     any_goals apply norm_nonneg
@@ -1601,9 +1596,7 @@ lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
   · refine mul_nonneg (mul_nonneg ?_ ?_) ?_ <;> simp [Real.rpow_nonneg]
   · have s_ne_one : σ + t * I ≠ 1 := by
       contrapose! σ_gt; apply le_of_eq; apply And.left; simpa [Complex.ext_iff] using σ_gt
-    have zeta_ne_zero:= riemannZeta_ne_zero_of_one_le_re s_ne_one (by simp [σ_gt.le])
-    suffices 0 ≤ ‖ζ (↑σ + ↑t * I)‖ by simp [le_iff_lt_or_eq.mp this, zeta_ne_zero]
-    apply norm_nonneg
+    simpa using riemannZeta_ne_zero_of_one_le_re s_ne_one (by simp [σ_gt.le])
 /-%%
 \begin{proof}\leanok
 The identity
@@ -1853,7 +1846,6 @@ lemma ZetaInvBnd :
   let A := min A' <| (1 / 2 : ℝ) * (C₁ / (C₂ * 2)) ^ (4 : ℝ)
   have Apos : 0 < A := by have := hA'.1; positivity
   have Ale : A ≤ 1 / 2 := by dsimp only [A]; apply min_le_iff.mpr; left; exact hA'.2
-  have A_le_A' : A ≤ A' := by simp [A]
   set C := (C₁ * A ^ (3 / 4 : ℝ) - C₂ * 2 * A)⁻¹
   have Cpos : 0 < C := by
     refine ZetaInvBnd_aux2 (by positivity) (by positivity) (by positivity) ?_
@@ -1918,7 +1910,7 @@ lemma ZetaInvBnd :
     rw [← Real.rpow_add (by positivity)]; norm_num; group; exact le_rfl
   · apply div_le_iff (by positivity) |>.mpr
     conv => rw [mul_assoc]; rhs; rhs; rw [mul_comm C, ← mul_assoc, ← Real.rpow_add (by positivity)]
-    have := inv_inv C ▸ inv_mul_cancel (a := C) (by positivity) |>.symm.le
+    have := inv_inv C ▸ mul_inv_cancel (a := C⁻¹) (by positivity) |>.symm.le
     simpa [C] using this
 /-%%
 \begin{proof}\leanok
