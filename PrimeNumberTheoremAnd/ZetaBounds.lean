@@ -1402,6 +1402,10 @@ $$
 \end{proof}
 %%-/
 
+lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
+    (σ_ge : 1 - A / Real.log |t| ≤ σ) (t_gt : 3 < |t|) (hC : 2 ≤ C) : let N := ⌊|t|⌋₊;
+    ‖∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ ≤ Real.exp A * C * (Real.log |t|) ^ 2 := by sorry
+
 lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
     let C := Real.exp A * (5 + 8 * 2);
@@ -1417,6 +1421,23 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
   intros C N s
   obtain ⟨Npos, N_le_t, logt_gt, σ_gt, σPos, neOne⟩ := UpperBnd_aux hA t_gt hσ.1
   replace σ_gt : 1 / 2 < σ := by linarith [hA.2]
+  have Cge : 2 ≤ C := by sorry
+  calc _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      ‖-(N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (-(σ + t * I)) / 2‖ +
+      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1))‖ +
+      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖ := by
+        gcongr; exact DerivUpperBnd_aux1 hA hσ.1 t_gt (by simp : (2 : ℝ) ≤ 2)
+    _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      ‖-(N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2‖ + -- STOPPED HERE
+      ‖(Real.log N) * (N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (-(σ + t * I)) / 2‖ +
+      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1))‖ +
+      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖ := ?_
+    _ ≤ _ := by sorry
+
+
   sorry
   -- calc
   --   _ ≤ Real.exp A * 2 * Real.log |t| + ‖N ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
