@@ -95,11 +95,9 @@ theorem selbergWeights_eq_zero (d : ℕ) (hd : ¬d ^ 2 ≤ y) :
 
 @[aesop safe]
 theorem selbergWeights_mul_mu_nonneg (d : ℕ) (hdP : d ∣ P) :
-    0 ≤ γ d * μ d :=
-  by
-  have := s.selbergBoundingSum_nonneg
+    0 ≤ γ d * μ d := by
   dsimp only [selbergWeights]
-  rw [if_pos hdP]; rw [mul_assoc]
+  rw [if_pos hdP, mul_assoc]
   trans ((μ d :ℝ)^2 * (ν d)⁻¹ * g d * S⁻¹ * ∑ m in divisors P,
           if (d * m) ^ 2 ≤ y ∧ Coprime m d then g m else 0)
   swap; apply le_of_eq; ring

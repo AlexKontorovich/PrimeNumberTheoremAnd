@@ -128,8 +128,7 @@ lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {�
       have : ∫ (x : ℝ), f x ∂μ = ∫ (x : ℝ) in {a}, f x ∂μ := by
         rw [ ← integral_indicator (by simp), indicator_eq_self.2 h]
       rw [this, integral_singleton]; simp
-    · have : ¬a ≤ b := by exact fun x ↦ hab2 <| le_antisymm hab x
-      rw [Icc_eq_empty_iff.mpr <| by exact fun x ↦ hab2 <| le_antisymm hab x, subset_empty_iff,
+    · rw [Icc_eq_empty_iff.mpr <| by exact fun x ↦ hab2 <| le_antisymm hab x, subset_empty_iff,
           Function.support_eq_empty_iff] at h; simp [h]
 
 lemma SetIntegral.integral_eq_integral_inter_of_support_subset {μ : Measure ℝ}

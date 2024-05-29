@@ -1125,8 +1125,8 @@ lemma hh_continuous (a : ℝ) : ContinuousOn (hh a) (Ioi 0) :=
 
 lemma hh'_nonpos {a x : ℝ} (ha : a ∈ Ioo (-1) 1) : hh' a x ≤ 0 := by
   have := pp_pos ha (log x)
-  have := hh_nonneg a (sq_nonneg x)
-  simp [hh'] ; positivity
+  simp only [hh', neg_mul, Left.neg_nonpos_iff, ge_iff_le]
+  positivity
 
 lemma hh_antitone {a : ℝ} (ha : a ∈ Ioo (-1) 1) : AntitoneOn (hh a) (Ioi 0) := by
   have l1 x (hx : x ∈ interior (Ioi 0)) : HasDerivWithinAt (hh a) (hh' a x) (interior (Ioi 0)) x := by
@@ -2128,7 +2128,6 @@ theorem vonMangoldt_cheby : cheby Λ := by
     have := hC 2
     norm_cast at this
     have hpos : 0 < 2 / Real.log 2 := by positivity
-    have : (0 : ℝ) ≤ ↑(Finset.filter IsPrimePow (Finset.range 2)).card := by norm_cast
     rw [← mul_le_mul_right hpos]
     linarith
   use C
