@@ -1438,10 +1438,10 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
     rw [← norm_inv]
     congr! 2
     · rw [Complex.cpow_neg]
-    · extract_goal
+    · exact norm_complex_log_ofNat n
 
 
-    sorry
+--    sorry
 #exit
   · replace := norm_sum_le_of_le (Finset.range (N + 1)) this
     rw [← Finset.sum_mul, mul_comm _ (Real.exp A)] at this
