@@ -13,11 +13,12 @@ import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
 import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.Algebra.GroupWithZero.Units.Basic
+import Mathlib.Analysis.Distribution.FourierSchwartz
 
+import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.BrunTitchmarsh
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Mathlib.Topology.UniformSpace.UniformConvergence
-import PrimeNumberTheoremAnd.Fourier
 
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems
 -- impossible to hide, and hence parameters that are traditionally called σ will
@@ -610,7 +611,7 @@ lemma exists_antitone_of_eventually {u : ℕ → ℝ} (hu : ∀ᶠ n in atTop, u
 
 lemma summable_inv_mul_log_sq : Summable (fun n : ℕ => (n * (Real.log n) ^ 2)⁻¹) := by
   let u (n : ℕ) := (n * (Real.log n) ^ 2)⁻¹
-  have l7 : ∀ᶠ n : ℕ in atTop, 1 ≤ Real.log n := tendsto_atTop.mp (tendsto_log_atTop.comp tendsto_nat_cast_atTop_atTop) 1
+  have l7 : ∀ᶠ n : ℕ in atTop, 1 ≤ Real.log n := tendsto_atTop.mp (tendsto_log_atTop.comp tendsto_natCast_atTop_atTop) 1
   have l8 : ∀ᶠ n : ℕ in atTop, 1 ≤ n := eventually_ge_atTop 1
   have l9 : ∀ᶠ n in atTop, u (n + 1) ≤ u n := by filter_upwards [l7, l8] with n l2 l8 ; dsimp [u] ; gcongr <;> simp
   obtain ⟨v, l1, l2, l3⟩ := exists_antitone_of_eventually l9
@@ -653,7 +654,8 @@ lemma log_mul_add_isBigO_log {a : ℝ} (ha : 0 < a) (b : ℝ) : (fun x => Real.l
 
 lemma isBigO_log_mul_add {a : ℝ} (ha : 0 < a) (b : ℝ) : Real.log =O[atTop] (fun x => Real.log (a * x + b)) := by
   convert (log_mul_add_isBigO_log (b := -b / a) (inv_pos.mpr ha)).comp_tendsto (tendsto_mul_add_atTop (b := b) ha) using 1
-  ext x ; field_simp [ha.ne.symm] ; rw [mul_div_assoc, mul_div_cancel₀] ; linarith
+  ext x
+  field_simp [ha.ne.symm]
 
 lemma log_isbigo_log_div {d : ℝ} (hb : 0 < d) : (fun n ↦ Real.log n) =O[atTop] (fun n ↦ Real.log (n / d)) := by
   convert isBigO_log_mul_add (inv_pos.mpr hb) 0 using 1 ; field_simp
@@ -710,7 +712,7 @@ lemma nnabla_mul_log_sq (a : ℝ) {b : ℝ} (hb : 0 < b) :
   have l4 : (fun x => Real.log ((x + 1) / b) + Real.log (x / b)) =O[atTop] Real.log := by
     simpa using (log_add_div_isBigO_log _ hb).add (log_add_div_isBigO_log 0 hb)
   have e2 : (fun x : ℝ => x * (Real.log x * (1 / x))) =ᶠ[atTop] Real.log := by
-    filter_upwards [eventually_ge_atTop 1] with x hx ; field_simp ; ring
+    filter_upwards [eventually_ge_atTop 1] with x hx using by field_simp
   have l5 : (fun n ↦ n * (Real.log n * (1 / n))) =O[atTop] (fun n ↦ (Real.log n) ^ 2) :=
     e2.trans_isBigO (by simpa using (isLittleO_mul_add_sq 1 0).isBigO.comp_tendsto Real.tendsto_log_atTop)
 
@@ -1135,8 +1137,7 @@ lemma hh_antitone {a : ℝ} (ha : a ∈ Ioo (-1) 1) : AntitoneOn (hh a) (Ioi 0) 
 noncomputable def gg (x i : ℝ) : ℝ := 1 / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹
 
 lemma gg_of_hh {x : ℝ} (hx : x ≠ 0) (i : ℝ) : gg x i = x⁻¹ * hh (1 / (2 * π)) (i / x) := by
-  by_cases hi : i = 0 ; simp [gg, hh, hi]
-  field_simp [gg, hh] ; ring
+  field_simp [gg, hh]
 
 lemma gg_l1 {x : ℝ} (hx : 0 < x) (n : ℕ) : |gg x n| ≤ 1 / n := by
   simp [gg_of_hh hx.ne.symm, abs_mul]
@@ -1238,7 +1239,7 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
     rw [← l6] ; apply intervalIntegral.integral_mono_ae_restrict (by linarith) (by simp) l4
     apply eventually_of_mem _ l5
     have : (Ioc x₀ (x₀ + 1))ᶜ ∩ Icc x₀ (x₀ + 1) = {x₀} := by simp [← diff_eq_compl_inter]
-    simp [Measure.ae, this]
+    simp [ae, this]
 
   have l2 : AntitoneOn (fun x ↦ f (x₀ + x)) (Icc 1 ↑(n + 1)) := by
     intro u ⟨hu1, _⟩ v ⟨_, hv2⟩ huv ; push_cast at hv2
@@ -1275,7 +1276,7 @@ lemma hh_integrable_aux (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   have l4 (x) : HasDerivAt (fun t => t / c) (1 / c) x := (hasDerivAt_id x).div_const c
   have l2 (x) (hx : 0 < x) : HasDerivAt (fun t => log (t / c)) x⁻¹ x := by
     have := @HasDerivAt.comp _ _ _ _ _ _ (fun t => t / c) _ _ _  (l3 (x / c) (by positivity)) (l4 x)
-    convert this using 1 ; field_simp ; ring
+    convert this using 1 ; field_simp
   have l5 (x) (hx : 0 < x) := (l2 x hx).const_mul b
   have l1 (x) (hx : 0 < x) := (l5 x hx).arctan
   have l6 (x) (hx : 0 < x) : HasDerivAt g (g' x) x := by
@@ -1368,7 +1369,7 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
   have l3 : 0 ≤ C := by simpa [cumsum, hf0] using hf 1
 
   have l4 : 0 ≤ ∫ (t : ℝ) in Ioi 0, hh (π⁻¹ * 2⁻¹) t :=
-    set_integral_nonneg measurableSet_Ioi (fun x hx => hh_nonneg _ (LT.lt.le hx))
+    setIntegral_nonneg measurableSet_Ioi (fun x hx => hh_nonneg _ (LT.lt.le hx))
 
   have l5 {n : ℕ} : AntitoneOn (fun t ↦ x⁻¹ * hh (1 / (2 * π)) (t / x)) (Ioc 0 n) := by
     intro u ⟨hu1, _⟩ v ⟨hv1, _⟩ huv
@@ -1479,9 +1480,9 @@ lemma bound_I2 (x : ℝ) (ψ : W21) :
     · apply Continuous.aestronglyMeasurable ; continuity
     · simp only [norm_norm, key] ; simp
   have l5 : 0 ≤ᵐ[volume] fun a ↦ (1 + (a / (2 * π)) ^ 2)⁻¹ := by apply eventually_of_forall ; intro x ; positivity
-  refine (norm_integral_le_integral_norm _).trans <| (set_integral_mono l1 l2 key).trans ?_
+  refine (norm_integral_le_integral_norm _).trans <| (setIntegral_mono l1 l2 key).trans ?_
   rw [integral_mul_left] ; gcongr ; apply W21.norm_nonneg
-  refine (set_integral_le_integral l3 l5).trans ?_
+  refine (setIntegral_le_integral l3 l5).trans ?_
   rw [Measure.integral_comp_div (fun x => (1 + x ^ 2)⁻¹) (2 * π)]
   simp [abs_eq_self.mpr twopi] ; ring_nf ; rfl
 
@@ -1597,7 +1598,10 @@ Combining the two estimates and letting $R$ be large, we obtain the claim.
 -- just the surjectivity is stated here, as this is all that is needed for the current application, but perhaps one should state and prove bijectivity instead
 
 lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f := by
-  use FS (FS (FS f)) ; ext x ; nth_rewrite 2 [← FS4 f] ; simp
+  refine ⟨(fourierTransformCLE ℝ).symm f, ?_⟩
+  rw [← fourierTransformCLE_apply ℝ]
+  simp
+
 
 /-%%
 \begin{proof}
@@ -1707,7 +1711,7 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     simpa using (comp_exp_support hsupp hplus).comp_smul this |>.mul_left
   obtain ⟨g, hg⟩ := fourier_surjection_on_schwartz (toSchwartz h h1 h2)
 
-  have why (x : ℝ) : 2 * π * x / (2 * π) = x := by field_simp ; ring
+  have why (x : ℝ) : 2 * π * x / (2 * π) = x := by field_simp
   have l1 {y} (hy : 0 < y) : y * Ψ y = 𝓕 g (1 / (2 * π) * Real.log y) := by
     field_simp [hg, toSchwartz, h] ; norm_cast ; field_simp [why] ; norm_cast
     rw [Real.exp_log hy]
@@ -1790,7 +1794,7 @@ lemma interval_approx_inf (ha : 0 < a) (hab : a < b) :
     have l7 : ∫ y in Ioi 0, indicator (Icc (a + ε / 2) (b - ε / 2)) 1 y = b - a - ε := by
       simp [l6] ; convert ENNReal.toReal_ofReal l4 using 3 ; ring
     have l8 : IntegrableOn ψ (Ioi 0) volume := (h1.continuous.integrable_of_hasCompactSupport h2).integrableOn
-    rw [← l7] ; apply set_integral_mono ?_ l8 h3
+    rw [← l7] ; apply setIntegral_mono ?_ l8 h3
     rw [IntegrableOn, integrable_indicator_iff measurableSet_Icc]
     apply IntegrableOn.mono ?_ subset_rfl Measure.restrict_le_self
     apply integrableOn_const.mpr
@@ -1817,7 +1821,8 @@ lemma interval_approx_sup (ha : 0 < a) (hab : a < b) :
     have l7 : ∫ y in Ioi 0, indicator (Ioo (a - ε / 2) (b + ε / 2)) 1 y = b - a + ε := by
       simp [l6] ; convert ENNReal.toReal_ofReal l4 using 3 ; ring
     have l8 : IntegrableOn ψ (Ioi 0) volume := (h1.continuous.integrable_of_hasCompactSupport h2).integrableOn
-    rw [← l7] ; refine set_integral_mono l8 ?_ h4
+    rw [← l7]
+    refine setIntegral_mono l8 ?_ h4
     rw [IntegrableOn, integrable_indicator_iff measurableSet_Ioo]
     apply IntegrableOn.mono ?_ subset_rfl Measure.restrict_le_self
     apply integrableOn_const.mpr
@@ -1924,7 +1929,7 @@ theorem residue_nonneg {f : ℕ → ℝ} (hpos : 0 ≤ f)
     have r4 : Ico 1 2 ⊆ Function.support ψ ∩ Ioi 0 := by
       simp [r3] ; apply Ico_subset_Icc_self.trans ; rw [Icc_subset_Ioi_iff] <;> linarith
     have r5 : 1 ≤ volume ((Function.support fun y ↦ ψ y) ∩ Ioi 0) := by convert volume.mono r4 ; norm_num
-    simpa [set_integral_pos_iff_support_of_nonneg_ae r1 r2] using zero_lt_one.trans_le r5
+    simpa [setIntegral_pos_iff_support_of_nonneg_ae r1 r2] using zero_lt_one.trans_le r5
   have := div_nonneg l3 l4.le ; field_simp at this ; exact this
 
 /-%%
@@ -1978,7 +1983,7 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
     apply le_of_eventually_nhdsWithin
     have key : 0 < A := lt_of_le_of_ne hA h.symm
     filter_upwards [WI_tendsto_aux a b key l_sup] with x hx
-    simp at hx ; convert hx ; field_simp ; ring
+    simp at hx ; convert hx ; field_simp
 
   -- Bound from below by a smooth function
   have le_inf : A * (b - a) ≤ liminf (S Iab) atTop := by
@@ -1994,7 +1999,7 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
     apply ge_of_eventually_nhdsWithin
     have key : 0 < A := lt_of_le_of_ne hA h.symm
     filter_upwards [WI_tendsto_aux' a b key l_inf] with x hx
-    simp at hx ; convert hx ; field_simp ; ring
+    simp at hx ; convert hx ; field_simp
 
   -- Combine the two bounds
   have : liminf (S Iab) atTop ≤ limsup (S Iab) atTop := liminf_le_limsup Iab2 Iab3
@@ -2040,7 +2045,7 @@ lemma WienerIkeharaInterval_discrete' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : �
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha : 0 < a) (hb : a ≤ b) :
     Tendsto (fun N : ℕ ↦ (∑ n in Finset.Ico ⌈a * N⌉₊ ⌈b * N⌉₊, f n) / N) atTop (nhds (A * (b - a))) :=
-  WienerIkeharaInterval_discrete hpos hf hcheby hG hG' ha hb |>.comp tendsto_nat_cast_atTop_atTop
+  WienerIkeharaInterval_discrete hpos hf hcheby hG hG' ha hb |>.comp tendsto_natCast_atTop_atTop
 
 -- TODO with `Ico`
 
@@ -2061,7 +2066,7 @@ lemma tendsto_mul_ceil_div :
   have l1 : ∀ᶠ ε : ℝ in 𝓝[>] 0, ε ∈ Ioo 0 (δ / 2) := inter_mem_nhdsWithin _ (Iio_mem_nhds (by positivity))
   have l2 : ∀ᶠ N : ℕ in atTop, 1 ≤ δ / 2 * N := by
     apply Tendsto.eventually_ge_atTop
-    exact tendsto_nat_cast_atTop_atTop.const_mul_atTop (by positivity)
+    exact tendsto_natCast_atTop_atTop.const_mul_atTop (by positivity)
   filter_upwards [l1.prod_mk l2] with (ε, N) ⟨⟨hε, h1⟩, h2⟩ ; dsimp only at *
   have l3 : 0 < (N : ℝ) := by
     simp ; rw [Nat.pos_iff_ne_zero] ; rintro rfl ; simp at h2 ; linarith

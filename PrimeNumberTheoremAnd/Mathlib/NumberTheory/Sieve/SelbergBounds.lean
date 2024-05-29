@@ -147,7 +147,7 @@ theorem isMultiplicative {f : ArithmeticFunction ℝ} (hf : CompletelyMultiplica
 theorem apply_pow (f : ArithmeticFunction ℝ) (hf : CompletelyMultiplicative f) (a n : ℕ) :
     f (a^n) = f a ^ n := by
   induction n with
-  | zero => simp_rw [Nat.zero_eq, pow_zero, hf.1]
+  | zero => simp_rw [pow_zero, hf.1]
   | succ n' ih => simp_rw [pow_succ, hf.2, ih]
 
 end CompletelyMultiplicative

@@ -13,10 +13,10 @@ package «PrimeNumberTheoremAnd» where
 lean_lib «PrimeNumberTheoremAnd»
 
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git" @ "85cbf2d"
+  "https://github.com/leanprover-community/mathlib4.git" @ "master"
 
 require EulerProducts from git
-  "https://github.com/MichaelStollBayreuth/EulerProducts.git" @ "5ff762b"
+  "https://github.com/MichaelStollBayreuth/EulerProducts.git" @ "main"
 
 meta if get_config? env = some "dev" then require «doc-gen4» from git
-  "https://github.com/leanprover/doc-gen4" @ "780bbec"
+  "https://github.com/leanprover/doc-gen4.git" @ "main"

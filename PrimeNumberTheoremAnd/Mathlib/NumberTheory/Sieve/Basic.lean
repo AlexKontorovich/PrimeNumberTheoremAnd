@@ -107,7 +107,7 @@ theorem squarefree_of_dvd_prodPrimes {d : ℕ} (hd : d ∣ P) : Squarefree d :=
   Squarefree.squarefree_of_dvd hd s.prodPrimes_squarefree
 
 theorem squarefree_of_mem_divisors_prodPrimes {d : ℕ} (hd : d ∈ divisors P) : Squarefree d := by
-  simp only [Nat.mem_divisors, Ne.def] at hd
+  simp only [Nat.mem_divisors] at hd
   exact Squarefree.squarefree_of_dvd hd.left s.prodPrimes_squarefree
 
 theorem nu_pos_of_dvd_prodPrimes {d : ℕ} (hd : d ∣ P) : 0 < ν d := by
