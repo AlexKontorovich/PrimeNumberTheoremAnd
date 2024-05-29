@@ -21,7 +21,7 @@ noncomputable section
 namespace BrunTitchmarsh
 
 /- Sifting primes ≤ z from the interval [x, x+y] -/
-def primeInterSieve (x y z : ℝ) (hz : 1 ≤ z): SelbergSieve := {
+def primeInterSieve (x y z : ℝ) (hz : 1 ≤ z) : SelbergSieve where
   support := Finset.Icc (Nat.ceil x) (Nat.floor (x+y))
   prodPrimes := primorial (Nat.floor z)
   prodPrimes_squarefree := primorial_squarefree _
@@ -31,15 +31,16 @@ def primeInterSieve (x y z : ℝ) (hz : 1 ≤ z): SelbergSieve := {
   nu := (ζ : ArithmeticFunction ℝ).pdiv .id
   nu_mult := by arith_mult
   nu_pos_of_prime := fun p hp _ => by
-    simp[if_neg hp.ne_zero, Nat.pos_of_ne_zero hp.ne_zero]
+    simp [if_neg hp.ne_zero, Nat.pos_of_ne_zero hp.ne_zero]
   nu_lt_one_of_prime := fun p hp _ => by
-    simp[hp.ne_zero]
+    simp only [ArithmeticFunction.pdiv_apply, ArithmeticFunction.natCoe_apply,
+      ArithmeticFunction.zeta_apply, hp.ne_zero, ↓reduceIte, Nat.cast_one,
+      ArithmeticFunction.id_apply, one_div]
     apply inv_lt_one
     norm_cast
     exact hp.one_lt
   level := z
   one_le_level := hz
-}
 
 /- The number of primes in the interval [a, b] -/
 def primesBetween (a b : ℝ) : ℕ :=
@@ -79,11 +80,12 @@ theorem primesBetween_subset :
 theorem primesBetween_le_siftedSum_add :
     primesBetween x (x+y) ≤ (primeInterSieve x y z hz).siftedSum + z := by
   classical
-  trans ↑((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d) ∪ (Finset.Icc 1 (Nat.floor z))).card
-  · rw[primesBetween]
+  trans ↑((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)
+      ∪ (Finset.Icc 1 (Nat.floor z))).card
+  · rw [primesBetween]
     norm_cast
     apply Finset.card_le_card
-    apply primesBetween_subset _ _ _ hx
+    exact primesBetween_subset _ _ _ hz
   trans ↑((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card
     + ↑(Finset.Icc 1 (Nat.floor z)).card
   · norm_cast
@@ -262,7 +264,7 @@ theorem primesBetween_le (hz : 1 < z) :
     · linarith
     apply one_le_pow_of_one_le _ _
     linarith [Real.log_nonneg (by linarith)]
-  linarith [siftedSum_le _ _ _ hx hy hz, primesBetween_le_siftedSum_add x y z hx (le_of_lt hz)]
+  linarith [siftedSum_le _ _ _ hx hy hz, primesBetween_le_siftedSum_add x y z hz.le]
 
 theorem primesBetween_one (n : ℕ) : primesBetween 1 n = ((Finset.range (n+1)).filter Nat.Prime).card := by
   rw [primesBetween]
@@ -318,7 +320,7 @@ theorem rpow_mul_rpow_log_isBigO_id_div_log (k : ℝ) {r : ℝ} (hr : r < 1) : (
     trans (N ^ (1 : ℝ) * (N ^ ((1-r)/2 : ℝ))⁻¹)
     · rw [← Real.rpow_add hN, ← Real.rpow_neg hN.le, ← Real.rpow_add hN]
       ring_nf
-    · rw [← Nat.cast_one, Real.rpow_nat_cast, pow_one]
+    · rw [← Nat.cast_one, Real.rpow_natCast, pow_one]
   _ =O[atTop] (fun N ↦ (N : ℝ) * (Real.log N)⁻¹) := by
     apply IsBigO.mul (isBigO_refl ..)
     apply IsBigO.inv_rev
@@ -336,7 +338,7 @@ theorem err_isBigO : (fun x ↦ (x ^ (1 / 2 : ℝ) * (1 + 1 / 2 * Real.log x) ^ 
       apply Real.isLittleO_const_log_atTop.isBigO.add ((isBigO_refl ..).const_mul_left ..) |>.pow
     _ =O[atTop] _ := by
       convert rpow_mul_rpow_log_isBigO_id_div_log 3 (?_) <;> norm_num
-      rw [← Real.rpow_nat_cast]
+      rw [← Real.rpow_natCast]
       norm_cast
 
 theorem card_range_filter_prime_isBigO : (fun N ↦ ((Finset.range N).filter Nat.Prime).card : ℕ → ℝ) =O[atTop] (fun N ↦ N / Real.log N) := calc
@@ -380,7 +382,7 @@ theorem prime_or_pow (N n : ℕ) (hnN : n < N) (hnprime : IsPrimePow n) :
     exact hpkn.symm
 
 example (a : ℝ) (n : ℕ) : a ^ n = a ^ (n : ℝ) := by
-  exact (Real.rpow_nat_cast a n).symm
+  exact (Real.rpow_natCast a n).symm
 
 theorem Nat.log_eq_floor_logb (b n : ℕ) (hb : 1 < b) : Nat.log b n = Nat.floor (Real.logb b n) := by
   by_cases hn : n = 0
@@ -400,7 +402,7 @@ theorem Nat.log_eq_floor_logb (b n : ℕ) (hb : 1 < b) : Nat.log b n = Nat.floor
   · apply Nat.le_log_of_pow_le hb
     exact_mod_cast calc
       (b:ℝ) ^ ⌊Real.logb ↑b ↑n⌋₊ ≤ (b : ℝ)^ (Real.logb b n) := by
-        rw [← Real.rpow_nat_cast]
+        rw [← Real.rpow_natCast]
         gcongr
         · norm_cast; omega
         apply Nat.floor_le hlogb_nonneg

@@ -50,8 +50,7 @@ theorem LocallyIntegrable.integrable_of_isBigO_atTop_of_norm_eq_norm_neg
     [MeasurableNeg α] [μ.IsNegInvariant] (hf : LocallyIntegrable f μ)
     (hsymm : norm ∘ f =ᵐ[μ] norm ∘ f ∘ Neg.neg) (ho : f =O[atTop] g)
     (hg : IntegrableAtFilter g atTop μ) : Integrable f μ := by
-  refine (isEmpty_or_nonempty α).casesOn (fun _ ↦ ?_) (fun _ ↦ ?_)
-  · exact integrableOn_univ.mp (by convert integrableOn_empty)
+  refine (isEmpty_or_nonempty α).casesOn (fun _ ↦ Integrable.of_finite μ f) (fun _ ↦ ?_)
   let a := -|Classical.arbitrary α|
   have h_int : IntegrableOn f (Ici a) μ :=
     LocallyIntegrableOn.integrableOn_of_isBigO_atTop (hf.locallyIntegrableOn _) ho hg

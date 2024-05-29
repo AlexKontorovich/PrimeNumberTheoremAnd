@@ -205,12 +205,10 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| 
   cases' N with N
   /- simple cases -/
   simp only [range_zero, sum_empty, abs_zero, zero_le_one]
-  by_cases hN : 1 ≤ N
-  swap
-  simp only [not_le, lt_one_iff] at hN
-  subst hN
-  simp only [reduceSucc, range_one, sum_singleton, ArithmeticFunction.map_zero, cast_zero,
-    EuclideanDomain.div_zero, abs_zero, zero_le_one]
+  by_cases hN : 1 ≤ N; swap
+  · simp only [not_le, lt_one_iff] at hN
+    subst hN
+    simp
   /- annoying case -/
   have h_sum : 1 = ∑ d in range (N + 1), (μ d : ℚ) * (N / d : ℕ) := by calc
     (1 : ℚ) = ∑ m in Icc 1 N, ∑ d in m.divisors, μ d := by
@@ -268,7 +266,7 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| 
   simp_rw [← mul_comm_div, sum_sub_distrib, ← sum_mul] at h_sum
   rw [eq_sub_iff_add_eq, eq_comm, ← eq_div_iff (by norm_num [Nat.pos_iff_ne_zero.mp hN])] at h_sum
 
-  rw [succ_eq_add_one, h_sum, abs_le]
+  rw [h_sum, abs_le]
   rw [abs_le, neg_sub] at h_bound
   constructor
   <;> simp only [le_div_iff, div_le_iff, cast_pos.mpr hN]
