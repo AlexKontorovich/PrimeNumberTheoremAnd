@@ -123,7 +123,7 @@ lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {�
     ← integral_indicator measurableSet_Icc, indicator_eq_self.2 h]
   · by_cases hab2 : b = a
     · rw [hab2] at h ⊢
-      simp [intervalIntegral.integral_same]
+      simp only [intervalIntegral.integral_same]
       simp only [Icc_self] at h
       have : ∫ (x : ℝ), f x ∂μ = ∫ (x : ℝ) in {a}, f x ∂μ := by
         rw [ ← integral_indicator (by simp), indicator_eq_self.2 h]
