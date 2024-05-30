@@ -115,7 +115,7 @@ theorem nu_pos_of_dvd_prodPrimes {d : ℕ} (hd : d ∣ P) : 0 < ν d := by
     0 < ∏ p in d.primeFactors, ν p := by
       apply prod_pos
       intro p hpd
-      have hp_prime : p.Prime := by exact prime_of_mem_primeFactors hpd
+      have hp_prime : p.Prime := prime_of_mem_primeFactors hpd
       have hp_dvd : p ∣ P := (dvd_of_mem_primeFactors hpd).trans hd
       exact s.nu_pos_of_prime p hp_prime hp_dvd
     _ = ν d := s.nu_mult.prod_factors_of_mult ν (Squarefree.squarefree_of_dvd hd s.prodPrimes_squarefree)

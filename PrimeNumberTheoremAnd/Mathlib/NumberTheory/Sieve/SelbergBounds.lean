@@ -477,7 +477,9 @@ theorem boundingSum_ge_sum (s : SelbergSieve) (hnu : s.nu = (ζ : ArithmeticFunc
     simp
   · intro p hpp _
     rw[hnu]
-    simp
+    simp only [ArithmeticFunction.pdiv_apply, ArithmeticFunction.natCoe_apply,
+      ArithmeticFunction.zeta_apply, Nat.cast_ite, CharP.cast_eq_zero, Nat.cast_one,
+      ArithmeticFunction.id_apply]
     rw [if_neg, one_div]
     apply inv_lt_one; norm_cast
     exact hpp.one_lt

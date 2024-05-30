@@ -123,7 +123,7 @@ lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {�
     ← integral_indicator measurableSet_Icc, indicator_eq_self.2 h]
   · by_cases hab2 : b = a
     · rw [hab2] at h ⊢
-      simp [intervalIntegral.integral_same]
+      simp only [intervalIntegral.integral_same]
       simp only [Icc_self] at h
       have : ∫ (x : ℝ), f x ∂μ = ∫ (x : ℝ) in {a}, f x ∂μ := by
         rw [ ← integral_indicator (by simp), indicator_eq_self.2 h]
@@ -1274,7 +1274,7 @@ lemma Smooth1Properties_above_aux2 {x y ε : ℝ} (hε : ε ∈ Ioo 0 1) (hy : y
   · have : y ^ (1 / ε) ≤ y := by
       nth_rewrite 2 [← rpow_one y]
       exact rpow_le_rpow_of_exponent_ge ypos y1 (by linarith [one_lt_one_div εpos ε1])
-    have pos : 0 < y ^ (1 / ε) := by apply rpow_pos_of_pos <| ypos
+    have pos : 0 < y ^ (1 / ε) := rpow_pos_of_pos ypos _
     rw [ge_iff_le, div_le_iff, div_mul_eq_mul_div, le_div_iff', mul_comm] <;> try linarith
   · rw [ge_iff_le, le_div_iff <| ypos]; exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
 /-%%
