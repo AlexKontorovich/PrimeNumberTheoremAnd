@@ -10,6 +10,8 @@ import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 open MeasureTheory Set Filter
 
 
+#exit
+
 lemma norm_complex_log_ofNat (n : ℕ) : ‖(n : ℂ).log‖ = (n : ℝ).log := by
   have := Complex.ofReal_log (x := (n : ℝ)) (Nat.cast_nonneg n)
   rw [(by simp : ((n : ℝ) : ℂ) = (n : ℂ))] at this
