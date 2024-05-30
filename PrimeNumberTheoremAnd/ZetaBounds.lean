@@ -1442,8 +1442,27 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
     · rw [Complex.cpow_neg]
     · exact norm_complex_log_ofNat n
   replace := norm_sum_le_of_le (Finset.range (N + 1)) fact3
-  rw [← Finset.sum_mul, ← Finset.sum_mul, mul_assoc] at this
-  have := @harmonic_eq_sum_Icc
+  rw [← Finset.sum_mul, ← Finset.sum_mul, mul_comm _ A.exp, mul_assoc] at this
+  rw [mul_assoc]
+  apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
+  rw [pow_two, ← mul_assoc]
+
+#exit
+
+  gcongr
+  have : 1 + Real.log (N : ℝ) ≤ C * Real.log |t| := by
+    by_cases hN : N = 1
+    · simp only [hN, Nat.cast_one, Real.log_one, add_zero]
+      have : 2 * 1 ≤ C * Real.log |t| := mul_le_mul hC logt_gt.le (by linarith) (by linarith)
+      linarith
+    · rw [(by ring : C * Real.log |t| = Real.log |t| + (C - 1) * Real.log |t|),
+        ← one_mul <| Real.log (N: ℝ)]
+      apply add_le_add logt_gt.le
+      refine mul_le_mul (by linarith) ?_ (by positivity) (by linarith)
+      exact Real.log_le_log (by positivity) N_le_t
+  refine le_trans ?_ this
+  -- apply le_trans this <| (mul_le_mul_left ?_).mpr ?_
+  -- have := @harmonic_eq_sum_Icc
 
 --    sorry
 #exit

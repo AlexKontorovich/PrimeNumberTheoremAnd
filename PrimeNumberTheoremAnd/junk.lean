@@ -9,6 +9,8 @@ import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 
 open MeasureTheory Set Filter
 
+example (n : ℝ ) : n^ 2 = n * n := by
+  exact pow_two n
 
 #exit
 
