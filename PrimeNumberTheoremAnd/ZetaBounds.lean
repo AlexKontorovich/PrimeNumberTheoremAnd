@@ -1408,6 +1408,14 @@ lemma norm_complex_log_ofNat (n : ℕ) : ‖(n : ℂ).log‖ = (n : ℝ).log := 
   rw [← this, Complex.norm_eq_abs, Complex.abs_of_nonneg]
   exact Real.log_natCast_nonneg n
 
+lemma Real.log_natCast_monotone : Monotone (fun (n : ℕ) ↦ Real.log n) := by
+  intro n m hnm
+  cases n
+  · simp only [CharP.cast_eq_zero, Real.log_zero, Real.log_natCast_nonneg]
+  · apply Real.log_le_log <;> simp only [Nat.cast_add, Nat.cast_one]
+    · exact Nat.cast_add_one_pos _
+    · exact_mod_cast hnm
+
 lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (t_gt : 3 < |t|) (hC : 2 ≤ C) : let N := ⌊|t|⌋₊;
     ‖∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖
@@ -1418,7 +1426,8 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
   have fact0 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) : n ≤ |t| := by
     simp only [Finset.mem_range] at hn
     linarith [(by exact_mod_cast (by omega : n ≤ N) : (n : ℝ) ≤ N)]
-  have fact1 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) :=
+  have fact1 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) :
+    ‖(n : ℂ) ^ (-(σ + t * I))‖ ≤ (n : ℝ)⁻¹ * A.exp :=
     ZetaBnd_aux2 (n := n) hA.1 σPos (fact0 _ hn) σ_ge
   have fact2 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) : Real.log n ≤ Real.log (N + 1) := by
     cases n
@@ -1439,7 +1448,9 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
     congr! 2
     · rw [Complex.cpow_neg]
     · exact norm_complex_log_ofNat n
-
+  replace := norm_sum_le_of_le (Finset.range (N + 1)) fact3
+  rw [← Finset.sum_mul, ← Finset.sum_mul, mul_assoc] at this
+  have := @harmonic_eq_sum_Icc
 
 --    sorry
 #exit
