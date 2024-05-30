@@ -75,7 +75,7 @@ lemma smooth_urysohn_support_Ioo (h1 : a < b) (h3: c < d) :
           rw [Set.indicator_apply]
           split_ifs with h
           · have : Ψ x ∈ Set.range Ψ := by simp only [Set.mem_range, exists_apply_eq_apply]
-            have : Ψ x ∈ Set.Icc 0 1 := by exact hΨrange this
+            have : Ψ x ∈ Set.Icc 0 1 := hΨrange this
             simpa using this.2
           · simp only [Set.mem_Ioo, Pi.one_apply] at *
             simp only [not_and_or, not_lt] at h
