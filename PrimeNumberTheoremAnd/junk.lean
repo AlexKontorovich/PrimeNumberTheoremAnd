@@ -9,6 +9,16 @@ import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 
 open MeasureTheory Set Filter
 
+theorem Real.log_monotoneOn : MonotoneOn (fun x : ℝ ↦ log x) { x | 0 < x } := by
+  -- TODO: can be strengthened to exp (-1) ≤ x
+  simp only [MonotoneOn, mem_setOf_eq]
+  intro x hex y hey hxy
+  exact (log_le_log_iff hex hey).mpr hxy
+  refine (log_le_log_iff ?h ?h₁).mpr hxy
+
+
+#exit
+
 example (n : ℝ ) : n^ 2 = n * n := by
   exact pow_two n
 
