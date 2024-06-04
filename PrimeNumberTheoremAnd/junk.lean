@@ -9,6 +9,15 @@ import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 
 open MeasureTheory Set Filter
 
+
+
+
+#exit
+
+example (f : ℝ → ℝ) (a b c : ℝ) : ∫ x in a..b, f x = ∫ x in a..c, f x + ∫ x in c..b, f x := by
+  rw [integral_add_adjacent_intervals f a c b]
+  exact integral_add
+
 theorem Real.log_monotoneOn : MonotoneOn (fun x : ℝ ↦ log x) { x | 0 < x } := by
   -- TODO: can be strengthened to exp (-1) ≤ x
   simp only [MonotoneOn, mem_setOf_eq]

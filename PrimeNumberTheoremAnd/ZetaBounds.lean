@@ -1416,6 +1416,25 @@ lemma Real.log_natCast_monotone : Monotone (fun (n : ℕ) ↦ Real.log n) := by
     · exact Nat.cast_add_one_pos _
     · exact_mod_cast hnm
 
+lemma Finset.Icc0_eq (N : ℕ) : Finset.Icc 0 N = {0} ∪ Finset.Icc 1 N := by
+  refine Finset.ext_iff.mpr ?_
+  intro a
+  cases a
+  · simp only [Finset.mem_Icc, le_refl, zero_le, and_self, Finset.mem_union, Finset.mem_singleton,
+    nonpos_iff_eq_zero, one_ne_zero, and_true, or_false]
+  · simp only [Finset.mem_Icc, le_add_iff_nonneg_left, zero_le, true_and, Finset.mem_union,
+    Finset.mem_singleton, add_eq_zero, one_ne_zero, and_false, false_or]
+
+lemma harmonic_eq_sum_Icc0_aux (N : ℕ) :  ∑ i ∈ Finset.Icc 0 N, (i : ℝ)⁻¹ = ∑ i ∈ Finset.Icc 1 N, (i : ℝ)⁻¹ := by
+  rw [Finset.Icc0_eq, Finset.sum_union]
+  · simp only [Finset.sum_singleton, CharP.cast_eq_zero, inv_zero, zero_add]
+  · simp only [Finset.disjoint_singleton_left, Finset.mem_Icc, nonpos_iff_eq_zero, one_ne_zero,
+    zero_le, and_true, not_false_eq_true]
+
+lemma harmonic_eq_sum_Icc0 (N : ℕ) : ∑ i in Finset.Icc 0 N, (i : ℝ)⁻¹ = (harmonic N : ℝ) := by
+  rw [harmonic_eq_sum_Icc0_aux, harmonic_eq_sum_Icc]
+  simp only [Rat.cast_sum, Rat.cast_inv, Rat.cast_natCast]
+
 lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
     (σ_ge : 1 - A / Real.log |t| ≤ σ) (t_gt : 3 < |t|) (hC : 2 ≤ C) : let N := ⌊|t|⌋₊;
     ‖∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖
@@ -1435,7 +1454,7 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
       linarith
     · apply Real.log_le_log ?_ (fact0 hn)
       exact_mod_cast Nat.add_one_pos _
-  have fact3 {n : ℕ} (hn : n ∈ Finset.range (N + 1)) :
+  have fact3 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) :
     ‖-1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ ≤ (n : ℝ)⁻¹ * Real.exp A * (Real.log |t|) := by
     convert mul_le_mul (h₁ := fact1 hn) (h₂ := fact2 hn)
       (c0 := Real.log_natCast_nonneg n) (by positivity)
@@ -1445,8 +1464,7 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
     congr! 2
     · rw [Complex.cpow_neg]
     · exact norm_complex_log_ofNat n
-
-  have' := @norm_sum_le_of_le (Finset.range (N + 1)) --fact3
+  replace := norm_sum_le_of_le (Finset.range (N + 1)) fact3
   rw [← Finset.sum_mul, ← Finset.sum_mul, mul_comm _ A.exp, mul_assoc] at this
   rw [mul_assoc]
   apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
