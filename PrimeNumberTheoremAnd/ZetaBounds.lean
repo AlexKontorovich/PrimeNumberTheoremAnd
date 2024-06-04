@@ -1429,12 +1429,14 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
   have fact1 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) :
     ‖(n : ℂ) ^ (-(σ + t * I))‖ ≤ (n : ℝ)⁻¹ * A.exp :=
     ZetaBnd_aux2 (n := n) hA.1 σPos (fact0 _ hn) σ_ge
-  have fact2 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) : Real.log n ≤ Real.log (N + 1) := by
+  have fact2 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) : Real.log n ≤ Real.log |t| := by
     simp only [Finset.mem_range] at hn
-    exact_mod_cast Real.log_natCast_monotone hn.le
+--    exact_mod_cast Real.log_natCast_monotone hn.le
+    sorry
   have fact3 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) :
-    ‖-1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ ≤ (n : ℝ)⁻¹ * Real.exp A * (Real.log (N + 1)) := by
-    convert mul_le_mul (h₁ := fact1 _ hn) (h₂ := fact2 _ hn) (c0 := Real.log_natCast_nonneg n) (by positivity)
+    ‖-1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ ≤ (n : ℝ)⁻¹ * Real.exp A * (Real.log |t|) := by
+    convert mul_le_mul (h₁ := fact1 _ hn) (h₂ := fact2 _ hn)
+      (c0 := Real.log_natCast_nonneg n) (by positivity)
     rw [norm_mul]
     simp only [norm_div, norm_neg, norm_one, one_div, natCast_log]
     rw [← norm_inv]
@@ -1445,8 +1447,17 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
   rw [← Finset.sum_mul, ← Finset.sum_mul, mul_comm _ A.exp, mul_assoc] at this
   rw [mul_assoc]
   apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
-  rw [pow_two, ← mul_assoc]
-
+  rw [pow_two, ← mul_assoc, Finset.range_eq_Ico, ← Finset.Icc_eq_Ico]
+  have : ∑ i ∈ Finset.Icc 0 N, (i : ℝ)⁻¹ = ∑ i ∈ Finset.Icc 1 N, (i : ℝ)⁻¹ := by
+    sorry
+  rw [this]
+  have : ((harmonic N) : ℝ) = ∑ i ∈ Finset.Icc 1 N, (i : ℝ)⁻¹ := by
+    --convert harmonic_eq_sum_Icc (n := N)
+    sorry
+  rw [← this]
+--  have := @harmonic_le_one_add_log
+  have : Real.log (N + 1) ≤ Real.log |t| := by sorry
+  have' := mul_le_mul (h₁ := harmonic_le_one_add_log (n := N)) (h₂ := this)
 #exit
 
   gcongr
