@@ -1490,13 +1490,13 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
     let C := Real.exp A * (5 + 8 * 2);
     let N := ⌊|t|⌋₊;
     let s := σ + t * I;
-    ‖∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ +
-      ‖-(N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2‖ +
-      ‖(Real.log N) * (N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))‖ +
-      ‖(Real.log N) * (N : ℂ) ^ (-(σ + t * I)) / 2‖ +
-      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1))‖ +
-      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (N : ℝ),
-        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖
+    ‖∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ s * (Real.log n)‖ +
+      ‖-(N : ℂ) ^ (1 - s) / (1 - s) ^ 2‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (1 - s) / (1 - s)‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (-s) / 2‖ +
+      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
+      ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖
         ≤ C * Real.log |t| ^ 2 := by
   intros C N s
   obtain ⟨Npos, N_le_t, logt_gt, σ_gt, σPos, neOne⟩ := UpperBnd_aux hA t_gt hσ.1
@@ -1506,24 +1506,38 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
     dsimp [C]
     linarith
   calc _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
-      ‖-(N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2‖ +
-      ‖(Real.log N) * (N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))‖ +
-      ‖(Real.log N) * (N : ℂ) ^ (-(σ + t * I)) / 2‖ +
-      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1))‖ +
-      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (N : ℝ),
-        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖ := by
-        gcongr; exact DerivUpperBnd_aux1 hA hσ.1 t_gt (by simp : (2 : ℝ) ≤ 2)
+      ‖-(N : ℂ) ^ (1 - s) / (1 - s) ^ 2‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (1 - s) / (1 - s)‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (-s) / 2‖ +
+      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
+      ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
+        gcongr
+        exact DerivUpperBnd_aux1 hA hσ.1 t_gt (by simp : (2 : ℝ) ≤ 2)
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
-      ‖-(N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2‖ + -- STOPPED HERE
-      ‖(Real.log N) * (N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))‖ +
-      ‖(Real.log N) * (N : ℂ) ^ (-(σ + t * I)) / 2‖ +
-      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1))‖ +
-      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (N : ℝ),
-        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖ := ?_
+      N ^ (1 - σ) / ‖(1 - s)‖ ^ 2 + -- STOPPED HERE
+      ‖(Real.log N) * (N : ℂ) ^ (1 - s) / (1 - s)‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (-s) / 2‖ +
+      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
+      ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
+        gcongr
+
+
+        sorry
+    _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      N ^ (1 - σ) / ‖(1 - s)‖ ^ 2 + -- STOPPED HERE
+      (Real.log |t|) * (N : ℝ) ^ (1 - σ) / ‖1 - s‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (-s) / 2‖ +
+      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
+      ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
+        gcongr
+        sorry
     _ ≤ _ := by sorry
 
 
-  sorry
+--  sorry
   -- calc
   --   _ ≤ Real.exp A * 2 * Real.log |t| + ‖N ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
   --     ‖s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := ?_
