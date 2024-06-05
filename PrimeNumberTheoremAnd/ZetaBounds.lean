@@ -1501,7 +1501,10 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
   intros C N s
   obtain ⟨Npos, N_le_t, logt_gt, σ_gt, σPos, neOne⟩ := UpperBnd_aux hA t_gt hσ.1
   replace σ_gt : 1 / 2 < σ := by linarith [hA.2]
-  have Cge : 2 ≤ C := by sorry
+  have Cge : 2 ≤ C := by
+    have : 1 ≤ Real.exp A := Real.one_le_exp_iff.mpr hA.1.le
+    dsimp [C]
+    linarith
   calc _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       ‖-(N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2‖ +
       ‖(Real.log N) * (N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))‖ +
