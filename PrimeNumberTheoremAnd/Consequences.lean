@@ -71,7 +71,7 @@ We have
 %%-/
 theorem primorial_bounds :
     ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
-      ∀ x : ℝ, ∏ p in (range ⌊x⌋₊).filter Nat.Prime, p = exp (x + E x) := by
+      ∀ x : ℝ, ∏ p ∈ (range ⌊x⌋₊).filter Nat.Prime, p = exp (x + E x) := by
   sorry
 
 theorem primorial_bounds_finprod :
@@ -240,7 +240,7 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
   have hf' (d : ℕ) : |Int.fract ((N : ℚ) / d)| < 1 := by
     rw [abs_of_nonneg (Int.fract_nonneg _)]
     exact Int.fract_lt_one _
-  have h_bound : |∑ d in range (N + 1), μ d * Int.fract ((N : ℚ) / d)| ≤ N - 1 := by
+  have h_bound : |∑ d ∈ range (N + 1), μ d * Int.fract ((N : ℚ) / d)| ≤ N - 1 := by
     /- range (N + 1) → Icc 1 N + part that evals to 0 -/
     rw [range_eq_Ico, ← Ico_insert_succ_left, sum_insert, ArithmeticFunction.map_zero,
       Int.cast_zero, zero_mul, zero_add, Ico_succ_right]
@@ -347,7 +347,7 @@ Sending $\eps \to 0$ we obtain the claim.
 \end{proposition}
 %%-/
 
-theorem mu_pnt_alt : (fun x : ℝ ↦ ∑ n in range ⌊x⌋₊, (μ n : ℝ) / n) =o[atTop] fun x ↦ (1 : ℝ) := by
+theorem mu_pnt_alt : (fun x : ℝ ↦ ∑ n ∈ range ⌊x⌋₊, (μ n : ℝ) / n) =o[atTop] fun x ↦ (1 : ℝ) := by
   sorry
 
 /-%%
