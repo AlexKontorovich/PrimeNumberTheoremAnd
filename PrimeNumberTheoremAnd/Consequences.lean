@@ -18,15 +18,15 @@ and
 $$ \sum_{n < x} f(n) = \sum_{n < ⌈x⌉_+} f(n).$$
 \end{lemma}
 %%-/
-lemma finsum_range_eq_sum_range {R: Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
-    ∑ᶠ (n : ℕ) (_: n < x), f n = ∑ n in range ⌈x⌉₊, f n := by
+lemma finsum_range_eq_sum_range {R:  Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
+    ∑ᶠ (n : ℕ) (_ : n < x), f n = ∑ n ∈ range ⌈x⌉₊, f n := by
   apply finsum_cond_eq_sum_of_cond_iff f
   intros
   simp only [mem_range]
   exact Iff.symm Nat.lt_ceil
 
-lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
-    ∑ᶠ (n : ℕ) (_: n ≤ x), f n = ∑ n in Iic ⌊x⌋₊, f n := by
+lemma finsum_range_eq_sum_range' {R : Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
+    ∑ᶠ (n : ℕ) (_ : n ≤ x), f n = ∑ n ∈ Iic ⌊x⌋₊, f n := by
   apply finsum_cond_eq_sum_of_cond_iff f
   intro n h
   simp only [mem_Iic]
@@ -43,7 +43,7 @@ lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f : ArithmeticFun
 \end{theorem}
 %%-/
 theorem chebyshev_asymptotic :
-    (fun x ↦ ∑ p ∈ filter Nat.Prime (range ⌈x⌉₊), log p) ~[atTop] fun x ↦ x := by
+    (fun x ↦ ∑ p ∈ (range ⌈x⌉₊).filter Nat.Prime, log p) ~[atTop] fun x ↦ x := by
   sorry
 
 theorem chebyshev_asymptotic_finsum :
@@ -71,7 +71,7 @@ We have
 %%-/
 theorem primorial_bounds :
     ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
-      ∀ x : ℝ, ∏ p in (filter Nat.Prime (range ⌊x⌋₊)), p = exp (x + E x) := by
+      ∀ x : ℝ, ∏ p in (range ⌊x⌋₊).filter Nat.Prime, p = exp (x + E x) := by
   sorry
 
 theorem primorial_bounds_finprod :
@@ -122,7 +122,7 @@ $$ \pi(x) = (1+o(1)) \frac{x}{\log x}$$
 as $x \to \infty$.
 \end{corollary}
 %%-/
-theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
+theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     ∀ x : ℝ, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * x / log x := by
   sorry
 
@@ -151,7 +151,7 @@ Let $p_n$ denote the $n^{th}$ prime.
 as $n \to \infty$.
 \end{proposition}
 %%-/
-theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
+theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     ∀ n : ℕ, Nat.nth Nat.Prime n = (1 + c n) * n * log n := by
   sorry
 
@@ -169,8 +169,8 @@ We have $p_{n+1} - p_n = o(p_n)$
 \end{corollary}
 %%-/
 
-theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
-    ∀ n : ℕ, Nat.nth Nat.Prime (n+1) - Nat.nth Nat.Prime n = (c n) * Nat.nth Nat.Prime n := by
+theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
+    ∀ n : ℕ, Nat.nth Nat.Prime (n + 1) - Nat.nth Nat.Prime n = (c n) * Nat.nth Nat.Prime n := by
   sorry
 
 /-%%
@@ -186,8 +186,8 @@ For every $\eps>0$, there is a prime between $x$ and $(1+\eps)x$ for all suffici
 \end{corollary}
 %%-/
 
-theorem prime_between {ε:ℝ} (hε: 0 < ε): ∀ᶠ x:ℝ in atTop, ∃ p:ℕ, Nat.Prime p ∧
-    x < p ∧ p < (1+ε)* x := by
+theorem prime_between {ε : ℝ} (hε : 0 < ε) :
+    ∀ᶠ x : ℝ in atTop, ∃ p : ℕ, Nat.Prime p ∧ x < p ∧ p < (1 + ε) * x := by
   sorry
 
 
