@@ -3,6 +3,8 @@ import Mathlib.Analysis.Asymptotics.Asymptotics
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
 import Mathlib.NumberTheory.PrimeCounting
 
+import PrimeNumberTheoremAnd.Mathlib.Algebra.BigOperators.Finprod
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.ArithmeticFunction
 import PrimeNumberTheoremAnd.Wiener
 
@@ -11,6 +13,26 @@ open Nat hiding log
 open Finset
 open BigOperators Filter Real Classical Asymptotics MeasureTheory intervalIntegral
 
+/- This whole section should go into Mathlib/Algebra/BigOperators/Finprod.lean -/
+section finsum_lemma
+
+variable {R : Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) (p q : ℕ → Prop)
+
+lemma finsum_range_prop_eq_sum_range_filter :
+    ∑ᶠ (n : ℕ) (_ : n < x) (_ : p n), f n = ∑ n ∈ (range ⌈x⌉₊).filter p, f n := by
+  simp_rw [← finsum_cond_and]
+  convert finsum_cond_eq_sum_of_cond_iff f ?_
+  intros
+  simp [Nat.lt_ceil]
+
+lemma finsum_range_prop_eq_sum_range_filter' :
+    ∑ᶠ (n : ℕ) (_ : n ≤ x) (_ : p n), f n = ∑ n ∈ (Iic ⌊x⌋₊).filter p, f n := by
+  simp_rw [← finsum_cond_and]
+  convert finsum_cond_eq_sum_of_cond_iff f ?_
+  intro n h
+  have : n ≠ 0 := fun hc ↦ h <| (congrArg f hc).trans ArithmeticFunction.map_zero
+  simp [Nat.le_floor_iff' this]
+
 /-%%
 \begin{lemma}\label{range-eq-range}\lean{finsum_range_eq_sum_range, finsum_range_eq_sum_range'}\leanok For any arithmetic function $f$ and real number $x$, one has
 $$ \sum_{n \leq x} f(n) = \sum_{n \leq ⌊x⌋_+} f(n)$$
@@ -18,20 +40,13 @@ and
 $$ \sum_{n < x} f(n) = \sum_{n < ⌈x⌉_+} f(n).$$
 \end{lemma}
 %%-/
-lemma finsum_range_eq_sum_range {R:  Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
-    ∑ᶠ (n : ℕ) (_ : n < x), f n = ∑ n ∈ range ⌈x⌉₊, f n := by
-  apply finsum_cond_eq_sum_of_cond_iff f
-  intros
-  simp only [mem_range]
-  exact Iff.symm Nat.lt_ceil
+lemma finsum_range_eq_sum_range : ∑ᶠ (n : ℕ) (_ : n < x), f n = ∑ n ∈ range ⌈x⌉₊, f n := by
+  convert finsum_range_prop_eq_sum_range_filter _ (fun _ ↦ True) <;> simp
 
-lemma finsum_range_eq_sum_range' {R : Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
-    ∑ᶠ (n : ℕ) (_ : n ≤ x), f n = ∑ n ∈ Iic ⌊x⌋₊, f n := by
-  apply finsum_cond_eq_sum_of_cond_iff f
-  intro n h
-  simp only [mem_Iic]
-  exact Iff.symm <| Nat.le_floor_iff'
-    fun (hc : n = 0) ↦ (h : f n ≠ 0) <| (congrArg f hc).trans ArithmeticFunction.map_zero
+lemma finsum_range_eq_sum_range' : ∑ᶠ (n : ℕ) (_ : n ≤ x), f n = ∑ n ∈ Iic ⌊x⌋₊, f n := by
+  convert finsum_range_prop_eq_sum_range_filter' _ (fun _ ↦ True) <;> simp
+
+end finsum_lemma
 
 /-%%
 \begin{proof}\leanok Straightforward. \end{proof}
@@ -43,12 +58,41 @@ lemma finsum_range_eq_sum_range' {R : Type*} [AddCommMonoid R] {f : ArithmeticFu
 \end{theorem}
 %%-/
 theorem chebyshev_asymptotic :
-    (fun x ↦ ∑ p ∈ (range ⌈x⌉₊).filter Nat.Prime, log p) ~[atTop] fun x ↦ x := by
+    (fun x : ℝ ↦ ∑ p ∈ (range ⌊x⌋₊).filter Nat.Prime, log p) ~[atTop] fun x : ℝ ↦ x := by
   sorry
 
 theorem chebyshev_asymptotic_finsum :
-    (fun x ↦ ∑ᶠ (p : ℕ) (_ : p ≤ x) (_ : Nat.Prime p), log p) ~[atTop] fun x ↦ x := by
-  sorry
+    (fun x : ℝ ↦ ∑ᶠ (p : ℕ) (_ : p ≤ x) (_ : Nat.Prime p), log p) ~[atTop] fun x : ℝ ↦ x := by
+  trans (fun x : ℝ ↦ ∑ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, log p)
+  · convert IsEquivalent.refl using 2 with x
+    symm
+    convert finsum_range_prop_eq_sum_range_filter' (f := ⟨fun p : ℕ ↦ (p : ℝ).log, by simp⟩) x _
+  /- These are for rewriting inside simp_rw -/
+  have h₁ (x : ℝ) : Iic ⌊x⌋₊ = range (⌊x⌋₊ + 1) := by
+    ext y
+    simp [lt_add_one_iff]
+  have h₂ : ∀ x : ℕ, x ∉ filter Nat.Prime (range x) := by intro; simp
+  have h₃ {p} [Decidable p] {a b : ℝ} : (if p then a else 0) + b = if p then a + b else b := by
+    split_ifs <;> simp
+  simp_rw [h₁, range_succ, filter_insert, sum_ite_index, sum_insert (h₂ _), ← h₃, ← Pi.add_def]
+
+  /- Now I have to prove: err term + main term lhs ~ main term rhs, which means err = o(main) -/
+  refine IsEquivalent.isLittleO_add ?_ chebyshev_asymptotic
+  have h₄ : (fun i : ℝ ↦ if ⌊i⌋₊.Prime then log ⌊i⌋₊ else 0) =O[atTop] (fun i ↦ log ⌊i⌋₊) := by
+    apply IsBigO.of_bound'
+    refine eventually_atTop.mpr ⟨1, fun b hb ↦ ?_⟩
+    have : 0 ≤ log ⌊b⌋₊ := by simp [log_nonneg, hb]
+    rw [norm_eq_abs, norm_eq_abs, abs_eq_self.mpr ?_, abs_eq_self.mpr this]
+    all_goals split_ifs <;> simp [log_nonneg, hb]
+  have h₅ : (fun i : ℝ ↦ log ⌊i⌋₊) =o[atTop] (fun i : ℝ ↦ i) := by
+    refine IsBigO.trans_isLittleO ?_ Real.isLittleO_log_id_atTop
+    refine Eventually.isBigO ?_
+    refine eventually_atTop.mpr ⟨1, fun b hb ↦ ?_⟩
+    rw [norm_eq_abs, abs_eq_self.mpr <| log_nonneg (by simp [hb])]
+    refine strictMonoOn_log.monotoneOn ?_ ?_ (floor_le <| zero_le_one.trans hb)
+    · simp; change 1 ≤ _; simp [hb]
+    · simp; linarith
+  exact IsBigO.trans_isLittleO h₄ h₅
 
 -- one could also consider adding a version with p < x instead of p \leq x
 
