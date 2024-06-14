@@ -1,22 +1,23 @@
 import EulerProducts.PNT
+import Mathlib.Algebra.GroupWithZero.Units.Basic
+import Mathlib.Algebra.Order.Field.Basic
+import Mathlib.Analysis.Calculus.ContDiff.Defs
+import Mathlib.Analysis.Distribution.FourierSchwartz
 import Mathlib.Analysis.Fourier.FourierTransform
 import Mathlib.Analysis.Fourier.FourierTransformDeriv
-import Mathlib.NumberTheory.ArithmeticFunction
-import Mathlib.Topology.Support
-import Mathlib.Analysis.Calculus.ContDiff.Defs
+import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
+import Mathlib.Analysis.Normed.Group.Tannery
+import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.Geometry.Manifold.PartitionOfUnity
+import Mathlib.NumberTheory.ArithmeticFunction
+import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 import Mathlib.Tactic.FunProp.AEMeasurable
 import Mathlib.Tactic.FunProp.Measurable
-import Mathlib.Analysis.Normed.Group.Tannery
-import Mathlib.Algebra.Order.Field.Basic
-import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
-import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
-import Mathlib.Analysis.SumIntegralComparisons
-import Mathlib.Algebra.GroupWithZero.Units.Basic
-import Mathlib.Analysis.Distribution.FourierSchwartz
+import Mathlib.Topology.Support
 
-import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.BrunTitchmarsh
+import PrimeNumberTheoremAnd.Fourier
+import PrimeNumberTheoremAnd.Mathlib.Algebra.Order.Floor
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Mathlib.Topology.UniformSpace.UniformConvergence
 
@@ -2165,19 +2166,10 @@ theorem vonMangoldt_cheby : cheby Λ := by
         omega
       field_simp
 
-/-%%
-\section{Weak PNT}
-
-\begin{theorem}[Weak PNT]\label{WeakPNT}\lean{WeakPNT}\leanok  We have
-$$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
-\end{theorem}
-%%-/
-
 -- Proof extracted from the `EulerProducts` project so we can adapt it to the
 -- version of the Wiener-Ikehara theorem proved above (with the `cheby`
 -- hypothesis)
-
-theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (𝓝 1) := by
+theorem WeakPNT_nat : Tendsto (fun N : ℕ ↦ cumsum Λ N / N) atTop (𝓝 1) := by
   have hnv := riemannZeta_ne_zero_of_one_le_re
   have l1 (n : ℕ) : 0 ≤ Λ n := vonMangoldt_nonneg
   have l2 s (hs : 1 < s.re) : (-deriv ζ₁ / ζ₁) s = LSeries Λ s - 1 / (s - 1) := by
@@ -2188,6 +2180,53 @@ theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (𝓝 1) := by
   have l5 (σ' : ℝ) (hσ' : 1 < σ') : Summable (nterm Λ σ') := by
     simpa only [← nterm_eq_norm_term] using (@ArithmeticFunction.LSeriesSummable_vonMangoldt σ' hσ').norm
   apply WienerIkeharaTheorem' l1 l5 l4 l3 l2
+
+theorem WeakPNT'_nat : (fun N : ℕ ↦ cumsum Λ N - N) =o[atTop] fun N : ℕ ↦ (N : ℝ) := by
+  have h_pnt := WeakPNT_nat
+  rwa [← tendsto_sub_const_iff 1, sub_self, tendsto_congr' (f₂ := fun x ↦ (cumsum Λ x - x) / x),
+    ← isLittleO_iff_tendsto] at h_pnt
+  <;> simp [EventuallyEq]
+  use 1, fun b hb ↦ by rw [sub_div, div_self (by norm_cast; linarith)]
+
+/-%%
+\section{Weak PNT}
+
+\begin{theorem}[Weak PNT]\label{WeakPNT}\lean{WeakPNT'}\leanok  We have
+$$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
+\end{theorem}
+%%-/
+
+theorem WeakPNT' : (fun x : ℝ ↦ cumsum Λ ⌊x⌋₊ - x) =o[atTop] fun x : ℝ ↦ x := by
+  have h_rw : ((fun x : ℕ ↦ (x : ℝ)) ∘ fun x : ℝ ↦ ⌊x⌋₊) =O[atTop] fun x : ℝ ↦ x := by
+    rw [isBigO_iff']
+    use 1, by linarith, ?_
+    simp [EventuallyEq]
+    use 0, fun b hb ↦ ?_
+    rw [abs_eq_self.mpr hb]
+    exact Nat.floor_le hb
+  have h_bound (x : ℝ) (hx : 0 ≤ x) : |⌊x⌋₊ - x| ≤ 1 := by
+    rw [← neg_sub, Nat.self_sub_floor hx, abs_neg, Int.abs_fract]
+    exact (Int.fract_lt_one _).le
+  have h_little_o : (fun x : ℝ ↦ ⌊x⌋₊ - x) =o[atTop] fun x ↦ x := by
+    simp_rw [isLittleO_iff, eventually_atTop]
+    intro c hc
+    use 1 / c, fun b hb ↦ ?_
+    have hb' : 0 ≤ b := by linarith [one_div_pos.mpr hc]
+    trans 1
+    · convert h_bound b hb'
+    · rw [Real.norm_eq_abs, abs_eq_self.mpr hb', mul_comm]
+      convert (mul_le_mul_right hc).mpr hb
+      rw [div_mul_cancel₀ _ hc.ne.symm]
+  convert ((WeakPNT'_nat.comp_tendsto (tendsto_nat_floor_atTop (α := ℝ))).trans_isBigO h_rw).add
+    h_little_o using 2 with x
+  simp [sub_add_sub_cancel]
+
+theorem WeakPNT : Tendsto (fun N : ℝ ↦ cumsum Λ ⌊N⌋₊ / N) atTop (𝓝 1) := by
+  rw [← tendsto_sub_const_iff 1, sub_self, tendsto_congr' (f₂ := fun x ↦ (cumsum Λ ⌊x⌋₊ - x) / x),
+    ← isLittleO_iff_tendsto]
+  exact WeakPNT'
+  all_goals simp [EventuallyEq]
+  use 1, fun b hb ↦ by rw [sub_div, div_self (by linarith)]
 
 #print axioms WeakPNT
 
