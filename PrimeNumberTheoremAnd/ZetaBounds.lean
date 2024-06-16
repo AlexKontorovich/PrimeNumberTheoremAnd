@@ -1535,6 +1535,20 @@ theorem DerivUpperBnd_aux4 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
   · rw [natCast_log, norm_complex_log_ofNat]
     exact Real.log_le_log (by positivity) N_le_t
 
+theorem DerivUpperBnd_aux6 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
+    let N := ⌊|t|⌋₊;
+    let s := ↑σ + ↑t * I;
+    0 < ⌊|t|⌋₊ → ↑⌊|t|⌋₊ ≤ |t| → ↑σ + ↑t * I ≠ 1 → 1 / 2 < σ →
+    ‖↑(N : ℝ).log * (N : ℂ) ^ (-s) / 2‖ ≤ A.exp * |t|.log := by
+  intro N s Npos N_le_t neOne σ_gt
+  rw [norm_div, norm_mul, mul_div_assoc, mul_comm, RCLike.norm_ofNat]
+  apply mul_le_mul ?_ ?_ (by positivity) (by positivity)
+  · have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.2.1
+    convert le_trans h (UpperBnd_aux2 t_gt hσ.1) using 1
+    simp [s, norm_natCast_cpow_of_pos Npos _]
+  · rw [natCast_log, norm_complex_log_ofNat]
+    exact Real.log_le_log (by positivity) N_le_t
+
 lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
     let C := Real.exp A * (5 + 8 * 2);
@@ -1618,11 +1632,43 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       Real.exp A * 2 * (1 / 3) +
       Real.exp A * 2 * (Real.log |t|) +
       Real.exp A * (Real.log |t|) +
-      1 / 3 * (2 * |t| * N ^ (-σ) / σ) +
+      1 / 3 * (2 * (8 * Real.exp A)) +
+      ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
+        gcongr
+        rw [mul_div_assoc, mul_assoc]
+        apply mul_le_mul_left (by norm_num) |>.mpr
+        have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.2.2
+        apply le_trans (mul_le_mul_left (a := |t|) (by positivity) |>.mpr h) ?_
+        rw [← mul_assoc, mul_comm _ 8, mul_assoc]
+        gcongr
+        convert UpperBnd_aux2 t_gt hσ.1 using 1
+        rw [mul_comm, ← Real.rpow_add_one (by positivity)]; ring_nf
+    _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      Real.exp A * 2 * (1 / 3) +
+      Real.exp A * 2 * (Real.log |t|) +
+      Real.exp A * (Real.log |t|) +
+      1 / 3 * (2 * (8 * Real.exp A)) +
       (2 * |t| * N ^ (-σ) / σ) * (Real.log |t|) := by
         gcongr
         sorry
-    _ ≤ _ := by sorry
+    _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      Real.exp A * 2 * (1 / 3) +
+      Real.exp A * 2 * (Real.log |t|) +
+      Real.exp A * (Real.log |t|) +
+      1 / 3 * (2 * (8 * Real.exp A)) +
+      (2 * (8 * Real.exp A)) * (Real.log |t|) := by
+        gcongr
+        rw [mul_div_assoc, mul_assoc]
+        apply mul_le_mul_left (by norm_num) |>.mpr
+        have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.2.2
+        apply le_trans (mul_le_mul_left (a := |t|) (by positivity) |>.mpr h) ?_
+        rw [← mul_assoc, mul_comm _ 8, mul_assoc]
+        gcongr
+        convert UpperBnd_aux2 t_gt hσ.1 using 1
+        rw [mul_comm, ← Real.rpow_add_one (by positivity)]; ring_nf
+    _ ≤ _ := by
+      sorry
 
 
 --  sorry
