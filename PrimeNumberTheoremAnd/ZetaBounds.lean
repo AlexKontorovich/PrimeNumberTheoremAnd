@@ -1535,19 +1535,43 @@ theorem DerivUpperBnd_aux4 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
   · rw [natCast_log, norm_complex_log_ofNat]
     exact Real.log_le_log (by positivity) N_le_t
 
-theorem DerivUpperBnd_aux6 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
+theorem DerivUpperBnd_aux5 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
     let N := ⌊|t|⌋₊;
     let s := ↑σ + ↑t * I;
     0 < ⌊|t|⌋₊ → ↑⌊|t|⌋₊ ≤ |t| → ↑σ + ↑t * I ≠ 1 → 1 / 2 < σ →
-    ‖↑(N : ℝ).log * (N : ℂ) ^ (-s) / 2‖ ≤ A.exp * |t|.log := by
+    ‖1 * ∫ (x : ℝ) in Ioi (N : ℝ), (↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1)‖ ≤
+    1 / 3 * (2 * |t| * ↑N ^ (-σ) / σ) := by
   intro N s Npos N_le_t neOne σ_gt
-  rw [norm_div, norm_mul, mul_div_assoc, mul_comm, RCLike.norm_ofNat]
+  have neZero : s ≠ 0 := by
+    sorry
+  have : 1 = 1 / s * s := by field_simp
+  nth_rewrite 1 [this]
+  rw [mul_assoc, norm_mul]
   apply mul_le_mul ?_ ?_ (by positivity) (by positivity)
-  · have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.2.1
-    convert le_trans h (UpperBnd_aux2 t_gt hσ.1) using 1
-    simp [s, norm_natCast_cpow_of_pos Npos _]
-  · rw [natCast_log, norm_complex_log_ofNat]
-    exact Real.log_le_log (by positivity) N_le_t
+  · simp only [s, norm_div, norm_one]
+    apply one_div_le_one_div (norm_pos_iff.mpr neZero) (by norm_num) |>.mpr
+    apply le_trans t_gt.le ?_
+    convert abs_im_le_abs (σ + t * I); simp
+  · have hσ : σ ∈ Ioc 0 2 := by
+      sorry
+    simp only [s]
+    have := ZetaBnd_aux1 N (by omega) hσ (by linarith)
+    simp only [div_cpow_eq_cpow_neg] at this
+    convert this using 1; congr; funext x; ring_nf
+
+theorem DerivUpperBnd_aux6 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
+    let N := ⌊|t|⌋₊;
+    0 < ⌊|t|⌋₊ → ↑⌊|t|⌋₊ ≤ |t| → ↑σ + ↑t * I ≠ 1 → 1 / 2 < σ →
+    2 * |t| * ↑N ^ (-σ) / σ ≤ 2 * (8 * A.exp) := by
+  intro N Npos N_le_t neOne σ_gt
+  rw [mul_div_assoc, mul_assoc]
+  apply mul_le_mul_left (by norm_num) |>.mpr
+  have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.2.2
+  apply le_trans (mul_le_mul_left (a := |t|) (by positivity) |>.mpr h) ?_
+  rw [← mul_assoc, mul_comm _ 8, mul_assoc]
+  gcongr
+  convert UpperBnd_aux2 t_gt hσ.1 using 1
+  rw [mul_comm, ← Real.rpow_add_one (by positivity)]; ring_nf
 
 lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
@@ -1613,21 +1637,7 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
         (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
         gcongr
-        have neZero : s ≠ 0 := by sorry
-        have : 1 = 1 / s * s := by field_simp
-        nth_rewrite 1 [this]
-        rw [mul_assoc, norm_mul]
-        apply mul_le_mul ?_ ?_ (by positivity) (by positivity)
-        · simp only [s, norm_div, norm_one]
-          apply one_div_le_one_div (norm_pos_iff.mpr neZero) (by norm_num) |>.mpr
-          apply le_trans t_gt.le ?_
-          convert abs_im_le_abs (σ + t * I); simp
-        · have hσ : σ ∈ Ioc 0 2 := by
-            sorry
-          simp only [s]
-          have := ZetaBnd_aux1 N (by omega) hσ (by linarith)
-          simp only [div_cpow_eq_cpow_neg] at this
-          convert this using 1; congr; funext x; ring_nf
+        exact DerivUpperBnd_aux5 t_gt hσ Npos N_le_t neOne σ_gt
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       Real.exp A * 2 * (1 / 3) +
       Real.exp A * 2 * (Real.log |t|) +
@@ -1636,14 +1646,7 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
         (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
         gcongr
-        rw [mul_div_assoc, mul_assoc]
-        apply mul_le_mul_left (by norm_num) |>.mpr
-        have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.2.2
-        apply le_trans (mul_le_mul_left (a := |t|) (by positivity) |>.mpr h) ?_
-        rw [← mul_assoc, mul_comm _ 8, mul_assoc]
-        gcongr
-        convert UpperBnd_aux2 t_gt hσ.1 using 1
-        rw [mul_comm, ← Real.rpow_add_one (by positivity)]; ring_nf
+        exact DerivUpperBnd_aux6 t_gt hσ Npos N_le_t neOne σ_gt
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       Real.exp A * 2 * (1 / 3) +
       Real.exp A * 2 * (Real.log |t|) +
@@ -1659,17 +1662,11 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       1 / 3 * (2 * (8 * Real.exp A)) +
       (2 * (8 * Real.exp A)) * (Real.log |t|) := by
         gcongr
-        rw [mul_div_assoc, mul_assoc]
-        apply mul_le_mul_left (by norm_num) |>.mpr
-        have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.2.2
-        apply le_trans (mul_le_mul_left (a := |t|) (by positivity) |>.mpr h) ?_
-        rw [← mul_assoc, mul_comm _ 8, mul_assoc]
-        gcongr
-        convert UpperBnd_aux2 t_gt hσ.1 using 1
-        rw [mul_comm, ← Real.rpow_add_one (by positivity)]; ring_nf
+        exact DerivUpperBnd_aux6 t_gt hσ Npos N_le_t neOne σ_gt
     _ ≤ _ := by
       sorry
 
+#exit
 
 --  sorry
   -- calc
