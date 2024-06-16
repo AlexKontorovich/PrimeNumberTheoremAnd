@@ -1538,10 +1538,10 @@ theorem DerivUpperBnd_aux4 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
 theorem DerivUpperBnd_aux5 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
     let N := ⌊|t|⌋₊;
     let s := ↑σ + ↑t * I;
-    0 < ⌊|t|⌋₊ → ↑⌊|t|⌋₊ ≤ |t| → ↑σ + ↑t * I ≠ 1 → 1 / 2 < σ →
+    0 < ⌊|t|⌋₊ → 1 / 2 < σ →
     ‖1 * ∫ (x : ℝ) in Ioi (N : ℝ), (↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1)‖ ≤
     1 / 3 * (2 * |t| * ↑N ^ (-σ) / σ) := by
-  intro N s Npos N_le_t neOne σ_gt
+  intro N s Npos σ_gt
   have neZero : s ≠ 0 := by
     contrapose! σ_gt
     simp only [Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
@@ -1639,7 +1639,7 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       1 / 3 * (2 * |t| * N ^ (-σ) / σ) +
       ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
         (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
-        gcongr; exact DerivUpperBnd_aux5 t_gt hσ Npos N_le_t neOne σ_gt
+        gcongr; exact DerivUpperBnd_aux5 t_gt hσ Npos σ_gt
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       Real.exp A * 2 * (1 / 3) +
       Real.exp A * 2 * (Real.log |t|) +
