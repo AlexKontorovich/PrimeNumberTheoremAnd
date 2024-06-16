@@ -1571,11 +1571,32 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       Real.exp A * 2 * (1 / 3) +
       Real.exp A * 2 * (Real.log |t|) +
       Real.exp A * (Real.log |t|) +
-      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ + -- STOPPED HERE
+      1 / 3 * (2 * |t| * N ^ (-σ) / σ) +
       ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
         (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
         gcongr
-        save
+        have neZero : s ≠ 0 := by sorry
+        have : 1 = 1 / s * s := by field_simp
+        nth_rewrite 1 [this]
+        rw [mul_assoc, norm_mul]
+        apply mul_le_mul ?_ ?_ (by positivity) (by positivity)
+        · simp only [s, norm_div, norm_one]
+          apply one_div_le_one_div (norm_pos_iff.mpr neZero) (by norm_num) |>.mpr
+          apply le_trans t_gt.le ?_
+          convert abs_im_le_abs (σ + t * I); simp
+        · have hσ : σ ∈ Ioc 0 2 := by
+            sorry
+          simp only [s]
+          have := ZetaBnd_aux1 N (by omega) hσ (by linarith)
+          simp only [div_cpow_eq_cpow_neg] at this
+          convert this using 1; congr; funext x; ring_nf
+    _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      Real.exp A * 2 * (1 / 3) +
+      Real.exp A * 2 * (Real.log |t|) +
+      Real.exp A * (Real.log |t|) +
+      1 / 3 * (2 * |t| * N ^ (-σ) / σ) +
+      (2 * |t| * N ^ (-σ) / σ) * (Real.log |t|) := by
+        gcongr
         sorry
     _ ≤ _ := by sorry
 
