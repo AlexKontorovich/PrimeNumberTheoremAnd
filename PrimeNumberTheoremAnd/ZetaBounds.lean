@@ -1584,7 +1584,7 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
 
 lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
-    let C := Real.exp A * (5 + 8 * 2);
+    let C := Real.exp A * 27;
     let N := ⌊|t|⌋₊;
     let s := σ + t * I;
     ‖∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ s * (Real.log n)‖ +
@@ -1682,7 +1682,7 @@ lemma ZetaDerivUpperBnd :
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2),
     ‖deriv ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
   obtain ⟨A, hA, _, _, _⟩ := ZetaUpperBnd
-  let C := Real.exp A * (5 + 8 * 2)
+  let C := Real.exp A * 27
   refine ⟨A, hA, C, by positivity, ?_⟩
   intro σ t t_gt ⟨σ_ge, σ_le⟩
   obtain ⟨Npos, N_le_t, _, _, σPos, neOne⟩ := UpperBnd_aux hA t_gt σ_ge
