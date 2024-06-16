@@ -1538,13 +1538,28 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
         · exact mul_nonneg (Real.exp_nonneg _) (by norm_num)
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       Real.exp A * 2 * (1 / 3) +
-      (Real.log |t|) * (N : ℝ) ^ (1 - σ) / ‖1 - s‖ + -- STOPPED HERE
+      Real.exp A * 2 * (Real.log |t|) +
       ‖(Real.log N) * (N : ℂ) ^ (-s) / 2‖ +
       ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
       ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
         (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
         gcongr
-        sorry
+        rw [norm_div, norm_mul, mul_div_assoc, mul_comm]
+        apply mul_le_mul ?_ ?_ (by positivity) (by positivity)
+        · have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.1
+          convert le_trans h ?_ using 1
+          · simp [s, norm_natCast_cpow_of_pos Npos _]
+          · gcongr; exact UpperBnd_aux2 t_gt hσ.1
+        · rw [natCast_log, norm_complex_log_ofNat]
+          exact Real.log_le_log (by positivity) N_le_t
+    _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      Real.exp A * 2 * (1 / 3) +
+      Real.exp A * 2 * (Real.log |t|) +
+      ‖(Real.log N) * (N : ℂ) ^ (-s) / 2‖ + -- STOPPED HERE
+      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
+      ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
+        gcongr
     _ ≤ _ := by sorry
 
 
