@@ -1666,7 +1666,14 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
         gcongr; exact DerivUpperBnd_aux6 t_gt hσ Npos N_le_t neOne σ_gt
     _ ≤ _ := by
       ring_nf
-      sorry
+      rw [(by ring : A.exp * |t|.log ^ 2 * 27 = A.exp * |t|.log ^ 2 * 6 + A.exp * |t|.log ^ 2 * 19 +
+        A.exp * |t|.log ^ 2 * 2)]
+      nth_rewrite 1 [← mul_one A.exp]
+      gcongr
+      swap
+      nth_rewrite 1 [← mul_one |t|.log, (by ring : |t|.log ^ 2 = |t|.log * |t|.log)]
+      gcongr
+      nlinarith
 
 /-%%
 \begin{lemma}[ZetaDerivUpperBnd]\label{ZetaDerivUpperBnd}\lean{ZetaDerivUpperBnd}\leanok
