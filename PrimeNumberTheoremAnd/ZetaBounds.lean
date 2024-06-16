@@ -1515,19 +1515,30 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
         gcongr
         exact DerivUpperBnd_aux1 hA hσ.1 t_gt (by simp : (2 : ℝ) ≤ 2)
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
-      N ^ (1 - σ) / ‖(1 - s)‖ ^ 2 + -- STOPPED HERE
+      Real.exp A * 2 * (1 / 3) +
       ‖(Real.log N) * (N : ℂ) ^ (1 - s) / (1 - s)‖ +
       ‖(Real.log N) * (N : ℂ) ^ (-s) / 2‖ +
       ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
       ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
         (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
         gcongr
-
-
-        sorry
+        dsimp only [N, s]
+        simp only [norm_div, norm_neg, norm_pow, norm_natCast_cpow_of_pos Npos _,
+          sub_re, one_re, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im,
+          mul_one, sub_self, add_zero]
+        have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.1
+        rw [(by ring_nf : ↑⌊|t|⌋₊ ^ (1 - σ) / ‖1 - (↑σ + ↑t * I)‖ ^ 2 =
+               ↑⌊|t|⌋₊ ^ (1 - σ) / ‖1 - (↑σ + ↑t * I)‖ * 1 / ‖1 - (↑σ + ↑t * I)‖)]
+        apply mul_le_mul ?_ ?_ (inv_nonneg.mpr <| norm_nonneg _) ?_
+        · rw [mul_one]; exact le_trans h (by gcongr; exact UpperBnd_aux2 t_gt hσ.1)
+        · rw [inv_eq_one_div, div_le_iff <| norm_pos_iff.mpr <| sub_ne_zero_of_ne neOne.symm,
+              mul_comm, ← mul_div_assoc, mul_one, le_div_iff (by norm_num), one_mul]
+          apply le_trans t_gt.le ?_
+          rw [← abs_neg]; convert abs_im_le_abs (1 - (σ + t * I)); simp
+        · exact mul_nonneg (Real.exp_nonneg _) (by norm_num)
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
-      N ^ (1 - σ) / ‖(1 - s)‖ ^ 2 + -- STOPPED HERE
-      (Real.log |t|) * (N : ℝ) ^ (1 - σ) / ‖1 - s‖ +
+      Real.exp A * 2 * (1 / 3) +
+      (Real.log |t|) * (N : ℝ) ^ (1 - σ) / ‖1 - s‖ + -- STOPPED HERE
       ‖(Real.log N) * (N : ℂ) ^ (-s) / 2‖ +
       ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
       ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
