@@ -1543,7 +1543,10 @@ theorem DerivUpperBnd_aux5 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
     1 / 3 * (2 * |t| * ↑N ^ (-σ) / σ) := by
   intro N s Npos N_le_t neOne σ_gt
   have neZero : s ≠ 0 := by
-    sorry
+    contrapose! σ_gt
+    simp only [Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+      sub_self, add_zero, zero_re, add_im, mul_im, zero_add, zero_im, s] at σ_gt
+    linarith
   have : 1 = 1 / s * s := by field_simp
   nth_rewrite 1 [this]
   rw [mul_assoc, norm_mul]
@@ -1552,8 +1555,7 @@ theorem DerivUpperBnd_aux5 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
     apply one_div_le_one_div (norm_pos_iff.mpr neZero) (by norm_num) |>.mpr
     apply le_trans t_gt.le ?_
     convert abs_im_le_abs (σ + t * I); simp
-  · have hσ : σ ∈ Ioc 0 2 := by
-      sorry
+  · have hσ : σ ∈ Ioc 0 2 := ⟨(by linarith), hσ.2⟩
     simp only [s]
     have := ZetaBnd_aux1 N (by omega) hσ (by linarith)
     simp only [div_cpow_eq_cpow_neg] at this
