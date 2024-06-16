@@ -1488,7 +1488,7 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
 lemma DerivUpperBnd_aux2 {A σ t : ℝ}(t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
     let N := ⌊|t|⌋₊;
     let s := ↑σ + ↑t * I;
-    0 < ⌊|t|⌋₊ → ↑⌊|t|⌋₊ ≤ |t| → ↑σ + ↑t * I ≠ 1 →
+    0 < N → ↑N ≤ |t| → s ≠ 1 →
     1 / 2 < σ → ‖-↑N ^ (1 - s) / (1 - s) ^ 2‖ ≤ A.exp * 2 * (1 / 3) := by
   intro N s Npos N_le_t neOne σ_gt
   dsimp only [N, s]
@@ -1496,8 +1496,8 @@ lemma DerivUpperBnd_aux2 {A σ t : ℝ}(t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A
     sub_re, one_re, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im,
     mul_one, sub_self, add_zero]
   have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.1
-  rw [(by ring_nf : ↑⌊|t|⌋₊ ^ (1 - σ) / ‖1 - (↑σ + ↑t * I)‖ ^ 2 =
-          ↑⌊|t|⌋₊ ^ (1 - σ) / ‖1 - (↑σ + ↑t * I)‖ * 1 / ‖1 - (↑σ + ↑t * I)‖)]
+  rw [(by ring_nf : N ^ (1 - σ) / ‖1 - (↑σ + ↑t * I)‖ ^ 2 =
+          N ^ (1 - σ) / ‖1 - (↑σ + ↑t * I)‖ * 1 / ‖1 - (↑σ + ↑t * I)‖)]
   apply mul_le_mul ?_ ?_ (inv_nonneg.mpr <| norm_nonneg _) ?_
   · rw [mul_one]; exact le_trans h (by gcongr; exact UpperBnd_aux2 t_gt hσ.1)
   · rw [inv_eq_one_div, div_le_iff <| norm_pos_iff.mpr <| sub_ne_zero_of_ne neOne.symm,
@@ -1509,7 +1509,7 @@ lemma DerivUpperBnd_aux2 {A σ t : ℝ}(t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A
 theorem DerivUpperBnd_aux3 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
     let N := ⌊|t|⌋₊;
     let s := ↑σ + ↑t * I;
-    0 < ⌊|t|⌋₊ → ↑⌊|t|⌋₊ ≤ |t| → ↑σ + ↑t * I ≠ 1 → 1 / 2 < σ →
+    0 < N → ↑N ≤ |t| → s ≠ 1 → 1 / 2 < σ →
     ‖↑(N : ℝ).log * ↑N ^ (1 - s) / (1 - s)‖ ≤ A.exp * 2 * |t|.log := by
   intro N s Npos N_le_t neOne σ_gt
   rw [norm_div, norm_mul, mul_div_assoc, mul_comm]
@@ -1524,7 +1524,7 @@ theorem DerivUpperBnd_aux3 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
 theorem DerivUpperBnd_aux4 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
     let N := ⌊|t|⌋₊;
     let s := ↑σ + ↑t * I;
-    0 < ⌊|t|⌋₊ → ↑⌊|t|⌋₊ ≤ |t| → ↑σ + ↑t * I ≠ 1 → 1 / 2 < σ →
+    0 < N → ↑N ≤ |t| → s ≠ 1 → 1 / 2 < σ →
     ‖↑(N : ℝ).log * (N : ℂ) ^ (-s) / 2‖ ≤ A.exp * |t|.log := by
   intro N s Npos N_le_t neOne σ_gt
   rw [norm_div, norm_mul, mul_div_assoc, mul_comm, RCLike.norm_ofNat]
@@ -1538,7 +1538,7 @@ theorem DerivUpperBnd_aux4 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
 theorem DerivUpperBnd_aux5 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
     let N := ⌊|t|⌋₊;
     let s := ↑σ + ↑t * I;
-    0 < ⌊|t|⌋₊ → 1 / 2 < σ →
+    0 < N → 1 / 2 < σ →
     ‖1 * ∫ (x : ℝ) in Ioi (N : ℝ), (↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1)‖ ≤
     1 / 3 * (2 * |t| * ↑N ^ (-σ) / σ) := by
   intro N s Npos σ_gt
@@ -1563,7 +1563,7 @@ theorem DerivUpperBnd_aux5 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
 
 theorem DerivUpperBnd_aux6 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
     let N := ⌊|t|⌋₊;
-    0 < ⌊|t|⌋₊ → ↑⌊|t|⌋₊ ≤ |t| → ↑σ + ↑t * I ≠ 1 → 1 / 2 < σ →
+    0 < N → ↑N ≤ |t| → ↑σ + ↑t * I ≠ 1 → 1 / 2 < σ →
     2 * |t| * ↑N ^ (-σ) / σ ≤ 2 * (8 * A.exp) := by
   intro N Npos N_le_t neOne σ_gt
   rw [mul_div_assoc, mul_assoc]
@@ -1578,7 +1578,7 @@ theorem DerivUpperBnd_aux6 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
 theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
     let N := ⌊|t|⌋₊;
     let s := ↑σ + ↑t * I;
-    0 < ⌊|t|⌋₊ → ↑⌊|t|⌋₊ ≤ |t| → ↑σ + ↑t * I ≠ 1 → 1 / 2 < σ →
+    0 < N → ↑N ≤ |t| → s ≠ 1 → 1 / 2 < σ →
     ‖s * ∫ (x : ℝ) in Ioi (N : ℝ), (↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1) * -↑x.log‖ ≤
       2 * |t| * ↑N ^ (-σ) / σ * |t|.log := by
   intro N s Npos N_le_t neOne σ_gt
