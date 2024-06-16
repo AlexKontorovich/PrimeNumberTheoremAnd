@@ -1573,6 +1573,15 @@ theorem DerivUpperBnd_aux6 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
   convert UpperBnd_aux2 t_gt hσ.1 using 1
   rw [mul_comm, ← Real.rpow_add_one (by positivity)]; ring_nf
 
+theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
+    let N := ⌊|t|⌋₊;
+    let s := ↑σ + ↑t * I;
+    0 < ⌊|t|⌋₊ → ↑⌊|t|⌋₊ ≤ |t| → ↑σ + ↑t * I ≠ 1 → 1 / 2 < σ →
+    ‖s * ∫ (x : ℝ) in Ioi (N : ℝ), (↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1) * -↑x.log‖ ≤
+      2 * |t| * ↑N ^ (-σ) / σ * |t|.log := by
+  intro N s Npos N_le_t neOne σ_gt
+  sorry
+
 lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
     let C := Real.exp A * (5 + 8 * 2);
@@ -1600,8 +1609,7 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
       ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
         (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
-        gcongr
-        exact DerivUpperBnd_aux1 hA hσ.1 t_gt (by simp : (2 : ℝ) ≤ 2)
+        gcongr; exact DerivUpperBnd_aux1 hA hσ.1 t_gt (by simp : (2 : ℝ) ≤ 2)
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       Real.exp A * 2 * (1 / 3) +
       ‖(Real.log N) * (N : ℂ) ^ (1 - s) / (1 - s)‖ +
@@ -1609,8 +1617,7 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
       ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
         (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
-        gcongr
-        exact DerivUpperBnd_aux2 t_gt hσ Npos N_le_t neOne σ_gt
+        gcongr; exact DerivUpperBnd_aux2 t_gt hσ Npos N_le_t neOne σ_gt
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       Real.exp A * 2 * (1 / 3) +
       Real.exp A * 2 * (Real.log |t|) +
@@ -1618,8 +1625,7 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
       ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
         (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
-        gcongr
-        exact DerivUpperBnd_aux3 t_gt hσ Npos N_le_t neOne σ_gt
+        gcongr; exact DerivUpperBnd_aux3 t_gt hσ Npos N_le_t neOne σ_gt
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       Real.exp A * 2 * (1 / 3) +
       Real.exp A * 2 * (Real.log |t|) +
@@ -1627,8 +1633,7 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
       ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
         (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
-        gcongr
-        exact DerivUpperBnd_aux4 t_gt hσ Npos N_le_t neOne σ_gt
+        gcongr; exact DerivUpperBnd_aux4 t_gt hσ Npos N_le_t neOne σ_gt
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       Real.exp A * 2 * (1 / 3) +
       Real.exp A * 2 * (Real.log |t|) +
@@ -1636,8 +1641,7 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       1 / 3 * (2 * |t| * N ^ (-σ) / σ) +
       ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
         (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
-        gcongr
-        exact DerivUpperBnd_aux5 t_gt hσ Npos N_le_t neOne σ_gt
+        gcongr; exact DerivUpperBnd_aux5 t_gt hσ Npos N_le_t neOne σ_gt
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       Real.exp A * 2 * (1 / 3) +
       Real.exp A * 2 * (Real.log |t|) +
@@ -1645,59 +1649,24 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       1 / 3 * (2 * (8 * Real.exp A)) +
       ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
         (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
-        gcongr
-        exact DerivUpperBnd_aux6 t_gt hσ Npos N_le_t neOne σ_gt
+        gcongr; exact DerivUpperBnd_aux6 t_gt hσ Npos N_le_t neOne σ_gt
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       Real.exp A * 2 * (1 / 3) +
       Real.exp A * 2 * (Real.log |t|) +
       Real.exp A * (Real.log |t|) +
       1 / 3 * (2 * (8 * Real.exp A)) +
       (2 * |t| * N ^ (-σ) / σ) * (Real.log |t|) := by
-        gcongr
-        sorry
+        gcongr; exact DerivUpperBnd_aux7 t_gt hσ Npos N_le_t neOne σ_gt
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       Real.exp A * 2 * (1 / 3) +
       Real.exp A * 2 * (Real.log |t|) +
       Real.exp A * (Real.log |t|) +
       1 / 3 * (2 * (8 * Real.exp A)) +
       (2 * (8 * Real.exp A)) * (Real.log |t|) := by
-        gcongr
-        exact DerivUpperBnd_aux6 t_gt hσ Npos N_le_t neOne σ_gt
+        gcongr; exact DerivUpperBnd_aux6 t_gt hσ Npos N_le_t neOne σ_gt
     _ ≤ _ := by
+      ring_nf
       sorry
-
-#exit
-
---  sorry
-  -- calc
-  --   _ ≤ Real.exp A * 2 * Real.log |t| + ‖N ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
-  --     ‖s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖ := ?_
-  --   _ ≤ Real.exp A * 2 * Real.log |t| + ‖N ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
-  --     2 * |t| * N ^ (-σ) / σ  := ?_
-  --   _ = Real.exp A * 2 * Real.log |t| + N ^ (1 - σ) / ‖(1 - s)‖ + N ^ (-σ) / 2 +
-  --     2 * |t| * N ^ (-σ) / σ  := ?_
-  --   _ ≤ Real.exp A * 2 * Real.log |t| + |t| ^ (1 - σ) * 2 +
-  --       |t| ^ (1 - σ) + 2 * |t| * (8 * |t| ^ (-σ)) := ?_
-  --   _ = Real.exp A * 2 * Real.log |t| + (3 + 8 * 2) * |t| ^ (1 - σ) := ?_
-  --   _ ≤ Real.exp A * 2 * Real.log |t| + (3 + 8 * 2) * Real.exp A * 1 := ?_
-  --   _ ≤ Real.exp A * 2 * Real.log |t| + (3 + 8 * 2) * Real.exp A * Real.log |t| := ?_
-  --   _ = _ := by ring
-  -- · simp only [add_le_add_iff_right, one_div_cpow_eq_cpow_neg]
-  --   convert UpperBnd_aux3 (C := 2) hA hσ.1 t_gt le_rfl using 1
-  -- · simp only [add_le_add_iff_left]; exact ZetaBnd_aux1 N (by linarith) ⟨σPos, hσ.2⟩ (by linarith)
-  -- · simp only [norm_div, norm_neg, norm_eq_abs, RCLike.norm_ofNat, Nat.abs_cast, s]
-  --   congr <;> (convert norm_natCast_cpow_of_pos Npos _; simp)
-  -- · have ⟨h₁, h₂, h₃⟩ := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t
-  --   refine add_le_add_le_add_le_add le_rfl h₁ h₂ ?_
-  --   rw [mul_div_assoc]
-  --   exact mul_le_mul_left (mul_pos (by norm_num) (by positivity)) |>.mpr h₃
-  -- · ring_nf; conv => lhs; rhs; lhs; rw [mul_comm |t|]
-  --   rw [← Real.rpow_add_one (by positivity)]; ring_nf
-  -- · simp only [Real.log_abs, add_le_add_iff_left, mul_one]
-  --   exact mul_le_mul_left (by positivity) |>.mpr <| UpperBnd_aux2 t_gt hσ.1
-  -- · simp only [add_le_add_iff_left]
-  --   apply mul_le_mul_left (by norm_num [Real.exp_pos]) |>.mpr <| logt_gt.le
-
 
 /-%%
 \begin{lemma}[ZetaDerivUpperBnd]\label{ZetaDerivUpperBnd}\lean{ZetaDerivUpperBnd}\leanok
