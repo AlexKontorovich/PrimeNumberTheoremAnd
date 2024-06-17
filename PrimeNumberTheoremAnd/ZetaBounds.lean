@@ -1442,32 +1442,21 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
   intro N
   obtain ⟨Npos, N_le_t, _, _, σPos, _⟩ := UpperBnd_aux hA t_gt σ_ge
   have logt_gt := logt_gt_one t_gt
-  have logN_pos : 0 ≤ Real.log N := by
-    apply Real.log_nonneg
-    norm_cast
-  have fact0 {n : ℕ} (hn : n ∈ Finset.range (N + 1)) : n ≤ |t| := by
-    simp only [Finset.mem_range] at hn
-    linarith [(by exact_mod_cast (by omega : n ≤ N) : (n : ℝ) ≤ N)]
-  have fact1 {n : ℕ} (hn : n ∈ Finset.range (N + 1)) :
-    ‖(n : ℂ) ^ (-(σ + t * I))‖ ≤ (n : ℝ)⁻¹ * A.exp :=
-    ZetaBnd_aux2 (n := n) hA.1 σPos (fact0 hn) σ_ge
-  have fact2 {n : ℕ} (hn : n ∈ Finset.range (N + 1)) : Real.log n ≤ Real.log |t| := by
+  have logN_pos : 0 ≤ Real.log N := Real.log_nonneg (by norm_cast)
+  have fact0 {n : ℕ} (hn : n ≤ N) : n ≤ |t| := by linarith [(by exact_mod_cast hn : (n : ℝ) ≤ N)]
+  have fact1 {n : ℕ} (hn : n ≤ N) :
+    ‖(n : ℂ) ^ (-(σ + t * I))‖ ≤ (n : ℝ)⁻¹ * A.exp := ZetaBnd_aux2 hA.1 σPos (fact0 hn) σ_ge
+  have fact2 {n : ℕ} (hn : n ≤ N) : Real.log n ≤ Real.log |t| := by
     cases n
-    · simp only [CharP.cast_eq_zero, Real.log_zero]
-      linarith
-    · apply Real.log_le_log ?_ (fact0 hn)
-      exact_mod_cast Nat.add_one_pos _
-  have fact3 (n : ℕ) (hn : n ∈ Finset.range (N + 1)) :
+    · simp only [CharP.cast_eq_zero, Real.log_zero]; linarith
+    · exact Real.log_le_log (by exact_mod_cast Nat.add_one_pos _) (fact0 hn)
+  have fact3 (n : ℕ) (hn : n ≤ N) :
     ‖-1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ ≤ (n : ℝ)⁻¹ * Real.exp A * (Real.log |t|) := by
-    convert mul_le_mul (h₁ := fact1 hn) (h₂ := fact2 hn)
-      (c0 := Real.log_natCast_nonneg n) (by positivity)
-    rw [norm_mul]
-    simp only [norm_div, norm_neg, norm_one, one_div, natCast_log]
-    rw [← norm_inv]
-    congr! 2
-    · rw [Complex.cpow_neg]
-    · exact norm_complex_log_ofNat n
-  replace := norm_sum_le_of_le (Finset.range (N + 1)) fact3
+    convert mul_le_mul (fact1 hn) (fact2 hn) (Real.log_natCast_nonneg n) (by positivity)
+    simp only [norm_mul, norm_div, norm_neg, norm_one, one_div, natCast_log, ← norm_inv, cpow_neg]
+    congr; exact norm_complex_log_ofNat n
+  have := norm_sum_le_of_le (Finset.range (N + 1))
+    (by convert fact3; simp only [Finset.mem_range]; omega)
   rw [← Finset.sum_mul, ← Finset.sum_mul, mul_comm _ A.exp, mul_assoc] at this
   rw [mul_assoc]
   apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
@@ -1475,15 +1464,10 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
   apply le_trans (mul_le_mul (h₁ := harmonic_le_one_add_log (n := N)) (le_refl (Real.log |t|))
     (by linarith) (by linarith))
   apply (mul_le_mul_right (by linarith)).mpr
-  by_cases hN : N = 1
-  · simp only [hN, Nat.cast_one, Real.log_one, add_zero]
-    have : 2 * 1 ≤ C * Real.log |t| := mul_le_mul hC logt_gt.le (by linarith) (by linarith)
-    linarith
-  · rw [(by ring : C * Real.log |t| = Real.log |t| + (C - 1) * Real.log |t|),
+  rw [(by ring : C * Real.log |t| = Real.log |t| + (C - 1) * Real.log |t|),
       ← one_mul <| Real.log (N: ℝ)]
-    apply add_le_add logt_gt.le
-    refine mul_le_mul (by linarith) ?_ (by positivity) (by linarith)
-    exact Real.log_le_log (by positivity) N_le_t
+  refine add_le_add logt_gt.le <| mul_le_mul (by linarith) ?_ (by positivity) (by linarith)
+  exact Real.log_le_log (by positivity) N_le_t
 
 lemma DerivUpperBnd_aux2 {A σ t : ℝ}(t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
     let N := ⌊|t|⌋₊;
