@@ -9,7 +9,12 @@ import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 
 open MeasureTheory Set Filter
 
+/-%
+Want to say:
+$f(x , t) \ll g(x, t)$ as $x \to \infy$
+%-/
 
+example (f g : ℝ → ℝ) (param : ℝ)
 
 
 #exit

@@ -1568,6 +1568,20 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
   intro N s Npos N_le_t neOne σ_gt
   sorry
 
+lemma ZetaDerivUpperBnd'' {A σ : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
+    (σ_le : σ ≤ 2) :
+    (fun (t : ℝ) ↦
+    ‖∑ n in Finset.range (⌊|t|⌋₊ + 1), -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ +
+      ‖-(⌊|t|⌋₊ : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2‖ +
+      ‖(Real.log ⌊|t|⌋₊) * (⌊|t|⌋₊ : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))‖ +
+      ‖(Real.log ⌊|t|⌋₊) * (⌊|t|⌋₊ : ℂ) ^ (-(σ + t * I)) / 2‖ +
+      ‖(1 * ∫ (x : ℝ) in Ioi (⌊|t|⌋₊ : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1))‖ +
+      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (⌊|t|⌋₊ : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖)
+        =O[atTop ⊓ Filter.principal {t : ℝ | |t| < Real.exp (A / (1 - σ))}] fun t ↦ Real.log |t| ^ 2 := by
+
+  sorry
+
 lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
     let C := Real.exp A * 27;
