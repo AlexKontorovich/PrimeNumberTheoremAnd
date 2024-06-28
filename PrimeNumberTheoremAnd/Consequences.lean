@@ -1,13 +1,37 @@
-import PrimeNumberTheoremAnd.Wiener
-import PrimeNumberTheoremAnd.Mathlib.NumberTheory.ArithmeticFunction
-import Mathlib.Analysis.Asymptotics.Asymptotics
-import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
+import Mathlib.Analysis.Asymptotics.Asymptotics
+import Mathlib.MeasureTheory.Integral.IntervalIntegral
+import Mathlib.NumberTheory.PrimeCounting
+
+import PrimeNumberTheoremAnd.Mathlib.Algebra.BigOperators.Finprod
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
+import PrimeNumberTheoremAnd.Mathlib.NumberTheory.ArithmeticFunction
+import PrimeNumberTheoremAnd.Wiener
 
 open ArithmeticFunction hiding log
 open Nat hiding log
 open Finset
-open BigOperators Filter Real Classical Asymptotics MeasureTheory
+open BigOperators Filter Real Classical Asymptotics MeasureTheory intervalIntegral
+
+/- This whole section should go into Mathlib/Algebra/BigOperators/Finprod.lean -/
+section finsum_lemma
+
+variable {R : Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) (p q : ℕ → Prop)
+
+lemma finsum_range_prop_eq_sum_range_filter :
+    ∑ᶠ (n : ℕ) (_ : n < x) (_ : p n), f n = ∑ n ∈ (range ⌈x⌉₊).filter p, f n := by
+  simp_rw [← finsum_cond_and]
+  convert finsum_cond_eq_sum_of_cond_iff f ?_
+  intros
+  simp [Nat.lt_ceil]
+
+lemma finsum_range_prop_eq_sum_range_filter' :
+    ∑ᶠ (n : ℕ) (_ : n ≤ x) (_ : p n), f n = ∑ n ∈ (Iic ⌊x⌋₊).filter p, f n := by
+  simp_rw [← finsum_cond_and]
+  convert finsum_cond_eq_sum_of_cond_iff f ?_
+  intro n h
+  have : n ≠ 0 := fun hc ↦ h <| (congrArg f hc).trans ArithmeticFunction.map_zero
+  simp [Nat.le_floor_iff' this]
 
 /-%%
 \begin{lemma}\label{range-eq-range}\lean{finsum_range_eq_sum_range, finsum_range_eq_sum_range'}\leanok For any arithmetic function $f$ and real number $x$, one has
@@ -16,20 +40,13 @@ and
 $$ \sum_{n < x} f(n) = \sum_{n < ⌈x⌉_+} f(n).$$
 \end{lemma}
 %%-/
-lemma finsum_range_eq_sum_range {R: Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
-    ∑ᶠ (n : ℕ) (_: n < x), f n = ∑ n in range ⌈x⌉₊, f n := by
-  apply finsum_cond_eq_sum_of_cond_iff f
-  intros
-  simp only [mem_range]
-  exact Iff.symm Nat.lt_ceil
+lemma finsum_range_eq_sum_range : ∑ᶠ (n : ℕ) (_ : n < x), f n = ∑ n ∈ range ⌈x⌉₊, f n := by
+  convert finsum_range_prop_eq_sum_range_filter _ (fun _ ↦ True) <;> simp
 
-lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
-    ∑ᶠ (n : ℕ) (_: n ≤ x), f n = ∑ n in Iic ⌊x⌋₊, f n := by
-  apply finsum_cond_eq_sum_of_cond_iff f
-  intro n h
-  simp only [mem_Iic]
-  exact Iff.symm <| Nat.le_floor_iff'
-    fun (hc : n = 0) ↦ (h : f n ≠ 0) <| (congrArg f hc).trans ArithmeticFunction.map_zero
+lemma finsum_range_eq_sum_range' : ∑ᶠ (n : ℕ) (_ : n ≤ x), f n = ∑ n ∈ Iic ⌊x⌋₊, f n := by
+  convert finsum_range_prop_eq_sum_range_filter' _ (fun _ ↦ True) <;> simp
+
+end finsum_lemma
 
 /-%%
 \begin{proof}\leanok Straightforward. \end{proof}
@@ -41,12 +58,41 @@ lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f : ArithmeticFun
 \end{theorem}
 %%-/
 theorem chebyshev_asymptotic :
-    (fun x ↦ ∑ p in (filter Nat.Prime (range ⌈x⌉₊)), log p) ~[atTop] (fun x ↦ x) := by
+    (fun x : ℝ ↦ ∑ p ∈ (range ⌊x⌋₊).filter Nat.Prime, log p) ~[atTop] fun x : ℝ ↦ x := by
   sorry
 
 theorem chebyshev_asymptotic_finsum :
-    (fun x ↦ ∑ᶠ (p:ℕ) (_: p ≤ x) (_: Nat.Prime p), log p) ~[atTop] (fun x ↦ x) := by
-  sorry
+    (fun x : ℝ ↦ ∑ᶠ (p : ℕ) (_ : p ≤ x) (_ : Nat.Prime p), log p) ~[atTop] fun x : ℝ ↦ x := by
+  trans (fun x : ℝ ↦ ∑ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, log p)
+  · convert IsEquivalent.refl using 2 with x
+    symm
+    convert finsum_range_prop_eq_sum_range_filter' (f := ⟨fun p : ℕ ↦ (p : ℝ).log, by simp⟩) x _
+  /- These are for rewriting inside simp_rw -/
+  have h₁ (x : ℝ) : Iic ⌊x⌋₊ = range (⌊x⌋₊ + 1) := by
+    ext y
+    simp [lt_add_one_iff]
+  have h₂ : ∀ x : ℕ, x ∉ filter Nat.Prime (range x) := by intro; simp
+  have h₃ {p} [Decidable p] {a b : ℝ} : (if p then a else 0) + b = if p then a + b else b := by
+    split_ifs <;> simp
+  simp_rw [h₁, range_succ, filter_insert, sum_ite_index, sum_insert (h₂ _), ← h₃, ← Pi.add_def]
+
+  /- Now I have to prove: err term + main term lhs ~ main term rhs, which means err = o(main) -/
+  refine IsEquivalent.isLittleO_add ?_ chebyshev_asymptotic
+  have h₄ : (fun i : ℝ ↦ if ⌊i⌋₊.Prime then log ⌊i⌋₊ else 0) =O[atTop] (fun i ↦ log ⌊i⌋₊) := by
+    apply IsBigO.of_bound'
+    refine eventually_atTop.mpr ⟨1, fun b hb ↦ ?_⟩
+    have : 0 ≤ log ⌊b⌋₊ := by simp [log_nonneg, hb]
+    rw [norm_eq_abs, norm_eq_abs, abs_eq_self.mpr ?_, abs_eq_self.mpr this]
+    all_goals split_ifs <;> simp [log_nonneg, hb]
+  have h₅ : (fun i : ℝ ↦ log ⌊i⌋₊) =o[atTop] (fun i : ℝ ↦ i) := by
+    refine IsBigO.trans_isLittleO ?_ Real.isLittleO_log_id_atTop
+    refine Eventually.isBigO ?_
+    refine eventually_atTop.mpr ⟨1, fun b hb ↦ ?_⟩
+    rw [norm_eq_abs, abs_eq_self.mpr <| log_nonneg (by simp [hb])]
+    refine strictMonoOn_log.monotoneOn ?_ ?_ (floor_le <| zero_le_one.trans hb)
+    · simp; change 1 ≤ _; simp [hb]
+    · simp; linarith
+  exact IsBigO.trans_isLittleO h₄ h₅
 
 -- one could also consider adding a version with p < x instead of p \leq x
 
@@ -69,12 +115,12 @@ We have
 %%-/
 theorem primorial_bounds :
     ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
-    ∀ x : ℝ, ∏ p in (filter Nat.Prime (range ⌊x⌋₊)), p = exp ( x + E x ) := by
+      ∀ x : ℝ, ∏ p ∈ (range ⌊x⌋₊).filter Nat.Prime, p = exp (x + E x) := by
   sorry
 
 theorem primorial_bounds_finprod :
     ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
-    ∀ x : ℝ, ∏ᶠ (p:ℕ) (_:p ≤ x) (_:Nat.Prime p), p = exp ( x + E x ) := by
+      ∀ x : ℝ, ∏ᶠ (p : ℕ) (_ : p ≤ x) (_ : Nat.Prime p), p = exp (x + E x) := by
   sorry
 
 /-%%
@@ -93,8 +139,8 @@ as $x \to \infty$.
 \end{theorem}
 %%-/
 theorem pi_asymp :
-    ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
-    ∀ x : ℝ, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * ∫ t in Set.Icc 2 x, 1 / (log t) ∂ volume := by
+    ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
+      ∀ x : ℝ, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * ∫ t in (2 : ℝ)..x, 1 / log t := by
   sorry
 
 /-%%
@@ -120,7 +166,7 @@ $$ \pi(x) = (1+o(1)) \frac{x}{\log x}$$
 as $x \to \infty$.
 \end{corollary}
 %%-/
-theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
+theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     ∀ x : ℝ, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * x / log x := by
   sorry
 
@@ -149,7 +195,7 @@ Let $p_n$ denote the $n^{th}$ prime.
 as $n \to \infty$.
 \end{proposition}
 %%-/
-theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
+theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     ∀ n : ℕ, Nat.nth Nat.Prime n = (1 + c n) * n * log n := by
   sorry
 
@@ -167,8 +213,8 @@ We have $p_{n+1} - p_n = o(p_n)$
 \end{corollary}
 %%-/
 
-theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
-    ∀ n : ℕ, Nat.nth Nat.Prime (n+1) - Nat.nth Nat.Prime n = (c n) * Nat.nth Nat.Prime n := by
+theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
+    ∀ n : ℕ, Nat.nth Nat.Prime (n + 1) - Nat.nth Nat.Prime n = (c n) * Nat.nth Nat.Prime n := by
   sorry
 
 /-%%
@@ -184,8 +230,8 @@ For every $\eps>0$, there is a prime between $x$ and $(1+\eps)x$ for all suffici
 \end{corollary}
 %%-/
 
-theorem prime_between {ε:ℝ} (hε: 0 < ε): ∀ᶠ x:ℝ in atTop, ∃ p:ℕ, Nat.Prime p ∧
-    x < p ∧ p < (1+ε)* x := by
+theorem prime_between {ε : ℝ} (hε : 0 < ε) :
+    ∀ᶠ x : ℝ in atTop, ∃ p : ℕ, Nat.Prime p ∧ x < p ∧ p < (1 + ε) * x := by
   sorry
 
 
@@ -201,7 +247,7 @@ Use Corollary \ref{pi-alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infini
 We have $|\sum_{n \leq x} \frac{\mu(n)}{n}| \leq 1$.
 \end{proposition}
 %%-/
-theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| ≤ 1 := by
+theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)| ≤ 1 := by
   cases' N with N
   /- simple cases -/
   simp only [range_zero, sum_empty, abs_zero, zero_le_one]
@@ -210,23 +256,20 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| 
     subst hN
     simp
   /- annoying case -/
-  have h_sum : 1 = ∑ d in range (N + 1), (μ d : ℚ) * (N / d : ℕ) := by calc
-    (1 : ℚ) = ∑ m in Icc 1 N, ∑ d in m.divisors, μ d := by
-      have {N : ℕ} : (1 : ArithmeticFunction _) N = ∑ d in N.divisors, μ d := by
-        rw [← coe_mul_zeta_apply, moebius_mul_coe_zeta]
-      rw [Icc_eq_cons_Ioc hN, Finset.sum_cons, divisors_one, sum_singleton, moebius_apply_one]
-      have {x : ℕ} (hx : x ∈ Ioc 1 N) : ∑ d in divisors x, μ d = 0 := by
+  have h_sum : 1 = ∑ d ∈ range (N + 1), (μ d : ℚ) * (N / d : ℕ) := by calc
+    (1 : ℚ) = ∑ m ∈ Icc 1 N, ∑ d ∈ m.divisors, μ d := by
+      have {x : ℕ} (hx : x ∈ Ioc 1 N) : ∑ d ∈ divisors x, μ d = 0 := by
         rw [mem_Ioc] at hx
-        simp only [← this, one_apply, hx.left.ne.symm, if_false]
-      rw [sum_congr rfl (fun _ ↦ this), sum_const, smul_zero, add_zero, Int.cast_one]
-    _ = ∑ d in range (N + 1), μ d * (N / d) := by
+        rw [← coe_mul_zeta_apply, moebius_mul_coe_zeta, one_apply]
+        omega
+      rw [Icc_eq_cons_Ioc hN, Finset.sum_cons, divisors_one, sum_singleton, moebius_apply_one,
+        sum_congr rfl (fun _ ↦ this), sum_const, smul_zero, add_zero, Int.cast_one]
+    _ = ∑ d ∈ range (N + 1), μ d * (N / d) := by
       simp_rw [← coe_mul_zeta_apply, ArithmeticFunction.sum_Icc_mul_zeta, nsmul_eq_mul, mul_comm]
-      rw [range_eq_Ico, ← Ico_insert_succ_left (succ_pos _), sum_insert, ArithmeticFunction.map_zero,
-        mul_zero, zero_add]
-      · congr
-      · simp
-    _ = ∑ d in range (N + 1), (μ d : ℚ) * (N / d : ℕ) := by
-      save
+      rw [range_eq_Ico, ← Ico_insert_succ_left (succ_pos _), sum_insert (by rw [mem_Ico]; omega),
+        ArithmeticFunction.map_zero, mul_zero, zero_add]
+      rfl
+    _ = ∑ d ∈ range (N + 1), (μ d : ℚ) * (N / d : ℕ) := by
       norm_num [Int.cast_sum]
       rfl
 
@@ -241,7 +284,7 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| 
   have hf' (d : ℕ) : |Int.fract ((N : ℚ) / d)| < 1 := by
     rw [abs_of_nonneg (Int.fract_nonneg _)]
     exact Int.fract_lt_one _
-  have h_bound : |∑ d in range (N + 1), μ d * Int.fract ((N : ℚ) / d)| ≤ N - 1 := by
+  have h_bound : |∑ d ∈ range (N + 1), μ d * Int.fract ((N : ℚ) / d)| ≤ N - 1 := by
     /- range (N + 1) → Icc 1 N + part that evals to 0 -/
     rw [range_eq_Ico, ← Ico_insert_succ_left, sum_insert, ArithmeticFunction.map_zero,
       Int.cast_zero, zero_mul, zero_add, Ico_succ_right]
@@ -252,7 +295,7 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| 
     /- bound sum -/
     have (d : ℕ) : |μ d * Int.fract ((N : ℚ) / d)| ≤ 1 := by
       rw [abs_mul, ← one_mul 1]
-      apply mul_le_mul ?_ (hf' _).le (abs_nonneg _) zero_le_one
+      refine mul_le_mul ?_ (hf' _).le (abs_nonneg _) zero_le_one
       norm_cast
       simp [moebius]
       split_ifs <;> simp only [abs_zero, zero_le_one, abs_pow, abs_neg, abs_one, one_pow, le_refl]
@@ -288,7 +331,7 @@ From M\"obius inversion $1_{n=1} = \sum_{d|n} \mu(d)$ and summing we have
 \end{proposition}
 %%-/
 
-theorem mu_pnt : (fun x:ℝ ↦ ∑ n in range ⌊ x ⌋₊, μ n) =o[atTop] (fun x ↦ x) := by sorry
+theorem mu_pnt : (fun x : ℝ ↦ ∑ n ∈ range ⌊x⌋₊, μ n) =o[atTop] fun x ↦ x := by sorry
 
 /-%%
 \begin{proof}
@@ -323,7 +366,7 @@ We have $\sum_{n \leq x} \lambda(n) = o(x)$.
 \end{proposition}
 %%-/
 
-theorem lambda_pnt : (fun x:ℝ ↦ ∑ n in range ⌊ x ⌋₊, (-1)^(Ω n)) =o[atTop] (fun x ↦ x) := by
+theorem lambda_pnt : (fun x : ℝ ↦ ∑ n ∈ range ⌊x⌋₊, (-1)^(Ω n)) =o[atTop] fun x ↦ x := by
   sorry
 
 
@@ -348,7 +391,8 @@ Sending $\eps \to 0$ we obtain the claim.
 \end{proposition}
 %%-/
 
-theorem mu_pnt_alt : (fun x:ℝ ↦ ∑ n in range ⌊ x ⌋₊, (μ n: ℝ) / n) =o[atTop] (fun x ↦ (1:ℝ)) := by sorry
+theorem mu_pnt_alt : (fun x : ℝ ↦ ∑ n ∈ range ⌊x⌋₊, (μ n : ℝ) / n) =o[atTop] fun x ↦ (1 : ℝ) := by
+  sorry
 
 /-%%
 \begin{proof}
