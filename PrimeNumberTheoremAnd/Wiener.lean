@@ -75,7 +75,7 @@ lemma smooth_urysohn_support_Ioo (h1 : a < b) (h3: c < d) :
           rw [Set.indicator_apply]
           split_ifs with h
           · have : Ψ x ∈ Set.range Ψ := by simp only [Set.mem_range, exists_apply_eq_apply]
-            have : Ψ x ∈ Set.Icc 0 1 := by exact hΨrange this
+            have : Ψ x ∈ Set.Icc 0 1 := hΨrange this
             simpa using this.2
           · simp only [Set.mem_Ioo, Pi.one_apply] at *
             simp only [not_and_or, not_lt] at h
@@ -1140,7 +1140,7 @@ lemma gg_of_hh {x : ℝ} (hx : x ≠ 0) (i : ℝ) : gg x i = x⁻¹ * hh (1 / (2
   field_simp [gg, hh]
 
 lemma gg_l1 {x : ℝ} (hx : 0 < x) (n : ℕ) : |gg x n| ≤ 1 / n := by
-  simp [gg_of_hh hx.ne.symm, abs_mul]
+  simp only [gg_of_hh hx.ne.symm, one_div, mul_inv_rev, abs_mul]
   apply mul_le_mul le_rfl (hh_le _ _ (by positivity)) (by positivity) (by positivity) |>.trans (le_of_eq ?_)
   simp [abs_inv, abs_eq_self.mpr hx.le] ; field_simp
 
@@ -1227,7 +1227,7 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
 
   have l4 : IntervalIntegrable f volume x₀ (x₀ + 1) := by
     apply IntegrableOn.intervalIntegrable
-    simp
+    simp only [ge_iff_le, le_add_iff_nonneg_right, zero_le_one, uIcc_of_le]
     apply hfi.mono_set
     apply Icc_subset_Icc ; linarith ; simp
   have l5 x (hx : x ∈ Ioc x₀ (x₀ + 1)) : (fun x ↦ f (x₀ + 1)) x ≤ f x := by
@@ -1254,11 +1254,11 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
   simp [add_comm _ x₀] at this ; rw [this]
   rw [intervalIntegral.integral_add_adjacent_intervals]
   · apply IntegrableOn.intervalIntegrable
-    simp
+    simp only [ge_iff_le, le_add_iff_nonneg_right, zero_le_one, uIcc_of_le]
     apply hfi.mono_set
     apply Icc_subset_Icc ; linarith ; simp
   · apply IntegrableOn.intervalIntegrable
-    simp
+    simp only [ge_iff_le, add_le_add_iff_left, le_add_iff_nonneg_left, Nat.cast_nonneg, uIcc_of_le]
     apply hfi.mono_set
     apply Icc_subset_Icc ; linarith ; simp
 
@@ -1334,7 +1334,7 @@ lemma hh_integrable_aux (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   · convert_to IntegrableOn g' _
     exact integrableOn_Ioi_deriv_of_nonneg k3 key k4 k1
   · have := integral_Ioi_of_hasDerivAt_of_nonneg k3 key k4 k1
-    simp [g₀, g'] at this ⊢
+    simp only [mul_inv_rev, inv_div, mul_neg, ↓reduceIte, sub_neg_eq_add, g', g₀] at this ⊢
     convert this using 1 ; field_simp ; ring
 
 lemma hh_integrable (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
@@ -1832,7 +1832,7 @@ lemma WI_summable {f : ℕ → ℝ} {g : ℝ → ℝ} (hg : HasCompactSupport g)
     Summable (fun n => f n * g (n / x)) := by
   obtain ⟨M, hM⟩ := hg.bddAbove.mono subset_closure
   apply summable_of_finite_support
-  simp ; apply Finite.inter_of_right ; rw [finite_iff_bddAbove]
+  simp only [Function.support_mul] ; apply Finite.inter_of_right ; rw [finite_iff_bddAbove]
   exact ⟨Nat.ceil (M * x), fun i hi => by simpa using Nat.ceil_mono ((div_le_iff hx).mp (hM hi))⟩
 
 lemma WI_sum_le {f : ℕ → ℝ} {g₁ g₂ : ℝ → ℝ} (hf : 0 ≤ f) (hg : g₁ ≤ g₂) (hx : 0 < x)
@@ -1856,7 +1856,8 @@ lemma WI_sum_Iab_le {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : cheby
   rw [tsum_eq_sum l1, div_le_iff hx, mul_assoc, mul_assoc]
   apply Finset.sum_le_sum l2 |>.trans
   have := hcheby ⌈b * x⌉₊ ; simp at this ; apply this.trans
-  have : 0 ≤ C := by have := hcheby 1 ; simp [cumsum] at this ; exact (abs_nonneg _).trans this
+  have : 0 ≤ C := by have := hcheby 1 ; simp only [cumsum, Finset.range_one, Complex.norm_eq_abs,
+    abs_ofReal, Finset.sum_singleton, Nat.cast_one, mul_one] at this ; exact (abs_nonneg _).trans this
   refine mul_le_mul_of_nonneg_left ?_ this
   apply (Nat.ceil_lt_add_one (by positivity)).le.trans
   linarith
@@ -1891,7 +1892,7 @@ lemma WI_tendsto_aux (a b : ℝ) {A : ℝ} (hA : 0 < A) :
   intro x hx1 hx2
   constructor
   · simpa [lt_div_iff' hA]
-  · simp [Real.dist_eq] at hx2 ⊢
+  · simp only [Real.dist_eq, dist_zero_right, Real.norm_eq_abs] at hx2 ⊢
     have : |x / A - (b - a)| = |x - A * (b - a)| / A := by
       rw [← abs_eq_self.mpr hA.le, ← abs_div, abs_eq_self.mpr hA.le] ; congr ; field_simp
     rwa [this, div_lt_iff' hA]
@@ -1927,7 +1928,7 @@ theorem residue_nonneg {f : ℕ → ℝ} (hpos : 0 ≤ f)
       (h1.continuous.integrable_of_hasCompactSupport h2).integrableOn
     have r3 : Ico 1 2 ⊆ Function.support ψ := by intro x hx ; have := h4 x ; simp [hx] at this ⊢ ; linarith
     have r4 : Ico 1 2 ⊆ Function.support ψ ∩ Ioi 0 := by
-      simp [r3] ; apply Ico_subset_Icc_self.trans ; rw [Icc_subset_Ioi_iff] <;> linarith
+      simp only [subset_inter_iff, r3, true_and] ; apply Ico_subset_Icc_self.trans ; rw [Icc_subset_Ioi_iff] <;> linarith
     have r5 : 1 ≤ volume ((Function.support fun y ↦ ψ y) ∩ Ioi 0) := by convert volume.mono r4 ; norm_num
     simpa [setIntegral_pos_iff_support_of_nonneg_ae r1 r2] using zero_lt_one.trans_le r5
   have := div_nonneg l3 l4.le ; field_simp at this ; exact this
@@ -2097,7 +2098,8 @@ lemma tendsto_S_S_zero {f : ℕ → ℝ} (hpos : 0 ≤ f) (hcheby : cheby f) :
   have l2 : |cumsum f ⌈ε * ↑N⌉₊ / ↑N| ≤ C * ⌈ε * N⌉₊ / N := by
     have r1 := hC ⌈ε * N⌉₊
     have r2 : 0 ≤ cumsum f ⌈ε * N⌉₊ := by apply cumsum_nonneg hpos
-    simp [abs_div, abs_eq_self.mpr r2, abs_eq_self.mpr (hpos _)] at r1 ⊢
+    simp only [Complex.norm_eq_abs, abs_ofReal, abs_eq_self.mpr (hpos _), abs_div,
+      abs_eq_self.mpr r2, Nat.abs_cast, ge_iff_le] at r1 ⊢
     apply div_le_div_of_nonneg_right r1 (by positivity)
   simpa [← S_sub_S h2.2] using l2.trans_lt h1
 

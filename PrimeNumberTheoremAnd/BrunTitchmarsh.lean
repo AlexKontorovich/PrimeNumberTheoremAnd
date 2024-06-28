@@ -63,7 +63,7 @@ theorem primesBetween_subset :
     (Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d) ∪
     (Finset.Icc 1 (Nat.floor z)) := by
   intro p
-  simp
+  simp only [Finset.mem_filter, Finset.mem_Icc, Nat.ceil_le, Finset.mem_union, and_imp]
   intro hx hxy hp
   by_cases hpz : p ≤ z
   · right
@@ -93,7 +93,7 @@ theorem primesBetween_le_siftedSum_add :
   rw[siftedSum_eq_card]
   gcongr
   rw[Nat.card_Icc]
-  simp
+  simp only [add_tsub_cancel_right]
   apply Nat.floor_le
   linarith
 
@@ -130,7 +130,7 @@ theorem multSum_eq (d : ℕ) (hd : d ≠ 0):
     (primeInterSieve x y z hz).multSum d = ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) := by
   unfold Sieve.multSum
   rw[primeInterSieve]
-  simp
+  simp only [Finset.sum_boole, Nat.cast_inj]
   trans ↑(Finset.Ioc (Nat.ceil x - 1) (Nat.floor (x+y)) |>.filter (d ∣ ·) |>.card)
   · rw [←Nat.Icc_succ_left]
     congr
@@ -152,7 +152,7 @@ theorem Nat.ceil_le_self_add_one (x : ℝ) (hx : 0 ≤ x) : Nat.ceil x ≤ x + 1
 
 theorem floor_approx (x : ℝ) (hx : 0 ≤ x) : ∃ C, |C| ≤ 1 ∧  ↑((Nat.floor x)) = x + C := by
   use ↑(Nat.floor x) - x
-  simp
+  simp only [add_sub_cancel, and_true]
   rw[abs_le]
   constructor
   · simp only [neg_le_sub_iff_le_add]
@@ -162,7 +162,7 @@ theorem floor_approx (x : ℝ) (hx : 0 ≤ x) : ∃ C, |C| ≤ 1 ∧  ↑((Nat.f
 
 theorem ceil_approx (x : ℝ) (hx : 0 ≤ x) : ∃ C, |C| ≤ 1 ∧  ↑((Nat.ceil x)) = x + C := by
   use ↑(Nat.ceil x) - x
-  simp
+  simp only [add_sub_cancel, and_true]
   rw[abs_le]
   constructor
   · simp only [neg_le_sub_iff_le_add]
@@ -290,7 +290,7 @@ theorem tmp (N : ℕ) : ((Finset.range N).filter Nat.Prime).card ≤ 4 * (N / Re
   · norm_cast
     apply Finset.card_le_card
     intro n
-    simp
+    simp only [Finset.mem_filter, Finset.mem_range, and_imp]
     refine fun hnN hp ↦ ⟨by omega, hp⟩
   rw [← primesBetween_one]
   by_cases hN : N = 0
@@ -451,7 +451,7 @@ theorem IsBigO.nat_Top_of_atTop (f g : ℕ → ℝ) (h : f =O[Filter.atTop] g) (
     · simp [hg, h0]
     rw [← mul_inv_le_iff']
     apply Finset.le_max'
-    simp
+    simp only [Finset.mem_insert, Finset.mem_image, Finset.mem_range]
     exact .inr ⟨n, by omega, rfl⟩
     · simp [hg]
 
@@ -535,7 +535,7 @@ theorem card_isPrimePow_isBigO :
 
 theorem card_range_filter_isPrimePow_le : ∃ C, ∀ N, ((Finset.range N).filter IsPrimePow).card ≤ C * (N / Real.log N) := by
   convert_to (fun N ↦ ((Finset.range N).filter IsPrimePow).card : ℕ → ℝ) =O[⊤] (fun N ↦ (N / Real.log N))
-  · simp
+  · simp only [isBigO_top, RCLike.norm_natCast, norm_div, Real.norm_eq_abs]
     peel with C N
     by_cases hN : N = 0
     · simp [hN]
@@ -543,7 +543,9 @@ theorem card_range_filter_isPrimePow_le : ∃ C, ∀ N, ((Finset.range N).filter
     apply Real.log_nonneg
     norm_cast; omega
   apply IsBigO.nat_Top_of_atTop _ _ card_isPrimePow_isBigO
-  simp
+  simp only [div_eq_zero_iff, Nat.cast_eq_zero, Real.log_eq_zero, Nat.cast_eq_one, or_self_left,
+    Finset.card_eq_zero, forall_eq_or_imp, Finset.range_zero, Finset.filter_empty, Finset.range_one,
+    true_and]
   refine ⟨rfl, ?_⟩
   intro a ha
   exfalso
