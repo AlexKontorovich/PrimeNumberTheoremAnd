@@ -9,6 +9,44 @@ import Mathlib.MeasureTheory.Measure.Haar.OfBasis
 
 open MeasureTheory Set Filter
 
+/-%
+Want to say:
+$f(x , t) \ll g(x, t)$ as $x \to \infy$
+%-/
+
+example (f g : ℝ → ℝ) (param : ℝ)
+
+
+#exit
+
+example (f : ℝ → ℝ) (a b c : ℝ) : ∫ x in a..b, f x = ∫ x in a..c, f x + ∫ x in c..b, f x := by
+  rw [integral_add_adjacent_intervals f a c b]
+  exact integral_add
+
+theorem Real.log_monotoneOn : MonotoneOn (fun x : ℝ ↦ log x) { x | 0 < x } := by
+  -- TODO: can be strengthened to exp (-1) ≤ x
+  simp only [MonotoneOn, mem_setOf_eq]
+  intro x hex y hey hxy
+  exact (log_le_log_iff hex hey).mpr hxy
+  refine (log_le_log_iff ?h ?h₁).mpr hxy
+
+
+#exit
+
+example (n : ℝ ) : n^ 2 = n * n := by
+  exact pow_two n
+
+#exit
+
+lemma norm_complex_log_ofNat (n : ℕ) : ‖(n : ℂ).log‖ = (n : ℝ).log := by
+  have := Complex.ofReal_log (x := (n : ℝ)) (Nat.cast_nonneg n)
+  rw [(by simp : ((n : ℝ) : ℂ) = (n : ℂ))] at this
+  rw [← this, Complex.norm_eq_abs, Complex.abs_of_nonneg]
+  exact Real.log_natCast_nonneg n
+
+
+
+#exit
 example (f g : ℝ → ℝ) (g_integrableOn : IntegrableOn g (Ioi (0 : ℝ)))
     (f_le_g_atTop : f =O[atTop] g) : IntegrableOn f (Ioi (0 : ℝ)) := by
   sorry

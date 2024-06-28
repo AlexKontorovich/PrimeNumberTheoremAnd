@@ -253,10 +253,10 @@ Standard.
 \end{proof}
 %%-/
 
--- TODO: move near `Complex.cpow_neg`?
-lemma Complex.cpow_inv_ofReal_pos {a : ℝ} (ha : 0 ≤ a) (r : ℂ) :
-    ((a : ℂ) ^ r)⁻¹ = (a : ℂ)⁻¹ ^ r := by
-  sorry
+-- -- TODO: move near `Complex.cpow_neg`?
+-- lemma Complex.cpow_inv_ofReal_pos {a : ℝ} (ha : 0 ≤ a) (r : ℂ) :
+--     ((a : ℂ) ^ r)⁻¹ = (a : ℂ)⁻¹ ^ r := by
+--   sorry
 
 lemma Complex.cpow_eq_exp_log_ofReal (x : ℝ) (hx : 0 < x) (y : ℂ) :
     (x : ℂ) ^ y = Complex.exp (Real.log x * y) := by
