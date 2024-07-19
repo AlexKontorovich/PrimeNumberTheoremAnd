@@ -781,21 +781,27 @@ lemma integrable_log_over_pow {r : ℝ} (rneg: r < 0) {N : ℕ} (Npos : 0 < N):
     · apply continuous_id.continuousOn.log ?_ |>.abs
       intro x hx; simp only [id_eq]; contrapose! Npos with h; exact_mod_cast h ▸ mem_Ici.mp hx
   · have := isLittleO_log_rpow_atTop (r := -r / 2) (by linarith) |>.isBigO
-
-
     rw [Asymptotics.isBigO_iff_eventually, Filter.eventually_atTop] at this
     obtain ⟨C, hC⟩ := this
-    have := hC C (by simp)
-    rw [Filter.eventually_atTop] at this
-    obtain ⟨x₀, hx₀⟩ := this
-    sorry
-    -- filter_upwards [Filter.mem_atTop x₀]
-    -- have (x : ℝ) : x ^ (r / 2 - 1) = x ^ (r - 1) * x ^ (-r / 2) := by
-    --   rw [← Real.rpow_add ?_]; ring_nf
-    --   sorry
-    -- simp only [this, ← abs_mul, Asymptotics.isBigO_abs_left]
-    -- apply Asymptotics.isBigO_refl _ _ |>.mul
-    -- exact isLittleO_log_rpow_atTop (r := -r/2) (by linarith) |>.isBigO
+    have hh := hC C (by simp)
+    rw [Asymptotics.isBigO_atTop_iff_eventually_exists]
+    have := Filter.eventually_atTop.mp hh
+    obtain ⟨x₀, hx₀ ⟩ := this
+    filter_upwards [hh, Filter.mem_atTop x₀, Filter.mem_atTop 1]
+    intro x hx x_gt x_pos
+    use C
+    intro y hy
+    simp only [norm_mul, Real.norm_eq_abs, _root_.abs_abs]
+    simp only [Real.norm_eq_abs] at hx
+    have y_pos : 0 < y := by linarith
+    have : y ^ (r / 2 - 1) = y ^ (r - 1) * y ^ (-r / 2) := by
+      rw [← Real.rpow_add y_pos]; ring_nf
+    rw [this, abs_mul]
+    have y_gt : y ≥ x₀ := by linarith
+    have := hx₀ y y_gt
+    simp only [Real.norm_eq_abs] at this
+    rw [← mul_assoc, mul_comm C, mul_assoc]
+    exact mul_le_mul_of_nonneg_left (h := this) (a := |y ^ (r - 1)|) (a0 := by simp)
   · have := integrableOn_Ioi_rpow_iff (s := r / 2 - 1) (t := N) (by simp [Npos]) |>.mpr
       (by linarith [rneg])
     exact integrableOn_Ioi_iff_integrableAtFilter_atTop_nhdsWithin.mp this |>.1
@@ -1122,6 +1128,11 @@ lemma norm_add₅_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (
   apply le_trans <| norm_add_le (a + b + c + d) e
   simp only [add_le_add_iff_right]; apply norm_add₄_le
 
+lemma norm_add₆_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) (e : E) (f : E) :
+    ‖a + b + c + d + e + f‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ + ‖e‖ + ‖f‖ := by
+  apply le_trans <| norm_add_le (a + b + c + d + e) f
+  simp only [add_le_add_iff_right]; apply norm_add₅_le
+
 lemma add_le_add_le_add {α : Type*} [Add α] [Preorder α]
     [CovariantClass α α (fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
     [CovariantClass α α (Function.swap fun x x_1 ↦ x + x_1) fun x x_1 ↦ x ≤ x_1]
@@ -1357,7 +1368,7 @@ lemma ZetaUpperBnd :
     (_ : σ ∈ Icc (1 - A / Real.log |t|) 2), ‖ζ (σ + t * I)‖ ≤ C * Real.log |t| := by
   let A := (1 / 2 : ℝ)
   let C := Real.exp A * (5 + 8 * 2) -- the 2 comes from ZetaBnd_aux1
-  refine ⟨A, ⟨by norm_num, by norm_num⟩ , C, (by positivity), ?_⟩
+  refine ⟨A, ⟨by norm_num, by norm_num⟩, C, (by positivity), ?_⟩
   intro σ t t_gt ⟨σ_ge, σ_le⟩
   obtain ⟨Npos, _, _, _, σPos, neOne⟩ := UpperBnd_aux ⟨by norm_num, by norm_num⟩ t_gt σ_ge
   rw [← Zeta0EqZeta Npos (by simp [σPos]) neOne]
@@ -1391,28 +1402,274 @@ $$
 \end{proof}
 %%-/
 
+lemma norm_complex_log_ofNat (n : ℕ) : ‖(n : ℂ).log‖ = (n : ℝ).log := by
+  have := Complex.ofReal_log (x := (n : ℝ)) (Nat.cast_nonneg n)
+  rw [(by simp : ((n : ℝ) : ℂ) = (n : ℂ))] at this
+  rw [← this, Complex.norm_eq_abs, Complex.abs_of_nonneg]
+  exact Real.log_natCast_nonneg n
 
--- THE LAST INEQUALITY MIGHT NOT BE TRUE, NEEDS REFACTORING
-lemma NormDerivZeta0Le {N : ℕ} (Npos : 0 < N) {A : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
-    {σ t : ℝ} (σ_ge : 1 - A / Real.log |t| ≤ σ) (σpos : 0 < σ) (t_gt : 3 < |t|) :
-    let s := σ + t * I;
-    ‖deriv (ζ₀ N) s‖ ≤ 4 * Real.log (N : ℝ) *
-    (‖∑ n in Finset.range (N + 1), 1 / (n : ℂ) ^ s‖ +
-    ‖(N : ℂ) ^ (1 - s) / (1 - s)‖ + ‖(N : ℂ) ^ (-s) / 2‖ +
-    ‖s * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ (s + 1)‖) := by
-  set s := σ + t * I
+lemma Real.log_natCast_monotone : Monotone (fun (n : ℕ) ↦ Real.log n) := by
+  intro n m hnm
+  cases n
+  · simp only [CharP.cast_eq_zero, Real.log_zero, Real.log_natCast_nonneg]
+  · apply Real.log_le_log <;> simp only [Nat.cast_add, Nat.cast_one]
+    · exact Nat.cast_add_one_pos _
+    · exact_mod_cast hnm
+
+lemma Finset.Icc0_eq (N : ℕ) : Finset.Icc 0 N = {0} ∪ Finset.Icc 1 N := by
+  refine Finset.ext_iff.mpr ?_
+  intro a
+  cases a
+  · simp only [Finset.mem_Icc, le_refl, zero_le, and_self, Finset.mem_union, Finset.mem_singleton,
+    nonpos_iff_eq_zero, one_ne_zero, and_true, or_false]
+  · simp only [Finset.mem_Icc, le_add_iff_nonneg_left, zero_le, true_and, Finset.mem_union,
+    Finset.mem_singleton, add_eq_zero, one_ne_zero, and_false, false_or]
+
+lemma harmonic_eq_sum_Icc0_aux (N : ℕ) :  ∑ i ∈ Finset.Icc 0 N, (i : ℝ)⁻¹ = ∑ i ∈ Finset.Icc 1 N, (i : ℝ)⁻¹ := by
+  rw [Finset.Icc0_eq, Finset.sum_union]
+  · simp only [Finset.sum_singleton, CharP.cast_eq_zero, inv_zero, zero_add]
+  · simp only [Finset.disjoint_singleton_left, Finset.mem_Icc, nonpos_iff_eq_zero, one_ne_zero,
+    zero_le, and_true, not_false_eq_true]
+
+lemma harmonic_eq_sum_Icc0 (N : ℕ) : ∑ i in Finset.Icc 0 N, (i : ℝ)⁻¹ = (harmonic N : ℝ) := by
+  rw [harmonic_eq_sum_Icc0_aux, harmonic_eq_sum_Icc]
+  simp only [Rat.cast_sum, Rat.cast_inv, Rat.cast_natCast]
+
+lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
+    (σ_ge : 1 - A / Real.log |t| ≤ σ) (t_gt : 3 < |t|) (hC : 2 ≤ C) : let N := ⌊|t|⌋₊;
+    ‖∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖
+      ≤ Real.exp A * C * (Real.log |t|) ^ 2 := by
+  intro N
+  obtain ⟨Npos, N_le_t, _, _, σPos, _⟩ := UpperBnd_aux hA t_gt σ_ge
+  have logt_gt := logt_gt_one t_gt
+  have logN_pos : 0 ≤ Real.log N := Real.log_nonneg (by norm_cast)
+  have fact0 {n : ℕ} (hn : n ≤ N) : n ≤ |t| := by linarith [(by exact_mod_cast hn : (n : ℝ) ≤ N)]
+  have fact1 {n : ℕ} (hn : n ≤ N) :
+    ‖(n : ℂ) ^ (-(σ + t * I))‖ ≤ (n : ℝ)⁻¹ * A.exp := ZetaBnd_aux2 hA.1 σPos (fact0 hn) σ_ge
+  have fact2 {n : ℕ} (hn : n ≤ N) : Real.log n ≤ Real.log |t| := by
+    cases n
+    · simp only [CharP.cast_eq_zero, Real.log_zero]; linarith
+    · exact Real.log_le_log (by exact_mod_cast Nat.add_one_pos _) (fact0 hn)
+  have fact3 (n : ℕ) (hn : n ≤ N) :
+    ‖-1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ ≤ (n : ℝ)⁻¹ * Real.exp A * (Real.log |t|) := by
+    convert mul_le_mul (fact1 hn) (fact2 hn) (Real.log_natCast_nonneg n) (by positivity)
+    simp only [norm_mul, norm_div, norm_neg, norm_one, one_div, natCast_log, ← norm_inv, cpow_neg]
+    congr; exact norm_complex_log_ofNat n
+  have := norm_sum_le_of_le (Finset.range (N + 1))
+    (by convert fact3; simp only [Finset.mem_range]; omega)
+  rw [← Finset.sum_mul, ← Finset.sum_mul, mul_comm _ A.exp, mul_assoc] at this
+  rw [mul_assoc]
+  apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
+  rw [pow_two, ← mul_assoc, Finset.range_eq_Ico, ← Finset.Icc_eq_Ico, harmonic_eq_sum_Icc0]
+  apply le_trans (mul_le_mul (h₁ := harmonic_le_one_add_log (n := N)) (le_refl (Real.log |t|))
+    (by linarith) (by linarith))
+  apply (mul_le_mul_right (by linarith)).mpr
+  rw [(by ring : C * Real.log |t| = Real.log |t| + (C - 1) * Real.log |t|),
+      ← one_mul <| Real.log (N: ℝ)]
+  refine add_le_add logt_gt.le <| mul_le_mul (by linarith) ?_ (by positivity) (by linarith)
+  exact Real.log_le_log (by positivity) N_le_t
+
+lemma DerivUpperBnd_aux2 {A σ t : ℝ}(t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
+    let N := ⌊|t|⌋₊;
+    let s := ↑σ + ↑t * I;
+    0 < N → ↑N ≤ |t| → s ≠ 1 →
+    1 / 2 < σ → ‖-↑N ^ (1 - s) / (1 - s) ^ 2‖ ≤ A.exp * 2 * (1 / 3) := by
+  intro N s Npos N_le_t neOne σ_gt
+  dsimp only [N, s]
+  simp only [norm_div, norm_neg, norm_pow, norm_natCast_cpow_of_pos Npos _,
+    sub_re, one_re, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im,
+    mul_one, sub_self, add_zero]
+  have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.1
+  rw [(by ring_nf : N ^ (1 - σ) / ‖1 - (↑σ + ↑t * I)‖ ^ 2 =
+          N ^ (1 - σ) / ‖1 - (↑σ + ↑t * I)‖ * 1 / ‖1 - (↑σ + ↑t * I)‖)]
+  apply mul_le_mul ?_ ?_ (inv_nonneg.mpr <| norm_nonneg _) ?_
+  · rw [mul_one]; exact le_trans h (by gcongr; exact UpperBnd_aux2 t_gt hσ.1)
+  · rw [inv_eq_one_div, div_le_iff <| norm_pos_iff.mpr <| sub_ne_zero_of_ne neOne.symm,
+        mul_comm, ← mul_div_assoc, mul_one, le_div_iff (by norm_num), one_mul]
+    apply le_trans t_gt.le ?_
+    rw [← abs_neg]; convert abs_im_le_abs (1 - (σ + t * I)); simp
+  · exact mul_nonneg (Real.exp_nonneg _) (by norm_num)
+
+theorem DerivUpperBnd_aux3 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
+    let N := ⌊|t|⌋₊;
+    let s := ↑σ + ↑t * I;
+    0 < N → ↑N ≤ |t| → s ≠ 1 → 1 / 2 < σ →
+    ‖↑(N : ℝ).log * ↑N ^ (1 - s) / (1 - s)‖ ≤ A.exp * 2 * |t|.log := by
+  intro N s Npos N_le_t neOne σ_gt
+  rw [norm_div, norm_mul, mul_div_assoc, mul_comm]
+  apply mul_le_mul ?_ ?_ (by positivity) (by positivity)
+  · have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.1
+    convert le_trans h ?_ using 1
+    · simp [s, norm_natCast_cpow_of_pos Npos _]
+    · gcongr; exact UpperBnd_aux2 t_gt hσ.1
+  · rw [natCast_log, norm_complex_log_ofNat]
+    exact Real.log_le_log (by positivity) N_le_t
+
+theorem DerivUpperBnd_aux4 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
+    let N := ⌊|t|⌋₊;
+    let s := ↑σ + ↑t * I;
+    0 < N → ↑N ≤ |t| → s ≠ 1 → 1 / 2 < σ →
+    ‖↑(N : ℝ).log * (N : ℂ) ^ (-s) / 2‖ ≤ A.exp * |t|.log := by
+  intro N s Npos N_le_t neOne σ_gt
+  rw [norm_div, norm_mul, mul_div_assoc, mul_comm, RCLike.norm_ofNat]
+  apply mul_le_mul ?_ ?_ (by positivity) (by positivity)
+  · have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.2.1
+    convert le_trans h (UpperBnd_aux2 t_gt hσ.1) using 1
+    simp [s, norm_natCast_cpow_of_pos Npos _]
+  · rw [natCast_log, norm_complex_log_ofNat]
+    exact Real.log_le_log (by positivity) N_le_t
+
+theorem DerivUpperBnd_aux5 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
+    let N := ⌊|t|⌋₊;
+    let s := ↑σ + ↑t * I;
+    0 < N → 1 / 2 < σ →
+    ‖1 * ∫ (x : ℝ) in Ioi (N : ℝ), (↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1)‖ ≤
+    1 / 3 * (2 * |t| * ↑N ^ (-σ) / σ) := by
+  intro N s Npos σ_gt
+  have neZero : s ≠ 0 := by
+    contrapose! σ_gt
+    simp only [Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+      sub_self, add_zero, zero_re, add_im, mul_im, zero_add, zero_im, s] at σ_gt
+    linarith
+  have : 1 = 1 / s * s := by field_simp
+  nth_rewrite 1 [this]
+  rw [mul_assoc, norm_mul]
+  apply mul_le_mul ?_ ?_ (by positivity) (by positivity)
+  · simp only [s, norm_div, norm_one]
+    apply one_div_le_one_div (norm_pos_iff.mpr neZero) (by norm_num) |>.mpr
+    apply le_trans t_gt.le ?_
+    convert abs_im_le_abs (σ + t * I); simp
+  · have hσ : σ ∈ Ioc 0 2 := ⟨(by linarith), hσ.2⟩
+    simp only [s]
+    have := ZetaBnd_aux1 N (by omega) hσ (by linarith)
+    simp only [div_cpow_eq_cpow_neg] at this
+    convert this using 1; congr; funext x; ring_nf
+
+theorem DerivUpperBnd_aux6 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
+    let N := ⌊|t|⌋₊;
+    0 < N → ↑N ≤ |t| → ↑σ + ↑t * I ≠ 1 → 1 / 2 < σ →
+    2 * |t| * ↑N ^ (-σ) / σ ≤ 2 * (8 * A.exp) := by
+  intro N Npos N_le_t neOne σ_gt
+  rw [mul_div_assoc, mul_assoc]
+  apply mul_le_mul_left (by norm_num) |>.mpr
+  have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.2.2
+  apply le_trans (mul_le_mul_left (a := |t|) (by positivity) |>.mpr h) ?_
+  rw [← mul_assoc, mul_comm _ 8, mul_assoc]
+  gcongr
+  convert UpperBnd_aux2 t_gt hσ.1 using 1
+  rw [mul_comm, ← Real.rpow_add_one (by positivity)]; ring_nf
+
+theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
+    let N := ⌊|t|⌋₊;
+    let s := ↑σ + ↑t * I;
+    0 < N → ↑N ≤ |t| → s ≠ 1 → 1 / 2 < σ →
+    ‖s * ∫ (x : ℝ) in Ioi (N : ℝ), (↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1) * -↑x.log‖ ≤
+      2 * |t| * ↑N ^ (-σ) / σ * |t|.log := by
+  intro N s Npos N_le_t neOne σ_gt
   sorry
-  -- have s_ne_one : s ≠ 1 := by sorry
-  -- simp only [HasDerivAt.deriv <| HasDerivAtZeta0 Npos reS_pos s_ne_one, ζ₀', sub_eq_add_neg]
-  -- apply le_trans (by apply norm_add₄_le) ?_
-  -- simp only [norm_neg, norm_div, norm_pow, norm_mul, RCLike.norm_ofNat, norm_mul,
-  --   norm_one, norm_inv, natCast_log, mul_add]
-  -- rw [norm_natCast_cpow_of_pos Npos, norm_natCast_cpow_of_pos Npos, neg_re, one_mul]
-  -- gcongr
-  -- · sorry
-  -- · sorry
-  -- -- apply norm_add₄_le
-  -- sorry
+
+lemma ZetaDerivUpperBnd'' {A σ : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
+    (σ_le : σ ≤ 2) :
+    (fun (t : ℝ) ↦
+    ‖∑ n in Finset.range (⌊|t|⌋₊ + 1), -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ +
+      ‖-(⌊|t|⌋₊ : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2‖ +
+      ‖(Real.log ⌊|t|⌋₊) * (⌊|t|⌋₊ : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))‖ +
+      ‖(Real.log ⌊|t|⌋₊) * (⌊|t|⌋₊ : ℂ) ^ (-(σ + t * I)) / 2‖ +
+      ‖(1 * ∫ (x : ℝ) in Ioi (⌊|t|⌋₊ : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1))‖ +
+      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (⌊|t|⌋₊ : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖)
+        =O[atTop ⊓ Filter.principal {t : ℝ | |t| < Real.exp (A / (1 - σ))}] fun t ↦ Real.log |t| ^ 2 := by
+
+  sorry
+
+lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
+    (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
+    let C := Real.exp A * 27;
+    let N := ⌊|t|⌋₊;
+    let s := σ + t * I;
+    ‖∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ s * (Real.log n)‖ +
+      ‖-(N : ℂ) ^ (1 - s) / (1 - s) ^ 2‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (1 - s) / (1 - s)‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (-s) / 2‖ +
+      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
+      ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖
+        ≤ C * Real.log |t| ^ 2 := by
+  intros C N s
+  obtain ⟨Npos, N_le_t, logt_gt, σ_gt, _, neOne⟩ := UpperBnd_aux hA t_gt hσ.1
+  replace σ_gt : 1 / 2 < σ := by linarith [hA.2]
+  calc _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      ‖-(N : ℂ) ^ (1 - s) / (1 - s) ^ 2‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (1 - s) / (1 - s)‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (-s) / 2‖ +
+      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
+      ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
+        gcongr; exact DerivUpperBnd_aux1 hA hσ.1 t_gt (by simp : (2 : ℝ) ≤ 2)
+    _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      Real.exp A * 2 * (1 / 3) +
+      ‖(Real.log N) * (N : ℂ) ^ (1 - s) / (1 - s)‖ +
+      ‖(Real.log N) * (N : ℂ) ^ (-s) / 2‖ +
+      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
+      ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
+        gcongr; exact DerivUpperBnd_aux2 t_gt hσ Npos N_le_t neOne σ_gt
+    _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      Real.exp A * 2 * (1 / 3) +
+      Real.exp A * 2 * (Real.log |t|) +
+      ‖(Real.log N) * (N : ℂ) ^ (-s) / 2‖ +
+      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
+      ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
+        gcongr; exact DerivUpperBnd_aux3 t_gt hσ Npos N_le_t neOne σ_gt
+    _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      Real.exp A * 2 * (1 / 3) +
+      Real.exp A * 2 * (Real.log |t|) +
+      Real.exp A * (Real.log |t|) +
+      ‖(1 * ∫ (x : ℝ) in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1))‖ +
+      ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
+        gcongr; exact DerivUpperBnd_aux4 t_gt hσ Npos N_le_t neOne σ_gt
+    _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      Real.exp A * 2 * (1 / 3) +
+      Real.exp A * 2 * (Real.log |t|) +
+      Real.exp A * (Real.log |t|) +
+      1 / 3 * (2 * |t| * N ^ (-σ) / σ) +
+      ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
+        gcongr; exact DerivUpperBnd_aux5 t_gt hσ Npos σ_gt
+    _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      Real.exp A * 2 * (1 / 3) +
+      Real.exp A * 2 * (Real.log |t|) +
+      Real.exp A * (Real.log |t|) +
+      1 / 3 * (2 * (8 * Real.exp A)) +
+      ‖s * ∫ (x : ℝ) in Ioi (N : ℝ),
+        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-s - 1) * -(Real.log x)‖ := by
+        gcongr; exact DerivUpperBnd_aux6 t_gt hσ Npos N_le_t neOne σ_gt
+    _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      Real.exp A * 2 * (1 / 3) +
+      Real.exp A * 2 * (Real.log |t|) +
+      Real.exp A * (Real.log |t|) +
+      1 / 3 * (2 * (8 * Real.exp A)) +
+      (2 * |t| * N ^ (-σ) / σ) * (Real.log |t|) := by
+        gcongr; exact DerivUpperBnd_aux7 t_gt hσ Npos N_le_t neOne σ_gt
+    _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
+      Real.exp A * 2 * (1 / 3) +
+      Real.exp A * 2 * (Real.log |t|) +
+      Real.exp A * (Real.log |t|) +
+      1 / 3 * (2 * (8 * Real.exp A)) +
+      (2 * (8 * Real.exp A)) * (Real.log |t|) := by
+        gcongr; exact DerivUpperBnd_aux6 t_gt hσ Npos N_le_t neOne σ_gt
+    _ ≤ _ := by
+      ring_nf
+      rw [(by ring : A.exp * |t|.log ^ 2 * 27 = A.exp * |t|.log ^ 2 * 6 + A.exp * |t|.log ^ 2 * 19 +
+        A.exp * |t|.log ^ 2 * 2)]
+      nth_rewrite 1 [← mul_one A.exp]
+      gcongr
+      swap
+      nth_rewrite 1 [← mul_one |t|.log, (by ring : |t|.log ^ 2 = |t|.log * |t|.log)]
+      gcongr
+      nlinarith
 
 /-%%
 \begin{lemma}[ZetaDerivUpperBnd]\label{ZetaDerivUpperBnd}\lean{ZetaDerivUpperBnd}\leanok
@@ -1428,19 +1685,26 @@ lemma ZetaDerivUpperBnd :
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2),
     ‖deriv ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
   obtain ⟨A, hA, _, _, _⟩ := ZetaUpperBnd
-  let C := 4 * Real.exp A * (5 + 8 * 2) -- 4 times C'
+  let C := Real.exp A * 27
   refine ⟨A, hA, C, by positivity, ?_⟩
   intro σ t t_gt ⟨σ_ge, σ_le⟩
   obtain ⟨Npos, N_le_t, _, _, σPos, neOne⟩ := UpperBnd_aux hA t_gt σ_ge
   rw [← DerivZeta0EqDerivZeta Npos (by simp [σPos]) neOne]
-  apply le_trans (NormDerivZeta0Le Npos hA σ_ge σPos t_gt) ?_
-  conv => rw [mul_comm 4, mul_assoc _ 4 _]; rhs; rw [sq, ← mul_assoc, mul_comm C, mul_assoc]
-  refine mul_le_mul (Real.log_le_log (by positivity) N_le_t) ?_ (by positivity) (by positivity)
-  simp only [C, mul_assoc, Zeta0EqZeta Npos (by simp [σPos]) neOne]
-  refine mul_le_mul_left (by norm_num) |>.mpr ?_
-  convert ZetaUpperBnd' hA t_gt ⟨σ_ge, σ_le⟩ using 1; ring
+  set N : ℕ := ⌊|t|⌋₊
+  rw [(HasDerivAtZeta0 Npos (s := σ + t * I) (by simp [σPos]) neOne).deriv]
+  dsimp only [ζ₀']
+  rw [← add_assoc]
+  set aa := ∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)
+  set bb := -(N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2
+  set cc := (Real.log N) * (N : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))
+  set dd := (Real.log N) * (N : ℂ) ^ (-(σ + t * I)) / 2
+  set ee := 1 * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1)
+  set ff := (σ + t * I) * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)
+  rw [(by ring : aa + (bb + cc) + dd + ee + ff = aa + bb + cc + dd + ee + ff)]
+  apply le_trans (by apply norm_add₆_le) ?_
+  convert ZetaDerivUpperBnd' hA t_gt ⟨σ_ge, σ_le⟩
 /-%%
-\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}\leanok
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
 Differentiating term by term, we get:
 $$
