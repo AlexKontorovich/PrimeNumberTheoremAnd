@@ -35,6 +35,13 @@ lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f : ArithmeticFun
 \begin{proof}\leanok Straightforward. \end{proof}
 %%-/
 
+/-- Auxiliary lemma: Expressing the sum over Λ up to N as a double sum over primes and exponents. -/
+lemma sum_von_mangoldt_as_double_sum (N : ℕ) :
+  ∑ n in range (N + 1), Λ n =
+    ∑ p in filter Nat.prime (range (N + 1)),
+      ∑ k in range (1, (Nat.log N / Nat.log p).to_nat + 1), Real.log p := by
+  sorry
+  
 /-%%
 \begin{theorem}\label{chebyshev-asymptotic}\lean{chebyshev_asymptotic}\leanok  One has
   $$ \sum_{p \leq x} \log p = x + o(x).$$
