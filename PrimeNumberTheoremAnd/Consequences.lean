@@ -231,7 +231,89 @@ Asymptotics.IsEquivalent l w v := by
   rw [<- add_sub_cancel u w]
   exact add_isLittleO huv hwu
 
--- Tendsto (fun N ↦ cumsum Λ N / N) atTop (𝓝 1)
+theorem Asymptotics.IsEquivalent.add_isLittleO'' {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β} {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (u-w) =o[l] v) :
+Asymptotics.IsEquivalent l w v := by
+  rw [<- sub_sub_self u w]
+  exact sub_isLittleO huv hwu
+
+/-- log^b x / x^a goes to zero at infinity if a is positive. -/
+theorem Real.tendsto_pow_log_div_pow_atTop (a : ℝ) (b : ℝ) (ha : a > 0) :
+Filter.Tendsto (fun x ↦ log x ^ b / x^a) Filter.atTop (nhds 0) := by
+  convert squeeze_zero' (f := fun x ↦ log x ^ b / x^a) (g := fun x ↦ (log x ^ ⌈ b/a ⌉₊ / x)^a ) (t₀ := atTop) ?_ ?_ ?_
+  . simp
+    use 1
+    intro x hx
+    apply div_nonneg
+    . apply rpow_nonneg
+      exact log_nonneg hx
+    apply rpow_nonneg
+    apply zero_le_one.trans hx
+  . simp
+    use exp 1
+    intro x hx
+    have h0 : 0 < x := by
+      apply lt_of_lt_of_le _ hx
+      exact exp_pos 1
+    have h1 : 1 ≤ log x := by
+      rwa [le_log_iff_exp_le h0]
+    rw [div_rpow _ (le_of_lt h0)]
+    . rw [div_le_div_right (rpow_pos_of_pos h0 _), <-rpow_natCast, <-rpow_mul (zero_le_one.trans h1)]
+      apply rpow_le_rpow_of_exponent_le h1
+      rw [<-div_le_iff ha]
+      exact le_ceil _
+    apply pow_nonneg
+    apply zero_le_one.trans h1
+  rw [(zero_rpow (_root_.ne_of_lt ha).symm).symm]
+  apply Tendsto.rpow_const
+  . have := tendsto_pow_log_div_mul_add_atTop 1 0 ⌈b/a⌉₊ zero_ne_one.symm
+    simp at this
+    exact this
+  right
+  exact le_of_lt ha
+
+theorem WeakPNT' : Tendsto (fun N ↦ (∑ n in Iic N, Λ n) / N) atTop (nhds 1) := by
+  have : (fun N ↦ (∑ n in Iic N, Λ n) / N) = (fun N ↦ (∑ n in range N, Λ n)/N + Λ N / N) := by
+    ext N
+    have : N ∈ Iic N := mem_Iic.mpr (le_refl _)
+    rw [<-Finset.sum_erase_add _ _ this, <-Nat.Iio_eq_range, Iic_erase]
+    exact add_div _ _ _
+
+  rw [this, <-(AddLeftCancelMonoid.add_zero 1)]
+  apply Tendsto.add WeakPNT
+  convert squeeze_zero (f := fun N ↦ Λ N / N) (g := fun N ↦ log N / N) (t₀ := atTop) ?_ ?_ ?_
+  . intro N
+    simp
+    exact div_nonneg vonMangoldt_nonneg (cast_nonneg N)
+  . intro N
+    simp
+    exact div_le_div_of_nonneg_right vonMangoldt_le_log (cast_nonneg N)
+  have := Real.tendsto_pow_log_div_pow_atTop 1 1 Real.zero_lt_one
+  simp at this
+  exact Tendsto.comp this tendsto_natCast_atTop_atTop
+
+/-- An alternate form of the Weak PNT. -/
+theorem WeakPNT'' : (fun x ↦ ∑ n in (Iic ⌊x⌋₊), Λ n) ~[atTop] (fun x ↦ x) := by
+    apply IsEquivalent.trans (v := fun x ↦ (⌊x⌋₊:ℝ))
+    . rw [isEquivalent_iff_tendsto_one]
+      . convert Tendsto.comp WeakPNT' tendsto_nat_floor_atTop
+      rw [eventually_iff]
+      simp only [ne_eq, cast_eq_zero, floor_eq_zero, not_lt, mem_atTop_sets, ge_iff_le,
+        Set.mem_setOf_eq]
+      use 1
+      simp only [imp_self, implies_true]
+    apply IsLittleO.isEquivalent
+    rw [<-isLittleO_neg_left]
+    apply IsLittleO.of_bound
+    intro ε hε
+    simp
+    use ε⁻¹
+    intro b hb
+    have hb' : 0 ≤ b := le_of_lt (lt_of_lt_of_le (inv_pos_of_pos hε) hb)
+    rw [abs_of_nonneg, abs_of_nonneg hb']
+    . apply LE.le.trans _ ((inv_pos_le_iff_one_le_mul' hε).mp hb)
+      linarith [Nat.lt_floor_add_one b]
+    rw [sub_nonneg]
+    exact floor_le hb'
 
 /-%%
 \begin{theorem}\label{chebyshev-asymptotic}\lean{chebyshev_asymptotic}\leanok  One has
@@ -239,16 +321,44 @@ Asymptotics.IsEquivalent l w v := by
 \end{theorem}
 %%-/
 theorem chebyshev_asymptotic :
-    (fun x ↦ ∑ p in (filter Nat.Prime (range ⌈x⌉₊)), log p) ~[atTop] (fun x ↦ x) := by
-  have PNT : (fun x ↦ ∑ n in (range ⌈x⌉₊), Λ n) ~[atTop] (fun x ↦ x) := by
-    sorry
-  apply PNT.add_isLittleO'
-  
-  sorry
+    (fun x ↦ ∑ p in (filter Nat.Prime (Iic ⌊x⌋₊)), log p) ~[atTop] (fun x ↦ x) := by
+  apply WeakPNT''.add_isLittleO''
+  apply IsBigO.trans_isLittleO (g := fun x ↦ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log))
+  . rw [isBigO_iff']
+    use 1
+    simp only [gt_iff_lt, zero_lt_one, Pi.sub_apply, norm_eq_abs, norm_div, one_mul,
+      eventually_atTop, ge_iff_le, true_and]
+    use 2
+    intro x hx
+    exact (sum_von_mangoldt_sub_sum_primes_le x hx).trans (le_abs_self _)
+  apply Asymptotics.isLittleO_of_tendsto
+  . intro x hx
+    simp [hx]
+  suffices h : Tendsto (fun x:ℝ ↦ ((x.log^2 / x ^ (2:ℝ)⁻¹) / log 2 + (x.log^2 / x) / log 2)) atTop (nhds 0) by
+    apply Filter.Tendsto.congr' _ h
+    simp [EventuallyEq]
+    use 2
+    intro x hx
+    field_simp
+    ring_nf
+    rw [<-Real.rpow_mul_natCast]
+    . simp
+      ring
+    linarith
+  have h1 : (0:ℝ) = 0 + 0 := self_eq_add_right.mpr rfl
+  have h2 : (0:ℝ) = 0 / log 2 := (zero_div _).symm
+  rw [h1]
+  apply Tendsto.add
+  . rw [h2]
+    apply Tendsto.div_const
+    convert Real.tendsto_pow_log_div_pow_atTop (2:ℝ)⁻¹ 2 (by positivity) with x
+    exact (rpow_two x.log).symm
+  rw [h2]
+  apply Tendsto.div_const
+  convert Real.tendsto_pow_log_div_pow_atTop 1 2 (by positivity) with x
+  . exact (rpow_two x.log).symm
+  exact (rpow_one x).symm
 
-theorem chebyshev_asymptotic_finsum :
-    (fun x ↦ ∑ᶠ (p:ℕ) (_: p ≤ x) (_: Nat.Prime p), log p) ~[atTop] (fun x ↦ x) := by
-  sorry
 
 -- one could also consider adding a version with p < x instead of p \leq x
 
@@ -271,12 +381,7 @@ We have
 %%-/
 theorem primorial_bounds :
     ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
-    ∀ x : ℝ, ∏ p in (filter Nat.Prime (range ⌊x⌋₊)), p = exp ( x + E x ) := by
-  sorry
-
-theorem primorial_bounds_finprod :
-    ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
-    ∀ x : ℝ, ∏ᶠ (p:ℕ) (_:p ≤ x) (_:Nat.Prime p), p = exp ( x + E x ) := by
+    ∀ x : ℝ, ∏ p in (filter Nat.Prime (Iic ⌊x⌋₊)), p = exp ( x + E x ) := by
   sorry
 
 /-%%
