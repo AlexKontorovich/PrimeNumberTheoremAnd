@@ -36,12 +36,86 @@ lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f : ArithmeticFun
 %%-/
 
 /-- Auxiliary lemma: Expressing the sum over Λ up to N as a double sum over primes and exponents. -/
-lemma sum_von_mangoldt_as_double_sum (N : ℕ) :
-  ∑ n in range (N + 1), Λ n =
-    ∑ p in filter Nat.prime (range (N + 1)),
-      ∑ k in range (1, (Nat.log N / Nat.log p).to_nat + 1), Real.log p := by
-  sorry
-  
+lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx: 0 ≤ x) :
+  ∑ n in Iic ⌊x⌋₊, Λ n =
+    ∑ k in Icc 1 ⌊ log x / log 2⌋₊,
+      ∑ p in filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), log p := calc
+    _ = ∑ n in Iic ⌊x⌋₊, ∑ k in Icc 1 ⌊ log x / log 2⌋₊, ∑ p in filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), if n = p^k then log p else 0 := by
+      apply Finset.sum_congr rfl
+      intro n hn
+      rw [ArithmeticFunction.vonMangoldt_apply]
+      by_cases h : IsPrimePow n
+      . simp [h]
+        rw [isPrimePow_def] at h
+        obtain ⟨ p, k, ⟨ h1, h2, h3 ⟩ ⟩ := h
+        rw [<- h3]
+        calc
+          _ = log p := by
+            congr
+            apply Nat.Prime.pow_minFac (Prime.nat_prime h1) (not_eq_zero_of_lt h2)
+          _ = ∑ k' in Icc 1 ⌊ log x / log 2⌋₊, if k' = k then log p else 0 := by
+            simp at hn ⊢
+            have log2 : 0 < log 2 := by
+              rw [Real.log_pos_iff zero_lt_two]
+              exact one_lt_two
+            have h : k ≤ ⌊x.log / log 2⌋₊ := by
+              have h5 : 2^k ≤ n := by
+                rw [<-h3]
+                apply Nat.pow_le_pow_of_le_left (Prime.two_le (Prime.nat_prime h1))
+              rw [Nat.le_floor_iff hx] at hn
+              have h6 : 1 ≤ x := by
+                apply LE.le.trans _ hn
+                simp only [one_le_cast]
+                exact LE.le.trans Nat.one_le_two_pow h5
+              have h7 : 0 < x := by linarith
+              rw [Nat.le_floor_iff, le_div_iff log2, le_log_iff_exp_le h7, mul_comm, exp_mul, exp_log zero_lt_two]
+              . apply LE.le.trans _ hn
+                norm_cast
+              apply div_nonneg (Real.log_nonneg h6) (le_of_lt log2)
+            have : 1 ≤ k ∧ k ≤ ⌊x.log / log 2⌋₊ := ⟨ h2, h ⟩
+            simp [this]
+          _ = ∑ k' in Icc 1 ⌊ log x / log 2⌋₊,
+      ∑ p' in filter Nat.Prime (Iic ⌊ x^((k':ℝ)⁻¹) ⌋₊), if k'=k ∧ p'=p then log p else 0 := by
+            sorry
+          _ = _ := by
+            apply Finset.sum_congr rfl
+            intro k' hk'
+            apply Finset.sum_congr rfl
+            intro p' hp'
+            sorry
+      simp [h]
+      symm
+      apply Finset.sum_eq_zero
+      intro k hk
+      apply Finset.sum_eq_zero
+      intro p hp
+      simp at hp ⊢
+      intro hn'
+      contrapose! h
+      rw [isPrimePow_def]
+      use p, k
+      refine ⟨ ?_, ⟨ ?_, ?_ ⟩ ⟩
+      . exact Nat.Prime.prime hp.2
+      . simp at hk
+        exact hk.1
+      exact hn'.symm
+    _ = ∑ k in Icc 1 ⌊ log x / log 2⌋₊, ∑ p in filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), ∑ n in Iic ⌊x⌋₊, if n = p^k then log p else 0 := by
+      rw [Finset.sum_comm]
+      apply Finset.sum_congr rfl
+      intro k hk
+      rw [Finset.sum_comm]
+    _ = _ := by
+      apply Finset.sum_congr rfl
+      intro k hk
+      apply Finset.sum_congr rfl
+      intro p hp
+      simp at hk hp ⊢
+      intro hpk
+      rw [Nat.floor_lt hx] at hpk
+      rw [Nat.le_floor_iff (rpow_nonneg hx (k:ℝ)⁻¹), Real.le_rpow_inv_iff_of_pos (cast_nonneg p) hx (cast_pos.mpr hk.1)] at hp
+      simp at hpk hp
+      linarith [hp.1]
+
 /-%%
 \begin{theorem}\label{chebyshev-asymptotic}\lean{chebyshev_asymptotic}\leanok  One has
   $$ \sum_{p \leq x} \log p = x + o(x).$$
