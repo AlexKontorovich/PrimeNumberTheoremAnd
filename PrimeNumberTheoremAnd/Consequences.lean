@@ -364,7 +364,7 @@ theorem chebyshev_asymptotic :
 
 /-%%
 \begin{proof}
-\uses{WeakPNT, range-eq-range}
+\uses{WeakPNT, range-eq-range}\leanok
 From the prime number theorem we already have
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x)$$
 so it suffices to show that
