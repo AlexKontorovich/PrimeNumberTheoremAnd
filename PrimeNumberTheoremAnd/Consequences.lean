@@ -43,26 +43,27 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx: 0 ≤ x) :
     _ = ∑ n in Iic ⌊x⌋₊, ∑ k in Icc 1 ⌊ log x / log 2⌋₊, ∑ p in filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), if n = p^k then log p else 0 := by
       apply Finset.sum_congr rfl
       intro n hn
+      rw [mem_Iic, Nat.le_floor_iff hx] at hn
       rw [ArithmeticFunction.vonMangoldt_apply]
       by_cases h : IsPrimePow n
       . simp [h]
         rw [isPrimePow_def] at h
         obtain ⟨ p, k, ⟨ h1, h2, h3 ⟩ ⟩ := h
         rw [<- h3]
+        replace h1 := h1.nat_prime
         calc
           _ = log p := by
             congr
-            apply Nat.Prime.pow_minFac (Prime.nat_prime h1) (not_eq_zero_of_lt h2)
+            apply Nat.Prime.pow_minFac h1 (not_eq_zero_of_lt h2)
           _ = ∑ k' in Icc 1 ⌊ log x / log 2⌋₊, if k' = k then log p else 0 := by
-            simp at hn ⊢
+            simp
             have log2 : 0 < log 2 := by
               rw [Real.log_pos_iff zero_lt_two]
               exact one_lt_two
             have h : k ≤ ⌊x.log / log 2⌋₊ := by
               have h5 : 2^k ≤ n := by
                 rw [<-h3]
-                apply Nat.pow_le_pow_of_le_left (Prime.two_le (Prime.nat_prime h1))
-              rw [Nat.le_floor_iff hx] at hn
+                apply Nat.pow_le_pow_of_le_left (Prime.two_le h1)
               have h6 : 1 ≤ x := by
                 apply LE.le.trans _ hn
                 simp only [one_le_cast]
@@ -76,13 +77,36 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx: 0 ≤ x) :
             simp [this]
           _ = ∑ k' in Icc 1 ⌊ log x / log 2⌋₊,
       ∑ p' in filter Nat.Prime (Iic ⌊ x^((k':ℝ)⁻¹) ⌋₊), if k'=k ∧ p'=p then log p else 0 := by
-            sorry
+            apply Finset.sum_congr rfl
+            intro k' hk'
+            by_cases h : k' = k
+            . have : p ≤ ⌊x ^ (k:ℝ)⁻¹⌋₊ := by
+                rw [Nat.le_floor_iff]
+                . rw [le_rpow_inv_iff_of_pos (cast_nonneg p) hx (cast_pos.mpr h2)]
+                  apply LE.le.trans _ hn
+                  rw [<-h3]
+                  norm_num
+                positivity
+              simp [h, h1, this]
+            simp [h]
           _ = _ := by
             apply Finset.sum_congr rfl
             intro k' hk'
             apply Finset.sum_congr rfl
             intro p' hp'
-            sorry
+            by_cases h : p ^ k = p' ^ k'
+            . simp at hp'
+              have : (k' = k ∧ p' = p) := by
+                have := eq_of_prime_pow_eq h1.prime hp'.2.prime h2 h
+                rw [<-this, pow_right_inj] at h
+                . exact ⟨ h.symm, this ⟩
+                . exact Prime.pos h1
+                exact Nat.Prime.ne_one h1
+              simp [h, this]
+            have :¬ (k' = k ∧ p' = p) := by
+              contrapose! h
+              rw [h.1, h.2]
+            simp [h, this]
       simp [h]
       symm
       apply Finset.sum_eq_zero
