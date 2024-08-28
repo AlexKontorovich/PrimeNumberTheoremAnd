@@ -169,17 +169,17 @@ theorem nat_div_approx (a b : ℕ) : ∃ C, |C| ≤ 1 ∧ ↑(a/b) = (a/b : ℝ)
 theorem floor_div_approx (x : ℝ) (hx : 0 ≤ x) (d : ℕ) : ∃ C, |C| ≤ 2 ∧  ↑((Nat.floor x)/d) = x / d + C := by
   by_cases hd : d = 0
   · simp [hd]
-  obtain ⟨C₁, hC₁_le, hC₁⟩ := nat_div_approx (Nat.floor x) d
-  obtain ⟨C₂, hC₂_le, hC₂⟩ := floor_approx x hx
-  rw [hC₁, hC₂]
-  refine ⟨C₁ + C₂/d, ?_, by ring⟩
-  have : |C₁ + C₂/d| ≤ |C₁| + |C₂/d| := abs_add C₁ (C₂ / ↑d)
-  have : |C₂/d| ≤ |C₂| := by
-    rw [abs_div]
-    refine div_le_self (abs_nonneg C₂) ?_
-    simp only [Nat.abs_cast, Nat.one_le_cast]
-    omega
-  linarith
+  · obtain ⟨C₁, hC₁_le, hC₁⟩ := nat_div_approx (Nat.floor x) d
+    obtain ⟨C₂, hC₂_le, hC₂⟩ := floor_approx x hx
+    rw [hC₁, hC₂]
+    refine ⟨C₁ + C₂/d, ?_, by ring⟩
+    have : |C₁ + C₂/d| ≤ |C₁| + |C₂/d| := abs_add C₁ (C₂ / ↑d)
+    have : |C₂/d| ≤ |C₂| := by
+      rw [abs_div]
+      refine div_le_self (abs_nonneg C₂) ?_
+      simp only [Nat.abs_cast, Nat.one_le_cast]
+      omega
+    linarith
 
 theorem abs_rem_le {d : ℕ} (hd : d ≠ 0) : |(primeInterSieve x y z hz).rem d| ≤ 5 := by
   rw [rem_eq _ _ _ hx hz _ hd]
@@ -310,8 +310,7 @@ theorem rpow_mul_rpow_log_isBigO_id_div_log (k : ℝ) {r : ℝ} (hr : r < 1) : (
 theorem err_isBigO : (fun x ↦ (x ^ (1 / 2 : ℝ) * (1 + 1 / 2 * Real.log x) ^ 3)) =O[atTop] fun x ↦ (x / Real.log x) := by
   calc
     _ =O[atTop] (fun x ↦ x ^ (1/2:ℝ) * (Real.log x) ^ 3) := by
-      apply IsBigO.mul (isBigO_refl ..)
-      apply Real.isLittleO_const_log_atTop.isBigO.add ((isBigO_refl ..).const_mul_left ..) |>.pow
+      apply IsBigO.mul (isBigO_refl ..) (Real.isLittleO_const_log_atTop.isBigO.add ((isBigO_refl ..).const_mul_left ..) |>.pow _)
     _ =O[atTop] _ := by
       convert rpow_mul_rpow_log_isBigO_id_div_log 3 (?_) <;> norm_num
       rw [← Real.rpow_natCast]
@@ -392,10 +391,10 @@ theorem range_filter_isPrimePow_subset_union (N : ℕ) :
     refine ⟨m, k, ?_⟩
     by_cases hm : m = 0
     · rw [hm, zero_pow] at h
-      exact False.elim (hnprime.ne_zero h)
-      rintro rfl
-      simp only [pow_zero] at h
-      exact False.elim (hnprime.ne_one h)
+      · exact False.elim (hnprime.ne_zero h)
+      · rintro rfl
+        simp only [pow_zero] at h
+        exact False.elim (hnprime.ne_one h)
     rw [Nat.lt_ceil, Nat.lt_succ_iff]
     have : 1 ≤ m := by omega
     aesop
