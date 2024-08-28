@@ -396,7 +396,7 @@ theorem selbergBoundingSum_ge_sum_div (s : SelbergSieve) (hP : ∀ p:ℕ, p.Prim
     · apply prod_primes_dvd_of_dvd <;> intro p hp
       · apply hP p $ Nat.prime_of_mem_primeFactors hp
         trans (m:ℝ)
-        · norm_cast; exact Nat.le_of_mem_primeFactors hp
+        · exact_mod_cast Nat.le_of_mem_primeFactors hp
         trans (Real.sqrt s.level)
         · exact hm.2
         apply sqrt_le_self s.level s.one_le_level
