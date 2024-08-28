@@ -161,7 +161,7 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 �
       dsimp [MellinInverseTransform, VerticalIntegral] at this
       rw [← MellinTransform_eq, this]
     · dsimp [MellinConvergent]
-      norm_num; norm_cast; exact (integrable_x_mul_Smooth1 diffΨ ψpos suppΨ mass_one ε εpos).ofReal
+      norm_num; exact_mod_cast (integrable_x_mul_Smooth1 diffΨ ψpos suppΨ mass_one ε εpos).ofReal
     · dsimp [VerticalIntegrable, mellin]
       ring_nf; exact vertical_integrable_Smooth1 diffΨ ψpos suppΨ mass_one ε εpos
     · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
