@@ -35,24 +35,336 @@ lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f : ArithmeticFun
 \begin{proof}\leanok Straightforward. \end{proof}
 %%-/
 
+lemma log2_pos : 0 < log 2 := by
+  rw [Real.log_pos_iff zero_lt_two]
+  exact one_lt_two
+
+/-- Auxiliary lemma I for `chebyshev_asymptotic`: Expressing the sum over Λ up to N as a double sum over primes and exponents. -/
+lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx: 0 ≤ x) :
+  ∑ n in Iic ⌊x⌋₊, Λ n =
+    ∑ k in Icc 1 ⌊ log x / log 2⌋₊,
+      ∑ p in filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), log p := calc
+    _ = ∑ n in Iic ⌊x⌋₊, ∑ k in Icc 1 ⌊ log x / log 2⌋₊, ∑ p in filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), if n = p^k then log p else 0 := by
+      apply Finset.sum_congr rfl
+      intro n hn
+      rw [mem_Iic, Nat.le_floor_iff hx] at hn
+      rw [ArithmeticFunction.vonMangoldt_apply]
+      by_cases h : IsPrimePow n
+      . simp [h]
+        rw [isPrimePow_def] at h
+        obtain ⟨ p, k, ⟨ h1, h2, h3 ⟩ ⟩ := h
+        rw [<- h3]
+        replace h1 := h1.nat_prime
+        calc
+          _ = log p := by
+            congr
+            apply Nat.Prime.pow_minFac h1 (not_eq_zero_of_lt h2)
+          _ = ∑ k' in Icc 1 ⌊ log x / log 2⌋₊, if k' = k then log p else 0 := by
+            simp
+            have h : k ≤ ⌊x.log / log 2⌋₊ := by
+              have h5 : 2^k ≤ n := by
+                rw [<-h3]
+                apply Nat.pow_le_pow_of_le_left (Prime.two_le h1)
+              have h6 : 1 ≤ x := by
+                apply LE.le.trans _ hn
+                simp only [one_le_cast]
+                exact LE.le.trans Nat.one_le_two_pow h5
+              have h7 : 0 < x := by linarith
+              rw [Nat.le_floor_iff, le_div_iff log2_pos, le_log_iff_exp_le h7, mul_comm, exp_mul, exp_log zero_lt_two]
+              . apply LE.le.trans _ hn
+                norm_cast
+              apply div_nonneg (Real.log_nonneg h6) (le_of_lt log2_pos)
+            have : 1 ≤ k ∧ k ≤ ⌊x.log / log 2⌋₊ := ⟨ h2, h ⟩
+            simp [this]
+          _ = ∑ k' in Icc 1 ⌊ log x / log 2⌋₊,
+      ∑ p' in filter Nat.Prime (Iic ⌊ x^((k':ℝ)⁻¹) ⌋₊), if k'=k ∧ p'=p then log p else 0 := by
+            apply Finset.sum_congr rfl
+            intro k' _
+            by_cases h : k' = k
+            . have : p ≤ ⌊x ^ (k:ℝ)⁻¹⌋₊ := by
+                rw [Nat.le_floor_iff]
+                . rw [le_rpow_inv_iff_of_pos (cast_nonneg p) hx (cast_pos.mpr h2)]
+                  apply LE.le.trans _ hn
+                  rw [<-h3]
+                  norm_num
+                positivity
+              simp [h, h1, this]
+            simp [h]
+          _ = _ := by
+            apply Finset.sum_congr rfl
+            intro k' _
+            apply Finset.sum_congr rfl
+            intro p' hp'
+            by_cases h : p ^ k = p' ^ k'
+            . simp at hp'
+              have : (k' = k ∧ p' = p) := by
+                have := eq_of_prime_pow_eq h1.prime hp'.2.prime h2 h
+                rw [<-this, pow_right_inj] at h
+                . exact ⟨ h.symm, this.symm ⟩
+                . exact Prime.pos h1
+                exact Nat.Prime.ne_one h1
+              simp [h, this]
+            have :¬ (k' = k ∧ p' = p) := by
+              contrapose! h
+              rw [h.1, h.2]
+            simp [h, this]
+      simp [h]
+      symm
+      apply Finset.sum_eq_zero
+      intro k hk
+      apply Finset.sum_eq_zero
+      intro p hp
+      simp at hp ⊢
+      intro hn'
+      contrapose! h; clear h
+      rw [isPrimePow_def]
+      use p, k
+      refine ⟨ Nat.Prime.prime hp.2, ⟨ ?_, hn'.symm ⟩ ⟩
+      simp at hk
+      exact hk.1
+    _ = ∑ k in Icc 1 ⌊ log x / log 2⌋₊, ∑ p in filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), ∑ n in Iic ⌊x⌋₊, if n = p^k then log p else 0 := by
+      rw [Finset.sum_comm]
+      apply Finset.sum_congr rfl
+      intro k _
+      rw [Finset.sum_comm]
+    _ = _ := by
+      apply Finset.sum_congr rfl
+      intro k hk
+      apply Finset.sum_congr rfl
+      intro p hp
+      simp at hk hp ⊢
+      intro hpk
+      rw [Nat.floor_lt hx] at hpk
+      rw [Nat.le_floor_iff (rpow_nonneg hx (k:ℝ)⁻¹), Real.le_rpow_inv_iff_of_pos (cast_nonneg p) hx (cast_pos.mpr hk.1)] at hp
+      simp at hpk hp
+      linarith [hp.1]
+
+/-- Auxiliary lemma II for `chebyshev_asymptotic`: Controlling the error. -/
+lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx: 2 ≤ x) :
+  |∑ n in Iic ⌊x⌋₊, Λ n - ∑ p in filter Nat.Prime (Iic ⌊ x⌋₊), log p| ≤ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log) := by
+  have hx_one : 1 ≤ x := one_le_two.trans hx
+  have hx_pos : 0 < x := lt_of_lt_of_le zero_lt_two hx
+  have hx_nonneg : 0 ≤ x := le_of_lt hx_pos
+  have hlogx_nonneg : 0 ≤ log x := log_nonneg hx_one
+
+  calc
+    _ = |∑ k in Icc 2 ⌊ log x / log 2⌋₊,
+      ∑ p in filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), log p + ∑ p in filter Nat.Prime (Iic ⌊ x^((1:ℝ)⁻¹) ⌋₊), log p - ∑ p in filter Nat.Prime (Iic ⌊ x⌋₊), log p| := by
+      rw [sum_von_mangoldt_as_double_sum x hx_nonneg]
+      congr
+      have h : 1 ∈ Icc 1 ⌊ log x / log 2⌋₊ := by
+        simp only [mem_Icc, le_refl, one_le_floor_iff, true_and]
+        rwa [le_div_iff log2_pos, one_mul, le_log_iff_exp_le hx_pos, exp_log zero_lt_two]
+      set s := Icc 2 ⌊ log x / log 2⌋₊
+      convert (Finset.sum_erase_add _ _ h).symm
+      . ext n
+        simp only [mem_Icc, Icc_erase_left, mem_Ioc, and_congr_left_iff, s]
+        intro _
+        rfl
+      exact Eq.symm cast_one
+    _ = |∑ k in Icc 2 ⌊ log x / log 2⌋₊,
+      ∑ p in filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), log p| := by
+        congr
+        convert add_sub_cancel_right _ (∑ p in filter Nat.Prime (Iic ⌊ x⌋₊), log p)
+        simp only [inv_one, rpow_one]
+    _ ≤ ∑ k in Icc 2 ⌊ log x / log 2⌋₊,
+      |∑ p in filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), log p| := abs_sum_le_sum_abs _ _
+    _ ≤ ∑ k in Icc 2 ⌊ log x / log 2⌋₊,
+      ∑ p in filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), |log p| := by
+        apply sum_le_sum
+        intro k _
+        exact abs_sum_le_sum_abs _ _
+    _ ≤ ∑ k in Icc 2 ⌊ log x / log 2⌋₊,
+      ∑ _p in filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), log x := by
+        apply sum_le_sum
+        intro k hk
+        apply sum_le_sum
+        intro p hp
+        simp at hk hp
+        have hp' : 1 ≤ p := Nat.Prime.one_le hp.2
+        have hp'': p ≠ 0 := not_eq_zero_of_lt hp'
+        replace hp := (Nat.le_floor_iff' hp'').mp hp.1
+        rw [abs_of_nonneg, log_le_log_iff _ hx_pos]
+        . apply hp.trans
+          calc
+            _ ≤ x^(1:ℝ) := by
+              apply rpow_le_rpow_of_exponent_le hx_one
+              apply inv_le_one
+              simp only [one_le_cast]
+              exact one_le_two.trans hk.1
+            _ = _ := by
+              simp only [rpow_one]
+        . simpa only [cast_pos]
+        apply log_nonneg
+        simp only [one_le_cast, hp']
+    _ ≤ ∑ k in Icc 2 ⌊ log x / log 2⌋₊,
+      (x^((2:ℝ)⁻¹)+1) * log x := by
+        apply sum_le_sum
+        intro k hk
+        simp only [sum_const, nsmul_eq_mul]
+        gcongr
+        rw [<- Nat.le_floor_iff]
+        . apply (Finset.card_filter_le _ _).trans
+          rw [card_Iic, Nat.floor_add_one]
+          . apply Nat.add_le_add _ NeZero.one_le
+            apply floor_le_floor
+            apply rpow_le_rpow_of_exponent_le hx_one
+            simp at hk
+            rw [inv_le_inv _ zero_lt_two]
+            . exact ofNat_le_cast.mpr hk.1
+            simp only [cast_pos]
+            exact lt_of_lt_of_le zero_lt_two hk.1
+          exact rpow_nonneg hx_nonneg 2⁻¹
+        exact add_nonneg (rpow_nonneg hx_nonneg (2:ℝ)⁻¹) zero_le_one
+    _ ≤ _ := by
+      simp only [sum_const, card_Icc, reduceSubDiff, nsmul_eq_mul]
+      gcongr
+      apply LE.le.trans _ (Nat.floor_le _)
+      simp only [cast_le, tsub_le_iff_right, le_add_iff_nonneg_right, _root_.zero_le]
+      exact div_nonneg hlogx_nonneg (le_of_lt log2_pos)
+
+
+
+
+theorem Asymptotics.IsEquivalent.add_isLittleO' {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β} {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (w-u) =o[l] v) :
+Asymptotics.IsEquivalent l w v := by
+  rw [<- add_sub_cancel u w]
+  exact add_isLittleO huv hwu
+
+theorem Asymptotics.IsEquivalent.add_isLittleO'' {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β} {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (u-w) =o[l] v) :
+Asymptotics.IsEquivalent l w v := by
+  rw [<- sub_sub_self u w]
+  exact sub_isLittleO huv hwu
+
+/-- log^b x / x^a goes to zero at infinity if a is positive. -/
+theorem Real.tendsto_pow_log_div_pow_atTop (a : ℝ) (b : ℝ) (ha : a > 0) :
+Filter.Tendsto (fun x ↦ log x ^ b / x^a) Filter.atTop (nhds 0) := by
+  convert squeeze_zero' (f := fun x ↦ log x ^ b / x^a) (g := fun x ↦ (log x ^ ⌈ b/a ⌉₊ / x)^a ) (t₀ := atTop) ?_ ?_ ?_
+  . simp
+    use 1
+    intro x hx
+    apply div_nonneg
+    . apply rpow_nonneg
+      exact log_nonneg hx
+    apply rpow_nonneg
+    apply zero_le_one.trans hx
+  . simp
+    use exp 1
+    intro x hx
+    have h0 : 0 < x := by
+      apply lt_of_lt_of_le _ hx
+      exact exp_pos 1
+    have h1 : 1 ≤ log x := by
+      rwa [le_log_iff_exp_le h0]
+    rw [div_rpow _ (le_of_lt h0)]
+    . rw [div_le_div_right (rpow_pos_of_pos h0 _), <-rpow_natCast, <-rpow_mul (zero_le_one.trans h1)]
+      apply rpow_le_rpow_of_exponent_le h1
+      rw [<-div_le_iff ha]
+      exact le_ceil _
+    apply pow_nonneg
+    apply zero_le_one.trans h1
+  rw [(zero_rpow (_root_.ne_of_lt ha).symm).symm]
+  apply Tendsto.rpow_const
+  . have := tendsto_pow_log_div_mul_add_atTop 1 0 ⌈b/a⌉₊ zero_ne_one.symm
+    simp at this
+    exact this
+  right
+  exact le_of_lt ha
+
+theorem WeakPNT' : Tendsto (fun N ↦ (∑ n in Iic N, Λ n) / N) atTop (nhds 1) := by
+  have : (fun N ↦ (∑ n in Iic N, Λ n) / N) = (fun N ↦ (∑ n in range N, Λ n)/N + Λ N / N) := by
+    ext N
+    have : N ∈ Iic N := mem_Iic.mpr (le_refl _)
+    rw [<-Finset.sum_erase_add _ _ this, <-Nat.Iio_eq_range, Iic_erase]
+    exact add_div _ _ _
+
+  rw [this, <-(AddLeftCancelMonoid.add_zero 1)]
+  apply Tendsto.add WeakPNT
+  convert squeeze_zero (f := fun N ↦ Λ N / N) (g := fun N ↦ log N / N) (t₀ := atTop) ?_ ?_ ?_
+  . intro N
+    simp
+    exact div_nonneg vonMangoldt_nonneg (cast_nonneg N)
+  . intro N
+    simp
+    exact div_le_div_of_nonneg_right vonMangoldt_le_log (cast_nonneg N)
+  have := Real.tendsto_pow_log_div_pow_atTop 1 1 Real.zero_lt_one
+  simp at this
+  exact Tendsto.comp this tendsto_natCast_atTop_atTop
+
+/-- An alternate form of the Weak PNT. -/
+theorem WeakPNT'' : (fun x ↦ ∑ n in (Iic ⌊x⌋₊), Λ n) ~[atTop] (fun x ↦ x) := by
+    apply IsEquivalent.trans (v := fun x ↦ (⌊x⌋₊:ℝ))
+    . rw [isEquivalent_iff_tendsto_one]
+      . convert Tendsto.comp WeakPNT' tendsto_nat_floor_atTop
+      rw [eventually_iff]
+      simp only [ne_eq, cast_eq_zero, floor_eq_zero, not_lt, mem_atTop_sets, ge_iff_le,
+        Set.mem_setOf_eq]
+      use 1
+      simp only [imp_self, implies_true]
+    apply IsLittleO.isEquivalent
+    rw [<-isLittleO_neg_left]
+    apply IsLittleO.of_bound
+    intro ε hε
+    simp
+    use ε⁻¹
+    intro b hb
+    have hb' : 0 ≤ b := le_of_lt (lt_of_lt_of_le (inv_pos_of_pos hε) hb)
+    rw [abs_of_nonneg, abs_of_nonneg hb']
+    . apply LE.le.trans _ ((inv_pos_le_iff_one_le_mul' hε).mp hb)
+      linarith [Nat.lt_floor_add_one b]
+    rw [sub_nonneg]
+    exact floor_le hb'
+
 /-%%
 \begin{theorem}\label{chebyshev-asymptotic}\lean{chebyshev_asymptotic}\leanok  One has
   $$ \sum_{p \leq x} \log p = x + o(x).$$
 \end{theorem}
 %%-/
 theorem chebyshev_asymptotic :
-    (fun x ↦ ∑ p in (filter Nat.Prime (range ⌈x⌉₊)), log p) ~[atTop] (fun x ↦ x) := by
-  sorry
+    (fun x ↦ ∑ p in (filter Nat.Prime (Iic ⌊x⌋₊)), log p) ~[atTop] (fun x ↦ x) := by
+  apply WeakPNT''.add_isLittleO''
+  apply IsBigO.trans_isLittleO (g := fun x ↦ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log))
+  . rw [isBigO_iff']
+    use 1
+    simp only [gt_iff_lt, zero_lt_one, Pi.sub_apply, norm_eq_abs, norm_div, one_mul,
+      eventually_atTop, ge_iff_le, true_and]
+    use 2
+    intro x hx
+    exact (sum_von_mangoldt_sub_sum_primes_le x hx).trans (le_abs_self _)
+  apply Asymptotics.isLittleO_of_tendsto
+  . intro x hx
+    simp [hx]
+  suffices h : Tendsto (fun x:ℝ ↦ ((x.log^2 / x ^ (2:ℝ)⁻¹) / log 2 + (x.log^2 / x) / log 2)) atTop (nhds 0) by
+    apply Filter.Tendsto.congr' _ h
+    simp [EventuallyEq]
+    use 2
+    intro x hx
+    field_simp
+    ring_nf
+    rw [<-Real.rpow_mul_natCast]
+    . simp
+      ring
+    linarith
+  have h1 : (0:ℝ) = 0 + 0 := self_eq_add_right.mpr rfl
+  have h2 : (0:ℝ) = 0 / log 2 := (zero_div _).symm
+  rw [h1]
+  apply Tendsto.add
+  . rw [h2]
+    apply Tendsto.div_const
+    convert Real.tendsto_pow_log_div_pow_atTop (2:ℝ)⁻¹ 2 (by positivity) with x
+    exact (rpow_two x.log).symm
+  rw [h2]
+  apply Tendsto.div_const
+  convert Real.tendsto_pow_log_div_pow_atTop 1 2 (by positivity) with x
+  . exact (rpow_two x.log).symm
+  exact (rpow_one x).symm
 
-theorem chebyshev_asymptotic_finsum :
-    (fun x ↦ ∑ᶠ (p:ℕ) (_: p ≤ x) (_: Nat.Prime p), log p) ~[atTop] (fun x ↦ x) := by
-  sorry
 
 -- one could also consider adding a version with p < x instead of p \leq x
 
 /-%%
 \begin{proof}
-\uses{WeakPNT, range-eq-range}
+\uses{WeakPNT, range-eq-range}\leanok
 From the prime number theorem we already have
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x)$$
 so it suffices to show that
@@ -69,12 +381,7 @@ We have
 %%-/
 theorem primorial_bounds :
     ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
-    ∀ x : ℝ, ∏ p in (filter Nat.Prime (range ⌊x⌋₊)), p = exp ( x + E x ) := by
-  sorry
-
-theorem primorial_bounds_finprod :
-    ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
-    ∀ x : ℝ, ∏ᶠ (p:ℕ) (_:p ≤ x) (_:Nat.Prime p), p = exp ( x + E x ) := by
+    ∀ x : ℝ, ∏ p in (filter Nat.Prime (Iic ⌊x⌋₊)), p = exp ( x + E x ) := by
   sorry
 
 /-%%
