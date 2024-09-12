@@ -24,4 +24,4 @@ require EulerProducts from git
   "https://github.com/MichaelStollBayreuth/EulerProducts.git" @ "4d05e56"
 
 meta if get_config? env = some "dev" then require «doc-gen4» from git
-  "https://github.com/leanprover/doc-gen4.git" @ "b334278"
+  "https://github.com/leanprover/doc-gen4.git" @ "e490631"
