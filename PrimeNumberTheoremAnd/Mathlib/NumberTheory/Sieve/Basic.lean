@@ -5,7 +5,7 @@ Author: Arend Mellendijk
 
 ! This file was ported from Lean 3 source module sieve
 -/
-import Mathlib.Algebra.BigOperators.Basic
+import Mathlib.Algebra.BigOperators.Ring
 import Mathlib.Analysis.Asymptotics.Asymptotics
 import Mathlib.NumberTheory.ArithmeticFunction
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.AuxResults

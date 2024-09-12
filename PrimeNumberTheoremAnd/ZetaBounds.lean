@@ -1,7 +1,7 @@
 import Mathlib.Analysis.Calculus.ContDiff.Defs
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
 import Mathlib.Analysis.Calculus.Deriv.Basic
-import Mathlib.NumberTheory.ZetaFunction
+import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.Algebra.Group.Basic
 import EulerProducts.PNT
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
