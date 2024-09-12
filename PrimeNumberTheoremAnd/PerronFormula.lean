@@ -4,6 +4,8 @@ import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.Asymptotics
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import PrimeNumberTheoremAnd.Wiener
 
+set_option lang.lemmaCmd true
+
 open Asymptotics Complex ComplexConjugate Topology Filter Real MeasureTheory Set
 
 open scoped Interval
@@ -302,7 +304,7 @@ Composition of differentiabilities.
   · exact DifferentiableOn.mul differentiableOn_id <| DifferentiableOn.add_const differentiableOn_id 1
   · intro x hx
     obtain ⟨h0, h1⟩ := not_or.mp hx
-    exact mul_ne_zero h0 <| add_ne_add_left 1 |>.mpr h1 |>.trans_eq (add_left_neg 1)
+    exact mul_ne_zero h0 <| add_ne_add_left 1 |>.mpr h1 |>.trans_eq (neg_add_cancel 1)
 --%%\end{proof}
 
 /-%%
@@ -537,8 +539,9 @@ theorem horizontal_integral_isBigO
     _ =Θ[atBot ⊔ atTop] fun (y : ℝ) ↦ ∫ (σ : ℝ) in uIoc σ' σ'', g (σ, y) ∂μ :=
         isTheta_of_norm_eventuallyEq <| univ_mem'
           fun _ ↦ intervalIntegral.norm_intervalIntegral_eq _ _ _ _
-    _ =O[atBot ⊔ atTop] _ :=
+    _ =O[atBot ⊔ atTop] fun y ↦ 1 / y^2 :=
       (isTheta_uniformlyOn_uIoc xpos σ' σ'').isBigO.set_integral_isBigO
+        (g := fun x => 1 / (x ^ 2))
         measurableSet_uIoc measure_Ioc_lt_top
 
 /-%%

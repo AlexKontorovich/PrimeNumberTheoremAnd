@@ -62,7 +62,7 @@ def selbergTerms : ArithmeticFunction ℝ :=
 
 local notation3 "g" => Sieve.selbergTerms s
 
-lemma selbergTerms_apply (d : ℕ) :
+theorem selbergTerms_apply (d : ℕ) :
     g d = ν d * ∏ p in d.primeFactors, 1/(1 - ν p) := by
   unfold selbergTerms
   by_cases h : d=0

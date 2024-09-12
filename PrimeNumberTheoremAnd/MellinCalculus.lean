@@ -2,6 +2,8 @@ import Mathlib.Analysis.MellinInversion
 import PrimeNumberTheoremAnd.PerronFormula
 import Mathlib.Algebra.GroupWithZero.Units.Basic
 
+set_option lang.lemmaCmd true
+
 -- TODO: move near `MeasureTheory.setIntegral_prod`
 theorem MeasureTheory.setIntegral_integral_swap {α : Type*} {β : Type*} {E : Type*}
     [MeasurableSpace α] [MeasurableSpace β] {μ : MeasureTheory.Measure α}
@@ -1012,7 +1014,7 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
     (fun (ε : ℝ) ↦ (𝓜 (Ψ ·) ε) - 1) =O[𝓝[>]0] id := by
   have diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) ↦ 𝓜 (Ψ ·) ε - 1) (Ioi 0) 0 := by
     apply DifferentiableAt.differentiableWithinAt
-    simp only [differentiableAt_sub_const_iff, MellinTransform_eq]
+    simp only [(differentiableAt_const _).sub_iff_left, MellinTransform_eq]
     refine DifferentiableAt.comp_ofReal ?_
     refine mellin_differentiableAt_of_isBigO_rpow (a := 1) (b := -1) ?_ ?_ (by simp) ?_ (by simp)
     · apply (Continuous.continuousOn ?_).locallyIntegrableOn (by simp)
@@ -1125,7 +1127,7 @@ lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
       intro x hx; simp only [mem_Ici] at hx; simp only [id_eq, ne_eq]; linarith
     · intro x hx; simp only [nonempty_Iio, interior_Ici', mem_Ioi] at hx
       dsimp only [f]
-      rw [deriv_sub, deriv_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel]; simp
+      rw [deriv_sub, deriv_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel₀]; simp
       · exact log_pos hx
       · linarith
       · simp only [differentiableAt_id']
@@ -1191,7 +1193,7 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     apply DeltaSpikeSupport εpos ?_ suppΨ
     · simp only [mem_Icc, not_and, not_le]; intro
       linarith [(by apply (div_lt_iff (by linarith)).mpr; nlinarith : x / y < 2 ^ (-ε))]
-    · rw [le_div_iff (by linarith), zero_mul]; exact xpos.le
+    · rw [le_div_iff₀ (by linarith), zero_mul]; exact xpos.le
 /-%%
 \begin{proof}\leanok
 \uses{Smooth1, MellinConvolution,DeltaSpikeMass, Smooth1Properties_estimate}
@@ -1253,7 +1255,7 @@ lemma Smooth1Properties_above_aux {x ε : ℝ} (hx : 1 + (2 * Real.log 2) * ε �
     ring_nf at this ⊢
     exact this
   · have : (2 : ℝ) ^ ε * (2 : ℝ) ^ (-ε) = (2 : ℝ) ^ (ε - ε) := by
-      rw [← rpow_add (by norm_num), add_neg_self, sub_self]
+      rw [← rpow_add (by norm_num), add_neg_cancel, sub_self]
     conv => lhs; lhs; ring_nf; rhs; simp [this]
 
 lemma Smooth1Properties_above_aux2 {x y ε : ℝ} (hε : ε ∈ Ioo 0 1) (hy : y ∈ Ioc 0 1)
@@ -1275,8 +1277,8 @@ lemma Smooth1Properties_above_aux2 {x y ε : ℝ} (hε : ε ∈ Ioo 0 1) (hy : y
       nth_rewrite 2 [← rpow_one y]
       exact rpow_le_rpow_of_exponent_ge ypos y1 (by linarith [one_lt_one_div εpos ε1])
     have pos : 0 < y ^ (1 / ε) := rpow_pos_of_pos ypos _
-    rw [ge_iff_le, div_le_iff, div_mul_eq_mul_div, le_div_iff', mul_comm] <;> try linarith
-  · rw [ge_iff_le, le_div_iff <| ypos]; exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
+    rw [ge_iff_le, div_le_iff₀, div_mul_eq_mul_div, le_div_iff₀', mul_comm] <;> try linarith
+  · rw [ge_iff_le, le_div_iff₀ <| ypos]; exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
 /-%%
 \begin{lemma}[Smooth1Properties_above]\label{Smooth1Properties_above}
 \lean{Smooth1Properties_above}\leanok
@@ -1308,7 +1310,7 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
   try intro
   have : x / y = ((x / y) ^ (1 / ε)) ^ ε := by
     rw [← rpow_mul]
-    simp only [one_div, inv_mul_cancel (ne_of_gt hε.1), rpow_one]
+    simp only [one_div, inv_mul_cancel₀ (ne_of_gt hε.1), rpow_one]
     apply div_nonneg_iff.mpr; left;
     exact ⟨(le_trans (rpow_pos_of_pos (by norm_num) ε).le) hx2.le, ypos.le⟩
   rw [this]

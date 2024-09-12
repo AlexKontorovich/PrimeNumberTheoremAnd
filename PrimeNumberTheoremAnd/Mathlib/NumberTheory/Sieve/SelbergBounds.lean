@@ -20,6 +20,8 @@ This file proves a number of results to help bound `Sieve.selbergSum`
 * `rem_sum_le_of_const`: If `R_d ≤ C` then the error term is at most `C * y * (1 + log y)^3`
 -/
 
+set_option lang.lemmaCmd true
+
 open scoped Nat ArithmeticFunction BigOperators Classical
 
 noncomputable section

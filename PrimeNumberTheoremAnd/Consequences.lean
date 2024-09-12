@@ -4,6 +4,8 @@ import Mathlib.Analysis.Asymptotics.Asymptotics
 import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
 
+set_option lang.lemmaCmd true
+
 open ArithmeticFunction hiding log
 open Nat hiding log
 open Finset
@@ -70,7 +72,7 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx: 0 ≤ x) :
                 simp only [one_le_cast]
                 exact LE.le.trans Nat.one_le_two_pow h5
               have h7 : 0 < x := by linarith
-              rw [Nat.le_floor_iff, le_div_iff log2_pos, le_log_iff_exp_le h7, mul_comm, exp_mul, exp_log zero_lt_two]
+              rw [Nat.le_floor_iff, le_div_iff₀ log2_pos, le_log_iff_exp_le h7, mul_comm, exp_mul, exp_log zero_lt_two]
               . apply LE.le.trans _ hn
                 norm_cast
               apply div_nonneg (Real.log_nonneg h6) (le_of_lt log2_pos)
@@ -154,7 +156,7 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx: 2 ≤ x) :
       congr
       have h : 1 ∈ Icc 1 ⌊ log x / log 2⌋₊ := by
         simp only [mem_Icc, le_refl, one_le_floor_iff, true_and]
-        rwa [le_div_iff log2_pos, one_mul, le_log_iff_exp_le hx_pos, exp_log zero_lt_two]
+        rwa [le_div_iff₀ log2_pos, one_mul, le_log_iff_exp_le hx_pos, exp_log zero_lt_two]
       set s := Icc 2 ⌊ log x / log 2⌋₊
       convert (Finset.sum_erase_add _ _ h).symm
       . ext n
@@ -259,7 +261,7 @@ Filter.Tendsto (fun x ↦ log x ^ b / x^a) Filter.atTop (nhds 0) := by
     rw [div_rpow _ (le_of_lt h0)]
     . rw [div_le_div_right (rpow_pos_of_pos h0 _), <-rpow_natCast, <-rpow_mul (zero_le_one.trans h1)]
       apply rpow_le_rpow_of_exponent_le h1
-      rw [<-div_le_iff ha]
+      rw [<-div_le_iff₀ ha]
       exact le_ceil _
     apply pow_nonneg
     apply zero_le_one.trans h1
@@ -575,7 +577,7 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| 
   rw [h_sum, abs_le]
   rw [abs_le, neg_sub] at h_bound
   constructor
-  <;> simp only [le_div_iff, div_le_iff, cast_pos.mpr hN]
+  <;> simp only [le_div_iff₀, div_le_iff₀, cast_pos.mpr hN]
   <;> linarith [h_bound.left]
 
 /-%%

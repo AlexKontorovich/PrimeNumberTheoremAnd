@@ -5,6 +5,8 @@ import PrimeNumberTheoremAnd.ZetaBounds
 import EulerProducts.PNT
 import Mathlib.Algebra.Group.Support
 
+set_option lang.lemmaCmd true
+
 open Set Function Filter Complex Real
 
 local notation (name := mellintransform2) "𝓜" => MellinTransform
@@ -123,7 +125,7 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 �
     simp only [Complex.norm_eq_abs, Complex.abs_abs] at hc
     replace hc (t : ℝ) := hc (2 + t * I) (by simp) (by simp)
     sorry
-  · field_simp; congr; ext n; congr; rw [← MeasureTheory.integral_mul_left ]; congr; ext t
+  · field_simp; congr; ext n; rw [← MeasureTheory.integral_mul_left ]; congr; ext t
     by_cases n_ne_zero : n = 0; simp [n_ne_zero]
     rw [mul_div_assoc, mul_assoc]
     congr

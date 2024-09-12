@@ -32,6 +32,7 @@ lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
   refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
   simpa [key'] using contDiff_const
 
+omit [NormedSpace ℝ E] in
 lemma tendsto_funscale {f : ℝ → E} (hf : ContinuousAt f 0) (x : ℝ) :
     Tendsto (fun R => funscale f R x) atTop (𝓝 (f 0)) :=
   hf.tendsto.comp (by simpa using tendsto_inv_atTop_zero.mul_const x)
@@ -250,14 +251,14 @@ theorem W21_approximation (f : W21) (g : trunc) :
       filter_upwards [(vR v).eventually g.zero, eventually_ne_atTop 0] with R hR hR'
       simp [h, hR, CS.scale, hR', funscale, mul_comm R⁻¹]
     have e1 : ∀ᶠ (n : ℝ) in atTop, AEStronglyMeasurable (F n) volume := by
-      apply eventually_of_forall ; intro R
+      apply Eventually.of_forall ; intro R
       exact (ch.mul f.continuous).norm.aestronglyMeasurable
     have e2 : ∀ᶠ (n : ℝ) in atTop, ∀ᵐ (a : ℝ), ‖F n a‖ ≤ ‖f a‖ := by
-      apply eventually_of_forall ; intro R
-      apply eventually_of_forall ; intro v
+      apply Eventually.of_forall ; intro R
+      apply Eventually.of_forall ; intro v
       simpa [F] using mul_le_mul (hh1 R v) le_rfl (by simp) zero_le_one
     have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := by
-      apply eventually_of_forall ; intro v
+      apply Eventually.of_forall ; intro v
       apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh v] with R hR ; simp [F, hR]
     simpa [F] using tendsto_integral_filter_of_dominated_convergence _ e1 e2 f.hf.norm e4
 
@@ -281,7 +282,7 @@ theorem W21_approximation (f : W21) (g : trunc) :
     obtain ⟨c2, mg''⟩ := g''.bounded
     let bound v := c2 * ‖f v‖ + 2 * c1 * ‖f' v‖ + ‖f'' v‖
     have e1 : ∀ᶠ (n : ℝ) in atTop, AEStronglyMeasurable (F n) volume := by
-      apply eventually_of_forall ; intro R ; apply (Continuous.norm ?_).aestronglyMeasurable
+      apply Eventually.of_forall ; intro R ; apply (Continuous.norm ?_).aestronglyMeasurable
       exact ((ch''.mul f.continuous).add ((continuous_const.mul ch').mul f.deriv.continuous)).add
         (ch.mul f.deriv.deriv.continuous)
     have e2 : ∀ᶠ R in atTop, ∀ᵐ (a : ℝ), ‖F R a‖ ≤ bound a := by
@@ -304,14 +305,14 @@ theorem W21_approximation (f : W21) (g : trunc) :
         apply mul_le_mul e2 ?_ (by positivity) zero_le_one
         simp [CS.scale, e3, funscale] ; apply mg''
       filter_upwards [hc1, hc2] with R hc1 hc2
-      apply eventually_of_forall ; intro v ; specialize hc1 v ; specialize hc2 v
+      apply Eventually.of_forall ; intro v ; specialize hc1 v ; specialize hc2 v
       simp only [F, bound, norm_norm]
       refine (norm_add_le _ _).trans ?_ ; apply add_le_add
       · refine (norm_add_le _ _).trans ?_ ; apply add_le_add <;> simp <;> gcongr
       · simpa using mul_le_mul (hh1 R v) le_rfl (by simp) zero_le_one
     have e3 : Integrable bound volume := (((f.hf.norm).const_mul _).add ((f.hf'.norm).const_mul _)).add f.hf''.norm
     have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := by
-      apply eventually_of_forall ; intro v
+      apply Eventually.of_forall ; intro v
       have evg' : g' =ᶠ[𝓝 0] 0 := by convert ← g.zero.deriv ; exact deriv_const' _
       have evg'' : g'' =ᶠ[𝓝 0] 0 := by convert ← evg'.deriv ; exact deriv_const' _
       refine tendsto_norm_zero.comp <| (ZeroAtFilter.add ?_ ?_).add ?_

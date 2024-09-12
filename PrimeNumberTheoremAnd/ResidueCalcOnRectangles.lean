@@ -186,6 +186,7 @@ theorem RectangleBorderIntegrable.add {f g : ℂ → E} (hf : RectangleBorderInt
   have h₄ := intervalIntegral.integral_add hf.2.2.2 hg.2.2.2
   additive_combination h₁ - h₂ + I • h₃ - I • h₄
 
+omit [NormedSpace ℂ E] in
 theorem ContinuousOn.rectangleBorder_integrable (hf : ContinuousOn f (RectangleBorder z w)) :
     RectangleBorderIntegrable f z w :=
   ⟨(hf.comp (by fun_prop) (mapsTo_rectangleBorder_left_im z w)).intervalIntegrable,
@@ -193,10 +194,12 @@ theorem ContinuousOn.rectangleBorder_integrable (hf : ContinuousOn f (RectangleB
     (hf.comp (by fun_prop) (mapsTo_rectangleBorder_right_re z w)).intervalIntegrable,
     (hf.comp (by fun_prop) (mapsTo_rectangleBorder_left_re z w)).intervalIntegrable⟩
 
+omit [NormedSpace ℂ E] in
 theorem ContinuousOn.rectangleBorderIntegrable (hf : ContinuousOn f (Rectangle z w)) :
     RectangleBorderIntegrable f z w :=
   (hf.mono (rectangleBorder_subset_rectangle z w)).rectangleBorder_integrable
 
+omit [NormedSpace ℂ E] in
 theorem ContinuousOn.rectangleBorderNoPIntegrable (hf : ContinuousOn f (Rectangle z w \ {p}))
     (pNotOnBorder : p ∉ RectangleBorder z w) : RectangleBorderIntegrable f z w := by
   refine (hf.mono (Set.subset_diff.mpr ?_)).rectangleBorder_integrable

@@ -13,6 +13,8 @@ import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Basic
 This file proves `selberg_bound_simple`, the main theorem of the Selberg.
 -/
 
+set_option lang.lemmaCmd true
+
 noncomputable section
 
 open scoped BigOperators Classical Sieve
@@ -184,7 +186,7 @@ theorem selbergWeights_eq_dvds_sum (d : ℕ) :
       exact ⟨ Coprime.mul_dvd_of_dvd_of_dvd h.2 h_dvd (dvd_of_mem_divisors hm), Nat.dvd_mul_right d m, h.1⟩
   · intro h
     trans ((ν d)⁻¹ * (ν d) * g d * μ d / S * g m)
-    · rw [inv_mul_cancel (s.nu_ne_zero h_dvd), s.selbergTerms_mult.map_mul_of_coprime
+    · rw [inv_mul_cancel₀ (s.nu_ne_zero h_dvd), s.selbergTerms_mult.map_mul_of_coprime
         $ coprime_comm.mp h.2]
       ring
     ring
@@ -239,7 +241,7 @@ theorem weight_one_of_selberg : γ 1 = 1 := by
   simp only [inv_one, mul_one, isUnit_one, IsUnit.squarefree, moebius_apply_of_squarefree,
     cardFactors_one, _root_.pow_zero, Int.cast_one, selbergBoundingSum, cast_pow, one_mul,
     coprime_one_right_eq_true, and_true, cast_one]
-  rw [inv_mul_cancel]
+  rw [inv_mul_cancel₀]
   convert s.selbergBoundingSum_ne_zero
 
 theorem selbergμPlus_eq_zero (d : ℕ) (hd : ¬d ≤ y) : μ⁺ d = 0 :=
@@ -282,7 +284,7 @@ theorem selberg_bound_simple_mainSum :
     linarith
   conv => {lhs; congr; {skip}; {ext i; rw [← ite_zero_mul]}}
   dsimp only [selbergBoundingSum]
-  rw [←sum_mul, sq, ←mul_assoc, mul_inv_cancel]; ring
+  rw [←sum_mul, sq, ←mul_assoc, mul_inv_cancel₀]; ring
   apply _root_.ne_of_gt; apply selbergBoundingSum_pos;
 
 lemma eq_gcd_mul_of_dvd_of_coprime {k d m :ℕ} (hkd : k ∣ d) (hmd : Coprime m d) (hk : k ≠ 0) :
@@ -373,7 +375,7 @@ theorem selbergBoundingSum_ge {d : ℕ} (hdP : d ∣ P) :
     conv => enter [1, 2, k]; rw [← ite_zero_mul]
     rw [←sum_mul, s.conv_selbergTerms_eq_selbergTerms_mul_nu hdP]
     trans (S * S⁻¹ * (μ d:ℝ)^2 * (ν d)⁻¹ * g d * (∑ m in divisors P, if (d*m) ^ 2 ≤ y ∧ Coprime m d then g m else 0))
-    · rw [mul_inv_cancel, ←Int.cast_pow, moebius_sq_eq_one_of_squarefree]
+    · rw [mul_inv_cancel₀, ←Int.cast_pow, moebius_sq_eq_one_of_squarefree]
       ring
       exact Squarefree.squarefree_of_dvd hdP s.prodPrimes_squarefree
       exact _root_.ne_of_gt $ s.selbergBoundingSum_pos
