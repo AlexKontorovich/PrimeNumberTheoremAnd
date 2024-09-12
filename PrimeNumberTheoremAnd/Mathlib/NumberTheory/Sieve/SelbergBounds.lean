@@ -229,7 +229,6 @@ theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFu
     intro a ha
     erw [Finset.prod_ne_zero_iff]
     exact fun p _ => pow_ne_zero _ (ne_of_gt (Nat.pos_of_mem_factors (List.mem_toFinset.mp p.property)))
-  save
   have hi : ∀ (a : _) (ha : a ∈ Finset.pi d.primeFactors fun _p => Finset.Icc 1 M),
       i a ha ∈ (d^M).divisors.filter (d ∣ ·) := by
     intro a ha
@@ -260,7 +259,6 @@ theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFu
       simp_rw [Finset.mem_pi, Finset.mem_Icc] at ha
       exact (ha p hp).1
 
-  save
   have h : ∀ (a : _) (ha : a ∈ Finset.pi d.primeFactors fun _p => Finset.Icc 1 M),
       ∏ p in d.primeFactors.attach, f (p.1 ^ (a p p.2)) = f (i a ha) := by
     intro a ha
@@ -275,7 +273,6 @@ theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFu
     rw [Nat.prime_dvd_prime_iff_eq hxp $ Nat.prime_of_mem_factors (List.mem_toFinset.mp y.2)]
     exact fun hc => hxy (Subtype.eq hc)
 
-  save
   have i_inj : ∀ a ha b hb, i a ha = i b hb → a = b := by
     intro a ha b hb hiab
     apply_fun Nat.factorization at hiab
@@ -284,7 +281,6 @@ theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFu
     rw [hfact_i a ha, hfact_i b hb, dif_pos hp, dif_pos hp] at hiabp
     exact hiabp
 
-  save
   have i_surj : ∀ (b : ℕ), b ∈ (d^M).divisors.filter (d ∣ ·) → ∃ a ha, i a ha = b := by
     intro b hb
     have h : (fun p _ => (Nat.factorization b) p) ∈ Finset.pi d.primeFactors fun p => Finset.Icc 1 M := by
@@ -485,7 +481,6 @@ theorem boundingSum_ge_sum (s : SelbergSieve) (hnu : s.nu = (ζ : ArithmeticFunc
     exact hpp.one_lt
     exact hpp.ne_zero
   apply le_of_eq
-  push_cast
   apply Finset.sum_congr rfl
   intro m hm
   rw [Finset.mem_Icc] at hm
@@ -521,7 +516,6 @@ theorem rem_sum_le_of_const (s : SelbergSieve) (C : ℝ) (hrem : ∀ d > 0, |s.r
   rw [←Finset.sum_mul, mul_comm, mul_assoc]
   gcongr
   · linarith [abs_nonneg <| s.rem 1, hrem 1 (by norm_num)]
-  push_cast
   rw [Finset.sum_filter]
   apply Aux.sum_pow_cardDistinctFactors_le_self_mul_log_pow (hx := s.one_le_level)
   apply Sieve.prodPrimes_squarefree

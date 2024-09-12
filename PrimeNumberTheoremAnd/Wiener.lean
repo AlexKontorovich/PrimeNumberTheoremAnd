@@ -5,8 +5,8 @@ import Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.Topology.Support
 import Mathlib.Analysis.Calculus.ContDiff.Defs
 import Mathlib.Geometry.Manifold.PartitionOfUnity
-import Mathlib.Tactic.FunProp.AEMeasurable
-import Mathlib.Tactic.FunProp.Measurable
+import Mathlib.Tactic.FunProp
+import Mathlib.Tactic.FunProp
 import Mathlib.Analysis.Normed.Group.Tannery
 import Mathlib.Algebra.Order.Field.Basic
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
@@ -84,7 +84,6 @@ lemma smooth_urysohn_support_Ioo (h1 : a < b) (h3: c < d) :
         · simp_rw [Function.support, ne_eq, ←hΨ0]
           push_neg
           simp [Set.ext_iff]
-  done
 
 
 /-%%
@@ -314,7 +313,7 @@ so by Fubini's theorem it suffices to verify the identity
     suffices Tendsto (fun (x : ℝ) ↦ abs (cexp (c * ↑x)) / abs c) atTop (𝓝 (0 / abs c)) by simpa [f, f'] using this
     apply Filter.Tendsto.div_const
     suffices Tendsto (. * (1 - σ')) atTop atBot by simpa [Complex.abs_exp, mul_comm (1 - σ'), c]
-    exact Tendsto.atTop_mul_neg_const (by linarith) fun ⦃s⦄ h ↦ h
+    exact Tendsto.atTop_mul_const_of_neg (by linarith) fun ⦃s⦄ h ↦ h
   rw [integral_Ici_eq_integral_Ioi,
     integral_Ioi_of_hasDerivAt_of_tendsto' hderiv (second_fourier_integrable_aux2 hσ) hf]
   simpa [f, f'] using second_fourier_aux hx
@@ -1871,7 +1870,7 @@ lemma le_of_eventually_nhdsWithin {a b : ℝ} (h : ∀ᶠ c in 𝓝[>] b, a ≤ 
   have key : ∀ᶠ c in 𝓝[>] b, c < d := by
     apply eventually_of_mem (U := Iio d) ?_ (fun x hx => hx)
     rw [mem_nhdsWithin]
-    refine ⟨Iio d, isOpen_Iio, hd, inter_subset_left _ _⟩
+    refine ⟨Iio d, isOpen_Iio, hd, inter_subset_left⟩
   obtain ⟨x, h1, h2⟩ := (h.and key).exists
   linarith
 
@@ -1880,7 +1879,7 @@ lemma ge_of_eventually_nhdsWithin {a b : ℝ} (h : ∀ᶠ c in 𝓝[<] b, c ≤ 
   have key : ∀ᶠ c in 𝓝[<] b, c > d := by
     apply eventually_of_mem (U := Ioi d) ?_ (fun x hx => hx)
     rw [mem_nhdsWithin]
-    refine ⟨Ioi d, isOpen_Ioi, hd, inter_subset_left _ _⟩
+    refine ⟨Ioi d, isOpen_Ioi, hd, inter_subset_left⟩
   obtain ⟨x, h1, h2⟩ := (h.and key).exists
   linarith
 
