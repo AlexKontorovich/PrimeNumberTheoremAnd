@@ -533,7 +533,6 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| 
       · congr
       · simp
     _ = ∑ d in range (N + 1), (μ d : ℚ) * (N / d : ℕ) := by
-      save
       norm_num [Int.cast_sum]
       rfl
 

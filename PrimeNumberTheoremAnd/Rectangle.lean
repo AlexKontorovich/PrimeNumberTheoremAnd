@@ -265,7 +265,7 @@ theorem not_mem_rectangleBorder_of_rectangle_mem_nhds {z w p : ℂ} (hp : Rectan
     Set.ne_left_of_mem_uIoo h1.2, Set.ne_right_of_mem_uIoo h1.2⟩
 
 theorem Complex.nhds_hasBasis_square (p : ℂ) : (𝓝 p).HasBasis (0 < ·) (Square p ·) := by
-  suffices (𝓝 p.re ×ˢ 𝓝 p.im).HasBasis (0 < .) (equivRealProdCLM.symm.toHomeomorph ⁻¹' Square p .)
+  suffices (𝓝 p.re ×ˢ 𝓝 p.im).HasBasis (0 < ·) (equivRealProdCLM.symm.toHomeomorph ⁻¹' Square p ·)
     by simpa only [← nhds_prod_eq, Homeomorph.map_nhds_eq, Homeomorph.image_preimage]
       using this.map equivRealProdCLM.symm.toHomeomorph
   apply ((nhds_basis_Icc_pos p.re).prod_same_index_mono (nhds_basis_Icc_pos p.im) ?_ ?_).congr

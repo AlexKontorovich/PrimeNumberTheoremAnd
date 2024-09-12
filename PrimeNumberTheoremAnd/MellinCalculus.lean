@@ -638,7 +638,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     _ = ∫ (y : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * ∫ (x : ℝ) in Ioi 0, g x * ↑x ^ (s - 1) := ?_
     _ = _ := integral_mul_right _ _
   <;> try (rw [setIntegral_congr (by simp)]; intro y hy; simp only [ofReal_mul])
-  · simp only [integral_mul_right]; rfl
+  · simp only [integral_mul_right]
   · simp only [integral_mul_right]
     have := integral_comp_mul_right_Ioi (fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)) 0 hy
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := slitPlane_ne_zero (Or.inl hy)
@@ -756,9 +756,9 @@ lemma MellinOfPsi_aux {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     {s : ℂ} (hs : s ≠ 0) :
     ∫ (x : ℝ) in Ioi 0, (Ψ x) * (x : ℂ) ^ (s - 1) =
     - (1 / s) * ∫ (x : ℝ) in Ioi 0, (deriv Ψ x) * (x : ℂ) ^ s := by
-  let g {s : ℂ} := fun (x : ℝ)  ↦ x ^ s / s
+  let g (s : ℂ) := fun (x : ℝ)  ↦ x ^ s / s
   have gderiv {s : ℂ} (hs : s ≠ 0) {x: ℝ} (hx : x ∈ Ioi 0) :
-      deriv g x = x ^ (s - 1) := by
+      deriv (g s) x = x ^ (s - 1) := by
     have := HasDerivAt.cpow_const (c := s) (hasDerivAt_id (x : ℂ)) (Or.inl hx)
     simp_rw [mul_one, id_eq] at this
     rw [deriv_div_const, deriv.comp_ofReal (e := fun x ↦ x ^ s)]
@@ -774,7 +774,7 @@ lemma MellinOfPsi_aux {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
   · rw [setIntegral_congr (by simp)]
     intro _ hx
     simp only [gderiv hs hx]
-  · apply PartialIntegration_of_support_in_Icc (Ψ ·) g
+  · apply PartialIntegration_of_support_in_Icc (Ψ ·) (g s)
       (a := 1 / 2) (b := 2) (by norm_num) (by norm_num)
     · simpa only [Function.support_subset_iff, ne_eq, ofReal_eq_zero]
     · exact (Differentiable.ofReal_comp_iff.mpr (diffΨ.differentiable (by norm_num))).differentiableOn
@@ -1124,7 +1124,7 @@ lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
     · apply continuousOn_id.mul (continuousOn_id.log ?_) |>.sub continuousOn_id
       intro x hx; simp only [mem_Ici] at hx; simp only [id_eq, ne_eq]; linarith
     · intro x hx; simp only [nonempty_Iio, interior_Ici', mem_Ioi] at hx
-      funext; dsimp only [f]
+      dsimp only [f]
       rw [deriv_sub, deriv_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel]; simp
       · exact log_pos hx
       · linarith

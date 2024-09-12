@@ -250,7 +250,7 @@ theorem primesBetween_one (n : ℕ) : primesBetween 1 n = ((Finset.range (n+1)).
   rw [primesBetween]
   congr 1
   ext p
-  simp only [Nat.ceil_one, Nat.floor_coe, Finset.mem_filter, Finset.mem_Icc, Finset.mem_range,
+  simp only [Nat.ceil_one, Nat.floor_natCast, Finset.mem_filter, Finset.mem_Icc, Finset.mem_range,
     and_congr_left_iff]
   exact fun hp ↦ ⟨fun h => by omega, fun h => ⟨by have := hp.pos; omega, by omega⟩⟩
 
