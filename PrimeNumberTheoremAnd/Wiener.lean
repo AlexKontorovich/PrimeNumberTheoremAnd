@@ -20,6 +20,8 @@ import PrimeNumberTheoremAnd.BrunTitchmarsh
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Mathlib.Topology.UniformSpace.UniformConvergence
 
+set_option lang.lemmaCmd true
+
 -- note: the opening of ArithmeticFunction introduces a notation σ that seems
 -- impossible to hide, and hence parameters that are traditionally called σ will
 -- have to be called σ' instead in this file.
@@ -110,6 +112,11 @@ lemma hf_coe1 (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hσ : 
   convert hf σ' hσ with i
   simp [nterm_eq_norm_term]
 
+instance instMeasurableSpace : MeasurableSpace Circle :=
+  inferInstanceAs <| MeasurableSpace <| Subtype _
+instance instBorelSpace : BorelSpace Circle :=
+  inferInstanceAs <| BorelSpace <| Subtype _
+
 lemma first_fourier_aux1 (hψ: Continuous ψ) {x : ℝ} (n : ℕ) : Measurable fun (u : ℝ) ↦
     (‖fourierChar (-(u * ((1 : ℝ) / ((2 : ℝ) * π) * (n / x).log))) • ψ u‖₊ : ENNReal) := by
   -- TODO: attribute [fun_prop] Real.continuous_fourierChar once `fun_prop` bugfix is merged
@@ -133,7 +140,10 @@ lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
       have : ((↑n : ℂ) ^ (σ' : ℂ) : ℂ) = ((↑n : ℝ) ^ (σ' : ℝ) : ℝ) := by
         rw [Complex.cpow_def_of_ne_zero (by simp [hn]), Real.rpow_def_of_nonneg (Nat.cast_nonneg n)]
         simp [hn]
-      simp [Real.fourierChar, expMapCircle, smul_eq_mul, mul_assoc, this] ; ring
+      simp [Real.fourierChar, Circle.exp, smul_eq_mul, mul_assoc, this]
+      rw [Submonoid.mk_smul]
+      simp [Real.fourierChar, Circle.exp, smul_eq_mul, mul_assoc, this]
+      ring
     _ = (f n * (x ^ (y * I) / n ^ (σ' + y * I))) • ψ y := by
       congr 2
       have l1 : 0 < (n : ℝ) := by simpa using Nat.pos_iff_ne_zero.mpr hn
@@ -231,22 +241,21 @@ lemma second_fourier_integrable_aux1 (hcont: Continuous ψ) (hsupp: Integrable �
       · continuity
       · apply Continuous.smul
         · apply Continuous.subtype_val
-          simp [Real.fourierChar, expMapCircle, Multiplicative.ofAdd]
+          simp [Real.fourierChar, Circle.exp, Multiplicative.ofAdd]
           continuity
         · continuity
     · apply Continuous.smul
       · continuity
       · apply Continuous.smul
         · apply Continuous.subtype_val
-          simp [Real.fourierChar, expMapCircle, Multiplicative.ofAdd]
+          simp [Real.fourierChar, Circle.exp, Multiplicative.ofAdd]
           continuity
         · continuity
   · let f1 : ℝ → ENNReal := fun a1 ↦ ↑‖cexp (-(↑a1 * (↑σ' - 1)))‖₊
     let f2 : ℝ → ENNReal := fun a2 ↦ ↑‖ψ a2‖₊
     suffices ∫⁻ (a : ℝ × ℝ), f1 a.1 * f2 a.2 ∂ν < ⊤ by simpa [Function.uncurry, HasFiniteIntegral]
     refine (lintegral_prod_mul ?_ ?_).trans_lt ?_ <;> unfold_let f1 f2; fun_prop; fun_prop
-    exact ENNReal.mul_lt_top (ne_top_of_lt (second_fourier_integrable_aux1a hσ).2)
-      (ne_top_of_lt hsupp.2)
+    exact ENNReal.mul_lt_top (second_fourier_integrable_aux1a hσ).2 hsupp.2
 
 lemma second_fourier_integrable_aux2 (hσ : 1 < σ') :
     IntegrableOn (fun (u : ℝ) ↦ cexp ((1 - ↑σ' - ↑t * I) * ↑u)) (Ioi (-Real.log x)) := by
@@ -288,14 +297,20 @@ so by Fubini's theorem it suffices to verify the identity
   rw [MeasureTheory.integral_integral_swap] ; swap ; exact second_fourier_integrable_aux1 hcont hsupp hσ
   rw [← integral_mul_left]
   congr 1; ext t
-  dsimp [Real.fourierChar, expMapCircle]
-  simp_rw [← mul_assoc _ _ (ψ _), integral_mul_right]
+  dsimp [Real.fourierChar, Circle.exp]
+
+  simp_rw [mul_smul_comm, ← smul_mul_assoc, integral_mul_right]
   rw [fun (a b d : ℂ) ↦ show a * (b * (ψ t) * d) = (a * b * d) * ψ t by ring]
   congr 1
   push_cast
+  conv =>
+    lhs
+    enter [2]
+    ext a
+    rw [Submonoid.mk_smul, smul_eq_mul]
   simp_rw [← Complex.exp_add]
   have (u : ℝ) :
-      -↑u * (↑σ' - 1) + 2 * ↑π * -(↑t * (↑u / (2 * ↑π))) * I = (1 - σ' - t * I) * u := calc
+      2 * ↑π * -(↑t * (↑u / (2 * ↑π))) * I + -↑u * (↑σ' - 1) = (1 - σ' - t * I) * u := calc
     _ = -↑u * (↑σ' - 1) + (2 * ↑π) / (2 * ↑π) * -(↑t * ↑u) * I := by ring
     _ = -↑u * (↑σ' - 1) + 1 * -(↑t * ↑u) * I := by rw [div_self (by norm_num; exact pi_ne_zero)]
     _ = _ := by ring
@@ -340,12 +355,12 @@ for all $u \in \R$, where $C$ is an absolute constant.
 lemma decay_bounds_key (f : W21) (u : ℝ) : ‖𝓕 f u‖ ≤ ‖f‖ * (1 + u ^ 2)⁻¹ := by
   have l1 : 0 < 1 + u ^ 2 := one_add_sq_pos _
   have l2 : 1 + u ^ 2 = ‖(1 : ℂ) + u ^ 2‖ := by
-    norm_cast ; simp only [Complex.norm_eq_abs, Complex.abs_ofReal, abs_eq_self.2 l1.le]
+    norm_cast ; simp only [Real.norm_eq_abs, abs_eq_self.2 l1.le]
   have l3 : ‖1 / ((4 : ℂ) * ↑π ^ 2)‖ ≤ (4 * π ^ 2)⁻¹ := by simp
   have key := fourierIntegral_self_add_deriv_deriv f u
   simp only [Function.iterate_succ _ 1, Function.iterate_one, Function.comp_apply] at key
   rw [F_sub f.hf (f.hf''.const_mul (1 / (4 * ↑π ^ 2)))] at key
-  rw [← div_eq_mul_inv, le_div_iff l1, mul_comm, l2, ← norm_mul, key, sub_eq_add_neg]
+  rw [← div_eq_mul_inv, le_div_iff₀ l1, mul_comm, l2, ← norm_mul, key, sub_eq_add_neg]
   apply norm_add_le _ _ |>.trans
   change _ ≤ W21.norm _
   rw [norm_neg, F_mul, norm_mul, W21.norm]
@@ -355,7 +370,7 @@ lemma decay_bounds_aux {f : ℝ → ℂ} (hf : AEStronglyMeasurable f volume) (h
     ∫ t, ‖f t‖ ≤ π * A := by
   have l1 : Integrable (fun x ↦ A * (1 + x ^ 2)⁻¹) := integrable_inv_one_add_sq.const_mul A
   simp_rw [← integral_univ_inv_one_add_sq, mul_comm, ← integral_mul_left]
-  exact integral_mono (l1.mono' hf (eventually_of_forall h)).norm l1 h
+  exact integral_mono (l1.mono' hf (Eventually.of_forall h)).norm l1 h
 
 theorem decay_bounds_W21 (f : W21) (hA : ∀ t, ‖f t‖ ≤ A / (1 + t ^ 2))
     (hA' : ∀ t, ‖deriv (deriv f) t‖ ≤ A / (1 + t ^ 2)) (u) :
@@ -382,7 +397,7 @@ lemma decay_bounds_cor_aux (ψ : CS 2 ℂ) : ∃ C : ℝ, ∀ u, ‖ψ u‖ ≤ 
   refine ⟨C, fun u => ?_⟩
   specialize hC u
   simp only [norm_mul, Complex.norm_eq_abs, Complex.abs_ofReal, abs_eq_self.mpr (one_add_sq_pos u).le] at hC
-  rwa [le_div_iff' (one_add_sq_pos _)]
+  rwa [le_div_iff₀' (one_add_sq_pos _)]
 
 lemma decay_bounds_cor (ψ : W21) :
     ∃ C : ℝ, ∀ u, ‖𝓕 ψ u‖ ≤ C / (1 + u ^ 2) := by
@@ -399,7 +414,7 @@ lemma W21.integrable_fourier (ψ : W21) (hc : c ≠ 0) :
     apply Continuous.aestronglyMeasurable ; continuity
   obtain ⟨C, h⟩ := decay_bounds_cor ψ
   apply @Integrable.mono' ℝ ℂ _ volume _ _ (fun u => C / (1 + (u / c) ^ 2)) (l1 C) l2 ?_
-  apply eventually_of_forall (fun x => h _)
+  apply Eventually.of_forall (fun x => h _)
 
 /-%%
 \begin{proof} \leanok From two integration by parts we obtain the identity
@@ -458,7 +473,7 @@ lemma limiting_fourier_aux (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1
 
   simp_rw [l1 σ' hσ', l2 σ' hσ', ← integral_mul_left, ← integral_sub l4 l5]
   apply integral_congr_ae
-  apply eventually_of_forall
+  apply Eventually.of_forall
   intro u
   have e1 : 1 < ((σ' : ℂ) + (u : ℂ) * I).re := by simp [hσ']
   simp_rw [hG' e1, sub_mul, ← mul_assoc]
@@ -492,11 +507,14 @@ lemma neg_cumsum [AddCommGroup E] {u : ℕ → E} : -(cumsum u) = cumsum (-u) :=
 
 lemma cumsum_nonneg {u : ℕ → ℝ} (hu : 0 ≤ u) : 0 ≤ cumsum u := fun _ => Finset.sum_nonneg (fun i _ => hu i)
 
+omit [Sub α] in
 lemma neg_nabla [Ring E] {u : α → E} : -(nabla u) = nnabla u := by ext n ; simp [nabla, nnabla]
 
+omit [Sub α] in
 @[simp] lemma nabla_mul [Ring E] {u : α → E} {c : E} : nabla (fun n => c * u n) = c • nabla u := by
   ext n ; simp [nabla, mul_sub]
 
+omit [Sub α] in
 @[simp] lemma nnabla_mul [Ring E] {u : α → E} {c : E} : nnabla (fun n => c * u n) = c • nnabla u := by
   ext n ; simp [nnabla, mul_sub]
 
@@ -870,7 +888,7 @@ theorem limiting_fourier_lim1 (hcheby : cheby f) (ψ : W21) (hx : 0 < x) :
     refine tendsto_const_nhds.div ?_ (by simp [h])
     simpa using ((continuous_ofReal.tendsto 1).mono_left nhdsWithin_le_nhds).const_cpow
   · rw [eventually_nhdsWithin_iff]
-    apply eventually_of_forall
+    apply Eventually.of_forall
     intro σ' (hσ' : 1 < σ') n
     rw [norm_mul, ← nterm_eq_norm_term]
     refine mul_le_mul ?_ (hC _) (norm_nonneg _) (div_nonneg (norm_nonneg _) (Nat.cast_nonneg _))
@@ -897,7 +915,7 @@ theorem limiting_fourier_lim2 (A : ℝ) (ψ : W21) (hx : 1 ≤ x) :
       tendsto_nhdsWithin_of_tendsto_nhds (by simpa using this.const_sub 1)
     simpa using tendsto_const_nhds.rpow this (Or.inl (zero_lt_one.trans_le hx).ne.symm)
   · refine tendsto_integral_filter_of_dominated_convergence _ ?_ ?_ (limiting_fourier_lim2_aux x C) ?_
-    · apply eventually_of_forall ; intro σ'
+    · apply Eventually.of_forall ; intro σ'
       apply Continuous.aestronglyMeasurable
       have := continuous_FourierIntegral ψ
       continuity
@@ -905,7 +923,7 @@ theorem limiting_fourier_lim2 (A : ℝ) (ψ : W21) (hx : 1 ≤ x) :
       · apply Ioo_mem_nhdsWithin_Ioi ; simp
       · intro σ' ⟨h1, h2⟩
         rw [ae_restrict_iff' measurableSet_Ici]
-        apply eventually_of_forall
+        apply Eventually.of_forall
         intro t (ht : - Real.log x ≤ t)
         rw [norm_mul]
         refine mul_le_mul ?_ (hC _) (norm_nonneg _) (abs_nonneg _)
@@ -919,7 +937,7 @@ theorem limiting_fourier_lim2 (A : ℝ) (ψ : W21) (hx : 1 ≤ x) :
         have := mul_le_mul_of_nonneg_left l1 this
         apply (Real.exp_monotone this).trans
         simp [Real.exp_log (zero_lt_one.trans_le hx), abs_eq_self.mpr (zero_le_one.trans hx)]
-    · apply eventually_of_forall
+    · apply Eventually.of_forall
       intro x
       suffices h : Tendsto (fun n ↦ ((rexp (-x * (n - 1))) : ℂ)) (𝓝[>] 1) (𝓝 1) by simpa using h.mul_const _
       apply Tendsto.mono_left ?_ nhdsWithin_le_nhds
@@ -953,7 +971,7 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re}) (ψ : CS 2 
     · apply Continuous.const_cpow (by continuity) ; simp ; linarith
   · apply eventually_of_mem (U := Icc 1 2) (Icc_mem_nhdsWithin_Ioi (by simp))
     intro u hu
-    apply eventually_of_forall ; intro v
+    apply Eventually.of_forall ; intro v
     by_cases h : v ∈ tsupport ψ
     · have r1 : u + v * I ∈ S := by simp [S, mem_reProdIm, hu.1, hu.2, h]
       have r2 := isMaxOn_iff.mp hmax _ r1
@@ -967,7 +985,7 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re}) (ψ : CS 2 
 
   · suffices h : Continuous bound by exact h.integrable_of_hasCompactSupport ψ.h2.norm.mul_left
     have := ψ.h1.continuous ; continuity
-  · apply eventually_of_forall ; intro t
+  · apply Eventually.of_forall ; intro t
     apply Tendsto.mul_const
     apply Tendsto.mul_const
     refine (hG (1 + t * I) (by simp)).tendsto.comp <| tendsto_nhdsWithin_iff.mpr ⟨?_, ?_⟩
@@ -985,7 +1003,7 @@ lemma limiting_fourier (hcheby : cheby f)
   have l2 := limiting_fourier_lim2 A ψ hx
   have l3 := limiting_fourier_lim3 hG ψ hx
   apply tendsto_nhds_unique_of_eventuallyEq (l1.sub l2) l3
-  simpa [eventuallyEq_nhdsWithin_iff] using eventually_of_forall (limiting_fourier_aux hG' hf ψ hx)
+  simpa [eventuallyEq_nhdsWithin_iff] using Eventually.of_forall (limiting_fourier_aux hG' hf ψ hx)
 
 /-%%
 \begin{proof}
@@ -1011,11 +1029,11 @@ lemma limiting_cor_aux {f : ℝ → ℂ} : Tendsto (fun x : ℝ ↦ ∫ t, f t *
 
   have l2 : ∀ᶠ x : ℝ in atTop, ∫ t, f t * x ^ (t * I) = ∫ t, f t * exp (log x * t * I) := by
     filter_upwards [l1] with x hx
-    refine integral_congr_ae (eventually_of_forall (fun x => by simp [hx]))
+    refine integral_congr_ae (Eventually.of_forall (fun x => by simp [hx]))
 
   simp_rw [tendsto_congr' l2]
   convert_to Tendsto (fun x => 𝓕 f (-Real.log x / (2 * π))) atTop (𝓝 0)
-  · ext ; congr ; ext ; simp [Real.fourierChar, expMapCircle, mul_comm (f _)] ; left ; congr
+  · ext ; congr ; ext ; simp [Real.fourierChar, Circle.exp, mul_comm (f _)] ; congr
     rw [← neg_mul] ; congr ; norm_cast ; field_simp ; ring
   refine (zero_at_infty_fourierIntegral f).comp <| Tendsto.mono_right ?_ _root_.atBot_le_cocompact
   exact (tendsto_neg_atBot_iff.mpr tendsto_log_atTop).atBot_mul_const (inv_pos.mpr two_pi_pos)
@@ -1404,7 +1422,7 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
   simp only [zero_add] at this
   apply this.trans
   rw [@intervalIntegral.integral_comp_div ℝ _ _ 0 ↑(n - 1) x (fun t => x⁻¹ * hh (π⁻¹ * 2⁻¹) (t)) l0]
-  simp [← mul_assoc, mul_inv_cancel l0]
+  simp [← mul_assoc, mul_inv_cancel₀ l0]
   have : (0 : ℝ) ≤ ↑(n - 1) / x := by positivity
   rw [intervalIntegral.intervalIntegral_eq_integral_uIoc]
   simp [this]
@@ -1477,7 +1495,7 @@ lemma bound_I2 (x : ℝ) (ψ : W21) :
     refine ((l3.const_mul (W21.norm ψ)).mono' ?_ ?_).integrableOn
     · apply Continuous.aestronglyMeasurable ; continuity
     · simp only [norm_norm, key] ; simp
-  have l5 : 0 ≤ᵐ[volume] fun a ↦ (1 + (a / (2 * π)) ^ 2)⁻¹ := by apply eventually_of_forall ; intro x ; positivity
+  have l5 : 0 ≤ᵐ[volume] fun a ↦ (1 + (a / (2 * π)) ^ 2)⁻¹ := by apply Eventually.of_forall ; intro x ; positivity
   refine (norm_integral_le_integral_norm _).trans <| (setIntegral_mono l1 l2 key).trans ?_
   rw [integral_mul_left] ; gcongr ; apply W21.norm_nonneg
   refine (setIntegral_le_integral l3 l5).trans ?_
@@ -1668,7 +1686,7 @@ theorem wiener_ikehara_smooth_sub (h1 : Integrable Ψ) (hplus : closure (Functio
   have l2 : Integrable (indicator (Ioi 0) (fun x : ℝ => Ψ x)) := h1.indicator measurableSet_Ioi
 
   simp_rw [← MeasureTheory.integral_indicator measurableSet_Ioi, ← mul_sub, ← integral_sub l1 l2]
-  simp ; right ; apply MeasureTheory.integral_eq_zero_of_ae ; apply eventually_of_forall ; intro t ; simp
+  simp ; right ; apply MeasureTheory.integral_eq_zero_of_ae ; apply Eventually.of_forall ; intro t ; simp
 
   have hε' : 0 < ε⁻¹ := by positivity
   have hx : 0 < x := by linarith
@@ -1831,7 +1849,7 @@ lemma WI_summable {f : ℕ → ℝ} {g : ℝ → ℝ} (hg : HasCompactSupport g)
   obtain ⟨M, hM⟩ := hg.bddAbove.mono subset_closure
   apply summable_of_finite_support
   simp only [Function.support_mul] ; apply Finite.inter_of_right ; rw [finite_iff_bddAbove]
-  exact ⟨Nat.ceil (M * x), fun i hi => by simpa using Nat.ceil_mono ((div_le_iff hx).mp (hM hi))⟩
+  exact ⟨Nat.ceil (M * x), fun i hi => by simpa using Nat.ceil_mono ((div_le_iff₀ hx).mp (hM hi))⟩
 
 lemma WI_sum_le {f : ℕ → ℝ} {g₁ g₂ : ℝ → ℝ} (hf : 0 ≤ f) (hg : g₁ ≤ g₂) (hx : 0 < x)
     (hg₁ : HasCompactSupport g₁) (hg₂ : HasCompactSupport g₂) :
@@ -1845,13 +1863,13 @@ lemma WI_sum_Iab_le {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : cheby
   have hx : 0 < x := by linarith
   have hxb' : 2 < x * b := (div_lt_iff hb).mp hxb
   have l1 (i : ℕ) (hi : i ∉ Finset.range ⌈b * x⌉₊) : f i * indicator (Ico a b) 1 (i / x) = 0 := by
-    simp at hi ⊢ ; right ; rintro - ; rw [le_div_iff hx] ; linarith
+    simp at hi ⊢ ; right ; rintro - ; rw [le_div_iff₀ hx] ; linarith
   have l2 (i : ℕ) (_ : i ∈ Finset.range ⌈b * x⌉₊) : f i * indicator (Ico a b) 1 (i / x) ≤ |f i| := by
     rw [abs_eq_self.mpr (hpos _)]
     convert_to _ ≤ f i * 1 ; ring
     apply mul_le_mul_of_nonneg_left ?_ (hpos _)
     by_cases hi : (i / x) ∈ (Ico a b) <;> simp [hi]
-  rw [tsum_eq_sum l1, div_le_iff hx, mul_assoc, mul_assoc]
+  rw [tsum_eq_sum l1, div_le_iff₀ hx, mul_assoc, mul_assoc]
   apply Finset.sum_le_sum l2 |>.trans
   have := hcheby ⌈b * x⌉₊ ; simp at this ; apply this.trans
   have : 0 ≤ C := by have := hcheby 1 ; simp only [cumsum, Finset.range_one, Complex.norm_eq_abs,
@@ -1921,7 +1939,7 @@ theorem residue_nonneg {f : ℕ → ℝ} (hpos : 0 ≤ f)
   have l1 : ∀ᶠ x in atTop, 0 ≤ S ψ x := hSnonneg l2
   have l3 : 0 ≤ A * ∫ (y : ℝ) in Ioi 0, ψ y := ge_of_tendsto key l1
   have l4 : 0 < ∫ (y : ℝ) in Ioi 0, ψ y := by
-    have r1 : 0 ≤ᵐ[Measure.restrict volume (Ioi 0)] ψ := eventually_of_forall l2
+    have r1 : 0 ≤ᵐ[Measure.restrict volume (Ioi 0)] ψ := Eventually.of_forall l2
     have r2 : IntegrableOn (fun y ↦ ψ y) (Ioi 0) volume :=
       (h1.continuous.integrable_of_hasCompactSupport h2).integrableOn
     have r3 : Ico 1 2 ⊆ Function.support ψ := by intro x hx ; have := h4 x ; simp [hx] at this ⊢ ; linarith
@@ -2012,13 +2030,13 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
 %%-/
 
 lemma le_floor_mul_iff (hb : 0 ≤ b) (hx : 0 < x) : n ≤ ⌊b * x⌋₊ ↔ n / x ≤ b := by
-  rw [div_le_iff hx, Nat.le_floor_iff] ; positivity
+  rw [div_le_iff₀ hx, Nat.le_floor_iff] ; positivity
 
 lemma lt_ceil_mul_iff (hx : 0 < x) : n < ⌈b * x⌉₊ ↔ n / x < b := by
   rw [div_lt_iff hx, Nat.lt_ceil]
 
 lemma ceil_mul_le_iff (hx : 0 < x) : ⌈a * x⌉₊ ≤ n ↔ a ≤ n / x := by
-  rw [le_div_iff hx, Nat.ceil_le]
+  rw [le_div_iff₀ hx, Nat.ceil_le]
 
 lemma mem_Icc_iff_div (hb : 0 ≤ b) (hx : 0 < x) : n ∈ Finset.Icc ⌈a * x⌉₊ ⌊b * x⌋₊ ↔ n / x ∈ Icc a b := by
   rw [Finset.mem_Icc, mem_Icc, ceil_mul_le_iff hx, le_floor_mul_iff hb hx]

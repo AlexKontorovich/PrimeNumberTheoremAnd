@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Arend Mellendijk
 -/
 
-import Mathlib.Logic.Embedding.Basic
+import Batteries.Tactic.Lemma
+import Mathlib.Algebra.Star.Order
 import Mathlib.NumberTheory.ArithmeticFunction
-import Mathlib
 
 /-!
 # Sets of tuples with a fixed product
@@ -20,6 +20,8 @@ This file defines the finite set of `d`-tuples of natural numbers with a fixed p
 
 See PR #10668
 -/
+
+set_option lang.lemmaCmd true
 
 open Finset
 open scoped BigOperators ArithmeticFunction
@@ -203,8 +205,11 @@ private theorem primeFactorsPiBij_inj (d n : ℕ)
   · rw [Finset.prod_filter]
     convert Finset.dvd_prod_of_mem _ (mem_attach (n.primeFactors) ⟨p, hp⟩)
     rw [if_pos rfl]
-  · rw [mem_primeFactors_iff_mem_primeFactorsList] at hp
-    rw [mem_primeFactorsList sorry] at hp -- This sorry was adding when bumping to v4.10.
+  · have hn : n ≠ 0 := by
+      rintro rfl
+      simp at hp
+    rw [mem_primeFactors_iff_mem_primeFactorsList] at hp
+    rw [mem_primeFactorsList hn] at hp
     rw [Prime.dvd_finset_prod_iff hp.1.prime]
     push_neg
     intro q hq

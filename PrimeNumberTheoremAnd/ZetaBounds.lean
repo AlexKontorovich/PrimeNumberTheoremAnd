@@ -10,6 +10,8 @@ import Mathlib.MeasureTheory.Function.Floor
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.NumberTheory.Harmonic.Bounds
 
+set_option lang.lemmaCmd true
+
 open Complex Topology Filter Interval Set
 
 lemma div_cpow_eq_cpow_neg (a x s : ℂ) : a / x ^ s = a * x ^ (-s) := by
@@ -88,7 +90,7 @@ lemma Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (xpos : 0 < x) 
 lemma Complex.one_div_cpow_eq {s : ℂ} {x : ℝ} (x_ne : x ≠ 0) :
     1 / (x : ℂ) ^ s = (x : ℂ) ^ (-s) := by
   refine (eq_one_div_of_mul_eq_one_left ?_).symm
-  rw [← cpow_add _ _ <| mod_cast x_ne, add_left_neg, cpow_zero]
+  rw [← cpow_add _ _ <| mod_cast x_ne, neg_add_cancel, cpow_zero]
 
 -- No longer used
 lemma ContDiffOn.hasDeriv_deriv {φ : ℝ → ℂ} {s : Set ℝ} (φDiff : ContDiffOn ℝ 1 φ s) {x : ℝ}
@@ -257,7 +259,7 @@ lemma interval_induction (P : ℝ → ℝ → Prop)
     (a b : ℝ) (hab : a < b) : P a b := by
   set n := ⌊b⌋ - ⌊a⌋ with hn
   clear_value n
-  have : 0 ≤ n := by simp only [hn, sub_nonneg, ge_iff_le, Int.floor_le_floor _ _ (hab.le)]
+  have : 0 ≤ n := by simp only [hn, sub_nonneg, ge_iff_le, Int.floor_le_floor hab.le]
   lift n to ℕ using this
   exact interval_induction_aux_int n P base step a b hab hn
 
@@ -292,7 +294,7 @@ lemma integrability_aux₀ {a b : ℝ} :
   apply (MeasureTheory.ae_restrict_iff' measurableSet_Icc).mpr
   refine MeasureTheory.ae_of_all _ (fun x hx ↦ ?_)
   simp only [inf_le_iff, le_sup_iff, mem_Icc] at hx
-  simp only [norm_int, Real.norm_eq_abs]
+  simp only [norm_intCast, Real.norm_eq_abs]
   have : |x| ≤ max |a| |b| := by
     cases' hx.1 with x_ge_a x_ge_b <;> cases' hx.2 with x_le_a x_le_b
     · rw [(by linarith : x = a)]; apply le_max_left
@@ -1227,7 +1229,7 @@ lemma UpperBnd_aux2 {A σ t : ℝ} (t_ge : 3 < |t|) (σ_ge : 1 - A / Real.log |t
   apply le_trans this ?_
   conv => lhs; lhs; rw [← Real.exp_log (by linarith : 0 < |t|)]
   rw [div_eq_mul_inv, Real.rpow_mul (by positivity), ← Real.exp_mul, ← Real.exp_mul, mul_comm,
-    ← mul_assoc, inv_mul_cancel, one_mul]
+    ← mul_assoc, inv_mul_cancel₀, one_mul]
   apply Real.log_ne_zero.mpr; split_ands <;> linarith
 
 lemma riemannZeta0_zero_aux (N : ℕ) (Npos : 0 < N):
@@ -1278,8 +1280,8 @@ lemma Nat.self_div_floor_bound {t : ℝ} (t_ge : 1 ≤ |t|) : let N := ⌊|t|⌋
   have Npos : 0 < N := Nat.floor_pos.mpr (by linarith)
   have N_le_t : N ≤ |t| := Nat.floor_le <| abs_nonneg _
   constructor
-  · apply le_div_iff (by simp [Npos]) |>.mpr; simp [N_le_t]
-  · apply div_le_iff (by positivity) |>.mpr
+  · apply le_div_iff₀ (by simp [Npos]) |>.mpr; simp [N_le_t]
+  · apply div_le_iff₀ (by positivity) |>.mpr
     suffices |t| < N + 1 by linarith [(by exact_mod_cast (by omega) : 1 ≤ (N : ℝ))]
     apply Nat.lt_floor_add_one
 
@@ -1296,21 +1298,21 @@ lemma UpperBnd_aux6 {σ t : ℝ} (t_ge : 3 < |t|) (hσ : σ ∈ Ioc (1 / 2) 2)
   have bnd := UpperBnd_aux5 t_ge hσ.2
   have bnd' : (|t| / ⌊|t|⌋₊) ^ σ ≤ 2 * |t| := by linarith
   split_ands
-  · apply (div_le_iff <| norm_pos_iff.mpr <| sub_ne_zero_of_ne neOne.symm).mpr
+  · apply (div_le_iff₀ <| norm_pos_iff.mpr <| sub_ne_zero_of_ne neOne.symm).mpr
     conv => rw [mul_assoc]; rhs; rw [mul_comm]
-    apply (div_le_iff <| Real.rpow_pos_of_pos (by linarith) _).mp
+    apply (div_le_iff₀ <| Real.rpow_pos_of_pos (by linarith) _).mp
     rw [div_rpow_eq_rpow_div_neg (by positivity) (by positivity), neg_sub]
     refine le_trans₄ ?_ bnd' ?_
     · exact Real.rpow_le_rpow_of_exponent_le (one_le_div (by positivity) |>.mpr N_le_t) (by simp)
     · apply (mul_le_mul_left (by norm_num)).mpr; simpa using abs_im_le_abs (1 - (σ + t * I))
-  · apply div_le_iff (by norm_num) |>.mpr
+  · apply div_le_iff₀ (by norm_num) |>.mpr
     rw [Real.rpow_sub (by linarith), Real.rpow_one, div_mul_eq_mul_div, mul_comm]
-    apply div_le_iff (by positivity) |>.mp
+    apply div_le_iff₀ (by positivity) |>.mp
     convert bnd' using 1
     rw [← Real.rpow_neg (by linarith), div_rpow_neg_eq_rpow_div (by positivity) (by positivity)]
-  · apply div_le_iff (by linarith [hσ.1]) |>.mpr
+  · apply div_le_iff₀ (by linarith [hσ.1]) |>.mpr
     rw [mul_assoc, mul_comm, mul_assoc]
-    apply div_le_iff' (by positivity) |>.mp
+    apply div_le_iff₀' (by positivity) |>.mp
     apply le_trans ?_ (by linarith [hσ.1] : 4 ≤ σ * 8)
     convert bnd using 1; exact div_rpow_neg_eq_rpow_div (by positivity) (by positivity)
 
@@ -1484,8 +1486,8 @@ lemma DerivUpperBnd_aux2 {A σ t : ℝ}(t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A
           N ^ (1 - σ) / ‖1 - (↑σ + ↑t * I)‖ * 1 / ‖1 - (↑σ + ↑t * I)‖)]
   apply mul_le_mul ?_ ?_ (inv_nonneg.mpr <| norm_nonneg _) ?_
   · rw [mul_one]; exact le_trans h (by gcongr; exact UpperBnd_aux2 t_gt hσ.1)
-  · rw [inv_eq_one_div, div_le_iff <| norm_pos_iff.mpr <| sub_ne_zero_of_ne neOne.symm,
-        mul_comm, ← mul_div_assoc, mul_one, le_div_iff (by norm_num), one_mul]
+  · rw [inv_eq_one_div, div_le_iff₀ <| norm_pos_iff.mpr <| sub_ne_zero_of_ne neOne.symm,
+        mul_comm, ← mul_div_assoc, mul_one, le_div_iff₀ (by norm_num), one_mul]
     apply le_trans t_gt.le ?_
     rw [← abs_neg]; convert abs_im_le_abs (1 - (σ + t * I)); simp
   · exact mul_nonneg (Real.exp_nonneg _) (by norm_num)
@@ -1761,7 +1763,7 @@ $$
 lemma ZetaNear1BndFilter:
     (fun σ : ℝ ↦ ζ σ) =O[𝓝[>](1 : ℝ)] (fun σ ↦ (1 : ℂ) / (σ - 1)) := by
   have := Tendsto_nhdsWithin_punctured_add (a := -1) (x := 1)
-  simp only [add_right_neg, ← sub_eq_add_neg] at this
+  simp only [add_neg_cancel, ← sub_eq_add_neg] at this
   have := riemannZeta_isBigO_near_one_horizontal.comp_tendsto this
   convert this using 1 <;> {ext; simp}
 /-%%
@@ -1817,13 +1819,13 @@ lemma ZetaNear1BndExact:
     apply le_trans hσ ?_
     norm_cast
     have : 0 ≤ 1 / (σ - 1) := by apply one_div_nonneg.mpr; linarith
-    simp only [norm_eq_abs, Complex.abs_ofReal, abs_eq_self.mpr this, mul_div, mul_one]
+    simp only [Real.norm_eq_abs, abs_eq_self.mpr this, mul_div, mul_one]
     exact div_le_div (by simp [Cpos.le]) (by simp) (by linarith) (by rfl)
   · replace hσ : σ ∈ W := by
       simp only [mem_inter_iff, hV σ_ge, and_true] at hσ
       simp only [mem_Icc, σ_le, and_true, W]
       contrapose! hσ; exact hε ⟨σ_ge.le, hσ⟩
-    apply le_trans (hC σ hσ).le ((le_div_iff (by linarith)).mpr ?_)
+    apply le_trans (hC σ hσ).le ((le_div_iff₀ (by linarith)).mpr ?_)
     rw [le_max_iff, mul_comm 2]; exact Or.inl <| mul_le_mul_of_nonneg_left (by linarith) Cpos.le
 /-%%
 \begin{proof}\uses{ZetaNear1BndFilter}\leanok
@@ -1842,7 +1844,7 @@ $$
 %%-/
 lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
     1 / ‖ζ (σ + t * I)‖ ≤ ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) := by
-  apply (div_le_iff ?_).mpr
+  apply (div_le_iff₀ ?_).mpr
   apply (Real.rpow_le_rpow_iff (z := 4) (by norm_num) ?_ (by norm_num)).mp
   · simp only [Real.one_rpow]
     rw [Real.mul_rpow, Real.mul_rpow, ← Real.rpow_mul, ← Real.rpow_mul]
@@ -2133,7 +2135,7 @@ lemma ZetaInvBnd :
   set s' := σ' + t * I
   by_cases h0 : ‖ζ s‖ ≠ 0
   swap; simp only [ne_eq, not_not] at h0; simp only [h0, div_zero]; positivity
-  apply div_le_iff (by positivity) |>.mpr <| div_le_iff' (by positivity) |>.mp ?_
+  apply div_le_iff₀ (by positivity) |>.mpr <| div_le_iff₀' (by positivity) |>.mp ?_
   have pos_aux : 0 < (σ' - 1) := by linarith
   calc
     _ ≥ ‖ζ s'‖ - ‖ζ s - ζ s'‖ := ?_
@@ -2172,9 +2174,9 @@ lemma ZetaInvBnd :
     conv => rhs; lhs; rw [mul_assoc, ← Real.rpow_add (by positivity)]
     conv => rhs; rhs; rhs; rw [mul_comm _ A]; lhs; rw [mul_assoc, mul_assoc C₂]
     rw [← Real.rpow_add (by positivity)]; norm_num; group; exact le_rfl
-  · apply div_le_iff (by positivity) |>.mpr
+  · apply div_le_iff₀ (by positivity) |>.mpr
     conv => rw [mul_assoc]; rhs; rhs; rw [mul_comm C, ← mul_assoc, ← Real.rpow_add (by positivity)]
-    have := inv_inv C ▸ mul_inv_cancel (a := C⁻¹) (by positivity) |>.symm.le
+    have := inv_inv C ▸ mul_inv_cancel₀ (a := C⁻¹) (by positivity) |>.symm.le
     simpa [C] using this
 /-%%
 \begin{proof}\leanok
