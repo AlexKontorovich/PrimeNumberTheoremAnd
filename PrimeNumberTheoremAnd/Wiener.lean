@@ -1250,7 +1250,6 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
   convert _root_.add_le_add l1 l3
 
   have := @intervalIntegral.integral_comp_mul_add ℝ _ _ 1 (n + 1) 1 f one_ne_zero x₀
-  simp [add_comm _ x₀] at this ; rw [this]
   rw [intervalIntegral.integral_add_adjacent_intervals]
   · apply IntegrableOn.intervalIntegrable
     simp only [ge_iff_le, le_add_iff_nonneg_right, zero_le_one, uIcc_of_le]
@@ -1267,7 +1266,7 @@ lemma hh_integrable_aux (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
 
   simp only [integrableOn_Ici_iff_integrableOn_Ioi, hh]
 
-  let g (x : ℝ) := (a * c / b) * arctan (b * log (x / c))
+  let g (x : ℝ) := (a * c / b) * Real.arctan (b * log (x / c))
   let g₀ (x : ℝ) := if x = 0 then ((a * c / b) * (- (π / 2))) else g x
   let g' (x : ℝ) := a * (x / c * (1 + (b * Real.log (x / c)) ^ 2))⁻¹
 

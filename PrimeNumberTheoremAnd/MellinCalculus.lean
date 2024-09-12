@@ -638,7 +638,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     _ = ∫ (y : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * ∫ (x : ℝ) in Ioi 0, g x * ↑x ^ (s - 1) := ?_
     _ = _ := integral_mul_right _ _
   <;> try (rw [setIntegral_congr (by simp)]; intro y hy; simp only [ofReal_mul])
-  · simp only [integral_mul_right]; rfl
+  · simp only [integral_mul_right]
   · simp only [integral_mul_right]
     have := integral_comp_mul_right_Ioi (fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)) 0 hy
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := slitPlane_ne_zero (Or.inl hy)

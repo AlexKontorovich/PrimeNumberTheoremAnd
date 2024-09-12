@@ -6,7 +6,7 @@ Author: Arend Mellendijk
 
 import Mathlib.Logic.Embedding.Basic
 import Mathlib.NumberTheory.ArithmeticFunction
-
+import Mathlib
 
 /-!
 # Sets of tuples with a fixed product
@@ -162,10 +162,10 @@ lemma filter_primeFactors {m n : ℕ} (hmn : m ∣ n) (hn : n ≠ 0) :
   exact fun h _ ↦ h.trans hmn
 
 lemma finMulAntidiagonal_exists_unique_prime_dvd {d n p : ℕ} (hn : Squarefree n)
-    (hp : p ∈ n.factors) (f : Fin d → ℕ) (hf : f ∈ finMulAntidiagonal d n) :
+    (hp : p ∈ n.primeFactorsList) (f : Fin d → ℕ) (hf : f ∈ finMulAntidiagonal d n) :
     ∃! i, p ∣ f i := by
   rw [mem_finMulAntidiagonal] at hf
-  rw [mem_factors hf.2, ← hf.1, hp.1.prime.dvd_finset_prod_iff] at hp
+  rw [mem_primeFactorsList hf.2, ← hf.1, hp.1.prime.dvd_finset_prod_iff] at hp
   obtain ⟨i, his, hi⟩ := hp.2
   refine ⟨i, hi, ?_⟩
   intro j hj
@@ -203,21 +203,23 @@ private theorem primeFactorsPiBij_inj (d n : ℕ)
   · rw [Finset.prod_filter]
     convert Finset.dvd_prod_of_mem _ (mem_attach (n.primeFactors) ⟨p, hp⟩)
     rw [if_pos rfl]
-  · rw [mem_primeFactors] at hp
+  · rw [mem_primeFactors_iff_mem_primeFactorsList] at hp
+    rw [mem_primeFactorsList sorry] at hp -- This sorry was adding when bumping to v4.10.
     rw [Prime.dvd_finset_prod_iff hp.1.prime]
     push_neg
     intro q hq
-    rw [Nat.prime_dvd_prime_iff_eq hp.1 (Nat.prime_of_mem_factors $ List.mem_toFinset.mp q.2)]
+    rw [Nat.prime_dvd_prime_iff_eq hp.1 (Nat.prime_of_mem_primeFactorsList $ List.mem_toFinset.mp q.2)]
     intro hpq; subst hpq
     rw [(mem_filter.mp hq).2] at hfg
     exact hfg rfl
+
 
 private theorem primeFactorsPiBij_surj (d n : ℕ) (hn : Squarefree n)
     (t : Fin d → ℕ) (ht : t ∈ finMulAntidiagonal d n) : ∃ (g : _)
       (hg : g ∈ pi n.primeFactors fun _ => univ), Nat.primeFactorsPiBij d n g hg = t := by
   have exists_unique := fun (p : ℕ) (hp : p ∈ n.primeFactors) =>
     (finMulAntidiagonal_exists_unique_prime_dvd hn
-      (mem_primeFactors_iff_mem_factors.mp hp) t ht)
+      (mem_primeFactors_iff_mem_primeFactorsList.mp hp) t ht)
   choose f hf hf_unique using exists_unique
   refine ⟨f, ?_, ?_⟩
   · simp only [mem_pi]
@@ -234,7 +236,7 @@ private theorem primeFactorsPiBij_surj (d n : ℕ) (hn : Squarefree n)
   apply prod_primeFactors_of_squarefree $ hn.squarefree_of_dvd this
 
 theorem card_finMulAntidiagonal_pi (d n : ℕ) (hn : Squarefree n) :
-    (n.factors.toFinset.pi (fun _ => (univ : Finset <| Fin d))).card =
+    (n.primeFactorsList.toFinset.pi (fun _ => (univ : Finset <| Fin d))).card =
       (finMulAntidiagonal d n).card := by
   apply Finset.card_bij (Nat.primeFactorsPiBij d n) (primeFactorsPiBij_img d n hn)
     (primeFactorsPiBij_inj d n) (primeFactorsPiBij_surj d n hn)
@@ -243,6 +245,7 @@ theorem card_finMulAntidiagonal {d n : ℕ} (hn : Squarefree n) :
     (finMulAntidiagonal d n).card = d ^ ω n := by
   rw [←card_finMulAntidiagonal_pi d n hn, Finset.card_pi, Finset.prod_const,
     ArithmeticFunction.cardDistinctFactors_apply, List.card_toFinset, Finset.card_fin]
+
 
 -- theorem card_finMulAntidiagonal_fin {d : ℕ} (hd : Squarefree d) (k : ℕ) :
 --     (finMulAntidiagonal (univ : Finset <| Fin k) d).card = k ^ ω d := by
