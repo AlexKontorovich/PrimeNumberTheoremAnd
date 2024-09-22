@@ -384,7 +384,19 @@ We have
 theorem primorial_bounds :
     ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
     ∀ x : ℝ, ∏ p in (filter Nat.Prime (Iic ⌊x⌋₊)), p = exp ( x + E x ) := by
-  sorry
+  use (fun x ↦ ∑ p in (filter Nat.Prime (Iic ⌊x⌋₊)), log p - x)
+  constructor
+  exact Asymptotics.IsEquivalent.isLittleO chebyshev_asymptotic
+  intro x
+  simp
+  rw [@exp_sum]
+  apply Finset.prod_congr
+  rfl
+  intros x hx
+  rw[Real.exp_log]
+  rw[Finset.mem_filter] at hx
+  norm_cast
+  exact Nat.Prime.pos hx.right
 
 /-%%
 \begin{proof}
