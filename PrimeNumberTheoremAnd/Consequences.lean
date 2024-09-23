@@ -399,7 +399,7 @@ theorem primorial_bounds :
   exact Nat.Prime.pos hx.right
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{chebyshev-asymptotic}
   Exponentiate Theorem \ref{chebyshev-asymptotic}.
 \end{proof}
