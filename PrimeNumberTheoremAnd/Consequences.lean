@@ -61,6 +61,19 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (ϕ : ℝ → ℝ)
       rw [← cast_add_one]
       rw [Nat.sub_add_cancel this]
       rw [cast_pred this]
+  · have : m ≤ k := by simp [m, k, Nat.floor_le_floor hxy.le]
+    cases this.eq_or_lt with
+    | inl hmk =>
+      rw [hmk]
+      simp
+      sorry
+    | inr hmk =>
+      rw [← Ioo_insert_right hmk, ← Ioo_insert_left hmk]
+      rw [sum_insert left_not_mem_Ioo, sum_insert right_not_mem_Ioo]
+      simp_rw [mul_sub, sum_sub_distrib]
+      abel
+  · -- FTC-2
+    sorry
   all_goals sorry
 #exit
 lemma nth_prime_one_eq_three : nth Nat.Prime 1 = 3 := nth_count prime_three
