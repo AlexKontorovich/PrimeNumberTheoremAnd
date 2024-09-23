@@ -11,6 +11,252 @@ open Nat hiding log
 open Finset
 open BigOperators Filter Real Classical Asymptotics MeasureTheory
 
+lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (ϕ : ℝ → ℝ) (hxy : x < y):
+    ∑ n ∈ Ioc ⌊x⌋₊ ⌊y⌋₊, (a n : ℝ) * ϕ n =
+      (∑ n ∈ Iic ⌊y⌋₊, a n) * ϕ y - (∑ n ∈ Iic ⌊x⌋₊, a n) * ϕ x -
+        ∫ u in Set.Icc x y, (∑ n ∈ Iic ⌊u⌋₊, a n) * (deriv ϕ) u := by
+  let m := ⌊x⌋₊
+  let k := ⌊y⌋₊
+  let A (z : ℝ) := ∑ j ∈ Iic ⌊z⌋₊, a j
+  calc
+    _ = ∑ n ∈ Ioc m k, (A n - A (n - 1)) * ϕ n := ?_
+    _ = ∑ n ∈ Ioc m k, A n * ϕ n - ∑ n ∈ Ico m k, A n * ϕ (n + 1) := ?_
+    _ = ∑ n ∈ Ioo m k, A n * (ϕ n - ϕ (n + 1)) + A k * ϕ k - A m * ϕ (m + 1) := ?_
+    _ = - ∑ n ∈ Ioo m k, A n * (∫ t in Set.Icc (n : ℝ) (n + 1), deriv ϕ t) + A k * ϕ k - A m * ϕ (m + 1) := ?_
+    _ = - ∑ n ∈ Ioo m k, (∫ t in Set.Icc (n : ℝ) (n + 1), A t * deriv ϕ t) + A k * ϕ k - A m * ϕ (m + 1) := ?_
+    _ = - (∫ t in Set.Icc (m + 1 : ℝ) k, A t * deriv ϕ t) + A k * ϕ k - A m * ϕ (m + 1) := ?_
+    _ = - (∫ t in Set.Icc (m + 1 : ℝ) k, A t * deriv ϕ t)
+          + A y * ϕ y
+          - (∫ t in Set.Icc (k : ℝ) y, A t * deriv ϕ t)
+          - A x * ϕ x
+          - (∫ t in Set.Icc (x : ℝ) (m + 1), A t * deriv ϕ t) := ?_
+    _ = A y * ϕ y - A x * ϕ x - (∫ t in Set.Icc x y, A t * deriv ϕ t) := ?_
+  · have h1 (n : ℕ) (hn : n ≠ 0) : A n - A (n - 1) = a n := by
+      obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero hn
+      simp [A]
+      rw [floor_add_one]
+      simp only [floor_natCast]
+      rw [Iic_eq_Icc]
+      simp [← Icc_insert_succ_right]
+      simp
+    refine Finset.sum_congr rfl fun n hn => ?_
+    simp only [mem_Ioc] at hn
+    rw [h1 _ (not_eq_zero_of_lt hn.1)]
+  · simp_rw [sub_mul, sum_sub_distrib]
+    congr 1
+    apply sum_bij (fun n hn => n - 1)
+    · intro n hn
+      simp only [mem_Ioc] at hn
+      obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero (not_eq_zero_of_lt hn.1)
+      simp_all [Nat.lt_add_one_iff, add_one_le_iff]
+    · intro n₁ hn₁ n₂ hn₂ h
+      simp_all
+      apply pred_inj (pos_of_gt hn₁.1) (pos_of_gt hn₂.1) h
+    · intro n hn
+      use n + 1
+      simp_all [Nat.lt_add_one_iff, add_one_le_iff]
+    · intro n hn
+      simp only [mem_Ioc] at hn
+      have := pos_of_gt hn.1
+      rw [← cast_add_one]
+      rw [Nat.sub_add_cancel this]
+      rw [cast_pred this]
+  all_goals sorry
+#exit
+lemma nth_prime_one_eq_three : nth Nat.Prime 1 = 3 := nth_count prime_three
+
+@[simp]
+lemma Nat.primeCounting'_eq_zero_iff {n : ℕ} : n.primeCounting' = 0 ↔ n ≤ 2 := by
+  refine ⟨?_, ?_⟩
+  · contrapose!
+    intro h
+    replace h : 3 ≤ n := by omega
+    have := monotone_primeCounting' h
+    have := nth_prime_one_eq_three ▸ primeCounting'_nth_eq 1
+    omega
+  · intro hn
+    have := zeroth_prime_eq_two ▸ primeCounting'_nth_eq 0
+    have := monotone_primeCounting' hn
+    omega
+
+
+@[simp]
+lemma Nat.primeCounting_eq_zero_iff {n : ℕ} : n.primeCounting = 0 ↔ n ≤ 1 := by
+  simp [Nat.primeCounting]
+
+@[simp]
+lemma Nat.primeCounting_zero : Nat.primeCounting 0 = 0 :=
+  Nat.primeCounting_eq_zero_iff.mpr zero_le_one
+
+@[simp]
+lemma Nat.primeCounting_one : Nat.primeCounting 1 = 0 :=
+  Nat.primeCounting_eq_zero_iff.mpr le_rfl
+
+
+-- @[simps]
+-- def ArithmeticFunction.primeCounting : ArithmeticFunction ℝ where
+--   toFun x := Nat.primeCounting ⌊x⌋₊
+--   map_zero' := by simp [Nat.primeCounting_zero]
+
+-- AkraBazzi.lean
+lemma deriv_smoothingFn' {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) : deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) := by
+  have : log x ≠ 0 := Real.log_ne_zero_of_pos_of_ne_one hx_pos hx
+  rw [deriv_inv''] <;> aesop
+
+lemma deriv_smoothingFn {x : ℝ} (hx : 1 < x) : deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) :=
+  deriv_smoothingFn' (by positivity) (ne_of_gt hx)
+
+noncomputable def th (x : ℝ) := ∑ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, Real.log p
+
+lemma th_def' (x : ℝ) :
+    th x = ∑ n ∈ Iic ⌊x⌋₊, Set.indicator (setOf Nat.Prime) (fun n => log n) n := by
+  unfold th
+  rw [sum_filter]
+  refine sum_congr rfl fun n _ => ?_
+  simp [Set.indicator_apply]
+
+lemma th_eq_zero_of_lt_two {x : ℝ} (hx : x < 2) : th x = 0 := by
+  unfold th
+  convert sum_empty
+  ext y
+  simp only [mem_filter, mem_Iic, not_mem_empty, iff_false, not_and]
+  intro hy
+  have : y < 2 := by
+    cases lt_or_le x 0 with
+    | inl hx' =>
+      have := Nat.floor_of_nonpos hx'.le
+      rw [this, nonpos_iff_eq_zero] at hy
+      rw [hy]
+      norm_num
+    | inr hx' =>
+      rw [← Nat.cast_lt_ofNat (α := ℝ)]
+      apply lt_of_le_of_lt ?_ hx
+      refine (le_floor_iff hx').mp hy
+  contrapose! this
+  exact this.two_le
+
+lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
+    Nat.primeCounting ⌊x⌋₊ =
+      th x / log x + ∫ t in Set.Icc 2 x, th t / (t * (Real.log t) ^ 2) := by
+  trans th x / log x + ∫ t in Set.Icc (3 / 2) x, th t / (t * (Real.log t) ^ 2)
+  swap
+  · congr 1
+    have : Set.Icc (3/2) x = Set.Ico (3/2) 2 ∪ Set.Icc 2 x := by
+      symm
+      apply Set.Ico_union_Icc_eq_Icc ?_ hx
+      norm_num
+    rw [this, integral_union]
+    · simp only [add_left_eq_self]
+      apply integral_eq_zero_of_ae
+      simp only [measurableSet_Ico, ae_restrict_eq]
+      refine eventuallyEq_inf_principal_iff.mpr ?_
+      apply Eventually.of_forall
+      intro y hy
+      simp only [Set.mem_Ico] at hy
+      have := th_eq_zero_of_lt_two hy.2
+      simp_all
+    · rw [Set.disjoint_iff, Set.subset_empty_iff]
+      ext y
+      simp (config := {contextual := true})
+    · exact measurableSet_Icc
+    · rw [integrableOn_congr_fun (g := 0)]
+      exact integrableOn_zero
+      · intro y hy
+        simp only [Set.mem_Ico] at hy
+        have := th_eq_zero_of_lt_two hy.2
+        simp_all
+      · exact measurableSet_Ico
+    · unfold th
+      -- fun_prop
+      sorry
+
+  have h1 (r : ℝ) : ∑ p ∈ (Iic ⌊r⌋₊).filter Nat.Prime, Real.log p =
+      ∑ p ∈ (Iic ⌊r⌋₊), if p.Prime then Real.log p else 0 := by
+    rw [sum_filter]
+  -- simp_rw [h1]
+  let a : ArithmeticFunction ℝ := {
+    toFun := Set.indicator (setOf Nat.Prime) (fun n => log n)
+    map_zero' := by simp
+  }
+  have h3 (n : ℕ) : a n * (log n)⁻¹ = if n.Prime then 1 else 0 := by
+    simp only [coe_mk, ite_mul, zero_mul, a]
+    simp [Set.indicator_apply]
+    split_ifs with h
+    · refine mul_inv_cancel₀ ?_
+      refine log_ne_zero_of_pos_of_ne_one ?_ ?_ <;> norm_cast
+      exacts [h.pos, h.ne_one]
+    · rfl
+  -- stop
+  have h2 := abel_summation (ϕ := fun x => (log x)⁻¹) (a := a) (3 / 2) x
+  have h4 : ⌊(3/2 : ℝ)⌋₊ = 1 := by rw [@floor_div_ofNat]; rw [Nat.floor_ofNat]
+  have h5 : Iic 1 = {0, 1} := by ext; simp; omega
+  have h6 (N : ℕ) : (filter Nat.Prime (Ioc 1 N)).card = Nat.primeCounting N := by
+    have : filter Nat.Prime (Ioc 1 N) = filter Nat.Prime (range (N + 1)) := by
+      ext n
+      simp only [mem_filter, mem_Ioc, mem_range, and_congr_left_iff]
+      intro hn
+      simp [lt_succ, hn.one_lt]
+    rw [this]
+    simp [primeCounting, primeCounting', count_eq_card_filter_range]
+  have h7 : a 1 = 0 := by
+    simp [a]
+  have h8 (f : ℝ → ℝ) :
+    ∫ (u : ℝ) in Set.Icc (3 / 2) x, f u * deriv (fun x ↦ (log x)⁻¹) u =
+    ∫ (u : ℝ) in Set.Icc (3 / 2) x, f u * -(u * log u ^ 2)⁻¹ := by
+    apply setIntegral_congr_ae
+    · exact measurableSet_Icc
+    refine Eventually.of_forall (fun u hu => ?_)
+    have hu' : 1 < u := by
+      simp at hu
+      calc
+        (1 : ℝ) < 3/2 := by norm_num
+        _ ≤ u := hu.1
+    rw [deriv_smoothingFn hu']
+    congr
+    simp [div_eq_mul_inv, mul_comm]
+  simp [h3, h4, h5, h6, h7, h8, integral_neg] at h2
+  rw [h2]
+  simp [a, ← th_def', div_eq_mul_inv]
+
+
+-- lemma th43_b' (x : ℝ) (hx : 2 ≤ x) :
+--     Nat.primeCounting ⌊x⌋₊ =
+--     (Real.log x)⁻¹ * ∑ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, Real.log p +
+--       ∫ t in Set.Icc 2 x,
+--         (∑ p ∈ (Iic ⌊t⌋₊).filter Nat.Prime, Real.log p) * (t * (Real.log t) ^ 2)⁻¹ := by
+--   have h1 (r : ℝ) : ∑ p ∈ (Iic ⌊r⌋₊).filter Nat.Prime, Real.log p =
+--       ∑ p ∈ (Iic ⌊r⌋₊), if p.Prime then Real.log p else 0 := by
+--     rw [sum_filter]
+--   -- simp_rw [h1]
+--   have h2 := abel_summation (ϕ := fun x => (log x)⁻¹) (a := ArithmeticFunction.primeCounting) (3 / 2) x
+--   simp [ArithmeticFunction.primeCounting] at h2
+--   have : ⌊(3/2 : ℝ)⌋₊ = 1 := by rw [@floor_div_ofNat]; rw [Nat.floor_ofNat]
+--   simp [this] at h2
+--   have : Iic 1 = {0, 1} := by ext; simp; omega
+--   simp [this] at h2
+--   rw [eq_sub_iff_add_eq, add_comm, ← eq_sub_iff_add_eq] at h2
+--   -- rw [← sub_mul] at h2
+--   -- rw [← Finset.sum_sdiff_eq_sub] at h2
+--   have := deriv_smoothingFn (one_lt_two.trans_le hx)
+--   have :
+--     ∫ (u : ℝ) in Set.Icc (3 / 2) x, (∑ x ∈ Iic ⌊u⌋₊, ↑x.primeCounting) * deriv (fun x ↦ (log x)⁻¹) u =
+--     ∫ (u : ℝ) in Set.Icc (3 / 2) x, (∑ x ∈ Iic ⌊u⌋₊, ↑x.primeCounting) * -(u * log u ^ 2)⁻¹ := by
+--     apply setIntegral_congr_ae
+--     · exact measurableSet_Icc
+--     refine Eventually.of_forall (fun u hu => ?_)
+--     have hu' : 1 < u := by
+--       simp at hu
+--       calc
+--         (1 : ℝ) < 3/2 := by norm_num
+--         _ ≤ u := hu.1
+--     rw [deriv_smoothingFn hu']
+--     congr
+--     simp [div_eq_mul_inv, mul_comm]
+--   simp [this, ← sum_mul] at h2
+
+
+--   done
+-- #exit
 /-%%
 \begin{lemma}\label{range-eq-range}\lean{finsum_range_eq_sum_range, finsum_range_eq_sum_range'}\leanok For any arithmetic function $f$ and real number $x$, one has
 $$ \sum_{n \leq x} f(n) = \sum_{n \leq ⌊x⌋_+} f(n)$$
@@ -404,6 +650,58 @@ as $x \to \infty$.
 theorem pi_asymp :
     ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
     ∀ x : ℝ, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * ∫ t in Set.Icc 2 x, 1 / (log t) ∂ volume := by
+  have h0 (x : ℝ) :
+    ∫ t in Set.Icc 2 x,
+        (∑ p ∈ (Iic ⌊t⌋₊).filter Nat.Prime, Real.log p) * (t * (Real.log t) ^ 2)⁻¹ = 0 := by
+    simp_rw [sum_mul]
+    convert
+      @MeasureTheory.integral_finset_sum
+      ℝ
+      _
+      _
+      _
+      _
+      (volume.restrict (Set.Icc (2 : ℝ) x))
+      ℕ
+      ((Iic ⌊x⌋₊).filter Nat.Prime)
+      (fun i t => log ↑i * (t * log t ^ 2)⁻¹)
+      ?_
+      using 1
+      with u
+    done
+  have h1 (x : ℝ) : Nat.primeCounting ⌊x⌋₊ =
+    (Real.log x)⁻¹ * ∑ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, Real.log p +
+      ∫ t in Set.Icc 2 x,
+        (∑ p ∈ (Iic ⌊t⌋₊).filter Nat.Prime, Real.log p) * (t * (Real.log t) ^ 2)⁻¹ := by
+    -- can be proven by interchanging the sum and integral and using the fundamental theorem of
+    -- calculus
+    simp_rw [sum_mul]
+    rw [@MeasureTheory.integral_finset_sum
+      ℝ
+      _
+      _
+      _
+      _
+      (volume.restrict (Set.Icc (2 : ℝ) x))
+      ℕ
+      ((Iic ⌊x⌋₊).filter Nat.Prime)
+      fun i t => log ↑i * (t * log t ^ 2)⁻¹
+      ]
+
+    rw [← MeasureTheory.integral_subtype]
+
+    rw [@MeasureTheory.integral_finset_sum
+      (Set.Icc 2 x)
+      _
+      _
+      _
+      _
+      volume
+      (ι := ℕ) (s := (Iic ⌊x⌋₊).filter Nat.Prime)
+      ]
+    sorry
+  #check chebyshev_asymptotic
+  -- have h2 (ε : ℝ) : ∃ xε := chebyshev_asymptotic
   sorry
 
 /-%%
