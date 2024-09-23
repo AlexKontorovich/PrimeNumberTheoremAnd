@@ -227,12 +227,13 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx: 2 ≤ x) :
 
 
 
-
+/-- If u ~ v and w-u = o(v) then w ~ v. -/
 theorem Asymptotics.IsEquivalent.add_isLittleO' {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β} {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (w-u) =o[l] v) :
 Asymptotics.IsEquivalent l w v := by
   rw [<- add_sub_cancel u w]
   exact add_isLittleO huv hwu
 
+/-- If u ~ v and u-w = o(v) then w ~ v. -/
 theorem Asymptotics.IsEquivalent.add_isLittleO'' {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β} {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (u-w) =o[l] v) :
 Asymptotics.IsEquivalent l w v := by
   rw [<- sub_sub_self u w]
