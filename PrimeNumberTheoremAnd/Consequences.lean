@@ -21,15 +21,11 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
   have : m ≤ k := by simp [m, k, Nat.floor_le_floor hxy.le]
   cases this.eq_or_lt with
   | inl hmk =>
-    simp [m, k] at hmk
-    rw [hmk]
-    rw [Ioc_self]
-    simp
-    rw [← mul_sub, eq_comm, sub_eq_zero]
-    rw [← intervalIntegral.integral_deriv_eq_sub, ← intervalIntegral.integral_const_mul]
-    rw [intervalIntegral.integral_of_le hxy.le]
-    rw [integral_Ioc_eq_integral_Ioo]
-    rw [integral_Icc_eq_integral_Ioo]
+    simp only [m, k] at hmk
+    rw [hmk,Ioc_self, sum_empty, ← mul_sub, eq_comm, sub_eq_zero,
+      ← intervalIntegral.integral_deriv_eq_sub, ← intervalIntegral.integral_const_mul,
+      intervalIntegral.integral_of_le hxy.le, integral_Ioc_eq_integral_Ioo,
+      integral_Icc_eq_integral_Ioo]
     apply setIntegral_congr
     · exact measurableSet_Ioo
     · intro z hz
@@ -39,34 +35,34 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
         · exact Nat.floor_le_floor hz.2.le
         · rw [← hmk]
           exact Nat.floor_le_floor hz.1.le
-      simp [this]
+      simp only [this]
     · intros
       exact hϕ.differentiable le_rfl |>.differentiableAt
     · exact hϕ.continuous_deriv le_rfl |>.continuousOn |>.intervalIntegrable
   | inr hmk =>
   let A (z : ℝ) := ∑ j ∈ Iic ⌊z⌋₊, a j
-  have hA (z : ℝ) : A z = A ⌊z⌋₊ := by simp [A]
-  have hint (n : ℕ) (a b : ℝ) (h : Set.uIoc a b ⊆ Set.Icc n (n + 1)) :
-      ∫ t in a..b, A t * deriv ϕ t = A n * (ϕ b - ϕ a) := by
+  have hA (z : ℝ) : A z = A ⌊z⌋₊ := by simp only [floor_natCast, A]
+  have hint' (a b : ℝ) (h : Set.uIoc a b ⊆ Set.Icc ⌊a⌋₊ (⌊a⌋₊ + 1)) :
+      ∫ t in a..b, A t * deriv ϕ t = A a * (ϕ b - ϕ a) := by
     rw [← intervalIntegral.integral_deriv_eq_sub]
     · rw [← intervalIntegral.integral_const_mul]
       refine intervalIntegral.integral_congr_ae ?_
       apply eventually_iff.mpr
       simp only [le_add_iff_nonneg_right, zero_le_one, Set.uIoc_of_le, Set.mem_Ioc,
         mul_eq_mul_right_iff, and_imp]
-      rw [mem_ae_iff, ← nonpos_iff_eq_zero, ← volume_singleton (a := n + 1)]
+      rw [mem_ae_iff, ← nonpos_iff_eq_zero, ← volume_singleton (a := ⌊a⌋₊ + 1)]
       apply measure_mono
-      intro y hy
+      intro z hz
       simp only [mem_Ioo, Set.mem_compl_iff, Set.mem_setOf_eq, Classical.not_imp, not_or,
-        Set.mem_singleton_iff] at hy ⊢
-      have hy0 := h hy.1
-      simp only [Set.mem_Icc] at hy0
-      apply hy0.2.eq_or_lt.resolve_right
-      intro hy'
-      have : ⌊y⌋₊ = n := by
-        rw [Nat.floor_eq_iff (n.cast_nonneg.trans hy0.1)]
-        exact ⟨hy0.1, hy'⟩
-      apply hy.2.1
+        Set.mem_singleton_iff] at hz ⊢
+      have hz0 := h hz.1
+      simp only [Set.mem_Icc] at hz0
+      apply hz0.2.eq_or_lt.resolve_right
+      intro hz'
+      have : ⌊z⌋₊ = ⌊a⌋₊ := by
+        rw [Nat.floor_eq_iff ((Nat.cast_nonneg _).trans hz0.1)]
+        exact ⟨hz0.1, hz'⟩
+      apply hz.2.1
       simp only [← this, A, floor_natCast]
     · intros
       exact hϕ.differentiable le_rfl |>.differentiableAt
@@ -75,7 +71,6 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
     _ = ∑ n ∈ Ioc m k, (A n - A (n - 1)) * ϕ n := ?_
     _ = ∑ n ∈ Ioc m k, A n * ϕ n - ∑ n ∈ Ico m k, A n * ϕ (n + 1) := ?_
     _ = ∑ n ∈ Ioo m k, A n * (ϕ n - ϕ (n + 1)) + A k * ϕ k - A m * ϕ (m + 1) := ?_
-    _ = - ∑ n ∈ Ioo m k, A n * (∫ t in (n : ℝ)..(n + 1), deriv ϕ t) + A k * ϕ k - A m * ϕ (m + 1) := ?_
     _ = - ∑ n ∈ Ioo m k, (∫ t in (n : ℝ)..(n + 1), A t * deriv ϕ t) + A k * ϕ k - A m * ϕ (m + 1) := ?_
     _ = - (∫ t in (m + 1 : ℝ)..k, A t * deriv ϕ t) + A k * ϕ k - A m * ϕ (m + 1) := ?_
     _ = - (∫ t in (m + 1 : ℝ)..k, A t * deriv ϕ t)
@@ -86,12 +81,12 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
     _ = A y * ϕ y - A x * ϕ x - (∫ t in x..y, A t * deriv ϕ t) := ?_
   · have h1 (n : ℕ) (hn : n ≠ 0) : A n - A (n - 1) = a n := by
       obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero hn
-      simp [A]
-      rw [floor_add_one]
-      simp only [floor_natCast]
+      simp only [succ_eq_add_one, cast_add, cast_one, cast_nonneg, floor_add_one, floor_natCast,
+        add_sub_cancel_right, A]
       rw [Iic_eq_Icc]
-      simp [← Icc_insert_succ_right]
-      simp
+      simp only [bot_eq_zero', _root_.zero_le, ← Icc_insert_succ_right, mem_Icc,
+        add_le_iff_nonpos_right, nonpos_iff_eq_zero, one_ne_zero, and_false, not_false_eq_true,
+        sum_insert, add_sub_cancel_right]
     refine Finset.sum_congr rfl fun n hn => ?_
     simp only [mem_Ioc] at hn
     rw [h1 _ (not_eq_zero_of_lt hn.1)]
@@ -101,13 +96,15 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
     · intro n hn
       simp only [mem_Ioc] at hn
       obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero (not_eq_zero_of_lt hn.1)
-      simp_all [Nat.lt_add_one_iff, add_one_le_iff]
+      simp_all only [floor_natCast, succ_eq_add_one, Nat.lt_add_one_iff, add_one_le_iff,
+        add_tsub_cancel_right, mem_Ico, and_self]
     · intro n₁ hn₁ n₂ hn₂ h
-      simp_all
+      simp_all only [floor_natCast, mem_Ioc]
       apply pred_inj (pos_of_gt hn₁.1) (pos_of_gt hn₂.1) h
     · intro n hn
       use n + 1
-      simp_all [Nat.lt_add_one_iff, add_one_le_iff]
+      simp_all only [floor_natCast, mem_Ico, add_tsub_cancel_right, mem_Ioc, Nat.lt_add_one_iff,
+        add_one_le_iff, and_self, exists_const]
     · intro n hn
       simp only [mem_Ioc] at hn
       have := pos_of_gt hn.1
@@ -122,29 +119,12 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
     rw [← sum_neg_distrib]
     congr 2
     apply sum_congr rfl fun n hn => ?_
-    rw [intervalIntegral.integral_deriv_eq_sub]
+    rw [hint' n]
     · rw [neg_mul_eq_mul_neg, neg_sub]
-    · intros
-      exact hϕ.differentiable le_rfl |>.differentiableAt
-    · exact hϕ.continuous_deriv le_rfl |>.continuousOn |>.intervalIntegrable
-  · congr 3
-    apply sum_congr rfl fun n hn => ?_
-    rw [← intervalIntegral.integral_const_mul]
-    refine intervalIntegral.integral_congr_ae ?_
-    apply eventually_iff.mpr
-    simp only [le_add_iff_nonneg_right, zero_le_one, Set.uIoc_of_le, Set.mem_Ioc,
-      mul_eq_mul_right_iff, and_imp]
-    rw [mem_ae_iff, ← nonpos_iff_eq_zero, ← volume_singleton (a := n + 1)]
-    apply measure_mono
-    intro y hy
-    simp only [mem_Ioo, Set.mem_compl_iff, Set.mem_setOf_eq, Classical.not_imp, not_or,
-      Set.mem_singleton_iff] at hy ⊢
-    by_contra hy'
-    have : ⌊y⌋₊ = n := by
-      rw [Nat.floor_eq_iff (n.cast_nonneg.trans hy.1.le)]
-      exact ⟨hy.1.le, lt_of_le_of_ne hy.2.1 hy'⟩
-    apply hy.2.2.1
-    simp only [← this, A, floor_natCast]
+    · intro z hz
+      simp only [le_add_iff_nonneg_right, zero_le_one, Set.uIoc_of_le, Set.mem_Ioc, floor_natCast,
+        Set.mem_Icc] at hz ⊢
+      exact ⟨hz.1.le, hz.2⟩
   · congr 2
     rw [← Ico_succ_left]
     have : m.succ ≤ k := by
@@ -170,13 +150,20 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
     · exact hϕ.continuous_deriv le_rfl |>.continuousOn
   · rw [hA x, hA y]
     have hy : ∫ t in ↑k..y, A t * deriv ϕ t = A k * (ϕ y - ϕ k) := by
-      apply hint
+      apply hint'
       intros z hz
       have : k ≤ y := by simp [k, Nat.floor_le, (hx.trans hxy).le]
-      simp [this] at hz ⊢
-      sorry
-
-    sorry
+      simp only [this, Set.uIoc_of_le, Set.mem_Ioc, floor_natCast, Set.mem_Icc, k] at hz ⊢
+      exact ⟨hz.1.le, hz.2.trans (Nat.lt_floor_add_one _).le⟩
+    have hx : ∫ t in x..m + 1, A t * deriv ϕ t = A x * (ϕ (m + 1) - ϕ x) := by
+      apply hint'
+      intros z hz
+      have : x ≤ m + 1 := by simp only [(Nat.lt_floor_add_one x).le, m]
+      simp only [this, Set.uIoc_of_le, Set.mem_Ioc, Set.mem_Icc, m] at hz ⊢
+      refine ⟨(floor_le hx.le).trans hz.1.le, hz.2⟩
+    rw [hy, hx]
+    simp only [k, m, hA x]
+    ring
   all_goals sorry
 #exit
 lemma nth_prime_one_eq_three : nth Nat.Prime 1 = 3 := nth_count prime_three
