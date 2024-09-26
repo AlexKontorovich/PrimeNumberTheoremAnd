@@ -45,6 +45,32 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
     · exact hϕ.continuous_deriv le_rfl |>.continuousOn |>.intervalIntegrable
   | inr hmk =>
   let A (z : ℝ) := ∑ j ∈ Iic ⌊z⌋₊, a j
+  have hA (z : ℝ) : A z = A ⌊z⌋₊ := by simp [A]
+  have hint (n : ℕ) (a b : ℝ) (h : Set.uIoc a b ⊆ Set.Icc n (n + 1)) :
+      ∫ t in a..b, A t * deriv ϕ t = A n * (ϕ b - ϕ a) := by
+    rw [← intervalIntegral.integral_deriv_eq_sub]
+    · rw [← intervalIntegral.integral_const_mul]
+      refine intervalIntegral.integral_congr_ae ?_
+      apply eventually_iff.mpr
+      simp only [le_add_iff_nonneg_right, zero_le_one, Set.uIoc_of_le, Set.mem_Ioc,
+        mul_eq_mul_right_iff, and_imp]
+      rw [mem_ae_iff, ← nonpos_iff_eq_zero, ← volume_singleton (a := n + 1)]
+      apply measure_mono
+      intro y hy
+      simp only [mem_Ioo, Set.mem_compl_iff, Set.mem_setOf_eq, Classical.not_imp, not_or,
+        Set.mem_singleton_iff] at hy ⊢
+      have hy0 := h hy.1
+      simp only [Set.mem_Icc] at hy0
+      apply hy0.2.eq_or_lt.resolve_right
+      intro hy'
+      have : ⌊y⌋₊ = n := by
+        rw [Nat.floor_eq_iff (n.cast_nonneg.trans hy0.1)]
+        exact ⟨hy0.1, hy'⟩
+      apply hy.2.1
+      simp only [← this, A, floor_natCast]
+    · intros
+      exact hϕ.differentiable le_rfl |>.differentiableAt
+    · exact hϕ.continuous_deriv le_rfl |>.continuousOn |>.intervalIntegrable
   calc
     _ = ∑ n ∈ Ioc m k, (A n - A (n - 1)) * ϕ n := ?_
     _ = ∑ n ∈ Ioc m k, A n * ϕ n - ∑ n ∈ Ico m k, A n * ϕ (n + 1) := ?_
@@ -111,8 +137,8 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
     rw [mem_ae_iff, ← nonpos_iff_eq_zero, ← volume_singleton (a := n + 1)]
     apply measure_mono
     intro y hy
-    simp_all only [mem_Ioo, Set.mem_compl_iff, Set.mem_setOf_eq, Classical.not_imp, not_or,
-      Set.mem_singleton_iff]
+    simp only [mem_Ioo, Set.mem_compl_iff, Set.mem_setOf_eq, Classical.not_imp, not_or,
+      Set.mem_singleton_iff] at hy ⊢
     by_contra hy'
     have : ⌊y⌋₊ = n := by
       rw [Nat.floor_eq_iff (n.cast_nonneg.trans hy.1.le)]
@@ -127,21 +153,30 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
     rw [intervalIntegral.sum_integral_adjacent_intervals_Ico this]
     intro n hn
     apply IntervalIntegrable.mul_continuousOn
-    · simp [A]
+    · simp only [cast_add, cast_one, A]
       rw [intervalIntegrable_iff_integrableOn_Ioo_of_le, IntegrableOn]
       apply MeasureTheory.Integrable.congr (MeasureTheory.integrable_const (∑ j ∈ Iic n, a j))
-      · simp
-        rw [@eventuallyEq_inf_principal_iff]
+      · simp only [measurableSet_Ioo, ae_restrict_eq]
+        rw [eventuallyEq_inf_principal_iff]
         apply Eventually.of_forall
         intro x hx
         replace hx : ⌊x⌋₊ = n := by
-          simp at hx
+          simp only [Set.mem_Ioo] at hx
           rw [Nat.floor_eq_iff (n.cast_nonneg.trans hx.1.le)]
           exact ⟨hx.1.le, hx.2⟩
         simp [hx]
       · rw [← Nat.cast_add_one, cast_le]
         exact n.lt_add_one.le
     · exact hϕ.continuous_deriv le_rfl |>.continuousOn
+  · rw [hA x, hA y]
+    have hy : ∫ t in ↑k..y, A t * deriv ϕ t = A k * (ϕ y - ϕ k) := by
+      apply hint
+      intros z hz
+      have : k ≤ y := by simp [k, Nat.floor_le, (hx.trans hxy).le]
+      simp [this] at hz ⊢
+      sorry
+
+    sorry
   all_goals sorry
 #exit
 lemma nth_prime_one_eq_three : nth Nat.Prime 1 = 3 := nth_count prime_three
