@@ -12,10 +12,16 @@ open Finset
 open BigOperators Filter Real Classical Asymptotics MeasureTheory
 
 lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy : x < y)
-    (ϕ : ℝ → ℝ) (hϕ : ContDiffOn ℝ 1 ϕ (Set.Icc x y)) :
+    (ϕ : ℝ → ℝ) -- (hϕ : ContDiffOn ℝ 1 ϕ (Set.Icc x y))
+    (hϕ₁ : ∀ z ∈ Set.uIcc x y, DifferentiableAt ℝ ϕ z)
+    (hϕ₃ : ContinuousOn (deriv ϕ) (Set.Icc x y)) :
     ∑ n ∈ Ioc ⌊x⌋₊ ⌊y⌋₊, (a n : ℝ) * ϕ n =
       (∑ n ∈ Iic ⌊y⌋₊, a n) * ϕ y - (∑ n ∈ Iic ⌊x⌋₊, a n) * ϕ x -
         ∫ u in Set.Icc x y, (∑ n ∈ Iic ⌊u⌋₊, a n) * (deriv ϕ) u := by
+  have hϕ₂ : IntervalIntegrable (deriv ϕ) volume x y := (Set.uIcc_of_le hxy.le ▸ hϕ₃).intervalIntegrable
+  have le_add_one (n : ℕ) : (n : ℝ) ≤ n + 1 := by
+    rw [← Nat.cast_add_one, Nat.cast_le]
+    exact n.lt_add_one.le
   let m := ⌊x⌋₊
   let k := ⌊y⌋₊
   have hky : k ≤ y := by simp [k, Nat.floor_le, (hx.trans hxy).le]
@@ -24,7 +30,7 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
   | inl hmk =>
     simp only [m, k] at hmk
     rw [hmk,Ioc_self, sum_empty, ← mul_sub, eq_comm, sub_eq_zero,
-      ← intervalIntegral.integral_deriv_eq_sub, ← intervalIntegral.integral_const_mul,
+      ← intervalIntegral.integral_deriv_eq_sub hϕ₁ hϕ₂, ← intervalIntegral.integral_const_mul,
       intervalIntegral.integral_of_le hxy.le, integral_Ioc_eq_integral_Ioo,
       integral_Icc_eq_integral_Ioo]
     apply setIntegral_congr
@@ -37,13 +43,11 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
         · rw [← hmk]
           exact Nat.floor_le_floor hz.1.le
       simp only [this]
-    · intros
-      exact hϕ.differentiable le_rfl |>.differentiableAt
-    · exact hϕ.continuous_deriv le_rfl |>.continuousOn |>.intervalIntegrable
   | inr hmk =>
   let A (z : ℝ) := ∑ j ∈ Iic ⌊z⌋₊, a j
   have hA (z : ℝ) : A z = A ⌊z⌋₊ := by simp only [floor_natCast, A]
-  have hint' (a b : ℝ) (h : Set.uIoc a b ⊆ Set.Icc ⌊a⌋₊ (⌊a⌋₊ + 1)) :
+  have hint' (a b : ℝ) (hab : a ≤ b) (h : Set.Icc a b ⊆ Set.Icc ⌊a⌋₊ (⌊a⌋₊ + 1))
+      (h' : Set.Icc (⌊a⌋₊ : ℝ) (⌊a⌋₊ + 1) ⊆ Set.Icc x y)  :
       ∫ t in a..b, A t * deriv ϕ t = A a * (ϕ b - ϕ a) := by
     rw [← intervalIntegral.integral_deriv_eq_sub]
     · rw [← intervalIntegral.integral_const_mul]
@@ -56,7 +60,8 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
       intro z hz
       simp only [mem_Ioo, Set.mem_compl_iff, Set.mem_setOf_eq, Classical.not_imp, not_or,
         Set.mem_singleton_iff] at hz ⊢
-      have hz0 := h hz.1
+      rw [Set.uIoc_of_le hab] at hz
+      have hz0 := Set.Ioc_subset_Icc_self.trans h hz.1
       simp only [Set.mem_Icc] at hz0
       apply hz0.2.eq_or_lt.resolve_right
       intro hz'
@@ -65,14 +70,19 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
         exact ⟨hz0.1, hz'⟩
       apply hz.2.1
       simp only [← this, A, floor_natCast]
-    · intros
-      exact hϕ.differentiable le_rfl |>.differentiableAt
-    · exact hϕ.continuous_deriv le_rfl |>.continuousOn |>.intervalIntegrable
-  have hIntegrableOn (n : ℕ) (b c : ℝ) (hbc : b ≤ c) (h : Set.uIoc b c ⊆ Set.Icc n (n + 1)) :
+    · intros z hz
+      apply hϕ₁
+      simp only [Set.uIcc_of_le, hxy.le, hab] at *
+      exact h.trans h' hz
+    · apply hϕ₂.mono_set
+      simp only [Set.uIcc_of_le, hxy.le, hab] at *
+      exact h.trans h'
+  have hIntegrableOn (n : ℕ) (b c : ℝ) (hbc : b ≤ c) (h : Set.uIoc b c ⊆ Set.Icc n (n + 1))
+      (h' : Set.Icc (n : ℝ) (n + 1) ⊆ Set.Icc x y) :
       IntegrableOn (fun t ↦ A t * deriv ϕ t) (Set.Ico b c) volume := by
     obtain rfl | hbc := hbc.eq_or_lt
     · simp
-    have h' : Set.Icc b c ⊆ Set.Icc n (n + 1) := by
+    have h'' : Set.Icc b c ⊆ Set.Icc n (n + 1) := by
       rwa [← closure_Ioc hbc.ne, ← Set.uIoc_of_le hbc.le, isClosed_Icc.closure_subset_iff]
     apply IntegrableOn.mul_continuousOn_of_subset ?_ ?_
       measurableSet_Ico CompactIccSpace.isCompact_Icc Set.Ico_subset_Icc_self
@@ -84,7 +94,7 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
         apply Eventually.of_forall
         intro z hz
         replace hz : ⌊z⌋₊ = n := by
-          have := Set.Ico_subset_Icc_self.trans h' hz
+          have := Set.Ico_subset_Icc_self.trans h'' hz
           simp only [Set.mem_Icc] at this
           rw [Nat.floor_eq_iff (n.cast_nonneg.trans this.1)]
           refine ⟨this.1, ?_⟩
@@ -92,16 +102,16 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
           rintro rfl
           have : n + 1 < c := by simp only [Set.mem_Ico] at hz; exact hz.2
           apply this.not_le
-          have := h' <| Set.right_mem_Icc.mpr hbc.le
+          have := h'' <| Set.right_mem_Icc.mpr hbc.le
           simp only [Set.mem_Icc] at this
           exact this.2
         simp [hz]
-    · exact hϕ.continuous_deriv le_rfl |>.continuousOn
-  have hIntervalIntegrable (n : ℕ) (b c : ℝ) (hbc : b ≤ c) (h : Set.uIoc b c ⊆ Set.Icc n (n + 1)) :
+    · apply hϕ₃.mono (h''.trans h')
+  have hIntervalIntegrable (n : ℕ) (b c : ℝ) (hbc : b ≤ c) (h : Set.uIoc b c ⊆ Set.Icc n (n + 1))
+      (h' : Set.Icc (n : ℝ) (n + 1) ⊆ Set.Icc x y) :
       IntervalIntegrable (fun t ↦ A t * deriv ϕ t) volume b c := by
     rw [intervalIntegrable_iff_integrableOn_Ico_of_le hbc]
-    apply hIntegrableOn n b c hbc h
-
+    apply hIntegrableOn n b c hbc h h'
   calc
     _ = ∑ n ∈ Ioc m k, (A n - A (n - 1)) * ϕ n := ?_
     _ = ∑ n ∈ Ioc m k, A n * ϕ n - ∑ n ∈ Ico m k, A n * ϕ (n + 1) := ?_
@@ -157,29 +167,45 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
   · -- FTC-2
     rw [← sum_neg_distrib]
     congr 2
-    apply sum_congr rfl fun n _ => ?_
+    apply sum_congr rfl fun n hn => ?_
     rw [hint' n]
     · rw [neg_mul_eq_mul_neg, neg_sub]
+    · exact le_add_one n
     · intro z hz
       simp only [le_add_iff_nonneg_right, zero_le_one, Set.uIoc_of_le, Set.mem_Ioc, floor_natCast,
         Set.mem_Icc] at hz ⊢
-      exact ⟨hz.1.le, hz.2⟩
+      exact ⟨hz.1, hz.2⟩
+    · simp
+      intro z hz
+      simp at *
+      simp_rw [← Nat.add_one_le_iff, ← Nat.cast_le (α := ℝ), Nat.cast_add_one] at hn
+      exact ⟨(Nat.lt_floor_add_one x).le.trans hn.1 |>.trans hz.1, hz.2.trans hn.2 |>.trans hky⟩
   · congr 2
     rw [← Ico_succ_left]
     have : m.succ ≤ k := by
       rwa [Nat.succ_le_iff]
     simp_rw [← Nat.cast_add_one]
     rw [intervalIntegral.sum_integral_adjacent_intervals_Ico this]
-    intro n _
-    have hn := Nat.cast_le (α := ℝ).mpr n.lt_add_one.le
-    apply hIntervalIntegrable n _ _ hn
-    rw [Set.uIoc_of_le hn, Nat.cast_add_one]
-    exact Set.Ioc_subset_Icc_self
+    intro n hn
+    have hn' := Nat.cast_le (α := ℝ).mpr n.lt_add_one.le
+    apply hIntervalIntegrable n _ _ hn'
+    · simp at hn
+      simp_rw [← Nat.add_one_le_iff, ← Nat.cast_le (α := ℝ), Nat.cast_add_one] at hn
+      apply Set.Icc_subset_Icc
+      · apply (Nat.lt_floor_add_one x).le.trans hn.1
+      · apply hn.2.trans hky
+    · rw [Set.uIoc_of_le hn', Nat.cast_add_one]
+      exact Set.Ioc_subset_Icc_self
   · rw [hA x, hA y]
     have hy : ∫ t in ↑k..y, A t * deriv ϕ t = A k * (ϕ y - ϕ k) := by
       apply hint'
       intros z hz
       simp only [hky, Set.uIoc_of_le, Set.mem_Ioc, floor_natCast, Set.mem_Icc, k] at hz ⊢
+
+      · constructor
+        · apply le_trans ?_ hz.1
+
+          done
       exact ⟨hz.1.le, hz.2.trans (Nat.lt_floor_add_one _).le⟩
     have hx : ∫ t in x..m + 1, A t * deriv ϕ t = A x * (ϕ (m + 1) - ϕ x) := by
       apply hint'
