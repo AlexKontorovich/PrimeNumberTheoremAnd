@@ -10,7 +10,7 @@ open ArithmeticFunction hiding log
 open Nat hiding log
 open Finset
 open BigOperators Filter Real Classical Asymptotics MeasureTheory
-#check intervalIntegral.integral_deriv_eq_sub'
+
 lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy : x < y)
     (ϕ : ℝ → ℝ) (hϕ : ContDiff ℝ 1 ϕ) :
     ∑ n ∈ Ioc ⌊x⌋₊ ⌊y⌋₊, (a n : ℝ) * ϕ n =
@@ -18,6 +18,7 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
         ∫ u in Set.Icc x y, (∑ n ∈ Iic ⌊u⌋₊, a n) * (deriv ϕ) u := by
   let m := ⌊x⌋₊
   let k := ⌊y⌋₊
+  have hky : k ≤ y := by simp [k, Nat.floor_le, (hx.trans hxy).le]
   have : m ≤ k := by simp [m, k, Nat.floor_le_floor hxy.le]
   cases this.eq_or_lt with
   | inl hmk =>
@@ -67,6 +68,40 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
     · intros
       exact hϕ.differentiable le_rfl |>.differentiableAt
     · exact hϕ.continuous_deriv le_rfl |>.continuousOn |>.intervalIntegrable
+  have hIntegrableOn (n : ℕ) (b c : ℝ) (hbc : b ≤ c) (h : Set.uIoc b c ⊆ Set.Icc n (n + 1)) :
+      IntegrableOn (fun t ↦ A t * deriv ϕ t) (Set.Ico b c) volume := by
+    obtain rfl | hbc := hbc.eq_or_lt
+    · simp
+    have h' : Set.Icc b c ⊆ Set.Icc n (n + 1) := by
+      rwa [← closure_Ioc hbc.ne, ← Set.uIoc_of_le hbc.le, isClosed_Icc.closure_subset_iff]
+    apply IntegrableOn.mul_continuousOn_of_subset ?_ ?_
+      measurableSet_Ico CompactIccSpace.isCompact_Icc Set.Ico_subset_Icc_self
+    · simp only [cast_add, cast_one, A]
+      rw [IntegrableOn]
+      apply MeasureTheory.Integrable.congr (MeasureTheory.integrable_const (∑ j ∈ Iic n, a j))
+      · simp only [measurableSet_Ico, ae_restrict_eq]
+        rw [eventuallyEq_inf_principal_iff]
+        apply Eventually.of_forall
+        intro z hz
+        replace hz : ⌊z⌋₊ = n := by
+          have := Set.Ico_subset_Icc_self.trans h' hz
+          simp only [Set.mem_Icc] at this
+          rw [Nat.floor_eq_iff (n.cast_nonneg.trans this.1)]
+          refine ⟨this.1, ?_⟩
+          apply lt_of_le_of_ne this.2
+          rintro rfl
+          have : n + 1 < c := by simp only [Set.mem_Ico] at hz; exact hz.2
+          apply this.not_le
+          have := h' <| Set.right_mem_Icc.mpr hbc.le
+          simp only [Set.mem_Icc] at this
+          exact this.2
+        simp [hz]
+    · exact hϕ.continuous_deriv le_rfl |>.continuousOn
+  have hIntervalIntegrable (n : ℕ) (b c : ℝ) (hbc : b ≤ c) (h : Set.uIoc b c ⊆ Set.Icc n (n + 1)) :
+      IntervalIntegrable (fun t ↦ A t * deriv ϕ t) volume b c := by
+    rw [intervalIntegrable_iff_integrableOn_Ico_of_le hbc]
+    apply hIntegrableOn n b c hbc h
+
   calc
     _ = ∑ n ∈ Ioc m k, (A n - A (n - 1)) * ϕ n := ?_
     _ = ∑ n ∈ Ioc m k, A n * ϕ n - ∑ n ∈ Ico m k, A n * ϕ (n + 1) := ?_
@@ -78,6 +113,10 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
           - (∫ t in (k : ℝ)..y, A t * deriv ϕ t)
           - A x * ϕ x
           - (∫ t in (x : ℝ)..(m + 1), A t * deriv ϕ t) := ?_
+    _ = A y * ϕ y - A x * ϕ x - (
+          (∫ t in (x : ℝ)..(m + 1), A t * deriv ϕ t) +
+          (∫ t in (m + 1 : ℝ)..k, A t * deriv ϕ t) +
+          (∫ t in (k : ℝ)..y, A t * deriv ϕ t)) := ?_
     _ = A y * ϕ y - A x * ϕ x - (∫ t in x..y, A t * deriv ϕ t) := ?_
   · have h1 (n : ℕ) (hn : n ≠ 0) : A n - A (n - 1) = a n := by
       obtain ⟨n, rfl⟩ := exists_eq_succ_of_ne_zero hn
@@ -118,7 +157,7 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
   · -- FTC-2
     rw [← sum_neg_distrib]
     congr 2
-    apply sum_congr rfl fun n hn => ?_
+    apply sum_congr rfl fun n _ => ?_
     rw [hint' n]
     · rw [neg_mul_eq_mul_neg, neg_sub]
     · intro z hz
@@ -131,29 +170,16 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
       rwa [Nat.succ_le_iff]
     simp_rw [← Nat.cast_add_one]
     rw [intervalIntegral.sum_integral_adjacent_intervals_Ico this]
-    intro n hn
-    apply IntervalIntegrable.mul_continuousOn
-    · simp only [cast_add, cast_one, A]
-      rw [intervalIntegrable_iff_integrableOn_Ioo_of_le, IntegrableOn]
-      apply MeasureTheory.Integrable.congr (MeasureTheory.integrable_const (∑ j ∈ Iic n, a j))
-      · simp only [measurableSet_Ioo, ae_restrict_eq]
-        rw [eventuallyEq_inf_principal_iff]
-        apply Eventually.of_forall
-        intro x hx
-        replace hx : ⌊x⌋₊ = n := by
-          simp only [Set.mem_Ioo] at hx
-          rw [Nat.floor_eq_iff (n.cast_nonneg.trans hx.1.le)]
-          exact ⟨hx.1.le, hx.2⟩
-        simp [hx]
-      · rw [← Nat.cast_add_one, cast_le]
-        exact n.lt_add_one.le
-    · exact hϕ.continuous_deriv le_rfl |>.continuousOn
+    intro n _
+    have hn := Nat.cast_le (α := ℝ).mpr n.lt_add_one.le
+    apply hIntervalIntegrable n _ _ hn
+    rw [Set.uIoc_of_le hn, Nat.cast_add_one]
+    exact Set.Ioc_subset_Icc_self
   · rw [hA x, hA y]
     have hy : ∫ t in ↑k..y, A t * deriv ϕ t = A k * (ϕ y - ϕ k) := by
       apply hint'
       intros z hz
-      have : k ≤ y := by simp [k, Nat.floor_le, (hx.trans hxy).le]
-      simp only [this, Set.uIoc_of_le, Set.mem_Ioc, floor_natCast, Set.mem_Icc, k] at hz ⊢
+      simp only [hky, Set.uIoc_of_le, Set.mem_Ioc, floor_natCast, Set.mem_Icc, k] at hz ⊢
       exact ⟨hz.1.le, hz.2.trans (Nat.lt_floor_add_one _).le⟩
     have hx : ∫ t in x..m + 1, A t * deriv ϕ t = A x * (ϕ (m + 1) - ϕ x) := by
       apply hint'
@@ -164,8 +190,53 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
     rw [hy, hx]
     simp only [k, m, hA x]
     ring
-  all_goals sorry
-#exit
+  · ring
+  · have hab : IntervalIntegrable (fun t ↦ A t * deriv ϕ t) volume x (↑m + 1) := by
+      apply hIntervalIntegrable m _ _ (lt_floor_add_one x).le
+      simp only [(lt_floor_add_one x).le, Set.uIoc_of_le]
+      apply Set.Ioc_subset_Icc_self.trans
+      apply Set.Icc_subset_Icc_left (floor_le hx.le)
+    have hbc : IntervalIntegrable (fun t ↦ A t * deriv ϕ t) volume (↑m + 1) ↑k := by
+      rw [intervalIntegrable_iff_integrableOn_Ico_of_le]
+      swap
+      · norm_cast
+      have : Set.Ico (m + 1 : ℝ) k = ⋃ i ∈ Ico (m + 1) k, Set.Ico (i : ℝ) (i + 1) := by
+        ext n
+        simp only [Set.mem_Ico, mem_Ico, Set.mem_iUnion, Nat.lt_add_one_iff, exists_and_left,
+          exists_prop]
+        constructor
+        · rintro ⟨h1, h2⟩
+          use ⌊n⌋₊
+          have : 0 ≤ n := by
+            rw [← Nat.cast_add_one] at h1
+            exact (Nat.cast_nonneg _).trans h1
+          simp [Nat.floor_le, Nat.floor_lt, this, lt_floor_add_one, h2, le_floor, h1]
+        · rintro ⟨n', h⟩
+          have : (m + 1 : ℝ) ≤ n' := by
+            rw [← Nat.cast_add_one, Nat.cast_le]
+            exact h.2.1.1
+          refine ⟨this.trans h.1, h.2.2.trans_le ?_⟩
+          rw [← Nat.cast_add_one, Nat.cast_le, Nat.add_one_le_iff]
+          exact h.2.1.2
+      rw [this]
+      apply MeasureTheory.integrableOn_finset_iUnion.mpr
+      intro n _
+      have hn' : (n : ℝ) ≤ n + 1 := by
+        rw [← Nat.cast_add_one, Nat.cast_le]
+        exact n.lt_add_one.le
+      apply hIntegrableOn n _ _ hn'
+      rw [Set.uIoc_of_le hn']
+      exact Set.Ioc_subset_Icc_self
+    have hcd : IntervalIntegrable (fun t ↦ A t * deriv ϕ t) volume (↑k) y := by
+      apply hIntervalIntegrable k _ _ hky
+      simp only [hky, Set.uIoc_of_le]
+      apply Set.Ioc_subset_Icc_self.trans
+      refine Set.Icc_subset_Icc_right ?h.h
+      simp only [k, (lt_floor_add_one y).le]
+    rw [intervalIntegral.integral_add_adjacent_intervals hab hbc,
+      intervalIntegral.integral_add_adjacent_intervals (hab.trans hbc) hcd]
+  simp [A, intervalIntegral.integral_of_le hxy.le, MeasureTheory.integral_Icc_eq_integral_Ioc]
+
 lemma nth_prime_one_eq_three : nth Nat.Prime 1 = 3 := nth_count prime_three
 
 @[simp]
@@ -273,10 +344,9 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       -- fun_prop
       sorry
 
-  have h1 (r : ℝ) : ∑ p ∈ (Iic ⌊r⌋₊).filter Nat.Prime, Real.log p =
-      ∑ p ∈ (Iic ⌊r⌋₊), if p.Prime then Real.log p else 0 := by
-    rw [sum_filter]
-  -- simp_rw [h1]
+  -- have h1 (r : ℝ) : ∑ p ∈ (Iic ⌊r⌋₊).filter Nat.Prime, Real.log p =
+  --     ∑ p ∈ (Iic ⌊r⌋₊), if p.Prime then Real.log p else 0 := by
+  --   rw [sum_filter]
   let a : ArithmeticFunction ℝ := {
     toFun := Set.indicator (setOf Nat.Prime) (fun n => log n)
     map_zero' := by simp
@@ -289,7 +359,6 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       refine log_ne_zero_of_pos_of_ne_one ?_ ?_ <;> norm_cast
       exacts [h.pos, h.ne_one]
     · rfl
-  -- stop
   have h2 := abel_summation (ϕ := fun x => (log x)⁻¹) (a := a) (3 / 2) x
   have h4 : ⌊(3/2 : ℝ)⌋₊ = 1 := by rw [@floor_div_ofNat]; rw [Nat.floor_ofNat]
   have h5 : Iic 1 = {0, 1} := by ext; simp; omega
@@ -317,10 +386,15 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     rw [deriv_smoothingFn hu']
     congr
     simp [div_eq_mul_inv, mul_comm]
-  simp [h3, h4, h5, h6, h7, h8, integral_neg] at h2
+  have h9 : 3/2 < x := calc
+    3/2 < 2 := by norm_num
+    _ ≤ x := hx
+
+  simp [h3, h4, h5, h6, h7, h8, h9, integral_neg] at h2
   rw [h2]
   simp [a, ← th_def', div_eq_mul_inv]
-
+  rw [contDiff_one_iff_deriv]
+  sorry
 
 -- lemma th43_b' (x : ℝ) (hx : 2 ≤ x) :
 --     Nat.primeCounting ⌊x⌋₊ =
