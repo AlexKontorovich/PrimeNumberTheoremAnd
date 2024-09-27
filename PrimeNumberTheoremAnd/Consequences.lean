@@ -12,7 +12,7 @@ open Finset
 open BigOperators Filter Real Classical Asymptotics MeasureTheory
 
 lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy : x < y)
-    (ϕ : ℝ → ℝ) (hϕ : ContDiff ℝ 1 ϕ) :
+    (ϕ : ℝ → ℝ) (hϕ : ContDiffOn ℝ 1 ϕ (Set.Icc x y)) :
     ∑ n ∈ Ioc ⌊x⌋₊ ⌊y⌋₊, (a n : ℝ) * ϕ n =
       (∑ n ∈ Iic ⌊y⌋₊, a n) * ϕ y - (∑ n ∈ Iic ⌊x⌋₊, a n) * ϕ x -
         ∫ u in Set.Icc x y, (∑ n ∈ Iic ⌊u⌋₊, a n) * (deriv ϕ) u := by
@@ -393,8 +393,15 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
   simp [h3, h4, h5, h6, h7, h8, h9, integral_neg] at h2
   rw [h2]
   simp [a, ← th_def', div_eq_mul_inv]
-  rw [contDiff_one_iff_deriv]
-  sorry
+  apply ContDiffOn.inv
+  apply ContDiffOn.log
+  apply contDiffOn_id
+  · intro z hz
+    simp at hz
+    linarith
+  · intro z hz
+    simp at hz
+    apply log_ne_zero_of_pos_of_ne_one <;> linarith
 
 -- lemma th43_b' (x : ℝ) (hx : 2 ≤ x) :
 --     Nat.primeCounting ⌊x⌋₊ =
