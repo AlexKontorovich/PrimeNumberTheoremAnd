@@ -94,9 +94,10 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
         apply Eventually.of_forall
         intro z hz
         replace hz : ⌊z⌋₊ = n := by
+          apply Nat.floor_eq_on_Ico
+          simp only [Set.mem_Ico]
           have := Set.Ico_subset_Icc_self.trans h'' hz
           simp only [Set.mem_Icc] at this
-          rw [Nat.floor_eq_iff (n.cast_nonneg.trans this.1)]
           refine ⟨this.1, ?_⟩
           apply lt_of_le_of_ne this.2
           rintro rfl
@@ -350,6 +351,97 @@ lemma th_eq_zero_of_lt_two {x : ℝ} (hx : x < 2) : th x = 0 := by
   contrapose! this
   exact this.two_le
 
+theorem extracted_2 (x : ℝ) (h9 : 3 / 2 < x) (z : ℝ) (hz : z ∈ Set.Icc (3 / 2) x) :
+    ContinuousWithinAt (fun x ↦ (x * log x ^ 2)⁻¹) (Set.Icc (3 / 2) x) z := by
+  apply ContinuousWithinAt.inv₀
+  apply ContinuousWithinAt.mul
+  apply continuousWithinAt_id
+  apply ContinuousWithinAt.pow
+  apply ContinuousWithinAt.log
+  apply continuousWithinAt_id
+  · simp [h9.le] at hz
+    linarith
+  · simp [h9.le] at hz
+    apply mul_ne_zero
+    · linarith
+    · apply pow_ne_zero
+      · apply log_ne_zero_of_pos_of_ne_one <;> linarith
+
+
+theorem extracted_1 (x : ℝ) (hx : 2 ≤ x) :
+    IntegrableOn
+      (fun t ↦ (∑ p ∈ filter Nat.Prime (Iic ⌊t⌋₊), log ↑p) / (t * log t ^ 2)) (Set.Icc 2 x) volume := by
+  have : 0 ≤ x := zero_le_two.trans hx
+  rw [Iic_eq_Icc, bot_eq_zero]
+  have : Set.Icc 2 x = Set.Ico (2 : ℝ) ⌊x⌋₊ ∪ Set.Icc (⌊x⌋₊ : ℝ) x := by
+    apply Set.Ico_union_Icc_eq_Icc .. |>.symm
+    · rwa [← Nat.cast_ofNat, Nat.cast_le, Nat.le_floor_iff this, Nat.cast_ofNat]
+    · exact floor_le this
+  rw [this]
+  apply IntegrableOn.union
+  swap
+  · apply IntegrableOn.mono_set (t := Set.Ico (⌊x⌋₊ : ℝ) (⌊x⌋₊ + 1))
+    · simp_rw [div_eq_mul_inv]
+      apply IntegrableOn.mul_continuousOn_of_subset ?_ ?_
+        measurableSet_Ico isCompact_Icc Set.Ico_subset_Icc_self
+      · change IntegrableOn (fun y => _) _ _
+        apply Integrable.congr (integrable_const (∑ p ∈ filter Nat.Prime (Icc 0 ⌊x⌋₊), log p))
+        simp only [measurableSet_Ico, ae_restrict_eq]
+        rw [eventuallyEq_inf_principal_iff]
+        apply Eventually.of_forall
+        intro z hz
+        replace hz := Nat.floor_eq_on_Ico _ _ hz
+        simp [hz]
+
+      · intro z hz
+        apply ContinuousWithinAt.mono (extracted_2 _ _ _ _)
+        -- apply extracted_2
+        all_goals sorry
+    · apply Set.Icc_subset_Ico_right
+      exact lt_floor_add_one x
+
+    done
+  have : Set.Icc 2 x = ⋃ i ∈ Ico 2 ⌊x⌋₊, Set.Icc (i : ℝ) (i + 1) := by
+    ext y
+    by_cases hy : y < ↑⌊x⌋₊
+    case neg =>
+      simp at hy
+      simp
+    simp only [Set.mem_Ico, mem_Ico, Set.mem_iUnion, Nat.lt_add_one_iff, exists_and_left,
+      exists_prop]
+    simp only [Set.mem_Icc]
+    constructor
+    · rintro ⟨h1, h2⟩
+      use ⌊y⌋₊
+      have : 0 ≤ y := by
+        sorry
+      simp [Nat.floor_le, Nat.floor_lt, this, lt_floor_add_one, h2, le_floor, h1, le_of_lt]
+
+
+    · rintro ⟨n', h⟩
+      have : (m + 1 : ℝ) ≤ n' := by
+        rw [← Nat.cast_add_one, Nat.cast_le]
+        exact h.2.1.1
+      refine ⟨this.trans h.1, h.2.2.trans_le ?_⟩
+      rw [← Nat.cast_add_one, Nat.cast_le, Nat.add_one_le_iff]
+      exact h.2.1.2
+  rw [this]
+  apply MeasureTheory.integrableOn_finset_iUnion.mpr
+  intro n hn
+  have hn' : (n : ℝ) ≤ n + 1 := by
+    rw [← Nat.cast_add_one, Nat.cast_le]
+    exact n.lt_add_one.le
+  apply hIntegrableOn n _ _ hn'
+  · rw [Set.uIoc_of_le hn']
+    exact Set.Ioc_subset_Icc_self
+  · simp at hn
+    apply Set.Icc_subset_Icc
+    · rw [← Nat.cast_le (α := ℝ), Nat.cast_add_one] at hn
+      apply (Nat.lt_floor_add_one x).le.trans hn.1
+    · rw [← Nat.add_one_le_iff, ← (n + 1).cast_le (α := ℝ), Nat.cast_add_one] at hn
+      apply hn.2.trans hky
+  sorry
+
 lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     Nat.primeCounting ⌊x⌋₊ =
       th x / log x + ∫ t in Set.Icc 2 x, th t / (t * (Real.log t) ^ 2) := by
@@ -448,20 +540,9 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       linarith
     intro z hz
     apply ContinuousWithinAt.congr (f := fun x => - (x * log x ^ 2)⁻¹)
-    apply ContinuousWithinAt.neg
-    apply ContinuousWithinAt.inv₀
-    apply ContinuousWithinAt.mul
-    apply continuousWithinAt_id
-    apply ContinuousWithinAt.pow
-    apply ContinuousWithinAt.log
-    apply continuousWithinAt_id
-    · simp [h9.le] at hz
-      linarith
-    · simp [h9.le] at hz
-      apply mul_ne_zero
-      · linarith
-      · apply pow_ne_zero
-        · apply log_ne_zero_of_pos_of_ne_one <;> linarith
+    · clear! a h4 h5 h6 h8 this  hx
+      apply ContinuousWithinAt.neg
+      apply extracted_2 _ h9 _ hz
     · apply this
     · apply this z hz
 
