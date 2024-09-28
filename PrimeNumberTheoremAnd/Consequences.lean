@@ -11,8 +11,24 @@ open Nat hiding log
 open Finset
 open BigOperators Filter Real Classical Asymptotics MeasureTheory
 
+lemma Set.Ico_subset_Ico_of_Icc_subset_Icc {a b c d : ℝ} (h : Set.Icc a b ⊆ Set.Icc c d) :
+    Set.Ico a b ⊆ Set.Ico c d := by
+  intro z hz
+  have hz' := Set.Ico_subset_Icc_self.trans h hz
+  have hcd : c ≤ d := by
+    contrapose! hz'
+    rw [Icc_eq_empty_of_lt hz']
+    exact not_mem_empty _
+  simp only [mem_Ico, mem_Icc] at *
+  refine ⟨hz'.1, hz'.2.eq_or_lt.resolve_left ?_⟩
+  rintro rfl
+  apply hz.2.not_le
+  have := h <| right_mem_Icc.mpr (hz.1.trans hz.2.le)
+  simp only [mem_Icc] at this
+  exact this.2
+
 lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy : x < y)
-    (ϕ : ℝ → ℝ) -- (hϕ : ContDiffOn ℝ 1 ϕ (Set.Icc x y))
+    (ϕ : ℝ → ℝ)
     (hϕ₁ : ∀ z ∈ Set.uIcc x y, DifferentiableAt ℝ ϕ z)
     (hϕ₃ : ContinuousOn (deriv ϕ) (Set.Icc x y)) :
     ∑ n ∈ Ioc ⌊x⌋₊ ⌊y⌋₊, (a n : ℝ) * ϕ n =
@@ -84,6 +100,7 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
     · simp
     have h'' : Set.Icc b c ⊆ Set.Icc n (n + 1) := by
       rwa [← closure_Ioc hbc.ne, ← Set.uIoc_of_le hbc.le, isClosed_Icc.closure_subset_iff]
+    have h'2 : Set.Ico b c ⊆ Set.Ico (n : ℝ) (n + 1) := Set.Ico_subset_Ico_of_Icc_subset_Icc h''
     apply IntegrableOn.mul_continuousOn_of_subset ?_ ?_
       measurableSet_Ico CompactIccSpace.isCompact_Icc Set.Ico_subset_Icc_self
     · simp only [cast_add, cast_one, A]
@@ -93,19 +110,7 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
         rw [eventuallyEq_inf_principal_iff]
         apply Eventually.of_forall
         intro z hz
-        replace hz : ⌊z⌋₊ = n := by
-          apply Nat.floor_eq_on_Ico
-          simp only [Set.mem_Ico]
-          have := Set.Ico_subset_Icc_self.trans h'' hz
-          simp only [Set.mem_Icc] at this
-          refine ⟨this.1, ?_⟩
-          apply lt_of_le_of_ne this.2
-          rintro rfl
-          have : n + 1 < c := by simp only [Set.mem_Ico] at hz; exact hz.2
-          apply this.not_le
-          have := h'' <| Set.right_mem_Icc.mpr hbc.le
-          simp only [Set.mem_Icc] at this
-          exact this.2
+        replace hz : ⌊z⌋₊ = n := Nat.floor_eq_on_Ico _ _ (h'2 hz)
         simp [hz]
     · apply hϕ₃.mono h'
   have hIntervalIntegrable (n : ℕ) (b c : ℝ) (hbc : b ≤ c) (h : Set.uIoc b c ⊆ Set.Icc n (n + 1))
@@ -165,8 +170,7 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
     rw [sum_insert left_not_mem_Ioo, sum_insert right_not_mem_Ioo]
     simp_rw [mul_sub, sum_sub_distrib]
     abel
-  · -- FTC-2
-    rw [← sum_neg_distrib]
+  · rw [← sum_neg_distrib]
     congr 2
     apply sum_congr rfl fun n hn => ?_
     rw [hint' n]
@@ -363,7 +367,8 @@ theorem extracted_2 (x : ℝ) (z : ℝ) (hz_pos : 0 < z) (hz : z ≠ 1) :
 
 theorem extracted_1 (x : ℝ) (hx : 2 ≤ x) :
     IntegrableOn
-      (fun t ↦ (∑ p ∈ filter Nat.Prime (Iic ⌊t⌋₊), log ↑p) / (t * log t ^ 2)) (Set.Icc 2 x) volume := by
+      (fun t ↦ (∑ p ∈ filter Nat.Prime (Iic ⌊t⌋₊), log ↑p) / (t * log t ^ 2))
+      (Set.Icc 2 x) volume := by
   have hx0 : 0 ≤ x := zero_le_two.trans hx
   have hx2 : (2 : ℝ) ≤ ⌊x⌋₊ := by
     rwa [← Nat.cast_ofNat, Nat.cast_le, Nat.le_floor_iff hx0, Nat.cast_ofNat]
@@ -375,14 +380,12 @@ theorem extracted_1 (x : ℝ) (hx : 2 ≤ x) :
     simp_rw [div_eq_mul_inv]
     apply IntegrableOn.mul_continuousOn_of_subset ?_ ?_
       measurableSet_Ico isCompact_Icc Set.Ico_subset_Icc_self
-    · change IntegrableOn (fun y => _) _ _
-      apply Integrable.congr (integrable_const (∑ p ∈ filter Nat.Prime (Icc 0 n), log p))
+    · apply Integrable.congr (integrable_const (∑ p ∈ filter Nat.Prime (Icc 0 n), log p))
       simp only [measurableSet_Ico, ae_restrict_eq]
       rw [eventuallyEq_inf_principal_iff]
       apply Eventually.of_forall
       intro z hz
-      replace hz := Nat.floor_eq_on_Ico _ _ hz
-      simp [hz]
+      simp [Nat.floor_eq_on_Ico _ _ hz]
     · intro z hz
       apply ContinuousWithinAt.mono (extracted_2 _ _ _ _) (Set.Icc_subset_Icc_left hn32) <;>
       · simp only [Set.mem_Icc] at hz; linarith
@@ -484,7 +487,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     · exact measurableSet_Icc
     refine Eventually.of_forall (fun u hu => ?_)
     have hu' : 1 < u := by
-      simp at hu
+      simp only [Set.mem_Icc] at hu
       calc
         (1 : ℝ) < 3/2 := by norm_num
         _ ≤ u := hu.1
@@ -500,9 +503,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
   simp [a, ← th_def', div_eq_mul_inv]
   · intro z hz
     simp [h9.le] at hz
-    apply DifferentiableAt.inv
-    apply DifferentiableAt.log
-    apply differentiableAt_id'
+    refine (differentiableAt_id'.log ?_).inv ?_
     · linarith
     · apply log_ne_zero_of_pos_of_ne_one <;> linarith
   · have : ∀ y ∈ Set.Icc (3 / 2) x, deriv (fun x ↦ (log x)⁻¹) y = -(y * log y ^ 2)⁻¹:= by
