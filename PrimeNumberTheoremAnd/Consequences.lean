@@ -916,12 +916,9 @@ theorem pi_asymp :
     (Real.log x)⁻¹ * ∑ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, Real.log p +
       ∫ t in Set.Icc 2 x,
         (∑ p ∈ (Iic ⌊t⌋₊).filter Nat.Prime, Real.log p) * (t * (Real.log t) ^ 2)⁻¹ := by
-    -- can be proven by interchanging the sum and integral and using the fundamental theorem of
-    -- calculus
     rw [th43_b _ hx]
     simp_rw [div_eq_mul_inv, th]
     ring
-  -- have h2 (ε : ℝ) : ∃ xε := chebyshev_asymptotic
   sorry
 
 /-%%
