@@ -1074,17 +1074,17 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   let f := riemannZeta
   let g := ζ₀ N
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
-  have f_an : AnalyticOn ℂ f U := by
-    apply (HolomophicOn_riemannZeta.analyticOn isOpen_ne).mono
+  have f_an : AnalyticOnNhd ℂ f U := by
+    apply (HolomophicOn_riemannZeta.analyticOnNhd isOpen_ne).mono
     simp only [ne_eq, setOf_subset_setOf, and_imp, U]
     exact fun a ha _ ↦ ha
-  have g_an : AnalyticOn ℂ g U := (HolomorphicOn_riemannZeta0 N_pos).analyticOn isOpen_aux
+  have g_an : AnalyticOnNhd ℂ g U := (HolomorphicOn_riemannZeta0 N_pos).analyticOnNhd isOpen_aux
   have preconU : IsPreconnected U := by
     apply IsConnected.isPreconnected
     apply (IsOpen.isConnected_iff_isPathConnected isOpen_aux).mp isPathConnected_aux
   have h2 : (2 : ℂ) ∈ U := by simp [U]
   have s_mem : s ∈ U := by simp [U, reS_pos, s_ne_one]
-  convert (AnalyticOn.eqOn_of_preconnected_of_eventuallyEq f_an g_an preconU h2 ?_ s_mem).symm
+  convert (AnalyticOnNhd.eqOn_of_preconnected_of_eventuallyEq f_an g_an preconU h2 ?_ s_mem).symm
   have u_mem : {z : ℂ | 1 < z.re} ∈ 𝓝 (2 : ℂ) := by
     apply mem_nhds_iff.mpr
     use {z : ℂ | 1 < z.re}
@@ -1458,7 +1458,7 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
     simp only [norm_mul, norm_div, norm_neg, norm_one, one_div, natCast_log, ← norm_inv, cpow_neg]
     congr; exact norm_complex_log_ofNat n
   have := norm_sum_le_of_le (Finset.range (N + 1))
-    (by convert fact3; simp only [Finset.mem_range]; omega)
+    (by simp only [Finset.mem_range, Nat.lt_succ]; exact fact3)
   rw [← Finset.sum_mul, ← Finset.sum_mul, mul_comm _ A.exp, mul_assoc] at this
   rw [mul_assoc]
   apply le_trans this <| (mul_le_mul_left A.exp_pos).mpr ?_
@@ -2024,7 +2024,7 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (t_ne_zero : t ≠ 0) :
           not_and]
         exact fun _ _ _ ↦ t_ne_zero
       have := (Complex.analyticAt_iff_eventually_differentiableAt (c := x) (f := ζ)).mpr ?_
-      · obtain ⟨r, hr, h⟩ := this.exists_ball_analyticOn
+      · obtain ⟨r, hr, h⟩ := this.exists_ball_analyticOnNhd
         apply (h.deriv x ?_).differentiableAt
         simp [hr]
       · filter_upwards [compl_singleton_mem_nhds hx] with z hz

@@ -14,11 +14,12 @@ import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
 import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.Algebra.GroupWithZero.Units.Basic
 import Mathlib.Analysis.Distribution.FourierSchwartz
+import Mathlib.Topology.UniformSpace.UniformConvergence
+import Mathlib.MeasureTheory.Measure.Haar.Disintegration
 
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.BrunTitchmarsh
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
-import PrimeNumberTheoremAnd.Mathlib.Topology.UniformSpace.UniformConvergence
 
 set_option lang.lemmaCmd true
 
@@ -115,7 +116,7 @@ lemma hf_coe1 (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hσ : 
 instance instMeasurableSpace : MeasurableSpace Circle :=
   inferInstanceAs <| MeasurableSpace <| Subtype _
 instance instBorelSpace : BorelSpace Circle :=
-  inferInstanceAs <| BorelSpace <| Subtype _
+  inferInstanceAs <| BorelSpace <| Subtype (· ∈ Metric.sphere (0 : ℂ) 1)
 
 lemma first_fourier_aux1 (hψ: Continuous ψ) {x : ℝ} (n : ℕ) : Measurable fun (u : ℝ) ↦
     (‖fourierChar (-(u * ((1 : ℝ) / ((2 : ℝ) * π) * (n / x).log))) • ψ u‖₊ : ENNReal) := by

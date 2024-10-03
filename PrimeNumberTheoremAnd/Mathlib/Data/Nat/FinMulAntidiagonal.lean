@@ -5,7 +5,7 @@ Author: Arend Mellendijk
 -/
 
 import Batteries.Tactic.Lemma
-import Mathlib.Algebra.Star.Order
+import Mathlib.Algebra.Order.Star.Basic
 import Mathlib.NumberTheory.ArithmeticFunction
 
 /-!
@@ -38,7 +38,7 @@ where
     match d with
     | 0 =>
       if h : n = 1 then
-        ⟨{1}, by simp [h]; exact List.ofFn_inj.mp rfl⟩
+        ⟨{1}, by simp [h, ← List.ofFn_inj]⟩
       else
         ⟨∅, by simp [Ne.symm h]⟩
     | d + 1 =>
@@ -60,8 +60,7 @@ where
             Prod.exists, (aux d _).prop, Fin.prod_univ_succ]
           constructor
           · rintro ⟨a, b, ⟨rfl, hab⟩, g, ⟨rfl, hb⟩, rfl⟩
-            simp only [Fin.cons_zero, Fin.cons_succ]
-            exact (true_and_iff (a * ∏ x : Fin d, g x ≠ 0)).mpr hab
+            simp [hab]
           · intro ⟨rfl, hf⟩
             exact ⟨_, _, ⟨rfl, hf⟩, _, ⟨rfl, by exact right_ne_zero_of_mul hf⟩, Fin.cons_self_tail f⟩ }
 

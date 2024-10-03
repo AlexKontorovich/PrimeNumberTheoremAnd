@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Abby J. Goldberg, Mario Carneiro, Heather Macbeth
 -/
 import Mathlib.Tactic.Abel
-import Mathlib.Tactic.LinearCombination
+import Mathlib.Tactic.LinearCombination'
 
 /-!
 # additive_combination Tactic
@@ -31,7 +31,7 @@ Lastly, calls a normalization tactic on this target.
 
 -/
 
-namespace Mathlib.Tactic.LinearCombination
+namespace Mathlib.Tactic.LinearCombination'
 open Lean hiding Rat
 open Elab Meta Term
 

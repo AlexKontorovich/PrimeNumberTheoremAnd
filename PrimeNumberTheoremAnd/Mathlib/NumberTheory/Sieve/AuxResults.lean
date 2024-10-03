@@ -252,7 +252,6 @@ theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (h
   · apply sum_le_sum; intro a ha
     split_ifs with h
     · gcongr with i hi
-      · norm_num
       rw [if_pos]
       apply le_trans _ h
       norm_cast
