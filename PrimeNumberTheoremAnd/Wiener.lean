@@ -238,19 +238,19 @@ lemma second_fourier_integrable_aux1 (hcont: Continuous ψ) (hsupp: Integrable �
     apply MeasureTheory.measurable_uncurry_of_continuous_of_measurable <;> intro i
     swap; apply Continuous.measurable
     · apply Continuous.smul
-      · continuity
+      · fun_prop
       · apply Continuous.smul
         · apply Continuous.subtype_val
           simp [Real.fourierChar, Circle.exp, Multiplicative.ofAdd]
-          continuity
-        · continuity
+          fun_prop
+        · fun_prop
     · apply Continuous.smul
-      · continuity
+      · fun_prop
       · apply Continuous.smul
         · apply Continuous.subtype_val
           simp [Real.fourierChar, Circle.exp, Multiplicative.ofAdd]
-          continuity
-        · continuity
+          fun_prop
+        · fun_prop
   · let f1 : ℝ → ENNReal := fun a1 ↦ ↑‖cexp (-(↑a1 * (↑σ' - 1)))‖₊
     let f2 : ℝ → ENNReal := fun a2 ↦ ↑‖ψ a2‖₊
     suffices ∫⁻ (a : ℝ × ℝ), f1 a.1 * f2 a.2 ∂ν < ⊤ by simpa [Function.uncurry, HasFiniteIntegral]
@@ -466,7 +466,7 @@ lemma limiting_fourier_aux (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1
   have l7 : Continuous fun a ↦ A * ↑(x ^ (1 - σ')) * (↑(x ^ (σ' - 1)) * (1 / (σ' + a * I - 1) * ψ a * x ^ (a * I))) := by
     simp [← mul_assoc]
     refine ((continuous_const.mul <| Continuous.inv₀ ?_ e2).mul ψ.h1.continuous).mul l8
-    continuity
+    fun_prop
   have l5 : Integrable fun a ↦ A * ↑(x ^ (1 - σ')) * (↑(x ^ (σ' - 1)) * (1 / (σ' + a * I - 1) * ψ a * x ^ (a * I))) := by
     apply l7.integrable_of_hasCompactSupport
     exact ψ.h2.mul_left.mul_right.mul_left.mul_left
@@ -967,8 +967,8 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re}) (ψ : CS 2 
   · apply eventually_of_mem (U := Icc 1 2) (Icc_mem_nhdsWithin_Ioi (by simp)) ; intro u hu
     apply Continuous.aestronglyMeasurable
     apply Continuous.mul
-    · exact (hG.comp_continuous (by continuity) (by simp [hu.1])).mul ψ.h1.continuous
-    · apply Continuous.const_cpow (by continuity) ; simp ; linarith
+    · exact (hG.comp_continuous (by fun_prop) (by simp [hu.1])).mul ψ.h1.continuous
+    · apply Continuous.const_cpow (by fun_prop) ; simp ; linarith
   · apply eventually_of_mem (U := Icc 1 2) (Icc_mem_nhdsWithin_Ioi (by simp))
     intro u hu
     apply Eventually.of_forall ; intro v
@@ -984,7 +984,7 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re}) (ψ : CS 2 
       simp at this ; simp [this, bound]
 
   · suffices h : Continuous bound by exact h.integrable_of_hasCompactSupport ψ.h2.norm.mul_left
-    have := ψ.h1.continuous ; continuity
+    have := ψ.h1.continuous ; fun_prop
   · apply Eventually.of_forall ; intro t
     apply Tendsto.mul_const
     apply Tendsto.mul_const
