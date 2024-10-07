@@ -115,15 +115,9 @@ namespace CompletelyMultiplicative
 open ArithmeticFunction
 theorem zeta : CompletelyMultiplicative ζ := by
   unfold CompletelyMultiplicative
-  simp_rw [ArithmeticFunction.natCoe_apply, ArithmeticFunction.zeta_apply, ite_false, Nat.cast_one,
-    mul_eq_zero, Nat.cast_ite, CharP.cast_eq_zero, mul_ite, mul_zero, true_and]
-  intro a b;
-  by_cases ha : a = 0
-  · simp [ha]
-  by_cases hb : b = 0
-  · simp [hb]
-  rw [if_neg, if_neg hb, if_neg ha]; ring
-  push_neg; exact ⟨ha, hb⟩
+  simp_rw [ArithmeticFunction.natCoe_apply, ArithmeticFunction.zeta_apply, one_ne_zero, ite_false,
+    mul_eq_zero, Nat.cast_ite, Nat.cast_one, CharP.cast_eq_zero, mul_ite, mul_zero, mul_one,
+    true_and, ← ite_or, or_comm, implies_true]
 
 theorem id : CompletelyMultiplicative ArithmeticFunction.id := by
     constructor <;> simp

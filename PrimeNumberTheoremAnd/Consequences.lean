@@ -281,7 +281,7 @@ theorem WeakPNT' : Tendsto (fun N ↦ (∑ n in Iic N, Λ n) / N) atTop (nhds 1)
     rw [<-Finset.sum_erase_add _ _ this, <-Nat.Iio_eq_range, Iic_erase]
     exact add_div _ _ _
 
-  rw [this, <-(AddLeftCancelMonoid.add_zero 1)]
+  rw [this, ← add_zero 1]
   apply Tendsto.add WeakPNT
   convert squeeze_zero (f := fun N ↦ Λ N / N) (g := fun N ↦ log N / N) (t₀ := atTop) ?_ ?_ ?_
   . intro N
