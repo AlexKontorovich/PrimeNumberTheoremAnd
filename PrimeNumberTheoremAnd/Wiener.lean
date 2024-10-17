@@ -2316,15 +2316,19 @@ end auto_cheby
 
 \begin{lemma}[Character decomposition]\label{WeakPNT-character}\lean{WeakPNT_character}  If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
 $$
-\sum_{n: n = a\ (q)} {\Lambda(n)}{n^s} = - \frac{1}{\varphi(q)} \sum_{\chi\ (q)} \overline{\chi(a)} \frac{L'(s,\chi)}{L(s,\chi)}.$$
+\sum_{n: n = a\ (q)} \frac{\Lambda(n)}{n^s} = - \frac{1}{\varphi(q)} \sum_{\chi\ (q)} \overline{\chi(a)} \frac{L'(s,\chi)}{L(s,\chi)}.$$
 \end{lemma}
 %%-/
 
 proof_wanted WeakPNT_character {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) {s:ℂ} (hs: 1 < s.re): LSeries (fun n ↦ if n % q = a then Λ n else 0) s = - (∑' χ : DirichletCharacter ℂ q, ((starRingEnd ℂ) (χ a) * ((deriv (LSeries (fun n:ℕ ↦ χ n)) s)) / (LSeries (fun n:ℕ ↦ χ n) s))) / (Nat.totient q : ℂ)
 
 /-%%
-\begin{proof}
-This should be a straightforward Fourier series expansion.
+\begin{proof}  From the Fourier inversion formula on the multiplicative group $(\Z/q\Z)^\times$, we have
+$$ 1_{n=a\ (q)} = \frac{\varphi(q)}{q} \sum_{\chi\ (q)} \overline{\chi(a)} \chi(n).$$
+On the other hand, from standard facts about L-series we have for each character $\chi$ that
+$$
+\sum_{n} \frac{\Lambda(n) \chi(n)}{n^s} = - \frac{L'(s,\chi)}{L(s,\chi)}.$$
+Combining these two facts, we obtain the claim.
 \end{proof}
 %%-/
 
