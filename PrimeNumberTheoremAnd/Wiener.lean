@@ -2319,21 +2319,21 @@ $$
 \end{lemma}
 %%-/
 
-proof_wanted WeakPNT_character {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) {s:ℂ} (hs: 1 < s.re): LSeries (fun n ↦ if n % q = a then Λ n / n^s else 0) := - (∑ χ : DirichletCharacter q, ((starRingEnd ℂ) (χ a) * ((deriv (LSeries χ)) s)) / (LSeries χ s)) / (Nat.totient q) := by sorry
+proof_wanted WeakPNT_character {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) {s:ℂ} (hs: 1 < s.re): LSeries (fun n ↦ if n % q = a then Λ n else 0) s = - (∑' χ : DirichletCharacter ℂ q, ((starRingEnd ℂ) (χ a) * ((deriv (LSeries (fun n:ℕ ↦ χ n)) s)) / (LSeries (fun n:ℕ ↦ χ n) s))) / (Nat.totient q : ℂ)
 
 /-%%
 \begin{proof}
-This should be a straightforwrd Fourier series expansion.
+This should be a straightforward Fourier series expansion.
 \end{proof}
 %%-/
 
 
 /-%%
-\begin{proposition}[Weak PNT in AP, preliminary]\label{WeakPNT-AP-prelim}\lean{WeakPNT_AP_prelim}  If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to $\mathrm{Re}(s)=1$.
+\begin{proposition}[Weak PNT in AP, preliminary]\label{WeakPNT-AP-prelim}\lean{WeakPNT_AP_prelim}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to $\mathrm{Re}(s)=1$.
 \end{proposition}
 %%-/
 
-proof_wanted WeakPNT_AP_prelim (sorry:Prop)
+proof_wanted WeakPNT_AP_prelim {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) : ∃ G: ℂ → ℂ, (ContinuousOn G {s | 1 ≤ s.re}) ∧ (Set.EqOn G (fun s ↦ LSeries (fun n ↦ if n % q = a then Λ n else 0) s - 1 / ((Nat.totient q) * (s - 1))) {s | 1 < s.re})
 
 /-%%
 
@@ -2357,7 +2357,7 @@ $$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$
 \end{theorem}
 %%-/
 
-proof_wanted WeakPNT_AP {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q): Tendsto (fun N ↦ cumsum (fun n ↦ if (n % q = a) then Λ n else 0) N / N) atTop (𝓝 1 / (Nat.totient q))
+proof_wanted WeakPNT_AP {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q): Tendsto (fun N ↦ cumsum (fun n ↦ if (n % q = a) then Λ n else 0) N / N) atTop (𝓝 (1 / (Nat.totient q)))
 
 
 /-%%
