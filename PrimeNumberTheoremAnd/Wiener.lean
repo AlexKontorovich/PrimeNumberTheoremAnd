@@ -2314,18 +2314,33 @@ end auto_cheby
 /-%%
 \section{The prime number theorem in arithmetic progressions}
 
-\begin{theorem}[Weak PNT in AP]\label{WeakPNT-AP}\lean{WeakPNT_AP}  If $q ≥ 1$ and $a$ is coprime to $q$, We have
-$$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$
-\end{theorem}
+\begin{lemma}[Character decomposition]\label{WeakPNT-character}\lean{WeakPNT_character}  If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
+$$
+\sum_{n: n = a\ (q)} {\Lambda(n)}{n^s} = - \frac{1}{\varphi(q)} \sum_{\chi\ (q)} \overline{\chi(a)} \frac{L'(s,\chi)}{L(s,\chi)}.$$
+\end{lemma}
+%%-/
+
+proof_wanted WeakPNT_character {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) {s:ℂ} (hs: 1 < s.re): LSeries (fun n ↦ if n % q = a then Λ n else 0) s = - (∑' χ : DirichletCharacter ℂ q, ((starRingEnd ℂ) (χ a) * ((deriv (LSeries (fun n:ℕ ↦ χ n)) s)) / (LSeries (fun n:ℕ ↦ χ n) s))) / (Nat.totient q : ℂ)
+
+/-%%
+\begin{proof}
+This should be a straightforward Fourier series expansion.
+\end{proof}
 %%-/
 
 
 /-%%
-\begin{proof}\uses{WienerIkehara, ChebyshevPsi}
-Applying Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkehara-alt}), one needs to show that the Dirichlet series $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to $\mathrm{Re}(s)=1$.  (The Chebyshev bound follows from the corresponding bound for $\Lambda$.) By a Fourier expansion of Dirichlet characters, one can write
-$$
-\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s} = - \frac{1}{\varphi(q)} \sum_{\chi\ (q)} \overline{\chi(a)} \frac{L'(s,\chi)}{L(s,\chi)}$$
-where the sum is over Dirichlet characters of modulus $q$.  The contribution of the non-principal characters $\chi$ extend continuously to $\mathrm{Re}(s) = 1$ thanks to the non-vanishing of $L(s,\chi)$ on this line (which should follow from another component of this project), so it suffices to show that for the principal character $\chi_0$, that
+\begin{proposition}[Weak PNT in AP, preliminary]\label{WeakPNT-AP-prelim}\lean{WeakPNT_AP_prelim}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to $\mathrm{Re}(s)=1$.
+\end{proposition}
+%%-/
+
+proof_wanted WeakPNT_AP_prelim {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) : ∃ G: ℂ → ℂ, (ContinuousOn G {s | 1 ≤ s.re}) ∧ (Set.EqOn G (fun s ↦ LSeries (fun n ↦ if n % q = a then Λ n else 0) s - 1 / ((Nat.totient q) * (s - 1))) {s | 1 < s.re})
+
+/-%%
+
+\begin{proof}
+\uses{ChebyshevPsi,WeakPNT-character}
+We expand out the left-hand side using Lemma \ref{WeakPNT-character}.  The contribution of the non-principal characters $\chi$ extend continuously to $\mathrm{Re}(s) = 1$ thanks to the non-vanishing of $L(s,\chi)$ on this line (which should follow from another component of this project), so it suffices to show that for the principal character $\chi_0$, that
 $$ -\frac{L'(s,\chi_0)}{L(s,\chi_0)} - \frac{1}{s-1}$$
 also extends continuously here.  But we already know that
 $$ -\frac{\zeta'(s)}{\zeta(s)} - \frac{1}{s-1}$$
@@ -2333,6 +2348,22 @@ extends, and from Euler product machinery one has the identity
 $$ \frac{L'(s,\chi_0)}{L(s,\chi_0)}
 = \frac{\zeta'(s)}{\zeta(s)} + \sum_{p|q} \frac{\log p}{p^s-1}.$$
 Since there are only finitely many primes dividing $q$, and each summand $\frac{\log p}{p^s-1}$ extends continuously, the claim follows.
+\end{proof}
+%%-/
+
+
+/-%%
+\begin{theorem}[Weak PNT in AP]\label{WeakPNT-AP}\lean{WeakPNT_AP}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, we have
+$$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$
+\end{theorem}
+%%-/
+
+proof_wanted WeakPNT_AP {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q): Tendsto (fun N ↦ cumsum (fun n ↦ if (n % q = a) then Λ n else 0) N / N) atTop (𝓝 (1 / (Nat.totient q)))
+
+
+/-%%
+\begin{proof}\uses{WienerIkehara, WeakPNT-AP-prelim}
+Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkehara-alt}) to Proposition \ref{WeakPNT-AP-prelim}.  (The Chebyshev bound follows from the corresponding bound for $\Lambda$.)
 \end{proof}
 
 %%-/
