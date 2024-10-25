@@ -69,9 +69,7 @@ theorem primesBetween_subset :
     rw [Nat.le_floor_iff (by linarith)]
     have := hp.ne_zero
     exact ⟨by omega, hpz⟩
-  · left
-    refine ⟨⟨hx, hxy⟩, ?_⟩
-    intro q hq hqz
+  · refine Or.inl ⟨⟨hx, hxy⟩, fun q hq hqz ↦ ?_⟩
     rw [hp.dvd_iff_eq (hq.ne_one)]
     rintro rfl
     exact hpz hqz
@@ -103,20 +101,13 @@ theorem Ioc_filter_dvd_eq (d a b: ℕ) (hd : d ≠ 0) :
   constructor
   · intro hn
     rcases hn with ⟨⟨han, hnb⟩, hd⟩
-    refine ⟨n/d, ⟨?_, ?_⟩, ?_⟩
-    · exact Nat.div_lt_div_of_lt_of_dvd hd han
-    · exact Nat.div_le_div_right (Nat.le_floor hnb)
-    · exact Nat.div_mul_cancel hd
+    refine ⟨n/d, ⟨Nat.div_lt_div_of_lt_of_dvd hd han, Nat.div_le_div_right (Nat.le_floor hnb)⟩, Nat.div_mul_cancel hd⟩
   · rintro ⟨r, ⟨ha, ha'⟩, rfl⟩
-    refine ⟨⟨?_, ?_⟩, ?_⟩
-    · exact (Nat.div_lt_iff_lt_mul (by omega)).mp ha
-    · exact Nat.mul_le_of_le_div d r b ha'
-    · exact Nat.dvd_mul_left d r
+    refine ⟨⟨(Nat.div_lt_iff_lt_mul (by omega)).mp ha, Nat.mul_le_of_le_div d r b ha'⟩, Nat.dvd_mul_left d r⟩
 
 theorem card_Ioc_filter_dvd (d a b: ℕ) (hd : d ≠ 0) :
     (Finset.filter (fun x => d ∣ x) (Finset.Ioc a b)).card = b / d - a / d  := by
-  rw [Ioc_filter_dvd_eq _ _ _ hd, Finset.card_image_of_injective _ <| mul_left_injective₀ hd]
-  simp
+  rw [Ioc_filter_dvd_eq _ _ _ hd, Finset.card_image_of_injective _ <| mul_left_injective₀ hd, Nat.card_Ioc]
 
 include hx in
 theorem multSum_eq (d : ℕ) (hd : d ≠ 0):
@@ -125,10 +116,9 @@ theorem multSum_eq (d : ℕ) (hd : d ≠ 0):
   rw [primeInterSieve]
   simp only [Finset.sum_boole, Nat.cast_inj]
   trans ↑(Finset.Ioc (Nat.ceil x - 1) (Nat.floor (x+y)) |>.filter (d ∣ ·) |>.card)
-  · rw [← Nat.Icc_succ_left]
-    congr
-    rw [← Nat.succ_sub]; rfl
-    simp [hx]
+  · rw [← Nat.Icc_succ_left, ← Nat.succ_sub]
+    · exact rfl
+    · exact Nat.one_le_ceil_iff.mpr hx
   · rw [BrunTitchmarsh.card_Ioc_filter_dvd _ _ _ hd]
 
 include hx in
@@ -140,28 +130,21 @@ theorem rem_eq (d : ℕ) (hd : d ≠ 0) : (primeInterSieve x y z hz).rem d = ↑
 theorem Nat.ceil_le_self_add_one (x : ℝ) (hx : 0 ≤ x) : Nat.ceil x ≤ x + 1 := by
   trans Nat.floor x + 1
   · exact_mod_cast Nat.ceil_le_floor_add_one x
-  gcongr
-  exact Nat.floor_le hx
+  · gcongr
+    exact Nat.floor_le hx
 
 theorem floor_approx (x : ℝ) (hx : 0 ≤ x) : ∃ C, |C| ≤ 1 ∧  ↑((Nat.floor x)) = x + C := by
   use ↑(Nat.floor x) - x
   simp only [add_sub_cancel, and_true]
   rw [abs_le]
-  constructor
-  · rw [neg_le_sub_iff_le_add]
-    linarith [Nat.lt_floor_add_one x]
-  · rw [tsub_le_iff_right]
-    linarith [Nat.floor_le hx]
+  refine ⟨by linarith [Nat.lt_floor_add_one x], by linarith [Nat.floor_le hx]⟩
 
 theorem ceil_approx (x : ℝ) (hx : 0 ≤ x) : ∃ C, |C| ≤ 1 ∧  ↑((Nat.ceil x)) = x + C := by
   use ↑(Nat.ceil x) - x
-  simp only [add_sub_cancel, and_true]
-  rw [abs_le]
-  constructor
-  · rw [neg_le_sub_iff_le_add]
-    linarith [Nat.le_ceil x]
-  · rw [tsub_le_iff_right, add_comm]
-    exact Nat.ceil_le_self_add_one x hx
+  simp only [add_sub_cancel, and_true, abs_le]
+  refine ⟨by linarith [Nat.le_ceil x], ?_⟩
+  rw [tsub_le_iff_right, add_comm]
+  exact Nat.ceil_le_self_add_one x hx
 
 theorem nat_div_approx (a b : ℕ) : ∃ C, |C| ≤ 1 ∧ ↑(a/b) = (a/b : ℝ) + C := by
   rw [← Nat.floor_div_eq_div (α:=ℝ)]
@@ -227,7 +210,7 @@ theorem primeSieve_rem_sum_le :
     ∑ d in (primeInterSieve x y z hz).prodPrimes.divisors, (if (d : ℝ) ≤ z then (3:ℝ) ^ ω d * |(primeInterSieve x y z hz).rem d| else 0)
       ≤ 5 * z * (1+Real.log z)^3 := by
   refine rem_sum_le_of_const (primeInterSieve x y z hz) 5 (fun d hd ↦ ?_)
-  apply abs_rem_le <;> linarith
+  apply abs_rem_le _ _ _ <;> linarith
 
 include hx hy in
 theorem siftedSum_le (hz : 1 < z) :
@@ -261,18 +244,16 @@ theorem primesBetween_one (n : ℕ) : primesBetween 1 n = ((Finset.range (n+1)).
 
 theorem primesBetween_mono_right (a b c : ℝ) (hbc : b ≤ c) : primesBetween a b ≤ primesBetween a c := by
   dsimp only [primesBetween]
-  apply Finset.card_le_card
-  intro p
+  refine Finset.card_le_card fun p ↦ ?_
   simp only [Finset.mem_filter, Finset.mem_Icc, Nat.ceil_le, and_imp]
   exact fun ha hb hp ↦ ⟨⟨ha, hb.trans (Nat.floor_mono hbc)⟩, hp⟩
 
 theorem tmp (N : ℕ) : ((Finset.range N).filter Nat.Prime).card ≤ 4 * (N / Real.log N) + 6 *(N ^ (1/2 : ℝ) * (1 + 1/2 * Real.log N)^3) := by
   trans ↑((Finset.range (N+1)).filter Nat.Prime).card
   · norm_cast
-    apply Finset.card_le_card
-    intro n
+    refine Finset.card_le_card fun n ↦ ?_
     simp only [Finset.mem_filter, Finset.mem_range, and_imp]
-    refine fun hnN hp ↦ ⟨by omega, hp⟩
+    exact fun hnN hp ↦ ⟨by omega, hp⟩
   rw [← primesBetween_one]
   by_cases hN : N = 0
   · simp [hN, primesBetween]
