@@ -10,7 +10,7 @@ import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.NonIntegrable
 import Mathlib.Analysis.SumIntegralComparisons
-import Mathlib.Data.Nat.Prime
+import Mathlib.Data.Nat.Prime.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral
 import Mathlib.NumberTheory.ArithmeticFunction
 import PrimeNumberTheoremAnd.Mathlib.Data.Nat.FinMulAntidiagonal
@@ -252,7 +252,6 @@ theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (h
   · apply sum_le_sum; intro a ha
     split_ifs with h
     · gcongr with i hi
-      · norm_num
       rw [if_pos]
       apply le_trans _ h
       norm_cast
@@ -264,7 +263,6 @@ theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (h
       split_ifs
       · norm_num
       · rfl
-  save
   · rw [←sum_filter]
     gcongr
     trans (∑ d in Icc 1 (floor x), (d:ℝ)⁻¹)

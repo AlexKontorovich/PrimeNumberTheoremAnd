@@ -1,7 +1,7 @@
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.NumberTheory.VonMangoldt
 import Mathlib.NumberTheory.ArithmeticFunction
-import Mathlib.NumberTheory.ZetaFunction
+import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.Analysis.Analytic.Meromorphic
 
 open Complex BigOperators Finset Nat Classical

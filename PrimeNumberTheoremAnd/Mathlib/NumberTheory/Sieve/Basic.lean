@@ -5,7 +5,7 @@ Author: Arend Mellendijk
 
 ! This file was ported from Lean 3 source module sieve
 -/
-import Mathlib.Algebra.BigOperators.Basic
+import Mathlib.Algebra.BigOperators.Ring
 import Mathlib.Analysis.Asymptotics.Asymptotics
 import Mathlib.NumberTheory.ArithmeticFunction
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.AuxResults
@@ -62,7 +62,7 @@ def selbergTerms : ArithmeticFunction ℝ :=
 
 local notation3 "g" => Sieve.selbergTerms s
 
-lemma selbergTerms_apply (d : ℕ) :
+theorem selbergTerms_apply (d : ℕ) :
     g d = ν d * ∏ p in d.primeFactors, 1/(1 - ν p) := by
   unfold selbergTerms
   by_cases h : d=0

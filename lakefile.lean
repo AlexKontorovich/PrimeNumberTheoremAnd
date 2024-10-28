@@ -18,10 +18,10 @@ lean_lib «PrimeNumberTheoremAnd»
 -- the commit to a more recent one.
 --
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git" @ "de57ce8"
+  "https://github.com/leanprover-community/mathlib4.git" @ "v4.12.0"
 
 require EulerProducts from git
-  "https://github.com/MichaelStollBayreuth/EulerProducts.git" @ "2b2fa61"
+  "https://github.com/MichaelStollBayreuth/EulerProducts.git" @ "024a986"
 
 meta if get_config? env = some "dev" then require «doc-gen4» from git
-  "https://github.com/leanprover/doc-gen4.git" @ "b334278"
+  "https://github.com/leanprover/doc-gen4.git" @ "v4.12.0"
