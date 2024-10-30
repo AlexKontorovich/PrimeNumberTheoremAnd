@@ -1,6 +1,3 @@
-import Mathlib.Analysis.Complex.CauchyIntegral
-import Mathlib.NumberTheory.LSeries.Dirichlet
-import PrimeNumberTheoremAnd.MellinCalculus
 import PrimeNumberTheoremAnd.ZetaBounds
 import EulerProducts.PNT
 import Mathlib.Algebra.Group.Support
@@ -66,6 +63,7 @@ lemma integrable_x_mul_Smooth1 {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 ψ) (
     (suppΨ : support ψ ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, ψ x / x = 1)
     (ε : ℝ) (εpos : 0 < ε) :
     MeasureTheory.IntegrableOn (fun x ↦ x * Smooth1 ψ ε x) (Ioi 0) := by
+  -- fun_prop -- fails (of course, there's something nontrivial to prove here...)
   sorry
 
 lemma vertical_integrable_Smooth1 {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 ψ) (ψpos : ∀ (x : ℝ), 0 ≤ ψ x)
