@@ -346,7 +346,7 @@ theorem MediumPNT : ∃ (c : ℝ) (hc : c > 0),
   sorry
 /-%%
 \begin{proof}
-\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBnd, ZetaBoxEval}
+\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval}
   Evaluate the integrals.
 \end{proof}
 %%-/

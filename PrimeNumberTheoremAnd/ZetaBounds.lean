@@ -2276,6 +2276,7 @@ lemma LogDerivZetaBndAlt :
   simp only [Real.norm_eq_abs, norm_pow, abs_eq_self.mpr, this]
 /-%%
 \begin{proof}\leanok
+\uses{LogDerivZetaBnd}
 Same as above.
 \end{proof}
 %%-/
