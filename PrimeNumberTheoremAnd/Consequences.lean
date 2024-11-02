@@ -693,3 +693,31 @@ $$ \sum_{x/(j+1) < d \leq x/j} \mu(d) (x/d - j) = O(x/N^2)$$
 for all $j=1,\dots,N-1$ if $x$ is large enough depending on $N$.  Summing all the bounds, we obtain the claim.
 \end{proof}
 %%-/
+
+/-%%
+\section{Consequences of the PNT in arithmetic progressions}
+
+\begin{theorem}[Chebyshev asymptotic in arithmetic progressions]\label{chebyshev-asymptotic-pnt}\lean{chebyshev_asymptotic_pnt}\leanok  If $a\ (q)$ is a primitive residue class, then one has
+  $$ \sum_{p \leq x: p = a\ (q)} \log p = \frac{x}{\phi(q)} + o(x).$$
+\end{theorem}
+%%-/
+
+proof_wanted chebyshev_asymptotic_pnt {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) :
+    (fun x ↦ ∑ p in (filter Nat.Prime (Iic ⌊x⌋₊)), if (p % q = a) then log p else 0) ~[atTop] (fun x ↦ x / (Nat.totient q))
+
+/-%%
+\begin{proof}  This is a routine modification of the proof of Theorem \ref{chebyshev-asymptotic}.
+\end{proof}
+-/
+
+/-%%
+\begin{corollary}\label{dirichlet-thm}\lean{dirichlet_thm}\leanok  Any primitive residue class contains an infinite number of primes.
+\end{corollary}
+%%-/
+
+proof_wanted dirichlet_thm {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) : Infinite { p // p.Prime ∧ p % q = a }
+
+/-%%
+\begin{proof} If this were not the case, then the sum $\sum_{p \leq x: p = a\ (q)} \log p$ would be bounded in $x$, contradicting Theorem \ref{chebyshev-asymptotic-pnt}.
+\end{proof}
+-/
