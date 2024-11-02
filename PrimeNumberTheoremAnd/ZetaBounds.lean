@@ -58,29 +58,6 @@ lemma riemannZeta0_apply (N : ℕ) (s : ℂ) : ζ₀ N s =
       + s * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) := by
   simp_rw [riemannZeta0, div_cpow_eq_cpow_neg]; ring
 
--- lemma AnalyticContinuation {f g : ℂ → ℂ} {s t : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
---     (g_on_t : AnalyticOn ℂ g t) (f_eq_g_on_cap : EqOn f g (s ∩ t))
---     (s_open : IsOpen s) (t_open : IsOpen t) (cap_nonempty : Nonempty (s ∩ t)) :
---     ∃! h : ℂ → ℂ, AnalyticOn ℂ h (s ∪ t) ∧ EqOn h f s ∧ EqOn h g t := by
---   classical
---   let h : ℂ → ℂ := fun z ↦ if z ∈ s then f z else g z
---   refine ⟨h, ⟨?_, fun z hz ↦ by simp [h, hz], ?_⟩, ?_⟩
---   · sorry
---   · intro z hz
---     by_cases z_in_s : z ∈ s
---     · have : z ∈ s ∩ t := by simp [z_in_s, hz]
---       have := f_eq_g_on_cap this
---       simp [h, z_in_s, this]
---     · simp [h, z_in_s]
---   · intro h' ⟨h'_analytic, h'_eq_f_on_s, h'_eq_g_on_t⟩
---     sorry
-
--- lemma AnalyticContinuation' {f g : ℂ → ℂ} {s t u : Set ℂ} (f_on_s : AnalyticOn ℂ f s)
---     (g_on_t : AnalyticOn ℂ g t) (u_sub : u ⊆ s ∩ t) (u_open : IsOpen u)
---     (u_nonempty : Nonempty u) (f_eq_g_on_u : EqOn f g u) :
---     EqOn f g (s ∩ t) := by
---   sorry
-
 -- move near `Real.differentiableAt_rpow_const_of_ne`
 lemma Real.differentiableAt_cpow_const_of_ne (s : ℂ) {x : ℝ} (xpos : 0 < x) :
     DifferentiableAt ℝ (fun (x : ℝ) ↦ (x : ℂ) ^ s) x := by
@@ -1561,6 +1538,16 @@ theorem DerivUpperBnd_aux6 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
   convert UpperBnd_aux2 t_gt hσ.1 using 1
   rw [mul_comm, ← Real.rpow_add_one (by positivity)]; ring_nf
 
+/-%%
+\begin{lemma}[DerivUpperBnd_aux7]\label{DerivUpperBnd_aux7}\lean{DerivUpperBnd_aux7}\leanok
+For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$, and any $0 < A < 1$ sufficiently small,
+and $1-A/\log |t| \le \sigma$, we have
+$$
+\left\|s \cdot \int_{N}^{\infty} \left(\left\lfloor x \right\rfloor + \frac{1}{2} - x\right) \cdot x^{-s-1} \cdot (-\log x)\right\|
+\le 2 \cdot |t| \cdot N^{-\sigma} / \sigma \cdot \log |t|.
+$$
+\end{lemma}
+%%-/
 theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
     let N := ⌊|t|⌋₊;
     let s := ↑σ + ↑t * I;
@@ -1569,20 +1556,25 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
       2 * |t| * ↑N ^ (-σ) / σ * |t|.log := by
   intro N s Npos N_le_t neOne σ_gt
   sorry
-
-lemma ZetaDerivUpperBnd'' {A σ : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
-    (σ_le : σ ≤ 2) :
-    (fun (t : ℝ) ↦
-    ‖∑ n in Finset.range (⌊|t|⌋₊ + 1), -1 / (n : ℂ) ^ (σ + t * I) * (Real.log n)‖ +
-      ‖-(⌊|t|⌋₊ : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I)) ^ 2‖ +
-      ‖(Real.log ⌊|t|⌋₊) * (⌊|t|⌋₊ : ℂ) ^ (1 - (σ + t * I)) / (1 - (σ + t * I))‖ +
-      ‖(Real.log ⌊|t|⌋₊) * (⌊|t|⌋₊ : ℂ) ^ (-(σ + t * I)) / 2‖ +
-      ‖(1 * ∫ (x : ℝ) in Ioi (⌊|t|⌋₊ : ℝ), (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1))‖ +
-      ‖(σ + t * I) * ∫ (x : ℝ) in Ioi (⌊|t|⌋₊ : ℝ),
-        (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(σ + t * I) - 1) * -(Real.log x)‖)
-        =O[atTop ⊓ Filter.principal {t : ℝ | |t| < Real.exp (A / (1 - σ))}] fun t ↦ Real.log |t| ^ 2 := by
-
-  sorry
+/-%%
+\begin{proof}
+Estimate $|s|= |\sigma + tI|$ by $|s|\le 2 +|t| \le 2|t|$ (since $|t|>3$). Estimating $|\left\lfloor x \right\rfloor+1/2-x|$ by $1$,
+and using $|x^{-s-1}| = x^{-\sigma-1}$, we have
+$$
+\left\| s \cdot \int_{N}^{\infty} \left(\left\lfloor x \right\rfloor + \frac{1}{2} - x\right) \cdot x^{-s-1} \cdot (-\log x)\right\|
+\le 2 \cdot |t|
+\int_{N}^{\infty} x^{-\sigma} \cdot (\log x).
+$$
+For the last integral, integrate by parts, getting:
+$$
+\int_{N}^{\infty} x^{-\sigma-1} \cdot (\log x) =
+\left[ -x^{-\sigma} \cdot \log x \right]_{N}^{\infty} + \sigma \cdot \int_{N}^{\infty} x^{-\sigma-1} dx
+=
+N^{-\sigma} \cdot \log N + \sigma \cdot N^{-\sigma}.
+$$
+Now use $\log N \le \log |t|$ to get the result.
+\end{proof}
+%%-/
 
 lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
@@ -1706,7 +1698,7 @@ lemma ZetaDerivUpperBnd :
   apply le_trans (by apply norm_add₆_le) ?_
   convert ZetaDerivUpperBnd' hA t_gt ⟨σ_ge, σ_le⟩
 /-%%
-\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta}\leanok
+\begin{proof}\uses{ZetaBnd_aux1, ZetaBnd_aux2, Zeta0EqZeta, DerivUpperBnd_aux7}\leanok
 First replace $\zeta(s)$ by $\zeta_0(N,s)$ for $N = \lfloor |t| \rfloor$.
 Differentiating term by term, we get:
 $$
@@ -2237,6 +2229,54 @@ lemma LogDerivZetaBnd :
 /-%%
 \begin{proof}\leanok
 \uses{ZetaInvBnd, ZetaDerivUpperBnd}
-Combine the bound on $|\zeta'|$ from Lemma \ref{ZetaDerivUpperBnd} with the bound on $1/|\zeta|$ from Lemma \ref{ZetaInvBnd}.
+Combine the bound on $|\zeta'|$ from Lemma \ref{ZetaDerivUpperBnd} with the
+bound on $1/|\zeta|$ from Lemma \ref{ZetaInvBnd}.
+\end{proof}
+%%-/
+
+/-
+It would be better to refactor this entire file so that we're not using explicit
+constants but instead systematically using big Oh notation... The punchline would be:
+-/
+/-%%
+\begin{lemma}[LogDerivZetaBndAlt]\label{LogDerivZetaBndAlt}\lean{LogDerivZetaBndAlt}\leanok
+There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1$ and $|t|\to\infty$,
+$$
+|\frac {\zeta'}{\zeta} (\sigma+it)| \ll \log^9 |t|.
+$$
+(Same statement but using big-Oh and filters.)
+\end{lemma}
+%%-/
+lemma LogDerivZetaBndAlt :
+    ∃ A > 0, ∀ (σ) (hσ : σ ∈ Ico ((1 : ℝ) / 2) (1 : ℝ)),
+    (fun (t : ℝ) ↦ deriv ζ (σ + t * I) / ζ (σ + t * I)) =O[cocompact ℝ ⊓
+      Filter.principal {t | 1 - A / Real.log |t| ^ 9 < σ}]
+        fun t ↦ Real.log |t| ^ 9 := by
+  obtain ⟨A, hA, C, _, h⟩ := LogDerivZetaBnd
+  refine ⟨A, hA.1, fun σ ⟨σ_ge, σ_lt⟩ ↦ ?_⟩
+  -- This could all be done much cleaner; TODO: refactor
+  rw [Asymptotics.isBigO_iff]
+  use C
+  rw [eventually_inf, cocompact_eq_atBot_atTop]
+  refine ⟨{t : ℝ | 4 ≤ |t|}, ?_, {t | 1 - A / Real.log |t| ^ 9 < σ},
+    fun ⦃a⦄ a ↦ a, fun t ⟨t_ge, ht⟩ ↦ ?_⟩
+  · rw [mem_sup]
+    refine ⟨?_, ?_⟩
+    · simp only [mem_atBot_sets, mem_setOf_eq]
+      refine ⟨-4, fun b hb ↦ ?_⟩
+      rw [_root_.abs_of_nonpos (by linarith)]
+      linarith
+    · simp only [mem_atTop_sets, ge_iff_le, mem_setOf_eq]
+      refine ⟨4, fun b hb ↦ ?_⟩
+      rwa [_root_.abs_of_nonneg (by linarith)]
+  simp only [mem_setOf_eq] at ht
+  convert h σ t (by linarith [mem_Ici.mp t_ge]) ⟨ht.le, σ_lt⟩
+  simp only [mem_setOf_eq] at t_ge
+  have := Real.log_nonneg (by linarith : 1 ≤ |t|)
+  simp only [Real.norm_eq_abs, norm_pow, abs_eq_self.mpr, this]
+/-%%
+\begin{proof}\leanok
+\uses{LogDerivZetaBnd}
+Same as above.
 \end{proof}
 %%-/

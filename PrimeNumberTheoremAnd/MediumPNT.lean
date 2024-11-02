@@ -1,6 +1,3 @@
-import Mathlib.Analysis.Complex.CauchyIntegral
-import Mathlib.NumberTheory.LSeries.Dirichlet
-import PrimeNumberTheoremAnd.MellinCalculus
 import PrimeNumberTheoremAnd.ZetaBounds
 import EulerProducts.PNT
 import Mathlib.Algebra.Group.Support
@@ -48,37 +45,54 @@ Already in Mathlib.
 The main object of study is the following inverse Mellin-type transform, which will turn out to
 be a smoothed Chebyshev function.
 \begin{definition}[SmoothedChebyshev]\label{SmoothedChebyshev}\lean{SmoothedChebyshev}\leanok
-Fix $\epsilon>0$, and a bumpfunction $\psi$ supported in $[1/2,2]$. Then we define the smoothed
+Fix $\epsilon>0$, and a bumpfunction supported in $[1/2,2]$. Then we define the smoothed
 Chebyshev function $\psi_{\epsilon}$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
 $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(2)}\frac{-\zeta'(s)}{\zeta(s)}
 \mathcal{M}(\widetilde{1_{\epsilon}})(s)
 X^{s}ds.$$
 \end{definition}
 %%-/
-noncomputable abbrev SmoothedChebyshevIntegrand (ψ : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ → ℂ :=
+noncomputable abbrev SmoothedChebyshevIntegrand (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ → ℂ :=
   fun s ↦ (- deriv riemannZeta s) / riemannZeta s *
-    𝓜 ((Smooth1 ψ ε) ·) s * (X : ℂ) ^ s
+    𝓜 ((Smooth1 SmoothingF ε) ·) s * (X : ℂ) ^ s
 
-noncomputable def SmoothedChebyshev (ψ : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
-  VerticalIntegral' (SmoothedChebyshevIntegrand ψ ε X) 2
+noncomputable def SmoothedChebyshev (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
+  VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) 2
 
-lemma integrable_x_mul_Smooth1 {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 ψ) (ψpos : ∀ (x : ℝ), 0 ≤ ψ x)
-    (suppΨ : support ψ ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, ψ x / x = 1)
+/-%%
+\begin{lemma}[integrable_x_mul_Smooth1]\label{integrable_x_mul_Smooth1}\lean{integrable_x_mul_Smooth1}\leanok
+Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$
+with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
+$x \mapsto x \cdot \widetilde{1_{\epsilon}}(x)$ is integrable on $(0,\infty)$.
+\end{lemma}
+%%-/
+lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
+    (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
     (ε : ℝ) (εpos : 0 < ε) :
-    MeasureTheory.IntegrableOn (fun x ↦ x * Smooth1 ψ ε x) (Ioi 0) := by
+    MeasureTheory.IntegrableOn (fun x ↦ x * Smooth1 SmoothingF ε x) (Ioi 0) := by
+  -- fun_prop -- fails (of course, there's something nontrivial to prove here...)
   sorry
+/-%%
+\begin{proof}
+\uses{Smooth1Properties_above}
+We have
+from Lemma \ref{Smooth1Properties_above}
+ that $\widetilde{1_{\epsilon}}(x) = 0$ for all $x \leq 1+c\epsilon$.
+ So the claimed function is integrable on $(0,\infty)$.
+\end{proof}
+%%-/
 
-lemma vertical_integrable_Smooth1 {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 ψ) (ψpos : ∀ (x : ℝ), 0 ≤ ψ x)
-    (suppΨ : support ψ ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, ψ x / x = 1)
+lemma vertical_integrable_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
+    (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
     (ε : ℝ) (εpos : 0 < ε) :
     MeasureTheory.Integrable
-      (fun (y : ℝ) ↦ ∫ (t : ℝ) in Ioi 0, (t : ℂ) ^ (1 + y * I) * (Smooth1 ψ ε t : ℂ)) := by
+      (fun (y : ℝ) ↦ ∫ (t : ℝ) in Ioi 0, (t : ℂ) ^ (1 + y * I) * (Smooth1 SmoothingF ε t : ℂ)) := by
   sorry
 
-lemma continuousAt_Smooth1 {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 ψ) (ψpos : ∀ (x : ℝ), 0 ≤ ψ x)
-    (suppΨ : support ψ ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, ψ x / x = 1)
+lemma continuousAt_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
+    (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
     (ε : ℝ) (εpos : 0 < ε) (y : ℝ) (ypos : 0 < y) :
-    ContinuousAt (fun x ↦ Smooth1 ψ ε x) y := by
+    ContinuousAt (fun x ↦ Smooth1 SmoothingF ε x) y := by
   apply Continuous.continuousAt
   unfold Smooth1 DeltaSpike MellinConvolution
   simp only [one_div, ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
@@ -92,32 +106,32 @@ We have that
 $$\psi_{\epsilon}(X) = \sum_{n=1}^\infty \Lambda(n)\widetilde{1_{\epsilon}}(n/X).$$
 \end{theorem}
 %%-/
-theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 ψ) (ψpos : ∀ x, 0 ≤ ψ x)
-    (suppΨ : Function.support ψ ⊆ Icc (1 / 2) 2) (mass_one: ∫ x in Ioi (0 : ℝ), ψ x / x = 1)
+theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ x, 0 ≤ SmoothingF x)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one: ∫ x in Ioi (0 : ℝ), SmoothingF x / x = 1)
     (X : ℝ) (X_pos : 0 < X) (ε : ℝ) (εpos: 0 < ε) :
-    SmoothedChebyshev ψ ε X = ∑' n, Λ n * Smooth1 ψ ε (n / X) := by
+    SmoothedChebyshev SmoothingF ε X = ∑' n, Λ n * Smooth1 SmoothingF ε (n / X) := by
   dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
   rw [MellinTransform_eq]
   calc
     _ = 1 / (2 * π * I) * (I * ∫ (t : ℝ), ∑' n, Λ n / (n : ℂ) ^ (2 + ↑t * I) *
-      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
     _ = 1 / (2 * π * I) * (I * ∑' n, ∫ (t : ℝ), Λ n / (n : ℂ) ^ (2 + ↑t * I) *
-      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
     _ = 1 / (2 * π * I) * (I * ∑' n, Λ n * ∫ (t : ℝ),
-      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
     _ = 1 / (2 * π) * (∑' n, Λ n * ∫ (t : ℝ),
-      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
     _ = ∑' n, Λ n * (1 / (2 * π) * ∫ (t : ℝ),
-      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
     _ = ∑' n, Λ n * (1 / (2 * π) * ∫ (t : ℝ),
-      mellin (fun x ↦ ↑(Smooth1 ψ ε x)) (2 + ↑t * I) * ((n : ℂ) / X) ^ (-(2 + ↑t * I))) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * ((n : ℂ) / X) ^ (-(2 + ↑t * I))) := ?_
     _ = _ := ?_
   · congr; ext t
     rw [LogDerivativeDirichlet (s := 2 + t * I) (by simp)]
     rw [← tsum_mul_right, ← tsum_mul_right]
   · congr
     rw [← MellinTransform_eq]
-    have := @MellinOfSmooth1b ψ diffΨ suppΨ 2 2 (by norm_num) ε εpos
+    have := @MellinOfSmooth1b SmoothingF diffSmoothingF suppSmoothingF 2 2 (by norm_num) ε εpos
     simp_rw [Asymptotics.isBigO_iff] at this
     obtain ⟨c, hc⟩ := this
     simp only [Real.norm_eq_abs, Complex.abs_abs, one_div, mul_inv_rev, norm_mul,
@@ -157,17 +171,17 @@ theorem SmoothedChebyshevDirichlet {ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 �
     congr
     rw [(by rw [div_mul]; simp : 1 / (2 * π) = 1 / (2 * π * I) * I), mul_assoc]
     conv => lhs; rhs; rhs; rhs; intro t; rw [mul_comm]; norm_cast
-    have := MellinInversion 2 (f := fun x ↦ (Smooth1 ψ ε x : ℂ)) (x := n / X)
+    have := MellinInversion 2 (f := fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (x := n / X)
       (by simp [n_pos, X_pos]) ?_ ?_ ?_
     · beta_reduce at this
       dsimp [MellinInverseTransform, VerticalIntegral] at this
       rw [← MellinTransform_eq, this]
     · dsimp [MellinConvergent]
-      norm_num; exact_mod_cast (integrable_x_mul_Smooth1 diffΨ ψpos suppΨ mass_one ε εpos).ofReal
+      norm_num; exact_mod_cast (integrable_x_mul_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos).ofReal
     · dsimp [VerticalIntegrable, mellin]
-      ring_nf; exact vertical_integrable_Smooth1 diffΨ ψpos suppΨ mass_one ε εpos
+      ring_nf; exact vertical_integrable_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos
     · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
-      exact continuousAt_Smooth1 diffΨ ψpos suppΨ mass_one ε εpos (n / X) (by positivity)
+      exact continuousAt_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos (n / X) (by positivity)
 /-%%
 \begin{proof}
 \uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne, MellinOfSmooth1b}
@@ -205,10 +219,10 @@ We have that
 $$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X \log X).$$
 \end{theorem}
 %%-/
-lemma SmoothedChebyshevClose {ψ : ℝ → ℝ} (ε : ℝ) (ε_pos: 0 < ε)
-    (suppΨ : Function.support ψ ⊆ Icc (1 / 2) 2) (Ψnonneg : ∀ x > 0, 0 ≤ ψ x)
-    (mass_one : ∫ x in Ioi 0, ψ x / x = 1) (X : ℝ) :
-    (fun X ↦ ‖SmoothedChebyshev ψ ε X - ChebyshevPsi X‖) =O[atTop]
+lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ} (ε : ℝ) (ε_pos: 0 < ε)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) (X : ℝ) :
+    (fun X ↦ ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖) =O[atTop]
       (fun X ↦ ε * X * Real.log X) := by
   sorry
 /-%%
@@ -348,7 +362,7 @@ theorem MediumPNT : ∃ (c : ℝ) (hc : c > 0),
   sorry
 /-%%
 \begin{proof}
-\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBnd, ZetaBoxEval}
+\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval}
   Evaluate the integrals.
 \end{proof}
 %%-/
