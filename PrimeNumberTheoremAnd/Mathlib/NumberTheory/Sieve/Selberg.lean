@@ -417,7 +417,7 @@ theorem selberg_bound_muPlus (n : ℕ) (hn : n ∈ divisors P) :
     simp only [f]
     by_cases h : n = d1.lcm d2
     rw [if_pos h, if_pos h]
-    apply mul_le_one (s.selberg_bound_weights d1) (abs_nonneg <| γ d2)
+    apply mul_le_one₀ (s.selberg_bound_weights d1) (abs_nonneg <| γ d2)
       (s.selberg_bound_weights d2)
     rw [if_neg h, if_neg h]
   · rw [← Finset.sum_product']
