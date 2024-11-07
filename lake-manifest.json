@@ -79,7 +79,7 @@
    "name": "mathlib",
    "manifestFile": "lake-manifest.json",
    "inputRev": "v4.13.0",
-   "inherited": true,
+   "inherited": false,
    "configFile": "lakefile.lean"},
   {"url": "https://github.com/MichaelStollBayreuth/EulerProducts.git",
    "type": "git",
