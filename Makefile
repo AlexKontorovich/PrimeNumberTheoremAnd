@@ -10,10 +10,8 @@ build:
 	$(LAKEBIN) exe cache get
 	$(LAKEBIN) build
 
-doc: .lake/packages/doc-gen4
+doc:
 	$(LAKEBIN) -R -Kenv=dev build $(PROJECT):docs
-.lake/packages/doc-gen4:
-	$(LAKEBIN) -R -Kenv=dev update
 clean-doc:
 	rm -rf .lake/build/doc/*
 
