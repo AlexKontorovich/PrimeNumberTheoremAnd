@@ -7,7 +7,6 @@ BLUEPRINTS=$(addsuffix .tex, $(addprefix blueprint/, $(FILES)))
 BLUEPRINT_FILE=blueprint/blueprint.tex
 
 build:
-	$(LAKEBIN) update
 	$(LAKEBIN) exe cache get
 	$(LAKEBIN) build
 
