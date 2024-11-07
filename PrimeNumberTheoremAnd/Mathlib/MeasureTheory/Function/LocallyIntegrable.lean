@@ -1,6 +1,6 @@
 import Mathlib.MeasureTheory.Function.LocallyIntegrable
 import Mathlib.MeasureTheory.Integral.IntegrableOn
-import Mathlib.Topology.Algebra.Order.Compact
+import Mathlib.Topology.Order.Compact
 
 open MeasureTheory MeasureTheory.Measure Set Function TopologicalSpace Bornology Filter
 

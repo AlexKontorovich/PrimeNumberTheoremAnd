@@ -49,7 +49,7 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
       ← intervalIntegral.integral_deriv_eq_sub hϕ₁ hϕ₂, ← intervalIntegral.integral_const_mul,
       intervalIntegral.integral_of_le hxy.le, integral_Ioc_eq_integral_Ioo,
       integral_Icc_eq_integral_Ioo]
-    apply setIntegral_congr
+    apply setIntegral_congr_fun
     · exact measurableSet_Ioo
     · intro z hz
       have : ⌊z⌋₊ = ⌊y⌋₊ := by
@@ -283,36 +283,6 @@ lemma abel_summation {a : ArithmeticFunction ℝ} (x y : ℝ) (hx : 0 < x) (hxy 
       intervalIntegral.integral_add_adjacent_intervals (hab.trans hbc) hcd]
   simp [A, intervalIntegral.integral_of_le hxy.le, MeasureTheory.integral_Icc_eq_integral_Ioc]
 
-lemma nth_prime_one_eq_three : nth Nat.Prime 1 = 3 := nth_count prime_three
-
-@[simp]
-lemma Nat.primeCounting'_eq_zero_iff {n : ℕ} : n.primeCounting' = 0 ↔ n ≤ 2 := by
-  refine ⟨?_, ?_⟩
-  · contrapose!
-    intro h
-    replace h : 3 ≤ n := by omega
-    have := monotone_primeCounting' h
-    have := nth_prime_one_eq_three ▸ primeCounting'_nth_eq 1
-    omega
-  · intro hn
-    have := zeroth_prime_eq_two ▸ primeCounting'_nth_eq 0
-    have := monotone_primeCounting' hn
-    omega
-
-
-@[simp]
-lemma Nat.primeCounting_eq_zero_iff {n : ℕ} : n.primeCounting = 0 ↔ n ≤ 1 := by
-  simp [Nat.primeCounting]
-
-@[simp]
-lemma Nat.primeCounting_zero : Nat.primeCounting 0 = 0 :=
-  Nat.primeCounting_eq_zero_iff.mpr zero_le_one
-
-@[simp]
-lemma Nat.primeCounting_one : Nat.primeCounting 1 = 0 :=
-  Nat.primeCounting_eq_zero_iff.mpr le_rfl
-
-
 -- @[simps]
 -- def ArithmeticFunction.primeCounting : ArithmeticFunction ℝ where
 --   toFun x := Nat.primeCounting ⌊x⌋₊
@@ -432,7 +402,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       symm
       apply Set.Ico_union_Icc_eq_Icc ?_ hx
       norm_num
-    rw [this, integral_union]
+    rw [this, setIntegral_union]
     · simp only [add_left_eq_self]
       apply integral_eq_zero_of_ae
       simp only [measurableSet_Ico, ae_restrict_eq]
@@ -699,7 +669,7 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx: 2 ≤ x) :
           calc
             _ ≤ x^(1:ℝ) := by
               apply rpow_le_rpow_of_exponent_le hx_one
-              apply inv_le_one
+              apply inv_le_one_of_one_le₀
               simp only [one_le_cast]
               exact one_le_two.trans hk.1
             _ = _ := by
@@ -720,7 +690,7 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx: 2 ≤ x) :
             apply floor_le_floor
             apply rpow_le_rpow_of_exponent_le hx_one
             simp at hk
-            rw [inv_le_inv _ zero_lt_two]
+            rw [inv_le_inv₀ _ zero_lt_two]
             . exact ofNat_le_cast.mpr hk.1
             simp only [cast_pos]
             exact lt_of_lt_of_le zero_lt_two hk.1
@@ -821,7 +791,7 @@ theorem WeakPNT'' : (fun x ↦ ∑ n in (Iic ⌊x⌋₊), Λ n) ~[atTop] (fun x 
     intro b hb
     have hb' : 0 ≤ b := le_of_lt (lt_of_lt_of_le (inv_pos_of_pos hε) hb)
     rw [abs_of_nonneg, abs_of_nonneg hb']
-    . apply LE.le.trans _ ((inv_pos_le_iff_one_le_mul' hε).mp hb)
+    . apply LE.le.trans _ ((inv_le_iff_one_le_mul₀' hε).mp hb)
       linarith [Nat.lt_floor_add_one b]
     rw [sub_nonneg]
     exact floor_le hb'
@@ -1070,7 +1040,7 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n in range N, μ n / (n : ℚ)| 
   rw [sum_congr rfl (g := fun d ↦ (μ d : ℚ) * ⌊(N : ℚ) / (d : ℚ)⌋)] at h_sum
   swap
   intros
-  rw [show (N : ℚ) = ((N : ℤ) : ℚ) by norm_cast, Rat.floor_int_div_nat_eq_div]
+  rw [show (N : ℚ) = ((N : ℤ) : ℚ) by norm_cast, Rat.floor_intCast_div_natCast]
   congr
 
   /- Next, we establish bounds for the error term -/

@@ -26,9 +26,9 @@ section lemmas
 
 noncomputable def funscale {E : Type*} (g : ℝ → E) (R x : ℝ) : E := g (R⁻¹ • x)
 
-lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
-  have key x : HasDerivAt ofReal' 1 x := hasDerivAt_id x |>.ofReal_comp
-  have key' : deriv ofReal' = fun _ => 1 := by ext x ; exact (key x).deriv
+lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal := by
+  have key x : HasDerivAt ofReal 1 x := hasDerivAt_id x |>.ofReal_comp
+  have key' : deriv ofReal = fun _ => 1 := by ext x ; exact (key x).deriv
   refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
   simpa [key'] using contDiff_const
 
@@ -46,7 +46,7 @@ variable {f : CS n E} {R x v : ℝ}
 instance : CoeFun (CS n E) (fun _ => ℝ → E) where coe := CS.toFun
 
 instance : Coe (CS n ℝ) (CS n ℂ) where coe f := ⟨fun x => f x,
-  contDiff_ofReal.of_le le_top |>.comp f.h1, f.h2.comp_left (g := ofReal') rfl⟩
+  contDiff_ofReal.of_le le_top |>.comp f.h1, f.h2.comp_left (g := ofReal) rfl⟩
 
 def neg (f : CS n E) : CS n E where
   toFun := -f
@@ -292,12 +292,12 @@ theorem W21_approximation (f : W21) (g : trunc) :
         have : 0 ≤ R := by linarith
         simp [h', CS.deriv_scale, abs_mul, abs_inv, abs_eq_self.mpr this] ; simp [CS.scale, funscale, hR']
         convert_to _ ≤ c1 * 1 ; simp ; rw [mul_comm]
-        apply mul_le_mul (mg' _) (inv_le_of_inv_le (by linarith) (by simpa using hR)) (by positivity)
+        apply mul_le_mul (mg' _) (inv_le_of_inv_le₀ (by linarith) (by simpa using hR)) (by positivity)
         exact (abs_nonneg _).trans (mg' 0)
       have hc2 : ∀ᶠ R in atTop, ∀ v, |h'' R v| ≤ c2 := by
         filter_upwards [eventually_ge_atTop 1] with R hR v
         have e1 : 0 ≤ R := by linarith
-        have e2 : R⁻¹ ≤ 1 := inv_le_of_inv_le (by linarith) (by simpa using hR)
+        have e2 : R⁻¹ ≤ 1 := inv_le_of_inv_le₀ (by linarith) (by simpa using hR)
         have e3 : R ≠ 0 := by linarith
         simp [h'', CS.deriv_scale, CS.deriv_smul, abs_mul, abs_inv, abs_eq_self.mpr e1]
         convert_to _ ≤ 1 * (1 * c2) ; simp

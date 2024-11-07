@@ -245,7 +245,8 @@ $$\lim_{\sigma\to-\infty}x^\sigma=0.$$
 lemma tendsto_rpow_atTop_nhds_zero_of_norm_gt_one {x : ℝ} (x_gt_one : 1 < x) (C : ℝ) :
     Tendsto (fun (σ : ℝ) ↦ x ^ σ * C) atBot (𝓝 0) := by
   have := (zero_lt_one.trans x_gt_one)
-  have h := tendsto_rpow_atTop_nhds_zero_of_norm_lt_one (inv_pos.mpr this) (inv_lt_one x_gt_one) C
+  have h := tendsto_rpow_atTop_nhds_zero_of_norm_lt_one (inv_pos.mpr this)
+    (inv_lt_one_of_one_lt₀ x_gt_one) C
   convert (h.comp tendsto_neg_atBot_atTop) using 1
   ext; simp only [this.le, inv_rpow, Function.comp_apply, rpow_neg, inv_inv]
 
@@ -394,7 +395,7 @@ lemma vertIntBound (xpos : 0 < x) (σ_gt_one : 1 < σ) :
   rw [Pi.le_def]
   intro t
   gcongr <;> apply sqrt_le_sqrt
-  · simp_rw [normSq_add_mul_I, add_le_add_iff_right, one_le_pow_of_one_le σ_gt_one.le _]
+  · simp_rw [normSq_add_mul_I, add_le_add_iff_right, one_le_pow₀ σ_gt_one.le]
   · rw [add_right_comm, ← ofReal_one, ← ofReal_add, normSq_add_mul_I, add_le_add_iff_right]
     nlinarith
   rfl
@@ -450,7 +451,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
     intro t
     gcongr <;> apply sqrt_le_sqrt
     · rw [normSq_add_mul_I, add_le_add_iff_right]; ring_nf; nlinarith
-    · rw [(by push_cast; ring : σ + t * I + 1 = ofReal' (σ + 1) + t * I),
+    · rw [(by push_cast; ring : σ + t * I + 1 = ofReal (σ + 1) + t * I),
         normSq_add_mul_I, add_le_add_iff_right]; ring_nf; nlinarith
   · rw [mul_comm]
     gcongr
