@@ -16,6 +16,7 @@ import Mathlib.Algebra.GroupWithZero.Units.Basic
 import Mathlib.Analysis.Distribution.FourierSchwartz
 import Mathlib.Topology.UniformSpace.UniformConvergence
 import Mathlib.MeasureTheory.Measure.Haar.Disintegration
+import Mathlib.NumberTheory.MulChar.Lemmas
 
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.BrunTitchmarsh
@@ -2320,7 +2321,26 @@ $$
 \end{lemma}
 %%-/
 
-proof_wanted WeakPNT_character' {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) {s:ℂ} (hs: 1 < s.re): LSeries (fun n ↦ if n % q = a then Λ n else 0) s = - (∑' χ : DirichletCharacter ℂ q, ((starRingEnd ℂ) (χ a) * ((deriv (LSeries (fun n:ℕ ↦ χ n)) s)) / (LSeries (fun n:ℕ ↦ χ n) s))) / (Nat.totient q : ℂ)
+theorem WeakPNT_character'
+    {q a : ℕ} (hq: q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) {s : ℂ} (hs: 1 < s.re) :
+    LSeries (fun n ↦ if n % q = a then Λ n else 0) s =
+      - (∑' χ : DirichletCharacter ℂ q,
+          ((starRingEnd ℂ) (χ a) * ((deriv (LSeries (fun n:ℕ ↦ χ n)) s)) / (LSeries (fun n:ℕ ↦ χ n) s))) /
+        (Nat.totient q : ℂ) := by
+  have : NeZero q := ⟨by omega⟩
+  convert WeakPNT_character ((ZMod.isUnit_iff_coprime a q).mpr ha) hs using 1
+  · congr with n
+    have : n % q = a ↔ (n : ZMod q) = a := by
+      rw [ZMod.natCast_eq_natCast_iff', Nat.mod_eq_of_lt ha']
+    simp [this]
+    split_ifs <;> simp [*]
+  · rw [div_eq_inv_mul, neg_mul_comm, tsum_fintype]
+    congr 3 with χ
+    rw [DirichletCharacter.deriv_LFunction_eq_deriv_LSeries _ hs,
+      DirichletCharacter.LFunction_eq_LSeries _ hs, mul_div]
+    congr 2
+    rw [starRingEnd_apply, MulChar.star_apply', MulChar.inv_apply_eq_inv',
+      ← ZMod.coe_unitOfCoprime a ha, ZMod.inv_coe_unit, map_units_inv]
 
 /-%%
 \begin{proof}  From the Fourier inversion formula on the multiplicative group $(\Z/q\Z)^\times$, we have
