@@ -90,7 +90,7 @@ section
 
 variable {A : Type*} [NormedRing A] [NormedAlgebra ℝ A] [CompleteSpace A] {a b : ℝ}
 
-set_option autoImplicit false in
+--set_option autoImplicit false in
 open BigOperators Interval Topology Set intervalIntegral MeasureTheory in
 lemma integral_deriv_mul_eq_sub' {u v u' v' : ℝ → A}
     (hu : ∀ x ∈ [[a, b]], HasDerivWithinAt u (u' x) [[a, b]] x)
