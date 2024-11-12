@@ -36,7 +36,7 @@ def primeInterSieve (x y z : ℝ) (hz : 1 ≤ z) : SelbergSieve where
     simp only [ArithmeticFunction.pdiv_apply, ArithmeticFunction.natCoe_apply,
       ArithmeticFunction.zeta_apply, hp.ne_zero, ↓reduceIte, Nat.cast_one,
       ArithmeticFunction.id_apply, one_div]
-    apply inv_lt_one
+    apply inv_lt_one_of_one_lt₀
     exact_mod_cast hp.one_lt
   level := z
   one_le_level := hz
@@ -230,7 +230,7 @@ theorem primesBetween_le (hz : 1 < z) :
   have : z ≤ z * (1+Real.log z)^3 := by
     apply le_mul_of_one_le_right
     · linarith
-    · apply one_le_pow_of_one_le _ _
+    · apply one_le_pow₀
       linarith [Real.log_nonneg (by linarith)]
   linarith [siftedSum_le _ _ _ hx hy hz, primesBetween_le_siftedSum_add x y z hz.le]
 
@@ -403,7 +403,7 @@ theorem IsBigO.nat_Top_of_atTop (f g : ℕ → ℝ) (h : f =O[Filter.atTop] g) (
         simp
   · by_cases hg : g n = 0
     · simp [hg, h0]
-    rw [← mul_inv_le_iff']
+    rw [← mul_inv_le_iff₀]
     apply Finset.le_max'
     simp only [Finset.mem_insert, Finset.mem_image, Finset.mem_range]
     exact .inr ⟨n, by omega, rfl⟩

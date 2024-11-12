@@ -555,7 +555,7 @@ lemma Finset.Icc_eq_Ico (M N : ℕ): Finset.Icc N M = Finset.Ico N (M + 1) := by
 lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
     Tendsto (fun (k : ℕ) ↦ ∑ n in Finset.Ico N k, f n) atTop (𝓝 (∑' (n : ℕ), f (n + N))) := by
   have := Summable.hasSum_iff_tendsto_nat hf (m := ∑' (n : ℕ), f n) |>.mp hf.hasSum
-  have const := @tendsto_const_nhds (x := ∑ i in Finset.range N, f i) ℕ _ atTop
+  have const := tendsto_const_nhds (α := ℕ) (x := ∑ i in Finset.range N, f i) (f := atTop)
   have := Filter.Tendsto.sub this const
   rw [tsum_eq_partial_add_tail f hf (N := N), add_comm, add_sub_cancel_right] at this
   apply this.congr'
@@ -703,7 +703,7 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ t : ℝ} (σpos : 0 < σ) :
     · filter_upwards [Filter.mem_atTop ((N : ℝ))]
       intro u hu
       simp only [id_eq, intervalIntegral.integral_of_le hu, norm_div, norm_eq_abs]
-      apply setIntegral_congr (by simp)
+      apply setIntegral_congr_fun (by simp)
       intro x hx; beta_reduce
       iterate 2 (rw [abs_cpow_eq_rpow_re_of_pos (by linarith [hx.1])])
       simp
@@ -1058,7 +1058,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   have g_an : AnalyticOnNhd ℂ g U := (HolomorphicOn_riemannZeta0 N_pos).analyticOnNhd isOpen_aux
   have preconU : IsPreconnected U := by
     apply IsConnected.isPreconnected
-    apply (IsOpen.isConnected_iff_isPathConnected isOpen_aux).mp isPathConnected_aux
+    apply (IsOpen.isConnected_iff_isPathConnected isOpen_aux).mpr isPathConnected_aux
   have h2 : (2 : ℂ) ∈ U := by simp [U]
   have s_mem : s ∈ U := by simp [U, reS_pos, s_ne_one]
   convert (AnalyticOnNhd.eqOn_of_preconnected_of_eventuallyEq f_an g_an preconU h2 ?_ s_mem).symm
@@ -1145,7 +1145,7 @@ lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_l
   by_cases n0 : n = 0
   · simp_rw [n0, CharP.cast_eq_zero, inv_zero, zero_mul]
     rw [Complex.zero_cpow ?_]; simp
-    exact fun h ↦ (NeZero.of_pos σpos).ne <| zero_eq_neg.mp <| zero_re ▸ h ▸ (by simp [s])
+    exact fun h ↦ σpos.ne' <| zero_eq_neg.mp <| zero_re ▸ h ▸ (by simp [s])
   have n_gt_0 : 0 < n := Nat.pos_of_ne_zero n0
   have n_gt_0' : (0 : ℝ) < (n : ℝ) := Nat.cast_pos.mpr n_gt_0
   have n_ge_1 : 1 ≤ (n : ℝ) := Nat.one_le_cast.mpr <| Nat.succ_le_of_lt n_gt_0
@@ -1164,7 +1164,7 @@ lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_l
     conv => rw [mul_comm, ← mul_assoc, ← Real.log_abs]; rhs; rw [← one_mul A]
     gcongr
     by_cases ht1 : |t| = 1; simp [ht1]
-    apply (inv_mul_le_iff ?_).mpr; convert Real.log_le_log n_gt_0' n_le_t using 1; rw [mul_one]
+    apply (inv_mul_le_iff₀ ?_).mpr; convert Real.log_le_log n_gt_0' n_le_t using 1; rw [mul_one]
     exact Real.log_pos <| lt_of_le_of_ne (le_trans n_ge_1 n_le_t) <| fun t ↦ ht1 (t.symm)
 /-%%
 \begin{proof}\leanok
@@ -1192,7 +1192,7 @@ lemma UpperBnd_aux {A σ t: ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
   have logt_gt := logt_gt_one t_gt
   have σ_gt : 1 - A < σ := by
     apply lt_of_lt_of_le ((sub_lt_sub_iff_left (a := 1)).mpr ?_) σ_ge
-    exact (div_lt_iff (by linarith)).mpr <| lt_mul_right hA.1 logt_gt
+    exact (div_lt_iff₀ (by linarith)).mpr <| lt_mul_right hA.1 logt_gt
   refine ⟨Npos, N_le_t, logt_gt, σ_gt, by linarith [hA.2], ?_⟩
   contrapose! t_gt
   simp only [Complex.ext_iff, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
@@ -1744,6 +1744,20 @@ lemma Tendsto_nhdsWithin_punctured_add (a x : ℝ) :
     Tendsto (fun y ↦ y + a) (𝓝[>] x) (𝓝[>] (x + a)) :=
   Tendsto_nhdsWithin_punctured_map_add a x strictMono_id isometry_id
 
+lemma riemannZeta_isBigO_near_one_horizontal :
+    (fun x : ℝ ↦ ζ (1 + x)) =O[𝓝[>] 0] (fun x ↦ (1 : ℂ) / x) := by
+  have : (fun w : ℂ ↦ ζ (1 + w)) =O[𝓝[≠] 0] (1 / ·) := by
+    have H : Tendsto (fun w ↦ w * ζ (1 + w)) (𝓝[≠] 0) (𝓝 1) := by
+      convert Tendsto.comp (f := fun w ↦ 1 + w) riemannZeta_residue_one ?_ using 1
+      · ext w
+        simp only [Function.comp_apply, add_sub_cancel_left]
+      · refine tendsto_iff_comap.mpr <| map_le_iff_le_comap.mp <| Eq.le ?_
+        convert Homeomorph.map_punctured_nhds_eq (Homeomorph.addLeft (1 : ℂ)) 0 using 2 <;> simp
+    exact ((Asymptotics.isBigO_mul_iff_isBigO_div eventually_mem_nhdsWithin).mp <|
+      Tendsto.isBigO_one ℂ H).trans <| Asymptotics.isBigO_refl ..
+  exact (isBigO_comp_ofReal_nhds_ne this).mono <| nhds_right'_le_nhds_ne 0
+
+
 /-%%
 \begin{lemma}[ZetaNear1BndFilter]\label{ZetaNear1BndFilter}\lean{ZetaNear1BndFilter}\leanok
 As $\sigma\to1^+$,
@@ -1789,9 +1803,9 @@ lemma ZetaNear1BndExact:
     simp only [dist, abs_lt]
     exact ⟨by linarith, by linarith⟩
   let W := Icc (1 + ε) 2
-  have W_compact : IsCompact {ofReal' z | z ∈ W} :=
+  have W_compact : IsCompact {ofReal z | z ∈ W} :=
     IsCompact.image isCompact_Icc continuous_ofReal
-  have cont : ContinuousOn ζ {ofReal' z | z ∈ W} := by
+  have cont : ContinuousOn ζ {ofReal z | z ∈ W} := by
     apply HasDerivAt.continuousOn (f' := deriv ζ)
     intro σ hσ
     exact (differentiableAt_riemannZeta (by contrapose! hσ; simp [W, hσ, εpos])).hasDerivAt
@@ -1825,6 +1839,15 @@ Split into two cases, use Lemma \ref{ZetaNear1BndFilter} for $\sigma$ sufficient
 and continuity on a compact interval otherwise.
 \end{proof}
 %%-/
+
+/-- For positive `x` and nonzero `y` we have that
+$|\zeta(x)^3 \cdot \zeta(x+iy)^4 \cdot \zeta(x+2iy)| \ge 1$. -/
+lemma norm_zeta_product_ge_one {x : ℝ} (hx : 0 < x) (y : ℝ) :
+    ‖ζ (1 + x) ^ 3 * ζ (1 + x + I * y) ^ 4 * ζ (1 + x + 2 * I * y)‖ ≥ 1 := by
+  have ⟨h₀, h₁, h₂⟩ := one_lt_re_of_pos y hx
+  simpa only [one_pow, norm_mul, norm_pow, DirichletCharacter.LSeries_modOne_eq,
+    LSeries_one_eq_riemannZeta, h₀, h₁, h₂] using
+    DirichletCharacter.norm_LSeries_product_ge_one (1 : DirichletCharacter ℂ 1) hx y
 
 /-%%
 \begin{lemma}[ZetaInvBound1]\label{ZetaInvBound1}\lean{ZetaInvBound1}\leanok
@@ -2071,9 +2094,9 @@ lemma ZetaInvBnd_aux2 {A C₁ C₂ : ℝ} (Apos : 0 < A) (C₁pos : 0 < C₁) (C
     (hA : A ≤ 1 / 2 * (C₁ / (C₂ * 2)) ^ (4 : ℝ)) :
     0 < (C₁ * A ^ (3 / 4 : ℝ) - C₂ * 2 * A)⁻¹ := by
   simp only [inv_pos, sub_pos]
-  apply div_lt_iff (by positivity) |>.mp
+  apply div_lt_iff₀ (by positivity) |>.mp
   rw [div_eq_mul_inv, ← Real.rpow_neg (by positivity), mul_assoc]
-  apply lt_div_iff' (by positivity) |>.mp
+  apply lt_div_iff₀' (by positivity) |>.mp
   nth_rewrite 1 [← Real.rpow_one A]
   rw [← Real.rpow_add (by positivity)]
   norm_num
@@ -2221,7 +2244,7 @@ lemma LogDerivZetaBnd :
   have σ_ge'' : 1 - A' / Real.log |t| ≤ σ := by
     apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
     apply div_le_div hA'.1.le (min_le_right A A') (lt_trans (by norm_num) logt_gt) ?_
-    exact le_self_pow logt_gt.le (by norm_num)
+    exact le_self_pow₀ logt_gt.le (by norm_num)
   replace h := h σ t t_gt ⟨σ_ge', σ_lt⟩
   replace h' := h' σ t t_gt ⟨σ_ge'', by linarith⟩
   simp only [norm_div, norm_one, norm_mul, norm_inv]

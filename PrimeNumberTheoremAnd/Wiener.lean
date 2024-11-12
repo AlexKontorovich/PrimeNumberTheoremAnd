@@ -16,6 +16,7 @@ import Mathlib.Algebra.GroupWithZero.Units.Basic
 import Mathlib.Analysis.Distribution.FourierSchwartz
 import Mathlib.Topology.UniformSpace.UniformConvergence
 import Mathlib.MeasureTheory.Measure.Haar.Disintegration
+import Mathlib.NumberTheory.MulChar.Lemmas
 
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.BrunTitchmarsh
@@ -651,7 +652,7 @@ lemma isLittleO_const_of_tendsto_atTop {α : Type*} [Preorder α] (a : ℝ) {f :
 lemma isBigO_pow_pow_of_le {m n : ℕ} (h : m ≤ n) : (fun x : ℝ => x ^ m) =O[atTop] (fun x : ℝ => x ^ n) := by
   apply IsBigO.of_bound 1
   filter_upwards [eventually_ge_atTop 1] with x l1
-  simpa [abs_eq_self.mpr (zero_le_one.trans l1)] using pow_le_pow_right l1 h
+  simpa [abs_eq_self.mpr (zero_le_one.trans l1)] using pow_le_pow_right₀ l1 h
 
 lemma isLittleO_mul_add_sq (a b : ℝ) : (fun x => a * x + b) =o[atTop] (fun x => x ^ 2) := by
   apply IsLittleO.add
@@ -705,7 +706,7 @@ lemma log_add_one_sub_log_le {x : ℝ} (hx : 0 < x) : nabla Real.log x ≤ x⁻�
     apply continuousOn_log.mono ; intro t ⟨h1, _⟩ ; simp ; linarith
   have l2 t (ht : t ∈ Ioo x (x + 1)) : HasDerivAt Real.log t⁻¹ t := Real.hasDerivAt_log (by linarith [ht.1])
   obtain ⟨t, ⟨ht1, _⟩, htx⟩ := exists_hasDerivAt_eq_slope Real.log (·⁻¹) (by linarith) l1 l2
-  simp at htx ; rw [nabla, ← htx, inv_le_inv (by linarith) hx] ; linarith
+  simp at htx ; rw [nabla, ← htx, inv_le_inv₀ (by linarith) hx] ; linarith
 
 lemma nabla_log_main : nabla Real.log =O[atTop] fun x ↦ 1 / x := by
   apply IsBigO.of_bound 1
@@ -787,7 +788,7 @@ lemma nnabla_bound_aux {x : ℝ} (hx : 0 < x) :
       gcongr
       exact Real.log_nonneg e2
     filter_upwards [e1, e2, e3] with n e1 e2 e3
-    simp_rw [one_mul, Real.norm_eq_abs, abs_inv, abs_eq_self.mpr e1.le, abs_eq_self.mpr e2.le, inv_le_inv e2 e1]
+    simp_rw [one_mul, Real.norm_eq_abs, abs_inv, abs_eq_self.mpr e1.le, abs_eq_self.mpr e2.le, inv_le_inv₀ e2 e1]
     exact e3
 
   have l6 : (fun n => d (n + 1) - d n) =O[atTop] (fun n => (Real.log n) ^ 2) := by
@@ -841,7 +842,7 @@ lemma limiting_fourier_lim1_aux (hcheby : cheby f) (hx : 0 < x) (C : ℝ) (hC : 
     apply isBigO_of_le' (c := C) ; intro n
     have : 0 ≤ (2 * π) ^ 2 + Real.log (n / x) ^ 2 := by positivity
     simp [abs_eq_self.mpr hC, abs_eq_self.mpr pi_nonneg, abs_eq_self.mpr this]
-    apply div_le_of_nonneg_of_le_mul this hC
+    apply div_le_of_le_mul₀ this hC
     gcongr
     apply le_add_of_le_of_nonneg le_rfl (sq_nonneg _)
   have l3 : a =O[atTop] (fun n => 1 / (n : ℝ)) := by
@@ -909,7 +910,7 @@ theorem limiting_fourier_lim2 (A : ℝ) (ψ : W21) (hx : 1 ≤ x) :
 
   obtain ⟨C, hC⟩ := decay_bounds_cor ψ
   apply Tendsto.mul
-  · suffices h : Tendsto (fun σ' : ℝ ↦ ofReal' (x ^ (1 - σ'))) (𝓝[>] 1) (𝓝 1) by simpa using h.const_mul ↑A
+  · suffices h : Tendsto (fun σ' : ℝ ↦ ofReal (x ^ (1 - σ'))) (𝓝[>] 1) (𝓝 1) by simpa using h.const_mul ↑A
     suffices h : Tendsto (fun σ' : ℝ ↦ x ^ (1 - σ')) (𝓝[>] 1) (𝓝 1) from (continuous_ofReal.tendsto 1).comp h
     have : Tendsto (fun σ' : ℝ ↦ σ') (𝓝 1) (𝓝 1) := fun _ a ↦ a
     have : Tendsto (fun σ' : ℝ ↦ 1 - σ') (𝓝[>] 1) (𝓝 0) :=
@@ -1120,7 +1121,7 @@ lemma hh_le (a t : ℝ) (ht : 0 ≤ t) : |hh a t| ≤ t⁻¹ := by
   by_cases h0 : t = 0 ; simp [hh, h0]
   replace ht : 0 < t := lt_of_le_of_ne ht (by tauto)
   unfold hh
-  rw [abs_inv, inv_le_inv (by positivity) ht, abs_mul, abs_eq_self.mpr ht.le]
+  rw [abs_inv, inv_le_inv₀ (by positivity) ht, abs_mul, abs_eq_self.mpr ht.le]
   convert_to t * 1 ≤ _ ; simp
   apply mul_le_mul le_rfl ?_ zero_le_one ht.le
   rw [abs_eq_self.mpr (by positivity)]
@@ -1166,12 +1167,12 @@ lemma gg_le_one (i : ℕ) : gg x i ≤ 1 := by
   by_cases hi : i = 0 <;> simp [gg, hi]
   have l1 : 1 ≤ (i : ℝ) := by simp ; omega
   have l2 : 1 ≤ 1 + (π⁻¹ * 2⁻¹ * Real.log (↑i / x)) ^ 2 := by simp ; positivity
-  rw [← mul_inv] ; apply inv_le_one ; simpa using mul_le_mul l1 l2 zero_le_one (by simp)
+  rw [← mul_inv] ; apply inv_le_one_of_one_le₀ ; simpa using mul_le_mul l1 l2 zero_le_one (by simp)
 
 lemma one_div_two_pi_mem_Ioo : 1 / (2 * π) ∈ Ioo (-1) 1 := by
   constructor
   · trans 0 ; linarith ; positivity
-  · rw [div_lt_iff (by positivity)]
+  · rw [div_lt_iff₀ (by positivity)]
     convert_to 1 * 1 < 2 * π ; simp ; simp
     apply mul_lt_mul one_lt_two ?_ zero_lt_one zero_le_two
     trans 2 ; exact one_le_two ; exact two_le_pi
@@ -1332,7 +1333,7 @@ lemma hh_integrable_aux (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     intro ε hε
     refine ⟨c * ε, by positivity, fun hx1 hx2 => ⟨?_, ?_⟩⟩
     · simp at hx1 ⊢ ; positivity
-    · simp [abs_eq_self.mpr hc.le] at hx2 ⊢ ; rwa [div_lt_iff hc, mul_comm]
+    · simp [abs_eq_self.mpr hc.le] at hx2 ⊢ ; rwa [div_lt_iff₀ hc, mul_comm]
 
   have k3 : ContinuousWithinAt g₀ (Ici 0) 0 := by
     rw [Metric.continuousWithinAt_iff]
@@ -1692,7 +1693,7 @@ theorem wiener_ikehara_smooth_sub (h1 : Integrable Ψ) (hplus : closure (Functio
   have hε' : 0 < ε⁻¹ := by positivity
   have hx : 0 < x := by linarith
   have hx' : 0 < x⁻¹ := by positivity
-  have hεx : x⁻¹ < ε := by apply (inv_lt hε hx).mp hxε
+  have hεx : x⁻¹ < ε := by apply (inv_lt_comm₀ hε hx).mp hxε
 
   have l3 : Ioi 0 = Ioc 0 x⁻¹ ∪ Ioi x⁻¹ := by
     ext t ; simp ; constructor <;> intro h
@@ -1786,7 +1787,7 @@ lemma wiener_ikehara_smooth_real {f : ℕ → ℝ} {Ψ : ℝ → ℝ} (hf : ∀ 
     (hsmooth: ContDiff ℝ ⊤ Ψ) (hsupp: HasCompactSupport Ψ) (hplus: closure (Function.support Ψ) ⊆ Set.Ioi 0) :
     Tendsto (fun x : ℝ ↦ (∑' n, f n * Ψ (n / x)) / x) atTop (nhds (A * ∫ y in Set.Ioi 0, Ψ y)) := by
 
-  let Ψ' := ofReal' ∘ Ψ
+  let Ψ' := ofReal ∘ Ψ
   have l1 : ContDiff ℝ ⊤ Ψ' := contDiff_ofReal.comp hsmooth
   have l2 : HasCompactSupport Ψ' := hsupp.comp_left rfl
   have l3 : closure (Function.support Ψ') ⊆ Ioi 0 := by rwa [Function.support_comp_eq] ; simp
@@ -1862,7 +1863,7 @@ lemma WI_sum_Iab_le {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : cheby
     (∑' n, f n * indicator (Ico a b) 1 (n / x)) / x ≤ C * 2 * b := by
   have hb' : 0 < 2 / b := by positivity
   have hx : 0 < x := by linarith
-  have hxb' : 2 < x * b := (div_lt_iff hb).mp hxb
+  have hxb' : 2 < x * b := (div_lt_iff₀ hb).mp hxb
   have l1 (i : ℕ) (hi : i ∉ Finset.range ⌈b * x⌉₊) : f i * indicator (Ico a b) 1 (i / x) = 0 := by
     simp at hi ⊢ ; right ; rintro - ; rw [le_div_iff₀ hx] ; linarith
   have l2 (i : ℕ) (_ : i ∈ Finset.range ⌈b * x⌉₊) : f i * indicator (Ico a b) 1 (i / x) ≤ |f i| := by
@@ -1908,11 +1909,11 @@ lemma WI_tendsto_aux (a b : ℝ) {A : ℝ} (hA : 0 < A) :
   refine ⟨A * ε, by positivity, ?_⟩
   intro x hx1 hx2
   constructor
-  · simpa [lt_div_iff' hA]
+  · simpa [lt_div_iff₀' hA]
   · simp only [Real.dist_eq, dist_zero_right, Real.norm_eq_abs] at hx2 ⊢
     have : |x / A - (b - a)| = |x - A * (b - a)| / A := by
       rw [← abs_eq_self.mpr hA.le, ← abs_div, abs_eq_self.mpr hA.le] ; congr ; field_simp
-    rwa [this, div_lt_iff' hA]
+    rwa [this, div_lt_iff₀' hA]
 
 lemma WI_tendsto_aux' (a b : ℝ) {A : ℝ} (hA : 0 < A) :
     Tendsto (fun c => (b - a) - c / A) (𝓝[<] (A * (b - a))) (𝓝[>] 0) := by
@@ -1921,11 +1922,11 @@ lemma WI_tendsto_aux' (a b : ℝ) {A : ℝ} (hA : 0 < A) :
   refine ⟨A * ε, by positivity, ?_⟩
   intro x hx1 hx2
   constructor
-  · simpa [div_lt_iff' hA]
+  · simpa [div_lt_iff₀' hA]
   · simp [Real.dist_eq] at hx2 ⊢
     have : |(b - a) - x / A| = |A * (b - a) - x| / A := by
       rw [← abs_eq_self.mpr hA.le, ← abs_div, abs_eq_self.mpr hA.le] ; congr ; field_simp ; ring
-    rwa [this, div_lt_iff' hA, ← neg_sub, abs_neg]
+    rwa [this, div_lt_iff₀' hA, ← neg_sub, abs_neg]
 
 theorem residue_nonneg {f : ℕ → ℝ} (hpos : 0 ≤ f)
     (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm (fun n ↦ ↑(f n)) σ')) (hcheby : cheby fun n ↦ ↑(f n))
@@ -2034,7 +2035,7 @@ lemma le_floor_mul_iff (hb : 0 ≤ b) (hx : 0 < x) : n ≤ ⌊b * x⌋₊ ↔ n 
   rw [div_le_iff₀ hx, Nat.le_floor_iff] ; positivity
 
 lemma lt_ceil_mul_iff (hx : 0 < x) : n < ⌈b * x⌉₊ ↔ n / x < b := by
-  rw [div_lt_iff hx, Nat.lt_ceil]
+  rw [div_lt_iff₀ hx, Nat.lt_ceil]
 
 lemma ceil_mul_le_iff (hx : 0 < x) : ⌈a * x⌉₊ ≤ n ↔ a ≤ n / x := by
   rw [le_div_iff₀ hx, Nat.ceil_le]
@@ -2090,7 +2091,7 @@ lemma tendsto_mul_ceil_div :
     simp ; rw [Nat.pos_iff_ne_zero] ; rintro rfl ; simp at h2 ; linarith
   have l5 : 0 ≤ ε * ↑N := by positivity
   have l6 : ε * N ≤ δ / 2 * N := mul_le_mul h1.le le_rfl (by positivity) (by positivity)
-  simp [div_lt_iff l3]
+  simp [div_lt_iff₀ l3]
   convert (Nat.ceil_lt_add_one l5).trans_le (add_le_add l6 h2) using 1 ; ring
 
 noncomputable def S (f : ℕ → 𝕜) (ε : ℝ) (N : ℕ) : 𝕜 := (∑ n in Finset.Ico ⌈ε * N⌉₊ N, f n) / N
@@ -2314,13 +2315,32 @@ end auto_cheby
 /-%%
 \section{The prime number theorem in arithmetic progressions}
 
-\begin{lemma}[Character decomposition]\label{WeakPNT-character}\lean{WeakPNT_character}  If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
+\begin{lemma}[Character decomposition]\label{WeakPNT-character}\lean{WeakPNT_character'}  If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
 $$
 \sum_{n: n = a\ (q)} \frac{\Lambda(n)}{n^s} = - \frac{1}{\varphi(q)} \sum_{\chi\ (q)} \overline{\chi(a)} \frac{L'(s,\chi)}{L(s,\chi)}.$$
 \end{lemma}
 %%-/
 
-proof_wanted WeakPNT_character {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) {s:ℂ} (hs: 1 < s.re): LSeries (fun n ↦ if n % q = a then Λ n else 0) s = - (∑' χ : DirichletCharacter ℂ q, ((starRingEnd ℂ) (χ a) * ((deriv (LSeries (fun n:ℕ ↦ χ n)) s)) / (LSeries (fun n:ℕ ↦ χ n) s))) / (Nat.totient q : ℂ)
+theorem WeakPNT_character'
+    {q a : ℕ} (hq: q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) {s : ℂ} (hs: 1 < s.re) :
+    LSeries (fun n ↦ if n % q = a then Λ n else 0) s =
+      - (∑' χ : DirichletCharacter ℂ q,
+          ((starRingEnd ℂ) (χ a) * ((deriv (LSeries (fun n:ℕ ↦ χ n)) s)) / (LSeries (fun n:ℕ ↦ χ n) s))) /
+        (Nat.totient q : ℂ) := by
+  have : NeZero q := ⟨by omega⟩
+  convert WeakPNT_character ((ZMod.isUnit_iff_coprime a q).mpr ha) hs using 1
+  · congr with n
+    have : n % q = a ↔ (n : ZMod q) = a := by
+      rw [ZMod.natCast_eq_natCast_iff', Nat.mod_eq_of_lt ha']
+    simp [this]
+    split_ifs <;> simp [*]
+  · rw [div_eq_inv_mul, neg_mul_comm, tsum_fintype]
+    congr 3 with χ
+    rw [DirichletCharacter.deriv_LFunction_eq_deriv_LSeries _ hs,
+      DirichletCharacter.LFunction_eq_LSeries _ hs, mul_div]
+    congr 2
+    rw [starRingEnd_apply, MulChar.star_apply', MulChar.inv_apply_eq_inv',
+      ← ZMod.coe_unitOfCoprime a ha, ZMod.inv_coe_unit, map_units_inv]
 
 /-%%
 \begin{proof}  From the Fourier inversion formula on the multiplicative group $(\Z/q\Z)^\times$, we have

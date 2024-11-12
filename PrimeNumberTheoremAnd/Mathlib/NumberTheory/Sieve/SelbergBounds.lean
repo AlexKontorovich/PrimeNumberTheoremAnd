@@ -328,7 +328,7 @@ lemma sqrt_le_self (x : ℝ) (hx : 1 ≤ x) : Real.sqrt x ≤ x := by
   refine Iff.mpr Real.sqrt_le_iff ?_
   constructor
   · linarith
-  refine le_self_pow hx ?right.h
+  refine le_self_pow₀ hx ?right.h
   norm_num
 
 lemma Nat.squarefree_dvd_pow (a b N: ℕ) (ha : Squarefree a) (hab : a ∣ b ^ N) : a ∣ b := by
@@ -473,7 +473,7 @@ theorem boundingSum_ge_sum (s : SelbergSieve) (hnu : s.nu = (ζ : ArithmeticFunc
       ArithmeticFunction.zeta_apply, Nat.cast_ite, CharP.cast_eq_zero, Nat.cast_one,
       ArithmeticFunction.id_apply]
     rw [if_neg, one_div]
-    apply inv_lt_one; norm_cast
+    apply inv_lt_one_of_one_lt₀; norm_cast
     exact hpp.one_lt
     exact hpp.ne_zero
   apply le_of_eq

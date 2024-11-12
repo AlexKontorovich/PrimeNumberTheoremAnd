@@ -29,7 +29,7 @@ lemma MeasureTheory.integral_comp_mul_right_I0i_haar
   have := integral_comp_mul_right_Ioi (fun y ↦ f y / y) 0 ha
   simp only [RCLike.ofReal_mul, zero_mul, eq_inv_smul_iff₀ (ne_of_gt ha)] at this
   rw [← integral_smul] at this
-  rw [← this, setIntegral_congr (by simp)]
+  rw [← this, setIntegral_congr_fun (by simp)]
   intro _ _
   simp only [RCLike.real_smul_eq_coe_mul]
   rw [mul_comm (a : 𝕂), div_mul, mul_div_assoc, div_self ?_, mul_one]
@@ -48,7 +48,7 @@ lemma MeasureTheory.integral_comp_mul_left_I0i_haar
 -- TODO: generalize to `RCLike`
 lemma MeasureTheory.integral_comp_rpow_I0i_haar_real (f : ℝ → ℝ) {p : ℝ} (hp : p ≠ 0) :
     ∫ (y : ℝ) in Ioi 0, |p| * f (y ^ p) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
-  rw [← integral_comp_rpow_Ioi (fun y ↦ f y / y) hp, setIntegral_congr (by simp)]
+  rw [← integral_comp_rpow_Ioi (fun y ↦ f y / y) hp, setIntegral_congr_fun (by simp)]
   intro y hy
   have ypos : 0 < y := mem_Ioi.mp hy
   field_simp [rpow_sub_one]
@@ -57,7 +57,7 @@ lemma MeasureTheory.integral_comp_rpow_I0i_haar_real (f : ℝ → ℝ) {p : ℝ}
 lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → 𝕂) :
     ∫ (y : ℝ) in Ioi 0, f (1 / y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   have := integral_comp_rpow_Ioi (fun y ↦ f y / y) (p := -1) (by simp)
-  rw [← this, setIntegral_congr (by simp)]
+  rw [← this, setIntegral_congr_fun (by simp)]
   intro y hy
   have : (y : 𝕂) ≠ 0 := (RCLike.ofReal_ne_zero).mpr <| LT.lt.ne' hy
   field_simp [RCLike.real_smul_eq_coe_mul]
@@ -89,7 +89,7 @@ lemma Function.support_abs {α : Type*} (f : α → 𝕂):
 @[simp]
 lemma Function.support_ofReal {f : ℝ → ℝ} :
     (fun x ↦ ((f x) : ℂ)).support = f.support := by
-  apply Function.support_comp_eq (g := ofReal'); simp [ofReal_zero]
+  apply Function.support_comp_eq (g := ofReal); simp [ofReal_zero]
 
 lemma Function.support_id : Function.support (fun x : ℝ ↦ x) = Iio 0 ∪ Ioi 0 := by
   ext x; simp only [mem_support, ne_eq, Iio_union_Ioi, mem_compl_iff, mem_singleton_iff]
@@ -185,77 +185,9 @@ lemma Filter.BigO_zero_atTop_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂)
   refine norm_le_zero_iff.mpr <| Function.support_subset_iff'.mp fSupp c ?_
   exact fun h ↦ by linarith [mem_Icc.mp h]
 
--- steal coercion lemmas from EulerProducts.Auxiliary because of build issues, and add new ones
-namespace Complex
--- see https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Differentiability.20of.20the.20natural.20map.20.E2.84.9D.20.E2.86.92.20.E2.84.82/near/418095234
-
-lemma hasDerivAt_ofReal (x : ℝ) : HasDerivAt ofReal' 1 x :=
-  HasDerivAt.ofReal_comp <| hasDerivAt_id x
-
-lemma deriv_ofReal (x : ℝ) : deriv ofReal' x = 1 :=
-  (hasDerivAt_ofReal x).deriv
-
-lemma differentiableAt_ofReal (x : ℝ) : DifferentiableAt ℝ ofReal' x :=
-  (hasDerivAt_ofReal x).differentiableAt
-
-lemma differentiable_ofReal : Differentiable ℝ ofReal' :=
-  ofRealCLM.differentiable
-
-end Complex
-
-lemma DifferentiableAt.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e z) :
-    DifferentiableAt ℝ (fun x : ℝ ↦ e x) z :=
-  hf.hasDerivAt.comp_ofReal.differentiableAt
-
-lemma Differentiable.comp_ofReal {e : ℂ → ℂ} (h : Differentiable ℂ e) :
-    Differentiable ℝ (fun x : ℝ ↦ e x) :=
-  fun _ ↦ h.differentiableAt.comp_ofReal
-
-lemma DifferentiableAt.ofReal_comp {z : ℝ} {f : ℝ → ℝ} (hf : DifferentiableAt ℝ f z) :
-    DifferentiableAt ℝ (fun (y : ℝ) ↦ (f y : ℂ)) z :=
-  hf.hasDerivAt.ofReal_comp.differentiableAt
-
-lemma Differentiable.ofReal_comp {f : ℝ → ℝ} (hf : Differentiable ℝ f) :
-    Differentiable ℝ (fun (y : ℝ) ↦ (f y : ℂ)) :=
-  fun _ ↦ hf.differentiableAt.ofReal_comp
-
-open Complex ContinuousLinearMap in
-lemma HasDerivAt.of_hasDerivAt_ofReal_comp {z : ℝ} {f : ℝ → ℝ} {u : ℂ}
-    (hf : HasDerivAt (fun y ↦ (f y : ℂ)) u z) :
-    ∃ u' : ℝ, u = u' ∧ HasDerivAt f u' z := by
-  lift u to ℝ
-  · have H := (imCLM.hasFDerivAt.comp z hf.hasFDerivAt).hasDerivAt.deriv
-    simp only [Function.comp_def, imCLM_apply, ofReal_im, deriv_const] at H
-    rwa [eq_comm, comp_apply, imCLM_apply, smulRight_apply, one_apply, one_smul] at H
-  refine ⟨u, rfl, ?_⟩
-  convert (reCLM.hasFDerivAt.comp z hf.hasFDerivAt).hasDerivAt
-  rw [comp_apply, smulRight_apply, one_apply, one_smul, reCLM_apply, ofReal_re]
-
-lemma DifferentiableAt.ofReal_comp_iff {z : ℝ} {f : ℝ → ℝ} :
-    DifferentiableAt ℝ (fun (y : ℝ) ↦ (f y : ℂ)) z ↔ DifferentiableAt ℝ f z := by
-  refine ⟨fun H ↦ ?_, ofReal_comp⟩
-  obtain ⟨u, _, hu₂⟩ := H.hasDerivAt.of_hasDerivAt_ofReal_comp
-  exact HasDerivAt.differentiableAt hu₂
-
-lemma Differentiable.ofReal_comp_iff {f : ℝ → ℝ} :
-    Differentiable ℝ (fun (y : ℝ) ↦ (f y : ℂ)) ↔ Differentiable ℝ f :=
-  forall_congr' fun _ ↦ DifferentiableAt.ofReal_comp_iff
-
-lemma deriv.ofReal_comp {z : ℝ} {f : ℝ → ℝ} :
-    deriv (fun (y : ℝ) ↦ (f y : ℂ)) z = deriv f z := by
-  by_cases hf : DifferentiableAt ℝ f z
-  · exact hf.hasDerivAt.ofReal_comp.deriv
-  · have hf' := mt DifferentiableAt.ofReal_comp_iff.mp hf
-    rw [deriv_zero_of_not_differentiableAt hf, deriv_zero_of_not_differentiableAt <| hf',
-      Complex.ofReal_zero]
-
 lemma deriv.ofReal_comp' {f : ℝ → ℝ} :
     deriv (fun x : ℝ ↦ (f x : ℂ)) = (fun x ↦ ((deriv f) x : ℂ)) :=
   funext fun _ ↦ deriv.ofReal_comp
-
-lemma deriv.comp_ofReal {e : ℂ → ℂ} {z : ℝ} (hf : DifferentiableAt ℂ e z) :
-    deriv (fun x : ℝ ↦ e x) z = deriv e z :=
-  hf.hasDerivAt.comp_ofReal.deriv
 
 lemma deriv.comp_ofReal' {e : ℂ → ℂ} (hf : Differentiable ℂ e) :
     deriv (fun x : ℝ ↦ e x) = fun (x : ℝ) ↦ deriv e x :=
@@ -639,14 +571,14 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * (g x * ↑x ^ (s - 1)) := ?_
     _ = ∫ (y : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * ∫ (x : ℝ) in Ioi 0, g x * ↑x ^ (s - 1) := ?_
     _ = _ := integral_mul_right _ _
-  <;> try (rw [setIntegral_congr (by simp)]; intro y hy; simp only [ofReal_mul])
+  <;> try (rw [setIntegral_congr_fun (by simp)]; intro y hy; simp only [ofReal_mul])
   · simp only [integral_mul_right]
   · simp only [integral_mul_right]
     have := integral_comp_mul_right_Ioi (fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)) 0 hy
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := slitPlane_ne_zero (Or.inl hy)
     field_simp at this ⊢
     rw [this]
-  · rw [setIntegral_congr (by simp)]
+  · rw [setIntegral_congr_fun (by simp)]
     intro x hx
     have y_ne_zeroℝ : y ≠ 0 := ne_of_gt (mem_Ioi.mp hy)
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := by exact_mod_cast y_ne_zeroℝ
@@ -773,7 +705,7 @@ lemma MellinOfPsi_aux {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * @g s x := ?_
     _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * x ^ s / s := by simp only [mul_div, g]
     _ = _ := ?_
-  · rw [setIntegral_congr (by simp)]
+  · rw [setIntegral_congr_fun (by simp)]
     intro _ hx
     simp only [gderiv hs hx]
   · apply PartialIntegration_of_support_in_Icc (Ψ ·) (g s)
@@ -1110,7 +1042,7 @@ $$
 
 lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
     (1 - 2 ^ (-ε)) / ε < Real.log 2 := by
-  apply (div_lt_iff' εpos).mpr
+  apply (div_lt_iff₀' εpos).mpr
   have : 1 - 1 / (2 : ℝ) ^ ε = ((2 : ℝ) ^ ε - 1) / (2 : ℝ) ^ ε := by
     rw [sub_div, div_self (by positivity)]
   rw [← Real.log_rpow (by norm_num), rpow_neg (by norm_num), inv_eq_one_div (2 ^ ε), this]
@@ -1118,7 +1050,7 @@ lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
   have hc : 1 < c := by
     rw [← rpow_zero (2 : ℝ)]
     apply Real.rpow_lt_rpow_of_exponent_lt (by norm_num) εpos
-  apply (div_lt_iff' (by positivity)).mpr <| lt_sub_iff_add_lt'.mp ?_
+  apply (div_lt_iff₀' (by positivity)).mpr <| lt_sub_iff_add_lt'.mp ?_
   let f := (fun x ↦ x * Real.log x - x)
   rw [(by simp [f] : -1 = f 1), (by simp : c * Real.log c - c = f c)]
   have mono: StrictMonoOn f <| Ici 1 := by
@@ -1167,7 +1099,7 @@ lemma Smooth1Properties_below_aux {x ε : ℝ} (hx : x ≤ 1 - Real.log 2 * ε) 
     x ≤ 1 - Real.log 2 * ε := hx
     _ < 2 ^ (-ε) := ?_
   rw [sub_lt_iff_lt_add, add_comm, ← sub_lt_iff_lt_add]
-  exact (div_lt_iff εpos).mp <| Smooth1Properties_estimate εpos
+  exact (div_lt_iff₀ εpos).mp <| Smooth1Properties_estimate εpos
 
 lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     (ε : ℝ) (εpos: 0 < ε) (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) :
@@ -1182,17 +1114,17 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     _ = ∫ (y : ℝ) in Ioi 0, indicator (Ioc 0 1) (fun y ↦ DeltaSpike Ψ ε (x / y) / ↑y) y := ?_
     _ = ∫ (y : ℝ) in Ioi 0, DeltaSpike Ψ ε (x / y) / y := ?_
     _ = _ := integral_comp_div_I0i_haar (fun y ↦ DeltaSpike Ψ ε y) xpos
-  · rw [setIntegral_congr (by simp)]
+  · rw [setIntegral_congr_fun (by simp)]
     intro y hy
     by_cases h : y ≤ 1 <;> simp [indicator, mem_Ioi.mp hy, h]
-  · rw [setIntegral_congr (by simp)]
+  · rw [setIntegral_congr_fun (by simp)]
     intro y hy
     simp only [indicator_apply_eq_self, mem_Ioc, not_and, not_le, div_eq_zero_iff]
     intro hy2; replace hy2 := hy2 <| mem_Ioi.mp hy
     by_cases h : y = 0; right; exact h; left
     apply DeltaSpikeSupport εpos ?_ suppΨ
     · simp only [mem_Icc, not_and, not_le]; intro
-      linarith [(by apply (div_lt_iff (by linarith)).mpr; nlinarith : x / y < 2 ^ (-ε))]
+      linarith [(by apply (div_lt_iff₀ (by linarith)).mpr; nlinarith : x / y < 2 ^ (-ε))]
     · rw [le_div_iff₀ (by linarith), zero_mul]; exact xpos.le
 /-%%
 \begin{proof}\leanok
@@ -1237,7 +1169,7 @@ lemma Smooth1Properties_above_aux {x ε : ℝ} (hx : 1 + (2 * Real.log 2) * ε �
   calc
     x ≥ 1 + (2 * Real.log 2) * ε := hx
     _ > 2 ^ ε := ?_
-  refine lt_add_of_sub_left_lt <| (div_lt_iff hε.1).mp ?_
+  refine lt_add_of_sub_left_lt <| (div_lt_iff₀ hε.1).mp ?_
   calc
     2 * Real.log 2 > 2 * (1 - 2 ^ (-ε)) / ε := ?_
     _ > 2 ^ ε * (1 - 2 ^ (-ε)) / ε := ?_
@@ -1268,7 +1200,7 @@ lemma Smooth1Properties_above_aux2 {x y ε : ℝ} (hε : ε ∈ Ioo 0 1) (hy : y
     _ = 2 / y ^ (1 / ε) := ?_
     _ ≥ 2 / y := ?_
     _ ≥ 2 := ?_
-  · rw [gt_iff_lt, div_rpow, div_rpow, lt_div_iff, mul_comm_div, div_self, mul_one]
+  · rw [gt_iff_lt, div_rpow, div_rpow, lt_div_iff₀, mul_comm_div, div_self, mul_one]
     <;> try positivity
     · exact rpow_lt_rpow (by positivity) hx2 (by positivity)
     · exact LT.lt.le <| lt_trans (by positivity) hx2
@@ -1410,7 +1342,7 @@ lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
     _ = ∫ (y : ℝ) in Ioi 0, (fun y ↦ if y ∈ Ioc 0 1 then 1 else 0) y * (Ψ ((x / y) ^ (1 / ε)) / ε / y) := ?_
     _ ≤ ∫ (y : ℝ) in Ioi 0, (Ψ ((x / y) ^ (1 / ε)) / ε) / y := ?_
     _ = 1 := this
-  · rw [setIntegral_congr (by simp)]
+  · rw [setIntegral_congr_fun (by simp)]
     simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq, mem_Ioc]
     intro y hy; aesop
   · refine setIntegral_mono_on ?_ (integrable_of_integral_eq_one this) (by simp) ?_
@@ -1509,7 +1441,7 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
 
   have : 𝓜 (MellinConvolution g f') s = 𝓜 g s * 𝓜 f' s := by
     rw [mul_comm, ← MellinConvolutionTransform f' g s (by convert int_F using 1; field_simp [F, f, f'])]
-    dsimp [MellinTransform]; rw [setIntegral_congr (by simp)]
+    dsimp [MellinTransform]; rw [setIntegral_congr_fun (by simp)]
     intro x hx; simp_rw [MellinConvolutionSymmetric _ _ <| mem_Ioi.mp hx]
 
   convert this using 1
