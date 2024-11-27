@@ -542,6 +542,80 @@ lemma MellinConvolutionSymmetric (f g : ℝ → 𝕂) {x : ℝ} (xpos: 0 < x) :
   $$
 \end{proof}
 %%-/
+open Pointwise in
+lemma support_MellinConvolution_subsets (f g : ℝ → 𝕂) (A B : Set ℝ) (hA_meas : MeasurableSet A) (hf : f.support ⊆ A) (hg : g.support ⊆ B) : (MellinConvolution f g).support ⊆ A * B := by
+  intro x
+  simp only [Function.mem_support, ne_eq, mem_Ici]
+  contrapose
+  simp only [not_le, Decidable.not_not]
+  intro hx
+  unfold MellinConvolution
+  rw [Function.support_subset_iff'] at hf hg
+  calc
+    _ = ∫ y in A ∩ Ioi 0, f y * g (x / y) / y := by
+      refine setIntegral_eq_of_subset_of_forall_diff_eq_zero (by measurability) Set.inter_subset_right ?h't
+      simp [Set.mem_mul] at hx
+      simp only [mem_diff, mem_Ioi, div_eq_zero_iff, mul_eq_zero, map_eq_zero, and_imp]
+      intro y hy_pos hyA
+      left; left
+      apply hf _
+      simp only [mem_inter_iff, not_and_or] at hyA
+      simpa [hy_pos] using hyA
+    _ = ∫ y in A ∩ Ioi 0, 0 := by
+      apply integral_congr_ae
+      filter_upwards [ae_restrict_mem (by measurability)]
+      intro y hy
+      have div_not_mem : ¬ x / y ∈ B := by
+        intro h
+        apply hx
+        rw [Set.mem_mul]
+        refine ⟨y, mem_of_mem_inter_left hy, _, h, ?_⟩
+        have : 0 < y := by
+          rw [←mem_Ioi]
+          apply (mem_of_mem_inter_right hy)
+        field_simp
+      simp only [div_eq_zero_iff, mul_eq_zero, map_eq_zero]
+      left; right
+      apply hg _ div_not_mem
+    _ = 0 := by
+      simp
+
+open Pointwise in
+lemma support_MellinConvolution (f g : ℝ → 𝕂) (a b : ℝ) (ha : 0 < a) (hb : 0 < b) (hf : f.support ⊆ Ioi 0) (hg : g.support ⊆ Ioi 0) : (MellinConvolution f g).support ⊆ f.support * g.support := by
+  apply support_M
+  sorry
+lemma support_MellinConvolution_Ici (f g : ℝ → 𝕂) (a b : ℝ) (ha : 0 < a) (hb : 0 < b) (hf : f.support ⊆ Set.Ici a) (hg : g.support ⊆ Set.Ici b) : (MellinConvolution f g).support ⊆ Set.Ici (a*b) := by
+  intro x
+  simp only [Function.mem_support, ne_eq, mem_Ici]
+  contrapose
+  simp only [not_le, Decidable.not_not]
+  intro hx
+  unfold MellinConvolution
+  calc
+    _ = ∫ y in Set.Ici a, f y * g (x / y) / y := by
+      refine setIntegral_eq_of_subset_of_forall_diff_eq_zero (by measurability) ?_ ?h't
+      · exact Ici_subset_Ioi.mpr ha
+      simp only [Ioi_diff_Ici, mem_Ioo, div_eq_zero_iff, mul_eq_zero, map_eq_zero, and_imp]
+      intro y hy_pos hya
+      left; left
+      simp only [Function.support_subset_iff'] at hf
+      apply hf
+      simp [hya]
+    _ = ∫ y in Set.Ici a, 0 := by
+      apply integral_congr_ae
+      filter_upwards [ae_restrict_mem (by measurability)]
+      intro y hy
+      simp only [Function.support_subset_iff'] at hg
+      simp only [div_eq_zero_iff, mul_eq_zero, map_eq_zero]
+      left; right
+      apply hg
+      simp only [mem_Ici, not_le]
+      simp only [mem_Ici] at hy
+      rw [div_lt_iff₀' (by linarith)]
+      calc x < a * b := hx
+        _ ≤ y * b := by gcongr
+    _ = 0 := by
+      simp
 
 /-%%
 The Mellin transform of a convolution is the product of the Mellin transforms.
