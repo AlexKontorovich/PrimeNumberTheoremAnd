@@ -1709,7 +1709,7 @@ theorem wiener_ikehara_smooth_sub (h1 : Integrable Ψ) (hplus : closure (Functio
 
 /-%%
 \begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
-  If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then, then
+  If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then,
 $$ \sum_{n=1}^\infty f(n) \Psi( \frac{n}{x} ) = A x \int_0^\infty \Psi(y)\ dy + o(x)$$
 as $x \to \infty$.
 \end{corollary}
@@ -2071,7 +2071,7 @@ lemma WienerIkeharaInterval_discrete' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : �
 /-%%
 \begin{corollary}[Wiener-Ikehara theorem]\label{WienerIkehara}\lean{WienerIkeharaTheorem'}\leanok
   We have
-$$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
+$$ \sum_{n\leq x} f(n) = A x + o(x).$$
 \end{corollary}
 %%-/
 
@@ -2294,7 +2294,7 @@ But observe that the quantity $\int_0^{Cx} \hat \psi( \frac{1}{2\pi}$ is non-neg
 /-%%
 \begin{corollary}[Wiener-Ikehara theorem, II]\label{WienerIkehara-alt}\lean{WienerIkeharaTheorem''}\leanok
   We have
-$$ \sum_{n\leq x} f(n) = A x |I|  + o(x).$$
+$$ \sum_{n\leq x} f(n) = A x + o(x).$$
 \end{corollary}
 %%-/
 

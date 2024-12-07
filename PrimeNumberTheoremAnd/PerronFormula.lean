@@ -505,7 +505,7 @@ lemma isTheta (xpos : 0 < x) :
 /-%%
 \begin{lemma}[isIntegrable]\label{isIntegrable}\lean{Perron.isIntegrable}\leanok
 Let $x>0$ and $\sigma\in\R$. Then
-$$\int_{\R}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
+$$\int_{\R}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}dt$$
 is integrable.
 \end{lemma}
 %%-/
@@ -957,7 +957,7 @@ lemma formulaGtOne (x_gt_one : 1 < x) (σ_pos : 0 < σ) :
 \uses{isHolomorphicOn, residuePull1,
 residuePull2, contourPull3, integralPosAux, vertIntBoundLeft,
 tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
-  Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,1}$.
+  Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,-1}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
 --%% First pull the contour from $(\sigma)$ to $(-1/2)$, picking up a residue $1$ at $s=0$.
