@@ -67,7 +67,7 @@ $x \mapsto x \cdot \widetilde{1_{\epsilon}}(x)$ is integrable on $(0,\infty)$.
 \end{lemma}
 %%-/
 open MeasureTheory
-#synth MeasureTheory.SFinite (volume : MeasureTheory.Measure ℝ)
+
 @[fun_prop, measurability]
 lemma Smooth1_AEStronglyMeasurable {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (ε : ℝ) (εpos : 0 < ε) : MeasureTheory.AEStronglyMeasurable (Smooth1 SmoothingF ε) := by
   unfold Smooth1
@@ -93,29 +93,12 @@ lemma Smooth1_AEStronglyMeasurable {SmoothingF : ℝ → ℝ} (diffSmoothingF : 
 open MeasureTheory
 lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
-    (ε : ℝ) (εpos : 0 < ε) :
+    (ε : ℝ) (εpos : 0 < ε) (ε_lt_one : ε < 1) :
     MeasureTheory.IntegrableOn (fun x ↦ x * Smooth1 SmoothingF ε x) (Ioi 0) := by
-  have hsupport (x : ℝ) (hx : 2^ε < x) : Smooth1 SmoothingF ε x = 0 := by
-    have x_pos : 0 < x := by
-      apply lt_of_le_of_lt (Real.rpow_nonneg (by norm_num) _) hx
-    rw [Smooth1_def_ite x_pos, ← nmem_support]
-    apply Set.not_mem_subset (support_MellinConvolution_subsets (A := Ioc 0 1) (B := Ioc 0 (2^ε)) ?_ ?_)
-    · simp [Set.mem_mul]
-      rintro r hr0 hr1 s hs0 hs2 rfl
-      nlinarith
-    · simp
-    · apply (DeltaSpikeSupport_aux _ _).trans
-      · refine (Icc_subset_Ioc_iff ?h₁).mpr ?a
-        · refine rpow_le_rpow_of_exponent_le_or_ge ?h₁.h
-          left
-          constructor <;> linarith
-        refine ⟨by positivity, le_rfl⟩
-      · exact εpos
-      · exact suppSmoothingF
-  have (x : ℝ) (xpos : 0 < x) : Smooth1 SmoothingF ε x ≤ 1 := by
-    apply Smooth1LeOne (fun x _ ↦ SmoothingFpos x) mass_one εpos x xpos
+  obtain ⟨c, c_pos, hc⟩ := Smooth1Properties_above suppSmoothingF (ε := ε) (by simp only [mem_Ioo, εpos, ε_lt_one,
+    and_self])
   rw [← MeasureTheory.integrable_indicator_iff (by measurability)]
-  apply MeasureTheory.Integrable.mono (g := Ioc 0 (2^ε) |>.indicator fun x ↦ x)
+  apply MeasureTheory.Integrable.mono' (g := Ioc 0 (1+c*ε) |>.indicator fun x ↦ x)
   · refine IntegrableOn.integrable_indicator ?hg.h ?hg.hs
     · apply Continuous.integrableOn_Ioc
       fun_prop
@@ -129,14 +112,10 @@ lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : Cont
   · filter_upwards []
     intro x
     simp
-    rw [_root_.abs_of_nonneg, _root_.abs_of_nonneg]
+    rw [_root_.abs_of_nonneg]
     · simp_rw [indicator_apply, mem_Ioi, mem_Ioc]
       by_cases hx : x ≤ 0
-      · rw [if_neg, if_neg]
-        · push_neg
-          intro _
-          linarith
-        · linarith
+      · rw [if_neg (hx.not_lt), if_neg (fun h => h.1.not_le hx)]
       push_neg at hx
       rw [if_pos hx, ite_and, if_pos hx]
       split_ifs with hx'
@@ -146,9 +125,7 @@ lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : Cont
       apply le_of_eq
       simp only [mul_eq_zero]
       right
-      apply hsupport _ hx'
-    · apply Set.indicator_nonneg
-      simp +contextual only [mem_Ioc, (LT.lt.le), implies_true]
+      apply hc _ hx'.le
     · apply Set.indicator_nonneg
       simp only [mem_Ioi]
       intro x hx
@@ -191,7 +168,7 @@ $$\psi_{\epsilon}(X) = \sum_{n=1}^\infty \Lambda(n)\widetilde{1_{\epsilon}}(n/X)
 %%-/
 theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ x, 0 ≤ SmoothingF x)
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one: ∫ x in Ioi (0 : ℝ), SmoothingF x / x = 1)
-    (X : ℝ) (X_pos : 0 < X) (ε : ℝ) (εpos: 0 < ε) :
+    (X : ℝ) (X_pos : 0 < X) (ε : ℝ) (εpos: 0 < ε) (ε_lt_one : ε < 1) :
     SmoothedChebyshev SmoothingF ε X = ∑' n, Λ n * Smooth1 SmoothingF ε (n / X) := by
   dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
   rw [MellinTransform_eq]
@@ -260,7 +237,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ} (diffSmoothingF : 
       dsimp [MellinInverseTransform, VerticalIntegral] at this
       rw [← MellinTransform_eq, this]
     · dsimp [MellinConvergent]
-      norm_num; exact_mod_cast (integrable_x_mul_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos).ofReal
+      norm_num; exact_mod_cast (integrable_x_mul_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos ε_lt_one).ofReal
     · dsimp [VerticalIntegrable, mellin]
       ring_nf; exact vertical_integrable_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos
     · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
