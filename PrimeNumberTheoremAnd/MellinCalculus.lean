@@ -567,20 +567,6 @@ open Pointwise in
 lemma support_MellinConvolution (f g : ℝ → 𝕂) : (MellinConvolution f g).support ⊆ f.support * g.support :=
   support_MellinConvolution_subsets subset_rfl subset_rfl
 
-lemma support_MellinConvolution_Ici (f g : ℝ → 𝕂) (a b : ℝ) (ha : 0 < a) (hb : 0 < b) (hf : f.support ⊆ Set.Ici a) (hg : g.support ⊆ Set.Ici b) : (MellinConvolution f g).support ⊆ Set.Ici (a*b) := by
-  convert support_MellinConvolution_subsets hf hg
-  ext x
-  simp [Set.mem_mul]
-  constructor
-  · intro habx
-    refine ⟨a, le_rfl, x/a, ?_, ?_⟩
-    · rw [le_div_iff₀ ha, mul_comm]
-      exact habx
-    field_simp
-  · rintro ⟨r, hr, s, ⟨_, rfl⟩⟩
-    gcongr
-    linarith
-
 /-%%
 The Mellin transform of a convolution is the product of the Mellin transforms.
 \begin{theorem}[MellinConvolutionTransform]\label{MellinConvolutionTransform}
