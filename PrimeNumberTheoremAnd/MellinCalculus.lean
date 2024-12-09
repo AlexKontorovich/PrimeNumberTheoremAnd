@@ -1069,6 +1069,7 @@ $$\widetilde{1_{\epsilon}} = 1_{(0,1]}\ast\psi_\epsilon.$$
 noncomputable def Smooth1 (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
   MellinConvolution (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) (DeltaSpike Ψ ε)
 
+-- This lemma might not be necessary, but the RHS is supported on [0, ∞), which makes results like `support_MellinConvolution_subsets` easier to apply.
 lemma Smooth1_def_ite {Ψ : ℝ → ℝ} {ε x : ℝ} (xpos : 0 < x) :
     Smooth1 Ψ ε x = MellinConvolution (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) (fun x ↦ if x < 0 then 0 else DeltaSpike Ψ ε x) x := by
   unfold Smooth1
