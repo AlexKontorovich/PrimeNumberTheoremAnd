@@ -66,12 +66,95 @@ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$
 $x \mapsto x \cdot \widetilde{1_{\epsilon}}(x)$ is integrable on $(0,\infty)$.
 \end{lemma}
 %%-/
+open MeasureTheory
+#synth MeasureTheory.SFinite (volume : MeasureTheory.Measure ℝ)
+@[fun_prop, measurability]
+lemma Smooth1_AEStronglyMeasurable {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (ε : ℝ) (εpos : 0 < ε) : MeasureTheory.AEStronglyMeasurable (Smooth1 SmoothingF ε) := by
+  unfold Smooth1
+  unfold MellinConvolution
+  convert MeasureTheory.AEStronglyMeasurable.integral_prod_right' (f := uncurry fun x y => (if 0 < y ∧ y ≤ 1 then DeltaSpike SmoothingF ε (x / y) else 0) / y) ?_ with x _ y
+  · unfold uncurry
+    simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
+  · exact instSFiniteRestrict (Ioi 0)
+  · refine aestronglyMeasurable_iff_aemeasurable.mpr ?convert_4.a
+    refine Measurable.aemeasurable ?convert_4.a.h
+    apply MeasureTheory.measurable_uncurry_of_continuous_of_measurable
+    · intro x
+      split_ifs with h <;> fun_prop (disch := assumption)
+    intro x
+    convert_to Measurable <| (Ioc 0 1).indicator (fun y ↦ DeltaSpike SmoothingF ε (x/y) / y)
+    · ext x
+      simp [Set.indicator_apply, apply_ite (· / x)]
+    refine Measurable.indicator ?convert_4.a.h.h.hf ?convert_4.a.h.h.hs
+    · fun_prop (disch := assumption)
+    · measurability
+
+
+open MeasureTheory
 lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
     (ε : ℝ) (εpos : 0 < ε) :
     MeasureTheory.IntegrableOn (fun x ↦ x * Smooth1 SmoothingF ε x) (Ioi 0) := by
-  -- fun_prop -- fails (of course, there's something nontrivial to prove here...)
-  sorry
+  have hsupport (x : ℝ) (hx : 2^ε < x) : Smooth1 SmoothingF ε x = 0 := by
+    have x_pos : 0 < x := by
+      apply lt_of_le_of_lt (Real.rpow_nonneg (by norm_num) _) hx
+    rw [Smooth1_def_ite x_pos, ← nmem_support]
+    apply Set.not_mem_subset (support_MellinConvolution_subsets (A := Ioc 0 1) (B := Ioc 0 (2^ε)) ?_ ?_)
+    · simp [Set.mem_mul]
+      rintro r hr0 hr1 s hs0 hs2 rfl
+      nlinarith
+    · simp
+    · apply (DeltaSpikeSupport_aux _ _).trans
+      · refine (Icc_subset_Ioc_iff ?h₁).mpr ?a
+        · refine rpow_le_rpow_of_exponent_le_or_ge ?h₁.h
+          left
+          constructor <;> linarith
+        refine ⟨by positivity, le_rfl⟩
+      · exact εpos
+      · exact suppSmoothingF
+  have (x : ℝ) (xpos : 0 < x) : Smooth1 SmoothingF ε x ≤ 1 := by
+    apply Smooth1LeOne (fun x _ ↦ SmoothingFpos x) mass_one εpos x xpos
+  rw [← MeasureTheory.integrable_indicator_iff (by measurability)]
+  apply MeasureTheory.Integrable.mono (g := Ioc 0 (2^ε) |>.indicator fun x ↦ x)
+  · refine IntegrableOn.integrable_indicator ?hg.h ?hg.hs
+    · apply Continuous.integrableOn_Ioc
+      fun_prop
+    exact measurableSet_Ioc
+  · refine (aestronglyMeasurable_indicator_iff (by measurability)).mpr ?hf.a
+    apply MeasureTheory.AEStronglyMeasurable.mul
+    · exact Measurable.aestronglyMeasurable fun ⦃t⦄ a ↦ a
+    · apply MeasureTheory.AEStronglyMeasurable.mono_measure («μ» := volume)
+      · apply Smooth1_AEStronglyMeasurable diffSmoothingF ε εpos
+      exact Measure.restrict_le_self
+  · filter_upwards []
+    intro x
+    simp
+    rw [_root_.abs_of_nonneg, _root_.abs_of_nonneg]
+    · simp_rw [indicator_apply, mem_Ioi, mem_Ioc]
+      by_cases hx : x ≤ 0
+      · rw [if_neg, if_neg]
+        · push_neg
+          intro _
+          linarith
+        · linarith
+      push_neg at hx
+      rw [if_pos hx, ite_and, if_pos hx]
+      split_ifs with hx'
+      · apply mul_le_of_le_one_right hx.le
+        apply Smooth1LeOne (fun x _ => SmoothingFpos x) mass_one εpos _ hx
+      push_neg at hx'
+      apply le_of_eq
+      simp only [mul_eq_zero]
+      right
+      apply hsupport _ hx'
+    · apply Set.indicator_nonneg
+      simp +contextual only [mem_Ioc, (LT.lt.le), implies_true]
+    · apply Set.indicator_nonneg
+      simp only [mem_Ioi]
+      intro x hx
+      have := Smooth1Nonneg (fun x _ ↦ SmoothingFpos x) hx εpos
+      positivity
+
 /-%%
 \begin{proof}
 \uses{Smooth1Properties_above}
