@@ -66,12 +66,72 @@ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$
 $x \mapsto x \cdot \widetilde{1_{\epsilon}}(x)$ is integrable on $(0,\infty)$.
 \end{lemma}
 %%-/
+open MeasureTheory
+
+@[fun_prop, measurability]
+lemma Smooth1_AEStronglyMeasurable {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (ε : ℝ) (εpos : 0 < ε) : MeasureTheory.AEStronglyMeasurable (Smooth1 SmoothingF ε) := by
+  unfold Smooth1
+  unfold MellinConvolution
+  convert MeasureTheory.AEStronglyMeasurable.integral_prod_right' (f := uncurry fun x y => (if 0 < y ∧ y ≤ 1 then DeltaSpike SmoothingF ε (x / y) else 0) / y) ?_ with x _ y
+  · unfold uncurry
+    simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
+  · exact instSFiniteRestrict (Ioi 0)
+  · refine aestronglyMeasurable_iff_aemeasurable.mpr ?convert_4.a
+    refine Measurable.aemeasurable ?convert_4.a.h
+    apply MeasureTheory.measurable_uncurry_of_continuous_of_measurable
+    · intro x
+      split_ifs with h <;> fun_prop (disch := assumption)
+    intro x
+    convert_to Measurable <| (Ioc 0 1).indicator (fun y ↦ DeltaSpike SmoothingF ε (x/y) / y)
+    · ext x
+      simp [Set.indicator_apply, apply_ite (· / x)]
+    refine Measurable.indicator ?convert_4.a.h.h.hf ?convert_4.a.h.h.hs
+    · fun_prop (disch := assumption)
+    · measurability
+
+
+open MeasureTheory
 lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
-    (ε : ℝ) (εpos : 0 < ε) :
+    (ε : ℝ) (εpos : 0 < ε) (ε_lt_one : ε < 1) :
     MeasureTheory.IntegrableOn (fun x ↦ x * Smooth1 SmoothingF ε x) (Ioi 0) := by
-  -- fun_prop -- fails (of course, there's something nontrivial to prove here...)
-  sorry
+  obtain ⟨c, c_pos, hc⟩ := Smooth1Properties_above suppSmoothingF (ε := ε) (by simp only [mem_Ioo, εpos, ε_lt_one,
+    and_self])
+  rw [← MeasureTheory.integrable_indicator_iff (by measurability)]
+  apply MeasureTheory.Integrable.mono' (g := Ioc 0 (1+c*ε) |>.indicator fun x ↦ x)
+  · refine IntegrableOn.integrable_indicator ?hg.h ?hg.hs
+    · apply Continuous.integrableOn_Ioc
+      fun_prop
+    exact measurableSet_Ioc
+  · refine (aestronglyMeasurable_indicator_iff (by measurability)).mpr ?hf.a
+    apply MeasureTheory.AEStronglyMeasurable.mul
+    · exact Measurable.aestronglyMeasurable fun ⦃t⦄ a ↦ a
+    · apply MeasureTheory.AEStronglyMeasurable.mono_measure («μ» := volume)
+      · apply Smooth1_AEStronglyMeasurable diffSmoothingF ε εpos
+      exact Measure.restrict_le_self
+  · filter_upwards []
+    intro x
+    simp
+    rw [_root_.abs_of_nonneg]
+    · simp_rw [indicator_apply, mem_Ioi, mem_Ioc]
+      by_cases hx : x ≤ 0
+      · rw [if_neg (hx.not_lt), if_neg (fun h => h.1.not_le hx)]
+      push_neg at hx
+      rw [if_pos hx, ite_and, if_pos hx]
+      split_ifs with hx'
+      · apply mul_le_of_le_one_right hx.le
+        apply Smooth1LeOne (fun x _ => SmoothingFpos x) mass_one εpos _ hx
+      push_neg at hx'
+      apply le_of_eq
+      simp only [mul_eq_zero]
+      right
+      apply hc _ hx'.le
+    · apply Set.indicator_nonneg
+      simp only [mem_Ioi]
+      intro x hx
+      have := Smooth1Nonneg (fun x _ ↦ SmoothingFpos x) hx εpos
+      positivity
+
 /-%%
 \begin{proof}
 \uses{Smooth1Properties_above}
@@ -108,7 +168,7 @@ $$\psi_{\epsilon}(X) = \sum_{n=1}^\infty \Lambda(n)\widetilde{1_{\epsilon}}(n/X)
 %%-/
 theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ x, 0 ≤ SmoothingF x)
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one: ∫ x in Ioi (0 : ℝ), SmoothingF x / x = 1)
-    (X : ℝ) (X_pos : 0 < X) (ε : ℝ) (εpos: 0 < ε) :
+    (X : ℝ) (X_pos : 0 < X) (ε : ℝ) (εpos: 0 < ε) (ε_lt_one : ε < 1) :
     SmoothedChebyshev SmoothingF ε X = ∑' n, Λ n * Smooth1 SmoothingF ε (n / X) := by
   dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
   rw [MellinTransform_eq]
@@ -177,7 +237,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ} (diffSmoothingF : 
       dsimp [MellinInverseTransform, VerticalIntegral] at this
       rw [← MellinTransform_eq, this]
     · dsimp [MellinConvergent]
-      norm_num; exact_mod_cast (integrable_x_mul_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos).ofReal
+      norm_num; exact_mod_cast (integrable_x_mul_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos ε_lt_one).ofReal
     · dsimp [VerticalIntegrable, mellin]
       ring_nf; exact vertical_integrable_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos
     · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
