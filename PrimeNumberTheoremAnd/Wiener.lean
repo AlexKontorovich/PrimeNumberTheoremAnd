@@ -2202,15 +2202,11 @@ theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (𝓝 1) := by
   have l1 (n : ℕ) : 0 ≤ Λ n := vonMangoldt_nonneg
   have l2 s (hs : 1 < s.re) : F s = LSeries Λ s - 1 / (s - 1) := by
     have := vonMangoldt.eqOn_LFunctionResidueClassAux (q := 1) isUnit_one hs
-    unfold F
-    rw [this]
-    simp [vonMangoldt.residueClass]
+    simp only [F, this, vonMangoldt.residueClass, Nat.totient_one, Nat.cast_one, inv_one, one_div, sub_left_inj]
     apply LSeries_congr
-    intro n hn
-    simp
-    intro hn
-    have : (n : ZMod 1) = (1 : ZMod 1) := by exact Subsingleton.eq_one (n : ZMod 1)
-    contradiction
+    intro n _
+    simp only [ofReal_inj, indicator_apply_eq_self, mem_setOf_eq]
+    exact fun hn ↦ absurd (Subsingleton.eq_one _) hn
   have l3 : ContinuousOn F {s | 1 ≤ s.re} := vonMangoldt.continuousOn_LFunctionResidueClassAux 1
   have l4 : cheby Λ := vonMangoldt_cheby
   have l5 (σ' : ℝ) (hσ' : 1 < σ') : Summable (nterm Λ σ') := by
