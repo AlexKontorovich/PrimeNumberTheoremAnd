@@ -2,6 +2,7 @@ import EulerProducts.PNT
 import Mathlib.Analysis.Fourier.FourierTransform
 import Mathlib.Analysis.Fourier.FourierTransformDeriv
 import Mathlib.NumberTheory.ArithmeticFunction
+import Mathlib.NumberTheory.LSeries.PrimesInAP
 import Mathlib.Topology.Algebra.Support
 import Mathlib.Analysis.Calculus.ContDiff.Defs
 import Mathlib.Geometry.Manifold.PartitionOfUnity
@@ -2197,12 +2198,21 @@ $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 -- hypothesis)
 
 theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (𝓝 1) := by
+  let F := vonMangoldt.LFunctionResidueClassAux (q := 1) 1
   have hnv := riemannZeta_ne_zero_of_one_le_re
   have l1 (n : ℕ) : 0 ≤ Λ n := vonMangoldt_nonneg
-  have l2 s (hs : 1 < s.re) : (-deriv ζ₁ / ζ₁) s = LSeries Λ s - 1 / (s - 1) := by
-    have hs₁ : s ≠ 1 := by contrapose! hs ; simp [hs]
-    simp [LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs, neg_logDeriv_ζ₁_eq hs₁ (hnv hs₁ hs.le)]
-  have l3 : ContinuousOn (-deriv ζ₁ / ζ₁) {s | 1 ≤ s.re} := continuousOn_neg_logDeriv_ζ₁.mono (by tauto)
+  have l2 s (hs : 1 < s.re) : F s = LSeries Λ s - 1 / (s - 1) := by
+    have := vonMangoldt.eqOn_LFunctionResidueClassAux (q := 1) isUnit_one hs
+    unfold F
+    rw [this]
+    simp [vonMangoldt.residueClass]
+    apply LSeries_congr
+    intro n hn
+    simp
+    intro hn
+    have : (n : ZMod 1) = (1 : ZMod 1) := by exact Subsingleton.eq_one (n : ZMod 1)
+    contradiction
+  have l3 : ContinuousOn F {s | 1 ≤ s.re} := vonMangoldt.continuousOn_LFunctionResidueClassAux 1
   have l4 : cheby Λ := vonMangoldt_cheby
   have l5 (σ' : ℝ) (hσ' : 1 < σ') : Summable (nterm Λ σ') := by
     simpa only [← nterm_eq_norm_term] using (@ArithmeticFunction.LSeriesSummable_vonMangoldt σ' hσ').norm
