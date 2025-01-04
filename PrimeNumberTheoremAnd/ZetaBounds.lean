@@ -79,7 +79,7 @@ lemma ContDiffOn.continuousOn_deriv {φ : ℝ → ℂ} {a b : ℝ}
     (φDiff : ContDiffOn ℝ 1 φ (uIoo a b)) :
     ContinuousOn (deriv φ) (uIoo a b) := by
   apply ContDiffOn.continuousOn (𝕜 := ℝ) (n := 0)
-  exact (fun h ↦ ((contDiffOn_succ_iff_deriv_of_isOpen isOpen_Ioo).1 h).2) φDiff
+  exact (fun h ↦ ((contDiffOn_succ_iff_deriv_of_isOpen isOpen_Ioo).1 h).2.2) φDiff
 
 lemma LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ) ↦ a * t + b) a x := by
   refine HasDerivAt.add_const ?_ b
@@ -324,7 +324,7 @@ lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
     have subs := uIcc_subsets ⟨a₁_lt_k₁.le, k₁_lt_b₁.le⟩
     have s₁ := ih₁ (fun x hx ↦ φDiff₁ x <| subs.1 hx) <| derivφCont₁.mono subs.1
     have s₂ := ih₂ (fun x hx ↦ φDiff₁ x <| subs.2 hx) <| derivφCont₁.mono subs.2
-    convert Mathlib.Tactic.LinearCombination.add_pf s₁ s₂ using 1
+    convert Mathlib.Tactic.LinearCombination'.add_pf s₁ s₂ using 1
     · rw [← Finset.sum_Ioc_add_sum_Ioc]
       simp only [Finset.mem_Icc, Int.floor_intCast, Int.le_floor]
       exact ⟨Int.cast_le.mp <| le_trans (Int.floor_le a₁) a₁_lt_k₁.le, k₁_lt_b₁.le⟩
@@ -1844,7 +1844,9 @@ and continuity on a compact interval otherwise.
 $|\zeta(x)^3 \cdot \zeta(x+iy)^4 \cdot \zeta(x+2iy)| \ge 1$. -/
 lemma norm_zeta_product_ge_one {x : ℝ} (hx : 0 < x) (y : ℝ) :
     ‖ζ (1 + x) ^ 3 * ζ (1 + x + I * y) ^ 4 * ζ (1 + x + 2 * I * y)‖ ≥ 1 := by
-  have ⟨h₀, h₁, h₂⟩ := one_lt_re_of_pos y hx
+  have h₀ : 1 < ( 1 + x : ℂ).re := by simp[hx]
+  have h₁ :  1 < (1 + x + I * y).re  := by simp[hx]
+  have h₂ :  1 < (1 + x + 2 * I * y).re := by simp[hx]
   simpa only [one_pow, norm_mul, norm_pow, DirichletCharacter.LSeries_modOne_eq,
     LSeries_one_eq_riemannZeta, h₀, h₁, h₂] using
     DirichletCharacter.norm_LSeries_product_ge_one (1 : DirichletCharacter ℂ 1) hx y
@@ -1877,7 +1879,7 @@ lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
   · refine mul_nonneg (mul_nonneg ?_ ?_) ?_ <;> simp [Real.rpow_nonneg]
   · have s_ne_one : σ + t * I ≠ 1 := by
       contrapose! σ_gt; apply le_of_eq; apply And.left; simpa [Complex.ext_iff] using σ_gt
-    simpa using riemannZeta_ne_zero_of_one_le_re s_ne_one (by simp [σ_gt.le])
+    simpa using riemannZeta_ne_zero_of_one_le_re (by simp [σ_gt.le])
 /-%%
 \begin{proof}\leanok
 The identity
@@ -1947,8 +1949,7 @@ lemma ZetaInvBound2 :
     · exact abs_eq_self.mpr <| Real.rpow_nonneg (div_nonneg (by linarith) hc.le) _
     · apply lt_iff_le_and_ne.mpr ⟨(by simp), ?_⟩
       have : ζ (↑σ + 2 * ↑t * I) ≠ 0 := by
-        apply riemannZeta_ne_zero_of_one_le_re ?_ (by simp [σ_gt.le])
-        contrapose! σ_gt; apply le_of_eq; apply And.left; simpa [Complex.ext_iff] using σ_gt
+        apply riemannZeta_ne_zero_of_one_le_re (by simp [σ_gt.le])
       symm; exact fun h2 ↦ this (by simpa using h2)
   · replace h := h σ (2 * t) (by simp [ht']) ⟨?_, σ_le⟩
     · have : 0 ≤ Real.log |2 * t| := Real.log_nonneg (by linarith)
@@ -2137,7 +2138,7 @@ lemma ZetaInvBnd :
   have σ_ge : 1 - A / Real.log |t| ≤ σ := by
     apply le_trans ?_ hσ.1
     suffices A / Real.log |t| ^ 9 ≤ A / Real.log |t| by linarith
-    exact div_le_div Apos.le (by rfl) (by positivity) <| ZetaInvBnd_aux logt_gt_one
+    exact div_le_div₀ Apos.le (by rfl) (by positivity) <| ZetaInvBnd_aux logt_gt_one
   obtain ⟨_, _, neOne⟩ := UpperBnd_aux ⟨Apos, Ale⟩ t_gt σ_ge
   set σ' := 1 + A / Real.log |t| ^ 9
   have σ'_gt : 1 < σ' := by simp only [σ', lt_add_iff_pos_right]; positivity
@@ -2174,7 +2175,7 @@ lemma ZetaInvBnd :
       refine hC₂ σ σ' t t_gt ?_ σ'_le <| lt_trans hσ.2 σ'_gt
       apply le_trans ?_ hσ.1
       rw [tsub_le_iff_right, ← add_sub_right_comm, le_sub_iff_add_le, add_le_add_iff_left]
-      exact div_le_div hA'.1.le (by simp [A]) (by positivity) <| ZetaInvBnd_aux logt_gt_one
+      exact div_le_div₀ hA'.1.le (by simp [A]) (by positivity) <| ZetaInvBnd_aux logt_gt_one
   · apply sub_le_sub (by simp only [add_sub_cancel_left, σ']; exact_mod_cast le_rfl) ?_
     rw [mul_div_assoc, mul_assoc _ 2 _]
     apply mul_le_mul (by exact_mod_cast le_rfl) ?_ (by linarith [hσ.2]) (by positivity)
@@ -2239,11 +2240,11 @@ lemma LogDerivZetaBnd :
     exact lt_trans Real.exp_one_lt_d9 (by norm_num)
   have σ_ge' : 1 - A / Real.log |t| ^ 9 ≤ σ := by
     apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
-    apply div_le_div hA.1.le (min_le_left A A') ?_ (by rfl)
+    apply div_le_div₀ hA.1.le (min_le_left A A') ?_ (by rfl)
     exact pow_pos (lt_trans (by norm_num) logt_gt) 9
   have σ_ge'' : 1 - A' / Real.log |t| ≤ σ := by
     apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
-    apply div_le_div hA'.1.le (min_le_right A A') (lt_trans (by norm_num) logt_gt) ?_
+    apply div_le_div₀ hA'.1.le (min_le_right A A') (lt_trans (by norm_num) logt_gt) ?_
     exact le_self_pow₀ logt_gt.le (by norm_num)
   replace h := h σ t t_gt ⟨σ_ge', σ_lt⟩
   replace h' := h' σ t t_gt ⟨σ_ge'', by linarith⟩
