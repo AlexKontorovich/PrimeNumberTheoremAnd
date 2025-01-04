@@ -257,7 +257,7 @@ lemma second_fourier_integrable_aux1 (hcont: Continuous ψ) (hsupp: Integrable �
   · let f1 : ℝ → ENNReal := fun a1 ↦ ↑‖cexp (-(↑a1 * (↑σ' - 1)))‖₊
     let f2 : ℝ → ENNReal := fun a2 ↦ ↑‖ψ a2‖₊
     suffices ∫⁻ (a : ℝ × ℝ), f1 a.1 * f2 a.2 ∂ν < ⊤ by simpa [Function.uncurry, HasFiniteIntegral]
-    refine (lintegral_prod_mul ?_ ?_).trans_lt ?_ <;> unfold_let f1 f2; fun_prop; fun_prop
+    refine (lintegral_prod_mul ?_ ?_).trans_lt ?_ <;> try fun_prop
     exact ENNReal.mul_lt_top (second_fourier_integrable_aux1a hσ).2 hsupp.2
 
 lemma second_fourier_integrable_aux2 (hσ : 1 < σ') :
