@@ -1,4 +1,3 @@
-import EulerProducts.PNT
 import Mathlib.Analysis.Fourier.FourierTransform
 import Mathlib.Analysis.Fourier.FourierTransformDeriv
 import Mathlib.NumberTheory.ArithmeticFunction
@@ -2339,7 +2338,7 @@ theorem WeakPNT_character'
           ((starRingEnd ℂ) (χ a) * ((deriv (LSeries (fun n:ℕ ↦ χ n)) s)) / (LSeries (fun n:ℕ ↦ χ n) s))) /
         (Nat.totient q : ℂ) := by
   have : NeZero q := ⟨by omega⟩
-  convert WeakPNT_character ((ZMod.isUnit_iff_coprime a q).mpr ha) hs using 1
+  convert vonMangoldt.LSeries_residueClass_eq ((ZMod.isUnit_iff_coprime a q).mpr ha) hs using 1
   · congr with n
     have : n % q = a ↔ (n : ZMod q) = a := by
       rw [ZMod.natCast_eq_natCast_iff', Nat.mod_eq_of_lt ha']
