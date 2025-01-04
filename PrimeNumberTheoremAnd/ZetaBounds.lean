@@ -713,7 +713,7 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ t : ℝ} (σpos : 0 < σ) :
     · exact fun ⦃_⦄ a ↦ a
   · filter_upwards [mem_atTop (N + 1 : ℝ)] with t ht
     have : (N ^ (-σ) - t ^ (-σ)) / σ ≤ N ^ (-σ) / σ :=
-      div_le_div_right σpos |>.mpr (by simp [Real.rpow_nonneg (by linarith)])
+      div_le_div_iff_of_pos_right σpos |>.mpr (by simp [Real.rpow_nonneg (by linarith)])
     apply le_trans ?_ this
     convert ZetaBnd_aux1a (a := N) (b := t) (by positivity) (by linarith) ?_ <;> simp [σpos]
 /-%%
@@ -1826,7 +1826,7 @@ lemma ZetaNear1BndExact:
     norm_cast
     have : 0 ≤ 1 / (σ - 1) := by apply one_div_nonneg.mpr; linarith
     simp only [Real.norm_eq_abs, abs_eq_self.mpr this, mul_div, mul_one]
-    exact div_le_div (by simp [Cpos.le]) (by simp) (by linarith) (by rfl)
+    exact div_le_div₀ (by simp [Cpos.le]) (by simp) (by linarith) (by rfl)
   · replace hσ : σ ∈ W := by
       simp only [mem_inter_iff, hV σ_ge, and_true] at hσ
       simp only [mem_Icc, σ_le, and_true, W]
