@@ -1844,8 +1844,8 @@ $|\zeta(x)^3 \cdot \zeta(x+iy)^4 \cdot \zeta(x+2iy)| \ge 1$. -/
 lemma norm_zeta_product_ge_one {x : ℝ} (hx : 0 < x) (y : ℝ) :
     ‖ζ (1 + x) ^ 3 * ζ (1 + x + I * y) ^ 4 * ζ (1 + x + 2 * I * y)‖ ≥ 1 := by
   have h₀ : 1 < ( 1 + x : ℂ).re := by simp[hx]
-  have h₁ :  1 < (1 + x + I * y).re  := by simp[hx]
-  have h₂ :  1 < (1 + x + 2 * I * y).re := by simp[hx]
+  have h₁ : 1 < (1 + x + I * y).re := by simp [hx]
+  have h₂ : 1 < (1 + x + 2 * I * y).re := by simp [hx]
   simpa only [one_pow, norm_mul, norm_pow, DirichletCharacter.LSeries_modOne_eq,
     LSeries_one_eq_riemannZeta, h₀, h₁, h₂] using
     DirichletCharacter.norm_LSeries_product_ge_one (1 : DirichletCharacter ℂ 1) hx y
