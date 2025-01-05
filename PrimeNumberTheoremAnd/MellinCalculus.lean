@@ -1,6 +1,9 @@
+import EulerProducts.Auxiliary
 import Mathlib.Analysis.MellinInversion
 import PrimeNumberTheoremAnd.PerronFormula
 import Mathlib.Algebra.GroupWithZero.Units.Basic
+
+open scoped ContDiff
 
 set_option lang.lemmaCmd true
 
@@ -651,9 +654,9 @@ $$
 
 attribute [- simp] one_div in
 
-lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ⊤ Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
+lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ∞ Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
     Ψ.support ⊆ Icc (1 / 2) 2 ∧ ∫ x in Ici 0, Ψ x / x = 1 := by
-  suffices h : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ⊤ Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
+  suffices h : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ∞ Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
       Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, Ψ x / x by
     rcases h with ⟨Ψ, hΨ, hΨnonneg, hΨsupp, hΨpos⟩
     let c := (∫ x in Ici 0, Ψ x / x)

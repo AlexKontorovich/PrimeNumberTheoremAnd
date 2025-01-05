@@ -11,14 +11,6 @@ variable {z w : ℂ} {c : ℝ}
 This files gathers definitions and basic properties about rectangles.
 %%-/
 
-/-%%
-\begin{definition}\label{Rectangle}\lean{Rectangle}\leanok
-A Rectangle has corners $z$ and $w \in \C$.
-\end{definition}
-%%-/
-/-- A `Rectangle` has corners `z` and `w`. -/
-def Rectangle (z w : ℂ) : Set ℂ := [[z.re, w.re]] ×ℂ [[z.im, w.im]]
-
 namespace Rectangle
 
 lemma symm : Rectangle z w = Rectangle w z := by
@@ -45,9 +37,6 @@ lemma Square_apply (p : ℂ) (cpos : c > 0) :
   rw [Square, Rectangle, uIcc_of_le (by simp; linarith), uIcc_of_le (by simp; linarith)]
   simp
 
--- From PR #9598
-/-- The preimage under `equivRealProd` of `s ×ˢ t` is `s ×ℂ t`. -/
-lemma preimage_equivRealProd_prod (s t : Set ℝ) : equivRealProd ⁻¹' (s ×ˢ t) = s ×ℂ t := rfl
 
 @[simp]
 theorem preimage_equivRealProdCLM_reProdIm (s t : Set ℝ) :
@@ -61,17 +50,6 @@ theorem ContinuousLinearEquiv.coe_toLinearEquiv_symm {R : Type*} {S : Type*} [Se
     [Module S M₂] (e : M ≃SL[σ] M₂) :
     ⇑e.toLinearEquiv.symm = e.symm :=
   rfl
-
--- From PR #9598
-/-- The inequality `s × t ⊆ s₁ × t₁` holds in `ℂ` iff it holds in `ℝ × ℝ`. -/
-lemma reProdIm_subset_iff {s s₁ t t₁ : Set ℝ} : s ×ℂ t ⊆ s₁ ×ℂ t₁ ↔ s ×ˢ t ⊆ s₁ ×ˢ t₁ := by
-  simp_rw [← preimage_equivRealProd_prod, equivRealProd.preimage_subset]
-
--- From PR #9598
-/-- If `s ⊆ s₁ ⊆ ℝ` and `t ⊆ t₁ ⊆ ℝ`, then `s × t ⊆ s₁ × t₁` in `ℂ`. -/
-lemma reProdIm_subset_iff' {s s₁ t t₁ : Set ℝ} :
-    s ×ℂ t ⊆ s₁ ×ℂ t₁ ↔ s ⊆ s₁ ∧ t ⊆ t₁ ∨ s = ∅ ∨ t = ∅ :=
-  reProdIm_subset_iff.trans prod_subset_prod_iff
 
 /-- The axis-parallel complex rectangle with opposite corners `z` and `w` is complex product
   of two intervals, which is also the convex hull of the four corners. Golfed from mathlib4\#9598.-/
@@ -96,11 +74,6 @@ lemma mem_Rect {z w : ℂ} (zRe_lt_wRe : z.re ≤ w.re) (zIm_lt_wIm : z.im ≤ w
 lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by
   simpa [Square] using Rectangle.symm
 
-def Set.uIoo {α : Type*} [Lattice α] (a b : α) : Set α := Ioo (a ⊓ b) (a ⊔ b)
-
-@[simp]
-theorem uIoo_of_le {α : Type*} [Lattice α] {a b : α} (h : a ≤ b) : Set.uIoo a b = Ioo a b := by
-  rw [uIoo, inf_eq_left.2 h, sup_eq_right.2 h]
 
 theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b :=
   fun ⟨h1, h2⟩ ↦ (left_lt_sup.mp h2) (le_of_not_le (inf_lt_left.mp h1))
@@ -190,20 +163,6 @@ lemma rectangleBorder_subset_punctured_rect {z₀ z₁ z₂ z₃ p : ℂ}
 lemma rectangle_mem_nhds_iff {z w p : ℂ} : Rectangle z w ∈ 𝓝 p ↔
     p ∈ (Set.uIoo z.re w.re) ×ℂ (Set.uIoo z.im w.im) := by
   simp_rw [← mem_interior_iff_mem_nhds, Rectangle, Complex.interior_reProdIm, uIoo, uIcc, interior_Icc]
-
-/-- A real segment `[a₁, a₂]` translated by `b * I` is the complex line segment.
-Golfed from mathlib\#9598.-/
-lemma horizontalSegment_eq (a₁ a₂ b : ℝ) :
-    (fun (x : ℝ) ↦ x + b * I) '' [[a₁, a₂]] = [[a₁, a₂]] ×ℂ {b} :=
-  Set.ext fun _ => ⟨fun hx ↦ hx.casesOn fun _ ⟨_, hx⟩ ↦ by simpa [← hx, reProdIm],
-    fun hx ↦ hx.casesOn (by simp_all [Complex.ext_iff])⟩
-
-/-- A vertical segment `[b₁, b₂]` translated by `a` is the complex line segment.
-Golfed from mathlib\#9598.-/
-lemma verticalSegment_eq (a b₁ b₂ : ℝ) :
-    (fun (y : ℝ) ↦ a + y * I) '' [[b₁, b₂]] = {a} ×ℂ [[b₁, b₂]] :=
-  Set.ext fun _ => ⟨fun hx ↦ hx.casesOn fun _ ⟨_, hx⟩ ↦ by simpa [← hx, reProdIm],
-    fun hx ↦ hx.casesOn (by simp_all [Complex.ext_iff])⟩
 
 lemma mapsTo_rectangle_left_re (z w : ℂ) :
     MapsTo (fun (y : ℝ) => ↑z.re + ↑y * I) [[z.im, w.im]] (Rectangle z w) :=

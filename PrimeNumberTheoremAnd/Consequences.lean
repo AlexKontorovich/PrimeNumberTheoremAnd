@@ -579,7 +579,7 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx: 0 ≤ x) :
             . simp at hp'
               have : (k' = k ∧ p' = p) := by
                 have := eq_of_prime_pow_eq h1.prime hp'.2.prime h2 h
-                rw [<-this, pow_right_inj] at h
+                rw [<-this, pow_right_inj₀] at h
                 . exact ⟨ h.symm, this.symm ⟩
                 . exact Prime.pos h1
                 exact Nat.Prime.ne_one h1
@@ -738,7 +738,7 @@ Filter.Tendsto (fun x ↦ log x ^ b / x^a) Filter.atTop (nhds 0) := by
     have h1 : 1 ≤ log x := by
       rwa [le_log_iff_exp_le h0]
     rw [div_rpow _ (le_of_lt h0)]
-    . rw [div_le_div_right (rpow_pos_of_pos h0 _), <-rpow_natCast, <-rpow_mul (zero_le_one.trans h1)]
+    . rw [div_le_div_iff_of_pos_right (rpow_pos_of_pos h0 _), <-rpow_natCast, <-rpow_mul (zero_le_one.trans h1)]
       apply rpow_le_rpow_of_exponent_le h1
       rw [<-div_le_iff₀ ha]
       exact le_ceil _
@@ -1530,7 +1530,7 @@ theorem pi_asymp'' :
     have ineq (x : ℝ) (hx : 2 < x) :
         |const| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| ≤
         |const| / ((x - 2) * (log x)⁻¹) := by
-      apply div_le_div
+      apply div_le_div₀
       · exact abs_nonneg _
       · rfl
       · apply mul_pos
@@ -1630,7 +1630,7 @@ theorem pi_asymp'' :
         |C ε hε| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
         apply _root_.add_le_add (h₂ := le_rfl)
         apply _root_.add_le_add (h₂ := le_rfl)
-        apply div_le_div
+        apply div_le_div₀
         · apply mul_nonneg <;> try apply mul_nonneg <;> try linarith
           norm_num; exact log_nonneg <| by linarith
         · exact ineq1 ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith, by linarith⟩)
@@ -1643,7 +1643,7 @@ theorem pi_asymp'' :
         |C ε hε| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
         apply _root_.add_le_add (h₂ := le_rfl)
         apply _root_.add_le_add (h₁ := le_rfl)
-        apply div_le_div
+        apply div_le_div₀
         · exact le_trans (abs_nonneg _) <|
             hD ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith, by linarith⟩)
           -- apply mul_nonneg <;> try apply mul_nonneg <;> try linarith
@@ -1676,7 +1676,7 @@ theorem pi_asymp'' :
       linarith
     _ ≤ (1/2) * ε + (|D ε hε (1/2) (by linarith)| + |C ε hε|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
       apply _root_.add_le_add (h₁ := le_rfl)
-      apply div_le_div
+      apply div_le_div₀
       · apply add_nonneg <;> exact abs_nonneg _
       · apply _root_.add_le_add (h₂ := le_rfl); exact le_abs_self _
       · apply integral_log_inv_pos; linarith
@@ -1754,7 +1754,7 @@ lemma pi_alt_Oaux1 : ∃ c, ∀ᶠ (x : ℝ) in atTop,
       · intro x hx
         simp only [Set.mem_Icc] at hx
         rw [inv_le_inv₀]
-        · apply pow_le_pow_left
+        · apply pow_le_pow_left₀
           · apply log_nonneg (by linarith)
           · rw [log_le_log_iff] <;> linarith
         · apply pow_pos
@@ -1800,7 +1800,7 @@ lemma pi_alt_Oaux2 : ∃ c, ∀ᶠ (x : ℝ) in atTop,
       · intro x hx
         simp only [Set.mem_Icc] at hx
         rw [inv_le_inv₀]
-        · apply pow_le_pow_left
+        · apply pow_le_pow_left₀
           · apply log_nonneg (by linarith)
           · rw [log_le_log_iff] <;> linarith
         · apply pow_pos

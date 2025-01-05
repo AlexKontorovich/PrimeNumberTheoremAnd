@@ -3,6 +3,7 @@ import Mathlib.Analysis.Distribution.SchwartzSpace
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 
 open Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap  BigOperators
+open scoped ContDiff
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {n : ℕ}
 
@@ -26,10 +27,10 @@ section lemmas
 
 noncomputable def funscale {E : Type*} (g : ℝ → E) (R x : ℝ) : E := g (R⁻¹ • x)
 
-lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal := by
+lemma contDiff_ofReal : ContDiff ℝ ∞ ofReal := by
   have key x : HasDerivAt ofReal 1 x := hasDerivAt_id x |>.ofReal_comp
   have key' : deriv ofReal = fun _ => 1 := by ext x ; exact (key x).deriv
-  refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
+  refine contDiff_infty_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
   simpa [key'] using contDiff_const
 
 omit [NormedSpace ℝ E] in
@@ -46,7 +47,7 @@ variable {f : CS n E} {R x v : ℝ}
 instance : CoeFun (CS n E) (fun _ => ℝ → E) where coe := CS.toFun
 
 instance : Coe (CS n ℝ) (CS n ℂ) where coe f := ⟨fun x => f x,
-  contDiff_ofReal.of_le le_top |>.comp f.h1, f.h2.comp_left (g := ofReal) rfl⟩
+  contDiff_ofReal.of_le (mod_cast le_top) |>.comp f.h1, f.h2.comp_left (g := ofReal) rfl⟩
 
 def neg (f : CS n E) : CS n E where
   toFun := -f
@@ -67,7 +68,7 @@ lemma continuous (f : CS n E) : Continuous f := f.h1.continuous
 
 noncomputable def deriv (f : CS (n + 1) E) : CS n E where
   toFun := _root_.deriv f
-  h1 := (contDiff_succ_iff_deriv.mp f.h1).2
+  h1 := (contDiff_succ_iff_deriv.mp f.h1).2.2
   h2 := f.h2.deriv
 
 lemma hasDerivAt (f : CS (n + 1) E) (x : ℝ) : HasDerivAt f (f.deriv x) x :=
@@ -150,7 +151,7 @@ lemma iteratedDeriv_sub {f g : ℝ → E} (hf : ContDiff ℝ n f) (hg : ContDiff
 
 noncomputable def deriv (f : W1 (n + 1) E) : W1 n E where
   toFun := _root_.deriv f
-  smooth := contDiff_succ_iff_deriv.mp f.smooth |>.2
+  smooth := contDiff_succ_iff_deriv.mp f.smooth |>.2.2
   integrable k hk := by
     simpa [iteratedDeriv_succ'] using f.integrable (Nat.succ_le_succ hk)
 
