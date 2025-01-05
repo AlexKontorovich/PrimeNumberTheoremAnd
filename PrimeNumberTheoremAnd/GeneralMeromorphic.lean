@@ -10,7 +10,7 @@ open scoped Interval
 
 /-%%
 \begin{definition}\label{MeromorphicOnRectangle}\lean{MeromorphicOnRectangle}\leanok
-\uses{Rectangle, RectangleBorder, RectangleIntegral}
+\uses{RectangleBorder, RectangleIntegral}
 A function $f$ is Meromorphic on a rectangle with corners $z$ and $w$ if it is holomorphic off a
 (finite) set of poles, none of which are on the boundary of the rectangle.
 [Note: Might be overkill, can just work explicitly with the functions that arise. Of course would be nice to have the general theory as well...]
