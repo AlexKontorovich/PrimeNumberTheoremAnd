@@ -1,5 +1,4 @@
 import PrimeNumberTheoremAnd.ZetaBounds
-import EulerProducts.PNT
 import Mathlib.Algebra.Group.Support
 
 set_option lang.lemmaCmd true
