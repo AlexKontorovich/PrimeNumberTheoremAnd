@@ -1,6 +1,7 @@
 import PrimeNumberTheoremAnd.Wiener
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.Analysis.Asymptotics.Asymptotics
+import Mathlib.NumberTheory.AbelSummation
 import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
 
@@ -299,7 +300,7 @@ lemma deriv_smoothingFn {x : ℝ} (hx : 1 < x) : deriv (fun x => (log x)⁻¹) x
 noncomputable def th (x : ℝ) := ∑ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, Real.log p
 
 lemma th_def' (x : ℝ) :
-    th x = ∑ n ∈ Iic ⌊x⌋₊, Set.indicator (setOf Nat.Prime) (fun n => log n) n := by
+    th x = ∑ n ∈ Icc 0 ⌊x⌋₊, Set.indicator (setOf Nat.Prime) (fun n => log n) n := by
   unfold th
   rw [sum_filter]
   refine sum_congr rfl fun n _ => ?_
@@ -429,17 +430,18 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     toFun := Set.indicator (setOf Nat.Prime) (fun n => log n)
     map_zero' := by simp
   }
-  have h3 (n : ℕ) : a n * (log n)⁻¹ = if n.Prime then 1 else 0 := by
+  have h3 (n : ℕ) : (log n)⁻¹ * a n = if n.Prime then 1 else 0 := by
     simp only [coe_mk, ite_mul, zero_mul, a]
     simp [Set.indicator_apply]
     split_ifs with h
-    · refine mul_inv_cancel₀ ?_
+    · rw [mul_comm]
+      refine mul_inv_cancel₀ ?_
       refine log_ne_zero_of_pos_of_ne_one ?_ ?_ <;> norm_cast
       exacts [h.pos, h.ne_one]
     · rfl
-  have h2 := abel_summation (ϕ := fun x => (log x)⁻¹) (a := a) (3 / 2) x
+  have h2 := sum_mul_eq_sub_sub_integral_mul (f := fun x ↦ (log x)⁻¹) (c := a) (a := 3 / 2) (b := x) (by norm_num)
   have h4 : ⌊(3/2 : ℝ)⌋₊ = 1 := by rw [@floor_div_ofNat]; rw [Nat.floor_ofNat]
-  have h5 : Iic 1 = {0, 1} := by ext; simp; omega
+  have h5 : Icc 0 1 = {0, 1} := by ext; simp; omega
   have h6 (N : ℕ) : (filter Nat.Prime (Ioc 1 N)).card = Nat.primeCounting N := by
     have : filter Nat.Prime (Ioc 1 N) = filter Nat.Prime (range (N + 1)) := by
       ext n
@@ -451,8 +453,9 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
   have h7 : a 1 = 0 := by
     simp [a]
   have h8 (f : ℝ → ℝ) :
-    ∫ (u : ℝ) in Set.Icc (3 / 2) x, f u * deriv (fun x ↦ (log x)⁻¹) u =
+    ∫ (u : ℝ) in Set.Ioc (3 / 2) x, deriv (fun x ↦ (log x)⁻¹) u * f u =
     ∫ (u : ℝ) in Set.Icc (3 / 2) x, f u * -(u * log u ^ 2)⁻¹ := by
+    rw [← integral_Icc_eq_integral_Ioc]
     apply setIntegral_congr_ae
     · exact measurableSet_Icc
     refine Eventually.of_forall (fun u hu => ?_)
@@ -462,17 +465,15 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
         (1 : ℝ) < 3/2 := by norm_num
         _ ≤ u := hu.1
     rw [deriv_smoothingFn hu']
-    congr
-    simp [div_eq_mul_inv, mul_comm]
-  have h9 : 3/2 < x := calc
-    3/2 < 2 := by norm_num
+    ring
+  have h9 : 3/2 ≤ x := calc
+    3/2 ≤ 2 := by norm_num
     _ ≤ x := hx
 
   simp [h3, h4, h5, h6, h7, h8, h9, integral_neg] at h2
   rw [h2]
-  simp [a, ← th_def', div_eq_mul_inv]
-  · intro z hz
-    simp [h9.le] at hz
+  simp [a, ← th_def', div_eq_mul_inv, mul_comm]
+  · intro z hz1 hz2
     refine (differentiableAt_id'.log ?_).inv ?_
     · linarith
     · apply log_ne_zero_of_pos_of_ne_one <;> linarith
@@ -481,6 +482,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       simp only [Set.mem_Icc] at hy
       rw [deriv_smoothingFn, mul_inv, ← div_eq_mul_inv, neg_div]
       linarith
+    apply ContinuousOn.integrableOn_Icc
     intro z hz
     apply ContinuousWithinAt.congr (f := fun x => - (x * log x ^ 2)⁻¹)
     · apply ContinuousWithinAt.neg
