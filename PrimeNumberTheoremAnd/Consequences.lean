@@ -180,7 +180,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       refine log_ne_zero_of_pos_of_ne_one ?_ ?_ <;> norm_cast
       exacts [h.pos, h.ne_one]
     · rfl
-  have h9 : 3/2 ≤ x := le_trans (by norm_num) hx
+  have h9 : 3/2 ≤ x := by linarith
   have h2 := sum_mul_eq_sub_sub_integral_mul (f := fun x ↦ (log x)⁻¹) (c := a) (by norm_num) h9
   have h4 : ⌊(3/2 : ℝ)⌋₊ = 1 := by rw [@floor_div_ofNat]; rw [Nat.floor_ofNat]
   have h5 : Icc 0 1 = {0, 1} := by ext; simp; omega
@@ -198,14 +198,11 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     ∫ (u : ℝ) in Set.Ioc (3 / 2) x, deriv (fun x ↦ (log x)⁻¹) u * f u =
     ∫ (u : ℝ) in Set.Icc (3 / 2) x, f u * -(u * log u ^ 2)⁻¹ := by
     rw [← integral_Icc_eq_integral_Ioc]
-    apply setIntegral_congr_ae
-    · exact measurableSet_Icc
+    apply setIntegral_congr_ae measurableSet_Icc
     refine Eventually.of_forall (fun u hu => ?_)
     have hu' : 1 < u := by
       simp only [Set.mem_Icc] at hu
-      calc
-        (1 : ℝ) < 3/2 := by norm_num
-        _ ≤ u := hu.1
+      linarith
     rw [deriv_smoothingFn hu']
     ring
 
@@ -213,9 +210,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
   rw [h2]
   simp [a, ← th_def', div_eq_mul_inv, mul_comm]
   · intro z hz1 hz2
-    refine (differentiableAt_id'.log ?_).inv ?_
-    · linarith
-    · apply log_ne_zero_of_pos_of_ne_one <;> linarith
+    refine (differentiableAt_id'.log ?_).inv (log_ne_zero_of_pos_of_ne_one ?_ ?_) <;> linarith
   · have : ∀ y ∈ Set.Icc (3 / 2) x, deriv (fun x ↦ (log x)⁻¹) y = -(y * log y ^ 2)⁻¹:= by
       intro y hy
       simp only [Set.mem_Icc] at hy
