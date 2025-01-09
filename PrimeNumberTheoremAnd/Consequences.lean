@@ -170,12 +170,9 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       · exact measurableSet_Ico
     · unfold th
       apply extracted_1 _ hx
-  let a : ArithmeticFunction ℝ := {
-    toFun := Set.indicator (setOf Nat.Prime) (fun n => log n)
-    map_zero' := by simp
-  }
+  let a : ℕ → ℝ := Set.indicator (setOf Nat.Prime) (fun n => log n)
   have h3 (n : ℕ) : (log n)⁻¹ * a n = if n.Prime then 1 else 0 := by
-    simp only [coe_mk, ite_mul, zero_mul, a]
+    simp only [ite_mul, zero_mul, a]
     simp [Set.indicator_apply]
     split_ifs with h
     · rw [mul_comm]
@@ -183,7 +180,8 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       refine log_ne_zero_of_pos_of_ne_one ?_ ?_ <;> norm_cast
       exacts [h.pos, h.ne_one]
     · rfl
-  have h2 := sum_mul_eq_sub_sub_integral_mul (f := fun x ↦ (log x)⁻¹) (c := a) (a := 3 / 2) (b := x) (by norm_num)
+  have h9 : 3/2 ≤ x := le_trans (by norm_num) hx
+  have h2 := sum_mul_eq_sub_sub_integral_mul (f := fun x ↦ (log x)⁻¹) (c := a) (by norm_num) h9
   have h4 : ⌊(3/2 : ℝ)⌋₊ = 1 := by rw [@floor_div_ofNat]; rw [Nat.floor_ofNat]
   have h5 : Icc 0 1 = {0, 1} := by ext; simp; omega
   have h6 (N : ℕ) : (filter Nat.Prime (Ioc 1 N)).card = Nat.primeCounting N := by
@@ -210,11 +208,8 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
         _ ≤ u := hu.1
     rw [deriv_smoothingFn hu']
     ring
-  have h9 : 3/2 ≤ x := calc
-    3/2 ≤ 2 := by norm_num
-    _ ≤ x := hx
 
-  simp [h3, h4, h5, h6, h7, h8, h9, integral_neg] at h2
+  simp [h3, h4, h5, h6, h7, h8, integral_neg] at h2
   rw [h2]
   simp [a, ← th_def', div_eq_mul_inv, mul_comm]
   · intro z hz1 hz2
