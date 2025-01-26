@@ -1547,6 +1547,7 @@ $$
 $$
 \end{lemma}
 %%-/
+open MeasureTheory in
 theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
     let N := ⌊|t|⌋₊;
     let s := ↑σ + ↑t * I;
@@ -1554,6 +1555,13 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
     ‖s * ∫ (x : ℝ) in Ioi (N : ℝ), (↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1) * -↑x.log‖ ≤
       2 * |t| * ↑N ^ (-σ) / σ * |t|.log := by
   intro N s Npos N_le_t neOne σ_gt
+  have σpos : 0 < σ := lt_trans (by norm_num) σ_gt
+  rw [norm_mul, mul_div_assoc, mul_assoc]
+  apply mul_le_mul _ _ (by positivity) (by positivity)
+  · apply le_trans (by apply norm_add_le)
+    simp [abs_of_pos σpos]
+    linarith [hσ.2]
+  apply le_trans (by apply norm_integral_le_integral_norm)
   sorry
 /-%%
 \begin{proof}
