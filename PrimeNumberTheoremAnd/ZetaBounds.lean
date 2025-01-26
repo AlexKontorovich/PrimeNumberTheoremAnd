@@ -1537,6 +1537,13 @@ theorem DerivUpperBnd_aux6 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
   convert UpperBnd_aux2 t_gt hσ.1 using 1
   rw [mul_comm, ← Real.rpow_add_one (by positivity)]; ring_nf
 
+lemma DerivUpperBnd_aux7_1 {x σ t : ℝ} (hx : 1 ≤ x) :
+    let s := ↑σ + ↑t * I;
+    ‖(↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1) * -↑x.log‖ = |(↑⌊x⌋ + 1 / 2 - x)| * x ^ (-σ - 1) * x.log := by
+  have xpos : 0 < x := lt_of_lt_of_le (by norm_num) hx
+  have : Complex.abs x.log = x.log := Complex.abs_of_nonneg <| Real.log_nonneg hx
+  simp [← abs_ofReal, this, Complex.abs_cpow_eq_rpow_re_of_pos xpos]
+
 /-%%
 \begin{lemma}[DerivUpperBnd_aux7]\label{DerivUpperBnd_aux7}\lean{DerivUpperBnd_aux7}\leanok
 For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$, and any $0 < A < 1$ sufficiently small,
@@ -1562,7 +1569,14 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
     simp [abs_of_pos σpos]
     linarith [hσ.2]
   apply le_trans (by apply norm_integral_le_integral_norm)
-  sorry
+  calc ∫ (x : ℝ) in Ioi (N : ℝ), ‖(↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1) * -↑x.log‖
+    _ = ∫ (x : ℝ) in Ioi (N : ℝ), |(↑⌊x⌋ + 1 / 2 - x)| * x ^ (-σ - 1) * x.log := by
+      apply setIntegral_congr_fun (by measurability)
+      intro x hx
+      simp at hx
+      exact DerivUpperBnd_aux7_1 (lt_of_le_of_lt (mod_cast Npos) hx).le
+    _ ≤ ↑N ^ (-σ) / σ * |t|.log := by sorry
+
 /-%%
 \begin{proof}
 Estimate $|s|= |\sigma + tI|$ by $|s|\le 2 +|t| \le 2|t|$ (since $|t|>3$). Estimating $|\left\lfloor x \right\rfloor+1/2-x|$ by $1$,
