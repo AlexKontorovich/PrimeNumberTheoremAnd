@@ -1544,6 +1544,14 @@ lemma DerivUpperBnd_aux7_1 {x σ t : ℝ} (hx : 1 ≤ x) :
   have : Complex.abs x.log = x.log := Complex.abs_of_nonneg <| Real.log_nonneg hx
   simp [← abs_ofReal, this, Complex.abs_cpow_eq_rpow_re_of_pos xpos]
 
+lemma DerivUpperBnd_aux7_2 {x σ : ℝ} (hx : 1 ≤ x) :
+    |(↑⌊x⌋ + 1 / 2 - x)| * x ^ (-σ - 1) * x.log ≤ 1 / 2 * x ^ (-σ - 1) * x.log := by
+  rw [mul_assoc, mul_assoc]
+  apply mul_le_mul_of_nonneg_right <| ZetaSum_aux1_3 x
+  apply mul_nonneg
+  · apply Real.rpow_nonneg <| (lt_of_lt_of_le (by norm_num) hx).le
+  · exact Real.log_nonneg hx
+
 /-%%
 \begin{lemma}[DerivUpperBnd_aux7]\label{DerivUpperBnd_aux7}\lean{DerivUpperBnd_aux7}\leanok
 For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$, and any $0 < A < 1$ sufficiently small,
@@ -1575,6 +1583,12 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
       intro x hx
       simp at hx
       exact DerivUpperBnd_aux7_1 (lt_of_le_of_lt (mod_cast Npos) hx).le
+    _ ≤ ∫ (x : ℝ) in Ioi (N : ℝ), 1 / 2 * x ^ (-σ - 1) * x.log := by
+      apply setIntegral_mono_on _ _ (by measurability)
+      · intro x hx
+        exact DerivUpperBnd_aux7_2 (lt_of_le_of_lt (mod_cast Npos) hx).le
+      sorry
+      sorry
     _ ≤ ↑N ^ (-σ) / σ * |t|.log := by sorry
 
 /-%%
