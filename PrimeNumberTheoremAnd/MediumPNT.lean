@@ -59,8 +59,7 @@ noncomputable def SmoothedChebyshev (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : �
   VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) 2
 
 /-%%
-\begin{lemma}[integrable_x_mul_Smooth1]\label{integrable_x_mul_Smooth1}
-\lean{integrable_x_mul_Smooth1}\leanok
+\begin{lemma}[integrable_x_mul_Smooth1]\label{integrable_x_mul_Smooth1}\lean{integrable_x_mul_Smooth1}\leanok
 Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$
 with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
 $x \mapsto x \cdot \widetilde{1_{\epsilon}}(x)$ is integrable on $(0,\infty)$.
@@ -137,7 +136,7 @@ lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : Cont
 \uses{Smooth1Properties_above}
 We have
 from Lemma \ref{Smooth1Properties_above}
- that $\widetilde{1_{\epsilon}}(x) = 0$ for all $x \geq 1+c\epsilon$.
+ that $\widetilde{1_{\epsilon}}(x) = 0$ for all $x \leq 1+c\epsilon$.
  So the claimed function is integrable on $(0,\infty)$.
 \end{proof}
 %%-/
