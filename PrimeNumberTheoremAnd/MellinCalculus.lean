@@ -1,6 +1,9 @@
+import EulerProducts.Auxiliary
 import Mathlib.Analysis.MellinInversion
 import PrimeNumberTheoremAnd.PerronFormula
 import Mathlib.Algebra.GroupWithZero.Units.Basic
+
+open scoped ContDiff
 
 set_option lang.lemmaCmd true
 
@@ -542,6 +545,30 @@ lemma MellinConvolutionSymmetric (f g : ℝ → 𝕂) {x : ℝ} (xpos: 0 < x) :
   $$
 \end{proof}
 %%-/
+open Pointwise in
+lemma support_MellinConvolution_subsets {f g : ℝ → 𝕂} {A B : Set ℝ} (hf : f.support ⊆ A) (hg : g.support ⊆ B) : (MellinConvolution f g).support ⊆ A * B := by
+  rw [Function.support_subset_iff'] at hf hg ⊢
+  intro x hx
+  unfold MellinConvolution
+  simp only [Set.mem_mul, not_exists, not_and] at hx
+  apply MeasureTheory.integral_eq_zero_of_ae
+  filter_upwards [ae_restrict_mem (by measurability)]
+  intro y hy
+  simp only [mem_Ioi] at hy
+  simp only [Pi.zero_apply, div_eq_zero_iff, mul_eq_zero, map_eq_zero]
+  left
+  by_cases hyA : y ∈ A
+  · right
+    apply hg
+    intro hxyB
+    apply hx _ hyA _ hxyB
+    field_simp
+  · left
+    apply hf _ hyA
+
+open Pointwise in
+lemma support_MellinConvolution (f g : ℝ → 𝕂) : (MellinConvolution f g).support ⊆ f.support * g.support :=
+  support_MellinConvolution_subsets subset_rfl subset_rfl
 
 /-%%
 The Mellin transform of a convolution is the product of the Mellin transforms.
@@ -627,9 +654,9 @@ $$
 
 attribute [- simp] one_div in
 
-lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ⊤ Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
+lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ∞ Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
     Ψ.support ⊆ Icc (1 / 2) 2 ∧ ∫ x in Ici 0, Ψ x / x = 1 := by
-  suffices h : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ⊤ Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
+  suffices h : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ∞ Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
       Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, Ψ x / x by
     rcases h with ⟨Ψ, hΨ, hΨnonneg, hΨsupp, hΨpos⟩
     let c := (∫ x in Ici 0, Ψ x / x)
@@ -868,6 +895,7 @@ lemma DeltaSpikeSupport {Ψ : ℝ → ℝ} {ε x : ℝ} (εpos : 0 < ε) (xnonne
     x ∉ Icc (2 ^ (-ε)) (2 ^ ε) → DeltaSpike Ψ ε x = 0 := by
   contrapose!; exact DeltaSpikeSupport' εpos xnonneg suppΨ
 
+@[fun_prop]
 lemma DeltaSpikeContinuous {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (diffΨ : ContDiff ℝ 1 Ψ) :
     Continuous (fun x ↦ DeltaSpike Ψ ε x) := by
   apply diffΨ.continuous.comp (g := Ψ) _ |>.div_const
@@ -1029,6 +1057,19 @@ $$\widetilde{1_{\epsilon}} = 1_{(0,1]}\ast\psi_\epsilon.$$
 %%-/
 noncomputable def Smooth1 (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
   MellinConvolution (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) (DeltaSpike Ψ ε)
+
+-- This lemma might not be necessary, but the RHS is supported on [0, ∞), which makes results like `support_MellinConvolution_subsets` easier to apply.
+lemma Smooth1_def_ite {Ψ : ℝ → ℝ} {ε x : ℝ} (xpos : 0 < x) :
+    Smooth1 Ψ ε x = MellinConvolution (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) (fun x ↦ if x < 0 then 0 else DeltaSpike Ψ ε x) x := by
+  unfold Smooth1
+  rw [MellinConvolutionSymmetric _ _ xpos]
+  conv => lhs; rw [MellinConvolutionSymmetric _ _ xpos]
+  unfold MellinConvolution
+  apply MeasureTheory.integral_congr_ae
+  filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi]
+  simp +contextual
+  intro y ypos
+  rw [eq_comm, if_neg (by push_neg; positivity)]
 
 /-%%
 \begin{lemma}[Smooth1Properties_estimate]\label{Smooth1Properties_estimate}

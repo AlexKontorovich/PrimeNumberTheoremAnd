@@ -306,7 +306,7 @@ private theorem f_surj {n : ℕ} (hn : n ≠ 0) :
     rw [mem_filter, Finset.mem_product] at hb
     refine ⟨?_, hn⟩
     · rw [Fin.prod_univ_three a]
-      unfold_let a
+      unfold a
       simp only [Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.head_cons, Matrix.cons_val_two,
         Matrix.tail_cons]
       rw [Nat.mul_div_cancel_left' (Nat.gcd_dvd_left _ _), ←hb.2, lcm,

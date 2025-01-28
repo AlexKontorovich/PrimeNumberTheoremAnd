@@ -492,7 +492,7 @@ theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
 
 theorem isTheta_uniformlyOn_uIoc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
     (fun (σ, (y : ℝ)) ↦ f x (σ + y * I)) =Θ[𝓟 (uIoc σ' σ'') ×ˢ (atBot ⊔ atTop)]
-    fun (σ, y) ↦ 1 / y^2 := by
+    fun (_, y) ↦ 1 / y^2 := by
   refine (𝓟 (uIoc σ' σ'')).eq_or_neBot.casesOn (fun hbot ↦ by simp [hbot]) (fun _ ↦ ?_)
   haveI : NeBot (atBot (α := ℝ) ⊔ atTop) := sup_neBot.mpr (Or.inl atBot_neBot)
   exact (isTheta_uniformlyOn_uIcc xpos σ' σ'').mono (by simpa using Ioc_subset_Icc_self)
@@ -505,7 +505,7 @@ lemma isTheta (xpos : 0 < x) :
 /-%%
 \begin{lemma}[isIntegrable]\label{isIntegrable}\lean{Perron.isIntegrable}\leanok
 Let $x>0$ and $\sigma\in\R$. Then
-$$\int_{\R}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
+$$\int_{\R}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}dt$$
 is integrable.
 \end{lemma}
 %%-/
@@ -698,7 +698,7 @@ variable  {α β : Type*} [LinearOrder β] [NoMaxOrder β] [TopologicalSpace β]
 lemma _root_.Filter.Tendsto.eventually_bddAbove {f : α → β} (hf : Tendsto f l (𝓝 y)) :
     ∀ᶠ s in l.smallSets, BddAbove (f '' s) := by
   obtain ⟨y', hy'⟩ := exists_gt y
-  obtain ⟨s, hsl, hs⟩ := (eventually_le_of_tendsto_lt hy' hf).exists_mem
+  obtain ⟨s, hsl, hs⟩ := (Tendsto.eventually_le_const hy' hf).exists_mem
   simp_rw [Filter.eventually_smallSets, bddAbove_def]
   refine ⟨s, hsl, fun t ht ↦ ⟨y', fun y hy ↦ ?_⟩⟩
   obtain ⟨x, hxt, hxy⟩ := hy
@@ -957,7 +957,7 @@ lemma formulaGtOne (x_gt_one : 1 < x) (σ_pos : 0 < σ) :
 \uses{isHolomorphicOn, residuePull1,
 residuePull2, contourPull3, integralPosAux, vertIntBoundLeft,
 tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
-  Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,1}$.
+  Let $f(s) = x^s/(s(s+1))$. Then $f$ is holomorphic on $\C \setminus {0,-1}$.
 %%-/
   set f : ℂ → ℂ := (fun s ↦ x^s / (s * (s + 1)))
 --%% First pull the contour from $(\sigma)$ to $(-1/2)$, picking up a residue $1$ at $s=0$.
