@@ -1553,6 +1553,21 @@ lemma DerivUpperBnd_aux7_2 {x σ : ℝ} (hx : 1 ≤ x) :
   · apply Real.rpow_nonneg <| (lt_of_lt_of_le (by norm_num) hx).le
   · exact Real.log_nonneg hx
 
+lemma DerivUpperBnd_aux7_3 {x σ : ℝ} (xpos : 0 < x) (σnz : σ ≠ 0) :
+    HasDerivAt (fun t ↦ -(1 / σ^2 * t ^ (-σ) + 1 / σ * t ^ (-σ) * Real.log t)) (x ^ (-σ - 1) * Real.log x) x := by
+  have h1 := Real.hasDerivAt_rpow_const (p := -σ) (Or.inl xpos.ne.symm)
+  have h2 := h1.const_mul (1 / σ^2)
+  have cancel : 1 / σ^2 * σ = 1 / σ := by field_simp; ring
+  rw [neg_mul, mul_neg, ← mul_assoc, cancel] at h2
+  have h3 := Real.hasDerivAt_log xpos.ne.symm
+  have h4 := HasDerivAt.mul h1 h3 |>.const_mul (1 / σ)
+  have cancel := Real.rpow_add xpos (-σ) (-1)
+  have : -σ + -1 = -σ - 1 := by rfl
+  rw [← Real.rpow_neg_one x, ← cancel, this] at h4
+  convert h2.add h4 |>.neg using 1
+  · ext; ring
+  · field_simp; ring
+
 /-%%
 \begin{lemma}[DerivUpperBnd_aux7]\label{DerivUpperBnd_aux7}\lean{DerivUpperBnd_aux7}\leanok
 For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$, and any $0 < A < 1$ sufficiently small,
