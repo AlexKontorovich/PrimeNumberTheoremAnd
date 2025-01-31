@@ -71,7 +71,7 @@ jobs:
 
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: Upload blueprint artifact
         uses: actions/upload-pages-artifact@v3
@@ -80,7 +80,7 @@ jobs:
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4
 
 
   # generate doc after blueprint (as it's quite a bit longer)
@@ -159,4 +159,4 @@ jobs:
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4
