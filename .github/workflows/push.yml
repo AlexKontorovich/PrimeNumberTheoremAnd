@@ -71,10 +71,10 @@ jobs:
 
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: Upload blueprint artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs
 
@@ -100,7 +100,7 @@ jobs:
         run: make LAKEBIN='~/.elan/bin/lake' build
 
       - name: Cache mathlib docs
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: |
             .lake/build/doc/Init
@@ -137,7 +137,7 @@ jobs:
           key: Documentation-cache
 
       #- name: Download blueprint artifacts
-      #  uses: actions/download-artifact@v4
+      #  uses: actions/download-artifact@v3
       #  with:
       #    path: blueprint_artifacts
       #    
@@ -153,7 +153,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload docs & blueprint artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs
 
