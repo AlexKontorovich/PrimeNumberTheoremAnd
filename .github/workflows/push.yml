@@ -166,29 +166,30 @@ jobs:
       ##       overwrite: true
       ## when this is supported
       - name: Archive artifact
-      shell: sh
-      run: |
-        echo ::group::Archive artifact
-        tar \
-          --dereference --hard-dereference \
-          --directory "$INPUT_PATH" \
-          -cvf "$RUNNER_TEMP/artifact.tar" \
-          --exclude=.git \
-          --exclude=.github \
-          --exclude=".[^/]*" \
-          .
-        echo ::endgroup::
-      env:
-        INPUT_PATH: docs
+        shell: sh
+        run: |
+          echo ::group::Archive artifact
+          tar \
+            --dereference --hard-dereference \
+            --directory "$INPUT_PATH" \
+            -cvf "$RUNNER_TEMP/artifact.tar" \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=".[^/]*" \
+            .
+          echo ::endgroup::
+        env:
+          INPUT_PATH: docs
+
       - name: Upload artifact
-      id: upload-artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: github-pages
-        path: ${{ runner.temp }}/artifact.tar
-        retention-days: 1
-        if-no-files-found: error
-        overwrite: true
+        id: upload-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+          if-no-files-found: error
+          overwrite: true
 
       - name: Deploy to GitHub Pages
         id: deployment
