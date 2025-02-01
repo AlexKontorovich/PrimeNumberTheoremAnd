@@ -1569,7 +1569,7 @@ lemma DerivUpperBnd_aux7_3 {x σ : ℝ} (xpos : 0 < x) (σnz : σ ≠ 0) :
   · field_simp; ring
 
 open MeasureTheory in
-lemma foo {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
+lemma DerivUpperBnd_aux7_4 {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
     IntegrableOn (fun x ↦ x ^ (-σ - 1) * Real.log x) (Ioi a) volume := by
   apply integrableOn_Ioi_deriv_of_nonneg' (l := 0)
   · intro x hx
@@ -1625,7 +1625,7 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
       · intro x hx
         exact DerivUpperBnd_aux7_2 (lt_of_le_of_lt (mod_cast Npos) hx).le
       sorry
-      apply foo σpos (mod_cast Npos)
+      apply DerivUpperBnd_aux7_4 σpos (mod_cast Npos)
     _ ≤ ↑N ^ (-σ) / σ * |t|.log := by sorry
 
 /-%%
