@@ -2399,55 +2399,23 @@ Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkehara-alt}) to Propos
 %%-/
 
 /-%%
-\section{The Chebotarev density theorem}
+\section{The Chebotarev density theorem: the case of cyclotomic extensions}
 
-We begin by working with cyclotomic extensions.  In the next few lemmas, $K$ bis a number field, $L = K(\mu_m)$ for some natural number $m$, and $G = Gal(K/L)$.
+In this section, $K$ is a number field, $L = K(\mu_m)$ for some natural number $m$, and $G = Gal(K/L)$.
+
+The goal here is to prove the Chebotarev density theorem for the case of cyclotomic extensions.
+%%-/
+
+/-%%
+\section{The Chebotarev density theorem: the case of abelian extensions}
+
+(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the previous results to abelian extensions (actually just cyclic extensions would suffice))
 
 %%-/
 
 /-%%
-\begin{lemma}[Factorization of Dedekind zeta function]\label{Dedekind-factor}  We have
-$$ \zeta_L(s) = \prod_{\chi} L(\chi,s)$$
-for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ and $L$ is the Artin $L$-function.
-\end{lemma}
+\section{The Chebotarev density theorem: the general case}
 
-\begin{proof} See Propositions 7.1.16, 7.1.19 of https://www.math.ucla.edu/~sharifi/algnum.pdf .
-\end{proof}
+(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the previous results to arbitrary extensions
+
 %%-/
-
-/-%%
-\begin{lemma}[Simple pole]\label{Dedekind-pole}  Then $\zeta_L$ has a simple pole at $s=1$ = \prod_{\chi} L(\chi,s)$.
-\end{lemma}
-
-\begin{proof} See Theorem 7.1.12 of https://www.math.ucla.edu/~sharifi/algnum.pdf .
-\end{proof}
-%%-/
-
-/-%%
-\begin{lemma}[Nonvanishing]\label{Dedekind-nonvanishing}  For any non-principal character $\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
-\end{lemma}
-
-\begin{proof}\uses{Dedekind-factor, Dedekind-pole} For $s=1$, this will follow from Lemmas \ref{Dedekind-factor}, \ref{Dedekind-pole}. For the rest of the line, one should be able to adapt the arguments for the Dirichet L-function.
-\end{proof}
-%%-/
-
-/-%%
-\begin{lemma}[PNT for one character]\label{Dedekind-PNT}  For any non-principal character $\chi$ of $Gal(K/L)$,
-$$ \sum_{N \mathfrak{p} \leq x} \chi(\mathfrak{p}) \log N \mathfrak{p}  = o(x).$$
-\end{lemma}
-
-\begin{proof}\uses{Dedekind-nonvanishing} This should follow from Lemma \ref{Dedekind-nonvanishing} and the arguments for the Dirichlet L-function. (It may be more convenient to work with a von Mangoldt type function instead of $\log N\mathfrak{p}$).
-\end{proof}
-%%-/
-
-/-%%
-\begin{lemma}[Cyclotomic Chebotarev]\label{Chebotarev-cyclic}  For any $a$ coprime to $m$,
-$$ \sum_{N \mathfrak{p} \leq x; N \mathfrak{p} = a\ (m)} \log N \mathfrak{p}  =
-\frac{1}{|G|} \sum_{N \mathfrak{p} \leq x} \log N \mathfrak{p}.$$
-\end{lemma}
-
-\begin{proof}\uses{Dedekind-PNT} This should follow from Lemma \ref{Dedekind-PNT} by a Fourier expansion.
-\end{proof}
-%%-/
-
-/-%% It appears one can use primarily algebraic number theory methods to pass from the cyclotomic extension case to the abelian extension case, and then from the abelian extension case to the general case: see Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf %%-/
