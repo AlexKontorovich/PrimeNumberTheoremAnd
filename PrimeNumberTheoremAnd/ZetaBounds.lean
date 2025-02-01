@@ -8,6 +8,7 @@ import PrimeNumberTheoremAnd.MellinCalculus
 import Mathlib.MeasureTheory.Function.Floor
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.NumberTheory.Harmonic.Bounds
+import Mathlib.MeasureTheory.Order.Group.Lattice
 
 set_option lang.lemmaCmd true
 
@@ -1589,6 +1590,21 @@ lemma DerivUpperBnd_aux7_4 {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
     · ext; ring
     simp
 
+open MeasureTheory in
+lemma DerivUpperBnd_aux7_5 {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
+    IntegrableOn (fun x ↦ |(↑⌊x⌋ + (1 : ℝ) / 2 - x)| * x ^ (-σ - 1) * Real.log x) (Ioi a) volume := by
+  simp_rw [mul_assoc]
+  apply Integrable.bdd_mul <| DerivUpperBnd_aux7_4 σpos ha
+  · apply Measurable.aestronglyMeasurable
+    apply Measurable.abs
+    apply Measurable.sub _ (by fun_prop)
+    apply Measurable.add _ (by fun_prop)
+    exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+  use 1 / 2
+  intro x
+  simp only [Real.norm_eq_abs, _root_.abs_abs]
+  exact  ZetaSum_aux1_3 x
+
 /-%%
 \begin{lemma}[DerivUpperBnd_aux7]\label{DerivUpperBnd_aux7}\lean{DerivUpperBnd_aux7}\leanok
 For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$, and any $0 < A < 1$ sufficiently small,
@@ -1624,7 +1640,7 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
       apply setIntegral_mono_on _ _ (by measurability)
       · intro x hx
         exact DerivUpperBnd_aux7_2 (lt_of_le_of_lt (mod_cast Npos) hx).le
-      sorry
+      · apply DerivUpperBnd_aux7_5 σpos (mod_cast Npos)
       apply DerivUpperBnd_aux7_4 σpos (mod_cast Npos)
     _ ≤ ↑N ^ (-σ) / σ * |t|.log := by sorry
 
