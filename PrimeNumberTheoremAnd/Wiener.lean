@@ -2450,4 +2450,4 @@ $$ \sum_{N \mathfrak{p} \leq x; N \mathfrak{p} = a\ (m)} \log N \mathfrak{p}  =
 \end{proof}
 %%-/
 
-/-%% It appears one can use primarily algebraic number theory methods to pass from the cyclotomic extension case to the abelian extension case, and then from the abelian extension case to the general case: see Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf -/
+/-%% It appears one can use primarily algebraic number theory methods to pass from the cyclotomic extension case to the abelian extension case, and then from the abelian extension case to the general case: see Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf %%-/
