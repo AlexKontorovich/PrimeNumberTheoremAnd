@@ -1568,6 +1568,27 @@ lemma DerivUpperBnd_aux7_3 {x σ : ℝ} (xpos : 0 < x) (σnz : σ ≠ 0) :
   · ext; ring
   · field_simp; ring
 
+open MeasureTheory in
+lemma foo {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
+    IntegrableOn (fun x ↦ x ^ (-σ - 1) * Real.log x) (Ioi a) volume := by
+  apply integrableOn_Ioi_deriv_of_nonneg' (l := 0)
+  · intro x hx
+    simp at hx
+    apply DerivUpperBnd_aux7_3 (by linarith) (by linarith)
+  · intro x hx
+    simp at hx
+    apply mul_nonneg
+    · apply Real.rpow_nonneg (by linarith)
+    · apply Real.log_nonneg (by linarith)
+  · have h1 := tendsto_rpow_neg_atTop σpos
+    have h2 := h1.const_mul (1 / σ^2)
+    have h3 : Tendsto (fun t : ℝ ↦ t ^ (-σ) * Real.log t) atTop (nhds 0) := by sorry
+    have h4 := h3.const_mul (1 / σ)
+    have h5 := (h2.add h4).neg
+    convert h5 using 1
+    · ext; ring
+    simp
+
 /-%%
 \begin{lemma}[DerivUpperBnd_aux7]\label{DerivUpperBnd_aux7}\lean{DerivUpperBnd_aux7}\leanok
 For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$, and any $0 < A < 1$ sufficiently small,
@@ -1604,7 +1625,7 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
       · intro x hx
         exact DerivUpperBnd_aux7_2 (lt_of_le_of_lt (mod_cast Npos) hx).le
       sorry
-      sorry
+      apply foo σpos (mod_cast Npos)
     _ ≤ ↑N ^ (-σ) / σ * |t|.log := by sorry
 
 /-%%
