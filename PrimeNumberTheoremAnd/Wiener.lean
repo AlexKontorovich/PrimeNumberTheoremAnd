@@ -2407,6 +2407,41 @@ The goal here is to prove the Chebotarev density theorem for the case of cycloto
 %%-/
 
 /-%%
+\begin{lemma}[Factorization of Dedekind zeta function]\label{Dedekind-factor}  We have
+$$ \zeta_L(s) = \prod_{\chi} L(\chi,s)$$
+for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ and $L$ is the Artin $L$-function.
+\end{lemma}
+
+%%-/
+
+/-%%
+\begin{proof} See Propositions 7.1.16, 7.1.19 of https://www.math.ucla.edu/~sharifi/algnum.pdf .
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[Simple pole]\label{Dedekind-pole}  Then $\zeta_L$ has a simple pole at $s=1$ = \prod_{\chi} L(\chi,s)$.
+\end{lemma}
+
+%%-/
+
+/-%%
+\begin{proof} See Theorem 7.1.12 of https://www.math.ucla.edu/~sharifi/algnum.pdf .
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[Nonvanishing]\label{Dedekind-nonvanishing}  For any non-principal character $\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
+\end{lemma}
+
+%%-/
+
+/-%%
+\begin{proof}\uses{Dedekind-factor, Dedekind-pole} For $s=1$, this will follow from Lemmas \ref{Dedekind-factor}, \ref{Dedekind-pole}. For the rest of the line, one should be able to adapt the arguments for the Dirichet L-function.
+\end{proof}
+%%-/
+
+/-%%
 \section{The Chebotarev density theorem: the case of abelian extensions}
 
 (Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the previous results to abelian extensions (actually just cyclic extensions would suffice))
