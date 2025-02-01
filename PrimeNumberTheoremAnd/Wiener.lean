@@ -2420,9 +2420,8 @@ for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ a
 %%-/
 
 /-%%
-\begin{lemma}[Simple pole]\label{Dedekind-pole}  Then $\zeta_L$ has a simple pole at $s=1$ = \prod_{\chi} L(\chi,s)$.
+\begin{lemma}[Simple pole]\label{Dedekind-pole}  $\zeta_L$ has a simple pole at $s=1$.
 \end{lemma}
-
 %%-/
 
 /-%%
