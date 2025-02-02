@@ -483,15 +483,18 @@ lemma ZetaSum_aux1_5b {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σp
   · exact fun x hx h ↦ by rw [Real.rpow_eq_zero] at h <;> linarith [ZetaSum_aux1_1' apos hx]
 
 open MeasureTheory in
+lemma measurable_floor_add_half_sub : Measurable fun (u : ℝ) ↦ ↑⌊u⌋ + 1 / 2 - u := by 
+  refine Measurable.add ?_ measurable_const |>.sub measurable_id
+  exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+
+open MeasureTheory in
 lemma ZetaSum_aux1_5c {a b : ℝ} {s : ℂ} :
     let g : ℝ → ℝ := fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1);
     AEStronglyMeasurable g
       (Measure.restrict volume (Ι a b)) := by
   intro
   refine (Measurable.div ?_ <| measurable_id.pow_const _).aestronglyMeasurable
-  refine _root_.continuous_abs.measurable.comp ?_
-  refine Measurable.add ?_ measurable_const |>.sub measurable_id
-  exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+  exact _root_.continuous_abs.measurable.comp measurable_floor_add_half_sub
 
 lemma ZetaSum_aux1_5d {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
   IntervalIntegrable (fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1)) MeasureTheory.volume a b := by
@@ -1616,11 +1619,7 @@ lemma DerivUpperBnd_aux7_5 {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
     IntegrableOn (fun x ↦ |(↑⌊x⌋ + (1 : ℝ) / 2 - x)| * x ^ (-σ - 1) * Real.log x) (Ioi a) volume := by
   simp_rw [mul_assoc]
   apply Integrable.bdd_mul <| DerivUpperBnd_aux7_4 σpos ha
-  · apply Measurable.aestronglyMeasurable
-    apply Measurable.abs
-    apply Measurable.sub _ (by fun_prop)
-    apply Measurable.add _ (by fun_prop)
-    exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+  · exact Measurable.aestronglyMeasurable <| Measurable.abs measurable_floor_add_half_sub
   use 1 / 2
   intro x
   simp only [Real.norm_eq_abs, _root_.abs_abs]
