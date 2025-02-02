@@ -9,6 +9,7 @@ import Mathlib.MeasureTheory.Function.Floor
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.NumberTheory.Harmonic.Bounds
 import Mathlib.MeasureTheory.Order.Group.Lattice
+import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 set_option lang.lemmaCmd true
 
@@ -1583,7 +1584,14 @@ lemma DerivUpperBnd_aux7_4 {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
     · apply Real.log_nonneg (by linarith)
   · have h1 := tendsto_rpow_neg_atTop σpos
     have h2 := h1.const_mul (1 / σ^2)
-    have h3 : Tendsto (fun t : ℝ ↦ t ^ (-σ) * Real.log t) atTop (nhds 0) := by sorry
+    have h3 : Tendsto (fun t : ℝ ↦ t ^ (-σ) * Real.log t) atTop (nhds 0) := by
+      have := Real.tendsto_pow_log_div_pow_atTop σ 1 σpos
+      simp at this
+      apply Tendsto.congr' _ this
+      filter_upwards [eventually_ge_atTop 0] with x hx
+      rw [mul_comm]
+      apply div_rpow_eq_rpow_neg
+      exact hx
     have h4 := h3.const_mul (1 / σ)
     have h5 := (h2.add h4).neg
     convert h5 using 1
