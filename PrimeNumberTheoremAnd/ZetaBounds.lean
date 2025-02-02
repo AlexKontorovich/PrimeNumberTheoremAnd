@@ -1648,10 +1648,11 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
     let s := ↑σ + ↑t * I;
     0 < N → ↑N ≤ |t| → s ≠ 1 → 1 / 2 < σ →
     ‖s * ∫ (x : ℝ) in Ioi (N : ℝ), (↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1) * -↑x.log‖ ≤
-      2 * |t| * ↑N ^ (-σ) / σ * |t|.log := by
+      6 * |t| * ↑N ^ (-σ) / σ * |t|.log := by
   intro N s Npos N_le_t neOne σ_gt
   have σpos : 0 < σ := lt_trans (by norm_num) σ_gt
-  rw [norm_mul, mul_div_assoc, mul_assoc]
+  rw [norm_mul, (by norm_num : (6 : ℝ) = 2 * 3)]
+  rw [(by ring : 2 * 3 * |t| * ↑N ^ (-σ) / σ * Real.log |t| = (2 * |t|) * (3 * ↑N ^ (-σ) / σ * Real.log |t|))]
   apply mul_le_mul _ _ (by positivity) (by positivity)
   · apply le_trans (by apply norm_add_le)
     simp [abs_of_pos σpos]
@@ -1671,7 +1672,7 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
       apply DerivUpperBnd_aux7_4 σpos (mod_cast Npos)
     _ = 1 / σ^2 * N ^ (-σ) + 1 / σ * N ^ (-σ) * Real.log N :=
       DerivUpperBnd_aux7_integral_eq (mod_cast Npos) σpos
-    _ ≤ ↑N ^ (-σ) / σ * |t|.log := by
+    _ ≤ 3 * ↑N ^ (-σ) / σ * |t|.log := by
       have : Real.log N ≤ Real.log |t| :=
         Real.log_le_log (mod_cast Npos) N_le_t
       have h2 : 1 / σ * ↑N ^ (-σ) * Real.log ↑N ≤ ↑N ^ (-σ) / σ * Real.log |t| := calc
@@ -1689,8 +1690,9 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
           apply mul_le_mul_of_nonneg_left _ (by positivity)
           apply le_trans σinv.le this
         _ = _ := by ring
-      have := add_le_add h1 h2
-      sorry
+      convert add_le_add h1 h2 using 1
+      ring
+
 /-%%
 \begin{proof}
 Estimate $|s|= |\sigma + tI|$ by $|s|\le 2 +|t| \le 2|t|$ (since $|t|>3$). Estimating $|\left\lfloor x \right\rfloor+1/2-x|$ by $1$,
