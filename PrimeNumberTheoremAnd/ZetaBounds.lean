@@ -1626,6 +1626,12 @@ lemma DerivUpperBnd_aux7_5 {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
   simp only [Real.norm_eq_abs, _root_.abs_abs]
   exact  ZetaSum_aux1_3 x
 
+open MeasureTheory in
+lemma DerivUpperBnd_aux7_integral_eq {a σ : ℝ} (ha : 1 ≤ a) (σpos : 0 < σ) :
+    ∫ (x : ℝ) in Ioi a, x ^ (-σ - 1) * Real.log x = 1 / σ^2 * a ^ (-σ) + 1 / σ * a ^ (-σ) * Real.log a  := by
+  convert integral_Ioi_of_hasDerivAt_of_nonneg' (DerivUpperBnd_aux7_3' (by linarith) (by linarith)) (DerivUpperBnd_aux7_nonneg ha) (DerivUpperBnd_aux7_tendsto σpos) using 1
+  ring
+
 /-%%
 \begin{lemma}[DerivUpperBnd_aux7]\label{DerivUpperBnd_aux7}\lean{DerivUpperBnd_aux7}\leanok
 For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$, and any $0 < A < 1$ sufficiently small,
@@ -1663,6 +1669,8 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
         exact DerivUpperBnd_aux7_2 (lt_of_le_of_lt (mod_cast Npos) hx).le
       · apply DerivUpperBnd_aux7_5 σpos (mod_cast Npos)
       apply DerivUpperBnd_aux7_4 σpos (mod_cast Npos)
+    _ = 1 / σ^2 * N ^ (-σ) + 1 / σ * N ^ (-σ) * Real.log N :=
+      DerivUpperBnd_aux7_integral_eq (mod_cast Npos) σpos
     _ ≤ ↑N ^ (-σ) / σ * |t|.log := by sorry
 
 /-%%
