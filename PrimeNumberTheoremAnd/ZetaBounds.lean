@@ -1570,33 +1570,46 @@ lemma DerivUpperBnd_aux7_3 {x σ : ℝ} (xpos : 0 < x) (σnz : σ ≠ 0) :
   · ext; ring
   · field_simp; ring
 
+lemma DerivUpperBnd_aux7_3' {a σ : ℝ} (apos : 0 < a) (σnz : σ ≠ 0) :
+    ∀ x ∈ Ici a, HasDerivAt (fun t ↦ -(1 / σ^2 * t ^ (-σ) + 1 / σ * t ^ (-σ) * Real.log t)) (x ^ (-σ - 1) * Real.log x) x := by
+  intro x hx
+  simp at hx
+  exact DerivUpperBnd_aux7_3 (by linarith) σnz
+
+lemma DerivUpperBnd_aux7_nonneg {a σ : ℝ} (ha : 1 ≤ a) :
+    ∀ x ∈ Ioi a, 0 ≤ x ^ (-σ - 1) * Real.log x := by
+  intro x hx
+  simp at hx
+  apply mul_nonneg
+  · apply Real.rpow_nonneg (by linarith)
+  · apply Real.log_nonneg (by linarith)
+
+lemma DerivUpperBnd_aux7_tendsto {σ : ℝ} (σpos : 0 < σ) :
+    Tendsto (fun t ↦ -(1 / σ ^ 2 * t ^ (-σ) + 1 / σ * t ^ (-σ) * Real.log t)) atTop (nhds 0) := by
+  have h1 := tendsto_rpow_neg_atTop σpos
+  have h2 := h1.const_mul (1 / σ^2)
+  have h3 : Tendsto (fun t : ℝ ↦ t ^ (-σ) * Real.log t) atTop (nhds 0) := by
+    have := Real.tendsto_pow_log_div_pow_atTop σ 1 σpos
+    simp at this
+    apply Tendsto.congr' _ this
+    filter_upwards [eventually_ge_atTop 0] with x hx
+    rw [mul_comm]
+    apply div_rpow_eq_rpow_neg
+    exact hx
+  have h4 := h3.const_mul (1 / σ)
+  have h5 := (h2.add h4).neg
+  convert h5 using 1
+  · ext; ring
+  simp
+
+
 open MeasureTheory in
 lemma DerivUpperBnd_aux7_4 {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
     IntegrableOn (fun x ↦ x ^ (-σ - 1) * Real.log x) (Ioi a) volume := by
   apply integrableOn_Ioi_deriv_of_nonneg' (l := 0)
-  · intro x hx
-    simp at hx
-    apply DerivUpperBnd_aux7_3 (by linarith) (by linarith)
-  · intro x hx
-    simp at hx
-    apply mul_nonneg
-    · apply Real.rpow_nonneg (by linarith)
-    · apply Real.log_nonneg (by linarith)
-  · have h1 := tendsto_rpow_neg_atTop σpos
-    have h2 := h1.const_mul (1 / σ^2)
-    have h3 : Tendsto (fun t : ℝ ↦ t ^ (-σ) * Real.log t) atTop (nhds 0) := by
-      have := Real.tendsto_pow_log_div_pow_atTop σ 1 σpos
-      simp at this
-      apply Tendsto.congr' _ this
-      filter_upwards [eventually_ge_atTop 0] with x hx
-      rw [mul_comm]
-      apply div_rpow_eq_rpow_neg
-      exact hx
-    have h4 := h3.const_mul (1 / σ)
-    have h5 := (h2.add h4).neg
-    convert h5 using 1
-    · ext; ring
-    simp
+  · exact DerivUpperBnd_aux7_3' (by linarith) (by linarith)
+  · exact DerivUpperBnd_aux7_nonneg ha
+  · exact DerivUpperBnd_aux7_tendsto σpos
 
 open MeasureTheory in
 lemma DerivUpperBnd_aux7_5 {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
