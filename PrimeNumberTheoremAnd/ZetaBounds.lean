@@ -1651,8 +1651,7 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
       6 * |t| * ↑N ^ (-σ) / σ * |t|.log := by
   intro N s Npos N_le_t neOne σ_gt
   have σpos : 0 < σ := lt_trans (by norm_num) σ_gt
-  rw [norm_mul, (by norm_num : (6 : ℝ) = 2 * 3)]
-  rw [(by ring : 2 * 3 * |t| * ↑N ^ (-σ) / σ * Real.log |t| = (2 * |t|) * (3 * ↑N ^ (-σ) / σ * Real.log |t|))]
+  rw [norm_mul, (by ring : 6 * |t| * ↑N ^ (-σ) / σ * Real.log |t| = (2 * |t|) * (3 * ↑N ^ (-σ) / σ * Real.log |t|))]
   apply mul_le_mul _ _ (by positivity) (by positivity)
   · apply le_trans (by apply norm_add_le)
     simp [abs_of_pos σpos]
@@ -1673,28 +1672,27 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
     _ = 1 / σ^2 * N ^ (-σ) + 1 / σ * N ^ (-σ) * Real.log N :=
       DerivUpperBnd_aux7_integral_eq (mod_cast Npos) σpos
     _ ≤ 3 * ↑N ^ (-σ) / σ * |t|.log := by
-      have : Real.log N ≤ Real.log |t| :=
-        Real.log_le_log (mod_cast Npos) N_le_t
       have h2 : 1 / σ * ↑N ^ (-σ) * Real.log ↑N ≤ ↑N ^ (-σ) / σ * Real.log |t| := calc
         _ = ↑N ^ (-σ) / σ * Real.log N := by ring
         _ ≤ _ := by
-          apply mul_le_mul_of_nonneg_left this (by positivity)
-      have σinv : 1 / σ < 2 := by apply (one_div_lt σpos (by norm_num)).mpr σ_gt
-      have := logt_gt_one t_gt
+          apply mul_le_mul_of_nonneg_left _ (by positivity)
+          exact Real.log_le_log (mod_cast Npos) N_le_t
       have : 2 ≤ 2 * Real.log |t| := by
         nth_rewrite 1  [← mul_one 2]
-        apply mul_le_mul_of_nonneg_left this.le (by norm_num)
+        apply mul_le_mul_of_nonneg_left _ (by norm_num)
+        exact logt_gt_one t_gt |>.le
       have h1 : 1 / σ^2 * ↑N ^ (-σ) ≤ 2 * ↑N ^ (-σ) / σ * Real.log |t| := calc
         1 / σ^2 * ↑N ^ (-σ) = (↑N ^ (-σ) / σ) * (1 / σ) := by ring
         _ ≤ ↑N ^ (-σ) / σ * (2 * Real.log |t|):= by
           apply mul_le_mul_of_nonneg_left _ (by positivity)
-          apply le_trans σinv.le this
+          apply le_trans _ this
+          exact (one_div_le σpos (by norm_num)).mpr σ_gt.le
         _ = _ := by ring
       convert add_le_add h1 h2 using 1
       ring
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Estimate $|s|= |\sigma + tI|$ by $|s|\le 2 +|t| \le 2|t|$ (since $|t|>3$). Estimating $|\left\lfloor x \right\rfloor+1/2-x|$ by $1$,
 and using $|x^{-s-1}| = x^{-\sigma-1}$, we have
 $$
@@ -1705,11 +1703,9 @@ $$
 For the last integral, integrate by parts, getting:
 $$
 \int_{N}^{\infty} x^{-\sigma-1} \cdot (\log x) =
-\left[ -x^{-\sigma} \cdot \log x \right]_{N}^{\infty} + \sigma \cdot \int_{N}^{\infty} x^{-\sigma-1} dx
-=
-N^{-\sigma} \cdot \log N + \sigma \cdot N^{-\sigma}.
+\frac{1}{\sigma}N^{-\sigma} \cdot \log N + \frac1}\sigma^2} \cdot N^{-\sigma}.
 $$
-Now use $\log N \le \log |t|$ to get the result.
+ZNow use $\log N \le \log |t|$ to get the result.
 \end{proof}
 %%-/
 
