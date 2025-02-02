@@ -1671,8 +1671,26 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
       apply DerivUpperBnd_aux7_4 σpos (mod_cast Npos)
     _ = 1 / σ^2 * N ^ (-σ) + 1 / σ * N ^ (-σ) * Real.log N :=
       DerivUpperBnd_aux7_integral_eq (mod_cast Npos) σpos
-    _ ≤ ↑N ^ (-σ) / σ * |t|.log := by sorry
-
+    _ ≤ ↑N ^ (-σ) / σ * |t|.log := by
+      have : Real.log N ≤ Real.log |t| :=
+        Real.log_le_log (mod_cast Npos) N_le_t
+      have h2 : 1 / σ * ↑N ^ (-σ) * Real.log ↑N ≤ ↑N ^ (-σ) / σ * Real.log |t| := calc
+        _ = ↑N ^ (-σ) / σ * Real.log N := by ring
+        _ ≤ _ := by
+          apply mul_le_mul_of_nonneg_left this (by positivity)
+      have σinv : 1 / σ < 2 := by apply (one_div_lt σpos (by norm_num)).mpr σ_gt
+      have := logt_gt_one t_gt
+      have : 2 ≤ 2 * Real.log |t| := by
+        nth_rewrite 1  [← mul_one 2]
+        apply mul_le_mul_of_nonneg_left this.le (by norm_num)
+      have h1 : 1 / σ^2 * ↑N ^ (-σ) ≤ 2 * ↑N ^ (-σ) / σ * Real.log |t| := calc
+        1 / σ^2 * ↑N ^ (-σ) = (↑N ^ (-σ) / σ) * (1 / σ) := by ring
+        _ ≤ ↑N ^ (-σ) / σ * (2 * Real.log |t|):= by
+          apply mul_le_mul_of_nonneg_left _ (by positivity)
+          apply le_trans σinv.le this
+        _ = _ := by ring
+      have := add_le_add h1 h2
+      sorry
 /-%%
 \begin{proof}
 Estimate $|s|= |\sigma + tI|$ by $|s|\le 2 +|t| \le 2|t|$ (since $|t|>3$). Estimating $|\left\lfloor x \right\rfloor+1/2-x|$ by $1$,
