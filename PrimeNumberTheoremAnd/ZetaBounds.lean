@@ -1715,7 +1715,7 @@ Now use $\log N \le \log |t|$ to get the result.
 
 lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
-    let C := Real.exp A * 27;
+    let C := Real.exp A * 59;
     let N := ⌊|t|⌋₊;
     let s := σ + t * I;
     ‖∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ s * (Real.log n)‖ +
@@ -1782,18 +1782,18 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       Real.exp A * 2 * (Real.log |t|) +
       Real.exp A * (Real.log |t|) +
       1 / 3 * (2 * (8 * Real.exp A)) +
-      (2 * |t| * N ^ (-σ) / σ) * (Real.log |t|) := by
+      (6 * |t| * N ^ (-σ) / σ) * (Real.log |t|) := by
         gcongr; exact DerivUpperBnd_aux7 t_gt hσ Npos N_le_t neOne σ_gt
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       Real.exp A * 2 * (1 / 3) +
       Real.exp A * 2 * (Real.log |t|) +
       Real.exp A * (Real.log |t|) +
       1 / 3 * (2 * (8 * Real.exp A)) +
-      (2 * (8 * Real.exp A)) * (Real.log |t|) := by
-        gcongr; exact DerivUpperBnd_aux6 t_gt hσ Npos N_le_t neOne σ_gt
+      (6 * (8 * Real.exp A)) * (Real.log |t|) := by
+        gcongr; convert mul_le_mul_of_nonneg_left (DerivUpperBnd_aux6 t_gt hσ Npos N_le_t neOne σ_gt) (by norm_num : (0 : ℝ) ≤ 3) using 1 <;> ring
     _ ≤ _ := by
       ring_nf
-      rw [(by ring : A.exp * |t|.log ^ 2 * 27 = A.exp * |t|.log ^ 2 * 6 + A.exp * |t|.log ^ 2 * 19 +
+      rw [(by ring : A.exp * |t|.log ^ 2 * 59 = A.exp * |t|.log ^ 2 * 6 + A.exp * |t|.log ^ 2 * 51 +
         A.exp * |t|.log ^ 2 * 2)]
       nth_rewrite 1 [← mul_one A.exp]
       gcongr
@@ -1816,7 +1816,7 @@ lemma ZetaDerivUpperBnd :
     (_ : σ ∈ Icc (1 - A / Real.log |t|) 2),
     ‖deriv ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
   obtain ⟨A, hA, _, _, _⟩ := ZetaUpperBnd
-  let C := Real.exp A * 27
+  let C := Real.exp A * 59
   refine ⟨A, hA, C, by positivity, ?_⟩
   intro σ t t_gt ⟨σ_ge, σ_le⟩
   obtain ⟨Npos, N_le_t, _, _, σPos, neOne⟩ := UpperBnd_aux hA t_gt σ_ge
