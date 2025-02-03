@@ -71,16 +71,16 @@ jobs:
 
 
       - name: Setup Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: Upload blueprint artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4
 
 
   # generate doc after blueprint (as it's quite a bit longer)
@@ -152,11 +152,45 @@ jobs:
           key: Blueprint-cache
         continue-on-error: true
 
-      - name: Upload docs & blueprint artifact
-        uses: actions/upload-pages-artifact@v2
+      ## cannot use upload-pages-artifact@v3 twice (it is used for the blueprint above)
+      ## it fails because two identically named artifacts are uploaded
+      ## (for github pages deployment to work, the artifact must be named 'github-pages')
+      ## This could be fixed using upload-artifact's 'overwrite:true' option, but it is not implemented on upload-pages-artifact
+      ## Copied the archive/upload action from upload-pages-artifact below.
+      ## This should be replaced with
+      ##   - name: Upload docs & blueprint artifact
+      ##     uses: actions/upload-pages-artifact@v3
+      ##     with:
+      ##       path: docs
+      ##       name: github-pages
+      ##       overwrite: true
+      ## when this is supported
+      - name: Archive artifact
+        shell: sh
+        run: |
+          echo ::group::Archive artifact
+          tar \
+            --dereference --hard-dereference \
+            --directory "$INPUT_PATH" \
+            -cvf "$RUNNER_TEMP/artifact.tar" \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=".[^/]*" \
+            .
+          echo ::endgroup::
+        env:
+          INPUT_PATH: docs
+
+      - name: Upload artifact
+        id: upload-artifact
+        uses: actions/upload-artifact@v4
         with:
-          path: docs
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+          if-no-files-found: error
+          overwrite: true
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4

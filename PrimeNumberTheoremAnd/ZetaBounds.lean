@@ -8,6 +8,8 @@ import PrimeNumberTheoremAnd.MellinCalculus
 import Mathlib.MeasureTheory.Function.Floor
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.NumberTheory.Harmonic.Bounds
+import Mathlib.MeasureTheory.Order.Group.Lattice
+import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 set_option lang.lemmaCmd true
 
@@ -481,15 +483,18 @@ lemma ZetaSum_aux1_5b {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σp
   · exact fun x hx h ↦ by rw [Real.rpow_eq_zero] at h <;> linarith [ZetaSum_aux1_1' apos hx]
 
 open MeasureTheory in
+lemma measurable_floor_add_half_sub : Measurable fun (u : ℝ) ↦ ↑⌊u⌋ + 1 / 2 - u := by 
+  refine Measurable.add ?_ measurable_const |>.sub measurable_id
+  exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+
+open MeasureTheory in
 lemma ZetaSum_aux1_5c {a b : ℝ} {s : ℂ} :
     let g : ℝ → ℝ := fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1);
     AEStronglyMeasurable g
       (Measure.restrict volume (Ι a b)) := by
   intro
   refine (Measurable.div ?_ <| measurable_id.pow_const _).aestronglyMeasurable
-  refine _root_.continuous_abs.measurable.comp ?_
-  refine Measurable.add ?_ measurable_const |>.sub measurable_id
-  exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
+  exact _root_.continuous_abs.measurable.comp measurable_floor_add_half_sub
 
 lemma ZetaSum_aux1_5d {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpos : 0 < s.re) :
   IntervalIntegrable (fun u ↦ |↑⌊u⌋ + 1 / 2 - u| / u ^ (s.re + 1)) MeasureTheory.volume a b := by
@@ -1577,6 +1582,95 @@ theorem DerivUpperBnd_aux6 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
   convert UpperBnd_aux2 t_gt hσ.1 using 1
   rw [mul_comm, ← Real.rpow_add_one (by positivity)]; ring_nf
 
+lemma DerivUpperBnd_aux7_1 {x σ t : ℝ} (hx : 1 ≤ x) :
+    let s := ↑σ + ↑t * I;
+    ‖(↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1) * -↑x.log‖ = |(↑⌊x⌋ + 1 / 2 - x)| * x ^ (-σ - 1) * x.log := by
+  have xpos : 0 < x := lt_of_lt_of_le (by norm_num) hx
+  have : Complex.abs x.log = x.log := Complex.abs_of_nonneg <| Real.log_nonneg hx
+  simp [← abs_ofReal, this, Complex.abs_cpow_eq_rpow_re_of_pos xpos]
+
+lemma DerivUpperBnd_aux7_2 {x σ : ℝ} (hx : 1 ≤ x) :
+    |(↑⌊x⌋ + 1 / 2 - x)| * x ^ (-σ - 1) * x.log ≤ x ^ (-σ - 1) * x.log := by
+  rw [← one_mul (x ^ (-σ - 1) * Real.log x), mul_assoc]
+  apply mul_le_mul_of_nonneg_right
+  · apply le_trans (ZetaSum_aux1_3 x) (by norm_num)
+  apply mul_nonneg
+  · apply Real.rpow_nonneg <| (lt_of_lt_of_le (by norm_num) hx).le
+  · exact Real.log_nonneg hx
+
+lemma DerivUpperBnd_aux7_3 {x σ : ℝ} (xpos : 0 < x) (σnz : σ ≠ 0) :
+    HasDerivAt (fun t ↦ -(1 / σ^2 * t ^ (-σ) + 1 / σ * t ^ (-σ) * Real.log t)) (x ^ (-σ - 1) * Real.log x) x := by
+  have h1 := Real.hasDerivAt_rpow_const (p := -σ) (Or.inl xpos.ne.symm)
+  have h2 := h1.const_mul (1 / σ^2)
+  have cancel : 1 / σ^2 * σ = 1 / σ := by field_simp; ring
+  rw [neg_mul, mul_neg, ← mul_assoc, cancel] at h2
+  have h3 := Real.hasDerivAt_log xpos.ne.symm
+  have h4 := HasDerivAt.mul h1 h3 |>.const_mul (1 / σ)
+  have cancel := Real.rpow_add xpos (-σ) (-1)
+  have : -σ + -1 = -σ - 1 := by rfl
+  rw [← Real.rpow_neg_one x, ← cancel, this] at h4
+  convert h2.add h4 |>.neg using 1
+  · ext; ring
+  · field_simp; ring
+
+lemma DerivUpperBnd_aux7_3' {a σ : ℝ} (apos : 0 < a) (σnz : σ ≠ 0) :
+    ∀ x ∈ Ici a, HasDerivAt (fun t ↦ -(1 / σ^2 * t ^ (-σ) + 1 / σ * t ^ (-σ) * Real.log t)) (x ^ (-σ - 1) * Real.log x) x := by
+  intro x hx
+  simp at hx
+  exact DerivUpperBnd_aux7_3 (by linarith) σnz
+
+lemma DerivUpperBnd_aux7_nonneg {a σ : ℝ} (ha : 1 ≤ a) :
+    ∀ x ∈ Ioi a, 0 ≤ x ^ (-σ - 1) * Real.log x := by
+  intro x hx
+  simp at hx
+  apply mul_nonneg
+  · apply Real.rpow_nonneg (by linarith)
+  · apply Real.log_nonneg (by linarith)
+
+lemma DerivUpperBnd_aux7_tendsto {σ : ℝ} (σpos : 0 < σ) :
+    Tendsto (fun t ↦ -(1 / σ ^ 2 * t ^ (-σ) + 1 / σ * t ^ (-σ) * Real.log t)) atTop (nhds 0) := by
+  have h1 := tendsto_rpow_neg_atTop σpos
+  have h2 := h1.const_mul (1 / σ^2)
+  have h3 : Tendsto (fun t : ℝ ↦ t ^ (-σ) * Real.log t) atTop (nhds 0) := by
+    have := Real.tendsto_pow_log_div_pow_atTop σ 1 σpos
+    simp at this
+    apply Tendsto.congr' _ this
+    filter_upwards [eventually_ge_atTop 0] with x hx
+    rw [mul_comm]
+    apply div_rpow_eq_rpow_neg
+    exact hx
+  have h4 := h3.const_mul (1 / σ)
+  have h5 := (h2.add h4).neg
+  convert h5 using 1
+  · ext; ring
+  simp
+
+
+open MeasureTheory in
+lemma DerivUpperBnd_aux7_4 {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
+    IntegrableOn (fun x ↦ x ^ (-σ - 1) * Real.log x) (Ioi a) volume := by
+  apply integrableOn_Ioi_deriv_of_nonneg' (l := 0)
+  · exact DerivUpperBnd_aux7_3' (by linarith) (by linarith)
+  · exact DerivUpperBnd_aux7_nonneg ha
+  · exact DerivUpperBnd_aux7_tendsto σpos
+
+open MeasureTheory in
+lemma DerivUpperBnd_aux7_5 {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
+    IntegrableOn (fun x ↦ |(↑⌊x⌋ + (1 : ℝ) / 2 - x)| * x ^ (-σ - 1) * Real.log x) (Ioi a) volume := by
+  simp_rw [mul_assoc]
+  apply Integrable.bdd_mul <| DerivUpperBnd_aux7_4 σpos ha
+  · exact Measurable.aestronglyMeasurable <| Measurable.abs measurable_floor_add_half_sub
+  use 1 / 2
+  intro x
+  simp only [Real.norm_eq_abs, _root_.abs_abs]
+  exact  ZetaSum_aux1_3 x
+
+open MeasureTheory in
+lemma DerivUpperBnd_aux7_integral_eq {a σ : ℝ} (ha : 1 ≤ a) (σpos : 0 < σ) :
+    ∫ (x : ℝ) in Ioi a, x ^ (-σ - 1) * Real.log x = 1 / σ^2 * a ^ (-σ) + 1 / σ * a ^ (-σ) * Real.log a  := by
+  convert integral_Ioi_of_hasDerivAt_of_nonneg' (DerivUpperBnd_aux7_3' (by linarith) (by linarith)) (DerivUpperBnd_aux7_nonneg ha) (DerivUpperBnd_aux7_tendsto σpos) using 1
+  ring
+
 /-%%
 \begin{lemma}[DerivUpperBnd_aux7]\label{DerivUpperBnd_aux7}\lean{DerivUpperBnd_aux7}\leanok
 For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$, and any $0 < A < 1$ sufficiently small,
@@ -1587,16 +1681,57 @@ $$
 $$
 \end{lemma}
 %%-/
+open MeasureTheory in
 theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
     let N := ⌊|t|⌋₊;
     let s := ↑σ + ↑t * I;
     0 < N → ↑N ≤ |t| → s ≠ 1 → 1 / 2 < σ →
     ‖s * ∫ (x : ℝ) in Ioi (N : ℝ), (↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1) * -↑x.log‖ ≤
-      2 * |t| * ↑N ^ (-σ) / σ * |t|.log := by
+      6 * |t| * ↑N ^ (-σ) / σ * |t|.log := by
   intro N s Npos N_le_t neOne σ_gt
-  sorry
+  have σpos : 0 < σ := lt_trans (by norm_num) σ_gt
+  rw [norm_mul, (by ring : 6 * |t| * ↑N ^ (-σ) / σ * Real.log |t| = (2 * |t|) * (3 * ↑N ^ (-σ) / σ * Real.log |t|))]
+  apply mul_le_mul _ _ (by positivity) (by positivity)
+  · apply le_trans (by apply norm_add_le)
+    simp [abs_of_pos σpos]
+    linarith [hσ.2]
+  apply le_trans (by apply norm_integral_le_integral_norm)
+  calc ∫ (x : ℝ) in Ioi (N : ℝ), ‖(↑⌊x⌋ + 1 / 2 - ↑x) * (x : ℂ) ^ (-s - 1) * -↑x.log‖
+    _ = ∫ (x : ℝ) in Ioi (N : ℝ), |(↑⌊x⌋ + 1 / 2 - x)| * x ^ (-σ - 1) * x.log := by
+      apply setIntegral_congr_fun (by measurability)
+      intro x hx
+      simp at hx
+      exact DerivUpperBnd_aux7_1 (lt_of_le_of_lt (mod_cast Npos) hx).le
+    _ ≤ ∫ (x : ℝ) in Ioi (N : ℝ), x ^ (-σ - 1) * x.log := by
+      apply setIntegral_mono_on _ _ (by measurability)
+      · intro x hx
+        exact DerivUpperBnd_aux7_2 (lt_of_le_of_lt (mod_cast Npos) hx).le
+      · apply DerivUpperBnd_aux7_5 σpos (mod_cast Npos)
+      apply DerivUpperBnd_aux7_4 σpos (mod_cast Npos)
+    _ = 1 / σ^2 * N ^ (-σ) + 1 / σ * N ^ (-σ) * Real.log N :=
+      DerivUpperBnd_aux7_integral_eq (mod_cast Npos) σpos
+    _ ≤ 3 * ↑N ^ (-σ) / σ * |t|.log := by
+      have h2 : 1 / σ * ↑N ^ (-σ) * Real.log ↑N ≤ ↑N ^ (-σ) / σ * Real.log |t| := calc
+        _ = ↑N ^ (-σ) / σ * Real.log N := by ring
+        _ ≤ _ := by
+          apply mul_le_mul_of_nonneg_left _ (by positivity)
+          exact Real.log_le_log (mod_cast Npos) N_le_t
+      have : 2 ≤ 2 * Real.log |t| := by
+        nth_rewrite 1  [← mul_one 2]
+        apply mul_le_mul_of_nonneg_left _ (by norm_num)
+        exact logt_gt_one t_gt |>.le
+      have h1 : 1 / σ^2 * ↑N ^ (-σ) ≤ 2 * ↑N ^ (-σ) / σ * Real.log |t| := calc
+        1 / σ^2 * ↑N ^ (-σ) = (↑N ^ (-σ) / σ) * (1 / σ) := by ring
+        _ ≤ ↑N ^ (-σ) / σ * (2 * Real.log |t|):= by
+          apply mul_le_mul_of_nonneg_left _ (by positivity)
+          apply le_trans _ this
+          exact (one_div_le σpos (by norm_num)).mpr σ_gt.le
+        _ = _ := by ring
+      convert add_le_add h1 h2 using 1
+      ring
+
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Estimate $|s|= |\sigma + tI|$ by $|s|\le 2 +|t| \le 2|t|$ (since $|t|>3$). Estimating $|\left\lfloor x \right\rfloor+1/2-x|$ by $1$,
 and using $|x^{-s-1}| = x^{-\sigma-1}$, we have
 $$
@@ -1607,17 +1742,15 @@ $$
 For the last integral, integrate by parts, getting:
 $$
 \int_{N}^{\infty} x^{-\sigma-1} \cdot (\log x) =
-\left[ -x^{-\sigma} \cdot \log x \right]_{N}^{\infty} + \sigma \cdot \int_{N}^{\infty} x^{-\sigma-1} dx
-=
-N^{-\sigma} \cdot \log N + \sigma \cdot N^{-\sigma}.
+\frac{1}{\sigma}N^{-\sigma} \cdot \log N + \frac1}\sigma^2} \cdot N^{-\sigma}.
 $$
-Now use $\log N \le \log |t|$ to get the result.
+ZNow use $\log N \le \log |t|$ to get the result.
 \end{proof}
 %%-/
 
 lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
     (hσ : σ ∈ Icc (1 - A / Real.log |t|) 2) :
-    let C := Real.exp A * 27;
+    let C := Real.exp A * 59;
     let N := ⌊|t|⌋₊;
     let s := σ + t * I;
     ‖∑ n in Finset.range (N + 1), -1 / (n : ℂ) ^ s * (Real.log n)‖ +
@@ -1684,18 +1817,18 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       Real.exp A * 2 * (Real.log |t|) +
       Real.exp A * (Real.log |t|) +
       1 / 3 * (2 * (8 * Real.exp A)) +
-      (2 * |t| * N ^ (-σ) / σ) * (Real.log |t|) := by
+      (6 * |t| * N ^ (-σ) / σ) * (Real.log |t|) := by
         gcongr; exact DerivUpperBnd_aux7 t_gt hσ Npos N_le_t neOne σ_gt
     _ ≤ Real.exp A * 2 * (Real.log |t|) ^ 2 +
       Real.exp A * 2 * (1 / 3) +
       Real.exp A * 2 * (Real.log |t|) +
       Real.exp A * (Real.log |t|) +
       1 / 3 * (2 * (8 * Real.exp A)) +
-      (2 * (8 * Real.exp A)) * (Real.log |t|) := by
-        gcongr; exact DerivUpperBnd_aux6 t_gt hσ Npos N_le_t neOne σ_gt
+      (6 * (8 * Real.exp A)) * (Real.log |t|) := by
+        gcongr; convert mul_le_mul_of_nonneg_left (DerivUpperBnd_aux6 t_gt hσ Npos N_le_t neOne σ_gt) (by norm_num : (0 : ℝ) ≤ 3) using 1 <;> ring
     _ ≤ _ := by
       ring_nf
-      rw [(by ring : A.exp * |t|.log ^ 2 * 27 = A.exp * |t|.log ^ 2 * 6 + A.exp * |t|.log ^ 2 * 19 +
+      rw [(by ring : A.exp * |t|.log ^ 2 * 59 = A.exp * |t|.log ^ 2 * 6 + A.exp * |t|.log ^ 2 * 51 +
         A.exp * |t|.log ^ 2 * 2)]
       nth_rewrite 1 [← mul_one A.exp]
       gcongr
@@ -1718,7 +1851,7 @@ lemma ZetaDerivUpperBnd :
     (_ : σ ∈ Icc (1 - A / Real.log |t|) 2),
     ‖deriv ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
   obtain ⟨A, hA, _, _, _⟩ := ZetaUpperBnd
-  let C := Real.exp A * 27
+  let C := Real.exp A * 59
   refine ⟨A, hA, C, by positivity, ?_⟩
   intro σ t t_gt ⟨σ_ge, σ_le⟩
   obtain ⟨Npos, N_le_t, _, _, σPos, neOne⟩ := UpperBnd_aux hA t_gt σ_ge

@@ -2312,7 +2312,7 @@ theorem WienerIkeharaTheorem'' (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' �
 
 /-%%
 \begin{proof}
-\uses{auto-cheby, WienerIkehara} Use Corollary \ref{auto-cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
+\uses{auto-cheby, WienerIkehara}\leanok Use Corollary \ref{auto-cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
 \end{proof}
 %%-/
 
@@ -2321,7 +2321,7 @@ end auto_cheby
 /-%%
 \section{The prime number theorem in arithmetic progressions}
 
-\begin{lemma}[Character decomposition]\label{WeakPNT-character}\lean{WeakPNT_character'}  If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
+\begin{lemma}[Character decomposition]\label{WeakPNT-character}\lean{WeakPNT_character'}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
 $$
 \sum_{n: n = a\ (q)} \frac{\Lambda(n)}{n^s} = - \frac{1}{\varphi(q)} \sum_{\chi\ (q)} \overline{\chi(a)} \frac{L'(s,\chi)}{L(s,\chi)}.$$
 \end{lemma}
@@ -2349,7 +2349,7 @@ theorem WeakPNT_character'
       ← ZMod.coe_unitOfCoprime a ha, ZMod.inv_coe_unit, map_units_inv]
 
 /-%%
-\begin{proof}  From the Fourier inversion formula on the multiplicative group $(\Z/q\Z)^\times$, we have
+\begin{proof}\leanok  From the Fourier inversion formula on the multiplicative group $(\Z/q\Z)^\times$, we have
 $$ 1_{n=a\ (q)} = \frac{\varphi(q)}{q} \sum_{\chi\ (q)} \overline{\chi(a)} \chi(n).$$
 On the other hand, from standard facts about L-series we have for each character $\chi$ that
 $$
@@ -2395,5 +2395,61 @@ proof_wanted WeakPNT_AP {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha'
 \begin{proof}\uses{WienerIkehara, WeakPNT-AP-prelim}
 Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkehara-alt}) to Proposition \ref{WeakPNT-AP-prelim}.  (The Chebyshev bound follows from the corresponding bound for $\Lambda$.)
 \end{proof}
+
+%%-/
+
+/-%%
+\section{The Chebotarev density theorem: the case of cyclotomic extensions}
+
+In this section, $K$ is a number field, $L = K(\mu_m)$ for some natural number $m$, and $G = Gal(K/L)$.
+
+The goal here is to prove the Chebotarev density theorem for the case of cyclotomic extensions.
+%%-/
+
+/-%%
+\begin{lemma}[Factorization of Dedekind zeta function]\label{Dedekind-factor}  We have
+$$ \zeta_L(s) = \prod_{\chi} L(\chi,s)$$
+for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ and $L$ is the Artin $L$-function.
+\end{lemma}
+
+%%-/
+
+/-%%
+\begin{proof} See Propositions 7.1.16, 7.1.19 of https://www.math.ucla.edu/~sharifi/algnum.pdf .
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[Simple pole]\label{Dedekind-pole}  $\zeta_L$ has a simple pole at $s=1$.
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof} See Theorem 7.1.12 of https://www.math.ucla.edu/~sharifi/algnum.pdf .
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[Nonvanishing]\label{Dedekind-nonvanishing}  For any non-principal character $\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
+\end{lemma}
+
+%%-/
+
+/-%%
+\begin{proof}\uses{Dedekind-factor, Dedekind-pole} For $s=1$, this will follow from Lemmas \ref{Dedekind-factor}, \ref{Dedekind-pole}. For the rest of the line, one should be able to adapt the arguments for the Dirichet L-function.
+\end{proof}
+%%-/
+
+/-%%
+\section{The Chebotarev density theorem: the case of abelian extensions}
+
+(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the previous results to abelian extensions (actually just cyclic extensions would suffice))
+
+%%-/
+
+/-%%
+\section{The Chebotarev density theorem: the general case}
+
+(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the previous results to arbitrary extensions
 
 %%-/
