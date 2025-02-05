@@ -10,6 +10,7 @@ import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.NumberTheory.Harmonic.Bounds
 import Mathlib.MeasureTheory.Order.Group.Lattice
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Mathlib.Tactic.Bound
 
 set_option lang.lemmaCmd true
 
@@ -1552,11 +1553,8 @@ lemma DerivUpperBnd_aux7_1 {x σ t : ℝ} (hx : 1 ≤ x) :
 lemma DerivUpperBnd_aux7_2 {x σ : ℝ} (hx : 1 ≤ x) :
     |(↑⌊x⌋ + 1 / 2 - x)| * x ^ (-σ - 1) * x.log ≤ x ^ (-σ - 1) * x.log := by
   rw [← one_mul (x ^ (-σ - 1) * Real.log x), mul_assoc]
-  apply mul_le_mul_of_nonneg_right
-  · apply le_trans (ZetaSum_aux1_3 x) (by norm_num)
-  apply mul_nonneg
-  · apply Real.rpow_nonneg <| (lt_of_lt_of_le (by norm_num) hx).le
-  · exact Real.log_nonneg hx
+  apply mul_le_mul_of_nonneg_right _ (by bound)
+  exact le_trans (ZetaSum_aux1_3 x) (by norm_num)
 
 lemma DerivUpperBnd_aux7_3 {x σ : ℝ} (xpos : 0 < x) (σnz : σ ≠ 0) :
     HasDerivAt (fun t ↦ -(1 / σ^2 * t ^ (-σ) + 1 / σ * t ^ (-σ) * Real.log t)) (x ^ (-σ - 1) * Real.log x) x := by
@@ -1565,13 +1563,12 @@ lemma DerivUpperBnd_aux7_3 {x σ : ℝ} (xpos : 0 < x) (σnz : σ ≠ 0) :
   have cancel : 1 / σ^2 * σ = 1 / σ := by field_simp; ring
   rw [neg_mul, mul_neg, ← mul_assoc, cancel] at h2
   have h3 := Real.hasDerivAt_log xpos.ne.symm
-  have h4 := HasDerivAt.mul h1 h3 |>.const_mul (1 / σ)
+  have h4 := HasDerivAt.mul (h1.const_mul (1 / σ)) h3
   have cancel := Real.rpow_add xpos (-σ) (-1)
   have : -σ + -1 = -σ - 1 := by rfl
-  rw [← Real.rpow_neg_one x, ← cancel, this] at h4
+  rw [← Real.rpow_neg_one x, mul_assoc (1 / σ) (x ^ (-σ)), ← cancel, this] at h4
   convert h2.add h4 |>.neg using 1
-  · ext; ring
-  · field_simp; ring
+  field_simp; ring
 
 lemma DerivUpperBnd_aux7_3' {a σ : ℝ} (apos : 0 < a) (σnz : σ ≠ 0) :
     ∀ x ∈ Ici a, HasDerivAt (fun t ↦ -(1 / σ^2 * t ^ (-σ) + 1 / σ * t ^ (-σ) * Real.log t)) (x ^ (-σ - 1) * Real.log x) x := by
@@ -1583,9 +1580,7 @@ lemma DerivUpperBnd_aux7_nonneg {a σ : ℝ} (ha : 1 ≤ a) :
     ∀ x ∈ Ioi a, 0 ≤ x ^ (-σ - 1) * Real.log x := by
   intro x hx
   simp at hx
-  apply mul_nonneg
-  · apply Real.rpow_nonneg (by linarith)
-  · apply Real.log_nonneg (by linarith)
+  bound
 
 lemma DerivUpperBnd_aux7_tendsto {σ : ℝ} (σpos : 0 < σ) :
     Tendsto (fun t ↦ -(1 / σ ^ 2 * t ^ (-σ) + 1 / σ * t ^ (-σ) * Real.log t)) atTop (nhds 0) := by
@@ -1702,9 +1697,9 @@ $$
 For the last integral, integrate by parts, getting:
 $$
 \int_{N}^{\infty} x^{-\sigma-1} \cdot (\log x) =
-\frac{1}{\sigma}N^{-\sigma} \cdot \log N + \frac1}\sigma^2} \cdot N^{-\sigma}.
+\frac{1}{\sigma}N^{-\sigma} \cdot \log N + \frac1{\sigma^2} \cdot N^{-\sigma}.
 $$
-ZNow use $\log N \le \log |t|$ to get the result.
+Now use $\log N \le \log |t|$ to get the result.
 \end{proof}
 %%-/
 
