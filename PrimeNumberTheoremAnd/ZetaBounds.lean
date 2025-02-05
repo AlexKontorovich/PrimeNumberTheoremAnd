@@ -1702,9 +1702,9 @@ $$
 For the last integral, integrate by parts, getting:
 $$
 \int_{N}^{\infty} x^{-\sigma-1} \cdot (\log x) =
-\frac{1}{\sigma}N^{-\sigma} \cdot \log N + \frac1}\sigma^2} \cdot N^{-\sigma}.
+\frac{1}{\sigma}N^{-\sigma} \cdot \log N + \frac1{\sigma^2} \cdot N^{-\sigma}.
 $$
-ZNow use $\log N \le \log |t|$ to get the result.
+Now use $\log N \le \log |t|$ to get the result.
 \end{proof}
 %%-/
 
