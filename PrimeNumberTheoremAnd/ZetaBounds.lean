@@ -10,6 +10,7 @@ import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.NumberTheory.Harmonic.Bounds
 import Mathlib.MeasureTheory.Order.Group.Lattice
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Mathlib.Tactic.Bound
 
 set_option lang.lemmaCmd true
 
@@ -1552,11 +1553,8 @@ lemma DerivUpperBnd_aux7_1 {x σ t : ℝ} (hx : 1 ≤ x) :
 lemma DerivUpperBnd_aux7_2 {x σ : ℝ} (hx : 1 ≤ x) :
     |(↑⌊x⌋ + 1 / 2 - x)| * x ^ (-σ - 1) * x.log ≤ x ^ (-σ - 1) * x.log := by
   rw [← one_mul (x ^ (-σ - 1) * Real.log x), mul_assoc]
-  apply mul_le_mul_of_nonneg_right
-  · apply le_trans (ZetaSum_aux1_3 x) (by norm_num)
-  apply mul_nonneg
-  · apply Real.rpow_nonneg <| (lt_of_lt_of_le (by norm_num) hx).le
-  · exact Real.log_nonneg hx
+  apply mul_le_mul_of_nonneg_right _ (by bound)
+  exact le_trans (ZetaSum_aux1_3 x) (by norm_num)
 
 lemma DerivUpperBnd_aux7_3 {x σ : ℝ} (xpos : 0 < x) (σnz : σ ≠ 0) :
     HasDerivAt (fun t ↦ -(1 / σ^2 * t ^ (-σ) + 1 / σ * t ^ (-σ) * Real.log t)) (x ^ (-σ - 1) * Real.log x) x := by
@@ -1583,9 +1581,7 @@ lemma DerivUpperBnd_aux7_nonneg {a σ : ℝ} (ha : 1 ≤ a) :
     ∀ x ∈ Ioi a, 0 ≤ x ^ (-σ - 1) * Real.log x := by
   intro x hx
   simp at hx
-  apply mul_nonneg
-  · apply Real.rpow_nonneg (by linarith)
-  · apply Real.log_nonneg (by linarith)
+  bound
 
 lemma DerivUpperBnd_aux7_tendsto {σ : ℝ} (σpos : 0 < σ) :
     Tendsto (fun t ↦ -(1 / σ ^ 2 * t ^ (-σ) + 1 / σ * t ^ (-σ) * Real.log t)) atTop (nhds 0) := by
