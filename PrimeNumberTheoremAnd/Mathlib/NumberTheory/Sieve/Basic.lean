@@ -41,7 +41,7 @@ local notation3 "A" => Sieve.support s
 
 @[simp]
 def multSum (d : ℕ) : ℝ :=
-  ∑ n in A, if d ∣ n then a n else 0
+  ∑ n ∈ A, if d ∣ n then a n else 0
 
 local notation3 "𝒜" => Sieve.multSum s
 
@@ -53,7 +53,7 @@ def rem (d : ℕ) : ℝ :=
 local notation3 "R" => Sieve.rem s
 
 def siftedSum : ℝ :=
-  ∑ d in A, if Coprime P d then a d else 0
+  ∑ d ∈ A, if Coprime P d then a d else 0
 
 -- S = ∑_{l|P, l≤√y} g(l)
 -- Used in statement of the simple form of the selberg bound
@@ -63,23 +63,23 @@ def selbergTerms : ArithmeticFunction ℝ :=
 local notation3 "g" => Sieve.selbergTerms s
 
 theorem selbergTerms_apply (d : ℕ) :
-    g d = ν d * ∏ p in d.primeFactors, 1/(1 - ν p) := by
+    g d = ν d * ∏ p ∈ d.primeFactors, 1/(1 - ν p) := by
   unfold selbergTerms
   by_cases h : d=0
   · rw [h]; simp
   rw [ArithmeticFunction.pmul_apply, ArithmeticFunction.prodPrimeFactors_apply h]
 
 def mainSum (μPlus : ℕ → ℝ) : ℝ :=
-  ∑ d in divisors P, μPlus d * ν d
+  ∑ d ∈ divisors P, μPlus d * ν d
 
 def errSum (μPlus : ℕ → ℝ) : ℝ :=
-  ∑ d in divisors P, |μPlus d| * |R d|
+  ∑ d ∈ divisors P, |μPlus d| * |R d|
 
 
 section UpperBoundSieve
 
 def UpperMoebius (μ_plus : ℕ → ℝ) : Prop :=
-  ∀ n : ℕ, (if n=1 then 1 else 0) ≤ ∑ d in n.divisors, μ_plus d
+  ∀ n : ℕ, (if n=1 then 1 else 0) ≤ ∑ d ∈ n.divisors, μ_plus d
 
 structure UpperBoundSieve where mk ::
   μPlus : ℕ → ℝ
@@ -88,7 +88,7 @@ structure UpperBoundSieve where mk ::
 instance ubToμPlus : CoeFun UpperBoundSieve fun _ => ℕ → ℝ where coe ub := ub.μPlus
 
 def LowerMoebius (μMinus : ℕ → ℝ) : Prop :=
-  ∀ n : ℕ, ∑ d in n.divisors, μMinus d ≤ (if n=1 then 1 else 0)
+  ∀ n : ℕ, ∑ d ∈ n.divisors, μMinus d ≤ (if n=1 then 1 else 0)
 
 structure LowerBoundSieve where mk ::
   μMinus : ℕ → ℝ
@@ -112,7 +112,7 @@ theorem squarefree_of_mem_divisors_prodPrimes {d : ℕ} (hd : d ∈ divisors P) 
 
 theorem nu_pos_of_dvd_prodPrimes {d : ℕ} (hd : d ∣ P) : 0 < ν d := by
   calc
-    0 < ∏ p in d.primeFactors, ν p := by
+    0 < ∏ p ∈ d.primeFactors, ν p := by
       apply prod_pos
       intro p hpd
       have hp_prime : p.Prime := prime_of_mem_primeFactors hpd
@@ -137,7 +137,7 @@ def delta (n : ℕ) : ℝ := if n=1 then 1 else 0
 
 local notation "δ" => delta
 
-theorem siftedSum_as_delta : s.siftedSum = ∑ d in s.support, a d * δ (Nat.gcd P d) :=
+theorem siftedSum_as_delta : s.siftedSum = ∑ d ∈ s.support, a d * δ (Nat.gcd P d) :=
   by
   dsimp only [siftedSum]
   apply sum_congr rfl
@@ -150,9 +150,9 @@ theorem siftedSum_as_delta : s.siftedSum = ∑ d in s.support, a d * δ (Nat.gcd
 theorem nu_lt_self_of_dvd_prodPrimes (d : ℕ) (hdP : d ∣ P) (hd_ne_one : d ≠ 1) : ν d < 1 := by
   have hd_sq : Squarefree d := Squarefree.squarefree_of_dvd hdP s.prodPrimes_squarefree
   calc
-    ν d = ∏ p in d.primeFactors, ν p :=
+    ν d = ∏ p ∈ d.primeFactors, ν p :=
       eq_comm.mp (s.nu_mult.prod_factors_of_mult ν hd_sq)
-    _ < ∏ p in d.primeFactors, 1 := by
+    _ < ∏ p ∈ d.primeFactors, 1 := by
       apply prod_lt_prod_of_nonempty
       · intro p hp
         simp only [mem_primeFactors] at hp
@@ -181,7 +181,7 @@ theorem selbergTerms_mult : ArithmeticFunction.IsMultiplicative g := by
   arith_mult
 
 theorem one_div_selbergTerms_eq_conv_moebius_nu (l : ℕ) (hl : Squarefree l)
-    (hnu_nonzero : ν l ≠ 0) : 1 / g l = ∑ d in l.divisors, (μ <| l / d) * (ν d)⁻¹ :=
+    (hnu_nonzero : ν l ≠ 0) : 1 / g l = ∑ d ∈ l.divisors, (μ <| l / d) * (ν d)⁻¹ :=
   by
   rw [selbergTerms_apply]
   simp only [one_div, mul_inv, inv_div, inv_inv, Finset.prod_congr, Finset.prod_inv_distrib]
@@ -198,7 +198,7 @@ theorem one_div_selbergTerms_eq_conv_moebius_nu (l : ℕ) (hl : Squarefree l)
   exact multiplicative_zero_of_zero_dvd ν s.nu_mult hl hd_dvd
 
 theorem nu_eq_conv_one_div_selbergTerms (d : ℕ) (hdP : d ∣ P) :
-    (ν d)⁻¹ = ∑ l in divisors P, if l ∣ d then 1 / g l else 0 := by
+    (ν d)⁻¹ = ∑ l ∈ divisors P, if l ∣ d then 1 / g l else 0 := by
   apply symm
   rw [←sum_filter, Nat.divisors_filter_dvd_of_dvd s.prodPrimes_ne_zero hdP]
   have hd_pos : 0 < d := Nat.pos_of_ne_zero $ ne_zero_of_dvd_ne_zero s.prodPrimes_ne_zero hdP
@@ -212,14 +212,14 @@ theorem nu_eq_conv_one_div_selbergTerms (d : ℕ) (hdP : d ∣ P) :
     (_root_.ne_of_gt $ s.nu_pos_of_dvd_prodPrimes hlP)
 
 theorem conv_selbergTerms_eq_selbergTerms_mul_nu {d : ℕ} (hd : d ∣ P) :
-    (∑ l in divisors P, if l ∣ d then g l else 0) = g d * (ν d)⁻¹ := by
+    (∑ l ∈ divisors P, if l ∣ d then g l else 0) = g d * (ν d)⁻¹ := by
   calc
-    (∑ l in divisors P, if l ∣ d then g l else 0) =
-        ∑ l in divisors P, if l ∣ d then g (d / l) else 0 := by
+    (∑ l ∈ divisors P, if l ∣ d then g l else 0) =
+        ∑ l ∈ divisors P, if l ∣ d then g (d / l) else 0 := by
       rw [← sum_over_dvd_ite s.prodPrimes_ne_zero hd,
         ← Nat.sum_divisorsAntidiagonal fun x _ => g x, Nat.sum_divisorsAntidiagonal' fun x _ => g x,
         sum_over_dvd_ite s.prodPrimes_ne_zero hd]
-    _ = g d * ∑ l in divisors P, if l ∣ d then 1 / g l else 0 := by
+    _ = g d * ∑ l ∈ divisors P, if l ∣ d then 1 / g l else 0 := by
       rw [mul_sum]; apply sum_congr rfl; intro l hl
       rw [mul_ite_zero]; apply if_ctx_congr Iff.rfl _ (fun _ => rfl); intro h
       rw [← div_mult_of_dvd_squarefree g s.selbergTerms_mult d l]; ring
@@ -228,14 +228,14 @@ theorem conv_selbergTerms_eq_selbergTerms_mul_nu {d : ℕ} (hd : d ∣ P) :
     _ = g d * (ν d)⁻¹ := by rw [← s.nu_eq_conv_one_div_selbergTerms d hd]
 
 theorem upper_bound_of_UpperBoundSieve (μPlus : UpperBoundSieve) :
-    s.siftedSum ≤ ∑ d in divisors P, μPlus d * s.multSum d := by
-  have hμ : ∀ n, δ n ≤ ∑ d in n.divisors, μPlus d := μPlus.hμPlus
+    s.siftedSum ≤ ∑ d ∈ divisors P, μPlus d * s.multSum d := by
+  have hμ : ∀ n, δ n ≤ ∑ d ∈ n.divisors, μPlus d := μPlus.hμPlus
   rw [siftedSum_as_delta]
-  trans (∑ n in s.support, a n * ∑ d in (Nat.gcd P n).divisors, μPlus d)
+  trans (∑ n ∈ s.support, a n * ∑ d ∈ (Nat.gcd P n).divisors, μPlus d)
   · apply Finset.sum_le_sum; intro n _
     exact mul_le_mul_of_nonneg_left (hμ (Nat.gcd P n)) (s.weights_nonneg n)
   apply le_of_eq
-  trans (∑ n in s.support, ∑ d in divisors P, if d ∣ n then a n * μPlus d else 0)
+  trans (∑ n ∈ s.support, ∑ d ∈ divisors P, if d ∣ n then a n * μPlus d else 0)
   · apply sum_congr rfl; intro n _;
     rw [mul_sum, sum_over_dvd_ite s.prodPrimes_ne_zero (Nat.gcd_dvd_left _ _), sum_congr rfl]; intro d hd
     apply if_congr _ rfl rfl
@@ -248,9 +248,9 @@ theorem upper_bound_of_UpperBoundSieve (μPlus : UpperBoundSieve) :
 theorem siftedSum_le_mainSum_errSum_of_UpperBoundSieve (μPlus : UpperBoundSieve) :
     s.siftedSum ≤ X * s.mainSum μPlus + s.errSum μPlus := by
   dsimp only [mainSum, errSum]
-  trans (∑ d in divisors P, μPlus d * s.multSum d)
+  trans (∑ d ∈ divisors P, μPlus d * s.multSum d)
   · apply upper_bound_of_UpperBoundSieve
-  trans ( X * ∑ d in divisors P, μPlus d * ν d + ∑ d in divisors P, μPlus d * R d )
+  trans ( X * ∑ d ∈ divisors P, μPlus d * ν d + ∑ d ∈ divisors P, μPlus d * R d )
   · apply le_of_eq
     rw [mul_sum, ←sum_add_distrib]
     apply sum_congr rfl; intro d _
@@ -266,7 +266,7 @@ end SieveLemmas
 section LambdaSquared
 
 def lambdaSquared (weights : ℕ → ℝ) : ℕ → ℝ := fun d =>
-  ∑ d1 in d.divisors, ∑ d2 in d.divisors, if d = Nat.lcm d1 d2 then weights d1 * weights d2 else 0
+  ∑ d1 ∈ d.divisors, ∑ d2 ∈ d.divisors, if d = Nat.lcm d1 d2 then weights d1 * weights d2 else 0
 
 private theorem lambdaSquared_eq_zero_of_support_wlog {w : ℕ → ℝ} {y : ℝ} (hw : ∀ (d : ℕ), ¬d ^ 2 ≤ y → w d = 0)
     {d : ℕ} (hd : ¬↑d ≤ y) (d1 : ℕ) (d2 : ℕ) (h : d = Nat.lcm d1 d2) (hle : d1 ≤ d2) :
@@ -308,9 +308,9 @@ theorem upperMoebius_of_lambda_sq (weights : ℕ → ℝ) (hw : weights 1 = 1) :
   dsimp [UpperMoebius, lambdaSquared]
   intro n
   have h_sq :
-    (∑ d in n.divisors, ∑ d1 in d.divisors, ∑ d2 in d.divisors,
+    (∑ d ∈ n.divisors, ∑ d1 ∈ d.divisors, ∑ d2 ∈ d.divisors,
       if d = Nat.lcm d1 d2 then weights d1 * weights d2 else 0) =
-      (∑ d in n.divisors, weights d) ^ 2 := by
+      (∑ d ∈ n.divisors, weights d) ^ 2 := by
     rw [sq, mul_sum, conv_lambda_sq_larger_sum _ n, sum_comm]
     apply sum_congr rfl; intro d1 hd1
     rw [sum_mul, sum_comm]
@@ -336,17 +336,17 @@ theorem upperMoebius_of_lambda_sq (weights : ℕ → ℝ) (hw : weights 1 = 1) :
 
 theorem lambdaSquared_mainSum_eq_quad_form (w : ℕ → ℝ) :
     s.mainSum (lambdaSquared w) =
-      ∑ d1 in divisors P, ∑ d2 in divisors P,
+      ∑ d1 ∈ divisors P, ∑ d2 ∈ divisors P,
         ν d1 * w d1 * ν d2 * w d2 * (ν (d1.gcd d2))⁻¹ := by
   dsimp only [mainSum, lambdaSquared]
-  trans (∑ d in divisors P, ∑ d1 in divisors d, ∑ d2 in divisors d,
+  trans (∑ d ∈ divisors P, ∑ d1 ∈ divisors d, ∑ d2 ∈ divisors d,
           if d = d1.lcm d2 then w d1 * w d2 * ν d else 0)
   · rw [sum_congr rfl]; intro d _
     rw [sum_mul, sum_congr rfl]; intro d1 _
     rw [sum_mul, sum_congr rfl]; intro d2 _
     rw [ite_zero_mul]
 
-  trans (∑ d in divisors P, ∑ d1 in divisors P, ∑ d2 in divisors P,
+  trans (∑ d ∈ divisors P, ∑ d1 ∈ divisors P, ∑ d2 ∈ divisors P,
           if d = d1.lcm d2 then w d1 * w d2 * ν d else 0)
   · apply conv_lambda_sq_larger_sum
   rw [sum_comm, sum_congr rfl]; intro d1 hd1
@@ -362,11 +362,11 @@ theorem lambdaSquared_mainSum_eq_quad_form (w : ℕ → ℝ) :
 
 theorem lambdaSquared_mainSum_eq_diag_quad_form  (w : ℕ → ℝ) :
     s.mainSum (lambdaSquared w) =
-      ∑ l in divisors P,
-        1 / g l * (∑ d in divisors P, if l ∣ d then ν d * w d else 0) ^ 2 :=
+      ∑ l ∈ divisors P,
+        1 / g l * (∑ d ∈ divisors P, if l ∣ d then ν d * w d else 0) ^ 2 :=
   by
   rw [s.lambdaSquared_mainSum_eq_quad_form w]
-  trans (∑ d1 in divisors P, ∑ d2 in divisors P, (∑ l in divisors P,
+  trans (∑ d1 ∈ divisors P, ∑ d2 ∈ divisors P, (∑ l ∈ divisors P,
           if l ∣ d1.gcd d2 then 1 / g l * (ν d1 * w d1) * (ν d2 * w d2) else 0))
   · apply sum_congr rfl; intro d1 hd1; apply sum_congr rfl; intro d2 _
     have hgcd_dvd: d1.gcd d2 ∣ P := Trans.trans (Nat.gcd_dvd_left d1 d2) (dvd_of_mem_divisors hd1)
@@ -374,7 +374,7 @@ theorem lambdaSquared_mainSum_eq_diag_quad_form  (w : ℕ → ℝ) :
     apply sum_congr rfl; intro l _
     rw [mul_ite_zero]; apply if_congr Iff.rfl _ rfl
     ring
-  trans (∑ l in divisors P, ∑ d1 in divisors P, ∑ d2 in divisors P,
+  trans (∑ l ∈ divisors P, ∑ d1 ∈ divisors P, ∑ d2 ∈ divisors P,
         if l ∣ Nat.gcd d1 d2 then 1 / selbergTerms s l * (ν d1 * w d1) * (ν d2 * w d2) else 0)
   · apply symm; rw [sum_comm, sum_congr rfl]; intro d1 _; rw[sum_comm];
   apply sum_congr rfl; intro l _

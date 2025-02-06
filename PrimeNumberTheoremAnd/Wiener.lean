@@ -488,7 +488,7 @@ section nabla
 
 variable {α E : Type*} [OfNat α 1] [Add α] [Sub α] {u : α → ℂ}
 
-def cumsum [AddCommMonoid E] (u : ℕ → E) (n : ℕ) : E := ∑ i in Finset.range n, u i
+def cumsum [AddCommMonoid E] (u : ℕ → E) (n : ℕ) : E := ∑ i ∈ Finset.range n, u i
 
 def nabla [Sub E] (u : α → E) (n : α) : E := u (n + 1) - u n
 
@@ -543,9 +543,9 @@ lemma Finset.sum_shift_back' {E : Type*} [Ring E] {u : ℕ → E} : shift (cumsu
 
 lemma summation_by_parts {E : Type*} [Ring E] {a A b : ℕ → E} (ha : a = nabla A) {n : ℕ} :
     cumsum (a * b) (n + 1) = A (n + 1) * b n - A 0 * b 0 - cumsum (shift A * fun i => (b (i + 1) - b i)) n := by
-  have l1 : ∑ x in Finset.range (n + 1), A (x + 1) * b x = ∑ x in Finset.range n, A (x + 1) * b x + A (n + 1) * b n :=
+  have l1 : ∑ x ∈ Finset.range (n + 1), A (x + 1) * b x = ∑ x ∈ Finset.range n, A (x + 1) * b x + A (n + 1) * b n :=
     Finset.sum_shift_back
-  have l2 : ∑ x in Finset.range (n + 1), A x * b x = A 0 * b 0 + ∑ x in Finset.range n, A (x + 1) * b (x + 1) :=
+  have l2 : ∑ x ∈ Finset.range (n + 1), A x * b x = A 0 * b 0 + ∑ x ∈ Finset.range n, A (x + 1) * b (x + 1) :=
     Finset.sum_shift_front
   simp [cumsum, shift, ha, nabla, sub_mul, mul_sub, l1, l2] ; abel
 
@@ -1178,42 +1178,42 @@ lemma one_div_two_pi_mem_Ioo : 1 / (2 * π) ∈ Ioo (-1) 1 := by
     apply mul_lt_mul one_lt_two ?_ zero_lt_one zero_le_two
     trans 2 ; exact one_le_two ; exact two_le_pi
 
-lemma sum_telescopic (a : ℕ → ℝ) (n : ℕ) : ∑ i in Finset.range n, (a (i + 1) - a i) = a n - a 0 := by
+lemma sum_telescopic (a : ℕ → ℝ) (n : ℕ) : ∑ i ∈ Finset.range n, (a (i + 1) - a i) = a n - a 0 := by
   apply Finset.sum_range_sub
 
 lemma cancel_aux {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hg : 0 ≤ g)
     (hf' : ∀ n, cumsum f n ≤ C * n) (hg' : Antitone g) (n : ℕ) :
-    ∑ i in Finset.range n, f i * g i ≤ g (n - 1) * (C * n) + (C * (↑(n - 1 - 1) + 1) * g 0
+    ∑ i ∈ Finset.range n, f i * g i ≤ g (n - 1) * (C * n) + (C * (↑(n - 1 - 1) + 1) * g 0
       - C * (↑(n - 1 - 1) + 1) * g (n - 1) -
-    ((n - 1 - 1) • (C * g 0) - ∑ x in Finset.range (n - 1 - 1), C * g (x + 1))) := by
+    ((n - 1 - 1) • (C * g 0) - ∑ x ∈ Finset.range (n - 1 - 1), C * g (x + 1))) := by
 
-  have l1 (n : ℕ) : (g n - g (n + 1)) * ∑ i in Finset.range (n + 1), f i ≤ (g n - g (n + 1)) * (C * (n + 1)) := by
+  have l1 (n : ℕ) : (g n - g (n + 1)) * ∑ i ∈ Finset.range (n + 1), f i ≤ (g n - g (n + 1)) * (C * (n + 1)) := by
     apply mul_le_mul le_rfl (by simpa using hf' (n + 1)) (Finset.sum_nonneg' hf) ?_
     simp ; apply hg' ; simp
   have l2 (x : ℕ) : C * (↑(x + 1) + 1) - C * (↑x + 1) = C := by simp ; ring
   have l3 (n : ℕ) : 0 ≤ cumsum f n := Finset.sum_nonneg' hf
 
-  convert_to ∑ i in Finset.range n, (g i) • (f i) ≤ _ ; simp [mul_comm]
+  convert_to ∑ i ∈ Finset.range n, (g i) • (f i) ≤ _ ; simp [mul_comm]
   rw [Finset.sum_range_by_parts, sub_eq_add_neg, ← Finset.sum_neg_distrib]
   simp_rw [← neg_smul, neg_sub, smul_eq_mul]
   apply _root_.add_le_add
   · exact mul_le_mul le_rfl (hf' n) (l3 n) (hg _)
   · apply Finset.sum_le_sum (fun n _ => l1 n) |>.trans
-    convert_to ∑ i in Finset.range (n - 1), (C * (↑i + 1)) • (g i - g (i + 1)) ≤ _
+    convert_to ∑ i ∈ Finset.range (n - 1), (C * (↑i + 1)) • (g i - g (i + 1)) ≤ _
     · congr ; ext i ; simp ; ring
     rw [Finset.sum_range_by_parts]
     simp_rw [Finset.sum_range_sub', l2, smul_sub, smul_eq_mul, Finset.sum_sub_distrib, Finset.sum_const, Finset.card_range]
     apply le_of_eq ; ring_nf
 
 lemma sum_range_succ (a : ℕ → ℝ) (n : ℕ) :
-    ∑ i in Finset.range n, a (i + 1) = (∑ i in Finset.range (n + 1), a i) - a 0 := by
+    ∑ i ∈ Finset.range n, a (i + 1) = (∑ i ∈ Finset.range (n + 1), a i) - a 0 := by
   have := Finset.sum_range_sub a n
   rw [Finset.sum_sub_distrib, sub_eq_iff_eq_add] at this
   rw [Finset.sum_range_succ, this] ; ring
 
 lemma cancel_aux' {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hg : 0 ≤ g)
     (hf' : ∀ n, cumsum f n ≤ C * n) (hg' : Antitone g) (n : ℕ) :
-    ∑ i in Finset.range n, f i * g i ≤
+    ∑ i ∈ Finset.range n, f i * g i ≤
         C * n * g (n - 1)
       + C * cumsum g (n - 1 - 1 + 1)
       - C * (↑(n - 1 - 1) + 1) * g (n - 1)
@@ -1238,7 +1238,7 @@ lemma cancel_main' {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hf0 : f 0 = 0) 
 
 theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneOn f (Ioc x₀ (x₀ + n)))
     (hfi : IntegrableOn f (Icc x₀ (x₀ +  n))) :
-    (∑ i in Finset.range n, f (x₀ + ↑(i + 1))) ≤ ∫ x in x₀..x₀ + n, f x := by
+    (∑ i ∈ Finset.range n, f (x₀ + ↑(i + 1))) ≤ ∫ x in x₀..x₀ + n, f x := by
 
   cases' n with n <;> simp [Nat.succ_eq_add_one] at hf ⊢
   have : Finset.range (n + 1) = {0} ∪ Finset.Ico 1 (n + 1) := by
@@ -1401,7 +1401,7 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
     apply IntegrableOn.mono_set (hh_integrable (by positivity) (by positivity) (by positivity)) Icc_subset_Ici_self
 
   apply Real.tsum_le_of_sum_range_le (fun n => by positivity) ; intro n
-  convert_to ∑ i in Finset.range n, ‖f i‖ * ggg i ≤ _
+  convert_to ∑ i ∈ Finset.range n, ‖f i‖ * ggg i ≤ _
   · congr ; ext i
     by_cases hi : i = 0
     · simp [hi, hf0]
@@ -1415,7 +1415,7 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
   have : Finset.range n = {0} ∪ Finset.Ico 1 n := by
     ext i ; simp ; by_cases hi : i = 0 <;> simp [hi, hn] ; omega
   simp [this, Finset.sum_union]
-  convert_to ∑ x_1 in Finset.Ico 1 n, x⁻¹ * hh (π⁻¹ * 2⁻¹) (↑x_1 / x) ≤ _
+  convert_to ∑ x_1 ∈ Finset.Ico 1 n, x⁻¹ * hh (π⁻¹ * 2⁻¹) (↑x_1 / x) ≤ _
   · apply Finset.sum_congr rfl (fun i hi => ?_)
     simp at hi
     have : i ≠ 0 := by omega
@@ -2048,7 +2048,7 @@ lemma mem_Ico_iff_div (hx : 0 < x) : n ∈ Finset.Ico ⌈a * x⌉₊ ⌈b * x⌉
   rw [Finset.mem_Ico, mem_Ico, ceil_mul_le_iff hx, lt_ceil_mul_iff hx]
 
 lemma tsum_indicator {f : ℕ → ℝ} (hx : 0 < x) :
-    ∑' n, f n * (indicator (Ico a b) 1 (n / x)) = ∑ n in Finset.Ico ⌈a * x⌉₊ ⌈b * x⌉₊, f n := by
+    ∑' n, f n * (indicator (Ico a b) 1 (n / x)) = ∑ n ∈ Finset.Ico ⌈a * x⌉₊ ⌈b * x⌉₊, f n := by
   have l1 : ∀ n ∉ Finset.Ico ⌈a * x⌉₊ ⌈b * x⌉₊, f n * indicator (Ico a b) 1 (↑n / x) = 0 := by
     simp [mem_Ico_iff_div hx] ; tauto
   rw [tsum_eq_sum l1] ; apply Finset.sum_congr rfl ; simp only [mem_Ico_iff_div hx] ; intro n hn ; simp [hn]
@@ -2056,7 +2056,7 @@ lemma tsum_indicator {f : ℕ → ℝ} (hx : 0 < x) :
 lemma WienerIkeharaInterval_discrete {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha : 0 < a) (hb : a ≤ b) :
-    Tendsto (fun x : ℝ ↦ (∑ n in Finset.Ico ⌈a * x⌉₊ ⌈b * x⌉₊, f n) / x) atTop (nhds (A * (b - a))) := by
+    Tendsto (fun x : ℝ ↦ (∑ n ∈ Finset.Ico ⌈a * x⌉₊ ⌈b * x⌉₊, f n) / x) atTop (nhds (A * (b - a))) := by
   apply (WienerIkeharaInterval hpos hf hcheby hG hG' ha hb).congr'
   filter_upwards [eventually_gt_atTop 0] with x hx
   rw [tsum_indicator hx]
@@ -2064,7 +2064,7 @@ lemma WienerIkeharaInterval_discrete {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : �
 lemma WienerIkeharaInterval_discrete' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG: ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha : 0 < a) (hb : a ≤ b) :
-    Tendsto (fun N : ℕ ↦ (∑ n in Finset.Ico ⌈a * N⌉₊ ⌈b * N⌉₊, f n) / N) atTop (nhds (A * (b - a))) :=
+    Tendsto (fun N : ℕ ↦ (∑ n ∈ Finset.Ico ⌈a * N⌉₊ ⌈b * N⌉₊, f n) / N) atTop (nhds (A * (b - a))) :=
   WienerIkeharaInterval_discrete hpos hf hcheby hG hG' ha hb |>.comp tendsto_natCast_atTop_atTop
 
 -- TODO with `Ico`
@@ -2095,7 +2095,7 @@ lemma tendsto_mul_ceil_div :
   simp [div_lt_iff₀ l3]
   convert (Nat.ceil_lt_add_one l5).trans_le (add_le_add l6 h2) using 1 ; ring
 
-noncomputable def S (f : ℕ → 𝕜) (ε : ℝ) (N : ℕ) : 𝕜 := (∑ n in Finset.Ico ⌈ε * N⌉₊ N, f n) / N
+noncomputable def S (f : ℕ → 𝕜) (ε : ℝ) (N : ℕ) : 𝕜 := (∑ n ∈ Finset.Ico ⌈ε * N⌉₊ N, f n) / N
 
 lemma S_sub_S {f : ℕ → 𝕜} {ε : ℝ} {N : ℕ} (hε : ε ≤ 1) : S f 0 N - S f ε N = cumsum f ⌈ε * N⌉₊ / N := by
   have r1 : Finset.range N = Finset.range ⌈ε * N⌉₊ ∪ Finset.Ico ⌈ε * N⌉₊ N := by
@@ -2154,8 +2154,8 @@ theorem vonMangoldt_cheby : cheby Λ := by
   use C
   intro n
   calc
-    _ = ∑ i in Finset.range n, Λ i := Finset.sum_congr rfl (by simp)
-    _ ≤ ∑ i in Finset.range n, if IsPrimePow i then Real.log i else 0 := by
+    _ = ∑ i ∈ Finset.range n, Λ i := Finset.sum_congr rfl (by simp)
+    _ ≤ ∑ i ∈ Finset.range n, if IsPrimePow i then Real.log i else 0 := by
       apply Finset.sum_le_sum
       intro i _
       rw [ArithmeticFunction.vonMangoldt_apply]
@@ -2164,7 +2164,7 @@ theorem vonMangoldt_cheby : cheby Λ := by
         gcongr
         apply Nat.minFac_le h.pos
       · rfl
-    _ ≤ ∑ _i in (Finset.range n).filter IsPrimePow, Real.log n := by
+    _ ≤ ∑ _i ∈ (Finset.range n).filter IsPrimePow, Real.log n := by
       rw [← Finset.sum_filter]
       apply Finset.sum_le_sum
       simp only [Finset.mem_filter, Finset.mem_range, and_imp]

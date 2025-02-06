@@ -5,10 +5,10 @@ open ArithmeticFunction BigOperators Nat Finset
 
 theorem ArithmeticFunction.sum_range_mul_zeta
     {R : Type*} [Semiring R] (f : ArithmeticFunction R) (N : ℕ) :
-    ∑ d in range (N + 1), (f * ζ) d = ∑ d in range (N + 1), (N / d) • f d := by
+    ∑ d ∈ range (N + 1), (f * ζ) d = ∑ d ∈ range (N + 1), (N / d) • f d := by
   calc
-    ∑ d in range (N + 1), (f * ζ) d
-      = ∑ d in (range (N + 1) ×ˢ range (N + 1)).filter (fun d ↦ d.snd ∈ divisors d.fst),
+    ∑ d ∈ range (N + 1), (f * ζ) d
+      = ∑ d ∈ (range (N + 1) ×ˢ range (N + 1)).filter (fun d ↦ d.snd ∈ divisors d.fst),
         f d.snd := by
       simp_rw [sum_filter, sum_product]
       apply sum_congr rfl (fun x hx ↦ ?_)
@@ -19,10 +19,10 @@ theorem ArithmeticFunction.sum_range_mul_zeta
           rw [divisors, mem_filter] at hd
           exact lt_succ.mp (mem_Ico.mp hd.left).right
         exact mem_filter.mpr ⟨mem_range.mpr (lt_of_le_of_lt h $ mem_range.mp hx), hd⟩
-    _ = ∑ d in range (N + 1), ∑ _m in (range (N + 1)).filter (d ∈ divisors ·), f d := by
+    _ = ∑ d ∈ range (N + 1), ∑ _m ∈ (range (N + 1)).filter (d ∈ divisors ·), f d := by
       rw [sum_filter, sum_product_right]
       refine sum_congr rfl (fun y _ ↦ by simp only [← sum_filter])
-    _ = ∑ d in range (N + 1), (N / d) • f d := by
+    _ = ∑ d ∈ range (N + 1), (N / d) • f d := by
       rw [sum_congr rfl fun y _ ↦ ?_]
       rw [sum_const]
       congr
@@ -34,7 +34,7 @@ theorem ArithmeticFunction.sum_range_mul_zeta
 
 theorem ArithmeticFunction.sum_Icc_mul_zeta
     {R : Type*} [Semiring R] (f : ArithmeticFunction R) (N : ℕ) :
-    ∑ d in Icc 1 N, (f * ζ) d = ∑ d in Icc 1 N, (N / d) • f d := by
+    ∑ d ∈ Icc 1 N, (f * ζ) d = ∑ d ∈ Icc 1 N, (N / d) • f d := by
   have := sum_range_mul_zeta f N
   rw [range_eq_Ico, ← Ico_insert_succ_left, sum_insert, sum_insert] at this
   /- first goal -/
