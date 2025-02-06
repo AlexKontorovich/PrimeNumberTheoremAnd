@@ -121,7 +121,7 @@ instance instBorelSpace : BorelSpace Circle :=
   inferInstanceAs <| BorelSpace <| Subtype (· ∈ Metric.sphere (0 : ℂ) 1)
 
 lemma first_fourier_aux1 (hψ: Continuous ψ) {x : ℝ} (n : ℕ) : Measurable fun (u : ℝ) ↦
-    (‖fourierChar (-(u * ((1 : ℝ) / ((2 : ℝ) * π) * (n / x).log))) • ψ u‖₊ : ENNReal) := by
+    (‖fourierChar (-(u * ((1 : ℝ) / ((2 : ℝ) * π) * (n / x).log))) • ψ u‖ₑ : ENNReal) := by
   -- TODO: attribute [fun_prop] Real.continuous_fourierChar once `fun_prop` bugfix is merged
   refine Measurable.comp ?_ (by fun_prop) |>.smul (by fun_prop)
     |>.nnnorm |>.coe_nnreal_ennreal
@@ -191,12 +191,11 @@ the claim then follows from Fubini's theorem.
         refine fun _ ↦ Measurable.aestronglyMeasurable ?_
         refine Measurable.mul (by fun_prop) ((Measurable.comp ?_ (by fun_prop)).smul (by fun_prop))
         exact Continuous.measurable Real.continuous_fourierChar
-      · simp_rw [nnnorm_mul]
-        push_cast
+      · simp only [enorm_mul]
         simp_rw [lintegral_const_mul _ (first_fourier_aux1 hcont _)]
         calc
-          _ = (∑' (i : ℕ), (‖term f σ' i‖₊ : ENNReal)) * ∫⁻ (a : ℝ), ‖ψ a‖₊ ∂volume := by
-            simp [ENNReal.tsum_mul_right]
+          _ = (∑' (i : ℕ), ‖term f σ' i‖ₑ) * ∫⁻ (a : ℝ), ‖ψ a‖ₑ ∂volume := by
+            simp [ENNReal.tsum_mul_right, enorm_eq_nnnorm]
           _ ≠ ⊤ := ENNReal.mul_ne_top (hf_coe1 hf hσ)
             (ne_top_of_lt hsupp.2)
     _ = _ := by
@@ -256,7 +255,8 @@ lemma second_fourier_integrable_aux1 (hcont: Continuous ψ) (hsupp: Integrable �
         · fun_prop
   · let f1 : ℝ → ENNReal := fun a1 ↦ ↑‖cexp (-(↑a1 * (↑σ' - 1)))‖₊
     let f2 : ℝ → ENNReal := fun a2 ↦ ↑‖ψ a2‖₊
-    suffices ∫⁻ (a : ℝ × ℝ), f1 a.1 * f2 a.2 ∂ν < ⊤ by simpa [hasFiniteIntegral_iff_nnnorm, Function.uncurry]
+    suffices ∫⁻ (a : ℝ × ℝ), f1 a.1 * f2 a.2 ∂ν < ⊤ by
+      simpa [hasFiniteIntegral_iff_enorm, enorm_eq_nnnorm, Function.uncurry]
     refine (lintegral_prod_mul ?_ ?_).trans_lt ?_ <;> try fun_prop
     exact ENNReal.mul_lt_top (second_fourier_integrable_aux1a hσ).2 hsupp.2
 
@@ -324,7 +324,7 @@ so by Fubini's theorem it suffices to verify the identity
   let f := fun (u : ℝ) ↦ (f' u) / c
   have hderiv : ∀ u ∈ Ici (-Real.log x), HasDerivAt f (f' u) u := by
     intro u _
-    rw [show f' u = cexp (c * u) * (c * 1) / c by field_simp]
+    rw [show f' u = cexp (c * u) * (c * 1) / c by field_simp [f']]
     exact (hasDerivAt_id' u).ofReal_comp.const_mul c |>.cexp.div_const c
   have hf : Tendsto f atTop (𝓝 0) := by
     apply tendsto_zero_iff_norm_tendsto_zero.mpr

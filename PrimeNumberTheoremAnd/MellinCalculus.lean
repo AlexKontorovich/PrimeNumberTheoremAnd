@@ -599,7 +599,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     _ = ∫ (y : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * ∫ (x : ℝ) in Ioi 0, g x * ↑x ^ (s - 1) := ?_
     _ = _ := integral_mul_right _ _
   <;> try (rw [setIntegral_congr_fun (by simp)]; intro y hy; simp only [ofReal_mul])
-  · simp only [integral_mul_right]
+  · simp only [integral_mul_right, f₁]
   · simp only [integral_mul_right]
     have := integral_comp_mul_right_Ioi (fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)) 0 hy
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := slitPlane_ne_zero (Or.inl hy)
@@ -664,7 +664,7 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ∞ Ψ) ∧ (∀ x
     refine ⟨hΨ.div_const c, fun y ↦ div_nonneg (hΨnonneg y) (le_of_lt hΨpos), ?_, ?_⟩
     · rw [Function.support_div, Function.support_const (ne_of_lt hΨpos).symm, inter_univ]
       convert hΨsupp
-    · simp only [div_right_comm _ c _, integral_div c, div_self <| ne_of_gt hΨpos]
+    · simp only [div_right_comm _ c _, integral_div c, div_self <| ne_of_gt hΨpos, c]
 
   have := smooth_urysohn_support_Ioo (a := 1 / 2) (b := 1) (c := 3/2) (d := 2) (by linarith)
     (by linarith)
@@ -1093,7 +1093,7 @@ lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
     apply Real.rpow_lt_rpow_of_exponent_lt (by norm_num) εpos
   apply (div_lt_iff₀' (by positivity)).mpr <| lt_sub_iff_add_lt'.mp ?_
   let f := (fun x ↦ x * Real.log x - x)
-  rw [(by simp [f] : -1 = f 1), (by simp : c * Real.log c - c = f c)]
+  rw [(by simp [f] : -1 = f 1), (by simp [f] : c * Real.log c - c = f c)]
   have mono: StrictMonoOn f <| Ici 1 := by
     refine strictMonoOn_of_deriv_pos (convex_Ici _) ?_ ?_
     · apply continuousOn_id.mul (continuousOn_id.log ?_) |>.sub continuousOn_id

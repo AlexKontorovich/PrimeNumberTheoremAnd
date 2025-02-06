@@ -1,7 +1,7 @@
 import PrimeNumberTheoremAnd.Wiener
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.ArithmeticFunction
-import Mathlib.Analysis.Asymptotics.Asymptotics
+import Mathlib.Analysis.Asymptotics.Lemmas
 import Mathlib.NumberTheory.AbelSummation
 import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
@@ -253,7 +253,7 @@ lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f : ArithmeticFun
 %%-/
 
 lemma log2_pos : 0 < log 2 := by
-  rw [Real.log_pos_iff zero_lt_two]
+  rw [Real.log_pos_iff zero_le_two]
   exact one_lt_two
 
 /-- Auxiliary lemma I for `chebyshev_asymptotic`: Expressing the sum over Λ up to N as a double sum over primes and exponents. -/

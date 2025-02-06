@@ -122,7 +122,7 @@ lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (c : ℂ)
     apply Continuous.intervalIntegrable; continuity
   have hv' : IntervalIntegrable (deriv φ) MeasureTheory.volume a b :=
     derivφCont.intervalIntegrable
-  convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu φDiff hu' hv' using 1; simp [u]
+  convert intervalIntegral.integral_mul_deriv_eq_deriv_mul hu φDiff hu' hv' using 1; simp [u, u']
 
 lemma sum_eq_int_deriv_aux_eq {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ}
     (b_eq_kpOne : b = k + 1) (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
@@ -381,7 +381,7 @@ lemma ZetaSum_aux1φderiv {s : ℂ} (s_ne_zero : s ≠ 0) {x : ℝ} (xpos : 0 < 
   let r := -s - 1
   have r_add1_ne_zero : r + 1 ≠ 0 := fun hr ↦ by simp [neg_ne_zero.mpr s_ne_zero, r] at hr
   have r_ne_neg1 : r ≠ -1 := fun hr ↦ (hr ▸ r_add1_ne_zero) <| by norm_num
-  have hasDeriv := hasDerivAt_ofReal_cpow xpos.ne' r_ne_neg1
+  have hasDeriv := hasDerivAt_ofReal_cpow_const' xpos.ne' r_ne_neg1
   have := hasDeriv.deriv ▸ deriv_const_mul (-s) (hasDeriv).differentiableAt
   convert this using 2
   · ext y
@@ -422,10 +422,11 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠
   convert sum_eq_int_deriv (by exact_mod_cast ha.2) φDiff derivφCont using 1
   · congr <;> simp only [Int.floor_natCast]
   · rw [Int.floor_natCast, Int.floor_natCast, ← intervalIntegral.integral_const_mul]
-    simp_rw [mul_div, ← mul_div, ZetaSum_aux1₁ s_ne_one ha]
+    simp_rw [mul_div, ← mul_div, φ, ZetaSum_aux1₁ s_ne_one ha]
     conv => rhs; rw [sub_eq_add_neg]
     congr; any_goals norm_cast; simp only [one_div, add_sub_cancel_left]
     rw [← intervalIntegral.integral_neg, intervalIntegral.integral_congr]
+    simp only [φ, one_div] at φderiv
     intro x hx; simp_rw [φderiv x hx, φ']; ring_nf
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv}\leanok
@@ -1459,8 +1460,8 @@ lemma DerivUpperBnd_aux2 {A σ t : ℝ}(t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A
     0 < N → ↑N ≤ |t| → s ≠ 1 →
     1 / 2 < σ → ‖-↑N ^ (1 - s) / (1 - s) ^ 2‖ ≤ A.exp * 2 * (1 / 3) := by
   intro N s Npos N_le_t neOne σ_gt
-  dsimp only [N, s]
-  simp only [norm_div, norm_neg, norm_pow, norm_natCast_cpow_of_pos Npos _,
+  dsimp only [s]
+  simp_rw [norm_div, norm_neg, norm_pow, norm_natCast_cpow_of_pos Npos _,
     sub_re, one_re, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im,
     mul_one, sub_self, add_zero]
   have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.1
@@ -1484,7 +1485,7 @@ theorem DerivUpperBnd_aux3 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
   apply mul_le_mul ?_ ?_ (by positivity) (by positivity)
   · have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.1
     convert le_trans h ?_ using 1
-    · simp [s, norm_natCast_cpow_of_pos Npos _]
+    · simp [s, norm_natCast_cpow_of_pos Npos _, N]
     · gcongr; exact UpperBnd_aux2 t_gt hσ.1
   · rw [natCast_log, norm_complex_log_ofNat]
     exact Real.log_le_log (by positivity) N_le_t
@@ -1499,7 +1500,7 @@ theorem DerivUpperBnd_aux4 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
   apply mul_le_mul ?_ ?_ (by positivity) (by positivity)
   · have h := UpperBnd_aux6 t_gt ⟨σ_gt, hσ.2⟩ neOne Npos N_le_t |>.2.1
     convert le_trans h (UpperBnd_aux2 t_gt hσ.1) using 1
-    simp [s, norm_natCast_cpow_of_pos Npos _]
+    simp [s, norm_natCast_cpow_of_pos Npos _, N]
   · rw [natCast_log, norm_complex_log_ofNat]
     exact Real.log_le_log (by positivity) N_le_t
 

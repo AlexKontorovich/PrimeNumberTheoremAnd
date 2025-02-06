@@ -5,7 +5,7 @@ Author: Arend Mellendijk
 
 ! This file was ported from Lean 3 source module aux_results
 -/
-import Mathlib.Analysis.Asymptotics.Asymptotics
+import Mathlib.Analysis.Asymptotics.Lemmas
 import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.NonIntegrable
