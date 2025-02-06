@@ -91,7 +91,7 @@ lemma verticalIntegral_sub_verticalIntegral_eq_squareIntegral {σ σ' : ℝ} {f 
     rw [← mem_interior_iff_mem_nhds, Complex.interior_reProdIm, interior_Icc, interior_univ]
     refine ⟨⟨?_, ?_⟩, trivial⟩ <;> linarith
   obtain ⟨c', hc'0, hc'⟩ := ((nhds_hasBasis_square p).1 _).mp this
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' hc'0] with c ⟨hc0, hcc'⟩
+  filter_upwards [Ioo_mem_nhdsGT hc'0] with c ⟨hc0, hcc'⟩
   have hsub : Square p c ⊆ Icc σ σ' ×ℂ univ := (square_subset_square hc0 hcc'.le).trans hc'
   apply tendsto_nhds_unique (RectangleIntegral_tendsTo_VerticalIntegral hbot htop hleft hright)
   apply Filter.EventuallyEq.tendsto
@@ -438,7 +438,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
     rw [norm_div, Complex.norm_eq_abs, Complex.abs_cpow_eq_rpow_re_of_pos xpos, add_re, ofReal_re,
       re_ofReal_mul, I_re, mul_zero, add_zero]
   · simp_rw [div_eq_mul_inv, integral_mul_left, one_mul, Complex.norm_eq_abs, map_mul]
-  · gcongr
+  · gcongr x ^ σ * ?_
     by_cases hint : Integrable fun (a : ℝ) ↦ 1 / (‖σ + ↑a * I‖ * ‖σ + ↑a * I + 1‖)
     swap
     · rw [integral_undef hint]
@@ -708,7 +708,7 @@ lemma bddAbove_square_of_tendsto {f : ℂ → β} {x : ℂ} (hf : Tendsto f (�
     ∀ᶠ (c : ℝ) in 𝓝[>] 0, BddAbove (f '' (Square x c \ {x})) := by
   obtain ⟨t, htf, ht⟩ := eventually_smallSets.mp hf.eventually_bddAbove
   obtain ⟨ε, hε0, hε⟩ := nhdsWithin_hasBasis (nhds_hasBasis_square x) {x}ᶜ |>.1 t |>.mp htf
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' hε0] with ε' ⟨hε'0, hε'⟩
+  filter_upwards [Ioo_mem_nhdsGT hε0] with ε' ⟨hε'0, hε'⟩
   exact ht _ <| (diff_subset_diff (square_subset_square hε'0 hε'.le) subset_rfl).trans hε
 
 /-%%
@@ -799,7 +799,7 @@ lemma residueAtZero (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
 existsDifferentiableOn_of_bddAbove}
 For $c>0$ sufficiently small,
 %%-/
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2), diffBddAtZero xpos]
+  filter_upwards [Ioo_mem_nhdsGT (by linarith : (0 : ℝ) < 1 / 2), diffBddAtZero xpos]
   intro c hc bddAbove
   obtain ⟨cpos, _⟩ := hc
   have RectSub : Square 0 c \ {0} ⊆ {0, -1}ᶜ := by
@@ -826,7 +826,7 @@ holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
 
 lemma residueAtNegOne (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
     RectangleIntegral' (f x) (-c - c * I - 1) (c + c * I - 1) = -x⁻¹ := by
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1 / 2), diffBddAtNegOne xpos]
+  filter_upwards [Ioo_mem_nhdsGT (by linarith : (0 : ℝ) < 1 / 2), diffBddAtNegOne xpos]
   intro c hc bddAbove
   obtain ⟨cpos, _⟩ := hc
   have h_mem {s : ℂ} (hs : s ∈ Square (-1) c) :

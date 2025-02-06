@@ -160,7 +160,7 @@ lemma Filter.TendstoAtZero_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂) (ha :
     (fSupp : f.support ⊆ Set.Icc a b) :
     Tendsto f (𝓝[>]0) (𝓝 0) := by
   apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' ha] with c hc; replace hc := (mem_Ioo.mp hc).2
+  filter_upwards [Ioo_mem_nhdsGT ha] with c hc; replace hc := (mem_Ioo.mp hc).2
   have h : c ∉ Icc a b := fun h ↦ by linarith [mem_Icc.mp h]
   convert mt (Function.support_subset_iff.mp fSupp c) h; simp
 
@@ -176,7 +176,7 @@ lemma Filter.BigO_zero_atZero_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂) (
     (fSupp : f.support ⊆ Set.Icc a b):
     f =O[𝓝[>] 0] fun _ ↦ (0 : ℝ) := by
   refine Eventually.isBigO ?_
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < a)] with c hc
+  filter_upwards [Ioo_mem_nhdsGT (by linarith : (0 : ℝ) < a)] with c hc
   refine norm_le_zero_iff.mpr <| Function.support_subset_iff'.mp fSupp c ?_
   exact fun h ↦ by linarith [mem_Icc.mp h, (mem_Ioo.mp hc).2]
 
@@ -1584,7 +1584,7 @@ lemma MellinOfSmooth1c {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
   rw [Asymptotics.isBigO_iff] at h ⊢
   obtain ⟨c, hc⟩ := h
   use c
-  filter_upwards [hc, Ioo_mem_nhdsWithin_Ioi' (by linarith : (0 : ℝ) < 1)] with ε hε hε'
+  filter_upwards [hc, Ioo_mem_nhdsGT (by linarith : (0 : ℝ) < 1)] with ε hε hε'
   simp_rw [MellinOfSmooth1a Ψ diffΨ suppΨ hε'.1 (s := 1) (by norm_num), mul_one]
   simpa using hε
 /-%%
