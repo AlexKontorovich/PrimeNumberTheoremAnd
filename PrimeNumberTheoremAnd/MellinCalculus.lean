@@ -1,4 +1,4 @@
-import EulerProducts.Auxiliary
+import PrimeNumberTheoremAnd.Auxiliary
 import Mathlib.Analysis.MellinInversion
 import PrimeNumberTheoremAnd.PerronFormula
 import Mathlib.Algebra.GroupWithZero.Units.Basic
