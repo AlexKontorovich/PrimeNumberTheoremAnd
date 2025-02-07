@@ -5,7 +5,7 @@ Author: Arend Mellendijk
 
 ! This file was ported from Lean 3 source module aux_results
 -/
-import Mathlib.Analysis.Asymptotics.Asymptotics
+import Mathlib.Analysis.Asymptotics.Lemmas
 import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.NonIntegrable
@@ -33,7 +33,7 @@ theorem mult_lcm_eq_of_ne_zero [CommGroupWithZero R] (f : ArithmeticFunction R) 
   field_simp
 
 theorem prod_factors_of_mult (f : ArithmeticFunction ℝ) (h_mult : ArithmeticFunction.IsMultiplicative f) {l : ℕ} (hl : Squarefree l) :
-    ∏ a : ℕ in l.primeFactors, f a = f l := by
+    ∏ a ∈ l.primeFactors, f a = f l := by
   rw [←IsMultiplicative.map_prod_of_subset_primeFactors h_mult l _ Finset.Subset.rfl,
     Nat.prod_primeFactors_of_squarefree hl]
 
@@ -41,14 +41,14 @@ end ArithmeticFunction.IsMultiplicative
 
 namespace Aux
 theorem sum_over_dvd_ite {α : Type _} [Ring α] {P : ℕ} (hP : P ≠ 0) {n : ℕ} (hn : n ∣ P)
-    {f : ℕ → α} : ∑ d in n.divisors, f d = ∑ d in P.divisors, if d ∣ n then f d else 0 :=
+    {f : ℕ → α} : ∑ d ∈ n.divisors, f d = ∑ d ∈ P.divisors, if d ∣ n then f d else 0 :=
   by
   rw [←Finset.sum_filter, Nat.divisors_filter_dvd_of_dvd hP hn]
 
 theorem sum_intro {α M: Type _} [AddCommMonoid M] [DecidableEq α] (s : Finset α) {f : α → M} (d : α)
      (hd : d ∈ s) :
-    f d = ∑ k in s, if k = d then f k else 0 := by
-  trans (∑ k in s, if k = d then f d else 0)
+    f d = ∑ k ∈ s, if k = d then f k else 0 := by
+  trans (∑ k ∈ s, if k = d then f d else 0)
   · rw [sum_eq_single_of_mem d hd]
     rw [if_pos rfl]
     intro _ _ h; rw [if_neg h]
@@ -56,16 +56,16 @@ theorem sum_intro {α M: Type _} [AddCommMonoid M] [DecidableEq α] (s : Finset 
   intro h; rw [h]
 
 theorem ite_sum_zero {p : Prop} [Decidable p] (s : Finset ℕ) (f : ℕ → ℝ) :
-    (if p then (∑ x in s, f x) else 0) = ∑ x in s, if p then f x else 0 := by
+    (if p then (∑ x ∈ s, f x) else 0) = ∑ x ∈ s, if p then f x else 0 := by
   split_ifs <;> simp
 
 theorem conv_lambda_sq_larger_sum (f : ℕ → ℕ → ℕ → ℝ) (n : ℕ) :
-    (∑ d in n.divisors,
-        ∑ d1 in d.divisors,
-          ∑ d2 in d.divisors, if d = Nat.lcm d1 d2 then f d1 d2 d else 0) =
-      ∑ d in n.divisors,
-        ∑ d1 in n.divisors,
-          ∑ d2 in n.divisors, if d = Nat.lcm d1 d2 then f d1 d2 d else 0 := by
+    (∑ d ∈ n.divisors,
+        ∑ d1 ∈ d.divisors,
+          ∑ d2 ∈ d.divisors, if d = Nat.lcm d1 d2 then f d1 d2 d else 0) =
+      ∑ d ∈ n.divisors,
+        ∑ d1 ∈ n.divisors,
+          ∑ d2 ∈ n.divisors, if d = Nat.lcm d1 d2 then f d1 d2 d else 0 := by
   apply sum_congr rfl; intro d hd
   rw [mem_divisors] at hd
   simp_rw [←Nat.divisors_filter_dvd_of_dvd hd.2 hd.1, sum_filter, ←ite_and, ite_sum_zero, ←ite_and]
@@ -78,7 +78,7 @@ theorem conv_lambda_sq_larger_sum (f : ℕ → ℕ → ℕ → ℝ) (n : ℕ) :
   exact ⟨Nat.dvd_lcm_left d1 d2, Nat.dvd_lcm_right d1 d2, rfl⟩
 
 theorem moebius_inv_dvd_lower_bound (l m : ℕ) (hm : Squarefree m) :
-    (∑ d in m.divisors, if l ∣ d then (μ d:ℤ) else 0) = if l = m then (μ l:ℤ) else 0 := by
+    (∑ d ∈ m.divisors, if l ∣ d then (μ d:ℤ) else 0) = if l = m then (μ l:ℤ) else 0 := by
   have hm_pos : 0 < m := Nat.pos_of_ne_zero $ Squarefree.ne_zero hm
   revert hm
   revert m
@@ -100,13 +100,13 @@ theorem moebius_inv_dvd_lower_bound (l m : ℕ) (hm : Squarefree m) :
 
 
 theorem moebius_inv_dvd_lower_bound' {P : ℕ} (hP : Squarefree P) (l m : ℕ) (hm : m ∣ P) :
-    (∑ d in P.divisors, if l ∣ d ∧ d ∣ m then μ d else 0) = if l = m then μ l else 0 := by
+    (∑ d ∈ P.divisors, if l ∣ d ∧ d ∣ m then μ d else 0) = if l = m then μ l else 0 := by
   rw [←moebius_inv_dvd_lower_bound _ _ (Squarefree.squarefree_of_dvd hm hP),
     sum_over_dvd_ite hP.ne_zero hm]
   simp_rw[ite_and, ←sum_filter, filter_comm]
 
 theorem moebius_inv_dvd_lower_bound_real {P : ℕ} (hP : Squarefree P) (l m : ℕ) (hm : m ∣ P) :
-    (∑ d in P.divisors, if l ∣ d ∧ d ∣ m then (μ d : ℝ) else 0) = if l = m then (μ l : ℝ) else 0 := by
+    (∑ d ∈ P.divisors, if l ∣ d ∧ d ∣ m then (μ d : ℝ) else 0) = if l = m then (μ l : ℝ) else 0 := by
   norm_cast
   apply moebius_inv_dvd_lower_bound' hP l m hm
 
@@ -156,7 +156,7 @@ theorem inv_antitoneOn_Icc {R : Type*} [LinearOrderedField R] (a b : R) (ha : 0 
   convert inv_sub_antitoneOn_Icc a b 0 ha; ring
 
 theorem log_add_one_le_sum_inv (n : ℕ) :
-    Real.log ↑(n+1) ≤ ∑ d in Finset.Icc 1 n, (d:ℝ)⁻¹ := by
+    Real.log ↑(n+1) ≤ ∑ d ∈ Finset.Icc 1 n, (d:ℝ)⁻¹ := by
   calc _ = ∫ x in (1)..↑(n+1), x⁻¹ := ?_
        _ = ∫ x in (1:ℕ)..↑(n+1), x⁻¹ := ?_
        _ ≤ _ := ?_
@@ -167,7 +167,7 @@ theorem log_add_one_le_sum_inv (n : ℕ) :
     norm_num
 
 theorem log_le_sum_inv (y : ℝ) (hy : 1 ≤ y) :
-    Real.log y ≤ ∑ d in Finset.Icc 1 (⌊y⌋₊), (d:ℝ)⁻¹ := by
+    Real.log y ≤ ∑ d ∈ Finset.Icc 1 (⌊y⌋₊), (d:ℝ)⁻¹ := by
   calc _ ≤ Real.log ↑(Nat.floor y + 1) := ?_
        _ ≤ _ := ?_
   · gcongr
@@ -177,14 +177,14 @@ theorem log_le_sum_inv (y : ℝ) (hy : 1 ≤ y) :
   · apply log_add_one_le_sum_inv
 
 theorem sum_inv_le_log (n : ℕ) (hn : 1 ≤ n) :
-    ∑ d in Finset.Icc 1 n, (d : ℝ)⁻¹ ≤ 1 + Real.log ↑n :=
+    ∑ d ∈ Finset.Icc 1 n, (d : ℝ)⁻¹ ≤ 1 + Real.log ↑n :=
   by
   rw [← Finset.sum_erase_add (Icc 1 n) _ (by simp [hn] : 1 ∈ Icc 1 n), add_comm]
   gcongr
   · norm_num
   simp only [gt_iff_lt, lt_one_iff, mem_Icc, true_and, not_le, Icc_erase_left]
   calc
-    ∑ d : ℕ in Ico 2 (n + 1), (d : ℝ)⁻¹ = ∑ d in Ico 2 (n + 1), (↑(d + 1) - 1)⁻¹ := ?_
+    ∑ d ∈ Ico 2 (n + 1), (d : ℝ)⁻¹ = ∑ d ∈ Ico 2 (n + 1), (↑(d + 1) - 1)⁻¹ := ?_
     _ ≤ ∫ x in (2).. ↑(n + 1), (x - 1)⁻¹  := ?_
     _ = Real.log ↑n := ?_
   · congr; norm_num;
@@ -196,7 +196,7 @@ theorem sum_inv_le_log (n : ℕ) (hn : 1 ≤ n) :
   norm_num; simp[hn, show (0:ℝ) < 1 by norm_num]
 
 theorem sum_inv_le_log_real (y : ℝ) (hy : 1 ≤ y) :
-    ∑ d in Finset.Icc 1 (⌊y⌋₊), (d:ℝ)⁻¹ ≤ 1 + Real.log y := by
+    ∑ d ∈ Finset.Icc 1 (⌊y⌋₊), (d:ℝ)⁻¹ ≤ 1 + Real.log y := by
   trans (1 + Real.log (⌊y⌋₊))
   · apply sum_inv_le_log (⌊y⌋₊)
     apply le_floor; norm_cast
@@ -205,7 +205,7 @@ theorem sum_inv_le_log_real (y : ℝ) (hy : 1 ≤ y) :
   · apply floor_le; linarith
 
 theorem Nat.le_prod {ι : Type*} [DecidableEq ι] {f : ι → ℕ} {s : Finset ι} {i : ι} (hi : i ∈ s) (hf : ∀ i ∈ s, f i ≠ 0):
-    f i ≤ ∏ j in s, f j := by
+    f i ≤ ∏ j ∈ s, f j := by
   rw [←prod_erase_mul (a:=i) (h:= hi)]
   exact Nat.le_mul_of_pos_left _ (prod_pos fun j hj => Nat.pos_of_ne_zero (hf j (mem_of_mem_erase hj)))
 
@@ -213,22 +213,22 @@ theorem Nat.le_prod {ι : Type*} [DecidableEq ι] {f : ι → ℕ} {s : Finset �
 -- Lemma 3.1 in Heath-Brown's notes
 theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (hx : 1 ≤ x)
     (hP : Squarefree P) :
-    (∑ d in P.divisors, if d ≤ x then (k:ℝ) ^ (ω d) / (d : ℝ) else (0 : ℝ))
+    (∑ d ∈ P.divisors, if d ≤ x then (k:ℝ) ^ (ω d) / (d : ℝ) else (0 : ℝ))
     ≤ (1 + Real.log x) ^ k := by
   have hx_pos : 0 < x := by
     linarith
   calc
-    _ = ∑ d in P.divisors,
-          ∑ a in Fintype.piFinset fun _i : Fin k => P.divisors,
+    _ = ∑ d ∈ P.divisors,
+          ∑ a ∈ Fintype.piFinset fun _i : Fin k => P.divisors,
             if ∏ i, a i = d ∧ d ∣ P then if ↑d ≤ x then (d : ℝ)⁻¹ else 0 else 0 := ?_
-    _ = ∑ a in Fintype.piFinset fun _i : Fin k => P.divisors,
+    _ = ∑ a ∈ Fintype.piFinset fun _i : Fin k => P.divisors,
           if ∏ i, a i ∣ P then if ↑(∏ i, a i) ≤ x then ∏ i, (a i : ℝ)⁻¹ else 0 else 0 := ?_
-    _ ≤ ∑ a in Fintype.piFinset fun _i : Fin k => P.divisors,
+    _ ≤ ∑ a ∈ Fintype.piFinset fun _i : Fin k => P.divisors,
           if ↑(∏ i, a i) ≤ x then ∏ i, (a i : ℝ)⁻¹ else 0 := ?_ -- do we need this one?
-    _ ≤ ∑ a in Fintype.piFinset fun _i : Fin k => P.divisors,
+    _ ≤ ∑ a ∈ Fintype.piFinset fun _i : Fin k => P.divisors,
           ∏ i, if ↑(a i) ≤ x then (a i : ℝ)⁻¹ else 0 := ?_
-    _ = ∏ _i : Fin k, ∑ d in P.divisors, if ↑d ≤ x then (d : ℝ)⁻¹ else 0 := by rw [prod_univ_sum]
-    _ = (∑ d in P.divisors, if ↑d ≤ x then (d : ℝ)⁻¹ else 0) ^ k := by rw [prod_const, card_fin]
+    _ = ∏ _i : Fin k, ∑ d ∈ P.divisors, if ↑d ≤ x then (d : ℝ)⁻¹ else 0 := by rw [prod_univ_sum]
+    _ = (∑ d ∈ P.divisors, if ↑d ≤ x then (d : ℝ)⁻¹ else 0) ^ k := by rw [prod_const, card_fin]
     _ ≤ (1 + Real.log x) ^ k := ?_
 
   · apply sum_congr rfl; intro d hd
@@ -265,7 +265,7 @@ theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (h
       · rfl
   · rw [←sum_filter]
     gcongr
-    trans (∑ d in Icc 1 (floor x), (d:ℝ)⁻¹)
+    trans (∑ d ∈ Icc 1 (floor x), (d:ℝ)⁻¹)
     · apply sum_le_sum_of_subset_of_nonneg
       intro d; rw[mem_filter, mem_Icc]
       intro hd
@@ -279,8 +279,8 @@ theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (h
 
 theorem sum_pow_cardDistinctFactors_le_self_mul_log_pow {P h : ℕ} (x : ℝ) (hx : 1 ≤ x)
     (hP : Squarefree P) :
-    (∑ d in P.divisors, if ↑d ≤ x then (h : ℝ) ^ ω d else (0 : ℝ)) ≤ x * (1 + Real.log x) ^ h := by
-  trans (∑ d in P.divisors, x * if ↑d ≤ x then (h : ℝ) ^ ω d / d else (0 : ℝ))
+    (∑ d ∈ P.divisors, if ↑d ≤ x then (h : ℝ) ^ ω d else (0 : ℝ)) ≤ x * (1 + Real.log x) ^ h := by
+  trans (∑ d ∈ P.divisors, x * if ↑d ≤ x then (h : ℝ) ^ ω d / d else (0 : ℝ))
   · simp_rw [mul_ite, mul_zero, ←sum_filter]
     gcongr with i hi
     rw [div_eq_mul_inv, mul_comm _ (i:ℝ)⁻¹, ←mul_assoc]

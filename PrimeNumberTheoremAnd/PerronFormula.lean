@@ -483,7 +483,7 @@ theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
       rewrite [hl, Filter.prod_sup, isLittleO_sup]
       exact ⟨isLittleO_const_snd_atBot c _, isLittleO_const_snd_atTop c _⟩
     have h_yI : (fun ((_σ, y) : ℝ × ℝ) ↦ y * I) =Θ[l] Prod.snd :=
-      isTheta_of_norm_eventuallyEq (by simp)
+      IsTheta.of_norm_eventuallyEq_norm (by simp)
     have h_σ_yI : (fun (σy : ℝ × ℝ) ↦ σy.1 + σy.2 * I) =Θ[l] Prod.snd := by
       refine IsLittleO.add_isTheta ?_ h_yI
       exact continuous_ofReal.continuousOn.const_isBigOUniformlyOn_isCompact isCompact_uIcc
@@ -538,7 +538,7 @@ theorem horizontal_integral_isBigO
   let g := fun ((σ, y) : ℝ × ℝ) ↦ f x (σ + y * I)
   calc
     _ =Θ[atBot ⊔ atTop] fun (y : ℝ) ↦ ∫ (σ : ℝ) in uIoc σ' σ'', g (σ, y) ∂μ :=
-        isTheta_of_norm_eventuallyEq <| univ_mem'
+        IsTheta.of_norm_eventuallyEq_norm <| univ_mem'
           fun _ ↦ intervalIntegral.norm_intervalIntegral_eq _ _ _ _
     _ =O[atBot ⊔ atTop] fun y ↦ 1 / y^2 :=
       (isTheta_uniformlyOn_uIoc xpos σ' σ'').isBigO.set_integral_isBigO
