@@ -484,7 +484,7 @@ lemma ZetaSum_aux1_5b {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σp
   · exact fun x hx h ↦ by rw [Real.rpow_eq_zero] at h <;> linarith [ZetaSum_aux1_1' apos hx]
 
 open MeasureTheory in
-lemma measurable_floor_add_half_sub : Measurable fun (u : ℝ) ↦ ↑⌊u⌋ + 1 / 2 - u := by 
+lemma measurable_floor_add_half_sub : Measurable fun (u : ℝ) ↦ ↑⌊u⌋ + 1 / 2 - u := by
   refine Measurable.add ?_ measurable_const |>.sub measurable_id
   exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
 
@@ -1882,7 +1882,7 @@ lemma riemannZeta_isBigO_near_one_horizontal :
         convert Homeomorph.map_punctured_nhds_eq (Homeomorph.addLeft (1 : ℂ)) 0 using 2 <;> simp
     exact ((Asymptotics.isBigO_mul_iff_isBigO_div eventually_mem_nhdsWithin).mp <|
       Tendsto.isBigO_one ℂ H).trans <| Asymptotics.isBigO_refl ..
-  exact (isBigO_comp_ofReal_nhds_ne this).mono <| nhds_right'_le_nhds_ne 0
+  exact (isBigO_comp_ofReal_nhds_ne this).mono <| nhdsGT_le_nhdsNE 0
 
 
 /-%%

@@ -256,7 +256,7 @@ lemma second_fourier_integrable_aux1 (hcont: Continuous ψ) (hsupp: Integrable �
         · fun_prop
   · let f1 : ℝ → ENNReal := fun a1 ↦ ↑‖cexp (-(↑a1 * (↑σ' - 1)))‖₊
     let f2 : ℝ → ENNReal := fun a2 ↦ ↑‖ψ a2‖₊
-    suffices ∫⁻ (a : ℝ × ℝ), f1 a.1 * f2 a.2 ∂ν < ⊤ by simpa [Function.uncurry, HasFiniteIntegral]
+    suffices ∫⁻ (a : ℝ × ℝ), f1 a.1 * f2 a.2 ∂ν < ⊤ by simpa [hasFiniteIntegral_iff_nnnorm, Function.uncurry]
     refine (lintegral_prod_mul ?_ ?_).trans_lt ?_ <;> try fun_prop
     exact ENNReal.mul_lt_top (second_fourier_integrable_aux1a hσ).2 hsupp.2
 
@@ -923,7 +923,7 @@ theorem limiting_fourier_lim2 (A : ℝ) (ψ : W21) (hx : 1 ≤ x) :
       have := continuous_FourierIntegral ψ
       continuity
     · apply eventually_of_mem (U := Ioo 1 2)
-      · apply Ioo_mem_nhdsWithin_Ioi ; simp
+      · apply Ioo_mem_nhdsGT_of_mem ; simp
       · intro σ' ⟨h1, h2⟩
         rw [ae_restrict_iff' measurableSet_Ici]
         apply Eventually.of_forall
@@ -954,7 +954,7 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re}) (ψ : CS 2 
   by_cases hh : tsupport ψ = ∅ ; simp [tsupport_eq_empty_iff.mp hh]
   obtain ⟨a₀, ha₀⟩ := Set.nonempty_iff_ne_empty.mpr hh
 
-  let S : Set ℂ := Set.reProdIm (Icc 1 2) (tsupport ψ)
+  let S : Set ℂ := reProdIm (Icc 1 2) (tsupport ψ)
   have l1 : IsCompact S := by
     refine Metric.isCompact_iff_isClosed_bounded.mpr ⟨?_, ?_⟩
     · exact isClosed_Icc.reProdIm (isClosed_tsupport ψ)
@@ -967,12 +967,12 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re}) (ψ : CS 2 
   let bound (a : ℝ) : ℝ := MG * ‖ψ a‖
 
   apply tendsto_integral_filter_of_dominated_convergence (bound := bound)
-  · apply eventually_of_mem (U := Icc 1 2) (Icc_mem_nhdsWithin_Ioi (by simp)) ; intro u hu
+  · apply eventually_of_mem (U := Icc 1 2) (Icc_mem_nhdsGT_of_mem (by simp)) ; intro u hu
     apply Continuous.aestronglyMeasurable
     apply Continuous.mul
     · exact (hG.comp_continuous (by fun_prop) (by simp [hu.1])).mul ψ.h1.continuous
     · apply Continuous.const_cpow (by fun_prop) ; simp ; linarith
-  · apply eventually_of_mem (U := Icc 1 2) (Icc_mem_nhdsWithin_Ioi (by simp))
+  · apply eventually_of_mem (U := Icc 1 2) (Icc_mem_nhdsGT_of_mem (by simp))
     intro u hu
     apply Eventually.of_forall ; intro v
     by_cases h : v ∈ tsupport ψ
@@ -1036,7 +1036,7 @@ lemma limiting_cor_aux {f : ℝ → ℂ} : Tendsto (fun x : ℝ ↦ ∫ t, f t *
 
   simp_rw [tendsto_congr' l2]
   convert_to Tendsto (fun x => 𝓕 f (-Real.log x / (2 * π))) atTop (𝓝 0)
-  · ext ; congr ; ext ; simp [Real.fourierChar, Circle.exp, mul_comm (f _)] ; congr
+  · ext ; congr ; ext ; simp [Real.fourierChar, Circle.exp, mul_comm (f _), ← ofReal_mul] ; congr
     rw [← neg_mul] ; congr ; norm_cast ; field_simp ; ring
   refine (zero_at_infty_fourierIntegral f).comp <| Tendsto.mono_right ?_ _root_.atBot_le_cocompact
   exact (tendsto_neg_atBot_iff.mpr tendsto_log_atTop).atBot_mul_const (inv_pos.mpr two_pi_pos)
@@ -1730,9 +1730,9 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     simpa using (comp_exp_support hsupp hplus).comp_smul this |>.mul_left
   obtain ⟨g, hg⟩ := fourier_surjection_on_schwartz (toSchwartz h h1 h2)
 
-  have why (x : ℝ) : 2 * π * x / (2 * π) = x := by field_simp
+  have why (x : ℝ) : (2 * π * x / (2 * π) : ℂ) = x := by norm_cast; field_simp
   have l1 {y} (hy : 0 < y) : y * Ψ y = 𝓕 g (1 / (2 * π) * Real.log y) := by
-    field_simp [hg, toSchwartz, h] ; norm_cast ; field_simp [why] ; norm_cast
+    field_simp [hg, toSchwartz, h, why] ; norm_cast
     rw [Real.exp_log hy]
 
   have key := limiting_cor_schwartz g hf hcheby hG hG'
