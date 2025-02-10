@@ -34,7 +34,7 @@ lemma div_rpow_eq_rpow_div_neg {x y s : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
   convert div_rpow_neg_eq_rpow_div (s := -s) hx hy using 1; simp only [neg_neg]
 
 /-%%
-\begin{definition}[RiemannZeta0]\label{RiemannZeta0}\lean{RiemannZeta0}\leanok
+\begin{definition}[riemannZeta0]\label{riemannZeta0}\lean{riemannZeta0}\leanok
 For any natural $N\ge1$, we define
 $$
 \zeta_0(N,s) :=
@@ -92,7 +92,7 @@ section
 
 variable {A : Type*} [NormedRing A] [NormedAlgebra ℝ A] [CompleteSpace A] {a b : ℝ}
 
-set_option autoImplicit false in
+--set_option autoImplicit false in
 open BigOperators Interval Topology Set intervalIntegral MeasureTheory in
 lemma integral_deriv_mul_eq_sub' {u v u' v' : ℝ → A}
     (hu : ∀ x ∈ [[a, b]], HasDerivWithinAt u (u' x) [[a, b]] x)
@@ -733,7 +733,7 @@ Apply Lemma \ref{ZetaBnd_aux1a} with $a=N$ and $b\to \infty$.
 For any $N\ge1$ and $s = \sigma + tI \in \C$, $\sigma=\in(0,2], 2 < |t|$,
 $$
 \left| s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
-\ll |t| \frac{N^{-\sigma}}{\sigma}.
+\le 2 |t| \frac{N^{-\sigma}}{\sigma}.
 $$
 \end{lemma}
 %%-/
@@ -741,6 +741,46 @@ lemma ZetaBnd_aux1 (N : ℕ) (Npos : 1 ≤ N) {σ t : ℝ} (hσ : σ ∈ Ioc 0 2
     ‖(σ + t * I) * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖
     ≤ 2 * |t| * N ^ (-σ) / σ := by
   rw [norm_mul, mul_div_assoc]
+  apply mul_le_mul ?_ (ZetaBnd_aux1b N Npos hσ.1) (norm_nonneg _) (by positivity)
+  refine le_trans (by apply norm_add_le) ?_
+  simp only [norm_eq_abs, abs_ofReal, norm_mul, abs_I, mul_one, abs_of_pos hσ.1]
+  linarith [hσ.2]
+/-%%
+\begin{proof}\uses{ZetaBnd_aux1b}\leanok
+Apply Lemma \ref{ZetaBnd_aux1b} and estimate $|s|\ll |t|$.
+\end{proof}
+%%-/
+
+/-%%
+Big-Oh version of Lemma \ref{ZetaBnd_aux1}.
+\begin{lemma}[ZetaBnd_aux1p]\label{ZetaBnd_aux1p}\lean{ZetaBnd_aux1p}\leanok
+For any $N\ge1$ and $s = \sigma + tI \in \C$, $\sigma=\in(0,2], 2 < |t|$,
+$$
+\left| s\int_N^\infty \frac{\lfloor x\rfloor + 1/2 - x}{x^{s+1}} \, dx \right|
+\ll |t| \frac{N^{-\sigma}}{\sigma}.
+$$
+\end{lemma}
+%%-/
+lemma ZetaBnd_aux1p (N : ℕ) (Npos : 1 ≤ N) {σ : ℝ} (hσ : σ ∈ Ioc 0 2) :
+    (fun (t : ℝ) ↦ ‖(σ + t * I) * ∫ x in Ioi (N : ℝ), (⌊x⌋ + 1 / 2 - x) / (x : ℂ) ^ ((σ + t * I) + 1)‖)
+    =O[Filter.principal {t | 2 ≤ |t|}] fun t ↦ |t| * N ^ (-σ) / σ := by
+  rw [Asymptotics.IsBigO_def]
+  use 2
+  rw [Asymptotics.isBigOWith_principal]
+  intro t ht
+  simp only [mem_setOf_eq] at ht
+  rw [norm_norm, norm_mul, mul_div_assoc, norm_mul]
+  have : 2 * (‖|t|‖ * ‖↑N ^ (-σ) / σ‖) = (2 * |t|) * ((N : ℝ) ^ (-σ) / σ) := by
+    simp only [Real.norm_eq_abs, _root_.abs_abs, norm_div]
+    have : σ ≠ 0 := by linarith [hσ.1]
+    field_simp
+    rw [abs_of_pos hσ.1]
+    have : 0 < (N : ℝ) ^ (-σ) := by
+      refine Real.rpow_pos_of_pos ?_ _
+      positivity
+    rw [abs_of_pos this]
+    ring
+  rw [this]
   apply mul_le_mul ?_ (ZetaBnd_aux1b N Npos hσ.1) (norm_nonneg _) (by positivity)
   refine le_trans (by apply norm_add_le) ?_
   simp only [norm_eq_abs, abs_ofReal, norm_mul, abs_I, mul_one, abs_of_pos hσ.1]
@@ -1082,8 +1122,8 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   norm_cast
 /-%%
 \begin{proof}\leanok
-\uses{ZetaSum_aux2, RiemannZeta0, HolomorphicOn_Zeta0, isPathConnected_aux}
-Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{RiemannZeta0}.
+\uses{ZetaSum_aux2, riemannZeta0, HolomorphicOn_Zeta0, isPathConnected_aux}
+Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{riemannZeta0}.
 \end{proof}
 %%-/
 
