@@ -277,7 +277,7 @@ theorem W21_approximation (f : W21) (g : trunc) :
         have d1 : deriv (fun v => h R v * f v) = fun v => h' R v * f v + h R v * f' v :=
           funext (fun v => (l3 v).deriv)
         rw [d1] ; convert (l5.add l7).deriv using 1 ; ring
-      simp_rw [this]
+      simp_rw [this, F]
 
     obtain ⟨c1, mg'⟩ := g'.bounded
     obtain ⟨c2, mg''⟩ := g''.bounded

@@ -343,7 +343,7 @@ the middle one being the desired square. The integral over each of the outer rec
 vanishes, since $f$ is holomorphic there. (The constant $c$ being ``small enough'' here just means
 that the inner square is strictly contained in the big rectangle.)
 %%-/
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' zero_lt_one, SmallSquareInRectangle hp]
+  filter_upwards [Ioo_mem_nhdsGT zero_lt_one, SmallSquareInRectangle hp]
   intro c ⟨cpos, _⟩ hc
   simp_rw [mul_comm I]
   exact RectanglePullToNhdOfPole' (by simp_all [cpos.le])

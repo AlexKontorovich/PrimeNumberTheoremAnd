@@ -32,7 +32,7 @@ Lastly, calls a normalization tactic on this target.
 -/
 
 namespace Mathlib.Tactic.LinearCombination'
-open Lean hiding Rat
+open Lean
 open Elab Meta Term
 
 variable {α β : Type*}

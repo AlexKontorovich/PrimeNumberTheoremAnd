@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Arend Mellendijk
 -/
 
-import Mathlib.Analysis.Asymptotics.Asymptotics
+import Mathlib.Analysis.Asymptotics.Lemmas
 import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 import Mathlib.Analysis.SpecialFunctions.Log.Base
 import Mathlib.NumberTheory.Primorial
@@ -207,7 +207,7 @@ theorem boudingSum_ge : (primeInterSieve x y z hz).selbergBoundingSum ≥ Real.l
 
 include hx hy in
 theorem primeSieve_rem_sum_le :
-    ∑ d in (primeInterSieve x y z hz).prodPrimes.divisors, (if (d : ℝ) ≤ z then (3:ℝ) ^ ω d * |(primeInterSieve x y z hz).rem d| else 0)
+    ∑ d ∈ (primeInterSieve x y z hz).prodPrimes.divisors, (if (d : ℝ) ≤ z then (3:ℝ) ^ ω d * |(primeInterSieve x y z hz).rem d| else 0)
       ≤ 5 * z * (1+Real.log z)^3 := by
   refine rem_sum_le_of_const (primeInterSieve x y z hz) 5 (fun d hd ↦ ?_)
   apply abs_rem_le _ _ _ <;> linarith
