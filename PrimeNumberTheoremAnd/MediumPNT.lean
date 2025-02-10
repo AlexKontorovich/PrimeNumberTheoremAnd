@@ -141,14 +141,32 @@ from Lemma \ref{Smooth1Properties_above}
 \end{proof}
 %%-/
 
-lemma vertical_integrable_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
+/-%%
+\begin{lemma}[SmoothedChebyshevDirichlet_aux_integrable]\label{SmoothedChebyshevDirichlet_aux_integrable}\lean{SmoothedChebyshevDirichlet_aux_integrable}\leanok
+Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
+$x \mapsto \int_{(0,\infty)} x^{1+it} \widetilde{1_{\epsilon}}(x) dx$ is integrable on $\mathbb{R}$. ** Conditions are overkill; can remove some assumptions... **
+%%-/
+lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
     (ε : ℝ) (εpos : 0 < ε) :
     MeasureTheory.Integrable
       (fun (y : ℝ) ↦ ∫ (t : ℝ) in Ioi 0, (t : ℂ) ^ (1 + y * I) * (Smooth1 SmoothingF ε t : ℂ)) := by
   sorry
+/-%%
+\begin{proof}
+\uses{Smooth1Properties_above}
+We have that the integrand is bounded by $x^{1+it}$, which is integrable on $\mathbb{R}$.
+\end{proof}
+%%-/
 
-lemma continuousAt_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
+/-%%
+\begin{lemma}[SmoothedChebyshevDirichlet_aux_contAt]\label{SmoothedChebyshevDirichlet_aux_contAt}\lean{SmoothedChebyshevDirichlet_aux_contAt}\leanok
+Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
+$x \mapsto \int_{(0,\infty)} x^{1+it} \widetilde{1_{\epsilon}}(x) dx$ is continuous at any $y>0$.
+** Conditions are overkill; can remove some assumptions... **
+\end{lemma}
+%%-/
+lemma SmoothedChebyshevDirichlet_aux_contAt {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
     (ε : ℝ) (εpos : 0 < ε) (y : ℝ) (ypos : 0 < y) :
     ContinuousAt (fun x ↦ Smooth1 SmoothingF ε x) y := by
@@ -156,6 +174,42 @@ lemma continuousAt_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff
   unfold Smooth1 DeltaSpike MellinConvolution
   simp only [one_div, ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
   sorry
+/-%%
+\begin{proof}
+\uses{Smooth1Properties_above}
+The function is a sum of continuous functions, and hence continuous.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[SmoothedChebyshevDirichlet_aux_tsum_integral]\label{SmoothedChebyshevDirichlet_aux_tsum_integral}\lean{SmoothedChebyshevDirichlet_aux_tsum_integral}\leanok
+Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
+$x \mapsto \sum_{n=1}^\infty \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\widetilde{1_{\epsilon}})(2+it) x^{2+it}$ is equal to
+$\sum_{n=1}^\infty \int_{(0,\infty)} \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\widetilde{1_{\epsilon}})(2+it) x^{2+it}$.
+** Conditions are overkill; can remove some assumptions... **
+\end{lemma}
+%%-/
+lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
+    (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
+    (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
+    (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) (X : ℝ) (X_pos : 0 < X) (ε : ℝ)
+    (εpos : 0 < ε) (ε_lt_one : ε < 1) (c : ℝ) (hc : ∀ (t : ℝ),
+      Complex.abs (𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I)) ≤
+        c * ((Complex.abs (2 + ↑t * I) ^ 2)⁻¹ * |ε|⁻¹)) :
+  ∫ (t : ℝ),
+      ∑' (n : ℕ),
+        (Λ n) / (n : ℂ) ^ (2 + t * I) * 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x)) (2 + t * I) *
+          (X : ℂ) ^ (2 + ↑t * I) =
+    ∑' (n : ℕ),
+      ∫ (t : ℝ),
+        (Λ n) / (n : ℂ) ^ (2 + t * I) * 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x)) (2 + t * I) *
+          (X : ℂ) ^ (2 + t * I) := sorry
+/-%%
+\begin{proof}
+\uses{Smooth1Properties_above, SmoothedChebyshevDirichlet_aux_integrable}
+Interchange of summation and integration.
+\end{proof}
+%%-/
 
 /-%%
 Inserting the Dirichlet series expansion of the log derivative of zeta, we get the following.
@@ -197,7 +251,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ} (diffSmoothingF : 
       norm_inv, norm_pow, eventually_principal, mem_setOf_eq, and_imp] at hc
     simp only [Complex.norm_eq_abs, Complex.abs_abs] at hc
     replace hc (t : ℝ) := hc (2 + t * I) (by simp) (by simp)
-    sorry
+    exact SmoothedChebyshevDirichlet_aux_tsum_integral diffSmoothingF SmoothingFpos suppSmoothingF mass_one X X_pos ε εpos ε_lt_one c hc
   · field_simp; congr; ext n; rw [← MeasureTheory.integral_mul_left ]; congr; ext t
     by_cases n_ne_zero : n = 0; simp [n_ne_zero]
     rw [mul_div_assoc, mul_assoc]
@@ -238,12 +292,17 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ} (diffSmoothingF : 
     · dsimp [MellinConvergent]
       norm_num; exact_mod_cast (integrable_x_mul_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos ε_lt_one).ofReal
     · dsimp [VerticalIntegrable, mellin]
-      ring_nf; exact vertical_integrable_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos
+      ring_nf
+      apply SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos
+        suppSmoothingF mass_one ε εpos
     · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
-      exact continuousAt_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos (n / X) (by positivity)
+      exact SmoothedChebyshevDirichlet_aux_contAt diffSmoothingF SmoothingFpos suppSmoothingF
+        mass_one ε εpos (n / X) (by positivity)
 /-%%
-\begin{proof}
-\uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne, MellinOfSmooth1b}
+\begin{proof}\leanok
+\uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne, MellinOfSmooth1b,
+SmoothedChebyshevDirichlet_aux_integrable,
+SmoothedChebyshevDirichlet_aux_contAt, SmoothedChebyshevDirichlet_aux_tsum_integral}
 We have that
 $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(2)}\sum_{n=1}^\infty \frac{\Lambda(n)}{n^s}
 \mathcal{M}(\widetilde{1_{\epsilon}})(s)
