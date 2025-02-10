@@ -356,12 +356,12 @@ $$
 $$
 %\end{lemma}
 %-/
-lemma MellinInversion_aux1 {f : ℝ → ℂ} {s : ℂ} (s_ne_zero : s ≠ 0)
-    (fDiff : DifferentiableOn ℝ f (Ioi 0))
-    (hfs : Tendsto (fun x ↦ f x * x ^ s) (𝓝[>]0) (𝓝 0))
-    (hfinf : Tendsto (fun x ↦ f x * x ^ s) atTop (𝓝 0)) :
-    ∫ x in Ioi 0, f x * x ^ s / x = - ∫ x in Ioi 0, (deriv f x) * x ^ s / s := by
-  sorry
+-- lemma MellinInversion_aux1 {f : ℝ → ℂ} {s : ℂ} (s_ne_zero : s ≠ 0)
+--     (fDiff : DifferentiableOn ℝ f (Ioi 0))
+--     (hfs : Tendsto (fun x ↦ f x * x ^ s) (𝓝[>]0) (𝓝 0))
+--     (hfinf : Tendsto (fun x ↦ f x * x ^ s) atTop (𝓝 0)) :
+--     ∫ x in Ioi 0, f x * x ^ s / x = - ∫ x in Ioi 0, (deriv f x) * x ^ s / s := by
+--   sorry
 
 /-% ** Wrong delimiters on purpose **
 \begin{proof}
@@ -380,13 +380,13 @@ $$
 $$
 \end{lemma}
 %-/
-lemma MellinInversion_aux2 {f : ℝ → ℂ} (s : ℂ) (fDiff : DifferentiableOn ℝ f (Ioi 0))
-    (fDiff2 : DifferentiableOn ℝ (deriv f) (Ioi 0))
-    (hfs : Tendsto (fun x ↦ deriv f x * x ^ s) (𝓝[>]0) (𝓝 0))
-    (hfinf : Tendsto (fun x ↦ deriv f x * x ^ s) atTop (𝓝 0)) :
-    ∫ x in Ioi 0, (deriv f x) * x ^ s =
-      -∫ x in Ioi 0, (deriv (deriv f) x) * x ^ (s + 1) / (s + 1) := by
-  sorry
+-- lemma MellinInversion_aux2 {f : ℝ → ℂ} (s : ℂ) (fDiff : DifferentiableOn ℝ f (Ioi 0))
+--     (fDiff2 : DifferentiableOn ℝ (deriv f) (Ioi 0))
+--     (hfs : Tendsto (fun x ↦ deriv f x * x ^ s) (𝓝[>]0) (𝓝 0))
+--     (hfinf : Tendsto (fun x ↦ deriv f x * x ^ s) atTop (𝓝 0)) :
+--     ∫ x in Ioi 0, (deriv f x) * x ^ s =
+--       -∫ x in Ioi 0, (deriv (deriv f) x) * x ^ (s + 1) / (s + 1) := by
+--   sorry
 /-%
 \begin{proof}
 \uses{PartialIntegration, MellinInversion_aux1}
@@ -401,11 +401,11 @@ Then the map  $(x,s) \mapsto f(x)x^s/(s(s+1))$ is absolutely integrable on
 $(0,\infty)\times\{\Re s = \sigma\}$ for any $\sigma>0$.
 \end{lemma}
 %-/
-lemma MellinInversion_aux3 {f : ℝ → ℂ} (σ : ℝ) (σ_ne_zero : σ ≠ 0) (σ_ne_negOne : σ ≠ -1)
-    (fInt : IntegrableOn (fun x ↦ f x * (x : ℂ) ^ (σ : ℂ)) (Ioi 0)) :
-    IntegrableOn (fun (⟨x, t⟩ : ℝ × ℝ) ↦ f x * x ^ (σ + t * I) / ((σ + t * I) * ((σ + t * I) + 1)))
-      ((Ioi 0).prod (univ : Set ℝ)) := by
-  sorry
+-- lemma MellinInversion_aux3 {f : ℝ → ℂ} (σ : ℝ) (σ_ne_zero : σ ≠ 0) (σ_ne_negOne : σ ≠ -1)
+--     (fInt : IntegrableOn (fun x ↦ f x * (x : ℂ) ^ (σ : ℂ)) (Ioi 0)) :
+--     IntegrableOn (fun (⟨x, t⟩ : ℝ × ℝ) ↦ f x * x ^ (σ + t * I) / ((σ + t * I) * ((σ + t * I) + 1)))
+--       ((Ioi 0).prod (univ : Set ℝ)) := by
+--   sorry
 /-%
 \begin{proof}
 Put absolute values and estimate.
@@ -423,11 +423,11 @@ $$
 $$
 \end{lemma}
 %-/
-lemma MellinInversion_aux4 {f : ℝ → ℂ} (σ : ℝ) (σ_ne_zero : σ ≠ 0) (σ_ne_negOne : σ ≠ -1)
-    (fInt : IntegrableOn (fun x ↦ f x * (x : ℂ) ^ (σ : ℂ)) (Ioi 0)) :
-    VerticalIntegral (fun s ↦ ∫ x in Ioi 0, f x * (x : ℂ) ^ (s + 1) / (s * (s + 1))) σ =
-      ∫ x in Ioi 0, VerticalIntegral (fun s ↦ f x * (x : ℂ) ^ (s + 1) / (s * (s + 1))) σ := by
-  sorry -- `MeasureTheory.integral_prod` and `MeasureTheory.integral_swap` should be useful here
+-- lemma MellinInversion_aux4 {f : ℝ → ℂ} (σ : ℝ) (σ_ne_zero : σ ≠ 0) (σ_ne_negOne : σ ≠ -1)
+--     (fInt : IntegrableOn (fun x ↦ f x * (x : ℂ) ^ (σ : ℂ)) (Ioi 0)) :
+--     VerticalIntegral (fun s ↦ ∫ x in Ioi 0, f x * (x : ℂ) ^ (s + 1) / (s * (s + 1))) σ =
+--       ∫ x in Ioi 0, VerticalIntegral (fun s ↦ f x * (x : ℂ) ^ (s + 1) / (s * (s + 1))) σ := by
+--   sorry -- `MeasureTheory.integral_prod` and `MeasureTheory.integral_swap` should be useful here
 /-%
 \begin{proof}
 \uses{MellinInversion_aux3}
