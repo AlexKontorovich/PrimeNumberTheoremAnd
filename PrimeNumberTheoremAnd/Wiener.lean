@@ -91,6 +91,14 @@ def nterm (f : ℕ → ℂ) (σ' : ℝ) (n : ℕ) : ℝ := if n = 0 then 0 else 
 lemma nterm_eq_norm_term {f : ℕ → ℂ} : nterm f σ' n = ‖term f σ' n‖ := by
   by_cases h : n = 0 <;> simp [nterm, term, h]
 
+theorem norm_term_eq_nterm_re (s : ℂ) :
+    ‖term f s n‖ = nterm f (s.re) n := by
+  simp only [nterm, term, apply_ite (‖·‖), norm_zero, norm_div]
+  apply ite_congr rfl (fun _ ↦ rfl)
+  intro h
+  congr
+  refine norm_natCast_cpow_of_pos (by omega) s
+
 lemma hf_coe1 (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hσ : 1 < σ') :
     ∑' i, (‖term f σ' i‖₊ : ENNReal) ≠ ⊤ := by
   simp_rw [ENNReal.tsum_coe_ne_top_iff_summable_coe, ← norm_toNNReal]
@@ -104,12 +112,16 @@ instance instMeasurableSpace : MeasurableSpace Circle :=
 instance instBorelSpace : BorelSpace Circle :=
   inferInstanceAs <| BorelSpace <| Subtype (· ∈ Metric.sphere (0 : ℂ) 1)
 
+-- TODO - add to mathlib
+attribute [fun_prop] Real.continuous_fourierChar
+
 lemma first_fourier_aux1 (hψ: Continuous ψ) {x : ℝ} (n : ℕ) : Measurable fun (u : ℝ) ↦
     (‖fourierChar (-(u * ((1 : ℝ) / ((2 : ℝ) * π) * (n / x).log))) • ψ u‖ₑ : ENNReal) := by
   -- TODO: attribute [fun_prop] Real.continuous_fourierChar once `fun_prop` bugfix is merged
-  refine Measurable.comp ?_ (by fun_prop) |>.smul (by fun_prop)
-    |>.nnnorm |>.coe_nnreal_ennreal
-  exact Continuous.measurable Real.continuous_fourierChar
+  fun_prop
+  -- refine Measurable.comp ?_ (by fun_prop) |>.smul (by fun_prop)
+  --   |>.nnnorm |>.coe_nnreal_ennreal
+  -- exact Continuous.measurable Real.continuous_fourierChar
 
 lemma first_fourier_aux2a :
     (2 : ℂ) * π * -(y * (1 / (2 * π) * Real.log ((n) / x))) = -(y * ((n) / x).log) := by
@@ -124,12 +136,9 @@ lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
   simp only [term, hn, ↓reduceIte, fourierChar_apply]
   calc
     _ = (f n * (cexp ((2 * π * -(y * (1 / (2 * π) * Real.log (n / x)))) * I) / ↑((n : ℝ) ^ σ'))) • ψ y := by
-      have : ((↑n : ℂ) ^ (σ' : ℂ) : ℂ) = ((↑n : ℝ) ^ (σ' : ℝ) : ℝ) := by
-        rw [Complex.cpow_def_of_ne_zero (by simp [hn]), Real.rpow_def_of_nonneg (Nat.cast_nonneg n)]
-        simp [hn]
-      simp [Real.fourierChar, Circle.exp, smul_eq_mul, mul_assoc, this]
-      rw [Submonoid.mk_smul]
-      simp [Real.fourierChar, Circle.exp, smul_eq_mul, mul_assoc, this]
+      rw [Circle.smul_def, fourierChar_apply, ofReal_cpow (by norm_num)]
+      simp only [one_div, mul_inv_rev, mul_neg, ofReal_neg, ofReal_mul, ofReal_ofNat, ofReal_inv,
+        neg_mul, smul_eq_mul, ofReal_natCast]
       ring
     _ = (f n * (x ^ (y * I) / n ^ (σ' + y * I))) • ψ y := by
       congr 2
@@ -169,12 +178,11 @@ the claim then follows from Fubini's theorem.
     _ = ∑' n, term f σ' n * ∫ (v : ℝ), 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by rfl
     _ = ∑' n, ∫ (v : ℝ), term f σ' n * 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
       simp [integral_mul_left]
-    _ = ∫ (v : ℝ), ∑' (n : ℕ), term f σ' n * 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
+    _ = ∫ (v : ℝ), ∑' n, term f σ' n * 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
       refine (integral_tsum ?_ ?_).symm
       · -- TODO: attribute [fun_prop] Real.continuous_fourierChar once `fun_prop` bugfix is merged
         refine fun _ ↦ Measurable.aestronglyMeasurable ?_
-        refine Measurable.mul (by fun_prop) ((Measurable.comp ?_ (by fun_prop)).smul (by fun_prop))
-        exact Continuous.measurable Real.continuous_fourierChar
+        fun_prop
       · simp only [enorm_mul]
         simp_rw [lintegral_const_mul _ (first_fourier_aux1 hcont _)]
         calc
@@ -189,11 +197,8 @@ the claim then follows from Fubini's theorem.
       · congr with n ; exact first_fourier_aux2 hx n
       · apply Summable.of_norm
         convert hf σ' hσ with n
-        by_cases h : n = 0
-        · simp [nterm, term, h]
-        · simp [nterm, term, h]
-          have : (n : ℂ) ≠ 0 := by simp [h]
-          simp [Complex.abs_cpow_of_ne_zero this]
+        rw [norm_term_eq_nterm_re]
+        simp
 
 /-%%
 \begin{lemma}[Second Fourier identity]\label{second-fourier}\lean{second_fourier}\leanok If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
@@ -201,8 +206,11 @@ $$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du = x^{\si
 \end{lemma}
 %%-/
 
-@[continuity]
+@[continuity, fun_prop]
 lemma continuous_multiplicative_ofAdd : Continuous (⇑Multiplicative.ofAdd : ℝ → ℝ) := ⟨fun _ ↦ id⟩
+
+@[fun_prop]
+lemma tmp : Continuous (fun x : ℝ ↦ Multiplicative.ofAdd x) := continuous_ofAdd
 
 attribute [fun_prop] measurable_coe_nnreal_ennreal
 
@@ -221,24 +229,12 @@ lemma second_fourier_integrable_aux1 (hcont: Continuous ψ) (hsupp: Integrable �
   intro ν
   constructor
   · apply Measurable.aestronglyMeasurable
-    apply MeasureTheory.measurable_uncurry_of_continuous_of_measurable <;> intro i
-    swap; apply Continuous.measurable
-    · apply Continuous.smul
-      · fun_prop
-      · apply Continuous.smul
-        · apply Continuous.subtype_val
-          simp [Real.fourierChar, Circle.exp, Multiplicative.ofAdd]
-          fun_prop
-        · fun_prop
-    · apply Continuous.smul
-      · fun_prop
-      · apply Continuous.smul
-        · apply Continuous.subtype_val
-          simp [Real.fourierChar, Circle.exp, Multiplicative.ofAdd]
-          fun_prop
-        · fun_prop
-  · let f1 : ℝ → ENNReal := fun a1 ↦ ↑‖cexp (-(↑a1 * (↑σ' - 1)))‖₊
-    let f2 : ℝ → ENNReal := fun a2 ↦ ↑‖ψ a2‖₊
+    -- TODO: find out why fun_prop does not play well with Multiplicative.ofAdd
+    simp only [neg_mul, ofReal_exp, ofReal_neg, ofReal_mul, ofReal_sub, ofReal_one,
+      Multiplicative.ofAdd, Equiv.coe_fn_mk, smul_eq_mul]
+    apply MeasureTheory.measurable_uncurry_of_continuous_of_measurable <;> fun_prop
+  · let f1 : ℝ → ENNReal := fun a1 ↦ ‖cexp (-(↑a1 * (↑σ' - 1)))‖ₑ
+    let f2 : ℝ → ENNReal := fun a2 ↦ ‖ψ a2‖ₑ
     suffices ∫⁻ (a : ℝ × ℝ), f1 a.1 * f2 a.2 ∂ν < ⊤ by
       simpa [hasFiniteIntegral_iff_enorm, enorm_eq_nnnorm, Function.uncurry]
     refine (lintegral_prod_mul ?_ ?_).trans_lt ?_ <;> try fun_prop
@@ -730,6 +726,10 @@ lemma nnabla_bound_aux1 (a : ℝ) {b : ℝ} (hb : 0 < b) : Tendsto (fun x => x *
 lemma nnabla_bound_aux2 (a : ℝ) {b : ℝ} (hb : 0 < b) : ∀ᶠ x in atTop, 0 < x * (a + Real.log (x / b) ^ 2) :=
   (nnabla_bound_aux1 a hb).eventually (eventually_gt_atTop 0)
 
+lemma Real.log_eventually_gt_atTop (a : ℝ) :
+    ∀ᶠ x in atTop, a < Real.log x :=
+  Real.tendsto_log_atTop.eventually (eventually_gt_atTop a)
+
 lemma nnabla_bound_aux {x : ℝ} (hx : 0 < x) :
     nnabla (fun n ↦ 1 / (n * ((2 * π) ^ 2 + Real.log (n / x) ^ 2))) =O[atTop]
     (fun n ↦ 1 / (Real.log n ^ 2 * n ^ 2)) := by
@@ -747,31 +747,21 @@ lemma nnabla_bound_aux {x : ℝ} (hx : 0 < x) :
   have l4 : (fun n => (d n)⁻¹) =O[atTop] (fun n => (n * (Real.log n) ^ 2)⁻¹) := by
     apply IsBigO.inv_rev
     · refine (isBigO_refl _ _).mul <| (log_sq_isbigo_mul (by linarith))
-    · apply eventually_of_mem (Ici_mem_atTop 2) ; intro n (hn : 2 ≤ n)
-      have e1 : n ≠ 0 := by linarith
-      have e2 : n ≠ 1 := by linarith
-      have e3 : n ≠ -1 := by linarith
-      simp [e1, e2, e3]
-
+    · filter_upwards [Real.log_eventually_gt_atTop 0, eventually_gt_atTop 0] with x hx hx'
+      rw [← not_imp_not]
+      intro _
+      positivity
   have l5 : (fun n => (d (n + 1))⁻¹) =O[atTop] (fun n => (n * (Real.log n) ^ 2)⁻¹) := by
     refine IsBigO.trans ?_ l4
     rw [isBigO_iff] ; use 1
     have e1 : ∀ᶠ n in atTop, 0 < d n := by
-      apply eventually_of_mem (Ici_mem_atTop 1) ; intro n (hn : 1 ≤ n)
-      have r1 : 0 < n := by linarith
-      have r2 : 0 < (2 * π) ^ 2 := by apply sq_pos_of_ne_zero ; norm_num [pi_ne_zero]
-      have r3 : 0 ≤ Real.log (↑n / x) ^ 2 := sq_nonneg _
-      apply mul_pos r1 (by linarith)
+      filter_upwards [eventually_ge_atTop 1] with n hn
+      positivity
     have e2 : ∀ᶠ n in atTop, 0 < d (n + 1) := (tendsto_atTop_add_const_right atTop (1 : ℝ) tendsto_id).eventually e1
     have e3 : ∀ᶠ n in atTop, d n ≤ d (n + 1) := by
-      have : ∀ᶠ n in atTop, x ≤ n := by simpa using eventually_ge_atTop x
-      filter_upwards [this] with n hn
+      filter_upwards [eventually_ge_atTop x] with n hn
       have e2 : 1 ≤ n / x := (one_le_div (by linarith)).mpr hn
-      have e3 : n ≤ n + 1 := by linarith
-      have e4 : 0 ≤ n + 1 := by linarith
-      dsimp [d]
-      gcongr
-      exact Real.log_nonneg e2
+      bound
     filter_upwards [e1, e2, e3] with n e1 e2 e3
     simp_rw [one_mul, Real.norm_eq_abs, abs_inv, abs_eq_self.mpr e1.le, abs_eq_self.mpr e2.le, inv_le_inv₀ e2 e1]
     exact e3
@@ -782,13 +772,7 @@ lemma nnabla_bound_aux {x : ℝ} (hx : 0 < x) :
   apply EventuallyEq.trans_isBigO l1
 
   apply ((l6.mul l4).mul l5).trans_eventuallyEq
-  apply eventually_of_mem (Ici_mem_atTop 2) ; intro n (hn : 2 ≤ n)
-
-  have : Real.log n ≠ 0 := by
-    have e1 : n ≠ 0 := by linarith
-    have e2 : n ≠ 1 := by linarith
-    have e3 : n ≠ -1 := by linarith
-    simp [e1, e2, e3]
+  filter_upwards [eventually_ge_atTop 2, Real.log_eventually_gt_atTop 0] with n hn hn'
   field_simp ; ring
 
 lemma nnabla_bound (C : ℝ) {x : ℝ} (hx : 0 < x) :
