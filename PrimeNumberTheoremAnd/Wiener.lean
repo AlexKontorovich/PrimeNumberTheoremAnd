@@ -17,6 +17,7 @@ import Mathlib.Analysis.Distribution.FourierSchwartz
 import Mathlib.Topology.UniformSpace.UniformConvergence
 import Mathlib.MeasureTheory.Measure.Haar.Disintegration
 import Mathlib.NumberTheory.MulChar.Lemmas
+import Mathlib.Tactic
 
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.BrunTitchmarsh
@@ -54,41 +55,24 @@ lemma smooth_urysohn_support_Ioo (h1 : a < b) (h3: c < d) :
   simp only [Set.EqOn, Set.mem_setOf_eq, Set.mem_union, Set.mem_Iic, Set.mem_Ici,
     ContMDiffMap.coeFn_mk, Pi.zero_apply, Set.mem_Icc, Pi.one_apply, and_imp] at *
   use Ψ
-  constructor
-  · exact ContMDiff.contDiff hΨSmooth
-  · constructor
-    · rw [hasCompactSupport_def]
-      apply IsCompact.closure_of_subset (K := Set.Icc a d) isCompact_Icc
-      simp_rw [Function.support_subset_iff, ne_eq, <-hΨ0]
-      intro x hx
-      contrapose! hx
-      simp only [Set.mem_Icc, not_and_or] at hx
-      by_contra! h'
-      cases' hx <;> linarith
-    · constructor
-      · intro x
-        rw [Set.indicator_apply]
-        split_ifs with h
-        · simp only [Set.mem_Icc, Pi.one_apply] at *
-          simp_rw [hΨ1 x] at h
-          exact Eq.le (_root_.id h.symm)
-        · have : Ψ x ∈ Set.range Ψ := by simp only [Set.mem_range, exists_apply_eq_apply]
-          have : Ψ x ∈ Set.Icc 0 1 := hΨrange this
-          exact this.left
-      · constructor
-        · intro x
-          rw [Set.indicator_apply]
-          split_ifs with h
-          · have : Ψ x ∈ Set.range Ψ := by simp only [Set.mem_range, exists_apply_eq_apply]
-            have : Ψ x ∈ Set.Icc 0 1 := hΨrange this
-            simpa using this.2
-          · simp only [Set.mem_Ioo, Pi.one_apply] at *
-            simp only [not_and_or, not_lt] at h
-            simp_rw [hΨ0 x] at h
-            exact Eq.le h
-        · simp_rw [Function.support, ne_eq, ←hΨ0]
-          push_neg
-          simp [Set.ext_iff]
+  simp only [range_subset_iff, mem_Icc] at hΨrange
+  refine ⟨ContMDiff.contDiff hΨSmooth, ?_, ?_, ?_, ?_⟩
+  · apply HasCompactSupport.of_support_subset_isCompact (K := Set.Icc a d) isCompact_Icc
+    simp only [Function.support_subset_iff, ne_eq, mem_Icc, ← hΨ0, not_or]
+    bound
+  · apply Set.indicator_le'
+    · intro x hx
+      rw [hΨ1 x|>.mp, Pi.one_apply]
+      simpa using hx
+    · exact fun x _ ↦ (hΨrange x).1
+  · intro x
+    apply Set.le_indicator_apply
+    · exact fun _ ↦ (hΨrange x).2
+    · intro hx
+      rw [← hΨ0 x|>.mp]
+      simpa [-not_and, mem_Ioo, not_and_or, not_lt] using hx
+  · ext x
+    simp only [Function.mem_support, ne_eq, mem_Ioo, ← hΨ0, not_or, not_le]
 
 
 /-%%
