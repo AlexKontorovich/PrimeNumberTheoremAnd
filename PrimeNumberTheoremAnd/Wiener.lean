@@ -730,6 +730,14 @@ lemma Real.log_eventually_gt_atTop (a : ℝ) :
     ∀ᶠ x in atTop, a < Real.log x :=
   Real.tendsto_log_atTop.eventually (eventually_gt_atTop a)
 
+/-- Should this be a gcongr lemma? -/
+@[local gcongr]
+theorem norm_lt_norm_of_nonneg (x y : ℝ) (hx : 0 ≤ x) (hxy : x ≤ y) :
+    ‖x‖ ≤ ‖y‖ := by
+  simp_rw [Real.norm_eq_abs]
+  apply abs_le_abs hxy
+  linarith
+
 lemma nnabla_bound_aux {x : ℝ} (hx : 0 < x) :
     nnabla (fun n ↦ 1 / (n * ((2 * π) ^ 2 + Real.log (n / x) ^ 2))) =O[atTop]
     (fun n ↦ 1 / (Real.log n ^ 2 * n ^ 2)) := by
@@ -753,18 +761,14 @@ lemma nnabla_bound_aux {x : ℝ} (hx : 0 < x) :
       positivity
   have l5 : (fun n => (d (n + 1))⁻¹) =O[atTop] (fun n => (n * (Real.log n) ^ 2)⁻¹) := by
     refine IsBigO.trans ?_ l4
-    rw [isBigO_iff] ; use 1
-    have e1 : ∀ᶠ n in atTop, 0 < d n := by
-      filter_upwards [eventually_ge_atTop 1] with n hn
-      positivity
-    have e2 : ∀ᶠ n in atTop, 0 < d (n + 1) := (tendsto_atTop_add_const_right atTop (1 : ℝ) tendsto_id).eventually e1
+    rw [isBigO_iff]; use 1
     have e3 : ∀ᶠ n in atTop, d n ≤ d (n + 1) := by
       filter_upwards [eventually_ge_atTop x] with n hn
       have e2 : 1 ≤ n / x := (one_le_div (by linarith)).mpr hn
       bound
-    filter_upwards [e1, e2, e3] with n e1 e2 e3
-    simp_rw [one_mul, Real.norm_eq_abs, abs_inv, abs_eq_self.mpr e1.le, abs_eq_self.mpr e2.le, inv_le_inv₀ e2 e1]
-    exact e3
+    filter_upwards [l2, l3, e3] with n e1 e2 e3
+    simp_rw [one_mul]
+    gcongr
 
   have l6 : (fun n => d (n + 1) - d n) =O[atTop] (fun n => (Real.log n) ^ 2) := by
     simpa [d, nabla] using (nnabla_mul_log_sq ((2 * π) ^ 2) (by linarith))

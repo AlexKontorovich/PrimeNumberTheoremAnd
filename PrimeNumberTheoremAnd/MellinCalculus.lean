@@ -682,11 +682,7 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ∞ Ψ) ∧ (∀ x
         ext x
         simp only [mem_inter_iff, mem_Ioo, mem_Ici, mem_Iio, mem_Ioi,
           mem_union, not_lt, and_true, not_le]
-        constructor
-        · exact fun h ↦ h.left.left
-        · intro h
-          simp only [h, and_self, lt_or_lt_iff_ne, ne_eq, true_and]
-          constructor <;> linarith [h.left]
+        bound
       simp only [this, volume_Ioo, ENNReal.ofReal_pos, sub_pos, gt_iff_lt]
       linarith
     · simp_rw [Pi.le_def, Pi.zero_apply]
