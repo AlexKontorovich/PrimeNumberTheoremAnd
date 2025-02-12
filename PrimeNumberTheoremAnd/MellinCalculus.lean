@@ -1260,13 +1260,12 @@ if $x\geq (1+c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 0.$$
 \end{lemma}
 %%-/
-lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
-    {ε : ℝ} (hε : ε ∈ Ioo 0 1) :
-    ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), 1 + c * ε ≤ x → Smooth1 Ψ ε x = 0 := by
+lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2) :
+    ∃ (c : ℝ), 0 < c ∧ ∀ (ε x) (_ : ε ∈ Ioo 0 1), 1 + c * ε ≤ x → Smooth1 Ψ ε x = 0 := by
   set c := 2 * Real.log 2; use c
   constructor
   · simp only [c, zero_lt_two, mul_pos_iff_of_pos_left]; exact log_pos (by norm_num)
-  intro x hx
+  intro ε x hε hx
   have hx2 := Smooth1Properties_above_aux hx hε
   unfold Smooth1 MellinConvolution
   simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
