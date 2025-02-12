@@ -1143,11 +1143,11 @@ lemma Smooth1Properties_below_aux {x ε : ℝ} (hx : x ≤ 1 - Real.log 2 * ε) 
   exact (div_lt_iff₀ εpos).mp <| Smooth1Properties_estimate εpos
 
 lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
-    (ε : ℝ) (εpos: 0 < ε) (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) :
-    ∃ (c : ℝ), 0 < c ∧ ∀ (x : ℝ), 0 < x → x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
+    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) :
+    ∃ (c : ℝ), 0 < c ∧ ∀ (ε x) (_ : 0 < ε), 0 < x → x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
   set c := Real.log 2; use c
   constructor; exact log_pos (by norm_num)
-  intro x xpos hx
+  intro ε x εpos xpos hx
   have hx2 := Smooth1Properties_below_aux hx εpos
   rewrite [← DeltaSpikeMass mass_one εpos]
   unfold Smooth1 MellinConvolution
