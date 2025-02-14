@@ -1083,15 +1083,15 @@ lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν
   simp only [MellinTransform, zero_sub, sub_right_inj, cpow_neg_one, ← div_eq_mul_inv, ← ofReal_div]
   rw [← ofReal_one, ← mass_one]; convert integral_ofReal.symm
 
-lemma MellinOfDeltaSpikeAt1_asymp' {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
-    (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
-    (mass_one : ∫ x in Set.Ioi 0, ν x / x = 1) :
-    ∃ (c : ℝ) (_ : 0 < c), ∀ (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
-      ‖(𝓜 (ν ·) ε) - 1‖ ≤ c * ε := by
-  have := MellinOfDeltaSpikeAt1_asymp diffν suppν mass_one
-  rw [Asymptotics.isBigO_iff] at this
-  obtain ⟨c, mainBnd⟩ := this
-  sorry
+-- lemma MellinOfDeltaSpikeAt1_asymp' {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
+--     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
+--     (mass_one : ∫ x in Set.Ioi 0, ν x / x = 1) :
+--     ∃ (c : ℝ) (_ : 0 < c), ∀ (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
+--       ‖(𝓜 (ν ·) ε) - 1‖ ≤ c * ε := by
+--   have := MellinOfDeltaSpikeAt1_asymp diffν suppν mass_one
+--   rw [Asymptotics.isBigO_iff] at this
+--   obtain ⟨c, mainBnd⟩ := this
+--   sorry
   -- refine ⟨c, ?_, ?_⟩
   -- · sorry
   -- · intro ε εpos εlt1
@@ -1538,8 +1538,10 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) =
 \frac{1}{s}\left(\mathcal{M}(\nu)\left(\epsilon s\right)\right).$$
 \end{lemma}
 %%-/
-lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν) (suppν : ν.support ⊆ Icc (1 / 2) 2)
-    {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) : 𝓜 ((Smooth1 ν ε) ·) s = 1 / s * 𝓜 (ν ·) (ε * s) := by
+lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
+    (suppν : ν.support ⊆ Icc (1 / 2) 2)
+    {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) :
+    𝓜 ((Smooth1 ν ε) ·) s = s⁻¹ * 𝓜 (ν ·) (ε * s) := by
   let f' : ℝ → ℂ := fun x ↦ DeltaSpike ν ε x
   let f : ℝ → ℂ := fun x ↦ DeltaSpike ν ε x / x
   let g : ℝ → ℂ := fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0
@@ -1654,10 +1656,15 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\righ
 \end{lemma}
 %%-/
 lemma MellinOfSmooth1b {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
-    (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
-    {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (σ₁_lt_σ₂ : σ₁ < σ₂) :
-    ∃ (C : ℝ) (_ : 0 < C), ∀ (s) (_ : σ₁ ≤ s.re) (_ : s.re ≤ σ₂) (ε : ℝ) (_ : 0 < ε),
+    (suppν : ν.support ⊆ Set.Icc (1 / 2) 2) :
+    ∃ (C : ℝ) (_ : 0 < C), ∀ (σ₁ : ℝ) (_ : 0 < σ₁)
+    (s) (_ : σ₁ ≤ s.re) (_ : s.re ≤ 2) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
     ‖𝓜 ((Smooth1 ν ε) ·) s‖ ≤ C * (ε * ‖s‖ ^ 2)⁻¹ := by
+  obtain ⟨C, Cpos, hC⟩ := MellinOfPsi diffν suppν
+  refine ⟨C, Cpos, ?_⟩
+  intro σ₁ σ₁pos s hs1 hs2 ε εpos ε_lt_one
+  rw [MellinOfSmooth1a diffν suppν εpos <| gt_of_ge_of_gt hs1 σ₁pos]
+  have := hC (ε * σ₁) (by positivity) (ε * s) (?_) (?_)
 
   sorry
 #exit
