@@ -1021,6 +1021,14 @@ As $\epsilon\to 0$, we have
 $$\mathcal{M}(\nu_\epsilon)(1) = 1+O(\epsilon).$$
 \end{lemma}
 %%-/
+lemma MellinOfDeltaSpikeAt1_asymp' {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
+    (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
+    (mass_one : ∫ x in Set.Ioi 0, ν x / x = 1) :
+    ∃ (c : ℝ) (_ : 0 < c), ∀ (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
+      ‖(𝓜 (ν ·) ε) - 1‖ ≤ c * ε := by
+
+  sorry
+
 lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ioi 0, ν x / x = 1) :
