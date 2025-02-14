@@ -642,12 +642,12 @@ $$
 %%-/
 
 /-%%
-Let $\psi$ be a bumpfunction.
+Let $\nu$ be a bumpfunction.
 \begin{theorem}[SmoothExistence]\label{SmoothExistence}\lean{SmoothExistence}\leanok
-There exists a smooth (once differentiable would be enough), nonnegative ``bumpfunction'' $\psi$,
+There exists a smooth (once differentiable would be enough), nonnegative ``bumpfunction'' $\nu$,
  supported in $[1/2,2]$ with total mass one:
 $$
-\int_0^\infty \psi(x)\frac{dx}{x} = 1.
+\int_0^\infty \nu(x)\frac{dx}{x} = 1.
 $$
 \end{theorem}
 %%-/
@@ -755,11 +755,11 @@ lemma MellinOfPsi_aux {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     rw [integral_mul_left]
 
 /-%%
-The $\psi$ function has Mellin transform $\mathcal{M}(\psi)(s)$ which is entire and decays (at
+The $\nu$ function has Mellin transform $\mathcal{M}(\nu)(s)$ which is entire and decays (at
 least) like $1/|s|$.
 \begin{theorem}[MellinOfPsi]\label{MellinOfPsi}\lean{MellinOfPsi}\leanok
-The Mellin transform of $\psi$ is
-$$\mathcal{M}(\psi)(s) =  O\left(\frac{1}{|s|}\right),$$
+The Mellin transform of $\nu$ is
+$$\mathcal{M}(\nu)(s) =  O\left(\frac{1}{|s|}\right),$$
 as $|s|\to\infty$ with $\sigma_1 \le \Re(s) \le \sigma_2$.
 \end{theorem}
 
@@ -811,11 +811,11 @@ lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
 \uses{MellinTransform, SmoothExistence}
 Integrate by parts:
 $$
-\left|\int_0^\infty \psi(x)x^s\frac{dx}{x}\right| =
-\left|-\int_0^\infty \psi'(x)\frac{x^{s}}{s}dx\right|
+\left|\int_0^\infty \nu(x)x^s\frac{dx}{x}\right| =
+\left|-\int_0^\infty \nu'(x)\frac{x^{s}}{s}dx\right|
 $$
 $$
-\le \frac{1}{|s|} \int_{1/2}^2|\psi'(x)|x^{\Re(s)}dx.
+\le \frac{1}{|s|} \int_{1/2}^2|\nu'(x)|x^{\Re(s)}dx.
 $$
 Since $\Re(s)$ is bounded, the right-hand side is bounded by a
 constant times $1/|s|$.
@@ -826,9 +826,9 @@ constant times $1/|s|$.
 We can make a delta spike out of this bumpfunction, as follows.
 \begin{definition}[DeltaSpike]\label{DeltaSpike}\lean{DeltaSpike}\leanok
 \uses{SmoothExistence}
-Let $\psi$ be a bumpfunction supported in $[1/2,2]$. Then for any $\epsilon>0$, we define the
-delta spike $\psi_\epsilon$ to be the function from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
-$$\psi_\epsilon(x) = \frac{1}{\epsilon}\psi\left(x^{\frac{1}{\epsilon}}\right).$$
+Let $\nu$ be a bumpfunction supported in $[1/2,2]$. Then for any $\epsilon>0$, we define the
+delta spike $\nu_\epsilon$ to be the function from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
+$$\nu_\epsilon(x) = \frac{1}{\epsilon}\nu\left(x^{\frac{1}{\epsilon}}\right).$$
 \end{definition}
 %%-/
 
@@ -839,7 +839,7 @@ noncomputable def DeltaSpike (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
 This spike still has mass one:
 \begin{lemma}[DeltaSpikeMass]\label{DeltaSpikeMass}\lean{DeltaSpikeMass}\leanok
 For any $\epsilon>0$, we have
-$$\int_0^\infty \psi_\epsilon(x)\frac{dx}{x} = 1.$$
+$$\int_0^\infty \nu_\epsilon(x)\frac{dx}{x} = 1.$$
 \end{lemma}
 %%-/
 
@@ -864,7 +864,7 @@ lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (mass_one: ∫ x in Ioi 0, Ψ x / x = 1)
 /-%%
 \begin{proof}\leanok
 \uses{DeltaSpike}
-Substitute $y=x^{1/\epsilon}$, and use the fact that $\psi$ has mass one, and that $dx/x$ is Haar
+Substitute $y=x^{1/\epsilon}$, and use the fact that $\nu$ has mass one, and that $dx/x$ is Haar
 measure.
 \end{proof}
 %%-/
@@ -908,8 +908,8 @@ lemma DeltaSpikeOfRealContinuous {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) 
 /-%%
 The Mellin transform of the delta spike is easy to compute.
 \begin{theorem}[MellinOfDeltaSpike]\label{MellinOfDeltaSpike}\lean{MellinOfDeltaSpike}\leanok
-For any $\epsilon>0$, the Mellin transform of $\psi_\epsilon$ is
-$$\mathcal{M}(\psi_\epsilon)(s) = \mathcal{M}(\psi)\left(\epsilon s\right).$$
+For any $\epsilon>0$, the Mellin transform of $\nu_\epsilon$ is
+$$\mathcal{M}(\nu_\epsilon)(s) = \mathcal{M}(\nu)\left(\epsilon s\right).$$
 \end{theorem}
 %%-/
 theorem MellinOfDeltaSpike (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : ℂ) :
@@ -942,12 +942,12 @@ Substitute $y=x^{1/\epsilon}$, use Haar measure; direct calculation.
 %%-/
 
 /-%%
-In particular, for $s=1$, we have that the Mellin transform of $\psi_\epsilon$ is $1+O(\epsilon)$.
+In particular, for $s=1$, we have that the Mellin transform of $\nu_\epsilon$ is $1+O(\epsilon)$.
 \begin{corollary}[MellinOfDeltaSpikeAt1]\label{MellinOfDeltaSpikeAt1}\lean{MellinOfDeltaSpikeAt1}
 \leanok
 For any $\epsilon>0$, we have
-$$\mathcal{M}(\psi_\epsilon)(1) =
-\mathcal{M}(\psi)(\epsilon).$$
+$$\mathcal{M}(\nu_\epsilon)(1) =
+\mathcal{M}(\nu)(\epsilon).$$
 \end{corollary}
 %%-/
 
@@ -965,7 +965,7 @@ This is immediate from the above theorem.
 \begin{lemma}[MellinOfDeltaSpikeAt1_asymp]\label{MellinOfDeltaSpikeAt1_asymp}
 \lean{MellinOfDeltaSpikeAt1_asymp}\leanok
 As $\epsilon\to 0$, we have
-$$\mathcal{M}(\psi_\epsilon)(1) = 1+O(\epsilon).$$
+$$\mathcal{M}(\nu_\epsilon)(1) = 1+O(\epsilon).$$
 \end{lemma}
 %%-/
 lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
@@ -995,25 +995,25 @@ lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ
 \uses{MellinTransform,MellinOfDeltaSpikeAt1,SmoothExistence}
 By Lemma \ref{MellinOfDeltaSpikeAt1},
 $$
-  \mathcal M(\psi_\epsilon)(1)=\mathcal M(\psi)(\epsilon)
+  \mathcal M(\nu_\epsilon)(1)=\mathcal M(\nu)(\epsilon)
 $$
 which by Definition \ref{MellinTransform} is
 $$
-  \mathcal M(\psi)(\epsilon)=\int_0^\infty\psi(x)x^{\epsilon-1}dx
+  \mathcal M(\nu)(\epsilon)=\int_0^\infty\nu(x)x^{\epsilon-1}dx
   .
 $$
-Since $\psi(x) x^{\epsilon-1}$ is integrable (because $\psi$ is continuous and compactly supported),
+Since $\nu(x) x^{\epsilon-1}$ is integrable (because $\nu$ is continuous and compactly supported),
 $$
-  \mathcal M(\psi)(\epsilon)-\int_0^\infty\psi(x)\frac{dx}x=\int_0^\infty\psi(x)(x^{\epsilon-1}-x^{-1})dx
+  \mathcal M(\nu)(\epsilon)-\int_0^\infty\nu(x)\frac{dx}x=\int_0^\infty\nu(x)(x^{\epsilon-1}-x^{-1})dx
   .
 $$
 By Taylor's theorem,
 $$
   x^{\epsilon-1}-x^{-1}=O(\epsilon)
 $$
-so, since $\psi$ is absolutely integrable,
+so, since $\nu$ is absolutely integrable,
 $$
-  \mathcal M(\psi)(\epsilon)-\int_0^\infty\psi(x)\frac{dx}x=O(\epsilon)
+  \mathcal M(\nu)(\epsilon)-\int_0^\infty\nu(x)\frac{dx}x=O(\epsilon)
   .
 $$
 We conclude the proof using Theorem \ref{SmoothExistence}.
@@ -1047,12 +1047,12 @@ This is a straightforward calculation.
 
 /-%%
 What will be essential for us is properties of the smooth version of $1_{(0,1]}$, obtained as the
- Mellin convolution of $1_{(0,1]}$ with $\psi_\epsilon$.
+ Mellin convolution of $1_{(0,1]}$ with $\nu_\epsilon$.
 \begin{definition}[Smooth1]\label{Smooth1}\lean{Smooth1}
 \uses{MellinOf1, MellinConvolution}\leanok
 Let $\epsilon>0$. Then we define the smooth function $\widetilde{1_{\epsilon}}$ from
 $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
-$$\widetilde{1_{\epsilon}} = 1_{(0,1]}\ast\psi_\epsilon.$$
+$$\widetilde{1_{\epsilon}} = 1_{(0,1]}\ast\nu_\epsilon.$$
 \end{definition}
 %%-/
 noncomputable def Smooth1 (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
@@ -1170,24 +1170,24 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
 /-%%
 \begin{proof}\leanok
 \uses{Smooth1, MellinConvolution,DeltaSpikeMass, Smooth1Properties_estimate}
-Opening the definition, we have that the Mellin convolution of $1_{(0,1]}$ with $\psi_\epsilon$ is
+Opening the definition, we have that the Mellin convolution of $1_{(0,1]}$ with $\nu_\epsilon$ is
 $$
-\int_0^\infty 1_{(0,1]}(y)\psi_\epsilon(x/y)\frac{dy}{y}
+\int_0^\infty 1_{(0,1]}(y)\nu_\epsilon(x/y)\frac{dy}{y}
 =
-\int_0^1 \psi_\epsilon(x/y)\frac{dy}{y}.
+\int_0^1 \nu_\epsilon(x/y)\frac{dy}{y}.
 $$
-The support of $\psi_\epsilon$ is contained in $[1/2^\epsilon,2^\epsilon]$, so it suffices to consider
+The support of $\nu_\epsilon$ is contained in $[1/2^\epsilon,2^\epsilon]$, so it suffices to consider
 $y \in [1/2^\epsilon x,2^\epsilon x]$ for nonzero contributions. If $x < 2^{-\epsilon}$, then the integral is the same as that over $(0,\infty)$:
 $$
-\int_0^1 \psi_\epsilon(x/y)\frac{dy}{y}
+\int_0^1 \nu_\epsilon(x/y)\frac{dy}{y}
 =
-\int_0^\infty \psi_\epsilon(x/y)\frac{dy}{y},
+\int_0^\infty \nu_\epsilon(x/y)\frac{dy}{y},
 $$
 in which we change variables to $z=x/y$ (using $x>0$):
 $$
-\int_0^\infty \psi_\epsilon(x/y)\frac{dy}{y}
+\int_0^\infty \nu_\epsilon(x/y)\frac{dy}{y}
 =
-\int_0^\infty \psi_\epsilon(z)\frac{dz}{z},
+\int_0^\infty \nu_\epsilon(z)\frac{dz}{z},
 $$
 which is equal to one by Lemma \ref{DeltaSpikeMass}.
 We then choose
@@ -1292,8 +1292,8 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
 \begin{proof}\leanok
 \uses{Smooth1, MellinConvolution, Smooth1Properties_estimate}
 Again the Mellin convolution is
-$$\int_0^1 \psi_\epsilon(x/y)\frac{dy}{y},$$
-but now if $x > 2^\epsilon$, then the support of $\psi_\epsilon$ is disjoint
+$$\int_0^1 \nu_\epsilon(x/y)\frac{dy}{y},$$
+but now if $x > 2^\epsilon$, then the support of $\nu_\epsilon$ is disjoint
 from the region of integration, and hence the integral is zero.
 We choose
 $$
@@ -1335,7 +1335,7 @@ lemma MellinConvNonNeg_of_NonNeg {f g : ℝ → ℝ} (f_nonneg : ∀ x > 0, 0 �
 
 /-%%
 \begin{lemma}[Smooth1Nonneg]\label{Smooth1Nonneg}\lean{Smooth1Nonneg}\leanok
-If $\psi$ is nonnegative, then $\widetilde{1_{\epsilon}}(x)$ is nonnegative.
+If $\nu$ is nonnegative, then $\widetilde{1_{\epsilon}}(x)$ is nonnegative.
 \end{lemma}
 %%-/
 lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) {ε x : ℝ} (xpos : 0 < x)
@@ -1348,7 +1348,7 @@ lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) {ε x 
 \begin{proof}\uses{Smooth1, MellinConvolution, DeltaSpike}\leanok
 By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
 $$
-  \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
+  \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\nu((x/y)^{\frac1\epsilon}) \frac{dy}y
 $$
 and all the factors in the integrand are nonnegative.
 \end{proof}
@@ -1369,7 +1369,7 @@ lemma Smooth1LeOne_aux {x ε : ℝ} {Ψ : ℝ → ℝ} (xpos : 0 < x) (εpos : 0
 
 /-%%
 \begin{lemma}[Smooth1LeOne]\label{Smooth1LeOne}\lean{Smooth1LeOne}\leanok
-If $\psi$ is nonnegative and has mass one, then $\widetilde{1_{\epsilon}}(x)\le 1$, $\forall x>0$.
+If $\nu$ is nonnegative and has mass one, then $\widetilde{1_{\epsilon}}(x)\le 1$, $\forall x>0$.
 \end{lemma}
 %%-/
 lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
@@ -1402,16 +1402,16 @@ lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
 \begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike,SmoothExistence}\leanok
 By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
 $$
-  \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
+  \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\nu((x/y)^{\frac1\epsilon}) \frac{dy}y
 $$
 and since $1_{(0,1]}(y)\le 1$, and all the factors in the integrand are nonnegative,
 $$
-  \widetilde{1_\epsilon}(x)\le\int_0^\infty \frac1\epsilon\psi((x/y)^{\frac1\epsilon}) \frac{dy}y
+  \widetilde{1_\epsilon}(x)\le\int_0^\infty \frac1\epsilon\nu((x/y)^{\frac1\epsilon}) \frac{dy}y
 $$
-(because in mathlib the integral of a non-integrable function is $0$, for the inequality above to be true, we must prove that $\psi((x/y)^{\frac1\epsilon})/y$ is integrable; this follows from the computation below).
+(because in mathlib the integral of a non-integrable function is $0$, for the inequality above to be true, we must prove that $\nu((x/y)^{\frac1\epsilon})/y$ is integrable; this follows from the computation below).
 We then change variables to $z=(x/y)^{\frac1\epsilon}$:
 $$
-  \widetilde{1_\epsilon}(x)\le\int_0^\infty \psi(z) \frac{dz}z
+  \widetilde{1_\epsilon}(x)\le\int_0^\infty \nu(z) \frac{dz}z
 $$
 which by Theorem \ref{SmoothExistence} is 1.
 \end{proof}
@@ -1423,10 +1423,10 @@ transform of $\widetilde{1_{\epsilon}}$.
 \begin{lemma}[MellinOfSmooth1a]\label{MellinOfSmooth1a}\lean{MellinOfSmooth1a}\leanok
 Fix  $\epsilon>0$. Then the Mellin transform of $\widetilde{1_{\epsilon}}$ is
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) =
-\frac{1}{s}\left(\mathcal{M}(\psi)\left(\epsilon s\right)\right).$$
+\frac{1}{s}\left(\mathcal{M}(\nu)\left(\epsilon s\right)\right).$$
 \end{lemma}
 %%-/
-lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
+lemma MellinOfSmooth1a {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) : 𝓜 ((Smooth1 Ψ ε) ·) s = 1 / s * 𝓜 (Ψ ·) (ε * s) := by
   let f' : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x
   let f : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x / x
@@ -1494,42 +1494,42 @@ lemma MellinOfSmooth1a (Ψ : ℝ → ℝ) (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
 By Definition \ref{Smooth1},
 $$
   \mathcal M(\widetilde{1_\epsilon})(s)
-  =\mathcal M(1_{(0,1]}\ast\psi_\epsilon)(s)
+  =\mathcal M(1_{(0,1]}\ast\nu_\epsilon)(s)
   .
 $$
 We wish to apply Theorem \ref{MellinConvolutionTransform}.
 To do so, we must prove that
 $$
-  (x,y)\mapsto 1_{(0,1]}(y)\psi_\epsilon(x/y)/y
+  (x,y)\mapsto 1_{(0,1]}(y)\nu_\epsilon(x/y)/y
 $$
 is integrable on $[0,\infty)^2$.
-It is actually easier to do this for the convolution: $\psi_\epsilon\ast 1_{(0,1]}$, so we use Lemma \ref{MellinConvolutionSymmetric}: for $x\neq0$,
+It is actually easier to do this for the convolution: $\nu_\epsilon\ast 1_{(0,1]}$, so we use Lemma \ref{MellinConvolutionSymmetric}: for $x\neq0$,
 $$
-  1_{(0,1]}\ast\psi_\epsilon(x)=\psi_\epsilon\ast 1_{(0,1]}(x)
+  1_{(0,1]}\ast\nu_\epsilon(x)=\nu_\epsilon\ast 1_{(0,1]}(x)
   .
 $$
 Now, for $x=0$, both sides of the equation are 0, so the equation also holds for $x=0$.
 Therefore,
 $$
   \mathcal M(\widetilde{1_\epsilon})(s)
-  =\mathcal M(\psi_\epsilon\ast 1_{(0,1]})(s)
+  =\mathcal M(\nu_\epsilon\ast 1_{(0,1]})(s)
   .
 $$
 Now,
 $$
-  (x,y)\mapsto \psi_\epsilon(y)1_{(0,1]}(x/y)\frac{x^{s-1}}y
+  (x,y)\mapsto \nu_\epsilon(y)1_{(0,1]}(x/y)\frac{x^{s-1}}y
 $$
 has compact support that is bounded away from $y=0$ (specifically $y\in[2^{-\epsilon},2^\epsilon]$ and $x\in(0,y]$), so it is integrable.
 We can thus apply Theorem \ref{MellinConvolutionTransform} and find
 $$
   \mathcal M(\widetilde{1_\epsilon})(s)
-  =\mathcal M(\psi_\epsilon)(s)\mathcal M(1_{(0,1]})(s)
+  =\mathcal M(\nu_\epsilon)(s)\mathcal M(1_{(0,1]})(s)
   .
 $$
 By Lemmas \ref{MellinOf1} and \ref{MellinOfDeltaSpike},
 $$
   \mathcal M(\widetilde{1_\epsilon})(s)
-  =\frac1s\mathcal M(\psi)(\epsilon s)
+  =\frac1s\mathcal M(\nu)(\epsilon s)
   .
 $$
 \end{proof}
@@ -1550,8 +1550,10 @@ lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
       fun (s, ε) ↦ 1 / (ε * ‖s‖ ^ 2) := by
   rw [Asymptotics.isBigO_iff]
   simp only [prod_principal_principal, eventually_principal, mem_prod, mem_setOf_eq,
-    and_imp, Prod.forall]
+    and_imp, Prod.forall, norm_norm]
+  have' := MellinOfSmooth1a diffΨ suppΨ
 
+#exit
   have' := MellinOfPsi diffΨ suppΨ --(mul_pos εpos σ₁pos) (σ₂ := ε * σ₂)
   rw [Asymptotics.isBigO_iff] at this ⊢
   obtain ⟨c, hc⟩ := this
