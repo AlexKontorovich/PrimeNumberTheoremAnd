@@ -1603,6 +1603,7 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     simp only [MellinConvolution, RCLike.ofReal_div, ite_mul, one_mul, zero_mul, @apply_ite ℝ ℂ,
       algebraMap.coe_zero, f, g]; rfl
   · rw [MellinOf1 s hs, MellinOfDeltaSpike ν εpos s]
+    simp
 /-%%
 \begin{proof}\uses{Smooth1,MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1, MellinConvolutionSymmetric}\leanok
 By Definition \ref{Smooth1},
