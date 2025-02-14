@@ -1485,10 +1485,9 @@ If $\nu$ is nonnegative and has mass one, then $\widetilde{1_{\epsilon}}(x)\le 1
 \end{lemma}
 %%-/
 lemma Smooth1LeOne {ν : ℝ → ℝ} (νnonneg : ∀ x > 0, 0 ≤ ν x)
-    (mass_one : ∫ x in Ioi 0, ν x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
-    ∀ (x : ℝ), 0 < x → Smooth1 ν ε x ≤ 1 := by
+    (mass_one : ∫ x in Ioi 0, ν x / x = 1) {ε : ℝ} (εpos : 0 < ε) {x : ℝ} (xpos : 0 < x) :
+    Smooth1 ν ε x ≤ 1 := by
   unfold Smooth1 MellinConvolution DeltaSpike
-  intro x xpos
   have := Smooth1LeOne_aux xpos εpos mass_one
   calc
     _ = ∫ (y : ℝ) in Ioi 0, (fun y ↦ if y ∈ Ioc 0 1 then 1 else 0) y * (ν ((x / y) ^ (1 / ε)) / ε / y) := ?_
