@@ -1665,33 +1665,46 @@ lemma MellinOfSmooth1b {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
   refine ⟨C, Cpos, ?_⟩
   intro σ₁ σ₁pos s hs1 hs2 ε εpos ε_lt_one
   rw [MellinOfSmooth1a diffν suppν εpos <| gt_of_ge_of_gt hs1 σ₁pos]
-  have := hC (ε * σ₁) (by positivity) (ε * s) (?_) (?_)
-
-  sorry
-#exit
-  rw [Asymptotics.isBigO_iff]
-  simp only [prod_principal_principal, eventually_principal, mem_prod, mem_setOf_eq,
-    and_imp, Prod.forall, norm_norm]
---  have' := MellinOfSmooth1a diffν suppν
-
-  sorry
-#exit
-  have' := MellinOfPsi diffν suppν --(mul_pos εpos σ₁pos) (σ₂ := ε * σ₂)
-  rw [Asymptotics.isBigO_iff] at this ⊢
-  obtain ⟨c, hc⟩ := this
-  use c
-  simp only [norm_norm, norm_div, norm_one, eventually_principal, mem_setOf_eq] at hc ⊢
-  intro s hs
-  rw [MellinOfSmooth1a ν diffν suppν εpos <| gt_of_ge_of_gt hs.1 σ₁pos]
-  have : ‖𝓜 (fun x ↦ ↑(ν x)) (ε * s)‖ ≤ c * (1 / ‖ε * s‖) := by
-    refine hc (ε * s) ?_
+  have hh1 : ε * σ₁ ≤ (ε * s).re := by
     simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
-    exact ⟨(mul_le_mul_left εpos).mpr hs.1, (mul_le_mul_left εpos).mpr hs.2⟩
-  convert mul_le_mul_of_nonneg_left (a := 1 / ‖s‖) this ?_ using 1
-  · simp
-  · simp only [Complex.norm_eq_abs, norm_mul, Real.norm_eq_abs, norm_pow, Complex.abs_abs, one_div,
-    mul_inv_rev, abs_ofReal]; ring_nf
-  · exact div_nonneg (by norm_num) (norm_nonneg s)
+    nlinarith
+  have hh2 : (ε * s).re ≤ 2 := by
+    simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
+    nlinarith
+  calc
+    ‖s⁻¹ * 𝓜 (ν ·) (ε * s)‖ = ‖s⁻¹‖ * ‖𝓜 (ν ·) (ε * s)‖ := by simp
+    _                        ≤ ‖s⁻¹‖ * (C * (ε * ‖s‖)⁻¹) := by
+      gcongr
+      convert hC (ε * σ₁) (by positivity) (ε * s) hh1 hh2
+      simp [abs_eq_self.mpr εpos.le]
+    _                        = C * (ε * ‖s‖ ^ 2)⁻¹ := by
+      simp only [norm_inv, Complex.norm_eq_abs, mul_inv_rev]
+      ring
+
+--   rw [Asymptotics.isBigO_iff]
+--   simp only [prod_principal_principal, eventually_principal, mem_prod, mem_setOf_eq,
+--     and_imp, Prod.forall, norm_norm]
+-- --  have' := MellinOfSmooth1a diffν suppν
+
+--   sorry
+-- #exit
+--   have' := MellinOfPsi diffν suppν --(mul_pos εpos σ₁pos) (σ₂ := ε * σ₂)
+--   rw [Asymptotics.isBigO_iff] at this ⊢
+--   obtain ⟨c, hc⟩ := this
+--   use c
+--   simp only [norm_norm, norm_div, norm_one, eventually_principal, mem_setOf_eq] at hc ⊢
+--   intro s hs
+--   rw [MellinOfSmooth1a ν diffν suppν εpos <| gt_of_ge_of_gt hs.1 σ₁pos]
+--   have : ‖𝓜 (fun x ↦ ↑(ν x)) (ε * s)‖ ≤ c * (1 / ‖ε * s‖) := by
+--     refine hc (ε * s) ?_
+--     simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
+--     exact ⟨(mul_le_mul_left εpos).mpr hs.1, (mul_le_mul_left εpos).mpr hs.2⟩
+--   convert mul_le_mul_of_nonneg_left (a := 1 / ‖s‖) this ?_ using 1
+--   · simp
+--   · simp only [Complex.norm_eq_abs, norm_mul, Real.norm_eq_abs, norm_pow, Complex.abs_abs, one_div,
+--     mul_inv_rev, abs_ofReal]; ring_nf
+--   · exact div_nonneg (by norm_num) (norm_nonneg s)
+
 /-%%
 \begin{proof}\uses{MellinOfSmooth1a, MellinOfPsi}\leanok
 Use Lemma \ref{MellinOfSmooth1a} and the bound in Lemma \ref{MellinOfPsi}.
