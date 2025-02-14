@@ -654,30 +654,30 @@ $$
 
 attribute [- simp] one_div in
 
-lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ∞ Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
-    Ψ.support ⊆ Icc (1 / 2) 2 ∧ ∫ x in Ici 0, Ψ x / x = 1 := by
-  suffices h : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ∞ Ψ) ∧ (∀ x, 0 ≤ Ψ x) ∧
-      Ψ.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, Ψ x / x by
-    rcases h with ⟨Ψ, hΨ, hΨnonneg, hΨsupp, hΨpos⟩
-    let c := (∫ x in Ici 0, Ψ x / x)
-    use fun y ↦ Ψ y / c
-    refine ⟨hΨ.div_const c, fun y ↦ div_nonneg (hΨnonneg y) (le_of_lt hΨpos), ?_, ?_⟩
-    · rw [Function.support_div, Function.support_const (ne_of_lt hΨpos).symm, inter_univ]
-      convert hΨsupp
-    · simp only [div_right_comm _ c _, integral_div c, div_self <| ne_of_gt hΨpos, c]
+lemma SmoothExistence : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x, 0 ≤ ν x) ∧
+    ν.support ⊆ Icc (1 / 2) 2 ∧ ∫ x in Ici 0, ν x / x = 1 := by
+  suffices h : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x, 0 ≤ ν x) ∧
+      ν.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, ν x / x by
+    rcases h with ⟨ν, hν, hνnonneg, hνsupp, hνpos⟩
+    let c := (∫ x in Ici 0, ν x / x)
+    use fun y ↦ ν y / c
+    refine ⟨hν.div_const c, fun y ↦ div_nonneg (hνnonneg y) (le_of_lt hνpos), ?_, ?_⟩
+    · rw [Function.support_div, Function.support_const (ne_of_lt hνpos).symm, inter_univ]
+      convert hνsupp
+    · simp only [div_right_comm _ c _, integral_div c, div_self <| ne_of_gt hνpos, c]
 
   have := smooth_urysohn_support_Ioo (a := 1 / 2) (b := 1) (c := 3/2) (d := 2) (by linarith)
     (by linarith)
-  rcases this with ⟨Ψ, hΨContDiff, _, hΨ0, hΨ1, hΨSupport⟩
-  use Ψ, hΨContDiff
-  unfold indicator at hΨ0 hΨ1
-  simp only [mem_Icc, Pi.one_apply, Pi.le_def, mem_Ioo] at hΨ0 hΨ1
-  simp only [hΨSupport, subset_def, mem_Ioo, mem_Icc, and_imp]
+  rcases this with ⟨ν, hνContDiff, _, hν0, hν1, hνSupport⟩
+  use ν, hνContDiff
+  unfold indicator at hν0 hν1
+  simp only [mem_Icc, Pi.one_apply, Pi.le_def, mem_Ioo] at hν0 hν1
+  simp only [hνSupport, subset_def, mem_Ioo, mem_Icc, and_imp]
   split_ands
-  · exact fun x ↦ le_trans (by simp [apply_ite]) (hΨ0 x)
+  · exact fun x ↦ le_trans (by simp [apply_ite]) (hν0 x)
   · exact fun y hy hy' ↦ ⟨by linarith, by linarith⟩
   · rw [integral_pos_iff_support_of_nonneg]
-    · simp only [Function.support_div, measurableSet_Ici, Measure.restrict_apply', hΨSupport, Function.support_id]
+    · simp only [Function.support_div, measurableSet_Ici, Measure.restrict_apply', hνSupport, Function.support_id]
       have : (Ioo (1 / 2 : ℝ) 2 ∩ (Iio 0 ∪ Ioi 0) ∩ Ici 0) = Ioo (1 / 2) 2 := by
         ext x
         simp only [mem_inter_iff, mem_Ioo, mem_Ici, mem_Iio, mem_Ioi,
@@ -691,16 +691,16 @@ lemma SmoothExistence : ∃ (Ψ : ℝ → ℝ), (ContDiff ℝ ∞ Ψ) ∧ (∀ x
       linarith
     · simp_rw [Pi.le_def, Pi.zero_apply]
       intro y
-      by_cases h : y ∈ Function.support Ψ
-      . apply div_nonneg <| le_trans (by simp [apply_ite]) (hΨ0 y)
-        rw [hΨSupport, mem_Ioo] at h; linarith [h.left]
+      by_cases h : y ∈ Function.support ν
+      . apply div_nonneg <| le_trans (by simp [apply_ite]) (hν0 y)
+        rw [hνSupport, mem_Ioo] at h; linarith [h.left]
       . simp only [Function.mem_support, ne_eq, not_not] at h; simp [h]
-    · have : (fun x ↦ Ψ x / x).support ⊆ Icc (1 / 2) 2 := by
-        rw [Function.support_div, hΨSupport]
+    · have : (fun x ↦ ν x / x).support ⊆ Icc (1 / 2) 2 := by
+        rw [Function.support_div, hνSupport]
         apply subset_trans (by apply inter_subset_left) Ioo_subset_Icc_self
       apply (integrableOn_iff_integrable_of_support_subset this).mp
       apply ContinuousOn.integrableOn_compact isCompact_Icc
-      apply hΨContDiff.continuous.continuousOn.div continuousOn_id ?_
+      apply hνContDiff.continuous.continuousOn.div continuousOn_id ?_
       simp only [mem_Icc, ne_eq, and_imp, id_eq]; intros;linarith
 /-%%
 \begin{proof}\leanok
@@ -712,11 +712,11 @@ Same idea as Urysohn-type argument.
 lemma mem_within_strip (σ₁ σ₂ : ℝ) :
   {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} := by simp
 
-lemma MellinOfPsi_aux {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
-    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+lemma MellinOfPsi_aux {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
+    (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
     {s : ℂ} (hs : s ≠ 0) :
-    ∫ (x : ℝ) in Ioi 0, (Ψ x) * (x : ℂ) ^ (s - 1) =
-    - (1 / s) * ∫ (x : ℝ) in Ioi 0, (deriv Ψ x) * (x : ℂ) ^ s := by
+    ∫ (x : ℝ) in Ioi 0, (ν x) * (x : ℂ) ^ (s - 1) =
+    - (1 / s) * ∫ (x : ℝ) in Ioi 0, (deriv ν x) * (x : ℂ) ^ s := by
   let g (s : ℂ) := fun (x : ℝ)  ↦ x ^ s / s
   have gderiv {s : ℂ} (hs : s ≠ 0) {x: ℝ} (hx : x ∈ Ioi 0) :
       deriv (g s) x = x ^ (s - 1) := by
@@ -727,29 +727,29 @@ lemma MellinOfPsi_aux {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     · apply hasDerivAt_deriv_iff.mp
       simp only [this.deriv, this]
   calc
-    _ =  ∫ (x : ℝ) in Ioi 0, ↑(Ψ x) * deriv (@g s) x := ?_
-    _ = -∫ (x : ℝ) in Ioi 0, deriv (fun x ↦ ↑(Ψ x)) x * @g s x := ?_
-    _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * @g s x := ?_
-    _ = -∫ (x : ℝ) in Ioi 0, deriv Ψ x * x ^ s / s := by simp only [mul_div, g]
+    _ =  ∫ (x : ℝ) in Ioi 0, ↑(ν x) * deriv (@g s) x := ?_
+    _ = -∫ (x : ℝ) in Ioi 0, deriv (fun x ↦ ↑(ν x)) x * @g s x := ?_
+    _ = -∫ (x : ℝ) in Ioi 0, deriv ν x * @g s x := ?_
+    _ = -∫ (x : ℝ) in Ioi 0, deriv ν x * x ^ s / s := by simp only [mul_div, g]
     _ = _ := ?_
   · rw [setIntegral_congr_fun (by simp)]
     intro _ hx
     simp only [gderiv hs hx]
-  · apply PartialIntegration_of_support_in_Icc (Ψ ·) (g s)
+  · apply PartialIntegration_of_support_in_Icc (ν ·) (g s)
       (a := 1 / 2) (b := 2) (by norm_num) (by norm_num)
     · simpa only [Function.support_subset_iff, ne_eq, ofReal_eq_zero]
-    · exact (Differentiable.ofReal_comp_iff.mpr (diffΨ.differentiable (by norm_num))).differentiableOn
+    · exact (Differentiable.ofReal_comp_iff.mpr (diffν.differentiable (by norm_num))).differentiableOn
     · refine DifferentiableOn.div_const ?_ s
       intro a ha
       refine DifferentiableAt.comp_ofReal (e := fun x ↦ x ^ s) ?_ |>.differentiableWithinAt
       apply differentiableAt_id'.cpow (differentiableAt_const s) <| by exact Or.inl ha
     · simp only [deriv.ofReal_comp']
-      exact continuous_ofReal.comp (diffΨ.continuous_deriv (by norm_num)) |>.continuousOn
+      exact continuous_ofReal.comp (diffν.continuous_deriv (by norm_num)) |>.continuousOn
     · apply ContinuousOn.congr (f := fun (x : ℝ) ↦ (x : ℂ) ^ (s - 1)) ?_ fun x hx ↦ gderiv hs hx
       exact Continuous.continuousOn (by continuity) |>.cpow continuousOn_const (by simp)
   · congr; funext; congr
     apply (hasDerivAt_deriv_iff.mpr ?_).ofReal_comp.deriv
-    exact diffΨ.contDiffAt.differentiableAt (by norm_num)
+    exact diffν.contDiffAt.differentiableAt (by norm_num)
   · simp only [neg_mul, neg_inj]
     conv => lhs; rhs; intro; rw [← mul_one_div, mul_comm]
     rw [integral_mul_left]
@@ -766,32 +766,32 @@ as $|s|\to\infty$ with $\sigma_1 \le \Re(s) \le \sigma_2$.
 [Of course it decays faster than any power of $|s|$, but it turns out that we will just need one
 power.]
 %%-/
-lemma MellinOfPsi {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
-    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
+    (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
     {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) :
-    (fun s ↦ ‖𝓜 (Ψ ·) s‖)
+    (fun s ↦ ‖𝓜 (ν ·) s‖)
     =O[Filter.principal {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}]
       fun s ↦ 1 / ‖s‖ := by
-  let f := fun (x : ℝ) ↦ ‖deriv Ψ x‖
+  let f := fun (x : ℝ) ↦ ‖deriv ν x‖
   have cont : ContinuousOn f (Icc (1 / 2) 2) :=
-    (Continuous.comp (by continuity) <| diffΨ.continuous_deriv (by norm_num)).continuousOn
+    (Continuous.comp (by continuity) <| diffν.continuous_deriv (by norm_num)).continuousOn
   obtain ⟨a, _, max⟩ := isCompact_Icc.exists_isMaxOn (f := f) (by norm_num) cont
   rw [Asymptotics.isBigO_iff]
   use f a * 2 ^ σ₂ * (3 / 2)
   filter_upwards [mem_within_strip σ₁ σ₂] with s hs
   have s_ne_zero: s ≠ 0 := fun h ↦ by linarith [zero_re ▸ h ▸ hs.1]
-  simp only [MellinTransform, f, MellinOfPsi_aux diffΨ suppΨ s_ne_zero, norm_norm, norm_mul]
+  simp only [MellinTransform, f, MellinOfPsi_aux diffν suppν s_ne_zero, norm_norm, norm_mul]
   conv => rhs; rw [mul_comm]
   gcongr; simp
   calc
-    _ ≤ ∫ (x : ℝ) in Ioi 0, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
-    _ = ∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖ := ?_
-    _ ≤ ‖∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv Ψ x * (x : ℂ) ^ s)‖‖ := le_abs_self _
+    _ ≤ ∫ (x : ℝ) in Ioi 0, ‖(deriv ν x * (x : ℂ) ^ s)‖ := ?_
+    _ = ∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv ν x * (x : ℂ) ^ s)‖ := ?_
+    _ ≤ ‖∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv ν x * (x : ℂ) ^ s)‖‖ := le_abs_self _
     _ ≤ _ := ?_
   · simp_rw [norm_integral_le_integral_norm]
   · apply SetIntegral.integral_eq_integral_inter_of_support_subset_Icc
     · simp only [Function.support_abs, Function.support_mul, Function.support_ofReal]
-      apply subset_trans (by apply inter_subset_left) <| Function.support_deriv_subset_Icc suppΨ
+      apply subset_trans (by apply inter_subset_left) <| Function.support_deriv_subset_Icc suppν
     · exact (Icc_subset_Ioi_iff (by norm_num)).mpr (by norm_num)
   · have := intervalIntegral.norm_integral_le_of_norm_le_const' (C := f a * 2 ^ σ₂)
       (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 2 : ℝ)) ( b := 2) (by norm_num) ?_
@@ -832,8 +832,8 @@ $$\nu_\epsilon(x) = \frac{1}{\epsilon}\nu\left(x^{\frac{1}{\epsilon}}\right).$$
 \end{definition}
 %%-/
 
-noncomputable def DeltaSpike (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
-  fun x ↦ Ψ (x ^ (1 / ε)) / ε
+noncomputable def DeltaSpike (ν : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
+  fun x ↦ ν (x ^ (1 / ε)) / ε
 
 /-%%
 This spike still has mass one:
@@ -843,22 +843,22 @@ $$\int_0^\infty \nu_\epsilon(x)\frac{dx}{x} = 1.$$
 \end{lemma}
 %%-/
 
-lemma DeltaSpikeMass {Ψ : ℝ → ℝ} (mass_one: ∫ x in Ioi 0, Ψ x / x = 1) {ε : ℝ}
-    (εpos : 0 < ε) : ∫ x in Ioi 0, ((DeltaSpike Ψ ε) x) / x = 1 :=
+lemma DeltaSpikeMass {ν : ℝ → ℝ} (mass_one: ∫ x in Ioi 0, ν x / x = 1) {ε : ℝ}
+    (εpos : 0 < ε) : ∫ x in Ioi 0, ((DeltaSpike ν ε) x) / x = 1 :=
   calc
     _ = ∫ (x : ℝ) in Ioi 0, (|1/ε| * x ^ (1 / ε - 1)) •
-      ((fun z ↦ (Ψ z) / z) (x ^ (1 / ε))) := by
+      ((fun z ↦ (ν z) / z) (x ^ (1 / ε))) := by
       apply setIntegral_congr_ae measurableSet_Ioi
       filter_upwards with x hx
       simp only [mem_Ioi, smul_eq_mul, abs_of_pos (one_div_pos.mpr εpos)]
       symm; calc
-        _ = (Ψ (x ^ (1 / ε)) / x ^ (1 / ε)) * x ^ (1 / ε - 1) * (1 / ε) := by ring
+        _ = (ν (x ^ (1 / ε)) / x ^ (1 / ε)) * x ^ (1 / ε - 1) * (1 / ε) := by ring
         _ = _ := by rw [rpow_sub hx, rpow_one]
-        _ = (Ψ (x ^ (1 / ε)) / x ^ (1 / ε) * x ^ (1 / ε) / x) * (1/ ε) := by ring
+        _ = (ν (x ^ (1 / ε)) / x ^ (1 / ε) * x ^ (1 / ε) / x) * (1/ ε) := by ring
         _ = _ := by rw [div_mul_cancel₀ _ (ne_of_gt (rpow_pos_of_pos hx (1/ε)))]
-        _ = (Ψ (x ^ (1 / ε)) / ε / x) := by ring
+        _ = (ν (x ^ (1 / ε)) / ε / x) := by ring
     _ = 1 := by
-      rw [integral_comp_rpow_Ioi (fun z ↦ (Ψ z) / z), ← mass_one]
+      rw [integral_comp_rpow_Ioi (fun z ↦ (ν z) / z), ← mass_one]
       simp only [ne_eq, div_eq_zero_iff, one_ne_zero, εpos.ne', or_self, not_false_eq_true]
 
 /-%%
@@ -869,41 +869,41 @@ measure.
 \end{proof}
 %%-/
 
-lemma DeltaSpikeSupport_aux {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2):
-    (fun x ↦ if x < 0 then 0 else DeltaSpike Ψ ε x).support ⊆ Icc (2 ^ (-ε)) (2 ^ ε) := by
+lemma DeltaSpikeSupport_aux {ν : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (suppν : ν.support ⊆ Icc (1 / 2) 2):
+    (fun x ↦ if x < 0 then 0 else DeltaSpike ν ε x).support ⊆ Icc (2 ^ (-ε)) (2 ^ ε) := by
   unfold DeltaSpike
   simp only [one_div, Function.support_subset_iff, ne_eq, ite_eq_left_iff, not_lt, div_eq_zero_iff,
     not_forall, exists_prop, mem_Icc, and_imp]
   intro x hx h; push_neg at h
-  have := suppΨ <| Function.mem_support.mpr h.1
+  have := suppν <| Function.mem_support.mpr h.1
   simp only [one_div, mem_Icc] at this
   have hl := (le_rpow_inv_iff_of_pos (by norm_num) hx εpos).mp this.1
   rw [inv_rpow (by norm_num) ε, ← rpow_neg (by norm_num)] at hl
   refine ⟨hl, (rpow_inv_le_iff_of_pos ?_ (by norm_num) εpos).mp this.2⟩
   linarith [(by apply rpow_nonneg (by norm_num) : 0 ≤ (2 : ℝ) ^ (-ε))]
 
-lemma DeltaSpikeSupport' {Ψ : ℝ → ℝ} {ε x : ℝ} (εpos : 0 < ε) (xnonneg : 0 ≤ x)
-    (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2) :
-    DeltaSpike Ψ ε x ≠ 0 → x ∈ Icc (2 ^ (-ε)) (2 ^ ε) := by
+lemma DeltaSpikeSupport' {ν : ℝ → ℝ} {ε x : ℝ} (εpos : 0 < ε) (xnonneg : 0 ≤ x)
+    (suppν : ν.support ⊆ Icc (1 / 2) 2) :
+    DeltaSpike ν ε x ≠ 0 → x ∈ Icc (2 ^ (-ε)) (2 ^ ε) := by
   intro h
-  have : (fun x ↦ if x < 0 then 0 else DeltaSpike Ψ ε x) x = DeltaSpike Ψ ε x := by simp [xnonneg]
+  have : (fun x ↦ if x < 0 then 0 else DeltaSpike ν ε x) x = DeltaSpike ν ε x := by simp [xnonneg]
   rw [← this] at h
-  exact (Function.support_subset_iff.mp <| DeltaSpikeSupport_aux εpos suppΨ) _ h
+  exact (Function.support_subset_iff.mp <| DeltaSpikeSupport_aux εpos suppν) _ h
 
-lemma DeltaSpikeSupport {Ψ : ℝ → ℝ} {ε x : ℝ} (εpos : 0 < ε) (xnonneg : 0 ≤ x)
-    (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2) :
-    x ∉ Icc (2 ^ (-ε)) (2 ^ ε) → DeltaSpike Ψ ε x = 0 := by
-  contrapose!; exact DeltaSpikeSupport' εpos xnonneg suppΨ
+lemma DeltaSpikeSupport {ν : ℝ → ℝ} {ε x : ℝ} (εpos : 0 < ε) (xnonneg : 0 ≤ x)
+    (suppν : ν.support ⊆ Icc (1 / 2) 2) :
+    x ∉ Icc (2 ^ (-ε)) (2 ^ ε) → DeltaSpike ν ε x = 0 := by
+  contrapose!; exact DeltaSpikeSupport' εpos xnonneg suppν
 
 @[fun_prop]
-lemma DeltaSpikeContinuous {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (diffΨ : ContDiff ℝ 1 Ψ) :
-    Continuous (fun x ↦ DeltaSpike Ψ ε x) := by
-  apply diffΨ.continuous.comp (g := Ψ) _ |>.div_const
+lemma DeltaSpikeContinuous {ν : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (diffν : ContDiff ℝ 1 ν) :
+    Continuous (fun x ↦ DeltaSpike ν ε x) := by
+  apply diffν.continuous.comp (g := ν) _ |>.div_const
   exact continuous_id.rpow_const fun _ ↦ Or.inr <| div_nonneg (by norm_num) εpos.le
 
-lemma DeltaSpikeOfRealContinuous {Ψ : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (diffΨ : ContDiff ℝ 1 Ψ) :
-    Continuous (fun x ↦ (DeltaSpike Ψ ε x : ℂ)) :=
-  continuous_ofReal.comp <| DeltaSpikeContinuous εpos diffΨ
+lemma DeltaSpikeOfRealContinuous {ν : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (diffν : ContDiff ℝ 1 ν) :
+    Continuous (fun x ↦ (DeltaSpike ν ε x : ℂ)) :=
+  continuous_ofReal.comp <| DeltaSpikeContinuous εpos diffν
 
 /-%%
 The Mellin transform of the delta spike is easy to compute.
@@ -912,10 +912,10 @@ For any $\epsilon>0$, the Mellin transform of $\nu_\epsilon$ is
 $$\mathcal{M}(\nu_\epsilon)(s) = \mathcal{M}(\nu)\left(\epsilon s\right).$$
 \end{theorem}
 %%-/
-theorem MellinOfDeltaSpike (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : ℂ) :
-    𝓜 ((DeltaSpike Ψ ε) ·) s = 𝓜 (Ψ ·) (ε * s) := by
+theorem MellinOfDeltaSpike (ν : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : ℂ) :
+    𝓜 ((DeltaSpike ν ε) ·) s = 𝓜 (ν ·) (ε * s) := by
   unfold MellinTransform DeltaSpike
-  rw [← integral_comp_rpow_Ioi (fun z ↦ ((Ψ z) : ℂ) * (z : ℂ) ^ ((ε : ℂ) * s - 1))
+  rw [← integral_comp_rpow_Ioi (fun z ↦ ((ν z) : ℂ) * (z : ℂ) ^ ((ε : ℂ) * s - 1))
     (one_div_ne_zero (ne_of_gt εpos))]
   apply setIntegral_congr_ae measurableSet_Ioi
   filter_upwards with x hx
@@ -951,9 +951,9 @@ $$\mathcal{M}(\nu_\epsilon)(1) =
 \end{corollary}
 %%-/
 
-lemma MellinOfDeltaSpikeAt1 (Ψ : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) :
-    𝓜 ((DeltaSpike Ψ ε) ·) 1 = 𝓜 (Ψ ·) ε := by
-  convert MellinOfDeltaSpike Ψ εpos 1; simp [mul_one]
+lemma MellinOfDeltaSpikeAt1 (ν : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) :
+    𝓜 ((DeltaSpike ν ε) ·) 1 = 𝓜 (ν ·) ε := by
+  convert MellinOfDeltaSpike ν εpos 1; simp [mul_one]
 /-%%
 \begin{proof}\leanok
 \uses{MellinOfDeltaSpike, DeltaSpikeMass}
@@ -968,23 +968,23 @@ As $\epsilon\to 0$, we have
 $$\mathcal{M}(\nu_\epsilon)(1) = 1+O(\epsilon).$$
 \end{lemma}
 %%-/
-lemma MellinOfDeltaSpikeAt1_asymp {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
-    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
-    (mass_one : ∫ x in Set.Ioi 0, Ψ x / x = 1) :
-    (fun (ε : ℝ) ↦ (𝓜 (Ψ ·) ε) - 1) =O[𝓝[>]0] id := by
-  have diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) ↦ 𝓜 (Ψ ·) ε - 1) (Ioi 0) 0 := by
+lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
+    (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
+    (mass_one : ∫ x in Set.Ioi 0, ν x / x = 1) :
+    (fun (ε : ℝ) ↦ (𝓜 (ν ·) ε) - 1) =O[𝓝[>]0] id := by
+  have diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) ↦ 𝓜 (ν ·) ε - 1) (Ioi 0) 0 := by
     apply DifferentiableAt.differentiableWithinAt
     simp only [(differentiableAt_const _).sub_iff_left, MellinTransform_eq]
     refine DifferentiableAt.comp_ofReal ?_
     refine mellin_differentiableAt_of_isBigO_rpow (a := 1) (b := -1) ?_ ?_ (by simp) ?_ (by simp)
     · apply (Continuous.continuousOn ?_).locallyIntegrableOn (by simp)
-      have := diffΨ.continuous; continuity
+      have := diffν.continuous; continuity
     · apply Asymptotics.IsBigO.trans_le (g' := fun _ ↦ (0 : ℝ)) ?_ (by simp)
       apply BigO_zero_atTop_of_support_in_Icc (a := 1 / 2) (b := 2)
-      rwa [Ψ.support_ofReal]
+      rwa [ν.support_ofReal]
     · apply Asymptotics.IsBigO.trans_le (g' := fun _ ↦ (0 : ℝ)) ?_ (by simp)
       apply BigO_zero_atZero_of_support_in_Icc (a := 1 / 2) (b := 2) (ha := (by norm_num))
-      rwa [Ψ.support_ofReal]
+      rwa [ν.support_ofReal]
   have := ofReal_zero ▸ diff.isBigO_sub
   simp only [sub_sub_sub_cancel_right, sub_zero] at this
   convert this
@@ -1055,12 +1055,12 @@ $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
 $$\widetilde{1_{\epsilon}} = 1_{(0,1]}\ast\nu_\epsilon.$$
 \end{definition}
 %%-/
-noncomputable def Smooth1 (Ψ : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
-  MellinConvolution (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) (DeltaSpike Ψ ε)
+noncomputable def Smooth1 (ν : ℝ → ℝ) (ε : ℝ) : ℝ → ℝ :=
+  MellinConvolution (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) (DeltaSpike ν ε)
 
 -- This lemma might not be necessary, but the RHS is supported on [0, ∞), which makes results like `support_MellinConvolution_subsets` easier to apply.
-lemma Smooth1_def_ite {Ψ : ℝ → ℝ} {ε x : ℝ} (xpos : 0 < x) :
-    Smooth1 Ψ ε x = MellinConvolution (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) (fun x ↦ if x < 0 then 0 else DeltaSpike Ψ ε x) x := by
+lemma Smooth1_def_ite {ν : ℝ → ℝ} {ε x : ℝ} (xpos : 0 < x) :
+    Smooth1 ν ε x = MellinConvolution (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) (fun x ↦ if x < 0 then 0 else DeltaSpike ν ε x) x := by
   unfold Smooth1
   rw [MellinConvolutionSymmetric _ _ xpos]
   conv => lhs; rw [MellinConvolutionSymmetric _ _ xpos]
@@ -1142,9 +1142,9 @@ lemma Smooth1Properties_below_aux {x ε : ℝ} (hx : x ≤ 1 - Real.log 2 * ε) 
   rw [sub_lt_iff_lt_add, add_comm, ← sub_lt_iff_lt_add]
   exact (div_lt_iff₀ εpos).mp <| Smooth1Properties_estimate εpos
 
-lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
-    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) :
-    ∃ (c : ℝ), 0 < c ∧ ∀ (ε x) (_ : 0 < ε), 0 < x → x ≤ 1 - c * ε → Smooth1 Ψ ε x = 1 := by
+lemma Smooth1Properties_below {ν : ℝ → ℝ} (suppν : ν.support ⊆ Icc (1 / 2) 2)
+    (mass_one : ∫ x in Ioi 0, ν x / x = 1) :
+    ∃ (c : ℝ), 0 < c ∧ ∀ (ε x) (_ : 0 < ε), 0 < x → x ≤ 1 - c * ε → Smooth1 ν ε x = 1 := by
   set c := Real.log 2; use c
   constructor; exact log_pos (by norm_num)
   intro ε x εpos xpos hx
@@ -1152,9 +1152,9 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
   rewrite [← DeltaSpikeMass mass_one εpos]
   unfold Smooth1 MellinConvolution
   calc
-    _ = ∫ (y : ℝ) in Ioi 0, indicator (Ioc 0 1) (fun y ↦ DeltaSpike Ψ ε (x / y) / ↑y) y := ?_
-    _ = ∫ (y : ℝ) in Ioi 0, DeltaSpike Ψ ε (x / y) / y := ?_
-    _ = _ := integral_comp_div_I0i_haar (fun y ↦ DeltaSpike Ψ ε y) xpos
+    _ = ∫ (y : ℝ) in Ioi 0, indicator (Ioc 0 1) (fun y ↦ DeltaSpike ν ε (x / y) / ↑y) y := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, DeltaSpike ν ε (x / y) / y := ?_
+    _ = _ := integral_comp_div_I0i_haar (fun y ↦ DeltaSpike ν ε y) xpos
   · rw [setIntegral_congr_fun (by simp)]
     intro y hy
     by_cases h : y ≤ 1 <;> simp [indicator, mem_Ioi.mp hy, h]
@@ -1163,7 +1163,7 @@ lemma Smooth1Properties_below {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
     simp only [indicator_apply_eq_self, mem_Ioc, not_and, not_le, div_eq_zero_iff]
     intro hy2; replace hy2 := hy2 <| mem_Ioi.mp hy
     by_cases h : y = 0; right; exact h; left
-    apply DeltaSpikeSupport εpos ?_ suppΨ
+    apply DeltaSpikeSupport εpos ?_ suppν
     · simp only [mem_Icc, not_and, not_le]; intro
       linarith [(by apply (div_lt_iff₀ (by linarith)).mpr; nlinarith : x / y < 2 ^ (-ε))]
     · rw [le_div_iff₀ (by linarith), zero_mul]; exact xpos.le
@@ -1260,8 +1260,8 @@ if $x\geq (1+c\epsilon)$, then
 $$\widetilde{1_{\epsilon}}(x) = 0.$$
 \end{lemma}
 %%-/
-lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2) :
-    ∃ (c : ℝ), 0 < c ∧ ∀ (ε x) (_ : ε ∈ Ioo 0 1), 1 + c * ε ≤ x → Smooth1 Ψ ε x = 0 := by
+lemma Smooth1Properties_above {ν : ℝ → ℝ} (suppν : ν.support ⊆ Icc (1 / 2) 2) :
+    ∃ (c : ℝ), 0 < c ∧ ∀ (ε x) (_ : ε ∈ Ioo 0 1), 1 + c * ε ≤ x → Smooth1 ν ε x = 0 := by
   set c := 2 * Real.log 2; use c
   constructor
   · simp only [c, zero_lt_two, mul_pos_iff_of_pos_left]; exact log_pos (by norm_num)
@@ -1274,7 +1274,7 @@ lemma Smooth1Properties_above {Ψ : ℝ → ℝ} (suppΨ : Ψ.support ⊆ Icc (1
   have ypos := mem_Ioi.mp hy
   by_cases y1 : y ≤ 1; swap; simp [ypos, y1]
   simp only [mem_Ioi.mp hy, y1, and_self, ↓reduceIte, div_eq_zero_iff]; left
-  apply DeltaSpikeSupport hε.1 ?_ suppΨ
+  apply DeltaSpikeSupport hε.1 ?_ suppν
   simp only [mem_Icc, not_and, not_le]
   swap; suffices h : 2 ^ ε < x / y by
     linarith [(by apply rpow_pos_of_pos (by norm_num) : 0 < (2 : ℝ) ^ ε)]
@@ -1313,12 +1313,12 @@ $$
 \end{proof}
 %%-/
 
-lemma DeltaSpikeNonNeg_of_NonNeg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
+lemma DeltaSpikeNonNeg_of_NonNeg {ν : ℝ → ℝ} (νnonneg : ∀ x > 0, 0 ≤ ν x)
      {x ε : ℝ} (xpos : 0 < x) (εpos : 0 < ε) :
-    0 ≤ DeltaSpike Ψ ε x := by
+    0 ≤ DeltaSpike ν ε x := by
   dsimp [DeltaSpike]
   have : 0 < x ^ (1 / ε) := by positivity
-  have : 0 ≤ Ψ (x ^ (1 / ε)) := Ψnonneg _ this
+  have : 0 ≤ ν (x ^ (1 / ε)) := νnonneg _ this
   positivity
 
 lemma MellinConvNonNeg_of_NonNeg {f g : ℝ → ℝ} (f_nonneg : ∀ x > 0, 0 ≤ f x)
@@ -1338,12 +1338,12 @@ lemma MellinConvNonNeg_of_NonNeg {f g : ℝ → ℝ} (f_nonneg : ∀ x > 0, 0 �
 If $\nu$ is nonnegative, then $\widetilde{1_{\epsilon}}(x)$ is nonnegative.
 \end{lemma}
 %%-/
-lemma Smooth1Nonneg {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) {ε x : ℝ} (xpos : 0 < x)
-    (εpos : 0 < ε) : 0 ≤ Smooth1 Ψ ε x := by
+lemma Smooth1Nonneg {ν : ℝ → ℝ} (νnonneg : ∀ x > 0, 0 ≤ ν x) {ε x : ℝ} (xpos : 0 < x)
+    (εpos : 0 < ε) : 0 ≤ Smooth1 ν ε x := by
   dsimp [Smooth1]
   apply MellinConvNonNeg_of_NonNeg ?_ ?_ xpos
   · intro y hy; by_cases h : y ≤ 1 <;> simp [h, hy]
-  · intro y ypos; exact DeltaSpikeNonNeg_of_NonNeg Ψnonneg ypos εpos
+  · intro y ypos; exact DeltaSpikeNonNeg_of_NonNeg νnonneg ypos εpos
 /-%%
 \begin{proof}\uses{Smooth1, MellinConvolution, DeltaSpike}\leanok
 By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
@@ -1354,17 +1354,17 @@ and all the factors in the integrand are nonnegative.
 \end{proof}
 %%-/
 
-lemma Smooth1LeOne_aux {x ε : ℝ} {Ψ : ℝ → ℝ} (xpos : 0 < x) (εpos : 0 < ε)
-    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) :
-    ∫ (y : ℝ) in Ioi 0, Ψ ((x / y) ^ (1 / ε)) / ε / y = 1 := by
+lemma Smooth1LeOne_aux {x ε : ℝ} {ν : ℝ → ℝ} (xpos : 0 < x) (εpos : 0 < ε)
+    (mass_one : ∫ x in Ioi 0, ν x / x = 1) :
+    ∫ (y : ℝ) in Ioi 0, ν ((x / y) ^ (1 / ε)) / ε / y = 1 := by
     calc
-      _ = ∫ (y : ℝ) in Ioi 0, (Ψ (y ^ (1 / ε)) / ε) / y := ?_
-      _ = ∫ (y : ℝ) in Ioi 0, Ψ y / y := ?_
+      _ = ∫ (y : ℝ) in Ioi 0, (ν (y ^ (1 / ε)) / ε) / y := ?_
+      _ = ∫ (y : ℝ) in Ioi 0, ν y / y := ?_
       _ = 1 := mass_one
-    · have := integral_comp_div_I0i_haar (fun y ↦ Ψ ((x / y) ^ (1 / ε)) / ε) xpos
+    · have := integral_comp_div_I0i_haar (fun y ↦ ν ((x / y) ^ (1 / ε)) / ε) xpos
       convert this.symm using 1
       congr; funext y; congr; field_simp [mul_comm]
-    · have := integral_comp_rpow_I0i_haar_real (fun y ↦ Ψ y) (one_div_ne_zero εpos.ne')
+    · have := integral_comp_rpow_I0i_haar_real (fun y ↦ ν y) (one_div_ne_zero εpos.ne')
       field_simp [ ← this, abs_of_pos <| one_div_pos.mpr εpos]
 
 /-%%
@@ -1372,15 +1372,15 @@ lemma Smooth1LeOne_aux {x ε : ℝ} {Ψ : ℝ → ℝ} (xpos : 0 < x) (εpos : 0
 If $\nu$ is nonnegative and has mass one, then $\widetilde{1_{\epsilon}}(x)\le 1$, $\forall x>0$.
 \end{lemma}
 %%-/
-lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
-    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
-    ∀ (x : ℝ), 0 < x → Smooth1 Ψ ε x ≤ 1 := by
+lemma Smooth1LeOne {ν : ℝ → ℝ} (νnonneg : ∀ x > 0, 0 ≤ ν x)
+    (mass_one : ∫ x in Ioi 0, ν x / x = 1) {ε : ℝ} (εpos : 0 < ε) :
+    ∀ (x : ℝ), 0 < x → Smooth1 ν ε x ≤ 1 := by
   unfold Smooth1 MellinConvolution DeltaSpike
   intro x xpos
   have := Smooth1LeOne_aux xpos εpos mass_one
   calc
-    _ = ∫ (y : ℝ) in Ioi 0, (fun y ↦ if y ∈ Ioc 0 1 then 1 else 0) y * (Ψ ((x / y) ^ (1 / ε)) / ε / y) := ?_
-    _ ≤ ∫ (y : ℝ) in Ioi 0, (Ψ ((x / y) ^ (1 / ε)) / ε) / y := ?_
+    _ = ∫ (y : ℝ) in Ioi 0, (fun y ↦ if y ∈ Ioc 0 1 then 1 else 0) y * (ν ((x / y) ^ (1 / ε)) / ε / y) := ?_
+    _ ≤ ∫ (y : ℝ) in Ioi 0, (ν ((x / y) ^ (1 / ε)) / ε) / y := ?_
     _ = 1 := this
   · rw [setIntegral_congr_fun (by simp)]
     simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq, mem_Ioc]
@@ -1396,7 +1396,7 @@ lemma Smooth1LeOne {Ψ : ℝ → ℝ} (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
       by_cases h : y ≤ 1; aesop
       field_simp [mem_Ioc, h, and_false, reduceIte]
       apply mul_nonneg
-      · apply Ψnonneg; exact rpow_pos_of_pos (div_pos xpos <| mem_Ioi.mp hy) _
+      · apply νnonneg; exact rpow_pos_of_pos (div_pos xpos <| mem_Ioi.mp hy) _
       · apply inv_nonneg.mpr <| mul_nonneg εpos.le (mem_Ioi.mp hy).le
 /-%%
 \begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike,SmoothExistence}\leanok
@@ -1426,10 +1426,10 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) =
 \frac{1}{s}\left(\mathcal{M}(\nu)\left(\epsilon s\right)\right).$$
 \end{lemma}
 %%-/
-lemma MellinOfSmooth1a {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
-    {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) : 𝓜 ((Smooth1 Ψ ε) ·) s = 1 / s * 𝓜 (Ψ ·) (ε * s) := by
-  let f' : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x
-  let f : ℝ → ℂ := fun x ↦ DeltaSpike Ψ ε x / x
+lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν) (suppν : ν.support ⊆ Icc (1 / 2) 2)
+    {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) : 𝓜 ((Smooth1 ν ε) ·) s = 1 / s * 𝓜 (ν ·) (ε * s) := by
+  let f' : ℝ → ℂ := fun x ↦ DeltaSpike ν ε x
+  let f : ℝ → ℂ := fun x ↦ DeltaSpike ν ε x / x
   let g : ℝ → ℂ := fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0
   let F : ℝ × ℝ → ℂ := Function.uncurry fun x y ↦ f y * g (x / y) * (x : ℂ) ^ (s - 1)
   let S := {⟨x, y⟩ : ℝ × ℝ | 0 < x  ∧ x ≤ y ∧ 2 ^ (-ε) ≤ y ∧ y ≤ 2 ^ ε}
@@ -1459,7 +1459,7 @@ lemma MellinOfSmooth1a {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
       · by_cases hxy : x / y ≤ 1; swap; simp [hxy]
         have hy : y ∉ Icc (2 ^ (-ε)) (2 ^ ε) := by
           simp only [mem_Icc, not_and, not_le]; exact hS hz.1 <| (div_le_one hz.2).mp hxy
-        simp [DeltaSpikeSupport εpos hz.2.le suppΨ hy]
+        simp [DeltaSpikeSupport εpos hz.2.le suppν hy]
     · apply Integrable.piecewise Smeas ?_ integrableOn_zero
       simp only [IntegrableOn, Measure.restrict_restrict_of_subset SsubI]
       apply MeasureTheory.Integrable.mono_measure ?_
@@ -1474,7 +1474,7 @@ lemma MellinOfSmooth1a {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
         · simp [hs]
         · apply rpow_pos_of_pos (by norm_num)
       · apply (ContinuousOn.div ?_ ?_ ?_).integrableOn_compact isCompact_Icc
-        · exact (DeltaSpikeOfRealContinuous εpos diffΨ).continuousOn
+        · exact (DeltaSpikeOfRealContinuous εpos diffν).continuousOn
         · exact continuous_ofReal.continuousOn
         · intro x hx; simp only [mem_Icc] at hx; simp only [ofReal_ne_zero]
           linarith [(by apply rpow_pos_of_pos (by norm_num) : (0 : ℝ) < 2 ^ (-ε))]
@@ -1488,7 +1488,7 @@ lemma MellinOfSmooth1a {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ :
   · congr; funext x; convert integral_ofReal.symm
     simp only [MellinConvolution, RCLike.ofReal_div, ite_mul, one_mul, zero_mul, @apply_ite ℝ ℂ,
       algebraMap.coe_zero, f, g]; rfl
-  · rw [MellinOf1 s hs, MellinOfDeltaSpike Ψ εpos s]
+  · rw [MellinOf1 s hs, MellinOfDeltaSpike ν εpos s]
 /-%%
 \begin{proof}\uses{Smooth1,MellinConvolutionTransform, MellinOfDeltaSpike, MellinOf1, MellinConvolutionSymmetric}\leanok
 By Definition \ref{Smooth1},
@@ -1541,27 +1541,28 @@ Given $0<\sigma_1\le\sigma_2$, for any $s$ such that $\sigma_1\le\mathcal Re(s)\
 $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\right).$$
 \end{lemma}
 %%-/
-lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
-    (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
+lemma MellinOfSmooth1b {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
+    (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
     {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) :
-    (fun (s, ε) ↦ ‖(𝓜 ((Smooth1 Ψ ε) ·) s)‖)
+    (fun (s, ε) ↦ ‖(𝓜 ((Smooth1 ν ε) ·) s)‖)
       =O[(Filter.principal {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂}) ×ˢ
         (Filter.principal {ε | 0 < ε})]
       fun (s, ε) ↦ 1 / (ε * ‖s‖ ^ 2) := by
   rw [Asymptotics.isBigO_iff]
   simp only [prod_principal_principal, eventually_principal, mem_prod, mem_setOf_eq,
     and_imp, Prod.forall, norm_norm]
-  have' := MellinOfSmooth1a diffΨ suppΨ
+--  have' := MellinOfSmooth1a diffν suppν
 
+  sorry
 #exit
-  have' := MellinOfPsi diffΨ suppΨ --(mul_pos εpos σ₁pos) (σ₂ := ε * σ₂)
+  have' := MellinOfPsi diffν suppν --(mul_pos εpos σ₁pos) (σ₂ := ε * σ₂)
   rw [Asymptotics.isBigO_iff] at this ⊢
   obtain ⟨c, hc⟩ := this
   use c
   simp only [norm_norm, norm_div, norm_one, eventually_principal, mem_setOf_eq] at hc ⊢
   intro s hs
-  rw [MellinOfSmooth1a Ψ diffΨ suppΨ εpos <| gt_of_ge_of_gt hs.1 σ₁pos]
-  have : ‖𝓜 (fun x ↦ ↑(Ψ x)) (ε * s)‖ ≤ c * (1 / ‖ε * s‖) := by
+  rw [MellinOfSmooth1a ν diffν suppν εpos <| gt_of_ge_of_gt hs.1 σ₁pos]
+  have : ‖𝓜 (fun x ↦ ↑(ν x)) (ε * s)‖ ≤ c * (1 / ‖ε * s‖) := by
     refine hc (ε * s) ?_
     simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
     exact ⟨(mul_le_mul_left εpos).mpr hs.1, (mul_le_mul_left εpos).mpr hs.2⟩
@@ -1582,16 +1583,16 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(1) = 1+O(\epsilon)).$$
 \end{lemma}
 %%-/
 
-lemma MellinOfSmooth1c {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
-    (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
-    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) :
-    (fun ε ↦ 𝓜 ((Smooth1 Ψ ε) ·) 1 - 1) =O[𝓝[>]0] id := by
-  have h := MellinOfDeltaSpikeAt1_asymp diffΨ suppΨ mass_one
+lemma MellinOfSmooth1c {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
+    (suppν : ν.support ⊆ Icc (1 / 2) 2)
+    (mass_one : ∫ x in Ioi 0, ν x / x = 1) :
+    (fun ε ↦ 𝓜 ((Smooth1 ν ε) ·) 1 - 1) =O[𝓝[>]0] id := by
+  have h := MellinOfDeltaSpikeAt1_asymp diffν suppν mass_one
   rw [Asymptotics.isBigO_iff] at h ⊢
   obtain ⟨c, hc⟩ := h
   use c
   filter_upwards [hc, Ioo_mem_nhdsGT (by linarith : (0 : ℝ) < 1)] with ε hε hε'
-  simp_rw [MellinOfSmooth1a Ψ diffΨ suppΨ hε'.1 (s := 1) (by norm_num), mul_one]
+  simp_rw [MellinOfSmooth1a ν diffν suppν hε'.1 (s := 1) (by norm_num), mul_one]
   simpa using hε
 /-%%
 \begin{proof}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1, MellinOfDeltaSpikeAt1_asymp}\leanok
