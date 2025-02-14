@@ -806,6 +806,59 @@ lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
         have h := rpow_le_rpow xpos (mem_Icc.mp hx).2 (by linarith : 0 ≤ s.re)
         exact le_trans h <| rpow_le_rpow_of_exponent_le (by norm_num) hs.2
       convert mul_le_mul f_bound pow_bound (norm_nonneg _) ?_ using 1 <;> simp [f]
+
+-- filter-free version:
+lemma MellinOfPsi' {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
+    (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
+    {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) :
+    ∃ C > 0, ∀ (s) (_ : σ₁ ≤ s.re) (_ : s.re ≤ σ₂),
+    ‖𝓜 (ν ·) s‖ ≤ C * ‖s‖⁻¹ := by
+  let f := fun (x : ℝ) ↦ ‖deriv ν x‖
+  have cont : ContinuousOn f (Icc (1 / 2) 2) :=
+    (Continuous.comp (by continuity) <| diffν.continuous_deriv (by norm_num)).continuousOn
+  obtain ⟨a, _, max⟩ := isCompact_Icc.exists_isMaxOn (f := f) (by norm_num) cont
+  have mainBnd : ∀ (s) (_ : σ₁ ≤ s.re) (_ : s.re ≤ σ₂),
+    ‖𝓜 (fun x ↦ ↑(ν x)) s‖ ≤ f a * 2 ^ σ₂ * (3 / 2) * ‖s‖⁻¹ := by
+    intro s hs₁ hs₂
+    have s_ne_zero: s ≠ 0 := fun h ↦ by linarith [zero_re ▸ h ▸ hs₁]
+    simp only [MellinTransform, f, MellinOfPsi_aux diffν suppν s_ne_zero, norm_norm, norm_mul]
+    conv => rhs; rw [mul_comm]
+    gcongr; simp
+    calc
+      _ ≤ ∫ (x : ℝ) in Ioi 0, ‖(deriv ν x * (x : ℂ) ^ s)‖ := ?_
+      _ = ∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv ν x * (x : ℂ) ^ s)‖ := ?_
+      _ ≤ ‖∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv ν x * (x : ℂ) ^ s)‖‖ := le_abs_self _
+      _ ≤ _ := ?_
+    · simp_rw [norm_integral_le_integral_norm]
+    · apply SetIntegral.integral_eq_integral_inter_of_support_subset_Icc
+      · simp only [Function.support_abs, Function.support_mul, Function.support_ofReal]
+        apply subset_trans (by apply inter_subset_left) <| Function.support_deriv_subset_Icc suppν
+      · exact (Icc_subset_Ioi_iff (by norm_num)).mpr (by norm_num)
+    · have := intervalIntegral.norm_integral_le_of_norm_le_const' (C := f a * 2 ^ σ₂)
+        (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 2 : ℝ)) ( b := 2) (by norm_num) ?_
+      · simp only [Real.norm_eq_abs, Complex.norm_eq_abs, abs_ofReal, map_mul] at this ⊢
+        rwa [(by norm_num: |(2 : ℝ) - 1 / 2| = 3 / 2),
+            intervalIntegral.integral_of_le (by norm_num), ← integral_Icc_eq_integral_Ioc] at this
+      · intro x hx;
+        have f_bound := isMaxOn_iff.mp max x hx
+        have pow_bound : ‖(x : ℂ) ^ s‖ ≤ 2 ^ σ₂ := by
+          rw [Complex.norm_eq_abs, abs_cpow_eq_rpow_re_of_pos (by linarith [mem_Icc.mp hx])]
+          have xpos : 0 ≤ x := by linarith [(mem_Icc.mp hx).1]
+          have h := rpow_le_rpow xpos (mem_Icc.mp hx).2 (by linarith : 0 ≤ s.re)
+          exact le_trans h <| rpow_le_rpow_of_exponent_le (by norm_num) hs₂
+        convert mul_le_mul f_bound pow_bound (norm_nonneg _) ?_ using 1 <;> simp [f]
+  have fnonneg : 0 ≤ f a * 2 ^ σ₂ * (3 / 2) := by positivity
+  by_cases h : f a * 2 ^ σ₂ * (3 / 2) = 0
+  · refine ⟨1, by positivity, ?_⟩
+    intro s hs₁ hs₂
+    have := mainBnd s hs₁ hs₂
+    rw [h] at this
+    apply le_trans this <| by norm_num
+  · have fpos : 0 < f a * 2 ^ σ₂ * (3 / 2) := by
+      push_neg at h
+      exact lt_of_le_of_ne fnonneg h.symm
+    exact ⟨f a * 2 ^ σ₂ * (3 / 2), fpos, mainBnd⟩
+
 /-%%
 \begin{proof}\leanok
 \uses{MellinTransform, SmoothExistence}
