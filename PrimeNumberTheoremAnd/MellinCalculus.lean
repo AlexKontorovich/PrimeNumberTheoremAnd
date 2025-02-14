@@ -1030,8 +1030,19 @@ lemma MellinOfDeltaSpikeAt1_asymp' {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 �
     (mass_one : ∫ x in Set.Ioi 0, ν x / x = 1) :
     ∃ (c : ℝ) (_ : 0 < c), ∀ (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
       ‖(𝓜 (ν ·) ε) - 1‖ ≤ c * ε := by
-
+  have := MellinOfDeltaSpikeAt1_asymp diffν suppν mass_one
+  rw [Asymptotics.isBigO_iff] at this
+  obtain ⟨c, mainBnd⟩ := this
   sorry
+  -- refine ⟨c, ?_, ?_⟩
+  -- · sorry
+  -- · intro ε εpos εlt1
+  --   rw [Filter.eventually_iff, mem_nhdsWithin] at mainBnd
+  --   obtain ⟨u, uopen, zeroinu, hu⟩ := mainBnd
+  --   have : ∃ ε₁, 0 < ε₁ ∧ ε₁ < ε ∧ ε₁ < 1 ∧ ε₁ ∈ u := by
+  --     sorry
+
+  --   sorry
 
 /-%%
 \begin{proof}\leanok
@@ -1586,11 +1597,12 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\righ
 %%-/
 lemma MellinOfSmooth1b {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
-    {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) :
-    (fun (s, ε) ↦ ‖(𝓜 ((Smooth1 ν ε) ·) s)‖)
-      =O[(principal {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂}) ×ˢ
-        (principal {ε | 0 < ε})]
-      fun (s, ε) ↦ 1 / (ε * ‖s‖ ^ 2) := by
+    {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (σ₁_lt_σ₂ : σ₁ < σ₂) :
+    ∃ (C : ℝ) (_ : 0 < C), ∀ (s) (_ : σ₁ ≤ s.re) (_ : s.re ≤ σ₂) (ε : ℝ) (_ : 0 < ε),
+    ‖𝓜 ((Smooth1 ν ε) ·) s‖ ≤ C * (ε * ‖s‖ ^ 2)⁻¹ := by
+
+  sorry
+#exit
   rw [Asymptotics.isBigO_iff]
   simp only [prod_principal_principal, eventually_principal, mem_prod, mem_setOf_eq,
     and_imp, Prod.forall, norm_norm]
