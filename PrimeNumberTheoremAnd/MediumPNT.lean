@@ -118,7 +118,7 @@ lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : Cont
       rw [if_pos hx, ite_and, if_pos hx]
       split_ifs with hx'
       · apply mul_le_of_le_one_right hx.le
-        apply Smooth1LeOne SmoothingFpos mass_one εpos _ hx
+        apply Smooth1LeOne SmoothingFpos mass_one εpos hx
       push_neg at hx'
       apply le_of_eq
       simp only [mul_eq_zero]
@@ -341,13 +341,15 @@ lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) (X : ℝ) :
-    ∃ (C : ℝ) (_ : 0 < C), ∀ (X : ℝ) (_ : C < X) (ε : ℝ) (_ : 0 < ε),
+    ∃ (C : ℝ) (_ : 0 < C), ∀ (X : ℝ) (_ : C < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
     ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
   let C : ℝ := sorry
   have Cpos : 0 < C := sorry
-  refine ⟨C, Cpos, fun X X_ge_C ε εpos ↦ ?_⟩
+  refine ⟨C, Cpos, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
   unfold ChebyshevPsi
-  have' := SmoothedChebyshevDirichlet diffSmoothingF
+  rw [SmoothedChebyshevDirichlet diffSmoothingF SmoothingFnonneg suppSmoothingF mass_one
+    X (by linarith) _ εpos ε_lt_one]
+
 
 
 
