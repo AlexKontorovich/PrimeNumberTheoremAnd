@@ -166,8 +166,9 @@ $x \mapsto \int_{(0,\infty)} x^{1+it} \widetilde{1_{\epsilon}}(x) dx$ is continu
 \end{lemma}
 %%-/
 lemma SmoothedChebyshevDirichlet_aux_contAt {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
-    (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
-    (ε : ℝ) (εpos : 0 < ε) (y : ℝ) (ypos : 0 < y) :
+    (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
+    (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
+    {ε : ℝ} (εpos : 0 < ε) {y : ℝ} (ypos : 0 < y) :
     ContinuousAt (fun x ↦ Smooth1 SmoothingF ε x) y := by
   apply Continuous.continuousAt
   unfold Smooth1 DeltaSpike MellinConvolution
@@ -296,7 +297,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ} (diffSmoothingF : 
         suppSmoothingF mass_one ε εpos
     · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
       exact SmoothedChebyshevDirichlet_aux_contAt diffSmoothingF SmoothingFpos suppSmoothingF
-        mass_one ε εpos (n / X) (by positivity)
+        mass_one εpos (by positivity)
 /-%%
 \begin{proof}\leanok
 \uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne, MellinOfSmooth1b,
