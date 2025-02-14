@@ -369,7 +369,7 @@ contours (via rectangles!) to go
 from $2$ up to $2+iT$, then over to $1+iT$, and up from there to $1+i\infty$ (and symmetrically
 in the lower half plane).  The
 rectangles involved are all where the integrand is holomorphic, so there is no change.
-\begin{theorem}\label{SmoothedChebyshevPull1}\leanok
+\begin{theorem}[SmoothedChebyshevPull1]\label{SmoothedChebyshevPull1}\lean{SmoothedChebyshevPull1}\leanok
 We have that
 $$\psi_{\epsilon}(X) =
 \mathcal{M}(\widetilde{1_{\epsilon}})(1)
@@ -401,7 +401,7 @@ Pull rectangle contours and evaluate the pole at $s=1$.
 %%-/
 
 /-%
-\begin{theorem}\label{ZetaNoZerosOn1Line}
+\begin{theorem}[ZetaNoZerosOn1Line]\label{ZetaNoZerosOn1Line}
 The zeta function does not vanish on the 1-line.
 \end{theorem}
 This fact is already proved in Stoll's work.
@@ -446,7 +446,7 @@ The proof is as described.
 /-%%
 We insert this information in $\psi_{\epsilon}$. We add and subtract the integral over the box
 $[1-\delta,2] \times_{ℂ} [-T,T]$, which we evaluate as follows
-\begin{theorem}\label{ZetaBoxEval}
+\begin{theorem}[ZetaBoxEval]\label{ZetaBoxEval}
 The rectangle integral over $[1-\delta,2] \times_{ℂ} [-T,T]$ of the integrand in
 $\psi_{\epsilon}$ is
 $$\frac{1}{2\pi i}\int_{\partial([1-\delta,2] \times_{ℂ} [-T,T])}\frac{-\zeta'(s)}{\zeta(s)}

@@ -1543,11 +1543,16 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) = O\left(\frac{1}{\epsilon|s|^2}\righ
 %%-/
 lemma MellinOfSmooth1b {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
     (suppΨ : Ψ.support ⊆ Set.Icc (1 / 2) 2)
-    {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (ε : ℝ) (εpos : 0 < ε) :
-    (fun (s : ℂ) ↦ ‖𝓜 ((Smooth1 Ψ ε) ·) s‖)
-      =O[Filter.principal {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}]
-      fun s ↦ 1 / (ε * ‖s‖ ^ 2) := by
-  have := MellinOfPsi diffΨ suppΨ (mul_pos εpos σ₁pos) (σ₂ := ε * σ₂)
+    {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) :
+    (fun (s, ε) ↦ ‖(𝓜 ((Smooth1 Ψ ε) ·) s)‖)
+      =O[(Filter.principal {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂}) ×ˢ
+        (Filter.principal {ε | 0 < ε})]
+      fun (s, ε) ↦ 1 / (ε * ‖s‖ ^ 2) := by
+  rw [Asymptotics.isBigO_iff]
+  simp only [prod_principal_principal, eventually_principal, mem_prod, mem_setOf_eq,
+    and_imp, Prod.forall]
+
+  have' := MellinOfPsi diffΨ suppΨ --(mul_pos εpos σ₁pos) (σ₂ := ε * σ₂)
   rw [Asymptotics.isBigO_iff] at this ⊢
   obtain ⟨c, hc⟩ := this
   use c
