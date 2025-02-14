@@ -94,8 +94,7 @@ lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : Cont
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
     (ε : ℝ) (εpos : 0 < ε) (ε_lt_one : ε < 1) :
     MeasureTheory.IntegrableOn (fun x ↦ x * Smooth1 SmoothingF ε x) (Ioi 0) := by
-  obtain ⟨c, c_pos, hc⟩ := Smooth1Properties_above suppSmoothingF (ε := ε) (by simp only [mem_Ioo, εpos, ε_lt_one,
-    and_self])
+  obtain ⟨c, c_pos, hc⟩ := Smooth1Properties_above suppSmoothingF
   rw [← MeasureTheory.integrable_indicator_iff (by measurability)]
   apply MeasureTheory.Integrable.mono' (g := Ioc 0 (1+c*ε) |>.indicator fun x ↦ x)
   · refine IntegrableOn.integrable_indicator ?hg.h ?hg.hs
@@ -124,7 +123,7 @@ lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : Cont
       apply le_of_eq
       simp only [mul_eq_zero]
       right
-      apply hc _ hx'.le
+      exact hc _ _ ⟨εpos, ε_lt_one⟩ hx'.le
     · apply Set.indicator_nonneg
       simp only [mem_Ioi]
       intro x hx
