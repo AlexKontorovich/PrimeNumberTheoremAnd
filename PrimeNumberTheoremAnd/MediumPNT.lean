@@ -168,7 +168,9 @@ $x \mapsto \int_{(0,\infty)} x^{1+it} \widetilde{1_{\epsilon}}(x) dx$ is continu
 ** Conditions are overkill; can remove some assumptions... **
 \end{lemma}
 %%-/
-lemma SmoothedChebyshevDirichlet_aux_contAt {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
+lemma SmoothedChebyshevDirichlet_aux_contAt {SmoothingF : ℝ → ℝ}
+    (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
+    (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
     {ε : ℝ} (εpos : 0 < ε) {y : ℝ} (ypos : 0 < y) :
