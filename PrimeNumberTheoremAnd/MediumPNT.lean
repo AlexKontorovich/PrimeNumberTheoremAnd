@@ -186,7 +186,7 @@ The function is a sum of continuous functions, and hence continuous.
 Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
 $x \mapsto \sum_{n=1}^\infty \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\widetilde{1_{\epsilon}})(2+it) x^{2+it}$ is equal to
 $\sum_{n=1}^\infty \int_{(0,\infty)} \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\widetilde{1_{\epsilon}})(2+it) x^{2+it}$.
-** Conditions are overkill; can remove some assumptions... **
+** Conditions are overkill; can remove some assumptions... Is there really no ``tsum_integral_swap''?**
 \end{lemma}
 %%-/
 lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
@@ -330,12 +330,19 @@ We have that
 $$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X \log X).$$
 \end{theorem}
 %%-/
-lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) (X : ℝ) :
-    (fun X ↦ ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖) =O[atTop]
-      (fun X ↦ ε * X * Real.log X) := by
+    ∃ (C : ℝ) (_ : 0 < C), ∀ (X : ℝ) (_ : C < X) (ε : ℝ) (_ : 0 < ε),
+    ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
   sorry
+-- #exit
+-- lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+--     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+--     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) (X : ℝ) :
+--     (fun X ↦ ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖) =O[atTop]
+--       (fun X ↦ ε * X * Real.log X) := by
+--   sorry
 /-%%
 \begin{proof}
 \uses{SmoothedChebyshevDirichlet, Smooth1Properties_above,
