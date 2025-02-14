@@ -143,7 +143,12 @@ from Lemma \ref{Smooth1Properties_above}
 /-%%
 \begin{lemma}[SmoothedChebyshevDirichlet_aux_integrable]\label{SmoothedChebyshevDirichlet_aux_integrable}\lean{SmoothedChebyshevDirichlet_aux_integrable}\leanok
 Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
-$x \mapsto \int_{(0,\infty)} x^{1+it} \widetilde{1_{\epsilon}}(x) dx$ is integrable on $\mathbb{R}$. ** Conditions are overkill; can remove some assumptions... **
+$$
+x \mapsto
+\int_{(0,\infty)} t^{1+ix} \widetilde{1_{\epsilon}}(t) dt
+$$
+is integrable on $\mathbb{R}$. ** Conditions are overkill; can remove some assumptions... **
+\end{lemma}
 %%-/
 lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ}
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
@@ -510,8 +515,19 @@ $$ \sum_{n \leq x} \Lambda(n) = x + O(x \exp(-c(\log x)^{1/18})).$$
 \end{theorem}
 %%-/
 /-- *** Prime Number Theorem (Medium Strength) *** The `ChebyshevPsi` function is asymptotic to `x`. -/
-theorem MediumPNT : ∃ (c : ℝ) (hc : c > 0),
+theorem MediumPNT : ∃ (c : ℝ) (_ : 0 < c),
     (ChebyshevPsi - id) =O[atTop] (fun (x : ℝ) ↦ x * Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / 10))) := by
+  let c : ℝ := sorry
+  have cpos : 0 < c := sorry
+  refine ⟨c, cpos, ?_⟩
+  rw [Asymptotics.isBigO_iff]
+  let C : ℝ := sorry
+  refine ⟨C, ?_⟩
+  rw [Filter.eventually_atTop]
+  let X₀ : ℝ := sorry
+  refine ⟨X₀, ?_⟩
+  intro X X_ge_X₀
+
   sorry
 /-%%
 \begin{proof}
