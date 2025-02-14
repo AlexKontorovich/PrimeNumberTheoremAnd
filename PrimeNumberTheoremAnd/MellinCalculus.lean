@@ -1726,8 +1726,9 @@ lemma MellinOfSmooth1c {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
   obtain ⟨c, hc⟩ := h
   use c
   filter_upwards [hc, Ioo_mem_nhdsGT (by linarith : (0 : ℝ) < 1)] with ε hε hε'
-  simp_rw [MellinOfSmooth1a ν diffν suppν hε'.1 (s := 1) (by norm_num), mul_one]
-  simpa using hε
+  rw [MellinOfSmooth1a diffν suppν hε'.1 (s := 1) (by norm_num)]
+  simp only [inv_one, mul_one, one_mul, id_eq, Real.norm_eq_abs]
+  exact hε
 /-%%
 \begin{proof}\uses{MellinOfSmooth1a, MellinOfDeltaSpikeAt1, MellinOfDeltaSpikeAt1_asymp}\leanok
 Follows from Lemmas \ref{MellinOfSmooth1a}, \ref{MellinOfDeltaSpikeAt1} and \ref{MellinOfDeltaSpikeAt1_asymp}.
