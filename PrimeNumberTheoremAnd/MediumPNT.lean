@@ -190,20 +190,19 @@ $\sum_{n=1}^\infty \int_{(0,\infty)} \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\wi
 \end{lemma}
 %%-/
 lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
-    (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
+    (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
+    (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
-    (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) (X : ℝ) (X_pos : 0 < X) (ε : ℝ)
-    (εpos : 0 < ε) (ε_lt_one : ε < 1) (c : ℝ) (hc : ∀ (t : ℝ),
-      Complex.abs (𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I)) ≤
-        c * ((Complex.abs (2 + ↑t * I) ^ 2)⁻¹ * |ε|⁻¹)) :
-  ∫ (t : ℝ),
-      ∑' (n : ℕ),
-        (Λ n) / (n : ℂ) ^ (2 + t * I) * 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x)) (2 + t * I) *
-          (X : ℂ) ^ (2 + ↑t * I) =
+    (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) (X : ℝ)
+    (X_pos : 0 < X) (ε : ℝ) (εpos : 0 < ε)
+    (ε_lt_one : ε < 1) :
+    ∫ (t : ℝ),
+      ∑' (n : ℕ), (Λ n) / (n : ℂ) ^ (2 + t * I) *
+        𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + t * I) * (X : ℂ) ^ (2 + t * I) =
     ∑' (n : ℕ),
-      ∫ (t : ℝ),
-        (Λ n) / (n : ℂ) ^ (2 + t * I) * 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x)) (2 + t * I) *
-          (X : ℂ) ^ (2 + t * I) := sorry
+      ∫ (t : ℝ), (Λ n) / (n : ℂ) ^ (2 + ↑t * I) *
+        𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * (X : ℂ) ^ (2 + t * I) := by
+  sorry
 /-%%
 \begin{proof}
 \uses{Smooth1Properties_above, SmoothedChebyshevDirichlet_aux_integrable}
@@ -244,14 +243,8 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ} (diffSmoothingF : 
     rw [← tsum_mul_right, ← tsum_mul_right]
   · congr
     rw [← MellinTransform_eq]
-    have := @MellinOfSmooth1b SmoothingF diffSmoothingF suppSmoothingF 2 2 (by norm_num) ε εpos
-    simp_rw [Asymptotics.isBigO_iff] at this
-    obtain ⟨c, hc⟩ := this
-    simp only [Real.norm_eq_abs, Complex.abs_abs, one_div, mul_inv_rev, norm_mul,
-      norm_inv, norm_pow, eventually_principal, mem_setOf_eq, and_imp] at hc
-    simp only [Complex.norm_eq_abs, Complex.abs_abs] at hc
-    replace hc (t : ℝ) := hc (2 + t * I) (by simp) (by simp)
-    exact SmoothedChebyshevDirichlet_aux_tsum_integral diffSmoothingF SmoothingFpos suppSmoothingF mass_one X X_pos ε εpos ε_lt_one c hc
+    exact SmoothedChebyshevDirichlet_aux_tsum_integral diffSmoothingF SmoothingFpos
+      suppSmoothingF mass_one X X_pos ε εpos ε_lt_one
   · field_simp; congr; ext n; rw [← MeasureTheory.integral_mul_left ]; congr; ext t
     by_cases n_ne_zero : n = 0; simp [n_ne_zero]
     rw [mul_div_assoc, mul_assoc]
