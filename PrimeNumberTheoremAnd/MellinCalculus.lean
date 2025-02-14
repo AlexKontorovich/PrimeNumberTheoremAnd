@@ -199,7 +199,7 @@ lemma deriv.comp_ofReal' {e : ℂ → ℂ} (hf : Differentiable ℂ e) :
 /-%%
 \begin{lemma}[PartialIntegration]\label{PartialIntegration}\lean{PartialIntegration}\leanok
 Let $f, g$ be once differentiable functions from $\mathbb{R}_{>0}$ to $\mathbb{C}$ so that $fg'$
-and $f'g$ are both integrable, and $f*g (x)\to 0$ as $x\to 0^+,\infty$.
+and $f'g$ are both integrable, and $f\cdot g (x)\to 0$ as $x\to 0^+,\infty$.
 Then
 $$
 \int_0^\infty f(x)g'(x) dx = -\int_0^\infty f'(x)g(x)dx.
@@ -1545,8 +1545,8 @@ lemma MellinOfSmooth1b {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
     {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) :
     (fun (s, ε) ↦ ‖(𝓜 ((Smooth1 ν ε) ·) s)‖)
-      =O[(Filter.principal {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂}) ×ˢ
-        (Filter.principal {ε | 0 < ε})]
+      =O[(principal {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂}) ×ˢ
+        (principal {ε | 0 < ε})]
       fun (s, ε) ↦ 1 / (ε * ‖s‖ ^ 2) := by
   rw [Asymptotics.isBigO_iff]
   simp only [prod_principal_principal, eventually_principal, mem_prod, mem_setOf_eq,
