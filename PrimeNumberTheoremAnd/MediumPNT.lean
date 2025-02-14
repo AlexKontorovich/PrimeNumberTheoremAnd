@@ -96,7 +96,7 @@ lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : Cont
     MeasureTheory.IntegrableOn (fun x ↦ x * Smooth1 SmoothingF ε x) (Ioi 0) := by
   obtain ⟨c, c_pos, hc⟩ := Smooth1Properties_above suppSmoothingF
   rw [← MeasureTheory.integrable_indicator_iff (by measurability)]
-  apply MeasureTheory.Integrable.mono' (g := Ioc 0 (1+c*ε) |>.indicator fun x ↦ x)
+  apply MeasureTheory.Integrable.mono' (g := Ioc 0 (1 + c * ε) |>.indicator fun x ↦ x)
   · refine IntegrableOn.integrable_indicator ?hg.h ?hg.hs
     · apply Continuous.integrableOn_Ioc
       fun_prop
