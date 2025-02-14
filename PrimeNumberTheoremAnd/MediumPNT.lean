@@ -118,7 +118,7 @@ lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : Cont
       rw [if_pos hx, ite_and, if_pos hx]
       split_ifs with hx'
       · apply mul_le_of_le_one_right hx.le
-        apply Smooth1LeOne (fun x _ => SmoothingFpos x) mass_one εpos _ hx
+        apply Smooth1LeOne SmoothingFpos mass_one εpos _ hx
       push_neg at hx'
       apply le_of_eq
       simp only [mul_eq_zero]
@@ -127,7 +127,7 @@ lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : Cont
     · apply Set.indicator_nonneg
       simp only [mem_Ioi]
       intro x hx
-      have := Smooth1Nonneg (fun x _ ↦ SmoothingFpos x) hx εpos
+      have := Smooth1Nonneg SmoothingFpos hx εpos
       positivity
 
 /-%%
