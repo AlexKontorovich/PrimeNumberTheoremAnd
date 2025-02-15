@@ -101,7 +101,7 @@ lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : Cont
     · apply Continuous.integrableOn_Ioc
       fun_prop
     exact measurableSet_Ioc
-  · refine (aestronglyMeasurable_indicator_iff (by measurability)).mpr ?hf.a
+  · refine (aestronglyMeasurable_indicator_iff (by measurability)).mpr ?_
     apply MeasureTheory.AEStronglyMeasurable.mul
     · exact Measurable.aestronglyMeasurable fun ⦃t⦄ a ↦ a
     · apply MeasureTheory.AEStronglyMeasurable.mono_measure («μ» := volume)
