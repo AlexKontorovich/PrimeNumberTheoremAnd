@@ -144,7 +144,7 @@ from Lemma \ref{Smooth1Properties_above}
 /-%%
 \begin{lemma}[SmoothedChebyshevDirichlet_aux_integrable]\label{SmoothedChebyshevDirichlet_aux_integrable}\lean{SmoothedChebyshevDirichlet_aux_integrable}\leanok
 Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
-$x \mapsto \int_{(0,\infty)} x^{1+it} \widetilde{1_{\epsilon}}(x) dx$ is integrable on $\mathbb{R}$. ** Conditions are overkill; can remove some assumptions... **
+$t \mapsto \int_{(0,\infty)} x^{1+it} \widetilde{1_{\epsilon}}(x) dx$ is integrable on $\mathbb{R}$. ** Conditions are overkill; can remove some assumptions... **
 %%-/
 lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
@@ -154,8 +154,8 @@ lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ} (diff
   sorry
 /-%%
 \begin{proof}
-\uses{Smooth1Properties_above}
-We have that the integrand is bounded by $x^{1+it}$, which is integrable on $\mathbb{R}$.
+\uses{\MellinOfSmooth1b}
+By Lemma \ref{\MellinOfSmooth1b} the integrand is $O(1/t^2)$ as $t\rightarrow \pm \infty$ and hence the function is integrable.
 \end{proof}
 %%-/
 
