@@ -260,14 +260,6 @@ theorem mainSum_eq_diag_quad_form :
           (∑ d ∈ divisors P, if l ∣ d then ν d * γ d else 0) ^ 2 :=
   by apply lambdaSquared_mainSum_eq_diag_quad_form
 
-
-/-- These two are in Mathlib per #10672 -/
-theorem moebius_sq_eq_one_of_squarefree {l : ℕ} (hl : Squarefree l) : μ l ^ 2 = 1 := by
-  rw [moebius_apply_of_squarefree hl, ← pow_mul, mul_comm, pow_mul, neg_one_sq, one_pow]
-
-theorem abs_moebius_eq_one_of_squarefree {l : ℕ} (hl : Squarefree l) : |μ l| = 1 := by
-  simp only [moebius_apply_of_squarefree hl, abs_pow, abs_neg, abs_one, one_pow]
-
 theorem selberg_bound_simple_mainSum :
     s.mainSum μ⁺ = S⁻¹ :=
   by

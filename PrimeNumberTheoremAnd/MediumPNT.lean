@@ -58,13 +58,7 @@ noncomputable abbrev SmoothedChebyshevIntegrand (SmoothingF : ℝ → ℝ) (ε :
 noncomputable def SmoothedChebyshev (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
   VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) 2
 
-/-%%
-\begin{lemma}[integrable_x_mul_Smooth1]\label{integrable_x_mul_Smooth1}\lean{integrable_x_mul_Smooth1}\leanok
-Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$
-with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
-$x \mapsto x \cdot \widetilde{1_{\epsilon}}(x)$ is integrable on $(0,\infty)$.
-\end{lemma}
-%%-/
+
 open MeasureTheory
 
 @[fun_prop, measurability]
@@ -88,7 +82,13 @@ lemma Smooth1_AEStronglyMeasurable {SmoothingF : ℝ → ℝ} (diffSmoothingF : 
     · fun_prop (disch := assumption)
     · measurability
 
-
+/-%%
+\begin{lemma}[integrable_x_mul_Smooth1]\label{integrable_x_mul_Smooth1}\lean{integrable_x_mul_Smooth1}\leanok
+Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$
+with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
+$x \mapsto x \cdot \widetilde{1_{\epsilon}}(x)$ is integrable on $(0,\infty)$.
+\end{lemma}
+%%-/
 open MeasureTheory
 lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
@@ -132,7 +132,7 @@ lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : Cont
       positivity
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{Smooth1Properties_above}
 We have
 from Lemma \ref{Smooth1Properties_above}
@@ -141,14 +141,32 @@ from Lemma \ref{Smooth1Properties_above}
 \end{proof}
 %%-/
 
-lemma vertical_integrable_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
+/-%%
+\begin{lemma}[SmoothedChebyshevDirichlet_aux_integrable]\label{SmoothedChebyshevDirichlet_aux_integrable}\lean{SmoothedChebyshevDirichlet_aux_integrable}\leanok
+Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
+$x \mapsto \int_{(0,\infty)} x^{1+it} \widetilde{1_{\epsilon}}(x) dx$ is integrable on $\mathbb{R}$. ** Conditions are overkill; can remove some assumptions... **
+%%-/
+lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
     (ε : ℝ) (εpos : 0 < ε) :
     MeasureTheory.Integrable
       (fun (y : ℝ) ↦ ∫ (t : ℝ) in Ioi 0, (t : ℂ) ^ (1 + y * I) * (Smooth1 SmoothingF ε t : ℂ)) := by
   sorry
+/-%%
+\begin{proof}
+\uses{Smooth1Properties_above}
+We have that the integrand is bounded by $x^{1+it}$, which is integrable on $\mathbb{R}$.
+\end{proof}
+%%-/
 
-lemma continuousAt_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
+/-%%
+\begin{lemma}[SmoothedChebyshevDirichlet_aux_contAt]\label{SmoothedChebyshevDirichlet_aux_contAt}\lean{SmoothedChebyshevDirichlet_aux_contAt}\leanok
+Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
+$x \mapsto \int_{(0,\infty)} x^{1+it} \widetilde{1_{\epsilon}}(x) dx$ is continuous at any $y>0$.
+** Conditions are overkill; can remove some assumptions... **
+\end{lemma}
+%%-/
+lemma SmoothedChebyshevDirichlet_aux_contAt {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
     (ε : ℝ) (εpos : 0 < ε) (y : ℝ) (ypos : 0 < y) :
     ContinuousAt (fun x ↦ Smooth1 SmoothingF ε x) y := by
@@ -156,6 +174,42 @@ lemma continuousAt_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff
   unfold Smooth1 DeltaSpike MellinConvolution
   simp only [one_div, ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
   sorry
+/-%%
+\begin{proof}
+\uses{Smooth1Properties_above}
+The function is a sum of continuous functions, and hence continuous.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[SmoothedChebyshevDirichlet_aux_tsum_integral]\label{SmoothedChebyshevDirichlet_aux_tsum_integral}\lean{SmoothedChebyshevDirichlet_aux_tsum_integral}\leanok
+Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
+$x \mapsto \sum_{n=1}^\infty \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\widetilde{1_{\epsilon}})(2+it) x^{2+it}$ is equal to
+$\sum_{n=1}^\infty \int_{(0,\infty)} \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\widetilde{1_{\epsilon}})(2+it) x^{2+it}$.
+** Conditions are overkill; can remove some assumptions... **
+\end{lemma}
+%%-/
+lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
+    (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ (x : ℝ), 0 ≤ SmoothingF x)
+    (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
+    (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) (X : ℝ) (X_pos : 0 < X) (ε : ℝ)
+    (εpos : 0 < ε) (ε_lt_one : ε < 1) (c : ℝ) (hc : ∀ (t : ℝ),
+      Complex.abs (𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I)) ≤
+        c * ((Complex.abs (2 + ↑t * I) ^ 2)⁻¹ * |ε|⁻¹)) :
+  ∫ (t : ℝ),
+      ∑' (n : ℕ),
+        (Λ n) / (n : ℂ) ^ (2 + t * I) * 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x)) (2 + t * I) *
+          (X : ℂ) ^ (2 + ↑t * I) =
+    ∑' (n : ℕ),
+      ∫ (t : ℝ),
+        (Λ n) / (n : ℂ) ^ (2 + t * I) * 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x)) (2 + t * I) *
+          (X : ℂ) ^ (2 + t * I) := sorry
+/-%%
+\begin{proof}
+\uses{Smooth1Properties_above, SmoothedChebyshevDirichlet_aux_integrable}
+Interchange of summation and integration.
+\end{proof}
+%%-/
 
 /-%%
 Inserting the Dirichlet series expansion of the log derivative of zeta, we get the following.
@@ -197,7 +251,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ} (diffSmoothingF : 
       norm_inv, norm_pow, eventually_principal, mem_setOf_eq, and_imp] at hc
     simp only [Complex.norm_eq_abs, Complex.abs_abs] at hc
     replace hc (t : ℝ) := hc (2 + t * I) (by simp) (by simp)
-    sorry
+    exact SmoothedChebyshevDirichlet_aux_tsum_integral diffSmoothingF SmoothingFpos suppSmoothingF mass_one X X_pos ε εpos ε_lt_one c hc
   · field_simp; congr; ext n; rw [← MeasureTheory.integral_mul_left ]; congr; ext t
     by_cases n_ne_zero : n = 0; simp [n_ne_zero]
     rw [mul_div_assoc, mul_assoc]
@@ -238,12 +292,17 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ} (diffSmoothingF : 
     · dsimp [MellinConvergent]
       norm_num; exact_mod_cast (integrable_x_mul_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos ε_lt_one).ofReal
     · dsimp [VerticalIntegrable, mellin]
-      ring_nf; exact vertical_integrable_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos
+      ring_nf
+      apply SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos
+        suppSmoothingF mass_one ε εpos
     · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
-      exact continuousAt_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos (n / X) (by positivity)
+      exact SmoothedChebyshevDirichlet_aux_contAt diffSmoothingF SmoothingFpos suppSmoothingF
+        mass_one ε εpos (n / X) (by positivity)
 /-%%
-\begin{proof}
-\uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne, MellinOfSmooth1b}
+\begin{proof}\leanok
+\uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne, MellinOfSmooth1b,
+SmoothedChebyshevDirichlet_aux_integrable,
+SmoothedChebyshevDirichlet_aux_contAt, SmoothedChebyshevDirichlet_aux_tsum_integral}
 We have that
 $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(2)}\sum_{n=1}^\infty \frac{\Lambda(n)}{n^s}
 \mathcal{M}(\widetilde{1_{\epsilon}})(s)
@@ -278,7 +337,7 @@ We have that
 $$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X \log X).$$
 \end{theorem}
 %%-/
-lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ} (ε : ℝ) (ε_pos: 0 < ε)
+lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) (X : ℝ) :
     (fun X ↦ ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖) =O[atTop]
@@ -295,13 +354,13 @@ Take the difference. By Lemma \ref{Smooth1Properties_above} and \ref{Smooth1Prop
 the sums agree except when $1-c \epsilon \leq n/X \leq 1+c \epsilon$. This is an interval of
 length $\ll \epsilon X$, and the summands are bounded by $\Lambda(n) \ll \log X$.
 
-[No longer relevant, as we will do better than any power of log savings...: This is not enough,
-as it loses a log! (Which is fine if our target is the strong PNT, with
-exp-root-log savings, but not here with the ``softer'' approach.) So we will need something like
-the Selberg sieve (already in Mathlib? Or close?) to conclude that the number of primes in this
-interval is $\ll \epsilon X / \log X + 1$.
-(The number of prime powers is $\ll X^{1/2}$.)
-And multiplying that by $\Lambda (n) \ll \log X$ gives the desired bound.]
+%[No longer relevant, as we will do better than any power of log savings...: This is not enough,
+%as it loses a log! (Which is fine if our target is the strong PNT, with
+%exp-root-log savings, but not here with the ``softer'' approach.) So we will need something like
+%the Selberg sieve (already in Mathlib? Or close?) to conclude that the number of primes in this
+%interval is $\ll \epsilon X / \log X + 1$.
+%(The number of prime powers is $\ll X^{1/2}$.)
+%And multiplying that by $\Lambda (n) \ll \log X$ gives the desired bound.]
 \end{proof}
 %%-/
 
@@ -311,17 +370,34 @@ contours (via rectangles!) to go
 from $2$ up to $2+iT$, then over to $1+iT$, and up from there to $1+i\infty$ (and symmetrically
 in the lower half plane).  The
 rectangles involved are all where the integrand is holomorphic, so there is no change.
-\begin{theorem}\label{SmoothedChebyshevPull1}
+\begin{theorem}\label{SmoothedChebyshevPull1}\leanok
 We have that
-$$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{\text{curve}}\frac{-\zeta'(s)}{\zeta(s)}
+$$\psi_{\epsilon}(X) =
+\mathcal{M}(\widetilde{1_{\epsilon}})(1)
+X^{1} +
+ \frac{1}{2\pi i}\int_{\text{curve}}\frac{-\zeta'(s)}{\zeta(s)}
 \mathcal{M}(\widetilde{1_{\epsilon}})(s)
 X^{s}ds.$$
 \end{theorem}
 %%-/
+theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (X : ℝ) {T : ℝ} (T_pos : 0 < T) {σ₀ : ℝ}
+    (σ₀_pos : 0 < σ₀)
+    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) ((Icc σ₀ 2)×ℂ (univ : Set ℝ) \ {1}))
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
+    SmoothedChebyshev SmoothingF ε X =
+    𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X +
+    (1 / (2 * π * I)) * (∫ t : ℝ in Iic (-T), SmoothedChebyshevIntegrand SmoothingF ε X (2 + t * I)) -
+    (1 / (2 * π * I)) * (∫ s : ℝ in Icc σ₀ 2, SmoothedChebyshevIntegrand SmoothingF ε X (s - T * I)) +
+    (1 / (2 * π * I)) * (∫ t : ℝ in Icc (-T) T, SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + t * I)) +
+    (1 / (2 * π * I)) * (∫ s : ℝ in Icc σ₀ 2, SmoothedChebyshevIntegrand SmoothingF ε X (s + T * I)) +
+    (1 / (2 * π * I)) * (∫ t : ℝ in Ici T, SmoothedChebyshevIntegrand SmoothingF ε X (2 + t * I)) := by
+    --VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) 2
+  sorry
 /-%%
 \begin{proof}
 \uses{SmoothedChebyshev, RectangleIntegral}
-Pull rectangle contours.
+Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
 
