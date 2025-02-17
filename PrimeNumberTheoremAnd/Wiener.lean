@@ -206,11 +206,8 @@ $$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du = x^{\si
 \end{lemma}
 %%-/
 
-@[continuity, fun_prop]
+@[continuity]
 lemma continuous_multiplicative_ofAdd : Continuous (⇑Multiplicative.ofAdd : ℝ → ℝ) := ⟨fun _ ↦ id⟩
-
-@[fun_prop]
-lemma tmp : Continuous (fun x : ℝ ↦ Multiplicative.ofAdd x) := continuous_ofAdd
 
 attribute [fun_prop] measurable_coe_nnreal_ennreal
 
