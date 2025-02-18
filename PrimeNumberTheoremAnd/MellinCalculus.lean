@@ -313,7 +313,7 @@ lemma PerronInverseMellin_lt {t x : ℝ} (tpos : 0 < t) (t_lt_x : t < x) {σ : �
   ring
 /-%%
 \begin{proof}\leanok
-\uses{Perron.formulaLtOne}
+\uses{formulaLtOne}
 This is a straightforward calculation.
 \end{proof}
 %%-/
@@ -340,7 +340,7 @@ lemma PerronInverseMellin_gt {t x : ℝ} (xpos : 0 < x) (x_lt_t : x < t) {σ : �
   · field_simp
 /-%%
 \begin{proof}
-\uses{Perron.formulaGtOne}\leanok
+\uses{formulaGtOne}\leanok
 This is a straightforward calculation.
 \end{proof}
 %%-/

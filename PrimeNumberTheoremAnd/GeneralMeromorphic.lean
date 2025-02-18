@@ -132,7 +132,7 @@ whole theory with rectangles. The cost is the extra difficulty of this little ca
 [Note: We only ever need simple poles for PNT, so would be enough to develop those...]
 %%-/
 
-/-%%
+/-%
 If a function $f$ is meromorphic at $z_0$ with a pole of order $n$, then
 the residue at $z_0$ of the logarithmic derivative is $-n$ exactly.
 \begin{theorem}\label{ResidueOfLogDerivative}\lean{ResidueOfLogDerivative}
@@ -141,11 +141,11 @@ $$
 Res_{z_0} \frac{f'}f = -n.
 $$
 \end{theorem}
-%%-/
+%-/
 -- theorem ResidueOfLogDerivative (f : ℂ → ℂ) (z₀ : ℂ) (h : MeromorphicAt f z₀) :
 --     Res (f'/f) z₀ = -orderOfPole f z₀ := sorry
 
-/-%%
+/-%
 \begin{proof}
 \uses{Residue, PoleOrder}
 We can write $f(z) = (z-z_0)^{-n} g(z)$, where $g$ is holomorphic and $g(z_0) \neq 0$.
@@ -155,4 +155,4 @@ $$
 $$
 The residue of the first term is $-n$, and the residue of the second term is $0$.
 \end{proof}
-%%-/
+%-/

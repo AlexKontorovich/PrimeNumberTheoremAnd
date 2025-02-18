@@ -595,7 +595,7 @@ lemma contourPull {σ' σ'' : ℝ} (xpos : 0 < x) (hσ0 : 0 ∉ [[σ', σ'']]) (
 
 /-%%
 We are ready for the first case of the Perron formula, namely when $x<1$:
-\begin{lemma}[formulaLtOne]\label{formulaLtOne}\lean{Perron.formulaLtOne}\leanok
+\begin{lemma}[formulaLtOne]\label{formulaLtOne}\lean{formulaLtOne}\leanok
 For $x>0$, $\sigma>0$, and $x<1$, we have
 $$
 \frac1{2\pi i}
@@ -958,7 +958,7 @@ Pull contour from $(-3/2)$ to $(\sigma)$.
     (not_mem_uIcc_of_gt (by linarith) (by linarith))
 
 /-%%
-\begin{lemma}[formulaGtOne]\label{formulaGtOne}\lean{Perron.formulaGtOne}\leanok
+\begin{lemma}[formulaGtOne]\label{formulaGtOne}\lean{formulaGtOne}\leanok
 For $x>1$ and $\sigma>0$, we have
 $$
 \frac1{2\pi i}
