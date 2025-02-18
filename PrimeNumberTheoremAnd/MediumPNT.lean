@@ -161,8 +161,8 @@ lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ}
   sorry
 /-%%
 \begin{proof}
-\uses{\MellinOfSmooth1b}
-By Lemma \ref{\MellinOfSmooth1b} the integrand is $O(1/t^2)$ as $t\rightarrow \pm \infty$ and hence the function is integrable.
+\uses{MellinOfSmooth1b}
+By Lemma \ref{MellinOfSmooth1b} the integrand is $O(1/t^2)$ as $t\rightarrow \infty$ and hence the function is integrable.
 \end{proof}
 %%-/
 
