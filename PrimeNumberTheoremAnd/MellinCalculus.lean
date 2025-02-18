@@ -1729,3 +1729,33 @@ lemma MellinOfSmooth1c {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
 Follows from Lemmas \ref{MellinOfSmooth1a}, \ref{MellinOfDeltaSpikeAt1} and \ref{MellinOfDeltaSpikeAt1_asymp}.
 \end{proof}
 %%-/
+
+lemma Smooth1Integrable {Ψ : ℝ → ℝ} {ε : ℝ} (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
+    (hε : ε ∈ Ioo 0 1) (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
+    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) :
+    IntegrableOn (Smooth1 Ψ ε ·) (Ioi 0) := by
+  rw [← integrable_indicator_iff (by measurability)]
+  obtain ⟨c, cpos, hc⟩ := Smooth1Properties_above suppΨ
+  apply Integrable.mono' (g:= (Ioc 0 (1 + c * ε)).indicator 1)
+  · apply IntegrableOn.integrable_indicator _ (by measurability)
+    apply Continuous.integrableOn_Ioc
+    fun_prop
+  · apply (aestronglyMeasurable_indicator_iff (by measurability)).mpr
+    apply MeasureTheory.AEStronglyMeasurable.mono_measure («μ» := volume) _ (Measure.restrict_le_self)
+    sorry
+  filter_upwards [] with x
+  simp
+  simp_rw [indicator_apply, mem_Ioi, mem_Ioc]
+  by_cases hx : x ≤ 0
+  · rw [if_neg hx.not_lt, if_neg (fun h => h.1.not_le hx)]
+    simp
+  push_neg at hx
+  rw [if_pos hx, ite_and, if_pos hx]
+  split_ifs with hx'
+  · apply abs_le.mpr
+    constructor
+    · exact le_trans (by norm_num) <| Smooth1Nonneg Ψnonneg hx hε.1
+    · exact Smooth1LeOne Ψnonneg mass_one hε.1 hx
+  push_neg at hx'
+  rw [hc _ _ hε hx'.le]
+  simp
