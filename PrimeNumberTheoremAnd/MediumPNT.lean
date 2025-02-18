@@ -511,7 +511,7 @@ where:
 \section{MediumPNT}
 
 \begin{theorem}[MediumPNT]\label{MediumPNT}  We have
-$$ \sum_{n \leq x} \Lambda(n) = x + O(x \exp(-c(\log x)^{1/18})).$$
+$$ \sum_{n \leq x} \Lambda(n) = x + O(x \exp(-c(\log x)^{1/10})).$$
 \end{theorem}
 %%-/
 /-- *** Prime Number Theorem (Medium Strength) *** The `ChebyshevPsi` function is asymptotic to `x`. -/
