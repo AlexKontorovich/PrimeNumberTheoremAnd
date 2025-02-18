@@ -1395,6 +1395,14 @@ theorem pi_asymp'' :
       simp only [one_div, isUnit_iff_ne_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
         IsUnit.inv_mul_cancel, mul_one]
 
+/-%%
+\begin{theorem}[pi_asymp]\label{pi_asymp}\lean{pi_asymp}\leanok
+There exists a function $c(x)$ such that $c(x) = o(1)$ as $x \to \infty$ and
+$$ \pi(x) = (1 + c(x)) \int_2^x \frac{dt}{\log t}$$
+for all $x$ large enough.
+\end{theorem}
+%%-/
+
 theorem pi_asymp :
     ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     ∀ᶠ (x : ℝ) in atTop, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * ∫ t in Set.Icc 2 x, 1 / (log t) ∂ volume := by
