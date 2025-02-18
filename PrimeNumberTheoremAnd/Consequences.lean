@@ -227,7 +227,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     · apply this z hz
 
 /-%%
-\begin{lemma}\label{range-eq-range}\lean{finsum_range_eq_sum_range, finsum_range_eq_sum_range'}\leanok For any arithmetic function $f$ and real number $x$, one has
+\begin{lemma}[finsum_range_eq_sum_range]\label{finsum_range_eq_sum_range}\lean{finsum_range_eq_sum_range}\leanok For any arithmetic function $f$ and real number $x$, one has
 $$ \sum_{n \leq x} f(n) = \sum_{n \leq ⌊x⌋_+} f(n)$$
 and
 $$ \sum_{n < x} f(n) = \sum_{n < ⌈x⌉_+} f(n).$$
@@ -609,7 +609,7 @@ theorem chebyshev_asymptotic'' (ε : ℝ) (hε : 0 < ε) :
 
 /-%%
 \begin{proof}
-\uses{WeakPNT, range-eq-range}\leanok
+\uses{WeakPNT, finsum_range_eq_sum_range}\leanok
 From the prime number theorem we already have
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x)$$
 so it suffices to show that
@@ -619,7 +619,7 @@ Only the terms with $j \leq \log x / \log 2$ contribute, and each $j$ contribute
 %%-/
 
 /-%%
-\begin{corollary}[Bounds on primorial]  \label{primorial-bounds}\lean{primorial_bounds}\leanok
+\begin{corollary}[primorial_bounds]  \label{primorial_bounds}\lean{primorial_bounds}\leanok
 We have
   $$ \prod_{p \leq x} p = \exp( x + o(x) )$$
 \end{corollary}
@@ -1405,7 +1405,7 @@ theorem pi_asymp :
   have := integral_log_inv_pos x (by linarith)
   positivity
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{chebyshev-asymptotic}
 We have the identity
 $$ \pi(x) = \frac{1}{\log x} \sum_{p \leq x} \log p
@@ -1421,12 +1421,6 @@ for $x$ large enough, giving the claim.
 \end{proof}
 %%-/
 
-/-%%
-\begin{corollary}\label{pi-alt}\lean{pi_alt}\leanok  One has
-$$ \pi(x) = (1+o(1)) \frac{x}{\log x}$$
-as $x \to \infty$.
-\end{corollary}
-%%-/
 lemma pi_alt_Oaux1 : ∃ c, ∀ᶠ (x : ℝ) in atTop,
     ∫ (t : ℝ) in Set.Icc 2 √x, 1 / log t ^ 2 ≤ c * √x := by
   use 1 / (log 2) ^ 2
@@ -1723,6 +1717,13 @@ lemma integral_div_log_asymptotic : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ 
       constructor <;> try linarith [le_of_max_le_left hx]
       constructor <;> linarith [le_of_max_le_left hx]
 
+/-%%
+\begin{corollary}[pi_alt]\label{pi_alt}\lean{pi_alt}\leanok  One has
+$$ \pi(x) = (1+o(1)) \frac{x}{\log x}$$
+as $x \to \infty$.
+\end{corollary}
+%%-/
+
 theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
     ∀ x : ℝ, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * x / log x := by
   obtain ⟨f, hf, h⟩ := pi_asymp
@@ -1805,8 +1806,8 @@ theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
       ring
 
 /-%%
-\begin{proof}
-\uses{pi-asymp}
+\begin{proof}\leanok
+\uses{pi_asymp}
 An integration by parts gives
   $$ \int_2^x \frac{dt}{\log t} = \frac{x}{\log x} - \frac{2}{\log 2} + \int_2^x \frac{dt}{\log^2 t}.$$
 We have the crude bounds
@@ -1816,14 +1817,14 @@ $$ \int_{\sqrt{x}}^x \frac{dt}{\log^2 t} = O( \frac{x}{\log^2 x} )$$
 and combining all this we obtain
 $$ \int_2^x \frac{dt}{\log t} = \frac{x}{\log x} + O( \frac{x}{\log^2 x} )$$
 $$ = (1+o(1)) \frac{x}{\log x}$$
-and the claim then follows from Theorem \ref{pi-asymp}.
+and the claim then follows from Theorem \ref{pi_asymp}.
 \end{proof}
 %%-/
 
 /-%%
 Let $p_n$ denote the $n^{th}$ prime.
 
-\begin{proposition}\label{pn-asymptotic}\lean{pn_asymptotic}\leanok
+\begin{proposition}[pn_asymptotic]\label{pn_asymptotic}\lean{pn_asymptotic}\leanok
  One has
   $$ p_n = (1+o(1)) n \log n$$
 as $n \to \infty$.
@@ -1835,13 +1836,13 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
 
 /-%%
 \begin{proof}
-\uses{pi-alt}
-Use Corollary \ref{pi-alt} to show that for any $\eps>0$, and for $x$ sufficiently large, the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up to $(1+\eps) n \log n$ is greater than $n$.
+\uses{pi_alt}
+Use Corollary \ref{pi_alt} to show that for any $\eps>0$, and for $x$ sufficiently large, the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up to $(1+\eps) n \log n$ is greater than $n$.
 \end{proof}
 %%-/
 
 /-%%
-\begin{corollary} \label{pn-pnPlus1}\lean{pn_pn_plus_one}\leanok
+\begin{corollary}[pn_pn_plus_one] \label{pn_pn_plus_one}\lean{pn_pn_plus_one}\leanok
 We have $p_{n+1} - p_n = o(p_n)$
   as $n \to \infty$.
 \end{corollary}
@@ -2035,13 +2036,13 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) �
 
 /-%%
 \begin{proof}
-\uses{pn-asymptotic}
+\uses{pn_asymptotic}
   Easy consequence of preceding proposition.
 \end{proof}
 %%-/
 
 /-%%
-\begin{corollary}  \label{prime-between}\lean{prime_between}\leanok
+\begin{corollary}[prime_between]  \label{prime_between}\lean{prime_between}\leanok
 For every $\eps>0$, there is a prime between $x$ and $(1+\eps)x$ for all sufficiently large $x$.
 \end{corollary}
 %%-/
@@ -2053,8 +2054,8 @@ theorem prime_between {ε:ℝ} (hε: 0 < ε): ∀ᶠ x:ℝ in atTop, ∃ p:ℕ, 
 
 /-%%
 \begin{proof}
-\uses{pi-alt}
-Use Corollary \ref{pi-alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infinity as $x \to \infty$.
+\uses{pi_alt}
+Use Corollary \ref{pi_alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infinity as $x \to \infty$.
 \end{proof}
 %%-/
 
