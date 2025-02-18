@@ -161,8 +161,8 @@ lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ}
   sorry
 /-%%
 \begin{proof}
-\uses{Smooth1Properties_above}
-We have that the integrand is bounded by $x^{1+it}$, which is integrable on $\mathbb{R}$.
+\uses{\MellinOfSmooth1b}
+By Lemma \ref{\MellinOfSmooth1b} the integrand is $O(1/t^2)$ as $t\rightarrow \pm \infty$ and hence the function is integrable.
 \end{proof}
 %%-/
 
