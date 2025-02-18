@@ -484,7 +484,7 @@ X^{s}ds = \frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
 
 /-%%
 \begin{proof}
-\uses{ZeroFreeBox, RectangleBorder, RectangleIntegral, ResidueOfLogDerivative,
+\uses{RectangleBorder, RectangleIntegral,
 MellinOfSmooth1a, MellinOfSmooth1b, MellinOfSmooth1c, MellinOfDeltaSpikeAt1,
 SmoothedChebyshevPull1}
 Residue calculus / the argument principle.

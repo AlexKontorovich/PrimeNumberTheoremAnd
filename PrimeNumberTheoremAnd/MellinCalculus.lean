@@ -313,7 +313,7 @@ lemma PerronInverseMellin_lt {t x : ℝ} (tpos : 0 < t) (t_lt_x : t < x) {σ : �
   ring
 /-%%
 \begin{proof}\leanok
-\uses{Perron.formulaLtOne}
+\uses{formulaLtOne}
 This is a straightforward calculation.
 \end{proof}
 %%-/
@@ -340,7 +340,7 @@ lemma PerronInverseMellin_gt {t x : ℝ} (xpos : 0 < x) (x_lt_t : x < t) {σ : �
   · field_simp
 /-%%
 \begin{proof}
-\uses{Perron.formulaGtOne}\leanok
+\uses{formulaGtOne}\leanok
 This is a straightforward calculation.
 \end{proof}
 %%-/
@@ -1179,7 +1179,7 @@ lemma Smooth1_def_ite {ν : ℝ → ℝ} {ε x : ℝ} (xpos : 0 < x) :
   intro y ypos
   rw [eq_comm, if_neg (by push_neg; positivity)]
 
-/-%%
+/-% ** Wrong delimiters on purpose, no need to include this in blueprint
 \begin{lemma}[Smooth1Properties_estimate]\label{Smooth1Properties_estimate}
 \lean{Smooth1Properties_estimate}\leanok
 For $\epsilon>0$,
@@ -1187,7 +1187,7 @@ $$
   \log2>\frac{1-2^{-\epsilon}}\epsilon
 $$
 \end{lemma}
-%%-/
+%-/
 
 lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
     (1 - 2 ^ (-ε)) / ε < Real.log 2 := by
@@ -1277,7 +1277,7 @@ lemma Smooth1Properties_below {ν : ℝ → ℝ} (suppν : ν.support ⊆ Icc (1
     · rw [le_div_iff₀ (by linarith), zero_mul]; exact xpos.le
 /-%%
 \begin{proof}\leanok
-\uses{Smooth1, MellinConvolution,DeltaSpikeMass, Smooth1Properties_estimate}
+\uses{Smooth1, MellinConvolution,DeltaSpikeMass}
 Opening the definition, we have that the Mellin convolution of $1_{(0,1]}$ with $\nu_\epsilon$ is
 $$
 \int_0^\infty 1_{(0,1]}(y)\nu_\epsilon(x/y)\frac{dy}{y}
@@ -1398,7 +1398,7 @@ lemma Smooth1Properties_above {ν : ℝ → ℝ} (suppν : ν.support ⊆ Icc (1
   exact Smooth1Properties_above_aux2 hε ⟨ypos, y1⟩ hx2
 /-%%
 \begin{proof}\leanok
-\uses{Smooth1, MellinConvolution, Smooth1Properties_estimate}
+\uses{Smooth1, MellinConvolution}
 Again the Mellin convolution is
 $$\int_0^1 \nu_\epsilon(x/y)\frac{dy}{y},$$
 but now if $x > 2^\epsilon$, then the support of $\nu_\epsilon$ is disjoint

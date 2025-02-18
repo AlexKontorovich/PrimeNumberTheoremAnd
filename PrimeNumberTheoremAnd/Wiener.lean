@@ -2224,7 +2224,7 @@ lemma limiting_fourier_variant
 %%-/
 
 /-%%
-\begin{corollary}[Crude upper bound]\label{crude-upper}\lean{crude_upper_bound}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, then there exists a constant $B$ such that
+\begin{corollary}[crude_upper_bound]\label{crude_upper_bound}\lean{crude_upper_bound}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, then there exists a constant $B$ such that
 $$ |\sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )| \leq B$$
 for all $x \geq 1$.
 \end{corollary}
@@ -2259,7 +2259,7 @@ lemma auto_cheby (hpos: 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nt
 
 /-%%
 \begin{proof}
-\uses{crude-upper-bound} For $x \geq 1$ apply the previous corollary for all $y < C x$ and $\psi$ chosen be both nonnegative and have nonnegative Fourier transform, while being not identically zero, and $C$ a large constant.  This gives
+\uses{crude_upper_bound} For $x \geq 1$ apply the previous corollary for all $y < C x$ and $\psi$ chosen be both nonnegative and have nonnegative Fourier transform, while being not identically zero, and $C$ a large constant.  This gives
 $$ |\sum_{n=1}^\infty \frac{f(n)}{n} \int_0^{Cx} \hat \psi( \frac{1}{2\pi} \log \frac{n}{y} )\ dy| \leq CB x.$$
 But observe that the quantity $\int_0^{Cx} \hat \psi( \frac{1}{2\pi}$ is non-negative and equal to the positive constant $\int_{{\bf R}}
 \hat \psi( \frac{1}{2\pi} u ) e^u\ du$ if $n \leq x$ and $C$ is large enough.  The claim follows.

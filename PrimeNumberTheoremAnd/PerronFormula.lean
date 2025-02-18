@@ -595,7 +595,7 @@ lemma contourPull {σ' σ'' : ℝ} (xpos : 0 < x) (hσ0 : 0 ∉ [[σ', σ'']]) (
 
 /-%%
 We are ready for the first case of the Perron formula, namely when $x<1$:
-\begin{lemma}[formulaLtOne]\label{formulaLtOne}\lean{Perron.formulaLtOne}\leanok
+\begin{lemma}[formulaLtOne]\label{formulaLtOne}\lean{formulaLtOne}\leanok
 For $x>0$, $\sigma>0$, and $x<1$, we have
 $$
 \frac1{2\pi i}
@@ -824,6 +824,16 @@ holomorphic in the whole rectangle (by Lemma \ref{diffBddAtZero}).
   convert g_eq_fDiff using 3 <;> simp [Square]
 --%%\end{proof}
 
+/-%%
+\begin{lemma}[residueAtNegOne]\label{residueAtNegOne}\lean{Perron.residueAtNegOne}\leanok
+Let $x>0$. Then for all sufficiently small $c>0$, we have that
+$$
+\frac1{2\pi i}
+\int_{-c-i*c-1}^{c+ i*c-1}\frac{x^s}{s(s+1)}ds = -\frac1x.
+$$
+\end{lemma}
+%%-/
+
 lemma residueAtNegOne (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
     RectangleIntegral' (f x) (-c - c * I - 1) (c + c * I - 1) = -x⁻¹ := by
   filter_upwards [Ioo_mem_nhdsGT (by linarith : (0 : ℝ) < 1 / 2), diffBddAtNegOne xpos]
@@ -847,6 +857,12 @@ lemma residueAtNegOne (xpos : 0 < x) : ∀ᶠ (c : ℝ) in 𝓝[>] 0,
   · simpa using cpos.le
   · simpa using cpos.le
   · convert g_eq_fDiff using 3; simp
+/-%%
+\begin{proof}\uses{diffBddAtNegOne, ResidueTheoremOnRectangleWithSimplePole,
+existsDifferentiableOn_of_bddAbove}\leanok
+Compute the integral.
+\end{proof}
+%%-/
 
 /-%%
 \begin{lemma}[residuePull1]\label{residuePull1}\lean{Perron.residuePull1}\leanok
@@ -942,7 +958,7 @@ Pull contour from $(-3/2)$ to $(\sigma)$.
     (not_mem_uIcc_of_gt (by linarith) (by linarith))
 
 /-%%
-\begin{lemma}[formulaGtOne]\label{formulaGtOne}\lean{Perron.formulaGtOne}\leanok
+\begin{lemma}[formulaGtOne]\label{formulaGtOne}\lean{formulaGtOne}\leanok
 For $x>1$ and $\sigma>0$, we have
 $$
 \frac1{2\pi i}
