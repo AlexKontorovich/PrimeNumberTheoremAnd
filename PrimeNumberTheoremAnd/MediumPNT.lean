@@ -61,63 +61,6 @@ noncomputable def SmoothedChebyshev (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : �
 
 open MeasureTheory
 
-/-%%
-\begin{lemma}[integrable_x_mul_Smooth1]\label{integrable_x_mul_Smooth1}\lean{integrable_x_mul_Smooth1}\leanok
-Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$
-with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
-$x \mapsto x \cdot \widetilde{1_{\epsilon}}(x)$ is integrable on $(0,\infty)$.
-\end{lemma}
-%%-/
-open MeasureTheory
-lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
-    (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
-    (ε : ℝ) (εpos : 0 < ε) (ε_lt_one : ε < 1) :
-    MeasureTheory.IntegrableOn (fun x ↦ x * Smooth1 SmoothingF ε x) (Ioi 0) := by
-  obtain ⟨c, c_pos, hc⟩ := Smooth1Properties_above suppSmoothingF
-  rw [← MeasureTheory.integrable_indicator_iff (by measurability)]
-  apply MeasureTheory.Integrable.mono' (g := Ioc 0 (1 + c * ε) |>.indicator fun x ↦ x)
-  · refine IntegrableOn.integrable_indicator ?hg.h ?hg.hs
-    · apply Continuous.integrableOn_Ioc
-      fun_prop
-    exact measurableSet_Ioc
-  · refine (aestronglyMeasurable_indicator_iff (by measurability)).mpr ?_
-    apply MeasureTheory.AEStronglyMeasurable.mul
-    · exact Measurable.aestronglyMeasurable fun ⦃t⦄ a ↦ a
-    · apply MeasureTheory.AEStronglyMeasurable.mono_measure («μ» := volume)
-      · apply Smooth1_AEStronglyMeasurable diffSmoothingF ε εpos
-      exact Measure.restrict_le_self
-  · filter_upwards []
-    intro x
-    simp
-    rw [_root_.abs_of_nonneg]
-    · simp_rw [indicator_apply, mem_Ioi, mem_Ioc]
-      by_cases hx : x ≤ 0
-      · rw [if_neg (hx.not_lt), if_neg (fun h => h.1.not_le hx)]
-      push_neg at hx
-      rw [if_pos hx, ite_and, if_pos hx]
-      split_ifs with hx'
-      · apply mul_le_of_le_one_right hx.le
-        apply Smooth1LeOne SmoothingFpos mass_one εpos hx
-      push_neg at hx'
-      apply le_of_eq
-      simp only [mul_eq_zero]
-      right
-      exact hc _ _ ⟨εpos, ε_lt_one⟩ hx'.le
-    · apply Set.indicator_nonneg
-      simp only [mem_Ioi]
-      intro x hx
-      have := Smooth1Nonneg SmoothingFpos hx εpos
-      positivity
-
-/-%%
-\begin{proof}\leanok
-\uses{Smooth1Properties_above}
-We have
-from Lemma \ref{Smooth1Properties_above}
- that $\widetilde{1_{\epsilon}}(x) = 0$ for all $x \leq 1+c\epsilon$.
- So the claimed function is integrable on $(0,\infty)$.
-\end{proof}
-%%-/
 
 /-%%
 \begin{lemma}[SmoothedChebyshevDirichlet_aux_integrable]\label{SmoothedChebyshevDirichlet_aux_integrable}\lean{SmoothedChebyshevDirichlet_aux_integrable}\leanok
@@ -273,8 +216,8 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
     · beta_reduce at this
       dsimp [MellinInverseTransform, VerticalIntegral] at this
       rw [← MellinTransform_eq, this]
-    · dsimp [MellinConvergent]
-      norm_num; exact_mod_cast (integrable_x_mul_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos ε_lt_one).ofReal
+    · apply Smooth1MellinConvergent diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one
+      simp
     · dsimp [VerticalIntegrable, mellin]
       ring_nf
       apply SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos
