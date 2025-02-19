@@ -1803,3 +1803,27 @@ lemma Smooth1MellinConvergent {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDiff �
     constructor
     · exact le_trans (by norm_num) <| Smooth1Nonneg Ψnonneg hx hε.1
     · exact Smooth1LeOne Ψnonneg mass_one hε.1 hx
+
+lemma Smooth1MellinDifferentiable {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
+    (hε : ε ∈ Ioo 0 1) (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
+    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1)
+    {s : ℂ} (hs: 0 < s.re) :
+    DifferentiableAt ℂ (𝓜 (fun x ↦ (Smooth1 Ψ ε x : ℂ))) s := by
+  rw [MellinTransform_eq]
+  apply mellin_differentiableAt_of_isBigO_rpow_exp zero_lt_one _ _ _ hs
+  · apply IntegrableOn.locallyIntegrableOn
+    exact Smooth1Integrable diffΨ suppΨ hε Ψnonneg mass_one |>.ofReal
+  · rw [Asymptotics.isBigO_iff]
+    use 1
+    obtain ⟨c, cpos, hc⟩ := Smooth1Properties_above suppΨ
+    filter_upwards [eventually_ge_atTop (1 + c * ε)] with x hx
+    rw [hc _ _ hε hx]
+    simp; bound
+  · rw [Asymptotics.isBigO_iff]
+    use 1
+    filter_upwards [eventually_mem_nhdsWithin] with x hx
+    simp
+    apply abs_le.mpr
+    constructor
+    · exact le_trans (by norm_num) <| Smooth1Nonneg Ψnonneg hx hε.1
+    · exact Smooth1LeOne Ψnonneg mass_one hε.1 hx
