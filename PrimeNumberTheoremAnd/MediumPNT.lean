@@ -61,27 +61,6 @@ noncomputable def SmoothedChebyshev (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : �
 
 open MeasureTheory
 
-@[fun_prop, measurability]
-lemma Smooth1_AEStronglyMeasurable {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (ε : ℝ) (εpos : 0 < ε) : MeasureTheory.AEStronglyMeasurable (Smooth1 SmoothingF ε) := by
-  unfold Smooth1
-  unfold MellinConvolution
-  convert MeasureTheory.AEStronglyMeasurable.integral_prod_right' (f := uncurry fun x y => (if 0 < y ∧ y ≤ 1 then DeltaSpike SmoothingF ε (x / y) else 0) / y) ?_ with x _ y
-  · unfold uncurry
-    simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
-  · exact instSFiniteRestrict (Ioi 0)
-  · refine aestronglyMeasurable_iff_aemeasurable.mpr ?convert_4.a
-    refine Measurable.aemeasurable ?convert_4.a.h
-    apply MeasureTheory.measurable_uncurry_of_continuous_of_measurable
-    · intro x
-      split_ifs with h <;> fun_prop (disch := assumption)
-    intro x
-    convert_to Measurable <| (Ioc 0 1).indicator (fun y ↦ DeltaSpike SmoothingF ε (x/y) / y)
-    · ext x
-      simp [Set.indicator_apply, apply_ite (· / x)]
-    refine Measurable.indicator ?convert_4.a.h.h.hf ?convert_4.a.h.h.hs
-    · fun_prop (disch := assumption)
-    · measurability
-
 /-%%
 \begin{lemma}[integrable_x_mul_Smooth1]\label{integrable_x_mul_Smooth1}\lean{integrable_x_mul_Smooth1}\leanok
 Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$
