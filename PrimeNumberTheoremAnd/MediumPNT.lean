@@ -107,9 +107,28 @@ lemma SmoothedChebyshevDirichlet_aux_contAt {SmoothingF : ℝ → ℝ}
   apply ContinuousAt.congr (f := (fun x ↦ MellinConvolution (DeltaSpike SmoothingF ε) (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) x)) _
   · filter_upwards [lt_mem_nhds ypos] with x hx
     apply MellinConvolutionSymmetric _ _ hx
-  apply continuousAt_of_dominated (bound := (fun x ↦ DeltaSpike SmoothingF ε x))
+  apply continuousAt_of_dominated (bound := (fun x ↦ 2 ^ ε * DeltaSpike SmoothingF ε x))
   · sorry
-  · sorry
+  · filter_upwards [lt_mem_nhds ypos] with x hx
+    filter_upwards [ae_restrict_mem (by measurability)] with t ht
+    simp
+    by_cases h : DeltaSpike SmoothingF ε t = 0
+    · simp [h]
+    push_neg at h
+    have := DeltaSpikeSupport' εpos ht.le suppSmoothingF h
+    have dsnonneg : 0 ≤ DeltaSpike SmoothingF ε t := by apply DeltaSpikeNonNeg_of_NonNeg <;> assumption
+    calc
+      _ ≤ |DeltaSpike SmoothingF ε t| / |t| := by
+        gcongr
+        · split_ifs with h
+          · apply le_refl
+          · exact dsnonneg
+      _ ≤ _ := by
+        rw [_root_.abs_of_nonneg dsnonneg, mul_comm, div_eq_mul_one_div, _root_.abs_of_pos ht]
+        gcongr
+        apply (one_div_le ht (by bound)).mpr
+        · convert this.1 using 1; field_simp
+          rw [← rpow_add (by norm_num), neg_add_cancel, rpow_zero]
   · sorry
   · sorry
 
