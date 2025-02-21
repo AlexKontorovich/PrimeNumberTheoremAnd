@@ -102,10 +102,17 @@ lemma SmoothedChebyshevDirichlet_aux_contAt {SmoothingF : ℝ → ℝ}
     (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
     {ε : ℝ} (εpos : 0 < ε) {y : ℝ} (ypos : 0 < y) :
     ContinuousAt (fun x ↦ Smooth1 SmoothingF ε x) y := by
-  apply Continuous.continuousAt
-  unfold Smooth1 DeltaSpike MellinConvolution
-  simp only [one_div, ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
-  sorry
+--  apply Continuous.continuousAt
+  unfold Smooth1
+  apply ContinuousAt.congr (f := (fun x ↦ MellinConvolution (DeltaSpike SmoothingF ε) (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) x)) _
+  · filter_upwards [lt_mem_nhds ypos] with x hx
+    apply MellinConvolutionSymmetric _ _ hx
+  apply continuousAt_of_dominated (bound := (fun x ↦ DeltaSpike SmoothingF ε x))
+  · sorry
+  · sorry
+  · sorry
+  · sorry
+
 /-%%
 \begin{proof}
 \uses{Smooth1Properties_above}
