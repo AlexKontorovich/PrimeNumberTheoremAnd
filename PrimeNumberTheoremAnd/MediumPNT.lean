@@ -129,7 +129,25 @@ lemma SmoothedChebyshevDirichlet_aux_contAt {SmoothingF : ℝ → ℝ}
         apply (one_div_le ht (by bound)).mpr
         · convert this.1 using 1; field_simp
           rw [← rpow_add (by norm_num), neg_add_cancel, rpow_zero]
-  · sorry
+  · apply Integrable.const_mul
+    apply (integrable_indicator_iff (by measurability)).mp
+    apply (integrableOn_iff_integrable_of_support_subset (s := Icc (2 ^ (-ε)) (2 ^ ε)) _).mp
+    · apply ContinuousOn.integrableOn_compact isCompact_Icc
+      apply ContinuousOn.congr  (f := DeltaSpike SmoothingF ε)
+      · apply Continuous.continuousOn
+        apply DeltaSpikeContinuous<;> assumption
+      · intro x hx
+        have : x ∈ Ioi 0 := by
+          apply mem_Ioi.mpr
+          apply lt_of_lt_of_le (by bound) hx.1
+        rw [indicator, if_pos this]
+    · unfold indicator
+      simp_rw [mem_Ioi]
+      apply support_subset_iff.mpr
+      intro x
+      simp
+      intro hx
+      apply DeltaSpikeSupport' εpos hx.le suppSmoothingF
   · sorry
 
 /-%%
