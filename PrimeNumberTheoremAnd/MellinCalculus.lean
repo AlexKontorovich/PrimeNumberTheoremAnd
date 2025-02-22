@@ -1732,7 +1732,7 @@ Follows from Lemmas \ref{MellinOfSmooth1a}, \ref{MellinOfDeltaSpikeAt1} and \ref
 
 /-%%
 \begin{lemma}[Smooth1ContinuousAt]\label{Smooth1ContinuousAt}\lean{Smooth1ContinuousAt}\leanok
-Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
+Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$. Then for any $\epsilon>0$, the function
 $x \mapsto \int_{(0,\infty)} x^{1+it} \widetilde{1_{\epsilon}}(x) dx$ is continuous at any $y>0$.
 ** Conditions are overkill; can remove some assumptions... **
 \end{lemma}
@@ -1741,11 +1741,8 @@ lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
     (suppSmoothingF : SmoothingF.support ⊆ Icc (1 / 2) 2)
-    (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
     {ε : ℝ} (εpos : 0 < ε) {y : ℝ} (ypos : 0 < y) :
     ContinuousAt (fun x ↦ Smooth1 SmoothingF ε x) y := by
---  apply Continuous.continuousAt
-  unfold Smooth1
   apply ContinuousAt.congr (f := (fun x ↦ MellinConvolution (DeltaSpike SmoothingF ε) (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) x)) _
   · filter_upwards [lt_mem_nhds ypos] with x hx
     apply MellinConvolutionSymmetric _ _ hx
@@ -1832,9 +1829,9 @@ lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}
 
 
 /-%%
-\begin{proof}
-\uses{Smooth1Properties_above}
-The function is a sum of continuous functions, and hence continuous.
+\begin{proof}leanok
+\uses{MellinConvolutionSymmetric}
+Use Lemma \ref{MellinconvolutionSymmetric} to write $\widetilde{1_{\epsilon}}(x)$ as an integral over an integral near $1$, in particular avoiding the singularity at $0$.  The integrand may be bounded by $2^{\epsilon}\nu_\epsilon(t)$ which is independent of $x$ and we can use dominated convergence to prove continuity. 
 \end{proof}
 %%-/
 
@@ -1846,7 +1843,7 @@ lemma Smooth1MellinConvergent {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDiff �
   apply mellinConvergent_of_isBigO_rpow_exp zero_lt_one _ _ _ hs
   · apply ContinuousOn.locallyIntegrableOn _ (by measurability)
     apply continuousOn_of_forall_continuousAt
-    exact fun x hx ↦ Smooth1ContinuousAt diffΨ Ψnonneg suppΨ mass_one hε.1 hx |>.ofReal
+    exact fun x hx ↦ Smooth1ContinuousAt diffΨ Ψnonneg suppΨ hε.1 hx |>.ofReal
   · rw [Asymptotics.isBigO_iff]
     use 1
     obtain ⟨c, cpos, hc⟩ := Smooth1Properties_above suppΨ
@@ -1871,7 +1868,7 @@ lemma Smooth1MellinDifferentiable {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDi
   apply mellin_differentiableAt_of_isBigO_rpow_exp zero_lt_one _ _ _ hs
   · apply ContinuousOn.locallyIntegrableOn _ (by measurability)
     apply continuousOn_of_forall_continuousAt
-    exact fun x hx ↦ Smooth1ContinuousAt diffΨ Ψnonneg suppΨ mass_one hε.1 hx |>.ofReal
+    exact fun x hx ↦ Smooth1ContinuousAt diffΨ Ψnonneg suppΨ hε.1 hx |>.ofReal
   · rw [Asymptotics.isBigO_iff]
     use 1
     obtain ⟨c, cpos, hc⟩ := Smooth1Properties_above suppΨ
