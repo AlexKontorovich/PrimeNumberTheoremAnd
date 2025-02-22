@@ -1730,6 +1730,114 @@ Follows from Lemmas \ref{MellinOfSmooth1a}, \ref{MellinOfDeltaSpikeAt1} and \ref
 \end{proof}
 %%-/
 
+/-%%
+\begin{lemma}[Smooth1ContinuousAt]\label{Smooth1ContinuousAt}\lean{Smooth1ContinuousAt}\leanok
+Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
+$x \mapsto \int_{(0,\infty)} x^{1+it} \widetilde{1_{\epsilon}}(x) dx$ is continuous at any $y>0$.
+** Conditions are overkill; can remove some assumptions... **
+\end{lemma}
+%%-/
+lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}
+    (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
+    (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
+    (suppSmoothingF : SmoothingF.support ⊆ Icc (1 / 2) 2)
+    (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
+    {ε : ℝ} (εpos : 0 < ε) {y : ℝ} (ypos : 0 < y) :
+    ContinuousAt (fun x ↦ Smooth1 SmoothingF ε x) y := by
+--  apply Continuous.continuousAt
+  unfold Smooth1
+  apply ContinuousAt.congr (f := (fun x ↦ MellinConvolution (DeltaSpike SmoothingF ε) (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) x)) _
+  · filter_upwards [lt_mem_nhds ypos] with x hx
+    apply MellinConvolutionSymmetric _ _ hx
+  apply continuousAt_of_dominated (bound := (fun x ↦ 2 ^ ε * DeltaSpike SmoothingF ε x))
+  · filter_upwards [lt_mem_nhds ypos] with x hx
+    apply Measurable.aestronglyMeasurable
+    apply Measurable.mul
+    · apply Measurable.mul
+      · exact Continuous.measurable <| DeltaSpikeContinuous εpos diffSmoothingF
+      · apply Measurable.ite _ (by fun_prop) (by fun_prop)
+        apply MeasurableSet.congr (s := Ici x) (by measurability)
+        ext a
+        constructor
+        · intro ha
+          have apos : 0 < a := lt_of_lt_of_le hx ha
+          constructor
+          · exact div_pos hx apos
+          · exact (div_le_one apos).mpr ha
+        · intro ha
+          have : 0 < a := (div_pos_iff_of_pos_left hx).mp ha.1
+          exact (div_le_one this).mp ha.2
+    · fun_prop
+  · filter_upwards [lt_mem_nhds ypos] with x hx
+    filter_upwards [ae_restrict_mem (by measurability)] with t ht
+    simp
+    by_cases h : DeltaSpike SmoothingF ε t = 0
+    · simp [h]
+    push_neg at h
+    have := DeltaSpikeSupport' εpos ht.le suppSmoothingF h
+    have dsnonneg : 0 ≤ DeltaSpike SmoothingF ε t := by apply DeltaSpikeNonNeg_of_NonNeg <;> assumption
+    calc
+      _ ≤ |DeltaSpike SmoothingF ε t| / |t| := by
+        gcongr
+        · split_ifs with h
+          · apply le_refl
+          · exact dsnonneg
+      _ ≤ _ := by
+        rw [_root_.abs_of_nonneg dsnonneg, mul_comm, div_eq_mul_one_div, _root_.abs_of_pos ht]
+        gcongr
+        apply (one_div_le ht (by bound)).mpr
+        · convert this.1 using 1; field_simp
+          rw [← rpow_add (by norm_num), neg_add_cancel, rpow_zero]
+  · apply Integrable.const_mul
+    apply (integrable_indicator_iff (by measurability)).mp
+    apply (integrableOn_iff_integrable_of_support_subset (s := Icc (2 ^ (-ε)) (2 ^ ε)) _).mp
+    · apply ContinuousOn.integrableOn_compact isCompact_Icc
+      apply ContinuousOn.congr  (f := DeltaSpike SmoothingF ε)
+      · apply Continuous.continuousOn
+        apply DeltaSpikeContinuous<;> assumption
+      · intro x hx
+        have : x ∈ Ioi 0 := by
+          apply mem_Ioi.mpr
+          apply lt_of_lt_of_le (by bound) hx.1
+        rw [indicator, if_pos this]
+    · unfold indicator
+      simp_rw [mem_Ioi]
+      apply Function.support_subset_iff.mpr
+      intro x
+      simp
+      intro hx
+      apply DeltaSpikeSupport' εpos hx.le suppSmoothingF
+  · have : ∀ᵐ (a : ℝ) ∂volume.restrict (Ioi 0), a ≠ y := by
+      apply ae_iff.mpr
+      simp
+    filter_upwards [ae_restrict_mem (by measurability), this] with x hx hx2
+    simp at hx
+    apply ContinuousAt.div_const
+    apply ContinuousAt.mul (by fun_prop)
+    have : (fun x_1 ↦ if 0 < x_1 / x ∧ x_1 / x ≤ 1 then 1 else 0) = (Ioc 0 x).indicator (fun _ ↦ (1 : ℝ)) := by
+      ext t
+      unfold indicator
+      congr 1
+      simp
+      apply and_congr
+      · exact div_pos_iff_of_pos_right hx
+      · exact div_le_one₀ hx
+    rw [this]
+    apply ContinuousOn.continuousAt_indicator (by fun_prop)
+    rw [frontier_Ioc hx]
+    simp
+    constructor <;> push_neg
+    · exact ypos.ne.symm
+    · exact hx2.symm
+
+
+/-%%
+\begin{proof}
+\uses{Smooth1Properties_above}
+The function is a sum of continuous functions, and hence continuous.
+\end{proof}
+%%-/
+
 @[fun_prop, measurability]
 lemma Smooth1_AEStronglyMeasurable {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) {ε : ℝ} (εpos : 0 < ε) : MeasureTheory.AEStronglyMeasurable (Smooth1 SmoothingF ε) := by
   unfold Smooth1 MellinConvolution
