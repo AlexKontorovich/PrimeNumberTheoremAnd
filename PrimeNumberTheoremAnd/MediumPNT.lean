@@ -199,7 +199,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
         suppSmoothingF mass_one ε εpos
     · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
       exact Smooth1ContinuousAt diffSmoothingF SmoothingFpos suppSmoothingF
-        mass_one εpos (by positivity)
+        εpos (by positivity)
 /-%%
 \begin{proof}\leanok
 \uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne, MellinOfSmooth1b,
