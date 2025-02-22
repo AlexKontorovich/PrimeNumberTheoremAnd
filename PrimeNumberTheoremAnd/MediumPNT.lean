@@ -148,7 +148,29 @@ lemma SmoothedChebyshevDirichlet_aux_contAt {SmoothingF : ℝ → ℝ}
       simp
       intro hx
       apply DeltaSpikeSupport' εpos hx.le suppSmoothingF
-  · sorry
+  · have : ∀ᵐ (a : ℝ) ∂volume.restrict (Ioi 0), a ≠ y := by
+      apply ae_iff.mpr
+      simp
+    filter_upwards [ae_restrict_mem (by measurability), this] with x hx hx2
+    simp at hx
+    apply ContinuousAt.div_const
+    apply ContinuousAt.mul (by fun_prop)
+    have : (fun x_1 ↦ if 0 < x_1 / x ∧ x_1 / x ≤ 1 then 1 else 0) = (Ioc 0 x).indicator (fun _ ↦ (1 : ℝ)) := by
+      ext t
+      unfold indicator
+      congr 1
+      simp
+      apply and_congr
+      · exact div_pos_iff_of_pos_right hx
+      · exact div_le_one₀ hx
+    rw [this]
+    apply ContinuousOn.continuousAt_indicator (by fun_prop)
+    rw [frontier_Ioc hx]
+    simp
+    constructor <;> push_neg
+    · exact ypos.ne.symm
+    · exact hx2.symm
+
 
 /-%%
 \begin{proof}
