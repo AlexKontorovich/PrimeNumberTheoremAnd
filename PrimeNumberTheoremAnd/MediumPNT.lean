@@ -108,7 +108,24 @@ lemma SmoothedChebyshevDirichlet_aux_contAt {SmoothingF : ℝ → ℝ}
   · filter_upwards [lt_mem_nhds ypos] with x hx
     apply MellinConvolutionSymmetric _ _ hx
   apply continuousAt_of_dominated (bound := (fun x ↦ 2 ^ ε * DeltaSpike SmoothingF ε x))
-  · sorry
+  · filter_upwards [lt_mem_nhds ypos] with x hx
+    apply Measurable.aestronglyMeasurable
+    apply Measurable.mul
+    · apply Measurable.mul
+      · exact Continuous.measurable <| DeltaSpikeContinuous εpos diffSmoothingF
+      · apply Measurable.ite _ (by fun_prop) (by fun_prop)
+        apply MeasurableSet.congr (s := Ici x) (by measurability)
+        ext a
+        constructor
+        · intro ha
+          have apos : 0 < a := lt_of_lt_of_le hx ha
+          constructor
+          · exact div_pos hx apos
+          · exact (div_le_one apos).mpr ha
+        · intro ha
+          have : 0 < a := (div_pos_iff_of_pos_left hx).mp ha.1
+          exact (div_le_one this).mp ha.2
+    · fun_prop
   · filter_upwards [lt_mem_nhds ypos] with x hx
     filter_upwards [ae_restrict_mem (by measurability)] with t ht
     simp
