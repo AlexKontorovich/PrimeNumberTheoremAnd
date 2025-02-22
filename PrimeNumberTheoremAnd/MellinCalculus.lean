@@ -1838,65 +1838,15 @@ The function is a sum of continuous functions, and hence continuous.
 \end{proof}
 %%-/
 
-@[fun_prop, measurability]
-lemma Smooth1_AEStronglyMeasurable {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) {ε : ℝ} (εpos : 0 < ε) : MeasureTheory.AEStronglyMeasurable (Smooth1 SmoothingF ε) := by
-  unfold Smooth1 MellinConvolution
-  convert MeasureTheory.AEStronglyMeasurable.integral_prod_right' (f := Function.uncurry fun x y => (if 0 < y ∧ y ≤ 1 then DeltaSpike SmoothingF ε (x / y) else 0) / y) ?_ with x _ y
-  · unfold Function.uncurry
-    simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
-  · exact instSFiniteRestrict (Ioi 0)
-  · refine aestronglyMeasurable_iff_aemeasurable.mpr ?convert_4.a
-    refine Measurable.aemeasurable ?convert_4.a.h
-    apply MeasureTheory.measurable_uncurry_of_continuous_of_measurable
-    · intro x
-      split_ifs with h <;> fun_prop (disch := assumption)
-    intro x
-    convert_to Measurable <| (Ioc 0 1).indicator (fun y ↦ DeltaSpike SmoothingF ε (x/y) / y)
-    · ext x
-      simp [Set.indicator_apply, apply_ite (· / x)]
-    refine Measurable.indicator ?convert_4.a.h.h.hf ?convert_4.a.h.h.hs
-    · fun_prop (disch := assumption)
-    · measurability
-
-lemma Smooth1Integrable {Ψ : ℝ → ℝ} (diffΨ : ContDiff ℝ 1 Ψ) {ε : ℝ} (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
-    (hε : ε ∈ Ioo 0 1) (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
-    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1) :
-    IntegrableOn (Smooth1 Ψ ε ·) (Ioi 0) := by
-  rw [← integrable_indicator_iff (by measurability)]
-  obtain ⟨c, cpos, hc⟩ := Smooth1Properties_above suppΨ
-  apply Integrable.mono' (g:= (Ioc 0 (1 + c * ε)).indicator 1)
-  · apply IntegrableOn.integrable_indicator _ (by measurability)
-    apply Continuous.integrableOn_Ioc
-    fun_prop
-  · apply (aestronglyMeasurable_indicator_iff (by measurability)).mpr
-    apply MeasureTheory.AEStronglyMeasurable.mono_measure («μ» := volume) _ (Measure.restrict_le_self)
-    exact Smooth1_AEStronglyMeasurable diffΨ hε.1
-  filter_upwards [] with x
-  simp
-  simp_rw [indicator_apply, mem_Ioi, mem_Ioc]
-  by_cases hx : x ≤ 0
-  · rw [if_neg hx.not_lt, if_neg (fun h => h.1.not_le hx)]
-    simp
-  push_neg at hx
-  rw [if_pos hx, ite_and, if_pos hx]
-  split_ifs with hx'
-  · apply abs_le.mpr
-    constructor
-    · exact le_trans (by norm_num) <| Smooth1Nonneg Ψnonneg hx hε.1
-    · exact Smooth1LeOne Ψnonneg mass_one hε.1 hx
-  push_neg at hx'
-  rw [hc _ _ hε hx'.le]
-  simp
-
-
 lemma Smooth1MellinConvergent {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     (hε : ε ∈ Ioo 0 1) (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
     (mass_one : ∫ x in Ioi 0, Ψ x / x = 1)
     {s : ℂ} (hs: 0 < s.re) :
     MellinConvergent (fun x ↦ (Smooth1 Ψ ε x : ℂ)) s := by
   apply mellinConvergent_of_isBigO_rpow_exp zero_lt_one _ _ _ hs
-  · apply IntegrableOn.locallyIntegrableOn
-    exact Smooth1Integrable diffΨ suppΨ hε Ψnonneg mass_one |>.ofReal
+  · apply ContinuousOn.locallyIntegrableOn _ (by measurability)
+    apply continuousOn_of_forall_continuousAt
+    exact fun x hx ↦ Smooth1ContinuousAt diffΨ Ψnonneg suppΨ mass_one hε.1 hx |>.ofReal
   · rw [Asymptotics.isBigO_iff]
     use 1
     obtain ⟨c, cpos, hc⟩ := Smooth1Properties_above suppΨ
@@ -1919,8 +1869,9 @@ lemma Smooth1MellinDifferentiable {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDi
     DifferentiableAt ℂ (𝓜 (fun x ↦ (Smooth1 Ψ ε x : ℂ))) s := by
   rw [MellinTransform_eq]
   apply mellin_differentiableAt_of_isBigO_rpow_exp zero_lt_one _ _ _ hs
-  · apply IntegrableOn.locallyIntegrableOn
-    exact Smooth1Integrable diffΨ suppΨ hε Ψnonneg mass_one |>.ofReal
+  · apply ContinuousOn.locallyIntegrableOn _ (by measurability)
+    apply continuousOn_of_forall_continuousAt
+    exact fun x hx ↦ Smooth1ContinuousAt diffΨ Ψnonneg suppΨ mass_one hε.1 hx |>.ofReal
   · rw [Asymptotics.isBigO_iff]
     use 1
     obtain ⟨c, cpos, hc⟩ := Smooth1Properties_above suppΨ
