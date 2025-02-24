@@ -1831,7 +1831,7 @@ lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}
 /-%%
 \begin{proof}leanok
 \uses{MellinConvolutionSymmetric}
-Use Lemma \ref{MellinconvolutionSymmetric} to write $\widetilde{1_{\epsilon}}(x)$ as an integral over an integral near $1$, in particular avoiding the singularity at $0$.  The integrand may be bounded by $2^{\epsilon}\nu_\epsilon(t)$ which is independent of $x$ and we can use dominated convergence to prove continuity. 
+Use Lemma \ref{MellinconvolutionSymmetric} to write $\widetilde{1_{\epsilon}}(x)$ as an integral over an integral near $1$, in particular avoiding the singularity at $0$.  The integrand may be bounded by $2^{\epsilon}\nu_\epsilon(t)$ which is independent of $x$ and we can use dominated convergence to prove continuity.
 \end{proof}
 %%-/
 
@@ -1854,10 +1854,8 @@ lemma Smooth1MellinConvergent {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDiff �
     use 1
     filter_upwards [eventually_mem_nhdsWithin] with x hx
     simp
-    apply abs_le.mpr
-    constructor
-    · exact le_trans (by norm_num) <| Smooth1Nonneg Ψnonneg hx hε.1
-    · exact Smooth1LeOne Ψnonneg mass_one hε.1 hx
+    rw [_root_.abs_of_nonneg <| Smooth1Nonneg Ψnonneg hx hε.1]
+    exact Smooth1LeOne Ψnonneg mass_one hε.1 hx
 
 lemma Smooth1MellinDifferentiable {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     (hε : ε ∈ Ioo 0 1) (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
@@ -1879,7 +1877,5 @@ lemma Smooth1MellinDifferentiable {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDi
     use 1
     filter_upwards [eventually_mem_nhdsWithin] with x hx
     simp
-    apply abs_le.mpr
-    constructor
-    · exact le_trans (by norm_num) <| Smooth1Nonneg Ψnonneg hx hε.1
-    · exact Smooth1LeOne Ψnonneg mass_one hε.1 hx
+    rw [_root_.abs_of_nonneg <| Smooth1Nonneg Ψnonneg hx hε.1]
+    exact Smooth1LeOne Ψnonneg mass_one hε.1 hx
