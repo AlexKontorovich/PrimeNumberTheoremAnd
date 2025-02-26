@@ -66,8 +66,7 @@ open MeasureTheory
 \begin{lemma}[SmoothedChebyshevDirichlet_aux_integrable]\label{SmoothedChebyshevDirichlet_aux_integrable}\lean{SmoothedChebyshevDirichlet_aux_integrable}\leanok
 Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
 $$
-x \mapsto
-\int_{(0,\infty)} t^{1+ix} \widetilde{1_{\epsilon}}(t) dt
+x \mapsto\mathcal{M}(\widetilde{1_{\epsilon}})(2 + ix)
 $$
 is integrable on $\mathbb{R}$. ** Conditions are overkill; can remove some assumptions... **
 \end{lemma}
