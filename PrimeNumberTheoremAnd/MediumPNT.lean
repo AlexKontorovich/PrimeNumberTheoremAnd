@@ -77,10 +77,19 @@ lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ}
     (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
-    (ε : ℝ) (εpos : 0 < ε) :
+    (ε : ℝ) (εpos : 0 < ε) (ε_lt_one : ε < 1) :
     MeasureTheory.Integrable
-      (fun (y : ℝ) ↦ ∫ (t : ℝ) in Ioi 0, (t : ℂ) ^ (1 + y * I) * (Smooth1 SmoothingF ε t : ℂ)) := by
-  sorry
+      (fun (y : ℝ) ↦ 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (2 + y * I)) := by
+  obtain ⟨c, cpos, hc⟩ := MellinOfSmooth1b diffSmoothingF suppSmoothingF
+  apply Integrable.mono' (g := (fun t ↦ c / ε * 1 / (4 + t ^ 2)))
+  · sorry
+  · sorry
+  · filter_upwards [] with t
+    specialize hc 2 (by norm_num) (2 + t * I) (by simp) (by simp) ε εpos  ε_lt_one
+    convert hc using 1
+    simp [sq_abs, normSq_apply]
+    ring_nf
+
 /-%%
 \begin{proof}
 \uses{MellinOfSmooth1b}
@@ -193,10 +202,10 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
       rw [← MellinTransform_eq, this]
     · apply Smooth1MellinConvergent diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one
       simp
-    · dsimp [VerticalIntegrable, mellin]
-      ring_nf
+    · dsimp [VerticalIntegrable]
+      rw [← MellinTransform_eq]
       apply SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos
-        suppSmoothingF mass_one ε εpos
+        suppSmoothingF mass_one ε εpos ε_lt_one
     · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
       exact Smooth1ContinuousAt diffSmoothingF SmoothingFpos suppSmoothingF
         εpos (by positivity)
