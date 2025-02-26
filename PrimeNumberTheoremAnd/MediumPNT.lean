@@ -103,12 +103,67 @@ By Lemma \ref{MellinOfSmooth1b} the integrand is $O(1/t^2)$ as $t\rightarrow \in
 \end{proof}
 %%-/
 
+lemma vonMangoldt_aux_sum: ∑' (i : ℕ), ENNReal.ofReal (|Λ i| / ↑i ^ 2) < ⊤ := by
+  have log_le : ∀ n: ℕ, Real.log n ≤ (n ^((1: ℝ) / 2)) * 2 := by
+    intro n
+    have := Real.log_le_rpow_div (x := n) (ε := (1: ℝ) / 2) (by linarith) (by linarith)
+    field_simp at this
+    exact this
+
+
+  calc
+    _ ≤ ∑' (i : ℕ), ENNReal.ofReal (Real.log i / ↑i ^ 2) := by
+      apply ENNReal.tsum_le_tsum
+      intro i
+      rw [ENNReal.ofReal_le_ofReal_iff]
+      have von_nonneg := ArithmeticFunction.vonMangoldt_nonneg (n := i)
+      have log_pos: 0 ≤ Real.log i := by
+        exact log_natCast_nonneg i
+      have abs_le: |Λ i| ≤ |Real.log i| := by
+        apply abs_le_abs
+        . exact ArithmeticFunction.vonMangoldt_le_log (n := i)
+        . linarith
+
+      have log_abs_self := _root_.abs_of_nonneg log_pos
+      rw [log_abs_self] at abs_le
+
+      apply div_le_div_of_nonneg_right
+      . exact abs_le
+      . simp
+      . positivity
+    _ ≤ ∑' (i : ℕ), ENNReal.ofReal (2 / ↑i ^ ((3 : ℝ) / 2)) := by
+      apply ENNReal.tsum_le_tsum
+      intro i
+      rw [ENNReal.ofReal_le_ofReal_iff (by positivity)]
+      have three_halve_eq: (3 : ℝ) / 2 = (2 : ℝ) - ((1 : ℝ)) / 2 := by norm_num
+      rw [three_halve_eq]
+      rw [Real.rpow_sub' (by simp) (by norm_num)]
+      field_simp
+      apply div_le_div_of_nonneg_right
+      .
+        rw [mul_comm]
+        exact log_le i
+      .
+        simp
+    _ < ⊤ := by
+      have sum_p_series := NNReal.summable_one_div_rpow (p := (3 : ℝ) / 2).mpr (by norm_num)
+      rw [← summable_mul_left_iff (a := 2) (by norm_num)] at sum_p_series
+      rw [← ENNReal.tsum_coe_ne_top_iff_summable] at sum_p_series
+      rw [← WithTop.lt_top_iff_ne_top] at sum_p_series
+
+      have cast_through: ∀ r: NNReal, ENNReal.ofReal r = ENNReal.ofNNReal r := by
+        simp
+
+      simp_rw [← cast_through] at sum_p_series
+      field_simp at sum_p_series
+      exact sum_p_series
+
 /-%%
 \begin{lemma}[SmoothedChebyshevDirichlet_aux_tsum_integral]\label{SmoothedChebyshevDirichlet_aux_tsum_integral}\lean{SmoothedChebyshevDirichlet_aux_tsum_integral}\leanok
 Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
 $x \mapsto \sum_{n=1}^\infty \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\widetilde{1_{\epsilon}})(2+it) x^{2+it}$ is equal to
 $\sum_{n=1}^\infty \int_{(0,\infty)} \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\widetilde{1_{\epsilon}})(2+it) x^{2+it}$.
-** Conditions are overkill; can remove some assumptions... Is there really no ``tsum_integral_swap''?**
+** Conditions are overkill; can remove some assumptions...**
 \end{lemma}
 %%-/
 lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
@@ -124,7 +179,115 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     ∑' (n : ℕ),
       ∫ (t : ℝ), (Λ n) / (n : ℂ) ^ (2 + ↑t * I) *
         𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * (X : ℂ) ^ (2 + t * I) := by
-  sorry
+
+  have cont_mellin_smooth: Continuous fun (a: ℝ) ↦ 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑a * I) := by
+    rw [continuous_iff_continuousOn_univ]
+    refine ContinuousOn.comp' ?_ ?_ ?_ (t := {z: ℂ | 0 < z.re })
+    .
+      refine continuousOn_of_forall_continuousAt ?_
+      intro z hz
+      exact (Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one hz).continuousAt
+    . fun_prop
+    . simp
+
+  have abs_two: ∀ a: ℝ, ∀ i: ℕ, Complex.abs ((i: ℂ) ^ ((2: ℂ) + ↑a * I)) = i^2 := by
+    intro a i
+    by_cases i_eq_zero: i = 0
+    .
+      simp [i_eq_zero, Complex.ext_iff]
+    .
+      norm_cast
+      have cast_r: (i: ℂ) = ((i: ℝ): ℂ) := by simp
+      rw [cast_r]
+      rw [Complex.abs_cpow_eq_rpow_re_of_pos]
+      . simp
+      .
+        norm_cast
+        omega
+
+  rw [MeasureTheory.integral_tsum]
+  have x_neq_zero: X ≠ 0 := by linarith
+  .
+    intro i
+    by_cases i_eq_zero: i = 0
+    . simp [i_eq_zero]
+      exact aestronglyMeasurable_const
+    .
+      apply Continuous.aestronglyMeasurable
+      -- TODO - why can't this be `fun_prop`?
+      refine Continuous.mul ?_ ?_
+      . refine Continuous.mul ?_ ?_
+        .
+          refine Continuous.div₀ ?_ ?_ ?_
+          . exact continuous_const
+          . refine Continuous.const_cpow ?_ ?_
+            . fun_prop
+            . simp [i_eq_zero]
+          . simp [i_eq_zero]
+        . exact cont_mellin_smooth
+      .
+        refine Continuous.const_cpow ?_ ?_
+        . fun_prop
+        . simp [x_neq_zero]
+  .
+
+    rw [← lt_top_iff_ne_top]
+    simp only [NNNorm.toENorm, enorm_mul, nnnorm_div, nnnorm_real]
+    norm_cast
+
+    have cast_through: ∀ r: NNReal, ENNReal.ofNNReal r = ENNReal.ofReal r := by simp
+    simp [cast_through]
+    simp [Complex.abs_cpow_eq_rpow_re_of_pos X_pos]
+    simp_rw [abs_two]
+
+    -- TODO - why can't these be 'simp_rw'?
+    conv =>
+      arg 1
+      arg 1
+      intro i
+      arg 2
+      intro a
+      rw [ENNReal.ofReal_mul (q := X ^ 2) (by positivity)]
+
+    conv =>
+      arg 1
+      arg 1
+      intro i
+      rw [MeasureTheory.lintegral_mul_const' (hr := by simp)]
+
+    simp_rw [ENNReal.tsum_mul_right]
+    apply WithTop.mul_lt_top ?_ ENNReal.ofReal_lt_top
+    conv =>
+      arg 1
+      arg 1
+      intro i
+      arg 2
+      intro a
+      rw [ENNReal.ofReal_mul (by positivity)]
+
+    conv =>
+      arg 1
+      arg 1
+      intro i
+      rw [MeasureTheory.lintegral_const_mul' (hr := by simp)]
+
+    rw [ENNReal.tsum_mul_right]
+    apply WithTop.mul_lt_top
+    . exact vonMangoldt_aux_sum
+    .
+      rw [← MeasureTheory.ofReal_integral_eq_lintegral_ofReal]
+      .
+        exact ENNReal.ofReal_lt_top
+      .
+        simp_rw [← Complex.norm_eq_abs]
+        apply MeasureTheory.Integrable.norm
+        exact
+          SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos suppSmoothingF
+            mass_one ε εpos ε_lt_one
+      .
+        apply Filter.Eventually.of_forall
+        simp
+
 /-%%
 \begin{proof}
 \uses{Smooth1Properties_above, SmoothedChebyshevDirichlet_aux_integrable}
