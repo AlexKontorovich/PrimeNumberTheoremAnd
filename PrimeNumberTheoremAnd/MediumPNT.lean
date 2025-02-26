@@ -82,8 +82,20 @@ lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ}
       (fun (y : ℝ) ↦ 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (2 + y * I)) := by
   obtain ⟨c, cpos, hc⟩ := MellinOfSmooth1b diffSmoothingF suppSmoothingF
   apply Integrable.mono' (g := (fun t ↦ c / ε * 1 / (4 + t ^ 2)))
-  · sorry
-  · sorry
+  · apply Integrable.const_mul
+    apply Integrable.mono' integrable_inv_one_add_sq
+    · apply Measurable.aestronglyMeasurable
+      fun_prop
+    · filter_upwards [] with t
+      simp
+      rw [_root_.abs_of_nonneg (by positivity)]
+      gcongr
+      norm_num
+  · apply Continuous.aestronglyMeasurable
+    apply continuous_iff_continuousAt.mpr
+    intro x
+    have := Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one (s := 2 + x * I) (by simp) |>.continuousAt
+    fun_prop
   · filter_upwards [] with t
     specialize hc 2 (by norm_num) (2 + t * I) (by simp) (by simp) ε εpos  ε_lt_one
     convert hc using 1
