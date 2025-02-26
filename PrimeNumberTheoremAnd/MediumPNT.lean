@@ -66,8 +66,7 @@ open MeasureTheory
 \begin{lemma}[SmoothedChebyshevDirichlet_aux_integrable]\label{SmoothedChebyshevDirichlet_aux_integrable}\lean{SmoothedChebyshevDirichlet_aux_integrable}\leanok
 Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
 $$
-x \mapsto
-\int_{(0,\infty)} t^{1+ix} \widetilde{1_{\epsilon}}(t) dt
+x \mapsto\mathcal{M}(\widetilde{1_{\epsilon}})(2 + ix)
 $$
 is integrable on $\mathbb{R}$. ** Conditions are overkill; can remove some assumptions... **
 \end{lemma}
@@ -77,12 +76,28 @@ lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ}
     (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
-    (ε : ℝ) (εpos : 0 < ε) :
+    (ε : ℝ) (εpos : 0 < ε) (ε_lt_one : ε < 1) :
     MeasureTheory.Integrable
-      (fun (y : ℝ) ↦ ∫ (t : ℝ) in Ioi 0, (t : ℂ) ^ (1 + y * I) * (Smooth1 SmoothingF ε t : ℂ)) := by
-  sorry
+      (fun (y : ℝ) ↦ 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (2 + y * I)) := by
+  obtain ⟨c, cpos, hc⟩ := MellinOfSmooth1b diffSmoothingF suppSmoothingF
+  apply Integrable.mono' (g := (fun t ↦ c / ε * 1 / (1 + t ^ 2)))
+  · apply Integrable.const_mul integrable_inv_one_add_sq
+  · apply Continuous.aestronglyMeasurable
+    apply continuous_iff_continuousAt.mpr
+    intro x
+    have := Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one (s := 2 + x * I) (by simp) |>.continuousAt
+    fun_prop
+  · filter_upwards [] with t
+    calc
+      _≤ c / ε * 1 / (4 + t^2) := by
+        convert hc 2 (by norm_num) (2 + t * I) (by simp) (by simp) ε εpos  ε_lt_one using 1
+        simp [sq_abs, normSq_apply]
+        ring_nf
+      _ ≤ _ := by
+        gcongr; norm_num
+
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{MellinOfSmooth1b}
 By Lemma \ref{MellinOfSmooth1b} the integrand is $O(1/t^2)$ as $t\rightarrow \infty$ and hence the function is integrable.
 \end{proof}
@@ -193,10 +208,10 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
       rw [← MellinTransform_eq, this]
     · apply Smooth1MellinConvergent diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one
       simp
-    · dsimp [VerticalIntegrable, mellin]
-      ring_nf
+    · dsimp [VerticalIntegrable]
+      rw [← MellinTransform_eq]
       apply SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos
-        suppSmoothingF mass_one ε εpos
+        suppSmoothingF mass_one ε εpos ε_lt_one
     · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
       exact Smooth1ContinuousAt diffSmoothingF SmoothingFpos suppSmoothingF
         εpos (by positivity)
