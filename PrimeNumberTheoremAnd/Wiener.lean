@@ -2329,7 +2329,7 @@ Combining these two facts, we obtain the claim.
 
 
 /-%%
-\begin{proposition}[Weak PNT in AP, preliminary]\label{WeakPNT-AP-prelim}\lean{WeakPNT_AP_prelim}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to $\mathrm{Re}(s)=1$.
+\begin{proposition}[WeakPNT_AP_prelim]\label{WeakPNT_AP_prelim}\lean{WeakPNT_AP_prelim}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to $\mathrm{Re}(s)=1$.
 \end{proposition}
 %%-/
 
@@ -2338,7 +2338,7 @@ proof_wanted WeakPNT_AP_prelim {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a 
 /-%%
 
 \begin{proof}
-\uses{ChebyshevPsi,WeakPNT-character}
+\uses{ChebyshevPsi, WeakPNT-character}
 We expand out the left-hand side using Lemma \ref{WeakPNT-character}.  The contribution of the non-principal characters $\chi$ extend continuously to $\mathrm{Re}(s) = 1$ thanks to the non-vanishing of $L(s,\chi)$ on this line (which should follow from another component of this project), so it suffices to show that for the principal character $\chi_0$, that
 $$ -\frac{L'(s,\chi_0)}{L(s,\chi_0)} - \frac{1}{s-1}$$
 also extends continuously here.  But we already know that
@@ -2352,7 +2352,7 @@ Since there are only finitely many primes dividing $q$, and each summand $\frac{
 
 
 /-%%
-\begin{theorem}[Weak PNT in AP]\label{WeakPNT-AP}\lean{WeakPNT_AP}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, we have
+\begin{theorem}[WeakPNT_AP]\label{WeakPNT_AP}\lean{WeakPNT_AP}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, we have
 $$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$
 \end{theorem}
 %%-/
@@ -2361,8 +2361,8 @@ proof_wanted WeakPNT_AP {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha'
 
 
 /-%%
-\begin{proof}\uses{WienerIkehara, WeakPNT-AP-prelim}
-Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkehara-alt}) to Proposition \ref{WeakPNT-AP-prelim}.  (The Chebyshev bound follows from the corresponding bound for $\Lambda$.)
+\begin{proof}\uses{WienerIkehara, WeakPNT_AP_prelim}
+Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkehara-alt}) to Proposition \ref{WeakPNT_AP_prelim}.  (The Chebyshev bound follows from the corresponding bound for $\Lambda$.)
 \end{proof}
 
 %%-/
@@ -2376,7 +2376,7 @@ The goal here is to prove the Chebotarev density theorem for the case of cycloto
 %%-/
 
 /-%%
-\begin{lemma}[Factorization of Dedekind zeta function]\label{Dedekind-factor}  We have
+\begin{lemma}[Dedekind_factor]\label{Dedekind_factor}  We have
 $$ \zeta_L(s) = \prod_{\chi} L(\chi,s)$$
 for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ and $L$ is the Artin $L$-function.
 \end{lemma}
@@ -2389,7 +2389,7 @@ for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ a
 %%-/
 
 /-%%
-\begin{lemma}[Simple pole]\label{Dedekind-pole}  $\zeta_L$ has a simple pole at $s=1$.
+\begin{lemma}[Simple pole]\label{Dedekind_pole}  $\zeta_L$ has a simple pole at $s=1$.
 \end{lemma}
 %%-/
 
@@ -2399,13 +2399,13 @@ for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ a
 %%-/
 
 /-%%
-\begin{lemma}[Nonvanishing]\label{Dedekind-nonvanishing}  For any non-principal character $\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
+\begin{lemma}[Dedekind_nonvanishing]\label{Dedekind_nonvanishing}  For any non-principal character $\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
 \end{lemma}
 
 %%-/
 
 /-%%
-\begin{proof}\uses{Dedekind-factor, Dedekind-pole} For $s=1$, this will follow from Lemmas \ref{Dedekind-factor}, \ref{Dedekind-pole}. For the rest of the line, one should be able to adapt the arguments for the Dirichet L-function.
+\begin{proof}\uses{Dedekind_factor, Dedekind_pole} For $s=1$, this will follow from Lemmas \ref{Dedekind_factor}, \ref{Dedekind_pole}. For the rest of the line, one should be able to adapt the arguments for the Dirichet L-function.
 \end{proof}
 %%-/
 
