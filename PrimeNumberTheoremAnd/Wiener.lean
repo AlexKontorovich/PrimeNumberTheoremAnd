@@ -2200,7 +2200,7 @@ variable {f : ℕ → ℝ}
 
 In this section we do *not* assume bound \eqref{cheby}, but instead derive it from the other hypotheses.
 
-\begin{lemma}[Variant of limiting Fourier identity]\label{limiting-variant}\lean{limiting_fourier_variant}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, and $x \geq 1$, then
+\begin{lemma}[limiting_fourier_variant]\label{limiting_fourier_variant}\lean{limiting_fourier_variant}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, and $x \geq 1$, then
 $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
 %%-/
@@ -2219,7 +2219,7 @@ lemma limiting_fourier_variant
 
 /-%%
 \begin{proof}
-\uses{first-fourier,second-fourier,decay}  Repeat the proof of Lemma ref{limiting-variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.)
+\uses{first-fourier,second-fourier,decay}  Repeat the proof of Lemma ref{limiting_fourier_variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.)
 \end{proof}
 %%-/
 
@@ -2241,7 +2241,7 @@ lemma crude_upper_bound
 
 /-%%
 \begin{proof}
-\uses{limiting-variant} For $x \geq 1$, this readily follows from the previous lemma and the triangle inequality. For $x < 1$, only a bounded number of summands can contribute and the claim is trivial.
+\uses{limiting_fourier_variant} For $x \geq 1$, this readily follows from the previous lemma and the triangle inequality. For $x < 1$, only a bounded number of summands can contribute and the claim is trivial.
 \end{proof}
 %%-/
 
@@ -2267,7 +2267,7 @@ But observe that the quantity $\int_0^{Cx} \hat \psi( \frac{1}{2\pi}$ is non-neg
 %%-/
 
 /-%%
-\begin{corollary}[Wiener-Ikehara theorem, II]\label{WienerIkehara-alt}\lean{WienerIkeharaTheorem''}\leanok
+\begin{corollary}[WienerIkeharaTheorem'']\label{WienerIkeharaTheorem''}\lean{WienerIkeharaTheorem''}\leanok
   We have
 $$ \sum_{n\leq x} f(n) = A x + o(x).$$
 \end{corollary}
@@ -2362,7 +2362,7 @@ proof_wanted WeakPNT_AP {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha'
 
 /-%%
 \begin{proof}\uses{WienerIkehara, WeakPNT_AP_prelim}
-Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkehara-alt}) to Proposition \ref{WeakPNT_AP_prelim}.  (The Chebyshev bound follows from the corresponding bound for $\Lambda$.)
+Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkeharaTheorem''}) to Proposition \ref{WeakPNT_AP_prelim}.  (The Chebyshev bound follows from the corresponding bound for $\Lambda$.)
 \end{proof}
 
 %%-/
