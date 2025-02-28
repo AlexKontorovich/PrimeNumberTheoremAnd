@@ -1829,7 +1829,7 @@ lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}
 
 
 /-%%
-\begin{proof}leanok
+\begin{proof}\leanok
 \uses{MellinConvolutionSymmetric}
 Use Lemma \ref{MellinconvolutionSymmetric} to write $\widetilde{1_{\epsilon}}(x)$ as an integral over an integral near $1$, in particular avoiding the singularity at $0$.  The integrand may be bounded by $2^{\epsilon}\nu_\epsilon(t)$ which is independent of $x$ and we can use dominated convergence to prove continuity.
 \end{proof}

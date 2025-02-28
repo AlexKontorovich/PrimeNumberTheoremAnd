@@ -156,7 +156,7 @@ lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
     _ = _ := by simp ; group
 
 /-%%
-\begin{lemma}[First Fourier identity]\label{first-fourier}\lean{first_fourier}\leanok  If $\psi: \R \to \C$ is continuous and integrable and $x > 0$, then for any $\sigma>1$
+\begin{lemma}[first_fourier]\label{first_fourier}\lean{first_fourier}\leanok  If $\psi: \R \to \C$ is continuous and integrable and $x > 0$, then for any $\sigma>1$
   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = \int_\R F(\sigma + it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
 %%-/
@@ -201,7 +201,7 @@ the claim then follows from Fubini's theorem.
         simp
 
 /-%%
-\begin{lemma}[Second Fourier identity]\label{second-fourier}\lean{second_fourier}\leanok If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
+\begin{lemma}[second_fourier]\label{second_fourier}\lean{second_fourier}\leanok If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
 $$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du = x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt.$$
 \end{lemma}
 %%-/
@@ -979,7 +979,7 @@ lemma limiting_fourier (hcheby : cheby f)
 
 /-%%
 \begin{proof}
-\uses{first-fourier,second-fourier,decay} \leanok
+\uses{first_fourier, second_fourier, decay} \leanok
  By the preceding two lemmas, we know that for any $\sigma>1$, we have
   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A x^{1-\sigma} \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(\sigma+it) \psi(t) x^{it}\ dt.$$
   Now take limits as $\sigma \to 1$ using dominated convergence together with \eqref{cheby} and Lemma \ref{decay} to obtain the result.
@@ -2156,7 +2156,7 @@ theorem vonMangoldt_cheby : cheby Λ := by
 /-%%
 \section{Weak PNT}
 
-\begin{theorem}[Weak PNT]\label{WeakPNT}\lean{WeakPNT}\leanok  We have
+\begin{theorem}[WeakPNT]\label{WeakPNT}\lean{WeakPNT}\leanok  We have
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 \end{theorem}
 %%-/
@@ -2182,7 +2182,7 @@ theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (𝓝 1) := by
     simpa only [← nterm_eq_norm_term] using (@ArithmeticFunction.LSeriesSummable_vonMangoldt σ' hσ').norm
   apply WienerIkeharaTheorem' l1 l5 l4 l3 l2
 
-#print axioms WeakPNT
+-- #print axioms WeakPNT
 
 /-%%
 \begin{proof}
@@ -2200,7 +2200,7 @@ variable {f : ℕ → ℝ}
 
 In this section we do *not* assume bound \eqref{cheby}, but instead derive it from the other hypotheses.
 
-\begin{lemma}[Variant of limiting Fourier identity]\label{limiting-variant}\lean{limiting_fourier_variant}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, and $x \geq 1$, then
+\begin{lemma}[limiting_fourier_variant]\label{limiting_fourier_variant}\lean{limiting_fourier_variant}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, and $x \geq 1$, then
 $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
 %%-/
@@ -2219,7 +2219,7 @@ lemma limiting_fourier_variant
 
 /-%%
 \begin{proof}
-\uses{first-fourier,second-fourier,decay}  Repeat the proof of Lemma ref{limiting-variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.)
+\uses{first_fourier, second_fourier, decay}  Repeat the proof of Lemma ref{limiting_fourier_variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.)
 \end{proof}
 %%-/
 
@@ -2241,12 +2241,12 @@ lemma crude_upper_bound
 
 /-%%
 \begin{proof}
-\uses{limiting-variant} For $x \geq 1$, this readily follows from the previous lemma and the triangle inequality. For $x < 1$, only a bounded number of summands can contribute and the claim is trivial.
+\uses{limiting_fourier_variant} For $x \geq 1$, this readily follows from the previous lemma and the triangle inequality. For $x < 1$, only a bounded number of summands can contribute and the claim is trivial.
 \end{proof}
 %%-/
 
 /-%%
-\begin{corollary}[Automatic Chebyshev bound]\label{auto-cheby}\lean{auto_cheby}\leanok  One has
+\begin{corollary}[auto_cheby]\label{auto_cheby}\lean{auto_cheby}\leanok  One has
 $$ \sum_{n \leq x} f(n) = O(x)$$
 for all $x \geq 1$.
 \end{corollary}
@@ -2267,7 +2267,7 @@ But observe that the quantity $\int_0^{Cx} \hat \psi( \frac{1}{2\pi}$ is non-neg
 %%-/
 
 /-%%
-\begin{corollary}[Wiener-Ikehara theorem, II]\label{WienerIkehara-alt}\lean{WienerIkeharaTheorem''}\leanok
+\begin{corollary}[WienerIkeharaTheorem'']\label{WienerIkeharaTheorem''}\lean{WienerIkeharaTheorem''}\leanok
   We have
 $$ \sum_{n\leq x} f(n) = A x + o(x).$$
 \end{corollary}
@@ -2281,7 +2281,7 @@ theorem WienerIkeharaTheorem'' (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' �
 
 /-%%
 \begin{proof}
-\uses{auto-cheby, WienerIkehara}\leanok Use Corollary \ref{auto-cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
+\uses{auto_cheby, WienerIkehara}\leanok Use Corollary \ref{auto_cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
 \end{proof}
 %%-/
 
@@ -2290,13 +2290,13 @@ end auto_cheby
 /-%%
 \section{The prime number theorem in arithmetic progressions}
 
-\begin{lemma}[Character decomposition]\label{WeakPNT-character}\lean{WeakPNT_character'}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
+\begin{lemma}[WeakPNT_character]\label{WeakPNT_character}\lean{WeakPNT_character}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
 $$
 \sum_{n: n = a\ (q)} \frac{\Lambda(n)}{n^s} = - \frac{1}{\varphi(q)} \sum_{\chi\ (q)} \overline{\chi(a)} \frac{L'(s,\chi)}{L(s,\chi)}.$$
 \end{lemma}
 %%-/
 
-theorem WeakPNT_character'
+theorem WeakPNT_character
     {q a : ℕ} (hq: q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) {s : ℂ} (hs: 1 < s.re) :
     LSeries (fun n ↦ if n % q = a then Λ n else 0) s =
       - (∑' χ : DirichletCharacter ℂ q,
@@ -2329,7 +2329,7 @@ Combining these two facts, we obtain the claim.
 
 
 /-%%
-\begin{proposition}[Weak PNT in AP, preliminary]\label{WeakPNT-AP-prelim}\lean{WeakPNT_AP_prelim}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to $\mathrm{Re}(s)=1$.
+\begin{proposition}[WeakPNT_AP_prelim]\label{WeakPNT_AP_prelim}\lean{WeakPNT_AP_prelim}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to $\mathrm{Re}(s)=1$.
 \end{proposition}
 %%-/
 
@@ -2338,8 +2338,8 @@ proof_wanted WeakPNT_AP_prelim {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a 
 /-%%
 
 \begin{proof}
-\uses{ChebyshevPsi,WeakPNT-character}
-We expand out the left-hand side using Lemma \ref{WeakPNT-character}.  The contribution of the non-principal characters $\chi$ extend continuously to $\mathrm{Re}(s) = 1$ thanks to the non-vanishing of $L(s,\chi)$ on this line (which should follow from another component of this project), so it suffices to show that for the principal character $\chi_0$, that
+\uses{ChebyshevPsi, WeakPNT_character}
+We expand out the left-hand side using Lemma \ref{WeakPNT_character}.  The contribution of the non-principal characters $\chi$ extend continuously to $\mathrm{Re}(s) = 1$ thanks to the non-vanishing of $L(s,\chi)$ on this line (which should follow from another component of this project), so it suffices to show that for the principal character $\chi_0$, that
 $$ -\frac{L'(s,\chi_0)}{L(s,\chi_0)} - \frac{1}{s-1}$$
 also extends continuously here.  But we already know that
 $$ -\frac{\zeta'(s)}{\zeta(s)} - \frac{1}{s-1}$$
@@ -2352,7 +2352,7 @@ Since there are only finitely many primes dividing $q$, and each summand $\frac{
 
 
 /-%%
-\begin{theorem}[Weak PNT in AP]\label{WeakPNT-AP}\lean{WeakPNT_AP}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, we have
+\begin{theorem}[WeakPNT_AP]\label{WeakPNT_AP}\lean{WeakPNT_AP}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, we have
 $$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$
 \end{theorem}
 %%-/
@@ -2361,8 +2361,8 @@ proof_wanted WeakPNT_AP {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha'
 
 
 /-%%
-\begin{proof}\uses{WienerIkehara, WeakPNT-AP-prelim}
-Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkehara-alt}) to Proposition \ref{WeakPNT-AP-prelim}.  (The Chebyshev bound follows from the corresponding bound for $\Lambda$.)
+\begin{proof}\uses{WienerIkehara, WeakPNT_AP_prelim}
+Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkeharaTheorem''}) to Proposition \ref{WeakPNT_AP_prelim}.  (The Chebyshev bound follows from the corresponding bound for $\Lambda$.)
 \end{proof}
 
 %%-/
@@ -2376,7 +2376,7 @@ The goal here is to prove the Chebotarev density theorem for the case of cycloto
 %%-/
 
 /-%%
-\begin{lemma}[Factorization of Dedekind zeta function]\label{Dedekind-factor}  We have
+\begin{lemma}[Dedekind_factor]\label{Dedekind_factor}  We have
 $$ \zeta_L(s) = \prod_{\chi} L(\chi,s)$$
 for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ and $L$ is the Artin $L$-function.
 \end{lemma}
@@ -2389,7 +2389,7 @@ for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ a
 %%-/
 
 /-%%
-\begin{lemma}[Simple pole]\label{Dedekind-pole}  $\zeta_L$ has a simple pole at $s=1$.
+\begin{lemma}[Simple pole]\label{Dedekind_pole}  $\zeta_L$ has a simple pole at $s=1$.
 \end{lemma}
 %%-/
 
@@ -2399,13 +2399,13 @@ for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ a
 %%-/
 
 /-%%
-\begin{lemma}[Nonvanishing]\label{Dedekind-nonvanishing}  For any non-principal character $\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
+\begin{lemma}[Dedekind_nonvanishing]\label{Dedekind_nonvanishing}  For any non-principal character $\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
 \end{lemma}
 
 %%-/
 
 /-%%
-\begin{proof}\uses{Dedekind-factor, Dedekind-pole} For $s=1$, this will follow from Lemmas \ref{Dedekind-factor}, \ref{Dedekind-pole}. For the rest of the line, one should be able to adapt the arguments for the Dirichet L-function.
+\begin{proof}\uses{Dedekind_factor, Dedekind_pole} For $s=1$, this will follow from Lemmas \ref{Dedekind_factor}, \ref{Dedekind_pole}. For the rest of the line, one should be able to adapt the arguments for the Dirichet L-function.
 \end{proof}
 %%-/
 

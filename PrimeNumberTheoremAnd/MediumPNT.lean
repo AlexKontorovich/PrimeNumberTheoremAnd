@@ -271,13 +271,7 @@ lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
 
 
   sorry
--- #exit
--- lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
---     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
---     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) (X : ℝ) :
---     (fun X ↦ ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖) =O[atTop]
---       (fun X ↦ ε * X * Real.log X) := by
---   sorry
+
 /-%%
 \begin{proof}
 \uses{SmoothedChebyshevDirichlet, Smooth1Properties_above,
@@ -423,7 +417,7 @@ where:
 \section{MediumPNT}
 
 \begin{theorem}[MediumPNT]\label{MediumPNT}  We have
-$$ \sum_{n \leq x} \Lambda(n) = x + O(x \exp(-c(\log x)^{1/18})).$$
+$$ \sum_{n \leq x} \Lambda(n) = x + O(x \exp(-c(\log x)^{1/10})).$$
 \end{theorem}
 %%-/
 /-- *** Prime Number Theorem (Medium Strength) *** The `ChebyshevPsi` function is asymptotic to `x`. -/

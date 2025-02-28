@@ -499,7 +499,7 @@ theorem WeakPNT'' : (fun x ↦ ∑ n ∈ (Iic ⌊x⌋₊), Λ n) ~[atTop] (fun x
     exact floor_le hb'
 
 /-%%
-\begin{theorem}\label{chebyshev-asymptotic}\lean{chebyshev_asymptotic}\leanok  One has
+\begin{theorem}[chebyshev_asymptotic]\label{chebyshev_asymptotic}\lean{chebyshev_asymptotic}\leanok  One has
   $$ \sum_{p \leq x} \log p = x + o(x).$$
 \end{theorem}
 %%-/
@@ -785,8 +785,8 @@ lemma integral_log_inv_ne_zero (x : ℝ) (hx : 2 < x) :
 
 /-%%
 \begin{proof}\leanok
-\uses{chebyshev-asymptotic}
-  Exponentiate Theorem \ref{chebyshev-asymptotic}.
+\uses{chebyshev_asymptotic}
+  Exponentiate Theorem \ref{chebyshev_asymptotic}.
 \end{proof}
 %%-/
 lemma pi_asymp_aux (x : ℝ) (hx : 2 ≤ x) : Nat.primeCounting ⌊x⌋₊ =
@@ -1414,11 +1414,11 @@ theorem pi_asymp :
   positivity
 /-%%
 \begin{proof}\leanok
-\uses{chebyshev-asymptotic}
+\uses{chebyshev_asymptotic}
 We have the identity
 $$ \pi(x) = \frac{1}{\log x} \sum_{p \leq x} \log p
 + \int_2^x (\sum_{p \leq t} \log p) \frac{dt}{t \log^2 t}$$
-as can be proven by interchanging the sum and integral and using the fundamental theorem of calculus.  For any $\eps$, we know from Theorem \ref{chebyshev-asymptotic} that there is $x_\eps$ such that
+as can be proven by interchanging the sum and integral and using the fundamental theorem of calculus.  For any $\eps$, we know from Theorem \ref{chebyshev_asymptotic} that there is $x_\eps$ such that
 $\sum_{p \leq t} \log p = t + O(\eps t)$ for $t \geq x_\eps$, hence for $x \geq x_\eps$
 $$ \pi(x) = \frac{1}{\log x} (x + O(\eps x))
 + \int_{x_\eps}^x (t + O(\eps t)) \frac{dt}{t \log^2 t} + O_\eps(1)$$
@@ -2246,7 +2246,7 @@ for all $j=1,\dots,N-1$ if $x$ is large enough depending on $N$.  Summing all th
 /-%%
 \section{Consequences of the PNT in arithmetic progressions}
 
-\begin{theorem}[Chebyshev asymptotic in arithmetic progressions]\label{chebyshev-asymptotic-pnt}\lean{chebyshev_asymptotic_pnt}\leanok  If $a\ (q)$ is a primitive residue class, then one has
+\begin{theorem}[chebyshev_asymptotic_pnt]\label{chebyshev_asymptotic_pnt}\lean{chebyshev_asymptotic_pnt}\leanok  If $a\ (q)$ is a primitive residue class, then one has
   $$ \sum_{p \leq x: p = a\ (q)} \log p = \frac{x}{\phi(q)} + o(x).$$
 \end{theorem}
 %%-/
@@ -2255,18 +2255,22 @@ proof_wanted chebyshev_asymptotic_pnt {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Cop
     (fun x ↦ ∑ p ∈ (filter Nat.Prime (Iic ⌊x⌋₊)), if (p % q = a) then log p else 0) ~[atTop] (fun x ↦ x / (Nat.totient q))
 
 /-%%
-\begin{proof}  This is a routine modification of the proof of Theorem \ref{chebyshev-asymptotic}.
+\begin{proof}
+\uses{chebyshev_asymptotic}
+This is a routine modification of the proof of Theorem \ref{chebyshev_asymptotic}.
 \end{proof}
--/
+%%-/
 
 /-%%
-\begin{corollary}\label{dirichlet-thm}\lean{dirichlet_thm}\leanok  Any primitive residue class contains an infinite number of primes.
+\begin{corollary}[dirichlet_thm]\label{dirichlet_thm}\lean{dirichlet_thm}\leanok  Any primitive residue class contains an infinite number of primes.
 \end{corollary}
 %%-/
 
 proof_wanted dirichlet_thm {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) : Infinite { p // p.Prime ∧ p % q = a }
 
 /-%%
-\begin{proof} If this were not the case, then the sum $\sum_{p \leq x: p = a\ (q)} \log p$ would be bounded in $x$, contradicting Theorem \ref{chebyshev-asymptotic-pnt}.
+\begin{proof}
+\uses{chebyshev_asymptotic_pnt}
+If this were not the case, then the sum $\sum_{p \leq x: p = a\ (q)} \log p$ would be bounded in $x$, contradicting Theorem \ref{chebyshev_asymptotic_pnt}.
 \end{proof}
 -/
