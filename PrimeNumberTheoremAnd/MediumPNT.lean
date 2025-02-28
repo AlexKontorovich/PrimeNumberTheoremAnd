@@ -61,91 +61,12 @@ noncomputable def SmoothedChebyshev (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : �
 
 open MeasureTheory
 
-@[fun_prop, measurability]
-lemma Smooth1_AEStronglyMeasurable {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (ε : ℝ) (εpos : 0 < ε) : MeasureTheory.AEStronglyMeasurable (Smooth1 SmoothingF ε) := by
-  unfold Smooth1
-  unfold MellinConvolution
-  convert MeasureTheory.AEStronglyMeasurable.integral_prod_right' (f := uncurry fun x y => (if 0 < y ∧ y ≤ 1 then DeltaSpike SmoothingF ε (x / y) else 0) / y) ?_ with x _ y
-  · unfold uncurry
-    simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
-  · exact instSFiniteRestrict (Ioi 0)
-  · refine aestronglyMeasurable_iff_aemeasurable.mpr ?convert_4.a
-    refine Measurable.aemeasurable ?convert_4.a.h
-    apply MeasureTheory.measurable_uncurry_of_continuous_of_measurable
-    · intro x
-      split_ifs with h <;> fun_prop (disch := assumption)
-    intro x
-    convert_to Measurable <| (Ioc 0 1).indicator (fun y ↦ DeltaSpike SmoothingF ε (x/y) / y)
-    · ext x
-      simp [Set.indicator_apply, apply_ite (· / x)]
-    refine Measurable.indicator ?convert_4.a.h.h.hf ?convert_4.a.h.h.hs
-    · fun_prop (disch := assumption)
-    · measurability
-
-/-%%
-\begin{lemma}[integrable_x_mul_Smooth1]\label{integrable_x_mul_Smooth1}\lean{integrable_x_mul_Smooth1}\leanok
-Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$
-with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
-$x \mapsto x \cdot \widetilde{1_{\epsilon}}(x)$ is integrable on $(0,\infty)$.
-\end{lemma}
-%%-/
-open MeasureTheory
-lemma integrable_x_mul_Smooth1 {SmoothingF : ℝ → ℝ} (diffSmoothingF : ContDiff ℝ 1 SmoothingF) (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
-    (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
-    (ε : ℝ) (εpos : 0 < ε) (ε_lt_one : ε < 1) :
-    MeasureTheory.IntegrableOn (fun x ↦ x * Smooth1 SmoothingF ε x) (Ioi 0) := by
-  obtain ⟨c, c_pos, hc⟩ := Smooth1Properties_above suppSmoothingF
-  rw [← MeasureTheory.integrable_indicator_iff (by measurability)]
-  apply MeasureTheory.Integrable.mono' (g := Ioc 0 (1 + c * ε) |>.indicator fun x ↦ x)
-  · refine IntegrableOn.integrable_indicator ?hg.h ?hg.hs
-    · apply Continuous.integrableOn_Ioc
-      fun_prop
-    exact measurableSet_Ioc
-  · refine (aestronglyMeasurable_indicator_iff (by measurability)).mpr ?_
-    apply MeasureTheory.AEStronglyMeasurable.mul
-    · exact Measurable.aestronglyMeasurable fun ⦃t⦄ a ↦ a
-    · apply MeasureTheory.AEStronglyMeasurable.mono_measure («μ» := volume)
-      · apply Smooth1_AEStronglyMeasurable diffSmoothingF ε εpos
-      exact Measure.restrict_le_self
-  · filter_upwards []
-    intro x
-    simp
-    rw [_root_.abs_of_nonneg]
-    · simp_rw [indicator_apply, mem_Ioi, mem_Ioc]
-      by_cases hx : x ≤ 0
-      · rw [if_neg (hx.not_lt), if_neg (fun h => h.1.not_le hx)]
-      push_neg at hx
-      rw [if_pos hx, ite_and, if_pos hx]
-      split_ifs with hx'
-      · apply mul_le_of_le_one_right hx.le
-        apply Smooth1LeOne SmoothingFpos mass_one εpos hx
-      push_neg at hx'
-      apply le_of_eq
-      simp only [mul_eq_zero]
-      right
-      exact hc _ _ ⟨εpos, ε_lt_one⟩ hx'.le
-    · apply Set.indicator_nonneg
-      simp only [mem_Ioi]
-      intro x hx
-      have := Smooth1Nonneg SmoothingFpos hx εpos
-      positivity
-
-/-%%
-\begin{proof}\leanok
-\uses{Smooth1Properties_above}
-We have
-from Lemma \ref{Smooth1Properties_above}
- that $\widetilde{1_{\epsilon}}(x) = 0$ for all $x \leq 1+c\epsilon$.
- So the claimed function is integrable on $(0,\infty)$.
-\end{proof}
-%%-/
 
 /-%%
 \begin{lemma}[SmoothedChebyshevDirichlet_aux_integrable]\label{SmoothedChebyshevDirichlet_aux_integrable}\lean{SmoothedChebyshevDirichlet_aux_integrable}\leanok
 Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
 $$
-x \mapsto
-\int_{(0,\infty)} t^{1+ix} \widetilde{1_{\epsilon}}(t) dt
+x \mapsto\mathcal{M}(\widetilde{1_{\epsilon}})(2 + ix)
 $$
 is integrable on $\mathbb{R}$. ** Conditions are overkill; can remove some assumptions... **
 \end{lemma}
@@ -155,39 +76,30 @@ lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ}
     (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
-    (ε : ℝ) (εpos : 0 < ε) :
+    (ε : ℝ) (εpos : 0 < ε) (ε_lt_one : ε < 1) :
     MeasureTheory.Integrable
-      (fun (y : ℝ) ↦ ∫ (t : ℝ) in Ioi 0, (t : ℂ) ^ (1 + y * I) * (Smooth1 SmoothingF ε t : ℂ)) := by
-  sorry
-/-%%
-\begin{proof}
-\uses{MellinOfSmooth1b}
-By Lemma \ref{MellinOfSmooth1b} the integrand is $O(1/t^2)$ as $t\rightarrow \infty$ and hence the function is integrable.
-\end{proof}
-%%-/
+      (fun (y : ℝ) ↦ 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (2 + y * I)) := by
+  obtain ⟨c, cpos, hc⟩ := MellinOfSmooth1b diffSmoothingF suppSmoothingF
+  apply Integrable.mono' (g := (fun t ↦ c / ε * 1 / (1 + t ^ 2)))
+  · apply Integrable.const_mul integrable_inv_one_add_sq
+  · apply Continuous.aestronglyMeasurable
+    apply continuous_iff_continuousAt.mpr
+    intro x
+    have := Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one (s := 2 + x * I) (by simp) |>.continuousAt
+    fun_prop
+  · filter_upwards [] with t
+    calc
+      _≤ c / ε * 1 / (4 + t^2) := by
+        convert hc 2 (by norm_num) (2 + t * I) (by simp) (by simp) ε εpos  ε_lt_one using 1
+        simp [sq_abs, normSq_apply]
+        ring_nf
+      _ ≤ _ := by
+        gcongr; norm_num
 
 /-%%
-\begin{lemma}[SmoothedChebyshevDirichlet_aux_contAt]\label{SmoothedChebyshevDirichlet_aux_contAt}\lean{SmoothedChebyshevDirichlet_aux_contAt}\leanok
-Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
-$x \mapsto \int_{(0,\infty)} x^{1+it} \widetilde{1_{\epsilon}}(x) dx$ is continuous at any $y>0$.
-** Conditions are overkill; can remove some assumptions... **
-\end{lemma}
-%%-/
-lemma SmoothedChebyshevDirichlet_aux_contAt {SmoothingF : ℝ → ℝ}
-    (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
-    (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
-    (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
-    {ε : ℝ} (εpos : 0 < ε) {y : ℝ} (ypos : 0 < y) :
-    ContinuousAt (fun x ↦ Smooth1 SmoothingF ε x) y := by
-  apply Continuous.continuousAt
-  unfold Smooth1 DeltaSpike MellinConvolution
-  simp only [one_div, ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
-  sorry
-/-%%
-\begin{proof}
-\uses{Smooth1Properties_above}
-The function is a sum of continuous functions, and hence continuous.
+\begin{proof}\leanok
+\uses{MellinOfSmooth1b}
+By Lemma \ref{MellinOfSmooth1b} the integrand is $O(1/t^2)$ as $t\rightarrow \infty$ and hence the function is integrable.
 \end{proof}
 %%-/
 
@@ -294,20 +206,20 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
     · beta_reduce at this
       dsimp [MellinInverseTransform, VerticalIntegral] at this
       rw [← MellinTransform_eq, this]
-    · dsimp [MellinConvergent]
-      norm_num; exact_mod_cast (integrable_x_mul_Smooth1 diffSmoothingF SmoothingFpos suppSmoothingF mass_one ε εpos ε_lt_one).ofReal
-    · dsimp [VerticalIntegrable, mellin]
-      ring_nf
+    · apply Smooth1MellinConvergent diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one
+      simp
+    · dsimp [VerticalIntegrable]
+      rw [← MellinTransform_eq]
       apply SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos
-        suppSmoothingF mass_one ε εpos
+        suppSmoothingF mass_one ε εpos ε_lt_one
     · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
-      exact SmoothedChebyshevDirichlet_aux_contAt diffSmoothingF SmoothingFpos suppSmoothingF
-        mass_one εpos (by positivity)
+      exact Smooth1ContinuousAt diffSmoothingF SmoothingFpos suppSmoothingF
+        εpos (by positivity)
 /-%%
 \begin{proof}\leanok
 \uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne, MellinOfSmooth1b,
 SmoothedChebyshevDirichlet_aux_integrable,
-SmoothedChebyshevDirichlet_aux_contAt, SmoothedChebyshevDirichlet_aux_tsum_integral}
+Smooth1ContinuousAt, SmoothedChebyshevDirichlet_aux_tsum_integral}
 We have that
 $$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(2)}\sum_{n=1}^\infty \frac{\Lambda(n)}{n^s}
 \mathcal{M}(\widetilde{1_{\epsilon}})(s)
