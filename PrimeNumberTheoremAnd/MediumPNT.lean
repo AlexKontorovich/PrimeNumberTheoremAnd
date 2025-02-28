@@ -302,6 +302,12 @@ rectangles involved are all where the integrand is holomorphic, so there is no c
 We will do this in several stages
 %%-/
 
+theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε) (X : ℝ) {σ₀ : ℝ} (σ₀_pos : 0 < σ₀)
+  (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
+  (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+  (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) :
+  Integrable (fun (t : ℝ) ↦ SmoothedChebyshevIntegrand SmoothingF ε X (2 + (t : ℂ) * I)) volume := sorry
+
 /-%%
 \begin{theorem}[SmoothedChebyshevPull1]\label{SmoothedChebyshevPull1}\lean{SmoothedChebyshevPull1}\leanok
 We have that
@@ -328,6 +334,11 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   unfold SmoothedChebyshev
   unfold VerticalIntegral'
   rw [verticalIntegral_split_three (a := -T) (b := T)]
+  swap
+  exact SmoothedChebyshevPull1_aux_integrable ε_pos X σ₀_pos holoOn suppSmoothingF SmoothingFnonneg mass_one
+
+
+
     --VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) 2
   sorry
 /-%%
