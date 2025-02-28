@@ -2156,7 +2156,7 @@ theorem vonMangoldt_cheby : cheby Λ := by
 /-%%
 \section{Weak PNT}
 
-\begin{theorem}[Weak PNT]\label{WeakPNT}\lean{WeakPNT}\leanok  We have
+\begin{theorem}[WeakPNT]\label{WeakPNT}\lean{WeakPNT}\leanok  We have
 $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
 \end{theorem}
 %%-/
@@ -2182,7 +2182,7 @@ theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (𝓝 1) := by
     simpa only [← nterm_eq_norm_term] using (@ArithmeticFunction.LSeriesSummable_vonMangoldt σ' hσ').norm
   apply WienerIkeharaTheorem' l1 l5 l4 l3 l2
 
-#print axioms WeakPNT
+-- #print axioms WeakPNT
 
 /-%%
 \begin{proof}
