@@ -156,7 +156,7 @@ lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
     _ = _ := by simp ; group
 
 /-%%
-\begin{lemma}[First Fourier identity]\label{first-fourier}\lean{first_fourier}\leanok  If $\psi: \R \to \C$ is continuous and integrable and $x > 0$, then for any $\sigma>1$
+\begin{lemma}[first_fourier]\label{first_fourier}\lean{first_fourier}\leanok  If $\psi: \R \to \C$ is continuous and integrable and $x > 0$, then for any $\sigma>1$
   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = \int_\R F(\sigma + it) \psi(t) x^{it}\ dt.$$
 \end{lemma}
 %%-/
@@ -201,7 +201,7 @@ the claim then follows from Fubini's theorem.
         simp
 
 /-%%
-\begin{lemma}[Second Fourier identity]\label{second-fourier}\lean{second_fourier}\leanok If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
+\begin{lemma}[second_fourier]\label{second_fourier}\lean{second_fourier}\leanok If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
 $$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du = x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt.$$
 \end{lemma}
 %%-/
@@ -979,7 +979,7 @@ lemma limiting_fourier (hcheby : cheby f)
 
 /-%%
 \begin{proof}
-\uses{first-fourier,second-fourier,decay} \leanok
+\uses{first_fourier, second_fourier, decay} \leanok
  By the preceding two lemmas, we know that for any $\sigma>1$, we have
   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A x^{1-\sigma} \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(\sigma+it) \psi(t) x^{it}\ dt.$$
   Now take limits as $\sigma \to 1$ using dominated convergence together with \eqref{cheby} and Lemma \ref{decay} to obtain the result.
@@ -2219,7 +2219,7 @@ lemma limiting_fourier_variant
 
 /-%%
 \begin{proof}
-\uses{first-fourier,second-fourier,decay}  Repeat the proof of Lemma ref{limiting_fourier_variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.)
+\uses{first_fourier, second_fourier, decay}  Repeat the proof of Lemma ref{limiting_fourier_variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.)
 \end{proof}
 %%-/
 
