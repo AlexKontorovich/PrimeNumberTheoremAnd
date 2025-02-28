@@ -2246,7 +2246,7 @@ lemma crude_upper_bound
 %%-/
 
 /-%%
-\begin{corollary}[Automatic Chebyshev bound]\label{auto-cheby}\lean{auto_cheby}\leanok  One has
+\begin{corollary}[auto_cheby]\label{auto_cheby}\lean{auto_cheby}\leanok  One has
 $$ \sum_{n \leq x} f(n) = O(x)$$
 for all $x \geq 1$.
 \end{corollary}
@@ -2281,7 +2281,7 @@ theorem WienerIkeharaTheorem'' (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' �
 
 /-%%
 \begin{proof}
-\uses{auto-cheby, WienerIkehara}\leanok Use Corollary \ref{auto-cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
+\uses{auto_cheby, WienerIkehara}\leanok Use Corollary \ref{auto_cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
 \end{proof}
 %%-/
 
@@ -2290,13 +2290,13 @@ end auto_cheby
 /-%%
 \section{The prime number theorem in arithmetic progressions}
 
-\begin{lemma}[Character decomposition]\label{WeakPNT-character}\lean{WeakPNT_character'}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
+\begin{lemma}[WeakPNT_character]\label{WeakPNT_character}\lean{WeakPNT_character}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
 $$
 \sum_{n: n = a\ (q)} \frac{\Lambda(n)}{n^s} = - \frac{1}{\varphi(q)} \sum_{\chi\ (q)} \overline{\chi(a)} \frac{L'(s,\chi)}{L(s,\chi)}.$$
 \end{lemma}
 %%-/
 
-theorem WeakPNT_character'
+theorem WeakPNT_character
     {q a : ℕ} (hq: q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) {s : ℂ} (hs: 1 < s.re) :
     LSeries (fun n ↦ if n % q = a then Λ n else 0) s =
       - (∑' χ : DirichletCharacter ℂ q,
@@ -2338,8 +2338,8 @@ proof_wanted WeakPNT_AP_prelim {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a 
 /-%%
 
 \begin{proof}
-\uses{ChebyshevPsi, WeakPNT-character}
-We expand out the left-hand side using Lemma \ref{WeakPNT-character}.  The contribution of the non-principal characters $\chi$ extend continuously to $\mathrm{Re}(s) = 1$ thanks to the non-vanishing of $L(s,\chi)$ on this line (which should follow from another component of this project), so it suffices to show that for the principal character $\chi_0$, that
+\uses{ChebyshevPsi, WeakPNT_character}
+We expand out the left-hand side using Lemma \ref{WeakPNT_character}.  The contribution of the non-principal characters $\chi$ extend continuously to $\mathrm{Re}(s) = 1$ thanks to the non-vanishing of $L(s,\chi)$ on this line (which should follow from another component of this project), so it suffices to show that for the principal character $\chi_0$, that
 $$ -\frac{L'(s,\chi_0)}{L(s,\chi_0)} - \frac{1}{s-1}$$
 also extends continuously here.  But we already know that
 $$ -\frac{\zeta'(s)}{\zeta(s)} - \frac{1}{s-1}$$
