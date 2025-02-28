@@ -1734,7 +1734,6 @@ Follows from Lemmas \ref{MellinOfSmooth1a}, \ref{MellinOfDeltaSpikeAt1} and \ref
 \begin{lemma}[Smooth1ContinuousAt]\label{Smooth1ContinuousAt}\lean{Smooth1ContinuousAt}\leanok
 Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$. Then for any $\epsilon>0$, the function
 $x \mapsto \int_{(0,\infty)} x^{1+it} \widetilde{1_{\epsilon}}(x) dx$ is continuous at any $y>0$.
-** Conditions are overkill; can remove some assumptions... **
 \end{lemma}
 %%-/
 lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}

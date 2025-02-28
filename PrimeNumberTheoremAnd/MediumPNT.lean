@@ -299,6 +299,17 @@ contours (via rectangles!) to go
 from $2$ up to $2+iT$, then over to $1+iT$, and up from there to $1+i\infty$ (and symmetrically
 in the lower half plane).  The
 rectangles involved are all where the integrand is holomorphic, so there is no change.
+We will do this in several stages
+%%-/
+
+theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε) (X : ℝ) {σ₀ : ℝ} (σ₀_pos : 0 < σ₀)
+  (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
+  (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+  (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) :
+  Integrable (fun (t : ℝ) ↦ SmoothedChebyshevIntegrand SmoothingF ε X (2 + (t : ℂ) * I)) volume := by
+  sorry
+
+/-%%
 \begin{theorem}[SmoothedChebyshevPull1]\label{SmoothedChebyshevPull1}\lean{SmoothedChebyshevPull1}\leanok
 We have that
 $$\psi_{\epsilon}(X) =
@@ -316,11 +327,19 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     SmoothedChebyshev SmoothingF ε X =
     𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X +
-    (1 / (2 * π * I)) * (∫ t : ℝ in Iic (-T), SmoothedChebyshevIntegrand SmoothingF ε X (2 + t * I)) -
-    (1 / (2 * π * I)) * (∫ s : ℝ in Icc σ₀ 2, SmoothedChebyshevIntegrand SmoothingF ε X (s - T * I)) +
-    (1 / (2 * π * I)) * (∫ t : ℝ in Icc (-T) T, SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + t * I)) +
-    (1 / (2 * π * I)) * (∫ s : ℝ in Icc σ₀ 2, SmoothedChebyshevIntegrand SmoothingF ε X (s + T * I)) +
-    (1 / (2 * π * I)) * (∫ t : ℝ in Ici T, SmoothedChebyshevIntegrand SmoothingF ε X (2 + t * I)) := by
+    (1 / (2 * π * I)) * (I * (∫ t : ℝ in Iic (-T), SmoothedChebyshevIntegrand SmoothingF ε X (2 + t * I)) -
+    (∫ s : ℝ in Icc σ₀ 2, SmoothedChebyshevIntegrand SmoothingF ε X (s - T * I)) +
+    I * (∫ t : ℝ in Icc (-T) T, SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + t * I)) +
+    (∫ s : ℝ in Icc σ₀ 2, SmoothedChebyshevIntegrand SmoothingF ε X (s + T * I)) +
+    I * (∫ t : ℝ in Ici T, SmoothedChebyshevIntegrand SmoothingF ε X (2 + t * I)) ) := by
+  unfold SmoothedChebyshev
+  unfold VerticalIntegral'
+  rw [verticalIntegral_split_three (a := -T) (b := T)]
+  swap
+  exact SmoothedChebyshevPull1_aux_integrable ε_pos X σ₀_pos holoOn suppSmoothingF SmoothingFnonneg mass_one
+
+
+
     --VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) 2
   sorry
 /-%%
