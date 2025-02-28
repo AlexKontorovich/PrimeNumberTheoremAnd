@@ -306,7 +306,8 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
   (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
   (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
   (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) :
-  Integrable (fun (t : ℝ) ↦ SmoothedChebyshevIntegrand SmoothingF ε X (2 + (t : ℂ) * I)) volume := sorry
+  Integrable (fun (t : ℝ) ↦ SmoothedChebyshevIntegrand SmoothingF ε X (2 + (t : ℂ) * I)) volume := by
+  sorry
 
 /-%%
 \begin{theorem}[SmoothedChebyshevPull1]\label{SmoothedChebyshevPull1}\lean{SmoothedChebyshevPull1}\leanok
