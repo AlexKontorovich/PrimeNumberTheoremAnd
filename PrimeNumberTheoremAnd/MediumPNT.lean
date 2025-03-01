@@ -141,18 +141,9 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
 
   have abs_two: ∀ a: ℝ, ∀ i: ℕ, Complex.abs ((i: ℂ) ^ ((2: ℂ) + ↑a * I)) = i^2 := by
     intro a i
-    by_cases i_eq_zero: i = 0
-    .
-      simp [i_eq_zero, Complex.ext_iff]
-    .
-      norm_cast
-      have cast_r: (i: ℂ) = ((i: ℝ): ℂ) := by simp
-      rw [cast_r]
-      rw [Complex.abs_cpow_eq_rpow_re_of_pos]
-      . simp
-      .
-        norm_cast
-        omega
+    rw [← Complex.norm_eq_abs]
+    rw [norm_natCast_cpow_of_re_ne_zero _ (by simp)]
+    simp
 
   rw [MeasureTheory.integral_tsum]
   have x_neq_zero: X ≠ 0 := by linarith
