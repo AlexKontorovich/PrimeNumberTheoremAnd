@@ -103,61 +103,6 @@ By Lemma \ref{MellinOfSmooth1b} the integrand is $O(1/t^2)$ as $t\rightarrow \in
 \end{proof}
 %%-/
 
-lemma vonMangoldt_aux_sum: ∑' (i : ℕ), ENNReal.ofReal (|Λ i| / ↑i ^ 2) < ⊤ := by
-  have log_le : ∀ n: ℕ, Real.log n ≤ (n ^((1: ℝ) / 2)) * 2 := by
-    intro n
-    have := Real.log_le_rpow_div (x := n) (ε := (1: ℝ) / 2) (by linarith) (by linarith)
-    field_simp at this
-    exact this
-
-
-  calc
-    _ ≤ ∑' (i : ℕ), ENNReal.ofReal (Real.log i / ↑i ^ 2) := by
-      apply ENNReal.tsum_le_tsum
-      intro i
-      rw [ENNReal.ofReal_le_ofReal_iff]
-      have von_nonneg := ArithmeticFunction.vonMangoldt_nonneg (n := i)
-      have log_pos: 0 ≤ Real.log i := by
-        exact log_natCast_nonneg i
-      have abs_le: |Λ i| ≤ |Real.log i| := by
-        apply abs_le_abs
-        . exact ArithmeticFunction.vonMangoldt_le_log (n := i)
-        . linarith
-
-      have log_abs_self := _root_.abs_of_nonneg log_pos
-      rw [log_abs_self] at abs_le
-
-      apply div_le_div_of_nonneg_right
-      . exact abs_le
-      . simp
-      . positivity
-    _ ≤ ∑' (i : ℕ), ENNReal.ofReal (2 / ↑i ^ ((3 : ℝ) / 2)) := by
-      apply ENNReal.tsum_le_tsum
-      intro i
-      rw [ENNReal.ofReal_le_ofReal_iff (by positivity)]
-      have three_halve_eq: (3 : ℝ) / 2 = (2 : ℝ) - ((1 : ℝ)) / 2 := by norm_num
-      rw [three_halve_eq]
-      rw [Real.rpow_sub' (by simp) (by norm_num)]
-      field_simp
-      apply div_le_div_of_nonneg_right
-      .
-        rw [mul_comm]
-        exact log_le i
-      .
-        simp
-    _ < ⊤ := by
-      have sum_p_series := NNReal.summable_one_div_rpow (p := (3 : ℝ) / 2).mpr (by norm_num)
-      rw [← summable_mul_left_iff (a := 2) (by norm_num)] at sum_p_series
-      rw [← ENNReal.tsum_coe_ne_top_iff_summable] at sum_p_series
-      rw [← WithTop.lt_top_iff_ne_top] at sum_p_series
-
-      have cast_through: ∀ r: NNReal, ENNReal.ofReal r = ENNReal.ofNNReal r := by
-        simp
-
-      simp_rw [← cast_through] at sum_p_series
-      field_simp at sum_p_series
-      exact sum_p_series
-
 /-%%
 \begin{lemma}[SmoothedChebyshevDirichlet_aux_tsum_integral]\label{SmoothedChebyshevDirichlet_aux_tsum_integral}\lean{SmoothedChebyshevDirichlet_aux_tsum_integral}\leanok
 Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
@@ -166,6 +111,10 @@ $\sum_{n=1}^\infty \int_{(0,\infty)} \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\wi
 ** Conditions are overkill; can remove some assumptions...**
 \end{lemma}
 %%-/
+
+-- TODO: add to mathlib
+attribute [fun_prop] Continuous.const_cpow
+
 lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
@@ -214,23 +163,8 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
       exact aestronglyMeasurable_const
     .
       apply Continuous.aestronglyMeasurable
-      -- TODO - why can't this be `fun_prop`?
-      refine Continuous.mul ?_ ?_
-      . refine Continuous.mul ?_ ?_
-        .
-          refine Continuous.div₀ ?_ ?_ ?_
-          . exact continuous_const
-          . refine Continuous.const_cpow ?_ ?_
-            . fun_prop
-            . simp [i_eq_zero]
-          . simp [i_eq_zero]
-        . exact cont_mellin_smooth
-      .
-        refine Continuous.const_cpow ?_ ?_
-        . fun_prop
-        . simp [x_neq_zero]
+      fun_prop (disch := simp[i_eq_zero, x_neq_zero])
   .
-
     rw [← lt_top_iff_ne_top]
     simp only [NNNorm.toENorm, enorm_mul, nnnorm_div, nnnorm_real]
     norm_cast
@@ -273,7 +207,15 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
 
     rw [ENNReal.tsum_mul_right]
     apply WithTop.mul_lt_top
-    . exact vonMangoldt_aux_sum
+    .
+      rw [WithTop.lt_top_iff_ne_top]
+      apply ENNReal.tsum_coe_ne_top_iff_summable.mpr
+      have := (ArithmeticFunction.LSeriesSummable_vonMangoldt (s := 2) (by simp)).norm
+      unfold LSeriesSummable LSeries.term at this
+      apply Summable.toNNReal
+      convert this
+      split_ifs with h <;> simp[h]
+
     .
       rw [← MeasureTheory.ofReal_integral_eq_lintegral_ofReal]
       .
