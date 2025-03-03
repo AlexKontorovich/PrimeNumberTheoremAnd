@@ -108,9 +108,13 @@ By Lemma \ref{MellinOfSmooth1b} the integrand is $O(1/t^2)$ as $t\rightarrow \in
 Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
 $x \mapsto \sum_{n=1}^\infty \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\widetilde{1_{\epsilon}})(2+it) x^{2+it}$ is equal to
 $\sum_{n=1}^\infty \int_{(0,\infty)} \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\widetilde{1_{\epsilon}})(2+it) x^{2+it}$.
-** Conditions are overkill; can remove some assumptions... Is there really no ``tsum_integral_swap''?**
+** Conditions are overkill; can remove some assumptions...**
 \end{lemma}
 %%-/
+
+-- TODO: add to mathlib
+attribute [fun_prop] Continuous.const_cpow
+
 lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
@@ -124,7 +128,99 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     ∑' (n : ℕ),
       ∫ (t : ℝ), (Λ n) / (n : ℂ) ^ (2 + ↑t * I) *
         𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * (X : ℂ) ^ (2 + t * I) := by
-  sorry
+
+  have cont_mellin_smooth: Continuous fun (a: ℝ) ↦ 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑a * I) := by
+    rw [continuous_iff_continuousOn_univ]
+    refine ContinuousOn.comp' ?_ ?_ ?_ (t := {z: ℂ | 0 < z.re })
+    .
+      refine continuousOn_of_forall_continuousAt ?_
+      intro z hz
+      exact (Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one hz).continuousAt
+    . fun_prop
+    . simp
+
+  have abs_two: ∀ a: ℝ, ∀ i: ℕ, Complex.abs ((i: ℂ) ^ ((2: ℂ) + ↑a * I)) = i^2 := by
+    intro a i
+    rw [← Complex.norm_eq_abs]
+    rw [norm_natCast_cpow_of_re_ne_zero _ (by simp)]
+    simp
+
+  rw [MeasureTheory.integral_tsum]
+  have x_neq_zero: X ≠ 0 := by linarith
+  .
+    intro i
+    by_cases i_eq_zero: i = 0
+    . simp [i_eq_zero]
+      exact aestronglyMeasurable_const
+    .
+      apply Continuous.aestronglyMeasurable
+      fun_prop (disch := simp[i_eq_zero, x_neq_zero])
+  .
+    rw [← lt_top_iff_ne_top]
+    simp only [NNNorm.toENorm, enorm_mul, nnnorm_div, nnnorm_real]
+    norm_cast
+
+    have cast_through: ∀ r: NNReal, ENNReal.ofNNReal r = ENNReal.ofReal r := by simp
+    simp [cast_through]
+    simp [Complex.abs_cpow_eq_rpow_re_of_pos X_pos]
+    simp_rw [abs_two]
+
+    -- TODO - why can't these be 'simp_rw'?
+    conv =>
+      arg 1
+      arg 1
+      intro i
+      arg 2
+      intro a
+      rw [ENNReal.ofReal_mul (q := X ^ 2) (by positivity)]
+
+    conv =>
+      arg 1
+      arg 1
+      intro i
+      rw [MeasureTheory.lintegral_mul_const' (hr := by simp)]
+
+    simp_rw [ENNReal.tsum_mul_right]
+    apply WithTop.mul_lt_top ?_ ENNReal.ofReal_lt_top
+    conv =>
+      arg 1
+      arg 1
+      intro i
+      arg 2
+      intro a
+      rw [ENNReal.ofReal_mul (by positivity)]
+
+    conv =>
+      arg 1
+      arg 1
+      intro i
+      rw [MeasureTheory.lintegral_const_mul' (hr := by simp)]
+
+    rw [ENNReal.tsum_mul_right]
+    apply WithTop.mul_lt_top
+    .
+      rw [WithTop.lt_top_iff_ne_top]
+      apply ENNReal.tsum_coe_ne_top_iff_summable.mpr
+      have := (ArithmeticFunction.LSeriesSummable_vonMangoldt (s := 2) (by simp)).norm
+      unfold LSeriesSummable LSeries.term at this
+      apply Summable.toNNReal
+      convert this
+      split_ifs with h <;> simp[h]
+
+    .
+      rw [← MeasureTheory.ofReal_integral_eq_lintegral_ofReal]
+      .
+        exact ENNReal.ofReal_lt_top
+      .
+        simp_rw [← Complex.norm_eq_abs]
+        apply MeasureTheory.Integrable.norm
+        exact
+          SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos suppSmoothingF
+            mass_one ε εpos ε_lt_one
+      .
+        apply Filter.Eventually.of_forall
+        simp
+
 /-%%
 \begin{proof}
 \uses{Smooth1Properties_above, SmoothedChebyshevDirichlet_aux_integrable}
