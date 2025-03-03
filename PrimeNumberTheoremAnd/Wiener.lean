@@ -980,7 +980,7 @@ lemma limiting_fourier (hcheby : cheby f)
 /-%%
 \begin{proof}
 \uses{first_fourier, second_fourier, decay} \leanok
- By the preceding two lemmas, we know that for any $\sigma>1$, we have
+ By Lemma \ref{first_fourier} and Lemma \ref{second_fourier}, we know that for any $\sigma>1$, we have
   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A x^{1-\sigma} \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(\sigma+it) \psi(t) x^{it}\ dt.$$
   Now take limits as $\sigma \to 1$ using dominated convergence together with \eqref{cheby} and Lemma \ref{decay} to obtain the result.
 \end{proof}
@@ -2421,4 +2421,32 @@ for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ a
 
 (Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the previous results to arbitrary extensions
 
+%%-/
+
+/-%%
+\begin{lemma}[PNT for one character]\label{Dedekind-PNT}  For any non-principal character $\chi$ of $Gal(K/L)$,
+$$ \sum_{N \mathfrak{p} \leq x} \chi(\mathfrak{p}) \log N \mathfrak{p}  = o(x).$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}\uses{Dedekind-nonvanishing} This should follow from Lemma \ref{Dedekind-nonvanishing} and the arguments for the Dirichlet L-function. (It may be more convenient to work with a von Mangoldt type function instead of $\log N\mathfrak{p}$).
+\end{proof}
+%%-/
+
+/-%%
+\section{Consequences of the Chebotarev density theorem}
+
+%%-/
+
+/-%%
+\begin{lemma}[Cyclotomic Chebotarev]\label{Chebotarev-cyclic}  For any $a$ coprime to $m$,
+$$ \sum_{N \mathfrak{p} \leq x; N \mathfrak{p} = a\ (m)} \log N \mathfrak{p}  =
+\frac{1}{|G|} \sum_{N \mathfrak{p} \leq x} \log N \mathfrak{p}.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}\uses{Dedekind-PNT} This should follow from Lemma \ref{Dedekind-PNT} by a Fourier expansion.
+\end{proof}
 %%-/
