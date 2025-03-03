@@ -2246,7 +2246,7 @@ for all $j=1,\dots,N-1$ if $x$ is large enough depending on $N$.  Summing all th
 /-%%
 \section{Consequences of the PNT in arithmetic progressions}
 
-\begin{theorem}[chebyshev_asymptotic_pnt]\label{chebyshev_asymptotic_pnt}\lean{chebyshev_asymptotic_pnt}\leanok  If $a\ (q)$ is a primitive residue class, then one has
+\begin{theorem}[Prime number theorem in AP]\label{chebyshev_asymptotic_pnt}\lean{chebyshev_asymptotic_pnt}\leanok  If $a\ (q)$ is a primitive residue class, then one has
   $$ \sum_{p \leq x: p = a\ (q)} \log p = \frac{x}{\phi(q)} + o(x).$$
 \end{theorem}
 %%-/
@@ -2262,7 +2262,7 @@ This is a routine modification of the proof of Theorem \ref{chebyshev_asymptotic
 %%-/
 
 /-%%
-\begin{corollary}[dirichlet_thm]\label{dirichlet_thm}\lean{dirichlet_thm}\leanok  Any primitive residue class contains an infinite number of primes.
+\begin{corollary}[Dirichlet's theorem]\label{dirichlet_thm}\lean{dirichlet_thm}\leanok  Any primitive residue class contains an infinite number of primes.
 \end{corollary}
 %%-/
 
@@ -2274,3 +2274,20 @@ proof_wanted dirichlet_thm {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (
 If this were not the case, then the sum $\sum_{p \leq x: p = a\ (q)} \log p$ would be bounded in $x$, contradicting Theorem \ref{chebyshev_asymptotic_pnt}.
 \end{proof}
 -/
+
+/-%%
+\section{Consequences of the Chebotarev density theorem}
+
+%%-/
+
+/-%%
+\begin{lemma}[Cyclotomic Chebotarev]\label{Chebotarev-cyclic}  For any $a$ coprime to $m$,
+$$ \sum_{N \mathfrak{p} \leq x; N \mathfrak{p} = a\ (m)} \log N \mathfrak{p}  =
+\frac{1}{|G|} \sum_{N \mathfrak{p} \leq x} \log N \mathfrak{p}.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}\uses{Dedekind-PNT} This should follow from Lemma \ref{Dedekind-PNT} by a Fourier expansion.
+\end{proof}
+%%-/

@@ -324,6 +324,53 @@ for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies th
 lemma one_add_sq_pos (u : ℝ) : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa using sq_nonneg u)
 
 /-%%
+\begin{lemma}[Preliminary decay bound I]\label{prelim-decay}  If $\psi:\R \to \C$ is absolutely integrable then
+$$ |\hat \psi(u)| \leq \| \psi \|_1 $$
+for all $u \in \R$. where $C$ is an absolute constant.
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof} Immediate from the triangle inequality.
+\end{proof} %%-/
+
+/-%%
+\begin{lemma}[Preliminary decay bound II]\label{prelim-decay-2}  If $\psi:\R \to \C$ is absolutely integrable and of bounded variation, and $\psi'$ is bounded variation, then
+$$ |\hat \psi(u)| \leq \| \psi \|_{TV} / 2\pi |u| $$
+for all non-zero $u \in \R$.
+%%-/
+
+/-%%
+\begin{proof} By integration by parts we will have
+$$ 2\pi i u \hat \psi(u) = \int _\R e(-tu) \psi'(t)\ dt$$
+and the claim then follows from the triangle inequality.
+\end{proof} %%-/
+
+/-%%
+\begin{lemma}[Preliminary decay bound III]\label{prelim-decay-3}  If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
+$$ |\hat \psi(u)| \leq \| \psi' \|_{TV} / (2\pi |u|)^2$$
+for all non-zero $u \in \R$.
+%%-/
+
+/-%%
+\begin{proof}\uses{prelim-decay-1} Should follow from previous lemma.
+\end{proof} %%-/
+
+/-%%
+\begin{lemma}[Decay bound, alternate form]\label{decay-alt}  If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
+$$ |\hat \psi(u)| \leq \max( \|\psi\|_1, \| \psi' \|_{TV} / (2\pi)^2) / (1+|u|^2)$$
+for all $u \in \R$.
+%%-/
+
+/-%%
+\begin{proof}\uses{prelim-decay, prelim-decay-3} Should follow from previous lemmas.
+\end{proof} %%-/
+
+
+/-%%
+
+It should be possible to refactor the lemma below to follow from Lemma \ref{decay-alt} instead.
+
 \begin{lemma}[Decay bounds]\label{decay}\lean{decay_bounds}\leanok  If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
   $$ |\psi(t)|, |\psi''(t)| \leq A / (1 + |t|^2)$$
   for all $t \in \R$, then
@@ -2431,22 +2478,5 @@ $$ \sum_{N \mathfrak{p} \leq x} \chi(\mathfrak{p}) \log N \mathfrak{p}  = o(x).$
 
 /-%%
 \begin{proof}\uses{Dedekind-nonvanishing} This should follow from Lemma \ref{Dedekind-nonvanishing} and the arguments for the Dirichlet L-function. (It may be more convenient to work with a von Mangoldt type function instead of $\log N\mathfrak{p}$).
-\end{proof}
-%%-/
-
-/-%%
-\section{Consequences of the Chebotarev density theorem}
-
-%%-/
-
-/-%%
-\begin{lemma}[Cyclotomic Chebotarev]\label{Chebotarev-cyclic}  For any $a$ coprime to $m$,
-$$ \sum_{N \mathfrak{p} \leq x; N \mathfrak{p} = a\ (m)} \log N \mathfrak{p}  =
-\frac{1}{|G|} \sum_{N \mathfrak{p} \leq x} \log N \mathfrak{p}.$$
-\end{lemma}
-%%-/
-
-/-%%
-\begin{proof}\uses{Dedekind-PNT} This should follow from Lemma \ref{Dedekind-PNT} by a Fourier expansion.
 \end{proof}
 %%-/
