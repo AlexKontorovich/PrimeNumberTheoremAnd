@@ -302,7 +302,7 @@ Composition of differentiabilities.
   unfold f
   simp_rw [Complex.cpow_def_of_ne_zero <| ofReal_ne_zero.mpr <| ne_of_gt xpos]
   apply DifferentiableOn.div <| DifferentiableOn.cexp <| DifferentiableOn.const_mul differentiableOn_id _
-  · exact DifferentiableOn.mul differentiableOn_id <| DifferentiableOn.add_const differentiableOn_id 1
+  · exact DifferentiableOn.mul differentiableOn_id <| DifferentiableOn.add_const _ differentiableOn_id
   · intro x hx
     obtain ⟨h0, h1⟩ := not_or.mp hx
     exact mul_ne_zero h0 <| add_ne_add_left 1 |>.mpr h1 |>.trans_eq (neg_add_cancel 1)
@@ -383,7 +383,7 @@ lemma vertIntBound (xpos : 0 < x) (σ_gt_one : 1 < σ) :
     _ ≤ x ^ σ * ∫ (t : ℝ), 1 / ((1 + t ^ 2).sqrt * (2 + t ^ 2).sqrt) :=
         mul_le_mul_of_nonneg_left ?_ (rpow_nonneg xpos.le _)
   · simp [VerticalIntegral]
-  · simp [Complex.abs_cpow_eq_rpow_re_of_pos xpos]
+  · simp [Complex.norm_cpow_eq_rpow_re_of_pos xpos]
   · simp [integral_mul_left, div_eq_mul_inv]
   by_cases hint : Integrable fun (a : ℝ) ↦ 1 / (‖σ + a * I‖ * ‖σ + a * I + 1‖)
   swap; rw [integral_undef hint]; exact integral_nonneg <| fun t ↦ by positivity
@@ -435,9 +435,9 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
     _ ≤ _ := ?_
   · simp [VerticalIntegral, Real.pi_nonneg]
   · congr with t
-    rw [norm_div, Complex.norm_eq_abs, Complex.abs_cpow_eq_rpow_re_of_pos xpos, add_re, ofReal_re,
+    rw [norm_div, Complex.norm_cpow_eq_rpow_re_of_pos xpos, add_re, ofReal_re,
       re_ofReal_mul, I_re, mul_zero, add_zero]
-  · simp_rw [div_eq_mul_inv, integral_mul_left, one_mul, Complex.norm_eq_abs, map_mul]
+  · simp_rw [div_eq_mul_inv, integral_mul_left, one_mul, norm_mul]
   · gcongr x ^ σ * ?_
     by_cases hint : Integrable fun (a : ℝ) ↦ 1 / (‖σ + ↑a * I‖ * ‖σ + ↑a * I + 1‖)
     swap
@@ -456,7 +456,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
   · rw [mul_comm]
     gcongr
     · have : 0 ≤ ∫ (t : ℝ), 1 / (sqrt (4⁻¹ + t ^ 2) * sqrt (4⁻¹ + t ^ 2)) := by positivity
-      rw [← _root_.abs_of_nonneg this, ← Complex.abs_ofReal]
+      rw [← norm_of_nonneg this, ← Complex.norm_real]
       apply le_of_eq; congr; norm_cast; exact integral_ofReal.symm
 /-%%
 Triangle inequality and pointwise estimate.
@@ -474,7 +474,7 @@ theorem isTheta_uniformlyOn_uIcc {x : ℝ} (xpos : 0 < x) (σ' σ'' : ℝ) :
   set l := 𝓟 [[σ', σ'']] ×ˢ (atBot ⊔ atTop : Filter ℝ) with hl
   refine IsTheta.div (isTheta_norm_left.mp ?_) ?_
   · suffices (fun (σ, _y) ↦ |x| ^ σ) =Θ[l] fun _ ↦ (1 : ℝ) by
-      simpa [Complex.abs_cpow_of_ne_zero <| ofReal_ne_zero.mpr (ne_of_gt xpos),
+      simpa [Complex.norm_cpow_of_ne_zero <| ofReal_ne_zero.mpr (ne_of_gt xpos),
         arg_ofReal_of_nonneg xpos.le] using this
     exact (continuousOn_const.rpow continuousOn_id fun _ _ ↦ Or.inl <| ne_of_gt (abs_pos_of_pos xpos))
       |>.const_isThetaUniformlyOn_isCompact isCompact_uIcc (by norm_num)
@@ -524,7 +524,7 @@ By \ref{isHolomorphicOn}, $f$ is continuous, so it is integrable on any interval
 --%% and $|f(-x)| = \Theta(x^{-2})$ as $x\to\infty$.
   · show ‖f x (↑σ + ↑y * I)‖ = ‖f x (↑σ + ↑(-y) * I)‖
     have : (↑σ + ↑(-y) * I) = conj (↑σ + ↑y * I) := Complex.ext (by simp) (by simp)
-    simp_rw [this, map_conj xpos.le, Complex.norm_eq_abs, abs_conj]
+    simp_rw [this, map_conj xpos.le, norm_conj]
 --%% Since $g(x) = x^{-2}$ is integrable on $[a,\infty)$ for any $a>0$, we conclude.
   · refine integrableOn_Ioi_rpow_of_lt (show (-2 : ℝ) < -1 by norm_num)
       (show (0 : ℝ) < 1 by norm_num) |>.congr_fun (fun y hy ↦ ?_) measurableSet_Ioi
@@ -626,11 +626,11 @@ tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
     let C := ∫ (t : ℝ), 1 / ((1 + t ^ 2).sqrt * (2 + t ^ 2).sqrt)
     exact ⟨C, integralPosAux, fun _ ↦ vertIntBound xpos⟩
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
-  have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral (f x))) atTop (𝓝 0) := by
+  have AbsVertIntTendsto : Tendsto ((‖·‖ : ℂ → ℝ) ∘ (VerticalIntegral (f x))) atTop (𝓝 0) := by
     obtain ⟨C, _, hC⟩ := VertIntBound
     have := tendsto_rpow_atTop_nhds_zero_of_norm_lt_one xpos x_lt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
-    · filter_upwards; exact fun _ ↦ Complex.abs.nonneg' _
+    · filter_upwards; exact fun _ ↦ norm_nonneg _
     · filter_upwards [eventually_gt_atTop 1]; exact hC
   have VertIntTendsto : Tendsto (VerticalIntegral (f x)) atTop (𝓝 0) :=
     tendsto_zero_iff_norm_tendsto_zero.mpr AbsVertIntTendsto
@@ -988,11 +988,11 @@ tendsto_rpow_atTop_nhds_zero_of_norm_gt_one, limitOfConstantLeft}
   have VertIntBound : ∃ C, ∀ σ' < -3/2, ‖VerticalIntegral' f σ'‖ ≤ C * x ^ σ' :=
     vertIntBoundLeft (by linarith : 0 < x)
 --%% Therefore $\int_{(\sigma')}\to 0$ as $\sigma'\to\infty$.
-  have AbsVertIntTendsto : Tendsto (Complex.abs ∘ (VerticalIntegral' f)) atBot (𝓝 0) := by
+  have AbsVertIntTendsto : Tendsto ((‖·‖ : ℂ → ℝ) ∘ (VerticalIntegral' f)) atBot (𝓝 0) := by
     obtain ⟨C, hC⟩ := VertIntBound
     have := tendsto_rpow_atTop_nhds_zero_of_norm_gt_one x_gt_one C
     apply tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds this
-    · filter_upwards using fun _ ↦ Complex.abs.nonneg' _
+    · filter_upwards using fun _ ↦ norm_nonneg _
     · filter_upwards [eventually_lt_atBot (-3/2)]
       (conv at hC => intro σ hσ; rw [mul_comm]); exact fun _ ↦ hC _
   --%% So pulling contours gives $\int_{(-3/2)}=0$.

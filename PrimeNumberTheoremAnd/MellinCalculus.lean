@@ -441,7 +441,7 @@ lemma MellinInverseTransform_eq (σ : ℝ) (f : ℂ → ℂ) :
     MellinInverseTransform f σ = mellinInv σ f := by
   unfold mellinInv MellinInverseTransform VerticalIntegral' VerticalIntegral
   beta_reduce; ext x
-  rw [← smul_assoc, smul_eq_mul (a' := I), div_mul]; simp
+  rw [← smul_assoc, smul_eq_mul (b := I), div_mul]; simp
 
 /-%%
 \begin{theorem}[MellinInversion]\label{MellinInversion}\lean{MellinInversion}\leanok
@@ -792,13 +792,13 @@ lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
       · exact (Icc_subset_Ioi_iff (by norm_num)).mpr (by norm_num)
     · have := intervalIntegral.norm_integral_le_of_norm_le_const' (C := f a * 2 ^ σ₂)
         (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 2 : ℝ)) ( b := 2) (by norm_num) ?_
-      · simp only [Real.norm_eq_abs, Complex.norm_eq_abs, abs_ofReal, map_mul] at this ⊢
+      · simp only [Real.norm_eq_abs, norm_real, norm_mul] at this ⊢
         rwa [(by norm_num: |(2 : ℝ) - 1 / 2| = 3 / 2),
             intervalIntegral.integral_of_le (by norm_num), ← integral_Icc_eq_integral_Ioc] at this
       · intro x hx;
         have f_bound := isMaxOn_iff.mp max x hx
         have pow_bound : ‖(x : ℂ) ^ s‖ ≤ 2 ^ σ₂ := by
-          rw [Complex.norm_eq_abs, abs_cpow_eq_rpow_re_of_pos (by linarith [mem_Icc.mp hx])]
+          rw [norm_cpow_eq_rpow_re_of_pos (by linarith [mem_Icc.mp hx])]
           have xpos : 0 ≤ x := by linarith [(mem_Icc.mp hx).1]
           have h := rpow_le_rpow xpos (mem_Icc.mp hx).2 (by linarith : 0 ≤ s.re)
           exact le_trans h <| rpow_le_rpow_of_exponent_le (by norm_num) hs₂
@@ -1673,7 +1673,7 @@ lemma MellinOfSmooth1b {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
       convert hC (ε * σ₁) (by positivity) (ε * s) hh1 hh2
       simp [abs_eq_self.mpr εpos.le]
     _                        = C * (ε * ‖s‖ ^ 2)⁻¹ := by
-      simp only [norm_inv, Complex.norm_eq_abs, mul_inv_rev]
+      simp only [norm_inv, mul_inv_rev]
       ring
 
 --   rw [Asymptotics.isBigO_iff]
