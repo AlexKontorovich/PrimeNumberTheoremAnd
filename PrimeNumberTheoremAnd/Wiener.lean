@@ -358,7 +358,7 @@ for all non-zero $u \in \R$.
 
 /-%%
 \begin{lemma}[Decay bound, alternate form]\label{decay-alt}  If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
-$$ |\hat \psi(u)| \leq \max( \|\psi\|_1, \| \psi' \|_{TV} / (2\pi)^2) / (1+|u|^2)$$
+$$ |\hat \psi(u)| \leq ( \|\psi\|_1 + \| \psi' \|_{TV} / (2\pi)^2) / (1+|u|^2)$$
 for all $u \in \R$.
 %%-/
 
