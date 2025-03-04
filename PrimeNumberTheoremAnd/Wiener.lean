@@ -328,39 +328,46 @@ for all $u \in \R$. where $C$ is an absolute constant.
 
 /-%%
 \begin{proof} Immediate from the triangle inequality.
-\end{proof} %%-/
+\end{proof}
+%%-/
 
 /-%%
 \begin{lemma}[Preliminary decay bound II]\label{prelim-decay-2}  If $\psi:\R \to \C$ is absolutely integrable and of bounded variation, and $\psi'$ is bounded variation, then
 $$ |\hat \psi(u)| \leq \| \psi \|_{TV} / 2\pi |u| $$
 for all non-zero $u \in \R$.
+\end{lemma}
 %%-/
 
 /-%%
 \begin{proof} By integration by parts we will have
 $$ 2\pi i u \hat \psi(u) = \int _\R e(-tu) \psi'(t)\ dt$$
 and the claim then follows from the triangle inequality.
-\end{proof} %%-/
+\end{proof}
+%%-/
 
 /-%%
 \begin{lemma}[Preliminary decay bound III]\label{prelim-decay-3}  If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
 $$ |\hat \psi(u)| \leq \| \psi' \|_{TV} / (2\pi |u|)^2$$
 for all non-zero $u \in \R$.
+\end{lemma}
 %%-/
 
 /-%%
 \begin{proof}\uses{prelim-decay-1} Should follow from previous lemma.
-\end{proof} %%-/
+\end{proof}
+%%-/
 
 /-%%
 \begin{lemma}[Decay bound, alternate form]\label{decay-alt}  If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
 $$ |\hat \psi(u)| \leq ( \|\psi\|_1 + \| \psi' \|_{TV} / (2\pi)^2) / (1+|u|^2)$$
 for all $u \in \R$.
+\end{lemma}
 %%-/
 
 /-%%
 \begin{proof}\uses{prelim-decay, prelim-decay-3} Should follow from previous lemmas.
-\end{proof} %%-/
+\end{proof}
+%%-/
 
 
 /-%%
