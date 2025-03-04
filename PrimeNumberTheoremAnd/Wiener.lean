@@ -324,6 +324,53 @@ for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies th
 lemma one_add_sq_pos (u : ℝ) : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa using sq_nonneg u)
 
 /-%%
+\begin{lemma}[Preliminary decay bound I]\label{prelim-decay}  If $\psi:\R \to \C$ is absolutely integrable then
+$$ |\hat \psi(u)| \leq \| \psi \|_1 $$
+for all $u \in \R$. where $C$ is an absolute constant.
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof} Immediate from the triangle inequality.
+\end{proof} %%-/
+
+/-%%
+\begin{lemma}[Preliminary decay bound II]\label{prelim-decay-2}  If $\psi:\R \to \C$ is absolutely integrable and of bounded variation, and $\psi'$ is bounded variation, then
+$$ |\hat \psi(u)| \leq \| \psi \|_{TV} / 2\pi |u| $$
+for all non-zero $u \in \R$.
+%%-/
+
+/-%%
+\begin{proof} By integration by parts we will have
+$$ 2\pi i u \hat \psi(u) = \int _\R e(-tu) \psi'(t)\ dt$$
+and the claim then follows from the triangle inequality.
+\end{proof} %%-/
+
+/-%%
+\begin{lemma}[Preliminary decay bound III]\label{prelim-decay-3}  If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
+$$ |\hat \psi(u)| \leq \| \psi' \|_{TV} / (2\pi |u|)^2$$
+for all non-zero $u \in \R$.
+%%-/
+
+/-%%
+\begin{proof}\uses{prelim-decay-1} Should follow from previous lemma.
+\end{proof} %%-/
+
+/-%%
+\begin{lemma}[Decay bound, alternate form]\label{decay-alt}  If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
+$$ |\hat \psi(u)| \leq ( \|\psi\|_1 + \| \psi' \|_{TV} / (2\pi)^2) / (1+|u|^2)$$
+for all $u \in \R$.
+%%-/
+
+/-%%
+\begin{proof}\uses{prelim-decay, prelim-decay-3} Should follow from previous lemmas.
+\end{proof} %%-/
+
+
+/-%%
+
+It should be possible to refactor the lemma below to follow from Lemma \ref{decay-alt} instead.
+
 \begin{lemma}[Decay bounds]\label{decay}\lean{decay_bounds}\leanok  If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
   $$ |\psi(t)|, |\psi''(t)| \leq A / (1 + |t|^2)$$
   for all $t \in \R$, then
@@ -980,7 +1027,7 @@ lemma limiting_fourier (hcheby : cheby f)
 /-%%
 \begin{proof}
 \uses{first_fourier, second_fourier, decay} \leanok
- By the preceding two lemmas, we know that for any $\sigma>1$, we have
+ By Lemma \ref{first_fourier} and Lemma \ref{second_fourier}, we know that for any $\sigma>1$, we have
   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A x^{1-\sigma} \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(\sigma+it) \psi(t) x^{it}\ dt.$$
   Now take limits as $\sigma \to 1$ using dominated convergence together with \eqref{cheby} and Lemma \ref{decay} to obtain the result.
 \end{proof}
@@ -2421,4 +2468,15 @@ for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ a
 
 (Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the previous results to arbitrary extensions
 
+%%-/
+
+/-%%
+\begin{lemma}[PNT for one character]\label{Dedekind-PNT}  For any non-principal character $\chi$ of $Gal(K/L)$,
+$$ \sum_{N \mathfrak{p} \leq x} \chi(\mathfrak{p}) \log N \mathfrak{p}  = o(x).$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}\uses{Dedekind-nonvanishing} This should follow from Lemma \ref{Dedekind-nonvanishing} and the arguments for the Dirichlet L-function. (It may be more convenient to work with a von Mangoldt type function instead of $\log N\mathfrak{p}$).
+\end{proof}
 %%-/
