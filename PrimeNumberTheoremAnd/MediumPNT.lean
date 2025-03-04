@@ -91,7 +91,7 @@ lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ}
     calc
       _≤ c / ε * 1 / (4 + t^2) := by
         convert hc 2 (by norm_num) (2 + t * I) (by simp) (by simp) ε εpos  ε_lt_one using 1
-        simp [sq_abs, normSq_apply]
+        simp [Complex.sq_norm, normSq_apply]
         ring_nf
       _ ≤ _ := by
         gcongr; norm_num
@@ -139,9 +139,8 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     . fun_prop
     . simp
 
-  have abs_two: ∀ a: ℝ, ∀ i: ℕ, Complex.abs ((i: ℂ) ^ ((2: ℂ) + ↑a * I)) = i^2 := by
+  have abs_two: ∀ a: ℝ, ∀ i: ℕ, ‖(i: ℂ) ^ ((2: ℂ) + ↑a * I)‖ = i^2 := by
     intro a i
-    rw [← Complex.norm_eq_abs]
     rw [norm_natCast_cpow_of_re_ne_zero _ (by simp)]
     simp
 
@@ -162,7 +161,7 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
 
     have cast_through: ∀ r: NNReal, ENNReal.ofNNReal r = ENNReal.ofReal r := by simp
     simp [cast_through]
-    simp [Complex.abs_cpow_eq_rpow_re_of_pos X_pos]
+    simp [Complex.norm_cpow_eq_rpow_re_of_pos X_pos]
     simp_rw [abs_two]
 
     -- TODO - why can't these be 'simp_rw'?
@@ -211,9 +210,7 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
       rw [← MeasureTheory.ofReal_integral_eq_lintegral_ofReal]
       .
         exact ENNReal.ofReal_lt_top
-      .
-        simp_rw [← Complex.norm_eq_abs]
-        apply MeasureTheory.Integrable.norm
+      . apply MeasureTheory.Integrable.norm
         exact
           SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos suppSmoothingF
             mass_one ε εpos ε_lt_one

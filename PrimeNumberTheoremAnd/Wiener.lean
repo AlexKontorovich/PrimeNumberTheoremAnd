@@ -236,7 +236,7 @@ lemma second_fourier_integrable_aux1 (hcont: Continuous ψ) (hsupp: Integrable �
 lemma second_fourier_integrable_aux2 (hσ : 1 < σ') :
     IntegrableOn (fun (u : ℝ) ↦ cexp ((1 - ↑σ' - ↑t * I) * ↑u)) (Ioi (-Real.log x)) := by
   refine (integrable_norm_iff (Measurable.aestronglyMeasurable <| by fun_prop)).mp ?_
-  suffices IntegrableOn (fun a ↦ rexp (-(σ' - 1) * a)) (Ioi (-x.log)) _ by simpa [Complex.abs_exp]
+  suffices IntegrableOn (fun a ↦ rexp (-(σ' - 1) * a)) (Ioi (-x.log)) _ by simpa [Complex.norm_exp]
   apply exp_neg_integrableOn_Ioi
   linarith
 
@@ -301,9 +301,9 @@ so by Fubini's theorem it suffices to verify the identity
     exact (hasDerivAt_id' u).ofReal_comp.const_mul c |>.cexp.div_const c
   have hf : Tendsto f atTop (𝓝 0) := by
     apply tendsto_zero_iff_norm_tendsto_zero.mpr
-    suffices Tendsto (fun (x : ℝ) ↦ abs (cexp (c * ↑x)) / abs c) atTop (𝓝 (0 / abs c)) by simpa [f, f'] using this
+    suffices Tendsto (fun (x : ℝ) ↦ ‖cexp (c * ↑x)‖ / ‖c‖) atTop (𝓝 (0 / ‖c‖)) by simpa [f, f'] using this
     apply Filter.Tendsto.div_const
-    suffices Tendsto (. * (1 - σ')) atTop atBot by simpa [Complex.abs_exp, mul_comm (1 - σ'), c]
+    suffices Tendsto (. * (1 - σ')) atTop atBot by simpa [Complex.norm_exp, mul_comm (1 - σ'), c]
     exact Tendsto.atTop_mul_const_of_neg (by linarith) fun ⦃s⦄ h ↦ h
   rw [integral_Ici_eq_integral_Ioi,
     integral_Ioi_of_hasDerivAt_of_tendsto' hderiv (second_fourier_integrable_aux2 hσ) hf]
@@ -419,7 +419,7 @@ lemma decay_bounds_cor_aux (ψ : CS 2 ℂ) : ∃ C : ℝ, ∀ u, ‖ψ u‖ ≤ 
   obtain ⟨C, hC⟩ := l1.exists_bound_of_continuous (by continuity)
   refine ⟨C, fun u => ?_⟩
   specialize hC u
-  simp only [norm_mul, Complex.norm_eq_abs, Complex.abs_ofReal, abs_eq_self.mpr (one_add_sq_pos u).le] at hC
+  simp only [norm_mul, Complex.norm_real, norm_of_nonneg (one_add_sq_pos u).le] at hC
   rwa [le_div_iff₀' (one_add_sq_pos _)]
 
 lemma decay_bounds_cor (ψ : W21) :
@@ -463,7 +463,7 @@ lemma continuous_LSeries_aux (hf : Summable (nterm f σ')) :
     by_cases h : n = 0
     · simp [h, nterm]
     · field_simp [h, nterm, cpow_add _ _ (Nat.cast_ne_zero.mpr h)]
-      rw [← Complex.norm_eq_abs, Complex.norm_natCast_cpow_of_pos (Nat.pos_of_ne_zero h)]
+      rw [Complex.norm_natCast_cpow_of_pos (Nat.pos_of_ne_zero h)]
       simp
   exact continuous_tsum l1 hf (fun n x => le_of_eq (l2 n x))
 
@@ -760,7 +760,7 @@ lemma nnabla_mul_log_sq (a : ℝ) {b : ℝ} (hb : 0 < b) :
   exact ((l2.add l3).add (isBigO_refl (·) atTop |>.mul (l4.mul (nabla_log hb)) |>.trans l5))
 
 lemma nnabla_bound_aux1 (a : ℝ) {b : ℝ} (hb : 0 < b) : Tendsto (fun x => x * (a + Real.log (x / b) ^ 2)) atTop atTop :=
-  tendsto_id.atTop_mul_atTop <| tendsto_atTop_add_const_left _ _ <| (tendsto_pow_atTop two_ne_zero).comp <|
+  tendsto_id.atTop_mul_atTop₀ <| tendsto_atTop_add_const_left _ _ <| (tendsto_pow_atTop two_ne_zero).comp <|
     tendsto_log_atTop.comp <| tendsto_id.atTop_div_const hb
 
 lemma nnabla_bound_aux2 (a : ℝ) {b : ℝ} (hb : 0 < b) : ∀ᶠ x in atTop, 0 < x * (a + Real.log (x / b) ^ 2) :=
@@ -909,7 +909,7 @@ theorem limiting_fourier_lim1 (hcheby : cheby f) (ψ : W21) (hx : 0 < x) :
     refine mul_le_mul ?_ (hC _) (norm_nonneg _) (div_nonneg (norm_nonneg _) (Nat.cast_nonneg _))
     by_cases h : n = 0 <;> simp [h, nterm]
     have : 1 ≤ (n : ℝ) := by simpa using Nat.pos_iff_ne_zero.mpr h
-    refine div_le_div₀ (by simp only [apply_nonneg]) le_rfl (by simpa [Nat.pos_iff_ne_zero]) ?_
+    refine div_le_div₀ (norm_nonneg _) le_rfl (by simpa [Nat.pos_iff_ne_zero]) ?_
     simpa using Real.rpow_le_rpow_of_exponent_le this hσ'.le
 
 theorem limiting_fourier_lim2_aux (x : ℝ) (C : ℝ) :
@@ -942,7 +942,7 @@ theorem limiting_fourier_lim2 (A : ℝ) (ψ : W21) (hx : 1 ≤ x) :
         intro t (ht : - Real.log x ≤ t)
         rw [norm_mul]
         refine mul_le_mul ?_ (hC _) (norm_nonneg _) (abs_nonneg _)
-        simp [Complex.abs_exp]
+        simp [Complex.norm_exp]
         have : -Real.log x * (σ' - 1) ≤ t * (σ' - 1) := mul_le_mul_of_nonneg_right ht (by linarith)
         have : -(t * (σ' - 1)) ≤ Real.log x * (σ' - 1) := by simpa using neg_le_neg this
         have := Real.exp_monotone this
@@ -992,7 +992,7 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re}) (ψ : CS 2 
       have r2 := isMaxOn_iff.mp hmax _ r1
       have r4 : (x : ℂ) ≠ 0 := by simp ; linarith
       have r5 : arg x = 0 := by simp [arg_eq_zero_iff] ; linarith
-      have r3 : ‖(x : ℂ) ^ (v * I)‖ = 1 := by simp [abs_cpow_of_ne_zero r4, r5]
+      have r3 : ‖(x : ℂ) ^ (v * I)‖ = 1 := by simp [norm_cpow_of_ne_zero r4, r5]
       simp_rw [norm_mul, r3, mul_one]
       exact mul_le_mul_of_nonneg_right r2 (norm_nonneg _)
     · have : v ∉ Function.support ψ := fun a ↦ h (subset_tsupport ψ a)
@@ -1113,7 +1113,8 @@ lemma pp_pos {a : ℝ} (ha : a ∈ Ioo (-1) 1) (x : ℝ) : 0 < pp a x := by
   positivity
 
 lemma pp_deriv (a x : ℝ) : HasDerivAt (pp a) (pp' a x) x := by
-  simpa using hasDerivAt_id x |>.add_const 1 |>.pow 2 |>.const_mul _ |>.add_const _
+  unfold pp pp'
+  simpa using hasDerivAt_id x |>.add_const 1 |>.pow 2 |>.const_mul _
 
 lemma pp_deriv_eq (a : ℝ) : deriv (pp a) = pp' a := by
   ext x ; exact pp_deriv a x |>.deriv
@@ -1578,9 +1579,9 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
       refine (Continuous.mul ?_ continuous_const).neg.cexp.aestronglyMeasurable
       apply continuous_const.mul <| contDiff_ofReal.continuous.mul continuous_const
     simp [Real.fourierIntegral_eq', mul_sub] ; apply integral_sub
-    · apply ψ.hf.bdd_mul l1 ; use 1 ; simp [Complex.norm_eq_abs, Complex.abs_exp]
+    · apply ψ.hf.bdd_mul l1 ; use 1 ; simp [Complex.norm_exp]
     · apply (Ψ R : W21) |>.hf |>.bdd_mul l1
-      use 1 ; simp [Complex.norm_eq_abs, Complex.abs_exp]
+      use 1 ; simp [Complex.norm_exp]
 
   have S1_sub : S1 x (ψ - Ψ R) = S1 x ψ - S1 x (Ψ R) := by
     simp [S1, S1_sub_1, mul_sub] ; apply tsum_sub
@@ -1887,8 +1888,8 @@ lemma WI_sum_Iab_le {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : cheby
   rw [tsum_eq_sum l1, div_le_iff₀ hx, mul_assoc, mul_assoc]
   apply Finset.sum_le_sum l2 |>.trans
   have := hcheby ⌈b * x⌉₊ ; simp at this ; apply this.trans
-  have : 0 ≤ C := by have := hcheby 1 ; simp only [cumsum, Finset.range_one, Complex.norm_eq_abs,
-    abs_ofReal, Finset.sum_singleton, Nat.cast_one, mul_one] at this ; exact (abs_nonneg _).trans this
+  have : 0 ≤ C := by have := hcheby 1 ; simp only [cumsum, Finset.range_one, norm_real,
+    Finset.sum_singleton, Nat.cast_one, mul_one] at this ; exact (abs_nonneg _).trans this
   refine mul_le_mul_of_nonneg_left ?_ this
   apply (Nat.ceil_lt_add_one (by positivity)).le.trans
   linarith
@@ -2115,7 +2116,7 @@ lemma S_sub_S {f : ℕ → 𝕜} {ε : ℝ} {N : ℕ} (hε : ε ≤ 1) : S f 0 N
     simp ; convert_to ε * ↑N ≤ 1 * ↑N ; ring ; gcongr
   have r2 : Disjoint (Finset.range ⌈ε * N⌉₊) (Finset.Ico ⌈ε * N⌉₊ N) := by
     rw [Finset.range_eq_Ico] ; apply Finset.Ico_disjoint_Ico_consecutive
-  simp [S, r1, Finset.sum_union r2, cumsum, add_div, abs_div]
+  simp [S, r1, Finset.sum_union r2, cumsum, add_div]
 
 lemma tendsto_S_S_zero {f : ℕ → ℝ} (hpos : 0 ≤ f) (hcheby : cheby f) :
     TendstoUniformlyOnFilter (S f) (S f 0) (𝓝[>] 0) atTop := by
@@ -2126,11 +2127,11 @@ lemma tendsto_S_S_zero {f : ℕ → ℝ} (hpos : 0 ≤ f) (hcheby : cheby f) :
     simp [mul_div_assoc'] at r1 ; exact r1 (Iio_mem_nhds hδ)
   have : Ioc 0 1 ∈ 𝓝[>] (0 : ℝ) := inter_mem_nhdsWithin _ (Iic_mem_nhds zero_lt_one)
   filter_upwards [l1, Eventually.prod_inl this _] with (ε, N) h1 h2
-  have l2 : |cumsum f ⌈ε * ↑N⌉₊ / ↑N| ≤ C * ⌈ε * N⌉₊ / N := by
+  have l2 : ‖cumsum f ⌈ε * ↑N⌉₊ / ↑N‖ ≤ C * ⌈ε * N⌉₊ / N := by
     have r1 := hC ⌈ε * N⌉₊
     have r2 : 0 ≤ cumsum f ⌈ε * N⌉₊ := by apply cumsum_nonneg hpos
-    simp only [Complex.norm_eq_abs, abs_ofReal, abs_eq_self.mpr (hpos _), abs_div,
-      abs_eq_self.mpr r2, Nat.abs_cast, ge_iff_le] at r1 ⊢
+    simp only [norm_real, norm_of_nonneg (hpos _), norm_div,
+      norm_of_nonneg r2, Real.norm_natCast] at r1 ⊢
     apply div_le_div_of_nonneg_right r1 (by positivity)
   simpa [← S_sub_S h2.2] using l2.trans_lt h1
 

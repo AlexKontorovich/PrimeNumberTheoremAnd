@@ -1253,7 +1253,7 @@ theorem pi_asymp'' :
     rw [tendsto_atTop_nhds] at lim
     specialize lim (Metric.ball 0 ((1/2) * ε / |const| : ℝ)) (by
       simp only [Metric.mem_ball, dist_self]
-      apply div_pos
+      apply _root_.div_pos
       · linarith
       · simpa only [abs_pos, ne_eq]) Metric.isOpen_ball
     obtain ⟨M, hM⟩ := lim
@@ -1637,7 +1637,7 @@ lemma integral_div_log_asymptotic : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ 
       have h := Real.isLittleO_log_id_atTop
       rw [isLittleO_iff] at h
       have h' : log 2 * m / 4 > 0 := by
-        apply div_pos _ (by norm_num)
+        apply _root_.div_pos _ (by norm_num)
         apply mul_pos _ hm
         apply Real.log_pos (by norm_num)
       specialize h h'
