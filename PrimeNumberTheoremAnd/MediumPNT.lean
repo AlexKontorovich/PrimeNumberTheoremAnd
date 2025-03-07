@@ -123,6 +123,10 @@ $\sum_{n=1}^\infty \int_{(0,\infty)} \frac{\Lambda(n)}{n^{\sigma+it}}
 \end{lemma}
 %%-/
 
+theorem coercion_hell_aux {σ : ℝ} (σ_pos : 0 < σ) (i : ℕ) :
+    ((i : ℝ) ^ σ).toNNReal = (i : NNReal) ^ σ := by
+  sorry
+
 -- TODO: add to mathlib
 attribute [fun_prop] Continuous.const_cpow
 
@@ -159,6 +163,7 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     simp only [add_re, re_ofNat, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
       sub_self, add_zero, rpow_two, Real.toNNReal_of_nonneg <| sq_nonneg (i : ℝ), Nat.cast_pow]
     norm_cast
+    extract_goal
 
   rw [MeasureTheory.integral_tsum]
   have x_neq_zero : X ≠ 0 := by linarith
