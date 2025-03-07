@@ -2442,7 +2442,8 @@ is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}
 %%-/
 theorem LogDerivZetaHolc :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∀ (t : ℝ) (_ : 3 < |t|),
-    HolomorphicOn (fun (s : ℂ) ↦ deriv ζ s / (ζ s)) (((Ioc (1 - A / Real.log |t| ^ 9) 2) ×ℂ (Icc (-t) t)) \ {1}) := by
+    HolomorphicOn (fun (s : ℂ) ↦ deriv ζ s / (ζ s))
+      (((Ioc (1 - A / Real.log |t| ^ 9) 2) ×ℂ (Icc (-t) t)) \ {1}) := by
 
   sorry
 
