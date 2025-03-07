@@ -144,9 +144,10 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
       ∫ (t : ℝ), (ArithmeticFunction.vonMangoldt n) / (n : ℂ) ^ (σ + ↑t * I) *
         𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * (X : ℂ) ^ (σ + t * I) := by
 
-  have cont_mellin_smooth : Continuous fun (a: ℝ) ↦ 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑a * I) := by
+  have cont_mellin_smooth : Continuous fun (a : ℝ) ↦
+      𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑a * I) := by
     rw [continuous_iff_continuousOn_univ]
-    refine ContinuousOn.comp' ?_ ?_ ?_ (t := {z: ℂ | 0 < z.re })
+    refine ContinuousOn.comp' ?_ ?_ ?_ (t := {z : ℂ | 0 < z.re })
     . refine continuousOn_of_forall_continuousAt ?_
       intro z hz
       exact (Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one hz).continuousAt
@@ -157,13 +158,13 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
   have abs_two : ∀ a : ℝ, ∀ i : ℕ, ‖(i : ℂ) ^ ((σ : ℂ) + ↑a * I)‖₊ = i ^ σ := by
     intro a i
     simp_rw [← norm_toNNReal]
-    norm_cast
+    -- norm_cast
     rw [norm_natCast_cpow_of_re_ne_zero _ (by simp only [add_re, ofReal_re, mul_re, I_re, mul_zero,
       ofReal_im, I_im, mul_one, sub_self, add_zero, ne_eq]; linarith)]
     simp only [add_re, re_ofNat, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
       sub_self, add_zero, rpow_two, Real.toNNReal_of_nonneg <| sq_nonneg (i : ℝ), Nat.cast_pow]
-    norm_cast
-    extract_goal
+    -- norm_cast
+    exact coercion_hell_aux (by linarith) i
 
   rw [MeasureTheory.integral_tsum]
   have x_neq_zero : X ≠ 0 := by linarith
@@ -176,7 +177,7 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     simp_rw [enorm_mul, enorm_eq_nnnorm, nnnorm_div, ← norm_toNNReal, Complex.norm_cpow_eq_rpow_re_of_pos X_pos, norm_toNNReal, abs_two]
     simp only [nnnorm_real, add_re, re_ofNat, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im,
       mul_one, sub_self, add_zero, rpow_two]
-    simp_rw [MeasureTheory.lintegral_mul_const' (r := ↑(X ^ 2).toNNReal) (hr := by simp), ENNReal.tsum_mul_right]
+    simp_rw [MeasureTheory.lintegral_mul_const' (r := ↑(X ^ σ).toNNReal) (hr := by simp), ENNReal.tsum_mul_right]
     apply WithTop.mul_lt_top ?_ ENNReal.coe_lt_top
 
     conv =>
@@ -187,16 +188,19 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
 
     rw [ENNReal.tsum_mul_right]
     apply WithTop.mul_lt_top
-    . rw [WithTop.lt_top_iff_ne_top, ENNReal.tsum_coe_ne_top_iff_summable_coe]
-      push_cast
-      have := (ArithmeticFunction.LSeriesSummable_vonMangoldt (s := 2) (by simp)).norm
-      simp_rw [LSeries.term_def] at this
-      convert this
-      split_ifs with h <;> simp[h]
+    . have := (ArithmeticFunction.LSeriesSummable_vonMangoldt (s := σ)
+        (by simp only [ofReal_re]; linarith)).norm
+      sorry
+      -- rw [← tsum_coe_ne_top_iff_summable_coe] at this
+      -- rw [WithTop.lt_top_iff_ne_top, ENNReal.tsum_coe_ne_top_iff_summable_coe]
+      -- push_cast
+      -- simp_rw [LSeries.term_def] at this
+      -- convert this
+      -- split_ifs with h <;> simp[h]
     . simp_rw [← enorm_eq_nnnorm]
       rw [← MeasureTheory.hasFiniteIntegral_iff_enorm]
       exact SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos suppSmoothingF
-            mass_one εpos ε_lt_one |>.hasFiniteIntegral
+            mass_one εpos ε_lt_one σ_gt σ_le |>.hasFiniteIntegral
 
 /-%%
 \begin{proof}
