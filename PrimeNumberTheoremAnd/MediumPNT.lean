@@ -43,12 +43,14 @@ Already in Mathlib.
 
 The main object of study is the following inverse Mellin-type transform, which will turn out to
 be a smoothed Chebyshev function.
+
 \begin{definition}[SmoothedChebyshev]\label{SmoothedChebyshev}\lean{SmoothedChebyshev}\leanok
 Fix $\epsilon>0$, and a bumpfunction supported in $[1/2,2]$. Then we define the smoothed
 Chebyshev function $\psi_{\epsilon}$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ by
-$$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(2)}\frac{-\zeta'(s)}{\zeta(s)}
+$$\psi_{\epsilon}(X) = \frac{1}{2\pi i}\int_{(\sigma)}\frac{-\zeta'(s)}{\zeta(s)}
 \mathcal{M}(\widetilde{1_{\epsilon}})(s)
-X^{s}ds.$$
+X^{s}ds,$$
+where we'll take $\sigma = 1 + 1 / \log X$.
 \end{definition}
 %%-/
 noncomputable abbrev SmoothedChebyshevIntegrand (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ → ℂ :=
@@ -56,7 +58,7 @@ noncomputable abbrev SmoothedChebyshevIntegrand (SmoothingF : ℝ → ℝ) (ε :
     𝓜 ((Smooth1 SmoothingF ε) ·) s * (X : ℂ) ^ s
 
 noncomputable def SmoothedChebyshev (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
-  VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) 2
+  VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) ((1 : ℝ) + 1 / (Real.log X))
 
 
 open MeasureTheory
