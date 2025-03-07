@@ -6,7 +6,6 @@ set_option lang.lemmaCmd true
 open Set Function Filter Complex Real
 
 local notation (name := mellintransform2) "𝓜" => MellinTransform
-open scoped ArithmeticFunction
 
 
 /-%%
@@ -25,6 +24,7 @@ $$
 $$
 \end{theorem}
 %%-/
+open scoped ArithmeticFunction in
 theorem LogDerivativeDirichlet (s : ℂ) (hs : 1 < s.re) :
     - deriv riemannZeta s / riemannZeta s = ∑' n, Λ n / (n : ℂ) ^ s := by
   rw [← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs]
@@ -63,14 +63,13 @@ noncomputable def SmoothedChebyshev (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : �
 
 open MeasureTheory
 
-
 /-%%
 \begin{lemma}[SmoothedChebyshevDirichlet_aux_integrable]\label{SmoothedChebyshevDirichlet_aux_integrable}\lean{SmoothedChebyshevDirichlet_aux_integrable}\leanok
-Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
+Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, and $\sigma\in (1, 2]$, the function
 $$
-x \mapsto\mathcal{M}(\widetilde{1_{\epsilon}})(2 + ix)
+x \mapsto\mathcal{M}(\widetilde{1_{\epsilon}})(\sigma + ix)
 $$
-is integrable on $\mathbb{R}$. ** Conditions are overkill; can remove some assumptions... **
+is integrable on $\mathbb{R}$.
 \end{lemma}
 %%-/
 lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ}
@@ -78,25 +77,27 @@ lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ}
     (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
-    (ε : ℝ) (εpos : 0 < ε) (ε_lt_one : ε < 1) :
+    {ε : ℝ} (εpos : 0 < ε) (ε_lt_one : ε < 1) {σ : ℝ} (σ_gt : 1 < σ) (σ_le : σ ≤ 2) :
     MeasureTheory.Integrable
-      (fun (y : ℝ) ↦ 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (2 + y * I)) := by
+      (fun (y : ℝ) ↦ 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (σ + y * I)) := by
   obtain ⟨c, cpos, hc⟩ := MellinOfSmooth1b diffSmoothingF suppSmoothingF
   apply Integrable.mono' (g := (fun t ↦ c / ε * 1 / (1 + t ^ 2)))
   · apply Integrable.const_mul integrable_inv_one_add_sq
   · apply Continuous.aestronglyMeasurable
     apply continuous_iff_continuousAt.mpr
     intro x
-    have := Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one (s := 2 + x * I) (by simp) |>.continuousAt
+    have := Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩
+      SmoothingFpos mass_one (s := σ + x * I) (by simp; linarith) |>.continuousAt
     fun_prop
   · filter_upwards [] with t
     calc
-      _≤ c / ε * 1 / (4 + t^2) := by
-        convert hc 2 (by norm_num) (2 + t * I) (by simp) (by simp) ε εpos  ε_lt_one using 1
+      _≤ c / ε * 1 / (σ^2 + t^2) := by
+        convert hc (σ / 2) (by linarith) (σ + t * I) (by simp; linarith)
+          (by simp; linarith) ε εpos  ε_lt_one using 1
         simp [Complex.sq_norm, normSq_apply]
         ring_nf
       _ ≤ _ := by
-        gcongr; norm_num
+        gcongr; nlinarith
 
 /-%%
 \begin{proof}\leanok
@@ -180,7 +181,7 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     . simp_rw [← enorm_eq_nnnorm]
       rw [← MeasureTheory.hasFiniteIntegral_iff_enorm]
       exact SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos suppSmoothingF
-            mass_one ε εpos ε_lt_one |>.hasFiniteIntegral
+            mass_one εpos ε_lt_one |>.hasFiniteIntegral
 
 /-%%
 \begin{proof}
@@ -220,8 +221,9 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
       mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * ((n : ℂ) / X) ^ (-(2 + ↑t * I))) := ?_
     _ = _ := ?_
   · congr; ext t
-    rw [LogDerivativeDirichlet (s := 2 + t * I) (by simp)]
-    rw [← tsum_mul_right, ← tsum_mul_right]
+    sorry
+    -- rw [LogDerivativeDirichlet (s := 2 + t * I) (by simp)]
+    -- rw [← tsum_mul_right, ← tsum_mul_right]
   · congr
     rw [← MellinTransform_eq]
     exact SmoothedChebyshevDirichlet_aux_tsum_integral diffSmoothingF SmoothingFpos
@@ -268,7 +270,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
     · dsimp [VerticalIntegrable]
       rw [← MellinTransform_eq]
       apply SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos
-        suppSmoothingF mass_one ε εpos ε_lt_one
+        suppSmoothingF mass_one εpos ε_lt_one
     · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
       exact Smooth1ContinuousAt diffSmoothingF SmoothingFpos suppSmoothingF
         εpos (by positivity)
@@ -393,7 +395,8 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   unfold VerticalIntegral'
   rw [verticalIntegral_split_three (a := -T) (b := T)]
   swap
-  exact SmoothedChebyshevPull1_aux_integrable ε_pos X σ₀_pos holoOn suppSmoothingF SmoothingFnonneg mass_one
+  sorry
+  --exact SmoothedChebyshevPull1_aux_integrable ε_pos X σ₀_pos holoOn suppSmoothingF SmoothingFnonneg mass_one
 
 
 
