@@ -87,14 +87,18 @@ lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ}
     apply continuous_iff_continuousAt.mpr
     intro x
     have := Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩
-      SmoothingFpos mass_one (s := σ + x * I) (by simp; linarith) |>.continuousAt
+      SmoothingFpos mass_one (s := σ + x * I) (by simp only [add_re, ofReal_re, mul_re, I_re,
+        mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero]; linarith) |>.continuousAt
     fun_prop
   · filter_upwards [] with t
     calc
       _≤ c / ε * 1 / (σ^2 + t^2) := by
-        convert hc (σ / 2) (by linarith) (σ + t * I) (by simp; linarith)
-          (by simp; linarith) ε εpos  ε_lt_one using 1
-        simp [Complex.sq_norm, normSq_apply]
+        convert hc (σ / 2) (by linarith) (σ + t * I) (by simp only [add_re, ofReal_re, mul_re,
+          I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, half_le_self_iff]; linarith)
+          (by simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+            sub_self, add_zero]; linarith) ε εpos  ε_lt_one using 1
+        simp only [mul_one, Complex.sq_norm, normSq_apply, add_re, ofReal_re, mul_re, I_re,
+          mul_zero, ofReal_im, I_im, sub_self, add_zero, add_im, mul_im, zero_add, mul_inv_rev]
         ring_nf
       _ ≤ _ := by
         gcongr; nlinarith
@@ -107,11 +111,15 @@ By Lemma \ref{MellinOfSmooth1b} the integrand is $O(1/t^2)$ as $t\rightarrow \in
 %%-/
 
 /-%%
-\begin{lemma}[SmoothedChebyshevDirichlet_aux_tsum_integral]\label{SmoothedChebyshevDirichlet_aux_tsum_integral}\lean{SmoothedChebyshevDirichlet_aux_tsum_integral}\leanok
-Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, the function
-$x \mapsto \sum_{n=1}^\infty \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\widetilde{1_{\epsilon}})(2+it) x^{2+it}$ is equal to
-$\sum_{n=1}^\infty \int_{(0,\infty)} \frac{\Lambda(n)}{n^{2+it}} \mathcal{M}(\widetilde{1_{\epsilon}})(2+it) x^{2+it}$.
-** Conditions are overkill; can remove some assumptions...**
+\begin{lemma}[SmoothedChebyshevDirichlet_aux_tsum_integral]\label{SmoothedChebyshevDirichlet_aux_tsum_integral}
+\lean{SmoothedChebyshevDirichlet_aux_tsum_integral}\leanok
+Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in
+$[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$ and $\sigma\in(1,2]$, the
+function
+$x \mapsto \sum_{n=1}^\infty \frac{\Lambda(n)}{n^{\sigma+it}}
+\mathcal{M}(\widetilde{1_{\epsilon}})(\sigma+it) x^{\sigma+it}$ is equal to
+$\sum_{n=1}^\infty \int_{(0,\infty)} \frac{\Lambda(n)}{n^{\sigma+it}}
+\mathcal{M}(\widetilde{1_{\epsilon}})(\sigma+it) x^{\sigma+it}$.
 \end{lemma}
 %%-/
 
@@ -123,37 +131,39 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) (X : ℝ)
-    (X_pos : 0 < X) (ε : ℝ) (εpos : 0 < ε)
-    (ε_lt_one : ε < 1) :
+    (X_pos : 0 < X) {ε : ℝ} (εpos : 0 < ε)
+    (ε_lt_one : ε < 1) {σ : ℝ} (σ_gt : 1 < σ) (σ_le : σ ≤ 2) :
     ∫ (t : ℝ),
-      ∑' (n : ℕ), (Λ n) / (n : ℂ) ^ (2 + t * I) *
-        𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + t * I) * (X : ℂ) ^ (2 + t * I) =
+      ∑' (n : ℕ), (ArithmeticFunction.vonMangoldt n) / (n : ℂ) ^ (σ + t * I) *
+        𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + t * I) * (X : ℂ) ^ (σ + t * I) =
     ∑' (n : ℕ),
-      ∫ (t : ℝ), (Λ n) / (n : ℂ) ^ (2 + ↑t * I) *
-        𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * (X : ℂ) ^ (2 + t * I) := by
+      ∫ (t : ℝ), (ArithmeticFunction.vonMangoldt n) / (n : ℂ) ^ (σ + ↑t * I) *
+        𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * (X : ℂ) ^ (σ + t * I) := by
 
-  have cont_mellin_smooth : Continuous fun (a: ℝ) ↦ 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑a * I) := by
+  have cont_mellin_smooth : Continuous fun (a: ℝ) ↦ 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑a * I) := by
     rw [continuous_iff_continuousOn_univ]
     refine ContinuousOn.comp' ?_ ?_ ?_ (t := {z: ℂ | 0 < z.re })
     . refine continuousOn_of_forall_continuousAt ?_
       intro z hz
       exact (Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one hz).continuousAt
     . fun_prop
-    . simp
+    . simp only [mapsTo_univ_iff, mem_setOf_eq, add_re, ofReal_re, mul_re, I_re, mul_zero,
+        ofReal_im, I_im, mul_one, sub_self, add_zero, forall_const]; linarith
 
-  have abs_two: ∀ a: ℝ, ∀ i: ℕ, ‖(i: ℂ) ^ ((2: ℂ) + ↑a * I)‖₊ = i^2 := by
+  have abs_two : ∀ a : ℝ, ∀ i : ℕ, ‖(i : ℂ) ^ ((σ : ℂ) + ↑a * I)‖₊ = i ^ σ := by
     intro a i
     simp_rw [← norm_toNNReal]
     norm_cast
-    rw [norm_natCast_cpow_of_re_ne_zero _ (by simp)]
+    rw [norm_natCast_cpow_of_re_ne_zero _ (by simp only [add_re, ofReal_re, mul_re, I_re, mul_zero,
+      ofReal_im, I_im, mul_one, sub_self, add_zero, ne_eq]; linarith)]
     simp only [add_re, re_ofNat, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
       sub_self, add_zero, rpow_two, Real.toNNReal_of_nonneg <| sq_nonneg (i : ℝ), Nat.cast_pow]
     norm_cast
 
   rw [MeasureTheory.integral_tsum]
-  have x_neq_zero: X ≠ 0 := by linarith
+  have x_neq_zero : X ≠ 0 := by linarith
   . intro i
-    by_cases i_eq_zero: i = 0
+    by_cases i_eq_zero : i = 0
     . simpa [i_eq_zero] using aestronglyMeasurable_const
     . apply Continuous.aestronglyMeasurable
       fun_prop (disch := simp[i_eq_zero, x_neq_zero])
