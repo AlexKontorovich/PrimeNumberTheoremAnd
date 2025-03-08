@@ -58,7 +58,7 @@ noncomputable abbrev SmoothedChebyshevIntegrand (SmoothingF : ℝ → ℝ) (ε :
     𝓜 ((Smooth1 SmoothingF ε) ·) s * (X : ℂ) ^ s
 
 noncomputable def SmoothedChebyshev (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
-  VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) ((1 : ℝ) + 1 / (Real.log X))
+  VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) ((1 : ℝ) + (Real.log X)⁻¹)
 
 
 open MeasureTheory
@@ -123,9 +123,16 @@ $\sum_{n=1}^\infty \int_{(0,\infty)} \frac{\Lambda(n)}{n^{\sigma+it}}
 \end{lemma}
 %%-/
 
+-- YUCK!
 theorem coercion_hell_aux {σ : ℝ} (σ_pos : 0 < σ) (i : ℕ) :
     ((i : ℝ) ^ σ).toNNReal = (i : NNReal) ^ σ := by
-  sorry
+  induction' i with i ih
+  · simp only [CharP.cast_eq_zero]
+    rw [zero_rpow σ_pos.ne.symm, NNReal.zero_rpow σ_pos.ne.symm]
+    norm_num
+  refine (toNNReal_eq_iff_eq_coe ?_).mpr rfl
+  convert (NNReal.rpow_pos (x := (i + 1 : NNReal)) (by simp) (p := σ)).ne.symm
+  simp
 
 -- TODO: add to mathlib
 attribute [fun_prop] Continuous.const_cpow
@@ -188,15 +195,12 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
 
     rw [ENNReal.tsum_mul_right]
     apply WithTop.mul_lt_top
-    . have := (ArithmeticFunction.LSeriesSummable_vonMangoldt (s := σ)
+    . rw [WithTop.lt_top_iff_ne_top, ENNReal.tsum_coe_ne_top_iff_summable_coe]
+      push_cast
+      convert (ArithmeticFunction.LSeriesSummable_vonMangoldt (s := σ)
         (by simp only [ofReal_re]; linarith)).norm
-      sorry
-      -- rw [← tsum_coe_ne_top_iff_summable_coe] at this
-      -- rw [WithTop.lt_top_iff_ne_top, ENNReal.tsum_coe_ne_top_iff_summable_coe]
-      -- push_cast
-      -- simp_rw [LSeries.term_def] at this
-      -- convert this
-      -- split_ifs with h <;> simp[h]
+      rw [LSeries.term_def]
+      split_ifs with h <;> simp[h]
     . simp_rw [← enorm_eq_nnnorm]
       rw [← MeasureTheory.hasFiniteIntegral_iff_enorm]
       exact SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos suppSmoothingF
@@ -228,13 +232,20 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
   dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
   rw [MellinTransform_eq]
   set Λ := ArithmeticFunction.vonMangoldt
-  set σ : ℝ := 1 + 1 / Real.log X
+  set σ : ℝ := 1 + (Real.log X)⁻¹
+  have log_gt : 1 < Real.log X := by
+    rw [Real.lt_log_iff_exp_lt (by linarith : 0 < X)]
+    linarith [Real.exp_one_lt_d9]
   have σ_gt : 1 < σ := by
     simp only [σ]
-    sorry
+    have : 0 < (Real.log X)⁻¹ := by
+      simp only [inv_pos]
+      linarith
+    linarith
   have σ_le : σ ≤ 2 := by
     simp only [σ]
-    sorry
+    have : (Real.log X)⁻¹ < 1 := inv_lt_one_of_one_lt₀ log_gt
+    linarith
   calc
     _ = 1 / (2 * π * I) * (I * ∫ (t : ℝ), ∑' n, Λ n / (n : ℂ) ^ (σ + ↑t * I) *
       mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * X ^ (σ + ↑t * I)) := ?_
