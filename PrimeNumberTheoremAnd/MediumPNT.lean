@@ -220,54 +220,64 @@ $$\psi_{\epsilon}(X) = \sum_{n=1}^\infty \Lambda(n)\widetilde{1_{\epsilon}}(n/X)
 theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (mass_one: ∫ x in Ioi (0 : ℝ), SmoothingF x / x = 1)
-    (X : ℝ) (X_pos : 0 < X) (ε : ℝ) (εpos: 0 < ε) (ε_lt_one : ε < 1) :
-    SmoothedChebyshev SmoothingF ε X = ∑' n, Λ n * Smooth1 SmoothingF ε (n / X) := by
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (mass_one: ∫ x in Ioi (0 : ℝ), SmoothingF x / x = 1)
+    {X : ℝ} (X_gt : 3 < X) {ε : ℝ} (εpos: 0 < ε) (ε_lt_one : ε < 1) :
+    SmoothedChebyshev SmoothingF ε X =
+      ∑' n, ArithmeticFunction.vonMangoldt n * Smooth1 SmoothingF ε (n / X) := by
   dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
   rw [MellinTransform_eq]
+  set Λ := ArithmeticFunction.vonMangoldt
+  set σ : ℝ := 1 + 1 / Real.log X
+  have σ_gt : 1 < σ := by
+    simp only [σ]
+    sorry
+  have σ_le : σ ≤ 2 := by
+    simp only [σ]
+    sorry
   calc
-    _ = 1 / (2 * π * I) * (I * ∫ (t : ℝ), ∑' n, Λ n / (n : ℂ) ^ (2 + ↑t * I) *
-      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
-    _ = 1 / (2 * π * I) * (I * ∑' n, ∫ (t : ℝ), Λ n / (n : ℂ) ^ (2 + ↑t * I) *
-      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * X ^ (2 + ↑t * I)) := ?_
+    _ = 1 / (2 * π * I) * (I * ∫ (t : ℝ), ∑' n, Λ n / (n : ℂ) ^ (σ + ↑t * I) *
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * X ^ (σ + ↑t * I)) := ?_
+    _ = 1 / (2 * π * I) * (I * ∑' n, ∫ (t : ℝ), Λ n / (n : ℂ) ^ (σ + ↑t * I) *
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * X ^ (σ + ↑t * I)) := ?_
     _ = 1 / (2 * π * I) * (I * ∑' n, Λ n * ∫ (t : ℝ),
-      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * (X / (n : ℂ)) ^ (σ + ↑t * I)) := ?_
     _ = 1 / (2 * π) * (∑' n, Λ n * ∫ (t : ℝ),
-      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * (X / (n : ℂ)) ^ (σ + ↑t * I)) := ?_
     _ = ∑' n, Λ n * (1 / (2 * π) * ∫ (t : ℝ),
-      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * (X / (n : ℂ)) ^ (2 + ↑t * I)) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * (X / (n : ℂ)) ^ (σ + ↑t * I)) := ?_
     _ = ∑' n, Λ n * (1 / (2 * π) * ∫ (t : ℝ),
-      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (2 + ↑t * I) * ((n : ℂ) / X) ^ (-(2 + ↑t * I))) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * ((n : ℂ) / X) ^ (-(σ + ↑t * I))) := ?_
     _ = _ := ?_
   · congr; ext t
-    sorry
-    -- rw [LogDerivativeDirichlet (s := 2 + t * I) (by simp)]
-    -- rw [← tsum_mul_right, ← tsum_mul_right]
+    rw [LogDerivativeDirichlet]
+    · rw [← tsum_mul_right, ← tsum_mul_right]
+    · simp [σ_gt]
   · congr
     rw [← MellinTransform_eq]
     exact SmoothedChebyshevDirichlet_aux_tsum_integral diffSmoothingF SmoothingFpos
-      suppSmoothingF mass_one X X_pos ε εpos ε_lt_one
+      suppSmoothingF mass_one X (by linarith) εpos ε_lt_one σ_gt σ_le
   · field_simp; congr; ext n; rw [← MeasureTheory.integral_mul_left ]; congr; ext t
     by_cases n_ne_zero : n = 0; simp [n_ne_zero]
     rw [mul_div_assoc, mul_assoc]
     congr
     rw [(div_eq_iff ?_).mpr]
-    have := @mul_cpow_ofReal_nonneg (a := X / (n : ℝ)) (b := (n : ℝ)) (r := 2 + t * I) ?_ ?_
+    have := @mul_cpow_ofReal_nonneg (a := X / (n : ℝ)) (b := (n : ℝ)) (r := σ + t * I) ?_ ?_
     push_cast at this ⊢
     rw [← this, div_mul_cancel₀]
     · simp only [ne_eq, Nat.cast_eq_zero, n_ne_zero, not_false_eq_true]
-    · apply div_nonneg X_pos.le; simp
+    · apply div_nonneg (by linarith : 0 ≤ X); simp
     · simp
     · simp only [ne_eq, cpow_eq_zero_iff, Nat.cast_eq_zero, not_and, not_not]
       intro hn; exfalso; exact n_ne_zero hn
   · conv => rw [← mul_assoc, div_mul]; lhs; lhs; rhs; simp
   · simp_rw [← tsum_mul_left, ← mul_assoc, mul_comm]
-  · have ht (t : ℝ) : -(2 + t * I) = (-1) * (2 + t * I) := by simp
-    have hn (n : ℂ): (n / X) ^ (-1 : ℂ) = X / n := by simp [cpow_neg_one]
-    have (n : ℕ): (log ((n : ℂ) / (X : ℂ)) * -1).im = 0 := by
-      simp [Complex.log_im, arg_eq_zero_iff, div_nonneg (Nat.cast_nonneg _) X_pos.le]
-    have h (n : ℕ) (t : ℝ) : ((n : ℂ) / X) ^ ((-1 : ℂ) * (2 + t * I)) =
-        ((n / X) ^ (-1 : ℂ)) ^ (2 + ↑t * I) := by
+  · have ht (t : ℝ) : -(σ + t * I) = (-1) * (σ + t * I) := by simp
+    have hn (n : ℂ) : (n / X) ^ (-1 : ℂ) = X / n := by simp [cpow_neg_one]
+    have (n : ℕ) : (log ((n : ℂ) / (X : ℂ)) * -1).im = 0 := by
+      simp [Complex.log_im, arg_eq_zero_iff, div_nonneg (Nat.cast_nonneg _) (by linarith : 0 ≤ X)]
+    have h (n : ℕ) (t : ℝ) : ((n : ℂ) / X) ^ ((-1 : ℂ) * (σ + t * I)) =
+        ((n / X) ^ (-1 : ℂ)) ^ (σ + ↑t * I) := by
       rw [cpow_mul] <;> {rw [this n]; simp [Real.pi_pos, Real.pi_nonneg]}
     conv => rhs; rhs; intro n; rhs; rhs; rhs; intro t; rhs; rw [ht t, h n t]; lhs; rw [hn]
   · push_cast
@@ -279,17 +289,19 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
     congr
     rw [(by rw [div_mul]; simp : 1 / (2 * π) = 1 / (2 * π * I) * I), mul_assoc]
     conv => lhs; rhs; rhs; rhs; intro t; rw [mul_comm]; norm_cast
-    have := MellinInversion 2 (f := fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (x := n / X)
-      (by simp [n_pos, X_pos]) ?_ ?_ ?_
+    have := MellinInversion σ (f := fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (x := n / X)
+      ?_ ?_ ?_ ?_
     · beta_reduce at this
       dsimp [MellinInverseTransform, VerticalIntegral] at this
       rw [← MellinTransform_eq, this]
+    · exact div_pos (by exact_mod_cast n_pos) (by linarith : 0 < X)
     · apply Smooth1MellinConvergent diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one
-      simp
+      simp only [ofReal_re]
+      linarith
     · dsimp [VerticalIntegrable]
       rw [← MellinTransform_eq]
       apply SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos
-        suppSmoothingF mass_one εpos ε_lt_one
+        suppSmoothingF mass_one εpos ε_lt_one σ_gt σ_le
     · refine ContinuousAt.comp (g := ofReal) RCLike.continuous_ofReal.continuousAt ?_
       exact Smooth1ContinuousAt diffSmoothingF SmoothingFpos suppSmoothingF
         εpos (by positivity)
