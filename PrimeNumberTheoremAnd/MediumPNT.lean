@@ -346,7 +346,7 @@ $$
 where $\Lambda(n)$ is the von Mangoldt function.
 \end{definition}
 %%-/
-noncomputable def ChebyshevPsi (x : ℝ) : ℝ := (Finset.range (Nat.floor x)).sum Λ
+noncomputable def ChebyshevPsi (x : ℝ) : ℝ := (Finset.range (Nat.floor x)).sum ArithmeticFunction.vonMangoldt
 
 /-%%
 The smoothed Chebyshev function is close to the actual Chebyshev function.
@@ -359,14 +359,14 @@ lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) (X : ℝ) :
-    ∃ (C : ℝ) (_ : 0 < C), ∀ (X : ℝ) (_ : C < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
+    ∃ (C : ℝ) (_ : 3 < C), ∀ (X : ℝ) (_ : C < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
     ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
   let C : ℝ := sorry
-  have Cpos : 0 < C := sorry
-  refine ⟨C, Cpos, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
+  have C_gt : 3 < C := sorry
+  refine ⟨C, C_gt, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
   unfold ChebyshevPsi
-  rw [SmoothedChebyshevDirichlet diffSmoothingF SmoothingFnonneg suppSmoothingF mass_one
-    X (by linarith) _ εpos ε_lt_one]
+  rw [SmoothedChebyshevDirichlet diffSmoothingF SmoothingFnonneg suppSmoothingF
+    mass_one (by linarith) εpos ε_lt_one]
 
 
 
@@ -427,15 +427,18 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     SmoothedChebyshev SmoothingF ε X =
-    𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X +
-    (1 / (2 * π * I)) * (I * (∫ t : ℝ in Iic (-T), SmoothedChebyshevIntegrand SmoothingF ε X (2 + t * I)) -
-    (∫ s : ℝ in Icc σ₀ 2, SmoothedChebyshevIntegrand SmoothingF ε X (s - T * I)) +
+    (1 / (2 * π * I)) * (I * (∫ t : ℝ in Iic (-T),
+      SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)) -
+    (∫ s : ℝ in Icc σ₀ (1 + (Real.log X)⁻¹), SmoothedChebyshevIntegrand SmoothingF ε X (s - T * I)) +
     I * (∫ t : ℝ in Icc (-T) T, SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + t * I)) +
-    (∫ s : ℝ in Icc σ₀ 2, SmoothedChebyshevIntegrand SmoothingF ε X (s + T * I)) +
-    I * (∫ t : ℝ in Ici T, SmoothedChebyshevIntegrand SmoothingF ε X (2 + t * I)) ) := by
+    (∫ s : ℝ in Icc σ₀ (1 + (Real.log X)⁻¹), SmoothedChebyshevIntegrand SmoothingF ε X (s + T * I)) +
+    I * (∫ t : ℝ in Ici T,
+      SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)) )
+    + 𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X := by
   unfold SmoothedChebyshev
   unfold VerticalIntegral'
   rw [verticalIntegral_split_three (a := -T) (b := T)]
+
   swap
   sorry
   --exact SmoothedChebyshevPull1_aux_integrable ε_pos X σ₀_pos holoOn suppSmoothingF SmoothingFnonneg mass_one
