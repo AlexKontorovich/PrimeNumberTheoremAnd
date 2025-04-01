@@ -171,7 +171,9 @@ the claim then follows from Fubini's theorem.
 \end{proof}
 %%-/
   calc
-    _ = ∑' n, term f σ' n * ∫ (v : ℝ), 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by rfl
+    _ = ∑' n, term f σ' n * ∫ (v : ℝ), 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
+      simp only [Real.fourierIntegral, VectorFourier.fourierIntegral]
+      simp only [one_div, mul_inv_rev, innerₗ_apply, RCLike.inner_apply', conj_trivial]
     _ = ∑' n, ∫ (v : ℝ), term f σ' n * 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
       simp [integral_mul_left]
     _ = ∫ (v : ℝ), ∑' n, term f σ' n * 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
@@ -434,7 +436,9 @@ lemma decay_bounds_cor (ψ : W21) :
   simpa only [div_eq_mul_inv] using ⟨_, decay_bounds_key ψ⟩
 
 @[continuity] lemma continuous_FourierIntegral (ψ : W21) : Continuous (𝓕 ψ) :=
-  VectorFourier.fourierIntegral_continuous continuous_fourierChar (by exact continuous_mul) ψ.hf
+  VectorFourier.fourierIntegral_continuous continuous_fourierChar
+    (by simp only [innerₗ_apply, RCLike.inner_apply', conj_trivial, continuous_mul])
+    ψ.hf
 
 lemma W21.integrable_fourier (ψ : W21) (hc : c ≠ 0) :
     Integrable fun u ↦ 𝓕 ψ (u / c) := by
@@ -1056,7 +1060,7 @@ lemma limiting_cor_aux {f : ℝ → ℂ} : Tendsto (fun x : ℝ ↦ ∫ t, f t *
   simp_rw [tendsto_congr' l2]
   convert_to Tendsto (fun x => 𝓕 f (-Real.log x / (2 * π))) atTop (𝓝 0)
   · ext ; congr ; ext ; simp [Real.fourierChar, Circle.exp, mul_comm (f _), ← ofReal_mul] ; congr
-    rw [← neg_mul] ; congr ; norm_cast ; field_simp ; ring
+    rw [← neg_mul] ; congr ; norm_cast ; field_simp
   refine (zero_at_infty_fourierIntegral f).comp <| Tendsto.mono_right ?_ _root_.atBot_le_cocompact
   exact (tendsto_neg_atBot_iff.mpr tendsto_log_atTop).atBot_mul_const (inv_pos.mpr two_pi_pos)
 
@@ -1349,7 +1353,7 @@ lemma hh_integrable_aux (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     apply Tendsto.const_mul
     apply (tendsto_arctan_atBot.mono_right nhdsWithin_le_nhds).comp
     apply Tendsto.const_mul_atBot hb
-    apply tendsto_log_nhdsWithin_zero_right.comp
+    apply tendsto_log_nhdsGT_zero.comp
     rw [Metric.tendsto_nhdsWithin_nhdsWithin]
     intro ε hε
     refine ⟨c * ε, by positivity, fun x hx1 hx2 => ⟨?_, ?_⟩⟩
@@ -1585,7 +1589,9 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
     have l1 : AEStronglyMeasurable (fun x_1 : ℝ ↦ cexp (-(2 * ↑π * (↑x_1 * ↑x) * I))) volume := by
       refine (Continuous.mul ?_ continuous_const).neg.cexp.aestronglyMeasurable
       apply continuous_const.mul <| contDiff_ofReal.continuous.mul continuous_const
-    simp [Real.fourierIntegral_eq', mul_sub] ; apply integral_sub
+    simp only [fourierIntegral_eq', neg_mul, RCLike.inner_apply', conj_trivial, ofReal_neg,
+      ofReal_mul, ofReal_ofNat, Pi.sub_apply, smul_eq_mul, mul_sub]
+    apply integral_sub
     · apply ψ.hf.bdd_mul l1 ; use 1 ; simp [Complex.norm_exp]
     · apply (Ψ R : W21) |>.hf |>.bdd_mul l1
       use 1 ; simp [Complex.norm_exp]

@@ -5,6 +5,7 @@ Author: Arend Mellendijk
 -/
 
 import Batteries.Tactic.Lemma
+import Mathlib.Algebra.BigOperators.Fin
 import Mathlib.Algebra.Order.Star.Basic
 import Mathlib.NumberTheory.ArithmeticFunction
 
