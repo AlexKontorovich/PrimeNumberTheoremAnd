@@ -90,7 +90,7 @@ theorem selbergWeights_eq_zero (d : ℕ) (hd : ¬d ^ 2 ≤ y) :
     intro hyp
     have : (d^2:ℝ) ≤ (d*m)^2 := by
       norm_cast;
-      refine Nat.pow_le_pow_of_le_left ?h 2
+      refine Nat.pow_le_pow_left ?h 2
       exact Nat.le_mul_of_pos_right _ (Nat.pos_of_mem_divisors hm)
     linarith [hyp.1]
   · rfl
