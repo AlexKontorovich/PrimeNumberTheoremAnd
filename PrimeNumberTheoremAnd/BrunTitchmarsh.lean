@@ -13,7 +13,7 @@ import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Selberg
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.SelbergBounds
 
-open Sieve
+open Sieve SelbergSieve
 open Filter Asymptotics
 open scoped Nat ArithmeticFunction BigOperators
 
@@ -49,7 +49,7 @@ variable (x y z : ℝ) (hx : 0 < x) (hy : 0 < y) (hz : 1 ≤ z)
 
 open Classical in
 theorem siftedSum_eq_card :
-    (primeInterSieve x y z hz).siftedSum =
+    siftedSum (s := toBoundingSieve (self := primeInterSieve x y z hz)) =
       ((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card := by
   apply Sieve.siftedSum_eq
   · exact fun _ _ ↦ rfl
@@ -75,7 +75,7 @@ theorem primesBetween_subset :
     exact hpz hqz
 
 theorem primesBetween_le_siftedSum_add :
-    primesBetween x (x+y) ≤ (primeInterSieve x y z hz).siftedSum + z := by
+    primesBetween x (x+y) ≤ siftedSum (s := toBoundingSieve (self := primeInterSieve x y z hz)) + z := by
   classical
   trans ↑((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)
       ∪ (Finset.Icc 1 (Nat.floor z))).card
@@ -111,8 +111,8 @@ theorem card_Ioc_filter_dvd (d a b: ℕ) (hd : d ≠ 0) :
 
 include hx in
 theorem multSum_eq (d : ℕ) (hd : d ≠ 0):
-    (primeInterSieve x y z hz).multSum d = ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) := by
-  unfold Sieve.multSum
+    multSum (s := toBoundingSieve (self := primeInterSieve x y z hz)) d = ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) := by
+  unfold multSum
   rw [primeInterSieve]
   simp only [Finset.sum_boole, Nat.cast_inj]
   trans ↑(Finset.Ioc (Nat.ceil x - 1) (Nat.floor (x+y)) |>.filter (d ∣ ·) |>.card)
@@ -122,8 +122,10 @@ theorem multSum_eq (d : ℕ) (hd : d ≠ 0):
   · rw [BrunTitchmarsh.card_Ioc_filter_dvd _ _ _ hd]
 
 include hx in
-theorem rem_eq (d : ℕ) (hd : d ≠ 0) : (primeInterSieve x y z hz).rem d = ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) - (↑d)⁻¹ * y := by
-  unfold Sieve.rem
+theorem rem_eq (d : ℕ) (hd : d ≠ 0) :
+    rem (s := toBoundingSieve (self := primeInterSieve x y z hz)) d =
+      ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) - (↑d)⁻¹ * y := by
+  unfold rem
   rw [multSum_eq x y z hx hz d hd]
   simp [primeInterSieve, if_neg hd]
 
@@ -166,7 +168,8 @@ theorem floor_div_approx (x : ℝ) (hx : 0 ≤ x) (d : ℕ) : ∃ C, |C| ≤ 2 �
     linarith
 
 include hx hy in
-theorem abs_rem_le {d : ℕ} (hd : d ≠ 0) : |(primeInterSieve x y z hz).rem d| ≤ 5 := by
+theorem abs_rem_le {d : ℕ} (hd : d ≠ 0) :
+    |rem (s := toBoundingSieve (self := primeInterSieve x y z hz)) d| ≤ 5 := by
   rw [rem_eq _ _ _ hx hz _ hd]
   have hpush : ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) = ( ↑(⌊x + y⌋₊ / d) - ↑((⌈x⌉₊ - 1) / d) : ℝ) := by
     rw [Nat.cast_sub]
@@ -207,14 +210,16 @@ theorem boudingSum_ge : (primeInterSieve x y z hz).selbergBoundingSum ≥ Real.l
 
 include hx hy in
 theorem primeSieve_rem_sum_le :
-    ∑ d ∈ (primeInterSieve x y z hz).prodPrimes.divisors, (if (d : ℝ) ≤ z then (3:ℝ) ^ ω d * |(primeInterSieve x y z hz).rem d| else 0)
+    ∑ d ∈ (primeInterSieve x y z hz).prodPrimes.divisors,
+        (if (d : ℝ) ≤ z then (3:ℝ) ^ ω d * |rem (s := toBoundingSieve (self := primeInterSieve x y z hz)) d| else 0)
       ≤ 5 * z * (1+Real.log z)^3 := by
   refine rem_sum_le_of_const (primeInterSieve x y z hz) 5 (fun d hd ↦ ?_)
   apply abs_rem_le _ _ _ <;> linarith
 
 include hx hy in
 theorem siftedSum_le (hz : 1 < z) :
-    (primeInterSieve x y z (le_of_lt hz)).siftedSum ≤ 2 * y / Real.log z + 5 * z * (1+Real.log z)^3  := by
+    siftedSum (s := toBoundingSieve (self := primeInterSieve x y z (le_of_lt hz)))
+      ≤ 2 * y / Real.log z + 5 * z * (1+Real.log z)^3  := by
   apply le_trans (SelbergSieve.selberg_bound_simple ..)
   calc _ ≤ y / (Real.log z / 2) + 5 * z * (1+Real.log z)^3 := ?_
        _ = _ := by ring
