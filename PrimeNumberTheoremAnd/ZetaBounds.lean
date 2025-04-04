@@ -2432,6 +2432,25 @@ bound on $1/|\zeta|$ from Lemma \ref{ZetaInvBnd}.
 \end{proof}
 %%-/
 
+
+/-%%
+\begin{lemma}[LogDerivZetaHolc]\label{LogDerivZetaHolc}\lean{LogDerivZetaHolc}\leanok
+There is an $A>0$ so that for all $T>3$, the function
+$
+\frac {\zeta'}{\zeta}(s)
+$
+is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}$.
+\end{lemma}
+%%-/
+theorem LogDerivZetaHolc :
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∀ (T : ℝ) (_ : 3 < T),
+    HolomorphicOn (fun (s : ℂ) ↦ deriv ζ s / (ζ s))
+      (((Ioc (1 - A / Real.log T ^ 9) 2) ×ℂ (Icc (-T) T)) \ {1}) := by
+  obtain ⟨A, hA, _⟩ := LogDerivZetaBnd
+  use A, hA
+  intro T T_gt
+  sorry
+
 /-
 It would be better to refactor this entire file so that we're not using explicit
 constants but instead systematically using big Oh notation... The punchline would be:
