@@ -184,7 +184,12 @@ theorem RectangleBorderIntegrable.add {f g : ℂ → E} (hf : RectangleBorderInt
   have h₂ := intervalIntegral.integral_add hf.2.1 hg.2.1
   have h₃ := intervalIntegral.integral_add hf.2.2.1 hg.2.2.1
   have h₄ := intervalIntegral.integral_add hf.2.2.2 hg.2.2.2
-  additive_combination h₁ - h₂ + I • h₃ - I • h₄
+  rw [h₁]
+  rw [h₂]
+  rw [h₃]
+  rw [h₄]
+  module
+  -- Was: additive_combination h₁ - h₂ + I • h₃ - I • h₄
 
 omit [NormedSpace ℂ E] in
 theorem ContinuousOn.rectangleBorder_integrable (hf : ContinuousOn f (RectangleBorder z w)) :
@@ -258,7 +263,9 @@ lemma RectangleIntegralVSplit {b x₀ x₁ y₀ y₁ : ℝ}
   ring_nf
   have h₁ := intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_left f_int_b_y₁_left
   have h₂ := intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_right f_int_b_y₁_right
-  additive_combination I • h₁ - I • h₂
+  rw [← h₁, ← h₂]
+  module
+  -- Was: additive_combination I • h₁ - I • h₂
 
 lemma RectangleIntegralVSplit' {b x₀ x₁ y₀ y₁ : ℝ} (hb : b ∈ [[y₀, y₁]])
     (hf : RectangleBorderIntegrable f (↑x₀ + ↑y₀ * I) (↑x₁ + ↑y₁ * I)) :

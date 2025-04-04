@@ -88,7 +88,7 @@ noncomputable def scale (g : CS n E) (R : ℝ) : CS n E := by
 
 lemma deriv_scale {f : CS (n + 1) E} : (f.scale R).deriv = R⁻¹ • f.deriv.scale R := by
   ext v ; by_cases hR : R = 0 <;> simp [hR, scale]
-  · simp [deriv, smul] ; exact deriv_const _ _
+  · simp [deriv, smul]
   · exact ((f.hasDerivAt (R⁻¹ • v)).scomp v (by simpa using (hasDerivAt_id v).const_smul R⁻¹)).deriv
 
 lemma deriv_scale' {f : CS (n + 1) E} : (f.scale R).deriv v = R⁻¹ • f.deriv (R⁻¹ • v) := by

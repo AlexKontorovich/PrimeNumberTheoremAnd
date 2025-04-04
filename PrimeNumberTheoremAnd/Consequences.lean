@@ -149,7 +149,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       apply Set.Ico_union_Icc_eq_Icc ?_ hx
       norm_num
     rw [this, setIntegral_union]
-    · simp only [add_left_eq_self]
+    · simp only [add_eq_right]
       apply integral_eq_zero_of_ae
       simp only [measurableSet_Ico, ae_restrict_eq]
       refine eventuallyEq_inf_principal_iff.mpr ?_
@@ -275,13 +275,13 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx: 0 ≤ x) :
         calc
           _ = log p := by
             congr
-            apply Nat.Prime.pow_minFac h1 (not_eq_zero_of_lt h2)
+            apply Nat.Prime.pow_minFac h1 (Nat.ne_zero_of_lt h2)
           _ = ∑ k' ∈ Icc 1 ⌊ log x / log 2⌋₊, if k' = k then log p else 0 := by
             simp
             have h : k ≤ ⌊x.log / log 2⌋₊ := by
               have h5 : 2^k ≤ n := by
                 rw [<-h3]
-                apply Nat.pow_le_pow_of_le_left (Prime.two_le h1)
+                apply Nat.pow_le_pow_left (Prime.two_le h1)
               have h6 : 1 ≤ x := by
                 apply LE.le.trans _ hn
                 simp only [one_le_cast]
@@ -399,7 +399,7 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx: 2 ≤ x) :
         intro p hp
         simp at hk hp
         have hp' : 1 ≤ p := Nat.Prime.one_le hp.2
-        have hp'': p ≠ 0 := not_eq_zero_of_lt hp'
+        have hp'': p ≠ 0 := Nat.ne_zero_of_lt hp'
         replace hp := (Nat.le_floor_iff' hp'').mp hp.1
         rw [abs_of_nonneg, log_le_log_iff _ hx_pos]
         . apply hp.trans
@@ -528,7 +528,7 @@ theorem chebyshev_asymptotic :
     . simp
       ring
     linarith
-  have h1 : (0:ℝ) = 0 + 0 := self_eq_add_right.mpr rfl
+  have h1 : (0:ℝ) = 0 + 0 := left_eq_add.mpr rfl
   have h2 : (0:ℝ) = 0 / log 2 := (zero_div _).symm
   rw [h1]
   apply Tendsto.add
