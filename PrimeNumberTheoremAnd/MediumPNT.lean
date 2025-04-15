@@ -123,17 +123,6 @@ $\sum_{n=1}^\infty \int_{(0,\infty)} \frac{\Lambda(n)}{n^{\sigma+it}}
 \end{lemma}
 %%-/
 
--- YUCK!
-theorem coercion_hell_aux {σ : ℝ} (σ_pos : 0 < σ) (i : ℕ) :
-    ((i : ℝ) ^ σ).toNNReal = (i : NNReal) ^ σ := by
-  induction' i with i ih
-  · simp only [CharP.cast_eq_zero]
-    rw [zero_rpow σ_pos.ne.symm, NNReal.zero_rpow σ_pos.ne.symm]
-    norm_num
-  refine (toNNReal_eq_iff_eq_coe ?_).mpr rfl
-  convert (NNReal.rpow_pos (x := (i + 1 : NNReal)) (by simp) (p := σ)).ne.symm
-  simp
-
 -- TODO: add to mathlib
 attribute [fun_prop] Continuous.const_cpow
 
@@ -169,9 +158,8 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     rw [norm_natCast_cpow_of_re_ne_zero _ (by simp only [add_re, ofReal_re, mul_re, I_re, mul_zero,
       ofReal_im, I_im, mul_one, sub_self, add_zero, ne_eq]; linarith)]
     simp only [add_re, re_ofNat, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-      sub_self, add_zero, rpow_two, Real.toNNReal_of_nonneg <| sq_nonneg (i : ℝ), Nat.cast_pow]
-    -- norm_cast
-    exact coercion_hell_aux (by linarith) i
+      sub_self, add_zero, rpow_two, Real.toNNReal_of_nonneg <| rpow_nonneg (y:= σ) (x:= i) (by linarith)]
+    norm_cast
 
   rw [MeasureTheory.integral_tsum]
   have x_neq_zero : X ≠ 0 := by linarith
@@ -207,7 +195,7 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
             mass_one εpos ε_lt_one σ_gt σ_le |>.hasFiniteIntegral
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{Smooth1Properties_above, SmoothedChebyshevDirichlet_aux_integrable}
 Interchange of summation and integration.
 \end{proof}
