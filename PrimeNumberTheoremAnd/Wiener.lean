@@ -2255,7 +2255,7 @@ variable {f : ℕ → ℝ}
 /-%%
 \section{Removing the Chebyshev hypothesis}
 
-In this section we do *not* assume bound \eqref{cheby}, but instead derive it from the other hypotheses.
+In this section we do *not* assume the bound \eqref{cheby}, but instead derive it from the other hypotheses.
 
 \begin{lemma}[limiting_fourier_variant]\label{limiting_fourier_variant}\lean{limiting_fourier_variant}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, and $x \geq 1$, then
 $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
@@ -2276,14 +2276,14 @@ lemma limiting_fourier_variant
 
 /-%%
 \begin{proof}
-\uses{first_fourier, second_fourier, decay}  Repeat the proof of Lemma ref{limiting_fourier_variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.)
+\uses{first_fourier, second_fourier, decay}  Repeat the proof of Lemma \ref{limiting_fourier_variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.)
 \end{proof}
 %%-/
 
 /-%%
 \begin{corollary}[crude_upper_bound]\label{crude_upper_bound}\lean{crude_upper_bound}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, then there exists a constant $B$ such that
 $$ |\sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )| \leq B$$
-for all $x \geq 1$.
+for all $x > 0$.
 \end{corollary}
 %%-/
 
@@ -2316,11 +2316,8 @@ lemma auto_cheby (hpos: 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nt
 
 /-%%
 \begin{proof}
-\uses{crude_upper_bound} For $x \geq 1$ apply the previous corollary for all $y < C x$ and $\psi$ chosen be both nonnegative and have nonnegative Fourier transform, while being not identically zero, and $C$ a large constant.  This gives
-$$ |\sum_{n=1}^\infty \frac{f(n)}{n} \int_0^{Cx} \hat \psi( \frac{1}{2\pi} \log \frac{n}{y} )\ dy| \leq CB x.$$
-But observe that the quantity $\int_0^{Cx} \hat \psi( \frac{1}{2\pi}$ is non-negative and equal to the positive constant $\int_{{\bf R}}
-\hat \psi( \frac{1}{2\pi} u ) e^u\ du$ if $n \leq x$ and $C$ is large enough.  The claim follows.
-\end{proof}
+\uses{crude_upper_bound} By applying Corollary \ref{crude_upper_bound} for a specific compactly supported function $\psi$, one can obtain a bound of the form
+$\sum_{(1-\varepsilon)x < n \leq x} f(n) = O(x)$ for all $x$ and some absolute constant $\varepsilon$ (which can be made explicit).  If $C$ is a sufficiently large constant, the claim $|\sum_{n \leq x} f(n)| \leq Cx$ can now be proven by strong induction on $x$, as the claim for $(1-\varepsilon)x$ implies the claim for $x$ by the triangle inequality (and the claim is trivial for $x < 1$).
 %%-/
 
 /-%%
