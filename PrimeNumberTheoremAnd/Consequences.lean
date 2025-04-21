@@ -2055,10 +2055,423 @@ For every $\eps>0$, there is a prime between $x$ and $(1+\eps)x$ for all suffici
 \end{corollary}
 %%-/
 
+-- TODO - upstream to mathlib
+theorem count_ne_iff_exists {p} [DecidablePred p] {n : ℕ} : n.count p ≠ 0 ↔ ∃ m < n, p m := by
+  simp [Nat.count_iff_forall_not]
+
+-- TODO - upstream to mathlib
+lemma exists_of_count_lt_count {p} [DecidablePred p] {a b : ℕ}  (h : a.count p < b.count p) : ∃ x : Set.Ico a b, p x := by
+  obtain ⟨k, hk⟩ := Nat.exists_eq_add_of_lt (Nat.lt_of_count_lt_count h)
+  rw [hk, add_assoc, Nat.count_add] at h
+  have := Nat.lt_add_right_iff_pos.mp h
+  obtain ⟨t, _, pat⟩ := count_ne_iff_exists.mp (Nat.ne_zero_of_lt this)
+  exact ⟨⟨a + t, by simp, by rwa [hk, add_assoc _ k, _root_.add_lt_add_iff_left a]⟩, pat⟩
+
+lemma prime_in_gap' (a b : ℕ) (h : a.primeCounting < b.primeCounting)
+    : ∃ (p : ℕ), p.Prime ∧ (a + 1) ≤ p ∧ p < (b + 1) := by
+  obtain ⟨p, hp⟩ := exists_of_count_lt_count h
+  exact ⟨p, hp, p.property.left, p.property.right⟩
+
+lemma prime_in_gap (a b : ℝ) (ha : 0 < a)
+    (h : ⌊a⌋₊.primeCounting < ⌊b⌋₊.primeCounting)
+    : ∃(p : ℕ), p.Prime ∧ a < p ∧ p ≤ b := by
+
+  have hab : ⌊a⌋₊ < ⌊b⌋₊ := Monotone.reflect_lt Nat.monotone_primeCounting h
+  obtain ⟨w, h, ha, hb⟩ := prime_in_gap' ⌊a⌋₊ ⌊b⌋₊ h
+  refine ⟨w, h, lt_of_floor_lt ha, ?_⟩
+  have : a < b := by
+    by_contra h
+    cases lt_or_eq_of_le <| le_of_not_lt h with
+    | inl hh => linarith [floor_le_floor <| le_of_lt hh]
+    | inr hh =>
+      rw [hh] at hab
+      rwa [←lt_self_iff_false ⌊a⌋₊]
+  by_contra h
+  have : ⌊b⌋₊ < w := floor_lt (by linarith) |>.mpr (lt_of_not_le h)
+  have : ⌊b⌋₊ + 1 ≤ w := by linarith
+  linarith
+
+lemma bound_f_second_term (f: ℝ → ℝ) (hf: Tendsto f atTop (nhds 0)): ∀ δ: ℝ, δ > 0 → ∀ᶠ x: ℝ in atTop, (1 + f x) < (1 + δ)  := by
+  intro δ hδ
+
+  have bound_one_plus_f: ∀ y: ℝ, ∀ z: ℝ, |f y| < z → 1 + (f y) < 1 + z := by
+    intro y z hf
+    by_cases f_pos: 0 < f y
+    .
+      rw [abs_of_pos f_pos] at hf
+      linarith
+    . rw [not_lt] at f_pos
+      rw [abs_of_nonpos f_pos] at hf
+      linarith
+
+  have f_small := NormedAddCommGroup.tendsto_nhds_zero.mp hf δ hδ
+  simp only [norm_eq_abs, eventually_atTop, ge_iff_le] at f_small
+  obtain ⟨p, hp⟩ := f_small
+
+  let a := ((max 1 p) : ℝ)
+  have ha: ∀ b: ℝ, a ≤ b → |f b| < δ := by
+    intro b hb
+    have b_ge_p: p ≤ b := by
+      have a_ge_p: p ≤ a := by simp [a]
+      linarith
+    exact hp b b_ge_p
+
+  rw [Filter.eventually_atTop]
+
+  use a
+  intro b hb
+  exact bound_one_plus_f b δ (ha b (by linarith))
+
+
+lemma bound_f_first_term {ε : ℝ} (hε: 0 < ε) (f: ℝ → ℝ) (hf: Tendsto f atTop (nhds 0)): ∀ δ: ℝ, δ > 0 → ∀ᶠ x: ℝ in atTop, (1 + f ((1 + ε) * x)) > (1 - δ)  := by
+  intro δ hδ
+
+  have bound_one_plus_f: ∀ y: ℝ, ∀ z: ℝ, |f y| < z → 1 + (f y) > 1 - z := by
+    intro y z hf
+    by_cases f_pos: 0 < f y
+    .
+      rw [abs_of_pos f_pos] at hf
+      linarith
+    . rw [not_lt] at f_pos
+      rw [abs_of_nonpos f_pos] at hf
+      linarith
+
+  have f_small := NormedAddCommGroup.tendsto_nhds_zero.mp hf δ hδ
+  simp only [norm_eq_abs, eventually_atTop, ge_iff_le] at f_small
+  obtain ⟨p, hp⟩ := f_small
+
+  let a := ((max 1 p) : ℝ)
+  have ha: ∀ b: ℝ, a ≤ b → |f b| < δ := by
+    intro b hb
+    have b_ge_p: p ≤ b := by
+      have a_ge_p: p ≤ a := by simp [a]
+      linarith
+    exact hp b b_ge_p
+
+
+  rw [Filter.eventually_atTop]
+
+  use a
+  intro b hb
+
+  have a_pos: 0 < a := by
+    simp [a]
+
+  have pos_mul: ∀ x y z : ℝ, 0 < x → 0 < y → 1 < z → x ≤ y → x < y * z := by
+    intro x y z _ hy hz hlt
+    have y_lt: y < y * z := by
+      exact (lt_mul_iff_one_lt_right hy).mpr hz
+    linarith
+
+  have mul_increase: a ≤ (1 + ε) * b := by
+    simp only [ge_iff_le, a] at hb
+    have a_le := pos_mul a b (1 + ε) a_pos (by linarith) (by linarith) (by linarith)
+    linarith
+
+  exact bound_one_plus_f ((1 + ε) * b) δ (ha ((1 + ε) * b) mul_increase)
+
+lemma smaller_terms {ε:ℝ} (hε: 0 < ε) (f: ℝ → ℝ) (hf: Tendsto f atTop (nhds 0)): ∀ δ: ℝ, δ > 0 →
+  ∀ᶠ x: ℝ in atTop, (1 - δ) * (((1 + ε) * x / (Real.log ((1 + ε) * x)))) < (1 + f ((1 + ε) * x)) * ((1 + ε) * x / (Real.log ((1 + ε) * x))) := by
+  intro δ hδ
+  have first_term := bound_f_first_term hε f hf δ hδ
+  simp only [gt_iff_lt, eventually_atTop, ge_iff_le] at first_term
+  obtain ⟨p, hp⟩ := first_term
+  simp only [eventually_atTop, ge_iff_le]
+  let a := max p 1
+  have ha: ∀ (b : ℝ), a ≤ b → 1 - δ < 1 + f ((1 + ε) * b) := by
+    intro b hb
+    have a_ge_p: p ≤ a := by
+      simp [a]
+    specialize hp b (by linarith)
+    exact hp
+  use a
+  intro b hb
+  rw [mul_lt_mul_right]
+  . exact ha b hb
+  .
+    simp only [sup_le_iff, a] at hb
+    have b_ge_one: 1 ≤ b := hb.2
+    have log_pos: Real.log ((1 + ε) *b) > 0 := by
+      have one_pplus_pos: 1 < (1 + ε) := by linarith
+      refine (Real.log_pos_iff ?_).mpr ?_
+      . positivity
+      . exact one_lt_mul_of_lt_of_le one_pplus_pos b_ge_one
+
+    positivity
+
+lemma second_smaller_terms (f: ℝ → ℝ) (hf: Tendsto f atTop (nhds 0)): ∀ δ: ℝ, δ > 0 →
+  ∀ᶠ x: ℝ in atTop, (1 + δ) * (( x / (Real.log (x)))) > (1 + f ( x)) * ( x / (Real.log (x))) := by
+  intro δ hδ
+  have first_term := bound_f_second_term f hf δ hδ
+
+  simp only [_root_.add_lt_add_iff_left, eventually_atTop, ge_iff_le] at first_term
+  obtain ⟨p, hp⟩ := first_term
+  simp only [gt_iff_lt, eventually_atTop, ge_iff_le]
+  let a := max p 2
+  have ha: ∀ (b : ℝ), a ≤ b → 1 + δ > 1 + f ( b) := by
+    intro b hb
+    have a_ge_p: p <= a := by simp [a]
+    specialize hp b (by linarith)
+    linarith
+  use a
+  intro b hb
+  specialize ha b hb
+  have rhs_nonzero:  b / log ( b) > 0 := by
+    simp only [sup_le_iff, a] at hb
+    obtain ⟨_, hb2⟩ := hb
+    have log_pos: Real.log (b) > 0 := by
+      refine (Real.log_pos_iff ?_).mpr ?_
+      . positivity
+      . linarith
+    positivity
+  rw [mul_lt_mul_right]
+  . exact ha
+  . linarith
+
+lemma x_log_x_atTop: Filter.Tendsto (fun x => x / Real.log x) Filter.atTop Filter.atTop := by
+  have inv_log_x_div := Filter.Tendsto.comp (f := fun x => Real.log x / x) (g := fun x => x⁻¹) (x := Filter.atTop) (y := (nhdsWithin 0 (Set.Ioi 0))) (z := Filter.atTop) ?_ ?_
+  .
+    simp_rw [Function.comp_def, inv_div] at inv_log_x_div
+    exact inv_log_x_div
+  .
+    exact tendsto_inv_nhdsGT_zero (𝕜 := ℝ)
+  .
+    rw [tendsto_nhdsWithin_iff]
+    refine ⟨?_, ?_⟩
+    .
+      have log_div_x := Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by simp)
+      simp only [pow_one, one_mul, add_zero] at log_div_x
+      exact log_div_x
+    . simp only [Set.mem_Ioi, eventually_atTop, ge_iff_le]
+      use 2
+      intro x hx
+      have log_pos: 0 < Real.log x := by
+        refine (Real.log_pos_iff ?_).mpr ?_ <;> linarith
+      positivity
+
+
+lemma tendsto_by_squeeze (ε: ℝ) (hε: ε > 0): Tendsto
+(fun (x: ℝ) => (Nat.primeCounting ⌊(1 + ε) * x⌋₊ : ℝ) - (Nat.primeCounting ⌊x⌋₊ : ℝ)) atTop atTop := by
+  obtain ⟨c, hc, pi_x_eq⟩ := pi_alt
+  rw [Asymptotics.isLittleO_iff_tendsto] at hc
+  conv =>
+    arg 1
+    intro x
+    rw [pi_x_eq]
+    rw [pi_x_eq]
+  simp only [div_one] at hc
+
+  -- (1 + δ) * (( x / (Real.log (x)))) > (1 + f ( x)) * ( x / (Real.log (x)))
+
+  let d: ℝ := ε/(2*(2 + ε))
+  have hd: 0 < d := by positivity
+  have first_helper := smaller_terms hε c hc (d) hd
+  have second_helper := second_smaller_terms c hc d hd
+
+  apply Filter.tendsto_atTop_mono' (f₁ := fun x => (
+      ((1 - d) * ((1 + ε) * x / log ((1 + ε) * x)))
+      -
+      ((1 + d) * (x / log x)))
+    )
+  .
+    rw [Filter.EventuallyLE]
+
+    simp at first_helper
+    simp at second_helper
+
+    obtain ⟨a1, ha1⟩ := first_helper
+    obtain ⟨a2, ha2⟩ := second_helper
+
+    simp only [eventually_atTop]
+
+    use (max a1 a2)
+    intro b hb
+
+    have lt_compare: ∀ a b c d : ℝ, a < c ∧ b > d → a - b ≤ c - d := by
+      intro a b c d h_lt
+      obtain ⟨a_lt, b_gt⟩ := h_lt
+      linarith
+
+    apply lt_compare
+    simp only [ge_iff_le, sup_le_iff] at hb
+    specialize ha1 b hb.1
+    specialize ha2 b hb.2
+    field_simp
+    field_simp at ha1 ha2
+    exact ⟨ha1, ha2⟩
+  .
+    rw [← Filter.tendsto_comp_val_Ioi_atTop (a := 1)]
+    have log_split: ∀ x: Set.Ioi 1, x.val / log ((1 + ε) * x.val) = x.val / (log (1 + ε) + log (x.val)) := by
+      intro x
+      have x_ge_one: 1 < x.val := Set.mem_Ioi.mp x.property
+      rw [Real.log_mul (by linarith) (by linarith)]
+
+    have log_factor: ∀ x: Set.Ioi 1, x.val / (log (1 + ε) + log (x.val)) = x.val / ((1 + (log (1 + ε)/(log x.val))) * (log x.val)) := by
+      intro x
+      have : log (x.val) ≠ 0 := by
+        have pos := Real.log_pos x.property
+        linarith
+      field_simp
+      rw [add_comm]
+
+    conv at log_factor =>
+      intro x
+      rhs
+      rw [div_mul_eq_div_mul_one_div]
+
+    conv =>
+      arg 1
+      intro x
+      lhs
+      rw [mul_div_assoc]
+      rw [log_split x]
+
+    conv =>
+      arg 1
+      intro x
+      lhs
+      rw [log_factor]
+
+    field_simp
+    conv =>
+      arg 1
+      intro x
+      rw [sub_eq_add_neg]
+      rw [← neg_div]
+      rw [div_add_div]
+      . skip
+      tactic =>
+        simp only [ne_eq, _root_.mul_eq_zero, log_eq_zero, not_or]
+        have x_pos := x.property
+        simp_rw [Set.Ioi, Set.mem_setOf_eq] at x_pos
+        refine ⟨?_, by linarith, by linarith, by linarith⟩
+        have log_num_pos: 0 < log (1 + ε) := by
+          exact Real.log_pos (by linarith)
+        have log_denom_pos: 0 < log x := by
+          exact Real.log_pos x.property
+        positivity
+      tactic =>
+        have pos := Real.log_pos (x.property)
+        linarith
+
+    conv =>
+      arg 1
+      intro x
+      equals ↑x * (log ↑x * ((1 + ε) * (1 - d)) - (1 + log (1 + ε) / log ↑x) * ((1 + d) * log ↑x)) /
+      (log ↑x * ((1 + log (1 + ε) / log ↑x) * log ↑x)) =>
+        ring
+
+    simp only [mul_div_mul_comm]
+    conv =>
+      arg 1
+      intro x
+      rw [mul_comm]
+
+    apply Filter.Tendsto.pos_mul_atTop (C := (1 + ε) * (1 - d) - (1 + d))
+    .
+      simp only [d, mul_one, sub_pos]
+      field_simp
+      rw [div_lt_div_iff_of_pos_right (by positivity)]
+      ring_nf
+      rw [add_assoc]
+      rw [add_lt_add_iff_left]
+      apply lt_of_sub_pos
+      ring_nf
+      positivity
+    .
+      conv =>
+        arg 1
+        intro x
+        lhs
+        rhs
+        equals (log x.val) * ((1 + log (1 + ε) / log ↑x) * ((1 + d))) =>
+          ring
+
+      simp_rw [← mul_sub]
+      conv =>
+        arg 1
+        intro x
+        rhs
+        rw [mul_comm]
+
+      simp only [mul_div_mul_comm]
+      conv =>
+        arg 1
+        intro x
+        lhs
+        equals 1 =>
+          have log_pos := Real.log_pos x.property
+          field_simp
+
+      simp only [one_mul]
+      conv =>
+        arg 3
+        equals nhds (((1 + ε) * (1 - d) - (1 + d)) / 1) => simp
+
+      apply Filter.Tendsto.div
+      .
+        apply Filter.Tendsto.sub
+        . simp
+        .
+          conv =>
+            arg 3
+            equals nhds (1 * (1 + d)) => simp
+          apply Filter.Tendsto.mul
+          .
+            conv =>
+              arg 3
+              equals nhds (1 + 0) => simp
+            apply Filter.Tendsto.add
+            . simp
+            .
+              apply Filter.Tendsto.div_atTop (a := log (1 + ε))
+              . simp
+              . simp only [tendsto_comp_val_Ioi_atTop, d]
+                exact tendsto_log_atTop
+          . simp
+      .
+        conv =>
+          arg 3
+          equals nhds (1 + 0) => simp
+        apply Filter.Tendsto.add
+        . simp
+        .
+          apply Filter.Tendsto.div_atTop (a := log (1 + ε))
+          . simp
+          . simp only [tendsto_comp_val_Ioi_atTop, d]
+            exact tendsto_log_atTop
+      . simp
+    .
+      let x_div_log (x: ℝ) := x / Real.log x
+      conv =>
+        arg 1
+        equals (fun (x : Set.Ioi 1) => x_div_log x.val) => rfl
+
+      rw [Filter.tendsto_comp_val_Ioi_atTop (a := 1)]
+      exact x_log_x_atTop
+  . simp
+
 theorem prime_between {ε:ℝ} (hε: 0 < ε): ∀ᶠ x:ℝ in atTop, ∃ p:ℕ, Nat.Prime p ∧
     x < p ∧ p < (1+ε)* x := by
-  sorry
+  have squeeze := tendsto_by_squeeze (ε/2) (by linarith)
+  rw [Filter.tendsto_iff_forall_eventually_mem] at squeeze
+  specialize squeeze (Set.Ici 1) (by exact Ici_mem_atTop 1)
+  simp only [Set.mem_Ici, eventually_atTop, ge_iff_le] at squeeze
+  obtain ⟨a, ha⟩ := squeeze
+  rw [eventually_atTop]
+  use (max a 1)
+  intro b hb
+  rw [ge_iff_le, sup_le_iff] at hb
+  specialize ha b hb.1
 
+  have val_lt: (⌊b⌋₊.primeCounting : ℝ) < ⌊(1 + ε/2) * b⌋₊.primeCounting := by linarith
+  norm_cast at val_lt
+
+  have jump := prime_in_gap b ((1 + ε/2) * b) (by linarith) val_lt
+  obtain ⟨p, hp, b_lt_p, p_le⟩ := jump
+  have p_lt: p < (1 + ε) * b := by
+    linarith
+  use p
 
 /-%%
 \begin{proof}
