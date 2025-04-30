@@ -235,7 +235,7 @@ lemma RectangleIntegralHSplit {a x₀ x₁ y₀ y₁ : ℝ}
       RectangleIntegral f (x₀ + y₀ * I) (a + y₁ * I) +
       RectangleIntegral f (a + y₀ * I) (x₁ + y₁ * I) := by
   dsimp [RectangleIntegral, HIntegral, VIntegral]
-  ring_nf
+  simp only [mul_one, mul_zero, add_zero, zero_add, sub_self]
   have h₁ := intervalIntegral.integral_add_adjacent_intervals f_int_x₀_a_bot f_int_a_x₁_bot
   have h₂ := intervalIntegral.integral_add_adjacent_intervals f_int_x₀_a_top f_int_a_x₁_top
   additive_combination - h₁ + h₂
@@ -260,7 +260,7 @@ lemma RectangleIntegralVSplit {b x₀ x₁ y₀ y₁ : ℝ}
       RectangleIntegral f (x₀ + y₀ * I) (x₁ + b * I) +
       RectangleIntegral f (x₀ + b * I) (x₁ + y₁ * I) := by
   dsimp [RectangleIntegral, HIntegral, VIntegral]
-  ring_nf
+  simp only [mul_one, mul_zero, add_zero, zero_add, sub_self]
   have h₁ := intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_left f_int_b_y₁_left
   have h₂ := intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_right f_int_b_y₁_right
   rw [← h₁, ← h₂]
@@ -424,7 +424,8 @@ lemma integral_self_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, x / (x ^
 lemma integral_const_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, y / (x ^ 2 + y ^ 2) =
     arctan (x₂ / y) - arctan (x₁ / y) := by
   nth_rewrite 1 [← div_mul_cancel₀ x₁ hy, ← div_mul_cancel₀ x₂ hy]
-  simp_rw [← mul_integral_comp_mul_right, ← integral_const_mul, ← integral_one_div_one_add_sq]
+  simp_rw [← mul_integral_comp_mul_right, ← intervalIntegral.integral_const_mul,
+    ← integral_one_div_one_add_sq]
   exact integral_congr <| λ x _ => by field_simp; ring
 
 lemma integral_const_div_self_add_im (hy : y ≠ 0) : ∫ x : ℝ in x₁..x₂, A / (x + y * I) =
@@ -442,8 +443,8 @@ lemma integral_const_div_self_add_im (hy : y ≠ 0) : ∫ x : ℝ in x₁..x₂,
     norm_cast ; exact sq_add_sq_ne_zero hy
   simp_rw [integral_congr (λ _ _ => e1), integral_sub e2 e3, mul_div_assoc]
   norm_cast
-  simp_rw [integral_const_mul, intervalIntegral.integral_ofReal, integral_self_div_sq_add_sq hy,
-    integral_const_div_sq_add_sq hy]
+  simp_rw [intervalIntegral.integral_const_mul, intervalIntegral.integral_ofReal,
+    integral_self_div_sq_add_sq hy, integral_const_div_sq_add_sq hy]
 
 lemma integral_const_div_re_add_self (hx : x ≠ 0) : ∫ y : ℝ in y₁..y₂, A / (x + y * I) =
     A / I * (Real.log (y₂ ^ 2 + (-x) ^ 2) / 2 - Real.log (y₁ ^ 2 + (-x) ^ 2) / 2) -

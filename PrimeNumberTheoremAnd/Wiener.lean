@@ -175,7 +175,7 @@ the claim then follows from Fubini's theorem.
       simp only [Real.fourierIntegral, VectorFourier.fourierIntegral]
       simp only [one_div, mul_inv_rev, innerₗ_apply, RCLike.inner_apply', conj_trivial]
     _ = ∑' n, ∫ (v : ℝ), term f σ' n * 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
-      simp [integral_mul_left]
+      simp [integral_const_mul]
     _ = ∫ (v : ℝ), ∑' n, term f σ' n * 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
       refine (integral_tsum ?_ ?_).symm
       · refine fun _ ↦ AEMeasurable.aestronglyMeasurable ?_
@@ -191,7 +191,7 @@ the claim then follows from Fubini's theorem.
     _ = _ := by
       congr 1; ext y
       simp_rw [mul_assoc (LSeries _ _), ← smul_eq_mul (a := (LSeries _ _)), LSeries]
-      rw [← tsum_smul_const]
+      rw [← Summable.tsum_smul_const]
       · congr with n ; exact first_fourier_aux2 hx n
       · apply Summable.of_norm
         convert hf σ' hσ with n
@@ -273,11 +273,11 @@ so by Fubini's theorem it suffices to verify the identity
 %%-/
   conv in ↑(rexp _) * _ => { rw [Real.fourierIntegral_real_eq, ← smul_eq_mul, ← integral_smul] }
   rw [MeasureTheory.integral_integral_swap] ; swap ; exact second_fourier_integrable_aux1 hcont hsupp hσ
-  rw [← integral_mul_left]
+  rw [← integral_const_mul]
   congr 1; ext t
   dsimp [Real.fourierChar, Circle.exp]
 
-  simp_rw [mul_smul_comm, ← smul_mul_assoc, integral_mul_right]
+  simp_rw [mul_smul_comm, ← smul_mul_assoc, integral_mul_const]
   rw [fun (a b d : ℂ) ↦ show a * (b * (ψ t) * d) = (a * b * d) * ψ t by ring]
   congr 1
   push_cast
@@ -401,7 +401,7 @@ lemma decay_bounds_key (f : W21) (u : ℝ) : ‖𝓕 f u‖ ≤ ‖f‖ * (1 + u
 lemma decay_bounds_aux {f : ℝ → ℂ} (hf : AEStronglyMeasurable f volume) (h : ∀ t, ‖f t‖ ≤ A * (1 + t ^ 2)⁻¹) :
     ∫ t, ‖f t‖ ≤ π * A := by
   have l1 : Integrable (fun x ↦ A * (1 + x ^ 2)⁻¹) := integrable_inv_one_add_sq.const_mul A
-  simp_rw [← integral_univ_inv_one_add_sq, mul_comm, ← integral_mul_left]
+  simp_rw [← integral_univ_inv_one_add_sq, mul_comm, ← integral_const_mul]
   exact integral_mono (l1.mono' hf (Eventually.of_forall h)).norm l1 h
 
 theorem decay_bounds_W21 (f : W21) (hA : ∀ t, ‖f t‖ ≤ A / (1 + t ^ 2))
@@ -505,7 +505,7 @@ lemma limiting_fourier_aux (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1
     apply l7.integrable_of_hasCompactSupport
     exact ψ.h2.mul_left.mul_right.mul_left.mul_left
 
-  simp_rw [l1 σ' hσ', l2 σ' hσ', ← integral_mul_left, ← integral_sub l4 l5]
+  simp_rw [l1 σ' hσ', l2 σ' hσ', ← integral_const_mul, ← integral_sub l4 l5]
   apply integral_congr_ae
   apply Eventually.of_forall
   intro u
@@ -1500,7 +1500,8 @@ lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : W21) (hcheby : cheby f) :
   have l1 : Summable fun i ↦ ‖f i / ↑i * 𝓕 ψ (1 / (2 * π) * Real.log (↑i / x))‖ := by
     exact summable_fourier x hx ψ hcheby
   apply (norm_tsum_le_tsum_norm l1).trans
-  simpa only [← tsum_const_smul _ l5] using tsum_mono l1 (by simpa using l5.const_smul (W21.norm ψ)) l6
+  simpa only [← Summable.tsum_const_smul _ l5] using
+    Summable.tsum_mono l1 (by simpa using l5.const_smul (W21.norm ψ)) l6
 
 lemma bound_I1' {C : ℝ} (x : ℝ) (hx : 1 ≤ x) (ψ : W21) (hcheby : chebyWith C f) :
     ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * π) * log (n / x))‖ ≤ W21.norm ψ * C * (1 + 2 * π ^ 2) := by
@@ -1524,7 +1525,7 @@ lemma bound_I2 (x : ℝ) (ψ : W21) :
     · simp only [norm_norm, key] ; simp
   have l5 : 0 ≤ᵐ[volume] fun a ↦ (1 + (a / (2 * π)) ^ 2)⁻¹ := by apply Eventually.of_forall ; intro x ; positivity
   refine (norm_integral_le_integral_norm _).trans <| (setIntegral_mono l1 l2 key).trans ?_
-  rw [integral_mul_left] ; gcongr ; apply W21.norm_nonneg
+  rw [integral_const_mul] ; gcongr ; apply W21.norm_nonneg
   refine (setIntegral_le_integral l3 l5).trans ?_
   rw [Measure.integral_comp_div (fun x => (1 + x ^ 2)⁻¹) (2 * π)]
   simp [abs_eq_self.mpr twopi] ; ring_nf ; rfl
@@ -1597,7 +1598,7 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
       use 1 ; simp [Complex.norm_exp]
 
   have S1_sub : S1 x (ψ - Ψ R) = S1 x ψ - S1 x (Ψ R) := by
-    simp [S1, S1_sub_1, mul_sub] ; apply tsum_sub
+    simp [S1, S1_sub_1, mul_sub] ; apply Summable.tsum_sub
     · have := summable_fourier x (by positivity) ψ ⟨_, hcheby⟩
       rw [summable_norm_iff] at this
       simpa using this
@@ -1837,7 +1838,9 @@ lemma interval_approx_inf (ha : 0 < a) (hab : a < b) :
     have l5 : Icc (a + ε / 2) (b - ε / 2) ⊆ Ioi 0 := by intro t ht ; simp at ht ⊢ ; linarith
     have l6 : Icc (a + ε / 2) (b - ε / 2) ∩ Ioi 0 = Icc (a + ε / 2) (b - ε / 2) := inter_eq_left.mpr l5
     have l7 : ∫ y in Ioi 0, indicator (Icc (a + ε / 2) (b - ε / 2)) 1 y = b - a - ε := by
-      simp [l6] ; convert ENNReal.toReal_ofReal l4 using 3 ; ring
+      simp only [measurableSet_Icc, integral_indicator_one, measureReal_restrict_apply, l6,
+        volume_real_Icc]
+      convert max_eq_left l4 using 1 ; ring_nf
     have l8 : IntegrableOn ψ (Ioi 0) volume := (h1.continuous.integrable_of_hasCompactSupport h2).integrableOn
     rw [← l7] ; apply setIntegral_mono ?_ l8 h3
     rw [IntegrableOn, integrable_indicator_iff measurableSet_Icc]
@@ -1864,7 +1867,9 @@ lemma interval_approx_sup (ha : 0 < a) (hab : a < b) :
     have l5 : Ioo (a - ε / 2) (b + ε / 2) ⊆ Ioi 0 := by intro t ht ; simp at ht ⊢ ; linarith
     have l6 : Ioo (a - ε / 2) (b + ε / 2) ∩ Ioi 0 = Ioo (a - ε / 2) (b + ε / 2) := inter_eq_left.mpr l5
     have l7 : ∫ y in Ioi 0, indicator (Ioo (a - ε / 2) (b + ε / 2)) 1 y = b - a + ε := by
-      simp [l6] ; convert ENNReal.toReal_ofReal l4 using 3 ; ring
+      simp only [measurableSet_Ioo, integral_indicator_one, measureReal_restrict_apply, l6,
+        volume_real_Ioo]
+      convert max_eq_left l4 using 1 ; ring_nf
     have l8 : IntegrableOn ψ (Ioi 0) volume := (h1.continuous.integrable_of_hasCompactSupport h2).integrableOn
     rw [← l7]
     refine setIntegral_mono l8 ?_ h4
@@ -1884,7 +1889,8 @@ lemma WI_sum_le {f : ℕ → ℝ} {g₁ g₂ : ℝ → ℝ} (hf : 0 ≤ f) (hg :
     (hg₁ : HasCompactSupport g₁) (hg₂ : HasCompactSupport g₂) :
     (∑' n, f n * g₁ (n / x)) / x ≤ (∑' n, f n * g₂ (n / x)) / x := by
   apply div_le_div_of_nonneg_right ?_ hx.le
-  exact tsum_le_tsum (fun n => mul_le_mul_of_nonneg_left (hg _) (hf _)) (WI_summable hg₁ hx) (WI_summable hg₂ hx)
+  exact Summable.tsum_le_tsum (fun n => mul_le_mul_of_nonneg_left (hg _) (hf _))
+    (WI_summable hg₁ hx) (WI_summable hg₂ hx)
 
 lemma WI_sum_Iab_le {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : chebyWith C f) (hb : 0 < b) (hxb : 2 / b < x) :
     (∑' n, f n * indicator (Ico a b) 1 (n / x)) / x ≤ C * 2 * b := by
