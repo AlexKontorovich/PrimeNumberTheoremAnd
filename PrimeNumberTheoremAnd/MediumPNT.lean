@@ -349,15 +349,48 @@ lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) (X : ℝ) :
     ∃ (C : ℝ) (_ : 3 < C), ∀ (X : ℝ) (_ : C < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
     ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
-  let C : ℝ := sorry
-  have C_gt : 3 < C := sorry
+
+  have : ∃ c, 0 < c ∧
+    ∀ (ε x : ℝ), 0 < ε → 0 < x → x ≤ 1 - c * ε → Smooth1 SmoothingF ε x = 1 := Smooth1Properties_below suppSmoothingF mass_one
+  obtain ⟨c₁, c₁_pos, hc₁⟩ := this
+
+  have : ∃ c, 0 < c ∧
+    ∀ (ε x : ℝ), ε ∈ Ioo 0 1 → 1 + c * ε ≤ x → Smooth1 SmoothingF ε x = 0 := Smooth1Properties_above suppSmoothingF
+  obtain ⟨c₂, c₂_pos, hc₂⟩ := this
+
+  let C : ℝ := c₁ + c₂ + 3
+  have C_gt' : 3 < c₁ + c₂ + 3 := by linarith
+  have C_gt : 3 < C := C_gt'
   refine ⟨C, C_gt, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
   unfold ChebyshevPsi
+
+  have vonManBnd (n : ℕ) : ArithmeticFunction.vonMangoldt n ≤ Real.log n :=
+    ArithmeticFunction.vonMangoldt_le_log
+
+  have smooth1BddAbove (n : ℕ) : Smooth1 SmoothingF ε (n / X) ≤ 1 := by
+    by_cases n_eq_zero : n = 0
+    · rw [n_eq_zero]
+      simp only [CharP.cast_eq_zero, zero_div]
+      unfold Smooth1
+      sorry
+    apply Smooth1LeOne SmoothingFnonneg mass_one εpos
+    have npos : (0 : ℝ) < n := by
+      exact_mod_cast Nat.zero_lt_of_ne_zero n_eq_zero
+    apply div_pos npos
+    linarith
+
+  have smooth1BddBelow (n : ℕ) : Smooth1 SmoothingF ε (n / X) ≥ 0 := by
+    apply Smooth1Nonneg SmoothingFnonneg ?_ εpos
+    sorry
+  have smoothIs1 (n : ℕ) (n_le : n ≤ X * (1 - c₁ * ε)) :
+    Smooth1 SmoothingF ε (↑n / X) = 1 := by
+    have := hc₁ (ε := ε) (n / X) εpos
+    sorry
+
+  have smoothIs0 (n : ℕ) (n_le : X * (1 + c₂ * ε) ≤ n) := hc₂ (ε := ε) (n / X) ⟨εpos, ε_lt_one⟩
+
   rw [SmoothedChebyshevDirichlet diffSmoothingF SmoothingFnonneg suppSmoothingF
     mass_one (by linarith) εpos ε_lt_one]
-
-
-
 
   sorry
 
