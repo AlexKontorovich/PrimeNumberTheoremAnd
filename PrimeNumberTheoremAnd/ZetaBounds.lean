@@ -2433,6 +2433,27 @@ bound on $1/|\zeta|$ from Lemma \ref{ZetaInvBnd}.
 %%-/
 
 /-%%
+To make things uniform in $t$, we need a little room, so we're not taking log's of $1$.
+
+\begin{lemma}[LogLeLog]\label{LogLeLog}\lean{LogLeLog}\leanok
+There is a constant $C>0$ so that for all $t>3$,
+$$
+1/\log t \le C / \log (t + 3).
+$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}\leanok
+Write
+$$
+\log (t + 3) = \log t + \log (1 + 3/t) = \log t + O(1/t).
+$$
+Then we can bound $1/\log t$ by $C / \log (t + 3)$ for some constant $C>0$.
+\end{proof}
+%%-/
+
+/-%%
 
 Everything below this line was generated in collaboration with the Alpha Proof team!
 
