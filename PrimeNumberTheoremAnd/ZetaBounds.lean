@@ -2456,7 +2456,7 @@ lemma ZetaCont : ContinuousOn ζ (univ \ {1}) := by
   simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
   exact hx
 
-lemma ZetaZeroFreeConst (T : ℝ) (Tpos : 0 < T) :
+lemma ZetaZeroFreeConst (T : ℝ) :
     ∃ (σ : ℝ) (_ : σ < 1), ∀ (t : ℝ) (_ : |t| < T)
     (σ' : ℝ) (_ : σ' ≥ σ), ζ (σ' + t * I) ≠ 0 := by
   by_contra h
