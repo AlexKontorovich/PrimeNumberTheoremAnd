@@ -2444,7 +2444,7 @@ $$
 %%-/
 
 /-%%
-\begin{proof}\leanok
+\begin{proof}
 Write
 $$
 \log (t + 3) = \log t + \log (1 + 3/t) = \log t + O(1/t).
@@ -2455,7 +2455,7 @@ Then we can bound $1/\log t$ by $C / \log (t + 3)$ for some constant $C>0$.
 
 /-%%
 
-Everything below this line was generated in collaboration with the Alpha Proof team!
+**Begin collaboration with the Alpha Proof team!**
 
 \begin{lemma}[ZetaZeroFreeConst]\label{ZetaZeroFreeConst}\lean{ZetaZeroFreeConst}\leanok
 For any $T>0$, there is a constant $\sigma<1$ so that
@@ -2578,6 +2578,8 @@ By the continuity of $\zeta$, we have $\zeta(1 + it_0) = 0$.
 %If $t_0=0$, then we know that this is not true, because $\zeta(1) \ne 0$.
 This is a contradiction because $\zeta$ doesn't vanish on the one-line (including at $s=1$).
 \end{proof}
+
+** End collaboration **
 %%-/
 
 /-%%
