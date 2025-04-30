@@ -2433,7 +2433,7 @@ bound on $1/|\zeta|$ from Lemma \ref{ZetaInvBnd}.
 %%-/
 
 /-%%
-To make things uniform in $t$, we need a little room, so we're not taking log's of $1$.
+Annoying: we have reciprocals of $log |t|$ in the bounds, and we've assumed that $|t|>3$; but we want to make things uniform in $t$. Let's change to things like $log (|t|+3)$ instead of $log |t|$.
 
 \begin{lemma}[LogLeLog]\label{LogLeLog}\lean{LogLeLog}\leanok
 There is a constant $C>0$ so that for all $t>3$,
