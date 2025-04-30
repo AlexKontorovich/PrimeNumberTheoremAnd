@@ -2453,10 +2453,9 @@ Then we can bound $1/\log t$ by $C / \log (t + 3)$ for some constant $C>0$.
 \end{proof}
 %%-/
 
+-- **Begin collaboration with the Alpha Proof team!**
+
 /-%%
-
-**Begin collaboration with the Alpha Proof team!**
-
 \begin{lemma}[ZetaZeroFreeConst]\label{ZetaZeroFreeConst}\lean{ZetaZeroFreeConst}\leanok
 For any $T>0$, there is a constant $\sigma<1$ so that
 $$
@@ -2578,9 +2577,9 @@ By the continuity of $\zeta$, we have $\zeta(1 + it_0) = 0$.
 %If $t_0=0$, then we know that this is not true, because $\zeta(1) \ne 0$.
 This is a contradiction because $\zeta$ doesn't vanish on the one-line (including at $s=1$).
 \end{proof}
-
-** End collaboration **
 %%-/
+
+-- **End collaboration**
 
 /-%%
 \begin{lemma}[LogDerivZetaHolc]\label{LogDerivZetaHolc}\lean{LogDerivZetaHolc}\leanok
