@@ -334,7 +334,24 @@ $$
 where $\Lambda(n)$ is the von Mangoldt function.
 \end{definition}
 %%-/
-noncomputable def ChebyshevPsi (x : ℝ) : ℝ := (Finset.range (Nat.floor x)).sum ArithmeticFunction.vonMangoldt
+noncomputable def ChebyshevPsi (x : ℝ) : ℝ := (Finset.range (Nat.floor (x + 1))).sum ArithmeticFunction.vonMangoldt
+
+-- **Tests with AlphaProof**
+theorem extracted_2
+    (F : ℝ → ℝ)
+    (FbddAbove : ∀ x, F x ≤ 1)
+    (Fnonneg : ∀ x, F x ≥ 0)
+    (FzeroAfter : ∃ (c₁ : ℝ) (_ : c₁ > 0), ∀ (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
+      ∀ X > (1 : ℝ), ∀ (n : ℕ), n ≥ (1 + c₁ * ε) * X → F (n / X) = 0)
+    (Fone : ∃ (c₂ : ℝ) (_ : c₂ > 0) (_ : c₂ < 1), ∀ (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
+      ∀ X > (1 : ℝ), ∀ (n : ℕ), 0 < n → n ≤ (1 - c₂ * ε) * X → F (n / X) = 1)
+     :
+    ∃ (C : ℝ) (_ : 3 < C), ∀ (X : ℝ) (_ : C < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
+    ‖(∑' (n : ℕ), ArithmeticFunction.vonMangoldt n * F (↑n / X)) - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
+
+  sorry
+
+-- **End Test**
 
 /-%%
 The smoothed Chebyshev function is close to the actual Chebyshev function.
@@ -350,36 +367,33 @@ lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     ∃ (C : ℝ) (_ : 3 < C), ∀ (X : ℝ) (_ : C < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
     ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
 
-  have : ∃ c, 0 < c ∧
-    ∀ (ε x : ℝ), 0 < ε → 0 < x → x ≤ 1 - c * ε → Smooth1 SmoothingF ε x = 1 := Smooth1Properties_below suppSmoothingF mass_one
-  obtain ⟨c₁, c₁_pos, hc₁⟩ := this
+  have vonManBnd (n : ℕ) : ArithmeticFunction.vonMangoldt n ≤ Real.log n :=
+    ArithmeticFunction.vonMangoldt_le_log
 
-  have : ∃ c, 0 < c ∧
-    ∀ (ε x : ℝ), ε ∈ Ioo 0 1 → 1 + c * ε ≤ x → Smooth1 SmoothingF ε x = 0 := Smooth1Properties_above suppSmoothingF
-  obtain ⟨c₂, c₂_pos, hc₂⟩ := this
+  -- have : ∃ c, 0 < c ∧
+  --   ∀ (ε x : ℝ), 0 < ε → 0 < x → x ≤ 1 - c * ε → Smooth1 SmoothingF ε x = 1 := Smooth1Properties_below suppSmoothingF mass_one
+  obtain ⟨c₁, c₁_pos, hc₁⟩ := Smooth1Properties_below suppSmoothingF mass_one
+
+  -- have : ∃ c, 0 < c ∧
+  --   ∀ (ε x : ℝ), ε ∈ Ioo 0 1 → 1 + c * ε ≤ x → Smooth1 SmoothingF ε x = 0 := Smooth1Properties_above suppSmoothingF
+  obtain ⟨c₂, c₂_pos, hc₂⟩ := Smooth1Properties_above suppSmoothingF
 
   let C : ℝ := c₁ + c₂ + 3
   have C_gt' : 3 < c₁ + c₂ + 3 := by linarith
   have C_gt : 3 < C := C_gt'
+
   refine ⟨C, C_gt, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
   unfold ChebyshevPsi
 
-  have vonManBnd (n : ℕ) : ArithmeticFunction.vonMangoldt n ≤ Real.log n :=
-    ArithmeticFunction.vonMangoldt_le_log
-
-  have smooth1BddAbove (n : ℕ) : Smooth1 SmoothingF ε (n / X) ≤ 1 := by
-    by_cases n_eq_zero : n = 0
-    · rw [n_eq_zero]
-      simp only [CharP.cast_eq_zero, zero_div]
-      unfold Smooth1
-      sorry
+  have smooth1BddAbove (n : ℕ) (npos : 0 < n) :
+      Smooth1 SmoothingF ε (n / X) ≤ 1 := by
     apply Smooth1LeOne SmoothingFnonneg mass_one εpos
-    have npos : (0 : ℝ) < n := by
-      exact_mod_cast Nat.zero_lt_of_ne_zero n_eq_zero
-    apply div_pos npos
-    linarith
+    have : (0 : ℝ) < n := by exact_mod_cast npos
+    have : (0 : ℝ) < X := by linarith
+    positivity
 
-  have smooth1BddBelow (n : ℕ) : Smooth1 SmoothingF ε (n / X) ≥ 0 := by
+  have smooth1BddBelow (n : ℕ) (npos : 0 < n) :
+      Smooth1 SmoothingF ε (n / X) ≥ 0 := by
     apply Smooth1Nonneg SmoothingFnonneg ?_ εpos
     sorry
   have smoothIs1 (n : ℕ) (n_le : n ≤ X * (1 - c₁ * ε)) :
