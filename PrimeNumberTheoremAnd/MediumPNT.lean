@@ -385,23 +385,31 @@ lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
   refine ⟨C, C_gt, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
   unfold ChebyshevPsi
 
-  have smooth1BddAbove (n : ℕ) (npos : 0 < n) :
-      Smooth1 SmoothingF ε (n / X) ≤ 1 := by
-    apply Smooth1LeOne SmoothingFnonneg mass_one εpos
+  have : (0 : ℝ) < X := by linarith
+
+  have : X ≠ 0 := by linarith
+
+
+  have n_on_X_pos {n : ℕ} (npos : 0 < n) :
+      0 < n / X := by
     have : (0 : ℝ) < n := by exact_mod_cast npos
-    have : (0 : ℝ) < X := by linarith
     positivity
 
-  have smooth1BddBelow (n : ℕ) (npos : 0 < n) :
-      Smooth1 SmoothingF ε (n / X) ≥ 0 := by
-    apply Smooth1Nonneg SmoothingFnonneg ?_ εpos
-    sorry
-  have smoothIs1 (n : ℕ) (n_le : n ≤ X * (1 - c₁ * ε)) :
-    Smooth1 SmoothingF ε (↑n / X) = 1 := by
-    have := hc₁ (ε := ε) (n / X) εpos
-    sorry
+  have smooth1BddAbove (n : ℕ) (npos : 0 < n) :
+      Smooth1 SmoothingF ε (n / X) ≤ 1 :=
+    Smooth1LeOne SmoothingFnonneg mass_one εpos (n_on_X_pos npos)
 
-  have smoothIs0 (n : ℕ) (n_le : X * (1 + c₂ * ε) ≤ n) := hc₂ (ε := ε) (n / X) ⟨εpos, ε_lt_one⟩
+  have smooth1BddBelow (n : ℕ) (npos : 0 < n) :
+      Smooth1 SmoothingF ε (n / X) ≥ 0 :=
+    Smooth1Nonneg SmoothingFnonneg (n_on_X_pos npos) εpos
+
+  have smoothIs1 (n : ℕ) (npos : 0 < n) (n_le : n ≤ X * (1 - c₁ * ε)) :
+      Smooth1 SmoothingF ε (↑n / X) = 1 := by
+    apply hc₁ (ε := ε) (n / X) εpos (n_on_X_pos npos)
+    (expose_names; exact (div_le_iff₀' this_1).mpr n_le)
+
+  have smoothIs0 (n : ℕ) (n_le : X * (1 + c₂ * ε) ≤ n) :=
+    hc₂ (ε := ε) (n / X) ⟨εpos, ε_lt_one⟩
 
   rw [SmoothedChebyshevDirichlet diffSmoothingF SmoothingFnonneg suppSmoothingF
     mass_one (by linarith) εpos ε_lt_one]
