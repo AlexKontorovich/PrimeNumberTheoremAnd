@@ -351,6 +351,24 @@ theorem extracted_2
 
   sorry
 
+
+theorem extracted_1 {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → ℝ} (SmoothingF : ℝ → ℝ)
+    (c₁ : ℝ) (c₁_pos : 0 < c₁)
+    (hc₁ : ∀ (ε x : ℝ), 0 < ε → 0 < x → x ≤ 1 - c₁ * ε → Smooth1 SmoothingF ε x = 1) (c₂ : ℝ) (c₂_pos : 0 < c₂)
+    (hc₂ : ∀ (ε x : ℝ), ε ∈ Ioo 0 1 → 1 + c₂ * ε ≤ x → Smooth1 SmoothingF ε x = 0) (C_gt' : 3 < c₁ + c₂ + 3) (C : ℝ)
+    (C_eq : C = c₁ + c₂ + 3) (C_gt : 3 < C) (X : ℝ) (X_ge_C : C < X)
+    (ε : ℝ) (εpos : 0 < ε) (ε_lt_one : ε < 1)
+    (this_1 : 0 < X) (this : X ≠ 0) (n_on_X_pos : ∀ {n : ℕ}, 0 < n → 0 < ↑n / X)
+    (smooth1BddAbove : ∀ (n : ℕ), 0 < n → Smooth1 SmoothingF ε (↑n / X) ≤ 1)
+    (smooth1BddBelow : ∀ (n : ℕ), 0 < n → Smooth1 SmoothingF ε (↑n / X) ≥ 0)
+    (smoothIs1 : ∀ (n : ℕ), 0 < n → ↑n ≤ X * (1 - c₁ * ε) → Smooth1 SmoothingF ε (↑n / X) = 1)
+    (smoothIs0 : ∀ (n : ℕ), 1 + c₂ * ε ≤ ↑n / X → Smooth1 SmoothingF ε (↑n / X) = 0) :
+  ‖(↑((∑' (n : ℕ), ArithmeticFunction.vonMangoldt n * Smooth1 SmoothingF ε (↑n / X))) : ℂ) -
+        ↑((Finset.range ⌊X + 1⌋₊).sum ⇑ArithmeticFunction.vonMangoldt)‖ ≤
+    C * ε * X * Real.log X := by
+  sorry
+
+
 -- **End Test**
 
 /-%%
@@ -379,16 +397,18 @@ lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
   obtain ⟨c₂, c₂_pos, hc₂⟩ := Smooth1Properties_above suppSmoothingF
 
   let C : ℝ := c₁ + c₂ + 3
+  have C_eq : C = c₁ + c₂ + 3 := rfl
   have C_gt' : 3 < c₁ + c₂ + 3 := by linarith
   have C_gt : 3 < C := C_gt'
+
+  clear_value C
 
   refine ⟨C, C_gt, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
   unfold ChebyshevPsi
 
-  have : (0 : ℝ) < X := by linarith
+  have X_gt_zero : (0 : ℝ) < X := by linarith
 
-  have : X ≠ 0 := by linarith
-
+  have X_ne_zero : X ≠ 0 := by linarith
 
   have n_on_X_pos {n : ℕ} (npos : 0 < n) :
       0 < n / X := by
@@ -406,15 +426,32 @@ lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
   have smoothIs1 (n : ℕ) (npos : 0 < n) (n_le : n ≤ X * (1 - c₁ * ε)) :
       Smooth1 SmoothingF ε (↑n / X) = 1 := by
     apply hc₁ (ε := ε) (n / X) εpos (n_on_X_pos npos)
-    (expose_names; exact (div_le_iff₀' this_1).mpr n_le)
+    (expose_names; exact (div_le_iff₀' sorry).mpr n_le)
 
-  have smoothIs0 (n : ℕ) (n_le : X * (1 + c₂ * ε) ≤ n) :=
-    hc₂ (ε := ε) (n / X) ⟨εpos, ε_lt_one⟩
+  have smoothIs0 (n : ℕ) (n_le : (1 + c₂ * ε) ≤ n / X) :=
+    hc₂ (ε := ε) (n / X) ⟨εpos, ε_lt_one⟩ n_le
 
   rw [SmoothedChebyshevDirichlet diffSmoothingF SmoothingFnonneg suppSmoothingF
     mass_one (by linarith) εpos ε_lt_one]
 
+  convert extracted_1 SmoothingF c₁ c₁_pos hc₁ c₂ c₂_pos hc₂ C_gt' C C_eq C_gt X X_ge_C ε εpos ε_lt_one
+    X_gt_zero X_ne_zero n_on_X_pos smooth1BddAbove smooth1BddBelow smoothIs1 smoothIs0
+
+
+  -- have := calc
+  --   ‖((∑' (n : ℕ), ArithmeticFunction.vonMangoldt n * Smooth1 SmoothingF ε (n / X)) : ℂ)
+  --     - ((Finset.range ⌊X + 1⌋₊).sum ArithmeticFunction.vonMangoldt)‖
+  --         ≤ C * ε * X * Real.log X := ?_
+
+--  sorry
+#exit
+
+
   sorry
+
+#exit
+
+  --exact this
 
 /-%%
 \begin{proof}
