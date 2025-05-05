@@ -149,7 +149,7 @@ theorem ceil_approx (x : ℝ) (hx : 0 ≤ x) : ∃ C, |C| ≤ 1 ∧  ↑((Nat.ce
   exact Nat.ceil_le_self_add_one x hx
 
 theorem nat_div_approx (a b : ℕ) : ∃ C, |C| ≤ 1 ∧ ↑(a/b) = (a/b : ℝ) + C := by
-  rw [← Nat.floor_div_eq_div (α:=ℝ)]
+  rw [← Nat.floor_div_eq_div (K := ℝ)]
   exact floor_approx (a/b:ℝ) (by positivity)
 
 theorem floor_div_approx (x : ℝ) (hx : 0 ≤ x) (d : ℕ) : ∃ C, |C| ≤ 2 ∧  ↑((Nat.floor x)/d) = x / d + C := by

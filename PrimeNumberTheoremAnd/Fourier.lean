@@ -47,7 +47,7 @@ lemma fourierIntegral_deriv_aux2 (e : ℝ →ᵇ ℂ) {f : ℝ → ℂ} (hf : In
   simp_rw [sub_eq_add_neg] ; rw [F_add] ; simp ; exact hf ; exact hg.neg
 
 @[simp] lemma F_mul {f : ℝ → ℂ} {c : ℂ} {u : ℝ} : 𝓕 (fun x => c * f x) u = c * 𝓕 f u := by
-  simp [fourierIntegral_real_eq, ← integral_mul_left] ; congr ; ext
+  simp [fourierIntegral_real_eq, ← integral_const_mul] ; congr ; ext
   simp [Real.fourierChar, Circle.exp, ← smul_mul_assoc, mul_smul_comm]
 
 end lemmas

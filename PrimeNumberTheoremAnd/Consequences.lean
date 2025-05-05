@@ -479,6 +479,7 @@ theorem WeakPNT'' : (fun x ↦ ∑ n ∈ (Iic ⌊x⌋₊), Λ n) ~[atTop] (fun x
     apply IsEquivalent.trans (v := fun x ↦ (⌊x⌋₊:ℝ))
     . rw [isEquivalent_iff_tendsto_one]
       . convert Tendsto.comp WeakPNT' tendsto_nat_floor_atTop
+        infer_instance
       rw [eventually_iff]
       simp only [ne_eq, cast_eq_zero, floor_eq_zero, not_lt, mem_atTop_sets, ge_iff_le,
         Set.mem_setOf_eq]
@@ -1123,7 +1124,7 @@ theorem pi_asymp'' :
             |f ε hε t| * (log t ^ 2)⁻¹) +
             ((c * ε) * ∫ (t : ℝ) in Set.Icc (max 2 (max (N ε hε) (M ε hε hc))) x, (log t ^ 2)⁻¹) := by
             congr 1
-            exact integral_mul_left (c * ε) _
+            exact integral_const_mul (c * ε) _
         _ = (∫ (t : ℝ) in Set.Icc (max 2 (N ε hε)) (max 2 (max (N ε hε) (M ε hε hc))),
             |f ε hε t| * (log t ^ 2)⁻¹) +
             ((c * ε) *
@@ -1225,7 +1226,7 @@ theorem pi_asymp'' :
           rw [integral_const]
           simp only [MeasurableSet.univ, Measure.restrict_apply, Set.univ_inter, volume_Icc,
             smul_eq_mul, mul_eq_mul_right_iff, ENNReal.toReal_ofReal_eq_iff, sub_nonneg,
-            inv_eq_zero, log_eq_zero]
+            inv_eq_zero, log_eq_zero, Measure.real]
           refine Or.inl (le_of_lt hx)
 
     simp_rw [abs_div]

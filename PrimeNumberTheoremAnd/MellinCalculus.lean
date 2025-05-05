@@ -132,7 +132,7 @@ lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {�
       simp only [Icc_self] at h
       have : ∫ (x : ℝ), f x ∂μ = ∫ (x : ℝ) in {a}, f x ∂μ := by
         rw [ ← integral_indicator (by simp), indicator_eq_self.2 h]
-      rw [this, integral_singleton]; simp
+      rw [this, integral_singleton]; simp [Measure.real]
     · rw [Icc_eq_empty_iff.mpr <| by exact fun x ↦ hab2 <| le_antisymm hab x, subset_empty_iff,
           Function.support_eq_empty_iff] at h; simp [h]
 
@@ -597,10 +597,10 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * g (x * y / y) / ↑y * ↑(x * y) ^ (s - 1) * y := ?_
     _ = ∫ (y : ℝ) in Ioi 0, ∫ (x : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * (g x * ↑x ^ (s - 1)) := ?_
     _ = ∫ (y : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * ∫ (x : ℝ) in Ioi 0, g x * ↑x ^ (s - 1) := ?_
-    _ = _ := integral_mul_right _ _
+    _ = _ := integral_mul_const _ _
   <;> try (rw [setIntegral_congr_fun (by simp)]; intro y hy; simp only [ofReal_mul])
-  · simp only [integral_mul_right, f₁]
-  · simp only [integral_mul_right]
+  · simp only [integral_mul_const, f₁]
+  · simp only [integral_mul_const]
     have := integral_comp_mul_right_Ioi (fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)) 0 hy
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := slitPlane_ne_zero (Or.inl hy)
     field_simp at this ⊢
@@ -611,7 +611,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := by exact_mod_cast y_ne_zeroℝ
     field_simp [mul_cpow_ofReal_nonneg (LT.lt.le hx) (LT.lt.le hy)]
     ring
-  · apply integral_mul_left
+  · apply integral_const_mul
 
 /-%%
 \begin{proof}\leanok
@@ -748,7 +748,7 @@ lemma MellinOfPsi_aux {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     exact diffν.contDiffAt.differentiableAt (by norm_num)
   · simp only [neg_mul, neg_inj]
     conv => lhs; rhs; intro; rw [← mul_one_div, mul_comm]
-    rw [integral_mul_left]
+    rw [integral_const_mul]
 
 /-%%
 The $\nu$ function has Mellin transform $\mathcal{M}(\nu)(s)$ which is entire and decays (at
@@ -1576,7 +1576,7 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
       have : volume.restrict (Tx ×ˢ Ty) = (volume.restrict Tx).prod (volume.restrict Ty) := by
         rw [Measure.prod_restrict, MeasureTheory.Measure.volume_eq_prod]
       conv => rw [this]; lhs; intro; rw [mul_comm]
-      apply MeasureTheory.Integrable.prod_mul (f := fun x ↦ (x : ℂ) ^ (s - 1))
+      apply MeasureTheory.Integrable.mul_prod (f := fun x ↦ (x : ℂ) ^ (s - 1))
         (μ := Measure.restrict volume Tx)
       · apply integrableOn_Ioc_iff_integrableOn_Ioo.mpr ?_
         apply (intervalIntegral.integrableOn_Ioo_cpow_iff (s := s - 1) (t := (2 : ℝ) ^ ε) ?_).mpr

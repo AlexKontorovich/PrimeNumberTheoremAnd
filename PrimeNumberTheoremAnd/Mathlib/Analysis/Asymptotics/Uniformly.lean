@@ -6,7 +6,9 @@ Authors: Lawrence Wu
 
 import Mathlib.Analysis.Asymptotics.Theta
 import Mathlib.MeasureTheory.Integral.Asymptotics
-import Mathlib.MeasureTheory.Integral.SetIntegral
+import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
+import Mathlib.MeasureTheory.Integral.Bochner.FundThmCalculus
+import Mathlib.MeasureTheory.Integral.Bochner.Set
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 
 /-!
