@@ -352,7 +352,7 @@ theorem extracted_2
   sorry
 
 
-theorem extracted_1 {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → ℝ} (SmoothingF : ℝ → ℝ)
+theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → ℝ} (SmoothingF : ℝ → ℝ)
     (c₁ : ℝ) (c₁_pos : 0 < c₁)
     (hc₁ : ∀ (ε x : ℝ), 0 < ε → 0 < x → x ≤ 1 - c₁ * ε → Smooth1 SmoothingF ε x = 1) (c₂ : ℝ) (c₂_pos : 0 < c₂)
     (hc₂ : ∀ (ε x : ℝ), ε ∈ Ioo 0 1 → 1 + c₂ * ε ≤ x → Smooth1 SmoothingF ε x = 0) (C_gt' : 3 < c₁ + c₂ + 3) (C : ℝ)
@@ -430,7 +430,7 @@ lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
   rw [SmoothedChebyshevDirichlet diffSmoothingF SmoothingFnonneg suppSmoothingF
     mass_one (by linarith) εpos ε_lt_one]
 
-  convert extracted_1 SmoothingF c₁ c₁_pos hc₁ c₂ c₂_pos hc₂ C_gt' C C_eq C_gt X X_ge_C ε εpos ε_lt_one
+  convert SmoothedChebyshevClose_aux SmoothingF c₁ c₁_pos hc₁ c₂ c₂_pos hc₂ C_gt' C C_eq C_gt X X_ge_C ε εpos ε_lt_one
     X_gt_zero X_ne_zero n_on_X_pos smooth1BddAbove smooth1BddBelow smoothIs1 smoothIs0
 
 
