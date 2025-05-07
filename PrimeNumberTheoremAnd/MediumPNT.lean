@@ -388,12 +388,8 @@ lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
   have vonManBnd (n : ℕ) : ArithmeticFunction.vonMangoldt n ≤ Real.log n :=
     ArithmeticFunction.vonMangoldt_le_log
 
-  -- have : ∃ c, 0 < c ∧
-  --   ∀ (ε x : ℝ), 0 < ε → 0 < x → x ≤ 1 - c * ε → Smooth1 SmoothingF ε x = 1 := Smooth1Properties_below suppSmoothingF mass_one
   obtain ⟨c₁, c₁_pos, hc₁⟩ := Smooth1Properties_below suppSmoothingF mass_one
 
-  -- have : ∃ c, 0 < c ∧
-  --   ∀ (ε x : ℝ), ε ∈ Ioo 0 1 → 1 + c * ε ≤ x → Smooth1 SmoothingF ε x = 0 := Smooth1Properties_above suppSmoothingF
   obtain ⟨c₂, c₂_pos, hc₂⟩ := Smooth1Properties_above suppSmoothingF
 
   let C : ℝ := c₁ + c₂ + 3
@@ -438,23 +434,8 @@ lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     X_gt_zero X_ne_zero n_on_X_pos smooth1BddAbove smooth1BddBelow smoothIs1 smoothIs0
 
 
-  -- have := calc
-  --   ‖((∑' (n : ℕ), ArithmeticFunction.vonMangoldt n * Smooth1 SmoothingF ε (n / X)) : ℂ)
-  --     - ((Finset.range ⌊X + 1⌋₊).sum ArithmeticFunction.vonMangoldt)‖
-  --         ≤ C * ε * X * Real.log X := ?_
-
---  sorry
-#exit
-
-
-  sorry
-
-#exit
-
-  --exact this
-
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{SmoothedChebyshevDirichlet, Smooth1Properties_above,
 Smooth1Properties_below,
 Smooth1Nonneg,
