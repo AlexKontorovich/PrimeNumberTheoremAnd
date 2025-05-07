@@ -6,7 +6,7 @@ open Finset (range)
 
 open ArithmeticFunction
 
-theorem extracted_1 {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → ℝ} (SmoothingF : ℝ → ℝ)
+theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → ℝ} (SmoothingF : ℝ → ℝ)
     (c₁ : ℝ) (c₁_pos : 0 < c₁) (c₁_lt : c₁ < 1)
     (hc₁ : ∀ (ε x : ℝ), 0 < ε → 0 < x → x ≤ 1 - c₁ * ε → Smooth1 SmoothingF ε x = 1) (c₂ : ℝ) (c₂_pos : 0 < c₂) (c₂_lt : c₂ < 1)
     (hc₂ : ∀ (ε x : ℝ), ε ∈ Ioo 0 1 → 1 + c₂ * ε ≤ x → Smooth1 SmoothingF ε x = 0) (C_gt' : 3 < c₁ + c₂ + 3) (C : ℝ)
@@ -30,6 +30,12 @@ theorem extracted_1 {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → ℝ} (Smoothing
     apply Nat.floor_le
     bound
 
+  have n₀_gt : X * ((1 - c₁ * ε)) - 1 ≤ n₀ := by
+    simp only [tsub_le_iff_right]
+    convert (Nat.lt_succ_floor _).le
+    · simp only [Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one, add_left_inj, Nat.cast_inj, n₀]
+    · exact FloorRing.toFloorSemiring
+
   have sumΛ : Summable (fun n ↦ Λ n * F (n / X)) := by
     exact (summable_of_ne_finset_zero fun a s=>mul_eq_zero_of_right _
     (hc₂ _ _ (by trivial) ((le_div_iff₀ this_1).2 (Nat.ceil_le.1 (not_lt.1
@@ -50,12 +56,24 @@ theorem extracted_1 {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → ℝ} (Smoothing
 
   let n₁ := ⌈X * (1 + c₂ * ε)⌉₊
 
-  have n₁_le : X * (1 + c₂ * ε) ≤ n₁ := by
+  have n₁_ge : X * (1 + c₂ * ε) ≤ n₁ := by
     apply Nat.le_ceil
+
+  have n₁_le : (n₁ : ℝ) < X * (1 + c₂ * ε) + 1 := by
+    apply Nat.ceil_lt_add_one
+    positivity
 
   have n₁_ge_n₀ : n₀ ≤ n₁ := by
      exact (Nat.floor_mono (by nlinarith[mul_pos εpos this_1])).trans
       (Nat.floor_le_ceil _)
+
+  have n₁_sub_n₀ : (n₁ : ℝ) - n₀ < X * ε * (c₂ + c₁) + 2 := by
+    calc
+      (n₁ : ℝ) - n₀ < X * (1 + c₂ * ε) + 1 - n₀ := by
+                        exact sub_lt_sub_right n₁_le ↑n₀
+       _            ≤ X * (1 + c₂ * ε) + 1 - (X * (1 - c₁ * ε) - 1) := by
+          exact tsub_le_tsub_left n₀_gt (X * (1 + c₂ * ε) + 1)
+       _            = X * ε * (c₂ + c₁) + 2 := by ring
 
   have : (∑' (n : ℕ), Λ (n + n₀ : ) * F ((n + n₀ : ) / X)) =
     (∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((n + n₀) / X)) +
@@ -81,7 +99,7 @@ theorem extracted_1 {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → ℝ} (Smoothing
     have : n₁ ≤ n + n₁ := by exact Nat.le_add_left n₁ n
     convert mul_zero _
     convert smoothIs0 (n + n₁) ?_
-    exact (le_div_iff₀' this_1).mpr (n₁_le.trans (Nat.cast_le.mpr this))
+    exact (le_div_iff₀' this_1).mpr (n₁_ge.trans (Nat.cast_le.mpr this))
 
   rw [this]
   clear this
@@ -132,6 +150,10 @@ theorem extracted_1 {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → ℝ} (Smoothing
   refine this.trans ?_
 
   clear this
+
+  have vonBnd1 :
+    ∀ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ ≤ Real.log (X * (1 + c₂ * ε)) := by
+    sorry
 
   have bnd1 :
     ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖
