@@ -337,20 +337,20 @@ where $\Lambda(n)$ is the von Mangoldt function.
 noncomputable def ChebyshevPsi (x : ℝ) : ℝ := (Finset.range (Nat.floor (x + 1))).sum ArithmeticFunction.vonMangoldt
 
 -- **Tests with AlphaProof**
-theorem extracted_2
-    (F : ℝ → ℝ)
-    (FbddAbove : ∀ x, F x ≤ 1)
-    (Fnonneg : ∀ x, F x ≥ 0)
-    (FzeroAfter : ∃ (c₁ : ℝ) (_ : c₁ > 0), ∀ (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
-      ∀ X > (1 : ℝ), ∀ (n : ℕ), n ≥ (1 + c₁ * ε) * X → F (n / X) = 0)
-    (Fone : ∃ (c₂ : ℝ) (_ : c₂ > 0) (_ : c₂ < 1), ∀ (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
-      ∀ X > (1 : ℝ), ∀ (n : ℕ), 0 < n → n ≤ (1 - c₂ * ε) * X → F (n / X) = 1)
-     :
-    ∃ (C : ℝ) (_ : 3 < C), ∀ (X : ℝ) (_ : C < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
-    ‖(∑' (n : ℕ), ArithmeticFunction.vonMangoldt n * F (↑n / X)) - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
 
-  sorry
+-- theorem extracted_2
+--     (F : ℝ → ℝ)
+--     (FbddAbove : ∀ x, F x ≤ 1)
+--     (Fnonneg : ∀ x, F x ≥ 0)
+--     (FzeroAfter : ∃ (c₁ : ℝ) (_ : c₁ > 0), ∀ (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
+--       ∀ X > (1 : ℝ), ∀ (n : ℕ), n ≥ (1 + c₁ * ε) * X → F (n / X) = 0)
+--     (Fone : ∃ (c₂ : ℝ) (_ : c₂ > 0) (_ : c₂ < 1), ∀ (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
+--       ∀ X > (1 : ℝ), ∀ (n : ℕ), 0 < n → n ≤ (1 - c₂ * ε) * X → F (n / X) = 1)
+--      :
+--     ∃ (C : ℝ) (_ : 3 < C), ∀ (X : ℝ) (_ : C < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
+--     ‖(∑' (n : ℕ), ArithmeticFunction.vonMangoldt n * F (↑n / X)) - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
 
+--   sorry
 
 theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → ℝ} (SmoothingF : ℝ → ℝ)
     (c₁ : ℝ) (c₁_pos : 0 < c₁)
@@ -367,7 +367,6 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
         ↑((Finset.range ⌊X + 1⌋₊).sum ⇑ArithmeticFunction.vonMangoldt)‖ ≤
     C * ε * X * Real.log X := by
   sorry
-
 
 -- **End Test**
 
@@ -422,7 +421,7 @@ lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
   have smoothIs1 (n : ℕ) (npos : 0 < n) (n_le : n ≤ X * (1 - c₁ * ε)) :
       Smooth1 SmoothingF ε (↑n / X) = 1 := by
     apply hc₁ (ε := ε) (n / X) εpos (n_on_X_pos npos)
-    (expose_names; exact (div_le_iff₀' sorry).mpr n_le)
+    (expose_names; exact (div_le_iff₀' (by linarith)).mpr n_le)
 
   have smoothIs0 (n : ℕ) (n_le : (1 + c₂ * ε) ≤ n / X) :=
     hc₂ (ε := ε) (n / X) ⟨εpos, ε_lt_one⟩ n_le
