@@ -34,7 +34,9 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     simp only [tsub_le_iff_right]
     convert (Nat.lt_succ_floor _).le
     · simp only [Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one, add_left_inj, Nat.cast_inj, n₀]
+    · exact Real.semiring
     · exact FloorRing.toFloorSemiring
+    · exact Real.instIsStrictOrderedRing
 
   have sumΛ : Summable (fun n ↦ Λ n * F (n / X)) := by
     exact (summable_of_ne_finset_zero fun a s=>mul_eq_zero_of_right _
