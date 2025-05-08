@@ -5,8 +5,10 @@ Authors: Lawrence Wu
 -/
 import Mathlib.MeasureTheory.Group.Measure
 import Mathlib.MeasureTheory.Integral.Asymptotics
+import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
+import Mathlib.MeasureTheory.Integral.Bochner.FundThmCalculus
+import Mathlib.MeasureTheory.Integral.Bochner.Set
 import Mathlib.MeasureTheory.Integral.IntegrableOn
-import Mathlib.MeasureTheory.Integral.SetIntegral
 import Mathlib.MeasureTheory.Function.LocallyIntegrable
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Uniformly
 import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Function.LocallyIntegrable
@@ -45,7 +47,8 @@ section LinearOrderedAddCommGroup
 /-- If `f` is locally integrable, `‖f(-x)‖ = ‖f(x)‖`, and `f =O[atTop] g`, for some
 `g` integrable at `atTop`, then `f` is integrable. -/
 theorem LocallyIntegrable.integrable_of_isBigO_atTop_of_norm_eq_norm_neg
-    [LinearOrderedAddCommGroup α] [CompactIccSpace α] [IsMeasurablyGenerated (atTop (α := α))]
+    [AddCommGroup α] [LinearOrder α] [IsOrderedAddMonoid α]
+    [CompactIccSpace α] [IsMeasurablyGenerated (atTop (α := α))]
     [MeasurableNeg α] [μ.IsNegInvariant] (hf : LocallyIntegrable f μ)
     (hsymm : norm ∘ f =ᵐ[μ] norm ∘ f ∘ Neg.neg) (ho : f =O[atTop] g)
     (hg : IntegrableAtFilter g atTop μ) : Integrable f μ := by

@@ -1,4 +1,6 @@
-import Mathlib.Algebra.Order.Floor
+import Mathlib.Algebra.Order.Floor.Defs
+import Mathlib.Algebra.Order.Floor.Ring
+import Mathlib.Algebra.Order.Floor.Semiring
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.Pow.Continuity
 

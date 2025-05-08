@@ -29,7 +29,7 @@ theorem LogDerivativeDirichlet (s : ℂ) (hs : 1 < s.re) :
     - deriv riemannZeta s / riemannZeta s = ∑' n, Λ n / (n : ℂ) ^ s := by
   rw [← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs]
   dsimp [LSeries, LSeries.term]
-  nth_rewrite 2 [tsum_eq_add_tsum_ite (b := 0) ?_]
+  nth_rewrite 2 [Summable.tsum_eq_add_tsum_ite (b := 0) ?_]
   · simp
   · have := ArithmeticFunction.LSeriesSummable_vonMangoldt hs
     dsimp [LSeriesSummable] at this
@@ -255,8 +255,8 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
   · congr
     rw [← MellinTransform_eq]
     exact SmoothedChebyshevDirichlet_aux_tsum_integral diffSmoothingF SmoothingFpos
-      suppSmoothingF mass_one X (by linarith) εpos ε_lt_one σ_gt σ_le
-  · field_simp; congr; ext n; rw [← MeasureTheory.integral_mul_left ]; congr; ext t
+      suppSmoothingF mass_one X X_pos ε εpos ε_lt_one
+  · field_simp; congr; ext n; rw [← MeasureTheory.integral_const_mul]; congr; ext t
     by_cases n_ne_zero : n = 0; simp [n_ne_zero]
     rw [mul_div_assoc, mul_assoc]
     congr

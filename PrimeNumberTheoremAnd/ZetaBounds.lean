@@ -1,5 +1,7 @@
 import Mathlib.Analysis.Calculus.ContDiff.Defs
-import Mathlib.MeasureTheory.Integral.IntervalIntegral
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
 import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.Algebra.Group.Basic
@@ -549,7 +551,7 @@ and evaluate the integral.
 
 lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
     ∑' (n : ℕ), f n = (∑ n ∈ Finset.range N, f n) + ∑' (n : ℕ), f (n + N) := by
-  rw [← sum_add_tsum_nat_add (f := f) (h := hf) (k := N)]
+  rw [← Summable.sum_add_tsum_nat_add (f := f) (h := hf) (k := N)]
 
 lemma Finset.Ioc_eq_Ico (M N : ℕ): Finset.Ioc N M = Finset.Ico (N + 1) (M + 1) := by
   ext a; simp only [Finset.mem_Ioc, Finset.mem_Ico]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
@@ -577,9 +579,11 @@ lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := b
   intro b
   use ⌊b⌋.toNat + 1
   intro a ha
-  by_cases a_zero : a = 0
-  · simp [a_zero] at ha
-  · by_cases h : ⌊b⌋.toNat < a
+  cases eq_zero_or_pos a with
+  | inl a_zero =>
+    simp [a_zero] at ha
+  | inr a_zero =>
+    by_cases h : ⌊b⌋.toNat < a
     · exact (Int.floor_lt.mp <| (Int.toNat_lt' a_zero).mp h).le
     · simp only [not_lt] at h
       absurd le_trans ha h
@@ -1122,7 +1126,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   intro z hz
   simp only [f,g, zeta_eq_tsum_one_div_nat_cpow hz, riemannZeta0_apply]
   nth_rewrite 2 [neg_div]
-  rw [← sub_eq_add_neg, ← ZetaSum_aux2 N_pos hz, ← sum_add_tsum_nat_add (N + 1) (Summable_rpow hz)]
+  rw [← sub_eq_add_neg, ← ZetaSum_aux2 N_pos hz, ← (Summable_rpow hz).sum_add_tsum_nat_add (N + 1)]
   norm_cast
 /-%%
 \begin{proof}\leanok

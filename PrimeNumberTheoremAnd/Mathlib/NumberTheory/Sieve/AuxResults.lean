@@ -11,7 +11,9 @@ import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.NonIntegrable
 import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.Data.Nat.Prime.Basic
-import Mathlib.MeasureTheory.Integral.IntervalIntegral
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
 import Mathlib.NumberTheory.ArithmeticFunction
 import PrimeNumberTheoremAnd.Mathlib.Data.Nat.FinMulAntidiagonal
 
@@ -134,24 +136,28 @@ theorem div_mult_of_dvd_squarefree (f : ArithmeticFunction ℝ) (h_mult : IsMult
   convert hl
   exact Nat.div_mul_cancel hdl
 
-theorem inv_sub_antitoneOn_gt {R : Type*} [LinearOrderedField R] (c : R) :
+theorem inv_sub_antitoneOn_gt
+    {R : Type*} [Field R] [LinearOrder R] [IsStrictOrderedRing R] (c : R) :
     AntitoneOn (fun x:R ↦ (x-c)⁻¹) (Set.Ioi c) := by
   refine antitoneOn_iff_forall_lt.mpr ?_
   intro a ha b hb hab
   rw [Set.mem_Ioi] at ha hb
   gcongr; linarith
 
-theorem inv_sub_antitoneOn_Icc {R : Type*} [LinearOrderedField R]  (a b c: R) (ha : c < a) :
+theorem inv_sub_antitoneOn_Icc
+    {R : Type*} [Field R] [LinearOrder R] [IsStrictOrderedRing R]
+    (a b c : R) (ha : c < a) :
     AntitoneOn (fun x ↦ (x-c)⁻¹) (Set.Icc a b) := by
   by_cases hab : a ≤ b
   · exact inv_sub_antitoneOn_gt c |>.mono <| (Set.Icc_subset_Ioi_iff hab).mpr ha
   · simp [hab, Set.Subsingleton.antitoneOn]
 
-theorem inv_antitoneOn_pos {R : Type*} [LinearOrderedField R] :
+theorem inv_antitoneOn_pos {R : Type*} [Field R] [LinearOrder R] [IsStrictOrderedRing R] :
     AntitoneOn (fun x:R ↦ x⁻¹) (Set.Ioi 0) := by
   convert inv_sub_antitoneOn_gt (R:=R) 0; ring
 
-theorem inv_antitoneOn_Icc {R : Type*} [LinearOrderedField R] (a b : R) (ha : 0 < a) :
+theorem inv_antitoneOn_Icc {R : Type*} [Field R] [LinearOrder R] [IsStrictOrderedRing R]
+    (a b : R) (ha : 0 < a) :
     AntitoneOn (fun x ↦ x⁻¹) (Set.Icc a b) := by
   convert inv_sub_antitoneOn_Icc a b 0 ha; ring
 

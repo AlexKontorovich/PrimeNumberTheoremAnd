@@ -177,6 +177,9 @@ Almost by definition.
       I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) = (-(I * ∫ (y : ℝ) in Iic (-T), f (↑σ + ↑y * I)) +
       ((I * ∫ (y : ℝ) in Iic (-T), f (↑σ' + ↑y * I)) - ∫ (x : ℝ) in σ..σ', f (↑x - ↑T * I))) := by
     ring_nf
+    congr
+    ext
+    ring_nf
   exact final ▸ this
 --%\end{proof}
 
@@ -319,7 +322,7 @@ is positive (and hence convergent - since a divergent integral is zero in Lean, 
 lemma integral_one_div_const_add_sq_pos (c : ℝ) (hc : 0 < c) : 0 < ∫ (t : ℝ), 1 / (c + t ^ 2) := by
   have hfun_eq (t : ℝ) : 1 / (c + t ^ 2) = c⁻¹ * (1 + (c.sqrt⁻¹ * t) ^ 2)⁻¹ := by
     field_simp [hc.ne.symm]
-  simp_rw [hfun_eq, MeasureTheory.integral_mul_left,
+  simp_rw [hfun_eq, integral_const_mul,
     Measure.integral_comp_mul_left (fun t ↦ (1 + t ^ 2)⁻¹) (a:=c.sqrt⁻¹)]
   simp [abs_eq_self.mpr <| Real.sqrt_nonneg c,
     mul_pos (inv_pos.mpr hc) <| mul_pos (sqrt_pos.mpr hc) Real.pi_pos]
@@ -384,7 +387,7 @@ lemma vertIntBound (xpos : 0 < x) (σ_gt_one : 1 < σ) :
         mul_le_mul_of_nonneg_left ?_ (rpow_nonneg xpos.le _)
   · simp [VerticalIntegral]
   · simp [Complex.norm_cpow_eq_rpow_re_of_pos xpos]
-  · simp [integral_mul_left, div_eq_mul_inv]
+  · simp [integral_const_mul, div_eq_mul_inv]
   by_cases hint : Integrable fun (a : ℝ) ↦ 1 / (‖σ + a * I‖ * ‖σ + a * I + 1‖)
   swap; rw [integral_undef hint]; exact integral_nonneg <| fun t ↦ by positivity
   conv => rhs; rhs; intro a; rhs
@@ -437,7 +440,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
   · congr with t
     rw [norm_div, Complex.norm_cpow_eq_rpow_re_of_pos xpos, add_re, ofReal_re,
       re_ofReal_mul, I_re, mul_zero, add_zero]
-  · simp_rw [div_eq_mul_inv, integral_mul_left, one_mul, norm_mul]
+  · simp_rw [div_eq_mul_inv, integral_const_mul, one_mul, norm_mul]
   · gcongr x ^ σ * ?_
     by_cases hint : Integrable fun (a : ℝ) ↦ 1 / (‖σ + ↑a * I‖ * ‖σ + ↑a * I + 1‖)
     swap
