@@ -50,7 +50,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     ∑' (n : ℕ),
       Λ (n + n₀ : ) * F ((n + n₀ : ) / X)
     := by
-    rw[← sum_add_tsum_nat_add' (k := n₀)]
+    rw[← Summable.sum_add_tsum_nat_add' (k := n₀)]
     norm_num[‹_›]
 
   rw [this]
@@ -80,7 +80,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
   have : (∑' (n : ℕ), Λ (n + n₀ : ) * F ((n + n₀ : ) / X)) =
     (∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((n + n₀) / X)) +
     (∑' (n : ℕ), Λ (n + n₁ : ) * F ((n + n₁ : ) / X)) := by
-    rw[← sum_add_tsum_nat_add' (k := n₁ - n₀)]
+    rw[← Summable.sum_add_tsum_nat_add' (k := n₁ - n₀)]
     congr! 5
     · simp only [Nat.cast_add]
     · omega
