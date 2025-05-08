@@ -130,7 +130,7 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
-    (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) (X : ℝ)
+    (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) {X : ℝ}
     (X_pos : 0 < X) {ε : ℝ} (εpos : 0 < ε)
     (ε_lt_one : ε < 1) {σ : ℝ} (σ_gt : 1 < σ) (σ_le : σ ≤ 2) :
     ∫ (t : ℝ),
@@ -255,7 +255,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
   · congr
     rw [← MellinTransform_eq]
     exact SmoothedChebyshevDirichlet_aux_tsum_integral diffSmoothingF SmoothingFpos
-      suppSmoothingF mass_one X X_pos ε εpos ε_lt_one
+      suppSmoothingF mass_one (by linarith) εpos ε_lt_one σ_gt σ_le
   · field_simp; congr; ext n; rw [← MeasureTheory.integral_const_mul]; congr; ext t
     by_cases n_ne_zero : n = 0; simp [n_ne_zero]
     rw [mul_div_assoc, mul_assoc]
