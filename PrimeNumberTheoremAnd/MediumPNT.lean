@@ -380,7 +380,7 @@ $$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X \log X).$$
 lemma SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) (X : ℝ) :
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     ∃ (C : ℝ) (_ : 3 < C), ∀ (X : ℝ) (_ : C < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
     ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
 
