@@ -514,48 +514,6 @@ Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
 
-/-%
-\begin{theorem}[ZetaNoZerosOn1Line]\label{ZetaNoZerosOn1Line}
-The zeta function does not vanish on the 1-line.
-\end{theorem}
-This fact is already proved in Stoll's work.
-%-/
-
-/-%
-Then, since $\zeta$ doesn't vanish on the 1-line, there is a $\delta$ (depending on $T$), so that
-the box $[1-\delta,1] \times_{ℂ} [-T,T]$ is free of zeros of $\zeta$.
-\begin{theorem}\label{ZetaNoZerosInBox}
-For any $T>0$, there is a $\delta>0$ so that $[1-\delta,1] \times_{ℂ} [-T,T]$ is free of zeros of
-$\zeta$.
-\end{theorem}
-%-/
-
-/-%
-\begin{proof}
-\uses{ZetaNoZerosOn1Line}
-We have that zeta doesn't vanish on the 1 line and is holomorphic inside the box (except for the
-pole at $s=1$). If for a height $T>0$, there was no such $\delta$, then there would be a sequence
-of zeros of $\zeta$ approaching the 1 line, and by compactness, we could find a subsequence of
-zeros converging to a point on the 1 line. But then $\zeta$ would vanish at that point, a
-contradiction. (Worse yet, zeta would then be entirely zero...)
-\end{proof}
-%-/
-
-/-%
-The rectangle with opposite corners $1-\delta - i T$ and $2+iT$ contains a single pole of
-$-\zeta'/\zeta$ at $s=1$, and the residue is $1$ (from Theorem \ref{ResidueOfLogDerivative}).
-\begin{theorem}\label{ZeroFreeBox}
-$-\zeta'/\zeta$ is holomorphic on the box $[1-\delta,2] \times_{ℂ} [-T,T]$, except a simple pole
-with residue $1$ at $s$=1.
-\end{theorem}
-%-/
-
-/-%
-\begin{proof}
-\uses{ZetaNoZerosInBox, ResidueOfLogDerivative}
-The proof is as described.
-\end{proof}
-%-/
 
 /-%%
 We insert this information in $\psi_{\epsilon}$. We add and subtract the integral over the box

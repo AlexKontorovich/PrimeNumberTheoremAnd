@@ -2457,10 +2457,26 @@ Then we can bound $1/\log t$ by $C / \log (t + 3)$ for some constant $C>0$.
 \end{proof}
 %%-/
 
+/-%%
+\begin{theorem}[ZetaNoZerosOn1Line]\label{ZetaNoZerosOn1Line}
+The zeta function does not vanish on the 1-line.
+\end{theorem}
+%%-/
+lemma ZetaNoZerosOn1Line (t : ℝ) : ζ (1 + t * I) ≠ 0 := by
+  refine riemannZeta_ne_zero_of_one_le_re ?_
+  simp
+/-%%
+\begin{proof}\leanok
+This fact is already proved in Stoll's work.
+\end{proof}
+%%-/
+
 -- **Begin collaboration with the Alpha Proof team!**
 
 /-%%
-\begin{lemma}[ZetaZeroFreeConst]\label{ZetaZeroFreeConst}\lean{ZetaZeroFreeConst}\leanok
+Then, since $\zeta$ doesn't vanish on the 1-line, there is a $\simga<1$ (depending on $T$), so that
+the box $[\sigma,1] \times_{ℂ} [-T,T]$ is free of zeros of $\zeta$.
+\begin{lemma}[ZetaNoZerosInBox]\label{ZetaNoZerosInBox}\lean{ZetaNoZerosInBox}\leanok
 For any $T>0$, there is a constant $\sigma<1$ so that
 $$
 \zeta(\sigma'+it) \ne 0
@@ -2468,9 +2484,6 @@ $$
 for all $|t| < T$ and $\sigma' \ge \sigma$.
 \end{lemma}
 %%-/
-lemma ZetaNonzeroOnOneLine (t : ℝ) : ζ (1 + t * I) ≠ 0 := by
-  refine riemannZeta_ne_zero_of_one_le_re ?_
-  simp
 
 lemma ZetaCont : ContinuousOn ζ (univ \ {1}) := by
   apply continuousOn_of_forall_continuousAt (fun x hx ↦ ?_)
@@ -2480,7 +2493,7 @@ lemma ZetaCont : ContinuousOn ζ (univ \ {1}) := by
   simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
   exact hx
 
-lemma ZetaZeroFreeConst (T : ℝ) :
+lemma ZetaNoZerosInBox (T : ℝ) :
     ∃ (σ : ℝ) (_ : σ < 1), ∀ (t : ℝ) (_ : |t| < T)
     (σ' : ℝ) (_ : σ' ≥ σ), ζ (σ' + t * I) ≠ 0 := by
   by_contra h
@@ -2574,12 +2587,12 @@ lemma ZetaZeroFreeConst (T : ℝ) :
 
 /-%%
 \begin{proof}
+\uses{ZetaNoZerosOn1Line}
 Assume not. Then there is a sequence $|t_n| \le T$ and $\sigma_n \to 1$ so that
  $\zeta(\sigma_n + it_n) = 0$.
 By compactness, there is a subsequence $t_{n_k} \to t_0$ along which $\zeta(\sigma_{n_k} + it_{n_k}) = 0$.
-By the continuity of $\zeta$, we have $\zeta(1 + it_0) = 0$.
-%If $t_0=0$, then we know that this is not true, because $\zeta(1) \ne 0$.
-This is a contradiction because $\zeta$ doesn't vanish on the one-line (including at $s=1$).
+If $t_0\ne0$, use the continuity of $\zeta$ to get that $\zeta(1 + it_0) = 0$; this is a contradiction.
+If $t_0=0$, $\zeta$ blows up near $1$, so can't be zero nearby.
 \end{proof}
 %%-/
 
