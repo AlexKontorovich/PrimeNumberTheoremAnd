@@ -5,8 +5,11 @@ set_option lang.lemmaCmd true
 
 open Set Function Filter Complex Real
 
+open ArithmeticFunction (vonMangoldt)
+
 local notation (name := mellintransform2) "𝓜" => MellinTransform
 
+local notation "Λ" => vonMangoldt
 
 /-%%
 The approach here is completely standard. We follow the use of
@@ -24,7 +27,6 @@ $$
 $$
 \end{theorem}
 %%-/
-open scoped ArithmeticFunction in
 theorem LogDerivativeDirichlet (s : ℂ) (hs : 1 < s.re) :
     - deriv riemannZeta s / riemannZeta s = ∑' n, Λ n / (n : ℂ) ^ s := by
   rw [← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs]
@@ -219,7 +221,6 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
       ∑' n, ArithmeticFunction.vonMangoldt n * Smooth1 SmoothingF ε (n / X) := by
   dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
   rw [MellinTransform_eq]
-  set Λ := ArithmeticFunction.vonMangoldt
   set σ : ℝ := 1 + (Real.log X)⁻¹
   have log_gt : 1 < Real.log X := by
     rw [Real.lt_log_iff_exp_lt (by linarith : 0 < X)]
@@ -338,35 +339,568 @@ noncomputable def ChebyshevPsi (x : ℝ) : ℝ := (Finset.range (Nat.floor (x + 
 
 -- **Tests with AlphaProof**
 
--- theorem extracted_2
---     (F : ℝ → ℝ)
---     (FbddAbove : ∀ x, F x ≤ 1)
---     (Fnonneg : ∀ x, F x ≥ 0)
---     (FzeroAfter : ∃ (c₁ : ℝ) (_ : c₁ > 0), ∀ (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
---       ∀ X > (1 : ℝ), ∀ (n : ℕ), n ≥ (1 + c₁ * ε) * X → F (n / X) = 0)
---     (Fone : ∃ (c₂ : ℝ) (_ : c₂ > 0) (_ : c₂ < 1), ∀ (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
---       ∀ X > (1 : ℝ), ∀ (n : ℕ), 0 < n → n ≤ (1 - c₂ * ε) * X → F (n / X) = 1)
---      :
---     ∃ (C : ℝ) (_ : 3 < C), ∀ (X : ℝ) (_ : C < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
---     ‖(∑' (n : ℕ), ArithmeticFunction.vonMangoldt n * F (↑n / X)) - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
-
---   sorry
+-- finished by Preston Tranbarger
 
 theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → ℝ} (SmoothingF : ℝ → ℝ)
-    (c₁ : ℝ) (c₁_pos : 0 < c₁)
-    (hc₁ : ∀ (ε x : ℝ), 0 < ε → 0 < x → x ≤ 1 - c₁ * ε → Smooth1 SmoothingF ε x = 1) (c₂ : ℝ) (c₂_pos : 0 < c₂)
-    (hc₂ : ∀ (ε x : ℝ), ε ∈ Ioo 0 1 → 1 + c₂ * ε ≤ x → Smooth1 SmoothingF ε x = 0) (C_gt' : 3 < c₁ + c₂ + 3) (C : ℝ)
-    (C_eq : C = c₁ + c₂ + 3) (C_gt : 3 < C) (X : ℝ) (X_ge_C : C < X)
-    (ε : ℝ) (εpos : 0 < ε) (ε_lt_one : ε < 1)
-    (this_1 : 0 < X) (this : X ≠ 0) (n_on_X_pos : ∀ {n : ℕ}, 0 < n → 0 < ↑n / X)
+    (c₁ : ℝ) (c₁_pos : 0 < c₁) (c₁_lt : c₁ < 1) (hc₁ : ∀ (ε x : ℝ), 0 < ε → 0 < x → x ≤ 1 - c₁ * ε → Smooth1 SmoothingF ε x = 1)
+    (c₂ : ℝ) (c₂_pos : 0 < c₂) (c₂_lt : c₂ < 1) (hc₂ : ∀ (ε x : ℝ), ε ∈ Ioo 0 1 → 1 + c₂ * ε ≤ x → Smooth1 SmoothingF ε x = 0)
+    (C : ℝ) (C_eq : C = 6 * (3 * c₁ + c₂))
+    (ε : ℝ) (ε_pos : 0 < ε) (ε_lt_one : ε < 1)
+    (X : ℝ) (X_pos : 0 < X) (X_gt_three : 3 < X) -- add other LBs on X here
     (smooth1BddAbove : ∀ (n : ℕ), 0 < n → Smooth1 SmoothingF ε (↑n / X) ≤ 1)
     (smooth1BddBelow : ∀ (n : ℕ), 0 < n → Smooth1 SmoothingF ε (↑n / X) ≥ 0)
     (smoothIs1 : ∀ (n : ℕ), 0 < n → ↑n ≤ X * (1 - c₁ * ε) → Smooth1 SmoothingF ε (↑n / X) = 1)
     (smoothIs0 : ∀ (n : ℕ), 1 + c₂ * ε ≤ ↑n / X → Smooth1 SmoothingF ε (↑n / X) = 0) :
   ‖(↑((∑' (n : ℕ), ArithmeticFunction.vonMangoldt n * Smooth1 SmoothingF ε (↑n / X))) : ℂ) -
-        ↑((Finset.range ⌊X + 1⌋₊).sum ⇑ArithmeticFunction.vonMangoldt)‖ ≤
+        ↑((Finset.range ⌈X⌉₊).sum ⇑ArithmeticFunction.vonMangoldt)‖ ≤
     C * ε * X * Real.log X := by
-  sorry
+  norm_cast
+
+  let F := Smooth1 SmoothingF ε
+
+  let n₀ := ⌈X * (1 - c₁ * ε)⌉₊
+
+  have n₀_inside_le_X : X * (1 - c₁ * ε) ≤ X := by
+    nth_rewrite 2 [← mul_one X]
+    apply mul_le_mul
+    rfl
+    nth_rewrite 2 [← sub_zero 1]
+    apply sub_le_sub
+    rfl
+    positivity
+    bound
+    positivity
+
+  have n₀_le : n₀ ≤ X * ((1 - c₁ * ε)) + 1 := by
+    simp[n₀]
+    apply le_of_lt
+    apply Nat.ceil_lt_add_one
+    bound
+
+  have n₀_gt : X * ((1 - c₁ * ε)) ≤ n₀ := by
+    simp[n₀]
+    exact Nat.le_ceil (X * (1 - c₁ * ε))
+
+  have sumΛ : Summable (fun n ↦ Λ n * F (n / X)) := by
+    exact (summable_of_ne_finset_zero fun a s=>mul_eq_zero_of_right _
+    (hc₂ _ _ (by trivial) ((le_div_iff₀ X_pos).2 (Nat.ceil_le.1 (not_lt.1
+    (s ∘ Finset.mem_range.2))))))
+
+  have sumΛn₀ (n₀ : ℕ) : Summable (fun n ↦ Λ (n + n₀) * F ((n + n₀) / X)) := by exact_mod_cast sumΛ.comp_injective fun Q=>by valid
+
+  have : ∑' (n : ℕ), Λ n * F (n / X) =
+    (∑ n ∈ Finset.range (n₀), Λ n * F (n / X)) +
+    (∑' (n : ℕ), Λ (n + n₀ : ) * F ((n + n₀ : ) / X)) := by
+    rw[← Summable.sum_add_tsum_nat_add' (k := n₀)]
+    norm_num[‹_›]
+
+  rw [this]
+  clear this
+
+  let n₁ := ⌊X * (1 + c₂ * ε)⌋₊
+
+  have n₁_pos : 0 < n₁ := by
+      dsimp[n₁]
+      apply Nat.le_floor
+      rw[Nat.succ_eq_add_one, zero_add]
+      sorry -- X needs LB in terms of c₂ and ε
+
+  have n₁_ge : X * (1 + c₂ * ε) - 1 ≤ n₁ := by
+    simp[n₁]
+    apply le_of_lt
+    exact Nat.lt_floor_add_one (X * (1 + c₂ * ε))
+
+  have n₁_le : (n₁ : ℝ) ≤ X * (1 + c₂ * ε) := by
+    simp[n₁]
+    apply Nat.floor_le
+    bound
+
+  have n₁_ge_n₀ : n₀ ≤ n₁ := by
+    sorry -- need LB on X depending on c₁, c₂, and ε
+
+  have n₁_sub_n₀ : (n₁ : ℝ) - n₀ ≤ X * ε * (c₂ + c₁) := by
+    calc
+      (n₁ : ℝ) - n₀ ≤ X * (1 + c₂ * ε) - n₀ := by
+                        exact sub_le_sub_right n₁_le ↑n₀
+       _            ≤ X * (1 + c₂ * ε) - (X * (1 - c₁ * ε)) := by
+          exact tsub_le_tsub_left n₀_gt (X * (1 + c₂ * ε))
+       _            = X * ε * (c₂ + c₁) := by ring
+
+  have : (∑' (n : ℕ), Λ (n + n₀ : ) * F ((n + n₀ : ) / X)) =
+    (∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((n + n₀) / X)) +
+    (∑' (n : ℕ), Λ (n + n₁ : ) * F ((n + n₁ : ) / X)) := by
+    rw[← Summable.sum_add_tsum_nat_add' (k := n₁ - n₀)]
+    congr! 5
+    · simp only [Nat.cast_add]
+    · omega
+    · congr! 1
+      norm_cast
+      omega
+    · convert sumΛn₀ ((n₁ - n₀) + n₀) using 4
+      · omega
+      · congr! 1
+        norm_cast
+        omega
+
+  rw [this]
+  clear this
+
+  have : (∑' (n : ℕ), Λ (n + n₁) * F (↑(n + n₁) / X)) = Λ (n₁) * F (↑n₁ / X) := by
+    have : (∑' (n : ℕ), Λ (n + n₁) * F (↑(n + n₁) / X)) = Λ (n₁) * F (↑n₁ / X) + (∑' (n : ℕ), Λ (n + 1 + n₁) * F (↑(n + 1 + n₁) / X)) := by
+      sorry -- obviously true, but cant figure out
+    rw[this]
+    have : (∑' (n : ℕ), Λ (n + 1 + n₁) * F (↑(n + 1 + n₁) / X)) = 0 := by
+      convert tsum_zero with n
+      have : n₁ ≤ n + (n₁) := by exact Nat.le_add_left (n₁) n
+      convert mul_zero _
+      convert smoothIs0 (n + 1 + n₁) ?_
+      rw[← mul_le_mul_right X_pos]
+      have : ↑(n + 1 + n₁) / X * X = ↑(n + 1 + n₁) := by field_simp
+      rw[this]
+      have : (1 + c₂ * ε) * X = 1+ (X * (1 + c₂ * ε) - 1) := by ring
+      rw[this, Nat.cast_add, Nat.cast_add]
+      apply add_le_add
+      bound
+      exact n₁_ge
+    rw[this, add_zero]
+
+  rw [this]
+  clear this
+
+  have : ∑ x ∈ Finset.range ⌈X⌉₊, Λ x =
+      (∑ x ∈ Finset.range n₀, Λ x) +
+      ∑ x ∈ Finset.range (⌈X⌉₊ - n₀), Λ (x + ↑n₀) := by
+    field_simp[add_comm _ n₀,n₀_le.trans,le_of_lt,n₀.le_floor,Finset.sum_range_add]
+    rw [← Finset.sum_range_add, Nat.add_sub_of_le]
+    simp[n₀]
+    have : X ≤ ↑⌈X⌉₊ := by exact Nat.le_ceil X
+    exact Preorder.le_trans (X * (1 - c₁ * ε)) X (↑⌈X⌉₊) n₀_inside_le_X this
+
+  rw [this]
+  clear this
+
+  have : ∑ n ∈ Finset.range n₀, Λ n * F (↑n / X) =
+      ∑ n ∈ Finset.range n₀, Λ n := by
+    apply Finset.sum_congr rfl
+    intro n hn
+    by_cases n_zero : n = 0
+    · rw [n_zero]
+      simp only [ArithmeticFunction.map_zero, CharP.cast_eq_zero, zero_div, zero_mul]
+    · convert mul_one _
+      convert smoothIs1 n (Nat.zero_lt_of_ne_zero n_zero) ?_
+      simp only [Finset.mem_range, n₀] at hn
+      have : (n < ⌈X * (1 - c₁ * ε)⌉₊) → (n ≤ ⌊X * (1 - c₁ * ε)⌋₊) := by
+        intro n_lt
+        by_contra hcontra
+        rw[not_le] at hcontra
+        have temp1: (⌊X * (1 - c₁ * ε)⌋₊).succ.succ ≤ n.succ := by
+          apply Nat.succ_le_succ
+          apply Nat.succ_le_of_lt
+          exact hcontra
+        have : n.succ ≤ ⌈X * (1 - c₁ * ε)⌉₊ := by
+          apply Nat.succ_le_of_lt
+          exact hn
+        have temp2: ⌊X * (1 - c₁ * ε)⌋₊ + 2 = (⌊X * (1 - c₁ * ε)⌋₊ + 1) + 1 := by ring
+        have : ⌊X * (1 - c₁ * ε)⌋₊ + 2 ≤ ⌈X * (1 - c₁ * ε)⌉₊ := by
+          rw[temp2, ← Nat.succ_eq_add_one, ← Nat.succ_eq_add_one]
+          exact Nat.le_trans temp1 hn
+        rw[← and_not_self_iff (⌊X * (1 - c₁ * ε)⌋₊ + 2 ≤ ⌈X * (1 - c₁ * ε)⌉₊), not_le]
+        apply And.intro
+        exact this
+        rw[temp2, ← Nat.succ_eq_add_one, Nat.lt_succ_iff]
+        exact Nat.ceil_le_floor_add_one (X * (1 - c₁ * ε))
+      exact (Nat.le_floor_iff' n_zero).mp (this hn)
+
+  rw [this, sub_eq_add_neg, add_assoc, add_assoc]
+  nth_rewrite 3 [add_comm]
+  nth_rewrite 2 [← add_assoc]
+  rw [← add_assoc, ← add_assoc, ← sub_eq_add_neg]
+  clear this
+
+  have :
+    ∑ n ∈ Finset.range n₀, Λ n + (∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((↑n + ↑n₀) / X)) -
+      (∑ x ∈ Finset.range n₀, Λ x + ∑ x ∈ Finset.range (⌈X⌉₊ - n₀), Λ (x + n₀))
+      =
+      (∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((↑n + ↑n₀) / X)) -
+      (∑ x ∈ Finset.range (⌈X⌉₊ - n₀), Λ (x + n₀)) := by
+    ring
+
+  rw [this]
+  clear this
+
+  have :
+    ‖∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((↑n + ↑n₀) / X) - ∑ x ∈ Finset.range (⌈X⌉₊ - n₀), Λ (x + n₀) + Λ n₁ * F (↑n₁ / X)‖
+    ≤
+    (∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖) +
+      ∑ x ∈ Finset.range (⌈X⌉₊ - n₀), ‖Λ (x + n₀)‖ +
+      ‖Λ n₁‖ * ‖F (↑n₁ / X)‖:= by
+    apply norm_add_le_of_le
+    apply norm_sub_le_of_le
+    apply norm_sum_le_of_le
+    intro b hb
+    apply norm_mul_le_of_le
+    rfl
+    rfl
+    apply norm_sum_le_of_le
+    intro b hb
+    rfl
+    apply norm_mul_le_of_le
+    rfl
+    rfl
+
+  refine this.trans ?_
+
+  clear this
+
+  have : 0 < n₀ := by
+    simp[n₀]
+    bound
+    rw[← mul_one 1]
+    apply mul_lt_mul
+    exact c₁_lt
+    apply le_of_lt
+    exact ε_lt_one
+    exact ε_pos
+    linarith
+
+  have vonBnd1 :
+    ∀ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ ≤ Real.log (X * (1 + c₂ * ε)) := by
+    intro n hn
+    have n_add_n0_le_n1: (n : ℝ) + n₀ ≤ n₁ := by
+      apply le_of_lt
+      rw[Finset.mem_range] at hn
+      rw[← add_lt_add_iff_right (-↑n₀), add_neg_cancel_right, add_comm, ← sub_eq_neg_add]
+      exact_mod_cast hn
+    have inter1: ‖ Λ (n + n₀)‖ ≤ Real.log (↑n + ↑n₀) := by
+      rw[Real.norm_of_nonneg, ← Nat.cast_add]
+      apply ArithmeticFunction.vonMangoldt_le_log
+      apply ArithmeticFunction.vonMangoldt_nonneg
+    have inter2: Real.log (↑n + ↑n₀) ≤ Real.log (↑n₁) := by
+      apply Real.log_le_log
+      positivity
+      exact_mod_cast n_add_n0_le_n1
+    have inter3: Real.log (↑n₁) ≤ Real.log (X * (1 + c₂ * ε)) := by
+      apply Real.log_le_log
+      bound
+      linarith
+    exact le_implies_le_of_le_of_le inter1 inter3 inter2
+
+  have bnd1 :
+    ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖
+    ≤ (n₁ - n₀) * Real.log (X * (1 + c₂ * ε)) := by
+    have : (n₁ - n₀) * Real.log (X * (1 + c₂ * ε)) = (∑ n ∈ Finset.range (n₁ - n₀), Real.log (X * (1 + c₂ * ε))) := by
+      rw[← Nat.cast_sub]
+      nth_rewrite 1 [← Finset.card_range (n₁ - n₀)]
+      rw[Finset.cast_card, Finset.sum_const, smul_one_mul]
+      exact Eq.symm (Finset.sum_const (Real.log (X * (1 + c₂ * ε))))
+      exact n₁_ge_n₀
+    rw [this]
+    apply Finset.sum_le_sum
+    intro n hn
+    rw [← mul_one (Real.log (X * (1 + c₂ * ε)))]
+    apply mul_le_mul
+    apply vonBnd1
+    exact hn
+    rw[Real.norm_of_nonneg, ← Nat.cast_add]
+    dsimp[F]
+    apply smooth1BddAbove
+    bound
+    rw[← Nat.cast_add]
+    dsimp[F]
+    apply smooth1BddBelow
+    bound
+    rw[Real.norm_of_nonneg, ← Nat.cast_add]
+    dsimp[F]
+    apply smooth1BddBelow
+    bound
+    rw[← Nat.cast_add]
+    dsimp[F]
+    apply smooth1BddBelow
+    bound
+    rw[← Real.log_one]
+    apply Real.log_le_log
+    positivity
+    bound
+
+  have bnd2 :
+    ∑ x ∈ Finset.range (⌈X⌉₊ - n₀), ‖Λ (x + n₀)‖ ≤ (⌈X⌉₊ - n₀) * Real.log (X + 1) := by
+    have : (⌈X⌉₊ - n₀) * Real.log (X + 1) = (∑ n ∈ Finset.range (⌈X⌉₊ - n₀), Real.log (X + 1)) := by
+      rw[← Nat.cast_sub]
+      nth_rewrite 1 [← Finset.card_range (⌈X⌉₊ - n₀)]
+      rw[Finset.cast_card, Finset.sum_const, smul_one_mul]
+      exact Eq.symm (Finset.sum_const (Real.log (X + 1)))
+      simp[n₀]
+      have : X ≤ ⌈X⌉₊ := by exact Nat.le_ceil X
+      exact Preorder.le_trans (X * (1 - c₁ * ε)) X (↑⌈X⌉₊) n₀_inside_le_X this
+    rw[this]
+    apply Finset.sum_le_sum
+    intro n hn
+    have n_add_n0_le_X_add_one: (n : ℝ) + n₀ ≤ X + 1 := by
+      rw[Finset.mem_range] at hn
+      rw[← add_le_add_iff_right (-↑n₀), add_assoc, ← sub_eq_add_neg, sub_self, add_zero, ← sub_eq_add_neg]
+      have temp: (n : ℝ) < ⌈X⌉₊ - n₀ := by
+        rw[← Nat.cast_sub, Nat.cast_lt]
+        exact hn
+        simp[n₀]
+        have : X ≤ ⌈X⌉₊ := by exact Nat.le_ceil X
+        exact Preorder.le_trans (X * (1 - c₁ * ε)) X (↑⌈X⌉₊) n₀_inside_le_X this
+      have : ↑⌈X⌉₊ - ↑n₀ ≤ X + 1 - ↑n₀ := by
+        apply sub_le_sub
+        apply le_of_lt
+        apply Nat.ceil_lt_add_one
+        positivity
+        rfl
+      apply le_of_lt
+      exact gt_of_ge_of_gt this temp
+    have inter1: ‖ Λ (n + n₀)‖ ≤ Real.log (↑n + ↑n₀) := by
+      rw[Real.norm_of_nonneg, ← Nat.cast_add]
+      apply ArithmeticFunction.vonMangoldt_le_log
+      apply ArithmeticFunction.vonMangoldt_nonneg
+    have inter2: Real.log (↑n + ↑n₀) ≤ Real.log (X + 1) := by
+      apply Real.log_le_log
+      positivity
+      exact_mod_cast n_add_n0_le_X_add_one
+    exact Preorder.le_trans ‖Λ (n + n₀)‖ (Real.log (↑n + ↑n₀)) (Real.log (X + 1)) inter1 inter2
+
+  have largeSumBound:= add_le_add bnd1 bnd2
+
+  clear this vonBnd1 bnd1 bnd2
+
+  have inter1 : Real.log (X * (1 + c₂ * ε)) ≤ Real.log (2 * X) := by
+    apply Real.log_le_log
+    positivity
+    have const_le_2: 1 + c₂ * ε ≤ 2 := by
+      rw[← one_add_one_eq_two]
+      apply add_le_add
+      rfl
+      rw[← mul_one 1]
+      apply mul_le_mul
+      linarith
+      linarith
+      positivity
+      positivity
+    rw[mul_comm]
+    apply mul_le_mul
+    exact const_le_2
+    rfl
+    positivity
+    positivity
+
+  have inter2 : (↑n₁ - ↑n₀) * Real.log (X * (1 + c₂ * ε)) ≤ (X * ε * (c₂ + c₁)) * (Real.log (X) + Real.log (2)) := by
+    apply mul_le_mul
+    exact n₁_sub_n₀
+    rw[← Real.log_mul]
+    nth_rewrite 3 [mul_comm]
+    exact inter1
+    positivity
+    positivity
+    rw[← Real.log_one]
+    apply Real.log_le_log
+    positivity
+    bound
+    positivity
+
+  have inter3 : (X * ε * (c₂ + c₁)) * (Real.log (X) + Real.log (2)) ≤ 2 * (X * ε * (c₂ + c₁)) * (Real.log (X)) := by
+    nth_rewrite 3 [mul_assoc]
+    rw[two_mul, mul_add]
+    apply add_le_add
+    rfl
+    apply mul_le_mul
+    rfl
+    apply Real.log_le_log
+    positivity
+    linarith
+    rw[← Real.log_one]
+    apply Real.log_le_log
+    positivity
+    linarith
+    positivity
+
+  have inter4 : (↑n₁ - ↑n₀) * Real.log (X * (1 + c₂ * ε)) ≤ 2 * (X * ε * (c₁ + c₂)) * (Real.log (X)) := by
+    nth_rewrite 2 [add_comm]
+    exact
+      Preorder.le_trans ((↑n₁ - ↑n₀) * Real.log (X * (1 + c₂ * ε)))
+        (X * ε * (c₂ + c₁) * (Real.log X + Real.log 2)) (2 * (X * ε * (c₂ + c₁)) * Real.log X)
+        inter2 inter3
+
+  clear inter2 inter3
+
+  have inter5: Real.log (X + 1) ≤ Real.log (2 * X) := by
+    apply Real.log_le_log
+    positivity
+    linarith
+
+  have inter6 : (⌈X⌉₊ - n₀) * Real.log (X + 1) ≤ 2 * (X * ε * c₁) * (Real.log (X) + Real.log (2)) := by
+    apply mul_le_mul
+    have : 2 * (X * ε * c₁) = (X * (1 + ε * c₁)) - (X * (1 - ε * c₁)) := by ring
+    rw[this]
+    apply sub_le_sub
+    sorry -- something breaks down here also, need LB on X in terms of c₁ and ε
+    nth_rewrite 2 [mul_comm]
+    exact n₀_gt
+    rw[← Real.log_mul, mul_comm]
+    exact inter5
+    positivity
+    positivity
+    rw[← Real.log_one]
+    apply Real.log_le_log
+    positivity
+    linarith
+    positivity
+
+  have inter7: 2 * (X * ε * c₁) * (Real.log (X) + Real.log (2)) ≤ 4 * (X * ε * c₁) * Real.log (X) := by
+    have : (4 : ℝ) = 2 + 2 := by ring
+    rw[this, mul_add]
+    nth_rewrite 5 [mul_assoc]
+    rw[add_mul]
+    apply add_le_add
+    nth_rewrite 1 [mul_assoc]
+    rfl
+    nth_rewrite 1 [mul_assoc]
+    apply mul_le_mul
+    rfl
+    apply mul_le_mul
+    rfl
+    apply Real.log_le_log
+    positivity
+    linarith
+    rw[← Real.log_one]
+    apply Real.log_le_log
+    positivity
+    linarith
+    positivity
+    positivity
+    positivity
+
+  have inter8: (⌈X⌉₊ - n₀) * Real.log (X + 1) ≤ 4 * (X * ε * c₁) * Real.log (X) := by
+    exact
+      Preorder.le_trans ((↑⌈X⌉₊ - ↑n₀) * Real.log (X + 1))
+        (2 * (X * ε * c₁) * (Real.log X + Real.log 2)) (4 * (X * ε * c₁) * Real.log X) inter6 inter7
+
+  clear inter5 inter6 inter7
+
+  have inter9: (↑n₁ - ↑n₀) * Real.log (X * (1 + c₂ * ε)) + (↑⌈X⌉₊ - ↑n₀) * Real.log (X + 1) ≤
+    2 * (X * ε * (3 * c₁ + c₂)) * Real.log X := by
+    have : 2 * (X * ε * (3 * c₁ + c₂)) = 2 * (X * ε * (c₁ + c₂)) + 4 * (X * ε * c₁) := by ring
+    rw[this, add_mul]
+    apply add_le_add
+    exact inter4
+    exact inter8
+
+  have largeSumBound2 : ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌈X⌉₊ - n₀), ‖Λ (x + n₀)‖ ≤
+    2 * (X * ε * (3 * c₁ + c₂)) * Real.log X := by
+    exact
+      Preorder.le_trans (∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌈X⌉₊ - n₀), ‖Λ (x + n₀)‖)
+        ((↑n₁ - ↑n₀) * Real.log (X * (1 + c₂ * ε)) + (↑⌈X⌉₊ - ↑n₀) * Real.log (X + 1))
+        (2 * (X * ε * (3 * c₁ + c₂)) * Real.log X) largeSumBound inter9
+
+  clear largeSumBound inter4 inter8 inter9
+
+  have inter10 : ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ Real.log (X * (1 + c₂ * ε)) := by
+    rw[← mul_one (Real.log (X * (1 + c₂ * ε)))]
+    apply mul_le_mul
+    rw[Real.norm_of_nonneg]
+    have temp : Λ n₁ ≤ Real.log (n₁) := by exact ArithmeticFunction.vonMangoldt_le_log
+    have : Real.log (n₁) ≤ Real.log (X * (1 + c₂ * ε)) := by
+      apply Real.log_le_log
+      exact_mod_cast n₁_pos
+      exact n₁_le
+    exact Preorder.le_trans (Λ n₁) (Real.log ↑n₁) (Real.log (X * (1 + c₂ * ε))) temp this
+    exact ArithmeticFunction.vonMangoldt_nonneg
+    rw[Real.norm_of_nonneg]
+    apply smooth1BddAbove
+    exact n₁_pos
+    apply smooth1BddBelow
+    exact n₁_pos
+    rw[Real.norm_of_nonneg]
+    apply smooth1BddBelow
+    exact n₁_pos
+    apply smooth1BddBelow
+    exact n₁_pos
+    rw[← Real.log_one]
+    apply Real.log_le_log
+    positivity
+    bound
+
+  have inter11 : ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ Real.log (2 * X) := by
+    exact
+      Preorder.le_trans (‖Λ n₁‖ * ‖F (↑n₁ / X)‖) (Real.log (X * (1 + c₂ * ε))) (Real.log (2 * X))
+        inter10 inter1
+
+  clear inter1 inter10
+
+  have largeSumBound3 : ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌈X⌉₊ - n₀), ‖Λ (x + n₀)‖ +
+    ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ 2 * (X * ε * (3 * c₁ + c₂)) * Real.log X + Real.log (2 * X) := by
+    apply add_le_add
+    exact largeSumBound2
+    exact inter11
+
+  clear largeSumBound2 inter11
+
+  have largeSumBound4 : ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌈X⌉₊ - n₀), ‖Λ (x + n₀)‖ +
+    ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ 2 * (X * ε * (3 * c₁ + c₂)) * (2 * Real.log X + Real.log (2)) := by
+    have : 2 * (X * ε * (3 * c₁ + c₂)) * Real.log X + Real.log (2 * X) ≤
+      2 * (X * ε * (3 * c₁ + c₂)) * (Real.log X + Real.log (2 * X)) := by
+      nth_rewrite 2 [mul_add]
+      apply add_le_add
+      rfl
+      nth_rewrite 1 [← one_mul (Real.log (2 * X))]
+      apply mul_le_mul
+      sorry -- need LB on X in terms of c₁, c₂, and ε
+      rfl
+      rw[← Real.log_one]
+      apply Real.log_le_log
+      positivity
+      linarith
+      positivity
+    nth_rewrite 2 [two_mul, add_assoc]
+    rw [← Real.log_mul, mul_comm X 2]
+    exact
+      Preorder.le_trans
+        (∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ +
+            ∑ x ∈ Finset.range (⌈X⌉₊ - n₀), ‖Λ (x + n₀)‖ +
+          ‖Λ n₁‖ * ‖F (↑n₁ / X)‖)
+        (2 * (X * ε * (3 * c₁ + c₂)) * Real.log X + Real.log (2 * X))
+        (2 * (X * ε * (3 * c₁ + c₂)) * (Real.log X + Real.log (2 * X))) largeSumBound3 this
+    positivity
+    positivity
+
+  clear largeSumBound3
+
+  have largeSumBoundFinal : ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌈X⌉₊ - n₀), ‖Λ (x + n₀)‖ +
+    ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ (6 * (X * ε * (3 * c₁ + c₂))) * Real.log (X) := by
+    have : 2 * (X * ε * (3 * c₁ + c₂)) * (2 * Real.log X + Real.log (2)) <= (6 * (X * ε * (3 * c₁ + c₂))) * Real.log (X) := by
+      rw[mul_add]
+      have : (6 : ℝ) = 4 + 2 := by ring
+      rw[this, add_mul, add_mul]
+      apply add_le_add
+      ring
+      rfl
+      apply mul_le_mul
+      rfl
+      apply Real.log_le_log
+      positivity
+      linarith
+      rw[← Real.log_one]
+      apply Real.log_le_log
+      positivity
+      linarith
+      positivity
+    exact
+      Preorder.le_trans
+        (∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ +
+            ∑ x ∈ Finset.range (⌈X⌉₊ - n₀), ‖Λ (x + n₀)‖ +
+          ‖Λ n₁‖ * ‖F (↑n₁ / X)‖)
+        (2 * (X * ε * (3 * c₁ + c₂)) * (2 * Real.log X + Real.log 2))
+        (6 * (X * ε * (3 * c₁ + c₂)) * Real.log X) largeSumBound4 this
+
+  clear largeSumBound4
+
+  rw[C_eq]
+  have : 6 * (3 * c₁ + c₂) * ε * X = 6 * (X * ε * (3 * c₁ + c₂)) := by ring
+  rw[this]
+  exact largeSumBoundFinal
+
 
 -- **End Test**
 

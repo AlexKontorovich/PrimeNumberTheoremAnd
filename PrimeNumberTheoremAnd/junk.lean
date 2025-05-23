@@ -1,3 +1,32 @@
+import Mathlib.LinearAlgebra.Dimension.FiniteDimensional
+import Mathlib.LinearAlgebra.LinearMap.Basic
+import Mathlib.LinearAlgebra.Submodule.Basic
+
+open LinearMap Submodule FiniteDimensional
+
+variable {𝕜 : Type*} [Field 𝕜] (V : Type*) [AddCommGroup V] [Module 𝕜 V]
+
+/-- Let T be a linear operator on a 3-dimensional vector space V.
+    Suppose that every 2-dimensional subspace of V is T-invariant.
+    Then T is a scalar multiple of the identity operator. -/
+theorem linear_operator_with_invariant_subspaces
+    [FiniteDimensional 𝕜 V] (h_dim : finrank 𝕜 V = 3)
+    (T : V →ₗ[𝕜] V)
+    (h_invariant : ∀ (W : Submodule 𝕜 V), finrank 𝕜 W = 2 → T.mapsTo W W) :
+    ∃ (c : 𝕜), T = c • LinearMap.id :=
+
+  sorry
+
+
+
+
+
+
+
+
+
+
+#exit
 -- import Mathlib.Analysis.Calculus.Deriv.Basic
 --import Mathlib.Data.Complex.Basic
 --import Mathlib.Analysis.Complex.Schwarz
