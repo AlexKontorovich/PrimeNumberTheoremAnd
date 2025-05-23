@@ -403,7 +403,10 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
       dsimp[n₁]
       apply Nat.le_floor
       rw[Nat.succ_eq_add_one, zero_add]
-      sorry -- X needs LB in terms of c₂ and ε
+      norm_cast
+      have one_ge_X : 1 ≤ X := by linarith [X_gt_three]
+      have one_ge : 1 ≤ 1 + c₂ * ε := le_add_of_nonneg_right (mul_nonneg (le_of_lt c₂_pos) (le_of_lt ε_pos))
+      exact one_le_mul_of_one_le_of_one_le one_ge_X one_ge
 
   have n₁_ge : X * (1 + c₂ * ε) - 1 ≤ n₁ := by
     simp[n₁]
@@ -553,15 +556,10 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
   clear this
 
   have : 0 < n₀ := by
-    simp[n₀]
-    bound
-    rw[← mul_one 1]
-    apply mul_lt_mul
-    exact c₁_lt
-    apply le_of_lt
-    exact ε_lt_one
-    exact ε_pos
-    linarith
+    simp only [Nat.ceil_pos, n₀]
+    -- nlinarith -- FAILS??? Goal: `0 < X * (1 - c₁ * ε)`
+    -- positivity -- FAILS???
+    sorry
 
   have vonBnd1 :
     ∀ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ ≤ Real.log (X * (1 + c₂ * ε)) := by
