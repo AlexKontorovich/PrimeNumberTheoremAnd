@@ -557,9 +557,10 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
 
   have : 0 < n₀ := by
     simp only [Nat.ceil_pos, n₀]
+    have : c₁ * ε < 1 := by nlinarith
+    nlinarith
     -- nlinarith -- FAILS??? Goal: `0 < X * (1 - c₁ * ε)`
     -- positivity -- FAILS???
-    sorry
 
   have vonBnd1 :
     ∀ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ ≤ Real.log (X * (1 + c₂ * ε)) := by
@@ -872,7 +873,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
       have : (6 : ℝ) = 4 + 2 := by ring
       rw[this, add_mul, add_mul]
       apply add_le_add
-      ring
+      ring_nf
       rfl
       apply mul_le_mul
       rfl
