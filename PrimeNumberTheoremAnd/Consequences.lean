@@ -20,7 +20,7 @@ lemma Set.Ico_subset_Ico_of_Icc_subset_Icc {a b c d : ℝ} (h : Set.Icc a b ⊆ 
   have hcd : c ≤ d := by
     contrapose! hz'
     rw [Icc_eq_empty_of_lt hz']
-    exact not_mem_empty _
+    exact notMem_empty _
   simp only [mem_Ico, mem_Icc] at *
   refine ⟨hz'.1, hz'.2.eq_or_lt.resolve_left ?_⟩
   rintro rfl
@@ -55,7 +55,7 @@ lemma th_eq_zero_of_lt_two {x : ℝ} (hx : x < 2) : th x = 0 := by
   unfold th
   convert sum_empty
   ext y
-  simp only [mem_filter, mem_Iic, not_mem_empty, iff_false, not_and]
+  simp only [mem_filter, mem_Iic, notMem_empty, iff_false, not_and]
   intro hy
   have : y < 2 := by
     cases lt_or_le x 0 with
@@ -2506,7 +2506,7 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
       rw [sum_congr rfl (fun _ ↦ this), sum_const, smul_zero, add_zero, Int.cast_one]
     _ = ∑ d ∈ range (N + 1), μ d * (N / d) := by
       simp_rw [← coe_mul_zeta_apply, ArithmeticFunction.sum_Icc_mul_zeta, nsmul_eq_mul, mul_comm]
-      rw [range_eq_Ico, ← Ico_insert_succ_left (succ_pos _), sum_insert, ArithmeticFunction.map_zero,
+      rw [range_eq_Ico, ← Finset.insert_Ico_add_one_left_eq_Ico (succ_pos _), sum_insert, ArithmeticFunction.map_zero,
         mul_zero, zero_add]
       · congr
       · simp
@@ -2527,8 +2527,8 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
     exact Int.fract_lt_one _
   have h_bound : |∑ d ∈ range (N + 1), μ d * Int.fract ((N : ℚ) / d)| ≤ N - 1 := by
     /- range (N + 1) → Icc 1 N + part that evals to 0 -/
-    rw [range_eq_Ico, ← Ico_insert_succ_left, sum_insert, ArithmeticFunction.map_zero,
-      Int.cast_zero, zero_mul, zero_add, Ico_succ_right]
+    rw [range_eq_Ico, ← Finset.insert_Ico_add_one_left_eq_Ico, sum_insert, ArithmeticFunction.map_zero,
+      Int.cast_zero, zero_mul, zero_add, Finset.Ico_add_one_right_eq_Icc]
     all_goals simp
     /- Ico 1 (N + 1) → Ico 1 N ∪ {N + 1} that evals to 0 -/
     rw [← Ico_insert_right, sum_insert, div_self, Int.fract_one, mul_zero]

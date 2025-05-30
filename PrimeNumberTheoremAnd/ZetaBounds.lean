@@ -190,7 +190,7 @@ lemma sum_eq_int_deriv_aux {φ : ℝ → ℂ} {a b : ℝ} {k : ℤ} (ha : a ∈ 
   · congr
   · apply intervalIntegral.integral_congr_ae
     have : ∀ᵐ (x : ℝ) ∂MeasureTheory.volume, x ≠ b := by
-      convert Countable.ae_not_mem (s := {b}) (by simp) (μ := MeasureTheory.volume) using 1
+      convert Countable.ae_notMem (s := {b}) (by simp) (μ := MeasureTheory.volume) using 1
     filter_upwards [this]
     intro x x_ne_b hx
     rw [uIoc_of_le ha.2.le, mem_Ioc] at hx

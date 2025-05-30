@@ -116,9 +116,7 @@ theorem multSum_eq (d : ℕ) (hd : d ≠ 0):
   rw [primeInterSieve]
   simp only [Finset.sum_boole, Nat.cast_inj]
   trans ↑(Finset.Ioc (Nat.ceil x - 1) (Nat.floor (x+y)) |>.filter (d ∣ ·) |>.card)
-  · rw [← Nat.Icc_succ_left, ← Nat.succ_sub]
-    · exact rfl
-    · exact Nat.one_le_ceil_iff.mpr hx
+  · rw [← Finset.Icc_add_one_left_eq_Ioc, Nat.sub_add_cancel (Nat.one_le_ceil_iff.mpr hx)]
   · rw [BrunTitchmarsh.card_Ioc_filter_dvd _ _ _ hd]
 
 include hx in
