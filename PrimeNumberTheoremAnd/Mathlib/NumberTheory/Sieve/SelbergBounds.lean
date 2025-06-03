@@ -163,12 +163,13 @@ theorem prod_factors_one_div_compMult_ge (M : ℕ) (f : ArithmeticFunction ℝ) 
     gcongr with p hp
     · exact fun p _ => Finset.sum_nonneg fun n _ => pow_nonneg (hf_nonneg p) n
     rw [Nat.mem_primeFactors_of_ne_zero hd.ne_zero] at hp
-    rw [←Nat.Ico_succ_right, geom_sum_Ico, ←mul_div_mul_left (c:= (-1:ℝ)) (f p ^ Nat.succ M - f p ^ 1)]
+    rw [← Finset.Ico_add_one_right_eq_Icc, geom_sum_Ico,
+      ← mul_div_mul_left (c := (-1 : ℝ)) (f p ^ (M + 1) - f p ^ 1)]
     gcongr
     · apply hf_nonneg
     · linarith [hf_size p hp.1 hp.2]
     · rw [pow_one]
-      have : 0 ≤ f p ^ (M.succ) := by
+      have : 0 ≤ f p ^ (M + 1) := by
         apply pow_nonneg
         apply hf_nonneg
       linarith only [this]
@@ -439,7 +440,7 @@ theorem selbergBoundingSum_ge_sum_div (s : SelbergSieve) (hP : ∀ p:ℕ, p.Prim
   · intro i hi j hj hij
     intro t hti htj
     intro x hx;
-    simp only [Finset.bot_eq_empty, Finset.not_mem_empty]
+    simp only [Finset.bot_eq_empty, Finset.notMem_empty]
     specialize hti hx
     specialize htj hx
     simp_rw [Finset.mem_coe, Finset.mem_filter, Nat.mem_divisors] at *

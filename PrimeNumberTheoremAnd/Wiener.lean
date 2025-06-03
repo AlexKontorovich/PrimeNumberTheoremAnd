@@ -1658,7 +1658,7 @@ In particular, given $f$ in the Schwartz class, let $F : \R_+ \to \C : x \mapsto
 \end{proof}
 %%-/
 
-def toSchwartz (f : ℝ → ℂ) (h1 : ContDiff ℝ ∞ f) (h2 : HasCompactSupport f) : 𝓢(ℝ, ℂ) where
+noncomputable def toSchwartz (f : ℝ → ℂ) (h1 : ContDiff ℝ ∞ f) (h2 : HasCompactSupport f) : 𝓢(ℝ, ℂ) where
   toFun := f
   smooth' := h1
   decay' k n := by
@@ -1672,7 +1672,7 @@ def toSchwartz (f : ℝ → ℂ) (h1 : ContDiff ℝ ∞ f) (h2 : HasCompactSuppo
 
 lemma comp_exp_support0 {Ψ : ℝ → ℂ} (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
     ∀ᶠ x in 𝓝 0, Ψ x = 0 :=
-  not_mem_tsupport_iff_eventuallyEq.mp (fun h => lt_irrefl 0 <| mem_Ioi.mp (hplus h))
+  notMem_tsupport_iff_eventuallyEq.mp (fun h => lt_irrefl 0 <| mem_Ioi.mp (hplus h))
 
 lemma comp_exp_support1 {Ψ : ℝ → ℂ} (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
     ∀ᶠ x in atBot, Ψ (exp x) = 0 :=
@@ -1845,7 +1845,7 @@ lemma interval_approx_inf (ha : 0 < a) (hab : a < b) :
     rw [← l7] ; apply setIntegral_mono ?_ l8 h3
     rw [IntegrableOn, integrable_indicator_iff measurableSet_Icc]
     apply IntegrableOn.mono ?_ subset_rfl Measure.restrict_le_self
-    apply integrableOn_const.mpr
+    apply integrableOn_const <;>
     simp
 
 lemma interval_approx_sup (ha : 0 < a) (hab : a < b) :
@@ -1875,7 +1875,7 @@ lemma interval_approx_sup (ha : 0 < a) (hab : a < b) :
     refine setIntegral_mono l8 ?_ h4
     rw [IntegrableOn, integrable_indicator_iff measurableSet_Ioo]
     apply IntegrableOn.mono ?_ subset_rfl Measure.restrict_le_self
-    apply integrableOn_const.mpr
+    apply integrableOn_const <;>
     simp
 
 lemma WI_summable {f : ℕ → ℝ} {g : ℝ → ℝ} (hg : HasCompactSupport g) (hx : 0 < x) :
