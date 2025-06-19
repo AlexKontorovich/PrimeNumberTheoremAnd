@@ -2396,6 +2396,24 @@ as desired.
 \end{proof}
 %%-/
 
+lemma ZetaLowerBnd :
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (c : ℝ) (_ : 0 < c), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
+    (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
+    c / (Real.log |t|) ^ (7 : ℝ) ≤ ‖ζ (σ + t * I)‖ := by
+  obtain ⟨A, hA, C, Cpos, h⟩ := ZetaInvBnd
+  use A, hA, 1/C, (by simp [Cpos])
+  intro σ t ht_large hσ
+  have := h σ t ht_large hσ
+  sorry
+  -- have ζ_ne_zero : ζ (σ + t * I) ≠ 0 := by
+  --   contrapose! h
+  --   simp [h, norm_zero, div_zero]
+  --   apply mul_pos Cpos
+  --   apply Real.rpow_pos_of_pos (Real.log_pos (by linarith))
+  -- rw [div_le_iff (norm_pos_iff.mpr ζ_ne_zero)]
+  -- rw [le_div_iff Cpos] at h
+  -- exact h σ t ht_large hσ
+
 /-%%
 \begin{lemma}[LogDerivZetaBnd]\label{LogDerivZetaBnd}\lean{LogDerivZetaBnd}\leanok
 There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1$ and $3 < |t|$,
