@@ -2598,6 +2598,8 @@ If $t_0=0$, $\zeta$ blows up near $1$, so can't be zero nearby.
 
 -- **End collaboration**
 
+-- **Begin second AlphaProof experiment 6/19/25**
+
 /-%%
 \begin{lemma}[LogDerivZetaHolc]\label{LogDerivZetaHolc}\lean{LogDerivZetaHolc}\leanok
 There is an $A>0$ so that for all $T>3$, the function
@@ -2607,14 +2609,176 @@ $
 is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}$.
 \end{lemma}
 %%-/
+
 theorem LogDerivZetaHolc :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∀ (T : ℝ) (_ : 3 < T),
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (T : ℝ) (_ : 100 < T),
+    let σ := (1 : ℝ) - A / Real.log T ^ 9
     HolomorphicOn (fun (s : ℂ) ↦ deriv ζ s / (ζ s))
-      (((Ioc (1 - A / Real.log T ^ 9) 2) ×ℂ (Icc (-T) T)) \ {1}) := by
-  obtain ⟨A, hA, _⟩ := LogDerivZetaBnd
-  use A, hA
-  intro T T_gt
-  sorry
+      (((Icc σ 2) ×ℂ (Icc (-T) T)) \ {1})
+    ∧ (∀ (t : ℝ), (|t| ≤ T) → ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤
+      C * Real.log T ^ 9)
+    ∧ (∀ σ₀ ∈ Icc σ 1, ‖deriv ζ (σ₀ + T * I) / ζ (σ₀ + T * I)‖ ≤
+      C * Real.log T ^ 9)
+    ∧ (∀ σ₀ ∈ Icc σ 1, ‖deriv ζ (σ₀ - T * I) / ζ (σ₀ - T * I)‖ ≤
+      C * Real.log T ^ 9) := by
+
+  -- Get the basic bound from LogDerivZetaBnd
+  obtain ⟨A, hA, C₁, C₁pos, h_logderiv⟩ := LogDerivZetaBnd
+
+  -- We'll choose a large enough constant to handle all cases
+  let C := max C₁ 1000  -- Large enough to handle compact bounds
+
+  have Cpos : 0 < C := by
+    simp [C, C₁pos]
+
+  use A, hA, C, Cpos
+  intro T hT
+  let σ := (1 : ℝ) - A / Real.log T ^ 9
+
+  -- Key properties of our choice of σ
+  have σ_pos : 0 < σ := by
+    bound [one_lt_pow₀ ((Real.lt_log_iff_exp_lt (by linarith)).2
+      (hT.trans' (by linear_combination Real.exp_one_lt_d9))) (by decide : 9 ≠ 0), hA.2]
+
+  have σ_lt_one : σ < 1 := by
+    norm_num [σ, hA.1, T.log_pos, hT.trans']
+
+  have σ_ge_half : 1/2 ≤ σ := by
+    -- Since A ≤ 1/2 and T > 100, we have A / Real.log T ^ 9 is very small
+    linear_combination (div_lt_self hA.1 (one_lt_pow₀ ((Real.lt_log_iff_exp_lt (by linarith)).mpr
+    (by linarith [Real.exp_one_lt_d9] : Real.exp (1)<T)) (by decide :9 ≠ 0))).trans_le hA.2
+
+  -- Now we can establish the compact bound since we have σ and T fixed
+  have compact_bound_left : ∃ C₂ > 0, ∀ t ∈ Icc (-3 : ℝ) 3,
+    ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤ C₂ := by
+    -- The set {σ + t * I : t ∈ [-3, 3]} is compact and σ < 1, so it avoids the pole
+    have compact_set : IsCompact {σ + t * I | t ∈ Icc (-3 : ℝ) 3} := by
+      use isCompact_Icc.image <| by fun_prop
+    have away_from_pole : ∀ s ∈ {σ + t * I | t ∈ Icc (-3 : ℝ) 3}, s ≠ 1 := by
+      intro s hs
+      simp only [mem_setOf_eq] at hs
+      obtain ⟨t, _, rfl⟩ := hs
+      contrapose! σ_lt_one
+      have : σ = 1 ∧ t = 0 := by
+        rw [Complex.ext_iff] at σ_lt_one
+        simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+          sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at σ_lt_one
+        exact ⟨σ_lt_one.1, σ_lt_one.2⟩
+      rw [this.1]
+    have continuous_on_compact : ContinuousOn (fun s ↦ deriv ζ s / ζ s)
+            {σ + t * I | t ∈ Icc (-3 : ℝ) 3} := by
+      -- Show that ζ ≠ 0 on this set
+      have ζ_ne_zero_on_set : ∀ s ∈ {σ + t * I | t ∈ Icc (-3 : ℝ) 3}, ζ s ≠ 0 := by
+        intro s hs
+        simp only [mem_setOf_eq] at hs
+        obtain ⟨t, _, rfl⟩ := hs
+        -- Since σ < 1, we have σ + t * I ≠ 1
+        have : σ + t * I ≠ 1 := by
+          contrapose! σ_lt_one
+          have : σ = 1 ∧ t = 0 := by
+            rw [Complex.ext_iff] at σ_lt_one
+            simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+              sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im] at σ_lt_one
+            exact ⟨σ_lt_one.1, σ_lt_one.2⟩
+          rw [this.1]
+        --exact riemannZeta_ne_zero_of_one_le_re (by simp [σ_lt_one.le])
+        sorry
+
+      -- Show that ζ is continuous on the set
+      have ζ_continuous : ContinuousOn ζ {σ + t * I | t ∈ Icc (-3 : ℝ) 3} := by
+        apply ContinuousOn.mono ZetaCont
+        intro s hs
+        simp only [mem_diff, mem_univ, mem_singleton_iff, true_and]
+        sorry --exact ζ_ne_zero_on_set s hs
+
+      -- Show that deriv ζ is continuous on the set
+      have deriv_ζ_continuous : ContinuousOn (deriv ζ) {σ + t * I | t ∈ Icc (-3 : ℝ) 3} := by
+        apply HasDerivAt.continuousOn
+        intro s hs
+        apply hasDerivAt_deriv_iff.mpr
+        sorry
+        -- apply differentiableAt_riemannZeta
+        -- exact ζ_ne_zero_on_set s hs
+
+      -- Combine using division
+      exact ContinuousOn.div deriv_ζ_continuous ζ_continuous ζ_ne_zero_on_set
+
+      -- sorry -- Use holomorphicity away from 1
+    obtain ⟨C₂, h_bound⟩ := IsCompact.exists_bound_of_continuousOn compact_set continuous_on_compact
+    have : 0 ≤ C₂ := by sorry
+    use C₂ + 1, by linarith
+    intro t ht
+    have : σ + t * I ∈ {σ + t * I | t ∈ Icc (-3 : ℝ) 3} := by
+      simp only [mem_setOf_eq]
+      exact ⟨t, ht, rfl⟩
+    linarith [h_bound (σ + t * I) this]
+
+  obtain ⟨C₂, C₂pos, h_compact_left⟩ := compact_bound_left
+
+  -- Zero-free region: ζ doesn't vanish in our domain
+  have zero_free : ∀ s ∈ ((Icc σ 2) ×ℂ (Icc (-T) T)) \ {1}, ζ s ≠ 0 := by
+    intro s hs
+    sorry -- Use ZetaNoZerosInBox and the fact that we're away from critical line
+
+  -- Holomorphicity parts
+  have ζ_holo : HolomorphicOn ζ (((Icc σ 2) ×ℂ (Icc (-T) T)) \ {1}) := by
+    sorry
+
+  have deriv_ζ_holo : HolomorphicOn (deriv ζ) (((Icc σ 2) ×ℂ (Icc (-T) T)) \ {1}) := by
+    sorry
+
+  constructor
+  · -- Main holomorphicity result
+    intro z hz
+    have ζ_ne_zero_at_z : ζ z ≠ 0 := zero_free z hz
+    have ζ_diff_at_z : DifferentiableAt ℂ ζ z := by
+      sorry --exact (ζ_holo z hz).differentiableAt (isOpen_diff isOpen_univ isClosed_singleton) hz
+    have deriv_ζ_diff_at_z : DifferentiableAt ℂ (deriv ζ) z := by
+      sorry -- exact (deriv_ζ_holo z hz).differentiableAt (isOpen_diff isOpen_univ isClosed_singleton) hz
+    exact DifferentiableAt.div deriv_ζ_diff_at_z ζ_diff_at_z ζ_ne_zero_at_z |>.differentiableWithinAt
+
+  constructor
+  · -- Left boundary bound: |t| ≤ T
+    intro t ht
+    by_cases h_large : 3 < |t|
+    · -- Use LogDerivZetaBnd for large |t|
+      have σ_in_range : σ ∈ Ico (1 - A / Real.log |t| ^ 9) 1 := by
+        sorry
+      apply le_trans (h_logderiv σ t h_large σ_in_range)
+      gcongr
+      · sorry -- 0 ≤ Real.log |t| ^ 9
+      · sorry -- C₁ ≤ C
+      · sorry -- 0 ≤ Real.log |t|
+    · -- Use compact bound for small |t| ≤ 3
+      have t_in_compact : t ∈ Icc (-3 : ℝ) 3 := by
+        simp only [mem_Icc, abs_le] at h_large ⊢
+        push_neg at h_large
+        sorry
+      have bound_small := h_compact_left t t_in_compact
+      -- Need to show C₂ ≤ C * Real.log T ^ 9
+      have log_large : 1 ≤ Real.log T ^ 9 := by
+        sorry -- Since T > 100
+      apply le_trans bound_small
+      sorry -- Show C₂ ≤ C * Real.log T ^ 9 using our choice of C = max C₁ 1000
+
+  constructor
+  · -- Top boundary: use LogDerivZetaBnd since T > 100 > 3
+    intro σ₀ hσ₀
+    have T_large : 3 < T := by linarith [hT]
+    have σ₀_in_range : σ₀ ∈ Ico (1 - A / Real.log T ^ 9) 1 := by
+      sorry
+    sorry
+    -- apply le_trans (h_logderiv σ₀ T T_large σ₀_in_range)
+    -- exact le_max_left _ _
+
+  · -- Bottom boundary: similar to top
+    intro σ₀ hσ₀
+    have T_large : 3 < T := by linarith [hT]
+    have σ₀_in_range : σ₀ ∈ Ico (1 - A / Real.log T ^ 9) 1 := by
+      sorry
+    sorry
+
+-- **End Collaboration**
 
 /-
 It would be better to refactor this entire file so that we're not using explicit
