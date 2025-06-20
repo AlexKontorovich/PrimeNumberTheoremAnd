@@ -2029,6 +2029,131 @@ lemma norm_zeta_product_ge_one {x : ℝ} (hx : 0 < x) (y : ℝ) :
     LSeries_one_eq_riemannZeta, h₀, h₁, h₂] using
     DirichletCharacter.norm_LSeries_product_ge_one (1 : DirichletCharacter ℂ 1) hx y
 
+
+theorem ZetaLowerBound1_aux1 {σ t : ℝ} (this : 1 ≤ ‖ζ σ‖ ^ (3 : ℝ) * ‖ζ (σ + I * t)‖ ^ (4 : ℝ) * ‖ζ (σ + 2 * I * t)‖) :
+  ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) * ‖ζ (σ + t * I)‖ ≥ 1 := by
+  use (one_le_pow_iff_of_nonneg (by bound) four_ne_zero).1 (by_contra (this.not_lt ∘ ?_))
+  norm_num[← Real.rpow_natCast, ← Real.rpow_mul, mul_right_comm, mul_comm (t : ℂ), mul_pow]
+
+lemma ZetaLowerBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
+    ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) * ‖ζ (σ + t * I)‖ ≥ 1 := by
+  -- Start with the fundamental identity
+  have := norm_zeta_product_ge_one (x := σ - 1) (by linarith) t
+  simp_rw [ge_iff_le, norm_mul, norm_pow, ofReal_sub, ofReal_one, add_sub_cancel, ← Real.rpow_natCast]
+    at this
+  apply ZetaLowerBound1_aux1 this
+
+lemma ZetaLowerBound2 {σ t : ℝ} (σ_gt : 1 < σ) :
+    1 / (‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4)) ≤ ‖ζ (σ + t * I)‖ := by
+  have := ZetaLowerBound1 (t := t) σ_gt
+  exact (div_le_iff₀' (pos_of_mul_pos_left (one_pos.trans_le this) (norm_nonneg _) ) ).mpr this
+
+theorem ZetaLowerBound3_aux1 (A : ℝ) (ha : A ∈ Ioc 0 (1 / 2)) (t : ℝ)
+  (ht_2 : 3 < |2 * t|) : 0 < A / Real.log |2 * t| := by
+  norm_num only [div_pos _, Real.log_pos _, ht_2.trans', ha.left]
+
+theorem ZetaLowerBound3_aux2 {C : ℝ}
+  {σ t : ℝ}
+  (ζ_2t_bound : ‖ζ (σ + (2 * t) * I)‖ ≤ C * Real.log |2 * t|) :
+  ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) ≤ (C * Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
+  bound
+
+theorem ZetaLowerBound3_aux3 {A : ℝ} (_ : 0 < A) {C : ℝ} (_ : 0 < C)
+  {c_near : ℝ} (_ : 0 < c_near) (σ : ℝ) (t : ℝ) (_ : 3 < |t|) (σ_gt : 1 < σ)
+  :
+  c_near ^ ((3 : ℝ) / 4) * ((-1 + σ) ^ ((3 : ℝ) / 4))⁻¹ * C ^ ((1 : ℝ) / 4) * Real.log |t * 2| ^ ((1 : ℝ) / 4) =
+    c_near ^ ((3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * Real.log |t * 2| ^ ((1 : ℝ) / 4) * (-1 + σ) ^ (-(3 : ℝ) / 4) := by
+  exact (symm) (.trans (by rw [neg_div, Real.rpow_neg (by linarith)]) (by ring))
+
+theorem ZetaLowerBound3_aux4 (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (hC : 0 < C)
+  (c_near : ℝ) (hc_near : 0 < c_near) {σ : ℝ} (t : ℝ) (ht : 3 < |t|)
+  (σ_gt : 1 < σ)
+   :
+  0 < c_near ^ ((3 : ℝ) / 4) * (σ - 1) ^ (-(3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * Real.log |2 * t| ^ ((1 : ℝ) / 4) := by
+  match sub_pos.mpr σ_gt with | S => match Real.log_pos (by norm_num [abs_mul, ht.trans', one_lt_mul_of_lt_of_le _, le_of_lt] : abs (2 *t) > 1) with | S => positivity
+
+theorem ZetaLowerBound3_aux5
+  {σ : ℝ} (t : ℝ)
+  (this : ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) * ‖ζ (σ + t * I)‖ ≥ 1) :
+  0 < ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) := by
+  field_simp only [pos_of_mul_pos_left ∘ this.trans_lt']
+
+lemma ZetaLowerBound3 :
+    ∃ c > 0, ∀ {σ : ℝ} (_ : σ ∈ Ioc 1 2) (t : ℝ) (_ : 3 < |t|),
+    c * (σ - 1) ^ ((3 : ℝ) / 4) / (Real.log |t|) ^ ((1 : ℝ) / 4) ≤ ‖ζ (σ + t * I)‖ := by
+  obtain ⟨A, ha, C, hC, h_upper⟩ := ZetaUpperBnd
+  obtain ⟨c_near, hc_near, h_near⟩ := ZetaNear1BndExact
+
+  use 1 / (c_near ^ ((3 : ℝ) / 4) * (2 * C) ^ ((1 : ℝ) / 4)), by positivity
+  intro σ hσ t ht
+  obtain ⟨σ_gt, σ_le⟩ := hσ
+
+  -- Use ZetaLowerBound2
+  have lower := ZetaLowerBound2 (t := t) σ_gt
+  apply le_trans _ lower
+
+  -- Now we need to bound the denominator from above
+  -- This will give us a lower bound on the whole expression
+
+  -- Upper bound on ‖ζ σ‖ from ZetaNear1BndExact
+  have ζ_σ_bound : ‖ζ σ‖ ≤ c_near / (σ - 1) := by
+    exact h_near σ ⟨σ_gt, σ_le⟩
+
+  have ht_2 : 3 < |2 * t| := by simp only [abs_mul, Nat.abs_ofNat]; linarith
+
+  -- Upper bound on ‖ζ (σ + 2*t * I)‖ from ZetaUpperBnd
+
+  have σ_in_range : σ ∈ Icc (1 - A / Real.log |2 * t|) 2 := by
+    constructor
+    · -- σ ≥ 1 - A / Real.log |2*t|
+      have : 0 < A / Real.log |2 * t| := by
+        exact ZetaLowerBound3_aux1 A ha t ht_2
+      nlinarith
+    · exact σ_le
+
+  have ζ_2t_bound := h_upper σ (2 * t) ht_2 σ_in_range
+
+  -- Combine the bounds
+  have denom_bound : ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) ≤
+      (c_near / (σ - 1)) ^ ((3 : ℝ) / 4) * (C * Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
+    apply mul_le_mul
+    · apply Real.rpow_le_rpow (norm_nonneg _) ζ_σ_bound (by norm_num)
+    · apply ZetaLowerBound3_aux2
+      convert ζ_2t_bound
+      norm_cast
+    · apply Real.rpow_nonneg (norm_nonneg _)
+    · apply Real.rpow_nonneg (div_nonneg (by linarith) (by linarith))
+
+  -- Simplify the bound
+  have : (c_near / (σ - 1)) ^ ((3 : ℝ) / 4) * (C * Real.log |2 * t|) ^ ((1 : ℝ) / 4) =
+         c_near ^ ((3 : ℝ) / 4) * (σ - 1) ^ (-(3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * (Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
+    rw [Real.div_rpow (by linarith) (by linarith), Real.mul_rpow (by linarith) (Real.log_nonneg (by linarith))]
+    ring_nf
+    apply ZetaLowerBound3_aux3 ha.1 hC hc_near
+    · convert ht
+    · exact σ_gt
+
+  rw [this] at denom_bound
+
+  -- Take reciprocal (flipping inequality)
+  have pos_left : 0 < c_near ^ ((3 : ℝ) / 4) * (σ - 1) ^ (-(3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * (Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
+    apply ZetaLowerBound3_aux4 A ha C hC c_near hc_near t ht σ_gt
+
+  have pos_right : 0 < ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) := by
+    -- This follows from ZetaLowerBound1 - if either factor were zero, we'd get 0 ≥ 1
+    have := ZetaLowerBound1 (t := t) σ_gt
+    apply ZetaLowerBound3_aux5
+    convert this
+
+  use (div_le_div_of_nonneg_left zero_le_one pos_right denom_bound).trans' ?_
+  simp_rw [abs_mul, abs_two, neg_div, Real.rpow_neg (sub_pos.2 σ_gt).le] at *
+  field_simp only [*, sub_pos, mul_assoc, mul_left_comm, mul_le_mul_left, one_mul,Real.log_mul,
+    Real.log_pos, ht.trans', show Real.log 2 + .log |t| ≤ .log 2 * .log |t| from (? _),div_le_div_iff_of_pos_left, Real.mul_rpow, Real.log_le_self]
+  use Real.mul_rpow two_pos.le (Real.log_nonneg (ht.trans' (by norm_num)).le) ▸ by
+    bound [Real.log_lt_log two_pos (ht.trans' (by norm_num)), Real.log_pos one_lt_two]
+
+
+
 /-%%
 \begin{lemma}[ZetaInvBound1]\label{ZetaInvBound1}\lean{ZetaInvBound1}\leanok
 For all $\sigma>1$,
@@ -2400,19 +2525,99 @@ lemma ZetaLowerBnd :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (c : ℝ) (_ : 0 < c), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
     (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
     c / (Real.log |t|) ^ (7 : ℝ) ≤ ‖ζ (σ + t * I)‖ := by
-  obtain ⟨A, hA, C, Cpos, h⟩ := ZetaInvBnd
-  use A, hA, 1/C, (by simp [Cpos])
-  intro σ t ht_large hσ
-  have := h σ t ht_large hσ
-  sorry
-  -- have ζ_ne_zero : ζ (σ + t * I) ≠ 0 := by
-  --   contrapose! h
-  --   simp [h, norm_zero, div_zero]
-  --   apply mul_pos Cpos
-  --   apply Real.rpow_pos_of_pos (Real.log_pos (by linarith))
-  -- rw [div_le_iff (norm_pos_iff.mpr ζ_ne_zero)]
-  -- rw [le_div_iff Cpos] at h
-  -- exact h σ t ht_large hσ
+  obtain ⟨c₁, c₁_pos, hc₁⟩ := ZetaLowerBound3
+  obtain ⟨A', hA', C₂, C₂pos, hC₂⟩ := Zeta_diff_Bnd
+
+  -- Choose A to be small enough
+  let A := min A' (1/2 * (c₁ / (C₂ * 2)) ^ (4 : ℝ))
+  have Apos : 0 < A := by
+    apply lt_min hA'.1
+    sorry -- Show the second term is positive
+  have Ale : A ≤ 1/2 := by
+    apply min_le_iff.mpr; left; exact hA'.2
+
+  -- Choose the constant
+  let c := c₁ * A ^ (3/4 : ℝ) - C₂ * 2 * A
+  have cpos : 0 < c := by
+    -- This is where we need A small enough so that the first term dominates
+    sorry
+
+  use A, ⟨Apos, Ale⟩, c, cpos
+  intro σ t t_gt hσ
+
+  -- Set up the anchor point σ' = 1 + A / log^9 |t|
+  let σ' := 1 + A / Real.log |t| ^ 9
+  have σ'_gt : 1 < σ' := by
+    simp only [σ', lt_add_iff_pos_right]
+    apply div_pos Apos (pow_pos (Real.log_pos (by linarith)) 9)
+
+  have σ'_le : σ' ≤ 2 := by
+    simp only [σ']
+    -- Since A is small and |t| > 3, this should hold
+    sorry
+
+  have σ_le_σ' : σ ≤ σ' := by
+    -- This follows from the definitions
+    simp only [σ', hσ.1]
+    sorry
+
+  -- Apply ZetaLowerBound3 at σ'
+  have lower_at_σ' : c₁ * (σ' - 1) ^ (3/4 : ℝ) / (Real.log |t|) ^ (1/4 : ℝ) ≤ ‖ζ (σ' + t * I)‖ := by
+    apply hc₁ ⟨σ'_gt, σ'_le⟩ t t_gt
+
+  -- Use Zeta_diff_Bnd to relate ζ(σ + it) and ζ(σ' + it)
+  have diff_bound : ‖ζ (σ' + t * I) - ζ (σ + t * I)‖ ≤ C₂ * Real.log |t| ^ 2 * (σ' - σ) := by
+    by_cases h : σ = σ'
+    · simp [h]
+    push_neg at h
+    have : σ < σ' := by apply lt_of_le_of_ne σ_le_σ' h
+    apply hC₂ σ σ' t t_gt ?_ σ'_le this
+    -- Show σ ≥ 1 - A' / log |t|
+    sorry
+
+  -- Estimate σ' - σ
+  have gap_bound : σ' - σ ≤ 2 * A / Real.log |t| ^ 9 := by
+    simp only [σ']
+    -- This follows from the interval bounds
+    sorry
+
+  -- Combine the bounds using reverse triangle inequality
+  have : ‖ζ (σ' + t * I)‖ - ‖ζ (σ' + t * I) - ζ (σ + t * I)‖ ≤ ‖ζ (σ + t * I)‖ := by
+    convert norm_sub_norm_le (a := ζ (σ' + t * I)) (b := ζ (σ' + t * I) - ζ (σ + t * I)) using 1
+    simp
+
+  apply le_trans _ this
+  apply le_trans _ (sub_le_sub lower_at_σ' diff_bound)
+
+  -- Now we need: c / log^7 |t| ≤ c₁ * (σ' - 1)^(3/4) / log^(1/4) |t| - C₂ * log^2 |t| * 2A / log^9 |t|
+  -- Simplify: c₁ * A^(3/4) / log^(7/4) |t| - C₂ * 2A / log^7 |t|
+  -- Factor out 1/log^7 |t|: (c₁ * A^(3/4) * log^(21/4) |t| - C₂ * 2A) / log^7 |t|
+
+  have key_bound : c / Real.log |t| ^ (7 : ℝ) ≤ c₁ * (σ' - 1) ^ (3 / 4 : ℝ) / (Real.log |t|) ^ (1 / 4 : ℝ) -
+                   C₂ * Real.log |t| ^ (2 : ℝ) * (2 * A / Real.log |t| ^ (9 : ℝ)) := by
+    -- Substitute σ' - 1 = A / log^9 |t|
+    have : σ' - 1 = A / Real.log |t| ^ 9 := by simp [σ']
+    rw [this]
+
+    -- Simplify the expression
+    have simplify : c₁ * (A / Real.log |t| ^ 9) ^ (3 / 4 : ℝ) / (Real.log |t|) ^ (1 / 4 : ℝ) -
+                    C₂ * Real.log |t| ^ 2 * (2 * A / Real.log |t| ^ 9) =
+                    (c₁ * A ^ (3 / 4 : ℝ) - C₂ * 2 * A) / Real.log |t| ^ 7 := by
+      -- Algebraic manipulation
+      sorry
+
+    sorry
+--    rw [simplify]
+
+  calc _ ≤ _ := key_bound
+      _ ≤ _ := ?_
+  gcongr
+  · linarith
+  · sorry
+  · norm_cast
+  · convert gap_bound
+    norm_cast
+
 
 /-%%
 \begin{lemma}[LogDerivZetaBnd]\label{LogDerivZetaBnd}\lean{LogDerivZetaBnd}\leanok
