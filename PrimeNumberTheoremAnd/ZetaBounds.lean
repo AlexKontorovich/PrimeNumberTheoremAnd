@@ -2521,6 +2521,56 @@ as desired.
 \end{proof}
 %%-/
 
+theorem ZetaLowerBnd_aux1 {c₁ : ℝ} (c₁_pos : c₁ > 0) {C₂ : ℝ} (C₂pos : 0 < C₂) :
+    0 < 1 / 2 * (c₁ / (C₂ * 2)) ^ 4 := by
+  sorry
+
+theorem ZetaLowerBnd_aux2 {c₁ : ℝ} (c₁_pos : c₁ > 0)
+  {A' : ℝ} (hA' : A' ∈ Ioc 0 (1 / 2)) {C₂ : ℝ} (C₂pos : 0 < C₂)
+   :
+  let A := min A' (1 / 2 * (c₁ / (C₂ * 2)) ^ 4);
+  0 < A →
+    A ≤ 1 / 2 →
+      let c := c₁ * A ^ ((3 : ℝ) / 4) - C₂ * 2 * A;
+      0 < c := by
+  intro A Apos Ale c
+
+  -- The key is that A ≤ (1/2) * (c₁ / (C₂ * 2))^4
+  have A_bound : A ≤ 1 / 2 * (c₁ / (C₂ * 2)) ^ 4 := by
+    exact min_le_right A' _
+
+  -- Factor out A^(3/4) from c
+  have factor : c = A ^ ((3 : ℝ) / 4) * (c₁ - C₂ * 2 * A ^ ((1 : ℝ) / 4)) := by
+    simp only [c]
+    sorry
+
+  rw [factor]
+  apply mul_pos (Real.rpow_pos_of_pos Apos _)
+
+  -- Show c₁ - C₂ * 2 * A^(1/4) > 0
+  -- This follows from A^(1/4) ≤ (1/2 * (c₁ / (C₂ * 2))^4)^(1/4) = (1/2)^(1/4) * c₁ / (C₂ * 2)
+
+  have A_quarter_bound : A ^ ((1 : ℝ) / 4) ≤ (1 / 2) ^ ((1 : ℝ) / 4) * c₁ / (C₂ * 2) := by
+
+    sorry
+
+  have bound_useful : C₂ * 2 * A ^ ((1 : ℝ) / 4) ≤ C₂ * 2 * (((1 : ℝ) / 2) ^ ((1 : ℝ) / 4) * c₁ / (C₂ * 2)) := by
+    apply mul_le_mul_of_nonneg_left A_quarter_bound
+    linarith
+
+  have simplify : C₂ * 2 * (((1 : ℝ) / 2) ^ ((1 : ℝ) /4) * c₁ / (C₂ * 2)) =
+      (1 / 2) ^ ((1 : ℝ) / 4) * c₁ := by
+    field_simp
+
+  rw [simplify] at bound_useful
+
+  have key : ((1 : ℝ) / 2) ^ ((1 : ℝ) / 4) * c₁ < c₁ := by
+    conv_rhs => rw [← one_mul c₁]
+    gcongr
+    exact Real.rpow_lt_one (by norm_num) (by norm_num) (by norm_num)
+
+  linarith [bound_useful, key]
+
 lemma ZetaLowerBnd :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (c : ℝ) (_ : 0 < c), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
     (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
@@ -2532,13 +2582,15 @@ lemma ZetaLowerBnd :
   let A := min A' (1/2 * (c₁ / (C₂ * 2)) ^ (4 : ℝ))
   have Apos : 0 < A := by
     apply lt_min hA'.1
-    sorry -- Show the second term is positive
+    convert ZetaLowerBnd_aux1 c₁_pos C₂pos
+    norm_cast
   have Ale : A ≤ 1/2 := by
     apply min_le_iff.mpr; left; exact hA'.2
 
   -- Choose the constant
   let c := c₁ * A ^ (3/4 : ℝ) - C₂ * 2 * A
   have cpos : 0 < c := by
+    extract_goal
     -- This is where we need A small enough so that the first term dominates
     sorry
 
