@@ -1252,9 +1252,10 @@ lemma Smooth1Properties_below_aux {x ε : ℝ} (hx : x ≤ 1 - Real.log 2 * ε) 
 
 lemma Smooth1Properties_below {ν : ℝ → ℝ} (suppν : ν.support ⊆ Icc (1 / 2) 2)
     (mass_one : ∫ x in Ioi 0, ν x / x = 1) :
-    ∃ (c : ℝ), 0 < c ∧ ∀ (ε x) (_ : 0 < ε), 0 < x → x ≤ 1 - c * ε → Smooth1 ν ε x = 1 := by
+    ∃ (c : ℝ), 0 < c ∧ c = Real.log 2 ∧ ∀ (ε x) (_ : 0 < ε), 0 < x → x ≤ 1 - c * ε → Smooth1 ν ε x = 1 := by
   set c := Real.log 2; use c
   constructor; exact log_pos (by norm_num)
+  constructor; rfl
   intro ε x εpos xpos hx
   have hx2 := Smooth1Properties_below_aux hx εpos
   rewrite [← DeltaSpikeMass mass_one εpos]
@@ -1275,6 +1276,7 @@ lemma Smooth1Properties_below {ν : ℝ → ℝ} (suppν : ν.support ⊆ Icc (1
     · simp only [mem_Icc, not_and, not_le]; intro
       linarith [(by apply (div_lt_iff₀ (by linarith)).mpr; nlinarith : x / y < 2 ^ (-ε))]
     · rw [le_div_iff₀ (by linarith), zero_mul]; exact xpos.le
+
 /-%%
 \begin{proof}\leanok
 \uses{Smooth1, MellinConvolution,DeltaSpikeMass}
@@ -1369,10 +1371,11 @@ $$\widetilde{1_{\epsilon}}(x) = 0.$$
 \end{lemma}
 %%-/
 lemma Smooth1Properties_above {ν : ℝ → ℝ} (suppν : ν.support ⊆ Icc (1 / 2) 2) :
-    ∃ (c : ℝ), 0 < c ∧ ∀ (ε x) (_ : ε ∈ Ioo 0 1), 1 + c * ε ≤ x → Smooth1 ν ε x = 0 := by
+    ∃ (c : ℝ), 0 < c ∧ c = 2 * Real.log 2 ∧ ∀ (ε x) (_ : ε ∈ Ioo 0 1), 1 + c * ε ≤ x → Smooth1 ν ε x = 0 := by
   set c := 2 * Real.log 2; use c
   constructor
   · simp only [c, zero_lt_two, mul_pos_iff_of_pos_left]; exact log_pos (by norm_num)
+  constructor; rfl
   intro ε x hε hx
   have hx2 := Smooth1Properties_above_aux hx hε
   unfold Smooth1 MellinConvolution
@@ -1845,7 +1848,7 @@ lemma Smooth1MellinConvergent {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDiff �
     exact fun x hx ↦ Smooth1ContinuousAt diffΨ Ψnonneg suppΨ hε.1 hx |>.ofReal
   · rw [Asymptotics.isBigO_iff]
     use 1
-    obtain ⟨c, cpos, hc⟩ := Smooth1Properties_above suppΨ
+    obtain ⟨c, cpos, ceq, hc⟩ := Smooth1Properties_above suppΨ
     filter_upwards [eventually_ge_atTop (1 + c * ε)] with x hx
     rw [hc _ _ hε hx]
     simp; bound
@@ -1868,7 +1871,7 @@ lemma Smooth1MellinDifferentiable {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDi
     exact fun x hx ↦ Smooth1ContinuousAt diffΨ Ψnonneg suppΨ hε.1 hx |>.ofReal
   · rw [Asymptotics.isBigO_iff]
     use 1
-    obtain ⟨c, cpos, hc⟩ := Smooth1Properties_above suppΨ
+    obtain ⟨c, cpos, ceq, hc⟩ := Smooth1Properties_above suppΨ
     filter_upwards [eventually_ge_atTop (1 + c * ε)] with x hx
     rw [hc _ _ hε hx]
     simp; bound
