@@ -2607,7 +2607,7 @@ lemma ZetaLowerBnd :
       exact (mod_cast one_half_lt_one.le.trans (le_of_lt (one_lt_pow₀.comp (Real.lt_log_iff_exp_lt (by(((positivity))))).mpr (by(linear_combination L +.exp_one_lt_d9)) (by decide))))
     · bound [hA.1, Real.log_lt_log three_pos L, Real.lt_log_one_add_of_pos two_pos]
       · linear_combination L
-      · linear_combination L
+      -- · linear_combination L
       · exact (mod_cast (Real.rpow_lt_rpow_of_exponent_lt (by bound) ( show 1/4<4by bound)).le)
 
   have left' : ‖ζ (σ' + t * I)‖ ≥ C₁ * A ^ ((3:ℝ) /4) / Real.log |t| ^ 7 := by
@@ -2624,6 +2624,46 @@ lemma ZetaLowerBnd :
   rw [mul_comm C₂] at ineq
   exact_mod_cast ineq
 
+-- **End collaboration 6/20/25**
+
+
+lemma ZetaZeroFree :
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)),
+    ∀ (σ : ℝ)
+    (t : ℝ) (_ : 3 < |t|)
+    (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
+    ζ (σ + t * I) ≠ 0 := by
+  obtain ⟨A, hA, c, hc, h_lower⟩ := ZetaLowerBnd
+
+  -- Use the same A for our result
+  refine ⟨A, hA, ?_⟩
+
+  -- Now prove that ζ has no zeros in this region
+  intro σ t ht hσ
+
+  intro h_zero
+
+  have := h_lower σ t ht hσ
+
+  rw [h_zero] at this
+
+  have one_leLogT : 1 ≤ Real.log |t| := by
+    refine (Real.le_log_iff_exp_le ?_).mpr ?_
+    · linarith
+    · have : Real.exp 1 < 3 := by
+        have := Real.exp_one_lt_d9
+        linarith
+      linarith
+
+  simp only [norm_zero] at this
+
+  have pos_bound : 0 < c / (Real.log |t|) ^ (7 : ℝ) := by
+    apply div_pos hc
+    apply Real.rpow_pos_of_pos
+    apply Real.log_pos
+    linarith
+
+  linarith
 
 /-%%
 \begin{lemma}[LogDerivZetaBnd]\label{LogDerivZetaBnd}\lean{LogDerivZetaBnd}\leanok
