@@ -131,10 +131,10 @@ lemma rectangle_disjoint_singleton {z w p : ℂ}
     Disjoint (Rectangle z w) {p} := by
   refine disjoint_singleton_right.mpr (not_and_or.mpr ?_)
   obtain h | h | h | h := h
-  · exact Or.inl (not_mem_uIcc_of_lt h.1 h.2)
-  · exact Or.inr (not_mem_uIcc_of_lt h.1 h.2)
-  · exact Or.inl (not_mem_uIcc_of_gt h.1 h.2)
-  · exact Or.inr (not_mem_uIcc_of_gt h.1 h.2)
+  · exact Or.inl (notMem_uIcc_of_lt h.1 h.2)
+  · exact Or.inr (notMem_uIcc_of_lt h.1 h.2)
+  · exact Or.inl (notMem_uIcc_of_gt h.1 h.2)
+  · exact Or.inr (notMem_uIcc_of_gt h.1 h.2)
 
 lemma rectangleBorder_disjoint_singleton {z w p : ℂ}
     (h : p.re ≠ z.re ∧ p.re ≠ w.re ∧ p.im ≠ z.im ∧ p.im ≠ w.im) :

@@ -621,8 +621,8 @@ tendsto_zero_Lower, tendsto_zero_Upper, isIntegrable}
 %%-/
   have h_contourPull (σ' σ'' : ℝ) (σ'pos : 0 < σ') (σ''pos : 0 < σ'') :
       VerticalIntegral (f x) σ' = VerticalIntegral (f x) σ'' :=
-    contourPull xpos (not_mem_uIcc_of_lt σ'pos σ''pos)
-      (not_mem_uIcc_of_lt (by linarith) (by linarith))
+    contourPull xpos (notMem_uIcc_of_lt σ'pos σ''pos)
+      (notMem_uIcc_of_lt (by linarith) (by linarith))
 --%% But we also have the bound $\int_{(\sigma')} \leq x^{\sigma'} * C$, where
 --%% $C=\int_\R\frac{1}{|(1+t)(1+t+1)|}dt$.
   have VertIntBound : ∃ C > 0, ∀ σ' > 1, ‖VerticalIntegral (f x) σ'‖ ≤ x^σ' * C := by
@@ -957,8 +957,8 @@ Pull contour from $(-3/2)$ to $(\sigma)$.
 %%-/
   unfold VerticalIntegral'
   congr 1
-  exact contourPull (by linarith) (not_mem_uIcc_of_gt (by linarith) (by linarith))
-    (not_mem_uIcc_of_gt (by linarith) (by linarith))
+  exact contourPull (by linarith) (notMem_uIcc_of_gt (by linarith) (by linarith))
+    (notMem_uIcc_of_gt (by linarith) (by linarith))
 
 /-%%
 \begin{lemma}[formulaGtOne]\label{formulaGtOne}\lean{formulaGtOne}\leanok
