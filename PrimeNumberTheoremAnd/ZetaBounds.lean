@@ -2521,154 +2521,95 @@ as desired.
 \end{proof}
 %%-/
 
-theorem ZetaLowerBnd_aux1 {c₁ : ℝ} (c₁_pos : c₁ > 0) {C₂ : ℝ} (C₂pos : 0 < C₂) :
-    0 < 1 / 2 * (c₁ / (C₂ * 2)) ^ 4 := by
-  sorry
-
-theorem ZetaLowerBnd_aux2 {c₁ : ℝ} (c₁_pos : c₁ > 0)
-  {A' : ℝ} (hA' : A' ∈ Ioc 0 (1 / 2)) {C₂ : ℝ} (C₂pos : 0 < C₂)
-   :
-  let A := min A' (1 / 2 * (c₁ / (C₂ * 2)) ^ 4);
-  0 < A →
-    A ≤ 1 / 2 →
-      let c := c₁ * A ^ ((3 : ℝ) / 4) - C₂ * 2 * A;
-      0 < c := by
-  intro A Apos Ale c
-
-  -- The key is that A ≤ (1/2) * (c₁ / (C₂ * 2))^4
-  have A_bound : A ≤ 1 / 2 * (c₁ / (C₂ * 2)) ^ 4 := by
-    exact min_le_right A' _
-
-  -- Factor out A^(3/4) from c
-  have factor : c = A ^ ((3 : ℝ) / 4) * (c₁ - C₂ * 2 * A ^ ((1 : ℝ) / 4)) := by
-    simp only [c]
-    sorry
-
-  rw [factor]
-  apply mul_pos (Real.rpow_pos_of_pos Apos _)
-
-  -- Show c₁ - C₂ * 2 * A^(1/4) > 0
-  -- This follows from A^(1/4) ≤ (1/2 * (c₁ / (C₂ * 2))^4)^(1/4) = (1/2)^(1/4) * c₁ / (C₂ * 2)
-
-  have A_quarter_bound : A ^ ((1 : ℝ) / 4) ≤ (1 / 2) ^ ((1 : ℝ) / 4) * c₁ / (C₂ * 2) := by
-
-    sorry
-
-  have bound_useful : C₂ * 2 * A ^ ((1 : ℝ) / 4) ≤ C₂ * 2 * (((1 : ℝ) / 2) ^ ((1 : ℝ) / 4) * c₁ / (C₂ * 2)) := by
-    apply mul_le_mul_of_nonneg_left A_quarter_bound
-    linarith
-
-  have simplify : C₂ * 2 * (((1 : ℝ) / 2) ^ ((1 : ℝ) /4) * c₁ / (C₂ * 2)) =
-      (1 / 2) ^ ((1 : ℝ) / 4) * c₁ := by
-    field_simp
-
-  rw [simplify] at bound_useful
-
-  have key : ((1 : ℝ) / 2) ^ ((1 : ℝ) / 4) * c₁ < c₁ := by
-    conv_rhs => rw [← one_mul c₁]
-    gcongr
-    exact Real.rpow_lt_one (by norm_num) (by norm_num) (by norm_num)
-
-  linarith [bound_useful, key]
+-- **More AlphaProof help (thanks to Thomas Hubert!)**
 
 lemma ZetaLowerBnd :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (c : ℝ) (_ : 0 < c), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (c : ℝ) (_ : 0 < c),
+    ∀ (σ : ℝ)
+    (t : ℝ) (_ : 3 < |t|)
     (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
     c / (Real.log |t|) ^ (7 : ℝ) ≤ ‖ζ (σ + t * I)‖ := by
-  obtain ⟨c₁, c₁_pos, hc₁⟩ := ZetaLowerBound3
+  obtain ⟨C₁, C₁pos, hC₁⟩ := ZetaLowerBound3
   obtain ⟨A', hA', C₂, C₂pos, hC₂⟩ := Zeta_diff_Bnd
 
-  -- Choose A to be small enough
-  let A := min A' (1/2 * (c₁ / (C₂ * 2)) ^ (4 : ℝ))
-  have Apos : 0 < A := by
-    apply lt_min hA'.1
-    convert ZetaLowerBnd_aux1 c₁_pos C₂pos
-    norm_cast
-  have Ale : A ≤ 1/2 := by
-    apply min_le_iff.mpr; left; exact hA'.2
+  -- Pick the right constants.
+  -- Don't really like this because I can only do that after first finishing the proof.
+  -- Is there a way to delay picking those
+  let A := min A' ((C₁ / (4 * C₂)) ^ 4)
+  have hA : A ∈ Ioc 0 (1 / 2) :=
+    ⟨lt_min hA'.1 (by positivity), (min_le_left A' _).trans hA'.2⟩
 
-  -- Choose the constant
-  let c := c₁ * A ^ (3/4 : ℝ) - C₂ * 2 * A
-  have cpos : 0 < c := by
-    extract_goal
-    -- This is where we need A small enough so that the first term dominates
-    sorry
+  let C := C₁ * A ^ ((3:ℝ) /4) - 2 * C₂ * A
+  have hc_pos : 0 < C := by
+    have:= A.rpow_le_rpow hA.1.le (min_le_right _ _) (inv_pos.mpr four_pos).le
+    erw [Real.pow_rpow_inv_natCast (div_pos C₁pos (mul_pos four_pos C₂pos)).le four_ne_zero, le_div_iff₀ (mul_pos four_pos C₂pos)] at this
+    norm_num[mul_assoc,C,mul_left_comm,C₂pos,hA.1,(mul_le_mul_of_nonneg_right this (A.rpow_nonneg hA.1.le _)).trans_lt',←A.rpow_add]
 
-  use A, ⟨Apos, Ale⟩, c, cpos
-  intro σ t t_gt hσ
+  refine ⟨A, hA, C, hc_pos, fun σ t L ⟨σ_low_bound, σ_le_one⟩=>?_⟩
 
-  -- Set up the anchor point σ' = 1 + A / log^9 |t|
-  let σ' := 1 + A / Real.log |t| ^ 9
-  have σ'_gt : 1 < σ' := by
-    simp only [σ', lt_add_iff_pos_right]
-    apply div_pos Apos (pow_pos (Real.log_pos (by linarith)) 9)
+  -- From here I followed the proof found in the blueprint
+  let σ' := 1 + A / Real.log |t| ^  (9 : ℝ)
 
-  have σ'_le : σ' ≤ 2 := by
-    simp only [σ']
-    -- Since A is small and |t| > 3, this should hold
-    sorry
+  have triangular :  ‖ζ (σ + t * I)‖ ≥  ‖ζ (σ' + t * I)‖ -  ‖ζ (σ + t * I) - ζ (σ' + t * I)‖ := by
+    apply sub_le_iff_le_add.mpr.comp (sub_sub_self @_ (@_ : ℂ)▸norm_sub_le _ _).trans (by rw [add_comm])
 
-  have σ_le_σ' : σ ≤ σ' := by
-    -- This follows from the definitions
-    simp only [σ', hσ.1]
-    sorry
+  have right_sub :  -‖ζ (σ + t * I) -  ζ (σ' + t * I)‖ ≥ - C₂ * Real.log |t| ^ 2 * (σ' - σ) := by
+    show - C₂ * Real.log |t| ^ 2 * (σ' - σ) ≤ -‖ζ (σ + t * I) -  ζ (σ' + t * I)‖
+    have := hC₂ σ σ' t L ?_ ?_ ?_
+    convert neg_le_neg this using 1
+    · ring
+    · congr! 1
+      have : ζ (↑σ + ↑t * I) - ζ (↑σ' + ↑t * I) = - (ζ (↑σ' + ↑t * I) - ζ (↑σ + ↑t * I)) := by ring
+      rw [this, norm_neg]
+    · have : 1 - A' / Real.log |t| ≤ 1 - A / (Real.log |t|) ^ 9 := by
+        gcongr
+        · exact hA'.1.le
+        · bound
+        · simp only [inf_le_left, A]
+        · have : 1 ≤ Real.log |t| := by
+            refine (Real.le_log_iff_exp_le ?_).mpr ?_
+            · linarith
+            · have : Real.exp 1 < 3 := by
+                have := Real.exp_one_lt_d9
+                linarith
+              linarith
+          bound
+      linarith
+    · sorry
+    · sorry
+    -- use (le_neg.1 ((norm_sub_rev _ _).trans_le ((hC₂ _ _ (add_le_of_le_sub_left ((div_le_iff₀ (by bound)).2 (hA.2.trans (?_)))) (σ_le_one.trans (?_)) t L ?_).trans_eq (by ring))))
+    -- · norm_num only[Real.le_log_iff_exp_le, L.trans',(one_le_pow₀ _).trans',one_mul,Real.exp_one_lt_d9.le.trans]
+    --   exact (mod_cast one_half_lt_one.le.trans (one_le_pow₀ ((Real.le_log_iff_exp_le (three_pos.trans L)).2 (by linear_combination L +.exp_one_lt_d9))))
+    -- · exact_mod_cast by ·linear_combination σ_low_bound.trans_lt σ_le_one
+    -- · exact (.trans (by bound[Real.log_le_log three_pos L.le, hA'.1,Real.lt_log_one_add_of_pos two_pos]) σ_low_bound)
 
-  -- Apply ZetaLowerBound3 at σ'
-  have lower_at_σ' : c₁ * (σ' - 1) ^ (3/4 : ℝ) / (Real.log |t|) ^ (1/4 : ℝ) ≤ ‖ζ (σ' + t * I)‖ := by
-    apply hc₁ ⟨σ'_gt, σ'_le⟩ t t_gt
+  have right' : -‖ζ (σ + t * I) -  ζ (σ' + t * I)‖   ≥ - C₂ * 2 * A / Real.log |t| ^ 7 := by
+    have := (abs t).log_pos (by bound)
+    refine right_sub.trans' ((div_le_iff₀ (pow_pos this 7)).2 @?_|>.trans (mul_le_mul_of_nonpos_left (sub_le_sub_left σ_low_bound (1+_) ) (by ·linear_combination C₂*this*(.log |t|))))
+    exact (mod_cast (by linear_combination (2 *_* A) *div_self ↑(pow_pos this 09).ne'))
 
-  -- Use Zeta_diff_Bnd to relate ζ(σ + it) and ζ(σ' + it)
-  have diff_bound : ‖ζ (σ' + t * I) - ζ (σ + t * I)‖ ≤ C₂ * Real.log |t| ^ 2 * (σ' - σ) := by
-    by_cases h : σ = σ'
-    · simp [h]
-    push_neg at h
-    have : σ < σ' := by apply lt_of_le_of_ne σ_le_σ' h
-    apply hC₂ σ σ' t t_gt ?_ σ'_le this
-    -- Show σ ≥ 1 - A' / log |t|
-    sorry
+  have left_sub : ‖ζ (σ' + t * I)‖ ≥ C₁ * (σ' - 1) ^ ((3:ℝ) /4) / Real.log |t| ^ 4 := by
+    use (hC₁ ⟨lt_add_of_pos_right (1) (by bound[hA.1]),add_le_of_le_sub_left ((div_le_iff₀ (by bound)).2 (hA.2.trans (?_)))⟩ t L).trans' ?_
+    · norm_num only[one_mul, (one_le_pow₀ ((Real.lt_log_iff_exp_lt _).2 _).le).trans',L.trans',Real.exp_one_lt_d9.trans]
+      exact (mod_cast one_half_lt_one.le.trans (le_of_lt (one_lt_pow₀.comp (Real.lt_log_iff_exp_lt (by(((positivity))))).mpr (by(linear_combination L +.exp_one_lt_d9)) (by decide))))
+    · bound [hA.1, Real.log_lt_log three_pos L, Real.lt_log_one_add_of_pos two_pos]
+      · linear_combination L
+      · linear_combination L
+      · exact (mod_cast (Real.rpow_lt_rpow_of_exponent_lt (by bound) ( show 1/4<4by bound)).le)
 
-  -- Estimate σ' - σ
-  have gap_bound : σ' - σ ≤ 2 * A / Real.log |t| ^ 9 := by
-    simp only [σ']
-    -- This follows from the interval bounds
-    sorry
+  have left' : ‖ζ (σ' + t * I)‖ ≥ C₁ * A ^ ((3:ℝ) /4) / Real.log |t| ^ 7 := by
+    contrapose! hC₁
+    use σ',⟨lt_add_of_pos_right 1<|by bound[hA'.1],add_le_of_le_sub_left ((div_le_iff₀ (by bound)).2 (hA.2.trans ?_))⟩,t,L,hC₁.trans_le ?_
+    · norm_num only[←div_le_iff₀', (one_le_pow₀ ((Real.log_le_log _ L.le).trans' ↑ _)).trans',Real.le_log_iff_exp_le _,Real.exp_one_lt_d9.le.trans]
+      exact (mod_cast (one_lt_pow₀ ((Real.lt_log_iff_exp_lt (by linarith)).2 (by linarith[Real.exp_one_lt_d9])) (by decide)).le.trans' (by(((norm_num)))))
+    · norm_num only[σ',add_sub_cancel_left, A.div_rpow hA.1.le, mul_div,pow_pos, L.trans',←Real.rpow_natCast,←Real.rpow_mul,le_of_lt,Real.log_pos,refl,div_div,←Real.rpow_sub]
+      norm_num only[*, L.trans',mul_assoc, A.div_rpow, mul_div,←Real.rpow_add,←Real.rpow_natCast,←Real.rpow_mul,div_div,Real.log_pos,Real.rpow_pos_of_pos,hA.1,refl,le_of_lt]
 
-  -- Combine the bounds using reverse triangle inequality
-  have : ‖ζ (σ' + t * I)‖ - ‖ζ (σ' + t * I) - ζ (σ + t * I)‖ ≤ ‖ζ (σ + t * I)‖ := by
-    convert norm_sub_norm_le (a := ζ (σ' + t * I)) (b := ζ (σ' + t * I) - ζ (σ + t * I)) using 1
-    simp
+  have ineq : ‖ζ (σ + t * I)‖ ≥ (C₁ * A ^ ((3:ℝ) /4) - C₂ * 2 * A) / Real.log |t| ^ 7 := by
+    linear_combination left'+triangular+right'
 
-  apply le_trans _ this
-  apply le_trans _ (sub_le_sub lower_at_σ' diff_bound)
-
-  -- Now we need: c / log^7 |t| ≤ c₁ * (σ' - 1)^(3/4) / log^(1/4) |t| - C₂ * log^2 |t| * 2A / log^9 |t|
-  -- Simplify: c₁ * A^(3/4) / log^(7/4) |t| - C₂ * 2A / log^7 |t|
-  -- Factor out 1/log^7 |t|: (c₁ * A^(3/4) * log^(21/4) |t| - C₂ * 2A) / log^7 |t|
-
-  have key_bound : c / Real.log |t| ^ (7 : ℝ) ≤ c₁ * (σ' - 1) ^ (3 / 4 : ℝ) / (Real.log |t|) ^ (1 / 4 : ℝ) -
-                   C₂ * Real.log |t| ^ (2 : ℝ) * (2 * A / Real.log |t| ^ (9 : ℝ)) := by
-    -- Substitute σ' - 1 = A / log^9 |t|
-    have : σ' - 1 = A / Real.log |t| ^ 9 := by simp [σ']
-    rw [this]
-
-    -- Simplify the expression
-    have simplify : c₁ * (A / Real.log |t| ^ 9) ^ (3 / 4 : ℝ) / (Real.log |t|) ^ (1 / 4 : ℝ) -
-                    C₂ * Real.log |t| ^ 2 * (2 * A / Real.log |t| ^ 9) =
-                    (c₁ * A ^ (3 / 4 : ℝ) - C₂ * 2 * A) / Real.log |t| ^ 7 := by
-      -- Algebraic manipulation
-      sorry
-
-    sorry
---    rw [simplify]
-
-  calc _ ≤ _ := key_bound
-      _ ≤ _ := ?_
-  gcongr
-  · linarith
-  · sorry
-  · norm_cast
-  · convert gap_bound
-    norm_cast
+  rw [mul_comm C₂] at ineq
+  exact_mod_cast ineq
 
 
 /-%%
