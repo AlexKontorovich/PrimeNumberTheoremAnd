@@ -2553,6 +2553,20 @@ lemma ZetaLowerBnd :
   have triangular :  ‖ζ (σ + t * I)‖ ≥  ‖ζ (σ' + t * I)‖ -  ‖ζ (σ + t * I) - ζ (σ' + t * I)‖ := by
     apply sub_le_iff_le_add.mpr.comp (sub_sub_self @_ (@_ : ℂ)▸norm_sub_le _ _).trans (by rw [add_comm])
 
+  have one_leLogT : 1 ≤ Real.log |t| := by
+    refine (Real.le_log_iff_exp_le ?_).mpr ?_
+    · linarith
+    · have : Real.exp 1 < 3 := by
+        have := Real.exp_one_lt_d9
+        linarith
+      linarith
+
+  have σ'_ge : 1 ≤ σ' := by
+    bound
+    · exact hA'.1.le
+    · norm_num
+    · linarith
+
   have right_sub :  -‖ζ (σ + t * I) -  ζ (σ' + t * I)‖ ≥ - C₂ * Real.log |t| ^ 2 * (σ' - σ) := by
     show - C₂ * Real.log |t| ^ 2 * (σ' - σ) ≤ -‖ζ (σ + t * I) -  ζ (σ' + t * I)‖
     have := hC₂ σ σ' t L ?_ ?_ ?_
@@ -2565,18 +2579,17 @@ lemma ZetaLowerBnd :
         gcongr
         · exact hA'.1.le
         · bound
-        · simp only [inf_le_left, A]
-        · have : 1 ≤ Real.log |t| := by
-            refine (Real.le_log_iff_exp_le ?_).mpr ?_
-            · linarith
-            · have : Real.exp 1 < 3 := by
-                have := Real.exp_one_lt_d9
-                linarith
-              linarith
-          bound
+        · bound
       linarith
-    · sorry
-    · sorry
+    · have : σ' ≤ 1 + A := by
+        bound
+        · exact hA'.1.le
+        · norm_num
+        · have : 1 ≤ Real.log |t| ^ 9 := by
+            bound
+          exact_mod_cast this
+      bound [hA.2]
+    · linarith
     -- use (le_neg.1 ((norm_sub_rev _ _).trans_le ((hC₂ _ _ (add_le_of_le_sub_left ((div_le_iff₀ (by bound)).2 (hA.2.trans (?_)))) (σ_le_one.trans (?_)) t L ?_).trans_eq (by ring))))
     -- · norm_num only[Real.le_log_iff_exp_le, L.trans',(one_le_pow₀ _).trans',one_mul,Real.exp_one_lt_d9.le.trans]
     --   exact (mod_cast one_half_lt_one.le.trans (one_le_pow₀ ((Real.le_log_iff_exp_le (three_pos.trans L)).2 (by linear_combination L +.exp_one_lt_d9))))
