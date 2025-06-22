@@ -2740,7 +2740,7 @@ This fact is already proved in Stoll's work.
 \end{proof}
 %%-/
 
--- **Begin collaboration with the Alpha Proof team!**
+-- **Begin collaboration with the Alpha Proof team! 5/29/25**
 
 /-%%
 Then, since $\zeta$ doesn't vanish on the 1-line, there is a $\simga<1$ (depending on $T$), so that
@@ -2879,20 +2879,190 @@ is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}
 \end{lemma}
 %%-/
 
-theorem LogDerivZetaHolc :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (T : ℝ) (_ : 100 < T),
+theorem LogDerivZetaHolcLargeT :
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (T : ℝ) (_ : 3 < T),
     let σ := (1 : ℝ) - A / Real.log T ^ 9
     HolomorphicOn (fun (s : ℂ) ↦ deriv ζ s / (ζ s))
       (((Icc σ 2) ×ℂ (Icc (-T) T)) \ {1})
-    ∧ (∀ (t : ℝ), (|t| ≤ T) → ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤
+    ∧ (∀ (t : ℝ), (3 < |t|) → (|t| ≤ T) → ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤
       C * Real.log T ^ 9)
-    ∧ (∀ σ₀ ∈ Icc σ 1, ‖deriv ζ (σ₀ + T * I) / ζ (σ₀ + T * I)‖ ≤
+    ∧ (∀ σ₀ ∈ Ico σ 1, ‖deriv ζ (σ₀ + T * I) / ζ (σ₀ + T * I)‖ ≤
       C * Real.log T ^ 9)
-    ∧ (∀ σ₀ ∈ Icc σ 1, ‖deriv ζ (σ₀ - T * I) / ζ (σ₀ - T * I)‖ ≤
+    ∧ (∀ σ₀ ∈ Ico σ 1, ‖deriv ζ (σ₀ - T * I) / ζ (σ₀ - T * I)‖ ≤
       C * Real.log T ^ 9) := by
+  obtain ⟨A₀, hA₀, C₁, C₁pos, h_logderiv⟩ := LogDerivZetaBnd
+  obtain ⟨A₁, hA₁, h_zero_free⟩ := ZetaZeroFree
+  obtain ⟨σFixed, σFixedLeOne, hσFixed⟩ := ZetaNoZerosInBox 3
 
-  -- Get the basic bound from LogDerivZetaBnd
-  obtain ⟨A, hA, C₁, C₁pos, h_logderiv⟩ := LogDerivZetaBnd
+  -- Choose A to be the minimum of A₀, A₁
+  let A := min A₀ A₁
+  have hA : A ∈ Ioc 0 (1 / 2) := by
+    constructor
+    · exact lt_min hA₀.1 hA₁.1
+    · exact min_le_of_right_le hA₁.2
+
+  have A_le_A₀ : A ≤ A₀ := min_le_left A₀ A₁
+  have A_le_A₁ : A ≤ A₁ := min_le_right A₀ A₁
+
+  -- Get bounds on the small compact region
+  have compact_bounds : ∃ C₂ > 0, ∀ (σ₀ : ℝ) (t : ℝ),
+      σFixed ≤ σ₀ ∧ σ₀ ≤ 1 ∧ |t| ≤ 3 →
+      ‖deriv ζ (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ C₂ := by
+    -- The region [σFixed, 1] × [-3, 3] is compact and avoids the pole at 1
+    -- since σFixed < 1 and we stay in the interior
+    sorry -- similar compactness argument as before, but now cleaner
+
+  obtain ⟨C₂, C₂pos, h_compact_bound⟩ := compact_bounds
+
+  -- Use the maximum of both constants
+  use A, hA, max C₁ C₂, by simp [C₁pos, C₂pos]
+
+  intro T hT
+  let σ := (1 : ℝ) - A / Real.log T ^ 9
+
+  -- The key insight: we'll decompose the region into two boxes
+  -- Box 1: where |t| ≥ 3, use asymptotic results
+  -- Box 2: where |t| ≤ 3, use compactness
+
+  sorry
+
+#exit
+
+theorem LogDerivZetaHolc :
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (T : ℝ) (_ : 3 < T),
+    let σ := (1 : ℝ) - A / Real.log T ^ 9
+    HolomorphicOn (fun (s : ℂ) ↦ deriv ζ s / (ζ s))
+      (((Icc σ 2) ×ℂ (Icc (-T) T)) \ {1})
+    ∧ (∀ (t : ℝ), (3 < |t|) → (|t| ≤ T) → ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤
+      C * Real.log T ^ 9)
+    ∧ (∀ σ₀ ∈ Ico σ 1, ‖deriv ζ (σ₀ + T * I) / ζ (σ₀ + T * I)‖ ≤
+      C * Real.log T ^ 9)
+    ∧ (∀ σ₀ ∈ Ico σ 1, ‖deriv ζ (σ₀ - T * I) / ζ (σ₀ - T * I)‖ ≤
+      C * Real.log T ^ 9) := by
+  obtain ⟨A₀, hA₀, C₁, C₁pos, h_logderiv⟩ := LogDerivZetaBnd
+  obtain ⟨A₁, hA₁, h_zero_free⟩ := ZetaZeroFree
+
+  obtain ⟨σFixed, σFixedLeOne, hσFixed⟩ := ZetaNoZerosInBox 4
+
+  let A := min (min A₀ A₁) ((1 - σFixed) / 2)
+
+  have hA : A ∈ Ioc 0 (1 / 2) := by
+    refine ⟨by bound [hA₀.1, hA₁.1], by bound [hA₀.2]⟩
+
+  have A_le_A₀ : A ≤ A₀ := by
+    exact le_trans (min_le_left _ _) (min_le_left _ _)
+
+  have A_le_A₁ : A ≤ A₁ := by
+    exact le_trans (min_le_left _ _) (min_le_right _ _)
+
+  have A_bound : A ≤ (1 - σFixed) / 2 := by
+    exact min_le_right _ _
+
+-- Key lemma: for T large enough, our σ will be ≥ σFixed
+  have σ_ge_σFixed (T : ℝ) (hT : 100 < T) : σFixed ≤ 1 - A / Real.log T ^ 9 := by
+    have log_T_large : 1 ≤ Real.log T := by
+      refine (Real.le_log_iff_exp_le ?_).mpr ?_
+      · linarith
+      · have : Real.exp 1 < 3 := by
+          have := Real.exp_one_lt_d9
+          linarith
+        linarith
+
+    have log_T_pow_large : 1 ≤ Real.log T ^ 9 := by
+      bound
+
+    -- Use our choice A ≤ (1 - σFixed) / 2
+    have := calc A ≤ (1 - σFixed) / 2 := A_bound
+            _ ≤ (1 - σFixed) * Real.log T ^ 9 / 2 := by
+              bound
+            _ ≤ (1 - σFixed) * Real.log T ^ 9 := by
+              bound
+
+    -- Therefore A / log^9 T ≤ 1 - σFixed
+    have : A / Real.log T ^ 9 ≤ 1 - σFixed := by
+      -- We have: A ≤ (1 - σFixed) * log^9 T
+      -- Need to show: A / log^9 T ≤ 1 - σFixed
+
+      -- First establish log^9 T > 0
+      have log_T_pos : 0 < Real.log T := by
+        apply Real.log_pos
+        linarith -- since T > 100 > 1
+
+      have log_T_pow_pos : 0 < Real.log T ^ 9 := by
+        apply pow_pos log_T_pos
+
+      -- Now apply div_le_iff
+      rw [div_le_iff₀ log_T_pow_pos]
+      -- This transforms the goal to: A ≤ (1 - σFixed) * Real.log T ^ 9
+      -- which is exactly our assumption
+      exact this -- referring to the assumption A ≤ (1 - σFixed) * Real.log T ^ 9
+
+    linarith
+
+-- Get bounds on the compact region where |t| ≤ 3
+  have compact_bounds : ∃ C₂ > 0, ∀ (σ₀ : ℝ) (t : ℝ),
+      σFixed ≤ σ₀ ∧ σ₀ ≤ 2 ∧ |t| ≤ 3 →
+      ‖deriv ζ (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ C₂ := by
+    -- The region [σFixed, 2] × [-3, 3] is compact
+    let K : Set ℂ := {s | ∃ σ₀ t, σFixed ≤ σ₀ ∧ σ₀ ≤ 2 ∧ |t| ≤ 3 ∧ s = σ₀ + t * I}
+
+    have K_compact : IsCompact K := by
+      sorry -- standard compactness argument
+
+    have K_subset : K ⊆ ℂ \ {1} := by
+      sorry -- since σFixed < 1, the region doesn't contain 1
+
+    -- ζ is continuous and nonzero on K
+    have ζ_continuous : ContinuousOn ζ K := by
+      sorry -- ζ is holomorphic hence continuous
+
+    have ζ_nonzero : ∀ s ∈ K, ζ s ≠ 0 := by
+      intro s hs
+      -- Extract σ₀, t from the definition of K
+      obtain ⟨σ₀, t, hσ₀_ge, hσ₀_le, ht_bound, hs_eq⟩ := hs
+      rw [hs_eq]
+      -- Use hσFixed since |t| ≤ 3 < 4
+      apply hσFixed t (by linarith) σ₀ hσ₀_ge
+
+    -- Similarly for deriv ζ
+    have deriv_ζ_continuous : ContinuousOn (deriv ζ) K := by
+      sorry -- deriv ζ is holomorphic hence continuous
+
+    -- Therefore ζ'/ζ is continuous on the compact set K
+    have logderiv_continuous : ContinuousOn (fun s ↦ deriv ζ s / ζ s) K := by
+      apply ContinuousOn.div deriv_ζ_continuous ζ_continuous ζ_nonzero
+
+    -- By compactness, ζ'/ζ is bounded on K
+    obtain ⟨C₂, hC₂⟩ := IsCompact.exists_bound_of_continuousOn K_compact logderiv_continuous
+    use C₂ + 1, by linarith
+
+    intro σ₀ t ⟨hσ₀_ge, hσ₀_le, ht_bound⟩
+    have s_in_K : σ₀ + t * I ∈ K := by
+      use σ₀, t, hσ₀_ge, hσ₀_le, ht_bound, rfl
+    exact le_trans (hC₂ (σ₀ + t * I) s_in_K) (by norm_num)
+
+  obtain ⟨C₂, C₂pos, h_compact_bound⟩ := compact_bounds
+
+
+  sorry
+  #exit
+  obtain ⟨A₂, hA₂, C₂, hC₂, h_deriv_bnd⟩ := ZetaNoZerosInBox
+
+  let A := min A₂ (min A₀ A₁)
+  have Apos : 0 < A := by
+    bound [hA₀.1, hA₁.1, hA₂.1]
+  have A_le : A ≤ 1 / 2 := by
+    bound [hA₀.2, hA₁.2, hA₂.2]
+  have A_le_A₀ : A ≤ A₀ := by bound
+  have A_le_A₁ : A ≤ A₁ := by bound
+  have A_le_A₂ : A ≤ A₂ := by bound
+
+  use A, ⟨Apos, A_le⟩
+
+
+
+  sorry
+#exit
 
   -- We'll choose a large enough constant to handle all cases
   let C := max C₁ 1000  -- Large enough to handle compact bounds

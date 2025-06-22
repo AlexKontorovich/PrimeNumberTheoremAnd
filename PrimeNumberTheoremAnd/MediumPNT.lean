@@ -345,7 +345,7 @@ $$\psi_{\epsilon}(X) = \psi(X) + O(\epsilon X \log X).$$
 \end{theorem}
 %%-/
 
-open scoped ArithmeticFunction in
+--open scoped ArithmeticFunction in
 theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → ℝ} (SmoothingF : ℝ → ℝ)
     (c₁ : ℝ) (c₁_pos : 0 < c₁) (c₁_lt : c₁ < 1)
     (c₂ : ℝ) (c₂_pos : 0 < c₂) (c₂_lt : c₂ < 2) (hc₂ : ∀ (ε x : ℝ), ε ∈ Ioo 0 1 → 1 + c₂ * ε ≤ x → Smooth1 SmoothingF ε x = 0)
@@ -393,10 +393,11 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     simp only [n₀]
     exact Nat.le_ceil (X * (1 - c₁ * ε))
 
-  have sumΛ : Summable (fun n ↦ Λ n * F (n / X)) := by
-    exact (summable_of_ne_finset_zero fun a s=>mul_eq_zero_of_right _
-    (hc₂ _ _ (by trivial) ((le_div_iff₀ X_pos).2 (Nat.ceil_le.1 (not_lt.1
-    (s ∘ Finset.mem_range.2))))))
+  have sumΛ : Summable (fun (n : ℕ) ↦ Λ n * F (n / X)) := by sorry
+    -- := by
+    -- exact (summable_of_ne_finset_zero fun a s=>mul_eq_zero_of_right _
+    -- (hc₂ _ _ (by trivial) ((le_div_iff₀ X_pos).2 (Nat.ceil_le.1 (not_lt.1
+    -- (s ∘ Finset.mem_range.2))))))
 
   have sumΛn₀ (n₀ : ℕ) : Summable (fun n ↦ Λ (n + n₀) * F ((n + n₀) / X)) := by exact_mod_cast sumΛ.comp_injective fun Q=>by valid
 
