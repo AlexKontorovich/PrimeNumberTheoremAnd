@@ -2510,7 +2510,7 @@ C (\sigma'-1)^{3/4}\log |t|^{-1/4} - C \log^2 |t| (\sigma'-\sigma)
 $$
 $$
 \ge
-C A^{-3/4} \log |t|^{-7} - C \log^2 |t| (2 A / \log^9 |t|),
+C A^{3/4} \log |t|^{-7} - C \log^2 |t| (2 A / \log^9 |t|),
 $$
 where we used Lemma \ref{ZetaInvBound2}  and Lemma \ref{Zeta_diff_Bnd}.
 Now by making $A$ sufficiently small (in particular, something like $A = 1/16$ should work), we can guarantee that
