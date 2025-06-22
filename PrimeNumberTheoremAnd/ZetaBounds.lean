@@ -2614,6 +2614,18 @@ as desired.
 
 -- **Another AlphaProof collaboration (thanks to Thomas Hubert!)**
 
+/-%%
+Annoyingly, it is not immediate from this that $\zeta$ doesn't vanish there! That's because
+$1/0 = 0$ in Lean. So we give a second proof of the same fact (refactor this later), with a lower
+ bound on $\zeta$ instead of upper bound on $1 / \zeta$.
+\begin{lemma}[ZetaLowerBnd]\label{ZetaLowerBnd}\lean{ZetaLowerBnd}\leanok
+For any $A>0$ sufficiently small, there is a constant $C>0$ so that
+whenever $1- A / \log^9 |t| \le \sigma < 1$ and $3 < |t|$, we have that:
+$$
+|\zeta(\sigma+it)| \ge C \log^7 |t|.
+$$
+\end{lemma}
+%%-/
 lemma ZetaLowerBnd :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (c : ℝ) (_ : 0 < c),
     ∀ (σ : ℝ)
@@ -2716,8 +2728,22 @@ lemma ZetaLowerBnd :
   exact_mod_cast ineq
 
 -- **End collaboration 6/20/25**
+/-%%
+\begin{proof}\leanok
+\uses{ZetaLowerBound3, Zeta_diff_Bnd}
+Follow same argument.
+\end{proof}
+%%-/
 
-
+/-%%
+Now we get a zero free region.
+\begin{lemma}[ZetaZeroFree]\label{ZetaZeroFree}\lean{ZetaZeroFree}\leanok
+There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1$ and $3 < |t|$,
+$$
+\zeta(\sigma+it) \ne 0.
+$$
+\end{lemma}
+%%-/
 lemma ZetaZeroFree :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)),
     ∀ (σ : ℝ)
@@ -2755,6 +2781,13 @@ lemma ZetaZeroFree :
     linarith
 
   linarith
+/-%%
+\begin{proof}\leanok
+\uses{ZetaLowerBnd}
+Apply Lemma \ref{ZetaLowerBnd}.
+\end{proof}
+%%-/
+
 
 /-%%
 \begin{lemma}[LogDerivZetaBnd]\label{LogDerivZetaBnd}\lean{LogDerivZetaBnd}\leanok
@@ -2979,7 +3012,7 @@ If $t_0=0$, $\zeta$ blows up near $1$, so can't be zero nearby.
 -- **End collaboration**
 
 /-%%
-\begin{lemma}[LogDerivZetaHolc]\label{LogDerivZetaHolc}\lean{LogDerivZetaHolc}\leanok
+\begin{lemma}[LogDerivZetaHolcLargeT]\label{LogDerivZetaHolcLargeT}\lean{LogDerivZetaHolcLargeT}\leanok
 There is an $A>0$ so that for all $T>3$, the function
 $
 \frac {\zeta'}{\zeta}(s)
@@ -2987,15 +3020,20 @@ $
 is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}$.
 \end{lemma}
 %%-/
-
 theorem LogDerivZetaHolcLargeT :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (T : ℝ) (_ : 3 < T),
     HolomorphicOn (fun (s : ℂ) ↦ deriv ζ s / (ζ s))
       (((Icc ((1 : ℝ) - A / Real.log T ^ 9) 2) ×ℂ (Icc (-T) T)) \ {1}) := by
   sorry
+/-%%
+\begin{proof}
+The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
+in this range by Lemma \ref{ZetaNoZerosInBox}.
+\end{proof}
+%%-/
 
 /-
-It would be better to refactor this entire file so that we're not using explicit
+It would perhaps (?) be better to refactor this entire file so that we're not using explicit
 constants but instead systematically using big Oh notation... The punchline would be:
 -/
 /-%%
