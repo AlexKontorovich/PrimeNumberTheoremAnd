@@ -36,6 +36,97 @@ lemma div_rpow_eq_rpow_div_neg {x y s : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
   convert div_rpow_neg_eq_rpow_div (s := -s) hx hy using 1; simp only [neg_neg]
 
 /-%%
+We record here some prelimiaries about the zeta function and general
+holomorphic functions.
+\begin{theorem}[riemannZetaResidue]\label{riemannZetaResidue}\lean{riemannZetaResidue}\leanok
+  The Riemann zeta function $\zeta(s)$ has a simple pole at $s=1$ with residue $1$. In particular, the function
+  $$ \zeta(s) - \frac{1}{s-1}$$
+  is bounded in a neighborhood of $s=1$.
+\end{theorem}
+%%-/
+theorem riemannZetaResidue :
+    (riemannZeta - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
+  have := riemannZeta_residue_one
+  sorry
+/-%%
+\begin{proof}
+  Look at the proof of `riemannZeta_residue_one` in Mathlib.
+\end{proof}
+%%-/
+/-%%
+\begin{theorem}[logDerivResidue]\label{logDerivResidue}\lean{logDerivResidue}\leanok
+  If $f$ is holomorphic in a neighborhood of $p$, and there is a simple pole at $p$, then $f'/f$ has a simple pole at $p$ with residue $-1$:
+  $$ \frac{f'(s)}{f(s)} = \frac{-1}{s - p} + O(1).$$
+\end{theorem}
+%%-/
+theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (holc : HolomorphicOn f (U \ {p}))
+    (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+    (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
+    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+  have : HolomorphicOn (f - (fun s ↦ A * (s - p)⁻¹)) (U \ {p}) := by sorry
+  have := existsDifferentiableOn_of_bddAbove U_in_nhds this
+  sorry
+/-%%
+\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}
+Using Theorem \ref{existsDifferentiableOn_of_bddAbove}, there is a function $g$ holomorphic  near $p$, for which $f(s) = A/(s-p) + g(s) = h(s)/ (s-p)$. Here $h(s):= A + g(s)(s-p)$ which is nonzero in a neighborhood of $p$ (since $h$ goes to $A$ which is nonzero).
+Then $f'(s) = (h'(s)(s-p) - h(s))/(s-p)^2$, and we can compute the quotient:
+$$
+\frac{f'(s)}{f(s)}+1/(s-p) = \frac{h'(s)(s-p) - h(s)}{h(s)} \cdot \frac{1}{(s-p)}+1/(s-p)
+=
+\frac{h'(s)}{h(s)}.
+$$
+Since $h$ is nonvanishing near $p$, this remains bounded in a neighborhood of $p$.
+\end{proof}
+%%-/
+
+/-%%
+Let's also record that if a function $f$ has a simple pole at $p$ with residue $A$, and $g$ is holormophic near $p$, then the residue of $f*g$ is $A * g(p)$.
+\begin{theorem}[ResidueMult]\label{ResidueMult}\lean{ResidueMult}\leanok
+  If $f$ has a simple pole at $p$ with residue $A$, and $g$ is holomorphic near $p$, then the residue of $f * g$ at $p$ is $A * g(p)$. That is, we assume that
+  $$
+  f(s) = \frac{A}{s - p} + O(1)$$
+  near $p$, and that $g$ is holomorphic near $p$. Then
+  $$
+  f(s) * g(s) = \frac{A * g(p)}{s - p} + O(1).$$
+\end{theorem}
+%%-/
+theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : HolomorphicOn f (U \ {p}))
+    (g_holc : HolomorphicOn g U) (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+    (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
+    (f * g - (fun s ↦ A * g p * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+  sorry
+/-%%
+\begin{proof}
+Elementary calculation.
+$$
+f(s) * g(s) - \frac{A * g(p)}{s - p} =
+\left(f(s) * g(s) - \frac{A * g(s)}{s - p}\right) + \left(\frac{A * g(s) - A * g(p)}{s - p}\right).
+$$
+The first term is $g(s)(f(s) - \frac{A}{s - p})$, which is bounded near $p$ by the assumption on $f$
+ and the fact that $g$ is holomorphic near $p$.
+The second term is $A$ times the log derivative of $g$ at $p$, which is bounded by the assumption
+that  $g$ is holomorphic.
+\end{proof}
+%%-/
+
+/-%%
+As a corollary, the log derivative of the Riemann zeta function has a simple pole at $s=1$:
+\begin{theorem}[riemannZetaLogDerivResidue]\label{riemannZetaLogDerivResidue}\lean{riemannZetaLogDerivResidue}\leanok
+  The log derivative of the Riemann zeta function $\zeta(s)$ has a simple pole at $s=1$ with residue $-1$:
+  $$ -\frac{\zeta'(s)}{\zeta(s)} - \frac{1}{s-1} = O(1).$$
+\end{theorem}
+%%-/
+theorem riemannZetaLogDerivResidue :
+    (-(deriv riemannZeta * riemannZeta⁻¹) - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
+  sorry
+/-%%
+\begin{proof}\uses{logDerivResidue, riemannZetaResidue}
+  This follows from Theorem \ref{logDerivResidue} and Theorem \ref{riemannZetaResidue}.
+\end{proof}
+%%-/
+
+
+/-%%
 \begin{definition}[riemannZeta0]\label{riemannZeta0}\lean{riemannZeta0}\leanok
 For any natural $N\ge1$, we define
 $$
@@ -2029,6 +2120,131 @@ lemma norm_zeta_product_ge_one {x : ℝ} (hx : 0 < x) (y : ℝ) :
     LSeries_one_eq_riemannZeta, h₀, h₁, h₂] using
     DirichletCharacter.norm_LSeries_product_ge_one (1 : DirichletCharacter ℂ 1) hx y
 
+
+theorem ZetaLowerBound1_aux1 {σ t : ℝ} (this : 1 ≤ ‖ζ σ‖ ^ (3 : ℝ) * ‖ζ (σ + I * t)‖ ^ (4 : ℝ) * ‖ζ (σ + 2 * I * t)‖) :
+  ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) * ‖ζ (σ + t * I)‖ ≥ 1 := by
+  use (one_le_pow_iff_of_nonneg (by bound) four_ne_zero).1 (by_contra (this.not_lt ∘ ?_))
+  norm_num[← Real.rpow_natCast, ← Real.rpow_mul, mul_right_comm, mul_comm (t : ℂ), mul_pow]
+
+lemma ZetaLowerBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
+    ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) * ‖ζ (σ + t * I)‖ ≥ 1 := by
+  -- Start with the fundamental identity
+  have := norm_zeta_product_ge_one (x := σ - 1) (by linarith) t
+  simp_rw [ge_iff_le, norm_mul, norm_pow, ofReal_sub, ofReal_one, add_sub_cancel, ← Real.rpow_natCast]
+    at this
+  apply ZetaLowerBound1_aux1 this
+
+lemma ZetaLowerBound2 {σ t : ℝ} (σ_gt : 1 < σ) :
+    1 / (‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4)) ≤ ‖ζ (σ + t * I)‖ := by
+  have := ZetaLowerBound1 (t := t) σ_gt
+  exact (div_le_iff₀' (pos_of_mul_pos_left (one_pos.trans_le this) (norm_nonneg _) ) ).mpr this
+
+theorem ZetaLowerBound3_aux1 (A : ℝ) (ha : A ∈ Ioc 0 (1 / 2)) (t : ℝ)
+  (ht_2 : 3 < |2 * t|) : 0 < A / Real.log |2 * t| := by
+  norm_num only [div_pos _, Real.log_pos _, ht_2.trans', ha.left]
+
+theorem ZetaLowerBound3_aux2 {C : ℝ}
+  {σ t : ℝ}
+  (ζ_2t_bound : ‖ζ (σ + (2 * t) * I)‖ ≤ C * Real.log |2 * t|) :
+  ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) ≤ (C * Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
+  bound
+
+theorem ZetaLowerBound3_aux3 {A : ℝ} (_ : 0 < A) {C : ℝ} (_ : 0 < C)
+  {c_near : ℝ} (_ : 0 < c_near) (σ : ℝ) (t : ℝ) (_ : 3 < |t|) (σ_gt : 1 < σ)
+  :
+  c_near ^ ((3 : ℝ) / 4) * ((-1 + σ) ^ ((3 : ℝ) / 4))⁻¹ * C ^ ((1 : ℝ) / 4) * Real.log |t * 2| ^ ((1 : ℝ) / 4) =
+    c_near ^ ((3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * Real.log |t * 2| ^ ((1 : ℝ) / 4) * (-1 + σ) ^ (-(3 : ℝ) / 4) := by
+  exact (symm) (.trans (by rw [neg_div, Real.rpow_neg (by linarith)]) (by ring))
+
+theorem ZetaLowerBound3_aux4 (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (hC : 0 < C)
+  (c_near : ℝ) (hc_near : 0 < c_near) {σ : ℝ} (t : ℝ) (ht : 3 < |t|)
+  (σ_gt : 1 < σ)
+   :
+  0 < c_near ^ ((3 : ℝ) / 4) * (σ - 1) ^ (-(3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * Real.log |2 * t| ^ ((1 : ℝ) / 4) := by
+  match sub_pos.mpr σ_gt with | S => match Real.log_pos (by norm_num [abs_mul, ht.trans', one_lt_mul_of_lt_of_le _, le_of_lt] : abs (2 *t) > 1) with | S => positivity
+
+theorem ZetaLowerBound3_aux5
+  {σ : ℝ} (t : ℝ)
+  (this : ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) * ‖ζ (σ + t * I)‖ ≥ 1) :
+  0 < ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) := by
+  field_simp only [pos_of_mul_pos_left ∘ this.trans_lt']
+
+lemma ZetaLowerBound3 :
+    ∃ c > 0, ∀ {σ : ℝ} (_ : σ ∈ Ioc 1 2) (t : ℝ) (_ : 3 < |t|),
+    c * (σ - 1) ^ ((3 : ℝ) / 4) / (Real.log |t|) ^ ((1 : ℝ) / 4) ≤ ‖ζ (σ + t * I)‖ := by
+  obtain ⟨A, ha, C, hC, h_upper⟩ := ZetaUpperBnd
+  obtain ⟨c_near, hc_near, h_near⟩ := ZetaNear1BndExact
+
+  use 1 / (c_near ^ ((3 : ℝ) / 4) * (2 * C) ^ ((1 : ℝ) / 4)), by positivity
+  intro σ hσ t ht
+  obtain ⟨σ_gt, σ_le⟩ := hσ
+
+  -- Use ZetaLowerBound2
+  have lower := ZetaLowerBound2 (t := t) σ_gt
+  apply le_trans _ lower
+
+  -- Now we need to bound the denominator from above
+  -- This will give us a lower bound on the whole expression
+
+  -- Upper bound on ‖ζ σ‖ from ZetaNear1BndExact
+  have ζ_σ_bound : ‖ζ σ‖ ≤ c_near / (σ - 1) := by
+    exact h_near σ ⟨σ_gt, σ_le⟩
+
+  have ht_2 : 3 < |2 * t| := by simp only [abs_mul, Nat.abs_ofNat]; linarith
+
+  -- Upper bound on ‖ζ (σ + 2*t * I)‖ from ZetaUpperBnd
+
+  have σ_in_range : σ ∈ Icc (1 - A / Real.log |2 * t|) 2 := by
+    constructor
+    · -- σ ≥ 1 - A / Real.log |2*t|
+      have : 0 < A / Real.log |2 * t| := by
+        exact ZetaLowerBound3_aux1 A ha t ht_2
+      nlinarith
+    · exact σ_le
+
+  have ζ_2t_bound := h_upper σ (2 * t) ht_2 σ_in_range
+
+  -- Combine the bounds
+  have denom_bound : ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) ≤
+      (c_near / (σ - 1)) ^ ((3 : ℝ) / 4) * (C * Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
+    apply mul_le_mul
+    · apply Real.rpow_le_rpow (norm_nonneg _) ζ_σ_bound (by norm_num)
+    · apply ZetaLowerBound3_aux2
+      convert ζ_2t_bound
+      norm_cast
+    · apply Real.rpow_nonneg (norm_nonneg _)
+    · apply Real.rpow_nonneg (div_nonneg (by linarith) (by linarith))
+
+  -- Simplify the bound
+  have : (c_near / (σ - 1)) ^ ((3 : ℝ) / 4) * (C * Real.log |2 * t|) ^ ((1 : ℝ) / 4) =
+         c_near ^ ((3 : ℝ) / 4) * (σ - 1) ^ (-(3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * (Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
+    rw [Real.div_rpow (by linarith) (by linarith), Real.mul_rpow (by linarith) (Real.log_nonneg (by linarith))]
+    ring_nf
+    apply ZetaLowerBound3_aux3 ha.1 hC hc_near
+    · convert ht
+    · exact σ_gt
+
+  rw [this] at denom_bound
+
+  -- Take reciprocal (flipping inequality)
+  have pos_left : 0 < c_near ^ ((3 : ℝ) / 4) * (σ - 1) ^ (-(3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * (Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
+    apply ZetaLowerBound3_aux4 A ha C hC c_near hc_near t ht σ_gt
+
+  have pos_right : 0 < ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) := by
+    -- This follows from ZetaLowerBound1 - if either factor were zero, we'd get 0 ≥ 1
+    have := ZetaLowerBound1 (t := t) σ_gt
+    apply ZetaLowerBound3_aux5
+    convert this
+
+  use (div_le_div_of_nonneg_left zero_le_one pos_right denom_bound).trans' ?_
+  simp_rw [abs_mul, abs_two, neg_div, Real.rpow_neg (sub_pos.2 σ_gt).le] at *
+  field_simp only [*, sub_pos, mul_assoc, mul_left_comm, mul_le_mul_left, one_mul,Real.log_mul,
+    Real.log_pos, ht.trans', show Real.log 2 + .log |t| ≤ .log 2 * .log |t| from (? _),div_le_div_iff_of_pos_left, Real.mul_rpow, Real.log_le_self]
+  use Real.mul_rpow two_pos.le (Real.log_nonneg (ht.trans' (by norm_num)).le) ▸ by
+    bound [Real.log_lt_log two_pos (ht.trans' (by norm_num)), Real.log_pos one_lt_two]
+
+
+
 /-%%
 \begin{lemma}[ZetaInvBound1]\label{ZetaInvBound1}\lean{ZetaInvBound1}\leanok
 For all $\sigma>1$,
@@ -2385,7 +2601,7 @@ C (\sigma'-1)^{3/4}\log |t|^{-1/4} - C \log^2 |t| (\sigma'-\sigma)
 $$
 $$
 \ge
-C A^{-3/4} \log |t|^{-7} - C \log^2 |t| (2 A / \log^9 |t|),
+C A^{3/4} \log |t|^{-7} - C \log^2 |t| (2 A / \log^9 |t|),
 $$
 where we used Lemma \ref{ZetaInvBound2}  and Lemma \ref{Zeta_diff_Bnd}.
 Now by making $A$ sufficiently small (in particular, something like $A = 1/16$ should work), we can guarantee that
@@ -2395,6 +2611,183 @@ $$
 as desired.
 \end{proof}
 %%-/
+
+-- **Another AlphaProof collaboration (thanks to Thomas Hubert!)**
+
+/-%%
+Annoyingly, it is not immediate from this that $\zeta$ doesn't vanish there! That's because
+$1/0 = 0$ in Lean. So we give a second proof of the same fact (refactor this later), with a lower
+ bound on $\zeta$ instead of upper bound on $1 / \zeta$.
+\begin{lemma}[ZetaLowerBnd]\label{ZetaLowerBnd}\lean{ZetaLowerBnd}\leanok
+For any $A>0$ sufficiently small, there is a constant $C>0$ so that
+whenever $1- A / \log^9 |t| \le \sigma < 1$ and $3 < |t|$, we have that:
+$$
+|\zeta(\sigma+it)| \ge C \log^7 |t|.
+$$
+\end{lemma}
+%%-/
+lemma ZetaLowerBnd :
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (c : ℝ) (_ : 0 < c),
+    ∀ (σ : ℝ)
+    (t : ℝ) (_ : 3 < |t|)
+    (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
+    c / (Real.log |t|) ^ (7 : ℝ) ≤ ‖ζ (σ + t * I)‖ := by
+  obtain ⟨C₁, C₁pos, hC₁⟩ := ZetaLowerBound3
+  obtain ⟨A', hA', C₂, C₂pos, hC₂⟩ := Zeta_diff_Bnd
+
+  -- Pick the right constants.
+  -- Don't really like this because I can only do that after first finishing the proof.
+  -- Is there a way to delay picking those
+  let A := min A' ((C₁ / (4 * C₂)) ^ 4)
+  have hA : A ∈ Ioc 0 (1 / 2) :=
+    ⟨lt_min hA'.1 (by positivity), (min_le_left A' _).trans hA'.2⟩
+
+  let C := C₁ * A ^ ((3:ℝ) /4) - 2 * C₂ * A
+  have hc_pos : 0 < C := by
+    have:= A.rpow_le_rpow hA.1.le (min_le_right _ _) (inv_pos.mpr four_pos).le
+    erw [Real.pow_rpow_inv_natCast (div_pos C₁pos (mul_pos four_pos C₂pos)).le four_ne_zero, le_div_iff₀ (mul_pos four_pos C₂pos)] at this
+    norm_num[mul_assoc,C,mul_left_comm,C₂pos,hA.1,(mul_le_mul_of_nonneg_right this (A.rpow_nonneg hA.1.le _)).trans_lt',←A.rpow_add]
+
+  refine ⟨A, hA, C, hc_pos, fun σ t L ⟨σ_low_bound, σ_le_one⟩=>?_⟩
+
+  -- From here I followed the proof found in the blueprint
+  let σ' := 1 + A / Real.log |t| ^  (9 : ℝ)
+
+  have triangular :  ‖ζ (σ + t * I)‖ ≥  ‖ζ (σ' + t * I)‖ -  ‖ζ (σ + t * I) - ζ (σ' + t * I)‖ := by
+    apply sub_le_iff_le_add.mpr.comp (sub_sub_self @_ (@_ : ℂ)▸norm_sub_le _ _).trans (by rw [add_comm])
+
+  have one_leLogT : 1 ≤ Real.log |t| := by
+    refine (Real.le_log_iff_exp_le ?_).mpr ?_
+    · linarith
+    · have : Real.exp 1 < 3 := by
+        have := Real.exp_one_lt_d9
+        linarith
+      linarith
+
+  have σ'_ge : 1 ≤ σ' := by
+    bound
+    · exact hA'.1.le
+    · norm_num
+    · linarith
+
+  have right_sub :  -‖ζ (σ + t * I) -  ζ (σ' + t * I)‖ ≥ - C₂ * Real.log |t| ^ 2 * (σ' - σ) := by
+    show - C₂ * Real.log |t| ^ 2 * (σ' - σ) ≤ -‖ζ (σ + t * I) -  ζ (σ' + t * I)‖
+    have := hC₂ σ σ' t L ?_ ?_ ?_
+    convert neg_le_neg this using 1
+    · ring
+    · congr! 1
+      have : ζ (↑σ + ↑t * I) - ζ (↑σ' + ↑t * I) = - (ζ (↑σ' + ↑t * I) - ζ (↑σ + ↑t * I)) := by ring
+      rw [this, norm_neg]
+    · have : 1 - A' / Real.log |t| ≤ 1 - A / (Real.log |t|) ^ 9 := by
+        gcongr
+        · exact hA'.1.le
+        · bound
+        · bound
+      linarith
+    · have : σ' ≤ 1 + A := by
+        bound
+        · exact hA'.1.le
+        · norm_num
+        · have : 1 ≤ Real.log |t| ^ 9 := by
+            bound
+          exact_mod_cast this
+      bound [hA.2]
+    · linarith
+    -- use (le_neg.1 ((norm_sub_rev _ _).trans_le ((hC₂ _ _ (add_le_of_le_sub_left ((div_le_iff₀ (by bound)).2 (hA.2.trans (?_)))) (σ_le_one.trans (?_)) t L ?_).trans_eq (by ring))))
+    -- · norm_num only[Real.le_log_iff_exp_le, L.trans',(one_le_pow₀ _).trans',one_mul,Real.exp_one_lt_d9.le.trans]
+    --   exact (mod_cast one_half_lt_one.le.trans (one_le_pow₀ ((Real.le_log_iff_exp_le (three_pos.trans L)).2 (by linear_combination L +.exp_one_lt_d9))))
+    -- · exact_mod_cast by ·linear_combination σ_low_bound.trans_lt σ_le_one
+    -- · exact (.trans (by bound[Real.log_le_log three_pos L.le, hA'.1,Real.lt_log_one_add_of_pos two_pos]) σ_low_bound)
+
+  have right' : -‖ζ (σ + t * I) -  ζ (σ' + t * I)‖   ≥ - C₂ * 2 * A / Real.log |t| ^ 7 := by
+    have := (abs t).log_pos (by bound)
+    refine right_sub.trans' ((div_le_iff₀ (pow_pos this 7)).2 @?_|>.trans (mul_le_mul_of_nonpos_left (sub_le_sub_left σ_low_bound (1+_) ) (by ·linear_combination C₂*this*(.log |t|))))
+    exact (mod_cast (by linear_combination (2 *_* A) *div_self ↑(pow_pos this 09).ne'))
+
+  have left_sub : ‖ζ (σ' + t * I)‖ ≥ C₁ * (σ' - 1) ^ ((3:ℝ) /4) / Real.log |t| ^ 4 := by
+    use (hC₁ ⟨lt_add_of_pos_right (1) (by bound[hA.1]),add_le_of_le_sub_left ((div_le_iff₀ (by bound)).2 (hA.2.trans (?_)))⟩ t L).trans' ?_
+    · norm_num only[one_mul, (one_le_pow₀ ((Real.lt_log_iff_exp_lt _).2 _).le).trans',L.trans',Real.exp_one_lt_d9.trans]
+      exact (mod_cast one_half_lt_one.le.trans (le_of_lt (one_lt_pow₀.comp (Real.lt_log_iff_exp_lt (by(((positivity))))).mpr (by(linear_combination L +.exp_one_lt_d9)) (by decide))))
+    · bound [hA.1, Real.log_lt_log three_pos L, Real.lt_log_one_add_of_pos two_pos]
+      · linear_combination L
+      -- · linear_combination L
+      · exact (mod_cast (Real.rpow_lt_rpow_of_exponent_lt (by bound) ( show 1/4<4by bound)).le)
+
+  have left' : ‖ζ (σ' + t * I)‖ ≥ C₁ * A ^ ((3:ℝ) /4) / Real.log |t| ^ 7 := by
+    contrapose! hC₁
+    use σ',⟨lt_add_of_pos_right 1<|by bound[hA'.1],add_le_of_le_sub_left ((div_le_iff₀ (by bound)).2 (hA.2.trans ?_))⟩,t,L,hC₁.trans_le ?_
+    · norm_num only[←div_le_iff₀', (one_le_pow₀ ((Real.log_le_log _ L.le).trans' ↑ _)).trans',Real.le_log_iff_exp_le _,Real.exp_one_lt_d9.le.trans]
+      exact (mod_cast (one_lt_pow₀ ((Real.lt_log_iff_exp_lt (by linarith)).2 (by linarith[Real.exp_one_lt_d9])) (by decide)).le.trans' (by(((norm_num)))))
+    · norm_num only[σ',add_sub_cancel_left, A.div_rpow hA.1.le, mul_div,pow_pos, L.trans',←Real.rpow_natCast,←Real.rpow_mul,le_of_lt,Real.log_pos,refl,div_div,←Real.rpow_sub]
+      norm_num only[*, L.trans',mul_assoc, A.div_rpow, mul_div,←Real.rpow_add,←Real.rpow_natCast,←Real.rpow_mul,div_div,Real.log_pos,Real.rpow_pos_of_pos,hA.1,refl,le_of_lt]
+
+  have ineq : ‖ζ (σ + t * I)‖ ≥ (C₁ * A ^ ((3:ℝ) /4) - C₂ * 2 * A) / Real.log |t| ^ 7 := by
+    linear_combination left'+triangular+right'
+
+  rw [mul_comm C₂] at ineq
+  exact_mod_cast ineq
+
+-- **End collaboration 6/20/25**
+/-%%
+\begin{proof}\leanok
+\uses{ZetaLowerBound3, Zeta_diff_Bnd}
+Follow same argument.
+\end{proof}
+%%-/
+
+/-%%
+Now we get a zero free region.
+\begin{lemma}[ZetaZeroFree]\label{ZetaZeroFree}\lean{ZetaZeroFree}\leanok
+There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1$ and $3 < |t|$,
+$$
+\zeta(\sigma+it) \ne 0.
+$$
+\end{lemma}
+%%-/
+lemma ZetaZeroFree :
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)),
+    ∀ (σ : ℝ)
+    (t : ℝ) (_ : 3 < |t|)
+    (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
+    ζ (σ + t * I) ≠ 0 := by
+  obtain ⟨A, hA, c, hc, h_lower⟩ := ZetaLowerBnd
+
+  -- Use the same A for our result
+  refine ⟨A, hA, ?_⟩
+
+  -- Now prove that ζ has no zeros in this region
+  intro σ t ht hσ
+
+  intro h_zero
+
+  have := h_lower σ t ht hσ
+
+  rw [h_zero] at this
+
+  have one_leLogT : 1 ≤ Real.log |t| := by
+    refine (Real.le_log_iff_exp_le ?_).mpr ?_
+    · linarith
+    · have : Real.exp 1 < 3 := by
+        have := Real.exp_one_lt_d9
+        linarith
+      linarith
+
+  simp only [norm_zero] at this
+
+  have pos_bound : 0 < c / (Real.log |t|) ^ (7 : ℝ) := by
+    apply div_pos hc
+    apply Real.rpow_pos_of_pos
+    apply Real.log_pos
+    linarith
+
+  linarith
+/-%%
+\begin{proof}\leanok
+\uses{ZetaLowerBnd}
+Apply Lemma \ref{ZetaLowerBnd}.
+\end{proof}
+%%-/
+
 
 /-%%
 \begin{lemma}[LogDerivZetaBnd]\label{LogDerivZetaBnd}\lean{LogDerivZetaBnd}\leanok
@@ -2436,8 +2829,211 @@ bound on $1/|\zeta|$ from Lemma \ref{ZetaInvBnd}.
 \end{proof}
 %%-/
 
+/-%%
+\begin{lemma}[LogDerivZetaBndUniform]\label{LogDerivZetaBndUniform}\lean{LogDerivZetaBndUniform}\leanok
+There is an $A>0$ so that for $1-A/\log^9 T \le \sigma < 1$ and $3 < |t| ≤ T$,
+$$
+|\frac {\zeta'}{\zeta} (\sigma+it)| \ll \log^9 T.
+$$
+\end{lemma}
+%%-/
+lemma LogDerivZetaBndUniform :
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (T : ℝ) (t : ℝ) (_ : 3 < |t|)
+    (_ : |t| ≤ T) (_ : σ ∈ Ico (1 - A / Real.log T ^ 9) 1),
+    ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log T ^ 9 := by
+  sorry
+/-%%
+\begin{proof}
+\uses{LogDerivZetaBnd}
+This Lemma \ref{LogDerivZetaBnd}, but uniform in $t$. The point is that the upper bound on $\zeta' / \zeta$ and the lower bound on $\sigma$ only improve as $|t|$ increases.
+\end{proof}
+%%-/
+
+/-%%
+Annoying: we have reciprocals of $log |t|$ in the bounds, and we've assumed that $|t|>3$; but we want to make things uniform in $t$. Let's change to things like $log (|t|+3)$ instead of $log |t|$.
+
+\begin{lemma}[LogLeLog]\label{LogLeLog}\lean{LogLeLog}\leanok
+There is a constant $C>0$ so that for all $t>3$,
+$$
+1/\log t \le C / \log (t + 3).
+$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+Write
+$$
+\log (t + 3) = \log t + \log (1 + 3/t) = \log t + O(1/t).
+$$
+Then we can bound $1/\log t$ by $C / \log (t + 3)$ for some constant $C>0$.
+\end{proof}
+%%-/
+
+/-%%
+\begin{theorem}[ZetaNoZerosOn1Line]\label{ZetaNoZerosOn1Line}
+The zeta function does not vanish on the 1-line.
+\end{theorem}
+%%-/
+lemma ZetaNoZerosOn1Line (t : ℝ) : ζ (1 + t * I) ≠ 0 := by
+  refine riemannZeta_ne_zero_of_one_le_re ?_
+  simp
+/-%%
+\begin{proof}\leanok
+This fact is already proved in Stoll's work.
+\end{proof}
+%%-/
+
+-- **Begin collaboration with the Alpha Proof team! 5/29/25**
+
+/-%%
+Then, since $\zeta$ doesn't vanish on the 1-line, there is a $\simga<1$ (depending on $T$), so that
+the box $[\sigma,1] \times_{ℂ} [-T,T]$ is free of zeros of $\zeta$.
+\begin{lemma}[ZetaNoZerosInBox]\label{ZetaNoZerosInBox}\lean{ZetaNoZerosInBox}\leanok
+For any $T>0$, there is a constant $\sigma<1$ so that
+$$
+\zeta(\sigma'+it) \ne 0
+$$
+for all $|t| < T$ and $\sigma' \ge \sigma$.
+\end{lemma}
+%%-/
+
+lemma ZetaCont : ContinuousOn ζ (univ \ {1}) := by
+  apply continuousOn_of_forall_continuousAt (fun x hx ↦ ?_)
+--  simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
+  apply DifferentiableAt.continuousAt (𝕜 := ℂ)
+  convert differentiableAt_riemannZeta ?_
+  simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
+  exact hx
+
+lemma ZetaNoZerosInBox (T : ℝ) :
+    ∃ (σ : ℝ) (_ : σ < 1), ∀ (t : ℝ) (_ : |t| < T)
+    (σ' : ℝ) (_ : σ' ≥ σ), ζ (σ' + t * I) ≠ 0 := by
+  by_contra h
+  push_neg at h
+
+  have hn (n : ℕ) := h (σ := 1 - 1 / (n + 1)) (sub_lt_self _ (by positivity))
+
+  have : ∃ (tn : ℕ → ℝ) (σn : ℕ → ℝ), (∀ n, σn n ≤ 1) ∧
+    (∀ n, (1 : ℝ) - 1 / (n + 1) ≤ σn n) ∧ (∀ n, |tn n| < T) ∧
+    (∀ n, ζ (σn n + tn n * I) = 0) := by
+    choose t ht σ' hσ' hζ using hn
+    refine ⟨t, σ', ?_, hσ', ht, hζ⟩
+    intro n
+    by_contra hσn
+    push_neg at hσn
+    have := riemannZeta_ne_zero_of_one_lt_re (s := σ' n + t n * I)
+    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+      add_zero, ne_eq] at this
+    exact this hσn (hζ n)
+
+  choose t σ' hσ'_le hσ'_ge ht hζ using this
+
+  have σTo1 : Filter.Tendsto σ' Filter.atTop (𝓝 1) := by
+    use sub_zero (1: ℝ)▸tendsto_order.2 ⟨fun A B=>? _,fun A B=>?_⟩
+    · apply(((tendsto_inverse_atTop_nhds_zero_nat.comp (Filter.tendsto_add_atTop_nat (1))).congr (by norm_num)).const_sub 1).eventually_const_lt B|>.mono (hσ'_ge ·|>.trans_lt')
+    · norm_num[(hσ'_le _).trans_lt, B.trans_le']
+
+  have : ∃ (t₀ : ℝ) (subseq : ℕ → ℕ),
+      Filter.Tendsto (t ∘ subseq) Filter.atTop (𝓝 t₀) ∧
+      Filter.Tendsto subseq Filter.atTop Filter.atTop := by
+    refine (isCompact_Icc.isSeqCompact fun and => abs_le.1 (ht and).le).imp fun and ⟨x, A, B, _⟩ => ?_
+    use A, by valid, B.tendsto_atTop
+
+  obtain ⟨t₀, subseq, tTendsto, subseqTendsto⟩ := this
+
+  have σTo1 : Filter.Tendsto (σ' ∘ subseq) Filter.atTop (𝓝 1) :=
+    σTo1.comp subseqTendsto
+
+  have (n : ℕ) : ζ (σ' (subseq n) + I * (t (subseq n))) = 0 := by
+    convert hζ (subseq n) using 3
+    ring
+
+  have ToOneT0 : Filter.Tendsto (fun n ↦ (σ' (subseq n) : ℂ) + Complex.I * (t (subseq n))) Filter.atTop
+      (𝓝[≠]((1 : ℂ) + I * t₀)) := by
+    simp_rw [tendsto_nhdsWithin_iff, Function.comp_def] at tTendsto ⊢
+    constructor
+    · exact (σTo1.ofReal.add (tTendsto.ofReal.const_mul _)).trans (by simp)
+    · filter_upwards with n
+      apply ne_of_apply_ne ζ
+      rw [this]
+      apply Ne.symm
+      apply riemannZeta_ne_zero_of_one_le_re
+      simp only [add_re, one_re, mul_re, I_re, ofReal_re, zero_mul, I_im, ofReal_im, mul_zero,
+        sub_self, add_zero, le_refl]
+
+  by_cases ht₀ : t₀ = 0
+  · have ZetaBlowsUp : ∀ᶠ s in 𝓝[≠](1 : ℂ), ‖ζ s‖ ≥ 1 := by
+      simp_all[Function.comp_def,eventually_nhdsWithin_iff,norm_eq_sqrt_real_inner]
+      contrapose! h
+      simp_all
+      delta abs at*
+      exfalso
+      simp_rw [Metric.nhds_basis_ball.frequently_iff]at*
+      choose! I A B using h
+      choose a s using exists_seq_strictAnti_tendsto (0: ℝ)
+      apply((isCompact_closedBall _ _).isSeqCompact fun and=>(A _ (s.2.1 and)).le.trans (s.2.2.bddAbove_range.some_mem ⟨and, rfl⟩)).elim
+      use fun and ⟨a, H, S, M⟩=>absurd (tendsto_nhds_unique M (tendsto_sub_nhds_zero_iff.1 (( squeeze_zero_norm fun and=>le_of_lt (A _ (s.2.1 _) ) ) (s.2.2.comp S.tendsto_atTop)))) fun and=>?_
+      norm_num[*,Function.comp_def] at M
+      have:=@riemannZeta_residue_one
+      use one_ne_zero (tendsto_nhds_unique (this.comp (tendsto_nhdsWithin_iff.2 ⟨ M,.of_forall (by norm_num[*])⟩)) ( squeeze_zero_norm ?_ ((M.sub_const 1).norm.trans (by rw [sub_self,norm_zero]))))
+      use fun and =>.trans (norm_mul_le_of_le ↑(le_rfl) (Complex.norm_def _▸Real.sqrt_le_one.mpr (B ↑_ (s.2.1 ↑_)).right.le)) (by rw [mul_one])
+
+    have ZetaNonZ : ∀ᶠ s in 𝓝[≠](1 : ℂ), ζ s ≠ 0 := by
+      filter_upwards [ZetaBlowsUp]
+      intro s hs hfalse
+      rw [hfalse] at hs
+      simp only [norm_zero, ge_iff_le] at hs
+      linarith
+
+    rw [ht₀] at ToOneT0
+    simp only [ofReal_zero, mul_zero, add_zero] at ToOneT0
+    rcases (ToOneT0.eventually ZetaNonZ).exists with ⟨n, hn⟩
+    exact hn (this n)
+
+  · have zetaIsZero : ζ (1 + Complex.I * t₀) = 0 := by
+      have cont := @ZetaCont
+      by_contra h
+      use h (isClosed_singleton.isSeqClosed this (.comp (cont.continuousAt.comp (eventually_ne_nhds (by field_simp [ht₀])).mono fun and=>.intro ⟨⟩) (ToOneT0.trans (inf_le_left))))
+
+    exact riemannZeta_ne_zero_of_one_le_re (s := 1 + I * t₀) (by simp) zetaIsZero
+
+/-%%
+\begin{proof}
+\uses{ZetaNoZerosOn1Line}
+Assume not. Then there is a sequence $|t_n| \le T$ and $\sigma_n \to 1$ so that
+ $\zeta(\sigma_n + it_n) = 0$.
+By compactness, there is a subsequence $t_{n_k} \to t_0$ along which $\zeta(\sigma_{n_k} + it_{n_k}) = 0$.
+If $t_0\ne0$, use the continuity of $\zeta$ to get that $\zeta(1 + it_0) = 0$; this is a contradiction.
+If $t_0=0$, $\zeta$ blows up near $1$, so can't be zero nearby.
+\end{proof}
+%%-/
+
+-- **End collaboration**
+
+/-%%
+\begin{lemma}[LogDerivZetaHolcLargeT]\label{LogDerivZetaHolcLargeT}\lean{LogDerivZetaHolcLargeT}\leanok
+There is an $A>0$ so that for all $T>3$, the function
+$
+\frac {\zeta'}{\zeta}(s)
+$
+is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}$.
+\end{lemma}
+%%-/
+theorem LogDerivZetaHolcLargeT :
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (T : ℝ) (_ : 3 < T),
+    HolomorphicOn (fun (s : ℂ) ↦ deriv ζ s / (ζ s))
+      (((Icc ((1 : ℝ) - A / Real.log T ^ 9) 2) ×ℂ (Icc (-T) T)) \ {1}) := by
+  sorry
+/-%%
+\begin{proof}
+The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
+in this range by Lemma \ref{ZetaZeroFree}.
+\end{proof}
+%%-/
+
 /-
-It would be better to refactor this entire file so that we're not using explicit
+It would perhaps (?) be better to refactor this entire file so that we're not using explicit
 constants but instead systematically using big Oh notation... The punchline would be:
 -/
 /-%%
