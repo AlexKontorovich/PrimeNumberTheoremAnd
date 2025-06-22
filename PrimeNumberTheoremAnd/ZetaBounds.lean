@@ -2849,18 +2849,16 @@ This Lemma \ref{LogDerivZetaBnd}, but uniform in $t$. The point is that the uppe
 \end{proof}
 %%-/
 
-/-%%
+/-% ** Bad delimiters on purpose **
 Annoying: we have reciprocals of $log |t|$ in the bounds, and we've assumed that $|t|>3$; but we want to make things uniform in $t$. Let's change to things like $log (|t|+3)$ instead of $log |t|$.
-
 \begin{lemma}[LogLeLog]\label{LogLeLog}\lean{LogLeLog}\leanok
 There is a constant $C>0$ so that for all $t>3$,
 $$
 1/\log t \le C / \log (t + 3).
 $$
 \end{lemma}
-%%-/
-
-/-%%
+%-/
+/-%
 \begin{proof}
 Write
 $$
@@ -2868,10 +2866,10 @@ $$
 $$
 Then we can bound $1/\log t$ by $C / \log (t + 3)$ for some constant $C>0$.
 \end{proof}
-%%-/
+%-/
 
 /-%%
-\begin{theorem}[ZetaNoZerosOn1Line]\label{ZetaNoZerosOn1Line}
+\begin{theorem}[ZetaNoZerosOn1Line]\label{ZetaNoZerosOn1Line}\lean{ZetaNoZerosOn1Line}\leanok
 The zeta function does not vanish on the 1-line.
 \end{theorem}
 %%-/
@@ -2886,8 +2884,16 @@ This fact is already proved in Stoll's work.
 
 -- **Begin collaboration with the Alpha Proof team! 5/29/25**
 
+lemma ZetaCont : ContinuousOn ζ (univ \ {1}) := by
+  apply continuousOn_of_forall_continuousAt (fun x hx ↦ ?_)
+--  simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
+  apply DifferentiableAt.continuousAt (𝕜 := ℂ)
+  convert differentiableAt_riemannZeta ?_
+  simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
+  exact hx
+
 /-%%
-Then, since $\zeta$ doesn't vanish on the 1-line, there is a $\simga<1$ (depending on $T$), so that
+Then, since $\zeta$ doesn't vanish on the 1-line, there is a $\sigma<1$ (depending on $T$), so that
 the box $[\sigma,1] \times_{ℂ} [-T,T]$ is free of zeros of $\zeta$.
 \begin{lemma}[ZetaNoZerosInBox]\label{ZetaNoZerosInBox}\lean{ZetaNoZerosInBox}\leanok
 For any $T>0$, there is a constant $\sigma<1$ so that
@@ -2897,14 +2903,6 @@ $$
 for all $|t| < T$ and $\sigma' \ge \sigma$.
 \end{lemma}
 %%-/
-
-lemma ZetaCont : ContinuousOn ζ (univ \ {1}) := by
-  apply continuousOn_of_forall_continuousAt (fun x hx ↦ ?_)
---  simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
-  apply DifferentiableAt.continuousAt (𝕜 := ℂ)
-  convert differentiableAt_riemannZeta ?_
-  simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
-  exact hx
 
 lemma ZetaNoZerosInBox (T : ℝ) :
     ∃ (σ : ℝ) (_ : σ < 1), ∀ (t : ℝ) (_ : |t| < T)
@@ -3000,7 +2998,7 @@ lemma ZetaNoZerosInBox (T : ℝ) :
 
 /-%%
 \begin{proof}
-\uses{ZetaNoZerosOn1Line}
+\uses{ZetaNoZerosOn1Line}\leanok
 Assume not. Then there is a sequence $|t_n| \le T$ and $\sigma_n \to 1$ so that
  $\zeta(\sigma_n + it_n) = 0$.
 By compactness, there is a subsequence $t_{n_k} \to t_0$ along which $\zeta(\sigma_{n_k} + it_{n_k}) = 0$.
