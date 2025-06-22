@@ -12,6 +12,20 @@ local notation (name := mellintransform2) "𝓜" => MellinTransform
 local notation "Λ" => vonMangoldt
 
 /-%%
+\begin{definition}\label{ChebyshevPsi}\lean{ChebyshevPsi}\leanok
+The (second) Chebyshev Psi function is defined as
+$$
+\psi(x) := \sum_{n \le x} \Lambda(n),
+$$
+where $\Lambda(n)$ is the von Mangoldt function.
+\end{definition}
+%%-/
+noncomputable def ChebyshevPsi (x : ℝ) : ℝ :=
+  (Finset.range ⌊x + 1⌋₊).sum Λ
+
+local notation "ψ" => ChebyshevPsi
+
+/-%%
 The approach here is completely standard. We follow the use of
 $\mathcal{M}(\widetilde{1_{\epsilon}})$ as in Kontorovich 2015.
 %%-/
@@ -61,7 +75,6 @@ noncomputable abbrev SmoothedChebyshevIntegrand (SmoothingF : ℝ → ℝ) (ε :
 
 noncomputable def SmoothedChebyshev (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
   VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) ((1 : ℝ) + (Real.log X)⁻¹)
-
 
 open MeasureTheory
 
@@ -326,16 +339,8 @@ and apply the Mellin inversion formula (Theorem \ref{MellinInversion}).
 \end{proof}
 %%-/
 
-/-%%
-\begin{definition}\label{ChebyshevPsi}\lean{ChebyshevPsi}\leanok
-The Chebyshev Psi function is defined as
-$$
-\psi(x) := \sum_{n \le x} \Lambda(n),
-$$
-where $\Lambda(n)$ is the von Mangoldt function.
-\end{definition}
-%%-/
-noncomputable def ChebyshevPsi (x : ℝ) : ℝ := (Finset.range (Nat.floor (x + 1))).sum Λ
+
+
 
 /-%%
 The smoothed Chebyshev function is close to the actual Chebyshev function.
@@ -1122,8 +1127,9 @@ $$ \sum_{n \leq x} \Lambda(n) = x + O(x \exp(-c(\log x)^{1/10})).$$
 \end{theorem}
 %%-/
 /-- *** Prime Number Theorem (Medium Strength) *** The `ChebyshevPsi` function is asymptotic to `x`. -/
-theorem MediumPNT : ∃ (c : ℝ) (_ : 0 < c),
-    (ChebyshevPsi - id) =O[atTop] (fun (x : ℝ) ↦ x * Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / 10))) := by
+theorem MediumPNT : ∃ c > 0,
+    (ψ - id) =O[atTop]
+      fun (x : ℝ) ↦ x * Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / 10)) := by
   let c : ℝ := sorry
   have cpos : 0 < c := sorry
   refine ⟨c, cpos, ?_⟩
@@ -1142,3 +1148,5 @@ theorem MediumPNT : ∃ (c : ℝ) (_ : 0 < c),
   Evaluate the integrals.
 \end{proof}
 %%-/
+
+#check MediumPNT

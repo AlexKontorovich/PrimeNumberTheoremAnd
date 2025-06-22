@@ -36,6 +36,97 @@ lemma div_rpow_eq_rpow_div_neg {x y s : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
   convert div_rpow_neg_eq_rpow_div (s := -s) hx hy using 1; simp only [neg_neg]
 
 /-%%
+We record here some prelimiaries about the zeta function and general
+holomorphic functions.
+\begin{theorem}[riemannZetaResidue]\label{riemannZetaResidue}\lean{riemannZetaResidue}\leanok
+  The Riemann zeta function $\zeta(s)$ has a simple pole at $s=1$ with residue $1$. In particular, the function
+  $$ \zeta(s) - \frac{1}{s-1}$$
+  is bounded in a neighborhood of $s=1$.
+\end{theorem}
+%%-/
+theorem riemannZetaResidue :
+    (riemannZeta - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
+  have := riemannZeta_residue_one
+  sorry
+/-%%
+\begin{proof}
+  Look at the proof of `riemannZeta_residue_one` in Mathlib.
+\end{proof}
+%%-/
+/-%%
+\begin{theorem}[logDerivResidue]\label{logDerivResidue}\lean{logDerivResidue}\leanok
+  If $f$ is holomorphic in a neighborhood of $p$, and there is a simple pole at $p$, then $f'/f$ has a simple pole at $p$ with residue $-1$:
+  $$ \frac{f'(s)}{f(s)} = \frac{-1}{s - p} + O(1).$$
+\end{theorem}
+%%-/
+theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (holc : HolomorphicOn f (U \ {p}))
+    (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+    (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
+    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+  have : HolomorphicOn (f - (fun s ↦ A * (s - p)⁻¹)) (U \ {p}) := by sorry
+  have := existsDifferentiableOn_of_bddAbove U_in_nhds this
+  sorry
+/-%%
+\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}
+Using Theorem \ref{existsDifferentiableOn_of_bddAbove}, there is a function $g$ holomorphic  near $p$, for which $f(s) = A/(s-p) + g(s) = h(s)/ (s-p)$. Here $h(s):= A + g(s)(s-p)$ which is nonzero in a neighborhood of $p$ (since $h$ goes to $A$ which is nonzero).
+Then $f'(s) = (h'(s)(s-p) - h(s))/(s-p)^2$, and we can compute the quotient:
+$$
+\frac{f'(s)}{f(s)}+1/(s-p) = \frac{h'(s)(s-p) - h(s)}{h(s)} \cdot \frac{1}{(s-p)}+1/(s-p)
+=
+\frac{h'(s)}{h(s)}.
+$$
+Since $h$ is nonvanishing near $p$, this remains bounded in a neighborhood of $p$.
+\end{proof}
+%%-/
+
+/-%%
+Let's also record that if a function $f$ has a simple pole at $p$ with residue $A$, and $g$ is holormophic near $p$, then the residue of $f*g$ is $A * g(p)$.
+\begin{theorem}[ResidueMult]\label{ResidueMult}\lean{ResidueMult}\leanok
+  If $f$ has a simple pole at $p$ with residue $A$, and $g$ is holomorphic near $p$, then the residue of $f * g$ at $p$ is $A * g(p)$. That is, we assume that
+  $$
+  f(s) = \frac{A}{s - p} + O(1)$$
+  near $p$, and that $g$ is holomorphic near $p$. Then
+  $$
+  f(s) * g(s) = \frac{A * g(p)}{s - p} + O(1).$$
+\end{theorem}
+%%-/
+theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : HolomorphicOn f (U \ {p}))
+    (g_holc : HolomorphicOn g U) (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+    (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
+    (f * g - (fun s ↦ A * g p * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+  sorry
+/-%%
+\begin{proof}
+Elementary calculation.
+$$
+f(s) * g(s) - \frac{A * g(p)}{s - p} =
+\left(f(s) * g(s) - \frac{A * g(s)}{s - p}\right) + \left(\frac{A * g(s) - A * g(p)}{s - p}\right).
+$$
+The first term is $g(s)(f(s) - \frac{A}{s - p})$, which is bounded near $p$ by the assumption on $f$
+ and the fact that $g$ is holomorphic near $p$.
+The second term is $A$ times the log derivative of $g$ at $p$, which is bounded by the assumption
+that  $g$ is holomorphic.
+\end{proof}
+%%-/
+
+/-%%
+As a corollary, the log derivative of the Riemann zeta function has a simple pole at $s=1$:
+\begin{theorem}[riemannZetaLogDerivResidue]\label{riemannZetaLogDerivResidue}\lean{riemannZetaLogDerivResidue}\leanok
+  The log derivative of the Riemann zeta function $\zeta(s)$ has a simple pole at $s=1$ with residue $-1$:
+  $$ -\frac{\zeta'(s)}{\zeta(s)} - \frac{1}{s-1} = O(1).$$
+\end{theorem}
+%%-/
+theorem riemannZetaLogDerivResidue :
+    (-(deriv riemannZeta * riemannZeta⁻¹) - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
+  sorry
+/-%%
+\begin{proof}\uses{logDerivResidue, riemannZetaResidue}
+  This follows from Theorem \ref{logDerivResidue} and Theorem \ref{riemannZetaResidue}.
+\end{proof}
+%%-/
+
+
+/-%%
 \begin{definition}[riemannZeta0]\label{riemannZeta0}\lean{riemannZeta0}\leanok
 For any natural $N\ge1$, we define
 $$
@@ -2702,6 +2793,26 @@ lemma LogDerivZetaBnd :
 \uses{ZetaInvBnd, ZetaDerivUpperBnd}
 Combine the bound on $|\zeta'|$ from Lemma \ref{ZetaDerivUpperBnd} with the
 bound on $1/|\zeta|$ from Lemma \ref{ZetaInvBnd}.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[LogDerivZetaBndUniform]\label{LogDerivZetaBndUniform}\lean{LogDerivZetaBndUniform}\leanok
+There is an $A>0$ so that for $1-A/\log^9 T \le \sigma < 1$ and $3 < |t| ≤ T$,
+$$
+|\frac {\zeta'}{\zeta} (\sigma+it)| \ll \log^9 T.
+$$
+\end{lemma}
+%%-/
+lemma LogDerivZetaBndUniform :
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (T : ℝ) (t : ℝ) (_ : 3 < |t|)
+    (_ : |t| ≤ T) (_ : σ ∈ Ico (1 - A / Real.log T ^ 9) 1),
+    ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log T ^ 9 := by
+  sorry
+/-%%
+\begin{proof}
+\uses{LogDerivZetaBnd}
+This Lemma \ref{LogDerivZetaBnd}, but uniform in $t$. The point is that the upper bound on $\zeta' / \zeta$ and the lower bound on $\sigma$ only improve as $|t|$ increases.
 \end{proof}
 %%-/
 
