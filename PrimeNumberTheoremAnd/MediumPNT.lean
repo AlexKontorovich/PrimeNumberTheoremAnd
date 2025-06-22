@@ -987,7 +987,7 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     exact Real.log_pos (by norm_num)
 
   rw [SmoothedChebyshevDirichlet diffSmoothingF SmoothingFnonneg suppSmoothingF
-    mass_one X (by linarith) ε εpos ε_lt_one]
+    mass_one (by linarith) εpos ε_lt_one]
 
   convert SmoothedChebyshevClose_aux SmoothingF c₁ c₁_pos c₁_lt c₂ c₂_pos c₂_lt hc₂ C C_eq ε ε_pos ε_lt_one
     X X_pos X_gt_three X_bound_1 X_bound_2 smooth1BddAbove smooth1BddBelow smoothIs1 smoothIs0
