@@ -3028,7 +3028,7 @@ theorem LogDerivZetaHolcLargeT :
 /-%%
 \begin{proof}
 The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
-in this range by Lemma \ref{ZetaNoZerosInBox}.
+in this range by Lemma \ref{ZetaZeroFree}.
 \end{proof}
 %%-/
 
