@@ -2799,8 +2799,7 @@ $$
 %%-/
 lemma LogDerivZetaBnd :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ico (1 - A / Real.log |t| ^ 9) 1),
-    ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤
+    (_ : σ ∈ Ico (1 - A / Real.log |t| ^ 9) 1), ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤
       C * Real.log |t| ^ 9 := by
   obtain ⟨A, hA, C, hC, h⟩ := ZetaInvBnd
   obtain ⟨A', hA', C', hC', h'⟩ := ZetaDerivUpperBnd
@@ -3008,6 +3007,28 @@ If $t_0=0$, $\zeta$ blows up near $1$, so can't be zero nearby.
 %%-/
 
 -- **End collaboration**
+
+/-%%
+We now prove that there's an absolute constant $\sigma_0$ so that $\zeta'/\zeta$ is holomorphic on a rectangle $[\sigma_0,2] \times_{ℂ} [-3,3] \setminus \{1\}$.
+\begin{lemma}[LogDerivZetaHolcSmallT]\label{LogDerivZetaHolcSmallT}\lean{LogDerivZetaHolcSmallT}\leanok
+There is a $\sigma_0 < 1$ so that the function
+$$
+\frac {\zeta'}{\zeta}(s)
+$$
+is holomorphic on $\{ \sigma_0 \le \Re s \le 2, |\Im s| \le 3 \} \setminus \{1\}$.
+\end{lemma}
+%%-/
+theorem LogDerivZetaHolcSmallT :
+    ∃ (σ₀ : ℝ) (_ : σ₀ < 1), HolomorphicOn (fun (s : ℂ) ↦ deriv ζ s / (ζ s))
+      (( [[ σ₀, 2 ]] ×ℂ [[ -3, 3 ]]) \ {1}) := by
+  have := ZetaNoZerosInBox 4
+  sorry
+/-%%
+\begin{proof}\uses{ZetaNoZerosInBox}
+The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
+in this range by Lemma \ref{ZetaNoZerosInBox}.
+\end{proof}
+%%-/
 
 /-%%
 \begin{lemma}[LogDerivZetaHolcLargeT]\label{LogDerivZetaHolcLargeT}\lean{LogDerivZetaHolcLargeT}\leanok
