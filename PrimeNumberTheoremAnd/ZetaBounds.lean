@@ -97,7 +97,18 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : Holomo
     (g_holc : HolomorphicOn g U) (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
     (f * g - (fun s ↦ A * g p * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-  sorry
+  have : (f * g - fun s ↦ A * g p * (s - p)⁻¹)
+    = (f - A • fun s ↦ (s - p)⁻¹) * g + fun s ↦ (A * (g s - g p) / (s - p)) := by
+    sorry
+  rw[this]
+  refine Asymptotics.IsBigO.add ?_ ?_
+  · rw[← mul_one (1 : ℂ → ℂ)]
+    refine Asymptotics.IsBigO.mul ?_ ?_
+    exact f_near_p
+    sorry
+  · sorry
+
+
 /-%%
 \begin{proof}
 Elementary calculation.
