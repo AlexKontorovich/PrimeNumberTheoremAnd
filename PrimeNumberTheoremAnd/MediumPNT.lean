@@ -18,6 +18,8 @@ local notation "Λ" => vonMangoldt
 
 local notation "ζ" => riemannZeta
 
+local notation "ζ'" => deriv ζ
+
 /-%%
 \begin{definition}\label{ChebyshevPsi}\lean{ChebyshevPsi}\leanok
 The (second) Chebyshev Psi function is defined as
@@ -1043,7 +1045,7 @@ up to $\sigma_1-3i$, over to $\sigma_2-3i$, up to $\sigma_2+3i$, back over to $\
   ------------+
   |       I₆
 I₅|
---σ₂-----σ₁-------σ₀--------
+--σ₂----------σ₁----σ₀----
   |
   |       I₄
   +-----+-----+
@@ -1059,14 +1061,57 @@ I₅|
 \end{verbatim}
 
 In the process, we will pick up the residue at $s=1$.
-We will do this in several stages
+We will do this in several stages.
 %%-/
 
-theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε) (X : ℝ) {σ₀ : ℝ} (σ₀_pos : 0 < σ₀)
-  (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
-  (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-  (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) :
-  Integrable (fun (t : ℝ) ↦ SmoothedChebyshevIntegrand SmoothingF ε X (2 + (t : ℂ) * I)) volume := by
+noncomputable def I₁ (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * (I * (∫ t : ℝ in Iic (-T),
+      SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
+
+noncomputable def I₂ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * ((∫ σ in σ₁..(1 + (Real.log X)⁻¹),
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ - T * I)))
+
+noncomputable def I₃₇ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * (I * (∫ t in (-T)..T,
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ₁ + t * I)))
+
+noncomputable def I₈ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * ((∫ σ in σ₁..(1 + (Real.log X)⁻¹),
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ + T * I)))
+
+noncomputable def I₉ (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * (I * (∫ t : ℝ in Ici T,
+      SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
+
+noncomputable def I₃ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * (I * (∫ t in (-T)..(-3),
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ₁ + t * I)))
+
+noncomputable def I₇ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * (I * (∫ t in (3 : ℝ)..T,
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ₁ + t * I)))
+
+noncomputable def I₄ (SmoothingF : ℝ → ℝ) (ε X σ₁ σ₂ : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * ((∫ σ in σ₂..σ₁,
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ - 3 * I)))
+
+noncomputable def I₆ (SmoothingF : ℝ → ℝ) (ε X σ₁ σ₂ : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * ((∫ σ in σ₂..σ₁,
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ + 3 * I)))
+
+noncomputable def I₅ (SmoothingF : ℝ → ℝ) (ε X σ₂ : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * (I * (∫ t in (-3)..3,
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ₂ + t * I)))
+
+theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε) (X : ℝ)
+    {σ₀ : ℝ} (σ₀_pos : 0 < σ₀)
+    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
+    (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) :
+    Integrable (fun (t : ℝ) ↦
+      SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + (t : ℂ) * I)) volume := by
   sorry
 
 /-%%
@@ -1082,18 +1127,16 @@ X^{s}ds.$$
 %%-/
 theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (X : ℝ) {T : ℝ} (T_pos : 0 < T) {σ₀ : ℝ}
     (σ₀_pos : 0 < σ₀)
-    (holoOn : HolomorphicOn (deriv ζ / ζ) ((Icc σ₀ 2)×ℂ (univ : Set ℝ) \ {1}))
+    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₀ 2)×ℂ (Icc (-T) T) \ {1}))
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     SmoothedChebyshev SmoothingF ε X =
-    (1 / (2 * π * I)) * (I * (∫ t : ℝ in Iic (-T),
-      SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)) -
-    (∫ s : ℝ in Icc σ₀ (1 + (Real.log X)⁻¹), SmoothedChebyshevIntegrand SmoothingF ε X (s - T * I)) +
-    I * (∫ t : ℝ in Icc (-T) T, SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + t * I)) +
-    (∫ s : ℝ in Icc σ₀ (1 + (Real.log X)⁻¹), SmoothedChebyshevIntegrand SmoothingF ε X (s + T * I)) +
-    I * (∫ t : ℝ in Ici T,
-      SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)) )
-    + 𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X := by
+      I₁ SmoothingF ε X T -
+      I₂ SmoothingF ε T X σ₀ +
+      I₃₇ SmoothingF ε T X σ₀ +
+      I₈ SmoothingF ε T X σ₀ +
+      I₉ SmoothingF ε X T
+      + 𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X := by
   unfold SmoothedChebyshev
   unfold VerticalIntegral'
   rw [verticalIntegral_split_three (a := -T) (b := T)]
@@ -1108,7 +1151,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   sorry
 /-%%
 \begin{proof}
-\uses{SmoothedChebyshev, RectangleIntegral}
+\uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue}
 Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
@@ -1139,19 +1182,7 @@ Residue calculus / the argument principle.
 %%-/
 
 /-%%
-It remains to estimate the contributions from the integrals over the curve $\gamma = \gamma_1 +
-\gamma_2 + \gamma_3 + \gamma_4
-+\gamma_5,
-$
-where:
-\begin{itemize}
-\item $\gamma_1$ is the vertical segment from $1-i\infty$ to $1-iT$,
-\item $\gamma_2$ is the horizontal segment from $1-iT$ to $1-\delta-iT$,
-\item $\gamma_3$ is the vertical segment from $1-\delta-iT$ to $1-\delta+iT$,
-\item $\gamma_4$ is the horizontal segment from $1-\delta+iT$ to $1+iT$, and
-\item $\gamma_5$ is the vertical segment from $1+iT$ to $1+i\infty$.
-\end{itemize}
-
+It remains to estimate all of the integrals...
 %%-/
 
 /-%%
@@ -1179,9 +1210,9 @@ theorem MediumPNT : ∃ c > 0,
   sorry
 /-%%
 \begin{proof}
-\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval}
+\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval, LogDerivZetaBndUniform, LogDerivZetaHolcSmallT, LogDerivZetaHolcLargeT}
   Evaluate the integrals.
 \end{proof}
 %%-/
 
-#check MediumPNT
+-- #check MediumPNT
