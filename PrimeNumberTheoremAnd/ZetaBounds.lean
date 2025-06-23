@@ -2799,8 +2799,7 @@ $$
 %%-/
 lemma LogDerivZetaBnd :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ico (1 - A / Real.log |t| ^ 9) 1),
-    ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤
+    (_ : σ ∈ Ico (1 - A / Real.log |t| ^ 9) 1), ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤
       C * Real.log |t| ^ 9 := by
   obtain ⟨A, hA, C, hC, h⟩ := ZetaInvBnd
   obtain ⟨A', hA', C', hC', h'⟩ := ZetaDerivUpperBnd
@@ -2849,18 +2848,16 @@ This Lemma \ref{LogDerivZetaBnd}, but uniform in $t$. The point is that the uppe
 \end{proof}
 %%-/
 
-/-%%
+/-% ** Bad delimiters on purpose **
 Annoying: we have reciprocals of $log |t|$ in the bounds, and we've assumed that $|t|>3$; but we want to make things uniform in $t$. Let's change to things like $log (|t|+3)$ instead of $log |t|$.
-
 \begin{lemma}[LogLeLog]\label{LogLeLog}\lean{LogLeLog}\leanok
 There is a constant $C>0$ so that for all $t>3$,
 $$
 1/\log t \le C / \log (t + 3).
 $$
 \end{lemma}
-%%-/
-
-/-%%
+%-/
+/-%
 \begin{proof}
 Write
 $$
@@ -2868,10 +2865,10 @@ $$
 $$
 Then we can bound $1/\log t$ by $C / \log (t + 3)$ for some constant $C>0$.
 \end{proof}
-%%-/
+%-/
 
 /-%%
-\begin{theorem}[ZetaNoZerosOn1Line]\label{ZetaNoZerosOn1Line}
+\begin{theorem}[ZetaNoZerosOn1Line]\label{ZetaNoZerosOn1Line}\lean{ZetaNoZerosOn1Line}\leanok
 The zeta function does not vanish on the 1-line.
 \end{theorem}
 %%-/
@@ -2886,8 +2883,16 @@ This fact is already proved in Stoll's work.
 
 -- **Begin collaboration with the Alpha Proof team! 5/29/25**
 
+lemma ZetaCont : ContinuousOn ζ (univ \ {1}) := by
+  apply continuousOn_of_forall_continuousAt (fun x hx ↦ ?_)
+--  simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
+  apply DifferentiableAt.continuousAt (𝕜 := ℂ)
+  convert differentiableAt_riemannZeta ?_
+  simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
+  exact hx
+
 /-%%
-Then, since $\zeta$ doesn't vanish on the 1-line, there is a $\simga<1$ (depending on $T$), so that
+Then, since $\zeta$ doesn't vanish on the 1-line, there is a $\sigma<1$ (depending on $T$), so that
 the box $[\sigma,1] \times_{ℂ} [-T,T]$ is free of zeros of $\zeta$.
 \begin{lemma}[ZetaNoZerosInBox]\label{ZetaNoZerosInBox}\lean{ZetaNoZerosInBox}\leanok
 For any $T>0$, there is a constant $\sigma<1$ so that
@@ -2897,14 +2902,6 @@ $$
 for all $|t| < T$ and $\sigma' \ge \sigma$.
 \end{lemma}
 %%-/
-
-lemma ZetaCont : ContinuousOn ζ (univ \ {1}) := by
-  apply continuousOn_of_forall_continuousAt (fun x hx ↦ ?_)
---  simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
-  apply DifferentiableAt.continuousAt (𝕜 := ℂ)
-  convert differentiableAt_riemannZeta ?_
-  simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
-  exact hx
 
 lemma ZetaNoZerosInBox (T : ℝ) :
     ∃ (σ : ℝ) (_ : σ < 1), ∀ (t : ℝ) (_ : |t| < T)
@@ -3000,7 +2997,7 @@ lemma ZetaNoZerosInBox (T : ℝ) :
 
 /-%%
 \begin{proof}
-\uses{ZetaNoZerosOn1Line}
+\uses{ZetaNoZerosOn1Line}\leanok
 Assume not. Then there is a sequence $|t_n| \le T$ and $\sigma_n \to 1$ so that
  $\zeta(\sigma_n + it_n) = 0$.
 By compactness, there is a subsequence $t_{n_k} \to t_0$ along which $\zeta(\sigma_{n_k} + it_{n_k}) = 0$.
@@ -3012,6 +3009,28 @@ If $t_0=0$, $\zeta$ blows up near $1$, so can't be zero nearby.
 -- **End collaboration**
 
 /-%%
+We now prove that there's an absolute constant $\sigma_0$ so that $\zeta'/\zeta$ is holomorphic on a rectangle $[\sigma_0,2] \times_{ℂ} [-3,3] \setminus \{1\}$.
+\begin{lemma}[LogDerivZetaHolcSmallT]\label{LogDerivZetaHolcSmallT}\lean{LogDerivZetaHolcSmallT}\leanok
+There is a $\sigma_0 < 1$ so that the function
+$$
+\frac {\zeta'}{\zeta}(s)
+$$
+is holomorphic on $\{ \sigma_0 \le \Re s \le 2, |\Im s| \le 3 \} \setminus \{1\}$.
+\end{lemma}
+%%-/
+theorem LogDerivZetaHolcSmallT :
+    ∃ (σ₀ : ℝ) (_ : σ₀ < 1), HolomorphicOn (fun (s : ℂ) ↦ deriv ζ s / (ζ s))
+      (( [[ σ₀, 2 ]] ×ℂ [[ -3, 3 ]]) \ {1}) := by
+  have := ZetaNoZerosInBox 4
+  sorry
+/-%%
+\begin{proof}\uses{ZetaNoZerosInBox}
+The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
+in this range by Lemma \ref{ZetaNoZerosInBox}.
+\end{proof}
+%%-/
+
+/-%%
 \begin{lemma}[LogDerivZetaHolcLargeT]\label{LogDerivZetaHolcLargeT}\lean{LogDerivZetaHolcLargeT}\leanok
 There is an $A>0$ so that for all $T>3$, the function
 $
@@ -3021,9 +3040,9 @@ is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}
 \end{lemma}
 %%-/
 theorem LogDerivZetaHolcLargeT :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (T : ℝ) (_ : 3 < T),
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∀ (T : ℝ) (_ : 3 < T),
     HolomorphicOn (fun (s : ℂ) ↦ deriv ζ s / (ζ s))
-      (((Icc ((1 : ℝ) - A / Real.log T ^ 9) 2) ×ℂ (Icc (-T) T)) \ {1}) := by
+      (( [[ ((1 : ℝ) - A / Real.log T ^ 9), 2 ]] ×ℂ [[ -T, T ]]) \ {1}) := by
   sorry
 /-%%
 \begin{proof}
