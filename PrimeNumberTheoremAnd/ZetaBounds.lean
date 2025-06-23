@@ -101,12 +101,12 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (holc : Holomo
         rw [← cond]
         have Z : x ∈ (U \ {p}) := by sorry
           -- by x_in_u and hyp_x_not_p
-        have U := r Z
+        have U := (r Z).symm; simp [*]
         simp at U
         let h := fun (s : ℂ) ↦ A + (g s) * (s - p)
-        have Eq :
-          f = fun (s : ℂ) ↦ (h s) * (s - p)⁻¹ := by rw [g]; _
-        _
+        let n := fun (s : ℂ) ↦ f s - A * (s - p)⁻¹
+
+        sorry
 
       apply Set.nonempty_of_mem
       exact T
