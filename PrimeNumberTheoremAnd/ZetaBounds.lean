@@ -35,6 +35,9 @@ lemma div_rpow_eq_rpow_div_neg {x y s : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
     x ^ s / y ^ s = (y / x) ^ (-s) := by
   convert div_rpow_neg_eq_rpow_div (s := -s) hx hy using 1; simp only [neg_neg]
 
+local notation (name := riemannzeta) "ζ" => riemannZeta
+local notation (name := derivriemannzeta) "ζ'" => deriv riemannZeta
+
 /-%%
 We record here some prelimiaries about the zeta function and general
 holomorphic functions.
@@ -45,7 +48,7 @@ holomorphic functions.
 \end{theorem}
 %%-/
 theorem riemannZetaResidue :
-    (riemannZeta - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
+    (ζ - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
   have := riemannZeta_residue_one
   sorry
 /-%%
@@ -117,7 +120,7 @@ As a corollary, the log derivative of the Riemann zeta function has a simple pol
 \end{theorem}
 %%-/
 theorem riemannZetaLogDerivResidue :
-    (-(deriv riemannZeta * riemannZeta⁻¹) - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
+    (-(ζ' / ζ) - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
   sorry
 /-%%
 \begin{proof}\uses{logDerivResidue, riemannZetaResidue}
@@ -144,7 +147,6 @@ noncomputable def riemannZeta0 (N : ℕ) (s : ℂ) : ℂ :=
 
 /-- We use `ζ` to denote the Rieman zeta function and `ζ₀` to denote the alternative
   Rieman zeta function.. -/
-local notation (name := riemannzeta) "ζ" => riemannZeta
 local notation (name := riemannzeta0) "ζ₀" => riemannZeta0
 
 lemma riemannZeta0_apply (N : ℕ) (s : ℂ) : ζ₀ N s =
@@ -1227,7 +1229,7 @@ Use Lemma \ref{ZetaSum_aux2} and the Definition \ref{riemannZeta0}.
 %%-/
 
 lemma DerivZeta0EqDerivZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) :
-    deriv (ζ₀ N) s = deriv ζ s := by
+    deriv (ζ₀ N) s = ζ' s := by
   let U := {z : ℂ | z ≠ 1 ∧ 0 < z.re}
   have {x : ℂ} (hx : x ∈ U) : ζ₀ N x = ζ x := by
     simp only [mem_setOf_eq, U] at hx; exact Zeta0EqZeta (N := N) N_pos hx.2 hx.1
@@ -1946,7 +1948,7 @@ $$
 lemma ZetaDerivUpperBnd :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
     (_ : σ ∈ Icc (1 - A / Real.log |t|) 2),
-    ‖deriv ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
+    ‖ζ' (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
   obtain ⟨A, hA, _, _, _⟩ := ZetaUpperBnd
   let C := Real.exp A * 59
   refine ⟨A, hA, C, by positivity, ?_⟩
@@ -2075,7 +2077,7 @@ lemma ZetaNear1BndExact:
   have W_compact : IsCompact {ofReal z | z ∈ W} :=
     IsCompact.image isCompact_Icc continuous_ofReal
   have cont : ContinuousOn ζ {ofReal z | z ∈ W} := by
-    apply HasDerivAt.continuousOn (f' := deriv ζ)
+    apply HasDerivAt.continuousOn (f' := ζ')
     intro σ hσ
     exact (differentiableAt_riemannZeta (by contrapose! hσ; simp [W, hσ, εpos])).hasDerivAt
   obtain ⟨C, hC⟩ := IsCompact.exists_bound_of_continuousOn W_compact cont
@@ -2412,7 +2414,7 @@ $$
 \end{lemma}
 %%-/
 lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (t_ne_zero : t ≠ 0) :
-    (∫ σ in σ₁..σ₂, deriv ζ (σ + t * I)) = ζ (σ₂ + t * I) - ζ (σ₁ + t * I) := by
+    (∫ σ in σ₁..σ₂, ζ' (σ + t * I)) = ζ (σ₂ + t * I) - ζ (σ₁ + t * I) := by
   have diff : ∀ (σ : ℝ), DifferentiableAt ℂ ζ (σ + t * I) := by
     intro σ
     refine differentiableAt_riemannZeta ?_
@@ -2423,8 +2425,8 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (t_ne_zero : t ≠ 0) :
     apply DifferentiableAt.comp
     · exact (diff s).restrictScalars ℝ
     · exact DifferentiableAt.add_const (c := t * I) <| differentiableAt_ofReal _
-  · apply ContinuousOn.comp (g := deriv ζ) ?_ ?_ (mapsTo_image _ _)
-    · apply HasDerivAt.continuousOn (f' := deriv <| deriv ζ)
+  · apply ContinuousOn.comp (g := ζ') ?_ ?_ (mapsTo_image _ _)
+    · apply HasDerivAt.continuousOn (f' := deriv <| ζ')
       intro x hx
       apply hasDerivAt_deriv_iff.mpr
       replace hx : x ≠ 1 := by
@@ -2799,7 +2801,7 @@ $$
 %%-/
 lemma LogDerivZetaBnd :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ico (1 - A / Real.log |t| ^ 9) 1), ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤
+    (_ : σ ∈ Ico (1 - A / Real.log |t| ^ 9) 1), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
       C * Real.log |t| ^ 9 := by
   obtain ⟨A, hA, C, hC, h⟩ := ZetaInvBnd
   obtain ⟨A', hA', C', hC', h'⟩ := ZetaDerivUpperBnd
@@ -2839,7 +2841,7 @@ $$
 lemma LogDerivZetaBndUniform :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (T : ℝ) (t : ℝ) (_ : 3 < |t|)
     (_ : |t| ≤ T) (_ : σ ∈ Ico (1 - A / Real.log T ^ 9) 1),
-    ‖deriv ζ (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log T ^ 9 := by
+    ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log T ^ 9 := by
   sorry
 /-%%
 \begin{proof}
@@ -3019,7 +3021,7 @@ is holomorphic on $\{ \sigma_0 \le \Re s \le 2, |\Im s| \le 3 \} \setminus \{1\}
 \end{lemma}
 %%-/
 theorem LogDerivZetaHolcSmallT :
-    ∃ (σ₀ : ℝ) (_ : σ₀ < 1), HolomorphicOn (fun (s : ℂ) ↦ deriv ζ s / (ζ s))
+    ∃ (σ₀ : ℝ) (_ : σ₀ < 1), HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
       (( [[ σ₀, 2 ]] ×ℂ [[ -3, 3 ]]) \ {1}) := by
   have := ZetaNoZerosInBox 4
   sorry
@@ -3041,7 +3043,7 @@ is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}
 %%-/
 theorem LogDerivZetaHolcLargeT :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∀ (T : ℝ) (_ : 3 < T),
-    HolomorphicOn (fun (s : ℂ) ↦ deriv ζ s / (ζ s))
+    HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
       (( [[ ((1 : ℝ) - A / Real.log T ^ 9), 2 ]] ×ℂ [[ -T, T ]]) \ {1}) := by
   sorry
 /-%%
@@ -3066,7 +3068,7 @@ $$
 %%-/
 lemma LogDerivZetaBndAlt :
     ∃ A > 0, ∀ (σ) (_ : σ ∈ Ico ((1 : ℝ) / 2) (1 : ℝ)),
-    (fun (t : ℝ) ↦ deriv ζ (σ + t * I) / ζ (σ + t * I)) =O[cocompact ℝ ⊓
+    (fun (t : ℝ) ↦ ζ' (σ + t * I) / ζ (σ + t * I)) =O[cocompact ℝ ⊓
       Filter.principal {t | 1 - A / Real.log |t| ^ 9 < σ}]
         fun t ↦ Real.log |t| ^ 9 := by
   obtain ⟨A, hA, C, _, h⟩ := LogDerivZetaBnd

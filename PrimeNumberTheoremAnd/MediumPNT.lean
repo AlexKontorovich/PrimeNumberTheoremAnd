@@ -16,6 +16,8 @@ local notation (name := mellintransform2) "𝓜" => MellinTransform
 
 local notation "Λ" => vonMangoldt
 
+local notation "ζ" => riemannZeta
+
 /-%%
 \begin{definition}\label{ChebyshevPsi}\lean{ChebyshevPsi}\leanok
 The (second) Chebyshev Psi function is defined as
@@ -1080,7 +1082,7 @@ X^{s}ds.$$
 %%-/
 theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (X : ℝ) {T : ℝ} (T_pos : 0 < T) {σ₀ : ℝ}
     (σ₀_pos : 0 < σ₀)
-    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) ((Icc σ₀ 2)×ℂ (univ : Set ℝ) \ {1}))
+    (holoOn : HolomorphicOn (deriv ζ / ζ) ((Icc σ₀ 2)×ℂ (univ : Set ℝ) \ {1}))
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     SmoothedChebyshev SmoothingF ε X =
