@@ -1024,6 +1024,34 @@ Returning to the definition of $\psi_{\epsilon}$, fix a large $T$ to be chosen l
 contours (via rectangles!) to go
 from $1+1/\log X-i\infty$ up to $1+1/\log X-iT$, then over to $1-A/\log T^9-iT$,
 up to $1-A/\log T^9-3i$, over to $\sigma_0-3i$, up to $\sigma_0+3i$, back over to $1-A/\log T^9+3i$, up to $1 - A/\log T^9+iT$, over to $1+1/\log X+iT$, and finally up to $1+1/\log X+i\infty$.
+
+\begin{verbatim}
+                    |
+                    | I₉
+              ------+
+              |
+              | I₈
+        ------+
+        |
+        | I₇
+  ------+     I₆
+  |
+  | I₅
+--+------------+---- 0 ----
+  |            |
+  | I₄         |
+  +------      |
+         |     |
+         | I₃  |
+         +---- |
+              |
+              | I₂
+              +----
+                  |
+                  | I₁
+                  |
+\end{verbatim}
+
 In the process, we will pick up the residue at $s=1$.
 We will do this in several stages
 %%-/
