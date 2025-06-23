@@ -1020,32 +1020,36 @@ length $\ll \epsilon X$, and the summands are bounded by $\Lambda(n) \ll \log X$
 %%-/
 
 /-%%
-Returning to the definition of $\psi_{\epsilon}$, fix a large $T$ to be chosen later, and pull
+Returning to the definition of $\psi_{\epsilon}$, fix a large $T$ to be chosen later, and set
+$\sigma_0 = 1 + 1 / log X$,
+$\sigma_1 = 1- A/ \log T^9$, and
+$\sigma_2<\sigma_1$ a constant.
+Pull
 contours (via rectangles!) to go
-from $1+1/\log X-i\infty$ up to $1+1/\log X-iT$, then over to $1-A/\log T^9-iT$,
-up to $1-A/\log T^9-3i$, over to $\sigma_0-3i$, up to $\sigma_0+3i$, back over to $1-A/\log T^9+3i$, up to $1 - A/\log T^9+iT$, over to $1+1/\log X+iT$, and finally up to $1+1/\log X+i\infty$.
+from $\sigma_0-i\infty$ up to $\sigma_0-iT$, then over to $\sigma_1-iT$,
+up to $\sigma_1-3i$, over to $\sigma_2-3i$, up to $\sigma_2+3i$, back over to $\sigma_1+3i$, up to $\sigma_1+iT$, over to $\sigma_0+iT$, and finally up to $\sigma_0+i\infty$.
 
 \begin{verbatim}
                     |
                     | I₉
-              ------+
+              +-----+
+              |  I₈
               |
-              | I₈
-        ------+
-        |
-        | I₇
-  ------+     I₆
+           I₇ |
+              |
+              |
+  ------------+
+  |       I₆
+I₅|
+--σ₂-----σ₁-------σ₀--------
   |
-  | I₅
---+------------+---- 0 ----
-  |            |
-  | I₄         |
-  +------      |
-         |     |
-         | I₃  |
-         +---- |
+  |       I₄
+  +-----+-----+
               |
-              | I₂
+              |
+            I₃|
+              |
+              |  I₂
               +----
                   |
                   | I₁
