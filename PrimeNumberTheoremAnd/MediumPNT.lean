@@ -7,6 +7,11 @@ open Set Function Filter Complex Real
 
 open ArithmeticFunction (vonMangoldt)
 
+/-%%
+The approach here is completely standard. We follow the use of
+$\mathcal{M}(\widetilde{1_{\epsilon}})$ as in [Kontorovich 2015].
+%%-/
+
 local notation (name := mellintransform2) "𝓜" => MellinTransform
 
 local notation "Λ" => vonMangoldt
@@ -24,11 +29,6 @@ noncomputable def ChebyshevPsi (x : ℝ) : ℝ :=
   (Finset.range ⌊x + 1⌋₊).sum Λ
 
 local notation "ψ" => ChebyshevPsi
-
-/-%%
-The approach here is completely standard. We follow the use of
-$\mathcal{M}(\widetilde{1_{\epsilon}})$ as in Kontorovich 2015.
-%%-/
 
 /-%%
 It has already been established that zeta doesn't vanish on the 1 line, and has a pole at $s=1$
@@ -899,7 +899,8 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
 
 theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     ∃ (C : ℝ), ∀ (X : ℝ) (_ : 3 < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1) (_ : 2 < X * ε),
     ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
@@ -1021,9 +1022,9 @@ length $\ll \epsilon X$, and the summands are bounded by $\Lambda(n) \ll \log X$
 /-%%
 Returning to the definition of $\psi_{\epsilon}$, fix a large $T$ to be chosen later, and pull
 contours (via rectangles!) to go
-from $2$ up to $2+iT$, then over to $1+iT$, and up from there to $1+i\infty$ (and symmetrically
-in the lower half plane).  The
-rectangles involved are all where the integrand is holomorphic, so there is no change.
+from $1+1/\log X-i\infty$ up to $1+1/\log X-iT$, then over to $1-A/\log T^9-iT$,
+up to $1-A/\log T^9-3i$, over to $\sigma_0-3i$, up to $\sigma_0+3i$, back over to $1-A/\log T^9+3i$, up to $1 - A/\log T^9+iT$, over to $1+1/\log X+iT$, and finally up to $1+1/\log X+i\infty$.
+In the process, we will pick up the residue at $s=1$.
 We will do this in several stages
 %%-/
 
