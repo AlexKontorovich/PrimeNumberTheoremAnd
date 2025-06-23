@@ -56,6 +56,7 @@ theorem riemannZetaResidue :
   Look at the proof of `riemannZeta_residue_one` in Mathlib.
 \end{proof}
 %%-/
+
 /-%%
 \begin{theorem}[logDerivResidue]\label{logDerivResidue}\lean{logDerivResidue}\leanok
   If $f$ is holomorphic in a neighborhood of $p$, and there is a simple pole at $p$, then $f'/f$ has a simple pole at $p$ with residue $-1$:
@@ -64,11 +65,57 @@ theorem riemannZetaResidue :
 %%-/
 theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
-    (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
-    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-  have : HolomorphicOn (f - (fun s ↦ A * (s - p)⁻¹)) (U \ {p}) := by sorry
-  have := existsDifferentiableOn_of_bddAbove U_in_nhds this
-  sorry
+    (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
+    (BddAbove (norm ∘ (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) '' (U \ {p}))) := by
+
+      have simpleHolo : HolomorphicOn (fun s ↦ A / (s - p)) (U \ {p}) := by
+        apply DifferentiableOn.mono (t := {p}ᶜ)
+        · apply DifferentiableOn.div
+          · exact differentiableOn_const _
+          · exact DifferentiableOn.sub differentiableOn_id (differentiableOn_const _)
+          · exact fun x hx => by rw [sub_ne_zero]; exact hx
+        · rintro s ⟨_, hs⟩ ; exact hs
+
+      have H2 : HolomorphicOn (f - (fun s ↦ A * (s - p)⁻¹)) (U \ {p}) := by
+        unfold HolomorphicOn at *
+        unfold DifferentiableOn at *
+        intro x
+        intro hyp
+        exact DifferentiableWithinAt.sub (holc x hyp) (simpleHolo x hyp)
+
+      let ⟨g, hyp⟩ := existsDifferentiableOn_of_bddAbove U_in_nhds H2 f_near_p
+      let ⟨l, r⟩ := hyp
+      unfold EqOn at r
+
+      unfold BddAbove
+      unfold upperBounds
+      let S := {x | ∀ ⦃a : ℝ⦄, a ∈ norm ∘ (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) '' (U \ {p}) → a ≤ x}
+      have T : 10 ∈ S := by
+        refine mem_setOf.mpr ?_
+        intro a
+        simp [*]
+        intro x
+        intro x_in_u
+        intro hyp_x_not_p
+        intro cond
+        rw [← cond]
+        have Z : x ∈ (U \ {p}) := by sorry
+          -- by x_in_u and hyp_x_not_p
+        have U := r Z
+        simp at U
+        let h := fun (s : ℂ) ↦ A + (g s) * (s - p)
+        have Eq :
+          f = fun (s : ℂ) ↦ (h s) * (s - p)⁻¹ := by rw [g]; _
+        _
+
+      apply Set.nonempty_of_mem
+      exact T
+
+
+
+
+
+
 /-%%
 \begin{proof}\uses{existsDifferentiableOn_of_bddAbove}
 Using Theorem \ref{existsDifferentiableOn_of_bddAbove}, there is a function $g$ holomorphic  near $p$, for which $f(s) = A/(s-p) + g(s) = h(s)/ (s-p)$. Here $h(s):= A + g(s)(s-p)$ which is nonzero in a neighborhood of $p$ (since $h$ goes to $A$ which is nonzero).
