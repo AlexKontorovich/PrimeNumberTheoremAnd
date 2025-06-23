@@ -102,7 +102,7 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : Holomo
     have h1 : (f * g - fun s ↦ A * g p * (s - p)⁻¹) = (f * g - g * A • (fun s ↦ (s-p)⁻¹)) + (g * A • (fun s ↦ (s-p)⁻¹) - (g p * A) • (fun s ↦ (s-p)⁻¹)) := by
       ext x
       simp
-      ring
+      ring_nf
       tauto
     have h2 : f * g - g * A • (fun s ↦ (s-p)⁻¹) = (f - A • (fun s ↦ (s-p)⁻¹)) * g := by
       ext x
