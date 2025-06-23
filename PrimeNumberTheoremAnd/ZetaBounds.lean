@@ -3047,7 +3047,7 @@ theorem LogDerivZetaHolcLargeT :
       (( [[ ((1 : ℝ) - A / Real.log T ^ 9), 2 ]] ×ℂ [[ -T, T ]]) \ {1}) := by
   sorry
 /-%%
-\begin{proof}
+\begin{proof}\uses{ZetaZeroFree}
 The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
 in this range by Lemma \ref{ZetaZeroFree}.
 \end{proof}
