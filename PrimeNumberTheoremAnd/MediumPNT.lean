@@ -1125,8 +1125,9 @@ X^{1} +
 X^{s}ds.$$
 \end{theorem}
 %%-/
-theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (X : ℝ) {T : ℝ} (T_pos : 0 < T) {σ₀ : ℝ}
-    (σ₀_pos : 0 < σ₀)
+
+theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (X : ℝ) (_ : 3 < X) {T : ℝ} (T_pos : 0 < T) {σ₀ : ℝ}
+    (σ₀_pos : 0 < σ₀) (σ₀_lt_one : σ₀ < 1)
     (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₀ 2)×ℂ (Icc (-T) T) \ {1}))
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
@@ -1140,15 +1141,167 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   unfold SmoothedChebyshev
   unfold VerticalIntegral'
   rw [verticalIntegral_split_three (a := -T) (b := T)]
-
   swap
-  sorry
-  --exact SmoothedChebyshevPull1_aux_integrable ε_pos X σ₀_pos holoOn suppSmoothingF SmoothingFnonneg mass_one
+  have X_eq_pos : 0 < 1 + (Real.log X)⁻¹ := by
+    apply add_pos (by positivity)
+    rw[inv_pos, ← Real.log_one]
+    apply Real.log_lt_log (by positivity) (by linarith)
+  --TODO:
+  have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by sorry --should be able to do with lemmas from workshop
+  exact SmoothedChebyshevPull1_aux_integrable ε_pos X X_eq_pos holoIntegrand suppSmoothingF SmoothingFnonneg mass_one
 
+  have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by field_simp
+  repeat rw[smul_eq_mul]
+  unfold I₁
+  rw[temp, mul_add, mul_add, add_assoc, sub_eq_add_neg]
+  nth_rewrite 4 [add_assoc]
+  nth_rewrite 3 [add_assoc]
+  nth_rewrite 2 [add_assoc]
+  rw[add_assoc, add_left_cancel_iff, add_assoc]
+  nth_rewrite 7 [add_comm]
+  rw[← add_assoc]
+  unfold I₉
+  rw[add_right_cancel_iff, ← add_right_inj (1 / (2 * ↑π * I) * -VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) (1 + (Real.log X)⁻¹) (-T) T), ← mul_add, ← sub_eq_neg_add, sub_self, mul_zero]
+  unfold VIntegral I₂ I₃₇ I₈
+  rw[smul_eq_mul, temp, ← add_assoc, ← add_assoc]
+  nth_rewrite 2 [div_mul_comm]
+  rw[mul_one, ← neg_div, ← mul_neg]
+  nth_rewrite 2 [← one_div_mul_eq_div]
+  repeat rw[← mul_add]
+  let fTempRR : ℝ → ℝ → ℂ := fun x ↦ fun y ↦ SmoothedChebyshevIntegrand SmoothingF ε X ((x : ℝ) + (y : ℝ) * I)
+  let fTempC : ℂ → ℂ := fun z ↦ fTempRR z.re z.im
+  have : ∫ (y : ℝ) in -T..T, SmoothedChebyshevIntegrand SmoothingF ε X (1 + ↑(Real.log X)⁻¹ + ↑y * I) =
+    ∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y := by
+    unfold fTempRR
+    rw[temp]
+  rw[this]
+  have : ∫ (σ : ℝ) in σ₀..1 + (Real.log X)⁻¹, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I) =
+    ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR x (-T) := by
+    unfold fTempRR
+    rw[Complex.ofReal_neg, neg_mul]
+    rfl
+  rw[this]
+  have : ∫ (t : ℝ) in -T..T, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₀ + ↑t * I) =
+    ∫ (y : ℝ) in -T..T, fTempRR σ₀ y := by rfl
+  rw[this]
+  have : ∫ (σ : ℝ) in σ₀..1 + (Real.log X)⁻¹, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ + ↑T * I) =
+    ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR x T := by rfl
+  rw[this]
+  repeat rw[← add_assoc]
+  have : (((I * -∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y) +
+    -∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR x (-T)) +
+    I * ∫ (y : ℝ) in -T..T, fTempRR σ₀ y) +
+    ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR x T = -1 * RectangleIntegral fTempC ((1 : ℝ) + (Real.log X)⁻¹ + T * I) (σ₀ - T * I) := by
+    unfold RectangleIntegral
+    rw[HIntegral_symm, VIntegral_symm]
+    nth_rewrite 2 [HIntegral_symm, VIntegral_symm]
+    unfold HIntegral VIntegral
+    repeat rw[smul_eq_mul]
+    repeat rw[add_re]
+    repeat rw[add_im]
+    repeat rw[sub_re]
+    repeat rw[sub_im]
+    repeat rw[mul_re]
+    repeat rw[mul_im]
+    repeat rw[ofReal_re]
+    repeat rw[ofReal_im]
+    rw[I_re, I_im, mul_zero, zero_mul, mul_one]
+    ring_nf
+    unfold fTempC
+    have : ∫ (y : ℝ) in -T..T, fTempRR (I * ↑y + ↑σ₀).re (I * ↑y + ↑σ₀).im =
+      ∫ (y : ℝ) in -T..T, fTempRR σ₀ y := by simp
+    rw[this]
+    have : ∫ (y : ℝ) in -T..T, fTempRR (I * ↑y + ↑(1 + (Real.log X)⁻¹)).re (I * ↑y + ↑(1 + (Real.log X)⁻¹)).im =
+      ∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y := by simp
+    rw[this]
+    have : ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR (I * ↑T + ↑x).re (I * ↑T + ↑x).im =
+      ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR x T := by simp
+    rw[this]
+    have : ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR (I * ↑(-T) + ↑x).re (I * ↑(-T) + ↑x).im =
+      ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR x (-T) := by simp
+    rw[this]
+    ring_nf
+  rw[this, neg_one_mul, div_mul_comm, mul_one, ← add_right_inj (RectangleIntegral fTempC (1 + ↑(Real.log X)⁻¹ + ↑T * I) (↑σ₀ - ↑T * I) / (2 * ↑π * I)), ← add_assoc]
+  field_simp
+  rw[rectangleIntegral_symm]
+  have : RectangleIntegral fTempC (↑σ₀ - ↑T * I) (1 + 1 / ↑(Real.log X) + ↑T * I) / (2 * ↑π * I) =
+    RectangleIntegral' fTempC (σ₀ - T * I) (1 + ↑(Real.log X)⁻¹ + T * I) := by
+    unfold RectangleIntegral'
+    rw[smul_eq_mul]
+    field_simp
+  rw[this]
 
+  let holoMatch : ℂ → ℂ := fun z ↦ (fTempC z - (𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) 1 * ↑X) / (z - 1))
+  have inv_log_X_pos: 0 < (Real.log X)⁻¹ := by
+    rw[inv_pos, ← Real.log_one]
+    apply Real.log_lt_log (by positivity) (by linarith)
+  have pInRectangleInterior : (Rectangle (σ₀ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) ∈ nhds 1) := by
+    refine rectangle_mem_nhds_iff.mpr ?_
+    refine mem_reProdIm.mpr ?_
+    have : re 1 = 1 := by rfl
+    rw[this]
+    have : im 1 = 0 := by rfl
+    rw[this]
+    repeat rw[sub_re]
+    repeat rw[sub_im]
+    repeat rw[add_re]
+    repeat rw[add_im]
+    rw[mul_re, mul_im, I_re, I_im]
+    repeat rw[ofReal_re]
+    repeat rw[ofReal_im]
+    ring_nf
+    have temp : 1 ∈ uIoo σ₀ (re 1 + (Real.log X)⁻¹) := by
+      have : re 1 = 1 := by rfl
+      rw[this]
+      unfold uIoo
+      have : min σ₀ (1 + (Real.log X)⁻¹) = σ₀ := by exact min_eq_left (by linarith)
+      rw[this]
+      have : max σ₀ (1 + (Real.log X)⁻¹) = 1 + (Real.log X)⁻¹ := by exact max_eq_right (by linarith)
+      rw[this]
+      refine mem_Ioo.mpr ?_
+      exact ⟨σ₀_lt_one, (by linarith)⟩
+    have : 0 ∈ uIoo (-T) (T + im 1) := by
+      have : im 1 = 0 := by rfl
+      rw[this, add_zero]
+      unfold uIoo
+      have : min (-T) T = -T := by exact min_eq_left (by linarith)
+      rw[this]
+      have : max (-T) T = T := by exact max_eq_right (by linarith)
+      rw[this]
+      refine mem_Ioo.mpr ?_
+      exact ⟨(by linarith), (by linarith)⟩
+    exact ⟨temp, this⟩
+  --TODO:
+  have holoMatchHoloOn : HolomorphicOn holoMatch (Rectangle (σ₀ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1}) := by sorry --should be able to do with lemmas from workshop
+  --TODO:
+  have holoMatchBddAbove : BddAbove (norm ∘ holoMatch '' (Rectangle (σ₀ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1})) := by sorry --should be able to do with lemmas from workshop
+  obtain ⟨g, gHolo_Eq⟩ := existsDifferentiableOn_of_bddAbove pInRectangleInterior holoMatchHoloOn holoMatchBddAbove
+  obtain ⟨gHolo, gEq⟩ := gHolo_Eq
 
-    --VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) 2
-  sorry
+  have zRe_le_wRe : (σ₀ - ↑T * I).re ≤ (1 + (Real.log X)⁻¹ + T * I).re := by
+    repeat rw[sub_re]
+    repeat rw[add_re]
+    repeat rw[mul_re]
+    rw[I_re, I_im]
+    repeat rw[ofReal_re]
+    repeat rw[ofReal_im]
+    ring_nf
+    have : re 1 = 1 := by rfl
+    rw[this]
+    linarith
+  have zIm_le_wIm : (σ₀ - ↑T * I).im ≤ (1 + (Real.log X)⁻¹ + T * I).im := by
+    repeat rw[sub_im]
+    repeat rw[add_im]
+    repeat rw[mul_im]
+    rw[I_re, I_im]
+    repeat rw[ofReal_re]
+    repeat rw[ofReal_im]
+    ring_nf
+    have : im 1 = 0 := by rfl
+    rw[this]
+    linarith
+  exact ResidueTheoremOnRectangleWithSimplePole zRe_le_wRe zIm_le_wIm pInRectangleInterior gHolo gEq
+
 /-%%
 \begin{proof}
 \uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue}
