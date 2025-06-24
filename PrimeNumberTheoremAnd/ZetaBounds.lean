@@ -184,10 +184,10 @@ theorem riemannZetaLogDerivResidue :
     apply differentiableAt_riemannZeta hy.2
   have := logDerivResidue ζ_holc U_in_nhds one_ne_zero
   simp [one_mul] at this
-  have := this riemannZetaResidue
-  simp [isBigO_iff] at this ⊢
-  obtain ⟨c, f⟩ := this
-  use c
+  --have := this riemannZetaResidue
+  --simp [isBigO_iff] at this ⊢
+  --obtain ⟨c, f⟩ := this
+  --use c
   sorry
 /-%%
 \begin{proof}\uses{logDerivResidue, riemannZetaResidue}
