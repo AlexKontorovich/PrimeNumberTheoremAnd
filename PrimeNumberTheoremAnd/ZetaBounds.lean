@@ -49,7 +49,7 @@ holomorphic functions.
 \end{theorem}
 %%-/
 theorem riemannZetaResidue :
-    (ζ - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
+    ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (ζ - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
   have := riemannZeta_residue_one
   sorry
 /-%%
@@ -67,7 +67,7 @@ theorem riemannZetaResidue :
 theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
-    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+    BddAbove (norm ∘ (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) '' (U \ {p})) := by
 
       have simpleHolo : HolomorphicOn (fun s ↦ A / (s - p)) (U \ {p}) := by
         apply DifferentiableOn.mono (t := {p}ᶜ)
@@ -147,7 +147,7 @@ Let's also record that if a function $f$ has a simple pole at $p$ with residue $
 %%-/
 theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : HolomorphicOn f (U \ {p}))
     (g_holc : HolomorphicOn g U) (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
-    (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
+    (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
     (f * g - (fun s ↦ A * g p * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
     sorry
 /-%%
@@ -172,23 +172,29 @@ As a corollary, the log derivative of the Riemann zeta function has a simple pol
 \end{theorem}
 %%-/
 theorem riemannZetaLogDerivResidue :
-    (-(ζ' / ζ) - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
-  let U := {z : ℂ | dist z 1 < 1}
-  have U_in_nhds : U ∈ 𝓝 1 := by
-    refine Metric.ball_mem_nhds 1 zero_lt_one
+    ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (-(ζ' / ζ) - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
+  obtain ⟨U,U_in_nhds, hU⟩ := riemannZetaResidue
   have ζ_holc: HolomorphicOn ζ (U \ {1}) := by
-    unfold HolomorphicOn
     intro y hy
     simp at hy
     refine DifferentiableAt.differentiableWithinAt ?_
     apply differentiableAt_riemannZeta hy.2
   have := logDerivResidue ζ_holc U_in_nhds one_ne_zero
   simp [one_mul] at this
-  --have := this riemannZetaResidue
-  --simp [isBigO_iff] at this ⊢
-  --obtain ⟨c, f⟩ := this
-  --use c
-  sorry
+  use U
+  constructor
+  exact U_in_nhds
+  convert this ?_ using 1
+  simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply]
+  have aux: ∀ a, ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by
+    intro a
+    calc ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖
+         = ‖-((deriv ζ a / ζ a) + (a - 1)⁻¹)‖ := by ring_nf
+       _ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by rw [norm_neg]
+  simp [aux]
+  rfl
+  simp at hU
+  exact hU
 /-%%
 \begin{proof}\uses{logDerivResidue, riemannZetaResidue}
   This follows from Theorem \ref{logDerivResidue} and Theorem \ref{riemannZetaResidue}.
