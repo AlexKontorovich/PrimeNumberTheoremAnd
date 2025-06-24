@@ -66,12 +66,12 @@ theorem riemannZetaResidue :
   simp only [mem_map] at this
   rw [mem_nhdsWithin] at this
   obtain ⟨U, hU_open, h1_in_U, hU_subset⟩ := this
-  refine ⟨U, hU_open, h1_in_U, ?_⟩
-
   have U_mem_nhds : U ∈ 𝓝 (1 : ℂ) := by
     rw [mem_nhds_iff]
     refine ⟨U, fun ⦃a⦄ a ↦ a, hU_open, h1_in_U⟩
-
+  use U
+  constructor
+  exact U_mem_nhds
   have h_bdd : BddAbove (norm ∘ (fun s : ℂ => (s - 1) * riemannZeta s) '' (U \ {1})) := by
     use 2
     intro r hr
