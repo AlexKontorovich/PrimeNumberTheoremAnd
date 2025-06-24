@@ -73,12 +73,28 @@ theorem analytic_bounded_near_point
     --refine (analyticOn_iff_differentiableOn hU).mp ?_
     sorry
 
-/-%%
-\begin{theorem}[logDerivResidue]\label{logDerivResidue}\lean{logDerivResidue}\leanok
-  If $f$ is holomorphic in a neighborhood of $p$, and there is a simple pole at $p$, then $f'/f$ has a simple pole at $p$ with residue $-1$:
-  $$ \frac{f'(s)}{f(s)} = \frac{-1}{s - p} + O(1).$$
-\end{theorem}
-%%-/
+
+-- Even simpler direct proof using tendsto
+theorem map_inv_nhdsWithin_direct
+  (h : ℂ  → ℂ) (U : Set ℂ) (p : ℂ) (A : ℂ)
+  (A_ne_zero : A ≠ 0) :
+  map h (𝓝[U] p) ≤ 𝓝 A → map (fun x => (h x)⁻¹) (𝓝[U] p) ≤ 𝓝 A⁻¹ := by
+  intro hyp
+  -- This is just the continuity of inversion composed with the given convergence
+  --rw [← map_map]
+  exact (continuousAt_inv₀ A_ne_zero).tendsto.comp hyp
+
+
+-- Even simpler direct proof using tendsto
+theorem map_inv_nhdsWithin_direct_alt
+  (h : ℂ  → ℂ) (p : ℂ) (A : ℂ)
+  (A_ne_zero : A ≠ 0) :
+  map h (𝓝[≠] p) ≤ 𝓝 A → map (fun x => (h x)⁻¹) (𝓝[≠] p) ≤ 𝓝 A⁻¹ := by
+  intro hyp
+  -- This is just the continuity of inversion composed with the given convergence
+  --rw [← map_map]
+  exact (continuousAt_inv₀ A_ne_zero).tendsto.comp hyp
+
 
 /- The set should be open so that f'(p) = O(1) for all p ∈ U -/
 
@@ -114,54 +130,108 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
         have G := DifferentiableOn.const_add A T
         exact G
 
+      have h_continuous : ContinuousOn h U :=
+        by exact DifferentiableOn.continuousOn h_is_holomorphic
+
       -- Just a consequence of continuity
 
-      have h_converges : h =ᶠ[𝓝[≠] p] (fun s ↦ h p) := by
-        sorry
-
-      have g_converges_to_g_at_p : g =ᶠ[𝓝[≠] p] (fun s ↦  (g p)) := by sorry
-
-
-      have g_bounded_at_p : g =O[𝓝[≠] p] (1 : ℂ → ℂ ) := by
-        exact analytic_bounded_near_point g (U_is_open) (by exact mem_of_mem_nhds U_in_nhds) g_is_holomorphic
-
-      have linear_converges_to_zero : (fun s ↦ s - p) =ᶠ[𝓝[≠] p] (fun _ ↦ 0) := by sorry
-
-      have h_converges_to_A : h =ᶠ[𝓝[≠] p] (fun s ↦  A) := by
-        apply Filter.eventuallyEq_iff_sub.mpr
-        unfold h
-        have T : ((fun s ↦ A + (g s) * (s - p)) - fun s ↦ A) = (fun s ↦ (g s) * (s - p)) := by
-          funext x
+      have h_converges_to_A : map h (𝓝[U] p) ≤ 𝓝 A := by
+        have p_in_U : p ∈ U := by sorry
+        have H := (h_continuous p) p_in_U
+        unfold ContinuousWithinAt at H
+        unfold Tendsto at H
+        have T : h p = A := by
+          unfold h
           simp
+        simp [T] at H
+        exact H
 
-        simp [T] at *
-        let ⟨c, ⟨c_is_pos, bound⟩⟩ :=  Asymptotics.IsBigO.exists_pos  g_bounded_at_p
-        have T := Asymptotics.isBigOWith_iff.mp bound
-        simp [*] at T
-        sorry
+--      have h_converges_to_A_alt : map h (𝓝[≠] p) ≤ 𝓝 A := by
+--        sorry
 
-      have h_inv_converges_to_inv_A : h⁻¹ =ᶠ[𝓝[≠] p] (fun _ ↦ A⁻¹) := by exact EventuallyEq.symm (eventuallyEq_of_mem (id (EventuallyEq.symm h_converges_to_A)) fun ⦃x⦄ ↦ congrArg Inv.inv)
+      have h_inv_converges_to_inv_A : map h⁻¹ (𝓝[U] p) ≤ 𝓝 A⁻¹ := by
+        exact map_inv_nhdsWithin_direct h U p A A_ne_zero h_converges_to_A
 
-      have deriv_f : EqOn (deriv f) (fun s ↦ (((deriv h) s) * (s - p) - h s) * (s - p)⁻¹ * (s - p)⁻¹) (U \ {p}) := by sorry
+
+      have h_inv_converges_to_inv_A_norm : Tendsto (fun e ↦ ‖h⁻¹ e - A⁻¹‖) (𝓝[U] p) (𝓝 0) :=
+        by exact tendsto_iff_norm_sub_tendsto_zero.mp h_inv_converges_to_inv_A
+
+     -- have h_inv_converges_to_inv_A_norm : Tendsto (fun e ↦ ‖h⁻¹ e - A⁻¹‖) (𝓝[U] p) atBot :=
+     --   by
+     --     refine Real.tendsto_exp_comp_nhds_zero.mp ?_
+     --     apply?
+
+--      have h_inv_converges_to_inv_A_norm_1 : ∀ᶠ (x : ℂ) in 𝓝[U] p, ‖h⁻¹ x - A⁻¹‖ ≤ 1 := by
+
+
+     --   refine Tendsto.eventually_le_atBot ?_ 1
+     --   _
+
+      have h_inv_converges_to_inv_A_norm_1 : {x | ‖h⁻¹ x - A⁻¹‖ ≤ 1} ∈ 𝓝[U] p :=
+        by
+          unfold Tendsto at h_inv_converges_to_inv_A_norm
+          unfold map at h_inv_converges_to_inv_A_norm
+          unfold preimage at h_inv_converges_to_inv_A_norm
+          have T := Filter.sets_subset_sets.mpr h_inv_converges_to_inv_A_norm
+          simp [*] at T
+
+          have G : Set.Icc (-1) 1 ∈ (𝓝 (0 : ℝ)).sets := by
+            refine Icc_mem_nhds ?_ ?_
+            · simp
+            · simp
+          have E : {x | ‖h⁻¹ x - A⁻¹‖ ∈ (Set.Icc (-1) 1)} ∈ (𝓝[U] p) :=
+            by
+              have := Set.mem_of_subset_of_mem T G
+              exact this
+          have Z : ∀ (u : ℂ), (‖u‖ ∈ Set.Icc (-1) 1) ↔ (‖u‖ ≤ 1) := by
+            sorry
+          _
+--          rw [Z (h⁻¹ x - A⁻¹)] at E
+
+
+
+ --     have trivial_subset : {x | ‖h⁻¹ x - A⁻¹‖ ≤ 1} ⊆ {x | ‖h⁻¹ x‖ ≤ ‖A‖⁻¹ + 1} := by sorry
+
+--      have h_inv_bounded_by_inv_A_norm_plus_one : {x | ‖h⁻¹ x‖ ≤ ‖A‖⁻¹ + 1 } ∈ 𝓝[U] p :=
+--        by
+
+
+--      have h_inv_bounded_above : Filter.EventuallyLE (𝓝[U] p) (fun e ↦ ‖h⁻¹ e - A⁻¹‖) (fun _ ↦ 1) :=
+--        by exact h_inv_converges_to_inv_A_norm
+
+--      have h_inv_converges_to_inv_A_norm : map (norm ∘ (h⁻¹)) (𝓝[U] p) ≤ 𝓝 ‖A‖⁻¹ := by
+      --  simp [*] at *
+      --  apply Filter.tendsto_map'_iff.mp
+      --  dsimp [h_inv_converges_to_inv_A] at *
+--        apply tendsto_iff_norm_sub_tendsto_zero.mpr
+--        _
+
+--      have h_inv_converges_to_inv_A_alt : map h⁻¹ (𝓝[U] p) ≤ 𝓝 A⁻¹ := by
+--        exact map_inv_nhdsWithin_direct_alt h p A A_ne_zero h_converges_to_A
 
       have log_deriv_f_plus_pole_equal_log_deriv_h :
         EqOn (fun s ↦ ((deriv f) s) * (f⁻¹ s) + (s - p)⁻¹) ((deriv h) * h⁻¹) (U \ {p}) := by sorry
 
       have h_inv_bounded :
         h⁻¹ =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-          have T := EventuallyEq.isBigO h_inv_converges_to_inv_A
+          rw [Asymptotics.IsBigO_def]
+          use ‖A‖⁻¹ + 1
+          rw [Asymptotics.IsBigOWith]
           simp [*] at *
-          have G : (fun _ ↦ A⁻¹) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-            refine Asymptotics.isBigO_iff.mpr ?_
-            use (norm A⁻¹)
-            simp [*]
-
-          exact EventuallyEq.trans_isBigO h_inv_converges_to_inv_A G
-
-
+          refine eventually_iff.mpr ?_
+          have U101 : {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} ∈ 𝓝[U] p := by
+            sorry
+          have U102 : {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} ∈ 𝓝 p := by
+            exact nhds_of_nhdsWithin_of_nhds U_in_nhds U101
+          refine mem_nhdsWithin_iff_exists_mem_nhds_inter.mpr ?_
+          use {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1}
+          refine ⟨U102, ?_⟩
+          · exact inter_subset_left
 
       have h_deriv_bounded :
-        (deriv h) =O[𝓝[≠] p] (1 : ℂ → ℂ) := analytic_deriv_bounded_near_point h U_is_open (by exact mem_of_mem_nhds U_in_nhds) h_is_holomorphic
+        (deriv h) =O[𝓝[≠] p] (1 : ℂ → ℂ) :=
+          analytic_deriv_bounded_near_point h U_is_open
+            (by exact mem_of_mem_nhds U_in_nhds) h_is_holomorphic
 
       have h_log_deriv_bounded :
         ((deriv h) * h⁻¹) =O[𝓝[≠] p] (1 : ℂ → ℂ)  := by
@@ -174,9 +244,7 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
         exact diff_mem_nhdsWithin_compl U_in_nhds {p}
 
       have final : (fun s ↦ ((deriv f) s) * (f⁻¹ s) + (s - p)⁻¹) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-
         have T := Set.EqOn.eventuallyEq_of_mem log_deriv_f_plus_pole_equal_log_deriv_h u_not_p_in_filter
-
         exact EventuallyEq.trans_isBigO T h_log_deriv_bounded
 
       exact final
