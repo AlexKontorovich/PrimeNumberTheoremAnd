@@ -66,7 +66,7 @@ theorem riemannZetaResidue :
 theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
-    (BddAbove (norm ∘ (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) '' (U \ {p}))) := by
+    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
 
       have simpleHolo : HolomorphicOn (fun s ↦ A / (s - p)) (U \ {p}) := by
         apply DifferentiableOn.mono (t := {p}ᶜ)
@@ -87,8 +87,6 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (holc : Holomo
       let ⟨l, r⟩ := hyp
       unfold EqOn at r
 
-      unfold BddAbove
-      unfold upperBounds
       let S := {x | ∀ ⦃a : ℝ⦄, a ∈ norm ∘ (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) '' (U \ {p}) → a ≤ x}
       have T : 10 ∈ S := by
         refine mem_setOf.mpr ?_
@@ -101,15 +99,21 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (holc : Holomo
         rw [← cond]
         have Z : x ∈ (U \ {p}) := by sorry
           -- by x_in_u and hyp_x_not_p
-        have U := r Z
-        simp at U
+        have U1 := (r Z).symm; simp [*]
+        simp at U1
         let h := fun (s : ℂ) ↦ A + (g s) * (s - p)
-        have Eq :
-          f = fun (s : ℂ) ↦ (h s) * (s - p)⁻¹ := by rw [g]; _
-        _
+        let n := fun (s : ℂ) ↦ f s - A * (s - p)⁻¹
+        have T : EqOn (fun s ↦ (h s) * (s - p)⁻¹) f (U \ {p}) := by
+          unfold EqOn
+          intro x
+          intro hyp_x
+          unfold h
+          simp [*]
+          sorry
 
-      apply Set.nonempty_of_mem
-      exact T
+        sorry
+
+      sorry
 
 
 
