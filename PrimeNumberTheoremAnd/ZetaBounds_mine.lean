@@ -154,9 +154,44 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : Holomo
       filter_upwards [hC'] with x hx
       simp [norm_one]
       exact hx
-  · sorry
+  · -- Show that (fun s ↦ A * (g s - g p) / (s - p)) =O[𝓝[≠] p] 1
+    have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
 
+    -- g is differentiable at p since it's holomorphic on U
+    have g_diff : DifferentiableAt ℂ g p :=
+        DifferentiableOn.differentiableAt g_holc U_in_nhds
 
+    -- The difference quotient (g s - g p) / (s - p) converges to the derivative
+    have diff_quot_conv : (fun s ↦ (g s - g p) / (s - p)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+      -- Use that convergent sequences are bounded
+      have : HasDerivAt g (deriv g p) p := g_diff.hasDerivAt
+      -- The difference quotient minus the derivative goes to 0
+      have close_to_deriv : (fun s ↦ (g s - g p) / (s - p) - deriv g p) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+        apply Asymptotics.IsLittleO.isBigO
+        dsimp[Asymptotics.IsLittleO]
+        -- Use the definition of the derivative
+        rw[Asymptotics.isLittleO_iff_tendsto']
+        simp
+        rw[← sub_self (deriv g p)]
+        rw[tendsto_sub_const_iff]
+        sorry
+
+      -- Therefore the difference quotient is bounded
+      have : (fun s ↦ (g s - g p) / (s - p)) = (fun s ↦ (g s - g p) / (s - p) - deriv g p) + fun _ ↦ deriv g p := by
+        ext s; simp
+      rw [this]
+      refine Asymptotics.IsBigO.add ?_ ?_
+      · exact close_to_deriv
+      · exact Asymptotics.isBigO_const_const ..
+
+    -- Now multiply by the constant A
+    have : (fun s ↦ A * ((g s - g p) / (s - p))) =O[𝓝[≠] p] 1 :=
+        Asymptotics.IsBigO.const_mul_left diff_quot_conv A
+    convert this using 1
+    ext s
+    exact mul_div_assoc A (g s - g p) (s - p)
+
+#check DifferentiableAt.isBigO_sub
 /-%%
 \begin{proof}
 Elementary calculation.
