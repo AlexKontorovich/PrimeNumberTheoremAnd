@@ -2893,7 +2893,34 @@ lemma LogDerivZetaBndUniform :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (T : ℝ) (t : ℝ) (_ : 3 < |t|)
     (_ : |t| ≤ T) (_ : σ ∈ Ico (1 - A / Real.log T ^ 9) 1),
     ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log T ^ 9 := by
-  sorry
+  obtain ⟨A, hA_pos, C, hC_pos, hbound⟩ := LogDerivZetaBnd
+  use A, hA_pos, C, hC_pos
+  intro σ T t ht hTσ hσ
+  have abs_t_pos : 0 < |t| := lt_trans (by norm_num) ht
+  have log_t_pos : 0 < Real.log |t| := by
+    apply Real.log_pos
+    exact lt_trans (by norm_num : (1 : ℝ) < (3 : ℝ)) ht
+  have T_pos : 0 < T := lt_of_lt_of_le abs_t_pos hTσ
+  have T_gt3 : 3 < T := lt_of_lt_of_le ht hTσ
+  have log_le : Real.log |t| ≤ Real.log T := Real.log_le_log abs_t_pos hTσ
+  have log_T_pos : 0 < Real.log T := Real.log_pos (lt_trans (by norm_num) T_gt3)
+  have A_pos : 0 < A := hA_pos.1
+  have pow_lot_T_ge_pow_log_t : Real.log |t| ^ 9 ≤ Real.log T ^ 9 := by
+    refine (pow_le_pow_iff_left₀ ?_ ?_ ?_).mpr log_le
+    exact le_of_lt log_t_pos
+    exact le_of_lt log_T_pos
+    norm_num
+  have hσ' : σ ∈ Ico (1 - A / Real.log (|t|) ^ 9) 1 := by
+    have hdenom_le : A / Real.log T ^ 9 ≤ A / Real.log |t| ^ 9 := by
+      refine (div_le_div_iff_of_pos_left ?_ ?_ ?_).mpr pow_lot_T_ge_pow_log_t
+      exact A_pos
+      exact pow_pos log_T_pos 9
+      exact pow_pos log_t_pos 9
+    apply Set.mem_Ico.mpr
+    exact ⟨le_trans (sub_le_sub_left hdenom_le _) hσ.1, hσ.2⟩
+  have bound := hbound σ t ht hσ'
+  apply le_trans bound
+  exact (mul_le_mul_iff_of_pos_left hC_pos).mpr pow_lot_T_ge_pow_log_t
 /-%%
 \begin{proof}
 \uses{LogDerivZetaBnd}
