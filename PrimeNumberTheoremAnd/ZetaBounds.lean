@@ -167,7 +167,7 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
      --   refine Tendsto.eventually_le_atBot ?_ 1
      --   _
 
-      have h_inv_converges_to_inv_A_norm_1 : {x | ‖h⁻¹ x - A⁻¹‖ ≤ 1} ∈ 𝓝[U] p :=
+      have h_inv_converges_to_inv_A_norm_1 : {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1} ∈ 𝓝[U] p :=
         by
           unfold Tendsto at h_inv_converges_to_inv_A_norm
           unfold map at h_inv_converges_to_inv_A_norm
@@ -183,14 +183,23 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
             by
               have := Set.mem_of_subset_of_mem T G
               exact this
-          have Z : ∀ (u : ℂ), (‖u‖ ∈ Set.Icc (-1) 1) ↔ (‖u‖ ≤ 1) := by
-            sorry
-          _
---          rw [Z (h⁻¹ x - A⁻¹)] at E
+          exact E
 
+      have trivial_subset : {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1} ⊆ {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} := by
+        simp
+        intro x
+        intro hyp_a
+        intro hyp_b
+        have T : 1 ≤ ‖A‖⁻¹ + 1 := by simp
+        simp [*] at *
+        have U := calc
+          ‖h x‖⁻¹             = ‖h⁻¹ x‖ := by exact Eq.symm (IsAbsoluteValue.abv_inv norm (h x))
+          ‖h⁻¹ x‖             = ‖h⁻¹ x - A⁻¹ + A⁻¹‖ := by simp
+          ‖h⁻¹ x - A⁻¹ + A⁻¹‖ ≤ ‖h⁻¹ x - A⁻¹‖ + ‖A⁻¹‖ := by exact norm_add_le (h⁻¹ x - A⁻¹) (A⁻¹)
+          _                   ≤  1 + ‖A‖⁻¹ := by simp [hyp_b]
+          _                   = ‖A‖⁻¹ + 1 := by exact Lean.Grind.CommRing.add_comm 1 ‖A‖⁻¹
 
-
- --     have trivial_subset : {x | ‖h⁻¹ x - A⁻¹‖ ≤ 1} ⊆ {x | ‖h⁻¹ x‖ ≤ ‖A‖⁻¹ + 1} := by sorry
+        exact U
 
 --      have h_inv_bounded_by_inv_A_norm_plus_one : {x | ‖h⁻¹ x‖ ≤ ‖A‖⁻¹ + 1 } ∈ 𝓝[U] p :=
 --        by
@@ -217,10 +226,12 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
           rw [Asymptotics.IsBigO_def]
           use ‖A‖⁻¹ + 1
           rw [Asymptotics.IsBigOWith]
-          simp [*] at *
+          simp [*]
           refine eventually_iff.mpr ?_
           have U101 : {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} ∈ 𝓝[U] p := by
-            sorry
+            refine exists_mem_subset_iff.mp ?_
+            use {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1}
+
           have U102 : {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} ∈ 𝓝 p := by
             exact nhds_of_nhdsWithin_of_nhds U_in_nhds U101
           refine mem_nhdsWithin_iff_exists_mem_nhds_inter.mpr ?_
