@@ -1,4 +1,5 @@
 import Mathlib.Analysis.Calculus.ContDiff.Defs
+import Mathlib.Analysis.Asymptotics.Defs
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
@@ -16,7 +17,7 @@ import Mathlib.Tactic.Bound
 
 set_option lang.lemmaCmd true
 
-open Complex Topology Filter Interval Set
+open Complex Topology Filter Interval Set Asymptotics
 
 lemma div_cpow_eq_cpow_neg (a x s : ℂ) : a / x ^ s = a * x ^ (-s) := by
   rw [div_eq_mul_inv, cpow_neg]
@@ -97,7 +98,7 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : Holomo
     (g_holc : HolomorphicOn g U) (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
     (f * g - (fun s ↦ A * g p * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-  sorry
+    sorry
 /-%%
 \begin{proof}
 Elementary calculation.
@@ -121,6 +122,21 @@ As a corollary, the log derivative of the Riemann zeta function has a simple pol
 %%-/
 theorem riemannZetaLogDerivResidue :
     (-(ζ' / ζ) - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
+  let U := {z : ℂ | dist z 1 < 1}
+  have U_in_nhds : U ∈ 𝓝 1 := by
+    refine Metric.ball_mem_nhds 1 zero_lt_one
+  have ζ_holc: HolomorphicOn ζ (U \ {1}) := by
+    unfold HolomorphicOn
+    intro y hy
+    simp at hy
+    refine DifferentiableAt.differentiableWithinAt ?_
+    apply differentiableAt_riemannZeta hy.2
+  have := logDerivResidue ζ_holc U_in_nhds one_ne_zero
+  simp [one_mul] at this
+  have := this riemannZetaResidue
+  simp [isBigO_iff] at this ⊢
+  obtain ⟨c, f⟩ := this
+  use c
   sorry
 /-%%
 \begin{proof}\uses{logDerivResidue, riemannZetaResidue}
