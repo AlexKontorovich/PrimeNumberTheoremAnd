@@ -3092,11 +3092,196 @@ $
 is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}$.
 \end{lemma}
 %%-/
+
 theorem LogDerivZetaHolcLargeT :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∀ (T : ℝ) (_ : 3 < T),
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∃ (Tlb : ℝ) (_ : 3 < Tlb), ∀ (T : ℝ) (_ : Tlb < T),
     HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
-      (( [[ ((1 : ℝ) - A / Real.log T ^ 9), 2 ]] ×ℂ [[ -T, T ]]) \ {1}) := by
-  sorry
+      (( (Ioo ((1 : ℝ) - A / Real.log T ^ 9) 2)  ×ℂ (Ioo (-T) T) ) \ {1}) := by
+  obtain ⟨A, A_inter, restOfZetaZeroFree⟩ := ZetaZeroFree
+  use A
+  use A_inter
+  obtain ⟨σ₀, σ₀_lt_one, trash⟩ := LogDerivZetaHolcSmallT
+  obtain ⟨σ₁, σ₁_lt_one, noZerosInBox⟩ := ZetaNoZerosInBox 4
+  have : ∃ (Tlb : ℝ) (_ : 3 < Tlb), ∀ (T : ℝ), Tlb < T → σ₀ < (1 : ℝ) - A / Real.log T ^ 9 ∧ σ₁ < (1 : ℝ) - A / Real.log T ^ 9 := by
+    let Tlb : ℝ := max 5 (max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))))
+    use Tlb
+    have three_lt_Tlb : 3 < Tlb := by
+      rw[lt_max_iff]
+      exact Or.inl (by norm_num)
+    use three_lt_Tlb
+    intro T Tlb_lt_T
+    have temp : σ₀ < 1 - A / Real.log T ^ 9 := by
+      have : Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9)) ≤ Tlb := by
+        dsimp[Tlb]
+        have temp : Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9)) ≤
+          max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))) := by apply le_max_left
+        have : max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))) ≤
+          max 5 (max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)))) := by apply le_max_right
+        (expose_names; exact le_sup_of_le_right temp)
+      have keep : Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9)) < T := by exact lt_of_le_of_lt this Tlb_lt_T
+      rw[← Real.lt_log_iff_exp_lt] at keep
+      have : A / (1 - σ₀) < Real.log T ^ 9 := by
+        have temp : 0 ≤ A / (1 - σ₀) := by
+          apply div_nonneg
+          apply le_of_lt A_inter.1
+          linarith
+        have : 9 ≠ 0 := by exact Ne.symm (Nat.zero_ne_add_one 8)
+        rw[← Real.rpow_inv_natCast_pow temp this]
+        have : Odd 9 := by exact Nat.odd_iff.mpr rfl
+        rw[Odd.pow_lt_pow this]
+        have : (↑(9 : ℕ))⁻¹ = 1 / (9 : ℝ) := by exact inv_eq_one_div (9 : ℝ)
+        rw[this]
+        exact keep
+      have : A / Real.log T ^ 9 < 1 - σ₀ := by
+        rw[div_lt_iff₀] at this ⊢
+        rw[mul_comm]
+        exact this
+        refine pow_pos ?_ 9
+        apply Real.log_pos
+        repeat linarith
+      repeat linarith
+    have : σ₁ < 1 - A / Real.log T ^ 9 := by
+      have : Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)) ≤ Tlb := by
+        dsimp[Tlb]
+        have temp : Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)) ≤
+          max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))) := by apply le_max_right
+        have : max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))) ≤
+          max 5 (max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)))) := by apply le_max_right
+        (expose_names; exact le_sup_of_le_right temp)
+      have keep : Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)) < T := by exact lt_of_le_of_lt this Tlb_lt_T
+      rw[← Real.lt_log_iff_exp_lt] at keep
+      have : A / (1 - σ₁) < Real.log T ^ 9 := by
+        have temp : 0 ≤ A / (1 - σ₁) := by
+          apply div_nonneg
+          apply le_of_lt A_inter.1
+          linarith
+        have : 9 ≠ 0 := by exact Ne.symm (Nat.zero_ne_add_one 8)
+        rw[← Real.rpow_inv_natCast_pow temp this]
+        have : Odd 9 := by exact Nat.odd_iff.mpr rfl
+        rw[Odd.pow_lt_pow this]
+        have : (↑(9 : ℕ))⁻¹ = 1 / (9 : ℝ) := by exact inv_eq_one_div (9 : ℝ)
+        rw[this]
+        exact keep
+      have : A / Real.log T ^ 9 < 1 - σ₁ := by
+        rw[div_lt_iff₀] at this ⊢
+        rw[mul_comm]
+        exact this
+        refine pow_pos ?_ 9
+        apply Real.log_pos
+        repeat linarith
+      repeat linarith
+    exact ⟨temp, this⟩
+  obtain ⟨Tlb, three_lt_Tlb, TlbConsequences⟩ := this
+  use Tlb
+  use three_lt_Tlb
+  intro T Tlb_lt_T
+  have three_lt_T : 3 < T := by exact gt_trans Tlb_lt_T three_lt_Tlb
+  have Tlb_lt_abs_T : Tlb < |T| := by
+    rw[abs_of_nonneg]
+    exact Tlb_lt_T
+    positivity
+  have temp : 1 - A / Real.log T ^ 9 < 1 := by
+    apply sub_lt_self
+    apply div_pos
+    have : 0 < A := by
+      rw[Set.mem_Ioc] at A_inter
+      exact A_inter.1
+    exact this
+    apply pow_pos
+    rw[← Real.log_one]
+    apply Real.log_lt_log
+    norm_num
+    linarith
+  have temp' : 1 - A / Real.log |T| ^ 9 < 1 := by
+    rw[abs_of_nonneg]
+    exact temp
+    positivity
+  have zetaZeroFreeCrit : ∀ (σ t : ℝ), σ ∈ Ioo (1 - A / Real.log |T| ^ 9) 1 → t ∈ Ioo (-T) T → ζ (↑σ + ↑t * I) ≠ 0 := by
+    intro σ t σ_inter t_inter
+    have : 4 ≤ |t| ∨ 4 > |t| := by exact le_or_lt 4 |t|
+    rcases this
+    apply restOfZetaZeroFree σ t
+    linarith
+    apply Ioo_subset_Ico_self
+    refine mem_Ioo.mpr ?_
+    have : 1 - A / Real.log |t| ^ 9 < σ := by
+      have temp: 1 - A / Real.log |T| ^ 9 < σ := by exact σ_inter.1
+      have : 1 - A / Real.log |t| ^ 9 < 1 - A / Real.log |T| ^ 9 := by
+        refine (sub_lt_sub_iff_left 1).mpr ?_
+        refine div_lt_div_of_pos_left ?_ ?_ ?_
+        exact A_inter.1
+        refine pow_pos ?_ 9
+        rw[← Real.log_one]
+        apply Real.log_lt_log
+        norm_num
+        linarith
+        refine pow_lt_pow_left₀ ?_ ?_ ?_
+        apply Real.log_lt_log
+        positivity
+        nth_rewrite 2 [abs_of_nonneg]
+        rw[abs_lt]
+        exact t_inter
+        positivity
+        rw[← Real.log_one]
+        apply Real.log_le_log
+        positivity
+        linarith
+        exact Ne.symm (Nat.zero_ne_add_one 8)
+      (expose_names; exact gt_trans temp this)
+    exact ⟨this, σ_inter.2⟩
+    have : ∀ (t : ℝ), |t| < 4 → ∀ σ' ≥ σ₁, riemannZeta (↑σ' + ↑t * Complex.I) ≠ 0 := by exact fun t a σ' a_1 ↦ noZerosInBox t a σ' a_1
+    apply this
+    (expose_names; exact h)
+    have temp : σ₀ < 1 - A / Real.log T ^ 9 ∧ σ₁ < 1 - A / Real.log T ^ 9 := by exact TlbConsequences T Tlb_lt_T
+    have : 1 - A / Real.log T ^ 9 < σ := by
+      have : 1 - A / Real.log |T| ^ 9 < σ := by exact σ_inter.1
+      rw[abs_of_nonneg] at this
+      exact this
+      positivity
+    apply le_of_lt
+    exact lt_trans temp.2 this
+  have zetaZeroFreeTriv : ∀ (σ t : ℝ), σ ∈ Ico 1 2 → t ∈ Ioo (-T) T → ζ (↑σ + ↑t * I) ≠ 0 := by
+    intro σ t σ_inter t_inter
+    obtain ⟨lb, ub⟩ := σ_inter
+    have : 1 ≤ (↑σ + ↑t * I).re := by
+      rw[add_re, mul_re, I_re, I_im, ofReal_re, ofReal_im]
+      linarith
+    exact riemannZeta_ne_zero_of_one_le_re this
+  have zetaZeroFreeCombo : ∀ (σ t : ℝ), σ ∈ Ioo (1 - A / Real.log |T| ^ 9) 2 → t ∈ Ioo (-T) T → ζ (↑σ + ↑t * I) ≠ 0 := by
+    intro σ t σ_inter
+    rw[← Set.Ioo_union_Ico_eq_Ioo temp' one_le_two, Set.mem_union] at σ_inter
+    exact Or.elim σ_inter (zetaZeroFreeCrit σ t) (zetaZeroFreeTriv σ t)
+  clear zetaZeroFreeCrit zetaZeroFreeTriv
+  unfold HolomorphicOn
+  apply DifferentiableOn.div
+  apply DifferentiableOn.deriv
+  unfold DifferentiableOn
+  intro x xIn
+  rw[Set.mem_diff] at xIn
+  refine DifferentiableAt.differentiableWithinAt ?_
+  exact differentiableAt_riemannZeta xIn.2
+  refine IsOpen.sdiff ?_ ?_
+  refine IsOpen.reProdIm ?_ ?_
+  exact isOpen_Ioo
+  exact isOpen_Ioo
+  exact isClosed_singleton
+  unfold DifferentiableOn
+  intro x xIn
+  rw[Set.mem_diff] at xIn
+  refine DifferentiableAt.differentiableWithinAt ?_
+  exact differentiableAt_riemannZeta xIn.2
+  intro x
+  rw[Set.mem_diff, Complex.mem_reProdIm]
+  intro xHypo
+  obtain ⟨⟨xReIn, xImIn⟩, xOut⟩ := xHypo
+  have : x = x.re + x.im * I := by exact Eq.symm (re_add_im x)
+  rw[this]
+  apply zetaZeroFreeCombo x.re x.im
+  rw[abs_of_nonneg]
+  exact xReIn
+  positivity
+  exact xImIn
+
 /-%%
 \begin{proof}\uses{ZetaZeroFree}
 The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
