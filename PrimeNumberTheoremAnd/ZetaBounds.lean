@@ -154,44 +154,44 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : Holomo
       filter_upwards [hC'] with x hx
       simp [norm_one]
       exact hx
-  · -- Show that (fun s ↦ A * (g s - g p) / (s - p)) =O[𝓝[≠] p] 1
+  · clear f_holc f_near_p this f
+    -- unfold HolomorphicOn at g_holc
+    -- Show that (fun s ↦ A * (g s - g p) / (s - p)) =O[𝓝[≠] p] 1
     have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
 
+    suffices (fun s ↦ A * ((s - p)⁻¹ * (g s - g p))) =O[𝓝[≠] p] 1 by
+      convert this using 2
+      rw[div_eq_mul_inv]
+      ring
+    apply Asymptotics.IsBigO.const_mul_left
+    clear A_ne_zero A
+
     -- g is differentiable at p since it's holomorphic on U
-    have g_diff : DifferentiableAt ℂ g p :=
-        DifferentiableOn.differentiableAt g_holc U_in_nhds
+    have g_diff : HasDerivAt g (deriv g p) p :=
+        (DifferentiableOn.differentiableAt g_holc U_in_nhds).hasDerivAt
 
-    -- The difference quotient (g s - g p) / (s - p) converges to the derivative
-    have diff_quot_conv : (fun s ↦ (g s - g p) / (s - p)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-      -- Use that convergent sequences are bounded
-      have : HasDerivAt g (deriv g p) p := g_diff.hasDerivAt
-      -- The difference quotient minus the derivative goes to 0
-      have close_to_deriv : (fun s ↦ (g s - g p) / (s - p) - deriv g p) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-        apply Asymptotics.IsLittleO.isBigO
-        dsimp[Asymptotics.IsLittleO]
-        -- Use the definition of the derivative
-        rw[Asymptotics.isLittleO_iff_tendsto']
-        simp
-        rw[← sub_self (deriv g p)]
-        rw[tendsto_sub_const_iff]
-        sorry
-
-      -- Therefore the difference quotient is bounded
-      have : (fun s ↦ (g s - g p) / (s - p)) = (fun s ↦ (g s - g p) / (s - p) - deriv g p) + fun _ ↦ deriv g p := by
-        ext s; simp
-      rw [this]
-      refine Asymptotics.IsBigO.add ?_ ?_
-      · exact close_to_deriv
-      · exact Asymptotics.isBigO_const_const ..
-
-    -- Now multiply by the constant A
-    have : (fun s ↦ A * ((g s - g p) / (s - p))) =O[𝓝[≠] p] 1 :=
-        Asymptotics.IsBigO.const_mul_left diff_quot_conv A
-    convert this using 1
-    ext s
-    exact mul_div_assoc A (g s - g p) (s - p)
-
-#check DifferentiableAt.isBigO_sub
+    rw [hasDerivAt_iff_isLittleO] at g_diff
+    apply Asymptotics.IsLittleO.isBigO at g_diff
+    have : (fun x' ↦ deriv g p * (x' - p)) =O[𝓝 p] fun x' ↦ x' - p := by
+      apply Asymptotics.IsBigO.const_mul_left
+      exact Asymptotics.isBigO_refl (fun x ↦ x - p) (𝓝 p)
+    have h1 := g_diff.add this
+    have simplified : (fun x ↦ g x - g p) =O[𝓝 p] fun x' ↦ x' - p := by
+      convert h1 using 2
+      simp
+      ring
+    clear this h1 g_diff
+    refine (Asymptotics.isBigO_mul_iff_isBigO_div ?_).mpr ?_
+    · filter_upwards [self_mem_nhdsWithin] with x hx
+      simp at hx
+      push_neg at hx
+      exact inv_ne_zero (sub_ne_zero.mpr hx)
+    · clear g_holc p_in_U U_in_nhds U
+      simp only [div_inv_eq_mul, one_mul]
+      refine Asymptotics.IsBigO.mono ?_ inf_le_left
+      simp
+      exact simplified
+      
 /-%%
 \begin{proof}
 Elementary calculation.
