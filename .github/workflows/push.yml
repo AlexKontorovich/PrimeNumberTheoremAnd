@@ -46,8 +46,7 @@ jobs:
           mkdir -p docs
           mv blueprint/web docs/
 
-      ## something seems to be going wrong with 'Blueprint-cache' (it looks like a github bug) - use Blueprint-cache2 instead
-      - name: Clear previously saved cache
+      - name: Clear previously saved blueprint cache
         uses: DareFox/delete-cache-by-key@v1.0.1
         with:
           key: Blueprint-cache2
@@ -61,7 +60,6 @@ jobs:
             docs/web
           key: Blueprint-cache2
 
-
       - name: Restore previous documentation, while we wait for the next one to be generated
         uses: actions/cache/restore@v4
         with:
@@ -70,24 +68,19 @@ jobs:
           key: Documentation-cache
         continue-on-error: true
 
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload blueprint artifact
-        uses: actions/upload-pages-artifact@v3
+      # Upload blueprint artifact for the docs job to download
+      - name: Upload blueprint artifact for docs job
+        uses: actions/upload-artifact@v4
         with:
+          name: blueprint-files
           path: docs
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
+          retention-days: 1
 
   # generate doc after blueprint (as it's quite a bit longer)
   build_docs:
     runs-on: ubuntu-latest
     name: Build docs
+    needs: build_blueprint  # Wait for blueprint to complete
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -100,8 +93,14 @@ jobs:
       - name: Build project
         run: make LAKEBIN='~/.elan/bin/lake' build
 
+      # Get cached build artifacts first (this is the key optimization!)
+      - name: Get build cache
+        run: |
+          ~/.elan/bin/lake exe cache get || echo "No cache available"
+        continue-on-error: true
+
       - name: Cache mathlib docs
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             .lake/build/doc/Init
@@ -123,7 +122,7 @@ jobs:
           mkdir -p docs
           cp -r .lake/build/doc docs/docs
 
-      - name: Clear previously saved cache
+      - name: Clear previously saved documentation cache
         uses: DareFox/delete-cache-by-key@v1.0.1
         with:
           key: Documentation-cache
@@ -137,60 +136,47 @@ jobs:
             docs/docs
           key: Documentation-cache
 
-      #- name: Download blueprint artifacts
-      #  uses: actions/download-artifact@v3
-      #  with:
-      #    path: blueprint_artifacts
-      #    
-      #- name: Extract blueprint artifacts
-      #  run: tar xvf blueprint_artifacts/github-pages/artifact.tar -C docs/
-
-      - name: Restore previously generated blueprint
-        uses: actions/cache/restore@v4
+      # Download blueprint files from the previous job
+      - name: Download blueprint files
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            docs/web
-          key: Blueprint-cache2
-        continue-on-error: true
+          name: blueprint-files
+          path: docs
 
-      ## cannot use upload-pages-artifact@v3 twice (it is used for the blueprint above)
-      ## it fails because two identically named artifacts are uploaded
-      ## (for github pages deployment to work, the artifact must be named 'github-pages')
-      ## This could be fixed using upload-artifact's 'overwrite:true' option, but it is not implemented on upload-pages-artifact
-      ## Copied the archive/upload action from upload-pages-artifact below.
-      ## This should be replaced with
-      ##   - name: Upload docs & blueprint artifact
-      ##     uses: actions/upload-pages-artifact@v3
-      ##     with:
-      ##       path: docs
-      ##       name: github-pages
-      ##       overwrite: true
-      ## when this is supported
-      - name: Archive artifact
-        shell: sh
-        run: |
-          echo ::group::Archive artifact
-          tar \
-            --dereference --hard-dereference \
-            --directory "$INPUT_PATH" \
-            -cvf "$RUNNER_TEMP/artifact.tar" \
-            --exclude=.git \
-            --exclude=.github \
-            --exclude=".[^/]*" \
-            .
-          echo ::endgroup::
-        env:
-          INPUT_PATH: docs
-
-      - name: Upload artifact
-        id: upload-artifact
+      # Upload combined docs for deployment
+      - name: Upload combined docs
         uses: actions/upload-artifact@v4
         with:
-          name: github-pages
-          path: ${{ runner.temp }}/artifact.tar
+          name: combined-docs
+          path: docs
           retention-days: 1
-          if-no-files-found: error
-          overwrite: true
+
+  # Separate deployment job that runs after both builds complete
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to GitHub Pages
+    needs: build_docs  # Wait for both blueprint and docs to complete
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      # Download the combined docs from the build_docs job
+      - name: Download combined docs
+        uses: actions/download-artifact@v4
+        with:
+          name: combined-docs
+          path: docs
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
 
       - name: Deploy to GitHub Pages
         id: deployment
