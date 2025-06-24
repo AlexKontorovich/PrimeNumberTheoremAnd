@@ -83,40 +83,33 @@ Since $h$ is nonvanishing near $p$, this remains bounded in a neighborhood of $p
 %%-/
 
 /-%%
-Let's also record that if a function $f$ has a simple pole at $p$ with residue $A$, and $g$ is holormophic near $p$, then the residue of $f*g$ is $A * g(p)$.
+Let's also record that if a function $f$ has a simple pole at $p$ with residue $A$, and $g$ is holomorphic near $p$, then the residue of $f \cdot g$ is $A \cdot g(p)$.
 \begin{theorem}[ResidueMult]\label{ResidueMult}\lean{ResidueMult}\leanok
-  If $f$ has a simple pole at $p$ with residue $A$, and $g$ is holomorphic near $p$, then the residue of $f * g$ at $p$ is $A * g(p)$. That is, we assume that
+  If $f$ has a simple pole at $p$ with residue $A$, and $g$ is holomorphic near $p$, then the residue of $f \cdot g$ at $p$ is $A \cdot g(p)$. That is, we assume that
   $$
   f(s) = \frac{A}{s - p} + O(1)$$
   near $p$, and that $g$ is holomorphic near $p$. Then
   $$
-  f(s) * g(s) = \frac{A * g(p)}{s - p} + O(1).$$
+  f(s) \cdot g(s) = \frac{A \cdot g(p)}{s - p} + O(1).$$
 \end{theorem}
 %%-/
-theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : HolomorphicOn f (U \ {p}))
-    (g_holc : HolomorphicOn g U) (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (g_holc : HolomorphicOn g U) (U_in_nhds : U ∈ 𝓝 p) {A : ℂ}
     (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
     (f * g - (fun s ↦ A * g p * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+  -- Add and subtract a term
   have : (f * g - fun s ↦ A * g p * (s - p)⁻¹)
       = (f - A • fun s ↦ (s - p)⁻¹) * g + fun s ↦ (A * (g s - g p) / (s - p)) := by
-    have h1 : (f * g - fun s ↦ A * g p * (s - p)⁻¹) = (f * g - g * A • (fun s ↦ (s-p)⁻¹)) + (g * A • (fun s ↦ (s-p)⁻¹) - (g p * A) • (fun s ↦ (s-p)⁻¹)) := by
-      ext x
-      simp
-      ring_nf
-      tauto
+    have h1 : (f * g - fun s ↦ A * g p * (s - p)⁻¹)
+        = (f * g - g * A • (fun s ↦ (s-p)⁻¹)) + (g * A • (fun s ↦ (s-p)⁻¹)
+        - (g p * A) • (fun s ↦ (s-p)⁻¹)) := by ext x; simp; ring_nf; tauto
     have h2 : f * g - g * A • (fun s ↦ (s-p)⁻¹) = (f - A • (fun s ↦ (s-p)⁻¹)) * g := by
-      ext x
-      simp
-      ring
-    have h3 : g * A • (fun s ↦ (s-p)⁻¹) - (g p * A) • (fun s ↦ (s-p)⁻¹) = fun s ↦ (A * (g s - g p) / (s - p)) := by
-      ext x
-      simp
-      ring
-    rewrite [h1]
-    rewrite [h2]
-    rewrite [h3]
-    rfl
-
+      ext x; simp; ring
+    have h3 : g * A • (fun s ↦ (s-p)⁻¹) - (g p * A) • (fun s ↦ (s-p)⁻¹)
+        = fun s ↦ (A * (g s - g p) / (s - p)) := by
+      ext x; simp; ring
+    rw [h1,h2,h3]
+  -- Apply to goal
   rw[this]
   refine Asymptotics.IsBigO.add ?_ ?_
   · rw[← mul_one (1 : ℂ → ℂ)]
@@ -154,8 +147,7 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : Holomo
       filter_upwards [hC'] with x hx
       simp [norm_one]
       exact hx
-  · clear f_holc f_near_p this f
-    -- unfold HolomorphicOn at g_holc
+  · -- unfold HolomorphicOn at g_holc
     -- Show that (fun s ↦ A * (g s - g p) / (s - p)) =O[𝓝[≠] p] 1
     have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
 
@@ -164,7 +156,6 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : Holomo
       rw[div_eq_mul_inv]
       ring
     apply Asymptotics.IsBigO.const_mul_left
-    clear A_ne_zero A
 
     -- g is differentiable at p since it's holomorphic on U
     have g_diff : HasDerivAt g (deriv g p) p :=
@@ -176,22 +167,20 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : Holomo
       apply Asymptotics.IsBigO.const_mul_left
       exact Asymptotics.isBigO_refl (fun x ↦ x - p) (𝓝 p)
     have h1 := g_diff.add this
-    have simplified : (fun x ↦ g x - g p) =O[𝓝 p] fun x' ↦ x' - p := by
+    have h2 : (fun x ↦ g x - g p) =O[𝓝 p] fun x' ↦ x' - p := by
       convert h1 using 2
       simp
       ring
-    clear this h1 g_diff
     refine (Asymptotics.isBigO_mul_iff_isBigO_div ?_).mpr ?_
     · filter_upwards [self_mem_nhdsWithin] with x hx
       simp at hx
       push_neg at hx
       exact inv_ne_zero (sub_ne_zero.mpr hx)
-    · clear g_holc p_in_U U_in_nhds U
-      simp only [div_inv_eq_mul, one_mul]
+    · simp only [div_inv_eq_mul, one_mul]
       refine Asymptotics.IsBigO.mono ?_ inf_le_left
       simp
-      exact simplified
-      
+      exact h2
+
 /-%%
 \begin{proof}
 Elementary calculation.
