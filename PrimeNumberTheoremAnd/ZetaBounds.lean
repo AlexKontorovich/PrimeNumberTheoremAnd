@@ -99,7 +99,24 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : Holomo
     (f * g - (fun s ↦ A * g p * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
   have : (f * g - fun s ↦ A * g p * (s - p)⁻¹)
     = (f - A • fun s ↦ (s - p)⁻¹) * g + fun s ↦ (A * (g s - g p) / (s - p)) := by
-    sorry
+    have h1 : (f * g - fun s ↦ A * g p * (s - p)⁻¹) = (f * g - g * A • (fun s ↦ (s-p)⁻¹)) + (g * A • (fun s ↦ (s-p)⁻¹) - (g p * A) • (fun s ↦ (s-p)⁻¹)) := by
+      ext x
+      simp
+      ring_nf
+      tauto
+    have h2 : f * g - g * A • (fun s ↦ (s-p)⁻¹) = (f - A • (fun s ↦ (s-p)⁻¹)) * g := by
+      ext x
+      simp
+      ring
+    have h3 : g * A • (fun s ↦ (s-p)⁻¹) - (g p * A) • (fun s ↦ (s-p)⁻¹) = fun s ↦ (A * (g s - g p) / (s - p)) := by
+      ext x
+      simp
+      ring
+    rewrite [h1]
+    rewrite [h2]
+    rewrite [h3]
+    rfl
+
   rw[this]
   refine Asymptotics.IsBigO.add ?_ ?_
   · rw[← mul_one (1 : ℂ → ℂ)]
