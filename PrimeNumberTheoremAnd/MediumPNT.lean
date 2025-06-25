@@ -1133,14 +1133,20 @@ theorem realDiff_of_complexDIff {f : ℂ → ℂ} (s : ℂ) (hf : Differentiable
   -- The composition of continuous functions is continuous
   exact ContinuousAt.comp hf_cont h_param
 
--- TODO : Move elsewhere (should be in Mathlib!)
+-- TODO : Move elsewhere (should be in Mathlib!) NOT NEEDED
 theorem riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
   ‖ζ (σ₀ + t * I)‖ ≤ ‖ζ σ₀‖ := by
   sorry
 
+-- TODO : Move elsewhere (should be in Mathlib!) NOT NEEDED
 theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
   ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
   sorry
+
+theorem dlog_riemannZeta_bdd_on_vertical_lines' {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) :
+  ∃ C > 0, ∀ (t : ℝ), ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ C := by
+  sorry
+
 
 theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
     DifferentiableAt ℂ ζ' s := by
@@ -1165,6 +1171,8 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     :
     Integrable (fun (t : ℝ) ↦
       SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + (t : ℂ) * I)) volume := by
+  have := dlog_riemannZeta_bdd_on_vertical_lines' σ₀_gt t
+
   let c : ℝ := ‖ζ' (σ₀) / ζ (σ₀)‖ * X ^ σ₀
   have : ∀ᵐ t ∂volume, ‖(fun (t : ℝ) ↦ (- deriv riemannZeta (σ₀ + (t : ℂ) * I)) /
     riemannZeta (σ₀ + (t : ℂ) * I) *
