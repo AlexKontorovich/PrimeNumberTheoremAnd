@@ -1226,14 +1226,6 @@ X^{s}ds.$$
 \end{theorem}
 %%-/
 
-<<<<<<< PT_work
-theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1) (X : ℝ) (_ : 3 < X) {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
-    (σ₁_pos : 0 < σ₁) (σ₁_lt_one : σ₁ < 1)
-    (holoOn : HolomorphicOn (ζ' / ζ) ((Ico σ₁ 2)×ℂ (Ioo (-T) T) \ {1}))
-    (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
-=======
 theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     (X : ℝ) (X_gt : 3 < X)
