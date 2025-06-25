@@ -180,7 +180,7 @@ theorem riemannZetaResidue :
   simp
 
 /-%%
-\begin{proof}\uses{ResidueOfTendsTo}
+\begin{proof}\uses{ResidueOfTendsTo}\leanok
 From `riemannZeta_residue_one` (in Mathlib), we know that
 $(s-1)\zeta(s)$ goes to $1$ as $s\to1$. Now apply Theorem \ref{ResidueOfTendsTo}.
 (This can also be done using $\zeta_0$ below, which is expressed as
