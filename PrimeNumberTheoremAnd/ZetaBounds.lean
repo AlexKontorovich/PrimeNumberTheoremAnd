@@ -58,93 +58,93 @@ theorem riemannZetaResidue :
     ∃ U : Set ℂ, IsOpen U ∧ (1 : ℂ) ∈ U ∧
     BddAbove (norm ∘ (riemannZeta - fun s ↦ (s - 1)⁻¹) '' (U \ {1})) := by
   -- Step 1: We know that (s-1) * ζ(s) → 1 as s → 1
-
-  have h_residue := riemannZeta_residue_one
-
-  have := h_residue (Metric.ball_mem_nhds 1 (by norm_num : (0 : ℝ) < 1))
-  simp only [mem_map] at this
-  rw [mem_nhdsWithin] at this
-  obtain ⟨U, hU_open, h1_in_U, hU_subset⟩ := this
-  refine ⟨U, hU_open, h1_in_U, ?_⟩
-
-  have U_mem_nhds : U ∈ 𝓝 (1 : ℂ) := by
-    rw [mem_nhds_iff]
-    refine ⟨U, fun ⦃a⦄ a ↦ a, hU_open, h1_in_U⟩
-
-  have h_bdd : BddAbove (norm ∘ (fun s : ℂ => (s - 1) * riemannZeta s) '' (U \ {1})) := by
-    use 2
-    intro r hr
-    obtain ⟨s, hs_mem, hs_eq⟩ := hr
-    rw [Function.comp_apply] at hs_eq
-    rw [← hs_eq]
-    have hs_in_U : s ∈ U := hs_mem.1
-    have hs_ne_1 : s ≠ 1 := hs_mem.2
-    have : s ∈ U ∩ {1}ᶜ := ⟨hs_in_U, hs_ne_1⟩
-    have h_in_ball : (s - 1) * ζ s ∈ Metric.ball 1 1 := hU_subset this
-    rw [Metric.mem_ball, Complex.dist_eq] at h_in_ball
-    have : ‖(s - 1) * ζ s‖  - ‖(1 : ℂ)‖ ≤ ‖(s - 1) * ζ s - 1‖ := norm_sub_norm_le _ _
-    simp only [norm_one] at this
-    linarith
-
-  -- Step 2: Since the limit exists and is finite, (s-1) * ζ(s) extends to a holomorphic function
-  -- There exists a holomorphic function g in a neighborhood of 1 such that
-  -- (s-1) * ζ(s) = g(s) for s ≠ 1, and g(1) = 1
-  have h_holomorphic_extension : ∃ (g : ℂ → ℂ) (hg_holo : HolomorphicOn g U),
-    (EqOn (fun s ↦ (s - 1) * ζ s) g (U \ {1})) ∧ g 1 = 1 := by
-    have := existsDifferentiableOn_of_bddAbove U_mem_nhds ?_ h_bdd (s := U)
-    · obtain ⟨g, gHolc, gEqOn⟩ := this
-      refine ⟨g, gHolc, gEqOn, ?_⟩
-      have h_limit : Tendsto g (𝓝[≠] 1) (𝓝 1) := by
-        -- Rewrite the limit using the equality on U \ {1}
-        apply Filter.Tendsto.congr' ?_ h_residue
-        unfold EventuallyEq Filter.Eventually
-        rw [mem_nhdsWithin]
-        refine ⟨U, hU_open, h1_in_U, ?_⟩
-        intro s hs
-        simp only [mem_setOf_eq]
-        exact gEqOn hs
-      have h_continuous : ContinuousAt g 1 := by
-        have := gHolc.continuousOn
-        apply this.continuousAt
-        exact U_mem_nhds
-      exact tendsto_nhds_unique (tendsto_nhdsWithin_of_tendsto_nhds h_continuous) h_limit
-    · unfold HolomorphicOn
-      intro s hs
-      have s_ne_1 : s ≠ 1 := hs.2
-      apply DifferentiableAt.differentiableWithinAt
-      apply DifferentiableAt.mul
-      · fun_prop
-      · exact differentiableAt_riemannZeta s_ne_1
-
-  obtain ⟨g, hg_holo, hg_eq_on, hg_at_one⟩ := h_holomorphic_extension
-
   sorry
+  -- have h_residue := riemannZeta_residue_one
 
+  -- have := h_residue (Metric.ball_mem_nhds 1 (by norm_num : (0 : ℝ) < 1))
+  -- simp only [mem_map] at this
+  -- rw [mem_nhdsWithin] at this
+  -- obtain ⟨U, hU_open, h1_in_U, hU_subset⟩ := this
+  -- refine ⟨U, hU_open, h1_in_U, ?_⟩
 
+  -- have U_mem_nhds : U ∈ 𝓝 (1 : ℂ) := by
+  --   rw [mem_nhds_iff]
+  --   refine ⟨U, fun ⦃a⦄ a ↦ a, hU_open, h1_in_U⟩
 
+  -- have h_bdd : BddAbove (norm ∘ (fun s : ℂ => (s - 1) * riemannZeta s) '' (U \ {1})) := by
+  --   use 2
+  --   intro r hr
+  --   obtain ⟨s, hs_mem, hs_eq⟩ := hr
+  --   rw [Function.comp_apply] at hs_eq
+  --   rw [← hs_eq]
+  --   have hs_in_U : s ∈ U := hs_mem.1
+  --   have hs_ne_1 : s ≠ 1 := hs_mem.2
+  --   have : s ∈ U ∩ {1}ᶜ := ⟨hs_in_U, hs_ne_1⟩
+  --   have h_in_ball : (s - 1) * ζ s ∈ Metric.ball 1 1 := hU_subset this
+  --   rw [Metric.mem_ball, Complex.dist_eq] at h_in_ball
+  --   have : ‖(s - 1) * ζ s‖  - ‖(1 : ℂ)‖ ≤ ‖(s - 1) * ζ s - 1‖ := norm_sub_norm_le _ _
+  --   simp only [norm_one] at this
+  --   linarith
 
-  -- -- Step 4: Since g is holomorphic at 1 with g(1) = 1, we have g(s) = 1 + O(s-1)
-  -- have h_taylor :
-  --   (fun s => g s - 1) =O[𝓝 1] (fun s => s - 1) := by
-  --   sorry
+  -- -- Step 2: Since the limit exists and is finite, (s-1) * ζ(s) extends to a holomorphic function
+  -- -- There exists a holomorphic function g in a neighborhood of 1 such that
+  -- -- (s-1) * ζ(s) = g(s) for s ≠ 1, and g(1) = 1
+  -- have h_holomorphic_extension : ∃ (g : ℂ → ℂ) (hg_holo : HolomorphicOn g U),
+  --   (EqOn (fun s ↦ (s - 1) * ζ s) g (U \ {1})) ∧ g 1 = 1 := by
+  --   have := existsDifferentiableOn_of_bddAbove U_mem_nhds ?_ h_bdd (s := U)
+  --   · obtain ⟨g, gHolc, gEqOn⟩ := this
+  --     refine ⟨g, gHolc, gEqOn, ?_⟩
+  --     have h_limit : Tendsto g (𝓝[≠] 1) (𝓝 1) := by
+  --       -- Rewrite the limit using the equality on U \ {1}
+  --       apply Filter.Tendsto.congr' ?_ h_residue
+  --       unfold EventuallyEq Filter.Eventually
+  --       rw [mem_nhdsWithin]
+  --       refine ⟨U, hU_open, h1_in_U, ?_⟩
+  --       intro s hs
+  --       simp only [mem_setOf_eq]
+  --       exact gEqOn hs
+  --     have h_continuous : ContinuousAt g 1 := by
+  --       have := gHolc.continuousOn
+  --       apply this.continuousAt
+  --       exact U_mem_nhds
+  --     exact tendsto_nhds_unique (tendsto_nhdsWithin_of_tendsto_nhds h_continuous) h_limit
+  --   · unfold HolomorphicOn
+  --     intro s hs
+  --     have s_ne_1 : s ≠ 1 := hs.2
+  --     apply DifferentiableAt.differentiableWithinAt
+  --     apply DifferentiableAt.mul
+  --     · fun_prop
+  --     · exact differentiableAt_riemannZeta s_ne_1
 
-  -- -- Step 6: Therefore ζ(s) = g(s)/(s-1) = (1 + O(s-1))/(s-1) = 1/(s-1) + O(1)
-  -- -- First, we need to work in a punctured neighborhood where s ≠ 1
-  -- have h_zeta_formula : ∀ᶠ s in 𝓝[{1}ᶜ] 1, riemannZeta s = g s / (s - 1) := by
-  --   -- This follows from (s-1) * ζ(s) = g(s)
-  --   sorry
+  -- obtain ⟨g, hg_holo, hg_eq_on, hg_at_one⟩ := h_holomorphic_extension
 
-  -- -- Step 7: Show that g(s)/(s-1) - 1/(s-1) = (g(s) - 1)/(s-1) = O(1)
-  -- have h_key_bound : (fun s => g s / (s - 1) - (s - 1)⁻¹) =O[𝓝[≠] 1] (1 : ℂ → ℂ) := by
-  --   -- Simplify: g(s)/(s-1) - 1/(s-1) = (g(s) - 1)/(s-1)
-  --   have h_simplify : ∀ s : ℂ, s ≠ 1 → g s / (s - 1) - (s - 1)⁻¹ = (g s - 1) / (s - 1) := by
-  --     sorry
-  --   sorry
-
-  -- -- Step 8: Combine with the formula for ζ to get the final result
-
-  -- -- Use h_zeta_formula and h_key_bound
   -- sorry
+
+
+
+
+  -- -- -- Step 4: Since g is holomorphic at 1 with g(1) = 1, we have g(s) = 1 + O(s-1)
+  -- -- have h_taylor :
+  -- --   (fun s => g s - 1) =O[𝓝 1] (fun s => s - 1) := by
+  -- --   sorry
+
+  -- -- -- Step 6: Therefore ζ(s) = g(s)/(s-1) = (1 + O(s-1))/(s-1) = 1/(s-1) + O(1)
+  -- -- -- First, we need to work in a punctured neighborhood where s ≠ 1
+  -- -- have h_zeta_formula : ∀ᶠ s in 𝓝[{1}ᶜ] 1, riemannZeta s = g s / (s - 1) := by
+  -- --   -- This follows from (s-1) * ζ(s) = g(s)
+  -- --   sorry
+
+  -- -- -- Step 7: Show that g(s)/(s-1) - 1/(s-1) = (g(s) - 1)/(s-1) = O(1)
+  -- -- have h_key_bound : (fun s => g s / (s - 1) - (s - 1)⁻¹) =O[𝓝[≠] 1] (1 : ℂ → ℂ) := by
+  -- --   -- Simplify: g(s)/(s-1) - 1/(s-1) = (g(s) - 1)/(s-1)
+  -- --   have h_simplify : ∀ s : ℂ, s ≠ 1 → g s / (s - 1) - (s - 1)⁻¹ = (g s - 1) / (s - 1) := by
+  -- --     sorry
+  -- --   sorry
+
+  -- -- -- Step 8: Combine with the formula for ζ to get the final result
+
+  -- -- -- Use h_zeta_formula and h_key_bound
+  -- -- sorry
 
 /-%%
 \begin{proof}\uses{existsDifferentiableOn_of_bddAbove}
