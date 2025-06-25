@@ -1110,7 +1110,7 @@ is integrable on the contour $\sigma_0 + t i$ for $t \in \R$ and $\sigma_0 > 1$.
 \end{lemma}
 %%-/
 theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε) (X : ℝ)
-    {σ₀ : ℝ} (σ₀_pos : 0 < σ₀)
+    {σ₀ : ℝ} (σ₀_gt_one : 1 < σ₀)
     (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Ico σ₀ 2 ×ℂ univ \ {1}))
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
@@ -1158,10 +1158,14 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   unfold VerticalIntegral'
   rw [verticalIntegral_split_three (a := -T) (b := T)]
   swap
-  have X_eq_pos : 0 < 1 + (Real.log X)⁻¹ := by
-    apply add_pos (by positivity)
+  have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by
+    nth_rewrite 1 [← add_zero 1]
+    refine add_lt_add_of_le_of_lt ?_ ?_
+    rfl
     rw[inv_pos, ← Real.log_one]
-    apply Real.log_lt_log (by positivity) (by linarith)
+    apply Real.log_lt_log
+    norm_num
+    linarith
   have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Ico (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by
     unfold SmoothedChebyshevIntegrand HolomorphicOn
     refine DifferentiableOn.mul ?_ ?_
@@ -1251,7 +1255,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     refine ne_zero_of_re_pos ?_
     rw[ofReal_re]
     positivity
-  exact SmoothedChebyshevPull1_aux_integrable ε_pos X X_eq_pos holoIntegrand suppSmoothingF SmoothingFnonneg mass_one
+  exact SmoothedChebyshevPull1_aux_integrable ε_pos X X_eq_gt_one holoIntegrand suppSmoothingF SmoothingFnonneg mass_one
 
   have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by field_simp
   repeat rw[smul_eq_mul]
@@ -1375,7 +1379,17 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       exact ⟨(by linarith), (by linarith)⟩
     exact ⟨temp, this⟩
   --TODO:
-  have holoMatchHoloOn : HolomorphicOn holoMatch (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1}) := by sorry --should be able to do with lemmas from workshop
+  have holoMatchHoloOn : HolomorphicOn holoMatch (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1}) := by
+    unfold HolomorphicOn holoMatch
+    refine DifferentiableOn.sub ?_ ?_
+    sorry
+    refine DifferentiableOn.mul ?_ ?_
+    unfold DifferentiableOn
+    intro x x_location
+    rw[Set.mem_diff] at x_location
+    obtain ⟨xInRect, xOut⟩ := x_location
+    sorry
+    sorry
   --TODO:
   have holoMatchBddAbove : BddAbove (norm ∘ holoMatch '' (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1})) := by sorry --should be able to do with lemmas from workshop
   obtain ⟨g, gHolo_Eq⟩ := existsDifferentiableOn_of_bddAbove pInRectangleInterior holoMatchHoloOn holoMatchBddAbove
