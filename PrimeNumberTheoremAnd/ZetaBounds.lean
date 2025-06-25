@@ -43,6 +43,117 @@ local notation (name := derivriemannzeta) "ζ'" => deriv riemannZeta
 /-%%
 We record here some prelimiaries about the zeta function and general
 holomorphic functions.
+
+\begin{theorem}[ResidueOfTendsTo]\label{riemannZetaResidueOne}\lean{riemannZetaResidueOne}\leanok
+  If a function $f$ is holomorphic in a neighborhood of $p$ and
+  $\lim_{s\to p} (s-p)f(s) = A$, then
+  $f(s) = \frac{A}{s-p} + O(1)$ near $p$.
+\end{theorem}
+%%-/
+theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (hU : U ∈ 𝓝 p)
+    (hf : HolomorphicOn f (U \ {p}))
+    {A : ℂ}
+    (h_limit : Tendsto (fun s ↦ (s - p) * f s) (𝓝[≠] p) (𝓝 A))
+    (A_ne_zero : A ≠ 0) :
+    ∃ V ∈ 𝓝 p,
+    BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (V \ {p})) := by
+
+-- Step 1: We know that (s-1) * ζ(s) → 1 as s → 1Add commentMore actions
+
+  -- refine ⟨U, hU_open, h1_in_U, ?_⟩
+
+  -- have U_mem_nhds : U ∈ 𝓝 (1 : ℂ) := by
+  --   rw [mem_nhds_iff]
+  --   refine ⟨U, fun ⦃a⦄ a ↦ a, hU_open, h1_in_U⟩
+
+  -- have h_bdd : BddAbove (norm ∘ (fun s : ℂ => (s - 1) * riemannZeta s) '' (U \ {1})) := by
+  --   use 2
+  --   intro r hr
+  --   obtain ⟨s, hs_mem, hs_eq⟩ := hr
+  --   rw [Function.comp_apply] at hs_eq
+  --   rw [← hs_eq]
+  --   have hs_in_U : s ∈ U := hs_mem.1
+  --   have hs_ne_1 : s ≠ 1 := hs_mem.2
+  --   have : s ∈ U ∩ {1}ᶜ := ⟨hs_in_U, hs_ne_1⟩
+  --   have h_in_ball : (s - 1) * ζ s ∈ Metric.ball 1 1 := hU_subset this
+  --   rw [Metric.mem_ball, Complex.dist_eq] at h_in_ball
+  --   have : ‖(s - 1) * ζ s‖  - ‖(1 : ℂ)‖ ≤ ‖(s - 1) * ζ s - 1‖ := norm_sub_norm_le _ _
+  --   simp only [norm_one] at this
+  --   linarith
+
+  -- -- Step 2: Since the limit exists and is finite, (s-1) * ζ(s) extends to a holomorphic function
+  -- -- There exists a holomorphic function g in a neighborhood of 1 such that
+  -- -- (s-1) * ζ(s) = g(s) for s ≠ 1, and g(1) = 1
+  -- have h_holomorphic_extension : ∃ (g : ℂ → ℂ) (hg_holo : HolomorphicOn g U),
+  --   (EqOn (fun s ↦ (s - 1) * ζ s) g (U \ {1})) ∧ g 1 = 1 := by
+  --   have := existsDifferentiableOn_of_bddAbove U_mem_nhds ?_ h_bdd (s := U)
+  --   · obtain ⟨g, gHolc, gEqOn⟩ := this
+  --     refine ⟨g, gHolc, gEqOn, ?_⟩
+  --     have h_limit : Tendsto g (𝓝[≠] 1) (𝓝 1) := by
+  --       -- Rewrite the limit using the equality on U \ {1}
+  --       apply Filter.Tendsto.congr' ?_ h_residue
+  --       unfold EventuallyEq Filter.Eventually
+  --       rw [mem_nhdsWithin]
+  --       refine ⟨U, hU_open, h1_in_U, ?_⟩
+  --       intro s hs
+  --       simp only [mem_setOf_eq]
+  --       exact gEqOn hs
+  --     have h_continuous : ContinuousAt g 1 := by
+  --       have := gHolc.continuousOn
+  --       apply this.continuousAt
+  --       exact U_mem_nhds
+  --     exact tendsto_nhds_unique (tendsto_nhdsWithin_of_tendsto_nhds h_continuous) h_limit
+  --   · unfold HolomorphicOn
+  --     intro s hs
+  --     have s_ne_1 : s ≠ 1 := hs.2
+  --     apply DifferentiableAt.differentiableWithinAt
+  --     apply DifferentiableAt.mul
+  --     · fun_prop
+  --     · exact differentiableAt_riemannZeta s_ne_1
+
+  -- obtain ⟨g, hg_holo, hg_eq_on, hg_at_one⟩ := h_holomorphic_extension
+
+  sorry
+
+
+
+
+  -- -- Step 4: Since g is holomorphic at 1 with g(1) = 1, we have g(s) = 1 + O(s-1)
+  -- have h_taylor :
+  --   (fun s => g s - 1) =O[𝓝 1] (fun s => s - 1) := by
+  --   sorry
+
+  -- -- Step 6: Therefore ζ(s) = g(s)/(s-1) = (1 + O(s-1))/(s-1) = 1/(s-1) + O(1)
+  -- -- First, we need to work in a punctured neighborhood where s ≠ 1
+  -- have h_zeta_formula : ∀ᶠ s in 𝓝[{1}ᶜ] 1, riemannZeta s = g s / (s - 1) := by
+  --   -- This follows from (s-1) * ζ(s) = g(s)
+  --   sorry
+
+  -- -- Step 7: Show that g(s)/(s-1) - 1/(s-1) = (g(s) - 1)/(s-1) = O(1)
+  -- have h_key_bound : (fun s => g s / (s - 1) - (s - 1)⁻¹) =O[𝓝[≠] 1] (1 : ℂ → ℂ) := by
+  --   -- Simplify: g(s)/(s-1) - 1/(s-1) = (g(s) - 1)/(s-1)
+  --   have h_simplify : ∀ s : ℂ, s ≠ 1 → g s / (s - 1) - (s - 1)⁻¹ = (g s - 1) / (s - 1) := by
+  --     sorry
+  --   sorry
+
+  -- -- Step 8: Combine with the formula for ζ to get the final result
+
+  -- -- Use h_zeta_formula and h_key_bound
+  -- sorry
+
+/-%%
+\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}
+The function $(s - p)\cdot f(s)$ bounded, so by Theorem
+\ref{existsDifferentiableOn_of_bddAbove}, there is a holomorphic function, $g$, say, so that
+$(s-p)f(s) = g(s)$ in a neighborhood of $s=p$, and $g(p)=A$. Now because $g$ is holomorphic,
+near $s=p$, we have $g(s)=A+O(s-p)$. Then when you divide by $(s-p)$, you get
+$f(s) = A/(s-p) + O(1)$.
+\end{proof}
+%%-/
+
+
+/-%%
 \begin{theorem}[riemannZetaResidue]\label{riemannZetaResidue}\lean{riemannZetaResidue}\leanok
   The Riemann zeta function $\zeta(s)$ has a simple pole at $s=1$ with residue $1$. In particular, the function
   $$ \zeta(s) - \frac{1}{s-1}$$
@@ -52,16 +163,28 @@ holomorphic functions.
 
 theorem riemannZetaResidue :
     ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (ζ - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
-  sorry
+
+  have h_residue := riemannZeta_residue_one
+
+  have univ_mem : (univ : Set ℂ) ∈ 𝓝 (1 : ℂ) := by
+    rw [mem_nhds_iff]
+    refine ⟨univ, fun _ _ => by simp, isOpen_univ, mem_univ _⟩
+
+  have zeta_holc : HolomorphicOn ζ (univ \ {1}) := by
+    intro y hy
+    simp at hy
+    refine DifferentiableAt.differentiableWithinAt ?_
+    apply differentiableAt_riemannZeta hy
+
+  convert ResidueOfTendsTo univ_mem zeta_holc h_residue (by simp) using 6
+  simp
 
 /-%%
-\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}
+\begin{proof}\uses{ResidueOfTendsTo}
 From `riemannZeta_residue_one` (in Mathlib), we know that
-$(s-1)\zeta(s)$ goes to $1$ as $s\to1$. In particular, it's bounded, so by Theorem
-\ref{existsDifferentiableOn_of_bddAbove}, there is a holomorphic function, $g$, say, so that
-$(s-1)zeta(s) = g(s)$ in a neighborhood of $s=1$, and $g(1)=1$. Now because $g$ is holomorphic,
-near $s=1$, we have $g(s)=1+O(s-1)$. then when you divide by $(s-1)$, you get
-$zeta(s)=1/(s-1) + O(1)$.
+$(s-1)\zeta(s)$ goes to $1$ as $s\to1$. Now apply Theorem \ref{ResidueOfTendsTo}.
+(This can also be done using $\zeta_0$ below, which is expressed as
+$1/(s-1)$ plus things that are holomorphic for $\Re(s)>0$...)
 \end{proof}
 %%-/
 
