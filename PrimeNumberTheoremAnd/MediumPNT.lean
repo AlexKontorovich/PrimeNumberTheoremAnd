@@ -1157,7 +1157,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     (ε_lt_one : ε < 1)
     {X : ℝ} (X_gt : 3 < X)
     {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (σ₀_le_2 : σ₀ ≤ 2)
-    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
+--    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
@@ -1281,7 +1281,8 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     apply Real.log_lt_log
     norm_num
     linarith
-  have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Ico (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by
+  have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X)
+      (Ico (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by
     unfold SmoothedChebyshevIntegrand HolomorphicOn
     refine DifferentiableOn.mul ?_ ?_
     refine DifferentiableOn.mul ?_ ?_
@@ -1358,7 +1359,8 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     have hs : 0 < s.re := by
       have : 1 + (Real.log X)⁻¹ ≤ s.re := by exact sReIn.1
       linarith
-    exact Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF εInter SmoothingFnonneg mass_one hs
+    exact Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF εInter SmoothingFnonneg
+      mass_one hs
     intro s hs
     apply DifferentiableAt.differentiableWithinAt
     cases' hs with h_in h_not_one
@@ -1381,13 +1383,8 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     -- exact Real.log_pos (by positivity)
     -- exact X_gt
 
-  --TODO:
-  have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X)
-    (Icc (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by
-      sorry --should be able to do with lemmas from workshop
-
-  exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_pos logX_gt
-    holoIntegrand suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
+  exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_gt_one logX_gt
+    suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
 
 
   have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by field_simp
