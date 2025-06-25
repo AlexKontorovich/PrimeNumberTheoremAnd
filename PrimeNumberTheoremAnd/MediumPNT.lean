@@ -1133,6 +1133,20 @@ theorem realDiff_of_complexDIff {f : ℂ → ℂ} (s : ℂ) (hf : Differentiable
   -- The composition of continuous functions is continuous
   exact ContinuousAt.comp hf_cont h_param
 
+-- TODO : Move elsewhere (should be in Mathlib!)
+theorem riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
+  ‖ζ (σ₀ + t * I)‖ ≤ ‖ζ σ₀‖ := by
+  sorry
+
+theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
+  ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
+  sorry
+
+theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
+    DifferentiableAt ℂ ζ' s := by
+  have : DifferentiableAt ℂ riemannZeta s := differentiableAt_riemannZeta s_ne_one
+  sorry
+
 /-%%
 \begin{lemma}[SmoothedChebyshevPull1_aux_integrable]\label{SmoothedChebyshevPull1_aux_integrable}\lean{SmoothedChebyshevPull1_aux_integrable}\leanok
 The integrand $$\zeta'(s)/\zeta(s)\mathcal{M}(\widetilde{1_{\epsilon}})(s)X^{s}$$
@@ -1157,11 +1171,10 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     (X : ℂ) ^ (σ₀ + (t : ℂ) * I)) t‖ ≤ c := by
     apply Filter.Eventually.of_forall
     intro t
-    simp only [Complex.norm_mul, Complex.norm_div, norm_neg, c]
+    simp only [Complex.norm_mul, norm_neg, c]
     gcongr
-    · sorry
-    · sorry
-    · sorry
+    · convert dlog_riemannZeta_bdd_on_vertical_lines σ₀_gt t using 1
+      simp
     · rw [Complex.norm_cpow_eq_rpow_re_of_nonneg]
       · simp
       · linarith
@@ -1191,7 +1204,8 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     · have diffζ := differentiableAt_riemannZeta s_ne_one
       apply ContinuousAt.div
       · apply ContinuousAt.neg
-        have : DifferentiableAt ℂ (fun s ↦ deriv riemannZeta s) s := by sorry
+        have : DifferentiableAt ℂ (fun s ↦ deriv riemannZeta s) s :=
+          differentiableAt_deriv_riemannZeta s_ne_one
         convert realDiff_of_complexDIff (s := σ₀ + (t : ℂ) * I) this <;> simp
       · convert realDiff_of_complexDIff (s := σ₀ + (t : ℂ) * I) diffζ <;> simp
       · apply riemannZeta_ne_zero_of_one_lt_re
