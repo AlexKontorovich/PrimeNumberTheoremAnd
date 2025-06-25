@@ -839,7 +839,7 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       exact h2
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Elementary calculation.
 $$
 f(s) * g(s) - \frac{A * g(p)}{s - p} =
