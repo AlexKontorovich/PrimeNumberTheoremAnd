@@ -230,21 +230,104 @@ Since $h$ is nonvanishing near $p$, this remains bounded in a neighborhood of $p
 %%-/
 
 /-%%
-Let's also record that if a function $f$ has a simple pole at $p$ with residue $A$, and $g$ is holormophic near $p$, then the residue of $f*g$ is $A * g(p)$.
+Let's also record that if a function $f$ has a simple pole at $p$ with residue $A$, and $g$ is holomorphic near $p$, then the residue of $f \cdot g$ is $A \cdot g(p)$.
 \begin{theorem}[ResidueMult]\label{ResidueMult}\lean{ResidueMult}\leanok
-  If $f$ has a simple pole at $p$ with residue $A$, and $g$ is holomorphic near $p$, then the residue of $f * g$ at $p$ is $A * g(p)$. That is, we assume that
+  If $f$ has a simple pole at $p$ with residue $A$, and $g$ is holomorphic near $p$, then the residue of $f \cdot g$ at $p$ is $A \cdot g(p)$. That is, we assume that
   $$
   f(s) = \frac{A}{s - p} + O(1)$$
   near $p$, and that $g$ is holomorphic near $p$. Then
   $$
-  f(s) * g(s) = \frac{A * g(p)}{s - p} + O(1).$$
+  f(s) \cdot g(s) = \frac{A \cdot g(p)}{s - p} + O(1).$$
 \end{theorem}
 %%-/
-theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (f_holc : HolomorphicOn f (U \ {p}))
-    (g_holc : HolomorphicOn g U) (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (g_holc : HolomorphicOn g U) (U_in_nhds : U ∈ 𝓝 p) {A : ℂ}
     (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
     (f * g - (fun s ↦ A * g p * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-  sorry
+  -- Add and subtract a term
+  have : (f * g - fun s ↦ A * g p * (s - p)⁻¹)
+      = (f - A • fun s ↦ (s - p)⁻¹) * g + fun s ↦ (A * (g s - g p) / (s - p)) := by
+    have h1 : (f * g - fun s ↦ A * g p * (s - p)⁻¹)
+        = (f * g - g * A • (fun s ↦ (s-p)⁻¹)) + (g * A • (fun s ↦ (s-p)⁻¹)
+        - (g p * A) • (fun s ↦ (s-p)⁻¹)) := by ext x; simp; ring_nf; tauto
+    have h2 : f * g - g * A • (fun s ↦ (s-p)⁻¹) = (f - A • (fun s ↦ (s-p)⁻¹)) * g := by
+      ext x; simp; ring
+    have h3 : g * A • (fun s ↦ (s-p)⁻¹) - (g p * A) • (fun s ↦ (s-p)⁻¹)
+        = fun s ↦ (A * (g s - g p) / (s - p)) := by
+      ext x; simp; ring
+    rw [h1,h2,h3]
+  -- Apply to goal
+  rw[this]
+  refine Asymptotics.IsBigO.add ?_ ?_
+  · rw[← mul_one (1 : ℂ → ℂ)]
+    refine Asymptotics.IsBigO.mul ?_ ?_
+    · exact f_near_p
+    · -- Show g is bounded near p
+      have g_cont : ContinuousAt g p := by
+        -- g is holomorphic on U, p ∈ U, so g is continuous at p
+        have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
+        exact (g_holc.continuousOn.continuousWithinAt p_in_U).continuousAt U_in_nhds
+      -- Use continuity to get boundedness
+      have : ∃ C > 0, ∀ᶠ x in 𝓝 p, ‖g x‖ ≤ C := by
+        -- g is continuous at p, so g p is finite
+        let C := ‖g p‖ + 1
+        use C, by positivity
+        -- By continuity, g x is close to g p in a neighborhood
+        have : ∀ᶠ x in 𝓝 p, ‖g x - g p‖ < 1 := by
+          rw [Metric.eventually_nhds_iff]
+          obtain ⟨δ, hδ_pos, hδ⟩ := Metric.continuousAt_iff.mp g_cont 1 zero_lt_one
+          use δ, hδ_pos
+          intro x hx
+          exact hδ hx
+        filter_upwards [this] with x hx
+        -- Triangle inequality
+        calc ‖g x‖
+          = ‖g x - g p + g p‖ := by ring_nf
+          _ ≤ ‖g x - g p‖ + ‖g p‖ := norm_add_le _ _
+          _ ≤ ‖g p‖ + 1 := by linarith [hx]
+          _ = C := by rfl
+      -- Convert to big O notation
+      obtain ⟨C, hC_pos, hC⟩ := this
+      refine Asymptotics.IsBigO.of_bound C ?_
+      have hC' : ∀ᶠ (x : ℂ) in 𝓝[≠] p, ‖g x‖ ≤ C := by
+        exact eventually_nhdsWithin_of_eventually_nhds hC
+      filter_upwards [hC'] with x hx
+      simp [norm_one]
+      exact hx
+  · -- unfold HolomorphicOn at g_holc
+    -- Show that (fun s ↦ A * (g s - g p) / (s - p)) =O[𝓝[≠] p] 1
+    have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
+
+    suffices (fun s ↦ A * ((s - p)⁻¹ * (g s - g p))) =O[𝓝[≠] p] 1 by
+      convert this using 2
+      rw[div_eq_mul_inv]
+      ring
+    apply Asymptotics.IsBigO.const_mul_left
+
+    -- g is differentiable at p since it's holomorphic on U
+    have g_diff : HasDerivAt g (deriv g p) p :=
+        (DifferentiableOn.differentiableAt g_holc U_in_nhds).hasDerivAt
+
+    rw [hasDerivAt_iff_isLittleO] at g_diff
+    apply Asymptotics.IsLittleO.isBigO at g_diff
+    have : (fun x' ↦ deriv g p * (x' - p)) =O[𝓝 p] fun x' ↦ x' - p := by
+      apply Asymptotics.IsBigO.const_mul_left
+      exact Asymptotics.isBigO_refl (fun x ↦ x - p) (𝓝 p)
+    have h1 := g_diff.add this
+    have h2 : (fun x ↦ g x - g p) =O[𝓝 p] fun x' ↦ x' - p := by
+      convert h1 using 2
+      simp
+      ring
+    refine (Asymptotics.isBigO_mul_iff_isBigO_div ?_).mpr ?_
+    · filter_upwards [self_mem_nhdsWithin] with x hx
+      simp at hx
+      push_neg at hx
+      exact inv_ne_zero (sub_ne_zero.mpr hx)
+    · simp only [div_inv_eq_mul, one_mul]
+      refine Asymptotics.IsBigO.mono ?_ inf_le_left
+      simp
+      exact h2
+
 /-%%
 \begin{proof}
 Elementary calculation.
@@ -2989,7 +3072,34 @@ lemma LogDerivZetaBndUniform :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (T : ℝ) (t : ℝ) (_ : 3 < |t|)
     (_ : |t| ≤ T) (_ : σ ∈ Ico (1 - A / Real.log T ^ 9) 1),
     ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log T ^ 9 := by
-  sorry
+  obtain ⟨A, hA_pos, C, hC_pos, hbound⟩ := LogDerivZetaBnd
+  use A, hA_pos, C, hC_pos
+  intro σ T t ht hTσ hσ
+  have abs_t_pos : 0 < |t| := lt_trans (by norm_num) ht
+  have log_t_pos : 0 < Real.log |t| := by
+    apply Real.log_pos
+    exact lt_trans (by norm_num : (1 : ℝ) < (3 : ℝ)) ht
+  have T_pos : 0 < T := lt_of_lt_of_le abs_t_pos hTσ
+  have T_gt3 : 3 < T := lt_of_lt_of_le ht hTσ
+  have log_le : Real.log |t| ≤ Real.log T := Real.log_le_log abs_t_pos hTσ
+  have log_T_pos : 0 < Real.log T := Real.log_pos (lt_trans (by norm_num) T_gt3)
+  have A_pos : 0 < A := hA_pos.1
+  have pow_lot_T_ge_pow_log_t : Real.log |t| ^ 9 ≤ Real.log T ^ 9 := by
+    refine (pow_le_pow_iff_left₀ ?_ ?_ ?_).mpr log_le
+    exact le_of_lt log_t_pos
+    exact le_of_lt log_T_pos
+    norm_num
+  have hσ' : σ ∈ Ico (1 - A / Real.log (|t|) ^ 9) 1 := by
+    have hdenom_le : A / Real.log T ^ 9 ≤ A / Real.log |t| ^ 9 := by
+      refine (div_le_div_iff_of_pos_left ?_ ?_ ?_).mpr pow_lot_T_ge_pow_log_t
+      exact A_pos
+      exact pow_pos log_T_pos 9
+      exact pow_pos log_t_pos 9
+    apply Set.mem_Ico.mpr
+    exact ⟨le_trans (sub_le_sub_left hdenom_le _) hσ.1, hσ.2⟩
+  have bound := hbound σ t ht hσ'
+  apply le_trans bound
+  exact (mul_le_mul_iff_of_pos_left hC_pos).mpr pow_lot_T_ge_pow_log_t
 /-%%
 \begin{proof}
 \uses{LogDerivZetaBnd}
@@ -3188,11 +3298,196 @@ $
 is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}$.
 \end{lemma}
 %%-/
+
 theorem LogDerivZetaHolcLargeT :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∀ (T : ℝ) (_ : 3 < T),
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∃ (Tlb : ℝ) (_ : 3 < Tlb), ∀ (T : ℝ) (_ : Tlb < T),
     HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
-      (( [[ ((1 : ℝ) - A / Real.log T ^ 9), 2 ]] ×ℂ [[ -T, T ]]) \ {1}) := by
-  sorry
+      (( (Ioo ((1 : ℝ) - A / Real.log T ^ 9) 2)  ×ℂ (Ioo (-T) T) ) \ {1}) := by
+  obtain ⟨A, A_inter, restOfZetaZeroFree⟩ := ZetaZeroFree
+  use A
+  use A_inter
+  obtain ⟨σ₀, σ₀_lt_one, trash⟩ := LogDerivZetaHolcSmallT
+  obtain ⟨σ₁, σ₁_lt_one, noZerosInBox⟩ := ZetaNoZerosInBox 4
+  have : ∃ (Tlb : ℝ) (_ : 3 < Tlb), ∀ (T : ℝ), Tlb < T → σ₀ < (1 : ℝ) - A / Real.log T ^ 9 ∧ σ₁ < (1 : ℝ) - A / Real.log T ^ 9 := by
+    let Tlb : ℝ := max 5 (max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))))
+    use Tlb
+    have three_lt_Tlb : 3 < Tlb := by
+      rw[lt_max_iff]
+      exact Or.inl (by norm_num)
+    use three_lt_Tlb
+    intro T Tlb_lt_T
+    have temp : σ₀ < 1 - A / Real.log T ^ 9 := by
+      have : Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9)) ≤ Tlb := by
+        dsimp[Tlb]
+        have temp : Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9)) ≤
+          max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))) := by apply le_max_left
+        have : max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))) ≤
+          max 5 (max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)))) := by apply le_max_right
+        (expose_names; exact le_sup_of_le_right temp)
+      have keep : Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9)) < T := by exact lt_of_le_of_lt this Tlb_lt_T
+      rw[← Real.lt_log_iff_exp_lt] at keep
+      have : A / (1 - σ₀) < Real.log T ^ 9 := by
+        have temp : 0 ≤ A / (1 - σ₀) := by
+          apply div_nonneg
+          apply le_of_lt A_inter.1
+          linarith
+        have : 9 ≠ 0 := by exact Ne.symm (Nat.zero_ne_add_one 8)
+        rw[← Real.rpow_inv_natCast_pow temp this]
+        have : Odd 9 := by exact Nat.odd_iff.mpr rfl
+        rw[Odd.pow_lt_pow this]
+        have : (↑(9 : ℕ))⁻¹ = 1 / (9 : ℝ) := by exact inv_eq_one_div (9 : ℝ)
+        rw[this]
+        exact keep
+      have : A / Real.log T ^ 9 < 1 - σ₀ := by
+        rw[div_lt_iff₀] at this ⊢
+        rw[mul_comm]
+        exact this
+        refine pow_pos ?_ 9
+        apply Real.log_pos
+        repeat linarith
+      repeat linarith
+    have : σ₁ < 1 - A / Real.log T ^ 9 := by
+      have : Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)) ≤ Tlb := by
+        dsimp[Tlb]
+        have temp : Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)) ≤
+          max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))) := by apply le_max_right
+        have : max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))) ≤
+          max 5 (max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)))) := by apply le_max_right
+        (expose_names; exact le_sup_of_le_right temp)
+      have keep : Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)) < T := by exact lt_of_le_of_lt this Tlb_lt_T
+      rw[← Real.lt_log_iff_exp_lt] at keep
+      have : A / (1 - σ₁) < Real.log T ^ 9 := by
+        have temp : 0 ≤ A / (1 - σ₁) := by
+          apply div_nonneg
+          apply le_of_lt A_inter.1
+          linarith
+        have : 9 ≠ 0 := by exact Ne.symm (Nat.zero_ne_add_one 8)
+        rw[← Real.rpow_inv_natCast_pow temp this]
+        have : Odd 9 := by exact Nat.odd_iff.mpr rfl
+        rw[Odd.pow_lt_pow this]
+        have : (↑(9 : ℕ))⁻¹ = 1 / (9 : ℝ) := by exact inv_eq_one_div (9 : ℝ)
+        rw[this]
+        exact keep
+      have : A / Real.log T ^ 9 < 1 - σ₁ := by
+        rw[div_lt_iff₀] at this ⊢
+        rw[mul_comm]
+        exact this
+        refine pow_pos ?_ 9
+        apply Real.log_pos
+        repeat linarith
+      repeat linarith
+    exact ⟨temp, this⟩
+  obtain ⟨Tlb, three_lt_Tlb, TlbConsequences⟩ := this
+  use Tlb
+  use three_lt_Tlb
+  intro T Tlb_lt_T
+  have three_lt_T : 3 < T := by exact gt_trans Tlb_lt_T three_lt_Tlb
+  have Tlb_lt_abs_T : Tlb < |T| := by
+    rw[abs_of_nonneg]
+    exact Tlb_lt_T
+    positivity
+  have temp : 1 - A / Real.log T ^ 9 < 1 := by
+    apply sub_lt_self
+    apply div_pos
+    have : 0 < A := by
+      rw[Set.mem_Ioc] at A_inter
+      exact A_inter.1
+    exact this
+    apply pow_pos
+    rw[← Real.log_one]
+    apply Real.log_lt_log
+    norm_num
+    linarith
+  have temp' : 1 - A / Real.log |T| ^ 9 < 1 := by
+    rw[abs_of_nonneg]
+    exact temp
+    positivity
+  have zetaZeroFreeCrit : ∀ (σ t : ℝ), σ ∈ Ioo (1 - A / Real.log |T| ^ 9) 1 → t ∈ Ioo (-T) T → ζ (↑σ + ↑t * I) ≠ 0 := by
+    intro σ t σ_inter t_inter
+    have : 4 ≤ |t| ∨ 4 > |t| := by exact le_or_lt 4 |t|
+    rcases this
+    apply restOfZetaZeroFree σ t
+    linarith
+    apply Ioo_subset_Ico_self
+    refine mem_Ioo.mpr ?_
+    have : 1 - A / Real.log |t| ^ 9 < σ := by
+      have temp: 1 - A / Real.log |T| ^ 9 < σ := by exact σ_inter.1
+      have : 1 - A / Real.log |t| ^ 9 < 1 - A / Real.log |T| ^ 9 := by
+        refine (sub_lt_sub_iff_left 1).mpr ?_
+        refine div_lt_div_of_pos_left ?_ ?_ ?_
+        exact A_inter.1
+        refine pow_pos ?_ 9
+        rw[← Real.log_one]
+        apply Real.log_lt_log
+        norm_num
+        linarith
+        refine pow_lt_pow_left₀ ?_ ?_ ?_
+        apply Real.log_lt_log
+        positivity
+        nth_rewrite 2 [abs_of_nonneg]
+        rw[abs_lt]
+        exact t_inter
+        positivity
+        rw[← Real.log_one]
+        apply Real.log_le_log
+        positivity
+        linarith
+        exact Ne.symm (Nat.zero_ne_add_one 8)
+      (expose_names; exact gt_trans temp this)
+    exact ⟨this, σ_inter.2⟩
+    have : ∀ (t : ℝ), |t| < 4 → ∀ σ' ≥ σ₁, riemannZeta (↑σ' + ↑t * Complex.I) ≠ 0 := by exact fun t a σ' a_1 ↦ noZerosInBox t a σ' a_1
+    apply this
+    (expose_names; exact h)
+    have temp : σ₀ < 1 - A / Real.log T ^ 9 ∧ σ₁ < 1 - A / Real.log T ^ 9 := by exact TlbConsequences T Tlb_lt_T
+    have : 1 - A / Real.log T ^ 9 < σ := by
+      have : 1 - A / Real.log |T| ^ 9 < σ := by exact σ_inter.1
+      rw[abs_of_nonneg] at this
+      exact this
+      positivity
+    apply le_of_lt
+    exact lt_trans temp.2 this
+  have zetaZeroFreeTriv : ∀ (σ t : ℝ), σ ∈ Ico 1 2 → t ∈ Ioo (-T) T → ζ (↑σ + ↑t * I) ≠ 0 := by
+    intro σ t σ_inter t_inter
+    obtain ⟨lb, ub⟩ := σ_inter
+    have : 1 ≤ (↑σ + ↑t * I).re := by
+      rw[add_re, mul_re, I_re, I_im, ofReal_re, ofReal_im]
+      linarith
+    exact riemannZeta_ne_zero_of_one_le_re this
+  have zetaZeroFreeCombo : ∀ (σ t : ℝ), σ ∈ Ioo (1 - A / Real.log |T| ^ 9) 2 → t ∈ Ioo (-T) T → ζ (↑σ + ↑t * I) ≠ 0 := by
+    intro σ t σ_inter
+    rw[← Set.Ioo_union_Ico_eq_Ioo temp' one_le_two, Set.mem_union] at σ_inter
+    exact Or.elim σ_inter (zetaZeroFreeCrit σ t) (zetaZeroFreeTriv σ t)
+  clear zetaZeroFreeCrit zetaZeroFreeTriv
+  unfold HolomorphicOn
+  apply DifferentiableOn.div
+  apply DifferentiableOn.deriv
+  unfold DifferentiableOn
+  intro x xIn
+  rw[Set.mem_diff] at xIn
+  refine DifferentiableAt.differentiableWithinAt ?_
+  exact differentiableAt_riemannZeta xIn.2
+  refine IsOpen.sdiff ?_ ?_
+  refine IsOpen.reProdIm ?_ ?_
+  exact isOpen_Ioo
+  exact isOpen_Ioo
+  exact isClosed_singleton
+  unfold DifferentiableOn
+  intro x xIn
+  rw[Set.mem_diff] at xIn
+  refine DifferentiableAt.differentiableWithinAt ?_
+  exact differentiableAt_riemannZeta xIn.2
+  intro x
+  rw[Set.mem_diff, Complex.mem_reProdIm]
+  intro xHypo
+  obtain ⟨⟨xReIn, xImIn⟩, xOut⟩ := xHypo
+  have : x = x.re + x.im * I := by exact Eq.symm (re_add_im x)
+  rw[this]
+  apply zetaZeroFreeCombo x.re x.im
+  rw[abs_of_nonneg]
+  exact xReIn
+  positivity
+  exact xImIn
+
 /-%%
 \begin{proof}\uses{ZetaZeroFree}
 The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
