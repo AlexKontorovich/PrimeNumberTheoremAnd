@@ -1103,28 +1103,119 @@ noncomputable def I₅ (SmoothingF : ℝ → ℝ) (ε X σ₂ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-3)..3,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₂ + t * I)))
 
+
+
+
+
+
+theorem realDiff_of_complexDIff {f : ℂ → ℂ} (s : ℂ) (hf : DifferentiableAt ℂ f s) :
+    ContinuousAt (fun (x : ℝ) ↦ f (s.re + x * I)) s.im := by
+  -- First, get continuity of f at s from differentiability
+  have hf_cont : ContinuousAt f s := DifferentiableAt.continuousAt hf
+
+  -- The function x ↦ s.re + x * I is continuous
+  have h_param : ContinuousAt (fun x : ℝ ↦ (s.re + x * I : ℂ)) s.im := by
+    apply ContinuousAt.add
+    · exact continuousAt_const
+    · apply ContinuousAt.mul
+      · refine Continuous.continuousAt ?_
+        exact continuous_ofReal
+      · exact continuousAt_const
+
+  -- Need to show that s.re + s.im * I = s
+  have h_eq : (s.re : ℂ) + (s.im : ℂ) * I = s := by
+    rw [← Complex.re_add_im s]
+    simp
+
+  -- Use the equation to transform the continuity
+  rw [← h_eq] at hf_cont
+  -- The composition of continuous functions is continuous
+  exact ContinuousAt.comp hf_cont h_param
+
 /-%%
 \begin{lemma}[SmoothedChebyshevPull1_aux_integrable]\label{SmoothedChebyshevPull1_aux_integrable}\lean{SmoothedChebyshevPull1_aux_integrable}\leanok
 The integrand $$\zeta'(s)/\zeta(s)\mathcal{M}(\widetilde{1_{\epsilon}})(s)X^{s}$$
 is integrable on the contour $\sigma_0 + t i$ for $t \in \R$ and $\sigma_0 > 1$.
 \end{lemma}
 %%-/
+<<<<<<< PT_work
 theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε) (X : ℝ)
     {σ₀ : ℝ} (σ₀_gt_one : 1 < σ₀)
     (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Ico σ₀ 2 ×ℂ univ \ {1}))
+=======
+theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε)
+    (ε_lt_one : ε < 1)
+    {X : ℝ} (X_gt : 3 < X)
+    {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (σ₀_le_2 : σ₀ ≤ 2)
+    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
+>>>>>>> main
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) :
+    (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
+    :
     Integrable (fun (t : ℝ) ↦
       SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + (t : ℂ) * I)) volume := by
-  sorry
+  let c : ℝ := ‖ζ' (σ₀) / ζ (σ₀)‖ * X ^ σ₀
+  have : ∀ᵐ t ∂volume, ‖(fun (t : ℝ) ↦ (- deriv riemannZeta (σ₀ + (t : ℂ) * I)) /
+    riemannZeta (σ₀ + (t : ℂ) * I) *
+    (X : ℂ) ^ (σ₀ + (t : ℂ) * I)) t‖ ≤ c := by
+
+    sorry
+  convert (SmoothedChebyshevDirichlet_aux_integrable ContDiffSmoothingF SmoothingFnonneg
+    suppSmoothingF mass_one ε_pos ε_lt_one σ₀_gt σ₀_le_2).bdd_mul' (c := c) ?_ this using 2
+  · unfold SmoothedChebyshevIntegrand
+    ring
+  · apply Continuous.aestronglyMeasurable
+    rw [continuous_iff_continuousOn_univ]
+    intro t _
+    let s := σ₀ + (t : ℂ) * I
+    have s_ne_one : s ≠ 1 := by
+      intro h
+      -- If σ₀ + t * I = 1, then taking real parts gives σ₀ = 1
+      have : σ₀ = 1 := by
+        have := congr_arg Complex.re h
+        simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+          sub_self, add_zero, one_re, s] at this
+        exact this
+      -- But this contradicts 1 < σ₀
+      linarith [σ₀_gt]
+    apply ContinuousAt.continuousWithinAt
+    apply ContinuousAt.mul
+    · have diffζ := differentiableAt_riemannZeta s_ne_one
+      apply ContinuousAt.div
+      · apply ContinuousAt.neg
+        have : DifferentiableAt ℂ (fun s ↦ deriv riemannZeta s) s := by sorry
+        convert realDiff_of_complexDIff (s := σ₀ + (t : ℂ) * I) this <;> simp
+      · convert realDiff_of_complexDIff (s := σ₀ + (t : ℂ) * I) diffζ <;> simp
+      · apply riemannZeta_ne_zero_of_one_lt_re
+        simp [σ₀_gt]
+    · -- The function x ↦ σ₀ + x * I is continuous
+      have h_param : ContinuousAt (fun x : ℝ ↦ (↑σ₀ + ↑x * I : ℂ)) t := by
+        apply ContinuousAt.add
+        · exact continuousAt_const
+        · apply ContinuousAt.mul
+          · exact continuous_ofReal.continuousAt
+          · exact continuousAt_const
+
+      -- The complex power function z ↦ X^z is continuous (assuming X > 0)
+      have h_pow : ContinuousAt (fun z : ℂ ↦ (↑X : ℂ) ^ z) (↑σ₀ + ↑t * I) := by
+        apply continuousAt_const_cpow
+        simp only [ne_eq, ofReal_eq_zero, s]
+        linarith
+
+      -- Composition of continuous functions
+      exact ContinuousAt.comp h_pow h_param
+
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b}
+\begin{proof}\uses{MellinOfSmooth1b, SmoothedChebyshevDirichlet_aux_integrable}
 The $\zeta'(s)/\zeta(s)$ term is bounded, as is $X^s$, and the smoothing function
 $\mathcal{M}(\widetilde{1_{\epsilon}})(s)$
 decays like $1/|s|^2$ by Theorem \ref{MellinOfSmooth1b}.
-
-Check (!!) Do we need this, or is it already proved in Theorem \ref{SmoothedChebyshevDirichlet_aux_integrable}?
+Actually, we already know that
+$\mathcal{M}(\widetilde{1_{\epsilon}})(s)$
+is integrable from Theorem \ref{SmoothedChebyshevDirichlet_aux_integrable},
+so we should just need to bound the rest.
 \end{proof}
 %%-/
 
@@ -1141,12 +1232,25 @@ X^{s}ds.$$
 \end{theorem}
 %%-/
 
+<<<<<<< PT_work
 theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1) (X : ℝ) (_ : 3 < X) {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
     (σ₁_pos : 0 < σ₁) (σ₁_lt_one : σ₁ < 1)
     (holoOn : HolomorphicOn (ζ' / ζ) ((Ico σ₁ 2)×ℂ (Ioo (-T) T) \ {1}))
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
+=======
+theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    (X : ℝ) (X_gt : 3 < X)
+    {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
+    (σ₁_pos : 0 < σ₁) (σ₁_lt_one : σ₁ < 1)
+    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₁ 2)×ℂ (Icc (-T) T) \ {1}))
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
+>>>>>>> main
     SmoothedChebyshev SmoothingF ε X =
       I₁ SmoothingF ε X T -
       I₂ SmoothingF ε T X σ₁ +
@@ -1158,6 +1262,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   unfold VerticalIntegral'
   rw [verticalIntegral_split_three (a := -T) (b := T)]
   swap
+<<<<<<< PT_work
   have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by
     nth_rewrite 1 [← add_zero 1]
     refine add_lt_add_of_le_of_lt ?_ ?_
@@ -1256,6 +1361,29 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     rw[ofReal_re]
     positivity
   exact SmoothedChebyshevPull1_aux_integrable ε_pos X X_eq_gt_one holoIntegrand suppSmoothingF SmoothingFnonneg mass_one
+=======
+  have X_eq_pos : 1 < 1 + (Real.log X)⁻¹ := by
+    sorry
+    -- apply add_pos (by positivity)
+    -- rw[inv_pos, ← Real.log_one]
+    -- apply Real.log_lt_log (by positivity) (by linarith)
+  have logX_gt : 1 + (Real.log X)⁻¹ ≤ 2 := by
+    sorry
+    -- apply add_lt_add_left
+    -- apply inv_lt_one_of_pos
+    -- rw[Real.log_one]
+    -- exact Real.log_pos (by positivity)
+    -- exact X_gt
+
+  --TODO:
+  have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X)
+    (Icc (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by
+      sorry --should be able to do with lemmas from workshop
+
+  exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_pos logX_gt
+    holoIntegrand suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
+
+>>>>>>> main
 
   have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by field_simp
   repeat rw[smul_eq_mul]
@@ -1450,20 +1578,19 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
-    SmoothedChebyshev SmoothingF ε X =
-      I₁ SmoothingF ε X T -
-      I₂ SmoothingF ε T X σ₁ +
+    I₃₇ SmoothingF ε T X σ₁ =
       I₃ SmoothingF ε T X σ₁ -
       I₄ SmoothingF ε X σ₁ σ₂ +
       I₅ SmoothingF ε X σ₂ +
       I₆ SmoothingF ε X σ₁ σ₂ +
-      I₇ SmoothingF ε T X σ₁ +
-      I₈ SmoothingF ε T X σ₁ +
-      I₉ SmoothingF ε X T
-      + 𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X := by
+      I₇ SmoothingF ε T X σ₁ := by
+  let z : ℂ := σ₂ - 3 * I
+  let w : ℂ := σ₂ + 3 * I
+  have sub : z.Rectangle w ⊆ Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1} := by sorry
+  have := HolomorphicOn.vanishesOnRectangle holoOn2 sub
   sorry
 /-%%
-\begin{proof}
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
 Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
 \end{proof}
 %%-/
