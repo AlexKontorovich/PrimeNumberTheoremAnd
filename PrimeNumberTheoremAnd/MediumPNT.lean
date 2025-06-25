@@ -1363,7 +1363,6 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_pos logX_gt
     holoIntegrand suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
 
->>>>>>> main
 
   have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by field_simp
   repeat rw[smul_eq_mul]
