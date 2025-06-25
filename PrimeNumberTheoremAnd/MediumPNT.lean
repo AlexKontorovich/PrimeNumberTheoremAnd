@@ -1106,7 +1106,7 @@ noncomputable def I₅ (SmoothingF : ℝ → ℝ) (ε X σ₂ : ℝ) : ℂ :=
 
 theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε) (X : ℝ)
     {σ₀ : ℝ} (σ₀_pos : 0 < σ₀)
-    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
+    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Ico σ₀ 2 ×ℂ univ \ {1}))
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1) :
@@ -1126,9 +1126,10 @@ X^{s}ds.$$
 \end{theorem}
 %%-/
 
-theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (X : ℝ) (_ : 3 < X) {T : ℝ} (T_pos : 0 < T) {σ₀ : ℝ}
+theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1) (X : ℝ) (_ : 3 < X) {T : ℝ} (T_pos : 0 < T) {σ₀ : ℝ}
     (σ₀_pos : 0 < σ₀) (σ₀_lt_one : σ₀ < 1)
-    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₀ 2)×ℂ (Icc (-T) T) \ {1}))
+    (holoOn : HolomorphicOn (ζ' / ζ) ((Ico σ₀ 2)×ℂ (Ioo (-T) T) \ {1}))
+    (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     SmoothedChebyshev SmoothingF ε X =
@@ -1146,8 +1147,95 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     apply add_pos (by positivity)
     rw[inv_pos, ← Real.log_one]
     apply Real.log_lt_log (by positivity) (by linarith)
-  --TODO:
-  have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by sorry --should be able to do with lemmas from workshop
+  have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Ico (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by
+    unfold SmoothedChebyshevIntegrand HolomorphicOn
+    refine DifferentiableOn.mul ?_ ?_
+    refine DifferentiableOn.mul ?_ ?_
+    have : (fun s ↦ -ζ' s / ζ s) = (fun s ↦ -(ζ' s / ζ s)) := by
+      refine funext ?_
+      intro x
+      exact neg_div (ζ x) (ζ' x)
+    rw[this]
+    refine DifferentiableOn.neg ?_
+    unfold DifferentiableOn
+    intro s s_location
+    rw[Set.mem_diff, Complex.mem_reProdIm] at s_location
+    obtain ⟨⟨sReIn, sImIn⟩, sOut⟩ := s_location
+    obtain ⟨A, A_inter, Tlb, Tlb_inter, holoOnTemp⟩ := LogDerivZetaHolcLargeT
+    have : ∃ (T : ℝ), Tlb < T ∧ |s.im| < T := by
+      let T : ℝ := 1 + max Tlb |s.im|
+      use T
+      have temp : Tlb < T := by
+        dsimp[T]
+        nth_rewrite 1 [← zero_add Tlb]
+        refine add_lt_add_of_lt_of_le ?_ ?_
+        norm_num
+        exact le_max_left Tlb |s.im|
+      have : |s.im| < T := by
+        dsimp[T]
+        nth_rewrite 1 [← zero_add |s.im|]
+        refine add_lt_add_of_lt_of_le ?_ ?_
+        norm_num
+        exact le_max_right Tlb |s.im|
+      exact ⟨temp, this⟩
+    obtain ⟨T, Tbounds⟩ := this
+    have holoOnTemp : HolomorphicOn (fun s ↦ ζ' s / ζ s) (Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1}) := by exact holoOnTemp T Tbounds.1
+    unfold HolomorphicOn at holoOnTemp
+    unfold DifferentiableOn at holoOnTemp
+    have sInBiggerBox : s ∈ Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1} := by
+      rw[Set.mem_diff, Complex.mem_reProdIm]
+      have temp : s.re ∈ Ioo (1 - A / Real.log T ^ 9) 2 := by
+        have : 1 - A / Real.log T ^ 9 < s.re := by
+          have : 1 - A / Real.log T ^ 9 < 1 + (Real.log X)⁻¹ := by
+            have : 0 < A / Real.log T ^ 9 := by
+              refine div_pos ?_ ?_
+              exact A_inter.1
+              apply pow_pos
+              rw[← Real.log_one]
+              apply Real.log_lt_log
+              positivity
+              linarith
+            have : 0 < (Real.log X)⁻¹ := by
+              rw[inv_pos, ← Real.log_one]
+              apply Real.log_lt_log
+              positivity
+              linarith
+            linarith
+          exact gt_of_ge_of_gt sReIn.1 this
+        exact ⟨this, sReIn.2⟩
+      have : s.im ∈ Ioo (-T) T := by
+        obtain ⟨_, abs_sIm_bound⟩ := Tbounds
+        exact ⟨by exact neg_lt_of_abs_lt abs_sIm_bound, by exact lt_of_abs_lt abs_sIm_bound⟩
+      exact ⟨⟨temp, this⟩, sOut⟩
+    have : DifferentiableWithinAt ℂ (fun s ↦ ζ' s / ζ s) (Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1}) s := by exact holoOnTemp s sInBiggerBox
+    refine DifferentiableAt.differentiableWithinAt ?_
+    have h_open : IsOpen (Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1}) := by
+      apply IsOpen.sdiff
+      refine IsOpen.reProdIm (by exact isOpen_Ioo) (by exact isOpen_Ioo)
+      exact isClosed_singleton
+    have h_mem : s ∈ Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1} := sInBiggerBox
+    exact this.differentiableAt (h_open.mem_nhds h_mem)
+    unfold DifferentiableOn
+    intro s s_location
+    rw[Set.mem_diff, Complex.mem_reProdIm] at s_location
+    obtain ⟨⟨sReIn, sImIn⟩, sOut⟩ := s_location
+    refine DifferentiableAt.differentiableWithinAt ?_
+    have εInter : ε ∈ Ioo 0 1 := by exact ⟨ε_pos, ε_lt_one⟩
+    have hs : 0 < s.re := by
+      have : 1 + (Real.log X)⁻¹ ≤ s.re := by exact sReIn.1
+      linarith
+    exact Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF εInter SmoothingFnonneg mass_one hs
+    intro s hs
+    apply DifferentiableAt.differentiableWithinAt
+    cases' hs with h_in h_not_one
+    unfold HPow.hPow instHPow
+    simp
+    apply DifferentiableAt.const_cpow
+    exact differentiableAt_id'
+    refine Or.inl ?_
+    refine ne_zero_of_re_pos ?_
+    rw[ofReal_re]
+    positivity
   exact SmoothedChebyshevPull1_aux_integrable ε_pos X X_eq_pos holoIntegrand suppSmoothingF SmoothingFnonneg mass_one
 
   have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by field_simp
