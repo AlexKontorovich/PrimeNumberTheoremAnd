@@ -400,13 +400,75 @@ theorem laurent_expansion_identity_alt (f f' A x p : ℂ)
   field_simp [h_nonzero]
   ring
 
+/-%%
+\begin{theorem}[nonZeroOfBddAbove]\label{nonZeroOfBddAbove}\lean{nonZeroOfBddAbove}\leanok
+  If a function $f$ has a simple pole at a point $p$ with residue $A \neq 0$, then
+  $f$ is nonzero in a punctured neighborhood of $p$.
+\end{theorem}
+%%-/
 theorem nonZeroOfBddAbove {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
-    (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
     ∃ V ∈ 𝓝 p, IsOpen V ∧ ∀ s ∈ V \ {p}, f s ≠ 0 := by
-  sorry
+  /-%%
+  \begin{proof}
+    We know that $f(s) = \frac{A}{s-p} + O(1)$ near $p$, so we can write
+    $$f(s) = \left(f(s) - \frac{A}{s-p}\right) + \frac{A}{s-p}.$$
+    The first term is bounded, say by $M$, and the second term goes to $\infty$ as $s \to p$.
+    Therefore, there exists a neighborhood $V$ of $p$ such that for all $s \in V \setminus \{p\}$,
+    we have $f(s) \neq 0$.
+  \end{proof}
+  %%-/
 
+  -- Step 1: Rewrite f as the sum of two parts
+  have h_decomp : ∀ s, f s = (f s - A * (s - p)⁻¹) + A * (s - p)⁻¹ := by
+    intro s
+    ring
+  -- Get a bound for the first summand
+  obtain ⟨M, hM⟩ := f_near_p
+  -- Step 2: The second summand A * (s - p)⁻¹ goes to ∞ as s → p
+  -- We need to find a neighborhood where |A * (s - p)⁻¹| > M + 1
+  have A_norm_pos : 0 < ‖A‖ := norm_pos_iff.mpr A_ne_zero
+  -- Choose δ such that for |s - p| < δ, we have |A * (s - p)⁻¹| > M + 1
+  let δ := ‖A‖ / (‖M‖ + 1)
+  have δ_pos : 0 < δ := by
+    refine div_pos A_norm_pos (add_pos_of_nonneg_of_pos (norm_nonneg M) one_pos)
+  -- Find an open neighborhood V contained in both U and the δ-ball around p
+  obtain ⟨V, hV_open, hV_mem, hV_sub⟩ : ∃ V, IsOpen V ∧ p ∈ V ∧ V ⊆ U ∩ Metric.ball p δ := by
+    -- rw [mem_nhds_iff] at U_in_nhds
+    obtain ⟨W, hW_sub, hW_open, hW_mem⟩ := mem_nhds_iff.mp U_in_nhds
+    let V := W ∩ Metric.ball p δ
+    have VNp : V ∈ 𝓝 p := (𝓝 p).inter_mem (IsOpen.mem_nhds hW_open hW_mem)
+      (Metric.ball_mem_nhds p δ_pos)
+    exact ⟨V, IsOpen.inter hW_open Metric.isOpen_ball, mem_of_mem_nhds VNp,
+      inter_subset_inter_left _ hW_sub⟩
+  use V, mem_nhds_iff.mpr ⟨V, subset_refl V, hV_open, hV_mem⟩, hV_open
+  -- Show f ≠ 0 on V
+  intro s hs
+  have hs_in_U : s ∈ U := hV_sub hs.1 |>.1
+  have hs_near_p : dist s p < δ := hV_sub hs.1 |>.2
+  have hs_ne_p : s ≠ p := hs.2
+  -- Step 3: Therefore the sum of the two terms has large norm
+  rw [h_decomp s]
+  -- The first summand is bounded
+  have bound_first : ‖f s - A * (s - p)⁻¹‖ ≤ M := by
+    apply hM
+    exact ⟨s, ⟨hs_in_U, hs_ne_p⟩, rfl⟩
+  -- The second summand has large norm
+  have large_second : ‖M‖ + 1 < ‖A * (s - p)⁻¹‖ := by
+    rw [norm_mul, norm_inv, ← div_eq_mul_inv]
+    rw [lt_div_iff₀ (norm_pos_iff.mpr (sub_ne_zero.mpr hs_ne_p))]
+    rw [mul_comm, ← lt_div_iff₀ (add_pos_of_nonneg_of_pos (norm_nonneg M) one_pos)]
+    exact hs_near_p
+  -- Step 4: Therefore the sum is nonzero near p
+  by_contra h_zero
+  -- If f s = 0, then the two summands are negatives of each other
+  rw [add_eq_zero_iff_eq_neg] at h_zero
+  rw [h_zero, norm_neg] at bound_first
+  -- But this contradicts our bounds
+  have : ‖M‖ + 1 < ‖M‖ := (lt_of_lt_of_le (lt_of_lt_of_le large_second bound_first)
+    (Real.le_norm_self M))
+  norm_num at this
 
 /- The set should be open so that f'(p) = O(1) for all p ∈ U -/
 
