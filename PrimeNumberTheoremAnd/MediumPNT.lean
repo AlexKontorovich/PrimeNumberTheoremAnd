@@ -1344,8 +1344,6 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     refine ne_zero_of_re_pos ?_
     rw[ofReal_re]
     positivity
-  exact SmoothedChebyshevPull1_aux_integrable ε_pos X X_eq_gt_one holoIntegrand suppSmoothingF SmoothingFnonneg mass_one
-=======
   have X_eq_pos : 1 < 1 + (Real.log X)⁻¹ := by
     sorry
     -- apply add_pos (by positivity)
