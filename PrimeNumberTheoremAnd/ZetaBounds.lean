@@ -626,7 +626,6 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
       exact EventuallyEq.trans_isBigO T h_log_deriv_bounded
 
-
   exact final
 
 theorem  logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
