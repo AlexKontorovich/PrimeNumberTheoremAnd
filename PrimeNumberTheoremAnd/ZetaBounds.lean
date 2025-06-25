@@ -724,7 +724,38 @@ theorem  logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       · exact DifferentiableOn.mono holc T
       · exact (f_near_p.mono (image_subset _ (diff_subset_diff a (subset_refl _))))
 
+lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
+  (f_near_p : f =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
+  ∃ U ∈ 𝓝 p, BddAbove (norm ∘ f '' (U \ {p})) := by
+    simp [isBigO_iff'] at f_near_p
+    obtain ⟨c, c_pos, hc⟩ := f_near_p
+    dsimp [Filter.Eventually] at hc
+    dsimp [nhdsWithin] at hc
+    rw [mem_inf_principal'] at hc
+    obtain ⟨U, hU, ⟨U_is_open, p_in_U⟩⟩ := mem_nhds_iff.mp hc
+    use U
+    constructor
+    · refine IsOpen.mem_nhds ?_ ?_
+      exact U_is_open
+      exact p_in_U
+    · refine bddAbove_def.mpr ?_
+      use c
+      intro y hy
+      simp only [Function.comp_apply, mem_image, mem_diff, mem_singleton_iff] at hy
+      obtain ⟨x, ⟨x_in_U, x_not_p⟩, fxy⟩ := hy
+      rw [← fxy]
+      have this := hU x_in_U
+      simp [x_not_p] at this
+      exact this
 
+theorem logDerivResidue'' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (non_zero: ∀x ∈ U \ {p}, f x ≠ 0)
+    (holc : HolomorphicOn f (U \ {p}))
+    (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+    (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
+    ∃ V ∈ 𝓝 p, BddAbove (norm ∘ (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) '' (V \ {p})) := by
+  apply IsBigO_to_BddAbove
+  exact logDerivResidue non_zero holc U_in_nhds A_ne_zero f_near_p
 /-%%
 \begin{proof}\uses{existsDifferentiableOn_of_bddAbove}
 Using Theorem \ref{existsDifferentiableOn_of_bddAbove}, there is a function $g$ holomorphic  near $p$, for which $f(s) = A/(s-p) + g(s) = h(s)/ (s-p)$. Here $h(s):= A + g(s)(s-p)$ which is nonzero in a neighborhood of $p$ (since $h$ goes to $A$ which is nonzero).
@@ -862,30 +893,40 @@ As a corollary, the log derivative of the Riemann zeta function has a simple pol
 theorem riemannZetaLogDerivResidue :
     ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (-(ζ' / ζ) - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
   obtain ⟨U,U_in_nhds, hU⟩ := riemannZetaResidue
-  have ζ_holc: HolomorphicOn ζ (U \ {1}) := by
+  have hU' : BddAbove (norm ∘ (ζ - fun s ↦ 1 * (s - 1)⁻¹) '' (U \ {1})) := by
+    simp only [Function.comp_apply, Pi.sub_apply, one_mul] at hU ⊢
+    exact hU
+  obtain ⟨V,V_in_nhds, V_is_open, hV⟩ := nonZeroOfBddAbove U_in_nhds one_ne_zero hU'
+  let W := V ∩ interior U
+  have hW : ∀ s ∈ W \ {1}, ζ s ≠ 0 := by
+    intro s hs
+    have s_in_V_diff : s ∈ V \ {1} := ⟨hs.1.1, hs.2⟩
+    exact hV s s_in_V_diff
+  have ζ_holc: HolomorphicOn ζ (W \ {1}) := by
     intro y hy
     simp only [mem_diff, mem_singleton_iff] at hy
     refine DifferentiableAt.differentiableWithinAt ?_
     apply differentiableAt_riemannZeta hy.2
-  have := logDerivResidue ?_ ζ_holc U_in_nhds one_ne_zero
-  · simp only [one_mul, Function.comp_apply, Pi.sub_apply] at this
-    use U
-    constructor
-    exact U_in_nhds
-    convert this ?_ using 1
-    · simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply]
-      have aux: ∀ a, ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by
-        intro a
-        calc ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖
-            = ‖-((deriv ζ a / ζ a) + (a - 1)⁻¹)‖ := by ring_nf
-          _ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by rw [norm_neg]
-      simp only [aux]
-    -- rfl
-      simp only [Function.comp_apply, Pi.sub_apply] at hU
-      sorry
-    · exact hU
-  · intro x x_inU
-    sorry
+  have W_in_nhds : W ∈ 𝓝 1 := by
+    refine inter_mem V_in_nhds ?_
+    exact interior_mem_nhds.mpr U_in_nhds
+  have := logDerivResidue'' hW ζ_holc W_in_nhds one_ne_zero
+  have HW : BddAbove (norm ∘ (ζ - fun s ↦ (s - 1)⁻¹) '' (W \ {1})) := by
+    obtain ⟨c, hc⟩ := bddAbove_def.mp hU
+    apply bddAbove_def.mpr
+    use c
+    rintro y ⟨x, x_in_W, fxy⟩
+    apply hc
+    exact ⟨x, ⟨interior_subset x_in_W.1.2, x_in_W.2⟩, fxy⟩
+  simp only [one_mul] at this
+  have aux: ∀ a, ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by
+    intro a
+    calc ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖
+         = ‖-((deriv ζ a / ζ a) + (a - 1)⁻¹)‖ := by ring_nf
+       _ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by rw [norm_neg]
+  simp only [Function.comp_apply, Pi.sub_apply] at hU
+  simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply, aux]
+  apply this HW
 /-%%
 \begin{proof}\uses{logDerivResidue, riemannZetaResidue}
   This follows from Theorem \ref{logDerivResidue} and Theorem \ref{riemannZetaResidue}.
