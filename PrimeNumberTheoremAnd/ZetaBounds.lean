@@ -52,26 +52,59 @@ theorem riemannZetaResidue :
     (ζ - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
   have := riemannZeta_residue_one
   sorry
+
 /-%%
 \begin{proof}
   Look at the proof of `riemannZeta_residue_one` in Mathlib.
 \end{proof}
 %%-/
 
+
+-- Main theorem: if functions agree on a punctured set, their derivatives agree there too
+theorem deriv_eqOn_of_eqOn_punctured (f g : ℂ → ℂ) (U : Set ℂ) (p : ℂ)
+    (hU_open : IsOpen U)
+    (h_eq : EqOn f g (U \ {p})) :
+    EqOn (deriv f) (deriv g) (U \ {p}) := by
+  -- We need to show that for any x ∈ U \ {p}, deriv f x = deriv g x
+  intro x hx
+  -- hx : x ∈ U \ {p}, so x ∈ U and x ≠ p
+  have hx_in_U : x ∈ U := hx.1
+  have hx_ne_p : x ≠ p := hx.2
+
+  -- Since f and g agree on U \ {p} and x ≠ p,
+  -- we can find a neighborhood of x where f = g
+  have h_eq_nhds : ∀ᶠ y in 𝓝 x, f y = g y := by
+    -- Since x ≠ p and U \ {p} is open (as U is open and {p} is closed),
+    -- and f = g on U \ {p}, we have f = g in a neighborhood of x
+    rw [eventually_nhds_iff]
+    use U \ {p}
+    exact ⟨h_eq, hU_open.sdiff isClosed_singleton, hx⟩
+
+  -- Now use the fact that if f = g in a neighborhood, then deriv f = deriv g
+
+--  exact deriv_congr_of_eventually_eq h_eq_nhds
+
+  exact EventuallyEq.deriv_eq h_eq_nhds
+
 /- New two theorems to be proven -/
 
 theorem analytic_deriv_bounded_near_point
   (f : ℂ → ℂ) {U : Set ℂ} {p : ℂ} (hU : IsOpen U) (hp : p ∈ U) (hf : HolomorphicOn f U) :
-  (deriv f) =O[𝓝[≠] p] (1 : ℂ → ℂ ) := by
-    --refine (analyticOn_iff_differentiableOn hU).mp ?_
-    sorry
+  (deriv f) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
 
+    have U_in_filter : U ∈ 𝓝 p := by
+      exact IsOpen.mem_nhds hU hp
+    have T := (analyticOn_iff_differentiableOn hU).mpr hf
+    have T2 : ContDiffOn ℂ 1 f U :=
+        DifferentiableOn.contDiffOn hf hU
+    have T3 : ContinuousOn (fun x ↦ ((deriv f) x)) U := by
+      apply T2.continuousOn_deriv_of_isOpen hU (by simp)
+    have T4 := T3.continuousAt U_in_filter
+    have T5 : (deriv f) =O[𝓝 p] (1 : ℂ → ℂ) :=
+      T4.norm.isBoundedUnder_le.isBigO_one ℂ
+    refine Asymptotics.IsBigO.mono ?_ inf_le_left
 
-theorem analytic_bounded_near_point
-  (f : ℂ → ℂ) {U : Set ℂ} {p : ℂ} (hU : IsOpen U) (hp : p ∈ U) (hf : HolomorphicOn f U) :
-  f =O[𝓝[≠] p] (1 : ℂ → ℂ ) := by
-    --refine (analyticOn_iff_differentiableOn hU).mp ?_
-    sorry
+    exact T5
 
 
 -- Even simpler direct proof using tendsto
@@ -96,14 +129,158 @@ theorem map_inv_nhdsWithin_direct_alt
   exact (continuousAt_inv₀ A_ne_zero).tendsto.comp hyp
 
 
+theorem expression_eq_zero (A x p : ℂ) (h : x ≠ p) :
+  A - A * x * (x - p)⁻¹ + A * p * (x - p)⁻¹ = 0 := by
+  -- Since x ≠ p, we have x - p ≠ 0
+  have h_ne_zero : x - p ≠ 0 := sub_ne_zero.mpr h
+
+  have : A - A * x * (x - p)⁻¹ + A * p * (x - p)⁻¹ =
+         A * (1 - x * (x - p)⁻¹ + p * (x - p)⁻¹) := by ring
+  rw [this]
+
+  suffices h_suff : 1 - x * (x - p)⁻¹ + p * (x - p)⁻¹ = 0 by
+     rw [h_suff, mul_zero]
+
+  have : 1 - x * (x - p)⁻¹ + p * (x - p)⁻¹ =
+         1 + (-x + p) * (x - p)⁻¹ := by ring
+  rw [this]
+
+  have : -x + p = -(x - p) := by ring
+  rw [this, neg_mul]
+
+  have : (x - p) * (x - p)⁻¹ = 1 := Field.mul_inv_cancel (x - p) h_ne_zero
+  rw [this]
+
+  ring
+
+
+theorem field_identity (f f' x p : ℂ) (hf : f ≠ 0) (hp : x ≠ p) :
+  f' * f⁻¹ + (x - p)⁻¹ = (f + f' * (x - p)) * ((x - p)⁻¹ * f⁻¹) := by
+
+  have h_xp : x - p ≠ 0 := sub_ne_zero.mpr hp
+  field_simp [hf, h_xp]
+  ring
+
+
+theorem derivative_const_plus_product {g : ℂ → ℂ}
+   (A p x : ℂ) (hg : DifferentiableAt ℂ g x) :
+  deriv ((fun _ ↦ A) + g * fun s ↦ s - p) x = deriv g x * (x - p) + g x :=
+  by
+
+  -- Rewrite the function as a single lambda
+    have h_eq : ((fun _ ↦ A) + g * fun s ↦ s - p) = fun s ↦ A + g s * (s - p) := by
+      ext s
+      simp [Pi.add_apply, Pi.mul_apply]
+
+    rw [h_eq]
+
+  -- Apply derivative of sum
+    rw [deriv_add]
+
+  -- Derivative of constant is 0
+    rw [deriv_const, zero_add]
+
+  -- Apply product rule to g s * (s - p)
+    rw [deriv_mul hg (differentiableAt_id'.sub (differentiableAt_const p))]
+
+  -- Derivative of (s - p) is 1
+    rw [deriv_sub, deriv_id'', deriv_const, sub_zero]
+
+  -- Simplify
+    rw [mul_one]
+    · exact differentiableAt_id'-- rw [add_comm]
+    · exact differentiableAt_const p
+  -- Differentiability conditions
+    · exact differentiableAt_const A --exact differentiableAt_const
+    · refine DifferentiableAt.mul hg ?_
+      refine DifferentiableAt.sub_const ?_ p
+      exact differentiableAt_id' -- exact hg.mul (differentiableAt_id'.sub differentiableAt_const)
+
+theorem deriv_eq_of_eq (f g : ℂ → ℂ ) (h : f = g) : deriv f = deriv g := by
+  rw [h]
+
+-- For complex numbers
+theorem deriv_inv_complex :
+  deriv (fun z : ℂ => z⁻¹) = fun x ↦ (- (x^2)⁻¹) := by
+  rw [deriv_inv']
+
+theorem diff_translation (p : ℂ ) : deriv (fun x => x - p) = fun _ => 1 := by
+  ext x
+  simp [deriv_sub, deriv_id'', deriv_const]
+
+
+-- Key lemma: derivative of (x - p)⁻¹
+lemma deriv_inv_sub {x p : ℂ} (hp : x ≠ p) :
+  deriv (fun z => (z - p)⁻¹) x =  -((x - p) ^ 2)⁻¹ := by
+  -- Use chain rule: d/dx[(x-p)⁻¹] = d/du[u⁻¹] * d/dx[x-p] where u = x-p
+  let inv_x := fun (x : ℂ) ↦ x⁻¹
+  let trans_x := fun x ↦ x - p
+
+  let T : (inv_x ∘ trans_x) = fun x ↦ (x - p)⁻¹  := by
+    funext x
+    apply Function.comp_apply
+
+  let G : deriv (inv_x ∘ trans_x) x = ((deriv inv_x) (trans_x x)) * ((deriv (trans_x)) x) := by
+    apply deriv_comp
+    · refine differentiableAt_inv ?_
+      exact sub_ne_zero_of_ne hp
+    · refine (DifferentiableAt.sub_iff_right ?_).mpr ?_
+      · exact differentiableAt_id'
+      · exact differentiableAt_const p
+
+  have E : (deriv inv_x) = (fun x ↦ - (x^2)⁻¹) := by
+    exact deriv_inv_complex
+
+--  deriv_inv_complex
+  have F : (deriv trans_x) = 1 := by
+    unfold trans_x
+    exact diff_translation p
+
+  simp [*] at T
+  simp [E, F, T] at G
+
+  simp [inv_x, trans_x] at G
+  exact G
+
+-- Alternative cleaner proof using more direct approach
+theorem deriv_f_minus_A_inv_sub_clean (f : ℂ → ℂ) (A x p : ℂ)
+    (hf : DifferentiableAt ℂ f x) (hp : x ≠ p) :
+    deriv (f  - (fun z ↦ A * (z - p)⁻¹)) x = deriv f x + A * ((x - p) ^ 2)⁻¹ := by
+  have h1 : DifferentiableAt ℂ (fun z => (z - p)⁻¹) x := by
+    apply DifferentiableAt.inv
+    · exact differentiableAt_id'.sub (differentiableAt_const p)
+    · rwa [sub_ne_zero]
+
+  calc deriv (fun z => f z - A * (z - p)⁻¹) x
+    = deriv f x - deriv (fun z => A * (z - p)⁻¹) x := by
+        rw [deriv_sub hf (DifferentiableAt.const_mul h1 A)]
+    _ = deriv f x - A * deriv (fun z => (z - p)⁻¹) x := by
+        rw [deriv_const_mul A h1]
+    _ = deriv f x - A * (-((x - p) ^ 2)⁻¹) := by
+        rw [deriv_inv_sub hp]
+    _ = deriv f x + A * ((x - p) ^ 2)⁻¹ := by ring
+
+
+-- Alternative proof using field_simp tactic
+theorem laurent_expansion_identity_alt (f f' A x p : ℂ)
+ (h : x ≠ p):
+  (f' + A * ((x - p)^2)⁻¹) * (x - p) + (f - A * (x - p)⁻¹) = f + f' * (x - p) := by
+  have h_nonzero : x - p ≠ 0 := by
+    rwa [sub_ne_zero]
+
+  field_simp [h_nonzero]
+  ring
+
 /- The set should be open so that f'(p) = O(1) for all p ∈ U -/
 
-theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (U_is_open : IsOpen U)
+    (non_zero: ∀ x ∈ U, f x ≠ 0)
     (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
-    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) :=
+    by
 
       have simpleHolo : HolomorphicOn (fun s ↦ A / (s - p)) (U \ {p}) := by
         apply DifferentiableOn.mono (t := {p}ᶜ)
@@ -119,7 +296,9 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
       let ⟨g, ⟨g_is_holomorphic, g_is_f_minus_pole⟩⟩ := existsDifferentiableOn_of_bddAbove U_in_nhds f_minus_pole_is_holomorphic f_near_p
 
-      let h := fun (s : ℂ) ↦ A + (g s) * (s - p)
+      /- TODO: Assert that the derivatives match too -/
+
+      let h := (fun _ ↦ A) + g * (fun (s : ℂ) ↦ (s - p))
 
       have linear_is_holomorphic : HolomorphicOn (fun (s : ℂ ) ↦ (s - p)) U := by
         refine DifferentiableOn.sub_const ?_ p
@@ -136,7 +315,7 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       -- Just a consequence of continuity
 
       have h_converges_to_A : map h (𝓝[U] p) ≤ 𝓝 A := by
-        have p_in_U : p ∈ U := by sorry
+        have p_in_U : p ∈ U := by exact mem_of_mem_nhds U_in_nhds
         have H := (h_continuous p) p_in_U
         unfold ContinuousWithinAt at H
         unfold Tendsto at H
@@ -146,26 +325,11 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
         simp [T] at H
         exact H
 
---      have h_converges_to_A_alt : map h (𝓝[≠] p) ≤ 𝓝 A := by
---        sorry
-
       have h_inv_converges_to_inv_A : map h⁻¹ (𝓝[U] p) ≤ 𝓝 A⁻¹ := by
         exact map_inv_nhdsWithin_direct h U p A A_ne_zero h_converges_to_A
 
-
       have h_inv_converges_to_inv_A_norm : Tendsto (fun e ↦ ‖h⁻¹ e - A⁻¹‖) (𝓝[U] p) (𝓝 0) :=
         by exact tendsto_iff_norm_sub_tendsto_zero.mp h_inv_converges_to_inv_A
-
-     -- have h_inv_converges_to_inv_A_norm : Tendsto (fun e ↦ ‖h⁻¹ e - A⁻¹‖) (𝓝[U] p) atBot :=
-     --   by
-     --     refine Real.tendsto_exp_comp_nhds_zero.mp ?_
-     --     apply?
-
---      have h_inv_converges_to_inv_A_norm_1 : ∀ᶠ (x : ℂ) in 𝓝[U] p, ‖h⁻¹ x - A⁻¹‖ ≤ 1 := by
-
-
-     --   refine Tendsto.eventually_le_atBot ?_ 1
-     --   _
 
       have h_inv_converges_to_inv_A_norm_1 : {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1} ∈ 𝓝[U] p :=
         by
@@ -201,25 +365,93 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
         exact U
 
---      have h_inv_bounded_by_inv_A_norm_plus_one : {x | ‖h⁻¹ x‖ ≤ ‖A‖⁻¹ + 1 } ∈ 𝓝[U] p :=
---        by
+      have deriv_h_identity : ∀x ∈ (U \ {p}), (deriv h) x = f x + (deriv f x) * (x - p) := by
+
+        intro x
+        intro x_in_u_not_p
+        unfold h
+        unfold EqOn at g_is_f_minus_pole
+
+        have x_in_u : x ∈ U := by exact mem_of_mem_diff x_in_u_not_p
+        have x_not_p : x ≠ p := by
+          have L := ((Set.mem_diff x).mp x_in_u_not_p).2
+          exact L
+
+        have weird : U ∈ 𝓝 x := by
+          exact IsOpen.mem_nhds (U_is_open) (x_in_u)
+
+        have weirded : U \ {p} ∈ 𝓝 x := by
+          exact Filter.inter_mem (weird) ((compl_singleton_mem_nhds x_not_p))
+
+        have T : f x - A * (x - p)⁻¹ = g x :=
+          by
+            have := g_is_f_minus_pole (x_in_u_not_p);
+            simp at this
+            exact this
+        have E : g x = f x - A * (x - p)⁻¹ := by
+          exact T.symm
+
+        have Z := g_is_f_minus_pole x_in_u_not_p
+
+        have U1 := by
+          exact deriv_f_minus_A_inv_sub_clean f A x p (holc.differentiableAt weirded) (x_not_p)
+
+        have T := derivative_const_plus_product A p x (g_is_holomorphic.differentiableAt weird)
+
+        rw [T, E]
+
+        have Z :=
+          by
+            have T := deriv_eqOn_of_eqOn_punctured ((f - fun s ↦ A * (s - p)⁻¹)) g U p U_is_open g_is_f_minus_pole
+            exact (T (x_in_u_not_p)).symm
+
+        have U2 := laurent_expansion_identity_alt (f x) (deriv f x) A x p (x_not_p)
+
+        rw [Z, U1]
+
+        /- Now it's just an identity -/
+        exact U2
 
 
---      have h_inv_bounded_above : Filter.EventuallyLE (𝓝[U] p) (fun e ↦ ‖h⁻¹ e - A⁻¹‖) (fun _ ↦ 1) :=
---        by exact h_inv_converges_to_inv_A_norm
+      have h_identity : ∀x ∈ (U \ {p}), h x = (f x) * (x - p)  := by
+        intro x
+        intro x_in_u_not_p
+        have hyp_x_not_p : x ≠ p := by
+          have L := ((Set.mem_diff x).mp x_in_u_not_p).2
+          exact L
+        unfold h
+        simp
+        have E : f x - A * (x - p)⁻¹ = g x :=
+          by
+            have := g_is_f_minus_pole (x_in_u_not_p);
+            simp at this
+            exact this
+        have T : g x = f x - A * (x - p)⁻¹ := by
+          exact E.symm
 
---      have h_inv_converges_to_inv_A_norm : map (norm ∘ (h⁻¹)) (𝓝[U] p) ≤ 𝓝 ‖A‖⁻¹ := by
-      --  simp [*] at *
-      --  apply Filter.tendsto_map'_iff.mp
-      --  dsimp [h_inv_converges_to_inv_A] at *
---        apply tendsto_iff_norm_sub_tendsto_zero.mpr
---        _
-
---      have h_inv_converges_to_inv_A_alt : map h⁻¹ (𝓝[U] p) ≤ 𝓝 A⁻¹ := by
---        exact map_inv_nhdsWithin_direct_alt h p A A_ne_zero h_converges_to_A
+        simp [T]
+        ring_nf
+        simp [*]
+        exact expression_eq_zero A x p hyp_x_not_p
 
       have log_deriv_f_plus_pole_equal_log_deriv_h :
-        EqOn (fun s ↦ ((deriv f) s) * (f⁻¹ s) + (s - p)⁻¹) ((deriv h) * h⁻¹) (U \ {p}) := by sorry
+        EqOn (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) ((deriv h) * h⁻¹) (U \ {p}) :=
+        by
+          simp [*] at *
+          intro x
+          intro hyp_x
+          have x_not_p : x ≠ p := by
+            have L := ((Set.mem_diff x).mp hyp_x).2
+            exact L
+          have x_in_u : x ∈ U := by exact mem_of_mem_diff hyp_x
+          have T : h x = (f x) * (x - p) := by
+              exact (h_identity x x_in_u x_not_p)
+          have G := (deriv_h_identity x x_in_u x_not_p)
+          simp [G, T]
+
+          /- This is just an identity at this point -/
+
+          exact field_identity (f x) ((deriv f) x) x p (non_zero x (x_in_u)) x_not_p
 
       have h_inv_bounded :
         h⁻¹ =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
@@ -254,11 +486,36 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       have u_not_p_in_filter : U \ {p} ∈ 𝓝[≠] p := by
         exact diff_mem_nhdsWithin_compl U_in_nhds {p}
 
-      have final : (fun s ↦ ((deriv f) s) * (f⁻¹ s) + (s - p)⁻¹) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+      have final : (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
         have T := Set.EqOn.eventuallyEq_of_mem log_deriv_f_plus_pole_equal_log_deriv_h u_not_p_in_filter
+
         exact EventuallyEq.trans_isBigO T h_log_deriv_bounded
 
       exact final
+
+theorem  logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (non_zero: ∀x ∈ U, f x ≠ 0)
+    (holc : HolomorphicOn f (U \ {p}))
+    (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+    (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
+    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) :=
+    by
+      let ⟨U', ⟨a,b,c⟩⟩ := mem_nhds_iff.mp U_in_nhds
+
+      have T : (U' \ {p}) ⊆ (U \ {p}) := by
+        exact diff_subset_diff a (subset_refl _)
+
+      refine logDerivResidue' b ?_ ?_ (by
+          refine IsOpen.mem_nhds ?_ ?_
+          · exact b
+          · exact c) A_ne_zero ?_
+      · intro x
+        intro hyp_x
+        have T: x ∈ U := by
+          exact Set.mem_of_subset_of_mem a hyp_x
+        exact (non_zero x T)
+      · exact DifferentiableOn.mono holc T
+      · exact (f_near_p.mono (image_subset _ (diff_subset_diff a (subset_refl _))))
 
 
 /-%%
