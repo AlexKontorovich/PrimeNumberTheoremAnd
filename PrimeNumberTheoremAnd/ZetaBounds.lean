@@ -54,8 +54,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (hU : U ∈ 𝓝 p)
     (hf : HolomorphicOn f (U \ {p}))
     {A : ℂ}
-    (h_limit : Tendsto (fun s ↦ (s - p) * f s) (𝓝[≠] p) (𝓝 A))
-    (A_ne_zero : A ≠ 0) :
+    (h_limit : Tendsto (fun s ↦ (s - p) * f s) (𝓝[≠] p) (𝓝 A)) :
     ∃ V ∈ 𝓝 p,
     BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (V \ {p})) := by
 
@@ -177,7 +176,7 @@ theorem riemannZetaResidue :
     refine DifferentiableAt.differentiableWithinAt ?_
     apply differentiableAt_riemannZeta hy
 
-  convert ResidueOfTendsTo univ_mem zeta_holc h_residue (by simp) using 6
+  convert ResidueOfTendsTo univ_mem zeta_holc h_residue using 6
   simp
 
 /-%%
@@ -400,6 +399,14 @@ theorem laurent_expansion_identity_alt (f f' A x p : ℂ)
 
   field_simp [h_nonzero]
   ring
+
+theorem nonZeroOfBddAbove {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (holc : HolomorphicOn f (U \ {p}))
+    (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+    (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
+    ∃ V ∈ 𝓝 p, IsOpen V ∧ ∀ s ∈ V \ {p}, f s ≠ 0 := by
+  sorry
+
 
 /- The set should be open so that f'(p) = O(1) for all p ∈ U -/
 
@@ -3741,8 +3748,8 @@ is holomorphic on $\{ \sigma_0 \le \Re s \le 2, |\Im s| \le 3 \} \setminus \{1\}
 \end{lemma}
 %%-/
 theorem LogDerivZetaHolcSmallT :
-    ∃ (σ₀ : ℝ) (_ : σ₀ < 1), HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
-      (( [[ σ₀, 2 ]] ×ℂ [[ -3, 3 ]]) \ {1}) := by
+    ∃ (σ₂ : ℝ) (_ : σ₂ < 1), HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
+      (( [[ σ₂, 2 ]] ×ℂ [[ -3, 3 ]]) \ {1}) := by
   have := ZetaNoZerosInBox 4
   sorry
 /-%%
