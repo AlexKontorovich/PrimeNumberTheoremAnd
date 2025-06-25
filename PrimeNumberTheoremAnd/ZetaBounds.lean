@@ -864,11 +864,11 @@ theorem riemannZetaLogDerivResidue :
   obtain ⟨U,U_in_nhds, hU⟩ := riemannZetaResidue
   have ζ_holc: HolomorphicOn ζ (U \ {1}) := by
     intro y hy
-    simp at hy
+    simp only [mem_diff, mem_singleton_iff] at hy
     refine DifferentiableAt.differentiableWithinAt ?_
     apply differentiableAt_riemannZeta hy.2
   have := logDerivResidue ?_ ζ_holc U_in_nhds one_ne_zero
-  · simp [one_mul] at this
+  · simp only [one_mul, Function.comp_apply, Pi.sub_apply] at this
     use U
     constructor
     exact U_in_nhds
