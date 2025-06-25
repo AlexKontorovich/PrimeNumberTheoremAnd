@@ -411,7 +411,7 @@ theorem nonZeroOfBddAbove {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
     ∃ V ∈ 𝓝 p, IsOpen V ∧ ∀ s ∈ V \ {p}, f s ≠ 0 := by
   /-%%
-  \begin{proof}
+  \begin{proof}\leanok
     We know that $f(s) = \frac{A}{s-p} + O(1)$ near $p$, so we can write
     $$f(s) = \left(f(s) - \frac{A}{s-p}\right) + \frac{A}{s-p}.$$
     The first term is bounded, say by $M$, and the second term goes to $\infty$ as $s \to p$.
