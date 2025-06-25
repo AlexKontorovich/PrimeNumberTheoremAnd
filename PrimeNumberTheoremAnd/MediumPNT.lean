@@ -1588,7 +1588,16 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       I₇ SmoothingF ε T X σ₁ := by
   let z : ℂ := σ₂ - 3 * I
   let w : ℂ := σ₂ + 3 * I
-  have sub : z.Rectangle w ⊆ Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1} := by sorry
+  -- the leftmost rectangle is in in the locus of holomorphicity
+  have sub : z.Rectangle w ⊆ Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1} := by
+    intro x hx
+    simp only [Rectangle, mem_inter_iff, mem_preimage, uIcc, mem_prod, mem_Icc] at hx
+    obtain ⟨hre, him⟩ := hx
+
+    simp only [mem_preimage] at hre him
+    simp
+
+    sorry
   have := HolomorphicOn.vanishesOnRectangle holoOn2 sub
   sorry
 /-%%
