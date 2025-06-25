@@ -1224,14 +1224,16 @@ X^{s}ds.$$
 \end{theorem}
 %%-/
 
-theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1)
-    (X : ℝ) (_ : 3 < X)
+theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    (X : ℝ) (X_gt : 3 < X)
     {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
     (σ₁_pos : 0 < σ₁) (σ₁_lt_one : σ₁ < 1)
     (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₁ 2)×ℂ (Icc (-T) T) \ {1}))
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
     SmoothedChebyshev SmoothingF ε X =
       I₁ SmoothingF ε X T -
       I₂ SmoothingF ε T X σ₁ +
@@ -1248,12 +1250,22 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     -- apply add_pos (by positivity)
     -- rw[inv_pos, ← Real.log_one]
     -- apply Real.log_lt_log (by positivity) (by linarith)
+  have logX_gt : 1 + (Real.log X)⁻¹ ≤ 2 := by
+    sorry
+    -- apply add_lt_add_left
+    -- apply inv_lt_one_of_pos
+    -- rw[Real.log_one]
+    -- exact Real.log_pos (by positivity)
+    -- exact X_gt
+
   --TODO:
   have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X)
-    (Icc (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by sorry --should be able to do with lemmas from workshop
+    (Icc (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by
+      sorry --should be able to do with lemmas from workshop
 
-  exact SmoothedChebyshevPull1_aux_integrable ε_pos X X_eq_pos holoIntegrand suppSmoothingF
-    SmoothingFnonneg mass_one
+  exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_pos logX_gt
+    holoIntegrand suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
+
 
   have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by field_simp
   repeat rw[smul_eq_mul]
