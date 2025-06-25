@@ -376,7 +376,8 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
 
   have n₀_pos : 0 < n₀ := by
     simp only [Nat.ceil_pos, n₀]
-    bound
+    subst C_eq
+    simp_all only [mem_Ioo, and_imp, ge_iff_le, implies_true, mul_pos_iff_of_pos_left, sub_pos, n₀]
     rw[← mul_one 1]
     apply mul_lt_mul
     exact c₁_lt
@@ -1154,8 +1155,19 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
   have : ∀ᵐ t ∂volume, ‖(fun (t : ℝ) ↦ (- deriv riemannZeta (σ₀ + (t : ℂ) * I)) /
     riemannZeta (σ₀ + (t : ℂ) * I) *
     (X : ℂ) ^ (σ₀ + (t : ℂ) * I)) t‖ ≤ c := by
-
-    sorry
+    apply Filter.Eventually.of_forall
+    intro t
+    simp only [Complex.norm_mul, Complex.norm_div, norm_neg, c]
+    gcongr
+    · sorry
+    · sorry
+    · sorry
+    · rw [Complex.norm_cpow_eq_rpow_re_of_nonneg]
+      · simp
+      · linarith
+      · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+        add_zero, ne_eq, c]
+        linarith
   convert (SmoothedChebyshevDirichlet_aux_integrable ContDiffSmoothingF SmoothingFnonneg
     suppSmoothingF mass_one ε_pos ε_lt_one σ₀_gt σ₀_le_2).bdd_mul' (c := c) ?_ this using 2
   · unfold SmoothedChebyshevIntegrand
