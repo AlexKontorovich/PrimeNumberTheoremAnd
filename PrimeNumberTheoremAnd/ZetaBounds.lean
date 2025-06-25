@@ -1,4 +1,5 @@
 import Mathlib.Analysis.Calculus.ContDiff.Defs
+import Mathlib.Analysis.Asymptotics.Defs
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
@@ -14,9 +15,10 @@ import Mathlib.MeasureTheory.Order.Group.Lattice
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Tactic.Bound
 
+
 set_option lang.lemmaCmd true
 
-open Complex Topology Filter Interval Set
+open Complex Topology Filter Interval Set Asymptotics
 
 lemma div_cpow_eq_cpow_neg (a x s : ℂ) : a / x ^ s = a * x ^ (-s) := by
   rw [div_eq_mul_inv, cpow_neg]
@@ -55,9 +57,10 @@ holomorphic functions.
 --   sorry
 
 theorem riemannZetaResidue :
-    ∃ U : Set ℂ, IsOpen U ∧ (1 : ℂ) ∈ U ∧
-    BddAbove (norm ∘ (riemannZeta - fun s ↦ (s - 1)⁻¹) '' (U \ {1})) := by
+    ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (ζ - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
+  have := riemannZeta_residue_one
   -- Step 1: We know that (s-1) * ζ(s) → 1 as s → 1
+
   sorry
   -- have h_residue := riemannZeta_residue_one
 
@@ -153,16 +156,36 @@ $(s-1)\zeta(s)$ goes to $1$ as $s\to1$. In particular, it's bounded, so by Theor
 \end{proof}
 %%-/
 
+/- New two theorems to be proven -/
+
+theorem analytic_deriv_bounded_near_point
+  (f : ℂ → ℂ) {U : Set ℂ} {p : ℂ} (hU : IsOpen U) (hp : p ∈ U) (hf : HolomorphicOn f U) :
+  (deriv f) =O[𝓝[≠] p] (1 : ℂ → ℂ ) := by
+    --refine (analyticOn_iff_differentiableOn hU).mp ?_
+    sorry
+
+
+theorem analytic_bounded_near_point
+  (f : ℂ → ℂ) {U : Set ℂ} {p : ℂ} (hU : IsOpen U) (hp : p ∈ U) (hf : HolomorphicOn f U) :
+  f =O[𝓝[≠] p] (1 : ℂ → ℂ ) := by
+    --refine (analyticOn_iff_differentiableOn hU).mp ?_
+    sorry
+
 /-%%
 \begin{theorem}[logDerivResidue]\label{logDerivResidue}\lean{logDerivResidue}\leanok
   If $f$ is holomorphic in a neighborhood of $p$, and there is a simple pole at $p$, then $f'/f$ has a simple pole at $p$ with residue $-1$:
   $$ \frac{f'(s)}{f(s)} = \frac{-1}{s - p} + O(1).$$
 \end{theorem}
 %%-/
-theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (holc : HolomorphicOn f (U \ {p}))
+
+/- The set should be open so that f'(p) = O(1) for all p ∈ U -/
+
+theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (U_is_open : IsOpen U)
+    (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
-    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+    BddAbove (norm ∘ (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) '' (U \ {p})) := by
 
       have simpleHolo : HolomorphicOn (fun s ↦ A / (s - p)) (U \ {p}) := by
         apply DifferentiableOn.mono (t := {p}ᶜ)
@@ -172,48 +195,89 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (holc : Holomo
           · exact fun x hx => by rw [sub_ne_zero]; exact hx
         · rintro s ⟨_, hs⟩ ; exact hs
 
-      have H2 : HolomorphicOn (f - (fun s ↦ A * (s - p)⁻¹)) (U \ {p}) := by
-        unfold HolomorphicOn at *
-        unfold DifferentiableOn at *
-        intro x
-        intro hyp
+      have f_minus_pole_is_holomorphic : HolomorphicOn (f - (fun s ↦ A * (s - p)⁻¹)) (U \ {p}) := by
+        intro x hyp
         exact DifferentiableWithinAt.sub (holc x hyp) (simpleHolo x hyp)
 
-      let ⟨g, hyp⟩ := existsDifferentiableOn_of_bddAbove U_in_nhds H2 f_near_p
-      let ⟨l, r⟩ := hyp
-      unfold EqOn at r
+      let ⟨g, ⟨g_is_holomorphic, g_is_f_minus_pole⟩⟩ := existsDifferentiableOn_of_bddAbove U_in_nhds f_minus_pole_is_holomorphic f_near_p
 
-      let S := {x | ∀ ⦃a : ℝ⦄, a ∈ norm ∘ (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) '' (U \ {p}) → a ≤ x}
-      have T : 10 ∈ S := by
-        refine mem_setOf.mpr ?_
-        intro a
-        simp [*]
-        intro x
-        intro x_in_u
-        intro hyp_x_not_p
-        intro cond
-        rw [← cond]
-        have Z : x ∈ (U \ {p}) := by sorry
-          -- by x_in_u and hyp_x_not_p
-        have U1 := (r Z).symm; simp [*]
-        simp at U1
-        let h := fun (s : ℂ) ↦ A + (g s) * (s - p)
-        let n := fun (s : ℂ) ↦ f s - A * (s - p)⁻¹
-        have T : EqOn (fun s ↦ (h s) * (s - p)⁻¹) f (U \ {p}) := by
-          unfold EqOn
-          intro x
-          intro hyp_x
-          unfold h
-          simp [*]
-          sorry
+      let h := fun (s : ℂ) ↦ A + (g s) * (s - p)
 
+      have linear_is_holomorphic : HolomorphicOn (fun (s : ℂ ) ↦ (s - p)) U := by
+        refine DifferentiableOn.sub_const ?_ p
+        exact differentiableOn_id'
+
+      have h_is_holomorphic : HolomorphicOn h U := by
+        have T := DifferentiableOn.mul g_is_holomorphic linear_is_holomorphic
+        have G := DifferentiableOn.const_add A T
+        exact G
+
+      -- Just a consequence of continuity
+
+      have h_converges : h =ᶠ[𝓝[≠] p] (fun s ↦ h p) := by
         sorry
 
-      sorry
+      have g_converges_to_g_at_p : g =ᶠ[𝓝[≠] p] (fun s ↦  (g p)) := by sorry
+
+
+      have g_bounded_at_p : g =O[𝓝[≠] p] (1 : ℂ → ℂ ) := by
+        exact analytic_bounded_near_point g (U_is_open) (by exact mem_of_mem_nhds U_in_nhds) g_is_holomorphic
+
+      have linear_converges_to_zero : (fun s ↦ s - p) =ᶠ[𝓝[≠] p] (fun _ ↦ 0) := by sorry
+
+      have h_converges_to_A : h =ᶠ[𝓝[≠] p] (fun s ↦  A) := by
+        apply Filter.eventuallyEq_iff_sub.mpr
+        unfold h
+        have T : ((fun s ↦ A + (g s) * (s - p)) - fun s ↦ A) = (fun s ↦ (g s) * (s - p)) := by
+          funext x
+          simp
+
+        simp [T] at *
+        let ⟨c, ⟨c_is_pos, bound⟩⟩ :=  Asymptotics.IsBigO.exists_pos  g_bounded_at_p
+        have T := Asymptotics.isBigOWith_iff.mp bound
+        simp [*] at T
+        sorry
+
+      have h_inv_converges_to_inv_A : h⁻¹ =ᶠ[𝓝[≠] p] (fun _ ↦ A⁻¹) := by exact EventuallyEq.symm (eventuallyEq_of_mem (id (EventuallyEq.symm h_converges_to_A)) fun ⦃x⦄ ↦ congrArg Inv.inv)
+
+      have deriv_f : EqOn (deriv f) (fun s ↦ (((deriv h) s) * (s - p) - h s) * (s - p)⁻¹ * (s - p)⁻¹) (U \ {p}) := by sorry
+
+      have log_deriv_f_plus_pole_equal_log_deriv_h :
+        EqOn (fun s ↦ ((deriv f) s) * (f⁻¹ s) + (s - p)⁻¹) ((deriv h) * h⁻¹) (U \ {p}) := by sorry
+
+      have h_inv_bounded :
+        h⁻¹ =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+          have T := EventuallyEq.isBigO h_inv_converges_to_inv_A
+          simp [*] at *
+          have G : (fun _ ↦ A⁻¹) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+            refine Asymptotics.isBigO_iff.mpr ?_
+            use (norm A⁻¹)
+            simp [*]
+
+          exact EventuallyEq.trans_isBigO h_inv_converges_to_inv_A G
 
 
 
+      have h_deriv_bounded :
+        (deriv h) =O[𝓝[≠] p] (1 : ℂ → ℂ) := analytic_deriv_bounded_near_point h U_is_open (by exact mem_of_mem_nhds U_in_nhds) h_is_holomorphic
 
+      have h_log_deriv_bounded :
+        ((deriv h) * h⁻¹) =O[𝓝[≠] p] (1 : ℂ → ℂ)  := by
+          have T := Asymptotics.IsBigO.mul h_deriv_bounded h_inv_bounded
+          simp [*] at T
+          refine Asymptotics.IsBigO.of_norm_right ?_
+          simp [*]
+
+      have u_not_p_in_filter : U \ {p} ∈ 𝓝[≠] p := by
+        exact diff_mem_nhdsWithin_compl U_in_nhds {p}
+
+      have final : (fun s ↦ ((deriv f) s) * (f⁻¹ s) + (s - p)⁻¹) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+
+        have T := Set.EqOn.eventuallyEq_of_mem log_deriv_f_plus_pole_equal_log_deriv_h u_not_p_in_filter
+
+        exact EventuallyEq.trans_isBigO T h_log_deriv_bounded
+
+      exact final
 
 
 /-%%
@@ -240,6 +304,7 @@ Let's also record that if a function $f$ has a simple pole at $p$ with residue $
   f(s) \cdot g(s) = \frac{A \cdot g(p)}{s - p} + O(1).$$
 \end{theorem}
 %%-/
+
 theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (g_holc : HolomorphicOn g U) (U_in_nhds : U ∈ 𝓝 p) {A : ℂ}
     (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
@@ -350,8 +415,29 @@ As a corollary, the log derivative of the Riemann zeta function has a simple pol
 \end{theorem}
 %%-/
 theorem riemannZetaLogDerivResidue :
-    (-(ζ' / ζ) - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
-  sorry
+    ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (-(ζ' / ζ) - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
+  obtain ⟨U,U_in_nhds, hU⟩ := riemannZetaResidue
+  have ζ_holc: HolomorphicOn ζ (U \ {1}) := by
+    intro y hy
+    simp at hy
+    refine DifferentiableAt.differentiableWithinAt ?_
+    apply differentiableAt_riemannZeta hy.2
+  have := logDerivResidue ζ_holc U_in_nhds one_ne_zero
+  simp [one_mul] at this
+  use U
+  constructor
+  exact U_in_nhds
+  convert this ?_ using 1
+  simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply]
+  have aux: ∀ a, ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by
+    intro a
+    calc ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖
+         = ‖-((deriv ζ a / ζ a) + (a - 1)⁻¹)‖ := by ring_nf
+       _ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by rw [norm_neg]
+  simp [aux]
+  rfl
+  simp at hU
+  exact hU
 /-%%
 \begin{proof}\uses{logDerivResidue, riemannZetaResidue}
   This follows from Theorem \ref{logDerivResidue} and Theorem \ref{riemannZetaResidue}.
