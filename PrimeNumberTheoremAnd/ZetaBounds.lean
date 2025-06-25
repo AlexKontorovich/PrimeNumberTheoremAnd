@@ -3635,7 +3635,7 @@ lemma LogDerivZetaBndUniform :
   apply le_trans bound
   exact (mul_le_mul_iff_of_pos_left hC_pos).mpr pow_lot_T_ge_pow_log_t
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{LogDerivZetaBnd}
 This Lemma \ref{LogDerivZetaBnd}, but uniform in $t$. The point is that the upper bound on $\zeta' / \zeta$ and the lower bound on $\sigma$ only improve as $|t|$ increases.
 \end{proof}
@@ -4023,7 +4023,7 @@ theorem LogDerivZetaHolcLargeT :
   exact xImIn
 
 /-%%
-\begin{proof}\uses{ZetaZeroFree}
+\begin{proof}\uses{ZetaZeroFree}\leanok
 The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
 in this range by Lemma \ref{ZetaZeroFree}.
 \end{proof}
