@@ -1247,7 +1247,6 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   unfold VerticalIntegral'
   rw [verticalIntegral_split_three (a := -T) (b := T)]
   swap
-<<<<<<< PT_work
   have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by
     nth_rewrite 1 [← add_zero 1]
     refine add_lt_add_of_le_of_lt ?_ ?_
