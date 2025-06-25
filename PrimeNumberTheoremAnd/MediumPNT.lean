@@ -1153,7 +1153,9 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
   let c : ℝ := ‖ζ' (σ₀) / ζ (σ₀)‖ * X ^ σ₀
   have : ∀ᵐ t ∂volume, ‖(fun (t : ℝ) ↦ (- deriv riemannZeta (σ₀ + (t : ℂ) * I)) /
     riemannZeta (σ₀ + (t : ℂ) * I) *
-    (X : ℂ) ^ (σ₀ + (t : ℂ) * I)) t‖ ≤ c := by sorry
+    (X : ℂ) ^ (σ₀ + (t : ℂ) * I)) t‖ ≤ c := by
+
+    sorry
   convert (SmoothedChebyshevDirichlet_aux_integrable ContDiffSmoothingF SmoothingFnonneg
     suppSmoothingF mass_one ε_pos ε_lt_one σ₀_gt σ₀_le_2).bdd_mul' (c := c) ?_ this using 2
   · unfold SmoothedChebyshevIntegrand
@@ -1450,20 +1452,19 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
-    SmoothedChebyshev SmoothingF ε X =
-      I₁ SmoothingF ε X T -
-      I₂ SmoothingF ε T X σ₁ +
+    I₃₇ SmoothingF ε T X σ₁ =
       I₃ SmoothingF ε T X σ₁ -
       I₄ SmoothingF ε X σ₁ σ₂ +
       I₅ SmoothingF ε X σ₂ +
       I₆ SmoothingF ε X σ₁ σ₂ +
-      I₇ SmoothingF ε T X σ₁ +
-      I₈ SmoothingF ε T X σ₁ +
-      I₉ SmoothingF ε X T
-      + 𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X := by
+      I₇ SmoothingF ε T X σ₁ := by
+  let z : ℂ := σ₂ - 3 * I
+  let w : ℂ := σ₂ + 3 * I
+  have sub : z.Rectangle w ⊆ Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1} := by sorry
+  have := HolomorphicOn.vanishesOnRectangle holoOn2 sub
   sorry
 /-%%
-\begin{proof}
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
 Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
 \end{proof}
 %%-/
