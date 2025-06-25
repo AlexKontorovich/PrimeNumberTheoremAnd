@@ -1138,11 +1138,6 @@ The integrand $$\zeta'(s)/\zeta(s)\mathcal{M}(\widetilde{1_{\epsilon}})(s)X^{s}$
 is integrable on the contour $\sigma_0 + t i$ for $t \in \R$ and $\sigma_0 > 1$.
 \end{lemma}
 %%-/
-<<<<<<< PT_work
-theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε) (X : ℝ)
-    {σ₀ : ℝ} (σ₀_gt_one : 1 < σ₀)
-    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Ico σ₀ 2 ×ℂ univ \ {1}))
-=======
 theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε)
     (ε_lt_one : ε < 1)
     {X : ℝ} (X_gt : 3 < X)
