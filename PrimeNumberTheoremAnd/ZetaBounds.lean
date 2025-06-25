@@ -275,7 +275,7 @@ theorem laurent_expansion_identity_alt (f f' A x p : ℂ)
 
 theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (U_is_open : IsOpen U)
-    (non_zero: ∀ x ∈ U, f x ≠ 0)
+    (non_zero: ∀ x ∈ U \ {p}, f x ≠ 0)
     (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
@@ -451,7 +451,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
           /- This is just an identity at this point -/
 
-          exact field_identity (f x) ((deriv f) x) x p (non_zero x (x_in_u)) x_not_p
+          exact field_identity (f x) ((deriv f) x) x p (non_zero x (x_in_u) x_not_p) x_not_p
 
       have h_inv_bounded :
         h⁻¹ =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
@@ -494,16 +494,19 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       exact final
 
 theorem  logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
-    (non_zero: ∀x ∈ U, f x ≠ 0)
+    (non_zero: ∀x ∈ U \ {p}, f x ≠ 0)
     (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
     (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) :=
     by
       let ⟨U', ⟨a,b,c⟩⟩ := mem_nhds_iff.mp U_in_nhds
+      have W : (U' \ {p}) ⊆ U' := by
+        exact diff_subset
 
       have T : (U' \ {p}) ⊆ (U \ {p}) := by
         exact diff_subset_diff a (subset_refl _)
+
 
       refine logDerivResidue' b ?_ ?_ (by
           refine IsOpen.mem_nhds ?_ ?_
@@ -511,8 +514,7 @@ theorem  logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
           · exact c) A_ne_zero ?_
       · intro x
         intro hyp_x
-        have T: x ∈ U := by
-          exact Set.mem_of_subset_of_mem a hyp_x
+        have T: x ∈ U \ {p} := by exact T hyp_x
         exact (non_zero x T)
       · exact DifferentiableOn.mono holc T
       · exact (f_near_p.mono (image_subset _ (diff_subset_diff a (subset_refl _))))
