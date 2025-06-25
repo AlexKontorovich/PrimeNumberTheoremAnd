@@ -1236,7 +1236,6 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
->>>>>>> main
     SmoothedChebyshev SmoothingF ε X =
       I₁ SmoothingF ε X T -
       I₂ SmoothingF ε T X σ₁ +
