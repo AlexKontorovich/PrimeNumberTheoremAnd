@@ -867,23 +867,25 @@ theorem riemannZetaLogDerivResidue :
     simp at hy
     refine DifferentiableAt.differentiableWithinAt ?_
     apply differentiableAt_riemannZeta hy.2
-  have := logDerivResidue (by sorry) ζ_holc U_in_nhds one_ne_zero
-  simp [one_mul] at this
-  use U
-  constructor
-  exact U_in_nhds
-  convert this ?_ using 1
-  simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply]
-  have aux: ∀ a, ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by
-    intro a
-    calc ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖
-         = ‖-((deriv ζ a / ζ a) + (a - 1)⁻¹)‖ := by ring_nf
-       _ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by rw [norm_neg]
-  simp [aux]
- -- rfl
-  simp at hU
-  sorry
-  exact hU
+  have := logDerivResidue ?_ ζ_holc U_in_nhds one_ne_zero
+  · simp [one_mul] at this
+    use U
+    constructor
+    exact U_in_nhds
+    convert this ?_ using 1
+    simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply]
+    have aux: ∀ a, ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by
+      intro a
+      calc ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖
+          = ‖-((deriv ζ a / ζ a) + (a - 1)⁻¹)‖ := by ring_nf
+        _ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by rw [norm_neg]
+    simp only [aux]
+  -- rfl
+    simp only [Function.comp_apply, Pi.sub_apply] at hU
+    sorry
+    exact hU
+  · intro x x_inU
+    sorry
 /-%%
 \begin{proof}\uses{logDerivResidue, riemannZetaResidue}
   This follows from Theorem \ref{logDerivResidue} and Theorem \ref{riemannZetaResidue}.
