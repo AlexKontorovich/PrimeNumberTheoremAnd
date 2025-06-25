@@ -44,7 +44,7 @@ local notation (name := derivriemannzeta) "ζ'" => deriv riemannZeta
 We record here some prelimiaries about the zeta function and general
 holomorphic functions.
 
-\begin{theorem}[ResidueOfTendsTo]\label{riemannZetaResidueOne}\lean{riemannZetaResidueOne}\leanok
+\begin{theorem}[ResidueOfTendsTo]\label{ResidueOfTendsTo}\lean{ResidueOfTendsTo}\leanok
   If a function $f$ is holomorphic in a neighborhood of $p$ and
   $\lim_{s\to p} (s-p)f(s) = A$, then
   $f(s) = \frac{A}{s-p} + O(1)$ near $p$.
