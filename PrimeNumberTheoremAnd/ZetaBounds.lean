@@ -1,4 +1,5 @@
 import Mathlib.Analysis.Calculus.ContDiff.Defs
+import Mathlib.Analysis.Asymptotics.Defs
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
@@ -16,7 +17,7 @@ import Mathlib.Tactic.Bound
 
 set_option lang.lemmaCmd true
 
-open Complex Topology Filter Interval Set
+open Complex Topology Filter Interval Set Asymptotics
 
 lemma div_cpow_eq_cpow_neg (a x s : ℂ) : a / x ^ s = a * x ^ (-s) := by
   rw [div_eq_mul_inv, cpow_neg]
@@ -55,8 +56,8 @@ holomorphic functions.
 --   sorry
 
 theorem riemannZetaResidue :
-    ∃ U : Set ℂ, IsOpen U ∧ (1 : ℂ) ∈ U ∧
-    BddAbove (norm ∘ (riemannZeta - fun s ↦ (s - 1)⁻¹) '' (U \ {1})) := by
+    ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (ζ - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
+  have := riemannZeta_residue_one
   -- Step 1: We know that (s-1) * ζ(s) → 1 as s → 1
 
   have h_residue := riemannZeta_residue_one
@@ -65,12 +66,12 @@ theorem riemannZetaResidue :
   simp only [mem_map] at this
   rw [mem_nhdsWithin] at this
   obtain ⟨U, hU_open, h1_in_U, hU_subset⟩ := this
-  refine ⟨U, hU_open, h1_in_U, ?_⟩
-
   have U_mem_nhds : U ∈ 𝓝 (1 : ℂ) := by
     rw [mem_nhds_iff]
     refine ⟨U, fun ⦃a⦄ a ↦ a, hU_open, h1_in_U⟩
-
+  use U
+  constructor
+  exact U_mem_nhds
   have h_bdd : BddAbove (norm ∘ (fun s : ℂ => (s - 1) * riemannZeta s) '' (U \ {1})) := by
     use 2
     intro r hr
@@ -162,7 +163,7 @@ $(s-1)\zeta(s)$ goes to $1$ as $s\to1$. In particular, it's bounded, so by Theor
 theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ} (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
-    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+    BddAbove (norm ∘ (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) '' (U \ {p})) := by
 
       have simpleHolo : HolomorphicOn (fun s ↦ A / (s - p)) (U \ {p}) := by
         apply DifferentiableOn.mono (t := {p}ᶜ)
@@ -240,6 +241,7 @@ Let's also record that if a function $f$ has a simple pole at $p$ with residue $
   f(s) \cdot g(s) = \frac{A \cdot g(p)}{s - p} + O(1).$$
 \end{theorem}
 %%-/
+
 theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (g_holc : HolomorphicOn g U) (U_in_nhds : U ∈ 𝓝 p) {A : ℂ}
     (f_near_p : (f - (fun s ↦ A * (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
@@ -350,8 +352,29 @@ As a corollary, the log derivative of the Riemann zeta function has a simple pol
 \end{theorem}
 %%-/
 theorem riemannZetaLogDerivResidue :
-    (-(ζ' / ζ) - (fun s ↦ (s - 1)⁻¹)) =O[𝓝[≠] (1 : ℂ)] (1 : ℂ → ℂ) := by
-  sorry
+    ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (-(ζ' / ζ) - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
+  obtain ⟨U,U_in_nhds, hU⟩ := riemannZetaResidue
+  have ζ_holc: HolomorphicOn ζ (U \ {1}) := by
+    intro y hy
+    simp at hy
+    refine DifferentiableAt.differentiableWithinAt ?_
+    apply differentiableAt_riemannZeta hy.2
+  have := logDerivResidue ζ_holc U_in_nhds one_ne_zero
+  simp [one_mul] at this
+  use U
+  constructor
+  exact U_in_nhds
+  convert this ?_ using 1
+  simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply]
+  have aux: ∀ a, ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by
+    intro a
+    calc ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖
+         = ‖-((deriv ζ a / ζ a) + (a - 1)⁻¹)‖ := by ring_nf
+       _ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by rw [norm_neg]
+  simp [aux]
+  rfl
+  simp at hU
+  exact hU
 /-%%
 \begin{proof}\uses{logDerivResidue, riemannZetaResidue}
   This follows from Theorem \ref{logDerivResidue} and Theorem \ref{riemannZetaResidue}.
