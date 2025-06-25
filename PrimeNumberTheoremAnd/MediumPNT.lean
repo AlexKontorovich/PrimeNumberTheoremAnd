@@ -1606,24 +1606,30 @@ Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
 /-%%
 We insert this information in $\psi_{\epsilon}$. We add and subtract the integral over the box
 $[1-\delta,2] \times_{ℂ} [-T,T]$, which we evaluate as follows
-\begin{theorem}[ZetaBoxEval]\label{ZetaBoxEval}
+\begin{theorem}[ZetaBoxEval]\label{ZetaBoxEval}\lean{ZetaBoxEval}\leanok
 The rectangle integral over $[1-\delta,2] \times_{ℂ} [-T,T]$ of the integrand in
 $\psi_{\epsilon}$ is
-$$\frac{1}{2\pi i}\int_{\partial([1-\delta,2] \times_{ℂ} [-T,T])}\frac{-\zeta'(s)}{\zeta(s)}
-\mathcal{M}(\widetilde{1_{\epsilon}})(s)
-X^{s}ds = \frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
+$$
+\frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
 = X\left(\mathcal{M}(\psi)\left(\epsilon\right)\right)
 = X(1+O(\epsilon))
 .$$
 \end{theorem}
 %%-/
+theorem ZetaBoxEval {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    (X : ℝ) (X_gt : 3 < X)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
+    ∃ C > 0, ‖𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X - X‖ < C * ε * X  := by
+  sorry
 
 /-%%
 \begin{proof}
-\uses{RectangleBorder, RectangleIntegral,
-MellinOfSmooth1a, MellinOfSmooth1b, MellinOfSmooth1c, MellinOfDeltaSpikeAt1,
-SmoothedChebyshevPull1}
-Residue calculus / the argument principle.
+\uses{MellinOfDeltaSpikeAt1_asymp}
+Unfold the definitions and apply Lemma \ref{MellinOfDeltaSpikeAt1_asymp}.
 \end{proof}
 %%-/
 

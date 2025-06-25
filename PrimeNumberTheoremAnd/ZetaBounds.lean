@@ -180,7 +180,7 @@ theorem riemannZetaResidue :
   simp
 
 /-%%
-\begin{proof}\uses{ResidueOfTendsTo}
+\begin{proof}\uses{ResidueOfTendsTo}\leanok
 From `riemannZeta_residue_one` (in Mathlib), we know that
 $(s-1)\zeta(s)$ goes to $1$ as $s\to1$. Now apply Theorem \ref{ResidueOfTendsTo}.
 (This can also be done using $\zeta_0$ below, which is expressed as
@@ -864,26 +864,28 @@ theorem riemannZetaLogDerivResidue :
   obtain ⟨U,U_in_nhds, hU⟩ := riemannZetaResidue
   have ζ_holc: HolomorphicOn ζ (U \ {1}) := by
     intro y hy
-    simp at hy
+    simp only [mem_diff, mem_singleton_iff] at hy
     refine DifferentiableAt.differentiableWithinAt ?_
     apply differentiableAt_riemannZeta hy.2
-  have := logDerivResidue (by sorry) ζ_holc U_in_nhds one_ne_zero
-  simp [one_mul] at this
-  use U
-  constructor
-  exact U_in_nhds
-  convert this ?_ using 1
-  simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply]
-  have aux: ∀ a, ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by
-    intro a
-    calc ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖
-         = ‖-((deriv ζ a / ζ a) + (a - 1)⁻¹)‖ := by ring_nf
-       _ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by rw [norm_neg]
-  simp [aux]
- -- rfl
-  simp at hU
-  sorry
-  exact hU
+  have := logDerivResidue ?_ ζ_holc U_in_nhds one_ne_zero
+  · simp only [one_mul, Function.comp_apply, Pi.sub_apply] at this
+    use U
+    constructor
+    exact U_in_nhds
+    convert this ?_ using 1
+    · simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply]
+      have aux: ∀ a, ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by
+        intro a
+        calc ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖
+            = ‖-((deriv ζ a / ζ a) + (a - 1)⁻¹)‖ := by ring_nf
+          _ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by rw [norm_neg]
+      simp only [aux]
+    -- rfl
+      simp only [Function.comp_apply, Pi.sub_apply] at hU
+      sorry
+    · exact hU
+  · intro x x_inU
+    sorry
 /-%%
 \begin{proof}\uses{logDerivResidue, riemannZetaResidue}
   This follows from Theorem \ref{logDerivResidue} and Theorem \ref{riemannZetaResidue}.
