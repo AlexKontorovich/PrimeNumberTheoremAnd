@@ -409,8 +409,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
-    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) :=
-    by
+    (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
 
 
   have simpleHolo : HolomorphicOn (fun s ↦ A / (s - p)) (U \ {p}) := by
@@ -430,7 +429,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
       /- TODO: Assert that the derivatives match too -/
 
-      let h := (fun _ ↦ A) + g * (fun (s : ℂ) ↦ (s - p))
+  let h := (fun _ ↦ A) + g * (fun (s : ℂ) ↦ (s - p))
 
 
   have linear_is_holomorphic : HolomorphicOn (fun (s : ℂ ) ↦ (s - p)) U := by
@@ -442,48 +441,48 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     have G := DifferentiableOn.const_add A T
     exact G
 
-      have h_continuous : ContinuousOn h U :=
-        by exact DifferentiableOn.continuousOn h_is_holomorphic
+  have h_continuous : ContinuousOn h U :=
+    by exact DifferentiableOn.continuousOn h_is_holomorphic
 
       -- Just a consequence of continuity
 
-      have h_converges_to_A : map h (𝓝[U] p) ≤ 𝓝 A := by
-        have p_in_U : p ∈ U := by exact mem_of_mem_nhds U_in_nhds
-        have H := (h_continuous p) p_in_U
-        unfold ContinuousWithinAt at H
-        unfold Tendsto at H
-        have T : h p = A := by
-          unfold h
-          simp
-        simp [T] at H
-        exact H
+  have h_converges_to_A : map h (𝓝[U] p) ≤ 𝓝 A := by
+    have p_in_U : p ∈ U := by exact mem_of_mem_nhds U_in_nhds
+    have H := (h_continuous p) p_in_U
+    unfold ContinuousWithinAt at H
+    unfold Tendsto at H
+    have T : h p = A := by
+      unfold h
+      simp
+    simp [T] at H
+    exact H
 
 
-      have h_inv_converges_to_inv_A : map h⁻¹ (𝓝[U] p) ≤ 𝓝 A⁻¹ := by
-        exact map_inv_nhdsWithin_direct h U p A A_ne_zero h_converges_to_A
+  have h_inv_converges_to_inv_A : map h⁻¹ (𝓝[U] p) ≤ 𝓝 A⁻¹ := by
+      exact map_inv_nhdsWithin_direct h U p A A_ne_zero h_converges_to_A
 
-      have h_inv_converges_to_inv_A_norm : Tendsto (fun e ↦ ‖h⁻¹ e - A⁻¹‖) (𝓝[U] p) (𝓝 0) :=
-        by exact tendsto_iff_norm_sub_tendsto_zero.mp h_inv_converges_to_inv_A
+  have h_inv_converges_to_inv_A_norm : Tendsto (fun e ↦ ‖h⁻¹ e - A⁻¹‖) (𝓝[U] p) (𝓝 0) :=
+      by exact tendsto_iff_norm_sub_tendsto_zero.mp h_inv_converges_to_inv_A
 
-      have h_inv_converges_to_inv_A_norm_1 : {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1} ∈ 𝓝[U] p :=
-        by
-          unfold Tendsto at h_inv_converges_to_inv_A_norm
-          unfold map at h_inv_converges_to_inv_A_norm
-          unfold preimage at h_inv_converges_to_inv_A_norm
-          have T := Filter.sets_subset_sets.mpr h_inv_converges_to_inv_A_norm
-          simp [*] at T
+  have h_inv_converges_to_inv_A_norm_1 : {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1} ∈ 𝓝[U] p :=
+    by
+      unfold Tendsto at h_inv_converges_to_inv_A_norm
+      unfold map at h_inv_converges_to_inv_A_norm
+      unfold preimage at h_inv_converges_to_inv_A_norm
+      have T := Filter.sets_subset_sets.mpr h_inv_converges_to_inv_A_norm
+      simp [*] at T
 
-          have G : Set.Icc (-1) 1 ∈ (𝓝 (0 : ℝ)).sets := by
+      have G : Set.Icc (-1) 1 ∈ (𝓝 (0 : ℝ)).sets := by
             refine Icc_mem_nhds ?_ ?_
             · simp
             · simp
-          have E : {x | ‖h⁻¹ x - A⁻¹‖ ∈ (Set.Icc (-1) 1)} ∈ (𝓝[U] p) :=
-            by
-              have := Set.mem_of_subset_of_mem T G
-              exact this
-          exact E
+      have E : {x | ‖h⁻¹ x - A⁻¹‖ ∈ (Set.Icc (-1) 1)} ∈ (𝓝[U] p) :=
+          by
+            have := Set.mem_of_subset_of_mem T G
+            exact this
+      exact E
 
-      have trivial_subset : {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1} ⊆ {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} := by
+  have trivial_subset : {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1} ⊆ {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} := by
         simp
         intro x
         intro hyp_a
@@ -499,7 +498,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
         exact U
 
-      have deriv_h_identity : ∀x ∈ (U \ {p}), (deriv h) x = f x + (deriv f x) * (x - p) := by
+  have deriv_h_identity : ∀x ∈ (U \ {p}), (deriv h) x = f x + (deriv f x) * (x - p) := by
 
         intro x
         intro x_in_u_not_p
@@ -547,7 +546,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
         exact U2
 
 
-      have h_identity : ∀x ∈ (U \ {p}), h x = (f x) * (x - p)  := by
+  have h_identity : ∀x ∈ (U \ {p}), h x = (f x) * (x - p)  := by
         intro x
         intro x_in_u_not_p
         have hyp_x_not_p : x ≠ p := by
@@ -568,7 +567,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
         simp [*]
         exact expression_eq_zero A x p hyp_x_not_p
 
-      have log_deriv_f_plus_pole_equal_log_deriv_h :
+  have log_deriv_f_plus_pole_equal_log_deriv_h :
         EqOn (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) ((deriv h) * h⁻¹) (U \ {p}) :=
         by
           simp [*] at *
@@ -588,7 +587,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
           exact field_identity (f x) ((deriv f) x) x p (non_zero x (x_in_u) x_not_p) x_not_p
 
-      have h_inv_bounded :
+  have h_inv_bounded :
         h⁻¹ =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
           rw [Asymptotics.IsBigO_def]
           use ‖A‖⁻¹ + 1
@@ -606,7 +605,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
           refine ⟨U102, ?_⟩
           · exact inter_subset_left
 
-      have h_deriv_bounded :
+  have h_deriv_bounded :
         (deriv h) =O[𝓝[≠] p] (1 : ℂ → ℂ) :=
           analytic_deriv_bounded_near_point h U_is_open
             (by exact mem_of_mem_nhds U_in_nhds) h_is_holomorphic
@@ -622,14 +621,13 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   have u_not_p_in_filter : U \ {p} ∈ 𝓝[≠] p := by
     exact diff_mem_nhdsWithin_compl U_in_nhds {p}
 
-      have final : (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-        have T := Set.EqOn.eventuallyEq_of_mem log_deriv_f_plus_pole_equal_log_deriv_h u_not_p_in_filter
+  have final : (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+      have T := Set.EqOn.eventuallyEq_of_mem log_deriv_f_plus_pole_equal_log_deriv_h u_not_p_in_filter
+
+      exact EventuallyEq.trans_isBigO T h_log_deriv_bounded
 
 
-    exact EventuallyEq.trans_isBigO T h_log_deriv_bounded
-
-  sorry
-  --exact final
+  exact final
 
 theorem  logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (non_zero: ∀x ∈ U \ {p}, f x ≠ 0)
@@ -800,7 +798,7 @@ theorem riemannZetaLogDerivResidue :
     simp at hy
     refine DifferentiableAt.differentiableWithinAt ?_
     apply differentiableAt_riemannZeta hy.2
-  have := logDerivResidue ζ_holc U_in_nhds one_ne_zero
+  have := logDerivResidue (by sorry) ζ_holc U_in_nhds one_ne_zero
   simp [one_mul] at this
   use U
   constructor
@@ -813,8 +811,9 @@ theorem riemannZetaLogDerivResidue :
          = ‖-((deriv ζ a / ζ a) + (a - 1)⁻¹)‖ := by ring_nf
        _ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by rw [norm_neg]
   simp [aux]
-  rfl
+ -- rfl
   simp at hU
+  sorry
   exact hU
 /-%%
 \begin{proof}\uses{logDerivResidue, riemannZetaResidue}
