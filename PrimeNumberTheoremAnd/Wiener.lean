@@ -322,7 +322,8 @@ for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies th
 lemma one_add_sq_pos (u : ℝ) : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa using sq_nonneg u)
 
 /-%%
-\begin{lemma}[Preliminary decay bound I]\label{prelim-decay}  If $\psi:\R \to \C$ is absolutely integrable then
+\begin{lemma}[Preliminary decay bound I]\label{prelim-decay}
+If $\psi:\R \to \C$ is absolutely integrable then
 $$ |\hat \psi(u)| \leq \| \psi \|_1 $$
 for all $u \in \R$. where $C$ is an absolute constant.
 \end{lemma}
@@ -334,7 +335,8 @@ for all $u \in \R$. where $C$ is an absolute constant.
 %%-/
 
 /-%%
-\begin{lemma}[Preliminary decay bound II]\label{prelim-decay-2}  If $\psi:\R \to \C$ is absolutely integrable and of bounded variation, and $\psi'$ is bounded variation, then
+\begin{lemma}[Preliminary decay bound II]\label{prelim-decay-2}
+If $\psi:\R \to \C$ is absolutely integrable and of bounded variation, and $\psi'$ is bounded variation, then
 $$ |\hat \psi(u)| \leq \| \psi \|_{TV} / 2\pi |u| $$
 for all non-zero $u \in \R$.
 \end{lemma}
@@ -348,14 +350,15 @@ and the claim then follows from the triangle inequality.
 %%-/
 
 /-%%
-\begin{lemma}[Preliminary decay bound III]\label{prelim-decay-3}  If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
+\begin{lemma}[Preliminary decay bound III]\label{prelim-decay-3}
+If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
 $$ |\hat \psi(u)| \leq \| \psi' \|_{TV} / (2\pi |u|)^2$$
 for all non-zero $u \in \R$.
 \end{lemma}
 %%-/
 
 /-%%
-\begin{proof}\uses{prelim-decay-1} Should follow from previous lemma.
+\begin{proof}\uses{prelim-decay-2} Should follow from previous lemma.
 \end{proof}
 %%-/
 
@@ -2490,6 +2493,6 @@ $$ \sum_{N \mathfrak{p} \leq x} \chi(\mathfrak{p}) \log N \mathfrak{p}  = o(x).$
 %%-/
 
 /-%%
-\begin{proof}\uses{Dedekind-nonvanishing} This should follow from Lemma \ref{Dedekind-nonvanishing} and the arguments for the Dirichlet L-function. (It may be more convenient to work with a von Mangoldt type function instead of $\log N\mathfrak{p}$).
+\begin{proof}\uses{Dedekind_nonvanishing} This should follow from Lemma \ref{Dedekind_nonvanishing} and the arguments for the Dirichlet L-function. (It may be more convenient to work with a von Mangoldt type function instead of $\log N\mathfrak{p}$).
 \end{proof}
 %%-/
