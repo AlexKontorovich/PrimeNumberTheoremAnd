@@ -376,7 +376,8 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
 
   have n₀_pos : 0 < n₀ := by
     simp only [Nat.ceil_pos, n₀]
-    bound
+    subst C_eq
+    simp_all only [mem_Ioo, and_imp, ge_iff_le, implies_true, mul_pos_iff_of_pos_left, sub_pos, n₀]
     rw[← mul_one 1]
     apply mul_lt_mul
     exact c₁_lt
@@ -1132,6 +1133,25 @@ theorem realDiff_of_complexDIff {f : ℂ → ℂ} (s : ℂ) (hf : Differentiable
   -- The composition of continuous functions is continuous
   exact ContinuousAt.comp hf_cont h_param
 
+-- TODO : Move elsewhere (should be in Mathlib!) NOT NEEDED
+theorem riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
+  ‖ζ (σ₀ + t * I)‖ ≤ ‖ζ σ₀‖ := by
+  sorry
+
+-- TODO : Move elsewhere (should be in Mathlib!) NOT NEEDED
+theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
+  ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
+  sorry
+
+theorem dlog_riemannZeta_bdd_on_vertical_lines' {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) :
+  ∃ C > 0, ∀ (t : ℝ), ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ C := by
+  sorry
+
+theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
+    DifferentiableAt ℂ ζ' s := by
+  have : DifferentiableAt ℂ riemannZeta s := differentiableAt_riemannZeta s_ne_one
+  sorry
+
 /-%%
 \begin{lemma}[SmoothedChebyshevPull1_aux_integrable]\label{SmoothedChebyshevPull1_aux_integrable}\lean{SmoothedChebyshevPull1_aux_integrable}\leanok
 The integrand $$\zeta'(s)/\zeta(s)\mathcal{M}(\widetilde{1_{\epsilon}})(s)X^{s}$$
@@ -1150,12 +1170,23 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     :
     Integrable (fun (t : ℝ) ↦
       SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + (t : ℂ) * I)) volume := by
-  let c : ℝ := ‖ζ' (σ₀) / ζ (σ₀)‖ * X ^ σ₀
+  obtain ⟨C, C_pos, hC⟩ := dlog_riemannZeta_bdd_on_vertical_lines' σ₀_gt
+  let c : ℝ := C * X ^ σ₀
   have : ∀ᵐ t ∂volume, ‖(fun (t : ℝ) ↦ (- deriv riemannZeta (σ₀ + (t : ℂ) * I)) /
     riemannZeta (σ₀ + (t : ℂ) * I) *
     (X : ℂ) ^ (σ₀ + (t : ℂ) * I)) t‖ ≤ c := by
-
-    sorry
+    apply Filter.Eventually.of_forall
+    intro t
+    simp only [Complex.norm_mul, norm_neg, c]
+    gcongr
+    · convert hC t using 1
+      simp
+    · rw [Complex.norm_cpow_eq_rpow_re_of_nonneg]
+      · simp
+      · linarith
+      · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+        add_zero, ne_eq, c]
+        linarith
   convert (SmoothedChebyshevDirichlet_aux_integrable ContDiffSmoothingF SmoothingFnonneg
     suppSmoothingF mass_one ε_pos ε_lt_one σ₀_gt σ₀_le_2).bdd_mul' (c := c) ?_ this using 2
   · unfold SmoothedChebyshevIntegrand
@@ -1179,7 +1210,8 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     · have diffζ := differentiableAt_riemannZeta s_ne_one
       apply ContinuousAt.div
       · apply ContinuousAt.neg
-        have : DifferentiableAt ℂ (fun s ↦ deriv riemannZeta s) s := by sorry
+        have : DifferentiableAt ℂ (fun s ↦ deriv riemannZeta s) s :=
+          differentiableAt_deriv_riemannZeta s_ne_one
         convert realDiff_of_complexDIff (s := σ₀ + (t : ℂ) * I) this <;> simp
       · convert realDiff_of_complexDIff (s := σ₀ + (t : ℂ) * I) diffζ <;> simp
       · apply riemannZeta_ne_zero_of_one_lt_re
@@ -1255,7 +1287,8 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     apply Real.log_lt_log
     norm_num
     linarith
-  have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Ico (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by
+  have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X)
+      (Ico (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by
     unfold SmoothedChebyshevIntegrand HolomorphicOn
     refine DifferentiableOn.mul ?_ ?_
     refine DifferentiableOn.mul ?_ ?_
@@ -1651,7 +1684,8 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
 
 /-%%
 \begin{proof}
-\uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue}
+\uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue,
+SmoothedChebyshevPull1_aux_integrable}
 Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
@@ -1700,24 +1734,30 @@ Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
 /-%%
 We insert this information in $\psi_{\epsilon}$. We add and subtract the integral over the box
 $[1-\delta,2] \times_{ℂ} [-T,T]$, which we evaluate as follows
-\begin{theorem}[ZetaBoxEval]\label{ZetaBoxEval}
+\begin{theorem}[ZetaBoxEval]\label{ZetaBoxEval}\lean{ZetaBoxEval}\leanok
 The rectangle integral over $[1-\delta,2] \times_{ℂ} [-T,T]$ of the integrand in
 $\psi_{\epsilon}$ is
-$$\frac{1}{2\pi i}\int_{\partial([1-\delta,2] \times_{ℂ} [-T,T])}\frac{-\zeta'(s)}{\zeta(s)}
-\mathcal{M}(\widetilde{1_{\epsilon}})(s)
-X^{s}ds = \frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
+$$
+\frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
 = X\left(\mathcal{M}(\psi)\left(\epsilon\right)\right)
 = X(1+O(\epsilon))
 .$$
 \end{theorem}
 %%-/
+theorem ZetaBoxEval {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    (X : ℝ) (X_gt : 3 < X)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
+    ∃ C > 0, ‖𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X - X‖ < C * ε * X  := by
+  sorry
 
 /-%%
 \begin{proof}
-\uses{RectangleBorder, RectangleIntegral,
-MellinOfSmooth1a, MellinOfSmooth1b, MellinOfSmooth1c, MellinOfDeltaSpikeAt1,
-SmoothedChebyshevPull1}
-Residue calculus / the argument principle.
+\uses{MellinOfDeltaSpikeAt1_asymp}
+Unfold the definitions and apply Lemma \ref{MellinOfDeltaSpikeAt1_asymp}.
 \end{proof}
 %%-/
 
@@ -1750,7 +1790,8 @@ theorem MediumPNT : ∃ c > 0,
   sorry
 /-%%
 \begin{proof}
-\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval, LogDerivZetaBndUniform, LogDerivZetaHolcSmallT, LogDerivZetaHolcLargeT}
+\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval, LogDerivZetaBndUniform, LogDerivZetaHolcSmallT, LogDerivZetaHolcLargeT,
+SmoothedChebyshevPull1, SmoothedChebyshevPull2}
   Evaluate the integrals.
 \end{proof}
 %%-/
