@@ -402,11 +402,10 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     simp only [n₀]
     exact Nat.le_ceil (X * (1 - c₁ * ε))
 
-  have sumΛ : Summable (fun (n : ℕ) ↦ Λ n * F (n / X)) := by sorry
-    -- := by
-    -- exact (summable_of_ne_finset_zero fun a s=>mul_eq_zero_of_right _
-    -- (hc₂ _ _ (by trivial) ((le_div_iff₀ X_pos).2 (Nat.ceil_le.1 (not_lt.1
-    -- (s ∘ Finset.mem_range.2))))))
+  have sumΛ : Summable (fun (n : ℕ) ↦ Λ n * F (n / X)) := by
+    exact (summable_of_ne_finset_zero fun a s=>mul_eq_zero_of_right _
+    (hc₂ _ _ (by trivial) ((le_div_iff₀ X_pos).2 (Nat.ceil_le.1 (not_lt.1
+    (s ∘ Finset.mem_range.2))))))
 
   have sumΛn₀ (n₀ : ℕ) : Summable (fun n ↦ Λ (n + n₀) * F ((n + n₀) / X)) := by exact_mod_cast sumΛ.comp_injective fun Q=>by valid
 
@@ -1042,19 +1041,19 @@ up to $\sigma_1-3i$, over to $\sigma_2-3i$, up to $\sigma_2+3i$, back over to $\
            I₇ |
               |
               |
-  ------------+
+  +-----------+
   |       I₆
 I₅|
---σ₂----------σ₁----σ₀----
+--σ₂----------σ₁--1-σ₀----
   |
   |       I₄
-  +-----+-----+
+  +-----------+
               |
               |
             I₃|
               |
               |  I₂
-              +----
+              +---+
                   |
                   | I₁
                   |
@@ -1104,6 +1103,12 @@ noncomputable def I₅ (SmoothingF : ℝ → ℝ) (ε X σ₂ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-3)..3,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₂ + t * I)))
 
+/-%%
+\begin{lemma}[SmoothedChebyshevPull1_aux_integrable]\label{SmoothedChebyshevPull1_aux_integrable}\lean{SmoothedChebyshevPull1_aux_integrable}\leanok
+The integrand $$\zeta'(s)/\zeta(s)\mathcal{M}(\widetilde{1_{\epsilon}})(s)X^{s}$$
+is integrable on the contour $\sigma_0 + t i$ for $t \in \R$ and $\sigma_0 > 1$.
+\end{lemma}
+%%-/
 theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε) (X : ℝ)
     {σ₀ : ℝ} (σ₀_pos : 0 < σ₀)
     (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Ico σ₀ 2 ×ℂ univ \ {1}))
@@ -1113,6 +1118,16 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     Integrable (fun (t : ℝ) ↦
       SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + (t : ℂ) * I)) volume := by
   sorry
+/-%%
+\begin{proof}\uses{MellinOfSmooth1b}
+The $\zeta'(s)/\zeta(s)$ term is bounded, as is $X^s$, and the smoothing function
+$\mathcal{M}(\widetilde{1_{\epsilon}})(s)$
+decays like $1/|s|^2$ by Theorem \ref{MellinOfSmooth1b}.
+
+Check (!!) Do we need this, or is it already proved in Theorem \ref{SmoothedChebyshevDirichlet_aux_integrable}?
+\end{proof}
+%%-/
+
 
 /-%%
 \begin{theorem}[SmoothedChebyshevPull1]\label{SmoothedChebyshevPull1}\lean{SmoothedChebyshevPull1}\leanok
@@ -1126,17 +1141,17 @@ X^{s}ds.$$
 \end{theorem}
 %%-/
 
-theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1) (X : ℝ) (_ : 3 < X) {T : ℝ} (T_pos : 0 < T) {σ₀ : ℝ}
-    (σ₀_pos : 0 < σ₀) (σ₀_lt_one : σ₀ < 1)
-    (holoOn : HolomorphicOn (ζ' / ζ) ((Ico σ₀ 2)×ℂ (Ioo (-T) T) \ {1}))
+theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1) (X : ℝ) (_ : 3 < X) {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
+    (σ₁_pos : 0 < σ₁) (σ₁_lt_one : σ₁ < 1)
+    (holoOn : HolomorphicOn (ζ' / ζ) ((Ico σ₁ 2)×ℂ (Ioo (-T) T) \ {1}))
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     SmoothedChebyshev SmoothingF ε X =
       I₁ SmoothingF ε X T -
-      I₂ SmoothingF ε T X σ₀ +
-      I₃₇ SmoothingF ε T X σ₀ +
-      I₈ SmoothingF ε T X σ₀ +
+      I₂ SmoothingF ε T X σ₁ +
+      I₃₇ SmoothingF ε T X σ₁ +
+      I₈ SmoothingF ε T X σ₁ +
       I₉ SmoothingF ε X T
       + 𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X := by
   unfold SmoothedChebyshev
@@ -1263,23 +1278,23 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     unfold fTempRR
     rw[temp]
   rw[this]
-  have : ∫ (σ : ℝ) in σ₀..1 + (Real.log X)⁻¹, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I) =
-    ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR x (-T) := by
+  have : ∫ (σ : ℝ) in σ₁..1 + (Real.log X)⁻¹, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I) =
+    ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x (-T) := by
     unfold fTempRR
     rw[Complex.ofReal_neg, neg_mul]
     rfl
   rw[this]
-  have : ∫ (t : ℝ) in -T..T, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₀ + ↑t * I) =
-    ∫ (y : ℝ) in -T..T, fTempRR σ₀ y := by rfl
+  have : ∫ (t : ℝ) in -T..T, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₁ + ↑t * I) =
+    ∫ (y : ℝ) in -T..T, fTempRR σ₁ y := by rfl
   rw[this]
-  have : ∫ (σ : ℝ) in σ₀..1 + (Real.log X)⁻¹, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ + ↑T * I) =
-    ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR x T := by rfl
+  have : ∫ (σ : ℝ) in σ₁..1 + (Real.log X)⁻¹, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ + ↑T * I) =
+    ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x T := by rfl
   rw[this]
   repeat rw[← add_assoc]
   have : (((I * -∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y) +
-    -∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR x (-T)) +
-    I * ∫ (y : ℝ) in -T..T, fTempRR σ₀ y) +
-    ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR x T = -1 * RectangleIntegral fTempC ((1 : ℝ) + (Real.log X)⁻¹ + T * I) (σ₀ - T * I) := by
+    -∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x (-T)) +
+    I * ∫ (y : ℝ) in -T..T, fTempRR σ₁ y) +
+    ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x T = -1 * RectangleIntegral fTempC ((1 : ℝ) + (Real.log X)⁻¹ + T * I) (σ₁ - T * I) := by
     unfold RectangleIntegral
     rw[HIntegral_symm, VIntegral_symm]
     nth_rewrite 2 [HIntegral_symm, VIntegral_symm]
@@ -1296,24 +1311,24 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     rw[I_re, I_im, mul_zero, zero_mul, mul_one]
     ring_nf
     unfold fTempC
-    have : ∫ (y : ℝ) in -T..T, fTempRR (I * ↑y + ↑σ₀).re (I * ↑y + ↑σ₀).im =
-      ∫ (y : ℝ) in -T..T, fTempRR σ₀ y := by simp
+    have : ∫ (y : ℝ) in -T..T, fTempRR (I * ↑y + ↑σ₁).re (I * ↑y + ↑σ₁).im =
+      ∫ (y : ℝ) in -T..T, fTempRR σ₁ y := by simp
     rw[this]
     have : ∫ (y : ℝ) in -T..T, fTempRR (I * ↑y + ↑(1 + (Real.log X)⁻¹)).re (I * ↑y + ↑(1 + (Real.log X)⁻¹)).im =
       ∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y := by simp
     rw[this]
-    have : ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR (I * ↑T + ↑x).re (I * ↑T + ↑x).im =
-      ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR x T := by simp
+    have : ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR (I * ↑T + ↑x).re (I * ↑T + ↑x).im =
+      ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x T := by simp
     rw[this]
-    have : ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR (I * ↑(-T) + ↑x).re (I * ↑(-T) + ↑x).im =
-      ∫ (x : ℝ) in σ₀..1 + (Real.log X)⁻¹, fTempRR x (-T) := by simp
+    have : ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR (I * ↑(-T) + ↑x).re (I * ↑(-T) + ↑x).im =
+      ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x (-T) := by simp
     rw[this]
     ring_nf
-  rw[this, neg_one_mul, div_mul_comm, mul_one, ← add_right_inj (RectangleIntegral fTempC (1 + ↑(Real.log X)⁻¹ + ↑T * I) (↑σ₀ - ↑T * I) / (2 * ↑π * I)), ← add_assoc]
+  rw[this, neg_one_mul, div_mul_comm, mul_one, ← add_right_inj (RectangleIntegral fTempC (1 + ↑(Real.log X)⁻¹ + ↑T * I) (↑σ₁ - ↑T * I) / (2 * ↑π * I)), ← add_assoc]
   field_simp
   rw[rectangleIntegral_symm]
-  have : RectangleIntegral fTempC (↑σ₀ - ↑T * I) (1 + 1 / ↑(Real.log X) + ↑T * I) / (2 * ↑π * I) =
-    RectangleIntegral' fTempC (σ₀ - T * I) (1 + ↑(Real.log X)⁻¹ + T * I) := by
+  have : RectangleIntegral fTempC (↑σ₁ - ↑T * I) (1 + 1 / ↑(Real.log X) + ↑T * I) / (2 * ↑π * I) =
+    RectangleIntegral' fTempC (σ₁ - T * I) (1 + ↑(Real.log X)⁻¹ + T * I) := by
     unfold RectangleIntegral'
     rw[smul_eq_mul]
     field_simp
@@ -1323,7 +1338,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   have inv_log_X_pos: 0 < (Real.log X)⁻¹ := by
     rw[inv_pos, ← Real.log_one]
     apply Real.log_lt_log (by positivity) (by linarith)
-  have pInRectangleInterior : (Rectangle (σ₀ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) ∈ nhds 1) := by
+  have pInRectangleInterior : (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) ∈ nhds 1) := by
     refine rectangle_mem_nhds_iff.mpr ?_
     refine mem_reProdIm.mpr ?_
     have : re 1 = 1 := by rfl
@@ -1338,16 +1353,16 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     repeat rw[ofReal_re]
     repeat rw[ofReal_im]
     ring_nf
-    have temp : 1 ∈ uIoo σ₀ (re 1 + (Real.log X)⁻¹) := by
+    have temp : 1 ∈ uIoo σ₁ (re 1 + (Real.log X)⁻¹) := by
       have : re 1 = 1 := by rfl
       rw[this]
       unfold uIoo
-      have : min σ₀ (1 + (Real.log X)⁻¹) = σ₀ := by exact min_eq_left (by linarith)
+      have : min σ₁ (1 + (Real.log X)⁻¹) = σ₁ := by exact min_eq_left (by linarith)
       rw[this]
-      have : max σ₀ (1 + (Real.log X)⁻¹) = 1 + (Real.log X)⁻¹ := by exact max_eq_right (by linarith)
+      have : max σ₁ (1 + (Real.log X)⁻¹) = 1 + (Real.log X)⁻¹ := by exact max_eq_right (by linarith)
       rw[this]
       refine mem_Ioo.mpr ?_
-      exact ⟨σ₀_lt_one, (by linarith)⟩
+      exact ⟨σ₁_lt_one, (by linarith)⟩
     have : 0 ∈ uIoo (-T) (T + im 1) := by
       have : im 1 = 0 := by rfl
       rw[this, add_zero]
@@ -1360,13 +1375,13 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       exact ⟨(by linarith), (by linarith)⟩
     exact ⟨temp, this⟩
   --TODO:
-  have holoMatchHoloOn : HolomorphicOn holoMatch (Rectangle (σ₀ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1}) := by sorry --should be able to do with lemmas from workshop
+  have holoMatchHoloOn : HolomorphicOn holoMatch (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1}) := by sorry --should be able to do with lemmas from workshop
   --TODO:
-  have holoMatchBddAbove : BddAbove (norm ∘ holoMatch '' (Rectangle (σ₀ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1})) := by sorry --should be able to do with lemmas from workshop
+  have holoMatchBddAbove : BddAbove (norm ∘ holoMatch '' (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1})) := by sorry --should be able to do with lemmas from workshop
   obtain ⟨g, gHolo_Eq⟩ := existsDifferentiableOn_of_bddAbove pInRectangleInterior holoMatchHoloOn holoMatchBddAbove
   obtain ⟨gHolo, gEq⟩ := gHolo_Eq
 
-  have zRe_le_wRe : (σ₀ - ↑T * I).re ≤ (1 + (Real.log X)⁻¹ + T * I).re := by
+  have zRe_le_wRe : (σ₁ - ↑T * I).re ≤ (1 + (Real.log X)⁻¹ + T * I).re := by
     repeat rw[sub_re]
     repeat rw[add_re]
     repeat rw[mul_re]
@@ -1377,7 +1392,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     have : re 1 = 1 := by rfl
     rw[this]
     linarith
-  have zIm_le_wIm : (σ₀ - ↑T * I).im ≤ (1 + (Real.log X)⁻¹ + T * I).im := by
+  have zIm_le_wIm : (σ₁ - ↑T * I).im ≤ (1 + (Real.log X)⁻¹ + T * I).im := by
     repeat rw[sub_im]
     repeat rw[add_im]
     repeat rw[mul_im]
@@ -1397,6 +1412,47 @@ Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
 
+/-%%
+Next pull contours to another box.
+\begin{lemma}[SmoothedChebyshevPull2]\label{SmoothedChebyshevPull2}\lean{SmoothedChebyshevPull2}\leanok
+We have that
+$$\psi_{\epsilon}(X) =
+\mathcal{M}(\widetilde{1_{\epsilon}})(1)
+X^{1} +
+  \frac{1}{2\pi i}\int_{\text{curve}_2}\frac{-\zeta'(s)}{\zeta(s)}
+\mathcal{M}(\widetilde{1_{\epsilon}})(s)
+X^{s}ds
+$$
+\end{lemma}
+%%-/
+theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1)
+    (X : ℝ) (_ : 3 < X)
+    {T : ℝ} (T_pos : 0 < T) {σ₁ σ₂ : ℝ}
+    (σ₂_pos : 0 < σ₂) (σ₁_lt_one : σ₁ < 1)
+    (σ₂_lt_σ₁ : σ₂ < σ₁)
+    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₁ 2)×ℂ (Icc (-T) T) \ {1}))
+    (holoOn2 : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X)
+      (Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1}))
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
+    SmoothedChebyshev SmoothingF ε X =
+      I₁ SmoothingF ε X T -
+      I₂ SmoothingF ε T X σ₁ +
+      I₃ SmoothingF ε T X σ₁ -
+      I₄ SmoothingF ε X σ₁ σ₂ +
+      I₅ SmoothingF ε X σ₂ +
+      I₆ SmoothingF ε X σ₁ σ₂ +
+      I₇ SmoothingF ε T X σ₁ +
+      I₈ SmoothingF ε T X σ₁ +
+      I₉ SmoothingF ε X T
+      + 𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X := by
+  sorry
+/-%%
+\begin{proof}
+Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
+\end{proof}
+%%-/
 
 /-%%
 We insert this information in $\psi_{\epsilon}$. We add and subtract the integral over the box
