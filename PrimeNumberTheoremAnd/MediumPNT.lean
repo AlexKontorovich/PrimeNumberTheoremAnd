@@ -1142,7 +1142,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     (ε_lt_one : ε < 1)
     {X : ℝ} (X_gt : 3 < X)
     {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (σ₀_le_2 : σ₀ ≤ 2)
-    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
+    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Ico σ₀ 2 ×ℂ univ \ {1}))
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
@@ -1231,15 +1231,11 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     (X : ℝ) (X_gt : 3 < X)
     {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
     (σ₁_pos : 0 < σ₁) (σ₁_lt_one : σ₁ < 1)
-    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₁ 2)×ℂ (Icc (-T) T) \ {1}))
+    (holoOn : HolomorphicOn (ζ' / ζ) ((Ico σ₁ 2)×ℂ (Icc (-T) T) \ {1}))
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
-    (holoOn : HolomorphicOn (ζ' / ζ) ((Ico σ₁ 2)×ℂ (Icc (-T) T) \ {1}))
-    (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     SmoothedChebyshev SmoothingF ε X =
       I₁ SmoothingF ε X T -
       I₂ SmoothingF ε T X σ₁ +
@@ -1336,7 +1332,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     have hs : 0 < s.re := by
       have : 1 + (Real.log X)⁻¹ ≤ s.re := by exact sReIn.1
       linarith
-    exact Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF εInter SmoothingFnonneg mass_one hs
+    exact Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF εInter SmoothingFnonneg mass_one hs
     intro s hs
     apply DifferentiableAt.differentiableWithinAt
     cases' hs with h_in h_not_one
@@ -1348,25 +1344,17 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     refine ne_zero_of_re_pos ?_
     rw[ofReal_re]
     positivity
-    -- apply add_pos (by positivity)
-    -- rw[inv_pos, ← Real.log_one]
-    -- apply Real.log_lt_log (by positivity) (by linarith)
-  have logX_gt : 1 + (Real.log X)⁻¹ ≤ 2 := by
-    sorry
-    -- apply add_lt_add_left
-    -- apply inv_lt_one_of_pos
-    -- rw[Real.log_one]
-    -- exact Real.log_pos (by positivity)
-    -- exact X_gt
-
-  --TODO:
-  have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X)
-    (Icc (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by
-      sorry --should be able to do with lemmas from workshop
-
-  exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_pos logX_gt
+  have X_eq_le_two : 1 + (Real.log X)⁻¹ ≤ 2 := by
+    apply le_of_lt
+    rw[← one_add_one_eq_two]
+    refine (Real.add_lt_add_iff_left 1).mpr ?_
+    refine inv_lt_one_of_one_lt₀ ?_
+    refine (lt_log_iff_exp_lt ?_).mpr ?_
+    positivity
+    have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
+    linarith
+  exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_gt_one X_eq_le_two
     holoIntegrand suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
-
 
   have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by field_simp
   repeat rw[smul_eq_mul]
@@ -1595,7 +1583,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       rw[this] at xReIn
       have : σ₁ ≤ x.re := by exact xReIn.1
       linarith
-    exact Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF hε SmoothingFnonneg mass_one xRePos
+    exact Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF hε SmoothingFnonneg mass_one xRePos
     unfold DifferentiableOn
     intro x x_location
     apply DifferentiableAt.differentiableWithinAt
@@ -1630,6 +1618,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     obtain ⟨xIn, xOut⟩ := x_location
     rw[Set.notMem_singleton_iff] at xOut
     exact xOut
+
   --TODO:
   have holoMatchBddAbove : BddAbove (norm ∘ holoMatch '' (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1})) := by
     sorry --should be able to do with lemmas from workshop
