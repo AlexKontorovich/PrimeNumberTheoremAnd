@@ -1363,7 +1363,6 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     simp only [Complex.norm_mul, norm_neg, c]
     gcongr
     · sorry -- convert dlog_riemannZeta_bdd_on_vertical_lines σ₀_gt t using 1
-      simp
     · rw [Complex.norm_cpow_eq_rpow_re_of_nonneg]
       · simp
       · linarith
