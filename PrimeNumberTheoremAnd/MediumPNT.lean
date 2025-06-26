@@ -1995,19 +1995,17 @@ $$\left|I_{1}(SmoothingF, \epsilon, X, T)\
 for some constant $C_{1} > 0$.
 \end{lemma}
 %%-/
-theorem I1Bound {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
+theorem I1Bound {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X)
     {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
-    ‖I₁ SmoothingF ε X T‖ ≤ T := by
-
+    ∃ C > 0, ∀ ε > 0, ε < 1 → ‖I₁ SmoothingF ε X T‖ ≤ C * X / (ε * T) := by
   sorry
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b}
+\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines'}
   Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{1}(\nu, \epsilon, X, T)\right| =
@@ -2026,16 +2024,27 @@ $$
 \frac{1}{2\pi}
 \left|
  \int_{-\infty}^{-T}
-\left(
-\frac{-\zeta'}\zeta(\sigma_0)
-\right)
- \frac{C}{\epsilon|\sigma_0 + t i|^2}
+C
+ \frac{C'}{\epsilon|\sigma_0 + t i|^2}
 X^{\sigma_0}
 \ dt
 \right|
 $$
 where we used Theorems \ref{MellinOfSmooth1b} and
-\ref{dlog_riemannZeta_bdd_on_vertical_lines}.
+\ref{dlog_riemannZeta_bdd_on_vertical_lines'}. Continuing the calculation, we have
+$$
+\leq
+C'' {X^{\sigma_0}\over \epsilon}
+\int_{-\infty}^{-T}
+\frac{1}{t^2}
+\ dt
+$$
+$$
+\leq
+C'''  {X\over \epsilon T}
+,
+$$
+where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X}=e \cdot X$.
 \end{proof}
 %%-/
 
