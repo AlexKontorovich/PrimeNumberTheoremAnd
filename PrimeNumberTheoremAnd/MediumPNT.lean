@@ -1184,34 +1184,25 @@ theorem riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (
     exact ⟨c_is_pos, B⟩
 
 
-
-
-/-- Main theorem: Summability is equivalent under real-to-complex coercion -/
 theorem summable_real_iff_summable_coe_complex (f : ℕ → ℝ) :
     Summable f ↔ Summable (fun n => (f n : ℂ)) := by
   constructor
 
-  -- Forward direction: ℝ → ℂ
   · intro ⟨s, hs⟩
     use (s : ℂ)
-    -- Apply the continuous map ℝ → ℂ to the HasSum
     exact hasSum_ofReal.mpr hs
-    --exact HasSum.map hs continuous_ofReal
 
-  -- Reverse direction: ℂ → ℝ
   · intro ⟨s, hs⟩
     use s.re
-    -- Apply the continuous map ℂ → ℝ (real part) to the HasSum
     have h_re : HasSum (fun n => ((f n : ℂ)).re) s.re :=
       by exact hasSum_re hs
-        -- HasSum.map hs continuous_re
-    -- Since (f n : ℂ).re = f n, we're done
     convert h_re using 1
-    --ext n
-   -- exact Complex.ofReal_re (f n)
 
---set_option maxHeartbeats 2000000
-
+theorem cast_pow_eq (n : ℕ) (σ₀ : ℝ):
+  (↑((↑n : ℝ) ^ σ₀) : ℂ )  = (↑n : ℂ) ^ (↑σ₀ : ℂ) := by
+    have U : (↑n : ℝ) ≥ 0 := by exact Nat.cast_nonneg' n
+    have endit := Complex.ofReal_cpow U σ₀
+    exact endit
 
 theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
   ∃ c > 0, ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ c := by
@@ -1250,13 +1241,13 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
 
     have O : ∀(n : ℕ), (↑(‖LSeries.term (fun x ↦ (Λ x)) s n‖ : ℝ) : ℂ) = LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ ) n := by
       intro n
-      by_cases h : (n = 0)
-      · simp [h]
-      · push_neg at h
+      by_cases h1 : (n = 0)
+      · simp [h1]
+      · push_neg at h1
         unfold LSeries.term
         simp [*]
-        have U : |Λ n| = Λ n := by sorry
-        have R : n > 0 := by sorry
+        have U : |Λ n| = Λ n := abs_of_nonneg (ArithmeticFunction.vonMangoldt_nonneg)
+        have R : n > 0 := by exact Nat.zero_lt_of_ne_zero h1
         rw [U]
         have Z := Complex.norm_natCast_cpow_of_pos R s
         rw [Z]
@@ -1271,33 +1262,26 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
             rw [mul_comm]
             nth_rewrite 1 [mul_assoc]
             simp [*]
-            sorry
-            --push_cast
-            --norm_cast
---            simp [mul_left_inv]
+            have := cast_pow_eq n σ₀
+            rw [this]
+            simp [*]
 
---            group
---            nth_rewrite 1 [mul_comm]
---            _
---            rw [mul_comm]
---            _
-
-          · sorry
-
---        norm_cast
-
-
-
---        rw_mod_cast [← L
-      --  _
---        push_cast
-        --norm_cast
---        push_cast
---        simp [*]
---        norm_cast
---        simp [*]
---        norm_cast
-
+          · have G : (↑ n : ℂ)^s_re  / (Λ n) ≠ 0 := by
+              have T : (↑ n : ℂ)^s_re ≠ 0 := by
+                have T : n > 0 := by exact R
+                have M : ∃(m : ℕ), n = m + 1 := by exact Nat.exists_eq_succ_of_ne_zero h1
+                let ⟨m, pf⟩ := M
+                have U := Complex.natCast_add_one_cpow_ne_zero m s_re
+                rw [pf]
+                push_cast
+                exact U
+              refine div_ne_zero T ?_
+              push_neg at h
+              norm_cast
+            have U := by exact mul_left_injective₀ G
+            have T : (fun (x : ℂ) ↦ x * (↑ n : ℂ)^s_re  / (Λ n)) = (fun (x : ℂ) ↦ x * ((↑ n : ℂ)^s_re  / (Λ n))) := by funext x; exact mul_div_assoc x (↑n ^ s_re) ↑(Λ n)
+            simp [←T] at U
+            exact U
 
     have K : (fun (n : ℕ) ↦ ↑(‖LSeries.term (fun x ↦ (Λ x)) s n‖ : ℝ)) = (fun (n : ℕ) ↦ (LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ )  n )) := by
       funext
@@ -1311,7 +1295,6 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
       simp [← U]
       exact T
 
-
     let new_const : ℝ := 1 + norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) s n‖)
 
     have C := calc
@@ -1324,11 +1307,34 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
     use new_const
     exact ⟨new_const_is_pos, C⟩
 
+theorem analyticAt_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
+  AnalyticAt ℂ riemannZeta s := by
+  have : DifferentiableAt ℂ riemannZeta s := differentiableAt_riemannZeta s_ne_one
+  have exclude := eventually_ne_nhds s_ne_one
+  unfold Filter.Eventually at exclude
+  have : AnalyticAt ℂ riemannZeta s := by
+      refine Complex.analyticAt_iff_eventually_differentiableAt.mpr ?_
+      unfold Filter.Eventually
+      have T : {x | (fun x ↦ x ≠ 1) x} ⊆ {x | (fun z ↦ DifferentiableAt ℂ ζ z) x} := by
+        intro x
+        simp [*]
+        push_neg
+        intro hyp_x
+        exact differentiableAt_riemannZeta hyp_x
+      apply mem_nhds_iff.mpr
+      use {x | (fun x ↦ x ≠ 1) x}
+      constructor
+      · exact T
+      · constructor
+        · exact isOpen_ne
+        · exact s_ne_one
+
+  exact this
 
 theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
     DifferentiableAt ℂ ζ' s := by
-  have : DifferentiableAt ℂ riemannZeta s := differentiableAt_riemannZeta s_ne_one
-  sorry
+      have U := (analyticAt_riemannZeta s_ne_one).deriv.differentiableAt
+      exact U
 
 /-%%
 \begin{lemma}[SmoothedChebyshevPull1_aux_integrable]\label{SmoothedChebyshevPull1_aux_integrable}\lean{SmoothedChebyshevPull1_aux_integrable}\leanok
