@@ -1643,18 +1643,32 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         exact ⟨h_left', h_right'⟩
 
       exact ⟨x_re_in_Icc, x_im_in_Icc⟩
+    -- x not in {1}
     . simp only [mem_singleton_iff]
-      have x_re_upper: x.re ≤ σ₁ := by sorry
+      -- x has real part less than 1
+      have x_re_upper: x.re ≤ σ₁ := by
+        simp only [Rectangle, uIcc] at hx
+        rw [Complex.mem_reProdIm] at hx
+        obtain ⟨hx_re, _⟩ := hx
+        -- the real part of x is in the interval
+        have hzw_re : z.re < w.re := by
+          dsimp [z, w]
+          linarith
+        have x_re_bounds : z.re ≤ x.re ∧ x.re ≤ w.re := by
+          exact interval_membership x.re z.re w.re hx_re hzw_re
+        have x_re_upper' : x.re ≤ w.re := by exact x_re_bounds.2
+        dsimp [w] at x_re_upper'
+        linarith
+
+      -- by contracdiction
       have h_x_ne_one : x ≠ 1 := by
         intro h_eq
         have h_re : x.re = 1 := by rw [h_eq, Complex.one_re]
         have h1 : 1 ≤ σ₁ := by
           rw [← h_re]
-          sorry
-        sorry
-
-      sorry -- not in {1}
-
+          exact x_re_upper
+        linarith
+      exact h_x_ne_one
 
   have := HolomorphicOn.vanishesOnRectangle holoOn2 sub
   sorry
