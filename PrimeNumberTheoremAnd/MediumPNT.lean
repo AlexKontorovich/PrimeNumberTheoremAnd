@@ -2301,8 +2301,6 @@ Putting these together gives the result.
 \end{proof}
 %%-/
 
-
-
 /-%%
 \section{MediumPNT}
 
