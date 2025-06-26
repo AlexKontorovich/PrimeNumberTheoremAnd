@@ -1549,6 +1549,18 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     linarith
   exact ResidueTheoremOnRectangleWithSimplePole zRe_le_wRe zIm_le_wIm pInRectangleInterior gHolo gEq
 
+
+
+
+lemma interval_membership (r : ℝ)(a b: ℝ)(h1 : r ∈ Set.Icc (min a b) (max a b)) (h2 : a < b) :
+  a ≤ r ∧ r ≤ b := by
+  -- Since a < b, we have min(a,b) = a and max(a,b) = b
+  have min_eq : min a b = a := min_eq_left (le_of_lt h2)
+  have max_eq : max a b = b := max_eq_right (le_of_lt h2)
+  rw [min_eq, max_eq] at h1
+  rw [← @mem_Icc]
+  exact h1
+
 /-%%
 \begin{proof}
 \uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue}
@@ -1596,40 +1608,57 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     . -- x in box
       simp only [Rectangle, uIcc] at hx
       rw [Complex.mem_reProdIm] at hx ⊢
-      -- only
+      obtain ⟨hx_re, hx_im⟩ := hx
+      -- the real part of x is in the interval
+      have hzw_re : z.re < w.re := by
+        dsimp [z, w]
+        linarith
+      have x_re_bounds : z.re ≤ x.re ∧ x.re ≤ w.re := by
+        exact interval_membership x.re z.re w.re hx_re hzw_re
+      have x_re_in_Icc : x.re ∈ Icc σ₂ 2 := by
+        have ⟨h_left, h_right⟩ := x_re_bounds
+        have h_left' : σ₂ ≤ x.re := by
+          dsimp [z] at h_left
+          linarith
+        have h_right' : x.re ≤ 2 := by
+          apply le_trans h_right
+          dsimp [w]
+          linarith
+        exact ⟨h_left', h_right'⟩
 
-      sorry
+      -- the imaginary part of x is in the interval
+      have hzw_im : z.im < w.im := by
+        dsimp [z, w]
+        linarith
+      have x_im_bounds : z.im ≤ x.im ∧ x.im ≤ w.im := by
+        exact interval_membership x.im z.im w.im hx_im hzw_im
+      have x_im_in_Icc : x.im ∈ Icc (-3) 3 := by
+        have ⟨h_left, h_right⟩ := x_im_bounds
+        have h_left' : -3 ≤ x.im := by
+          dsimp [z] at h_left
+          linarith
+        have h_right' : x.im ≤ 3 := by
+          dsimp [w] at h_right
+          linarith
+        exact ⟨h_left', h_right'⟩
 
-    -- constructor
-    -- .  -- Real part: σ₂ ≤ x.re ∧ x.re ≤ 2
-    --   simp only [z, w] at hre him
-    --   simp only [sub_re, add_re, mul_re, ofReal_re] at hre him
-    --   simp [uIcc_of_le σ₁_lt_one.le] at hre him
-    --   simp [uIcc_of_le σ₂_lt_σ₂.le] at hre him
+      exact ⟨x_re_in_Icc, x_im_in_Icc⟩
+    . simp only [mem_singleton_iff]
+      have x_re_upper: x.re ≤ σ₁ := by sorry
+      have h_x_ne_one : x ≠ 1 := by
+        intro h_eq
+        have h_re : x.re = 1 := by rw [h_eq, Complex.one_re]
+        have h1 : 1 ≤ σ₁ := by
+          rw [← h_re]
+          sorry
+        sorry
 
-    --   dsimp [hre, him]
-    --   have x_re_lower: σ₂ ≤ x.re := by
-    --     exact hre.1
-
-    --   -- exact ⟨hre.1 ⟩
-    --   sorry
-    -- . -- Imaginary part: -3 ≤ x ∧ x ≤ 3
-    --   sorry
-
-    . sorry -- not in {1}
+      sorry -- not in {1}
 
 
   have := HolomorphicOn.vanishesOnRectangle holoOn2 sub
   sorry
 
-theorem interval_membership (x : ℝ)(a b: ℝ)(h1 : x ∈ Set.Icc (min a b) (max a b)) (h2 : a < b) :
-  a ≤ x ∧ x ≤ b := by
-  -- Since a < b, we have min(a,b) = a and max(a,b) = b
-  have min_eq : min a b = a := min_eq_left (le_of_lt h2)
-  have max_eq : max a b = b := max_eq_right (le_of_lt h2)
-  rw [min_eq, max_eq] at h1
-  rw [← @mem_Icc]
-  exact h1
 
 /-%%
 \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
