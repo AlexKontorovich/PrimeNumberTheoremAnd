@@ -1265,6 +1265,15 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
   ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
   sorry
 
+/-%%
+\begin{lemma}[dlog_riemannZeta_bdd_on_vertical_lines']\label{dlog_riemannZeta_bdd_on_vertical_lines'}\lean{dlog_riemannZeta_bdd_on_vertical_lines'}\leanok
+For $\sigma_0 > 1$, there exists a constant $C > 0$ such that
+$$
+\forall t \in \R, \quad
+\left\| \frac{\zeta'(\sigma_0 + t i)}{\zeta(\sigma_0 + t i)} \right\| \leq C.
+$$
+\end{lemma}
+%%-/
 theorem dlog_riemannZeta_bdd_on_vertical_lines' {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) :
   ∃ C > 0, ∀ (t : ℝ), ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ C := by
   sorry
@@ -1780,15 +1789,36 @@ theorem I1Bound {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
 
   sorry
 /-%%
-\begin{proof}\uses{}
+\begin{proof}\uses{MellinOfSmooth1b}
   Unfold the definitions and apply the triangle inequality.
 $$
-\left|I_{1}(SmoothingF, \epsilon, X, T)\right| =
-\left|\int_{1}^{2}\int_{-T}^{T}\frac{-\zeta'(\sigma + it)}{\zeta(\sigma + it)}\nu(\sigma)X^{\sigma + it}dtd\sigma\right|
+\left|I_{1}(\nu, \epsilon, X, T)\right| =
+\left|
+\frac{1}{2\pi i} \int_{-\infty}^{-T}
+\left(
+\frac{-\zeta'}\zeta(\sigma_0 + t i)
+\right)
+ \mathcal M(\widetilde 1_\epsilon)(\sigma_0 + t i)
+X^{\sigma_0 + t i}
+\ i \ dt
+\right|
 $$
 $$
-\leq \int_{1}^{2}\int_{-T}^{T}SmoothingF(\sigma)\left|\frac{-\zeta'(\sigma + it)}{\zeta(\sigma + it)}X^{\sigma + it}\right|dtd\sigma
+\leq
+\frac{1}{2\pi}
+\left|
+ \int_{-\infty}^{-T}
+\left(
+\frac{-\zeta'}\zeta(\sigma_0)
+\right)
+ \frac{C}{\epsilon|\sigma_0 + t i|^2}
+X^{\sigma_0}
+\ dt
+\right|
 $$
+where we used Theorems \ref{MellinOfSmooth1b} and
+\ref{dlog_riemannZeta_bdd_on_vertical_lines}.
+\end{proof}
 %%-/
 
 /-%%
