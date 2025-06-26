@@ -2104,7 +2104,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma I2Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
+lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     {T : ℝ} (T_gt : 3 < T)
@@ -2153,7 +2153,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma I3Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
+lemma I3Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     {T : ℝ} (T_gt : 3 < T)
@@ -2200,7 +2200,8 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma I4Bound : ∃ C > 0, ∃ A > 0, ∃ σ₂ > 0, ∀ {SmoothingF : ℝ → ℝ}
+lemma I4Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1),
+    ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     {T : ℝ} (T_gt : 3 < T)
@@ -2217,6 +2218,31 @@ The analysis of $I_4$ is similar to that of $I_2$, (in Lemma \ref{I2Bound}) but 
 Let $C$ be the sup of $-\zeta'/\zeta$ on the curve $\sigma_2 + 3 i$ to $1+ 3i$ (this curve is compact, and away from the pole at $s=1$).
 Apply Theorem \ref{MellinOfSmooth1b} to get the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
 And $X^s$ is bounded by $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$.
+Putting these together gives the result.
+\end{proof}
+%%-/
+
+/-%%
+\begin{lemma}[I5Bound]\label{I5Bound}\lean{I5Bound}\leanok
+We have that
+$$
+\left|I_{5}(\nu, \epsilon, X, \sigma_2)\right| \ll {X^{\sigma_2} \over \epsilon}.
+$$
+\end{lemma}
+%%-/
+lemma I5Bound : ∃ (C : ℝ) (_ : 0 < C) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1), ∀ {SmoothingF : ℝ → ℝ}
+    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    ‖I₅ SmoothingF ε X σ₂‖ ≤ C * X ^ σ₂ / ε := by
+  sorry
+/-%%
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaHolcSmallT, I₅}
+Here $\zeta'/\zeta$ is absolutely bounded on the compact interval $\sigma_2 + i [-3,3]$, and
+$X^s$ is bounded by $X^{\sigma_2}$. Using Theorem \ref{MellinOfSmooth1b} gives the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
 Putting these together gives the result.
 \end{proof}
 %%-/
