@@ -2013,6 +2013,24 @@ It remains to estimate all of the integrals.
 %%-/
 
 /-%%
+This auxiliary lemme is useful for what follows.
+\begin{lemma}[IBound_aux1]\label{IBound_aux1}\lean{IBound_aux1}\leanok
+Given $k>0$, there exists $C>0$ so that for all $T>3$,
+$$
+\log T ^ k \le C \cdot T.
+$$
+\end{lemma}
+%%-/
+lemma IBound_aux1 {k : ℝ} (k_pos : 0 < k) : ∃ C > 0,
+    ∀ {T : ℝ} (T_gt : 3 < T), Real.log T ^ k ≤ C * T := by
+    sorry
+/-%%
+\begin{proof}
+Elementary. Use `isLittleO_log_rpow_rpow_atTop` in Mathlib.
+\end{proof}
+%%-/
+
+/-%%
 \begin{lemma}[I1Bound]\label{I1Bound}\lean{I1Bound}\leanok
 We have that
 $$
