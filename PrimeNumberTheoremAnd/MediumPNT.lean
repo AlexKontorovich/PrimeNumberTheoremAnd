@@ -1594,6 +1594,20 @@ so we should just need to bound the rest.
 \end{proof}
 %%-/
 
+/-%%
+\begin{lemma}[BddAboveOnRect]\label{BddAboveOnRect}\lean{BddAboveOnRect}\leanok
+Let $g : \C \to \C$ be a holomorphic function on a rectangle, then $g$ is bounded above on the rectangle.
+\end{lemma}
+%%-/
+lemma BddAboveOnRect {g : ℂ → ℂ} {z w : ℂ} (holoOn : HolomorphicOn g (z.Rectangle w)) :
+    BddAbove (norm ∘ g '' (z.Rectangle w)) := by
+  sorry
+/-%%
+\begin{proof}
+Use the compactness of the rectangle and the fact that holomorphic functions are continuous.
+\end{proof}
+%%-/
+
 
 /-%%
 \begin{theorem}[SmoothedChebyshevPull1]\label{SmoothedChebyshevPull1}\lean{SmoothedChebyshevPull1}\leanok
