@@ -2135,7 +2135,7 @@ lemma I3Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
     ‖I₃ SmoothingF ε X T σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε  := by
   sorry
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform}
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBnd}
 Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{3}(\nu, \epsilon, X, T, \sigma_1)\right| =
@@ -2149,15 +2149,14 @@ $$
 $$\leq
 \frac{1}{2\pi}
 \int_{-T}^3
-C \cdot \log T ^ 9
+C \cdot \log t ^ 9
 \frac{C'}{\epsilon|\sigma_1 + t i|^2}
 X^{\sigma_1}
  \ dt
 ,
 $$
-where we used Theorems \ref{MellinOfSmooth1b} and \ref{LogDerivZetaBndUniform}.
-Now we estimate $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$, and the integral is bounded by
-$ 1/\epsilon $.
+where we used Theorems \ref{MellinOfSmooth1b} and \ref{LogDerivZetaBnd}.
+Now we estimate $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$, and the integral is absolutely bounded.
 \end{proof}
 %%-/
 
