@@ -3863,8 +3863,97 @@ is holomorphic on $\{ \sigma_0 \le \Re s \le 2, |\Im s| \le 3 \} \setminus \{1\}
 theorem LogDerivZetaHolcSmallT :
     ∃ (σ₂ : ℝ) (_ : σ₂ < 1), HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
       (( [[ σ₂, 2 ]] ×ℂ [[ -3, 3 ]]) \ {1}) := by
-  have := ZetaNoZerosInBox 4
-  sorry
+  obtain ⟨σ₂, hσ₂_lt_one, hζ_ne_zero⟩ := ZetaNoZerosInBox 4
+  let U := ([[σ₂, 2]] ×ℂ [[-3, 3]]) \ {1}
+  have s_in_U_im_le3 : ∀ s ∈ U, |s.im| ≤ 3 := by
+    intro s hs
+    rw [mem_diff_singleton] at hs
+    rcases hs with ⟨hbox, _hne⟩
+    rcases hbox with ⟨hre, him⟩
+    simp only [Set.mem_preimage, mem_Icc] at him
+    obtain ⟨him_lower, him_upper⟩ := him
+    apply abs_le.2
+    simp at him_lower
+    simp at him_upper
+    constructor
+    · exact him_lower
+    · exact him_upper
+  have s_in_U_re_le2 : ∀ s ∈ U, s.re ≤ 2 := by
+    intro s hs
+    rw [mem_diff_singleton] at hs
+    rcases hs with ⟨hbox, _hne⟩
+    rcases hbox with ⟨hre, _him⟩
+    simp only [Set.mem_preimage, mem_Icc] at hre
+    obtain ⟨hre_lower, hre_upper⟩ := hre
+    have : max σ₂ 2 = 2 := by
+      apply max_eq_right
+      linarith [hσ₂_lt_one]
+    rw[this] at hre_upper
+    exact hre_upper
+
+  have s_in_U_re_ges2 : ∀ s ∈ U, σ₂ ≤ s.re := by
+    intro s hs
+    rw [mem_diff_singleton] at hs
+    rcases hs with ⟨hbox, _hne⟩
+    rcases hbox with ⟨hre, _him⟩
+    simp only [Set.mem_preimage, mem_Icc] at hre
+    obtain ⟨hre_lower, hre_upper⟩ := hre
+    have : min σ₂ 2 = σ₂ := by
+      apply min_eq_left
+      linarith [hσ₂_lt_one]
+    rw[this] at hre_lower
+    exact hre_lower
+
+  have hζ_hol : HolomorphicOn ζ (univ \ {1}) := by
+    intro s hs
+    exact (differentiableAt_riemannZeta hs.2).differentiableWithinAt
+
+  have hζ'_hol_ne1 : HolomorphicOn (deriv ζ) (univ \ {1}) := by
+    apply hζ_hol.deriv
+    refine IsOpen.sdiff ?_ ?_
+    exact isOpen_univ
+    exact isClosed_singleton
+
+  have hζ'_hol : HolomorphicOn (deriv ζ) U := by
+    apply hζ'_hol_ne1.mono
+    exact diff_subset_diff_left fun ⦃a⦄ a ↦ trivial
+
+  have hζ_ne_zero' : ∀ s ∈ U, ζ s ≠ 0 := by
+    intro s hs
+    have : |s.im| ≤ 3 := s_in_U_im_le3 s hs
+    have h1 : |s.im| < 4 := by
+      linarith [this]
+    have h2 : σ₂ ≤ s.re := by
+      exact s_in_U_re_ges2 s hs
+    have : s = s.re + s.im * I := by
+      exact Eq.symm (re_add_im s)
+    rw[this]
+    apply hζ_ne_zero s.im h1 s.re
+    exact s_in_U_re_ges2 s hs
+
+  have hζ_inv_hol : HolomorphicOn (fun s ↦ 1 / ζ s) U := by
+    unfold HolomorphicOn
+    unfold DifferentiableOn
+    intro x hx
+    have h_diff : DifferentiableAt ℂ ζ x := differentiableAt_riemannZeta (hx.2)
+    have h_ne_zero : ζ x ≠ 0 := hζ_ne_zero' x hx
+    have h_inv_diff : DifferentiableAt ℂ (fun s ↦ 1 / ζ s) x := by
+      simp
+      apply DifferentiableAt.inv h_diff h_ne_zero
+    exact h_inv_diff.differentiableWithinAt
+
+  have hlog_deriv_hol : HolomorphicOn (fun s ↦ ζ' s / ζ s) U := by
+    let f := fun s ↦ ζ' s
+    let g := fun s ↦ 1 / ζ s
+    have hf : HolomorphicOn f U := hζ'_hol
+    have hg : HolomorphicOn g U := hζ_inv_hol
+    have hlog_deriv_hol : HolomorphicOn (fun s ↦ f s * g s) U := hf.mul hg
+    convert hlog_deriv_hol using 1
+    ext s
+    simp [f, g]
+    exact div_eq_mul_inv (deriv ζ s) (ζ s)
+
+  exact ⟨σ₂, hσ₂_lt_one, hlog_deriv_hol⟩
 /-%%
 \begin{proof}\uses{ZetaNoZerosInBox}
 The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
