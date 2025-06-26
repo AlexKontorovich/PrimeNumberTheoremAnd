@@ -1579,6 +1579,11 @@ X^{s}ds
 $$
 \end{lemma}
 %%-/
+
+-- use intervalIntegral.integral_add_adjacent_intervals
+lemma verticalIntegral_split_three_finite (s a b e σ: ℝ) (f : ℂ → ℝ)(hf : Integrable (fun t : ℝ ↦ f (σ + t * I))) :
+    VerticalIntegral f σ = VIntegral f σ s a + VIntegral f σ a b + VIntegral f σ b e := by sorry
+
 theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1)
     (X : ℝ) (_ : 3 < X)
     {T : ℝ} (T_pos : 0 < T) {σ₁ σ₂ : ℝ}
@@ -1672,7 +1677,19 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
 
   have zero_over_box := HolomorphicOn.vanishesOnRectangle holoOn2 sub
 
-  -- computing the vertical integral from I_3 to I_7 by adding and subtracting the
+  -- split the vertial integral along the vertical line at `x = σ₁` into 3 segments at `a = -3` and `b = 3`
+  -- the integral on `(-∞, -3)` is `I_3`
+  -- the integral on `(3, ∞)` is `I_7`
+  -- the integral on `[-3, 3]` is equal to `-I₅ SmoothingF ε T X σ₁`.
+  have splitting : I₃₇ SmoothingF ε T X σ₁ = I₃ SmoothingF ε T X σ₁ + I₅ SmoothingF ε X σ₁ + I₇ SmoothingF ε T X σ₁ := by
+    have := verticalIntegral_split_three_finite (a := -3) (b := 3)
+    -- rw [verticalIntegral_split_three (a := -3) (b := 3)]
+
+
+
+
+
+  -- computing the contour integral from I_3 to I_7 by adding and subtracting the
   -- integral leftmost box
   calc I₃₇ SmoothingF ε T X σ₁ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (0 : ℂ) := by simp
     _ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (RectangleIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z w) := by rw [← zero_over_box]
@@ -1717,6 +1734,8 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       simp only [I₅, one_div, mul_inv_rev, inv_I, neg_mul, VIntegral, sub_re, ofReal_re, mul_re,
         re_ofNat, I_re, mul_zero, im_ofNat, I_im, mul_one, sub_self, sub_zero, sub_im, ofReal_im,
         mul_im, add_zero, zero_sub, add_im, zero_add, smul_eq_mul, sub_neg_eq_add, z, w]
+
+
   sorry
 
     -- := by ring
