@@ -1446,7 +1446,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
       exact ContinuousAt.comp h_pow h_param
 
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, SmoothedChebyshevDirichlet_aux_integrable}
+\begin{proof}\uses{MellinOfSmooth1b, SmoothedChebyshevDirichlet_aux_integrable}\leanok
 The $\zeta'(s)/\zeta(s)$ term is bounded, as is $X^s$, and the smoothing function
 $\mathcal{M}(\widetilde{1_{\epsilon}})(s)$
 decays like $1/|s|^2$ by Theorem \ref{MellinOfSmooth1b}.
