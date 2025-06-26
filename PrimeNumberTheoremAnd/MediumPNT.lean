@@ -2107,6 +2107,7 @@ $$
 \mathcal M(\widetilde 1_\epsilon)(\sigma - T i)
 X^{\sigma - T i}
  \ d\sigma
+\right|
 $$
 $$\leq
 \frac{1}{2\pi}
@@ -2194,6 +2195,8 @@ lemma I4Bound : ∃ C > 0, ∃ A > 0, ∃ σ₂ > 0, ∀ {SmoothingF : ℝ → �
   sorry
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndAlt, I₄}
+The analysis of $I_4$ is similar to that of $I_2$, (in Lemma \ref{I2Bound}) but even easier.
+
 \end{proof}
 %%-/
 
