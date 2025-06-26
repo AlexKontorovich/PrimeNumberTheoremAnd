@@ -1511,7 +1511,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     (ε_lt_one : ε < 1)
     {X : ℝ} (X_gt : 3 < X)
     {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (σ₀_le_2 : σ₀ ≤ 2)
---    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
+    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Ico σ₀ 2 ×ℂ univ \ {1}))
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
@@ -1626,7 +1626,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     (X : ℝ) (X_gt : 3 < X)
     {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
     (σ₁_pos : 0 < σ₁) (σ₁_lt_one : σ₁ < 1)
-    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₁ 2)×ℂ (Icc (-T) T) \ {1}))
+    (holoOn : HolomorphicOn (ζ' / ζ) ((Ico σ₁ 2)×ℂ (Icc (-T) T) \ {1}))
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
@@ -1728,8 +1728,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     have hs : 0 < s.re := by
       have : 1 + (Real.log X)⁻¹ ≤ s.re := by exact sReIn.1
       linarith
-    exact Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF εInter SmoothingFnonneg
-      mass_one hs
+    exact Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF εInter SmoothingFnonneg mass_one hs
     intro s hs
     apply DifferentiableAt.differentiableWithinAt
     cases' hs with h_in h_not_one
@@ -1741,20 +1740,17 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     refine ne_zero_of_re_pos ?_
     rw[ofReal_re]
     positivity
-    -- apply add_pos (by positivity)
-    -- rw[inv_pos, ← Real.log_one]
-    -- apply Real.log_lt_log (by positivity) (by linarith)
-  have logX_gt : 1 + (Real.log X)⁻¹ ≤ 2 := by
-    sorry
-    -- apply add_lt_add_left
-    -- apply inv_lt_one_of_pos
-    -- rw[Real.log_one]
-    -- exact Real.log_pos (by positivity)
-    -- exact X_gt
-
-  exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_gt_one logX_gt
-    suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
-
+  have X_eq_le_two : 1 + (Real.log X)⁻¹ ≤ 2 := by
+    apply le_of_lt
+    rw[← one_add_one_eq_two]
+    refine (Real.add_lt_add_iff_left 1).mpr ?_
+    refine inv_lt_one_of_one_lt₀ ?_
+    refine (lt_log_iff_exp_lt ?_).mpr ?_
+    positivity
+    have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
+    linarith
+  exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_gt_one X_eq_le_two
+    holoIntegrand suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
 
   have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by field_simp
   repeat rw[smul_eq_mul]
@@ -1877,20 +1873,151 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       refine mem_Ioo.mpr ?_
       exact ⟨(by linarith), (by linarith)⟩
     exact ⟨temp, this⟩
-  --TODO:
+  have X_eq_lt_two : (1 + (Real.log X)⁻¹) < 2 := by
+    rw[← one_add_one_eq_two]
+    refine (Real.add_lt_add_iff_left 1).mpr ?_
+    refine inv_lt_one_of_one_lt₀ ?_
+    refine (lt_log_iff_exp_lt ?_).mpr ?_
+    positivity
+    have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
+    linarith
   have holoMatchHoloOn : HolomorphicOn holoMatch (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1}) := by
     unfold HolomorphicOn holoMatch
     refine DifferentiableOn.sub ?_ ?_
-    sorry
+    unfold fTempC fTempRR
+    have : (fun z ↦ SmoothedChebyshevIntegrand SmoothingF ε X (↑z.re + ↑z.im * I)) =
+      (fun z ↦ SmoothedChebyshevIntegrand SmoothingF ε X z) := by
+      apply funext
+      intro z
+      have : (↑z.re + ↑z.im * I) = z := by exact re_add_im z
+      rw[this]
+    rw[this]
+    unfold SmoothedChebyshevIntegrand
+    refine DifferentiableOn.mul ?_ ?_
+    refine DifferentiableOn.mul ?_ ?_
+    have : (fun s ↦ -ζ' s / ζ s) = (fun s ↦ -(ζ' s / ζ s)) := by
+      refine funext ?_
+      intro x
+      exact neg_div (ζ x) (ζ' x)
+    rw[this]
+    refine DifferentiableOn.neg ?_
+    unfold DifferentiableOn
+    intro x x_location
+    unfold Rectangle at x_location
+    rw[Set.mem_diff, Complex.mem_reProdIm, sub_re, add_re, sub_im, add_im, mul_re, mul_im, I_re, I_im, add_re, add_im] at x_location
+    repeat rw[ofReal_re] at x_location
+    repeat rw[ofReal_im] at x_location
+    have : re 1 = 1 := by exact rfl
+    rw[this] at x_location
+    have : im 1 = 0 := by exact rfl
+    rw[this] at x_location
+    ring_nf at x_location
+    obtain ⟨⟨xReIn, xImIn⟩, xOut⟩ := x_location
+    unfold uIcc at xReIn xImIn
+    have : min σ₁ (1 + (Real.log X)⁻¹) = σ₁ := by exact min_eq_left (by linarith)
+    rw[this] at xReIn
+    have : max σ₁ (1 + (Real.log X)⁻¹) = 1 + (Real.log X)⁻¹ := by exact max_eq_right (by linarith)
+    rw[this] at xReIn
+    have : min (-T) T = (-T) := by exact min_eq_left (by linarith)
+    rw[this] at xImIn
+    have : max (-T) T = T := by exact max_eq_right (by linarith)
+    rw[this] at xImIn
+    unfold HolomorphicOn DifferentiableOn at holoOn
+    have temp : DifferentiableWithinAt ℂ (ζ' / ζ) (Ico σ₁ 2 ×ℂ Icc (-T) T \ {1}) x := by
+      have : x ∈ Ico σ₁ 2 ×ℂ Icc (-T) T \ {1} := by
+        rw[Set.mem_diff, Complex.mem_reProdIm]
+        have xReTemp : x.re ∈ Ico σ₁ 2 := by
+          have xReLb : σ₁ ≤ x.re := by exact xReIn.1
+          have xReUb : x.re < 2 := by exact lt_of_le_of_lt xReIn.2 X_eq_lt_two
+          exact ⟨xReLb, xReUb⟩
+        have xImTemp : x.im ∈ Icc (-T) T := by exact ⟨xImIn.1, xImIn.2⟩
+        exact ⟨⟨xReTemp, xImTemp⟩, xOut⟩
+      exact holoOn x this
+    have : ((↑σ₁ - ↑T * I).Rectangle (1 + ↑(Real.log X)⁻¹ + ↑T * I) \ {1}) ⊆ (Ico σ₁ 2 ×ℂ Icc (-T) T \ {1}) := by
+      intro a a_location
+      rw[Set.mem_diff, Complex.mem_reProdIm]
+      rw[Set.mem_diff] at a_location
+      obtain ⟨aIn, aOut⟩ := a_location
+      unfold Rectangle uIcc at aIn
+      rw[sub_re, add_re, add_re, sub_im, add_im, add_im, mul_re, mul_im, ofReal_re, ofReal_re, ofReal_re, ofReal_im, ofReal_im, ofReal_im, I_re, I_im] at aIn
+      have : re 1 = 1 := by rfl
+      rw[this] at aIn
+      have : im 1 = 0 := by rfl
+      rw[this] at aIn
+      ring_nf at aIn
+      have : min σ₁ (1 + (Real.log X)⁻¹) = σ₁ := by linarith
+      rw[this] at aIn
+      have : max σ₁ (1 + (Real.log X)⁻¹) = 1 + (Real.log X)⁻¹ := by linarith
+      rw[this] at aIn
+      have : min (-T) T = (-T) := by linarith
+      rw[this] at aIn
+      have : max (-T) T = T := by linarith
+      rw[this] at aIn
+      rw[Complex.mem_reProdIm] at aIn
+      obtain ⟨aReIn, aImIn⟩ := aIn
+      have aReInRedo : a.re ∈ Ico σ₁ 2 := by
+        have : a.re < 2 := by exact lt_of_le_of_lt aReIn.2 X_eq_lt_two
+        exact ⟨aReIn.1, this⟩
+      exact ⟨⟨aReInRedo, aImIn⟩, aOut⟩
+    exact DifferentiableWithinAt.mono temp this
+    unfold DifferentiableOn
+    intro x x_location
+    refine DifferentiableAt.differentiableWithinAt ?_
+    have hε : ε ∈ Ioo 0 1 := by exact ⟨ε_pos, ε_lt_one⟩
+    have xRePos : 0 < x.re := by
+      unfold Rectangle at x_location
+      rw[Set.mem_diff, Complex.mem_reProdIm] at x_location
+      obtain ⟨⟨xReIn, _⟩, _⟩ := x_location
+      unfold uIcc at xReIn
+      rw[sub_re, add_re, add_re, mul_re, I_re, I_im] at xReIn
+      repeat rw[ofReal_re] at xReIn
+      repeat rw[ofReal_im] at xReIn
+      ring_nf at xReIn
+      have : re 1 = 1 := by rfl
+      rw[this] at xReIn
+      have : min σ₁ (1 + (Real.log X)⁻¹) = σ₁ := by exact min_eq_left (by linarith)
+      rw[this] at xReIn
+      have : σ₁ ≤ x.re := by exact xReIn.1
+      linarith
+    exact Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF hε SmoothingFnonneg mass_one xRePos
+    unfold DifferentiableOn
+    intro x x_location
+    apply DifferentiableAt.differentiableWithinAt
+    unfold HPow.hPow instHPow
+    simp
+    apply DifferentiableAt.const_cpow
+    exact differentiableAt_id'
+    refine Or.inl ?_
+    refine ne_zero_of_re_pos ?_
+    rw[ofReal_re]
+    positivity
+    refine DifferentiableOn.mul ?_ ?_
     refine DifferentiableOn.mul ?_ ?_
     unfold DifferentiableOn
     intro x x_location
     rw[Set.mem_diff] at x_location
-    obtain ⟨xInRect, xOut⟩ := x_location
-    sorry
-    sorry
+    apply DifferentiableAt.differentiableWithinAt
+    exact differentiableAt_const (𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) 1)
+    unfold DifferentiableOn
+    intro x x_location
+    apply DifferentiableAt.differentiableWithinAt
+    simp only [differentiableAt_const]
+    unfold DifferentiableOn
+    intro x x_location
+    apply DifferentiableAt.differentiableWithinAt
+    refine DifferentiableAt.inv ?_ ?_
+    refine DifferentiableAt.sub ?_ ?_
+    exact differentiableAt_id'
+    exact differentiableAt_const 1
+    refine sub_ne_zero_of_ne ?_
+    rw[Set.mem_diff] at x_location
+    obtain ⟨xIn, xOut⟩ := x_location
+    rw[Set.notMem_singleton_iff] at xOut
+    exact xOut
+
   --TODO:
-  have holoMatchBddAbove : BddAbove (norm ∘ holoMatch '' (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1})) := by sorry --should be able to do with lemmas from workshop
+  have holoMatchBddAbove : BddAbove (norm ∘ holoMatch '' (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1})) := by
+    sorry --should be able to do with lemmas from workshop
   obtain ⟨g, gHolo_Eq⟩ := existsDifferentiableOn_of_bddAbove pInRectangleInterior holoMatchHoloOn holoMatchBddAbove
   obtain ⟨gHolo, gEq⟩ := gHolo_Eq
 
