@@ -1133,7 +1133,7 @@ theorem realDiff_of_complexDIff {f : ℂ → ℂ} (s : ℂ) (hf : Differentiable
   -- The composition of continuous functions is continuous
   exact ContinuousAt.comp hf_cont h_param
 
--- TODO : Move elsewhere (should be in Mathlib!)
+-- TODO : Move elsewhere (should be in Mathlib!) NOT NEEDED
 theorem riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
   ∃ c > 0, ‖ζ (σ₀ + t * I)‖ ≤ c :=
   by
@@ -1204,11 +1204,26 @@ theorem cast_pow_eq (n : ℕ) (σ₀ : ℝ):
     have endit := Complex.ofReal_cpow U σ₀
     exact endit
 
-theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
-  ∃ c > 0, ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ c := by
+-- TODO : Move elsewhere (should be in Mathlib!) NOT NEEDED
+theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀)  :
+  ∃ c > 0, ∀(t : ℝ), ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ c := by
+
+    let s_re : ℂ  := σ₀
+
+    let new_const : ℝ := 1 + (↑(Norm.norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) (↑ s_re : ℂ ) n‖)) : ℝ )
+    have new_const_is_pos : new_const > 0 := by positivity
+
+    use new_const
+    use new_const_is_pos
+    intro t
 
     let s := σ₀ + t * I
-    let s_re : ℂ  := σ₀
+
+    have DD : (↑ s.re : ℂ)  = s_re := by
+      refine ofReal_inj.mpr ?_
+      rw [add_re, ofReal_re, mul_re, ofReal_re, I_re, I_im]
+      simp
+
 
     have L : s_re = σ₀ := by rfl
 
@@ -1226,7 +1241,6 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
 
     rw [← norm_neg, ← neg_div, ← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div pos]
 
-
     have identity0 : ∀(n : ℕ), ‖LSeries.term 1 s n‖ = 1 / n^σ₀ := by
       unfold LSeries.term
       intro n
@@ -1239,8 +1253,11 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
         rw [H] at T
         exact T
 
-    have O : ∀(n : ℕ), (↑(‖LSeries.term (fun x ↦ (Λ x)) s n‖ : ℝ) : ℂ) = LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ ) n := by
+    have O : ∀(s : ℂ), ∀(n : ℕ), s.re = σ₀ → (↑(‖LSeries.term (fun x ↦ (Λ x)) s n‖ : ℝ) : ℂ) = LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ ) n := by
+      intro s
       intro n
+      intro cond
+--      have L : s_re = σ₀ := by rfl
       by_cases h1 : (n = 0)
       · simp [h1]
       · push_neg at h1
@@ -1284,8 +1301,16 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
             exact U
 
     have K : (fun (n : ℕ) ↦ ↑(‖LSeries.term (fun x ↦ (Λ x)) s n‖ : ℝ)) = (fun (n : ℕ) ↦ (LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ )  n )) := by
-      funext
-      rw [O]
+      funext n
+      rw [O s n H]
+
+    have K1 : (fun (n : ℕ) ↦ ↑(‖LSeries.term (fun x ↦ (Λ x)) (↑ s.re : ℂ) n‖ : ℝ)) = (fun (n : ℕ) ↦ (LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ )  n )) := by
+      funext n
+      rw [O (↑ s.re : ℂ) n H]
+      simp [*]
+
+    have D2 :  (fun (n : ℕ) ↦ ↑(‖LSeries.term (fun x ↦ (Λ x)) s n‖ : ℝ)) = (fun (n : ℕ) ↦ ↑(‖LSeries.term (fun x ↦ (Λ x)) (↑ s.re : ℂ)  n‖ : ℝ)) := by
+      simp [← K]
 
     have S : Summable (fun n ↦ (↑(‖LSeries.term (fun x ↦ Λ x) s n‖ : ℝ) : ℝ  )) := by
       apply (summable_real_iff_summable_coe_complex (fun n ↦ (↑(‖LSeries.term (fun x ↦ Λ x) s n‖ : ℝ) : ℝ  ))).mpr
@@ -1295,17 +1320,16 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
       simp [← U]
       exact T
 
-    let new_const : ℝ := 1 + norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) s n‖)
-
     have C := calc
       ‖∑' (n : ℕ), (LSeries.term (fun x ↦ Λ x) s n)‖ ≤ ∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) s n‖ := norm_tsum_le_tsum_norm S
+--      _                                              = ∑' (n : ℕ), LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ )  n) := by simp [K]
       _                                              ≤ norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) s n‖) := by exact le_norm_self (∑' (n : ℕ), ‖LSeries.term (fun x ↦ ↑(Λ x)) s n‖)
-      _                                              ≤ 1 + norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) s n‖) := by linarith
-      _                                              ≤ new_const := by exact Preorder.le_refl (1 + ‖∑' (n : ℕ), ‖LSeries.term (fun x ↦ ↑(Λ x)) s n‖‖)
+      _                                              = norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ) n‖) := by simp [D2]
+      _                                              ≤ 1 + norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) ( ↑ s.re : ℂ) n‖ ) := by linarith
+      _                                              = new_const := by rw [DD]
 
-    have new_const_is_pos : new_const > 0 := by positivity
-    use new_const
-    exact ⟨new_const_is_pos, C⟩
+    exact C
+
 
 theorem analyticAt_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
   AnalyticAt ℂ riemannZeta s := by
@@ -1331,6 +1355,10 @@ theorem analyticAt_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
 
   exact this
 
+theorem dlog_riemannZeta_bdd_on_vertical_lines' {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) :
+  ∃ C > 0, ∀ (t : ℝ), ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ C :=
+  dlog_riemannZeta_bdd_on_vertical_lines σ₀_gt
+
 theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
     DifferentiableAt ℂ ζ' s := by
       have U := (analyticAt_riemannZeta s_ne_one).deriv.differentiableAt
@@ -1346,7 +1374,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     (ε_lt_one : ε < 1)
     {X : ℝ} (X_gt : 3 < X)
     {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (σ₀_le_2 : σ₀ ≤ 2)
-    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
+--    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
@@ -1354,7 +1382,8 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     :
     Integrable (fun (t : ℝ) ↦
       SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + (t : ℂ) * I)) volume := by
-  let c : ℝ := ‖ζ' (σ₀) / ζ (σ₀)‖ * X ^ σ₀
+  obtain ⟨C, C_pos, hC⟩ := dlog_riemannZeta_bdd_on_vertical_lines' σ₀_gt
+  let c : ℝ := C * X ^ σ₀
   have : ∀ᵐ t ∂volume, ‖(fun (t : ℝ) ↦ (- deriv riemannZeta (σ₀ + (t : ℂ) * I)) /
     riemannZeta (σ₀ + (t : ℂ) * I) *
     (X : ℂ) ^ (σ₀ + (t : ℂ) * I)) t‖ ≤ c := by
@@ -1362,7 +1391,8 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     intro t
     simp only [Complex.norm_mul, norm_neg, c]
     gcongr
-    · sorry -- convert dlog_riemannZeta_bdd_on_vertical_lines σ₀_gt t using 1
+    · convert hC t using 1
+      simp
     · rw [Complex.norm_cpow_eq_rpow_re_of_nonneg]
       · simp
       · linarith
@@ -1461,8 +1491,105 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   unfold VerticalIntegral'
   rw [verticalIntegral_split_three (a := -T) (b := T)]
   swap
-  have X_eq_pos : 1 < 1 + (Real.log X)⁻¹ := by
-    sorry
+  have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by
+    nth_rewrite 1 [← add_zero 1]
+    refine add_lt_add_of_le_of_lt ?_ ?_
+    rfl
+    rw[inv_pos, ← Real.log_one]
+    apply Real.log_lt_log
+    norm_num
+    linarith
+  have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X)
+      (Ico (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by
+    unfold SmoothedChebyshevIntegrand HolomorphicOn
+    refine DifferentiableOn.mul ?_ ?_
+    refine DifferentiableOn.mul ?_ ?_
+    have : (fun s ↦ -ζ' s / ζ s) = (fun s ↦ -(ζ' s / ζ s)) := by
+      refine funext ?_
+      intro x
+      exact neg_div (ζ x) (ζ' x)
+    rw[this]
+    refine DifferentiableOn.neg ?_
+    unfold DifferentiableOn
+    intro s s_location
+    rw[Set.mem_diff, Complex.mem_reProdIm] at s_location
+    obtain ⟨⟨sReIn, sImIn⟩, sOut⟩ := s_location
+    obtain ⟨A, A_inter, Tlb, Tlb_inter, holoOnTemp⟩ := LogDerivZetaHolcLargeT
+    have : ∃ (T : ℝ), Tlb < T ∧ |s.im| < T := by
+      let T : ℝ := 1 + max Tlb |s.im|
+      use T
+      have temp : Tlb < T := by
+        dsimp[T]
+        nth_rewrite 1 [← zero_add Tlb]
+        refine add_lt_add_of_lt_of_le ?_ ?_
+        norm_num
+        exact le_max_left Tlb |s.im|
+      have : |s.im| < T := by
+        dsimp[T]
+        nth_rewrite 1 [← zero_add |s.im|]
+        refine add_lt_add_of_lt_of_le ?_ ?_
+        norm_num
+        exact le_max_right Tlb |s.im|
+      exact ⟨temp, this⟩
+    obtain ⟨T, Tbounds⟩ := this
+    have holoOnTemp : HolomorphicOn (fun s ↦ ζ' s / ζ s) (Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1}) := by exact holoOnTemp T Tbounds.1
+    unfold HolomorphicOn at holoOnTemp
+    unfold DifferentiableOn at holoOnTemp
+    have sInBiggerBox : s ∈ Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1} := by
+      rw[Set.mem_diff, Complex.mem_reProdIm]
+      have temp : s.re ∈ Ioo (1 - A / Real.log T ^ 9) 2 := by
+        have : 1 - A / Real.log T ^ 9 < s.re := by
+          have : 1 - A / Real.log T ^ 9 < 1 + (Real.log X)⁻¹ := by
+            have : 0 < A / Real.log T ^ 9 := by
+              refine div_pos ?_ ?_
+              exact A_inter.1
+              apply pow_pos
+              rw[← Real.log_one]
+              apply Real.log_lt_log
+              positivity
+              linarith
+            have : 0 < (Real.log X)⁻¹ := by
+              rw[inv_pos, ← Real.log_one]
+              apply Real.log_lt_log
+              positivity
+              linarith
+            linarith
+          exact gt_of_ge_of_gt sReIn.1 this
+        exact ⟨this, sReIn.2⟩
+      have : s.im ∈ Ioo (-T) T := by
+        obtain ⟨_, abs_sIm_bound⟩ := Tbounds
+        exact ⟨by exact neg_lt_of_abs_lt abs_sIm_bound, by exact lt_of_abs_lt abs_sIm_bound⟩
+      exact ⟨⟨temp, this⟩, sOut⟩
+    have : DifferentiableWithinAt ℂ (fun s ↦ ζ' s / ζ s) (Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1}) s := by exact holoOnTemp s sInBiggerBox
+    refine DifferentiableAt.differentiableWithinAt ?_
+    have h_open : IsOpen (Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1}) := by
+      apply IsOpen.sdiff
+      refine IsOpen.reProdIm (by exact isOpen_Ioo) (by exact isOpen_Ioo)
+      exact isClosed_singleton
+    have h_mem : s ∈ Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1} := sInBiggerBox
+    exact this.differentiableAt (h_open.mem_nhds h_mem)
+    unfold DifferentiableOn
+    intro s s_location
+    rw[Set.mem_diff, Complex.mem_reProdIm] at s_location
+    obtain ⟨⟨sReIn, sImIn⟩, sOut⟩ := s_location
+    refine DifferentiableAt.differentiableWithinAt ?_
+    have εInter : ε ∈ Ioo 0 1 := by exact ⟨ε_pos, ε_lt_one⟩
+    have hs : 0 < s.re := by
+      have : 1 + (Real.log X)⁻¹ ≤ s.re := by exact sReIn.1
+      linarith
+    exact Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF εInter SmoothingFnonneg
+      mass_one hs
+    intro s hs
+    apply DifferentiableAt.differentiableWithinAt
+    cases' hs with h_in h_not_one
+    unfold HPow.hPow instHPow
+    simp
+    apply DifferentiableAt.const_cpow
+    exact differentiableAt_id'
+    refine Or.inl ?_
+    refine ne_zero_of_re_pos ?_
+    rw[ofReal_re]
+    positivity
     -- apply add_pos (by positivity)
     -- rw[inv_pos, ← Real.log_one]
     -- apply Real.log_lt_log (by positivity) (by linarith)
@@ -1474,13 +1601,8 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     -- exact Real.log_pos (by positivity)
     -- exact X_gt
 
-  --TODO:
-  have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X)
-    (Icc (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by
-      sorry --should be able to do with lemmas from workshop
-
-  exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_pos logX_gt
-    holoIntegrand suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
+  exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_gt_one logX_gt
+    suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
 
 
   have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by field_simp
@@ -1605,7 +1727,17 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       exact ⟨(by linarith), (by linarith)⟩
     exact ⟨temp, this⟩
   --TODO:
-  have holoMatchHoloOn : HolomorphicOn holoMatch (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1}) := by sorry --should be able to do with lemmas from workshop
+  have holoMatchHoloOn : HolomorphicOn holoMatch (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1}) := by
+    unfold HolomorphicOn holoMatch
+    refine DifferentiableOn.sub ?_ ?_
+    sorry
+    refine DifferentiableOn.mul ?_ ?_
+    unfold DifferentiableOn
+    intro x x_location
+    rw[Set.mem_diff] at x_location
+    obtain ⟨xInRect, xOut⟩ := x_location
+    sorry
+    sorry
   --TODO:
   have holoMatchBddAbove : BddAbove (norm ∘ holoMatch '' (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) \ {1})) := by sorry --should be able to do with lemmas from workshop
   obtain ⟨g, gHolo_Eq⟩ := existsDifferentiableOn_of_bddAbove pInRectangleInterior holoMatchHoloOn holoMatchBddAbove
@@ -1637,7 +1769,8 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
 
 /-%%
 \begin{proof}
-\uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue}
+\uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue,
+SmoothedChebyshevPull1_aux_integrable}
 Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
@@ -1686,24 +1819,30 @@ Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
 /-%%
 We insert this information in $\psi_{\epsilon}$. We add and subtract the integral over the box
 $[1-\delta,2] \times_{ℂ} [-T,T]$, which we evaluate as follows
-\begin{theorem}[ZetaBoxEval]\label{ZetaBoxEval}
+\begin{theorem}[ZetaBoxEval]\label{ZetaBoxEval}\lean{ZetaBoxEval}\leanok
 The rectangle integral over $[1-\delta,2] \times_{ℂ} [-T,T]$ of the integrand in
 $\psi_{\epsilon}$ is
-$$\frac{1}{2\pi i}\int_{\partial([1-\delta,2] \times_{ℂ} [-T,T])}\frac{-\zeta'(s)}{\zeta(s)}
-\mathcal{M}(\widetilde{1_{\epsilon}})(s)
-X^{s}ds = \frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
+$$
+\frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
 = X\left(\mathcal{M}(\psi)\left(\epsilon\right)\right)
 = X(1+O(\epsilon))
 .$$
 \end{theorem}
 %%-/
+theorem ZetaBoxEval {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    (X : ℝ) (X_gt : 3 < X)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
+    ∃ C > 0, ‖𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X - X‖ < C * ε * X  := by
+  sorry
 
 /-%%
 \begin{proof}
-\uses{RectangleBorder, RectangleIntegral,
-MellinOfSmooth1a, MellinOfSmooth1b, MellinOfSmooth1c, MellinOfDeltaSpikeAt1,
-SmoothedChebyshevPull1}
-Residue calculus / the argument principle.
+\uses{MellinOfDeltaSpikeAt1_asymp}
+Unfold the definitions and apply Lemma \ref{MellinOfDeltaSpikeAt1_asymp}.
 \end{proof}
 %%-/
 
@@ -1736,7 +1875,8 @@ theorem MediumPNT : ∃ c > 0,
   sorry
 /-%%
 \begin{proof}
-\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval, LogDerivZetaBndUniform, LogDerivZetaHolcSmallT, LogDerivZetaHolcLargeT}
+\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval, LogDerivZetaBndUniform, LogDerivZetaHolcSmallT, LogDerivZetaHolcLargeT,
+SmoothedChebyshevPull1, SmoothedChebyshevPull2}
   Evaluate the integrals.
 \end{proof}
 %%-/
