@@ -1921,7 +1921,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
 /-%%
 \begin{proof}
 \uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue,
-SmoothedChebyshevPull1_aux_integrable}
+SmoothedChebyshevPull1_aux_integrable, BddAboveOnRect}
 Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
@@ -2004,9 +2004,11 @@ It remains to estimate all of the integrals.
 /-%%
 \begin{lemma}[I1Bound]\label{I1Bound}\lean{I1Bound}\leanok
 We have that
-$$\left|I_{1}(\nu, \epsilon, X, T)\
-\right| \leq C_{1}X\epsilon$$
-for some constant $C_{1} > 0$.
+$$
+\left|I_{1}(\nu, \epsilon, X, T)\
+\right| \ll {X \over \epsilon T}
+.
+$$
 \end{lemma}
 %%-/
 theorem I1Bound :
@@ -2067,8 +2069,10 @@ where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X
 /-%%
 \begin{lemma}[I2Bound]\label{I2Bound}\lean{I2Bound}\leanok
 We have that
-$$\left|I_{2}(\nu, \epsilon, X, T)\right| \leq C_{2}X\epsilon$$
-for some constant $C_{2} > 0$.
+$$
+\left|I_{2}(\nu, \epsilon, X, T)\right| \ll {X\over \epsilon T}
+.
+$$
 \end{lemma}
 %%-/
 lemma I2Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
@@ -2110,6 +2114,51 @@ Since $T>3$, we have $\log T^9 \leq C''' T$.
 \end{proof}
 %%-/
 
+/-%%
+\begin{lemma}[I3Bound]\label{I3Bound}\lean{I3Bound}\leanok
+We have that
+$$
+\left|I_{3}(\nu, \epsilon, X, T)\right| \ll {X\over \epsilon}\, X^{-\frac{A}{(\log T)^9}}
+.
+$$
+\end{lemma}
+%%-/
+lemma I3Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
+    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    {T : ℝ} (T_pos : 0 < T)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+    ‖I₃ SmoothingF ε X T σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε  := by
+  sorry
+/-%%
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBnd}
+Unfold the definitions and apply the triangle inequality.
+$$
+\left|I_{3}(\nu, \epsilon, X, T, \sigma_1)\right| =
+\left|\frac{1}{2\pi i} \int_{-T}^3
+\left(\frac{-\zeta'}\zeta(\sigma_1 + t i) \right)
+\mathcal M(\widetilde 1_\epsilon)(\sigma_1 + t i)
+X^{\sigma_1 + t i}
+\ i \ dt
+\right|
+$$
+$$\leq
+\frac{1}{2\pi}
+\int_{-T}^3
+C \cdot \log t ^ 9
+\frac{C'}{\epsilon|\sigma_1 + t i|^2}
+X^{\sigma_1}
+ \ dt
+,
+$$
+where we used Theorems \ref{MellinOfSmooth1b} and \ref{LogDerivZetaBnd}.
+Now we estimate $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$, and the integral is absolutely bounded.
+\end{proof}
+%%-/
 
 
 /-%%
