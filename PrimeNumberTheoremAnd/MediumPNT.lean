@@ -1061,45 +1061,167 @@ I₅|
 \end{verbatim}
 
 In the process, we will pick up the residue at $s=1$.
-We will do this in several stages.
+We will do this in several stages. Here the interval integrals are defined as follows:
 %%-/
 
+/-%%
+\begin{definition}[I₁]\label{I1}\lean{I₁}\leanok
+$$
+I_1(\nu, \epsilon, X, T) := \frac{1}{2\pi i} \int_{-\infty}^{-T}
+\left(
+\frac{-\zeta'}\zeta(\sigma_0 + t i)
+\right)
+ \mathcal M(\widetilde 1_\epsilon)(\sigma_0 + t i)
+X^{\sigma_0 + t i}
+\ i \ dt
+$$
+\end{definition}
+%%-/
 noncomputable def I₁ (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t : ℝ in Iic (-T),
       SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
 
+/-%%
+\begin{definition}[I₂]\label{I2}\lean{I₂}\leanok
+$$
+I_2(\nu, \epsilon, X, T, \sigma_1) := \frac{1}{2\pi i} \int_{\sigma_1}^{\sigma_0}
+\left(
+\frac{-\zeta'}\zeta(\sigma - i T)
+\right)
+  \mathcal M(\widetilde 1_\epsilon)(\sigma - i T)
+X^{\sigma - i T} \ d\sigma
+$$
+\end{definition}
+%%-/
 noncomputable def I₂ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * ((∫ σ in σ₁..(1 + (Real.log X)⁻¹),
     SmoothedChebyshevIntegrand SmoothingF ε X (σ - T * I)))
 
+/-%%
+\begin{definition}[I₃₇]\label{I37}\lean{I₃₇}\leanok
+$$
+I_{37}(\nu, \epsilon, X, T, \sigma_1) := \frac{1}{2\pi i} \int_{-T}^{T}
+\left(
+\frac{-\zeta'}\zeta(\sigma_1 + t i)
+\right)
+  \mathcal M(\widetilde 1_\epsilon)(\sigma_1 + t i)
+X^{\sigma_1 + t i} \ i \ dt
+$$
+\end{definition}
+%%-/
 noncomputable def I₃₇ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-T)..T,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₁ + t * I)))
 
+/-%%
+\begin{definition}[I₈]\label{I8}\lean{I₈}\leanok
+$$
+I_8(\nu, \epsilon, X, T, \sigma_1) := \frac{1}{2\pi i} \int_{\sigma_1}^{\sigma_0}
+\left(
+\frac{-\zeta'}\zeta(\sigma + T i)
+\right)
+  \mathcal M(\widetilde 1_\epsilon)(\sigma + T i)
+X^{\sigma + T i} \ d\sigma
+$$
+\end{definition}
+%%-/
 noncomputable def I₈ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * ((∫ σ in σ₁..(1 + (Real.log X)⁻¹),
     SmoothedChebyshevIntegrand SmoothingF ε X (σ + T * I)))
 
+/-%%
+\begin{definition}[I₉]\label{I9}\lean{I₉}\leanok
+$$
+I_9(\nu, \epsilon, X, T) := \frac{1}{2\pi i} \int_{T}^{\infty}
+\left(
+\frac{-\zeta'}\zeta(\sigma_0 + t i)
+\right)
+  \mathcal M(\widetilde 1_\epsilon)(\sigma_0 + t i)
+X^{\sigma_0 + t i} \ i \ dt
+$$
+\end{definition}
+%%-/
 noncomputable def I₉ (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t : ℝ in Ici T,
       SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
 
+/-%%
+\begin{definition}[I₃]\label{I3}\lean{I₃}\leanok
+$$
+I_3(\nu, \epsilon, X, T, \sigma_1) := \frac{1}{2\pi i} \int_{-T}^{-3}
+\left(
+\frac{-\zeta'}\zeta(\sigma_1 + t i)
+\right)
+  \mathcal M(\widetilde 1_\epsilon)(\sigma_1 + t i)
+X^{\sigma_1 + t i} \ i \ dt
+$$
+\end{definition}
+%%-/
 noncomputable def I₃ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-T)..(-3),
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₁ + t * I)))
 
+
+/-%%\begin{definition}[I₇]\label{I7}\lean{I₇}\leanok
+$$
+I_7(\nu, \epsilon, X, T, \sigma_1) := \frac{1}{2\pi i} \int_{3}^{T}
+\left(
+\frac{-\zeta'}\zeta(\sigma_1 + t i)
+\right)
+  \mathcal M(\widetilde 1_\epsilon)(\sigma_1 + t i)
+X^{\sigma_1 + t i} \ i \ dt
+$$
+\end{definition}
+%%-/
 noncomputable def I₇ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (3 : ℝ)..T,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₁ + t * I)))
 
+
+/-%%
+\begin{definition}[I₄]\label{I4}\lean{I₄}\leanok
+$$
+I_4(\nu, \epsilon, X, \sigma_1, \sigma_2) := \frac{1}{2\pi i} \int_{\sigma_2}^{\sigma_1}
+\left(
+\frac{-\zeta'}\zeta(\sigma - 3 i)
+\right)
+  \mathcal M(\widetilde 1_\epsilon)(\sigma - 3 i)
+X^{\sigma - 3 i} \ d\sigma
+$$
+\end{definition}
+%%-/
 noncomputable def I₄ (SmoothingF : ℝ → ℝ) (ε X σ₁ σ₂ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * ((∫ σ in σ₂..σ₁,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ - 3 * I)))
 
+/-%%
+\begin{definition}[I₆]\label{I6}\lean{I₆}\leanok
+$$
+I_6(\nu, \epsilon, X, \sigma_1, \sigma_2) := \frac{1}{2\pi i} \int_{\sigma_2}^{\sigma_1}
+\left(
+\frac{-\zeta'}\zeta(\sigma + 3 i)
+\right)
+  \mathcal M(\widetilde 1_\epsilon)(\sigma + 3 i)
+X^{\sigma + 3 i} \ d\sigma
+$$
+\end{definition}
+%%-/
 noncomputable def I₆ (SmoothingF : ℝ → ℝ) (ε X σ₁ σ₂ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * ((∫ σ in σ₂..σ₁,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ + 3 * I)))
 
+/-%%
+\begin{definition}[I₅]\label{I5}\lean{I₅}\leanok
+$$
+I_5(\nu, \epsilon, X, \sigma_2) := \frac{1}{2\pi i} \int_{-3}^{3}
+\left(
+\frac{-\zeta'}\zeta(\sigma_2 + t i)
+\right)
+  \mathcal M(\widetilde 1_\epsilon)(\sigma_2 + t i)
+X^{\sigma_2 + t i} \ i \ dt
+$$
+\end{definition}
+%%-/
 noncomputable def I₅ (SmoothingF : ℝ → ℝ) (ε X σ₂ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-3)..3,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₂ + t * I)))
@@ -1635,7 +1757,38 @@ Unfold the definitions and apply Lemma \ref{MellinOfDeltaSpikeAt1_asymp}.
 %%-/
 
 /-%%
-It remains to estimate all of the integrals...
+It remains to estimate all of the integrals.
+%%-/
+
+/-%%
+\begin{lemma}[I1Bound]\label{I1Bound}\lean{I1Bound}\leanok
+We have that
+$$\left|I_{1}(SmoothingF, \epsilon, X, T)\
+\right| \leq C_{1}X\epsilon$$
+for some constant $C_{1} > 0$.
+\end{lemma}
+%%-/
+theorem I1Bound {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    (X : ℝ) (X_gt : 3 < X)
+    {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
+    ‖I₁ SmoothingF ε X T‖ ≤ T := by
+
+  sorry
+/-%%
+\begin{proof}\uses{}
+  Unfold the definitions and apply the triangle inequality.
+$$
+\left|I_{1}(SmoothingF, \epsilon, X, T)\right| =
+\left|\int_{1}^{2}\int_{-T}^{T}\frac{-\zeta'(\sigma + it)}{\zeta(\sigma + it)}\nu(\sigma)X^{\sigma + it}dtd\sigma\right|
+$$
+$$
+\leq \int_{1}^{2}\int_{-T}^{T}SmoothingF(\sigma)\left|\frac{-\zeta'(\sigma + it)}{\zeta(\sigma + it)}X^{\sigma + it}\right|dtd\sigma
+$$
 %%-/
 
 /-%%
