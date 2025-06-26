@@ -940,6 +940,9 @@ theorem riemannZetaLogDerivResidue :
 \end{proof}
 %%-/
 
+theorem riemannZetaLogDerivResidueBigO :
+  (-ζ' / ζ - fun z ↦ (z - 1)⁻¹) =O[nhdsWithin 1 {1}ᶜ] (1 : ℂ → ℂ) := by
+  sorry
 
 /-%%
 \begin{definition}[riemannZeta0]\label{riemannZeta0}\lean{riemannZeta0}\leanok
