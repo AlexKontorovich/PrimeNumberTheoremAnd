@@ -2038,6 +2038,7 @@ $$
 \right| \ll {X \over \epsilon T}
 .
 $$
+Same with $I_9$.
 \end{lemma}
 %%-/
 theorem I1Bound :
@@ -2051,6 +2052,19 @@ theorem I1Bound :
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
     ‖I₁ SmoothingF ε X T‖ ≤ C * X / (ε * T) := by
   sorry
+
+theorem I9Bound :
+    ∃ C > 0, ∀ {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    (X : ℝ) (X_gt : 3 < X)
+    {T : ℝ} (T_gt : 3 < T) {σ₁ : ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
+    ‖I₉ SmoothingF ε X T‖ ≤ C * X / (ε * T) := by
+  sorry
+
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I₁}
   Unfold the definitions and apply the triangle inequality.
@@ -2102,9 +2116,10 @@ $$
 \left|I_{2}(\nu, \epsilon, X, T)\right| \ll {X\over \epsilon T}
 .
 $$
+Same with $I_8$.
 \end{lemma}
 %%-/
-lemma I2Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
+lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     {T : ℝ} (T_gt : 3 < T)
@@ -2114,6 +2129,18 @@ lemma I2Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
     let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
     ‖I₂ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
+  sorry
+
+lemma I8Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
+    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    {T : ℝ} (T_gt : 3 < T)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+    ‖I₈ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
   sorry
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform, I₂}
@@ -2151,9 +2178,10 @@ $$
 \left|I_{3}(\nu, \epsilon, X, T)\right| \ll {X\over \epsilon}\, X^{-\frac{A}{(\log T)^9}}
 .
 $$
+Same with $I_7$.
 \end{lemma}
 %%-/
-lemma I3Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
+lemma I3Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     {T : ℝ} (T_gt : 3 < T)
@@ -2163,6 +2191,18 @@ lemma I3Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
     let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
     ‖I₃ SmoothingF ε X T σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε  := by
+  sorry
+
+lemma I7Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
+    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    {T : ℝ} (T_gt : 3 < T)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+    ‖I₇ SmoothingF ε X T σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε  := by
   sorry
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBnd, I₃}
@@ -2198,9 +2238,11 @@ $$
  X^{-\frac{A}{(\log T)^9}}
 .
 $$
+Same with $I_6$.
 \end{lemma}
 %%-/
-lemma I4Bound : ∃ C > 0, ∃ A > 0, ∃ σ₂ > 0, ∀ {SmoothingF : ℝ → ℝ}
+lemma I4Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1),
+    ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     {T : ℝ} (T_gt : 3 < T)
@@ -2211,10 +2253,51 @@ lemma I4Bound : ∃ C > 0, ∃ A > 0, ∃ σ₂ > 0, ∀ {SmoothingF : ℝ → �
     let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
     ‖I₄ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
   sorry
+
+lemma I6Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1),
+    ∀ {SmoothingF : ℝ → ℝ}
+    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    {T : ℝ} (T_gt : 3 < T)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+    ‖I₆ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
+  sorry
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndAlt, I₄}
 The analysis of $I_4$ is similar to that of $I_2$, (in Lemma \ref{I2Bound}) but even easier.
+Let $C$ be the sup of $-\zeta'/\zeta$ on the curve $\sigma_2 + 3 i$ to $1+ 3i$ (this curve is compact, and away from the pole at $s=1$).
+Apply Theorem \ref{MellinOfSmooth1b} to get the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
+And $X^s$ is bounded by $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$.
+Putting these together gives the result.
+\end{proof}
+%%-/
 
+/-%%
+\begin{lemma}[I5Bound]\label{I5Bound}\lean{I5Bound}\leanok
+We have that
+$$
+\left|I_{5}(\nu, \epsilon, X, \sigma_2)\right| \ll {X^{\sigma_2} \over \epsilon}.
+$$
+\end{lemma}
+%%-/
+lemma I5Bound : ∃ (C : ℝ) (_ : 0 < C) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1), ∀ {SmoothingF : ℝ → ℝ}
+    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    ‖I₅ SmoothingF ε X σ₂‖ ≤ C * X ^ σ₂ / ε := by
+  sorry
+/-%%
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaHolcSmallT, I₅}
+Here $\zeta'/\zeta$ is absolutely bounded on the compact interval $\sigma_2 + i [-3,3]$, and
+$X^s$ is bounded by $X^{\sigma_2}$. Using Theorem \ref{MellinOfSmooth1b} gives the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
+Putting these together gives the result.
 \end{proof}
 %%-/
 
