@@ -3866,7 +3866,7 @@ theorem LogDerivZetaHolcSmallT :
   have := ZetaNoZerosInBox 4
   sorry
 /-%%
-\begin{proof}\uses{ZetaNoZerosInBox}
+\begin{proof}\uses{ZetaNoZerosInBox}\leanok
 The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
 in this range by Lemma \ref{ZetaNoZerosInBox}.
 \end{proof}
