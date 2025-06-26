@@ -2004,9 +2004,11 @@ It remains to estimate all of the integrals.
 /-%%
 \begin{lemma}[I1Bound]\label{I1Bound}\lean{I1Bound}\leanok
 We have that
-$$\left|I_{1}(\nu, \epsilon, X, T)\
-\right| \leq C_{1}X\epsilon$$
-for some constant $C_{1} > 0$.
+$$
+\left|I_{1}(\nu, \epsilon, X, T)\
+\right| \ll {X \over \epsilon T}
+.
+$$
 \end{lemma}
 %%-/
 theorem I1Bound :
@@ -2067,8 +2069,10 @@ where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X
 /-%%
 \begin{lemma}[I2Bound]\label{I2Bound}\lean{I2Bound}\leanok
 We have that
-$$\left|I_{2}(\nu, \epsilon, X, T)\right| \leq C_{2}X\epsilon$$
-for some constant $C_{2} > 0$.
+$$
+\left|I_{2}(\nu, \epsilon, X, T)\right| \ll {X\over \epsilon T}
+.
+$$
 \end{lemma}
 %%-/
 lemma I2Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
