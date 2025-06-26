@@ -1921,7 +1921,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
 /-%%
 \begin{proof}
 \uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue,
-SmoothedChebyshevPull1_aux_integrable}
+SmoothedChebyshevPull1_aux_integrable, BddAboveOnRect}
 Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
