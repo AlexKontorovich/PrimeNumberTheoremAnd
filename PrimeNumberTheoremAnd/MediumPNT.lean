@@ -1210,6 +1210,8 @@ theorem summable_real_iff_summable_coe_complex (f : ℕ → ℝ) :
     --ext n
    -- exact Complex.ofReal_re (f n)
 
+--set_option maxHeartbeats 2000000
+
 
 theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
   ∃ c > 0, ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ c := by
@@ -1259,15 +1261,43 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
         have Z := Complex.norm_natCast_cpow_of_pos R s
         rw [Z]
         rw [← L]
-        simp [*]
-        sorry
+        --push_cast
+        by_cases h : (Λ n = 0)
+        · simp [h]
+        · norm_cast
+          apply_fun (fun (w : ℂ) ↦ w * (↑ n : ℂ)^s_re  / (Λ n))
+          · simp [*]
+            ring_nf
+            rw [mul_comm]
+            nth_rewrite 1 [mul_assoc]
+            simp [*]
+            sorry
+            --push_cast
+            --norm_cast
+--            simp [mul_left_inv]
 
---        ring_nf
---        sorry
+--            group
+--            nth_rewrite 1 [mul_comm]
+--            _
+--            rw [mul_comm]
+--            _
 
-        --mod_cast
+          · sorry
 
-        --simp [ArithmeticFunctions.vonMangoldt_nonneg]
+--        norm_cast
+
+
+
+--        rw_mod_cast [← L
+      --  _
+--        push_cast
+        --norm_cast
+--        push_cast
+--        simp [*]
+--        norm_cast
+--        simp [*]
+--        norm_cast
+
 
     have K : (fun (n : ℕ) ↦ ↑(‖LSeries.term (fun x ↦ (Λ x)) s n‖ : ℝ)) = (fun (n : ℕ) ↦ (LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ )  n )) := by
       funext
