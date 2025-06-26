@@ -1921,7 +1921,8 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
 /-%%
 \begin{proof}
 \uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue,
-SmoothedChebyshevPull1_aux_integrable, BddAboveOnRect}
+SmoothedChebyshevPull1_aux_integrable, BddAboveOnRect,
+I₁, I₂, I₃₇, I₈, I₉}
 Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
@@ -1962,7 +1963,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   have := HolomorphicOn.vanishesOnRectangle holoOn2 sub
   sorry
 /-%%
-\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, I₃, I₄, I₅, I₆, I₇, I₃₇}
 Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
 \end{proof}
 %%-/
@@ -2025,7 +2026,7 @@ theorem I1Bound :
     ∃ C > 0, ∀ {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     (X : ℝ) (X_gt : 3 < X)
-    {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
+    {T : ℝ} (T_gt : 3 < T) {σ₁ : ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
@@ -2033,7 +2034,7 @@ theorem I1Bound :
     ‖I₁ SmoothingF ε X T‖ ≤ C * X / (ε * T) := by
   sorry
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines'}
+\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I₁}
   Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{1}(\nu, \epsilon, X, T)\right| =
@@ -2088,7 +2089,7 @@ $$
 lemma I2Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
-    {T : ℝ} (T_pos : 0 < T)
+    {T : ℝ} (T_gt : 3 < T)
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
@@ -2097,7 +2098,7 @@ lemma I2Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
     ‖I₂ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
   sorry
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform}
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform, I₂}
 Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{2}(\nu, \epsilon, X, T, \sigma_1)\right| =
@@ -2136,7 +2137,7 @@ $$
 lemma I3Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
-    {T : ℝ} (T_pos : 0 < T)
+    {T : ℝ} (T_gt : 3 < T)
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
@@ -2145,7 +2146,7 @@ lemma I3Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
     ‖I₃ SmoothingF ε X T σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε  := by
   sorry
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBnd}
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBnd, I₃}
 Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{3}(\nu, \epsilon, X, T, \sigma_1)\right| =
@@ -2170,6 +2171,31 @@ Now we estimate $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$, and the integral is a
 \end{proof}
 %%-/
 
+/-%%
+\begin{lemma}[I4Bound]\label{I4Bound}\lean{I4Bound}\leanok
+We have that
+$$
+\left|I_{4}(\nu, \epsilon, X, \sigma_1, \sigma_2)\right| \ll {X\over \epsilon}\,
+ X^{-\frac{A}{(\log T)^9}}
+.
+$$
+\end{lemma}
+%%-/
+lemma I4Bound : ∃ C > 0, ∃ A > 0, ∃ σ₂ > 0, ∀ {SmoothingF : ℝ → ℝ}
+    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    {T : ℝ} (T_gt : 3 < T)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+    ‖I₄ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
+  sorry
+/-%%
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndAlt, I₄}
+\end{proof}
+%%-/
 
 /-%%
 \section{MediumPNT}
