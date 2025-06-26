@@ -1971,29 +1971,39 @@ Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
 We insert this information in $\psi_{\epsilon}$. We add and subtract the integral over the box
 $[1-\delta,2] \times_{ℂ} [-T,T]$, which we evaluate as follows
 \begin{theorem}[ZetaBoxEval]\label{ZetaBoxEval}\lean{ZetaBoxEval}\leanok
-The rectangle integral over $[1-\delta,2] \times_{ℂ} [-T,T]$ of the integrand in
+For all $\epsilon > 0$ sufficiently close to $0$, the rectangle integral over $[1-\delta,2] \times_{ℂ} [-T,T]$ of the integrand in
 $\psi_{\epsilon}$ is
 $$
 \frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
-= X\left(\mathcal{M}(\psi)\left(\epsilon\right)\right)
 = X(1+O(\epsilon))
-.$$
+,$$
+where the implicit constant is independent of $X$.
 \end{theorem}
 %%-/
-theorem ZetaBoxEval {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    (X : ℝ) (X_gt : 3 < X)
+theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
-    ∃ C > 0, ‖𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X - X‖ < C * ε * X  := by
-  sorry
+    ∃ C, ∀ᶠ ε in (nhdsWithin 0 (Ioi 0)), ∀ X : ℝ, 0 ≤ X →
+    ‖𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X - X‖ ≤ C * ε * X := by
+  have := MellinOfSmooth1c ContDiffSmoothingF suppSmoothingF mass_one
+  clear suppSmoothingF mass_one ContDiffSmoothingF
+  rw[Asymptotics.isBigO_iff] at this
+  obtain ⟨C, hC⟩ := this
+  use C
+  have εpos : ∀ᶠ (ε : ℝ) in nhdsWithin 0 (Ioi 0), ε > 0 :=
+    eventually_mem_of_tendsto_nhdsWithin fun ⦃U⦄ hU ↦ hU
+  filter_upwards [hC, εpos] with ε hC εpos
+  rw[id_eq, norm_of_nonneg (le_of_lt εpos)] at hC
+  intro X Xnne
+  nth_rw 2 [← one_mul (X : ℂ)]
+  rw[← sub_mul, norm_mul, norm_real, norm_of_nonneg Xnne]
+  exact mul_le_mul_of_nonneg_right hC Xnne
 
 /-%%
 \begin{proof}
-\uses{MellinOfDeltaSpikeAt1_asymp}
-Unfold the definitions and apply Lemma \ref{MellinOfDeltaSpikeAt1_asymp}.
+\uses{MellinOfSmooth1c}
+Unfold the definitions and apply Lemma \ref{MellinOfSmooth1c}.
 \end{proof}
 %%-/
 
