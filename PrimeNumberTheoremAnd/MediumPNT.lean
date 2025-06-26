@@ -1550,8 +1550,6 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   exact ResidueTheoremOnRectangleWithSimplePole zRe_le_wRe zIm_le_wIm pInRectangleInterior gHolo gEq
 
 
-
-
 lemma interval_membership (r : ℝ)(a b: ℝ)(h1 : r ∈ Set.Icc (min a b) (max a b)) (h2 : a < b) :
   a ≤ r ∧ r ≤ b := by
   -- Since a < b, we have min(a,b) = a and max(a,b) = b
@@ -1598,8 +1596,10 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       I₅ SmoothingF ε X σ₂ +
       I₆ SmoothingF ε X σ₁ σ₂ +
       I₇ SmoothingF ε T X σ₁ := by
+
   let z : ℂ := σ₂ - 3 * I
   let w : ℂ := σ₁ + 3 * I
+
   -- the leftmost rectangle is in the locus of holomorphicity
   have sub : z.Rectangle w ⊆ Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1} := by
     intro x hx
@@ -1670,10 +1670,18 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         linarith
       exact h_x_ne_one
 
-  have := HolomorphicOn.vanishesOnRectangle holoOn2 sub
+  have zero_over_box := HolomorphicOn.vanishesOnRectangle holoOn2 sub
+
+  -- computing the vertical integral from I_3 to I_7 by adding and subtracting the
+  -- integral leftmost box
+  calc I₃₇ SmoothingF ε T X σ₁ = I₃₇ SmoothingF ε T X σ₁ - (0 : ℂ) := by simp
+    _ = I₃₇ SmoothingF ε T X σ₁ - (RectangleIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z w) := by rw [← zero_over_box]
+    _ = I₃₇ SmoothingF ε T X σ₁ - (HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re z.im
+    - HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re w.im
+    + VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
+    - VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by sorry
+      -- dsimp [RectangleIntegral]
   sorry
-
-
 /-%%
 \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
 Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
