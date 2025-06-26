@@ -2052,6 +2052,19 @@ theorem I1Bound :
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
     ‖I₁ SmoothingF ε X T‖ ≤ C * X / (ε * T) := by
   sorry
+
+theorem I9Bound :
+    ∃ C > 0, ∀ {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    (X : ℝ) (X_gt : 3 < X)
+    {T : ℝ} (T_gt : 3 < T) {σ₁ : ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
+    ‖I₉ SmoothingF ε X T‖ ≤ C * X / (ε * T) := by
+  sorry
+
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I₁}
   Unfold the definitions and apply the triangle inequality.
@@ -2117,6 +2130,18 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀
     let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
     ‖I₂ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
   sorry
+
+lemma I8Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
+    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    {T : ℝ} (T_gt : 3 < T)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+    ‖I₈ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
+  sorry
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform, I₂}
 Unfold the definitions and apply the triangle inequality.
@@ -2167,6 +2192,18 @@ lemma I3Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀
     let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
     ‖I₃ SmoothingF ε X T σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε  := by
   sorry
+
+lemma I7Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
+    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    {T : ℝ} (T_gt : 3 < T)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+    ‖I₇ SmoothingF ε X T σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε  := by
+  sorry
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBnd, I₃}
 Unfold the definitions and apply the triangle inequality.
@@ -2215,6 +2252,19 @@ lemma I4Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)) (σ�
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
     let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
     ‖I₄ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
+  sorry
+
+lemma I6Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1),
+    ∀ {SmoothingF : ℝ → ℝ}
+    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    {T : ℝ} (T_gt : 3 < T)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+    ‖I₆ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
   sorry
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndAlt, I₄}
