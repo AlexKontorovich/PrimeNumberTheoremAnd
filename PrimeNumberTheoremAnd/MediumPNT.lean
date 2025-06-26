@@ -1618,24 +1618,24 @@ $$
 %%-/
 theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
     ∃ C, ∀ᶠ ε in (nhdsWithin 0 (Ioi 0)), ∀ X : ℝ, 0 ≤ X →
     ‖𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X - X‖
     ≤ C * ε * X := by
-  -- Simplify the function
-  have (X : ℝ) (Xnne : 0 ≤ X) : (fun ε ↦ ‖𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X - X‖) = X • (fun ε ↦ ‖𝓜 ((Smooth1 SmoothingF ε) ·) 1 - 1‖) := by
-    ext ε
-    simp
-    nth_rw 2 [← one_mul (X : ℂ)]
-    rwa[← sub_mul, norm_mul, norm_real, norm_of_nonneg, mul_comm]
-
   have := MellinOfSmooth1c ContDiffSmoothingF suppSmoothingF mass_one
+  clear suppSmoothingF mass_one ContDiffSmoothingF
   rw[Asymptotics.isBigO_iff] at this
-  obtain ⟨C, this⟩ := this
+  obtain ⟨C, hC⟩ := this
   use C
-
+  have εpos : ∀ᶠ (ε : ℝ) in nhdsWithin 0 (Ioi 0), ε > 0 :=
+    eventually_mem_of_tendsto_nhdsWithin fun ⦃U⦄ hU ↦ hU
+  filter_upwards [hC, εpos] with ε hC εpos
+  rw[id_eq, norm_of_nonneg (le_of_lt εpos)] at hC
+  intro X Xnne
+  nth_rw 2 [← one_mul (X : ℂ)]
+  rw[← sub_mul, norm_mul, norm_real, norm_of_nonneg Xnne]
+  exact mul_le_mul_of_nonneg_right hC Xnne
 
 /-%%
 \begin{proof}
