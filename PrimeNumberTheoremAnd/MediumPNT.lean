@@ -1990,19 +1990,21 @@ It remains to estimate all of the integrals.
 /-%%
 \begin{lemma}[I1Bound]\label{I1Bound}\lean{I1Bound}\leanok
 We have that
-$$\left|I_{1}(SmoothingF, \epsilon, X, T)\
+$$\left|I_{1}(\nu, \epsilon, X, T)\
 \right| \leq C_{1}X\epsilon$$
 for some constant $C_{1} > 0$.
 \end{lemma}
 %%-/
-theorem I1Bound {SmoothingF : ℝ → ℝ}
+theorem I1Bound :
+    ∃ C > 0, ∀ {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
     (X : ℝ) (X_gt : 3 < X)
     {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
-    ∃ C > 0, ∀ ε > 0, ε < 1 → ‖I₁ SmoothingF ε X T‖ ≤ C * X / (ε * T) := by
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
+    ‖I₁ SmoothingF ε X T‖ ≤ C * X / (ε * T) := by
   sorry
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines'}
@@ -2047,6 +2049,54 @@ $$
 where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X}=e \cdot X$.
 \end{proof}
 %%-/
+
+/-%%
+\begin{lemma}[I2Bound]\label{I2Bound}\lean{I2Bound}\leanok
+We have that
+$$\left|I_{2}(\nu, \epsilon, X, T)\right| \leq C_{2}X\epsilon$$
+for some constant $C_{2} > 0$.
+\end{lemma}
+%%-/
+lemma I2Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
+    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    {T : ℝ} (T_pos : 0 < T)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+    ‖I₂ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
+  sorry
+/-%%
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform}
+Unfold the definitions and apply the triangle inequality.
+$$
+\left|I_{2}(\nu, \epsilon, X, T, \sigma_1)\right| =
+\left|\frac{1}{2\pi i} \int_{\sigma_1}^{\sigma_0}
+\left(\frac{-\zeta'}\zeta(\sigma - T i) \right)
+\mathcal M(\widetilde 1_\epsilon)(\sigma - T i)
+X^{\sigma - T i}
+ \ d\sigma
+$$
+$$\leq
+\frac{1}{2\pi}
+\int_{\sigma_1}^{\sigma_0}
+C \cdot \log T ^ 9
+\frac{C'}{\epsilon|\sigma - T i|^2}
+X^{\sigma_0}
+ \ d\sigma
+ \leq
+C'' \cdot {X\log T^9 \over \epsilon T^2}
+,
+$$
+where we used Theorems \ref{MellinOfSmooth1b} and \ref{LogDerivZetaBndUniform}, and the fact that
+$X^\sigma \le X^{\sigma_0} = X\cdot X^{1/\log X}=e \cdot X$.
+Since $T>3$, we have $\log T^9 \leq C''' T$.
+\end{proof}
+%%-/
+
+
 
 /-%%
 \section{MediumPNT}
