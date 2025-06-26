@@ -139,7 +139,7 @@ theorem HolomorphicOn.vanishesOnRectangle [CompleteSpace E] {U : Set ℂ}
     RectangleIntegral f z w = 0 :=
   integral_boundary_rect_eq_zero_of_differentiableOn f z w (f_holo.mono hU)
 /-%%
-\begin{proof}\leanok
+\begin{proof}\leanok\uses{RectangleBorder}
 This is in a Mathlib PR.
 \end{proof}
 %%-/
@@ -344,7 +344,7 @@ lemma RectanglePullToNhdOfPole [CompleteSpace E] {z w p : ℂ} (zRe_lt_wRe : z.r
     ∀ᶠ (c : ℝ) in 𝓝[>]0,
     RectangleIntegral f z w = RectangleIntegral f (-c - I * c + p) (c + I * c + p) := by
 /-%%
-\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}\leanok
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, RectangleBorder}\leanok
 Chop the big rectangle with two vertical cuts and two horizontal cuts into smaller rectangles,
 the middle one being the desired square. The integral over each of the outer rectangles
 vanishes, since $f$ is holomorphic there. (The constant $c$ being ``small enough'' here just means
