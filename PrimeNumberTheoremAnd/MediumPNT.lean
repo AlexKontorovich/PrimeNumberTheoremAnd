@@ -1489,6 +1489,12 @@ $$
 theorem dlog_riemannZeta_bdd_on_vertical_lines' {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) :
   ∃ C > 0, ∀ (t : ℝ), ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ C :=
   dlog_riemannZeta_bdd_on_vertical_lines σ₀_gt
+/-%%
+\begin{proof}\uses{LogDerivativeDirichlet}\leanok
+Write as Dirichlet series and estimate trivially using Theorem \ref{LogDerivativeDirichlet}.
+\end{proof}
+%%-/
+
 
 theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
     DifferentiableAt ℂ ζ' s := by
