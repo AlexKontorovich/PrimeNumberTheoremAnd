@@ -2114,6 +2114,52 @@ Since $T>3$, we have $\log T^9 \leq C''' T$.
 \end{proof}
 %%-/
 
+/-%%
+\begin{lemma}[I3Bound]\label{I3Bound}\lean{I3Bound}\leanok
+We have that
+$$
+\left|I_{3}(\nu, \epsilon, X, T)\right| \ll {X\over \epsilon}\, X^{-\frac{A}{(\log T)^9}}
+.
+$$
+\end{lemma}
+%%-/
+lemma I3Bound : ∃ C > 0, ∃ A > 0, ∀ {SmoothingF : ℝ → ℝ}
+    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    {T : ℝ} (T_pos : 0 < T)
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+    ‖I₃ SmoothingF ε X T σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε  := by
+  sorry
+/-%%
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform}
+Unfold the definitions and apply the triangle inequality.
+$$
+\left|I_{3}(\nu, \epsilon, X, T, \sigma_1)\right| =
+\left|\frac{1}{2\pi i} \int_{-T}^3
+\left(\frac{-\zeta'}\zeta(\sigma_1 + t i) \right)
+\mathcal M(\widetilde 1_\epsilon)(\sigma_1 + t i)
+X^{\sigma_1 + t i}
+\ i \ dt
+\right|
+$$
+$$\leq
+\frac{1}{2\pi}
+\int_{-T}^3
+C \cdot \log T ^ 9
+\frac{C'}{\epsilon|\sigma_1 + t i|^2}
+X^{\sigma_1}
+ \ dt
+,
+$$
+where we used Theorems \ref{MellinOfSmooth1b} and \ref{LogDerivZetaBndUniform}.
+Now we estimate $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$, and the integral is bounded by
+$ 1/\epsilon $.
+\end{proof}
+%%-/
 
 
 /-%%
