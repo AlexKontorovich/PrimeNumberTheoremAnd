@@ -2038,6 +2038,7 @@ $$
 \right| \ll {X \over \epsilon T}
 .
 $$
+Same with $I_9$.
 \end{lemma}
 %%-/
 theorem I1Bound :
@@ -2102,6 +2103,7 @@ $$
 \left|I_{2}(\nu, \epsilon, X, T)\right| \ll {X\over \epsilon T}
 .
 $$
+Same with $I_8$.
 \end{lemma}
 %%-/
 lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
@@ -2151,6 +2153,7 @@ $$
 \left|I_{3}(\nu, \epsilon, X, T)\right| \ll {X\over \epsilon}\, X^{-\frac{A}{(\log T)^9}}
 .
 $$
+Same with $I_7$.
 \end{lemma}
 %%-/
 lemma I3Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
@@ -2198,6 +2201,7 @@ $$
  X^{-\frac{A}{(\log T)^9}}
 .
 $$
+Same with $I_6$.
 \end{lemma}
 %%-/
 lemma I4Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1),
@@ -2246,6 +2250,8 @@ $X^s$ is bounded by $X^{\sigma_2}$. Using Theorem \ref{MellinOfSmooth1b} gives t
 Putting these together gives the result.
 \end{proof}
 %%-/
+
+
 
 /-%%
 \section{MediumPNT}
