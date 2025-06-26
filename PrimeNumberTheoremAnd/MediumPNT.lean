@@ -1608,12 +1608,13 @@ Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
 We insert this information in $\psi_{\epsilon}$. We add and subtract the integral over the box
 $[1-\delta,2] \times_{ℂ} [-T,T]$, which we evaluate as follows
 \begin{theorem}[ZetaBoxEval]\label{ZetaBoxEval}\lean{ZetaBoxEval}\leanok
-The rectangle integral over $[1-\delta,2] \times_{ℂ} [-T,T]$ of the integrand in
+For all $\epsilon > 0$ sufficiently close to $0$, the rectangle integral over $[1-\delta,2] \times_{ℂ} [-T,T]$ of the integrand in
 $\psi_{\epsilon}$ is
 $$
 \frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
 = X(1+O(\epsilon))
-.$$
+,$$
+where the implicit constant is independent of $X$.
 \end{theorem}
 %%-/
 theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
@@ -1621,8 +1622,7 @@ theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
     ∃ C, ∀ᶠ ε in (nhdsWithin 0 (Ioi 0)), ∀ X : ℝ, 0 ≤ X →
-    ‖𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X - X‖
-    ≤ C * ε * X := by
+    ‖𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X - X‖ ≤ C * ε * X := by
   have := MellinOfSmooth1c ContDiffSmoothingF suppSmoothingF mass_one
   clear suppSmoothingF mass_one ContDiffSmoothingF
   rw[Asymptotics.isBigO_iff] at this
