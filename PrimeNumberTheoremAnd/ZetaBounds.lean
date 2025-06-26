@@ -765,7 +765,7 @@ theorem logDerivResidue'' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   apply IsBigO_to_BddAbove
   exact logDerivResidue non_zero holc U_in_nhds A_ne_zero f_near_p
 /-%%
-\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}
+\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}\leanok
 Using Theorem \ref{existsDifferentiableOn_of_bddAbove}, there is a function $g$ holomorphic  near $p$, for which $f(s) = A/(s-p) + g(s) = h(s)/ (s-p)$. Here $h(s):= A + g(s)(s-p)$ which is nonzero in a neighborhood of $p$ (since $h$ goes to $A$ which is nonzero).
 Then $f'(s) = (h'(s)(s-p) - h(s))/(s-p)^2$, and we can compute the quotient:
 $$
