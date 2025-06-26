@@ -2011,7 +2011,7 @@ It remains to estimate all of the integrals.
 %%-/
 
 /-%%
-This auxiliary lemme is useful for what follows.
+This auxiliary lemma is useful for what follows.
 \begin{lemma}[IBound_aux1]\label{IBound_aux1}\lean{IBound_aux1}\leanok
 Given $k>0$, there exists $C>0$ so that for all $T>3$,
 $$
