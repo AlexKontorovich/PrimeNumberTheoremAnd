@@ -399,15 +399,52 @@ theorem laurent_expansion_identity_alt (f f' A x p : ℂ)
 
   field_simp [h_nonzero]
   ring
-
+/-
 theorem nonZeroOfBddAbove {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
     ∃ V ∈ 𝓝 p, IsOpen V ∧ ∀ s ∈ V \ {p}, f s ≠ 0 := by
-  sorry
+    by_contra x_hyp
+    push_neg at x_hyp
+    let ⟨T, hT⟩ := f_near_p
+    have G0 := Membership.mem.out hT
+
+    let good_s := p + (1 / (100 * norm T)) * (norm A)
+    let ball_radius := (1 / (50 * (norm T + 1))) * (norm A)
+    let ball := Euclidean.ball p ball_radius
+
+    have E : ball ∈ 𝓝 p := by
+      refine Euclidean.ball_mem_nhds ?_
+      refine Left.mul_pos ?_ ?_
+      · refine one_div_pos.mpr ?_
+        refine Left.mul_pos ?_ ?_
+        · exact Nat.ofNat_pos'
+        · refine add_pos_of_nonneg_of_pos ?_ ?_
+          · exact norm_nonneg T
+          · exact Real.zero_lt_one
+      · exact norm_pos_iff.mpr A_ne_zero
 
 
+    have G : IsOpen ball := by
+      exact Euclidean.isOpen_ball
+
+    let ⟨b, ⟨b_in_ball, f_zero_at_b⟩⟩ := x_hyp ball E G
+
+    have D : (norm (A * (b - p)⁻¹ )) ∈ (norm ∘ (f - (fun s ↦ A * (s - p)⁻¹)) '' (U \ {p})) :=
+      by sorry
+
+    have ineq := G0 D
+    simp [*] at ineq
+    have K : ‖b - p‖ ≤ (norm A) / (50 * (norm T + 1)) := by
+      apply?
+
+    calc
+      50 * (norm T + 1) = ‖A‖ * (50 * (norm T + 1) / ‖A‖) := by sorry
+      _                 ≤ ‖A‖ * ‖b - p‖⁻¹ := by sorry
+      _                 ≤ T := by sorry
+
+-/
 /- The set should be open so that f'(p) = O(1) for all p ∈ U -/
 
 theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}

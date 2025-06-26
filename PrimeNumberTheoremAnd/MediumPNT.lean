@@ -1135,12 +1135,165 @@ theorem realDiff_of_complexDIff {f : ℂ → ℂ} (s : ℂ) (hf : Differentiable
 
 -- TODO : Move elsewhere (should be in Mathlib!)
 theorem riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
-  ‖ζ (σ₀ + t * I)‖ ≤ ‖ζ σ₀‖ := by
-  sorry
+  ∃ c > 0, ‖ζ (σ₀ + t * I)‖ ≤ c :=
+  by
+    let s := σ₀ + t * I
+    let s_re : ℂ  := σ₀
+
+    have H : s.re = σ₀ := by
+          rw [add_re, ofReal_re, mul_re, ofReal_re, I_re, I_im]
+          simp
+
+    have non_neg : σ₀ ≠ 0 := by
+      by_contra h
+      rw [h] at σ₀_gt
+      norm_cast at σ₀_gt
+
+    have pos : s.re > 1 := by exact lt_of_lt_of_eq σ₀_gt (id (Eq.symm H))
+    have pos_triv : s_re.re > 1 := by exact σ₀_gt
+
+    have series := LSeries_one_eq_riemannZeta pos
+    rw [← series]
+
+    have identity : ∀(n : ℕ), ‖LSeries.term 1 s n‖ = 1 / n^σ₀ := by
+      unfold LSeries.term
+      intro n
+      by_cases h0 : n = 0
+      · simp [*]
+      · simp [*]
+        push_neg at h0
+        have C : n > 0 := by exact Nat.zero_lt_of_ne_zero h0
+        have T :=  Complex.norm_natCast_cpow_of_pos C s
+        rw [H] at T
+        exact T
+
+    have summable : Summable (fun (n : ℕ) ↦  ‖LSeries.term 1 s n‖) := by
+      simp [identity]
+      exact σ₀_gt
+
+    have B := calc
+      ‖∑' (n : ℕ), LSeries.term 1 s n‖ ≤ ∑' (n : ℕ), ‖LSeries.term 1 s n‖ := norm_tsum_le_tsum_norm summable
+      _                                ≤ ∑' (n : ℕ), (1 / ↑n^σ₀) := by simp [← identity]
+      _                                ≤ norm (∑' (n : ℕ), (1 / ↑n^σ₀) : ℝ ) := by exact le_norm_self (∑' (n : ℕ), 1 / ↑n ^ σ₀)
+      _                                ≤ 1 + norm (∑' (n : ℕ), (1 / ↑n^σ₀) : ℝ ) := by linarith
+
+    let c : ℝ := 1 + norm (∑' (n : ℕ), (1 / ↑n^σ₀) : ℝ )
+
+    have c_is_pos : c > 0 := by positivity
+    use (1 + norm (∑' (n : ℕ), (1 / ↑n^σ₀) : ℝ ))
+    exact ⟨c_is_pos, B⟩
+
+
+
+
+/-- Main theorem: Summability is equivalent under real-to-complex coercion -/
+theorem summable_real_iff_summable_coe_complex (f : ℕ → ℝ) :
+    Summable f ↔ Summable (fun n => (f n : ℂ)) := by
+  constructor
+
+  -- Forward direction: ℝ → ℂ
+  · intro ⟨s, hs⟩
+    use (s : ℂ)
+    -- Apply the continuous map ℝ → ℂ to the HasSum
+    exact hasSum_ofReal.mpr hs
+    --exact HasSum.map hs continuous_ofReal
+
+  -- Reverse direction: ℂ → ℝ
+  · intro ⟨s, hs⟩
+    use s.re
+    -- Apply the continuous map ℂ → ℝ (real part) to the HasSum
+    have h_re : HasSum (fun n => ((f n : ℂ)).re) s.re :=
+      by exact hasSum_re hs
+        -- HasSum.map hs continuous_re
+    -- Since (f n : ℂ).re = f n, we're done
+    convert h_re using 1
+    --ext n
+   -- exact Complex.ofReal_re (f n)
+
 
 theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
-  ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
-  sorry
+  ∃ c > 0, ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ c := by
+
+    let s := σ₀ + t * I
+    let s_re : ℂ  := σ₀
+
+    have L : s_re = σ₀ := by rfl
+
+    have H : s.re = σ₀ := by
+          rw [add_re, ofReal_re, mul_re, ofReal_re, I_re, I_im]
+          simp
+
+    have non_neg : σ₀ ≠ 0 := by
+      by_contra h
+      rw [h] at σ₀_gt
+      norm_cast at σ₀_gt
+
+    have pos : s.re > 1 := by exact lt_of_lt_of_eq σ₀_gt (id (Eq.symm H))
+    have pos_triv : s_re.re > 1 := by exact σ₀_gt
+
+    rw [← norm_neg, ← neg_div, ← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div pos]
+
+
+    have identity0 : ∀(n : ℕ), ‖LSeries.term 1 s n‖ = 1 / n^σ₀ := by
+      unfold LSeries.term
+      intro n
+      by_cases h0 : n = 0
+      · simp [*]
+      · simp [*]
+        push_neg at h0
+        have C : n > 0 := by exact Nat.zero_lt_of_ne_zero h0
+        have T :=  Complex.norm_natCast_cpow_of_pos C s
+        rw [H] at T
+        exact T
+
+    have O : ∀(n : ℕ), (↑(‖LSeries.term (fun x ↦ (Λ x)) s n‖ : ℝ) : ℂ) = LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ ) n := by
+      intro n
+      by_cases h : (n = 0)
+      · simp [h]
+      · push_neg at h
+        unfold LSeries.term
+        simp [*]
+        have U : |Λ n| = Λ n := by sorry
+        have R : n > 0 := by sorry
+        rw [U]
+        have Z := Complex.norm_natCast_cpow_of_pos R s
+        rw [Z]
+        rw [← L]
+        simp [*]
+        sorry
+
+--        ring_nf
+--        sorry
+
+        --mod_cast
+
+        --simp [ArithmeticFunctions.vonMangoldt_nonneg]
+
+    have K : (fun (n : ℕ) ↦ ↑(‖LSeries.term (fun x ↦ (Λ x)) s n‖ : ℝ)) = (fun (n : ℕ) ↦ (LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ )  n )) := by
+      funext
+      rw [O]
+
+    have S : Summable (fun n ↦ (↑(‖LSeries.term (fun x ↦ Λ x) s n‖ : ℝ) : ℝ  )) := by
+      apply (summable_real_iff_summable_coe_complex (fun n ↦ (↑(‖LSeries.term (fun x ↦ Λ x) s n‖ : ℝ) : ℝ  ))).mpr
+      rw [K]
+      have T := ArithmeticFunction.LSeriesSummable_vonMangoldt (pos_triv)
+      have U : s_re = s.re := by exact congrFun (congrArg Complex.mk (id (Eq.symm H))) 0
+      simp [← U]
+      exact T
+
+
+    let new_const : ℝ := 1 + norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) s n‖)
+
+    have C := calc
+      ‖∑' (n : ℕ), (LSeries.term (fun x ↦ Λ x) s n)‖ ≤ ∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) s n‖ := norm_tsum_le_tsum_norm S
+      _                                              ≤ norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) s n‖) := by exact le_norm_self (∑' (n : ℕ), ‖LSeries.term (fun x ↦ ↑(Λ x)) s n‖)
+      _                                              ≤ 1 + norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) s n‖) := by linarith
+      _                                              ≤ new_const := by exact Preorder.le_refl (1 + ‖∑' (n : ℕ), ‖LSeries.term (fun x ↦ ↑(Λ x)) s n‖‖)
+
+    have new_const_is_pos : new_const > 0 := by positivity
+    use new_const
+    exact ⟨new_const_is_pos, C⟩
+
 
 theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
     DifferentiableAt ℂ ζ' s := by
@@ -1173,7 +1326,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     intro t
     simp only [Complex.norm_mul, norm_neg, c]
     gcongr
-    · convert dlog_riemannZeta_bdd_on_vertical_lines σ₀_gt t using 1
+    · sorry -- convert dlog_riemannZeta_bdd_on_vertical_lines σ₀_gt t using 1
       simp
     · rw [Complex.norm_cpow_eq_rpow_re_of_nonneg]
       · simp
