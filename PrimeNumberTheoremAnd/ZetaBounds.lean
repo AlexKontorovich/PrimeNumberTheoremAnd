@@ -698,6 +698,14 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
   exact final
 
+/-%%
+\begin{theorem}[logDerivResidue]\label{logDerivResidue}\lean{logDerivResidue}\leanok
+  If $f$ is holomorphic in a neighborhood of $p$, and there is a simple pole at $p$, then $f'/
+  f$ has a simple pole at $p$ with residue $-1$:
+  $$ \frac{f'(s)}{f(s)} = \frac{-1}{s - p} + O(1).$$
+\end{theorem}
+%%-/
+
 theorem  logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (non_zero: ∀x ∈ U \ {p}, f x ≠ 0)
     (holc : HolomorphicOn f (U \ {p}))
