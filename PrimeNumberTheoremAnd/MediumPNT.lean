@@ -2013,6 +2013,22 @@ It remains to estimate all of the integrals.
 %%-/
 
 /-%%
+\begin{lemma}[IBound_aux1]\label{IBound_aux1}\lean{IBound_aux1}\leanok
+There exists $C>0$ so that for all $T>3$,
+$$
+\log T ^ 9 \le C \cdot T.
+$$
+\end{lemma}
+%%-/
+lemma IBound_aux1 : ∃ C > 0, ∀ {T : ℝ} (T_gt : 3 < T), Real.log T ^ 9 ≤ C * T := by
+    sorry
+/-%%
+\begin{proof}
+Elementary.
+\end{proof}
+%%-/
+
+/-%%
 \begin{lemma}[I1Bound]\label{I1Bound}\lean{I1Bound}\leanok
 We have that
 $$
