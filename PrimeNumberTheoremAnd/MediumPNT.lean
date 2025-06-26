@@ -1587,19 +1587,50 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       I₆ SmoothingF ε X σ₁ σ₂ +
       I₇ SmoothingF ε T X σ₁ := by
   let z : ℂ := σ₂ - 3 * I
-  let w : ℂ := σ₂ + 3 * I
-  -- the leftmost rectangle is in in the locus of holomorphicity
+  let w : ℂ := σ₁ + 3 * I
+  -- the leftmost rectangle is in the locus of holomorphicity
   have sub : z.Rectangle w ⊆ Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1} := by
     intro x hx
-    simp only [Rectangle, mem_inter_iff, mem_preimage, uIcc, mem_prod, mem_Icc] at hx
-    obtain ⟨hre, him⟩ := hx
 
-    simp only [mem_preimage] at hre him
-    simp
+    constructor
+    . -- x in box
+      simp only [Rectangle, uIcc] at hx
+      rw [Complex.mem_reProdIm] at hx ⊢
+      -- only
 
-    sorry
+      sorry
+
+    -- constructor
+    -- .  -- Real part: σ₂ ≤ x.re ∧ x.re ≤ 2
+    --   simp only [z, w] at hre him
+    --   simp only [sub_re, add_re, mul_re, ofReal_re] at hre him
+    --   simp [uIcc_of_le σ₁_lt_one.le] at hre him
+    --   simp [uIcc_of_le σ₂_lt_σ₂.le] at hre him
+
+    --   dsimp [hre, him]
+    --   have x_re_lower: σ₂ ≤ x.re := by
+    --     exact hre.1
+
+    --   -- exact ⟨hre.1 ⟩
+    --   sorry
+    -- . -- Imaginary part: -3 ≤ x ∧ x ≤ 3
+    --   sorry
+
+    . sorry -- not in {1}
+
+
   have := HolomorphicOn.vanishesOnRectangle holoOn2 sub
   sorry
+
+theorem interval_membership (x : ℝ)(a b: ℝ)(h1 : x ∈ Set.Icc (min a b) (max a b)) (h2 : a < b) :
+  a ≤ x ∧ x ≤ b := by
+  -- Since a < b, we have min(a,b) = a and max(a,b) = b
+  have min_eq : min a b = a := min_eq_left (le_of_lt h2)
+  have max_eq : max a b = b := max_eq_right (le_of_lt h2)
+  rw [min_eq, max_eq] at h1
+  rw [← @mem_Icc]
+  exact h1
+
 /-%%
 \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
 Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
