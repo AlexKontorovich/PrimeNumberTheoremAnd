@@ -936,7 +936,7 @@ theorem riemannZetaLogDerivResidue :
   simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply, aux]
   apply this HW
 /-%%
-\begin{proof}\uses{logDerivResidue, riemannZetaResidue}
+\begin{proof}\uses{logDerivResidue, riemannZetaResidue, nonZeroOfBddAbove}
   This follows from Theorem \ref{logDerivResidue} and Theorem \ref{riemannZetaResidue}.
 \end{proof}
 %%-/
