@@ -2002,7 +2002,7 @@ theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
   exact mul_le_mul_of_nonneg_right hC Xnne
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{MellinOfSmooth1c}
 Unfold the definitions and apply Lemma \ref{MellinOfSmooth1c}.
 \end{proof}
