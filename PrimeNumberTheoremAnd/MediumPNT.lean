@@ -2093,6 +2093,8 @@ theorem I1Bound :
 
   let f := fun (t : ℝ) ↦ SmoothedChebyshevIntegrand Smoothing eps X (pts t)
 
+  /- Main pointwise bound -/
+
   have G : ∃L > 0, ∀(t : ℝ), ‖f t‖ ≤ L * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
 
     obtain ⟨K, ⟨K_is_pos, K_bounds_zeta_at_any_t⟩⟩  := dlog_riemannZeta_bdd_on_vertical_lines' (pts_re_ge_1)
@@ -2104,8 +2106,6 @@ theorem I1Bound :
     use (by exact Left.mul_pos K_is_pos M_is_pos)
 
     intro t
---    unfold f
---    unfold SmoothedChebyshevIntegrand
 
     let M_bounds_mellin_easy := fun (t : ℝ) ↦ M_bounds_mellin_hard pts_re pts_re_pos (pts t) (triv_pts_lo_bound t) (triv_pts_up_bound t) eps eps_pos eps_less_one
 
@@ -2157,7 +2157,6 @@ theorem I1Bound :
       rw [mul_assoc]
       exact g_bound t
 
-
     have trivialize : K * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) = (K * M) * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
       rw [mul_assoc]
       rw [mul_assoc]
@@ -2166,27 +2165,17 @@ theorem I1Bound :
     rw [trivialize] at final_bound_pointwise
     exact final_bound_pointwise
 
---    have T3 : ‖zeta_part t‖ ≤ K := by
---      rw [T2]
---      exact (K_bounds_zeta_at_any_t t)
+  /- Will need to prove that the bound L * (eps * ‖pts t‖^2)⁻¹ * X^pts_re is measurable and that ‖ f ‖ is integral. Will then use MeasureTheory.integral_mono -/
 
+  /- Another option is MeasureTheory.integral_mono_of_nonneg no requirement for ‖ f ‖ being measurable, but need inequality in measure which might be cumbersome -/
 
+  -- Will have to show that f is integrable from ContDiff and compact support
 
---    have T4 : ‖mellin_part t * X_part t‖ ≤
+--  have norm_f_is_integrable : := by exact MeasureTheory.Integrable.norm f
 
+  -- Actually sort of forced to use MeasureTheory.integral_mono_of_nonneg unless want to also prove that ζ' / ζ is measurable which would be super annoying
 
---    sorry
-
-/-    calc
-      ‖g t‖ = ‖-zeta_part t‖ * ‖mellin_part t * X_part t‖ := by
-        unfold g
-        rw [mul_assoc, norm_mul (zeta_part t) (mellin_part t * X_part t), T2]
-      _ ≤ K * ‖mellin_part t * X_part t‖ := by
-        unfold zeta_part
-        exact norm_mul_le_of_le (K_bounds_zeta_at_any_t t) _
-
-    sorry
--/
+  -- Easy because from G deduce a bound with 1 / t^2 and that thing is obviously integrable.
 
   have Z :=
     by
