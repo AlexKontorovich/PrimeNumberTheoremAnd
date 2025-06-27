@@ -2618,7 +2618,7 @@ $$
 Same with $I_8$.
 \end{lemma}
 %%-/
-lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
+lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     {T : ℝ} (T_gt : 3 < T)
@@ -2628,6 +2628,91 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
     let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
     ‖I₂ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
+  let C' : ℝ := sorry
+  have : C' > 0 := by sorry
+  use ‖1/(2*π*I)‖ * (3 * C'), sorry -- by positivity
+  have ⟨A, Abd, C₂, C₂pos, ζbd⟩ := LogDerivZetaBndUniform
+  use A, Abd
+  intro SmoothingF X X_gt ε ε_pos ε_lt_one T T_gt suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF σ₁
+  have ⟨C₁, C₁pos, Mbd⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
+  clear SmoothingFnonneg suppSmoothingF mass_one ContDiffSmoothingF
+  have Xpos : 0 < X := lt_trans (by norm_num) X_gt
+  have Tpos : 0 < T := lt_trans (by norm_num) T_gt
+  unfold I₂
+  rw[norm_mul, mul_assoc (c := X), ← mul_div]
+  refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg _)
+  have interval_length_nonneg : σ₁ ≤ 1 + (Real.log T)⁻¹ := by
+    dsimp[σ₁]
+    rw[sub_le_iff_le_add]
+    nth_rw 1 [← add_zero 1]
+    rw[add_assoc]
+    apply add_le_add_left
+    refine Left.add_nonneg ?_ ?_
+    · rw[inv_nonneg, log_nonneg_iff Tpos]
+      exact le_trans (by norm_num) (le_of_lt T_gt)
+    · refine div_nonneg ?_ ?_
+      exact le_of_lt Abd.1
+      apply pow_nonneg
+      rw[log_nonneg_iff Xpos]
+      exact le_trans (by norm_num) (le_of_lt X_gt)
+  suffices ∀ σ ∈ Ioc σ₁ (1 + (Real.log T)⁻¹), ‖SmoothedChebyshevIntegrand SmoothingF ε T (↑σ - ↑X * I)‖ ≤ C' * X / (ε * T) by
+    calc
+      ‖∫ (σ : ℝ) in σ₁..1 + (Real.log T)⁻¹,
+          SmoothedChebyshevIntegrand SmoothingF ε T (↑σ - ↑X * I)‖ ≤
+          C' * X / (ε * T) * |1 + (Real.log T)⁻¹ - σ₁| := by
+        refine intervalIntegral.norm_integral_le_of_norm_le_const ?_
+        convert this using 3
+        apply uIoc_of_le
+        exact interval_length_nonneg
+      _ ≤ C' * X / (ε * T) * 3 := by
+        apply mul_le_mul_of_nonneg_left
+        rw[abs_of_nonneg (sub_nonneg.mpr interval_length_nonneg)]
+        dsimp[σ₁]
+        norm_num
+        suffices (Real.log T)⁻¹ + A / Real.log X ^ 9 ≤ 1 + 2 by
+          convert this
+          norm_num
+        refine add_le_add ?_ ?_
+        · rw[← inv_one]
+          apply inv_anti₀ zero_lt_one
+          rw[le_log_iff_exp_le]
+          exact le_of_lt (lt_trans (lt_trans exp_one_lt_d9 (by norm_num)) T_gt)
+          exact Tpos
+        · have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by
+            nth_rewrite 1 [← add_zero 1]
+            refine add_lt_add_of_le_of_lt ?_ ?_
+            rfl
+            rw[inv_pos, ← Real.log_one]
+            apply Real.log_lt_log
+            norm_num
+            linarith
+          have X_eq_lt_two : (1 + (Real.log X)⁻¹) < 2 := by
+            rw[← one_add_one_eq_two]
+            refine (Real.add_lt_add_iff_left 1).mpr ?_
+            refine inv_lt_one_of_one_lt₀ ?_
+            refine (lt_log_iff_exp_lt ?_).mpr ?_
+            positivity
+            have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
+            linarith
+          calc
+            A / Real.log X ^ 9 ≤ 1 / 2 / Real.log X ^ 9 := by
+              refine div_le_div_of_nonneg_right (Abd.2) ?_
+              apply pow_nonneg
+              rw[log_nonneg_iff Xpos]
+              exact le_trans (by norm_num) (le_of_lt X_gt)
+            _ ≤ 1 / 2 / 1 := by
+              refine div_le_div_of_nonneg_left (by norm_num) (by norm_num) ?_
+              apply one_le_pow₀
+              apply le_of_lt
+              refine (lt_log_iff_exp_lt ?_).mpr ?_
+              positivity
+              have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
+              linarith
+            _ ≤ 2 := by norm_num
+        positivity
+      _ = 3 * C' * X / (ε * T) := by ring
+  -- Now bound the integrand
+  unfold SmoothedChebyshevIntegrand
   sorry
 
 lemma I8Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
