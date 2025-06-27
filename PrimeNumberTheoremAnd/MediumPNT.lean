@@ -1550,14 +1550,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   exact ResidueTheoremOnRectangleWithSimplePole zRe_le_wRe zIm_le_wIm pInRectangleInterior gHolo gEq
 
 
-lemma interval_membership (r : ℝ)(a b: ℝ)(h1 : r ∈ Set.Icc (min a b) (max a b)) (h2 : a < b) :
-  a ≤ r ∧ r ≤ b := by
-  -- Since a < b, we have min(a,b) = a and max(a,b) = b
-  have min_eq : min a b = a := min_eq_left (le_of_lt h2)
-  have max_eq : max a b = b := max_eq_right (le_of_lt h2)
-  rw [min_eq, max_eq] at h1
-  rw [← @mem_Icc]
-  exact h1
+
 
 /-%%
 \begin{proof}
@@ -1580,13 +1573,31 @@ $$
 \end{lemma}
 %%-/
 
--- use intervalIntegral.integral_add_adjacent_intervals
+
+lemma interval_membership (r : ℝ)(a b: ℝ)(h1 : r ∈ Set.Icc (min a b) (max a b)) (h2 : a < b) :
+  a ≤ r ∧ r ≤ b := by
+  -- Since a < b, we have min(a,b) = a and max(a,b) = b
+  have min_eq : min a b = a := min_eq_left (le_of_lt h2)
+  have max_eq : max a b = b := max_eq_right (le_of_lt h2)
+  rw [min_eq, max_eq] at h1
+  rw [← @mem_Icc]
+  exact h1
+
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] {f g : ℂ → E}
   {z w p c A : ℂ} {x x₁ x₂ y y₁ y₂ σ : ℝ}
 
-lemma verticalIntegral_split_three_finite (s a b e: ℝ) (hf : Integrable (fun t : ℝ ↦ f (σ + t * I))) :
-    VerticalIntegral f σ = VIntegral f σ s a + VIntegral f σ a b + VIntegral f σ b e := by
+-- use intervalIntegral.integral_add_adjacent_intervals
+lemma verticalIntegral_split_three_finite (s a b e: ℝ) (hf : Integrable (fun t : ℝ ↦ f (σ + t * I))) (ha: s < a ∧ a < e) (hb: s < b ∧ b < e) (hab: a < b)  :
+    VerticalIntegral f σ =
+    VIntegral f σ s a +
+    VIntegral f σ a b +
+    VIntegral f σ b e := by
+  rw [VerticalIntegral, VIntegral, VIntegral, VIntegral]
+  -- have h1 := by sorry
   sorry
+  -- intervalIntegral.integral_add_adjacent_intervals
+  -- for integrability on subinterval, potentially using theorem MeasureTheory.IntegrableOn.mono_set
+
 
 theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1)
     (X : ℝ) (_ : 3 < X)
