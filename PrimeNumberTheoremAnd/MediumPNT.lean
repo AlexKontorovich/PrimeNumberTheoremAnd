@@ -2215,6 +2215,76 @@ Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
 
+lemma interval_membership (r : ℝ)(a b: ℝ)(h1 : r ∈ Set.Icc (min a b) (max a b)) (h2 : a < b) :
+  a ≤ r ∧ r ≤ b := by
+  -- Since a < b, we have min(a,b) = a and max(a,b) = b
+  have min_eq : min a b = a := min_eq_left (le_of_lt h2)
+  have max_eq : max a b = b := max_eq_right (le_of_lt h2)
+  rw [min_eq, max_eq] at h1
+  rw [← @mem_Icc]
+  exact h1
+
+-- use intervalIntegral.integral_add_adjacent_intervals
+lemma verticalIntegral_split_three_finite {s a b e σ : ℝ} {f : ℂ → ℂ}
+    (hf : IntegrableOn (fun t : ℝ ↦ f (σ + t * I)) (Icc s e))
+    (hab: s < a ∧ a < b ∧ b < e):
+    VIntegral f σ s e =
+    VIntegral f σ s a +
+    VIntegral f σ a b +
+    VIntegral f σ b e := by
+  rw [VIntegral, VIntegral, VIntegral, VIntegral]
+  -- First establish integrability on each subinterval
+  have hf_sa : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume a e := by
+    obtain ⟨hsa, hab, hbe⟩ := hab
+    have sa_subset_sb : Icc s a ⊆ Icc s b := by
+      exact Icc_subset_Icc_right hab.le
+    sorry
+
+  have hf_ae : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume a e := by
+    obtain ⟨hsa, hab, hbe⟩ := hab
+    have sa_subset_sb : Icc a e ⊆ Icc s e := by
+      sorry
+      --exact Icc_subset_Icc_right hae.le -- we don't yet have hae.le
+    sorry
+
+  have hf_ab : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume a b := by
+    obtain ⟨hsa, hab, hbe⟩ := hab
+    have sa_subset_sb : Icc a b ⊆ Icc a e := by
+      exact Icc_subset_Icc_right hbe.le
+    sorry
+
+  have hf_be : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume b e := by
+    obtain ⟨hsa, hab, hbe⟩ := hab
+    have sa_subset_sb : Icc b e ⊆ Icc a e := by
+      exact Icc_subset_Icc_left hab.le
+    sorry
+
+  -- First split: s to e = (s to a) + (a to e)
+  have h1 : ∫ t in s..e, f (σ + t * I) =
+    ∫ t in s..a, f (σ + t * I) + ∫ t in a..e, f (σ + t * I) := by
+    sorry
+    --exact intervalIntegral.integral_add_adjacent_intervals hf_sa hf_ae
+
+  -- Second split: a to e = (a to b))+ (b to e)
+  have h2 : ∫ t in s..e, f (σ + t * I) =
+    ∫ t in s..a, f (σ + t * I) + ∫ t in a..e, f (σ + t * I) := by
+    sorry --exact intervalIntegral.integral_add_adjacent_intervals hf_ab hf_be
+
+  sorry
+
+lemma verticalIntegral_split_three_finite' {s a b e σ : ℝ} {f : ℂ → ℂ}
+    (hf : IntegrableOn (fun t : ℝ ↦ f (σ + t * I)) (Icc s e))
+    (hab: s < a ∧ a < b ∧ b < e):
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ s e) =
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ s a) +
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ a b) +
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ b e) := by
+  sorry
+
+theorem SmoothedChebyshevPull2_aux1 {T σ₁ : ℝ}
+  (holoOn : HolomorphicOn (ζ' / ζ) (Icc σ₁ 2 ×ℂ Icc (-T) T \ {1})) :
+  ContinuousOn (fun (t : ℝ) ↦ -ζ' (σ₁ + t * I) / ζ (σ₁ + t * I)) (Icc (-T) T) := sorry
+
 /-%%
 Next pull contours to another box.
 \begin{lemma}[SmoothedChebyshevPull2]\label{SmoothedChebyshevPull2}\lean{SmoothedChebyshevPull2}\leanok
@@ -2226,9 +2296,10 @@ I_3 - I_4 + I_5 + I_6 + I_7
 $$
 \end{lemma}
 %%-/
+
 theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1)
     (X : ℝ) (_ : 3 < X)
-    {T : ℝ} (T_pos : 0 < T) {σ₁ σ₂ : ℝ}
+    {T : ℝ} (T_pos : 3 < T) {σ₁ σ₂ : ℝ}
     (σ₂_pos : 0 < σ₂) (σ₁_lt_one : σ₁ < 1)
     (σ₂_lt_σ₁ : σ₂ < σ₁)
     (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₁ 2)×ℂ (Icc (-T) T) \ {1}))
@@ -2244,12 +2315,151 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       I₆ SmoothingF ε X σ₁ σ₂ +
       I₇ SmoothingF ε T X σ₁ := by
   let z : ℂ := σ₂ - 3 * I
-  let w : ℂ := σ₂ + 3 * I
-  have sub : z.Rectangle w ⊆ Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1} := by sorry
-  have := HolomorphicOn.vanishesOnRectangle holoOn2 sub
-  sorry
+  let w : ℂ := σ₁ + 3 * I
+  -- Step (1)
+  -- Show that the Rectangle is in a given subset of holomorphicity
+  have sub : z.Rectangle w ⊆ Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1} := by
+    -- for every point x in the Rectangle
+    intro x hx
+    constructor
+    . -- x is in the locus of holomorphicity
+      simp only [Rectangle, uIcc] at hx
+      rw [Complex.mem_reProdIm] at hx ⊢
+      obtain ⟨hx_re, hx_im⟩ := hx
+      -- the real part of x is in the correct interval
+      have hzw_re : z.re < w.re := by
+        dsimp [z, w]
+        linarith
+      have x_re_bounds : z.re ≤ x.re ∧ x.re ≤ w.re := by
+        exact interval_membership x.re z.re w.re hx_re hzw_re
+      have x_re_in_Icc : x.re ∈ Icc σ₂ 2 := by
+        have ⟨h_left, h_right⟩ := x_re_bounds
+        have h_left' : σ₂ ≤ x.re := by
+          dsimp [z] at h_left
+          linarith
+        have h_right' : x.re ≤ 2 := by
+          apply le_trans h_right
+          dsimp [w]
+          linarith
+        exact ⟨h_left', h_right'⟩
+      -- the imaginary part of x is in the correct interval
+      have hzw_im : z.im < w.im := by
+        dsimp [z, w]
+        linarith
+      have x_im_bounds : z.im ≤ x.im ∧ x.im ≤ w.im := by
+        exact interval_membership x.im z.im w.im hx_im hzw_im
+      have x_im_in_Icc : x.im ∈ Icc (-3) 3 := by
+        have ⟨h_left, h_right⟩ := x_im_bounds
+        have h_left' : -3 ≤ x.im := by
+          dsimp [z] at h_left
+          linarith
+        have h_right' : x.im ≤ 3 := by
+          dsimp [w] at h_right
+          linarith
+        exact ⟨h_left', h_right'⟩
+      exact ⟨x_re_in_Icc, x_im_in_Icc⟩
+    -- x is not in {1} by contradiction
+    . simp only [mem_singleton_iff]
+      -- x has real part less than 1
+      have x_re_upper: x.re ≤ σ₁ := by
+        simp only [Rectangle, uIcc] at hx
+        rw [Complex.mem_reProdIm] at hx
+        obtain ⟨hx_re, _⟩ := hx
+        -- the real part of x is in the interval
+        have hzw_re : z.re < w.re := by
+          dsimp [z, w]
+          linarith
+        have x_re_bounds : z.re ≤ x.re ∧ x.re ≤ w.re := by
+          exact interval_membership x.re z.re w.re hx_re hzw_re
+        have x_re_upper' : x.re ≤ w.re := by exact x_re_bounds.2
+        dsimp [w] at x_re_upper'
+        linarith
+      -- by contracdiction
+      have h_x_ne_one : x ≠ 1 := by
+        intro h_eq
+        have h_re : x.re = 1 := by rw [h_eq, Complex.one_re]
+        have h1 : 1 ≤ σ₁ := by
+          rw [← h_re]
+          exact x_re_upper
+        linarith
+      exact h_x_ne_one
+  have zero_over_box := HolomorphicOn.vanishesOnRectangle holoOn2 sub
+  have splitting : I₃₇ SmoothingF ε T X σ₁ =
+    I₃ SmoothingF ε T X σ₁ + I₅ SmoothingF ε X σ₁ + I₇ SmoothingF ε T X σ₁ := by
+    unfold I₃₇ I₃ I₅ I₇
+    apply verticalIntegral_split_three_finite'
+    · apply ContinuousOn.integrableOn_Icc
+      unfold SmoothedChebyshevIntegrand
+      apply ContinuousOn.mul
+      · apply ContinuousOn.mul
+        · apply SmoothedChebyshevPull2_aux1 holoOn
+        · apply continuousOn_of_forall_continuousAt
+          intro t t_mem
+          have := @Smooth1ContinuousAt
+          sorry
+      · sorry
+    · refine ⟨by linarith, by linarith, by linarith⟩
+  calc I₃₇ SmoothingF ε T X σ₁ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (0 : ℂ) := by simp
+    _ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (RectangleIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z w) := by rw [← zero_over_box]
+    _ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re z.im
+    - HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re w.im
+    + VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
+    - VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by simp [RectangleIntegral]
+    _ = I₃₇ SmoothingF ε T X σ₁ - ((1 / (2 * π * I)) * HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re z.im
+    - (1 / (2 * π * I)) * HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re w.im
+    + (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
+    - (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by ring
+    _ = I₃₇ SmoothingF ε T X σ₁ - (I₄ SmoothingF ε X σ₁ σ₂
+    - (1 / (2 * π * I)) * HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re w.im
+    + (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
+    - (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by
+      simp only [one_div, mul_inv_rev, inv_I, neg_mul, HIntegral, sub_im, ofReal_im, mul_im,
+        re_ofNat, I_im, mul_one, im_ofNat, I_re, mul_zero, add_zero, zero_sub, ofReal_neg,
+        ofReal_ofNat, sub_re, ofReal_re, mul_re, sub_self, sub_zero, add_re, add_im, zero_add,
+        sub_neg_eq_add, I₄, sub_right_inj, add_left_inj, neg_inj, mul_eq_mul_left_iff, mul_eq_zero,
+        I_ne_zero, inv_eq_zero, ofReal_eq_zero, OfNat.ofNat_ne_zero, or_false, false_or, z, w]
+      left
+      rfl
+    _ = I₃₇ SmoothingF ε T X σ₁ - (I₄ SmoothingF ε X σ₁ σ₂
+    - I₆ SmoothingF ε X σ₁ σ₂
+    + (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
+    - (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by
+      simp only [one_div, mul_inv_rev, inv_I, neg_mul, HIntegral, add_im, ofReal_im, mul_im,
+        re_ofNat, I_im, mul_one, im_ofNat, I_re, mul_zero, add_zero, zero_add, ofReal_ofNat, sub_re,
+        ofReal_re, mul_re, sub_self, sub_zero, add_re, sub_neg_eq_add, sub_im, zero_sub, I₆, w, z]
+    _ = I₃₇ SmoothingF ε T X σ₁ - (I₄ SmoothingF ε X σ₁ σ₂
+    - I₆ SmoothingF ε X σ₁ σ₂
+    + I₅ SmoothingF ε X σ₁
+    - (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by
+      simp only [one_div, mul_inv_rev, inv_I, neg_mul, VIntegral, add_re, ofReal_re, mul_re,
+        re_ofNat, I_re, mul_zero, im_ofNat, I_im, mul_one, sub_self, add_zero, sub_im, ofReal_im,
+        mul_im, zero_sub, add_im, zero_add, smul_eq_mul, sub_re, sub_zero, sub_neg_eq_add, I₅,
+        neg_add_cancel_right, sub_right_inj, w, z]
+    _ = I₃₇ SmoothingF ε T X σ₁ - (I₄ SmoothingF ε X σ₁ σ₂
+    - I₆ SmoothingF ε X σ₁ σ₂
+    + I₅ SmoothingF ε X σ₁
+    - I₅ SmoothingF ε X σ₂) := by
+      simp only [I₅, one_div, mul_inv_rev, inv_I, neg_mul, VIntegral, sub_re, ofReal_re, mul_re,
+        re_ofNat, I_re, mul_zero, im_ofNat, I_im, mul_one, sub_self, sub_zero, sub_im, ofReal_im,
+        mul_im, add_zero, zero_sub, add_im, zero_add, smul_eq_mul, sub_neg_eq_add, z, w]
+    --- starting from now, we split the integral `I₃₇` into `I₃ σ₂ + I₅ σ₁ + I₇ σ₁` using `verticalIntegral_split_three_finite`
+    _ = I₃ SmoothingF ε T X σ₁
+    + I₅ SmoothingF ε X σ₁
+    + I₇ SmoothingF ε T X σ₁
+    - (I₄ SmoothingF ε X σ₁ σ₂
+    - I₆ SmoothingF ε X σ₁ σ₂
+    + I₅ SmoothingF ε X σ₁
+    - I₅ SmoothingF ε X σ₂) := by
+      rw [splitting]
+    _ = I₃ SmoothingF ε T X σ₁
+    - I₄ SmoothingF ε X σ₁ σ₂
+    + I₅ SmoothingF ε X σ₂
+    + I₆ SmoothingF ε X σ₁ σ₂
+    + I₇ SmoothingF ε T X σ₁ := by
+      ring
+
 /-%%
-\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, I3, I4, I5, I6, I7, I37}
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, I3, I4, I5, I6, I7, I37}\leanok
 Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
 \end{proof}
 %%-/
