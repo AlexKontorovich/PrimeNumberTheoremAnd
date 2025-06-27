@@ -1587,16 +1587,45 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] {f g : ℂ → E
   {z w p c A : ℂ} {x x₁ x₂ y y₁ y₂ σ : ℝ}
 
 -- use intervalIntegral.integral_add_adjacent_intervals
-lemma verticalIntegral_split_three_finite (s a b e: ℝ) (hf : Integrable (fun t : ℝ ↦ f (σ + t * I))) (ha: s < a ∧ a < e) (hb: s < b ∧ b < e) (hab: a < b)  :
+lemma verticalIntegral_split_three_finite (s a b e: ℝ) (f : ℂ → E) (hf : Integrable (fun t : ℝ ↦ f (σ + t * I))) (hab: s < a ∧ a < b ∧ b < e):
     VerticalIntegral f σ =
     VIntegral f σ s a +
     VIntegral f σ a b +
     VIntegral f σ b e := by
   rw [VerticalIntegral, VIntegral, VIntegral, VIntegral]
-  -- have h1 := by sorry
-  sorry
-  -- intervalIntegral.integral_add_adjacent_intervals
-  -- for integrability on subinterval, potentially using theorem MeasureTheory.IntegrableOn.mono_set
+  -- First establish integrability on each subinterval
+  have hf_sa : IntervalIntegrable f volume s a := by
+    obtain ⟨hsa, hab, hbe⟩ := hab
+    have sa_subset_sb : Icc s a ⊆ Icc s b := by
+      exact Icc_subset_Icc_right hab.le
+    sorry
+
+  have hf_ae : IntervalIntegrable f volume a e := by
+    obtain ⟨hsa, hab, hbe⟩ := hab
+    have sa_subset_sb : Icc a e ⊆ Icc s e := by
+      exact Icc_subset_Icc_right hae.le -- we don't yet have hae.le
+    sorry
+
+  have hf_ab : IntervalIntegrable f volume a b := by
+    obtain ⟨hsa, hab, hbe⟩ := hab
+    have sa_subset_sb : Icc a b ⊆ Icc a e := by
+      exact Icc_subset_Icc_right hbe.le
+    sorry
+
+  have hf_be : IntervalIntegrable f volume b e := by
+    obtain ⟨hsa, hab, hbe⟩ := hab
+    have sa_subset_sb : Icc b e ⊆ Icc a e := by
+      exact Icc_subset_Icc_left hab.le
+    sorry
+
+  -- First split: s to e = (s to a) + (a to e)
+  have h1 : ∫ t in s..e, f (σ + t * I) = ∫ t in s..a, f (σ + t * I) + ∫ t in a..e, f (σ + t * I) := by
+    exact intervalIntegral.integral_add_adjacent_intervals hf_sa hf_ae
+
+  -- Second split: a to e = (a to b))+ (b to e)
+  have h2 : ∫ t in s..e, f (σ + t * I) = ∫ t in s..a, f (σ + t * I) + ∫ t in a..e, f (σ + t * I) := by
+    exact intervalIntegral.integral_add_adjacent_intervals hf_ab hf_be
+
 
 
 theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1)
@@ -1696,8 +1725,8 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   -- the integral on `(-∞, -3)` is `I_3`
   -- the integral on `(3, ∞)` is `I_7`
   -- the integral on `[-3, 3]` is equal to `-I₅ SmoothingF ε T X σ₁`.
-  have splitting : I₃₇ SmoothingF ε T X σ₁ = I₃ SmoothingF ε T X σ₁ + I₅ SmoothingF ε X σ₁ + I₇ SmoothingF ε T X σ₁ := by
-    have := verticalIntegral_split_three_finite (a := -3) (b := 3)
+  have splitting : I₃₇ SmoothingF ε T X σ₁ = I₃ SmoothingF ε T X σ₁ + I₅ SmoothingF ε X σ₁ + I₇ SmoothingF ε T X σ₁ := by sorry
+    -- have := verticalIntegral_split_three_finite (a := -3) (b := 3)
     -- rw [verticalIntegral_split_three (a := -3) (b := 3)]
 
 
