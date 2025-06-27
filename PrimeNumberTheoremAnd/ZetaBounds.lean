@@ -776,7 +776,36 @@ lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
 lemma BddAbove_to_IsBigO {f : ℂ → ℂ} {p : ℂ}
     {U : Set ℂ} (hU : U ∈ 𝓝 p) (bdd : BddAbove (norm ∘ f '' (U \ {p}))) :
     f =O[𝓝[≠] p] (1 : ℂ → ℂ)  := by
-  sorry
+  dsimp [BddAbove, upperBounds] at bdd
+  rcases bdd with ⟨C, hC⟩
+
+  have h : ∀ x ∈ U \ {p}, ‖f x‖ ≤ C := by
+    intro x hx
+    have fx_is_norm : ‖f x‖ ∈ norm ∘ f ''(U \ {p}) := by
+      exact ⟨x, hx, rfl⟩
+    exact hC fx_is_norm
+
+  rw [Asymptotics.isBigO_iff]
+  use C
+  rw [eventually_nhdsWithin_iff]
+  rw [eventually_nhds_iff]
+  rw [mem_nhds_iff] at hU
+  obtain ⟨V, V_in_U, V_open, p_in_V⟩ := hU
+  use V
+  constructor
+  . intro y hy
+    intro y_not_p
+    simp only [mem_compl_iff, mem_singleton_iff] at y_not_p
+    have : y ∈ U \ {p} := by
+      constructor
+      . exact V_in_U hy
+      . simp only [mem_singleton_iff]
+        exact y_not_p
+    have := h y this
+    convert this
+    simp
+  . exact ⟨V_open, p_in_V⟩
+
 /-%%
 \begin{proof}
 Elementary...
