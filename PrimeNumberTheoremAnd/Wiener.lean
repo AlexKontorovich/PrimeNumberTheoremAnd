@@ -370,7 +370,7 @@ for all $u \in \R$.
 %%-/
 
 /-%%
-\begin{proof}\uses{prelim-decay, prelim-decay-3, decay} Should follow from previous lemmas.
+\begin{proof}\uses{prelim-decay, prelim-decay-3} Should follow from previous lemmas.
 \end{proof}
 %%-/
 
