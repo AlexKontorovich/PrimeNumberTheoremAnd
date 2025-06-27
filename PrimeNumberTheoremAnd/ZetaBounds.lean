@@ -44,7 +44,7 @@ local notation (name := derivriemannzeta) "ζ'" => deriv riemannZeta
 We record here some prelimiaries about the zeta function and general
 holomorphic functions.
 
-\begin{theorem}[ResidueOfTendsTo]\label{riemannZetaResidueOne}\lean{riemannZetaResidueOne}\leanok
+\begin{theorem}[ResidueOfTendsTo]\label{ResidueOfTendsTo}\lean{ResidueOfTendsTo}\leanok
   If a function $f$ is holomorphic in a neighborhood of $p$ and
   $\lim_{s\to p} (s-p)f(s) = A$, then
   $f(s) = \frac{A}{s-p} + O(1)$ near $p$.
@@ -180,7 +180,7 @@ theorem riemannZetaResidue :
   simp
 
 /-%%
-\begin{proof}\uses{ResidueOfTendsTo}
+\begin{proof}\uses{ResidueOfTendsTo}\leanok
 From `riemannZeta_residue_one` (in Mathlib), we know that
 $(s-1)\zeta(s)$ goes to $1$ as $s\to1$. Now apply Theorem \ref{ResidueOfTendsTo}.
 (This can also be done using $\zeta_0$ below, which is expressed as
@@ -411,7 +411,7 @@ theorem nonZeroOfBddAbove {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
     ∃ V ∈ 𝓝 p, IsOpen V ∧ ∀ s ∈ V \ {p}, f s ≠ 0 := by
   /-%%
-  \begin{proof}
+  \begin{proof}\leanok
     We know that $f(s) = \frac{A}{s-p} + O(1)$ near $p$, so we can write
     $$f(s) = \left(f(s) - \frac{A}{s-p}\right) + \frac{A}{s-p}.$$
     The first term is bounded, say by $M$, and the second term goes to $\infty$ as $s \to p$.
@@ -695,8 +695,15 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
       exact EventuallyEq.trans_isBigO T h_log_deriv_bounded
 
-
   exact final
+
+/-%%
+\begin{theorem}[logDerivResidue]\label{logDerivResidue}\lean{logDerivResidue}\leanok
+  If $f$ is holomorphic in a neighborhood of $p$, and there is a simple pole at $p$, then $f'/
+  f$ has a simple pole at $p$ with residue $-1$:
+  $$ \frac{f'(s)}{f(s)} = \frac{-1}{s - p} + O(1).$$
+\end{theorem}
+%%-/
 
 theorem  logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (non_zero: ∀x ∈ U \ {p}, f x ≠ 0)
@@ -724,9 +731,40 @@ theorem  logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       · exact DifferentiableOn.mono holc T
       · exact (f_near_p.mono (image_subset _ (diff_subset_diff a (subset_refl _))))
 
+lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
+  (f_near_p : f =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
+  ∃ U ∈ 𝓝 p, BddAbove (norm ∘ f '' (U \ {p})) := by
+    simp [isBigO_iff'] at f_near_p
+    obtain ⟨c, c_pos, hc⟩ := f_near_p
+    dsimp [Filter.Eventually] at hc
+    dsimp [nhdsWithin] at hc
+    rw [mem_inf_principal'] at hc
+    obtain ⟨U, hU, ⟨U_is_open, p_in_U⟩⟩ := mem_nhds_iff.mp hc
+    use U
+    constructor
+    · refine IsOpen.mem_nhds ?_ ?_
+      exact U_is_open
+      exact p_in_U
+    · refine bddAbove_def.mpr ?_
+      use c
+      intro y hy
+      simp only [Function.comp_apply, mem_image, mem_diff, mem_singleton_iff] at hy
+      obtain ⟨x, ⟨x_in_U, x_not_p⟩, fxy⟩ := hy
+      rw [← fxy]
+      have this := hU x_in_U
+      simp [x_not_p] at this
+      exact this
 
+theorem logDerivResidue'' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (non_zero: ∀x ∈ U \ {p}, f x ≠ 0)
+    (holc : HolomorphicOn f (U \ {p}))
+    (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
+    (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
+    ∃ V ∈ 𝓝 p, BddAbove (norm ∘ (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) '' (V \ {p})) := by
+  apply IsBigO_to_BddAbove
+  exact logDerivResidue non_zero holc U_in_nhds A_ne_zero f_near_p
 /-%%
-\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}
+\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}\leanok
 Using Theorem \ref{existsDifferentiableOn_of_bddAbove}, there is a function $g$ holomorphic  near $p$, for which $f(s) = A/(s-p) + g(s) = h(s)/ (s-p)$. Here $h(s):= A + g(s)(s-p)$ which is nonzero in a neighborhood of $p$ (since $h$ goes to $A$ which is nonzero).
 Then $f'(s) = (h'(s)(s-p) - h(s))/(s-p)^2$, and we can compute the quotient:
 $$
@@ -839,7 +877,7 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       exact h2
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Elementary calculation.
 $$
 f(s) * g(s) - \frac{A * g(p)}{s - p} =
@@ -862,30 +900,42 @@ As a corollary, the log derivative of the Riemann zeta function has a simple pol
 theorem riemannZetaLogDerivResidue :
     ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (-(ζ' / ζ) - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
   obtain ⟨U,U_in_nhds, hU⟩ := riemannZetaResidue
-  have ζ_holc: HolomorphicOn ζ (U \ {1}) := by
+  have hU' : BddAbove (norm ∘ (ζ - fun s ↦ 1 * (s - 1)⁻¹) '' (U \ {1})) := by
+    simp only [Function.comp_apply, Pi.sub_apply, one_mul] at hU ⊢
+    exact hU
+  obtain ⟨V,V_in_nhds, V_is_open, hV⟩ := nonZeroOfBddAbove U_in_nhds one_ne_zero hU'
+  let W := V ∩ interior U
+  have hW : ∀ s ∈ W \ {1}, ζ s ≠ 0 := by
+    intro s hs
+    have s_in_V_diff : s ∈ V \ {1} := ⟨hs.1.1, hs.2⟩
+    exact hV s s_in_V_diff
+  have ζ_holc: HolomorphicOn ζ (W \ {1}) := by
     intro y hy
-    simp at hy
+    simp only [mem_diff, mem_singleton_iff] at hy
     refine DifferentiableAt.differentiableWithinAt ?_
     apply differentiableAt_riemannZeta hy.2
-  have := logDerivResidue (by sorry) ζ_holc U_in_nhds one_ne_zero
-  simp [one_mul] at this
-  use U
-  constructor
-  exact U_in_nhds
-  convert this ?_ using 1
-  simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply]
+  have W_in_nhds : W ∈ 𝓝 1 := by
+    refine inter_mem V_in_nhds ?_
+    exact interior_mem_nhds.mpr U_in_nhds
+  have := logDerivResidue'' hW ζ_holc W_in_nhds one_ne_zero
+  have HW : BddAbove (norm ∘ (ζ - fun s ↦ (s - 1)⁻¹) '' (W \ {1})) := by
+    obtain ⟨c, hc⟩ := bddAbove_def.mp hU
+    apply bddAbove_def.mpr
+    use c
+    rintro y ⟨x, x_in_W, fxy⟩
+    apply hc
+    exact ⟨x, ⟨interior_subset x_in_W.1.2, x_in_W.2⟩, fxy⟩
+  simp only [one_mul] at this
   have aux: ∀ a, ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by
     intro a
     calc ‖-(deriv ζ a / ζ a) - (a - 1)⁻¹‖
          = ‖-((deriv ζ a / ζ a) + (a - 1)⁻¹)‖ := by ring_nf
        _ = ‖(deriv ζ a / ζ a) + (a - 1)⁻¹‖ := by rw [norm_neg]
-  simp [aux]
- -- rfl
-  simp at hU
-  sorry
-  exact hU
+  simp only [Function.comp_apply, Pi.sub_apply] at hU
+  simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply, aux]
+  apply this HW
 /-%%
-\begin{proof}\uses{logDerivResidue, riemannZetaResidue}
+\begin{proof}\uses{logDerivResidue, riemannZetaResidue, nonZeroOfBddAbove}\leanok
   This follows from Theorem \ref{logDerivResidue} and Theorem \ref{riemannZetaResidue}.
 \end{proof}
 %%-/
@@ -3633,7 +3683,7 @@ lemma LogDerivZetaBndUniform :
   apply le_trans bound
   exact (mul_le_mul_iff_of_pos_left hC_pos).mpr pow_lot_T_ge_pow_log_t
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{LogDerivZetaBnd}
 This Lemma \ref{LogDerivZetaBnd}, but uniform in $t$. The point is that the upper bound on $\zeta' / \zeta$ and the lower bound on $\sigma$ only improve as $|t|$ increases.
 \end{proof}
@@ -3800,22 +3850,111 @@ If $t_0=0$, $\zeta$ blows up near $1$, so can't be zero nearby.
 -- **End collaboration**
 
 /-%%
-We now prove that there's an absolute constant $\sigma_0$ so that $\zeta'/\zeta$ is holomorphic on a rectangle $[\sigma_0,2] \times_{ℂ} [-3,3] \setminus \{1\}$.
+We now prove that there's an absolute constant $\sigma_0$ so that $\zeta'/\zeta$ is holomorphic on a rectangle $[\sigma_2,2] \times_{ℂ} [-3,3] \setminus \{1\}$.
 \begin{lemma}[LogDerivZetaHolcSmallT]\label{LogDerivZetaHolcSmallT}\lean{LogDerivZetaHolcSmallT}\leanok
-There is a $\sigma_0 < 1$ so that the function
+There is a $\sigma_2 < 1$ so that the function
 $$
 \frac {\zeta'}{\zeta}(s)
 $$
-is holomorphic on $\{ \sigma_0 \le \Re s \le 2, |\Im s| \le 3 \} \setminus \{1\}$.
+is holomorphic on $\{ \sigma_2 \le \Re s \le 2, |\Im s| \le 3 \} \setminus \{1\}$.
 \end{lemma}
 %%-/
 theorem LogDerivZetaHolcSmallT :
     ∃ (σ₂ : ℝ) (_ : σ₂ < 1), HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
       (( [[ σ₂, 2 ]] ×ℂ [[ -3, 3 ]]) \ {1}) := by
-  have := ZetaNoZerosInBox 4
-  sorry
+  obtain ⟨σ₂, hσ₂_lt_one, hζ_ne_zero⟩ := ZetaNoZerosInBox 4
+  let U := ([[σ₂, 2]] ×ℂ [[-3, 3]]) \ {1}
+  have s_in_U_im_le3 : ∀ s ∈ U, |s.im| ≤ 3 := by
+    intro s hs
+    rw [mem_diff_singleton] at hs
+    rcases hs with ⟨hbox, _hne⟩
+    rcases hbox with ⟨hre, him⟩
+    simp only [Set.mem_preimage, mem_Icc] at him
+    obtain ⟨him_lower, him_upper⟩ := him
+    apply abs_le.2
+    simp at him_lower
+    simp at him_upper
+    constructor
+    · exact him_lower
+    · exact him_upper
+  have s_in_U_re_le2 : ∀ s ∈ U, s.re ≤ 2 := by
+    intro s hs
+    rw [mem_diff_singleton] at hs
+    rcases hs with ⟨hbox, _hne⟩
+    rcases hbox with ⟨hre, _him⟩
+    simp only [Set.mem_preimage, mem_Icc] at hre
+    obtain ⟨hre_lower, hre_upper⟩ := hre
+    have : max σ₂ 2 = 2 := by
+      apply max_eq_right
+      linarith [hσ₂_lt_one]
+    rw[this] at hre_upper
+    exact hre_upper
+
+  have s_in_U_re_ges2 : ∀ s ∈ U, σ₂ ≤ s.re := by
+    intro s hs
+    rw [mem_diff_singleton] at hs
+    rcases hs with ⟨hbox, _hne⟩
+    rcases hbox with ⟨hre, _him⟩
+    simp only [Set.mem_preimage, mem_Icc] at hre
+    obtain ⟨hre_lower, hre_upper⟩ := hre
+    have : min σ₂ 2 = σ₂ := by
+      apply min_eq_left
+      linarith [hσ₂_lt_one]
+    rw[this] at hre_lower
+    exact hre_lower
+
+  have hζ_hol : HolomorphicOn ζ (univ \ {1}) := by
+    intro s hs
+    exact (differentiableAt_riemannZeta hs.2).differentiableWithinAt
+
+  have hζ'_hol_ne1 : HolomorphicOn (deriv ζ) (univ \ {1}) := by
+    apply hζ_hol.deriv
+    refine IsOpen.sdiff ?_ ?_
+    exact isOpen_univ
+    exact isClosed_singleton
+
+  have hζ'_hol : HolomorphicOn (deriv ζ) U := by
+    apply hζ'_hol_ne1.mono
+    exact diff_subset_diff_left fun ⦃a⦄ a ↦ trivial
+
+  have hζ_ne_zero' : ∀ s ∈ U, ζ s ≠ 0 := by
+    intro s hs
+    have : |s.im| ≤ 3 := s_in_U_im_le3 s hs
+    have h1 : |s.im| < 4 := by
+      linarith [this]
+    have h2 : σ₂ ≤ s.re := by
+      exact s_in_U_re_ges2 s hs
+    have : s = s.re + s.im * I := by
+      exact Eq.symm (re_add_im s)
+    rw[this]
+    apply hζ_ne_zero s.im h1 s.re
+    exact s_in_U_re_ges2 s hs
+
+  have hζ_inv_hol : HolomorphicOn (fun s ↦ 1 / ζ s) U := by
+    unfold HolomorphicOn
+    unfold DifferentiableOn
+    intro x hx
+    have h_diff : DifferentiableAt ℂ ζ x := differentiableAt_riemannZeta (hx.2)
+    have h_ne_zero : ζ x ≠ 0 := hζ_ne_zero' x hx
+    have h_inv_diff : DifferentiableAt ℂ (fun s ↦ 1 / ζ s) x := by
+      simp
+      apply DifferentiableAt.inv h_diff h_ne_zero
+    exact h_inv_diff.differentiableWithinAt
+
+  have hlog_deriv_hol : HolomorphicOn (fun s ↦ ζ' s / ζ s) U := by
+    let f := fun s ↦ ζ' s
+    let g := fun s ↦ 1 / ζ s
+    have hf : HolomorphicOn f U := hζ'_hol
+    have hg : HolomorphicOn g U := hζ_inv_hol
+    have hlog_deriv_hol : HolomorphicOn (fun s ↦ f s * g s) U := hf.mul hg
+    convert hlog_deriv_hol using 1
+    ext s
+    simp [f, g]
+    exact div_eq_mul_inv (deriv ζ s) (ζ s)
+
+  exact ⟨σ₂, hσ₂_lt_one, hlog_deriv_hol⟩
 /-%%
-\begin{proof}\uses{ZetaNoZerosInBox}
+\begin{proof}\uses{ZetaNoZerosInBox}\leanok
 The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
 in this range by Lemma \ref{ZetaNoZerosInBox}.
 \end{proof}
@@ -4021,7 +4160,7 @@ theorem LogDerivZetaHolcLargeT :
   exact xImIn
 
 /-%%
-\begin{proof}\uses{ZetaZeroFree}
+\begin{proof}\uses{ZetaZeroFree}\leanok
 The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
 in this range by Lemma \ref{ZetaZeroFree}.
 \end{proof}
