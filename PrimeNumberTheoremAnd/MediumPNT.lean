@@ -3412,7 +3412,29 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀
         positivity
       _ = 3 * C' * X / (ε * T) := by ring
   -- Now bound the integrand
+  intro σ hσ
   unfold SmoothedChebyshevIntegrand
+  have : ‖ζ' (σ - X * I) / ζ (σ - X * I)‖ ≤ C₂ * (?C₃ * X) := by
+    by_cases hσ1 : σ < 1
+    · calc
+      ‖ζ' (σ - X * I) / ζ (σ - X * I)‖ = ‖ζ' (σ + (-X : ℝ) * I) / ζ (σ + (-X : ℝ) * I)‖ := by
+        push_cast; ring_nf
+      _ ≤ C₂ * Real.log X ^ 9 := by
+        apply ζbd σ X (-X)
+        · rw[abs_neg, abs_of_nonneg Xpos.le]
+          exact X_gt
+        · rw[abs_neg, abs_of_nonneg Xpos.le]
+        · exact ⟨hσ.1.le, hσ1⟩
+      _ ≤ C₂ * (?C₃ * X) := by
+        apply mul_le_mul_of_nonneg_left ?_ C₂pos.le
+        swap
+        -- Finish with a theorem such as isLittleO_log_rpow_rpow_atTop
+        -- to bound the growth of the log.
+        sorry
+        sorry
+    · -- If σ > 1, it should be easy
+      sorry
+  -- Then estimate the remaining factors.
   sorry
 
 lemma I8Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
