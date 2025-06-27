@@ -1338,9 +1338,14 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_explicit {σ₀ : ℝ} (σ₀_gt 
 
   intro t
   let s := σ₀ + t * I
-  have s_re_eq_sigma : s.re = σ₀ := by sorry
-  have s_re_geq_one : 1 < s.re := by sorry
-  have s_re_coerce_geq_one : 1 < (↑s.re : ℂ).re := by sorry
+  have s_re_eq_sigma : s.re = σ₀ := by
+    rw [Complex.add_re (σ₀) (t * I)]
+    rw [Complex.ofReal_re σ₀]
+    rw [Complex.mul_I_re]
+    simp [*]
+
+  have s_re_geq_one : 1 < s.re := by exact lt_of_lt_of_eq σ₀_gt (id (Eq.symm s_re_eq_sigma))
+  have s_re_coerce_geq_one : 1 < (↑s.re : ℂ).re := by exact s_re_geq_one
   rw [← (ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s_re_geq_one)]
   unfold LSeries
 
@@ -1382,13 +1387,18 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_explicit {σ₀ : ℝ} (σ₀_gt 
           rw [Complex.cpow_ofReal_re]
           simp [*]
           left
---          simp [←Complex.normSq_eq_conj_mul_self ((↑n : ℂ) ^ (↑σ₀ : ℂ))]
---          _
-          --r w[Complex.normSq_eq_conj_mul_sel]
---          simp [*]
---          _
---          simp [Complex.re_ofReal_mul (Λ n)]
---          _
+          have N : (0 : ℝ) ≤ ↑n := by exact Nat.cast_nonneg' n
+          have T2 : ((↑n : ℂ) ^ (↑σ₀ : ℂ)).re = (↑n : ℝ)^σ₀ := by exact rfl
+          have T1 : ((↑n : ℂ ) ^ (↑σ₀ : ℂ)).im = 0 := by
+            refine abs_re_eq_norm.mp ?_
+            rw [T2]
+            simp [*]
+            exact Real.rpow_nonneg N σ₀
+
+
+          simp [Complex.normSq_apply]
+          simp [T1, T2]
+
 
   have summable_abs_value : Summable (fun i ↦ ‖LSeries.term (fun n ↦ ↑(Λ n)) s i‖) := by
     rw [summable_congr positivity]
@@ -1428,8 +1438,9 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_explicit {σ₀ : ℝ} (σ₀_gt 
 
 --          unfold LSeries
 --      _ = ‖ζ' σ₀ / ζ σ₀‖ := by rw [←s_re_eq_sigma]
+  exact Z
 
-  sorry
+--  sorry
 
 -- TODO : Move elsewhere (should be in Mathlib!) NOT NEEDED
 theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀)  :
