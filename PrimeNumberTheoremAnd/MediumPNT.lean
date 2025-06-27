@@ -906,7 +906,7 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
-    ∃ (C : ℝ), ∀ (X : ℝ) (_ : 3 < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1) (_ : 2 < X * ε),
+    ∃ C > 0, ∀ (X : ℝ) (_ : 3 < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1) (_ : 2 < X * ε),
     ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
   have vonManBnd (n : ℕ) : ArithmeticFunction.vonMangoldt n ≤ Real.log n :=
     ArithmeticFunction.vonMangoldt_le_log
@@ -933,7 +933,9 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
 
   clear_value C
 
-  refine ⟨C, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
+  have Cpos : 0 < C := by sorry
+
+  refine ⟨C, Cpos, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
   unfold ChebyshevPsi
 
   have X_gt_zero : (0 : ℝ) < X := by linarith
@@ -3656,6 +3658,7 @@ theorem MediumPNT : ∃ c > 0,
   let X₀ : ℝ := sorry
   refine ⟨X₀, ?_⟩
   intro X X_ge_X₀
+  have X_gt_3 : 3 < X := by sorry
   let ε : ℝ := sorry
   have ε_pos : 0 < ε := sorry
   have ε_lt_one : ε < 1 := sorry
@@ -3668,10 +3671,16 @@ theorem MediumPNT : ∃ c > 0,
   have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by
     sorry
   let ψ_ε_of_X := SmoothedChebyshev ν ε X
-  have UnsmoothingError : ‖ψ X - ψ_ε_of_X‖ ≤ C * X * ε := by
-    obtain ⟨C_unsmoothing, hC⟩ := SmoothedChebyshevClose ContDiff1ν
+  have : ∃ C > 0, ‖ψ X - ψ_ε_of_X‖ ≤ C * X * ε * Real.log X := by
+    obtain ⟨C, Cpos, hC⟩ := SmoothedChebyshevClose ContDiff1ν
       ν_supp ν_nonneg ν_massOne
+    refine ⟨C, Cpos, ?_⟩
+    have := hC X X_gt_3 ε ε_pos ε_lt_one (by sorry)
+
+    --obtain ⟨C_unsmoothing, hC⟩ :=
     sorry
+
+  obtain ⟨C_unsmoothing, C_unsmoothing_pos, hC⟩ := this
 
   let T : ℝ := sorry
   have T_gt_3 : 3 < T := sorry
@@ -3679,7 +3688,7 @@ theorem MediumPNT : ∃ c > 0,
   let A : ℝ := sorry
   have A_in_Ioo : A ∈ Ioo 0 (1 / 2) := sorry
 
-  let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+  let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
 
   let σ₂ : ℝ := sorry
 
@@ -3692,8 +3701,10 @@ theorem MediumPNT : ∃ c > 0,
   obtain ⟨C_main, C_main_pos, main_diff⟩ := this
 
   have := (
-    calc ‖ψ X - X‖ ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - X‖ := by sorry
-                 _ ≤ sorry := by sorry
+    calc
+      ‖ψ X - X‖ = ‖(ψ X - ψ_ε_of_X) + (ψ_ε_of_X - X)‖ := by ring_nf; norm_cast
+      _         ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - X‖ := norm_add_le _ _
+      _         = sorry := by sorry
   )
 
   sorry
