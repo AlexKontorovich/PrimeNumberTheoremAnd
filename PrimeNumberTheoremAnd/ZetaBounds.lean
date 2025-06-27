@@ -731,6 +731,19 @@ theorem  logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       · exact DifferentiableOn.mono holc T
       · exact (f_near_p.mono (image_subset _ (diff_subset_diff a (subset_refl _))))
 
+/-%%
+\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}\leanok
+Using Theorem \ref{existsDifferentiableOn_of_bddAbove}, there is a function $g$ holomorphic  near $p$, for which $f(s) = A/(s-p) + g(s) = h(s)/ (s-p)$. Here $h(s):= A + g(s)(s-p)$ which is nonzero in a neighborhood of $p$ (since $h$ goes to $A$ which is nonzero).
+Then $f'(s) = (h'(s)(s-p) - h(s))/(s-p)^2$, and we can compute the quotient:
+$$
+\frac{f'(s)}{f(s)}+1/(s-p) = \frac{h'(s)(s-p) - h(s)}{h(s)} \cdot \frac{1}{(s-p)}+1/(s-p)
+=
+\frac{h'(s)}{h(s)}.
+$$
+Since $h$ is nonvanishing near $p$, this remains bounded in a neighborhood of $p$.
+\end{proof}
+%%-/
+
 lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
   (f_near_p : f =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
   ∃ U ∈ 𝓝 p, BddAbove (norm ∘ f '' (U \ {p})) := by
@@ -778,18 +791,6 @@ theorem logDerivResidue'' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     ∃ V ∈ 𝓝 p, BddAbove (norm ∘ (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) '' (V \ {p})) := by
   apply IsBigO_to_BddAbove
   exact logDerivResidue non_zero holc U_in_nhds A_ne_zero f_near_p
-/-%%
-\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}\leanok
-Using Theorem \ref{existsDifferentiableOn_of_bddAbove}, there is a function $g$ holomorphic  near $p$, for which $f(s) = A/(s-p) + g(s) = h(s)/ (s-p)$. Here $h(s):= A + g(s)(s-p)$ which is nonzero in a neighborhood of $p$ (since $h$ goes to $A$ which is nonzero).
-Then $f'(s) = (h'(s)(s-p) - h(s))/(s-p)^2$, and we can compute the quotient:
-$$
-\frac{f'(s)}{f(s)}+1/(s-p) = \frac{h'(s)(s-p) - h(s)}{h(s)} \cdot \frac{1}{(s-p)}+1/(s-p)
-=
-\frac{h'(s)}{h(s)}.
-$$
-Since $h$ is nonvanishing near $p$, this remains bounded in a neighborhood of $p$.
-\end{proof}
-%%-/
 
 /-%%
 Let's also record that if a function $f$ has a simple pole at $p$ with residue $A$, and $g$ is holomorphic near $p$, then the residue of $f \cdot g$ is $A \cdot g(p)$.

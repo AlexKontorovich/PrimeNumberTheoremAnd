@@ -1601,7 +1601,18 @@ Let $g : \C \to \C$ be a holomorphic function on a rectangle, then $g$ is bounde
 %%-/
 lemma BddAboveOnRect {g : ℂ → ℂ} {z w : ℂ} (holoOn : HolomorphicOn g (z.Rectangle w)) :
     BddAbove (norm ∘ g '' (z.Rectangle w)) := by
-  sorry
+  have compact_rect : IsCompact (z.Rectangle w) := by
+    apply Metric.isCompact_of_isClosed_isBounded
+    · simp [Rectangle]
+      refine IsClosed.reProdIm ?_ ?_
+      · apply isClosed_Icc
+      · apply isClosed_Icc
+    · apply Bornology.IsBounded.reProdIm
+      · apply Metric.isBounded_Icc
+      · apply Metric.isBounded_Icc
+  refine IsCompact.bddAbove_image compact_rect ?_
+  apply holoOn.continuousOn.norm
+
 /-%%
 \begin{proof}
 Use the compactness of the rectangle and the fact that holomorphic functions are continuous.
