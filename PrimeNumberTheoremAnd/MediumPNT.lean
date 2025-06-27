@@ -1614,7 +1614,7 @@ lemma BddAboveOnRect {g : ℂ → ℂ} {z w : ℂ} (holoOn : HolomorphicOn g (z.
   apply holoOn.continuousOn.norm
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Use the compactness of the rectangle and the fact that holomorphic functions are continuous.
 \end{proof}
 %%-/
@@ -2209,7 +2209,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
 /-%%
 \begin{proof}\leanok
 \uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue,
-SmoothedChebyshevPull1_aux_integrable, BddAboveOnRect,
+SmoothedChebyshevPull1_aux_integrable, BddAboveOnRect, BddAbove_to_IsBigO,
 I1, I2, I37, I8, I9}
 Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
@@ -2352,7 +2352,7 @@ theorem I9Bound :
   sorry
 
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I1, I9}
+\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I1, I9, IBound_aux1}
   Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{1}(\nu, \epsilon, X, T)\right| =
@@ -2638,7 +2638,7 @@ theorem MediumPNT : ∃ c > 0,
 /-%%
 \begin{proof}
 \uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval, LogDerivZetaBndUniform, LogDerivZetaHolcSmallT, LogDerivZetaHolcLargeT,
-SmoothedChebyshevPull1, SmoothedChebyshevPull2}
+SmoothedChebyshevPull1, SmoothedChebyshevPull2, I1Bound, I2Bound, I3Bound, I4Bound, I5Bound}
   Evaluate the integrals.
 \end{proof}
 %%-/
