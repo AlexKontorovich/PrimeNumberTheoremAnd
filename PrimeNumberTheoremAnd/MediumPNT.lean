@@ -2199,7 +2199,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
 \begin{proof}
 \uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue,
 SmoothedChebyshevPull1_aux_integrable, BddAboveOnRect,
-I₁, I₂, I₃₇, I₈, I₉}
+I1, I2, I37, I8, I9}
 Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
@@ -2238,7 +2238,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   have := HolomorphicOn.vanishesOnRectangle holoOn2 sub
   sorry
 /-%%
-\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, I₃, I₄, I₅, I₆, I₇, I₃₇}
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, I3, I4, I5, I6, I7, I37}
 Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
 \end{proof}
 %%-/
@@ -2476,7 +2476,7 @@ theorem I9Bound :
   sorry
 
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I₁}
+\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I1, I9}
   Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{1}(\nu, \epsilon, X, T)\right| =
@@ -2556,7 +2556,7 @@ lemma I8Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀
     ‖I₈ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
   sorry
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform, I₂}
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform, I2, I8}
 Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{2}(\nu, \epsilon, X, T, \sigma_1)\right| =
@@ -2618,7 +2618,7 @@ lemma I7Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀
     ‖I₇ SmoothingF ε X T σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε  := by
   sorry
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBnd, I₃}
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBnd, I3, I7}
 Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{3}(\nu, \epsilon, X, T, \sigma_1)\right| =
@@ -2680,7 +2680,7 @@ lemma I6Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)) (σ�
     ‖I₆ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
   sorry
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndAlt, I₄}
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndAlt, I4, I6}
 The analysis of $I_4$ is similar to that of $I_2$, (in Lemma \ref{I2Bound}) but even easier.
 Let $C$ be the sup of $-\zeta'/\zeta$ on the curve $\sigma_2 + 3 i$ to $1+ 3i$ (this curve is compact, and away from the pole at $s=1$).
 Apply Theorem \ref{MellinOfSmooth1b} to get the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
@@ -2707,7 +2707,7 @@ lemma I5Bound : ∃ (C : ℝ) (_ : 0 < C) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1),
     ‖I₅ SmoothingF ε X σ₂‖ ≤ C * X ^ σ₂ / ε := by
   sorry
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaHolcSmallT, I₅}
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaHolcSmallT, I5}
 Here $\zeta'/\zeta$ is absolutely bounded on the compact interval $\sigma_2 + i [-3,3]$, and
 $X^s$ is bounded by $X^{\sigma_2}$. Using Theorem \ref{MellinOfSmooth1b} gives the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
 Putting these together gives the result.
