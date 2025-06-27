@@ -1615,9 +1615,9 @@ We have that
 $$\psi_{\epsilon}(X) =
 \mathcal{M}(\widetilde{1_{\epsilon}})(1)
 X^{1} +
- \frac{1}{2\pi i}\int_{\text{curve}}\frac{-\zeta'(s)}{\zeta(s)}
-\mathcal{M}(\widetilde{1_{\epsilon}})(s)
-X^{s}ds.$$
+I_1 - I_2 +I_{37} + I_8 + I_9
+.
+$$
 \end{theorem}
 %%-/
 
@@ -1931,12 +1931,10 @@ Pull rectangle contours and evaluate the pole at $s=1$.
 Next pull contours to another box.
 \begin{lemma}[SmoothedChebyshevPull2]\label{SmoothedChebyshevPull2}\lean{SmoothedChebyshevPull2}\leanok
 We have that
-$$\psi_{\epsilon}(X) =
-\mathcal{M}(\widetilde{1_{\epsilon}})(1)
-X^{1} +
-  \frac{1}{2\pi i}\int_{\text{curve}_2}\frac{-\zeta'(s)}{\zeta(s)}
-\mathcal{M}(\widetilde{1_{\epsilon}})(s)
-X^{s}ds
+$$
+I_{37} =
+I_3 - I_4 + I_5 + I_6 + I_7
+.
 $$
 \end{lemma}
 %%-/
@@ -2002,7 +2000,7 @@ theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
   exact mul_le_mul_of_nonneg_right hC Xnne
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{MellinOfSmooth1c}
 Unfold the definitions and apply Lemma \ref{MellinOfSmooth1c}.
 \end{proof}
@@ -2013,7 +2011,7 @@ It remains to estimate all of the integrals.
 %%-/
 
 /-%%
-This auxiliary lemme is useful for what follows.
+This auxiliary lemma is useful for what follows.
 \begin{lemma}[IBound_aux1]\label{IBound_aux1}\lean{IBound_aux1}\leanok
 Given $k>0$, there exists $C>0$ so that for all $T>3$,
 $$
