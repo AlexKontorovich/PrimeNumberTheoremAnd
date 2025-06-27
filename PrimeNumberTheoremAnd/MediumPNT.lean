@@ -1614,7 +1614,7 @@ lemma BddAboveOnRect {g : ℂ → ℂ} {z w : ℂ} (holoOn : HolomorphicOn g (z.
   apply holoOn.continuousOn.norm
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Use the compactness of the rectangle and the fact that holomorphic functions are continuous.
 \end{proof}
 %%-/
