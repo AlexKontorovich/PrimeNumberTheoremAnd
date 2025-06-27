@@ -2051,7 +2051,153 @@ theorem I1Bound :
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
     ‖I₁ SmoothingF ε X T‖ ≤ C * X / (ε * T) := by
+
+  let (C_final : ℝ)  := 101
+  have C_final_pos : C_final > 0 := by sorry
+  use C_final
+  use C_final_pos
+
+  intro Smoothing
+  intro eps
+  intro eps_pos
+  intro eps_less_one
+  intro X
+  intro X_large
+  intro T
+  intro T_large
+  intro σ₁ -- This is unnecessary, could do intro _
+  intro smoothing_support_hyp
+  intro smoothing_pos_for_x_pos
+  intro smoothing_integrates_to_1
+  intro smoothing_cont_diff
+
+  --unfold I₁
+
+  let (pts_re : ℝ) := 1 + (Real.log X)⁻¹
+  let pts := fun (t : ℝ) ↦ (pts_re + t * I)
+
+  have pts_re_triv : ∀(t : ℝ), (pts t).re = pts_re := by
+    intro t
+    unfold pts
+    simp [*]
+
+  have pts_re_pos : pts_re > 0 := by sorry
+
+  have triv_pts_lo_bound : ∀(t : ℝ), pts_re ≤ (pts t).re := by sorry
+
+  have triv_pts_up_bound : ∀(t : ℝ), (pts t).re ≤ 2 := by sorry
+
+  have pts_re_ge_1 : pts_re > 1 := by sorry
+
+  have X_pos_triv : 0 < X := by sorry
+
+  let f := fun (t : ℝ) ↦ SmoothedChebyshevIntegrand Smoothing eps X (pts t)
+
+  have G : ∃L > 0, ∀(t : ℝ), ‖f t‖ ≤ L * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
+
+    obtain ⟨K, ⟨K_is_pos, K_bounds_zeta_at_any_t⟩⟩  := dlog_riemannZeta_bdd_on_vertical_lines' (pts_re_ge_1)
+
+    obtain ⟨M, ⟨M_is_pos, M_bounds_mellin_hard⟩⟩ :=
+    MellinOfSmooth1b smoothing_cont_diff smoothing_support_hyp
+
+    use (K * M)
+    use (by exact Left.mul_pos K_is_pos M_is_pos)
+
+    intro t
+--    unfold f
+--    unfold SmoothedChebyshevIntegrand
+
+    let M_bounds_mellin_easy := fun (t : ℝ) ↦ M_bounds_mellin_hard pts_re pts_re_pos (pts t) (triv_pts_lo_bound t) (triv_pts_up_bound t) eps eps_pos eps_less_one
+
+
+    let zeta_part := (fun (t : ℝ) ↦ -ζ' (pts t) / ζ (pts t))
+    let mellin_part := (fun (t : ℝ) ↦ 𝓜 (fun x ↦ ↑(Smooth1 Smoothing eps x)) (pts t))
+    let X_part := (fun (t : ℝ) ↦ (↑X : ℂ) ^ (pts t))
+
+    let g := fun (t : ℝ) ↦ (zeta_part t) * (mellin_part t) * (X_part t)
+
+    have X_part_eq : ∀(t : ℝ), ‖X_part t‖ = X^pts_re := by
+      intro t
+      have U := Complex.norm_cpow_eq_rpow_re_of_pos (X_pos_triv) (pts t)
+      rw [pts_re_triv t] at U
+      exact U
+
+    have X_part_bound : ∀(t : ℝ), ‖X_part t‖ ≤ X^pts_re := by
+      intro t
+      rw [←X_part_eq]
+
+    have mellin_bound : ∀(t : ℝ), ‖mellin_part t‖ ≤ M * (eps * ‖pts t‖ ^ 2)⁻¹ := by
+      intro t
+      exact M_bounds_mellin_easy t
+
+    have X_part_and_mellin_bound : ∀(t : ℝ),‖mellin_part t * X_part t‖ ≤ M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
+      intro t
+      exact norm_mul_le_of_le (mellin_bound t) (X_part_bound t)
+
+    have T2 : ∀(t : ℝ), ‖zeta_part t‖ = ‖ζ' (pts t) / ζ (pts t)‖ := by
+      intro t
+      unfold zeta_part
+      simp [norm_neg]
+
+    have zeta_bound: ∀(t : ℝ), ‖zeta_part t‖ ≤ K := by
+      intro t
+      unfold zeta_part
+      rw [T2]
+      exact K_bounds_zeta_at_any_t t
+
+    have g_bound : ∀(t : ℝ), ‖zeta_part t * (mellin_part t * X_part t)‖ ≤ K * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
+      intro t
+      exact norm_mul_le_of_le (zeta_bound t) (X_part_and_mellin_bound t)
+
+    have T1 : f = g := by rfl
+
+    have final_bound_pointwise : ‖f t‖ ≤ K * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
+      rw [T1]
+      unfold g
+      rw [mul_assoc]
+      exact g_bound t
+
+
+    have trivialize : K * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) = (K * M) * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
+      rw [mul_assoc]
+      rw [mul_assoc]
+      rw [mul_assoc]
+
+    rw [trivialize] at final_bound_pointwise
+    exact final_bound_pointwise
+
+--    have T3 : ‖zeta_part t‖ ≤ K := by
+--      rw [T2]
+--      exact (K_bounds_zeta_at_any_t t)
+
+
+
+--    have T4 : ‖mellin_part t * X_part t‖ ≤
+
+
+--    sorry
+
+/-    calc
+      ‖g t‖ = ‖-zeta_part t‖ * ‖mellin_part t * X_part t‖ := by
+        unfold g
+        rw [mul_assoc, norm_mul (zeta_part t) (mellin_part t * X_part t), T2]
+      _ ≤ K * ‖mellin_part t * X_part t‖ := by
+        unfold zeta_part
+        exact norm_mul_le_of_le (K_bounds_zeta_at_any_t t) _
+
+    sorry
+-/
+
+  have Z :=
+    by
+      calc
+        ‖∫ (t : ℝ) in Iic (-T), f t‖ ≤ ∫ (t : ℝ) in Iic (-T), ‖f t‖ := MeasureTheory.norm_integral_le_integral_norm f
+        _ ≤ 3 := by sorry
+
+
   sorry
+
+
 
 theorem I9Bound :
     ∃ C > 0, ∀ {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
