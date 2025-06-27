@@ -2196,7 +2196,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       pInRectangleInterior gHolo gEq
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue,
 SmoothedChebyshevPull1_aux_integrable, BddAboveOnRect,
 I1, I2, I37, I8, I9}
