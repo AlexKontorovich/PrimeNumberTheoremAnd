@@ -2048,7 +2048,7 @@ theorem I1Bound :
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
-    ‖I₁ SmoothingF ε X T‖ ≤ C * X / (ε * T) := by
+    ‖I₁ SmoothingF ε X T‖ ≤ C * X * Real.log X / (ε * T) := by
 
   let (C_final : ℝ)  := 101
   have C_final_pos : C_final > 0 := by sorry
@@ -2195,7 +2195,7 @@ theorem I9Bound :
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
-    ‖I₉ SmoothingF ε X T‖ ≤ C * X / (ε * T) := by
+    ‖I₉ SmoothingF ε X T‖ ≤ C * X * Real.log X / (ε * T) := by
   sorry
 
 /-%%
@@ -2213,29 +2213,32 @@ X^{\sigma_0 + t i}
 \ i \ dt
 \right|
 $$
+By Theorem \ref{dlog_riemannZeta_bdd_on_vertical_lines'} (once fixed!!),
+$\zeta'/\zeta (\sigma_0 + t i)$ is bounded by $\zeta'/\zeta(\sigma_0)$, and
+Theorem \ref{riemannZetaLogDerivResidue} gives $\ll 1/(\sigma_0-1)$ for the latter. This gives:
 $$
 \leq
 \frac{1}{2\pi}
 \left|
  \int_{-\infty}^{-T}
-C
+C \log X\cdot
  \frac{C'}{\epsilon|\sigma_0 + t i|^2}
 X^{\sigma_0}
 \ dt
 \right|
+,
 $$
-where we used Theorems \ref{MellinOfSmooth1b} and
-\ref{dlog_riemannZeta_bdd_on_vertical_lines'}. Continuing the calculation, we have
+where we used Theorem \ref{MellinOfSmooth1b}.
+Continuing the calculation, we have
 $$
 \leq
+\log X \cdot
 C'' {X^{\sigma_0}\over \epsilon}
 \int_{-\infty}^{-T}
 \frac{1}{t^2}
 \ dt
-$$
-$$
-\leq
-C'''  {X\over \epsilon T}
+\ \leq \
+C'''  {X\log X\over \epsilon T}
 ,
 $$
 where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X}=e \cdot X$.
@@ -2455,6 +2458,27 @@ theorem MediumPNT : ∃ c > 0,
   let X₀ : ℝ := sorry
   refine ⟨X₀, ?_⟩
   intro X X_ge_X₀
+  let ε : ℝ := sorry
+  have ε_pos : 0 < ε := sorry
+  have ε_lt_one : ε < 1 := sorry
+  let T : ℝ := sorry
+  have T_gt_3 : 3 < T := sorry
+  have ⟨ν, ContDiffν, ν_nonneg', ν_supp, ν_massOne'⟩ := SmoothExistence
+  have ContDiff1ν : ContDiff ℝ 1 ν := by
+    sorry
+  have ν_nonneg : ∀ x > 0, 0 ≤ ν x := by
+    intro x x_pos
+    exact ν_nonneg' x
+  have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by
+    sorry
+  let ψ_ε_of_X := SmoothedChebyshev ν ε X
+  have UnsmoothingError : ‖ψ X - ψ_ε_of_X‖ ≤ C * X * ε := by
+    obtain ⟨C_unsmoothing, hC⟩ := SmoothedChebyshevClose ContDiff1ν ν_supp ν_nonneg ν_massOne
+
+  have := (
+    calc ‖ψ X - X‖ ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - X‖ := by sorry
+                 _ ≤ sorry := by sorry
+  )
 
   sorry
 /-%%
