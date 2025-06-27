@@ -1581,8 +1581,12 @@ $$
 %%-/
 
 -- use intervalIntegral.integral_add_adjacent_intervals
-lemma verticalIntegral_split_three_finite (s a b e σ: ℝ) (f : ℂ → ℝ)(hf : Integrable (fun t : ℝ ↦ f (σ + t * I))) :
-    VerticalIntegral f σ = VIntegral f σ s a + VIntegral f σ a b + VIntegral f σ b e := by sorry
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] {f g : ℂ → E}
+  {z w p c A : ℂ} {x x₁ x₂ y y₁ y₂ σ : ℝ}
+
+lemma verticalIntegral_split_three_finite (s a b e: ℝ) (hf : Integrable (fun t : ℝ ↦ f (σ + t * I))) :
+    VerticalIntegral f σ = VIntegral f σ s a + VIntegral f σ a b + VIntegral f σ b e := by
+  sorry
 
 theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1)
     (X : ℝ) (_ : 3 < X)
