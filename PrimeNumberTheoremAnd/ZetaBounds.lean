@@ -731,6 +731,19 @@ theorem  logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       · exact DifferentiableOn.mono holc T
       · exact (f_near_p.mono (image_subset _ (diff_subset_diff a (subset_refl _))))
 
+/-%%
+\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}\leanok
+Using Theorem \ref{existsDifferentiableOn_of_bddAbove}, there is a function $g$ holomorphic  near $p$, for which $f(s) = A/(s-p) + g(s) = h(s)/ (s-p)$. Here $h(s):= A + g(s)(s-p)$ which is nonzero in a neighborhood of $p$ (since $h$ goes to $A$ which is nonzero).
+Then $f'(s) = (h'(s)(s-p) - h(s))/(s-p)^2$, and we can compute the quotient:
+$$
+\frac{f'(s)}{f(s)}+1/(s-p) = \frac{h'(s)(s-p) - h(s)}{h(s)} \cdot \frac{1}{(s-p)}+1/(s-p)
+=
+\frac{h'(s)}{h(s)}.
+$$
+Since $h$ is nonvanishing near $p$, this remains bounded in a neighborhood of $p$.
+\end{proof}
+%%-/
+
 lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
   (f_near_p : f =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
   ∃ U ∈ 𝓝 p, BddAbove (norm ∘ f '' (U \ {p})) := by
@@ -755,6 +768,21 @@ lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
       simp [x_not_p] at this
       exact this
 
+/-%%
+\begin{theorem}[BddAbove_to_IsBigO]\label{BddAbove_to_IsBigO}\lean{BddAbove_to_IsBigO}\leanok
+  If $f$ is bounded above in a punctured neighborhood of $p$, then $f$ is $O(1)$ in that neighborhood.
+\end{theorem}
+%%-/
+lemma BddAbove_to_IsBigO {f : ℂ → ℂ} {p : ℂ}
+    {U : Set ℂ} (hU : U ∈ 𝓝 p) (bdd : BddAbove (norm ∘ f '' (U \ {p}))) :
+    f =O[𝓝[≠] p] (1 : ℂ → ℂ)  := by
+  sorry
+/-%%
+\begin{proof}
+Elementary...
+\end{proof}
+%%-/
+
 theorem logDerivResidue'' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (non_zero: ∀x ∈ U \ {p}, f x ≠ 0)
     (holc : HolomorphicOn f (U \ {p}))
@@ -763,18 +791,6 @@ theorem logDerivResidue'' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     ∃ V ∈ 𝓝 p, BddAbove (norm ∘ (deriv f * f⁻¹ + (fun s ↦ (s - p)⁻¹)) '' (V \ {p})) := by
   apply IsBigO_to_BddAbove
   exact logDerivResidue non_zero holc U_in_nhds A_ne_zero f_near_p
-/-%%
-\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}\leanok
-Using Theorem \ref{existsDifferentiableOn_of_bddAbove}, there is a function $g$ holomorphic  near $p$, for which $f(s) = A/(s-p) + g(s) = h(s)/ (s-p)$. Here $h(s):= A + g(s)(s-p)$ which is nonzero in a neighborhood of $p$ (since $h$ goes to $A$ which is nonzero).
-Then $f'(s) = (h'(s)(s-p) - h(s))/(s-p)^2$, and we can compute the quotient:
-$$
-\frac{f'(s)}{f(s)}+1/(s-p) = \frac{h'(s)(s-p) - h(s)}{h(s)} \cdot \frac{1}{(s-p)}+1/(s-p)
-=
-\frac{h'(s)}{h(s)}.
-$$
-Since $h$ is nonvanishing near $p$, this remains bounded in a neighborhood of $p$.
-\end{proof}
-%%-/
 
 /-%%
 Let's also record that if a function $f$ has a simple pole at $p$ with residue $A$, and $g$ is holomorphic near $p$, then the residue of $f \cdot g$ is $A \cdot g(p)$.
@@ -940,6 +956,12 @@ theorem riemannZetaLogDerivResidue :
 \end{proof}
 %%-/
 
+
+theorem riemannZetaLogDerivResidueBigO :
+    (-ζ' / ζ - fun z ↦ (z - 1)⁻¹) =O[nhdsWithin 1 {1}ᶜ] (1 : ℂ → ℂ) := by
+  obtain ⟨U, hU, bdd⟩ := riemannZetaLogDerivResidue
+  convert BddAbove_to_IsBigO hU bdd using 2
+  rw [neg_div]
 
 /-%%
 \begin{definition}[riemannZeta0]\label{riemannZeta0}\lean{riemannZeta0}\leanok
