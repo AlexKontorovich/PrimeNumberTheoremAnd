@@ -2614,8 +2614,6 @@ theorem MediumPNT : ∃ c > 0,
   let ε : ℝ := sorry
   have ε_pos : 0 < ε := sorry
   have ε_lt_one : ε < 1 := sorry
-  let T : ℝ := sorry
-  have T_gt_3 : 3 < T := sorry
   have ⟨ν, ContDiffν, ν_nonneg', ν_supp, ν_massOne'⟩ := SmoothExistence
   have ContDiff1ν : ContDiff ℝ 1 ν := by
     sorry
@@ -2629,6 +2627,25 @@ theorem MediumPNT : ∃ c > 0,
     obtain ⟨C_unsmoothing, hC⟩ := SmoothedChebyshevClose ContDiff1ν
       ν_supp ν_nonneg ν_massOne
     sorry
+
+  let T : ℝ := sorry
+  have T_gt_3 : 3 < T := sorry
+
+  let A : ℝ := sorry
+  have A_in_Ioo : A ∈ Ioo 0 (1 / 2) := sorry
+
+  let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+
+  let σ₂ : ℝ := sorry
+
+  have ψ_ε_diff : ‖ψ_ε_of_X - 𝓜 ((Smooth1 ν ε) ·) 1 * X‖ ≤ ‖I₁ ν ε T X‖ + ‖I₂ ν ε X T σ₁‖
+    + ‖I₃ ν ε X T σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖ + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖
+    + ‖I₈ ν ε X T σ₁‖ + ‖I₉ ν ε X T‖ := by sorry
+
+  have : ∃ C_main > 0, ‖𝓜 ((Smooth1 ν ε) ·) 1 * X - X‖ ≤ C_main * ε * X := by sorry
+
+  obtain ⟨C_main, C_main_pos, main_diff⟩ := this
+
   have := (
     calc ‖ψ X - X‖ ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - X‖ := by sorry
                  _ ≤ sorry := by sorry
