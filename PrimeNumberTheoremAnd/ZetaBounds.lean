@@ -755,6 +755,11 @@ lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
       simp [x_not_p] at this
       exact this
 
+lemma BddAbove_to_IsBigO {f : ℂ → ℂ} {p : ℂ}
+    {U : Set ℂ} (hU : U ∈ 𝓝 p) (bdd : BddAbove (norm ∘ f '' (U \ {p}))) :
+    f =O[𝓝[≠] p] (1 : ℂ → ℂ)  := by
+  sorry
+
 theorem logDerivResidue'' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (non_zero: ∀x ∈ U \ {p}, f x ≠ 0)
     (holc : HolomorphicOn f (U \ {p}))
@@ -940,6 +945,12 @@ theorem riemannZetaLogDerivResidue :
 \end{proof}
 %%-/
 
+
+theorem riemannZetaLogDerivResidueBigO :
+    (-ζ' / ζ - fun z ↦ (z - 1)⁻¹) =O[nhdsWithin 1 {1}ᶜ] (1 : ℂ → ℂ) := by
+  obtain ⟨U, hU, bdd⟩ := riemannZetaLogDerivResidue
+  convert BddAbove_to_IsBigO hU bdd using 2
+  rw [neg_div]
 
 /-%%
 \begin{definition}[riemannZeta0]\label{riemannZeta0}\lean{riemannZeta0}\leanok
