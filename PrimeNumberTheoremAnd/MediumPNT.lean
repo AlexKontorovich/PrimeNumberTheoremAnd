@@ -2750,8 +2750,9 @@ theorem MediumPNT : ∃ c > 0,
     sorry
   let ψ_ε_of_X := SmoothedChebyshev ν ε X
   have UnsmoothingError : ‖ψ X - ψ_ε_of_X‖ ≤ C * X * ε := by
-    obtain ⟨C_unsmoothing, hC⟩ := SmoothedChebyshevClose ContDiff1ν ν_supp ν_nonneg ν_massOne
-
+    obtain ⟨C_unsmoothing, hC⟩ := SmoothedChebyshevClose ContDiff1ν
+      ν_supp ν_nonneg ν_massOne
+    sorry
   have := (
     calc ‖ψ X - X‖ ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - X‖ := by sorry
                  _ ≤ sorry := by sorry
