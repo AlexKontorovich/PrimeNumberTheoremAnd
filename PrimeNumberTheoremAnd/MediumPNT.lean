@@ -2711,7 +2711,7 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀
             _ ≤ 2 := by norm_num
         positivity
       _ = 3 * C' * X / (ε * T) := by ring
-
+  -- Now bound the integrand
   unfold SmoothedChebyshevIntegrand
   sorry
 
