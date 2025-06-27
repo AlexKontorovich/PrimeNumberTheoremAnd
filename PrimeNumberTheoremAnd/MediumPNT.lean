@@ -1594,7 +1594,7 @@ lemma verticalIntegral_split_three_finite (s a b e: ℝ) (f : ℂ → E) (hf : I
     VIntegral f σ b e := by
   rw [VIntegral, VIntegral, VIntegral, VIntegral]
   -- First establish integrability on each subinterval
-  have hf_sa : IntervalIntegrable f s a := by
+  have hf_sa : IntervalIntegrable f volume a e := by
     obtain ⟨hsa, hab, hbe⟩ := hab
     have sa_subset_sb : Icc s a ⊆ Icc s b := by
       exact Icc_subset_Icc_right hab.le
