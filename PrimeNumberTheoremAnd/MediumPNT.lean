@@ -2279,7 +2279,14 @@ lemma verticalIntegral_split_three_finite' {s a b e σ : ℝ} {f : ℂ → ℂ}
     (1 : ℂ) / (2 * π * I) * (VIntegral f σ s a) +
     (1 : ℂ) / (2 * π * I) * (VIntegral f σ a b) +
     (1 : ℂ) / (2 * π * I) * (VIntegral f σ b e) := by
-  sorry
+  have : (1 : ℂ) / (2 * π * I) * (VIntegral f σ s a) +
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ a b) +
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ b e) = (1 : ℂ) / (2 * π * I) * ((VIntegral f σ s a) +
+    (VIntegral f σ a b) +
+    (VIntegral f σ b e)) := by ring
+  rw [this]
+  clear this
+  rw [← verticalIntegral_split_three_finite hf hab]
 
 theorem SmoothedChebyshevPull2_aux1 {T σ₁ : ℝ}
   (holoOn : HolomorphicOn (ζ' / ζ) (Icc σ₁ 2 ×ℂ Icc (-T) T \ {1})) :
@@ -2307,7 +2314,8 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       (Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1}))
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (diff_SmoothingF : ContDiff ℝ 1 SmoothingF) :
     I₃₇ SmoothingF ε T X σ₁ =
       I₃ SmoothingF ε T X σ₁ -
       I₄ SmoothingF ε X σ₁ σ₂ +
@@ -2316,6 +2324,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       I₇ SmoothingF ε T X σ₁ := by
   let z : ℂ := σ₂ - 3 * I
   let w : ℂ := σ₁ + 3 * I
+  have σ₁_pos : 0 < σ₁ := by linarith
   -- Step (1)
   -- Show that the Rectangle is in a given subset of holomorphicity
   have sub : z.Rectangle w ⊆ Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1} := by
@@ -2395,9 +2404,28 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         · apply SmoothedChebyshevPull2_aux1 holoOn
         · apply continuousOn_of_forall_continuousAt
           intro t t_mem
-          have := @Smooth1ContinuousAt
+          -- have' := Smooth1ContinuousAt diff_SmoothingF SmoothingFnonneg
+          --    suppSmoothingF σ₁_pos ε_pos
+
           sorry
-      · sorry
+      · apply continuousOn_of_forall_continuousAt
+        intro t t_mem
+        apply ContinuousAt.comp
+        · refine continuousAt_const_cpow' ?_
+          intro h
+          have : σ₁ = 0 := by
+            have h_real : (↑σ₁ + ↑t * I).re = (0 : ℂ).re := by
+              rw [h]
+            simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+              sub_self, add_zero, zero_re, z, w] at h_real
+            exact h_real
+          linarith
+        · -- continuity -- failed
+          apply ContinuousAt.add
+          · exact continuousAt_const
+          · apply ContinuousAt.mul
+            · apply continuous_ofReal.continuousAt
+            · exact continuousAt_const
     · refine ⟨by linarith, by linarith, by linarith⟩
   calc I₃₇ SmoothingF ε T X σ₁ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (0 : ℂ) := by simp
     _ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (RectangleIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z w) := by rw [← zero_over_box]
