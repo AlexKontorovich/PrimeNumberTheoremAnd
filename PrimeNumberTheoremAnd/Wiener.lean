@@ -454,7 +454,7 @@ lemma W21.integrable_fourier (ψ : W21) (hc : c ≠ 0) :
   apply Eventually.of_forall (fun x => h _)
 
 /-%%
-\begin{proof}\leanok From two integration by parts we obtain the identity
+\begin{proof}\leanok\uses{decay-alt} From two integration by parts we obtain the identity
 $$ (1+u^2) \hat \psi(u) = \int_{\bf R} (\psi(t) - \frac{u}{4\pi^2} \psi''(t)) e(-tu)\ dt.$$
 Now apply the triangle inequality and the identity $\int_{\bf R} \frac{dt}{1+t^2}\ dt = \pi$ to obtain the claim with $C = \pi + 1 / 4 \pi$.
 \end{proof}
