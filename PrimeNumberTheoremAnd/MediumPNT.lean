@@ -1587,14 +1587,14 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] {f g : ℂ → E
   {z w p c A : ℂ} {x x₁ x₂ y y₁ y₂ σ : ℝ}
 
 -- use intervalIntegral.integral_add_adjacent_intervals
-lemma verticalIntegral_split_three_finite (s a b e: ℝ) (f : ℂ → E) (hf : Integrable (fun t : ℝ ↦ f (σ + t * I))) (hab: s < a ∧ a < b ∧ b < e):
-    VerticalIntegral f σ =
+lemma verticalIntegral_split_three_finite (s a b e: ℝ) (f : ℂ → E) (hf : IntegrableOn (fun t : ℝ ↦ f (σ + t * I)) (Icc s e)) (hab: s < a ∧ a < b ∧ b < e):
+    VIntegral f σ s e =
     VIntegral f σ s a +
     VIntegral f σ a b +
     VIntegral f σ b e := by
-  rw [VerticalIntegral, VIntegral, VIntegral, VIntegral]
+  rw [VIntegral, VIntegral, VIntegral, VIntegral]
   -- First establish integrability on each subinterval
-  have hf_sa : IntervalIntegrable f volume s a := by
+  have hf_sa : IntervalIntegrable f s a := by
     obtain ⟨hsa, hab, hbe⟩ := hab
     have sa_subset_sb : Icc s a ⊆ Icc s b := by
       exact Icc_subset_Icc_right hab.le
@@ -1626,6 +1626,7 @@ lemma verticalIntegral_split_three_finite (s a b e: ℝ) (f : ℂ → E) (hf : I
   have h2 : ∫ t in s..e, f (σ + t * I) = ∫ t in s..a, f (σ + t * I) + ∫ t in a..e, f (σ + t * I) := by
     exact intervalIntegral.integral_add_adjacent_intervals hf_ab hf_be
 
+  sorry
 
 
 theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1)
@@ -1646,19 +1647,25 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       I₆ SmoothingF ε X σ₁ σ₂ +
       I₇ SmoothingF ε T X σ₁ := by
 
+  -- Plan of proof:
+  -- Step (1) Compute the integral over the Rectangle, with corners z, w. Result = 0, by holomorphicity.
+  -- Step (2) Split the integral over the finite segmant from -T to T into 3 parts at -3, 3.
+  -- Step (3) Use (1) and (2) to compute the integral over the finite line segment in terms of integral over the integral
+
   let z : ℂ := σ₂ - 3 * I
   let w : ℂ := σ₁ + 3 * I
 
-  -- the leftmost rectangle is in the locus of holomorphicity
+  -- Step (1)
+  -- Show that the Rectangle is in a given subset of holomorphicity
   have sub : z.Rectangle w ⊆ Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1} := by
+    -- for every point x in the Rectangle
     intro x hx
-
     constructor
-    . -- x in box
+    . -- x is in the locus of holomorphicity
       simp only [Rectangle, uIcc] at hx
       rw [Complex.mem_reProdIm] at hx ⊢
       obtain ⟨hx_re, hx_im⟩ := hx
-      -- the real part of x is in the interval
+      -- the real part of x is in the correct interval
       have hzw_re : z.re < w.re := by
         dsimp [z, w]
         linarith
@@ -1674,8 +1681,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
           dsimp [w]
           linarith
         exact ⟨h_left', h_right'⟩
-
-      -- the imaginary part of x is in the interval
+      -- the imaginary part of x is in the correct interval
       have hzw_im : z.im < w.im := by
         dsimp [z, w]
         linarith
@@ -1692,7 +1698,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         exact ⟨h_left', h_right'⟩
 
       exact ⟨x_re_in_Icc, x_im_in_Icc⟩
-    -- x not in {1}
+    -- x is not in {1} by contradiction
     . simp only [mem_singleton_iff]
       -- x has real part less than 1
       have x_re_upper: x.re ≤ σ₁ := by
@@ -1708,7 +1714,6 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         have x_re_upper' : x.re ≤ w.re := by exact x_re_bounds.2
         dsimp [w] at x_re_upper'
         linarith
-
       -- by contracdiction
       have h_x_ne_one : x ≠ 1 := by
         intro h_eq
@@ -1721,17 +1726,16 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
 
   have zero_over_box := HolomorphicOn.vanishesOnRectangle holoOn2 sub
 
-  -- split the vertial integral along the vertical line at `x = σ₁` into 3 segments at `a = -3` and `b = 3`
+  -- Step (2)
+  -- Split the vertial integral along the vertical line at `x = σ₁` into 3 segments at `a = -3` and `b = 3`
   -- the integral on `(-∞, -3)` is `I_3`
   -- the integral on `(3, ∞)` is `I_7`
   -- the integral on `[-3, 3]` is equal to `-I₅ SmoothingF ε T X σ₁`.
-  have splitting : I₃₇ SmoothingF ε T X σ₁ = I₃ SmoothingF ε T X σ₁ + I₅ SmoothingF ε X σ₁ + I₇ SmoothingF ε T X σ₁ := by sorry
-    -- have := verticalIntegral_split_three_finite (a := -3) (b := 3)
-    -- rw [verticalIntegral_split_three (a := -3) (b := 3)]
+  have splitting : I₃₇ SmoothingF ε T X σ₁ = I₃ SmoothingF ε T X σ₁ + I₅ SmoothingF ε X σ₁ + I₇ SmoothingF ε T X σ₁ := by
+    sorry
 
-
-  -- computing the contour integral from I_3 to I_7 by adding and subtracting the
-  -- integral leftmost box
+  -- Step (3):
+  -- Compute the integral over the line segment from -T to T
   calc I₃₇ SmoothingF ε T X σ₁ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (0 : ℂ) := by simp
     _ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (RectangleIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z w) := by rw [← zero_over_box]
     _ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re z.im
@@ -1775,19 +1779,22 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       simp only [I₅, one_div, mul_inv_rev, inv_I, neg_mul, VIntegral, sub_re, ofReal_re, mul_re,
         re_ofNat, I_re, mul_zero, im_ofNat, I_im, mul_one, sub_self, sub_zero, sub_im, ofReal_im,
         mul_im, add_zero, zero_sub, add_im, zero_add, smul_eq_mul, sub_neg_eq_add, z, w]
+    --- starting from now, we split the integral `I₃₇` into `I₃ σ₂ + I₅ σ₁ + I₇ σ₁` using `verticalIntegral_split_three_finite`
+    _ = I₃ SmoothingF ε T X σ₁
+    + I₅ SmoothingF ε X σ₁
+    + I₇ SmoothingF ε T X σ₁
+    - (I₄ SmoothingF ε X σ₁ σ₂
+    - I₆ SmoothingF ε X σ₁ σ₂
+    + I₅ SmoothingF ε X σ₁
+    - I₅ SmoothingF ε X σ₂) := by
+      rw [splitting]
+    _ = I₃ SmoothingF ε T X σ₁
+    - I₄ SmoothingF ε X σ₁ σ₂
+    + I₅ SmoothingF ε X σ₂
+    + I₆ SmoothingF ε X σ₁ σ₂
+    + I₇ SmoothingF ε T X σ₁ := by
+      ring
 
-
-  sorry
-
-    -- := by ring
-    -- _ = I₃₇ SmoothingF ε T X σ₁ - (I₄ SmoothingF ε X σ₁ σ₂
-    -- - I₆ SmoothingF ε X σ₁ σ₂
-    -- + I₅ SmoothingF ε X σ₂
-    -- - I₅ SmoothingF ε X σ₂) := by
-    --   simp only [I₄, I₅, I₆]
-    --   ring_nf
-    --   simp
-      -- dsimp [RectangleIntegral]
 
 /-%%
 \begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
