@@ -1334,7 +1334,7 @@ theorem cast_pow_eq (n : ℕ) (σ₀ : ℝ):
     exact endit
 
 theorem triv_bound_zeta :
-  ∃C > 0, ∀(σ₀ : ℝ), 1 < σ₀ → ‖ζ' σ₀ / ζ σ₀‖ ≤ C / (σ₀ - 1)
+  ∃C > 0, ∀(σ₀ : ℝ), 1 < σ₀ → ‖ζ' σ₀ / ζ σ₀‖ ≤ 1 / (σ₀ - 1) + C
   := by
       let const : ℝ := 10
       have const_pos : const > 0 := by sorry
