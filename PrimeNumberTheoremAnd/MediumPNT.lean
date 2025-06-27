@@ -1348,6 +1348,121 @@ theorem triv_bound_zeta :
 
       sorry
 
+theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
+  ∀(σ₀ σ₁ : ℝ), ∀(t : ℝ), 1 < σ₀ → σ₀ < σ₁ →
+    ‖(- ζ' (σ₁ + t * I) / ζ (σ₁ + t * I))‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
+  intro σ₀
+  intro σ₁
+  intro t
+  intro σ₀_gt_one
+  intro σ₀_lt_σ₁
+
+  let s₁ := σ₁ + t * I
+  have s₁_re_eq_sigma : s₁.re = σ₁ := by
+    rw [Complex.add_re (σ₁) (t * I)]
+    rw [Complex.ofReal_re σ₁]
+    rw [Complex.mul_I_re]
+    simp [*]
+
+  let s₀ := σ₀
+
+  have σ₁_gt_one : 1 < σ₁ := by sorry
+
+  have s₁_re_geq_one : 1 < s₁.re := by exact lt_of_lt_of_eq σ₁_gt_one (id (Eq.symm s₁_re_eq_sigma))
+  have s₁_re_coerce_geq_one : 1 < (↑s₁.re : ℂ).re := by exact s₁_re_geq_one
+  rw [← (ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s₁_re_geq_one)]
+  unfold LSeries
+
+  have summable_von_mangoldt : Summable (fun i ↦ LSeries.term (fun n ↦ ↑(Λ n)) s₁.re i) := by
+    exact ArithmeticFunction.LSeriesSummable_vonMangoldt s₁_re_geq_one
+
+  have summable_re_von_mangoldt : Summable (fun i ↦ (LSeries.term (fun n ↦ ↑(Λ n)) s₁.re i).re) := by
+    exact summable_complex_then_summable_real_part (LSeries.term (fun n ↦ ↑(Λ n)) s₁.re) summable_von_mangoldt
+
+  have positivity : ∀(n : ℕ), ‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ n‖ = (LSeries.term (fun n ↦ Λ n) s₁.re n).re := by
+    intro n
+    calc
+      ‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ n‖ = Λ n / ‖(↑n : ℂ)^(s₁ : ℂ)‖ := by
+        unfold LSeries.term
+        by_cases h : n = 0
+        · simp [*]
+        · push_neg at h
+          simp [*]
+          have pos : 0 ≤ Λ n := ArithmeticFunction.vonMangoldt_nonneg
+          rw [abs_of_nonneg pos]
+
+      _ = Λ n / (↑n)^s₁.re := by
+        by_cases h : n = 0
+        · simp [*]
+        · rw [Complex.norm_natCast_cpow_of_pos]
+          push_neg at h
+          exact Nat.zero_lt_of_ne_zero h
+
+      _ = (LSeries.term (fun n ↦ Λ n) s₁.re n).re := by
+        unfold LSeries.term
+        by_cases h : n = 0
+        · simp [*]
+        · simp [*]
+          push_neg at h
+          ring_nf
+          rw [Complex.re_ofReal_mul (Λ n)]
+          ring_nf
+          rw [Complex.inv_re]
+          rw [Complex.cpow_ofReal_re]
+          simp [*]
+          left
+          have N : (0 : ℝ) ≤ ↑n := by exact Nat.cast_nonneg' n
+          have T2 : ((↑n : ℂ) ^ (↑σ₁ : ℂ)).re = (↑n : ℝ)^σ₁ := by exact rfl
+          have T1 : ((↑n : ℂ ) ^ (↑σ₁ : ℂ)).im = 0 := by
+            refine abs_re_eq_norm.mp ?_
+            rw [T2]
+            simp [*]
+            exact Real.rpow_nonneg N σ₁
+
+
+          simp [Complex.normSq_apply]
+          simp [T1, T2]
+
+
+  have summable_abs_value : Summable (fun i ↦ ‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ i‖) := by
+    rw [summable_congr positivity]
+    exact summable_re_von_mangoldt
+
+  have triangle_ineq : ‖LSeries (fun n ↦ ↑(Λ n)) s₁‖ ≤ ∑' (n : ℕ), ↑‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ n‖ :=
+    norm_tsum_le_tsum_norm summable_abs_value
+
+  have bounded_by_sum_of_re : ‖LSeries (fun n ↦ ↑(Λ n)) s₁‖ ≤ ∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s₁.re) n).re :=
+    by
+      simp [positivity] at triangle_ineq
+      exact triangle_ineq
+
+  have sum_of_re_commutes : ∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s₁.re) n).re = (∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s₁.re) n)).re :=
+    (Complex.re_tsum (summable_von_mangoldt)).symm
+
+  have re_of_sum_bdd_by_norm : (∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s₁.re) n)).re  ≤ ‖∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s₁.re) n)‖ :=
+    Complex.re_le_norm (∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s₁.re) n))
+
+  have Z :=
+    by
+      calc
+        ‖LSeries (fun n ↦ ↑(Λ n)) s‖ ≤ ∑' (n : ℕ), ‖LSeries.term (fun n ↦ ↑(Λ n)) s n‖
+            := norm_tsum_le_tsum_norm summable_abs_value
+      _ ≤ ∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) s.re n).re := by simp [←positivity]
+      _ = (∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) s.re n)).re := (Complex.re_tsum (summable_von_mangoldt)).symm
+      _ ≤ ‖∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) s.re n)‖ := re_le_norm (∑' (n : ℕ), LSeries.term (fun n ↦ ↑(Λ n)) (↑s.re) n)
+      _ = ‖- ζ' (↑s.re) / ζ (↑s.re)‖ := by
+          simp only [← (ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s_re_coerce_geq_one)]
+          unfold LSeries
+          rfl
+      _ = ‖ζ' σ₀ / ζ σ₀‖ := by
+        rw [← s_re_eq_sigma]
+        simp [*]
+
+--          unfold LSeries
+--      _ = ‖ζ' σ₀ / ζ σ₀‖ := by rw [←s_re_eq_sigma]
+  exact Z
+
+
 -- Generalize this result to say that
 -- ∀(t : ℝ), ∀(σₐ > σ₁), ... is bounded by ‖ζ' σ₎ / ζ σ₀‖
 
