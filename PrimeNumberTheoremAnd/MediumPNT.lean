@@ -1333,6 +1333,24 @@ theorem cast_pow_eq (n : ℕ) (σ₀ : ℝ):
     have endit := Complex.ofReal_cpow U σ₀
     exact endit
 
+theorem triv_bound_zeta :
+  ∃C > 0, ∀(σ₀ : ℝ), 1 < σ₀ → ‖ζ' σ₀ / ζ σ₀‖ ≤ C / (σ₀ - 1)
+  := by
+      let const : ℝ := 10
+      have const_pos : const > 0 := by sorry
+      use const
+      use const_pos
+      intro σ₀
+      intro σ₀_gt
+      -- Pick a neighborhood, if in neighborhood then we are good
+      -- If outside of the neighborhood then use that ζ' / ζ is monotonic
+      -- and take the bound to be the edge but this will require some more work
+
+      sorry
+
+-- Generalize this result to say that
+-- ∀(t : ℝ), ∀(σₐ > σ₁), ... is bounded by ‖ζ' σ₎ / ζ σ₀‖
+
 theorem dlog_riemannZeta_bdd_on_vertical_lines_explicit {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) :
   ∀(t : ℝ), ‖(-ζ' (σ₀ + t * I) / ζ (σ₀ + t * I))‖ ≤ ‖(ζ' σ₀ / ζ σ₀)‖ := by
 
@@ -1417,8 +1435,6 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_explicit {σ₀ : ℝ} (σ₀_gt 
 
   have re_of_sum_bdd_by_norm : (∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s.re) n)).re  ≤ ‖∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s.re) n)‖ :=
     Complex.re_le_norm (∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s.re) n))
-
-
 
   have Z :=
     by
