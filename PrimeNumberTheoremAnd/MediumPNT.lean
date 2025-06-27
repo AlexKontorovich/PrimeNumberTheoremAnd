@@ -1061,167 +1061,45 @@ I₅|
 \end{verbatim}
 
 In the process, we will pick up the residue at $s=1$.
-We will do this in several stages. Here the interval integrals are defined as follows:
+We will do this in several stages.
 %%-/
 
-/-%%
-\begin{definition}[I₁]\label{I1}\lean{I₁}\leanok
-$$
-I_1(\nu, \epsilon, X, T) := \frac{1}{2\pi i} \int_{-\infty}^{-T}
-\left(
-\frac{-\zeta'}\zeta(\sigma_0 + t i)
-\right)
- \mathcal M(\widetilde 1_\epsilon)(\sigma_0 + t i)
-X^{\sigma_0 + t i}
-\ i \ dt
-$$
-\end{definition}
-%%-/
 noncomputable def I₁ (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t : ℝ in Iic (-T),
       SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
 
-/-%%
-\begin{definition}[I₂]\label{I2}\lean{I₂}\leanok
-$$
-I_2(\nu, \epsilon, X, T, \sigma_1) := \frac{1}{2\pi i} \int_{\sigma_1}^{\sigma_0}
-\left(
-\frac{-\zeta'}\zeta(\sigma - i T)
-\right)
-  \mathcal M(\widetilde 1_\epsilon)(\sigma - i T)
-X^{\sigma - i T} \ d\sigma
-$$
-\end{definition}
-%%-/
 noncomputable def I₂ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * ((∫ σ in σ₁..(1 + (Real.log X)⁻¹),
     SmoothedChebyshevIntegrand SmoothingF ε X (σ - T * I)))
 
-/-%%
-\begin{definition}[I₃₇]\label{I37}\lean{I₃₇}\leanok
-$$
-I_{37}(\nu, \epsilon, X, T, \sigma_1) := \frac{1}{2\pi i} \int_{-T}^{T}
-\left(
-\frac{-\zeta'}\zeta(\sigma_1 + t i)
-\right)
-  \mathcal M(\widetilde 1_\epsilon)(\sigma_1 + t i)
-X^{\sigma_1 + t i} \ i \ dt
-$$
-\end{definition}
-%%-/
 noncomputable def I₃₇ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-T)..T,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₁ + t * I)))
 
-/-%%
-\begin{definition}[I₈]\label{I8}\lean{I₈}\leanok
-$$
-I_8(\nu, \epsilon, X, T, \sigma_1) := \frac{1}{2\pi i} \int_{\sigma_1}^{\sigma_0}
-\left(
-\frac{-\zeta'}\zeta(\sigma + T i)
-\right)
-  \mathcal M(\widetilde 1_\epsilon)(\sigma + T i)
-X^{\sigma + T i} \ d\sigma
-$$
-\end{definition}
-%%-/
 noncomputable def I₈ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * ((∫ σ in σ₁..(1 + (Real.log X)⁻¹),
     SmoothedChebyshevIntegrand SmoothingF ε X (σ + T * I)))
 
-/-%%
-\begin{definition}[I₉]\label{I9}\lean{I₉}\leanok
-$$
-I_9(\nu, \epsilon, X, T) := \frac{1}{2\pi i} \int_{T}^{\infty}
-\left(
-\frac{-\zeta'}\zeta(\sigma_0 + t i)
-\right)
-  \mathcal M(\widetilde 1_\epsilon)(\sigma_0 + t i)
-X^{\sigma_0 + t i} \ i \ dt
-$$
-\end{definition}
-%%-/
 noncomputable def I₉ (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t : ℝ in Ici T,
       SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
 
-/-%%
-\begin{definition}[I₃]\label{I3}\lean{I₃}\leanok
-$$
-I_3(\nu, \epsilon, X, T, \sigma_1) := \frac{1}{2\pi i} \int_{-T}^{-3}
-\left(
-\frac{-\zeta'}\zeta(\sigma_1 + t i)
-\right)
-  \mathcal M(\widetilde 1_\epsilon)(\sigma_1 + t i)
-X^{\sigma_1 + t i} \ i \ dt
-$$
-\end{definition}
-%%-/
 noncomputable def I₃ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-T)..(-3),
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₁ + t * I)))
 
-
-/-%%\begin{definition}[I₇]\label{I7}\lean{I₇}\leanok
-$$
-I_7(\nu, \epsilon, X, T, \sigma_1) := \frac{1}{2\pi i} \int_{3}^{T}
-\left(
-\frac{-\zeta'}\zeta(\sigma_1 + t i)
-\right)
-  \mathcal M(\widetilde 1_\epsilon)(\sigma_1 + t i)
-X^{\sigma_1 + t i} \ i \ dt
-$$
-\end{definition}
-%%-/
 noncomputable def I₇ (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (3 : ℝ)..T,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₁ + t * I)))
 
-
-/-%%
-\begin{definition}[I₄]\label{I4}\lean{I₄}\leanok
-$$
-I_4(\nu, \epsilon, X, \sigma_1, \sigma_2) := \frac{1}{2\pi i} \int_{\sigma_2}^{\sigma_1}
-\left(
-\frac{-\zeta'}\zeta(\sigma - 3 i)
-\right)
-  \mathcal M(\widetilde 1_\epsilon)(\sigma - 3 i)
-X^{\sigma - 3 i} \ d\sigma
-$$
-\end{definition}
-%%-/
 noncomputable def I₄ (SmoothingF : ℝ → ℝ) (ε X σ₁ σ₂ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * ((∫ σ in σ₂..σ₁,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ - 3 * I)))
 
-/-%%
-\begin{definition}[I₆]\label{I6}\lean{I₆}\leanok
-$$
-I_6(\nu, \epsilon, X, \sigma_1, \sigma_2) := \frac{1}{2\pi i} \int_{\sigma_2}^{\sigma_1}
-\left(
-\frac{-\zeta'}\zeta(\sigma + 3 i)
-\right)
-  \mathcal M(\widetilde 1_\epsilon)(\sigma + 3 i)
-X^{\sigma + 3 i} \ d\sigma
-$$
-\end{definition}
-%%-/
 noncomputable def I₆ (SmoothingF : ℝ → ℝ) (ε X σ₁ σ₂ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * ((∫ σ in σ₂..σ₁,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ + 3 * I)))
 
-/-%%
-\begin{definition}[I₅]\label{I5}\lean{I₅}\leanok
-$$
-I_5(\nu, \epsilon, X, \sigma_2) := \frac{1}{2\pi i} \int_{-3}^{3}
-\left(
-\frac{-\zeta'}\zeta(\sigma_2 + t i)
-\right)
-  \mathcal M(\widetilde 1_\epsilon)(\sigma_2 + t i)
-X^{\sigma_2 + t i} \ i \ dt
-$$
-\end{definition}
-%%-/
 noncomputable def I₅ (SmoothingF : ℝ → ℝ) (ε X σ₂ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-3)..3,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₂ + t * I)))
@@ -1255,251 +1133,19 @@ theorem realDiff_of_complexDIff {f : ℂ → ℂ} (s : ℂ) (hf : Differentiable
   -- The composition of continuous functions is continuous
   exact ContinuousAt.comp hf_cont h_param
 
--- TODO : Move elsewhere (should be in Mathlib!) NOT NEEDED
+-- TODO : Move elsewhere (should be in Mathlib!)
 theorem riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
-  ∃ c > 0, ‖ζ (σ₀ + t * I)‖ ≤ c :=
-  by
-    let s := σ₀ + t * I
-    let s_re : ℂ  := σ₀
+  ‖ζ (σ₀ + t * I)‖ ≤ ‖ζ σ₀‖ := by
+  sorry
 
-    have H : s.re = σ₀ := by
-          rw [add_re, ofReal_re, mul_re, ofReal_re, I_re, I_im]
-          simp
-
-    have non_neg : σ₀ ≠ 0 := by
-      by_contra h
-      rw [h] at σ₀_gt
-      norm_cast at σ₀_gt
-
-    have pos : s.re > 1 := by exact lt_of_lt_of_eq σ₀_gt (id (Eq.symm H))
-    have pos_triv : s_re.re > 1 := by exact σ₀_gt
-
-    have series := LSeries_one_eq_riemannZeta pos
-    rw [← series]
-
-    have identity : ∀(n : ℕ), ‖LSeries.term 1 s n‖ = 1 / n^σ₀ := by
-      unfold LSeries.term
-      intro n
-      by_cases h0 : n = 0
-      · simp [*]
-      · simp [*]
-        push_neg at h0
-        have C : n > 0 := by exact Nat.zero_lt_of_ne_zero h0
-        have T :=  Complex.norm_natCast_cpow_of_pos C s
-        rw [H] at T
-        exact T
-
-    have summable : Summable (fun (n : ℕ) ↦  ‖LSeries.term 1 s n‖) := by
-      simp [identity]
-      exact σ₀_gt
-
-    have B := calc
-      ‖∑' (n : ℕ), LSeries.term 1 s n‖ ≤ ∑' (n : ℕ), ‖LSeries.term 1 s n‖ := norm_tsum_le_tsum_norm summable
-      _                                ≤ ∑' (n : ℕ), (1 / ↑n^σ₀) := by simp [← identity]
-      _                                ≤ norm (∑' (n : ℕ), (1 / ↑n^σ₀) : ℝ ) := by exact le_norm_self (∑' (n : ℕ), 1 / ↑n ^ σ₀)
-      _                                ≤ 1 + norm (∑' (n : ℕ), (1 / ↑n^σ₀) : ℝ ) := by linarith
-
-    let c : ℝ := 1 + norm (∑' (n : ℕ), (1 / ↑n^σ₀) : ℝ )
-
-    have c_is_pos : c > 0 := by positivity
-    use (1 + norm (∑' (n : ℕ), (1 / ↑n^σ₀) : ℝ ))
-    exact ⟨c_is_pos, B⟩
-
-
-theorem summable_real_iff_summable_coe_complex (f : ℕ → ℝ) :
-    Summable f ↔ Summable (fun n => (f n : ℂ)) := by
-  constructor
-
-  · intro ⟨s, hs⟩
-    use (s : ℂ)
-    exact hasSum_ofReal.mpr hs
-
-  · intro ⟨s, hs⟩
-    use s.re
-    have h_re : HasSum (fun n => ((f n : ℂ)).re) s.re :=
-      by exact hasSum_re hs
-    convert h_re using 1
-
-theorem cast_pow_eq (n : ℕ) (σ₀ : ℝ):
-  (↑((↑n : ℝ) ^ σ₀) : ℂ )  = (↑n : ℂ) ^ (↑σ₀ : ℂ) := by
-    have U : (↑n : ℝ) ≥ 0 := by exact Nat.cast_nonneg' n
-    have endit := Complex.ofReal_cpow U σ₀
-    exact endit
-
--- TODO : Move elsewhere (should be in Mathlib!) NOT NEEDED
-theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀)  :
-  ∃ c > 0, ∀(t : ℝ), ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ c := by
-
-    let s_re : ℂ  := σ₀
-
-    let new_const : ℝ := 1 + (↑(Norm.norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) (↑ s_re : ℂ ) n‖)) : ℝ )
-    have new_const_is_pos : new_const > 0 := by positivity
-
-    use new_const
-    use new_const_is_pos
-    intro t
-
-    let s := σ₀ + t * I
-
-    have DD : (↑ s.re : ℂ)  = s_re := by
-      refine ofReal_inj.mpr ?_
-      rw [add_re, ofReal_re, mul_re, ofReal_re, I_re, I_im]
-      simp
-
-
-    have L : s_re = σ₀ := by rfl
-
-    have H : s.re = σ₀ := by
-          rw [add_re, ofReal_re, mul_re, ofReal_re, I_re, I_im]
-          simp
-
-    have non_neg : σ₀ ≠ 0 := by
-      by_contra h
-      rw [h] at σ₀_gt
-      norm_cast at σ₀_gt
-
-    have pos : s.re > 1 := by exact lt_of_lt_of_eq σ₀_gt (id (Eq.symm H))
-    have pos_triv : s_re.re > 1 := by exact σ₀_gt
-
-    rw [← norm_neg, ← neg_div, ← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div pos]
-
-    have identity0 : ∀(n : ℕ), ‖LSeries.term 1 s n‖ = 1 / n^σ₀ := by
-      unfold LSeries.term
-      intro n
-      by_cases h0 : n = 0
-      · simp [*]
-      · simp [*]
-        push_neg at h0
-        have C : n > 0 := by exact Nat.zero_lt_of_ne_zero h0
-        have T :=  Complex.norm_natCast_cpow_of_pos C s
-        rw [H] at T
-        exact T
-
-    have O : ∀(s : ℂ), ∀(n : ℕ), s.re = σ₀ → (↑(‖LSeries.term (fun x ↦ (Λ x)) s n‖ : ℝ) : ℂ) = LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ ) n := by
-      intro s
-      intro n
-      intro cond
---      have L : s_re = σ₀ := by rfl
-      by_cases h1 : (n = 0)
-      · simp [h1]
-      · push_neg at h1
-        unfold LSeries.term
-        simp [*]
-        have U : |Λ n| = Λ n := abs_of_nonneg (ArithmeticFunction.vonMangoldt_nonneg)
-        have R : n > 0 := by exact Nat.zero_lt_of_ne_zero h1
-        rw [U]
-        have Z := Complex.norm_natCast_cpow_of_pos R s
-        rw [Z]
-        rw [← L]
-        --push_cast
-        by_cases h : (Λ n = 0)
-        · simp [h]
-        · norm_cast
-          apply_fun (fun (w : ℂ) ↦ w * (↑ n : ℂ)^s_re  / (Λ n))
-          · simp [*]
-            ring_nf
-            rw [mul_comm]
-            nth_rewrite 1 [mul_assoc]
-            simp [*]
-            have := cast_pow_eq n σ₀
-            rw [this]
-            simp [*]
-
-          · have G : (↑ n : ℂ)^s_re  / (Λ n) ≠ 0 := by
-              have T : (↑ n : ℂ)^s_re ≠ 0 := by
-                have T : n > 0 := by exact R
-                have M : ∃(m : ℕ), n = m + 1 := by exact Nat.exists_eq_succ_of_ne_zero h1
-                let ⟨m, pf⟩ := M
-                have U := Complex.natCast_add_one_cpow_ne_zero m s_re
-                rw [pf]
-                push_cast
-                exact U
-              refine div_ne_zero T ?_
-              push_neg at h
-              norm_cast
-            have U := by exact mul_left_injective₀ G
-            have T : (fun (x : ℂ) ↦ x * (↑ n : ℂ)^s_re  / (Λ n)) = (fun (x : ℂ) ↦ x * ((↑ n : ℂ)^s_re  / (Λ n))) := by funext x; exact mul_div_assoc x (↑n ^ s_re) ↑(Λ n)
-            simp [←T] at U
-            exact U
-
-    have K : (fun (n : ℕ) ↦ ↑(‖LSeries.term (fun x ↦ (Λ x)) s n‖ : ℝ)) = (fun (n : ℕ) ↦ (LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ )  n )) := by
-      funext n
-      rw [O s n H]
-
-    have K1 : (fun (n : ℕ) ↦ ↑(‖LSeries.term (fun x ↦ (Λ x)) (↑ s.re : ℂ) n‖ : ℝ)) = (fun (n : ℕ) ↦ (LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ )  n )) := by
-      funext n
-      rw [O (↑ s.re : ℂ) n H]
-      simp [*]
-
-    have D2 :  (fun (n : ℕ) ↦ ↑(‖LSeries.term (fun x ↦ (Λ x)) s n‖ : ℝ)) = (fun (n : ℕ) ↦ ↑(‖LSeries.term (fun x ↦ (Λ x)) (↑ s.re : ℂ)  n‖ : ℝ)) := by
-      simp [← K]
-
-    have S : Summable (fun n ↦ (↑(‖LSeries.term (fun x ↦ Λ x) s n‖ : ℝ) : ℝ  )) := by
-      apply (summable_real_iff_summable_coe_complex (fun n ↦ (↑(‖LSeries.term (fun x ↦ Λ x) s n‖ : ℝ) : ℝ  ))).mpr
-      rw [K]
-      have T := ArithmeticFunction.LSeriesSummable_vonMangoldt (pos_triv)
-      have U : s_re = s.re := by exact congrFun (congrArg Complex.mk (id (Eq.symm H))) 0
-      simp [← U]
-      exact T
-
-    have C := calc
-      ‖∑' (n : ℕ), (LSeries.term (fun x ↦ Λ x) s n)‖ ≤ ∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) s n‖ := norm_tsum_le_tsum_norm S
---      _                                              = ∑' (n : ℕ), LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ )  n) := by simp [K]
-      _                                              ≤ norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) s n‖) := by exact le_norm_self (∑' (n : ℕ), ‖LSeries.term (fun x ↦ ↑(Λ x)) s n‖)
-      _                                              = norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) (↑ s.re : ℂ) n‖) := by simp [D2]
-      _                                              ≤ 1 + norm (∑' (n : ℕ), ‖LSeries.term (fun x ↦ Λ x) ( ↑ s.re : ℂ) n‖ ) := by linarith
-      _                                              = new_const := by rw [DD]
-
-    exact C
-
-
-theorem analyticAt_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
-  AnalyticAt ℂ riemannZeta s := by
-  have : DifferentiableAt ℂ riemannZeta s := differentiableAt_riemannZeta s_ne_one
-  have exclude := eventually_ne_nhds s_ne_one
-  unfold Filter.Eventually at exclude
-  have : AnalyticAt ℂ riemannZeta s := by
-      refine Complex.analyticAt_iff_eventually_differentiableAt.mpr ?_
-      unfold Filter.Eventually
-      have T : {x | (fun x ↦ x ≠ 1) x} ⊆ {x | (fun z ↦ DifferentiableAt ℂ ζ z) x} := by
-        intro x
-        simp [*]
-        push_neg
-        intro hyp_x
-        exact differentiableAt_riemannZeta hyp_x
-      apply mem_nhds_iff.mpr
-      use {x | (fun x ↦ x ≠ 1) x}
-      constructor
-      · exact T
-      · constructor
-        · exact isOpen_ne
-        · exact s_ne_one
-
-  exact this
-
-/-%%
-\begin{lemma}[dlog_riemannZeta_bdd_on_vertical_lines']\label{dlog_riemannZeta_bdd_on_vertical_lines'}\lean{dlog_riemannZeta_bdd_on_vertical_lines'}\leanok
-For $\sigma_0 > 1$, there exists a constant $C > 0$ such that
-$$
-\forall t \in \R, \quad
-\left\| \frac{\zeta'(\sigma_0 + t i)}{\zeta(\sigma_0 + t i)} \right\| \leq C.
-$$
-\end{lemma}
-%%-/
-theorem dlog_riemannZeta_bdd_on_vertical_lines' {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) :
-  ∃ C > 0, ∀ (t : ℝ), ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ C :=
-  dlog_riemannZeta_bdd_on_vertical_lines σ₀_gt
-/-%%
-\begin{proof}\uses{LogDerivativeDirichlet}\leanok
-Write as Dirichlet series and estimate trivially using Theorem \ref{LogDerivativeDirichlet}.
-\end{proof}
-%%-/
-
+theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
+  ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
+  sorry
 
 theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
     DifferentiableAt ℂ ζ' s := by
-      have U := (analyticAt_riemannZeta s_ne_one).deriv.differentiableAt
-      exact U
+  have : DifferentiableAt ℂ riemannZeta s := differentiableAt_riemannZeta s_ne_one
+  sorry
 
 /-%%
 \begin{lemma}[SmoothedChebyshevPull1_aux_integrable]\label{SmoothedChebyshevPull1_aux_integrable}\lean{SmoothedChebyshevPull1_aux_integrable}\leanok
@@ -1519,8 +1165,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     :
     Integrable (fun (t : ℝ) ↦
       SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + (t : ℂ) * I)) volume := by
-  obtain ⟨C, C_pos, hC⟩ := dlog_riemannZeta_bdd_on_vertical_lines' σ₀_gt
-  let c : ℝ := C * X ^ σ₀
+  let c : ℝ := ‖ζ' (σ₀) / ζ (σ₀)‖ * X ^ σ₀
   have : ∀ᵐ t ∂volume, ‖(fun (t : ℝ) ↦ (- deriv riemannZeta (σ₀ + (t : ℂ) * I)) /
     riemannZeta (σ₀ + (t : ℂ) * I) *
     (X : ℂ) ^ (σ₀ + (t : ℂ) * I)) t‖ ≤ c := by
@@ -1528,7 +1173,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     intro t
     simp only [Complex.norm_mul, norm_neg, c]
     gcongr
-    · convert hC t using 1
+    · convert dlog_riemannZeta_bdd_on_vertical_lines σ₀_gt t using 1
       simp
     · rw [Complex.norm_cpow_eq_rpow_re_of_nonneg]
       · simp
@@ -1583,7 +1228,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
       exact ContinuousAt.comp h_pow h_param
 
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, SmoothedChebyshevDirichlet_aux_integrable}\leanok
+\begin{proof}\uses{MellinOfSmooth1b, SmoothedChebyshevDirichlet_aux_integrable}
 The $\zeta'(s)/\zeta(s)$ term is bounded, as is $X^s$, and the smoothing function
 $\mathcal{M}(\widetilde{1_{\epsilon}})(s)$
 decays like $1/|s|^2$ by Theorem \ref{MellinOfSmooth1b}.
@@ -1591,20 +1236,6 @@ Actually, we already know that
 $\mathcal{M}(\widetilde{1_{\epsilon}})(s)$
 is integrable from Theorem \ref{SmoothedChebyshevDirichlet_aux_integrable},
 so we should just need to bound the rest.
-\end{proof}
-%%-/
-
-/-%%
-\begin{lemma}[BddAboveOnRect]\label{BddAboveOnRect}\lean{BddAboveOnRect}\leanok
-Let $g : \C \to \C$ be a holomorphic function on a rectangle, then $g$ is bounded above on the rectangle.
-\end{lemma}
-%%-/
-lemma BddAboveOnRect {g : ℂ → ℂ} {z w : ℂ} (holoOn : HolomorphicOn g (z.Rectangle w)) :
-    BddAbove (norm ∘ g '' (z.Rectangle w)) := by
-  sorry
-/-%%
-\begin{proof}
-Use the compactness of the rectangle and the fact that holomorphic functions are continuous.
 \end{proof}
 %%-/
 
@@ -1930,9 +1561,7 @@ lemma interval_membership (r : ℝ)(a b: ℝ)(h1 : r ∈ Set.Icc (min a b) (max 
 
 /-%%
 \begin{proof}
-\uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue,
-SmoothedChebyshevPull1_aux_integrable, BddAboveOnRect,
-I₁, I₂, I₃₇, I₈, I₉}
+\uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue}
 Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
@@ -2057,9 +1686,6 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     -- rw [verticalIntegral_split_three (a := -3) (b := 3)]
 
 
-
-
-
   -- computing the contour integral from I_3 to I_7 by adding and subtracting the
   -- integral leftmost box
   calc I₃₇ SmoothingF ε T X σ₁ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (0 : ℂ) := by simp
@@ -2120,7 +1746,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       -- dsimp [RectangleIntegral]
 
 /-%%
-\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, I₃, I₄, I₅, I₆, I₇, I₃₇}
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}
 Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
 \end{proof}
 %%-/
@@ -2128,334 +1754,29 @@ Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
 /-%%
 We insert this information in $\psi_{\epsilon}$. We add and subtract the integral over the box
 $[1-\delta,2] \times_{ℂ} [-T,T]$, which we evaluate as follows
-\begin{theorem}[ZetaBoxEval]\label{ZetaBoxEval}\lean{ZetaBoxEval}\leanok
-For all $\epsilon > 0$ sufficiently close to $0$, the rectangle integral over $[1-\delta,2] \times_{ℂ} [-T,T]$ of the integrand in
+\begin{theorem}[ZetaBoxEval]\label{ZetaBoxEval}
+The rectangle integral over $[1-\delta,2] \times_{ℂ} [-T,T]$ of the integrand in
 $\psi_{\epsilon}$ is
-$$
-\frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
+$$\frac{1}{2\pi i}\int_{\partial([1-\delta,2] \times_{ℂ} [-T,T])}\frac{-\zeta'(s)}{\zeta(s)}
+\mathcal{M}(\widetilde{1_{\epsilon}})(s)
+X^{s}ds = \frac{X^{1}}{1}\mathcal{M}(\widetilde{1_{\epsilon}})(1)
+= X\left(\mathcal{M}(\psi)\left(\epsilon\right)\right)
 = X(1+O(\epsilon))
-,$$
-where the implicit constant is independent of $X$.
+.$$
 \end{theorem}
 %%-/
-theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
-    ∃ C, ∀ᶠ ε in (nhdsWithin 0 (Ioi 0)), ∀ X : ℝ, 0 ≤ X →
-    ‖𝓜 ((Smooth1 SmoothingF ε) ·) 1 * X - X‖ ≤ C * ε * X := by
-  have := MellinOfSmooth1c ContDiffSmoothingF suppSmoothingF mass_one
-  clear suppSmoothingF mass_one ContDiffSmoothingF
-  rw[Asymptotics.isBigO_iff] at this
-  obtain ⟨C, hC⟩ := this
-  use C
-  have εpos : ∀ᶠ (ε : ℝ) in nhdsWithin 0 (Ioi 0), ε > 0 :=
-    eventually_mem_of_tendsto_nhdsWithin fun ⦃U⦄ hU ↦ hU
-  filter_upwards [hC, εpos] with ε hC εpos
-  rw[id_eq, norm_of_nonneg (le_of_lt εpos)] at hC
-  intro X Xnne
-  nth_rw 2 [← one_mul (X : ℂ)]
-  rw[← sub_mul, norm_mul, norm_real, norm_of_nonneg Xnne]
-  exact mul_le_mul_of_nonneg_right hC Xnne
 
 /-%%
 \begin{proof}
-\uses{MellinOfSmooth1c}
-Unfold the definitions and apply Lemma \ref{MellinOfSmooth1c}.
+\uses{RectangleBorder, RectangleIntegral,
+MellinOfSmooth1a, MellinOfSmooth1b, MellinOfSmooth1c, MellinOfDeltaSpikeAt1,
+SmoothedChebyshevPull1}
+Residue calculus / the argument principle.
 \end{proof}
 %%-/
 
 /-%%
-It remains to estimate all of the integrals.
-%%-/
-
-/-%%
-This auxiliary lemme is useful for what follows.
-\begin{lemma}[IBound_aux1]\label{IBound_aux1}\lean{IBound_aux1}\leanok
-Given $k>0$, there exists $C>0$ so that for all $T>3$,
-$$
-\log T ^ k \le C \cdot T.
-$$
-\end{lemma}
-%%-/
-lemma IBound_aux1 {k : ℝ} (k_pos : 0 < k) : ∃ C > 0,
-    ∀ {T : ℝ} (T_gt : 3 < T), Real.log T ^ k ≤ C * T := by
-    sorry
-/-%%
-\begin{proof}
-Elementary. Use `isLittleO_log_rpow_rpow_atTop` in Mathlib.
-\end{proof}
-%%-/
-
-/-%%
-\begin{lemma}[I1Bound]\label{I1Bound}\lean{I1Bound}\leanok
-We have that
-$$
-\left|I_{1}(\nu, \epsilon, X, T)\
-\right| \ll {X \over \epsilon T}
-.
-$$
-Same with $I_9$.
-\end{lemma}
-%%-/
-theorem I1Bound :
-    ∃ C > 0, ∀ {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    (X : ℝ) (X_gt : 3 < X)
-    {T : ℝ} (T_gt : 3 < T) {σ₁ : ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
-    ‖I₁ SmoothingF ε X T‖ ≤ C * X / (ε * T) := by
-  sorry
-
-theorem I9Bound :
-    ∃ C > 0, ∀ {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    (X : ℝ) (X_gt : 3 < X)
-    {T : ℝ} (T_gt : 3 < T) {σ₁ : ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
-    ‖I₉ SmoothingF ε X T‖ ≤ C * X / (ε * T) := by
-  sorry
-
-/-%%
-\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I₁}
-  Unfold the definitions and apply the triangle inequality.
-$$
-\left|I_{1}(\nu, \epsilon, X, T)\right| =
-\left|
-\frac{1}{2\pi i} \int_{-\infty}^{-T}
-\left(
-\frac{-\zeta'}\zeta(\sigma_0 + t i)
-\right)
- \mathcal M(\widetilde 1_\epsilon)(\sigma_0 + t i)
-X^{\sigma_0 + t i}
-\ i \ dt
-\right|
-$$
-$$
-\leq
-\frac{1}{2\pi}
-\left|
- \int_{-\infty}^{-T}
-C
- \frac{C'}{\epsilon|\sigma_0 + t i|^2}
-X^{\sigma_0}
-\ dt
-\right|
-$$
-where we used Theorems \ref{MellinOfSmooth1b} and
-\ref{dlog_riemannZeta_bdd_on_vertical_lines'}. Continuing the calculation, we have
-$$
-\leq
-C'' {X^{\sigma_0}\over \epsilon}
-\int_{-\infty}^{-T}
-\frac{1}{t^2}
-\ dt
-$$
-$$
-\leq
-C'''  {X\over \epsilon T}
-,
-$$
-where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X}=e \cdot X$.
-\end{proof}
-%%-/
-
-/-%%
-\begin{lemma}[I2Bound]\label{I2Bound}\lean{I2Bound}\leanok
-We have that
-$$
-\left|I_{2}(\nu, \epsilon, X, T)\right| \ll {X\over \epsilon T}
-.
-$$
-Same with $I_8$.
-\end{lemma}
-%%-/
-lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
-    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    {T : ℝ} (T_gt : 3 < T)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
-    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
-    ‖I₂ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
-  sorry
-
-lemma I8Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
-    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    {T : ℝ} (T_gt : 3 < T)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
-    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
-    ‖I₈ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
-  sorry
-/-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform, I₂}
-Unfold the definitions and apply the triangle inequality.
-$$
-\left|I_{2}(\nu, \epsilon, X, T, \sigma_1)\right| =
-\left|\frac{1}{2\pi i} \int_{\sigma_1}^{\sigma_0}
-\left(\frac{-\zeta'}\zeta(\sigma - T i) \right)
-\mathcal M(\widetilde 1_\epsilon)(\sigma - T i)
-X^{\sigma - T i}
- \ d\sigma
-\right|
-$$
-$$\leq
-\frac{1}{2\pi}
-\int_{\sigma_1}^{\sigma_0}
-C \cdot \log T ^ 9
-\frac{C'}{\epsilon|\sigma - T i|^2}
-X^{\sigma_0}
- \ d\sigma
- \leq
-C'' \cdot {X\log T^9 \over \epsilon T^2}
-,
-$$
-where we used Theorems \ref{MellinOfSmooth1b} and \ref{LogDerivZetaBndUniform}, and the fact that
-$X^\sigma \le X^{\sigma_0} = X\cdot X^{1/\log X}=e \cdot X$.
-Since $T>3$, we have $\log T^9 \leq C''' T$.
-\end{proof}
-%%-/
-
-/-%%
-\begin{lemma}[I3Bound]\label{I3Bound}\lean{I3Bound}\leanok
-We have that
-$$
-\left|I_{3}(\nu, \epsilon, X, T)\right| \ll {X\over \epsilon}\, X^{-\frac{A}{(\log T)^9}}
-.
-$$
-Same with $I_7$.
-\end{lemma}
-%%-/
-lemma I3Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
-    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    {T : ℝ} (T_gt : 3 < T)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
-    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
-    ‖I₃ SmoothingF ε X T σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε  := by
-  sorry
-
-lemma I7Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
-    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    {T : ℝ} (T_gt : 3 < T)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
-    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
-    ‖I₇ SmoothingF ε X T σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε  := by
-  sorry
-/-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBnd, I₃}
-Unfold the definitions and apply the triangle inequality.
-$$
-\left|I_{3}(\nu, \epsilon, X, T, \sigma_1)\right| =
-\left|\frac{1}{2\pi i} \int_{-T}^3
-\left(\frac{-\zeta'}\zeta(\sigma_1 + t i) \right)
-\mathcal M(\widetilde 1_\epsilon)(\sigma_1 + t i)
-X^{\sigma_1 + t i}
-\ i \ dt
-\right|
-$$
-$$\leq
-\frac{1}{2\pi}
-\int_{-T}^3
-C \cdot \log t ^ 9
-\frac{C'}{\epsilon|\sigma_1 + t i|^2}
-X^{\sigma_1}
- \ dt
-,
-$$
-where we used Theorems \ref{MellinOfSmooth1b} and \ref{LogDerivZetaBnd}.
-Now we estimate $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$, and the integral is absolutely bounded.
-\end{proof}
-%%-/
-
-/-%%
-\begin{lemma}[I4Bound]\label{I4Bound}\lean{I4Bound}\leanok
-We have that
-$$
-\left|I_{4}(\nu, \epsilon, X, \sigma_1, \sigma_2)\right| \ll {X\over \epsilon}\,
- X^{-\frac{A}{(\log T)^9}}
-.
-$$
-Same with $I_6$.
-\end{lemma}
-%%-/
-lemma I4Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1),
-    ∀ {SmoothingF : ℝ → ℝ}
-    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    {T : ℝ} (T_gt : 3 < T)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
-    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
-    ‖I₄ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
-  sorry
-
-lemma I6Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1),
-    ∀ {SmoothingF : ℝ → ℝ}
-    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    {T : ℝ} (T_gt : 3 < T)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
-    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
-    ‖I₆ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
-  sorry
-/-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndAlt, I₄}
-The analysis of $I_4$ is similar to that of $I_2$, (in Lemma \ref{I2Bound}) but even easier.
-Let $C$ be the sup of $-\zeta'/\zeta$ on the curve $\sigma_2 + 3 i$ to $1+ 3i$ (this curve is compact, and away from the pole at $s=1$).
-Apply Theorem \ref{MellinOfSmooth1b} to get the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
-And $X^s$ is bounded by $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$.
-Putting these together gives the result.
-\end{proof}
-%%-/
-
-/-%%
-\begin{lemma}[I5Bound]\label{I5Bound}\lean{I5Bound}\leanok
-We have that
-$$
-\left|I_{5}(\nu, \epsilon, X, \sigma_2)\right| \ll {X^{\sigma_2} \over \epsilon}.
-$$
-\end{lemma}
-%%-/
-lemma I5Bound : ∃ (C : ℝ) (_ : 0 < C) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1), ∀ {SmoothingF : ℝ → ℝ}
-    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
-    ‖I₅ SmoothingF ε X σ₂‖ ≤ C * X ^ σ₂ / ε := by
-  sorry
-/-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaHolcSmallT, I₅}
-Here $\zeta'/\zeta$ is absolutely bounded on the compact interval $\sigma_2 + i [-3,3]$, and
-$X^s$ is bounded by $X^{\sigma_2}$. Using Theorem \ref{MellinOfSmooth1b} gives the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
-Putting these together gives the result.
-\end{proof}
+It remains to estimate all of the integrals...
 %%-/
 
 /-%%
@@ -2483,8 +1804,7 @@ theorem MediumPNT : ∃ c > 0,
   sorry
 /-%%
 \begin{proof}
-\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval, LogDerivZetaBndUniform, LogDerivZetaHolcSmallT, LogDerivZetaHolcLargeT,
-SmoothedChebyshevPull1, SmoothedChebyshevPull2}
+\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval, LogDerivZetaBndUniform, LogDerivZetaHolcSmallT, LogDerivZetaHolcLargeT}
   Evaluate the integrals.
 \end{proof}
 %%-/
