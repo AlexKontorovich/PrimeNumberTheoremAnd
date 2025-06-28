@@ -57,89 +57,128 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (h_limit : Tendsto (fun s ↦ (s - p) * f s) (𝓝[≠] p) (𝓝 A)) :
     ∃ V ∈ 𝓝 p,
     BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (V \ {p})) := by
-
--- Step 1: We know that (s-1) * ζ(s) → 1 as s → 1Add commentMore actions
-
-  -- refine ⟨U, hU_open, h1_in_U, ?_⟩
-
-  -- have U_mem_nhds : U ∈ 𝓝 (1 : ℂ) := by
-  --   rw [mem_nhds_iff]
-  --   refine ⟨U, fun ⦃a⦄ a ↦ a, hU_open, h1_in_U⟩
-
-  -- have h_bdd : BddAbove (norm ∘ (fun s : ℂ => (s - 1) * riemannZeta s) '' (U \ {1})) := by
-  --   use 2
-  --   intro r hr
-  --   obtain ⟨s, hs_mem, hs_eq⟩ := hr
-  --   rw [Function.comp_apply] at hs_eq
-  --   rw [← hs_eq]
-  --   have hs_in_U : s ∈ U := hs_mem.1
-  --   have hs_ne_1 : s ≠ 1 := hs_mem.2
-  --   have : s ∈ U ∩ {1}ᶜ := ⟨hs_in_U, hs_ne_1⟩
-  --   have h_in_ball : (s - 1) * ζ s ∈ Metric.ball 1 1 := hU_subset this
-  --   rw [Metric.mem_ball, Complex.dist_eq] at h_in_ball
-  --   have : ‖(s - 1) * ζ s‖  - ‖(1 : ℂ)‖ ≤ ‖(s - 1) * ζ s - 1‖ := norm_sub_norm_le _ _
-  --   simp only [norm_one] at this
-  --   linarith
-
-  -- -- Step 2: Since the limit exists and is finite, (s-1) * ζ(s) extends to a holomorphic function
-  -- -- There exists a holomorphic function g in a neighborhood of 1 such that
-  -- -- (s-1) * ζ(s) = g(s) for s ≠ 1, and g(1) = 1
-  -- have h_holomorphic_extension : ∃ (g : ℂ → ℂ) (hg_holo : HolomorphicOn g U),
-  --   (EqOn (fun s ↦ (s - 1) * ζ s) g (U \ {1})) ∧ g 1 = 1 := by
-  --   have := existsDifferentiableOn_of_bddAbove U_mem_nhds ?_ h_bdd (s := U)
-  --   · obtain ⟨g, gHolc, gEqOn⟩ := this
-  --     refine ⟨g, gHolc, gEqOn, ?_⟩
-  --     have h_limit : Tendsto g (𝓝[≠] 1) (𝓝 1) := by
-  --       -- Rewrite the limit using the equality on U \ {1}
-  --       apply Filter.Tendsto.congr' ?_ h_residue
-  --       unfold EventuallyEq Filter.Eventually
-  --       rw [mem_nhdsWithin]
-  --       refine ⟨U, hU_open, h1_in_U, ?_⟩
-  --       intro s hs
-  --       simp only [mem_setOf_eq]
-  --       exact gEqOn hs
-  --     have h_continuous : ContinuousAt g 1 := by
-  --       have := gHolc.continuousOn
-  --       apply this.continuousAt
-  --       exact U_mem_nhds
-  --     exact tendsto_nhds_unique (tendsto_nhdsWithin_of_tendsto_nhds h_continuous) h_limit
-  --   · unfold HolomorphicOn
-  --     intro s hs
-  --     have s_ne_1 : s ≠ 1 := hs.2
-  --     apply DifferentiableAt.differentiableWithinAt
-  --     apply DifferentiableAt.mul
-  --     · fun_prop
-  --     · exact differentiableAt_riemannZeta s_ne_1
-
-  -- obtain ⟨g, hg_holo, hg_eq_on, hg_at_one⟩ := h_holomorphic_extension
-
-  sorry
-
-
-
-
-  -- -- Step 4: Since g is holomorphic at 1 with g(1) = 1, we have g(s) = 1 + O(s-1)
-  -- have h_taylor :
-  --   (fun s => g s - 1) =O[𝓝 1] (fun s => s - 1) := by
-  --   sorry
-
-  -- -- Step 6: Therefore ζ(s) = g(s)/(s-1) = (1 + O(s-1))/(s-1) = 1/(s-1) + O(1)
-  -- -- First, we need to work in a punctured neighborhood where s ≠ 1
-  -- have h_zeta_formula : ∀ᶠ s in 𝓝[{1}ᶜ] 1, riemannZeta s = g s / (s - 1) := by
-  --   -- This follows from (s-1) * ζ(s) = g(s)
-  --   sorry
-
-  -- -- Step 7: Show that g(s)/(s-1) - 1/(s-1) = (g(s) - 1)/(s-1) = O(1)
-  -- have h_key_bound : (fun s => g s / (s - 1) - (s - 1)⁻¹) =O[𝓝[≠] 1] (1 : ℂ → ℂ) := by
-  --   -- Simplify: g(s)/(s-1) - 1/(s-1) = (g(s) - 1)/(s-1)
-  --   have h_simplify : ∀ s : ℂ, s ≠ 1 → g s / (s - 1) - (s - 1)⁻¹ = (g s - 1) / (s - 1) := by
-  --     sorry
-  --   sorry
-
-  -- -- Step 8: Combine with the formula for ζ to get the final result
-
-  -- -- Use h_zeta_formula and h_key_bound
-  -- sorry
+  -- Step 1.  `(s-p) f s` is bounded on some punctured nbhd `V`.
+  have h_event : ∀ᶠ s in 𝓝[≠] p, ‖(s - p) * f s - A‖ < 1 :=
+    h_limit.eventually (Metric.ball_mem_nhds _ (by norm_num))
+  have h_event_nhds :
+      ∀ᶠ s in 𝓝 p, s ≠ p → ‖(s - p) * f s - A‖ < 1 := by
+    have := (eventually_nhdsWithin_iff).1 h_event
+    simpa using this
+  rcases (eventually_nhds_iff.1 h_event_nhds) with ⟨V₀, hV₀_mem, hV₀_prop⟩
+  have h_bound :
+      ∀ s, s ∈ V₀ \ {p} → ‖(s - p) * f s‖ ≤ ‖A‖ + 1 := by
+    intro s hs
+    rcases hs with ⟨hV₀, hsne⟩
+    calc ‖(s - p) * f s‖ = ‖((s - p) * f s - A) + A‖ := by
+          ring_nf
+        _ ≤ ‖(s - p) * f s - A‖ + ‖A‖ := norm_add_le ((s - p) * f s - A) A
+        _ ≤ 1 + ‖A‖ := add_le_add_right (le_of_lt (hV₀_mem s hV₀ hsne)) ‖A‖
+        _ = ‖A‖ + 1 := add_comm 1 ‖A‖
+  have h_bdd :
+      BddAbove (norm ∘ (fun s ↦ (s - p) * f s) '' (V₀ \ {p})) := by
+    refine ⟨‖A‖ + 1, ?_⟩
+    rintro _ ⟨s, hs, rfl⟩
+    exact h_bound s hs
+  -- From now on work inside `W = V₀ ∩ U`,   still a nbhd of `p`.
+  set W : Set ℂ := V₀ ∩ U with hW_def
+  have hW_mem : (W : Set ℂ) ∈ 𝓝 p := inter_mem (IsOpen.mem_nhds hV₀_prop.1 hV₀_prop.2) hU
+  have h_subset_V₀ : (W \ {p}) ⊆ (V₀ \ {p}) := by
+    intro z hz; exact ⟨hz.1.1, hz.2⟩
+  have h_prod_holo : HolomorphicOn (fun z ↦ (z - p) * f z) (W \ {p}) := by
+    have h_id : HolomorphicOn (fun z : ℂ ↦ z - p) (W \ {p}) :=
+      Differentiable.differentiableOn (Differentiable.sub_const differentiable_id' p)
+    have hfW : HolomorphicOn f (W \ {p}) := by
+      apply hf.mono
+      refine diff_subset_diff_left inter_subset_right
+    simpa using h_id.mul hfW
+  have h_bdd_W : BddAbove (norm ∘ (fun s ↦ (s - p) * f s) '' (W \ {p})) :=
+    h_bdd.mono (image_mono h_subset_V₀)
+  -- Step 2.  Extend the product across `p`; obtain holomorphic `g`.
+  obtain ⟨g, hg_holo, hg_eq⟩ :=
+    existsDifferentiableOn_of_bddAbove
+      (s := W) (c := p)
+      (hc := hW_mem) (hd := h_prod_holo) (hb := h_bdd_W)
+  have h_event_eq :
+      (fun z ↦ g z) =ᶠ[𝓝[≠] p] fun z ↦ (z - p) * f z := by
+    have hW_diff_mem : (W \ {p} : Set ℂ) ∈ 𝓝[≠] p :=
+      diff_mem_nhdsWithin_compl hW_mem {p}
+    exact (hg_eq.eventuallyEq_of_mem hW_diff_mem).symm
+  have h_tendsto_gA : Tendsto g (𝓝[≠] p) (𝓝 A) :=
+      h_limit.congr' (id (EventuallyEq.symm h_event_eq))
+  have hpW : p ∈ W := by
+    rw [hW_def]
+    exact ⟨hV₀_prop.2, mem_of_mem_nhds hU⟩
+  have h_cont_g : ContinuousAt g p := by
+    apply (hg_holo.continuousOn.continuousWithinAt hpW).continuousAt hW_mem
+  have h_tendsto_gp : Tendsto g (𝓝[≠] p) (𝓝 (g p)) :=
+    h_cont_g.tendsto.mono_left inf_le_left
+  have g_p_eq : g p = A :=
+    tendsto_nhds_unique' (NormedField.nhdsNE_neBot p) h_tendsto_gp h_tendsto_gA
+  let q : ℂ → ℂ := fun z ↦ (g z - A) / (z - p)
+  have h_deriv : HasDerivAt g (deriv g p) p := by
+    simp only [hasDerivAt_deriv_iff]
+    exact DifferentiableOn.differentiableAt hg_holo hW_mem
+  have h_q_limit : Tendsto q (𝓝[≠] p) (𝓝 (deriv g p)) := by
+    rw [hasDerivAt_iff_tendsto_slope] at h_deriv
+    unfold slope at h_deriv
+    simp only [vsub_eq_sub, smul_eq_mul, inv_mul_eq_div, g_p_eq] at h_deriv
+    exact h_deriv
+  have h_event_q : ∀ᶠ z in 𝓝[≠] p, ‖q z - deriv g p‖ < 1 :=
+    h_q_limit.eventually (Metric.ball_mem_nhds _ (by norm_num))
+  have h_event_q_nhds : ∀ᶠ z in 𝓝 p, z ≠ p → ‖q z - deriv g p‖ < 1 := by
+    simpa using (eventually_nhdsWithin_iff).1 h_event_q
+  rcases (eventually_nhds_iff.1 h_event_q_nhds) with
+    ⟨V₁, hV₁_mem, hV₁_prop⟩
+  have h_q_bound :
+      ∀ z, z ∈ V₁ \ {p} → ‖q z‖ ≤ ‖deriv g p‖ + 1 := by
+    intro z hz
+    rcases hz with ⟨hV₁, hz_ne⟩
+    calc ‖q z‖ = ‖(q z - deriv g p) + (deriv g p)‖ := by
+          ring_nf
+        _ ≤ ‖q z - deriv g p‖ + ‖deriv g p‖ := norm_add_le (q z - deriv g p) (deriv g p)
+        _ ≤ 1 + ‖deriv g p‖  := add_le_add_right (le_of_lt (hV₁_mem z hV₁ hz_ne)) ‖deriv g p‖
+        _ = ‖deriv g p‖ + 1 := add_comm 1 ‖deriv g p‖
+  have h_bdd_q :
+      BddAbove (norm ∘ q '' (V₁ \ {p})) := by
+    refine ⟨‖deriv g p‖ + 1, ?_⟩
+    rintro _ ⟨z, hz, rfl⟩
+    exact h_q_bound z hz
+  -- Step 4.  Relate `f` to `q` and pass the bound.
+  have h_eq_diff :
+      EqOn (fun z ↦ f z - A * (z - p)⁻¹) q (W \ {p}) := by
+    intro z hz
+    simp only
+    have hz_ne : (z - p) ≠ 0 := sub_ne_zero.mpr hz.2
+    have hgz : g z = (z - p) * f z := by
+      exact id (EqOn.symm hg_eq) hz
+    field_simp [q, hgz, hz_ne]
+    exact mul_comm (f z) (z - p)
+  set V : Set ℂ := V₁ ∩ W with hV_def
+  have hV_mem : (V : Set ℂ) ∈ 𝓝 p := inter_mem (IsOpen.mem_nhds hV₁_prop.1 hV₁_prop.2) hW_mem
+  have h_bdd_final : BddAbove (norm ∘ (f - fun z ↦ A * (z - p)⁻¹) '' (V \ {p})) := by
+    have h_subset :
+        (fun z ↦ norm (f z - A * (z - p)⁻¹)) '' (V \ {p})
+          ⊆ (fun z ↦ norm (q z)) '' (V₁ \ {p}) := by
+      rintro x ⟨z, ⟨hz₁, hz₂⟩, rfl⟩
+      have hz₁' : z ∈ V₁ \ {p} := by
+        exact mem_diff_of_mem (mem_of_mem_inter_left hz₁) hz₂
+      have hz₁'' : z ∈ W \ {p} := by
+        exact mem_diff_of_mem (mem_of_mem_inter_right hz₁) hz₂
+      simp only [mem_image, mem_diff, mem_singleton_iff, q]
+      use z
+      constructor
+      . exact hz₁'
+      . calc ‖(g z - A) / (z - p)‖ = ‖((z - p) * f z - A) / (z - p)‖ := by
+              have := hg_eq hz₁''
+              simp_rw [this]
+          _ = ‖((z - p) * f z) / (z - p) - A / (z - p)‖ := by ring_nf
+          _ = ‖f z - A / (z - p)‖ := by
+              simp at hz₂
+              field_simp [sub_ne_zero_of_ne]
+    exact h_bdd_q.mono h_subset
+  -- Done: provide the neighbourhood `V`.
+  refine ⟨V, hV_mem, ?_⟩
+  simpa [hV_def, Function.comp] using h_bdd_final
 
 /-%%
 \begin{proof}\uses{existsDifferentiableOn_of_bddAbove}
