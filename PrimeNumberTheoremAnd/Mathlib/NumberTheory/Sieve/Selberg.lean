@@ -335,7 +335,7 @@ theorem selbergBoundingSum_ge {d : ℕ} (hdP : d ∣ P) :
     · exact_mod_cast s._helper hkd hk hm
     · intro h;
       apply (selbergTerms_mult _).map_mul_of_coprime
-      rw [coprime_comm]; apply h.2.coprime_dvd_right hkd
+      rw [gcd_comm]; apply h.2.coprime_dvd_right hkd
     · intro l _ hkl; apply if_neg
       push_neg; intro h; exfalso
       rw [h] at hkl; exact hkl (Nat.gcd_dvd_right d l)

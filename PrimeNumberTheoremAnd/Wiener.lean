@@ -1728,7 +1728,7 @@ theorem wiener_ikehara_smooth_sub (h1 : Integrable Ψ) (hplus : closure (Functio
 
   have l3 : Ioi 0 = Ioc 0 x⁻¹ ∪ Ioi x⁻¹ := by
     ext t ; simp ; constructor <;> intro h
-    · simp [h, le_or_lt]
+    · simp [h, le_or_gt]
     · cases h <;> linarith
   have l4 : Disjoint (Ioc 0 x⁻¹) (Ioi x⁻¹) := by simp
   have l5 := Set.indicator_union_of_disjoint l4 Ψ
@@ -1921,7 +1921,7 @@ lemma WI_sum_Iab_le' {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : cheb
   filter_upwards [eventually_gt_atTop (2 / b)] with x hx using WI_sum_Iab_le hpos hcheby hb hx
 
 lemma le_of_eventually_nhdsWithin {a b : ℝ} (h : ∀ᶠ c in 𝓝[>] b, a ≤ c) : a ≤ b := by
-  apply le_of_forall_lt' ; intro d hd
+  apply le_of_forall_gt ; intro d hd
   have key : ∀ᶠ c in 𝓝[>] b, c < d := by
     apply eventually_of_mem (U := Iio d) ?_ (fun x hx => hx)
     rw [mem_nhdsWithin]
