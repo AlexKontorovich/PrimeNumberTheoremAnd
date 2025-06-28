@@ -906,7 +906,7 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
-    ∃ (C : ℝ), ∀ (X : ℝ) (_ : 3 < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1) (_ : 2 < X * ε),
+    ∃ C > 0, ∀ (X : ℝ) (_ : 3 < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1) (_ : 2 < X * ε),
     ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
   have vonManBnd (n : ℕ) : ArithmeticFunction.vonMangoldt n ≤ Real.log n :=
     ArithmeticFunction.vonMangoldt_le_log
@@ -933,7 +933,9 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
 
   clear_value C
 
-  refine ⟨C, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
+  have Cpos : 0 < C := by sorry
+
+  refine ⟨C, Cpos, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
   unfold ChebyshevPsi
 
   have X_gt_zero : (0 : ℝ) < X := by linarith
@@ -2279,7 +2281,14 @@ lemma verticalIntegral_split_three_finite' {s a b e σ : ℝ} {f : ℂ → ℂ}
     (1 : ℂ) / (2 * π * I) * (VIntegral f σ s a) +
     (1 : ℂ) / (2 * π * I) * (VIntegral f σ a b) +
     (1 : ℂ) / (2 * π * I) * (VIntegral f σ b e) := by
-  sorry
+  have : (1 : ℂ) / (2 * π * I) * (VIntegral f σ s a) +
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ a b) +
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ b e) = (1 : ℂ) / (2 * π * I) * ((VIntegral f σ s a) +
+    (VIntegral f σ a b) +
+    (VIntegral f σ b e)) := by ring
+  rw [this]
+  clear this
+  rw [← verticalIntegral_split_three_finite hf hab]
 
 theorem SmoothedChebyshevPull2_aux1 {T σ₁ : ℝ}
   (holoOn : HolomorphicOn (ζ' / ζ) (Icc σ₁ 2 ×ℂ Icc (-T) T \ {1})) :
@@ -2307,7 +2316,8 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       (Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1}))
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (diff_SmoothingF : ContDiff ℝ 1 SmoothingF) :
     I₃₇ SmoothingF ε T X σ₁ =
       I₃ SmoothingF ε T X σ₁ -
       I₄ SmoothingF ε X σ₁ σ₂ +
@@ -2316,6 +2326,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       I₇ SmoothingF ε T X σ₁ := by
   let z : ℂ := σ₂ - 3 * I
   let w : ℂ := σ₁ + 3 * I
+  have σ₁_pos : 0 < σ₁ := by linarith
   -- Step (1)
   -- Show that the Rectangle is in a given subset of holomorphicity
   have sub : z.Rectangle w ⊆ Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1} := by
@@ -2395,9 +2406,28 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         · apply SmoothedChebyshevPull2_aux1 holoOn
         · apply continuousOn_of_forall_continuousAt
           intro t t_mem
-          have := @Smooth1ContinuousAt
+          -- have' := Smooth1ContinuousAt diff_SmoothingF SmoothingFnonneg
+          --    suppSmoothingF σ₁_pos ε_pos
+
           sorry
-      · sorry
+      · apply continuousOn_of_forall_continuousAt
+        intro t t_mem
+        apply ContinuousAt.comp
+        · refine continuousAt_const_cpow' ?_
+          intro h
+          have : σ₁ = 0 := by
+            have h_real : (↑σ₁ + ↑t * I).re = (0 : ℂ).re := by
+              rw [h]
+            simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+              sub_self, add_zero, zero_re, z, w] at h_real
+            exact h_real
+          linarith
+        · -- continuity -- failed
+          apply ContinuousAt.add
+          · exact continuousAt_const
+          · apply ContinuousAt.mul
+            · apply continuous_ofReal.continuousAt
+            · exact continuousAt_const
     · refine ⟨by linarith, by linarith, by linarith⟩
   calc I₃₇ SmoothingF ε T X σ₁ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (0 : ℂ) := by simp
     _ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (RectangleIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z w) := by rw [← zero_over_box]
@@ -2928,6 +2958,7 @@ theorem MediumPNT : ∃ c > 0,
   let X₀ : ℝ := sorry
   refine ⟨X₀, ?_⟩
   intro X X_ge_X₀
+  have X_gt_3 : 3 < X := by sorry
   let ε : ℝ := sorry
   have ε_pos : 0 < ε := sorry
   have ε_lt_one : ε < 1 := sorry
@@ -2940,10 +2971,16 @@ theorem MediumPNT : ∃ c > 0,
   have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by
     sorry
   let ψ_ε_of_X := SmoothedChebyshev ν ε X
-  have UnsmoothingError : ‖ψ X - ψ_ε_of_X‖ ≤ C * X * ε := by
-    obtain ⟨C_unsmoothing, hC⟩ := SmoothedChebyshevClose ContDiff1ν
+  have : ∃ C > 0, ‖ψ X - ψ_ε_of_X‖ ≤ C * X * ε * Real.log X := by
+    obtain ⟨C, Cpos, hC⟩ := SmoothedChebyshevClose ContDiff1ν
       ν_supp ν_nonneg ν_massOne
+    refine ⟨C, Cpos, ?_⟩
+    have := hC X X_gt_3 ε ε_pos ε_lt_one (by sorry)
+
+    --obtain ⟨C_unsmoothing, hC⟩ :=
     sorry
+
+  obtain ⟨C_unsmoothing, C_unsmoothing_pos, hC⟩ := this
 
   let T : ℝ := sorry
   have T_gt_3 : 3 < T := sorry
@@ -2951,7 +2988,7 @@ theorem MediumPNT : ∃ c > 0,
   let A : ℝ := sorry
   have A_in_Ioo : A ∈ Ioo 0 (1 / 2) := sorry
 
-  let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+  let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
 
   let σ₂ : ℝ := sorry
 
@@ -2964,8 +3001,10 @@ theorem MediumPNT : ∃ c > 0,
   obtain ⟨C_main, C_main_pos, main_diff⟩ := this
 
   have := (
-    calc ‖ψ X - X‖ ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - X‖ := by sorry
-                 _ ≤ sorry := by sorry
+    calc
+      ‖ψ X - X‖ = ‖(ψ X - ψ_ε_of_X) + (ψ_ε_of_X - X)‖ := by ring_nf; norm_cast
+      _         ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - X‖ := norm_add_le _ _
+      _         = sorry := by sorry
   )
 
   sorry
