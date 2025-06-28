@@ -1509,7 +1509,7 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
 
 
 theorem triv_bound_zeta :
-  ∃C > 0, ∀(σ₀ t : ℝ), 1 < σ₀ → ‖- ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ 1 / (σ₀ - 1) + C
+  ∃C > 0, ∀(σ₀ t : ℝ), 1 < σ₀ → ‖- ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ (σ₀ - 1)⁻¹ + C
   := by
       let const : ℝ := 10
       have const_pos : const > 0 := by sorry
@@ -1523,7 +1523,6 @@ theorem triv_bound_zeta :
       -- and take the bound to be the edge but this will require some more work
 
       let ⟨U, ⟨U_in_nhds, zeta_residue_on_U⟩⟩ := riemannZetaLogDerivResidue
-        -- riemannZetaResidue
 
       let ⟨open_in_U, ⟨open_in_U_subs_U, open_in_U_is_open, one_in_open_U⟩⟩ := mem_nhds_iff.mp U_in_nhds
 
@@ -1545,14 +1544,26 @@ theorem triv_bound_zeta :
             ‖- ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
                have U := dlog_riemannZeta_bdd_on_vertical_lines_generalized σ₀ σ₀ t (σ₀_gt) (by simp)
                exact U
-            _ = ‖- ζ' σ₀ / ζ σ₀‖ := by sorry
-            _ = ‖(- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹) + (σ₀ - 1)⁻¹‖ := by sorry
-            _ ≤ ‖- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹‖ + ‖(σ₀ - 1)⁻¹‖ := by sorry
-            _ ≤ bound + ‖(σ₀ - 1)⁻¹‖ := by sorry
-            _ ≤ bound + (σ₀ - 1)⁻¹ := by sorry
-            _ ≤ (σ₀ - 1)⁻¹ + bound := by sorry
+            _ = ‖- ζ' σ₀ / ζ σ₀‖ := by simp only [Complex.norm_div, norm_neg]
+            _ = ‖(- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹) + (σ₀ - 1)⁻¹‖ := by simp only [Complex.norm_div, norm_neg, ofReal_inv, ofReal_sub, ofReal_one, sub_add_cancel]
+            _ ≤ ‖(- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹)‖ + ‖(σ₀ - 1)⁻¹‖ := by
+              have Z := norm_add_le (- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹) ((σ₀ - 1)⁻¹)
+              norm_cast at Z
+            _ ≤ bound + ‖(σ₀ - 1)⁻¹‖ := by
+              have U := add_le_add_right bdd ‖(σ₀ - 1)⁻¹‖
+              ring_nf at U
+              ring_nf
+              norm_cast at U
+              norm_cast
+            _ ≤ bound + (σ₀ - 1)⁻¹ := by
+              simp [norm_inv]
+              have pos : 0 ≤ σ₀ - 1 := by
+                linarith
+              simp [abs_of_nonneg pos]
+            _ = (σ₀ - 1)⁻¹ + bound := by
+              rw [add_comm]
 
-        sorry
+        exact Z
 
 --          Set.mem_image.mp
 --            (Norm.norm ∘ (ζ - fun s ↦ (s - 1)⁻¹))
