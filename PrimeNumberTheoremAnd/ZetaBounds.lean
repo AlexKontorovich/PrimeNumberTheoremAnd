@@ -3569,10 +3569,16 @@ lemma ZetaLowerBnd :
       linarith
 
   have σ'_ge : 1 ≤ σ' := by
-    bound
-    · exact hA'.1.le
-    · norm_num
-    · linarith
+    simp_all only [gt_iff_lt, mem_Ioc, Real.log_abs, one_div, and_imp, tsub_le_iff_right, lt_inf_iff,
+      div_pos_iff_of_pos_left, Nat.ofNat_pos, mul_pos_iff_of_pos_left, pow_pos, and_self, inf_le_iff, true_or,
+      sub_pos, mem_Ico, and_true, ofReal_add, ofReal_one, ofReal_div, ge_iff_le, le_add_iff_nonneg_right, A, C, σ']
+    apply div_nonneg
+    · apply le_min
+      · linarith
+      · have : (C₁ / (4 * C₂)) ^ 4 = ((C₁ / (4 * C₂)) ^ 2) ^ 2 := by ring
+        rw [this]
+        apply sq_nonneg
+    · positivity
 
   have right_sub :  -‖ζ (σ + t * I) -  ζ (σ' + t * I)‖ ≥ - C₂ * Real.log |t| ^ 2 * (σ' - σ) := by
     show - C₂ * Real.log |t| ^ 2 * (σ' - σ) ≤ -‖ζ (σ + t * I) -  ζ (σ' + t * I)‖
@@ -3589,13 +3595,26 @@ lemma ZetaLowerBnd :
         · bound
       linarith
     · have : σ' ≤ 1 + A := by
-        bound
-        · exact hA'.1.le
-        · norm_num
-        · have : 1 ≤ Real.log |t| ^ 9 := by
-            bound
+        simp_all only [gt_iff_lt, mem_Ioc, Real.log_abs, one_div, and_imp, tsub_le_iff_right, lt_inf_iff,
+          div_pos_iff_of_pos_left, Nat.ofNat_pos, mul_pos_iff_of_pos_left, pow_pos, and_self, inf_le_iff, true_or,
+          sub_pos, mem_Ico, and_true, ofReal_add, ofReal_one, ofReal_div, ge_iff_le, le_add_iff_nonneg_right,
+          add_le_add_iff_left, le_inf_iff, σ', A, C]
+        have : 1 ≤ Real.log t ^ (9 : ℕ) := by
+          bound
+        have : 1 ≤ Real.log t ^ (9 : ℝ) := by
           exact_mod_cast this
-      bound [hA.2]
+        refine ⟨?_, ?_⟩
+        · rw [← min_div_div_right]
+          · rw [min_le_iff]
+            left
+            bound
+          · exact le_trans (zero_le_one) this
+        · rw [← min_div_div_right]
+          · rw [min_le_iff]
+            right
+            bound
+          · exact le_trans (zero_le_one) this
+      · bound [hA.2]
     · linarith
     -- use (le_neg.1 ((norm_sub_rev _ _).trans_le ((hC₂ _ _ (add_le_of_le_sub_left ((div_le_iff₀ (by bound)).2 (hA.2.trans (?_)))) (σ_le_one.trans (?_)) t L ?_).trans_eq (by ring))))
     -- · norm_num only[Real.le_log_iff_exp_le, L.trans',(one_le_pow₀ _).trans',one_mul,Real.exp_one_lt_d9.le.trans]
