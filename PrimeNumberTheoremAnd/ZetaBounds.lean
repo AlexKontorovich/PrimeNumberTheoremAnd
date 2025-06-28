@@ -181,7 +181,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   simpa [hV_def, Function.comp] using h_bdd_final
 
 /-%%
-\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}
+\begin{proof}\uses{existsDifferentiableOn_of_bddAbove}\leanok
 The function $(s - p)\cdot f(s)$ bounded, so by Theorem
 \ref{existsDifferentiableOn_of_bddAbove}, there is a holomorphic function, $g$, say, so that
 $(s-p)f(s) = g(s)$ in a neighborhood of $s=p$, and $g(p)=A$. Now because $g$ is holomorphic,
@@ -846,8 +846,8 @@ lemma BddAbove_to_IsBigO {f : ℂ → ℂ} {p : ℂ}
   . exact ⟨V_open, p_in_V⟩
 
 /-%%
-\begin{proof}
-Elementary...
+\begin{proof}\leanok
+Elementary.
 \end{proof}
 %%-/
 
