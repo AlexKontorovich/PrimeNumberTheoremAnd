@@ -1518,7 +1518,6 @@ theorem triv_bound_zeta :
 
       let ⟨ε₀, ⟨ε_pos, metric_ball_around_1_is_in_U'⟩⟩ := EMetric.isOpen_iff.mp open_in_U_is_open (1 : ℂ) one_in_open_U
 
-
       let ε := if ε₀ = ⊤ then ENNReal.ofReal 1 else ε₀
       have O1 : ε ≠ ⊤ := by
         by_cases h : ε₀ = ⊤
@@ -1557,8 +1556,16 @@ theorem triv_bound_zeta :
           BddAbove.exists_ge zeta_residue_on_U 0
 
       let const : ℝ := bound
+      let final_const : ℝ := (boundary - 1)⁻¹ + const
+      have final_const_pos : final_const ≥ 0 := by
+        sorry
+
+      have const_le_final_const : const ≤ final_const := by sorry
+      /- final const is actually the constant that we will use -/
+
       have const_pos : const ≥ 0 := by
         linarith
+
       use const
       use const_pos
       intro σ₀
@@ -1644,7 +1651,49 @@ theorem triv_bound_zeta :
 
         exact Z
 
-      · sorry /-bound by boundary and then use residue lemma-/
+      · push_neg at h
+
+
+        have boundary_geq_one : 1 < boundary := by sorry
+        have boundary_in_U : (↑boundary : ℂ) ∈ U \ {1} := by
+/-         refine mem_diff_singleton.mpr ?_
+          constructor
+          · unfold metric_ball_around_1 at σ₀_in_ball
+            exact metric_ball_around_1_is_in_U σ₀_in_ball
+          · by_contra a
+            have U : σ₀ = 1 := by exact ofReal_eq_one.mp a
+            rw [U] at σ₀_gt
+            linarith -/
+          sorry
+
+        have bdd := Set.forall_mem_image.mp bound_prop (boundary_in_U)
+
+
+        have Z :=
+          calc
+            ‖- ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ ‖ζ' boundary / ζ boundary‖ := by
+               have U := dlog_riemannZeta_bdd_on_vertical_lines_generalized boundary σ₀ t (boundary_geq_one) (by linarith)
+               exact U
+            _ = ‖- ζ' boundary / ζ boundary‖ := by simp only [Complex.norm_div, norm_neg]
+            _ = ‖(- ζ' boundary / ζ boundary - (boundary - 1)⁻¹) + (boundary - 1)⁻¹‖ := by simp only [Complex.norm_div, norm_neg, ofReal_inv, ofReal_sub, ofReal_one, sub_add_cancel]
+            _ ≤ ‖(- ζ' boundary / ζ boundary - (boundary - 1)⁻¹)‖ + ‖(boundary - 1)⁻¹‖ := by
+              have Z := norm_add_le (- ζ' boundary / ζ boundary - (boundary - 1)⁻¹) ((boundary - 1)⁻¹)
+              norm_cast at Z
+            _ ≤ const + ‖(boundary - 1)⁻¹‖ := by
+              have U := add_le_add_right bdd ‖(boundary - 1)⁻¹‖
+              ring_nf at U
+              ring_nf
+              norm_cast at U
+              norm_cast
+            _ ≤ const + (boundary - 1)⁻¹ := by
+              simp [norm_inv]
+              have pos : 0 ≤ boundary - 1 := by
+                linarith
+              simp [abs_of_nonneg pos]
+            _ = (boundary - 1)⁻¹ + const := by
+              rw [add_comm]
+
+        sorry /-bound by boundary and then use residue lemma-/
 
 
 -- Generalize this result to say that
