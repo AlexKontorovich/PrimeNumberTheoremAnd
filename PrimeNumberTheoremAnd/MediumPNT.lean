@@ -1509,7 +1509,23 @@ theorem triv_bound_zeta :
 
       let ⟨open_in_U, ⟨open_in_U_subs_U, open_in_U_is_open, one_in_open_U⟩⟩ := mem_nhds_iff.mp U_in_nhds
 
-      let ⟨ε, ⟨ε_pos, metric_ball_around_1_is_in_U⟩⟩ := EMetric.isOpen_iff.mp open_in_U_is_open (1 : ℂ) one_in_open_U
+      let ⟨ε₀, ⟨ε_pos, metric_ball_around_1_is_in_U⟩⟩ := EMetric.isOpen_iff.mp open_in_U_is_open (1 : ℂ) one_in_open_U
+
+      let ε := if ε₀ = ⊤ then ENNReal.ofReal 1 else ε₀
+      have O1 : ε ≠ ⊤ := by
+        by_cases h : ε₀ = ⊤
+        · unfold ε
+          simp [*]
+        · unfold ε
+          simp [*]
+
+      have O2 : ε ≠ 0 := by
+        by_cases h : ε₀ = ⊤
+        · unfold ε
+          simp [*]
+        · unfold ε
+          simp [*]
+          exact pos_iff_ne_zero.mp ε_pos
 
       let metric_ball_around_1 := EMetric.ball (1 : ℂ) ε
       let ε_div_two := ε / 2
@@ -1526,10 +1542,10 @@ theorem triv_bound_zeta :
       intro σ₀
       intro t
       intro σ₀_gt
+
       -- Pick a neighborhood, if in neighborhood then we are good
       -- If outside of the neighborhood then use that ζ' / ζ is monotonic
       -- and take the bound to be the edge but this will require some more work
-
 
       by_cases h : σ₀ ≤ boundary
       · have σ₀_in_ball : (↑σ₀ : ℂ) ∈ metric_ball_around_1 := by
@@ -1541,16 +1557,16 @@ theorem triv_bound_zeta :
           have U := dist_eq_norm (↑σ₀) (↑1 : ℂ)
           rw [U]
           norm_cast
-          have U : 0 ≤ σ₀ - 1 := by sorry
-          have U1 : ‖σ₀ - 1‖ = σ₀ - 1 := by sorry
-          have U2 : ε ≠ ⊤ := by sorry --apply?
+          have U : 0 ≤ σ₀ - 1 := by linarith
+          have U1 : ‖σ₀ - 1‖ = σ₀ - 1 := by exact norm_of_nonneg U
+          have U2 : ε ≠ ⊤ := by exact O1
           have U3 : 0 ≤ ε := by exact zero_le ε
           simp [Real.norm_of_nonneg U]
           simp [ENNReal.ofReal_lt_iff_lt_toReal U U2]
           have U4 : ENNReal.ofReal 1 ≠ ⊤ := by exact ENNReal.ofReal_ne_top
           have Z0 : ε_div_two.toReal < ε.toReal := by
             have T1 : ε ≠ ⊤ := by exact U2
-            have T2 : ε ≠ 0 := by exact Ne.symm (ne_of_lt ε_pos)
+            have T2 : ε ≠ 0 := by exact O2
             have T3 : ε_div_two < ε := by
               refine ENNReal.half_lt_self ?_ U2
               exact T2
