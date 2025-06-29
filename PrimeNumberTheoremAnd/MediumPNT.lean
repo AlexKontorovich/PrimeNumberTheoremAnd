@@ -933,7 +933,9 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
 
   clear_value C
 
-  have Cpos : 0 < C := by sorry
+  have Cpos : 0 < C := by
+    rw [C_eq]
+    positivity
 
   refine ⟨C, Cpos, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
   unfold ChebyshevPsi
