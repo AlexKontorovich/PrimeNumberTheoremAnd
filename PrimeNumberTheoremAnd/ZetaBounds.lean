@@ -3631,10 +3631,14 @@ lemma ZetaLowerBnd :
     use (hC₁ ⟨lt_add_of_pos_right (1) (by bound[hA.1]),add_le_of_le_sub_left ((div_le_iff₀ (by bound)).2 (hA.2.trans (?_)))⟩ t L).trans' ?_
     · norm_num only[one_mul, (one_le_pow₀ ((Real.lt_log_iff_exp_lt _).2 _).le).trans',L.trans',Real.exp_one_lt_d9.trans]
       exact (mod_cast one_half_lt_one.le.trans (le_of_lt (one_lt_pow₀.comp (Real.lt_log_iff_exp_lt (by(((positivity))))).mpr (by(linear_combination L +.exp_one_lt_d9)) (by decide))))
-    · bound [hA.1, Real.log_lt_log three_pos L, Real.lt_log_one_add_of_pos two_pos]
-      · linear_combination L
-      -- · linear_combination L
-      · exact (mod_cast (Real.rpow_lt_rpow_of_exponent_lt (by bound) ( show 1/4<4by bound)).le)
+    · simp_all only [gt_iff_lt, mem_Ioc, lt_inf_iff,
+        div_pos_iff_of_pos_left, Nat.ofNat_pos, mul_pos_iff_of_pos_left, pow_pos, and_self, inf_le_iff, true_or,
+        sub_pos, mem_Ico, and_true, ofReal_add, ofReal_one, ofReal_div, ge_iff_le, le_add_iff_nonneg_right, neg_mul,
+        neg_le_neg_iff, add_sub_cancel_left, σ', A, C]
+      gcongr
+      have :  Real.log |t| ^ ((1 : ℝ) / 4) ≤ Real.log |t| ^ (4 : ℝ) :=
+        Real.rpow_le_rpow_of_exponent_le one_leLogT (by norm_num)
+      exact_mod_cast this
 
   have left' : ‖ζ (σ' + t * I)‖ ≥ C₁ * A ^ ((3:ℝ) /4) / Real.log |t| ^ 7 := by
     contrapose! hC₁
