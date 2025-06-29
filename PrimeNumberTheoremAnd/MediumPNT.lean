@@ -1516,7 +1516,8 @@ theorem triv_bound_zeta :
 
       let ⟨open_in_U, ⟨open_in_U_subs_U, open_in_U_is_open, one_in_open_U⟩⟩ := mem_nhds_iff.mp U_in_nhds
 
-      let ⟨ε₀, ⟨ε_pos, metric_ball_around_1_is_in_U⟩⟩ := EMetric.isOpen_iff.mp open_in_U_is_open (1 : ℂ) one_in_open_U
+      let ⟨ε₀, ⟨ε_pos, metric_ball_around_1_is_in_U'⟩⟩ := EMetric.isOpen_iff.mp open_in_U_is_open (1 : ℂ) one_in_open_U
+
 
       let ε := if ε₀ = ⊤ then ENNReal.ofReal 1 else ε₀
       have O1 : ε ≠ ⊤ := by
@@ -1525,6 +1526,17 @@ theorem triv_bound_zeta :
           simp [*]
         · unfold ε
           simp [*]
+
+      have metric_ball_around_1_is_in_U :
+        EMetric.ball (1 : ℂ) ε ⊆ U := by
+          by_cases h : ε₀ = ⊤
+          · unfold ε
+            simp [*]
+            _
+          · unfold ε
+            simp [h] at ε
+            simp [h]
+            exact subset_trans metric_ball_around_1_is_in_U' open_in_U_subs_U
 
       have O2 : ε ≠ 0 := by
         by_cases h : ε₀ = ⊤
@@ -1591,7 +1603,16 @@ theorem triv_bound_zeta :
 
           exact Z
 
-        have σ₀_in_U: (↑σ₀ : ℂ) ∈ (U \ {1}) := by sorry
+        have σ₀_in_U: (↑σ₀ : ℂ) ∈ (U \ {1}) := by
+          refine mem_diff_singleton.mpr ?_
+          constructor
+          · unfold metric_ball_around_1 at σ₀_in_ball
+            exact metric_ball_around_1_is_in_U σ₀_in_ball
+          · by_contra a
+            have U : σ₀ = 1 := by exact ofReal_eq_one.mp a
+            rw [U] at σ₀_gt
+            linarith
+
         have bdd := Set.forall_mem_image.mp bound_prop (σ₀_in_U)
         simp [*] at bdd
         have Z :=
