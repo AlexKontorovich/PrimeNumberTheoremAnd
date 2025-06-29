@@ -1525,7 +1525,10 @@ theorem triv_bound_zeta :
           by_cases h : ε₀ = ⊤
           · unfold ε
             simp [*]
-            _
+            have T : EMetric.ball (1 : ℂ) 1 ⊆ EMetric.ball 1 ε₀ := by
+              simp [*]
+            exact subset_trans (subset_trans T metric_ball_around_1_is_in_U') open_in_U_subs_U
+
           · unfold ε
             simp [h] at ε
             simp [h]
