@@ -1509,18 +1509,8 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
 
 
 theorem triv_bound_zeta :
-  ∃C > 0, ∀(σ₀ t : ℝ), 1 < σ₀ → ‖- ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ (σ₀ - 1)⁻¹ + C
+  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ → ‖- ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ (σ₀ - 1)⁻¹ + C
   := by
-      let const : ℝ := 10
-      have const_pos : const > 0 := by sorry
-      use const
-      use const_pos
-      intro σ₀
-      intro t
-      intro σ₀_gt
-      -- Pick a neighborhood, if in neighborhood then we are good
-      -- If outside of the neighborhood then use that ζ' / ζ is monotonic
-      -- and take the bound to be the edge but this will require some more work
 
       let ⟨U, ⟨U_in_nhds, zeta_residue_on_U⟩⟩ := riemannZetaLogDerivResidue
 
@@ -1532,11 +1522,60 @@ theorem triv_bound_zeta :
       let ε_div_two := ε / 2
       let boundary := ENNReal.toReal (1 + ε_div_two)
 
-      by_cases h : σ₀ < boundary
-      · have σ₀_in_ball : (↑σ₀ : ℂ) ∈ metric_ball_around_1 := by sorry
-        have σ₀_in_U: (↑σ₀ : ℂ) ∈ (U \ {1}) := by sorry
-        let ⟨bound, ⟨bound_pos, bound_prop⟩⟩ :=
+      let ⟨bound, ⟨bound_pos, bound_prop⟩⟩ :=
           BddAbove.exists_ge zeta_residue_on_U 0
+
+      let const : ℝ := bound
+      have const_pos : const ≥ 0 := by
+        linarith
+      use const
+      use const_pos
+      intro σ₀
+      intro t
+      intro σ₀_gt
+      -- Pick a neighborhood, if in neighborhood then we are good
+      -- If outside of the neighborhood then use that ζ' / ζ is monotonic
+      -- and take the bound to be the edge but this will require some more work
+
+
+      by_cases h : σ₀ ≤ boundary
+      · have σ₀_in_ball : (↑σ₀ : ℂ) ∈ metric_ball_around_1 := by
+          unfold metric_ball_around_1
+          unfold EMetric.ball
+          simp [*]
+          have Z := edist_dist (↑σ₀) (↑1 : ℂ)
+          rw [Z]
+          have U := dist_eq_norm (↑σ₀) (↑1 : ℂ)
+          rw [U]
+          norm_cast
+          have U : 0 ≤ σ₀ - 1 := by sorry
+          have U1 : ‖σ₀ - 1‖ = σ₀ - 1 := by sorry
+          have U2 : ε ≠ ⊤ := by sorry --apply?
+          have U3 : 0 ≤ ε := by exact zero_le ε
+          simp [Real.norm_of_nonneg U]
+          simp [ENNReal.ofReal_lt_iff_lt_toReal U U2]
+          have U4 : ENNReal.ofReal 1 ≠ ⊤ := by exact ENNReal.ofReal_ne_top
+          have Z0 : ε_div_two.toReal < ε.toReal := by
+            have T1 : ε ≠ ⊤ := by exact U2
+            have T2 : ε ≠ 0 := by exact Ne.symm (ne_of_lt ε_pos)
+            have T3 : ε_div_two < ε := by
+              refine ENNReal.half_lt_self ?_ U2
+              exact T2
+
+            exact ENNReal.toReal_strict_mono T1 T3
+
+          have Z := by
+            calc
+              σ₀ - 1 ≤ boundary - 1 := by linarith
+              _ = ENNReal.toReal (1 + ε_div_two) - 1 := rfl
+              _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp [ENNReal.toReal_ofReal]
+              _ ≤ ENNReal.toReal (1 + ε_div_two - ENNReal.ofReal 1) := ENNReal.le_toReal_sub U4
+              _ = ENNReal.toReal (ε_div_two) := by simp only [ENNReal.ofReal_one, ENNReal.addLECancellable_iff_ne, ne_eq, ENNReal.one_ne_top, not_false_eq_true, AddLECancellable.add_tsub_cancel_left]
+              _ < ε.toReal := Z0
+
+          exact Z
+
+        have σ₀_in_U: (↑σ₀ : ℂ) ∈ (U \ {1}) := by sorry
         have bdd := Set.forall_mem_image.mp bound_prop (σ₀_in_U)
         simp [*] at bdd
         have Z :=
@@ -1549,28 +1588,21 @@ theorem triv_bound_zeta :
             _ ≤ ‖(- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹)‖ + ‖(σ₀ - 1)⁻¹‖ := by
               have Z := norm_add_le (- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹) ((σ₀ - 1)⁻¹)
               norm_cast at Z
-            _ ≤ bound + ‖(σ₀ - 1)⁻¹‖ := by
+            _ ≤ const + ‖(σ₀ - 1)⁻¹‖ := by
               have U := add_le_add_right bdd ‖(σ₀ - 1)⁻¹‖
               ring_nf at U
               ring_nf
               norm_cast at U
               norm_cast
-            _ ≤ bound + (σ₀ - 1)⁻¹ := by
+            _ ≤ const + (σ₀ - 1)⁻¹ := by
               simp [norm_inv]
               have pos : 0 ≤ σ₀ - 1 := by
                 linarith
               simp [abs_of_nonneg pos]
-            _ = (σ₀ - 1)⁻¹ + bound := by
+            _ = (σ₀ - 1)⁻¹ + const := by
               rw [add_comm]
 
         exact Z
-
---          Set.mem_image.mp
---            (Norm.norm ∘ (ζ - fun s ↦ (s - 1)⁻¹))
---            (U \ {1 : ℂ})
---            (↑σ₀ : ℂ)
---            (bound_prop (↑σ₀))
---        _
 
       · sorry /-bound by boundary and then use residue lemma-/
 
