@@ -1186,6 +1186,14 @@ theorem cast_pow_eq (n : ℕ) (σ₀ : ℝ):
     have endit := Complex.ofReal_cpow U σ₀
     exact endit
 
+theorem summable_complex_then_summable_real_part (f : ℕ → ℂ) :
+  Summable f → Summable (fun n ↦ (f n).re) := by
+    intro ⟨s, hs⟩
+    use s.re
+    have h_re : HasSum (fun n => ((f n : ℂ)).re) s.re :=
+      by exact hasSum_re hs
+    convert h_re using 1
+
 theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
   ∀(σ₀ σ₁ : ℝ), ∀(t : ℝ), 1 < σ₀ → σ₀ ≤ σ₁ →
     ‖(- ζ' (σ₁ + t * I) / ζ (σ₁ + t * I))‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
