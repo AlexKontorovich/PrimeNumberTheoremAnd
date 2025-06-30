@@ -378,21 +378,13 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     simp only [Nat.ceil_pos, n₀]
     subst C_eq
     simp_all only [mem_Ioo, and_imp, ge_iff_le, implies_true, mul_pos_iff_of_pos_left, sub_pos, n₀]
-    rw[← mul_one 1]
-    apply mul_lt_mul
-    exact c₁_lt
-    exact le_of_lt ε_lt_one
-    exact ε_pos
-    linarith
+    exact mul_lt_one_of_nonneg_of_lt_one_left c₁_pos.le c₁_lt ε_lt_one.le
 
   have n₀_inside_le_X : X * (1 - c₁ * ε) ≤ X := by
     nth_rewrite 2 [← mul_one X]
-    apply mul_le_mul_of_nonneg
-    rfl
-    nth_rewrite 2 [← sub_zero 1]
-    apply sub_le_sub
-    rfl
-    repeat positivity
+    apply mul_le_mul_of_nonneg_left _ X_pos.le
+    apply sub_le_self
+    positivity
 
   have n₀_le : n₀ ≤ X * ((1 - c₁ * ε)) + 1 := by
     simp only [n₀]
@@ -410,37 +402,18 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
 
   have sumΛn₀ (n₀ : ℕ) : Summable (fun n ↦ Λ (n + n₀) * F ((n + n₀) / X)) := by exact_mod_cast sumΛ.comp_injective fun Q=>by valid
 
-  have : ∑' (n : ℕ), Λ n * F (n / X) =
-    (∑ n ∈ Finset.range (n₀), Λ n * F (n / X)) +
-    (∑' (n : ℕ), Λ (n + n₀ : ) * F ((n + n₀ : ) / X)) := by
-    rw[← Summable.sum_add_tsum_nat_add' (k := n₀)]
-    norm_num[‹_›]
-
-  rw [this]
-  clear this
+  rw[← Summable.sum_add_tsum_nat_add' (k := n₀) (mod_cast sumΛn₀ n₀)]
 
   let n₁ := ⌊X * (1 + c₂ * ε)⌋₊
 
   have n₁_pos : 0 < n₁ := by
       dsimp only [n₁]
       apply Nat.le_floor
-      rw[Nat.succ_eq_add_one, zero_add, ← one_mul 1, Nat.cast_mul]
-      apply le_of_lt
-      apply mul_lt_mul
+      rw[Nat.succ_eq_add_one, zero_add]
       norm_cast
-      linarith
-      rw[← add_zero 1, Nat.cast_add]
-      apply add_le_add
-      rw[Nat.cast_le_one]
-      rw[← mul_zero 0, Nat.cast_mul]
-      apply mul_le_mul
-      apply le_of_lt
-      exact_mod_cast c₂_pos
-      exact_mod_cast le_of_lt ε_pos
-      exact Nat.cast_nonneg' 0
-      exact_mod_cast le_of_lt c₂_pos
-      rw[Nat.cast_pos]
-      repeat positivity
+      apply one_le_mul_of_one_le_of_one_le (by linarith)
+      apply le_add_of_nonneg_right
+      positivity
 
   have n₁_ge : X * (1 + c₂ * ε) - 1 ≤ n₁ := by
     simp only [tsub_le_iff_right, n₁]
@@ -451,22 +424,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     exact Nat.floor_le (by bound)
 
   have n₁_ge_n₀ : n₀ ≤ n₁ := by
-    have : X * (1 - c₁ * ε) + 1 ≤ X * (1 + c₂ * ε) - 1 := by
-      nth_rewrite 2 [sub_eq_add_neg]
-      rw[← add_le_add_iff_right 1]
-      ring_nf
-      rw[← add_le_add_iff_right (X * ε * c₁)]
-      ring_nf
-      rw[add_comm, add_assoc, add_le_add_iff_left]
-      have : (2 : ℝ) = 1 + 1 := by ring
-      rw[this]
-      apply add_le_add
-      rw[mul_assoc]
-      nth_rewrite 2 [mul_comm]
-      rw[← mul_assoc]
-      exact X_bound_1
-      exact X_bound_2
-    exact_mod_cast le_implies_le_of_le_of_le n₀_le n₁_ge this
+    exact_mod_cast le_implies_le_of_le_of_le n₀_le n₁_ge (by linarith)
 
   have n₁_sub_n₀ : (n₁ : ℝ) - n₀ ≤ X * ε * (c₂ + c₁) := by
     calc
@@ -511,18 +469,17 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
       rw[this]
       exact Summable.tsum_eq_zero_add (sumΛn₀ n₁)
     rw[this]
-    have : (∑' (n : ℕ), Λ (n + 1 + n₁) * F (↑(n + 1 + n₁) / X)) = 0 := by
-      convert tsum_zero with n
-      have : n₁ ≤ n + (n₁) := by exact Nat.le_add_left (n₁) n
-      convert mul_zero _
-      convert smoothIs0 (n + 1 + n₁) ?_
-      rw[← mul_le_mul_right X_pos]
-      have : ↑(n + 1 + n₁) / X * X = ↑(n + 1 + n₁) := by field_simp
-      rw[this]
-      have : (1 + c₂ * ε) * X = 1 + (X * (1 + c₂ * ε) - 1) := by ring
-      rw[this, Nat.cast_add, Nat.cast_add]
-      exact add_le_add (by bound) n₁_ge
-    rw[this, add_zero]
+    apply add_eq_left.mpr
+    convert tsum_zero with n
+    have : n₁ ≤ n + (n₁) := by exact Nat.le_add_left (n₁) n
+    convert mul_zero _
+    convert smoothIs0 (n + 1 + n₁) ?_
+    rw[← mul_le_mul_right X_pos]
+    have : ↑(n + 1 + n₁) / X * X = ↑(n + 1 + n₁) := by field_simp
+    rw[this]
+    have : (1 + c₂ * ε) * X = 1 + (X * (1 + c₂ * ε) - 1) := by ring
+    rw[this, Nat.cast_add, Nat.cast_add]
+    exact add_le_add (by bound) n₁_ge
 
   rw [this]
   clear this
@@ -643,9 +600,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     apply Finset.sum_le_sum
     intro n hn
     rw [← mul_one (Real.log (X * (1 + c₂ * ε)))]
-    apply mul_le_mul
-    apply vonBnd1
-    exact hn
+    apply mul_le_mul (vonBnd1 _ hn) _ (norm_nonneg _) (log_nonneg (by bound))
     rw[Real.norm_of_nonneg, ← Nat.cast_add]
     dsimp only [F]
     apply smooth1BddAbove
@@ -654,16 +609,6 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     dsimp only [F]
     apply smooth1BddBelow
     bound
-    rw[Real.norm_of_nonneg, ← Nat.cast_add]
-    dsimp only [F]
-    apply smooth1BddBelow
-    bound
-    rw[← Nat.cast_add]
-    dsimp only [F]
-    apply smooth1BddBelow
-    bound
-    rw[← Real.log_one]
-    exact Real.log_le_log (by positivity) (by bound)
 
   have bnd2 :
     ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ ≤ (⌊X + 1⌋₊ - n₀) * Real.log (X + 1) := by
@@ -684,72 +629,53 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
         rw[← Nat.cast_sub, Nat.cast_lt]
         exact hn
         simp only [Nat.ceil_le, n₀, F]
-        exact Preorder.le_trans (X * (1 - c₁ * ε)) X (↑⌊X + 1⌋₊) n₀_inside_le_X X_le_floor_add_one
+        exact le_trans n₀_inside_le_X X_le_floor_add_one
       have : ↑⌊X + 1⌋₊ - ↑n₀ ≤ X + 1 - ↑n₀ := by
-        apply sub_le_sub
-        exact floor_X_add_one_le_self
-        rfl
+        apply sub_le_sub_right floor_X_add_one_le_self
       exact le_of_lt (gt_of_ge_of_gt this temp)
     have inter1: ‖ Λ (n + n₀)‖ ≤ Real.log (↑n + ↑n₀) := by
       rw[Real.norm_of_nonneg, ← Nat.cast_add]
       apply ArithmeticFunction.vonMangoldt_le_log
       apply ArithmeticFunction.vonMangoldt_nonneg
-    have inter2: Real.log (↑n + ↑n₀) ≤ Real.log (X + 1) := by exact_mod_cast Real.log_le_log (by positivity) (n_add_n0_le_X_add_one)
-    exact Preorder.le_trans ‖Λ (n + n₀)‖ (Real.log (↑n + ↑n₀)) (Real.log (X + 1)) inter1 inter2
+    apply le_trans inter1
+    exact_mod_cast Real.log_le_log (by positivity) (n_add_n0_le_X_add_one)
 
   have largeSumBound:= add_le_add bnd1 bnd2
 
   clear vonBnd1 bnd1 bnd2
 
   have inter1 : Real.log (X * (1 + c₂ * ε)) ≤ Real.log (3 * X) := by
-    apply Real.log_le_log
-    positivity
+    apply Real.log_le_log (by positivity)
     have const_le_2: 1 + c₂ * ε ≤ 3 := by
       have : (3 : ℝ) = 1 + 2 := by ring
       rw[this]
-      apply add_le_add
-      rfl
+      apply add_le_add_left
       rw[← mul_one 2]
       exact mul_le_mul (by linarith) (by linarith) (by positivity) (by positivity)
     rw[mul_comm]
     exact mul_le_mul const_le_2 (by rfl) (by positivity) (by positivity)
 
   have inter2 : (↑n₁ - ↑n₀) * Real.log (X * (1 + c₂ * ε)) ≤ (X * ε * (c₂ + c₁)) * (Real.log (X) + Real.log (3)) := by
-    apply mul_le_mul
-    exact n₁_sub_n₀
-    rw[← Real.log_mul]
+    apply mul_le_mul n₁_sub_n₀ _ (log_nonneg (by linarith)) (by positivity)
+    rw[← Real.log_mul (by positivity) (by positivity)]
     nth_rewrite 3 [mul_comm]
     exact inter1
-    repeat positivity
-    rw[← Real.log_one]
-    exact Real.log_le_log (by positivity) (by bound)
-    positivity
 
   have inter3 : (X * ε * (c₂ + c₁)) * (Real.log (X) + Real.log (3)) ≤ 2 * (X * ε * (c₂ + c₁)) * (Real.log (X)) := by
     nth_rewrite 3 [mul_assoc]
     rw[two_mul, mul_add]
-    apply add_le_add
-    rfl
-    apply mul_le_mul
-    rfl
+    apply add_le_add_left
+    apply mul_le_mul_of_nonneg_left _ (by positivity)
     exact Real.log_le_log (by positivity) (by linarith)
-    rw[← Real.log_one]
-    exact Real.log_le_log (by positivity) (by linarith)
-    positivity
 
   have inter4 : (↑n₁ - ↑n₀) * Real.log (X * (1 + c₂ * ε)) ≤ 2 * (X * ε * (c₁ + c₂)) * (Real.log (X)) := by
     nth_rewrite 2 [add_comm]
-    exact
-      Preorder.le_trans ((↑n₁ - ↑n₀) * Real.log (X * (1 + c₂ * ε)))
-        (X * ε * (c₂ + c₁) * (Real.log X + Real.log 3)) (2 * (X * ε * (c₂ + c₁)) * Real.log X)
-        inter2 inter3
+    exact le_trans inter2 inter3
 
   clear inter2 inter3
 
-  have inter5: Real.log (X + 1) ≤ Real.log (3 * X) := by exact Real.log_le_log (by positivity) (by linarith)
-
   have inter6 : (⌊X + 1⌋₊ - n₀) * Real.log (X + 1) ≤ 2 * (X * ε * c₁) * (Real.log (X) + Real.log (3)) := by
-    apply mul_le_mul
+    apply mul_le_mul _ _ (log_nonneg (by linarith)) (by positivity)
     have : 2 * (X * ε * c₁) = (X * (1 + ε * c₁)) - (X * (1 - ε * c₁)) := by ring
     rw[this]
     apply sub_le_sub
@@ -757,15 +683,11 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
       ring_nf
       rw[add_comm, add_le_add_iff_left]
       exact X_bound_1
-    exact Preorder.le_trans (↑⌊X + 1⌋₊) (X + 1) (X * (1 + ε * c₁)) floor_X_add_one_le_self this
+    exact le_trans floor_X_add_one_le_self this
     nth_rewrite 2 [mul_comm]
     exact n₀_gt
-    rw[← Real.log_mul, mul_comm]
-    exact inter5
-    repeat positivity
-    rw[← Real.log_one]
+    rw[← Real.log_mul (by positivity) (by norm_num), mul_comm]
     exact Real.log_le_log (by positivity) (by linarith)
-    positivity
 
   have inter7: 2 * (X * ε * c₁) * (Real.log (X) + Real.log (3)) ≤ 4 * (X * ε * c₁) * Real.log (X) := by
     have : (4 : ℝ) = 2 + 2 := by ring
@@ -776,125 +698,59 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     nth_rewrite 1 [mul_assoc]
     rfl
     nth_rewrite 1 [mul_assoc]
-    apply mul_le_mul
-    rfl
-    apply mul_le_mul
-    rfl
-    exact Real.log_le_log (by positivity) (by linarith)
-    rw[← Real.log_one]
-    exact Real.log_le_log (by positivity) (by linarith)
-    repeat positivity
-
-  have inter8: (⌊X + 1⌋₊ - n₀) * Real.log (X + 1) ≤ 4 * (X * ε * c₁) * Real.log (X) := by
-    exact
-      Preorder.le_trans ((↑⌊X + 1⌋₊ - ↑n₀) * Real.log (X + 1))
-        (2 * (X * ε * c₁) * (Real.log X + Real.log 3)) (4 * (X * ε * c₁) * Real.log X) inter6 inter7
-
-  clear inter5 inter6 inter7
+    apply mul_le_mul_of_nonneg_left _ (by norm_num)
+    apply mul_le_mul_of_nonneg_left <| Real.log_le_log (by positivity) (by linarith)
+    positivity
 
   have inter9: (↑n₁ - ↑n₀) * Real.log (X * (1 + c₂ * ε)) + (↑⌊X + 1⌋₊ - ↑n₀) * Real.log (X + 1) ≤
     2 * (X * ε * (3 * c₁ + c₂)) * Real.log X := by
     have : 2 * (X * ε * (3 * c₁ + c₂)) = 2 * (X * ε * (c₁ + c₂)) + 4 * (X * ε * c₁) := by ring
     rw[this, add_mul]
-    exact add_le_add inter4 inter8
+    exact add_le_add inter4 <| le_trans inter6 inter7
 
   have largeSumBound2 : ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ ≤
     2 * (X * ε * (3 * c₁ + c₂)) * Real.log X := by
-    exact
-      Preorder.le_trans (∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖)
-        ((↑n₁ - ↑n₀) * Real.log (X * (1 + c₂ * ε)) + (↑⌊X + 1⌋₊ - ↑n₀) * Real.log (X + 1))
-        (2 * (X * ε * (3 * c₁ + c₂)) * Real.log X) largeSumBound inter9
+    exact le_trans largeSumBound inter9
 
-  clear largeSumBound inter4 inter8 inter9
+  clear largeSumBound inter4 inter9
 
   have inter10 : ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ Real.log (X * (1 + c₂ * ε)) := by
     rw[← mul_one (Real.log (X * (1 + c₂ * ε)))]
-    apply mul_le_mul
+    apply mul_le_mul _ _ (norm_nonneg _) (log_nonneg (by bound))
+    rw[Real.norm_of_nonneg ArithmeticFunction.vonMangoldt_nonneg]
+    exact le_trans ArithmeticFunction.vonMangoldt_le_log <| Real.log_le_log (mod_cast n₁_pos) n₁_le
     rw[Real.norm_of_nonneg]
-    have temp : Λ n₁ ≤ Real.log (n₁) := by exact ArithmeticFunction.vonMangoldt_le_log
-    have : Real.log (n₁) ≤ Real.log (X * (1 + c₂ * ε)) := by
-      apply Real.log_le_log
-      exact_mod_cast n₁_pos
-      exact n₁_le
-    exact Preorder.le_trans (Λ n₁) (Real.log ↑n₁) (Real.log (X * (1 + c₂ * ε))) temp this
-    exact ArithmeticFunction.vonMangoldt_nonneg
-    rw[Real.norm_of_nonneg]
-    apply smooth1BddAbove
-    exact n₁_pos
-    apply smooth1BddBelow
-    exact n₁_pos
-    rw[Real.norm_of_nonneg]
-    apply smooth1BddBelow
-    exact n₁_pos
-    apply smooth1BddBelow
-    exact n₁_pos
-    rw[← Real.log_one]
-    exact Real.log_le_log (by positivity) (by bound)
-
-  have inter11 : ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ Real.log (3 * X) := by
-    exact
-      Preorder.le_trans (‖Λ n₁‖ * ‖F (↑n₁ / X)‖) (Real.log (X * (1 + c₂ * ε))) (Real.log (3 * X))
-        inter10 inter1
-
-  clear inter1 inter10
+    apply smooth1BddAbove _ n₁_pos
+    apply smooth1BddBelow _ n₁_pos
 
   have largeSumBound3 : ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ +
-    ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ 2 * (X * ε * (3 * c₁ + c₂)) * Real.log X + Real.log (3 * X) := by exact add_le_add largeSumBound2 inter11
-
-  clear largeSumBound2 inter11
+    ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ 2 * (X * ε * (3 * c₁ + c₂)) * Real.log X + Real.log (3 * X) := by exact add_le_add largeSumBound2 (le_trans inter10 inter1)
+  clear inter1 inter10 largeSumBound2
 
   have largeSumBound4 : ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ +
     ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ 2 * (X * ε * (3 * c₁ + c₂)) * (2 * Real.log X + Real.log (3)) := by
-    have : 2 * (X * ε * (3 * c₁ + c₂)) * Real.log X + Real.log (3 * X) ≤
-      2 * (X * ε * (3 * c₁ + c₂)) * (Real.log X + Real.log (3 * X)) := by
-      nth_rewrite 2 [mul_add]
-      apply add_le_add
-      rfl
-      nth_rewrite 1 [← one_mul (Real.log (3 * X))]
-      apply mul_le_mul
-      ring_nf
-      rw[← zero_add 1]
-      exact add_le_add (by positivity) (by bound)
-      rfl
-      rw[← Real.log_one]
-      exact Real.log_le_log (by positivity) (by linarith)
-      positivity
     nth_rewrite 2 [two_mul, add_assoc]
-    rw [← Real.log_mul, mul_comm X 3]
-
-    exact
-      Preorder.le_trans
-        (∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ +
-            ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ +
-          ‖Λ n₁‖ * ‖F (↑n₁ / X)‖)
-        (2 * (X * ε * (3 * c₁ + c₂)) * Real.log X + Real.log (3 * X))
-        (2 * (X * ε * (3 * c₁ + c₂)) * (Real.log X + Real.log (3 * X))) largeSumBound3 this
-    repeat positivity
+    rw [← Real.log_mul (by positivity) (by positivity), mul_comm X 3]
+    apply le_trans largeSumBound3
+    nth_rewrite 2 [mul_add]
+    apply add_le_add_left
+    nth_rewrite 1 [← one_mul (Real.log (3 * X))]
+    apply mul_le_mul_of_nonneg_right _ (log_nonneg (by linarith))
+    linarith
 
   clear largeSumBound3
 
   have largeSumBoundFinal : ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ +
     ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ (6 * (X * ε * (3 * c₁ + c₂))) * Real.log (X) := by
-    have : 2 * (X * ε * (3 * c₁ + c₂)) * (2 * Real.log X + Real.log (3)) <= (6 * (X * ε * (3 * c₁ + c₂))) * Real.log (X) := by
-      rw[mul_add]
-      have : (6 : ℝ) = 4 + 2 := by ring
-      rw[this, add_mul, add_mul]
-      apply add_le_add
-      ring_nf
-      rfl
-      apply mul_le_mul
-      rfl
-      exact Real.log_le_log (by positivity) (by linarith)
-      rw[← Real.log_one]
-      exact Real.log_le_log (by positivity) (by linarith)
-      positivity
-    exact
-      Preorder.le_trans
-        (∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ +
-            ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ +
-          ‖Λ n₁‖ * ‖F (↑n₁ / X)‖)
-        (2 * (X * ε * (3 * c₁ + c₂)) * (2 * Real.log X + Real.log 3))
-        (6 * (X * ε * (3 * c₁ + c₂)) * Real.log X) largeSumBound4 this
+    apply le_trans largeSumBound4
+    rw[mul_add]
+    have : (6 : ℝ) = 4 + 2 := by ring
+    rw[this, add_mul, add_mul]
+    apply add_le_add
+    ring_nf
+    rfl
+    apply mul_le_mul_of_nonneg_left _ (by positivity)
+    exact Real.log_le_log (by positivity) (by linarith)
 
   clear largeSumBound4
 
@@ -906,7 +762,7 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
-    ∃ (C : ℝ), ∀ (X : ℝ) (_ : 3 < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1) (_ : 2 < X * ε),
+    ∃ C > 0, ∀ (X : ℝ) (_ : 3 < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1) (_ : 2 < X * ε),
     ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
   have vonManBnd (n : ℕ) : ArithmeticFunction.vonMangoldt n ≤ Real.log n :=
     ArithmeticFunction.vonMangoldt_le_log
@@ -933,7 +789,11 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
 
   clear_value C
 
-  refine ⟨C, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
+  have Cpos : 0 < C := by
+    rw [C_eq]
+    positivity
+
+  refine ⟨C, Cpos, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
   unfold ChebyshevPsi
 
   have X_gt_zero : (0 : ℝ) < X := by linarith
@@ -2186,7 +2046,7 @@ lemma BddAboveOnRect {g : ℂ → ℂ} {z w : ℂ} (holoOn : HolomorphicOn g (z.
   apply holoOn.continuousOn.norm
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 Use the compactness of the rectangle and the fact that holomorphic functions are continuous.
 \end{proof}
 %%-/
@@ -2781,11 +2641,88 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
 /-%%
 \begin{proof}\leanok
 \uses{SmoothedChebyshev, RectangleIntegral, ResidueMult, riemannZetaLogDerivResidue,
-SmoothedChebyshevPull1_aux_integrable, BddAboveOnRect,
+SmoothedChebyshevPull1_aux_integrable, BddAboveOnRect, BddAbove_to_IsBigO,
 I1, I2, I37, I8, I9}
 Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
+
+lemma interval_membership (r : ℝ)(a b: ℝ)(h1 : r ∈ Set.Icc (min a b) (max a b)) (h2 : a < b) :
+  a ≤ r ∧ r ≤ b := by
+  -- Since a < b, we have min(a,b) = a and max(a,b) = b
+  have min_eq : min a b = a := min_eq_left (le_of_lt h2)
+  have max_eq : max a b = b := max_eq_right (le_of_lt h2)
+  rw [min_eq, max_eq] at h1
+  rw [← @mem_Icc]
+  exact h1
+
+-- use intervalIntegral.integral_add_adjacent_intervals
+lemma verticalIntegral_split_three_finite {s a b e σ : ℝ} {f : ℂ → ℂ}
+    (hf : IntegrableOn (fun t : ℝ ↦ f (σ + t * I)) (Icc s e))
+    (hab: s < a ∧ a < b ∧ b < e):
+    VIntegral f σ s e =
+    VIntegral f σ s a +
+    VIntegral f σ a b +
+    VIntegral f σ b e := by
+  rw [VIntegral, VIntegral, VIntegral, VIntegral]
+  -- First establish integrability on each subinterval
+  have hf_sa : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume a e := by
+    obtain ⟨hsa, hab, hbe⟩ := hab
+    have sa_subset_sb : Icc s a ⊆ Icc s b := by
+      exact Icc_subset_Icc_right hab.le
+    sorry
+
+  have hf_ae : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume a e := by
+    obtain ⟨hsa, hab, hbe⟩ := hab
+    have sa_subset_sb : Icc a e ⊆ Icc s e := by
+      sorry
+      --exact Icc_subset_Icc_right hae.le -- we don't yet have hae.le
+    sorry
+
+  have hf_ab : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume a b := by
+    obtain ⟨hsa, hab, hbe⟩ := hab
+    have sa_subset_sb : Icc a b ⊆ Icc a e := by
+      exact Icc_subset_Icc_right hbe.le
+    sorry
+
+  have hf_be : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume b e := by
+    obtain ⟨hsa, hab, hbe⟩ := hab
+    have sa_subset_sb : Icc b e ⊆ Icc a e := by
+      exact Icc_subset_Icc_left hab.le
+    sorry
+
+  -- First split: s to e = (s to a) + (a to e)
+  have h1 : ∫ t in s..e, f (σ + t * I) =
+    ∫ t in s..a, f (σ + t * I) + ∫ t in a..e, f (σ + t * I) := by
+    sorry
+    --exact intervalIntegral.integral_add_adjacent_intervals hf_sa hf_ae
+
+  -- Second split: a to e = (a to b))+ (b to e)
+  have h2 : ∫ t in s..e, f (σ + t * I) =
+    ∫ t in s..a, f (σ + t * I) + ∫ t in a..e, f (σ + t * I) := by
+    sorry --exact intervalIntegral.integral_add_adjacent_intervals hf_ab hf_be
+
+  sorry
+
+lemma verticalIntegral_split_three_finite' {s a b e σ : ℝ} {f : ℂ → ℂ}
+    (hf : IntegrableOn (fun t : ℝ ↦ f (σ + t * I)) (Icc s e))
+    (hab: s < a ∧ a < b ∧ b < e):
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ s e) =
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ s a) +
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ a b) +
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ b e) := by
+  have : (1 : ℂ) / (2 * π * I) * (VIntegral f σ s a) +
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ a b) +
+    (1 : ℂ) / (2 * π * I) * (VIntegral f σ b e) = (1 : ℂ) / (2 * π * I) * ((VIntegral f σ s a) +
+    (VIntegral f σ a b) +
+    (VIntegral f σ b e)) := by ring
+  rw [this]
+  clear this
+  rw [← verticalIntegral_split_three_finite hf hab]
+
+theorem SmoothedChebyshevPull2_aux1 {T σ₁ : ℝ}
+  (holoOn : HolomorphicOn (ζ' / ζ) (Icc σ₁ 2 ×ℂ Icc (-T) T \ {1})) :
+  ContinuousOn (fun (t : ℝ) ↦ -ζ' (σ₁ + t * I) / ζ (σ₁ + t * I)) (Icc (-T) T) := sorry
 
 /-%%
 Next pull contours to another box.
@@ -2798,9 +2735,10 @@ I_3 - I_4 + I_5 + I_6 + I_7
 $$
 \end{lemma}
 %%-/
+
 theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1)
     (X : ℝ) (_ : 3 < X)
-    {T : ℝ} (T_pos : 0 < T) {σ₁ σ₂ : ℝ}
+    {T : ℝ} (T_pos : 3 < T) {σ₁ σ₂ : ℝ}
     (σ₂_pos : 0 < σ₂) (σ₁_lt_one : σ₁ < 1)
     (σ₂_lt_σ₁ : σ₂ < σ₁)
     (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₁ 2)×ℂ (Icc (-T) T) \ {1}))
@@ -2808,7 +2746,8 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       (Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1}))
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (diff_SmoothingF : ContDiff ℝ 1 SmoothingF) :
     I₃₇ SmoothingF ε T X σ₁ =
       I₃ SmoothingF ε T X σ₁ -
       I₄ SmoothingF ε X σ₁ σ₂ +
@@ -2816,12 +2755,171 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       I₆ SmoothingF ε X σ₁ σ₂ +
       I₇ SmoothingF ε T X σ₁ := by
   let z : ℂ := σ₂ - 3 * I
-  let w : ℂ := σ₂ + 3 * I
-  have sub : z.Rectangle w ⊆ Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1} := by sorry
-  have := HolomorphicOn.vanishesOnRectangle holoOn2 sub
-  sorry
+  let w : ℂ := σ₁ + 3 * I
+  have σ₁_pos : 0 < σ₁ := by linarith
+  -- Step (1)
+  -- Show that the Rectangle is in a given subset of holomorphicity
+  have sub : z.Rectangle w ⊆ Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1} := by
+    -- for every point x in the Rectangle
+    intro x hx
+    constructor
+    . -- x is in the locus of holomorphicity
+      simp only [Rectangle, uIcc] at hx
+      rw [Complex.mem_reProdIm] at hx ⊢
+      obtain ⟨hx_re, hx_im⟩ := hx
+      -- the real part of x is in the correct interval
+      have hzw_re : z.re < w.re := by
+        dsimp [z, w]
+        linarith
+      have x_re_bounds : z.re ≤ x.re ∧ x.re ≤ w.re := by
+        exact interval_membership x.re z.re w.re hx_re hzw_re
+      have x_re_in_Icc : x.re ∈ Icc σ₂ 2 := by
+        have ⟨h_left, h_right⟩ := x_re_bounds
+        have h_left' : σ₂ ≤ x.re := by
+          dsimp [z] at h_left
+          linarith
+        have h_right' : x.re ≤ 2 := by
+          apply le_trans h_right
+          dsimp [w]
+          linarith
+        exact ⟨h_left', h_right'⟩
+      -- the imaginary part of x is in the correct interval
+      have hzw_im : z.im < w.im := by
+        dsimp [z, w]
+        linarith
+      have x_im_bounds : z.im ≤ x.im ∧ x.im ≤ w.im := by
+        exact interval_membership x.im z.im w.im hx_im hzw_im
+      have x_im_in_Icc : x.im ∈ Icc (-3) 3 := by
+        have ⟨h_left, h_right⟩ := x_im_bounds
+        have h_left' : -3 ≤ x.im := by
+          dsimp [z] at h_left
+          linarith
+        have h_right' : x.im ≤ 3 := by
+          dsimp [w] at h_right
+          linarith
+        exact ⟨h_left', h_right'⟩
+      exact ⟨x_re_in_Icc, x_im_in_Icc⟩
+    -- x is not in {1} by contradiction
+    . simp only [mem_singleton_iff]
+      -- x has real part less than 1
+      have x_re_upper: x.re ≤ σ₁ := by
+        simp only [Rectangle, uIcc] at hx
+        rw [Complex.mem_reProdIm] at hx
+        obtain ⟨hx_re, _⟩ := hx
+        -- the real part of x is in the interval
+        have hzw_re : z.re < w.re := by
+          dsimp [z, w]
+          linarith
+        have x_re_bounds : z.re ≤ x.re ∧ x.re ≤ w.re := by
+          exact interval_membership x.re z.re w.re hx_re hzw_re
+        have x_re_upper' : x.re ≤ w.re := by exact x_re_bounds.2
+        dsimp [w] at x_re_upper'
+        linarith
+      -- by contracdiction
+      have h_x_ne_one : x ≠ 1 := by
+        intro h_eq
+        have h_re : x.re = 1 := by rw [h_eq, Complex.one_re]
+        have h1 : 1 ≤ σ₁ := by
+          rw [← h_re]
+          exact x_re_upper
+        linarith
+      exact h_x_ne_one
+  have zero_over_box := HolomorphicOn.vanishesOnRectangle holoOn2 sub
+  have splitting : I₃₇ SmoothingF ε T X σ₁ =
+    I₃ SmoothingF ε T X σ₁ + I₅ SmoothingF ε X σ₁ + I₇ SmoothingF ε T X σ₁ := by
+    unfold I₃₇ I₃ I₅ I₇
+    apply verticalIntegral_split_three_finite'
+    · apply ContinuousOn.integrableOn_Icc
+      unfold SmoothedChebyshevIntegrand
+      apply ContinuousOn.mul
+      · apply ContinuousOn.mul
+        · apply SmoothedChebyshevPull2_aux1 holoOn
+        · apply continuousOn_of_forall_continuousAt
+          intro t t_mem
+          -- have' := Smooth1ContinuousAt diff_SmoothingF SmoothingFnonneg
+          --    suppSmoothingF σ₁_pos ε_pos
+
+          sorry
+      · apply continuousOn_of_forall_continuousAt
+        intro t t_mem
+        apply ContinuousAt.comp
+        · refine continuousAt_const_cpow' ?_
+          intro h
+          have : σ₁ = 0 := by
+            have h_real : (↑σ₁ + ↑t * I).re = (0 : ℂ).re := by
+              rw [h]
+            simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+              sub_self, add_zero, zero_re, z, w] at h_real
+            exact h_real
+          linarith
+        · -- continuity -- failed
+          apply ContinuousAt.add
+          · exact continuousAt_const
+          · apply ContinuousAt.mul
+            · apply continuous_ofReal.continuousAt
+            · exact continuousAt_const
+    · refine ⟨by linarith, by linarith, by linarith⟩
+  calc I₃₇ SmoothingF ε T X σ₁ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (0 : ℂ) := by simp
+    _ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (RectangleIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z w) := by rw [← zero_over_box]
+    _ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re z.im
+    - HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re w.im
+    + VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
+    - VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by simp [RectangleIntegral]
+    _ = I₃₇ SmoothingF ε T X σ₁ - ((1 / (2 * π * I)) * HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re z.im
+    - (1 / (2 * π * I)) * HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re w.im
+    + (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
+    - (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by ring
+    _ = I₃₇ SmoothingF ε T X σ₁ - (I₄ SmoothingF ε X σ₁ σ₂
+    - (1 / (2 * π * I)) * HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re w.im
+    + (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
+    - (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by
+      simp only [one_div, mul_inv_rev, inv_I, neg_mul, HIntegral, sub_im, ofReal_im, mul_im,
+        re_ofNat, I_im, mul_one, im_ofNat, I_re, mul_zero, add_zero, zero_sub, ofReal_neg,
+        ofReal_ofNat, sub_re, ofReal_re, mul_re, sub_self, sub_zero, add_re, add_im, zero_add,
+        sub_neg_eq_add, I₄, sub_right_inj, add_left_inj, neg_inj, mul_eq_mul_left_iff, mul_eq_zero,
+        I_ne_zero, inv_eq_zero, ofReal_eq_zero, OfNat.ofNat_ne_zero, or_false, false_or, z, w]
+      left
+      rfl
+    _ = I₃₇ SmoothingF ε T X σ₁ - (I₄ SmoothingF ε X σ₁ σ₂
+    - I₆ SmoothingF ε X σ₁ σ₂
+    + (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
+    - (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by
+      simp only [one_div, mul_inv_rev, inv_I, neg_mul, HIntegral, add_im, ofReal_im, mul_im,
+        re_ofNat, I_im, mul_one, im_ofNat, I_re, mul_zero, add_zero, zero_add, ofReal_ofNat, sub_re,
+        ofReal_re, mul_re, sub_self, sub_zero, add_re, sub_neg_eq_add, sub_im, zero_sub, I₆, w, z]
+    _ = I₃₇ SmoothingF ε T X σ₁ - (I₄ SmoothingF ε X σ₁ σ₂
+    - I₆ SmoothingF ε X σ₁ σ₂
+    + I₅ SmoothingF ε X σ₁
+    - (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by
+      simp only [one_div, mul_inv_rev, inv_I, neg_mul, VIntegral, add_re, ofReal_re, mul_re,
+        re_ofNat, I_re, mul_zero, im_ofNat, I_im, mul_one, sub_self, add_zero, sub_im, ofReal_im,
+        mul_im, zero_sub, add_im, zero_add, smul_eq_mul, sub_re, sub_zero, sub_neg_eq_add, I₅,
+        neg_add_cancel_right, sub_right_inj, w, z]
+    _ = I₃₇ SmoothingF ε T X σ₁ - (I₄ SmoothingF ε X σ₁ σ₂
+    - I₆ SmoothingF ε X σ₁ σ₂
+    + I₅ SmoothingF ε X σ₁
+    - I₅ SmoothingF ε X σ₂) := by
+      simp only [I₅, one_div, mul_inv_rev, inv_I, neg_mul, VIntegral, sub_re, ofReal_re, mul_re,
+        re_ofNat, I_re, mul_zero, im_ofNat, I_im, mul_one, sub_self, sub_zero, sub_im, ofReal_im,
+        mul_im, add_zero, zero_sub, add_im, zero_add, smul_eq_mul, sub_neg_eq_add, z, w]
+    --- starting from now, we split the integral `I₃₇` into `I₃ σ₂ + I₅ σ₁ + I₇ σ₁` using `verticalIntegral_split_three_finite`
+    _ = I₃ SmoothingF ε T X σ₁
+    + I₅ SmoothingF ε X σ₁
+    + I₇ SmoothingF ε T X σ₁
+    - (I₄ SmoothingF ε X σ₁ σ₂
+    - I₆ SmoothingF ε X σ₁ σ₂
+    + I₅ SmoothingF ε X σ₁
+    - I₅ SmoothingF ε X σ₂) := by
+      rw [splitting]
+    _ = I₃ SmoothingF ε T X σ₁
+    - I₄ SmoothingF ε X σ₁ σ₂
+    + I₅ SmoothingF ε X σ₂
+    + I₆ SmoothingF ε X σ₁ σ₂
+    + I₇ SmoothingF ε T X σ₁ := by
+      ring
+
 /-%%
-\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, I3, I4, I5, I6, I7, I37}
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, I3, I4, I5, I6, I7, I37}\leanok
 Mimic the proof of Lemma \ref{SmoothedChebyshevPull1}.
 \end{proof}
 %%-/
@@ -3059,7 +3157,7 @@ theorem I9Bound :
   sorry
 
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I1, I9}
+\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I1, I9, IBound_aux1}
   Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{1}(\nu, \epsilon, X, T)\right| =
@@ -3115,7 +3213,7 @@ $$
 Same with $I_8$.
 \end{lemma}
 %%-/
-lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
+lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     {T : ℝ} (T_gt : 3 < T)
@@ -3125,6 +3223,113 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
     let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
     ‖I₂ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
+  let C' : ℝ := sorry
+  have : C' > 0 := by sorry
+  use ‖1/(2*π*I)‖ * (3 * C'), sorry -- by positivity
+  have ⟨A, Abd, C₂, C₂pos, ζbd⟩ := LogDerivZetaBndUniform
+  use A, Abd
+  intro SmoothingF X X_gt ε ε_pos ε_lt_one T T_gt suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF σ₁
+  have ⟨C₁, C₁pos, Mbd⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
+  clear SmoothingFnonneg suppSmoothingF mass_one ContDiffSmoothingF
+  have Xpos : 0 < X := lt_trans (by norm_num) X_gt
+  have Tpos : 0 < T := lt_trans (by norm_num) T_gt
+  unfold I₂
+  rw[norm_mul, mul_assoc (c := X), ← mul_div]
+  refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg _)
+  have interval_length_nonneg : σ₁ ≤ 1 + (Real.log T)⁻¹ := by
+    dsimp[σ₁]
+    rw[sub_le_iff_le_add]
+    nth_rw 1 [← add_zero 1]
+    rw[add_assoc]
+    apply add_le_add_left
+    refine Left.add_nonneg ?_ ?_
+    · rw[inv_nonneg, log_nonneg_iff Tpos]
+      exact le_trans (by norm_num) (le_of_lt T_gt)
+    · refine div_nonneg ?_ ?_
+      exact le_of_lt Abd.1
+      apply pow_nonneg
+      rw[log_nonneg_iff Xpos]
+      exact le_trans (by norm_num) (le_of_lt X_gt)
+  suffices ∀ σ ∈ Ioc σ₁ (1 + (Real.log T)⁻¹), ‖SmoothedChebyshevIntegrand SmoothingF ε T (↑σ - ↑X * I)‖ ≤ C' * X / (ε * T) by
+    calc
+      ‖∫ (σ : ℝ) in σ₁..1 + (Real.log T)⁻¹,
+          SmoothedChebyshevIntegrand SmoothingF ε T (↑σ - ↑X * I)‖ ≤
+          C' * X / (ε * T) * |1 + (Real.log T)⁻¹ - σ₁| := by
+        refine intervalIntegral.norm_integral_le_of_norm_le_const ?_
+        convert this using 3
+        apply uIoc_of_le
+        exact interval_length_nonneg
+      _ ≤ C' * X / (ε * T) * 3 := by
+        apply mul_le_mul_of_nonneg_left
+        rw[abs_of_nonneg (sub_nonneg.mpr interval_length_nonneg)]
+        dsimp[σ₁]
+        norm_num
+        suffices (Real.log T)⁻¹ + A / Real.log X ^ 9 ≤ 1 + 2 by
+          convert this
+          norm_num
+        refine add_le_add ?_ ?_
+        · rw[← inv_one]
+          apply inv_anti₀ zero_lt_one
+          rw[le_log_iff_exp_le]
+          exact le_of_lt (lt_trans (lt_trans exp_one_lt_d9 (by norm_num)) T_gt)
+          exact Tpos
+        · have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by
+            nth_rewrite 1 [← add_zero 1]
+            refine add_lt_add_of_le_of_lt ?_ ?_
+            rfl
+            rw[inv_pos, ← Real.log_one]
+            apply Real.log_lt_log
+            norm_num
+            linarith
+          have X_eq_lt_two : (1 + (Real.log X)⁻¹) < 2 := by
+            rw[← one_add_one_eq_two]
+            refine (Real.add_lt_add_iff_left 1).mpr ?_
+            refine inv_lt_one_of_one_lt₀ ?_
+            refine (lt_log_iff_exp_lt ?_).mpr ?_
+            positivity
+            have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
+            linarith
+          calc
+            A / Real.log X ^ 9 ≤ 1 / 2 / Real.log X ^ 9 := by
+              refine div_le_div_of_nonneg_right (Abd.2) ?_
+              apply pow_nonneg
+              rw[log_nonneg_iff Xpos]
+              exact le_trans (by norm_num) (le_of_lt X_gt)
+            _ ≤ 1 / 2 / 1 := by
+              refine div_le_div_of_nonneg_left (by norm_num) (by norm_num) ?_
+              apply one_le_pow₀
+              apply le_of_lt
+              refine (lt_log_iff_exp_lt ?_).mpr ?_
+              positivity
+              have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
+              linarith
+            _ ≤ 2 := by norm_num
+        positivity
+      _ = 3 * C' * X / (ε * T) := by ring
+  -- Now bound the integrand
+  intro σ hσ
+  unfold SmoothedChebyshevIntegrand
+  have : ‖ζ' (σ - X * I) / ζ (σ - X * I)‖ ≤ C₂ * (?C₃ * X) := by
+    by_cases hσ1 : σ < 1
+    · calc
+      ‖ζ' (σ - X * I) / ζ (σ - X * I)‖ = ‖ζ' (σ + (-X : ℝ) * I) / ζ (σ + (-X : ℝ) * I)‖ := by
+        push_cast; ring_nf
+      _ ≤ C₂ * Real.log X ^ 9 := by
+        apply ζbd σ X (-X)
+        · rw[abs_neg, abs_of_nonneg Xpos.le]
+          exact X_gt
+        · rw[abs_neg, abs_of_nonneg Xpos.le]
+        · exact ⟨hσ.1.le, hσ1⟩
+      _ ≤ C₂ * (?C₃ * X) := by
+        apply mul_le_mul_of_nonneg_left ?_ C₂pos.le
+        swap
+        -- Finish with a theorem such as isLittleO_log_rpow_rpow_atTop
+        -- to bound the growth of the log.
+        sorry
+        sorry
+    · -- If σ > 1, it should be easy
+      sorry
+  -- Then estimate the remaining factors.
   sorry
 
 lemma I8Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
@@ -3318,11 +3523,10 @@ theorem MediumPNT : ∃ c > 0,
   let X₀ : ℝ := sorry
   refine ⟨X₀, ?_⟩
   intro X X_ge_X₀
+  have X_gt_3 : 3 < X := by sorry
   let ε : ℝ := sorry
   have ε_pos : 0 < ε := sorry
   have ε_lt_one : ε < 1 := sorry
-  let T : ℝ := sorry
-  have T_gt_3 : 3 < T := sorry
   have ⟨ν, ContDiffν, ν_nonneg', ν_supp, ν_massOne'⟩ := SmoothExistence
   have ContDiff1ν : ContDiff ℝ 1 ν := by
     sorry
@@ -3332,20 +3536,47 @@ theorem MediumPNT : ∃ c > 0,
   have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by
     sorry
   let ψ_ε_of_X := SmoothedChebyshev ν ε X
-  have UnsmoothingError : ‖ψ X - ψ_ε_of_X‖ ≤ C * X * ε := by
-    obtain ⟨C_unsmoothing, hC⟩ := SmoothedChebyshevClose ContDiff1ν
+  have : ∃ C > 0, ‖ψ X - ψ_ε_of_X‖ ≤ C * X * ε * Real.log X := by
+    obtain ⟨C, Cpos, hC⟩ := SmoothedChebyshevClose ContDiff1ν
       ν_supp ν_nonneg ν_massOne
+    refine ⟨C, Cpos, ?_⟩
+    have := hC X X_gt_3 ε ε_pos ε_lt_one (by sorry)
+
+    --obtain ⟨C_unsmoothing, hC⟩ :=
     sorry
+
+  obtain ⟨C_unsmoothing, C_unsmoothing_pos, hC⟩ := this
+
+  let T : ℝ := sorry
+  have T_gt_3 : 3 < T := sorry
+
+  let A : ℝ := sorry
+  have A_in_Ioo : A ∈ Ioo 0 (1 / 2) := sorry
+
+  let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
+
+  let σ₂ : ℝ := sorry
+
+  have ψ_ε_diff : ‖ψ_ε_of_X - 𝓜 ((Smooth1 ν ε) ·) 1 * X‖ ≤ ‖I₁ ν ε T X‖ + ‖I₂ ν ε X T σ₁‖
+    + ‖I₃ ν ε X T σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖ + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖
+    + ‖I₈ ν ε X T σ₁‖ + ‖I₉ ν ε X T‖ := by sorry
+
+  have : ∃ C_main > 0, ‖𝓜 ((Smooth1 ν ε) ·) 1 * X - X‖ ≤ C_main * ε * X := by sorry
+
+  obtain ⟨C_main, C_main_pos, main_diff⟩ := this
+
   have := (
-    calc ‖ψ X - X‖ ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - X‖ := by sorry
-                 _ ≤ sorry := by sorry
+    calc
+      ‖ψ X - X‖ = ‖(ψ X - ψ_ε_of_X) + (ψ_ε_of_X - X)‖ := by ring_nf; norm_cast
+      _         ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - X‖ := norm_add_le _ _
+      _         = sorry := by sorry
   )
 
   sorry
 /-%%
 \begin{proof}
 \uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval, LogDerivZetaBndUniform, LogDerivZetaHolcSmallT, LogDerivZetaHolcLargeT,
-SmoothedChebyshevPull1, SmoothedChebyshevPull2}
+SmoothedChebyshevPull1, SmoothedChebyshevPull2, I1Bound, I2Bound, I3Bound, I4Bound, I5Bound}
   Evaluate the integrals.
 \end{proof}
 %%-/
