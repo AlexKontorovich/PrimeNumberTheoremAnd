@@ -1785,8 +1785,6 @@ theorem triv_bound_zeta :
 
         exact Z
 
-  /-bound by boundary and then use residue lemma-/
-
 -- Generalize this result to say that
 -- ∀(t : ℝ), ∀(σₐ > σ₁), ... is bounded by ‖ζ' σ₎ / ζ σ₀‖
 
@@ -2026,7 +2024,6 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
       _                                              = new_const := by rw [DD]
 
     exact C
-
 
 theorem analyticAt_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
   AnalyticAt ℂ riemannZeta s := by
