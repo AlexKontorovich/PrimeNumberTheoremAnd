@@ -2958,6 +2958,12 @@ theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
   rw[← sub_mul, norm_mul, norm_real, norm_of_nonneg Xnne]
   exact mul_le_mul_of_nonneg_right hC Xnne
 
+theorem poisson_kernel_integrable (x : ℝ)
+  : MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by sorry
+
+theorem integral_evaluation (x : ℝ) (T : ℝ)
+  : (3 < T) → ∫ (t : ℝ) in Iic (-T), (‖x + t * I‖ ^ 2)⁻¹ ≤ T⁻¹ := by sorry
+
 /-%%
 \begin{proof}\leanok
 \uses{MellinOfSmooth1c}
@@ -3149,9 +3155,6 @@ theorem I1Bound :
             refine integral_mono ?_ ?_ L_bounds_f
             · refine Integrable.norm ?_
               · unfold f
---                have σ₀_gt : 1 < pts_re := by sorry
---                have σ₀_le_2 : pts_re ≤ 2 := by sorry
---                have U2 := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt σ₀_le_2 smoothing_support_hyp smoothing_pos_for_x_pos smoothing_integrates_to_1 smoothing_cont_diff
                 exact MeasureTheory.Integrable.restrict f_integrable
             · have equ : ∀(t : ℝ), L * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re = L * Real.log X * eps⁻¹ * X ^ pts_re * (‖pts t‖^2)⁻¹ := by
                    intro t; ring_nf
@@ -3162,12 +3165,34 @@ theorem I1Bound :
               rw [fun_equ]
               have nonzero := (L * Real.log X * eps⁻¹ * X ^ pts_re)
               have simple_int : MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
-                := by sorry
+                := by
+                   unfold pts
+                   exact poisson_kernel_integrable pts_re
               have U := MeasureTheory.Integrable.const_mul simple_int (L * Real.log X * eps⁻¹ * X ^ pts_re)
               refine MeasureTheory.Integrable.restrict ?_
               exact U
+        _ = L * Real.log X * X ^ pts_re * eps⁻¹ * ∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹ := by
+              have simpli : ∀(t : ℝ), L * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re = L * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹ :=
+                by intro t; ring_nf
+              have simpli_fun : (fun (t : ℝ) ↦ L * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re ) = (fun (t : ℝ) ↦ (L * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹)) :=
+                by funext t; ring_nf
+              rw [simpli_fun]
+              exact MeasureTheory.integral_const_mul (L * Real.log X * X ^ pts_re * eps⁻¹) (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
+        _ ≤ L * Real.log X * X ^ pts_re * eps⁻¹ * T⁻¹ := by
+              have U := integral_evaluation (pts_re) T (T_large)
+              unfold pts
+              simp [U]
+              have U2 : 0 ≤ L * Real.log X * X ^ pts_re * eps⁻¹ := by sorry
+              have U1 := IsOrderedRing.mul_le_mul_of_nonneg_left
+                (∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹)
+                (T⁻¹)
+                (L * Real.log X * X ^ pts_re * eps⁻¹)
+                U
+                U2
+              exact U1
 
-  sorry
+  _
+  exact Z
 
 
 
