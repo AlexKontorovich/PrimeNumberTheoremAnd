@@ -1548,19 +1548,50 @@ theorem triv_bound_zeta :
       let ⟨bound, ⟨bound_pos, bound_prop⟩⟩ :=
           BddAbove.exists_ge zeta_residue_on_U 0
 
+      have boundary_geq_one : 1 < boundary := by
+          unfold boundary
+          have Z : (1 : ENNReal).toReal = 1 := by rfl
+          rw [←Z]
+          have U : ε_div_two ≠ ⊤ := by
+            refine ENNReal.div_ne_top O1 ?_
+            simp
+          simp [ENNReal.toReal_lt_toReal O1 U]
+          simp [ENNReal.toReal_add _ U]
+          refine ENNReal.toReal_pos ?_ ?_
+          · unfold ε_div_two
+            simp [*]
+          · exact U
+
       let const : ℝ := bound
       let final_const : ℝ := (boundary - 1)⁻¹ + const
-      have final_const_pos : final_const ≥ 0 := by
-        sorry
+      have boundary_inv_pos : 0 < (boundary - 1)⁻¹ := by
+        ring_nf
+        apply inv_pos_of_pos
+        simp [*]
 
-      have const_le_final_const : const ≤ final_const := by sorry
+      have final_const_pos : final_const ≥ 0 := by
+        unfold final_const
+        simp [*]
+        have Z :=
+          by
+            calc
+              0 ≤ (boundary - 1)⁻¹ := by simp [boundary_inv_pos]; linarith
+              _ ≤ (boundary - 1)⁻¹ + const := by unfold const; simp [bound_pos]
+
+        exact Z
+
+      have const_le_final_const : const ≤ final_const := by
+        calc
+          const ≤ (boundary - 1)⁻¹ + const := by simp [boundary_inv_pos]; linarith
+          _ = final_const := by rfl
+
       /- final const is actually the constant that we will use -/
 
       have const_pos : const ≥ 0 := by
         linarith
 
-      use const
-      use const_pos
+      use final_const
+      use final_const_pos
       intro σ₀
       intro t
       intro σ₀_gt
@@ -1641,26 +1672,74 @@ theorem triv_bound_zeta :
               simp [abs_of_nonneg pos]
             _ = (σ₀ - 1)⁻¹ + const := by
               rw [add_comm]
+            _ ≤ (σ₀ - 1)⁻¹ + final_const := by
+              simp [const_le_final_const]
 
         exact Z
 
       · push_neg at h
 
+        have boundary_geq_one : 1 < boundary := by
+          unfold boundary
+          have Z : (1 : ENNReal).toReal = 1 := by rfl
+          rw [←Z]
+          have U : ε_div_two ≠ ⊤ := by
+            refine ENNReal.div_ne_top O1 ?_
+            simp
+          simp [ENNReal.toReal_lt_toReal O1 U]
+          simp [ENNReal.toReal_add _ U]
+          refine ENNReal.toReal_pos ?_ ?_
+          · unfold ε_div_two
+            simp [*]
+          · exact U
 
-        have boundary_geq_one : 1 < boundary := by sorry
+        have boundary_in_ball : (↑boundary : ℂ) ∈ metric_ball_around_1 := by
+          unfold metric_ball_around_1
+          unfold EMetric.ball
+          simp [*]
+          have Z := edist_dist (↑boundary) (↑1 : ℂ)
+          rw [Z]
+          have U := dist_eq_norm (↑boundary) (↑1 : ℂ)
+          rw [U]
+          norm_cast
+          have U : 0 ≤ boundary - 1 := by linarith
+          have U1 : ‖boundary - 1‖ = boundary - 1 := by exact norm_of_nonneg U
+          have U2 : ε ≠ ⊤ := by exact O1
+          have U3 : 0 ≤ ε := by exact zero_le ε
+          simp [Real.norm_of_nonneg U]
+          simp [ENNReal.ofReal_lt_iff_lt_toReal U U2]
+          have U4 : ENNReal.ofReal 1 ≠ ⊤ := by exact ENNReal.ofReal_ne_top
+          have Z0 : ε_div_two.toReal < ε.toReal := by
+            have T1 : ε ≠ ⊤ := by exact U2
+            have T2 : ε ≠ 0 := by exact O2
+            have T3 : ε_div_two < ε := by
+              refine ENNReal.half_lt_self ?_ U2
+              exact T2
+
+            exact ENNReal.toReal_strict_mono T1 T3
+
+          have Z := by
+            calc
+              boundary - 1 ≤ boundary - 1 := by linarith
+              _ = ENNReal.toReal (1 + ε_div_two) - 1 := rfl
+              _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp [ENNReal.toReal_ofReal]
+              _ ≤ ENNReal.toReal (1 + ε_div_two - ENNReal.ofReal 1) := ENNReal.le_toReal_sub U4
+              _ = ENNReal.toReal (ε_div_two) := by simp only [ENNReal.ofReal_one, ENNReal.addLECancellable_iff_ne, ne_eq, ENNReal.one_ne_top, not_false_eq_true, AddLECancellable.add_tsub_cancel_left]
+              _ < ε.toReal := Z0
+
+          exact Z
+
         have boundary_in_U : (↑boundary : ℂ) ∈ U \ {1} := by
-/-         refine mem_diff_singleton.mpr ?_
+          refine mem_diff_singleton.mpr ?_
           constructor
-          · unfold metric_ball_around_1 at σ₀_in_ball
-            exact metric_ball_around_1_is_in_U σ₀_in_ball
+          · unfold metric_ball_around_1 at boundary_in_ball
+            exact metric_ball_around_1_is_in_U boundary_in_ball
           · by_contra a
-            have U : σ₀ = 1 := by exact ofReal_eq_one.mp a
-            rw [U] at σ₀_gt
-            linarith -/
-          sorry
+            norm_cast at a
+            norm_cast at boundary_geq_one
+            simp [←a] at boundary_geq_one
 
         have bdd := Set.forall_mem_image.mp bound_prop (boundary_in_U)
-
 
         have Z :=
           calc
@@ -1673,11 +1752,15 @@ theorem triv_bound_zeta :
               have Z := norm_add_le (- ζ' boundary / ζ boundary - (boundary - 1)⁻¹) ((boundary - 1)⁻¹)
               norm_cast at Z
             _ ≤ const + ‖(boundary - 1)⁻¹‖ := by
-              have U := add_le_add_right bdd ‖(boundary - 1)⁻¹‖
-              ring_nf at U
+              have U9 := add_le_add_right bdd ‖(boundary - 1)⁻¹‖
+              ring_nf at U9
               ring_nf
-              norm_cast at U
+              norm_cast at U9
               norm_cast
+              simp [*] at U9
+              simp [*]
+              exact U9
+
             _ ≤ const + (boundary - 1)⁻¹ := by
               simp [norm_inv]
               have pos : 0 ≤ boundary - 1 := by
@@ -1685,9 +1768,17 @@ theorem triv_bound_zeta :
               simp [abs_of_nonneg pos]
             _ = (boundary - 1)⁻¹ + const := by
               rw [add_comm]
+            _ = final_const := by rfl
+            _ ≤ (σ₀ - 1)⁻¹ + final_const := by
+              have H : 0 ≤ (σ₀ - 1)⁻¹ := by
+                simp [inv_pos_of_pos]
+                linarith
 
-        sorry /-bound by boundary and then use residue lemma-/
+              simp [H]
 
+        exact Z
+
+  /-bound by boundary and then use residue lemma-/
 
 -- Generalize this result to say that
 -- ∀(t : ℝ), ∀(σₐ > σ₁), ... is bounded by ‖ζ' σ₎ / ζ σ₀‖
