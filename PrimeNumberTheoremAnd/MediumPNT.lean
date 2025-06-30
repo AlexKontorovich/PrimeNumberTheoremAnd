@@ -3050,11 +3050,14 @@ theorem I1Bound :
 
   let f := fun (t : ℝ) ↦ SmoothedChebyshevIntegrand Smoothing eps X (pts t)
 
+  have G0 : ∃K > 0, ∀(t : ℝ), ‖ζ' (pts t) / ζ (pts t)‖ ≤ K * Real.log X := by sorry
+
   /- Main pointwise bound -/
 
-  have G : ∃L > 0, ∀(t : ℝ), ‖f t‖ ≤ L * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
+  have G : ∃L > 0, ∀(t : ℝ), ‖f t‖ ≤ L * Real.log X * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
 
-    obtain ⟨K, ⟨K_is_pos, K_bounds_zeta_at_any_t⟩⟩  := dlog_riemannZeta_bdd_on_vertical_lines' (pts_re_ge_1)
+    obtain ⟨K, ⟨K_is_pos, K_bounds_zeta_at_any_t⟩⟩ := G0
+      -- dlog_riemannZeta_bdd_on_vertical_lines' (pts_re_ge_1)
 
     obtain ⟨M, ⟨M_is_pos, M_bounds_mellin_hard⟩⟩ :=
     MellinOfSmooth1b smoothing_cont_diff smoothing_support_hyp
@@ -3065,7 +3068,6 @@ theorem I1Bound :
     intro t
 
     let M_bounds_mellin_easy := fun (t : ℝ) ↦ M_bounds_mellin_hard pts_re pts_re_pos (pts t) (triv_pts_lo_bound t) (triv_pts_up_bound t) eps eps_pos eps_less_one
-
 
     let zeta_part := (fun (t : ℝ) ↦ -ζ' (pts t) / ζ (pts t))
     let mellin_part := (fun (t : ℝ) ↦ 𝓜 (fun x ↦ ↑(Smooth1 Smoothing eps x)) (pts t))
@@ -3096,28 +3098,26 @@ theorem I1Bound :
       unfold zeta_part
       simp [norm_neg]
 
-    have zeta_bound: ∀(t : ℝ), ‖zeta_part t‖ ≤ K := by
+    have zeta_bound: ∀(t : ℝ), ‖zeta_part t‖ ≤ K * Real.log X := by
       intro t
       unfold zeta_part
       rw [T2]
       exact K_bounds_zeta_at_any_t t
 
-    have g_bound : ∀(t : ℝ), ‖zeta_part t * (mellin_part t * X_part t)‖ ≤ K * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
+    have g_bound : ∀(t : ℝ), ‖zeta_part t * (mellin_part t * X_part t)‖ ≤ (K * Real.log X) * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
       intro t
       exact norm_mul_le_of_le (zeta_bound t) (X_part_and_mellin_bound t)
 
     have T1 : f = g := by rfl
 
-    have final_bound_pointwise : ‖f t‖ ≤ K * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
+    have final_bound_pointwise : ‖f t‖ ≤ K * Real.log X * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
       rw [T1]
       unfold g
       rw [mul_assoc]
       exact g_bound t
 
-    have trivialize : K * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) = (K * M) * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
-      rw [mul_assoc]
-      rw [mul_assoc]
-      rw [mul_assoc]
+    have trivialize : K * Real.log X * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) = (K * M) * Real.log X * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
+            ring_nf
 
     rw [trivialize] at final_bound_pointwise
     exact final_bound_pointwise
@@ -3134,12 +3134,38 @@ theorem I1Bound :
 
   -- Easy because from G deduce a bound with 1 / t^2 and that thing is obviously integrable.
 
+  let ⟨L, ⟨L_pos, L_bounds_f⟩⟩ := G
+
+  have σ₀_gt : 1 < pts_re := by sorry
+  have σ₀_le_2 : pts_re ≤ 2 := by sorry
+
+  have f_integrable := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt σ₀_le_2 smoothing_support_hyp smoothing_pos_for_x_pos smoothing_integrates_to_1 smoothing_cont_diff
+
   have Z :=
     by
       calc
         ‖∫ (t : ℝ) in Iic (-T), f t‖ ≤ ∫ (t : ℝ) in Iic (-T), ‖f t‖ := MeasureTheory.norm_integral_le_integral_norm f
-        _ ≤ 3 := by sorry
+        _ ≤ ∫ (t : ℝ) in Iic (-T), L * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re := by
+            refine integral_mono ?_ ?_ L_bounds_f
+            · refine Integrable.norm ?_
+              · unfold f
+--                have σ₀_gt : 1 < pts_re := by sorry
+--                have σ₀_le_2 : pts_re ≤ 2 := by sorry
+--                have U2 := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt σ₀_le_2 smoothing_support_hyp smoothing_pos_for_x_pos smoothing_integrates_to_1 smoothing_cont_diff
+                exact MeasureTheory.Integrable.restrict f_integrable
+            · have equ : ∀(t : ℝ), L * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re = L * Real.log X * eps⁻¹ * X ^ pts_re * (‖pts t‖^2)⁻¹ := by
+                   intro t; ring_nf
+              have fun_equ : (fun (t : ℝ) ↦ (L * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re)) = (fun (t : ℝ) ↦ (L * Real.log X * eps⁻¹ * X ^ pts_re * (‖pts t‖^2)⁻¹)) := by
+                   funext t
+                   exact equ t
 
+              rw [fun_equ]
+              have nonzero := (L * Real.log X * eps⁻¹ * X ^ pts_re)
+              have simple_int : MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
+                := by sorry
+              have U := MeasureTheory.Integrable.const_mul simple_int (L * Real.log X * eps⁻¹ * X ^ pts_re)
+              refine MeasureTheory.Integrable.restrict ?_
+              exact U
 
   sorry
 
