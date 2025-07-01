@@ -1215,7 +1215,7 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
 
   let s₀ := σ₀
 
-  have σ₁_gt_one : 1 < σ₁ := by exact gt_of_ge_of_gt σ₀_lt_σ₁ σ₀_gt_one
+  have σ₁_gt_one : 1 < σ₁ := by exact lt_of_le_of_lt' σ₀_lt_σ₁ σ₀_gt_one
   have s₀_gt_one : 1 < (↑σ₀ : ℂ).re := by exact σ₀_gt_one
 
   have s₁_re_geq_one : 1 < s₁.re := by exact lt_of_lt_of_eq σ₁_gt_one (id (Eq.symm s₁_re_eq_sigma))
