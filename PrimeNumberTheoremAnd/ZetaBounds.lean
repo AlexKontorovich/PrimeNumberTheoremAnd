@@ -86,7 +86,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     intro z hz; exact ⟨hz.1.1, hz.2⟩
   have h_prod_holo : HolomorphicOn (fun z ↦ (z - p) * f z) (W \ {p}) := by
     have h_id : HolomorphicOn (fun z : ℂ ↦ z - p) (W \ {p}) :=
-      Differentiable.differentiableOn (Differentiable.sub_const differentiable_id' p)
+      Differentiable.differentiableOn (Differentiable.sub_const differentiable_fun_id p)
     have hfW : HolomorphicOn f (W \ {p}) := by
       apply hf.mono
       refine diff_subset_diff_left inter_subset_right
@@ -343,26 +343,26 @@ theorem derivative_const_plus_product {g : ℂ → ℂ}
     rw [h_eq]
 
   -- Apply derivative of sum
-    rw [deriv_add]
+    rw [deriv_fun_add]
 
   -- Derivative of constant is 0
     rw [deriv_const, zero_add]
 
   -- Apply product rule to g s * (s - p)
-    rw [deriv_mul hg (differentiableAt_id'.sub (differentiableAt_const p))]
+    rw [deriv_fun_mul hg (differentiableAt_fun_id.fun_sub (differentiableAt_const p))]
 
   -- Derivative of (s - p) is 1
-    rw [deriv_sub, deriv_id'', deriv_const, sub_zero]
+    rw [deriv_fun_sub, deriv_id'', deriv_const, sub_zero]
 
   -- Simplify
     rw [mul_one]
-    · exact differentiableAt_id'-- rw [add_comm]
+    · exact differentiableAt_fun_id-- rw [add_comm]
     · exact differentiableAt_const p
   -- Differentiability conditions
     · exact differentiableAt_const A --exact differentiableAt_const
     · refine DifferentiableAt.mul hg ?_
       refine DifferentiableAt.sub_const ?_ p
-      exact differentiableAt_id' -- exact hg.mul (differentiableAt_id'.sub differentiableAt_const)
+      exact differentiableAt_fun_id -- exact hg.mul (differentiableAt_id'.sub differentiableAt_const)
 
 theorem deriv_eq_of_eq (f g : ℂ → ℂ ) (h : f = g) : deriv f = deriv g := by
   rw [h]
@@ -393,7 +393,7 @@ lemma deriv_inv_sub {x p : ℂ} (hp : x ≠ p) :
     · refine differentiableAt_inv ?_
       exact sub_ne_zero_of_ne hp
     · refine (DifferentiableAt.sub_iff_right ?_).mpr ?_
-      · exact differentiableAt_id'
+      · exact differentiableAt_fun_id
       · exact differentiableAt_const p
 
   have E : (deriv inv_x) = (fun x ↦ - (x^2)⁻¹) := by
@@ -416,12 +416,12 @@ theorem deriv_f_minus_A_inv_sub_clean (f : ℂ → ℂ) (A x p : ℂ)
     deriv (f  - (fun z ↦ A * (z - p)⁻¹)) x = deriv f x + A * ((x - p) ^ 2)⁻¹ := by
   have h1 : DifferentiableAt ℂ (fun z => (z - p)⁻¹) x := by
     apply DifferentiableAt.inv
-    · exact differentiableAt_id'.sub (differentiableAt_const p)
+    · exact differentiableAt_fun_id.sub (differentiableAt_const p)
     · rwa [sub_ne_zero]
 
   calc deriv (fun z => f z - A * (z - p)⁻¹) x
     = deriv f x - deriv (fun z => A * (z - p)⁻¹) x := by
-        rw [deriv_sub hf (DifferentiableAt.const_mul h1 A)]
+        rw [deriv_fun_sub hf (DifferentiableAt.const_mul h1 A)]
     _ = deriv f x - A * deriv (fun z => (z - p)⁻¹) x := by
         rw [deriv_const_mul A h1]
     _ = deriv f x - A * (-((x - p) ^ 2)⁻¹) := by
@@ -602,7 +602,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
           ‖h⁻¹ x‖             = ‖h⁻¹ x - A⁻¹ + A⁻¹‖ := by simp
           ‖h⁻¹ x - A⁻¹ + A⁻¹‖ ≤ ‖h⁻¹ x - A⁻¹‖ + ‖A⁻¹‖ := by exact norm_add_le (h⁻¹ x - A⁻¹) (A⁻¹)
           _                   ≤  1 + ‖A‖⁻¹ := by simp [hyp_b]
-          _                   = ‖A‖⁻¹ + 1 := by exact Lean.Grind.CommRing.add_comm 1 ‖A‖⁻¹
+          _                   = ‖A‖⁻¹ + 1 := by exact add_comm 1 ‖A‖⁻¹
 
         exact U
 
@@ -1988,7 +1988,7 @@ lemma HasDerivAt_cpow_over_var (N : ℕ) {z : ℂ} (z_ne_zero : z ≠ 0) :
 lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
     HasDerivAt (ζ₀ N) (ζ₀' N s) s := by
   unfold riemannZeta0 ζ₀'
-  apply HasDerivAt.sum ?_ |>.add ?_ |>.add ?_ |>.add ?_
+  apply HasDerivAt.fun_sum ?_ |>.add ?_ |>.add ?_ |>.add ?_
   · intro n _
     convert hasDerivAt_neg' s |>.const_cpow (c := n) (by aesop) using 1
     all_goals (ring_nf; simp [cpow_neg])
@@ -3027,8 +3027,9 @@ lemma norm_zeta_product_ge_one {x : ℝ} (hx : 0 < x) (y : ℝ) :
 
 theorem ZetaLowerBound1_aux1 {σ t : ℝ} (this : 1 ≤ ‖ζ σ‖ ^ (3 : ℝ) * ‖ζ (σ + I * t)‖ ^ (4 : ℝ) * ‖ζ (σ + 2 * I * t)‖) :
   ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) * ‖ζ (σ + t * I)‖ ≥ 1 := by
-  use (one_le_pow_iff_of_nonneg (by bound) four_ne_zero).1 (by_contra (this.not_lt ∘ ?_))
-  norm_num[← Real.rpow_natCast, ← Real.rpow_mul, mul_right_comm, mul_comm (t : ℂ), mul_pow]
+  use (one_le_pow_iff_of_nonneg (by bound) four_ne_zero).1 (by_contra (this.not_gt ∘ ?_))
+  simp_rw [mul_pow, ← Real.rpow_natCast, ← Real.rpow_mul (norm_nonneg _)]
+  norm_num [mul_right_comm, mul_comm (t : ℂ), mul_pow]
 
 lemma ZetaLowerBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
     ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) * ‖ζ (σ + t * I)‖ ≥ 1 := by
@@ -3403,7 +3404,7 @@ lemma ZetaInvBnd_aux2 {A C₁ C₂ : ℝ} (Apos : 0 < A) (C₁pos : 0 < C₁) (C
   rw [← Real.rpow_mul (by positivity)]
   norm_num
   apply lt_of_le_of_lt hA
-  rw [div_mul_comm, mul_one]
+  rw [div_mul_comm, mul_one, Real.rpow_ofNat]
   apply half_lt_self
   positivity
 
@@ -4188,7 +4189,7 @@ theorem LogDerivZetaHolcLargeT :
     positivity
   have zetaZeroFreeCrit : ∀ (σ t : ℝ), σ ∈ Ioo (1 - A / Real.log |T| ^ 9) 1 → t ∈ Ioo (-T) T → ζ (↑σ + ↑t * I) ≠ 0 := by
     intro σ t σ_inter t_inter
-    have : 4 ≤ |t| ∨ 4 > |t| := by exact le_or_lt 4 |t|
+    have : 4 ≤ |t| ∨ 4 > |t| := by exact le_or_gt 4 |t|
     rcases this
     apply restOfZetaZeroFree σ t
     linarith

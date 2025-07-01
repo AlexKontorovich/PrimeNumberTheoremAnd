@@ -632,7 +632,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
         exact le_trans n₀_inside_le_X X_le_floor_add_one
       have : ↑⌊X + 1⌋₊ - ↑n₀ ≤ X + 1 - ↑n₀ := by
         apply sub_le_sub_right floor_X_add_one_le_self
-      exact le_of_lt (gt_of_ge_of_gt this temp)
+      exact temp.le.trans this
     have inter1: ‖ Λ (n + n₀)‖ ≤ Real.log (↑n + ↑n₀) := by
       rw[Real.norm_of_nonneg, ← Nat.cast_add]
       apply ArithmeticFunction.vonMangoldt_le_log
@@ -1587,7 +1587,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
                 positivity
                 linarith
               linarith
-            exact gt_of_ge_of_gt sReIn.1 this
+            exact lt_of_le_of_lt' sReIn.1 this
           exact ⟨this, sReIn.2⟩
         have : s.im ∈ Ioo (-T) T := by
           obtain ⟨_, abs_sIm_bound⟩ := Tbounds
@@ -1619,7 +1619,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       unfold HPow.hPow instHPow
       simp
       apply DifferentiableAt.const_cpow
-      exact differentiableAt_id'
+      exact differentiableAt_fun_id
       refine Or.inl ?_
       refine ne_zero_of_re_pos ?_
       rw[ofReal_re]
@@ -1874,7 +1874,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
           unfold HPow.hPow instHPow
           simp only
           apply DifferentiableAt.const_cpow
-          · exact differentiableAt_id'
+          · exact differentiableAt_fun_id
           · left
             refine ne_zero_of_re_pos ?_
             simp only [ofReal_re]
@@ -1940,7 +1940,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
           unfold HPow.hPow instHPow
           simp
           apply DifferentiableAt.const_cpow
-          exact differentiableAt_id'
+          exact differentiableAt_fun_id
           refine Or.inl ?_
           refine ne_zero_of_re_pos ?_
           rw[ofReal_re]

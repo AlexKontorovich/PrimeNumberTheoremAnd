@@ -744,7 +744,7 @@ Applying Lemma \ref{keyIdentity}, the
   have hx0 : (x : ℂ) ≠ 0 := slitPlane_ne_zero (.inl xpos)
   refine (Tendsto.sub ?_ (tendsto_nhdsWithin_of_tendsto_nhds ?_)).norm
   · convert hasDerivAt_iff_tendsto_slope.mp
-      (differentiableAt_id'.const_cpow (.inl hx0)).hasDerivAt using 2
+      (differentiableAt_fun_id.const_cpow (.inl hx0)).hasDerivAt using 2
     rw [slope_def_field]; ring
   · exact (continuous_id.const_cpow (.inl hx0)).tendsto 0
       |>.div (tendsto_const_nhds.add tendsto_id) (by norm_num)
@@ -782,7 +782,7 @@ Applying Lemma \ref{keyIdentity}, the
   refine (Tendsto.sub (tendsto_nhdsWithin_of_tendsto_nhds ?_) ?_).norm
   · exact ((continuous_id.const_cpow (.inl hx0)).tendsto _).div tendsto_id (by norm_num)
   · convert hasDerivAt_iff_tendsto_slope.mp
-      (differentiableAt_id'.const_cpow (.inl hx0)).hasDerivAt using 2
+      (differentiableAt_fun_id.const_cpow (.inl hx0)).hasDerivAt using 2
     rw [slope_def_field, cpow_neg_one, ofReal_inv]; ring
 
 /-%%
