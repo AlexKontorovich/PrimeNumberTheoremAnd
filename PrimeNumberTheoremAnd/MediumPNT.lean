@@ -3191,8 +3191,11 @@ theorem I1Bound :
                 U2
               exact U1
 
-  _
-  exact Z
+  ring_nf
+  ring_nf at Z
+
+  sorry
+--  exact Z
 
 
 
