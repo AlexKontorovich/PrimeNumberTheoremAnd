@@ -3400,8 +3400,8 @@ where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X
 \end{proof}
 %%-/
 
-<<<<<<< HEAD
-=======
+--<<<<<<< HEAD
+--=======
 
 lemma log_bound (X₀ : ℝ) (X₀pos : X₀ > 0) (k : ℕ) : ∃ C ≥ 1, ∀ X ≥ X₀, Real.log X ^ k ≤ C * X := by
   -- When X is large, the ratio goes to 0.
