@@ -640,7 +640,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     apply le_trans inter1
     exact_mod_cast Real.log_le_log (by positivity) (n_add_n0_le_X_add_one)
 
-  have largeSumBound:= add_le_add bnd1 bnd2
+  have largeSumBound := add_le_add bnd1 bnd2
 
   clear vonBnd1 bnd1 bnd2
 
@@ -914,10 +914,9 @@ I₅|
             I₃|
               |
               |  I₂
-              +---+
-                  |
-                  | I₁
-                  |
+              +-----+
+                    | I₁
+                    |
 \end{verbatim}
 
 In the process, we will pick up the residue at $s=1$.
@@ -1505,7 +1504,7 @@ theorem triv_bound_zeta :
 
           exact Z
 
-        have σ₀_in_U: (↑σ₀ : ℂ) ∈ (U \ {1}) := by
+        have σ₀_in_U : (↑σ₀ : ℂ) ∈ (U \ {1}) := by
           refine mem_diff_singleton.mpr ?_
           constructor
           · unfold metric_ball_around_1 at σ₀_in_ball
@@ -1647,7 +1646,7 @@ theorem triv_bound_zeta :
         exact Z
 
 -- Generalize this result to say that
--- ∀(t : ℝ), ∀(σₐ > σ₁), ... is bounded by ‖ζ' σ₎ / ζ σ₀‖
+-- ∀(t : ℝ), ∀(σ₀ > σ₁), ... is bounded by ‖ζ' σ₀ / ζ σ₀‖
 
 theorem dlog_riemannZeta_bdd_on_vertical_lines_explicit {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) :
   ∀(t : ℝ), ‖(-ζ' (σ₀ + t * I) / ζ (σ₀ + t * I))‖ ≤ ‖(ζ' σ₀ / ζ σ₀)‖ := by
@@ -2971,18 +2970,48 @@ It remains to estimate all of the integrals.
 /-%%
 This auxiliary lemma is useful for what follows.
 \begin{lemma}[IBound_aux1]\label{IBound_aux1}\lean{IBound_aux1}\leanok
-Given $k>0$, there exists $C>0$ so that for all $T>3$,
+Given a natural number $k$ and a real number $X_0 > 0$, there exists $C \geq 1$ so that for all $X \geq X_0$,
 $$
-\log T ^ k \le C \cdot T.
+\log^k X \le C \cdot X.
 $$
 \end{lemma}
 %%-/
-lemma IBound_aux1 {k : ℝ} (k_pos : 0 < k) : ∃ C > 0,
-    ∀ {T : ℝ} (T_gt : 3 < T), Real.log T ^ k ≤ C * T := by
-    sorry
+lemma IBound_aux1 (X₀ : ℝ) (X₀pos : X₀ > 0) (k : ℕ) : ∃ C ≥ 1, ∀ X ≥ X₀, Real.log X ^ k ≤ C * X := by
+  -- When X is large, the ratio goes to 0.
+  have ⟨M, hM⟩ := Filter.eventually_atTop.mp (isLittleO_log_rpow_rpow_atTop k zero_lt_one).eventuallyLE
+  -- When X is small, use the extreme value theorem.
+  let f := fun X ↦ Real.log X ^ k / X
+  let I := Icc X₀ M
+  have : 0 ∉ I := notMem_Icc_of_lt X₀pos
+  have f_cont : ContinuousOn f (Icc X₀ M) :=
+    ((continuousOn_log.pow k).mono (subset_compl_singleton_iff.mpr this)).div
+    continuous_id.continuousOn (fun x hx ↦ ne_of_mem_of_not_mem hx this)
+  have ⟨C₁, hC₁⟩ := isCompact_Icc.exists_bound_of_continuousOn f_cont
+  use max C₁ 1, le_max_right C₁ 1
+  intro X hX
+  have Xpos : X > 0 := lt_of_lt_of_le X₀pos hX
+  by_cases hXM : X ≤ M
+  · rw[← div_le_iff₀ Xpos]
+    calc
+      f X ≤ ‖f X‖ := le_norm_self _
+      _ ≤ C₁ := hC₁ X ⟨hX, hXM⟩
+      _ ≤ max C₁ 1 := le_max_left C₁ 1
+  · calc
+      Real.log X ^ k ≤ ‖Real.log X ^ k‖ := le_norm_self _
+      _ ≤ ‖X ^ 1‖ := by exact_mod_cast hM X (by linarith[hXM])
+      _ = 1 * X := by
+        rw[pow_one, one_mul]
+        apply norm_of_nonneg
+        exact Xpos.le
+      _ ≤ max C₁ 1 * X := by
+        rw[mul_le_mul_right Xpos]
+        exact le_max_right C₁ 1
+
 /-%%
 \begin{proof}
-Elementary. Use `isLittleO_log_rpow_rpow_atTop` in Mathlib.
+\uses{isLittleO_log_rpow_rpow_atTop}\leanok
+We use the fact that $\log^k X / X$ goes to $0$ as $X \to \infty$.
+Then we use the extreme value theorem to find a constant $C$ that works for all $X \geq X_0$.
 \end{proof}
 %%-/
 
@@ -2991,7 +3020,7 @@ Elementary. Use `isLittleO_log_rpow_rpow_atTop` in Mathlib.
 We have that
 $$
 \left|I_{1}(\nu, \epsilon, X, T)\
-\right| \ll {X \over \epsilon T}
+\right| \ll \frac{X}{\epsilon T}
 .
 $$
 Same with $I_9$.
@@ -3191,49 +3220,17 @@ Continuing the calculation, we have
 $$
 \leq
 \log X \cdot
-C'' {X^{\sigma_0}\over \epsilon}
+C'' \frac{X^{\sigma_0}}{\epsilon}
 \int_{-\infty}^{-T}
 \frac{1}{t^2}
 \ dt
 \ \leq \
-C'''  {X\log X\over \epsilon T}
+C''' \frac{X\log X}{\epsilon T}
 ,
 $$
 where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X}=e \cdot X$.
 \end{proof}
 %%-/
-
-/-TODO: Merge with IBound_aux1.-/
-lemma log_bound (X₀ : ℝ) (X₀pos : X₀ > 0) (k : ℕ) : ∃ C ≥ 1, ∀ X ≥ X₀, Real.log X ^ k ≤ C * X := by
-  -- When X is large, the ratio goes to 0.
-  have ⟨M, hM⟩ := Filter.eventually_atTop.mp (isLittleO_log_rpow_rpow_atTop k zero_lt_one).eventuallyLE
-  -- When X is small, use the extreme value theorem.
-  let f := fun X ↦ Real.log X ^ k / X
-  let I := Icc X₀ M
-  have : 0 ∉ I := notMem_Icc_of_lt X₀pos
-  have f_cont : ContinuousOn f (Icc X₀ M) :=
-    ((continuousOn_log.pow k).mono (subset_compl_singleton_iff.mpr this)).div
-    continuous_id.continuousOn (fun x hx ↦ ne_of_mem_of_not_mem hx this)
-  have ⟨C₁, hC₁⟩ := isCompact_Icc.exists_bound_of_continuousOn f_cont
-  use max C₁ 1, le_max_right C₁ 1
-  intro X hX
-  have Xpos : X > 0 := lt_of_lt_of_le X₀pos hX
-  by_cases hXM : X ≤ M
-  · rw[← div_le_iff₀ Xpos]
-    calc
-      f X ≤ ‖f X‖ := le_norm_self _
-      _ ≤ C₁ := hC₁ X ⟨hX, hXM⟩
-      _ ≤ max C₁ 1 := le_max_left C₁ 1
-  · calc
-      Real.log X ^ k ≤ ‖Real.log X ^ k‖ := le_norm_self _
-      _ ≤ ‖X ^ 1‖ := by exact_mod_cast hM X (by linarith[hXM])
-      _ = 1 * X := by
-        rw[pow_one, one_mul]
-        apply norm_of_nonneg
-        exact Xpos.le
-      _ ≤ max C₁ 1 * X := by
-        rw[mul_le_mul_right Xpos]
-        exact le_max_right C₁ 1
 
 lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X): (1 + (Real.log X)⁻¹) < 2 := by
   rw[← one_add_one_eq_two]
@@ -3245,72 +3242,76 @@ lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X): (1 + (Real.log X)⁻¹) < 2 :=
 \begin{lemma}[I2Bound]\label{I2Bound}\lean{I2Bound}\leanok
 We have that
 $$
-\left|I_{2}(\nu, \epsilon, X, T)\right| \ll {X\over \epsilon T}
+\left|I_{2}(\nu, \epsilon, X, T)\right| \ll \frac{X}{\epsilon T}
 .
 $$
 Same with $I_8$.
 \end{lemma}
 %%-/
-lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
-    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+lemma I2Bound : ∀ {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1),
+    ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)),
+    ∀(X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
-    {T : ℝ} (T_gt : 3 < T)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
-    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
-    ‖I₂ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
+    {T : ℝ} (T_gt : 3 < T),
+    let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
+    ‖I₂ SmoothingF ε T X σ₁‖ ≤ C * X / (ε * T) := by
 
-  have := (log_bound 3 (by norm_num) 9)
+  intro SmoothingF suppSmoothingF ContDiffSmoothingF mass_one
+
+  have ⟨C₁, C₁pos, Mbd⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
+  have ⟨A, Abd, C₂, C₂pos, ζbd⟩ := LogDerivZetaBndUniform
+  have := (IBound_aux1 3 (by norm_num) 9)
   obtain ⟨C₃, ⟨C₃_gt, hC₃⟩⟩ := this
 
-  let C' : ℝ := sorry
-  have : C' > 0 := by sorry
-  use ‖1/(2*π*I)‖ * (2 * C'), sorry -- by positivity
-  have ⟨A, Abd, C₂, C₂pos, ζbd⟩ := LogDerivZetaBndUniform
+  let C' : ℝ := C₁ * C₂ * C₃ * rexp 1
+  have : C' > 0 := by positivity
+  use ‖1/(2*π*I)‖ * (2 * C'), by
+    refine Right.mul_pos ?_ ?_
+    · rw[norm_pos_iff]
+      simp[pi_ne_zero]
+    · simp[this]
   use A, Abd
-  intro SmoothingF X X_gt ε ε_pos ε_lt_one T T_gt suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF σ₁
-  have ⟨C₁, C₁pos, Mbd⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
-  clear SmoothingFnonneg suppSmoothingF mass_one ContDiffSmoothingF
+  intro X X_gt ε ε_pos ε_lt_one T T_gt σ₁
+  clear suppSmoothingF mass_one ContDiffSmoothingF
   have Xpos : 0 < X := lt_trans (by norm_num) X_gt
   have Tpos : 0 < T := lt_trans (by norm_num) T_gt
   unfold I₂
   rw[norm_mul, mul_assoc (c := X), ← mul_div]
   refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg _)
-  have interval_length_nonneg : σ₁ ≤ 1 + (Real.log T)⁻¹ := by
+  have interval_length_nonneg : σ₁ ≤ 1 + (Real.log X)⁻¹ := by
     dsimp[σ₁]
     rw[sub_le_iff_le_add]
     nth_rw 1 [← add_zero 1]
     rw[add_assoc]
     apply add_le_add_left
     refine Left.add_nonneg ?_ ?_
-    · rw[inv_nonneg, log_nonneg_iff Tpos]
-      exact le_trans (by norm_num) (le_of_lt T_gt)
+    · rw[inv_nonneg, log_nonneg_iff Xpos]
+      exact le_trans (by norm_num) (le_of_lt X_gt)
     · refine div_nonneg ?_ ?_
       exact le_of_lt Abd.1
       apply pow_nonneg
-      rw[log_nonneg_iff Xpos]
-      exact le_trans (by norm_num) (le_of_lt X_gt)
+      rw[log_nonneg_iff Tpos]
+      exact le_trans (by norm_num) (le_of_lt T_gt)
   have σ₁pos : 0 < σ₁ := by
     rw[sub_pos]
     calc
-      A / Real.log X ^ 9 ≤ 1 / 2 / Real.log X ^ 9 := by
+      A / Real.log T ^ 9 ≤ 1 / 2 / Real.log T ^ 9 := by
         refine div_le_div_of_nonneg_right (Abd.2) ?_
         apply pow_nonneg
-        rw[log_nonneg_iff Xpos]
-        exact le_trans (by norm_num) (le_of_lt X_gt)
+        rw[log_nonneg_iff Tpos]
+        exact le_trans (by norm_num) (le_of_lt T_gt)
       _ ≤ 1 / 2 / 1 := by
         refine div_le_div_of_nonneg_left (by norm_num) (by norm_num) ?_
         apply one_le_pow₀
         apply le_of_lt
         refine (lt_log_iff_exp_lt ?_).mpr ?_ <;> linarith[Real.exp_one_lt_d9]
       _ < 1 := by norm_num
-  suffices ∀ σ ∈ Ioc σ₁ (1 + (Real.log T)⁻¹), ‖SmoothedChebyshevIntegrand SmoothingF ε T (↑σ - ↑X * I)‖ ≤ C' * X / (ε * T) by
+  suffices ∀ σ ∈ Ioc σ₁ (1 + (Real.log X)⁻¹), ‖SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I)‖ ≤ C' * X / (ε * T) by
     calc
-      ‖∫ (σ : ℝ) in σ₁..1 + (Real.log T)⁻¹,
-          SmoothedChebyshevIntegrand SmoothingF ε T (↑σ - ↑X * I)‖ ≤
-          C' * X / (ε * T) * |1 + (Real.log T)⁻¹ - σ₁| := by
+      ‖∫ (σ : ℝ) in σ₁..1 + (Real.log X)⁻¹,
+          SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I)‖ ≤
+          C' * X / (ε * T) * |1 + (Real.log X)⁻¹ - σ₁| := by
         refine intervalIntegral.norm_integral_le_of_norm_le_const ?_
         convert this using 3
         apply uIoc_of_le
@@ -3319,8 +3320,8 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀
         apply mul_le_mul_of_nonneg_left
         rw[abs_of_nonneg (sub_nonneg.mpr interval_length_nonneg)]
         calc
-          1 + (Real.log T)⁻¹ - σ₁ ≤ 1 + (Real.log T)⁻¹ := by linarith
-          _ ≤ 2 := (one_add_inv_log T_gt.le).le
+          1 + (Real.log X)⁻¹ - σ₁ ≤ 1 + (Real.log X)⁻¹ := by linarith
+          _ ≤ 2 := (one_add_inv_log X_gt.le).le
         -- suffices (Real.log T)⁻¹ + A / Real.log X ^ 9 ≤ 1 + 2 by
         --   convert this
         --   norm_num
@@ -3344,31 +3345,31 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀
   -- Now bound the integrand
   intro σ hσ
   unfold SmoothedChebyshevIntegrand
-  have log_deriv_zeta_bound : ‖ζ' (σ - X * I) / ζ (σ - X * I)‖ ≤ C₂ * (C₃ * X) := by
+  have log_deriv_zeta_bound : ‖ζ' (σ - T * I) / ζ (σ - T * I)‖ ≤ C₂ * (C₃ * T) := by
     by_cases hσ1 : σ < 1
     · calc
-      ‖ζ' (σ - X * I) / ζ (σ - X * I)‖ = ‖ζ' (σ + (-X : ℝ) * I) / ζ (σ + (-X : ℝ) * I)‖ := by
+      ‖ζ' (σ - T * I) / ζ (σ - T * I)‖ = ‖ζ' (σ + (-T : ℝ) * I) / ζ (σ + (-T : ℝ) * I)‖ := by
         push_cast; ring_nf
-      _ ≤ C₂ * Real.log X ^ 9 := by
-        apply ζbd σ X (-X)
-        · rw[abs_neg, abs_of_nonneg Xpos.le]
-          exact X_gt
-        · rw[abs_neg, abs_of_nonneg Xpos.le]
+      _ ≤ C₂ * Real.log T ^ 9 := by
+        apply ζbd σ T (-T)
+        · rw[abs_neg, abs_of_nonneg Tpos.le]
+          exact T_gt
+        · rw[abs_neg, abs_of_nonneg Tpos.le]
         · exact ⟨hσ.1.le, hσ1⟩
-      _ ≤ C₂ * (C₃ * X) := by
+      _ ≤ C₂ * (C₃ * T) := by
         apply mul_le_mul_of_nonneg_left ?_ C₂pos.le
-        exact hC₃ X X_gt.le
-    · -- If σ > 1, it should be easy
-      simp at hσ1
+        exact hC₃ T T_gt.le
+    · simp at hσ1
+      -- We need a good bound for ζ'/ζ on horizontal segments crossing σ = 1.
       sorry
   -- Then estimate the remaining factors.
   calc
-    ‖-ζ' (σ - X * I) / ζ (σ - X * I) * 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x))
-        (σ - X * I) * T ^ (σ - X * I)‖ =
-        ‖-ζ' (σ - X * I) / ζ (σ - X * I)‖ * ‖𝓜 (fun x ↦ (Smooth1 SmoothingF ε x))
-        (σ - X * I)‖ * ‖(T : ℂ) ^ (σ - X * I)‖ := by
+    ‖-ζ' (σ - T * I) / ζ (σ - T * I) * 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x))
+        (σ - T * I) * X ^ (σ - T * I)‖ =
+        ‖-ζ' (σ - T * I) / ζ (σ - T * I)‖ * ‖𝓜 (fun x ↦ (Smooth1 SmoothingF ε x))
+        (σ - T * I)‖ * ‖(X : ℂ) ^ (σ - T * I)‖ := by
       repeat rw[norm_mul]
-    _ ≤ C₂ * (C₃ * X) * (C₁ * (ε * ‖σ - X * I‖ ^ 2)⁻¹) * T^2 := by
+    _ ≤ C₂ * (C₃ * T) * (C₁ * (ε * ‖σ - T * I‖ ^ 2)⁻¹) * (rexp 1 * X) := by
       apply mul_le_mul₃
       · rw[neg_div, norm_neg]
         exact log_deriv_zeta_bound
@@ -3378,24 +3379,50 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀
           linarith
         · simp only [mem_Ioc, sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
             sub_self, sub_zero, σ₁] at hσ ⊢
-          linarith[one_add_inv_log T_gt.le]
+          linarith[one_add_inv_log X_gt.le]
       · rw[cpow_def_of_ne_zero]
         · rw[norm_exp,← ofReal_log, re_ofReal_mul]
           simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
             sub_zero, σ₁]
-          rw[← le_log_iff_exp_le, log_pow, mul_comm, mul_le_mul_right]
-          exact hσ.2.trans (one_add_inv_log T_gt.le).le
+          rw[← le_log_iff_exp_le, Real.log_mul (exp_ne_zero 1), Real.log_exp, ← le_div_iff₀', add_comm, add_div, div_self, one_div]
+          exact hσ.2
+          · refine (log_pos ?_).ne.symm
+            linarith
           · apply log_pos
             linarith
-          · apply pow_pos
-            linarith
           · linarith
-        · exact_mod_cast Tpos.ne.symm
+          · positivity
+          · positivity
+        · exact_mod_cast Xpos.ne.symm
       · positivity
       · positivity
       · positivity
-    _ ≤ C' * X / (ε * T) :=
-      by sorry
+    _ = (C' * X * T) / (ε * ‖σ - T * I‖ ^ 2) := by ring
+    _ ≤ C' * X / (ε * T) := by
+      have : ‖σ - T * I‖ ^ 2 ≥ T ^ 2 := by
+        calc
+          ‖σ - T * I‖ ^ 2 = ‖σ + (-T : ℝ) * I‖ ^ 2 := by
+            congr 2
+            push_cast
+            ring
+          _ = normSq (σ + (-T : ℝ) * I) := (normSq_eq_norm_sq _).symm
+          _ = σ^2 + (-T)^2 := by
+            rw[Complex.normSq_add_mul_I]
+          _ ≥ T^2 := by
+            rw[neg_sq]
+            exact le_add_of_nonneg_left (sq_nonneg _)
+      calc
+        C' * X * T / (ε * ‖↑σ - ↑T * I‖ ^ 2) ≤ C' * X * T / (ε * T ^ 2) := by
+          rw[div_le_div_iff_of_pos_left, mul_le_mul_left]
+          exact this
+          exact ε_pos
+          positivity
+          apply mul_pos ε_pos
+          exact lt_of_lt_of_le (pow_pos Tpos 2) this
+          positivity
+        _ = C' * X / (ε * T) := by
+          field_simp
+          ring
 
 lemma I8Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
@@ -3428,7 +3455,7 @@ C \cdot \log T ^ 9
 X^{\sigma_0}
  \ d\sigma
  \leq
-C'' \cdot {X\log T^9 \over \epsilon T^2}
+C'' \cdot \frac{X\log T^9}{\epsilon T^2}
 ,
 $$
 where we used Theorems \ref{MellinOfSmooth1b} and \ref{LogDerivZetaBndUniform}, and the fact that
@@ -3441,7 +3468,7 @@ Since $T>3$, we have $\log T^9 \leq C''' T$.
 \begin{lemma}[I3Bound]\label{I3Bound}\lean{I3Bound}\leanok
 We have that
 $$
-\left|I_{3}(\nu, \epsilon, X, T)\right| \ll {X\over \epsilon}\, X^{-\frac{A}{(\log T)^9}}
+\left|I_{3}(\nu, \epsilon, X, T)\right| \ll \frac{X}{\epsilon}\, X^{-\frac{A}{(\log T)^9}}
 .
 $$
 Same with $I_7$.
@@ -3500,7 +3527,7 @@ Now we estimate $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$, and the integral is a
 \begin{lemma}[I4Bound]\label{I4Bound}\lean{I4Bound}\leanok
 We have that
 $$
-\left|I_{4}(\nu, \epsilon, X, \sigma_1, \sigma_2)\right| \ll {X\over \epsilon}\,
+\left|I_{4}(\nu, \epsilon, X, \sigma_1, \sigma_2)\right| \ll \frac{X}{\epsilon}\,
  X^{-\frac{A}{(\log T)^9}}
 .
 $$
@@ -3546,7 +3573,7 @@ Putting these together gives the result.
 \begin{lemma}[I5Bound]\label{I5Bound}\lean{I5Bound}\leanok
 We have that
 $$
-\left|I_{5}(\nu, \epsilon, X, \sigma_2)\right| \ll {X^{\sigma_2} \over \epsilon}.
+\left|I_{5}(\nu, \epsilon, X, \sigma_2)\right| \ll \frac{X^{\sigma_2}}{\epsilon}.
 $$
 \end{lemma}
 %%-/
