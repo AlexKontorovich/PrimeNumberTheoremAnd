@@ -3400,6 +3400,47 @@ where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X
 \end{proof}
 %%-/
 
+<<<<<<< HEAD
+=======
+
+lemma log_bound (X₀ : ℝ) (X₀pos : X₀ > 0) (k : ℕ) : ∃ C ≥ 1, ∀ X ≥ X₀, Real.log X ^ k ≤ C * X := by
+  -- When X is large, the ratio goes to 0.
+  have ⟨M, hM⟩ := Filter.eventually_atTop.mp (isLittleO_log_rpow_rpow_atTop k zero_lt_one).eventuallyLE
+  -- When X is small, use the extreme value theorem.
+  let f := fun X ↦ Real.log X ^ k / X
+  let I := Icc X₀ M
+  have : 0 ∉ I := notMem_Icc_of_lt X₀pos
+  have f_cont : ContinuousOn f (Icc X₀ M) :=
+    ((continuousOn_log.pow k).mono (subset_compl_singleton_iff.mpr this)).div
+    continuous_id.continuousOn (fun x hx ↦ ne_of_mem_of_not_mem hx this)
+  have ⟨C₁, hC₁⟩ := isCompact_Icc.exists_bound_of_continuousOn f_cont
+  use max C₁ 1, le_max_right C₁ 1
+  intro X hX
+  have Xpos : X > 0 := lt_of_lt_of_le X₀pos hX
+  by_cases hXM : X ≤ M
+  · rw[← div_le_iff₀ Xpos]
+    calc
+      f X ≤ ‖f X‖ := le_norm_self _
+      _ ≤ C₁ := hC₁ X ⟨hX, hXM⟩
+      _ ≤ max C₁ 1 := le_max_left C₁ 1
+  · calc
+      Real.log X ^ k ≤ ‖Real.log X ^ k‖ := le_norm_self _
+      _ ≤ ‖X ^ 1‖ := by exact_mod_cast hM X (by linarith[hXM])
+      _ = 1 * X := by
+        rw[pow_one, one_mul]
+        apply norm_of_nonneg
+        exact Xpos.le
+      _ ≤ max C₁ 1 * X := by
+        rw[mul_le_mul_right Xpos]
+        exact le_max_right C₁ 1
+
+lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X): (1 + (Real.log X)⁻¹) < 2 := by
+  rw[← one_add_one_eq_two]
+  refine (Real.add_lt_add_iff_left 1).mpr ?_
+  refine inv_lt_one_of_one_lt₀ ?_
+  refine (lt_log_iff_exp_lt ?_).mpr ?_ <;> linarith[Real.exp_one_lt_d9]
+
+-->>>>>>> 8ec737539627ec78bba745515793d3e8a196ca49
 /-%%
 \begin{lemma}[I2Bound]\label{I2Bound}\lean{I2Bound}\leanok
 We have that
@@ -3420,9 +3461,13 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
     let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
     ‖I₂ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
+
+  have := (log_bound 3 (by norm_num) 9)
+  obtain ⟨C₃, ⟨C₃_gt, hC₃⟩⟩ := this
+
   let C' : ℝ := sorry
   have : C' > 0 := by sorry
-  use ‖1/(2*π*I)‖ * (3 * C'), sorry -- by positivity
+  use ‖1/(2*π*I)‖ * (2 * C'), sorry -- by positivity
   have ⟨A, Abd, C₂, C₂pos, ζbd⟩ := LogDerivZetaBndUniform
   use A, Abd
   intro SmoothingF X X_gt ε ε_pos ε_lt_one T T_gt suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF σ₁
@@ -3447,6 +3492,20 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀
       apply pow_nonneg
       rw[log_nonneg_iff Xpos]
       exact le_trans (by norm_num) (le_of_lt X_gt)
+  have σ₁pos : 0 < σ₁ := by
+    rw[sub_pos]
+    calc
+      A / Real.log X ^ 9 ≤ 1 / 2 / Real.log X ^ 9 := by
+        refine div_le_div_of_nonneg_right (Abd.2) ?_
+        apply pow_nonneg
+        rw[log_nonneg_iff Xpos]
+        exact le_trans (by norm_num) (le_of_lt X_gt)
+      _ ≤ 1 / 2 / 1 := by
+        refine div_le_div_of_nonneg_left (by norm_num) (by norm_num) ?_
+        apply one_le_pow₀
+        apply le_of_lt
+        refine (lt_log_iff_exp_lt ?_).mpr ?_ <;> linarith[Real.exp_one_lt_d9]
+      _ < 1 := by norm_num
   suffices ∀ σ ∈ Ioc σ₁ (1 + (Real.log T)⁻¹), ‖SmoothedChebyshevIntegrand SmoothingF ε T (↑σ - ↑X * I)‖ ≤ C' * X / (ε * T) by
     calc
       ‖∫ (σ : ℝ) in σ₁..1 + (Real.log T)⁻¹,
@@ -3456,57 +3515,36 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀
         convert this using 3
         apply uIoc_of_le
         exact interval_length_nonneg
-      _ ≤ C' * X / (ε * T) * 3 := by
+      _ ≤ C' * X / (ε * T) * 2 := by
         apply mul_le_mul_of_nonneg_left
         rw[abs_of_nonneg (sub_nonneg.mpr interval_length_nonneg)]
-        dsimp[σ₁]
-        norm_num
-        suffices (Real.log T)⁻¹ + A / Real.log X ^ 9 ≤ 1 + 2 by
-          convert this
-          norm_num
-        refine add_le_add ?_ ?_
-        · rw[← inv_one]
-          apply inv_anti₀ zero_lt_one
-          rw[le_log_iff_exp_le]
-          exact le_of_lt (lt_trans (lt_trans exp_one_lt_d9 (by norm_num)) T_gt)
-          exact Tpos
-        · have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by
-            nth_rewrite 1 [← add_zero 1]
-            refine add_lt_add_of_le_of_lt ?_ ?_
-            rfl
-            rw[inv_pos, ← Real.log_one]
-            apply Real.log_lt_log
-            norm_num
-            linarith
-          have X_eq_lt_two : (1 + (Real.log X)⁻¹) < 2 := by
-            rw[← one_add_one_eq_two]
-            refine (Real.add_lt_add_iff_left 1).mpr ?_
-            refine inv_lt_one_of_one_lt₀ ?_
-            refine (lt_log_iff_exp_lt ?_).mpr ?_
-            positivity
-            have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
-            linarith
-          calc
-            A / Real.log X ^ 9 ≤ 1 / 2 / Real.log X ^ 9 := by
-              refine div_le_div_of_nonneg_right (Abd.2) ?_
-              apply pow_nonneg
-              rw[log_nonneg_iff Xpos]
-              exact le_trans (by norm_num) (le_of_lt X_gt)
-            _ ≤ 1 / 2 / 1 := by
-              refine div_le_div_of_nonneg_left (by norm_num) (by norm_num) ?_
-              apply one_le_pow₀
-              apply le_of_lt
-              refine (lt_log_iff_exp_lt ?_).mpr ?_
-              positivity
-              have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
-              linarith
-            _ ≤ 2 := by norm_num
+        calc
+          1 + (Real.log T)⁻¹ - σ₁ ≤ 1 + (Real.log T)⁻¹ := by linarith
+          _ ≤ 2 := (one_add_inv_log T_gt.le).le
+        -- suffices (Real.log T)⁻¹ + A / Real.log X ^ 9 ≤ 1 + 2 by
+        --   convert this
+        --   norm_num
+        -- refine add_le_add ?_ ?_
+        -- · rw[← inv_one]
+        --   apply inv_anti₀ zero_lt_one
+        --   rw[le_log_iff_exp_le]
+        --   · exact le_of_lt (lt_trans (lt_trans exp_one_lt_d9 (by norm_num)) T_gt)
+        --   · exact Tpos
+        --   ·
+        -- · have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by
+        --     nth_rewrite 1 [← add_zero 1]
+        --     refine add_lt_add_of_le_of_lt ?_ ?_
+        --     rfl
+        --     rw[inv_pos, ← Real.log_one]
+        --     apply Real.log_lt_log <;> linarith
+        --
+          -- insert rmg ineq here
         positivity
-      _ = 3 * C' * X / (ε * T) := by ring
+      _ = 2 * C' * X / (ε * T) := by ring
   -- Now bound the integrand
   intro σ hσ
   unfold SmoothedChebyshevIntegrand
-  have : ‖ζ' (σ - X * I) / ζ (σ - X * I)‖ ≤ C₂ * (?C₃ * X) := by
+  have log_deriv_zeta_bound : ‖ζ' (σ - X * I) / ζ (σ - X * I)‖ ≤ C₂ * (C₃ * X) := by
     by_cases hσ1 : σ < 1
     · calc
       ‖ζ' (σ - X * I) / ζ (σ - X * I)‖ = ‖ζ' (σ + (-X : ℝ) * I) / ζ (σ + (-X : ℝ) * I)‖ := by
@@ -3517,17 +3555,37 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀
           exact X_gt
         · rw[abs_neg, abs_of_nonneg Xpos.le]
         · exact ⟨hσ.1.le, hσ1⟩
-      _ ≤ C₂ * (?C₃ * X) := by
+      _ ≤ C₂ * (C₃ * X) := by
         apply mul_le_mul_of_nonneg_left ?_ C₂pos.le
-        swap
-        -- Finish with a theorem such as isLittleO_log_rpow_rpow_atTop
-        -- to bound the growth of the log.
-        sorry
-        sorry
+        exact hC₃ X X_gt.le
     · -- If σ > 1, it should be easy
+      simp at hσ1
       sorry
   -- Then estimate the remaining factors.
-  sorry
+  calc
+    ‖-ζ' (σ - X * I) / ζ (σ - X * I) * 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x))
+        (σ - X * I) * T ^ (σ - X * I)‖ =
+        ‖-ζ' (σ - X * I) / ζ (σ - X * I)‖ * ‖𝓜 (fun x ↦ (Smooth1 SmoothingF ε x))
+        (σ - X * I)‖ * ‖(T : ℂ) ^ (σ - X * I)‖ := by
+      repeat rw[norm_mul]
+    _ ≤ C₂ * (C₃ * X) * (C₁ * (ε * ‖σ - X * I‖ ^ 2)⁻¹) * T^2 := by
+      apply mul_le_mul₃
+      · rw[neg_div, norm_neg]
+        exact log_deriv_zeta_bound
+      · refine Mbd σ₁ σ₁pos _ ?_ ?_ ε ε_pos ε_lt_one
+        · simp at hσ ⊢
+          linarith
+        · simp at hσ ⊢
+          linarith[one_add_inv_log T_gt.le]
+      · rw[cpow_def_of_ne_zero]
+        · rw[norm_exp]
+          sorry -- resume here
+        · exact_mod_cast Tpos.ne.symm
+      · positivity
+      · positivity
+      · positivity
+    _ ≤ C' * X / (ε * T) :=
+      by sorry
 
 lemma I8Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
