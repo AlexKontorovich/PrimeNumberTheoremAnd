@@ -2103,103 +2103,6 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   rw [verticalIntegral_split_three (a := -T) (b := T)]
   swap
   ·
-    have holoIntegrand : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X)
-        (Ico (1 + (Real.log X)⁻¹) 2 ×ℂ univ \ {1}) := by
-      unfold SmoothedChebyshevIntegrand HolomorphicOn
-      refine DifferentiableOn.mul ?_ ?_
-      refine DifferentiableOn.mul ?_ ?_
-      have : (fun s ↦ -ζ' s / ζ s) = (fun s ↦ -(ζ' s / ζ s)) := by
-        refine funext ?_
-        intro x
-        exact neg_div (ζ x) (ζ' x)
-      rw[this]
-      refine DifferentiableOn.neg ?_
-      unfold DifferentiableOn
-      intro s s_location
-      rw[Set.mem_diff, Complex.mem_reProdIm] at s_location
-      obtain ⟨⟨sReIn, sImIn⟩, sOut⟩ := s_location
-      obtain ⟨A, A_inter, Tlb, Tlb_inter, holoOnTemp⟩ := LogDerivZetaHolcLargeT
-      have : ∃ (T : ℝ), Tlb < T ∧ |s.im| < T := by
-        let T : ℝ := 1 + max Tlb |s.im|
-        use T
-        have temp : Tlb < T := by
-          dsimp[T]
-          nth_rewrite 1 [← zero_add Tlb]
-          refine add_lt_add_of_lt_of_le ?_ ?_
-          norm_num
-          exact le_max_left Tlb |s.im|
-        have : |s.im| < T := by
-          dsimp[T]
-          nth_rewrite 1 [← zero_add |s.im|]
-          refine add_lt_add_of_lt_of_le ?_ ?_
-          norm_num
-          exact le_max_right Tlb |s.im|
-        exact ⟨temp, this⟩
-      obtain ⟨T, Tbounds⟩ := this
-      have holoOnTemp : HolomorphicOn (fun s ↦ ζ' s / ζ s)
-        (Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1}) := by exact holoOnTemp T Tbounds.1
-      unfold HolomorphicOn at holoOnTemp
-      unfold DifferentiableOn at holoOnTemp
-      have sInBiggerBox : s ∈ Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1} := by
-        rw[Set.mem_diff, Complex.mem_reProdIm]
-        have temp : s.re ∈ Ioo (1 - A / Real.log T ^ 9) 2 := by
-          have : 1 - A / Real.log T ^ 9 < s.re := by
-            have : 1 - A / Real.log T ^ 9 < 1 + (Real.log X)⁻¹ := by
-              have : 0 < A / Real.log T ^ 9 := by
-                refine div_pos ?_ ?_
-                exact A_inter.1
-                apply pow_pos
-                rw[← Real.log_one]
-                apply Real.log_lt_log
-                positivity
-                linarith
-              have : 0 < (Real.log X)⁻¹ := by
-                rw[inv_pos, ← Real.log_one]
-                apply Real.log_lt_log
-                positivity
-                linarith
-              linarith
-            exact lt_of_le_of_lt' sReIn.1 this
-          exact ⟨this, sReIn.2⟩
-        have : s.im ∈ Ioo (-T) T := by
-          obtain ⟨_, abs_sIm_bound⟩ := Tbounds
-          exact ⟨by exact neg_lt_of_abs_lt abs_sIm_bound, by exact lt_of_abs_lt abs_sIm_bound⟩
-        exact ⟨⟨temp, this⟩, sOut⟩
-      have : DifferentiableWithinAt ℂ (fun s ↦ ζ' s / ζ s)
-        (Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1}) s := by exact holoOnTemp s sInBiggerBox
-      refine DifferentiableAt.differentiableWithinAt ?_
-      have h_open : IsOpen (Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1}) := by
-        apply IsOpen.sdiff
-        refine IsOpen.reProdIm (by exact isOpen_Ioo) (by exact isOpen_Ioo)
-        exact isClosed_singleton
-      have h_mem : s ∈ Ioo (1 - A / Real.log T ^ 9) 2 ×ℂ Ioo (-T) T \ {1} := sInBiggerBox
-      exact this.differentiableAt (h_open.mem_nhds h_mem)
-      unfold DifferentiableOn
-      intro s s_location
-      rw[Set.mem_diff, Complex.mem_reProdIm] at s_location
-      obtain ⟨⟨sReIn, sImIn⟩, sOut⟩ := s_location
-      refine DifferentiableAt.differentiableWithinAt ?_
-      have εInter : ε ∈ Ioo 0 1 := by exact ⟨ε_pos, ε_lt_one⟩
-      have hs : 0 < s.re := by
-        have : 1 + (Real.log X)⁻¹ ≤ s.re := by exact sReIn.1
-        linarith
-      exact Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF εInter SmoothingFnonneg
-        mass_one hs
-      intro s hs
-      apply DifferentiableAt.differentiableWithinAt
-      cases' hs with h_in h_not_one
-      unfold HPow.hPow instHPow
-      simp
-      apply DifferentiableAt.const_cpow
-      exact differentiableAt_fun_id
-      refine Or.inl ?_
-      refine ne_zero_of_re_pos ?_
-      rw[ofReal_re]
-      positivity
-      -- apply add_pos (by positivity)
-      -- rw[inv_pos, ← Real.log_one]
-      -- apply Real.log_lt_log (by positivity) (by linarith)
-
     exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_gt_one
       X_eq_le_two suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
   ·
@@ -2656,7 +2559,6 @@ lemma interval_membership (r : ℝ)(a b: ℝ)(h1 : r ∈ Set.Icc (min a b) (max 
   rw [← @mem_Icc]
   exact h1
 
--- use intervalIntegral.integral_add_adjacent_intervals
 lemma verticalIntegral_split_three_finite {s a b e σ : ℝ} {f : ℂ → ℂ}
     (hf : IntegrableOn (fun t : ℝ ↦ f (σ + t * I)) (Icc s e))
     (hab: s < a ∧ a < b ∧ b < e):
@@ -2664,45 +2566,11 @@ lemma verticalIntegral_split_three_finite {s a b e σ : ℝ} {f : ℂ → ℂ}
     VIntegral f σ s a +
     VIntegral f σ a b +
     VIntegral f σ b e := by
-  rw [VIntegral, VIntegral, VIntegral, VIntegral]
-  -- First establish integrability on each subinterval
-  have hf_sa : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume a e := by
-    obtain ⟨hsa, hab, hbe⟩ := hab
-    have sa_subset_sb : Icc s a ⊆ Icc s b := by
-      exact Icc_subset_Icc_right hab.le
-    sorry
-
-  have hf_ae : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume a e := by
-    obtain ⟨hsa, hab, hbe⟩ := hab
-    have sa_subset_sb : Icc a e ⊆ Icc s e := by
-      sorry
-      --exact Icc_subset_Icc_right hae.le -- we don't yet have hae.le
-    sorry
-
-  have hf_ab : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume a b := by
-    obtain ⟨hsa, hab, hbe⟩ := hab
-    have sa_subset_sb : Icc a b ⊆ Icc a e := by
-      exact Icc_subset_Icc_right hbe.le
-    sorry
-
-  have hf_be : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume b e := by
-    obtain ⟨hsa, hab, hbe⟩ := hab
-    have sa_subset_sb : Icc b e ⊆ Icc a e := by
-      exact Icc_subset_Icc_left hab.le
-    sorry
-
-  -- First split: s to e = (s to a) + (a to e)
-  have h1 : ∫ t in s..e, f (σ + t * I) =
-    ∫ t in s..a, f (σ + t * I) + ∫ t in a..e, f (σ + t * I) := by
-    sorry
-    --exact intervalIntegral.integral_add_adjacent_intervals hf_sa hf_ae
-
-  -- Second split: a to e = (a to b))+ (b to e)
-  have h2 : ∫ t in s..e, f (σ + t * I) =
-    ∫ t in s..a, f (σ + t * I) + ∫ t in a..e, f (σ + t * I) := by
-    sorry --exact intervalIntegral.integral_add_adjacent_intervals hf_ab hf_be
-
-  sorry
+  dsimp [VIntegral]
+  rw [← intervalIntegrable_iff_integrableOn_Icc_of_le (by linarith)] at hf
+  rw[← intervalIntegral.integral_add_adjacent_intervals (b := a), ← intervalIntegral.integral_add_adjacent_intervals (a := a) (b := b)]
+  · ring
+  all_goals apply IntervalIntegrable.mono_set hf; apply uIcc_subset_uIcc <;> apply mem_uIcc_of_le <;> linarith
 
 lemma verticalIntegral_split_three_finite' {s a b e σ : ℝ} {f : ℂ → ℂ}
     (hf : IntegrableOn (fun t : ℝ ↦ f (σ + t * I)) (Icc s e))
