@@ -1086,11 +1086,6 @@ noncomputable def I₅ (SmoothingF : ℝ → ℝ) (ε X σ₂ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-3)..3,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₂ + t * I)))
 
-
-
-
-
-
 theorem realDiff_of_complexDIff {f : ℂ → ℂ} (s : ℂ) (hf : DifferentiableAt ℂ f s) :
     ContinuousAt (fun (x : ℝ) ↦ f (s.re + x * I)) s.im := by
   -- First, get continuity of f at s from differentiability
