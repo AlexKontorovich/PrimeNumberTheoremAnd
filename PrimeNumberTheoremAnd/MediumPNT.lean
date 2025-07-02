@@ -3101,9 +3101,8 @@ theorem I1Bound :
       linarith
     have Z : Real.log 3 < Real.log X :=
       by
-        sorry
-          -- refine Real.log_monotoneOn (Z0) (Z1) ?_
-
+        refine log_lt_log ?_ X_large
+        simp
 
     have Z01 : 1 < Real.log 3  :=
       by
@@ -3113,11 +3112,10 @@ theorem I1Bound :
         have Z003 : (0 : ℝ) < 3 := by positivity
         have Z004 : rexp 1 < 3 := by
           calc
-            rexp 1 < 2.7182818286 := Real.exp_one_lt_d9
-            _ < 3 := by sorry
+            rexp 1 < (↑ 2.7182818286 : ℚ) := Real.exp_one_lt_d9
+            _ < (↑ 3 : ℚ) := by linarith
 
         exact (Real.log_lt_log_iff Z002 Z003).mpr Z004
-
 
     have Zpos0 : 0 < Real.log 3 := by positivity
     have Zpos1 : 0 < Real.log X := by calc
@@ -3165,7 +3163,10 @@ theorem I1Bound :
 
   have triv_pts_up_bound : ∀(t : ℝ), (pts t).re ≤ 2 := by
     intro t
-    sorry
+    unfold pts
+    refine EReal.coe_le_coe_iff.mp ?_
+    · simp_all
+      exact le_of_lt pts_re_le_one
 
   have pts_re_ge_1 : pts_re > 1 := by
     unfold pts_re
@@ -3264,6 +3265,23 @@ theorem I1Bound :
 
   have f_integrable := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt σ₀_le_2 smoothing_support_hyp smoothing_pos_for_x_pos smoothing_integrates_to_1 smoothing_cont_diff
 
+  have S : X^pts_re = rexp 1 * X := by
+    unfold pts_re
+    simp_all
+    calc
+      X ^ (1 + (Real.log X)⁻¹) = X * X ^ ((Real.log X)⁻¹) := by
+        refine rpow_one_add' ?_ ?_
+        · positivity
+        · exact Ne.symm (ne_of_lt pts_re_pos)
+      _ = X * rexp 1 := by
+        refine (mul_right_inj' ?_).mpr ?_
+        · exact Ne.symm (ne_of_lt X_pos_triv)
+        · refine rpow_inv_log X_pos_triv ?_
+          · by_contra h
+            simp_all
+      _ = rexp 1 * X := by simp
+
+
   have Z :=
     by
       calc
@@ -3299,7 +3317,16 @@ theorem I1Bound :
               have U := integral_evaluation (pts_re) T (T_large)
               unfold pts
               simp [U]
-              have U2 : 0 ≤ (K * M) * Real.log X * X ^ pts_re * eps⁻¹ := by sorry
+              have U2 : 0 ≤ (K * M) * Real.log X * X ^ pts_re * eps⁻¹ := by
+                simp_all
+                refine Left.mul_nonneg ?_ ?_
+                · refine Left.mul_nonneg ?_ ?_
+                  · exact Left.mul_nonneg (by positivity) (by positivity)
+                  · refine log_nonneg ?_
+                    · linarith
+                · refine Left.mul_nonneg ?_ ?_
+                  · exact exp_nonneg 1
+                  · exact le_of_lt X_pos_triv
               have U1 := IsOrderedRing.mul_le_mul_of_nonneg_left
                 (∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹)
                 (T⁻¹)
@@ -3307,14 +3334,16 @@ theorem I1Bound :
                 U
                 U2
               exact U1
-        _ = (Real.exp 1 * K * M) * Real.log X * X * eps⁻¹ * T⁻¹ := by sorry
+        _ = (Real.exp 1 * K * M) * Real.log X * X * eps⁻¹ * T⁻¹ := by
+          rw [S]
+          ring_nf
         _ = (Real.exp 1 * K * M) * X * Real.log X / (eps * T) := by ring_nf
 
 
   unfold I₁
   unfold f at Z
   unfold pts at Z
-  have Z3 : (↑pts_re : ℂ) = 1 + (Real.log X)⁻¹ := by sorry
+  have Z3 : (↑pts_re : ℂ) = 1 + (Real.log X)⁻¹ := by unfold pts_re; norm_cast
   rw [Z3] at Z
   rw [Complex.norm_mul (1 / (2 * ↑π * I)) _]
   simp [*]
