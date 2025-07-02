@@ -76,10 +76,10 @@ lemma square_neg (p : ℂ) (c : ℝ) : Square p (-c) = Square p c := by
 
 
 theorem Set.left_not_mem_uIoo {a b : ℝ} : a ∉ Set.uIoo a b :=
-  fun ⟨h1, h2⟩ ↦ (left_lt_sup.mp h2) (le_of_not_le (inf_lt_left.mp h1))
+  fun ⟨h1, h2⟩ ↦ (left_lt_sup.mp h2) (le_of_not_ge (inf_lt_left.mp h1))
 
 theorem Set.right_not_mem_uIoo {a b : ℝ} : b ∉ Set.uIoo a b :=
-  fun ⟨h1, h2⟩ ↦ (right_lt_sup.mp h2) (le_of_not_le (inf_lt_right.mp h1))
+  fun ⟨h1, h2⟩ ↦ (right_lt_sup.mp h2) (le_of_not_ge (inf_lt_right.mp h1))
 
 theorem Set.ne_left_of_mem_uIoo {a b c : ℝ} (hc : c ∈ Set.uIoo a b) : c ≠ a :=
   fun h ↦ Set.left_not_mem_uIoo (h ▸ hc)

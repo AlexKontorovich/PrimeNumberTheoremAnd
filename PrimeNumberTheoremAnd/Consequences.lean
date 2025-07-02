@@ -24,7 +24,7 @@ lemma Set.Ico_subset_Ico_of_Icc_subset_Icc {a b c d : ℝ} (h : Set.Icc a b ⊆ 
   simp only [mem_Ico, mem_Icc] at *
   refine ⟨hz'.1, hz'.2.eq_or_lt.resolve_left ?_⟩
   rintro rfl
-  apply hz.2.not_le
+  apply hz.2.not_ge
   have := h <| right_mem_Icc.mpr (hz.1.trans hz.2.le)
   simp only [mem_Icc] at this
   exact this.2
@@ -37,7 +37,7 @@ lemma Set.Ico_subset_Ico_of_Icc_subset_Icc {a b c d : ℝ} (h : Set.Icc a b ⊆ 
 -- AkraBazzi.lean
 lemma deriv_smoothingFn' {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) : deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) := by
   have : log x ≠ 0 := Real.log_ne_zero_of_pos_of_ne_one hx_pos hx
-  rw [deriv_inv''] <;> aesop
+  rw [deriv_fun_inv''] <;> aesop
 
 lemma deriv_smoothingFn {x : ℝ} (hx : 1 < x) : deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) :=
   deriv_smoothingFn' (by positivity) (ne_of_gt hx)
@@ -58,7 +58,7 @@ lemma th_eq_zero_of_lt_two {x : ℝ} (hx : x < 2) : th x = 0 := by
   simp only [mem_filter, mem_Iic, notMem_empty, iff_false, not_and]
   intro hy
   have : y < 2 := by
-    cases lt_or_le x 0 with
+    cases lt_or_ge x 0 with
     | inl hx' =>
       have := Nat.floor_of_nonpos hx'.le
       rw [this, nonpos_iff_eq_zero] at hy
@@ -211,7 +211,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
   rw [h2]
   simp [a, ← th_def', div_eq_mul_inv, mul_comm]
   · intro z hz1 hz2
-    refine (differentiableAt_id'.log ?_).inv (log_ne_zero_of_pos_of_ne_one ?_ ?_) <;> linarith
+    refine (differentiableAt_fun_id.log ?_).inv (log_ne_zero_of_pos_of_ne_one ?_ ?_) <;> linarith
   · have : ∀ y ∈ Set.Icc (3 / 2) x, deriv (fun x ↦ (log x)⁻¹) y = -(y * log y ^ 2)⁻¹:= by
       intro y hy
       simp only [Set.mem_Icc] at hy
@@ -704,7 +704,7 @@ lemma integral_log_inv (a b : ℝ) (ha : 2 ≤ a) (hb : a ≤ b) :
       (v := fun x => x)
       (v' := fun _ => 1) (a := a) (b := b)
       (fun x hx => by
-        rw [Set.uIcc_eq_union, Set.Icc_eq_empty (lt_iff_not_le |>.1 hb), Set.union_empty] at hx
+        rw [Set.uIcc_eq_union, Set.Icc_eq_empty (lt_iff_not_ge |>.1 hb), Set.union_empty] at hx
         obtain ⟨hx1, _⟩ := hx
         simp only
         rw [show (-1 / (x * log x ^ 2)) = (-1 / log x ^ 2) * (x⁻¹) by rw [mul_comm x]; field_simp]
@@ -2082,13 +2082,13 @@ lemma prime_in_gap (a b : ℝ) (ha : 0 < a)
   refine ⟨w, h, lt_of_floor_lt ha, ?_⟩
   have : a < b := by
     by_contra h
-    cases lt_or_eq_of_le <| le_of_not_lt h with
+    cases lt_or_eq_of_le <| le_of_not_gt h with
     | inl hh => linarith [floor_le_floor <| le_of_lt hh]
     | inr hh =>
       rw [hh] at hab
       rwa [←lt_self_iff_false ⌊a⌋₊]
   by_contra h
-  have : ⌊b⌋₊ < w := floor_lt (by linarith) |>.mpr (lt_of_not_le h)
+  have : ⌊b⌋₊ < w := floor_lt (by linarith) |>.mpr (lt_of_not_ge h)
   have : ⌊b⌋₊ + 1 ≤ w := by linarith
   linarith
 

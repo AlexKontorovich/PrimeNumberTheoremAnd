@@ -633,7 +633,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
         exact le_trans n₀_inside_le_X X_le_floor_add_one
       have : ↑⌊X + 1⌋₊ - ↑n₀ ≤ X + 1 - ↑n₀ := by
         apply sub_le_sub_right floor_X_add_one_le_self
-      exact le_of_lt (gt_of_ge_of_gt this temp)
+      exact temp.le.trans this
     have inter1: ‖ Λ (n + n₀)‖ ≤ Real.log (↑n + ↑n₀) := by
       rw[Real.norm_of_nonneg, ← Nat.cast_add]
       apply ArithmeticFunction.vonMangoldt_le_log
@@ -1211,7 +1211,7 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
 
   let s₀ := σ₀
 
-  have σ₁_gt_one : 1 < σ₁ := by exact gt_of_ge_of_gt σ₀_lt_σ₁ σ₀_gt_one
+  have σ₁_gt_one : 1 < σ₁ := by exact lt_of_le_of_lt' σ₀_lt_σ₁ σ₀_gt_one
   have s₀_gt_one : 1 < (↑σ₀ : ℂ).re := by exact σ₀_gt_one
 
   have s₁_re_geq_one : 1 < s₁.re := by exact lt_of_lt_of_eq σ₁_gt_one (id (Eq.symm s₁_re_eq_sigma))
@@ -2093,9 +2093,8 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     refine (Real.add_lt_add_iff_left 1).mpr ?_
     refine inv_lt_one_of_one_lt₀ ?_
     refine (lt_log_iff_exp_lt ?_).mpr ?_
-    positivity
-    have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
-    linarith
+    · positivity
+    · linarith [Real.exp_one_lt_d9]
   have X_eq_le_two : 1 + (Real.log X)⁻¹ ≤ 2 := X_eq_lt_two.le
   rw [verticalIntegral_split_three (a := -T) (b := T)]
   swap
@@ -2156,7 +2155,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
                 positivity
                 linarith
               linarith
-            exact gt_of_ge_of_gt sReIn.1 this
+            exact lt_of_le_of_lt' sReIn.1 this
           exact ⟨this, sReIn.2⟩
         have : s.im ∈ Ioo (-T) T := by
           obtain ⟨_, abs_sIm_bound⟩ := Tbounds
@@ -2188,7 +2187,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       unfold HPow.hPow instHPow
       simp
       apply DifferentiableAt.const_cpow
-      exact differentiableAt_id'
+      exact differentiableAt_fun_id
       refine Or.inl ?_
       refine ne_zero_of_re_pos ?_
       rw[ofReal_re]
@@ -2443,7 +2442,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
           unfold HPow.hPow instHPow
           simp only
           apply DifferentiableAt.const_cpow
-          · exact differentiableAt_id'
+          · exact differentiableAt_fun_id
           · left
             refine ne_zero_of_re_pos ?_
             simp only [ofReal_re]
@@ -2509,7 +2508,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
           unfold HPow.hPow instHPow
           simp
           apply DifferentiableAt.const_cpow
-          exact differentiableAt_id'
+          exact differentiableAt_fun_id
           refine Or.inl ?_
           refine ne_zero_of_re_pos ?_
           rw[ofReal_re]
@@ -3415,6 +3414,40 @@ where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X
 \end{proof}
 %%-/
 
+
+lemma log_bound (X₀ : ℝ) (X₀pos : X₀ > 0) (k : ℕ) : ∃ C : ℝ, ∀ X ≥ X₀, Real.log X ^ k ≤ C * X := by
+  -- When X is large, the ratio goes to 0.
+  have ⟨M, hM⟩ := Filter.eventually_atTop.mp (isLittleO_log_rpow_rpow_atTop k zero_lt_one).eventuallyLE
+  -- When X is small, use the extreme value theorem.
+  let f := fun X ↦ Real.log X ^ k / X
+  let I := Icc X₀ M
+  have : 0 ∉ I := notMem_Icc_of_lt X₀pos
+  have f_cont : ContinuousOn f (Icc X₀ M) :=
+    ((continuousOn_log.pow k).mono (subset_compl_singleton_iff.mpr this)).div
+    continuous_id.continuousOn (fun x hx ↦ ne_of_mem_of_not_mem hx this)
+  have ⟨C₁, hC₁⟩ := isCompact_Icc.exists_bound_of_continuousOn f_cont
+  use max C₁ 1
+  intro X hX
+  have Xpos : X > 0 := lt_of_lt_of_le X₀pos hX
+  by_cases hXM : X ≤ M
+  · rw[← div_le_iff₀ Xpos]
+    calc
+      f X ≤ ‖f X‖ := le_norm_self _
+      _ ≤ C₁ := hC₁ X ⟨hX, hXM⟩
+      _ ≤ max C₁ 1 := le_max_left C₁ 1
+  · calc
+      Real.log X ^ k ≤ ‖Real.log X ^ k‖ := le_norm_self _
+      _ ≤ ‖X ^ 1‖ := by exact_mod_cast hM X (by linarith[hXM])
+      _ = 1 * X := by
+        rw[pow_one, one_mul]
+        apply norm_of_nonneg
+        exact Xpos.le
+      _ ≤ max C₁ 1 * X := by
+        rw[mul_le_mul_right Xpos]
+        exact le_max_right C₁ 1
+
+
+
 /-%%
 \begin{lemma}[I2Bound]\label{I2Bound}\lean{I2Bound}\leanok
 We have that
@@ -3483,24 +3516,19 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀
         · rw[← inv_one]
           apply inv_anti₀ zero_lt_one
           rw[le_log_iff_exp_le]
-          exact le_of_lt (lt_trans (lt_trans exp_one_lt_d9 (by norm_num)) T_gt)
-          exact Tpos
+          · exact le_of_lt (lt_trans (lt_trans exp_one_lt_d9 (by norm_num)) T_gt)
+          · exact Tpos
         · have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by
             nth_rewrite 1 [← add_zero 1]
             refine add_lt_add_of_le_of_lt ?_ ?_
             rfl
             rw[inv_pos, ← Real.log_one]
-            apply Real.log_lt_log
-            norm_num
-            linarith
+            apply Real.log_lt_log <;> linarith
           have X_eq_lt_two : (1 + (Real.log X)⁻¹) < 2 := by
             rw[← one_add_one_eq_two]
             refine (Real.add_lt_add_iff_left 1).mpr ?_
             refine inv_lt_one_of_one_lt₀ ?_
-            refine (lt_log_iff_exp_lt ?_).mpr ?_
-            positivity
-            have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
-            linarith
+            refine (lt_log_iff_exp_lt ?_).mpr ?_ <;> linarith[Real.exp_one_lt_d9]
           calc
             A / Real.log X ^ 9 ≤ 1 / 2 / Real.log X ^ 9 := by
               refine div_le_div_of_nonneg_right (Abd.2) ?_
@@ -3511,10 +3539,7 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀
               refine div_le_div_of_nonneg_left (by norm_num) (by norm_num) ?_
               apply one_le_pow₀
               apply le_of_lt
-              refine (lt_log_iff_exp_lt ?_).mpr ?_
-              positivity
-              have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
-              linarith
+              refine (lt_log_iff_exp_lt ?_).mpr ?_ <;> linarith[Real.exp_one_lt_d9]
             _ ≤ 2 := by norm_num
         positivity
       _ = 3 * C' * X / (ε * T) := by ring
@@ -3534,9 +3559,8 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀
         · exact ⟨hσ.1.le, hσ1⟩
       _ ≤ C₂ * (?C₃ * X) := by
         apply mul_le_mul_of_nonneg_left ?_ C₂pos.le
-        swap
-        -- Finish with a theorem such as isLittleO_log_rpow_rpow_atTop
-        -- to bound the growth of the log.
+        have := (log_bound 3 (by norm_num) 9)
+        -- obtain ⟨C₄, hC₄⟩ := this
         sorry
         sorry
     · -- If σ > 1, it should be easy

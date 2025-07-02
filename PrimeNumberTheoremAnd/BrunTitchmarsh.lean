@@ -302,8 +302,6 @@ theorem err_isBigO : (fun x ↦ (x ^ (1 / 2 : ℝ) * (1 + 1 / 2 * Real.log x) ^ 
       apply IsBigO.mul (isBigO_refl ..) (Real.isLittleO_const_log_atTop.isBigO.add ((isBigO_refl ..).const_mul_left ..) |>.pow _)
     _ =O[atTop] _ := by
       convert rpow_mul_rpow_log_isBigO_id_div_log 3 (?_) <;> norm_num
-      rw [← Real.rpow_natCast]
-      norm_cast
 
 theorem card_range_filter_prime_isBigO : (fun N ↦ ((Finset.range N).filter Nat.Prime).card : ℕ → ℝ) =O[atTop] (fun N ↦ N / Real.log N) := calc
   _ =O[atTop] (fun N ↦ 4 * (N / Real.log N) + 6 * (N ^ (1/2 : ℝ) * (1 + 1/2 * Real.log N)^3) : ℕ→ℝ) := by
