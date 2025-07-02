@@ -3203,7 +3203,7 @@ where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X
 \end{proof}
 %%-/
 
-
+/-TODO: Merge with IBound_aux1.-/
 lemma log_bound (X₀ : ℝ) (X₀pos : X₀ > 0) (k : ℕ) : ∃ C ≥ 1, ∀ X ≥ X₀, Real.log X ^ k ≤ C * X := by
   -- When X is large, the ratio goes to 0.
   have ⟨M, hM⟩ := Filter.eventually_atTop.mp (isLittleO_log_rpow_rpow_atTop k zero_lt_one).eventuallyLE
@@ -3373,13 +3373,23 @@ lemma I2Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)), ∀
       · rw[neg_div, norm_neg]
         exact log_deriv_zeta_bound
       · refine Mbd σ₁ σ₁pos _ ?_ ?_ ε ε_pos ε_lt_one
-        · simp at hσ ⊢
+        · simp only [mem_Ioc, sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+            sub_self, sub_zero, σ₁] at hσ ⊢
           linarith
-        · simp at hσ ⊢
+        · simp only [mem_Ioc, sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+            sub_self, sub_zero, σ₁] at hσ ⊢
           linarith[one_add_inv_log T_gt.le]
       · rw[cpow_def_of_ne_zero]
-        · rw[norm_exp]
-          sorry -- resume here
+        · rw[norm_exp,← ofReal_log, re_ofReal_mul]
+          simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+            sub_zero, σ₁]
+          rw[← le_log_iff_exp_le, log_pow, mul_comm, mul_le_mul_right]
+          exact hσ.2.trans (one_add_inv_log T_gt.le).le
+          · apply log_pos
+            linarith
+          · apply pow_pos
+            linarith
+          · linarith
         · exact_mod_cast Tpos.ne.symm
       · positivity
       · positivity
@@ -3404,8 +3414,8 @@ Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{2}(\nu, \epsilon, X, T, \sigma_1)\right| =
 \left|\frac{1}{2\pi i} \int_{\sigma_1}^{\sigma_0}
-\left(\frac{-\zeta'}\zeta(\sigma - T i) \right)
-\mathcal M(\widetilde 1_\epsilon)(\sigma - T i)
+\left(\frac{-\zeta'}\zeta(\sigma - T i) \right) \cdot
+\mathcal M(\widetilde 1_\epsilon)(\sigma - T i) \cdot
 X^{\sigma - T i}
  \ d\sigma
 \right|
