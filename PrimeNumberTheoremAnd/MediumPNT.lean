@@ -1,5 +1,6 @@
 import PrimeNumberTheoremAnd.ZetaBounds
 import Mathlib.Algebra.Group.Support
+import Mathlib.Analysis.SpecialFunctions.Log.Monotone
 
 set_option lang.lemmaCmd true
 
@@ -2999,23 +3000,70 @@ $$
 Same with $I_9$.
 \end{lemma}
 %%-/
+
+set_option maxHeartbeats 4000000
+
 theorem I1Bound :
-    ∃ C > 0, ∀ {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+    ∀ {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    ∃ C > 0, ∀(ε : ℝ) (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     (X : ℝ) (X_gt : 3 < X)
     {T : ℝ} (T_gt : 3 < T) {σ₁ : ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) ,
     ‖I₁ SmoothingF ε X T‖ ≤ C * X * Real.log X / (ε * T) := by
 
-  let (C_final : ℝ)  := 101
-  have C_final_pos : C_final > 0 := by sorry
-  use C_final
+  intro Smoothing
+  intro smoothing_support_hyp
+  intro smoothing_cont_diff
+
+  obtain ⟨M, ⟨M_is_pos, M_bounds_mellin_hard⟩⟩ :=
+    MellinOfSmooth1b smoothing_cont_diff smoothing_support_hyp
+
+  have G0 : ∃K > 0, ∀(t σ : ℝ), 1 < σ → σ < 2 → ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ K * (σ - 1)⁻¹ := by
+    let ⟨K', ⟨K'_pos, K'_bounds_zeta⟩⟩ := triv_bound_zeta
+    use (2 * (K' + 1))
+    use (by positivity)
+    intro t
+    intro σ
+    intro cond
+    intro cond2
+
+    have T0 : 0 < K' + 1 := by positivity
+    have T1 : 1 ≤ (σ - 1)⁻¹ := by
+      have U : σ - 1 ≤ 1 := by linarith
+      have U1 := (inv_le_inv₀ (by positivity) (by exact sub_pos.mpr cond)).mpr U
+      simp_all [U1]
+
+    have T : (K' + 1) * 1 ≤ (K' + 1) * (σ - 1)⁻¹ :=
+      by
+        exact (mul_le_mul_left T0).mpr T1
+    have T2 : (K' + 1) ≤ (K' + 1) * (σ - 1)⁻¹ := by
+      simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, mul_inv_rev, ge_iff_le, Complex.norm_div,
+  norm_neg, mul_one, le_mul_iff_one_le_right]
+
+    have U := calc
+      ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ = ‖-ζ' (σ + t * I) / ζ (σ + t * I)‖ := by
+        rw [← norm_neg _, mul_comm, neg_div' _ _]
+      _ ≤ (σ - 1)⁻¹ + K' := K'_bounds_zeta σ t cond
+      _ ≤ (σ - 1)⁻¹ + (K' + 1) := by aesop
+      _ ≤ (K' + 1) * (σ - 1)⁻¹ + (K' + 1) := by aesop
+      _ ≤ (K' + 1) * (σ - 1)⁻¹ + (K' + 1) * (σ - 1)⁻¹ := by linarith
+      _ = 2 * (K' + 1) * (σ - 1)⁻¹ := by
+        ring_nf
+
+    exact U
+
+  obtain ⟨K, ⟨K_is_pos, K_bounds_zeta_at_any_t'⟩⟩ := G0
+
+--  let (C_final : ℝ) := K * M
+  have C_final_pos : |π|⁻¹ * 2⁻¹ * (Real.exp 1 * K * M) > 0 := by
+    positivity
+
+  use (|π|⁻¹ * 2⁻¹ * (Real.exp 1 * K * M))
   use C_final_pos
 
-  intro Smoothing
   intro eps
   intro eps_pos
   intro eps_less_one
@@ -3024,20 +3072,87 @@ theorem I1Bound :
   intro T
   intro T_large
   intro σ₁ -- This is unnecessary, could do intro _
-  intro smoothing_support_hyp
   intro smoothing_pos_for_x_pos
   intro smoothing_integrates_to_1
-  intro smoothing_cont_diff
 
   --unfold I₁
 
-  let (pts_re : ℝ) := 1 + (Real.log X)⁻¹
+  let pts_re := 1 + (Real.log X)⁻¹
   let pts := fun (t : ℝ) ↦ (pts_re + t * I)
+
 
   have pts_re_triv : ∀(t : ℝ), (pts t).re = pts_re := by
     intro t
     unfold pts
     simp [*]
+
+  have pts_re_ge_one : 1 < pts_re := by
+    unfold pts_re
+    simp
+    have U : 1 < X := by linarith
+    exact Real.log_pos U
+
+  have pts_re_le_one : pts_re < 2 := by
+    unfold pts_re
+    have Z0 : 3 ∈ {x : ℝ | 1 ≤ x} := by
+      simp_all
+    have Z1 : X ∈ {x : ℝ | 1 ≤ x} := by
+      simp [*]
+      linarith
+    have Z : Real.log 3 < Real.log X :=
+      by
+        sorry
+          -- refine Real.log_monotoneOn (Z0) (Z1) ?_
+
+
+    have Z01 : 1 < Real.log 3  :=
+      by
+        have Z001 : 1 = Real.log (rexp 1) := by exact Eq.symm (Real.log_exp 1)
+        rw [Z001]
+        have Z002 : (0 : ℝ) < rexp 1 := by positivity
+        have Z003 : (0 : ℝ) < 3 := by positivity
+        have Z004 : rexp 1 < 3 := by
+          calc
+            rexp 1 < 2.7182818286 := Real.exp_one_lt_d9
+            _ < 3 := by sorry
+
+        exact (Real.log_lt_log_iff Z002 Z003).mpr Z004
+
+
+    have Zpos0 : 0 < Real.log 3 := by positivity
+    have Zpos1 : 0 < Real.log X := by calc
+      0 < Real.log 3 := Zpos0
+      _ < Real.log X := Z
+
+    have Z1 : (Real.log X)⁻¹ < (Real.log 3)⁻¹ :=
+      by
+        exact (inv_lt_inv₀ Zpos1 Zpos0).mpr Z
+
+    have Z02 : (Real.log 3)⁻¹ < 1 := by
+      have T01 := (inv_lt_inv₀ ?_ ?_).mpr Z01
+      simp at T01
+      exact T01
+      exact Zpos0
+      simp
+
+    have Z2 : 1 + (Real.log X)⁻¹ < 1 + (Real.log 3)⁻¹ := by
+      exact (Real.add_lt_add_iff_left 1).mpr Z1
+
+    have Z3 : 1 + (Real.log 3)⁻¹ < 2 := by
+      calc
+        1 + (Real.log 3)⁻¹ < 1 + 1 := by linarith
+        _ = 2 := by ring_nf
+
+    calc
+      1 + (Real.log X)⁻¹ < 1 + (Real.log 3)⁻¹ := Z2
+      _ < 2 := Z3
+
+  have inve : (pts_re - 1)⁻¹ = Real.log X := by sorry
+
+  have K_bounds_zeta_at_any_t : ∀(t : ℝ), ‖ζ' (pts t) / ζ (pts t)‖ ≤ K * Real.log X := by
+    intro t
+    rw [←inve]
+    exact K_bounds_zeta_at_any_t' t pts_re pts_re_ge_one pts_re_le_one
 
   have pts_re_pos : pts_re > 0 := by sorry
 
@@ -3047,24 +3162,15 @@ theorem I1Bound :
 
   have pts_re_ge_1 : pts_re > 1 := by sorry
 
-  have X_pos_triv : 0 < X := by sorry
+  have X_pos_triv : 0 < X := by positivity
 
   let f := fun (t : ℝ) ↦ SmoothedChebyshevIntegrand Smoothing eps X (pts t)
 
-  have G0 : ∃K > 0, ∀(t : ℝ), ‖ζ' (pts t) / ζ (pts t)‖ ≤ K * Real.log X := by sorry
-
   /- Main pointwise bound -/
 
-  have G : ∃L > 0, ∀(t : ℝ), ‖f t‖ ≤ L * Real.log X * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
+  have G : ∀(t : ℝ), ‖f t‖ ≤ (K * M) * Real.log X * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
 
-    obtain ⟨K, ⟨K_is_pos, K_bounds_zeta_at_any_t⟩⟩ := G0
       -- dlog_riemannZeta_bdd_on_vertical_lines' (pts_re_ge_1)
-
-    obtain ⟨M, ⟨M_is_pos, M_bounds_mellin_hard⟩⟩ :=
-    MellinOfSmooth1b smoothing_cont_diff smoothing_support_hyp
-
-    use (K * M)
-    use (by exact Left.mul_pos K_is_pos M_is_pos)
 
     intro t
 
@@ -3135,9 +3241,11 @@ theorem I1Bound :
 
   -- Easy because from G deduce a bound with 1 / t^2 and that thing is obviously integrable.
 
-  let ⟨L, ⟨L_pos, L_bounds_f⟩⟩ := G
+--  let ⟨L, ⟨L_pos, L_bounds_f⟩⟩ := G
 
-  have σ₀_gt : 1 < pts_re := by sorry
+--  let L := C_final
+
+  have σ₀_gt : 1 < pts_re := by exact pts_re_ge_1
   have σ₀_le_2 : pts_re ≤ 2 := by sorry
 
   have f_integrable := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt σ₀_le_2 smoothing_support_hyp smoothing_pos_for_x_pos smoothing_integrates_to_1 smoothing_cont_diff
@@ -3146,53 +3254,64 @@ theorem I1Bound :
     by
       calc
         ‖∫ (t : ℝ) in Iic (-T), f t‖ ≤ ∫ (t : ℝ) in Iic (-T), ‖f t‖ := MeasureTheory.norm_integral_le_integral_norm f
-        _ ≤ ∫ (t : ℝ) in Iic (-T), L * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re := by
-            refine integral_mono ?_ ?_ L_bounds_f
+        _ ≤ ∫ (t : ℝ) in Iic (-T), (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re := by
+            refine integral_mono ?_ ?_ (fun t ↦ G t)
             · refine Integrable.norm ?_
               · unfold f
                 exact MeasureTheory.Integrable.restrict f_integrable
-            · have equ : ∀(t : ℝ), L * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re = L * Real.log X * eps⁻¹ * X ^ pts_re * (‖pts t‖^2)⁻¹ := by
+            · have equ : ∀(t : ℝ), (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re = (K * M) * Real.log X * eps⁻¹ * X ^ pts_re * (‖pts t‖^2)⁻¹ := by
                    intro t; ring_nf
-              have fun_equ : (fun (t : ℝ) ↦ (L * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re)) = (fun (t : ℝ) ↦ (L * Real.log X * eps⁻¹ * X ^ pts_re * (‖pts t‖^2)⁻¹)) := by
+              have fun_equ : (fun (t : ℝ) ↦ ((K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re)) = (fun (t : ℝ) ↦ ((K * M) * Real.log X * eps⁻¹ * X ^ pts_re * (‖pts t‖^2)⁻¹)) := by
                    funext t
                    exact equ t
 
               rw [fun_equ]
-              have nonzero := (L * Real.log X * eps⁻¹ * X ^ pts_re)
+              have nonzero := ((K * M) * Real.log X * eps⁻¹ * X ^ pts_re)
               have simple_int : MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
                 := by
                    unfold pts
                    exact poisson_kernel_integrable pts_re
-              have U := MeasureTheory.Integrable.const_mul simple_int (L * Real.log X * eps⁻¹ * X ^ pts_re)
+              have U := MeasureTheory.Integrable.const_mul simple_int ((K * M) * Real.log X * eps⁻¹ * X ^ pts_re)
               refine MeasureTheory.Integrable.restrict ?_
               exact U
-        _ = L * Real.log X * X ^ pts_re * eps⁻¹ * ∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹ := by
-              have simpli : ∀(t : ℝ), L * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re = L * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹ :=
+        _ = (K * M) * Real.log X * X ^ pts_re * eps⁻¹ * ∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹ := by
+              have simpli : ∀(t : ℝ), (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re = (K * M) * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹ :=
                 by intro t; ring_nf
-              have simpli_fun : (fun (t : ℝ) ↦ L * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re ) = (fun (t : ℝ) ↦ (L * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹)) :=
+              have simpli_fun : (fun (t : ℝ) ↦ (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re ) = (fun (t : ℝ) ↦ ((K * M) * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹)) :=
                 by funext t; ring_nf
               rw [simpli_fun]
-              exact MeasureTheory.integral_const_mul (L * Real.log X * X ^ pts_re * eps⁻¹) (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
-        _ ≤ L * Real.log X * X ^ pts_re * eps⁻¹ * T⁻¹ := by
+              exact MeasureTheory.integral_const_mul ((K * M) * Real.log X * X ^ pts_re * eps⁻¹) (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
+        _ ≤ (K * M) * Real.log X * X ^ pts_re * eps⁻¹ * T⁻¹ := by
               have U := integral_evaluation (pts_re) T (T_large)
               unfold pts
               simp [U]
-              have U2 : 0 ≤ L * Real.log X * X ^ pts_re * eps⁻¹ := by sorry
+              have U2 : 0 ≤ (K * M) * Real.log X * X ^ pts_re * eps⁻¹ := by sorry
               have U1 := IsOrderedRing.mul_le_mul_of_nonneg_left
                 (∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹)
                 (T⁻¹)
-                (L * Real.log X * X ^ pts_re * eps⁻¹)
+                ((K * M) * Real.log X * X ^ pts_re * eps⁻¹)
                 U
                 U2
               exact U1
+        _ = (Real.exp 1 * K * M) * Real.log X * X * eps⁻¹ * T⁻¹ := by sorry
+        _ = (Real.exp 1 * K * M) * X * Real.log X / (eps * T) := by sorry
 
+
+  unfold I₁
+  unfold f at Z
+  unfold pts at Z
+  have Z3 : (↑pts_re : ℂ) = 1 + (Real.log X)⁻¹ := by sorry
+  rw [Z3] at Z
+  rw [Complex.norm_mul (1 / (2 * ↑π * I)) _]
+  simp [*]
+  have Z2 : 0 ≤ |π|⁻¹ * 2⁻¹ := by positivity
+  simp [*] at Z
+  simp [Z]
+  have Z4 :=
+    IsOrderedRing.mul_le_mul_of_nonneg_left _ _ _ Z Z2
   ring_nf
-  ring_nf at Z
-
-  sorry
---  exact Z
-
-
+  ring_nf at Z4
+  exact Z4
 
 theorem I9Bound :
     ∃ C > 0, ∀ {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
