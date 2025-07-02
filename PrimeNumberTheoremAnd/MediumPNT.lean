@@ -2958,8 +2958,70 @@ theorem poisson_kernel_integrable (x : ℝ)
   : MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by sorry
 
 theorem integral_evaluation (x : ℝ) (T : ℝ)
-  : (3 < T) → ∫ (t : ℝ) in Iic (-T), (‖x + t * I‖ ^ 2)⁻¹ ≤ T⁻¹ := by sorry
+  : (3 < T) → ∫ (t : ℝ) in Iic (-T), (‖x + t * I‖ ^ 2)⁻¹ ≤ T⁻¹ := by
 
+  intro T_large
+
+  have T00 : ∀ (x t : ℝ), t^2 ≤ ‖x + t * I‖^2 := by
+    intro x
+    intro t
+    rw [Complex.norm_add_mul_I x t]
+    ring_nf
+    rw [Real.sq_sqrt _]
+    simp [*]; positivity
+    positivity
+
+  have T0 : ∀ (x t : ℝ), t ≠ 0 → (‖x + t * I‖^2)⁻¹ ≤ (t^2)⁻¹ := by
+    intro x
+    intro t
+    intro hyp
+    have U0 : 0 < t^2 := by positivity
+    have U1 : 0 < ‖x + t * I‖^2 := by
+      rw [Complex.norm_add_mul_I x t]
+      rw [Real.sq_sqrt _]
+      positivity
+      positivity
+    rw [inv_le_inv₀ U1 U0]
+    exact (T00 x t)
+
+  have T1 : (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) ≤ᶠ[ae (volume.restrict (Iic (-T)))] (fun (t : ℝ) ↦ (t^2)⁻¹) := by
+    unfold Filter.EventuallyLE
+    unfold Filter.Eventually
+    simp_all
+    refine mem_inf_of_left ?_
+    · refine Filter.mem_sets.mp ?_
+      · have U : {x_1 : ℝ | (‖x + x_1 * I‖ ^ 2)⁻¹ ≤ (x_1 ^ 2)⁻¹} = (univ \ {0} : Set ℝ) := by
+          apply?
+        apply?
+    _
+
+    --rw [Z0]
+
+
+
+--    have : ((univ \ {0}) : Set ℝ ) ∈ (ae volume) := by sorry
+--    refine mem_inf_of_left ?_
+--    · have L : {t : ℝ | (‖x + t * I‖ ^ 2)⁻¹ ≤ (t ^ 2)⁻¹} ⊆ ((univ \ {0})) := by sorry
+--      sorry
+
+  have T2 : 0 ≤ᶠ[ae (volume.restrict (Iic (-T)))] (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by
+    unfold Filter.EventuallyLE
+    unfold Filter.Eventually
+    simp_all
+
+  have T3 : Integrable (fun (t : ℝ) ↦ (t^2)⁻¹) (volume.restrict (Iic (-T))) := by sorry
+
+  have Z :=
+    by
+      calc
+        ∫ (t : ℝ) in Iic (-T), (‖x + t * I‖ ^ 2)⁻¹ ≤ ∫ (t : ℝ) in Iic (-T), (t^2)⁻¹  := by
+          exact MeasureTheory.integral_mono_of_nonneg T2 T3 T1
+
+        _ = T⁻¹ := by sorry
+
+  exact Z
+
+--  sorry
 /-%%
 \begin{proof}\leanok
 \uses{MellinOfSmooth1c}
