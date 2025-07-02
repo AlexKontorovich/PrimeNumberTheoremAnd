@@ -2991,7 +2991,7 @@ theorem ae_volume_of_contains_compl_singleton_zero --{α : Type*} --[MeasurableS
 
 --  simp_all
 
-
+--set_option maxHeartbeats 4000000
 
 theorem integral_evaluation (x : ℝ) (T : ℝ)
   : (3 < T) → ∫ (t : ℝ) in Iic (-T), (‖x + t * I‖ ^ 2)⁻¹ ≤ T⁻¹ := by
@@ -3031,7 +3031,11 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
           intro t
           intro hyp_t
           exact T0 x t hyp_t
-        have U1 : {x_1 : ℝ | x_1 ≠ 0} = (univ \ {0}) := by sorry
+        have U1 : {x_1 : ℝ | x_1 ≠ 0} = (univ \ {0}) := by
+          apply Set.ext
+          intro x
+          simp_all
+
         rw [U1] at U
         have Z := ae_volume_of_contains_compl_singleton_zero
           ({x_1 : ℝ | (‖x + x_1 * I‖ ^ 2)⁻¹ ≤ (x_1 ^ 2)⁻¹} : Set ℝ) U
@@ -3061,9 +3065,48 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
       have Dnot :=  lt_irrefl 0
       norm_cast at D
 
-  have hderiv : ∀ x ∈ Set.Iio (-T), HasDerivAt (fun t ↦ t⁻¹) ((fun t ↦ - (t^2)⁻¹) x) x := by sorry
+  have hderiv : ∀ x ∈ Set.Iio (-T), HasDerivAt (fun t ↦ t⁻¹) ((fun t ↦ - (t^2)⁻¹) x) x := by
+   --   ∀ x ∈ Set.Iio (-T), HasDerivAt (fun t ↦ t⁻¹) ((fun t ↦ - (t^2)⁻¹) x) x := by
+    intro x hx
+  -- x ∈ Set.Iio (-T) means x < -T, so x ≠ 0
+    have hx_ne_zero : x ≠ 0 := by
+      intro h
+      rw [h] at hx
+      simp [Set.Iio] at hx
+      linarith
+  -- Use the standard derivative of inverse function
+    convert hasDerivAt_inv hx_ne_zero
+  -- Simplify: -(x^2)⁻¹ = -x⁻² = -(x^2)⁻¹
+    --simp [pow_two]
 
-  have f'int : IntegrableOn (fun t ↦ - (t^2)⁻¹) (Set.Iic (-T)) volume := by sorry
+  have f'int : IntegrableOn (fun t ↦ - (t^2)⁻¹) (Set.Iic (-T)) volume := by
+    have D1 : (-2) < (-1 : ℝ) := by simp_all
+    have D2 : 0 < T := by positivity
+    have D := integrableOn_Ioi_rpow_of_lt D1 D2
+    --simp_all
+    have D3 := MeasureTheory.IntegrableOn.comp_neg D
+    simp [*] at D3
+    have D4 :=
+      (integrableOn_Iic_iff_integrableOn_Iio'
+        (by
+          refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
+          · simp_all)).mpr D3
+    simp_all
+--    unfold Integrable
+    unfold IntegrableOn at D4
+    have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
+      funext x
+      simp_all
+    simp_all
+    norm_cast at D4
+    simp_all
+    have D6 := MeasureTheory.integrable_neg_iff.mpr D4
+    have eq_fun : (-fun x ↦ (x^2)⁻¹) = (fun (x : ℝ) ↦ - (x^2)⁻¹) := by
+      funext x
+      simp
+    rw [eq_fun] at D6
+    exact D6
+
 
   have hf : Filter.Tendsto (fun (t : ℝ) ↦ t⁻¹) Filter.atBot (nhds 0) := by exact
     tendsto_inv_atBot_zero
@@ -3071,8 +3114,42 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
   have T5 : ∫ (t : ℝ) in Iic (-T), - (t^2)⁻¹ = (-T)⁻¹ - 0 := by
     exact MeasureTheory.integral_Iic_of_hasDerivAt_of_tendsto hcont hderiv f'int hf
 
+  have T6 : ∫ (t : ℝ) in Iic (-T), (t^2)⁻¹ = T⁻¹ := by
+    simp [*] at T5
+    have D6 : - ∫ (t : ℝ) in Iic (-T), - (t^2)⁻¹ =  ∫ (t : ℝ) in Iic (-T), (t^2)⁻¹ := by
+      simp [integral_neg fun a ↦ (a ^ 2)⁻¹]
+
+    rw [←D6]
+    rw [T5]
+    simp
+
   have T3 : Integrable (fun (t : ℝ) ↦ (t^2)⁻¹) (volume.restrict (Iic (-T))) := by
-    sorry
+    --simp_all
+    have D1 : (-2) < (-1 : ℝ) := by simp_all
+    have D2 : 0 < T := by positivity
+    have D := integrableOn_Ioi_rpow_of_lt D1 D2
+    --simp_all
+    have D3 := MeasureTheory.IntegrableOn.comp_neg D
+    simp [*] at D3
+    have D4 :=
+      (integrableOn_Iic_iff_integrableOn_Iio'
+        (by
+          refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
+          · simp_all)).mpr D3
+    simp_all
+--    unfold Integrable
+    unfold IntegrableOn at D4
+    have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
+      funext x
+      simp_all
+    simp_all
+    norm_cast at D4
+    simp_all
+
+
+    --simp_all
+    --have D4 := integrableOn_Iic_iff_integrableOn_Iio.mp D3
+
 
   have Z :=
     by
@@ -3080,7 +3157,7 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
         ∫ (t : ℝ) in Iic (-T), (‖x + t * I‖ ^ 2)⁻¹ ≤ ∫ (t : ℝ) in Iic (-T), (t^2)⁻¹  := by
           exact MeasureTheory.integral_mono_of_nonneg T2 T3 T1
 
-        _ = T⁻¹ := by sorry
+        _ = T⁻¹ := by exact T6
 
   exact Z
 
