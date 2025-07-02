@@ -3154,13 +3154,22 @@ theorem I1Bound :
     rw [←inve]
     exact K_bounds_zeta_at_any_t' t pts_re pts_re_ge_one pts_re_le_one
 
-  have pts_re_pos : pts_re > 0 := by sorry
+  have pts_re_pos : pts_re > 0 := by
+    unfold pts_re
+    positivity
 
-  have triv_pts_lo_bound : ∀(t : ℝ), pts_re ≤ (pts t).re := by sorry
+  have triv_pts_lo_bound : ∀(t : ℝ), pts_re ≤ (pts t).re := by
+    intro t
+    unfold pts_re
+    exact Eq.ge (pts_re_triv t)
 
-  have triv_pts_up_bound : ∀(t : ℝ), (pts t).re ≤ 2 := by sorry
+  have triv_pts_up_bound : ∀(t : ℝ), (pts t).re ≤ 2 := by
+    intro t
+    sorry
 
-  have pts_re_ge_1 : pts_re > 1 := by sorry
+  have pts_re_ge_1 : pts_re > 1 := by
+    unfold pts_re
+    exact pts_re_ge_one
 
   have X_pos_triv : 0 < X := by positivity
 
@@ -3246,7 +3255,12 @@ theorem I1Bound :
 --  let L := C_final
 
   have σ₀_gt : 1 < pts_re := by exact pts_re_ge_1
-  have σ₀_le_2 : pts_re ≤ 2 := by sorry
+  have σ₀_le_2 : pts_re ≤ 2 := by
+    unfold pts_re
+    -- LOL!
+    exact
+      Preorder.le_trans (1 + (Real.log X)⁻¹) (pts (Smoothing (Smoothing M))).re 2
+        (triv_pts_lo_bound (Smoothing (Smoothing M))) (triv_pts_up_bound (Smoothing (Smoothing M)))
 
   have f_integrable := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt σ₀_le_2 smoothing_support_hyp smoothing_pos_for_x_pos smoothing_integrates_to_1 smoothing_cont_diff
 
@@ -3294,7 +3308,7 @@ theorem I1Bound :
                 U2
               exact U1
         _ = (Real.exp 1 * K * M) * Real.log X * X * eps⁻¹ * T⁻¹ := by sorry
-        _ = (Real.exp 1 * K * M) * X * Real.log X / (eps * T) := by sorry
+        _ = (Real.exp 1 * K * M) * X * Real.log X / (eps * T) := by ring_nf
 
 
   unfold I₁
