@@ -3322,24 +3322,6 @@ lemma I2Bound : ∀ {SmoothingF : ℝ → ℝ}
         calc
           1 + (Real.log X)⁻¹ - σ₁ ≤ 1 + (Real.log X)⁻¹ := by linarith
           _ ≤ 2 := (one_add_inv_log X_gt.le).le
-        -- suffices (Real.log T)⁻¹ + A / Real.log X ^ 9 ≤ 1 + 2 by
-        --   convert this
-        --   norm_num
-        -- refine add_le_add ?_ ?_
-        -- · rw[← inv_one]
-        --   apply inv_anti₀ zero_lt_one
-        --   rw[le_log_iff_exp_le]
-        --   · exact le_of_lt (lt_trans (lt_trans exp_one_lt_d9 (by norm_num)) T_gt)
-        --   · exact Tpos
-        --   ·
-        -- · have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by
-        --     nth_rewrite 1 [← add_zero 1]
-        --     refine add_lt_add_of_le_of_lt ?_ ?_
-        --     rfl
-        --     rw[inv_pos, ← Real.log_one]
-        --     apply Real.log_lt_log <;> linarith
-        --
-          -- insert rmg ineq here
         positivity
       _ = 2 * C' * X / (ε * T) := by ring
   -- Now bound the integrand
