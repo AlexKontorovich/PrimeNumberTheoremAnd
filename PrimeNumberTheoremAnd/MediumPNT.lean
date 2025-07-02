@@ -2957,6 +2957,42 @@ theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
 theorem poisson_kernel_integrable (x : ℝ)
   : MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by sorry
 
+-- Focus on the one-dimensional case: ℝ
+theorem ae_volume_of_contains_compl_singleton_zero --{α : Type*} --[MeasurableSpace α] --[MeasurableSpace.CountablyGenerated α]
+  (s : Set ℝ)
+  (h : (univ : Set ℝ) \ {0} ⊆ s) :
+  s ∈ (MeasureTheory.ae volume) := by
+  -- The key insight is that {0} has measure zero in ℝ
+  have h_zero_null : volume ({0} : Set ℝ) = 0 := by
+    exact volume_singleton
+    -- A singleton set has measure zero in Euclidean space
+    -- exact measure_singleton
+
+  -- Since s contains univ \ {0} = ℝ \ {0}, its complement is contained in {0}
+  have h_compl_subset : sᶜ ⊆ {0} := by
+    intro x hx
+    -- If x ∉ s, then x ∉ ℝ \ {0} (since ℝ \ {0} ⊆ s)
+    -- This means x = 0
+    by_contra h_not_zero
+    have : x ∈ univ \ {0} := ⟨trivial, h_not_zero⟩
+    exact hx (h this)
+
+  -- Therefore, volume(sᶜ) ≤ volume({0}) = 0
+  have h_compl_measure : volume sᶜ ≤ volume ({0} : Set ℝ) :=
+    measure_mono h_compl_subset
+
+  -- So volume(sᶜ) = 0
+  have h_compl_zero : volume sᶜ = 0 := by
+    rw [h_zero_null] at h_compl_measure
+    exact le_antisymm h_compl_measure (zero_le _)
+
+  -- A set is in ae.sets iff its complement has measure zero
+  rwa [mem_ae_iff]
+
+--  simp_all
+
+
+
 theorem integral_evaluation (x : ℝ) (T : ℝ)
   : (3 < T) → ∫ (t : ℝ) in Iic (-T), (‖x + t * I‖ ^ 2)⁻¹ ≤ T⁻¹ := by
 
@@ -2990,26 +3026,53 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
     simp_all
     refine mem_inf_of_left ?_
     · refine Filter.mem_sets.mp ?_
-      · have U : {x_1 : ℝ | (‖x + x_1 * I‖ ^ 2)⁻¹ ≤ (x_1 ^ 2)⁻¹} = (univ \ {0} : Set ℝ) := by
-          apply?
-        apply?
-    _
-
-    --rw [Z0]
-
-
-
---    have : ((univ \ {0}) : Set ℝ ) ∈ (ae volume) := by sorry
---    refine mem_inf_of_left ?_
---    · have L : {t : ℝ | (‖x + t * I‖ ^ 2)⁻¹ ≤ (t ^ 2)⁻¹} ⊆ ((univ \ {0})) := by sorry
---      sorry
+      · have U :  {x_1 : ℝ | x_1 ≠ 0} ⊆ {x_1 : ℝ | (‖x + x_1 * I‖ ^ 2)⁻¹ ≤ (x_1 ^ 2)⁻¹}  := by
+          rw [Set.setOf_subset_setOf]
+          intro t
+          intro hyp_t
+          exact T0 x t hyp_t
+        have U1 : {x_1 : ℝ | x_1 ≠ 0} = (univ \ {0}) := by sorry
+        rw [U1] at U
+        have Z := ae_volume_of_contains_compl_singleton_zero
+          ({x_1 : ℝ | (‖x + x_1 * I‖ ^ 2)⁻¹ ≤ (x_1 ^ 2)⁻¹} : Set ℝ) U
+        exact Z
 
   have T2 : 0 ≤ᶠ[ae (volume.restrict (Iic (-T)))] (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by
     unfold Filter.EventuallyLE
     unfold Filter.Eventually
     simp_all
 
-  have T3 : Integrable (fun (t : ℝ) ↦ (t^2)⁻¹) (volume.restrict (Iic (-T))) := by sorry
+  have T4 : deriv (fun (t : ℝ) ↦ t⁻¹) = (fun t ↦ (- (t^2)⁻¹)) := by
+    exact deriv_inv'
+
+  have hcont : ContinuousWithinAt (fun t ↦ t⁻¹) (Set.Iic (-T)) (-T) := by
+    refine ContinuousWithinAt.inv₀ ?_ ?_
+    · exact ContinuousAt.continuousWithinAt fun ⦃U⦄ a ↦ a
+    · by_contra h
+      simp_all
+      --norm_cast
+      norm_num
+
+      have : (0 : ℝ) < 3 := by norm_num
+      have D := calc
+        0 < 3 := this
+        _ < 0 := T_large
+
+      have Dnot :=  lt_irrefl 0
+      norm_cast at D
+
+  have hderiv : ∀ x ∈ Set.Iio (-T), HasDerivAt (fun t ↦ t⁻¹) ((fun t ↦ - (t^2)⁻¹) x) x := by sorry
+
+  have f'int : IntegrableOn (fun t ↦ - (t^2)⁻¹) (Set.Iic (-T)) volume := by sorry
+
+  have hf : Filter.Tendsto (fun (t : ℝ) ↦ t⁻¹) Filter.atBot (nhds 0) := by exact
+    tendsto_inv_atBot_zero
+
+  have T5 : ∫ (t : ℝ) in Iic (-T), - (t^2)⁻¹ = (-T)⁻¹ - 0 := by
+    exact MeasureTheory.integral_Iic_of_hasDerivAt_of_tendsto hcont hderiv f'int hf
+
+  have T3 : Integrable (fun (t : ℝ) ↦ (t^2)⁻¹) (volume.restrict (Iic (-T))) := by
+    sorry
 
   have Z :=
     by
