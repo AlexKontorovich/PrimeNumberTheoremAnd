@@ -2656,7 +2656,6 @@ lemma interval_membership (r : ℝ)(a b: ℝ)(h1 : r ∈ Set.Icc (min a b) (max 
   rw [← @mem_Icc]
   exact h1
 
--- use intervalIntegral.integral_add_adjacent_intervals
 lemma verticalIntegral_split_three_finite {s a b e σ : ℝ} {f : ℂ → ℂ}
     (hf : IntegrableOn (fun t : ℝ ↦ f (σ + t * I)) (Icc s e))
     (hab: s < a ∧ a < b ∧ b < e):
@@ -2664,45 +2663,11 @@ lemma verticalIntegral_split_three_finite {s a b e σ : ℝ} {f : ℂ → ℂ}
     VIntegral f σ s a +
     VIntegral f σ a b +
     VIntegral f σ b e := by
-  rw [VIntegral, VIntegral, VIntegral, VIntegral]
-  -- First establish integrability on each subinterval
-  have hf_sa : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume a e := by
-    obtain ⟨hsa, hab, hbe⟩ := hab
-    have sa_subset_sb : Icc s a ⊆ Icc s b := by
-      exact Icc_subset_Icc_right hab.le
-    sorry
-
-  have hf_ae : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume a e := by
-    obtain ⟨hsa, hab, hbe⟩ := hab
-    have sa_subset_sb : Icc a e ⊆ Icc s e := by
-      sorry
-      --exact Icc_subset_Icc_right hae.le -- we don't yet have hae.le
-    sorry
-
-  have hf_ab : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume a b := by
-    obtain ⟨hsa, hab, hbe⟩ := hab
-    have sa_subset_sb : Icc a b ⊆ Icc a e := by
-      exact Icc_subset_Icc_right hbe.le
-    sorry
-
-  have hf_be : IntervalIntegrable (fun t : ℝ ↦ f (σ + t * I)) volume b e := by
-    obtain ⟨hsa, hab, hbe⟩ := hab
-    have sa_subset_sb : Icc b e ⊆ Icc a e := by
-      exact Icc_subset_Icc_left hab.le
-    sorry
-
-  -- First split: s to e = (s to a) + (a to e)
-  have h1 : ∫ t in s..e, f (σ + t * I) =
-    ∫ t in s..a, f (σ + t * I) + ∫ t in a..e, f (σ + t * I) := by
-    sorry
-    --exact intervalIntegral.integral_add_adjacent_intervals hf_sa hf_ae
-
-  -- Second split: a to e = (a to b))+ (b to e)
-  have h2 : ∫ t in s..e, f (σ + t * I) =
-    ∫ t in s..a, f (σ + t * I) + ∫ t in a..e, f (σ + t * I) := by
-    sorry --exact intervalIntegral.integral_add_adjacent_intervals hf_ab hf_be
-
-  sorry
+  dsimp [VIntegral]
+  rw [← intervalIntegrable_iff_integrableOn_Icc_of_le (by linarith)] at hf
+  rw[← intervalIntegral.integral_add_adjacent_intervals (b := a), ← intervalIntegral.integral_add_adjacent_intervals (a := a) (b := b)]
+  · ring
+  all_goals apply IntervalIntegrable.mono_set hf; apply uIcc_subset_uIcc <;> apply mem_uIcc_of_le <;> linarith
 
 lemma verticalIntegral_split_three_finite' {s a b e σ : ℝ} {f : ℂ → ℂ}
     (hf : IntegrableOn (fun t : ℝ ↦ f (σ + t * I)) (Icc s e))
