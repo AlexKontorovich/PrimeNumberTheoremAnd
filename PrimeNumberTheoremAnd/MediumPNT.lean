@@ -2954,6 +2954,8 @@ theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
   rw[← sub_mul, norm_mul, norm_real, norm_of_nonneg Xnne]
   exact mul_le_mul_of_nonneg_right hC Xnne
 
+set_option maxHeartbeats 4000000
+
 theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
   MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by
   -- First, simplify the complex norm
@@ -2996,13 +2998,26 @@ theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
     · simp_all
       positivity
     · positivity
+
+  have decay_bound_1 : ∀ x_1 ≤ -1, ‖x ^ 2 + x_1 ^ 2‖₊⁻¹ ≤ (‖x_1‖₊ ^ 2)⁻¹ := by
+    intro t
+    intro hyp_t
+    rw [←inv_le_inv₀]
+    simp_all
+    · sorry
+    · sorry
+    · sorry
+
+  have decay_bound_2 : ∀ (x_1 : ℝ), 1 ≤ x_1 → ‖x ^ 2 + x_1 ^ 2‖₊⁻¹ ≤ (‖x_1‖₊ ^ 2)⁻¹ := by
+    sorry
+
   -- Show integrability on (-∞, -1]
   have f_int_1 : IntegrableOn (fun (t : ℝ) ↦ (t^2)⁻¹) (Set.Iic (-1)) volume := by
     have D1 : (-2) < (-1 : ℝ) := by simp_all
     have D2 : 0 < (1 : ℝ) := by simp
     have D := integrableOn_Ioi_rpow_of_lt D1 D2
     have D3 := MeasureTheory.IntegrableOn.comp_neg D
-    simp [*] at D3
+    simp only [rpow_neg_ofNat, Int.reduceNeg, zpow_neg, involutiveNeg, neg_Ioi] at D3
     have D4 :=
       (integrableOn_Iic_iff_integrableOn_Iio'
         (by
@@ -3023,7 +3038,7 @@ theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
     have D1 : (-2) < (-1 : ℝ) := by simp_all
     have D2 : 0 < (1 : ℝ) := by simp
     have D3 := integrableOn_Ioi_rpow_of_lt D1 D2
-    simp [*] at D3
+    simp only [rpow_neg_ofNat, Int.reduceNeg, zpow_neg] at D3
     have D4 :=
       (integrableOn_Ici_iff_integrableOn_Ioi'
         (by
@@ -3054,8 +3069,13 @@ theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
     · have Z : HasFiniteIntegral (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (volume.restrict (Iic (-1))) := by
         refine MeasureTheory.HasFiniteIntegral.mono'_enorm f_int_1.2 ?_
         · unfold Filter.Eventually
-          simp_all
-          sorry
+          simp only [measurableSet_Iic, ae_restrict_eq, nnnorm_inv, nnnorm_pow, enorm_le_coe]
+          refine mem_inf_of_right ?_
+          · refine mem_principal.mpr ?_
+            · rw [Set.subset_def]
+              simp only [mem_Iic, mem_setOf_eq]
+              exact decay_bound_1
+
       exact Z
 
 --    have U := IntegrableOn.mono_fun f_int_1 h_meas h_le
@@ -3076,7 +3096,16 @@ theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
     · exact h_meas
     · have Z : HasFiniteIntegral (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (volume.restrict (Ici (1))) := by
         refine MeasureTheory.HasFiniteIntegral.mono'_enorm f_int_2.2 ?_
-        · sorry
+        · unfold Filter.Eventually
+          simp only [measurableSet_Ici, ae_restrict_eq, nnnorm_inv, nnnorm_pow, enorm_le_coe]
+          refine mem_inf_of_right ?_
+          · refine mem_principal.mpr ?_
+            · rw [Set.subset_def]
+              simp only [mem_Ici, mem_setOf_eq]
+              exact decay_bound_2
+--              simp [*]
+--              exact decay_bound_2
+
       exact Z
 
   -- Combine all pieces
@@ -3096,7 +3125,8 @@ theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
           (integrable_on_bounded 1 zero_lt_one))
       (int_pos)
 
-  simp_all
+  simp_all only [ne_eq, gt_iff_lt, abs_pos, Int.reduceNeg, neg_le_self_iff, zero_le_one, Iic_union_Icc_eq_Iic,
+  Iic_union_Ici, integrableOn_univ]
 
 /-
 
@@ -3395,7 +3425,7 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
   have T1 : (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) ≤ᶠ[ae (volume.restrict (Iic (-T)))] (fun (t : ℝ) ↦ (t^2)⁻¹) := by
     unfold Filter.EventuallyLE
     unfold Filter.Eventually
-    simp_all
+    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq]
     refine mem_inf_of_left ?_
     · refine Filter.mem_sets.mp ?_
       · have U :  {x_1 : ℝ | x_1 ≠ 0} ⊆ {x_1 : ℝ | (‖x + x_1 * I‖ ^ 2)⁻¹ ≤ (x_1 ^ 2)⁻¹}  := by
@@ -3406,7 +3436,8 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
         have U1 : {x_1 : ℝ | x_1 ≠ 0} = (univ \ {0}) := by
           apply Set.ext
           intro x
-          simp_all
+          simp_all only [ne_eq, setOf_subset_setOf, not_false_eq_true, implies_true, mem_setOf_eq, mem_diff, mem_univ,
+  mem_singleton_iff, true_and]
 
         rw [U1] at U
         have Z := ae_volume_of_contains_compl_singleton_zero
@@ -3416,7 +3447,8 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
   have T2 : 0 ≤ᶠ[ae (volume.restrict (Iic (-T)))] (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by
     unfold Filter.EventuallyLE
     unfold Filter.Eventually
-    simp_all
+    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, Pi.zero_apply, inv_nonneg, norm_nonneg, pow_nonneg,
+  setOf_true, univ_mem]
 
   have T4 : deriv (fun (t : ℝ) ↦ t⁻¹) = (fun t ↦ (- (t^2)⁻¹)) := by
     exact deriv_inv'
@@ -3425,7 +3457,7 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
     refine ContinuousWithinAt.inv₀ ?_ ?_
     · exact ContinuousAt.continuousWithinAt fun ⦃U⦄ a ↦ a
     · by_contra h
-      simp_all
+      simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', neg_eq_zero]
       --norm_cast
       norm_num
 
@@ -3462,16 +3494,20 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
       (integrableOn_Iic_iff_integrableOn_Iio'
         (by
           refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
-          · simp_all)).mpr D3
-    simp_all
+          · simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', mem_Iio, neg_lt_neg_iff,
+  Nat.one_lt_ofNat, rpow_neg_ofNat, Int.reduceNeg, zpow_neg, measure_singleton, EReal.coe_ennreal_zero,
+  EReal.coe_ennreal_top, EReal.zero_ne_top, not_false_eq_true])).mpr D3
+    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', mem_Iio, neg_lt_neg_iff,
+  Nat.one_lt_ofNat, rpow_neg_ofNat, Int.reduceNeg, zpow_neg]
 --    unfold Integrable
     unfold IntegrableOn at D4
     have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
       funext x
-      simp_all
-    simp_all
+      simp_all only [even_two, Even.neg_pow]
+
+    simp_all only [even_two, Even.neg_pow]
     norm_cast at D4
-    simp_all
+    simp_all only [even_two, Even.neg_pow]
     have D6 := MeasureTheory.integrable_neg_iff.mpr D4
     have eq_fun : (-fun x ↦ (x^2)⁻¹) = (fun (x : ℝ) ↦ - (x^2)⁻¹) := by
       funext x
@@ -3507,16 +3543,19 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
       (integrableOn_Iic_iff_integrableOn_Iio'
         (by
           refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
-          · simp_all)).mpr D3
-    simp_all
+          · simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', mem_Iio, inv_neg, sub_zero,
+  neg_lt_neg_iff, Nat.one_lt_ofNat, rpow_neg_ofNat, Int.reduceNeg, zpow_neg, measure_singleton, EReal.coe_ennreal_zero,
+  EReal.coe_ennreal_top, EReal.zero_ne_top, not_false_eq_true])).mpr D3
+    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', mem_Iio, inv_neg, sub_zero,
+  neg_lt_neg_iff, Nat.one_lt_ofNat, rpow_neg_ofNat, Int.reduceNeg, zpow_neg]
 --    unfold Integrable
     unfold IntegrableOn at D4
     have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
       funext x
-      simp_all
-    simp_all
+      simp_all only [even_two, Even.neg_pow]
+    simp_all only [even_two, Even.neg_pow]
     norm_cast at D4
-    simp_all
+    simp_all only [even_two, Even.neg_pow]
 
 
     --simp_all
@@ -3610,7 +3649,8 @@ theorem I1Bound :
     have T1 : 1 ≤ (σ - 1)⁻¹ := by
       have U : σ - 1 ≤ 1 := by linarith
       have U1 := (inv_le_inv₀ (by positivity) (by exact sub_pos.mpr cond)).mpr U
-      simp_all [U1]
+      simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, mul_inv_rev, ge_iff_le, Complex.norm_div,
+  norm_neg, tsub_le_iff_right, inv_one, U1]
 
     have T : (K' + 1) * 1 ≤ (K' + 1) * (σ - 1)⁻¹ :=
       by
@@ -3671,14 +3711,15 @@ theorem I1Bound :
   have pts_re_le_one : pts_re < 2 := by
     unfold pts_re
     have Z0 : 3 ∈ {x : ℝ | 1 ≤ x} := by
-      simp_all
+      simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, mul_inv_rev, gt_iff_lt, Complex.norm_div,
+  mem_setOf_eq, Nat.one_le_ofNat]
     have Z1 : X ∈ {x : ℝ | 1 ≤ x} := by
-      simp [*]
+      simp only [mem_setOf_eq]
       linarith
     have Z : Real.log 3 < Real.log X :=
       by
         refine log_lt_log ?_ X_large
-        simp
+        simp only [Nat.ofNat_pos]
 
     have Z01 : 1 < Real.log 3  :=
       by
