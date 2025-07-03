@@ -1,5 +1,6 @@
 import PrimeNumberTheoremAnd.ZetaBounds
 import Mathlib.Algebra.Group.Support
+import Mathlib.Analysis.SpecialFunctions.Log.Monotone
 
 set_option lang.lemmaCmd true
 
@@ -632,7 +633,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
         exact le_trans n₀_inside_le_X X_le_floor_add_one
       have : ↑⌊X + 1⌋₊ - ↑n₀ ≤ X + 1 - ↑n₀ := by
         apply sub_le_sub_right floor_X_add_one_le_self
-      exact temp.le.trans this
+      exact le_of_lt (gt_of_ge_of_gt this temp)
     have inter1: ‖ Λ (n + n₀)‖ ≤ Real.log (↑n + ↑n₀) := by
       rw[Real.norm_of_nonneg, ← Nat.cast_add]
       apply ArithmeticFunction.vonMangoldt_le_log
@@ -1085,11 +1086,6 @@ noncomputable def I₅ (SmoothingF : ℝ → ℝ) (ε X σ₂ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-3)..3,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₂ + t * I)))
 
-
-
-
-
-
 theorem realDiff_of_complexDIff {f : ℂ → ℂ} (s : ℂ) (hf : DifferentiableAt ℂ f s) :
     ContinuousAt (fun (x : ℝ) ↦ f (s.re + x * I)) s.im := by
   -- First, get continuity of f at s from differentiability
@@ -1214,7 +1210,7 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
 
   let s₀ := σ₀
 
-  have σ₁_gt_one : 1 < σ₁ := by exact lt_of_le_of_lt' σ₀_lt_σ₁ σ₀_gt_one
+  have σ₁_gt_one : 1 < σ₁ := by exact gt_of_ge_of_gt σ₀_lt_σ₁ σ₀_gt_one
   have s₀_gt_one : 1 < (↑σ₀ : ℂ).re := by exact σ₀_gt_one
 
   have s₁_re_geq_one : 1 < s₁.re := by exact lt_of_lt_of_eq σ₁_gt_one (id (Eq.symm s₁_re_eq_sigma))
@@ -2096,8 +2092,9 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     refine (Real.add_lt_add_iff_left 1).mpr ?_
     refine inv_lt_one_of_one_lt₀ ?_
     refine (lt_log_iff_exp_lt ?_).mpr ?_
-    · positivity
-    · linarith [Real.exp_one_lt_d9]
+    positivity
+    have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
+    linarith
   have X_eq_le_two : 1 + (Real.log X)⁻¹ ≤ 2 := X_eq_lt_two.le
   rw [verticalIntegral_split_three (a := -T) (b := T)]
   swap
@@ -2348,7 +2345,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
           unfold HPow.hPow instHPow
           simp only
           apply DifferentiableAt.const_cpow
-          · exact differentiableAt_fun_id
+          · exact differentiableAt_id'
           · left
             refine ne_zero_of_re_pos ?_
             simp only [ofReal_re]
@@ -2414,7 +2411,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
           unfold HPow.hPow instHPow
           simp
           apply DifferentiableAt.const_cpow
-          exact differentiableAt_fun_id
+          exact differentiableAt_id'
           refine Or.inl ?_
           refine ne_zero_of_re_pos ?_
           rw[ofReal_re]
@@ -2824,6 +2821,476 @@ theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
   rw[← sub_mul, norm_mul, norm_real, norm_of_nonneg Xnne]
   exact mul_le_mul_of_nonneg_right hC Xnne
 
+set_option maxHeartbeats 4000000
+
+
+theorem norm_reciprocal_inequality_1 (x : ℝ) (x₁ : ℝ) (hx₁ : x₁ ≥ 1) :
+  ‖x^2 + x₁^2‖₊⁻¹ ≤ (‖x₁‖₊^2)⁻¹ := by
+  -- First, establish that x₁² ≥ 1 since x₁ ≤ -1
+  have h1 : x₁^2 ≥ 1 := by
+    have h_abs : |x₁| ≥ 1 := by
+      rw [abs_of_pos]
+      linarith
+      positivity
+    simp only [ge_iff_le, one_le_sq_iff_one_le_abs, h_abs]
+
+  -- Show that x² + x₁² ≥ x₁²
+  have h2 : x^2 + x₁^2 ≥ x₁^2 := by
+    linarith [sq_nonneg x]
+
+  -- Show that x₁² > 0
+  have h3 : x₁^2 > 0 := by
+    apply sq_pos_of_ne_zero
+    linarith
+
+  have h33 : 2 * x₁^2 > 0 := by
+    simp [*]
+
+  -- Show that x² + x₁² > 0
+  have h4 : x^2 + x₁^2 > 0 := by
+    linarith [sq_nonneg x, h3]
+
+  -- Since both x² + x₁² and x₁² are positive, we can use the fact that
+  -- a ≥ b > 0 implies b⁻¹ ≥ a⁻¹
+  have h5 : x₁^2 ≤ x^2 + x₁^2 := h2
+
+  -- Convert to norms
+  have h6 : ‖x₁^2‖₊ = ‖x₁‖₊^2 := by
+    rw [nnnorm_pow]
+
+  have h7 : ‖x^2 + x₁^2‖₊ = x^2 + x₁^2 := by
+    rw [Real.nnnorm_of_nonneg (le_of_lt h4)]
+    norm_cast
+
+  rw [← NNReal.coe_le_coe]
+  push_cast
+  simp [*]
+  simp_all
+  rw [abs_of_nonneg]
+  · have U := inv_le_inv₀ h4 h3
+    rw [U]
+    simp [*]
+
+  · positivity
+
+theorem norm_reciprocal_inequality (x : ℝ) (x₁ : ℝ) (hx₁ : x₁ ≤ -1) :
+  ‖x^2 + x₁^2‖₊⁻¹ ≤ (‖x₁‖₊^2)⁻¹ := by
+  -- First, establish that x₁² ≥ 1 since x₁ ≤ -1
+  have h1 : x₁^2 ≥ 1 := by
+    have h_abs : |x₁| ≥ 1 := by
+      rw [abs_of_nonpos (le_of_lt (lt_of_le_of_lt hx₁ (by norm_num : (-1 : ℝ) < 0)))]
+      linarith
+    simp only [ge_iff_le, one_le_sq_iff_one_le_abs, h_abs]
+
+  -- Show that x² + x₁² ≥ x₁²
+  have h2 : x^2 + x₁^2 ≥ x₁^2 := by
+    linarith [sq_nonneg x]
+
+  -- Show that x₁² > 0
+  have h3 : x₁^2 > 0 := by
+    apply sq_pos_of_ne_zero
+    linarith
+
+  have h33 : 2 * x₁^2 > 0 := by
+    simp [*]
+
+  -- Show that x² + x₁² > 0
+  have h4 : x^2 + x₁^2 > 0 := by
+    linarith [sq_nonneg x, h3]
+
+  -- Since both x² + x₁² and x₁² are positive, we can use the fact that
+  -- a ≥ b > 0 implies b⁻¹ ≥ a⁻¹
+  have h5 : x₁^2 ≤ x^2 + x₁^2 := h2
+
+  -- Convert to norms
+  have h6 : ‖x₁^2‖₊ = ‖x₁‖₊^2 := by
+    rw [nnnorm_pow]
+
+  have h7 : ‖x^2 + x₁^2‖₊ = x^2 + x₁^2 := by
+    rw [Real.nnnorm_of_nonneg (le_of_lt h4)]
+    norm_cast
+
+  rw [← NNReal.coe_le_coe]
+  push_cast
+  simp [*]
+  simp_all
+  rw [abs_of_nonneg]
+  · have U := inv_le_inv₀ h4 h3
+    rw [U]
+    simp [*]
+
+  · positivity
+
+theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
+  MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by
+  -- First, simplify the complex norm
+  have h1 : ∀ t : ℝ, ‖x + t * I‖^2 = x^2 + t^2 := by
+    intro t
+    rw [Complex.norm_add_mul_I, Real.sq_sqrt]
+    positivity
+  -- Rewrite the integrand using this simplification
+  have h2 : (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) = (fun (t : ℝ) ↦ (x^2 + t^2)⁻¹) := by
+    ext t
+    rw [h1]
+  rw [h2]
+  -- Show that x^2 + t^2 > 0 for all t when x ≠ 0
+  have h3 : ∀ t : ℝ, x^2 + t^2 > 0 := by
+    intro t
+    apply add_pos_of_pos_of_nonneg
+    · exact sq_pos_of_ne_zero hx
+    · exact sq_nonneg t
+  -- The function is continuous everywhere
+  have h4 : Continuous (fun t : ℝ ↦ (x^2 + t^2)⁻¹) := by
+    apply Continuous.inv₀
+    · exact continuous_const.add (continuous_pow 2)
+    · intro t
+      exact ne_of_gt (h3 t)
+  -- Split the integral into bounded and unbounded parts
+  -- The function is integrable on any bounded interval by continuity
+  have integrable_on_bounded : ∀ R > 0, MeasureTheory.IntegrableOn (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (Set.Icc (-R) R) := by
+    intro R hR
+    refine ContinuousOn.integrableOn_Icc ?_
+    · exact Continuous.continuousOn h4
+  -- For integrability at infinity, we use that (x^2 + t^2)⁻¹ ~ t⁻² as |t| → ∞
+  -- Since ∫ t⁻² dt converges at infinity, our function is integrable
+  -- Key estimate: for |t| ≥ 2|x|, we have x^2 + t^2 ≥ t^2/2
+  have decay_bound : ∀ t : ℝ, 0 < |t| → (x^2 + t^2)⁻¹ ≤ (t^2)⁻¹ := by
+    intro t
+    intro hyp_t
+    rw [←inv_le_inv₀]
+    simp_all
+    · positivity
+    · simp_all
+      positivity
+    · positivity
+
+  have decay_bound_1 : ∀ x_1 ≤ -1, ‖x ^ 2 + x_1 ^ 2‖₊⁻¹ ≤ (‖x_1‖₊ ^ 2)⁻¹ := by
+    exact norm_reciprocal_inequality x
+
+  have decay_bound_2 : ∀ (x_1 : ℝ), 1 ≤ x_1 → ‖x ^ 2 + x_1 ^ 2‖₊⁻¹ ≤ (‖x_1‖₊ ^ 2)⁻¹ := by
+    exact norm_reciprocal_inequality_1 x
+
+  -- Show integrability on (-∞, -1]
+  have f_int_1 : IntegrableOn (fun (t : ℝ) ↦ (t^2)⁻¹) (Set.Iic (-1)) volume := by
+    have D1 : (-2) < (-1 : ℝ) := by simp_all
+    have D2 : 0 < (1 : ℝ) := by simp
+    have D := integrableOn_Ioi_rpow_of_lt D1 D2
+    have D3 := MeasureTheory.IntegrableOn.comp_neg D
+    simp only [rpow_neg_ofNat, Int.reduceNeg, zpow_neg, involutiveNeg, neg_Ioi] at D3
+    have D4 :=
+      (integrableOn_Iic_iff_integrableOn_Iio'
+        (by
+          refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
+          · simp_all)).mpr D3
+    simp_all
+    unfold IntegrableOn at D4
+    have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
+      funext x
+      simp_all
+    simp_all
+    norm_cast at D4
+    simp_all
+    exact D4
+
+  -- Show integrability on [1, ∞)
+  have f_int_2 : IntegrableOn (fun (t : ℝ) ↦ (t^2)⁻¹) (Set.Ici 1) volume := by
+    have D1 : (-2) < (-1 : ℝ) := by simp_all
+    have D2 : 0 < (1 : ℝ) := by simp
+    have D3 := integrableOn_Ioi_rpow_of_lt D1 D2
+    simp only [rpow_neg_ofNat, Int.reduceNeg, zpow_neg] at D3
+    have D4 :=
+      (integrableOn_Ici_iff_integrableOn_Ioi'
+        (by
+          refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
+          · simp_all)).mpr D3
+    simp_all
+    unfold IntegrableOn at D4
+    have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
+      funext x
+      simp_all
+    simp_all
+    norm_cast at D4
+
+  have int_neg : IntegrableOn (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (Set.Iic (-1)) volume := by
+    have h_le : ∀ t ∈ Set.Iic (-1), (x^2 + t^2)⁻¹ ≤ (t^2)⁻¹ := by
+      intro t ht
+      simp only [Set.mem_Iic] at ht
+      -- Fix: Use the fact that t ≤ -1 implies t < 0
+      have t_neg : t < 0 := lt_of_le_of_lt ht (by norm_num : (-1 : ℝ) < 0)
+      exact decay_bound t (abs_pos.mpr (ne_of_lt t_neg))
+    have h_meas : AEStronglyMeasurable (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (volume.restrict (Set.Iic (-1))) := by
+      exact Continuous.aestronglyMeasurable h4
+
+    unfold IntegrableOn
+    unfold Integrable
+    constructor
+    · exact h_meas
+    · have Z : HasFiniteIntegral (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (volume.restrict (Iic (-1))) := by
+        refine MeasureTheory.HasFiniteIntegral.mono'_enorm f_int_1.2 ?_
+        · unfold Filter.Eventually
+          simp only [measurableSet_Iic, ae_restrict_eq, nnnorm_inv, nnnorm_pow, enorm_le_coe]
+          refine mem_inf_of_right ?_
+          · refine mem_principal.mpr ?_
+            · rw [Set.subset_def]
+              simp only [mem_Iic, mem_setOf_eq]
+              exact decay_bound_1
+
+      exact Z
+
+--    have U := IntegrableOn.mono_fun f_int_1 h_meas h_le
+--    _
+  have int_pos : IntegrableOn (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (Set.Ici 1) volume := by
+    have h_le : ∀ t ∈ Set.Ici 1, (x^2 + t^2)⁻¹ ≤ (t^2)⁻¹ := by
+      intro t ht
+      simp only [Set.mem_Ici] at ht
+      -- Fix: Use the fact that t ≥ 1 implies t > 0
+      have t_pos : t > 0 := lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) ht
+      exact decay_bound t (abs_pos.mpr (ne_of_gt t_pos))
+    have h_meas : AEStronglyMeasurable (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (volume.restrict (Set.Ici 1)) := by
+      exact Continuous.aestronglyMeasurable h4
+
+    unfold IntegrableOn
+    unfold Integrable
+    constructor
+    · exact h_meas
+    · have Z : HasFiniteIntegral (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (volume.restrict (Ici (1))) := by
+        refine MeasureTheory.HasFiniteIntegral.mono'_enorm f_int_2.2 ?_
+        · unfold Filter.Eventually
+          simp only [measurableSet_Ici, ae_restrict_eq, nnnorm_inv, nnnorm_pow, enorm_le_coe]
+          refine mem_inf_of_right ?_
+          · refine mem_principal.mpr ?_
+            · rw [Set.subset_def]
+              simp only [mem_Ici, mem_setOf_eq]
+              exact decay_bound_2
+--              simp [*]
+--              exact decay_bound_2
+
+      exact Z
+
+  -- Combine all pieces
+  have split : Set.univ = Set.Iic (-1) ∪ Set.Icc (-1) 1 ∪ Set.Ici 1 := by
+    ext t
+    simp only [Set.mem_univ, Set.mem_union, Set.mem_Iic, Set.mem_Icc, Set.mem_Ici, true_iff]
+    by_cases h : t ≤ -1
+    · left; left; exact h
+    · by_cases h' : t ≥ 1
+      · right; exact h'
+      · left; right; constructor <;> linarith
+
+  have Z :=
+    MeasureTheory.IntegrableOn.union
+      (MeasureTheory.IntegrableOn.union
+          (int_neg)
+          (integrable_on_bounded 1 zero_lt_one))
+      (int_pos)
+
+  simp_all only [ne_eq, gt_iff_lt, abs_pos, Int.reduceNeg, neg_le_self_iff, zero_le_one, Iic_union_Icc_eq_Iic,
+  Iic_union_Ici, integrableOn_univ]
+
+theorem ae_volume_of_contains_compl_singleton_zero --{α : Type*} --[MeasurableSpace α] --[MeasurableSpace.CountablyGenerated α]
+  (s : Set ℝ)
+  (h : (univ : Set ℝ) \ {0} ⊆ s) :
+  s ∈ (MeasureTheory.ae volume) := by
+  -- The key insight is that {0} has measure zero in ℝ
+  have h_zero_null : volume ({0} : Set ℝ) = 0 := by
+    exact volume_singleton
+    -- A singleton set has measure zero in Euclidean space
+    -- exact measure_singleton
+
+  -- Since s contains univ \ {0} = ℝ \ {0}, its complement is contained in {0}
+  have h_compl_subset : sᶜ ⊆ {0} := by
+    intro x hx
+    -- If x ∉ s, then x ∉ ℝ \ {0} (since ℝ \ {0} ⊆ s)
+    -- This means x = 0
+    by_contra h_not_zero
+    have : x ∈ univ \ {0} := ⟨trivial, h_not_zero⟩
+    exact hx (h this)
+
+  -- Therefore, volume(sᶜ) ≤ volume({0}) = 0
+  have h_compl_measure : volume sᶜ ≤ volume ({0} : Set ℝ) :=
+    measure_mono h_compl_subset
+
+  -- So volume(sᶜ) = 0
+  have h_compl_zero : volume sᶜ = 0 := by
+    rw [h_zero_null] at h_compl_measure
+    exact le_antisymm h_compl_measure (zero_le _)
+
+  -- A set is in ae.sets iff its complement has measure zero
+  rwa [mem_ae_iff]
+
+theorem integral_evaluation (x : ℝ) (T : ℝ)
+  : (3 < T) → ∫ (t : ℝ) in Iic (-T), (‖x + t * I‖ ^ 2)⁻¹ ≤ T⁻¹ := by
+
+  intro T_large
+
+  have T00 : ∀ (x t : ℝ), t^2 ≤ ‖x + t * I‖^2 := by
+    intro x
+    intro t
+    rw [Complex.norm_add_mul_I x t]
+    ring_nf
+    rw [Real.sq_sqrt _]
+    simp [*]; positivity
+    positivity
+
+  have T0 : ∀ (x t : ℝ), t ≠ 0 → (‖x + t * I‖^2)⁻¹ ≤ (t^2)⁻¹ := by
+    intro x
+    intro t
+    intro hyp
+    have U0 : 0 < t^2 := by positivity
+    have U1 : 0 < ‖x + t * I‖^2 := by
+      rw [Complex.norm_add_mul_I x t]
+      rw [Real.sq_sqrt _]
+      positivity
+      positivity
+    rw [inv_le_inv₀ U1 U0]
+    exact (T00 x t)
+
+  have T1 : (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) ≤ᶠ[ae (volume.restrict (Iic (-T)))] (fun (t : ℝ) ↦ (t^2)⁻¹) := by
+    unfold Filter.EventuallyLE
+    unfold Filter.Eventually
+    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq]
+    refine mem_inf_of_left ?_
+    · refine Filter.mem_sets.mp ?_
+      · have U :  {x_1 : ℝ | x_1 ≠ 0} ⊆ {x_1 : ℝ | (‖x + x_1 * I‖ ^ 2)⁻¹ ≤ (x_1 ^ 2)⁻¹}  := by
+          rw [Set.setOf_subset_setOf]
+          intro t
+          intro hyp_t
+          exact T0 x t hyp_t
+        have U1 : {x_1 : ℝ | x_1 ≠ 0} = (univ \ {0}) := by
+          apply Set.ext
+          intro x
+          simp_all only [ne_eq, setOf_subset_setOf, not_false_eq_true, implies_true, mem_setOf_eq, mem_diff, mem_univ,
+  mem_singleton_iff, true_and]
+
+        rw [U1] at U
+        have Z := ae_volume_of_contains_compl_singleton_zero
+          ({x_1 : ℝ | (‖x + x_1 * I‖ ^ 2)⁻¹ ≤ (x_1 ^ 2)⁻¹} : Set ℝ) U
+        exact Z
+
+  have T2 : 0 ≤ᶠ[ae (volume.restrict (Iic (-T)))] (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by
+    unfold Filter.EventuallyLE
+    unfold Filter.Eventually
+    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, Pi.zero_apply, inv_nonneg, norm_nonneg, pow_nonneg,
+  setOf_true, univ_mem]
+
+  have T4 : deriv (fun (t : ℝ) ↦ t⁻¹) = (fun t ↦ (- (t^2)⁻¹)) := by
+    exact deriv_inv'
+
+  have hcont : ContinuousWithinAt (fun t ↦ t⁻¹) (Set.Iic (-T)) (-T) := by
+    refine ContinuousWithinAt.inv₀ ?_ ?_
+    · exact ContinuousAt.continuousWithinAt fun ⦃U⦄ a ↦ a
+    · by_contra h
+      simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', neg_eq_zero]
+      --norm_cast
+      norm_num
+
+      have : (0 : ℝ) < 3 := by norm_num
+      have D := calc
+        0 < 3 := this
+        _ < 0 := T_large
+
+      have Dnot :=  lt_irrefl 0
+      norm_cast at D
+
+  have hderiv : ∀ x ∈ Set.Iio (-T), HasDerivAt (fun t ↦ t⁻¹) ((fun t ↦ - (t^2)⁻¹) x) x := by
+   --   ∀ x ∈ Set.Iio (-T), HasDerivAt (fun t ↦ t⁻¹) ((fun t ↦ - (t^2)⁻¹) x) x := by
+    intro x hx
+  -- x ∈ Set.Iio (-T) means x < -T, so x ≠ 0
+    have hx_ne_zero : x ≠ 0 := by
+      intro h
+      rw [h] at hx
+      simp [Set.Iio] at hx
+      linarith
+  -- Use the standard derivative of inverse function
+    convert hasDerivAt_inv hx_ne_zero
+  -- Simplify: -(x^2)⁻¹ = -x⁻² = -(x^2)⁻¹
+    --simp [pow_two]
+
+  have f'int : IntegrableOn (fun t ↦ - (t^2)⁻¹) (Set.Iic (-T)) volume := by
+    have D1 : (-2) < (-1 : ℝ) := by simp_all
+    have D2 : 0 < T := by positivity
+    have D := integrableOn_Ioi_rpow_of_lt D1 D2
+    --simp_all
+    have D3 := MeasureTheory.IntegrableOn.comp_neg D
+    simp [*] at D3
+    have D4 :=
+      (integrableOn_Iic_iff_integrableOn_Iio'
+        (by
+          refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
+          · simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', mem_Iio, neg_lt_neg_iff,
+  Nat.one_lt_ofNat, rpow_neg_ofNat, Int.reduceNeg, zpow_neg, measure_singleton, EReal.coe_ennreal_zero,
+  EReal.coe_ennreal_top, EReal.zero_ne_top, not_false_eq_true])).mpr D3
+    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', mem_Iio, neg_lt_neg_iff,
+  Nat.one_lt_ofNat, rpow_neg_ofNat, Int.reduceNeg, zpow_neg]
+--    unfold Integrable
+    unfold IntegrableOn at D4
+    have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
+      funext x
+      simp_all only [even_two, Even.neg_pow]
+
+    simp_all only [even_two, Even.neg_pow]
+    norm_cast at D4
+    simp_all only [even_two, Even.neg_pow]
+    have D6 := MeasureTheory.integrable_neg_iff.mpr D4
+    have eq_fun : (-fun x ↦ (x^2)⁻¹) = (fun (x : ℝ) ↦ - (x^2)⁻¹) := by
+      funext x
+      simp
+    rw [eq_fun] at D6
+    exact D6
+
+
+  have hf : Filter.Tendsto (fun (t : ℝ) ↦ t⁻¹) Filter.atBot (nhds 0) := by exact
+    tendsto_inv_atBot_zero
+
+  have T5 : ∫ (t : ℝ) in Iic (-T), - (t^2)⁻¹ = (-T)⁻¹ - 0 := by
+    exact MeasureTheory.integral_Iic_of_hasDerivAt_of_tendsto hcont hderiv f'int hf
+
+  have T6 : ∫ (t : ℝ) in Iic (-T), (t^2)⁻¹ = T⁻¹ := by
+    simp [*] at T5
+    have D6 : - ∫ (t : ℝ) in Iic (-T), - (t^2)⁻¹ =  ∫ (t : ℝ) in Iic (-T), (t^2)⁻¹ := by
+      simp [integral_neg fun a ↦ (a ^ 2)⁻¹]
+
+    rw [←D6]
+    rw [T5]
+    simp
+
+  have T3 : Integrable (fun (t : ℝ) ↦ (t^2)⁻¹) (volume.restrict (Iic (-T))) := by
+    --simp_all
+    have D1 : (-2) < (-1 : ℝ) := by simp_all
+    have D2 : 0 < T := by positivity
+    have D := integrableOn_Ioi_rpow_of_lt D1 D2
+    --simp_all
+    have D3 := MeasureTheory.IntegrableOn.comp_neg D
+    simp [*] at D3
+    have D4 :=
+      (integrableOn_Iic_iff_integrableOn_Iio'
+        (by
+          refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
+          · simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', mem_Iio, inv_neg, sub_zero,
+  neg_lt_neg_iff, Nat.one_lt_ofNat, rpow_neg_ofNat, Int.reduceNeg, zpow_neg, measure_singleton, EReal.coe_ennreal_zero,
+  EReal.coe_ennreal_top, EReal.zero_ne_top, not_false_eq_true])).mpr D3
+    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', mem_Iio, inv_neg, sub_zero,
+  neg_lt_neg_iff, Nat.one_lt_ofNat, rpow_neg_ofNat, Int.reduceNeg, zpow_neg]
+--    unfold Integrable
+    unfold IntegrableOn at D4
+    have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
+      funext x
+      simp_all only [even_two, Even.neg_pow]
+    simp_all only [even_two, Even.neg_pow]
+    norm_cast at D4
+    simp_all only [even_two, Even.neg_pow]
+
+  have Z :=
+    by
+      calc
+        ∫ (t : ℝ) in Iic (-T), (‖x + t * I‖ ^ 2)⁻¹ ≤ ∫ (t : ℝ) in Iic (-T), (t^2)⁻¹  := by
+          exact MeasureTheory.integral_mono_of_nonneg T2 T3 T1
+
+        _ = T⁻¹ := by exact T6
+
+  exact Z
+
+
 /-%%
 \begin{proof}\leanok
 \uses{MellinOfSmooth1c}
@@ -2894,23 +3361,73 @@ $$
 Same with $I_9$.
 \end{lemma}
 %%-/
+
+
+
+set_option maxHeartbeats 4000000
+
 theorem I1Bound :
-    ∃ C > 0, ∀ {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+    ∀ {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    ∃ C > 0, ∀(ε : ℝ) (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     (X : ℝ) (X_gt : 3 < X)
     {T : ℝ} (T_gt : 3 < T) {σ₁ : ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) ,
     ‖I₁ SmoothingF ε X T‖ ≤ C * X * Real.log X / (ε * T) := by
 
-  let (C_final : ℝ)  := 101
-  have C_final_pos : C_final > 0 := by sorry
-  use C_final
+  intro Smoothing
+  intro smoothing_support_hyp
+  intro smoothing_cont_diff
+
+  obtain ⟨M, ⟨M_is_pos, M_bounds_mellin_hard⟩⟩ :=
+    MellinOfSmooth1b smoothing_cont_diff smoothing_support_hyp
+
+  have G0 : ∃K > 0, ∀(t σ : ℝ), 1 < σ → σ < 2 → ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ K * (σ - 1)⁻¹ := by
+    let ⟨K', ⟨K'_pos, K'_bounds_zeta⟩⟩ := triv_bound_zeta
+    use (2 * (K' + 1))
+    use (by positivity)
+    intro t
+    intro σ
+    intro cond
+    intro cond2
+
+    have T0 : 0 < K' + 1 := by positivity
+    have T1 : 1 ≤ (σ - 1)⁻¹ := by
+      have U : σ - 1 ≤ 1 := by linarith
+      have U1 := (inv_le_inv₀ (by positivity) (by exact sub_pos.mpr cond)).mpr U
+      simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, mul_inv_rev, ge_iff_le, Complex.norm_div,
+  norm_neg, tsub_le_iff_right, inv_one, U1]
+
+    have T : (K' + 1) * 1 ≤ (K' + 1) * (σ - 1)⁻¹ :=
+      by
+        exact (mul_le_mul_left T0).mpr T1
+    have T2 : (K' + 1) ≤ (K' + 1) * (σ - 1)⁻¹ := by
+      simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, mul_inv_rev, ge_iff_le, Complex.norm_div,
+  norm_neg, mul_one, le_mul_iff_one_le_right]
+
+    have U := calc
+      ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ = ‖-ζ' (σ + t * I) / ζ (σ + t * I)‖ := by
+        rw [← norm_neg _, mul_comm, neg_div' _ _]
+      _ ≤ (σ - 1)⁻¹ + K' := K'_bounds_zeta σ t cond
+      _ ≤ (σ - 1)⁻¹ + (K' + 1) := by aesop
+      _ ≤ (K' + 1) * (σ - 1)⁻¹ + (K' + 1) := by aesop
+      _ ≤ (K' + 1) * (σ - 1)⁻¹ + (K' + 1) * (σ - 1)⁻¹ := by linarith
+      _ = 2 * (K' + 1) * (σ - 1)⁻¹ := by
+        ring_nf
+
+    exact U
+
+  obtain ⟨K, ⟨K_is_pos, K_bounds_zeta_at_any_t'⟩⟩ := G0
+
+--  let (C_final : ℝ) := K * M
+  have C_final_pos : |π|⁻¹ * 2⁻¹ * (Real.exp 1 * K * M) > 0 := by
+    positivity
+
+  use (|π|⁻¹ * 2⁻¹ * (Real.exp 1 * K * M))
   use C_final_pos
 
-  intro Smoothing
   intro eps
   intro eps_pos
   intro eps_less_one
@@ -2919,49 +3436,120 @@ theorem I1Bound :
   intro T
   intro T_large
   intro σ₁ -- This is unnecessary, could do intro _
-  intro smoothing_support_hyp
   intro smoothing_pos_for_x_pos
   intro smoothing_integrates_to_1
-  intro smoothing_cont_diff
 
   --unfold I₁
 
-  let (pts_re : ℝ) := 1 + (Real.log X)⁻¹
+  let pts_re := 1 + (Real.log X)⁻¹
   let pts := fun (t : ℝ) ↦ (pts_re + t * I)
+
 
   have pts_re_triv : ∀(t : ℝ), (pts t).re = pts_re := by
     intro t
     unfold pts
     simp [*]
 
-  have pts_re_pos : pts_re > 0 := by sorry
+  have pts_re_ge_one : 1 < pts_re := by
+    unfold pts_re
+    simp
+    have U : 1 < X := by linarith
+    exact Real.log_pos U
 
-  have triv_pts_lo_bound : ∀(t : ℝ), pts_re ≤ (pts t).re := by sorry
+  have pts_re_le_one : pts_re < 2 := by
+    unfold pts_re
+    have Z0 : 3 ∈ {x : ℝ | 1 ≤ x} := by
+      simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, mul_inv_rev, gt_iff_lt, Complex.norm_div,
+  mem_setOf_eq, Nat.one_le_ofNat]
+    have Z1 : X ∈ {x : ℝ | 1 ≤ x} := by
+      simp only [mem_setOf_eq]
+      linarith
+    have Z : Real.log 3 < Real.log X :=
+      by
+        refine log_lt_log ?_ X_large
+        simp only [Nat.ofNat_pos]
 
-  have triv_pts_up_bound : ∀(t : ℝ), (pts t).re ≤ 2 := by sorry
+    have Z01 : 1 < Real.log 3  :=
+      by
+        have Z001 : 1 = Real.log (rexp 1) := by exact Eq.symm (Real.log_exp 1)
+        rw [Z001]
+        have Z002 : (0 : ℝ) < rexp 1 := by positivity
+        have Z003 : (0 : ℝ) < 3 := by positivity
+        have Z004 : rexp 1 < 3 := by
+          calc
+            rexp 1 < (↑ 2.7182818286 : ℚ) := Real.exp_one_lt_d9
+            _ < (↑ 3 : ℚ) := by linarith
 
-  have pts_re_ge_1 : pts_re > 1 := by sorry
+        exact (Real.log_lt_log_iff Z002 Z003).mpr Z004
 
-  have X_pos_triv : 0 < X := by sorry
+    have Zpos0 : 0 < Real.log 3 := by positivity
+    have Zpos1 : 0 < Real.log X := by calc
+      0 < Real.log 3 := Zpos0
+      _ < Real.log X := Z
+
+    have Z1 : (Real.log X)⁻¹ < (Real.log 3)⁻¹ :=
+      by
+        exact (inv_lt_inv₀ Zpos1 Zpos0).mpr Z
+
+    have Z02 : (Real.log 3)⁻¹ < 1 := by
+      have T01 := (inv_lt_inv₀ ?_ ?_).mpr Z01
+      simp at T01
+      exact T01
+      exact Zpos0
+      simp
+
+    have Z2 : 1 + (Real.log X)⁻¹ < 1 + (Real.log 3)⁻¹ := by
+      exact (Real.add_lt_add_iff_left 1).mpr Z1
+
+    have Z3 : 1 + (Real.log 3)⁻¹ < 2 := by
+      calc
+        1 + (Real.log 3)⁻¹ < 1 + 1 := by linarith
+        _ = 2 := by ring_nf
+
+    calc
+      1 + (Real.log X)⁻¹ < 1 + (Real.log 3)⁻¹ := Z2
+      _ < 2 := Z3
+
+  have inve : (pts_re - 1)⁻¹ = Real.log X := by
+    unfold pts_re
+    simp_all
+
+  have K_bounds_zeta_at_any_t : ∀(t : ℝ), ‖ζ' (pts t) / ζ (pts t)‖ ≤ K * Real.log X := by
+    intro t
+    rw [←inve]
+    exact K_bounds_zeta_at_any_t' t pts_re pts_re_ge_one pts_re_le_one
+
+  have pts_re_pos : pts_re > 0 := by
+    unfold pts_re
+    positivity
+
+  have triv_pts_lo_bound : ∀(t : ℝ), pts_re ≤ (pts t).re := by
+    intro t
+    unfold pts_re
+    exact Eq.ge (pts_re_triv t)
+
+  have triv_pts_up_bound : ∀(t : ℝ), (pts t).re ≤ 2 := by
+    intro t
+    unfold pts
+    refine EReal.coe_le_coe_iff.mp ?_
+    · simp_all
+      exact le_of_lt pts_re_le_one
+
+  have pts_re_ge_1 : pts_re > 1 := by
+    unfold pts_re
+    exact pts_re_ge_one
+
+  have X_pos_triv : 0 < X := by positivity
 
   let f := fun (t : ℝ) ↦ SmoothedChebyshevIntegrand Smoothing eps X (pts t)
 
   /- Main pointwise bound -/
 
-  have G : ∃L > 0, ∀(t : ℝ), ‖f t‖ ≤ L * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
-
-    obtain ⟨K, ⟨K_is_pos, K_bounds_zeta_at_any_t⟩⟩  := dlog_riemannZeta_bdd_on_vertical_lines' (pts_re_ge_1)
-
-    obtain ⟨M, ⟨M_is_pos, M_bounds_mellin_hard⟩⟩ :=
-    MellinOfSmooth1b smoothing_cont_diff smoothing_support_hyp
-
-    use (K * M)
-    use (by exact Left.mul_pos K_is_pos M_is_pos)
+  have G : ∀(t : ℝ), ‖f t‖ ≤ (K * M) * Real.log X * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
 
     intro t
 
     let M_bounds_mellin_easy := fun (t : ℝ) ↦ M_bounds_mellin_hard pts_re pts_re_pos (pts t) (triv_pts_lo_bound t) (triv_pts_up_bound t) eps eps_pos eps_less_one
-
 
     let zeta_part := (fun (t : ℝ) ↦ -ζ' (pts t) / ζ (pts t))
     let mellin_part := (fun (t : ℝ) ↦ 𝓜 (fun x ↦ ↑(Smooth1 Smoothing eps x)) (pts t))
@@ -2992,54 +3580,138 @@ theorem I1Bound :
       unfold zeta_part
       simp [norm_neg]
 
-    have zeta_bound: ∀(t : ℝ), ‖zeta_part t‖ ≤ K := by
+    have zeta_bound: ∀(t : ℝ), ‖zeta_part t‖ ≤ K * Real.log X := by
       intro t
       unfold zeta_part
       rw [T2]
       exact K_bounds_zeta_at_any_t t
 
-    have g_bound : ∀(t : ℝ), ‖zeta_part t * (mellin_part t * X_part t)‖ ≤ K * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
+    have g_bound : ∀(t : ℝ), ‖zeta_part t * (mellin_part t * X_part t)‖ ≤ (K * Real.log X) * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
       intro t
       exact norm_mul_le_of_le (zeta_bound t) (X_part_and_mellin_bound t)
 
     have T1 : f = g := by rfl
 
-    have final_bound_pointwise : ‖f t‖ ≤ K * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
+    have final_bound_pointwise : ‖f t‖ ≤ K * Real.log X * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
       rw [T1]
       unfold g
       rw [mul_assoc]
       exact g_bound t
 
-    have trivialize : K * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) = (K * M) * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
-      rw [mul_assoc]
-      rw [mul_assoc]
-      rw [mul_assoc]
+    have trivialize : K * Real.log X * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) = (K * M) * Real.log X * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
+            ring_nf
 
     rw [trivialize] at final_bound_pointwise
     exact final_bound_pointwise
 
-  /- Will need to prove that the bound L * (eps * ‖pts t‖^2)⁻¹ * X^pts_re is measurable and that ‖ f ‖ is integral. Will then use MeasureTheory.integral_mono -/
 
-  /- Another option is MeasureTheory.integral_mono_of_nonneg no requirement for ‖ f ‖ being measurable, but need inequality in measure which might be cumbersome -/
+  have σ₀_gt : 1 < pts_re := by exact pts_re_ge_1
+  have σ₀_le_2 : pts_re ≤ 2 := by
+    unfold pts_re
+    -- LOL!
+    exact
+      Preorder.le_trans (1 + (Real.log X)⁻¹) (pts (Smoothing (Smoothing M))).re 2
+        (triv_pts_lo_bound (Smoothing (Smoothing M))) (triv_pts_up_bound (Smoothing (Smoothing M)))
 
-  -- Will have to show that f is integrable from ContDiff and compact support
+  have f_integrable := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt σ₀_le_2 smoothing_support_hyp smoothing_pos_for_x_pos smoothing_integrates_to_1 smoothing_cont_diff
 
---  have norm_f_is_integrable : := by exact MeasureTheory.Integrable.norm f
+  have S : X^pts_re = rexp 1 * X := by
+    unfold pts_re
+    simp_all
+    calc
+      X ^ (1 + (Real.log X)⁻¹) = X * X ^ ((Real.log X)⁻¹) := by
+        refine rpow_one_add' ?_ ?_
+        · positivity
+        · exact Ne.symm (ne_of_lt pts_re_pos)
+      _ = X * rexp 1 := by
+        refine (mul_right_inj' ?_).mpr ?_
+        · exact Ne.symm (ne_of_lt X_pos_triv)
+        · refine rpow_inv_log X_pos_triv ?_
+          · by_contra h
+            simp_all
+      _ = rexp 1 * X := by ring_nf
 
-  -- Actually sort of forced to use MeasureTheory.integral_mono_of_nonneg unless want to also prove that ζ' / ζ is measurable which would be super annoying
 
-  -- Easy because from G deduce a bound with 1 / t^2 and that thing is obviously integrable.
+  have pts_re_neq_zero : pts_re ≠ 0 := by
+    by_contra h
+    rw [h] at pts_re_ge_1
+    simp [*] at pts_re_ge_1
+    norm_cast at pts_re_ge_1
 
   have Z :=
     by
       calc
         ‖∫ (t : ℝ) in Iic (-T), f t‖ ≤ ∫ (t : ℝ) in Iic (-T), ‖f t‖ := MeasureTheory.norm_integral_le_integral_norm f
-        _ ≤ 3 := by sorry
+        _ ≤ ∫ (t : ℝ) in Iic (-T), (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re := by
+            refine integral_mono ?_ ?_ (fun t ↦ G t)
+            · refine Integrable.norm ?_
+              · unfold f
+                exact MeasureTheory.Integrable.restrict f_integrable
+            · have equ : ∀(t : ℝ), (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re = (K * M) * Real.log X * eps⁻¹ * X ^ pts_re * (‖pts t‖^2)⁻¹ := by
+                   intro t; ring_nf
+              have fun_equ : (fun (t : ℝ) ↦ ((K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re)) = (fun (t : ℝ) ↦ ((K * M) * Real.log X * eps⁻¹ * X ^ pts_re * (‖pts t‖^2)⁻¹)) := by
+                   funext t
+                   exact equ t
+
+              rw [fun_equ]
+              have nonzero := ((K * M) * Real.log X * eps⁻¹ * X ^ pts_re)
+              have simple_int : MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
+                := by
+                   unfold pts
+                   exact poisson_kernel_integrable pts_re (pts_re_neq_zero)
+
+              have U := MeasureTheory.Integrable.const_mul simple_int ((K * M) * Real.log X * eps⁻¹ * X ^ pts_re)
+              refine MeasureTheory.Integrable.restrict ?_
+              exact U
+        _ = (K * M) * Real.log X * X ^ pts_re * eps⁻¹ * ∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹ := by
+              have simpli : ∀(t : ℝ), (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re = (K * M) * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹ :=
+                by intro t; ring_nf
+              have simpli_fun : (fun (t : ℝ) ↦ (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re ) = (fun (t : ℝ) ↦ ((K * M) * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹)) :=
+                by funext t; ring_nf
+              rw [simpli_fun]
+              exact MeasureTheory.integral_const_mul ((K * M) * Real.log X * X ^ pts_re * eps⁻¹) (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
+        _ ≤ (K * M) * Real.log X * X ^ pts_re * eps⁻¹ * T⁻¹ := by
+              have U := integral_evaluation (pts_re) T (T_large)
+              unfold pts
+              simp [U]
+              have U2 : 0 ≤ (K * M) * Real.log X * X ^ pts_re * eps⁻¹ := by
+                simp_all
+                refine Left.mul_nonneg ?_ ?_
+                · refine Left.mul_nonneg ?_ ?_
+                  · exact Left.mul_nonneg (by positivity) (by positivity)
+                  · refine log_nonneg ?_
+                    · linarith
+                · refine Left.mul_nonneg ?_ ?_
+                  · exact exp_nonneg 1
+                  · exact le_of_lt X_pos_triv
+              have U1 := IsOrderedRing.mul_le_mul_of_nonneg_left
+                (∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹)
+                (T⁻¹)
+                ((K * M) * Real.log X * X ^ pts_re * eps⁻¹)
+                U
+                U2
+              exact U1
+        _ = (Real.exp 1 * K * M) * Real.log X * X * eps⁻¹ * T⁻¹ := by
+          rw [S]
+          ring_nf
+        _ = (Real.exp 1 * K * M) * X * Real.log X / (eps * T) := by ring_nf
 
 
-  sorry
-
-
+  unfold I₁
+  unfold f at Z
+  unfold pts at Z
+  have Z3 : (↑pts_re : ℂ) = 1 + (Real.log X)⁻¹ := by unfold pts_re; norm_cast
+  rw [Z3] at Z
+  rw [Complex.norm_mul (1 / (2 * ↑π * I)) _]
+  simp [*]
+  have Z2 : 0 ≤ |π|⁻¹ * 2⁻¹ := by positivity
+  simp [*] at Z
+  simp [Z]
+  have Z4 :=
+    IsOrderedRing.mul_le_mul_of_nonneg_left _ _ _ Z Z2
+  ring_nf
+  ring_nf at Z4
+  exact Z4
 
 theorem I9Bound :
     ∃ C > 0, ∀ {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
@@ -3106,6 +3778,7 @@ lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X): (1 + (Real.log X)⁻¹) < 2 :=
   refine inv_lt_one_of_one_lt₀ ?_
   refine (lt_log_iff_exp_lt ?_).mpr ?_ <;> linarith[Real.exp_one_lt_d9]
 
+-->>>>>>> 8ec737539627ec78bba745515793d3e8a196ca49
 /-%%
 \begin{lemma}[I2Bound]\label{I2Bound}\lean{I2Bound}\leanok
 We have that
