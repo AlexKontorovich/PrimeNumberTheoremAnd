@@ -2703,10 +2703,8 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         · apply SmoothedChebyshevPull2_aux1 holoOn
         · apply continuousOn_of_forall_continuousAt
           intro t t_mem
-          -- have' := Smooth1ContinuousAt diff_SmoothingF SmoothingFnonneg
-          --    suppSmoothingF σ₁_pos ε_pos
-
-          sorry
+          have := Smooth1MellinDifferentiable diff_SmoothingF suppSmoothingF  ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one (s := ↑σ₁ + ↑t * I) (by simpa)
+          simpa using realDiff_of_complexDIff _ this
       · apply continuousOn_of_forall_continuousAt
         intro t t_mem
         apply ContinuousAt.comp
