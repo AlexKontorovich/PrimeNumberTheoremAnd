@@ -2956,6 +2956,104 @@ theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
 
 set_option maxHeartbeats 4000000
 
+
+theorem norm_reciprocal_inequality_1 (x : ℝ) (x₁ : ℝ) (hx₁ : x₁ ≥ 1) :
+  ‖x^2 + x₁^2‖₊⁻¹ ≤ (‖x₁‖₊^2)⁻¹ := by
+  -- First, establish that x₁² ≥ 1 since x₁ ≤ -1
+  have h1 : x₁^2 ≥ 1 := by
+    have h_abs : |x₁| ≥ 1 := by
+      rw [abs_of_pos]
+      linarith
+      positivity
+    simp only [ge_iff_le, one_le_sq_iff_one_le_abs, h_abs]
+
+  -- Show that x² + x₁² ≥ x₁²
+  have h2 : x^2 + x₁^2 ≥ x₁^2 := by
+    linarith [sq_nonneg x]
+
+  -- Show that x₁² > 0
+  have h3 : x₁^2 > 0 := by
+    apply sq_pos_of_ne_zero
+    linarith
+
+  have h33 : 2 * x₁^2 > 0 := by
+    simp [*]
+
+  -- Show that x² + x₁² > 0
+  have h4 : x^2 + x₁^2 > 0 := by
+    linarith [sq_nonneg x, h3]
+
+  -- Since both x² + x₁² and x₁² are positive, we can use the fact that
+  -- a ≥ b > 0 implies b⁻¹ ≥ a⁻¹
+  have h5 : x₁^2 ≤ x^2 + x₁^2 := h2
+
+  -- Convert to norms
+  have h6 : ‖x₁^2‖₊ = ‖x₁‖₊^2 := by
+    rw [nnnorm_pow]
+
+  have h7 : ‖x^2 + x₁^2‖₊ = x^2 + x₁^2 := by
+    rw [Real.nnnorm_of_nonneg (le_of_lt h4)]
+    norm_cast
+
+  rw [← NNReal.coe_le_coe]
+  push_cast
+  simp [*]
+  simp_all
+  rw [abs_of_nonneg]
+  · have U := inv_le_inv₀ h4 h3
+    rw [U]
+    simp [*]
+
+  · positivity
+
+theorem norm_reciprocal_inequality (x : ℝ) (x₁ : ℝ) (hx₁ : x₁ ≤ -1) :
+  ‖x^2 + x₁^2‖₊⁻¹ ≤ (‖x₁‖₊^2)⁻¹ := by
+  -- First, establish that x₁² ≥ 1 since x₁ ≤ -1
+  have h1 : x₁^2 ≥ 1 := by
+    have h_abs : |x₁| ≥ 1 := by
+      rw [abs_of_nonpos (le_of_lt (lt_of_le_of_lt hx₁ (by norm_num : (-1 : ℝ) < 0)))]
+      linarith
+    simp only [ge_iff_le, one_le_sq_iff_one_le_abs, h_abs]
+
+  -- Show that x² + x₁² ≥ x₁²
+  have h2 : x^2 + x₁^2 ≥ x₁^2 := by
+    linarith [sq_nonneg x]
+
+  -- Show that x₁² > 0
+  have h3 : x₁^2 > 0 := by
+    apply sq_pos_of_ne_zero
+    linarith
+
+  have h33 : 2 * x₁^2 > 0 := by
+    simp [*]
+
+  -- Show that x² + x₁² > 0
+  have h4 : x^2 + x₁^2 > 0 := by
+    linarith [sq_nonneg x, h3]
+
+  -- Since both x² + x₁² and x₁² are positive, we can use the fact that
+  -- a ≥ b > 0 implies b⁻¹ ≥ a⁻¹
+  have h5 : x₁^2 ≤ x^2 + x₁^2 := h2
+
+  -- Convert to norms
+  have h6 : ‖x₁^2‖₊ = ‖x₁‖₊^2 := by
+    rw [nnnorm_pow]
+
+  have h7 : ‖x^2 + x₁^2‖₊ = x^2 + x₁^2 := by
+    rw [Real.nnnorm_of_nonneg (le_of_lt h4)]
+    norm_cast
+
+  rw [← NNReal.coe_le_coe]
+  push_cast
+  simp [*]
+  simp_all
+  rw [abs_of_nonneg]
+  · have U := inv_le_inv₀ h4 h3
+    rw [U]
+    simp [*]
+
+  · positivity
+
 theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
   MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by
   -- First, simplify the complex norm
@@ -3000,16 +3098,10 @@ theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
     · positivity
 
   have decay_bound_1 : ∀ x_1 ≤ -1, ‖x ^ 2 + x_1 ^ 2‖₊⁻¹ ≤ (‖x_1‖₊ ^ 2)⁻¹ := by
-    intro t
-    intro hyp_t
-    rw [←inv_le_inv₀]
-    simp_all
-    · sorry
-    · sorry
-    · sorry
+    exact norm_reciprocal_inequality x
 
   have decay_bound_2 : ∀ (x_1 : ℝ), 1 ≤ x_1 → ‖x ^ 2 + x_1 ^ 2‖₊⁻¹ ≤ (‖x_1‖₊ ^ 2)⁻¹ := by
-    sorry
+    exact norm_reciprocal_inequality_1 x
 
   -- Show integrability on (-∞, -1]
   have f_int_1 : IntegrableOn (fun (t : ℝ) ↦ (t^2)⁻¹) (Set.Iic (-1)) volume := by
@@ -3128,242 +3220,6 @@ theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
   simp_all only [ne_eq, gt_iff_lt, abs_pos, Int.reduceNeg, neg_le_self_iff, zero_le_one, Iic_union_Icc_eq_Iic,
   Iic_union_Ici, integrableOn_univ]
 
-/-
-
-theorem poisson_kernel_integrable'' (x : ℝ) (hx : x ≠ 0) :
-  MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by
-  -- First, simplify the complex norm
-  have h1 : ∀ t : ℝ, ‖x + t * I‖^2 = x^2 + t^2 := by
-    intro t
-    rw [Complex.norm_add_mul_I, Real.sq_sqrt]
-    positivity
-  -- Rewrite the integrand using this simplification
-  have h2 : (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) = (fun (t : ℝ) ↦ (x^2 + t^2)⁻¹) := by
-    ext t
-    rw [h1]
-  rw [h2]
-  -- Show that x^2 + t^2 > 0 for all t when x ≠ 0
-  have h3 : ∀ t : ℝ, x^2 + t^2 > 0 := by
-    intro t
-    apply add_pos_of_pos_of_nonneg
-    · exact sq_pos_of_ne_zero hx
-    · exact sq_nonneg t
-  -- The function is continuous everywhere
-  have h4 : Continuous (fun t : ℝ ↦ (x^2 + t^2)⁻¹) := by
-    apply Continuous.inv₀
-    · exact continuous_const.add (continuous_pow 2)
-    · intro t
-      exact ne_of_gt (h3 t)
-  -- Split the integral into bounded and unbounded parts
-  -- The function is integrable on any bounded interval by continuity
-  have integrable_on_bounded : ∀ R > 0, MeasureTheory.IntegrableOn (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (Set.Icc (-R) R) := by
-    intro R hR
-    refine ContinuousOn.integrableOn_Icc ?_
-    · exact Continuous.continuousOn h4
-  -- For integrability at infinity, we use that (x^2 + t^2)⁻¹ ~ t⁻² as |t| → ∞
-  -- Since ∫ t⁻² dt converges at infinity, our function is integrable
-  -- Key estimate: for |t| ≥ 2|x|, we have x^2 + t^2 ≥ t^2/2
-  have decay_bound : ∀ t : ℝ, 0 < |t| → (x^2 + t^2)⁻¹ ≤ (t^2)⁻¹ := by
-    intro t
-    intro hyp_t
-    rw [←inv_le_inv₀]
-    simp_all
-    · positivity
-    · simp_all
-      positivity
-    · positivity
-  -- Show integrability on (-∞, -1]
-  have f_int_1 : IntegrableOn (fun (t : ℝ) ↦ (t^2)⁻¹) (Set.Iic (-1)) volume := by
-    have D1 : (-2) < (-1 : ℝ) := by simp_all
-    have D2 : 0 < (1 : ℝ) := by simp
-    have D := integrableOn_Ioi_rpow_of_lt D1 D2
-    --simp_all
-    have D3 := MeasureTheory.IntegrableOn.comp_neg D
-    simp [*] at D3
-    have D4 :=
-      (integrableOn_Iic_iff_integrableOn_Iio'
-        (by
-          refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
-          · simp_all)).mpr D3
-    simp_all
---    exact D4
---    unfold Integrable
-    unfold IntegrableOn at D4
-    have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
-      funext x
-      simp_all
-    simp_all
-    norm_cast at D4
-    simp_all
-    exact D4
-
-  -- Show integrability on [1, ∞)
-  have f_int_2 : IntegrableOn (fun (t : ℝ) ↦ (t^2)⁻¹) (Set.Ici 1) volume := by
-    have D1 : (-2) < (-1 : ℝ) := by simp_all
-    have D2 : 0 < (1 : ℝ) := by simp
-    have D3 := integrableOn_Ioi_rpow_of_lt D1 D2
-    --simp_all
-    --have D3 := MeasureTheory.IntegrableOn.comp_neg D
-    simp [*] at D3
-    have D4 :=
-      (integrableOn_Ici_iff_integrableOn_Ioi'
-        (by
-          refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
-          · simp_all)).mpr D3
-    simp_all
---    exact D4
---    unfold Integrable
-    unfold IntegrableOn at D4
-    have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
-      funext x
-      simp_all
-    simp_all
-    norm_cast at D4
-
-  have int_neg : IntegrableOn (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (Set.Iic (-1)) volume := by
-    have h_le : ∀ t ∈ Set.Iic (-1), (x^2 + t^2)⁻¹ ≤ (t^2)⁻¹ := by
-      intro t ht
-      simp only [Set.mem_Iic] at ht
-      exact decay_bound t (abs_pos.mpr (ne_of_lt ht))
-    have h_meas : AEStronglyMeasurable (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (volume.restrict (Set.Iic (-1))) := by
-      have h_base : AEStronglyMeasurable (fun t : ℝ ↦ x^2 + t^2) (volume.restrict (Set.Iic (-1))) := by
-        refine AEStronglyMeasurable.add ?_ ?_
-        · exact aestronglyMeasurable_const
-        · exact (aestronglyMeasurable_id).pow aestronglyMeasurable_const
-      exact AEStronglyMeasurable.inv h_base (fun t => ne_of_gt (h3 t))
-    exact MeasureTheory.IntegrableOn.mono_fun f_int_1 h_meas h_le
-  have int_pos : IntegrableOn (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (Set.Ici 1) volume := by
-    have h_le : ∀ t ∈ Set.Ici 1, (x^2 + t^2)⁻¹ ≤ (t^2)⁻¹ := by
-      intro t ht
-      simp only [Set.mem_Ici] at ht
-      exact decay_bound t (abs_pos.mpr (ne_of_gt (lt_of_lt_of_le zero_lt_one ht)))
-    have h_meas : AEStronglyMeasurable (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (volume.restrict (Set.Ici 1)) := by
-      have h_base : AEStronglyMeasurable (fun t : ℝ ↦ x^2 + t^2) (volume.restrict (Set.Ici 1)) := by
-        refine AEStronglyMeasurable.add ?_ ?_
-        · exact aestronglyMeasurable_const
-        · exact (aestronglyMeasurable_id).pow aestronglyMeasurable_const
-      exact AEStronglyMeasurable.inv h_base (fun t => ne_of_gt (h3 t))
-    exact MeasureTheory.IntegrableOn.mono_fun f_int_2 h_meas h_le
-  -- Combine all pieces
-  have split : Set.univ = Set.Iic (-1) ∪ Set.Icc (-1) 1 ∪ Set.Ici 1 := by
-    ext t
-    simp only [Set.mem_univ, Set.mem_union, Set.mem_Iic, Set.mem_Icc, Set.mem_Ici, true_iff]
-    by_cases h : t ≤ -1
-    · left; left; exact h
-    · by_cases h' : t ≥ 1
-      · right; exact h'
-      · left; right; constructor <;> linarith
-  rw [←split]
-  apply MeasureTheory.IntegrableOn.union
-  · apply MeasureTheory.IntegrableOn.union
-    · exact int_neg
-    · exact integrable_on_bounded 1 zero_lt_one
-  · exact int_pos
-
-theorem poisson_kernel_integrable' (x : ℝ) (hx : x ≠ 0) :
-    MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by
-  -- First, simplify the complex norm
-  have h1 : ∀ t : ℝ, ‖x + t * I‖^2 = x^2 + t^2 := by
-    intro t
-    rw [Complex.norm_add_mul_I, Real.sq_sqrt]
-    positivity
-
-  -- Rewrite the integrand using this simplification
-  have h2 : (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) = (fun (t : ℝ) ↦ (x^2 + t^2)⁻¹) := by
-    ext t
-    rw [h1]
-
-  rw [h2]
-
-  -- Show that x^2 + t^2 > 0 for all t when x ≠ 0
-  have h3 : ∀ t : ℝ, x^2 + t^2 > 0 := by
-    intro t
-    apply add_pos_of_pos_of_nonneg
-    · exact sq_pos_of_ne_zero hx
-    · exact sq_nonneg t
-
-  -- The function is continuous everywhere
-  have h4 : Continuous (fun t : ℝ ↦ (x^2 + t^2)⁻¹) := by
-    apply Continuous.inv₀
-    · exact continuous_const.add (continuous_pow 2)
-    · intro t
-      exact ne_of_gt (h3 t)
-
-  -- Split the integral into bounded and unbounded parts
-  -- The function is integrable on any bounded interval by continuity
-  have integrable_on_bounded : ∀ R > 0, MeasureTheory.IntegrableOn (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (Set.Icc (-R) R) := by
-    intro R hR
-    refine ContinuousOn.integrableOn_Icc ?_
-    · exact Continuous.continuousOn h4
-
-  -- For integrability at infinity, we use that (x^2 + t^2)⁻¹ ~ t⁻² as |t| → ∞
-  -- Since ∫ t⁻² dt converges at infinity, our function is integrable
-
-  -- Key estimate: for |t| ≥ 2|x|, we have x^2 + t^2 ≥ t^2/2
-  have decay_bound : ∀ t : ℝ, 0 < |t| → (x^2 + t^2)⁻¹ ≤ (t^2)⁻¹ := by
-    intro t
-    intro hyp_t
-    rw [←inv_le_inv₀]
-    simp_all
-    · positivity
-    · simp_all
-      positivity
-    · positivity
-
-  have f_int_1 : IntegrableOn (fun (t : ℝ) ↦ (t^2)⁻¹) (Set.Iic (-1)) volume := by
-    have D1 : (-2) < (-1 : ℝ) := by simp_all
-    have D2 : 0 < (1 : ℝ) := by simp
-    have D := integrableOn_Ioi_rpow_of_lt D1 D2
-    --simp_all
-    have D3 := MeasureTheory.IntegrableOn.comp_neg D
-    simp [*] at D3
-    have D4 :=
-      (integrableOn_Iic_iff_integrableOn_Iio'
-        (by
-          refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
-          · simp_all)).mpr D3
-    simp_all
---    exact D4
---    unfold Integrable
-    unfold IntegrableOn at D4
-    have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
-      funext x
-      simp_all
-    simp_all
-    norm_cast at D4
-    simp_all
-    exact D4
-
-
-  have f_int_2 : IntegrableOn (fun (t : ℝ) ↦ (t^2)⁻¹) (Set.Ici 1) volume := by
-    have D1 : (-2) < (-1 : ℝ) := by simp_all
-    have D2 : 0 < (1 : ℝ) := by simp
-    have D3 := integrableOn_Ioi_rpow_of_lt D1 D2
-    --simp_all
-    --have D3 := MeasureTheory.IntegrableOn.comp_neg D
-    simp [*] at D3
-    have D4 :=
-      (integrableOn_Ici_iff_integrableOn_Ioi'
-        (by
-          refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
-          · simp_all)).mpr D3
-    simp_all
---    exact D4
---    unfold Integrable
-    unfold IntegrableOn at D4
-    have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
-      funext x
-      simp_all
-    simp_all
-    norm_cast at D4
-
-  _
-
-theorem poisson_kernel_integrable (x : ℝ)
-  : x ≠ 0 → MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by
-  sorry
--/
--- Focus on the one-dimensional case: ℝ
 theorem ae_volume_of_contains_compl_singleton_zero --{α : Type*} --[MeasurableSpace α] --[MeasurableSpace.CountablyGenerated α]
   (s : Set ℝ)
   (h : (univ : Set ℝ) \ {0} ⊆ s) :
@@ -3556,11 +3412,6 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
     simp_all only [even_two, Even.neg_pow]
     norm_cast at D4
     simp_all only [even_two, Even.neg_pow]
-
-
-    --simp_all
-    --have D4 := integrableOn_Iic_iff_integrableOn_Iio.mp D3
-
 
   have Z :=
     by
@@ -3884,6 +3735,12 @@ theorem I1Bound :
       _ = rexp 1 * X := by ring_nf
 
 
+  have pts_re_neq_zero : pts_re ≠ 0 := by
+    by_contra h
+    rw [h] at pts_re_ge_1
+    simp [*] at pts_re_ge_1
+    norm_cast at pts_re_ge_1
+
   have Z :=
     by
       calc
@@ -3904,7 +3761,8 @@ theorem I1Bound :
               have simple_int : MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
                 := by
                    unfold pts
-                   exact poisson_kernel_integrable pts_re
+                   exact poisson_kernel_integrable pts_re (pts_re_neq_zero)
+
               have U := MeasureTheory.Integrable.const_mul simple_int ((K * M) * Real.log X * eps⁻¹ * X ^ pts_re)
               refine MeasureTheory.Integrable.restrict ?_
               exact U
