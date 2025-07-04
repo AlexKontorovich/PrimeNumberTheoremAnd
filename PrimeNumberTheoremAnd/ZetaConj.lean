@@ -6,7 +6,7 @@ open scoped Complex ComplexConjugate
 
 
 /-$$
-\begin{theorem}
+\begin{theorem}[hasDerivAt_conj_conj]\label{hasDerivAt_conj_conj}\lean{hasDerivAt_conj_conj}\leanok
 Let $f : \mathbb{C} \to \mathbb{C}$ be a complex differentiable function at $p \in \mathbb{C}$ with derivative $a$.
 Then the function $g(z) = \overline{f(\overline{z})}$ is complex differentiable at $\overline{p}$ with derivative $\overline{a}$.
 \end{theorem}
@@ -32,7 +32,7 @@ We expand the definition of the derivative and compute.
 $$-/
 
 /-$$
-\begin{theorem}
+\begin{theorem}[deriv_conj_conj]\label{deriv_conj_conj}\lean{deriv_conj_conj}\leanok
 Let $f : \mathbb{C} \to \mathbb{C}$ be a function at $p \in \mathbb{C}$ with derivative $a$.
 Then the derivative of the function $g(z) = \overline{f(\overline{z})}$ at $\overline{p}$ is $\overline{a}$.
 \end{theorem}
@@ -62,7 +62,7 @@ local notation (name := riemannzeta) "ζ" => riemannZeta
 local notation (name := derivriemannzeta) "ζ'" => deriv riemannZeta
 
 /-$$
-\begin{theorem}
+\begin{theorem}[conj_riemannZeta_conj_aux1]\label{conj_riemannZeta_conj_aux1}\lean{conj_riemannZeta_conj_aux1}\leanok
 Conjugation symmetry of the Riemann zeta function in the half-plane of convergence.
 Let $s \in \mathbb{C}$ with $\Re(s) > 1$.
 Then $\overline{\zeta(\overline{s})} = \zeta(s)$.
@@ -90,7 +90,7 @@ We expand the definition of the Riemann zeta function as a series and find that 
 $$-/
 
 /-$$
-\begin{theorem}
+\begin{theorem}[conj_riemannZeta_conj]\label{conj_riemannZeta_conj}\lean{conj_riemannZeta_conj}\leanok
 Conjugation symmetry of the Riemann zeta function.
 Let $s \in \mathbb{C}$.
 Then $$\overline{\zeta(\overline{s})} = \zeta(s).$$
