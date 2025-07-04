@@ -3289,6 +3289,7 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
   exact Z
 
 
+
 /-%%
 \begin{proof}\leanok
 \uses{MellinOfSmooth1c}
@@ -3615,7 +3616,7 @@ theorem I1Bound :
 
   have S : X^pts_re = rexp 1 * X := by
     unfold pts_re
-    simp_all
+
     calc
       X ^ (1 + (Real.log X)⁻¹) = X * X ^ ((Real.log X)⁻¹) := by
         refine rpow_one_add' ?_ ?_
@@ -3712,17 +3713,17 @@ theorem I1Bound :
   exact Z4
 
 theorem I9Bound :
-    ∃ C > 0, ∀ {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+    ∀ {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    ∃ C > 0, ∀{ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     (X : ℝ) (X_gt : 3 < X)
     {T : ℝ} (T_gt : 3 < T) {σ₁ : ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
     ‖I₉ SmoothingF ε X T‖ ≤ C * X * Real.log X / (ε * T) := by
   sorry
-
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I1, I9, IBound_aux1}
   Unfold the definitions and apply the triangle inequality.
