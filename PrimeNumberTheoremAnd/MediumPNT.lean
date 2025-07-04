@@ -2819,7 +2819,7 @@ theorem ZetaBoxEval {SmoothingF : ℝ → ℝ}
   rw[← sub_mul, norm_mul, norm_real, norm_of_nonneg Xnne]
   exact mul_le_mul_of_nonneg_right hC Xnne
 
-set_option maxHeartbeats 4000000
+--set_option maxHeartbeats 4000000
 
 
 theorem norm_reciprocal_inequality_1 (x : ℝ) (x₁ : ℝ) (hx₁ : x₁ ≥ 1) :
@@ -3127,7 +3127,7 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
     rw [Complex.norm_add_mul_I x t]
     ring_nf
     rw [Real.sq_sqrt _]
-    simp [*]; positivity
+    simp only [le_add_iff_nonneg_right]; positivity
     positivity
 
   have T0 : ∀ (x t : ℝ), t ≠ 0 → (‖x + t * I‖^2)⁻¹ ≤ (t^2)⁻¹ := by
@@ -3205,7 +3205,7 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
     --simp [pow_two]
 
   have f'int : IntegrableOn (fun t ↦ - (t^2)⁻¹) (Set.Iic (-T)) volume := by
-    have D1 : (-2) < (-1 : ℝ) := by simp_all
+    have D1 : (-2) < (-1 : ℝ) := by simp only [neg_lt_neg_iff, Nat.one_lt_ofNat]
     have D2 : 0 < T := by positivity
     have D := integrableOn_Ioi_rpow_of_lt D1 D2
     --simp_all
@@ -3232,7 +3232,7 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
     have D6 := MeasureTheory.integrable_neg_iff.mpr D4
     have eq_fun : (-fun x ↦ (x^2)⁻¹) = (fun (x : ℝ) ↦ - (x^2)⁻¹) := by
       funext x
-      simp
+      simp only [Pi.neg_apply]
     rw [eq_fun] at D6
     exact D6
 
@@ -3244,22 +3244,22 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
     exact MeasureTheory.integral_Iic_of_hasDerivAt_of_tendsto hcont hderiv f'int hf
 
   have T6 : ∫ (t : ℝ) in Iic (-T), (t^2)⁻¹ = T⁻¹ := by
-    simp [*] at T5
+    simp only [inv_neg, sub_zero] at T5
     have D6 : - ∫ (t : ℝ) in Iic (-T), - (t^2)⁻¹ =  ∫ (t : ℝ) in Iic (-T), (t^2)⁻¹ := by
-      simp [integral_neg fun a ↦ (a ^ 2)⁻¹]
+      simp only [integral_neg fun a ↦ (a ^ 2)⁻¹, neg_neg]
 
     rw [←D6]
     rw [T5]
-    simp
+    simp only [neg_neg]
 
   have T3 : Integrable (fun (t : ℝ) ↦ (t^2)⁻¹) (volume.restrict (Iic (-T))) := by
     --simp_all
-    have D1 : (-2) < (-1 : ℝ) := by simp_all
+    have D1 : (-2) < (-1 : ℝ) := by simp only [neg_lt_neg_iff, Nat.one_lt_ofNat]
     have D2 : 0 < T := by positivity
     have D := integrableOn_Ioi_rpow_of_lt D1 D2
     --simp_all
     have D3 := MeasureTheory.IntegrableOn.comp_neg D
-    simp [*] at D3
+    simp only [rpow_neg_ofNat, Int.reduceNeg, zpow_neg, involutiveNeg, neg_Ioi] at D3
     have D4 :=
       (integrableOn_Iic_iff_integrableOn_Iio'
         (by
@@ -3287,6 +3287,141 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
         _ = T⁻¹ := by exact T6
 
   exact Z
+
+
+theorem integral_evaluation' (x : ℝ) (T : ℝ)
+  : (3 < T) → ∫ (t : ℝ) in Ici (T), (‖x + t * I‖ ^ 2)⁻¹ ≤ T⁻¹ := by
+  intro T_large
+
+  have T00 : ∀ (x t : ℝ), t^2 ≤ ‖x + t * I‖^2 := by
+    intro x
+    intro t
+    rw [Complex.norm_add_mul_I x t]
+    ring_nf
+    rw [Real.sq_sqrt _]
+    simp only [le_add_iff_nonneg_right]; positivity
+    positivity
+
+  have T0 : ∀ (x t : ℝ), t ≠ 0 → (‖x + t * I‖^2)⁻¹ ≤ (t^2)⁻¹ := by
+    intro x
+    intro t
+    intro hyp
+    have U0 : 0 < t^2 := by positivity
+    have U1 : 0 < ‖x + t * I‖^2 := by
+      rw [Complex.norm_add_mul_I x t]
+      rw [Real.sq_sqrt _]
+      positivity
+      positivity
+    rw [inv_le_inv₀ U1 U0]
+    exact (T00 x t)
+
+  have T2 : 0 ≤ᶠ[ae (volume.restrict (Ioi T))] (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by
+    unfold Filter.EventuallyLE
+    unfold Filter.Eventually
+    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, Pi.zero_apply, inv_nonneg, norm_nonneg, pow_nonneg,
+  setOf_true, univ_mem]
+
+  have T3 : Integrable (fun (t : ℝ) ↦ - (t^2)⁻¹) (volume.restrict (Ioi T)) := by
+    have D1 : (-2) < (-1 : ℝ) := by simp only [neg_lt_neg_iff, Nat.one_lt_ofNat]
+    have D2 : 0 < T := by positivity
+    have D := integrableOn_Ioi_rpow_of_lt D1 D2
+    simp only [rpow_neg_ofNat, Int.reduceNeg, zpow_neg] at D
+    exact MeasureTheory.Integrable.neg' D
+--    exact D
+--    simp [*] at D
+--    have hb : volume {T} ≠ ⊤ := by
+--      rw [Real.volume_singleton]
+--      simp
+--    exact ((integrableOn_Ici_iff_integrableOn_Ioi' hb).mpr D)
+
+
+  have T3' : Integrable (fun (t : ℝ) ↦ (t^2)⁻¹) (volume.restrict (Ioi T)) := by
+    have D := MeasureTheory.Integrable.neg' T3
+    simp_all only [ne_eq, measurableSet_Ioi, ae_restrict_eq, neg_neg]
+
+  have T1 : (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) ≤ᶠ[ae (volume.restrict (Ioi T))] (fun (t : ℝ) ↦ (t^2)⁻¹) := by
+    unfold Filter.EventuallyLE
+    unfold Filter.Eventually
+    simp_all only [ne_eq, measurableSet_Ioi, ae_restrict_eq]
+    refine mem_inf_of_left ?_
+    · refine Filter.mem_sets.mp ?_
+      · have U :  {x_1 : ℝ | x_1 ≠ 0} ⊆ {x_1 : ℝ | (‖x + x_1 * I‖ ^ 2)⁻¹ ≤ (x_1 ^ 2)⁻¹}  := by
+          rw [Set.setOf_subset_setOf]
+          intro t
+          intro hyp_t
+          exact T0 x t hyp_t
+        have U1 : {x_1 : ℝ | x_1 ≠ 0} = (univ \ {0}) := by
+          apply Set.ext
+          intro x
+          simp_all only [ne_eq, setOf_subset_setOf, not_false_eq_true, implies_true, mem_setOf_eq, mem_diff, mem_univ,
+  mem_singleton_iff, true_and]
+
+        rw [U1] at U
+        have Z := ae_volume_of_contains_compl_singleton_zero
+          ({x_1 : ℝ | (‖x + x_1 * I‖ ^ 2)⁻¹ ≤ (x_1 ^ 2)⁻¹} : Set ℝ) U
+        exact Z
+
+
+  have hcont : ContinuousWithinAt (fun t ↦ t⁻¹) (Set.Ici T) T := by
+    refine ContinuousWithinAt.inv₀ ?_ ?_
+    · exact ContinuousAt.continuousWithinAt fun ⦃U⦄ a ↦ a
+    · by_contra h
+      simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', neg_eq_zero]
+      --norm_cast
+      norm_num
+
+      have : (0 : ℝ) < 3 := by norm_num
+      have D := calc
+        0 < 3 := this
+        _ < 0 := T_large
+
+      have Dnot :=  lt_irrefl 0
+      norm_cast at D
+
+  have hderiv : ∀ x ∈ Set.Ioi T, HasDerivAt (fun t ↦ t⁻¹) ((fun t ↦ - (t^2)⁻¹) x) x := by
+   --   ∀ x ∈ Set.Iio (-T), HasDerivAt (fun t ↦ t⁻¹) ((fun t ↦ - (t^2)⁻¹) x) x := by
+    intro x hx
+  -- x ∈ Set.Iio (-T) means x < -T, so x ≠ 0
+    have hx_ne_zero : x ≠ 0 := by
+      intro h
+      rw [h] at hx
+      simp [Set.Iio] at hx
+      linarith
+  -- Use the standard derivative of inverse function
+    convert hasDerivAt_inv hx_ne_zero
+  -- Simplify: -(x^2)⁻¹ = -x⁻² = -(x^2)⁻¹
+    --simp [pow_two]
+
+  have hf : Filter.Tendsto (fun (t : ℝ) ↦ t⁻¹) Filter.atTop (nhds 0) := by exact
+    tendsto_inv_atTop_zero
+
+  have T5 : ∫ (t : ℝ) in Ioi T, (t^2)⁻¹ = (T)⁻¹ - 0 := by
+    have U := MeasureTheory.integral_Ioi_of_hasDerivAt_of_tendsto hcont hderiv T3 hf
+    simp [*] at U
+    rw [MeasureTheory.integral_neg] at U
+    simp_all only [ne_eq, measurableSet_Ici, ae_restrict_eq, mem_Ioi, neg_inj, sub_zero]
+
+  have T6 : ∫ (t : ℝ) in Ioi T, (t^2)⁻¹ = T⁻¹ := by
+    simp only [inv_neg, sub_zero] at T5
+    have D6 : - ∫ (t : ℝ) in Ioi T, - (t^2)⁻¹ =  ∫ (t : ℝ) in Ioi T, (t^2)⁻¹ := by
+      simp only [integral_neg fun a ↦ (a ^ 2)⁻¹, neg_neg]
+
+    rw [←D6]
+    rw [←T5]
+    exact D6
+
+  have Z :=
+    by
+      calc
+        ∫ (t : ℝ) in Ioi T, (‖x + t * I‖ ^ 2)⁻¹ ≤ ∫ (t : ℝ) in Ioi T, (t^2)⁻¹  := by
+          exact MeasureTheory.integral_mono_of_nonneg T2 T3' T1
+
+        _ = T⁻¹ := by exact T6
+
+  rw [←MeasureTheory.integral_Ici_eq_integral_Ioi] at Z
+
+  exact Z
+
 
 
 
@@ -3363,7 +3498,7 @@ Same with $I_9$.
 
 
 
-set_option maxHeartbeats 4000000
+--set_option maxHeartbeats 4000000
 
 theorem I1Bound :
     ∀ {SmoothingF : ℝ → ℝ}
@@ -3371,7 +3506,7 @@ theorem I1Bound :
     ∃ C > 0, ∀(ε : ℝ) (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     (X : ℝ) (X_gt : 3 < X)
-    {T : ℝ} (T_gt : 3 < T) {σ₁ : ℝ}
+    {T : ℝ} (T_gt : 3 < T)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) ,
     ‖I₁ SmoothingF ε X T‖ ≤ C * X * Real.log X / (ε * T) := by
@@ -3434,7 +3569,7 @@ theorem I1Bound :
   intro X_large
   intro T
   intro T_large
-  intro σ₁ -- This is unnecessary, could do intro _
+--  intro σ₁ -- This is unnecessary, could do intro _
   intro smoothing_pos_for_x_pos
   intro smoothing_integrates_to_1
 
@@ -3723,7 +3858,23 @@ theorem I9Bound :
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
     ‖I₉ SmoothingF ε X T‖ ≤ C * X * Real.log X / (ε * T) := by
+/-
+  intros SmoothingF suppSmoothingF ContDiffSmoothingF
+  let ⟨C, ⟨C_pos, hC⟩⟩  := I1Bound suppSmoothingF ContDiffSmoothingF
+  use C
+  use C_pos
+  intros ε ε_pos ε_lt_one X X_gt T T_gt σ₁ SmoothingFnonneg mass_one ContDiffSmoothingF
+  have := hC ε ε_pos ε_lt_one X X_gt T_gt SmoothingFnonneg mass_one
+  unfold I₉
+  unfold I₁ at this
+  have U := by
+    rw [integral_comp_neg_Iic] at this
+  _
+-/
+
+
   sorry
+
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I1, I9, IBound_aux1}
   Unfold the definitions and apply the triangle inequality.

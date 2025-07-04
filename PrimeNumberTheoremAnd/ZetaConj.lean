@@ -1,9 +1,13 @@
 import Mathlib.Analysis.NormedSpace.Connected
 import Mathlib.NumberTheory.Harmonic.ZetaAsymp
 import Mathlib.Topology.EMetricSpace.Paracompact
+import Mathlib.Analysis.Complex.HalfPlane
+import Mathlib.Analysis.Complex.Basic
+import PrimeNumberTheoremAnd.MediumPNT
+--import Mathlib.Analysis.Analytic.Basic
+--import Mathlib.NumberTheory.ZetaFunction
 
-open scoped Complex ComplexConjugate
-
+open Complex ComplexConjugate
 
 lemma conj_riemannZeta_conj_aux1 (s : ℂ) (hs : 1 < s.re) : conj (riemannZeta (conj s)) = riemannZeta s := by
   rw[zeta_eq_tsum_one_div_nat_add_one_cpow hs]
@@ -20,6 +24,10 @@ lemma conj_riemannZeta_conj_aux1 (s : ℂ) (hs : 1 < s.re) : conj (riemannZeta (
   rw[RCLike.conj_div, map_one, ← exp_conj, map_mul, conj_conj]
   norm_cast
   rw[conj_ofReal]
+
+theorem conj_riemannZeta_conj_analytic : AnalyticOnNhd ℂ (fun s ↦ (starRingEnd ℂ) (riemannZeta ((starRingEnd ℂ) s))) {1}ᶜ :=
+  by sorry
+
 
 theorem conj_riemannZeta_conj (s : ℂ) : conj (riemannZeta (conj s)) = riemannZeta s := by
   by_cases hs1 : s = 1
@@ -44,16 +52,16 @@ theorem conj_riemannZeta_conj (s : ℂ) : conj (riemannZeta (conj s)) = riemannZ
     · rw [Filter.eventuallyEq_iff_exists_mem]
       use {s : ℂ | s.re > 1}
       constructor
-      · -- Prove that the half-plane to the right of 1 is a nbhd of 2. Easy.
-        sorry
+      · have := isOpen_re_gt_EReal (1 : ℝ)
+        norm_cast at this
+        exact (isOpen_iff_mem_nhds.mp this) 2 (by simp)
       · intro s hs
         exact conj_riemannZeta_conj_aux1 s hs
     swap
     · refine DifferentiableOn.analyticOnNhd ?_ isOpen_compl_singleton
       intro s₁ hs₁
       exact (differentiableAt_riemannZeta hs₁).differentiableWithinAt
-    · -- Show that g(s) = conj (ζ (conj s)) is analytic. Do we have the theorem that the composition of two antiholomorphic functions is holomorphic?
-      sorry
+    · exact conj_riemannZeta_conj_analytic
     · refine (?_ : IsConnected ({1}ᶜ : Set ℂ)).isPreconnected
       refine isConnected_compl_singleton_of_one_lt_rank ?_ 1
       simp
