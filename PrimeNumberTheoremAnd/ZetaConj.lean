@@ -1,15 +1,7 @@
 import Mathlib.Analysis.NormedSpace.Connected
 import Mathlib.NumberTheory.Harmonic.ZetaAsymp
 import Mathlib.Topology.EMetricSpace.Paracompact
-import Mathlib.Analysis.Complex.HalfPlane
-import Mathlib.Analysis.Complex.Basic
-import PrimeNumberTheoremAnd.MediumPNT
---import Mathlib.Analysis.Analytic.Basic
---import Mathlib.NumberTheory.ZetaFunction
 
-<<<<<<< HEAD
-open Complex ComplexConjugate
-=======
 open scoped Complex ComplexConjugate
 
 /-$$
@@ -37,7 +29,6 @@ theorem hasDerivAt_conj_conj {f : ℂ → ℂ} {p a : ℂ} (hf : HasDerivAt f a 
 We expand the definition of the derivative and compute.
 \end{proof}
 $$-/
->>>>>>> 27e302b764b98ab6afd49d9ca624fc94f67a6c2c
 
 /-$$
 \begin{theorem}[deriv_conj_conj]\label{deriv_conj_conj}\lean{deriv_conj_conj}\leanok
@@ -97,13 +88,6 @@ We expand the definition of the Riemann zeta function as a series and find that 
 \end{proof}
 $$-/
 
-<<<<<<< HEAD
-theorem conj_riemannZeta_conj_analytic : AnalyticOnNhd ℂ (fun s ↦ (starRingEnd ℂ) (riemannZeta ((starRingEnd ℂ) s))) {1}ᶜ :=
-  by sorry
-
-
-theorem conj_riemannZeta_conj (s : ℂ) : conj (riemannZeta (conj s)) = riemannZeta s := by
-=======
 /-$$
 \begin{theorem}[conj_riemannZeta_conj]\label{conj_riemannZeta_conj}\lean{conj_riemannZeta_conj}\leanok
 Conjugation symmetry of the Riemann zeta function.
@@ -112,7 +96,6 @@ Then $$\overline{\zeta(\overline{s})} = \zeta(s).$$
 \end{theorem}
 $$-/
 theorem conj_riemannZeta_conj (s : ℂ) : conj (ζ (conj s)) = ζ s := by
->>>>>>> 27e302b764b98ab6afd49d9ca624fc94f67a6c2c
   by_cases hs1 : s = 1
   · subst hs1
     rw[map_one, Complex.conj_eq_iff_real]
@@ -135,15 +118,9 @@ theorem conj_riemannZeta_conj (s : ℂ) : conj (ζ (conj s)) = ζ s := by
       set V := Complex.re ⁻¹' (Set.Ioi 1)
       use V
       constructor
-<<<<<<< HEAD
-      · have := isOpen_re_gt_EReal (1 : ℝ)
-        norm_cast at this
-        exact (isOpen_iff_mem_nhds.mp this) 2 (by simp)
-=======
       · have Vopen : IsOpen V := Continuous.isOpen_preimage Complex.continuous_re _ isOpen_Ioi
         have two_in_V : 2 ∈ V := by simp[V]
         exact IsOpen.mem_nhds Vopen two_in_V
->>>>>>> 27e302b764b98ab6afd49d9ca624fc94f67a6c2c
       · intro s hs
         exact conj_riemannZeta_conj_aux1 s hs
     · refine DifferentiableOn.analyticOnNhd ?_ isOpen_compl_singleton
@@ -154,12 +131,7 @@ theorem conj_riemannZeta_conj (s : ℂ) : conj (ζ (conj s)) = ζ s := by
     · refine DifferentiableOn.analyticOnNhd ?_ isOpen_compl_singleton
       intro s₁ hs₁
       exact (differentiableAt_riemannZeta hs₁).differentiableWithinAt
-<<<<<<< HEAD
-    · exact conj_riemannZeta_conj_analytic
-    · refine (?_ : IsConnected ({1}ᶜ : Set ℂ)).isPreconnected
-=======
     · refine (?_ : IsConnected U).isPreconnected
->>>>>>> 27e302b764b98ab6afd49d9ca624fc94f67a6c2c
       refine isConnected_compl_singleton_of_one_lt_rank ?_ 1
       simp
 /-$$
