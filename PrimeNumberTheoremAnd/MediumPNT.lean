@@ -2584,10 +2584,27 @@ lemma verticalIntegral_split_three_finite' {s a b e σ : ℝ} {f : ℂ → ℂ}
   clear this
   rw [← verticalIntegral_split_three_finite hf hab]
 
-theorem SmoothedChebyshevPull2_aux1 {T σ₁ : ℝ}
+theorem SmoothedChebyshevPull2_aux1 {T σ₁ : ℝ} (σ₁lt : σ₁ < 1)
   (holoOn : HolomorphicOn (ζ' / ζ) (Icc σ₁ 2 ×ℂ Icc (-T) T \ {1})) :
-  ContinuousOn (fun (t : ℝ) ↦ -ζ' (σ₁ + t * I) / ζ (σ₁ + t * I)) (Icc (-T) T) := sorry
-
+  ContinuousOn (fun (t : ℝ) ↦ -ζ' (σ₁ + t * I) / ζ (σ₁ + t * I)) (Icc (-T) T) := by
+  have : (fun (t : ℝ) ↦ -ζ' (↑σ₁ + ↑t * I) / ζ (↑σ₁ + ↑t * I)) = -(ζ' / ζ) ∘ (fun (t : ℝ) ↦ ↑σ₁ + ↑t * I) := by
+    ext
+    simp
+    ring_nf
+  rw [this]
+  apply ContinuousOn.neg
+  apply holoOn.continuousOn.comp
+  · fun_prop
+  · intro t ht
+    simp
+    constructor
+    · apply mem_reProdIm.mpr
+      simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add, left_mem_Icc, ht, and_true]
+      linarith
+    · intro h
+      replace h := congr_arg re h
+      simp at h
+      apply σ₁lt.ne h
 /-%%
 Next pull contours to another box.
 \begin{lemma}[SmoothedChebyshevPull2]\label{SmoothedChebyshevPull2}\lean{SmoothedChebyshevPull2}\leanok
@@ -2697,7 +2714,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       unfold SmoothedChebyshevIntegrand
       apply ContinuousOn.mul
       · apply ContinuousOn.mul
-        · apply SmoothedChebyshevPull2_aux1 holoOn
+        · apply SmoothedChebyshevPull2_aux1 σ₁_lt_one holoOn
         · apply continuousOn_of_forall_continuousAt
           intro t t_mem
           have := Smooth1MellinDifferentiable diff_SmoothingF suppSmoothingF  ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one (s := ↑σ₁ + ↑t * I) (by simpa)
