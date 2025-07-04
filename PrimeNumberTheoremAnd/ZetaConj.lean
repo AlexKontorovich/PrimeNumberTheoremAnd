@@ -6,8 +6,10 @@ open scoped Complex ComplexConjugate
 
 
 /-$$
+\begin{theorem}
 Let $f : \mathbb{C} \to \mathbb{C}$ be a complex differentiable function at $p \in \mathbb{C}$ with derivative $a$.
 Then the function $g(z) = \overline{f(\overline{z})}$ is complex differentiable at $\overline{p}$ with derivative $\overline{a}$.
+\end{theorem}
 $$-/
 theorem hasDerivAt_conj_conj {f : ℂ → ℂ} {p a : ℂ} (hf : HasDerivAt f a p) :
     HasDerivAt (fun z ↦ conj (f (conj z))) (conj a) (conj p) := by
@@ -23,12 +25,50 @@ theorem hasDerivAt_conj_conj {f : ℂ → ℂ} {p a : ℂ} (hf : HasDerivAt f a 
     simp
   · rw[← Complex.norm_conj]
     simp
+/-$$
+\begin{proof}\leanok
+We expand the definition of the derivative and compute.
+\end{proof}
+$$-/
 
 /-$$
+\begin{theorem}
+Let $f : \mathbb{C} \to \mathbb{C}$ be a function at $p \in \mathbb{C}$ with derivative $a$.
+Then the derivative of the function $g(z) = \overline{f(\overline{z})}$ at $\overline{p}$ is $\overline{a}$.
+\end{theorem}
+$$-/
+theorem deriv_conj_conj (f : ℂ → ℂ) (p : ℂ) :
+  deriv (fun z ↦ conj (f (conj z))) (conj p) = conj (deriv f p) := by
+  -- Case analysis on whether f is differentiable at p
+  set g := fun z ↦ conj (f (conj z))
+  by_cases hf : DifferentiableAt ℂ f p
+  · exact (hasDerivAt_conj_conj hf.hasDerivAt).deriv
+  · by_cases hg : DifferentiableAt ℂ g (conj p)
+    · -- If the conjugated function were differentiable, then f would be differentiable
+      have : DifferentiableAt ℂ f p := by
+        convert (hasDerivAt_conj_conj hg.hasDerivAt).differentiableAt using 2 <;> simp[g]
+      contradiction
+    · -- Both derivatives are zero when the functions are not differentiable
+      rw [deriv_zero_of_not_differentiableAt hg, deriv_zero_of_not_differentiableAt hf, map_zero]
+/-$$
+\begin{proof}\uses{hasDerivAt_conj_conj}\leanok
+We proceed by case analysis on whether $f$ is differentiable at $p$.
+If $f$ is differentiable at $p$, then we can apply the previous theorem.
+If $f$ is not differentiable at $p$, then neither is $g$, and both derivatives have the default value of zero.
+\end{proof}
+$$-/
+
+local notation (name := riemannzeta) "ζ" => riemannZeta
+local notation (name := derivriemannzeta) "ζ'" => deriv riemannZeta
+
+/-$$
+\begin{theorem}
+Conjugation symmetry of the Riemann zeta function in the half-plane of convergence.
 Let $s \in \mathbb{C}$ with $\Re(s) > 1$.
 Then $\overline{\zeta(\overline{s})} = \zeta(s)$.
+\end{theorem}
 $$-/
-lemma conj_riemannZeta_conj_aux1 (s : ℂ) (hs : 1 < s.re) : conj (riemannZeta (conj s)) = riemannZeta s := by
+lemma conj_riemannZeta_conj_aux1 (s : ℂ) (hs : 1 < s.re) : conj (ζ (conj s)) = ζ s := by
   rw[zeta_eq_tsum_one_div_nat_add_one_cpow hs]
   rw[zeta_eq_tsum_one_div_nat_add_one_cpow]
   swap
@@ -43,13 +83,20 @@ lemma conj_riemannZeta_conj_aux1 (s : ℂ) (hs : 1 < s.re) : conj (riemannZeta (
   rw[RCLike.conj_div, map_one, ← Complex.exp_conj, map_mul, Complex.conj_conj]
   norm_cast
   rw[Complex.conj_ofReal]
+/-$$
+\begin{proof}\leanok
+We expand the definition of the Riemann zeta function as a series and find that the two sides are equal term by term.
+\end{proof}
+$$-/
 
 /-$$
+\begin{theorem}
+Conjugation symmetry of the Riemann zeta function.
 Let $s \in \mathbb{C}$.
-Then $\overline{\zeta(\overline{s})} = \zeta(s)$.
-We prove this by analytic continuation from the region $\Re(s) > 1$, using the previous lemma.
+Then $$\overline{\zeta(\overline{s})} = \zeta(s).$$
+\end{theorem}
 $$-/
-theorem conj_riemannZeta_conj (s : ℂ) : conj (riemannZeta (conj s)) = riemannZeta s := by
+theorem conj_riemannZeta_conj (s : ℂ) : conj (ζ (conj s)) = ζ s := by
   by_cases hs1 : s = 1
   · subst hs1
     rw[map_one, Complex.conj_eq_iff_real]
@@ -62,9 +109,8 @@ theorem conj_riemannZeta_conj (s : ℂ) : conj (riemannZeta (conj s)) = riemannZ
     rfl
     positivity
   · let U : Set ℂ := {1}ᶜ
-    let f := riemannZeta
-    let g := fun s ↦ conj (riemannZeta (conj s))
-    suffices Set.EqOn g f U by
+    let g := fun s ↦ conj (ζ (conj s))
+    suffices Set.EqOn g ζ U by
       apply this
       rwa[Set.mem_compl_singleton_iff]
     apply AnalyticOnNhd.eqOn_of_preconnected_of_eventuallyEq (𝕜 := ℂ) (z₀ := 2)
@@ -86,9 +132,22 @@ theorem conj_riemannZeta_conj (s : ℂ) : conj (riemannZeta (conj s)) = riemannZ
     · refine DifferentiableOn.analyticOnNhd ?_ isOpen_compl_singleton
       intro s₁ hs₁
       exact (differentiableAt_riemannZeta hs₁).differentiableWithinAt
-    · refine (?_ : IsConnected ({1}ᶜ : Set ℂ)).isPreconnected
+    · refine (?_ : IsConnected U).isPreconnected
       refine isConnected_compl_singleton_of_one_lt_rank ?_ 1
       simp
+/-$$
+\begin{proof}\uses{conj_riemannZeta_conj_aux1}\leanok
+By the previous lemma, the two sides are equal on the half-plane $\{s \in \mathbb{C} : \Re(s) > 1\}$. Then, by analytic continuation, they are equal on the whole complex plane.
+\end{proof}
+$$-/
 
-theorem riemannZeta_conj (s : ℂ) : riemannZeta (conj s) = conj (riemannZeta s) := by
+theorem riemannZeta_conj (s : ℂ) : ζ (conj s) = conj (ζ s) := by
   rw [← conj_riemannZeta_conj, Complex.conj_conj]
+
+theorem deriv_riemannZeta_conj (s : ℂ) : ζ' (conj s) = conj (ζ' s) := by
+  simp[← deriv_conj_conj, conj_riemannZeta_conj]
+
+theorem logDerivZeta_conj (s : ℂ) : (ζ' / ζ) (conj s) = conj ((ζ' / ζ) s) := by
+  simp[deriv_riemannZeta_conj, riemannZeta_conj]
+
+theorem logDerivZeta_conj' (s : ℂ) : (logDeriv riemannZeta) (conj s) = conj (logDeriv riemannZeta s) := logDerivZeta_conj s
