@@ -738,7 +738,7 @@ lemma MellinOfPsi_aux {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     · refine DifferentiableOn.div_const ?_ s
       intro a ha
       refine DifferentiableAt.comp_ofReal (e := fun x ↦ x ^ s) ?_ |>.differentiableWithinAt
-      apply differentiableAt_id'.cpow (differentiableAt_const s) <| by exact Or.inl ha
+      apply differentiableAt_fun_id.cpow (differentiableAt_const s) <| by exact Or.inl ha
     · simp only [deriv.ofReal_comp']
       exact continuous_ofReal.comp (diffν.continuous_deriv (by norm_num)) |>.continuousOn
     · apply ContinuousOn.congr (f := fun (x : ℝ) ↦ (x : ℂ) ^ (s - 1)) ?_ fun x hx ↦ gderiv hs hx
@@ -1062,7 +1062,7 @@ lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν
     (fun (ε : ℝ) ↦ (𝓜 (ν ·) ε) - 1) =O[𝓝[>]0] id := by
   have diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) ↦ 𝓜 (ν ·) ε - 1) (Ioi 0) 0 := by
     apply DifferentiableAt.differentiableWithinAt
-    simp only [(differentiableAt_const _).sub_iff_left, MellinTransform_eq]
+    simp only [(differentiableAt_const _).fun_sub_iff_left, MellinTransform_eq]
     refine DifferentiableAt.comp_ofReal ?_
     refine mellin_differentiableAt_of_isBigO_rpow (a := 1) (b := -1) ?_ ?_ (by simp) ?_ (by simp)
     · apply (Continuous.continuousOn ?_).locallyIntegrableOn (by simp)
@@ -1208,13 +1208,13 @@ lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
       intro x hx; simp only [mem_Ici] at hx; simp only [id_eq, ne_eq]; linarith
     · intro x hx; simp only [nonempty_Iio, interior_Ici', mem_Ioi] at hx
       dsimp only [f]
-      rw [deriv_sub, deriv_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel₀]; simp
+      rw [deriv_fun_sub, deriv_fun_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel₀]; simp
       · exact log_pos hx
       · linarith
-      · simp only [differentiableAt_id']
+      · simp only [differentiableAt_fun_id]
       · simp only [differentiableAt_log_iff, ne_eq]; linarith
-      · exact differentiableAt_id'.mul <| differentiableAt_id'.log (by linarith)
-      · simp only [differentiableAt_id']
+      · exact differentiableAt_fun_id.mul <| differentiableAt_fun_id.log (by linarith)
+      · simp only [differentiableAt_fun_id]
   exact mono (by rw [mem_Ici]) (mem_Ici.mpr <| le_of_lt hc) hc
 /-%%
 \begin{proof}\leanok
@@ -1662,7 +1662,7 @@ lemma MellinOfSmooth1b {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
   obtain ⟨C, Cpos, hC⟩ := MellinOfPsi diffν suppν
   refine ⟨C, Cpos, ?_⟩
   intro σ₁ σ₁pos s hs1 hs2 ε εpos ε_lt_one
-  rw [MellinOfSmooth1a diffν suppν εpos <| gt_of_ge_of_gt hs1 σ₁pos]
+  rw [MellinOfSmooth1a diffν suppν εpos <| lt_of_le_of_lt' hs1 σ₁pos]
   have hh1 : ε * σ₁ ≤ (ε * s).re := by
     simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
     nlinarith
