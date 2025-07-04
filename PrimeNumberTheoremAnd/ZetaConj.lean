@@ -4,7 +4,6 @@ import Mathlib.Topology.EMetricSpace.Paracompact
 
 open scoped Complex ComplexConjugate
 
-
 /-$$
 \begin{theorem}[hasDerivAt_conj_conj]\label{hasDerivAt_conj_conj}\lean{hasDerivAt_conj_conj}\leanok
 Let $f : \mathbb{C} \to \mathbb{C}$ be a complex differentiable function at $p \in \mathbb{C}$ with derivative $a$.
@@ -151,3 +150,18 @@ theorem logDerivZeta_conj (s : ℂ) : (ζ' / ζ) (conj s) = conj ((ζ' / ζ) s) 
   simp[deriv_riemannZeta_conj, riemannZeta_conj]
 
 theorem logDerivZeta_conj' (s : ℂ) : (logDeriv riemannZeta) (conj s) = conj (logDeriv riemannZeta s) := logDerivZeta_conj s
+      use {s : ℂ | s.re > 1}
+      constructor
+      · -- Prove that the half-plane to the right of 1 is a nbhd of 2. Easy.
+        sorry
+      · intro s hs
+        exact conj_riemannZeta_conj_aux1 s hs
+    swap
+    · refine DifferentiableOn.analyticOnNhd ?_ isOpen_compl_singleton
+      intro s₁ hs₁
+      exact (differentiableAt_riemannZeta hs₁).differentiableWithinAt
+    · -- Show that g(s) = conj (ζ (conj s)) is analytic. Do we have the theorem that the composition of two antiholomorphic functions is holomorphic?
+      sorry
+    · refine (?_ : IsConnected ({1}ᶜ : Set ℂ)).isPreconnected
+      refine isConnected_compl_singleton_of_one_lt_rank ?_ 1
+      simp
