@@ -2587,24 +2587,20 @@ lemma verticalIntegral_split_three_finite' {s a b e σ : ℝ} {f : ℂ → ℂ}
 theorem SmoothedChebyshevPull2_aux1 {T σ₁ : ℝ} (σ₁lt : σ₁ < 1)
   (holoOn : HolomorphicOn (ζ' / ζ) (Icc σ₁ 2 ×ℂ Icc (-T) T \ {1})) :
   ContinuousOn (fun (t : ℝ) ↦ -ζ' (σ₁ + t * I) / ζ (σ₁ + t * I)) (Icc (-T) T) := by
-  have : (fun (t : ℝ) ↦ -ζ' (↑σ₁ + ↑t * I) / ζ (↑σ₁ + ↑t * I)) = -(ζ' / ζ) ∘ (fun (t : ℝ) ↦ ↑σ₁ + ↑t * I) := by
-    ext
-    simp
-    ring_nf
-  rw [this]
+  rw [show (fun (t : ℝ) ↦ -ζ' (↑σ₁ + ↑t * I) / ζ (↑σ₁ + ↑t * I)) = -(ζ' / ζ) ∘ (fun (t : ℝ) ↦ ↑σ₁ + ↑t * I) by ext; simp; ring_nf]
   apply ContinuousOn.neg
-  apply holoOn.continuousOn.comp
-  · fun_prop
-  · intro t ht
-    simp
-    constructor
-    · apply mem_reProdIm.mpr
-      simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add, left_mem_Icc, ht, and_true]
-      linarith
-    · intro h
-      replace h := congr_arg re h
-      simp at h
-      apply σ₁lt.ne h
+  apply holoOn.continuousOn.comp (by fun_prop)
+  intro t ht
+  simp
+  constructor
+  · apply mem_reProdIm.mpr
+    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add, left_mem_Icc, ht, and_true]
+    linarith
+  · intro h
+    replace h := congr_arg re h
+    simp at h
+    linarith
+
 /-%%
 Next pull contours to another box.
 \begin{lemma}[SmoothedChebyshevPull2]\label{SmoothedChebyshevPull2}\lean{SmoothedChebyshevPull2}\leanok
