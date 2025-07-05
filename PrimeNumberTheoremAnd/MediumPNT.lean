@@ -1,4 +1,5 @@
 import PrimeNumberTheoremAnd.ZetaBounds
+import PrimeNumberTheoremAnd.ZetaConj
 import Mathlib.Algebra.Group.Support
 import Mathlib.Analysis.SpecialFunctions.Log.Monotone
 
@@ -80,6 +81,44 @@ noncomputable abbrev SmoothedChebyshevIntegrand (SmoothingF : ℝ → ℝ) (ε :
 
 noncomputable def SmoothedChebyshev (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
   VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) ((1 : ℝ) + (Real.log X)⁻¹)
+
+open ComplexConjugate
+
+/-%%
+\begin{lemma}[SmoothedChebyshevIntegrand_conj]\label{SmoothedChebyshevIntegrand_conj}\lean{SmoothedChebyshevIntegrand_conj}\leanok
+The smoothed Chebyshev integrand satisfies the conjugation symmetry
+$$
+\psi_{\epsilon}(X)(\overline{s}) = \overline{\psi_{\epsilon}(X)(s)}
+$$
+for all $s \in \mathbb{C}$, $X > 0$, and $\epsilon > 0$.
+\end{lemma}
+%%-/
+lemma smoothedChebyshevIntegrand_conj {SmoothingF : ℝ → ℝ} {ε X : ℝ} (Xpos : 0 < X) (s : ℂ) :
+    SmoothedChebyshevIntegrand SmoothingF ε X (conj s) = conj (SmoothedChebyshevIntegrand SmoothingF ε X s) := by
+  unfold SmoothedChebyshevIntegrand
+  simp only [map_mul, map_div₀, map_neg]
+  congr
+  · exact deriv_riemannZeta_conj s
+  · exact riemannZeta_conj s
+  · unfold MellinTransform
+    rw[← integral_conj]
+    apply MeasureTheory.setIntegral_congr_fun measurableSet_Ioi
+    intro x xpos
+    simp only [map_mul, Complex.conj_ofReal]
+    congr
+    nth_rw 1 [← map_one conj]
+    rw[← map_sub, Complex.cpow_conj, Complex.conj_ofReal]
+    rw[Complex.arg_ofReal_of_nonneg xpos.le]
+    exact Real.pi_ne_zero.symm
+  · rw[Complex.cpow_conj, Complex.conj_ofReal]
+    rw[Complex.arg_ofReal_of_nonneg Xpos.le]
+    exact Real.pi_ne_zero.symm
+/-%%
+\begin{proof}\uses{deriv_riemannZeta_conj, riemannZeta_conj}\leanok
+We expand the definition of the smoothed Chebyshev integrand and compute, using the corresponding
+conjugation symmetries of the Riemann zeta function and its derivative.
+\end{proof}
+%%-/
 
 open MeasureTheory
 
@@ -1086,7 +1125,7 @@ noncomputable def I₅ (SmoothingF : ℝ → ℝ) (ε X σ₂ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-3)..3,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₂ + t * I)))
 
-theorem realDiff_of_complexDIff {f : ℂ → ℂ} (s : ℂ) (hf : DifferentiableAt ℂ f s) :
+theorem realDiff_of_complexDiff {f : ℂ → ℂ} (s : ℂ) (hf : DifferentiableAt ℂ f s) :
     ContinuousAt (fun (x : ℝ) ↦ f (s.re + x * I)) s.im := by
   -- First, get continuity of f at s from differentiability
   have hf_cont : ContinuousAt f s := DifferentiableAt.continuousAt hf
@@ -1989,8 +2028,8 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
       · apply ContinuousAt.neg
         have : DifferentiableAt ℂ (fun s ↦ deriv riemannZeta s) s :=
           differentiableAt_deriv_riemannZeta s_ne_one
-        convert realDiff_of_complexDIff (s := σ₀ + (t : ℂ) * I) this <;> simp
-      · convert realDiff_of_complexDIff (s := σ₀ + (t : ℂ) * I) diffζ <;> simp
+        convert realDiff_of_complexDiff (s := σ₀ + (t : ℂ) * I) this <;> simp
+      · convert realDiff_of_complexDiff (s := σ₀ + (t : ℂ) * I) diffζ <;> simp
       · apply riemannZeta_ne_zero_of_one_lt_re
         simp [σ₀_gt]
     · -- The function x ↦ σ₀ + x * I is continuous
@@ -2714,7 +2753,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         · apply continuousOn_of_forall_continuousAt
           intro t t_mem
           have := Smooth1MellinDifferentiable diff_SmoothingF suppSmoothingF  ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one (s := ↑σ₁ + ↑t * I) (by simpa)
-          simpa using realDiff_of_complexDIff _ this
+          simpa using realDiff_of_complexDiff _ this
       · apply continuousOn_of_forall_continuousAt
         intro t t_mem
         apply ContinuousAt.comp
@@ -3591,7 +3630,7 @@ theorem I1Bound :
       unfold zeta_part
       simp [norm_neg]
 
-    have zeta_bound: ∀(t : ℝ), ‖zeta_part t‖ ≤ K * Real.log X := by
+    have zeta_bound : ∀(t : ℝ), ‖zeta_part t‖ ≤ K * Real.log X := by
       intro t
       unfold zeta_part
       rw [T2]
