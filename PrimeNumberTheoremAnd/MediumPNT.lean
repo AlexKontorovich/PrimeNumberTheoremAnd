@@ -1,4 +1,5 @@
 import PrimeNumberTheoremAnd.ZetaBounds
+import PrimeNumberTheoremAnd.ZetaConj
 import Mathlib.Algebra.Group.Support
 import Mathlib.Analysis.SpecialFunctions.Log.Monotone
 
@@ -80,6 +81,44 @@ noncomputable abbrev SmoothedChebyshevIntegrand (SmoothingF : ℝ → ℝ) (ε :
 
 noncomputable def SmoothedChebyshev (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ :=
   VerticalIntegral' (SmoothedChebyshevIntegrand SmoothingF ε X) ((1 : ℝ) + (Real.log X)⁻¹)
+
+open ComplexConjugate
+
+/-%%
+\begin{lemma}[SmoothedChebyshevIntegrand_conj]\label{SmoothedChebyshevIntegrand_conj}\lean{SmoothedChebyshevIntegrand_conj}\leanok
+The smoothed Chebyshev integrand satisfies the conjugation symmetry
+$$
+\psi_{\epsilon}(X)(\overline{s}) = \overline{\psi_{\epsilon}(X)(s)}
+$$
+for all $s \in \mathbb{C}$, $X > 0$, and $\epsilon > 0$.
+\end{lemma}
+%%-/
+lemma smoothedChebyshevIntegrand_conj {SmoothingF : ℝ → ℝ} {ε X : ℝ} (Xpos : 0 < X) (s : ℂ) :
+    SmoothedChebyshevIntegrand SmoothingF ε X (conj s) = conj (SmoothedChebyshevIntegrand SmoothingF ε X s) := by
+  unfold SmoothedChebyshevIntegrand
+  simp only [map_mul, map_div₀, map_neg]
+  congr
+  · exact deriv_riemannZeta_conj s
+  · exact riemannZeta_conj s
+  · unfold MellinTransform
+    rw[← integral_conj]
+    apply MeasureTheory.setIntegral_congr_fun measurableSet_Ioi
+    intro x xpos
+    simp only [map_mul, Complex.conj_ofReal]
+    congr
+    nth_rw 1 [← map_one conj]
+    rw[← map_sub, Complex.cpow_conj, Complex.conj_ofReal]
+    rw[Complex.arg_ofReal_of_nonneg xpos.le]
+    exact Real.pi_ne_zero.symm
+  · rw[Complex.cpow_conj, Complex.conj_ofReal]
+    rw[Complex.arg_ofReal_of_nonneg Xpos.le]
+    exact Real.pi_ne_zero.symm
+/-%%
+\begin{proof}\uses{deriv_riemannZeta_conj, riemannZeta_conj}\leanok
+We expand the definition of the smoothed Chebyshev integrand and compute, using the corresponding
+conjugation symmetries of the Riemann zeta function and its derivative.
+\end{proof}
+%%-/
 
 open MeasureTheory
 
@@ -1086,7 +1125,7 @@ noncomputable def I₅ (SmoothingF : ℝ → ℝ) (ε X σ₂ : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-3)..3,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₂ + t * I)))
 
-theorem realDiff_of_complexDIff {f : ℂ → ℂ} (s : ℂ) (hf : DifferentiableAt ℂ f s) :
+theorem realDiff_of_complexDiff {f : ℂ → ℂ} (s : ℂ) (hf : DifferentiableAt ℂ f s) :
     ContinuousAt (fun (x : ℝ) ↦ f (s.re + x * I)) s.im := by
   -- First, get continuity of f at s from differentiability
   have hf_cont : ContinuousAt f s := DifferentiableAt.continuousAt hf
@@ -1989,8 +2028,8 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
       · apply ContinuousAt.neg
         have : DifferentiableAt ℂ (fun s ↦ deriv riemannZeta s) s :=
           differentiableAt_deriv_riemannZeta s_ne_one
-        convert realDiff_of_complexDIff (s := σ₀ + (t : ℂ) * I) this <;> simp
-      · convert realDiff_of_complexDIff (s := σ₀ + (t : ℂ) * I) diffζ <;> simp
+        convert realDiff_of_complexDiff (s := σ₀ + (t : ℂ) * I) this <;> simp
+      · convert realDiff_of_complexDiff (s := σ₀ + (t : ℂ) * I) diffζ <;> simp
       · apply riemannZeta_ne_zero_of_one_lt_re
         simp [σ₀_gt]
     · -- The function x ↦ σ₀ + x * I is continuous
@@ -2714,7 +2753,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         · apply continuousOn_of_forall_continuousAt
           intro t t_mem
           have := Smooth1MellinDifferentiable diff_SmoothingF suppSmoothingF  ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one (s := ↑σ₁ + ↑t * I) (by simpa)
-          simpa using realDiff_of_complexDIff _ this
+          simpa using realDiff_of_complexDiff _ this
       · apply continuousOn_of_forall_continuousAt
         intro t t_mem
         apply ContinuousAt.comp
@@ -3734,7 +3773,7 @@ theorem I1Bound :
       unfold zeta_part
       simp only [Complex.norm_div, norm_neg]
 
-    have zeta_bound: ∀(t : ℝ), ‖zeta_part t‖ ≤ K * Real.log X := by
+    have zeta_bound : ∀(t : ℝ), ‖zeta_part t‖ ≤ K * Real.log X := by
       intro t
       unfold zeta_part
       rw [T2]
@@ -3869,6 +3908,8 @@ theorem I1Bound :
   ring_nf
   ring_nf at Z4
   exact Z4
+
+
 
 theorem I9Bound :
     ∀ {SmoothingF : ℝ → ℝ}
@@ -4301,7 +4342,6 @@ $$
 \left|I_{2}(\nu, \epsilon, X, T)\right| \ll \frac{X}{\epsilon T}
 .
 $$
-Same with $I_8$.
 \end{lemma}
 %%-/
 lemma I2Bound : ∀ {SmoothingF : ℝ → ℝ}
@@ -4462,17 +4502,6 @@ lemma I2Bound : ∀ {SmoothingF : ℝ → ℝ}
           field_simp
           ring
 
-lemma I8Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
-    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    {T : ℝ} (T_gt : 3 < T)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
-    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
-    ‖I₈ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
-  sorry
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform, I2, I8}
 Unfold the definitions and apply the triangle inequality.
@@ -4512,6 +4541,62 @@ $$
 Same with $I_7$.
 \end{lemma}
 %%-/
+
+/-%%
+\begin{lemma}[I8I2]\label{I8I2}\lean{I8I2}\leanok
+Symmetry between $I_2$ and $I_8$:
+$$
+I_8(\nu, \epsilon, X, T) = -\overline{I_2(\nu, \epsilon, X, T)}
+.
+$$
+\end{lemma}
+%%-/
+lemma I8I2 {SmoothingF : ℝ → ℝ}
+    {X ε T σ₁ : ℝ} (T_gt : 3 < T) :
+    I₈ SmoothingF ε X T σ₁ = -conj (I₂ SmoothingF ε X T σ₁) := by
+  unfold I₂ I₈
+  rw[map_mul, ← neg_mul]
+  congr
+  · simp[conj_ofNat]
+  · rw[← intervalIntegral_conj]
+    apply intervalIntegral.integral_congr
+    intro σ hσ
+    simp only []
+    rw[← smoothedChebyshevIntegrand_conj]
+    simp only [map_sub, conj_ofReal, map_mul, conj_I, mul_neg, sub_neg_eq_add]
+    exact lt_trans (by norm_num) T_gt
+
+/-%%
+\begin{lemma}[I8Bound]\label{I8Bound}\lean{I8Bound}\leanok
+We have that
+$$
+\left|I_{8}(\nu, \epsilon, X, T)\right| \ll \frac{X}{\epsilon T}
+.
+$$
+\end{lemma}
+%%-/
+lemma I8Bound : ∀ {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1),
+    ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)),
+    ∀(X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    {T : ℝ} (T_gt : 3 < T),
+    let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
+    ‖I₈ SmoothingF ε T X σ₁‖ ≤ C * X / (ε * T) := by
+  intro SmoothingF suppSmoothingF ContDiffSmoothingF mass_one
+  obtain ⟨C, hC, A, hA, i2Bound⟩ := I2Bound suppSmoothingF ContDiffSmoothingF mass_one
+  use C, hC, A, hA
+  intro X hX ε hε0 hε1 T hT σ₁
+  let i2Bound := i2Bound X hX hε0 hε1 hT
+  rw[I8I2 hX, norm_neg, norm_conj]
+  exact i2Bound
+/-%%
+\begin{proof}\uses{I8I2, I2Bound}
+  We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$.
+$$
+%%-/
+
+
 lemma I3Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
