@@ -4276,8 +4276,8 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma I2Bound : ∀ {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1),
+lemma I2Bound {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)),
     ∀(X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
@@ -4285,7 +4285,6 @@ lemma I2Bound : ∀ {SmoothingF : ℝ → ℝ}
     let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
     ‖I₂ SmoothingF ε T X σ₁‖ ≤ C * X / (ε * T) := by
 
-  intro SmoothingF suppSmoothingF ContDiffSmoothingF mass_one
 
   have ⟨C₁, C₁pos, Mbd⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
   have ⟨A, Abd, C₂, C₂pos, ζbd⟩ := LogDerivZetaBndUniform
@@ -4507,15 +4506,15 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma I8Bound : ∀ {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1),
+lemma I8Bound {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)),
-    ∀(X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    {T : ℝ} (T_gt : 3 < T),
+    ∀(X : ℝ) (_ : 3 < X) {ε : ℝ} (_: 0 < ε)
+    (_ : ε < 1)
+    {T : ℝ} (_ : 3 < T),
     let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
     ‖I₈ SmoothingF ε T X σ₁‖ ≤ C * X / (ε * T) := by
-  intro SmoothingF suppSmoothingF ContDiffSmoothingF mass_one
+
   obtain ⟨C, hC, A, hA, i2Bound⟩ := I2Bound suppSmoothingF ContDiffSmoothingF mass_one
   use C, hC, A, hA
   intro X hX ε hε0 hε1 T hT σ₁
