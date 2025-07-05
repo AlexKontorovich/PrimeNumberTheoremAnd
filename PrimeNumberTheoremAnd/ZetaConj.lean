@@ -91,6 +91,8 @@ Conjugation symmetry of the Riemann zeta function.
 Let $s \in \mathbb{C}$.
 Then $$\overline{\zeta(\overline{s})} = \zeta(s).$$
 \end{theorem}
+
+% TODO: Submit this and the following corollaries to Mathlib.
 %%-/
 theorem conj_riemannZeta_conj (s : ℂ) : conj (riemannZeta (conj s)) = riemannZeta s := by
   by_cases hs1 : s = 1
@@ -147,3 +149,22 @@ theorem logDerivZeta_conj (s : ℂ) : (deriv riemannZeta / riemannZeta) (conj s)
   simp[deriv_riemannZeta_conj, riemannZeta_conj]
 
 theorem logDerivZeta_conj' (s : ℂ) : (logDeriv riemannZeta) (conj s) = conj (logDeriv riemannZeta s) := logDerivZeta_conj s
+
+
+/-%%
+\begin{theorem}[intervalIntegral_conj]\label{intervalIntegral_conj}\lean{intervalIntegral_conj}\leanok
+The conjugation symmetry of the interval integral.
+Let $f : \mathbb{R} \to \mathbb{C}$ be a measurable function, and let $a, b \in \mathbb{R}$.
+Then $$\int_{a}^{b} \overline{f(x)} \, dx = \overline{\int_{a}^{b} f(x) \, dx}.$$
+\end{theorem}
+
+% TODO: Submit this to Mathlib.
+%%-/
+theorem intervalIntegral_conj {f : ℝ → ℂ} {a b : ℝ} : ∫ (x : ℝ) in a..b, conj (f x) = conj (∫ (x : ℝ) in a..b, f x) := by
+  rw [intervalIntegral.intervalIntegral_eq_integral_uIoc, integral_conj]
+  rw [← RCLike.conj_smul, ← intervalIntegral.intervalIntegral_eq_integral_uIoc]
+/-%%
+\begin{proof}\leanok
+We unfold the interval integral into an integral over a uIoc and use the conjugation property of integrals.
+\end{proof}
+%%-/

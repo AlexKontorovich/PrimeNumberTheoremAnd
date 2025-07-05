@@ -3763,15 +3763,17 @@ theorem I1Bound :
   ring_nf at Z4
   exact Z4
 
+
+
 theorem I9Bound :
-    ∃ C > 0, ∀ {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+    ∀ {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    ∃ C > 0, ∀(ε : ℝ) (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     (X : ℝ) (X_gt : 3 < X)
     {T : ℝ} (T_gt : 3 < T) {σ₁ : ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) ,
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) ,
     ‖I₉ SmoothingF ε X T‖ ≤ C * X * Real.log X / (ε * T) := by
   sorry
 
@@ -3836,7 +3838,6 @@ $$
 \left|I_{2}(\nu, \epsilon, X, T)\right| \ll \frac{X}{\epsilon T}
 .
 $$
-Same with $I_8$.
 \end{lemma}
 %%-/
 lemma I2Bound : ∀ {SmoothingF : ℝ → ℝ}
@@ -3997,17 +3998,6 @@ lemma I2Bound : ∀ {SmoothingF : ℝ → ℝ}
           field_simp
           ring
 
-lemma I8Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
-    (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    {T : ℝ} (T_gt : 3 < T)
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
-    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
-    ‖I₈ SmoothingF ε X T σ₁‖ ≤ C * X / (ε * T) := by
-  sorry
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform, I2, I8}
 Unfold the definitions and apply the triangle inequality.
@@ -4047,6 +4037,62 @@ $$
 Same with $I_7$.
 \end{lemma}
 %%-/
+
+/-%%
+\begin{lemma}[I8I2]\label{I8I2}\lean{I8I2}\leanok
+Symmetry between $I_2$ and $I_8$:
+$$
+I_8(\nu, \epsilon, X, T) = -\overline{I_2(\nu, \epsilon, X, T)}
+.
+$$
+\end{lemma}
+%%-/
+lemma I8I2 {SmoothingF : ℝ → ℝ}
+    {X ε T σ₁ : ℝ} (T_gt : 3 < T) :
+    I₈ SmoothingF ε X T σ₁ = -conj (I₂ SmoothingF ε X T σ₁) := by
+  unfold I₂ I₈
+  rw[map_mul, ← neg_mul]
+  congr
+  · simp[conj_ofNat]
+  · rw[← intervalIntegral_conj]
+    apply intervalIntegral.integral_congr
+    intro σ hσ
+    simp only []
+    rw[← smoothedChebyshevIntegrand_conj]
+    simp only [map_sub, conj_ofReal, map_mul, conj_I, mul_neg, sub_neg_eq_add]
+    exact lt_trans (by norm_num) T_gt
+
+/-%%
+\begin{lemma}[I8Bound]\label{I8Bound}\lean{I8Bound}\leanok
+We have that
+$$
+\left|I_{8}(\nu, \epsilon, X, T)\right| \ll \frac{X}{\epsilon T}
+.
+$$
+\end{lemma}
+%%-/
+lemma I8Bound : ∀ {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1),
+    ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)),
+    ∀(X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
+    (ε_lt_one : ε < 1)
+    {T : ℝ} (T_gt : 3 < T),
+    let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
+    ‖I₈ SmoothingF ε T X σ₁‖ ≤ C * X / (ε * T) := by
+  intro SmoothingF suppSmoothingF ContDiffSmoothingF mass_one
+  obtain ⟨C, hC, A, hA, i2Bound⟩ := I2Bound suppSmoothingF ContDiffSmoothingF mass_one
+  use C, hC, A, hA
+  intro X hX ε hε0 hε1 T hT σ₁
+  let i2Bound := i2Bound X hX hε0 hε1 hT
+  rw[I8I2 hX, norm_neg, norm_conj]
+  exact i2Bound
+/-%%
+\begin{proof}\uses{I8I2, I2Bound}
+  We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$.
+$$
+%%-/
+
+
 lemma I3Bound : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), ∀ {SmoothingF : ℝ → ℝ}
     (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
