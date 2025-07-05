@@ -1127,27 +1127,9 @@ noncomputable def I₅ (SmoothingF : ℝ → ℝ) (ε X σ₂ : ℝ) : ℂ :=
 
 theorem realDiff_of_complexDiff {f : ℂ → ℂ} (s : ℂ) (hf : DifferentiableAt ℂ f s) :
     ContinuousAt (fun (x : ℝ) ↦ f (s.re + x * I)) s.im := by
-  -- First, get continuity of f at s from differentiability
-  have hf_cont : ContinuousAt f s := DifferentiableAt.continuousAt hf
-
-  -- The function x ↦ s.re + x * I is continuous
-  have h_param : ContinuousAt (fun x : ℝ ↦ (s.re + x * I : ℂ)) s.im := by
-    apply ContinuousAt.add
-    · exact continuousAt_const
-    · apply ContinuousAt.mul
-      · refine Continuous.continuousAt ?_
-        exact continuous_ofReal
-      · exact continuousAt_const
-
-  -- Need to show that s.re + s.im * I = s
-  have h_eq : (s.re : ℂ) + (s.im : ℂ) * I = s := by
-    rw [← Complex.re_add_im s]
-    simp
-
-  -- Use the equation to transform the continuity
-  rw [← h_eq] at hf_cont
-  -- The composition of continuous functions is continuous
-  exact ContinuousAt.comp hf_cont h_param
+  apply ContinuousAt.comp _ (by fun_prop)
+  convert hf.continuousAt
+  simp
 
 -- TODO : Move elsewhere (should be in Mathlib!) NOT NEEDED
 theorem riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
