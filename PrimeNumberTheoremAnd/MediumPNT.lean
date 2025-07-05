@@ -4677,12 +4677,12 @@ theorem MediumPNT : ∃ c > 0,
   have ε_lt_one : ε < 1 := sorry
   have ⟨ν, ContDiffν, ν_nonneg', ν_supp, ν_massOne'⟩ := SmoothExistence
   have ContDiff1ν : ContDiff ℝ 1 ν := by
-    sorry
+    exact ContDiffν.of_le (by simp)
   have ν_nonneg : ∀ x > 0, 0 ≤ ν x := by
     intro x x_pos
     exact ν_nonneg' x
   have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by
-    sorry
+    rwa [← integral_Ici_eq_integral_Ioi]
   let ψ_ε_of_X := SmoothedChebyshev ν ε X
   have : ∃ C > 0, ‖ψ X - ψ_ε_of_X‖ ≤ C * X * ε * Real.log X := by
     obtain ⟨C, Cpos, hC⟩ := SmoothedChebyshevClose ContDiff1ν
