@@ -1960,7 +1960,6 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     (ε_lt_one : ε < 1)
     {X : ℝ} (X_gt : 3 < X)
     {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (σ₀_le_2 : σ₀ ≤ 2)
---    (holoOn : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X) (Icc σ₀ 2 ×ℂ univ \ {1}))
     (suppSmoothingF : support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ (x : ℝ) in Ioi 0, SmoothingF x / x = 1)
@@ -1970,10 +1969,9 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
       SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + (t : ℂ) * I)) volume := by
   obtain ⟨C, C_pos, hC⟩ := dlog_riemannZeta_bdd_on_vertical_lines' σ₀_gt
   let c : ℝ := C * X ^ σ₀
-  have : ∀ᵐ t ∂volume, ‖(fun (t : ℝ) ↦ (- deriv riemannZeta (σ₀ + (t : ℂ) * I)) /
+  have : ∀ t, ‖(fun (t : ℝ) ↦ (- deriv riemannZeta (σ₀ + (t : ℂ) * I)) /
     riemannZeta (σ₀ + (t : ℂ) * I) *
     (X : ℂ) ^ (σ₀ + (t : ℂ) * I)) t‖ ≤ c := by
-    apply Filter.Eventually.of_forall
     intro t
     simp only [Complex.norm_mul, norm_neg, c]
     gcongr
@@ -1986,7 +1984,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
         add_zero, ne_eq, c]
         linarith
   convert (SmoothedChebyshevDirichlet_aux_integrable ContDiffSmoothingF SmoothingFnonneg
-    suppSmoothingF mass_one ε_pos ε_lt_one σ₀_gt σ₀_le_2).bdd_mul' (c := c) ?_ this using 2
+    suppSmoothingF mass_one ε_pos ε_lt_one σ₀_gt σ₀_le_2).bdd_mul ?_ ⟨c, this⟩ using 2
   · unfold SmoothedChebyshevIntegrand
     ring
   · apply Continuous.aestronglyMeasurable
@@ -2014,22 +2012,10 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
       · convert realDiff_of_complexDiff (s := σ₀ + (t : ℂ) * I) diffζ <;> simp
       · apply riemannZeta_ne_zero_of_one_lt_re
         simp [σ₀_gt]
-    · -- The function x ↦ σ₀ + x * I is continuous
-      have h_param : ContinuousAt (fun x : ℝ ↦ (↑σ₀ + ↑x * I : ℂ)) t := by
-        apply ContinuousAt.add
-        · exact continuousAt_const
-        · apply ContinuousAt.mul
-          · exact continuous_ofReal.continuousAt
-          · exact continuousAt_const
-
-      -- The complex power function z ↦ X^z is continuous (assuming X > 0)
-      have h_pow : ContinuousAt (fun z : ℂ ↦ (↑X : ℂ) ^ z) (↑σ₀ + ↑t * I) := by
-        apply continuousAt_const_cpow
-        simp only [ne_eq, ofReal_eq_zero, s]
-        linarith
-
-      -- Composition of continuous functions
-      exact ContinuousAt.comp h_pow h_param
+    · apply ContinuousAt.comp _ (by fun_prop)
+      apply continuousAt_const_cpow
+      norm_cast
+      linarith
 
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, SmoothedChebyshevDirichlet_aux_integrable}\leanok
