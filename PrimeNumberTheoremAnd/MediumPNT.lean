@@ -3516,23 +3516,20 @@ Same with $I_9$.
 \end{lemma}
 %%-/
 
-theorem I1Bound :
-    ∀ {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
-    ∃ C > 0, ∀(ε : ℝ) (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    (X : ℝ) (X_gt : 3 < X)
-    {T : ℝ} (T_gt : 3 < T)
+theorem I1Bound
+    {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) ,
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
+    ∃ C > 0, ∀(ε : ℝ) (_ : 0 < ε)
+    (_ : ε < 1)
+    (X : ℝ) (_ : 3 < X)
+    {T : ℝ} (_ : 3 < T),
     ‖I₁ SmoothingF ε X T‖ ≤ C * X * Real.log X / (ε * T) := by
 
-  intro Smoothing
-  intro smoothing_support_hyp
-  intro smoothing_cont_diff
 
   obtain ⟨M, ⟨M_is_pos, M_bounds_mellin_hard⟩⟩ :=
-    MellinOfSmooth1b smoothing_cont_diff smoothing_support_hyp
+    MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
 
   have G0 : ∃K > 0, ∀(t σ : ℝ), 1 < σ → σ < 2 → ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ K * (σ - 1)⁻¹ := by
     let ⟨K', ⟨K'_pos, K'_bounds_zeta⟩⟩ := triv_bound_zeta
@@ -3578,18 +3575,7 @@ theorem I1Bound :
   use (|π|⁻¹ * 2⁻¹ * (Real.exp 1 * K * M))
   use C_final_pos
 
-  intro eps
-  intro eps_pos
-  intro eps_less_one
-  intro X
-  intro X_large
-  intro T
-  intro T_large
---  intro σ₁ -- This is unnecessary, could do intro _
-  intro smoothing_pos_for_x_pos
-  intro smoothing_integrates_to_1
-
-  --unfold I₁
+  intro eps eps_pos eps_less_one X X_large T T_large
 
   let pts_re := 1 + (Real.log X)⁻¹
   let pts := fun (t : ℝ) ↦ (pts_re + t * I)
@@ -3695,7 +3681,7 @@ theorem I1Bound :
 
   have X_pos_triv : 0 < X := by positivity
 
-  let f := fun (t : ℝ) ↦ SmoothedChebyshevIntegrand Smoothing eps X (pts t)
+  let f := fun (t : ℝ) ↦ SmoothedChebyshevIntegrand SmoothingF eps X (pts t)
 
   /- Main pointwise bound -/
 
@@ -3706,7 +3692,7 @@ theorem I1Bound :
     let M_bounds_mellin_easy := fun (t : ℝ) ↦ M_bounds_mellin_hard pts_re pts_re_pos (pts t) (triv_pts_lo_bound t) (triv_pts_up_bound t) eps eps_pos eps_less_one
 
     let zeta_part := (fun (t : ℝ) ↦ -ζ' (pts t) / ζ (pts t))
-    let mellin_part := (fun (t : ℝ) ↦ 𝓜 (fun x ↦ ↑(Smooth1 Smoothing eps x)) (pts t))
+    let mellin_part := (fun (t : ℝ) ↦ 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF eps x)) (pts t))
     let X_part := (fun (t : ℝ) ↦ (↑X : ℂ) ^ (pts t))
 
     let g := fun (t : ℝ) ↦ (zeta_part t) * (mellin_part t) * (X_part t)
@@ -3764,10 +3750,10 @@ theorem I1Bound :
     unfold pts_re
     -- LOL!
     exact
-      Preorder.le_trans (1 + (Real.log X)⁻¹) (pts (Smoothing (Smoothing M))).re 2
-        (triv_pts_lo_bound (Smoothing (Smoothing M))) (triv_pts_up_bound (Smoothing (Smoothing M)))
+      Preorder.le_trans (1 + (Real.log X)⁻¹) (pts (SmoothingF (SmoothingF M))).re 2
+        (triv_pts_lo_bound (SmoothingF (SmoothingF M))) (triv_pts_up_bound (SmoothingF (SmoothingF M)))
 
-  have f_integrable := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt σ₀_le_2 smoothing_support_hyp smoothing_pos_for_x_pos smoothing_integrates_to_1 smoothing_cont_diff
+  have f_integrable := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt σ₀_le_2 suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
 
   have S : X^pts_re = rexp 1 * X := by
     unfold pts_re
@@ -3872,15 +3858,15 @@ theorem I1Bound :
 
 
 
-theorem I9Bound :
-    ∀ {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
-    ∃ C > 0, ∀{ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    (X : ℝ) (X_gt : 3 < X)
-    {T : ℝ} (T_gt : 3 < T)
+theorem I9Bound
+    {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2) (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1),
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
+    ∃ C > 0, ∀{ε : ℝ} (_ : 0 < ε)
+    (_ : ε < 1)
+    (X : ℝ) (_ : 3 < X)
+    {T : ℝ} (_ : 3 < T),
     ‖I₉ SmoothingF ε X T‖ ≤ C * X * Real.log X / (ε * T) := by
 /-
   intros SmoothingF suppSmoothingF ContDiffSmoothingF
@@ -3897,12 +3883,8 @@ theorem I9Bound :
 -/
 
 
-  intro Smoothing
-  intro smoothing_support_hyp
-  intro smoothing_cont_diff
-
   obtain ⟨M, ⟨M_is_pos, M_bounds_mellin_hard⟩⟩ :=
-    MellinOfSmooth1b smoothing_cont_diff smoothing_support_hyp
+    MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
 
   have G0 : ∃K > 0, ∀(t σ : ℝ), 1 < σ → σ < 2 → ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ K * (σ - 1)⁻¹ := by
     let ⟨K', ⟨K'_pos, K'_bounds_zeta⟩⟩ := triv_bound_zeta
@@ -3948,18 +3930,7 @@ theorem I9Bound :
   use (|π|⁻¹ * 2⁻¹ * (Real.exp 1 * K * M))
   use C_final_pos
 
-  intro eps
-  intro eps_pos
-  intro eps_less_one
-  intro X
-  intro X_large
-  intro T
-  intro T_large
---  intro σ₁ -- This is unnecessary, could do intro _
-  intro smoothing_pos_for_x_pos
-  intro smoothing_integrates_to_1
-
-  --unfold I₁
+  intro eps eps_pos eps_less_one X X_large T T_large
 
   let pts_re := 1 + (Real.log X)⁻¹
   let pts := fun (t : ℝ) ↦ (pts_re + t * I)
@@ -4065,7 +4036,7 @@ theorem I9Bound :
 
   have X_pos_triv : 0 < X := by positivity
 
-  let f := fun (t : ℝ) ↦ SmoothedChebyshevIntegrand Smoothing eps X (pts t)
+  let f := fun (t : ℝ) ↦ SmoothedChebyshevIntegrand SmoothingF eps X (pts t)
 
   /- Main pointwise bound -/
 
@@ -4076,7 +4047,7 @@ theorem I9Bound :
     let M_bounds_mellin_easy := fun (t : ℝ) ↦ M_bounds_mellin_hard pts_re pts_re_pos (pts t) (triv_pts_lo_bound t) (triv_pts_up_bound t) eps eps_pos eps_less_one
 
     let zeta_part := (fun (t : ℝ) ↦ -ζ' (pts t) / ζ (pts t))
-    let mellin_part := (fun (t : ℝ) ↦ 𝓜 (fun x ↦ ↑(Smooth1 Smoothing eps x)) (pts t))
+    let mellin_part := (fun (t : ℝ) ↦ 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF eps x)) (pts t))
     let X_part := (fun (t : ℝ) ↦ (↑X : ℂ) ^ (pts t))
 
     let g := fun (t : ℝ) ↦ (zeta_part t) * (mellin_part t) * (X_part t)
@@ -4134,10 +4105,10 @@ theorem I9Bound :
     unfold pts_re
     -- LOL!
     exact
-      Preorder.le_trans (1 + (Real.log X)⁻¹) (pts (Smoothing (Smoothing M))).re 2
-        (triv_pts_lo_bound (Smoothing (Smoothing M))) (triv_pts_up_bound (Smoothing (Smoothing M)))
+      Preorder.le_trans (1 + (Real.log X)⁻¹) (pts (SmoothingF (SmoothingF M))).re 2
+        (triv_pts_lo_bound (SmoothingF (SmoothingF M))) (triv_pts_up_bound (SmoothingF (SmoothingF M)))
 
-  have f_integrable := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt σ₀_le_2 smoothing_support_hyp smoothing_pos_for_x_pos smoothing_integrates_to_1 smoothing_cont_diff
+  have f_integrable := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt σ₀_le_2 suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
 
   have S : X^pts_re = rexp 1 * X := by
     unfold pts_re
