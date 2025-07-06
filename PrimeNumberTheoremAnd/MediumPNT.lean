@@ -4701,6 +4701,8 @@ $$
 $$
 \end{lemma}
 %%-/
+
+
 lemma I5Bound :
     ∀ {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
@@ -4711,13 +4713,29 @@ lemma I5Bound :
     ∀ (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1),
     ‖I₅ SmoothingF ε X σ₂‖ ≤ C * X ^ σ₂ / ε := by
+
   intros SmoothingF suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
   let ⟨σ₂, ⟨σ₂_le_one, h_logDeriv_holo⟩⟩ := LogDerivZetaHolcSmallT
   -- IsCompact.exists_bound_of_continuousOn'
   unfold HolomorphicOn at h_logDeriv_holo
   let zeta'_zeta_on_line := fun (t : ℝ) ↦ ζ' (σ₂ + t * I) / ζ (σ₂ + t * I)
 
-  have subst : {σ₂} ×ℂ uIcc (-3) 3 ⊆ (uIcc σ₂ 2 ×ℂ uIcc (-3) 3) \ {1} := by
+
+  let our_σ₂ : ℝ := max σ₂ (1/2 : ℝ)
+
+  have T : our_σ₂ < 1 := by
+    unfold our_σ₂
+    by_cases h : σ₂ > (1/2 : ℝ)
+    · simp only [one_div, sup_lt_iff, true_and, σ₂_le_one]
+      linarith
+    · simp only [one_div, sup_lt_iff, true_and, σ₂_le_one]
+      linarith
+
+  have P : our_σ₂ > 0 := by
+    unfold our_σ₂
+    simp [*]
+
+  have subst : {our_σ₂} ×ℂ uIcc (-3) 3 ⊆ (uIcc σ₂ 2 ×ℂ uIcc (-3) 3) \ {1} := by
     simp! only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le]
     simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, gt_iff_lt, neg_le_self_iff,
       Nat.ofNat_nonneg, uIcc_of_le]
@@ -4728,17 +4746,21 @@ lemma I5Bound :
     constructor
     · constructor
       · rw [hyp_z.1]
-        simp
+        refine mem_uIcc_of_le ?_ ?_
+        · exact le_max_left σ₂ (1 / 2)
+        · linarith
       · exact hyp_z.2
     · push_neg
       by_contra h
       rw [h] at hyp_z
       simp only [one_re, one_im, Left.neg_nonpos_iff, Nat.ofNat_nonneg, and_self, and_true] at hyp_z
       rw [hyp_z] at σ₂_le_one
-      simp only [lt_self_iff_false] at σ₂_le_one
+      simp_all only [lt_self_iff_false]
 
   have zeta'_zeta_cont := (h_logDeriv_holo.mono subst).continuousOn
-  have is_compact' : IsCompact ({σ₂} ×ℂ uIcc (-3) 3) := by
+
+
+  have is_compact' : IsCompact ({our_σ₂} ×ℂ uIcc (-3) 3) := by
     refine IsCompact.reProdIm ?_ ?_
     · exact isCompact_singleton
     · exact isCompact_uIcc
@@ -4752,17 +4774,7 @@ lemma I5Bound :
   clear is_compact' zeta'_zeta_cont subst zeta'_zeta_on_line h_logDeriv_holo
 
   let our_σ₂ : ℝ := max σ₂ (1/2 : ℝ)
-  have T : our_σ₂ < 1 := by
-    unfold our_σ₂
-    by_cases h : σ₂ > (1/2 : ℝ)
-    · simp only [one_div, sup_lt_iff, true_and, σ₂_le_one]
-      linarith
-    · simp only [one_div, sup_lt_iff, true_and, σ₂_le_one]
-      linarith
 
-  have P : our_σ₂ > 0 := by
-    unfold our_σ₂
-    simp [*]
 
   unfold I₅
   unfold SmoothedChebyshevIntegrand
@@ -4774,7 +4786,9 @@ lemma I5Bound :
 
   simp only [mul_inv_rev] at mellin_prop
 
-  let C := 1 + 6 * (our_σ₂^2)⁻¹ * (abs zeta_bound) * M
+  let Const := 1 + (our_σ₂^2)⁻¹ * (abs zeta_bound) * M
+
+  let C := |π|⁻¹ * 2⁻¹ * 6 * Const
   use C
   have C_pos : 0 < C := by positivity
   use C_pos
@@ -4788,27 +4802,99 @@ lemma I5Bound :
 
   use U
 
-  clear U P T M_is_pos σ₂_le_one mass_one C_pos
+  clear U  T  σ₂_le_one mass_one C_pos
 
   intros X X_gt ε ε_pos ε_lt_one
 
   have mellin_bound := fun (t : ℝ) ↦ mellin_prop t ε ε_pos ε_lt_one
 
-  have T: ∀(t : ℝ), (↑our_σ₂ + ↑t * I).re ≠ 0 := by sorry
+  have U: 0 < our_σ₂^2 := by
+    unfold our_σ₂
+    exact sq_pos_of_pos P
+
 
   have easy_bound : ∀(t : ℝ), (‖↑our_σ₂ + ↑t * I‖^2)⁻¹ ≤ (our_σ₂^2)⁻¹ :=
     by
       intro t
       rw [inv_le_inv₀]
-      sorry
-      sorry
+      rw [Complex.sq_norm]; rw [Complex.normSq_apply]; simp [*]; ring_nf; simp; exact zpow_two_nonneg t
+      rw [Complex.sq_norm, Complex.normSq_apply]; simp [*]; ring_nf; positivity
       positivity
+
+
+  have T1 : ∀(t : ℝ), t ∈ uIoc (-3) (3 : ℝ) → ‖-ζ' (↑our_σ₂ + ↑t * I) / ζ (↑our_σ₂ + ↑t * I) * 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I) *
+          (↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖ ≤ Const * ε⁻¹ * X ^ our_σ₂ := by
+    intro t
+    intro hyp_t
+    have Z := by
+      calc
+        ‖(-ζ' (↑our_σ₂ + ↑t * I) / ζ (↑our_σ₂ + ↑t * I)) * (𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)) *
+        (↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖ = ‖-ζ' (↑our_σ₂ + ↑t * I) / ζ (↑our_σ₂ + ↑t * I)‖ * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖  := by simp [NonUnitalNormedRing.norm_mul_le]
+        _ ≤ ‖ζ' (↑our_σ₂ + ↑t * I) / ζ (↑our_σ₂ + ↑t * I)‖ * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖ := by simp [norm_neg]
+        _ ≤ zeta_bound *  ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖  :=
+          by
+            have U := zeta_prop (↑our_σ₂ + t * I) (by
+                simp [*]
+                simp [mem_reProdIm]
+                constructor
+                · rfl
+                · refine mem_Icc.mp ?_
+                  · refine mem_Icc_of_Ioc ?_
+                    · have T : (-3 : ℝ) ≤ 3 := by simp
+                      rw [←Set.uIoc_of_le T]
+                      exact hyp_t)
+            simp at U
+            simp
+            linear_combination U * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖
+        _ ≤ abs zeta_bound * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖  := by
+          have U : zeta_bound ≤ abs zeta_bound := by simp [le_abs_self]
+          linear_combination (U * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖  )
+        _ ≤ abs zeta_bound * M * ((‖↑our_σ₂ + ↑t * I‖ ^ 2)⁻¹ * ε⁻¹) * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖  := by
+          have U := mellin_bound t
+          linear_combination (abs zeta_bound) * U * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖
+        _ ≤ abs zeta_bound * M * (our_σ₂^2)⁻¹ * ε⁻¹ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖  := by
+          have T : 0 ≤ abs zeta_bound * M := by positivity
+          linear_combination (abs zeta_bound * M * easy_bound t * ε⁻¹ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖)
+        _ = abs zeta_bound * M * (our_σ₂^2)⁻¹ * ε⁻¹ * X ^ (our_σ₂) := by
+          rw [Complex.norm_cpow_eq_rpow_re_of_pos]
+          simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+            add_zero]
+          positivity
+        _ ≤ Const * ε⁻¹ * X ^ our_σ₂ := by
+          unfold Const
+          ring_nf
+          simp [*]
+          positivity
+
+    exact Z
+
 
   -- Now want to apply the triangle inequality
   -- and bound everything trivially
 
-  _
-  sorry
+  -- intervalIntegral.norm_integral_le_of_norm_le_const
+
+  simp [*]
+  have Z :=
+    intervalIntegral.norm_integral_le_of_norm_le_const T1
+  simp [*]
+
+  have S : |π|⁻¹ * 2⁻¹ * (Const * ε⁻¹ * X ^ our_σ₂ * |3 + 3|) = C * X ^ our_σ₂ / ε :=
+    by
+      unfold C
+      ring_nf
+      simp [*]
+      have T :  6 * (2 : ℝ)⁻¹ = 3 := by
+        refine (mul_inv_eq_iff_eq_mul₀ ?_).mpr ?_
+        · exact Ne.symm (NeZero.ne' 2)
+        · norm_cast
+      rw [←T]
+      ring_nf
+
+  simp at Z
+  simp [←S]
+  linear_combination (|π|⁻¹ * 2⁻¹ * Z)
+
 
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaHolcSmallT, I5}
