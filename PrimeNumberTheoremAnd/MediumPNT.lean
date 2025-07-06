@@ -4733,7 +4733,7 @@ lemma I5Bound :
 
   have P : our_σ₂ > 0 := by
     unfold our_σ₂
-    simp [*]
+    simp only [one_div, gt_iff_lt, lt_sup_iff, inv_pos, Nat.ofNat_pos, or_true]
 
   have subst : {our_σ₂} ×ℂ uIcc (-3) 3 ⊆ (uIcc σ₂ 2 ×ℂ uIcc (-3) 3) \ {1} := by
     simp! only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le]
@@ -4817,8 +4817,10 @@ lemma I5Bound :
     by
       intro t
       rw [inv_le_inv₀]
-      rw [Complex.sq_norm]; rw [Complex.normSq_apply]; simp [*]; ring_nf; simp; exact zpow_two_nonneg t
-      rw [Complex.sq_norm, Complex.normSq_apply]; simp [*]; ring_nf; positivity
+      rw [Complex.sq_norm]; rw [Complex.normSq_apply]; simp only [add_re, ofReal_re, mul_re, I_re,
+        mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]; ring_nf; simp only [le_add_iff_nonneg_right]; exact zpow_two_nonneg t
+      rw [Complex.sq_norm, Complex.normSq_apply]; simp only [add_re, ofReal_re, mul_re, I_re,
+        mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]; ring_nf; positivity
       positivity
 
 
@@ -4829,25 +4831,28 @@ lemma I5Bound :
     have Z := by
       calc
         ‖(-ζ' (↑our_σ₂ + ↑t * I) / ζ (↑our_σ₂ + ↑t * I)) * (𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)) *
-        (↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖ = ‖-ζ' (↑our_σ₂ + ↑t * I) / ζ (↑our_σ₂ + ↑t * I)‖ * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖  := by simp [NonUnitalNormedRing.norm_mul_le]
-        _ ≤ ‖ζ' (↑our_σ₂ + ↑t * I) / ζ (↑our_σ₂ + ↑t * I)‖ * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖ := by simp [norm_neg]
+        (↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖ = ‖-ζ' (↑our_σ₂ + ↑t * I) / ζ (↑our_σ₂ + ↑t * I)‖ * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖  := by simp only [Complex.norm_mul,
+          Complex.norm_div, norm_neg]
+        _ ≤ ‖ζ' (↑our_σ₂ + ↑t * I) / ζ (↑our_σ₂ + ↑t * I)‖ * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖ := by simp only [Complex.norm_div,
+          norm_neg, le_refl]
         _ ≤ zeta_bound *  ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖  :=
           by
             have U := zeta_prop (↑our_σ₂ + t * I) (by
-                simp [*]
-                simp [mem_reProdIm]
+                simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le]
+                simp only [mem_reProdIm, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im,
+                  mul_one, sub_self, add_zero, mem_singleton_iff, add_im, mul_im, zero_add, mem_Icc]
                 constructor
                 · rfl
                 · refine mem_Icc.mp ?_
                   · refine mem_Icc_of_Ioc ?_
-                    · have T : (-3 : ℝ) ≤ 3 := by simp
+                    · have T : (-3 : ℝ) ≤ 3 := by simp only [neg_le_self_iff, Nat.ofNat_nonneg]
                       rw [←Set.uIoc_of_le T]
                       exact hyp_t)
-            simp at U
-            simp
+            simp only [Complex.norm_div] at U
+            simp only [Complex.norm_div, ge_iff_le]
             linear_combination U * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖
         _ ≤ abs zeta_bound * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖  := by
-          have U : zeta_bound ≤ abs zeta_bound := by simp [le_abs_self]
+          have U : zeta_bound ≤ abs zeta_bound := by simp only [le_abs_self]
           linear_combination (U * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑our_σ₂ + ↑t * I)‖ * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖  )
         _ ≤ abs zeta_bound * M * ((‖↑our_σ₂ + ↑t * I‖ ^ 2)⁻¹ * ε⁻¹) * ‖(↑X : ℂ) ^ (↑our_σ₂ + ↑t * I)‖  := by
           have U := mellin_bound t
@@ -4863,7 +4868,7 @@ lemma I5Bound :
         _ ≤ Const * ε⁻¹ * X ^ our_σ₂ := by
           unfold Const
           ring_nf
-          simp [*]
+          simp only [inv_pow, le_add_iff_nonneg_right, inv_pos, mul_nonneg_iff_of_pos_left, ε_pos]
           positivity
 
     exact Z
@@ -4874,16 +4879,17 @@ lemma I5Bound :
 
   -- intervalIntegral.norm_integral_le_of_norm_le_const
 
-  simp [*]
+  simp only [one_div, mul_inv_rev, inv_I, neg_mul, norm_neg, Complex.norm_mul, norm_I, norm_inv,
+    norm_real, norm_eq_abs, Complex.norm_ofNat, one_mul, ge_iff_le]
   have Z :=
     intervalIntegral.norm_integral_le_of_norm_le_const T1
-  simp [*]
+  simp only [ge_iff_le]
 
   have S : |π|⁻¹ * 2⁻¹ * (Const * ε⁻¹ * X ^ our_σ₂ * |3 + 3|) = C * X ^ our_σ₂ / ε :=
     by
       unfold C
       ring_nf
-      simp [*]
+      simp only [Nat.abs_ofNat, one_div]
       have T :  6 * (2 : ℝ)⁻¹ = 3 := by
         refine (mul_inv_eq_iff_eq_mul₀ ?_).mpr ?_
         · exact Ne.symm (NeZero.ne' 2)
@@ -4891,8 +4897,8 @@ lemma I5Bound :
       rw [←T]
       ring_nf
 
-  simp at Z
-  simp [←S]
+  simp only [sub_neg_eq_add] at Z
+  simp only [← S, ge_iff_le]
   linear_combination (|π|⁻¹ * 2⁻¹ * Z)
 
 
