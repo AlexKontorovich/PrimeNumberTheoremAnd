@@ -9,6 +9,7 @@ open scoped Complex ComplexConjugate
 Let $f : \mathbb{C} \to \mathbb{C}$ be a complex differentiable function at $p \in \mathbb{C}$ with derivative $a$.
 Then the function $g(z) = \overline{f(\overline{z})}$ is complex differentiable at $\overline{p}$ with derivative $\overline{a}$.
 \end{theorem}
+Already on Mathlib (with a shortened proof).
 %%-/
 theorem hasDerivAt_conj_conj {f : ℂ → ℂ} {p a : ℂ} (hf : HasDerivAt f a p) :
     HasDerivAt (fun z ↦ conj (f (conj z))) (conj a) (conj p) := by
@@ -35,6 +36,7 @@ We expand the definition of the derivative and compute.
 Let $f : \mathbb{C} \to \mathbb{C}$ be a function at $p \in \mathbb{C}$ with derivative $a$.
 Then the derivative of the function $g(z) = \overline{f(\overline{z})}$ at $\overline{p}$ is $\overline{a}$.
 \end{theorem}
+Submitted to Mathlib.
 %%-/
 theorem deriv_conj_conj (f : ℂ → ℂ) (p : ℂ) :
   deriv (fun z ↦ conj (f (conj z))) (conj p) = conj (deriv f p) := by
