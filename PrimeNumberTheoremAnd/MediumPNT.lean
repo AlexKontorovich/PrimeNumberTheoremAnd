@@ -4636,12 +4636,10 @@ $$
 
 lemma I5Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     : ∃ (C : ℝ) (_ : 0 < C) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1),
-    ∀(X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1),
+    ∀(X : ℝ) (_ : 3 < X) {ε : ℝ} (_ : 0 < ε)
+    (_ : ε < 1),
     ‖I₅ SmoothingF ε X σ₂‖ ≤ C * X ^ σ₂ / ε := by
 
   let ⟨σ₂, ⟨σ₂_le_one, h_logDeriv_holo⟩⟩ := LogDerivZetaHolcSmallT
@@ -4731,7 +4729,7 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
 
   use U
 
-  clear U  T  σ₂_le_one mass_one C_pos
+  clear U  T  σ₂_le_one C_pos
 
   intros X X_gt ε ε_pos ε_lt_one
 
