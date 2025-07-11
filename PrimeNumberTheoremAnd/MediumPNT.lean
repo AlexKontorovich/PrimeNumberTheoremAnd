@@ -4514,7 +4514,7 @@ lemma I8Bound {SmoothingF : ℝ → ℝ}
 /-%%
 \begin{proof}\uses{I8I2, I2Bound}
   We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$.
-$$
+\end{proof}
 %%-/
 
 
