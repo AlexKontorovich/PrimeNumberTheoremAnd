@@ -4301,7 +4301,8 @@ theorem I9Bound
 
 
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I1, I9, IBound_aux1}
+\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I1, I9,
+  IBound_aux1}\leanok
   Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{1}(\nu, \epsilon, X, T)\right| =
@@ -4512,7 +4513,7 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
           ring
 
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform, I2, I8}
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform, I2, I8}\leanok
 Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{2}(\nu, \epsilon, X, T, \sigma_1)\right| =
@@ -4563,6 +4564,12 @@ lemma I8I2 {SmoothingF : ℝ → ℝ}
     rw[← smoothedChebyshevIntegrand_conj]
     simp only [map_sub, conj_ofReal, map_mul, conj_I, mul_neg, sub_neg_eq_add]
     exact lt_trans (by norm_num) T_gt
+/-%%
+\begin{proof}\uses{I2, I8, SmoothedChebyshevIntegrand_conj}\leanok
+  This is a direct consequence of the definitions of $I_2$ and $I_8$.
+\end{proof}
+%%-/
+
 
 /-%%
 \begin{lemma}[I8Bound]\label{I8Bound}\lean{I8Bound}\leanok
@@ -4591,7 +4598,7 @@ lemma I8Bound {SmoothingF : ℝ → ℝ}
   rw[I8I2 hX, norm_neg, norm_conj]
   exact i2Bound
 /-%%
-\begin{proof}\uses{I8I2, I2Bound}
+\begin{proof}\uses{I8I2, I2Bound}\leanok
   We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$.
 \end{proof}
 %%-/
@@ -6379,7 +6386,7 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
 
 
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaHolcSmallT, I5}
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaHolcSmallT, I5}\leanok
 Here $\zeta'/\zeta$ is absolutely bounded on the compact interval $\sigma_2 + i [-3,3]$, and
 $X^s$ is bounded by $X^{\sigma_2}$. Using Theorem \ref{MellinOfSmooth1b} gives the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
 Putting these together gives the result.
