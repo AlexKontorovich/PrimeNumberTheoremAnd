@@ -1662,8 +1662,94 @@ theorem triv_bound_zeta :
 
         exact Z
 
--- Generalize this result to say that
--- ∀(t : ℝ), ∀(σ₀ > σ₁), ... is bounded by ‖ζ' σ₀ / ζ σ₀‖
+lemma LogDerivZetaBndUnif :
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
+    (_ : σ ∈ Ici (1 - A / Real.log |t| ^ 9)), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
+      C * Real.log |t| ^ 9 := by
+      let ⟨A, pf_A, C, C_pos, ζbd_in⟩ := LogDerivZetaBnd'
+      let ⟨C_triv, ⟨pf_C_triv, ζbd_out⟩⟩ := triv_bound_zeta
+
+      have T0 : A > 0 := by
+        simp only [one_div, mem_Ioc] at pf_A
+        exact (pf_A).1
+
+      have ha : 1 ≤ A⁻¹ := by
+        simp only [one_div, mem_Ioc, true_and, T0] at pf_A
+        have U := (inv_le_inv₀ (by positivity) (by positivity)).mpr pf_A
+        simp only [inv_inv] at U
+        linarith
+
+      use A
+      use pf_A
+      use ((1 + C + C_triv) * A⁻¹)
+      use (by positivity)
+
+      intro σ t hyp_t hyp_σ
+
+      have logt_gt : (1 : ℝ) < Real.log |t| := by
+        refine (Real.lt_log_iff_exp_lt (by linarith)).mpr (lt_trans ?_ hyp_t)
+        exact lt_trans Real.exp_one_lt_d9 (by norm_num)
+
+      have logt_gt' : (1 : ℝ) < Real.log |t| ^ 9 := by
+        calc
+          1 < Real.log |t| := logt_gt
+          _ ≤ (Real.log |t|) ^ 9 := by exact ZetaInvBnd_aux logt_gt
+
+      have logt_gt'' : (1 : ℝ) < 1 + A / Real.log |t| ^ 9 := by
+        simp only [lt_add_iff_pos_right, div_pos_iff_of_pos_left, T0]
+        positivity
+
+      have T1 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ 9 ≤ σ → 1 < σ := by
+        intro σ'
+        intro hyp_σ'
+        calc
+          1 < 1 + A / Real.log |t| ^ 9 := logt_gt''
+          _ ≤ σ' := hyp_σ'
+
+      have T2 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ 9 ≤ σ → A / Real.log |t| ^ 9 ≤ σ - 1 := by
+        intro σ'
+        intro hyp_σ'
+        calc
+          A / Real.log |t| ^ 9 = (1 + A / Real.log |t| ^ 9) - 1 := by ring_nf
+          _ ≤ σ' - 1 := by gcongr
+
+
+      by_cases h : σ ∈ Ico (1 - A / Real.log |t| ^ 9) (1 + A / Real.log |t| ^ 9)
+      · calc
+          ‖ζ' (↑σ + ↑t * I) / ζ (↑σ + ↑t * I)‖ ≤ C * Real.log |t| ^ 9 := ζbd_in σ t hyp_t h
+          _ ≤ ((1 + C + C_triv) * A⁻¹) * Real.log |t| ^ 9 := by
+              gcongr
+              · calc
+                  C ≤ 1 + C := by simp only [le_add_iff_nonneg_left, zero_le_one]
+                  _ ≤ (1 + C + C_triv) * 1 := by simp only [mul_one, le_add_iff_nonneg_right]; positivity
+                  _ ≤ (1 + C + C_triv) * A⁻¹ := by gcongr
+
+      · simp only [mem_Ico, tsub_le_iff_right, not_and, not_lt, mem_Ici] at h hyp_σ
+        replace h := h hyp_σ
+        calc
+          ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ = ‖-ζ' (σ + t * I) / ζ (σ + t * I)‖ := by simp only [Complex.norm_div,
+            norm_neg]
+
+          _ ≤ (σ - 1)⁻¹ + C_triv := ζbd_out σ t (by exact T1 h)
+
+          _ ≤ (A / Real.log |t| ^ 9)⁻¹ + C_triv := by
+              gcongr
+              · exact T2 h
+
+          _ ≤ (A / Real.log |t| ^ 9)⁻¹ + C_triv * A⁻¹ := by
+              gcongr
+              · have hb : 0 ≤ C_triv := by linarith
+                exact le_mul_of_one_le_right hb ha
+
+          _ ≤ (1 + C_triv) * A⁻¹ * Real.log |t| ^ 9 := by
+              simp only [inv_div]
+              ring_nf
+              gcongr
+              · simp only [inv_pos, le_mul_iff_one_le_left, T0]
+                linarith
+
+          _ ≤ (1 + C + C_triv) * A⁻¹ * Real.log |t| ^ 9 := by gcongr; simp only [le_add_iff_nonneg_right]; positivity
+
 
 theorem dlog_riemannZeta_bdd_on_vertical_lines_explicit {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) :
   ∀(t : ℝ), ‖(-ζ' (σ₀ + t * I) / ζ (σ₀ + t * I))‖ ≤ ‖(ζ' σ₀ / ζ σ₀)‖ := by
@@ -4286,7 +4372,7 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
 
 
   have ⟨C₁, C₁pos, Mbd⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
-  have ⟨A, Abd, C₂, C₂pos, ζbd⟩ := LogDerivZetaBndUniform
+  have ⟨A, Abd, C₂, C₂pos, ζbd⟩ := LogDerivZetaBndUnif
   have := (IBound_aux1 3 (by norm_num) 9)
   obtain ⟨C₃, ⟨C₃_gt, hC₃⟩⟩ := this
 
@@ -4354,22 +4440,11 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
   intro σ hσ
   unfold SmoothedChebyshevIntegrand
   have log_deriv_zeta_bound : ‖ζ' (σ - T * I) / ζ (σ - T * I)‖ ≤ C₂ * (C₃ * T) := by
-    by_cases hσ1 : σ < 1
-    · calc
-      ‖ζ' (σ - T * I) / ζ (σ - T * I)‖ = ‖ζ' (σ + (-T : ℝ) * I) / ζ (σ + (-T : ℝ) * I)‖ := by
-        push_cast; ring_nf
-      _ ≤ C₂ * Real.log T ^ 9 := by
-        apply ζbd σ T (-T)
-        · rw[abs_neg, abs_of_nonneg Tpos.le]
-          exact T_gt
-        · rw[abs_neg, abs_of_nonneg Tpos.le]
-        · exact ⟨hσ.1.le, hσ1⟩
-      _ ≤ C₂ * (C₃ * T) := by
-        apply mul_le_mul_of_nonneg_left ?_ C₂pos.le
-        exact hC₃ T T_gt.le
-    · simp at hσ1
-      -- We need a good bound for ζ'/ζ on horizontal segments crossing σ = 1.
-      sorry
+    calc
+      ‖ζ' (σ - (T : ℝ) * I) / ζ (σ - (T : ℝ) * I)‖ = ‖ζ' (σ + (-T : ℝ) * I) / ζ (σ + (-T : ℝ) * I)‖ := by norm_cast; simp; _
+      _ ≤ C₂ * Real.log |-T| ^ 9 := ζbd σ (-T) (by sorry) (by sorry)
+      _ ≤ 2 := by sorry
+    sorry
   -- Then estimate the remaining factors.
   calc
     ‖-ζ' (σ - T * I) / ζ (σ - T * I) * 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x))
@@ -4545,7 +4620,7 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)), 
+    : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)),
     ∀ (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     {T : ℝ} (T_gt : 3 < T),
@@ -4589,7 +4664,7 @@ $$
 Same with $I_6$.
 \end{lemma}
 %%-/
-lemma I4Bound {SmoothingF : ℝ → ℝ} 
+lemma I4Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
