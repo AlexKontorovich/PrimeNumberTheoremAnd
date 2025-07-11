@@ -4441,10 +4441,13 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
   unfold SmoothedChebyshevIntegrand
   have log_deriv_zeta_bound : ‖ζ' (σ - T * I) / ζ (σ - T * I)‖ ≤ C₂ * (C₃ * T) := by
     calc
-      ‖ζ' (σ - (T : ℝ) * I) / ζ (σ - (T : ℝ) * I)‖ = ‖ζ' (σ + (-T : ℝ) * I) / ζ (σ + (-T : ℝ) * I)‖ := by norm_cast; simp; _
-      _ ≤ C₂ * Real.log |-T| ^ 9 := ζbd σ (-T) (by sorry) (by sorry)
-      _ ≤ 2 := by sorry
-    sorry
+      ‖ζ' (σ - (T : ℝ) * I) / ζ (σ - (T : ℝ) * I)‖ = ‖ζ' (σ + (-T : ℝ) * I) / ζ (σ + (-T : ℝ) * I)‖ := by
+        have Z : σ - (T : ℝ) * I = σ + (- T : ℝ) * I := by simp; ring_nf
+        simp [Z]
+      _ ≤ C₂ * Real.log |-T| ^ 9 := ζbd σ (-T) (by simp; rw [abs_of_pos Tpos]; exact T_gt) (by unfold σ₁ at hσ; simp at hσ ⊢; replace hσ := hσ.1; linarith)
+      _ ≤ C₂ * Real.log T ^ 9 := by simp
+      _ ≤ C₂ * (C₃ * T) := by gcongr; exact hC₃ T (by linarith)
+
   -- Then estimate the remaining factors.
   calc
     ‖-ζ' (σ - T * I) / ζ (σ - T * I) * 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x))
