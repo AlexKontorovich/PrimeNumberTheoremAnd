@@ -4135,6 +4135,15 @@ If $t_0=0$, $\zeta$ blows up near $1$, so can't be zero nearby.
 
 -- **End collaboration**
 
+lemma LogDerivZetaHoloOn {S : Set ℂ} (s_ne_one : 1 ∉ S) 
+    (nonzero : ∀ s ∈ S, ζ s ≠ 0) :
+    HolomorphicOn (fun s ↦ ζ' s / ζ s) S := by
+  apply DifferentiableOn.div _ _ nonzero <;> intro s hs <;> apply DifferentiableAt.differentiableWithinAt
+  · apply differentiableAt_deriv_riemannZeta
+    exact ne_of_mem_of_not_mem hs s_ne_one
+  · apply differentiableAt_riemannZeta
+    exact ne_of_mem_of_not_mem hs s_ne_one
+
 /-%%
 We now prove that there's an absolute constant $\sigma_0$ so that $\zeta'/\zeta$ is holomorphic on a rectangle $[\sigma_2,2] \times_{ℂ} [-3,3] \setminus \{1\}$.
 \begin{lemma}[LogDerivZetaHolcSmallT]\label{LogDerivZetaHolcSmallT}\lean{LogDerivZetaHolcSmallT}\leanok
@@ -4149,6 +4158,7 @@ theorem LogDerivZetaHolcSmallT :
     ∃ (σ₂ : ℝ) (_ : σ₂ < 1), HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
       (( [[ σ₂, 2 ]] ×ℂ [[ -3, 3 ]]) \ {1}) := by
   obtain ⟨σ₂, hσ₂_lt_one, hζ_ne_zero⟩ := ZetaNoZerosInBox 4
+  refine ⟨σ₂, hσ₂_lt_one, ?_⟩
   let U := ([[σ₂, 2]] ×ℂ [[-3, 3]]) \ {1}
   have s_in_U_im_le3 : ∀ s ∈ U, |s.im| ≤ 3 := by
     intro s hs
@@ -4189,20 +4199,6 @@ theorem LogDerivZetaHolcSmallT :
     rw[this] at hre_lower
     exact hre_lower
 
-  have hζ_hol : HolomorphicOn ζ (univ \ {1}) := by
-    intro s hs
-    exact (differentiableAt_riemannZeta hs.2).differentiableWithinAt
-
-  have hζ'_hol_ne1 : HolomorphicOn (deriv ζ) (univ \ {1}) := by
-    apply hζ_hol.deriv
-    refine IsOpen.sdiff ?_ ?_
-    exact isOpen_univ
-    exact isClosed_singleton
-
-  have hζ'_hol : HolomorphicOn (deriv ζ) U := by
-    apply hζ'_hol_ne1.mono
-    exact diff_subset_diff_left fun ⦃a⦄ a ↦ trivial
-
   have hζ_ne_zero' : ∀ s ∈ U, ζ s ≠ 0 := by
     intro s hs
     have : |s.im| ≤ 3 := s_in_U_im_le3 s hs
@@ -4216,29 +4212,8 @@ theorem LogDerivZetaHolcSmallT :
     apply hζ_ne_zero s.im h1 s.re
     exact s_in_U_re_ges2 s hs
 
-  have hζ_inv_hol : HolomorphicOn (fun s ↦ 1 / ζ s) U := by
-    unfold HolomorphicOn
-    unfold DifferentiableOn
-    intro x hx
-    have h_diff : DifferentiableAt ℂ ζ x := differentiableAt_riemannZeta (hx.2)
-    have h_ne_zero : ζ x ≠ 0 := hζ_ne_zero' x hx
-    have h_inv_diff : DifferentiableAt ℂ (fun s ↦ 1 / ζ s) x := by
-      simp
-      apply DifferentiableAt.inv h_diff h_ne_zero
-    exact h_inv_diff.differentiableWithinAt
-
-  have hlog_deriv_hol : HolomorphicOn (fun s ↦ ζ' s / ζ s) U := by
-    let f := fun s ↦ ζ' s
-    let g := fun s ↦ 1 / ζ s
-    have hf : HolomorphicOn f U := hζ'_hol
-    have hg : HolomorphicOn g U := hζ_inv_hol
-    have hlog_deriv_hol : HolomorphicOn (fun s ↦ f s * g s) U := hf.mul hg
-    convert hlog_deriv_hol using 1
-    ext s
-    simp [f, g]
-    exact div_eq_mul_inv (deriv ζ s) (ζ s)
-
-  exact ⟨σ₂, hσ₂_lt_one, hlog_deriv_hol⟩
+  apply LogDerivZetaHoloOn _ hζ_ne_zero'
+  exact notMem_diff_of_mem rfl
 /-%%
 \begin{proof}\uses{ZetaNoZerosInBox}\leanok
 The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
@@ -4415,24 +4390,8 @@ theorem LogDerivZetaHolcLargeT :
     rw[← Set.Ioo_union_Ico_eq_Ioo temp' one_le_two, Set.mem_union] at σ_inter
     exact Or.elim σ_inter (zetaZeroFreeCrit σ t) (zetaZeroFreeTriv σ t)
   clear zetaZeroFreeCrit zetaZeroFreeTriv
-  unfold HolomorphicOn
-  apply DifferentiableOn.div
-  apply DifferentiableOn.deriv
-  unfold DifferentiableOn
-  intro x xIn
-  rw[Set.mem_diff] at xIn
-  refine DifferentiableAt.differentiableWithinAt ?_
-  exact differentiableAt_riemannZeta xIn.2
-  refine IsOpen.sdiff ?_ ?_
-  refine IsOpen.reProdIm ?_ ?_
-  exact isOpen_Ioo
-  exact isOpen_Ioo
-  exact isClosed_singleton
-  unfold DifferentiableOn
-  intro x xIn
-  rw[Set.mem_diff] at xIn
-  refine DifferentiableAt.differentiableWithinAt ?_
-  exact differentiableAt_riemannZeta xIn.2
+  apply LogDerivZetaHoloOn
+  · exact notMem_diff_of_mem rfl
   intro x
   rw[Set.mem_diff, Complex.mem_reProdIm]
   intro xHypo
