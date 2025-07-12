@@ -4212,177 +4212,49 @@ is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}
 %%-/
 
 theorem LogDerivZetaHolcLargeT :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∃ (Tlb : ℝ) (_ : 3 < Tlb), ∀ (T : ℝ) (_ : Tlb < T),
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∀ (T : ℝ) (_ : 3 ≤ T),
     HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
       (( (Ioo ((1 : ℝ) - A / Real.log T ^ 9) 2)  ×ℂ (Ioo (-T) T) ) \ {1}) := by
   obtain ⟨A, A_inter, restOfZetaZeroFree⟩ := ZetaZeroFree
-  use A
-  use A_inter
-  obtain ⟨σ₀, σ₀_lt_one, trash⟩ := LogDerivZetaHolcSmallT
-  obtain ⟨σ₁, σ₁_lt_one, noZerosInBox⟩ := ZetaNoZerosInBox 4
-  have : ∃ (Tlb : ℝ) (_ : 3 < Tlb), ∀ (T : ℝ), Tlb < T → σ₀ < (1 : ℝ) - A / Real.log T ^ 9 ∧ σ₁ < (1 : ℝ) - A / Real.log T ^ 9 := by
-    let Tlb : ℝ := max 5 (max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))))
-    use Tlb
-    have three_lt_Tlb : 3 < Tlb := by
-      rw[lt_max_iff]
-      exact Or.inl (by norm_num)
-    use three_lt_Tlb
-    intro T Tlb_lt_T
-    have temp : σ₀ < 1 - A / Real.log T ^ 9 := by
-      have : Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9)) ≤ Tlb := by
-        dsimp[Tlb]
-        have temp : Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9)) ≤
-          max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))) := by apply le_max_left
-        have : max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))) ≤
-          max 5 (max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)))) := by apply le_max_right
-        (expose_names; exact le_sup_of_le_right temp)
-      have keep : Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9)) < T := by exact lt_of_le_of_lt this Tlb_lt_T
-      rw[← Real.lt_log_iff_exp_lt] at keep
-      have : A / (1 - σ₀) < Real.log T ^ 9 := by
-        have temp : 0 ≤ A / (1 - σ₀) := by
-          apply div_nonneg
-          apply le_of_lt A_inter.1
-          linarith
-        have : 9 ≠ 0 := by exact Ne.symm (Nat.zero_ne_add_one 8)
-        rw[← Real.rpow_inv_natCast_pow temp this]
-        have : Odd 9 := by exact Nat.odd_iff.mpr rfl
-        rw[Odd.pow_lt_pow this]
-        have : (↑(9 : ℕ))⁻¹ = 1 / (9 : ℝ) := by exact inv_eq_one_div (9 : ℝ)
-        rw[this]
-        exact keep
-      have : A / Real.log T ^ 9 < 1 - σ₀ := by
-        rw[div_lt_iff₀] at this ⊢
-        rw[mul_comm]
-        exact this
-        refine pow_pos ?_ 9
-        apply Real.log_pos
-        repeat linarith
-      repeat linarith
-    have : σ₁ < 1 - A / Real.log T ^ 9 := by
-      have : Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)) ≤ Tlb := by
-        dsimp[Tlb]
-        have temp : Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)) ≤
-          max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))) := by apply le_max_right
-        have : max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9))) ≤
-          max 5 (max (Real.exp ((A / (1 - σ₀)) ^ ((1 : ℝ) / 9))) (Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)))) := by apply le_max_right
-        (expose_names; exact le_sup_of_le_right temp)
-      have keep : Real.exp ((A / (1 - σ₁)) ^ ((1 : ℝ) / 9)) < T := by exact lt_of_le_of_lt this Tlb_lt_T
-      rw[← Real.lt_log_iff_exp_lt] at keep
-      have : A / (1 - σ₁) < Real.log T ^ 9 := by
-        have temp : 0 ≤ A / (1 - σ₁) := by
-          apply div_nonneg
-          apply le_of_lt A_inter.1
-          linarith
-        have : 9 ≠ 0 := by exact Ne.symm (Nat.zero_ne_add_one 8)
-        rw[← Real.rpow_inv_natCast_pow temp this]
-        have : Odd 9 := by exact Nat.odd_iff.mpr rfl
-        rw[Odd.pow_lt_pow this]
-        have : (↑(9 : ℕ))⁻¹ = 1 / (9 : ℝ) := by exact inv_eq_one_div (9 : ℝ)
-        rw[this]
-        exact keep
-      have : A / Real.log T ^ 9 < 1 - σ₁ := by
-        rw[div_lt_iff₀] at this ⊢
-        rw[mul_comm]
-        exact this
-        refine pow_pos ?_ 9
-        apply Real.log_pos
-        repeat linarith
-      repeat linarith
-    exact ⟨temp, this⟩
-  obtain ⟨Tlb, three_lt_Tlb, TlbConsequences⟩ := this
-  use Tlb
-  use three_lt_Tlb
-  intro T Tlb_lt_T
-  have three_lt_T : 3 < T := by exact gt_trans Tlb_lt_T three_lt_Tlb
-  have Tlb_lt_abs_T : Tlb < |T| := by
-    rw[abs_of_nonneg]
-    exact Tlb_lt_T
-    positivity
-  have temp : 1 - A / Real.log T ^ 9 < 1 := by
-    apply sub_lt_self
-    apply div_pos
-    have : 0 < A := by
-      rw[Set.mem_Ioc] at A_inter
-      exact A_inter.1
-    exact this
-    apply pow_pos
-    rw[← Real.log_one]
-    apply Real.log_lt_log
-    norm_num
-    linarith
-  have temp' : 1 - A / Real.log |T| ^ 9 < 1 := by
-    rw[abs_of_nonneg]
-    exact temp
-    positivity
-  have zetaZeroFreeCrit : ∀ (σ t : ℝ), σ ∈ Ioo (1 - A / Real.log |T| ^ 9) 1 → t ∈ Ioo (-T) T → ζ (↑σ + ↑t * I) ≠ 0 := by
-    intro σ t σ_inter t_inter
-    have : 4 ≤ |t| ∨ 4 > |t| := by exact le_or_gt 4 |t|
-    rcases this
-    apply restOfZetaZeroFree σ t
-    linarith
-    apply Ioo_subset_Ico_self
-    refine mem_Ioo.mpr ?_
-    have : 1 - A / Real.log |t| ^ 9 < σ := by
-      have temp: 1 - A / Real.log |T| ^ 9 < σ := by exact σ_inter.1
-      have : 1 - A / Real.log |t| ^ 9 < 1 - A / Real.log |T| ^ 9 := by
-        refine (sub_lt_sub_iff_left 1).mpr ?_
-        refine div_lt_div_of_pos_left ?_ ?_ ?_
-        exact A_inter.1
-        refine pow_pos ?_ 9
-        rw[← Real.log_one]
-        apply Real.log_lt_log
-        norm_num
-        linarith
-        refine pow_lt_pow_left₀ ?_ ?_ ?_
-        apply Real.log_lt_log
-        positivity
-        nth_rewrite 2 [abs_of_nonneg]
-        rw[abs_lt]
-        exact t_inter
-        positivity
-        rw[← Real.log_one]
-        apply Real.log_le_log
-        positivity
-        linarith
-        exact Ne.symm (Nat.zero_ne_add_one 8)
-      (expose_names; exact gt_trans temp this)
-    exact ⟨this, σ_inter.2⟩
-    have : ∀ (t : ℝ), |t| ≤ 4 → ∀ σ' ≥ σ₁, riemannZeta (↑σ' + ↑t * Complex.I) ≠ 0 := by exact fun t a σ' a_1 ↦ noZerosInBox t a σ' a_1
-    apply this
-    (expose_names; exact h.le)
-    have temp : σ₀ < 1 - A / Real.log T ^ 9 ∧ σ₁ < 1 - A / Real.log T ^ 9 := by exact TlbConsequences T Tlb_lt_T
-    have : 1 - A / Real.log T ^ 9 < σ := by
-      have : 1 - A / Real.log |T| ^ 9 < σ := by exact σ_inter.1
-      rw[abs_of_nonneg] at this
-      exact this
-      positivity
-    apply le_of_lt
-    exact lt_trans temp.2 this
-  have zetaZeroFreeTriv : ∀ (σ t : ℝ), σ ∈ Ico 1 2 → t ∈ Ioo (-T) T → ζ (↑σ + ↑t * I) ≠ 0 := by
-    intro σ t σ_inter t_inter
-    obtain ⟨lb, ub⟩ := σ_inter
-    have : 1 ≤ (↑σ + ↑t * I).re := by
-      rw[add_re, mul_re, I_re, I_im, ofReal_re, ofReal_im]
-      linarith
-    exact riemannZeta_ne_zero_of_one_le_re this
-  have zetaZeroFreeCombo : ∀ (σ t : ℝ), σ ∈ Ioo (1 - A / Real.log |T| ^ 9) 2 → t ∈ Ioo (-T) T → ζ (↑σ + ↑t * I) ≠ 0 := by
-    intro σ t σ_inter
-    rw[← Set.Ioo_union_Ico_eq_Ioo temp' one_le_two, Set.mem_union] at σ_inter
-    exact Or.elim σ_inter (zetaZeroFreeCrit σ t) (zetaZeroFreeTriv σ t)
-  clear zetaZeroFreeCrit zetaZeroFreeTriv
+  obtain ⟨σ₁, σ₁_lt_one, noZerosInBox⟩ := ZetaNoZerosInBox 3
+  let A₀ := min A ((1 - σ₁) * Real.log 3 ^ 9)
+  refine ⟨A₀, ?_, ?_⟩
+  · constructor
+    · apply lt_min A_inter.1
+      bound
+    · exact le_trans (min_le_left _ _) A_inter.2
+  intro T hT
   apply LogDerivZetaHoloOn
   · exact notMem_diff_of_mem rfl
-  intro x
-  rw[Set.mem_diff, Complex.mem_reProdIm]
-  intro xHypo
-  obtain ⟨⟨xReIn, xImIn⟩, xOut⟩ := xHypo
-  have : x = x.re + x.im * I := by exact Eq.symm (re_add_im x)
-  rw[this]
-  apply zetaZeroFreeCombo x.re x.im
-  rw[abs_of_nonneg]
-  exact xReIn
-  positivity
-  exact xImIn
+  intro s hs
+  rcases le_or_gt 1 s.re with one_le|lt_one
+  · exact riemannZeta_ne_zero_of_one_le_re one_le
+  rw [← re_add_im s]
+  have := Complex.mem_reProdIm.mp hs.1
+  rcases lt_or_ge 3 |s.im| with gt3|le3
+  · apply restOfZetaZeroFree _ _ gt3
+    refine ⟨?_, lt_one⟩
+    calc
+      _ ≤ 1 - A₀ / Real.log T ^ 9 := by
+        gcongr
+        · exact A_inter.1.le
+        · bound
+        · bound
+        · bound
+        · exact abs_le.mpr ⟨this.2.1.le, this.2.2.le⟩
+      _ ≤ _:= by exact this.1.1.le
+
+  · apply noZerosInBox _ le3
+    calc
+      _ ≥ 1 - A₀ / Real.log T ^ 9 := by exact this.1.1.le
+      _ ≥ 1 - A₀ / Real.log 3 ^ 9 := by
+        gcongr
+        apply le_min A_inter.1.le
+        bound
+      _ ≥ 1 - (((1 - σ₁) * Real.log 3 ^ 9)) / Real.log 3 ^ 9:= by
+        gcongr
+        apply min_le_right
+      _ = _ := by field_simp
 
 /-%%
 \begin{proof}\uses{ZetaZeroFree}\leanok
