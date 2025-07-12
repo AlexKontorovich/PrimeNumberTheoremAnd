@@ -4026,12 +4026,12 @@ For any $T>0$, there is a constant $\sigma<1$ so that
 $$
 \zeta(\sigma'+it) \ne 0
 $$
-for all $|t| < T$ and $\sigma' \ge \sigma$.
+for all $|t| \leq T$ and $\sigma' \ge \sigma$.
 \end{lemma}
 %%-/
 
 lemma ZetaNoZerosInBox (T : ℝ) :
-    ∃ (σ : ℝ) (_ : σ < 1), ∀ (t : ℝ) (_ : |t| < T)
+    ∃ (σ : ℝ) (_ : σ < 1), ∀ (t : ℝ) (_ : |t| ≤ T)
     (σ' : ℝ) (_ : σ' ≥ σ), ζ (σ' + t * I) ≠ 0 := by
   by_contra h
   push_neg at h
@@ -4039,7 +4039,7 @@ lemma ZetaNoZerosInBox (T : ℝ) :
   have hn (n : ℕ) := h (σ := 1 - 1 / (n + 1)) (sub_lt_self _ (by positivity))
 
   have : ∃ (tn : ℕ → ℝ) (σn : ℕ → ℝ), (∀ n, σn n ≤ 1) ∧
-    (∀ n, (1 : ℝ) - 1 / (n + 1) ≤ σn n) ∧ (∀ n, |tn n| < T) ∧
+    (∀ n, (1 : ℝ) - 1 / (n + 1) ≤ σn n) ∧ (∀ n, |tn n| ≤ T) ∧
     (∀ n, ζ (σn n + tn n * I) = 0) := by
     choose t ht σ' hσ' hζ using hn
     refine ⟨t, σ', ?_, hσ', ht, hζ⟩
@@ -4061,7 +4061,7 @@ lemma ZetaNoZerosInBox (T : ℝ) :
   have : ∃ (t₀ : ℝ) (subseq : ℕ → ℕ),
       Filter.Tendsto (t ∘ subseq) Filter.atTop (𝓝 t₀) ∧
       Filter.Tendsto subseq Filter.atTop Filter.atTop := by
-    refine (isCompact_Icc.isSeqCompact fun and => abs_le.1 (ht and).le).imp fun and ⟨x, A, B, _⟩ => ?_
+    refine (isCompact_Icc.isSeqCompact fun and => abs_le.1 (ht and)).imp fun and ⟨x, A, B, _⟩ => ?_
     use A, by valid, B.tendsto_atTop
 
   obtain ⟨t₀, subseq, tTendsto, subseqTendsto⟩ := this
@@ -4157,7 +4157,7 @@ is holomorphic on $\{ \sigma_2 \le \Re s \le 2, |\Im s| \le 3 \} \setminus \{1\}
 theorem LogDerivZetaHolcSmallT :
     ∃ (σ₂ : ℝ) (_ : σ₂ < 1), HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
       (( [[ σ₂, 2 ]] ×ℂ [[ -3, 3 ]]) \ {1}) := by
-  obtain ⟨σ₂, hσ₂_lt_one, hζ_ne_zero⟩ := ZetaNoZerosInBox 4
+  obtain ⟨σ₂, hσ₂_lt_one, hζ_ne_zero⟩ := ZetaNoZerosInBox 3
   refine ⟨σ₂, hσ₂_lt_one, ?_⟩
   let U := ([[σ₂, 2]] ×ℂ [[-3, 3]]) \ {1}
   have s_in_U_im_le3 : ∀ s ∈ U, |s.im| ≤ 3 := by
@@ -4173,18 +4173,6 @@ theorem LogDerivZetaHolcSmallT :
     constructor
     · exact him_lower
     · exact him_upper
-  have s_in_U_re_le2 : ∀ s ∈ U, s.re ≤ 2 := by
-    intro s hs
-    rw [mem_diff_singleton] at hs
-    rcases hs with ⟨hbox, _hne⟩
-    rcases hbox with ⟨hre, _him⟩
-    simp only [Set.mem_preimage, mem_Icc] at hre
-    obtain ⟨hre_lower, hre_upper⟩ := hre
-    have : max σ₂ 2 = 2 := by
-      apply max_eq_right
-      linarith [hσ₂_lt_one]
-    rw[this] at hre_upper
-    exact hre_upper
 
   have s_in_U_re_ges2 : ∀ s ∈ U, σ₂ ≤ s.re := by
     intro s hs
@@ -4199,21 +4187,13 @@ theorem LogDerivZetaHolcSmallT :
     rw[this] at hre_lower
     exact hre_lower
 
-  have hζ_ne_zero' : ∀ s ∈ U, ζ s ≠ 0 := by
-    intro s hs
-    have : |s.im| ≤ 3 := s_in_U_im_le3 s hs
-    have h1 : |s.im| < 4 := by
-      linarith [this]
-    have h2 : σ₂ ≤ s.re := by
-      exact s_in_U_re_ges2 s hs
-    have : s = s.re + s.im * I := by
-      exact Eq.symm (re_add_im s)
-    rw[this]
-    apply hζ_ne_zero s.im h1 s.re
-    exact s_in_U_re_ges2 s hs
-
-  apply LogDerivZetaHoloOn _ hζ_ne_zero'
-  exact notMem_diff_of_mem rfl
+  apply LogDerivZetaHoloOn
+  · exact notMem_diff_of_mem rfl
+  · intro s hs
+    rw[← re_add_im s]
+    apply hζ_ne_zero
+    apply s_in_U_im_le3 _ hs
+    apply s_in_U_re_ges2 _ hs
 /-%%
 \begin{proof}\uses{ZetaNoZerosInBox}\leanok
 The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
@@ -4367,9 +4347,9 @@ theorem LogDerivZetaHolcLargeT :
         exact Ne.symm (Nat.zero_ne_add_one 8)
       (expose_names; exact gt_trans temp this)
     exact ⟨this, σ_inter.2⟩
-    have : ∀ (t : ℝ), |t| < 4 → ∀ σ' ≥ σ₁, riemannZeta (↑σ' + ↑t * Complex.I) ≠ 0 := by exact fun t a σ' a_1 ↦ noZerosInBox t a σ' a_1
+    have : ∀ (t : ℝ), |t| ≤ 4 → ∀ σ' ≥ σ₁, riemannZeta (↑σ' + ↑t * Complex.I) ≠ 0 := by exact fun t a σ' a_1 ↦ noZerosInBox t a σ' a_1
     apply this
-    (expose_names; exact h)
+    (expose_names; exact h.le)
     have temp : σ₀ < 1 - A / Real.log T ^ 9 ∧ σ₁ < 1 - A / Real.log T ^ 9 := by exact TlbConsequences T Tlb_lt_T
     have : 1 - A / Real.log T ^ 9 < σ := by
       have : 1 - A / Real.log |T| ^ 9 < σ := by exact σ_inter.1
