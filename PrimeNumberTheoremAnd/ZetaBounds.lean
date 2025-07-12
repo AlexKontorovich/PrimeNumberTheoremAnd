@@ -4214,7 +4214,7 @@ is holomorphic on $\{1-A/\log^9 T \le \Re s \le 2, |\Im s|\le T \}\setminus\{1\}
 theorem LogDerivZetaHolcLargeT :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)), ∀ (T : ℝ) (_ : 3 ≤ T),
     HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
-      (( (Ioo ((1 : ℝ) - A / Real.log T ^ 9) 2)  ×ℂ (Ioo (-T) T) ) \ {1}) := by
+      (( (Icc ((1 : ℝ) - A / Real.log T ^ 9) 2)  ×ℂ (Icc (-T) T) ) \ {1}) := by
   obtain ⟨A, A_inter, restOfZetaZeroFree⟩ := ZetaZeroFree
   obtain ⟨σ₁, σ₁_lt_one, noZerosInBox⟩ := ZetaNoZerosInBox 3
   let A₀ := min A ((1 - σ₁) * Real.log 3 ^ 9)
@@ -4241,12 +4241,12 @@ theorem LogDerivZetaHolcLargeT :
         · bound
         · bound
         · bound
-        · exact abs_le.mpr ⟨this.2.1.le, this.2.2.le⟩
-      _ ≤ _:= by exact this.1.1.le
+        · exact abs_le.mpr ⟨this.2.1, this.2.2⟩
+      _ ≤ _:= by exact this.1.1
 
   · apply noZerosInBox _ le3
     calc
-      _ ≥ 1 - A₀ / Real.log T ^ 9 := by exact this.1.1.le
+      _ ≥ 1 - A₀ / Real.log T ^ 9 := by exact this.1.1
       _ ≥ 1 - A₀ / Real.log 3 ^ 9 := by
         gcongr
         apply le_min A_inter.1.le
