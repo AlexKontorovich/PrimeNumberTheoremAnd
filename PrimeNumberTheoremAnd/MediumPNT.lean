@@ -1989,30 +1989,6 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
 
     exact C
 
-theorem analyticAt_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
-  AnalyticAt ℂ riemannZeta s := by
-  have : DifferentiableAt ℂ riemannZeta s := differentiableAt_riemannZeta s_ne_one
-  have exclude := eventually_ne_nhds s_ne_one
-  unfold Filter.Eventually at exclude
-  have : AnalyticAt ℂ riemannZeta s := by
-      refine Complex.analyticAt_iff_eventually_differentiableAt.mpr ?_
-      unfold Filter.Eventually
-      have T : {x | (fun x ↦ x ≠ 1) x} ⊆ {x | (fun z ↦ DifferentiableAt ℂ ζ z) x} := by
-        intro x
-        simp [*]
-        push_neg
-        intro hyp_x
-        exact differentiableAt_riemannZeta hyp_x
-      apply mem_nhds_iff.mpr
-      use {x | (fun x ↦ x ≠ 1) x}
-      constructor
-      · exact T
-      · constructor
-        · exact isOpen_ne
-        · exact s_ne_one
-
-  exact this
-
 /-%%
 \begin{lemma}[dlog_riemannZeta_bdd_on_vertical_lines']\label{dlog_riemannZeta_bdd_on_vertical_lines'}\lean{dlog_riemannZeta_bdd_on_vertical_lines'}\leanok
 For $\sigma_0 > 1$, there exists a constant $C > 0$ such that
@@ -2030,12 +2006,6 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines' {σ₀ : ℝ} (σ₀_gt : 1 < σ
 Write as Dirichlet series and estimate trivially using Theorem \ref{LogDerivativeDirichlet}.
 \end{proof}
 %%-/
-
-
-theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
-    DifferentiableAt ℂ ζ' s := by
-      have U := (analyticAt_riemannZeta s_ne_one).deriv.differentiableAt
-      exact U
 
 /-%%
 \begin{lemma}[SmoothedChebyshevPull1_aux_integrable]\label{SmoothedChebyshevPull1_aux_integrable}\lean{SmoothedChebyshevPull1_aux_integrable}\leanok

@@ -190,6 +190,15 @@ $f(s) = A/(s-p) + O(1)$.
 \end{proof}
 %%-/
 
+theorem analyticAt_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
+  AnalyticAt ℂ riemannZeta s := by
+  apply Complex.analyticAt_iff_eventually_differentiableAt.mpr
+  filter_upwards [eventually_ne_nhds s_ne_one] with z hz
+  exact differentiableAt_riemannZeta hz
+
+theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
+    DifferentiableAt ℂ ζ' s := by
+  exact (analyticAt_riemannZeta s_ne_one).deriv.differentiableAt
 
 /-%%
 \begin{theorem}[riemannZetaResidue]\label{riemannZetaResidue}\lean{riemannZetaResidue}\leanok
