@@ -4324,7 +4324,7 @@ lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X): (1 + (Real.log X)⁻¹) < 2 :=
   refine inv_lt_one_of_one_lt₀ ?_
   refine (lt_log_iff_exp_lt ?_).mpr ?_ <;> linarith[Real.exp_one_lt_d9]
 
--->>>>>>> 8ec737539627ec78bba745515793d3e8a196ca49
+
 /-%%
 \begin{lemma}[I2Bound]\label{I2Bound}\lean{I2Bound}\leanok
 We have that
@@ -6388,12 +6388,11 @@ theorem MediumPNT : ∃ c > 0,
   let ε : ℝ := sorry
   have ε_pos : 0 < ε := sorry
   have ε_lt_one : ε < 1 := sorry
+  have ε_X : 2 < X * ε := sorry
   have ⟨ν, ContDiffν, ν_nonneg', ν_supp, ν_massOne'⟩ := SmoothExistence
   have ContDiff1ν : ContDiff ℝ 1 ν := by
     exact ContDiffν.of_le (by simp)
-  have ν_nonneg : ∀ x > 0, 0 ≤ ν x := by
-    intro x x_pos
-    exact ν_nonneg' x
+  have ν_nonneg : ∀ x > 0, 0 ≤ ν x := fun x _ ↦ ν_nonneg' x
   have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by
     rwa [← integral_Ici_eq_integral_Ioi]
   let ψ_ε_of_X := SmoothedChebyshev ν ε X
@@ -6401,12 +6400,12 @@ theorem MediumPNT : ∃ c > 0,
     obtain ⟨C, Cpos, hC⟩ := SmoothedChebyshevClose ContDiff1ν
       ν_supp ν_nonneg ν_massOne
     refine ⟨C, Cpos, ?_⟩
-    have := hC X X_gt_3 ε ε_pos ε_lt_one (by sorry)
-
-    --obtain ⟨C_unsmoothing, hC⟩ :=
-    sorry
-
-  obtain ⟨C_unsmoothing, C_unsmoothing_pos, hC⟩ := this
+    convert hC X X_gt_3 ε ε_pos ε_lt_one ε_X using 1
+    · rw [← norm_neg]
+      congr
+      ring
+    · ring
+  obtain ⟨C_unsmoothing, C_unsmoothing_pos, ψ_ψ_ε_diff⟩ := this
 
   let T : ℝ := sorry
   have T_gt_3 : 3 < T := sorry
@@ -6418,12 +6417,16 @@ theorem MediumPNT : ∃ c > 0,
     apply sub_lt_self
     apply div_pos A_in_Ioc.1
     bound
-  obtain ⟨σ₂, σ₂_lt_one, holo2⟩ := LogDerivZetaHolcSmallT
+  obtain ⟨σ₂', σ₂'_lt_one, holo2'⟩ := LogDerivZetaHolcSmallT
+  let σ₂ : ℝ := max σ₂' (1 / 2)
   have σ₂_pos : 0 < σ₂ := by sorry
+  have σ₂_lt_one : σ₂ < 1 := by sorry
+  have holo2 : HolomorphicOn (fun s ↦ ζ' s / ζ s) (uIcc σ₂ 2 ×ℂ uIcc (-3) 3 \ {1}) := by sorry
   have σ₂_lt_σ₁ : σ₂ < σ₁ := by sorry
   rw [uIcc_of_le (by linarith), uIcc_of_le (by linarith)] at holo2
 
-  have holo2a : HolomorphicOn (SmoothedChebyshevIntegrand ν ε X) (Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1}) := by
+  have holo2a : HolomorphicOn (SmoothedChebyshevIntegrand ν ε X)
+      (Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1}) := by
     apply DifferentiableOn.mul
     · apply DifferentiableOn.mul
       · rw [(by ext; ring : (fun s ↦ -ζ' s / ζ s) = (fun s ↦ -(ζ' s / ζ s)))]
@@ -6455,10 +6458,32 @@ theorem MediumPNT : ∃ c > 0,
 
   obtain ⟨C_main, C_main_pos, main_diff⟩ := this
 
+  obtain ⟨c₁, c₁pos, hc₁⟩ := I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
+  have I₁bnd := hc₁ ε ε_pos ε_lt_one X X_gt_3 T_gt_3
+
+  obtain ⟨c₂, c₂pos, A₂, hA₂, hc₂⟩ := I2Bound ν_supp ContDiff1ν
+  -- argh `I2bound` introduces its own `A` which is not the same as the one we have;
+  -- need to refactor `I2Bound` to take `A` as an argument, via holomorphy and bounds for
+  -- `ζ'/ζ`
+
   have := (
     calc
       ‖ψ X - X‖ = ‖(ψ X - ψ_ε_of_X) + (ψ_ε_of_X - X)‖ := by ring_nf; norm_cast
       _         ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - X‖ := norm_add_le _ _
+      _         = ‖ψ X - ψ_ε_of_X‖ + ‖(ψ_ε_of_X - 𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X)
+                    + (𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X - X)‖ := by ring_nf
+      _         ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - 𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X‖
+                    + ‖𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X - X‖ := by
+                      rw [add_assoc]
+                      gcongr
+                      apply norm_add_le
+      _         = ‖ψ X - ψ_ε_of_X‖ + ‖𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X - X‖
+                    + ‖ψ_ε_of_X - 𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X‖ := by ring
+      _         ≤ ‖ψ X - ψ_ε_of_X‖ + ‖𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X - X‖
+                    + (‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖ + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖
+                    + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖ + ‖I₈ ν ε T X σ₁‖
+                    + ‖I₉ ν ε X T‖) := by gcongr
+
       _         = sorry := by sorry
   )
 
