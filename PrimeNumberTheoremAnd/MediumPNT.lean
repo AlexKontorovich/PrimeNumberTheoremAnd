@@ -1989,30 +1989,6 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
 
     exact C
 
-theorem analyticAt_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
-  AnalyticAt ℂ riemannZeta s := by
-  have : DifferentiableAt ℂ riemannZeta s := differentiableAt_riemannZeta s_ne_one
-  have exclude := eventually_ne_nhds s_ne_one
-  unfold Filter.Eventually at exclude
-  have : AnalyticAt ℂ riemannZeta s := by
-      refine Complex.analyticAt_iff_eventually_differentiableAt.mpr ?_
-      unfold Filter.Eventually
-      have T : {x | (fun x ↦ x ≠ 1) x} ⊆ {x | (fun z ↦ DifferentiableAt ℂ ζ z) x} := by
-        intro x
-        simp [*]
-        push_neg
-        intro hyp_x
-        exact differentiableAt_riemannZeta hyp_x
-      apply mem_nhds_iff.mpr
-      use {x | (fun x ↦ x ≠ 1) x}
-      constructor
-      · exact T
-      · constructor
-        · exact isOpen_ne
-        · exact s_ne_one
-
-  exact this
-
 /-%%
 \begin{lemma}[dlog_riemannZeta_bdd_on_vertical_lines']\label{dlog_riemannZeta_bdd_on_vertical_lines'}\lean{dlog_riemannZeta_bdd_on_vertical_lines'}\leanok
 For $\sigma_0 > 1$, there exists a constant $C > 0$ such that
@@ -2030,12 +2006,6 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines' {σ₀ : ℝ} (σ₀_gt : 1 < σ
 Write as Dirichlet series and estimate trivially using Theorem \ref{LogDerivativeDirichlet}.
 \end{proof}
 %%-/
-
-
-theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
-    DifferentiableAt ℂ ζ' s := by
-      have U := (analyticAt_riemannZeta s_ne_one).deriv.differentiableAt
-      exact U
 
 /-%%
 \begin{lemma}[SmoothedChebyshevPull1_aux_integrable]\label{SmoothedChebyshevPull1_aux_integrable}\lean{SmoothedChebyshevPull1_aux_integrable}\leanok
@@ -6440,18 +6410,47 @@ theorem MediumPNT : ∃ c > 0,
 
   let T : ℝ := sorry
   have T_gt_3 : 3 < T := sorry
-
-  let A : ℝ := sorry
-  have A_in_Ioo : A ∈ Ioo 0 (1 / 2) := sorry
-
+  obtain ⟨A, A_in_Ioc, holo1⟩ := LogDerivZetaHolcLargeT
+  specialize holo1 T T_gt_3.le
   let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
+  have σ₁pos : 0 < σ₁ := by sorry
+  have σ₁_lt_one : σ₁ < 1 := by
+    apply sub_lt_self
+    apply div_pos A_in_Ioc.1
+    bound
+  obtain ⟨σ₂, σ₂_lt_one, holo2⟩ := LogDerivZetaHolcSmallT
+  have σ₂_pos : 0 < σ₂ := by sorry
+  have σ₂_lt_σ₁ : σ₂ < σ₁ := by sorry
+  rw [uIcc_of_le (by linarith), uIcc_of_le (by linarith)] at holo2
 
-  let σ₂ : ℝ := sorry
-
-  have ψ_ε_diff : ‖ψ_ε_of_X - 𝓜 ((Smooth1 ν ε) ·) 1 * X‖ ≤ ‖I₁ ν ε T X‖ + ‖I₂ ν ε X T σ₁‖
-    + ‖I₃ ν ε X T σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖ + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖
-    + ‖I₈ ν ε X T σ₁‖ + ‖I₉ ν ε X T‖ := by sorry
-
+  have holo2a : HolomorphicOn (SmoothedChebyshevIntegrand ν ε X) (Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1}) := by
+    apply DifferentiableOn.mul
+    · apply DifferentiableOn.mul
+      · rw [(by ext; ring : (fun s ↦ -ζ' s / ζ s) = (fun s ↦ -(ζ' s / ζ s)))]
+        apply DifferentiableOn.neg holo2
+      · intro s hs
+        apply DifferentiableAt.differentiableWithinAt
+        apply Smooth1MellinDifferentiable ContDiff1ν ν_supp ⟨ε_pos, ε_lt_one⟩ ν_nonneg ν_massOne
+        linarith[mem_reProdIm.mp hs.1 |>.1.1]
+    · intro s hs
+      apply DifferentiableAt.differentiableWithinAt
+      apply DifferentiableAt.const_cpow (by fun_prop)
+      left
+      norm_cast
+      linarith
+  have ψ_ε_diff : ‖ψ_ε_of_X - 𝓜 ((Smooth1 ν ε) ·) 1 * X‖ ≤ ‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖
+    + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖ + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖
+    + ‖I₈ ν ε T X σ₁‖ + ‖I₉ ν ε X T‖ := by
+    unfold ψ_ε_of_X
+    rw [SmoothedChebyshevPull1 ε_pos ε_lt_one X X_gt_3 (T := T) (by linarith) σ₁pos σ₁_lt_one holo1 ν_supp ν_nonneg ν_massOne ContDiff1ν]
+    rw [SmoothedChebyshevPull2 ε_pos ε_lt_one X X_gt_3 (T := T) (by linarith) σ₂_pos σ₁_lt_one σ₂_lt_σ₁ holo1 holo2a ν_supp ν_nonneg ν_massOne ContDiff1ν]
+    ring_nf
+    iterate 5
+      apply le_trans (by apply norm_add_le)
+      gcongr
+    apply le_trans (by apply norm_add_le)
+    rw [(by ring : ‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖ + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖ = (‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖) + (‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖))]
+    gcongr <;> apply le_trans (by apply norm_sub_le) <;> rfl
   have : ∃ C_main > 0, ‖𝓜 ((Smooth1 ν ε) ·) 1 * X - X‖ ≤ C_main * ε * X := by sorry
 
   obtain ⟨C_main, C_main_pos, main_diff⟩ := this
