@@ -6418,13 +6418,32 @@ theorem MediumPNT : ∃ c > 0,
     apply sub_lt_self
     apply div_pos A_in_Ioc.1
     bound
-  let σ₂ : ℝ := sorry
+  obtain ⟨σ₂, σ₂_lt_one, holo2⟩ := LogDerivZetaHolcSmallT
+  have σ₂_pos : 0 < σ₂ := by sorry
+  have σ₂_lt_σ₁ : σ₂ < σ₁ := by sorry
+  rw [uIcc_of_le (by linarith), uIcc_of_le (by linarith)] at holo2
 
+  have holo2a : HolomorphicOn (SmoothedChebyshevIntegrand ν ε X) (Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1}) := by
+    apply DifferentiableOn.mul
+    · apply DifferentiableOn.mul
+      · rw [(by ext; ring : (fun s ↦ -ζ' s / ζ s) = (fun s ↦ -(ζ' s / ζ s)))]
+        apply DifferentiableOn.neg holo2
+      · intro s hs
+        apply DifferentiableAt.differentiableWithinAt
+        apply Smooth1MellinDifferentiable ContDiff1ν ν_supp ⟨ε_pos, ε_lt_one⟩ ν_nonneg ν_massOne
+        linarith[mem_reProdIm.mp hs.1 |>.1.1]
+    · intro s hs
+      apply DifferentiableAt.differentiableWithinAt
+      apply DifferentiableAt.const_cpow (by fun_prop)
+      left
+      norm_cast
+      linarith
   have ψ_ε_diff : ‖ψ_ε_of_X - 𝓜 ((Smooth1 ν ε) ·) 1 * X‖ ≤ ‖I₁ ν ε T X‖ + ‖I₂ ν ε X T σ₁‖
     + ‖I₃ ν ε X T σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖ + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖
     + ‖I₈ ν ε X T σ₁‖ + ‖I₉ ν ε X T‖ := by
     unfold ψ_ε_of_X
     rw [SmoothedChebyshevPull1 ε_pos ε_lt_one X X_gt_3 (T := T) (by linarith) σ₁pos σ₁_lt_one holo1 ν_supp ν_nonneg ν_massOne ContDiff1ν]
+    rw [SmoothedChebyshevPull2 ε_pos ε_lt_one X X_gt_3 (T := T) (by linarith) σ₂_pos σ₁_lt_one σ₂_lt_σ₁ holo1 holo2a ν_supp ν_nonneg ν_massOne ContDiff1ν]
     sorry
 
   have : ∃ C_main > 0, ‖𝓜 ((Smooth1 ν ε) ·) 1 * X - X‖ ≤ C_main * ε * X := by sorry
