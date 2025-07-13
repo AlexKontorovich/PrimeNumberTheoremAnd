@@ -6462,7 +6462,9 @@ theorem MediumPNT : ∃ c > 0,
   have I₁bnd := hc₁ ε ε_pos ε_lt_one X X_gt_3 T_gt_3
 
   obtain ⟨c₂, c₂pos, A₂, hA₂, hc₂⟩ := I2Bound ν_supp ContDiff1ν
-
+  -- argh `I2bound` introduces its own `A` which is not the same as the one we have;
+  -- need to refactor `I2Bound` to take `A` as an argument, via holomorphy and bounds for
+  -- `ζ'/ζ`
 
   have := (
     calc
