@@ -6156,6 +6156,9 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
     {T : ℝ} (T_gt : 3 < T),
     let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
     ‖I₄ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
+
+
+
   sorry
 
 lemma I6Bound {SmoothingF : ℝ → ℝ}
@@ -6170,6 +6173,7 @@ lemma I6Bound {SmoothingF : ℝ → ℝ}
     let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
     ‖I₆ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
   sorry
+
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndAlt, I4, I6}
 The analysis of $I_4$ is similar to that of $I_2$, (in Lemma \ref{I2Bound}) but even easier.
