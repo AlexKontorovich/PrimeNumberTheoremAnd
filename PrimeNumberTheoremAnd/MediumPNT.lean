@@ -4340,14 +4340,14 @@ $$
 lemma I2Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
 --    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
-    ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)),
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) 
+    {A C₂ : ℝ} (has_bound: LogDerivZetaHasBound A C₂) (C₂pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
+    ∃ (C : ℝ) (_ : 0 < C),
     ∀(X : ℝ) (_ : 3 < X) {ε : ℝ} (_ : 0 < ε)
     (_ : ε < 1) {T : ℝ} (_ : 3 < T),
     let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
     ‖I₂ SmoothingF ε T X σ₁‖ ≤ C * X / (ε * T) := by
   have ⟨C₁, C₁pos, Mbd⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
-  have ⟨A, Abd, C₂, C₂pos, ζbd⟩ := LogDerivZetaBndUnif
   have := (IBound_aux1 3 (by norm_num) 9)
   obtain ⟨C₃, ⟨C₃_gt, hC₃⟩⟩ := this
 
@@ -4358,7 +4358,7 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
     · rw[norm_pos_iff]
       simp[pi_ne_zero]
     · simp[this]
-  use A, Abd
+
   intro X X_gt ε ε_pos ε_lt_one T T_gt σ₁
 --  clear suppSmoothingF mass_one ContDiffSmoothingF
   have Xpos : 0 < X := lt_trans (by norm_num) X_gt
@@ -4376,7 +4376,7 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
     · rw[inv_nonneg, log_nonneg_iff Xpos]
       exact le_trans (by norm_num) (le_of_lt X_gt)
     · refine div_nonneg ?_ ?_
-      exact le_of_lt Abd.1
+      exact A_in.1.le
       apply pow_nonneg
       rw[log_nonneg_iff Tpos]
       exact le_trans (by norm_num) (le_of_lt T_gt)
@@ -4384,7 +4384,7 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
     rw[sub_pos]
     calc
       A / Real.log T ^ 9 ≤ 1 / 2 / Real.log T ^ 9 := by
-        refine div_le_div_of_nonneg_right (Abd.2) ?_
+        refine div_le_div_of_nonneg_right (A_in.2) ?_
         apply pow_nonneg
         rw[log_nonneg_iff Tpos]
         exact le_trans (by norm_num) (le_of_lt T_gt)
@@ -4419,7 +4419,7 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
       ‖ζ' (σ - (T : ℝ) * I) / ζ (σ - (T : ℝ) * I)‖ = ‖ζ' (σ + (-T : ℝ) * I) / ζ (σ + (-T : ℝ) * I)‖ := by
         have Z : σ - (T : ℝ) * I = σ + (- T : ℝ) * I := by simp; ring_nf
         simp [Z]
-      _ ≤ C₂ * Real.log |-T| ^ 9 := ζbd σ (-T) (by simp; rw [abs_of_pos Tpos]; exact T_gt) (by unfold σ₁ at hσ; simp at hσ ⊢; replace hσ := hσ.1; linarith)
+      _ ≤ C₂ * Real.log |-T| ^ 9 := has_bound σ (-T) (by simp; rw [abs_of_pos Tpos]; exact T_gt) (by unfold σ₁ at hσ; simp at hσ ⊢; replace hσ := hσ.1; linarith)
       _ ≤ C₂ * Real.log T ^ 9 := by simp
       _ ≤ C₂ * (C₃ * T) := by gcongr; exact hC₃ T (by linarith)
 
@@ -4555,17 +4555,18 @@ $$
 %%-/
 lemma I8Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) 
+    {A C₂ : ℝ} (has_bound : LogDerivZetaHasBound A C₂) (C₂_pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
 --    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
-    ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)),
+    ∃ (C : ℝ) (_ : 0 < C),
     ∀(X : ℝ) (_ : 3 < X) {ε : ℝ} (_: 0 < ε)
     (_ : ε < 1)
     {T : ℝ} (_ : 3 < T),
     let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
     ‖I₈ SmoothingF ε T X σ₁‖ ≤ C * X / (ε * T) := by
 
-  obtain ⟨C, hC, A, hA, i2Bound⟩ := I2Bound suppSmoothingF ContDiffSmoothingF --mass_one
-  use C, hC, A, hA
+  obtain ⟨C, hC, i2Bound⟩ := I2Bound suppSmoothingF ContDiffSmoothingF has_bound C₂_pos A_in
+  use C, hC
   intro X hX ε hε0 hε1 T hT σ₁
   let i2Bound := i2Bound X hX hε0 hε1 hT
   rw[I8I2 hX, norm_neg, norm_conj]
