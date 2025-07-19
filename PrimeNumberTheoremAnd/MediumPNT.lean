@@ -6367,6 +6367,32 @@ Putting these together gives the result.
 \end{proof}
 %%-/
 
+lemma LogDerivZetaBoundedAndHolo : ∃ A C : ℝ, 0 < C ∧ A ∈ Ioc 0 (1 / 2) ∧ LogDerivZetaHasBound A C 
+    ∧ ∀ (T : ℝ) (_ : 3 ≤ T),
+    HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
+    (( (Icc ((1 : ℝ) - A / Real.log T ^ 9) 2)  ×ℂ (Icc (-T) T) ) \ {1}) := by
+  obtain ⟨A₁, A₁_in, C, C_pos, zeta_bnd⟩ := LogDerivZetaBndUnif
+  obtain ⟨A₂, A₂_in, holo⟩ := LogDerivZetaHolcLargeT
+  refine ⟨min A₁ A₂, C, C_pos, ?_, ?_, ?_⟩
+  · exact ⟨lt_min A₁_in.1 A₂_in.1, le_trans (min_le_left _ _) A₁_in.2⟩
+  · intro σ T hT hσ
+    apply zeta_bnd _ _ hT
+    apply mem_Ici.mpr (le_trans _ hσ)
+    gcongr
+    · bound
+    · apply min_le_left
+  · intro T hT
+    apply (holo _ hT).mono
+    intro s hs
+    simp only [mem_diff, mem_singleton_iff, mem_reProdIm] at hs ⊢
+    refine ⟨?_, hs.2⟩
+    refine ⟨?_, hs.1.2⟩
+    refine ⟨?_, hs.1.1.2⟩
+    apply le_trans _ hs.1.1.1
+    gcongr
+    · bound
+    · apply min_le_right
+
 /-%%
 \section{MediumPNT}
 
