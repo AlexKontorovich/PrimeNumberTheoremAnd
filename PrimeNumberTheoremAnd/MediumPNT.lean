@@ -6404,42 +6404,55 @@ $$ \sum_{n \leq x} \Lambda(n) = x + O(x \exp(-c(\log x)^{1/10})).$$
 theorem MediumPNT : ∃ c > 0,
     (ψ - id) =O[atTop]
       fun (x : ℝ) ↦ x * Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / 10)) := by
-  let c : ℝ := sorry
-  have cpos : 0 < c := sorry
-  refine ⟨c, cpos, ?_⟩
-  rw [Asymptotics.isBigO_iff]
-  let C : ℝ := sorry
-  refine ⟨C, ?_⟩
-  rw [Filter.eventually_atTop]
-  let X₀ : ℝ := sorry
-  refine ⟨X₀, ?_⟩
-  intro X X_ge_X₀
-  have X_gt_3 : 3 < X := by sorry
-  let ε : ℝ := sorry
-  have ε_pos : 0 < ε := sorry
-  have ε_lt_one : ε < 1 := sorry
-  have ε_X : 2 < X * ε := sorry
   have ⟨ν, ContDiffν, ν_nonneg', ν_supp, ν_massOne'⟩ := SmoothExistence
   have ContDiff1ν : ContDiff ℝ 1 ν := by
     exact ContDiffν.of_le (by simp)
   have ν_nonneg : ∀ x > 0, 0 ≤ ν x := fun x _ ↦ ν_nonneg' x
   have ν_massOne : ∫ x in Ioi 0, ν x / x = 1 := by
     rwa [← integral_Ici_eq_integral_Ioi]
+  clear ContDiffν ν_nonneg'  ν_massOne'
+  obtain ⟨c_close, c_close_pos, h_close⟩ := SmoothedChebyshevClose ContDiff1ν ν_supp ν_nonneg ν_massOne
+  obtain ⟨A, C_bnd, C_bnd_pos, A_in_Ioc, zeta_bnd, holo1⟩ := LogDerivZetaBoundedAndHolo
+  obtain ⟨σ₂', σ₂'_lt_one, holo2'⟩ := LogDerivZetaHolcSmallT
+  let σ₂ : ℝ := max σ₂' (1 / 2)
+  have σ₂_pos : 0 < σ₂ := by bound
+  have σ₂_lt_one : σ₂ < 1 := by bound
+  obtain ⟨c₁, c₁pos, hc₁⟩ := I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
+  obtain ⟨c₂, c₂pos, hc₂⟩ := I2Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
+  obtain ⟨c₉, c₉pos, hc₉⟩ := I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
+  let c : ℝ := sorry
+  have cpos : 0 < c := sorry
+  refine ⟨c, cpos, ?_⟩
+  rw [Asymptotics.isBigO_iff]
+  let C : ℝ := sorry
+  refine ⟨C, ?_⟩
+  let εx := (fun x ↦ Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / 10)))
+  let Tx := (fun x ↦ Real.exp (2 * c * (Real.log x) ^ ((1 : ℝ) / 10)))
+  have eventually_εx_lt_one : ∀ᶠ (x : ℝ) in atTop, εx x < 1 := by
+    rw [eventually_atTop]
+    use 3
+    intro x hx
+    apply Real.exp_lt_one_iff.mpr
+    rw [neg_mul]
+    apply neg_lt_zero.mpr
+    bound
+  have eventually_2_lt : ∀ᶠ (x : ℝ) in atTop, 2 < x * εx x := by
+    rw [eventually_atTop]
+    use sorry 
+    intro x hx
+    unfold εx
+    sorry
+  have eventually_T_gt_3 : ∀ᶠ (x : ℝ) in atTop, 3 < Tx x := by sorry
+  filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt, eventually_T_gt_3] with X X_gt_3 εx_lt_one two_lt T_gt_3
+  let ε : ℝ := εx X
+  have ε_pos : 0 < ε := by positivity
+  have ε_lt_one : ε < 1 := by exact εx_lt_one
+  have ε_X : 2 < X * ε := by exact two_lt
+  specialize h_close X X_gt_3 ε ε_pos ε_lt_one ε_X
   let ψ_ε_of_X := SmoothedChebyshev ν ε X
-  have : ∃ C > 0, ‖ψ X - ψ_ε_of_X‖ ≤ C * X * ε * Real.log X := by
-    obtain ⟨C, Cpos, hC⟩ := SmoothedChebyshevClose ContDiff1ν
-      ν_supp ν_nonneg ν_massOne
-    refine ⟨C, Cpos, ?_⟩
-    convert hC X X_gt_3 ε ε_pos ε_lt_one ε_X using 1
-    · rw [← norm_neg]
-      congr
-      ring
-    · ring
-  obtain ⟨C_unsmoothing, C_unsmoothing_pos, ψ_ψ_ε_diff⟩ := this
 
-  let T : ℝ := sorry
-  have T_gt_3 : 3 < T := sorry
-  obtain ⟨A, A_in_Ioc, holo1⟩ := LogDerivZetaHolcLargeT
+  let T : ℝ := Tx X
+  have T_gt_3 : 3 < T := by exact T_gt_3
   specialize holo1 T T_gt_3.le
   let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
   have σ₁pos : 0 < σ₁ := by sorry
@@ -6447,10 +6460,6 @@ theorem MediumPNT : ∃ c > 0,
     apply sub_lt_self
     apply div_pos A_in_Ioc.1
     bound
-  obtain ⟨σ₂', σ₂'_lt_one, holo2'⟩ := LogDerivZetaHolcSmallT
-  let σ₂ : ℝ := max σ₂' (1 / 2)
-  have σ₂_pos : 0 < σ₂ := by sorry
-  have σ₂_lt_one : σ₂ < 1 := by sorry
   have holo2 : HolomorphicOn (fun s ↦ ζ' s / ζ s) (uIcc σ₂ 2 ×ℂ uIcc (-3) 3 \ {1}) := by sorry
   have σ₂_lt_σ₁ : σ₂ < σ₁ := by sorry
   rw [uIcc_of_le (by linarith), uIcc_of_le (by linarith)] at holo2
@@ -6488,10 +6497,11 @@ theorem MediumPNT : ∃ c > 0,
 
   obtain ⟨C_main, C_main_pos, main_diff⟩ := this
 
-  obtain ⟨c₁, c₁pos, hc₁⟩ := I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
-  have I₁bnd := hc₁ ε ε_pos ε_lt_one X X_gt_3 T_gt_3
+  specialize hc₁ ε ε_pos ε_lt_one X X_gt_3 T_gt_3
+  specialize hc₂ X X_gt_3 ε_pos ε_lt_one T_gt_3
+  specialize hc₉ ε_pos ε_lt_one X X_gt_3 T_gt_3
 
-  obtain ⟨c₂, c₂pos, A₂, hA₂, hc₂⟩ := I2Bound ν_supp ContDiff1ν
+  --obtain ⟨c₂, c₂pos, A₂, hA₂, hc₂⟩ := I2Bound ν_supp ContDiff1ν
   -- argh `I2bound` introduces its own `A` which is not the same as the one we have;
   -- need to refactor `I2Bound` to take `A` as an argument, via holomorphy and bounds for
   -- `ζ'/ζ`
@@ -6513,7 +6523,15 @@ theorem MediumPNT : ∃ c > 0,
                     + (‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖ + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖
                     + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖ + ‖I₈ ν ε T X σ₁‖
                     + ‖I₉ ν ε X T‖) := by gcongr
-
+      _         ≤ c_close * ε* X * Real.log X + C_main * ε * X
+                    + (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T) + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖
+                    + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖ + ‖I₈ ν ε T X σ₁‖
+                    + c₉ * X * Real.log X / (ε * T)) := by
+        gcongr
+        convert h_close using 1
+        rw [← norm_neg]
+        congr
+        ring
       _         = sorry := by sorry
   )
 
