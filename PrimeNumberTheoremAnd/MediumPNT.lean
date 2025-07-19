@@ -6416,6 +6416,7 @@ theorem MediumPNT : ∃ c > 0,
   have σ₂_lt_one : σ₂ < 1 := by bound
   obtain ⟨c₁, c₁pos, hc₁⟩ := I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
   obtain ⟨c₂, c₂pos, hc₂⟩ := I2Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
+  obtain ⟨c₃, c₃pos, hc₃⟩ := I3Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
   obtain ⟨c₈, c₈pos, hc₈⟩ := I8Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
   obtain ⟨c₉, c₉pos, hc₉⟩ := I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
   let c : ℝ := sorry
@@ -6497,6 +6498,7 @@ theorem MediumPNT : ∃ c > 0,
 
   specialize hc₁ ε ε_pos ε_lt_one X X_gt_3 T_gt_3
   specialize hc₂ X X_gt_3 ε_pos ε_lt_one T_gt_3
+  specialize hc₃ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₈ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₉ ε_pos ε_lt_one X X_gt_3 T_gt_3
 
@@ -6523,7 +6525,7 @@ theorem MediumPNT : ∃ c > 0,
                     + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖ + ‖I₈ ν ε T X σ₁‖
                     + ‖I₉ ν ε X T‖) := by gcongr
       _         ≤ c_close * ε* X * Real.log X + C_main * ε * X
-                    + (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T) + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖
+                    + (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T) + c₃ * X * X ^ (-A / Real.log T ^ 9) / ε + ‖I₄ ν ε X σ₁ σ₂‖
                     + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖ + c₈ * X / (ε * T)
                     + c₉ * X * Real.log X / (ε * T)) := by
         gcongr
