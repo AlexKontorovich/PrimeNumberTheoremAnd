@@ -4883,8 +4883,9 @@ Same with $I_7$.
 
 theorem I3Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
-    ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)),
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) 
+    {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2)) :
+    ∃ (C : ℝ) (_ : 0 < C),
       ∀ (X : ℝ) (_ : 3 < X)
         {ε : ℝ} (_ : 0 < ε) (_ : ε < 1)
         {T : ℝ} (_ : 3 < T),
@@ -4893,15 +4894,12 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
         let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
         ‖I₃ SmoothingF ε T X σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
 --  intro SmoothingF suppSmoothingF ContDiffSmoothingF
-  choose A hA Cζ Cζpos hCζ using LogDerivZetaBnd
   obtain ⟨CM, CMpos, CMhyp⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
   obtain ⟨Cint, Cintpos, Cinthyp⟩ := log_pow_over_xsq_integral_bounded 9
   use Cint * CM * Cζ
   have : Cint * CM > 0 := mul_pos Cintpos CMpos
   have : Cint * CM * Cζ > 0 := mul_pos this Cζpos
   use this
-  use A
-  use hA
   intro X Xgt3 ε εgt0 εlt1 T Tgt3 σ₁ -- SmoothingFnonneg mass_one
   unfold I₃
   unfold SmoothedChebyshevIntegrand
@@ -5027,13 +5025,12 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
     have denom2_pos : 0 < σ₁ ^ 2 + t ^ 2 := by linarith [sq_nonneg σ₁]
     exact (div_le_div_iff_of_pos_left logpos denom2_pos denom_pos).mpr denom_le
 
-  have boundthing : ∀ t, 3 < |t| ∧ |t| < T → σ₁ ∈ Ico (1 - A / Real.log |t| ^ 9) 1 := by
+  have boundthing : ∀ t, 3 < |t| ∧ |t| < T → σ₁ ∈ Ici (1 - A / Real.log |t| ^ 9) := by
     intro t ht
     have h1 := Aoverlogt9gtAoverlogT9_bounds t ht
-    constructor
-    · unfold σ₁
-      linarith
-    · exact σ₁lt1
+    unfold σ₁
+    apply mem_Ici.mpr
+    linarith
 
   have : ∫ (t : ℝ) in -T..-3,
           -ζ' (↑σ₁ + ↑t * I) / ζ (↑σ₁ + ↑t * I) * 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑σ₁ + ↑t * I) *
