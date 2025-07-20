@@ -5489,23 +5489,19 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
 
 lemma I7Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    --(SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    --(mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)),
+    {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2))
+    : ∃ (C : ℝ) (_ : 0 < C),
     ∀ (X : ℝ) (_ : 3 < X) {ε : ℝ} (_ : 0 < ε)
     (_ : ε < 1) {T : ℝ} (_ : 3 < T),
     let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
     ‖I₇ SmoothingF ε T X σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
-  choose A hA Cζ Cζpos hCζ using LogDerivZetaBnd
   obtain ⟨CM, CMpos, CMhyp⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
   obtain ⟨Cint, Cintpos, Cinthyp⟩ := log_pow_over_xsq_integral_bounded 9
   use Cint * CM * Cζ
   have : Cint * CM > 0 := mul_pos Cintpos CMpos
   have : Cint * CM * Cζ > 0 := mul_pos this Cζpos
   use this
-  use A
-  use hA
   intro X Xgt3 ε εgt0 εlt1 T Tgt3 σ₁
   unfold I₇
   unfold SmoothedChebyshevIntegrand
@@ -5631,13 +5627,11 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
     have denom2_pos : 0 < σ₁ ^ 2 + t ^ 2 := by linarith [sq_nonneg σ₁]
     exact (div_le_div_iff_of_pos_left logpos denom2_pos denom_pos).mpr denom_le
 
-  have boundthing : ∀ t, 3 < |t| ∧ |t| < T → σ₁ ∈ Ico (1 - A / Real.log |t| ^ 9) 1 := by
+  have boundthing : ∀ t, 3 < |t| ∧ |t| < T → σ₁ ∈ Ici (1 - A / Real.log |t| ^ 9) := by
     intro t ht
     have h1 := Aoverlogt9gtAoverlogT9_bounds t ht
-    constructor
-    · unfold σ₁
-      linarith
-    · exact σ₁lt1
+    apply mem_Ici.mpr
+    linarith
 
   have : ∫ (t : ℝ) in (↑3)..T,
           -ζ' (↑σ₁ + ↑t * I) / ζ (↑σ₁ + ↑t * I) * 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑σ₁ + ↑t * I) *
@@ -6417,6 +6411,7 @@ theorem MediumPNT : ∃ c > 0,
   obtain ⟨c₁, c₁pos, hc₁⟩ := I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
   obtain ⟨c₂, c₂pos, hc₂⟩ := I2Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
   obtain ⟨c₃, c₃pos, hc₃⟩ := I3Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
+  obtain ⟨c₇, c₇pos, hc₇⟩ := I7Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
   obtain ⟨c₈, c₈pos, hc₈⟩ := I8Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
   obtain ⟨c₉, c₉pos, hc₉⟩ := I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
   let c : ℝ := sorry
@@ -6499,6 +6494,7 @@ theorem MediumPNT : ∃ c > 0,
   specialize hc₁ ε ε_pos ε_lt_one X X_gt_3 T_gt_3
   specialize hc₂ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₃ X X_gt_3 ε_pos ε_lt_one T_gt_3
+  specialize hc₇ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₈ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₉ ε_pos ε_lt_one X X_gt_3 T_gt_3
 
@@ -6526,7 +6522,7 @@ theorem MediumPNT : ∃ c > 0,
                     + ‖I₉ ν ε X T‖) := by gcongr
       _         ≤ c_close * ε* X * Real.log X + C_main * ε * X
                     + (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T) + c₃ * X * X ^ (-A / Real.log T ^ 9) / ε + ‖I₄ ν ε X σ₁ σ₂‖
-                    + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖ + c₈ * X / (ε * T)
+                    + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε + c₈ * X / (ε * T)
                     + c₉ * X * Real.log X / (ε * T)) := by
         gcongr
         convert h_close using 1
