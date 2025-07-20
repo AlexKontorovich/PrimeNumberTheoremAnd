@@ -6424,16 +6424,13 @@ theorem MediumPNT : ∃ c > 0,
     unfold εx
     sorry
   have eventually_T_gt_3 : ∀ᶠ (x : ℝ) in atTop, 3 < Tx x := by sorry
-  filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt, eventually_T_gt_3] with X X_gt_3 εx_lt_one two_lt T_gt_3
+  filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt, eventually_T_gt_3] with X X_gt_3 ε_lt_one ε_X T_gt_3
   let ε : ℝ := εx X
   have ε_pos : 0 < ε := by positivity
-  have ε_lt_one : ε < 1 := by exact εx_lt_one
-  have ε_X : 2 < X * ε := by exact two_lt
   specialize h_close X X_gt_3 ε ε_pos ε_lt_one ε_X
   let ψ_ε_of_X := SmoothedChebyshev ν ε X
 
   let T : ℝ := Tx X
-  have T_gt_3 : 3 < T := by exact T_gt_3
   specialize holo1 T T_gt_3.le
   let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
   have σ₁pos : 0 < σ₁ := by sorry
