@@ -6435,7 +6435,8 @@ theorem MediumPNT : ∃ c > 0,
     unfold εx
     sorry
   have eventually_T_gt_3 : ∀ᶠ (x : ℝ) in atTop, 3 < Tx x := by sorry
-  filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt, eventually_T_gt_3] with X X_gt_3 ε_lt_one ε_X T_gt_3
+  have eventually_σ₂_lt_σ₁ : ∀ᶠ (x : ℝ) in atTop, σ₂ < 1 - A / (Real.log (Tx x)) ^ 9 := by sorry
+  filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt, eventually_T_gt_3, eventually_σ₂_lt_σ₁] with X X_gt_3 ε_lt_one ε_X T_gt_3 σ₂_lt_σ₁
   let ε : ℝ := εx X
   have ε_pos : 0 < ε := by positivity
   specialize h_close X X_gt_3 ε ε_pos ε_lt_one ε_X
@@ -6449,7 +6450,7 @@ theorem MediumPNT : ∃ c > 0,
     apply sub_lt_self
     apply div_pos A_in_Ioc.1
     bound
-  have σ₂_lt_σ₁ : σ₂ < σ₁ := by sorry
+
   rw [uIcc_of_le (by linarith), uIcc_of_le (by linarith)] at holo2
 
   have holo2a : HolomorphicOn (SmoothedChebyshevIntegrand ν ε X)
@@ -6492,11 +6493,6 @@ theorem MediumPNT : ∃ c > 0,
   specialize hc₇ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₈ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₉ ε_pos ε_lt_one X X_gt_3 T_gt_3
-
-  --obtain ⟨c₂, c₂pos, A₂, hA₂, hc₂⟩ := I2Bound ν_supp ContDiff1ν
-  -- argh `I2bound` introduces its own `A` which is not the same as the one we have;
-  -- need to refactor `I2Bound` to take `A` as an argument, via holomorphy and bounds for
-  -- `ζ'/ζ`
 
   have := (
     calc
