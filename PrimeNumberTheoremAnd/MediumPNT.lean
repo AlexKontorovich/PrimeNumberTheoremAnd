@@ -6392,8 +6392,19 @@ theorem MediumPNT : ∃ c > 0,
   let σ₂ : ℝ := max σ₂' (1 / 2)
   have σ₂_pos : 0 < σ₂ := by bound
   have σ₂_lt_one : σ₂ < 1 := by bound
-  have holo2 : HolomorphicOn (fun s ↦ ζ' s / ζ s) (uIcc σ₂ 2 ×ℂ uIcc (-3) 3 \ {1}) := by sorry
-
+  have holo2 : HolomorphicOn (fun s ↦ ζ' s / ζ s) (uIcc σ₂ 2 ×ℂ uIcc (-3) 3 \ {1}) := by
+    apply holo2'.mono
+    intro s hs
+    simp [mem_reProdIm] at hs ⊢
+    refine ⟨?_, hs.2⟩
+    refine ⟨?_, hs.1.2⟩
+    rcases hs.1.1 with ⟨left, right⟩
+    constructor
+    · apply le_trans _ left
+      apply min_le_min_right
+      apply le_max_left
+    · rw [max_eq_right (by linarith)] at right ⊢
+      exact right
   obtain ⟨c₁, c₁pos, hc₁⟩ := I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
   obtain ⟨c₂, c₂pos, hc₂⟩ := I2Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
   obtain ⟨c₃, c₃pos, hc₃⟩ := I3Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
