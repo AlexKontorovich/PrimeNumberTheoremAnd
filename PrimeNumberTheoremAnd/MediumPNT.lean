@@ -6143,6 +6143,7 @@ Same with $I_6$.
 \end{lemma}
 %%-/
 
+set_option maxHeartbeats 800000 in
 lemma I4Bound : ∀ {SmoothingF : ℝ → ℝ} (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
@@ -6237,8 +6238,11 @@ lemma I4Bound : ∀ {SmoothingF : ℝ → ℝ} (suppSmoothingF : Function.suppor
             · exact le_of_lt (by exact σ₂InIoo.2)
             · nth_rewrite 2 [← sub_zero 1]
               exact sub_le_sub (by rfl) (by exact xInIcc.1)
-            · bound
-              exact xInIcc.2
+            · simp_all only [one_re, one_im, re_ofNat, im_ofNat, one_div,
+                support_subset_iff, ne_eq, mem_Icc,
+                gt_iff_lt, neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, mem_Ioo, lt_sup_iff, inv_pos, Nat.ofNat_pos,
+                true_or, sup_lt_iff, and_true, true_and, nnnorm_div, nnnorm_neg, NNReal.coe_div, coe_nnnorm,
+                inf_eq_left, sup_of_le_right, sub_nonneg, σ₂, S]
             · norm_num
         · rw[sub_im, add_im, mul_im, mul_im, sub_im, sub_re, I_re, I_im]
           repeat rw[ofReal_re]
@@ -6561,7 +6565,7 @@ lemma I4Bound : ∀ {SmoothingF : ℝ → ℝ} (suppSmoothingF : Function.suppor
       exact intervalIntegral.norm_integral_le_of_norm_le_const this
     have : C * X * X ^ (-A / Real.log T ^ 9) / ε * |σ₁ - σ₂| ≤
       C * X * X ^ (-A / Real.log T ^ 9) / ε := by
-      bound
+      aesop?
       · positivity
       · positivity
       · rw[abs_of_nonneg]
