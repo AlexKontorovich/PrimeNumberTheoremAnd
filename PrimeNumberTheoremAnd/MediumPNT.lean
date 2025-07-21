@@ -6565,15 +6565,39 @@ lemma I4Bound : ∀ {SmoothingF : ℝ → ℝ} (suppSmoothingF : Function.suppor
       exact intervalIntegral.norm_integral_le_of_norm_le_const this
     have : C * X * X ^ (-A / Real.log T ^ 9) / ε * |σ₁ - σ₂| ≤
       C * X * X ^ (-A / Real.log T ^ 9) / ε := by
-      aesop?
-      · positivity
-      · positivity
-      · rw[abs_of_nonneg]
-        · rw[← sub_zero 1]
-          apply sub_le_sub
-          · exact le_of_lt (by exact σ₁_lt_one)
-          · exact le_of_lt (by exact σ₂InIoo.1)
-        · linarith
+      rename_i h this_1
+      simp_all only [one_re, one_im, re_ofNat, im_ofNat, one_div,
+        support_subset_iff, ne_eq, mem_Icc, gt_iff_lt,
+        neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, mem_Ioo, lt_sup_iff,
+        inv_pos, Nat.ofNat_pos, true_or,
+        sup_lt_iff, and_true, true_and, nnnorm_div, nnnorm_neg,
+        NNReal.coe_div, coe_nnnorm, mul_inv_rev,
+        mul_pos_iff_of_pos_left, div_pos_iff_of_pos_left, NNReal.coe_pos,
+        mem_Ioc, mem_Ico, tsub_le_iff_right,
+        Complex.norm_div, and_imp, exists_prop, sup_le_iff, and_self,
+        inf_of_le_left, sup_of_le_right,
+        sub_lt_self_iff, one_mul, S, σ₂, C', C, Tlb, σ₁]
+      sorry
+      -- obtain ⟨left, right⟩ := Abd
+      -- obtain ⟨w, h⟩ := h
+      -- obtain ⟨left_1, right_1⟩ := T_gt_Tlb
+      -- obtain ⟨left_2, right_2⟩ := σ₂_le_σ₁
+      -- obtain ⟨left_3, right_3⟩ := h
+      -- obtain ⟨left_4, right_1⟩ := right_1
+      -- cases this_1 with
+      -- | inl h => sorry
+      -- | inr h_1 =>
+      --   cases h_1 with
+      --   | inl h => sorry
+      --   | inr h_2 => sorry
+      -- · positivity
+      -- · positivity
+      -- · rw[abs_of_nonneg]
+      --   · rw[← sub_zero 1]
+      --     apply sub_le_sub
+      --     · exact le_of_lt (by exact σ₁_lt_one)
+      --     · exact le_of_lt (by exact σ₂InIoo.1)
+      --   · linarith
     exact le_trans temp this
   simp only [norm_nonneg]
   norm_num
@@ -6672,8 +6696,14 @@ lemma I6Bound : ∀ {SmoothingF : ℝ → ℝ} (suppSmoothingF : Function.suppor
             · exact le_of_lt (by exact σ₂InIoo.2)
             · nth_rewrite 2 [← sub_zero 1]
               exact sub_le_sub (by rfl) (by exact xInIcc.1)
-            · bound
-              exact xInIcc.2
+            · simp_all only [one_re, one_im, re_ofNat, im_ofNat, one_div,
+                support_subset_iff, ne_eq, mem_Icc,
+                gt_iff_lt, neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le,
+                mem_Ioo, lt_sup_iff, inv_pos, Nat.ofNat_pos,
+                true_or, sup_lt_iff, and_true, true_and, nnnorm_div,
+                nnnorm_neg, NNReal.coe_div, coe_nnnorm,
+                inf_eq_left, sup_of_le_right, sub_nonneg, σ₂, S]
+
             · norm_num
         · rw[add_im, add_im, mul_im, mul_im, sub_im, sub_re, I_re, I_im]
           repeat rw[ofReal_re]
@@ -6995,15 +7025,16 @@ lemma I6Bound : ∀ {SmoothingF : ℝ → ℝ} (suppSmoothingF : Function.suppor
       exact intervalIntegral.norm_integral_le_of_norm_le_const this
     have : C * X * X ^ (-A / Real.log T ^ 9) / ε * |σ₁ - σ₂| ≤
       C * X * X ^ (-A / Real.log T ^ 9) / ε := by
-      bound
-      · positivity
-      · positivity
-      · rw[abs_of_nonneg]
-        · rw[← sub_zero 1]
-          apply sub_le_sub
-          · exact le_of_lt (by exact σ₁_lt_one)
-          · exact le_of_lt (by exact σ₂InIoo.1)
-        · linarith
+      sorry
+      -- bound
+      -- · positivity
+      -- · positivity
+      -- · rw[abs_of_nonneg]
+      --   · rw[← sub_zero 1]
+      --     apply sub_le_sub
+      --     · exact le_of_lt (by exact σ₁_lt_one)
+      --     · exact le_of_lt (by exact σ₂InIoo.1)
+      --   · linarith
     exact le_trans temp this
   simp only [norm_nonneg]
   norm_num
