@@ -4367,7 +4367,7 @@ $$
 lemma I2Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
 --    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) 
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {A C₂ : ℝ} (has_bound: LogDerivZetaHasBound A C₂) (C₂pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
     ∃ (C : ℝ) (_ : 0 < C),
     ∀(X : ℝ) (_ : 3 < X) {ε : ℝ} (_ : 0 < ε)
@@ -4582,7 +4582,7 @@ $$
 %%-/
 lemma I8Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) 
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {A C₂ : ℝ} (has_bound : LogDerivZetaHasBound A C₂) (C₂_pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
 --    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     ∃ (C : ℝ) (_ : 0 < C),
@@ -4598,7 +4598,7 @@ lemma I8Bound {SmoothingF : ℝ → ℝ}
   let i2Bound := i2Bound X hX hε0 hε1 hT
   rw[I8I2 hX, norm_neg, norm_conj]
   exact i2Bound
-  
+
 /-%%
 \begin{proof}\uses{I8I2, I2Bound}\leanok
   We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$.
@@ -4911,7 +4911,7 @@ Same with $I_7$.
 
 theorem I3Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) 
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2)) :
     ∃ (C : ℝ) (_ : 0 < C),
       ∀ (X : ℝ) (_ : 3 < X)
@@ -5010,11 +5010,11 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
     linarith [hA.1]
     linarith
 
-  have AoverlogT9in0half: B / Real.log T ^ 9 ∈ Ioo 0 (1/2) := by
+  have AoverlogT9in0half: A / Real.log T ^ 9 ∈ Ioo 0 (1/2) := by
     constructor
     · refine div_pos ?_ ?_
       refine EReal.coe_pos.mp ?_
-      exact EReal.coe_lt_coe B_pos
+      exact EReal.coe_lt_coe hA.1
       linarith
     · refine (div_lt_comm₀ ?_ ?_).mpr ?_
       linarith
@@ -5024,9 +5024,7 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
       have hA_lt : A ≤ 1 / 2 := hA.2
       have hbound : 1 / 2 < (1 / 2) * Real.log T ^ 9 := by
         linarith
-      exact lt_of_le_of_lt (by calc
-        B ≤ A := by linarith
-        _ ≤ 1 / 2 := by linarith) hbound
+      linarith
 
   have σ₁lt2 : (σ₁ : ℝ) < 2 := by
     unfold σ₁
@@ -5348,14 +5346,14 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
   apply le_trans int_normf_le_int_g
   unfold g
 
-  have : X ^ σ₁ = X ^ (1 - B / Real.log T ^ 9) := by
+  have : X ^ σ₁ = X ^ (1 - A / Real.log T ^ 9) := by
     rfl
   rw[this]
 
-  have : X ^ (1 - B / Real.log T ^ 9) = X * X ^ (- B / Real.log T ^ 9) := by
+  have : X ^ (1 - A / Real.log T ^ 9) = X * X ^ (- A / Real.log T ^ 9) := by
     have hX : X > 0 := by linarith
     simp only [Real.rpow_sub hX, Real.rpow_one]
-    have h₁ : X ^ (-B / Real.log T ^ 9) * X ^ (B / Real.log T ^ 9) = 1 := by
+    have h₁ : X ^ (-A / Real.log T ^ 9) * X ^ (A / Real.log T ^ 9) = 1 := by
       rw [← Real.rpow_add hX]
       ring_nf
       exact rpow_zero X
@@ -5488,8 +5486,8 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
 
 
   have factor_out_constants :
-  ∫ (t : ℝ) in Ioo (-T) (-3), Cζ * CM * Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) * (X * X ^ (-B / Real.log T ^ 9))
-  = Cζ * CM * (X * X ^ (-B / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (-T) (-3), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) := by
+  ∫ (t : ℝ) in Ioo (-T) (-3), Cζ * CM * Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) * (X * X ^ (-A / Real.log T ^ 9))
+  = Cζ * CM * (X * X ^ (-A / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (-T) (-3), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) := by
      rw [mul_assoc, ← mul_assoc (Cζ * CM), ← mul_assoc]
      field_simp
      rw [← integral_const_mul]
@@ -5499,11 +5497,11 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
 
   rw [factor_out_constants]
 
-  have : Cζ * CM * (X * X ^ (-B / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (-T) (-3), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2)
-        ≤ Cζ * CM * ((X : ℝ) * X ^ (-B / Real.log T ^ 9)) * (Cint / ε) := by
+  have : Cζ * CM * (X * X ^ (-A / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (-T) (-3), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2)
+        ≤ Cζ * CM * ((X : ℝ) * X ^ (-A / Real.log T ^ 9)) * (Cint / ε) := by
     apply mul_le_mul_of_nonneg_left
     · exact Bound_of_log_int
-    · have hpos : 0 < X * X ^ (-B / Real.log T ^ 9) := by
+    · have hpos : 0 < X * X ^ (-A / Real.log T ^ 9) := by
         apply mul_pos
         · linarith
         · apply Real.rpow_pos_of_pos
@@ -5616,11 +5614,11 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
     linarith [hA.1]
     linarith
 
-  have AoverlogT9in0half: B / Real.log T ^ 9 ∈ Ioo 0 (1/2) := by
+  have AoverlogT9in0half: A / Real.log T ^ 9 ∈ Ioo 0 (1/2) := by
     constructor
     · refine div_pos ?_ ?_
       refine EReal.coe_pos.mp ?_
-      exact EReal.coe_lt_coe B_pos
+      exact EReal.coe_lt_coe hA.1
       linarith
     · refine (div_lt_comm₀ ?_ ?_).mpr ?_
       linarith
@@ -5952,15 +5950,15 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
   apply le_trans int_normf_le_int_g
   unfold g
 
-  have : X ^ σ₁ = X ^ (1 - B / Real.log T ^ 9) := by
+  have : X ^ σ₁ = X ^ (1 - A / Real.log T ^ 9) := by
     rfl
 
   rw[this]
 
-  have : X ^ (1 - B / Real.log T ^ 9) = X * X ^ (- B / Real.log T ^ 9) := by
+  have : X ^ (1 - A / Real.log T ^ 9) = X * X ^ (- A / Real.log T ^ 9) := by
     have hX : X > 0 := by linarith
     simp only [Real.rpow_sub hX, Real.rpow_one]
-    have h₁ : X ^ (-B / Real.log T ^ 9) * X ^ (B / Real.log T ^ 9) = 1 := by
+    have h₁ : X ^ (-A / Real.log T ^ 9) * X ^ (A / Real.log T ^ 9) = 1 := by
       rw [← Real.rpow_add hX]
       ring_nf
       exact rpow_zero X
@@ -6076,8 +6074,8 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
 
 
   have factor_out_constants :
-  ∫ (t : ℝ) in Ioo (3) (T), Cζ * CM * Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) * (X * X ^ (-B / Real.log T ^ 9))
-  = Cζ * CM * (X * X ^ (-B / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (3) (T), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) := by
+  ∫ (t : ℝ) in Ioo (3) (T), Cζ * CM * Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) * (X * X ^ (-A / Real.log T ^ 9))
+  = Cζ * CM * (X * X ^ (-A / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (3) (T), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) := by
      rw [mul_assoc, ← mul_assoc (Cζ * CM), ← mul_assoc]
      field_simp
      rw [← integral_const_mul]
@@ -6087,11 +6085,11 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
 
   rw[factor_out_constants]
 
-  have : Cζ * CM * (X * X ^ (-B / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (3) (T), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2)
-        ≤ Cζ * CM * ((X : ℝ) * X ^ (-B / Real.log T ^ 9)) * (Cint / ε) := by
+  have : Cζ * CM * (X * X ^ (-A / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (3) (T), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2)
+        ≤ Cζ * CM * ((X : ℝ) * X ^ (-A / Real.log T ^ 9)) * (Cint / ε) := by
     apply mul_le_mul_of_nonneg_left
     · exact Bound_of_log_int
-    · have hpos : 0 < X * X ^ (-B / Real.log T ^ 9) := by
+    · have hpos : 0 < X * X ^ (-A / Real.log T ^ 9) := by
         apply mul_pos
         · linarith
         · apply Real.rpow_pos_of_pos
@@ -7200,8 +7198,6 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
   simp only [← S, ge_iff_le]
   linear_combination (|π|⁻¹ * 2⁻¹ * Z)
 
-  sorry
-
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaHolcSmallT, I5}\leanok
 Here $\zeta'/\zeta$ is absolutely bounded on the compact interval $\sigma_2 + i [-3,3]$, and
@@ -7210,7 +7206,7 @@ Putting these together gives the result.
 \end{proof}
 %%-/
 
-lemma LogDerivZetaBoundedAndHolo : ∃ A C : ℝ, 0 < C ∧ A ∈ Ioc 0 (1 / 2) ∧ LogDerivZetaHasBound A C 
+lemma LogDerivZetaBoundedAndHolo : ∃ A C : ℝ, 0 < C ∧ A ∈ Ioc 0 (1 / 2) ∧ LogDerivZetaHasBound A C
     ∧ ∀ (T : ℝ) (_ : 3 ≤ T),
     HolomorphicOn (fun (s : ℂ) ↦ ζ' s / (ζ s))
     (( (Icc ((1 : ℝ) - A / Real.log T ^ 9) 2)  ×ℂ (Icc (-T) T) ) \ {1}) := by
@@ -7298,7 +7294,7 @@ theorem MediumPNT : ∃ c > 0,
     bound
   have eventually_2_lt : ∀ᶠ (x : ℝ) in atTop, 2 < x * εx x := by
     rw [eventually_atTop]
-    use sorry 
+    use sorry
     intro x hx
     unfold εx
     sorry
