@@ -5614,11 +5614,11 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
     linarith [hA.1]
     linarith
 
-  have AoverlogT9in0half: B / Real.log T ^ 9 ∈ Ioo 0 (1/2) := by
+  have AoverlogT9in0half: A / Real.log T ^ 9 ∈ Ioo 0 (1/2) := by
     constructor
     · refine div_pos ?_ ?_
       refine EReal.coe_pos.mp ?_
-      exact EReal.coe_lt_coe B_pos
+      exact EReal.coe_lt_coe hA.1
       linarith
     · refine (div_lt_comm₀ ?_ ?_).mpr ?_
       linarith
@@ -5950,15 +5950,15 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
   apply le_trans int_normf_le_int_g
   unfold g
 
-  have : X ^ σ₁ = X ^ (1 - B / Real.log T ^ 9) := by
+  have : X ^ σ₁ = X ^ (1 - A / Real.log T ^ 9) := by
     rfl
 
   rw[this]
 
-  have : X ^ (1 - B / Real.log T ^ 9) = X * X ^ (- B / Real.log T ^ 9) := by
+  have : X ^ (1 - A / Real.log T ^ 9) = X * X ^ (- A / Real.log T ^ 9) := by
     have hX : X > 0 := by linarith
     simp only [Real.rpow_sub hX, Real.rpow_one]
-    have h₁ : X ^ (-B / Real.log T ^ 9) * X ^ (B / Real.log T ^ 9) = 1 := by
+    have h₁ : X ^ (-A / Real.log T ^ 9) * X ^ (A / Real.log T ^ 9) = 1 := by
       rw [← Real.rpow_add hX]
       ring_nf
       exact rpow_zero X
@@ -6074,8 +6074,8 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
 
 
   have factor_out_constants :
-  ∫ (t : ℝ) in Ioo (3) (T), Cζ * CM * Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) * (X * X ^ (-B / Real.log T ^ 9))
-  = Cζ * CM * (X * X ^ (-B / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (3) (T), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) := by
+  ∫ (t : ℝ) in Ioo (3) (T), Cζ * CM * Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) * (X * X ^ (-A / Real.log T ^ 9))
+  = Cζ * CM * (X * X ^ (-A / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (3) (T), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) := by
      rw [mul_assoc, ← mul_assoc (Cζ * CM), ← mul_assoc]
      field_simp
      rw [← integral_const_mul]
@@ -6085,11 +6085,11 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
 
   rw[factor_out_constants]
 
-  have : Cζ * CM * (X * X ^ (-B / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (3) (T), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2)
-        ≤ Cζ * CM * ((X : ℝ) * X ^ (-B / Real.log T ^ 9)) * (Cint / ε) := by
+  have : Cζ * CM * (X * X ^ (-A / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (3) (T), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2)
+        ≤ Cζ * CM * ((X : ℝ) * X ^ (-A / Real.log T ^ 9)) * (Cint / ε) := by
     apply mul_le_mul_of_nonneg_left
     · exact Bound_of_log_int
-    · have hpos : 0 < X * X ^ (-B / Real.log T ^ 9) := by
+    · have hpos : 0 < X * X ^ (-A / Real.log T ^ 9) := by
         apply mul_pos
         · linarith
         · apply Real.rpow_pos_of_pos
