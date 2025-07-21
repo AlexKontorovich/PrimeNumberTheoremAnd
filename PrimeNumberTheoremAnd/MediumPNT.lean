@@ -4332,6 +4332,29 @@ lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X): (1 + (Real.log X)⁻¹) < 2 :=
   refine (lt_log_iff_exp_lt ?_).mpr ?_ <;> linarith[Real.exp_one_lt_d9]
 
 
+
+theorem log_pos (T : ℝ) (T_gt : 3 < T) : (Real.log T ^ 9 > 1) :=
+  by
+
+    have elt3 : Real.exp 1 < 3 := by
+      linarith[Real.exp_one_lt_d9]
+
+    have log3gt1: 1 < Real.log 3 := by
+      apply (Real.lt_log_iff_exp_lt (by norm_num)).mpr
+      exact elt3
+
+    have logTgt1 : Real.log T > 1 := by
+      refine (lt_log_iff_exp_lt ?_).mpr ?_
+      linarith
+      linarith
+
+    have logT9gt1 : Real.log T ^ 9 > 1 := by
+      refine (one_lt_pow_iff_of_nonneg ?_ ?_).mpr logTgt1
+      linarith
+      linarith
+
+    exact logT9gt1
+
 /-%%
 \begin{lemma}[I2Bound]\label{I2Bound}\lean{I2Bound}\leanok
 We have that
@@ -4362,11 +4385,11 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
     · rw[norm_pos_iff]
       simp[pi_ne_zero]
     · simp[this]
-
   intro X X_gt ε ε_pos ε_lt_one T T_gt σ₁
 --  clear suppSmoothingF mass_one ContDiffSmoothingF
-  have Xpos : 0 < X := lt_trans (by norm_num) X_gt
+  have Xpos : 0 < X := lt_trans (by simp only [Nat.ofNat_pos]) X_gt
   have Tpos : 0 < T := lt_trans (by norm_num) T_gt
+  have log_big : 1 < Real.log T ^ 9 := by exact log_pos T (T_gt)
   unfold I₂
   rw[norm_mul, mul_assoc (c := X), ← mul_div]
   refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg _)
@@ -4451,9 +4474,9 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
             sub_zero, σ₁]
           rw[← le_log_iff_exp_le, Real.log_mul (exp_ne_zero 1), Real.log_exp, ← le_div_iff₀', add_comm, add_div, div_self, one_div]
           exact hσ.2
-          · refine (log_pos ?_).ne.symm
+          · refine (Real.log_pos ?_).ne.symm
             linarith
-          · apply log_pos
+          · apply Real.log_pos
             linarith
           · linarith
           · positivity
@@ -4575,6 +4598,7 @@ lemma I8Bound {SmoothingF : ℝ → ℝ}
   let i2Bound := i2Bound X hX hε0 hε1 hT
   rw[I8I2 hX, norm_neg, norm_conj]
   exact i2Bound
+  
 /-%%
 \begin{proof}\uses{I8I2, I2Bound}\leanok
   We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$.
@@ -4986,11 +5010,11 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
     linarith [hA.1]
     linarith
 
-  have AoverlogT9in0half: A / Real.log T ^ 9 ∈ Ioo 0 (1/2) := by
+  have AoverlogT9in0half: B / Real.log T ^ 9 ∈ Ioo 0 (1/2) := by
     constructor
     · refine div_pos ?_ ?_
       refine EReal.coe_pos.mp ?_
-      exact EReal.coe_lt_coe hA.1
+      exact EReal.coe_lt_coe B_pos
       linarith
     · refine (div_lt_comm₀ ?_ ?_).mpr ?_
       linarith
@@ -5000,11 +5024,13 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
       have hA_lt : A ≤ 1 / 2 := hA.2
       have hbound : 1 / 2 < (1 / 2) * Real.log T ^ 9 := by
         linarith
-      exact lt_of_le_of_lt hA_lt hbound
+      exact lt_of_le_of_lt (by calc
+        B ≤ A := by linarith
+        _ ≤ 1 / 2 := by linarith) hbound
 
   have σ₁lt2 : (σ₁ : ℝ) < 2 := by
     unfold σ₁
-    linarith[AoverlogT9in0half.1]
+    linarith [AoverlogT9in0half.1]
 
   have σ₁lt1 : σ₁ < 1 := by
     unfold σ₁
@@ -5322,14 +5348,14 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
   apply le_trans int_normf_le_int_g
   unfold g
 
-  have : X ^ σ₁ = X ^ (1 - A / Real.log T ^ 9) := by
+  have : X ^ σ₁ = X ^ (1 - B / Real.log T ^ 9) := by
     rfl
   rw[this]
 
-  have : X ^ (1 - A / Real.log T ^ 9) = X * X ^ (- A / Real.log T ^ 9) := by
+  have : X ^ (1 - B / Real.log T ^ 9) = X * X ^ (- B / Real.log T ^ 9) := by
     have hX : X > 0 := by linarith
     simp only [Real.rpow_sub hX, Real.rpow_one]
-    have h₁ : X ^ (-A / Real.log T ^ 9) * X ^ (A / Real.log T ^ 9) = 1 := by
+    have h₁ : X ^ (-B / Real.log T ^ 9) * X ^ (B / Real.log T ^ 9) = 1 := by
       rw [← Real.rpow_add hX]
       ring_nf
       exact rpow_zero X
@@ -5462,21 +5488,22 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
 
 
   have factor_out_constants :
-  ∫ (t : ℝ) in Ioo (-T) (-3), Cζ * CM * Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) * (X * X ^ (-A / Real.log T ^ 9))
-  = Cζ * CM * (X * X ^ (-A / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (-T) (-3), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) := by
+  ∫ (t : ℝ) in Ioo (-T) (-3), Cζ * CM * Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) * (X * X ^ (-B / Real.log T ^ 9))
+  = Cζ * CM * (X * X ^ (-B / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (-T) (-3), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) := by
      rw [mul_assoc, ← mul_assoc (Cζ * CM), ← mul_assoc]
      field_simp
      rw [← integral_const_mul]
      apply MeasureTheory.setIntegral_congr_fun measurableSet_Ioo
      intro t ht
      ring
-  rw[factor_out_constants]
 
-  have : Cζ * CM * (X * X ^ (-A / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (-T) (-3), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2)
-        ≤ Cζ * CM * ((X : ℝ) * X ^ (-A / Real.log T ^ 9)) * (Cint / ε) := by
+  rw [factor_out_constants]
+
+  have : Cζ * CM * (X * X ^ (-B / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (-T) (-3), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2)
+        ≤ Cζ * CM * ((X : ℝ) * X ^ (-B / Real.log T ^ 9)) * (Cint / ε) := by
     apply mul_le_mul_of_nonneg_left
     · exact Bound_of_log_int
-    · have hpos : 0 < X * X ^ (-A / Real.log T ^ 9) := by
+    · have hpos : 0 < X * X ^ (-B / Real.log T ^ 9) := by
         apply mul_pos
         · linarith
         · apply Real.rpow_pos_of_pos
@@ -5490,6 +5517,7 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
   apply le_trans this
   ring_nf
   field_simp
+
 
 lemma I7Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
@@ -5588,11 +5616,11 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
     linarith [hA.1]
     linarith
 
-  have AoverlogT9in0half: A / Real.log T ^ 9 ∈ Ioo 0 (1/2) := by
+  have AoverlogT9in0half: B / Real.log T ^ 9 ∈ Ioo 0 (1/2) := by
     constructor
     · refine div_pos ?_ ?_
       refine EReal.coe_pos.mp ?_
-      exact EReal.coe_lt_coe hA.1
+      exact EReal.coe_lt_coe B_pos
       linarith
     · refine (div_lt_comm₀ ?_ ?_).mpr ?_
       linarith
@@ -5602,7 +5630,7 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
       have hA_lt : A ≤ 1 / 2 := hA.2
       have hbound : 1 / 2 < (1 / 2) * Real.log T ^ 9 := by
         linarith
-      exact lt_of_le_of_lt hA_lt hbound
+      exact lt_of_le_of_lt (by linarith) hbound
 
   have σ₁lt2 : (σ₁ : ℝ) < 2 := by
     unfold σ₁
@@ -5924,14 +5952,15 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
   apply le_trans int_normf_le_int_g
   unfold g
 
-  have : X ^ σ₁ = X ^ (1 - A / Real.log T ^ 9) := by
+  have : X ^ σ₁ = X ^ (1 - B / Real.log T ^ 9) := by
     rfl
+
   rw[this]
 
-  have : X ^ (1 - A / Real.log T ^ 9) = X * X ^ (- A / Real.log T ^ 9) := by
+  have : X ^ (1 - B / Real.log T ^ 9) = X * X ^ (- B / Real.log T ^ 9) := by
     have hX : X > 0 := by linarith
     simp only [Real.rpow_sub hX, Real.rpow_one]
-    have h₁ : X ^ (-A / Real.log T ^ 9) * X ^ (A / Real.log T ^ 9) = 1 := by
+    have h₁ : X ^ (-B / Real.log T ^ 9) * X ^ (B / Real.log T ^ 9) = 1 := by
       rw [← Real.rpow_add hX]
       ring_nf
       exact rpow_zero X
@@ -5939,7 +5968,7 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
     rw[mul_assoc, h₁]
     ring
 
-  rw[this]
+  rw [this]
 
 
   have Bound_of_log_int: ∫ (t : ℝ) in Ioo (3) (T), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) ≤ Cint / ε := by
@@ -6047,21 +6076,22 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
 
 
   have factor_out_constants :
-  ∫ (t : ℝ) in Ioo (3) (T), Cζ * CM * Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) * (X * X ^ (-A / Real.log T ^ 9))
-  = Cζ * CM * (X * X ^ (-A / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (3) (T), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) := by
+  ∫ (t : ℝ) in Ioo (3) (T), Cζ * CM * Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) * (X * X ^ (-B / Real.log T ^ 9))
+  = Cζ * CM * (X * X ^ (-B / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (3) (T), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) := by
      rw [mul_assoc, ← mul_assoc (Cζ * CM), ← mul_assoc]
      field_simp
      rw [← integral_const_mul]
      apply MeasureTheory.setIntegral_congr_fun measurableSet_Ioo
      intro t ht
      ring
+
   rw[factor_out_constants]
 
-  have : Cζ * CM * (X * X ^ (-A / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (3) (T), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2)
-        ≤ Cζ * CM * ((X : ℝ) * X ^ (-A / Real.log T ^ 9)) * (Cint / ε) := by
+  have : Cζ * CM * (X * X ^ (-B / Real.log T ^ 9)) * ∫ (t : ℝ) in Ioo (3) (T), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2)
+        ≤ Cζ * CM * ((X : ℝ) * X ^ (-B / Real.log T ^ 9)) * (Cint / ε) := by
     apply mul_le_mul_of_nonneg_left
     · exact Bound_of_log_int
-    · have hpos : 0 < X * X ^ (-A / Real.log T ^ 9) := by
+    · have hpos : 0 < X * X ^ (-B / Real.log T ^ 9) := by
         apply mul_pos
         · linarith
         · apply Real.rpow_pos_of_pos
@@ -6114,31 +6144,868 @@ $$
 Same with $I_6$.
 \end{lemma}
 %%-/
-lemma I4Bound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1),
-    ∀ (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    {T : ℝ} (T_gt : 3 < T),
-    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
-    ‖I₄ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
-  sorry
 
-lemma I6Bound {SmoothingF : ℝ → ℝ}
-    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+lemma I4Bound : ∀ {SmoothingF : ℝ → ℝ} (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    : ∃ (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioo 0 (1/2)) (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1),
-    ∀ (X : ℝ) (X_gt : 3 < X) {ε : ℝ} (ε_pos: 0 < ε)
-    (ε_lt_one : ε < 1)
-    {T : ℝ} (T_gt : 3 < T),
-    let σ₁ : ℝ := 1 - A / (Real.log X) ^ 9
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    ∃ (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1) (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)),
+    ∀ (X : ℝ) (X_gt : 3 < X)
+    {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1),
+    ∃ (Tlb : ℝ) (Tlb_gt : 3 < Tlb),
+    ∀ {T : ℝ} (T_gt : Tlb < T),
+    let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
+    ‖I₄ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
+
+  have reOne : re 1 = 1 := by exact rfl
+  have imOne : im 1 = 0 := by exact rfl
+  have reThree : re 3 = 3 := by exact rfl
+  have imThree : im 3 = 0 := by exact rfl
+
+  have elt3 : Real.exp 1 < 3 := by
+    linarith[Real.exp_one_lt_d9]
+
+  intro SmoothingF supportSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
+  unfold I₄ SmoothedChebyshevIntegrand
+  obtain ⟨σ₂', σ₂'_lt_one, holoOn⟩ := LogDerivZetaHolcSmallT
+  let σ₂ : ℝ := max (1 / 2) σ₂'
+  use σ₂
+  have σ₂InIoo: σ₂ ∈ Ioo 0 1 := by
+    unfold σ₂
+    constructor
+    · rw[lt_max_iff]
+      refine Or.inl ?_
+      norm_num
+    · rw[max_lt_iff]
+      exact ⟨by norm_num, by exact σ₂'_lt_one⟩
+  use σ₂InIoo
+
+  let C' : ℝ := sSup ((fun t => ‖ (-ζ' (σ₂ + (t : ℝ) * (1 - σ₂) - 3 * I) / ζ (σ₂ + (t : ℝ) * (1 - σ₂) - 3 * I)) ‖₊ ) '' Set.Icc 0 1)
+  let S : Set ℝ := (fun (t : ℝ) ↦ ↑‖-ζ' (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I) / ζ (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I)‖₊) '' Icc 0 1
+  have sSupS : sSup ((fun (t : ℝ) ↦ ↑‖-ζ' (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I) / ζ (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I)‖₊) '' Icc 0 1) = sSup S := by
+    exact rfl
+  have bddAboveS : BddAbove S := by
+    refine IsCompact.bddAbove ?_
+    unfold S
+    refine IsCompact.image_of_continuousOn ?_ ?_
+    · exact isCompact_Icc
+    · refine ContinuousOn.norm ?_
+      have : (fun (t : ℝ) ↦ -ζ' (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I) / ζ (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I)) =
+        (fun (t : ℝ) ↦ -(ζ' (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I) / ζ (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I))) := by
+        apply funext
+        intro x
+        apply neg_div
+      rw[this]
+      refine ContinuousOn.neg ?_
+      have : (fun (t : ℝ) ↦ ζ' (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I) / ζ (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I)) =
+        ((ζ' / ζ) ∘ (fun (t : ℝ) ↦ (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I))) := by exact rfl
+      rw[this]
+      apply holoOn.continuousOn.comp' (by fun_prop)
+      unfold MapsTo
+      intro x xInIcc
+      simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, mem_diff, mem_singleton_iff]
+      have temp : ↑σ₂ + ↑x * (1 - ↑σ₂) - 3 * I ∈ uIcc σ₂' 2 ×ℂ Icc (-3) 3 := by
+        refine mem_reProdIm.mpr ?_
+        constructor
+        · rw[sub_re, add_re, mul_re, sub_re, sub_im, mul_re, I_re, I_im]
+          repeat rw[ofReal_re]
+          repeat rw[ofReal_im]
+          rw[reOne, imThree]
+          ring_nf
+          unfold uIcc
+          have : min σ₂' 2 = σ₂' := by exact min_eq_left (by linarith)
+          rw[this]
+          have : max σ₂' 2 = 2 := by exact max_eq_right (by linarith)
+          rw[this]
+          constructor
+          · have temp : σ₂' ≤ σ₂ := by
+              unfold σ₂
+              exact le_max_right (1 / 2) σ₂'
+            have : σ₂ ≤ σ₂ - σ₂ * x + x := by
+              nth_rewrite 1 [← add_zero σ₂]
+              rw[sub_add_eq_add_sub, add_sub_assoc]
+              apply add_le_add (by rfl)
+              nth_rewrite 1 [← one_mul x]
+              rw[← sub_mul]
+              refine mul_nonneg ?_ xInIcc.1
+              bound
+            exact le_trans temp this
+          · rw[← one_add_one_eq_two]
+            refine add_le_add ?_ xInIcc.2
+            nth_rewrite 1 [← mul_one σ₂]
+            rw[← mul_sub]
+            nth_rewrite 2 [← mul_one 1]
+            apply mul_le_mul
+            · exact le_of_lt (by exact σ₂InIoo.2)
+            · nth_rewrite 2 [← sub_zero 1]
+              exact sub_le_sub (by rfl) (by exact xInIcc.1)
+            · bound
+              exact xInIcc.2
+            · norm_num
+        · rw[sub_im, add_im, mul_im, mul_im, sub_im, sub_re, I_re, I_im]
+          repeat rw[ofReal_re]
+          repeat rw[ofReal_im]
+          rw[imOne, reOne, imThree, reThree]
+          ring_nf
+          refine left_mem_Icc.mpr ?_
+          norm_num
+      have : ¬↑σ₂ + ↑x * (1 - ↑σ₂) - 3 * I = 1 := by
+        by_contra h
+        rw[Complex.ext_iff, sub_re, add_re, sub_im, add_im] at h
+        repeat rw[mul_im] at h
+        repeat rw[mul_re] at h
+        rw[sub_im, sub_re, reOne, imOne, reThree, imThree, I_im, I_re] at h
+        repeat rw[ofReal_re] at h
+        repeat rw[ofReal_im] at h
+        ring_nf at h
+        obtain ⟨_, ripGoal⟩ := h
+        have : -3 ≠ 0 := by norm_num
+        linarith
+      exact ⟨temp, this⟩
+
+  have CPrimePos : 0 < C' := by
+    unfold C'
+    rw[sSupS, lt_csSup_iff]
+    · sorry
+    · exact bddAboveS
+    · exact Nonempty.of_subtype
+  have CPrimeNonneg : 0 ≤ C' := by exact le_of_lt (by exact CPrimePos)
+  obtain ⟨D, Dpos, MellinSmooth1bBound⟩ := MellinOfSmooth1b ContDiffSmoothingF supportSmoothingF
+  let C : ℝ := C' * D / sInf ((fun t => ‖ σ₂ + (t : ℝ) * (1 - σ₂) - 3 * I ‖₊ ^ 2) '' Set.Icc 0 1)
+  use C
+  have sInfPos : 0 < sInf ((fun (t : ℝ) ↦ ‖↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I‖₊ ^ 2) '' Icc 0 1) := by
+    refine (IsCompact.lt_sInf_iff_of_continuous ?_ ?_ ?_ 0).mpr ?_
+    · exact isCompact_Icc
+    · exact Nonempty.of_subtype
+    · have : (fun (t : ℝ) ↦ ‖↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I‖₊ ^ 2) =
+        (fun (t : ℝ) ↦ ‖↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I‖₊ * ‖↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I‖₊) := by
+        apply funext
+        intro x
+        rw[pow_two]
+      rw[this]
+      have : ContinuousOn (fun (t : ℝ) ↦ ‖↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I‖₊) (Icc 0 1) := by
+        refine ContinuousOn.nnnorm ?_
+        refine ContinuousOn.sub ?_ (by exact continuousOn_const)
+        refine ContinuousOn.add (by exact continuousOn_const) ?_
+        exact ContinuousOn.mul (by exact Complex.continuous_ofReal.continuousOn) (by exact continuousOn_const)
+      exact ContinuousOn.mul (by exact this) (by exact this)
+    · intro x xLoc
+      apply pow_pos
+      have temp : |(↑σ₂ + ↑x * (1 - ↑σ₂) - 3 * I).im| ≤
+        ‖↑σ₂ + ↑x * (1 - ↑σ₂) - 3 * I‖₊ := by apply Complex.abs_im_le_norm
+      rw[sub_im, add_im, mul_im, mul_im, I_re, I_im, sub_im, sub_re] at temp
+      repeat rw[ofReal_re] at temp
+      repeat rw[ofReal_im] at temp
+      rw[reThree, imOne] at temp
+      ring_nf at temp ⊢
+      rw[abs_of_neg, neg_neg] at temp
+      · have : (3 : NNReal) ≤ ‖↑σ₂ - ↑σ₂ * ↑x + (↑x - I * 3)‖₊ := by exact temp
+        positivity
+      · rw[neg_lt_zero]
+        norm_num
+  have Cpos : 0 < C := by
+    unfold C
+    apply mul_pos
+    · exact mul_pos (by exact CPrimePos) (by exact Dpos)
+    · rw[inv_pos]
+      refine NNReal.coe_pos.mpr ?_
+      exact sInfPos
+  use Cpos
+  obtain ⟨A, Abd, _⟩ := LogDerivZetaBndUniform
+  use A
+  use Abd
+
+  intro X X_gt_three ε ε_pos ε_lt_one
+  let Tlb : ℝ := max 4 (max (rexp (A ^ (9 : ℝ)⁻¹)) (rexp ((A / (1 - σ₂')) ^ (9 : ℝ)⁻¹)))
+  use Tlb
+  have : 3 < Tlb := by
+    unfold Tlb
+    rw[lt_max_iff]
+    refine Or.inl ?_
+    norm_num
+  use this
+
+  intro T T_gt_Tlb σ₁
+  have σ₂_le_σ₁ : σ₂ ≤ σ₁ := by
+    have logTlb_pos : 0 < Real.log Tlb := by
+      rw[← Real.log_one]
+      exact log_lt_log (by norm_num) (by linarith)
+    have logTlb_nonneg : 0 ≤ Real.log Tlb := by exact le_of_lt (by exact logTlb_pos)
+    have expr_nonneg : 0 ≤ A / (1 - σ₂') := by
+      apply div_nonneg
+      · exact le_of_lt (by exact Abd.1)
+      · rw[sub_nonneg]
+        exact le_of_lt (by exact σ₂'_lt_one)
+    unfold σ₂ σ₁
+    apply max_le
+    · rw[← sub_half 1]
+      apply sub_le_sub (by rfl)
+      rw[← div_one (1 / 2)]
+      apply div_le_div₀ (by norm_num) (by exact Abd.2) (by norm_num)
+      rw[← one_pow 9, Odd.pow_le_pow]
+      · rw[Real.le_log_iff_exp_le]
+        · linarith
+        · linarith
+      · exact Nat.odd_iff.mpr rfl
+    · have temp : σ₂' ≤ 1 - A / Real.log Tlb ^ 9 := by
+        have : rexp ((A / (1 - σ₂')) ^ (9 : ℝ)⁻¹) ≤ Tlb := by
+          unfold Tlb
+          nth_rewrite 2 [max_comm]
+          rw[max_left_comm]
+          apply le_max_of_le_left (by rfl)
+        rw[← Real.le_log_iff_exp_le] at this
+        · have h1 : 0 ≤ (A / (1 - σ₂')) ^ (9 : ℝ)⁻¹ := by apply Real.rpow_nonneg (by exact expr_nonneg)
+          have h2 : 0 < (9 : ℝ) := by exact Nat.ofNat_pos'
+          rw[← Real.rpow_le_rpow_iff h1 logTlb_nonneg h2] at this
+          have h: ((A / (1 - σ₂')) ^ (9 : ℝ)⁻¹) ^ (9 : ℝ) = A / (1 - σ₂') := by exact rpow_inv_rpow (by exact expr_nonneg) (by exact Ne.symm (OfNat.zero_ne_ofNat 9))
+          rw[h, div_le_iff₀, mul_comm, ← div_le_iff₀] at this
+          · have temp : Real.log Tlb ^ (9 : ℕ) = Real.log Tlb ^ (9 : ℝ) := by exact Eq.symm (rpow_ofNat (Real.log Tlb) 9)
+            rw[temp]
+            linarith
+          · exact rpow_pos_of_pos (by exact logTlb_pos) 9
+          · rw[sub_pos]
+            exact σ₂'_lt_one
+        · positivity
+      have : 1 - A / Real.log Tlb ^ 9 ≤ 1 - A / Real.log T ^ 9 := by
+        apply sub_le_sub (by rfl)
+        apply div_le_div₀
+        · exact le_of_lt (by exact Abd.1)
+        · rfl
+        · apply pow_pos (by exact logTlb_pos)
+        · apply pow_le_pow_left₀ (by exact logTlb_nonneg)
+          apply log_le_log (by positivity)
+          exact le_of_lt (by exact T_gt_Tlb)
+      exact le_trans temp this
+  have minσ₂σ₁ : min σ₂ σ₁ = σ₂ := by exact min_eq_left (by exact σ₂_le_σ₁)
+  have maxσ₂σ₁ : max σ₂ σ₁ = σ₁ := by exact max_eq_right (by exact σ₂_le_σ₁)
+  have σ₁_lt_one : σ₁ < 1 := by
+    rw[← sub_zero 1]
+    unfold σ₁
+    apply sub_lt_sub_left
+    apply div_pos (by exact Abd.1)
+    apply pow_pos
+    rw[← Real.log_one]
+    exact log_lt_log (by norm_num) (by linarith)
+
+  rw[norm_mul, ← one_mul C]
+  have : 1 * C * X * X ^ (-A / Real.log T ^ 9) / ε = 1 * (C * X * X ^ (-A / Real.log T ^ 9) / ε) := by ring
+  rw[this]
+  apply mul_le_mul
+  · rw[norm_div, norm_one]
+    repeat rw[norm_mul]
+    rw[Complex.norm_two, Complex.norm_real, Real.norm_of_nonneg, Complex.norm_I, mul_one]
+    have : 1 / (2 * π) < 1 / 6 := by
+      rw[one_div_lt_one_div]
+      · refine (div_lt_iff₀' ?_).mp ?_
+        norm_num
+        ring_nf
+        refine gt_iff_lt.mpr ?_
+        exact Real.pi_gt_three
+      · positivity
+      · norm_num
+    apply le_of_lt
+    exact lt_trans this (by norm_num)
+    exact pi_nonneg
+  · let f : ℝ → ℂ := fun σ ↦ (-ζ' (↑σ - 3 * I) / ζ (↑σ - 3 * I) * 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑σ - 3 * I) * ↑X ^ (↑σ - 3 * I))
+    have temp : ‖∫ (σ : ℝ) in σ₂..σ₁, -ζ' (↑σ - 3 * I) / ζ (↑σ - 3 * I) * 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑σ - 3 * I) * ↑X ^ (↑σ - 3 * I)‖ ≤
+      C * X * X ^ (-A / Real.log T ^ 9) / ε * |σ₁ - σ₂| := by
+      have : ∀ x ∈ Set.uIoc σ₂ σ₁, ‖f x‖ ≤ C * X * X ^ (-A / Real.log T ^ 9) / ε := by
+        intro x xInIoc
+        let t : ℝ := (x - σ₂) / (1 - σ₂)
+        have tInIcc : t ∈ Icc 0 1 := by
+          unfold t
+          constructor
+          · apply div_nonneg
+            · rw[sub_nonneg]
+              unfold uIoc at xInIoc
+              rw[minσ₂σ₁] at xInIoc
+              exact le_of_lt (by exact xInIoc.1)
+            · rw[sub_nonneg]
+              apply le_of_lt (by exact σ₂InIoo.2)
+          · rw[div_le_one]
+            · refine sub_le_sub ?_ (by rfl)
+              unfold uIoc at xInIoc
+              rw[maxσ₂σ₁] at xInIoc
+              apply le_trans xInIoc.2
+              exact le_of_lt (by exact σ₁_lt_one)
+            · rw[sub_pos]
+              exact σ₂InIoo.2
+        have tExpr : (↑σ₂ + t * (1 - ↑σ₂) - 3 * I) = (↑x - 3 * I) := by
+          unfold t
+          simp only [ofReal_div, ofReal_sub, ofReal_one, sub_left_inj]
+          rw[div_mul_comm, div_self]
+          · simp only [one_mul, add_sub_cancel]
+          · refine sub_ne_zero_of_ne ?_
+            apply Ne.symm
+            rw[Complex.ofReal_ne_one]
+            exact ne_of_lt (by exact σ₂InIoo.2)
+        unfold f
+        simp only [Complex.norm_mul, norm_neg]
+        have : C * X * X ^ (-A / Real.log T ^ 9) / ε =
+          (C / ε) * (X * X ^ (-A / Real.log T ^ 9)) := by ring
+        rw[this]
+        have temp : ‖-ζ' (↑x - 3 * I) / ζ (↑x - 3 * I)‖ * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑x - 3 * I)‖ ≤
+          C / ε := by
+          unfold C
+          rw[div_div]
+          nth_rewrite 2 [div_eq_mul_inv]
+          have temp : ‖-ζ' (↑x - 3 * I) / ζ (↑x - 3 * I)‖ ≤ C' := by
+            unfold C'
+            rw[sSupS]
+            have : ‖-ζ' (↑x - 3 * I) / ζ (↑x - 3 * I)‖ ∈
+              (fun (t : ℝ) ↦ ↑‖-ζ' (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I) / ζ (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I)‖₊) '' Icc 0 1 := by
+              rw[Set.mem_image]
+              use t
+              constructor
+              · exact tInIcc
+              · rw[tExpr]
+                rfl
+            exact le_csSup (by exact bddAboveS) (by exact this)
+          have : ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑x - 3 * I)‖ ≤
+            D * ((sInf ((fun (t : ℝ) ↦ ‖↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I‖₊ ^ 2) '' Icc 0 1)) * ε)⁻¹ := by
+            nth_rewrite 3 [mul_comm]
+            let s : ℂ := x - 3 * I
+            have : 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑x - 3 * I) =
+              𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) s := by exact rfl
+            rw[this]
+            have temp : σ₂ ≤ s.re := by
+              unfold s
+              rw[sub_re, mul_re, I_re, I_im, reThree, imThree, ofReal_re]
+              ring_nf
+              apply le_of_lt
+              unfold uIoc at xInIoc
+              rw[minσ₂σ₁] at xInIoc
+              exact xInIoc.1
+            have : s.re ≤ 2 := by
+              unfold s
+              rw[sub_re, mul_re, I_re, I_im, reThree, imThree, ofReal_re]
+              ring_nf
+              have : x < 1 := by
+                unfold uIoc at xInIoc
+                rw[maxσ₂σ₁] at xInIoc
+                exact lt_of_le_of_lt xInIoc.2 σ₁_lt_one
+              linarith
+            have temp : ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) s‖ ≤ D * (ε * ‖s‖ ^ 2)⁻¹ := by
+              exact MellinSmooth1bBound σ₂ σ₂InIoo.1 s temp this ε ε_pos ε_lt_one
+            have : D * (ε * ‖s‖ ^ 2)⁻¹ ≤ D * (ε * ↑(sInf ((fun (t : ℝ) ↦ ‖↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I‖₊ ^ 2) '' Icc 0 1)))⁻¹ := by
+              refine mul_le_mul (by rfl) ?_ ?_ (by exact le_of_lt (by exact Dpos))
+              · rw[inv_le_inv₀]
+                · apply mul_le_mul (by rfl)
+                  · rw[NNReal.coe_sInf]
+                    apply csInf_le
+                    · apply NNReal.bddBelow_coe
+                    · unfold s
+                      rw[Set.mem_image]
+                      let xNorm : NNReal := ‖x - 3 * I‖₊ ^ 2
+                      use xNorm
+                      constructor
+                      · rw[Set.mem_image]
+                        use t
+                        exact ⟨tInIcc, by rw[tExpr]⟩
+                      · rfl
+                  · exact le_of_lt (by exact sInfPos)
+                  · exact le_of_lt (by exact ε_pos)
+                · apply mul_pos (ε_pos)
+                  refine sq_pos_of_pos ?_
+                  refine norm_pos_iff.mpr ?_
+                  refine ne_zero_of_re_pos ?_
+                  unfold s
+                  rw[sub_re, mul_re, I_re, I_im, reThree, imThree, ofReal_re]
+                  ring_nf
+                  unfold uIoc at xInIoc
+                  rw[minσ₂σ₁] at xInIoc
+                  exact lt_trans σ₂InIoo.1 xInIoc.1
+                · exact mul_pos (ε_pos) (sInfPos)
+              · rw[inv_nonneg]
+                apply mul_nonneg (by exact le_of_lt (by exact ε_pos))
+                exact sq_nonneg ‖s‖
+            exact le_trans temp this
+          rw[mul_assoc]
+          apply mul_le_mul (by exact temp) (by exact this)
+          · have this : 0 ≤ |(𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑x - 3 * I)).re| := by
+              apply abs_nonneg
+            exact le_trans this (by refine Complex.abs_re_le_norm ?_)
+          · exact CPrimeNonneg
+        have : ‖(X : ℂ) ^ (↑x - 3 * I)‖ ≤
+          X * X ^ (-A / Real.log T ^ 9) := by
+          nth_rewrite 2 [← Real.rpow_one X]
+          rw[← Real.rpow_add]
+          · rw[Complex.norm_cpow_of_ne_zero]
+            · rw[sub_re, sub_im, mul_re, mul_im, ofReal_re, ofReal_im, I_re, I_im, reThree, imThree]
+              ring_nf
+              rw[Complex.norm_of_nonneg]
+              · rw[Complex.arg_ofReal_of_nonneg]
+                · rw[zero_mul, neg_zero, Real.exp_zero]
+                  simp only [inv_one, mul_one, inv_pow, ge_iff_le]
+                  refine rpow_le_rpow_of_exponent_le ?_ ?_
+                  · linarith
+                  · unfold uIoc at xInIoc
+                    rw[maxσ₂σ₁] at xInIoc
+                    unfold σ₁ at xInIoc
+                    ring_nf at xInIoc ⊢
+                    exact xInIoc.2
+                · positivity
+              · positivity
+            · refine ne_zero_of_re_pos ?_
+              rw[ofReal_re]
+              positivity
+          · positivity
+        apply mul_le_mul
+        · exact temp
+        · exact this
+        · rw[Complex.norm_cpow_eq_rpow_re_of_pos]
+          · rw[sub_re, mul_re, ofReal_re, I_re, I_im, reThree, imThree]
+            ring_nf
+            apply Real.rpow_nonneg
+            positivity
+          · positivity
+        · exact div_nonneg (by exact le_of_lt Cpos) (by exact le_of_lt ε_pos)
+      exact intervalIntegral.norm_integral_le_of_norm_le_const this
+    have : C * X * X ^ (-A / Real.log T ^ 9) / ε * |σ₁ - σ₂| ≤
+      C * X * X ^ (-A / Real.log T ^ 9) / ε := by
+      bound
+      · positivity
+      · positivity
+      · rw[abs_of_nonneg]
+        · rw[← sub_zero 1]
+          apply sub_le_sub
+          · exact le_of_lt (by exact σ₁_lt_one)
+          · exact le_of_lt (by exact σ₂InIoo.1)
+        · linarith
+    exact le_trans temp this
+  simp only [norm_nonneg]
+  norm_num
+
+lemma I6Bound : ∀ {SmoothingF : ℝ → ℝ} (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF),
+    ∃ (σ₂ : ℝ) (_ : σ₂ ∈ Ioo 0 1) (C : ℝ) (_ : 0 < C) (A : ℝ) (_ : A ∈ Ioc 0 (1/2)),
+    ∀ (X : ℝ) (X_gt : 3 < X)
+    {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1),
+    ∃ (Tlb : ℝ) (Tlb_gt : 3 < Tlb),
+    ∀ {T : ℝ} (T_gt : Tlb < T),
+    let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
     ‖I₆ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
-  sorry
+
+  have reOne : re 1 = 1 := by exact rfl
+  have imOne : im 1 = 0 := by exact rfl
+  have reThree : re 3 = 3 := by exact rfl
+  have imThree : im 3 = 0 := by exact rfl
+
+  have elt3 : Real.exp 1 < 3 := by
+    linarith[Real.exp_one_lt_d9]
+
+  intro SmoothingF supportSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
+  unfold I₆ SmoothedChebyshevIntegrand
+  obtain ⟨σ₂', σ₂'_lt_one, holoOn⟩ := LogDerivZetaHolcSmallT
+  let σ₂ : ℝ := max (1 / 2) σ₂'
+  use σ₂
+  have σ₂InIoo: σ₂ ∈ Ioo 0 1 := by
+    unfold σ₂
+    constructor
+    · rw[lt_max_iff]
+      refine Or.inl ?_
+      norm_num
+    · rw[max_lt_iff]
+      exact ⟨by norm_num, by exact σ₂'_lt_one⟩
+  use σ₂InIoo
+
+  let C' : ℝ := sSup ((fun t => ‖ (-ζ' (σ₂ + (t : ℝ) * (1 - σ₂) + 3 * I) / ζ (σ₂ + (t : ℝ) * (1 - σ₂) + 3 * I)) ‖₊ ) '' Set.Icc 0 1)
+  let S : Set ℝ := (fun (t : ℝ) ↦ ↑‖-ζ' (↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I) / ζ (↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I)‖₊) '' Icc 0 1
+  have sSupS : sSup ((fun (t : ℝ) ↦ ↑‖-ζ' (↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I) / ζ (↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I)‖₊) '' Icc 0 1) = sSup S := by
+    exact rfl
+  have bddAboveS : BddAbove S := by
+    refine IsCompact.bddAbove ?_
+    unfold S
+    refine IsCompact.image_of_continuousOn ?_ ?_
+    · exact isCompact_Icc
+    · refine ContinuousOn.norm ?_
+      have : (fun (t : ℝ) ↦ -ζ' (↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I) / ζ (↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I)) =
+        (fun (t : ℝ) ↦ -(ζ' (↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I) / ζ (↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I))) := by
+        apply funext
+        intro x
+        apply neg_div
+      rw[this]
+      refine ContinuousOn.neg ?_
+      have : (fun (t : ℝ) ↦ ζ' (↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I) / ζ (↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I)) =
+        ((ζ' / ζ) ∘ (fun (t : ℝ) ↦ (↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I))) := by exact rfl
+      rw[this]
+      apply holoOn.continuousOn.comp' (by fun_prop)
+      unfold MapsTo
+      intro x xInIcc
+      simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, mem_diff, mem_singleton_iff]
+      have temp : ↑σ₂ + ↑x * (1 - ↑σ₂) + 3 * I ∈ uIcc σ₂' 2 ×ℂ Icc (-3) 3 := by
+        refine mem_reProdIm.mpr ?_
+        constructor
+        · rw[add_re, add_re, mul_re, sub_re, sub_im, mul_re, I_re, I_im]
+          repeat rw[ofReal_re]
+          repeat rw[ofReal_im]
+          rw[reOne, imThree]
+          ring_nf
+          unfold uIcc
+          have : min σ₂' 2 = σ₂' := by exact min_eq_left (by linarith)
+          rw[this]
+          have : max σ₂' 2 = 2 := by exact max_eq_right (by linarith)
+          rw[this]
+          constructor
+          · have temp : σ₂' ≤ σ₂ := by
+              unfold σ₂
+              exact le_max_right (1 / 2) σ₂'
+            have : σ₂ ≤ σ₂ - σ₂ * x + x := by
+              nth_rewrite 1 [← add_zero σ₂]
+              rw[sub_add_eq_add_sub, add_sub_assoc]
+              apply add_le_add (by rfl)
+              nth_rewrite 1 [← one_mul x]
+              rw[← sub_mul]
+              refine mul_nonneg ?_ xInIcc.1
+              bound
+            exact le_trans temp this
+          · rw[← one_add_one_eq_two]
+            refine add_le_add ?_ xInIcc.2
+            nth_rewrite 1 [← mul_one σ₂]
+            rw[← mul_sub]
+            nth_rewrite 2 [← mul_one 1]
+            apply mul_le_mul
+            · exact le_of_lt (by exact σ₂InIoo.2)
+            · nth_rewrite 2 [← sub_zero 1]
+              exact sub_le_sub (by rfl) (by exact xInIcc.1)
+            · bound
+              exact xInIcc.2
+            · norm_num
+        · rw[add_im, add_im, mul_im, mul_im, sub_im, sub_re, I_re, I_im]
+          repeat rw[ofReal_re]
+          repeat rw[ofReal_im]
+          rw[imOne, reOne, imThree, reThree]
+          ring_nf
+          refine right_mem_Icc.mpr ?_
+          norm_num
+      have : ¬↑σ₂ + ↑x * (1 - ↑σ₂) + 3 * I = 1 := by
+        by_contra h
+        rw[Complex.ext_iff, add_re, add_re, add_im, add_im] at h
+        repeat rw[mul_im] at h
+        repeat rw[mul_re] at h
+        rw[sub_im, sub_re, reOne, imOne, reThree, imThree, I_im, I_re] at h
+        repeat rw[ofReal_re] at h
+        repeat rw[ofReal_im] at h
+        ring_nf at h
+        obtain ⟨_, ripGoal⟩ := h
+        have : -3 ≠ 0 := by norm_num
+        linarith
+      exact ⟨temp, this⟩
+
+  have CPrimePos : 0 < C' := by
+    unfold C'
+    rw[sSupS, lt_csSup_iff]
+    · sorry
+    · exact bddAboveS
+    · exact Nonempty.of_subtype
+  have CPrimeNonneg : 0 ≤ C' := by exact le_of_lt (by exact CPrimePos)
+  obtain ⟨D, Dpos, MellinSmooth1bBound⟩ := MellinOfSmooth1b ContDiffSmoothingF supportSmoothingF
+  let C : ℝ := C' * D / sInf ((fun t => ‖ σ₂ + (t : ℝ) * (1 - σ₂) + 3 * I ‖₊ ^ 2) '' Set.Icc 0 1)
+  use C
+  have sInfPos : 0 < sInf ((fun (t : ℝ) ↦ ‖↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I‖₊ ^ 2) '' Icc 0 1) := by
+    refine (IsCompact.lt_sInf_iff_of_continuous ?_ ?_ ?_ 0).mpr ?_
+    · exact isCompact_Icc
+    · exact Nonempty.of_subtype
+    · have : (fun (t : ℝ) ↦ ‖↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I‖₊ ^ 2) =
+        (fun (t : ℝ) ↦ ‖↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I‖₊ * ‖↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I‖₊) := by
+        apply funext
+        intro x
+        rw[pow_two]
+      rw[this]
+      have : ContinuousOn (fun (t : ℝ) ↦ ‖↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I‖₊) (Icc 0 1) := by
+        refine ContinuousOn.nnnorm ?_
+        refine ContinuousOn.add ?_ (by exact continuousOn_const)
+        refine ContinuousOn.add (by exact continuousOn_const) ?_
+        exact ContinuousOn.mul (by exact Complex.continuous_ofReal.continuousOn) (by exact continuousOn_const)
+      exact ContinuousOn.mul (by exact this) (by exact this)
+    · intro x xLoc
+      apply pow_pos
+      have temp : |(↑σ₂ + ↑x * (1 - ↑σ₂) + 3 * I).im| ≤
+        ‖↑σ₂ + ↑x * (1 - ↑σ₂) + 3 * I‖₊ := by apply Complex.abs_im_le_norm
+      rw[add_im, add_im, mul_im, mul_im, I_re, I_im, sub_im, sub_re] at temp
+      repeat rw[ofReal_re] at temp
+      repeat rw[ofReal_im] at temp
+      rw[reThree, imOne] at temp
+      ring_nf at temp ⊢
+      rw[abs_of_pos] at temp
+      · have : (3 : NNReal) ≤ ‖↑σ₂ - ↑σ₂ * ↑x + ↑x + I * 3‖₊ := by exact temp
+        positivity
+      · norm_num
+  have Cpos : 0 < C := by
+    unfold C
+    apply mul_pos
+    · exact mul_pos (by exact CPrimePos) (by exact Dpos)
+    · rw[inv_pos]
+      refine NNReal.coe_pos.mpr ?_
+      exact sInfPos
+  use Cpos
+  obtain ⟨A, Abd, _⟩ := LogDerivZetaBndUniform
+  use A
+  use Abd
+
+  intro X X_gt_three ε ε_pos ε_lt_one
+  let Tlb : ℝ := max 4 (max (rexp (A ^ (9 : ℝ)⁻¹)) (rexp ((A / (1 - σ₂')) ^ (9 : ℝ)⁻¹)))
+  use Tlb
+  have : 3 < Tlb := by
+    unfold Tlb
+    rw[lt_max_iff]
+    refine Or.inl ?_
+    norm_num
+  use this
+
+  intro T T_gt_Tlb σ₁
+  have σ₂_le_σ₁ : σ₂ ≤ σ₁ := by
+    have logTlb_pos : 0 < Real.log Tlb := by
+      rw[← Real.log_one]
+      exact log_lt_log (by norm_num) (by linarith)
+    have logTlb_nonneg : 0 ≤ Real.log Tlb := by exact le_of_lt (by exact logTlb_pos)
+    have expr_nonneg : 0 ≤ A / (1 - σ₂') := by
+      apply div_nonneg
+      · exact le_of_lt (by exact Abd.1)
+      · rw[sub_nonneg]
+        exact le_of_lt (by exact σ₂'_lt_one)
+    unfold σ₂ σ₁
+    apply max_le
+    · rw[← sub_half 1]
+      apply sub_le_sub (by rfl)
+      rw[← div_one (1 / 2)]
+      apply div_le_div₀ (by norm_num) (by exact Abd.2) (by norm_num)
+      rw[← one_pow 9, Odd.pow_le_pow]
+      · rw[Real.le_log_iff_exp_le]
+        · linarith
+        · linarith
+      · exact Nat.odd_iff.mpr rfl
+    · have temp : σ₂' ≤ 1 - A / Real.log Tlb ^ 9 := by
+        have : rexp ((A / (1 - σ₂')) ^ (9 : ℝ)⁻¹) ≤ Tlb := by
+          unfold Tlb
+          nth_rewrite 2 [max_comm]
+          rw[max_left_comm]
+          apply le_max_of_le_left (by rfl)
+        rw[← Real.le_log_iff_exp_le] at this
+        · have h1 : 0 ≤ (A / (1 - σ₂')) ^ (9 : ℝ)⁻¹ := by apply Real.rpow_nonneg (by exact expr_nonneg)
+          have h2 : 0 < (9 : ℝ) := by exact Nat.ofNat_pos'
+          rw[← Real.rpow_le_rpow_iff h1 logTlb_nonneg h2] at this
+          have h: ((A / (1 - σ₂')) ^ (9 : ℝ)⁻¹) ^ (9 : ℝ) = A / (1 - σ₂') := by exact rpow_inv_rpow (by exact expr_nonneg) (by exact Ne.symm (OfNat.zero_ne_ofNat 9))
+          rw[h, div_le_iff₀, mul_comm, ← div_le_iff₀] at this
+          · have temp : Real.log Tlb ^ (9 : ℕ) = Real.log Tlb ^ (9 : ℝ) := by exact Eq.symm (rpow_ofNat (Real.log Tlb) 9)
+            rw[temp]
+            linarith
+          · exact rpow_pos_of_pos (by exact logTlb_pos) 9
+          · rw[sub_pos]
+            exact σ₂'_lt_one
+        · positivity
+      have : 1 - A / Real.log Tlb ^ 9 ≤ 1 - A / Real.log T ^ 9 := by
+        apply sub_le_sub (by rfl)
+        apply div_le_div₀
+        · exact le_of_lt (by exact Abd.1)
+        · rfl
+        · apply pow_pos (by exact logTlb_pos)
+        · apply pow_le_pow_left₀ (by exact logTlb_nonneg)
+          apply log_le_log (by positivity)
+          exact le_of_lt (by exact T_gt_Tlb)
+      exact le_trans temp this
+  have minσ₂σ₁ : min σ₂ σ₁ = σ₂ := by exact min_eq_left (by exact σ₂_le_σ₁)
+  have maxσ₂σ₁ : max σ₂ σ₁ = σ₁ := by exact max_eq_right (by exact σ₂_le_σ₁)
+  have σ₁_lt_one : σ₁ < 1 := by
+    rw[← sub_zero 1]
+    unfold σ₁
+    apply sub_lt_sub_left
+    apply div_pos (by exact Abd.1)
+    apply pow_pos
+    rw[← Real.log_one]
+    exact log_lt_log (by norm_num) (by linarith)
+
+  rw[norm_mul, ← one_mul C]
+  have : 1 * C * X * X ^ (-A / Real.log T ^ 9) / ε = 1 * (C * X * X ^ (-A / Real.log T ^ 9) / ε) := by ring
+  rw[this]
+  apply mul_le_mul
+  · rw[norm_div, norm_one]
+    repeat rw[norm_mul]
+    rw[Complex.norm_two, Complex.norm_real, Real.norm_of_nonneg, Complex.norm_I, mul_one]
+    have : 1 / (2 * π) < 1 / 6 := by
+      rw[one_div_lt_one_div]
+      · refine (div_lt_iff₀' ?_).mp ?_
+        norm_num
+        ring_nf
+        refine gt_iff_lt.mpr ?_
+        exact Real.pi_gt_three
+      · positivity
+      · norm_num
+    apply le_of_lt
+    exact lt_trans this (by norm_num)
+    exact pi_nonneg
+  · let f : ℝ → ℂ := fun σ ↦ (-ζ' (↑σ + 3 * I) / ζ (↑σ + 3 * I) * 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑σ + 3 * I) * ↑X ^ (↑σ + 3 * I))
+    have temp : ‖∫ (σ : ℝ) in σ₂..σ₁, -ζ' (↑σ + 3 * I) / ζ (↑σ + 3 * I) * 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑σ + 3 * I) * ↑X ^ (↑σ + 3 * I)‖ ≤
+      C * X * X ^ (-A / Real.log T ^ 9) / ε * |σ₁ - σ₂| := by
+      have : ∀ x ∈ Set.uIoc σ₂ σ₁, ‖f x‖ ≤ C * X * X ^ (-A / Real.log T ^ 9) / ε := by
+        intro x xInIoc
+        let t : ℝ := (x - σ₂) / (1 - σ₂)
+        have tInIcc : t ∈ Icc 0 1 := by
+          unfold t
+          constructor
+          · apply div_nonneg
+            · rw[sub_nonneg]
+              unfold uIoc at xInIoc
+              rw[minσ₂σ₁] at xInIoc
+              exact le_of_lt (by exact xInIoc.1)
+            · rw[sub_nonneg]
+              apply le_of_lt (by exact σ₂InIoo.2)
+          · rw[div_le_one]
+            · refine sub_le_sub ?_ (by rfl)
+              unfold uIoc at xInIoc
+              rw[maxσ₂σ₁] at xInIoc
+              apply le_trans xInIoc.2
+              exact le_of_lt (by exact σ₁_lt_one)
+            · rw[sub_pos]
+              exact σ₂InIoo.2
+        have tExpr : (↑σ₂ + t * (1 - ↑σ₂) + 3 * I) = (↑x + 3 * I) := by
+          unfold t
+          simp only [ofReal_div, ofReal_sub, ofReal_one, sub_left_inj]
+          rw[div_mul_comm, div_self]
+          · simp only [one_mul, add_sub_cancel]
+          · refine sub_ne_zero_of_ne ?_
+            apply Ne.symm
+            rw[Complex.ofReal_ne_one]
+            exact ne_of_lt (by exact σ₂InIoo.2)
+        unfold f
+        simp only [Complex.norm_mul, norm_neg]
+        have : C * X * X ^ (-A / Real.log T ^ 9) / ε =
+          (C / ε) * (X * X ^ (-A / Real.log T ^ 9)) := by ring
+        rw[this]
+        have temp : ‖-ζ' (↑x + 3 * I) / ζ (↑x + 3 * I)‖ * ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑x + 3 * I)‖ ≤
+          C / ε := by
+          unfold C
+          rw[div_div]
+          nth_rewrite 2 [div_eq_mul_inv]
+          have temp : ‖-ζ' (↑x + 3 * I) / ζ (↑x + 3 * I)‖ ≤ C' := by
+            unfold C'
+            rw[sSupS]
+            have : ‖-ζ' (↑x + 3 * I) / ζ (↑x + 3 * I)‖ ∈
+              (fun (t : ℝ) ↦ ↑‖-ζ' (↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I) / ζ (↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I)‖₊) '' Icc 0 1 := by
+              rw[Set.mem_image]
+              use t
+              constructor
+              · exact tInIcc
+              · rw[tExpr]
+                rfl
+            exact le_csSup (by exact bddAboveS) (by exact this)
+          have : ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑x + 3 * I)‖ ≤
+            D * ((sInf ((fun (t : ℝ) ↦ ‖↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I‖₊ ^ 2) '' Icc 0 1)) * ε)⁻¹ := by
+            nth_rewrite 3 [mul_comm]
+            let s : ℂ := x + 3 * I
+            have : 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑x + 3 * I) =
+              𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) s := by exact rfl
+            rw[this]
+            have temp : σ₂ ≤ s.re := by
+              unfold s
+              rw[add_re, mul_re, I_re, I_im, reThree, imThree, ofReal_re]
+              ring_nf
+              apply le_of_lt
+              unfold uIoc at xInIoc
+              rw[minσ₂σ₁] at xInIoc
+              exact xInIoc.1
+            have : s.re ≤ 2 := by
+              unfold s
+              rw[add_re, mul_re, I_re, I_im, reThree, imThree, ofReal_re]
+              ring_nf
+              have : x < 1 := by
+                unfold uIoc at xInIoc
+                rw[maxσ₂σ₁] at xInIoc
+                exact lt_of_le_of_lt xInIoc.2 σ₁_lt_one
+              linarith
+            have temp : ‖𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) s‖ ≤ D * (ε * ‖s‖ ^ 2)⁻¹ := by
+              exact MellinSmooth1bBound σ₂ σ₂InIoo.1 s temp this ε ε_pos ε_lt_one
+            have : D * (ε * ‖s‖ ^ 2)⁻¹ ≤ D * (ε * ↑(sInf ((fun (t : ℝ) ↦ ‖↑σ₂ + ↑t * (1 - ↑σ₂) + 3 * I‖₊ ^ 2) '' Icc 0 1)))⁻¹ := by
+              refine mul_le_mul (by rfl) ?_ ?_ (by exact le_of_lt (by exact Dpos))
+              · rw[inv_le_inv₀]
+                · apply mul_le_mul (by rfl)
+                  · rw[NNReal.coe_sInf]
+                    apply csInf_le
+                    · apply NNReal.bddBelow_coe
+                    · unfold s
+                      rw[Set.mem_image]
+                      let xNorm : NNReal := ‖x + 3 * I‖₊ ^ 2
+                      use xNorm
+                      constructor
+                      · rw[Set.mem_image]
+                        use t
+                        exact ⟨tInIcc, by rw[tExpr]⟩
+                      · rfl
+                  · exact le_of_lt (by exact sInfPos)
+                  · exact le_of_lt (by exact ε_pos)
+                · apply mul_pos (ε_pos)
+                  refine sq_pos_of_pos ?_
+                  refine norm_pos_iff.mpr ?_
+                  refine ne_zero_of_re_pos ?_
+                  unfold s
+                  rw[add_re, mul_re, I_re, I_im, reThree, imThree, ofReal_re]
+                  ring_nf
+                  unfold uIoc at xInIoc
+                  rw[minσ₂σ₁] at xInIoc
+                  exact lt_trans σ₂InIoo.1 xInIoc.1
+                · exact mul_pos (ε_pos) (sInfPos)
+              · rw[inv_nonneg]
+                apply mul_nonneg (by exact le_of_lt (by exact ε_pos))
+                exact sq_nonneg ‖s‖
+            exact le_trans temp this
+          rw[mul_assoc]
+          apply mul_le_mul (by exact temp) (by exact this)
+          · have this : 0 ≤ |(𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑x + 3 * I)).re| := by
+              apply abs_nonneg
+            exact le_trans this (by refine Complex.abs_re_le_norm ?_)
+          · exact CPrimeNonneg
+        have : ‖(X : ℂ) ^ (↑x + 3 * I)‖ ≤
+          X * X ^ (-A / Real.log T ^ 9) := by
+          nth_rewrite 2 [← Real.rpow_one X]
+          rw[← Real.rpow_add]
+          · rw[Complex.norm_cpow_of_ne_zero]
+            · rw[add_re, add_im, mul_re, mul_im, ofReal_re, ofReal_im, I_re, I_im, reThree, imThree]
+              ring_nf
+              rw[Complex.norm_of_nonneg]
+              · rw[Complex.arg_ofReal_of_nonneg]
+                · rw[zero_mul, Real.exp_zero]
+                  simp only [inv_one, mul_one, inv_pow, ge_iff_le]
+                  refine rpow_le_rpow_of_exponent_le ?_ ?_
+                  · linarith
+                  · unfold uIoc at xInIoc
+                    rw[maxσ₂σ₁] at xInIoc
+                    unfold σ₁ at xInIoc
+                    ring_nf at xInIoc ⊢
+                    exact xInIoc.2
+                · positivity
+              · positivity
+            · refine ne_zero_of_re_pos ?_
+              rw[ofReal_re]
+              positivity
+          · positivity
+        apply mul_le_mul
+        · exact temp
+        · exact this
+        · rw[Complex.norm_cpow_eq_rpow_re_of_pos]
+          · rw[add_re, mul_re, ofReal_re, I_re, I_im, reThree, imThree]
+            ring_nf
+            apply Real.rpow_nonneg
+            positivity
+          · positivity
+        · exact div_nonneg (by exact le_of_lt Cpos) (by exact le_of_lt ε_pos)
+      exact intervalIntegral.norm_integral_le_of_norm_le_const this
+    have : C * X * X ^ (-A / Real.log T ^ 9) / ε * |σ₁ - σ₂| ≤
+      C * X * X ^ (-A / Real.log T ^ 9) / ε := by
+      bound
+      · positivity
+      · positivity
+      · rw[abs_of_nonneg]
+        · rw[← sub_zero 1]
+          apply sub_le_sub
+          · exact le_of_lt (by exact σ₁_lt_one)
+          · exact le_of_lt (by exact σ₂InIoo.1)
+        · linarith
+    exact le_trans temp this
+  simp only [norm_nonneg]
+  norm_num
+
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndAlt, I4, I6}
 The analysis of $I_4$ is similar to that of $I_2$, (in Lemma \ref{I2Bound}) but even easier.
@@ -6333,6 +7200,7 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
   simp only [← S, ge_iff_le]
   linear_combination (|π|⁻¹ * 2⁻¹ * Z)
 
+  sorry
 
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaHolcSmallT, I5}\leanok
