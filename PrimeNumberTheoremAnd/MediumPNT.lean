@@ -6445,7 +6445,13 @@ theorem MediumPNT : ∃ c > 0,
   let T : ℝ := Tx X
   specialize holo1 T T_gt_3.le
   let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
-  have σ₁pos : 0 < σ₁ := by sorry
+  have σ₁pos : 0 < σ₁ := by calc
+    1 - A / (Real.log T)^9 >= 1 - (1/2) / 1 ^ 9:= by
+      gcongr
+      · exact A_in_Ioc.2
+      · apply (Real.le_log_iff_exp_le (by positivity)).mpr
+        linarith[Real.exp_one_lt_d9]
+    _ > 0 := by norm_num
   have σ₁_lt_one : σ₁ < 1 := by
     apply sub_lt_self
     apply div_pos A_in_Ioc.1
