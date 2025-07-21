@@ -7198,8 +7198,6 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
   simp only [← S, ge_iff_le]
   linear_combination (|π|⁻¹ * 2⁻¹ * Z)
 
-  sorry
-
 /-%%
 \begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaHolcSmallT, I5}\leanok
 Here $\zeta'/\zeta$ is absolutely bounded on the compact interval $\sigma_2 + i [-3,3]$, and
