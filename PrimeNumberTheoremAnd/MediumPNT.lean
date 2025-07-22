@@ -6908,7 +6908,7 @@ lemma I6Bound {SmoothingF : ℝ → ℝ}
   norm_num
 
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndAlt, I4, I6}
+\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndAlt, I4, I6}\leanok
 The analysis of $I_4$ is similar to that of $I_2$, (in Lemma \ref{I2Bound}) but even easier.
 Let $C$ be the sup of $-\zeta'/\zeta$ on the curve $\sigma_2 + 3 i$ to $1+ 3i$ (this curve is compact, and away from the pole at $s=1$).
 Apply Theorem \ref{MellinOfSmooth1b} to get the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
