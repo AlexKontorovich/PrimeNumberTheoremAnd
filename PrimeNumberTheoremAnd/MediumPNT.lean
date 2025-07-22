@@ -7171,6 +7171,7 @@ theorem MediumPNT : ∃ c > 0,
   clear ContDiffν ν_nonneg'  ν_massOne'
   obtain ⟨c_close, c_close_pos, h_close⟩ :=
     SmoothedChebyshevClose ContDiff1ν ν_supp ν_nonneg ν_massOne
+  obtain ⟨ε_main, C_main, ε_main_pos, C_main_pos, h_main⟩  := MellinOfSmooth1cExplicit ContDiff1ν ν_supp ν_massOne
   obtain ⟨A, C_bnd, C_bnd_pos, A_in_Ioc, zeta_bnd, holo1⟩ := LogDerivZetaBoundedAndHolo
   obtain ⟨σ₂', σ₂'_lt_one, holo2'⟩ := LogDerivZetaHolcSmallT
   let σ₂ : ℝ := max σ₂' (1 / 2)
@@ -7234,11 +7235,12 @@ theorem MediumPNT : ∃ c > 0,
   have eventually_T_gt_Tlb₆ : ∀ᶠ (x : ℝ) in atTop, Tlb₆ < Tx x := by sorry
 
   have eventually_σ₂_lt_σ₁ : ∀ᶠ (x : ℝ) in atTop, σ₂ < 1 - A / (Real.log (Tx x)) ^ 9 := by sorry
+  have eventually_ε_lt_ε_main : ∀ᶠ (x : ℝ) in atTop, εx x < ε_main := by sorry
 
   filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt,
     eventually_T_gt_3, eventually_T_gt_Tlb₄, eventually_T_gt_Tlb₆,
-      eventually_σ₂_lt_σ₁] with X X_gt_3 ε_lt_one ε_X T_gt_3 T_gt_Tlb₄ T_gt_Tlb₆
-      σ₂_lt_σ₁
+      eventually_σ₂_lt_σ₁, eventually_ε_lt_ε_main] with X X_gt_3 ε_lt_one ε_X T_gt_3 T_gt_Tlb₄ T_gt_Tlb₆
+      σ₂_lt_σ₁ ε_lt_ε_main
   let ε : ℝ := εx X
   have ε_pos : 0 < ε := by positivity
   specialize h_close X X_gt_3 ε ε_pos ε_lt_one ε_X
@@ -7290,10 +7292,13 @@ theorem MediumPNT : ∃ c > 0,
     apply le_trans (by apply norm_add_le)
     rw [(by ring : ‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖ + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖ = (‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖) + (‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖))]
     gcongr <;> apply le_trans (by apply norm_sub_le) <;> rfl
-  have : ∃ C_main > 0, ‖𝓜 ((Smooth1 ν ε) ·) 1 * X - X‖ ≤ C_main * ε * X := by sorry
-
-  obtain ⟨C_main, C_main_pos, main_diff⟩ := this
-
+  specialize h_main ε ⟨ε_pos, ε_lt_ε_main⟩
+  have main : ‖𝓜 ((Smooth1 ν ε) ·) 1 * X - X‖ ≤ C_main * ε * X := by
+    nth_rewrite 2 [← one_mul X]
+    push_cast
+    rw [← sub_mul, norm_mul]
+    gcongr
+    rw [norm_real, norm_of_nonneg (by linarith)]
   specialize hc₁ ε ε_pos ε_lt_one X X_gt_3 T_gt_3
   specialize hc₂ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₃ X X_gt_3 ε_pos ε_lt_one T_gt_3
