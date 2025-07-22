@@ -6145,16 +6145,16 @@ Same with $I_6$.
 
 lemma I4Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    --(SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    --(mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {σ₂ : ℝ} (h_logDeriv_holo : LogDerivZetaIsHoloSmall σ₂) (hσ₂ : σ₂ ∈ Ioo 0 1)
-    {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2)) :
-    ∃ (C : ℝ) (_ : 0 ≤ C),
-    ∀ (X : ℝ) (X_gt : 3 < X)
-    {ε : ℝ} (_ : 0 < ε) (_ : ε < 1),
-    ∃ (Tlb : ℝ) (Tlb_gt : 3 < Tlb),
-    ∀ {T : ℝ} (T_gt : Tlb < T),
+    {A : ℝ} --{Cζ : ℝ} --(hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ)
+    (hA : A ∈ Ioc 0 (1 / 2)) :
+    ∃ (C : ℝ) (_ : 0 ≤ C) (Tlb : ℝ) (_ : 3 < Tlb),
+    ∀ (X : ℝ) (_ : 3 < X)
+    {ε : ℝ} (_ : 0 < ε) (_ : ε < 1)
+    {T : ℝ} (_ : Tlb < T),
     let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
     ‖I₄ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
 
@@ -6276,15 +6276,17 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
       norm_cast
   use CNonneg
 
-  intro X X_gt_three ε ε_pos ε_lt_one
   let Tlb : ℝ := max 4 (max (rexp (A ^ (9 : ℝ)⁻¹)) (rexp ((A / (1 - σ₂)) ^ (9 : ℝ)⁻¹)))
   use Tlb
+
   have : 3 < Tlb := by
     unfold Tlb
     rw[lt_max_iff]
     refine Or.inl ?_
     norm_num
   use this
+
+  intro X X_gt_three ε ε_pos ε_lt_one
 
   intro T T_gt_Tlb σ₁
   have σ₂_le_σ₁ : σ₂ ≤ σ₁ := by
@@ -6525,16 +6527,16 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
 
 lemma I6Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    --(SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    --(mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {σ₂ : ℝ} (h_logDeriv_holo : LogDerivZetaIsHoloSmall σ₂) (hσ₂ : σ₂ ∈ Ioo 0 1)
-    {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2)) :
-    ∃ (C : ℝ) (_ : 0 ≤ C),
-    ∀ (X : ℝ) (X_gt : 3 < X)
-    {ε : ℝ} (_ : 0 < ε) (_ : ε < 1),
-    ∃ (Tlb : ℝ) (Tlb_gt : 3 < Tlb),
-    ∀ {T : ℝ} (T_gt : Tlb < T),
+    {A : ℝ} --{A Cζ : ℝ} (hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ)
+    (hA : A ∈ Ioc 0 (1 / 2)) :
+    ∃ (C : ℝ) (_ : 0 ≤ C) (Tlb : ℝ) (_ : 3 < Tlb),
+    ∀ (X : ℝ) (_ : 3 < X)
+    {ε : ℝ} (_ : 0 < ε) (_ : ε < 1)
+    {T : ℝ} (_ : Tlb < T),
     let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
     ‖I₆ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
 
@@ -6657,7 +6659,6 @@ lemma I6Bound {SmoothingF : ℝ → ℝ}
       norm_cast
   use CNonneg
 
-  intro X X_gt_three ε ε_pos ε_lt_one
   let Tlb : ℝ := max 4 (max (rexp (A ^ (9 : ℝ)⁻¹)) (rexp ((A / (1 - σ₂)) ^ (9 : ℝ)⁻¹)))
   use Tlb
   have : 3 < Tlb := by
@@ -6666,6 +6667,8 @@ lemma I6Bound {SmoothingF : ℝ → ℝ}
     refine Or.inl ?_
     norm_num
   use this
+
+  intro X X_gt_three ε ε_pos ε_lt_one
 
   intro T T_gt_Tlb σ₁
   have σ₂_le_σ₁ : σ₂ ≤ σ₁ := by
@@ -7173,7 +7176,6 @@ theorem MediumPNT : ∃ c > 0,
 
   clear holo2' σ₂'_lt_one
 
-
   obtain ⟨c₁, c₁pos, hc₁⟩ := I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
   obtain ⟨c₂, c₂pos, hc₂⟩ := I2Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
   obtain ⟨c₃, c₃pos, hc₃⟩ := I3Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
@@ -7182,6 +7184,11 @@ theorem MediumPNT : ∃ c > 0,
   obtain ⟨c₈, c₈pos, hc₈⟩ := I8Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
   obtain ⟨c₉, c₉pos, hc₉⟩ := I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
 
+  obtain ⟨c₄, c₄pos, Tlb₄, Tlb₄bnd, hc₄⟩ := I4Bound ν_supp ContDiff1ν
+    holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
+
+  obtain ⟨c₆, c₆pos, Tlb₆, Tlb₆bnd, hc₆⟩ := I6Bound ν_supp ContDiff1ν
+    holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
 
   let c : ℝ := sorry
   have cpos : 0 < c := sorry
@@ -7270,6 +7277,8 @@ theorem MediumPNT : ∃ c > 0,
   specialize hc₇ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₈ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₉ ε_pos ε_lt_one X X_gt_3 T_gt_3
+
+  --  specialize hTlb₄
 
   have := (
     calc
