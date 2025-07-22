@@ -7213,8 +7213,16 @@ theorem MediumPNT : ∃ c > 0,
     unfold εx
     sorry
   have eventually_T_gt_3 : ∀ᶠ (x : ℝ) in atTop, 3 < Tx x := by sorry
+
+  have eventually_T_gt_Tlb₄ : ∀ᶠ (x : ℝ) in atTop, Tlb₄ < Tx x := by sorry
+  have eventually_T_gt_Tlb₆ : ∀ᶠ (x : ℝ) in atTop, Tlb₆ < Tx x := by sorry
+
   have eventually_σ₂_lt_σ₁ : ∀ᶠ (x : ℝ) in atTop, σ₂ < 1 - A / (Real.log (Tx x)) ^ 9 := by sorry
-  filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt, eventually_T_gt_3, eventually_σ₂_lt_σ₁] with X X_gt_3 ε_lt_one ε_X T_gt_3 σ₂_lt_σ₁
+
+  filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt,
+    eventually_T_gt_3, eventually_T_gt_Tlb₄, eventually_T_gt_Tlb₆,
+      eventually_σ₂_lt_σ₁] with X X_gt_3 ε_lt_one ε_X T_gt_3 T_gt_Tlb₄ T_gt_Tlb₆
+      σ₂_lt_σ₁
   let ε : ℝ := εx X
   have ε_pos : 0 < ε := by positivity
   specialize h_close X X_gt_3 ε ε_pos ε_lt_one ε_X
@@ -7277,8 +7285,8 @@ theorem MediumPNT : ∃ c > 0,
   specialize hc₇ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₈ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₉ ε_pos ε_lt_one X X_gt_3 T_gt_3
-
-  --  specialize hTlb₄
+  specialize hc₄ X X_gt_3 ε_pos ε_lt_one T_gt_Tlb₄
+  specialize hc₆ X X_gt_3 ε_pos ε_lt_one T_gt_Tlb₆
 
   have := (
     calc
@@ -7299,8 +7307,11 @@ theorem MediumPNT : ∃ c > 0,
                     + ‖I₉ ν ε X T‖) := by gcongr
       _         ≤ c_close * ε * X * Real.log X + C_main * ε * X
                     + (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T)
-                    + c₃ * X * X ^ (-A / Real.log T ^ 9) / ε + ‖I₄ ν ε X σ₁ σ₂‖
-                    + c₅ * X ^ σ₂ / ε + ‖I₆ ν ε X σ₁ σ₂‖ + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε
+                    + c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
+                    + c₄ * X * X ^ (-A / Real.log (Tx X) ^ 9) / ε
+                    + c₅ * X ^ σ₂ / ε
+                    + c₆ * X * X ^ (-A / Real.log (Tx X) ^ 9) / ε
+                    + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε
                     + c₈ * X / (ε * T)
                     + c₉ * X * Real.log X / (ε * T)) := by
         gcongr
