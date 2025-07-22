@@ -7308,9 +7308,9 @@ theorem MediumPNT : ∃ c > 0,
       _         ≤ c_close * ε * X * Real.log X + C_main * ε * X
                     + (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T)
                     + c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₄ * X * X ^ (-A / Real.log (Tx X) ^ 9) / ε
+                    + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε
                     + c₅ * X ^ σ₂ / ε
-                    + c₆ * X * X ^ (-A / Real.log (Tx X) ^ 9) / ε
+                    + c₆ * X * X ^ (-A / Real.log T ^ 9) / ε
                     + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε
                     + c₈ * X / (ε * T)
                     + c₉ * X * Real.log X / (ε * T)) := by
