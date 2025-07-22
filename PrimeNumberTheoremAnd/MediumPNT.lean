@@ -7135,6 +7135,22 @@ lemma LogDerivZetaBoundedAndHolo : ∃ A C : ℝ, 0 < C ∧ A ∈ Ioc 0 (1 / 2) 
     · bound
     · apply min_le_right
 
+lemma MellinOfSmooth1cExplicit {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
+    (suppν : ν.support ⊆ Icc (1 / 2) 2)
+    (mass_one : ∫ x in Ioi 0, ν x / x = 1) :
+    ∃ ε₀ c : ℝ, 0 < ε₀ ∧ 0 < c ∧
+    ∀ ε ∈ Ioo 0 ε₀, ‖𝓜 ((Smooth1 ν ε) ·) 1 - 1‖ ≤ c * ε := by
+  have := MellinOfSmooth1c diffν suppν mass_one
+  rw [Asymptotics.isBigO_iff'] at this
+  rcases this with ⟨c, cpos, hc⟩
+  unfold Filter.Eventually at hc
+  rw [mem_nhdsGT_iff_exists_Ioo_subset] at hc
+  rcases hc with ⟨ε₀, ε₀pos, h⟩
+  refine ⟨ε₀, c, ε₀pos, cpos, fun ε hε ↦ ?_⟩
+  specialize h hε
+  rw [mem_setOf_eq, id_eq, norm_of_nonneg hε.1.le] at h
+  exact h
+
 /-%%
 \section{MediumPNT}
 
