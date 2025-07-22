@@ -6145,16 +6145,16 @@ Same with $I_6$.
 
 lemma I4Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    --(SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    --(mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {σ₂ : ℝ} (h_logDeriv_holo : LogDerivZetaIsHoloSmall σ₂) (hσ₂ : σ₂ ∈ Ioo 0 1)
-    {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2)) :
-    ∃ (C : ℝ) (_ : 0 ≤ C),
-    ∀ (X : ℝ) (X_gt : 3 < X)
-    {ε : ℝ} (_ : 0 < ε) (_ : ε < 1),
-    ∃ (Tlb : ℝ) (Tlb_gt : 3 < Tlb),
-    ∀ {T : ℝ} (T_gt : Tlb < T),
+    {A : ℝ} --{Cζ : ℝ} --(hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ)
+    (hA : A ∈ Ioc 0 (1 / 2)) :
+    ∃ (C : ℝ) (_ : 0 ≤ C) (Tlb : ℝ) (_ : 3 < Tlb),
+    ∀ (X : ℝ) (_ : 3 < X)
+    {ε : ℝ} (_ : 0 < ε) (_ : ε < 1)
+    {T : ℝ} (_ : Tlb < T),
     let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
     ‖I₄ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
 
@@ -6276,15 +6276,17 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
       norm_cast
   use CNonneg
 
-  intro X X_gt_three ε ε_pos ε_lt_one
   let Tlb : ℝ := max 4 (max (rexp (A ^ (9 : ℝ)⁻¹)) (rexp ((A / (1 - σ₂)) ^ (9 : ℝ)⁻¹)))
   use Tlb
+
   have : 3 < Tlb := by
     unfold Tlb
     rw[lt_max_iff]
     refine Or.inl ?_
     norm_num
   use this
+
+  intro X X_gt_three ε ε_pos ε_lt_one
 
   intro T T_gt_Tlb σ₁
   have σ₂_le_σ₁ : σ₂ ≤ σ₁ := by
@@ -6525,16 +6527,16 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
 
 lemma I6Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    --(SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    --(mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {σ₂ : ℝ} (h_logDeriv_holo : LogDerivZetaIsHoloSmall σ₂) (hσ₂ : σ₂ ∈ Ioo 0 1)
-    {A Cζ : ℝ} (hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ) (hA : A ∈ Ioc 0 (1 / 2)) :
-    ∃ (C : ℝ) (_ : 0 ≤ C),
-    ∀ (X : ℝ) (X_gt : 3 < X)
-    {ε : ℝ} (_ : 0 < ε) (_ : ε < 1),
-    ∃ (Tlb : ℝ) (Tlb_gt : 3 < Tlb),
-    ∀ {T : ℝ} (T_gt : Tlb < T),
+    {A : ℝ} --{A Cζ : ℝ} (hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ)
+    (hA : A ∈ Ioc 0 (1 / 2)) :
+    ∃ (C : ℝ) (_ : 0 ≤ C) (Tlb : ℝ) (_ : 3 < Tlb),
+    ∀ (X : ℝ) (_ : 3 < X)
+    {ε : ℝ} (_ : 0 < ε) (_ : ε < 1)
+    {T : ℝ} (_ : Tlb < T),
     let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
     ‖I₆ SmoothingF ε X σ₁ σ₂‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
 
@@ -6657,7 +6659,6 @@ lemma I6Bound {SmoothingF : ℝ → ℝ}
       norm_cast
   use CNonneg
 
-  intro X X_gt_three ε ε_pos ε_lt_one
   let Tlb : ℝ := max 4 (max (rexp (A ^ (9 : ℝ)⁻¹)) (rexp ((A / (1 - σ₂)) ^ (9 : ℝ)⁻¹)))
   use Tlb
   have : 3 < Tlb := by
@@ -6666,6 +6667,8 @@ lemma I6Bound {SmoothingF : ℝ → ℝ}
     refine Or.inl ?_
     norm_num
   use this
+
+  intro X X_gt_three ε ε_pos ε_lt_one
 
   intro T T_gt_Tlb σ₁
   have σ₂_le_σ₁ : σ₂ ≤ σ₁ := by
@@ -7173,7 +7176,6 @@ theorem MediumPNT : ∃ c > 0,
 
   clear holo2' σ₂'_lt_one
 
-
   obtain ⟨c₁, c₁pos, hc₁⟩ := I1Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
   obtain ⟨c₂, c₂pos, hc₂⟩ := I2Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
   obtain ⟨c₃, c₃pos, hc₃⟩ := I3Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
@@ -7182,6 +7184,11 @@ theorem MediumPNT : ∃ c > 0,
   obtain ⟨c₈, c₈pos, hc₈⟩ := I8Bound ν_supp ContDiff1ν zeta_bnd C_bnd_pos A_in_Ioc
   obtain ⟨c₉, c₉pos, hc₉⟩ := I9Bound ν_supp ContDiff1ν ν_nonneg ν_massOne
 
+  obtain ⟨c₄, c₄pos, Tlb₄, Tlb₄bnd, hc₄⟩ := I4Bound ν_supp ContDiff1ν
+    holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
+
+  obtain ⟨c₆, c₆pos, Tlb₆, Tlb₆bnd, hc₆⟩ := I6Bound ν_supp ContDiff1ν
+    holo2 ⟨σ₂_pos, σ₂_lt_one⟩ A_in_Ioc
 
   let c : ℝ := sorry
   have cpos : 0 < c := sorry
@@ -7206,8 +7213,16 @@ theorem MediumPNT : ∃ c > 0,
     unfold εx
     sorry
   have eventually_T_gt_3 : ∀ᶠ (x : ℝ) in atTop, 3 < Tx x := by sorry
+
+  have eventually_T_gt_Tlb₄ : ∀ᶠ (x : ℝ) in atTop, Tlb₄ < Tx x := by sorry
+  have eventually_T_gt_Tlb₆ : ∀ᶠ (x : ℝ) in atTop, Tlb₆ < Tx x := by sorry
+
   have eventually_σ₂_lt_σ₁ : ∀ᶠ (x : ℝ) in atTop, σ₂ < 1 - A / (Real.log (Tx x)) ^ 9 := by sorry
-  filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt, eventually_T_gt_3, eventually_σ₂_lt_σ₁] with X X_gt_3 ε_lt_one ε_X T_gt_3 σ₂_lt_σ₁
+
+  filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt,
+    eventually_T_gt_3, eventually_T_gt_Tlb₄, eventually_T_gt_Tlb₆,
+      eventually_σ₂_lt_σ₁] with X X_gt_3 ε_lt_one ε_X T_gt_3 T_gt_Tlb₄ T_gt_Tlb₆
+      σ₂_lt_σ₁
   let ε : ℝ := εx X
   have ε_pos : 0 < ε := by positivity
   specialize h_close X X_gt_3 ε ε_pos ε_lt_one ε_X
@@ -7270,6 +7285,8 @@ theorem MediumPNT : ∃ c > 0,
   specialize hc₇ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₈ X X_gt_3 ε_pos ε_lt_one T_gt_3
   specialize hc₉ ε_pos ε_lt_one X X_gt_3 T_gt_3
+  specialize hc₄ X X_gt_3 ε_pos ε_lt_one T_gt_Tlb₄
+  specialize hc₆ X X_gt_3 ε_pos ε_lt_one T_gt_Tlb₆
 
   have := (
     calc
@@ -7290,8 +7307,11 @@ theorem MediumPNT : ∃ c > 0,
                     + ‖I₉ ν ε X T‖) := by gcongr
       _         ≤ c_close * ε * X * Real.log X + C_main * ε * X
                     + (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T)
-                    + c₃ * X * X ^ (-A / Real.log T ^ 9) / ε + ‖I₄ ν ε X σ₁ σ₂‖
-                    + c₅ * X ^ σ₂ / ε + ‖I₆ ν ε X σ₁ σ₂‖ + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε
+                    + c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
+                    + c₄ * X * X ^ (-A / Real.log (Tx X) ^ 9) / ε
+                    + c₅ * X ^ σ₂ / ε
+                    + c₆ * X * X ^ (-A / Real.log (Tx X) ^ 9) / ε
+                    + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε
                     + c₈ * X / (ε * T)
                     + c₉ * X * Real.log X / (ε * T)) := by
         gcongr
