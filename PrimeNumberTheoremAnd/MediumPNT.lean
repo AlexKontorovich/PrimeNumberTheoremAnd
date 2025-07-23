@@ -7318,15 +7318,14 @@ theorem MediumPNT : ∃ c > 0,
 
   have ex_to_zero : Tendsto εx atTop (𝓝 0) := by
     unfold εx
-    -- rw [eventually_atTop]
-    -- use 3
-    -- intro x hx
-    -- apply Real.exp_lt_one_iff.mpr
-    -- rw [neg_mul]
-    -- apply neg_lt_zero.mpr
-    -- bound
-
-    sorry
+    apply Real.tendsto_exp_atBot.comp
+    have (x) : -c_εx * Real.log x ^ ((1 : ℝ) / 10) = -(c_εx * Real.log x ^ ((1 : ℝ) / 10)) := by
+      ring
+    simp_rw [this]
+    rw [tendsto_neg_atBot_iff]
+    apply Tendsto.const_mul_atTop c_εx_pos
+    apply (tendsto_rpow_atTop (by norm_num)).comp
+    exact tendsto_log_atTop
 
   have eventually_εx_lt_one : ∀ᶠ (x : ℝ) in atTop, εx x < 1 := by
     apply (tendsto_order.mp ex_to_zero).2
