@@ -7244,12 +7244,21 @@ theorem MediumPNT : ∃ c > 0,
   let εx := (fun x ↦ Real.exp (-c_εx * (Real.log x) ^ ((1 : ℝ) / 10)))
   let Tx := (fun x ↦ Real.exp (c_Tx * (Real.log x) ^ ((1 : ℝ) / 10)))
 
-  have coeff_to_zero {B : ℝ} (B_le : B < 1) : Tendsto (fun x ↦ Real.log x ^ (B - 1)) atTop (𝓝 0) := by
+  have coeff_to_zero {B : ℝ} (B_le : B < 1) :
+      Tendsto (fun x ↦ Real.log x ^ (B - 1)) atTop (𝓝 0) := by
     have B_minus_1_neg : B - 1 < 0 := by linarith
     rw [← Real.zero_rpow (ne_of_lt B_minus_1_neg)]
     rw [zero_rpow (ne_of_lt B_minus_1_neg)]
-
-    sorry
+    have one_minus_B_pos : 0 < 1 - B := by linarith
+    rw [show B - 1 = -(1 - B) by ring]
+    have : ∀ᶠ (x : ℝ) in atTop, Real.log x ^ (-(1 - B)) = (Real.log x ^ ((1 - B)))⁻¹ := by
+      filter_upwards [eventually_ge_atTop (1 : ℝ)] with x hx
+      apply Real.rpow_neg
+      exact Real.log_nonneg hx
+    rw [tendsto_congr' this]
+    apply tendsto_inv_atTop_zero.comp
+    apply (tendsto_rpow_atTop one_minus_B_pos).comp
+    exact tendsto_log_atTop
 
   have log_sub_log_pow_inf (c : ℝ) {B : ℝ} (B_le : B < 1) :
       Tendsto (fun (x : ℝ) ↦ Real.log x - c * Real.log x ^ B) atTop atTop := by
