@@ -7460,10 +7460,39 @@ theorem MediumPNT : ∃ c > 0,
       rw [mul_comm]
     grw [x_bnd]
 
+  have event_3_aux {const1 const1' const2 : ℝ} : ∀ᶠ (x : ℝ) in atTop,
+      x ^ (-A / Real.log (rexp (A ^ const2 / 2 * Real.log x ^ const2)) ^ 9) *
+      rexp (-(-const1 * Real.log x ^ const2)) ≤
+      rexp (-const1' * Real.log x ^ const2) := by
+
+    sorry
+
   have event_3 : ∀ᶠ (x : ℝ) in atTop, C''' * x * x ^ (-A / Real.log (Tx x) ^ 9) / (εx x) ≤
       C''' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
     unfold c Tx c_Tx εx c_εx
-    sorry
+    set const2 : ℝ := 1 / 10
+    have const2bnd : 0 < const2 := by norm_num
+    set const1 := (A ^ const2 / 4)
+    set const1' := (A ^ const2 / 8)
+    have A_pow_pos : 0 < A ^ const2 := by
+      unfold const2
+      apply Real.rpow_pos_of_pos
+      exact A_in_Ioc.1
+
+    conv =>
+      enter [1, x, 1]
+      rw [div_eq_mul_inv, ← Real.exp_neg]
+
+    filter_upwards [event_3_aux (const1 := const1) (const1' := const1') (const2 := const2),
+      eventually_gt_atTop 3] with x x_bnd x_gt
+
+    have (x) : C''' * x * x ^ (-A / Real.log (rexp (A ^ const2 / 2 * Real.log x ^ const2)) ^ 9)
+        * rexp (-(-const1 * Real.log x ^ const2))
+      = C''' * x * (x ^ (-A / Real.log (rexp (A ^ const2 / 2 * Real.log x ^ const2)) ^ 9)
+        * rexp (-(-const1 * Real.log x ^ const2))) := by ring
+    rw [this]
+    grw [x_bnd]
+
 
   have event_4 : ∀ᶠ (x : ℝ) in atTop, c₅ * x ^ σ₂ / (εx x) ≤
       c₅ * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
