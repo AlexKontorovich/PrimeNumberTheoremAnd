@@ -7361,14 +7361,13 @@ theorem MediumPNT : ∃ c > 0,
   have event_logX_ge : ∀ᶠ (x : ℝ) in atTop, 1 ≤ Real.log x := by
     apply Real.tendsto_log_atTop.eventually_ge_atTop
 
-  have event_1_aux_1 : ∀ᶠ (x : ℝ) in atTop,
-    rexp (-(A ^ ((1 : ℝ) / 10) / 8) * Real.log x ^ ((1 : ℝ) / 10)) * Real.log x ≤
+  have event_1_aux_1 {const1 const2 : ℝ} (const1pos : 0 < const1) (const2pos : 0 < const2) :
+    ∀ᶠ (x : ℝ) in atTop,
+    rexp (-const1 * Real.log x ^ const2) * Real.log x ≤
     rexp 0 := by
-      have : 0 < (A ^ ((1 : ℝ) / 10) / 8) := by
-        positivity
-      have := ((isLittleO_log_rpow_atTop (by norm_num : (0 : ℝ) < 1/10)).bound this)
+      have := ((isLittleO_log_rpow_atTop const2pos).bound const1pos)
       have : ∀ᶠ (x : ℝ) in atTop, Real.log (Real.log x) ≤
-          A ^ ((1 : ℝ) / 10) / 8 * (Real.log x) ^ ((1 : ℝ) / 10) := by
+          const1 * (Real.log x) ^ const2 := by
         have := tendsto_log_atTop.eventually this
         filter_upwards [this, eventually_gt_atTop 10] with x hx x_gt
         convert hx using 1
@@ -7402,13 +7401,16 @@ theorem MediumPNT : ∃ c > 0,
       grw [hx]
       simp
 
-  have event_1_aux : ∀ᶠ (x : ℝ) in atTop,
-    rexp (-(A ^ ((1 : ℝ) / 10) / 4) * Real.log x ^ ((1 : ℝ) / 10)) * Real.log x ≤
-    rexp (-(A ^ ((1 : ℝ) / 10) / 8) * Real.log x ^ ((1 : ℝ) / 10)) := by
-      filter_upwards [event_1_aux_1] with x hx
-      have : rexp (-(A ^ ((1 : ℝ) / 10) / 4) * Real.log x ^ ((1 : ℝ) / 10)) * Real.log x
-        = rexp (-(A ^ ((1 : ℝ) / 10) / 8) * Real.log x ^ ((1 : ℝ) / 10))
-          * rexp (-(A ^ ((1 : ℝ) / 10) / 8) * Real.log x ^ ((1 : ℝ) / 10)) * Real.log x := by
+  have event_1_aux {const1 const1' const2 : ℝ} (const1bnds : const1' < const1)
+    (const2pos : 0 < const2) :
+    ∀ᶠ (x : ℝ) in atTop,
+    rexp (-const1 * Real.log x ^ const2) * Real.log x ≤
+    rexp (-const1' * Real.log x ^ const2) := by
+      have : 0 < const1 - const1' := by linarith
+      filter_upwards [event_1_aux_1 this const2pos] with x hx
+      have : rexp (-const1 * Real.log x ^ const2) * Real.log x
+        = rexp (-(const1') * Real.log x ^ const2)
+          * rexp (-(const1 - const1') * Real.log x ^ const2) * Real.log x := by
           congr! 1
           rw [← Real.exp_add]
           congr! 1
@@ -7421,17 +7423,42 @@ theorem MediumPNT : ∃ c > 0,
   have event_1 : ∀ᶠ (x : ℝ) in atTop, C' * (εx x) * x * Real.log x ≤
       C' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
     unfold c εx c_εx
+    have : 0 < (A ^ ((1 : ℝ) / 10) / 8) := by
+        positivity
+    have const1bnd : (A ^ ((1 : ℝ) / 10) / 8) < (A ^ ((1 : ℝ) / 10) / 4) := by
+        linarith
+    have const2bnd : (0 : ℝ) < 1 / 10 := by norm_num
     have (x) :
       C' * rexp (-(A ^ ((1 : ℝ) / 10) / 4) * Real.log x ^ ((1 : ℝ) / 10)) * x * Real.log x =
       C' * x * (rexp (-(A ^ ((1 : ℝ) / 10) / 4) * Real.log x ^ ((1 : ℝ) / 10)) * Real.log x) := by ring
     simp_rw [this]
-    filter_upwards [event_1_aux, eventually_gt_atTop 3] with x x_bnd x_gt
+    filter_upwards [event_1_aux const1bnd const2bnd, eventually_gt_atTop 3] with x x_bnd x_gt
     grw [x_bnd]
 
   have event_2 : ∀ᶠ (x : ℝ) in atTop, C'' * x * Real.log x / (εx x * Tx x) ≤
       C'' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
     unfold c εx c_εx Tx c_Tx
-    sorry
+    set const2 : ℝ := 1 / 10
+    have const2bnd : 0 < const2 := by norm_num
+    set const1 := (A ^ const2 / 4)
+    set const1' := (A ^ const2 / 8)
+    have : 0 < A ^ const2 := by
+      unfold const2
+      --positivity -- fails?? Worked before
+      apply Real.rpow_pos_of_pos
+      exact A_in_Ioc.1
+    have (x) : -(-const1 * Real.log x ^ const2 + A ^ const2 * 2⁻¹ * Real.log x ^ const2) =
+      - (A ^ const2 / 2 - const1) * Real.log x ^ const2 := by ring
+    simp_rw [← Real.exp_add, div_eq_mul_inv, ← Real.exp_neg, this]
+    have const1bnd : const1' < (A ^ const2 / 2 - const1) := by
+      unfold const1' const1
+      linarith
+    filter_upwards [event_1_aux const1bnd const2bnd, eventually_gt_atTop 3] with x x_bnd x_gt
+    rw [mul_assoc]
+    conv =>
+      enter [1, 2]
+      rw [mul_comm]
+    grw [x_bnd]
 
   have event_3 : ∀ᶠ (x : ℝ) in atTop, C''' * x * x ^ (-A / Real.log (Tx x) ^ 9) / (εx x) ≤
       C''' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
