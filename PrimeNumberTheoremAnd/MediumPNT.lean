@@ -7309,12 +7309,25 @@ theorem MediumPNT : ∃ c > 0,
     have := x_ε_to_inf c_εx (by norm_num : (1 : ℝ) / 10 < 1)
     exact this.eventually_gt_atTop 2
 
-  have eventually_T_gt_3 : ∀ᶠ (x : ℝ) in atTop, 3 < Tx x := by sorry
+  have eventually_T_gt_3 : ∀ᶠ (x : ℝ) in atTop, 3 < Tx x := by
+    exact Tx_to_inf.eventually_gt_atTop 3
 
-  have eventually_T_gt_Tlb₄ : ∀ᶠ (x : ℝ) in atTop, Tlb₄ < Tx x := by sorry
-  have eventually_T_gt_Tlb₆ : ∀ᶠ (x : ℝ) in atTop, Tlb₆ < Tx x := by sorry
+  have eventually_T_gt_Tlb₄ : ∀ᶠ (x : ℝ) in atTop, Tlb₄ < Tx x := by
+    exact Tx_to_inf.eventually_gt_atTop _
+  have eventually_T_gt_Tlb₆ : ∀ᶠ (x : ℝ) in atTop, Tlb₆ < Tx x := by
+    exact Tx_to_inf.eventually_gt_atTop _
 
-  have eventually_σ₂_lt_σ₁ : ∀ᶠ (x : ℝ) in atTop, σ₂ < 1 - A / (Real.log (Tx x)) ^ 9 := by sorry
+  have eventually_σ₂_lt_σ₁ : ∀ᶠ (x : ℝ) in atTop, σ₂ < 1 - A / (Real.log (Tx x)) ^ 9 := by
+    --have' := (tendsto_order.mp ?_).1
+    apply (tendsto_order.mp ?_).1
+    · exact σ₂_lt_one
+    have := tendsto_inv_atTop_zero.comp ((tendsto_rpow_atTop (by norm_num : (0 : ℝ) < 9)).comp
+      (tendsto_log_atTop.comp Tx_to_inf))
+    have := Tendsto.const_mul (b := A) this
+    convert (tendsto_const_nhds (x := (1 : ℝ))).sub this using 2
+    · simp only [rpow_ofNat, comp_apply, sub_right_inj, σ₂, c_εx, c_Tx, c, div_eq_mul_inv]
+    · simp
+
   have eventually_ε_lt_ε_main : ∀ᶠ (x : ℝ) in atTop, εx x < ε_main := by sorry
 
   have event_logX_ge : ∀ᶠ (x : ℝ) in atTop, 1 ≤ Real.log x := by sorry
