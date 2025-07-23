@@ -7151,6 +7151,8 @@ lemma MellinOfSmooth1cExplicit {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
   rw [mem_setOf_eq, id_eq, norm_of_nonneg hε.1.le] at h
   exact h
 
+open Filter Topology
+
 /-%%
 \section{MediumPNT}
 
@@ -7212,14 +7214,88 @@ theorem MediumPNT : ∃ c > 0,
   let C''' := c₃ + c₄ + c₆ + c₇
 
 
-  let c : ℝ := sorry
+  let c : ℝ := sorry -- A ^ ((1 : ℝ) / 10) / 8
   have cpos : 0 < c := sorry
   refine ⟨c, cpos, ?_⟩
   rw [Asymptotics.isBigO_iff]
   let C : ℝ := sorry
   refine ⟨C, ?_⟩
-  let εx := (fun x ↦ Real.exp (-c * (Real.log x) ^ ((1 : ℝ) / 10)))
-  let Tx := (fun x ↦ Real.exp (2 * c * (Real.log x) ^ ((1 : ℝ) / 10)))
+
+  let c_εx : ℝ := sorry -- A ^ ((1 : ℝ) / 10) / 4
+  have c_εx_pos : 0 < c_εx := by sorry
+  let c_Tx : ℝ := A ^ ((1 : ℝ) / 10) / 2
+  have c_Tx_pos : 0 < c_Tx := by
+    simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, gt_iff_lt, mem_Ioo, and_imp,
+      mem_Ioc, lt_sup_iff,
+      inv_pos, Nat.ofNat_pos, or_true, sup_lt_iff, neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le,
+      div_pos_iff_of_pos_right, σ₂, c, c_εx, c_Tx]
+    have := A_in_Ioc.1
+    positivity
+
+
+  let εx := (fun x ↦ Real.exp (-c_εx * (Real.log x) ^ ((1 : ℝ) / 10)))
+  let Tx := (fun x ↦ Real.exp (c_Tx * (Real.log x) ^ ((1 : ℝ) / 10)))
+
+  have log_sub_log_pow_inf (c : ℝ) {B : ℝ} (B_le : B < 1) :
+      Tendsto (fun (x : ℝ) ↦ Real.log x - c * Real.log x ^ B) atTop atTop := by
+    have factor_form : ∀ x > 1, Real.log x - c * Real.log x ^ B =
+        Real.log x * (1 - c * Real.log x ^ (B - 1)) := by
+      intro x hx
+      ring_nf
+      congr! 1
+      rw [mul_assoc, mul_comm (Real.log x), mul_assoc]
+      congr! 1
+      have log_pos : 0 < Real.log x := Real.log_pos hx
+      rw [(by simp : Real.log x ^ (-1 + B) * Real.log x =
+        Real.log x ^ (-1 + B) * (Real.log x) ^ (1 : ℝ))]
+      rw [← Real.rpow_add log_pos]
+      ring_nf
+    have B_minus_1_neg : B - 1 < 0 := by linarith
+    have coeff_to_zero : Tendsto (fun x ↦ Real.log x ^ (B - 1)) atTop (𝓝 0) := by
+      rw [← Real.zero_rpow (ne_of_lt B_minus_1_neg)]
+      rw [zero_rpow (ne_of_lt B_minus_1_neg)]
+
+      sorry
+    have coeff_to_one : Tendsto (fun x ↦ 1 - c * Real.log x ^ (B - 1)) atTop (𝓝 1) := by
+      apply Tendsto.const_mul c at coeff_to_zero
+      convert (tendsto_const_nhds (x := (1 : ℝ)) (f := (atTop : Filter ℝ))).sub coeff_to_zero
+      ring
+
+    have eventually_pos : ∀ᶠ x in atTop, 0 < 1 - c * Real.log x ^ (B - 1) := by
+      apply (tendsto_order.mp coeff_to_one).1
+      norm_num
+
+    have eventually_factored : ∀ᶠ x in atTop, Real.log x - c * Real.log x ^ B =
+    Real.log x * (1 - c * Real.log x ^ (B - 1)) := by
+      filter_upwards [eventually_gt_atTop (1 : ℝ)] with x hx
+      exact factor_form x hx
+
+    rw [tendsto_congr' eventually_factored]
+    apply Tendsto.atTop_mul_pos (by norm_num : (0 : ℝ) < 1) tendsto_log_atTop  coeff_to_one
+
+  have x_εx_eq (c B : ℝ) : ∀ᶠ (x : ℝ) in atTop, x * rexp (-c * Real.log x ^ B) =
+        rexp (Real.log x - c * Real.log x ^ B) := by
+    filter_upwards [eventually_gt_atTop 0] with x hx_pos
+    conv =>
+      enter [1, 1]
+      rw [(Real.exp_log hx_pos).symm]
+    rw [← Real.exp_add]
+    ring_nf
+
+
+  -- `x * rexp (-c * (log x) ^ B)) = Real.exp (Real.log x - c * (Real.log x) ^ B))`
+  -- so if `B < 1`, the exponent goes to infinity
+  have x_ε_to_inf (c : ℝ) {B : ℝ} (B_le : B < 1) : Tendsto
+    (fun x ↦ x * Real.exp (-c * (Real.log x) ^ B)) atTop atTop := by
+    rw [tendsto_congr' (x_εx_eq c B)]
+    exact tendsto_exp_atTop.comp (log_sub_log_pow_inf c B_le)
+
+  have Tx_to_inf : Tendsto Tx atTop atTop := by
+    unfold Tx
+    apply tendsto_exp_atTop.comp
+    apply Tendsto.pos_mul_atTop c_Tx_pos tendsto_const_nhds
+    exact (tendsto_rpow_atTop (by norm_num : 0 < (1 : ℝ) / 10)).comp Real.tendsto_log_atTop
+
   have eventually_εx_lt_one : ∀ᶠ (x : ℝ) in atTop, εx x < 1 := by
     rw [eventually_atTop]
     use 3
@@ -7228,12 +7304,11 @@ theorem MediumPNT : ∃ c > 0,
     rw [neg_mul]
     apply neg_lt_zero.mpr
     bound
+
   have eventually_2_lt : ∀ᶠ (x : ℝ) in atTop, 2 < x * εx x := by
-    rw [eventually_atTop]
-    use sorry
-    intro x hx
-    unfold εx
-    sorry
+    have := x_ε_to_inf c_εx (by norm_num : (1 : ℝ) / 10 < 1)
+    exact this.eventually_gt_atTop 2
+
   have eventually_T_gt_3 : ∀ᶠ (x : ℝ) in atTop, 3 < Tx x := by sorry
 
   have eventually_T_gt_Tlb₄ : ∀ᶠ (x : ℝ) in atTop, Tlb₄ < Tx x := by sorry
@@ -7401,13 +7476,15 @@ theorem MediumPNT : ∃ c > 0,
                     ) := by ring
       _         ≤ C' * ε * X * Real.log X
                     + (C'' * X * Real.log X / (ε * T)
-                    + (c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₆ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε)
+                    + C''' * X * X ^ (-A / Real.log T ^ 9) / ε
                     + c₅ * X ^ σ₂ / ε
                     ) := by
         gcongr
+      _        = C' * ε * X * Real.log X
+                    + (C'' * X * Real.log X / (ε * T)
+                    + C''' * X * X ^ (-A / Real.log T ^ 9) / ε
+                    + c₅ * X ^ σ₂ / ε
+                    ) := by sorry
   )
 
   sorry
