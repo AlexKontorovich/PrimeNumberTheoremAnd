@@ -7214,27 +7214,42 @@ theorem MediumPNT : ∃ c > 0,
   let C''' := c₃ + c₄ + c₆ + c₇
 
 
-  let c : ℝ := sorry -- A ^ ((1 : ℝ) / 10) / 8
-  have cpos : 0 < c := sorry
+  let c : ℝ := A ^ ((1 : ℝ) / 10) / 8
+  have cpos : 0 < c := by
+    simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, gt_iff_lt, mem_Ioo, and_imp,
+      mem_Ioc, lt_sup_iff,
+      inv_pos, Nat.ofNat_pos, or_true, sup_lt_iff, neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le,
+      div_pos_iff_of_pos_right, σ₂, c]
+    obtain ⟨left, right⟩ := A_in_Ioc
+    positivity
   refine ⟨c, cpos, ?_⟩
   rw [Asymptotics.isBigO_iff]
-  let C : ℝ := sorry
+  let C : ℝ := C' + C'' + C''' + c₅
   refine ⟨C, ?_⟩
 
-  let c_εx : ℝ := sorry -- A ^ ((1 : ℝ) / 10) / 4
-  have c_εx_pos : 0 < c_εx := by sorry
+  let c_εx : ℝ := A ^ ((1 : ℝ) / 10) / 4
+  have c_εx_pos : 0 < c_εx := by
+    simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, gt_iff_lt, mem_Ioo, and_imp,
+      mem_Ioc, lt_sup_iff,
+      inv_pos, Nat.ofNat_pos, or_true, sup_lt_iff, neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le,
+      div_pos_iff_of_pos_right, div_pos_iff_of_pos_left, σ₂, c, c_εx]
   let c_Tx : ℝ := A ^ ((1 : ℝ) / 10) / 2
   have c_Tx_pos : 0 < c_Tx := by
     simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, gt_iff_lt, mem_Ioo, and_imp,
       mem_Ioc, lt_sup_iff,
       inv_pos, Nat.ofNat_pos, or_true, sup_lt_iff, neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le,
       div_pos_iff_of_pos_right, σ₂, c, c_εx, c_Tx]
-    have := A_in_Ioc.1
-    positivity
 
 
   let εx := (fun x ↦ Real.exp (-c_εx * (Real.log x) ^ ((1 : ℝ) / 10)))
   let Tx := (fun x ↦ Real.exp (c_Tx * (Real.log x) ^ ((1 : ℝ) / 10)))
+
+  have coeff_to_zero {B : ℝ} (B_le : B < 1) : Tendsto (fun x ↦ Real.log x ^ (B - 1)) atTop (𝓝 0) := by
+    have B_minus_1_neg : B - 1 < 0 := by linarith
+    rw [← Real.zero_rpow (ne_of_lt B_minus_1_neg)]
+    rw [zero_rpow (ne_of_lt B_minus_1_neg)]
+
+    sorry
 
   have log_sub_log_pow_inf (c : ℝ) {B : ℝ} (B_le : B < 1) :
       Tendsto (fun (x : ℝ) ↦ Real.log x - c * Real.log x ^ B) atTop atTop := by
@@ -7251,12 +7266,8 @@ theorem MediumPNT : ∃ c > 0,
       rw [← Real.rpow_add log_pos]
       ring_nf
     have B_minus_1_neg : B - 1 < 0 := by linarith
-    have coeff_to_zero : Tendsto (fun x ↦ Real.log x ^ (B - 1)) atTop (𝓝 0) := by
-      rw [← Real.zero_rpow (ne_of_lt B_minus_1_neg)]
-      rw [zero_rpow (ne_of_lt B_minus_1_neg)]
-
-      sorry
     have coeff_to_one : Tendsto (fun x ↦ 1 - c * Real.log x ^ (B - 1)) atTop (𝓝 1) := by
+      specialize coeff_to_zero B_le
       apply Tendsto.const_mul c at coeff_to_zero
       convert (tendsto_const_nhds (x := (1 : ℝ)) (f := (atTop : Filter ℝ))).sub coeff_to_zero
       ring
@@ -7296,14 +7307,21 @@ theorem MediumPNT : ∃ c > 0,
     apply Tendsto.pos_mul_atTop c_Tx_pos tendsto_const_nhds
     exact (tendsto_rpow_atTop (by norm_num : 0 < (1 : ℝ) / 10)).comp Real.tendsto_log_atTop
 
+  have ex_to_zero : Tendsto εx atTop (𝓝 0) := by
+    unfold εx
+    -- rw [eventually_atTop]
+    -- use 3
+    -- intro x hx
+    -- apply Real.exp_lt_one_iff.mpr
+    -- rw [neg_mul]
+    -- apply neg_lt_zero.mpr
+    -- bound
+
+    sorry
+
   have eventually_εx_lt_one : ∀ᶠ (x : ℝ) in atTop, εx x < 1 := by
-    rw [eventually_atTop]
-    use 3
-    intro x hx
-    apply Real.exp_lt_one_iff.mpr
-    rw [neg_mul]
-    apply neg_lt_zero.mpr
-    bound
+    apply (tendsto_order.mp ex_to_zero).2
+    norm_num
 
   have eventually_2_lt : ∀ᶠ (x : ℝ) in atTop, 2 < x * εx x := by
     have := x_ε_to_inf c_εx (by norm_num : (1 : ℝ) / 10 < 1)
@@ -7328,14 +7346,34 @@ theorem MediumPNT : ∃ c > 0,
     · simp only [rpow_ofNat, comp_apply, sub_right_inj, σ₂, c_εx, c_Tx, c, div_eq_mul_inv]
     · simp
 
-  have eventually_ε_lt_ε_main : ∀ᶠ (x : ℝ) in atTop, εx x < ε_main := by sorry
+  have eventually_ε_lt_ε_main : ∀ᶠ (x : ℝ) in atTop, εx x < ε_main := by
+    apply (tendsto_order.mp ex_to_zero).2
+    assumption
 
-  have event_logX_ge : ∀ᶠ (x : ℝ) in atTop, 1 ≤ Real.log x := by sorry
+  have event_logX_ge : ∀ᶠ (x : ℝ) in atTop, 1 ≤ Real.log x := by
+    apply Real.tendsto_log_atTop.eventually_ge_atTop
+
+  have event_1 : ∀ᶠ (x : ℝ) in atTop, C' * (εx x) * x * Real.log x ≤
+      C' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
+    sorry
+
+  have event_2 : ∀ᶠ (x : ℝ) in atTop, C'' * x * Real.log x / (εx x * Tx x) ≤
+      C'' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
+    sorry
+
+  have event_3 : ∀ᶠ (x : ℝ) in atTop, C''' * x * x ^ (-A / Real.log (Tx x) ^ 9) / (εx x) ≤
+      C''' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
+    sorry
+
+  have event_4 : ∀ᶠ (x : ℝ) in atTop, c₅ * x ^ σ₂ / (εx x) ≤
+      c₅ * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
+    sorry
 
   filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt,
     eventually_T_gt_3, eventually_T_gt_Tlb₄, eventually_T_gt_Tlb₆,
-      eventually_σ₂_lt_σ₁, eventually_ε_lt_ε_main, event_logX_ge] with X X_gt_3 ε_lt_one ε_X T_gt_3 T_gt_Tlb₄ T_gt_Tlb₆
-      σ₂_lt_σ₁ ε_lt_ε_main logX_ge
+      eventually_σ₂_lt_σ₁, eventually_ε_lt_ε_main, event_logX_ge, event_1, event_2,
+      event_3, event_4] with X X_gt_3 ε_lt_one ε_X T_gt_3 T_gt_Tlb₄ T_gt_Tlb₆
+      σ₂_lt_σ₁ ε_lt_ε_main logX_ge event_1 event_2 event_3 event_4
 
   clear eventually_εx_lt_one eventually_2_lt eventually_T_gt_3 eventually_T_gt_Tlb₄
     eventually_T_gt_Tlb₆ eventually_σ₂_lt_σ₁ eventually_ε_lt_ε_main event_logX_ge zeta_bnd
@@ -7446,61 +7484,70 @@ theorem MediumPNT : ∃ c > 0,
     apply le_of_eq
     ring
 
-  have := (
-    calc
-      ‖ψ X - X‖ = ‖(ψ X - ψ_ε_of_X) + (ψ_ε_of_X - X)‖ := by ring_nf; norm_cast
-      _         ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - X‖ := norm_add_le _ _
-      _         = ‖ψ X - ψ_ε_of_X‖ + ‖(ψ_ε_of_X - 𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X)
-                    + (𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X - X)‖ := by ring_nf
-      _         ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - 𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X‖
-                    + ‖𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X - X‖ := by
-                      rw [add_assoc]
-                      gcongr
-                      apply norm_add_le
-      _         = ‖ψ X - ψ_ε_of_X‖ + ‖𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X - X‖
-                    + ‖ψ_ε_of_X - 𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X‖ := by ring
-      _         ≤ ‖ψ X - ψ_ε_of_X‖ + ‖𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X - X‖
-                    + (‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖ + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖
-                    + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖ + ‖I₈ ν ε T X σ₁‖
-                    + ‖I₉ ν ε X T‖) := by gcongr
-      _         ≤ c_close * ε * X * Real.log X + C_main * ε * X
-                    + (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T)
-                    + c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₅ * X ^ σ₂ / ε
-                    + c₆ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₈ * X / (ε * T)
-                    + c₉ * X * Real.log X / (ε * T)) := by
-        gcongr
-        convert h_close using 1
-        rw [← norm_neg]
-        congr
-        ring
-      _         =  (c_close * ε * X * Real.log X + C_main * ε * X)
-                    + ((c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T)
-                    + c₈ * X / (ε * T)
-                    + c₉ * X * Real.log X / (ε * T))
-                    + (c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₆ * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε)
-                    + c₅ * X ^ σ₂ / ε
-                    ) := by ring
-      _         ≤ C' * ε * X * Real.log X
-                    + (C'' * X * Real.log X / (ε * T)
-                    + C''' * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₅ * X ^ σ₂ / ε
-                    ) := by
-        gcongr
-      _        = C' * ε * X * Real.log X
-                    + (C'' * X * Real.log X / (ε * T)
-                    + C''' * X * X ^ (-A / Real.log T ^ 9) / ε
-                    + c₅ * X ^ σ₂ / ε
-                    ) := by sorry
-  )
+  calc
+    _         = ‖(ψ X - ψ_ε_of_X) + (ψ_ε_of_X - X)‖ := by ring_nf; norm_cast
+    _         ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - X‖ := norm_add_le _ _
+    _         = ‖ψ X - ψ_ε_of_X‖ + ‖(ψ_ε_of_X - 𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X)
+                  + (𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X - X)‖ := by ring_nf
+    _         ≤ ‖ψ X - ψ_ε_of_X‖ + ‖ψ_ε_of_X - 𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X‖
+                  + ‖𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X - X‖ := by
+                    rw [add_assoc]
+                    gcongr
+                    apply norm_add_le
+    _         = ‖ψ X - ψ_ε_of_X‖ + ‖𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X - X‖
+                  + ‖ψ_ε_of_X - 𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X‖ := by ring
+    _         ≤ ‖ψ X - ψ_ε_of_X‖ + ‖𝓜 (fun x ↦ (Smooth1 ν ε x)) 1 * X - X‖
+                  + (‖I₁ ν ε X T‖ + ‖I₂ ν ε T X σ₁‖ + ‖I₃ ν ε T X σ₁‖ + ‖I₄ ν ε X σ₁ σ₂‖
+                  + ‖I₅ ν ε X σ₂‖ + ‖I₆ ν ε X σ₁ σ₂‖ + ‖I₇ ν ε T X σ₁‖ + ‖I₈ ν ε T X σ₁‖
+                  + ‖I₉ ν ε X T‖) := by gcongr
+    _         ≤ c_close * ε * X * Real.log X + C_main * ε * X
+                  + (c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T)
+                  + c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + c₅ * X ^ σ₂ / ε
+                  + c₆ * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + c₈ * X / (ε * T)
+                  + c₉ * X * Real.log X / (ε * T)) := by
+      gcongr
+      convert h_close using 1
+      rw [← norm_neg]
+      congr
+      ring
+    _         =  (c_close * ε * X * Real.log X + C_main * ε * X)
+                  + ((c₁ * X * Real.log X / (ε * T) + c₂ * X / (ε * T)
+                  + c₈ * X / (ε * T)
+                  + c₉ * X * Real.log X / (ε * T))
+                  + (c₃ * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + c₄ * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + c₆ * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + c₇ * X * X ^ (-A / Real.log T ^ 9) / ε)
+                  + c₅ * X ^ σ₂ / ε
+                  ) := by ring
+    _         ≤ C' * ε * X * Real.log X
+                  + (C'' * X * Real.log X / (ε * T)
+                  + C''' * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + c₅ * X ^ σ₂ / ε
+                  ) := by
+      gcongr
+    _        = C' * ε * X * Real.log X
+                  + C'' * X * Real.log X / (ε * T)
+                  + C''' * X * X ^ (-A / Real.log T ^ 9) / ε
+                  + c₅ * X ^ σ₂ / ε
+                    := by ring
+    _        ≤ C' * X * rexp (-c * Real.log X ^ ((1 : ℝ) / 10))
+                  + C'' * X * rexp (-c * Real.log X ^ ((1 : ℝ) / 10))
+                  + C''' * X * rexp (-c * Real.log X ^ ((1 : ℝ) / 10))
+                  + c₅ * X * rexp (-c * Real.log X ^ ((1 : ℝ) / 10))
+                    := by
+      gcongr
+    _        = C * X * rexp (-c * Real.log X ^ ((1 : ℝ) / 10))
+                    := by ring
+    _        = _ := by
+      rw [Real.norm_of_nonneg]
+      · rw [← mul_assoc]
+      · positivity
 
-  sorry
 /-%%
 \begin{proof}
 \uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval, LogDerivZetaBndUniform, LogDerivZetaHolcSmallT, LogDerivZetaHolcLargeT,
