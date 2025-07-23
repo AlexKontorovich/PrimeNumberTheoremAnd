@@ -7548,11 +7548,36 @@ theorem MediumPNT : ∃ c > 0,
     rw [this]
     grw [x_bnd]
 
+  have event_4_aux1 {const1 : ℝ} (const1_lt : const1 < 1) (const2 const3 : ℝ)
+      {pow1 : ℝ} (pow1_lt : pow1 < 1) : ∀ᶠ (x : ℝ) in atTop,
+      const1 * Real.log x + const2 * Real.log x ^ pow1
+        ≤ Real.log x - const3 * Real.log x ^ pow1 := by
+    filter_upwards [eventually_gt_atTop 3] with x hx
+
+    sorry
+
+  have event_4_aux : ∀ᶠ (x : ℝ) in atTop,
+      c₅ * rexp (σ₂ * Real.log x + (A ^ ((1 : ℝ) / 10) / 2) * Real.log x ^ ((1 : ℝ) / 10)) ≤
+      c₅ * rexp (Real.log x - (A ^ ((1 : ℝ) / 10) / 4) * Real.log x ^ ((1 : ℝ) / 10)) := by
+    filter_upwards [eventually_gt_atTop 3, event_4_aux1 σ₂_lt_one (A ^ ((1 : ℝ) / 10) / 2)
+      (A ^ ((1 : ℝ) / 10) / 4) (by norm_num : (1 : ℝ) / 10 < 1)] with x x_gt hx
+    rw [mul_le_mul_left c₅pos]
+    apply Real.exp_monotone
+    convert hx
 
   have event_4 : ∀ᶠ (x : ℝ) in atTop, c₅ * x ^ σ₂ / (εx x) ≤
       c₅ * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
     unfold εx c_εx c
-    sorry
+    filter_upwards [event_4_aux] with x hx
+    convert hx using 1
+    · rw [← mul_div]
+      congr! 1
+      sorry
+
+    · rw [mul_assoc]
+      congr! 1
+
+      sorry
 
   filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt,
     eventually_T_gt_3, eventually_T_gt_Tlb₄, eventually_T_gt_Tlb₆,
