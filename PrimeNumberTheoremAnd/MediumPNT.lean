@@ -7430,14 +7430,17 @@ theorem MediumPNT : ∃ c > 0,
 
   have event_2 : ∀ᶠ (x : ℝ) in atTop, C'' * x * Real.log x / (εx x * Tx x) ≤
       C'' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
+    unfold c εx c_εx Tx c_Tx
     sorry
 
   have event_3 : ∀ᶠ (x : ℝ) in atTop, C''' * x * x ^ (-A / Real.log (Tx x) ^ 9) / (εx x) ≤
       C''' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
+    unfold c Tx c_Tx εx c_εx
     sorry
 
   have event_4 : ∀ᶠ (x : ℝ) in atTop, c₅ * x ^ σ₂ / (εx x) ≤
       c₅ * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
+    unfold εx c_εx c
     sorry
 
   filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt,
