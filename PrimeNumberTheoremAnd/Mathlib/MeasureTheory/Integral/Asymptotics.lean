@@ -3,6 +3,7 @@ Copyright (c) 2024 Lawrence Wu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lawrence Wu
 -/
+import Mathlib.MeasureTheory.Group.Arithmetic
 import Mathlib.MeasureTheory.Group.Measure
 import Mathlib.MeasureTheory.Integral.Asymptotics
 import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
@@ -12,7 +13,6 @@ import Mathlib.MeasureTheory.Integral.IntegrableOn
 import Mathlib.MeasureTheory.Function.LocallyIntegrable
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Uniformly
 import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Function.LocallyIntegrable
-import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Group.Arithmetic
 
 /-!
 # Bounding of integrals by asymptotics
