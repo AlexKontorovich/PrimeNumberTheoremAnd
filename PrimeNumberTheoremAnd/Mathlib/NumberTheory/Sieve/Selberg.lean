@@ -5,8 +5,8 @@ Author: Arend Mellendijk
 
 ! This file was ported from Lean 3 source module selberg
 -/
+import Batteries.Tactic.Lemma
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Basic
-import Mathlib.NumberTheory.SelbergSieve
 
 /-!
 # The Selberg Sieve
@@ -415,7 +415,7 @@ theorem selberg_bound_muPlus (n : ℕ) (hn : n ∈ divisors P) :
   · dsimp only
     rw [← sum_filter, Finset.sum_const, smul_one_eq_cast]
   · norm_cast
-    simp [← card_lcm_eq (squarefree_of_mem_divisors_prodPrimes hn), eq_comm]
+    simp [← card_pair_lcm_eq (squarefree_of_mem_divisors_prodPrimes hn), eq_comm]
   norm_num
 
 theorem selberg_bound_simple_errSum :

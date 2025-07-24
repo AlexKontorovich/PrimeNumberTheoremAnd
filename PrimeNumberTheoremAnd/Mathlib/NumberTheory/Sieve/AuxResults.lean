@@ -5,6 +5,7 @@ Author: Arend Mellendijk
 
 ! This file was ported from Lean 3 source module aux_results
 -/
+import Mathlib.Algebra.Order.Antidiag.Nat
 import Mathlib.Analysis.Asymptotics.Lemmas
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
@@ -15,7 +16,6 @@ import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
 import Mathlib.NumberTheory.ArithmeticFunction
-import PrimeNumberTheoremAnd.Mathlib.Data.Nat.FinMulAntidiagonal
 
 noncomputable section
 
@@ -240,8 +240,8 @@ theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (h
   · apply sum_congr rfl; intro d hd
     rw [mem_divisors] at hd
     simp_rw [ite_and];
-    rw [←sum_filter, Finset.sum_const, ←finMulAntidiagonal_univ_eq hd.1 hd.2, card_finMulAntidiagonal
-      <| hP.squarefree_of_dvd hd.1, if_pos hd.1]
+    rw [← sum_filter, Finset.sum_const, ← finMulAntidiag_eq_piFinset_divisors_filter hd.1 hd.2,
+      card_finMulAntidiag_of_squarefree <| hP.squarefree_of_dvd hd.1, if_pos hd.1]
     simp only [div_eq_mul_inv, one_mul, nsmul_eq_mul, cast_pow, mul_ite, mul_zero]
   · rw [sum_comm]; apply sum_congr rfl; intro a _; rw [sum_eq_single (∏ i, a i)]
     · apply if_ctx_congr _ _ (fun _ => rfl); rw [Iff.comm, iff_and_self]; exact fun _ => rfl
