@@ -7548,13 +7548,26 @@ theorem MediumPNT : ∃ c > 0,
     rw [this]
     grw [x_bnd]
 
+--  have event_4_aux2  : const3 * Real.log x ^ (pow1 - 1) ≤
+
   have event_4_aux1 {const1 : ℝ} (const1_lt : const1 < 1) (const2 const3 : ℝ)
       {pow1 : ℝ} (pow1_lt : pow1 < 1) : ∀ᶠ (x : ℝ) in atTop,
       const1 * Real.log x + const2 * Real.log x ^ pow1
         ≤ Real.log x - const3 * Real.log x ^ pow1 := by
     filter_upwards [eventually_gt_atTop 3] with x hx
+    have : const1 * Real.log x + const2 * Real.log x ^ pow1 =
+        (const1 + const2 * Real.log x ^ (pow1 - 1))  * Real.log x := by
+      sorry
+    rw [this]
+    have : Real.log x - const3 * Real.log x ^ pow1 =
+      (1 - const3 * Real.log x ^ (pow1 - 1)) * Real.log x := by sorry
+    rw [this]
+    gcongr
+    · apply Real.log_nonneg
+      linarith
+    ·
 
-    sorry
+      sorry
 
   have event_4_aux : ∀ᶠ (x : ℝ) in atTop,
       c₅ * rexp (σ₂ * Real.log x + (A ^ ((1 : ℝ) / 10) / 2) * Real.log x ^ ((1 : ℝ) / 10)) ≤
