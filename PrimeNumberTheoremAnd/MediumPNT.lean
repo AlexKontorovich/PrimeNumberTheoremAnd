@@ -7156,7 +7156,7 @@ open Filter Topology
 /-%%
 \section{MediumPNT}
 
-\begin{theorem}[MediumPNT]\label{MediumPNT}  We have
+\begin{theorem}[MediumPNT]\label{MediumPNT}\leanok  We have
 $$ \sum_{n \leq x} \Lambda(n) = x + O(x \exp(-c(\log x)^{1/10})).$$
 \end{theorem}
 %%-/
