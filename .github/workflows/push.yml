@@ -46,6 +46,9 @@ jobs:
           mkdir -p docs
           mv blueprint/web docs/
 
+      - name: Upstreaming dashboard
+        run: python3 scripts/upstreaming_dashboard.py
+
       - name: Clear previously saved blueprint cache
         uses: DareFox/delete-cache-by-key@v1.0.1
         with:
