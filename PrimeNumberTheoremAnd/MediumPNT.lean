@@ -7581,16 +7581,25 @@ theorem MediumPNT : ∃ c > 0,
   have event_4 : ∀ᶠ (x : ℝ) in atTop, c₅ * x ^ σ₂ / (εx x) ≤
       c₅ * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
     unfold εx c_εx c
-    filter_upwards [event_4_aux] with x hx
+    filter_upwards [event_4_aux, eventually_gt_atTop 0] with x hx xpos
     convert hx using 1
     · rw [← mul_div]
       congr! 1
-      sorry
+      rw [div_eq_mul_inv, ← Real.exp_neg]
+      conv =>
+        enter [1, 1, 1]
+        rw [← Real.exp_log xpos]
+      rw [← exp_mul, ← Real.exp_add]
+      ring_nf
 
     · rw [mul_assoc]
       congr! 1
+      conv =>
+        enter [1, 1]
+        rw [← Real.exp_log xpos]
+      rw [← Real.exp_add]
+      ring_nf
 
-      sorry
 
   filter_upwards [eventually_gt_atTop 3, eventually_εx_lt_one, eventually_2_lt,
     eventually_T_gt_3, eventually_T_gt_Tlb₄, eventually_T_gt_Tlb₆,
