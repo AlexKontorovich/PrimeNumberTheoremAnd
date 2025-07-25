@@ -7548,9 +7548,29 @@ theorem MediumPNT : ∃ c > 0,
     rw [this]
     grw [x_bnd]
 
+  have event_4_aux4 {pow2 : ℝ} (pow2_neg : pow2 < 0) {c : ℝ} (cpos : 0 < c) (c' : ℝ) :
+      Tendsto (fun x ↦ c' * Real.log x ^ pow2) atTop (𝓝 0) := by
+    rw [← mul_zero c']
+    apply Tendsto.const_mul
+    have := tendsto_rpow_neg_atTop (y := -pow2) (by linarith)
+    rw [neg_neg] at this
+    apply this.comp
+    exact Real.tendsto_log_atTop
+
+  have event_4_aux3 {pow2 : ℝ} (pow2_neg : pow2 < 0) {c : ℝ} (cpos : 0 < c) (c' : ℝ) :
+      ∀ᶠ (x : ℝ) in atTop, c' * (Real.log x) ^ pow2 < c := by
+    apply (event_4_aux4 pow2_neg cpos c').eventually_lt_const
+    exact cpos
+
   have event_4_aux2 {c1 : ℝ} (c1pos : 0 < c1) (c2 : ℝ) {pow1 : ℝ} (pow1_lt : pow1 < 1) :
-      ∀ᶠ (x : ℝ) in atTop, 0 ≤ c1 * Real.log x - c2 * (Real.log x) ^ pow1 := by
-    sorry
+      ∀ᶠ (x : ℝ) in atTop, 0 ≤ Real.log x * (c1 - c2 * (Real.log x) ^ (pow1 - 1)) := by
+    filter_upwards [eventually_gt_atTop 3 , event_4_aux3 (by linarith : pow1 - 1 < 0)
+      (by linarith : 0 < c1 / 2) c2] with x x_gt hx
+    have : 0 ≤ Real.log x := by
+      apply Real.log_nonneg
+      linarith
+    apply mul_nonneg this
+    linarith
 
   have event_4_aux1 {const1 : ℝ} (const1_lt : const1 < 1) (const2 const3 : ℝ)
       {pow1 : ℝ} (pow1_lt : pow1 < 1) : ∀ᶠ (x : ℝ) in atTop,
@@ -7563,7 +7583,30 @@ theorem MediumPNT : ∃ c > 0,
       Real.log x - const3 * Real.log x ^ pow1 - (const1 * Real.log x + const2 * Real.log x ^ pow1)
       = (1 - const1) * Real.log x - (const2 + const3) * Real.log x ^ pow1 := by ring
     rw [this]
-    exact hx
+    convert hx using 1
+    ring_nf
+    congr! 1
+    have : Real.log x * const2 * Real.log x ^ (-1 + pow1)
+        = const2 * Real.log x ^ pow1 := by
+      rw [mul_assoc, mul_comm, mul_assoc]
+      congr! 1
+      conv =>
+        enter [1, 2]
+        rw [← Real.rpow_one (Real.log x)]
+      rw [← Real.rpow_add (Real.log_pos (by linarith))]
+      ring_nf
+    rw [this]
+    have : Real.log x * const3 * Real.log x ^ (-1 + pow1)
+        = const3 * Real.log x ^ pow1 := by
+      rw [mul_assoc, mul_comm, mul_assoc]
+      congr! 1
+      conv =>
+        enter [1, 2]
+        rw [← Real.rpow_one (Real.log x)]
+      rw [← Real.rpow_add (Real.log_pos (by linarith))]
+      ring_nf
+    rw [this]
+
 
 
   have event_4_aux : ∀ᶠ (x : ℝ) in atTop,
