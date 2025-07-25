@@ -7823,9 +7823,9 @@ theorem MediumPNT : ∃ c > 0,
 /-%%
 \begin{proof}
 \uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval, LogDerivZetaBndUniform, LogDerivZetaHolcSmallT, LogDerivZetaHolcLargeT,
-SmoothedChebyshevPull1, SmoothedChebyshevPull2, I1Bound, I2Bound, I3Bound, I4Bound, I5Bound}
+SmoothedChebyshevPull1, SmoothedChebyshevPull2, I1Bound, I2Bound, I3Bound, I4Bound, I5Bound}\leanok
   Evaluate the integrals.
 \end{proof}
 %%-/
 
--- #check MediumPNT
+#print axioms MediumPNT
