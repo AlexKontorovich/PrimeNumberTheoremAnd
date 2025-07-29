@@ -267,34 +267,7 @@ explained by the aforementioned structure...]
 %%-/
 
 
-/-%%
-\begin{definition}[MellinTransform]\label{MellinTransform}\lean{MellinTransform}\leanok
-Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mellin transform of
-$f$ to be
-the function $\mathcal{M}(f)$ from $\mathbb{C}$ to $\mathbb{C}$ defined by
-$$\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx.$$
-\end{definition}
-[Note: already exists in Mathlib, with some good API.]
-%%-/
-
 local notation (name := mellintransform) "𝓜" => mellin
-/-%%
-\begin{definition}[MellinInverseTransform]\label{MellinInverseTransform}
-\lean{MellinInverseTransform}\leanok
-Let $F$ be a function from $\mathbb{C}$ to $\mathbb{C}$. We define the Mellin inverse transform of
-$F$ to be the function $\mathcal{M}^{-1}(F)$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
-$$\mathcal{M}^{-1}(F)(x) = \frac{1}{2\pi i}\int_{(\sigma)}F(s)x^{-s}ds,$$
-where $\sigma$ is sufficiently large (say $\sigma>2$).
-\end{definition}
-%%-/
-noncomputable def MellinInverseTransform (F : ℂ → ℂ) (σ : ℝ) (x : ℝ) : ℂ :=
-  VerticalIntegral' (fun s ↦ x ^ (-s) * F s) σ
-
-lemma MellinInverseTransform_eq (σ : ℝ) (f : ℂ → ℂ) :
-    MellinInverseTransform f σ = mellinInv σ f := by
-  unfold mellinInv MellinInverseTransform VerticalIntegral' VerticalIntegral
-  beta_reduce; ext x
-  rw [← smul_assoc, smul_eq_mul (b := I), div_mul]; simp
 
 /-%%
 \begin{theorem}[MellinInversion]\label{MellinInversion}\lean{MellinInversion}\leanok
@@ -310,41 +283,11 @@ $$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
 %%-/
 theorem MellinInversion (σ : ℝ) {f : ℝ → ℂ} {x : ℝ} (hx : 0 < x) (hf : MellinConvergent f σ)
     (hFf : VerticalIntegrable (mellin f) σ) (hfx : ContinuousAt f x) :
-    MellinInverseTransform (𝓜 f) σ x = f x := by
-  rw [MellinInverseTransform_eq, mellin_inversion σ f hx hf hFf hfx]
+    mellinInv σ (𝓜 f) x = f x := by
+  rw [mellin_inversion σ f hx hf hFf hfx]
 /-%%
 \begin{proof}\leanok
-\uses{PartialIntegration, formulaLtOne, formulaGtOne, MellinTransform,
-MellinInverseTransform, PerronInverseMellin_gt, PerronInverseMellin_lt}
-%MellinInversion_aux1, MellinInversion_aux2, MellinInversion_aux3,
-%MellinInversion_aux4, }
-The proof is from [Goldfeld-Kontorovich 2012].
-Integrate by parts twice (assuming $f$ is twice differentiable, and all occurring
-integrals converge absolutely, and
-boundary terms vanish).
-$$
-\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx = - \int_0^\infty f'(x)x^s\frac{1}{s}dx
-= \int_0^\infty f''(x)x^{s+1}\frac{1}{s(s+1)}dx.
-$$
-We now have at least quadratic decay in $s$ of the Mellin transform. Inserting this
-formula into the inversion formula and Fubini-Tonelli (we now have absolute
-convergence!) gives:
-$$
-RHS = \frac{1}{2\pi i}\left(\int_{(\sigma)}\int_0^\infty
-  f''(t)t^{s+1}\frac{1}{s(s+1)}dt\right) x^{-s}ds
-$$
-$$
-= \int_0^\infty f''(t) t \left( \frac{1}{2\pi i}
-\int_{(\sigma)}(t/x)^s\frac{1}{s(s+1)}ds\right) dt.
-$$
-Apply the Perron formula to the inside:
-$$
-= \int_x^\infty f''(t) t \left(1-\frac{x}{t}\right)dt
-= -\int_x^\infty f'(t) dt
-= f(x),
-$$
-where we integrated by parts (undoing the first partial integration), and finally
-applied the fundamental theorem of calculus (undoing the second).
+Already in Mathlib.
 \end{proof}
 %%-/
 

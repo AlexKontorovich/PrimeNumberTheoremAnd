@@ -344,13 +344,14 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
     have n_pos : 0 < n := by
       simpa only [n_zero, gt_iff_lt, false_or] using (Nat.eq_zero_or_pos n)
     congr
-    rw [(by rw [div_mul]; simp : 1 / (2 * π) = 1 / (2 * π * I) * I), mul_assoc]
-    conv => lhs; rhs; rhs; rhs; intro t; rw [mul_comm]; norm_cast
     have := MellinInversion σ (f := fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (x := n / X)
       ?_ ?_ ?_ ?_
     · beta_reduce at this
-      dsimp [MellinInverseTransform, VerticalIntegral] at this
-      rw [this]
+      dsimp [mellinInv, VerticalIntegral] at this
+      convert this using 4
+      · norm_cast
+      · rw [mul_comm]
+        norm_cast
     · exact div_pos (by exact_mod_cast n_pos) (by linarith : 0 < X)
     · apply Smooth1MellinConvergent diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one
       simp only [ofReal_re]
