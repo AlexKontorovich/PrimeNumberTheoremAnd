@@ -276,10 +276,8 @@ $$\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx.$$
 \end{definition}
 [Note: already exists in Mathlib, with some good API.]
 %%-/
-noncomputable def MellinTransform (f : ℝ → ℂ) (s : ℂ) : ℂ :=
-  ∫ x in Ioi 0, f x * x ^ (s - 1)
 
-local notation (name := mellintransform) "𝓜" => MellinTransform
+local notation (name := mellintransform) "𝓜" => mellin
 /-%%
 \begin{definition}[MellinInverseTransform]\label{MellinInverseTransform}
 \lean{MellinInverseTransform}\leanok
@@ -435,8 +433,6 @@ Fubini-Tonelli.
 \end{proof}
 %-/
 
-lemma MellinTransform_eq : 𝓜 = mellin := by unfold mellin MellinTransform; simp_rw [smul_eq_mul, mul_comm]
-
 lemma MellinInverseTransform_eq (σ : ℝ) (f : ℂ → ℂ) :
     MellinInverseTransform f σ = mellinInv σ f := by
   unfold mellinInv MellinInverseTransform VerticalIntegral' VerticalIntegral
@@ -458,7 +454,7 @@ $$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
 theorem MellinInversion (σ : ℝ) {f : ℝ → ℂ} {x : ℝ} (hx : 0 < x) (hf : MellinConvergent f σ)
     (hFf : VerticalIntegrable (mellin f) σ) (hfx : ContinuousAt f x) :
     MellinInverseTransform (𝓜 f) σ x = f x := by
-  rw [MellinTransform_eq, MellinInverseTransform_eq, mellin_inversion σ f hx hf hFf hfx]
+  rw [MellinInverseTransform_eq, mellin_inversion σ f hx hf hFf hfx]
 /-%%
 \begin{proof}\leanok
 \uses{PartialIntegration, formulaLtOne, formulaGtOne, MellinTransform,
@@ -588,7 +584,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     (hf : IntegrableOn (fun x y ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)).uncurry
       (Ioi 0 ×ˢ Ioi 0)) :
     𝓜 (MellinConvolution f g) s = 𝓜 f s * 𝓜 g s := by
-  dsimp [MellinTransform, MellinConvolution]
+  dsimp [mellin, MellinConvolution]
   set f₁ : ℝ × ℝ → ℂ := fun ⟨x, y⟩ ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
   calc
     _ = ∫ (x : ℝ) in Ioi 0, ∫ (y : ℝ) in Ioi 0, f₁ (x, y) := ?_
@@ -599,7 +595,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     _ = ∫ (y : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * ∫ (x : ℝ) in Ioi 0, g x * ↑x ^ (s - 1) := ?_
     _ = _ := integral_mul_const _ _
   <;> try (rw [setIntegral_congr_fun (by simp)]; intro y hy; simp only [ofReal_mul])
-  · simp only [integral_mul_const, f₁]
+  · simp only [integral_mul_const, f₁, mul_comm]
   · simp only [integral_mul_const]
     have := integral_comp_mul_right_Ioi (fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)) 0 hy
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := slitPlane_ne_zero (Or.inl hy)
@@ -612,6 +608,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     field_simp [mul_cpow_ofReal_nonneg (LT.lt.le hx) (LT.lt.le hy)]
     ring
   · apply integral_const_mul
+  · congr <;> ext <;> ring
 
 /-%%
 \begin{proof}\leanok
@@ -767,18 +764,17 @@ power.]
 lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2) :
     ∃ C > 0, ∀ (σ₁ : ℝ) (_ : 0 < σ₁) (s : ℂ) (_ : σ₁ ≤ s.re) (_ : s.re ≤ 2),
-    ‖𝓜 (ν ·) s‖ ≤ C * ‖s‖⁻¹ := by
+    ‖𝓜 (fun x ↦ (ν x : ℂ)) s‖ ≤ C * ‖s‖⁻¹ := by
   let f := fun (x : ℝ) ↦ ‖deriv ν x‖
   have cont : ContinuousOn f (Icc (1 / 2) 2) :=
     (Continuous.comp (by continuity) <| diffν.continuous_deriv (by norm_num)).continuousOn
   obtain ⟨a, _, max⟩ := isCompact_Icc.exists_isMaxOn (f := f) (by norm_num) cont
   let σ₂ : ℝ := 2
   let C : ℝ := f a * 2 ^ σ₂ * (3 / 2)
-  have mainBnd : ∀ (σ₁ : ℝ), 0 < σ₁ → ∀ (s : ℂ), σ₁ ≤ s.re → s.re ≤ 2 → ‖𝓜 (fun x ↦ ↑(ν x)) s‖ ≤ C * ‖s‖⁻¹ := by
+  have mainBnd : ∀ (σ₁ : ℝ), 0 < σ₁ → ∀ (s : ℂ), σ₁ ≤ s.re → s.re ≤ 2 → ‖𝓜 (fun x ↦ (ν x : ℂ)) s‖ ≤ C * ‖s‖⁻¹ := by
     intro σ₁ σ₁pos s hs₁ hs₂
     have s_ne_zero: s ≠ 0 := fun h ↦ by linarith [zero_re ▸ h ▸ hs₁]
-    simp only [MellinTransform, f, MellinOfPsi_aux diffν suppν s_ne_zero, norm_norm, norm_mul]
-    conv => rhs; rw [mul_comm]
+    simp only [mellin, f, MellinOfPsi_aux diffν suppν s_ne_zero, norm_norm, norm_mul, smul_eq_mul, mul_comm]
     gcongr; simp
     calc
       _ ≤ ∫ (x : ℝ) in Ioi 0, ‖(deriv ν x * (x : ℂ) ^ s)‖ := ?_
@@ -805,7 +801,7 @@ lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
         convert mul_le_mul f_bound pow_bound (norm_nonneg _) ?_ using 1 <;> simp [f]
   have Cnonneg : 0 ≤ C := by
     have hh := mainBnd 1 (by norm_num) ((3 : ℂ) / 2) (by norm_num) (by norm_num)
-    have hhh : 0 ≤ ‖𝓜 (fun x ↦ ↑(ν x)) ((3 : ℂ) / 2)‖ := by positivity
+    have hhh : 0 ≤ ‖𝓜 (fun x ↦ (ν x : ℂ)) ((3 : ℂ) / 2)‖ := by positivity
     have hhhh : 0 < ‖(3 : ℂ) / 2‖⁻¹ := by norm_num
     have := hhh.trans hh
     exact (mul_nonneg_iff_of_pos_right hhhh).mp this
@@ -1001,8 +997,9 @@ $$\mathcal{M}(\nu_\epsilon)(s) = \mathcal{M}(\nu)\left(\epsilon s\right).$$
 \end{theorem}
 %%-/
 theorem MellinOfDeltaSpike (ν : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : ℂ) :
-    𝓜 ((DeltaSpike ν ε) ·) s = 𝓜 (ν ·) (ε * s) := by
-  unfold MellinTransform DeltaSpike
+    𝓜 (fun x ↦ (DeltaSpike ν ε x : ℂ)) s = 𝓜 (fun x ↦ (ν x : ℂ)) (ε * s) := by
+  unfold mellin DeltaSpike
+  conv => rhs; arg 2; ext; rw [smul_eq_mul, mul_comm]
   rw [← integral_comp_rpow_Ioi (fun z ↦ ((ν z) : ℂ) * (z : ℂ) ^ ((ε : ℂ) * s - 1))
     (one_div_ne_zero (ne_of_gt εpos))]
   apply setIntegral_congr_ae measurableSet_Ioi
@@ -1015,7 +1012,7 @@ theorem MellinOfDeltaSpike (ν : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : �
   rw [div_eq_mul_inv, ofReal_mul, abs_of_pos (one_div_pos.mpr εpos)]
   simp only [real_smul, ofReal_mul, ofReal_div, ofReal_one, Complex.ofReal_rpow hx]
   rw [← Complex.cpow_mul _ ?_ ?_, mul_sub]
-  · simp only [← mul_assoc, ofReal_sub, ofReal_div, ofReal_one, mul_one, ofReal_inv]
+  · simp only [← mul_assoc, ofReal_sub, ofReal_div, ofReal_one, mul_one, ofReal_inv, smul_eq_mul]
     symm
     · rw [one_div_mul_cancel (by exact slitPlane_ne_zero (Or.inl εpos)), mul_comm (1 / (ε:ℂ)),
           mul_comm, ← mul_assoc, ← mul_assoc]
@@ -1040,7 +1037,7 @@ $$\mathcal{M}(\nu_\epsilon)(1) =
 %%-/
 
 lemma MellinOfDeltaSpikeAt1 (ν : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) :
-    𝓜 ((DeltaSpike ν ε) ·) 1 = 𝓜 (ν ·) ε := by
+    𝓜 (fun x ↦ (DeltaSpike ν ε x : ℂ)) 1 = 𝓜 (fun x ↦ (ν x : ℂ)) ε := by
   convert MellinOfDeltaSpike ν εpos 1; simp [mul_one]
 /-%%
 \begin{proof}\leanok
@@ -1059,10 +1056,10 @@ $$\mathcal{M}(\nu_\epsilon)(1) = 1+O(\epsilon).$$
 lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ioi 0, ν x / x = 1) :
-    (fun (ε : ℝ) ↦ (𝓜 (ν ·) ε) - 1) =O[𝓝[>]0] id := by
-  have diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) ↦ 𝓜 (ν ·) ε - 1) (Ioi 0) 0 := by
+    (fun (ε : ℝ) ↦ (𝓜 (fun x ↦ (ν x : ℂ)) ε) - 1) =O[𝓝[>]0] id := by
+  have diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) ↦ 𝓜 (fun x ↦ (ν x : ℂ)) ε - 1) (Ioi 0) 0 := by
     apply DifferentiableAt.differentiableWithinAt
-    simp only [(differentiableAt_const _).fun_sub_iff_left, MellinTransform_eq]
+    simp only [(differentiableAt_const _).fun_sub_iff_left]
     refine DifferentiableAt.comp_ofReal ?_
     refine mellin_differentiableAt_of_isBigO_rpow (a := 1) (b := -1) ?_ ?_ (by simp) ?_ (by simp)
     · apply (Continuous.continuousOn ?_).locallyIntegrableOn (by simp)
@@ -1076,8 +1073,8 @@ lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν
   have := ofReal_zero ▸ diff.isBigO_sub
   simp only [sub_sub_sub_cancel_right, sub_zero] at this
   convert this
-  simp only [MellinTransform, zero_sub, sub_right_inj, cpow_neg_one, ← div_eq_mul_inv, ← ofReal_div]
-  rw [← ofReal_one, ← mass_one]; convert integral_ofReal.symm
+  simp only [mellin, zero_sub, sub_right_inj, cpow_neg_one, ← div_eq_mul_inv, ← ofReal_div, smul_eq_mul]
+  rw [← ofReal_one, ← mass_one]; convert integral_ofReal.symm; field_simp
 
 -- lemma MellinOfDeltaSpikeAt1_asymp' {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
 --     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
@@ -1142,9 +1139,8 @@ $$\mathcal{M}(1_{(0,1]})(s) = \frac{1}{s}.$$
 [Note: this already exists in mathlib]
 %%-/
 lemma MellinOf1 (s : ℂ) (h : s.re > 0) : 𝓜 ((fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0)) s = 1 / s := by
-  convert (hasMellin_one_Ioc h).right using 1
-  apply setIntegral_congr_ae measurableSet_Ioi
-  filter_upwards with _ _; rw [smul_eq_mul, mul_comm]; congr
+  convert (hasMellin_one_Ioc h).right
+  congr
 
 /-%%
 \begin{proof}\leanok
@@ -1539,7 +1535,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) =
 lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Icc (1 / 2) 2)
     {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) :
-    𝓜 ((Smooth1 ν ε) ·) s = s⁻¹ * 𝓜 (ν ·) (ε * s) := by
+    𝓜 (fun x ↦ (Smooth1 ν ε x : ℂ)) s = s⁻¹ * 𝓜 (fun x ↦ (ν x : ℂ)) (ε * s) := by
   let f' : ℝ → ℂ := fun x ↦ DeltaSpike ν ε x
   let f : ℝ → ℂ := fun x ↦ DeltaSpike ν ε x / x
   let g : ℝ → ℂ := fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0
@@ -1593,7 +1589,7 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
 
   have : 𝓜 (MellinConvolution g f') s = 𝓜 g s * 𝓜 f' s := by
     rw [mul_comm, ← MellinConvolutionTransform f' g s (by convert int_F using 1; field_simp [F, f, f'])]
-    dsimp [MellinTransform]; rw [setIntegral_congr_fun (by simp)]
+    dsimp [mellin]; rw [setIntegral_congr_fun (by simp)]
     intro x hx; simp_rw [MellinConvolutionSymmetric _ _ <| mem_Ioi.mp hx]
 
   convert this using 1
@@ -1658,7 +1654,7 @@ lemma MellinOfSmooth1b {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2) :
     ∃ (C : ℝ) (_ : 0 < C), ∀ (σ₁ : ℝ) (_ : 0 < σ₁)
     (s) (_ : σ₁ ≤ s.re) (_ : s.re ≤ 2) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
-    ‖𝓜 ((Smooth1 ν ε) ·) s‖ ≤ C * (ε * ‖s‖ ^ 2)⁻¹ := by
+    ‖𝓜 (fun x ↦ (Smooth1 ν ε x : ℂ)) s‖ ≤ C * (ε * ‖s‖ ^ 2)⁻¹ := by
   obtain ⟨C, Cpos, hC⟩ := MellinOfPsi diffν suppν
   refine ⟨C, Cpos, ?_⟩
   intro σ₁ σ₁pos s hs1 hs2 ε εpos ε_lt_one
@@ -1670,7 +1666,7 @@ lemma MellinOfSmooth1b {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
     nlinarith
   calc
-    ‖s⁻¹ * 𝓜 (ν ·) (ε * s)‖ = ‖s⁻¹‖ * ‖𝓜 (ν ·) (ε * s)‖ := by simp
+    ‖s⁻¹ * 𝓜 (fun x ↦ (ν x : ℂ)) (ε * s)‖ = ‖s⁻¹‖ * ‖𝓜 (fun x ↦ (ν x : ℂ)) (ε * s)‖ := by simp
     _                        ≤ ‖s⁻¹‖ * (C * (ε * ‖s‖)⁻¹) := by
       gcongr
       convert hC (ε * σ₁) (by positivity) (ε * s) hh1 hh2
@@ -1718,7 +1714,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(1) = 1+O(\epsilon)).$$
 lemma MellinOfSmooth1c {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Icc (1 / 2) 2)
     (mass_one : ∫ x in Ioi 0, ν x / x = 1) :
-    (fun ε ↦ 𝓜 ((Smooth1 ν ε) ·) 1 - 1) =O[𝓝[>]0] id := by
+    (fun ε ↦ 𝓜 (fun x ↦ (Smooth1 ν ε x : ℂ)) 1 - 1) =O[𝓝[>]0] id := by
   have h := MellinOfDeltaSpikeAt1_asymp diffν suppν mass_one
   rw [Asymptotics.isBigO_iff] at h ⊢
   obtain ⟨c, hc⟩ := h
@@ -1864,7 +1860,6 @@ lemma Smooth1MellinDifferentiable {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDi
     (mass_one : ∫ x in Ioi 0, Ψ x / x = 1)
     {s : ℂ} (hs: 0 < s.re) :
     DifferentiableAt ℂ (𝓜 (fun x ↦ (Smooth1 Ψ ε x : ℂ))) s := by
-  rw [MellinTransform_eq]
   apply mellin_differentiableAt_of_isBigO_rpow_exp zero_lt_one _ _ _ hs
   · apply ContinuousOn.locallyIntegrableOn _ (by measurability)
     apply continuousOn_of_forall_continuousAt
