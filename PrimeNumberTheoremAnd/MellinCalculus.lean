@@ -269,28 +269,6 @@ explained by the aforementioned structure...]
 
 local notation (name := mellintransform) "𝓜" => mellin
 
-/-%%
-\begin{theorem}[MellinInversion]\label{MellinInversion}\lean{MellinInversion}\leanok
-Let $f$ be a twice differentiable function from $\mathbb{R}_{>0}$ to $\mathbb{C}$, and
-let $\sigma$
-be sufficiently large. Then
-$$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
-\end{theorem}
-
-%[Note: How ``nice''? Schwartz (on $(0,\infty)$) is certainly enough. As we formalize
-%this, we can add whatever
-% conditions are necessary for the proof to go through.]
-%%-/
-theorem MellinInversion (σ : ℝ) {f : ℝ → ℂ} {x : ℝ} (hx : 0 < x) (hf : MellinConvergent f σ)
-    (hFf : VerticalIntegrable (mellin f) σ) (hfx : ContinuousAt f x) :
-    mellinInv σ (𝓜 f) x = f x := by
-  rw [mellin_inversion σ f hx hf hFf hfx]
-/-%%
-\begin{proof}\leanok
-Already in Mathlib.
-\end{proof}
-%%-/
-
 
 /-%%
 Finally, we need Mellin Convolutions and properties thereof.

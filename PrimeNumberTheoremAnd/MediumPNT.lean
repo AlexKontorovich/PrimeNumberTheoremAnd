@@ -344,7 +344,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
     have n_pos : 0 < n := by
       simpa only [n_zero, gt_iff_lt, false_or] using (Nat.eq_zero_or_pos n)
     congr
-    have := MellinInversion σ (f := fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (x := n / X)
+    have := mellin_inversion σ (f := fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (x := n / X)
       ?_ ?_ ?_ ?_
     · beta_reduce at this
       dsimp [mellinInv, VerticalIntegral] at this
@@ -364,7 +364,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
         εpos (by positivity)
 /-%%
 \begin{proof}\leanok
-\uses{SmoothedChebyshev, MellinInversion, LogDerivativeDirichlet, Smooth1LeOne, MellinOfSmooth1b,
+\uses{SmoothedChebyshev, LogDerivativeDirichlet, Smooth1LeOne, MellinOfSmooth1b,
 SmoothedChebyshevDirichlet_aux_integrable,
 Smooth1ContinuousAt, SmoothedChebyshevDirichlet_aux_tsum_integral}
 We have that
@@ -379,7 +379,7 @@ $$\psi_{\epsilon}(X) =
 (n/X)^{-s}
 ds
 $$
-and apply the Mellin inversion formula (Theorem \ref{MellinInversion}).
+and apply the Mellin inversion formula.
 \end{proof}
 %%-/
 
