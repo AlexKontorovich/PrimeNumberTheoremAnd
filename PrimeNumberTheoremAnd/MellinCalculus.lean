@@ -412,7 +412,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
 
 /-%%
 \begin{proof}\leanok
-\uses{MellinTransform,MellinConvolution}
+\uses{MellinConvolution}
 By Definitions \ref{MellinTransform} and \ref{MellinConvolution}
 $$
   \mathcal M(f\ast g)(s)=
@@ -692,7 +692,7 @@ lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
 
 /-%%
 \begin{proof}\leanok
-\uses{MellinTransform, SmoothExistence}
+\uses{SmoothExistence}
 Integrate by parts:
 $$
 \left|\int_0^\infty \nu(x)x^s\frac{dx}{x}\right| =
@@ -821,7 +821,7 @@ theorem MellinOfDeltaSpike (ν : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : �
   · simp [im_mul_ofReal, log_x_real, zero_mul, pi_nonneg]
 /-%%
 \begin{proof}\leanok
-\uses{DeltaSpike, MellinTransform}
+\uses{DeltaSpike}
 Substitute $y=x^{1/\epsilon}$, use Haar measure; direct calculation.
 \end{proof}
 %%-/
@@ -897,7 +897,7 @@ lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν
 
 /-%%
 \begin{proof}\leanok
-\uses{MellinTransform,MellinOfDeltaSpikeAt1,SmoothExistence}
+\uses{MellinOfDeltaSpikeAt1,SmoothExistence}
 By Lemma \ref{MellinOfDeltaSpikeAt1},
 $$
   \mathcal M(\nu_\epsilon)(1)=\mathcal M(\nu)(\epsilon)
@@ -944,7 +944,6 @@ lemma MellinOf1 (s : ℂ) (h : s.re > 0) : 𝓜 ((fun x ↦ if 0 < x ∧ x ≤ 1
 
 /-%%
 \begin{proof}\leanok
-\uses{MellinTransform}
 This is a straightforward calculation.
 \end{proof}
 %%-/
