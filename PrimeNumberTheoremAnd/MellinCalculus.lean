@@ -776,27 +776,13 @@ $$\mathcal{M}(\nu_\epsilon)(s) = \mathcal{M}(\nu)\left(\epsilon s\right).$$
 %%-/
 theorem MellinOfDeltaSpike (ν : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : ℂ) :
     𝓜 (fun x ↦ (DeltaSpike ν ε x : ℂ)) s = 𝓜 (fun x ↦ (ν x : ℂ)) (ε * s) := by
-  unfold mellin DeltaSpike
-  conv => rhs; arg 2; ext; rw [smul_eq_mul, mul_comm]
-  rw [← integral_comp_rpow_Ioi (fun z ↦ ((ν z) : ℂ) * (z : ℂ) ^ ((ε : ℂ) * s - 1))
-    (one_div_ne_zero (ne_of_gt εpos))]
-  apply setIntegral_congr_ae measurableSet_Ioi
-  filter_upwards with x hx
+  unfold DeltaSpike
+  push_cast
+  rw [mellin_div_const, mellin_comp_rpow (fun x ↦ (ν x : ℂ)), abs_of_nonneg (by positivity)]
+  simp only [one_div, inv_inv, ofReal_inv, div_inv_eq_mul, real_smul]
+  rw [mul_div_cancel_left₀ _ (ne_zero_of_re_pos εpos)]
+  ring_nf
 
-  -- Simple algebra, would be nice if some tactic could handle this
-  have log_x_real: (Complex.log (x : ℂ)).im = 0 := by
-    rw [← ofReal_log, ofReal_im]
-    exact LT.lt.le hx
-  rw [div_eq_mul_inv, ofReal_mul, abs_of_pos (one_div_pos.mpr εpos)]
-  simp only [real_smul, ofReal_mul, ofReal_div, ofReal_one, Complex.ofReal_rpow hx]
-  rw [← Complex.cpow_mul _ ?_ ?_, mul_sub]
-  · simp only [← mul_assoc, ofReal_sub, ofReal_div, ofReal_one, mul_one, ofReal_inv, smul_eq_mul]
-    symm
-    · rw [one_div_mul_cancel (by exact slitPlane_ne_zero (Or.inl εpos)), mul_comm (1 / (ε:ℂ)),
-          mul_comm, ← mul_assoc, ← mul_assoc]
-      rw [← Complex.cpow_add _ _ (by exact slitPlane_ne_zero (Or.inl hx))]; ring_nf
-  · simp [im_mul_ofReal, log_x_real, zero_mul, pi_pos]
-  · simp [im_mul_ofReal, log_x_real, zero_mul, pi_nonneg]
 /-%%
 \begin{proof}\leanok
 \uses{DeltaSpike}
