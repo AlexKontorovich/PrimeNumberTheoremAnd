@@ -1,6 +1,8 @@
+import Batteries.Tactic.Lemma
+import Mathlib.Tactic.Bound
+import Mathlib.Tactic.GCongr
 import PrimeNumberTheoremAnd.Auxiliary
 import Mathlib.Analysis.MellinInversion
-import PrimeNumberTheoremAnd.PerronFormula
 import Mathlib.Algebra.GroupWithZero.Units.Basic
 
 open scoped ContDiff
@@ -93,9 +95,6 @@ lemma Function.support_abs {α : Type*} (f : α → 𝕂):
 lemma Function.support_ofReal {f : ℝ → ℝ} :
     (fun x ↦ ((f x) : ℂ)).support = f.support := by
   apply Function.support_comp_eq (g := ofReal); simp [ofReal_zero]
-
-lemma Function.support_id : Function.support (fun x : ℝ ↦ x) = Iio 0 ∪ Ioi 0 := by
-  ext x; simp only [mem_support, ne_eq, Iio_union_Ioi, mem_compl_iff, mem_singleton_iff]
 
 lemma Function.support_mul_subset_of_subset {s : Set ℝ} {f g : ℝ → 𝕂} (fSupp : f.support ⊆ s) :
     (f * g).support ⊆ s := by
@@ -267,233 +266,7 @@ explained by the aforementioned structure...]
 %%-/
 
 
-/-%%
-\begin{definition}[MellinTransform]\label{MellinTransform}\lean{MellinTransform}\leanok
-Let $f$ be a function from $\mathbb{R}_{>0}$ to $\mathbb{C}$. We define the Mellin transform of
-$f$ to be
-the function $\mathcal{M}(f)$ from $\mathbb{C}$ to $\mathbb{C}$ defined by
-$$\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx.$$
-\end{definition}
-[Note: already exists in Mathlib, with some good API.]
-%%-/
-noncomputable def MellinTransform (f : ℝ → ℂ) (s : ℂ) : ℂ :=
-  ∫ x in Ioi 0, f x * x ^ (s - 1)
-
-local notation (name := mellintransform) "𝓜" => MellinTransform
-/-%%
-\begin{definition}[MellinInverseTransform]\label{MellinInverseTransform}
-\lean{MellinInverseTransform}\leanok
-Let $F$ be a function from $\mathbb{C}$ to $\mathbb{C}$. We define the Mellin inverse transform of
-$F$ to be the function $\mathcal{M}^{-1}(F)$ from $\mathbb{R}_{>0}$ to $\mathbb{C}$ defined by
-$$\mathcal{M}^{-1}(F)(x) = \frac{1}{2\pi i}\int_{(\sigma)}F(s)x^{-s}ds,$$
-where $\sigma$ is sufficiently large (say $\sigma>2$).
-\end{definition}
-%%-/
-noncomputable def MellinInverseTransform (F : ℂ → ℂ) (σ : ℝ) (x : ℝ) : ℂ :=
-  VerticalIntegral' (fun s ↦ x ^ (-s) * F s) σ
-
-/-%%
-\begin{lemma}[PerronInverseMellin_lt]\label{PerronInverseMellin_lt}\lean{PerronInverseMellin_lt}
-\leanok
-Let $0 < t < x$ and $\sigma>0$. Then the inverse Mellin transform of the Perron function
-$$F: s\mapsto t^s/s(s+1)$$ is equal to
-$$\frac{1}{2\pi i}\int_{(\sigma)}\frac{t^s}{s(s+1)}x^{-s}ds
-= 0.$$
-\end{lemma}
-%%-/
-lemma PerronInverseMellin_lt {t x : ℝ} (tpos : 0 < t) (t_lt_x : t < x) {σ : ℝ} (σpos : 0 < σ) :
-    MellinInverseTransform (Perron.f t) σ x = 0 := by
-  dsimp [MellinInverseTransform, VerticalIntegral']
-  have xpos : 0 < x := lt_trans tpos t_lt_x
-  simp only [one_div, mul_inv_rev, inv_I, neg_mul, neg_eq_zero, mul_eq_zero, I_ne_zero,
-    inv_eq_zero, ofReal_eq_zero, pi_ne_zero, OfNat.ofNat_ne_zero, or_self, false_or]
-  convert Perron.formulaLtOne (div_pos tpos xpos) ((div_lt_one xpos).mpr t_lt_x) σpos using 2
-  ext1 s
-  convert Perron.f_mul_eq_f tpos xpos s using 1
-  ring
-/-%%
-\begin{proof}\leanok
-\uses{formulaLtOne}
-This is a straightforward calculation.
-\end{proof}
-%%-/
-
-/-%%
-\begin{lemma}[PerronInverseMellin_gt]\label{PerronInverseMellin_gt}\lean{PerronInverseMellin_gt}
-\leanok
-Let $0 < x < t$ and $\sigma>0$. Then the inverse Mellin transform of the Perron function is equal
-to
-$$\frac{1}{2\pi i}\int_{(\sigma)}\frac{t^s}{s(s+1)}x^{-s}ds = 1 - x / t.$$
-\end{lemma}
-%%-/
-lemma PerronInverseMellin_gt {t x : ℝ} (xpos : 0 < x) (x_lt_t : x < t) {σ : ℝ} (σpos : 0 < σ) :
-    MellinInverseTransform (Perron.f t) σ x = 1 - x / t := by
-  dsimp [MellinInverseTransform]
-  have tpos : 0 < t := by linarith
-  have txinv_gtOne : 1 < t / x := (one_lt_div xpos).mpr x_lt_t
-  rw [← smul_eq_mul]
-  convert Perron.formulaGtOne txinv_gtOne σpos using 2
-  · congr
-    ext1 s
-    convert Perron.f_mul_eq_f tpos xpos s using 1
-    ring
-  · field_simp
-/-%%
-\begin{proof}
-\uses{formulaGtOne}\leanok
-This is a straightforward calculation.
-\end{proof}
-%%-/
-
-/-% ** Wrong delimiters on purpose **
-Unnecessary lemma:
-%\begin{lemma}[MellinInversion_aux1]\label{MellinInversion_aux1}\lean{MellinInversion_aux1}\leanok
-Let $f$ be differentiable on $(0,\infty)$, and assume that $f(x)x^s\to 0$ as $x\to 0$, and that
-$f(x)x^s\to 0$.
-Then
-$$
-\int_0^\infty f(x)x^s\frac{dx}{x} = \frac{1}{s}\int_0^\infty f'(x)x^{s} dx.
-$$
-%\end{lemma}
-%-/
--- lemma MellinInversion_aux1 {f : ℝ → ℂ} {s : ℂ} (s_ne_zero : s ≠ 0)
---     (fDiff : DifferentiableOn ℝ f (Ioi 0))
---     (hfs : Tendsto (fun x ↦ f x * x ^ s) (𝓝[>]0) (𝓝 0))
---     (hfinf : Tendsto (fun x ↦ f x * x ^ s) atTop (𝓝 0)) :
---     ∫ x in Ioi 0, f x * x ^ s / x = - ∫ x in Ioi 0, (deriv f x) * x ^ s / s := by
---   sorry
-
-/-% ** Wrong delimiters on purpose **
-\begin{proof}
-\uses{PartialIntegration}
-Partial integration.
-\end{proof}
-%-/
-
-/-% ** Wrong delimiters on purpose **
-\begin{lemma}[MellinInversion_aux2]\label{MellinInversion_aux2}\lean{MellinInversion_aux2}\leanok
-Let $f$ be twice differentiable on $(0,\infty)$, and assume that $f'(x)x^s\to 0$ as $x\to 0$, and
-that $f'(x)x^s\to 0$.
-Then
-$$
-\int_0^\infty f'(x)x^{s} dx = -\int_0^\infty f''(x)x^{s+1}\frac{1}{(s+1)}dx.
-$$
-\end{lemma}
-%-/
--- lemma MellinInversion_aux2 {f : ℝ → ℂ} (s : ℂ) (fDiff : DifferentiableOn ℝ f (Ioi 0))
---     (fDiff2 : DifferentiableOn ℝ (deriv f) (Ioi 0))
---     (hfs : Tendsto (fun x ↦ deriv f x * x ^ s) (𝓝[>]0) (𝓝 0))
---     (hfinf : Tendsto (fun x ↦ deriv f x * x ^ s) atTop (𝓝 0)) :
---     ∫ x in Ioi 0, (deriv f x) * x ^ s =
---       -∫ x in Ioi 0, (deriv (deriv f) x) * x ^ (s + 1) / (s + 1) := by
---   sorry
-/-%
-\begin{proof}
-\uses{PartialIntegration, MellinInversion_aux1}
-Partial integration. (Apply Lemma \ref{MellinInversion_aux1} to the function $f'$ and $s+1$.)
-\end{proof}
-%-/
-
-/-% ** Wrong delimiters on purpose **
-\begin{lemma}[MellinInversion_aux3]%\label{MellinInversion_aux3}\lean{MellinInversion_aux3}\leanok
-Given $f$ and $\sigma$, assume that $f(x)x^\sigma$ is absolutely integrable on $(0,\infty)$.
-Then the map  $(x,s) \mapsto f(x)x^s/(s(s+1))$ is absolutely integrable on
-$(0,\infty)\times\{\Re s = \sigma\}$ for any $\sigma>0$.
-\end{lemma}
-%-/
--- lemma MellinInversion_aux3 {f : ℝ → ℂ} (σ : ℝ) (σ_ne_zero : σ ≠ 0) (σ_ne_negOne : σ ≠ -1)
---     (fInt : IntegrableOn (fun x ↦ f x * (x : ℂ) ^ (σ : ℂ)) (Ioi 0)) :
---     IntegrableOn (fun (⟨x, t⟩ : ℝ × ℝ) ↦ f x * x ^ (σ + t * I) / ((σ + t * I) * ((σ + t * I) + 1)))
---       ((Ioi 0).prod (univ : Set ℝ)) := by
---   sorry
-/-%
-\begin{proof}
-Put absolute values and estimate.
-\end{proof}
-%-/
-
-/-% ** Wrong delimiters on purpose **
-\begin{lemma}[MellinInversion_aux4]%\label{MellinInversion_aux4}\lean{MellinInversion_aux4}\leanok
-Given $f$ and $\sigma$, assume that $f(x)x^\sigma$ is absolutely integrable on $(0,\infty)$.
-Then we can interchange orders of integration
-$$
-\int_{(\sigma)}\int_0^\infty f(x)x^{s+1}\frac{1}{s(s+1)}dx ds =
-\int_0^\infty
-\int_{(\sigma)}f(x)x^{s+1}\frac{1}{s(s+1)}ds dx.
-$$
-\end{lemma}
-%-/
--- lemma MellinInversion_aux4 {f : ℝ → ℂ} (σ : ℝ) (σ_ne_zero : σ ≠ 0) (σ_ne_negOne : σ ≠ -1)
---     (fInt : IntegrableOn (fun x ↦ f x * (x : ℂ) ^ (σ : ℂ)) (Ioi 0)) :
---     VerticalIntegral (fun s ↦ ∫ x in Ioi 0, f x * (x : ℂ) ^ (s + 1) / (s * (s + 1))) σ =
---       ∫ x in Ioi 0, VerticalIntegral (fun s ↦ f x * (x : ℂ) ^ (s + 1) / (s * (s + 1))) σ := by
---   sorry -- `MeasureTheory.integral_prod` and `MeasureTheory.integral_swap` should be useful here
-/-%
-\begin{proof}
-\uses{MellinInversion_aux3}
-Fubini-Tonelli.
-\end{proof}
-%-/
-
-lemma MellinTransform_eq : 𝓜 = mellin := by unfold mellin MellinTransform; simp_rw [smul_eq_mul, mul_comm]
-
-lemma MellinInverseTransform_eq (σ : ℝ) (f : ℂ → ℂ) :
-    MellinInverseTransform f σ = mellinInv σ f := by
-  unfold mellinInv MellinInverseTransform VerticalIntegral' VerticalIntegral
-  beta_reduce; ext x
-  rw [← smul_assoc, smul_eq_mul (b := I), div_mul]; simp
-
-/-%%
-\begin{theorem}[MellinInversion]\label{MellinInversion}\lean{MellinInversion}\leanok
-Let $f$ be a twice differentiable function from $\mathbb{R}_{>0}$ to $\mathbb{C}$, and
-let $\sigma$
-be sufficiently large. Then
-$$f(x) = \frac{1}{2\pi i}\int_{(\sigma)}\mathcal{M}(f)(s)x^{-s}ds.$$
-\end{theorem}
-
-%[Note: How ``nice''? Schwartz (on $(0,\infty)$) is certainly enough. As we formalize
-%this, we can add whatever
-% conditions are necessary for the proof to go through.]
-%%-/
-theorem MellinInversion (σ : ℝ) {f : ℝ → ℂ} {x : ℝ} (hx : 0 < x) (hf : MellinConvergent f σ)
-    (hFf : VerticalIntegrable (mellin f) σ) (hfx : ContinuousAt f x) :
-    MellinInverseTransform (𝓜 f) σ x = f x := by
-  rw [MellinTransform_eq, MellinInverseTransform_eq, mellin_inversion σ f hx hf hFf hfx]
-/-%%
-\begin{proof}\leanok
-\uses{PartialIntegration, formulaLtOne, formulaGtOne, MellinTransform,
-MellinInverseTransform, PerronInverseMellin_gt, PerronInverseMellin_lt}
-%MellinInversion_aux1, MellinInversion_aux2, MellinInversion_aux3,
-%MellinInversion_aux4, }
-The proof is from [Goldfeld-Kontorovich 2012].
-Integrate by parts twice (assuming $f$ is twice differentiable, and all occurring
-integrals converge absolutely, and
-boundary terms vanish).
-$$
-\mathcal{M}(f)(s) = \int_0^\infty f(x)x^{s-1}dx = - \int_0^\infty f'(x)x^s\frac{1}{s}dx
-= \int_0^\infty f''(x)x^{s+1}\frac{1}{s(s+1)}dx.
-$$
-We now have at least quadratic decay in $s$ of the Mellin transform. Inserting this
-formula into the inversion formula and Fubini-Tonelli (we now have absolute
-convergence!) gives:
-$$
-RHS = \frac{1}{2\pi i}\left(\int_{(\sigma)}\int_0^\infty
-  f''(t)t^{s+1}\frac{1}{s(s+1)}dt\right) x^{-s}ds
-$$
-$$
-= \int_0^\infty f''(t) t \left( \frac{1}{2\pi i}
-\int_{(\sigma)}(t/x)^s\frac{1}{s(s+1)}ds\right) dt.
-$$
-Apply the Perron formula to the inside:
-$$
-= \int_x^\infty f''(t) t \left(1-\frac{x}{t}\right)dt
-= -\int_x^\infty f'(t) dt
-= f(x),
-$$
-where we integrated by parts (undoing the first partial integration), and finally
-applied the fundamental theorem of calculus (undoing the second).
-\end{proof}
-%%-/
+local notation (name := mellintransform) "𝓜" => mellin
 
 
 /-%%
@@ -588,7 +361,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     (hf : IntegrableOn (fun x y ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)).uncurry
       (Ioi 0 ×ˢ Ioi 0)) :
     𝓜 (MellinConvolution f g) s = 𝓜 f s * 𝓜 g s := by
-  dsimp [MellinTransform, MellinConvolution]
+  dsimp [mellin, MellinConvolution]
   set f₁ : ℝ × ℝ → ℂ := fun ⟨x, y⟩ ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)
   calc
     _ = ∫ (x : ℝ) in Ioi 0, ∫ (y : ℝ) in Ioi 0, f₁ (x, y) := ?_
@@ -599,7 +372,7 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     _ = ∫ (y : ℝ) in Ioi 0, f y * ↑y ^ (s - 1) * ∫ (x : ℝ) in Ioi 0, g x * ↑x ^ (s - 1) := ?_
     _ = _ := integral_mul_const _ _
   <;> try (rw [setIntegral_congr_fun (by simp)]; intro y hy; simp only [ofReal_mul])
-  · simp only [integral_mul_const, f₁]
+  · simp only [integral_mul_const, f₁, mul_comm]
   · simp only [integral_mul_const]
     have := integral_comp_mul_right_Ioi (fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)) 0 hy
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := slitPlane_ne_zero (Or.inl hy)
@@ -612,10 +385,11 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     field_simp [mul_cpow_ofReal_nonneg (LT.lt.le hx) (LT.lt.le hy)]
     ring
   · apply integral_const_mul
+  · congr <;> ext <;> ring
 
 /-%%
 \begin{proof}\leanok
-\uses{MellinTransform,MellinConvolution}
+\uses{MellinConvolution}
 By Definitions \ref{MellinTransform} and \ref{MellinConvolution}
 $$
   \mathcal M(f\ast g)(s)=
@@ -638,70 +412,6 @@ $$
   .
 $$
 
-\end{proof}
-%%-/
-
-/-%%
-Let $\nu$ be a bumpfunction.
-\begin{theorem}[SmoothExistence]\label{SmoothExistence}\lean{SmoothExistence}\leanok
-There exists a smooth (once differentiable would be enough), nonnegative ``bumpfunction'' $\nu$,
- supported in $[1/2,2]$ with total mass one:
-$$
-\int_0^\infty \nu(x)\frac{dx}{x} = 1.
-$$
-\end{theorem}
-%%-/
-
-attribute [- simp] one_div in
-
-lemma SmoothExistence : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x, 0 ≤ ν x) ∧
-    ν.support ⊆ Icc (1 / 2) 2 ∧ ∫ x in Ici 0, ν x / x = 1 := by
-  suffices h : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x, 0 ≤ ν x) ∧
-      ν.support ⊆ Set.Icc (1 / 2) 2 ∧ 0 < ∫ x in Set.Ici 0, ν x / x by
-    rcases h with ⟨ν, hν, hνnonneg, hνsupp, hνpos⟩
-    let c := (∫ x in Ici 0, ν x / x)
-    use fun y ↦ ν y / c
-    refine ⟨hν.div_const c, fun y ↦ div_nonneg (hνnonneg y) (le_of_lt hνpos), ?_, ?_⟩
-    · rw [Function.support_div, Function.support_const (ne_of_lt hνpos).symm, inter_univ]
-      convert hνsupp
-    · simp only [div_right_comm _ c _, integral_div c, div_self <| ne_of_gt hνpos, c]
-
-  have := smooth_urysohn_support_Ioo (a := 1 / 2) (b := 1) (c := 3/2) (d := 2) (by linarith)
-    (by linarith)
-  rcases this with ⟨ν, hνContDiff, _, hν0, hν1, hνSupport⟩
-  use ν, hνContDiff
-  unfold indicator at hν0 hν1
-  simp only [mem_Icc, Pi.one_apply, Pi.le_def, mem_Ioo] at hν0 hν1
-  simp only [hνSupport, subset_def, mem_Ioo, mem_Icc, and_imp]
-  split_ands
-  · exact fun x ↦ le_trans (by simp [apply_ite]) (hν0 x)
-  · exact fun y hy hy' ↦ ⟨by linarith, by linarith⟩
-  · rw [integral_pos_iff_support_of_nonneg]
-    · simp only [Function.support_div, measurableSet_Ici, Measure.restrict_apply', hνSupport, Function.support_id]
-      have : (Ioo (1 / 2 : ℝ) 2 ∩ (Iio 0 ∪ Ioi 0) ∩ Ici 0) = Ioo (1 / 2) 2 := by
-        ext x
-        simp only [mem_inter_iff, mem_Ioo, mem_Ici, mem_Iio, mem_Ioi,
-          mem_union, not_lt, and_true, not_le]
-        bound
-      simp only [this, volume_Ioo, ENNReal.ofReal_pos, sub_pos, gt_iff_lt]
-      linarith
-    · simp_rw [Pi.le_def, Pi.zero_apply]
-      intro y
-      by_cases h : y ∈ Function.support ν
-      . apply div_nonneg <| le_trans (by simp [apply_ite]) (hν0 y)
-        rw [hνSupport, mem_Ioo] at h; linarith [h.left]
-      . simp only [Function.mem_support, ne_eq, not_not] at h; simp [h]
-    · have : (fun x ↦ ν x / x).support ⊆ Icc (1 / 2) 2 := by
-        rw [Function.support_div, hνSupport]
-        apply subset_trans (by apply inter_subset_left) Ioo_subset_Icc_self
-      apply (integrableOn_iff_integrable_of_support_subset this).mp
-      apply ContinuousOn.integrableOn_compact isCompact_Icc
-      apply hνContDiff.continuous.continuousOn.div continuousOn_id ?_
-      simp only [mem_Icc, ne_eq, and_imp, id_eq]; intros;linarith
-/-%%
-\begin{proof}\leanok
-\uses{smooth-ury}
-Same idea as Urysohn-type argument.
 \end{proof}
 %%-/
 
@@ -767,18 +477,17 @@ power.]
 lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2) :
     ∃ C > 0, ∀ (σ₁ : ℝ) (_ : 0 < σ₁) (s : ℂ) (_ : σ₁ ≤ s.re) (_ : s.re ≤ 2),
-    ‖𝓜 (ν ·) s‖ ≤ C * ‖s‖⁻¹ := by
+    ‖𝓜 (fun x ↦ (ν x : ℂ)) s‖ ≤ C * ‖s‖⁻¹ := by
   let f := fun (x : ℝ) ↦ ‖deriv ν x‖
   have cont : ContinuousOn f (Icc (1 / 2) 2) :=
     (Continuous.comp (by continuity) <| diffν.continuous_deriv (by norm_num)).continuousOn
   obtain ⟨a, _, max⟩ := isCompact_Icc.exists_isMaxOn (f := f) (by norm_num) cont
   let σ₂ : ℝ := 2
   let C : ℝ := f a * 2 ^ σ₂ * (3 / 2)
-  have mainBnd : ∀ (σ₁ : ℝ), 0 < σ₁ → ∀ (s : ℂ), σ₁ ≤ s.re → s.re ≤ 2 → ‖𝓜 (fun x ↦ ↑(ν x)) s‖ ≤ C * ‖s‖⁻¹ := by
+  have mainBnd : ∀ (σ₁ : ℝ), 0 < σ₁ → ∀ (s : ℂ), σ₁ ≤ s.re → s.re ≤ 2 → ‖𝓜 (fun x ↦ (ν x : ℂ)) s‖ ≤ C * ‖s‖⁻¹ := by
     intro σ₁ σ₁pos s hs₁ hs₂
     have s_ne_zero: s ≠ 0 := fun h ↦ by linarith [zero_re ▸ h ▸ hs₁]
-    simp only [MellinTransform, f, MellinOfPsi_aux diffν suppν s_ne_zero, norm_norm, norm_mul]
-    conv => rhs; rw [mul_comm]
+    simp only [mellin, f, MellinOfPsi_aux diffν suppν s_ne_zero, norm_norm, norm_mul, smul_eq_mul, mul_comm]
     gcongr; simp
     calc
       _ ≤ ∫ (x : ℝ) in Ioi 0, ‖(deriv ν x * (x : ℂ) ^ s)‖ := ?_
@@ -805,7 +514,7 @@ lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
         convert mul_le_mul f_bound pow_bound (norm_nonneg _) ?_ using 1 <;> simp [f]
   have Cnonneg : 0 ≤ C := by
     have hh := mainBnd 1 (by norm_num) ((3 : ℂ) / 2) (by norm_num) (by norm_num)
-    have hhh : 0 ≤ ‖𝓜 (fun x ↦ ↑(ν x)) ((3 : ℂ) / 2)‖ := by positivity
+    have hhh : 0 ≤ ‖𝓜 (fun x ↦ (ν x : ℂ)) ((3 : ℂ) / 2)‖ := by positivity
     have hhhh : 0 < ‖(3 : ℂ) / 2‖⁻¹ := by norm_num
     have := hhh.trans hh
     exact (mul_nonneg_iff_of_pos_right hhhh).mp this
@@ -896,7 +605,7 @@ lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
 
 /-%%
 \begin{proof}\leanok
-\uses{MellinTransform, SmoothExistence}
+\uses{SmoothExistence}
 Integrate by parts:
 $$
 \left|\int_0^\infty \nu(x)x^s\frac{dx}{x}\right| =
@@ -1001,30 +710,17 @@ $$\mathcal{M}(\nu_\epsilon)(s) = \mathcal{M}(\nu)\left(\epsilon s\right).$$
 \end{theorem}
 %%-/
 theorem MellinOfDeltaSpike (ν : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) (s : ℂ) :
-    𝓜 ((DeltaSpike ν ε) ·) s = 𝓜 (ν ·) (ε * s) := by
-  unfold MellinTransform DeltaSpike
-  rw [← integral_comp_rpow_Ioi (fun z ↦ ((ν z) : ℂ) * (z : ℂ) ^ ((ε : ℂ) * s - 1))
-    (one_div_ne_zero (ne_of_gt εpos))]
-  apply setIntegral_congr_ae measurableSet_Ioi
-  filter_upwards with x hx
+    𝓜 (fun x ↦ (DeltaSpike ν ε x : ℂ)) s = 𝓜 (fun x ↦ (ν x : ℂ)) (ε * s) := by
+  unfold DeltaSpike
+  push_cast
+  rw [mellin_div_const, mellin_comp_rpow (fun x ↦ (ν x : ℂ)), abs_of_nonneg (by positivity)]
+  simp only [one_div, inv_inv, ofReal_inv, div_inv_eq_mul, real_smul]
+  rw [mul_div_cancel_left₀ _ (ne_zero_of_re_pos εpos)]
+  ring_nf
 
-  -- Simple algebra, would be nice if some tactic could handle this
-  have log_x_real: (Complex.log (x : ℂ)).im = 0 := by
-    rw [← ofReal_log, ofReal_im]
-    exact LT.lt.le hx
-  rw [div_eq_mul_inv, ofReal_mul, abs_of_pos (one_div_pos.mpr εpos)]
-  simp only [real_smul, ofReal_mul, ofReal_div, ofReal_one, Complex.ofReal_rpow hx]
-  rw [← Complex.cpow_mul _ ?_ ?_, mul_sub]
-  · simp only [← mul_assoc, ofReal_sub, ofReal_div, ofReal_one, mul_one, ofReal_inv]
-    symm
-    · rw [one_div_mul_cancel (by exact slitPlane_ne_zero (Or.inl εpos)), mul_comm (1 / (ε:ℂ)),
-          mul_comm, ← mul_assoc, ← mul_assoc]
-      rw [← Complex.cpow_add _ _ (by exact slitPlane_ne_zero (Or.inl hx))]; ring_nf
-  · simp [im_mul_ofReal, log_x_real, zero_mul, pi_pos]
-  · simp [im_mul_ofReal, log_x_real, zero_mul, pi_nonneg]
 /-%%
 \begin{proof}\leanok
-\uses{DeltaSpike, MellinTransform}
+\uses{DeltaSpike}
 Substitute $y=x^{1/\epsilon}$, use Haar measure; direct calculation.
 \end{proof}
 %%-/
@@ -1040,7 +736,7 @@ $$\mathcal{M}(\nu_\epsilon)(1) =
 %%-/
 
 lemma MellinOfDeltaSpikeAt1 (ν : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) :
-    𝓜 ((DeltaSpike ν ε) ·) 1 = 𝓜 (ν ·) ε := by
+    𝓜 (fun x ↦ (DeltaSpike ν ε x : ℂ)) 1 = 𝓜 (fun x ↦ (ν x : ℂ)) ε := by
   convert MellinOfDeltaSpike ν εpos 1; simp [mul_one]
 /-%%
 \begin{proof}\leanok
@@ -1059,10 +755,10 @@ $$\mathcal{M}(\nu_\epsilon)(1) = 1+O(\epsilon).$$
 lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
     (mass_one : ∫ x in Set.Ioi 0, ν x / x = 1) :
-    (fun (ε : ℝ) ↦ (𝓜 (ν ·) ε) - 1) =O[𝓝[>]0] id := by
-  have diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) ↦ 𝓜 (ν ·) ε - 1) (Ioi 0) 0 := by
+    (fun (ε : ℝ) ↦ (𝓜 (fun x ↦ (ν x : ℂ)) ε) - 1) =O[𝓝[>]0] id := by
+  have diff : DifferentiableWithinAt ℝ (fun (ε : ℝ) ↦ 𝓜 (fun x ↦ (ν x : ℂ)) ε - 1) (Ioi 0) 0 := by
     apply DifferentiableAt.differentiableWithinAt
-    simp only [(differentiableAt_const _).fun_sub_iff_left, MellinTransform_eq]
+    simp only [(differentiableAt_const _).fun_sub_iff_left]
     refine DifferentiableAt.comp_ofReal ?_
     refine mellin_differentiableAt_of_isBigO_rpow (a := 1) (b := -1) ?_ ?_ (by simp) ?_ (by simp)
     · apply (Continuous.continuousOn ?_).locallyIntegrableOn (by simp)
@@ -1076,8 +772,8 @@ lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν
   have := ofReal_zero ▸ diff.isBigO_sub
   simp only [sub_sub_sub_cancel_right, sub_zero] at this
   convert this
-  simp only [MellinTransform, zero_sub, sub_right_inj, cpow_neg_one, ← div_eq_mul_inv, ← ofReal_div]
-  rw [← ofReal_one, ← mass_one]; convert integral_ofReal.symm
+  simp only [mellin, zero_sub, sub_right_inj, cpow_neg_one, ← div_eq_mul_inv, ← ofReal_div, smul_eq_mul]
+  rw [← ofReal_one, ← mass_one]; convert integral_ofReal.symm; field_simp
 
 -- lemma MellinOfDeltaSpikeAt1_asymp' {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
 --     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
@@ -1100,7 +796,7 @@ lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν
 
 /-%%
 \begin{proof}\leanok
-\uses{MellinTransform,MellinOfDeltaSpikeAt1,SmoothExistence}
+\uses{MellinOfDeltaSpikeAt1,SmoothExistence}
 By Lemma \ref{MellinOfDeltaSpikeAt1},
 $$
   \mathcal M(\nu_\epsilon)(1)=\mathcal M(\nu)(\epsilon)
@@ -1142,13 +838,11 @@ $$\mathcal{M}(1_{(0,1]})(s) = \frac{1}{s}.$$
 [Note: this already exists in mathlib]
 %%-/
 lemma MellinOf1 (s : ℂ) (h : s.re > 0) : 𝓜 ((fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0)) s = 1 / s := by
-  convert (hasMellin_one_Ioc h).right using 1
-  apply setIntegral_congr_ae measurableSet_Ioi
-  filter_upwards with _ _; rw [smul_eq_mul, mul_comm]; congr
+  convert (hasMellin_one_Ioc h).right
+  congr
 
 /-%%
 \begin{proof}\leanok
-\uses{MellinTransform}
 This is a straightforward calculation.
 \end{proof}
 %%-/
@@ -1539,7 +1233,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(s) =
 lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Icc (1 / 2) 2)
     {ε : ℝ} (εpos : 0 < ε) {s : ℂ} (hs : 0 < s.re) :
-    𝓜 ((Smooth1 ν ε) ·) s = s⁻¹ * 𝓜 (ν ·) (ε * s) := by
+    𝓜 (fun x ↦ (Smooth1 ν ε x : ℂ)) s = s⁻¹ * 𝓜 (fun x ↦ (ν x : ℂ)) (ε * s) := by
   let f' : ℝ → ℂ := fun x ↦ DeltaSpike ν ε x
   let f : ℝ → ℂ := fun x ↦ DeltaSpike ν ε x / x
   let g : ℝ → ℂ := fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0
@@ -1593,7 +1287,7 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
 
   have : 𝓜 (MellinConvolution g f') s = 𝓜 g s * 𝓜 f' s := by
     rw [mul_comm, ← MellinConvolutionTransform f' g s (by convert int_F using 1; field_simp [F, f, f'])]
-    dsimp [MellinTransform]; rw [setIntegral_congr_fun (by simp)]
+    dsimp [mellin]; rw [setIntegral_congr_fun (by simp)]
     intro x hx; simp_rw [MellinConvolutionSymmetric _ _ <| mem_Ioi.mp hx]
 
   convert this using 1
@@ -1658,7 +1352,7 @@ lemma MellinOfSmooth1b {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2) :
     ∃ (C : ℝ) (_ : 0 < C), ∀ (σ₁ : ℝ) (_ : 0 < σ₁)
     (s) (_ : σ₁ ≤ s.re) (_ : s.re ≤ 2) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
-    ‖𝓜 ((Smooth1 ν ε) ·) s‖ ≤ C * (ε * ‖s‖ ^ 2)⁻¹ := by
+    ‖𝓜 (fun x ↦ (Smooth1 ν ε x : ℂ)) s‖ ≤ C * (ε * ‖s‖ ^ 2)⁻¹ := by
   obtain ⟨C, Cpos, hC⟩ := MellinOfPsi diffν suppν
   refine ⟨C, Cpos, ?_⟩
   intro σ₁ σ₁pos s hs1 hs2 ε εpos ε_lt_one
@@ -1670,7 +1364,7 @@ lemma MellinOfSmooth1b {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
     nlinarith
   calc
-    ‖s⁻¹ * 𝓜 (ν ·) (ε * s)‖ = ‖s⁻¹‖ * ‖𝓜 (ν ·) (ε * s)‖ := by simp
+    ‖s⁻¹ * 𝓜 (fun x ↦ (ν x : ℂ)) (ε * s)‖ = ‖s⁻¹‖ * ‖𝓜 (fun x ↦ (ν x : ℂ)) (ε * s)‖ := by simp
     _                        ≤ ‖s⁻¹‖ * (C * (ε * ‖s‖)⁻¹) := by
       gcongr
       convert hC (ε * σ₁) (by positivity) (ε * s) hh1 hh2
@@ -1718,7 +1412,7 @@ $$\mathcal{M}(\widetilde{1_{\epsilon}})(1) = 1+O(\epsilon)).$$
 lemma MellinOfSmooth1c {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     (suppν : ν.support ⊆ Icc (1 / 2) 2)
     (mass_one : ∫ x in Ioi 0, ν x / x = 1) :
-    (fun ε ↦ 𝓜 ((Smooth1 ν ε) ·) 1 - 1) =O[𝓝[>]0] id := by
+    (fun ε ↦ 𝓜 (fun x ↦ (Smooth1 ν ε x : ℂ)) 1 - 1) =O[𝓝[>]0] id := by
   have h := MellinOfDeltaSpikeAt1_asymp diffν suppν mass_one
   rw [Asymptotics.isBigO_iff] at h ⊢
   obtain ⟨c, hc⟩ := h
@@ -1864,7 +1558,6 @@ lemma Smooth1MellinDifferentiable {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDi
     (mass_one : ∫ x in Ioi 0, Ψ x / x = 1)
     {s : ℂ} (hs: 0 < s.re) :
     DifferentiableAt ℂ (𝓜 (fun x ↦ (Smooth1 Ψ ε x : ℂ))) s := by
-  rw [MellinTransform_eq]
   apply mellin_differentiableAt_of_isBigO_rpow_exp zero_lt_one _ _ _ hs
   · apply ContinuousOn.locallyIntegrableOn _ (by measurability)
     apply continuousOn_of_forall_continuousAt

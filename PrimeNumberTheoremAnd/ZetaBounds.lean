@@ -14,7 +14,9 @@ import Mathlib.NumberTheory.Harmonic.Bounds
 import Mathlib.MeasureTheory.Order.Group.Lattice
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Tactic.Bound
-
+import Mathlib.NumberTheory.LSeries.PrimesInAP
+import Mathlib.Tactic.FunProp.Differentiable
+import PrimeNumberTheoremAnd.Fourier
 
 set_option lang.lemmaCmd true
 
