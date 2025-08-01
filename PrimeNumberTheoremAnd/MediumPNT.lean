@@ -1996,7 +1996,7 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
     exact C
 
 /-%%
-\begin{lemma}[dlog_riemannZeta_bdd_on_vertical_lines']\label{dlog_riemannZeta_bdd_on_vertical_lines'}\lean{dlog_riemannZeta_bdd_on_vertical_lines'}\leanok
+\begin{lemma}[dlog_riemannZeta_bdd_on_vertical_lines]\label{dlog_riemannZeta_bdd_on_vertical_lines}\lean{dlog_riemannZeta_bdd_on_vertical_lines}\leanok
 For $\sigma_0 > 1$, there exists a constant $C > 0$ such that
 $$
 \forall t \in \R, \quad
@@ -2004,9 +2004,6 @@ $$
 $$
 \end{lemma}
 %%-/
-theorem dlog_riemannZeta_bdd_on_vertical_lines' {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) :
-  ∃ C > 0, ∀ (t : ℝ), ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ C :=
-  dlog_riemannZeta_bdd_on_vertical_lines σ₀_gt
 /-%%
 \begin{proof}\uses{LogDerivativeDirichlet}\leanok
 Write as Dirichlet series and estimate trivially using Theorem \ref{LogDerivativeDirichlet}.
@@ -2030,7 +2027,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     :
     Integrable (fun (t : ℝ) ↦
       SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + (t : ℂ) * I)) volume := by
-  obtain ⟨C, C_pos, hC⟩ := dlog_riemannZeta_bdd_on_vertical_lines' σ₀_gt
+  obtain ⟨C, C_pos, hC⟩ := dlog_riemannZeta_bdd_on_vertical_lines σ₀_gt
   let c : ℝ := C * X ^ σ₀
   have : ∀ t, ‖(fun (t : ℝ) ↦ (- deriv riemannZeta (σ₀ + (t : ℂ) * I)) /
     riemannZeta (σ₀ + (t : ℂ) * I) *
@@ -3952,7 +3949,7 @@ theorem I9Bound
 
 
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines', I1, I9,
+\begin{proof}\uses{MellinOfSmooth1b, dlog_riemannZeta_bdd_on_vertical_lines, I1, I9,
   IBound_aux1}\leanok
   Unfold the definitions and apply the triangle inequality.
 $$
@@ -3967,7 +3964,7 @@ X^{\sigma_0 + t i}
 \ i \ dt
 \right|
 $$
-By Theorem \ref{dlog_riemannZeta_bdd_on_vertical_lines'} (once fixed!!),
+By Theorem \ref{dlog_riemannZeta_bdd_on_vertical_lines} (once fixed!!),
 $\zeta'/\zeta (\sigma_0 + t i)$ is bounded by $\zeta'/\zeta(\sigma_0)$, and
 Theorem \ref{riemannZetaLogDerivResidue} gives $\ll 1/(\sigma_0-1)$ for the latter. This gives:
 $$
