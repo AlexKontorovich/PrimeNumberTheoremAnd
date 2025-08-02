@@ -1214,12 +1214,7 @@ theorem summable_complex_then_summable_real_part (f : ℕ → ℂ) :
 theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
   ∀(σ₀ σ₁ : ℝ), ∀(t : ℝ), 1 < σ₀ → σ₀ ≤ σ₁ →
     ‖(- ζ' (σ₁ + t * I) / ζ (σ₁ + t * I))‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
-  intro σ₀
-  intro σ₁
-  intro t
-  intro σ₀_gt_one
-  intro σ₀_lt_σ₁
-
+  intro σ₀ σ₁ t σ₀_gt_one σ₀_lt_σ₁
   let s₁ := σ₁ + t * I
   have s₁_re_eq_sigma : s₁.re = σ₁ := by
     rw [Complex.add_re (σ₁) (t * I)]
@@ -1261,8 +1256,7 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
         · simp [*]
         · push_neg at h
           simp [*]
-          have pos : 0 ≤ Λ n := ArithmeticFunction.vonMangoldt_nonneg
-          rw [abs_of_nonneg pos]
+          rw [abs_of_nonneg ArithmeticFunction.vonMangoldt_nonneg]
 
       _ = Λ n / (↑n)^s₁.re := by
         by_cases h : n = 0
@@ -1300,20 +1294,6 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
   have summable_abs_value : Summable (fun i ↦ ‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ i‖) := by
     rw [summable_congr positivity]
     exact summable_re_von_mangoldt
-
-  have triangle_ineq : ‖LSeries (fun n ↦ ↑(Λ n)) s₁‖ ≤ ∑' (n : ℕ), ↑‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ n‖ :=
-    norm_tsum_le_tsum_norm summable_abs_value
-
-  have bounded_by_sum_of_re : ‖LSeries (fun n ↦ ↑(Λ n)) s₁‖ ≤ ∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s₁.re) n).re :=
-    by
-      simp [positivity] at triangle_ineq
-      exact triangle_ineq
-
-  have sum_of_re_commutes : ∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s₁.re) n).re = (∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s₁.re) n)).re :=
-    (Complex.re_tsum (summable_von_mangoldt)).symm
-
-  have re_of_sum_bdd_by_norm : (∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s₁.re) n)).re  ≤ ‖∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s₁.re) n)‖ :=
-    Complex.re_le_norm (∑' (n : ℕ), (LSeries.term (fun n ↦ ↑(Λ n)) (↑s₁.re) n))
 
   have ineq_s₁_s₀ : ∀(n : ℕ),
     (LSeries.term (fun n ↦ Λ n) s₁.re n).re ≤ (LSeries.term (fun n ↦ Λ n) σ₀ n).re :=
@@ -1359,31 +1339,23 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
 
         have N : (↑n : ℝ)^σ₀ ≤ (↑n : ℝ)^σ₁ :=
           Real.rpow_le_rpow_of_exponent_le n_geq_one σ₀_lt_σ₁
-        apply inv_anti₀
-        · exact P2
-        · exact N
+        exact inv_anti₀ P2 N
 
-  have Z :=
-    by
-      calc
-        ‖LSeries (fun n ↦ ↑(Λ n)) s₁‖ ≤ ∑' (n : ℕ), ‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ n‖
-            := norm_tsum_le_tsum_norm summable_abs_value
-      _ ≤ ∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) s₁.re n).re := by simp [←positivity]
-      _ ≤ ∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) σ₀ n).re := by
-          refine Summable.tsum_mono ?_ ?_ ineq_s₁_s₀
-          · exact summable_re_von_mangoldt
-          · exact summable_re_von_mangoldt_at_σ₀
-      _ = (∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) σ₀ n)).re := (Complex.re_tsum (summable_von_mangoldt_at_σ₀)).symm
-      _ ≤ ‖∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) σ₀ n)‖ := re_le_norm (∑' (n : ℕ), LSeries.term (fun n ↦ ↑(Λ n)) σ₀ n)
-      _ = ‖- ζ' (σ₀) / ζ (σ₀)‖ := by
-          simp only [← (ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s₀_gt_one)]
-          unfold LSeries
-          rfl
-      _ = ‖ζ' σ₀ / ζ σ₀‖ := by
-        rw [← s₀_re_eq_sigma]
-        simp [*]
-
-  exact Z
+  calc
+    _  ≤ ∑' (n : ℕ), ‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ n‖
+      := norm_tsum_le_tsum_norm summable_abs_value
+    _ = ∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) s₁.re n).re := by simp [←positivity]
+    _ ≤ ∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) σ₀ n).re := by
+      exact Summable.tsum_mono summable_re_von_mangoldt summable_re_von_mangoldt_at_σ₀ ineq_s₁_s₀
+    _ = (∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) σ₀ n)).re := (Complex.re_tsum (summable_von_mangoldt_at_σ₀)).symm
+    _ ≤ ‖∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) σ₀ n)‖ := re_le_norm (∑' (n : ℕ), LSeries.term (fun n ↦ ↑(Λ n)) σ₀ n)
+    _ = ‖- ζ' (σ₀) / ζ (σ₀)‖ := by
+      simp only [← (ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s₀_gt_one)]
+      unfold LSeries
+      rfl
+    _ = _ := by
+      rw [← s₀_re_eq_sigma]
+      simp [*]
 
 
 theorem triv_bound_zeta :
