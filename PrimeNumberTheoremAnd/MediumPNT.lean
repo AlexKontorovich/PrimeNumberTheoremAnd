@@ -1211,6 +1211,7 @@ theorem summable_complex_then_summable_real_part (f : ℕ → ℂ) :
       by exact hasSum_re hs
     convert h_re using 1
 
+open scoped ComplexOrder in
 theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
   ∀(σ₀ σ₁ : ℝ), ∀(t : ℝ), 1 < σ₀ → σ₀ ≤ σ₁ →
     ‖(- ζ' (σ₁ + t * I) / ζ (σ₁ + t * I))‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
@@ -1231,7 +1232,6 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
   have s₀_gt_one : 1 < (↑σ₀ : ℂ).re := by exact σ₀_gt_one
 
   have s₁_re_geq_one : 1 < s₁.re := by exact lt_of_lt_of_eq σ₁_gt_one (id (Eq.symm s₁_re_eq_sigma))
-  have s₁_re_coerce_geq_one : 1 < (↑s₁.re : ℂ).re := by exact s₁_re_geq_one
   rw [← (ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s₁_re_geq_one)]
   unfold LSeries
 
@@ -1247,116 +1247,25 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
   have summable_re_von_mangoldt_at_σ₀ : Summable (fun i ↦ (LSeries.term (fun n ↦ ↑(Λ n)) σ₀ i).re) := by
     exact summable_complex_then_summable_real_part (LSeries.term (fun n ↦ ↑(Λ n)) σ₀) summable_von_mangoldt_at_σ₀
 
-  have positivity : ∀(n : ℕ), ‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ n‖ = (LSeries.term (fun n ↦ Λ n) s₁.re n).re := by
-    intro n
-    calc
-      ‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ n‖ = Λ n / ‖(↑n : ℂ)^(s₁ : ℂ)‖ := by
-        unfold LSeries.term
-        by_cases h : n = 0
-        · simp [*]
-        · push_neg at h
-          simp [*]
-          rw [abs_of_nonneg ArithmeticFunction.vonMangoldt_nonneg]
-
-      _ = Λ n / (↑n)^s₁.re := by
-        by_cases h : n = 0
-        · simp [*]
-        · rw [Complex.norm_natCast_cpow_of_pos]
-          push_neg at h
-          exact Nat.zero_lt_of_ne_zero h
-
-      _ = (LSeries.term (fun n ↦ Λ n) s₁.re n).re := by
-        unfold LSeries.term
-        by_cases h : n = 0
-        · simp [*]
-        · simp [*]
-          push_neg at h
-          ring_nf
-          rw [Complex.re_ofReal_mul (Λ n)]
-          ring_nf
-          rw [Complex.inv_re]
-          rw [Complex.cpow_ofReal_re]
-          simp [*]
-          left
-          have N : (0 : ℝ) ≤ ↑n := by exact Nat.cast_nonneg' n
-          have T2 : ((↑n : ℂ) ^ (↑σ₁ : ℂ)).re = (↑n : ℝ)^σ₁ := by exact rfl
-          have T1 : ((↑n : ℂ ) ^ (↑σ₁ : ℂ)).im = 0 := by
-            refine abs_re_eq_norm.mp ?_
-            rw [T2]
-            simp [*]
-            exact Real.rpow_nonneg N σ₁
-
-
-          simp [Complex.normSq_apply]
-          simp [T1, T2]
-
-
   have summable_abs_value : Summable (fun i ↦ ‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ i‖) := by
-    rw [summable_congr positivity]
-    exact summable_re_von_mangoldt
-
-  have ineq_s₁_s₀ : ∀(n : ℕ),
-    (LSeries.term (fun n ↦ Λ n) s₁.re n).re ≤ (LSeries.term (fun n ↦ Λ n) σ₀ n).re :=
-  by
+    rw [summable_norm_iff]
+    exact ArithmeticFunction.LSeriesSummable_vonMangoldt s₁_re_geq_one
+  apply le_trans <| norm_tsum_le_tsum_norm summable_abs_value
+  rw [← norm_neg, ← neg_div, ← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s₀_gt_one]
+  unfold LSeries
+  rw [← re_eq_norm.mpr, re_tsum summable_von_mangoldt_at_σ₀]
+  · apply Summable.tsum_mono summable_abs_value summable_re_von_mangoldt_at_σ₀
     intro n
-    unfold LSeries.term
-    by_cases h : n = 0
-    · simp [*]
-    · push_neg at h
-      simp [*]
-      have H : 0 ≤ Λ n := ArithmeticFunction.vonMangoldt_nonneg
-      ring_nf
-      rw [Complex.re_ofReal_mul (Λ n) ((↑n : ℂ) ^ (↑σ₁ : ℂ))⁻¹]
-      rw [Complex.re_ofReal_mul (Λ n) ((↑n : ℂ) ^ (↑σ₀ : ℂ))⁻¹]
-      refine mul_le_mul_of_nonneg_left ?_ H
-      · simp [Complex.inv_re]
-        have R1 : ((↑n : ℂ) ^ (↑σ₀ : ℂ)).re = (↑n : ℝ) ^ σ₀ := rfl
-        have R2 : ((↑n : ℂ) ^ (↑σ₁ : ℂ)).re = (↑n : ℝ) ^ σ₁ := rfl
-        have geq : 1 ≤ n := Nat.one_le_iff_ne_zero.mpr h
-        have geq_zero : 0 ≤ n := Nat.zero_le n
-        have n_geq_one : (1 : ℝ) ≤ ↑n := by
-          norm_cast
-        have n_geq_pos : (0 : ℝ) ≤ ↑n := by
-          norm_cast
-        have n_gt_pos : (0 : ℝ) < (↑n) := by
-          norm_cast
-
-        have I1 : ((↑n : ℂ) ^ (↑σ₀ : ℂ)).im = 0 := by
-            refine abs_re_eq_norm.mp ?_
-            rw [R1]
-            simp [*]
-            exact Real.rpow_nonneg n_geq_pos σ₀
-
-        have I2 : ((↑n : ℂ) ^ (↑σ₁ : ℂ)).im = 0 := by
-            refine abs_re_eq_norm.mp ?_
-            rw [R2]
-            simp [*]
-            exact Real.rpow_nonneg n_geq_pos σ₁
-
-        simp [Complex.normSq_apply, R1, R2, I1, I2]
-        have P1 : 0 < (↑n : ℝ)^σ₁ := Real.rpow_pos_of_pos n_gt_pos σ₁
-        have P2 : 0 < (↑n : ℝ)^σ₀ := Real.rpow_pos_of_pos n_gt_pos σ₀
-
-        have N : (↑n : ℝ)^σ₀ ≤ (↑n : ℝ)^σ₁ :=
-          Real.rpow_le_rpow_of_exponent_le n_geq_one σ₀_lt_σ₁
-        exact inv_anti₀ P2 N
-
-  calc
-    _  ≤ ∑' (n : ℕ), ‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ n‖
-      := norm_tsum_le_tsum_norm summable_abs_value
-    _ = ∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) s₁.re n).re := by simp [←positivity]
-    _ ≤ ∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) σ₀ n).re := by
-      exact Summable.tsum_mono summable_re_von_mangoldt summable_re_von_mangoldt_at_σ₀ ineq_s₁_s₀
-    _ = (∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) σ₀ n)).re := (Complex.re_tsum (summable_von_mangoldt_at_σ₀)).symm
-    _ ≤ ‖∑' (n : ℕ), (LSeries.term (fun n ↦ Λ n) σ₀ n)‖ := re_le_norm (∑' (n : ℕ), LSeries.term (fun n ↦ ↑(Λ n)) σ₀ n)
-    _ = ‖- ζ' (σ₀) / ζ (σ₀)‖ := by
-      simp only [← (ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s₀_gt_one)]
-      unfold LSeries
-      rfl
-    _ = _ := by
-      rw [← s₀_re_eq_sigma]
-      simp [*]
-
+    beta_reduce
+    apply le_trans <| LSeries.norm_term_le_of_re_le_re (s := σ₀) _ _ _
+    · rw [re_eq_norm.mpr]
+      apply LSeries.term_nonneg
+      exact_mod_cast ArithmeticFunction.vonMangoldt_nonneg
+    · rwa [s₁_re_eq_sigma, s₀_re_eq_sigma]
+  · apply tsum_nonneg
+    intro n
+    apply LSeries.term_nonneg
+    exact_mod_cast ArithmeticFunction.vonMangoldt_nonneg
 
 theorem triv_bound_zeta :
   ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ → ‖- ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ (σ₀ - 1)⁻¹ + C
