@@ -1132,77 +1132,6 @@ theorem realDiff_of_complexDiff {f : ℂ → ℂ} (s : ℂ) (hf : Differentiable
   convert hf.continuousAt
   simp
 
--- TODO : Move elsewhere (should be in Mathlib!) NOT NEEDED
-theorem riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) (t : ℝ) :
-  ∃ c > 0, ‖ζ (σ₀ + t * I)‖ ≤ c :=
-  by
-    let s := σ₀ + t * I
-    let s_re : ℂ  := σ₀
-
-    have H : s.re = σ₀ := by
-          rw [add_re, ofReal_re, mul_re, ofReal_re, I_re, I_im]
-          simp
-
-    have non_neg : σ₀ ≠ 0 := by
-      by_contra h
-      rw [h] at σ₀_gt
-      norm_cast at σ₀_gt
-
-    have pos : s.re > 1 := by exact lt_of_lt_of_eq σ₀_gt (id (Eq.symm H))
-    have pos_triv : s_re.re > 1 := by exact σ₀_gt
-
-    have series := LSeries_one_eq_riemannZeta pos
-    rw [← series]
-
-    have identity : ∀(n : ℕ), ‖LSeries.term 1 s n‖ = 1 / n^σ₀ := by
-      unfold LSeries.term
-      intro n
-      by_cases h0 : n = 0
-      · simp [*]
-      · simp [*]
-        push_neg at h0
-        have C : n > 0 := by exact Nat.zero_lt_of_ne_zero h0
-        have T :=  Complex.norm_natCast_cpow_of_pos C s
-        rw [H] at T
-        exact T
-
-    have summable : Summable (fun (n : ℕ) ↦  ‖LSeries.term 1 s n‖) := by
-      simp [identity]
-      exact σ₀_gt
-
-    have B := calc
-      ‖∑' (n : ℕ), LSeries.term 1 s n‖ ≤ ∑' (n : ℕ), ‖LSeries.term 1 s n‖ := norm_tsum_le_tsum_norm summable
-      _                                ≤ ∑' (n : ℕ), (1 / ↑n^σ₀) := by simp [← identity]
-      _                                ≤ norm (∑' (n : ℕ), (1 / ↑n^σ₀) : ℝ ) := by exact le_norm_self (∑' (n : ℕ), 1 / ↑n ^ σ₀)
-      _                                ≤ 1 + norm (∑' (n : ℕ), (1 / ↑n^σ₀) : ℝ ) := by linarith
-
-    let c : ℝ := 1 + norm (∑' (n : ℕ), (1 / ↑n^σ₀) : ℝ )
-
-    have c_is_pos : c > 0 := by positivity
-    use (1 + norm (∑' (n : ℕ), (1 / ↑n^σ₀) : ℝ ))
-    exact ⟨c_is_pos, B⟩
-
-
-theorem summable_real_iff_summable_coe_complex (f : ℕ → ℝ) :
-    Summable f ↔ Summable (fun n => (f n : ℂ)) := by
-  constructor
-
-  · intro ⟨s, hs⟩
-    use (s : ℂ)
-    exact hasSum_ofReal.mpr hs
-
-  · intro ⟨s, hs⟩
-    use s.re
-    have h_re : HasSum (fun n => ((f n : ℂ)).re) s.re :=
-      by exact hasSum_re hs
-    convert h_re using 1
-
-theorem cast_pow_eq (n : ℕ) (σ₀ : ℝ):
-  (↑((↑n : ℝ) ^ σ₀) : ℂ )  = (↑n : ℂ) ^ (↑σ₀ : ℂ) := by
-    have U : (↑n : ℝ) ≥ 0 := by exact Nat.cast_nonneg' n
-    have endit := Complex.ofReal_cpow U σ₀
-    exact endit
-
 theorem summable_complex_then_summable_real_part (f : ℕ → ℂ) :
   Summable f → Summable (fun n ↦ (f n).re) := by
     intro ⟨s, hs⟩
@@ -1211,6 +1140,7 @@ theorem summable_complex_then_summable_real_part (f : ℕ → ℂ) :
       by exact hasSum_re hs
     convert h_re using 1
 
+--TODO generalize to any LSeries with nonnegative coefficients
 open scoped ComplexOrder in
 theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
   ∀(σ₀ σ₁ : ℝ), ∀(t : ℝ), 1 < σ₀ → σ₀ ≤ σ₁ →
