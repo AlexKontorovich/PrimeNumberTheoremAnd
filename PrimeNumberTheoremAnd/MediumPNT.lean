@@ -1142,19 +1142,15 @@ theorem summable_complex_then_summable_real_part (f : ℕ → ℂ) :
 
 --TODO generalize to any LSeries with nonnegative coefficients
 open scoped ComplexOrder in
-theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized :
-  ∀(σ₀ σ₁ : ℝ), ∀(t : ℝ), 1 < σ₀ → σ₀ ≤ σ₁ →
+theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized (σ₀ σ₁ t : ℝ) (σ₀_gt_one : 1 < σ₀) (σ₀_lt_σ₁ : σ₀ ≤ σ₁) :
     ‖(- ζ' (σ₁ + t * I) / ζ (σ₁ + t * I))‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
-  intro σ₀ σ₁ t σ₀_gt_one σ₀_lt_σ₁
   let s₁ := σ₁ + t * I
   have s₁_re_eq_sigma : s₁.re = σ₁ := by
-    rw [Complex.add_re (σ₁) (t * I)]
-    rw [Complex.ofReal_re σ₁]
-    rw [Complex.mul_I_re]
-    simp [*]
+    rw [add_re, ofReal_re, mul_I_re, ofReal_im]
+    ring
 
   have s₀_re_eq_sigma : (↑σ₀ : ℂ).re = σ₀ := by
-    rw [Complex.ofReal_re σ₀]
+    rw [ofReal_re]
 
   let s₀ := σ₀
 
