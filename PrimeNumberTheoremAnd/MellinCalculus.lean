@@ -89,12 +89,12 @@ theorem Complex.ofReal_rpow {x : ℝ} (h : x > 0) (y : ℝ) :
 @[simp]
 lemma Function.support_abs {α : Type*} (f : α → 𝕂):
     (fun x ↦ ‖f x‖).support = f.support := by
-  simp only [support, ne_eq, mem_setOf_eq]; simp_rw [norm_ne_zero_iff]
+  simp only [support, ne_eq]; simp_rw [norm_ne_zero_iff]
 
 @[simp]
 lemma Function.support_ofReal {f : ℝ → ℝ} :
     (fun x ↦ ((f x) : ℂ)).support = f.support := by
-  apply Function.support_comp_eq (g := ofReal); simp [ofReal_zero]
+  apply Function.support_comp_eq (g := ofReal); simp
 
 lemma Function.support_mul_subset_of_subset {s : Set ℝ} {f g : ℝ → 𝕂} (fSupp : f.support ⊆ s) :
     (f * g).support ⊆ s := by
@@ -487,7 +487,7 @@ lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
   have mainBnd : ∀ (σ₁ : ℝ), 0 < σ₁ → ∀ (s : ℂ), σ₁ ≤ s.re → s.re ≤ 2 → ‖𝓜 (fun x ↦ (ν x : ℂ)) s‖ ≤ C * ‖s‖⁻¹ := by
     intro σ₁ σ₁pos s hs₁ hs₂
     have s_ne_zero: s ≠ 0 := fun h ↦ by linarith [zero_re ▸ h ▸ hs₁]
-    simp only [mellin, f, MellinOfPsi_aux diffν suppν s_ne_zero, norm_norm, norm_mul, smul_eq_mul, mul_comm]
+    simp only [mellin, f, MellinOfPsi_aux diffν suppν s_ne_zero, norm_mul, smul_eq_mul, mul_comm]
     gcongr; simp
     calc
       _ ≤ ∫ (x : ℝ) in Ioi 0, ‖(deriv ν x * (x : ℂ) ^ s)‖ := ?_
@@ -647,7 +647,7 @@ lemma DeltaSpikeMass {ν : ℝ → ℝ} (mass_one: ∫ x in Ioi 0, ν x / x = 1)
       ((fun z ↦ (ν z) / z) (x ^ (1 / ε))) := by
       apply setIntegral_congr_ae measurableSet_Ioi
       filter_upwards with x hx
-      simp only [mem_Ioi, smul_eq_mul, abs_of_pos (one_div_pos.mpr εpos)]
+      simp only [smul_eq_mul, abs_of_pos (one_div_pos.mpr εpos)]
       symm; calc
         _ = (ν (x ^ (1 / ε)) / x ^ (1 / ε)) * x ^ (1 / ε - 1) * (1 / ε) := by ring
         _ = _ := by rw [rpow_sub hx, rpow_one]
@@ -772,7 +772,7 @@ lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν
   have := ofReal_zero ▸ diff.isBigO_sub
   simp only [sub_sub_sub_cancel_right, sub_zero] at this
   convert this
-  simp only [mellin, zero_sub, sub_right_inj, cpow_neg_one, ← div_eq_mul_inv, ← ofReal_div, smul_eq_mul]
+  simp only [mellin, zero_sub, cpow_neg_one, smul_eq_mul]
   rw [← ofReal_one, ← mass_one]; convert integral_ofReal.symm; field_simp
 
 -- lemma MellinOfDeltaSpikeAt1_asymp' {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
@@ -1195,7 +1195,7 @@ lemma Smooth1LeOne {ν : ℝ → ℝ} (νnonneg : ∀ x > 0, 0 ≤ ν x)
         aesop
       simp only [mem_Ioc, this, measurableSet_Ioc, aestronglyMeasurable_indicator_iff]
       exact aestronglyMeasurable_one
-    · simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq]
+    · simp only [ite_mul, one_mul, zero_mul]
       intro y hy
       by_cases h : y ≤ 1; aesop
       field_simp [mem_Ioc, h, and_false, reduceIte]
@@ -1257,11 +1257,11 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
 
   have int_F: IntegrableOn F (Ioi 0 ×ˢ Ioi 0) := by
     apply IntegrableOn.congr_fun (f := F') ?_ ?_ (by simp [measurableSet_prod]); swap
-    · simp only [F, F', f, g, mul_ite, mul_one, mul_zero, Function.uncurry_apply_pair]
+    · simp only [F, F', f, g, mul_ite, mul_one, mul_zero]
       intro ⟨x, y⟩ hz
-      by_cases hS : ⟨x, y⟩ ∈ S <;> simp only [hS, piecewise, hz]
+      by_cases hS : ⟨x, y⟩ ∈ S <;> simp only [hS, piecewise]
       <;> simp only [mem_prod, mem_Ioi, mem_setOf_eq, not_and, not_le, S] at hz hS
-      · simp [hS, div_pos hz.1 hz.2, (div_le_one hz.2).mpr hS.2.1]
+      · simp [div_pos hz.1 hz.2, (div_le_one hz.2).mpr hS.2.1]
       · by_cases hxy : x / y ≤ 1; swap; simp [hxy]
         have hy : y ∉ Icc (2 ^ (-ε)) (2 ^ ε) := by
           simp only [mem_Icc, not_and, not_le]; exact hS hz.1 <| (div_le_one hz.2).mp hxy
@@ -1293,7 +1293,7 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
   convert this using 1
   · congr; funext x; convert integral_ofReal.symm
     simp only [MellinConvolution, RCLike.ofReal_div, ite_mul, one_mul, zero_mul, @apply_ite ℝ ℂ,
-      algebraMap.coe_zero, f, g]; rfl
+      algebraMap.coe_zero, g]; rfl
   · rw [MellinOf1 s hs, MellinOfDeltaSpike ν εpos s]
     simp
 /-%%

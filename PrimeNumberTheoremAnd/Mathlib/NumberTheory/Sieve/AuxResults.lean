@@ -120,8 +120,8 @@ theorem gcd_dvd_mul (m n : ℕ) : m.gcd n ∣ m * n := by
 theorem multiplicative_zero_of_zero_dvd (f : ArithmeticFunction ℝ) (h_mult : IsMultiplicative f) {m n : ℕ}
     (h_sq : Squarefree n) (hmn : m ∣ n) (h_zero : f m = 0) : f n = 0 := by
   rcases hmn with ⟨k, rfl⟩
-  simp only [MulZeroClass.zero_mul, eq_self_iff_true, h_mult.map_mul_of_coprime
-    (coprime_of_squarefree_mul h_sq), h_zero]
+  simp only [MulZeroClass.zero_mul, h_mult.map_mul_of_coprime (coprime_of_squarefree_mul h_sq),
+    h_zero]
 
 theorem primeDivisors_nonempty (n : ℕ) (hn : 2 ≤ n) : n.primeFactors.Nonempty := by
   unfold Finset.Nonempty
@@ -188,7 +188,7 @@ theorem sum_inv_le_log (n : ℕ) (hn : 1 ≤ n) :
   rw [← Finset.sum_erase_add (Icc 1 n) _ (by simp [hn] : 1 ∈ Icc 1 n), add_comm]
   gcongr
   · norm_num
-  simp only [gt_iff_lt, lt_one_iff, mem_Icc, true_and, not_le, Icc_erase_left]
+  simp only [Icc_erase_left]
   calc
     ∑ d ∈ Ico 2 (n + 1), (d : ℝ)⁻¹ = ∑ d ∈ Ico 2 (n + 1), (↑(d + 1) - 1)⁻¹ := ?_
     _ ≤ ∫ x in (2).. ↑(n + 1), (x - 1)⁻¹  := ?_
@@ -242,7 +242,7 @@ theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (h
     simp_rw [ite_and];
     rw [← sum_filter, Finset.sum_const, ← finMulAntidiag_eq_piFinset_divisors_filter hd.1 hd.2,
       card_finMulAntidiag_of_squarefree <| hP.squarefree_of_dvd hd.1, if_pos hd.1]
-    simp only [div_eq_mul_inv, one_mul, nsmul_eq_mul, cast_pow, mul_ite, mul_zero]
+    simp only [div_eq_mul_inv, nsmul_eq_mul, cast_pow, mul_ite, mul_zero]
   · rw [sum_comm]; apply sum_congr rfl; intro a _; rw [sum_eq_single (∏ i, a i)]
     · apply if_ctx_congr _ _ (fun _ => rfl); rw [Iff.comm, iff_and_self]; exact fun _ => rfl
       intro; rw [cast_prod, ← prod_inv_distrib]

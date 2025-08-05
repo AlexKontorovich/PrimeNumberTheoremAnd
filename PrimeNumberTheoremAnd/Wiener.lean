@@ -91,7 +91,7 @@ lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
     term f σ' n * 𝐞 (-(y * (1 / (2 * π) * Real.log (n / x)))) • ψ y =
     term f (σ' + y * I) n • (ψ y * x ^ (y * I)) := by
   by_cases hn : n = 0 ; simp [term, hn]
-  simp only [term, hn, ↓reduceIte, fourierChar_apply]
+  simp only [term, hn, ↓reduceIte]
   calc
     _ = (f n * (cexp ((2 * π * -(y * (1 / (2 * π) * Real.log (n / x)))) * I) / ↑((n : ℝ) ^ σ'))) • ψ y := by
       rw [Circle.smul_def, fourierChar_apply, ofReal_cpow (by norm_num)]
@@ -547,7 +547,7 @@ lemma summation_by_parts {E : Type*} [Ring E] {a A b : ℕ → E} (ha : a = nabl
 
 lemma summation_by_parts' {E : Type*} [Ring E] {a b : ℕ → E} {n : ℕ} :
     cumsum (a * b) (n + 1) = cumsum a (n + 1) * b n - cumsum (shift (cumsum a) * nabla b) n := by
-  simpa using summation_by_parts (a := a) (b := b) (A := cumsum a) (by simp [Finset.sum_shift_back])
+  simpa using summation_by_parts (a := a) (b := b) (A := cumsum a) (by simp)
 
 lemma summation_by_parts'' {E : Type*} [Ring E] {a b : ℕ → E} :
     shift (cumsum (a * b)) = shift (cumsum a) * b - cumsum (shift (cumsum a) * nabla b) := by
@@ -1229,14 +1229,14 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
     (hfi : IntegrableOn f (Icc x₀ (x₀ +  n))) :
     (∑ i ∈ Finset.range n, f (x₀ + ↑(i + 1))) ≤ ∫ x in x₀..x₀ + n, f x := by
 
-  cases' n with n <;> simp [Nat.succ_eq_add_one] at hf ⊢
+  cases' n with n <;> simp at hf ⊢
   have : Finset.range (n + 1) = {0} ∪ Finset.Ico 1 (n + 1) := by
     ext i ; by_cases hi : i = 0 <;> simp [hi] ; omega
   simp [this, Finset.sum_union]
 
   have l4 : IntervalIntegrable f volume x₀ (x₀ + 1) := by
     apply IntegrableOn.intervalIntegrable
-    simp only [ge_iff_le, le_add_iff_nonneg_right, zero_le_one, uIcc_of_le]
+    simp only [le_add_iff_nonneg_right, zero_le_one, uIcc_of_le]
     apply hfi.mono_set
     apply Icc_subset_Icc ; linarith ; simp
   have l5 x (hx : x ∈ Ioc x₀ (x₀ + 1)) : (fun x ↦ f (x₀ + 1)) x ≤ f x := by
@@ -1262,11 +1262,11 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
   have := @intervalIntegral.integral_comp_mul_add ℝ _ _ 1 (n + 1) 1 f one_ne_zero x₀
   rw [intervalIntegral.integral_add_adjacent_intervals]
   · apply IntegrableOn.intervalIntegrable
-    simp only [ge_iff_le, le_add_iff_nonneg_right, zero_le_one, uIcc_of_le]
+    simp only [le_add_iff_nonneg_right, zero_le_one, uIcc_of_le]
     apply hfi.mono_set
     apply Icc_subset_Icc ; linarith ; simp
   · apply IntegrableOn.intervalIntegrable
-    simp only [ge_iff_le, add_le_add_iff_left, le_add_iff_nonneg_left, Nat.cast_nonneg, uIcc_of_le]
+    simp only [add_le_add_iff_left, le_add_iff_nonneg_left, Nat.cast_nonneg, uIcc_of_le]
     apply hfi.mono_set
     apply Icc_subset_Icc ; linarith ; simp
 
@@ -1447,7 +1447,7 @@ lemma summable_fourier (x : ℝ) (hx : 0 < x) (ψ : W21) (hcheby : cheby f) :
   have l6 i : ‖f i / i * 𝓕 ψ (1 / (2 * π) * Real.log (i / x))‖ ≤
       W21.norm ψ * (‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹) := by
     convert mul_le_mul_of_nonneg_left (decay_bounds_key ψ (1 / (2 * π) * log (i / x))) (norm_nonneg (f i / i)) using 1
-    · simp [norm_mul]
+    · simp
     · change _ = _ * (W21.norm ψ * _) ; simp [W21.norm] ; ring
   exact Summable.of_nonneg_of_le (fun _ => norm_nonneg _) l6 (by simpa using l5.const_smul (W21.norm ψ))
 
@@ -1460,7 +1460,7 @@ lemma bound_I1 (x : ℝ) (hx : 0 < x) (ψ : W21) (hcheby : cheby f) :
   have l6 i : ‖f i / i * 𝓕 ψ (1 / (2 * π) * Real.log (i / x))‖ ≤
       W21.norm ψ * (‖f i‖ / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹) := by
     convert mul_le_mul_of_nonneg_left (decay_bounds_key ψ (1 / (2 * π) * log (i / x))) (norm_nonneg (f i / i)) using 1
-    · simp [norm_mul]
+    · simp
     · change _ = _ * (W21.norm ψ * _) ; simp [W21.norm] ; ring
   have l1 : Summable fun i ↦ ‖f i / ↑i * 𝓕 ψ (1 / (2 * π) * Real.log (↑i / x))‖ := by
     exact summable_fourier x hx ψ hcheby

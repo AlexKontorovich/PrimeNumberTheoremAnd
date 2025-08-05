@@ -23,8 +23,7 @@ lemma smooth_urysohn_support_Ioo {a b c d : ℝ} (h1 : a < b) (h3: c < d) :
 
   rcases this with ⟨Ψ, hΨSmooth, hΨrange, hΨ0, hΨ1⟩
 
-  simp only [Set.EqOn, Set.mem_setOf_eq, Set.mem_union, Set.mem_Iic, Set.mem_Ici,
-    ContMDiffMap.coeFn_mk, Pi.zero_apply, Set.mem_Icc, Pi.one_apply, and_imp] at *
+  simp only [Set.mem_union, Set.mem_Iic, Set.mem_Ici, Set.mem_Icc] at *
   use Ψ
   simp only [range_subset_iff, mem_Icc] at hΨrange
   refine ⟨ContMDiff.contDiff hΨSmooth, ?_, ?_, ?_, ?_⟩
@@ -87,8 +86,7 @@ lemma SmoothExistence : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x
     · simp only [Function.support_div, measurableSet_Ici, Measure.restrict_apply', hνSupport, Function.support_id]
       have : (Ioo (1 / 2 : ℝ) 2 ∩ (Iio 0 ∪ Ioi 0) ∩ Ici 0) = Ioo (1 / 2) 2 := by
         ext x
-        simp only [mem_inter_iff, mem_Ioo, mem_Ici, mem_Iio, mem_Ioi,
-          mem_union, not_lt, and_true, not_le]
+        simp only [mem_inter_iff, mem_Ioo, mem_Ici, mem_Iio, mem_Ioi, mem_union]
         bound
       simp only [this, volume_Ioo, ENNReal.ofReal_pos, sub_pos, gt_iff_lt]
       linarith

@@ -88,7 +88,7 @@ noncomputable def scale (g : CS n E) (R : ℝ) : CS n E := by
 
 lemma deriv_scale {f : CS (n + 1) E} : (f.scale R).deriv = R⁻¹ • f.deriv.scale R := by
   ext v ; by_cases hR : R = 0 <;> simp [hR, scale]
-  · simp [deriv, smul]
+  · simp [deriv]
   · exact ((f.hasDerivAt (R⁻¹ • v)).scomp v (by simpa using (hasDerivAt_id v).const_smul R⁻¹)).deriv
 
 lemma deriv_scale' {f : CS (n + 1) E} : (f.scale R).deriv v = R⁻¹ • f.deriv (R⁻¹ • v) := by
@@ -319,7 +319,7 @@ theorem W21_approximation (f : W21) (g : trunc) :
       refine tendsto_norm_zero.comp <| (ZeroAtFilter.add ?_ ?_).add ?_
       · have eh'' v : ∀ᶠ R in atTop, h'' R v = 0 := by
           filter_upwards [(vR v).eventually evg'', eventually_ne_atTop 0] with R hR hR'
-          simp [h'', CS.deriv_scale, CS.deriv_smul, hR, hR']
+          simp [h'', CS.deriv_scale, CS.deriv_smul, hR']
           simp [CS.scale, hR', funscale, mul_comm R⁻¹]
           exact hR
         apply tendsto_nhds_of_eventually_eq

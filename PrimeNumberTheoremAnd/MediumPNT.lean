@@ -219,8 +219,8 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     -- norm_cast
     rw [norm_natCast_cpow_of_re_ne_zero _ (by simp only [add_re, ofReal_re, mul_re, I_re, mul_zero,
       ofReal_im, I_im, mul_one, sub_self, add_zero, ne_eq]; linarith)]
-    simp only [add_re, re_ofNat, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-      sub_self, add_zero, rpow_two, Real.toNNReal_of_nonneg <| rpow_nonneg (y:= σ) (x:= i) (by linarith)]
+    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+      add_zero, Real.toNNReal_of_nonneg <| rpow_nonneg (y := σ) (x := i) (by linarith)]
     norm_cast
 
   rw [MeasureTheory.integral_tsum]
@@ -232,8 +232,8 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
       fun_prop (disch := simp[i_eq_zero, x_neq_zero])
   . rw [← lt_top_iff_ne_top]
     simp_rw [enorm_mul, enorm_eq_nnnorm, nnnorm_div, ← norm_toNNReal, Complex.norm_cpow_eq_rpow_re_of_pos X_pos, norm_toNNReal, abs_two]
-    simp only [nnnorm_real, add_re, re_ofNat, mul_re, ofReal_re, I_re, mul_zero, ofReal_im, I_im,
-      mul_one, sub_self, add_zero, rpow_two]
+    simp only [nnnorm_real, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+      sub_self, add_zero]
     simp_rw [MeasureTheory.lintegral_mul_const' (r := ↑(X ^ σ).toNNReal) (hr := by simp), ENNReal.tsum_mul_right]
     apply WithTop.mul_lt_top ?_ ENNReal.coe_lt_top
 
@@ -418,7 +418,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
   have n₀_pos : 0 < n₀ := by
     simp only [Nat.ceil_pos, n₀]
     subst C_eq
-    simp_all only [mem_Ioo, and_imp, ge_iff_le, implies_true, mul_pos_iff_of_pos_left, sub_pos, n₀]
+    simp_all only [mem_Ioo, and_imp, ge_iff_le, implies_true, mul_pos_iff_of_pos_left, sub_pos]
     exact mul_lt_one_of_nonneg_of_lt_one_left c₁_pos.le c₁_lt ε_lt_one.le
 
   have n₀_inside_le_X : X * (1 - c₁ * ε) ≤ X := by
@@ -658,7 +658,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
       nth_rewrite 1 [← Finset.card_range (⌊X + 1⌋₊ - n₀)]
       rw[Finset.cast_card, Finset.sum_const, smul_one_mul]
       exact Eq.symm (Finset.sum_const (Real.log (X + 1)))
-      simp only [Nat.ceil_le, n₀, F]
+      simp only [Nat.ceil_le, n₀]
       exact Preorder.le_trans (X * (1 - c₁ * ε)) X (↑⌊X + 1⌋₊) n₀_inside_le_X X_le_floor_add_one
     rw[this]
     apply Finset.sum_le_sum
@@ -669,7 +669,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
       have temp: (n : ℝ) < ⌊X + 1⌋₊ - n₀ := by
         rw[← Nat.cast_sub, Nat.cast_lt]
         exact hn
-        simp only [Nat.ceil_le, n₀, F]
+        simp only [Nat.ceil_le, n₀]
         exact le_trans n₀_inside_le_X X_le_floor_add_one
       have : ↑⌊X + 1⌋₊ - ↑n₀ ≤ X + 1 - ↑n₀ := by
         apply sub_le_sub_right floor_X_add_one_le_self
@@ -1218,7 +1218,7 @@ theorem triv_bound_zeta :
             exact subset_trans (subset_trans T metric_ball_around_1_is_in_U') open_in_U_subs_U
 
           · unfold ε
-            simp [h] at ε
+            simp at ε
             simp [h]
             exact subset_trans metric_ball_around_1_is_in_U' open_in_U_subs_U
 
@@ -1244,7 +1244,6 @@ theorem triv_bound_zeta :
           have U : ε_div_two ≠ ⊤ := by
             refine ENNReal.div_ne_top O1 ?_
             simp
-          simp [ENNReal.toReal_lt_toReal O1 U]
           simp [ENNReal.toReal_add _ U]
           refine ENNReal.toReal_pos ?_ ?_
           · unfold ε_div_two
@@ -1264,14 +1263,14 @@ theorem triv_bound_zeta :
         have Z :=
           by
             calc
-              0 ≤ (boundary - 1)⁻¹ := by simp [boundary_inv_pos]; linarith
+              0 ≤ (boundary - 1)⁻¹ := by simp; linarith
               _ ≤ (boundary - 1)⁻¹ + const := by unfold const; simp [bound_pos]
 
         exact Z
 
       have const_le_final_const : const ≤ final_const := by
         calc
-          const ≤ (boundary - 1)⁻¹ + const := by simp [boundary_inv_pos]; linarith
+          const ≤ (boundary - 1)⁻¹ + const := by simp; linarith
           _ = final_const := by rfl
 
       /- final const is actually the constant that we will use -/
@@ -1319,7 +1318,7 @@ theorem triv_bound_zeta :
             calc
               σ₀ - 1 ≤ boundary - 1 := by linarith
               _ = ENNReal.toReal (1 + ε_div_two) - 1 := rfl
-              _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp [ENNReal.toReal_ofReal]
+              _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp
               _ ≤ ENNReal.toReal (1 + ε_div_two - ENNReal.ofReal 1) := ENNReal.le_toReal_sub U4
               _ = ENNReal.toReal (ε_div_two) := by simp only [ENNReal.ofReal_one, ENNReal.addLECancellable_iff_ne, ne_eq, ENNReal.one_ne_top, not_false_eq_true, AddLECancellable.add_tsub_cancel_left]
               _ < ε.toReal := Z0
@@ -1375,7 +1374,6 @@ theorem triv_bound_zeta :
           have U : ε_div_two ≠ ⊤ := by
             refine ENNReal.div_ne_top O1 ?_
             simp
-          simp [ENNReal.toReal_lt_toReal O1 U]
           simp [ENNReal.toReal_add _ U]
           refine ENNReal.toReal_pos ?_ ?_
           · unfold ε_div_two
@@ -1411,7 +1409,7 @@ theorem triv_bound_zeta :
             calc
               boundary - 1 ≤ boundary - 1 := by linarith
               _ = ENNReal.toReal (1 + ε_div_two) - 1 := rfl
-              _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp [ENNReal.toReal_ofReal]
+              _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp
               _ ≤ ENNReal.toReal (1 + ε_div_two - ENNReal.ofReal 1) := ENNReal.le_toReal_sub U4
               _ = ENNReal.toReal (ε_div_two) := by simp only [ENNReal.ofReal_one, ENNReal.addLECancellable_iff_ne, ne_eq, ENNReal.one_ne_top, not_false_eq_true, AddLECancellable.add_tsub_cancel_left]
               _ < ε.toReal := Z0
@@ -1460,7 +1458,7 @@ theorem triv_bound_zeta :
             _ = final_const := by rfl
             _ ≤ (σ₀ - 1)⁻¹ + final_const := by
               have H : 0 ≤ (σ₀ - 1)⁻¹ := by
-                simp [inv_pos_of_pos]
+                simp
                 linarith
 
               simp [H]
@@ -1613,7 +1611,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
     riemannZeta (σ₀ + (t : ℂ) * I) *
     (X : ℂ) ^ (σ₀ + (t : ℂ) * I)) t‖ ≤ c := by
     intro t
-    simp only [Complex.norm_mul, norm_neg, c]
+    simp only [Complex.norm_mul, c]
     gcongr
     · convert hC t using 1
       simp
@@ -1621,7 +1619,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
       · simp
       · linarith
       · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-        add_zero, ne_eq, c]
+          add_zero, ne_eq]
         linarith
   convert (SmoothedChebyshevDirichlet_aux_integrable ContDiffSmoothingF SmoothingFnonneg
     suppSmoothingF mass_one ε_pos ε_lt_one σ₀_gt σ₀_le_2).bdd_mul ?_ ⟨c, this⟩ using 2
@@ -2364,7 +2362,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
             have h_real : (↑σ₁ + ↑t * I).re = (0 : ℂ).re := by
               rw [h]
             simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
-              sub_self, add_zero, zero_re, z, w] at h_real
+              sub_self, add_zero, zero_re] at h_real
             exact h_real
           linarith
         · -- continuity -- failed
@@ -2409,7 +2407,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       simp only [one_div, mul_inv_rev, inv_I, neg_mul, VIntegral, add_re, ofReal_re, mul_re,
         re_ofNat, I_re, mul_zero, im_ofNat, I_im, mul_one, sub_self, add_zero, sub_im, ofReal_im,
         mul_im, zero_sub, add_im, zero_add, smul_eq_mul, sub_re, sub_zero, sub_neg_eq_add, I₅,
-        neg_add_cancel_right, sub_right_inj, w, z]
+        w, z]
     _ = I₃₇ SmoothingF ε T X σ₁ - (I₄ SmoothingF ε X σ₁ σ₂
     - I₆ SmoothingF ε X σ₁ σ₂
     + I₅ SmoothingF ε X σ₁
@@ -2978,8 +2976,7 @@ theorem integral_evaluation' (x : ℝ) (T : ℝ)
   have T2 : 0 ≤ᶠ[ae (volume.restrict (Ioi T))] (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by
     unfold Filter.EventuallyLE
     unfold Filter.Eventually
-    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, Pi.zero_apply, inv_nonneg, norm_nonneg, pow_nonneg,
-  setOf_true, univ_mem]
+    simp_all only [ne_eq, Pi.zero_apply, inv_nonneg, norm_nonneg, pow_nonneg, setOf_true, univ_mem]
 
   have T3 : Integrable (fun (t : ℝ) ↦ - (t^2)⁻¹) (volume.restrict (Ioi T)) := by
     have D1 : (-2) < (-1 : ℝ) := by simp only [neg_lt_neg_iff, Nat.one_lt_ofNat]
@@ -3026,7 +3023,7 @@ theorem integral_evaluation' (x : ℝ) (T : ℝ)
     refine ContinuousWithinAt.inv₀ ?_ ?_
     · exact ContinuousAt.continuousWithinAt fun ⦃U⦄ a ↦ a
     · by_contra h
-      simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', neg_eq_zero]
+      simp_all only [ne_eq]
       --norm_cast
       norm_num
 
@@ -3045,7 +3042,7 @@ theorem integral_evaluation' (x : ℝ) (T : ℝ)
     have hx_ne_zero : x ≠ 0 := by
       intro h
       rw [h] at hx
-      simp [Set.Iio] at hx
+      simp at hx
       linarith
   -- Use the standard derivative of inverse function
     convert hasDerivAt_inv hx_ne_zero
@@ -3059,10 +3056,10 @@ theorem integral_evaluation' (x : ℝ) (T : ℝ)
     have U := MeasureTheory.integral_Ioi_of_hasDerivAt_of_tendsto hcont hderiv T3 hf
     simp [*] at U
     rw [MeasureTheory.integral_neg] at U
-    simp_all only [ne_eq, measurableSet_Ici, ae_restrict_eq, mem_Ioi, neg_inj, sub_zero]
+    simp_all only [ne_eq, mem_Ioi, neg_inj, sub_zero]
 
   have T6 : ∫ (t : ℝ) in Ioi T, (t^2)⁻¹ = T⁻¹ := by
-    simp only [inv_neg, sub_zero] at T5
+    simp only [sub_zero] at T5
     have D6 : - ∫ (t : ℝ) in Ioi T, - (t^2)⁻¹ =  ∫ (t : ℝ) in Ioi T, (t^2)⁻¹ := by
       simp only [integral_neg fun a ↦ (a ^ 2)⁻¹, neg_neg]
 
@@ -3185,7 +3182,7 @@ theorem I1Bound
       have U : σ - 1 ≤ 1 := by linarith
       have U1 := (inv_le_inv₀ (by positivity) (by exact sub_pos.mpr cond)).mpr U
       simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, mul_inv_rev, ge_iff_le, Complex.norm_div,
-  norm_neg, tsub_le_iff_right, inv_one, U1]
+        norm_neg, tsub_le_iff_right, inv_one]
 
     have T : (K' + 1) * 1 ≤ (K' + 1) * (σ - 1)⁻¹ :=
       by
@@ -3722,7 +3719,7 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
       · rw[cpow_def_of_ne_zero]
         · rw[norm_exp,← ofReal_log, re_ofReal_mul]
           simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-            sub_zero, σ₁]
+            sub_zero]
           rw[← le_log_iff_exp_le, Real.log_mul (exp_ne_zero 1), Real.log_exp, ← le_div_iff₀', add_comm, add_div, div_self, one_div]
           exact hσ.2
           · refine (Real.log_pos ?_).ne.symm
@@ -4366,13 +4363,13 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
         -ζ' (↑σ₁ + ↑t * I) / ζ (↑σ₁ + ↑t * I) *
         𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑σ₁ + ↑t * I) *
         ↑T ^ (↑σ₁ + ↑t * I)‖ := by
-    simp only [norm_mul, norm_eq_abs, abs_neg, abs_one, one_mul, mul_one]
+    simp only [norm_mul]
     rw[Complex.norm_I]
-    simp only [norm_mul, norm_eq_abs, abs_neg, abs_one, one_mul, mul_one]
+    simp only [one_mul]
     have : ‖1 / (2 * ↑π * I)‖ = 1 / (2 * π) := by
       dsimp
       ring_nf
-      simp only [norm_mul, norm_eq_abs, abs_neg, abs_one, one_mul, mul_one]
+      simp only [norm_mul]
       rw[inv_I]
       have : ‖-I‖ = ‖-1 * I‖ := by
         simp
@@ -5084,7 +5081,7 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
             rw[Complex.ofReal_ne_one]
             exact ne_of_lt (by exact hσ₂.2)
         unfold f
-        simp only [Complex.norm_mul, norm_neg]
+        simp only [Complex.norm_mul]
         have : C * X * X ^ (-A / Real.log T ^ 9) / ε =
           (C / ε) * (X * X ^ (-A / Real.log T ^ 9)) := by ring
         rw[this]
@@ -5179,7 +5176,7 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
               rw[Complex.norm_of_nonneg]
               · rw[Complex.arg_ofReal_of_nonneg]
                 · rw[zero_mul, neg_zero, Real.exp_zero]
-                  simp only [inv_one, mul_one, inv_pow, ge_iff_le]
+                  simp only [inv_one, mul_one, inv_pow]
                   refine rpow_le_rpow_of_exponent_le ?_ ?_
                   · linarith
                   · unfold uIoc at xInIoc
@@ -5288,7 +5285,7 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
 
   have subst : {σ₂} ×ℂ uIcc (-3) 3 ⊆ (uIcc σ₂ 2 ×ℂ uIcc (-3) 3) \ {1} := by
     simp! only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le]
-    simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, gt_iff_lt, neg_le_self_iff,
+    simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, neg_le_self_iff,
       Nat.ofNat_nonneg, uIcc_of_le]
     intro z
     intro hyp_z
@@ -5576,7 +5573,7 @@ theorem MediumPNT : ∃ c > 0,
     simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, gt_iff_lt, mem_Ioo, and_imp,
       mem_Ioc, lt_sup_iff,
       inv_pos, Nat.ofNat_pos, or_true, sup_lt_iff, neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le,
-      div_pos_iff_of_pos_right, div_pos_iff_of_pos_left, σ₂, c, c_εx]
+      div_pos_iff_of_pos_right, σ₂, c, c_εx]
   let c_Tx : ℝ := A ^ ((1 : ℝ) / 10)
   have c_Tx_pos : 0 < c_Tx := by
     simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, gt_iff_lt, mem_Ioo, and_imp,
@@ -5695,7 +5692,7 @@ theorem MediumPNT : ∃ c > 0,
       (tendsto_log_atTop.comp Tx_to_inf))
     have := Tendsto.const_mul (b := A) this
     convert (tendsto_const_nhds (x := (1 : ℝ))).sub this using 2
-    · simp only [rpow_ofNat, comp_apply, sub_right_inj, σ₂, c_εx, c_Tx, c, div_eq_mul_inv]
+    · simp only [rpow_ofNat, comp_apply, div_eq_mul_inv]
     · simp
 
   have eventually_ε_lt_ε_main : ∀ᶠ (x : ℝ) in atTop, εx x < ε_main := by
