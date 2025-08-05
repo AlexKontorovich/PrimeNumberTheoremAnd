@@ -102,7 +102,7 @@ theorem one_div_selbergTerms_eq_conv_moebius_nu (l : ℕ) (hl : Squarefree l)
     (hnu_nonzero : ν l ≠ 0) : 1 / g l = ∑ d ∈ l.divisors, (μ <| l / d) * (ν d)⁻¹ :=
   by
   rw [selbergTerms_apply]
-  simp only [one_div, mul_inv, inv_div, inv_inv, Finset.prod_congr, Finset.prod_inv_distrib]
+  simp only [one_div, prod_inv_distrib, mul_inv, inv_inv]
   rw [(s.nu_mult).prodPrimeFactors_one_sub_of_squarefree _ hl]
   rw [mul_sum]
   apply symm
@@ -187,7 +187,7 @@ theorem lambdaSquared_eq_zero_of_support (w : ℕ → ℝ) (y : ℝ)
     apply sum_eq_zero; intro d1 _
     apply sum_eq_zero; intro d2 _
     rw [this d1, this d2]
-    simp only [ite_self, eq_self_iff_true, MulZeroClass.mul_zero]
+    simp only [mul_zero, ite_self]
   apply sum_eq_zero; intro d1 _; apply sum_eq_zero; intro d2 _
   split_ifs with h
   swap; rfl

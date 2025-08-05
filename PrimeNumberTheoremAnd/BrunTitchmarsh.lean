@@ -97,7 +97,7 @@ theorem Ioc_filter_dvd_eq (d a b: ℕ) (hd : d ≠ 0) :
   Finset.filter (fun x => d ∣ x) (Finset.Ioc a b) =
     Finset.image (fun x => x * d) (Finset.Ioc (a / d) (b / d)) := by
   ext n
-  simp only [Finset.mem_filter, Finset.mem_Ioc, Nat.ceil_le, Finset.mem_image]
+  simp only [Finset.mem_filter, Finset.mem_Ioc, Finset.mem_image]
   constructor
   · intro hn
     rcases hn with ⟨⟨han, hnb⟩, hd⟩

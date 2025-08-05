@@ -470,7 +470,7 @@ lemma ResidueTheoremAtOrigin' {z w c : ℂ} (h1 : z.re < 0) (h2 : z.im < 0) (h3 
   have r4 : w.im * w.re⁻¹ = (w.re * w.im⁻¹)⁻¹ := by group
   have r6 := arctan_inv_of_pos <| mul_pos h3 <| inv_pos.mpr h4
   ring_nf
-  simp only [one_div, inv_I, mul_neg, neg_mul, I_sq, one_mul, neg_neg, arctan_neg, ofReal_neg, sub_neg_eq_add]
+  simp only [one_div, inv_I, mul_neg, neg_mul, I_sq, neg_neg, arctan_neg, ofReal_neg, sub_neg_eq_add]
   rw [l1, l3, l4, l6, r1, r3, r4, r6]
   ring_nf
   simp only [I_sq, ofReal_sub, ofReal_mul, ofReal_ofNat, ofReal_div, ofReal_neg, ofReal_one]

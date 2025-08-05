@@ -107,7 +107,7 @@ theorem siftedSum_eq (s : SelbergSieve) (hw : ∀ i ∈ s.support, s.weights i =
       linarith only [hz]
   simp_rw [Nat.cast_one]
   intro x hx
-  simp only [Finset.filter_congr_decidable, Finset.mem_filter] at hx
+  simp only [Finset.mem_filter] at hx
   apply hw x hx.1
 
 def CompletelyMultiplicative (f : ArithmeticFunction ℝ) : Prop := f 1 = 1 ∧ ∀ a b, f (a*b) = f a * f b
@@ -483,7 +483,7 @@ theorem boundingSum_ge_sum (s : SelbergSieve) (hnu : s.nu = (ζ : ArithmeticFunc
   intro m hm
   rw [Finset.mem_Icc] at hm
   simp only [one_div, ArithmeticFunction.pdiv_apply, ArithmeticFunction.natCoe_apply,
-    ArithmeticFunction.zeta_apply_ne (show m ≠ 0 by omega), Nat.cast_ite, CharP.cast_eq_zero, Nat.cast_one,
+    ArithmeticFunction.zeta_apply_ne (show m ≠ 0 by omega), Nat.cast_one,
     ArithmeticFunction.id_apply];
 
 theorem boundingSum_ge_log (s : SelbergSieve) (hnu : s.nu = (ζ : ArithmeticFunction ℝ).pdiv .id)

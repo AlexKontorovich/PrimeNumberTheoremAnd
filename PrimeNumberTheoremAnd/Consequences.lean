@@ -118,13 +118,12 @@ theorem extracted_1 (x : ℝ) (hx : 2 ≤ x) :
       exact lt_floor_add_one x
   have : Set.Ico (2 : ℝ) ⌊x⌋₊ = ⋃ i ∈ Ico 2 ⌊x⌋₊, Set.Ico (i : ℝ) (i + 1) := by
     ext y
-    simp only [Set.mem_Ico, mem_Ico, Set.mem_iUnion, Nat.lt_add_one_iff, exists_and_left,
-      exists_prop]
+    simp only [Set.mem_Ico, mem_Ico, Set.mem_iUnion, exists_and_left, exists_prop]
     constructor
     · rintro ⟨h1, h2⟩
       use ⌊y⌋₊
       have : 0 ≤ y := zero_le_two.trans h1
-      simp [Nat.floor_le, Nat.floor_lt, this, lt_floor_add_one, h2, le_floor, h1, le_of_lt]
+      simp [Nat.floor_le, Nat.floor_lt, this, lt_floor_add_one, h2, le_floor, h1]
     · rintro ⟨n', h⟩
       have : (2 : ℝ) ≤ n' := by
         rw [← Nat.cast_ofNat, Nat.cast_le]
@@ -173,7 +172,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       apply extracted_1 _ hx
   let a : ℕ → ℝ := Set.indicator (setOf Nat.Prime) (fun n => log n)
   have h3 (n : ℕ) : (log n)⁻¹ * a n = if n.Prime then 1 else 0 := by
-    simp only [ite_mul, zero_mul, a]
+    simp only [a]
     simp [Set.indicator_apply]
     split_ifs with h
     · rw [mul_comm]
@@ -510,7 +509,7 @@ theorem chebyshev_asymptotic :
   apply IsBigO.trans_isLittleO (g := fun x ↦ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log))
   . rw [isBigO_iff']
     use 1
-    simp only [gt_iff_lt, zero_lt_one, Pi.sub_apply, norm_eq_abs, norm_div, one_mul,
+    simp only [gt_iff_lt, zero_lt_one, Pi.sub_apply, norm_eq_abs, one_mul,
       eventually_atTop, ge_iff_le, true_and]
     use 2
     intro x hx
@@ -650,13 +649,12 @@ lemma continuousOn_log0 :
         (continuousOn_neg (s := {0}ᶜ))
         (continuousOn_inv₀ |>.mono <| by
           intro x hx
-          simp only [Set.mem_compl_iff, Set.mem_insert_iff, Set.mem_singleton_iff,
-            not_or] at hx ⊢
+          simp only [Set.mem_compl_iff, Set.mem_singleton_iff] at hx ⊢
           tauto)
         (by
           intro x hx
-          simp only [Set.mem_compl_iff, Set.mem_insert_iff, Set.mem_singleton_iff, not_or,
-            inv_eq_iff_eq_inv, inv_zero, inv_one, show (-1 : ℝ)⁻¹ = -1 by norm_num] at hx ⊢
+          simp only [Set.mem_compl_iff, Set.mem_singleton_iff,
+            inv_eq_iff_eq_inv, inv_zero] at hx ⊢
           tauto))
     (ContinuousOn.mul (continuousOn_id' _)
       (by
@@ -951,7 +949,7 @@ theorem pi_asymp'' :
         exact ⟨by linarith, by linarith, by linarith⟩
     · refine ContinuousOn.integrableOn_Icc <| ContinuousOn.inv₀ (continuousOn_log.mono ?_) ?_
       · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and, not_le,
-        and_imp, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
+          isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
       · intro t ht
         simp only [Set.mem_Icc, max_le_iff, ne_eq, log_eq_zero, not_or] at ht ⊢
         exact ⟨by linarith, by linarith, by linarith⟩
@@ -1049,7 +1047,7 @@ theorem pi_asymp'' :
 
             · refine ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
               · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and,
-                not_le, and_imp, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
+                  not_le, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
               · intro t ht
                 simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
                   pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
@@ -1073,7 +1071,7 @@ theorem pi_asymp'' :
 
             · refine ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
               · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and,
-                not_le, and_imp, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
+                  not_le, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
               · intro t ht
                 simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
                   pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
@@ -1095,7 +1093,7 @@ theorem pi_asymp'' :
                     linarith) |>.mono (Set.Icc_subset_Icc_left <| le_max_left 2 _) le_rfl
               · refine ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
                 · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and,
-                  not_le, and_imp, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
+                    not_le, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
                 · intro t ht
                   simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
                     pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
@@ -1105,7 +1103,7 @@ theorem pi_asymp'' :
               refine ContinuousOn.integrableOn_Icc <|
                 ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
               · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and, not_le,
-                and_imp, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
+                  isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
               · intro t ht
                 simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
                   pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
@@ -1147,16 +1145,16 @@ theorem pi_asymp'' :
             · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
             · refine ContinuousOn.integrableOn_Icc <|
                 ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
-              · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and, not_le,
-                and_imp, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
+              · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, not_and, not_le,
+                  isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
               · intro t ht
-                simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
+                simp only [Set.mem_Icc, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
                   pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
                 exact ⟨by linarith, by linarith, by linarith⟩
             · refine ContinuousOn.integrableOn_Icc <|
                 ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
               · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and, not_le,
-                and_imp, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
+                  isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
               · intro t ht
                 simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
                   pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
@@ -1436,7 +1434,7 @@ lemma pi_alt_Oaux1 : ∃ c, ∀ᶠ (x : ℝ) in atTop,
   rw [eventually_atTop]
   use 4
   intro b hb
-  simp only [one_div, norm_eq_abs]
+  simp only [one_div]
   trans ((log 2) ^ 2)⁻¹ * (b.sqrt - 2)
   · have hb : 2 ≤ √b := by
         rw [Real.le_sqrt (by norm_num) (by linarith)]
@@ -1479,7 +1477,7 @@ lemma pi_alt_Oaux2 : ∃ c, ∀ᶠ (x : ℝ) in atTop,
   rw [eventually_atTop]
   use 4
   intro b hb
-  simp only [one_div, norm_eq_abs]
+  simp only [one_div]
   trans ((log √b) ^ 2)⁻¹ * (b - b.sqrt)
   · have hb : 2 ≤ √b ∧ √b ≤ b := by
         constructor
@@ -1575,7 +1573,7 @@ lemma inv_div_log_asy : ∃ c, ∀ᶠ (x : ℝ) in atTop,
     apply _root_.add_le_add hc1 hc2
   _ ≤ (c1 + c2) * (x / log x ^ 2) := by
     specialize hc0 x (le_of_max_le_left (le_of_max_le_right hx))
-    simp only [ge_iff_le, rpow_two, norm_pow, norm_eq_abs, sq_abs, one_mul] at hc0
+    simp only [rpow_two, norm_pow, norm_eq_abs, sq_abs, one_mul] at hc0
     rw [abs_eq_self.2] at hc0
     · rw [add_mul]
       apply _root_.add_le_add _ (by linarith)
@@ -1784,14 +1782,14 @@ theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1:ℝ)) ∧
     · simp only [hx, ↓reduceIte, add_sub_cancel]
       by_cases hx' : x = 0 ∨ |x| = 1
       · rcases hx' with (rfl | hx)
-        · simp only [floor_zero, primeCounting_zero, CharP.cast_eq_zero, Pi.sub_apply, log_zero,
-          div_zero, mul_zero, Pi.one_apply, zero_sub, add_neg_cancel]
+        · simp only [floor_zero, primeCounting_zero, CharP.cast_eq_zero, log_zero, div_zero,
+            mul_zero]
         · have hx := eq_or_eq_neg_of_abs_eq hx
           rcases hx with (hx | hx)
-          · simp only [hx, floor_one, primeCounting_one, CharP.cast_eq_zero, Pi.sub_apply, log_one,
-            div_one, mul_zero, Pi.one_apply, zero_sub, add_neg_cancel, mul_one, div_zero]
-          · simp only [hx, Pi.sub_apply, log_neg_eq_log, log_one, zero_div, zero_mul, Pi.one_apply,
-            zero_sub, add_neg_cancel, mul_neg, mul_one, neg_zero, div_zero, cast_eq_zero,
+          · simp only [hx, floor_one, primeCounting_one, CharP.cast_eq_zero, log_one,
+            div_one, mul_zero, mul_one, div_zero]
+          · simp only [hx, log_neg_eq_log, log_one, zero_div, zero_mul,
+            mul_neg, mul_one, neg_zero, div_zero, cast_eq_zero,
             primeCounting_eq_zero_iff, ge_iff_le]
             suffices ⌊(-1 : ℝ)⌋₊ = 0  by rw [this]; linarith
             rw [Nat.floor_eq_zero]
@@ -2370,7 +2368,7 @@ lemma tendsto_by_squeeze (ε: ℝ) (hε: ε > 0): Tendsto
 
     apply Filter.Tendsto.pos_mul_atTop (C := (1 + ε) * (1 - d) - (1 + d))
     .
-      simp only [d, mul_one, sub_pos]
+      simp only [d, sub_pos]
       field_simp
       rw [div_lt_div_iff_of_pos_right (by positivity)]
       ring_nf
@@ -2427,7 +2425,7 @@ lemma tendsto_by_squeeze (ε: ℝ) (hε: ε > 0): Tendsto
             .
               apply Filter.Tendsto.div_atTop (a := log (1 + ε))
               . simp
-              . simp only [tendsto_comp_val_Ioi_atTop, d]
+              . simp only [tendsto_comp_val_Ioi_atTop]
                 exact tendsto_log_atTop
           . simp
       .
@@ -2439,7 +2437,7 @@ lemma tendsto_by_squeeze (ε: ℝ) (hε: ε > 0): Tendsto
         .
           apply Filter.Tendsto.div_atTop (a := log (1 + ε))
           . simp
-          . simp only [tendsto_comp_val_Ioi_atTop, d]
+          . simp only [tendsto_comp_val_Ioi_atTop]
             exact tendsto_log_atTop
       . simp
     .
@@ -2542,7 +2540,7 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
       split_ifs <;> simp only [abs_zero, zero_le_one, abs_pow, abs_neg, abs_one, one_pow, le_refl]
     apply (abs_sum_le_sum_abs _ _).trans
     apply (sum_le_sum fun d _ ↦ this d).trans
-    all_goals simp [sum_ite, cast_sub hN]
+    all_goals simp [cast_sub hN]
 
   rw [sum_congr rfl (g := fun d : ℕ ↦ μ d * ((N : ℚ) / d - Int.fract ((N : ℚ) / d)))
     fun d _ ↦ by simp only [Int.fract, sub_sub_self]] at h_sum
