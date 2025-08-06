@@ -336,34 +336,6 @@ theorem prime_or_pow (N n : ℕ) (hnN : n < N) (hnprime : IsPrimePow n) :
       _ ≤ Nat.log 2 N := Nat.log_mono_right hnN.le
   · exact_mod_cast hpkn.symm
 
-example (a : ℝ) (n : ℕ) : a ^ n = a ^ (n : ℝ) := by
-  exact (Real.rpow_natCast a n).symm
-
-theorem Nat.log_eq_floor_logb (b n : ℕ) (hb : 1 < b) : Nat.log b n = Nat.floor (Real.logb b n) := by
-  by_cases hn : n = 0
-  · simp [hn]
-  have hlogb_nonneg : 0 ≤ Real.logb b n := by
-    apply Real.logb_nonneg
-    · norm_cast
-    · exact_mod_cast Nat.one_le_iff_ne_zero.mpr hn
-  apply le_antisymm
-  · rw [Nat.le_floor_iff, Real.le_logb_iff_rpow_le]
-    norm_cast
-    apply Nat.pow_log_le_self
-    · exact hn
-    · norm_cast
-    · exact_mod_cast Nat.zero_lt_of_ne_zero hn
-    · exact hlogb_nonneg
-  · apply Nat.le_log_of_pow_le hb
-    exact_mod_cast calc
-      (b:ℝ) ^ ⌊Real.logb ↑b ↑n⌋₊ ≤ (b : ℝ)^ (Real.logb b n) := by
-        rw [← Real.rpow_natCast]
-        gcongr
-        · norm_cast; omega
-        apply Nat.floor_le hlogb_nonneg
-      _ = n := by
-        rw [Real.rpow_logb] <;> norm_cast <;> omega
-
 theorem range_filter_isPrimePow_subset_union (N : ℕ) :
   ((Finset.range N).filter IsPrimePow) ⊆ (Finset.range N).filter Nat.Prime ∪
     ((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ Finset.range (Nat.log 2 N + 1)).image (fun p ↦ p.1 ^ p.2)
@@ -428,12 +400,10 @@ theorem pows_small_primes_le (N : ℕ) :
     · rw [← Real.sqrt_eq_rpow, Nat.cast_sub this, Nat.cast_one]
       have := Nat.ceil_lt_add_one (show 0 ≤ Real.sqrt N by positivity)
       linarith
-    rw [Nat.log_eq_floor_logb _ _ (by norm_num), Real.log_div_log, Nat.cast_two]
-    have hlogb_nonneg : 0 ≤ Real.logb 2 N := by
-      apply Real.logb_nonneg
-      · norm_cast
-      · norm_cast; omega
-    linarith [Nat.floor_le hlogb_nonneg]
+    rw [← Real.natFloor_logb_natCast, Real.log_div_log, Nat.cast_two, add_comm, add_le_add_iff_left]
+    apply Nat.floor_le
+    apply Real.logb_nonneg one_lt_two
+    norm_cast; omega
 
 theorem one_add_log_div_log_two_isBigO :
     (fun N ↦ (1 + Real.log N / Real.log 2)) =O[atTop] (fun N ↦ Real.log N) := by
