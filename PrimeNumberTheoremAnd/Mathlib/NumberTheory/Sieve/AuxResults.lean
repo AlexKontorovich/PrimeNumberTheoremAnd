@@ -123,11 +123,6 @@ theorem multiplicative_zero_of_zero_dvd (f : ArithmeticFunction ℝ) (h_mult : I
   simp only [MulZeroClass.zero_mul, h_mult.map_mul_of_coprime (coprime_of_squarefree_mul h_sq),
     h_zero]
 
-theorem primeDivisors_nonempty (n : ℕ) (hn : 2 ≤ n) : n.primeFactors.Nonempty := by
-  unfold Finset.Nonempty
-  simp_rw[Nat.mem_primeFactors_of_ne_zero (by positivity)]
-  apply Nat.exists_prime_and_dvd (by linarith)
-
 theorem div_mult_of_dvd_squarefree (f : ArithmeticFunction ℝ) (h_mult : IsMultiplicative f) (l d : ℕ) (hdl : d ∣ l)
     (hl : Squarefree l) (hd : f d ≠ 0) : f l / f d = f (l / d) := by
   apply div_eq_of_eq_mul hd
