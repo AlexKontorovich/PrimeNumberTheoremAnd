@@ -47,16 +47,6 @@ theorem sum_over_dvd_ite {α : Type _} [Ring α] {P : ℕ} (hP : P ≠ 0) {n : �
   by
   rw [←Finset.sum_filter, Nat.divisors_filter_dvd_of_dvd hP hn]
 
-theorem sum_intro {α M: Type _} [AddCommMonoid M] [DecidableEq α] (s : Finset α) {f : α → M} (d : α)
-     (hd : d ∈ s) :
-    f d = ∑ k ∈ s, if k = d then f k else 0 := by
-  trans (∑ k ∈ s, if k = d then f d else 0)
-  · rw [sum_eq_single_of_mem d hd]
-    rw [if_pos rfl]
-    intro _ _ h; rw [if_neg h]
-  apply sum_congr rfl; intro k _; apply if_ctx_congr Iff.rfl _ (fun _ => rfl)
-  intro h; rw [h]
-
 theorem ite_sum_zero {p : Prop} [Decidable p] (s : Finset ℕ) (f : ℕ → ℝ) :
     (if p then (∑ x ∈ s, f x) else 0) = ∑ x ∈ s, if p then f x else 0 := by
   split_ifs <;> simp
