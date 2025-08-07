@@ -28,12 +28,6 @@ namespace ArithmeticFunction.IsMultiplicative
 
 variable {R : Type*}
 
-theorem mult_lcm_eq_of_ne_zero [CommGroupWithZero R] (f : ArithmeticFunction R) (h_mult : f.IsMultiplicative) (x y : ℕ)
-    (hf : f (x.gcd y) ≠ 0) :
-    f (x.lcm y) = f x * f y / f (x.gcd y) := by
-  rw [←h_mult.lcm_apply_mul_gcd_apply]
-  field_simp
-
 theorem prod_factors_of_mult (f : ArithmeticFunction ℝ) (h_mult : ArithmeticFunction.IsMultiplicative f) {l : ℕ} (hl : Squarefree l) :
     ∏ a ∈ l.primeFactors, f a = f l := by
   rw [←IsMultiplicative.map_prod_of_subset_primeFactors h_mult l _ Finset.Subset.rfl,
