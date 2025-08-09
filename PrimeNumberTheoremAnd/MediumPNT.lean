@@ -4852,9 +4852,6 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
   have reThree : re 3 = 3 := by exact rfl
   have imThree : im 3 = 0 := by exact rfl
 
-  have elt3 : Real.exp 1 < 3 := by
-    linarith[Real.exp_one_lt_d9]
-
   unfold I₄ SmoothedChebyshevIntegrand
 
   let S : Set ℝ := (fun (t : ℝ) ↦ ↑‖-ζ' (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I) / ζ (↑σ₂ + ↑t * (1 - ↑σ₂) - 3 * I)‖₊) '' Icc 0 1
@@ -4889,7 +4886,6 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
         repeat rw[ofReal_im] at h
         ring_nf at h
         obtain ⟨_, ripGoal⟩ := h
-        have : -3 ≠ 0 := by norm_num
         linarith
       refine ⟨?_, this⟩
       rw [mem_reProdIm]
@@ -5337,14 +5333,7 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
   use C_pos
 
 
-  have U : σ₂ ∈ Ioo 0 1 := by
-    refine mem_Ioo.mpr ?_
-    · constructor
-      · linarith[hσ₂.1]
-      · linarith[hσ₂.2]
-
-
-  clear U    C_pos
+  clear  C_pos
 
   intros X X_gt ε ε_pos ε_lt_one
 
@@ -5399,7 +5388,6 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
           have U := mellin_bound t
           linear_combination (abs zeta_bound) * U * ‖(↑X : ℂ) ^ (↑σ₂ + ↑t * I)‖
         _ ≤ abs zeta_bound * M * (σ₂^2)⁻¹ * ε⁻¹ * ‖(↑X : ℂ) ^ (↑σ₂ + ↑t * I)‖  := by
-          have T : 0 ≤ abs zeta_bound * M := by positivity
           linear_combination (abs zeta_bound * M * easy_bound t * ε⁻¹ * ‖(↑X : ℂ) ^ (↑σ₂ + ↑t * I)‖)
         _ = abs zeta_bound * M * (σ₂^2)⁻¹ * ε⁻¹ * X ^ (σ₂) := by
           rw [Complex.norm_cpow_eq_rpow_re_of_pos]
@@ -5615,16 +5603,11 @@ theorem MediumPNT : ∃ c > 0,
         Real.log x ^ (-1 + B) * (Real.log x) ^ (1 : ℝ))]
       rw [← Real.rpow_add log_pos]
       ring_nf
-    have B_minus_1_neg : B - 1 < 0 := by linarith
     have coeff_to_one : Tendsto (fun x ↦ 1 - c * Real.log x ^ (B - 1)) atTop (𝓝 1) := by
       specialize coeff_to_zero B_le
       apply Tendsto.const_mul c at coeff_to_zero
       convert (tendsto_const_nhds (x := (1 : ℝ)) (f := (atTop : Filter ℝ))).sub coeff_to_zero
       ring
-
-    have eventually_pos : ∀ᶠ x in atTop, 0 < 1 - c * Real.log x ^ (B - 1) := by
-      apply (tendsto_order.mp coeff_to_one).1
-      norm_num
 
     have eventually_factored : ∀ᶠ x in atTop, Real.log x - c * Real.log x ^ B =
     Real.log x * (1 - c * Real.log x ^ (B - 1)) := by
@@ -5863,15 +5846,10 @@ theorem MediumPNT : ∃ c > 0,
     unfold c Tx c_Tx εx c_εx
     set const2 : ℝ := 1 / 10
     have const2eq : const2 = 1 / 10 := by rfl
-    have const2bnd : 0 < const2 := by norm_num
     set const1 := (A ^ const2 / 2)
     have const1eq : const1 = (A ^ const2 / 2) := by rfl
     set const1' := (A ^ const2 / 4)
     have const1'eq : const1' = (A ^ const2 / 4) := by rfl
-    have A_pow_pos : 0 < A ^ const2 := by
-      unfold const2
-      apply Real.rpow_pos_of_pos
-      exact A_in_Ioc.1
 
     conv =>
       enter [1, x, 1]
