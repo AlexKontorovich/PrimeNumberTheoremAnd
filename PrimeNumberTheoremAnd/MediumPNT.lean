@@ -497,7 +497,6 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
   have : (∑' (n : ℕ), Λ (n + n₁) * F (↑(n + n₁) / X)) = Λ (n₁) * F (↑n₁ / X) := by
     have : (∑' (n : ℕ), Λ (n + n₁) * F (↑(n + n₁) / X)) = Λ (n₁) * F (↑n₁ / X) + (∑' (n : ℕ), Λ (n + 1 + n₁) * F (↑(n + 1 + n₁) / X)) := by
       let fTemp := fun n ↦ Λ (n + n₁) * F ((↑n + ↑n₁) / X)
-      have sum_fTemp : Summable fTemp := by exact sumΛn₀ n₁
       have hTemp (n : ℕ): fTemp n = Λ (n + n₁) * F (↑(n + n₁) / X) := by rw[Nat.cast_add]
       have : ∑' (n : ℕ), Λ (n + n₁) * F (↑(n + n₁) / X) = ∑' (n : ℕ), fTemp n := by exact Eq.symm (tsum_congr hTemp)
       rw[this]
@@ -805,9 +804,6 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     ∃ C > 0, ∀ (X : ℝ) (_ : 3 < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1) (_ : 2 < X * ε),
     ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
-  have vonManBnd (n : ℕ) : ArithmeticFunction.vonMangoldt n ≤ Real.log n :=
-    ArithmeticFunction.vonMangoldt_le_log
-
   obtain ⟨c₁, c₁_pos, c₁_eq, hc₁⟩ := Smooth1Properties_below suppSmoothingF mass_one
 
   obtain ⟨c₂, c₂_pos, c₂_eq, hc₂⟩ := Smooth1Properties_above suppSmoothingF
@@ -838,8 +834,6 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
   unfold ChebyshevPsi
 
   have X_gt_zero : (0 : ℝ) < X := by linarith
-
-  have X_ne_zero : X ≠ 0 := by linarith
 
   have n_on_X_pos {n : ℕ} (npos : 0 < n) :
       0 < n / X := by
@@ -1161,9 +1155,6 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized (σ₀ σ₁ t : ℝ)
   rw [← (ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s₁_re_geq_one)]
   unfold LSeries
 
-  have summable_von_mangoldt : Summable (fun i ↦ LSeries.term (fun n ↦ ↑(Λ n)) s₁.re i) := by
-    exact ArithmeticFunction.LSeriesSummable_vonMangoldt s₁_re_geq_one
-
   have summable_von_mangoldt_at_σ₀ : Summable (fun i ↦ LSeries.term (fun n ↦ ↑(Λ n)) σ₀ i) := by
     exact ArithmeticFunction.LSeriesSummable_vonMangoldt σ₀_gt_one
 
@@ -1252,11 +1243,6 @@ theorem triv_bound_zeta :
 
       let const : ℝ := bound
       let final_const : ℝ := (boundary - 1)⁻¹ + const
-      have boundary_inv_pos : 0 < (boundary - 1)⁻¹ := by
-        ring_nf
-        apply inv_pos_of_pos
-        simp [*]
-
       have final_const_pos : final_const ≥ 0 := by
         unfold final_const
         simp [*]
@@ -1274,9 +1260,6 @@ theorem triv_bound_zeta :
           _ = final_const := by rfl
 
       /- final const is actually the constant that we will use -/
-
-      have const_pos : const ≥ 0 := by
-        linarith
 
       use final_const
       use final_const_pos
@@ -1299,9 +1282,7 @@ theorem triv_bound_zeta :
           rw [U]
           norm_cast
           have U : 0 ≤ σ₀ - 1 := by linarith
-          have U1 : ‖σ₀ - 1‖ = σ₀ - 1 := by exact norm_of_nonneg U
           have U2 : ε ≠ ⊤ := by exact O1
-          have U3 : 0 ≤ ε := by exact zero_le ε
           simp [Real.norm_of_nonneg U]
           simp [ENNReal.ofReal_lt_iff_lt_toReal U U2]
           have U4 : ENNReal.ofReal 1 ≠ ⊤ := by exact ENNReal.ofReal_ne_top
@@ -1390,9 +1371,7 @@ theorem triv_bound_zeta :
           rw [U]
           norm_cast
           have U : 0 ≤ boundary - 1 := by linarith
-          have U1 : ‖boundary - 1‖ = boundary - 1 := by exact norm_of_nonneg U
           have U2 : ε ≠ ⊤ := by exact O1
-          have U3 : 0 ≤ ε := by exact zero_le ε
           simp [Real.norm_of_nonneg U]
           simp [ENNReal.ofReal_lt_iff_lt_toReal U U2]
           have U4 : ENNReal.ofReal 1 ≠ ⊤ := by exact ENNReal.ofReal_ne_top
@@ -1834,9 +1813,6 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
 
     let holoMatch : ℂ → ℂ := fun z ↦
       (fTempC z - (𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) 1 * ↑X) / (z - 1))
-    have inv_log_X_pos: 0 < (Real.log X)⁻¹ := by
-      rw[inv_pos, ← Real.log_one]
-      apply Real.log_lt_log (by positivity) (by linarith)
     have pInRectangleInterior :
         (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) ∈ nhds 1) := by
       refine rectangle_mem_nhds_iff.mpr ?_
@@ -2492,9 +2468,6 @@ theorem norm_reciprocal_inequality_1 (x : ℝ) (x₁ : ℝ) (hx₁ : x₁ ≥ 1)
     apply sq_pos_of_ne_zero
     linarith
 
-  have h33 : 2 * x₁^2 > 0 := by
-    simp [*]
-
   -- Show that x² + x₁² > 0
   have h4 : x^2 + x₁^2 > 0 := by
     linarith [sq_nonneg x, h3]
@@ -2504,13 +2477,6 @@ theorem norm_reciprocal_inequality_1 (x : ℝ) (x₁ : ℝ) (hx₁ : x₁ ≥ 1)
   have h5 : x₁^2 ≤ x^2 + x₁^2 := h2
 
   -- Convert to norms
-  have h6 : ‖x₁^2‖₊ = ‖x₁‖₊^2 := by
-    rw [nnnorm_pow]
-
-  have h7 : ‖x^2 + x₁^2‖₊ = x^2 + x₁^2 := by
-    rw [Real.nnnorm_of_nonneg (le_of_lt h4)]
-    norm_cast
-
   rw [← NNReal.coe_le_coe]
   push_cast
   simp [*]
@@ -2540,9 +2506,6 @@ theorem norm_reciprocal_inequality (x : ℝ) (x₁ : ℝ) (hx₁ : x₁ ≤ -1) 
     apply sq_pos_of_ne_zero
     linarith
 
-  have h33 : 2 * x₁^2 > 0 := by
-    simp [*]
-
   -- Show that x² + x₁² > 0
   have h4 : x^2 + x₁^2 > 0 := by
     linarith [sq_nonneg x, h3]
@@ -2552,13 +2515,6 @@ theorem norm_reciprocal_inequality (x : ℝ) (x₁ : ℝ) (hx₁ : x₁ ≤ -1) 
   have h5 : x₁^2 ≤ x^2 + x₁^2 := h2
 
   -- Convert to norms
-  have h6 : ‖x₁^2‖₊ = ‖x₁‖₊^2 := by
-    rw [nnnorm_pow]
-
-  have h7 : ‖x^2 + x₁^2‖₊ = x^2 + x₁^2 := by
-    rw [Real.nnnorm_of_nonneg (le_of_lt h4)]
-    norm_cast
-
   rw [← NNReal.coe_le_coe]
   push_cast
   simp [*]
@@ -2668,12 +2624,6 @@ theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
     norm_cast at D4
 
   have int_neg : IntegrableOn (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (Set.Iic (-1)) volume := by
-    have h_le : ∀ t ∈ Set.Iic (-1), (x^2 + t^2)⁻¹ ≤ (t^2)⁻¹ := by
-      intro t ht
-      simp only [Set.mem_Iic] at ht
-      -- Fix: Use the fact that t ≤ -1 implies t < 0
-      have t_neg : t < 0 := lt_of_le_of_lt ht (by norm_num : (-1 : ℝ) < 0)
-      exact decay_bound t (abs_pos.mpr (ne_of_lt t_neg))
     have h_meas : AEStronglyMeasurable (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (volume.restrict (Set.Iic (-1))) := by
       exact Continuous.aestronglyMeasurable h4
 
@@ -2696,12 +2646,6 @@ theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
 --    have U := IntegrableOn.mono_fun f_int_1 h_meas h_le
 --    _
   have int_pos : IntegrableOn (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (Set.Ici 1) volume := by
-    have h_le : ∀ t ∈ Set.Ici 1, (x^2 + t^2)⁻¹ ≤ (t^2)⁻¹ := by
-      intro t ht
-      simp only [Set.mem_Ici] at ht
-      -- Fix: Use the fact that t ≥ 1 implies t > 0
-      have t_pos : t > 0 := lt_of_lt_of_le (by norm_num : (0 : ℝ) < 1) ht
-      exact decay_bound t (abs_pos.mpr (ne_of_gt t_pos))
     have h_meas : AEStronglyMeasurable (fun t : ℝ ↦ (x^2 + t^2)⁻¹) (volume.restrict (Set.Ici 1)) := by
       exact Continuous.aestronglyMeasurable h4
 
@@ -2828,9 +2772,6 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
     unfold Filter.Eventually
     simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, Pi.zero_apply, inv_nonneg, norm_nonneg, pow_nonneg,
   setOf_true, univ_mem]
-
-  have T4 : deriv (fun (t : ℝ) ↦ t⁻¹) = (fun t ↦ (- (t^2)⁻¹)) := by
-    exact deriv_inv'
 
   have hcont : ContinuousWithinAt (fun t ↦ t⁻¹) (Set.Iic (-T)) (-T) := by
     refine ContinuousWithinAt.inv₀ ?_ ?_
@@ -3187,10 +3128,6 @@ theorem I1Bound
     have T : (K' + 1) * 1 ≤ (K' + 1) * (σ - 1)⁻¹ :=
       by
         exact (mul_le_mul_left T0).mpr T1
-    have T2 : (K' + 1) ≤ (K' + 1) * (σ - 1)⁻¹ := by
-      simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, mul_inv_rev, ge_iff_le, Complex.norm_div,
-  norm_neg, mul_one, le_mul_iff_one_le_right]
-
     have U := calc
       ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ = ‖-ζ' (σ + t * I) / ζ (σ + t * I)‖ := by
         rw [← norm_neg _, mul_comm, neg_div' _ _]
