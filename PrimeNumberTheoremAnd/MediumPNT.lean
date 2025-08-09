@@ -4155,7 +4155,6 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
       have : t ^ 2 = |t| ^ 2 := by
         exact Eq.symm (sq_abs t)
       rw [this]
-      have h1 := ht.1
       have abspos : |t| > 0 := by linarith
       exact sq_pos_of_pos abspos
     have denom2_pos : 0 < σ₁ ^ 2 + t ^ 2 := by linarith [sq_nonneg σ₁]
@@ -4302,15 +4301,8 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
       · refine Continuous.continuousOn ?_
         exact _root_.continuous_abs
       · intro t ht
-        have h1 := ht.1
-        have h2 := ht.2
-        by_contra!
-        have : t = 0 := by
-          exact abs_eq_zero.mp this
-        rw[this] at h2
-        absurd
-        h2
-        linarith
+        apply abs_ne_zero.mpr
+        linarith [ht.2]
     · refine ContinuousOn.inv₀ ?_ ?_
       · refine ContinuousOn.mul ?_ ?_
         · exact continuousOn_const
@@ -4457,16 +4449,14 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
                 refine Continuous.continuousAt ?_
                 exact _root_.continuous_abs
               · intro x hx
-                have h1 : x ≤ -3 := hx.2
-                have xne0 : x ≠ 0 := by linarith
+                have xne0 : x ≠ 0 := by linarith [hx.2]
                 exact abs_ne_zero.mpr xne0
             · refine ContinuousOn.add ?_ ?_
               · exact continuousOn_const
               · refine ContinuousOn.pow ?_ 2
                 exact continuousOn_id' (Icc (-T) (-3))
             · intro t ht
-              have h1 : t ≤ -3 := ht.2
-              have h2 : t ≠ 0 := by linarith
+              have h2 : t ≠ 0 := by linarith [ht.2]
               have h3 : 0 < t ^ 2 := pow_two_pos_of_ne_zero h2
               have h4 : 0 < σ₁ ^ 2 := sq_pos_of_pos σ₁pos
               linarith [h3, h4]
@@ -4485,14 +4475,12 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
                 refine Continuous.continuousAt ?_
                 exact _root_.continuous_abs
               · intro x hx
-                have h1 : x ≤ -3 := hx.2
-                have xne0 : x ≠ 0 := by linarith
+                have xne0 : x ≠ 0 := by linarith [hx.2]
                 exact abs_ne_zero.mpr xne0
             · refine ContinuousOn.pow ?_ 2
               exact continuousOn_id' (Icc (-T) (-3))
             · intro t ht
-              have h1 : t ≤ -3 := ht.2
-              have tne0 : t ≠ 0 := by linarith
+              have tne0 : t ≠ 0 := by linarith [ht.2]
               exact pow_ne_zero 2 tne0
           have int_Icc : IntegrableOn (fun t ↦ Real.log |t| ^ 9 / t ^ 2) (Icc (-T) (-3)) volume := by
             exact ContinuousOn.integrableOn_Icc cont
@@ -5554,8 +5542,6 @@ theorem MediumPNT : ∃ c > 0,
   have event_1 : ∀ᶠ (x : ℝ) in atTop, C' * (εx x) * x * Real.log x ≤
       C' * x * rexp (-c * Real.log x ^ ((1 : ℝ) / 10)) := by
     unfold c εx c_εx
-    have : 0 < (A ^ ((1 : ℝ) / 10) / 4) := by
-        positivity
     have const1bnd : (A ^ ((1 : ℝ) / 10) / 4) < (A ^ ((1 : ℝ) / 10) / 2) := by
         linarith
     have const2bnd : (0 : ℝ) < 1 / 10 := by norm_num
@@ -5573,11 +5559,6 @@ theorem MediumPNT : ∃ c > 0,
     have const2bnd : 0 < const2 := by norm_num
     set const1 := (A ^ const2 / 2)
     set const1' := (A ^ const2 / 4)
-    have : 0 < A ^ const2 := by
-      unfold const2
-      --positivity -- fails?? Worked before
-      apply Real.rpow_pos_of_pos
-      exact A_in_Ioc.1
     have (x) : -(-const1 * Real.log x ^ const2 + A ^ const2 * Real.log x ^ const2) =
       -(A ^ const2 - const1) * Real.log x ^ const2 := by ring
     simp_rw [← Real.exp_add, div_eq_mul_inv, ← Real.exp_neg, this]
