@@ -3232,12 +3232,6 @@ theorem I1Bound
 
   have pts_re_le_one : pts_re < 2 := by
     unfold pts_re
-    have Z0 : 3 ∈ {x : ℝ | 1 ≤ x} := by
-      simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, mul_inv_rev, gt_iff_lt, Complex.norm_div,
-  mem_setOf_eq, Nat.one_le_ofNat]
-    have Z1 : X ∈ {x : ℝ | 1 ≤ x} := by
-      simp only [mem_setOf_eq]
-      linarith
     have Z : Real.log 3 < Real.log X :=
       by
         refine log_lt_log ?_ X_large
@@ -3432,7 +3426,6 @@ theorem I1Bound
                    exact equ t
 
               rw [fun_equ]
-              have nonzero := ((K * M) * Real.log X * eps⁻¹ * X ^ pts_re)
               have simple_int : MeasureTheory.Integrable (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
                 := by
                    unfold pts
@@ -3442,8 +3435,6 @@ theorem I1Bound
               refine MeasureTheory.Integrable.restrict ?_
               exact U
         _ = (K * M) * Real.log X * X ^ pts_re * eps⁻¹ * ∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹ := by
-              have simpli : ∀(t : ℝ), (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re = (K * M) * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹ :=
-                by intro t; ring_nf
               have simpli_fun : (fun (t : ℝ) ↦ (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re ) = (fun (t : ℝ) ↦ ((K * M) * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹)) :=
                 by funext t; ring_nf
               rw [simpli_fun]
@@ -3876,7 +3867,6 @@ lemma log_pow_over_xsq_integral_bounded :
     constructor
     · norm_num
     · intro T hT
-      have Tgt3 : (3 : ℝ) < T := hT
       simp only [pow_zero]
       have h1 :(0 ≤ (-2) ∨ (-2) ≠ (-1) ∧ 0 ∉ Set.uIcc 3 T) := by
         right
@@ -3910,8 +3900,6 @@ lemma log_pow_over_xsq_integral_bounded :
     · have logpowpos : (Real.log 3) ^ (d + 1) > 0 := by
         refine pow_pos ?_ (d + 1)
         linarith
-      have :  0 < (Real.log 3) ^ (d + 1) / 3 := by
-        exact div_pos logpowpos (by norm_num)
       have : Real.log 3 ^ (d + 1) / 3 + (↑d + 1) * Cd > 0 / 3 + 0 := by
         have term2_pos : 0 < (↑d + 1) * Cd := by
           refine (mul_pos_iff_of_pos_right Cdpos).mpr ?_
@@ -4088,13 +4076,7 @@ lemma log_pow_over_xsq_integral_bounded :
         · field_simp
           apply one_div_nonneg.mpr
           linarith
-      have bound3 : -(Real.log T * Real.log T ^ d * T⁻¹) ≤ 0 := by
-        exact Right.neg_nonpos_iff.mpr bound2
       let S := Real.log T * Real.log T ^ d * T⁻¹
-      have Spos : S ≥ 0 := by
-        unfold S
-        exact bound2
-
       have : (-(Real.log T * Real.log T ^ d * T⁻¹) + Real.log 3 * Real.log 3 ^ d * (1 / 3) +
                 ↑d * ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d * x⁻¹ ^ 2) +
               ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d * x⁻¹ ^ 2 = (-S + Real.log 3 * Real.log 3 ^ d * (1 / 3) +
@@ -4110,7 +4092,7 @@ lemma log_pow_over_xsq_integral_bounded :
                       ≤ ( Real.log 3 * Real.log 3 ^ d * (1 / 3)
                       + ↑d * ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d * x⁻¹ ^ 2)
                       + ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d * x⁻¹ ^ 2 := by
-        linarith [Spos]
+        linarith
       apply lt_of_le_of_lt GetRidOfS
       rw [add_assoc]
 
@@ -4120,13 +4102,10 @@ lemma log_pow_over_xsq_integral_bounded :
         apply (mul_le_mul_of_nonneg_left bound4.le)
         exact Nat.cast_nonneg d
 
-      have bound_sum : ↑d * (∫ x in Ioo 3 T, Real.log x ^ d / x ^ 2)
-                       + ∫ x in Ioo 3 T, Real.log x ^ d / x ^ 2 < ↑d * Cd + Cd := by
-        linarith [bound4, bound5]
       rw[add_assoc]
       apply add_lt_add_left
       field_simp
-      linarith [bound_sum]
+      linarith
 
 /-%%
 \begin{proof}\leanok
