@@ -3637,7 +3637,6 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
 --  clear suppSmoothingF mass_one ContDiffSmoothingF
   have Xpos : 0 < X := lt_trans (by simp only [Nat.ofNat_pos]) X_gt
   have Tpos : 0 < T := lt_trans (by norm_num) T_gt
-  have log_big : 1 < Real.log T ^ 9 := by exact log_pos T (T_gt)
   unfold I₂
   rw[norm_mul, mul_assoc (c := X), ← mul_div]
   refine mul_le_mul_of_nonneg_left ?_ (norm_nonneg _)
@@ -3913,10 +3912,7 @@ lemma log_pow_over_xsq_integral_bounded :
         linarith
       have :  0 < (Real.log 3) ^ (d + 1) / 3 := by
         exact div_pos logpowpos (by norm_num)
-      have dbound : d + 1 ≥ 1 := by
-        exact Nat.le_add_left 1 d
       have : Real.log 3 ^ (d + 1) / 3 + (↑d + 1) * Cd > 0 / 3 + 0 := by
-        have term1_pos : 0 < Real.log 3 ^ (d + 1) / 3 := this
         have term2_pos : 0 < (↑d + 1) * Cd := by
           refine (mul_pos_iff_of_pos_right Cdpos).mpr ?_
           exact Nat.cast_add_one_pos d
@@ -3959,10 +3955,6 @@ lemma log_pow_over_xsq_integral_bounded :
         rw[uIcc_is_Icc]
         refine continuousOn_of_forall_continuousAt ?_
         intro x hx
-        have cont1 : ContinuousAt (fun (x : ℝ) ↦ 1 / x) x := by
-          refine ContinuousAt.div₀ ?_ (fun ⦃U⦄ a ↦ a) ?_
-          · exact continuousAt_const
-          · linarith [hx.1]
         have cont2 : ContinuousAt (fun (x : ℝ) ↦ 1 / x) (-x) := by
           refine ContinuousAt.div₀ ?_ (fun ⦃U⦄ a ↦ a) ?_
           · exact continuousAt_const
@@ -3982,10 +3974,7 @@ lemma log_pow_over_xsq_integral_bounded :
         rw[min3t, max3t] at hx
         unfold u u'
         have xne0 : x ≠ 0 := by linarith [hx.1]
-        have deriv1 := Real.deriv_log x
         have deriv2 := (Real.hasDerivAt_log xne0).pow (d + 1)
-        have fun1 : (fun x ↦ (↑d + 1) * Real.log x ^ d / x) = (fun x ↦ (↑d + 1) * Real.log x ^ d * x⁻¹) := by
-          exact rfl
         have fun2 : (↑d + 1) * Real.log x ^ d / x =  (↑d + 1) * Real.log x ^ d * x⁻¹:= by
           exact rfl
         rw [fun2]
