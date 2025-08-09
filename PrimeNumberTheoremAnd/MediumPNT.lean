@@ -3570,30 +3570,6 @@ lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X): (1 + (Real.log X)⁻¹) < 2 :=
   refine inv_lt_one_of_one_lt₀ ?_
   refine (lt_log_iff_exp_lt ?_).mpr ?_ <;> linarith[Real.exp_one_lt_d9]
 
-
-
-theorem log_pos (T : ℝ) (T_gt : 3 < T) : (Real.log T ^ 9 > 1) :=
-  by
-
-    have elt3 : Real.exp 1 < 3 := by
-      linarith[Real.exp_one_lt_d9]
-
-    have log3gt1: 1 < Real.log 3 := by
-      apply (Real.lt_log_iff_exp_lt (by norm_num)).mpr
-      exact elt3
-
-    have logTgt1 : Real.log T > 1 := by
-      refine (lt_log_iff_exp_lt ?_).mpr ?_
-      linarith
-      linarith
-
-    have logT9gt1 : Real.log T ^ 9 > 1 := by
-      refine (one_lt_pow_iff_of_nonneg ?_ ?_).mpr logTgt1
-      linarith
-      linarith
-
-    exact logT9gt1
-
 /-%%
 \begin{lemma}[I2Bound]\label{I2Bound}\lean{I2Bound}\leanok
 We have that
