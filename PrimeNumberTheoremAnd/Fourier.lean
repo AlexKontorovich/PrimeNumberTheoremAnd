@@ -1,6 +1,6 @@
 import Mathlib.Analysis.Distribution.SchwartzSpace
 import Mathlib.MeasureTheory.Integral.IntegralEqImproper
-import Mathlib.Topology.ContinuousFunction.Bounded
+import Mathlib.Topology.ContinuousMap.Bounded.Basic
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 import Mathlib.Analysis.Fourier.Inversion
 import Mathlib.Analysis.Fourier.FourierTransformDeriv
@@ -13,10 +13,10 @@ local instance {E : Type*} : Coe (E → ℝ) (E → ℂ) := ⟨fun f n => f n⟩
 section lemmas
 
 @[simp]
-theorem nnnorm_eq_of_mem_circle (z : circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
+theorem nnnorm_eq_of_mem_circle (z : Circle) : ‖z.val‖₊ = 1 := NNReal.coe_eq_one.mp (by simp)
 
 @[simp]
-theorem nnnorm_circle_smul (z : circle) (s : ℂ) : ‖z • s‖₊ = ‖s‖₊ := by
+theorem nnnorm_circle_smul (z : Circle) (s : ℂ) : ‖z • s‖₊ = ‖s‖₊ := by
   simp [show z • s = z.val * s from rfl]
 
 noncomputable def e (u : ℝ) : ℝ →ᵇ ℂ where
@@ -37,16 +37,18 @@ lemma fourierIntegral_deriv_aux2 (e : ℝ →ᵇ ℂ) {f : ℝ → ℂ} (hf : In
   simp [fourierIntegral_eq, integral_neg]
 
 @[simp] lemma F_add {f g : ℝ → ℂ} (hf : Integrable f) (hg : Integrable g) (x : ℝ) :
-    𝓕 (fun x => f x + g x) x = 𝓕 f x + 𝓕 g x :=
-  congr_fun (fourierIntegral_add continuous_fourierChar (by exact continuous_mul) hf hg).symm x
+    𝓕 (fun x => f x + g x) x = 𝓕 f x + 𝓕 g x := by
+  have : Continuous fun p : ℝ × ℝ ↦ ((innerₗ ℝ) p.1) p.2 := continuous_inner
+  have := fourierIntegral_add continuous_fourierChar this hf hg
+  exact congr_fun this x
 
 @[simp] lemma F_sub {f g : ℝ → ℂ} (hf : Integrable f) (hg : Integrable g) (x : ℝ) :
     𝓕 (fun x => f x - g x) x = 𝓕 f x - 𝓕 g x := by
   simp_rw [sub_eq_add_neg] ; rw [F_add] ; simp ; exact hf ; exact hg.neg
 
 @[simp] lemma F_mul {f : ℝ → ℂ} {c : ℂ} {u : ℝ} : 𝓕 (fun x => c * f x) u = c * 𝓕 f u := by
-  simp [fourierIntegral_real_eq, ← integral_mul_left] ; congr ; ext
-  simp [Real.fourierChar, expMapCircle] ; ring
+  simp [fourierIntegral_real_eq, ← integral_const_mul] ; congr ; ext
+  simp [Real.fourierChar, Circle.exp, ← smul_mul_assoc, mul_smul_comm]
 
 end lemmas
 
@@ -59,5 +61,5 @@ theorem fourierIntegral_self_add_deriv_deriv (f : W21) (u : ℝ) :
   simp [f.hf, l1, add_mul, Real.fourierIntegral_deriv f.hf' l5 f.hf'', Real.fourierIntegral_deriv f.hf l4 f.hf']
   field_simp [pi_ne_zero] ; ring_nf ; simp
 
-@[simp] lemma deriv_ofReal : deriv ofReal' = fun _ => 1 := by
+@[simp] lemma deriv_ofReal : deriv ofReal = fun _ => 1 := by
   ext x ; exact ((hasDerivAt_id x).ofReal_comp).deriv

@@ -3,6 +3,7 @@ import Mathlib.Analysis.Distribution.SchwartzSpace
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 
 open Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap  BigOperators
+open scoped ContDiff
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] {n : ℕ}
 
@@ -26,12 +27,13 @@ section lemmas
 
 noncomputable def funscale {E : Type*} (g : ℝ → E) (R x : ℝ) : E := g (R⁻¹ • x)
 
-lemma contDiff_ofReal : ContDiff ℝ ⊤ ofReal' := by
-  have key x : HasDerivAt ofReal' 1 x := hasDerivAt_id x |>.ofReal_comp
-  have key' : deriv ofReal' = fun _ => 1 := by ext x ; exact (key x).deriv
-  refine contDiff_top_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
+lemma contDiff_ofReal : ContDiff ℝ ∞ ofReal := by
+  have key x : HasDerivAt ofReal 1 x := hasDerivAt_id x |>.ofReal_comp
+  have key' : deriv ofReal = fun _ => 1 := by ext x ; exact (key x).deriv
+  refine contDiff_infty_iff_deriv.mpr ⟨fun x => (key x).differentiableAt, ?_⟩
   simpa [key'] using contDiff_const
 
+omit [NormedSpace ℝ E] in
 lemma tendsto_funscale {f : ℝ → E} (hf : ContinuousAt f 0) (x : ℝ) :
     Tendsto (fun R => funscale f R x) atTop (𝓝 (f 0)) :=
   hf.tendsto.comp (by simpa using tendsto_inv_atTop_zero.mul_const x)
@@ -45,7 +47,7 @@ variable {f : CS n E} {R x v : ℝ}
 instance : CoeFun (CS n E) (fun _ => ℝ → E) where coe := CS.toFun
 
 instance : Coe (CS n ℝ) (CS n ℂ) where coe f := ⟨fun x => f x,
-  contDiff_ofReal.of_le le_top |>.comp f.h1, f.h2.comp_left (g := ofReal') rfl⟩
+  contDiff_ofReal.of_le (mod_cast le_top) |>.comp f.h1, f.h2.comp_left (g := ofReal) rfl⟩
 
 def neg (f : CS n E) : CS n E where
   toFun := -f
@@ -66,7 +68,7 @@ lemma continuous (f : CS n E) : Continuous f := f.h1.continuous
 
 noncomputable def deriv (f : CS (n + 1) E) : CS n E where
   toFun := _root_.deriv f
-  h1 := (contDiff_succ_iff_deriv.mp f.h1).2
+  h1 := (contDiff_succ_iff_deriv.mp f.h1).2.2
   h2 := f.h2.deriv
 
 lemma hasDerivAt (f : CS (n + 1) E) (x : ℝ) : HasDerivAt f (f.deriv x) x :=
@@ -86,7 +88,7 @@ noncomputable def scale (g : CS n E) (R : ℝ) : CS n E := by
 
 lemma deriv_scale {f : CS (n + 1) E} : (f.scale R).deriv = R⁻¹ • f.deriv.scale R := by
   ext v ; by_cases hR : R = 0 <;> simp [hR, scale]
-  · simp [deriv, smul] ; exact deriv_const _ _
+  · simp [deriv]
   · exact ((f.hasDerivAt (R⁻¹ • v)).scomp v (by simpa using (hasDerivAt_id v).const_smul R⁻¹)).deriv
 
 lemma deriv_scale' {f : CS (n + 1) E} : (f.scale R).deriv v = R⁻¹ • f.deriv (R⁻¹ • v) := by
@@ -149,7 +151,7 @@ lemma iteratedDeriv_sub {f g : ℝ → E} (hf : ContDiff ℝ n f) (hg : ContDiff
 
 noncomputable def deriv (f : W1 (n + 1) E) : W1 n E where
   toFun := _root_.deriv f
-  smooth := contDiff_succ_iff_deriv.mp f.smooth |>.2
+  smooth := contDiff_succ_iff_deriv.mp f.smooth |>.2.2
   integrable k hk := by
     simpa [iteratedDeriv_succ'] using f.integrable (Nat.succ_le_succ hk)
 
@@ -250,14 +252,14 @@ theorem W21_approximation (f : W21) (g : trunc) :
       filter_upwards [(vR v).eventually g.zero, eventually_ne_atTop 0] with R hR hR'
       simp [h, hR, CS.scale, hR', funscale, mul_comm R⁻¹]
     have e1 : ∀ᶠ (n : ℝ) in atTop, AEStronglyMeasurable (F n) volume := by
-      apply eventually_of_forall ; intro R
+      apply Eventually.of_forall ; intro R
       exact (ch.mul f.continuous).norm.aestronglyMeasurable
     have e2 : ∀ᶠ (n : ℝ) in atTop, ∀ᵐ (a : ℝ), ‖F n a‖ ≤ ‖f a‖ := by
-      apply eventually_of_forall ; intro R
-      apply eventually_of_forall ; intro v
+      apply Eventually.of_forall ; intro R
+      apply Eventually.of_forall ; intro v
       simpa [F] using mul_le_mul (hh1 R v) le_rfl (by simp) zero_le_one
     have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := by
-      apply eventually_of_forall ; intro v
+      apply Eventually.of_forall ; intro v
       apply tendsto_nhds_of_eventually_eq ; filter_upwards [eh v] with R hR ; simp [F, hR]
     simpa [F] using tendsto_integral_filter_of_dominated_convergence _ e1 e2 f.hf.norm e4
 
@@ -275,13 +277,13 @@ theorem W21_approximation (f : W21) (g : trunc) :
         have d1 : deriv (fun v => h R v * f v) = fun v => h' R v * f v + h R v * f' v :=
           funext (fun v => (l3 v).deriv)
         rw [d1] ; convert (l5.add l7).deriv using 1 ; ring
-      simp_rw [this]
+      simp_rw [this, F]
 
     obtain ⟨c1, mg'⟩ := g'.bounded
     obtain ⟨c2, mg''⟩ := g''.bounded
     let bound v := c2 * ‖f v‖ + 2 * c1 * ‖f' v‖ + ‖f'' v‖
     have e1 : ∀ᶠ (n : ℝ) in atTop, AEStronglyMeasurable (F n) volume := by
-      apply eventually_of_forall ; intro R ; apply (Continuous.norm ?_).aestronglyMeasurable
+      apply Eventually.of_forall ; intro R ; apply (Continuous.norm ?_).aestronglyMeasurable
       exact ((ch''.mul f.continuous).add ((continuous_const.mul ch').mul f.deriv.continuous)).add
         (ch.mul f.deriv.deriv.continuous)
     have e2 : ∀ᶠ R in atTop, ∀ᵐ (a : ℝ), ‖F R a‖ ≤ bound a := by
@@ -291,12 +293,12 @@ theorem W21_approximation (f : W21) (g : trunc) :
         have : 0 ≤ R := by linarith
         simp [h', CS.deriv_scale, abs_mul, abs_inv, abs_eq_self.mpr this] ; simp [CS.scale, funscale, hR']
         convert_to _ ≤ c1 * 1 ; simp ; rw [mul_comm]
-        apply mul_le_mul (mg' _) (inv_le_of_inv_le (by linarith) (by simpa using hR)) (by positivity)
+        apply mul_le_mul (mg' _) (inv_le_of_inv_le₀ (by linarith) (by simpa using hR)) (by positivity)
         exact (abs_nonneg _).trans (mg' 0)
       have hc2 : ∀ᶠ R in atTop, ∀ v, |h'' R v| ≤ c2 := by
         filter_upwards [eventually_ge_atTop 1] with R hR v
         have e1 : 0 ≤ R := by linarith
-        have e2 : R⁻¹ ≤ 1 := inv_le_of_inv_le (by linarith) (by simpa using hR)
+        have e2 : R⁻¹ ≤ 1 := inv_le_of_inv_le₀ (by linarith) (by simpa using hR)
         have e3 : R ≠ 0 := by linarith
         simp [h'', CS.deriv_scale, CS.deriv_smul, abs_mul, abs_inv, abs_eq_self.mpr e1]
         convert_to _ ≤ 1 * (1 * c2) ; simp
@@ -304,20 +306,20 @@ theorem W21_approximation (f : W21) (g : trunc) :
         apply mul_le_mul e2 ?_ (by positivity) zero_le_one
         simp [CS.scale, e3, funscale] ; apply mg''
       filter_upwards [hc1, hc2] with R hc1 hc2
-      apply eventually_of_forall ; intro v ; specialize hc1 v ; specialize hc2 v
+      apply Eventually.of_forall ; intro v ; specialize hc1 v ; specialize hc2 v
       simp only [F, bound, norm_norm]
       refine (norm_add_le _ _).trans ?_ ; apply add_le_add
       · refine (norm_add_le _ _).trans ?_ ; apply add_le_add <;> simp <;> gcongr
       · simpa using mul_le_mul (hh1 R v) le_rfl (by simp) zero_le_one
     have e3 : Integrable bound volume := (((f.hf.norm).const_mul _).add ((f.hf'.norm).const_mul _)).add f.hf''.norm
     have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := by
-      apply eventually_of_forall ; intro v
+      apply Eventually.of_forall ; intro v
       have evg' : g' =ᶠ[𝓝 0] 0 := by convert ← g.zero.deriv ; exact deriv_const' _
       have evg'' : g'' =ᶠ[𝓝 0] 0 := by convert ← evg'.deriv ; exact deriv_const' _
       refine tendsto_norm_zero.comp <| (ZeroAtFilter.add ?_ ?_).add ?_
       · have eh'' v : ∀ᶠ R in atTop, h'' R v = 0 := by
           filter_upwards [(vR v).eventually evg'', eventually_ne_atTop 0] with R hR hR'
-          simp [h'', CS.deriv_scale, CS.deriv_smul, hR, hR']
+          simp [h'', CS.deriv_scale, CS.deriv_smul, hR']
           simp [CS.scale, hR', funscale, mul_comm R⁻¹]
           exact hR
         apply tendsto_nhds_of_eventually_eq

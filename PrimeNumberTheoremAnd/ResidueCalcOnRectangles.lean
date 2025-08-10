@@ -1,8 +1,8 @@
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.Analysis.Complex.Convex
 import Mathlib.Analysis.Complex.RemovableSingularity
-import Mathlib.Analysis.Analytic.Meromorphic
-import Mathlib.Analysis.SpecialFunctions.Integrals
+import Mathlib.Analysis.Meromorphic.Basic
+import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import Mathlib.MeasureTheory.Measure.Lebesgue.Integral
 import PrimeNumberTheoremAnd.Rectangle
 import PrimeNumberTheoremAnd.Tactic.AdditiveCombination
@@ -139,7 +139,7 @@ theorem HolomorphicOn.vanishesOnRectangle [CompleteSpace E] {U : Set ℂ}
     RectangleIntegral f z w = 0 :=
   integral_boundary_rect_eq_zero_of_differentiableOn f z w (f_holo.mono hU)
 /-%%
-\begin{proof}\leanok
+\begin{proof}\leanok\uses{RectangleBorder}
 This is in a Mathlib PR.
 \end{proof}
 %%-/
@@ -184,8 +184,14 @@ theorem RectangleBorderIntegrable.add {f g : ℂ → E} (hf : RectangleBorderInt
   have h₂ := intervalIntegral.integral_add hf.2.1 hg.2.1
   have h₃ := intervalIntegral.integral_add hf.2.2.1 hg.2.2.1
   have h₄ := intervalIntegral.integral_add hf.2.2.2 hg.2.2.2
-  additive_combination h₁ - h₂ + I • h₃ - I • h₄
+  rw [h₁]
+  rw [h₂]
+  rw [h₃]
+  rw [h₄]
+  module
+  -- Was: additive_combination h₁ - h₂ + I • h₃ - I • h₄
 
+omit [NormedSpace ℂ E] in
 theorem ContinuousOn.rectangleBorder_integrable (hf : ContinuousOn f (RectangleBorder z w)) :
     RectangleBorderIntegrable f z w :=
   ⟨(hf.comp (by fun_prop) (mapsTo_rectangleBorder_left_im z w)).intervalIntegrable,
@@ -193,10 +199,12 @@ theorem ContinuousOn.rectangleBorder_integrable (hf : ContinuousOn f (RectangleB
     (hf.comp (by fun_prop) (mapsTo_rectangleBorder_right_re z w)).intervalIntegrable,
     (hf.comp (by fun_prop) (mapsTo_rectangleBorder_left_re z w)).intervalIntegrable⟩
 
+omit [NormedSpace ℂ E] in
 theorem ContinuousOn.rectangleBorderIntegrable (hf : ContinuousOn f (Rectangle z w)) :
     RectangleBorderIntegrable f z w :=
   (hf.mono (rectangleBorder_subset_rectangle z w)).rectangleBorder_integrable
 
+omit [NormedSpace ℂ E] in
 theorem ContinuousOn.rectangleBorderNoPIntegrable (hf : ContinuousOn f (Rectangle z w \ {p}))
     (pNotOnBorder : p ∉ RectangleBorder z w) : RectangleBorderIntegrable f z w := by
   refine (hf.mono (Set.subset_diff.mpr ?_)).rectangleBorder_integrable
@@ -227,7 +235,7 @@ lemma RectangleIntegralHSplit {a x₀ x₁ y₀ y₁ : ℝ}
       RectangleIntegral f (x₀ + y₀ * I) (a + y₁ * I) +
       RectangleIntegral f (a + y₀ * I) (x₁ + y₁ * I) := by
   dsimp [RectangleIntegral, HIntegral, VIntegral]
-  ring_nf
+  simp only [mul_one, mul_zero, add_zero, zero_add, sub_self]
   have h₁ := intervalIntegral.integral_add_adjacent_intervals f_int_x₀_a_bot f_int_a_x₁_bot
   have h₂ := intervalIntegral.integral_add_adjacent_intervals f_int_x₀_a_top f_int_a_x₁_top
   additive_combination - h₁ + h₂
@@ -252,10 +260,12 @@ lemma RectangleIntegralVSplit {b x₀ x₁ y₀ y₁ : ℝ}
       RectangleIntegral f (x₀ + y₀ * I) (x₁ + b * I) +
       RectangleIntegral f (x₀ + b * I) (x₁ + y₁ * I) := by
   dsimp [RectangleIntegral, HIntegral, VIntegral]
-  ring_nf
+  simp only [mul_one, mul_zero, add_zero, zero_add, sub_self]
   have h₁ := intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_left f_int_b_y₁_left
   have h₂ := intervalIntegral.integral_add_adjacent_intervals f_int_y₀_b_right f_int_b_y₁_right
-  additive_combination I • h₁ - I • h₂
+  rw [← h₁, ← h₂]
+  module
+  -- Was: additive_combination I • h₁ - I • h₂
 
 lemma RectangleIntegralVSplit' {b x₀ x₁ y₀ y₁ : ℝ} (hb : b ∈ [[y₀, y₁]])
     (hf : RectangleBorderIntegrable f (↑x₀ + ↑y₀ * I) (↑x₁ + ↑y₁ * I)) :
@@ -334,13 +344,13 @@ lemma RectanglePullToNhdOfPole [CompleteSpace E] {z w p : ℂ} (zRe_lt_wRe : z.r
     ∀ᶠ (c : ℝ) in 𝓝[>]0,
     RectangleIntegral f z w = RectangleIntegral f (-c - I * c + p) (c + I * c + p) := by
 /-%%
-\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle}\leanok
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, RectangleBorder}\leanok
 Chop the big rectangle with two vertical cuts and two horizontal cuts into smaller rectangles,
 the middle one being the desired square. The integral over each of the outer rectangles
 vanishes, since $f$ is holomorphic there. (The constant $c$ being ``small enough'' here just means
 that the inner square is strictly contained in the big rectangle.)
 %%-/
-  filter_upwards [Ioo_mem_nhdsWithin_Ioi' zero_lt_one, SmallSquareInRectangle hp]
+  filter_upwards [Ioo_mem_nhdsGT zero_lt_one, SmallSquareInRectangle hp]
   intro c ⟨cpos, _⟩ hc
   simp_rw [mul_comm I]
   exact RectanglePullToNhdOfPole' (by simp_all [cpos.le])
@@ -403,7 +413,7 @@ lemma continuous_self_div_sq_add_sq (hy : y ≠ 0) : Continuous fun x => x / (x 
 lemma integral_self_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, x / (x ^ 2 + y ^ 2) =
     Real.log (x₂ ^ 2 + y ^ 2) / 2 - Real.log (x₁ ^ 2 + y ^ 2) / 2 := by
   let f (x : ℝ) : ℝ := Real.log (x ^ 2 + y ^ 2) / 2
-  have e1 {x} := HasDerivAt.add_const (by simpa using hasDerivAt_pow 2 x) (y ^ 2)
+  have e1 {x} := HasDerivAt.add_const (y ^ 2) (by simpa using hasDerivAt_pow 2 x)
   have e2 {x} : HasDerivAt f (x / (x ^ 2 + y ^ 2)) x := by
     convert (e1.log (sq_add_sq_ne_zero hy)).div_const 2 using 1 ; field_simp ; ring
   have e3 : deriv f = λ x => x / (x ^ 2 + y ^ 2) := funext (λ _ => e2.deriv)
@@ -414,7 +424,8 @@ lemma integral_self_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, x / (x ^
 lemma integral_const_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, y / (x ^ 2 + y ^ 2) =
     arctan (x₂ / y) - arctan (x₁ / y) := by
   nth_rewrite 1 [← div_mul_cancel₀ x₁ hy, ← div_mul_cancel₀ x₂ hy]
-  simp_rw [← mul_integral_comp_mul_right, ← integral_const_mul, ← integral_one_div_one_add_sq]
+  simp_rw [← mul_integral_comp_mul_right, ← intervalIntegral.integral_const_mul,
+    ← integral_one_div_one_add_sq]
   exact integral_congr <| λ x _ => by field_simp; ring
 
 lemma integral_const_div_self_add_im (hy : y ≠ 0) : ∫ x : ℝ in x₁..x₂, A / (x + y * I) =
@@ -432,8 +443,8 @@ lemma integral_const_div_self_add_im (hy : y ≠ 0) : ∫ x : ℝ in x₁..x₂,
     norm_cast ; exact sq_add_sq_ne_zero hy
   simp_rw [integral_congr (λ _ _ => e1), integral_sub e2 e3, mul_div_assoc]
   norm_cast
-  simp_rw [integral_const_mul, intervalIntegral.integral_ofReal, integral_self_div_sq_add_sq hy,
-    integral_const_div_sq_add_sq hy]
+  simp_rw [intervalIntegral.integral_const_mul, intervalIntegral.integral_ofReal,
+    integral_self_div_sq_add_sq hy, integral_const_div_sq_add_sq hy]
 
 lemma integral_const_div_re_add_self (hx : x ≠ 0) : ∫ y : ℝ in y₁..y₂, A / (x + y * I) =
     A / I * (Real.log (y₂ ^ 2 + (-x) ^ 2) / 2 - Real.log (y₁ ^ 2 + (-x) ^ 2) / 2) -
@@ -459,7 +470,7 @@ lemma ResidueTheoremAtOrigin' {z w c : ℂ} (h1 : z.re < 0) (h2 : z.im < 0) (h3 
   have r4 : w.im * w.re⁻¹ = (w.re * w.im⁻¹)⁻¹ := by group
   have r6 := arctan_inv_of_pos <| mul_pos h3 <| inv_pos.mpr h4
   ring_nf
-  simp only [one_div, inv_I, mul_neg, neg_mul, I_sq, one_mul, neg_neg, arctan_neg, ofReal_neg, sub_neg_eq_add]
+  simp only [one_div, inv_I, mul_neg, neg_mul, I_sq, neg_neg, arctan_neg, ofReal_neg, sub_neg_eq_add]
   rw [l1, l3, l4, l6, r1, r3, r4, r6]
   ring_nf
   simp only [I_sq, ofReal_sub, ofReal_mul, ofReal_ofNat, ofReal_div, ofReal_neg, ofReal_one]
