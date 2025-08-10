@@ -216,7 +216,6 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
   have abs_two : ∀ a : ℝ, ∀ i : ℕ, ‖(i : ℂ) ^ ((σ : ℂ) + ↑a * I)‖₊ = i ^ σ := by
     intro a i
     simp_rw [← norm_toNNReal]
-    -- norm_cast
     rw [norm_natCast_cpow_of_re_ne_zero _ (by simp only [add_re, ofReal_re, mul_re, I_re, mul_zero,
       ofReal_im, I_im, mul_one, sub_self, add_zero, ne_eq]; linarith)]
     simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
@@ -438,7 +437,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
 
   have sumΛ : Summable (fun (n : ℕ) ↦ Λ n * F (n / X)) := by
     exact (summable_of_ne_finset_zero fun a s=>mul_eq_zero_of_right _
-    (hc₂ _ _ (by trivial) ((le_div_iff₀ X_pos).2 (Nat.ceil_le.1 (not_lt.1
+    (hc₂ _ _ (⟨ε_pos, ε_lt_one⟩) ((le_div_iff₀ X_pos).2 (Nat.ceil_le.1 (not_lt.1
     (s ∘ Finset.mem_range.2))))))
 
   have sumΛn₀ (n₀ : ℕ) : Summable (fun n ↦ Λ (n + n₀) * F ((n + n₀) / X)) := by exact_mod_cast sumΛ.comp_injective fun Q=>by valid
@@ -448,13 +447,13 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
   let n₁ := ⌊X * (1 + c₂ * ε)⌋₊
 
   have n₁_pos : 0 < n₁ := by
-      dsimp only [n₁]
-      apply Nat.le_floor
-      rw[Nat.succ_eq_add_one, zero_add]
-      norm_cast
-      apply one_le_mul_of_one_le_of_one_le (by linarith)
-      apply le_add_of_nonneg_right
-      positivity
+    dsimp only [n₁]
+    apply Nat.le_floor
+    rw[Nat.succ_eq_add_one, zero_add]
+    norm_cast
+    apply one_le_mul_of_one_le_of_one_le (by linarith)
+    apply le_add_of_nonneg_right
+    positivity
 
   have n₁_ge : X * (1 + c₂ * ε) - 1 ≤ n₁ := by
     simp only [tsub_le_iff_right, n₁]
@@ -556,9 +555,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
       simp only [Finset.mem_range, n₀] at hn
       have : (n < ⌈X * (1 - c₁ * ε)⌉₊) → (n ≤ ⌊X * (1 - c₁ * ε)⌋₊) := by
         intro n_lt
-        by_contra hcontra
-
-        rw[not_le] at hcontra
+        by_contra! hcontra
 
         have temp1: (⌊X * (1 - c₁ * ε)⌋₊).succ.succ ≤ n.succ := by
           apply Nat.succ_le_succ
@@ -1817,10 +1814,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) ∈ nhds 1) := by
       refine rectangle_mem_nhds_iff.mpr ?_
       refine mem_reProdIm.mpr ?_
-      have : re 1 = 1 := by rfl
-      rw[this]
-      have : im 1 = 0 := by rfl
-      rw[this]
+      rw [one_re, one_im]
       repeat rw[sub_re]
       repeat rw[sub_im]
       repeat rw[add_re]
@@ -1830,8 +1824,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       repeat rw[ofReal_im]
       ring_nf
       have temp : 1 ∈ uIoo σ₁ (re 1 + (Real.log X)⁻¹) := by
-        have : re 1 = 1 := by rfl
-        rw[this]
+        rw[one_re]
         unfold uIoo
         have : min σ₁ (1 + (Real.log X)⁻¹) = σ₁ := by exact min_eq_left (by linarith)
         rw[this]
@@ -1840,8 +1833,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         refine mem_Ioo.mpr ?_
         exact ⟨σ₁_lt_one, (by linarith)⟩
       have : 0 ∈ uIoo (-T) (T + im 1) := by
-        have : im 1 = 0 := by rfl
-        rw[this, add_zero]
+        rw[one_im, add_zero]
         unfold uIoo
         have : min (-T) T = -T := by exact min_eq_left (by linarith)
         rw[this]
@@ -1880,8 +1872,6 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
               ofReal_inv, inv_re, normSq_ofReal, div_self_mul_self', add_zero, zero_sub, one_im,
               inv_im, neg_zero, zero_div, zero_add, mem_singleton_iff] at x_location
 
-            -- repeat rw[ofReal_re] at x_location
-            -- repeat rw[ofReal_im] at x_location
             obtain ⟨⟨xReIn, xImIn⟩, xOut⟩ := x_location
             unfold uIcc at xReIn xImIn
             have : min σ₁ (1 + (Real.log X)⁻¹) = σ₁ := by exact min_eq_left (by linarith)
@@ -2134,8 +2124,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       repeat rw[ofReal_re]
       repeat rw[ofReal_im]
       ring_nf
-      have : re 1 = 1 := by rfl
-      rw[this]
+      rw [one_re]
       linarith
     have zIm_le_wIm : (σ₁ - ↑T * I).im ≤ (1 + (Real.log X)⁻¹ + T * I).im := by
       repeat rw[sub_im]
@@ -2145,8 +2134,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       repeat rw[ofReal_re]
       repeat rw[ofReal_im]
       ring_nf
-      have : im 1 = 0 := by rfl
-      rw[this]
+      rw [one_im]
       linarith
     exact ResidueTheoremOnRectangleWithSimplePole zRe_le_wRe zIm_le_wIm
       pInRectangleInterior gHolo gEq
@@ -2451,13 +2439,9 @@ theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
   -- First, simplify the complex norm
   have h1 : ∀ t : ℝ, ‖x + t * I‖^2 = x^2 + t^2 := by
     intro t
-    rw [Complex.norm_add_mul_I, Real.sq_sqrt]
-    positivity
+    rw [← normSq_eq_norm_sq, normSq_add_mul_I]
   -- Rewrite the integrand using this simplification
-  have h2 : (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) = (fun (t : ℝ) ↦ (x^2 + t^2)⁻¹) := by
-    ext t
-    rw [h1]
-  rw [h2]
+  simp_rw [h1]
   apply integrable_comp_mul_left_iff _ hx |>.mp
   have : (fun t ↦ (x ^ 2 + (x * t) ^ 2) ⁻¹) = (fun t ↦ (1 / x ^ 2) * (1 + t ^ 2) ⁻¹) := by
     ext
@@ -2466,15 +2450,13 @@ theorem poisson_kernel_integrable (x : ℝ) (hx : x ≠ 0) :
   rw [this]
   apply integrable_inv_one_add_sq.const_mul
 
-theorem ae_volume_of_contains_compl_singleton_zero --{α : Type*} --[MeasurableSpace α] --[MeasurableSpace.CountablyGenerated α]
+theorem ae_volume_of_contains_compl_singleton_zero
   (s : Set ℝ)
   (h : (univ : Set ℝ) \ {0} ⊆ s) :
   s ∈ (MeasureTheory.ae volume) := by
   -- The key insight is that {0} has measure zero in ℝ
   have h_zero_null : volume ({0} : Set ℝ) = 0 := by
     exact volume_singleton
-    -- A singleton set has measure zero in Euclidean space
-    -- exact measure_singleton
 
   -- Since s contains univ \ {0} = ℝ \ {0}, its complement is contained in {0}
   have h_compl_subset : sᶜ ⊆ {0} := by
@@ -2497,11 +2479,8 @@ theorem ae_volume_of_contains_compl_singleton_zero --{α : Type*} --[MeasurableS
   -- A set is in ae.sets iff its complement has measure zero
   rwa [mem_ae_iff]
 
-theorem integral_evaluation (x : ℝ) (T : ℝ)
-  : (3 < T) → ∫ (t : ℝ) in Iic (-T), (‖x + t * I‖ ^ 2)⁻¹ ≤ T⁻¹ := by
-
-  intro T_large
-
+theorem integral_evaluation (x : ℝ) (T : ℝ) (T_large : 3 < T) :
+    ∫ (t : ℝ) in Iic (-T), (‖x + t * I‖ ^ 2)⁻¹ ≤ T⁻¹ := by
   have T00 : ∀ (x t : ℝ), t^2 ≤ ‖x + t * I‖^2 := by
     intro x
     intro t
@@ -2695,7 +2674,6 @@ theorem I1Bound
 
   obtain ⟨K, ⟨K_is_pos, K_bounds_zeta_at_any_t'⟩⟩ := G0
 
---  let (C_final : ℝ) := K * M
   have C_final_pos : |π|⁻¹ * 2⁻¹ * (Real.exp 1 * K * M) > 0 := by
     positivity
 
@@ -3071,7 +3049,6 @@ $$
 %%-/
 lemma I2Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
---    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {A C₂ : ℝ} (has_bound: LogDerivZetaHasBound A C₂) (C₂pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
     ∃ (C : ℝ) (_ : 0 < C),
@@ -3091,7 +3068,6 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
       simp[pi_ne_zero]
     · simp[this]
   intro X X_gt ε ε_pos ε_lt_one T T_gt σ₁
---  clear suppSmoothingF mass_one ContDiffSmoothingF
   have Xpos : 0 < X := lt_trans (by simp only [Nat.ofNat_pos]) X_gt
   have Tpos : 0 < T := lt_trans (by norm_num) T_gt
   unfold I₂
@@ -3288,7 +3264,6 @@ lemma I8Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {A C₂ : ℝ} (has_bound : LogDerivZetaHasBound A C₂) (C₂_pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
---    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     ∃ (C : ℝ) (_ : 0 < C),
     ∀(X : ℝ) (_ : 3 < X) {ε : ℝ} (_: 0 < ε)
     (_ : ε < 1)
@@ -3599,18 +3574,15 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
       ∀ (X : ℝ) (_ : 3 < X)
         {ε : ℝ} (_ : 0 < ε) (_ : ε < 1)
         {T : ℝ} (_ : 3 < T),
-        --(SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-        --(mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1),
         let σ₁ : ℝ := 1 - A / (Real.log T) ^ 9
         ‖I₃ SmoothingF ε T X σ₁‖ ≤ C * X * X ^ (- A / (Real.log T ^ 9)) / ε := by
---  intro SmoothingF suppSmoothingF ContDiffSmoothingF
   obtain ⟨CM, CMpos, CMhyp⟩ := MellinOfSmooth1b ContDiffSmoothingF suppSmoothingF
   obtain ⟨Cint, Cintpos, Cinthyp⟩ := log_pow_over_xsq_integral_bounded 9
   use Cint * CM * Cζ
   have : Cint * CM > 0 := mul_pos Cintpos CMpos
   have : Cint * CM * Cζ > 0 := mul_pos this Cζpos
   use this
-  intro X Xgt3 ε εgt0 εlt1 T Tgt3 σ₁ -- SmoothingFnonneg mass_one
+  intro X Xgt3 ε εgt0 εlt1 T Tgt3 σ₁
   unfold I₃
   unfold SmoothedChebyshevIntegrand
 
@@ -3772,8 +3744,7 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
     intro t
     rintro ⟨ht_gt3, ht_ltT⟩
     have Xσ_bound : ‖↑(X : ℂ) ^ (↑σ₁ + ↑t * I)‖ = X ^ σ₁ := norm_X_sigma1 t
-    have logtgt1 : 1 < Real.log |t| := by
-        exact logt_gt_one ht_gt3
+    have logtgt1 : 1 < Real.log |t| := logt_gt_one ht_gt3
     have hζ := logzetabnd t ⟨ht_gt3, ht_ltT⟩
     have h𝓜 := MellinBound t
     have : ‖f ↑t‖ = ‖(-ζ' (↑σ₁ + ↑t * I) / ζ (↑σ₁ + ↑t * I)) *
@@ -3891,15 +3862,14 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
 
   have int_normf_le_int_g: ∫ (t : ℝ) in Ioo (-T) (-3), ‖f ↑t‖
                         ≤ ∫ (t : ℝ) in Ioo (-T) (-3), g ↑t := by
-
     by_cases h_int : IntervalIntegrable (fun t : ℝ ↦ ‖f t‖) volume (-T) (-3)
     · have f_int : IntegrableOn (fun (t : ℝ) ↦ ‖f t‖) (Ioo (-T : ℝ) (-3 : ℝ)) volume := by
         have hle : -T ≤ -3 := by linarith
         exact (intervalIntegrable_iff_integrableOn_Ioo_of_le hle).mp h_int
       apply MeasureTheory.setIntegral_mono_on
-      exact f_int
-      exact g_integrable_Ioo
-      exact measurableSet_Ioo
+      · exact f_int
+      · exact g_cont.integrableOn_Icc.mono_set Ioo_subset_Icc_self
+      · exact measurableSet_Ioo
       intro t ht
       apply bound_integral
       have : |t| = -t := by
@@ -3953,9 +3923,7 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
   apply le_trans int_normf_le_int_g
   unfold g
 
-  have : X ^ σ₁ = X ^ (1 - A / Real.log T ^ 9) := by
-    rfl
-  rw[this]
+  simp only [σ₁]
 
   have : X ^ (1 - A / Real.log T ^ 9) = X * X ^ (- A / Real.log T ^ 9) := by
     have hX : X > 0 := by linarith
@@ -3969,7 +3937,6 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
     ring
 
   rw[this]
-
 
   have Bound_of_log_int: ∫ (t : ℝ) in Ioo (-T) (-3), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) ≤ Cint / ε := by
     have : ∫ (t : ℝ) in Ioo (-T) (-3), Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2)
@@ -4076,10 +4043,9 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
       have : ∫ (t : ℝ) in Ioo 3 T, Real.log t ^ 9 / t ^ 2 < Cint := by
         exact Cinthyp T Tgt3
       linarith
-    rw [ mul_comm]
+    rw [mul_comm]
     rw [← mul_div_assoc, mul_one]
     exact (div_le_div_iff_of_pos_right εgt0).mpr bound
-
 
   have factor_out_constants :
   ∫ (t : ℝ) in Ioo (-T) (-3), Cζ * CM * Real.log |t| ^ 9 / (ε * ‖↑σ₁ + ↑t * I‖ ^ 2) * (X * X ^ (-A / Real.log T ^ 9))
@@ -4182,12 +4148,9 @@ Same with $I_6$.
 
 lemma I4Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    --(SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    --(mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {σ₂ : ℝ} (h_logDeriv_holo : LogDerivZetaIsHoloSmall σ₂) (hσ₂ : σ₂ ∈ Ioo 0 1)
-    {A : ℝ} --{Cζ : ℝ} --(hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ)
-    (hA : A ∈ Ioc 0 (1 / 2)) :
+    {A : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) :
     ∃ (C : ℝ) (_ : 0 ≤ C) (Tlb : ℝ) (_ : 3 < Tlb),
     ∀ (X : ℝ) (_ : 3 < X)
     {ε : ℝ} (_ : 0 < ε) (_ : ε < 1)
@@ -4574,12 +4537,9 @@ lemma I6I4 {SmoothingF : ℝ → ℝ} {ε X σ₁ σ₂ : ℝ} (Xpos : 0 < X) :
 
 lemma I6Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    --(SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
-    --(mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
     {σ₂ : ℝ} (h_logDeriv_holo : LogDerivZetaIsHoloSmall σ₂) (hσ₂ : σ₂ ∈ Ioo 0 1)
-    {A : ℝ} --{A Cζ : ℝ} (hCζ : LogDerivZetaHasBound A Cζ) (Cζpos : 0 < Cζ)
-    (hA : A ∈ Ioc 0 (1 / 2)) :
+    {A : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) :
     ∃ (C : ℝ) (_ : 0 ≤ C) (Tlb : ℝ) (_ : 3 < Tlb),
     ∀ (X : ℝ) (_ : 3 < X)
     {ε : ℝ} (_ : 0 < ε) (_ : ε < 1)
@@ -4620,12 +4580,8 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
     ∀ (X : ℝ) (_ : 3 < X) {ε : ℝ} (_ : 0 < ε)
     (_ : ε < 1),
     ‖I₅ SmoothingF ε X σ₂‖ ≤ C * X ^ σ₂ / ε := by
-
-  -- IsCompact.exists_bound_of_continuousOn'
   unfold LogDerivZetaIsHoloSmall HolomorphicOn at h_logDeriv_holo
   let zeta'_zeta_on_line := fun (t : ℝ) ↦ ζ' (σ₂ + t * I) / ζ (σ₂ + t * I)
-
-
 
   have subst : {σ₂} ×ℂ uIcc (-3) 3 ⊆ (uIcc σ₂ 2 ×ℂ uIcc (-3) 3) \ {1} := by
     simp! only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le]
@@ -4680,8 +4636,7 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
   have C_pos : 0 < C := by positivity
   use C_pos
 
-
-  clear  C_pos
+  clear C_pos
 
   intros X X_gt ε ε_pos ε_lt_one
 
@@ -4689,7 +4644,6 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
 
   have U: 0 < σ₂^2 := by
     exact sq_pos_of_pos (by linarith[hσ₂.1])
-
 
   have easy_bound : ∀(t : ℝ), (‖↑σ₂ + ↑t * I‖^2)⁻¹ ≤ (σ₂^2)⁻¹ :=
     by
@@ -4700,7 +4654,6 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
       rw [Complex.sq_norm, Complex.normSq_apply]; simp only [add_re, ofReal_re, mul_re, I_re,
         mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]; ring_nf; positivity
       positivity
-
 
   have T1 : ∀(t : ℝ), t ∈ uIoc (-3) (3 : ℝ) → ‖-ζ' (↑σ₂ + ↑t * I) / ζ (↑σ₂ + ↑t * I) * 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑σ₂ + ↑t * I) *
           (↑X : ℂ) ^ (↑σ₂ + ↑t * I)‖ ≤ Const * ε⁻¹ * X ^ σ₂ := by
@@ -4750,12 +4703,8 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
 
     exact Z
 
-
   -- Now want to apply the triangle inequality
   -- and bound everything trivially
-
-  -- intervalIntegral.norm_integral_le_of_norm_le_const
-
   simp only [one_div, mul_inv_rev, inv_I, neg_mul, norm_neg, Complex.norm_mul, norm_I, norm_inv,
     norm_real, norm_eq_abs, Complex.norm_ofNat, one_mul, ge_iff_le]
   have Z :=
@@ -5309,7 +5258,6 @@ theorem MediumPNT : ∃ c > 0,
 
   clear eventually_εx_lt_one eventually_2_lt eventually_T_gt_3 eventually_T_gt_Tlb₄
     eventually_T_gt_Tlb₆ eventually_σ₂_lt_σ₁ eventually_ε_lt_ε_main event_logX_ge zeta_bnd
-    -- ν_nonneg ν_massOne ContDiff1ν ν_supp
 
   let ε : ℝ := εx X
   have ε_pos : 0 < ε := by positivity
