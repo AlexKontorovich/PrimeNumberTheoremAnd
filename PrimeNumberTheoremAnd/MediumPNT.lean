@@ -2542,79 +2542,7 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
   mem_singleton_iff, true_and]
 
         rw [U1] at U
-        have Z := ae_volume_of_contains_compl_singleton_zero
-          ({x_1 : ℝ | (‖x + x_1 * I‖ ^ 2)⁻¹ ≤ (x_1 ^ 2)⁻¹} : Set ℝ) U
-        exact Z
-
-  have T2 : 0 ≤ᶠ[ae (volume.restrict (Iic (-T)))] (fun (t : ℝ) ↦ (‖x + t * I‖^2)⁻¹) := by
-    unfold Filter.EventuallyLE
-    unfold Filter.Eventually
-    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, Pi.zero_apply, inv_nonneg, norm_nonneg, pow_nonneg,
-  setOf_true, univ_mem]
-
-  have hcont : ContinuousWithinAt (fun t ↦ t⁻¹) (Set.Iic (-T)) (-T) := by
-    refine ContinuousWithinAt.inv₀ ?_ ?_
-    · exact ContinuousAt.continuousWithinAt fun ⦃U⦄ a ↦ a
-    · by_contra h
-      simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', neg_eq_zero]
-      norm_num
-
-      have : (0 : ℝ) < 3 := by norm_num
-      have D := calc
-        0 < 3 := this
-        _ < 0 := T_large
-
-      have Dnot :=  lt_irrefl 0
-      norm_cast at D
-
-  have hderiv : ∀ x ∈ Set.Iio (-T), HasDerivAt (fun t ↦ t⁻¹) ((fun t ↦ - (t^2)⁻¹) x) x := by
-    intro x hx
-  -- Use the standard derivative of inverse function
-    apply hasDerivAt_inv
-    rw [mem_Iio] at hx
-    linarith
-  have f'int : IntegrableOn (fun t ↦ - (t^2)⁻¹) (Set.Iic (-T)) volume := by
-    have D1 : (-2) < (-1 : ℝ) := by simp only [neg_lt_neg_iff, Nat.one_lt_ofNat]
-    have D2 : 0 < T := by positivity
-    have D := integrableOn_Ioi_rpow_of_lt D1 D2
-    have D3 := MeasureTheory.IntegrableOn.comp_neg D
-    simp [*] at D3
-    have D4 :=
-      (integrableOn_Iic_iff_integrableOn_Iio'
-        (by
-          refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
-          · simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', mem_Iio, neg_lt_neg_iff,
-  Nat.one_lt_ofNat, rpow_neg_ofNat, Int.reduceNeg, zpow_neg, measure_singleton, EReal.coe_ennreal_zero,
-  EReal.coe_ennreal_top, EReal.zero_ne_top, not_false_eq_true])).mpr D3
-    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', mem_Iio, neg_lt_neg_iff,
-  Nat.one_lt_ofNat, rpow_neg_ofNat, Int.reduceNeg, zpow_neg]
-    unfold IntegrableOn at D4
-    have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
-      funext x
-      simp_all only [even_two, Even.neg_pow]
-
-    simp_all only [even_two, Even.neg_pow]
-    norm_cast at D4
-    simp_all only [even_two, Even.neg_pow]
-    have D6 := MeasureTheory.integrable_neg_iff.mpr D4
-    have eq_fun : (-fun x ↦ (x^2)⁻¹) = (fun (x : ℝ) ↦ - (x^2)⁻¹) := by
-      funext x
-      simp only [Pi.neg_apply]
-    rw [eq_fun] at D6
-    exact D6
-
-
-  have T5 : ∫ (t : ℝ) in Iic (-T), - (t^2)⁻¹ = (-T)⁻¹ - 0 := by
-    exact MeasureTheory.integral_Iic_of_hasDerivAt_of_tendsto hcont hderiv f'int tendsto_inv_atBot_zero
-
-  have T6 : ∫ (t : ℝ) in Iic (-T), (t^2)⁻¹ = T⁻¹ := by
-    simp only [inv_neg, sub_zero] at T5
-    have D6 : - ∫ (t : ℝ) in Iic (-T), - (t^2)⁻¹ =  ∫ (t : ℝ) in Iic (-T), (t^2)⁻¹ := by
-      simp only [integral_neg fun a ↦ (a ^ 2)⁻¹, neg_neg]
-
-    rw [←D6]
-    rw [T5]
-    simp only [neg_neg]
+        exact ae_volume_of_contains_compl_singleton_zero _ U
 
   have T3 : Integrable (fun (t : ℝ) ↦ (t^2)⁻¹) (volume.restrict (Iic (-T))) := by
     have D3 := integrableOn_Ioi_rpow_of_lt (by norm_num : (-2 : ℝ) < -1) (by linarith : 0 < T) |>.comp_neg
@@ -2638,8 +2566,15 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
 
   calc
     _ ≤ ∫ (t : ℝ) in Iic (-T), (t^2)⁻¹  := by
-      exact MeasureTheory.integral_mono_of_nonneg T2 T3 T1
-    _ = _ := by exact T6
+      apply MeasureTheory.integral_mono_of_nonneg _ T3 T1
+      filter_upwards [] with x
+      simp
+    _ = _ := by
+      rw [← integral_comp_neg_Ioi]
+      conv => lhs; arg 2; ext x; rw [show ((-x) ^ 2)⁻¹ = x ^ (-2 : ℝ) by simp; rfl]
+      rw[integral_Ioi_rpow_of_lt (by norm_num) (by linarith)]
+      ring_nf
+      rw [rpow_neg_one]
 
 /-%%
 \begin{proof}\leanok
