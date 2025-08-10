@@ -280,9 +280,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
       ∑' n, ArithmeticFunction.vonMangoldt n * Smooth1 SmoothingF ε (n / X) := by
   dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
   set σ : ℝ := 1 + (Real.log X)⁻¹
-  have log_gt : 1 < Real.log X := by
-    rw [Real.lt_log_iff_exp_lt (by linarith : 0 < X)]
-    linarith [Real.exp_one_lt_d9]
+  have log_gt : 1 < Real.log X := logt_gt_one X_gt.le
   have σ_gt : 1 < σ := by
     simp only [σ]
     have : 0 < (Real.log X)⁻¹ := by
@@ -1465,14 +1463,10 @@ lemma LogDerivZetaBndUnif :
 
       intro σ t hyp_t hyp_σ
 
-      have logt_gt : (1 : ℝ) < Real.log |t| := by
-        refine (Real.lt_log_iff_exp_lt (by linarith)).mpr (lt_trans ?_ hyp_t)
-        exact lt_trans Real.exp_one_lt_d9 (by norm_num)
-
       have logt_gt' : (1 : ℝ) < Real.log |t| ^ 9 := by
         calc
-          1 < Real.log |t| := logt_gt
-          _ ≤ (Real.log |t|) ^ 9 := by exact ZetaInvBnd_aux logt_gt
+          1 < Real.log |t| := logt_gt_one hyp_t.le
+          _ ≤ (Real.log |t|) ^ 9 := ZetaInvBnd_aux (logt_gt_one hyp_t.le)
 
       have logt_gt'' : (1 : ℝ) < 1 + A / Real.log |t| ^ 9 := by
         simp only [lt_add_iff_pos_right, div_pos_iff_of_pos_left, T0]
@@ -1705,10 +1699,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     rw[← one_add_one_eq_two]
     refine (Real.add_lt_add_iff_left 1).mpr ?_
     refine inv_lt_one_of_one_lt₀ ?_
-    refine (lt_log_iff_exp_lt ?_).mpr ?_
-    positivity
-    have : rexp 1 < 3 := by exact lt_trans (Real.exp_one_lt_d9) (by norm_num)
-    linarith
+    exact logt_gt_one X_gt.le
   have X_eq_le_two : 1 + (Real.log X)⁻¹ ≤ 2 := X_eq_lt_two.le
   rw [verticalIntegral_split_three (a := -T) (b := T)]
   swap
@@ -2705,27 +2696,13 @@ theorem I1Bound
         refine log_lt_log ?_ X_large
         simp only [Nat.ofNat_pos]
 
-    have Z01 : 1 < Real.log 3  :=
-      by
-        have Z001 : 1 = Real.log (rexp 1) := by exact Eq.symm (Real.log_exp 1)
-        rw [Z001]
-        have Z002 : (0 : ℝ) < rexp 1 := by positivity
-        have Z003 : (0 : ℝ) < 3 := by positivity
-        have Z004 : rexp 1 < 3 := by
-          calc
-            rexp 1 < (↑ 2.7182818286 : ℚ) := Real.exp_one_lt_d9
-            _ < (↑ 3 : ℚ) := by linarith
-
-        exact (Real.log_lt_log_iff Z002 Z003).mpr Z004
-
+    have Z01 : 1 < Real.log 3 := logt_gt_one le_rfl
     have Zpos0 : 0 < Real.log 3 := by positivity
     have Zpos1 : 0 < Real.log X := by calc
       0 < Real.log 3 := Zpos0
       _ < Real.log X := Z
 
-    have Z1 : (Real.log X)⁻¹ < (Real.log 3)⁻¹ :=
-      by
-        exact (inv_lt_inv₀ Zpos1 Zpos0).mpr Z
+    have Z1 : (Real.log X)⁻¹ < (Real.log 3)⁻¹ := (inv_lt_inv₀ Zpos1 Zpos0).mpr Z
 
     have Z02 : (Real.log 3)⁻¹ < 1 := by
       have T01 := (inv_lt_inv₀ ?_ ?_).mpr Z01
@@ -3035,8 +3012,7 @@ where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X
 lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X): (1 + (Real.log X)⁻¹) < 2 := by
   rw[← one_add_one_eq_two]
   refine (Real.add_lt_add_iff_left 1).mpr ?_
-  refine inv_lt_one_of_one_lt₀ ?_
-  refine (lt_log_iff_exp_lt ?_).mpr ?_ <;> linarith[Real.exp_one_lt_d9]
+  refine inv_lt_one_of_one_lt₀ (logt_gt_one X_ge)
 
 /-%%
 \begin{lemma}[I2Bound]\label{I2Bound}\lean{I2Bound}\leanok
@@ -3097,9 +3073,7 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
         exact le_trans (by norm_num) (le_of_lt T_gt)
       _ ≤ 1 / 2 / 1 := by
         refine div_le_div_of_nonneg_left (by norm_num) (by norm_num) ?_
-        apply one_le_pow₀
-        apply le_of_lt
-        refine (lt_log_iff_exp_lt ?_).mpr ?_ <;> linarith[Real.exp_one_lt_d9]
+        exact one_le_pow₀ (logt_gt_one T_gt.le).le
       _ < 1 := by norm_num
   suffices ∀ σ ∈ Ioc σ₁ (1 + (Real.log X)⁻¹), ‖SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I)‖ ≤ C' * X / (ε * T) by
     calc
@@ -3296,11 +3270,7 @@ $$
 
 lemma log_pow_over_xsq_integral_bounded :
   ∀ n : ℕ, ∃ C : ℝ, 0 < C ∧ ∀ T >3, ∫ x in Ioo 3 T, (Real.log x)^n / x^2 < C := by
-  have elt3 : Real.exp 1 < 3 := by
-    linarith[Real.exp_one_lt_d9]
-  have log3gt1: 1 < Real.log 3 := by
-    apply (Real.lt_log_iff_exp_lt (by norm_num)).mpr
-    exact elt3
+  have log3gt1: 1 < Real.log 3 := logt_gt_one le_rfl
   intro n
   induction n with
   | zero =>
@@ -3586,13 +3556,7 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
   unfold I₃
   unfold SmoothedChebyshevIntegrand
 
-  have elt3 : Real.exp 1 < 3 := by
-    linarith[Real.exp_one_lt_d9]
-
-  have logTgt1 : Real.log T > 1 := by
-    refine (lt_log_iff_exp_lt ?_).mpr ?_
-    linarith
-    linarith
+  have logTgt1 : Real.log T > 1 := logt_gt_one Tgt3.le
 
   have logT9gt1 : Real.log T ^ 9 > 1 := by
     refine (one_lt_pow_iff_of_nonneg ?_ ?_).mpr logTgt1
@@ -3616,8 +3580,7 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
   have logtgt1_bounds : ∀ t, 3 < |t| ∧ |t| < T → Real.log |t| > 1 := by
     intro t ht
     obtain ⟨h1,h2⟩ := ht
-    refine logt_gt_one ?_
-    exact h1
+    refine logt_gt_one h1.le
 
   have logt9gt1_bounds : ∀ t, 3 < |t| ∧ |t| < T → Real.log |t| ^ 9 > 1 := by
     intro t ht
@@ -3744,7 +3707,7 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
     intro t
     rintro ⟨ht_gt3, ht_ltT⟩
     have Xσ_bound : ‖↑(X : ℂ) ^ (↑σ₁ + ↑t * I)‖ = X ^ σ₁ := norm_X_sigma1 t
-    have logtgt1 : 1 < Real.log |t| := logt_gt_one ht_gt3
+    have logtgt1 : 1 < Real.log |t| := logt_gt_one ht_gt3.le
     have hζ := logzetabnd t ⟨ht_gt3, ht_ltT⟩
     have h𝓜 := MellinBound t
     have : ‖f ↑t‖ = ‖(-ζ' (↑σ₁ + ↑t * I) / ζ (↑σ₁ + ↑t * I)) *
@@ -4993,15 +4956,7 @@ theorem MediumPNT : ∃ c > 0,
         filter_upwards [this, eventually_gt_atTop 10] with x hx x_gt
         convert hx using 1
         · rw [Real.norm_of_nonneg]
-          apply Real.log_nonneg
-          have : (1 : ℝ) = Real.log (rexp 1) := by
-            exact Eq.symm (Real.log_exp 1)
-
-          rw [this]
-          apply Real.log_le_log
-          · exact Real.exp_pos _
-          · have := Real.exp_one_lt_d9
-            linarith
+          exact Real.log_nonneg (logt_gt_one (by linarith)).le
         · congr! 1
           rw [Real.norm_of_nonneg]
           apply Real.rpow_nonneg
@@ -5271,8 +5226,7 @@ theorem MediumPNT : ∃ c > 0,
     1 - A / (Real.log T)^9 >= 1 - (1/2) / 1 ^ 9:= by
       gcongr
       · exact A_in_Ioc.2
-      · apply (Real.le_log_iff_exp_le (by positivity)).mpr
-        linarith[Real.exp_one_lt_d9]
+      · exact (logt_gt_one T_gt_3.le).le
     _ > 0 := by norm_num
   have σ₁_lt_one : σ₁ < 1 := by
     apply sub_lt_self
