@@ -204,12 +204,6 @@ theorem sum_inv_le_log_real (y : ℝ) (hy : 1 ≤ y) :
   · norm_cast; apply Nat.lt_of_succ_le; apply le_floor; norm_cast
   · apply floor_le; linarith
 
-theorem Nat.le_prod {ι : Type*} [DecidableEq ι] {f : ι → ℕ} {s : Finset ι} {i : ι} (hi : i ∈ s) (hf : ∀ i ∈ s, f i ≠ 0):
-    f i ≤ ∏ j ∈ s, f j := by
-  rw [←prod_erase_mul (a:=i) (h:= hi)]
-  exact Nat.le_mul_of_pos_left _ (prod_pos fun j hj => Nat.pos_of_ne_zero (hf j (mem_of_mem_erase hj)))
-
-
 -- Lemma 3.1 in Heath-Brown's notes
 theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (hx : 1 ≤ x)
     (hP : Squarefree P) :
