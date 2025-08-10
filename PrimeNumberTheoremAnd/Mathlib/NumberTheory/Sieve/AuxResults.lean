@@ -106,11 +106,6 @@ theorem moebius_inv_dvd_lower_bound_real {P : ℕ} (hP : Squarefree P) (l m : �
   norm_cast
   apply moebius_inv_dvd_lower_bound' hP l m hm
 
-theorem gcd_dvd_mul (m n : ℕ) : m.gcd n ∣ m * n := by
-  calc
-    m.gcd n ∣ m := Nat.gcd_dvd_left m n
-    _ ∣ m * n := ⟨n, rfl⟩
-
 theorem multiplicative_zero_of_zero_dvd (f : ArithmeticFunction ℝ) (h_mult : IsMultiplicative f) {m n : ℕ}
     (h_sq : Squarefree n) (hmn : m ∣ n) (h_zero : f m = 0) : f n = 0 := by
   rcases hmn with ⟨k, rfl⟩
