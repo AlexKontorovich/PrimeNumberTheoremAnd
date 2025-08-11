@@ -2571,7 +2571,7 @@ theorem integral_evaluation (x : ℝ) (T : ℝ)
       simp
     _ = _ := by
       rw [← integral_comp_neg_Ioi]
-      conv => lhs; arg 2; ext x; rw [show ((-x) ^ 2)⁻¹ = x ^ (-2 : ℝ) by simp; rfl]
+      conv => lhs; arg 2; ext x; rw [show ((-x) ^ 2)⁻¹ = x ^ (-2 : ℝ) by simp [zpow_ofNat]]
       rw[integral_Ioi_rpow_of_lt (by norm_num) (by linarith)]
       ring_nf
       rw [rpow_neg_one]
