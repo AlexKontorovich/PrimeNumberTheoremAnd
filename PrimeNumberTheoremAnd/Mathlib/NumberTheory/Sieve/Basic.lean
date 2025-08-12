@@ -208,7 +208,7 @@ theorem upperMoebius_of_lambda_sq (weights : ℕ → ℝ) (hw : weights 1 = 1) :
     apply sum_congr rfl; intro d1 hd1
     rw [sum_mul, sum_comm]
     apply sum_congr rfl; intro d2 hd2
-    rw [←Aux.sum_intro]
+    rw [sum_ite_eq_of_mem']
     ring
     rw [mem_divisors, Nat.lcm_dvd_iff]
     exact ⟨⟨dvd_of_mem_divisors hd1, dvd_of_mem_divisors hd2⟩, (mem_divisors.mp hd1).2⟩
@@ -245,7 +245,7 @@ theorem lambdaSquared_mainSum_eq_quad_form (w : ℕ → ℝ) :
   rw [sum_comm, sum_congr rfl]; intro d1 hd1
   rw [sum_comm, sum_congr rfl]; intro d2 hd2
   have h : d1.lcm d2 ∣ P := Nat.lcm_dvd_iff.mpr ⟨dvd_of_mem_divisors hd1, dvd_of_mem_divisors hd2⟩
-  rw [←sum_intro (divisors P) (d1.lcm d2) (mem_divisors.mpr ⟨h, prodPrimes_ne_zero⟩ )]
+  rw [sum_ite_eq_of_mem' (divisors P) (d1.lcm d2) _ (mem_divisors.mpr ⟨h, prodPrimes_ne_zero⟩)]
   rw [s.nu_mult.map_lcm]
   ring
   refine _root_.ne_of_gt (nu_pos_of_dvd_prodPrimes ?_)
