@@ -2235,10 +2235,8 @@ since $n\le t$.
 \end{proof}
 %%-/
 
-lemma logt_gt_one {t : ℝ} (t_ge : 3 < |t|) : 1 < Real.log |t| := by
-  rw [← Real.log_exp (x := 1)]
-  apply Real.log_lt_log (Real.exp_pos _)
-  linarith [(by exact lt_trans Real.exp_one_lt_d9 (by norm_num) : Real.exp 1 < 3)]
+lemma logt_gt_one {t : ℝ} (t_ge : 3 ≤ t) : 1 < Real.log t :=
+  (Real.lt_log_iff_exp_lt (by linarith)).mpr (by linarith [Real.exp_one_lt_d9])
 
 lemma UpperBnd_aux {A σ t: ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
       (σ_ge : 1 - A / Real.log |t| ≤ σ) : let N := ⌊|t|⌋₊;
@@ -2246,7 +2244,7 @@ lemma UpperBnd_aux {A σ t: ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
   intro N
   have Npos : 0 < N := Nat.floor_pos.mpr (by linarith)
   have N_le_t : N ≤ |t| := Nat.floor_le <| abs_nonneg _
-  have logt_gt := logt_gt_one t_gt
+  have logt_gt := logt_gt_one t_gt.le
   have σ_gt : 1 - A < σ := by
     apply lt_of_lt_of_le ((sub_lt_sub_iff_left (a := 1)).mpr ?_) σ_ge
     exact (div_lt_iff₀ (by linarith)).mpr <| lt_mul_right hA.1 logt_gt
@@ -2285,7 +2283,7 @@ lemma UpperBnd_aux3 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
     ‖∑ n ∈ Finset.range (N + 1), (n : ℂ) ^ (-(σ + t * I))‖ ≤ Real.exp A * C * Real.log |t| := by
   intro N
   obtain ⟨Npos, N_le_t, _, _, σPos, _⟩ := UpperBnd_aux hA t_gt σ_ge
-  have logt_gt := logt_gt_one t_gt
+  have logt_gt := logt_gt_one t_gt.le
   have (n : ℕ) (hn : n ∈ Finset.range (N + 1)) := ZetaBnd_aux2 (n := n) hA.1 σPos ?_ σ_ge
   · replace := norm_sum_le_of_le (Finset.range (N + 1)) this
     rw [← Finset.sum_mul, mul_comm _ (Real.exp A)] at this
@@ -2477,7 +2475,7 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
       ≤ Real.exp A * C * (Real.log |t|) ^ 2 := by
   intro N
   obtain ⟨Npos, N_le_t, _, _, σPos, _⟩ := UpperBnd_aux hA t_gt σ_ge
-  have logt_gt := logt_gt_one t_gt
+  have logt_gt := logt_gt_one t_gt.le
   have logN_pos : 0 ≤ Real.log N := Real.log_nonneg (by norm_cast)
   have fact0 {n : ℕ} (hn : n ≤ N) : n ≤ |t| := by linarith [(by exact_mod_cast hn : (n : ℝ) ≤ N)]
   have fact1 {n : ℕ} (hn : n ≤ N) :
@@ -2727,7 +2725,7 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
       have : 2 ≤ 2 * Real.log |t| := by
         nth_rewrite 1  [← mul_one 2]
         apply mul_le_mul_of_nonneg_left _ (by norm_num)
-        exact logt_gt_one t_gt |>.le
+        exact logt_gt_one t_gt.le |>.le
       have h1 : 1 / σ^2 * ↑N ^ (-σ) ≤ 2 * ↑N ^ (-σ) / σ * Real.log |t| := calc
         1 / σ^2 * ↑N ^ (-σ) = (↑N ^ (-σ) / σ) * (1 / σ) := by ring
         _ ≤ ↑N ^ (-σ) / σ * (2 * Real.log |t|):= by
@@ -3441,7 +3439,7 @@ lemma ZetaInvBnd :
     apply min_le_iff.mpr; right; exact le_rfl
   refine ⟨A, ⟨Apos, by linarith [hA'.2]⟩ , C, Cpos, ?_⟩
   intro σ t t_gt hσ
-  have logt_gt_one := logt_gt_one t_gt
+  have logt_gt_one := logt_gt_one t_gt.le
   have σ_ge : 1 - A / Real.log |t| ≤ σ := by
     apply le_trans ?_ hσ.1
     suffices A / Real.log |t| ^ 9 ≤ A / Real.log |t| by linarith
@@ -3519,7 +3517,7 @@ lemma ZetaInvBnd' :
     apply min_le_iff.mpr; right; exact le_rfl
   refine ⟨A, ⟨Apos, by linarith [hA'.2]⟩ , C, Cpos, ?_⟩
   intro σ t t_gt hσ
-  have logt_gt_one := logt_gt_one t_gt
+  have logt_gt_one := logt_gt_one t_gt.le
   have σ_ge : 1 - A / Real.log |t| ≤ σ := by
     apply le_trans ?_ hσ.1
     suffices A / Real.log |t| ^ 9 ≤ A / Real.log |t| by linarith
@@ -3649,13 +3647,8 @@ lemma ZetaLowerBnd :
   have triangular :  ‖ζ (σ + t * I)‖ ≥  ‖ζ (σ' + t * I)‖ -  ‖ζ (σ + t * I) - ζ (σ' + t * I)‖ := by
     apply sub_le_iff_le_add.mpr.comp (sub_sub_self @_ (@_ : ℂ)▸norm_sub_le _ _).trans (by rw [add_comm])
 
-  have one_leLogT : 1 ≤ Real.log |t| := by
-    refine (Real.le_log_iff_exp_le ?_).mpr ?_
-    · linarith
-    · have : Real.exp 1 < 3 := by
-        have := Real.exp_one_lt_d9
-        linarith
-      linarith
+  have one_leLogT : 1 ≤ Real.log |t| := (logt_gt_one L.le).le
+  have one_half_le_log_pow : 1 / 2 ≤ Real.log |t| ^ 9 := one_half_lt_one.le.trans <| one_le_pow₀ one_leLogT
 
   have σ'_ge : 1 ≤ σ' := by
     simp_all only [gt_iff_lt, mem_Ioc, Real.log_abs, one_div, and_imp, tsub_le_iff_right, lt_inf_iff,
@@ -3718,8 +3711,7 @@ lemma ZetaLowerBnd :
 
   have left_sub : ‖ζ (σ' + t * I)‖ ≥ C₁ * (σ' - 1) ^ ((3:ℝ) /4) / Real.log |t| ^ 4 := by
     use (hC₁ ⟨lt_add_of_pos_right (1) (by bound[hA.1]),add_le_of_le_sub_left ((div_le_iff₀ (by bound)).2 (hA.2.trans (?_)))⟩ t L).trans' ?_
-    · norm_num only[one_mul, (one_le_pow₀ ((Real.lt_log_iff_exp_lt _).2 _).le).trans',L.trans',Real.exp_one_lt_d9.trans]
-      exact (mod_cast one_half_lt_one.le.trans (le_of_lt (one_lt_pow₀.comp (Real.lt_log_iff_exp_lt (by(((positivity))))).mpr (by(linear_combination L +.exp_one_lt_d9)) (by decide))))
+    · norm_num only [one_mul, Real.rpow_ofNat, one_half_le_log_pow]
     · simp_all only [gt_iff_lt, mem_Ioc, lt_inf_iff,
         div_pos_iff_of_pos_left, Nat.ofNat_pos, mul_pos_iff_of_pos_left, pow_pos, and_self, inf_le_iff, true_or,
         sub_pos, mem_Ico, ofReal_add, ofReal_one, ofReal_div, ge_iff_le, le_add_iff_nonneg_right, neg_mul,
@@ -3732,8 +3724,7 @@ lemma ZetaLowerBnd :
   have left' : ‖ζ (σ' + t * I)‖ ≥ C₁ * A ^ ((3:ℝ) /4) / Real.log |t| ^ 7 := by
     contrapose! hC₁
     use σ',⟨lt_add_of_pos_right 1<|by bound[hA'.1],add_le_of_le_sub_left ((div_le_iff₀ (by bound)).2 (hA.2.trans ?_))⟩,t,L,hC₁.trans_le ?_
-    · norm_num only[←div_le_iff₀', (one_le_pow₀ ((Real.log_le_log _ L.le).trans' ↑ _)).trans',Real.le_log_iff_exp_le _,Real.exp_one_lt_d9.le.trans]
-      exact (mod_cast (one_lt_pow₀ ((Real.lt_log_iff_exp_lt (by linarith)).2 (by linarith[Real.exp_one_lt_d9])) (by decide)).le.trans' (by(((norm_num)))))
+    · norm_num only [one_mul, Real.rpow_ofNat, one_half_le_log_pow]
     · norm_num only[σ',add_sub_cancel_left, A.div_rpow hA.1.le, mul_div,pow_pos, L.trans',←Real.rpow_natCast,←Real.rpow_mul,le_of_lt,Real.log_pos,refl,div_div,←Real.rpow_sub]
       norm_num only[*, L.trans',mul_assoc, A.div_rpow, mul_div,←Real.rpow_add,←Real.rpow_natCast,←Real.rpow_mul,div_div,Real.log_pos,Real.rpow_pos_of_pos,hA.1,refl,le_of_lt]
 
@@ -3778,17 +3769,7 @@ lemma ZetaZeroFree :
 
   have := h_lower σ t ht hσ
 
-  rw [h_zero] at this
-
-  have one_leLogT : 1 ≤ Real.log |t| := by
-    refine (Real.le_log_iff_exp_le ?_).mpr ?_
-    · linarith
-    · have : Real.exp 1 < 3 := by
-        have := Real.exp_one_lt_d9
-        linarith
-      linarith
-
-  simp only [norm_zero] at this
+  rw [h_zero, norm_zero] at this
 
   have pos_bound : 0 < c / (Real.log |t|) ^ (7 : ℝ) := by
     apply div_pos hc
@@ -3821,13 +3802,11 @@ lemma LogDerivZetaBnd :
   obtain ⟨A', hA', C', hC', h'⟩ := ZetaDerivUpperBnd
   use min A A', ⟨lt_min hA.1 hA'.1, min_le_of_right_le hA'.2⟩, C * C', mul_pos hC hC'
   intro σ t t_gt ⟨σ_ge, σ_lt⟩
-  have logt_gt : (1 : ℝ) < Real.log |t| := by
-    refine (Real.lt_log_iff_exp_lt (by linarith)).mpr (lt_trans ?_ t_gt)
-    exact lt_trans Real.exp_one_lt_d9 (by norm_num)
+  have logt_gt : (1 : ℝ) < Real.log |t| := logt_gt_one t_gt.le
   have σ_ge' : 1 - A / Real.log |t| ^ 9 ≤ σ := by
     apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
-    apply div_le_div₀ hA.1.le (min_le_left A A') ?_ (by rfl)
-    exact pow_pos (lt_trans (by norm_num) logt_gt) 9
+    apply div_le_div_of_nonneg_right (min_le_left A A')
+    exact pow_nonneg (zero_le_one.trans logt_gt.le) _
   have σ_ge'' : 1 - A' / Real.log |t| ≤ σ := by
     apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
     apply div_le_div₀ hA'.1.le (min_le_right A A') (lt_trans (by norm_num) logt_gt) ?_
@@ -3846,13 +3825,11 @@ lemma LogDerivZetaBnd' :
   obtain ⟨A', hA', C', hC', h'⟩ := ZetaDerivUpperBnd
   use min A A', ⟨lt_min hA.1 hA'.1, min_le_of_right_le hA'.2⟩, C * C', mul_pos hC hC'
   intro σ t t_gt ⟨σ_ge, σ_lt⟩
-  have logt_gt : (1 : ℝ) < Real.log |t| := by
-    refine (Real.lt_log_iff_exp_lt (by linarith)).mpr (lt_trans ?_ t_gt)
-    exact lt_trans Real.exp_one_lt_d9 (by norm_num)
+  have logt_gt : (1 : ℝ) < Real.log |t| := logt_gt_one t_gt.le
   have σ_ge' : 1 - A / Real.log |t| ^ 9 ≤ σ := by
     apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
-    apply div_le_div₀ hA.1.le (min_le_left A A') ?_ (by rfl)
-    exact pow_pos (lt_trans (by norm_num) logt_gt) 9
+    apply div_le_div_of_nonneg_right (min_le_left A A')
+    exact pow_nonneg (zero_le_one.trans logt_gt.le) _
   have σ_ge'' : 1 - A' / Real.log |t| ≤ σ := by
     apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
     apply div_le_div₀ hA'.1.le (min_le_right A A') (lt_trans (by norm_num) logt_gt) ?_
