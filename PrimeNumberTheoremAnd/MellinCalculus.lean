@@ -4,6 +4,7 @@ import Mathlib.Tactic.GCongr
 import PrimeNumberTheoremAnd.Auxiliary
 import Mathlib.Analysis.MellinInversion
 import Mathlib.Algebra.GroupWithZero.Units.Basic
+import Mathlib.MeasureTheory.Integral.IntegrableOn
 
 open scoped ContDiff
 
@@ -1275,8 +1276,9 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
       conv => rw [this]; lhs; intro; rw [mul_comm]
       apply MeasureTheory.Integrable.mul_prod (f := fun x ↦ (x : ℂ) ^ (s - 1))
         (μ := Measure.restrict volume Tx)
-      · apply integrableOn_Ioc_iff_integrableOn_Ioo.mpr ?_
-        apply (intervalIntegral.integrableOn_Ioo_cpow_iff (s := s - 1) (t := (2 : ℝ) ^ ε) ?_).mpr
+      · simp only [Tx]
+        rw [← IntegrableOn, integrableOn_Ioc_iff_integrableOn_Ioo,
+          intervalIntegral.integrableOn_Ioo_cpow_iff]
         · simp [hs]
         · apply rpow_pos_of_pos (by norm_num)
       · apply (ContinuousOn.div ?_ ?_ ?_).integrableOn_compact isCompact_Icc

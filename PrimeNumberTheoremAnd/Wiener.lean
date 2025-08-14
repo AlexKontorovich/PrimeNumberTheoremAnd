@@ -85,7 +85,7 @@ lemma first_fourier_aux2a :
     (2 : ℂ) * π * -(y * (1 / (2 * π) * Real.log ((n) / x))) = -(y * ((n) / x).log) := by
   calc
     _ = -(y * (((2 : ℂ) * π) / (2 * π) * Real.log ((n) / x))) := by ring
-    _ = _ := by rw [div_self (by norm_num; exact pi_ne_zero), one_mul]
+    _ = _ := by rw [div_self (by norm_num), one_mul]
 
 lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
     term f σ' n * 𝐞 (-(y * (1 / (2 * π) * Real.log (n / x)))) • ψ y =
@@ -175,7 +175,8 @@ lemma second_fourier_integrable_aux1a (hσ : 1 < σ') :
     IntegrableOn (fun (x : ℝ) ↦ cexp (-((x : ℂ) * ((σ' : ℂ) - 1)))) (Ici (-Real.log x)) := by
   norm_cast
   suffices IntegrableOn (fun (x : ℝ) ↦ (rexp (-(x * (σ' - 1))))) (Ici (-x.log)) _ from this.ofReal
-  simp_rw [fun (a x : ℝ) ↦ (by ring : -(x * a) = -a * x), integrableOn_Ici_iff_integrableOn_Ioi]
+  simp_rw [fun (a x : ℝ) ↦ (by ring : -(x * a) = -a * x)]
+  rw [integrableOn_Ici_iff_integrableOn_Ioi]
   apply exp_neg_integrableOn_Ioi
   linarith
 
@@ -242,17 +243,17 @@ so by Fubini's theorem it suffices to verify the identity
   simp_rw [mul_smul_comm, ← smul_mul_assoc, integral_mul_const]
   rw [fun (a b d : ℂ) ↦ show a * (b * (ψ t) * d) = (a * b * d) * ψ t by ring]
   congr 1
-  push_cast
   conv =>
     lhs
     enter [2]
     ext a
-    rw [Submonoid.mk_smul, smul_eq_mul]
+    rw [AddChar.coe_mk, Submonoid.mk_smul, smul_eq_mul]
+  push_cast
   simp_rw [← Complex.exp_add]
   have (u : ℝ) :
       2 * ↑π * -(↑t * (↑u / (2 * ↑π))) * I + -↑u * (↑σ' - 1) = (1 - σ' - t * I) * u := calc
     _ = -↑u * (↑σ' - 1) + (2 * ↑π) / (2 * ↑π) * -(↑t * ↑u) * I := by ring
-    _ = -↑u * (↑σ' - 1) + 1 * -(↑t * ↑u) * I := by rw [div_self (by norm_num; exact pi_ne_zero)]
+    _ = -↑u * (↑σ' - 1) + 1 * -(↑t * ↑u) * I := by rw [div_self (by norm_num)]
     _ = _ := by ring
   simp_rw [this]
   let c : ℂ := (1 - ↑σ' - ↑t * I)
@@ -1232,7 +1233,7 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
   cases' n with n <;> simp at hf ⊢
   have : Finset.range (n + 1) = {0} ∪ Finset.Ico 1 (n + 1) := by
     ext i ; by_cases hi : i = 0 <;> simp [hi] ; omega
-  simp [this, Finset.sum_union]
+  simp [this]
 
   have l4 : IntervalIntegrable f volume x₀ (x₀ + 1) := by
     apply IntegrableOn.intervalIntegrable
@@ -1274,7 +1275,8 @@ lemma hh_integrable_aux (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     (IntegrableOn (fun t ↦ a * hh b (t / c)) (Ici 0)) ∧
     (∫ (t : ℝ) in Ioi 0, a * hh b (t / c) = a * c / b * π) := by
 
-  simp only [integrableOn_Ici_iff_integrableOn_Ioi, hh]
+  rw [integrableOn_Ici_iff_integrableOn_Ioi]
+  simp only [hh]
 
   let g (x : ℝ) := (a * c / b) * Real.arctan (b * log (x / c))
   let g₀ (x : ℝ) := if x = 0 then ((a * c / b) * (- (π / 2))) else g x
@@ -1403,7 +1405,7 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
   replace hn : 0 < n := by omega
   have : Finset.range n = {0} ∪ Finset.Ico 1 n := by
     ext i ; simp ; by_cases hi : i = 0 <;> simp [hi, hn] ; omega
-  simp [this, Finset.sum_union]
+  simp [this]
   convert_to ∑ x_1 ∈ Finset.Ico 1 n, x⁻¹ * hh (π⁻¹ * 2⁻¹) (↑x_1 / x) ≤ _
   · apply Finset.sum_congr rfl (fun i hi => ?_)
     simp at hi

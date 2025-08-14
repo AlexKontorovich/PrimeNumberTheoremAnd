@@ -1,3 +1,4 @@
+import PrimeNumberTheoremAnd.MellinCalculus
 import PrimeNumberTheoremAnd.ZetaBounds
 import PrimeNumberTheoremAnd.ZetaConj
 import PrimeNumberTheoremAnd.SmoothExistence
@@ -204,7 +205,7 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
 
   have cont_mellin_smooth : Continuous fun (a : ℝ) ↦
       𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (σ + ↑a * I) := by
-    rw [continuous_iff_continuousOn_univ]
+    rw [← continuousOn_univ]
     refine ContinuousOn.comp' ?_ ?_ ?_ (t := {z : ℂ | 0 < z.re })
     . refine continuousOn_of_forall_continuousAt ?_
       intro z hz
@@ -462,7 +463,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     exact Nat.floor_le (by bound)
 
   have n₁_ge_n₀ : n₀ ≤ n₁ := by
-    exact_mod_cast le_implies_le_of_le_of_le n₀_le n₁_ge (by linarith)
+    exact_mod_cast le_imp_le_of_le_of_le n₀_le n₁_ge (by linarith)
 
   have n₁_sub_n₀ : (n₁ : ℝ) - n₀ ≤ X * ε * (c₂ + c₁) := by
     calc
@@ -620,7 +621,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
       apply ArithmeticFunction.vonMangoldt_nonneg
     have inter2: Real.log (↑n + ↑n₀) ≤ Real.log (↑n₁) := by exact_mod_cast Real.log_le_log (by positivity) n_add_n0_le_n1
     have inter3: Real.log (↑n₁) ≤ Real.log (X * (1 + c₂ * ε)) := by exact Real.log_le_log (by bound) (by linarith)
-    exact le_implies_le_of_le_of_le inter1 inter3 inter2
+    exact le_imp_le_of_le_of_le inter1 inter3 inter2
 
   have bnd1 :
     ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖
@@ -1596,7 +1597,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
   · unfold SmoothedChebyshevIntegrand
     ring
   · apply Continuous.aestronglyMeasurable
-    rw [continuous_iff_continuousOn_univ]
+    rw [← continuousOn_univ]
     intro t _
     let s := σ₀ + (t : ℂ) * I
     have s_ne_one : s ≠ 1 := by
@@ -1792,12 +1793,13 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         ← add_assoc]
     field_simp
     rw[rectangleIntegral_symm]
-    have : RectangleIntegral fTempC (↑σ₁ - ↑T * I) (1 + 1 / ↑(Real.log X) + ↑T * I) / (2 * ↑π * I) =
-      RectangleIntegral' fTempC (σ₁ - T * I) (1 + ↑(Real.log X)⁻¹ + T * I) := by
+    have : RectangleIntegral fTempC (↑σ₁ - ↑T * I) (1 + 1 / ↑(Real.log X) + ↑T * I) =
+      RectangleIntegral' fTempC (σ₁ - T * I) (1 + ↑(Real.log X)⁻¹ + T * I) * (2 * ↑π * I) := by
       unfold RectangleIntegral'
       rw[smul_eq_mul]
       field_simp
     rw[this]
+    congr 1
 
     let holoMatch : ℂ → ℂ := fun z ↦
       (fTempC z - (𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) 1 * ↑X) / (z - 1))
@@ -2521,11 +2523,9 @@ theorem integral_evaluation (x : ℝ) (T : ℝ) (T_large : 3 < T) :
       (integrableOn_Iic_iff_integrableOn_Iio'
         (by
           refine EReal.coe_ennreal_ne_coe_ennreal_iff.mp ?_
-          · simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', mem_Iio, inv_neg, sub_zero,
-  neg_lt_neg_iff, Nat.one_lt_ofNat, rpow_neg_ofNat, Int.reduceNeg, zpow_neg, measure_singleton, EReal.coe_ennreal_zero,
-  EReal.coe_ennreal_top, EReal.zero_ne_top, not_false_eq_true])).mpr D3
-    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, deriv_inv', mem_Iio, inv_neg, sub_zero,
-  neg_lt_neg_iff, Nat.one_lt_ofNat, rpow_neg_ofNat, Int.reduceNeg, zpow_neg]
+          simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq, measure_singleton,
+            EReal.coe_ennreal_zero, EReal.coe_ennreal_top, EReal.zero_ne_top, not_false_eq_true])).mpr D3
+    simp_all only [ne_eq, measurableSet_Iic, ae_restrict_eq]
     unfold IntegrableOn at D4
     have eq_fun : (fun (x : ℝ) ↦ ((-x)^2)⁻¹) = fun x ↦ (x^2)⁻¹ := by
       funext x
@@ -4903,7 +4903,7 @@ theorem MediumPNT : ∃ c > 0,
   have ex_to_zero : Tendsto εx atTop (𝓝 0) := by
     unfold εx
     apply Real.tendsto_exp_atBot.comp
-    have (x) : -c_εx * Real.log x ^ ((1 : ℝ) / 10) = -(c_εx * Real.log x ^ ((1 : ℝ) / 10)) := by
+    have this (x) : -c_εx * Real.log x ^ ((1 : ℝ) / 10) = -(c_εx * Real.log x ^ ((1 : ℝ) / 10)) := by
       ring
     simp_rw [this]
     rw [tendsto_neg_atBot_iff]
@@ -5002,7 +5002,7 @@ theorem MediumPNT : ∃ c > 0,
     have const1bnd : (A ^ ((1 : ℝ) / 10) / 4) < (A ^ ((1 : ℝ) / 10) / 2) := by
         linarith
     have const2bnd : (0 : ℝ) < 1 / 10 := by norm_num
-    have (x) :
+    have this (x) :
       C' * rexp (-(A ^ ((1 : ℝ) / 10) / 2) * Real.log x ^ ((1 : ℝ) / 10)) * x * Real.log x =
       C' * x * (rexp (-(A ^ ((1 : ℝ) / 10) / 2) * Real.log x ^ ((1 : ℝ) / 10)) * Real.log x) := by ring
     simp_rw [this]
@@ -5016,7 +5016,7 @@ theorem MediumPNT : ∃ c > 0,
     have const2bnd : 0 < const2 := by norm_num
     set const1 := (A ^ const2 / 2)
     set const1' := (A ^ const2 / 4)
-    have (x) : -(-const1 * Real.log x ^ const2 + A ^ const2 * Real.log x ^ const2) =
+    have this (x) : -(-const1 * Real.log x ^ const2 + A ^ const2 * Real.log x ^ const2) =
       -(A ^ const2 - const1) * Real.log x ^ const2 := by ring
     simp_rw [← Real.exp_add, div_eq_mul_inv, ← Real.exp_neg, this]
     have const1bnd : const1' < (A ^ const2 - const1) := by
@@ -5103,7 +5103,7 @@ theorem MediumPNT : ∃ c > 0,
     filter_upwards [event_3_aux const2eq const1eq const1'eq,
       eventually_gt_atTop 3] with x x_bnd x_gt
 
-    have (x) : C''' * x * x ^ (-A / Real.log (rexp (A ^ const2 * Real.log x ^ const2)) ^ 9)
+    have this (x) : C''' * x * x ^ (-A / Real.log (rexp (A ^ const2 * Real.log x ^ const2)) ^ 9)
         * rexp (-(-const1 * Real.log x ^ const2))
       = C''' * x * (x ^ (-A / Real.log (rexp (A ^ const2 * Real.log x ^ const2)) ^ (9 : ℝ))
         * rexp (-(-const1 * Real.log x ^ const2))) := by
