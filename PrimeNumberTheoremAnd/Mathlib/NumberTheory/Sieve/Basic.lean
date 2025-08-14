@@ -74,7 +74,7 @@ local notation "δ" => delta
 
 theorem siftedSum_as_delta : siftedSum = ∑ d ∈ s.support, a d * δ (Nat.gcd P d) :=
   by
-  rw [siftedsum_eq_sum_support_mul_ite]
+  rw [siftedSum_eq_sum_support_mul_ite]
   simp only [delta]
 
 -- Unused ?

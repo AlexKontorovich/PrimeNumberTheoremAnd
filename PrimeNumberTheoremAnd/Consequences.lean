@@ -2049,22 +2049,10 @@ For every $\eps>0$, there is a prime between $x$ and $(1+\eps)x$ for all suffici
 \end{corollary}
 %%-/
 
--- TODO - upstream to mathlib
-theorem count_ne_iff_exists {p} [DecidablePred p] {n : ℕ} : n.count p ≠ 0 ↔ ∃ m < n, p m := by
-  simp [Nat.count_iff_forall_not]
-
--- TODO - upstream to mathlib
-lemma exists_of_count_lt_count {p} [DecidablePred p] {a b : ℕ}  (h : a.count p < b.count p) : ∃ x : Set.Ico a b, p x := by
-  obtain ⟨k, hk⟩ := Nat.exists_eq_add_of_lt (Nat.lt_of_count_lt_count h)
-  rw [hk, add_assoc, Nat.count_add] at h
-  have := Nat.lt_add_right_iff_pos.mp h
-  obtain ⟨t, _, pat⟩ := count_ne_iff_exists.mp (Nat.ne_zero_of_lt this)
-  exact ⟨⟨a + t, by simp, by rwa [hk, add_assoc _ k, _root_.add_lt_add_iff_left a]⟩, pat⟩
-
 lemma prime_in_gap' (a b : ℕ) (h : a.primeCounting < b.primeCounting)
     : ∃ (p : ℕ), p.Prime ∧ (a + 1) ≤ p ∧ p < (b + 1) := by
-  obtain ⟨p, hp⟩ := exists_of_count_lt_count h
-  exact ⟨p, hp, p.property.left, p.property.right⟩
+  obtain ⟨p, hp, pp⟩ := exists_of_count_lt_count h
+  exact ⟨p, pp, hp.left, hp.right⟩
 
 lemma prime_in_gap (a b : ℝ) (ha : 0 < a)
     (h : ⌊a⌋₊.primeCounting < ⌊b⌋₊.primeCounting)

@@ -294,7 +294,7 @@ private lemma _helper {k m d :ℕ} (hkd : k ∣ d) (hk: k ∈ divisors P) (hm: m
     · exact h.2.2
     · cases' hkd with r hr
       rw [hr, Nat.gcd_mul_left, eq_comm, mul_eq_left₀ (by rintro rfl; simp at hk ⊢)] at h
-      rw [hr, coprime_comm]; apply Coprime.mul
+      rw [hr, coprime_comm]; apply Coprime.mul_left
       apply coprime_of_squarefree_mul $ Squarefree.squarefree_of_dvd h.1 s.prodPrimes_squarefree
       exact h.2.1
   · intro h
