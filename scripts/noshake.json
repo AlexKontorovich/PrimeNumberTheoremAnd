@@ -1,0 +1,4 @@
+{"ignoreImport":
+ ["Batteries.Tactic.Lemma",
+  "Mathlib.Tactic.Abel",
+  "PrimeNumberTheoremAnd.Tactic.AdditiveCombination"]}

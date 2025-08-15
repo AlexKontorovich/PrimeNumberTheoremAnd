@@ -3,8 +3,8 @@ import PrimeNumberTheoremAnd.ZetaBounds
 import PrimeNumberTheoremAnd.ZetaConj
 import PrimeNumberTheoremAnd.SmoothExistence
 import Mathlib.Algebra.Group.Support
-import Mathlib.Analysis.SpecialFunctions.Log.Monotone
 import Mathlib.Data.Real.Pi.Bounds
+import Mathlib.Analysis.MellinInversion
 
 set_option lang.lemmaCmd true
 set_option maxHeartbeats 400000
@@ -439,7 +439,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     (hc₂ _ _ (⟨ε_pos, ε_lt_one⟩) ((le_div_iff₀ X_pos).2 (Nat.ceil_le.1 (not_lt.1
     (s ∘ Finset.mem_range.2))))))
 
-  have sumΛn₀ (n₀ : ℕ) : Summable (fun n ↦ Λ (n + n₀) * F ((n + n₀) / X)) := by exact_mod_cast sumΛ.comp_injective fun Q=>by valid
+  have sumΛn₀ (n₀ : ℕ) : Summable (fun n ↦ Λ (n + n₀) * F ((n + n₀) / X)) := by exact_mod_cast sumΛ.comp_injective fun Q=>by omega
 
   rw[← Summable.sum_add_tsum_nat_add' (k := n₀) (mod_cast sumΛn₀ n₀)]
 

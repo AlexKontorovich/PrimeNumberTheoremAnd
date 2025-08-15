@@ -1,9 +1,7 @@
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.Analysis.Complex.Convex
 import Mathlib.Analysis.Complex.RemovableSingularity
-import Mathlib.Analysis.Meromorphic.Basic
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
-import Mathlib.MeasureTheory.Measure.Lebesgue.Integral
 import PrimeNumberTheoremAnd.Rectangle
 import PrimeNumberTheoremAnd.Tactic.AdditiveCombination
 

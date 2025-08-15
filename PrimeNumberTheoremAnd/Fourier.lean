@@ -2,7 +2,6 @@ import Mathlib.Analysis.Distribution.SchwartzSpace
 import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import Mathlib.Topology.ContinuousMap.Bounded.Basic
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
-import Mathlib.Analysis.Fourier.Inversion
 import Mathlib.Analysis.Fourier.FourierTransformDeriv
 import PrimeNumberTheoremAnd.Sobolev
 

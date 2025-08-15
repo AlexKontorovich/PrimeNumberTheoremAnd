@@ -5,9 +5,7 @@ Author: Arend Mellendijk
 -/
 
 import Mathlib.NumberTheory.Primorial
-import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.Analysis.Asymptotics.Lemmas
-import Mathlib.Data.Complex.ExponentialBounds
 import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.Selberg
 /-!
