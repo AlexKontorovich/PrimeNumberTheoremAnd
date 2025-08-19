@@ -4651,6 +4651,66 @@ lemma MellinOfSmooth1cExplicit {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
 
 open Filter Topology
 
+-- `x * rexp (-c * (log x) ^ B)) = Real.exp (Real.log x - c * (Real.log x) ^ B))`
+-- so if `B < 1`, the exponent goes to infinity
+lemma x_ε_to_inf (c : ℝ) {B : ℝ} (B_le : B < 1) : Tendsto
+    (fun x ↦ x * Real.exp (-c * (Real.log x) ^ B)) atTop atTop := by
+  have coeff_to_zero {B : ℝ} (B_le : B < 1) :
+      Tendsto (fun x ↦ Real.log x ^ (B - 1)) atTop (𝓝 0) := by
+    have B_minus_1_neg : B - 1 < 0 := by linarith
+    rw [← Real.zero_rpow (ne_of_lt B_minus_1_neg)]
+    rw [zero_rpow (ne_of_lt B_minus_1_neg)]
+    have one_minus_B_pos : 0 < 1 - B := by linarith
+    rw [show B - 1 = -(1 - B) by ring]
+    have : ∀ᶠ (x : ℝ) in atTop, Real.log x ^ (-(1 - B)) = (Real.log x ^ ((1 - B)))⁻¹ := by
+      filter_upwards [eventually_ge_atTop (1 : ℝ)] with x hx
+      apply Real.rpow_neg
+      exact Real.log_nonneg hx
+    rw [tendsto_congr' this]
+    apply tendsto_inv_atTop_zero.comp
+    apply (tendsto_rpow_atTop one_minus_B_pos).comp
+    exact tendsto_log_atTop
+
+  have log_sub_log_pow_inf (c : ℝ) {B : ℝ} (B_le : B < 1) :
+      Tendsto (fun (x : ℝ) ↦ Real.log x - c * Real.log x ^ B) atTop atTop := by
+    have factor_form : ∀ x > 1, Real.log x - c * Real.log x ^ B =
+        Real.log x * (1 - c * Real.log x ^ (B - 1)) := by
+      intro x hx
+      ring_nf
+      congr! 1
+      rw [mul_assoc, mul_comm (Real.log x), mul_assoc]
+      congr! 1
+      have log_pos : 0 < Real.log x := Real.log_pos hx
+      rw [(by simp : Real.log x ^ (-1 + B) * Real.log x =
+        Real.log x ^ (-1 + B) * (Real.log x) ^ (1 : ℝ))]
+      rw [← Real.rpow_add log_pos]
+      ring_nf
+    have coeff_to_one : Tendsto (fun x ↦ 1 - c * Real.log x ^ (B - 1)) atTop (𝓝 1) := by
+      specialize coeff_to_zero B_le
+      apply Tendsto.const_mul c at coeff_to_zero
+      convert (tendsto_const_nhds (x := (1 : ℝ)) (f := (atTop : Filter ℝ))).sub coeff_to_zero
+      ring
+
+    have eventually_factored : ∀ᶠ x in atTop, Real.log x - c * Real.log x ^ B =
+    Real.log x * (1 - c * Real.log x ^ (B - 1)) := by
+      filter_upwards [eventually_gt_atTop (1 : ℝ)] with x hx
+      exact factor_form x hx
+
+    rw [tendsto_congr' eventually_factored]
+    apply Tendsto.atTop_mul_pos (by norm_num : (0 : ℝ) < 1) tendsto_log_atTop  coeff_to_one
+
+  have x_εx_eq (c B : ℝ) : ∀ᶠ (x : ℝ) in atTop, x * rexp (-c * Real.log x ^ B) =
+        rexp (Real.log x - c * Real.log x ^ B) := by
+    filter_upwards [eventually_gt_atTop 0] with x hx_pos
+    conv =>
+      enter [1, 1]
+      rw [(Real.exp_log hx_pos).symm]
+    rw [← Real.exp_add]
+    ring_nf
+
+  rw [tendsto_congr' (x_εx_eq c B)]
+  exact tendsto_exp_atTop.comp (log_sub_log_pow_inf c B_le)
+
 /-%%
 \section{MediumPNT}
 
@@ -4741,67 +4801,6 @@ theorem MediumPNT : ∃ c > 0,
 
   let εx := (fun x ↦ Real.exp (-c_εx * (Real.log x) ^ ((1 : ℝ) / 10)))
   let Tx := (fun x ↦ Real.exp (c_Tx * (Real.log x) ^ ((1 : ℝ) / 10)))
-
-  have coeff_to_zero {B : ℝ} (B_le : B < 1) :
-      Tendsto (fun x ↦ Real.log x ^ (B - 1)) atTop (𝓝 0) := by
-    have B_minus_1_neg : B - 1 < 0 := by linarith
-    rw [← Real.zero_rpow (ne_of_lt B_minus_1_neg)]
-    rw [zero_rpow (ne_of_lt B_minus_1_neg)]
-    have one_minus_B_pos : 0 < 1 - B := by linarith
-    rw [show B - 1 = -(1 - B) by ring]
-    have : ∀ᶠ (x : ℝ) in atTop, Real.log x ^ (-(1 - B)) = (Real.log x ^ ((1 - B)))⁻¹ := by
-      filter_upwards [eventually_ge_atTop (1 : ℝ)] with x hx
-      apply Real.rpow_neg
-      exact Real.log_nonneg hx
-    rw [tendsto_congr' this]
-    apply tendsto_inv_atTop_zero.comp
-    apply (tendsto_rpow_atTop one_minus_B_pos).comp
-    exact tendsto_log_atTop
-
-  have log_sub_log_pow_inf (c : ℝ) {B : ℝ} (B_le : B < 1) :
-      Tendsto (fun (x : ℝ) ↦ Real.log x - c * Real.log x ^ B) atTop atTop := by
-    have factor_form : ∀ x > 1, Real.log x - c * Real.log x ^ B =
-        Real.log x * (1 - c * Real.log x ^ (B - 1)) := by
-      intro x hx
-      ring_nf
-      congr! 1
-      rw [mul_assoc, mul_comm (Real.log x), mul_assoc]
-      congr! 1
-      have log_pos : 0 < Real.log x := Real.log_pos hx
-      rw [(by simp : Real.log x ^ (-1 + B) * Real.log x =
-        Real.log x ^ (-1 + B) * (Real.log x) ^ (1 : ℝ))]
-      rw [← Real.rpow_add log_pos]
-      ring_nf
-    have coeff_to_one : Tendsto (fun x ↦ 1 - c * Real.log x ^ (B - 1)) atTop (𝓝 1) := by
-      specialize coeff_to_zero B_le
-      apply Tendsto.const_mul c at coeff_to_zero
-      convert (tendsto_const_nhds (x := (1 : ℝ)) (f := (atTop : Filter ℝ))).sub coeff_to_zero
-      ring
-
-    have eventually_factored : ∀ᶠ x in atTop, Real.log x - c * Real.log x ^ B =
-    Real.log x * (1 - c * Real.log x ^ (B - 1)) := by
-      filter_upwards [eventually_gt_atTop (1 : ℝ)] with x hx
-      exact factor_form x hx
-
-    rw [tendsto_congr' eventually_factored]
-    apply Tendsto.atTop_mul_pos (by norm_num : (0 : ℝ) < 1) tendsto_log_atTop  coeff_to_one
-
-  have x_εx_eq (c B : ℝ) : ∀ᶠ (x : ℝ) in atTop, x * rexp (-c * Real.log x ^ B) =
-        rexp (Real.log x - c * Real.log x ^ B) := by
-    filter_upwards [eventually_gt_atTop 0] with x hx_pos
-    conv =>
-      enter [1, 1]
-      rw [(Real.exp_log hx_pos).symm]
-    rw [← Real.exp_add]
-    ring_nf
-
-
-  -- `x * rexp (-c * (log x) ^ B)) = Real.exp (Real.log x - c * (Real.log x) ^ B))`
-  -- so if `B < 1`, the exponent goes to infinity
-  have x_ε_to_inf (c : ℝ) {B : ℝ} (B_le : B < 1) : Tendsto
-    (fun x ↦ x * Real.exp (-c * (Real.log x) ^ B)) atTop atTop := by
-    rw [tendsto_congr' (x_εx_eq c B)]
-    exact tendsto_exp_atTop.comp (log_sub_log_pow_inf c B_le)
 
   have Tx_to_inf : Tendsto Tx atTop atTop := by
     unfold Tx
