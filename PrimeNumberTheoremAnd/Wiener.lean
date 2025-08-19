@@ -6,7 +6,6 @@ import Mathlib.Topology.Algebra.Support
 import Mathlib.Analysis.Calculus.ContDiff.Defs
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import Mathlib.Tactic.FunProp
-import Mathlib.Tactic.FunProp
 import Mathlib.Analysis.Normed.Group.Tannery
 import Mathlib.Algebra.Order.Field.Basic
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
@@ -15,9 +14,7 @@ import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.Algebra.GroupWithZero.Units.Basic
 import Mathlib.Analysis.Distribution.FourierSchwartz
 import Mathlib.Topology.UniformSpace.UniformConvergence
-import Mathlib.MeasureTheory.Measure.Haar.Disintegration
 import Mathlib.NumberTheory.MulChar.Lemmas
-import Mathlib.Tactic
 
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.BrunTitchmarsh

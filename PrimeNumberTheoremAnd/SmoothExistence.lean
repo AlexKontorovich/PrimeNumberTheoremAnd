@@ -109,5 +109,3 @@ lemma SmoothExistence : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x
 Same idea as Urysohn-type argument.
 \end{proof}
 %%-/
-
-

@@ -1,5 +1,4 @@
 import Batteries.Tactic.Lemma
-import Mathlib.CategoryTheory.ComposableArrows
 import Mathlib.MeasureTheory.Function.Floor
 import Mathlib.MeasureTheory.Order.Group.Lattice
 import Mathlib.NumberTheory.Harmonic.Bounds
@@ -4029,7 +4028,7 @@ lemma ZetaNoZerosInBox (T : ℝ) :
       Filter.Tendsto (t ∘ subseq) Filter.atTop (𝓝 t₀) ∧
       Filter.Tendsto subseq Filter.atTop Filter.atTop := by
     refine (isCompact_Icc.isSeqCompact fun and => abs_le.1 (ht and)).imp fun and ⟨x, A, B, _⟩ => ?_
-    use A, by valid, B.tendsto_atTop
+    use A, by omega, B.tendsto_atTop
 
   obtain ⟨t₀, subseq, tTendsto, subseqTendsto⟩ := this
 
@@ -4102,7 +4101,7 @@ If $t_0=0$, $\zeta$ blows up near $1$, so can't be zero nearby.
 
 -- **End collaboration**
 
-lemma LogDerivZetaHoloOn {S : Set ℂ} (s_ne_one : 1 ∉ S) 
+lemma LogDerivZetaHoloOn {S : Set ℂ} (s_ne_one : 1 ∉ S)
     (nonzero : ∀ s ∈ S, ζ s ≠ 0) :
     HolomorphicOn (fun s ↦ ζ' s / ζ s) S := by
   apply DifferentiableOn.div _ _ nonzero <;> intro s hs <;> apply DifferentiableAt.differentiableWithinAt

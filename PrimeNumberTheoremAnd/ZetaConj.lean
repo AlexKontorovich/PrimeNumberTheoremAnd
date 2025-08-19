@@ -1,6 +1,5 @@
 import Mathlib.Analysis.NormedSpace.Connected
 import Mathlib.NumberTheory.Harmonic.ZetaAsymp
-import Mathlib.Topology.EMetricSpace.Paracompact
 
 open scoped Complex ComplexConjugate
 
