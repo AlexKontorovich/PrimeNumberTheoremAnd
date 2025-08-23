@@ -4419,3 +4419,8 @@ lemma LogDerivZetaBndUnif :
             linarith
 
       _ ≤ (1 + C + C_triv) * A⁻¹ * Real.log |t| ^ 9 := by gcongr; simp only [le_add_iff_nonneg_right]; positivity
+
+/-%%
+\begin{proof}\uses{LogDerivZetaBnd}\leanok
+For $\sigma$ close to $1$ use Lemma \ref{LogDerivZetaBnd}, otherwise estimate trivially.
+%%-/
