@@ -1440,6 +1440,13 @@ theorem triv_bound_zeta :
 
         exact Z
 
+/-%%
+\begin{lemma}[LogDerivZetaBndUnif]\label{LogDerivZetaBndUnif}\lean{LogDerivZetaBndUnif}\leanok
+There exist $A, C > 0$ such that
+$$|\frac{\zeta'}{\zeta}(\sigma + it)|\eq C \log |t|^9$$
+whenever $|t|>3$ and $\sigma > 1 - A/\log |t|^9$.
+\end{lemma}
+%%-/
 lemma LogDerivZetaBndUnif :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
     (_ : σ ∈ Ici (1 - A / Real.log |t| ^ 9)), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
@@ -3016,7 +3023,7 @@ lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X): (1 + (Real.log X)⁻¹) < 2 :=
 
 /-%%
 \begin{lemma}[I2Bound]\label{I2Bound}\lean{I2Bound}\leanok
-We have that
+Assuming a bound of the form of Lemma \ref{LogDerivZetaBndUnif} we have that
 $$
 \left|I_{2}(\nu, \epsilon, X, T)\right| \ll \frac{X}{\epsilon T}
 .
@@ -3167,7 +3174,7 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
           ring
 
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndUniform, I2, I8}\leanok
+\begin{proof}\uses{MellinOfSmooth1b, I2, I8}\leanok
 Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{2}(\nu, \epsilon, X, T, \sigma_1)\right| =
@@ -3189,7 +3196,7 @@ X^{\sigma_0}
 C'' \cdot \frac{X\log T^9}{\epsilon T^2}
 ,
 $$
-where we used Theorems \ref{MellinOfSmooth1b} and \ref{LogDerivZetaBndUniform}, and the fact that
+where we used Theorems \ref{MellinOfSmooth1b}, the hypothesised bound on zeta and the fact that
 $X^\sigma \le X^{\sigma_0} = X\cdot X^{1/\log X}=e \cdot X$.
 Since $T>3$, we have $\log T^9 \leq C''' T$.
 \end{proof}
@@ -3527,7 +3534,7 @@ Induct on n and just integrate by parts.
 
 /-%%
 \begin{lemma}[I3Bound]\label{I3Bound}\lean{I3Bound}\leanok
-We have that
+Assuming a bound of the form of Lemma \ref{LogDerivZetaBndUnif} we have that
 $$
 \left|I_{3}(\nu, \epsilon, X, T)\right| \ll \frac{X}{\epsilon}\, X^{-\frac{A}{(\log T)^9}}
 .
@@ -3979,7 +3986,7 @@ lemma I7Bound {SmoothingF : ℝ → ℝ}
   intro σ₁
   rwa [I7I3 (by linarith), norm_conj]
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBnd, IntegralofLogx^n/x^2Bounded, I3, I7}\leanok
+\begin{proof}\uses{MellinOfSmooth1b, IntegralofLogx^n/x^2Bounded, I3, I7}\leanok
 Unfold the definitions and apply the triangle inequality.
 $$
 \left|I_{3}(\nu, \epsilon, X, T, \sigma_1)\right| =
@@ -3999,7 +4006,7 @@ X^{\sigma_1}
  \ dt
 ,
 $$
-where we used Theorems \ref{MellinOfSmooth1b} and \ref{LogDerivZetaBnd}.
+where we used Theorems \ref{MellinOfSmooth1b} and the hypothesised bound on zeta.
 Now we estimate $X^{\sigma_1} = X \cdot X^{-A/ \log T^9}$, and the integral is absolutely bounded.
 \end{proof}
 %%-/
@@ -4425,7 +4432,7 @@ lemma I6Bound {SmoothingF : ℝ → ℝ}
   rwa [I6I4 (by linarith), norm_neg, norm_conj]
 
 /-%%
-\begin{proof}\uses{MellinOfSmooth1b, LogDerivZetaBndAlt, I4, I6}\leanok
+\begin{proof}\uses{MellinOfSmooth1b, I4, I6}\leanok
 The analysis of $I_4$ is similar to that of $I_2$, (in Lemma \ref{I2Bound}) but even easier.
 Let $C$ be the sup of $-\zeta'/\zeta$ on the curve $\sigma_2 + 3 i$ to $1+ 3i$ (this curve is compact, and away from the pole at $s=1$).
 Apply Theorem \ref{MellinOfSmooth1b} to get the bound $1/(\epsilon |s|^2)$, which is bounded by $C'/\epsilon$.
@@ -5292,7 +5299,7 @@ theorem MediumPNT : ∃ c > 0,
 
 /-%%
 \begin{proof}
-\uses{ChebyshevPsi, SmoothedChebyshevClose, LogDerivZetaBndAlt, ZetaBoxEval, LogDerivZetaBndUniform, LogDerivZetaHolcSmallT, LogDerivZetaHolcLargeT,
+\uses{ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval, LogDerivZetaBndUnif, LogDerivZetaHolcSmallT, LogDerivZetaHolcLargeT,
 SmoothedChebyshevPull1, SmoothedChebyshevPull2, I1Bound, I2Bound, I3Bound, I4Bound, I5Bound}\leanok
   Evaluate the integrals.
 \end{proof}
