@@ -1451,7 +1451,7 @@ lemma LogDerivZetaBndUnif :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
     (_ : σ ∈ Ici (1 - A / Real.log |t| ^ 9)), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
       C * Real.log |t| ^ 9 := by
-      let ⟨A, pf_A, C, C_pos, ζbd_in⟩ := LogDerivZetaBnd'
+      let ⟨A, pf_A, C, C_pos, ζbd_in⟩ := LogDerivZetaBnd
       let ⟨C_triv, ⟨pf_C_triv, ζbd_out⟩⟩ := triv_bound_zeta
 
       have T0 : A > 0 := by

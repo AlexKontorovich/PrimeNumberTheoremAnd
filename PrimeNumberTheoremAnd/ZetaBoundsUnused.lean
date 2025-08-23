@@ -22,7 +22,7 @@ lemma LogDerivZetaBndAlt :
     (fun (t : ℝ) ↦ ζ' (σ + t * I) / ζ (σ + t * I)) =O[cocompact ℝ ⊓
       Filter.principal {t | 1 - A / Real.log |t| ^ 9 < σ}]
         fun t ↦ Real.log |t| ^ 9 := by
-  obtain ⟨A, hA, C, _, h⟩ := LogDerivZetaBnd'
+  obtain ⟨A, hA, C, _, h⟩ := LogDerivZetaBnd
   refine ⟨A, hA.1, fun σ ⟨σ_ge, σ_lt⟩ ↦ ?_⟩
   -- This could all be done much cleaner; TODO: refactor
   rw [Asymptotics.isBigO_iff]
