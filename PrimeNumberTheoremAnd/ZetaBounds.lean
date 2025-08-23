@@ -4341,7 +4341,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
 /-%%
 \begin{lemma}[LogDerivZetaBndUnif]\label{LogDerivZetaBndUnif}\lean{LogDerivZetaBndUnif}\leanok
 There exist $A, C > 0$ such that
-$$|\frac{\zeta'}{\zeta}(\sigma + it)|\eq C \log |t|^9$$
+$$|\frac{\zeta'}{\zeta}(\sigma + it)|\leq C \log |t|^9$$
 whenever $|t|>3$ and $\sigma > 1 - A/\log |t|^9$.
 \end{lemma}
 %%-/
