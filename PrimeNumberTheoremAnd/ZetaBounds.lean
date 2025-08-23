@@ -4105,32 +4105,26 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
 
   let ε := if ε₀ = ⊤ then ENNReal.ofReal 1 else ε₀
   have O1 : ε ≠ ⊤ := by
-    by_cases h : ε₀ = ⊤
-    · unfold ε
-      simp [*]
-    · unfold ε
-      simp [*]
+    unfold ε
+    by_cases h : ε₀ = ⊤ <;> simp [*]
 
   have metric_ball_around_1_is_in_U :
     EMetric.ball (1 : ℂ) ε ⊆ U := by
+      unfold ε
       by_cases h : ε₀ = ⊤
-      · unfold ε
-        simp [*]
+      · simp [*]
         have T : EMetric.ball (1 : ℂ) 1 ⊆ EMetric.ball 1 ε₀ := by
           simp [*]
         exact subset_trans (subset_trans T metric_ball_around_1_is_in_U') open_in_U_subs_U
 
-      · unfold ε
-        simp at ε
-        simp [h]
+      · simp only [h, ↓reduceIte]
         exact subset_trans metric_ball_around_1_is_in_U' open_in_U_subs_U
 
   have O2 : ε ≠ 0 := by
+    unfold ε
     by_cases h : ε₀ = ⊤
-    · unfold ε
-      simp [*]
-    · unfold ε
-      simp [*]
+    · simp [*]
+    · simp only [↓reduceIte, ne_eq, h]
       exact pos_iff_ne_zero.mp ε_pos
 
   let metric_ball_around_1 := EMetric.ball (1 : ℂ) ε
@@ -4155,25 +4149,15 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
 
   let const : ℝ := bound
   let final_const : ℝ := (boundary - 1)⁻¹ + const
-  have final_const_pos : final_const ≥ 0 := by
-    unfold final_const
-    simp [*]
-    have Z :=
-      by
-        calc
-          0 ≤ (boundary - 1)⁻¹ := by simp; linarith
-          _ ≤ (boundary - 1)⁻¹ + const := by unfold const; simp [bound_pos]
-
-    exact Z
-
-  have const_le_final_const : const ≤ final_const := by
-    calc
-      const ≤ (boundary - 1)⁻¹ + const := by simp; linarith
-      _ = final_const := by rfl
+  have final_const_pos : final_const ≥ 0 := by bound
+  have const_le_final_const : const ≤ final_const := by bound
 
   /- final const is actually the constant that we will use -/
 
   refine ⟨final_const, final_const_pos, fun σ₀ t σ₀_gt ↦ ?_⟩
+  have U4 : ENNReal.ofReal 1 ≠ ⊤ := by exact ENNReal.ofReal_ne_top
+  have Z0 : ε_div_two.toReal < ε.toReal := by
+    exact ENNReal.toReal_strict_mono O1 <| ENNReal.half_lt_self O2 O1
 
   -- Pick a neighborhood, if in neighborhood then we are good
   -- If outside of the neighborhood then use that ζ' / ζ is monotonic
@@ -4183,26 +4167,12 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
   · have σ₀_in_ball : (↑σ₀ : ℂ) ∈ metric_ball_around_1 := by
       unfold metric_ball_around_1
       unfold EMetric.ball
-      simp [*]
-      have Z := edist_dist (↑σ₀) (↑1 : ℂ)
-      rw [Z]
-      have U := dist_eq_norm (↑σ₀) (↑1 : ℂ)
-      rw [U]
+      simp only [mem_setOf_eq]
+      rw [edist_dist, dist_eq_norm]
       norm_cast
       have U : 0 ≤ σ₀ - 1 := by linarith
-      have U2 : ε ≠ ⊤ := by exact O1
       simp [Real.norm_of_nonneg U]
-      simp [ENNReal.ofReal_lt_iff_lt_toReal U U2]
-      have U4 : ENNReal.ofReal 1 ≠ ⊤ := by exact ENNReal.ofReal_ne_top
-      have Z0 : ε_div_two.toReal < ε.toReal := by
-        have T1 : ε ≠ ⊤ := by exact U2
-        have T2 : ε ≠ 0 := by exact O2
-        have T3 : ε_div_two < ε := by
-          refine ENNReal.half_lt_self ?_ U2
-          exact T2
-
-        exact ENNReal.toReal_strict_mono T1 T3
-
+      simp [ENNReal.ofReal_lt_iff_lt_toReal U O1]
       calc
         _ ≤ boundary - 1 := by linarith
         _ = ENNReal.toReal (1 + ε_div_two) - 1 := rfl
@@ -4255,37 +4225,22 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
       have Z : (1 : ENNReal).toReal = 1 := by rfl
       rw [←Z]
       have U : ε_div_two ≠ ⊤ := by
-        refine ENNReal.div_ne_top O1 ?_
-        simp
+        exact ENNReal.div_ne_top O1 (by norm_num)
       simp [ENNReal.toReal_add _ U]
-      refine ENNReal.toReal_pos ?_ ?_
-      · unfold ε_div_two
-        simp [*]
-      · exact U
+      refine ENNReal.toReal_pos ?_ U
+      unfold ε_div_two
+      simp [*]
+
 
     have boundary_in_ball : (↑boundary : ℂ) ∈ metric_ball_around_1 := by
       unfold metric_ball_around_1
       unfold EMetric.ball
       simp [*]
-      have Z := edist_dist (↑boundary) (↑1 : ℂ)
-      rw [Z]
-      have U := dist_eq_norm (↑boundary) (↑1 : ℂ)
-      rw [U]
+      rw [edist_dist, dist_eq_norm]
       norm_cast
       have U : 0 ≤ boundary - 1 := by linarith
-      have U2 : ε ≠ ⊤ := by exact O1
       simp [Real.norm_of_nonneg U]
-      simp [ENNReal.ofReal_lt_iff_lt_toReal U U2]
-      have U4 : ENNReal.ofReal 1 ≠ ⊤ := by exact ENNReal.ofReal_ne_top
-      have Z0 : ε_div_two.toReal < ε.toReal := by
-        have T1 : ε ≠ ⊤ := by exact U2
-        have T2 : ε ≠ 0 := by exact O2
-        have T3 : ε_div_two < ε := by
-          refine ENNReal.half_lt_self ?_ U2
-          exact T2
-
-        exact ENNReal.toReal_strict_mono T1 T3
-
+      simp [ENNReal.ofReal_lt_iff_lt_toReal U O1]
       calc
         _ = ENNReal.toReal (1 + ε_div_two) - 1 := rfl
         _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp
@@ -4331,12 +4286,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
       _ = (boundary - 1)⁻¹ + const := by
         rw [add_comm]
       _ = final_const := by rfl
-      _ ≤ _ := by
-        have H : 0 ≤ (σ₀ - 1)⁻¹ := by
-          simp
-          linarith
-
-        simp [H]
+      _ ≤ _ := by bound
 
 /-%%
 \begin{lemma}[LogDerivZetaBndUnif]\label{LogDerivZetaBndUnif}\lean{LogDerivZetaBndUnif}\leanok
