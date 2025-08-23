@@ -4043,3 +4043,379 @@ in this range by Lemma \ref{ZetaZeroFree}.
 \end{proof}
 %%-/
 
+theorem summable_complex_then_summable_real_part (f : ℕ → ℂ)
+    ( h : Summable f) : Summable (fun n ↦ (f n).re) := by
+  rcases h with ⟨s, hs⟩
+  exact ⟨s.re,  hasSum_re hs⟩
+
+open ArithmeticFunction (vonMangoldt)
+local notation "Λ" => vonMangoldt
+--TODO generalize to any LSeries with nonnegative coefficients
+open scoped ComplexOrder in
+theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized (σ₀ σ₁ t : ℝ) (σ₀_gt_one : 1 < σ₀) (σ₀_lt_σ₁ : σ₀ ≤ σ₁) :
+    ‖(- ζ' (σ₁ + t * I) / ζ (σ₁ + t * I))‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
+  let s₁ := σ₁ + t * I
+  have s₁_re_eq_sigma : s₁.re = σ₁ := by
+    rw [add_re, ofReal_re, mul_I_re, ofReal_im]
+    ring
+
+  have s₀_re_eq_sigma : (↑σ₀ : ℂ).re = σ₀ := by
+    rw [ofReal_re]
+
+  let s₀ := σ₀
+
+  have σ₁_gt_one : 1 < σ₁ := by exact lt_of_le_of_lt' σ₀_lt_σ₁ σ₀_gt_one
+  have s₀_gt_one : 1 < (↑σ₀ : ℂ).re := by exact σ₀_gt_one
+
+  have s₁_re_geq_one : 1 < s₁.re := by exact lt_of_lt_of_eq σ₁_gt_one (id (Eq.symm s₁_re_eq_sigma))
+  rw [← (ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s₁_re_geq_one)]
+  unfold LSeries
+
+  have summable_von_mangoldt_at_σ₀ : Summable (fun i ↦ LSeries.term (fun n ↦ ↑(Λ n)) σ₀ i) := by
+    exact ArithmeticFunction.LSeriesSummable_vonMangoldt σ₀_gt_one
+
+  have summable_re_von_mangoldt_at_σ₀ : Summable (fun i ↦ (LSeries.term (fun n ↦ ↑(Λ n)) σ₀ i).re) := by
+    exact summable_complex_then_summable_real_part (LSeries.term (fun n ↦ ↑(Λ n)) σ₀) summable_von_mangoldt_at_σ₀
+
+  have summable_abs_value : Summable (fun i ↦ ‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ i‖) := by
+    rw [summable_norm_iff]
+    exact ArithmeticFunction.LSeriesSummable_vonMangoldt s₁_re_geq_one
+  apply le_trans <| norm_tsum_le_tsum_norm summable_abs_value
+  rw [← norm_neg, ← neg_div, ← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s₀_gt_one]
+  unfold LSeries
+  rw [← re_eq_norm.mpr, re_tsum summable_von_mangoldt_at_σ₀]
+  · apply Summable.tsum_mono summable_abs_value summable_re_von_mangoldt_at_σ₀
+    intro n
+    beta_reduce
+    apply le_trans <| LSeries.norm_term_le_of_re_le_re (s := σ₀) _ _ _
+    · rw [re_eq_norm.mpr]
+      apply LSeries.term_nonneg
+      exact_mod_cast ArithmeticFunction.vonMangoldt_nonneg
+    · rwa [s₁_re_eq_sigma, s₀_re_eq_sigma]
+  · apply tsum_nonneg
+    intro n
+    apply LSeries.term_nonneg
+    exact_mod_cast ArithmeticFunction.vonMangoldt_nonneg
+
+theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
+    ‖- ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ (σ₀ - 1)⁻¹ + C := by
+  let ⟨U, ⟨U_in_nhds, zeta_residue_on_U⟩⟩ := riemannZetaLogDerivResidue
+  let ⟨open_in_U, ⟨open_in_U_subs_U, open_in_U_is_open, one_in_open_U⟩⟩ := mem_nhds_iff.mp U_in_nhds
+  let ⟨ε₀, ⟨ε_pos, metric_ball_around_1_is_in_U'⟩⟩ := EMetric.isOpen_iff.mp open_in_U_is_open (1 : ℂ) one_in_open_U
+
+  let ε := if ε₀ = ⊤ then ENNReal.ofReal 1 else ε₀
+  have O1 : ε ≠ ⊤ := by
+    by_cases h : ε₀ = ⊤
+    · unfold ε
+      simp [*]
+    · unfold ε
+      simp [*]
+
+  have metric_ball_around_1_is_in_U :
+    EMetric.ball (1 : ℂ) ε ⊆ U := by
+      by_cases h : ε₀ = ⊤
+      · unfold ε
+        simp [*]
+        have T : EMetric.ball (1 : ℂ) 1 ⊆ EMetric.ball 1 ε₀ := by
+          simp [*]
+        exact subset_trans (subset_trans T metric_ball_around_1_is_in_U') open_in_U_subs_U
+
+      · unfold ε
+        simp at ε
+        simp [h]
+        exact subset_trans metric_ball_around_1_is_in_U' open_in_U_subs_U
+
+  have O2 : ε ≠ 0 := by
+    by_cases h : ε₀ = ⊤
+    · unfold ε
+      simp [*]
+    · unfold ε
+      simp [*]
+      exact pos_iff_ne_zero.mp ε_pos
+
+  let metric_ball_around_1 := EMetric.ball (1 : ℂ) ε
+  let ε_div_two := ε / 2
+  let boundary := ENNReal.toReal (1 + ε_div_two)
+
+  let ⟨bound, ⟨bound_pos, bound_prop⟩⟩ :=
+      BddAbove.exists_ge zeta_residue_on_U 0
+
+  have boundary_geq_one : 1 < boundary := by
+      unfold boundary
+      have Z : (1 : ENNReal).toReal = 1 := by rfl
+      rw [←Z]
+      have U : ε_div_two ≠ ⊤ := by
+        refine ENNReal.div_ne_top O1 ?_
+        simp
+      simp [ENNReal.toReal_add _ U]
+      refine ENNReal.toReal_pos ?_ ?_
+      · unfold ε_div_two
+        simp [*]
+      · exact U
+
+  let const : ℝ := bound
+  let final_const : ℝ := (boundary - 1)⁻¹ + const
+  have final_const_pos : final_const ≥ 0 := by
+    unfold final_const
+    simp [*]
+    have Z :=
+      by
+        calc
+          0 ≤ (boundary - 1)⁻¹ := by simp; linarith
+          _ ≤ (boundary - 1)⁻¹ + const := by unfold const; simp [bound_pos]
+
+    exact Z
+
+  have const_le_final_const : const ≤ final_const := by
+    calc
+      const ≤ (boundary - 1)⁻¹ + const := by simp; linarith
+      _ = final_const := by rfl
+
+  /- final const is actually the constant that we will use -/
+
+  refine ⟨final_const, final_const_pos, fun σ₀ t σ₀_gt ↦ ?_⟩
+
+  -- Pick a neighborhood, if in neighborhood then we are good
+  -- If outside of the neighborhood then use that ζ' / ζ is monotonic
+  -- and take the bound to be the edge but this will require some more work
+
+  by_cases h : σ₀ ≤ boundary
+  · have σ₀_in_ball : (↑σ₀ : ℂ) ∈ metric_ball_around_1 := by
+      unfold metric_ball_around_1
+      unfold EMetric.ball
+      simp [*]
+      have Z := edist_dist (↑σ₀) (↑1 : ℂ)
+      rw [Z]
+      have U := dist_eq_norm (↑σ₀) (↑1 : ℂ)
+      rw [U]
+      norm_cast
+      have U : 0 ≤ σ₀ - 1 := by linarith
+      have U2 : ε ≠ ⊤ := by exact O1
+      simp [Real.norm_of_nonneg U]
+      simp [ENNReal.ofReal_lt_iff_lt_toReal U U2]
+      have U4 : ENNReal.ofReal 1 ≠ ⊤ := by exact ENNReal.ofReal_ne_top
+      have Z0 : ε_div_two.toReal < ε.toReal := by
+        have T1 : ε ≠ ⊤ := by exact U2
+        have T2 : ε ≠ 0 := by exact O2
+        have T3 : ε_div_two < ε := by
+          refine ENNReal.half_lt_self ?_ U2
+          exact T2
+
+        exact ENNReal.toReal_strict_mono T1 T3
+
+      calc
+        _ ≤ boundary - 1 := by linarith
+        _ = ENNReal.toReal (1 + ε_div_two) - 1 := rfl
+        _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp
+        _ ≤ ENNReal.toReal (1 + ε_div_two - ENNReal.ofReal 1) := ENNReal.le_toReal_sub U4
+        _ = ENNReal.toReal (ε_div_two) := by simp only [ENNReal.ofReal_one, ENNReal.addLECancellable_iff_ne, ne_eq, ENNReal.one_ne_top, not_false_eq_true, AddLECancellable.add_tsub_cancel_left]
+        _ < ε.toReal := Z0
+
+    have σ₀_in_U : (↑σ₀ : ℂ) ∈ (U \ {1}) := by
+      refine mem_diff_singleton.mpr ?_
+      constructor
+      · unfold metric_ball_around_1 at σ₀_in_ball
+        exact metric_ball_around_1_is_in_U σ₀_in_ball
+      · by_contra a
+        have U : σ₀ = 1 := by exact ofReal_eq_one.mp a
+        rw [U] at σ₀_gt
+        linarith
+
+    have bdd := Set.forall_mem_image.mp bound_prop (σ₀_in_U)
+    simp [*] at bdd
+
+    calc
+      _ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
+        exact dlog_riemannZeta_bdd_on_vertical_lines_generalized σ₀ σ₀ t (σ₀_gt) (by simp)
+      _ = ‖- ζ' σ₀ / ζ σ₀‖ := by simp only [Complex.norm_div, norm_neg]
+      _ = ‖(- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹) + (σ₀ - 1)⁻¹‖ := by simp only [Complex.norm_div, norm_neg, ofReal_inv, ofReal_sub, ofReal_one, sub_add_cancel]
+      _ ≤ ‖(- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹)‖ + ‖(σ₀ - 1)⁻¹‖ := by
+        have Z := norm_add_le (- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹) ((σ₀ - 1)⁻¹)
+        norm_cast at Z
+      _ ≤ const + ‖(σ₀ - 1)⁻¹‖ := by
+        have U := add_le_add_right bdd ‖(σ₀ - 1)⁻¹‖
+        ring_nf at U
+        ring_nf
+        norm_cast at U
+        norm_cast
+      _ ≤ const + (σ₀ - 1)⁻¹ := by
+        simp [norm_inv]
+        have pos : 0 ≤ σ₀ - 1 := by
+          linarith
+        simp [abs_of_nonneg pos]
+      _ = (σ₀ - 1)⁻¹ + const := by
+        rw [add_comm]
+      _ ≤ (σ₀ - 1)⁻¹ + final_const := by
+        simp [const_le_final_const]
+
+  · push_neg at h
+
+    have boundary_geq_one : 1 < boundary := by
+      unfold boundary
+      have Z : (1 : ENNReal).toReal = 1 := by rfl
+      rw [←Z]
+      have U : ε_div_two ≠ ⊤ := by
+        refine ENNReal.div_ne_top O1 ?_
+        simp
+      simp [ENNReal.toReal_add _ U]
+      refine ENNReal.toReal_pos ?_ ?_
+      · unfold ε_div_two
+        simp [*]
+      · exact U
+
+    have boundary_in_ball : (↑boundary : ℂ) ∈ metric_ball_around_1 := by
+      unfold metric_ball_around_1
+      unfold EMetric.ball
+      simp [*]
+      have Z := edist_dist (↑boundary) (↑1 : ℂ)
+      rw [Z]
+      have U := dist_eq_norm (↑boundary) (↑1 : ℂ)
+      rw [U]
+      norm_cast
+      have U : 0 ≤ boundary - 1 := by linarith
+      have U2 : ε ≠ ⊤ := by exact O1
+      simp [Real.norm_of_nonneg U]
+      simp [ENNReal.ofReal_lt_iff_lt_toReal U U2]
+      have U4 : ENNReal.ofReal 1 ≠ ⊤ := by exact ENNReal.ofReal_ne_top
+      have Z0 : ε_div_two.toReal < ε.toReal := by
+        have T1 : ε ≠ ⊤ := by exact U2
+        have T2 : ε ≠ 0 := by exact O2
+        have T3 : ε_div_two < ε := by
+          refine ENNReal.half_lt_self ?_ U2
+          exact T2
+
+        exact ENNReal.toReal_strict_mono T1 T3
+
+      calc
+        _ = ENNReal.toReal (1 + ε_div_two) - 1 := rfl
+        _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp
+        _ ≤ ENNReal.toReal (1 + ε_div_two - ENNReal.ofReal 1) := ENNReal.le_toReal_sub U4
+        _ = ENNReal.toReal (ε_div_two) := by simp only [ENNReal.ofReal_one, ENNReal.addLECancellable_iff_ne, ne_eq, ENNReal.one_ne_top, not_false_eq_true, AddLECancellable.add_tsub_cancel_left]
+        _ < ε.toReal := Z0
+
+    have boundary_in_U : (↑boundary : ℂ) ∈ U \ {1} := by
+      refine mem_diff_singleton.mpr ?_
+      constructor
+      · unfold metric_ball_around_1 at boundary_in_ball
+        exact metric_ball_around_1_is_in_U boundary_in_ball
+      · by_contra a
+        norm_cast at a
+        norm_cast at boundary_geq_one
+        simp [←a] at boundary_geq_one
+
+    have bdd := Set.forall_mem_image.mp bound_prop (boundary_in_U)
+
+    calc
+      _ ≤ ‖ζ' boundary / ζ boundary‖ := by
+        exact  dlog_riemannZeta_bdd_on_vertical_lines_generalized boundary σ₀ t (boundary_geq_one) (by linarith)
+      _ = ‖- ζ' boundary / ζ boundary‖ := by simp only [Complex.norm_div, norm_neg]
+      _ = ‖(- ζ' boundary / ζ boundary - (boundary - 1)⁻¹) + (boundary - 1)⁻¹‖ := by simp only [Complex.norm_div, norm_neg, ofReal_inv, ofReal_sub, ofReal_one, sub_add_cancel]
+      _ ≤ ‖(- ζ' boundary / ζ boundary - (boundary - 1)⁻¹)‖ + ‖(boundary - 1)⁻¹‖ := by
+        have Z := norm_add_le (- ζ' boundary / ζ boundary - (boundary - 1)⁻¹) ((boundary - 1)⁻¹)
+        norm_cast at Z
+      _ ≤ const + ‖(boundary - 1)⁻¹‖ := by
+        have U9 := add_le_add_right bdd ‖(boundary - 1)⁻¹‖
+        ring_nf at U9
+        ring_nf
+        norm_cast at U9
+        norm_cast
+        simp [*] at U9
+        simp [*]
+        exact U9
+
+      _ ≤ const + (boundary - 1)⁻¹ := by
+        simp [norm_inv]
+        have pos : 0 ≤ boundary - 1 := by
+          linarith
+        simp [abs_of_nonneg pos]
+      _ = (boundary - 1)⁻¹ + const := by
+        rw [add_comm]
+      _ = final_const := by rfl
+      _ ≤ _ := by
+        have H : 0 ≤ (σ₀ - 1)⁻¹ := by
+          simp
+          linarith
+
+        simp [H]
+
+/-%%
+\begin{lemma}[LogDerivZetaBndUnif]\label{LogDerivZetaBndUnif}\lean{LogDerivZetaBndUnif}\leanok
+There exist $A, C > 0$ such that
+$$|\frac{\zeta'}{\zeta}(\sigma + it)|\eq C \log |t|^9$$
+whenever $|t|>3$ and $\sigma > 1 - A/\log |t|^9$.
+\end{lemma}
+%%-/
+lemma LogDerivZetaBndUnif :
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
+    (_ : σ ∈ Ici (1 - A / Real.log |t| ^ 9)), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
+      C * Real.log |t| ^ 9 := by
+  let ⟨A, pf_A, C, C_pos, ζbd_in⟩ := LogDerivZetaBnd
+  let ⟨C_triv, ⟨pf_C_triv, ζbd_out⟩⟩ := triv_bound_zeta
+  have T0 : A > 0 := pf_A.1
+
+  have ha : 1 ≤ A⁻¹ := by
+    simp only [one_div, mem_Ioc, true_and, T0] at pf_A
+    have U := (inv_le_inv₀ (by positivity) (by positivity)).mpr pf_A
+    simp only [inv_inv] at U
+    linarith
+
+  refine ⟨A, pf_A, ((1 + C + C_triv) * A⁻¹), (by positivity), fun σ t hyp_t hyp_σ ↦ ?_⟩
+  have logt_gt' : (1 : ℝ) < Real.log |t| ^ 9 := by
+    calc
+      1 < Real.log |t| := logt_gt_one hyp_t.le
+      _ ≤ (Real.log |t|) ^ 9 := ZetaInvBnd_aux (logt_gt_one hyp_t.le)
+
+  have logt_gt'' : (1 : ℝ) < 1 + A / Real.log |t| ^ 9 := by
+    simp only [lt_add_iff_pos_right, div_pos_iff_of_pos_left, T0]
+    positivity
+
+  have T1 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ 9 ≤ σ → 1 < σ := by
+    intro σ'
+    intro hyp_σ'
+    calc
+      1 < 1 + A / Real.log |t| ^ 9 := logt_gt''
+      _ ≤ σ' := hyp_σ'
+
+  have T2 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ 9 ≤ σ → A / Real.log |t| ^ 9 ≤ σ - 1 := by
+    intro σ'
+    intro hyp_σ'
+    calc
+      A / Real.log |t| ^ 9 = (1 + A / Real.log |t| ^ 9) - 1 := by ring_nf
+      _ ≤ σ' - 1 := by gcongr
+
+
+  by_cases h : σ ∈ Ico (1 - A / Real.log |t| ^ 9) (1 + A / Real.log |t| ^ 9)
+  · calc
+      ‖ζ' (↑σ + ↑t * I) / ζ (↑σ + ↑t * I)‖ ≤ C * Real.log |t| ^ 9 := ζbd_in σ t hyp_t h
+      _ ≤ ((1 + C + C_triv) * A⁻¹) * Real.log |t| ^ 9 := by
+          gcongr
+          · calc
+              C ≤ 1 + C := by simp only [le_add_iff_nonneg_left, zero_le_one]
+              _ ≤ (1 + C + C_triv) * 1 := by simp only [mul_one, le_add_iff_nonneg_right]; positivity
+              _ ≤ (1 + C + C_triv) * A⁻¹ := by gcongr
+
+  · simp only [mem_Ico, tsub_le_iff_right, not_and, not_lt, mem_Ici] at h hyp_σ
+    replace h := h hyp_σ
+    calc
+      ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ = ‖-ζ' (σ + t * I) / ζ (σ + t * I)‖ := by simp only [Complex.norm_div,
+        norm_neg]
+
+      _ ≤ (σ - 1)⁻¹ + C_triv := ζbd_out σ t (by exact T1 h)
+
+      _ ≤ (A / Real.log |t| ^ 9)⁻¹ + C_triv := by
+          gcongr
+          · exact T2 h
+
+      _ ≤ (A / Real.log |t| ^ 9)⁻¹ + C_triv * A⁻¹ := by
+          gcongr
+          · have hb : 0 ≤ C_triv := by linarith
+            exact le_mul_of_one_le_right hb ha
+
+      _ ≤ (1 + C_triv) * A⁻¹ * Real.log |t| ^ 9 := by
+          simp only [inv_div]
+          ring_nf
+          gcongr
+          · simp only [inv_pos, le_mul_iff_one_le_left, T0]
+            linarith
+
+      _ ≤ (1 + C + C_triv) * A⁻¹ * Real.log |t| ^ 9 := by gcongr; simp only [le_add_iff_nonneg_right]; positivity
