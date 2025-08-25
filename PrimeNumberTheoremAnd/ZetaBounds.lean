@@ -3050,14 +3050,12 @@ theorem ZetaLowerBound3_aux2 {C : ℝ}
   ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) ≤ (C * Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
   bound
 
-theorem ZetaLowerBound3_aux3 {A : ℝ} (_ : 0 < A) {C : ℝ} (_ : 0 < C)
-  {c_near : ℝ} (_ : 0 < c_near) (σ : ℝ) (t : ℝ) (_ : 3 < |t|) (σ_gt : 1 < σ)
-  :
+theorem ZetaLowerBound3_aux3 (C : ℝ) (c_near : ℝ) {σ : ℝ} (t : ℝ) (σ_gt : 1 < σ) :
   c_near ^ ((3 : ℝ) / 4) * ((-1 + σ) ^ ((3 : ℝ) / 4))⁻¹ * C ^ ((1 : ℝ) / 4) * Real.log |t * 2| ^ ((1 : ℝ) / 4) =
     c_near ^ ((3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * Real.log |t * 2| ^ ((1 : ℝ) / 4) * (-1 + σ) ^ (-(3 : ℝ) / 4) := by
   exact (symm) (.trans (by rw [neg_div, Real.rpow_neg (by linarith)]) (by ring))
 
-theorem ZetaLowerBound3_aux4 (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (hC : 0 < C)
+theorem ZetaLowerBound3_aux4 (C : ℝ) (hC : 0 < C)
   (c_near : ℝ) (hc_near : 0 < c_near) {σ : ℝ} (t : ℝ) (ht : 3 < |t|)
   (σ_gt : 1 < σ)
    :
@@ -3121,15 +3119,12 @@ lemma ZetaLowerBound3 :
          c_near ^ ((3 : ℝ) / 4) * (σ - 1) ^ (-(3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * (Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
     rw [Real.div_rpow (by linarith) (by linarith), Real.mul_rpow (by linarith) (Real.log_nonneg (by linarith))]
     ring_nf
-    apply ZetaLowerBound3_aux3 ha.1 hC hc_near
-    · convert ht
-    · exact σ_gt
-
+    exact ZetaLowerBound3_aux3 _ _ _ σ_gt
   rw [this] at denom_bound
 
   -- Take reciprocal (flipping inequality)
   have pos_left : 0 < c_near ^ ((3 : ℝ) / 4) * (σ - 1) ^ (-(3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * (Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
-    apply ZetaLowerBound3_aux4 A ha C hC c_near hc_near t ht σ_gt
+    apply ZetaLowerBound3_aux4 C hC c_near hc_near t ht σ_gt
 
   have pos_right : 0 < ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) := by
     -- This follows from ZetaLowerBound1 - if either factor were zero, we'd get 0 ≥ 1
