@@ -3050,14 +3050,12 @@ theorem ZetaLowerBound3_aux2 {C : ℝ}
   ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) ≤ (C * Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
   bound
 
-theorem ZetaLowerBound3_aux3 {A : ℝ} (_ : 0 < A) {C : ℝ} (_ : 0 < C)
-  {c_near : ℝ} (_ : 0 < c_near) (σ : ℝ) (t : ℝ) (_ : 3 < |t|) (σ_gt : 1 < σ)
-  :
+theorem ZetaLowerBound3_aux3 (C : ℝ) (c_near : ℝ) {σ : ℝ} (t : ℝ) (σ_gt : 1 < σ) :
   c_near ^ ((3 : ℝ) / 4) * ((-1 + σ) ^ ((3 : ℝ) / 4))⁻¹ * C ^ ((1 : ℝ) / 4) * Real.log |t * 2| ^ ((1 : ℝ) / 4) =
     c_near ^ ((3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * Real.log |t * 2| ^ ((1 : ℝ) / 4) * (-1 + σ) ^ (-(3 : ℝ) / 4) := by
   exact (symm) (.trans (by rw [neg_div, Real.rpow_neg (by linarith)]) (by ring))
 
-theorem ZetaLowerBound3_aux4 (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (hC : 0 < C)
+theorem ZetaLowerBound3_aux4 (C : ℝ) (hC : 0 < C)
   (c_near : ℝ) (hc_near : 0 < c_near) {σ : ℝ} (t : ℝ) (ht : 3 < |t|)
   (σ_gt : 1 < σ)
    :
@@ -3121,15 +3119,12 @@ lemma ZetaLowerBound3 :
          c_near ^ ((3 : ℝ) / 4) * (σ - 1) ^ (-(3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * (Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
     rw [Real.div_rpow (by linarith) (by linarith), Real.mul_rpow (by linarith) (Real.log_nonneg (by linarith))]
     ring_nf
-    apply ZetaLowerBound3_aux3 ha.1 hC hc_near
-    · convert ht
-    · exact σ_gt
-
+    exact ZetaLowerBound3_aux3 _ _ _ σ_gt
   rw [this] at denom_bound
 
   -- Take reciprocal (flipping inequality)
   have pos_left : 0 < c_near ^ ((3 : ℝ) / 4) * (σ - 1) ^ (-(3 : ℝ) / 4) * C ^ ((1 : ℝ) / 4) * (Real.log |2 * t|) ^ ((1 : ℝ) / 4) := by
-    apply ZetaLowerBound3_aux4 A ha C hC c_near hc_near t ht σ_gt
+    apply ZetaLowerBound3_aux4 C hC c_near hc_near t ht σ_gt
 
   have pos_right : 0 < ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) := by
     -- This follows from ZetaLowerBound1 - if either factor were zero, we'd get 0 ≥ 1
@@ -3407,91 +3402,14 @@ lemma ZetaInvBnd_aux2 {A C₁ C₂ : ℝ} (Apos : 0 < A) (C₁pos : 0 < C₁) (C
 /-%%
 \begin{lemma}[ZetaInvBnd]\label{ZetaInvBnd}\lean{ZetaInvBnd}\leanok
 For any $A>0$ sufficiently small, there is a constant $C>0$ so that
-whenever $1- A / \log^9 |t| \le \sigma < 1$ and $3 < |t|$, we have that:
+whenever $1- A / \log^9 |t| \le \sigma < 1+A/\log^9 |t|$ and $3 < |t|$, we have that:
 $$
 1/|\zeta(\sigma+it)| \le C \log^7 |t|.
 $$
 \end{lemma}
 %%-/
+
 lemma ZetaInvBnd :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) 1),
-    1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ (7 : ℝ) := by
-  obtain ⟨C', C'pos, hC₁⟩ := ZetaInvBound2
-  obtain ⟨A', hA', C₂, C₂pos, hC₂⟩ := Zeta_diff_Bnd
-  set C₁ := 1 / C'
-  let A := min A' <| (1 / 2 : ℝ) * (C₁ / (C₂ * 2)) ^ (4 : ℝ)
-  have Apos : 0 < A := by have := hA'.1; positivity
-  have Ale : A ≤ 1 / 2 := by dsimp only [A]; apply min_le_iff.mpr; left; exact hA'.2
-  set C := (C₁ * A ^ (3 / 4 : ℝ) - C₂ * 2 * A)⁻¹
-  have Cpos : 0 < C := by
-    refine ZetaInvBnd_aux2 (by positivity) (by positivity) (by positivity) ?_
-    apply min_le_iff.mpr; right; exact le_rfl
-  refine ⟨A, ⟨Apos, by linarith [hA'.2]⟩ , C, Cpos, ?_⟩
-  intro σ t t_gt hσ
-  have logt_gt_one := logt_gt_one t_gt.le
-  have σ_ge : 1 - A / Real.log |t| ≤ σ := by
-    apply le_trans ?_ hσ.1
-    suffices A / Real.log |t| ^ 9 ≤ A / Real.log |t| by linarith
-    exact div_le_div₀ Apos.le (by rfl) (by positivity) <| ZetaInvBnd_aux logt_gt_one
-  obtain ⟨_, _, neOne⟩ := UpperBnd_aux ⟨Apos, Ale⟩ t_gt σ_ge
-  set σ' := 1 + A / Real.log |t| ^ 9
-  have σ'_gt : 1 < σ' := by simp only [σ', lt_add_iff_pos_right]; positivity
-  have σ'_le : σ' ≤ 2 := by
-    simp only [σ']
-    suffices A / Real.log |t| ^ 9 < 1 by linarith
-    apply div_lt_one (by positivity) |>.mpr
-    exact lt_trans₄ (by linarith) logt_gt_one <| ZetaInvBnd_aux' logt_gt_one
-  set s := σ + t * I
-  set s' := σ' + t * I
-  by_cases h0 : ‖ζ s‖ ≠ 0
-  swap; simp only [ne_eq, not_not] at h0; simp only [h0, div_zero]; positivity
-  apply div_le_iff₀ (by positivity) |>.mpr <| div_le_iff₀' (by positivity) |>.mp ?_
-  have pos_aux : 0 < (σ' - 1) := by linarith
-  calc
-    _ ≥ ‖ζ s'‖ - ‖ζ s - ζ s'‖ := ?_
-    _ ≥ C₁ * (σ' - 1) ^ ((3 : ℝ)/ 4) * Real.log |t|  ^ ((-1 : ℝ)/ 4) - C₂ * Real.log |t| ^ 2 * (σ' - σ) := ?_
-    _ ≥ C₁ * (A / Real.log |t| ^ (9 : ℝ)) ^ ((3 : ℝ)/ 4) * Real.log |t| ^ ((-1 : ℝ)/ 4) - C₂ * Real.log |t| ^ (2 : ℝ) * 2 * A / Real.log |t| ^ (9 : ℝ) := ?_
-    _ ≥ C₁ * A ^ ((3 : ℝ)/ 4) * Real.log |t| ^ (-7 : ℝ) - C₂ * 2 * A * Real.log |t| ^ (-7 : ℝ) := ?_
-    _ = (C₁ * A ^ ((3 : ℝ)/ 4) - C₂ * 2 * A) * Real.log |t| ^ (-7 : ℝ) := by ring
-    _ ≥ _ := ?_
-  · apply ge_iff_le.mpr
-    convert norm_sub_norm_le (a := ζ s') (b := ζ s' - ζ s) using 1
-    · rw [(by simp : ζ s' - ζ s = -(ζ s - ζ s'))]; simp only [norm_neg]
-    · simp
-  · apply sub_le_sub
-    · have := one_div_le ?_ (by positivity) |>.mp <| hC₁ ⟨σ'_gt, σ'_le⟩ t t_gt
-      · convert this using 1
-        rw [one_div, mul_inv_rev, mul_comm, mul_inv_rev, mul_comm _ C'⁻¹]
-        simp only [one_div C', C₁]
-        congr <;> (rw [← Real.rpow_neg (by linarith), neg_div]); rw [neg_neg]
-      · apply norm_pos_iff.mpr <| riemannZeta_ne_zero_of_one_lt_re (by simp [σ'_gt])
-    · rw [(by simp : ζ s - ζ s' = -(ζ s' - ζ s)), norm_neg]
-      refine hC₂ σ σ' t t_gt ?_ σ'_le <| lt_trans hσ.2 σ'_gt
-      apply le_trans ?_ hσ.1
-      rw [tsub_le_iff_right, ← add_sub_right_comm, le_sub_iff_add_le, add_le_add_iff_left]
-      exact div_le_div₀ hA'.1.le (by simp [A]) (by positivity) <| ZetaInvBnd_aux logt_gt_one
-  · apply sub_le_sub (by simp only [add_sub_cancel_left, σ']; exact_mod_cast le_rfl) ?_
-    rw [mul_div_assoc, mul_assoc _ 2 _]
-    apply mul_le_mul (by exact_mod_cast le_rfl) ?_ (by linarith [hσ.2]) (by positivity)
-    suffices h : σ' + (1 - A / Real.log |t| ^ 9) ≤ (1 + A / Real.log |t| ^ 9) + σ by
-      simp only [tsub_le_iff_right]
-      convert le_sub_right_of_add_le h using 1; ring_nf; norm_cast; simp
-    exact add_le_add (by linarith) (by linarith [hσ.1])
-  · simp_rw [tsub_le_iff_right, div_eq_mul_inv _ (Real.log |t| ^ (9 : ℝ))]
-    rw [← Real.rpow_neg (by positivity), Real.mul_rpow (by positivity) (by positivity)]
-    rw [← Real.rpow_mul (by positivity)]
-    ring_nf
-    conv => rhs; lhs; rw [mul_assoc, ← Real.rpow_add (by positivity)]
-    conv => rhs; rhs; rhs; rw [mul_comm _ A]; lhs; rw [mul_assoc, mul_assoc C₂]
-    rw [← Real.rpow_add (by positivity)]; norm_num; group; exact le_rfl
-  · apply div_le_iff₀ (by positivity) |>.mpr
-    conv => rw [mul_assoc]; rhs; rhs; rw [mul_comm C, ← mul_assoc, ← Real.rpow_add (by positivity)]
-    have := inv_inv C ▸ mul_inv_cancel₀ (a := C⁻¹) (by positivity) |>.symm.le
-    simpa [C] using this
-
-
-lemma ZetaInvBnd' :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
     (_ : σ ∈ Ico (1 - A / (Real.log |t|) ^ 9) (1 + A / (Real.log |t|) ^ 9)),
     1 / ‖ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ (7 : ℝ) := by
@@ -3778,7 +3696,7 @@ Apply Lemma \ref{ZetaLowerBnd}.
 
 /-%%
 \begin{lemma}[LogDerivZetaBnd]\label{LogDerivZetaBnd}\lean{LogDerivZetaBnd}\leanok
-There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1$ and $3 < |t|$,
+There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1+A/\log^9 |t|$ and $3 < |t|$,
 $$
 |\frac {\zeta'}{\zeta} (\sigma+it)| \ll \log^9 |t|.
 $$
@@ -3786,32 +3704,9 @@ $$
 %%-/
 lemma LogDerivZetaBnd :
     ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
-    (_ : σ ∈ Ico (1 - A / Real.log |t| ^ 9) 1), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
-      C * Real.log |t| ^ 9 := by
-  obtain ⟨A, hA, C, hC, h⟩ := ZetaInvBnd
-  obtain ⟨A', hA', C', hC', h'⟩ := ZetaDerivUpperBnd
-  use min A A', ⟨lt_min hA.1 hA'.1, min_le_of_right_le hA'.2⟩, C * C', mul_pos hC hC'
-  intro σ t t_gt ⟨σ_ge, σ_lt⟩
-  have logt_gt : (1 : ℝ) < Real.log |t| := logt_gt_one t_gt.le
-  have σ_ge' : 1 - A / Real.log |t| ^ 9 ≤ σ := by
-    apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
-    apply div_le_div_of_nonneg_right (min_le_left A A')
-    exact pow_nonneg (zero_le_one.trans logt_gt.le) _
-  have σ_ge'' : 1 - A' / Real.log |t| ≤ σ := by
-    apply le_trans (tsub_le_tsub_left ?_ 1) σ_ge
-    apply div_le_div₀ hA'.1.le (min_le_right A A') (lt_trans (by norm_num) logt_gt) ?_
-    exact le_self_pow₀ logt_gt.le (by norm_num)
-  replace h := h σ t t_gt ⟨σ_ge', σ_lt⟩
-  replace h' := h' σ t t_gt ⟨σ_ge'', by linarith⟩
-  simp only [norm_div]
-  convert mul_le_mul h h' (by simp) ?_ using 1 <;> (norm_cast; ring_nf); positivity
-
-
-lemma LogDerivZetaBnd' :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
     (_ : σ ∈ Ico (1 - A / Real.log |t| ^ 9) (1 + A / Real.log |t| ^ 9)), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
       C * Real.log |t| ^ 9 := by
-  obtain ⟨A, hA, C, hC, h⟩ := ZetaInvBnd'
+  obtain ⟨A, hA, C, hC, h⟩ := ZetaInvBnd
   obtain ⟨A', hA', C', hC', h'⟩ := ZetaDerivUpperBnd
   use min A A', ⟨lt_min hA.1 hA'.1, min_le_of_right_le hA'.2⟩, C * C', mul_pos hC hC'
   intro σ t t_gt ⟨σ_ge, σ_lt⟩
@@ -3854,92 +3749,6 @@ bound on $1/|\zeta|$ from Lemma \ref{ZetaInvBnd}.
 \end{proof}
 %%-/
 
-/-%%
-\begin{lemma}[LogDerivZetaBndUniform]\label{LogDerivZetaBndUniform}\lean{LogDerivZetaBndUniform}\leanok
-There is an $A>0$ so that for $1-A/\log^9 T \le \sigma < 1$ and $3 < |t| ≤ T$,
-$$
-|\frac {\zeta'}{\zeta} (\sigma+it)| \ll \log^9 T.
-$$
-\end{lemma}
-%%-/
-lemma LogDerivZetaBndUniform :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (T : ℝ) (t : ℝ) (_ : 3 < |t|)
-    (_ : |t| ≤ T) (_ : σ ∈ Ico (1 - A / Real.log T ^ 9) 1),
-    ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log T ^ 9 := by
-  obtain ⟨A, hA_pos, C, hC_pos, hbound⟩ := LogDerivZetaBnd
-  use A, hA_pos, C, hC_pos
-  intro σ T t ht hTσ hσ
-  have abs_t_pos : 0 < |t| := lt_trans (by norm_num) ht
-  have log_t_pos : 0 < Real.log |t| := by
-    apply Real.log_pos
-    exact lt_trans (by norm_num : (1 : ℝ) < (3 : ℝ)) ht
-  have T_pos : 0 < T := lt_of_lt_of_le abs_t_pos hTσ
-  have T_gt3 : 3 < T := lt_of_lt_of_le ht hTσ
-  have log_le : Real.log |t| ≤ Real.log T := Real.log_le_log abs_t_pos hTσ
-  have log_T_pos : 0 < Real.log T := Real.log_pos (lt_trans (by norm_num) T_gt3)
-  have A_pos : 0 < A := hA_pos.1
-  have pow_lot_T_ge_pow_log_t : Real.log |t| ^ 9 ≤ Real.log T ^ 9 := by
-    refine (pow_le_pow_iff_left₀ ?_ ?_ ?_).mpr log_le
-    exact le_of_lt log_t_pos
-    exact le_of_lt log_T_pos
-    norm_num
-  have hσ' : σ ∈ Ico (1 - A / Real.log (|t|) ^ 9) 1 := by
-    have hdenom_le : A / Real.log T ^ 9 ≤ A / Real.log |t| ^ 9 := by
-      refine (div_le_div_iff_of_pos_left ?_ ?_ ?_).mpr pow_lot_T_ge_pow_log_t
-      exact A_pos
-      exact pow_pos log_T_pos 9
-      exact pow_pos log_t_pos 9
-    apply Set.mem_Ico.mpr
-    exact ⟨le_trans (sub_le_sub_left hdenom_le _) hσ.1, hσ.2⟩
-  have bound := hbound σ t ht hσ'
-  apply le_trans bound
-  exact (mul_le_mul_iff_of_pos_left hC_pos).mpr pow_lot_T_ge_pow_log_t
-
-
-
-lemma LogDerivZetaBndUniform' :
-    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (T : ℝ) (t : ℝ) (_ : 3 < |t|)
-    (_ : |t| ≤ T) (_ : σ ∈ Ico (1 - A / Real.log T ^ 9) (1 + A / Real.log T ^ 9)),
-    ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log T ^ 9 := by
-  obtain ⟨A, hA_pos, C, hC_pos, hbound⟩ := LogDerivZetaBnd'
-  use A, hA_pos, C, hC_pos
-  intro σ T t ht hTσ hσ
-  have abs_t_pos : 0 < |t| := lt_trans (by norm_num) ht
-  have log_t_pos : 0 < Real.log |t| := by
-    apply Real.log_pos
-    exact lt_trans (by norm_num : (1 : ℝ) < (3 : ℝ)) ht
-  have T_pos : 0 < T := lt_of_lt_of_le abs_t_pos hTσ
-  have T_gt3 : 3 < T := lt_of_lt_of_le ht hTσ
-  have log_le : Real.log |t| ≤ Real.log T := Real.log_le_log abs_t_pos hTσ
-  have log_T_pos : 0 < Real.log T := Real.log_pos (lt_trans (by norm_num) T_gt3)
-  have A_pos : 0 < A := hA_pos.1
-  have pow_lot_T_ge_pow_log_t : Real.log |t| ^ 9 ≤ Real.log T ^ 9 := by
-    refine (pow_le_pow_iff_left₀ ?_ ?_ ?_).mpr log_le
-    exact le_of_lt log_t_pos
-    exact le_of_lt log_T_pos
-    norm_num
-  have hσ' : σ ∈ Ico (1 - A / Real.log (|t|) ^ 9) (1 + A / Real.log (|t|) ^ 9) := by
-    have hdenom_le : A / Real.log T ^ 9 ≤ A / Real.log |t| ^ 9 := by
-      refine (div_le_div_iff_of_pos_left ?_ ?_ ?_).mpr pow_lot_T_ge_pow_log_t
-      exact A_pos
-      exact pow_pos log_T_pos 9
-      exact pow_pos log_t_pos 9
-    apply Set.mem_Ico.mpr
-    exact ⟨le_trans (sub_le_sub_left hdenom_le _) hσ.1, by rw [Set.mem_Ico] at hσ; calc
-      σ < 1 + A / Real.log T ^ 9 := hσ.2
-      _ ≤ 1 + A / Real.log |t| ^ 9 := by gcongr⟩
-  have bound := hbound σ t ht hσ'
-  apply le_trans bound
-  exact (mul_le_mul_iff_of_pos_left hC_pos).mpr pow_lot_T_ge_pow_log_t
-
-
-
-/-%%
-\begin{proof}\leanok
-\uses{LogDerivZetaBnd}
-This Lemma \ref{LogDerivZetaBnd}, but uniform in $t$. The point is that the upper bound on $\zeta' / \zeta$ and the lower bound on $\sigma$ only improve as $|t|$ increases.
-\end{proof}
-%%-/
 
 /-% ** Bad delimiters on purpose **
 Annoying: we have reciprocals of $log |t|$ in the bounds, and we've assumed that $|t|>3$; but we want to make things uniform in $t$. Let's change to things like $log (|t|+3)$ instead of $log |t|$.
@@ -4229,49 +4038,334 @@ in this range by Lemma \ref{ZetaZeroFree}.
 \end{proof}
 %%-/
 
+theorem summable_complex_then_summable_real_part (f : ℕ → ℂ)
+    ( h : Summable f) : Summable (fun n ↦ (f n).re) := by
+  rcases h with ⟨s, hs⟩
+  exact ⟨s.re,  hasSum_re hs⟩
+
+open ArithmeticFunction (vonMangoldt)
+local notation "Λ" => vonMangoldt
+--TODO generalize to any LSeries with nonnegative coefficients
+open scoped ComplexOrder in
+theorem dlog_riemannZeta_bdd_on_vertical_lines_generalized (σ₀ σ₁ t : ℝ) (σ₀_gt_one : 1 < σ₀) (σ₀_lt_σ₁ : σ₀ ≤ σ₁) :
+    ‖(- ζ' (σ₁ + t * I) / ζ (σ₁ + t * I))‖ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
+  let s₁ := σ₁ + t * I
+  have s₁_re_eq_sigma : s₁.re = σ₁ := by
+    rw [add_re, ofReal_re, mul_I_re, ofReal_im]
+    ring
+
+  have s₀_re_eq_sigma : (↑σ₀ : ℂ).re = σ₀ := by
+    rw [ofReal_re]
+
+  let s₀ := σ₀
+
+  have σ₁_gt_one : 1 < σ₁ := by exact lt_of_le_of_lt' σ₀_lt_σ₁ σ₀_gt_one
+  have s₀_gt_one : 1 < (↑σ₀ : ℂ).re := by exact σ₀_gt_one
+
+  have s₁_re_geq_one : 1 < s₁.re := by exact lt_of_lt_of_eq σ₁_gt_one (id (Eq.symm s₁_re_eq_sigma))
+  rw [← (ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s₁_re_geq_one)]
+  unfold LSeries
+
+  have summable_von_mangoldt_at_σ₀ : Summable (fun i ↦ LSeries.term (fun n ↦ ↑(Λ n)) σ₀ i) := by
+    exact ArithmeticFunction.LSeriesSummable_vonMangoldt σ₀_gt_one
+
+  have summable_re_von_mangoldt_at_σ₀ : Summable (fun i ↦ (LSeries.term (fun n ↦ ↑(Λ n)) σ₀ i).re) := by
+    exact summable_complex_then_summable_real_part (LSeries.term (fun n ↦ ↑(Λ n)) σ₀) summable_von_mangoldt_at_σ₀
+
+  have summable_abs_value : Summable (fun i ↦ ‖LSeries.term (fun n ↦ ↑(Λ n)) s₁ i‖) := by
+    rw [summable_norm_iff]
+    exact ArithmeticFunction.LSeriesSummable_vonMangoldt s₁_re_geq_one
+  apply le_trans <| norm_tsum_le_tsum_norm summable_abs_value
+  rw [← norm_neg, ← neg_div, ← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div s₀_gt_one]
+  unfold LSeries
+  rw [← re_eq_norm.mpr, re_tsum summable_von_mangoldt_at_σ₀]
+  · apply Summable.tsum_mono summable_abs_value summable_re_von_mangoldt_at_σ₀
+    intro n
+    beta_reduce
+    apply le_trans <| LSeries.norm_term_le_of_re_le_re (s := σ₀) _ _ _
+    · rw [re_eq_norm.mpr]
+      apply LSeries.term_nonneg
+      exact_mod_cast ArithmeticFunction.vonMangoldt_nonneg
+    · rwa [s₁_re_eq_sigma, s₀_re_eq_sigma]
+  · apply tsum_nonneg
+    intro n
+    apply LSeries.term_nonneg
+    exact_mod_cast ArithmeticFunction.vonMangoldt_nonneg
+
+theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
+    ‖- ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ (σ₀ - 1)⁻¹ + C := by
+  let ⟨U, ⟨U_in_nhds, zeta_residue_on_U⟩⟩ := riemannZetaLogDerivResidue
+  let ⟨open_in_U, ⟨open_in_U_subs_U, open_in_U_is_open, one_in_open_U⟩⟩ := mem_nhds_iff.mp U_in_nhds
+  let ⟨ε₀, ⟨ε_pos, metric_ball_around_1_is_in_U'⟩⟩ := EMetric.isOpen_iff.mp open_in_U_is_open (1 : ℂ) one_in_open_U
+
+  let ε := if ε₀ = ⊤ then ENNReal.ofReal 1 else ε₀
+  have O1 : ε ≠ ⊤ := by
+    unfold ε
+    by_cases h : ε₀ = ⊤ <;> simp [*]
+
+  have metric_ball_around_1_is_in_U :
+    EMetric.ball (1 : ℂ) ε ⊆ U := by
+      unfold ε
+      by_cases h : ε₀ = ⊤
+      · simp [*]
+        have T : EMetric.ball (1 : ℂ) 1 ⊆ EMetric.ball 1 ε₀ := by
+          simp [*]
+        exact subset_trans (subset_trans T metric_ball_around_1_is_in_U') open_in_U_subs_U
+
+      · simp only [h, ↓reduceIte]
+        exact subset_trans metric_ball_around_1_is_in_U' open_in_U_subs_U
+
+  have O2 : ε ≠ 0 := by
+    unfold ε
+    by_cases h : ε₀ = ⊤
+    · simp [*]
+    · simp only [↓reduceIte, ne_eq, h]
+      exact pos_iff_ne_zero.mp ε_pos
+
+  let metric_ball_around_1 := EMetric.ball (1 : ℂ) ε
+  let ε_div_two := ε / 2
+  let boundary := ENNReal.toReal (1 + ε_div_two)
+
+  let ⟨bound, ⟨bound_pos, bound_prop⟩⟩ :=
+      BddAbove.exists_ge zeta_residue_on_U 0
+
+  have boundary_geq_one : 1 < boundary := by
+      unfold boundary
+      have Z : (1 : ENNReal).toReal = 1 := by rfl
+      rw [←Z]
+      have U : ε_div_two ≠ ⊤ := by
+        refine ENNReal.div_ne_top O1 ?_
+        simp
+      simp [ENNReal.toReal_add _ U]
+      refine ENNReal.toReal_pos ?_ ?_
+      · unfold ε_div_two
+        simp [*]
+      · exact U
+
+  let const : ℝ := bound
+  let final_const : ℝ := (boundary - 1)⁻¹ + const
+  have final_const_pos : final_const ≥ 0 := by bound
+  have const_le_final_const : const ≤ final_const := by bound
+
+  /- final const is actually the constant that we will use -/
+
+  refine ⟨final_const, final_const_pos, fun σ₀ t σ₀_gt ↦ ?_⟩
+  have U4 : ENNReal.ofReal 1 ≠ ⊤ := by exact ENNReal.ofReal_ne_top
+  have Z0 : ε_div_two.toReal < ε.toReal := by
+    exact ENNReal.toReal_strict_mono O1 <| ENNReal.half_lt_self O2 O1
+
+  -- Pick a neighborhood, if in neighborhood then we are good
+  -- If outside of the neighborhood then use that ζ' / ζ is monotonic
+  -- and take the bound to be the edge but this will require some more work
+
+  by_cases h : σ₀ ≤ boundary
+  · have σ₀_in_ball : (↑σ₀ : ℂ) ∈ metric_ball_around_1 := by
+      unfold metric_ball_around_1
+      unfold EMetric.ball
+      simp only [mem_setOf_eq]
+      rw [edist_dist, dist_eq_norm]
+      norm_cast
+      have U : 0 ≤ σ₀ - 1 := by linarith
+      simp [Real.norm_of_nonneg U]
+      simp [ENNReal.ofReal_lt_iff_lt_toReal U O1]
+      calc
+        _ ≤ boundary - 1 := by linarith
+        _ = ENNReal.toReal (1 + ε_div_two) - 1 := rfl
+        _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp
+        _ ≤ ENNReal.toReal (1 + ε_div_two - ENNReal.ofReal 1) := ENNReal.le_toReal_sub U4
+        _ = ENNReal.toReal (ε_div_two) := by simp only [ENNReal.ofReal_one, ENNReal.addLECancellable_iff_ne, ne_eq, ENNReal.one_ne_top, not_false_eq_true, AddLECancellable.add_tsub_cancel_left]
+        _ < ε.toReal := Z0
+
+    have σ₀_in_U : (↑σ₀ : ℂ) ∈ (U \ {1}) := by
+      refine mem_diff_singleton.mpr ?_
+      constructor
+      · unfold metric_ball_around_1 at σ₀_in_ball
+        exact metric_ball_around_1_is_in_U σ₀_in_ball
+      · by_contra a
+        have U : σ₀ = 1 := by exact ofReal_eq_one.mp a
+        rw [U] at σ₀_gt
+        linarith
+
+    have bdd := Set.forall_mem_image.mp bound_prop (σ₀_in_U)
+    simp [*] at bdd
+
+    calc
+      _ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
+        exact dlog_riemannZeta_bdd_on_vertical_lines_generalized σ₀ σ₀ t (σ₀_gt) (by simp)
+      _ = ‖- ζ' σ₀ / ζ σ₀‖ := by simp only [Complex.norm_div, norm_neg]
+      _ = ‖(- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹) + (σ₀ - 1)⁻¹‖ := by simp only [Complex.norm_div, norm_neg, ofReal_inv, ofReal_sub, ofReal_one, sub_add_cancel]
+      _ ≤ ‖(- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹)‖ + ‖(σ₀ - 1)⁻¹‖ := by
+        have Z := norm_add_le (- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹) ((σ₀ - 1)⁻¹)
+        norm_cast at Z
+      _ ≤ const + ‖(σ₀ - 1)⁻¹‖ := by
+        have U := add_le_add_right bdd ‖(σ₀ - 1)⁻¹‖
+        ring_nf at U
+        ring_nf
+        norm_cast at U
+        norm_cast
+      _ ≤ const + (σ₀ - 1)⁻¹ := by
+        simp [norm_inv]
+        have pos : 0 ≤ σ₀ - 1 := by
+          linarith
+        simp [abs_of_nonneg pos]
+      _ = (σ₀ - 1)⁻¹ + const := by
+        rw [add_comm]
+      _ ≤ (σ₀ - 1)⁻¹ + final_const := by
+        simp [const_le_final_const]
+
+  · push_neg at h
+
+    have boundary_geq_one : 1 < boundary := by
+      unfold boundary
+      have Z : (1 : ENNReal).toReal = 1 := by rfl
+      rw [←Z]
+      have U : ε_div_two ≠ ⊤ := by
+        exact ENNReal.div_ne_top O1 (by norm_num)
+      simp [ENNReal.toReal_add _ U]
+      refine ENNReal.toReal_pos ?_ U
+      unfold ε_div_two
+      simp [*]
+
+
+    have boundary_in_ball : (↑boundary : ℂ) ∈ metric_ball_around_1 := by
+      unfold metric_ball_around_1
+      unfold EMetric.ball
+      simp [*]
+      rw [edist_dist, dist_eq_norm]
+      norm_cast
+      have U : 0 ≤ boundary - 1 := by linarith
+      simp [Real.norm_of_nonneg U]
+      simp [ENNReal.ofReal_lt_iff_lt_toReal U O1]
+      calc
+        _ = ENNReal.toReal (1 + ε_div_two) - 1 := rfl
+        _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp
+        _ ≤ ENNReal.toReal (1 + ε_div_two - ENNReal.ofReal 1) := ENNReal.le_toReal_sub U4
+        _ = ENNReal.toReal (ε_div_two) := by simp only [ENNReal.ofReal_one, ENNReal.addLECancellable_iff_ne, ne_eq, ENNReal.one_ne_top, not_false_eq_true, AddLECancellable.add_tsub_cancel_left]
+        _ < ε.toReal := Z0
+
+    have boundary_in_U : (↑boundary : ℂ) ∈ U \ {1} := by
+      refine mem_diff_singleton.mpr ?_
+      constructor
+      · unfold metric_ball_around_1 at boundary_in_ball
+        exact metric_ball_around_1_is_in_U boundary_in_ball
+      · by_contra a
+        norm_cast at a
+        norm_cast at boundary_geq_one
+        simp [←a] at boundary_geq_one
+
+    have bdd := Set.forall_mem_image.mp bound_prop (boundary_in_U)
+
+    calc
+      _ ≤ ‖ζ' boundary / ζ boundary‖ := by
+        exact  dlog_riemannZeta_bdd_on_vertical_lines_generalized boundary σ₀ t (boundary_geq_one) (by linarith)
+      _ = ‖- ζ' boundary / ζ boundary‖ := by simp only [Complex.norm_div, norm_neg]
+      _ = ‖(- ζ' boundary / ζ boundary - (boundary - 1)⁻¹) + (boundary - 1)⁻¹‖ := by simp only [Complex.norm_div, norm_neg, ofReal_inv, ofReal_sub, ofReal_one, sub_add_cancel]
+      _ ≤ ‖(- ζ' boundary / ζ boundary - (boundary - 1)⁻¹)‖ + ‖(boundary - 1)⁻¹‖ := by
+        have Z := norm_add_le (- ζ' boundary / ζ boundary - (boundary - 1)⁻¹) ((boundary - 1)⁻¹)
+        norm_cast at Z
+      _ ≤ const + ‖(boundary - 1)⁻¹‖ := by
+        have U9 := add_le_add_right bdd ‖(boundary - 1)⁻¹‖
+        ring_nf at U9
+        ring_nf
+        norm_cast at U9
+        norm_cast
+        simp [*] at U9
+        simp [*]
+        exact U9
+
+      _ ≤ const + (boundary - 1)⁻¹ := by
+        simp [norm_inv]
+        have pos : 0 ≤ boundary - 1 := by
+          linarith
+        simp [abs_of_nonneg pos]
+      _ = (boundary - 1)⁻¹ + const := by
+        rw [add_comm]
+      _ = final_const := by rfl
+      _ ≤ _ := by bound
+
 /-%%
-It would perhaps (?) be better to refactor this entire file so that we're not using explicit
-constants but instead systematically using big Oh notation... The punchline would be:
-%%-/
-/-%%
-\begin{lemma}[LogDerivZetaBndAlt]\label{LogDerivZetaBndAlt}\lean{LogDerivZetaBndAlt}\leanok
-There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1$ and $|t|\to\infty$,
-$$
-|\frac {\zeta'}{\zeta} (\sigma+it)| \ll \log^9 |t|.
-$$
-(Same statement but using big-Oh and filters.)
+\begin{lemma}[LogDerivZetaBndUnif]\label{LogDerivZetaBndUnif}\lean{LogDerivZetaBndUnif}\leanok
+There exist $A, C > 0$ such that
+$$|\frac{\zeta'}{\zeta}(\sigma + it)|\leq C \log |t|^9$$
+whenever $|t|>3$ and $\sigma > 1 - A/\log |t|^9$.
 \end{lemma}
 %%-/
-lemma LogDerivZetaBndAlt :
-    ∃ A > 0, ∀ (σ) (_ : σ ∈ Ico ((1 : ℝ) / 2) (1 : ℝ)),
-    (fun (t : ℝ) ↦ ζ' (σ + t * I) / ζ (σ + t * I)) =O[cocompact ℝ ⊓
-      Filter.principal {t | 1 - A / Real.log |t| ^ 9 < σ}]
-        fun t ↦ Real.log |t| ^ 9 := by
-  obtain ⟨A, hA, C, _, h⟩ := LogDerivZetaBnd
-  refine ⟨A, hA.1, fun σ ⟨σ_ge, σ_lt⟩ ↦ ?_⟩
-  -- This could all be done much cleaner; TODO: refactor
-  rw [Asymptotics.isBigO_iff]
-  use C
-  rw [eventually_inf, cocompact_eq_atBot_atTop]
-  refine ⟨{t : ℝ | 4 ≤ |t|}, ?_, {t | 1 - A / Real.log |t| ^ 9 < σ},
-    fun ⦃a⦄ a ↦ a, fun t ⟨t_ge, ht⟩ ↦ ?_⟩
-  · rw [mem_sup]
-    refine ⟨?_, ?_⟩
-    · simp only [mem_atBot_sets, mem_setOf_eq]
-      refine ⟨-4, fun b hb ↦ ?_⟩
-      rw [_root_.abs_of_nonpos (by linarith)]
-      linarith
-    · simp only [mem_atTop_sets, ge_iff_le, mem_setOf_eq]
-      refine ⟨4, fun b hb ↦ ?_⟩
-      rwa [_root_.abs_of_nonneg (by linarith)]
-  simp only [mem_setOf_eq] at ht
-  convert h σ t (by linarith [mem_Ici.mp t_ge]) ⟨ht.le, σ_lt⟩
-  simp only [mem_setOf_eq] at t_ge
-  have := Real.log_nonneg (by linarith : 1 ≤ |t|)
-  simp only [Real.norm_eq_abs, norm_pow, abs_eq_self.mpr, this]
+lemma LogDerivZetaBndUnif :
+    ∃ (A : ℝ) (_ : A ∈ Ioc 0 (1 / 2)) (C : ℝ) (_ : 0 < C), ∀ (σ : ℝ) (t : ℝ) (_ : 3 < |t|)
+    (_ : σ ∈ Ici (1 - A / Real.log |t| ^ 9)), ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤
+      C * Real.log |t| ^ 9 := by
+  let ⟨A, pf_A, C, C_pos, ζbd_in⟩ := LogDerivZetaBnd
+  let ⟨C_triv, ⟨pf_C_triv, ζbd_out⟩⟩ := triv_bound_zeta
+  have T0 : A > 0 := pf_A.1
+
+  have ha : 1 ≤ A⁻¹ := by
+    simp only [one_div, mem_Ioc, true_and, T0] at pf_A
+    have U := (inv_le_inv₀ (by positivity) (by positivity)).mpr pf_A
+    simp only [inv_inv] at U
+    linarith
+
+  refine ⟨A, pf_A, ((1 + C + C_triv) * A⁻¹), (by positivity), fun σ t hyp_t hyp_σ ↦ ?_⟩
+  have logt_gt' : (1 : ℝ) < Real.log |t| ^ 9 := by
+    calc
+      1 < Real.log |t| := logt_gt_one hyp_t.le
+      _ ≤ (Real.log |t|) ^ 9 := ZetaInvBnd_aux (logt_gt_one hyp_t.le)
+
+  have logt_gt'' : (1 : ℝ) < 1 + A / Real.log |t| ^ 9 := by
+    simp only [lt_add_iff_pos_right, div_pos_iff_of_pos_left, T0]
+    positivity
+
+  have T1 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ 9 ≤ σ → 1 < σ := by
+    intro σ'
+    intro hyp_σ'
+    calc
+      1 < 1 + A / Real.log |t| ^ 9 := logt_gt''
+      _ ≤ σ' := hyp_σ'
+
+  have T2 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ 9 ≤ σ → A / Real.log |t| ^ 9 ≤ σ - 1 := by
+    intro σ'
+    intro hyp_σ'
+    calc
+      A / Real.log |t| ^ 9 = (1 + A / Real.log |t| ^ 9) - 1 := by ring_nf
+      _ ≤ σ' - 1 := by gcongr
+
+
+  by_cases h : σ ∈ Ico (1 - A / Real.log |t| ^ 9) (1 + A / Real.log |t| ^ 9)
+  · calc
+      ‖ζ' (↑σ + ↑t * I) / ζ (↑σ + ↑t * I)‖ ≤ C * Real.log |t| ^ 9 := ζbd_in σ t hyp_t h
+      _ ≤ ((1 + C + C_triv) * A⁻¹) * Real.log |t| ^ 9 := by
+          gcongr
+          · calc
+              C ≤ 1 + C := by simp only [le_add_iff_nonneg_left, zero_le_one]
+              _ ≤ (1 + C + C_triv) * 1 := by simp only [mul_one, le_add_iff_nonneg_right]; positivity
+              _ ≤ (1 + C + C_triv) * A⁻¹ := by gcongr
+
+  · simp only [mem_Ico, tsub_le_iff_right, not_and, not_lt, mem_Ici] at h hyp_σ
+    replace h := h hyp_σ
+    calc
+      ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ = ‖-ζ' (σ + t * I) / ζ (σ + t * I)‖ := by simp only [Complex.norm_div,
+        norm_neg]
+
+      _ ≤ (σ - 1)⁻¹ + C_triv := ζbd_out σ t (by exact T1 h)
+
+      _ ≤ (A / Real.log |t| ^ 9)⁻¹ + C_triv := by
+          gcongr
+          · exact T2 h
+
+      _ ≤ (A / Real.log |t| ^ 9)⁻¹ + C_triv * A⁻¹ := by
+          gcongr
+          · have hb : 0 ≤ C_triv := by linarith
+            exact le_mul_of_one_le_right hb ha
+
+      _ ≤ (1 + C_triv) * A⁻¹ * Real.log |t| ^ 9 := by
+          simp only [inv_div]
+          ring_nf
+          gcongr
+          · simp only [inv_pos, le_mul_iff_one_le_left, T0]
+            linarith
+
+      _ ≤ (1 + C + C_triv) * A⁻¹ * Real.log |t| ^ 9 := by gcongr; simp only [le_add_iff_nonneg_right]; positivity
+
 /-%%
-\begin{proof}\leanok
-\uses{LogDerivZetaBnd}
-Same as above.
-\end{proof}
+\begin{proof}\uses{LogDerivZetaBnd}\leanok
+For $\sigma$ close to $1$ use Lemma \ref{LogDerivZetaBnd}, otherwise estimate trivially.
 %%-/
