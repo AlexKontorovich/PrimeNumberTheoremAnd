@@ -1098,12 +1098,7 @@ lemma integral_deriv_mul_eq_sub' {u v u' v' : ℝ → A}
     (hu' : IntervalIntegrable u' volume a b)
     (hv' : IntervalIntegrable v' volume a b) :
     ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a := by
-  have h2u : ContinuousOn u [[a, b]] := fun x hx ↦ (hu x hx).continuousWithinAt
-  have h2v : ContinuousOn v [[a, b]] := fun x hx ↦ (hv x hx).continuousWithinAt
-  apply integral_eq_sub_of_hasDeriv_right (h2u.mul h2v)
-  · exact fun x hx ↦ (hu x <| mem_Icc_of_Ioo hx).mul (hv x <| mem_Icc_of_Ioo hx) |>.hasDerivAt
-      (Icc_mem_nhds hx.1 hx.2) |>.hasDerivWithinAt
-  · exact (hu'.mul_continuousOn h2v).add (hv'.continuousOn_mul h2u)
+  exact integral_deriv_mul_eq_sub_of_hasDerivWithinAt hu hv hu' hv'
 
 end
 
@@ -1570,27 +1565,11 @@ lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
   linarith
 
 lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
-  rw [Filter.tendsto_atTop_atTop]
-  intro b
-  use ⌊b⌋.toNat + 1
-  intro a ha
-  cases eq_zero_or_pos a with
-  | inl a_zero =>
-    simp [a_zero] at ha
-  | inr a_zero =>
-    by_cases h : ⌊b⌋.toNat < a
-    · exact (Int.floor_lt.mp <| (Int.toNat_lt' a_zero).mp h).le
-    · simp only [not_lt] at h
-      absurd le_trans ha h
-      simp
+  exact tendsto_natCast_atTop_atTop
 
 -- related to `ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt`
 lemma Summable_rpow {s : ℂ} (s_re_gt : 1 < s.re) : Summable (fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s) := by
-  apply Summable.of_norm
-  have : s.re ≠ 0 := by linarith
-  simp only [one_div, norm_inv]
-  simp_rw [norm_natCast_cpow_of_re_ne_zero _ this]
-  exact (Real.summable_nat_rpow_inv (p := s.re)).mpr s_re_gt
+  exact summable_one_div_nat_cpow.mpr s_re_gt
 
 lemma Finset_coe_Nat_Int (f : ℤ → ℂ) (m n : ℕ) :
     (∑ x ∈ Finset.Ioc m n, f x) = ∑ x ∈ Finset.Ioc (m : ℤ) n, f x := by
@@ -1632,10 +1611,7 @@ lemma ZetaSum_aux3 {N : ℕ} {s : ℂ} (s_re_gt : 1 < s.re) :
   simp_rw [Finset.Ioc_eq_Ico]
   convert finsetSum_tendsto_tsum (f := fun n ↦ f (n + 1)) (N := N) ?_ using 1
   · ext k
-    simp only [f]
-    convert Finset.sum_map (e := addRightEmbedding 1) ?_  ?_ using 2
-    ext n
-    simp only [Finset.mem_Ico, Finset.map_add_right_Ico]
+    rw [Finset.sum_Ico_add']
   · congr; ext n; simp only [one_div, Nat.cast_add, Nat.cast_one, f]
   · rwa [summable_nat_add_iff (k := 1)]
 
