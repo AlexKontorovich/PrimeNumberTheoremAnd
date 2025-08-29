@@ -3422,7 +3422,7 @@ lemma ZetaInvBnd :
   set C := (C₁ * A ^ (3 / 4 : ℝ) - C₂ * 2 * A)⁻¹
   have Cpos : 0 < C := by
     refine ZetaInvBnd_aux2 (by positivity) (by positivity) (by positivity) ?_
-    apply min_le_iff.mpr; right; exact le_rfl
+    apply min_le_right
   refine ⟨A, ⟨Apos, by linarith [hA'.2]⟩ , C, Cpos, ?_⟩
   intro σ t t_gt hσ
   have logt_gt_one := logt_gt_one t_gt.le
@@ -3945,9 +3945,7 @@ theorem LogDerivZetaHolcSmallT :
     apply abs_le.2
     simp at him_lower
     simp at him_upper
-    constructor
-    · exact him_lower
-    · exact him_upper
+    exact ⟨him_lower, him_upper⟩
 
   have s_in_U_re_ges2 : ∀ s ∈ U, σ₂ ≤ s.re := by
     intro s hs
@@ -3959,8 +3957,7 @@ theorem LogDerivZetaHolcSmallT :
     have : min σ₂ 2 = σ₂ := by
       apply min_eq_left
       linarith [hσ₂_lt_one]
-    rw[this] at hre_lower
-    exact hre_lower
+    rwa [← this]
 
   apply LogDerivZetaHoloOn
   · exact notMem_diff_of_mem rfl
@@ -4179,8 +4176,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
     have σ₀_in_U : (↑σ₀ : ℂ) ∈ (U \ {1}) := by
       refine mem_diff_singleton.mpr ?_
       constructor
-      · unfold metric_ball_around_1 at σ₀_in_ball
-        exact metric_ball_around_1_is_in_U σ₀_in_ball
+      · exact metric_ball_around_1_is_in_U σ₀_in_ball
       · by_contra a
         have U : σ₀ = 1 := by exact ofReal_eq_one.mp a
         rw [U] at σ₀_gt
@@ -4234,8 +4230,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
     have boundary_in_U : (↑boundary : ℂ) ∈ U \ {1} := by
       refine mem_diff_singleton.mpr ?_
       constructor
-      · unfold metric_ball_around_1 at boundary_in_ball
-        exact metric_ball_around_1_is_in_U boundary_in_ball
+      · exact metric_ball_around_1_is_in_U boundary_in_ball
       · by_contra a
         norm_cast at a
         norm_cast at boundary_geq_one
@@ -4303,11 +4298,8 @@ lemma LogDerivZetaBndUnif :
     positivity
 
   have T1 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ 9 ≤ σ → 1 < σ := by
-    intro σ'
-    intro hyp_σ'
-    calc
-      1 < 1 + A / Real.log |t| ^ 9 := logt_gt''
-      _ ≤ σ' := hyp_σ'
+    intros
+    linarith
 
   have T2 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ 9 ≤ σ → A / Real.log |t| ^ 9 ≤ σ - 1 := by
     intro σ'
@@ -4341,8 +4333,7 @@ lemma LogDerivZetaBndUnif :
 
       _ ≤ (A / Real.log |t| ^ 9)⁻¹ + C_triv * A⁻¹ := by
           gcongr
-          · have hb : 0 ≤ C_triv := by linarith
-            exact le_mul_of_one_le_right hb ha
+          exact le_mul_of_one_le_right pf_C_triv ha
 
       _ ≤ (1 + C_triv) * A⁻¹ * Real.log |t| ^ 9 := by
           simp only [inv_div]
