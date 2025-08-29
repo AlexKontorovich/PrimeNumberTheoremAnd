@@ -1509,13 +1509,6 @@ lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
   rw [Finset.sum_Ico_eq_sub]
   linarith
 
-lemma tendsto_coe_atTop : Tendsto (fun (n : ℕ) ↦ (n : ℝ)) atTop atTop := by
-  exact tendsto_natCast_atTop_atTop
-
--- related to `ArithmeticFunction.LSeriesSummable_zeta_iff.mpr s_re_gt`
-lemma Summable_rpow {s : ℂ} (s_re_gt : 1 < s.re) : Summable (fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s) := by
-  exact summable_one_div_nat_cpow.mpr s_re_gt
-
 lemma Finset_coe_Nat_Int (f : ℤ → ℂ) (m n : ℕ) :
     (∑ x ∈ Finset.Ioc m n, f x) = ∑ x ∈ Finset.Ioc (m : ℤ) n, f x := by
 /-
@@ -1551,7 +1544,7 @@ lemma ZetaSum_aux3 {N : ℕ} {s : ℂ} (s_re_gt : 1 < s.re) :
     (𝓝 (∑' (n : ℕ), 1 / (n + N + 1 : ℂ) ^ s)) := by
   let f := fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s
   -- let g := fun (n : ℕ) ↦ f (n + 1)
-  have hf := Summable_rpow s_re_gt
+  have hf := summable_one_div_nat_cpow.mpr s_re_gt
   -- have hg := summable_nat_add_iff 1 |>.mpr <| hf
   simp_rw [Finset.Ioc_eq_Ico]
   convert finsetSum_tendsto_tsum (f := fun n ↦ f (n + 1)) (N := N) ?_ using 1
@@ -1603,7 +1596,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
       apply Tendsto.div_const <| cpow_inv_tendsto (by positivity)
     · simp_rw [mul_comm_div, one_mul, one_div, cpow_neg]; exact tendsto_const_nhds
     · exact MeasureTheory.intervalIntegral_tendsto_integral_Ioi (a := N)
-        (b := (fun (n : ℕ) ↦ (n : ℝ))) (integrableOn_of_Zeta0_fun N_pos <| by positivity) tendsto_coe_atTop
+        (b := (fun (n : ℕ) ↦ (n : ℝ))) (integrableOn_of_Zeta0_fun N_pos <| by positivity) tendsto_natCast_atTop_atTop
 /-%%
 \begin{proof}\uses{ZetaSum_aux1}\leanok
   Apply Lemma \ref{ZetaSum_aux1} with $a=N$ and $b\to \infty$.
@@ -2040,7 +2033,7 @@ lemma Zeta0EqZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne
   intro z hz
   simp only [f,g, zeta_eq_tsum_one_div_nat_cpow hz, riemannZeta0_apply]
   nth_rewrite 2 [neg_div]
-  rw [← sub_eq_add_neg, ← ZetaSum_aux2 N_pos hz, ← (Summable_rpow hz).sum_add_tsum_nat_add (N + 1)]
+  rw [← sub_eq_add_neg, ← ZetaSum_aux2 N_pos hz, ← (summable_one_div_nat_cpow.mpr hz).sum_add_tsum_nat_add (N + 1)]
   norm_cast
 /-%%
 \begin{proof}\leanok
