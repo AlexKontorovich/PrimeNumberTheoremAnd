@@ -1029,23 +1029,6 @@ lemma ContDiffOn.continuousOn_deriv {φ : ℝ → ℂ} {a b : ℝ}
 lemma LinearDerivative_ofReal (x : ℝ) (a b : ℂ) : HasDerivAt (fun (t : ℝ) ↦ a * t + b) a x := by
   refine HasDerivAt.add_const b ?_
   convert (ContinuousLinearMap.hasDerivAt Complex.ofRealCLM).const_mul a using 1; simp
--- No longer used
-section
--- from Floris van Doorn
-
-variable {A : Type*} [NormedRing A] [NormedAlgebra ℝ A] [CompleteSpace A] {a b : ℝ}
-
---set_option autoImplicit false in
-open BigOperators Interval Topology Set intervalIntegral MeasureTheory in
-lemma integral_deriv_mul_eq_sub' {u v u' v' : ℝ → A}
-    (hu : ∀ x ∈ [[a, b]], HasDerivWithinAt u (u' x) [[a, b]] x)
-    (hv : ∀ x ∈ [[a, b]], HasDerivWithinAt v (v' x) [[a, b]] x)
-    (hu' : IntervalIntegrable u' volume a b)
-    (hv' : IntervalIntegrable v' volume a b) :
-    ∫ x in a..b, u' x * v x + u x * v' x = u b * v b - u a * v a := by
-  exact integral_deriv_mul_eq_sub_of_hasDerivWithinAt hu hv hu' hv'
-
-end
 
 lemma sum_eq_int_deriv_aux2 {φ : ℝ → ℂ} {a b : ℝ} (c : ℂ)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
