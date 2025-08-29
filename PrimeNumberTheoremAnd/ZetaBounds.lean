@@ -98,8 +98,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   have h_tendsto_gA : Tendsto g (𝓝[≠] p) (𝓝 A) :=
       h_limit.congr' (id (EventuallyEq.symm h_event_eq))
   have hpW : p ∈ W := by
-    rw [hW_def]
-    exact ⟨hV₀_prop.2, mem_of_mem_nhds hU⟩
+    exact mem_of_mem_nhds hW_mem
   have h_cont_g : ContinuousAt g p := by
     apply (hg_holo.continuousOn.continuousWithinAt hpW).continuousAt hW_mem
   have h_tendsto_gp : Tendsto g (𝓝[≠] p) (𝓝 (g p)) :=
@@ -108,8 +107,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     tendsto_nhds_unique' (NormedField.nhdsNE_neBot p) h_tendsto_gp h_tendsto_gA
   let q : ℂ → ℂ := fun z ↦ (g z - A) / (z - p)
   have h_deriv : HasDerivAt g (deriv g p) p := by
-    simp only [hasDerivAt_deriv_iff]
-    exact DifferentiableOn.differentiableAt hg_holo hW_mem
+    exact DifferentiableOn.hasDerivAt hg_holo hW_mem
   have h_q_limit : Tendsto q (𝓝[≠] p) (𝓝 (deriv g p)) := by
     rw [hasDerivAt_iff_tendsto_slope] at h_deriv
     unfold slope at h_deriv
@@ -169,8 +167,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
               field_simp [sub_ne_zero_of_ne]
     exact h_bdd_q.mono h_subset
   -- Done: provide the neighbourhood `V`.
-  refine ⟨V, hV_mem, ?_⟩
-  simpa [hV_def, Function.comp] using h_bdd_final
+  exact frequently_principal.mp fun a => a hV_mem h_bdd_final
 
 /-%%
 \begin{proof}\uses{existsDifferentiableOn_of_bddAbove}\leanok
@@ -205,10 +202,6 @@ theorem riemannZetaResidue :
     ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (ζ - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
 
   have h_residue := riemannZeta_residue_one
-
-  have univ_mem : (univ : Set ℂ) ∈ 𝓝 (1 : ℂ) := by
-    rw [mem_nhds_iff]
-    refine ⟨univ, fun _ _ => by simp, isOpen_univ, mem_univ _⟩
 
   have zeta_holc : HolomorphicOn ζ (univ \ {1}) := by
     intro y hy
@@ -704,15 +697,10 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
           simp [*]
           refine eventually_iff.mpr ?_
           have U101 : {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} ∈ 𝓝[U] p := by
-            refine exists_mem_subset_iff.mp ?_
-            use {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1}
-
+            exact mem_of_superset h_inv_converges_to_inv_A_norm_1 trivial_subset
           have U102 : {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} ∈ 𝓝 p := by
             exact nhds_of_nhdsWithin_of_nhds U_in_nhds U101
-          refine mem_nhdsWithin_iff_exists_mem_nhds_inter.mpr ?_
-          use {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1}
-          refine ⟨U102, ?_⟩
-          · exact inter_subset_left
+          exact mem_nhdsWithin_of_mem_nhds U102
 
   have h_deriv_bounded :
         (deriv h) =O[𝓝[≠] p] (1 : ℂ → ℂ) :=
@@ -723,9 +711,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   have h_log_deriv_bounded :
     ((deriv h) * h⁻¹) =O[𝓝[≠] p] (1 : ℂ → ℂ)  := by
       have T := Asymptotics.IsBigO.mul h_deriv_bounded h_inv_bounded
-      simp [*] at T
-      refine Asymptotics.IsBigO.of_norm_right ?_
-      simp [*]
+      exact IsBigO.of_const_mul_right T
 
   have u_not_p_in_filter : U \ {p} ∈ 𝓝[≠] p := by
     exact diff_mem_nhdsWithin_compl U_in_nhds {p}
