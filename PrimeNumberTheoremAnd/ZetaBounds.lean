@@ -760,14 +760,9 @@ theorem  logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
         exact diff_subset_diff a (subset_refl _)
 
 
-      refine logDerivResidue' b ?_ ?_ (by
-          refine IsOpen.mem_nhds ?_ ?_
-          · exact b
-          · exact c) A_ne_zero ?_
-      · intro x
-        intro hyp_x
-        have T: x ∈ U \ {p} := by exact T hyp_x
-        exact (non_zero x T)
+      refine logDerivResidue' b ?_ ?_ (IsOpen.mem_nhds b c) A_ne_zero ?_
+      · intro x hyp_x
+        exact non_zero x <| T hyp_x
       · exact DifferentiableOn.mono holc T
       · exact (f_near_p.mono (image_mono (diff_subset_diff a (subset_refl _))))
 
@@ -795,9 +790,7 @@ lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
     obtain ⟨U, hU, ⟨U_is_open, p_in_U⟩⟩ := mem_nhds_iff.mp hc
     use U
     constructor
-    · refine IsOpen.mem_nhds ?_ ?_
-      exact U_is_open
-      exact p_in_U
+    · exact IsOpen.mem_nhds U_is_open p_in_U
     · refine bddAbove_def.mpr ?_
       use c
       intro y hy
@@ -837,10 +830,7 @@ lemma BddAbove_to_IsBigO {f : ℂ → ℂ} {p : ℂ}
     intro y_not_p
     simp only [mem_compl_iff, mem_singleton_iff] at y_not_p
     have : y ∈ U \ {p} := by
-      constructor
-      . exact V_in_U hy
-      . simp only [mem_singleton_iff]
-        exact y_not_p
+      exact mem_diff_of_mem (V_in_U hy) y_not_p
     have := h y this
     convert this
     simp
