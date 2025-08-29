@@ -3329,13 +3329,7 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (t_ne_zero : t ≠ 0) :
           I_im, mul_one, sub_self, add_zero, one_re, add_im, mul_im, zero_add, one_im, not_exists,
           not_and]
         exact fun _ _ _ ↦ t_ne_zero
-      have := (Complex.analyticAt_iff_eventually_differentiableAt (c := x) (f := ζ)).mpr ?_
-      · obtain ⟨r, hr, h⟩ := this.exists_ball_analyticOnNhd
-        apply (h.deriv x ?_).differentiableAt
-        simp [hr]
-      · filter_upwards [compl_singleton_mem_nhds hx] with z hz
-        apply differentiableAt_riemannZeta
-        simpa [mem_compl_iff, mem_singleton_iff] using hz
+      exact differentiableAt_deriv_riemannZeta hx
     · exact continuous_ofReal.continuousOn.add continuousOn_const
 /-%%
 \begin{proof}\leanok
