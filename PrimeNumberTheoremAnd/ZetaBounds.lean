@@ -2633,8 +2633,7 @@ lemma DerivUpperBnd_aux7_tendsto {σ : ℝ} (σpos : 0 < σ) :
     apply Tendsto.congr' _ this
     filter_upwards [eventually_ge_atTop 0] with x hx
     rw [mul_comm]
-    apply div_rpow_eq_rpow_neg
-    exact hx
+    apply div_rpow_eq_rpow_neg _ _ _ hx
   have h4 := h3.const_mul (1 / σ)
   have h5 := (h2.add h4).neg
   convert h5 using 1
@@ -3128,9 +3127,8 @@ lemma ZetaLowerBound3 :
 
   have pos_right : 0 < ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) := by
     -- This follows from ZetaLowerBound1 - if either factor were zero, we'd get 0 ≥ 1
-    have := ZetaLowerBound1 (t := t) σ_gt
-    apply ZetaLowerBound3_aux5
-    convert this
+    apply ZetaLowerBound3_aux5 _ <| ZetaLowerBound1 (t := t) σ_gt
+
 
   use (div_le_div_of_nonneg_left zero_le_one pos_right denom_bound).trans' ?_
   simp_rw [abs_mul, abs_two, neg_div, Real.rpow_neg (sub_pos.2 σ_gt).le] at *
@@ -3293,8 +3291,7 @@ lemma deriv_fun_re {t : ℝ} {f : ℂ → ℂ} (diff : ∀ (σ : ℝ), Different
   ext σ
   have := deriv_comp (h := fun (σ : ℝ) ↦ σ + t * I) (h₂ := f) σ (diff σ) ?_
   · simp only [deriv_add_const', _root_.deriv_ofReal, mul_one] at this
-    rw [← this]
-    rfl
+    exact this
   · apply DifferentiableAt.add_const _ <| differentiableAt_ofReal σ
 
 /-%%
