@@ -54,8 +54,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     h_limit.eventually (Metric.ball_mem_nhds _ (by norm_num))
   have h_event_nhds :
       ∀ᶠ s in 𝓝 p, s ≠ p → ‖(s - p) * f s - A‖ < 1 := by
-    have := (eventually_nhdsWithin_iff).1 h_event
-    simpa using this
+    exact (eventually_nhdsWithin_iff).1 h_event
   rcases (eventually_nhds_iff.1 h_event_nhds) with ⟨V₀, hV₀_mem, hV₀_prop⟩
   have h_bound :
       ∀ s, s ∈ V₀ \ {p} → ‖(s - p) * f s‖ ≤ ‖A‖ + 1 := by
@@ -330,9 +329,7 @@ theorem derivative_const_plus_product {g : ℂ → ℂ}
   by
 
   -- Rewrite the function as a single lambda
-    have h_eq : ((fun _ ↦ A) + g * fun s ↦ s - p) = fun s ↦ A + g s * (s - p) := by
-      ext s
-      simp [Pi.add_apply, Pi.mul_apply]
+    have h_eq : ((fun _ ↦ A) + g * fun s ↦ s - p) = fun s ↦ A + g s * (s - p) := by rfl
 
     rw [h_eq]
 
@@ -378,9 +375,7 @@ lemma deriv_inv_sub {x p : ℂ} (hp : x ≠ p) :
   let inv_x := fun (x : ℂ) ↦ x⁻¹
   let trans_x := fun x ↦ x - p
 
-  let T : (inv_x ∘ trans_x) = fun x ↦ (x - p)⁻¹  := by
-    funext x
-    apply Function.comp_apply
+  let T : (inv_x ∘ trans_x) = fun x ↦ (x - p)⁻¹  := by rfl
 
   let G : deriv (inv_x ∘ trans_x) x = ((deriv inv_x) (trans_x x)) * ((deriv (trans_x)) x) := by
     apply deriv_comp
@@ -400,8 +395,6 @@ lemma deriv_inv_sub {x p : ℂ} (hp : x ≠ p) :
 
   simp [*] at T
   simp [E, F, T] at G
-
-  simp [trans_x] at G
   exact G
 
 -- Alternative cleaner proof using more direct approach
@@ -523,8 +516,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     · rintro s ⟨_, hs⟩ ; exact hs
 
   have f_minus_pole_is_holomorphic : HolomorphicOn (f - (fun s ↦ A * (s - p)⁻¹)) (U \ {p}) := by
-    intro x hyp
-    exact DifferentiableWithinAt.sub (holc x hyp) (simpleHolo x hyp)
+    exact (DifferentiableOn.sub_iff_right holc).mpr simpleHolo
 
   let ⟨g, ⟨g_is_holomorphic, g_is_f_minus_pole⟩⟩ := existsDifferentiableOn_of_bddAbove
     U_in_nhds f_minus_pole_is_holomorphic f_near_p
@@ -535,13 +527,11 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
 
   have linear_is_holomorphic : HolomorphicOn (fun (s : ℂ ) ↦ (s - p)) U := by
-    refine DifferentiableOn.sub_const ?_ p
-    exact differentiableOn_id
+    exact DifferentiableOn.sub_const differentiableOn_id p
 
   have h_is_holomorphic : HolomorphicOn h U := by
     have T := DifferentiableOn.mul g_is_holomorphic linear_is_holomorphic
-    have G := DifferentiableOn.const_add A T
-    exact G
+    exact DifferentiableOn.const_add A T
 
   have h_continuous : ContinuousOn h U :=
     by exact DifferentiableOn.continuousOn h_is_holomorphic
@@ -578,12 +568,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
             refine Icc_mem_nhds ?_ ?_
             · simp
             · simp
-      have E : {x | ‖h⁻¹ x - A⁻¹‖ ∈ (Set.Icc (-1) 1)} ∈ (𝓝[U] p) :=
-          by
-            have := Set.mem_of_subset_of_mem T G
-            exact this
-      exact E
-
+      exact h_inv_converges_to_inv_A_norm G
   have trivial_subset : {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1} ⊆ {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} := by
         simp
         intro x
@@ -591,14 +576,12 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
         intro hyp_b
         have T : 1 ≤ ‖A‖⁻¹ + 1 := by simp
         simp [*] at *
-        have U := calc
+        calc
           ‖h x‖⁻¹             = ‖h⁻¹ x‖ := by exact Eq.symm (IsAbsoluteValue.abv_inv norm (h x))
           ‖h⁻¹ x‖             = ‖h⁻¹ x - A⁻¹ + A⁻¹‖ := by simp
           ‖h⁻¹ x - A⁻¹ + A⁻¹‖ ≤ ‖h⁻¹ x - A⁻¹‖ + ‖A⁻¹‖ := by exact norm_add_le (h⁻¹ x - A⁻¹) (A⁻¹)
           _                   ≤  1 + ‖A‖⁻¹ := by simp [hyp_b]
           _                   = ‖A‖⁻¹ + 1 := by exact add_comm 1 ‖A‖⁻¹
-
-        exact U
 
   have deriv_h_identity : ∀x ∈ (U \ {p}), (deriv h) x = f x + (deriv f x) * (x - p) := by
 
@@ -609,8 +592,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
         have x_in_u : x ∈ U := by exact mem_of_mem_diff x_in_u_not_p
         have x_not_p : x ≠ p := by
-          have L := ((Set.mem_diff x).mp x_in_u_not_p).2
-          exact L
+          exact ((Set.mem_diff x).mp x_in_u_not_p).2
 
         have weird : U ∈ 𝓝 x := by
           exact IsOpen.mem_nhds (U_is_open) (x_in_u)
@@ -620,9 +602,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
         have T : f x - A * (x - p)⁻¹ = g x :=
           by
-            have := g_is_f_minus_pole (x_in_u_not_p);
-            simp at this
-            exact this
+            exact g_is_f_minus_pole (x_in_u_not_p)
         have E : g x = f x - A * (x - p)⁻¹ := by
           exact T.symm
 
@@ -640,27 +620,22 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
             have T := deriv_eqOn_of_eqOn_punctured ((f - fun s ↦ A * (s - p)⁻¹)) g U p U_is_open g_is_f_minus_pole
             exact (T (x_in_u_not_p)).symm
 
-        have U2 := laurent_expansion_identity_alt (f x) (deriv f x) A x p (x_not_p)
-
         rw [Z, U1]
 
         /- Now it's just an identity -/
-        exact U2
+        exact laurent_expansion_identity_alt (f x) (deriv f x) A x p (x_not_p)
 
 
   have h_identity : ∀x ∈ (U \ {p}), h x = (f x) * (x - p)  := by
         intro x
         intro x_in_u_not_p
         have hyp_x_not_p : x ≠ p := by
-          have L := ((Set.mem_diff x).mp x_in_u_not_p).2
-          exact L
+          exact ((Set.mem_diff x).mp x_in_u_not_p).2
         unfold h
         simp
         have E : f x - A * (x - p)⁻¹ = g x :=
           by
-            have := g_is_f_minus_pole (x_in_u_not_p);
-            simp at this
-            exact this
+            exact g_is_f_minus_pole (x_in_u_not_p)
         have T : g x = f x - A * (x - p)⁻¹ := by
           exact E.symm
 
@@ -676,8 +651,7 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
           intro x
           intro hyp_x
           have x_not_p : x ≠ p := by
-            have L := ((Set.mem_diff x).mp hyp_x).2
-            exact L
+            exact ((Set.mem_diff x).mp hyp_x).2
           have x_in_u : x ∈ U := by exact mem_of_mem_diff hyp_x
           have T : h x = (f x) * (x - p) := by
               exact (h_identity x x_in_u x_not_p)
@@ -715,13 +689,8 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
   have u_not_p_in_filter : U \ {p} ∈ 𝓝[≠] p := by
     exact diff_mem_nhdsWithin_compl U_in_nhds {p}
-
-  have final : (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-      have T := Set.EqOn.eventuallyEq_of_mem log_deriv_f_plus_pole_equal_log_deriv_h u_not_p_in_filter
-
-      exact EventuallyEq.trans_isBigO T h_log_deriv_bounded
-
-  exact final
+  have T := Set.EqOn.eventuallyEq_of_mem log_deriv_f_plus_pole_equal_log_deriv_h u_not_p_in_filter
+  exact EventuallyEq.trans_isBigO T h_log_deriv_bounded
 
 /-%%
 \begin{theorem}[logDerivResidue]\label{logDerivResidue}\lean{logDerivResidue}\leanok
