@@ -4215,18 +4215,6 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
 
   · push_neg at h
 
-    have boundary_geq_one : 1 < boundary := by
-      unfold boundary
-      have Z : (1 : ENNReal).toReal = 1 := by rfl
-      rw [←Z]
-      have U : ε_div_two ≠ ⊤ := by
-        exact ENNReal.div_ne_top O1 (by norm_num)
-      simp [ENNReal.toReal_add _ U]
-      refine ENNReal.toReal_pos ?_ U
-      unfold ε_div_two
-      simp [*]
-
-
     have boundary_in_ball : (↑boundary : ℂ) ∈ metric_ball_around_1 := by
       unfold metric_ball_around_1
       unfold EMetric.ball
