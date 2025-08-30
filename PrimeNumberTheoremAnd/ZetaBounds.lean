@@ -335,16 +335,6 @@ theorem deriv_f_minus_A_inv_sub_clean (f : ℂ → ℂ) (A x p : ℂ)
   rw [deriv_sub hf (DifferentiableAt.const_mul h1 A), deriv_const_mul A h1, deriv_inv_sub hp]
   ring
 
--- Alternative proof using field_simp tactic
-theorem laurent_expansion_identity_alt (f f' A x p : ℂ)
- (h : x ≠ p):
-  (f' + A * ((x - p)^2)⁻¹) * (x - p) + (f - A * (x - p)⁻¹) = f + f' * (x - p) := by
-  have h_nonzero : x - p ≠ 0 := by
-    rwa [sub_ne_zero]
-
-  field_simp [h_nonzero]
-  ring
-
 /-%%
 \begin{theorem}[nonZeroOfBddAbove]\label{nonZeroOfBddAbove}\lean{nonZeroOfBddAbove}\leanok
   If a function $f$ has a simple pole at a point $p$ with residue $A \neq 0$, then
@@ -542,8 +532,8 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
         rw [Z, U1]
 
         /- Now it's just an identity -/
-        exact laurent_expansion_identity_alt (f x) (deriv f x) A x p (x_not_p)
-
+        field_simp [sub_ne_zero_of_ne x_not_p]
+        ring
 
   have h_identity : ∀x ∈ (U \ {p}), h x = (f x) * (x - p)  := by
         intro x
