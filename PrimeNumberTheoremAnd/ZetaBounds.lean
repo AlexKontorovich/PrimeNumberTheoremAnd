@@ -479,112 +479,69 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
             · simp
       exact h_inv_converges_to_inv_A_norm G
   have trivial_subset : {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1} ⊆ {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} := by
-        simp
-        intro x
-        intro hyp_a
-        intro hyp_b
-        have T : 1 ≤ ‖A‖⁻¹ + 1 := by simp
-        simp [*] at *
-        calc
-          ‖h x‖⁻¹             = ‖h⁻¹ x‖ := by exact Eq.symm (IsAbsoluteValue.abv_inv norm (h x))
-          ‖h⁻¹ x‖             = ‖h⁻¹ x - A⁻¹ + A⁻¹‖ := by simp
-          ‖h⁻¹ x - A⁻¹ + A⁻¹‖ ≤ ‖h⁻¹ x - A⁻¹‖ + ‖A⁻¹‖ := by exact norm_add_le (h⁻¹ x - A⁻¹) (A⁻¹)
-          _                   ≤  1 + ‖A‖⁻¹ := by simp [hyp_b]
-          _                   = ‖A‖⁻¹ + 1 := by exact add_comm 1 ‖A‖⁻¹
+    simp only [Pi.inv_apply, setOf_subset_setOf, and_imp]
+    intro x hyp_a hyp_b
+    calc
+      _ = ‖h⁻¹ x‖ := by exact Eq.symm (IsAbsoluteValue.abv_inv norm (h x))
+      _ = ‖h⁻¹ x - A⁻¹ + A⁻¹‖ := by simp
+      _ ≤ ‖h⁻¹ x - A⁻¹‖ + ‖A⁻¹‖ := by apply norm_add_le
+      _ ≤  1 + ‖A‖⁻¹ := by simp [hyp_b]
+      _  = _ := by ring
 
   have deriv_h_identity : ∀x ∈ (U \ {p}), (deriv h) x = f x + (deriv f x) * (x - p) := by
+    intro x x_in_u_not_p
+    have x_in_u : x ∈ U := by exact mem_of_mem_diff x_in_u_not_p
+    have x_not_p : x ≠ p := by
+      exact ((Set.mem_diff x).mp x_in_u_not_p).2
 
-        intro x
-        intro x_in_u_not_p
-        unfold h
-        unfold EqOn at g_is_f_minus_pole
+    have weird : U ∈ 𝓝 x := by
+      exact IsOpen.mem_nhds (U_is_open) (x_in_u)
 
-        have x_in_u : x ∈ U := by exact mem_of_mem_diff x_in_u_not_p
-        have x_not_p : x ≠ p := by
-          exact ((Set.mem_diff x).mp x_in_u_not_p).2
-
-        have weird : U ∈ 𝓝 x := by
-          exact IsOpen.mem_nhds (U_is_open) (x_in_u)
-
-        have weirded : U \ {p} ∈ 𝓝 x := by
-          exact Filter.inter_mem (weird) ((compl_singleton_mem_nhds x_not_p))
-
-        have T : f x - A * (x - p)⁻¹ = g x :=
-          by
-            exact g_is_f_minus_pole (x_in_u_not_p)
-        have E : g x = f x - A * (x - p)⁻¹ := by
-          exact T.symm
-
-        have Z := g_is_f_minus_pole x_in_u_not_p
-
-        have U1 := by
-          exact deriv_f_minus_A_inv_sub_clean f A x p (holc.differentiableAt weirded) (x_not_p)
-
-        have T := derivative_const_plus_product A p x (g_is_holomorphic.differentiableAt weird)
-
-        rw [T, E]
-
-        have Z :=
-          by
-            have T := deriv_eqOn_of_eqOn_punctured ((f - fun s ↦ A * (s - p)⁻¹)) g U p U_is_open g_is_f_minus_pole
-            exact (T (x_in_u_not_p)).symm
-
-        rw [Z, U1]
-
-        /- Now it's just an identity -/
-        field_simp [sub_ne_zero_of_ne x_not_p]
-        ring
-
+    rw [derivative_const_plus_product, ← g_is_f_minus_pole x_in_u_not_p,
+      ← deriv_eqOn_of_eqOn_punctured _ _ U p U_is_open g_is_f_minus_pole x_in_u_not_p, deriv_f_minus_A_inv_sub_clean]
+    · field_simp [sub_ne_zero_of_ne x_not_p]
+      ring
+    · apply holc.differentiableAt
+      exact Filter.inter_mem weird <| compl_singleton_mem_nhds x_not_p
+    · exact x_not_p
+    · exact g_is_holomorphic.differentiableAt weird
   have h_identity : ∀x ∈ (U \ {p}), h x = (f x) * (x - p)  := by
-        intro x
-        intro x_in_u_not_p
-        have hyp_x_not_p : x ≠ p := by
-          exact ((Set.mem_diff x).mp x_in_u_not_p).2
-        unfold h
-        simp
-        have E : f x - A * (x - p)⁻¹ = g x :=
-          by
-            exact g_is_f_minus_pole (x_in_u_not_p)
-        have T : g x = f x - A * (x - p)⁻¹ := by
-          exact E.symm
-
-        simp [T]
-        ring_nf
-        rw [add_eq_right]
-        calc
-          _ = A * (1 - (x - p) * (x - p)⁻¹) := by ring
-          _= _ := by field_simp [sub_ne_zero.mpr hyp_x_not_p]
+    intro x x_in_u_not_p
+    have hyp_x_not_p : x ≠ p := by
+      exact ((Set.mem_diff x).mp x_in_u_not_p).2
+    simp only [h, Pi.add_apply, Pi.mul_apply]
+    rw [← g_is_f_minus_pole x_in_u_not_p]
+    simp only [Pi.sub_apply]
+    ring_nf
+    rw [add_eq_right]
+    calc
+      _ = A * (1 - (x - p) * (x - p)⁻¹) := by ring
+      _= _ := by field_simp [sub_ne_zero.mpr hyp_x_not_p]
 
   have log_deriv_f_plus_pole_equal_log_deriv_h :
-        EqOn (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) ((deriv h) * h⁻¹) (U \ {p}) :=
-        by
-          simp [*] at *
-          intro x
-          intro hyp_x
-          have x_not_p : x ≠ p := by
-            exact ((Set.mem_diff x).mp hyp_x).2
-          have x_in_u : x ∈ U := by exact mem_of_mem_diff hyp_x
-          have T : h x = (f x) * (x - p) := by
-              exact (h_identity x x_in_u x_not_p)
-          have G := (deriv_h_identity x x_in_u x_not_p)
-          simp [G, T]
+      EqOn (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) ((deriv h) * h⁻¹) (U \ {p}) := by
+    simp [*] at *
+    intro x hyp_x
+    have x_not_p : x ≠ p := by
+      exact ((Set.mem_diff x).mp hyp_x).2
+    have x_in_u : x ∈ U := by exact mem_of_mem_diff hyp_x
+    simp only [Pi.add_apply, Pi.mul_apply, Pi.inv_apply]
+    rw [deriv_h_identity _ x_in_u x_not_p, h_identity _ x_in_u x_not_p]
 
-          /- This is just an identity at this point -/
-          field_simp [sub_ne_zero.mpr x_not_p, non_zero x (x_in_u) x_not_p]
-          ring
+    /- This is just an identity at this point -/
+    field_simp [sub_ne_zero.mpr x_not_p, non_zero x (x_in_u) x_not_p]
+    ring
 
   have h_inv_bounded :
-        h⁻¹ =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-          rw [Asymptotics.IsBigO_def]
-          use ‖A‖⁻¹ + 1
-          rw [Asymptotics.IsBigOWith]
-          simp [*]
-          refine eventually_iff.mpr ?_
-          have U101 : {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} ∈ 𝓝[U] p := by
-            exact mem_of_superset h_inv_converges_to_inv_A_norm_1 trivial_subset
-          have U102 : {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} ∈ 𝓝 p := by
-            exact nhds_of_nhdsWithin_of_nhds U_in_nhds U101
-          exact mem_nhdsWithin_of_mem_nhds U102
+      h⁻¹ =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+    rw [Asymptotics.IsBigO_def]
+    use ‖A‖⁻¹ + 1
+    rw [Asymptotics.IsBigOWith]
+    simp [*]
+    refine eventually_iff.mpr ?_
+    apply mem_nhdsWithin_of_mem_nhds
+    apply nhds_of_nhdsWithin_of_nhds U_in_nhds
+    exact mem_of_superset h_inv_converges_to_inv_A_norm_1 trivial_subset
 
   have h_deriv_bounded :
         (deriv h) =O[𝓝[≠] p] (1 : ℂ → ℂ) :=
