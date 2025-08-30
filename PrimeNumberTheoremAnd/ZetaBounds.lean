@@ -299,35 +299,11 @@ theorem derivative_const_plus_product {g : ℂ → ℂ}
 
     rw [h_eq]
 
-  -- Apply derivative of sum
-    rw [deriv_fun_add]
-
-  -- Derivative of constant is 0
-    rw [deriv_const, zero_add]
-
   -- Apply product rule to g s * (s - p)
-    rw [deriv_fun_mul hg (differentiableAt_fun_id.fun_sub (differentiableAt_const p))]
+    rw [deriv_const_add', deriv_fun_mul hg (differentiableAt_fun_id.fun_sub (differentiableAt_const p))]
+    simp
 
-  -- Derivative of (s - p) is 1
-    rw [deriv_fun_sub, deriv_id'', deriv_const, sub_zero]
 
-  -- Simplify
-    rw [mul_one]
-    · exact differentiableAt_fun_id-- rw [add_comm]
-    · exact differentiableAt_const p
-  -- Differentiability conditions
-    · exact differentiableAt_const A --exact differentiableAt_const
-    · refine DifferentiableAt.mul hg ?_
-      refine DifferentiableAt.sub_const ?_ p
-      exact differentiableAt_fun_id -- exact hg.mul (differentiableAt_id'.sub differentiableAt_const)
-
-theorem deriv_eq_of_eq (f g : ℂ → ℂ ) (h : f = g) : deriv f = deriv g := by
-  rw [h]
-
--- For complex numbers
-theorem deriv_inv_complex :
-  deriv (fun z : ℂ => z⁻¹) = fun x ↦ (- (x^2)⁻¹) := by
-  rw [deriv_inv']
 
 theorem diff_translation (p : ℂ ) : deriv (fun x => x - p) = fun _ => 1 := by
   ext x
@@ -337,50 +313,27 @@ theorem diff_translation (p : ℂ ) : deriv (fun x => x - p) = fun _ => 1 := by
 -- Key lemma: derivative of (x - p)⁻¹
 lemma deriv_inv_sub {x p : ℂ} (hp : x ≠ p) :
   deriv (fun z => (z - p)⁻¹) x =  -((x - p) ^ 2)⁻¹ := by
+
   -- Use chain rule: d/dx[(x-p)⁻¹] = d/du[u⁻¹] * d/dx[x-p] where u = x-p
   let inv_x := fun (x : ℂ) ↦ x⁻¹
   let trans_x := fun x ↦ x - p
 
   let T : (inv_x ∘ trans_x) = fun x ↦ (x - p)⁻¹  := by rfl
-
-  let G : deriv (inv_x ∘ trans_x) x = ((deriv inv_x) (trans_x x)) * ((deriv (trans_x)) x) := by
-    apply deriv_comp
-    · refine differentiableAt_inv ?_
-      exact sub_ne_zero_of_ne hp
-    · refine (DifferentiableAt.sub_iff_right ?_).mpr ?_
-      · exact differentiableAt_fun_id
-      · exact differentiableAt_const p
-
-  have E : (deriv inv_x) = (fun x ↦ - (x^2)⁻¹) := by
-    exact deriv_inv_complex
-
---  deriv_inv_complex
-  have F : (deriv trans_x) = 1 := by
-    unfold trans_x
-    exact diff_translation p
-
-  simp [*] at T
-  simp [E, F, T] at G
-  exact G
+  rw [← T, deriv_comp, deriv_inv', diff_translation]
+  · simp [trans_x]
+  · have := sub_ne_zero_of_ne hp
+    fun_prop (disch := assumption)
+  · fun_prop
 
 -- Alternative cleaner proof using more direct approach
 theorem deriv_f_minus_A_inv_sub_clean (f : ℂ → ℂ) (A x p : ℂ)
     (hf : DifferentiableAt ℂ f x) (hp : x ≠ p) :
     deriv (f  - (fun z ↦ A * (z - p)⁻¹)) x = deriv f x + A * ((x - p) ^ 2)⁻¹ := by
   have h1 : DifferentiableAt ℂ (fun z => (z - p)⁻¹) x := by
-    apply DifferentiableAt.inv
-    · exact differentiableAt_fun_id.sub (differentiableAt_const p)
-    · rwa [sub_ne_zero]
-
-  calc deriv (fun z => f z - A * (z - p)⁻¹) x
-    = deriv f x - deriv (fun z => A * (z - p)⁻¹) x := by
-        rw [deriv_fun_sub hf (DifferentiableAt.const_mul h1 A)]
-    _ = deriv f x - A * deriv (fun z => (z - p)⁻¹) x := by
-        rw [deriv_const_mul A h1]
-    _ = deriv f x - A * (-((x - p) ^ 2)⁻¹) := by
-        rw [deriv_inv_sub hp]
-    _ = deriv f x + A * ((x - p) ^ 2)⁻¹ := by ring
-
+    apply DifferentiableAt.inv (by fun_prop)
+    rwa [sub_ne_zero]
+  rw [deriv_sub hf (DifferentiableAt.const_mul h1 A), deriv_const_mul A h1, deriv_inv_sub hp]
+  ring
 
 -- Alternative proof using field_simp tactic
 theorem laurent_expansion_identity_alt (f f' A x p : ℂ)
