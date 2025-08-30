@@ -289,40 +289,6 @@ theorem map_inv_nhdsWithin_direct_alt
   --rw [← map_map]
   exact (continuousAt_inv₀ A_ne_zero).tendsto.comp hyp
 
-
-theorem expression_eq_zero (A x p : ℂ) (h : x ≠ p) :
-  A - A * x * (x - p)⁻¹ + A * p * (x - p)⁻¹ = 0 := by
-  -- Since x ≠ p, we have x - p ≠ 0
-  have h_ne_zero : x - p ≠ 0 := sub_ne_zero.mpr h
-
-  have : A - A * x * (x - p)⁻¹ + A * p * (x - p)⁻¹ =
-         A * (1 - x * (x - p)⁻¹ + p * (x - p)⁻¹) := by ring
-  rw [this]
-
-  suffices h_suff : 1 - x * (x - p)⁻¹ + p * (x - p)⁻¹ = 0 by
-     rw [h_suff, mul_zero]
-
-  have : 1 - x * (x - p)⁻¹ + p * (x - p)⁻¹ =
-         1 + (-x + p) * (x - p)⁻¹ := by ring
-  rw [this]
-
-  have : -x + p = -(x - p) := by ring
-  rw [this, neg_mul]
-
-  have : (x - p) * (x - p)⁻¹ = 1 := Field.mul_inv_cancel (x - p) h_ne_zero
-  rw [this]
-
-  ring
-
-
-theorem field_identity (f f' x p : ℂ) (hf : f ≠ 0) (hp : x ≠ p) :
-  f' * f⁻¹ + (x - p)⁻¹ = (f + f' * (x - p)) * ((x - p)⁻¹ * f⁻¹) := by
-
-  have h_xp : x - p ≠ 0 := sub_ne_zero.mpr hp
-  field_simp [hf, h_xp]
-  ring
-
-
 theorem derivative_const_plus_product {g : ℂ → ℂ}
    (A p x : ℂ) (hg : DifferentiableAt ℂ g x) :
   deriv ((fun _ ↦ A) + g * fun s ↦ s - p) x = deriv g x * (x - p) + g x :=
@@ -641,8 +607,10 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
         simp [T]
         ring_nf
-        simp [*]
-        exact expression_eq_zero A x p hyp_x_not_p
+        rw [add_eq_right]
+        calc
+          _ = A * (1 - (x - p) * (x - p)⁻¹) := by ring
+          _= _ := by field_simp [sub_ne_zero.mpr hyp_x_not_p]
 
   have log_deriv_f_plus_pole_equal_log_deriv_h :
         EqOn (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) ((deriv h) * h⁻¹) (U \ {p}) :=
@@ -659,9 +627,8 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
           simp [G, T]
 
           /- This is just an identity at this point -/
-
-
-          exact field_identity (f x) ((deriv f) x) x p (non_zero x (x_in_u) x_not_p) x_not_p
+          field_simp [sub_ne_zero.mpr x_not_p, non_zero x (x_in_u) x_not_p]
+          ring
 
   have h_inv_bounded :
         h⁻¹ =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
