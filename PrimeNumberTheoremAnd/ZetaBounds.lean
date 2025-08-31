@@ -80,7 +80,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       Differentiable.differentiableOn (Differentiable.sub_const differentiable_fun_id p)
     have hfW : HolomorphicOn f (W \ {p}) := by
       apply hf.mono
-      refine diff_subset_diff_left inter_subset_right
+      exact diff_subset_diff_left inter_subset_right
     simpa using h_id.mul hfW
   have h_bdd_W : BddAbove (norm ∘ (fun s ↦ (s - p) * f s) '' (W \ {p})) :=
     h_bdd.mono (image_mono h_subset_V₀)
@@ -263,10 +263,7 @@ theorem analytic_deriv_bounded_near_point
     have T4 := T3.continuousAt U_in_filter
     have T5 : (deriv f) =O[𝓝 p] (1 : ℂ → ℂ) :=
       T4.norm.isBoundedUnder_le.isBigO_one ℂ
-    refine Asymptotics.IsBigO.mono ?_ inf_le_left
-
-    exact T5
-
+    exact Asymptotics.IsBigO.mono T5 inf_le_left
 
 theorem derivative_const_plus_product {g : ℂ → ℂ}
    (A p x : ℂ) (hg : DifferentiableAt ℂ g x) :
