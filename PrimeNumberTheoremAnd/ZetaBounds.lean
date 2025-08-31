@@ -86,9 +86,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     h_bdd.mono (image_mono h_subset_V₀)
   -- Step 2.  Extend the product across `p`; obtain holomorphic `g`.
   obtain ⟨g, hg_holo, hg_eq⟩ :=
-    existsDifferentiableOn_of_bddAbove
-      (s := W) (c := p)
-      (hc := hW_mem) (hd := h_prod_holo) (hb := h_bdd_W)
+    existsDifferentiableOn_of_bddAbove hW_mem h_prod_holo h_bdd_W
   have h_event_eq :
       (fun z ↦ g z) =ᶠ[𝓝[≠] p] fun z ↦ (z - p) * f z := by
     have hW_diff_mem : (W \ {p} : Set ℂ) ∈ 𝓝[≠] p :=
@@ -199,16 +197,10 @@ theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
 theorem riemannZetaResidue :
 
     ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (ζ - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
-
-  have h_residue := riemannZeta_residue_one
-
   have zeta_holc : HolomorphicOn ζ (univ \ {1}) := by
     intro y hy
-    simp at hy
-    refine DifferentiableAt.differentiableWithinAt ?_
-    apply differentiableAt_riemannZeta hy
-
-  convert ResidueOfTendsTo univ_mem zeta_holc h_residue using 6
+    exact DifferentiableAt.differentiableWithinAt <| differentiableAt_riemannZeta hy.2
+  convert ResidueOfTendsTo univ_mem zeta_holc riemannZeta_residue_one using 6
   simp
 
 /-%%
