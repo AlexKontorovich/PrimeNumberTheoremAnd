@@ -42,6 +42,28 @@ holomorphic functions.
   $f(s) = \frac{A}{s-p} + O(1)$ near $p$.
 \end{theorem}
 %%-/
+lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
+  (f_near_p : f =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
+  ∃ U ∈ 𝓝 p, BddAbove (norm ∘ f '' (U \ {p})) := by
+    simp [isBigO_iff'] at f_near_p
+    obtain ⟨c, c_pos, hc⟩ := f_near_p
+    dsimp [Filter.Eventually] at hc
+    dsimp [nhdsWithin] at hc
+    rw [mem_inf_principal'] at hc
+    obtain ⟨U, hU, ⟨U_is_open, p_in_U⟩⟩ := mem_nhds_iff.mp hc
+    use U
+    constructor
+    · exact IsOpen.mem_nhds U_is_open p_in_U
+    · refine bddAbove_def.mpr ?_
+      use c
+      intro y hy
+      simp only [Function.comp_apply, mem_image, mem_diff, mem_singleton_iff] at hy
+      obtain ⟨x, ⟨x_in_U, x_not_p⟩, fxy⟩ := hy
+      rw [← fxy]
+      have this := hU x_in_U
+      simp [x_not_p] at this
+      exact this
+
 theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (hU : U ∈ 𝓝 p)
     (hf : HolomorphicOn f (U \ {p}))
@@ -125,11 +147,6 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
         _ ≤ ‖q z - deriv g p‖ + ‖deriv g p‖ := norm_add_le (q z - deriv g p) (deriv g p)
         _ ≤ 1 + ‖deriv g p‖  := add_le_add_right (le_of_lt (hV₁_mem z hV₁ hz_ne)) ‖deriv g p‖
         _ = ‖deriv g p‖ + 1 := add_comm 1 ‖deriv g p‖
-  have h_bdd_q :
-      BddAbove (norm ∘ q '' (V₁ \ {p})) := by
-    refine ⟨‖deriv g p‖ + 1, ?_⟩
-    rintro _ ⟨z, hz, rfl⟩
-    exact h_q_bound z hz
   -- Step 4.  Relate `f` to `q` and pass the bound.
   have h_eq_diff :
       EqOn (fun z ↦ f z - A * (z - p)⁻¹) q (W \ {p}) := by
@@ -140,31 +157,18 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       exact id (EqOn.symm hg_eq) hz
     field_simp [q, hgz, hz_ne]
     exact mul_comm (f z) (z - p)
-  set V : Set ℂ := V₁ ∩ W with hV_def
-  have hV_mem : (V : Set ℂ) ∈ 𝓝 p := inter_mem (IsOpen.mem_nhds hV₁_prop.1 hV₁_prop.2) hW_mem
-  have h_bdd_final : BddAbove (norm ∘ (f - fun z ↦ A * (z - p)⁻¹) '' (V \ {p})) := by
-    have h_subset :
-        (fun z ↦ norm (f z - A * (z - p)⁻¹)) '' (V \ {p})
-          ⊆ (fun z ↦ norm (q z)) '' (V₁ \ {p}) := by
-      rintro x ⟨z, ⟨hz₁, hz₂⟩, rfl⟩
-      have hz₁' : z ∈ V₁ \ {p} := by
-        exact mem_diff_of_mem (mem_of_mem_inter_left hz₁) hz₂
-      have hz₁'' : z ∈ W \ {p} := by
-        exact mem_diff_of_mem (mem_of_mem_inter_right hz₁) hz₂
-      simp only [mem_image, mem_diff, mem_singleton_iff, q]
-      use z
-      constructor
-      . exact hz₁'
-      . calc ‖(g z - A) / (z - p)‖ = ‖((z - p) * f z - A) / (z - p)‖ := by
-              have := hg_eq hz₁''
-              simp_rw [this]
-          _ = ‖((z - p) * f z) / (z - p) - A / (z - p)‖ := by ring_nf
-          _ = ‖f z - A / (z - p)‖ := by
-              simp at hz₂
-              field_simp [sub_ne_zero_of_ne]
-    exact h_bdd_q.mono h_subset
-  -- Done: provide the neighbourhood `V`.
-  exact ⟨V, hV_mem, h_bdd_final⟩
+  apply IsBigO_to_BddAbove
+  rw [isBigO_iff]
+  use ‖deriv g p‖ + 1
+  apply eventually_nhdsWithin_iff.mpr
+  filter_upwards [IsOpen.mem_nhds hV₁_prop.1 hV₁_prop.2, hW_mem] with z hV₁ hW z_ne_p
+  specialize h_eq_diff ⟨ hW, z_ne_p⟩
+  simp only [Pi.sub_apply, Pi.one_apply, one_mem, CStarRing.norm_of_mem_unitary,
+    mul_one] at h_eq_diff ⊢
+  rw [h_eq_diff]
+  exact h_q_bound _ ⟨hV₁, z_ne_p⟩
+
+
 
 /-%%
 \begin{proof}\uses{existsDifferentiableOn_of_bddAbove}\leanok
@@ -522,27 +526,6 @@ Since $h$ is nonvanishing near $p$, this remains bounded in a neighborhood of $p
 \end{proof}
 %%-/
 
-lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
-  (f_near_p : f =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
-  ∃ U ∈ 𝓝 p, BddAbove (norm ∘ f '' (U \ {p})) := by
-    simp [isBigO_iff'] at f_near_p
-    obtain ⟨c, c_pos, hc⟩ := f_near_p
-    dsimp [Filter.Eventually] at hc
-    dsimp [nhdsWithin] at hc
-    rw [mem_inf_principal'] at hc
-    obtain ⟨U, hU, ⟨U_is_open, p_in_U⟩⟩ := mem_nhds_iff.mp hc
-    use U
-    constructor
-    · exact IsOpen.mem_nhds U_is_open p_in_U
-    · refine bddAbove_def.mpr ?_
-      use c
-      intro y hy
-      simp only [Function.comp_apply, mem_image, mem_diff, mem_singleton_iff] at hy
-      obtain ⟨x, ⟨x_in_U, x_not_p⟩, fxy⟩ := hy
-      rw [← fxy]
-      have this := hU x_in_U
-      simp [x_not_p] at this
-      exact this
 
 /-%%
 \begin{theorem}[BddAbove_to_IsBigO]\label{BddAbove_to_IsBigO}\lean{BddAbove_to_IsBigO}\leanok
