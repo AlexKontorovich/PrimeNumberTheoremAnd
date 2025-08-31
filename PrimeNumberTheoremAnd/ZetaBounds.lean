@@ -547,20 +547,9 @@ lemma BddAbove_to_IsBigO {f : ℂ → ℂ} {p : ℂ}
   rw [Asymptotics.isBigO_iff]
   use C
   rw [eventually_nhdsWithin_iff]
-  rw [eventually_nhds_iff]
-  rw [mem_nhds_iff] at hU
-  obtain ⟨V, V_in_U, V_open, p_in_V⟩ := hU
-  use V
-  constructor
-  . intro y hy
-    intro y_not_p
-    simp only [mem_compl_iff, mem_singleton_iff] at y_not_p
-    have : y ∈ U \ {p} := by
-      exact mem_diff_of_mem (V_in_U hy) y_not_p
-    have := h y this
-    convert this
-    simp
-  . exact ⟨V_open, p_in_V⟩
+  simp only [mem_diff, mem_singleton_iff, and_imp, mem_compl_iff, Pi.one_apply, one_mem,
+    CStarRing.norm_of_mem_unitary, mul_one] at h ⊢
+  filter_upwards [hU] using h
 
 /-%%
 \begin{proof}\leanok
