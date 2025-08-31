@@ -164,7 +164,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
               field_simp [sub_ne_zero_of_ne]
     exact h_bdd_q.mono h_subset
   -- Done: provide the neighbourhood `V`.
-  exact frequently_principal.mp fun a => a hV_mem h_bdd_final
+  exact ⟨V, hV_mem, h_bdd_final⟩
 
 /-%%
 \begin{proof}\uses{existsDifferentiableOn_of_bddAbove}\leanok
