@@ -445,49 +445,6 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   have h_continuous : ContinuousOn h U :=
     by exact DifferentiableOn.continuousOn h_is_holomorphic
 
-      -- Just a consequence of continuity
-
-  have h_converges_to_A : map h (𝓝[U] p) ≤ 𝓝 A := by
-    have p_in_U : p ∈ U := by exact mem_of_mem_nhds U_in_nhds
-    have H := (h_continuous p) p_in_U
-    unfold ContinuousWithinAt at H
-    unfold Tendsto at H
-    have T : h p = A := by
-      unfold h
-      simp
-    simp [T] at H
-    exact H
-
-
-  have h_inv_converges_to_inv_A : map h⁻¹ (𝓝[U] p) ≤ 𝓝 A⁻¹ := by
-      exact map_inv_nhdsWithin_direct h U p A A_ne_zero h_converges_to_A
-
-  have h_inv_converges_to_inv_A_norm : Tendsto (fun e ↦ ‖h⁻¹ e - A⁻¹‖) (𝓝[U] p) (𝓝 0) :=
-      by exact tendsto_iff_norm_sub_tendsto_zero.mp h_inv_converges_to_inv_A
-
-  have h_inv_converges_to_inv_A_norm_1 : {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1} ∈ 𝓝[U] p :=
-    by
-      unfold Tendsto at h_inv_converges_to_inv_A_norm
-      unfold map at h_inv_converges_to_inv_A_norm
-      unfold preimage at h_inv_converges_to_inv_A_norm
-      have T := Filter.sets_subset_sets.mpr h_inv_converges_to_inv_A_norm
-      simp [*] at T
-
-      have G : Set.Icc (-1) 1 ∈ (𝓝 (0 : ℝ)).sets := by
-            refine Icc_mem_nhds ?_ ?_
-            · simp
-            · simp
-      exact h_inv_converges_to_inv_A_norm G
-  have trivial_subset : {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1} ⊆ {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} := by
-    simp only [Pi.inv_apply, setOf_subset_setOf, and_imp]
-    intro x hyp_a hyp_b
-    calc
-      _ = ‖h⁻¹ x‖ := by exact Eq.symm (IsAbsoluteValue.abv_inv norm (h x))
-      _ = ‖h⁻¹ x - A⁻¹ + A⁻¹‖ := by simp
-      _ ≤ ‖h⁻¹ x - A⁻¹‖ + ‖A⁻¹‖ := by apply norm_add_le
-      _ ≤  1 + ‖A‖⁻¹ := by simp [hyp_b]
-      _  = _ := by ring
-
   have deriv_h_identity : ∀x ∈ (U \ {p}), (deriv h) x = f x + (deriv f x) * (x - p) := by
     intro x x_in_u_not_p
     have x_in_u : x ∈ U := by exact mem_of_mem_diff x_in_u_not_p
@@ -534,14 +491,10 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
   have h_inv_bounded :
       h⁻¹ =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-    rw [Asymptotics.IsBigO_def]
-    use ‖A‖⁻¹ + 1
-    rw [Asymptotics.IsBigOWith]
-    simp [*]
-    refine eventually_iff.mpr ?_
-    apply mem_nhdsWithin_of_mem_nhds
-    apply nhds_of_nhdsWithin_of_nhds U_in_nhds
-    exact mem_of_superset h_inv_converges_to_inv_A_norm_1 trivial_subset
+    have : ContinuousAt h⁻¹ p := by
+      apply ContinuousOn.continuousAt h_continuous U_in_nhds |>.inv₀
+      simp [h, A_ne_zero]
+    exact Asymptotics.IsBigO.mono (this.norm.isBoundedUnder_le.isBigO_one ℂ) inf_le_left
 
   have h_deriv_bounded :
         (deriv h) =O[𝓝[≠] p] (1 : ℂ → ℂ) :=
