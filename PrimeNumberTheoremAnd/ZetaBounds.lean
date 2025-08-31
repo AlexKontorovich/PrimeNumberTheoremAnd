@@ -585,56 +585,21 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   -- Add and subtract a term
   have : (f * g - fun s ↦ A * g p * (s - p)⁻¹)
       = (f - A • fun s ↦ (s - p)⁻¹) * g + fun s ↦ (A * (g s - g p) / (s - p)) := by
-    have h1 : (f * g - fun s ↦ A * g p * (s - p)⁻¹)
-        = (f * g - g * A • (fun s ↦ (s-p)⁻¹)) + (g * A • (fun s ↦ (s-p)⁻¹)
-        - (g p * A) • (fun s ↦ (s-p)⁻¹)) := by ext x; simp; ring_nf; tauto
-    have h2 : f * g - g * A • (fun s ↦ (s-p)⁻¹) = (f - A • (fun s ↦ (s-p)⁻¹)) * g := by
-      ext x; simp; ring
-    have h3 : g * A • (fun s ↦ (s-p)⁻¹) - (g p * A) • (fun s ↦ (s-p)⁻¹)
-        = fun s ↦ (A * (g s - g p) / (s - p)) := by
-      ext x; simp; ring
-    rw [h1,h2,h3]
+    ext; simp; ring
   -- Apply to goal
   rw[this]
+  have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
   refine Asymptotics.IsBigO.add ?_ ?_
   · rw[← mul_one (1 : ℂ → ℂ)]
-    refine Asymptotics.IsBigO.mul ?_ ?_
-    · exact f_near_p
-    · -- Show g is bounded near p
-      have g_cont : ContinuousAt g p := by
-        -- g is holomorphic on U, p ∈ U, so g is continuous at p
-        have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
-        exact (g_holc.continuousOn.continuousWithinAt p_in_U).continuousAt U_in_nhds
-      -- Use continuity to get boundedness
-      have : ∃ C > 0, ∀ᶠ x in 𝓝 p, ‖g x‖ ≤ C := by
-        -- g is continuous at p, so g p is finite
-        let C := ‖g p‖ + 1
-        use C, by positivity
-        -- By continuity, g x is close to g p in a neighborhood
-        have : ∀ᶠ x in 𝓝 p, ‖g x - g p‖ < 1 := by
-          rw [Metric.eventually_nhds_iff]
-          obtain ⟨δ, hδ_pos, hδ⟩ := Metric.continuousAt_iff.mp g_cont 1 zero_lt_one
-          use δ, hδ_pos
-          intro x hx
-          exact hδ hx
-        filter_upwards [this] with x hx
-        -- Triangle inequality
-        calc ‖g x‖
-          = ‖g x - g p + g p‖ := by ring_nf
-          _ ≤ ‖g x - g p‖ + ‖g p‖ := norm_add_le _ _
-          _ ≤ ‖g p‖ + 1 := by linarith [hx]
-          _ = C := by rfl
-      -- Convert to big O notation
-      obtain ⟨C, hC_pos, hC⟩ := this
-      refine Asymptotics.IsBigO.of_bound C ?_
-      have hC' : ∀ᶠ (x : ℂ) in 𝓝[≠] p, ‖g x‖ ≤ C := by
-        exact eventually_nhdsWithin_of_eventually_nhds hC
-      filter_upwards [hC'] with x hx
-      simp
-      exact hx
-  · -- unfold HolomorphicOn at g_holc
-    -- Show that (fun s ↦ A * (g s - g p) / (s - p)) =O[𝓝[≠] p] 1
-    have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
+    refine Asymptotics.IsBigO.mul f_near_p ?_
+    -- Show g is bounded near p
+    have g_cont : ContinuousAt g p := by
+      -- g is holomorphic on U, p ∈ U, so g is continuous at p
+      exact (g_holc.continuousOn.continuousWithinAt p_in_U).continuousAt U_in_nhds
+    -- Use continuity to get boundedness
+    have := g_cont.norm.isBoundedUnder_le.isBigO_one ℂ
+    exact IsBigO.mono this inf_le_left
+  · -- Show that (fun s ↦ A * (g s - g p) / (s - p)) =O[𝓝[≠] p] 1
 
     suffices (fun s ↦ A * ((s - p)⁻¹ * (g s - g p))) =O[𝓝[≠] p] 1 by
       convert this using 2
@@ -663,8 +628,7 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       exact inv_ne_zero (sub_ne_zero.mpr hx)
     · simp only [div_inv_eq_mul]
       refine Asymptotics.IsBigO.mono ?_ inf_le_left
-      simp
-      exact h2
+      simpa
 
 /-%%
 \begin{proof}\leanok
