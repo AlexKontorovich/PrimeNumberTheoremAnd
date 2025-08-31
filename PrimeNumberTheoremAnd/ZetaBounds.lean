@@ -268,27 +268,6 @@ theorem analytic_deriv_bounded_near_point
     exact T5
 
 
--- Even simpler direct proof using tendsto
-theorem map_inv_nhdsWithin_direct
-  (h : ℂ  → ℂ) (U : Set ℂ) (p : ℂ) (A : ℂ)
-  (A_ne_zero : A ≠ 0) :
-  map h (𝓝[U] p) ≤ 𝓝 A → map (fun x => (h x)⁻¹) (𝓝[U] p) ≤ 𝓝 A⁻¹ := by
-  intro hyp
-  -- This is just the continuity of inversion composed with the given convergence
-  --rw [← map_map]
-  exact (continuousAt_inv₀ A_ne_zero).tendsto.comp hyp
-
-
--- Even simpler direct proof using tendsto
-theorem map_inv_nhdsWithin_direct_alt
-  (h : ℂ  → ℂ) (p : ℂ) (A : ℂ)
-  (A_ne_zero : A ≠ 0) :
-  map h (𝓝[≠] p) ≤ 𝓝 A → map (fun x => (h x)⁻¹) (𝓝[≠] p) ≤ 𝓝 A⁻¹ := by
-  intro hyp
-  -- This is just the continuity of inversion composed with the given convergence
-  --rw [← map_map]
-  exact (continuousAt_inv₀ A_ne_zero).tendsto.comp hyp
-
 theorem derivative_const_plus_product {g : ℂ → ℂ}
    (A p x : ℂ) (hg : DifferentiableAt ℂ g x) :
   deriv ((fun _ ↦ A) + g * fun s ↦ s - p) x = deriv g x * (x - p) + g x :=
