@@ -42,6 +42,28 @@ holomorphic functions.
   $f(s) = \frac{A}{s-p} + O(1)$ near $p$.
 \end{theorem}
 %%-/
+lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
+  (f_near_p : f =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
+  ∃ U ∈ 𝓝 p, BddAbove (norm ∘ f '' (U \ {p})) := by
+    simp [isBigO_iff'] at f_near_p
+    obtain ⟨c, c_pos, hc⟩ := f_near_p
+    dsimp [Filter.Eventually] at hc
+    dsimp [nhdsWithin] at hc
+    rw [mem_inf_principal'] at hc
+    obtain ⟨U, hU, ⟨U_is_open, p_in_U⟩⟩ := mem_nhds_iff.mp hc
+    use U
+    constructor
+    · exact IsOpen.mem_nhds U_is_open p_in_U
+    · refine bddAbove_def.mpr ?_
+      use c
+      intro y hy
+      simp only [Function.comp_apply, mem_image, mem_diff, mem_singleton_iff] at hy
+      obtain ⟨x, ⟨x_in_U, x_not_p⟩, fxy⟩ := hy
+      rw [← fxy]
+      have this := hU x_in_U
+      simp [x_not_p] at this
+      exact this
+
 theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (hU : U ∈ 𝓝 p)
     (hf : HolomorphicOn f (U \ {p}))
@@ -80,15 +102,13 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       Differentiable.differentiableOn (Differentiable.sub_const differentiable_fun_id p)
     have hfW : HolomorphicOn f (W \ {p}) := by
       apply hf.mono
-      refine diff_subset_diff_left inter_subset_right
+      exact diff_subset_diff_left inter_subset_right
     simpa using h_id.mul hfW
   have h_bdd_W : BddAbove (norm ∘ (fun s ↦ (s - p) * f s) '' (W \ {p})) :=
     h_bdd.mono (image_mono h_subset_V₀)
   -- Step 2.  Extend the product across `p`; obtain holomorphic `g`.
   obtain ⟨g, hg_holo, hg_eq⟩ :=
-    existsDifferentiableOn_of_bddAbove
-      (s := W) (c := p)
-      (hc := hW_mem) (hd := h_prod_holo) (hb := h_bdd_W)
+    existsDifferentiableOn_of_bddAbove hW_mem h_prod_holo h_bdd_W
   have h_event_eq :
       (fun z ↦ g z) =ᶠ[𝓝[≠] p] fun z ↦ (z - p) * f z := by
     have hW_diff_mem : (W \ {p} : Set ℂ) ∈ 𝓝[≠] p :=
@@ -127,11 +147,6 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
         _ ≤ ‖q z - deriv g p‖ + ‖deriv g p‖ := norm_add_le (q z - deriv g p) (deriv g p)
         _ ≤ 1 + ‖deriv g p‖  := add_le_add_right (le_of_lt (hV₁_mem z hV₁ hz_ne)) ‖deriv g p‖
         _ = ‖deriv g p‖ + 1 := add_comm 1 ‖deriv g p‖
-  have h_bdd_q :
-      BddAbove (norm ∘ q '' (V₁ \ {p})) := by
-    refine ⟨‖deriv g p‖ + 1, ?_⟩
-    rintro _ ⟨z, hz, rfl⟩
-    exact h_q_bound z hz
   -- Step 4.  Relate `f` to `q` and pass the bound.
   have h_eq_diff :
       EqOn (fun z ↦ f z - A * (z - p)⁻¹) q (W \ {p}) := by
@@ -142,31 +157,18 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       exact id (EqOn.symm hg_eq) hz
     field_simp [q, hgz, hz_ne]
     exact mul_comm (f z) (z - p)
-  set V : Set ℂ := V₁ ∩ W with hV_def
-  have hV_mem : (V : Set ℂ) ∈ 𝓝 p := inter_mem (IsOpen.mem_nhds hV₁_prop.1 hV₁_prop.2) hW_mem
-  have h_bdd_final : BddAbove (norm ∘ (f - fun z ↦ A * (z - p)⁻¹) '' (V \ {p})) := by
-    have h_subset :
-        (fun z ↦ norm (f z - A * (z - p)⁻¹)) '' (V \ {p})
-          ⊆ (fun z ↦ norm (q z)) '' (V₁ \ {p}) := by
-      rintro x ⟨z, ⟨hz₁, hz₂⟩, rfl⟩
-      have hz₁' : z ∈ V₁ \ {p} := by
-        exact mem_diff_of_mem (mem_of_mem_inter_left hz₁) hz₂
-      have hz₁'' : z ∈ W \ {p} := by
-        exact mem_diff_of_mem (mem_of_mem_inter_right hz₁) hz₂
-      simp only [mem_image, mem_diff, mem_singleton_iff, q]
-      use z
-      constructor
-      . exact hz₁'
-      . calc ‖(g z - A) / (z - p)‖ = ‖((z - p) * f z - A) / (z - p)‖ := by
-              have := hg_eq hz₁''
-              simp_rw [this]
-          _ = ‖((z - p) * f z) / (z - p) - A / (z - p)‖ := by ring_nf
-          _ = ‖f z - A / (z - p)‖ := by
-              simp at hz₂
-              field_simp [sub_ne_zero_of_ne]
-    exact h_bdd_q.mono h_subset
-  -- Done: provide the neighbourhood `V`.
-  exact frequently_principal.mp fun a => a hV_mem h_bdd_final
+  apply IsBigO_to_BddAbove
+  rw [isBigO_iff]
+  use ‖deriv g p‖ + 1
+  apply eventually_nhdsWithin_iff.mpr
+  filter_upwards [IsOpen.mem_nhds hV₁_prop.1 hV₁_prop.2, hW_mem] with z hV₁ hW z_ne_p
+  specialize h_eq_diff ⟨ hW, z_ne_p⟩
+  simp only [Pi.sub_apply, Pi.one_apply, one_mem, CStarRing.norm_of_mem_unitary,
+    mul_one] at h_eq_diff ⊢
+  rw [h_eq_diff]
+  exact h_q_bound _ ⟨hV₁, z_ne_p⟩
+
+
 
 /-%%
 \begin{proof}\uses{existsDifferentiableOn_of_bddAbove}\leanok
@@ -199,16 +201,10 @@ theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
 theorem riemannZetaResidue :
 
     ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (ζ - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
-
-  have h_residue := riemannZeta_residue_one
-
   have zeta_holc : HolomorphicOn ζ (univ \ {1}) := by
     intro y hy
-    simp at hy
-    refine DifferentiableAt.differentiableWithinAt ?_
-    apply differentiableAt_riemannZeta hy
-
-  convert ResidueOfTendsTo univ_mem zeta_holc h_residue using 6
+    exact DifferentiableAt.differentiableWithinAt <| differentiableAt_riemannZeta hy.2
+  convert ResidueOfTendsTo univ_mem zeta_holc riemannZeta_residue_one using 6
   simp
 
 /-%%
@@ -263,31 +259,7 @@ theorem analytic_deriv_bounded_near_point
     have T4 := T3.continuousAt U_in_filter
     have T5 : (deriv f) =O[𝓝 p] (1 : ℂ → ℂ) :=
       T4.norm.isBoundedUnder_le.isBigO_one ℂ
-    refine Asymptotics.IsBigO.mono ?_ inf_le_left
-
-    exact T5
-
-
--- Even simpler direct proof using tendsto
-theorem map_inv_nhdsWithin_direct
-  (h : ℂ  → ℂ) (U : Set ℂ) (p : ℂ) (A : ℂ)
-  (A_ne_zero : A ≠ 0) :
-  map h (𝓝[U] p) ≤ 𝓝 A → map (fun x => (h x)⁻¹) (𝓝[U] p) ≤ 𝓝 A⁻¹ := by
-  intro hyp
-  -- This is just the continuity of inversion composed with the given convergence
-  --rw [← map_map]
-  exact (continuousAt_inv₀ A_ne_zero).tendsto.comp hyp
-
-
--- Even simpler direct proof using tendsto
-theorem map_inv_nhdsWithin_direct_alt
-  (h : ℂ  → ℂ) (p : ℂ) (A : ℂ)
-  (A_ne_zero : A ≠ 0) :
-  map h (𝓝[≠] p) ≤ 𝓝 A → map (fun x => (h x)⁻¹) (𝓝[≠] p) ≤ 𝓝 A⁻¹ := by
-  intro hyp
-  -- This is just the continuity of inversion composed with the given convergence
-  --rw [← map_map]
-  exact (continuousAt_inv₀ A_ne_zero).tendsto.comp hyp
+    exact Asymptotics.IsBigO.mono T5 inf_le_left
 
 theorem derivative_const_plus_product {g : ℂ → ℂ}
    (A p x : ℂ) (hg : DifferentiableAt ℂ g x) :
@@ -445,49 +417,6 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   have h_continuous : ContinuousOn h U :=
     by exact DifferentiableOn.continuousOn h_is_holomorphic
 
-      -- Just a consequence of continuity
-
-  have h_converges_to_A : map h (𝓝[U] p) ≤ 𝓝 A := by
-    have p_in_U : p ∈ U := by exact mem_of_mem_nhds U_in_nhds
-    have H := (h_continuous p) p_in_U
-    unfold ContinuousWithinAt at H
-    unfold Tendsto at H
-    have T : h p = A := by
-      unfold h
-      simp
-    simp [T] at H
-    exact H
-
-
-  have h_inv_converges_to_inv_A : map h⁻¹ (𝓝[U] p) ≤ 𝓝 A⁻¹ := by
-      exact map_inv_nhdsWithin_direct h U p A A_ne_zero h_converges_to_A
-
-  have h_inv_converges_to_inv_A_norm : Tendsto (fun e ↦ ‖h⁻¹ e - A⁻¹‖) (𝓝[U] p) (𝓝 0) :=
-      by exact tendsto_iff_norm_sub_tendsto_zero.mp h_inv_converges_to_inv_A
-
-  have h_inv_converges_to_inv_A_norm_1 : {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1} ∈ 𝓝[U] p :=
-    by
-      unfold Tendsto at h_inv_converges_to_inv_A_norm
-      unfold map at h_inv_converges_to_inv_A_norm
-      unfold preimage at h_inv_converges_to_inv_A_norm
-      have T := Filter.sets_subset_sets.mpr h_inv_converges_to_inv_A_norm
-      simp [*] at T
-
-      have G : Set.Icc (-1) 1 ∈ (𝓝 (0 : ℝ)).sets := by
-            refine Icc_mem_nhds ?_ ?_
-            · simp
-            · simp
-      exact h_inv_converges_to_inv_A_norm G
-  have trivial_subset : {x | -1 ≤ ‖h⁻¹ x - A⁻¹‖ ∧ ‖h⁻¹ x - A⁻¹‖ ≤ 1} ⊆ {x | ‖h x‖⁻¹ ≤ ‖A‖⁻¹ + 1} := by
-    simp only [Pi.inv_apply, setOf_subset_setOf, and_imp]
-    intro x hyp_a hyp_b
-    calc
-      _ = ‖h⁻¹ x‖ := by exact Eq.symm (IsAbsoluteValue.abv_inv norm (h x))
-      _ = ‖h⁻¹ x - A⁻¹ + A⁻¹‖ := by simp
-      _ ≤ ‖h⁻¹ x - A⁻¹‖ + ‖A⁻¹‖ := by apply norm_add_le
-      _ ≤  1 + ‖A‖⁻¹ := by simp [hyp_b]
-      _  = _ := by ring
-
   have deriv_h_identity : ∀x ∈ (U \ {p}), (deriv h) x = f x + (deriv f x) * (x - p) := by
     intro x x_in_u_not_p
     have x_in_u : x ∈ U := by exact mem_of_mem_diff x_in_u_not_p
@@ -534,14 +463,10 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
   have h_inv_bounded :
       h⁻¹ =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
-    rw [Asymptotics.IsBigO_def]
-    use ‖A‖⁻¹ + 1
-    rw [Asymptotics.IsBigOWith]
-    simp [*]
-    refine eventually_iff.mpr ?_
-    apply mem_nhdsWithin_of_mem_nhds
-    apply nhds_of_nhdsWithin_of_nhds U_in_nhds
-    exact mem_of_superset h_inv_converges_to_inv_A_norm_1 trivial_subset
+    have : ContinuousAt h⁻¹ p := by
+      apply ContinuousOn.continuousAt h_continuous U_in_nhds |>.inv₀
+      simp [h, A_ne_zero]
+    exact Asymptotics.IsBigO.mono (this.norm.isBoundedUnder_le.isBigO_one ℂ) inf_le_left
 
   have h_deriv_bounded :
         (deriv h) =O[𝓝[≠] p] (1 : ℂ → ℂ) :=
@@ -601,27 +526,6 @@ Since $h$ is nonvanishing near $p$, this remains bounded in a neighborhood of $p
 \end{proof}
 %%-/
 
-lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
-  (f_near_p : f =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
-  ∃ U ∈ 𝓝 p, BddAbove (norm ∘ f '' (U \ {p})) := by
-    simp [isBigO_iff'] at f_near_p
-    obtain ⟨c, c_pos, hc⟩ := f_near_p
-    dsimp [Filter.Eventually] at hc
-    dsimp [nhdsWithin] at hc
-    rw [mem_inf_principal'] at hc
-    obtain ⟨U, hU, ⟨U_is_open, p_in_U⟩⟩ := mem_nhds_iff.mp hc
-    use U
-    constructor
-    · exact IsOpen.mem_nhds U_is_open p_in_U
-    · refine bddAbove_def.mpr ?_
-      use c
-      intro y hy
-      simp only [Function.comp_apply, mem_image, mem_diff, mem_singleton_iff] at hy
-      obtain ⟨x, ⟨x_in_U, x_not_p⟩, fxy⟩ := hy
-      rw [← fxy]
-      have this := hU x_in_U
-      simp [x_not_p] at this
-      exact this
 
 /-%%
 \begin{theorem}[BddAbove_to_IsBigO]\label{BddAbove_to_IsBigO}\lean{BddAbove_to_IsBigO}\leanok
@@ -643,20 +547,9 @@ lemma BddAbove_to_IsBigO {f : ℂ → ℂ} {p : ℂ}
   rw [Asymptotics.isBigO_iff]
   use C
   rw [eventually_nhdsWithin_iff]
-  rw [eventually_nhds_iff]
-  rw [mem_nhds_iff] at hU
-  obtain ⟨V, V_in_U, V_open, p_in_V⟩ := hU
-  use V
-  constructor
-  . intro y hy
-    intro y_not_p
-    simp only [mem_compl_iff, mem_singleton_iff] at y_not_p
-    have : y ∈ U \ {p} := by
-      exact mem_diff_of_mem (V_in_U hy) y_not_p
-    have := h y this
-    convert this
-    simp
-  . exact ⟨V_open, p_in_V⟩
+  simp only [mem_diff, mem_singleton_iff, and_imp, mem_compl_iff, Pi.one_apply, one_mem,
+    CStarRing.norm_of_mem_unitary, mul_one] at h ⊢
+  filter_upwards [hU] using h
 
 /-%%
 \begin{proof}\leanok
@@ -692,56 +585,21 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
   -- Add and subtract a term
   have : (f * g - fun s ↦ A * g p * (s - p)⁻¹)
       = (f - A • fun s ↦ (s - p)⁻¹) * g + fun s ↦ (A * (g s - g p) / (s - p)) := by
-    have h1 : (f * g - fun s ↦ A * g p * (s - p)⁻¹)
-        = (f * g - g * A • (fun s ↦ (s-p)⁻¹)) + (g * A • (fun s ↦ (s-p)⁻¹)
-        - (g p * A) • (fun s ↦ (s-p)⁻¹)) := by ext x; simp; ring_nf; tauto
-    have h2 : f * g - g * A • (fun s ↦ (s-p)⁻¹) = (f - A • (fun s ↦ (s-p)⁻¹)) * g := by
-      ext x; simp; ring
-    have h3 : g * A • (fun s ↦ (s-p)⁻¹) - (g p * A) • (fun s ↦ (s-p)⁻¹)
-        = fun s ↦ (A * (g s - g p) / (s - p)) := by
-      ext x; simp; ring
-    rw [h1,h2,h3]
+    ext; simp; ring
   -- Apply to goal
   rw[this]
+  have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
   refine Asymptotics.IsBigO.add ?_ ?_
   · rw[← mul_one (1 : ℂ → ℂ)]
-    refine Asymptotics.IsBigO.mul ?_ ?_
-    · exact f_near_p
-    · -- Show g is bounded near p
-      have g_cont : ContinuousAt g p := by
-        -- g is holomorphic on U, p ∈ U, so g is continuous at p
-        have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
-        exact (g_holc.continuousOn.continuousWithinAt p_in_U).continuousAt U_in_nhds
-      -- Use continuity to get boundedness
-      have : ∃ C > 0, ∀ᶠ x in 𝓝 p, ‖g x‖ ≤ C := by
-        -- g is continuous at p, so g p is finite
-        let C := ‖g p‖ + 1
-        use C, by positivity
-        -- By continuity, g x is close to g p in a neighborhood
-        have : ∀ᶠ x in 𝓝 p, ‖g x - g p‖ < 1 := by
-          rw [Metric.eventually_nhds_iff]
-          obtain ⟨δ, hδ_pos, hδ⟩ := Metric.continuousAt_iff.mp g_cont 1 zero_lt_one
-          use δ, hδ_pos
-          intro x hx
-          exact hδ hx
-        filter_upwards [this] with x hx
-        -- Triangle inequality
-        calc ‖g x‖
-          = ‖g x - g p + g p‖ := by ring_nf
-          _ ≤ ‖g x - g p‖ + ‖g p‖ := norm_add_le _ _
-          _ ≤ ‖g p‖ + 1 := by linarith [hx]
-          _ = C := by rfl
-      -- Convert to big O notation
-      obtain ⟨C, hC_pos, hC⟩ := this
-      refine Asymptotics.IsBigO.of_bound C ?_
-      have hC' : ∀ᶠ (x : ℂ) in 𝓝[≠] p, ‖g x‖ ≤ C := by
-        exact eventually_nhdsWithin_of_eventually_nhds hC
-      filter_upwards [hC'] with x hx
-      simp
-      exact hx
-  · -- unfold HolomorphicOn at g_holc
-    -- Show that (fun s ↦ A * (g s - g p) / (s - p)) =O[𝓝[≠] p] 1
-    have p_in_U : p ∈ U := mem_of_mem_nhds U_in_nhds
+    refine Asymptotics.IsBigO.mul f_near_p ?_
+    -- Show g is bounded near p
+    have g_cont : ContinuousAt g p := by
+      -- g is holomorphic on U, p ∈ U, so g is continuous at p
+      exact (g_holc.continuousOn.continuousWithinAt p_in_U).continuousAt U_in_nhds
+    -- Use continuity to get boundedness
+    have := g_cont.norm.isBoundedUnder_le.isBigO_one ℂ
+    exact IsBigO.mono this inf_le_left
+  · -- Show that (fun s ↦ A * (g s - g p) / (s - p)) =O[𝓝[≠] p] 1
 
     suffices (fun s ↦ A * ((s - p)⁻¹ * (g s - g p))) =O[𝓝[≠] p] 1 by
       convert this using 2
@@ -770,8 +628,7 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       exact inv_ne_zero (sub_ne_zero.mpr hx)
     · simp only [div_inv_eq_mul]
       refine Asymptotics.IsBigO.mono ?_ inf_le_left
-      simp
-      exact h2
+      simpa
 
 /-%%
 \begin{proof}\leanok
