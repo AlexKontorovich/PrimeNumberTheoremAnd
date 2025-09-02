@@ -2883,7 +2883,7 @@ lemma ZetaInvBound2 :
       · rw [Real.norm_eq_abs, abs_eq_self.mpr <| Real.log_nonneg (by linarith)]
         rw [abs_eq_self.mpr <| Real.log_nonneg this, abs_mul, Real.log_abs, Nat.abs_ofNat]
         apply Real.log_le_log (mul_pos (by norm_num) (by linarith)) (by nlinarith)
-    . apply mul_pos (abs_pos.mpr hnezero) (abs_pos.mpr ?_)
+    · apply mul_pos (abs_pos.mpr hnezero) (abs_pos.mpr ?_)
       have : C ≠ 0 := ne_of_gt hC
       contrapose! this; rwa [Real.rpow_eq_zero (by linarith) (by norm_num)] at this
   · have : (-3 : ℝ) / 4 = -((3 : ℝ)/ 4) := by norm_num

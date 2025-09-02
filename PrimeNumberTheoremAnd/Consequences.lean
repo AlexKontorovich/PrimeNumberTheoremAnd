@@ -271,7 +271,7 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx: 0 ≤ x) :
       rw [mem_Iic, Nat.le_floor_iff hx] at hn
       rw [ArithmeticFunction.vonMangoldt_apply]
       by_cases h : IsPrimePow n
-      . simp [h]
+      · simp [h]
         rw [isPrimePow_def] at h
         obtain ⟨ p, k, ⟨ h1, h2, h3 ⟩ ⟩ := h
         rw [<- h3]
@@ -292,7 +292,7 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx: 0 ≤ x) :
                 exact LE.le.trans Nat.one_le_two_pow h5
               have h7 : 0 < x := by linarith
               rw [Nat.le_floor_iff, le_div_iff₀ log2_pos, le_log_iff_exp_le h7, mul_comm, exp_mul, exp_log zero_lt_two]
-              . apply LE.le.trans _ hn
+              · apply LE.le.trans _ hn
                 norm_cast
               apply div_nonneg (Real.log_nonneg h6) (le_of_lt log2_pos)
             have : 1 ≤ k ∧ k ≤ ⌊x.log / log 2⌋₊ := ⟨ h2, h ⟩
@@ -302,9 +302,9 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx: 0 ≤ x) :
             apply Finset.sum_congr rfl
             intro k' _
             by_cases h : k' = k
-            . have : p ≤ ⌊x ^ (k:ℝ)⁻¹⌋₊ := by
+            · have : p ≤ ⌊x ^ (k:ℝ)⁻¹⌋₊ := by
                 rw [Nat.le_floor_iff]
-                . rw [le_rpow_inv_iff_of_pos (cast_nonneg p) hx (cast_pos.mpr h2)]
+                · rw [le_rpow_inv_iff_of_pos (cast_nonneg p) hx (cast_pos.mpr h2)]
                   apply LE.le.trans _ hn
                   rw [<-h3]
                   norm_num
@@ -317,12 +317,12 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx: 0 ≤ x) :
             apply Finset.sum_congr rfl
             intro p' hp'
             by_cases h : p ^ k = p' ^ k'
-            . simp at hp'
+            · simp at hp'
               have : (k' = k ∧ p' = p) := by
                 have := eq_of_prime_pow_eq h1.prime hp'.2.prime h2 h
                 rw [<-this, pow_right_inj₀] at h
-                . exact ⟨ h.symm, this.symm ⟩
-                . exact Prime.pos h1
+                · exact ⟨ h.symm, this.symm ⟩
+                · exact Prime.pos h1
                 exact Nat.Prime.ne_one h1
               simp [h, this]
             have :¬ (k' = k ∧ p' = p) := by
@@ -378,7 +378,7 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx: 2 ≤ x) :
         rwa [le_div_iff₀ log2_pos, one_mul, le_log_iff_exp_le hx_pos, exp_log zero_lt_two]
       set s := Icc 2 ⌊ log x / log 2⌋₊
       convert (Finset.sum_erase_add _ _ h).symm
-      . ext n
+      · ext n
         simp only [mem_Icc, Icc_erase_left, mem_Ioc, and_congr_left_iff, s]
         intro _
         rfl
@@ -406,7 +406,7 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx: 2 ≤ x) :
         have hp'': p ≠ 0 := Nat.ne_zero_of_lt hp'
         replace hp := (Nat.le_floor_iff' hp'').mp hp.1
         rw [abs_of_nonneg, log_le_log_iff _ hx_pos]
-        . apply hp.trans
+        · apply hp.trans
           calc
             _ ≤ x^(1:ℝ) := by
               apply rpow_le_rpow_of_exponent_le hx_one
@@ -415,7 +415,7 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx: 2 ≤ x) :
               exact one_le_two.trans hk.1
             _ = _ := by
               simp only [rpow_one]
-        . simpa only [cast_pos]
+        · simpa only [cast_pos]
         apply log_nonneg
         simp only [one_le_cast, hp']
     _ ≤ ∑ k ∈ Icc 2 ⌊ log x / log 2⌋₊,
@@ -425,14 +425,14 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx: 2 ≤ x) :
         simp only [sum_const, nsmul_eq_mul]
         gcongr
         rw [<- Nat.le_floor_iff]
-        . apply (Finset.card_filter_le _ _).trans
+        · apply (Finset.card_filter_le _ _).trans
           rw [card_Iic, Nat.floor_add_one]
-          . apply Nat.add_le_add _ NeZero.one_le
+          · apply Nat.add_le_add _ NeZero.one_le
             apply floor_le_floor
             apply rpow_le_rpow_of_exponent_le hx_one
             simp at hk
             rw [inv_le_inv₀ _ zero_lt_two]
-            . exact ofNat_le_cast.mpr hk.1
+            · exact ofNat_le_cast.mpr hk.1
             simp only [cast_pos]
             exact lt_of_lt_of_le zero_lt_two hk.1
           exact rpow_nonneg hx_nonneg 2⁻¹
@@ -468,10 +468,10 @@ theorem WeakPNT' : Tendsto (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) atTop (nhds 1
   rw [this, ← add_zero 1]
   apply Tendsto.add WeakPNT
   convert squeeze_zero (f := fun N ↦ Λ N / N) (g := fun N ↦ log N / N) (t₀ := atTop) ?_ ?_ ?_
-  . intro N
+  · intro N
     simp
     exact div_nonneg vonMangoldt_nonneg (cast_nonneg N)
-  . intro N
+  · intro N
     simp
     exact div_le_div_of_nonneg_right vonMangoldt_le_log (cast_nonneg N)
   have := Real.tendsto_pow_log_div_pow_atTop 1 1 Real.zero_lt_one
@@ -481,8 +481,8 @@ theorem WeakPNT' : Tendsto (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) atTop (nhds 1
 /-- An alternate form of the Weak PNT. -/
 theorem WeakPNT'' : (fun x ↦ ∑ n ∈ (Iic ⌊x⌋₊), Λ n) ~[atTop] (fun x ↦ x) := by
     apply IsEquivalent.trans (v := fun x ↦ (⌊x⌋₊:ℝ))
-    . rw [isEquivalent_iff_tendsto_one]
-      . convert Tendsto.comp WeakPNT' tendsto_nat_floor_atTop
+    · rw [isEquivalent_iff_tendsto_one]
+      · convert Tendsto.comp WeakPNT' tendsto_nat_floor_atTop
         infer_instance
       rw [eventually_iff]
       simp only [ne_eq, cast_eq_zero, floor_eq_zero, not_lt, mem_atTop_sets, ge_iff_le,
@@ -498,7 +498,7 @@ theorem WeakPNT'' : (fun x ↦ ∑ n ∈ (Iic ⌊x⌋₊), Λ n) ~[atTop] (fun x
     intro b hb
     have hb' : 0 ≤ b := le_of_lt (lt_of_lt_of_le (inv_pos_of_pos hε) hb)
     rw [abs_of_nonneg, abs_of_nonneg hb']
-    . apply LE.le.trans _ ((inv_le_iff_one_le_mul₀' hε).mp hb)
+    · apply LE.le.trans _ ((inv_le_iff_one_le_mul₀' hε).mp hb)
       linarith [Nat.lt_floor_add_one b]
     rw [sub_nonneg]
     exact floor_le hb'
@@ -512,7 +512,7 @@ theorem chebyshev_asymptotic :
     (fun x ↦ ∑ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, log p) ~[atTop] (fun x ↦ x) := by
   apply WeakPNT''.add_isLittleO''
   apply IsBigO.trans_isLittleO (g := fun x ↦ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log))
-  . rw [isBigO_iff']
+  · rw [isBigO_iff']
     use 1
     simp only [gt_iff_lt, zero_lt_one, Pi.sub_apply, norm_eq_abs, one_mul,
       eventually_atTop, ge_iff_le, true_and]
@@ -520,7 +520,7 @@ theorem chebyshev_asymptotic :
     intro x hx
     exact (sum_von_mangoldt_sub_sum_primes_le x hx).trans (le_abs_self _)
   apply Asymptotics.isLittleO_of_tendsto
-  . intro x hx
+  · intro x hx
     simp [hx]
   suffices h : Tendsto (fun x:ℝ ↦ ((x.log^2 / x ^ (2:ℝ)⁻¹) / log 2 + (x.log^2 / x) / log 2)) atTop (nhds 0) by
     apply Filter.Tendsto.congr' _ h
@@ -530,21 +530,21 @@ theorem chebyshev_asymptotic :
     field_simp
     ring_nf
     rw [<-Real.rpow_mul_natCast]
-    . simp
+    · simp
       ring
     linarith
   have h1 : (0:ℝ) = 0 + 0 := left_eq_add.mpr rfl
   have h2 : (0:ℝ) = 0 / log 2 := (zero_div _).symm
   rw [h1]
   apply Tendsto.add
-  . rw [h2]
+  · rw [h2]
     apply Tendsto.div_const
     convert Real.tendsto_pow_log_div_pow_atTop (2:ℝ)⁻¹ 2 (by positivity) with x
     exact (rpow_two x.log).symm
   rw [h2]
   apply Tendsto.div_const
   convert Real.tendsto_pow_log_div_pow_atTop 1 2 (by positivity) with x
-  . exact (rpow_two x.log).symm
+  · exact (rpow_two x.log).symm
   exact (rpow_one x).symm
 
 theorem chebyshev_asymptotic_finsum :
@@ -1875,14 +1875,14 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
     ∀ n : ℕ, Nat.nth Nat.Prime (n + 1) - Nat.nth Nat.Prime n = (c n) * Nat.nth Nat.Prime n := by
   use (fun n => (Nat.nth Nat.Prime (n+1) - Nat.nth Nat.Prime n) / Nat.nth Nat.Prime n)
   refine ⟨?_, ?_⟩
-  . obtain ⟨k, k_o1, p_n_eq⟩ := pn_asymptotic
+  · obtain ⟨k, k_o1, p_n_eq⟩ := pn_asymptotic
     simp only [p_n_eq, cast_add, cast_one, isLittleO_one_iff]
     simp_rw [sub_div]
     have zero_eq_minus: (0 : ℝ) = 1 - 1 := by
       simp
     rw [zero_eq_minus]
     apply Filter.Tendsto.sub
-    . conv =>
+    · conv =>
         arg 1
         intro n
         equals ((1 + k (n + 1)) / (1 + k n) ) * ((↑n + 1) * log (↑n + 1) / (↑n * log ↑n)) =>
@@ -1891,45 +1891,45 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
           rw [mul_assoc]
       nth_rw 6 [← (one_mul 1)]
       apply Filter.Tendsto.mul
-      . have one_div: nhds 1 = nhds ((1: ℝ) / 1) := by simp
+      · have one_div: nhds 1 = nhds ((1: ℝ) / 1) := by simp
         rw [one_div]
         apply Filter.Tendsto.div
-        . nth_rw 3 [← (AddMonoid.add_zero 1)]
+        · nth_rw 3 [← (AddMonoid.add_zero 1)]
           apply Filter.Tendsto.add
-          . simp
-          . rw [Filter.tendsto_add_atTop_iff_nat]
+          · simp
+          · rw [Filter.tendsto_add_atTop_iff_nat]
             rw [Asymptotics.isLittleO_iff_tendsto] at k_o1
-            . simp only [div_one] at k_o1
+            · simp only [div_one] at k_o1
               exact k_o1
-            . simp
-        . nth_rw 2 [← (AddMonoid.add_zero 1)]
+            · simp
+        · nth_rw 2 [← (AddMonoid.add_zero 1)]
           apply Filter.Tendsto.add
-          . simp
-          . rw [Asymptotics.isLittleO_iff_tendsto] at k_o1
-            . simp only [div_one] at k_o1
+          · simp
+          · rw [Asymptotics.isLittleO_iff_tendsto] at k_o1
+            · simp only [div_one] at k_o1
               exact k_o1
-            . simp
+            · simp
 
         simp
-      . conv =>
+      · conv =>
           arg 1
           intro x
           equals ((↑x + 1) / x) * (log (↑x + 1) / (log ↑x)) =>
             field_simp
         nth_rw 3 [← (one_mul 1)]
         apply Filter.Tendsto.mul
-        . simp_rw [← div_add_div_same]
+        · simp_rw [← div_add_div_same]
           nth_rw 2 [← (AddMonoid.add_zero 1)]
           apply Filter.Tendsto.add
-          . rw [← Filter.tendsto_add_atTop_iff_nat 1]
+          · rw [← Filter.tendsto_add_atTop_iff_nat 1]
             field_simp
-          . simp only [one_div]
+          · simp only [one_div]
             exact tendsto_inverse_atTop_nhds_zero_nat
-        . have log_eq: ∀ (n: ℕ), log (↑n + 1) = log ↑n + log (1 + 1/n) := by
+        · have log_eq: ∀ (n: ℕ), log (↑n + 1) = log ↑n + log (1 + 1/n) := by
             intro n
             by_cases n_eq_zero: n = 0
-            . simp [n_eq_zero]
-            . calc
+            · simp [n_eq_zero]
+            · calc
                 _ = log (n * (1 + 1 / n)) := by field_simp
                 _ = log n + log (1 + 1/n) := by
                   rw [Real.log_mul]
@@ -1943,33 +1943,33 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
           simp_rw [← div_add_div_same]
           nth_rw 3 [← (AddMonoid.add_zero 1)]
           apply Filter.Tendsto.add
-          . rw [← Filter.tendsto_add_atTop_iff_nat 2]
+          · rw [← Filter.tendsto_add_atTop_iff_nat 2]
             have log_not_zero: ∀ n: ℕ, log (n + 2) ≠ 0 := by
               intro n
               simp
               refine ⟨?_, ?_, ?_⟩
-              . norm_cast
-              . norm_cast
+              · norm_cast
+              · norm_cast
                 simp
-              . norm_cast
+              · norm_cast
             simp [log_not_zero]
-          . rw [← Filter.tendsto_add_atTop_iff_nat 2]
+          · rw [← Filter.tendsto_add_atTop_iff_nat 2]
             apply squeeze_zero (g := fun (n: ℕ) => (log 2 / log (n + 2)))
-            . intro n
+            · intro n
               have log_plus_nonzero: 0 ≤ log (1 + 1 / ↑(n + 2)) := by
                 apply log_nonneg
                 simp only [cast_add, cast_ofNat, one_div, le_add_iff_nonneg_right, inv_nonneg]
                 norm_cast
                 simp only [le_add_iff_nonneg_left, _root_.zero_le]
               exact div_nonneg log_plus_nonzero (log_natCast_nonneg (n + 2))
-            . intro n
+            · intro n
               norm_cast
               have log_le_2: log (1 + 1 / ↑(n + 2)) ≤ log 2 := by
                 apply Real.log_le_log
-                . field_simp
+                · field_simp
                   norm_cast
                   simp
-                . have two_eq_one_plus_one: (2 : ℝ) = 1 + 1 := by
+                · have two_eq_one_plus_one: (2 : ℝ) = 1 + 1 := by
                     norm_num
                   rw [two_eq_one_plus_one]
                   simp only [cast_add, cast_ofNat, one_div, add_le_add_iff_left, ge_iff_le]
@@ -1977,21 +1977,21 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
                   linarith
 
               rw [div_le_div_iff_of_pos_right]
-              . exact log_le_2
-              . apply Real.log_pos
+              · exact log_le_2
+              · apply Real.log_pos
                 norm_cast
                 simp
-            . apply Filter.Tendsto.div_atTop (l := atTop) (a := log 2)
-              . simp
-              . norm_cast
+            · apply Filter.Tendsto.div_atTop (l := atTop) (a := log 2)
+              · simp
+              · norm_cast
                 have shift_fn := Filter.tendsto_add_atTop_iff_nat (f := fun n => log (n)) (l := atTop) 2
                 rw [shift_fn]
                 apply Filter.Tendsto.comp Real.tendsto_log_atTop
                 exact tendsto_natCast_atTop_atTop
 
-    . have eventually_nonzero: ∃ t, t > 2 ∧ ∀ n, 1 + k (n + t) ≠ 0 := by
+    · have eventually_nonzero: ∃ t, t > 2 ∧ ∀ n, 1 + k (n + t) ≠ 0 := by
         rw [Asymptotics.isLittleO_iff_tendsto] at k_o1
-        . rw [NormedAddCommGroup.tendsto_nhds_zero] at k_o1
+        · rw [NormedAddCommGroup.tendsto_nhds_zero] at k_o1
           specialize k_o1 ((1 : ℝ) / 2)
           field_simp at k_o1
           obtain ⟨a, ha⟩ := k_o1
@@ -2009,7 +2009,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
           simp only [abs_one] at ha
           have two_inv_lt := inv_lt_one_of_one_lt₀ (a := (2 : ℝ)) (by simp)
           linarith
-        . simp
+        · simp
 
       obtain ⟨t, t_gt_2, ht⟩ := eventually_nonzero
       rw [← Filter.tendsto_add_atTop_iff_nat t]
@@ -2018,12 +2018,12 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
         simp
         refine ⟨?_, ?_, ?_⟩
         refine ⟨?_, ?_⟩
-        . exact ht n
-        . norm_cast
+        · exact ht n
+        · norm_cast
           omega
-        . norm_cast
+        · norm_cast
           omega
-        . refine ⟨?_, by norm_cast⟩
+        · refine ⟨?_, by norm_cast⟩
           norm_cast
           omega
       conv =>
@@ -2031,7 +2031,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
         intro n
         rw [div_self (denom_nonzero n)]
       simp
-  . intro n
+  · intro n
     have nth_nonzero: Nat.nth Nat.Prime n ≠ 0 := by
       exact Nat.Prime.ne_zero (prime_nth_prime n)
     simp [nth_nonzero]
@@ -2079,10 +2079,9 @@ lemma bound_f_second_term (f: ℝ → ℝ) (hf: Tendsto f atTop (nhds 0)): ∀ �
   have bound_one_plus_f: ∀ y: ℝ, ∀ z: ℝ, |f y| < z → 1 + (f y) < 1 + z := by
     intro y z hf
     by_cases f_pos: 0 < f y
-    .
-      rw [abs_of_pos f_pos] at hf
+    · rw [abs_of_pos f_pos] at hf
       linarith
-    . rw [not_lt] at f_pos
+    · rw [not_lt] at f_pos
       rw [abs_of_nonpos f_pos] at hf
       linarith
 
@@ -2111,10 +2110,9 @@ lemma bound_f_first_term {ε : ℝ} (hε: 0 < ε) (f: ℝ → ℝ) (hf: Tendsto 
   have bound_one_plus_f: ∀ y: ℝ, ∀ z: ℝ, |f y| < z → 1 + (f y) > 1 - z := by
     intro y z hf
     by_cases f_pos: 0 < f y
-    .
-      rw [abs_of_pos f_pos] at hf
+    · rw [abs_of_pos f_pos] at hf
       linarith
-    . rw [not_lt] at f_pos
+    · rw [not_lt] at f_pos
       rw [abs_of_nonpos f_pos] at hf
       linarith
 
@@ -2169,15 +2167,14 @@ lemma smaller_terms {ε:ℝ} (hε: 0 < ε) (f: ℝ → ℝ) (hf: Tendsto f atTop
   use a
   intro b hb
   rw [mul_lt_mul_right]
-  . exact ha b hb
-  .
-    simp only [sup_le_iff, a] at hb
+  · exact ha b hb
+  · simp only [sup_le_iff, a] at hb
     have b_ge_one: 1 ≤ b := hb.2
     have log_pos: Real.log ((1 + ε) *b) > 0 := by
       have one_pplus_pos: 1 < (1 + ε) := by linarith
       refine (Real.log_pos_iff ?_).mpr ?_
-      . positivity
-      . exact one_lt_mul_of_lt_of_le one_pplus_pos b_ge_one
+      · positivity
+      · exact one_lt_mul_of_lt_of_le one_pplus_pos b_ge_one
 
     positivity
 
@@ -2203,28 +2200,24 @@ lemma second_smaller_terms (f: ℝ → ℝ) (hf: Tendsto f atTop (nhds 0)): ∀ 
     obtain ⟨_, hb2⟩ := hb
     have log_pos: Real.log (b) > 0 := by
       refine (Real.log_pos_iff ?_).mpr ?_
-      . positivity
-      . linarith
+      · positivity
+      · linarith
     positivity
   rw [mul_lt_mul_right]
-  . exact ha
-  . linarith
+  · exact ha
+  · linarith
 
 lemma x_log_x_atTop: Filter.Tendsto (fun x => x / Real.log x) Filter.atTop Filter.atTop := by
   have inv_log_x_div := Filter.Tendsto.comp (f := fun x => Real.log x / x) (g := fun x => x⁻¹) (x := Filter.atTop) (y := (nhdsWithin 0 (Set.Ioi 0))) (z := Filter.atTop) ?_ ?_
-  .
-    simp_rw [Function.comp_def, inv_div] at inv_log_x_div
+  · simp_rw [Function.comp_def, inv_div] at inv_log_x_div
     exact inv_log_x_div
-  .
-    exact tendsto_inv_nhdsGT_zero (𝕜 := ℝ)
-  .
-    rw [tendsto_nhdsWithin_iff]
+  · exact tendsto_inv_nhdsGT_zero (𝕜 := ℝ)
+  · rw [tendsto_nhdsWithin_iff]
     refine ⟨?_, ?_⟩
-    .
-      have log_div_x := Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by simp)
+    · have log_div_x := Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by simp)
       simp only [pow_one, one_mul, add_zero] at log_div_x
       exact log_div_x
-    . simp only [Set.mem_Ioi, eventually_atTop, ge_iff_le]
+    · simp only [Set.mem_Ioi, eventually_atTop, ge_iff_le]
       use 2
       intro x hx
       have log_pos: 0 < Real.log x := by
@@ -2255,8 +2248,7 @@ lemma tendsto_by_squeeze (ε: ℝ) (hε: ε > 0): Tendsto
       -
       ((1 + d) * (x / log x)))
     )
-  .
-    rw [Filter.EventuallyLE]
+  · rw [Filter.EventuallyLE]
 
     simp at first_helper
     simp at second_helper
@@ -2281,8 +2273,7 @@ lemma tendsto_by_squeeze (ε: ℝ) (hε: ε > 0): Tendsto
     field_simp
     field_simp at ha1 ha2
     exact ⟨ha1, ha2⟩
-  .
-    rw [← Filter.tendsto_comp_val_Ioi_atTop (a := 1)]
+  · rw [← Filter.tendsto_comp_val_Ioi_atTop (a := 1)]
     have log_split: ∀ x: Set.Ioi 1, x.val / log ((1 + ε) * x.val) = x.val / (log (1 + ε) + log (x.val)) := by
       intro x
       have x_ge_one: 1 < x.val := Set.mem_Ioi.mp x.property
@@ -2321,7 +2312,7 @@ lemma tendsto_by_squeeze (ε: ℝ) (hε: ε > 0): Tendsto
       rw [sub_eq_add_neg]
       rw [← neg_div]
       rw [div_add_div]
-      . skip
+      · skip
       tactic =>
         simp only [ne_eq, _root_.mul_eq_zero, log_eq_zero, not_or]
         have x_pos := x.property
@@ -2350,8 +2341,7 @@ lemma tendsto_by_squeeze (ε: ℝ) (hε: ε > 0): Tendsto
       rw [mul_comm]
 
     apply Filter.Tendsto.pos_mul_atTop (C := (1 + ε) * (1 - d) - (1 + d))
-    .
-      simp only [d, sub_pos]
+    · simp only [d, sub_pos]
       field_simp
       rw [div_lt_div_iff_of_pos_right (by positivity)]
       ring_nf
@@ -2360,8 +2350,7 @@ lemma tendsto_by_squeeze (ε: ℝ) (hε: ε > 0): Tendsto
       apply lt_of_sub_pos
       ring_nf
       positivity
-    .
-      conv =>
+    · conv =>
         arg 1
         intro x
         lhs
@@ -2391,47 +2380,40 @@ lemma tendsto_by_squeeze (ε: ℝ) (hε: ε > 0): Tendsto
         equals nhds (((1 + ε) * (1 - d) - (1 + d)) / 1) => simp
 
       apply Filter.Tendsto.div
-      .
-        apply Filter.Tendsto.sub
-        . simp
-        .
-          conv =>
+      · apply Filter.Tendsto.sub
+        · simp
+        · conv =>
             arg 3
             equals nhds (1 * (1 + d)) => simp
           apply Filter.Tendsto.mul
-          .
-            conv =>
+          · conv =>
               arg 3
               equals nhds (1 + 0) => simp
             apply Filter.Tendsto.add
-            . simp
-            .
-              apply Filter.Tendsto.div_atTop (a := log (1 + ε))
-              . simp
-              . simp only [tendsto_comp_val_Ioi_atTop]
+            · simp
+            · apply Filter.Tendsto.div_atTop (a := log (1 + ε))
+              · simp
+              · simp only [tendsto_comp_val_Ioi_atTop]
                 exact tendsto_log_atTop
-          . simp
-      .
-        conv =>
+          · simp
+      · conv =>
           arg 3
           equals nhds (1 + 0) => simp
         apply Filter.Tendsto.add
-        . simp
-        .
-          apply Filter.Tendsto.div_atTop (a := log (1 + ε))
-          . simp
-          . simp only [tendsto_comp_val_Ioi_atTop]
+        · simp
+        · apply Filter.Tendsto.div_atTop (a := log (1 + ε))
+          · simp
+          · simp only [tendsto_comp_val_Ioi_atTop]
             exact tendsto_log_atTop
-      . simp
-    .
-      let x_div_log (x: ℝ) := x / Real.log x
+      · simp
+    · let x_div_log (x: ℝ) := x / Real.log x
       conv =>
         arg 1
         equals (fun (x : Set.Ioi 1) => x_div_log x.val) => rfl
 
       rw [Filter.tendsto_comp_val_Ioi_atTop (a := 1)]
       exact x_log_x_atTop
-  . simp
+  · simp
 
 theorem prime_between {ε : ℝ} (hε : 0 < ε) :
     ∀ᶠ x : ℝ in atTop, ∃ p : ℕ, Nat.Prime p ∧ x < p ∧ p < (1 + ε) * x := by
