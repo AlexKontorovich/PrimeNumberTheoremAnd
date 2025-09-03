@@ -1654,12 +1654,12 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         · left
           exact ⟨hxU, hw⟩
         · intro h
-          cases' h with h_left h_right
-          have : x ≠ 1 := by
-            intro x_eq_1
-            rw[x_eq_1] at h_left
-            exact h_left.2 h2
-          · exact ⟨h_left.1, this⟩
+          obtain h_left | h_right := h
+          · have : x ≠ 1 := by
+              intro x_eq_1
+              rw[x_eq_1] at h_left
+              exact h_left.2 h2
+            exact ⟨h_left.1, this⟩
           · exact ⟨h_right.1.1, h_right.2⟩
       rw[this one_in_U one_in_W]
       have : Norm.norm ∘ holoMatch '' (U \ W ∪ (U ∩ W) \ {1}) =

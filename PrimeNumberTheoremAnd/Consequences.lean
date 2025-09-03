@@ -2450,9 +2450,10 @@ We have $|\sum_{n \leq x} \frac{\mu(n)}{n}| \leq 1$.
 \end{proposition}
 %%-/
 theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)| ≤ 1 := by
-  cases' N with N
+  cases N with
+  | zero => simp only [range_zero, sum_empty, abs_zero, zero_le_one]
+  | succ N =>
   /- simple cases -/
-  simp only [range_zero, sum_empty, abs_zero, zero_le_one]
   by_cases hN : 1 ≤ N; swap
   · simp only [not_le, lt_one_iff] at hN
     subst hN

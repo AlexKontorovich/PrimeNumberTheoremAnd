@@ -7,6 +7,7 @@ package «PrimeNumberTheoremAnd» where
     ⟨`pp.proofs.withType, false⟩,
     ⟨`autoImplicit, false⟩,
     ⟨`relaxedAutoImplicit, false⟩,
+    ⟨`linter.style.cases, true⟩,
     ⟨`linter.style.cdot, true⟩
   ]
 
