@@ -207,11 +207,11 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
       𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (σ + ↑a * I) := by
     rw [← continuousOn_univ]
     refine ContinuousOn.comp' ?_ ?_ ?_ (t := {z : ℂ | 0 < z.re })
-    . refine continuousOn_of_forall_continuousAt ?_
+    · refine continuousOn_of_forall_continuousAt ?_
       intro z hz
       exact (Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one hz).continuousAt
-    . fun_prop
-    . simp only [mapsTo_univ_iff, mem_setOf_eq, add_re, ofReal_re, mul_re, I_re, mul_zero,
+    · fun_prop
+    · simp only [mapsTo_univ_iff, mem_setOf_eq, add_re, ofReal_re, mul_re, I_re, mul_zero,
         ofReal_im, I_im, mul_one, sub_self, add_zero, forall_const]; linarith
 
   have abs_two : ∀ a : ℝ, ∀ i : ℕ, ‖(i : ℂ) ^ ((σ : ℂ) + ↑a * I)‖₊ = i ^ σ := by
@@ -225,12 +225,12 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
 
   rw [MeasureTheory.integral_tsum]
   have x_neq_zero : X ≠ 0 := by linarith
-  . intro i
+  · intro i
     by_cases i_eq_zero : i = 0
-    . simpa [i_eq_zero] using aestronglyMeasurable_const
-    . apply Continuous.aestronglyMeasurable
+    · simpa [i_eq_zero] using aestronglyMeasurable_const
+    · apply Continuous.aestronglyMeasurable
       fun_prop (disch := simp[i_eq_zero, x_neq_zero])
-  . rw [← lt_top_iff_ne_top]
+  · rw [← lt_top_iff_ne_top]
     simp_rw [enorm_mul, enorm_eq_nnnorm, nnnorm_div, ← norm_toNNReal, Complex.norm_cpow_eq_rpow_re_of_pos X_pos, norm_toNNReal, abs_two]
     simp only [nnnorm_real, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
       sub_self, add_zero]
@@ -245,13 +245,13 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
 
     rw [ENNReal.tsum_mul_right]
     apply WithTop.mul_lt_top
-    . rw [WithTop.lt_top_iff_ne_top, ENNReal.tsum_coe_ne_top_iff_summable_coe]
+    · rw [WithTop.lt_top_iff_ne_top, ENNReal.tsum_coe_ne_top_iff_summable_coe]
       push_cast
       convert (ArithmeticFunction.LSeriesSummable_vonMangoldt (s := σ)
         (by simp only [ofReal_re]; linarith)).norm
       rw [LSeries.term_def]
       split_ifs with h <;> simp[h]
-    . simp_rw [← enorm_eq_nnnorm]
+    · simp_rw [← enorm_eq_nnnorm]
       rw [← MeasureTheory.hasFiniteIntegral_iff_enorm]
       exact SmoothedChebyshevDirichlet_aux_integrable diffSmoothingF SmoothingFpos suppSmoothingF
             mass_one εpos ε_lt_one σ_gt σ_le |>.hasFiniteIntegral
@@ -1304,11 +1304,9 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   have X_eq_le_two : 1 + (Real.log X)⁻¹ ≤ 2 := X_eq_lt_two.le
   rw [verticalIntegral_split_three (a := -T) (b := T)]
   swap
-  ·
-    exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_gt_one
+  · exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_gt_one
       X_eq_le_two suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
-  ·
-    have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by field_simp
+  · have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by field_simp
     repeat rw[smul_eq_mul]
     unfold I₁
     rw[temp, mul_add, mul_add, add_assoc, sub_eq_add_neg]
@@ -1548,8 +1546,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
             simp only [ofReal_re]
             linarith
       · refine DifferentiableOn.mul ?_ ?_
-        ·
-          unfold DifferentiableOn
+        · unfold DifferentiableOn
           intro x x_location
           rw[Set.mem_diff] at x_location
           obtain ⟨xInRect, xOut⟩ := x_location
@@ -1835,7 +1832,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     -- for every point x in the Rectangle
     intro x hx
     constructor
-    . -- x is in the locus of holomorphicity
+    · -- x is in the locus of holomorphicity
       simp only [Rectangle, uIcc] at hx
       rw [Complex.mem_reProdIm] at hx ⊢
       obtain ⟨hx_re, hx_im⟩ := hx
@@ -1872,7 +1869,7 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         exact ⟨h_left', h_right'⟩
       exact ⟨x_re_in_Icc, x_im_in_Icc⟩
     -- x is not in {1} by contradiction
-    . simp only [mem_singleton_iff]
+    · simp only [mem_singleton_iff]
       -- x has real part less than 1
       have x_re_upper: x.re ≤ σ₁ := by
         simp only [Rectangle, uIcc] at hx

@@ -93,9 +93,9 @@ lemma SmoothExistence : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x
     · simp_rw [Pi.le_def, Pi.zero_apply]
       intro y
       by_cases h : y ∈ Function.support ν
-      . apply div_nonneg <| le_trans (by simp [apply_ite]) (hν0 y)
+      · apply div_nonneg <| le_trans (by simp [apply_ite]) (hν0 y)
         rw [hνSupport, mem_Ioo] at h; linarith [h.left]
-      . simp only [Function.mem_support, ne_eq, not_not] at h; simp [h]
+      · simp only [Function.mem_support, ne_eq, not_not] at h; simp [h]
     · have : (fun x ↦ ν x / x).support ⊆ Icc (1 / 2) 2 := by
         rw [Function.support_div, hνSupport]
         apply subset_trans (by apply inter_subset_left) Ioo_subset_Icc_self
