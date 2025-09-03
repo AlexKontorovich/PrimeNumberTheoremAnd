@@ -406,7 +406,7 @@ lemma Complex.inv_re_add_im : (x + y * I)⁻¹ = (x - I * y) / (x ^ 2 + y ^ 2) :
 lemma sq_add_sq_ne_zero (hy : y ≠ 0) : x ^ 2 + y ^ 2 ≠ 0 := by linarith [sq_nonneg x, sq_pos_iff.mpr hy]
 
 lemma continuous_self_div_sq_add_sq (hy : y ≠ 0) : Continuous fun x => x / (x ^ 2 + y ^ 2) :=
-  continuous_id.div (continuous_id.pow 2 |>.add continuous_const) (λ _ => sq_add_sq_ne_zero hy)
+  continuous_id.div (continuous_id.pow 2 |>.add continuous_const) (fun _ => sq_add_sq_ne_zero hy)
 
 lemma integral_self_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, x / (x ^ 2 + y ^ 2) =
     Real.log (x₂ ^ 2 + y ^ 2) / 2 - Real.log (x₁ ^ 2 + y ^ 2) / 2 := by
@@ -414,17 +414,17 @@ lemma integral_self_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, x / (x ^
   have e1 {x} := HasDerivAt.add_const (y ^ 2) (by simpa using hasDerivAt_pow 2 x)
   have e2 {x} : HasDerivAt f (x / (x ^ 2 + y ^ 2)) x := by
     convert (e1.log (sq_add_sq_ne_zero hy)).div_const 2 using 1 ; field_simp ; ring
-  have e3 : deriv f = λ x => x / (x ^ 2 + y ^ 2) := funext (λ _ => e2.deriv)
+  have e3 : deriv f = fun x => x / (x ^ 2 + y ^ 2) := funext (fun _ => e2.deriv)
   have e4 : Continuous (deriv f) := by simpa only [e3] using continuous_self_div_sq_add_sq hy
   simp_rw [← e2.deriv]
-  exact integral_deriv_eq_sub (λ _ _ => e2.differentiableAt) <| e4.intervalIntegrable _ _
+  exact integral_deriv_eq_sub (fun _ _ => e2.differentiableAt) <| e4.intervalIntegrable _ _
 
 lemma integral_const_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, y / (x ^ 2 + y ^ 2) =
     arctan (x₂ / y) - arctan (x₁ / y) := by
   nth_rewrite 1 [← div_mul_cancel₀ x₁ hy, ← div_mul_cancel₀ x₂ hy]
   simp_rw [← mul_integral_comp_mul_right, ← intervalIntegral.integral_const_mul,
     ← integral_one_div_one_add_sq]
-  exact integral_congr <| λ x _ => by field_simp; ring
+  exact integral_congr <| fun x _ => by field_simp; ring
 
 lemma integral_const_div_self_add_im (hy : y ≠ 0) : ∫ x : ℝ in x₁..x₂, A / (x + y * I) =
     A * (Real.log (x₂ ^ 2 + y ^ 2) / 2 - Real.log (x₁ ^ 2 + y ^ 2) / 2) -
@@ -437,9 +437,9 @@ lemma integral_const_div_self_add_im (hy : y ≠ 0) : ∫ x : ℝ in x₁..x₂,
     exact continuous_const.mul <| continuous_ofReal.comp <| continuous_self_div_sq_add_sq hy
   have e3 : IntervalIntegrable (fun x ↦ A * I * y / (x ^ 2 + y ^ 2)) volume x₁ x₂ := by
     apply Continuous.intervalIntegrable
-    refine continuous_const.div (by continuity) (λ x => ?_)
+    refine continuous_const.div (by continuity) (fun x => ?_)
     norm_cast ; exact sq_add_sq_ne_zero hy
-  simp_rw [integral_congr (λ _ _ => e1), integral_sub e2 e3, mul_div_assoc]
+  simp_rw [integral_congr (fun _ _ => e1), integral_sub e2 e3, mul_div_assoc]
   norm_cast
   simp_rw [intervalIntegral.integral_const_mul, intervalIntegral.integral_ofReal,
     integral_self_div_sq_add_sq hy, integral_const_div_sq_add_sq hy]
@@ -455,7 +455,7 @@ lemma integral_const_div_re_add_self (hx : x ≠ 0) : ∫ y : ℝ in y₁..y₂,
   simp_rw [l1, integral_const_div_self_add_im l2]
 
 lemma ResidueTheoremAtOrigin' {z w c : ℂ} (h1 : z.re < 0) (h2 : z.im < 0) (h3 : 0 < w.re) (h4 : 0 < w.im) :
-    RectangleIntegral (λ s => c / s) z w = 2 * I * π * c := by
+    RectangleIntegral (fun s => c / s) z w = 2 * I * π * c := by
   simp only [RectangleIntegral, HIntegral, VIntegral, smul_eq_mul]
   rw [integral_const_div_re_add_self h1.ne, integral_const_div_re_add_self h3.ne.symm]
   rw [integral_const_div_self_add_im h2.ne, integral_const_div_self_add_im h4.ne.symm]
@@ -475,7 +475,7 @@ lemma ResidueTheoremAtOrigin' {z w c : ℂ} (h1 : z.re < 0) (h2 : z.im < 0) (h3 
   ring_nf
 
 theorem ResidueTheoremInRectangle (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)
-    (pInRectInterior : Rectangle z w ∈ 𝓝 p) : RectangleIntegral' (λ s => c / (s - p)) z w = c := by
+    (pInRectInterior : Rectangle z w ∈ 𝓝 p) : RectangleIntegral' (fun s => c / (s - p)) z w = c := by
   simp only [rectangle_mem_nhds_iff, uIoo_of_le zRe_le_wRe, uIoo_of_le zIm_le_wIm, mem_reProdIm,
     mem_Ioo] at pInRectInterior
   rw [RectangleIntegral.translate', RectangleIntegral']
