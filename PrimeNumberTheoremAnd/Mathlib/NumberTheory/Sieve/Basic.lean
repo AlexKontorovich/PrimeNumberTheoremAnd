@@ -86,7 +86,7 @@ theorem nu_lt_self_of_dvd_prodPrimes (d : ℕ) (hdP : d ∣ P) (hd_ne_one : d �
 theorem selbergTerms_pos (l : ℕ) (hl : l ∣ P) : 0 < g l := by
   rw [selbergTerms_apply]
   apply mul_pos
-  exact nu_pos_of_dvd_prodPrimes hl
+  · exact nu_pos_of_dvd_prodPrimes hl
   apply prod_pos
   intro p hp
   rw [one_div_pos]
@@ -111,7 +111,7 @@ theorem one_div_selbergTerms_eq_conv_moebius_nu (l : ℕ) (hl : Squarefree l)
   apply sum_congr rfl; intro d hd
   have hd_dvd : d ∣ l := dvd_of_mem_divisors hd
   rw [←div_mult_of_dvd_squarefree ν s.nu_mult l d (dvd_of_mem_divisors hd) hl, inv_div]
-  ring
+  · ring
   revert hnu_nonzero; contrapose!
   exact multiplicative_zero_of_zero_dvd ν s.nu_mult hl hd_dvd
 
@@ -140,9 +140,10 @@ theorem conv_selbergTerms_eq_selbergTerms_mul_nu {d : ℕ} (hd : d ∣ P) :
     _ = g d * ∑ l ∈ divisors P, if l ∣ d then 1 / g l else 0 := by
       rw [mul_sum]; apply sum_congr rfl; intro l hl
       rw [mul_ite_zero]; apply if_ctx_congr Iff.rfl _ (fun _ => rfl); intro h
-      rw [← div_mult_of_dvd_squarefree g (selbergTerms_mult s) d l]; ring
-      exact h; apply Squarefree.squarefree_of_dvd hd s.prodPrimes_squarefree
-      apply _root_.ne_of_gt; rw [mem_divisors] at hl ; apply selbergTerms_pos; exact hl.left
+      rw [← div_mult_of_dvd_squarefree g (selbergTerms_mult s) d l h]
+      · ring
+      · apply Squarefree.squarefree_of_dvd hd s.prodPrimes_squarefree
+      · apply _root_.ne_of_gt; rw [mem_divisors] at hl; apply selbergTerms_pos; exact hl.left
     _ = g d * (ν d)⁻¹ := by rw [← nu_eq_conv_one_div_selbergTerms s d hd]
 
 theorem upper_bound_of_UpperBoundSieve (μPlus : UpperBoundSieve) :
@@ -164,7 +165,7 @@ def lambdaSquared (weights : ℕ → ℝ) : ℕ → ℝ := fun d =>
 private theorem lambdaSquared_eq_zero_of_support_wlog {w : ℕ → ℝ} {y : ℝ} (hw : ∀ (d : ℕ), ¬d ^ 2 ≤ y → w d = 0)
     {d : ℕ} (hd : ¬↑d ≤ y) (d1 : ℕ) (d2 : ℕ) (h : d = Nat.lcm d1 d2) (hle : d1 ≤ d2) :
     w d1 * w d2 = 0 := by
-  rw [hw d2]; ring
+  rw [hw d2, mul_zero]
   by_contra hyp; apply hd
   apply le_trans _ hyp
   norm_cast
@@ -190,7 +191,8 @@ theorem lambdaSquared_eq_zero_of_support (w : ℕ → ℝ) (y : ℝ)
     simp only [mul_zero, ite_self]
   apply sum_eq_zero; intro d1 _; apply sum_eq_zero; intro d2 _
   split_ifs with h
-  swap; rfl
+  swap
+  · rfl
   rcases Nat.le_or_le d1 d2 with hle | hle
   · apply lambdaSquared_eq_zero_of_support_wlog hw hd d1 d2 h hle
   · rw[mul_comm]
@@ -247,7 +249,7 @@ theorem lambdaSquared_mainSum_eq_quad_form (w : ℕ → ℝ) :
   have h : d1.lcm d2 ∣ P := Nat.lcm_dvd_iff.mpr ⟨dvd_of_mem_divisors hd1, dvd_of_mem_divisors hd2⟩
   rw [sum_ite_eq_of_mem' (divisors P) (d1.lcm d2) _ (mem_divisors.mpr ⟨h, prodPrimes_ne_zero⟩)]
   rw [s.nu_mult.map_lcm]
-  ring
+  · ring
   refine _root_.ne_of_gt (nu_pos_of_dvd_prodPrimes ?_)
   trans d1
   · exact Nat.gcd_dvd_left d1 d2

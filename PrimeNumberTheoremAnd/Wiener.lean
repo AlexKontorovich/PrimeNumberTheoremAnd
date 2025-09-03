@@ -87,7 +87,8 @@ lemma first_fourier_aux2a :
 lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
     term f σ' n * 𝐞 (-(y * (1 / (2 * π) * Real.log (n / x)))) • ψ y =
     term f (σ' + y * I) n • (ψ y * x ^ (y * I)) := by
-  by_cases hn : n = 0 ; simp [term, hn]
+  by_cases hn : n = 0
+  · simp [term, hn]
   simp only [term, hn, ↓reduceIte]
   calc
     _ = (f n * (cexp ((2 * π * -(y * (1 / (2 * π) * Real.log (n / x)))) * I) / ↑((n : ℝ) ^ σ'))) • ψ y := by
@@ -232,7 +233,9 @@ so by Fubini's theorem it suffices to verify the identity
 \end{proof}
 %%-/
   conv in ↑(rexp _) * _ => { rw [Real.fourierIntegral_real_eq, ← smul_eq_mul, ← integral_smul] }
-  rw [MeasureTheory.integral_integral_swap] ; swap ; exact second_fourier_integrable_aux1 hcont hsupp hσ
+  rw [MeasureTheory.integral_integral_swap]
+  swap
+  · exact second_fourier_integrable_aux1 hcont hsupp hσ
   rw [← integral_const_mul]
   congr 1; ext t
   dsimp [Real.fourierChar, Circle.exp]
@@ -568,7 +571,8 @@ lemma summable_congr_ae {u v : ℕ → ℝ} (huv : u =ᶠ[atTop] v) : Summable u
 lemma BoundedAtFilter.add_const {u : ℕ → ℝ} {c : ℝ} :
     BoundedAtFilter atTop (fun n => u n + c) ↔ BoundedAtFilter atTop u := by
   have : u = fun n => (u n + c) + (-c) := by ext n ; ring
-  simp [BoundedAtFilter] ; constructor <;> intro h ; rw [this]
+  simp [BoundedAtFilter] ; constructor <;> intro h
+  on_goal 1 => rw [this]
   all_goals { exact h.add (const_boundedAtFilter _ _) }
 
 lemma BoundedAtFilter.comp_add {u : ℕ → ℝ} {N : ℕ} :
@@ -937,7 +941,8 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re}) (ψ : CS 2 
     Tendsto (fun σ' : ℝ ↦ ∫ t : ℝ, G (σ' + t * I) * ψ t * x ^ (t * I)) (𝓝[>] 1)
       (𝓝 (∫ t : ℝ, G (1 + t * I) * ψ t * x ^ (t * I))) := by
 
-  by_cases hh : tsupport ψ = ∅ ; simp [tsupport_eq_empty_iff.mp hh]
+  by_cases hh : tsupport ψ = ∅
+  · simp [tsupport_eq_empty_iff.mp hh]
   obtain ⟨a₀, ha₀⟩ := Set.nonempty_iff_ne_empty.mpr hh
 
   let S : Set ℂ := reProdIm (Icc 1 2) (tsupport ψ)
@@ -1106,11 +1111,13 @@ noncomputable def hh' (a t : ℝ) : ℝ := - pp a (log t) * hh a t ^ 2
 lemma hh_nonneg (a : ℝ) {t : ℝ} (ht : 0 ≤ t) : 0 ≤ hh a t := by dsimp only [hh] ; positivity
 
 lemma hh_le (a t : ℝ) (ht : 0 ≤ t) : |hh a t| ≤ t⁻¹ := by
-  by_cases h0 : t = 0 ; simp [hh, h0]
+  by_cases h0 : t = 0
+  · simp [hh, h0]
   replace ht : 0 < t := lt_of_le_of_ne ht (by tauto)
   unfold hh
   rw [abs_inv, inv_le_inv₀ (by positivity) ht, abs_mul, abs_eq_self.mpr ht.le]
-  convert_to t * 1 ≤ _ ; simp
+  convert_to t * 1 ≤ _
+  · simp
   apply mul_le_mul le_rfl ?_ zero_le_one ht.le
   rw [abs_eq_self.mpr (by positivity)]
   simp ; positivity
@@ -1159,11 +1166,17 @@ lemma gg_le_one (i : ℕ) : gg x i ≤ 1 := by
 
 lemma one_div_two_pi_mem_Ioo : 1 / (2 * π) ∈ Ioo (-1) 1 := by
   constructor
-  · trans 0 ; linarith ; positivity
+  · trans 0
+    · linarith
+    · positivity
   · rw [div_lt_iff₀ (by positivity)]
-    convert_to 1 * 1 < 2 * π ; simp ; simp
+    convert_to 1 * 1 < 2 * π
+    · simp
+    · simp
     apply mul_lt_mul one_lt_two ?_ zero_lt_one zero_le_two
-    trans 2 ; exact one_le_two ; exact two_le_pi
+    trans 2
+    · exact one_le_two
+    · exact two_le_pi
 
 lemma sum_telescopic (a : ℕ → ℝ) (n : ℕ) : ∑ i ∈ Finset.range n, (a (i + 1) - a i) = a n - a 0 := by
   apply Finset.sum_range_sub
@@ -1180,7 +1193,8 @@ lemma cancel_aux {C : ℝ} {f g : ℕ → ℝ} (hf : 0 ≤ f) (hg : 0 ≤ g)
   have l2 (x : ℕ) : C * (↑(x + 1) + 1) - C * (↑x + 1) = C := by simp ; ring
   have l3 (n : ℕ) : 0 ≤ cumsum f n := Finset.sum_nonneg' hf
 
-  convert_to ∑ i ∈ Finset.range n, (g i) • (f i) ≤ _ ; simp [mul_comm]
+  convert_to ∑ i ∈ Finset.range n, (g i) • (f i) ≤ _
+  · simp [mul_comm]
   rw [Finset.sum_range_by_parts, sub_eq_add_neg, ← Finset.sum_neg_distrib]
   simp_rw [← neg_smul, neg_sub, smul_eq_mul]
   apply _root_.add_le_add
@@ -1263,11 +1277,15 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
   · apply IntegrableOn.intervalIntegrable
     simp only [le_add_iff_nonneg_right, zero_le_one, uIcc_of_le]
     apply hfi.mono_set
-    apply Icc_subset_Icc ; linarith ; simp
+    apply Icc_subset_Icc
+    · linarith
+    · simp
   · apply IntegrableOn.intervalIntegrable
     simp only [add_le_add_iff_left, le_add_iff_nonneg_left, Nat.cast_nonneg, uIcc_of_le]
     apply hfi.mono_set
-    apply Icc_subset_Icc ; linarith ; simp
+    apply Icc_subset_Icc
+    · linarith
+    · simp
 
 lemma hh_integrable_aux (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     (IntegrableOn (fun t ↦ a * hh b (t / c)) (Ici 0)) ∧
@@ -1399,7 +1417,8 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
   apply cancel_main' (fun _ => norm_nonneg _) (by simp [hf0]) l1 hf l2 n |>.trans
   gcongr ; simp [ggg, cumsum, gg_of_hh l0]
 
-  by_cases hn : n = 0 ; simp [hn] ; positivity
+  by_cases hn : n = 0
+  · simp [hn] ; positivity
   replace hn : 0 < n := by omega
   have : Finset.range n = {0} ∪ Finset.Ico 1 n := by
     ext i ; simp ; by_cases hi : i = 0 <;> simp [hi, hn] ; omega
@@ -1490,7 +1509,8 @@ lemma bound_I2 (x : ℝ) (ψ : W21) :
     · simp only [norm_norm, key] ; simp
   have l5 : 0 ≤ᵐ[volume] fun a ↦ (1 + (a / (2 * π)) ^ 2)⁻¹ := by apply Eventually.of_forall ; intro x ; positivity
   refine (norm_integral_le_integral_norm _).trans <| (setIntegral_mono l1 l2 key).trans ?_
-  rw [integral_const_mul] ; gcongr ; apply W21.norm_nonneg
+  rw [integral_const_mul] ; gcongr
+  · apply W21.norm_nonneg
   refine (setIntegral_le_integral l3 l5).trans ?_
   rw [Measure.integral_comp_div (fun x => (1 + x ^ 2)⁻¹) (2 * π)]
   simp [abs_eq_self.mpr twopi] ; ring_nf ; rfl
@@ -1965,7 +1985,9 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
     Tendsto (fun x : ℝ ↦ (∑' n, f n * (indicator (Ico a b) 1 (n / x))) / x) atTop (nhds (A * (b - a))) := by
 
   -- Take care of the trivial case `a = b`
-  by_cases hab : a = b ; simp [hab] ; replace hb : a < b := lt_of_le_of_ne hb hab ; clear hab
+  by_cases hab : a = b
+  · simp [hab]
+  replace hb : a < b := lt_of_le_of_ne hb hab ; clear hab
 
   -- Notation to make the proof more readable
   let S (g : ℝ → ℝ) (x : ℝ) :=  (∑' n, f n * g (n / x)) / x
@@ -2130,8 +2152,9 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f)
   convert_to Tendsto (S f 0) atTop (𝓝 A) ; · ext N ; simp [S, cumsum]
   apply (tendsto_S_S_zero hpos hcheby).tendsto_of_eventually_tendsto
   · have L0 : Ioc 0 1 ∈ 𝓝[>] (0 : ℝ) := inter_mem_nhdsWithin _ (Iic_mem_nhds zero_lt_one)
-    apply eventually_of_mem L0 ; intro ε hε
-    simpa using WienerIkeharaInterval_discrete' hpos hf hcheby hG hG' hε.1 hε.2
+    apply eventually_of_mem L0
+    · intro ε hε
+      simpa using WienerIkeharaInterval_discrete' hpos hf hcheby hG hG' hε.1 hε.2
   · have : Tendsto (fun ε : ℝ => ε) (𝓝[>] 0) (𝓝 0) := nhdsWithin_le_nhds
     simpa using (this.const_sub 1).const_mul A
 

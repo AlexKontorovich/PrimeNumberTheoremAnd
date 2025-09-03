@@ -1613,7 +1613,8 @@ lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s
     all_goals (ring_nf; simp [cpow_neg])
   · convert HasDerivAt.comp (h₂ := fun z ↦ -(N : ℂ) ^ z / z) (h := fun z ↦ 1 - z) (h' := -1)
       (h₂' := ((N : ℂ) ^ (1 - s) / (1 - s) ^ 2 - Real.log (N : ℝ) * (N : ℂ) ^ (1 - s) / (1 - s)))
-      (x := s) ?_ ?_ using 1; ring_nf
+      (x := s) ?_ ?_ using 1
+    · ring_nf
     · exact HasDerivAt_cpow_over_var N (by rw [sub_ne_zero]; exact s_ne_one.symm)
     · convert hasDerivAt_const s _ |>.sub (hasDerivAt_id _) using 1; simp
   · convert HasDerivAt_neg_cpow_over2 Npos s using 1; simp only [natCast_log, neg_mul, neg_neg]
@@ -1649,7 +1650,8 @@ The set $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ is path-connected.
 %%-/
 lemma isPathConnected_aux : IsPathConnected {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
   use (2 : ℂ)
-  constructor; simp
+  constructor
+  · simp
   intro w hw; simp only [ne_eq, mem_setOf_eq] at hw
   by_cases w_im : w.im = 0
   · apply JoinedIn.trans (y := 1 + I)
@@ -1812,8 +1814,9 @@ lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_l
   set s := σ + t * I
   by_cases n0 : n = 0
   · simp_rw [n0, CharP.cast_eq_zero, inv_zero, zero_mul]
-    rw [Complex.zero_cpow ?_]; simp
-    exact fun h ↦ σpos.ne' <| zero_eq_neg.mp <| zero_re ▸ h ▸ (by simp [s])
+    rw [Complex.zero_cpow ?_]
+    · simp
+    · exact fun h ↦ σpos.ne' <| zero_eq_neg.mp <| zero_re ▸ h ▸ (by simp [s])
   have n_gt_0 : 0 < n := Nat.pos_of_ne_zero n0
   have n_gt_0' : (0 : ℝ) < (n : ℝ) := Nat.cast_pos.mpr n_gt_0
   have n_ge_1 : 1 ≤ (n : ℝ) := Nat.one_le_cast.mpr <| Nat.succ_le_of_lt n_gt_0
@@ -1831,9 +1834,11 @@ lemma ZetaBnd_aux2 {n : ℕ} {t A σ : ℝ} (Apos : 0 < A) (σpos : 0 < σ) (n_l
     ring_nf
     conv => rw [mul_comm, ← mul_assoc, ← Real.log_abs]; rhs; rw [← one_mul A]
     gcongr
-    by_cases ht1 : |t| = 1; simp [ht1]
-    apply (inv_mul_le_iff₀ ?_).mpr; convert Real.log_le_log n_gt_0' n_le_t using 1; rw [mul_one]
-    exact Real.log_pos <| lt_of_le_of_ne (le_trans n_ge_1 n_le_t) <| fun t ↦ ht1 (t.symm)
+    by_cases ht1 : |t| = 1
+    · simp [ht1]
+    apply (inv_mul_le_iff₀ ?_).mpr
+    · convert Real.log_le_log n_gt_0' n_le_t using 1; rw [mul_one]
+    · exact Real.log_pos <| lt_of_le_of_ne (le_trans n_ge_1 n_le_t) <| fun t ↦ ht1 (t.symm)
 /-%%
 \begin{proof}\leanok
 Use $|n^{-s}| = n^{-\sigma}
@@ -2450,8 +2455,8 @@ lemma ZetaDerivUpperBnd' {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |
       nth_rewrite 1 [← mul_one A.exp]
       gcongr
       swap
-      nth_rewrite 1 [← mul_one |t|.log, (by ring : |t|.log ^ 2 = |t|.log * |t|.log)]
-      gcongr
+      · nth_rewrite 1 [← mul_one |t|.log, (by ring : |t|.log ^ 2 = |t|.log * |t|.log)]
+        gcongr
       nlinarith
 
 /-%%
@@ -2771,21 +2776,21 @@ $$
 lemma ZetaInvBound1 {σ t : ℝ} (σ_gt : 1 < σ) :
     1 / ‖ζ (σ + t * I)‖ ≤ ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) := by
   apply (div_le_iff₀ ?_).mpr
-  apply (Real.rpow_le_rpow_iff (z := 4) (by norm_num) ?_ (by norm_num)).mp
-  · simp only [Real.one_rpow]
-    rw [Real.mul_rpow, Real.mul_rpow, ← Real.rpow_mul, ← Real.rpow_mul]
-    simp only [isUnit_iff_ne_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
-      IsUnit.div_mul_cancel, Real.rpow_one]
-    conv => rw [mul_assoc]; rhs; rhs; rw [mul_comm]
-    rw [← mul_assoc]
-    have := norm_zeta_product_ge_one (x := σ - 1) (by linarith) t
-    simp_rw [ge_iff_le, norm_mul, norm_pow, ofReal_sub, ofReal_one, add_sub_cancel, ← Real.rpow_natCast] at this
-    convert this using 3 <;> ring_nf
-    any_goals ring_nf
-    any_goals apply norm_nonneg
-    any_goals apply Real.rpow_nonneg <| norm_nonneg _
-    apply mul_nonneg <;> apply Real.rpow_nonneg <| norm_nonneg _
-  · refine mul_nonneg (mul_nonneg ?_ ?_) ?_ <;> simp [Real.rpow_nonneg]
+  · apply (Real.rpow_le_rpow_iff (z := 4) (by norm_num) ?_ (by norm_num)).mp
+    · simp only [Real.one_rpow]
+      rw [Real.mul_rpow, Real.mul_rpow, ← Real.rpow_mul, ← Real.rpow_mul]
+      · simp only [isUnit_iff_ne_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
+          IsUnit.div_mul_cancel, Real.rpow_one]
+        conv => rw [mul_assoc]; rhs; rhs; rw [mul_comm]
+        rw [← mul_assoc]
+        have := norm_zeta_product_ge_one (x := σ - 1) (by linarith) t
+        simp_rw [ge_iff_le, norm_mul, norm_pow, ofReal_sub, ofReal_one, add_sub_cancel, ← Real.rpow_natCast] at this
+        convert this using 3 <;> ring_nf
+      any_goals ring_nf
+      any_goals apply norm_nonneg
+      any_goals apply Real.rpow_nonneg <| norm_nonneg _
+      apply mul_nonneg <;> apply Real.rpow_nonneg <| norm_nonneg _
+    · refine mul_nonneg (mul_nonneg ?_ ?_) ?_ <;> simp [Real.rpow_nonneg]
   · have s_ne_one : σ + t * I ≠ 1 := by
       contrapose! σ_gt; apply le_of_eq; apply And.left; simpa [Complex.ext_iff] using σ_gt
     simpa using riemannZeta_ne_zero_of_one_le_re (by simp [σ_gt.le])
@@ -2853,9 +2858,9 @@ lemma ZetaInvBound2 :
       convert h_inv σ ⟨σ_gt, σ_le⟩ using 1; simp [Real.rpow_neg_one, inv_div]
     simp only [norm_mul]
     apply (mul_le_mul_right ?_).mpr
-    convert bnd1 using 1
-    · exact abs_eq_self.mpr <| Real.rpow_nonneg (norm_nonneg _) _
-    · exact abs_eq_self.mpr <| Real.rpow_nonneg (div_nonneg (by linarith) hc.le) _
+    · convert bnd1 using 1
+      · exact abs_eq_self.mpr <| Real.rpow_nonneg (norm_nonneg _) _
+      · exact abs_eq_self.mpr <| Real.rpow_nonneg (div_nonneg (by linarith) hc.le) _
     · apply lt_iff_le_and_ne.mpr ⟨(by simp), ?_⟩
       have : ζ (↑σ + 2 * ↑t * I) ≠ 0 := by
         apply riemannZeta_ne_zero_of_one_le_re (by simp [σ_gt.le])
@@ -2867,9 +2872,10 @@ lemma ZetaInvBound2 :
       conv => rhs; rhs; rw [Real.norm_rpow_of_nonneg <| mul_nonneg hC.le this]
       conv => lhs; rhs; rw [Real.norm_rpow_of_nonneg <| norm_nonneg _]
       apply (mul_le_mul_left ?_).mpr
-      apply Real.rpow_le_rpow (norm_nonneg _) ?_ (by norm_num)
-      · convert h using 1; simp
-        rw [Real.norm_eq_abs, abs_eq_self.mpr <| mul_nonneg hC.le this]
+      · apply Real.rpow_le_rpow (norm_nonneg _) ?_ (by norm_num)
+        convert h using 1
+        · simp
+        · rw [Real.norm_eq_abs, abs_eq_self.mpr <| mul_nonneg hC.le this]
       · simpa only [Real.norm_eq_abs, abs_pos]
     · linarith [(div_nonneg ha.1.le (Real.log_nonneg (by linarith)) : 0 ≤ A / Real.log |2 * t|)]
   · simp only [Real.log_abs, norm_mul]
@@ -3053,7 +3059,8 @@ lemma ZetaInvBnd :
   set s := σ + t * I
   set s' := σ' + t * I
   by_cases h0 : ‖ζ s‖ ≠ 0
-  swap; simp only [ne_eq, not_not] at h0; simp only [h0, div_zero]; positivity
+  swap
+  · simp only [ne_eq, not_not] at h0; simp only [h0, div_zero]; positivity
   apply div_le_iff₀ (by positivity) |>.mpr <| div_le_iff₀' (by positivity) |>.mp ?_
   have pos_aux : 0 < (σ' - 1) := by linarith
   calc
@@ -3576,8 +3583,8 @@ theorem LogDerivZetaHolcSmallT :
   · intro s hs
     rw[← re_add_im s]
     apply hζ_ne_zero
-    apply s_in_U_im_le3 _ hs
-    apply s_in_U_re_ges2 _ hs
+    · apply s_in_U_im_le3 _ hs
+    · apply s_in_U_re_ges2 _ hs
 /-%%
 \begin{proof}\uses{ZetaNoZerosInBox}\leanok
 The derivative of $\zeta$ is holomorphic away from $s=1$; the denominator $\zeta(s)$ is nonzero
