@@ -237,14 +237,14 @@ and
 $$ \sum_{n < x} f(n) = \sum_{n < ⌈x⌉_+} f(n).$$
 \end{lemma}
 %%-/
-lemma finsum_range_eq_sum_range {R: Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
+lemma finsum_range_eq_sum_range {R : Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
     ∑ᶠ (n : ℕ) (_: n < x), f n = ∑ n ∈ range ⌈x⌉₊, f n := by
   apply finsum_cond_eq_sum_of_cond_iff f
   intros
   simp only [mem_range]
   exact Iff.symm Nat.lt_ceil
 
-lemma finsum_range_eq_sum_range' {R: Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
+lemma finsum_range_eq_sum_range' {R : Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
     ∑ᶠ (n : ℕ) (_ : n ≤ x), f n = ∑ n ∈ Iic ⌊x⌋₊, f n := by
   apply finsum_cond_eq_sum_of_cond_iff f
   intro n h
@@ -261,7 +261,7 @@ lemma log2_pos : 0 < log 2 := by
   exact one_lt_two
 
 /-- Auxiliary lemma I for `chebyshev_asymptotic`: Expressing the sum over Λ up to N as a double sum over primes and exponents. -/
-lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx: 0 ≤ x) :
+lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx : 0 ≤ x) :
   ∑ n ∈ Iic ⌊x⌋₊, Λ n =
     ∑ k ∈ Icc 1 ⌊ log x / log 2⌋₊,
       ∑ p ∈ filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), log p := calc
@@ -361,7 +361,7 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx: 0 ≤ x) :
       linarith [hp.1]
 
 /-- Auxiliary lemma II for `chebyshev_asymptotic`: Controlling the error. -/
-lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx: 2 ≤ x) :
+lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx : 2 ≤ x) :
   |∑ n ∈ Iic ⌊x⌋₊, Λ n - ∑ p ∈ filter Nat.Prime (Iic ⌊ x⌋₊), log p| ≤ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log) := by
   have hx_one : 1 ≤ x := one_le_two.trans hx
   have hx_pos : 0 < x := lt_of_lt_of_le zero_lt_two hx
@@ -447,14 +447,18 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx: 2 ≤ x) :
 
 
 /-- If u ~ v and w-u = o(v) then w ~ v. -/
-theorem Asymptotics.IsEquivalent.add_isLittleO' {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β} {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (w-u) =o[l] v) :
-Asymptotics.IsEquivalent l w v := by
+theorem Asymptotics.IsEquivalent.add_isLittleO'
+    {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β}
+    {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (w - u) =o[l] v) :
+    Asymptotics.IsEquivalent l w v := by
   rw [<- add_sub_cancel u w]
   exact add_isLittleO huv hwu
 
 /-- If u ~ v and u-w = o(v) then w ~ v. -/
-theorem Asymptotics.IsEquivalent.add_isLittleO'' {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β} {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (u-w) =o[l] v) :
-Asymptotics.IsEquivalent l w v := by
+theorem Asymptotics.IsEquivalent.add_isLittleO''
+    {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β}
+    {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (u - w) =o[l] v) :
+    Asymptotics.IsEquivalent l w v := by
   rw [<- sub_sub_self u w]
   exact sub_isLittleO huv hwu
 
@@ -2072,9 +2076,8 @@ lemma prime_in_gap (a b : ℝ) (ha : 0 < a)
   have : ⌊b⌋₊ + 1 ≤ w := by linarith
   linarith
 
-lemma bound_f_second_term (f: ℝ → ℝ) (hf: Tendsto f atTop (nhds 0)): ∀ δ: ℝ, δ > 0 → ∀ᶠ x: ℝ in atTop, (1 + f x) < (1 + δ)  := by
-  intro δ hδ
-
+lemma bound_f_second_term (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ : ℝ) (hδ : δ > 0) :
+    ∀ᶠ x: ℝ in atTop, (1 + f x) < (1 + δ)  := by
   have bound_one_plus_f: ∀ y: ℝ, ∀ z: ℝ, |f y| < z → 1 + (f y) < 1 + z := by
     intro y z hf
     by_cases f_pos: 0 < f y
@@ -2103,9 +2106,8 @@ lemma bound_f_second_term (f: ℝ → ℝ) (hf: Tendsto f atTop (nhds 0)): ∀ �
   exact bound_one_plus_f b δ (ha b (by linarith))
 
 
-lemma bound_f_first_term {ε : ℝ} (hε: 0 < ε) (f: ℝ → ℝ) (hf: Tendsto f atTop (nhds 0)): ∀ δ: ℝ, δ > 0 → ∀ᶠ x: ℝ in atTop, (1 + f ((1 + ε) * x)) > (1 - δ)  := by
-  intro δ hδ
-
+lemma bound_f_first_term {ε : ℝ} (hε : 0 < ε) (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ : ℝ) (hδ : δ > 0) :
+    ∀ᶠ x: ℝ in atTop, (1 + f ((1 + ε) * x)) > (1 - δ)  := by
   have bound_one_plus_f: ∀ y: ℝ, ∀ z: ℝ, |f y| < z → 1 + (f y) > 1 - z := by
     intro y z hf
     by_cases f_pos: 0 < f y
@@ -2149,9 +2151,9 @@ lemma bound_f_first_term {ε : ℝ} (hε: 0 < ε) (f: ℝ → ℝ) (hf: Tendsto 
 
   exact bound_one_plus_f ((1 + ε) * b) δ (ha ((1 + ε) * b) mul_increase)
 
-lemma smaller_terms {ε:ℝ} (hε: 0 < ε) (f: ℝ → ℝ) (hf: Tendsto f atTop (nhds 0)): ∀ δ: ℝ, δ > 0 →
-  ∀ᶠ x: ℝ in atTop, (1 - δ) * (((1 + ε) * x / (Real.log ((1 + ε) * x)))) < (1 + f ((1 + ε) * x)) * ((1 + ε) * x / (Real.log ((1 + ε) * x))) := by
-  intro δ hδ
+lemma smaller_terms {ε : ℝ} (hε : 0 < ε) (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ : ℝ)
+    (hδ : δ > 0) :
+    ∀ᶠ x: ℝ in atTop, (1 - δ) * (((1 + ε) * x / (Real.log ((1 + ε) * x)))) < (1 + f ((1 + ε) * x)) * ((1 + ε) * x / (Real.log ((1 + ε) * x))) := by
   have first_term := bound_f_first_term hε f hf δ hδ
   simp only [gt_iff_lt, eventually_atTop, ge_iff_le] at first_term
   obtain ⟨p, hp⟩ := first_term
@@ -2177,9 +2179,8 @@ lemma smaller_terms {ε:ℝ} (hε: 0 < ε) (f: ℝ → ℝ) (hf: Tendsto f atTop
 
     positivity
 
-lemma second_smaller_terms (f: ℝ → ℝ) (hf: Tendsto f atTop (nhds 0)): ∀ δ: ℝ, δ > 0 →
-  ∀ᶠ x: ℝ in atTop, (1 + δ) * (( x / (Real.log (x)))) > (1 + f ( x)) * ( x / (Real.log (x))) := by
-  intro δ hδ
+lemma second_smaller_terms (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ : ℝ) (hδ : δ > 0) :
+    ∀ᶠ x: ℝ in atTop, (1 + δ) * (( x / (Real.log (x)))) > (1 + f ( x)) * ( x / (Real.log (x))) := by
   have first_term := bound_f_second_term f hf δ hδ
 
   simp only [_root_.add_lt_add_iff_left, eventually_atTop, ge_iff_le] at first_term
@@ -2206,7 +2207,7 @@ lemma second_smaller_terms (f: ℝ → ℝ) (hf: Tendsto f atTop (nhds 0)): ∀ 
   · exact ha
   · linarith
 
-lemma x_log_x_atTop: Filter.Tendsto (fun x => x / Real.log x) Filter.atTop Filter.atTop := by
+lemma x_log_x_atTop : Filter.Tendsto (fun x => x / Real.log x) Filter.atTop Filter.atTop := by
   have inv_log_x_div := Filter.Tendsto.comp (f := fun x => Real.log x / x) (g := fun x => x⁻¹) (x := Filter.atTop) (y := (nhdsWithin 0 (Set.Ioi 0))) (z := Filter.atTop) ?_ ?_
   · simp_rw [Function.comp_def, inv_div] at inv_log_x_div
     exact inv_log_x_div
@@ -2224,8 +2225,8 @@ lemma x_log_x_atTop: Filter.Tendsto (fun x => x / Real.log x) Filter.atTop Filte
       positivity
 
 
-lemma tendsto_by_squeeze (ε: ℝ) (hε: ε > 0): Tendsto
-(fun (x: ℝ) => (Nat.primeCounting ⌊(1 + ε) * x⌋₊ : ℝ) - (Nat.primeCounting ⌊x⌋₊ : ℝ)) atTop atTop := by
+lemma tendsto_by_squeeze (ε : ℝ) (hε : ε > 0) :
+    Tendsto (fun (x : ℝ) => (Nat.primeCounting ⌊(1 + ε) * x⌋₊ : ℝ) - (Nat.primeCounting ⌊x⌋₊ : ℝ)) atTop atTop := by
   obtain ⟨c, hc, pi_x_eq⟩ := pi_alt
   rw [Asymptotics.isLittleO_iff_tendsto (by simp)] at hc
   conv =>
