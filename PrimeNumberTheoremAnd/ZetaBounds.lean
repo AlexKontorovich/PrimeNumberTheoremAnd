@@ -919,12 +919,12 @@ lemma integrability_aux₀ {a b : ℝ} :
   simp only [inf_le_iff, le_sup_iff, mem_Icc] at hx
   simp only [norm_intCast, Real.norm_eq_abs]
   have : |x| ≤ max |a| |b| := by
-    cases' hx.1 with x_ge_a x_ge_b <;> cases' hx.2 with x_le_a x_le_b
+    obtain x_ge_a | x_ge_b := hx.1 <;> obtain x_le_a | x_le_b := hx.2
     · rw [(by linarith : x = a)]; apply le_max_left
     · apply abs_le_max_abs_abs x_ge_a x_le_b
     · rw [max_comm]; apply abs_le_max_abs_abs x_ge_b x_le_a
     · rw [(by linarith : x = b)]; apply le_max_right
-  cases' abs_cases x with hx hx
+  obtain hx | hx := abs_cases x
   · rw [_root_.abs_of_nonneg <| by exact_mod_cast Int.floor_nonneg.mpr hx.2]
     apply le_trans (Int.floor_le x) <| le_trans (hx.1 ▸ this) (by simp)
   · rw [_root_.abs_of_nonpos <| by exact_mod_cast Int.floor_nonpos hx.2.le]

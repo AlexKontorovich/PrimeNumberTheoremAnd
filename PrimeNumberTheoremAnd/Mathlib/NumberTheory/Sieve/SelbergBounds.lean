@@ -32,11 +32,11 @@ lemma prodDistinctPrimes_squarefree (s : Finset ℕ) (h : ∀ p ∈ s, p.Prime) 
   intro p hp; by_contra h_dvd
   by_cases hps : p ∈ s
   · rw [←Finset.mul_prod_erase (a:=p) (h := hps), mul_dvd_mul_iff_left (Nat.Prime.ne_zero hp)] at h_dvd
-    cases' Prime.exists_mem_finset_dvd (Nat.Prime.prime hp) h_dvd with q hq
+    obtain ⟨q, hq⟩ := hp.prime.exists_mem_finset_dvd h_dvd
     rw [Finset.mem_erase] at hq
     exact hq.1.1 $ symm $ (Nat.prime_dvd_prime_iff_eq hp (h q hq.1.2)).mp hq.2
   · have : p ∣ ∏ p ∈ s, p := Trans.trans (dvd_mul_right p p) h_dvd
-    cases' Prime.exists_mem_finset_dvd (Nat.Prime.prime hp) this with q hq
+    obtain ⟨q, hq⟩ := hp.prime.exists_mem_finset_dvd this
     have heq : p = q := by
       rw [←Nat.prime_dvd_prime_iff_eq hp (h q hq.1)]
       exact hq.2
@@ -63,8 +63,8 @@ theorem prime_dvd_primorial_iff (n p : ℕ) (hp : p.Prime) :
   unfold primorial
   constructor
   · intro h
-    let h' : ∃ i, i ∈ Finset.filter Nat.Prime (Finset.range (n + 1)) ∧ p ∣ i := Prime.exists_mem_finset_dvd (Nat.Prime.prime hp) h
-    cases' h' with q hq
+    obtain ⟨q, hq⟩ : ∃ i, i ∈ Finset.filter Nat.Prime (Finset.range (n + 1)) ∧ p ∣ i :=
+      hp.prime.exists_mem_finset_dvd h
     rw [Finset.mem_filter, Finset.mem_range] at hq
     rw [prime_dvd_prime_iff_eq (Nat.Prime.prime hp) (Nat.Prime.prime hq.1.2)] at hq
     rw [hq.2]

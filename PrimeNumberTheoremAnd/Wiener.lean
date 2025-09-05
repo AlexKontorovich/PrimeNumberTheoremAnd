@@ -1227,7 +1227,8 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
     (hfi : IntegrableOn f (Icc x₀ (x₀ +  n))) :
     (∑ i ∈ Finset.range n, f (x₀ + ↑(i + 1))) ≤ ∫ x in x₀..x₀ + n, f x := by
 
-  cases' n with n <;> simp at hf ⊢
+  cases n with simp at hf ⊢
+  | succ n =>
   have : Finset.range (n + 1) = {0} ∪ Finset.Ico 1 (n + 1) := by
     ext i ; by_cases hi : i = 0 <;> simp [hi] ; omega
   simp [this]
@@ -1995,7 +1996,8 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
       have l5 : IsBoundedUnder (· ≤ ·) atTop (S ψ) := l1.isBoundedUnder_le
       have l3 : limsup (S Iab) atTop ≤ limsup (S ψ) atTop := limsup_le_limsup l6 Iab1 l5
       apply l3.trans ; rw [l1.limsup_eq] ; gcongr
-    cases' (eq_or_ne A 0) with h h ; simpa [h] using l_sup
+    obtain rfl | h := eq_or_ne A 0
+    · simpa using l_sup
     apply le_of_eventually_nhdsWithin
     have key : 0 < A := lt_of_le_of_ne hA h.symm
     filter_upwards [WI_tendsto_aux a b key l_sup] with x hx
@@ -2011,7 +2013,8 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
       have l4 : IsBoundedUnder (· ≥ ·) atTop (S ψ) := l1.isBoundedUnder_ge
       have l3 : liminf (S ψ) atTop ≤ liminf (S Iab) atTop := liminf_le_liminf l2 l4 Iab0
       apply le_trans ?_ l3 ; rw [l1.liminf_eq] ; gcongr
-    cases' (eq_or_ne A 0) with h h ; simpa [h] using l_inf
+    obtain rfl | h := eq_or_ne A 0
+    · simpa using l_inf
     apply ge_of_eventually_nhdsWithin
     have key : 0 < A := lt_of_le_of_ne hA h.symm
     filter_upwards [WI_tendsto_aux' a b key l_inf] with x hx

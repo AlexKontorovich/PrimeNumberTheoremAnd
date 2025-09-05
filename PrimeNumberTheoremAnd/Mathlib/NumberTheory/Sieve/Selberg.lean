@@ -280,7 +280,7 @@ theorem selberg_bound_simple_mainSum :
 
 lemma eq_gcd_mul_of_dvd_of_coprime {k d m :ℕ} (hkd : k ∣ d) (hmd : Coprime m d) (hk : k ≠ 0) :
     k = d.gcd (k*m) := by
-  cases' hkd with r hr
+  obtain ⟨r, hr⟩ := hkd
   have hrdvd : r ∣ d := by use k; rw [mul_comm]; exact hr
   apply symm; rw [hr, Nat.gcd_mul_left, mul_eq_left₀ hk, Nat.gcd_comm]
   apply Coprime.coprime_dvd_right hrdvd hmd
@@ -292,7 +292,7 @@ private lemma _helper {k m d :ℕ} (hkd : k ∣ d) (hk: k ∈ divisors P) (hm: m
   · intro h
     constructor
     · exact h.2.2
-    · cases' hkd with r hr
+    · obtain ⟨r, hr⟩ := hkd
       rw [hr, Nat.gcd_mul_left, eq_comm, mul_eq_left₀ (by rintro rfl; simp at hk ⊢)] at h
       rw [hr, coprime_comm]; apply Coprime.mul_left
       apply coprime_of_squarefree_mul $ Squarefree.squarefree_of_dvd h.1 s.prodPrimes_squarefree
