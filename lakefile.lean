@@ -8,7 +8,8 @@ package «PrimeNumberTheoremAnd» where
     ⟨`autoImplicit, false⟩,
     ⟨`relaxedAutoImplicit, false⟩,
     ⟨`linter.style.cases, true⟩,
-    ⟨`linter.style.cdot, true⟩
+    ⟨`linter.style.cdot, true⟩,
+    ⟨`linter.style.dollarSyntax, true⟩
   ]
 
 @[default_target]

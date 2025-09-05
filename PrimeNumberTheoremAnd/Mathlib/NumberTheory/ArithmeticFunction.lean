@@ -18,7 +18,7 @@ theorem ArithmeticFunction.sum_range_mul_zeta
       · have h : d ≤ x := by
           rw [divisors, mem_filter] at hd
           exact lt_succ.mp (mem_Ico.mp hd.left).right
-        exact mem_filter.mpr ⟨mem_range.mpr (lt_of_le_of_lt h $ mem_range.mp hx), hd⟩
+        exact mem_filter.mpr ⟨mem_range.mpr (lt_of_le_of_lt h <| mem_range.mp hx), hd⟩
     _ = ∑ d ∈ range (N + 1), ∑ _m ∈ (range (N + 1)).filter (d ∈ divisors ·), f d := by
       rw [sum_filter, sum_product_right]
       refine sum_congr rfl (fun y _ ↦ by simp only [← sum_filter])
