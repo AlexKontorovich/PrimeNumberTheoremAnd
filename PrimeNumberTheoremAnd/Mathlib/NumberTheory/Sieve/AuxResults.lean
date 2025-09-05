@@ -65,7 +65,7 @@ theorem conv_lambda_sq_larger_sum (f : ℕ → ℕ → ℕ → ℝ) (n : ℕ) :
 
 theorem moebius_inv_dvd_lower_bound (l m : ℕ) (hm : Squarefree m) :
     (∑ d ∈ m.divisors, if l ∣ d then (μ d:ℤ) else 0) = if l = m then (μ l:ℤ) else 0 := by
-  have hm_pos : 0 < m := Nat.pos_of_ne_zero $ Squarefree.ne_zero hm
+  have hm_pos : 0 < m := Nat.pos_of_ne_zero hm.ne_zero
   revert hm
   revert m
   apply (ArithmeticFunction.sum_eq_iff_sum_smul_moebius_eq_on {n | Squarefree n} (fun _ _ => Squarefree.squarefree_of_dvd)).mpr
@@ -78,7 +78,7 @@ theorem moebius_inv_dvd_lower_bound (l m : ℕ) (hm : Squarefree m) :
         hmul]
 
       apply coprime_of_squarefree_mul; rw [hmul]; exact hm
-    · intro d _ hdl; rw[if_neg $ hdl.symm, smul_zero]
+    · intro d _ hdl; rw [if_neg hdl.symm, smul_zero]
     · intro h; rw[mem_divisors] at h; exfalso; exact h ⟨hl, (Nat.ne_of_lt hm_pos).symm⟩
   · rw [if_neg hl, sum_eq_zero]; intro d hd
     rw [if_neg, smul_zero]

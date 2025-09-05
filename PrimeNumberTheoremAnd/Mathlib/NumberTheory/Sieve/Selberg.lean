@@ -105,12 +105,12 @@ theorem selbergWeights_mul_mu_nonneg (d : ℕ) (hdP : d ∣ P) :
   apply mul_nonneg; apply div_nonneg; apply mul_nonneg; apply mul_nonneg
   · apply sq_nonneg
   · rw [inv_nonneg]
-    exact le_of_lt $ nu_pos_of_dvd_prodPrimes hdP
-  · exact le_of_lt $ selbergTerms_pos _ d hdP
+    exact le_of_lt <| nu_pos_of_dvd_prodPrimes hdP
+  · exact le_of_lt <| selbergTerms_pos _ d hdP
   · exact s.selbergBoundingSum_nonneg
   apply sum_nonneg; intro m hm
   split_ifs with h
-  · exact le_of_lt $ selbergTerms_pos _ m (dvd_of_mem_divisors hm)
+  · exact le_of_lt <| selbergTerms_pos _ m (dvd_of_mem_divisors hm)
   · rfl
 
 lemma sum_mul_subst (k n: ℕ) {f : ℕ → ℝ} (h : ∀ l, l ∣ n → ¬ k ∣ l → f l = 0) :
@@ -179,7 +179,7 @@ theorem selbergWeights_eq_dvds_sum (d : ℕ) :
     constructor
     · intro h
       push_cast at h
-      exact ⟨h.2.2, coprime_of_squarefree_mul $ Squarefree.squarefree_of_dvd h.1 s.prodPrimes_squarefree⟩
+      exact ⟨h.2.2, coprime_of_squarefree_mul <| Squarefree.squarefree_of_dvd h.1 s.prodPrimes_squarefree⟩
     · intro h
       push_cast
       exact ⟨ Coprime.mul_dvd_of_dvd_of_dvd h.2 h_dvd (dvd_of_mem_divisors hm), Nat.dvd_mul_right d m, h.1⟩
@@ -269,8 +269,8 @@ theorem selberg_bound_simple_mainSum :
     apply if_congr Iff.rfl _ rfl
     trans (1/g l * g l * g l * (μ l:ℝ)^2  * (S⁻¹) ^ 2)
     · ring
-    norm_cast; rw [moebius_sq_eq_one_of_squarefree $ squarefree_of_mem_divisors_prodPrimes hl]
-    rw [one_div_mul_cancel $ _root_.ne_of_gt $ selbergTerms_pos _ l $ dvd_of_mem_divisors hl]
+    norm_cast; rw [moebius_sq_eq_one_of_squarefree <| squarefree_of_mem_divisors_prodPrimes hl]
+    rw [one_div_mul_cancel <| _root_.ne_of_gt <| selbergTerms_pos _ l <| dvd_of_mem_divisors hl]
     ring
     linarith
   conv => {lhs; congr; {skip}; {ext i; rw [← ite_zero_mul]}}
@@ -295,7 +295,7 @@ private lemma _helper {k m d :ℕ} (hkd : k ∣ d) (hk: k ∈ divisors P) (hm: m
     · obtain ⟨r, hr⟩ := hkd
       rw [hr, Nat.gcd_mul_left, eq_comm, mul_eq_left₀ (by rintro rfl; simp at hk ⊢)] at h
       rw [hr, coprime_comm]; apply Coprime.mul_left
-      apply coprime_of_squarefree_mul $ Squarefree.squarefree_of_dvd h.1 s.prodPrimes_squarefree
+      apply coprime_of_squarefree_mul <| Squarefree.squarefree_of_dvd h.1 s.prodPrimes_squarefree
       exact h.2.1
   · intro h
     constructor
@@ -328,7 +328,7 @@ theorem selbergBoundingSum_ge {d : ℕ} (hdP : d ∣ P) :
       rw [if_neg]
       push_neg; intro h; exfalso
       rw [h] at hkd
-      exact hkd $ Nat.gcd_dvd_left d l
+      exact hkd <| Nat.gcd_dvd_left d l
     rw [sum_mul_subst k P, sum_congr rfl]; intro m hm
     rw [mul_ite_zero, ← ite_and]
     apply if_ctx_congr _ _ fun _ => rfl
@@ -345,7 +345,7 @@ theorem selbergBoundingSum_ge {d : ℕ} (hdP : d ∣ P) :
     apply sum_le_sum; intro k _
     split_ifs with hkd
     swap; rfl
-    apply mul_le_mul le_rfl _ _ (le_of_lt $ selbergTerms_pos _ k $ hkd.trans hdP)
+    apply mul_le_mul le_rfl _ _ (le_of_lt <| selbergTerms_pos _ k <| hkd.trans hdP)
     apply sum_le_sum; intro m hm
     split_ifs with h h' h'
     · rfl
@@ -356,11 +356,11 @@ theorem selbergBoundingSum_ge {d : ℕ} (hdP : d ∣ P) :
           refine Nat.le_of_dvd ?_ hkd
           apply Nat.pos_of_ne_zero; apply ne_zero_of_dvd_ne_zero prodPrimes_ne_zero hdP
         exact h.1
-    · refine le_of_lt $ selbergTerms_pos _ m $ dvd_of_mem_divisors hm
+    · refine le_of_lt <| selbergTerms_pos _ m <| dvd_of_mem_divisors hm
     · rfl
     apply sum_nonneg; intro m hm
     split_ifs
-    · apply le_of_lt $ selbergTerms_pos _ m $ dvd_of_mem_divisors hm
+    · apply le_of_lt <| selbergTerms_pos _ m <| dvd_of_mem_divisors hm
     · rfl
   _ = _ := by
     conv => enter [1, 2, k]; rw [← ite_zero_mul]
@@ -369,7 +369,7 @@ theorem selbergBoundingSum_ge {d : ℕ} (hdP : d ∣ P) :
     · rw [mul_inv_cancel₀, ←Int.cast_pow, moebius_sq_eq_one_of_squarefree]
       ring
       exact Squarefree.squarefree_of_dvd hdP s.prodPrimes_squarefree
-      exact _root_.ne_of_gt $ s.selbergBoundingSum_pos
+      exact _root_.ne_of_gt <| s.selbergBoundingSum_pos
     dsimp only [selbergWeights]; rw [if_pos hdP]
     ring
 
