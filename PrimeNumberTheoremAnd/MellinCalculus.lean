@@ -949,8 +949,7 @@ lemma Smooth1Properties_below {ν : ℝ → ℝ} (suppν : ν.support ⊆ Icc (1
     (mass_one : ∫ x in Ioi 0, ν x / x = 1) :
     ∃ (c : ℝ), 0 < c ∧ c = Real.log 2 ∧ ∀ (ε x) (_ : 0 < ε), 0 < x → x ≤ 1 - c * ε → Smooth1 ν ε x = 1 := by
   set c := Real.log 2; use c
-  constructor; exact log_pos (by norm_num)
-  constructor; rfl
+  refine ⟨log_pos (by norm_num), rfl, ?_⟩
   intro ε x εpos xpos hx
   have hx2 := Smooth1Properties_below_aux hx εpos
   rewrite [← DeltaSpikeMass mass_one εpos]
@@ -964,9 +963,11 @@ lemma Smooth1Properties_below {ν : ℝ → ℝ} (suppν : ν.support ⊆ Icc (1
     by_cases h : y ≤ 1 <;> simp [indicator, mem_Ioi.mp hy, h]
   · rw [setIntegral_congr_fun (by simp)]
     intro y hy
-    simp only [indicator_apply_eq_self, mem_Ioc, not_and, not_le, div_eq_zero_iff]
+    have : y ≠ 0 := by
+      rintro rfl
+      simp at hy
+    simp only [indicator_apply_eq_self, mem_Ioc, not_and, not_le, div_eq_zero_iff, this, or_false]
     intro hy2; replace hy2 := hy2 <| mem_Ioi.mp hy
-    by_cases h : y = 0; right; exact h; left
     apply DeltaSpikeSupport εpos ?_ suppν
     · simp only [mem_Icc, not_and, not_le]; intro
       linarith [(by apply (div_lt_iff₀ (by linarith)).mpr; nlinarith : x / y < 2 ^ (-ε))]
@@ -1070,7 +1071,8 @@ lemma Smooth1Properties_above {ν : ℝ → ℝ} (suppν : ν.support ⊆ Icc (1
   set c := 2 * Real.log 2; use c
   constructor
   · simp only [c, zero_lt_two, mul_pos_iff_of_pos_left]; exact log_pos (by norm_num)
-  constructor; rfl
+  constructor
+  · rfl
   intro ε x hε hx
   have hx2 := Smooth1Properties_above_aux hx hε
   unfold Smooth1 MellinConvolution
@@ -1078,12 +1080,16 @@ lemma Smooth1Properties_above {ν : ℝ → ℝ} (suppν : ν.support ⊆ Icc (1
   apply setIntegral_eq_zero_of_forall_eq_zero
   intro y hy
   have ypos := mem_Ioi.mp hy
-  by_cases y1 : y ≤ 1; swap; simp [ypos, y1]
+  by_cases y1 : y ≤ 1
+  swap
+  · simp [ypos, y1]
   simp only [mem_Ioi.mp hy, y1, and_self, ↓reduceIte, div_eq_zero_iff]; left
   apply DeltaSpikeSupport hε.1 ?_ suppν
-  simp only [mem_Icc, not_and, not_le]
-  swap; suffices h : 2 ^ ε < x / y by
-    linarith [(by apply rpow_pos_of_pos (by norm_num) : 0 < (2 : ℝ) ^ ε)]
+  on_goal 1 =>
+    simp only [mem_Icc, not_and, not_le]
+  on_goal 2 =>
+    suffices h : 2 ^ ε < x / y by
+      linarith [(by apply rpow_pos_of_pos (by norm_num) : 0 < (2 : ℝ) ^ ε)]
   all_goals
   try intro
   have : x / y = ((x / y) ^ (1 / ε)) ^ ε := by
@@ -1198,7 +1204,8 @@ lemma Smooth1LeOne {ν : ℝ → ℝ} (νnonneg : ∀ x > 0, 0 ≤ ν x)
       exact aestronglyMeasurable_one
     · simp only [ite_mul, one_mul, zero_mul]
       intro y hy
-      by_cases h : y ≤ 1; aesop
+      by_cases h : y ≤ 1
+      · aesop
       field_simp [mem_Ioc, h, and_false, reduceIte]
       apply mul_nonneg
       · apply νnonneg; exact rpow_pos_of_pos (div_pos xpos <| mem_Ioi.mp hy) _

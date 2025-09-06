@@ -37,8 +37,6 @@ theorem ArithmeticFunction.sum_Icc_mul_zeta
     ∑ d ∈ Icc 1 N, (f * ζ) d = ∑ d ∈ Icc 1 N, (N / d) • f d := by
   have := sum_range_mul_zeta f N
   rw [range_eq_Ico, ← Finset.insert_Ico_add_one_left_eq_Ico, sum_insert, sum_insert] at this
-  /- first goal -/
-  simp only [map_zero, zero_add, Ico_add_one_right_eq_Icc, Nat.div_zero, smul_zero] at this
-  rw [this]
-  /- remaining -/
+  · simp only [map_zero, zero_add, Ico_add_one_right_eq_Icc, Nat.div_zero, smul_zero] at this
+    rw [this]
   all_goals simp

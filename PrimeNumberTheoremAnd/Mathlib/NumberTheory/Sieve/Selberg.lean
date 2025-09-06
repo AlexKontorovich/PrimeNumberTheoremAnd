@@ -101,8 +101,9 @@ theorem selbergWeights_mul_mu_nonneg (d : ℕ) (hdP : d ∣ P) :
   rw [if_pos hdP, mul_assoc]
   trans ((μ d :ℝ)^2 * (ν d)⁻¹ * g d * S⁻¹ * ∑ m ∈ divisors P,
           if (d * m) ^ 2 ≤ y ∧ Coprime m d then g m else 0)
-  swap; apply le_of_eq; ring
-  apply mul_nonneg; apply div_nonneg; apply mul_nonneg; apply mul_nonneg
+  swap
+  · apply le_of_eq; ring
+  refine mul_nonneg (div_nonneg (mul_nonneg (mul_nonneg ?_ ?_) ?_) ?_) ?_
   · apply sq_nonneg
   · rw [inv_nonneg]
     exact le_of_lt <| nu_pos_of_dvd_prodPrimes hdP
@@ -161,7 +162,8 @@ theorem selbergWeights_eq_dvds_sum (d : ℕ) :
   by_cases h_dvd : d ∣ P
   swap
   · dsimp only [selbergWeights]; rw [if_neg h_dvd]
-    rw [sum_eq_zero]; ring
+    rw [sum_eq_zero]
+    · ring
     intro l hl; rw [mem_divisors] at hl
     rw [if_neg]; push_neg; intro h
     exfalso; exact h_dvd (dvd_trans h hl.left)
@@ -171,24 +173,24 @@ theorem selbergWeights_eq_dvds_sum (d : ℕ) :
   -- change of variables l=m*d
   apply symm
   rw [sum_mul_subst d P]
-  apply sum_congr rfl
-  intro m hm
-  rw [mul_ite_zero, ←ite_and, mul_ite_zero, mul_ite_zero]
-  apply if_ctx_congr _ _ fun _ => rfl
-  · rw [coprime_comm]
-    constructor
+  · apply sum_congr rfl
+    intro m hm
+    rw [mul_ite_zero, ←ite_and, mul_ite_zero, mul_ite_zero]
+    apply if_ctx_congr _ _ fun _ => rfl
+    · rw [coprime_comm]
+      constructor
+      · intro h
+        push_cast at h
+        exact ⟨h.2.2, coprime_of_squarefree_mul <| Squarefree.squarefree_of_dvd h.1 s.prodPrimes_squarefree⟩
+      · intro h
+        push_cast
+        exact ⟨ Coprime.mul_dvd_of_dvd_of_dvd h.2 h_dvd (dvd_of_mem_divisors hm), Nat.dvd_mul_right d m, h.1⟩
     · intro h
-      push_cast at h
-      exact ⟨h.2.2, coprime_of_squarefree_mul <| Squarefree.squarefree_of_dvd h.1 s.prodPrimes_squarefree⟩
-    · intro h
-      push_cast
-      exact ⟨ Coprime.mul_dvd_of_dvd_of_dvd h.2 h_dvd (dvd_of_mem_divisors hm), Nat.dvd_mul_right d m, h.1⟩
-  · intro h
-    trans ((ν d)⁻¹ * (ν d) * g d * μ d / S * g m)
-    · rw [inv_mul_cancel₀ (nu_ne_zero h_dvd),
-        (selbergTerms_mult _).map_mul_of_coprime <| coprime_comm.mp h.2]
+      trans ((ν d)⁻¹ * (ν d) * g d * μ d / S * g m)
+      · rw [inv_mul_cancel₀ (nu_ne_zero h_dvd),
+          (selbergTerms_mult _).map_mul_of_coprime <| coprime_comm.mp h.2]
+        ring
       ring
-    ring
   · intro l _ hdl
     rw [if_neg, mul_zero]
     push_neg; intro h; contradiction
@@ -223,9 +225,9 @@ theorem selbergWeights_diagonalisation (l : ℕ) (hl : l ∈ divisors P) :
       rw [Aux.moebius_inv_dvd_lower_bound_real s.prodPrimes_squarefree l _ (dvd_of_mem_divisors hk),
         ←ite_and, ite_zero_mul, ite_zero_mul, ← ite_and]
       apply if_ctx_congr _ _ fun _ => rfl
-      rw [and_comm, eq_comm]; apply and_congr_right
-      intro heq; rw [heq]
-      intro h; rw[h.1]; ring
+      · rw [and_comm, eq_comm]; apply and_congr_right
+        intro heq; rw [heq]
+      · intro h; rw [h.1]; ring
 
 def selbergMuPlus : ℕ → ℝ :=
   lambdaSquared γ
@@ -265,18 +267,18 @@ theorem selberg_bound_simple_mainSum :
   rw [mainSum_eq_diag_quad_form]
   trans (∑ l ∈ divisors P, (if l ^ 2 ≤ y then g l *  (S⁻¹) ^ 2 else 0))
   · apply sum_congr rfl; intro l hl
-    rw [s.selbergWeights_diagonalisation l hl, ite_pow, zero_pow, mul_ite_zero]
+    rw [s.selbergWeights_diagonalisation l hl, ite_pow, zero_pow two_ne_zero, mul_ite_zero]
     apply if_congr Iff.rfl _ rfl
     trans (1/g l * g l * g l * (μ l:ℝ)^2  * (S⁻¹) ^ 2)
     · ring
     norm_cast; rw [moebius_sq_eq_one_of_squarefree <| squarefree_of_mem_divisors_prodPrimes hl]
     rw [one_div_mul_cancel <| _root_.ne_of_gt <| selbergTerms_pos _ l <| dvd_of_mem_divisors hl]
     ring
-    linarith
   conv => {lhs; congr; {skip}; {ext i; rw [← ite_zero_mul]}}
   dsimp only [selbergBoundingSum]
-  rw [←sum_mul, sq, ←mul_assoc, mul_inv_cancel₀]; ring
-  apply _root_.ne_of_gt; apply selbergBoundingSum_pos;
+  rw [←sum_mul, sq, ←mul_assoc, mul_inv_cancel₀]
+  · ring
+  · apply _root_.ne_of_gt; apply selbergBoundingSum_pos
 
 lemma eq_gcd_mul_of_dvd_of_coprime {k d m :ℕ} (hkd : k ∣ d) (hmd : Coprime m d) (hk : k ≠ 0) :
     k = d.gcd (k*m) := by
@@ -295,13 +297,14 @@ private lemma _helper {k m d :ℕ} (hkd : k ∣ d) (hk: k ∈ divisors P) (hm: m
     · obtain ⟨r, hr⟩ := hkd
       rw [hr, Nat.gcd_mul_left, eq_comm, mul_eq_left₀ (by rintro rfl; simp at hk ⊢)] at h
       rw [hr, coprime_comm]; apply Coprime.mul_left
-      apply coprime_of_squarefree_mul <| Squarefree.squarefree_of_dvd h.1 s.prodPrimes_squarefree
-      exact h.2.1
+      · apply coprime_of_squarefree_mul <| Squarefree.squarefree_of_dvd h.1 s.prodPrimes_squarefree
+      · exact h.2.1
   · intro h
     constructor
     · apply Nat.Coprime.mul_dvd_of_dvd_of_dvd
-      rw [coprime_comm]; exact Coprime.coprime_dvd_right hkd h.2
-      exact dvd_of_mem_divisors hk; exact dvd_of_mem_divisors hm
+      · rw [coprime_comm]; exact Coprime.coprime_dvd_right hkd h.2
+      · exact dvd_of_mem_divisors hk
+      · exact dvd_of_mem_divisors hm
     constructor
     · exact eq_gcd_mul_of_dvd_of_coprime hkd h.2 (by rintro rfl; simp at hk ⊢)
     · exact h.1
@@ -329,13 +332,14 @@ theorem selbergBoundingSum_ge {d : ℕ} (hdP : d ∣ P) :
       push_neg; intro h; exfalso
       rw [h] at hkd
       exact hkd <| Nat.gcd_dvd_left d l
-    rw [sum_mul_subst k P, sum_congr rfl]; intro m hm
-    rw [mul_ite_zero, ← ite_and]
-    apply if_ctx_congr _ _ fun _ => rfl
-    · exact_mod_cast s._helper hkd hk hm
-    · intro h;
-      apply (selbergTerms_mult _).map_mul_of_coprime
-      rw [gcd_comm]; apply h.2.coprime_dvd_right hkd
+    rw [sum_mul_subst k P, sum_congr rfl]
+    · intro m hm
+      rw [mul_ite_zero, ← ite_and]
+      apply if_ctx_congr _ _ fun _ => rfl
+      · exact_mod_cast s._helper hkd hk hm
+      · intro h
+        apply (selbergTerms_mult _).map_mul_of_coprime
+        rw [gcd_comm]; apply h.2.coprime_dvd_right hkd
     · intro l _ hkl; apply if_neg
       push_neg; intro h; exfalso
       rw [h] at hkl; exact hkl (Nat.gcd_dvd_right d l)
@@ -344,20 +348,21 @@ theorem selbergBoundingSum_ge {d : ℕ} (hdP : d ∣ P) :
           else 0 ) := by
     apply sum_le_sum; intro k _
     split_ifs with hkd
-    swap; rfl
+    swap
+    · rfl
     apply mul_le_mul le_rfl _ _ (le_of_lt <| selbergTerms_pos _ k <| hkd.trans hdP)
-    apply sum_le_sum; intro m hm
-    split_ifs with h h' h'
-    · rfl
-    · exfalso; apply h'
-      refine ⟨?_, h.2⟩
-      · trans ((d*m)^2:ℝ)
-        · norm_cast; gcongr
-          refine Nat.le_of_dvd ?_ hkd
-          apply Nat.pos_of_ne_zero; apply ne_zero_of_dvd_ne_zero prodPrimes_ne_zero hdP
-        exact h.1
-    · refine le_of_lt <| selbergTerms_pos _ m <| dvd_of_mem_divisors hm
-    · rfl
+    · apply sum_le_sum; intro m hm
+      split_ifs with h h' h'
+      · rfl
+      · exfalso; apply h'
+        refine ⟨?_, h.2⟩
+        · trans ((d*m)^2:ℝ)
+          · norm_cast; gcongr
+            refine Nat.le_of_dvd ?_ hkd
+            apply Nat.pos_of_ne_zero; apply ne_zero_of_dvd_ne_zero prodPrimes_ne_zero hdP
+          exact h.1
+      · refine le_of_lt <| selbergTerms_pos _ m <| dvd_of_mem_divisors hm
+      · rfl
     apply sum_nonneg; intro m hm
     split_ifs
     · apply le_of_lt <| selbergTerms_pos _ m <| dvd_of_mem_divisors hm
@@ -367,9 +372,9 @@ theorem selbergBoundingSum_ge {d : ℕ} (hdP : d ∣ P) :
     rw [←sum_mul, conv_selbergTerms_eq_selbergTerms_mul_nu _ hdP]
     trans (S * S⁻¹ * (μ d:ℝ)^2 * (ν d)⁻¹ * g d * (∑ m ∈ divisors P, if (d*m) ^ 2 ≤ y ∧ Coprime m d then g m else 0))
     · rw [mul_inv_cancel₀, ←Int.cast_pow, moebius_sq_eq_one_of_squarefree]
-      ring
-      exact Squarefree.squarefree_of_dvd hdP s.prodPrimes_squarefree
-      exact _root_.ne_of_gt <| s.selbergBoundingSum_pos
+      · ring
+      · exact Squarefree.squarefree_of_dvd hdP s.prodPrimes_squarefree
+      · exact _root_.ne_of_gt <| s.selbergBoundingSum_pos
     dsimp only [selbergWeights]; rw [if_pos hdP]
     ring
 
@@ -407,9 +412,9 @@ theorem selberg_bound_muPlus (n : ℕ) (hn : n ∈ divisors P) :
     rw [apply_ite abs, abs_zero, abs_mul]
     simp only [f]
     by_cases h : n = d1.lcm d2
-    rw [if_pos h, if_pos h]
-    apply mul_le_one₀ (s.selberg_bound_weights d1) (abs_nonneg <| γ d2)
-      (s.selberg_bound_weights d2)
+    · rw [if_pos h, if_pos h]
+      apply mul_le_one₀ (s.selberg_bound_weights d1) (abs_nonneg <| γ d2)
+        (s.selberg_bound_weights d2)
     rw [if_neg h, if_neg h]
   · rw [← Finset.sum_product']
   · dsimp only
@@ -425,8 +430,8 @@ theorem selberg_bound_simple_errSum :
   gcongr with d hd
   split_ifs with h
   · apply mul_le_mul _ le_rfl (abs_nonneg <| R d) (pow_nonneg _ <| ω d)
-    apply s.selberg_bound_muPlus d hd
-    linarith
+    · apply s.selberg_bound_muPlus d hd
+    · norm_num
   · rw [s.selbergμPlus_eq_zero d h, abs_zero, zero_mul]
 
 theorem selberg_bound_simple :

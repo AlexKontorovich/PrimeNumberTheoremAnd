@@ -103,10 +103,9 @@ theorem conj_riemannZeta_conj (s : ℂ) : conj (riemannZeta (conj s)) = riemannZ
     use (Real.eulerMascheroniConstant - Real.log (4 * Real.pi)) / 2
     norm_cast
     rw[← Complex.ofReal_log]
-    norm_cast
-    push_cast
-    rfl
-    positivity
+    · push_cast
+      rfl
+    · positivity
   · let U : Set ℂ := {1}ᶜ
     let g := fun s ↦ conj (riemannZeta (conj s))
     suffices Set.EqOn g riemannZeta U by

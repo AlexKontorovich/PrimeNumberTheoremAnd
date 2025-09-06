@@ -78,31 +78,31 @@ theorem siftedSum_eq (s : SelbergSieve) (hw : ∀ i ∈ s.support, s.weights i =
     siftedSum = (s.support.filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card := by
   dsimp only [siftedSum]
   rw [Finset.card_eq_sum_ones, ←Finset.sum_filter, Nat.cast_sum]
-  apply Finset.sum_congr;
-  rw [hP]
-  ext d; constructor
-  · intro hd
-    rw [Finset.mem_filter] at *
-    constructor
-    · exact hd.1
-    · intro p hpp hpy
-      rw [←Nat.Prime.coprime_iff_not_dvd hpp]
-      apply Nat.Coprime.coprime_dvd_left _ hd.2
-      rw [prime_dvd_primorial_iff _ _ hpp]
-      apply Nat.le_floor hpy
-  · intro h
-    rw [Finset.mem_filter] at *
-    constructor
-    · exact h.1
-    refine Nat.coprime_of_dvd ?_
-    intro p hp
-    erw [prime_dvd_primorial_iff _ _ hp]
-    intro hpy
-    apply h.2 p hp
-    trans ↑(Nat.floor z)
-    · norm_cast
-    · apply Nat.floor_le
-      linarith only [hz]
+  apply Finset.sum_congr
+  · rw [hP]
+    ext d; constructor
+    · intro hd
+      rw [Finset.mem_filter] at *
+      constructor
+      · exact hd.1
+      · intro p hpp hpy
+        rw [←Nat.Prime.coprime_iff_not_dvd hpp]
+        apply Nat.Coprime.coprime_dvd_left _ hd.2
+        rw [prime_dvd_primorial_iff _ _ hpp]
+        apply Nat.le_floor hpy
+    · intro h
+      rw [Finset.mem_filter] at *
+      constructor
+      · exact h.1
+      refine Nat.coprime_of_dvd ?_
+      intro p hp
+      erw [prime_dvd_primorial_iff _ _ hp]
+      intro hpy
+      apply h.2 p hp
+      trans ↑(Nat.floor z)
+      · norm_cast
+      · apply Nat.floor_le
+        linarith only [hz]
   simp_rw [Nat.cast_one]
   intro x hx
   simp only [Finset.mem_filter] at hx
@@ -163,15 +163,15 @@ theorem prod_factors_one_div_compMult_ge (M : ℕ) (f : ArithmeticFunction ℝ) 
     rw [Nat.mem_primeFactors_of_ne_zero hd.ne_zero] at hp
     rw [← Finset.Ico_add_one_right_eq_Icc, geom_sum_Ico,
       ← mul_div_mul_left (c := (-1 : ℝ)) (f p ^ (M + 1) - f p ^ 1)]
-    gcongr
-    · apply hf_nonneg
-    · linarith [hf_size p hp.1 hp.2]
-    · rw [pow_one]
-      have : 0 ≤ f p ^ (M + 1) := by
-        apply pow_nonneg
-        apply hf_nonneg
-      linarith only [this]
-    · linarith only
+    · gcongr
+      · apply hf_nonneg
+      · linarith [hf_size p hp.1 hp.2]
+      · rw [pow_one]
+        have : 0 ≤ f p ^ (M + 1) := by
+          apply pow_nonneg
+          apply hf_nonneg
+        linarith only [this]
+      · linarith only
     · norm_num
     · apply ne_of_lt <| hf_size p hp.1 hp.2
     · apply Nat.succ_le_iff.mpr (Nat.succ_pos _)
@@ -361,19 +361,20 @@ theorem selbergBoundingSum_ge_sum_div (s : SelbergSieve) (hP : ∀ p:ℕ, p.Prim
     rw [Finset.mem_filter, Nat.mem_divisors] at hl
     have hlsq : Squarefree l := Squarefree.squarefree_of_dvd hl.1.1 s.prodPrimes_squarefree
     trans (∏ p ∈ l.primeFactors, ∑ n ∈ Finset.Icc 1 (Nat.floor s.level), s.nu (p^n))
-    rw [prod_factors_sum_pow_compMult (Nat.floor s.level) _ s.nu]
-    · exact hnu
-    · exact hlsq
-    · rw [ne_eq, Nat.floor_eq_zero, not_lt]
-      exact s.one_le_level
+    · rw [prod_factors_sum_pow_compMult (Nat.floor s.level) _ s.nu]
+      · exact hnu
+      · exact hlsq
+      · rw [ne_eq, Nat.floor_eq_zero, not_lt]
+        exact s.one_le_level
     rw [selbergTerms_apply _ l]
     apply prod_factors_one_div_compMult_ge _ _ hnu _ _ hlsq
     · intro p hpp hpl
       apply hnu_lt p hpp (Trans.trans hpl hl.1.1)
     · exact hnu_nonneg
 
-  rw [←Finset.sum_biUnion]; apply Finset.sum_le_sum_of_subset_of_nonneg
-  · intro m hm;
+  rw [←Finset.sum_biUnion]
+  · apply Finset.sum_le_sum_of_subset_of_nonneg ?_ (fun _ _ _ => hnu_nonneg _)
+    intro m hm
     have hprod_pos : 0 < (∏ p ∈ m.primeFactors, p) := by
       apply Finset.prod_pos;
       intro p hp; exact Nat.pos_of_mem_primeFactorsList <| List.mem_toFinset.mp hp
@@ -381,60 +382,56 @@ theorem selbergBoundingSum_ge_sum_div (s : SelbergSieve) (hP : ∀ p:ℕ, p.Prim
       apply pow_ne_zero; apply ne_of_gt; apply hprod_pos
     rw [Finset.mem_biUnion]; simp_rw [Finset.mem_filter, Nat.mem_divisors]
     rw [Finset.mem_Icc, Nat.le_floor_iff] at hm
-    have hm_ne_zero : m ≠ 0 := by
-      exact ne_of_gt <| Nat.succ_le.mp hm.1
-    use ∏ p ∈ m.primeFactors, p
-    constructor; constructor; constructor
-    · apply prod_primes_dvd_of_dvd <;> intro p hp
-      · apply hP p <| Nat.prime_of_mem_primeFactors hp
-        trans (m:ℝ)
-        · exact_mod_cast Nat.le_of_mem_primeFactors hp
-        trans (Real.sqrt s.level)
-        · exact hm.2
-        apply sqrt_le_self s.level s.one_le_level
-      exact Nat.prime_of_mem_primeFactors hp
-    · exact prodPrimes_ne_zero
-    · rw [←Real.sqrt_le_sqrt_iff (by linarith only [s.one_le_level]), Real.sqrt_sq]
-      trans (m:ℝ)
-      · norm_cast; apply Nat.le_of_dvd (Nat.succ_le.mp hm.1)
-        exact Nat.prod_primeFactors_dvd m
-      exact hm.2
-      apply le_of_lt; norm_cast;
-    constructor; constructor
-    · rw [←Nat.factorization_le_iff_dvd _ hprod_ne_zero, Nat.factorization_pow]
-      intro p
-      have hy_mul_prod_nonneg : 0 ≤ ⌊s.level⌋₊ * (Nat.factorization (∏ p ∈ m.primeFactors, p)) p := by
-        apply mul_nonneg; apply Nat.le_floor; norm_cast; linarith only [s.one_le_level]; norm_num
-      trans (Nat.factorization m) p * 1
-      · rw [mul_one];
-      trans ⌊s.level⌋₊ * Nat.factorization (∏ p ∈ m.primeFactors, p) p
-      swap
-      · apply le_rfl
-      by_cases hpp : p.Prime
-      swap;
-      · rw [Nat.factorization_eq_zero_of_non_prime _ hpp, zero_mul]; exact hy_mul_prod_nonneg
-      by_cases hpdvd : p ∣ m
-      swap
-      · rw [Nat.factorization_eq_zero_of_not_dvd hpdvd, zero_mul]; exact hy_mul_prod_nonneg
-      apply mul_le_mul
-      trans m
-      · apply le_of_lt <| Nat.factorization_lt _ _
-        apply hm_ne_zero
-      apply Nat.le_floor
-      refine le_trans hm.2 ?_
-      apply sqrt_le_self _ s.one_le_level
-      rw [←Nat.Prime.pow_dvd_iff_le_factorization hpp <| ne_of_gt hprod_pos, pow_one]
-      apply Finset.dvd_prod_of_mem
-      rw [Nat.mem_primeFactors]
-      · exact ⟨hpp, hpdvd, hm_ne_zero⟩
-      norm_num
-      norm_num
-      exact hm_ne_zero
-    · exact hprod_ne_zero
-    · exact Nat.prod_primeFactors_dvd m
+    · have hm_ne_zero : m ≠ 0 := by
+        exact ne_of_gt <| Nat.succ_le.mp hm.1
+      use ∏ p ∈ m.primeFactors, p
+      constructor; constructor; constructor
+      · apply prod_primes_dvd_of_dvd <;> intro p hp
+        · apply hP p <| Nat.prime_of_mem_primeFactors hp
+          trans (m:ℝ)
+          · exact_mod_cast Nat.le_of_mem_primeFactors hp
+          trans (Real.sqrt s.level)
+          · exact hm.2
+          apply sqrt_le_self s.level s.one_le_level
+        exact Nat.prime_of_mem_primeFactors hp
+      · exact prodPrimes_ne_zero
+      · rw [←Real.sqrt_le_sqrt_iff (by linarith only [s.one_le_level]), Real.sqrt_sq]
+        · trans (m:ℝ)
+          · norm_cast; apply Nat.le_of_dvd (Nat.succ_le.mp hm.1)
+            exact Nat.prod_primeFactors_dvd m
+          exact hm.2
+        apply le_of_lt; norm_cast
+      constructor; constructor
+      · rw [←Nat.factorization_le_iff_dvd _ hprod_ne_zero, Nat.factorization_pow]
+        · intro p
+          have hy_mul_prod_nonneg : 0 ≤ ⌊s.level⌋₊ * (Nat.factorization (∏ p ∈ m.primeFactors, p)) p := by
+            apply mul_nonneg; apply Nat.le_floor; norm_cast; linarith only [s.one_le_level]; norm_num
+          trans (Nat.factorization m) p * 1
+          · rw [mul_one]
+          rw [Finsupp.smul_apply, smul_eq_mul]
+          by_cases hpp : p.Prime
+          swap
+          · rw [Nat.factorization_eq_zero_of_non_prime _ hpp, zero_mul]; exact hy_mul_prod_nonneg
+          by_cases hpdvd : p ∣ m
+          swap
+          · rw [Nat.factorization_eq_zero_of_not_dvd hpdvd, zero_mul]; exact hy_mul_prod_nonneg
+          apply mul_le_mul
+          · trans m
+            · apply le_of_lt <| Nat.factorization_lt _ _
+              apply hm_ne_zero
+            apply Nat.le_floor
+            refine le_trans hm.2 ?_
+            apply sqrt_le_self _ s.one_le_level
+          · rw [←Nat.Prime.pow_dvd_iff_le_factorization hpp <| ne_of_gt hprod_pos, pow_one]
+            apply Finset.dvd_prod_of_mem
+            rw [Nat.mem_primeFactors]
+            exact ⟨hpp, hpdvd, hm_ne_zero⟩
+          · norm_num
+          · norm_num
+        exact hm_ne_zero
+      · exact hprod_ne_zero
+      · exact Nat.prod_primeFactors_dvd m
     · apply Real.sqrt_nonneg
-  · intro i _ _
-    apply (hnu_nonneg _)
   · intro i hi j hj hij
     intro t hti htj
     intro x hx;
@@ -456,26 +453,26 @@ theorem boundingSum_ge_sum (s : SelbergSieve) (hnu : s.nu = (ζ : ArithmeticFunc
   (hP : ∀ p:ℕ, p.Prime → (p:ℝ) ≤ s.level → p ∣ s.prodPrimes) :
     s.selbergBoundingSum ≥ ∑ m ∈ Finset.Icc 1 (Nat.floor <| Real.sqrt s.level), 1 / (m:ℝ) := by
   trans ∑ m ∈ Finset.Icc 1 (Nat.floor <| Real.sqrt s.level), (ζ : ArithmeticFunction ℝ).pdiv .id m
-  rw[←hnu]
-  apply selbergBoundingSum_ge_sum_div
-  · intro p hpp hple
-    apply hP p hpp hple
-  · rw[hnu]
-    exact CompletelyMultiplicative.zeta.pdiv CompletelyMultiplicative.id
-  · intro n;
-    rw[hnu]
-    apply div_nonneg
-    · by_cases h : n = 0 <;> simp[h]
-    simp
-  · intro p hpp _
-    rw[hnu]
-    simp only [ArithmeticFunction.pdiv_apply, ArithmeticFunction.natCoe_apply,
-      ArithmeticFunction.zeta_apply, Nat.cast_ite, CharP.cast_eq_zero, Nat.cast_one,
-      ArithmeticFunction.id_apply]
-    rw [if_neg, one_div]
-    apply inv_lt_one_of_one_lt₀; norm_cast
-    exact hpp.one_lt
-    exact hpp.ne_zero
+  · rw[←hnu]
+    apply selbergBoundingSum_ge_sum_div
+    · intro p hpp hple
+      apply hP p hpp hple
+    · rw[hnu]
+      exact CompletelyMultiplicative.zeta.pdiv CompletelyMultiplicative.id
+    · intro n
+      rw[hnu]
+      apply div_nonneg
+      · by_cases h : n = 0 <;> simp[h]
+      simp
+    · intro p hpp _
+      rw[hnu]
+      simp only [ArithmeticFunction.pdiv_apply, ArithmeticFunction.natCoe_apply,
+        ArithmeticFunction.zeta_apply, Nat.cast_ite, CharP.cast_eq_zero, Nat.cast_one,
+        ArithmeticFunction.id_apply]
+      rw [if_neg, one_div]
+      · apply inv_lt_one_of_one_lt₀; norm_cast
+        exact hpp.one_lt
+      exact hpp.ne_zero
   apply le_of_eq
   apply Finset.sum_congr rfl
   intro m hm
@@ -490,12 +487,12 @@ theorem boundingSum_ge_log (s : SelbergSieve) (hnu : s.nu = (ζ : ArithmeticFunc
   trans (∑ m ∈ Finset.Icc 1 (Nat.floor <| Real.sqrt s.level), 1 / (m:ℝ))
   · exact boundingSum_ge_sum s hnu hP
   trans (Real.log <| Real.sqrt s.level)
-  rw [ge_iff_le]; simp_rw[one_div]
-  apply Aux.log_le_sum_inv (Real.sqrt s.level)
-  rw [Real.le_sqrt] <;> linarith[s.one_le_level]
-  apply ge_of_eq
-  refine Real.log_sqrt ?h.hx
-  linarith[s.one_le_level]
+  · rw [ge_iff_le]; simp_rw[one_div]
+    apply Aux.log_le_sum_inv (Real.sqrt s.level)
+    rw [Real.le_sqrt] <;> linarith[s.one_le_level]
+  · apply ge_of_eq
+    refine Real.log_sqrt ?h.hx
+    linarith[s.one_le_level]
 
 open ArithmeticFunction
 
