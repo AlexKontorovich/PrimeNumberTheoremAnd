@@ -1341,17 +1341,11 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
   unfold VerticalIntegral'
   have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by
     nth_rewrite 1 [← add_zero 1]
-    refine add_lt_add_of_le_of_lt ?_ ?_
-    rfl
-    rw[inv_pos, ← Real.log_one]
-    apply Real.log_lt_log
-    norm_num
-    linarith
+    bound
   have X_eq_lt_two : (1 + (Real.log X)⁻¹) < 2 := by
     rw[← one_add_one_eq_two]
-    refine (Real.add_lt_add_iff_left 1).mpr ?_
-    refine inv_lt_one_of_one_lt₀ ?_
-    exact logt_gt_one X_gt.le
+    gcongr
+    exact inv_lt_one_of_one_lt₀ <| logt_gt_one X_gt.le
   have X_eq_le_two : 1 + (Real.log X)⁻¹ ≤ 2 := X_eq_lt_two.le
   rw [verticalIntegral_split_three (a := -T) (b := T)]
   swap
@@ -1409,32 +1403,8 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
       unfold RectangleIntegral
       rw[HIntegral_symm, VIntegral_symm]
       nth_rewrite 2 [HIntegral_symm, VIntegral_symm]
-      unfold HIntegral VIntegral
-      repeat rw[smul_eq_mul]
-      repeat rw[add_re]
-      repeat rw[add_im]
-      repeat rw[sub_re]
-      repeat rw[sub_im]
-      repeat rw[mul_re]
-      repeat rw[mul_im]
-      repeat rw[ofReal_re]
-      repeat rw[ofReal_im]
-      rw[I_re, I_im, mul_zero, zero_mul, mul_one]
-      ring_nf
-      unfold fTempC
-      have : ∫ (y : ℝ) in -T..T, fTempRR (I * ↑y + ↑σ₁).re (I * ↑y + ↑σ₁).im =
-        ∫ (y : ℝ) in -T..T, fTempRR σ₁ y := by simp
-      rw[this]
-      have : ∫ (y : ℝ) in -T..T,
-          fTempRR (I * ↑y + ↑(1 + (Real.log X)⁻¹)).re (I * ↑y + ↑(1 + (Real.log X)⁻¹)).im =
-        ∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y := by simp
-      rw[this]
-      have : ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR (I * ↑T + ↑x).re (I * ↑T + ↑x).im =
-        ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x T := by simp
-      rw[this]
-      have : ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR (I * ↑(-T) + ↑x).re (I * ↑(-T) + ↑x).im =
-        ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x (-T) := by simp
-      rw[this]
+      unfold HIntegral VIntegral fTempC
+      simp
       ring_nf
     rw[this, neg_one_mul, div_mul_comm, mul_one,
         ← add_right_inj
@@ -1527,11 +1497,6 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         linarith
       have f_near_p : (f - fun (z : ℂ) => 1 * (z - 1)⁻¹) =O[nhdsWithin 1 {1}ᶜ] (1 : ℂ → ℂ) := by
         simp only [one_mul, f]
-        have : ((fun z ↦ -ζ' z / ζ z) - fun z ↦ (z - 1)⁻¹) =
-          (-ζ' / ζ - fun z ↦ (z - 1)⁻¹) := by
-          ext
-          simp
-        rw[this]
         exact riemannZetaLogDerivResidueBigO
       convert ResidueMult g_holc pInRectangleInterior f_near_p using 1
       ext
