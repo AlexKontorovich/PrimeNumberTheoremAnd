@@ -92,7 +92,7 @@ theorem primesBetween_le_siftedSum_add :
 
 section Remainder
 
-theorem Ioc_filter_dvd_eq (d a b: ℕ) (hd : d ≠ 0) :
+theorem Ioc_filter_dvd_eq (d a b : ℕ) (hd : d ≠ 0) :
   Finset.filter (fun x => d ∣ x) (Finset.Ioc a b) =
     Finset.image (fun x => x * d) (Finset.Ioc (a / d) (b / d)) := by
   ext n
@@ -104,12 +104,12 @@ theorem Ioc_filter_dvd_eq (d a b: ℕ) (hd : d ≠ 0) :
   · rintro ⟨r, ⟨ha, ha'⟩, rfl⟩
     refine ⟨⟨(Nat.div_lt_iff_lt_mul (by omega)).mp ha, Nat.mul_le_of_le_div d r b ha'⟩, Nat.dvd_mul_left d r⟩
 
-theorem card_Ioc_filter_dvd (d a b: ℕ) (hd : d ≠ 0) :
+theorem card_Ioc_filter_dvd (d a b : ℕ) (hd : d ≠ 0) :
     (Finset.filter (fun x => d ∣ x) (Finset.Ioc a b)).card = b / d - a / d  := by
   rw [Ioc_filter_dvd_eq _ _ _ hd, Finset.card_image_of_injective _ <| mul_left_injective₀ hd, Nat.card_Ioc]
 
 include hx in
-theorem multSum_eq (d : ℕ) (hd : d ≠ 0):
+theorem multSum_eq (d : ℕ) (hd : d ≠ 0) :
     multSum (s := toBoundingSieve (self := primeInterSieve x y z hz)) d = ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) := by
   unfold multSum
   rw [primeInterSieve]
@@ -132,13 +132,13 @@ theorem Nat.ceil_le_self_add_one (x : ℝ) (hx : 0 ≤ x) : Nat.ceil x ≤ x + 1
   · gcongr
     exact Nat.floor_le hx
 
-theorem floor_approx (x : ℝ) (hx : 0 ≤ x) : ∃ C, |C| ≤ 1 ∧  ↑((Nat.floor x)) = x + C := by
+theorem floor_approx (x : ℝ) (hx : 0 ≤ x) : ∃ C, |C| ≤ 1 ∧ ↑((Nat.floor x)) = x + C := by
   use ↑(Nat.floor x) - x
   simp only [add_sub_cancel, and_true]
   rw [abs_le]
   refine ⟨by linarith [Nat.lt_floor_add_one x], by linarith [Nat.floor_le hx]⟩
 
-theorem ceil_approx (x : ℝ) (hx : 0 ≤ x) : ∃ C, |C| ≤ 1 ∧  ↑((Nat.ceil x)) = x + C := by
+theorem ceil_approx (x : ℝ) (hx : 0 ≤ x) : ∃ C, |C| ≤ 1 ∧ ↑((Nat.ceil x)) = x + C := by
   use ↑(Nat.ceil x) - x
   simp only [add_sub_cancel, and_true, abs_le]
   refine ⟨by linarith [Nat.le_ceil x], ?_⟩
@@ -422,7 +422,7 @@ theorem pow_half_mul_one_add_log_div_isBigO :
     convert rpow_mul_rpow_log_isBigO_id_div_log 1 (show 1/2 < (1:ℝ) by norm_num) using 1
     simp
 
-theorem card_pows_aux :  (fun N ↦(((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ Finset.range (Nat.log 2 N + 1)).image (fun p ↦ p.1 ^ p.2)).card : ℕ → ℝ) =O[atTop] fun N ↦ N / Real.log N := by
+theorem card_pows_aux : (fun N ↦ (((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ Finset.range (Nat.log 2 N + 1)).image (fun p ↦ p.1 ^ p.2)).card : ℕ → ℝ) =O[atTop] fun N ↦ N / Real.log N := by
   apply IsBigO.trans ?_ pow_half_mul_one_add_log_div_isBigO.natCast
   apply isBigO_of_le
   intro N

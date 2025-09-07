@@ -10,6 +10,7 @@ package «PrimeNumberTheoremAnd» where
     ⟨`linter.style.cases, true⟩,
     ⟨`linter.style.cdot, true⟩,
     ⟨`linter.style.dollarSyntax, true⟩,
+    ⟨`linter.style.header, true⟩,
     ⟨`linter.style.lambdaSyntax, true⟩,
     ⟨`linter.style.multiGoal, true⟩
   ]

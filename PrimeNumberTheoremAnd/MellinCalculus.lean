@@ -72,7 +72,7 @@ lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → 𝕂) :
   field_simp [pow_two]
 
 lemma MeasureTheory.integral_comp_div_I0i_haar
-    (f : ℝ → 𝕂) {a : ℝ} (ha : 0 < a):
+    (f : ℝ → 𝕂) {a : ℝ} (ha : 0 < a) :
     ∫ (y : ℝ) in Ioi 0, f (a / y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
   calc
     _ = ∫ (y : ℝ) in Ioi 0, f (a * y) / y := ?_
@@ -88,7 +88,7 @@ theorem Complex.ofReal_rpow {x : ℝ} (h : x > 0) (y : ℝ) :
   simp only [ne_eq, ofReal_eq_zero, ne_of_gt h, not_false_eq_true]
 
 @[simp]
-lemma Function.support_abs {α : Type*} (f : α → 𝕂):
+lemma Function.support_abs {α : Type*} (f : α → 𝕂) :
     (fun x ↦ ‖f x‖).support = f.support := by
   simp only [support, ne_eq]; simp_rw [norm_ne_zero_iff]
 
@@ -138,7 +138,7 @@ lemma IntervalIntegral.integral_eq_integral_of_support_subset_Icc {a b : ℝ} {�
 
 lemma SetIntegral.integral_eq_integral_inter_of_support_subset {μ : Measure ℝ}
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
-    {s t : Set ℝ} {f : ℝ → E} (h : f.support ⊆ t) (ht : MeasurableSet t):
+    {s t : Set ℝ} {f : ℝ → E} (h : f.support ⊆ t) (ht : MeasurableSet t) :
     ∫ x in s, f x ∂μ = ∫ x in s ∩ t, f x ∂μ := by
   rw [← setIntegral_indicator ht, indicator_eq_self.2 h]
 
@@ -156,7 +156,7 @@ lemma intervalIntegral.norm_integral_le_of_norm_le_const' {a b C : ℝ}
   apply intervalIntegral.norm_integral_le_of_norm_le_const
   exact fun x hx ↦ h x <| mem_Icc_of_Ioc <| uIoc_of_le hab ▸ hx
 
-lemma Filter.TendstoAtZero_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂) (ha : 0 < a)
+lemma Filter.TendstoAtZero_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂) (ha : 0 < a)
     (fSupp : f.support ⊆ Set.Icc a b) :
     Tendsto f (𝓝[>]0) (𝓝 0) := by
   apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
@@ -164,7 +164,7 @@ lemma Filter.TendstoAtZero_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂) (ha :
   have h : c ∉ Icc a b := fun h ↦ by linarith [mem_Icc.mp h]
   convert mt (Function.support_subset_iff.mp fSupp c) h; simp
 
-lemma Filter.TendstoAtTop_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂)
+lemma Filter.TendstoAtTop_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂)
     (fSupp : f.support ⊆ Set.Icc a b) :
     Tendsto f atTop (𝓝 0) := by
   apply Tendsto.comp (tendsto_nhds_of_eventually_eq ?_) tendsto_id
@@ -173,7 +173,7 @@ lemma Filter.TendstoAtTop_of_support_in_Icc {a b : ℝ} (f: ℝ → 𝕂)
   convert mt (Function.support_subset_iff.mp fSupp c) h; simp
 
 lemma Filter.BigO_zero_atZero_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂) (ha : 0 < a)
-    (fSupp : f.support ⊆ Set.Icc a b):
+    (fSupp : f.support ⊆ Set.Icc a b) :
     f =O[𝓝[>] 0] fun _ ↦ (0 : ℝ) := by
   refine Eventually.isBigO ?_
   filter_upwards [Ioo_mem_nhdsGT (by linarith : (0 : ℝ) < a)] with c hc
@@ -181,7 +181,7 @@ lemma Filter.BigO_zero_atZero_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂) (
   exact fun h ↦ by linarith [mem_Icc.mp h, (mem_Ioo.mp hc).2]
 
 lemma Filter.BigO_zero_atTop_of_support_in_Icc {a b : ℝ} (f : ℝ → 𝕂)
-    (fSupp : f.support ⊆ Set.Icc a b):
+    (fSupp : f.support ⊆ Set.Icc a b) :
     f =O[atTop] fun _ ↦ (0 : ℝ) := by
   refine Eventually.isBigO ?_
   filter_upwards [Ioi_mem_atTop b] with c hc; replace hc := mem_Ioi.mp hc
@@ -212,7 +212,7 @@ lemma PartialIntegration (f g : ℝ → ℂ)
     (gDiff : DifferentiableOn ℝ g (Ioi 0))
     (fDerivgInt : IntegrableOn (f * deriv g) (Ioi 0))
     (gDerivfInt : IntegrableOn (deriv f * g) (Ioi 0))
-    (lim_at_zero : Tendsto (f * g) (𝓝[>]0) (𝓝 0))
+    (lim_at_zero : Tendsto (f * g) (𝓝[>] 0) (𝓝 0))
     (lim_at_inf : Tendsto (f * g) atTop (𝓝 0)) :
     ∫ x in Ioi 0, f x * deriv g x = -∫ x in Ioi 0, deriv f x * g x := by
   simpa using integral_Ioi_mul_deriv_eq_deriv_mul
@@ -294,7 +294,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma MellinConvolutionSymmetric (f g : ℝ → 𝕂) {x : ℝ} (xpos: 0 < x) :
+lemma MellinConvolutionSymmetric (f g : ℝ → 𝕂) {x : ℝ} (xpos : 0 < x) :
     MellinConvolution f g x = MellinConvolution g f x := by
   unfold MellinConvolution
   calc
@@ -641,7 +641,7 @@ $$\int_0^\infty \nu_\epsilon(x)\frac{dx}{x} = 1.$$
 \end{lemma}
 %%-/
 
-lemma DeltaSpikeMass {ν : ℝ → ℝ} (mass_one: ∫ x in Ioi 0, ν x / x = 1) {ε : ℝ}
+lemma DeltaSpikeMass {ν : ℝ → ℝ} (mass_one : ∫ x in Ioi 0, ν x / x = 1) {ε : ℝ}
     (εpos : 0 < ε) : ∫ x in Ioi 0, ((DeltaSpike ν ε) x) / x = 1 :=
   calc
     _ = ∫ (x : ℝ) in Ioi 0, (|1/ε| * x ^ (1 / ε - 1)) •
@@ -667,7 +667,7 @@ measure.
 \end{proof}
 %%-/
 
-lemma DeltaSpikeSupport_aux {ν : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (suppν : ν.support ⊆ Icc (1 / 2) 2):
+lemma DeltaSpikeSupport_aux {ν : ℝ → ℝ} {ε : ℝ} (εpos : 0 < ε) (suppν : ν.support ⊆ Icc (1 / 2) 2) :
     (fun x ↦ if x < 0 then 0 else DeltaSpike ν ε x).support ⊆ Icc (2 ^ (-ε)) (2 ^ ε) := by
   unfold DeltaSpike
   simp only [one_div, Function.support_subset_iff, ne_eq, ite_eq_left_iff, not_lt, div_eq_zero_iff,
@@ -937,7 +937,7 @@ $$\widetilde{1_{\epsilon}}(x) = 1.$$
 \end{lemma}
 %%-/
 
-lemma Smooth1Properties_below_aux {x ε : ℝ} (hx : x ≤ 1 - Real.log 2 * ε) (εpos: 0 < ε) :
+lemma Smooth1Properties_below_aux {x ε : ℝ} (hx : x ≤ 1 - Real.log 2 * ε) (εpos : 0 < ε) :
     x < 2 ^ (-ε) := by
   calc
     x ≤ 1 - Real.log 2 * ε := hx
@@ -1543,7 +1543,7 @@ Use Lemma \ref{MellinconvolutionSymmetric} to write $\widetilde{1_{\epsilon}}(x)
 lemma Smooth1MellinConvergent {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     (hε : ε ∈ Ioo 0 1) (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
     (mass_one : ∫ x in Ioi 0, Ψ x / x = 1)
-    {s : ℂ} (hs: 0 < s.re) :
+    {s : ℂ} (hs : 0 < s.re) :
     MellinConvergent (fun x ↦ (Smooth1 Ψ ε x : ℂ)) s := by
   apply mellinConvergent_of_isBigO_rpow_exp zero_lt_one _ _ _ hs
   · apply ContinuousOn.locallyIntegrableOn _ (by measurability)
@@ -1565,7 +1565,7 @@ lemma Smooth1MellinConvergent {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDiff �
 lemma Smooth1MellinDifferentiable {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDiff ℝ 1 Ψ) (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2)
     (hε : ε ∈ Ioo 0 1) (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
     (mass_one : ∫ x in Ioi 0, Ψ x / x = 1)
-    {s : ℂ} (hs: 0 < s.re) :
+    {s : ℂ} (hs : 0 < s.re) :
     DifferentiableAt ℂ (𝓜 (fun x ↦ (Smooth1 Ψ ε x : ℂ))) s := by
   apply mellin_differentiableAt_of_isBigO_rpow_exp zero_lt_one _ _ _ hs
   · apply ContinuousOn.locallyIntegrableOn _ (by measurability)
