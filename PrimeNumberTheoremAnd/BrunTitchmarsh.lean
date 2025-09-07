@@ -288,7 +288,7 @@ theorem rpow_mul_rpow_log_isBigO_id_div_log (k : ℝ) {r : ℝ} (hr : r < 1) : (
   _ =O[atTop] (fun N ↦ (N : ℝ) * (Real.log N)⁻¹) := by
     apply IsBigO.mul (isBigO_refl ..)
     apply IsBigO.inv_rev
-    apply (isLittleO_log_rpow_atTop (by linarith) ..).isBigO
+    · apply (isLittleO_log_rpow_atTop (by linarith) ..).isBigO
     · filter_upwards [Filter.eventually_gt_atTop 1]
       intro N hN hcontra
       linarith [Real.log_pos hN]
@@ -323,9 +323,9 @@ theorem prime_or_pow (N n : ℕ) (hnN : n < N) (hnprime : IsPrimePow n) :
   right
   refine ⟨p, ?_, k, ?_, ?_⟩
   · rw [Real.lt_sqrt]
-    norm_cast
-    · calc
-        p^2 ≤ p^k := by gcongr; exact hp.one_le; omega
+    · norm_cast
+      calc
+        p^2 ≤ p^k := by gcongr <;> [exact hp.one_le; omega]
       _ = n := hpkn
       _ < N := hnN
     · positivity
@@ -376,9 +376,9 @@ theorem IsBigO.nat_Top_of_atTop (f g : ℕ → ℝ) (h : f =O[Filter.atTop] g) (
   · by_cases hg : g n = 0
     · simp [hg, h0]
     rw [← mul_inv_le_iff₀]
-    apply Finset.le_max'
-    simp only [Finset.mem_insert, Finset.mem_image, Finset.mem_range]
-    exact .inr ⟨n, by omega, rfl⟩
+    · apply Finset.le_max'
+      simp only [Finset.mem_insert, Finset.mem_image, Finset.mem_range]
+      exact .inr ⟨n, by omega, rfl⟩
     · simp [hg]
 
 theorem pows_small_primes_le (N : ℕ) :
@@ -428,8 +428,8 @@ theorem card_pows_aux :  (fun N ↦(((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×�
   intro N
   simp only [RCLike.norm_natCast, one_div, norm_mul, Real.norm_eq_abs]
   rw [Real.abs_rpow_of_nonneg (by positivity), Nat.abs_cast, abs_of_nonneg]
-  convert pows_small_primes_le N using 3
-  norm_num
+  · convert pows_small_primes_le N using 3
+    norm_num
   by_cases hN : N = 0
   · simp [hN]
   rw [Real.log_div_log]
