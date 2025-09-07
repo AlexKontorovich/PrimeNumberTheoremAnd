@@ -1454,34 +1454,16 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) ∈ nhds 1) := by
       refine rectangle_mem_nhds_iff.mpr ?_
       refine mem_reProdIm.mpr ?_
-      rw [one_re, one_im]
-      repeat rw[sub_re]
-      repeat rw[sub_im]
-      repeat rw[add_re]
-      repeat rw[add_im]
-      rw[mul_re, mul_im, I_re, I_im]
-      repeat rw[ofReal_re]
-      repeat rw[ofReal_im]
-      ring_nf
-      have temp : 1 ∈ uIoo σ₁ (re 1 + (Real.log X)⁻¹) := by
-        rw[one_re]
-        unfold uIoo
-        have : min σ₁ (1 + (Real.log X)⁻¹) = σ₁ := by exact min_eq_left (by linarith)
-        rw[this]
-        have : max σ₁ (1 + (Real.log X)⁻¹) = 1 + (Real.log X)⁻¹ := by exact max_eq_right (by linarith)
-        rw[this]
-        refine mem_Ioo.mpr ?_
-        exact ⟨σ₁_lt_one, (by linarith)⟩
-      have : 0 ∈ uIoo (-T) (T + im 1) := by
-        rw[one_im, add_zero]
-        unfold uIoo
-        have : min (-T) T = -T := by exact min_eq_left (by linarith)
-        rw[this]
-        have : max (-T) T = T := by exact max_eq_right (by linarith)
-        rw[this]
-        refine mem_Ioo.mpr ?_
-        exact ⟨(by linarith), (by linarith)⟩
-      exact ⟨temp, this⟩
+      simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+        sub_zero, ofReal_inv, add_re, one_re, inv_re, normSq_ofReal, div_self_mul_self', add_zero,
+        sub_im, mul_im, zero_sub, add_im, one_im, inv_im, neg_zero, zero_div, zero_add]
+      constructor
+      · unfold uIoo
+        rw [min_eq_left (by linarith), max_eq_right (by linarith)]
+        exact mem_Ioo.mpr ⟨σ₁_lt_one, (by linarith)⟩
+      · unfold uIoo
+        rw [min_eq_left (by linarith), max_eq_right (by linarith)]
+        exact mem_Ioo.mpr ⟨(by linarith), (by linarith)⟩
 
     apply ResidueTheoremOnRectangleWithSimplePole'
     · simp; linarith
@@ -1489,7 +1471,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
     · exact pInRectangleInterior
     · apply DifferentiableOn.mul
       · apply DifferentiableOn.mul
-        · simp
+        · simp only [re_add_im, ofReal_inv]
           have : (fun z ↦ -ζ' z / ζ z) = -(ζ' / ζ) := by ext; simp; ring
           rw [this]
           apply DifferentiableOn.neg
@@ -1497,25 +1479,23 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
           apply diff_subset_diff_left
           apply reProdIm_subset_iff'.mpr
           left
-          simp
-          constructor
-          · apply uIcc_subset_Icc
-            · exact ⟨(by linarith), (by linarith)⟩
-            · exact ⟨(by linarith), (by linarith)⟩
-          · apply uIcc_subset_Icc
-            · exact ⟨(by linarith), (by linarith)⟩
-            · exact ⟨(by linarith), (by linarith)⟩
+          simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+            sub_zero, add_re, one_re, inv_re, normSq_ofReal, div_self_mul_self', add_zero, sub_im,
+            mul_im, zero_sub, add_im, one_im, inv_im, neg_zero, zero_div, zero_add]
+          constructor <;> apply uIcc_subset_Icc <;> constructor <;> linarith
         · intro s hs
           apply DifferentiableAt.differentiableWithinAt
-          simp
+          simp only [re_add_im]
           apply Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one
           have := mem_reProdIm.mp hs.1 |>.1
-          simp at this
+          simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+            sub_zero, ofReal_inv, add_re, one_re, inv_re, normSq_ofReal, div_self_mul_self',
+            add_zero] at this
           rw [uIcc_of_le (by linarith)] at this
           linarith [this.1]
       · intro s hs
         apply DifferentiableAt.differentiableWithinAt
-        simp
+        simp only [re_add_im]
         apply DifferentiableAt.const_cpow (by fun_prop)
         left
         norm_cast
@@ -1546,7 +1526,7 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 
         norm_cast
         linarith
       have f_near_p : (f - fun (z : ℂ) => 1 * (z - 1)⁻¹) =O[nhdsWithin 1 {1}ᶜ] (1 : ℂ → ℂ) := by
-        simp[f]
+        simp only [one_mul, f]
         have : ((fun z ↦ -ζ' z / ζ z) - fun z ↦ (z - 1)⁻¹) =
           (-ζ' / ζ - fun z ↦ (z - 1)⁻¹) := by
           ext
