@@ -212,8 +212,9 @@ theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (h
       card_finMulAntidiag_of_squarefree <| hP.squarefree_of_dvd hd.1, if_pos hd.1]
     simp only [div_eq_mul_inv, nsmul_eq_mul, cast_pow, mul_ite, mul_zero]
   · rw [sum_comm]; apply sum_congr rfl; intro a _; rw [sum_eq_single (∏ i, a i)]
-    · apply if_ctx_congr _ _ (fun _ => rfl); rw [Iff.comm, iff_and_self]; exact fun _ => rfl
-      intro; rw [cast_prod, ← prod_inv_distrib]
+    · apply if_ctx_congr _ _ (fun _ => rfl)
+      · rw [Iff.comm, iff_and_self]; exact fun _ => rfl
+      · intro; rw [cast_prod, ← prod_inv_distrib]
     · exact fun d _ hd_ne ↦ if_neg fun h => hd_ne.symm h.1
     · exact fun h ↦ if_neg fun h' => h (mem_divisors.mpr ⟨h'.2, hP.ne_zero⟩)
   · apply sum_le_sum; intro a _
@@ -241,13 +242,13 @@ theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (h
     gcongr
     trans (∑ d ∈ Icc 1 (floor x), (d:ℝ)⁻¹)
     · apply sum_le_sum_of_subset_of_nonneg
-      intro d; rw[mem_filter, mem_Icc]
-      intro hd
-      constructor
-      · rw [Nat.succ_le]; exact pos_of_mem_divisors hd.1
-      · rw [le_floor_iff]; exact hd.2;
-        apply le_of_lt; exact hx_pos
-      norm_num
+      · intro d; rw[mem_filter, mem_Icc]
+        intro hd
+        constructor
+        · rw [Nat.succ_le]; exact pos_of_mem_divisors hd.1
+        · rw [le_floor_iff hx_pos.le]
+          exact hd.2
+      · norm_num
     apply sum_inv_le_log_real
     linarith
 

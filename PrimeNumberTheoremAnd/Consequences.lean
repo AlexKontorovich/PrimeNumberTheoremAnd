@@ -167,7 +167,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       simp (config := {contextual := true})
     · exact measurableSet_Icc
     · rw [integrableOn_congr_fun (g := 0)]
-      exact integrableOn_zero
+      · exact integrableOn_zero
       · intro y hy
         simp only [Set.mem_Ico] at hy
         have := th_eq_zero_of_lt_two hy.2
@@ -213,7 +213,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
 
   simp [h3, h4, h5, h6, h7, h8, MeasureTheory.integral_neg] at h2
   rw [h2]
-  simp [a, ← th_def', div_eq_mul_inv, mul_comm]
+  · simp [a, ← th_def', div_eq_mul_inv, mul_comm]
   · intro z hz1 hz2
     refine (differentiableAt_fun_id.log ?_).inv (log_ne_zero_of_pos_of_ne_one ?_ ?_) <;> linarith
   · have : ∀ y ∈ Set.Icc (3 / 2) x, deriv (fun x ↦ (log x)⁻¹) y = -(y * log y ^ 2)⁻¹:= by
@@ -441,7 +441,7 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx: 2 ≤ x) :
       simp only [sum_const, card_Icc, reduceSubDiff, nsmul_eq_mul]
       gcongr
       apply LE.le.trans _ (Nat.floor_le _)
-      simp only [cast_le, tsub_le_iff_right, le_add_iff_nonneg_right, _root_.zero_le]
+      · simp only [cast_le, tsub_le_iff_right, le_add_iff_nonneg_right, _root_.zero_le]
       exact div_nonneg hlogx_nonneg (le_of_lt log2_pos)
 
 
@@ -642,8 +642,7 @@ theorem primorial_bounds :
   intro x
   simp
   rw [@exp_sum]
-  apply Finset.prod_congr
-  rfl
+  apply Finset.prod_congr rfl
   intros x hx
   rw[Real.exp_log]
   rw[Finset.mem_filter] at hx
@@ -747,10 +746,10 @@ lemma integral_log_inv (a b : ℝ) (ha : 2 ≤ a) (hb : a ≤ b) :
     simp_rw [neg_neg]
     refine integral_congr_ae ?_
     · rw [ae_restrict_eq, eventuallyEq_inf_principal_iff]
-      refine .of_forall fun x hx => ?_
-      simp only [Set.mem_Ioc, one_div, mul_inv_rev, mul_assoc] at hx ⊢
-      rw [inv_mul_cancel₀, mul_one]
-      · linarith
+      · refine .of_forall fun x hx => ?_
+        simp only [Set.mem_Ioc, one_div, mul_inv_rev, mul_assoc] at hx ⊢
+        rw [inv_mul_cancel₀, mul_one]
+        linarith
       exact measurableSet_Ioc
 
 lemma integral_log_inv' (a b : ℝ) (ha : 2 ≤ a) (hb : a ≤ b) :
@@ -1400,7 +1399,7 @@ theorem pi_asymp'' :
       apply _root_.add_le_add (h₁ := le_rfl)
       specialize hB x (by linarith)
       rw [abs_div, abs_of_nonneg, abs_of_pos (a := ∫ _ in _, _)] at hB
-      exact hB
+      · exact hB
       · apply integral_log_inv_pos; linarith
       · apply add_nonneg <;> apply abs_nonneg
     _ = ε := by
@@ -2228,7 +2227,7 @@ lemma x_log_x_atTop: Filter.Tendsto (fun x => x / Real.log x) Filter.atTop Filte
 lemma tendsto_by_squeeze (ε: ℝ) (hε: ε > 0): Tendsto
 (fun (x: ℝ) => (Nat.primeCounting ⌊(1 + ε) * x⌋₊ : ℝ) - (Nat.primeCounting ⌊x⌋₊ : ℝ)) atTop atTop := by
   obtain ⟨c, hc, pi_x_eq⟩ := pi_alt
-  rw [Asymptotics.isLittleO_iff_tendsto] at hc
+  rw [Asymptotics.isLittleO_iff_tendsto (by simp)] at hc
   conv =>
     arg 1
     intro x
@@ -2413,7 +2412,6 @@ lemma tendsto_by_squeeze (ε: ℝ) (hε: ε > 0): Tendsto
 
       rw [Filter.tendsto_comp_val_Ioi_atTop (a := 1)]
       exact x_log_x_atTop
-  · simp
 
 theorem prime_between {ε : ℝ} (hε : 0 < ε) :
     ∀ᶠ x : ℝ in atTop, ∃ p : ℕ, Nat.Prime p ∧ x < p ∧ p < (1 + ε) * x := by
@@ -2479,9 +2477,9 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
   /- rewrite Nat division (N / d) as ⌊N / d⌋ -/
   rw [sum_congr rfl (g := fun d ↦ (μ d : ℚ) * ⌊(N : ℚ) / (d : ℚ)⌋)] at h_sum
   swap
-  intros
-  rw [show (N : ℚ) = ((N : ℤ) : ℚ) by norm_cast, Rat.floor_intCast_div_natCast]
-  congr
+  · intros
+    rw [show (N : ℚ) = ((N : ℤ) : ℚ) by norm_cast, Rat.floor_intCast_div_natCast]
+    congr
 
   /- Next, we establish bounds for the error term -/
   have hf' (d : ℕ) : |Int.fract ((N : ℚ) / d)| < 1 := by

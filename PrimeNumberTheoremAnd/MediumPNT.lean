@@ -224,8 +224,8 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     norm_cast
 
   rw [MeasureTheory.integral_tsum]
-  have x_neq_zero : X ≠ 0 := by linarith
-  · intro i
+  · have x_neq_zero : X ≠ 0 := by linarith
+    intro i
     by_cases i_eq_zero : i = 0
     · simpa [i_eq_zero] using aestronglyMeasurable_const
     · apply Continuous.aestronglyMeasurable
@@ -314,18 +314,19 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
     exact SmoothedChebyshevDirichlet_aux_tsum_integral diffSmoothingF SmoothingFpos
       suppSmoothingF mass_one (by linarith) εpos ε_lt_one σ_gt σ_le
   · field_simp; congr; ext n; rw [← MeasureTheory.integral_const_mul]; congr; ext t
-    by_cases n_ne_zero : n = 0; simp [n_ne_zero]
+    by_cases n_ne_zero : n = 0
+    · simp [n_ne_zero]
     rw [mul_div_assoc, mul_assoc]
     congr
     rw [(div_eq_iff ?_).mpr]
-    have := @mul_cpow_ofReal_nonneg (a := X / (n : ℝ)) (b := (n : ℝ)) (r := σ + t * I) ?_ ?_
-    push_cast at this ⊢
-    rw [← this, div_mul_cancel₀]
-    · simp only [ne_eq, Nat.cast_eq_zero, n_ne_zero, not_false_eq_true]
-    · apply div_nonneg (by linarith : 0 ≤ X); simp
-    · simp
-    · simp only [ne_eq, cpow_eq_zero_iff, Nat.cast_eq_zero, not_and, not_not]
-      intro hn; exfalso; exact n_ne_zero hn
+    · have := @mul_cpow_ofReal_nonneg (a := X / (n : ℝ)) (b := (n : ℝ)) (r := σ + t * I) ?_ ?_
+      · push_cast at this ⊢
+        rw [← this, div_mul_cancel₀]
+        · simp only [ne_eq, Nat.cast_eq_zero, n_ne_zero, not_false_eq_true]
+      · apply div_nonneg (by linarith : 0 ≤ X); simp
+      · simp
+    · simp only [ne_eq, cpow_eq_zero_iff, Nat.cast_eq_zero, n_ne_zero, false_and,
+        not_false_eq_true]
   · conv => rw [← mul_assoc, div_mul]; lhs; lhs; rhs; simp
   · simp_rw [← tsum_mul_left, ← mul_assoc, mul_comm]
   · have ht (t : ℝ) : -(σ + t * I) = (-1) * (σ + t * I) := by simp
@@ -339,7 +340,8 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
   · push_cast
     congr
     ext n
-    by_cases n_zero : n = 0; simp [n_zero]
+    by_cases n_zero : n = 0
+    · simp [n_zero]
     have n_pos : 0 < n := by
       simpa only [n_zero, gt_iff_lt, false_or] using (Nat.eq_zero_or_pos n)
     congr
@@ -2495,16 +2497,16 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
           linarith[one_add_inv_log X_gt.le]
       · rw[cpow_def_of_ne_zero]
         · rw[norm_exp,← ofReal_log, re_ofReal_mul]
-          simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-            sub_zero]
-          rw[← le_log_iff_exp_le, Real.log_mul (exp_ne_zero 1), Real.log_exp, ← le_div_iff₀', add_comm, add_div, div_self, one_div]
-          exact hσ.2
-          · refine (Real.log_pos ?_).ne.symm
-            linarith
-          · apply Real.log_pos
-            linarith
-          · linarith
-          · positivity
+          · simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+              sub_zero]
+            rw [← le_log_iff_exp_le, Real.log_mul (exp_ne_zero 1), Real.log_exp, ← le_div_iff₀', add_comm, add_div, div_self, one_div]
+            · exact hσ.2
+            · refine (Real.log_pos ?_).ne.symm
+              linarith
+            · apply Real.log_pos
+              linarith
+            · linarith
+            · positivity
           · positivity
         · exact_mod_cast Xpos.ne.symm
       · positivity
@@ -2527,12 +2529,12 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
       calc
         C' * X * T / (ε * ‖↑σ - ↑T * I‖ ^ 2) ≤ C' * X * T / (ε * T ^ 2) := by
           rw[div_le_div_iff_of_pos_left, mul_le_mul_left]
-          exact this
-          exact ε_pos
-          positivity
-          apply mul_pos ε_pos
-          exact lt_of_lt_of_le (pow_pos Tpos 2) this
-          positivity
+          · exact this
+          · exact ε_pos
+          · positivity
+          · apply mul_pos ε_pos
+            exact lt_of_lt_of_le (pow_pos Tpos 2) this
+          · positivity
         _ = C' * X / (ε * T) := by
           field_simp
           ring
@@ -2587,8 +2589,8 @@ lemma I8I2 {SmoothingF : ℝ → ℝ}
     intro σ hσ
     simp only []
     rw[← smoothedChebyshevIntegrand_conj]
-    simp only [map_sub, conj_ofReal, map_mul, conj_I, mul_neg, sub_neg_eq_add]
-    exact lt_trans (by norm_num) T_gt
+    · simp only [map_sub, conj_ofReal, map_mul, conj_I, mul_neg, sub_neg_eq_add]
+    · exact lt_trans (by norm_num) T_gt
 /-%%
 \begin{proof}\uses{I2, I8, SmoothedChebyshevIntegrand_conj}\leanok
   This is a direct consequence of the definitions of $I_2$ and $I_8$.
@@ -3434,7 +3436,7 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
   apply mul_le_mul
   · rw[norm_div, norm_one]
     repeat rw[norm_mul]
-    rw[Complex.norm_two, Complex.norm_real, Real.norm_of_nonneg, Complex.norm_I, mul_one]
+    rw[Complex.norm_two, Complex.norm_real, Real.norm_of_nonneg pi_nonneg, Complex.norm_I, mul_one]
     have : 1 / (2 * π) < 1 / 6 := by
       rw[one_div_lt_one_div]
       · refine (div_lt_iff₀' ?_).mp ?_
@@ -3446,7 +3448,6 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
       · norm_num
     apply le_of_lt
     exact lt_trans this (by norm_num)
-    exact pi_nonneg
   · let f : ℝ → ℂ := fun σ ↦ (-ζ' (↑σ - 3 * I) / ζ (↑σ - 3 * I) * 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑σ - 3 * I) * ↑X ^ (↑σ - 3 * I))
     have temp : ‖∫ (σ : ℝ) in σ₂..σ₁, -ζ' (↑σ - 3 * I) / ζ (↑σ - 3 * I) * 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑σ - 3 * I) * ↑X ^ (↑σ - 3 * I)‖ ≤
       C * X * X ^ (-A / Real.log T ^ 9) / ε * |σ₁ - σ₂| := by
@@ -3611,7 +3612,7 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
           exact σ₂_le_σ₁
       bound
     exact le_trans temp this
-  simp only [norm_nonneg]
+  · simp only [norm_nonneg]
   norm_num
 
 lemma I6I4 {SmoothingF : ℝ → ℝ} {ε X σ₁ σ₂ : ℝ} (Xpos : 0 < X) :
