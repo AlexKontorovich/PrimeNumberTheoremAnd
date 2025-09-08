@@ -1271,57 +1271,6 @@ $$
 \end{theorem}
 %%-/
 
-open Topology in
-theorem BddAbove_on_rectangle_of_bdd_near {z w p : ℂ} {f : ℂ → ℂ}
-    (f_cont : ContinuousOn f ((Rectangle z w) \ {p}))
-    (f_near_p : f =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
-    BddAbove (norm ∘ f '' ((Rectangle z w) \ {p})) := by
-  obtain ⟨V, V_in_nhds, V_prop⟩ := IsBigO_to_BddAbove f_near_p
-  rw [mem_nhds_iff] at V_in_nhds
-  obtain ⟨W, W_subset, W_open, p_in_W⟩ := V_in_nhds
-  set U := Rectangle z w
-  have : U \ {p} = (U \ W) ∪ ((U ∩ W) \ {p}) := by
-    ext x
-    simp only [mem_diff, mem_singleton_iff, mem_union, mem_inter_iff]
-    constructor
-    · intro ⟨xu, x_not_p⟩
-      tauto
-    · intro h
-      rcases h with  ⟨h1,h2⟩ | ⟨⟨h1, h2⟩, h3⟩
-      · refine ⟨h1, ?_⟩
-        intro h
-        rw [← h] at p_in_W
-        apply h2 p_in_W
-      · tauto
-  rw [this, image_union]
-  apply BddAbove.union
-  · apply IsCompact.bddAbove_image
-    · apply IsCompact.diff _ W_open
-      apply IsCompact.reProdIm <;> apply isCompact_uIcc
-    · apply f_cont.norm.mono
-      apply diff_subset_diff_right
-      simpa
-  · apply V_prop.mono
-    apply image_mono
-    apply diff_subset_diff_left <| subset_trans inter_subset_right W_subset
-
-open Topology in
-theorem ResidueTheoremOnRectangleWithSimplePole' {f : ℂ → ℂ} {z w p A : ℂ}
-    (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)
-    (pInRectInterior : Rectangle z w ∈ 𝓝 p)
-    (fHolo : HolomorphicOn f ((Rectangle z w) \ {p}))
-    (near_p : (f - (fun s ↦ A / (s - p))) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
-    RectangleIntegral' f z w = A := by
-  set g := f - (fun s ↦ A / (s - p))
-  have gHolo : HolomorphicOn g ((Rectangle z w) \ {p}) := by
-    apply DifferentiableOn.sub fHolo
-    intro s hs
-    have : s - p ≠ 0 := by exact sub_ne_zero.mpr hs.2
-    fun_prop (disch := assumption)
-  have := BddAbove_on_rectangle_of_bdd_near gHolo.continuousOn near_p
-  obtain ⟨h, ⟨hHolo, hEq⟩⟩ := existsDifferentiableOn_of_bddAbove pInRectInterior gHolo this
-  exact ResidueTheoremOnRectangleWithSimplePole zRe_le_wRe zIm_le_wIm pInRectInterior hHolo hEq
-
 theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
     (ε_lt_one : ε < 1)
     (X : ℝ) (X_gt : 3 < X)
