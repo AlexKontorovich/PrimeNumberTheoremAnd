@@ -18,7 +18,7 @@ lemma div_cpow_eq_cpow_neg (a x s : ℂ) : a / x ^ s = a * x ^ (-s) := by
 lemma one_div_cpow_eq_cpow_neg (x s : ℂ) : 1 / x ^ s = x ^ (-s) := by
   convert div_cpow_eq_cpow_neg 1 x s using 1; simp
 
-lemma div_rpow_eq_rpow_neg (a x s : ℝ) (hx : 0 ≤ x): a / x ^ s = a * x ^ (-s) := by
+lemma div_rpow_eq_rpow_neg (a x s : ℝ) (hx : 0 ≤ x) : a / x ^ s = a * x ^ (-s) := by
   rw [div_eq_mul_inv, Real.rpow_neg hx]
 
 lemma div_rpow_neg_eq_rpow_div {x y s : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
@@ -255,7 +255,7 @@ theorem derivative_const_plus_product {g : ℂ → ℂ}
 
 
 
-theorem diff_translation (p : ℂ ) : deriv (fun x => x - p) = fun _ => 1 := by
+theorem diff_translation (p : ℂ) : deriv (fun x => x - p) = fun _ => 1 := by
   ext x
   simp [deriv_id'', deriv_const]
 
@@ -359,7 +359,7 @@ theorem nonZeroOfBddAbove {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
 theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (U_is_open : IsOpen U)
-    (non_zero: ∀ x ∈ U \ {p}, f x ≠ 0)
+    (non_zero : ∀ x ∈ U \ {p}, f x ≠ 0)
     (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
@@ -470,8 +470,8 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 \end{theorem}
 %%-/
 
-theorem  logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
-    (non_zero: ∀x ∈ U \ {p}, f x ≠ 0)
+theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
+    (non_zero : ∀ x ∈ U \ {p}, f x ≠ 0)
     (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
@@ -536,7 +536,7 @@ Elementary.
 %%-/
 
 theorem logDerivResidue'' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
-    (non_zero: ∀x ∈ U \ {p}, f x ≠ 0)
+    (non_zero : ∀ x ∈ U \ {p}, f x ≠ 0)
     (holc : HolomorphicOn f (U \ {p}))
     (U_in_nhds : U ∈ 𝓝 p) {A : ℂ} (A_ne_zero : A ≠ 0)
     (f_near_p : BddAbove (norm ∘ (f - fun s ↦ A * (s - p)⁻¹) '' (U \ {p}))) :
@@ -875,7 +875,7 @@ lemma interval_induction (P : ℝ → ℝ → Prop)
 %%-/
 /-- ** Partial summation ** (TODO : Add to Mathlib). -/
 theorem Finset.Ioc_diff_Ioc {α : Type*} [LinearOrder α] [LocallyFiniteOrder α]
-    {a b c: α} [DecidableEq α] (hb : b ∈ Icc a c) : Ioc a b = Ioc a c \ Ioc b c := by
+    {a b c : α} [DecidableEq α] (hb : b ∈ Icc a c) : Ioc a b = Ioc a c \ Ioc b c := by
   ext x
   simp only [mem_Ioc, mem_sdiff, not_and, not_le]
   constructor
@@ -883,7 +883,7 @@ theorem Finset.Ioc_diff_Ioc {α : Type*} [LinearOrder α] [LocallyFiniteOrder α
   · exact fun ⟨h₁, h₂⟩ ↦ ⟨h₁.1, by contrapose! h₂; exact ⟨h₂, h₁.2⟩⟩
 
 -- In Yaël Dillies's API (https://leanprover.zulipchat.com/#narrow/stream/217875-Is-there-code-for-X.3F/topic/Finset.2Esum_add_adjacent_intervals/near/430127101)
-lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (hb : b ∈ Icc a c):
+lemma Finset.sum_Ioc_add_sum_Ioc {a b c : ℤ} (f : ℤ → ℂ) (hb : b ∈ Icc a c) :
     (∑ n ∈ Finset.Ioc a b, f n) + (∑ n ∈ Finset.Ioc b c, f n) = ∑ n ∈ Finset.Ioc a c, f n := by
   convert Finset.sum_sdiff (s₁ := Finset.Ioc b c) (s₂ := Finset.Ioc a c) ?_
   · exact Finset.Ioc_diff_Ioc hb
@@ -1057,11 +1057,11 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠
 \end{proof}
 %%-/
 
-lemma ZetaSum_aux1_1' {a b x : ℝ} (apos : 0 < a) (hx : x ∈ Icc a b)
-    : 0 < x := lt_of_lt_of_le apos hx.1
+lemma ZetaSum_aux1_1' {a b x : ℝ} (apos : 0 < a) (hx : x ∈ Icc a b) : 0 < x :=
+  lt_of_lt_of_le apos hx.1
 
-lemma ZetaSum_aux1_1 {a b x : ℝ} (apos : 0 < a) (a_lt_b : a < b) (hx : x ∈ [[a,b]])
-    : 0 < x :=  lt_of_lt_of_le apos (uIcc_of_le a_lt_b.le ▸ hx).1
+lemma ZetaSum_aux1_1 {a b x : ℝ} (apos : 0 < a) (a_lt_b : a < b) (hx : x ∈ [[a, b]]) : 0 < x :=
+  lt_of_lt_of_le apos (uIcc_of_le a_lt_b.le ▸ hx).1
 
 lemma ZetaSum_aux1_2 {a b : ℝ} {c : ℝ} (apos : 0 < a) (a_lt_b : a < b)
     (h : c ≠ 0 ∧ 0 ∉ [[a, b]]) :
@@ -1173,13 +1173,13 @@ lemma tsum_eq_partial_add_tail {N : ℕ} (f : ℕ → ℂ) (hf : Summable f) :
     ∑' (n : ℕ), f n = (∑ n ∈ Finset.range N, f n) + ∑' (n : ℕ), f (n + N) := by
   rw [← Summable.sum_add_tsum_nat_add (f := f) (h := hf) (k := N)]
 
-lemma Finset.Ioc_eq_Ico (M N : ℕ): Finset.Ioc N M = Finset.Ico (N + 1) (M + 1) := by
+lemma Finset.Ioc_eq_Ico (M N : ℕ) : Finset.Ioc N M = Finset.Ico (N + 1) (M + 1) := by
   ext a; simp only [Finset.mem_Ioc, Finset.mem_Ico]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
 
-lemma Finset.Ioc_eq_Icc (M N : ℕ): Finset.Ioc N M = Finset.Icc (N + 1) M := by
+lemma Finset.Ioc_eq_Icc (M N : ℕ) : Finset.Ioc N M = Finset.Icc (N + 1) M := by
   ext a; simp only [Finset.mem_Ioc, Finset.mem_Icc]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
 
-lemma Finset.Icc_eq_Ico (M N : ℕ): Finset.Icc N M = Finset.Ico N (M + 1) := by
+lemma Finset.Icc_eq_Ico (M N : ℕ) : Finset.Icc N M = Finset.Ico N (M + 1) := by
   ext a; simp only [Finset.mem_Icc, Finset.mem_Ico]; constructor <;> intro ⟨h₁, h₂⟩ <;> omega
 
 lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
@@ -1398,7 +1398,7 @@ lemma isOpen_aux : IsOpen {z : ℂ | z ≠ 1 ∧ 0 < z.re} := by
   exact isOpen_lt (g := fun (z : ℂ) ↦ z.re) (by continuity) (by continuity)
 
 open MeasureTheory in
-lemma integrable_log_over_pow {r : ℝ} (rneg: r < 0) {N : ℕ} (Npos : 0 < N):
+lemma integrable_log_over_pow {r : ℝ} (rneg : r < 0) {N : ℕ} (Npos : 0 < N) :
     IntegrableOn (fun (x : ℝ) ↦ ‖x ^ (r - 1)‖ * ‖Real.log x‖) <| Ioi N := by
   apply IntegrableOn.mono_set (hst := Set.Ioi_subset_Ici <| le_refl (N : ℝ))
   apply LocallyIntegrableOn.integrableOn_of_isBigO_atTop (g := fun x ↦ x ^ (r / 2 - 1))
@@ -1582,7 +1582,7 @@ lemma HasDerivAt_cpow_over_var (N : ℕ) {z : ℂ} (z_ne_zero : z ≠ 0) :
     simp only [id_eq, mul_one]
   · exact hasDerivAt_inv z_ne_zero
 
-lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1):
+lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s_ne_one : s ≠ 1) :
     HasDerivAt (ζ₀ N) (ζ₀' N s) s := by
   unfold riemannZeta0 ζ₀'
   apply HasDerivAt.fun_sum ?_ |>.add ?_ |>.add ?_ |>.add ?_
@@ -1739,23 +1739,23 @@ lemma DerivZeta0EqDerivZeta {N : ℕ} (N_pos : 0 < N) {s : ℂ} (reS_pos : 0 < s
   have hζ := HolomophicOn_riemannZeta.mono (by aesop)|>.hasDerivAt (s := U) <| isOpen_aux.mem_nhds hx
   exact hζ.hasDerivWithinAt.congr (fun y hy ↦ this hy) (this hx)
 
-lemma le_trans₄ {α : Type*} [Preorder α] {a b c d: α} : a ≤ b → b ≤ c → c ≤ d → a ≤ d :=
+lemma le_trans₄ {α : Type*} [Preorder α] {a b c d : α} : a ≤ b → b ≤ c → c ≤ d → a ≤ d :=
   fun hab hbc hcd ↦ le_trans (le_trans hab hbc) hcd
 
-lemma lt_trans₄ {α : Type*} [Preorder α] {a b c d: α} : a < b → b < c → c < d → a < d :=
+lemma lt_trans₄ {α : Type*} [Preorder α] {a b c d : α} : a < b → b < c → c < d → a < d :=
   fun hab hbc hcd ↦ lt_trans (lt_trans hab hbc) hcd
 
-lemma norm_add₄_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) :
+lemma norm_add₄_le {E : Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) :
     ‖a + b + c + d‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ := by
   apply le_trans <| norm_add_le (a + b + c) d
   simp only [add_le_add_iff_right]; apply norm_add₃_le
 
-lemma norm_add₅_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) (e : E) :
+lemma norm_add₅_le {E : Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) (e : E) :
     ‖a + b + c + d + e‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ + ‖e‖ := by
   apply le_trans <| norm_add_le (a + b + c + d) e
   simp only [add_le_add_iff_right]; apply norm_add₄_le
 
-lemma norm_add₆_le {E: Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) (e : E) (f : E) :
+lemma norm_add₆_le {E : Type*} [SeminormedAddGroup E] (a : E) (b : E) (c : E) (d : E) (e : E) (f : E) :
     ‖a + b + c + d + e + f‖ ≤ ‖a‖ + ‖b‖ + ‖c‖ + ‖d‖ + ‖e‖ + ‖f‖ := by
   apply le_trans <| norm_add_le (a + b + c + d + e) f
   simp only [add_le_add_iff_right]; apply norm_add₅_le
@@ -1832,9 +1832,10 @@ since $n\le t$.
 lemma logt_gt_one {t : ℝ} (t_ge : 3 ≤ t) : 1 < Real.log t :=
   (Real.lt_log_iff_exp_lt (by linarith)).mpr (by linarith [Real.exp_one_lt_d9])
 
-lemma UpperBnd_aux {A σ t: ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
-      (σ_ge : 1 - A / Real.log |t| ≤ σ) : let N := ⌊|t|⌋₊;
-      0 < N ∧ N ≤ |t| ∧ 1 < Real.log |t| ∧ 1 - A < σ ∧ 0 < σ ∧ σ + t * I ≠ 1 := by
+lemma UpperBnd_aux {A σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2)) (t_gt : 3 < |t|)
+    (σ_ge : 1 - A / Real.log |t| ≤ σ) :
+    let N := ⌊|t|⌋₊;
+    0 < N ∧ N ≤ |t| ∧ 1 < Real.log |t| ∧ 1 - A < σ ∧ 0 < σ ∧ σ + t * I ≠ 1 := by
   intro N
   have Npos : 0 < N := Nat.floor_pos.mpr (by linarith)
   have N_le_t : N ≤ |t| := Nat.floor_le <| abs_nonneg _
@@ -1858,7 +1859,7 @@ lemma UpperBnd_aux2 {A σ t : ℝ} (t_ge : 3 < |t|) (σ_ge : 1 - A / Real.log |t
     ← mul_assoc, inv_mul_cancel₀, one_mul]
   apply Real.log_ne_zero.mpr; split_ands <;> linarith
 
-lemma riemannZeta0_zero_aux (N : ℕ) (Npos : 0 < N):
+lemma riemannZeta0_zero_aux (N : ℕ) (Npos : 0 < N) :
     ∑ x ∈ Finset.Ico 0 N, ((x : ℝ))⁻¹ = ∑ x ∈ Finset.Ico 1 N, ((x : ℝ))⁻¹ := by
   have : Finset.Ico 1 N ⊆ Finset.Ico 0 N := by
     intro x hx
@@ -1911,7 +1912,7 @@ lemma Nat.self_div_floor_bound {t : ℝ} (t_ge : 1 ≤ |t|) : let N := ⌊|t|⌋
     suffices |t| < N + 1 by linarith [(by exact_mod_cast (by omega) : 1 ≤ (N : ℝ))]
     apply Nat.lt_floor_add_one
 
-lemma UpperBnd_aux5 {σ t : ℝ}  (t_ge : 3 < |t|) (σ_le : σ ≤ 2) : (|t| / ⌊|t|⌋₊) ^ σ ≤ 4 := by
+lemma UpperBnd_aux5 {σ t : ℝ} (t_ge : 3 < |t|) (σ_le : σ ≤ 2) : (|t| / ⌊|t|⌋₊) ^ σ ≤ 4 := by
   obtain ⟨h₁, h₂⟩ := Nat.self_div_floor_bound (by linarith)
   calc _ ≤ ((|t| / ↑⌊|t|⌋₊) ^ (2 : ℝ)) := by gcongr; exact h₁
        _ ≤ (2 : ℝ) ^ (2 : ℝ) := by gcongr
@@ -2097,7 +2098,7 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
   refine add_le_add logt_gt.le <| mul_le_mul (by linarith) ?_ (by positivity) (by linarith)
   exact Real.log_le_log (by positivity) N_le_t
 
-lemma DerivUpperBnd_aux2 {A σ t : ℝ}(t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
+lemma DerivUpperBnd_aux2 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 - A / |t|.log) 2) :
     let N := ⌊|t|⌋₊;
     let s := ↑σ + ↑t * I;
     0 < N → ↑N ≤ |t| → s ≠ 1 →
@@ -2246,7 +2247,7 @@ lemma DerivUpperBnd_aux7_tendsto {σ : ℝ} (σpos : 0 < σ) :
 
 
 open MeasureTheory in
-lemma DerivUpperBnd_aux7_4 {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
+lemma DerivUpperBnd_aux7_4 {a σ : ℝ} (σpos : 0 < σ) (ha : 1 ≤ a) :
     IntegrableOn (fun x ↦ x ^ (-σ - 1) * Real.log x) (Ioi a) volume := by
   apply integrableOn_Ioi_deriv_of_nonneg' (l := 0)
   · exact DerivUpperBnd_aux7_3' (by linarith) (by linarith)
@@ -2254,7 +2255,7 @@ lemma DerivUpperBnd_aux7_4 {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
   · exact DerivUpperBnd_aux7_tendsto σpos
 
 open MeasureTheory in
-lemma DerivUpperBnd_aux7_5 {a σ : ℝ} (σpos: 0 < σ) (ha : 1 ≤ a) :
+lemma DerivUpperBnd_aux7_5 {a σ : ℝ} (σpos : 0 < σ) (ha : 1 ≤ a) :
     IntegrableOn (fun x ↦ |(↑⌊x⌋ + (1 : ℝ) / 2 - x)| * x ^ (-σ - 1) * Real.log x) (Ioi a) volume := by
   simp_rw [mul_assoc]
   apply Integrable.bdd_mul <| DerivUpperBnd_aux7_4 σpos ha
@@ -2486,7 +2487,7 @@ Estimate as before, with an extra factor of $\log |t|$.
 %%-/
 
 lemma Tendsto_nhdsWithin_punctured_map_add {f : ℝ → ℝ} (a x : ℝ)
-    (f_mono : StrictMono f) (f_iso : Isometry f):
+    (f_mono : StrictMono f) (f_iso : Isometry f) :
     Tendsto (fun y ↦ f y + a) (𝓝[>] x) (𝓝[>] (f x + a)) := by
   refine tendsto_iff_forall_eventually_mem.mpr ?_
   intro v hv
@@ -2538,7 +2539,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma ZetaNear1BndFilter:
+lemma ZetaNear1BndFilter :
     (fun σ : ℝ ↦ ζ σ) =O[𝓝[>](1 : ℝ)] (fun σ ↦ (1 : ℂ) / (σ - 1)) := by
   have := Tendsto_nhdsWithin_punctured_add (a := -1) (x := 1)
   simp only [add_neg_cancel, ← sub_eq_add_neg] at this
@@ -2560,7 +2561,7 @@ $$
 $$
 \end{lemma}
 %%-/
-lemma ZetaNear1BndExact:
+lemma ZetaNear1BndExact :
     ∃ (c : ℝ) (_ : 0 < c), ∀ (σ : ℝ) (_ : σ ∈ Ioc 1 2), ‖ζ σ‖ ≤ c / (σ - 1) := by
   have := ZetaNear1BndFilter
   rw [Asymptotics.isBigO_iff] at this
@@ -3633,7 +3634,7 @@ in this range by Lemma \ref{ZetaZeroFree}.
 %%-/
 
 theorem summable_complex_then_summable_real_part (f : ℕ → ℂ)
-    ( h : Summable f) : Summable (fun n ↦ (f n).re) := by
+    (h : Summable f) : Summable (fun n ↦ (f n).re) := by
   rcases h with ⟨s, hs⟩
   exact ⟨s.re,  hasSum_re hs⟩
 

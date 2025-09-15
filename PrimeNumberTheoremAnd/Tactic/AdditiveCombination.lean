@@ -39,7 +39,7 @@ variable {α β : Type*}
 
 theorem pf_smul_c [SMul α β] {a b : α} (p : a = b) (c : β) : a • c = b • c := p ▸ rfl
 theorem c_smul_pf [SMul α β] {b c : β} (p : b = c) (a : α) : a • b = a • c := p ▸ rfl
-theorem smul_pf [SMul α β] {a₁ b₁ : α} (p₁ : (a₁:α) = b₁) {a₂ b₂ : β} (p₂ : a₂ = b₂) :
+theorem smul_pf [SMul α β] {a₁ b₁ : α} (p₁ : (a₁ : α) = b₁) {a₂ b₂ : β} (p₂ : a₂ = b₂) :
     a₁ • a₂ = b₁ • b₂ := p₁ ▸ p₂ ▸ rfl
 
 /--

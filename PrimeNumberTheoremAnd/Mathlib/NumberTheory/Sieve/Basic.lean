@@ -255,7 +255,7 @@ theorem lambdaSquared_mainSum_eq_quad_form (w : ℕ → ℝ) :
   · exact Nat.gcd_dvd_left d1 d2
   · exact dvd_of_mem_divisors hd1
 
-theorem lambdaSquared_mainSum_eq_diag_quad_form  (w : ℕ → ℝ) :
+theorem lambdaSquared_mainSum_eq_diag_quad_form (w : ℕ → ℝ) :
     mainSum (lambdaSquared w) =
       ∑ l ∈ divisors P,
         1 / g l * (∑ d ∈ divisors P, if l ∣ d then ν d * w d else 0) ^ 2 :=

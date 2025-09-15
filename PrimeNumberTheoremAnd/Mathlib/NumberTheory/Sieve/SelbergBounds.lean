@@ -147,8 +147,9 @@ theorem apply_pow (f : ArithmeticFunction ℝ) (hf : CompletelyMultiplicative f)
 
 end CompletelyMultiplicative
 
-theorem prod_factors_one_div_compMult_ge (M : ℕ) (f : ArithmeticFunction ℝ) (hf : CompletelyMultiplicative f)
-  (hf_nonneg : ∀ n, 0 ≤ f n) (d : ℕ)  (hd : Squarefree d)  (hf_size : ∀n, n.Prime → n ∣ d → f n < 1):
+theorem prod_factors_one_div_compMult_ge (M : ℕ) (f : ArithmeticFunction ℝ)
+    (hf : CompletelyMultiplicative f) (hf_nonneg : ∀ n, 0 ≤ f n) (d : ℕ) (hd : Squarefree d)
+    (hf_size : ∀ n, n.Prime → n ∣ d → f n < 1) :
     f d * ∏ p ∈ d.primeFactors, 1 / (1 - f p)
     ≥ ∏ p ∈ d.primeFactors, ∑ n ∈ Finset.Icc 1 M, f (p^n) := by
   calc f d * ∏ p ∈ d.primeFactors, 1 / (1 - f p)
@@ -179,7 +180,7 @@ theorem prod_factors_one_div_compMult_ge (M : ℕ) (f : ArithmeticFunction ℝ) 
   _ = ∏ p ∈ d.primeFactors, ∑ n ∈ Finset.Icc 1 M, f (p^n)  := by
      simp_rw [hf.apply_pow]
 
-theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFunction ℝ) (hf : CompletelyMultiplicative f) (d : ℕ) (hd : Squarefree d):
+theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFunction ℝ) (hf : CompletelyMultiplicative f) (d : ℕ) (hd : Squarefree d) :
     ∏ p ∈ d.primeFactors, ∑ n ∈ Finset.Icc 1 M, f (p^n)
     = ∑ m ∈ (d^M).divisors.filter (d ∣ ·), f m := by
   rw [Finset.prod_sum]
@@ -319,7 +320,7 @@ theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFu
 
   exact Finset.sum_bij i hi i_inj i_surj h
 
-theorem prod_primes_dvd_of_dvd (P : ℕ) {s : Finset ℕ} (h : ∀ p ∈ s, p ∣ P) (h' : ∀ p ∈ s, p.Prime):
+theorem prod_primes_dvd_of_dvd (P : ℕ) {s : Finset ℕ} (h : ∀ p ∈ s, p ∣ P) (h' : ∀ p ∈ s, p.Prime) :
     ∏ p ∈ s, p ∣ P := by
   simp_rw [Nat.prime_iff] at h'
   apply Finset.prod_primes_dvd _ h' h
@@ -331,7 +332,7 @@ lemma sqrt_le_self (x : ℝ) (hx : 1 ≤ x) : Real.sqrt x ≤ x := by
   refine le_self_pow₀ hx ?right.h
   norm_num
 
-lemma Nat.squarefree_dvd_pow (a b N: ℕ) (ha : Squarefree a) (hab : a ∣ b ^ N) : a ∣ b := by
+lemma Nat.squarefree_dvd_pow (a b N : ℕ) (ha : Squarefree a) (hab : a ∣ b ^ N) : a ∣ b := by
   by_cases hN : N=0
   · rw [hN, pow_zero, Nat.dvd_one] at hab
     rw [hab]; simp

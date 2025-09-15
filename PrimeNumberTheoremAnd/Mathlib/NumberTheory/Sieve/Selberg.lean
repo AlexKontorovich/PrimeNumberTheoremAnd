@@ -114,7 +114,7 @@ theorem selbergWeights_mul_mu_nonneg (d : ℕ) (hdP : d ∣ P) :
   · exact le_of_lt <| selbergTerms_pos _ m (dvd_of_mem_divisors hm)
   · rfl
 
-lemma sum_mul_subst (k n: ℕ) {f : ℕ → ℝ} (h : ∀ l, l ∣ n → ¬ k ∣ l → f l = 0) :
+lemma sum_mul_subst (k n : ℕ) {f : ℕ → ℝ} (h : ∀ l, l ∣ n → ¬ k ∣ l → f l = 0) :
       ∑ l ∈ n.divisors, f l
     = ∑ m ∈ n.divisors, if k*m ∣ n then f (k*m) else 0 := by
   by_cases hn: n = 0
@@ -280,14 +280,14 @@ theorem selberg_bound_simple_mainSum :
   · ring
   · apply _root_.ne_of_gt; apply selbergBoundingSum_pos
 
-lemma eq_gcd_mul_of_dvd_of_coprime {k d m :ℕ} (hkd : k ∣ d) (hmd : Coprime m d) (hk : k ≠ 0) :
+lemma eq_gcd_mul_of_dvd_of_coprime {k d m : ℕ} (hkd : k ∣ d) (hmd : Coprime m d) (hk : k ≠ 0) :
     k = d.gcd (k*m) := by
   obtain ⟨r, hr⟩ := hkd
   have hrdvd : r ∣ d := by use k; rw [mul_comm]; exact hr
   apply symm; rw [hr, Nat.gcd_mul_left, mul_eq_left₀ hk, Nat.gcd_comm]
   apply Coprime.coprime_dvd_right hrdvd hmd
 
-private lemma _helper {k m d :ℕ} (hkd : k ∣ d) (hk: k ∈ divisors P) (hm: m ∈ divisors P):
+private lemma _helper {k m d : ℕ} (hkd : k ∣ d) (hk : k ∈ divisors P) (hm : m ∈ divisors P) :
     k * m ∣ P ∧ k = Nat.gcd d (k * m) ∧ (k * m) ^ 2 ≤ y ↔
     (k * m) ^ 2 ≤ y ∧ Coprime m d := by
   constructor

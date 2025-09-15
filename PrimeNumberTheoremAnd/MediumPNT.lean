@@ -275,8 +275,8 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
     (SmoothingFpos : ∀ x > 0, 0 ≤ SmoothingF x)
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (mass_one: ∫ x in Ioi (0 : ℝ), SmoothingF x / x = 1)
-    {X : ℝ} (X_gt : 3 < X) {ε : ℝ} (εpos: 0 < ε) (ε_lt_one : ε < 1) :
+    (mass_one : ∫ x in Ioi (0 : ℝ), SmoothingF x / x = 1)
+    {X : ℝ} (X_gt : 3 < X) {ε : ℝ} (εpos : 0 < ε) (ε_lt_one : ε < 1) :
     SmoothedChebyshev SmoothingF ε X =
       ∑' n, ArithmeticFunction.vonMangoldt n * Smooth1 SmoothingF ε (n / X) := by
   dsimp [SmoothedChebyshev, SmoothedChebyshevIntegrand, VerticalIntegral', VerticalIntegral]
@@ -1139,8 +1139,8 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_explicit {σ₀ : ℝ} (σ₀_gt 
   fun _ ↦ dlog_riemannZeta_bdd_on_vertical_lines_generalized _ _ _ σ₀_gt <| le_refl _
 
 -- TODO : Move elsewhere (should be in Mathlib!) NOT NEEDED
-theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀)  :
-  ∃ c > 0, ∀(t : ℝ), ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ c := by
+theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) :
+    ∃ c > 0, ∀(t : ℝ), ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ c := by
   refine ⟨1 + ‖(ζ' σ₀ / ζ σ₀)‖, (by positivity), fun t ↦ ?_⟩
   have := dlog_riemannZeta_bdd_on_vertical_lines_explicit σ₀_gt t
   rw [neg_div, norm_neg] at this
@@ -1271,12 +1271,12 @@ $$
 \end{theorem}
 %%-/
 
-theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε)
+theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε)
     (ε_lt_one : ε < 1)
     (X : ℝ) (X_gt : 3 < X)
     {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
     (σ₁_pos : 0 < σ₁) (σ₁_lt_one : σ₁ < 1)
-    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₁ 2)×ℂ (Icc (-T) T) \ {1}))
+    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₁ 2) ×ℂ (Icc (-T) T) \ {1}))
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
@@ -1463,8 +1463,8 @@ Pull rectangle contours and evaluate the pole at $s=1$.
 \end{proof}
 %%-/
 
-lemma interval_membership (r : ℝ)(a b: ℝ)(h1 : r ∈ Set.Icc (min a b) (max a b)) (h2 : a < b) :
-  a ≤ r ∧ r ≤ b := by
+lemma interval_membership (r : ℝ) (a b : ℝ) (h1 : r ∈ Set.Icc (min a b) (max a b)) (h2 : a < b) :
+    a ≤ r ∧ r ≤ b := by
   -- Since a < b, we have min(a,b) = a and max(a,b) = b
   have min_eq : min a b = a := min_eq_left (le_of_lt h2)
   have max_eq : max a b = b := max_eq_right (le_of_lt h2)
@@ -1530,12 +1530,12 @@ $$
 \end{lemma}
 %%-/
 
-theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos: 0 < ε) (ε_lt_one : ε < 1)
+theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε) (ε_lt_one : ε < 1)
     (X : ℝ) (_ : 3 < X)
     {T : ℝ} (T_pos : 3 < T) {σ₁ σ₂ : ℝ}
     (σ₂_pos : 0 < σ₂) (σ₁_lt_one : σ₁ < 1)
     (σ₂_lt_σ₁ : σ₂ < σ₁)
-    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₁ 2)×ℂ (Icc (-T) T) \ {1}))
+    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₁ 2) ×ℂ (Icc (-T) T) \ {1}))
     (holoOn2 : HolomorphicOn (SmoothedChebyshevIntegrand SmoothingF ε X)
       (Icc σ₂ 2 ×ℂ Icc (-3) 3 \ {1}))
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
@@ -2330,8 +2330,7 @@ $$
 where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X}=e \cdot X$.
 \end{proof}
 %%-/
-
-lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X): (1 + (Real.log X)⁻¹) < 2 := by
+lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X) : (1 + (Real.log X)⁻¹) < 2 := by
   rw[← one_add_one_eq_two]
   refine (Real.add_lt_add_iff_left 1).mpr ?_
   refine inv_lt_one_of_one_lt₀ (logt_gt_one X_ge)
@@ -2348,7 +2347,7 @@ $$
 lemma I2Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
-    {A C₂ : ℝ} (has_bound: LogDerivZetaHasBound A C₂) (C₂pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
+    {A C₂ : ℝ} (has_bound : LogDerivZetaHasBound A C₂) (C₂pos : 0 < C₂) (A_in : A ∈ Ioc 0 (1 / 2)) :
     ∃ (C : ℝ) (_ : 0 < C),
     ∀(X : ℝ) (_ : 3 < X) {ε : ℝ} (_ : 0 < ε)
     (_ : ε < 1) {T : ℝ} (_ : 3 < T),
