@@ -262,7 +262,7 @@ so by Fubini's theorem it suffices to verify the identity
   let f := fun (u : ℝ) ↦ (f' u) / c
   have hderiv : ∀ u ∈ Ici (-Real.log x), HasDerivAt f (f' u) u := by
     intro u _
-    rw [show f' u = cexp (c * u) * (c * 1) / c by field_simp [f']]
+    rw [show f' u = cexp (c * u) * (c * 1) / c by simp only [f']; field_simp]
     exact (hasDerivAt_id' u).ofReal_comp.const_mul c |>.cexp.div_const c
   have hf : Tendsto f atTop (𝓝 0) := by
     apply tendsto_zero_iff_norm_tendsto_zero.mpr
@@ -373,7 +373,7 @@ lemma decay_bounds_aux {f : ℝ → ℂ} (hf : AEStronglyMeasurable f volume) (h
 theorem decay_bounds_W21 (f : W21) (hA : ∀ t, ‖f t‖ ≤ A / (1 + t ^ 2))
     (hA' : ∀ t, ‖deriv (deriv f) t‖ ≤ A / (1 + t ^ 2)) (u) :
     ‖𝓕 f u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
-  have l0 : 1 * (4 * π)⁻¹ * A = (4 * π ^ 2)⁻¹ * (π * A) := by field_simp ; ring
+  have l0 : 1 * (4 * π)⁻¹ * A = (4 * π ^ 2)⁻¹ * (π * A) := by field_simp
   have l1 : ∫ (v : ℝ), ‖f v‖ ≤ π * A := by
     apply decay_bounds_aux f.continuous.aestronglyMeasurable
     simp_rw [← div_eq_mul_inv] ; exact hA
@@ -439,9 +439,8 @@ lemma continuous_LSeries_aux (hf : Summable (nterm f σ')) :
   have l2 n (x : ℝ) : ‖term f (σ' + x * I) n‖ = nterm f σ' n := by
     by_cases h : n = 0
     · simp [h, nterm]
-    · field_simp [h, nterm, cpow_add _ _ (Nat.cast_ne_zero.mpr h)]
-      rw [Complex.norm_natCast_cpow_of_pos (Nat.pos_of_ne_zero h)]
-      simp
+    · simp [h, nterm, cpow_add _ _ (Nat.cast_ne_zero.mpr h),
+        Complex.norm_natCast_cpow_of_pos (Nat.pos_of_ne_zero h)]
   exact continuous_tsum l1 hf (fun n x => le_of_eq (l2 n x))
 
 -- Here compact support is used but perhaps it is not necessary
@@ -477,7 +476,10 @@ lemma limiting_fourier_aux (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1
   intro u
   have e1 : 1 < ((σ' : ℂ) + (u : ℂ) * I).re := by simp [hσ']
   simp_rw [hG' e1, sub_mul, ← mul_assoc]
-  field_simp [e2] ; left ; left
+  simp only [one_div, sub_right_inj, mul_eq_mul_right_iff, cpow_eq_zero_iff, ofReal_eq_zero, ne_eq,
+    mul_eq_zero, I_ne_zero, or_false]
+  left ; left
+  field_simp [e2]
   norm_cast
   simp [mul_assoc, ← rpow_add l3]
 
@@ -501,7 +503,7 @@ lemma cumsum_succ [AddCommMonoid E] {u : ℕ → E} (n : ℕ) :
   simp [cumsum, Finset.sum_range_succ]
 
 @[simp] lemma nabla_cumsum [AddCommGroup E] {u : ℕ → E} : nabla (cumsum u) = u := by
-  ext n ; simp [nabla, cumsum, Finset.range_succ]
+  ext n ; simp [nabla, cumsum, Finset.range_add_one]
 
 lemma neg_cumsum [AddCommGroup E] {u : ℕ → E} : -(cumsum u) = cumsum (-u) := funext (fun n => by simp [cumsum])
 
@@ -533,7 +535,7 @@ lemma Finset.sum_shift_front' {E : Type*} [Ring E] {u : ℕ → E} :
 
 lemma Finset.sum_shift_back {E : Type*} [Ring E] {u : ℕ → E} {n : ℕ} :
     cumsum u (n + 1) = cumsum u n + u n := by
-  simp [cumsum, Finset.range_succ, add_comm]
+  simp [cumsum, Finset.range_add_one, add_comm]
 
 lemma Finset.sum_shift_back' {E : Type*} [Ring E] {u : ℕ → E} : shift (cumsum u) = cumsum u + u := by
   ext n ; apply Finset.sum_shift_back
@@ -639,7 +641,9 @@ lemma summable_inv_mul_log_sq : Summable (fun n : ℕ => (n * (Real.log n) ^ 2)�
   suffices this : ∀ᶠ k : ℕ in atTop, 2 ^ k * v (2 ^ k) = ((k : ℝ) ^ 2)⁻¹ * ((Real.log 2) ^ 2)⁻¹ by
     exact (summable_congr_ae this).mpr <| (Real.summable_nat_pow_inv.mpr one_lt_two).mul_right _
   have l5 : ∀ᶠ k in atTop, v (2 ^ k) = u (2 ^ k) := l3.comp_tendsto <| Nat.tendsto_pow_atTop_atTop_of_one_lt Nat.le.refl
-  filter_upwards [l5, l8] with k l5 l8 ; field_simp [u, l5] ; ring
+  filter_upwards [l5, l8] with k l5 l8
+  simp only [l5, mul_inv_rev, Nat.cast_pow, Nat.cast_ofNat, log_pow, u]
+  field_simp
 
 lemma tendsto_mul_add_atTop {a : ℝ} (ha : 0 < a) (b : ℝ) : Tendsto (fun x => a * x + b) atTop atTop :=
   tendsto_atTop_add_const_right  _ b (tendsto_id.const_mul_atTop ha)
@@ -673,10 +677,13 @@ lemma log_mul_add_isBigO_log {a : ℝ} (ha : 0 < a) (b : ℝ) : (fun x => Real.l
 lemma isBigO_log_mul_add {a : ℝ} (ha : 0 < a) (b : ℝ) : Real.log =O[atTop] (fun x => Real.log (a * x + b)) := by
   convert (log_mul_add_isBigO_log (b := -b / a) (inv_pos.mpr ha)).comp_tendsto (tendsto_mul_add_atTop (b := b) ha) using 1
   ext x
-  field_simp [ha.ne.symm]
+  simp only [Function.comp_apply]
+  congr
+  field_simp
+  simp
 
 lemma log_isbigo_log_div {d : ℝ} (hb : 0 < d) : (fun n ↦ Real.log n) =O[atTop] (fun n ↦ Real.log (n / d)) := by
-  convert isBigO_log_mul_add (inv_pos.mpr hb) 0 using 1 ; field_simp
+  convert isBigO_log_mul_add (inv_pos.mpr hb) 0 using 1; simp only [add_zero]; field_simp
 
 lemma Asymptotics.IsBigO.add_isLittleO_right {f g : ℝ → ℝ} (h : g =o[atTop] f) : f =O[atTop] (f + g) := by
   rw [isLittleO_iff] at h ; specialize h (c := 2⁻¹) (by norm_num)
@@ -795,16 +802,15 @@ lemma nnabla_bound_aux {x : ℝ} (hx : 0 < x) :
 
   apply ((l6.mul l4).mul l5).trans_eventuallyEq
   filter_upwards [eventually_ge_atTop 2, Real.log_eventually_gt_atTop 0] with n hn hn'
-  field_simp ; ring
+  field_simp
 
 lemma nnabla_bound (C : ℝ) {x : ℝ} (hx : 0 < x) :
     nnabla (fun n => C / (1 + (Real.log (n / x) / (2 * π)) ^ 2) / n) =O[atTop]
     (fun n => (n ^ 2 * (Real.log n) ^ 2)⁻¹) := by
   field_simp
-  simp [div_eq_mul_inv]
+  simp only [div_eq_mul_inv, mul_inv, nnabla_mul, one_mul]
   apply IsBigO.const_mul_left
-  field_simp
-  exact nnabla_bound_aux hx
+  simpa [div_eq_mul_inv, mul_pow, mul_comm] using nnabla_bound_aux hx
 
 def chebyWith (C : ℝ) (f : ℕ → ℂ) : Prop := ∀ n, cumsum (‖f ·‖) n ≤ C * n
 
@@ -829,13 +835,15 @@ lemma limiting_fourier_lim1_aux (hcheby : cheby f) (hx : 0 < x) (C : ℝ) (hC : 
   have l2 : shift (cumsum (‖f ·‖)) =O[atTop] (fun n => (n : ℝ)) :=
     l1.trans (by simpa using (isBigO_refl _ _).add <| isBigO_iff.mpr ⟨1, by simpa using ⟨1, by tauto⟩⟩)
   have l5 : BoundedAtFilter atTop (fun n : ℕ => C / (1 + (Real.log (↑n / x) / (2 * π)) ^ 2)) := by
-    field_simp [BoundedAtFilter]
+    simp only [BoundedAtFilter]
+    field_simp
     apply isBigO_of_le' (c := C) ; intro n
-    have : 0 ≤ (2 * π) ^ 2 + Real.log (n / x) ^ 2 := by positivity
+    have : 0 ≤ 2 ^ 2 * π ^ 2 + Real.log (n / x) ^ 2 := by positivity
     simp [abs_eq_self.mpr hC, abs_eq_self.mpr pi_nonneg, abs_eq_self.mpr this]
     apply div_le_of_le_mul₀ this hC
-    gcongr
-    apply le_add_of_le_of_nonneg le_rfl (sq_nonneg _)
+    rw [mul_add, ← mul_assoc]
+    apply le_add_of_le_of_nonneg le_rfl
+    positivity
   have l3 : a =O[atTop] (fun n => 1 / (n : ℝ)) := by
     simpa [a] using IsBigO.mul l5 (isBigO_refl (fun n : ℕ => 1 / (n : ℝ)) _)
   have l4 : nnabla a =O[atTop] (fun n : ℕ => (n ^ 2 * (Real.log n) ^ 2)⁻¹) := by
@@ -867,7 +875,7 @@ lemma limiting_fourier_lim1_aux (hcheby : cheby f) (hx : 0 < x) (C : ℝ) (hC : 
       simp only [ne_eq, log_eq_zero]
       push_neg
       refine ⟨this, ?_, ?_⟩ <;> linarith
-    field_simp ; ring
+    field_simp
 
 theorem limiting_fourier_lim1 (hcheby : cheby f) (ψ : W21) (hx : 0 < x) :
     Tendsto (fun σ' : ℝ ↦ ∑' n, term f σ' n * 𝓕 ψ (1 / (2 * π) * Real.log (n / x))) (𝓝[>] 1)
@@ -1077,7 +1085,7 @@ lemma one_div_sub_one (n : ℕ) : 1 / (↑(n - 1) : ℝ) ≤ 2 / n := by
 
 lemma quadratic_pos (a b c x : ℝ) (ha : 0 < a) (hΔ : discrim a b c < 0) : 0 < a * x ^ 2 + b * x + c := by
   have l1 : a * x ^ 2 + b * x + c = a * (x + b / (2 * a)) ^ 2 - discrim a b c / (4 * a) := by
-    field_simp [discrim] ; ring
+    simp only [discrim]; field_simp; ring
   have l2 : 0 < - discrim a b c := by linarith
   rw [l1, sub_eq_add_neg, ← neg_div] ; positivity
 
@@ -1131,8 +1139,8 @@ lemma hh_deriv (a : ℝ) {t : ℝ} (ht : t ≠ 0) : HasDerivAt (hh a) (hh' a t) 
   have l2 : HasDerivAt (fun t : ℝ => 1 + (a * log t) ^ 2) (2 * a ^ 2 * t⁻¹ * log t) t := l3.const_add _
   have l1 : HasDerivAt (fun t : ℝ => t * (1 + (a * log t) ^ 2))
       (1 + 2 * a ^ 2 * log t + a ^ 2 * log t ^ 2) t := by
-    convert (hasDerivAt_id t).mul l2 using 1 ; field_simp ; ring
-  convert l1.inv e1 using 1 ; field_simp [hh', hh, pp] ; ring
+    convert (hasDerivAt_id' t).mul l2 using 1; field_simp; ring
+  convert l1.inv e1 using 1; simp only [hh', pp, hh]; field_simp; ring
 
 lemma hh_continuous (a : ℝ) : ContinuousOn (hh a) (Ioi 0) :=
   fun t (ht : 0 < t) => (hh_deriv a ht.ne.symm).continuousAt.continuousWithinAt
@@ -1151,7 +1159,8 @@ lemma hh_antitone {a : ℝ} (ha : a ∈ Ioo (-1) 1) : AntitoneOn (hh a) (Ioi 0) 
 noncomputable def gg (x i : ℝ) : ℝ := 1 / i * (1 + (1 / (2 * π) * log (i / x)) ^ 2)⁻¹
 
 lemma gg_of_hh {x : ℝ} (hx : x ≠ 0) (i : ℝ) : gg x i = x⁻¹ * hh (1 / (2 * π)) (i / x) := by
-  field_simp [gg, hh]
+  simp only [gg, hh]
+  field_simp
 
 lemma gg_l1 {x : ℝ} (hx : 0 < x) (n : ℕ) : |gg x n| ≤ 1 / n := by
   simp only [gg_of_hh hx.ne.symm, one_div, mul_inv_rev, abs_mul]
@@ -1307,7 +1316,8 @@ lemma hh_integrable_aux (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
   have l1 (x) (hx : 0 < x) := (l5 x hx).arctan
   have l6 (x) (hx : 0 < x) : HasDerivAt g (g' x) x := by
     convert (l1 x hx).const_mul (a * c / b) using 1
-    field_simp [g'] ; ring
+    simp only [g']
+    field_simp
   have key (x) (hx : 0 < x) : HasDerivAt g₀ (g' x) x := by
     apply (l6 x hx).congr_of_eventuallyEq
     apply eventually_of_mem <| Ioi_mem_nhds hx
@@ -1412,7 +1422,8 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
   · congr ; ext i
     by_cases hi : i = 0
     · simp [hi, hf0]
-    · field_simp [hi, ggg, gg]
+    · simp only [gg, hi, ↓reduceIte, ggg]
+      field_simp
 
   apply cancel_main' (fun _ => norm_nonneg _) (by simp [hf0]) l1 hf l2 n |>.trans
   gcongr ; simp [ggg, cumsum, gg_of_hh l0]
@@ -1568,7 +1579,7 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
     apply this.trans_lt
     apply (mul_le_mul (d := 1 + M) le_rfl (by simp) (by positivity) W21.norm_nonneg).trans_lt
     have : 0 < 1 + M := by positivity
-    convert (mul_lt_mul_right this).mpr hRψ using 1 ; field_simp ; ring
+    convert (mul_lt_mul_right this).mpr hRψ using 1 ; field_simp
 
   -- Conclude the proof
   have S1_sub_1 x : 𝓕 (⇑ψ - ⇑(Ψ R)) x = 𝓕 ψ x - 𝓕 (Ψ R) x := by
@@ -1744,9 +1755,11 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     simpa using (comp_exp_support hsupp hplus).comp_smul this |>.mul_left
   obtain ⟨g, hg⟩ := fourier_surjection_on_schwartz (toSchwartz h h1 h2)
 
-  have why (x : ℝ) : (2 * π * x / (2 * π) : ℂ) = x := by norm_cast; field_simp
   have l1 {y} (hy : 0 < y) : y * Ψ y = 𝓕 g (1 / (2 * π) * Real.log y) := by
-    field_simp [hg, toSchwartz, h, why] ; norm_cast
+    simp only [one_div, mul_inv_rev, hg, toSchwartz, ofReal_exp, ofReal_mul, ofReal_ofNat,
+      toSchwartz_apply, ofReal_inv, h]
+    field_simp
+    norm_cast
     rw [Real.exp_log hy]
 
   have key := limiting_cor_schwartz g hf hcheby hG hG'
@@ -1759,12 +1772,16 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     rw [← l1 (by positivity)]
     have : (n : ℂ) ≠ 0 := by simpa using hn
     have : (x : ℂ) ≠ 0 := by simpa using hx.ne.symm
-    field_simp ; ring
+    simp only [ofReal_div, ofReal_natCast]
+    field_simp
 
   have l3 : ∀ᶠ x in atTop, ↑A * ∫ (u : ℝ) in Ici (-Real.log x), 𝓕 (⇑g) (u / (2 * π)) =
       ↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y := by
     filter_upwards [eventually_gt_atTop 0] with x hx
-    congr 1 ; simp [hg, toSchwartz, h] ; norm_cast ; field_simp [why] ; norm_cast
+    congr 1
+    simp only [hg, toSchwartz, ofReal_exp, ofReal_mul, ofReal_ofNat, toSchwartz_apply,
+      ofReal_div, h]
+    norm_cast ; field_simp; norm_cast
     rw [MeasureTheory.integral_Ici_eq_integral_Ioi]
     exact wiener_ikehara_smooth_aux hsmooth.continuous hsupp hplus x hx
 
@@ -1948,7 +1965,7 @@ lemma WI_tendsto_aux' (a b : ℝ) {A : ℝ} (hA : 0 < A) :
   · simpa [div_lt_iff₀' hA]
   · simp [Real.dist_eq] at hx2 ⊢
     have : |(b - a) - x / A| = |A * (b - a) - x| / A := by
-      rw [← abs_eq_self.mpr hA.le, ← abs_div, abs_eq_self.mpr hA.le] ; congr ; field_simp ; ring
+      rw [← abs_eq_self.mpr hA.le, ← abs_div, abs_eq_self.mpr hA.le] ; congr ; field_simp
     rwa [this, div_lt_iff₀' hA, ← neg_sub, abs_neg]
 
 theorem residue_nonneg {f : ℕ → ℝ} (hpos : 0 ≤ f)
@@ -2176,7 +2193,7 @@ theorem vonMangoldt_cheby : cheby Λ := by
     have := hC 2
     norm_cast at this
     have hpos : 0 < 2 / Real.log 2 := by positivity
-    rw [← mul_le_mul_right hpos]
+    rw [← mul_le_mul_iff_left₀ hpos]
     linarith
   use C
   intro n
@@ -2210,6 +2227,7 @@ theorem vonMangoldt_cheby : cheby Λ := by
         norm_cast
         omega
       field_simp
+      simp
 
 /-%%
 \section{Weak PNT}
