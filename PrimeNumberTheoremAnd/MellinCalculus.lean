@@ -57,8 +57,7 @@ lemma MeasureTheory.integral_comp_rpow_I0i_haar_real (f : ℝ → ℝ) {p : ℝ}
   rw [← integral_comp_rpow_Ioi (fun y ↦ f y / y) hp, setIntegral_congr_fun (by simp)]
   intro y hy
   have ypos : 0 < y := mem_Ioi.mp hy
-  field_simp [rpow_sub_one]
-  ring
+  simp [field, rpow_sub_one ypos.ne']
 
 lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → 𝕂) :
     ∫ (y : ℝ) in Ioi 0, f (1 / y) / y = ∫ (y : ℝ) in Ioi 0, f y / y := by
@@ -67,9 +66,9 @@ lemma MeasureTheory.integral_comp_inv_I0i_haar (f : ℝ → 𝕂) :
   intro y hy
   have : (y : 𝕂) ≠ 0 := (RCLike.ofReal_ne_zero).mpr <| LT.lt.ne' hy
   field_simp [RCLike.real_smul_eq_coe_mul]
+  simp [field, RCLike.real_smul_eq_coe_mul, rpow_neg_one]
   ring_nf
-  rw [rpow_neg_one, mul_assoc, rpow_neg <| le_of_lt <| mem_Ioi.mp hy]
-  field_simp [pow_two]
+  simp [field]
 
 lemma MeasureTheory.integral_comp_div_I0i_haar
     (f : ℝ → 𝕂) {a : ℝ} (ha : 0 < a) :
@@ -378,12 +377,17 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
     have := integral_comp_mul_right_Ioi (fun x ↦ f y * g (x / y) / (y : ℂ) * (x : ℂ) ^ (s - 1)) 0 hy
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := slitPlane_ne_zero (Or.inl hy)
     field_simp at this ⊢
-    rw [this]
+    simp [field] at this ⊢
+    rw [← this]
+    field_simp
+    congr with x
+    ring_nf
   · rw [setIntegral_congr_fun (by simp)]
     intro x hx
     have y_ne_zeroℝ : y ≠ 0 := ne_of_gt (mem_Ioi.mp hy)
     have y_ne_zeroℂ : (y : ℂ) ≠ 0 := by exact_mod_cast y_ne_zeroℝ
-    field_simp [mul_cpow_ofReal_nonneg (LT.lt.le hx) (LT.lt.le hy)]
+    field_simp
+    rw [mul_cpow_ofReal_nonneg hy.le hx.le]
     ring
   · apply integral_const_mul
   · congr <;> ext <;> ring
@@ -774,7 +778,7 @@ lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν
   simp only [sub_sub_sub_cancel_right, sub_zero] at this
   convert this
   simp only [mellin, zero_sub, cpow_neg_one, smul_eq_mul]
-  rw [← ofReal_one, ← mass_one]; convert integral_ofReal.symm; field_simp
+  rw [← ofReal_one, ← mass_one]; convert integral_ofReal.symm; field_simp; simp
 
 -- lemma MellinOfDeltaSpikeAt1_asymp' {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
 --     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
@@ -1028,7 +1032,7 @@ lemma Smooth1Properties_above_aux {x ε : ℝ} (hx : 1 + (2 * Real.log 2) * ε �
       convert rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) hε.2 <;> norm_num
     have pos: 0 < (1 - 2 ^ (-ε)) / ε := by
       refine div_pos ?_ hε.1
-      rw [sub_pos, ← pow_zero 2]
+      rw [sub_pos]
       convert rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) (neg_lt_zero.mpr hε.1); norm_num
     have := (mul_lt_mul_right pos).mpr this
     ring_nf at this ⊢
@@ -1177,7 +1181,8 @@ lemma Smooth1LeOne_aux {x ε : ℝ} {ν : ℝ → ℝ} (xpos : 0 < x) (εpos : 0
       convert this.symm using 1
       congr; funext y; congr; field_simp [mul_comm]
     · have := integral_comp_rpow_I0i_haar_real (fun y ↦ ν y) (one_div_ne_zero εpos.ne')
-      field_simp [ ← this, abs_of_pos <| one_div_pos.mpr εpos]
+      rw [ ← this, abs_of_pos <| one_div_pos.mpr εpos]
+      field_simp
 
 /-%%
 \begin{lemma}[Smooth1LeOne]\label{Smooth1LeOne}\lean{Smooth1LeOne}\leanok
@@ -1206,10 +1211,13 @@ lemma Smooth1LeOne {ν : ℝ → ℝ} (νnonneg : ∀ x > 0, 0 ≤ ν x)
       intro y hy
       by_cases h : y ≤ 1
       · aesop
-      field_simp [mem_Ioc, h, and_false, reduceIte]
+      field_simp
+      simp [mem_Ioc, h, and_false, reduceIte]
       apply mul_nonneg
       · apply νnonneg; exact rpow_pos_of_pos (div_pos xpos <| mem_Ioi.mp hy) _
-      · apply inv_nonneg.mpr <| mul_nonneg εpos.le (mem_Ioi.mp hy).le
+      · simp only [mem_Ioi] at hy
+        positivity
+
 /-%%
 \begin{proof}\uses{Smooth1,MellinConvolution,DeltaSpike,SmoothExistence}\leanok
 By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
@@ -1295,7 +1303,7 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
           linarith [(by apply rpow_pos_of_pos (by norm_num) : (0 : ℝ) < 2 ^ (-ε))]
 
   have : 𝓜 (MellinConvolution g f') s = 𝓜 g s * 𝓜 f' s := by
-    rw [mul_comm, ← MellinConvolutionTransform f' g s (by convert int_F using 1; field_simp [F, f, f'])]
+    rw [mul_comm, ← MellinConvolutionTransform f' g s (by convert int_F using 1; simp [F, f, f']; field_simp)]
     dsimp [mellin]; rw [setIntegral_congr_fun (by simp)]
     intro x hx; simp_rw [MellinConvolutionSymmetric _ _ <| mem_Ioi.mp hx]
 
@@ -1489,7 +1497,7 @@ lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}
         gcongr
         apply (one_div_le ht (by bound)).mpr
         · convert this.1 using 1; field_simp
-          rw [← rpow_add (by norm_num), neg_add_cancel, rpow_zero]
+          rw [← rpow_add (by norm_num), add_neg_cancel, rpow_zero]
   · apply Integrable.const_mul
     apply (integrable_indicator_iff (by measurability)).mp
     apply (integrableOn_iff_integrable_of_support_subset (s := Icc (2 ^ (-ε)) (2 ^ ε)) _).mp
