@@ -42,28 +42,6 @@ holomorphic functions.
   $f(s) = \frac{A}{s-p} + O(1)$ near $p$.
 \end{theorem}
 %%-/
-lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
-  (f_near_p : f =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
-  ∃ U ∈ 𝓝 p, BddAbove (norm ∘ f '' (U \ {p})) := by
-    simp [isBigO_iff'] at f_near_p
-    obtain ⟨c, c_pos, hc⟩ := f_near_p
-    dsimp [Filter.Eventually] at hc
-    dsimp [nhdsWithin] at hc
-    rw [mem_inf_principal'] at hc
-    obtain ⟨U, hU, ⟨U_is_open, p_in_U⟩⟩ := mem_nhds_iff.mp hc
-    use U
-    constructor
-    · exact IsOpen.mem_nhds U_is_open p_in_U
-    · refine bddAbove_def.mpr ?_
-      use c
-      intro y hy
-      simp only [Function.comp_apply, mem_image, mem_diff, mem_singleton_iff] at hy
-      obtain ⟨x, ⟨x_in_U, x_not_p⟩, fxy⟩ := hy
-      rw [← fxy]
-      have this := hU x_in_U
-      simp [x_not_p] at this
-      exact this
-
 theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     (hU : U ∈ 𝓝 p)
     (hf : HolomorphicOn f (U \ {p}))

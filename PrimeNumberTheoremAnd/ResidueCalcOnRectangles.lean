@@ -5,7 +5,7 @@ import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 import PrimeNumberTheoremAnd.Rectangle
 import PrimeNumberTheoremAnd.Tactic.AdditiveCombination
 
-open Complex BigOperators Nat Classical Real Topology Filter Set MeasureTheory intervalIntegral
+open Complex BigOperators Nat Classical Real Topology Filter Set MeasureTheory intervalIntegral Asymptotics
 
 open scoped Interval
 
@@ -557,3 +557,72 @@ what remains is handled by Lemma \ref{ResidueTheoremAtOrigin}.
 --     convert square_subset_closedBall p (c / Real.sqrt 2)
 --     field_simp [abs_div, abs_eq_self.mpr hc.le, abs_eq_self.mpr (sqrt_nonneg 2)]
 --   · refine square_mem_nhds _ hc.ne.symm
+
+lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
+  (f_near_p : f =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
+  ∃ U ∈ 𝓝 p, BddAbove (norm ∘ f '' (U \ {p})) := by
+  simp [isBigO_iff] at f_near_p
+  obtain ⟨c, hc⟩ := f_near_p
+  dsimp [Filter.Eventually, nhdsWithin] at hc
+  rw [mem_inf_principal'] at hc
+  obtain ⟨U, hU, ⟨U_is_open, p_in_U⟩⟩ := mem_nhds_iff.mp hc
+  use U
+  constructor
+  · exact IsOpen.mem_nhds U_is_open p_in_U
+  · refine bddAbove_def.mpr ?_
+    use c
+    intro y hy
+    simp only [Function.comp_apply, mem_image, mem_diff, mem_singleton_iff] at hy
+    obtain ⟨x, ⟨x_in_U, x_not_p⟩, fxy⟩ := hy
+    rw [← fxy]
+    have this := hU x_in_U
+    simp [x_not_p] at this
+    exact this
+
+theorem BddAbove_on_rectangle_of_bdd_near {z w p : ℂ} {f : ℂ → ℂ}
+    (f_cont : ContinuousOn f ((Rectangle z w) \ {p}))
+    (f_near_p : f =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
+    BddAbove (norm ∘ f '' ((Rectangle z w) \ {p})) := by
+  obtain ⟨V, V_in_nhds, V_prop⟩ := IsBigO_to_BddAbove f_near_p
+  rw [mem_nhds_iff] at V_in_nhds
+  obtain ⟨W, W_subset, W_open, p_in_W⟩ := V_in_nhds
+  set U := Rectangle z w
+  have : U \ {p} = (U \ W) ∪ ((U ∩ W) \ {p}) := by
+    ext x
+    simp only [mem_diff, mem_singleton_iff, mem_union, mem_inter_iff]
+    constructor
+    · intro ⟨xu, x_not_p⟩
+      tauto
+    · intro h
+      rcases h with  ⟨h1,h2⟩ | ⟨⟨h1, h2⟩, h3⟩
+      · refine ⟨h1, ?_⟩
+        intro h
+        rw [← h] at p_in_W
+        apply h2 p_in_W
+      · tauto
+  rw [this, image_union]
+  apply BddAbove.union
+  · apply IsCompact.bddAbove_image
+    · apply IsCompact.diff _ W_open
+      apply IsCompact.reProdIm <;> apply isCompact_uIcc
+    · apply f_cont.norm.mono
+      apply diff_subset_diff_right
+      simpa
+  · apply V_prop.mono
+    exact image_mono <| diff_subset_diff_left <| subset_trans inter_subset_right W_subset
+
+theorem ResidueTheoremOnRectangleWithSimplePole' {f : ℂ → ℂ} {z w p A : ℂ}
+    (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)
+    (pInRectInterior : Rectangle z w ∈ 𝓝 p)
+    (fHolo : HolomorphicOn f ((Rectangle z w) \ {p}))
+    (near_p : (f - (fun s ↦ A / (s - p))) =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
+    RectangleIntegral' f z w = A := by
+  set g := f - (fun s ↦ A / (s - p))
+  have gHolo : HolomorphicOn g ((Rectangle z w) \ {p}) := by
+    apply DifferentiableOn.sub fHolo
+    intro s hs
+    have : s - p ≠ 0 := by exact sub_ne_zero.mpr hs.2
+    fun_prop (disch := assumption)
+  have := BddAbove_on_rectangle_of_bdd_near gHolo.continuousOn near_p
+  obtain ⟨h, ⟨hHolo, hEq⟩⟩ := existsDifferentiableOn_of_bddAbove pInRectInterior gHolo this
+  exact ResidueTheoremOnRectangleWithSimplePole zRe_le_wRe zIm_le_wIm pInRectInterior hHolo hEq
