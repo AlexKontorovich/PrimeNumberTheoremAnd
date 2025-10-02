@@ -324,6 +324,27 @@ open Nat Filter
 
 
 
+/-%%
+\begin{lemma}[ZetaFixedLowerBound]\label{ZetaFixedLowerBound}\lean{ZetaFixedLowerBound}
+    There exists $a>0$ such that for all $t\in\mathbb{R}$ one has
+    $$|\zeta(3/2+it)|\geq a.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+    From the Euler product expansion of $\zeta$, we have that for $\mathfrak{R}s>1$
+    $$\zeta(s)=\prod_p\frac{1}{1-p^{-s}}.$$
+    Thus, we have that
+    $$\frac{\zeta(2s)}{\zeta(s)}=\prod_p\frac{1-p^{-s}}{1-p^{-2s}}=\prod_p\frac{1}{1+p^{-s}}.$$
+    Now note that $|1-p^{-(3/2+it)}|\leq 1+|p^{-(3/2+it)}|=1+p^{-3/2}$. Thus,
+    $$|\zeta(3/2+it)|=\prod_p\frac{1}{|1-p^{-(3/2+it)}|}\geq\prod_p\frac{1}{1+p^{-3/2}}=\frac{\zeta(3)}{\zeta(3/2)}$$
+    for all $t\in\mathbb{R}$, as desired.
+\end{proof}
+%%-/
+
+
+
 /-%
 
 Main Theorem: The Prime Number Theorem in strong form.
