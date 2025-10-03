@@ -15,8 +15,8 @@ open Nat Filter
 
 /-%%
 \begin{theorem}[BorelCaratheodory]\label{BorelCaratheodory}\lean{BorelCaratheodory}
-    Let $R,\,M>0$. Let $f$ be analytic on $\abs{z}\leq R$ such that $f(0)=0$ and suppose $\mathfrak{R}f(z)\leq M$ for all $\abs{z}\leq R$. Then for any $0 < r < R$,
-    $$\sup_{\abs{z}\leq r}\abs{f(z)}\leq\frac{2Mr}{R-r}.$$
+    Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\mathfrak{R}f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
+    $$\sup_{|z|\leq r}|f(z)|\leq\frac{2Mr}{R-r}.$$
 \end{theorem}
 %%-/
 
@@ -25,15 +25,15 @@ open Nat Filter
 \uses{}
     Let
     $$f_M(z)=\frac{f(z)/z}{2M-f(z)}.$$
-    Note that $2M-f(z)\neq 0$ because $\mathfrak{R}(2M-f(z))=2M-\mathfrak{R}f(z)\geq M>0$. Additionally, since $f(z)$ has a zero at $0$, we know that $f(z)/z$ is analytic on $\abs{z}\leq R$. Likewise, $f_M(z)$ is analytic on $\abs{z}\leq R$.
+    Note that $2M-f(z)\neq 0$ because $\mathfrak{R}(2M-f(z))=2M-\mathfrak{R}f(z)\geq M>0$. Additionally, since $f(z)$ has a zero at $0$, we know that $f(z)/z$ is analytic on $|z|\leq R$. Likewise, $f_M(z)$ is analytic on $|z|\leq R$.
 
-    Now note that $\abs{f(z)}\leq\abs{2M-f(z)}$ since $\mathfrak{R}f(z)\leq M$. Thus we have that
-    $$\abs{f_M(z)}=\frac{\abs{f(z)}/\abs{z}}{\abs{2M-f(z)}}\leq\frac{1}{\abs{z}}.$$
-    Now by the maximum modulus principle, we know the maximum of $\abs{f_M}$ must occur on the boundary where $\abs{z}=R$. Thus, $\abs{f_M(z)}\leq 1/R$ for all $\abs{z}\leq R$. So for $\abs{z}=r$ we have
-    $$\abs{f_M(z)}=\frac{\abs{f(z)}/r}{\abs{2M-f(z)}}\leq\frac{1}{R}\implies R\,\abs{f(z)}\leq r\,\abs{2M-f(z)}\leq 2Mr+r\,\abs{f(z)}.$$
+    Now note that $|f(z)|\leq|2M-f(z)|$ since $\mathfrak{R}f(z)\leq M$. Thus we have that
+    $$|f_M(z)|=\frac{|f(z)|/|z|}{|2M-f(z)|}\leq\frac{1}{|z|}.$$
+    Now by the maximum modulus principle, we know the maximum of $|f_M|$ must occur on the boundary where $|z|=R$. Thus, $|f_M(z)|\leq 1/R$ for all $|z|\leq R$. So for $|z|=r$ we have
+    $$|f_M(z)|=\frac{|f(z)|/r}{|2M-f(z)|}\leq\frac{1}{R}\implies R\,|f(z)|\leq r\,|2M-f(z)|\leq 2Mr+r\,|f(z)|.$$
     Which by algebraic manipulation gives
-    $$\abs{f(z)}\leq\frac{2Mr}{R-r}.$$
-    Once more, by the maximum modulus principle, we know the maximum of $\abs{f}$ must occur on the boundary where $\abs{z}=r$. Thus, the desired result immediately follows
+    $$|f(z)|\leq\frac{2Mr}{R-r}.$$
+    Once more, by the maximum modulus principle, we know the maximum of $|f|$ must occur on the boundary where $|z|=r$. Thus, the desired result immediately follows
 \end{proof}
 %%-/
 
@@ -41,23 +41,23 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[DerivativeBound]\label{DerivativeBound}\lean{DerivativeBound}
-    Let $R,\,M>0$ and $0 < r < r' < R$. Let $f$ be analytic on $\abs{z}\leq R$ such that $f(0)=0$ and suppose $\mathfrak{R}f(z)\leq M$ for all $\abs{z}\leq R$. Then we have that
-    $$\abs{f'(z)}\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}$$
-    for all $\abs{z}\leq r$.
+    Let $R,\,M>0$ and $0 < r < r' < R$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\mathfrak{R}f(z)\leq M$ for all $|z|\leq R$. Then we have that
+    $$|f'(z)|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}$$
+    for all $|z|\leq r$.
 \end{lemma}
 %%-/
 
 /-%%
 \begin{proof}
-\uses{}
+\uses{BorelCaratheodory}
     By Cauchy's integral formula we know that
-    $$f'(z)=\frac{1}{2\pi i}\oint_{\abs{w}=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
+    $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
     Thus,
     \begin{equation}\label{pickupPoint1}
-        \abs{f'(z)}=\abs{\frac{1}{2\pi}\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt}\leq\frac{1}{2\pi}\int_0^{2\pi}\abs{\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}}\,dt.
+        |f'(z)|=\left|\frac{1}{2\pi}\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt\right|\leq\frac{1}{2\pi}\int_0^{2\pi}\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
     \end{equation}
-    Now applying Theorem \ref{BorelCaratheodory}, and noting that $r'-r\leq\abs{r'e^{it}-z}$, we have that
-    $$\abs{\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}}\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
+    Now applying Theorem \ref{BorelCaratheodory}, and noting that $r'-r\leq|r'e^{it}-z|$, we have that
+    $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
     Substituting this into Equation (\ref{pickupPoint1}) and evaluating the integral completes the proof.
 \end{proof}
 %%-/
@@ -66,17 +66,17 @@ open Nat Filter
 
 /-%%
 \begin{theorem}[BorelCaratheodoryDeriv]\label{BorelCaratheodoryDeriv}\lean{BorelCaratheodoryDeriv}
-    Let $R,\,M>0$. Let $f$ be analytic on $\abs{z}\leq R$ such that $f(0)=0$ and suppose $\mathfrak{R}f(z)\leq M$ for all $\abs{z}\leq R$. Then for any $0 < r < R$,
-    $$\abs{f'(z)}\leq\frac{16MR^2}{(R-r)^3}$$
-    for all $\abs{z}\leq r$.
+    Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\mathfrak{R}f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
+    $$|f'(z)|\leq\frac{16MR^2}{(R-r)^3}$$
+    for all $|z|\leq r$.
 \end{theorem}
 %%-/
 
 /-%%
 \begin{proof}
-\uses{}
+\uses{DerivativeBound}
     Using Lemma \ref{DerivativeBound} with $r'=(R+r)/2$, and noting that $r < R$, we have that
-    $$\abs{f'(z)}\leq\frac{4M(R+r)^2}{(R-r)^3}\leq\frac{16MR^2}{(R-r)^3}.$$
+    $$|f'(z)|\leq\frac{4M(R+r)^2}{(R-r)^3}\leq\frac{16MR^2}{(R-r)^3}.$$
 \end{proof}
 %%-/
 
@@ -88,7 +88,7 @@ open Nat Filter
     \begin{itemize}
         \item $J_B(0)=0$
         \item $J_B'(z)=B'(z)/B(z)$
-        \item $\log\abs{B(z)}-\log\abs{B(0)}=\mathfrak{R}J_B(z)$
+        \item $\log|B(z)|-\log|B(0)|=\mathfrak{R}J_B(z)$
     \end{itemize}
     for all $z\in\overline{\mathbb{D}_r}$.
 \end{lemma}
@@ -100,7 +100,7 @@ open Nat Filter
     We let $J_B(z)=\mathrm{Log}\,B(z)-\mathrm{Log}\,B(0)$. Then clearly, $J_B(0)=0$ and $J_B'(z)=B'(z)/B(z)$. Showing the third property is a little more difficult, but by no standards terrible. Exponentiating $J_B(z)$ we have that
     $$\exp(J_B(z))=\exp(\mathrm{Log}\,B(z)-\mathrm{Log}\,B(0))=\frac{B(z)}{B(0)}\implies B(z)=B(0)\exp(J_B(z)).$$
     Now taking the modulus
-    $$\abs{B(z)}=\abs{B(0)}\cdot\abs{\exp(J_B(z))}=\abs{B(0)}\cdot\exp(\mathfrak{R}J_B(z)).$$
+    $$|B(z)|=|B(0)|\cdot|\exp(J_B(z))|=|B(0)|\cdot\exp(\mathfrak{R}J_B(z)).$$
     Taking the real logarithm of both sides and rearranging gives the third point.
 \end{proof}
 %%-/
@@ -109,7 +109,7 @@ open Nat Filter
 
 /-%%
 \begin{definition}[SetOfZeros]\label{SetOfZeros}\lean{SetOfZeros}
-    Let $R>0$ and $f:\overline{\mathbb{D}_R}\to\mathbb{C}$. Define the set of zeros $\mathcal{K}_f(R)=\{\rho\in\mathbb{C}:\abs{\rho}\leq R,\,f(\rho)=0\}$.
+    Let $R>0$ and $f:\overline{\mathbb{D}_R}\to\mathbb{C}$. Define the set of zeros $\mathcal{K}_f(R)=\{\rho\in\mathbb{C}:|\rho|\leq R,\,f(\rho)=0\}$.
 \end{definition}
 %%-/
 
@@ -168,17 +168,17 @@ open Nat Filter
 /-%%
 \begin{lemma}[BlaschkeOfZero]\label{BlaschkeOfZero}\lean{BlaschkeOfZero}
     Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. Then
-    $$\abs{B_f(0)}=\abs{f(0)}\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{\abs{\rho}}\right)^{m_f(\rho)}.$$
+    $$|B_f(0)|=|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
 \end{lemma}
 %%-/
 
 /-%%
 \begin{proof}
-\uses{}
+\uses{BlaschkeB}
     Since $f(0)\neq 0$, we know that $0\not\in\mathcal{K}_f(r)$. Thus,
     $$C_f(0)=\frac{f(0)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(-\rho)^{m_f(\rho)}}.$$
     Thus, substituting this into Definition \ref{BlaschkeB},
-    $$\abs{B_f(0)}=\abs{C_f(0)}\prod_{\rho\in\mathcal{K}_f(r)}R^{m_f(\rho)}=\abs{f(0)}\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{\abs{\rho}}\right)^{m_f(\rho)}.$$
+    $$|B_f(0)|=|C_f(0)|\prod_{\rho\in\mathcal{K}_f(r)}R^{m_f(\rho)}=|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
 \end{proof}
 %%-/
 
@@ -186,40 +186,20 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[DiskBound]\label{DiskBound}\lean{DiskBound}
-    Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $\abs{f(z)}\leq B$ for $\abs{z}\leq R$, then $\abs{B_f(z)}\leq B$ for $\abs{z}\leq R$ also.
+    Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $|f(z)|\leq B$ for $|z|\leq R$, then $|B_f(z)|\leq B$ for $|z|\leq R$ also.
 \end{lemma}
 %%-/
 
 /-%%
 \begin{proof}
-\uses{}
-    For $\abs{z}=R$, we know that $z\not\in\mathcal{K}_f(r)$. Thus,
+\uses{BlaschkeB}
+    For $|z|=R$, we know that $z\not\in\mathcal{K}_f(r)$. Thus,
     $$C_f(z)=\frac{f(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(z-\rho)^{m_f(\rho)}}.$$
     Thus, substituting this into Definition \ref{BlaschkeB},
-    $$\abs{B_f(z)}=\abs{f(z)}\prod_{\rho\in\mathcal{K}_f(r)}\abs{\frac{R-z\overline{\rho}/R}{z-\rho}}^{m_f(\rho)}.$$
+    $$|B_f(z)|=|f(z)|\prod_{\rho\in\mathcal{K}_f(r)}\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|^{m_f(\rho)}.$$
     But note that
-    $$\abs{\frac{R-z\overline{\rho}/R}{z-\rho}}=\frac{\abs{R^2-z\overline{\rho}}/R}{\abs{z-\rho}}=\frac{\abs{z}\cdot\abs{\overline{z-\rho}}/R}{\abs{z-\rho}}=1.$$
-    So we have that $\abs{B_f(z)}=\abs{f(z)}\leq B$ when $\abs{z}=R$. Now by the maximum modulus principle, we know that the maximum of $\abs{B_f}$ must occur on the boundary where $\abs{z}=R$. Thus $\abs{B_f(z)}\leq B$ for all $\abs{z}\leq R$.
-\end{proof}
-%%-/
-
-
-
-/-%%
-\begin{lemma}[JensenForm]\label{JensenForm}\lean{JensenForm}
-    Let $B>1$ and $0 < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $\abs{f(z)}\leq B$ for $\abs{z}\leq R$, then
-    $$(R/r)^{\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)}\leq B.$$
-\end{lemma}
-%%-/
-
-/-%%
-\begin{proof}
-\uses{}
-    Since $f(0)=1$, we know that $z\not\in\mathcal{K}_f(r)$. Thus,
-    $$C_f(0)=\frac{f(0)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(-\rho)^{m_f(\rho)}}.$$
-    Thus, substituting this into definition \ref{BlaschkeB},
-    $$(R/r)^{\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)}=\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{r}\right)^{m_f(\rho)}\leq\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{\abs{\rho}}\right)^{m_f(\rho)}=\abs{B_f(0)}\leq B$$
-    whereby Lemma \ref{DiskBound} we know that $\abs{B_f(z)}\leq B$ for all $\abs{z}\leq R$.
+    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|=\frac{|R^2-z\overline{\rho}|/R}{|z-\rho|}=\frac{|z|\cdot|\overline{z-\rho}|/R}{|z-\rho|}=1.$$
+    So we have that $|B_f(z)|=|f(z)|\leq B$ when $|z|=R$. Now by the maximum modulus principle, we know that the maximum of $|B_f|$ must occur on the boundary where $|z|=R$. Thus $|B_f(z)|\leq B$ for all $|z|\leq R$.
 \end{proof}
 %%-/
 
@@ -227,17 +207,19 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[ZerosBound]\label{ZerosBound}\lean{ZerosBound}
-    Let $B>1$ and $0 < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $\abs{f(z)}\leq B$ for $\abs{z}\leq R$, then
-    $$\abs{\mathcal{K}_f(r)}\leq\frac{\log B}{\log(R/r)}.$$
+    Let $B>1$ and $0< r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for $|z|\leq R$, then
+    $$\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)\leq\frac{\log B}{\log(R/r)}.$$
 \end{lemma}
 %%-/
 
 /-%%
 \begin{proof}
-\uses{}
-    Using Lemma \ref{JensenForm} we have that
-    $$(R/r)^{\abs{\mathcal{K}_f(r)}}=(R/r)^{\sum_{\rho\in\mathcal{K}_f(r)}1}\leq(R/r)^{\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)}\leq B.$$
-    Taking the logarithm of both sides and rearranging gives the desired result.
+\uses{BlaschkeB, DiskBound}
+    Since $f(0)=1$, we know that $0\not\in\mathcal{K}_f(r)$. Thus,
+    $$C_f(0)=\frac{f(0)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(-\rho)^{m_f(\rho)}}.$$
+    Thus, substituting this into Definition \ref{BlaschkeB},
+    $$(R/r)^{\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)}=\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{r}\right)^{m_f(\rho)}\leq\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}=|B_f(0)|\leq B$$
+    whereby Lemma \ref{DiskBound} we know that $|B_f(z)|\leq B$ for all $|z|\leq R$. Taking the logarithm of both sides and rearranging gives the desired result.
 \end{proof}
 %%-/
 
@@ -259,32 +241,32 @@ open Nat Filter
 
 /-%%
 \begin{proof}
-\uses{}
+\uses{ZeroFactorization, BlaschkeB}
     Suppose that $z\in\mathcal{K}_f(r)$. Then we have that
     $$C_f(z)=\frac{h_z(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)\setminus\{z\}}(z-\rho)^{m_f(\rho)}}.$$
     where $h_z(z)\neq 0$ according to Lemma \ref{ZeroFactorization}. Thus, substituting this into Definition \ref{BlaschkeB},
     \begin{equation}\label{pickupPoint2}
-        \abs{B_f(z)}=\abs{h_z(z)}\cdot\abs{R-\frac{\abs{z}^2}{R}}^{m_f(z)}\prod_{\rho\in\mathcal{K}_f(r)\setminus\{z\}}\abs{\frac{R-z\overline{\rho}/R}{z-\rho}}^{m_f(\rho)}.
+        |B_f(z)|=|h_z(z)|\cdot\left|R-\frac{|z|^2}{R}\right|^{m_f(z)}\prod_{\rho\in\mathcal{K}_f(r)\setminus\{z\}}\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|^{m_f(\rho)}.
     \end{equation}
-    Trivially, $\abs{h_z(z)}\neq 0$. Now note that
-    $$\abs{R-\frac{\abs{z}^2}{R}}=0\implies\abs{z}=R.$$
-    However, this is a contradiction because $z\in\overline{\mathbb{D}_r}$ tells us that $\abs{z}\leq r < R$. Similarly, note that
-    $$\abs{\frac{R-z\overline{\rho}/R}{z-\rho}}=0\implies\abs{z}=\frac{R^2}{\abs{\overline{\rho}}}.$$
-    However, this is also a contradiction because $\rho\in\mathcal{K}_f(r)$ tells us that $R < R^2/\abs{\overline{\rho}}=\abs{z}$, but $z\in\overline{\mathbb{D}_r}$ tells us that $\abs{z}\leq r < R$. So, we know that
-    $$\abs{R-\frac{\abs{z}^2}{R}}\neq 0\qquad\text{and}\qquad\abs{\frac{R-z\overline{\rho}/R}{z-\rho}}\neq 0\quad\text{for all}\quad\rho\in\mathcal{K}_f(r)\setminus\{z\}.$$
-    Applying this to Equation (\ref{pickupPoint2}) we have that $\abs{B_f(z)}\neq 0$. So, $B_f(z)\neq 0$.
+    Trivially, $|h_z(z)|\neq 0$. Now note that
+    $$\left|R-\frac{|z|^2}{R}\right|=0\implies|z|=R.$$
+    However, this is a contradiction because $z\in\overline{\mathbb{D}_r}$ tells us that $|z|\leq r < R$. Similarly, note that
+    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|=0\implies|z|=\frac{R^2}{|\overline{\rho}|}.$$
+    However, this is also a contradiction because $\rho\in\mathcal{K}_f(r)$ tells us that $R < R^2/|\overline{\rho}|=|z|$, but $z\in\overline{\mathbb{D}_r}$ tells us that $|z|\leq r < R$. So, we know that
+    $$\left|R-\frac{|z|^2}{R}\right|\neq 0\qquad\text{and}\qquad\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|\neq 0\quad\text{for all}\quad\rho\in\mathcal{K}_f(r)\setminus\{z\}.$$
+    Applying this to Equation (\ref{pickupPoint2}) we have that $|B_f(z)|\neq 0$. So, $B_f(z)\neq 0$.
 
     Now suppose that $z\not\in\mathcal{K}_f(r)$. Then we have that
     $$C_f(z)=\frac{f(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(z-\rho)^{m_f(\rho)}}.$$
     Thus, substituting this into Definition \ref{BlaschkeB},
     \begin{equation}\label{pickupPoint3}
-        \abs{B_f(z)}=\abs{f(z)}\prod_{\rho\in\mathcal{K}_f(r)}\abs{\frac{R-z\overline{\rho}/R}{z-\rho}}^{m_f(\rho)}.
+        |B_f(z)|=|f(z)|\prod_{\rho\in\mathcal{K}_f(r)}\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|^{m_f(\rho)}.
     \end{equation}
-    We know that $\abs{f(z)}\neq 0$ since $z\not\in\mathcal{K}_f(r)$. Now note that
-    $$\abs{\frac{R-z\overline{\rho}/R}{z-\rho}}=0\implies\abs{z}=\frac{R^2}{\abs{\overline{\rho}}}.$$
-    However, this is a contradiction because $\rho\in\mathcal{K}_f(r)$ tells us that $R < R^2/\abs{\overline{\rho}}=\abs{z}$, but $z\in\overline{\mathbb{D}_r}$ tells us that $\abs{z}\leq r < R$. So, we know that
-    $$\abs{\frac{R-z\overline{\rho}/R}{z-\rho}}\neq 0\quad\text{for all}\quad\rho\in\mathcal{K}_f(r).$$
-    Applying this to Equation (\ref{pickupPoint3}) we have that $\abs{B_f(z)}\neq 0$. So, $B_f(z)\neq 0$.
+    We know that $|f(z)|\neq 0$ since $z\not\in\mathcal{K}_f(r)$. Now note that
+    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|=0\implies|z|=\frac{R^2}{|\overline{\rho}|}.$$
+    However, this is a contradiction because $\rho\in\mathcal{K}_f(r)$ tells us that $R < R^2/|\overline{\rho}|=|z|$, but $z\in\overline{\mathbb{D}_r}$ tells us that $|z|\leq r < R$. So, we know that
+    $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|\neq 0\quad\text{for all}\quad\rho\in\mathcal{K}_f(r).$$
+    Applying this to Equation (\ref{pickupPoint3}) we have that $|B_f(z)|\neq 0$. So, $B_f(z)\neq 0$.
 
     We have shown that $B_f(z)\neq 0$ for both $z\in\mathcal{K}_f(r)$ and $z\not\in\mathcal{K}_f(r)$, so the result follows.
 \end{proof}
@@ -294,19 +276,70 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[JBlaschkeDerivBound]\label{JBlaschkeDerivBound}\lean{JBlaschkeDerivBound}
-    Let $B>1$ and $0 < r' < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $\abs{f(z)}\leq B$ for all $\abs{z}\leq R$, then for all $\abs{z}\leq r'$
-    $$\abs{L_f'(z)}\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
+    Let $B>1$ and $0 < r' < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for all $|z|\leq R$, then for all $|z|\leq r'$
+    $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
 \end{lemma}
 %%-/
 
 /-%%
 \begin{proof}
-\uses{}
-    By Lemma \ref{DiskBound} we immediately know that $\abs{B_f(z)}\leq B$ for all $\abs{z}\leq R$. Now since $L_f=J_{B_f}$ by Definition \ref{JBlaschke}, by Lemma \ref{LogOfAnalyticFunction} we know that
-    $$L_f(0)=0\qquad\text{and}\qquad \mathfrak{R}L_f(z)=\log\abs{B_f(z)}-\log\abs{B_f(0)}\leq\log\abs{B_f(z)}\leq\log B$$
-    for all $\abs{z}\leq r$. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
-    $$\abs{L_f'(z)}\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
-    for all $\abs{z}\leq r'$.
+\uses{DiskBound, JBlaschke, LogOfAnalyticFunction, BorelCaratheodoryDeriv}
+    By Lemma \ref{DiskBound} we immediately know that $|B_f(z)|\leq B$ for all $|z|\leq R$. Now since $L_f=J_{B_f}$ by Definition \ref{JBlaschke}, by Lemma \ref{LogOfAnalyticFunction} we know that
+    $$L_f(0)=0\qquad\text{and}\qquad \mathfrak{R}L_f(z)=\log|B_f(z)|-\log|B_f(0)|\leq\log|B_f(z)|\leq\log B$$
+    for all $|z|\leq r$. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
+    $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
+    for all $|z|\leq r'$.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[FinalBound]\label{FinalBound}\lean{FinalBound}
+    Let $B>1$ and $0 < r' < r < R' < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for all $|z|\leq R$, then for all $z\in\overline{\mathbb{D}_{R'}}\setminus\mathcal{K}_f(R')$ we have
+    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\leq\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log B.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{CFunction, BlaschkeB, JBlaschke, LogOfAnalyticFunction, ZerosBound, JBlaschkeDerivBound}
+    Since $z\in\overline{\mathbb{D}_{r'}}\setminus\mathcal{K}_f(R')$ we know that $z\not\in\mathcal{K}_f(R')$; thus, by Definition \ref{CFunction} we know that
+    $$C_f(z)=\frac{f(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(R')}(z-\rho)^{m_f(\rho)}}.$$
+    Substituting this into Definition \ref{BlaschkeB} we have that
+    $$B_f(z)=f(z)\prod_{\rho\in\mathcal{K}_f(R')}\left(\frac{R-z\overline{\rho}/R}{z-\rho}\right)^{m_f(\rho)}.$$
+    Taking the complex logarithm of both sides we have that
+    $$\mathrm{Log}\,B_f(z)=\mathrm{Log}\,f(z)+\sum_{\rho\in\mathcal{K}_f(R')}m_f(\rho)\,\mathrm{Log}(R-z\overline{\rho}/R)-\sum_{\rho\in\mathcal{K}_f(R')}m_f(\rho)\,\mathrm{Log}(z-\rho).$$
+    Taking the derivative of both sides we have that
+    $$\frac{B_f'}{B_f}(z)=\frac{f'}{f}(z)+\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-R^2/\rho}-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}.$$
+    By Definition \ref{JBlaschke} and Lemma \ref{LogOfAnalyticFunction} we recall that
+    $$L_f(z)=J_{B_f}(z)=\mathrm{Log}\,B_f(z)-\mathrm{Log}\,B_f(0).$$
+    Taking the derivative of both sides we have that $L_f'(z)=(B_f'/B_f)(z)$. Thus,
+    $$\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}=L_f'(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-R^2/\rho}.$$
+    Now since $z\in\overline{\mathbb{D}_{R'}}$ and $\rho\in\mathcal{K}_f(R')$, we know that $R^2/R'-R'\leq|z-R^2/\rho|$. Thus by the triangle inequality we have
+    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\leq|L_f'(z)|+\left(\frac{1}{R^2/R'-R'}\right)\sum_{\rho\in\mathcal{K}_f(R')}m_f(\rho).$$
+    Now by Lemmas \ref{ZerosBound} and \ref{JBlaschkeDerivBound} we get our desired result with a little algebraic manipulation.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[ZetaFixedLowerBound]\label{ZetaFixedLowerBound}\lean{ZetaFixedLowerBound}
+    There exists $a>0$ such that for all $t\in\mathbb{R}$ one has
+    $$|\zeta(3/2+it)|\geq a.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+    From the Euler product expansion of $\zeta$, we have that for $\mathfrak{R}s>1$
+    $$\zeta(s)=\prod_p\frac{1}{1-p^{-s}}.$$
+    Thus, we have that
+    $$\frac{\zeta(2s)}{\zeta(s)}=\prod_p\frac{1-p^{-s}}{1-p^{-2s}}=\prod_p\frac{1}{1+p^{-s}}.$$
+    Now note that $|1-p^{-(3/2+it)}|\leq 1+|p^{-(3/2+it)}|=1+p^{-3/2}$. Thus,
+    $$|\zeta(3/2+it)|=\prod_p\frac{1}{|1-p^{-(3/2+it)}|}\geq\prod_p\frac{1}{1+p^{-3/2}}=\frac{\zeta(3)}{\zeta(3/2)}$$
+    for all $t\in\mathbb{R}$, as desired.
 \end{proof}
 %%-/
 
