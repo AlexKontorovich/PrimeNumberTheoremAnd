@@ -703,8 +703,7 @@ lemma continuousOn_log1 : ContinuousOn (fun x ↦ (log x ^ 2)⁻¹ * x⁻¹) {0,
     rw [neg_eq_iff_eq_neg]
     tauto
 
-  field_simp
-  rw [mul_comm]
+  simp
 
 lemma integral_log_inv (a b : ℝ) (ha : 2 ≤ a) (hb : a ≤ b) :
     ∫ t in a..b, (log t)⁻¹ =
@@ -1670,7 +1669,6 @@ lemma integral_div_log_asymptotic : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ 
           rw [abs_div, show (4 : ℝ) = 2 * 2 by norm_num, show |(2 : ℝ)| = 2 by norm_num,
             show |log 2| = log 2 by simp only [abs_eq_self]; apply log_nonneg; norm_num]
           field_simp
-          rw [mul_rotate]
         · simp only [abs_pos, ne_eq, div_eq_zero_iff, OfNat.ofNat_ne_zero, log_eq_zero,
           OfNat.ofNat_ne_one, false_or]
           norm_num
@@ -1890,8 +1888,6 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
         intro n
         equals ((1 + k (n + 1)) / (1 + k n) ) * ((↑n + 1) * log (↑n + 1) / (↑n * log ↑n)) =>
           field_simp
-          rw [mul_assoc]
-          rw [mul_assoc]
       nth_rw 6 [← (one_mul 1)]
       apply Filter.Tendsto.mul
       · have one_div: nhds 1 = nhds ((1: ℝ) / 1) := by simp
@@ -1926,6 +1922,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
           apply Filter.Tendsto.add
           · rw [← Filter.tendsto_add_atTop_iff_nat 1]
             field_simp
+            simp
           · simp only [one_div]
             exact tendsto_inverse_atTop_nhds_zero_nat
         · have log_eq: ∀ (n: ℕ), log (↑n + 1) = log ↑n + log (1 + 1/n) := by
@@ -1936,11 +1933,9 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
                 _ = log (n * (1 + 1 / n)) := by field_simp
                 _ = log n + log (1 + 1/n) := by
                   rw [Real.log_mul]
-                  all_goals {
-                    field_simp
-                    norm_cast
-                  }
-
+                  · simpa
+                  · simp only [one_div, ne_eq]
+                    positivity
 
           simp_rw [log_eq]
           simp_rw [← div_add_div_same]
@@ -1969,9 +1964,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
               norm_cast
               have log_le_2: log (1 + 1 / ↑(n + 2)) ≤ log 2 := by
                 apply Real.log_le_log
-                · field_simp
-                  norm_cast
-                  simp
+                · positivity
                 · have two_eq_one_plus_one: (2 : ℝ) = 1 + 1 := by
                     norm_num
                   rw [two_eq_one_plus_one]
@@ -1996,7 +1989,8 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
         rw [Asymptotics.isLittleO_iff_tendsto] at k_o1
         · rw [NormedAddCommGroup.tendsto_nhds_zero] at k_o1
           specialize k_o1 ((1 : ℝ) / 2)
-          field_simp at k_o1
+          simp only [one_div, gt_iff_lt, inv_pos, ofNat_pos, div_one, norm_eq_abs, eventually_atTop,
+            ge_iff_le, forall_const] at k_o1
           obtain ⟨a, ha⟩ := k_o1
           use (a + 3)
           refine ⟨by simp, ?_⟩
@@ -2305,7 +2299,9 @@ lemma tendsto_by_squeeze (ε : ℝ) (hε : ε > 0) :
       lhs
       rw [log_factor]
 
-    field_simp
+    suffices Tendsto (fun x : Set.Ioi (1 : ℝ) ↦ (1 - d) * ((1 + ε) * x) / ((1 + log (1 + ε) / log x) * log x) - (1 + d) * x / log x) atTop atTop by
+      field_simp at this ⊢
+      exact this
     conv =>
       arg 1
       intro x

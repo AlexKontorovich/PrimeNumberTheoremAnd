@@ -20,7 +20,7 @@ noncomputable section
 
 open scoped BigOperators Classical SelbergSieve
 
-open Finset Real Nat SelbergSieve.UpperBoundSieve ArithmeticFunction SelbergSieve
+open Finset Real Nat SelbergSieve.UpperBoundSieve ArithmeticFunction SelbergSieve BoundingSieve
 
 namespace SelbergSieve
 set_option quotPrecheck false
@@ -31,8 +31,8 @@ local notation3 "P" => BoundingSieve.prodPrimes (self := SelbergSieve.toBounding
 local notation3 "a" => BoundingSieve.weights (self := SelbergSieve.toBoundingSieve (self := s))
 local notation3 "X" => BoundingSieve.totalMass (self := SelbergSieve.toBoundingSieve (self := s))
 local notation3 "A" => BoundingSieve.support (self := SelbergSieve.toBoundingSieve (self := s))
-local notation3 "𝒜" => SelbergSieve.multSum (s := SelbergSieve.toBoundingSieve (self := s))
-local notation3 "R" => SelbergSieve.rem (s := SelbergSieve.toBoundingSieve (self := s))
+local notation3 "𝒜" => BoundingSieve.multSum (s := SelbergSieve.toBoundingSieve (self := s))
+local notation3 "R" => BoundingSieve.rem (s := SelbergSieve.toBoundingSieve (self := s))
 local notation3 "g" => SelbergSieve.selbergTerms (SelbergSieve.toBoundingSieve (self := s))
 local notation3 "y" => SelbergSieve.level (self := s)
 local notation3 "hy" => SelbergSieve.one_le_level (self := s)
@@ -255,14 +255,14 @@ def selbergUbSieve : UpperBoundSieve :=
 
 -- proved for general lambda squared sieves
 theorem mainSum_eq_diag_quad_form :
-    mainSum μ⁺ =
+    mainSum (s := s.toBoundingSieve) μ⁺ =
       ∑ l ∈ divisors P,
         1 / g l *
           (∑ d ∈ divisors P, if l ∣ d then ν d * γ d else 0) ^ 2 :=
   by apply lambdaSquared_mainSum_eq_diag_quad_form
 
 theorem selberg_bound_simple_mainSum :
-    mainSum μ⁺ = S⁻¹ :=
+    mainSum (s := s.toBoundingSieve) μ⁺ = S⁻¹ :=
   by
   rw [mainSum_eq_diag_quad_form]
   trans (∑ l ∈ divisors P, (if l ^ 2 ≤ y then g l *  (S⁻¹) ^ 2 else 0))
@@ -424,7 +424,7 @@ theorem selberg_bound_muPlus (n : ℕ) (hn : n ∈ divisors P) :
   norm_num
 
 theorem selberg_bound_simple_errSum :
-    errSum μ⁺ ≤
+    errSum (s := s.toBoundingSieve) μ⁺ ≤
       ∑ d ∈ divisors P, if (d : ℝ) ≤ y then (3:ℝ) ^ ω d * |R d| else 0 := by
   dsimp only [errSum]
   gcongr with d hd
@@ -435,7 +435,7 @@ theorem selberg_bound_simple_errSum :
   · rw [s.selbergμPlus_eq_zero d h, abs_zero, zero_mul]
 
 theorem selberg_bound_simple :
-    siftedSum ≤
+    siftedSum (s := s.toBoundingSieve) ≤
       X / S +
         ∑ d ∈ divisors P, if (d : ℝ) ≤ y then (3:ℝ) ^ ω d * |R d| else 0 := by
   let μPlus := s.selbergUbSieve
