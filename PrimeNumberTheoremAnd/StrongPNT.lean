@@ -185,21 +185,35 @@ theorem borel_caratheodory (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
 
   intro r; intro z; intro zInS; intro hyp_z
 
-  have fPos : 2 * M - f z ≠ 0 := Complex.ne_zero_of_re_pos (by simp; linarith [realPartBounded z zInS])
-
-  -- TODO: Replace all usage of fPos by fPosAll
+  have zInSFunc : ∀r ≤ R, ∀z ∈ Metric.sphere 0 r, z ∈ s := by
+      intro r
+      intro hyp_r
+      intro z
+      intro hyp_z
+      apply Set.mem_of_mem_of_subset (s := Metric.sphere 0 r)
+      · exact hyp_z
+      · rw [setIsBall];
+        have := by
+          calc Metric.sphere (0 : ℂ) r
+               _ ⊆ Metric.closedBall (0 : ℂ) r := by apply Metric.sphere_subset_closedBall
+               _ ⊆ Metric.closedBall (0 : ℂ) R := by apply Metric.closedBall_subset_closedBall; exact hyp_r
+        exact this
 
   have fPosAll : ∀z ∈ s, 2 * M - f z ≠ 0 := by
     intro z
     intro zInS
     exact Complex.ne_zero_of_re_pos (by simp; linarith [realPartBounded z zInS])
 
-  have fMBounded2 : ∀z ∈ Metric.sphere 0 R, ‖fM f M z‖ ≤ 1 / R := by
+  have fMBounded : ∀z ∈ Metric.sphere 0 R, ‖fM f M z‖ ≤ 1 / R := by
     intro z
     intro hyp_z
 
-    have zNe0 : z ≠ 0 := by sorry
-    have zInS : z ∈ s := by sorry
+    have zNe0 : z ≠ 0 := by
+      rw [mem_sphere_zero_iff_norm] at hyp_z; rw [← hyp_z] at Rpos;
+      have U : ‖z‖ ≠ 0 := by grind
+      apply ne_zero_of_norm_ne_zero; exact U
+
+    have zInS : z ∈ s := zInSFunc R (by rfl) z hyp_z
 
     have := calc ‖fM f M z‖
            _ = (‖f z‖ / ‖z‖) / ‖2 * M - f z‖ := by unfold fM; rw [fDivAwayZero f z zNe0]; simp;
@@ -216,27 +230,6 @@ theorem borel_caratheodory (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
                · rw [div_div, mul_comm, ← div_div, div_self]; exact h
     simp [mem_sphere_iff_norm] at hyp_z
     rw [← hyp_z]; exact this
-
-  -- TODO : Remove this
-  have fMBounded : ∀z ≠ 0, z ∈ s → ‖fM f M z‖ ≤ 1 / ‖z‖ := by
-    intro z
-    intro hyp_z
-    intro zInS
-
-    have := calc ‖fM f M z‖
-           _ = (‖f z‖ / ‖z‖) / ‖2 * M - f z‖ := by unfold fM; rw [fDivAwayZero f z hyp_z]; simp
-           _ ≤ (‖f z‖ / ‖z‖) / ‖f z‖ := by
-               by_cases h : ‖f z‖ = 0;
-               · rw [h]; simp
-               · apply div_le_div_of_nonneg_left
-                 · positivity
-                 · positivity
-                 · exact simpleIneq (f z) M (Mpos) (realPartBounded z zInS)
-            _ ≤ (1 / ‖z‖) := by
-               by_cases h : ‖f z‖ = 0
-               · rw [h]; simp
-               · rw [div_div, mul_comm, ← div_div, div_self]; exact h
-    exact this
 
   have maxModOnBall : ∀(C r : ℝ), r ≤ R → (∀z ∈ Metric.sphere 0 r, ‖fM f M z‖ ≤ C) → ∀w ∈ Metric.closedBall 0 r, ‖fM f M w‖ ≤ C :=
     by
@@ -259,38 +252,18 @@ theorem borel_caratheodory (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
         exact cond
       · rw [Metric.closure_closedBall]; exact wInS
 
-  have maxMod2: ∀z ∈ s, ‖fM f M z‖ ≤ 1 / R := by
-    have := maxModOnBall (1 / R) R (by rfl) (fMBounded2)
+  have maxMod: ∀z ∈ s, ‖fM f M z‖ ≤ 1 / R := by
+    have := maxModOnBall (1 / R) R (by rfl) fMBounded
     rw [← setIsBall] at this
     exact this
 
-    sorry
-
-  have maxMod : ∀z ∈ s, ‖fM f M z‖ ≤ 1 / R := by
-    intro z
-    intro zInS
-    apply Complex.norm_le_of_forall_mem_frontier_norm_le (U := s)
-    · rw [setIsBall]; exact Metric.isBounded_closedBall
-    · apply DifferentiableOn.diffContOnCl
-      rw [setIsBall, Metric.closure_closedBall]
-      apply AnalyticOn.differentiableOn
-      rw [← setIsBall]
-      exact fMAnalytic f M s (setIsBall := setIsBall) (R := R) (Rpos := Rpos) analytic fPosAll zeroAtZero
-    · rw [setIsBall, frontier_closedBall']
-      intro z₁
-      intro hyp_z₁
-      rw [Metric.mem_sphere, dist_zero_right] at hyp_z₁
-      rw [← hyp_z₁]
-      apply fMBounded
-      · apply ne_zero_of_norm_ne_zero; grind
-      · rw [setIsBall, mem_closedBall_iff_norm]; grind
-    · rw [setIsBall, Metric.closure_closedBall, ← setIsBall]; exact zInS
-
-  have boundForF : ∀(r : ℝ), ∀z ∈ s, ‖z‖ = r → ‖f z‖ ≤ 2 * M * r / (R - r) := by
+  have boundForF : ∀r < R, ∀z ∈ Metric.sphere 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
     intro r
+    intro hyp_r
     intro z
-    intro zInS
     intro zOnR
+    have zInS : z ∈ s := by sorry
+    rw [mem_sphere_zero_iff_norm] at zOnR
     have := maxMod z zInS
     unfold fM at this
     have U : z ≠ 0 := by sorry
