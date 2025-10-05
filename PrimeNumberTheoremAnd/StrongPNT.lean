@@ -400,6 +400,7 @@ open Nat Filter
 
 /-%%
 \begin{proof}
+\uses{}
     This is an immediate consequence of the identity theorem.
 \end{proof}
 %%-/
