@@ -1,11 +1,21 @@
 import Mathlib.NumberTheory.VonMangoldt
 import Mathlib.NumberTheory.ArithmeticFunction
+import Mathlib.Topology.EMetricSpace.Defs
+import Mathlib.Analysis.Analytic.Basic
+import Mathlib.Data.Complex.Basic
+import Mathlib.Analysis.Analytic.Constructions
+import Mathlib.Analysis.Complex.RemovableSingularity
+import Mathlib.Analysis.Calculus.Deriv.Inv
+import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
+import Mathlib.Analysis.Calculus.Deriv.Slope
+import Mathlib.Analysis.Analytic.Within
+import Mathlib.Analysis.Normed.Group.Basic
+import Mathlib.Analysis.Complex.AbsMax
+
 
 open Nat Filter
 
 --open scoped ArithmeticFunction
-
-
 
 /-%%
     This upstreamed from https://github.com/math-inc/strongpnt/tree/main
@@ -20,6 +30,204 @@ open Nat Filter
 \end{theorem}
 %%-/
 
+noncomputable abbrev fDiv (f : ℂ → ℂ) : ℂ → ℂ :=
+  Function.update (fun z ↦ (f z) / z) 0 ((deriv f) 0)
+
+lemma fDivAwayZero (f : ℂ → ℂ) (z : ℂ) : z ≠ 0 → fDiv f z = f z / z := by
+  intro hyp_z
+  unfold fDiv
+  apply Function.update_of_ne
+  exact hyp_z
+
+-- If f is analytic on an open set and f 0 = 0 then f z / z is also
+-- analytic on the same open set.
+
+lemma fDivAnalytic (f : ℂ → ℂ) (s : Set ℂ)
+  (sInNhds0 : s ∈ nhds 0) (zero : f 0 = 0) (o : IsOpen s)
+  (analytic : AnalyticOn ℂ f s) : AnalyticOn ℂ (fDiv f) s :=
+  by
+     rw [Complex.analyticOn_iff_differentiableOn o, ←(Complex.differentiableOn_compl_singleton_and_continuousAt_iff sInNhds0)]
+     constructor
+     · rw [differentiableOn_congr (by intros; apply Function.update_of_ne; grind)]
+       exact DifferentiableOn.fun_div (AnalyticOn.differentiableOn (AnalyticOn.mono analytic Set.diff_subset)) (DifferentiableOn.mono (differentiableOn_id (s := Set.univ)) (Set.subset_univ (s \ {0}))) (by grind)
+
+     · have U := HasDerivAt.continuousAt_div (c := 0) (a := (deriv f) 0) (f := f) (DifferentiableOn.hasDerivAt ((Complex.analyticOn_iff_differentiableOn o).mp analytic) sInNhds0)
+       have T : (fun (x : ℂ) ↦ (f x - 0) / (x - 0)) = (fun (x : ℂ) ↦ (f x) / x) := by funext; grind
+       rw [zero, T] at U; exact U
+
+-- Proving that fDiv is analytic on a _closed_ ball if f is analytic
+-- on a _closed_ ball is cumbersome because we need to show implicitly
+-- that there is a larger open set that contains the closed ball on which
+-- f is analytic. Only then we can apply the previous Lemma.
+
+lemma fDivAnalyticClosedBall (f : ℂ → ℂ) (s : Set ℂ)
+  {R : ℝ} {Rpos : 0 < R} {setIsBall : s = {z | ‖z‖ ≤ R}}
+  (analytic : AnalyticOn ℂ f s) (zero : f 0 = 0):
+  AnalyticOn ℂ (fDiv f) s := by
+    apply analyticOn_of_locally_analyticOn
+    intro x
+    intro x_hyp
+    by_cases h : ‖x‖ = R
+    · use Metric.ball x (R / 2)
+      constructor
+      · exact Metric.isOpen_ball
+      · constructor
+        · rw [ball_eq]; simp; positivity
+        · have Z : ∀w ∈ s ∩ Metric.ball x (R / 2), fDiv f w = f w / w := by
+             intro x₂
+             intro hyp_x₂
+             unfold fDiv
+             apply Function.update_of_ne
+             rw [setIsBall, ball_eq] at hyp_x₂
+             simp at hyp_x₂
+             have Z : ‖x₂‖ ≥ R / 2 := by
+                calc ‖x₂‖
+                  _ = ‖x - (x - x₂)‖ := by simp
+                  _ ≥ ‖x‖ - ‖x - x₂‖ := by apply norm_sub_norm_le
+                  _ = R - ‖x₂ - x‖ := by simp [h, norm_sub_rev]
+                  _ ≥ R - R / 2 := by linarith
+                  _ = R / 2 := by linarith
+             have U : ‖x₂‖ ≠ 0 := by linarith
+             apply ne_zero_of_norm_ne_zero U
+
+          apply AnalyticOn.congr (g := fDiv f) (f := fun x ↦ f x / x)
+          · apply AnalyticOn.div
+            · apply AnalyticOn.mono (s := s ∩ Metric.ball x (R / 2)) (t := s)
+              · exact analytic
+              · exact Set.inter_subset_left
+            · apply analyticOn_id
+            · intro x₁
+              intro hyp_x₁
+              rw [setIsBall, ball_eq] at hyp_x₁
+              simp at hyp_x₁
+              have Z : ‖x₁‖ ≥ R / 2 :=
+                by
+                calc ‖x₁‖
+                   _ = ‖x - (-(x₁ - x))‖ := by simp
+                   _ ≥ ‖x‖ - ‖-(x₁ - x)‖ := by apply norm_sub_norm_le
+                   _ = R - ‖x₁ - x‖ := by simp [h, norm_sub_rev]
+                   _ ≥ R / 2 := by linarith
+              have U : ‖x₁‖ ≠ 0 := by linarith
+              exact ne_zero_of_norm_ne_zero U
+          · simp [Set.EqOn.eq_1]
+            intro x₃
+            intro hyp_x₃
+            intro dist_hyp
+            have : x₃ ∈ s ∩ Metric.ball x (R / 2) := by
+              apply Set.mem_inter
+              · exact hyp_x₃
+              · rw [Metric.mem_ball]; exact dist_hyp
+            exact Z x₃ this
+
+    · use Metric.ball 0 R
+      constructor
+      · exact Metric.isOpen_ball
+      · constructor
+        · rw [ball_eq]; simp; simp [setIsBall] at x_hyp; grind
+        · have si : s ∩ Metric.ball 0 R = Metric.ball 0 R := by
+            apply Set.inter_eq_self_of_subset_right
+            simp [setIsBall] at x_hyp
+            rw [ball_eq]
+            simp
+            simp [setIsBall]
+            grind
+          rw [si]
+          apply fDivAnalytic
+          · apply IsOpen.mem_nhds (s := Metric.ball 0 R) (x := 0)
+            · apply Metric.isOpen_ball
+            · simp; positivity
+          · exact zero
+          · apply Metric.isOpen_ball
+          · apply AnalyticOn.mono (s := Metric.ball 0 R) (t := s)
+            · exact analytic
+            · grind
+
+noncomputable abbrev fM (f : ℂ → ℂ) (M : ℝ) : ℂ → ℂ :=
+  fun z ↦ (fDiv f z) / (2 * M - f z)
+
+-- We show that f_{M}(z) is analytic.
+
+lemma fMAnalytic (f : ℂ → ℂ) (M : ℝ) (s : Set ℂ)
+  {R : ℝ} {Rpos : 0 < R} {setIsBall : s = {z | ‖z‖ ≤ R}}
+  (analytic : AnalyticOn ℂ f s) (nonzero: ∀z ∈ s, 2 * M - f z ≠ 0)
+  (zero : f 0 = 0): AnalyticOn ℂ (fM f M) s := by
+
+  have sInNhds0 : s ∈ nhds 0 := by
+    have U : s = Metric.closedBall 0 R := by apply Set.ext; simp [setIsBall]
+    rw [U]; apply Metric.closedBall_mem_nhds; positivity
+
+  have fMAnalytic : AnalyticOn ℂ (fM f M) s := by
+     apply AnalyticOn.div
+     · exact fDivAnalyticClosedBall (R := R) (Rpos := Rpos) (setIsBall := setIsBall) f s analytic zero
+     · apply AnalyticOn.sub
+       · apply analyticOn_const
+       · exact analytic
+     · exact nonzero
+
+  exact fMAnalytic
+
+-- If Re x ≤ M then |x| ≤ |2 * M - x|.
+
+lemma simpleIneq (x : ℂ) (M : ℝ) (Mpos : 0 < M) : x.re ≤ M → ‖x‖ ≤ ‖2 * M - x‖ := by
+  intro hyp_re_x
+  rw [← sq_le_sq₀ (by positivity) (by positivity), Complex.sq_norm, Complex.sq_norm, Complex.normSq_apply, Complex.normSq_apply]
+  simp
+  ring_nf
+  rw [add_comm (-(x.re * M * 4)) (x.re ^ 2), add_assoc, le_add_iff_nonneg_right (x.re ^ 2)]
+  simp
+  have Z : M ^ 2 = M * M := by grind
+  rw [Z, (mul_le_mul_right Mpos)]
+  exact hyp_re_x
+
+-- Add Lemma that for z ≠ 0 , fDiv f z = f z / z otherwise
+-- we redo it every single time.
+
+theorem borel_caratheodory (M : ℝ) (Mpos : M > 0) (s : Set ℂ)
+  {R : ℝ} {Rpos : 0 < R} {setIsBall : s = {z | ‖z‖ ≤ R}}
+  (f : ℂ → ℂ) (analytic : AnalyticOn ℂ f s)
+  (zeroAtZero: f 0 = 0)
+  (realPartBounded: ∀z ∈ s, (f z).re ≤ M)
+  : ∀(r : ℝ), ∀(z : ℂ), r ≤ R → ‖z‖ ≤ r
+  → ‖f z‖ ≤ (2 * M * r) / (R - r) := by
+
+  intro r; intro z; intro hyp_r; intro hyp_z
+
+  have zInS : z ∈ s := by rw [setIsBall]; simp; linarith
+
+  have fPos : 2 * M - f z ≠ 0 := Complex.ne_zero_of_re_pos (by simp; linarith [realPartBounded z zInS])
+
+  have fMBounded : z ≠ 0 → ‖fM f M z‖ ≤ 1 / ‖z‖ := by
+    intro hyp_z
+
+    have := calc ‖fM f M z‖
+           _ = (‖f z‖ / ‖z‖) / ‖2 * M - f z‖ := by unfold fM; rw [fDivAwayZero f z hyp_z]; simp
+           _ ≤ (‖f z‖ / ‖z‖) / ‖f z‖ := by
+               by_cases h : ‖f z‖ = 0;
+               · rw [h]; simp
+               · apply div_le_div_of_nonneg_left
+                 · positivity
+                 · positivity
+                 · exact simpleIneq (f z) M (Mpos) (realPartBounded z zInS)
+            _ ≤ (1 / ‖z‖) := by
+               by_cases h : ‖f z‖ = 0
+               · rw [h]; simp
+               · rw [div_div, mul_comm, ← div_div, div_self]; exact h
+    exact this
+
+  have maxMod : ‖fM f M z‖ ≤ 1 / R := by
+    apply Complex.norm_le_of_forall_mem_frontier_norm_le (U := {z | ‖z‖ ≤ R})
+    · sorry
+    · sorry
+    · sorry
+    · sorry
+
+
+
+    sorry
+
+  sorry
+
+
 /-%%
 \begin{proof}
 \uses{}
@@ -27,7 +235,7 @@ open Nat Filter
     $$f_M(z)=\frac{f(z)/z}{2M-f(z)}.$$
     Note that $2M-f(z)\neq 0$ because $\mathfrak{R}(2M-f(z))=2M-\mathfrak{R}f(z)\geq M>0$. Additionally, since $f(z)$ has a zero at $0$, we know that $f(z)/z$ is analytic on $\abs{z}\leq R$. Likewise, $f_M(z)$ is analytic on $\abs{z}\leq R$.
 
-    Now note that $\abs{f(z)}\leq\abs{2M-f(z)}$ since $\mathfrak{R}f(z)\leq M$. Thus we have that
+    Now note that $\abs{f(z)}\leq\abs{2M-f(z)}$ since $ℐfrak{R}f(z)\leq M$. Thus we have that
     $$\abs{f_M(z)}=\frac{\abs{f(z)}/\abs{z}}{\abs{2M-f(z)}}\leq\frac{1}{\abs{z}}.$$
     Now by the maximum modulus principle, we know the maximum of $\abs{f_M}$ must occur on the boundary where $\abs{z}=R$. Thus, $\abs{f_M(z)}\leq 1/R$ for all $\abs{z}\leq R$. So for $\abs{z}=r$ we have
     $$\abs{f_M(z)}=\frac{\abs{f(z)}/r}{\abs{2M-f(z)}}\leq\frac{1}{R}\implies R\,\abs{f(z)}\leq r\,\abs{2M-f(z)}\leq 2Mr+r\,\abs{f(z)}.$$
