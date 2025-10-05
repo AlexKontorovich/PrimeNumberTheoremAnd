@@ -333,6 +333,7 @@ open Nat Filter
 
 /-%%
 \begin{proof}
+\uses{}
     From the Euler product expansion of $\zeta$, we have that for $\mathfrak{R}s>1$
     $$\zeta(s)=\prod_p\frac{1}{1-p^{-s}}.$$
     Thus, we have that
@@ -343,6 +344,87 @@ open Nat Filter
 \end{proof}
 %%-/
 
+
+
+/-%%
+\begin{lemma}[ZetaAltFormula]\label{ZetaAltFormula}\lean{ZetaAltFormula}
+    Let
+    $$\zeta_0(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}.$$
+    We have that $\zeta(s)=\zeta_0(s)$ for $\sigma>1$.
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{}
+    Note that for $\sigma>1$ we have
+    $$\zeta(s)=\sum_{n=1}^\infty\frac{1}{n^s}=\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=1}^\infty\frac{n-1}{n^s}=\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=0}^\infty\frac{n}{(n+1)^s}=\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=1}^\infty\frac{n}{(n+1)^s}.$$
+    Thus
+    $$\zeta(s)=\sum_{n=1}^\infty n\,(n^{-s}-(n+1)^{-s}).$$
+    Now we note that
+    $$s\int_n^{n+1}x^{-s}\,\frac{dx}{x}=s\left(-\frac{1}{s}\,x^{-s}\right)_n^{n+1}=n^{-s}-(n+1)^{-s}.$$
+    So, substituting this we have
+    $$\zeta(s)=\sum_{n=1}^\infty n\,(n^{-s}-(n+1)^{-s})=s\sum_{n=1}^\infty n\int_n^{n+1}x^{-s}\,\frac{dx}{x}=s\int_1^\infty\lfloor x\rfloor\,x^{-s}\,\frac{dx}{x}.$$
+    But noting that $\lfloor x\rfloor =x-\{x\}$ we have that
+    $$\zeta(s)=s\int_1^\infty\lfloor x\rfloor\,x^{-s}\,\frac{dx}{x}=s\int_1^\infty x^{-s}\,dx-s\int_1^\infty \{x\}\,x^{-s}\,\frac{dx}{x}.$$
+    Evaluating the first integral completes the result.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[ZetaAltFormulaAnalytic]\label{ZetaAltFormulaAnalytic}\lean{ZetaAltFormulaAnalytic}
+    We have that $\zeta_0(s)$ is analytic for all $s\in S$ where $S=\{s\in\mathbb{C}:\mathfrak{R}s>0,\,s\neq 1\}$.
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{}
+    Note that we have
+    $$\left|\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}\right|\leq\int_1^\infty|\{x\}\,x^{-s-1}|\,dx\leq\int_1^\infty x^{-\sigma-1}\,dx=\frac{1}{\sigma}.$$
+    So this integral converges uniformly on compact subsets of $S$, which tells us that it is analytic on $S$. So it immediately follows that $\zeta_0(s)$ is analytic on $S$ as well, since $S$ avoids the pole at $s=1$ coming from the $(s-1)^{-1}$ term.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[ZetaExtend]\label{ZetaExtend}\lean{ZetaExtend}
+    We have that
+    $$\zeta(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}$$
+    for all $s\in S$.
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{}
+    This is an immediate consequence of the identity theorem.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[GlobalBound]\label{GlobalBound}\lean{GlobalBound}
+    For all $s\in\mathbb{C}$ with $|s|\leq 1$ and $t\in\mathbb{R}$ with $|t|\geq 3$, we have that
+    $$|\zeta(s+3/2+it)|\leq 7+2\,|t|.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{ZetaExtend}
+    For the sake of clearer proof writing let $z=s+3/2+it$. Since $|s|\leq 1$ we know that $1/2\leq\mathfrak{R}z$; additionally, as $|t|\geq 3$, we know $z\in S$. Thus, from Lemma \ref{ZetaExtend} we know that
+    $$|\zeta(z)|\leq 1+\frac{1}{|z-1|}+|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|$$
+    by applying the triangle inequality. Now note that $\abs{z-1}\geq 1$. Likewise,
+    $$|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|\leq|z|\int_1^\infty|\{x\}\,x^{-z-1}|\,dx\leq|z|\int_1^\infty x^{-\mathfrak{R}z-1}\,dx=\frac{|z|}{\mathfrak{R}z}\leq 2\,|z|.$$
+    Thus we have that,
+    $$|\zeta(s+3/2+it)|=|\zeta(z)|\leq 1+1+2\,|z|=2+2\,|s+3/2+it|\leq2+2\,|s|+3+2\,|it|\leq 7+2\,|t|.$$
+\end{proof}
+%%-/
 
 
 /-%
