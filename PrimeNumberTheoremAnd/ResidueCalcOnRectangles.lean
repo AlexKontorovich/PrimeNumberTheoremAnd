@@ -414,7 +414,7 @@ lemma integral_self_div_sq_add_sq (hy : y ≠ 0) : ∫ x in x₁..x₂, x / (x ^
   let f (x : ℝ) : ℝ := Real.log (x ^ 2 + y ^ 2) / 2
   have e1 {x} := HasDerivAt.add_const (y ^ 2) (by simpa using hasDerivAt_pow 2 x)
   have e2 {x} : HasDerivAt f (x / (x ^ 2 + y ^ 2)) x := by
-    convert (e1.log (sq_add_sq_ne_zero hy)).div_const 2 using 1 ; field_simp ; ring
+    convert (e1.log (sq_add_sq_ne_zero hy)).div_const 2 using 1 ; field_simp
   have e3 : deriv f = fun x => x / (x ^ 2 + y ^ 2) := funext (fun _ => e2.deriv)
   have e4 : Continuous (deriv f) := by simpa only [e3] using continuous_self_div_sq_add_sq hy
   simp_rw [← e2.deriv]
@@ -450,8 +450,8 @@ lemma integral_const_div_re_add_self (hx : x ≠ 0) : ∫ y : ℝ in y₁..y₂,
     A / I * I * (arctan (y₂ / -x) - arctan (y₁ / -x)) := by
   have l1 {y : ℝ} : A / (x + y * I) = A / I / (y + ↑(-x) * I) := by
     have e1 : x + y * I ≠ 0 := by contrapose! hx ; simpa using congr_arg re hx
-    have e2 : y + -(x * I) ≠ 0 := by contrapose! hx ; simpa using congr_arg im hx
-    field_simp ; ring_nf ; simp
+    have e2 : y + I * ↑(-x) ≠ 0 := by contrapose! hx ; simpa using congr_arg im hx
+    field_simp [*] ; push_cast; ring_nf ; simp
   have l2 : -x ≠ 0 := by rwa [neg_ne_zero]
   simp_rw [l1, integral_const_div_self_add_im l2]
 
@@ -480,7 +480,7 @@ theorem ResidueTheoremInRectangle (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.i
   simp only [rectangle_mem_nhds_iff, uIoo_of_le zRe_le_wRe, uIoo_of_le zIm_le_wIm, mem_reProdIm,
     mem_Ioo] at pInRectInterior
   rw [RectangleIntegral.translate', RectangleIntegral']
-  have : 1 / (2 * ↑π * I) * (2 * I * ↑π * c) = c := by field_simp [two_pi_I_ne_zero] ; ring
+  have : 1 / (2 * ↑π * I) * (2 * I * ↑π * c) = c := by field_simp
   rwa [ResidueTheoremAtOrigin'] ; all_goals { simp [*] }
 
 /-%%
@@ -491,7 +491,7 @@ The rectangle (square) integral of $f(s) = 1/s$ with corners $-1-i$ and $1+i$ is
 %%-/
 lemma ResidueTheoremAtOrigin : RectangleIntegral' (fun s ↦ 1 / s) (-1 - I) (1 + I) = 1 := by
   rw [RectangleIntegral', ResidueTheoremAtOrigin']
-  all_goals { field_simp [pi_ne_zero] <;> ring }
+  all_goals { simp [field] }
 /-%%
 \begin{proof}\leanok
 This is a special case of the more general result above.
