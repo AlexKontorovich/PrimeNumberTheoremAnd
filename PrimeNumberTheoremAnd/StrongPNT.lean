@@ -61,7 +61,7 @@ lemma fDivAnalytic (f : ℂ → ℂ) (s : Set ℂ)
 -- f is analytic. Only then we can apply the previous Lemma.
 
 lemma fDivAnalyticClosedBall (f : ℂ → ℂ) (s : Set ℂ)
-  {R : ℝ} {Rpos : 0 < R} {setIsBall : s = {z | ‖z‖ ≤ R}}
+  {R : ℝ} {Rpos : 0 < R} {setIsBall : s = Metric.closedBall 0 R}
   (analytic : AnalyticOn ℂ f s) (zero : f 0 = 0):
   AnalyticOn ℂ (fDiv f) s := by
     apply analyticOn_of_locally_analyticOn
@@ -127,20 +127,18 @@ lemma fDivAnalyticClosedBall (f : ℂ → ℂ) (s : Set ℂ)
         · have si : s ∩ Metric.ball 0 R = Metric.ball 0 R := by
             apply Set.inter_eq_self_of_subset_right
             simp [setIsBall] at x_hyp
-            rw [ball_eq]
-            simp
             simp [setIsBall]
-            grind
-          rw [si]
-          apply fDivAnalytic
-          · apply IsOpen.mem_nhds (s := Metric.ball 0 R) (x := 0)
+            exact Metric.ball_subset_closedBall
+          · rw [si]; apply fDivAnalytic f
+            · apply Metric.ball_mem_nhds; positivity
+            · exact zero
             · apply Metric.isOpen_ball
-            · simp; positivity
-          · exact zero
-          · apply Metric.isOpen_ball
-          · apply AnalyticOn.mono (s := Metric.ball 0 R) (t := s)
-            · exact analytic
-            · grind
+            · apply AnalyticOn.mono (t := s) (s := Metric.ball 0 R)
+              · exact analytic
+              · rw [setIsBall]; apply Metric.ball_subset_closedBall
+
+
+
 
 noncomputable abbrev fM (f : ℂ → ℂ) (M : ℝ) : ℂ → ℂ :=
   fun z ↦ (fDiv f z) / (2 * M - f z)
@@ -148,7 +146,7 @@ noncomputable abbrev fM (f : ℂ → ℂ) (M : ℝ) : ℂ → ℂ :=
 -- We show that f_{M}(z) is analytic.
 
 lemma fMAnalytic (f : ℂ → ℂ) (M : ℝ) (s : Set ℂ)
-  {R : ℝ} {Rpos : 0 < R} {setIsBall : s = {z | ‖z‖ ≤ R}}
+  {R : ℝ} {Rpos : 0 < R} {setIsBall : s = Metric.closedBall 0 R}
   (analytic : AnalyticOn ℂ f s) (nonzero: ∀z ∈ s, 2 * M - f z ≠ 0)
   (zero : f 0 = 0): AnalyticOn ℂ (fM f M) s := by
 
@@ -215,15 +213,12 @@ theorem borel_caratheodory (M : ℝ) (Mpos : M > 0) (s : Set ℂ)
     exact this
 
   have maxMod : ‖fM f M z‖ ≤ 1 / R := by
-    apply Complex.norm_le_of_forall_mem_frontier_norm_le (U := {z | ‖z‖ ≤ R})
-    · sorry
+    apply Complex.norm_le_of_forall_mem_frontier_norm_le (U := s)
+    · rw [setIsBall]; sorry
     · sorry
     · sorry
     · sorry
 
-
-
-    sorry
 
   sorry
 
