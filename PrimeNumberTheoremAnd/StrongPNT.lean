@@ -408,7 +408,7 @@ open Nat Filter
 
 
 /-%%
-\begin{lemma}[\S 3.2, Lemma 457, Global Bound]\label{457}
+\begin{lemma}[GlobalBound]\label{GlobalBound}\lean{GlobalBound}
     For all $s\in\mathbb{C}$ with $|s|\leq 1$ and $t\in\mathbb{R}$ with $|t|\geq 3$, we have that
     $$|\zeta(s+3/2+it)|\leq 7+2\,|t|.$$
 \end{lemma}
