@@ -24,9 +24,9 @@ Filter.Tendsto (fun x ↦ log x ^ b / x^a) Filter.atTop (nhds 0) := by
     have h1 : 1 ≤ log x := by
       rwa [le_log_iff_exp_le h0]
     rw [div_rpow _ (le_of_lt h0)]
-    · rw [div_le_div_iff_of_pos_right (rpow_pos_of_pos h0 _), <-rpow_natCast, <-rpow_mul (zero_le_one.trans h1)]
+    · rw [div_le_div_iff_of_pos_right (rpow_pos_of_pos h0 _), ← rpow_natCast, ← rpow_mul (zero_le_one.trans h1)]
       apply rpow_le_rpow_of_exponent_le h1
-      rw [<-div_le_iff₀ ha]
+      rw [← div_le_iff₀ ha]
       exact Nat.le_ceil _
     apply pow_nonneg (by linarith)
   rw [(zero_rpow (_root_.ne_of_lt ha).symm).symm]
