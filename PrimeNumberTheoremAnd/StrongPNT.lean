@@ -181,9 +181,9 @@ theorem borel_caratheodory (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
   (f : ℂ → ℂ) (analytic : AnalyticOn ℂ f s)
   (zeroAtZero: f 0 = 0)
   (realPartBounded: ∀z ∈ s, (f z).re ≤ M)
-  : ∀(r : ℝ), ∀z ∈ s, ‖z‖ ≤ r → ‖f z‖ ≤ (2 * M * r) / (R - r) := by
+  : ∀r < R, ∀z ∈ Metric.closedBall 0 r, ‖f z‖ ≤ (2 * M * r) / (R - r) := by
 
-  intro r; intro z; intro zInS; intro hyp_z
+  intro r; intro hyp_r; intro z; intro hyp_z;
 
   have zInSFunc : ∀r ≤ R, ∀z ∈ Metric.sphere 0 r, z ∈ s := by
       intro r
@@ -231,6 +231,30 @@ theorem borel_caratheodory (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
     simp [mem_sphere_iff_norm] at hyp_z
     rw [← hyp_z]; exact this
 
+
+  have maxModOnBall2 : ∀(f : ℂ → ℂ), ∀(C r : ℝ), AnalyticOn ℂ f s → r ≤ R → (∀z ∈ Metric.sphere 0 r, ‖f z‖ ≤ C) → ∀w ∈ Metric.closedBall 0 r, ‖f w‖ ≤ C :=
+    by
+      intro f
+      intro C
+      intro r
+      intro analytic
+      intro hyp_r
+      intro cond
+      intro w
+      intro wInS
+      apply Complex.norm_le_of_forall_mem_frontier_norm_le (U := Metric.closedBall 0 r)
+      · exact Metric.isBounded_closedBall
+      · apply DifferentiableOn.diffContOnCl
+        rw [Metric.closure_closedBall]
+        apply AnalyticOn.differentiableOn
+        apply AnalyticOn.mono (f := f) (s := Metric.closedBall 0 r) (t := s) (𝕜 := ℂ)
+        · exact analytic
+        · rw [setIsBall]; apply Metric.closedBall_subset_closedBall; grind
+      · rw [frontier_closedBall']
+        exact cond
+      · rw [Metric.closure_closedBall]; exact wInS
+
+
   have maxModOnBall : ∀(C r : ℝ), r ≤ R → (∀z ∈ Metric.sphere 0 r, ‖fM f M z‖ ≤ C) → ∀w ∈ Metric.closedBall 0 r, ‖fM f M w‖ ≤ C :=
     by
       intro C
@@ -253,24 +277,24 @@ theorem borel_caratheodory (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
       · rw [Metric.closure_closedBall]; exact wInS
 
   have maxMod: ∀z ∈ s, ‖fM f M z‖ ≤ 1 / R := by
-    have := maxModOnBall (1 / R) R (by rfl) fMBounded
+    have := maxModOnBall2 (fM f M) (1 / R) R (fMAnalytic f M s (setIsBall := setIsBall) (R := R) (Rpos := Rpos) analytic fPosAll zeroAtZero) (by rfl) fMBounded
     rw [← setIsBall] at this
     exact this
 
-  have boundForF : ∀r < R, ∀z ∈ Metric.sphere 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
+  have boundForF : ∀r < R, 0 < r → ∀z ∈ Metric.sphere 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
     intro r
     intro hyp_r
+    intro r_pos
     intro z
     intro zOnR
-    have zInS : z ∈ s := by sorry
+    have zInS : z ∈ s := zInSFunc r (by grind) z (zOnR)
     rw [mem_sphere_zero_iff_norm] at zOnR
     have := maxMod z zInS
     unfold fM at this
-    have U : z ≠ 0 := by sorry
+    have U : z ≠ 0 := by rw [← norm_pos_iff]; linarith
     rw [fDivAwayZero f z U] at this
     simp at this
-    have U : 0 < r * ‖2 * M - f z‖ := by sorry
-    have U1 : 0 < r := by sorry
+    have U : 0 < r * ‖2 * M - f z‖ := by simp [r_pos, fPosAll z zInS]
     simp [zOnR, div_div, div_le_iff₀' U ] at this
     have U0 : ‖f z‖ ≤ 2 * M * r / R + ( r / R ) * ‖f z‖  := by
       calc ‖f z‖
@@ -289,28 +313,34 @@ theorem borel_caratheodory (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
     rw [mul_assoc] at U0
     have U1 : ‖f z‖ - ‖f z‖ * (r * R⁻¹) = ‖f z‖ * (1 - r * R⁻¹) := by ring
     rw [U1] at U0
-    have U2 : (0 : ℝ) < 1 - r * R⁻¹ := by sorry
+    have U2 : (0 : ℝ) < 1 - r * R⁻¹ := by
+      have U1 : 0 < R := by linarith
+      have U : r * R⁻¹ < 1 := by simp [← div_lt_one₀ U1] at hyp_r; exact hyp_r
+      linarith
     rw [← le_div_iff₀ U2] at U0
     have U3 : r * R⁻¹ * M * 2 / (1 - r * R⁻¹) = 2 * M * r / (R - r) := by grind
     rw [U3] at U0
     exact U0
 
 
-  have maxBoundForF: ∀(r : ℝ), ∀z ∈ s, ‖z‖ ≤ r → ‖f z‖ ≤ 2 * M * r / (R - r) := by
+  have maxBoundForF: ∀r < R, 0 < r → ∀z ∈ Metric.closedBall 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
     intro r
-    intro z
-    intro zInS
-    intro hyp_z_r
-    apply Complex.norm_le_of_forall_mem_frontier_norm_le (U := Metric.closedBall 0 r)
-    · exact Metric.isBounded_closedBall
-    · sorry
-    · sorry
-    · sorry
+    intro hyp_r
+    intro pos_r
+    have := maxModOnBall2 f (2 * M * r / (R - r)) r (analytic) (by grind) (boundForF r hyp_r pos_r)
+    --rw [← setIsBall] at this
+    exact this
 
-
-  sorry
-  --exact maxBoundForF r z zInS hyp_r hyp_z
-
+  by_cases pos_r : r = 0
+  · have U : z = 0 := by simp [pos_r] at hyp_z; exact hyp_z
+    rw [U, pos_r]; simp; exact zeroAtZero
+  · have U : 0 ≤ r := by
+      rw [mem_closedBall_iff_norm] at hyp_z
+      simp at hyp_z
+      have U1 : 0 ≤ ‖z‖ := norm_nonneg z
+      linarith
+    have U1 : 0 < r := by grind
+    exact maxBoundForF r (by grind) U1 z hyp_z
 
 /-%%
 \begin{proof}
