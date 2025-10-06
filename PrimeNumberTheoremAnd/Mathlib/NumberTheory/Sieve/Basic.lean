@@ -15,7 +15,7 @@ noncomputable section
 
 open scoped BigOperators ArithmeticFunction
 
-open Finset Real Nat Aux
+open Finset Real Nat Aux BoundingSieve
 
 namespace SelbergSieve
 
@@ -25,8 +25,8 @@ local notation3 "P" => BoundingSieve.prodPrimes (self := s)
 local notation3 "a" => BoundingSieve.weights (self := s)
 local notation3 "X" => BoundingSieve.totalMass (self := s)
 local notation3 "A" => BoundingSieve.support (self := s)
-local notation3 "𝒜" => SelbergSieve.multSum (s := s)
-local notation3 "R" => SelbergSieve.rem (s := s)
+local notation3 "𝒜" => BoundingSieve.multSum (s := s)
+local notation3 "R" => BoundingSieve.rem (s := s)
 
 -- S = ∑_{l|P, l≤√y} g(l)
 -- Used in statement of the simple form of the selberg bound
@@ -72,7 +72,7 @@ def delta (n : ℕ) : ℝ := if n=1 then 1 else 0
 
 local notation "δ" => delta
 
-theorem siftedSum_as_delta : siftedSum = ∑ d ∈ s.support, a d * δ (Nat.gcd P d) :=
+theorem siftedSum_as_delta : siftedSum (s := s) = ∑ d ∈ s.support, a d * δ (Nat.gcd P d) :=
   by
   rw [siftedSum_eq_sum_support_mul_ite]
   simp only [delta]
@@ -147,11 +147,11 @@ theorem conv_selbergTerms_eq_selbergTerms_mul_nu {d : ℕ} (hd : d ∣ P) :
     _ = g d * (ν d)⁻¹ := by rw [← nu_eq_conv_one_div_selbergTerms s d hd]
 
 theorem upper_bound_of_UpperBoundSieve (μPlus : UpperBoundSieve) :
-    siftedSum ≤ ∑ d ∈ divisors P, μPlus d * multSum d :=
+    siftedSum (s := s) ≤ ∑ d ∈ divisors P, μPlus d * multSum (s := s) d :=
   siftedSum_le_sum_of_upperMoebius _ μPlus.hμPlus
 
 theorem siftedSum_le_mainSum_errSum_of_UpperBoundSieve (μPlus : UpperBoundSieve) :
-    siftedSum ≤ X * mainSum μPlus + errSum μPlus := by
+    siftedSum (s := s) ≤ X * mainSum (s := s) μPlus + errSum (s := s) μPlus := by
   apply siftedSum_le_mainSum_errSum_of_upperMoebius _ μPlus.hμPlus
 
 end SieveLemmas
@@ -230,7 +230,7 @@ theorem upperMoebius_of_lambda_sq (weights : ℕ → ℝ) (hw : weights 1 = 1) :
 -- local notation3 "g" => Sieve.selbergTerms s
 
 theorem lambdaSquared_mainSum_eq_quad_form (w : ℕ → ℝ) :
-    mainSum (lambdaSquared w) =
+    mainSum (s := s) (lambdaSquared w) =
       ∑ d1 ∈ divisors P, ∑ d2 ∈ divisors P,
         ν d1 * w d1 * ν d2 * w d2 * (ν (d1.gcd d2))⁻¹ := by
   dsimp only [mainSum, lambdaSquared]
@@ -256,7 +256,7 @@ theorem lambdaSquared_mainSum_eq_quad_form (w : ℕ → ℝ) :
   · exact dvd_of_mem_divisors hd1
 
 theorem lambdaSquared_mainSum_eq_diag_quad_form (w : ℕ → ℝ) :
-    mainSum (lambdaSquared w) =
+    mainSum (s := s) (lambdaSquared w) =
       ∑ l ∈ divisors P,
         1 / g l * (∑ d ∈ divisors P, if l ∣ d then ν d * w d else 0) ^ 2 :=
   by

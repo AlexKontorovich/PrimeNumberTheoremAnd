@@ -75,7 +75,7 @@ theorem prime_dvd_primorial_iff (n p : ℕ) (hp : p.Prime) :
     exact ⟨Nat.lt_succ.mpr h, hp⟩
 
 theorem siftedSum_eq (s : SelbergSieve) (hw : ∀ i ∈ s.support, s.weights i = 1) (z : ℝ) (hz : 1 ≤ z) (hP : s.prodPrimes = primorial (Nat.floor z)) :
-    siftedSum = (s.support.filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card := by
+    siftedSum (s := s.toBoundingSieve) = (s.support.filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card := by
   dsimp only [siftedSum]
   rw [Finset.card_eq_sum_ones, ←Finset.sum_filter, Nat.cast_sum]
   apply Finset.sum_congr
@@ -433,9 +433,7 @@ theorem selbergBoundingSum_ge_sum_div (s : SelbergSieve) (hP : ∀ p:ℕ, p.Prim
       · exact hprod_ne_zero
       · exact Nat.prod_primeFactors_dvd m
     · apply Real.sqrt_nonneg
-  · intro i hi j hj hij
-    intro t hti htj
-    intro x hx;
+  · intro i hi j hj hij t hti htj x hx
     simp only [Finset.bot_eq_empty, Finset.notMem_empty]
     specialize hti hx
     specialize htj hx
@@ -497,11 +495,11 @@ theorem boundingSum_ge_log (s : SelbergSieve) (hnu : s.nu = (ζ : ArithmeticFunc
 
 open ArithmeticFunction
 
-theorem rem_sum_le_of_const (s : SelbergSieve) (C : ℝ) (hrem : ∀ d > 0, |rem d| ≤ C) :
-    ∑ d ∈ s.prodPrimes.divisors, (if (d : ℝ) ≤ s.level then (3:ℝ) ^ ω d * |rem d| else 0)
+theorem rem_sum_le_of_const (s : SelbergSieve) (C : ℝ) (hrem : ∀ d > 0, |rem (s := s.toBoundingSieve) d| ≤ C) :
+    ∑ d ∈ s.prodPrimes.divisors, (if (d : ℝ) ≤ s.level then (3:ℝ) ^ ω d * |rem (s := s.toBoundingSieve) d| else 0)
       ≤ C * s.level * (1+Real.log s.level)^3 := by
   rw [←Finset.sum_filter]
-  trans (∑ d ∈  Finset.filter (fun d:ℕ => ↑d ≤ s.level) (prodPrimes.divisors),  3 ^ ω d * C )
+  trans (∑ d ∈  Finset.filter (fun d:ℕ => ↑d ≤ s.level) (s.prodPrimes.divisors),  3 ^ ω d * C )
   · gcongr with d hd
     rw [Finset.mem_filter, Nat.mem_divisors] at hd
     apply hrem d
@@ -509,7 +507,7 @@ theorem rem_sum_le_of_const (s : SelbergSieve) (C : ℝ) (hrem : ∀ d > 0, |rem
     apply ne_zero_of_dvd_ne_zero hd.1.2 hd.1.1
   rw [←Finset.sum_mul, mul_comm, mul_assoc]
   gcongr
-  · linarith [abs_nonneg <| rem 1, hrem 1 (by norm_num)]
+  · linarith [abs_nonneg <| rem (s := s.toBoundingSieve) 1, hrem 1 (by norm_num)]
   rw [Finset.sum_filter]
   apply Aux.sum_pow_cardDistinctFactors_le_self_mul_log_pow (hx := s.one_le_level)
   apply prodPrimes_squarefree
