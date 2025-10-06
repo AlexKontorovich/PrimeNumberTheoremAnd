@@ -11,6 +11,7 @@ import Mathlib.Analysis.Calculus.Deriv.Slope
 import Mathlib.Analysis.Analytic.Within
 import Mathlib.Analysis.Normed.Group.Basic
 import Mathlib.Analysis.Complex.AbsMax
+import StrongPNT.BorelCaratheodory
 
 
 open Nat Filter
@@ -20,8 +21,6 @@ open Nat Filter
 /-%%
     This upstreamed from https://github.com/math-inc/strongpnt/tree/main
 %%-/
-
-
 
 /-%%
 \begin{theorem}[BorelCaratheodory]\label{BorelCaratheodory}\lean{BorelCaratheodory}
@@ -155,7 +154,7 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere (f : ℂ → ℂ) (C : ℝ) (r : �
       · rw [frontier_closedBall']; exact cond
       · rw [Metric.closure_closedBall]; exact wInS
 
--- We can now prove Borel-Caratheodory
+-- We can now prove Borel-Caratheodory for closed balls
 
 theorem borelCaratheodory_closedBall (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
   {R : ℝ} {Rpos : 0 < R} {setIsBall : s = Metric.closedBall 0 R}
