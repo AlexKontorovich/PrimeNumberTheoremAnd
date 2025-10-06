@@ -33,11 +33,10 @@ open Nat Filter
 noncomputable abbrev fDiv (f : ℂ → ℂ) : ℂ → ℂ :=
   Function.update (fun z ↦ (f z) / z) 0 ((deriv f) 0)
 
+-- Away from zero fDiv f z is equal to f z / z
+
 lemma fDivAwayZero (f : ℂ → ℂ) (z : ℂ) : z ≠ 0 → fDiv f z = f z / z := by
-  intro hyp_z
-  unfold fDiv
-  apply Function.update_of_ne
-  exact hyp_z
+  intro hyp_z; unfold fDiv; apply Function.update_of_ne hyp_z
 
 -- If f is analytic on an open set and f 0 = 0 then f z / z is also
 -- analytic on the same open set.
@@ -55,18 +54,16 @@ lemma fDivAnalytic (f : ℂ → ℂ) (s : Set ℂ)
        have T : (fun (x : ℂ) ↦ (f x - 0) / (x - 0)) = (fun (x : ℂ) ↦ (f x) / x) := by funext; grind
        rw [zero, T] at U; exact U
 
--- Proving that fDiv is analytic on a _closed_ ball if f is analytic
--- on a _closed_ ball is cumbersome because we need to show implicitly
--- that there is a larger open set that contains the closed ball on which
--- f is analytic. Only then we can apply the previous Lemma.
+-- The proof of the Lemma below is cumbersome, a proper way would be to
+-- show that if f is analytic on a closed set C, then it is analytic on an
+-- open set O containing the closed set C and apply the previous lemma.
 
 lemma fDivAnalyticClosedBall (f : ℂ → ℂ) (s : Set ℂ)
   {R : ℝ} {Rpos : 0 < R} {setIsBall : s = Metric.closedBall 0 R}
   (analytic : AnalyticOn ℂ f s) (zero : f 0 = 0):
   AnalyticOn ℂ (fDiv f) s := by
     apply analyticOn_of_locally_analyticOn
-    intro x
-    intro x_hyp
+    intro x; intro x_hyp
     by_cases h : ‖x‖ = R
     · use Metric.ball x (R / 2)
       constructor
@@ -74,48 +71,34 @@ lemma fDivAnalyticClosedBall (f : ℂ → ℂ) (s : Set ℂ)
       · constructor
         · rw [ball_eq]; simp; positivity
         · have Z : ∀w ∈ s ∩ Metric.ball x (R / 2), fDiv f w = f w / w := by
-             intro x₂
-             intro hyp_x₂
-             unfold fDiv
-             apply Function.update_of_ne
-             rw [setIsBall, ball_eq] at hyp_x₂
-             simp at hyp_x₂
-             have Z : ‖x₂‖ ≥ R / 2 := by
-                calc ‖x₂‖
-                  _ = ‖x - (x - x₂)‖ := by simp
-                  _ ≥ ‖x‖ - ‖x - x₂‖ := by apply norm_sub_norm_le
-                  _ = R - ‖x₂ - x‖ := by simp [h, norm_sub_rev]
-                  _ ≥ R - R / 2 := by linarith
-                  _ = R / 2 := by linarith
-             have U : ‖x₂‖ ≠ 0 := by linarith
-             apply ne_zero_of_norm_ne_zero U
+             intro x₂; intro hyp_x₂
+             apply fDivAwayZero
+             simp [setIsBall, ball_eq] at hyp_x₂
+             rw [← norm_pos_iff]
+             calc ‖x₂‖
+               _ = ‖x - (x - x₂)‖ := by simp
+               _ ≥ ‖x‖ - ‖x - x₂‖ := by apply norm_sub_norm_le
+               _ = R - ‖x₂ - x‖ := by simp [h, norm_sub_rev]
+               _ > 0 := by linarith
 
           apply AnalyticOn.congr (g := fDiv f) (f := fun x ↦ f x / x)
           · apply AnalyticOn.div
             · apply AnalyticOn.mono (s := s ∩ Metric.ball x (R / 2)) (t := s)
               · exact analytic
               · exact Set.inter_subset_left
-            · apply analyticOn_id
-            · intro x₁
-              intro hyp_x₁
-              rw [setIsBall, ball_eq] at hyp_x₁
-              simp at hyp_x₁
-              have Z : ‖x₁‖ ≥ R / 2 :=
-                by
-                calc ‖x₁‖
+            · exact analyticOn_id
+            · intro x₁; intro hyp_x₁
+              simp [setIsBall, ball_eq] at hyp_x₁
+              rw [← norm_pos_iff]
+              calc ‖x₁‖
                    _ = ‖x - (-(x₁ - x))‖ := by simp
                    _ ≥ ‖x‖ - ‖-(x₁ - x)‖ := by apply norm_sub_norm_le
                    _ = R - ‖x₁ - x‖ := by simp [h, norm_sub_rev]
-                   _ ≥ R / 2 := by linarith
-              have U : ‖x₁‖ ≠ 0 := by linarith
-              exact ne_zero_of_norm_ne_zero U
+                   _ > 0 := by linarith
           · simp [Set.EqOn.eq_1]
-            intro x₃
-            intro hyp_x₃
-            intro dist_hyp
+            intro x₃; intro hyp_x₃; intro dist_hyp
             have : x₃ ∈ s ∩ Metric.ball x (R / 2) := by
-              apply Set.mem_inter
-              · exact hyp_x₃
+              apply Set.mem_inter hyp_x₃
               · rw [Metric.mem_ball]; exact dist_hyp
             exact Z x₃ this
 
@@ -133,15 +116,13 @@ lemma fDivAnalyticClosedBall (f : ℂ → ℂ) (s : Set ℂ)
             · apply Metric.ball_mem_nhds; positivity
             · exact zero
             · apply Metric.isOpen_ball
-            · apply AnalyticOn.mono (t := s) (s := Metric.ball 0 R)
-              · exact analytic
+            · apply AnalyticOn.mono (t := s) (s := Metric.ball 0 R) analytic
               · rw [setIsBall]; apply Metric.ball_subset_closedBall
 
 noncomputable abbrev fM (f : ℂ → ℂ) (M : ℝ) : ℂ → ℂ :=
   fun z ↦ (fDiv f z) / (2 * M - f z)
 
--- We show that f_{M}(z) is analytic.
--- TODO: Delete Rpos assumption which is no longer needed.
+-- fMAnalytic establishes that f_{M}(z) is analytic.
 
 lemma fMAnalytic (f : ℂ → ℂ) (M : ℝ) (s : Set ℂ)
   {R : ℝ} {Rpos : 0 < R} {setIsBall : s = Metric.closedBall 0 R}
@@ -149,198 +130,118 @@ lemma fMAnalytic (f : ℂ → ℂ) (M : ℝ) (s : Set ℂ)
   (zero : f 0 = 0): AnalyticOn ℂ (fM f M) s := by
 
   have sInNhds0 : s ∈ nhds 0 := by
-    have U : s = Metric.closedBall 0 R := by apply Set.ext; simp [setIsBall]
-    rw [U]; apply Metric.closedBall_mem_nhds; positivity
+    rw [setIsBall]; apply Metric.closedBall_mem_nhds; exact Rpos
 
-  have fMAnalytic : AnalyticOn ℂ (fM f M) s := by
-     apply AnalyticOn.div
-     · exact fDivAnalyticClosedBall (R := R) (Rpos := Rpos) (setIsBall := setIsBall) f s analytic zero
-     · apply AnalyticOn.sub
-       · apply analyticOn_const
-       · exact analytic
-     · exact nonzero
+  exact AnalyticOn.div (fDivAnalyticClosedBall (R := R) (Rpos := Rpos) (setIsBall := setIsBall) f s analytic zero) (AnalyticOn.sub (analyticOn_const) analytic) nonzero
 
-  exact fMAnalytic
+-- If Re x ≤ M then |x| ≤ |2 * M - x|, this simple inequality is used in the proof of borel_caratheodory.
 
 lemma simpleIneq (x : ℂ) (M : ℝ) (Mpos : 0 < M) : x.re ≤ M → ‖x‖ ≤ ‖2 * M - x‖ := by
   intro hyp_re_x
-  rw [← sq_le_sq₀ (by positivity) (by positivity), Complex.sq_norm, Complex.sq_norm, Complex.normSq_apply, Complex.normSq_apply]
-  simp
-  ring_nf
-  rw [add_comm (-(x.re * M * 4)) (x.re ^ 2), add_assoc, le_add_iff_nonneg_right (x.re ^ 2)]
-  simp
   have Z : M ^ 2 = M * M := by grind
-  rw [Z, (mul_le_mul_right Mpos)]
-  exact hyp_re_x
+  rw [← sq_le_sq₀ (by positivity) (by positivity), Complex.sq_norm, Complex.sq_norm, Complex.normSq_apply, Complex.normSq_apply]; simp; ring_nf
+  simp [add_comm (-(x.re * M * 4)) (x.re ^ 2), add_assoc, le_add_iff_nonneg_right (x.re ^ 2), Z, mul_le_mul_right Mpos]; exact hyp_re_x
 
--- Add Lemma that for z ≠ 0 , fDiv f z = f z / z otherwise
--- we redo it every single time.
+-- This is a version of the maximum modulus principle specialized to closed balls.
+
+lemma maxModOnBall (f : ℂ → ℂ) (C : ℝ) (r : ℝ) {R : ℝ} {s : Set ℂ} {setIsBall : s = Metric.closedBall 0 R} (analytic : AnalyticOn ℂ f s) (hyp_r : r ≤ R) (cond : ∀z ∈ Metric.sphere 0 r, ‖f z‖ ≤ C) : ∀w ∈ Metric.closedBall 0 r, ‖f w‖ ≤ C :=
+    by
+      intro w; intro wInS
+      apply Complex.norm_le_of_forall_mem_frontier_norm_le (U := Metric.closedBall 0 r) (Metric.isBounded_closedBall)
+      · apply DifferentiableOn.diffContOnCl; rw [Metric.closure_closedBall]
+        apply AnalyticOn.differentiableOn
+        apply AnalyticOn.mono (f := f) (s := Metric.closedBall 0 r) (t := s) (𝕜 := ℂ) analytic
+        · rw [setIsBall]; apply Metric.closedBall_subset_closedBall; grind
+      · rw [frontier_closedBall']; exact cond
+      · rw [Metric.closure_closedBall]; exact wInS
+
+-- We can now prove Borel-Caratheodory
 
 theorem borel_caratheodory (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
   {R : ℝ} {Rpos : 0 < R} {setIsBall : s = Metric.closedBall 0 R}
   (f : ℂ → ℂ) (analytic : AnalyticOn ℂ f s)
-  (zeroAtZero: f 0 = 0)
-  (realPartBounded: ∀z ∈ s, (f z).re ≤ M)
+  (zeroAtZero: f 0 = 0) (realPartBounded: ∀z ∈ s, (f z).re ≤ M)
   : ∀r < R, ∀z ∈ Metric.closedBall 0 r, ‖f z‖ ≤ (2 * M * r) / (R - r) := by
 
   intro r; intro hyp_r; intro z; intro hyp_z;
 
   have zInSFunc : ∀r ≤ R, ∀z ∈ Metric.sphere 0 r, z ∈ s := by
-      intro r
-      intro hyp_r
-      intro z
-      intro hyp_z
-      apply Set.mem_of_mem_of_subset (s := Metric.sphere 0 r)
-      · exact hyp_z
-      · rw [setIsBall];
-        have := by
-          calc Metric.sphere (0 : ℂ) r
-               _ ⊆ Metric.closedBall (0 : ℂ) r := by apply Metric.sphere_subset_closedBall
-               _ ⊆ Metric.closedBall (0 : ℂ) R := by apply Metric.closedBall_subset_closedBall; exact hyp_r
-        exact this
+      intro r; intro hyp_r; intro z; intro hyp_z
+      apply Set.mem_of_mem_of_subset (s := Metric.sphere 0 r) hyp_z
+      · rw [setIsBall]
+        calc Metric.sphere (0 : ℂ) r
+          _ ⊆ Metric.closedBall (0 : ℂ) r := Metric.sphere_subset_closedBall
+          _ ⊆ Metric.closedBall (0 : ℂ) R := Metric.closedBall_subset_closedBall hyp_r
 
   have fPosAll : ∀z ∈ s, 2 * M - f z ≠ 0 := by
-    intro z
-    intro zInS
+    intro z; intro zInS
     exact Complex.ne_zero_of_re_pos (by simp; linarith [realPartBounded z zInS])
 
   have fMBounded : ∀z ∈ Metric.sphere 0 R, ‖fM f M z‖ ≤ 1 / R := by
-    intro z
-    intro hyp_z
-
+    intro z; intro hyp_z
     have zNe0 : z ≠ 0 := by
-      rw [mem_sphere_zero_iff_norm] at hyp_z; rw [← hyp_z] at Rpos;
-      have U : ‖z‖ ≠ 0 := by grind
-      apply ne_zero_of_norm_ne_zero; exact U
-
+      rw [mem_sphere_zero_iff_norm] at hyp_z
+      exact ne_zero_of_norm_ne_zero (by grind)
     have zInS : z ∈ s := zInSFunc R (by rfl) z hyp_z
-
-    have := calc ‖fM f M z‖
-           _ = (‖f z‖ / ‖z‖) / ‖2 * M - f z‖ := by unfold fM; rw [fDivAwayZero f z zNe0]; simp;
-           _ ≤ (‖f z‖ / ‖z‖) / ‖f z‖ := by
-               by_cases h : ‖f z‖ = 0;
-               · rw [h]; simp
-               · apply div_le_div_of_nonneg_left
-                 · positivity
-                 · positivity
-                 · exact simpleIneq (f z) M (Mpos) (realPartBounded z zInS)
-            _ ≤ (1 / ‖z‖) := by
-               by_cases h : ‖f z‖ = 0
-               · rw [h]; simp
-               · rw [div_div, mul_comm, ← div_div, div_self]; exact h
     simp [mem_sphere_iff_norm] at hyp_z
-    rw [← hyp_z]; exact this
 
+    calc ‖fM f M z‖
+      _ = (‖f z‖ / ‖z‖) / ‖2 * M - f z‖ := by simp [fDivAwayZero f z zNe0]
+      _ ≤ (‖f z‖ / ‖z‖) / ‖f z‖ := by
+        by_cases h : ‖f z‖ = 0;
+        · simp [h]
+        · exact div_le_div_of_nonneg_left (by positivity) (by positivity) (simpleIneq (f z) M Mpos (realPartBounded z zInS))
+      _ ≤ (1 / ‖z‖) := by
+        by_cases h : ‖f z‖ = 0
+        · simp [h]
+        · rw [div_div, mul_comm, ← div_div, div_self]; exact h
+      _ = 1 / R := by rw [hyp_z]
 
-  have maxModOnBall2 : ∀(f : ℂ → ℂ), ∀(C r : ℝ), AnalyticOn ℂ f s → r ≤ R → (∀z ∈ Metric.sphere 0 r, ‖f z‖ ≤ C) → ∀w ∈ Metric.closedBall 0 r, ‖f w‖ ≤ C :=
-    by
-      intro f
-      intro C
-      intro r
-      intro analytic
-      intro hyp_r
-      intro cond
-      intro w
-      intro wInS
-      apply Complex.norm_le_of_forall_mem_frontier_norm_le (U := Metric.closedBall 0 r)
-      · exact Metric.isBounded_closedBall
-      · apply DifferentiableOn.diffContOnCl
-        rw [Metric.closure_closedBall]
-        apply AnalyticOn.differentiableOn
-        apply AnalyticOn.mono (f := f) (s := Metric.closedBall 0 r) (t := s) (𝕜 := ℂ)
-        · exact analytic
-        · rw [setIsBall]; apply Metric.closedBall_subset_closedBall; grind
-      · rw [frontier_closedBall']
-        exact cond
-      · rw [Metric.closure_closedBall]; exact wInS
-
-
-  have maxModOnBall : ∀(C r : ℝ), r ≤ R → (∀z ∈ Metric.sphere 0 r, ‖fM f M z‖ ≤ C) → ∀w ∈ Metric.closedBall 0 r, ‖fM f M w‖ ≤ C :=
-    by
-      intro C
-      intro r
-      intro hyp_r
-      intro cond
-      intro w
-      intro wInS
-      apply Complex.norm_le_of_forall_mem_frontier_norm_le (U := Metric.closedBall 0 r)
-      · exact Metric.isBounded_closedBall
-      · apply DifferentiableOn.diffContOnCl
-        rw [Metric.closure_closedBall]
-        apply AnalyticOn.differentiableOn
-        have := fMAnalytic f M s (setIsBall := setIsBall) (R := R) (Rpos := Rpos) analytic fPosAll zeroAtZero
-        apply AnalyticOn.mono (f := fM f M) (s := Metric.closedBall 0 r) (t := s) (𝕜 := ℂ)
-        · exact this
-        · rw [setIsBall]; apply Metric.closedBall_subset_closedBall; grind
-      · rw [frontier_closedBall']
-        exact cond
-      · rw [Metric.closure_closedBall]; exact wInS
-
-  have maxMod: ∀z ∈ s, ‖fM f M z‖ ≤ 1 / R := by
-    have := maxModOnBall2 (fM f M) (1 / R) R (fMAnalytic f M s (setIsBall := setIsBall) (R := R) (Rpos := Rpos) analytic fPosAll zeroAtZero) (by rfl) fMBounded
-    rw [← setIsBall] at this
-    exact this
+  have maxMod: ∀z ∈ Metric.closedBall 0 R, ‖fM f M z‖ ≤ 1 / R := by
+    exact maxModOnBall (setIsBall := setIsBall) (fM f M) (1 / R) R (fMAnalytic f M s (setIsBall := setIsBall) (R := R) (Rpos := Rpos) analytic fPosAll zeroAtZero) (by rfl) fMBounded
 
   have boundForF : ∀r < R, 0 < r → ∀z ∈ Metric.sphere 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
-    intro r
-    intro hyp_r
-    intro r_pos
-    intro z
-    intro zOnR
+    intro r; intro hyp_r; intro r_pos; intro z; intro zOnR
     have zInS : z ∈ s := zInSFunc r (by grind) z (zOnR)
     rw [mem_sphere_zero_iff_norm] at zOnR
-    have := maxMod z zInS
+    have := maxMod z (by simp [← setIsBall, zInS])
     unfold fM at this
     have U : z ≠ 0 := by rw [← norm_pos_iff]; linarith
     rw [fDivAwayZero f z U] at this
     simp at this
     have U : 0 < r * ‖2 * M - f z‖ := by simp [r_pos, fPosAll z zInS]
     simp [zOnR, div_div, div_le_iff₀' U ] at this
-    have U0 : ‖f z‖ ≤ 2 * M * r / R + ( r / R ) * ‖f z‖  := by
+    have U0 : ‖f z‖ ≤ 2 * M * r / R + ( r / R ) * ‖f z‖ := by
       calc ‖f z‖
-           _ ≤ r * ‖2 * M - f z‖ * R⁻¹ := this
-           _ ≤ r * (‖(2 : ℂ) * M‖ + ‖f z‖) * R⁻¹ := by
-              gcongr
-              apply norm_sub_le (E := ℂ) ((2 : ℂ) * ↑M) (f z)
-           _ = r * (2 * M + ‖f z‖) * R⁻¹ := by
-              have U : ‖(2 : ℂ) * M‖ = 2 * M := by simp; linarith
-              rw [U];
-           _ = 2 * M * r * R⁻¹ + r * ‖f z‖ * R⁻¹ := by grind
-           _ = 2 * M * r / R + (r / R) * ‖f z‖ := by grind
-
-    rw [← sub_le_sub_iff_right ((r / R) * ‖f z‖)] at U0
-    ring_nf at U0
-    rw [mul_assoc] at U0
+        _ ≤ r * ‖2 * M - f z‖ * R⁻¹ := this
+        _ ≤ r * (‖(2 : ℂ) * M‖ + ‖f z‖) * R⁻¹ := by
+          gcongr; apply norm_sub_le (E := ℂ) ((2 : ℂ) * ↑M) (f z)
+        _ = r * (2 * M + ‖f z‖) * R⁻¹ := by
+          have U : ‖(2 : ℂ) * M‖ = 2 * M := by simp; linarith
+          rw [U]
+        _ = 2 * M * r * R⁻¹ + r * ‖f z‖ * R⁻¹ := by grind
+        _ = 2 * M * r / R + (r / R) * ‖f z‖ := by grind
     have U1 : ‖f z‖ - ‖f z‖ * (r * R⁻¹) = ‖f z‖ * (1 - r * R⁻¹) := by ring
-    rw [U1] at U0
     have U2 : (0 : ℝ) < 1 - r * R⁻¹ := by
       have U1 : 0 < R := by linarith
       have U : r * R⁻¹ < 1 := by simp [← div_lt_one₀ U1] at hyp_r; exact hyp_r
       linarith
-    rw [← le_div_iff₀ U2] at U0
     have U3 : r * R⁻¹ * M * 2 / (1 - r * R⁻¹) = 2 * M * r / (R - r) := by grind
-    rw [U3] at U0
+
+    rw [← sub_le_sub_iff_right ((r / R) * ‖f z‖)] at U0; ring_nf at U0
+    rw [mul_assoc, U1, ← le_div_iff₀ U2, U3] at U0
     exact U0
 
-
   have maxBoundForF: ∀r < R, 0 < r → ∀z ∈ Metric.closedBall 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
-    intro r
-    intro hyp_r
-    intro pos_r
-    have := maxModOnBall2 f (2 * M * r / (R - r)) r (analytic) (by grind) (boundForF r hyp_r pos_r)
-    --rw [← setIsBall] at this
-    exact this
+    intro r; intro hyp_r; intro pos_r
+    exact maxModOnBall (setIsBall := setIsBall) f (2 * M * r / (R - r)) r (analytic) (by grind) (boundForF r hyp_r pos_r)
 
   by_cases pos_r : r = 0
   · have U : z = 0 := by simp [pos_r] at hyp_z; exact hyp_z
     rw [U, pos_r]; simp; exact zeroAtZero
   · have U : 0 ≤ r := by
-      rw [mem_closedBall_iff_norm] at hyp_z
-      simp at hyp_z
-      have U1 : 0 ≤ ‖z‖ := norm_nonneg z
-      linarith
-    have U1 : 0 < r := by grind
-    exact maxBoundForF r (by grind) U1 z hyp_z
+      rw [mem_closedBall_iff_norm] at hyp_z; simp at hyp_z; linarith [norm_nonneg z]
+    exact maxBoundForF r (by grind) (by grind) z hyp_z
 
 /-%%
 \begin{proof}
