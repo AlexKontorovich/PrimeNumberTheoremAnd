@@ -58,7 +58,7 @@ lemma AnalyticOn_divRemovable_zero_closedBall (f : ℂ → ℂ) (s : Set ℂ)
   (analytic : AnalyticOn ℂ f s) (zero : f 0 = 0):
   AnalyticOn ℂ (divRemovable_zero f) s := by
     apply analyticOn_of_locally_analyticOn
-    intro x; intro x_hyp
+    intro x x_hyp
     by_cases h : ‖x‖ = R
     · use Metric.ball x (R / 2)
       constructor
@@ -82,7 +82,7 @@ lemma AnalyticOn_divRemovable_zero_closedBall (f : ℂ → ℂ) (s : Set ℂ)
               · exact analytic
               · exact Set.inter_subset_left
             · exact analyticOn_id
-            · intro x₁; intro hyp_x₁
+            · intro x₁ hyp_x₁
               simp [setIsBall, ball_eq] at hyp_x₁
               rw [← norm_pos_iff]
               calc ‖x₁‖
@@ -91,7 +91,7 @@ lemma AnalyticOn_divRemovable_zero_closedBall (f : ℂ → ℂ) (s : Set ℂ)
                    _ = R - ‖x₁ - x‖ := by simp [h, norm_sub_rev]
                    _ > 0 := by linarith
           · simp [Set.EqOn.eq_1]
-            intro x₃; intro hyp_x₃; intro dist_hyp
+            intro x₃ hyp_x₃ dist_hyp
             have : x₃ ∈ s ∩ Metric.ball x (R / 2) := by
               apply Set.mem_inter hyp_x₃
               · rw [Metric.mem_ball]; exact dist_hyp
@@ -143,7 +143,7 @@ lemma Complex.norm_le_norm_two_mul_sub_of_re_le (x : ℂ) (M : ℝ)
   simp
   ring_nf
   simp [add_comm (-(x.re * M * 4)) (x.re ^ 2), add_assoc, 
-        le_add_iff_nonneg_right (x.re ^ 2), Z, mul_le_mul_right Mpos] 
+        le_add_iff_nonneg_right (x.re ^ 2), Z, mul_le_mul_iff_left₀ Mpos] 
   exact hyp_re_x
 
 -- This is a version of the maximum modulus principle specialized to closed balls.
@@ -153,7 +153,7 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere (f : ℂ → ℂ) (C : ℝ) (r : �
   (hyp_r : r ≤ R) (cond : ∀z ∈ Metric.sphere 0 r, ‖f z‖ ≤ C) : 
   ∀w ∈ Metric.closedBall 0 r, ‖f w‖ ≤ C :=
     by
-      intro w; intro wInS
+      intro w  wInS
       apply Complex.norm_le_of_forall_mem_frontier_norm_le 
               (U := Metric.closedBall 0 r) (Metric.isBounded_closedBall)
       · apply DifferentiableOn.diffContOnCl; rw [Metric.closure_closedBall]
@@ -179,10 +179,10 @@ theorem borelCaratheodory_closedBall (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
   (zeroAtZero: f 0 = 0) (realPartBounded: ∀z ∈ s, (f z).re ≤ M)
   : ∀r < R, ∀z ∈ Metric.closedBall 0 r, ‖f z‖ ≤ (2 * M * r) / (R - r) := by
 
-  intro r; intro hyp_r; intro z; intro hyp_z;
+  intro r hyp_r z hyp_z
 
   have zInSFunc : ∀r ≤ R, ∀z ∈ Metric.sphere 0 r, z ∈ s := by
-      intro r; intro hyp_r; intro z; intro hyp_z
+      intro r hyp_r z hyp_z
       apply Set.mem_of_mem_of_subset (s := Metric.sphere 0 r) hyp_z
       · rw [setIsBall]
         calc Metric.sphere (0 : ℂ) r
@@ -190,11 +190,11 @@ theorem borelCaratheodory_closedBall (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
           _ ⊆ Metric.closedBall (0 : ℂ) R := Metric.closedBall_subset_closedBall hyp_r
 
   have fPosAll : ∀z ∈ s, 2 * M - f z ≠ 0 := by
-    intro z; intro zInS
+    intro z zInS
     exact Complex.ne_zero_of_re_pos (by simp; linarith [realPartBounded z zInS])
 
   have schwartzQuotientBounded : ∀z ∈ Metric.sphere 0 R, ‖schwartzQuotient f M z‖ ≤ 1 / R := by
-    intro z; intro hyp_z
+    intro z hyp_z
     have zNe0 : z ≠ 0 := by
       rw [mem_sphere_zero_iff_norm] at hyp_z
       exact ne_zero_of_norm_ne_zero (by grind)
@@ -222,7 +222,7 @@ theorem borelCaratheodory_closedBall (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
           (by rfl) schwartzQuotientBounded
 
   have boundForF : ∀r < R, 0 < r → ∀z ∈ Metric.sphere 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
-    intro r; intro hyp_r; intro r_pos; intro z; intro zOnR
+    intro r hyp_r r_pos z zOnR
     have zInS : z ∈ s := zInSFunc r (by grind) z (zOnR)
     rw [mem_sphere_zero_iff_norm] at zOnR
     have := maxMod z (by simp [← setIsBall, zInS])
@@ -254,7 +254,7 @@ theorem borelCaratheodory_closedBall (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
     exact U0
 
   have maxBoundForF: ∀r < R, 0 < r → ∀z ∈ Metric.closedBall 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
-    intro r; intro hyp_r; intro pos_r
+    intro r hyp_r pos_r
     exact AnalyticOn.norm_le_of_norm_le_on_sphere (setIsBall := setIsBall) 
             f (2 * M * r / (R - r)) r analytic (by grind) (boundForF r hyp_r pos_r)
 
