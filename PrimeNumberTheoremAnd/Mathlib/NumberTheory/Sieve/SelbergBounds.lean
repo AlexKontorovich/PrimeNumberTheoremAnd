@@ -283,7 +283,6 @@ theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFu
     have h : (fun p _ => (Nat.factorization b) p) ∈ Finset.pi d.primeFactors fun p => Finset.Icc 1 M := by
       rw [Finset.mem_pi]; intro p hp
       rw [Finset.mem_Icc]
-      -- erw [List.mem_toFinset] at hp
       rw [Finset.mem_filter] at hb
       have hb_ne_zero : b ≠ 0 := ne_of_gt <| Nat.pos_of_mem_divisors hb.1
       have hpp : p.Prime := Nat.prime_of_mem_primeFactors hp

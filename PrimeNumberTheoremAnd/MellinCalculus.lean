@@ -533,82 +533,6 @@ lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     linarith
   · exact ⟨C, lt_of_le_of_ne Cnonneg fun a ↦ CeqZero (id (Eq.symm a)), mainBnd⟩
 
-
--- #exit
-
--- lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
---     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2) :
---     (fun s ↦ ‖𝓜 (ν ·) s‖)
---     =O[𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂}]
---       fun s ↦ 1 / ‖s‖ := by
---   let f := fun (x : ℝ) ↦ ‖deriv ν x‖
---   have cont : ContinuousOn f (Icc (1 / 2) 2) :=
---     (Continuous.comp (by continuity) <| diffν.continuous_deriv (by norm_num)).continuousOn
---   obtain ⟨a, _, max⟩ := isCompact_Icc.exists_isMaxOn (f := f) (by norm_num) cont
---   rw [Asymptotics.isBigO_iff]
---   use f a * 2 ^ σ₂ * (3 / 2)
---   filter_upwards [mem_within_strip σ₁ σ₂] with s hs
---   have s_ne_zero: s ≠ 0 := fun h ↦ by linarith [zero_re ▸ h ▸ hs.1]
---   simp only [MellinTransform, f, MellinOfPsi_aux diffν suppν s_ne_zero, norm_norm, norm_mul]
---   conv => rhs; rw [mul_comm]
---   gcongr; simp
---   calc
---     _ ≤ ∫ (x : ℝ) in Ioi 0, ‖(deriv ν x * (x : ℂ) ^ s)‖ := ?_
---     _ = ∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv ν x * (x : ℂ) ^ s)‖ := ?_
---     _ ≤ ‖∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv ν x * (x : ℂ) ^ s)‖‖ := le_abs_self _
---     _ ≤ _ := ?_
---   · simp_rw [norm_integral_le_integral_norm]
---   · apply SetIntegral.integral_eq_integral_inter_of_support_subset_Icc
---     · simp only [Function.support_abs, Function.support_mul, Function.support_ofReal]
---       apply subset_trans (by apply inter_subset_left) <| Function.support_deriv_subset_Icc suppν
---     · exact (Icc_subset_Ioi_iff (by norm_num)).mpr (by norm_num)
---   · have := intervalIntegral.norm_integral_le_of_norm_le_const' (C := f a * 2 ^ σ₂)
---       (f := fun x ↦ f x * ‖(x : ℂ) ^ s‖) (a := (1 / 2 : ℝ)) ( b := 2) (by norm_num) ?_
---     · simp only [Real.norm_eq_abs, Complex.norm_eq_abs, abs_ofReal, map_mul] at this ⊢
---       rwa [(by norm_num: |(2 : ℝ) - 1 / 2| = 3 / 2),
---           intervalIntegral.integral_of_le (by norm_num), ← integral_Icc_eq_integral_Ioc] at this
---     · intro x hx;
---       have f_bound := isMaxOn_iff.mp max x hx
---       have pow_bound : ‖(x : ℂ) ^ s‖ ≤ 2 ^ σ₂ := by
---         rw [Complex.norm_eq_abs, abs_cpow_eq_rpow_re_of_pos (by linarith [mem_Icc.mp hx])]
---         have xpos : 0 ≤ x := by linarith [(mem_Icc.mp hx).1]
---         have h := rpow_le_rpow xpos (mem_Icc.mp hx).2 (by linarith : 0 ≤ s.re)
---         exact le_trans h <| rpow_le_rpow_of_exponent_le (by norm_num) hs.2
---       convert mul_le_mul f_bound pow_bound (norm_nonneg _) ?_ using 1 <;> simp [f]
-
--- -- filter-free version:
--- lemma MellinOfPsi' {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
---     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
---     {σ₁ σ₂ : ℝ} (σ₁pos : 0 < σ₁) (σ₁_lt_σ₂ : σ₁ < σ₂) :
---     ∃ C > 0, ∀ (s) (_ : σ₁ ≤ s.re) (_ : s.re ≤ σ₂),
---     ‖𝓜 (ν ·) s‖ ≤ C * ‖s‖⁻¹ := by
---   have' := MellinOfPsi diffν suppν σ₁pos σ₂
---   rw [Asymptotics.isBigO_iff] at this
---   obtain ⟨C, mainBnd⟩ := this
---   simp only [one_div, norm_inv, norm_norm,
---     eventually_principal, mem_setOf_eq, and_imp] at mainBnd
---   by_cases h : C = 0
---   · refine ⟨1, by positivity, ?_⟩
---     intro s hs₁ hs₂
---     have := mainBnd s hs₁ hs₂
---     rw [h] at this
---     apply le_trans this <| by norm_num
---   · push_neg at h
---     have fnonneg : 0 ≤ C := by
---       have hh := mainBnd ((σ₂ + σ₁) / 2) (by norm_cast; linarith) (by norm_cast; linarith)
---       have : 0 ≤ ‖𝓜 (fun x ↦ ↑(ν x)) ((σ₂ + σ₁) / 2)‖ := by positivity
---       have hhh : 0 ≤ C * ‖(σ₂ + σ₁) / 2‖⁻¹ := by
---         exact_mod_cast this.trans hh
---       have : 0 < ‖(σ₂ + σ₁) / 2‖⁻¹ := by
---         simp only [norm_div, Real.norm_eq_abs, Real.norm_ofNat, inv_div, Nat.ofNat_pos,
---           div_pos_iff_of_pos_left, abs_pos, ne_eq]
---         norm_num
---         linarith
---       exact (mul_nonneg_iff_of_pos_right this).mp hhh
---     have fpos : 0 < C := by
---       exact lt_of_le_of_ne fnonneg h.symm
---     exact ⟨C, fpos, mainBnd⟩
-
 /-%%
 \begin{proof}\leanok
 \uses{SmoothExistence}
@@ -780,25 +704,6 @@ lemma MellinOfDeltaSpikeAt1_asymp {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν
   convert this
   simp only [mellin, zero_sub, cpow_neg_one, smul_eq_mul]
   rw [← ofReal_one, ← mass_one]; convert integral_ofReal.symm; field_simp; simp
-
--- lemma MellinOfDeltaSpikeAt1_asymp' {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
---     (suppν : ν.support ⊆ Set.Icc (1 / 2) 2)
---     (mass_one : ∫ x in Set.Ioi 0, ν x / x = 1) :
---     ∃ (c : ℝ) (_ : 0 < c), ∀ (ε : ℝ) (_ : 0 < ε) (_ : ε < 1),
---       ‖(𝓜 (ν ·) ε) - 1‖ ≤ c * ε := by
---   have := MellinOfDeltaSpikeAt1_asymp diffν suppν mass_one
---   rw [Asymptotics.isBigO_iff] at this
---   obtain ⟨c, mainBnd⟩ := this
---   sorry
-  -- refine ⟨c, ?_, ?_⟩
-  -- · sorry
-  -- · intro ε εpos εlt1
-  --   rw [Filter.eventually_iff, mem_nhdsWithin] at mainBnd
-  --   obtain ⟨u, uopen, zeroinu, hu⟩ := mainBnd
-  --   have : ∃ ε₁, 0 < ε₁ ∧ ε₁ < ε ∧ ε₁ < 1 ∧ ε₁ ∈ u := by
-  --     sorry
-
-  --   sorry
 
 /-%%
 \begin{proof}\leanok
@@ -1391,30 +1296,6 @@ lemma MellinOfSmooth1b {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     _                        = C * (ε * ‖s‖ ^ 2)⁻¹ := by
       simp only [norm_inv, mul_inv_rev]
       ring
-
---   rw [Asymptotics.isBigO_iff]
---   simp only [prod_principal_principal, eventually_principal, mem_prod, mem_setOf_eq,
---     and_imp, Prod.forall, norm_norm]
--- --  have' := MellinOfSmooth1a diffν suppν
-
---   sorry
--- #exit
---   have' := MellinOfPsi diffν suppν --(mul_pos εpos σ₁pos) (σ₂ := ε * σ₂)
---   rw [Asymptotics.isBigO_iff] at this ⊢
---   obtain ⟨c, hc⟩ := this
---   use c
---   simp only [norm_norm, norm_div, norm_one, eventually_principal, mem_setOf_eq] at hc ⊢
---   intro s hs
---   rw [MellinOfSmooth1a ν diffν suppν εpos <| gt_of_ge_of_gt hs.1 σ₁pos]
---   have : ‖𝓜 (fun x ↦ ↑(ν x)) (ε * s)‖ ≤ c * (1 / ‖ε * s‖) := by
---     refine hc (ε * s) ?_
---     simp only [mul_re, ofReal_re, ofReal_im, zero_mul, sub_zero]
---     exact ⟨(mul_le_mul_left εpos).mpr hs.1, (mul_le_mul_left εpos).mpr hs.2⟩
---   convert mul_le_mul_of_nonneg_left (a := 1 / ‖s‖) this ?_ using 1
---   · simp
---   · simp only [Complex.norm_eq_abs, norm_mul, Real.norm_eq_abs, norm_pow, Complex.abs_abs, one_div,
---     mul_inv_rev, abs_ofReal]; ring_nf
---   · exact div_nonneg (by norm_num) (norm_nonneg s)
 
 /-%%
 \begin{proof}\uses{MellinOfSmooth1a, MellinOfPsi}\leanok

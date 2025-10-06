@@ -37,7 +37,6 @@ local notation3 "g" => SelbergSieve.selbergTerms (SelbergSieve.toBoundingSieve (
 local notation3 "y" => SelbergSieve.level (self := s)
 local notation3 "hy" => SelbergSieve.one_le_level (self := s)
 
---set_option profiler true
 @[simp]
 def selbergBoundingSum : ℝ :=
   ∑ l ∈ divisors P, if l ^ 2 ≤ y then g l else 0
@@ -238,7 +237,6 @@ local notation3 "μ⁺" => SelbergSieve.selbergMuPlus s
 theorem weight_one_of_selberg : γ 1 = 1 := by
   dsimp only [selbergWeights]
   rw [if_pos (one_dvd P), s.nu_mult.left, (selbergTerms_mult _).map_one]
-  -- rw [ArithmeticFunction.moebius_apply_one, Int.cast_one]
   simp only [inv_one, mul_one, isUnit_one, IsUnit.squarefree, moebius_apply_of_squarefree,
     cardFactors_one, _root_.pow_zero, Int.cast_one, selbergBoundingSum, one_mul,
     coprime_one_right_eq_true, and_true, cast_one]
