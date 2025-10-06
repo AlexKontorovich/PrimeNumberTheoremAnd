@@ -30,20 +30,20 @@ open Nat Filter
 \end{theorem}
 %%-/
 
-noncomputable abbrev fDiv (f : ℂ → ℂ) : ℂ → ℂ :=
+noncomputable abbrev divRemovable (f : ℂ → ℂ) : ℂ → ℂ :=
   Function.update (fun z ↦ (f z) / z) 0 ((deriv f) 0)
 
--- Away from zero fDiv f z is equal to f z / z
+-- Away from zero divRemovable f z is equal to f z / z
 
-lemma fDivAwayZero (f : ℂ → ℂ) (z : ℂ) : z ≠ 0 → fDiv f z = f z / z := by
-  intro hyp_z; unfold fDiv; apply Function.update_of_ne hyp_z
+lemma divRemovable_of_ne_zero (f : ℂ → ℂ) (z : ℂ) : z ≠ 0 → divRemovable f z = f z / z := by
+  intro hyp_z; unfold divRemovable; apply Function.update_of_ne hyp_z
 
 -- If f is analytic on an open set and f 0 = 0 then f z / z is also
 -- analytic on the same open set.
 
-lemma fDivAnalytic (f : ℂ → ℂ) (s : Set ℂ)
+lemma AnalyticOn.divRemovable_zero (f : ℂ → ℂ) (s : Set ℂ)
   (sInNhds0 : s ∈ nhds 0) (zero : f 0 = 0) (o : IsOpen s)
-  (analytic : AnalyticOn ℂ f s) : AnalyticOn ℂ (fDiv f) s :=
+  (analytic : AnalyticOn ℂ f s) : AnalyticOn ℂ (divRemovable f) s :=
   by
      rw [Complex.analyticOn_iff_differentiableOn o, ←(Complex.differentiableOn_compl_singleton_and_continuousAt_iff sInNhds0)]
      constructor
@@ -58,10 +58,10 @@ lemma fDivAnalytic (f : ℂ → ℂ) (s : Set ℂ)
 -- show that if f is analytic on a closed set C, then it is analytic on an
 -- open set O containing the closed set C and apply the previous lemma.
 
-lemma fDivAnalyticClosedBall (f : ℂ → ℂ) (s : Set ℂ)
+lemma AnalyticOn.divRemovable_zeroClosedBall (f : ℂ → ℂ) (s : Set ℂ)
   {R : ℝ} {Rpos : 0 < R} {setIsBall : s = Metric.closedBall 0 R}
   (analytic : AnalyticOn ℂ f s) (zero : f 0 = 0):
-  AnalyticOn ℂ (fDiv f) s := by
+  AnalyticOn ℂ (divRemovable f) s := by
     apply analyticOn_of_locally_analyticOn
     intro x; intro x_hyp
     by_cases h : ‖x‖ = R
@@ -70,9 +70,9 @@ lemma fDivAnalyticClosedBall (f : ℂ → ℂ) (s : Set ℂ)
       · exact Metric.isOpen_ball
       · constructor
         · rw [ball_eq]; simp; positivity
-        · have Z : ∀w ∈ s ∩ Metric.ball x (R / 2), fDiv f w = f w / w := by
+        · have Z : ∀w ∈ s ∩ Metric.ball x (R / 2), divRemovable f w = f w / w := by
              intro x₂; intro hyp_x₂
-             apply fDivAwayZero
+             apply divRemovable_of_ne_zero
              simp [setIsBall, ball_eq] at hyp_x₂
              rw [← norm_pos_iff]
              calc ‖x₂‖
@@ -81,7 +81,7 @@ lemma fDivAnalyticClosedBall (f : ℂ → ℂ) (s : Set ℂ)
                _ = R - ‖x₂ - x‖ := by simp [h, norm_sub_rev]
                _ > 0 := by linarith
 
-          apply AnalyticOn.congr (g := fDiv f) (f := fun x ↦ f x / x)
+          apply AnalyticOn.congr (g := divRemovable f) (f := fun x ↦ f x / x)
           · apply AnalyticOn.div
             · apply AnalyticOn.mono (s := s ∩ Metric.ball x (R / 2)) (t := s)
               · exact analytic
@@ -112,7 +112,7 @@ lemma fDivAnalyticClosedBall (f : ℂ → ℂ) (s : Set ℂ)
             simp [setIsBall] at x_hyp
             simp [setIsBall]
             exact Metric.ball_subset_closedBall
-          · rw [si]; apply fDivAnalytic f
+          · rw [si]; apply AnalyticOn.divRemovable_zero f
             · apply Metric.ball_mem_nhds; positivity
             · exact zero
             · apply Metric.isOpen_ball
@@ -120,7 +120,7 @@ lemma fDivAnalyticClosedBall (f : ℂ → ℂ) (s : Set ℂ)
               · rw [setIsBall]; apply Metric.ball_subset_closedBall
 
 noncomputable abbrev fM (f : ℂ → ℂ) (M : ℝ) : ℂ → ℂ :=
-  fun z ↦ (fDiv f z) / (2 * M - f z)
+  fun z ↦ (divRemovable f z) / (2 * M - f z)
 
 -- fMAnalytic establishes that f_{M}(z) is analytic.
 
@@ -132,7 +132,7 @@ lemma fMAnalytic (f : ℂ → ℂ) (M : ℝ) (s : Set ℂ)
   have sInNhds0 : s ∈ nhds 0 := by
     rw [setIsBall]; apply Metric.closedBall_mem_nhds; exact Rpos
 
-  exact AnalyticOn.div (fDivAnalyticClosedBall (R := R) (Rpos := Rpos) (setIsBall := setIsBall) f s analytic zero) (AnalyticOn.sub (analyticOn_const) analytic) nonzero
+  exact AnalyticOn.div (AnalyticOn.divRemovable_zeroClosedBall (R := R) (Rpos := Rpos) (setIsBall := setIsBall) f s analytic zero) (AnalyticOn.sub (analyticOn_const) analytic) nonzero
 
 -- If Re x ≤ M then |x| ≤ |2 * M - x|, this simple inequality is used in the proof of borel_caratheodory.
 
@@ -186,7 +186,7 @@ theorem borel_caratheodory (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
     simp [mem_sphere_iff_norm] at hyp_z
 
     calc ‖fM f M z‖
-      _ = (‖f z‖ / ‖z‖) / ‖2 * M - f z‖ := by simp [fDivAwayZero f z zNe0]
+      _ = (‖f z‖ / ‖z‖) / ‖2 * M - f z‖ := by simp [divRemovable_of_ne_zero f z zNe0]
       _ ≤ (‖f z‖ / ‖z‖) / ‖f z‖ := by
         by_cases h : ‖f z‖ = 0;
         · simp [h]
@@ -207,7 +207,7 @@ theorem borel_caratheodory (M : ℝ) (Mpos : 0 < M) (s : Set ℂ)
     have := maxMod z (by simp [← setIsBall, zInS])
     unfold fM at this
     have U : z ≠ 0 := by rw [← norm_pos_iff]; linarith
-    rw [fDivAwayZero f z U] at this
+    rw [divRemovable_of_ne_zero f z U] at this
     simp at this
     have U : 0 < r * ‖2 * M - f z‖ := by simp [r_pos, fPosAll z zInS]
     simp [zOnR, div_div, div_le_iff₀' U ] at this
