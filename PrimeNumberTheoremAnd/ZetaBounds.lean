@@ -217,8 +217,6 @@ theorem deriv_eqOn_of_eqOn_punctured (f g : ℂ → ℂ) (U : Set ℂ) (p : ℂ)
 
   -- Now use the fact that if f = g in a neighborhood, then deriv f = deriv g
 
---  exact deriv_congr_of_eventually_eq h_eq_nhds
-
   exact EventuallyEq.deriv_eq h_eq_nhds
 
 /- New two theorems to be proven -/
@@ -1231,9 +1229,7 @@ lemma ZetaSum_aux3 {N : ℕ} {s : ℂ} (s_re_gt : 1 < s.re) :
     Tendsto (fun k ↦ ∑ n ∈ Finset.Ioc N k, 1 / (n : ℂ) ^ s) atTop
     (𝓝 (∑' (n : ℕ), 1 / (n + N + 1 : ℂ) ^ s)) := by
   let f := fun (n : ℕ) ↦ 1 / (n : ℂ) ^ s
-  -- let g := fun (n : ℕ) ↦ f (n + 1)
   have hf := summable_one_div_nat_cpow.mpr s_re_gt
-  -- have hg := summable_nat_add_iff 1 |>.mpr <| hf
   simp_rw [Finset.Ioc_eq_Ico]
   convert finsetSum_tendsto_tsum (f := fun n ↦ f (n + 1)) (N := N) ?_ using 1
   · ext k
@@ -3219,11 +3215,6 @@ lemma ZetaLowerBnd :
           · exact le_trans (zero_le_one) this
       · bound [hA.2]
     · linarith
-    -- use (le_neg.1 ((norm_sub_rev _ _).trans_le ((hC₂ _ _ (add_le_of_le_sub_left ((div_le_iff₀ (by bound)).2 (hA.2.trans (?_)))) (σ_le_one.trans (?_)) t L ?_).trans_eq (by ring))))
-    -- · norm_num only[Real.le_log_iff_exp_le, L.trans',(one_le_pow₀ _).trans',one_mul,Real.exp_one_lt_d9.le.trans]
-    --   exact (mod_cast one_half_lt_one.le.trans (one_le_pow₀ ((Real.le_log_iff_exp_le (three_pos.trans L)).2 (by linear_combination L +.exp_one_lt_d9))))
-    -- · exact_mod_cast by ·linear_combination σ_low_bound.trans_lt σ_le_one
-    -- · exact (.trans (by bound[Real.log_le_log three_pos L.le, hA'.1,Real.lt_log_one_add_of_pos two_pos]) σ_low_bound)
 
   have right' : -‖ζ (σ + t * I) -  ζ (σ' + t * I)‖   ≥ - C₂ * 2 * A / Real.log |t| ^ 7 := by
     have := (abs t).log_pos (by bound)
@@ -3398,7 +3389,6 @@ This fact is already proved in Stoll's work.
 
 lemma ZetaCont : ContinuousOn ζ (univ \ {1}) := by
   apply continuousOn_of_forall_continuousAt (fun x hx ↦ ?_)
---  simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx
   apply DifferentiableAt.continuousAt (𝕜 := ℂ)
   convert differentiableAt_riemannZeta ?_
   simp only [mem_diff, mem_univ, mem_singleton_iff, true_and] at hx

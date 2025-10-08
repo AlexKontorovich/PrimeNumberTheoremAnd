@@ -34,11 +34,6 @@ lemma Set.Ico_subset_Ico_of_Icc_subset_Icc {a b c d : ℝ} (h : Set.Icc a b ⊆ 
   simp only [mem_Icc] at this
   exact this.2
 
--- @[simps]
--- def ArithmeticFunction.primeCounting : ArithmeticFunction ℝ where
---   toFun x := Nat.primeCounting ⌊x⌋₊
---   map_zero' := by simp [Nat.primeCounting_zero]
-
 -- AkraBazzi.lean
 lemma deriv_smoothingFn' {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) : deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) := by
   have : log x ≠ 0 := Real.log_ne_zero_of_pos_of_ne_one hx_pos hx
@@ -1363,8 +1358,6 @@ theorem pi_asymp'' :
         apply div_le_div₀
         · exact le_trans (abs_nonneg _) <|
             hD ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith, by linarith⟩)
-          -- apply mul_nonneg <;> try apply mul_nonneg <;> try linarith
-          -- norm_num; exact log_nonneg <| by linarith
         · exact hD ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith, by linarith⟩)
         · apply integral_log_inv_pos
           linarith
