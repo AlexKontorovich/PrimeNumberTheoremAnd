@@ -450,6 +450,101 @@ open Nat Filter
 %%-/
 
 
+
+/-%%
+\begin{definition}[ZeroWindows]\label{ZeroWindows}\lean{ZeroWindows}
+    Let $\mathcal{Z}_t=\{\rho\in\mathbb{C}:\zeta(\rho)=0,\,|\rho-(3/2+it)|\leq 5/6\}$.
+\end{definition}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[SumBound]\label{SumBound}\lean{SumBound}
+    For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$ we have
+    $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log(2+|t|).$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{LogDerivZetaFinalBound}
+    We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=1/2$, $r=2/3$, $R'=5/6$, and $R=8/9$. Thus, for all $z\in\overline{\mathbb{D}_{5/6}}\setminus\mathcal{K}_f(5/6)$ we have that
+    $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
+    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$. Now if we let $z=-1/2+\delta$, then $z\in(-1/2,1/2)\subseteq\overline{\mathbb{D}_{5/6}}$. Additionally, $f(z)=\zeta(1+\delta+it)$, where $1+\delta+it$ lies in the zero-free region where $\sigma>1$. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
+    $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{-1/2+\delta-\rho}\right|\ll\log|t|.$$
+    But now note that if $\rho\in\mathcal{K}_f(5/6)$, then $\zeta(\rho+3/2+it)=0$ and $|\rho|\leq 5/6$. Thus, $\rho+3/2+it\in\mathcal{Z}_t$. Additionally, note that $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us that
+    $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
+    Since $\log|t|\leq\log(2+|t|)$ for all $t\in\mathbb{R}$, the result follows.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[ShiftTwoBound]\label{ShiftTwoBound}\lean{ShiftTwoBound}
+    For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$ we have
+    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log(2+|t|).$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{SumBound}
+    Note that, for $\rho\in\mathcal{Z}_{2t}$
+    \begin{align*}
+        \mathfrak{R}\left(\frac{1}{1+\delta+2it-\rho}\right)&=\mathfrak{R}\left(\frac{1+\delta-2it-\overline{\rho}}{(1+\delta+2it-\rho)(1+\delta-2it-\overline{\rho})}\right) \\
+        &=\frac{\mathfrak{R}(1+\delta-2it-\overline{\rho})}{|1+\delta+2it-\rho|^2}=\frac{1+\delta-\mathfrak{R}\rho}{(1+\delta-\mathfrak{R}\rho)^2+(2t-\mathfrak{I}\rho)^2}.
+    \end{align*}
+    Now since $\rho\in\mathcal{Z}_{2t}$, we have that $|\rho-(3/2+2it)|\leq 5/6$. So, we have $\mathfrak{R}\rho\in(2/3,7/3)$ and $\mathfrak{I}\rho\in(2t-5/6,2t+5/6)$. Thus, we have that
+    $$1/3<1+\delta-\mathfrak{R}\rho\qquad\text{and}\qquad(1+\delta-\mathfrak{R}\rho)^2+(2t-\mathfrak{I}\rho)^2<16/9+25/36=89/36.$$
+    Which implies that
+    \begin{equation}\label{pickupPoint4}
+        0\leq\frac{12}{89}<\frac{1+\delta-\mathfrak{R}\rho}{(1+\delta-\mathfrak{R}\rho)^2+(2t-\mathfrak{I}\rho)^2}=\mathfrak{R}\left(\frac{1}{1+\delta+2it-\rho}\right).
+    \end{equation}
+    Note that, from Lemma \ref{SumBound}, we have
+    $$\sum_{\rho\in\mathcal{Z}_{2t}}m_\zeta(\rho)\,\mathfrak{R}\left(\frac{1}{1+\delta+2it-\rho}\right)-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+2it)-\sum_{\rho\in\mathcal{Z}_{2t}}\frac{m_\zeta(\rho)}{1+\delta+2it-\rho}\right|\ll\log(2+|2t|).$$
+    Since $m_\zeta(\rho)\geq 0$ for all $\rho\in\mathcal{Z}_{2t}$, the inequality from Equation (\ref{pickupPoint4}) tells us that by subtracting the sum from both sides we have
+    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log(2+|2t|).$$
+    Noting that $\log(2+|2t|)\leq\log(4+|2t|)=\log(2)+\log(2+|t|)\leq 2\log(2+|t|)$ completes the proof.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[ShiftOneBound]\label{ShiftOneBound}\lean{ShiftOneBound}
+    There exists $C>0$ such that for all $\delta\in(0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$; if $\zeta(\rho)=0$ with $\rho=\sigma+it$, then
+    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{1}{1+\delta-\sigma}+C\log(2+|t|).$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{SumBound}
+    Note that for $\rho'\in\mathcal{Z}_t$
+    \begin{align*}
+        \mathfrak{R}\left(\frac{1}{1+\delta+it-\rho'}\right)&=\mathfrak{R}\left(\frac{1+\delta-it-\overline{\rho'}}{(1+\delta+it-\rho')(1+\delta-it-\overline{\rho'})}\right) \\
+        &=\frac{\mathfrak{R}(1+\delta-it-\overline{\rho'})}{|1+\delta+it-\rho'|^2}=\frac{1+\delta-\mathfrak{R}\rho'}{(1+\delta-\mathfrak{R}\rho')^2+(t-\mathfrak{I}\rho')^2}.
+    \end{align*}
+    Now since $\rho'\in\mathcal{Z}_t$, we have that $|\rho-(3/2+it)|\leq 5/6$. So, we have $\mathfrak{R}\rho'\in(2/3,7/3)$ and $\mathfrak{I}\rho'\in(t-5/6,t+5/6)$. Thus we have that
+    $$1/3<1+\delta-\mathfrak{R}\rho'\qquad\text{and}\qquad (1+\delta-\mathfrak{R}\rho')^2+(t-\mathfrak{I}\rho')^2<16/9+25/36=89/36.$$
+    Which implies that
+    \begin{equation}\label{pickupPoint5}
+        0\leq\frac{12}{89}<\frac{1+\delta-\mathfrak{R}\rho'}{(1+\delta-\mathfrak{R}\rho')^2+(t-\mathfrak{I}\rho')^2}=\mathfrak{R}\left(\frac{1}{1+\delta+it-\rho'}\right).
+    \end{equation}
+    Note that, from Lemma \ref{SumBound}, we have
+    $$\sum_{\rho\in\mathcal{Z}_t}m_\zeta(\rho)\,\mathfrak{R}\left(\frac{1}{1+\delta+it-\rho}\right)-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log(2+|t|).$$
+    Since $m_\zeta(\rho)\geq 0$ for all $\rho'\in\mathcal{Z}_t$, the inequality from Equation (\ref{pickupPoint5}) tells us that by subtracting the sum over all $\rho'\in\mathcal{Z}_t\setminus\{\rho\}$ from both sides we have
+    $$\frac{m_\zeta(\rho)}{\mathfrak{R}(1+\delta+it-\rho)}-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\ll\log(2+|t|).$$
+    But of course we have that $\mathfrak{R}(1+\delta+it-\rho)=1+\delta-\sigma$. So subtracting this term from both sides and recalling the implied constant we have
+    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{m_\zeta(\rho)}{1+\delta-\sigma}+C\log(2+|t|).$$
+    We have that $\sigma\leq 1$ since $\zeta$ is zero free on the right half plane $\sigma>1$. Thus $0<1+\delta-\sigma$. Noting this in combination with the fact that $1\leq m_\zeta(\rho)$ completes the proof.
+\end{proof}
+%%-/
+
+
+
 /-%
 
 Main Theorem: The Prime Number Theorem in strong form.
