@@ -222,25 +222,22 @@ theorem deriv_eqOn_of_eqOn_punctured (f g : ℂ → ℂ) (U : Set ℂ) (p : ℂ)
 /- New two theorems to be proven -/
 
 theorem analytic_deriv_bounded_near_point
-  (f : ℂ → ℂ) {U : Set ℂ} {p : ℂ} (hU : IsOpen U) (hp : p ∈ U) (hf : HolomorphicOn f U) :
-  (deriv f) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+    (f : ℂ → ℂ) {U : Set ℂ} {p : ℂ} (hU : IsOpen U) (hp : p ∈ U) (hf : HolomorphicOn f U) :
+    (deriv f) =O[𝓝[≠] p] (1 : ℂ → ℂ) := by
+  have U_in_filter : U ∈ 𝓝 p := by
+    exact IsOpen.mem_nhds hU hp
+  have T := (analyticOn_iff_differentiableOn hU).mpr hf
+  have T2 : ContDiffOn ℂ 1 f U :=
+      DifferentiableOn.contDiffOn hf hU
+  have T3 : ContinuousOn (fun x ↦ ((deriv f) x)) U := by
+    apply T2.continuousOn_deriv_of_isOpen hU (by simp)
+  have T4 := T3.continuousAt U_in_filter
+  have T5 : (deriv f) =O[𝓝 p] (1 : ℂ → ℂ) :=
+    T4.norm.isBoundedUnder_le.isBigO_one ℂ
+  exact Asymptotics.IsBigO.mono T5 inf_le_left
 
-    have U_in_filter : U ∈ 𝓝 p := by
-      exact IsOpen.mem_nhds hU hp
-    have T := (analyticOn_iff_differentiableOn hU).mpr hf
-    have T2 : ContDiffOn ℂ 1 f U :=
-        DifferentiableOn.contDiffOn hf hU
-    have T3 : ContinuousOn (fun x ↦ ((deriv f) x)) U := by
-      apply T2.continuousOn_deriv_of_isOpen hU (by simp)
-    have T4 := T3.continuousAt U_in_filter
-    have T5 : (deriv f) =O[𝓝 p] (1 : ℂ → ℂ) :=
-      T4.norm.isBoundedUnder_le.isBigO_one ℂ
-    exact Asymptotics.IsBigO.mono T5 inf_le_left
-
-theorem derivative_const_plus_product {g : ℂ → ℂ}
-   (A p x : ℂ) (hg : DifferentiableAt ℂ g x) :
-  deriv ((fun _ ↦ A) + g * fun s ↦ s - p) x = deriv g x * (x - p) + g x :=
-  by
+theorem derivative_const_plus_product {g : ℂ → ℂ} (A p x : ℂ) (hg : DifferentiableAt ℂ g x) :
+    deriv ((fun _ ↦ A) + g * fun s ↦ s - p) x = deriv g x * (x - p) + g x := by
 
   -- Rewrite the function as a single lambda
     have h_eq : ((fun _ ↦ A) + g * fun s ↦ s - p) = fun s ↦ A + g s * (s - p) := by rfl

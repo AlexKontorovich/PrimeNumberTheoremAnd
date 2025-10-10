@@ -243,8 +243,7 @@ theorem weight_one_of_selberg : γ 1 = 1 := by
   rw [inv_mul_cancel₀]
   convert s.selbergBoundingSum_ne_zero
 
-theorem selbergμPlus_eq_zero (d : ℕ) (hd : ¬d ≤ y) : μ⁺ d = 0 :=
-  by
+theorem selbergμPlus_eq_zero (d : ℕ) (hd : ¬d ≤ y) : μ⁺ d = 0 := by
   apply lambdaSquared_eq_zero_of_support _ y _ d hd
   apply s.selbergWeights_eq_zero
 
@@ -260,10 +259,9 @@ theorem mainSum_eq_diag_quad_form :
   by apply lambdaSquared_mainSum_eq_diag_quad_form
 
 theorem selberg_bound_simple_mainSum :
-    mainSum (s := s.toBoundingSieve) μ⁺ = S⁻¹ :=
-  by
+    mainSum (s := s.toBoundingSieve) μ⁺ = S⁻¹ := by
   rw [mainSum_eq_diag_quad_form]
-  trans (∑ l ∈ divisors P, (if l ^ 2 ≤ y then g l *  (S⁻¹) ^ 2 else 0))
+  trans (∑ l ∈ divisors P, (if l ^ 2 ≤ y then g l * (S⁻¹) ^ 2 else 0))
   · apply sum_congr rfl; intro l hl
     rw [s.selbergWeights_diagonalisation l hl, ite_pow, zero_pow two_ne_zero, mul_ite_zero]
     apply if_congr Iff.rfl _ rfl

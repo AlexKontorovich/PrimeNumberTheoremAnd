@@ -232,14 +232,14 @@ theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFu
     rw [Finset.mem_filter, Nat.mem_divisors, ←Nat.factorization_le_iff_dvd hd.ne_zero (hi_ne_zero a ha),
       ←Nat.factorization_le_iff_dvd (hi_ne_zero a ha) (pow_ne_zero _ hd.ne_zero)]
     constructor; constructor
-    · rw [Finsupp.le_iff]; intro p _;
+    · rw [Finsupp.le_iff]; intro p _
       rw [hfact_i a ha]
-      by_cases hp :  p ∈ d.primeFactors
+      by_cases hp : p ∈ d.primeFactors
       · rw [dif_pos hp]
         rw [Nat.factorization_pow, Finsupp.smul_apply]
         simp_rw [Finset.mem_pi, Finset.mem_Icc] at ha
         trans (M • 1)
-        · norm_num;
+        · norm_num
           exact (ha p hp).2
         · gcongr
           rw [Nat.mem_primeFactors_of_ne_zero hd.ne_zero] at hp
