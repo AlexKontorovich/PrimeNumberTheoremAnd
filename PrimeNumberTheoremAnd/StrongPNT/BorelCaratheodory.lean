@@ -31,84 +31,83 @@ lemma divRemovable_zero_of_ne_zero {z : ℂ} (f : ℂ → ℂ) (z_ne_0 : z ≠ 0
 -- analytic on the same open set.
 
 lemma AnalyticOn.divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
-  (sInNhds0 : s ∈ nhds 0) (zero : f 0 = 0) (o : IsOpen s)
-  (analytic : AnalyticOn ℂ f s) : AnalyticOn ℂ (divRemovable_zero f) s :=
-  by
-     rw [Complex.analyticOn_iff_differentiableOn o]
-     rw [←(Complex.differentiableOn_compl_singleton_and_continuousAt_iff sInNhds0)]
-     constructor
-     · rw [differentiableOn_congr (by intros; apply Function.update_of_ne; grind)]
-       exact DifferentiableOn.fun_div
-         (AnalyticOn.differentiableOn (AnalyticOn.mono analytic Set.diff_subset))
-         (DifferentiableOn.mono (differentiableOn_id (s := Set.univ))
-         (Set.subset_univ (s \ {0}))) (by grind)
+    (sInNhds0 : s ∈ nhds 0) (zero : f 0 = 0) (o : IsOpen s)
+    (analytic : AnalyticOn ℂ f s) : AnalyticOn ℂ (divRemovable_zero f) s := by
+  rw [Complex.analyticOn_iff_differentiableOn o]
+  rw [←(Complex.differentiableOn_compl_singleton_and_continuousAt_iff sInNhds0)]
+  constructor
+  · rw [differentiableOn_congr (by intros; apply Function.update_of_ne; grind)]
+    exact DifferentiableOn.fun_div
+      (AnalyticOn.differentiableOn (AnalyticOn.mono analytic Set.diff_subset))
+      (DifferentiableOn.mono (differentiableOn_id (s := Set.univ))
+      (Set.subset_univ (s \ {0}))) (by grind)
 
-     · have U := HasDerivAt.continuousAt_div (c := 0) (a := (deriv f) 0) (f := f)
-         (DifferentiableOn.hasDerivAt
-            ((Complex.analyticOn_iff_differentiableOn o).mp analytic) sInNhds0)
-       have T : (fun (x : ℂ) ↦ (f x - 0) / (x - 0)) = (fun (x : ℂ) ↦ (f x) / x) := by funext; grind
-       rw [zero, T] at U; exact U
+  · have U := HasDerivAt.continuousAt_div (c := 0) (a := (deriv f) 0) (f := f)
+      (DifferentiableOn.hasDerivAt
+         ((Complex.analyticOn_iff_differentiableOn o).mp analytic) sInNhds0)
+    have T : (fun (x : ℂ) ↦ (f x - 0) / (x - 0)) = (fun (x : ℂ) ↦ (f x) / x) := by funext; grind
+    rw [zero, T] at U; exact U
 
 -- The proof of the Lemma below is cumbersome, a proper way would be to
 -- show that if f is analytic on a closed set C, then it is analytic on an
 -- open set O containing the closed set C and apply the previous lemma.
 
 lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ} 
-  (Rpos : 0 < R) (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R)) 
-  (zero : f 0 = 0): AnalyticOn ℂ (divRemovable_zero f) (Metric.closedBall 0 R) := by
+    (Rpos : 0 < R) (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R)) 
+    (zero : f 0 = 0): AnalyticOn ℂ (divRemovable_zero f) (Metric.closedBall 0 R) := by
     apply analyticOn_of_locally_analyticOn
     intro x x_hyp
     by_cases h : ‖x‖ = R
-    · use Metric.ball x (R / 2)
-      constructor
-      · exact Metric.isOpen_ball
-      · constructor
-        · simp; positivity
-        · have Z : ∀w ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2), divRemovable_zero f w = f w / w := by
-             intro x₂ hyp_x₂
-             apply divRemovable_zero_of_ne_zero
-             simp [ball_eq] at hyp_x₂
-             rw [← norm_pos_iff]
-             calc ‖x₂‖
-               _ = ‖x - (x - x₂)‖ := by simp
-               _ ≥ ‖x‖ - ‖x - x₂‖ := by apply norm_sub_norm_le
-               _ = R - ‖x₂ - x‖ := by simp [h, norm_sub_rev]
-               _ > 0 := by linarith
+  · use Metric.ball x (R / 2)
+    constructor
+    · exact Metric.isOpen_ball
+    · constructor
+      · simp; positivity
+      · have Z : ∀w ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2), divRemovable_zero f w = f w / w := by
+           intro x₂ hyp_x₂
+           apply divRemovable_zero_of_ne_zero
+           simp [ball_eq] at hyp_x₂
+           rw [← norm_pos_iff]
+           calc ‖x₂‖
+             _ = ‖x - (x - x₂)‖ := by simp
+             _ ≥ ‖x‖ - ‖x - x₂‖ := by apply norm_sub_norm_le
+             _ = R - ‖x₂ - x‖ := by simp [h, norm_sub_rev]
+             _ > 0 := by linarith
 
-          apply AnalyticOn.congr 
-          · apply AnalyticOn.div (AnalyticOn.mono analytic Set.inter_subset_left) analyticOn_id 
-            · intro x₁ hyp_x₁
-              simp [ball_eq] at hyp_x₁
-              rw [← norm_pos_iff]
-              calc ‖x₁‖
-                   _ = ‖x - (-(x₁ - x))‖ := by simp
-                   _ ≥ ‖x‖ - ‖-(x₁ - x)‖ := by apply norm_sub_norm_le
-                   _ = R - ‖x₁ - x‖ := by simp [h, norm_sub_rev]
-                   _ > 0 := by linarith
-          · simp [Set.EqOn.eq_1]
-            intro x₃ hyp_x₃ dist_hyp
-            have : x₃ ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2) := by
-              apply Set.mem_inter
-              · simp [hyp_x₃]
-              · rw [Metric.mem_ball]; exact dist_hyp
-            exact Z x₃ this
+        apply AnalyticOn.congr 
+        · apply AnalyticOn.div (AnalyticOn.mono analytic Set.inter_subset_left) analyticOn_id 
+          · intro x₁ hyp_x₁
+            simp [ball_eq] at hyp_x₁
+            rw [← norm_pos_iff]
+            calc ‖x₁‖
+                 _ = ‖x - (-(x₁ - x))‖ := by simp
+                 _ ≥ ‖x‖ - ‖-(x₁ - x)‖ := by apply norm_sub_norm_le
+                 _ = R - ‖x₁ - x‖ := by simp [h, norm_sub_rev]
+                 _ > 0 := by linarith
+        · simp [Set.EqOn.eq_1]
+          intro x₃ hyp_x₃ dist_hyp
+          have : x₃ ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2) := by
+            apply Set.mem_inter
+            · simp [hyp_x₃]
+            · rw [Metric.mem_ball]; exact dist_hyp
+          exact Z x₃ this
 
-    · use Metric.ball 0 R
-      constructor
-      · exact Metric.isOpen_ball
-      · constructor
-        · simp [ball_eq]; simp at x_hyp; grind
-        · have si : Metric.closedBall (0 : ℂ) R ∩ Metric.ball (0 : ℂ) R = Metric.ball (0 : ℂ) R := by
-            apply Set.inter_eq_self_of_subset_right
-            simp at x_hyp
-            exact Metric.ball_subset_closedBall
-          · rw [si]
-            apply AnalyticOn.divRemovable_zero 
-            · apply Metric.ball_mem_nhds; positivity
-            · exact zero
-            · apply Metric.isOpen_ball
-            · apply AnalyticOn.mono (t := Metric.closedBall 0 R) (s := Metric.ball 0 R) analytic
-              · apply Metric.ball_subset_closedBall 
+  · use Metric.ball 0 R
+    constructor
+    · exact Metric.isOpen_ball
+    · constructor
+      · simp [ball_eq]; simp at x_hyp; grind
+      · have si : Metric.closedBall (0 : ℂ) R ∩ Metric.ball (0 : ℂ) R = Metric.ball (0 : ℂ) R := by
+          apply Set.inter_eq_self_of_subset_right
+          simp at x_hyp
+          exact Metric.ball_subset_closedBall
+        · rw [si]
+          apply AnalyticOn.divRemovable_zero 
+          · apply Metric.ball_mem_nhds; positivity
+          · exact zero
+          · apply Metric.isOpen_ball
+          · apply AnalyticOn.mono (t := Metric.closedBall 0 R) (s := Metric.ball 0 R) analytic
+            · apply Metric.ball_subset_closedBall 
 
 noncomputable abbrev schwartzQuotient (f : ℂ → ℂ) (M : ℝ) : ℂ → ℂ :=
   fun z ↦ (divRemovable_zero f z) / (2 * M - f z)
