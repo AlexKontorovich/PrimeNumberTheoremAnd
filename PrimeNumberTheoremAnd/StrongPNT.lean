@@ -1,17 +1,26 @@
 import Mathlib.NumberTheory.VonMangoldt
 import Mathlib.NumberTheory.ArithmeticFunction
+import Mathlib.Topology.EMetricSpace.Defs
+import Mathlib.Analysis.Analytic.Basic
+import Mathlib.Data.Complex.Basic
+import Mathlib.Analysis.Analytic.Constructions
+import Mathlib.Analysis.Complex.RemovableSingularity
+import Mathlib.Analysis.Calculus.Deriv.Inv
+import Mathlib.Analysis.SpecialFunctions.Pow.Deriv
+import Mathlib.Analysis.Calculus.Deriv.Slope
+import Mathlib.Analysis.Analytic.Within
+import Mathlib.Analysis.Normed.Group.Basic
+import Mathlib.Analysis.Complex.AbsMax
+import «PrimeNumberTheoremAnd».StrongPNT.BorelCaratheodory
+import «PrimeNumberTheoremAnd».StrongPNT.DerivativeBound
 
 open Nat Filter
 
 --open scoped ArithmeticFunction
 
-
-
 /-%%
     This upstreamed from https://github.com/math-inc/strongpnt/tree/main
 %%-/
-
-
 
 /-%%
 \begin{theorem}[BorelCaratheodory]\label{BorelCaratheodory}\lean{BorelCaratheodory}
@@ -37,6 +46,7 @@ open Nat Filter
 \end{proof}
 %%-/
 
+-- The proof is in the StrongPNT.BorelCaratheodory import.
 
 
 /-%%
