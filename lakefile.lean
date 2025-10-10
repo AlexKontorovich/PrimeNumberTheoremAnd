@@ -7,13 +7,9 @@ package «PrimeNumberTheoremAnd» where
     ⟨`pp.proofs.withType, false⟩,
     ⟨`autoImplicit, false⟩,
     ⟨`relaxedAutoImplicit, false⟩,
-    ⟨`linter.style.cases, true⟩,
-    ⟨`linter.style.cdot, true⟩,
-    ⟨`linter.style.dollarSyntax, true⟩,
-    ⟨`linter.style.header, true⟩,
-    ⟨`linter.style.lambdaSyntax, true⟩,
-    ⟨`linter.style.missingEnd, true⟩,
-    ⟨`linter.style.multiGoal, true⟩
+    ⟨`linter.mathlibStandardSet, true⟩,
+    ⟨`linter.style.openClassical, false⟩,
+    ⟨`linter.style.longLine, false⟩
   ]
 
 @[default_target]

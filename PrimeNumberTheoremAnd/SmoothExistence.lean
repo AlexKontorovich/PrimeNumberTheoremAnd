@@ -58,7 +58,7 @@ $$
 \end{theorem}
 %%-/
 
-attribute [- simp] one_div in
+attribute [-simp] one_div in
 
 lemma SmoothExistence : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x, 0 ≤ ν x) ∧
     ν.support ⊆ Icc (1 / 2) 2 ∧ ∫ x in Ici 0, ν x / x = 1 := by

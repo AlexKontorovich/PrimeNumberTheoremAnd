@@ -7,7 +7,6 @@ import Mathlib.Analysis.MellinInversion
 import Mathlib.Analysis.Real.Pi.Bounds
 
 set_option lang.lemmaCmd true
-set_option maxHeartbeats 400000
 
 open Set Function Filter Complex Real
 
@@ -2860,6 +2859,8 @@ Same with $I_7$.
 \end{lemma}
 %%-/
 
+set_option maxHeartbeats 400000 in
+-- Slow
 theorem I3Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF)
@@ -3891,6 +3892,8 @@ lemma x_ε_to_inf (c : ℝ) {B : ℝ} (B_le : B < 1) : Tendsto
 $$ \sum_{n \leq x} \Lambda(n) = x + O(x \exp(-c(\log x)^{1/10})).$$
 \end{theorem}
 %%-/
+set_option maxHeartbeats 400000 in
+-- Slow
 /-- *** Prime Number Theorem (Medium Strength) *** The `ChebyshevPsi` function is asymptotic to `x`. -/
 theorem MediumPNT : ∃ c > 0,
     (ψ - id) =O[atTop]
