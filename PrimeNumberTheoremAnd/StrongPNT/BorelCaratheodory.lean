@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2025 Maksym Radziwill. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Maksym Radziwill
+Authors : Maksym Radziwill
 -/
 
 import Mathlib.NumberTheory.VonMangoldt
@@ -53,7 +53,7 @@ lemma AnalyticOn.divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
 
 lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
     (Rpos : 0 < R) (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
-    (zero : f 0 = 0): AnalyticOn ℂ (divRemovable_zero f) (Metric.closedBall 0 R) := by
+    (zero : f 0 = 0) : AnalyticOn ℂ (divRemovable_zero f) (Metric.closedBall 0 R) := by
   apply analyticOn_of_locally_analyticOn
   intro x x_hyp
   by_cases h : ‖x‖ = R
@@ -108,8 +108,7 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
         · apply Metric.ball_mem_nhds; positivity
         · exact zero
         · apply Metric.isOpen_ball
-        · apply AnalyticOn.mono (t := Metric.closedBall 0 R) (s := Metric.ball 0 R) analytic
-          · apply Metric.ball_subset_closedBall
+        · apply AnalyticOn.mono analytic Metric.ball_subset_closedBall
 
 noncomputable abbrev schwartzQuotient (f : ℂ → ℂ) (M : ℝ) : ℂ → ℂ :=
   fun z ↦ (divRemovable_zero f z) / (2 * M - f z)
@@ -118,8 +117,8 @@ noncomputable abbrev schwartzQuotient (f : ℂ → ℂ) (M : ℝ) : ℂ → ℂ 
 
 lemma AnalyticOn.schwartzQuotient {f : ℂ → ℂ} {R : ℝ} (M : ℝ)
     (Rpos : 0 < R) (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
-    (nonzero: ∀ z ∈ Metric.closedBall 0 R, 2 * M - f z ≠ 0)
-    (zero : f 0 = 0): AnalyticOn ℂ (schwartzQuotient f M) (Metric.closedBall 0 R) := by
+    (nonzero : ∀ z ∈ Metric.closedBall 0 R, 2 * M - f z ≠ 0)
+    (zero : f 0 = 0) : AnalyticOn ℂ (schwartzQuotient f M) (Metric.closedBall 0 R) := by
 
   have sInNhds0 : Metric.closedBall 0 R ∈ nhds 0 := by
     apply Metric.closedBall_mem_nhds; exact Rpos
@@ -167,8 +166,8 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
 
 theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (Rpos : 0 < R) (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
-    (zeroAtZero: f 0 = 0) (Mpos : 0 < M)
-    (realPartBounded: ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
+    (zeroAtZero : f 0 = 0) (Mpos : 0 < M)
+    (realPartBounded : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
     (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r)
     : ‖f z‖ ≤ (2 * M * r) / (R - r) := by
 
@@ -204,7 +203,7 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
         · rw [div_div, mul_comm, ← div_div, div_self]; exact h
       _ = 1 / R := by rw [hyp_z]
 
-  have maxMod: ∀ z ∈ Metric.closedBall 0 R, ‖schwartzQuotient f M z‖ ≤ 1 / R := by
+  have maxMod : ∀ z ∈ Metric.closedBall 0 R, ‖schwartzQuotient f M z‖ ≤ 1 / R := by
     exact AnalyticOn.norm_le_of_norm_le_on_sphere
       (AnalyticOn.schwartzQuotient M Rpos analytic fPosAll zeroAtZero)
       (by rfl) schwartzQuotientBounded
@@ -241,7 +240,7 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     rw [mul_assoc, U1, ← le_div_iff₀ U2, U3] at U0
     exact U0
 
-  have maxBoundForF: ∀ r < R, 0 < r → ∀ z ∈ Metric.closedBall 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
+  have maxBoundForF : ∀ r < R, 0 < r → ∀ z ∈ Metric.closedBall 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
     intro r hyp_r pos_r
     exact AnalyticOn.norm_le_of_norm_le_on_sphere analytic
       (by linarith) (boundForF r hyp_r pos_r)
