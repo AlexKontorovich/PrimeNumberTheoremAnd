@@ -12,7 +12,7 @@ import Mathlib.Analysis.Analytic.Within
 import Mathlib.Analysis.Normed.Group.Basic
 import Mathlib.Analysis.Complex.AbsMax
 import «PrimeNumberTheoremAnd».StrongPNT.BorelCaratheodory
-
+import «PrimeNumberTheoremAnd».StrongPNT.DerivativeBound
 
 open Nat Filter
 
