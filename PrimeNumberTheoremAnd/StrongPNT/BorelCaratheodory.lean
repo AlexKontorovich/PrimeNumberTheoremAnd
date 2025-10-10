@@ -234,7 +234,12 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
       have U1 : 0 < R := by linarith
       have U : r * R⁻¹ < 1 := by simp only [← div_lt_one₀ U1] at hyp_r; exact hyp_r
       linarith
-    have U3 : r * R⁻¹ * M * 2 / (1 - r * R⁻¹) = 2 * M * r / (R - r) := by grind
+    have U3 : r * R⁻¹ * M * 2 / (1 - r * R⁻¹) = 2 * M * r / (R - r) := by
+      have : R ≠ 0 := by linarith
+      rw [← mul_div_mul_left (r * R⁻¹ * M * (2 : ℝ)) ((1 : ℝ) - r * R⁻¹) this ];
+      ring_nf
+      have U : R * r * R⁻¹ = r := by rw [mul_comm, ← mul_assoc, ← mul_comm R R⁻¹, CommGroupWithZero.mul_inv_cancel R this, one_mul]
+      rw [U]
 
     rw [← sub_le_sub_iff_right ((r / R) * ‖f z‖)] at U0; ring_nf at U0
     rw [mul_assoc, U1, ← le_div_iff₀ U2, U3] at U0
