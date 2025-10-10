@@ -63,15 +63,15 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
     · constructor
       · simp only [Metric.mem_ball, dist_self, Nat.ofNat_pos, div_pos_iff_of_pos_right]; positivity
       · have Z : ∀ w ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2), divRemovable_zero f w = f w / w := by
-           intro x₂ hyp_x₂
-           apply divRemovable_zero_of_ne_zero
-           rw [ball_eq, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right, Set.mem_setOf_eq] at hyp_x₂
-           rw [← norm_pos_iff]
-           calc 0
-             _ < R - ‖x₂ - x‖ := by let ⟨u,v⟩ := hyp_x₂; linarith
-             _ = ‖x‖ - ‖x - x₂‖ := by rw [h]; simp only [sub_right_inj]; apply norm_sub_rev
-             _ ≤ ‖x - (x - x₂)‖ := by apply norm_sub_norm_le
-             _ ≤ ‖x₂‖ := by simp only [sub_sub_cancel, le_refl]
+          intro x₂ hyp_x₂
+          apply divRemovable_zero_of_ne_zero
+          rw [ball_eq, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right, Set.mem_setOf_eq] at hyp_x₂
+          rw [← norm_pos_iff]
+          calc 0
+            _ < R - ‖x₂ - x‖ := by let ⟨u,v⟩ := hyp_x₂; linarith
+            _ = ‖x‖ - ‖x - x₂‖ := by rw [h]; simp only [sub_right_inj]; apply norm_sub_rev
+            _ ≤ ‖x - (x - x₂)‖ := by apply norm_sub_norm_le
+            _ ≤ ‖x₂‖ := by simp only [sub_sub_cancel, le_refl]
 
         apply AnalyticOn.congr
         · apply AnalyticOn.div (AnalyticOn.mono analytic Set.inter_subset_left) analyticOn_id
