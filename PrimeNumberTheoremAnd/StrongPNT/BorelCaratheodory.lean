@@ -35,16 +35,16 @@ lemma AnalyticOn.divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
   rw [Complex.analyticOn_iff_differentiableOn o]
   rw [←(Complex.differentiableOn_compl_singleton_and_continuousAt_iff sInNhds0)]
   constructor
-  · rw [differentiableOn_congr (by intros; apply Function.update_of_ne; grind)]
+  · rw [differentiableOn_congr (by intro x hyp_x; apply Function.update_of_ne;simp only [Set.mem_diff, Set.mem_singleton_iff] at hyp_x; simp only [ne_eq]; exact hyp_x.right)]
     exact DifferentiableOn.fun_div
       (AnalyticOn.differentiableOn (AnalyticOn.mono analytic Set.diff_subset))
       (DifferentiableOn.mono (differentiableOn_id (s := Set.univ))
-      (Set.subset_univ (s \ {0}))) (by grind)
+      (Set.subset_univ (s \ {0}))) (by intro x hyp_x; simp only [Set.mem_diff, Set.mem_singleton_iff] at hyp_x; simp only [ne_eq]; exact hyp_x.right)
 
   · have U := HasDerivAt.continuousAt_div (c := 0) (a := (deriv f) 0) (f := f)
       (DifferentiableOn.hasDerivAt
          ((Complex.analyticOn_iff_differentiableOn o).mp analytic) sInNhds0)
-    have T : (fun (x : ℂ) ↦ (f x - 0) / (x - 0)) = (fun (x : ℂ) ↦ (f x) / x) := by funext; grind
+    have T : (fun (x : ℂ) ↦ (f x - 0) / (x - 0)) = (fun (x : ℂ) ↦ (f x) / x) := by funext x; rw [sub_zero, sub_zero]
     rw [zero, T] at U; exact U
 
 -- The proof of the Lemma below is cumbersome, a proper way would be to
@@ -186,7 +186,7 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     intro z hyp_z
     have zNe0 : z ≠ 0 := by
       rw [mem_sphere_zero_iff_norm] at hyp_z
-      exact ne_zero_of_norm_ne_zero (by grind)
+      exact ne_zero_of_norm_ne_zero (by linarith)
     have zInS : z ∈ Metric.closedBall 0 R := zInSFunc R (by rfl) z hyp_z
     simp only [mem_sphere_iff_norm, sub_zero] at hyp_z
 
@@ -210,7 +210,7 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
 
   have boundForF : ∀ r < R, 0 < r → ∀ z ∈ Metric.sphere 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
     intro r hyp_r r_pos z zOnR
-    have zInS : z ∈ Metric.closedBall 0 R := zInSFunc r (by grind) z (zOnR)
+    have zInS : z ∈ Metric.closedBall 0 R := zInSFunc r (by linarith) z (zOnR)
     rw [mem_sphere_zero_iff_norm] at zOnR
     have := maxMod z zInS
     unfold schwartzQuotient at this
@@ -228,8 +228,7 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
           have U : ‖(2 : ℂ) * M‖ = 2 * M := by simp only [Complex.norm_mul, Complex.norm_ofNat, Complex.norm_real, Real.norm_eq_abs, mul_eq_mul_left_iff,
   abs_eq_self, OfNat.ofNat_ne_zero, or_false]; linarith
           rw [U]
-        _ = 2 * M * r * R⁻¹ + r * ‖f z‖ * R⁻¹ := by grind
-        _ = 2 * M * r / R + (r / R) * ‖f z‖ := by grind
+        _ = 2 * M * r / R + (r / R) * ‖f z‖ := by ring_nf
     have U1 : ‖f z‖ - ‖f z‖ * (r * R⁻¹) = ‖f z‖ * (1 - r * R⁻¹) := by ring
     have U2 : (0 : ℝ) < 1 - r * R⁻¹ := by
       have U1 : 0 < R := by linarith
@@ -251,4 +250,4 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     rw [U, pos_r]; simp only [mul_zero, sub_zero, zero_div, norm_le_zero_iff]; exact zeroAtZero
   · have U : 0 ≤ r := by
       rw [mem_closedBall_iff_norm] at hyp_z; simp only [sub_zero] at hyp_z; linarith [norm_nonneg z]
-    exact maxBoundForF r (by grind) (by grind) z hyp_z
+    exact maxBoundForF r (by linarith) (by grind) z hyp_z
