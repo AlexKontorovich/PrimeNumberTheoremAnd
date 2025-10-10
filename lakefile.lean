@@ -12,6 +12,7 @@ package «PrimeNumberTheoremAnd» where
     ⟨`linter.style.dollarSyntax, true⟩,
     ⟨`linter.style.header, true⟩,
     ⟨`linter.style.lambdaSyntax, true⟩,
+    ⟨`linter.style.missingEnd, true⟩,
     ⟨`linter.style.multiGoal, true⟩
   ]
 

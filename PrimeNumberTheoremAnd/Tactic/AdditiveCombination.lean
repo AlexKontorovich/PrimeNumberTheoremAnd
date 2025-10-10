@@ -181,3 +181,5 @@ syntax (name := AdditiveCombination) "additive_combination"
 elab_rules : tactic
   | `(tactic| additive_combination%$tk $[(norm := $tac)]? $[(exp := $n)]? $(e)?) =>
     elabAdditiveCombination tk tac n e
+
+end Mathlib.Tactic.LinearCombination'

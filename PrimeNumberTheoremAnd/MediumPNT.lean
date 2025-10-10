@@ -4009,7 +4009,6 @@ theorem MediumPNT : ∃ c > 0,
     exact Tx_to_inf.eventually_gt_atTop _
 
   have eventually_σ₂_lt_σ₁ : ∀ᶠ (x : ℝ) in atTop, σ₂ < 1 - A / (Real.log (Tx x)) ^ 9 := by
-    --have' := (tendsto_order.mp ?_).1
     apply (tendsto_order.mp ?_).1
     · exact σ₂_lt_one
     have := tendsto_inv_atTop_zero.comp ((tendsto_rpow_atTop (by norm_num : (0 : ℝ) < 9)).comp

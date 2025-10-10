@@ -36,3 +36,5 @@ theorem _root_.Filter.Eventually.natCast {f : ℝ → Prop} (hf : ∀ᶠ x in at
 theorem IsBigO.natCast {f g : ℝ → E} (h : f =O[atTop] g) :
     (fun n : ℕ => f n) =O[atTop] fun n : ℕ => g n :=
   h.comp_tendsto tendsto_natCast_atTop_atTop
+
+end Asymptotics

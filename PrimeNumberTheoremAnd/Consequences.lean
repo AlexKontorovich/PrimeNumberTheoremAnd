@@ -34,11 +34,6 @@ lemma Set.Ico_subset_Ico_of_Icc_subset_Icc {a b c d : ℝ} (h : Set.Icc a b ⊆ 
   simp only [mem_Icc] at this
   exact this.2
 
--- @[simps]
--- def ArithmeticFunction.primeCounting : ArithmeticFunction ℝ where
---   toFun x := Nat.primeCounting ⌊x⌋₊
---   map_zero' := by simp [Nat.primeCounting_zero]
-
 -- AkraBazzi.lean
 lemma deriv_smoothingFn' {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) : deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) := by
   have : log x ≠ 0 := Real.log_ne_zero_of_pos_of_ne_one hx_pos hx
@@ -274,7 +269,7 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx : 0 ≤ x) :
       · simp [h]
         rw [isPrimePow_def] at h
         obtain ⟨ p, k, ⟨ h1, h2, h3 ⟩ ⟩ := h
-        rw [<- h3]
+        rw [← h3]
         replace h1 := h1.nat_prime
         calc
           _ = log p := by
@@ -284,7 +279,7 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx : 0 ≤ x) :
             simp
             have h : k ≤ ⌊x.log / log 2⌋₊ := by
               have h5 : 2^k ≤ n := by
-                rw [<-h3]
+                rw [← h3]
                 apply Nat.pow_le_pow_left (Prime.two_le h1)
               have h6 : 1 ≤ x := by
                 apply LE.le.trans _ hn
@@ -306,7 +301,7 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx : 0 ≤ x) :
                 rw [Nat.le_floor_iff]
                 · rw [le_rpow_inv_iff_of_pos (cast_nonneg p) hx (cast_pos.mpr h2)]
                   apply LE.le.trans _ hn
-                  rw [<-h3]
+                  rw [← h3]
                   norm_num
                 positivity
               simp [h, h1, this]
@@ -320,7 +315,7 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx : 0 ≤ x) :
             · simp at hp'
               have : (k' = k ∧ p' = p) := by
                 have := eq_of_prime_pow_eq h1.prime hp'.2.prime h2 h
-                rw [<-this, pow_right_inj₀] at h
+                rw [← this, pow_right_inj₀] at h
                 · exact ⟨ h.symm, this.symm ⟩
                 · exact Prime.pos h1
                 exact Nat.Prime.ne_one h1
@@ -424,7 +419,7 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx : 2 ≤ x) :
         intro k hk
         simp only [sum_const, nsmul_eq_mul]
         gcongr
-        rw [<- Nat.le_floor_iff]
+        rw [← Nat.le_floor_iff]
         · apply (Finset.card_filter_le _ _).trans
           rw [card_Iic, Nat.floor_add_one]
           · apply Nat.add_le_add _ NeZero.one_le
@@ -451,7 +446,7 @@ theorem Asymptotics.IsEquivalent.add_isLittleO'
     {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β}
     {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (w - u) =o[l] v) :
     Asymptotics.IsEquivalent l w v := by
-  rw [<- add_sub_cancel u w]
+  rw [← add_sub_cancel u w]
   exact add_isLittleO huv hwu
 
 /-- If u ~ v and u-w = o(v) then w ~ v. -/
@@ -459,14 +454,14 @@ theorem Asymptotics.IsEquivalent.add_isLittleO''
     {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β}
     {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (u - w) =o[l] v) :
     Asymptotics.IsEquivalent l w v := by
-  rw [<- sub_sub_self u w]
+  rw [← sub_sub_self u w]
   exact sub_isLittleO huv hwu
 
 theorem WeakPNT' : Tendsto (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) atTop (nhds 1) := by
   have : (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) = (fun N ↦ (∑ n ∈ range N, Λ n)/N + Λ N / N) := by
     ext N
     have : N ∈ Iic N := mem_Iic.mpr (le_refl _)
-    rw [<-Finset.sum_erase_add _ _ this, <-Nat.Iio_eq_range, Iic_erase]
+    rw [← Finset.sum_erase_add _ _ this, ← Nat.Iio_eq_range, Iic_erase]
     exact add_div _ _ _
 
   rw [this, ← add_zero 1]
@@ -494,7 +489,7 @@ theorem WeakPNT'' : (fun x ↦ ∑ n ∈ (Iic ⌊x⌋₊), Λ n) ~[atTop] (fun x
       use 1
       simp only [imp_self, implies_true]
     apply IsLittleO.isEquivalent
-    rw [<-isLittleO_neg_left]
+    rw [← isLittleO_neg_left]
     apply IsLittleO.of_bound
     intro ε hε
     simp
@@ -533,7 +528,7 @@ theorem chebyshev_asymptotic :
     intro x hx
     field_simp
     ring_nf
-    rw [<-Real.rpow_mul_natCast]
+    rw [← Real.rpow_mul_natCast]
     · simp
       ring
     linarith
@@ -1363,8 +1358,6 @@ theorem pi_asymp'' :
         apply div_le_div₀
         · exact le_trans (abs_nonneg _) <|
             hD ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith, by linarith⟩)
-          -- apply mul_nonneg <;> try apply mul_nonneg <;> try linarith
-          -- norm_num; exact log_nonneg <| by linarith
         · exact hD ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith, by linarith⟩)
         · apply integral_log_inv_pos
           linarith

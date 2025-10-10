@@ -93,7 +93,7 @@ open Nat Filter
 
 
 /-%%
-\begin{lemma}[LogOfAnalyticFunction]\label{LogOfAnalyticFunction}\lean{LogOfAnalyticFunction}
+\begin{theorem}[LogOfAnalyticFunction]\label{LogOfAnalyticFunction}\lean{LogOfAnalyticFunction}
     Let $0 < r < R<1$. Let $B:\overline{\mathbb{D}_R}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_R}$ with $B(z)\neq 0$ for all $z\in\overline{\mathbb{D}_R}$. Then there exists $J_B:\overline{\mathbb{D}_r}\to\mathbb{C}$ that is analytic on neighborhoods of points in $\overline{\mathbb{D}_r}$ such that
     \begin{itemize}
         \item $J_B(0)=0$
@@ -101,7 +101,7 @@ open Nat Filter
         \item $\log|B(z)|-\log|B(0)|=\mathfrak{R}J_B(z)$
     \end{itemize}
     for all $z\in\overline{\mathbb{D}_r}$.
-\end{lemma}
+\end{theorem}
 %%-/
 
 /-%%
@@ -216,10 +216,10 @@ open Nat Filter
 
 
 /-%%
-\begin{lemma}[ZerosBound]\label{ZerosBound}\lean{ZerosBound}
+\begin{theorem}[ZerosBound]\label{ZerosBound}\lean{ZerosBound}
     Let $B>1$ and $0< r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for $|z|\leq R$, then
     $$\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)\leq\frac{\log B}{\log(R/r)}.$$
-\end{lemma}
+\end{theorem}
 %%-/
 
 /-%%
@@ -237,7 +237,7 @@ open Nat Filter
 
 /-%%
 \begin{definition}[JBlaschke]\label{JBlaschke}\lean{JBlaschke}
-    Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$, define $L_f(z)=J_{B_f}(z)$ where $J$ is from Lemma \ref{LogOfAnalyticFunction} and $B_f$ is from Definition \ref{BlaschkeB}.
+    Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$, define $L_f(z)=J_{B_f}(z)$ where $J$ is from Theorem \ref{LogOfAnalyticFunction} and $B_f$ is from Definition \ref{BlaschkeB}.
 \end{definition}
 %%-/
 
@@ -285,16 +285,16 @@ open Nat Filter
 
 
 /-%%
-\begin{lemma}[JBlaschkeDerivBound]\label{JBlaschkeDerivBound}\lean{JBlaschkeDerivBound}
+\begin{theorem}[JBlaschkeDerivBound]\label{JBlaschkeDerivBound}\lean{JBlaschkeDerivBound}
     Let $B>1$ and $0 < r' < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for all $|z|\leq R$, then for all $|z|\leq r'$
     $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
-\end{lemma}
+\end{theorem}
 %%-/
 
 /-%%
 \begin{proof}
 \uses{DiskBound, JBlaschke, LogOfAnalyticFunction, BorelCaratheodoryDeriv}
-    By Lemma \ref{DiskBound} we immediately know that $|B_f(z)|\leq B$ for all $|z|\leq R$. Now since $L_f=J_{B_f}$ by Definition \ref{JBlaschke}, by Lemma \ref{LogOfAnalyticFunction} we know that
+    By Lemma \ref{DiskBound} we immediately know that $|B_f(z)|\leq B$ for all $|z|\leq R$. Now since $L_f=J_{B_f}$ by Definition \ref{JBlaschke}, by Theorem \ref{LogOfAnalyticFunction} we know that
     $$L_f(0)=0\qquad\text{and}\qquad \mathfrak{R}L_f(z)=\log|B_f(z)|-\log|B_f(0)|\leq\log|B_f(z)|\leq\log B$$
     for all $|z|\leq r$. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
     $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
@@ -305,10 +305,10 @@ open Nat Filter
 
 
 /-%%
-\begin{lemma}[FinalBound]\label{FinalBound}\lean{FinalBound}
+\begin{theorem}[FinalBound]\label{FinalBound}\lean{FinalBound}
     Let $B>1$ and $0 < r' < r < R' < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for all $|z|\leq R$, then for all $z\in\overline{\mathbb{D}_{R'}}\setminus\mathcal{K}_f(R')$ we have
     $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\leq\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log B.$$
-\end{lemma}
+\end{theorem}
 %%-/
 
 /-%%
@@ -322,23 +322,23 @@ open Nat Filter
     $$\mathrm{Log}\,B_f(z)=\mathrm{Log}\,f(z)+\sum_{\rho\in\mathcal{K}_f(R')}m_f(\rho)\,\mathrm{Log}(R-z\overline{\rho}/R)-\sum_{\rho\in\mathcal{K}_f(R')}m_f(\rho)\,\mathrm{Log}(z-\rho).$$
     Taking the derivative of both sides we have that
     $$\frac{B_f'}{B_f}(z)=\frac{f'}{f}(z)+\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-R^2/\rho}-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}.$$
-    By Definition \ref{JBlaschke} and Lemma \ref{LogOfAnalyticFunction} we recall that
+    By Definition \ref{JBlaschke} and Theorem \ref{LogOfAnalyticFunction} we recall that
     $$L_f(z)=J_{B_f}(z)=\mathrm{Log}\,B_f(z)-\mathrm{Log}\,B_f(0).$$
     Taking the derivative of both sides we have that $L_f'(z)=(B_f'/B_f)(z)$. Thus,
     $$\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}=L_f'(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-R^2/\rho}.$$
     Now since $z\in\overline{\mathbb{D}_{R'}}$ and $\rho\in\mathcal{K}_f(R')$, we know that $R^2/R'-R'\leq|z-R^2/\rho|$. Thus by the triangle inequality we have
     $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\leq|L_f'(z)|+\left(\frac{1}{R^2/R'-R'}\right)\sum_{\rho\in\mathcal{K}_f(R')}m_f(\rho).$$
-    Now by Lemmas \ref{ZerosBound} and \ref{JBlaschkeDerivBound} we get our desired result with a little algebraic manipulation.
+    Now by Theorem \ref{ZerosBound} and \ref{JBlaschkeDerivBound} we get our desired result with a little algebraic manipulation.
 \end{proof}
 %%-/
 
 
 
 /-%%
-\begin{lemma}[ZetaFixedLowerBound]\label{ZetaFixedLowerBound}\lean{ZetaFixedLowerBound}
-    There exists $a>0$ such that for all $t\in\mathbb{R}$ one has
-    $$|\zeta(3/2+it)|\geq a.$$
-\end{lemma}
+\begin{theorem}[ZetaFixedLowerBound]\label{ZetaFixedLowerBound}\lean{ZetaFixedLowerBound}
+    For all $t\in\mathbb{R}$ one has
+    $$|\zeta(3/2+it)|\geq\frac{\zeta(3)}{\zeta(3/2)}.$$
+\end{theorem}
 %%-/
 
 /-%%
@@ -350,7 +350,7 @@ open Nat Filter
     $$\frac{\zeta(2s)}{\zeta(s)}=\prod_p\frac{1-p^{-s}}{1-p^{-2s}}=\prod_p\frac{1}{1+p^{-s}}.$$
     Now note that $|1-p^{-(3/2+it)}|\leq 1+|p^{-(3/2+it)}|=1+p^{-3/2}$. Thus,
     $$|\zeta(3/2+it)|=\prod_p\frac{1}{|1-p^{-(3/2+it)}|}\geq\prod_p\frac{1}{1+p^{-3/2}}=\frac{\zeta(3)}{\zeta(3/2)}$$
-    for all $t\in\mathbb{R}$, as desired.
+    for all $t\in\mathbb{R}$ as desired.
 \end{proof}
 %%-/
 
@@ -418,10 +418,10 @@ open Nat Filter
 
 
 /-%%
-\begin{lemma}[GlobalBound]\label{GlobalBound}\lean{GlobalBound}
+\begin{theorem}[GlobalBound]\label{GlobalBound}\lean{GlobalBound}
     For all $s\in\mathbb{C}$ with $|s|\leq 1$ and $t\in\mathbb{R}$ with $|t|\geq 3$, we have that
     $$|\zeta(s+3/2+it)|\leq 7+2\,|t|.$$
-\end{lemma}
+\end{theorem}
 %%-/
 
 /-%%
@@ -429,10 +429,33 @@ open Nat Filter
 \uses{ZetaExtend}
     For the sake of clearer proof writing let $z=s+3/2+it$. Since $|s|\leq 1$ we know that $1/2\leq\mathfrak{R}z$; additionally, as $|t|\geq 3$, we know $z\in S$. Thus, from Lemma \ref{ZetaExtend} we know that
     $$|\zeta(z)|\leq 1+\frac{1}{|z-1|}+|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|$$
-    by applying the triangle inequality. Now note that $\abs{z-1}\geq 1$. Likewise,
+    by applying the triangle inequality. Now note that $|z-1|\geq 1$. Likewise,
     $$|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|\leq|z|\int_1^\infty|\{x\}\,x^{-z-1}|\,dx\leq|z|\int_1^\infty x^{-\mathfrak{R}z-1}\,dx=\frac{|z|}{\mathfrak{R}z}\leq 2\,|z|.$$
     Thus we have that,
     $$|\zeta(s+3/2+it)|=|\zeta(z)|\leq 1+1+2\,|z|=2+2\,|s+3/2+it|\leq2+2\,|s|+3+2\,|it|\leq 7+2\,|t|.$$
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{theorem}[LogDerivZetaFinalBound]\label{LogDerivZetaFinalBound}\lean{LogDerivZetaFinalBound}
+    Let $t\in\mathbb{R}$ with $|t|\geq 3$ and $0 < r' < r < R' < R<1$. If  $f(z)=\zeta(z+3/2+it)$, then for all $z\in\overline{\mathbb{D}_R'}\setminus\mathcal{K}_f(R')$ we have that
+    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|.$$
+\end{theorem}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{ZetaFixedLowerBound, GlobalBound, FinalBound}
+    Let $g(z)=\zeta(z+3/2+it)/\zeta(3/2+it)$. Note that $g(0)=1$ and for $|z|\leq R$
+    $$|g(z)|=\frac{|\zeta(z+3/2+it)|}{|\zeta(3/2+it)|}\leq\frac{\zeta(3/2)}{\zeta(3)}\cdot(7+2\,|t|)\leq\frac{13\,\zeta(3/2)}{3\,\zeta(3)}\,|t|$$
+    by Theorems \ref{ZetaFixedLowerBound} and \ref{GlobalBound}. Thus by Theorem \ref{FinalBound} we have that
+    $$\left|\frac{g'}{g}(z)-\sum_{\rho\in\mathcal{K}_g(R')}\frac{m_g(\rho)}{z-\rho}\right|\leq\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\left(\log|t|+\log\left(\frac{13\,\zeta(3/2)}{3\,\zeta(3)}\right)\right).$$
+    Now note that $f'/f=g'/g$, $\mathcal{K}_f(R')=\mathcal{K}_g(R')$, and $m_g(\rho)=m_f(\rho)$ for all $\rho\in\mathcal{K}_f(R')$. Thus we have that,
+    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|$$
+    where the implied constant $C$ is taken to be
+    $$C\geq 1+\frac{\log((13\,\zeta(3/2))/(3\,\zeta(3)))}{\log 3}.$$
 \end{proof}
 %%-/
 
