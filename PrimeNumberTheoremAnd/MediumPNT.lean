@@ -474,34 +474,27 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
           exact tsub_le_tsub_left n₀_gt (X * (1 + c₂ * ε))
        _            = X * ε * (c₂ + c₁) := by ring
 
-  have : (∑' (n : ℕ), Λ (n + n₀ : ) * F ((n + n₀ : ) / X)) =
-    (∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((n + n₀) / X)) +
-    (∑' (n : ℕ), Λ (n + n₁ : ) * F ((n + n₁ : ) / X)) := by
+  rw[show (∑' (n : ℕ), Λ (n + n₀ : ) * F ((n + n₀ : ) / X)) =
+      (∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((n + n₀) / X)) +
+      (∑' (n : ℕ), Λ (n + n₁ : ) * F ((n + n₁ : ) / X)) by
     rw[← Summable.sum_add_tsum_nat_add' (k := n₁ - n₀)]
-    congr! 5
-    · simp only [Nat.cast_add]
-    · omega
-    · congr! 1
-      norm_cast
-      omega
-    · convert sumΛn₀ ((n₁ - n₀) + n₀) using 4
+    · congr! 5
+      · simp only [Nat.cast_add]
       · omega
       · congr! 1
         norm_cast
         omega
+    · convert sumΛn₀ ((n₁ - n₀) + n₀) using 4
+      · omega
+      · congr! 1
+        norm_cast
+        omega]
 
-  rw [this]
-  clear this
-
-  have : (∑' (n : ℕ), Λ (n + n₁) * F (↑(n + n₁) / X)) = Λ (n₁) * F (↑n₁ / X) := by
+  rw [show(∑' (n : ℕ), Λ (n + n₁) * F (↑(n + n₁) / X)) = Λ (n₁) * F (↑n₁ / X) by
     have : (∑' (n : ℕ), Λ (n + n₁) * F (↑(n + n₁) / X)) = Λ (n₁) * F (↑n₁ / X) + (∑' (n : ℕ), Λ (n + 1 + n₁) * F (↑(n + 1 + n₁) / X)) := by
       let fTemp := fun n ↦ Λ (n + n₁) * F ((↑n + ↑n₁) / X)
       have hTemp (n : ℕ): fTemp n = Λ (n + n₁) * F (↑(n + n₁) / X) := by rw[Nat.cast_add]
-      have : ∑' (n : ℕ), Λ (n + n₁) * F (↑(n + n₁) / X) = ∑' (n : ℕ), fTemp n := by exact Eq.symm (tsum_congr hTemp)
-      rw[this]
-      have (n : ℕ): fTemp (n + 1) = Λ (n + 1 + n₁) * F (↑(n + 1 + n₁) / X) := by exact hTemp (n + 1)
-      have : ∑' (n : ℕ), Λ (n + 1 + n₁) * F (↑(n + 1 + n₁) / X) = ∑' (n : ℕ), fTemp (n + 1) := by exact Eq.symm (tsum_congr this)
-      rw[this]
+      rw[← tsum_congr hTemp, ← tsum_congr fun n ↦ (hTemp (n + 1))]
       have : Λ n₁ * F (↑n₁ / X) = fTemp 0 := by
         dsimp only [fTemp]
         rw[← Nat.cast_add, zero_add]
@@ -510,105 +503,38 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     rw[this]
     apply add_eq_left.mpr
     convert tsum_zero with n
-    have : n₁ ≤ n + (n₁) := by exact Nat.le_add_left (n₁) n
     convert mul_zero _
-    convert smoothIs0 (n + 1 + n₁) ?_
+    apply smoothIs0
     rw[← mul_le_mul_iff_left₀ X_pos]
-    have : ↑(n + 1 + n₁) / X * X = ↑(n + 1 + n₁) := by field_simp
-    rw[this]
-    have : (1 + c₂ * ε) * X = 1 + (X * (1 + c₂ * ε) - 1) := by ring
-    rw[this, Nat.cast_add, Nat.cast_add]
-    exact add_le_add (by bound) n₁_ge
-
-  rw [this]
-  clear this
+    rw[( by field_simp : ↑(n + 1 + n₁) / X * X = ↑(n + 1 + n₁)), (by ring : (1 + c₂ * ε) * X = 1 + (X * (1 + c₂ * ε) - 1)), Nat.cast_add, Nat.cast_add]
+    bound]
 
   have X_le_floor_add_one : X ≤ ↑⌊X + 1⌋₊ := by
-    rw[Nat.floor_add_one, Nat.cast_add, Nat.cast_one]
-    have temp : X ≤ ↑⌈X⌉₊ := by exact Nat.le_ceil X
-    have : (⌈X⌉₊ : ℝ) ≤ ↑⌊X⌋₊ + 1 := by exact_mod_cast Nat.ceil_le_floor_add_one X
-    exact Preorder.le_trans X (↑⌈X⌉₊) (↑⌊X⌋₊ + 1) temp this
-    positivity
+    rw[Nat.floor_add_one (by linarith), Nat.cast_add, Nat.cast_one]
+    apply le_trans <| Nat.le_ceil X
+    exact_mod_cast Nat.ceil_le_floor_add_one X
 
   have floor_X_add_one_le_self : ↑⌊X + 1⌋₊ ≤ X + 1 := by exact Nat.floor_le (by positivity)
 
-  have : ∑ x ∈ Finset.range ⌊X + 1⌋₊, Λ x =
+  rw [show ∑ x ∈ Finset.range ⌊X + 1⌋₊, Λ x =
       (∑ x ∈ Finset.range n₀, Λ x) +
-      ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), Λ (x + ↑n₀) := by
+      ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), Λ (x + ↑n₀) by
     field_simp
     simp only [add_comm _ n₀]
     rw [← Finset.sum_range_add, Nat.add_sub_of_le]
     dsimp only [n₀]
-    refine Nat.ceil_le.mpr ?_
-    exact Preorder.le_trans (X * (1 - c₁ * ε)) X (↑⌊X + 1⌋₊) n₀_inside_le_X X_le_floor_add_one
-  rw [this]
-  clear this
+    exact Nat.ceil_le.mpr (by linarith)]
 
-  have : ∑ n ∈ Finset.range n₀, Λ n * F (↑n / X) =
-      ∑ n ∈ Finset.range n₀, Λ n := by
+  rw [show ∑ n ∈ Finset.range n₀, Λ n * F (↑n / X) =
+      ∑ n ∈ Finset.range n₀, Λ n by
     apply Finset.sum_congr rfl
     intro n hn
-    by_cases n_zero : n = 0
-    · rw [n_zero]
-      simp only [ArithmeticFunction.map_zero, CharP.cast_eq_zero, zero_div, zero_mul]
+    obtain rfl|n_zero := eq_or_ne n 0
+    · simp only [ArithmeticFunction.map_zero, CharP.cast_eq_zero, zero_div, zero_mul]
     · convert mul_one _
-      convert smoothIs1 n (Nat.zero_lt_of_ne_zero n_zero) ?_
+      apply smoothIs1 n (Nat.zero_lt_of_ne_zero n_zero) ?_
       simp only [Finset.mem_range, n₀] at hn
-      have : (n < ⌈X * (1 - c₁ * ε)⌉₊) → (n ≤ ⌊X * (1 - c₁ * ε)⌋₊) := by
-        intro n_lt
-        by_contra! hcontra
-
-        have temp1: (⌊X * (1 - c₁ * ε)⌋₊).succ.succ ≤ n.succ := by
-          apply Nat.succ_le_succ
-          exact Nat.succ_le_of_lt hcontra
-        have : n.succ ≤ ⌈X * (1 - c₁ * ε)⌉₊ := by exact Nat.succ_le_of_lt hn
-        have temp2: ⌊X * (1 - c₁ * ε)⌋₊ + 2 = (⌊X * (1 - c₁ * ε)⌋₊ + 1) + 1 := by ring
-        have : ⌊X * (1 - c₁ * ε)⌋₊ + 2 ≤ ⌈X * (1 - c₁ * ε)⌉₊ := by
-          rw[temp2, ← Nat.succ_eq_add_one, ← Nat.succ_eq_add_one]
-          exact Nat.le_trans temp1 hn
-        rw[← and_not_self_iff (⌊X * (1 - c₁ * ε)⌋₊ + 2 ≤ ⌈X * (1 - c₁ * ε)⌉₊), not_le]
-        apply And.intro
-        exact this
-        rw[temp2, ← Nat.succ_eq_add_one, Nat.lt_succ_iff]
-        exact Nat.ceil_le_floor_add_one (X * (1 - c₁ * ε))
-      exact (Nat.le_floor_iff' n_zero).mp (this hn)
-
-  rw [this, sub_eq_add_neg, add_assoc, add_assoc]
-  nth_rewrite 3 [add_comm]
-  nth_rewrite 2 [← add_assoc]
-  rw [← add_assoc, ← add_assoc, ← sub_eq_add_neg]
-  clear this
-
-  have :
-    ∑ n ∈ Finset.range n₀, Λ n + (∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((↑n + ↑n₀) / X)) -
-      (∑ x ∈ Finset.range n₀, Λ x + ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), Λ (x + n₀))
-      =
-      (∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((↑n + ↑n₀) / X)) -
-      (∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), Λ (x + n₀)) := by
-    ring
-  rw [this]
-  clear this
-
-  have :
-    ‖∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((↑n + ↑n₀) / X) - ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), Λ (x + n₀) + Λ n₁ * F (↑n₁ / X)‖
-    ≤
-    (∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖) +
-      ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ +
-      ‖Λ n₁‖ * ‖F (↑n₁ / X)‖:= by
-    apply norm_add_le_of_le
-    apply norm_sub_le_of_le
-    apply norm_sum_le_of_le
-    intro b hb
-    exact norm_mul_le_of_le (by rfl) (by rfl)
-    apply norm_sum_le_of_le
-    intro b hb
-    rfl
-    exact_mod_cast norm_mul_le_of_le (by rfl) (by rfl)
-
-  refine this.trans ?_
-
-  clear this
-
+      exact Nat.lt_ceil.mp hn |>.le]
   have vonBnd1 :
     ∀ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ ≤ Real.log (X * (1 + c₂ * ε)) := by
     intro n hn
@@ -618,9 +544,8 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
       rw[← add_lt_add_iff_right (-↑n₀), add_neg_cancel_right, add_comm, ← sub_eq_neg_add]
       exact_mod_cast hn
     have inter1: ‖ Λ (n + n₀)‖ ≤ Real.log (↑n + ↑n₀) := by
-      rw[Real.norm_of_nonneg, ← Nat.cast_add]
+      rw[Real.norm_of_nonneg ArithmeticFunction.vonMangoldt_nonneg, ← Nat.cast_add]
       apply ArithmeticFunction.vonMangoldt_le_log
-      apply ArithmeticFunction.vonMangoldt_nonneg
     have inter2: Real.log (↑n + ↑n₀) ≤ Real.log (↑n₁) := by exact_mod_cast Real.log_le_log (by positivity) n_add_n0_le_n1
     have inter3: Real.log (↑n₁) ≤ Real.log (X * (1 + c₂ * ε)) := by exact Real.log_le_log (by bound) (by linarith)
     exact le_imp_le_of_le_of_le inter1 inter3 inter2
@@ -664,7 +589,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
       rw[Finset.mem_range] at hn
       rw[← add_le_add_iff_right (-↑n₀), add_assoc, ← sub_eq_add_neg, sub_self, add_zero, ← sub_eq_add_neg]
       have temp: (n : ℝ) < ⌊X + 1⌋₊ - n₀ := by
-        rw[← Nat.cast_sub, Nat.cast_lt]
+        rw [← Nat.cast_sub, Nat.cast_lt]
         exact hn
         simp only [Nat.ceil_le, n₀]
         exact le_trans n₀_inside_le_X X_le_floor_add_one
@@ -672,15 +597,12 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
         apply sub_le_sub_right floor_X_add_one_le_self
       exact le_of_lt (lt_of_le_of_lt' this temp)
     have inter1: ‖ Λ (n + n₀)‖ ≤ Real.log (↑n + ↑n₀) := by
-      rw[Real.norm_of_nonneg, ← Nat.cast_add]
+      rw[Real.norm_of_nonneg ArithmeticFunction.vonMangoldt_nonneg, ← Nat.cast_add]
       apply ArithmeticFunction.vonMangoldt_le_log
-      apply ArithmeticFunction.vonMangoldt_nonneg
     apply le_trans inter1
     exact_mod_cast Real.log_le_log (by positivity) (n_add_n0_le_X_add_one)
 
-  have largeSumBound := add_le_add bnd1 bnd2
-
-  clear vonBnd1 bnd1 bnd2
+  clear vonBnd1
 
   have inter1 : Real.log (X * (1 + c₂ * ε)) ≤ Real.log (3 * X) := by
     apply Real.log_le_log (by positivity)
@@ -693,107 +615,73 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     rw[mul_comm]
     exact mul_le_mul const_le_2 (by rfl) (by positivity) (by positivity)
 
-  have inter2 : (↑n₁ - ↑n₀) * Real.log (X * (1 + c₂ * ε)) ≤ (X * ε * (c₂ + c₁)) * (Real.log (X) + Real.log (3)) := by
-    apply mul_le_mul n₁_sub_n₀ _ (log_nonneg (by linarith)) (by positivity)
-    rw[← Real.log_mul (by positivity) (by positivity)]
-    nth_rewrite 3 [mul_comm]
-    exact inter1
-
-  have inter3 : (X * ε * (c₂ + c₁)) * (Real.log (X) + Real.log (3)) ≤ 2 * (X * ε * (c₂ + c₁)) * (Real.log (X)) := by
-    nth_rewrite 3 [mul_assoc]
-    rw[two_mul, mul_add]
-    apply add_le_add_left
-    apply mul_le_mul_of_nonneg_left _ (by positivity)
-    exact Real.log_le_log (by positivity) (by linarith)
-
-  have inter4 : (↑n₁ - ↑n₀) * Real.log (X * (1 + c₂ * ε)) ≤ 2 * (X * ε * (c₁ + c₂)) * (Real.log (X)) := by
-    nth_rewrite 2 [add_comm]
-    exact le_trans inter2 inter3
-
-  clear inter2 inter3
-
-  have inter6 : (⌊X + 1⌋₊ - n₀) * Real.log (X + 1) ≤ 2 * (X * ε * c₁) * (Real.log (X) + Real.log (3)) := by
-    apply mul_le_mul _ _ (log_nonneg (by linarith)) (by positivity)
-    have : 2 * (X * ε * c₁) = (X * (1 + ε * c₁)) - (X * (1 - ε * c₁)) := by ring
-    rw[this]
-    apply sub_le_sub
-    have : X + 1 ≤ X * (1 + ε * c₁) := by
-      ring_nf
-      rw[add_comm, add_le_add_iff_left]
-      exact X_bound_1
-    exact le_trans floor_X_add_one_le_self this
-    nth_rewrite 2 [mul_comm]
-    exact n₀_gt
-    rw[← Real.log_mul (by positivity) (by norm_num), mul_comm]
-    exact Real.log_le_log (by positivity) (by linarith)
-
-  have inter7: 2 * (X * ε * c₁) * (Real.log (X) + Real.log (3)) ≤ 4 * (X * ε * c₁) * Real.log (X) := by
-    have : (4 : ℝ) = 2 + 2 := by ring
-    rw[this, mul_add]
-    nth_rewrite 5 [mul_assoc]
-    rw[add_mul]
-    apply add_le_add
-    nth_rewrite 1 [mul_assoc]
-    rfl
-    nth_rewrite 1 [mul_assoc]
-    apply mul_le_mul_of_nonneg_left _ (by norm_num)
-    apply mul_le_mul_of_nonneg_left <| Real.log_le_log (by positivity) (by linarith)
-    positivity
-
-  have inter9: (↑n₁ - ↑n₀) * Real.log (X * (1 + c₂ * ε)) + (↑⌊X + 1⌋₊ - ↑n₀) * Real.log (X + 1) ≤
-    2 * (X * ε * (3 * c₁ + c₂)) * Real.log X := by
-    have : 2 * (X * ε * (3 * c₁ + c₂)) = 2 * (X * ε * (c₁ + c₂)) + 4 * (X * ε * c₁) := by ring
-    rw[this, add_mul]
-    exact add_le_add inter4 <| le_trans inter6 inter7
-
-  have largeSumBound2 : ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ ≤
-    2 * (X * ε * (3 * c₁ + c₂)) * Real.log X := by
-    exact le_trans largeSumBound inter9
-
-  clear largeSumBound inter4 inter9
-
-  have inter10 : ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ Real.log (X * (1 + c₂ * ε)) := by
-    rw[← mul_one (Real.log (X * (1 + c₂ * ε)))]
-    apply mul_le_mul _ _ (norm_nonneg _) (log_nonneg (by bound))
-    rw[Real.norm_of_nonneg ArithmeticFunction.vonMangoldt_nonneg]
-    exact le_trans ArithmeticFunction.vonMangoldt_le_log <| Real.log_le_log (mod_cast n₁_pos) n₁_le
-    rw[Real.norm_of_nonneg]
-    apply smooth1BddAbove _ n₁_pos
-    apply smooth1BddBelow _ n₁_pos
-
-  have largeSumBound3 : ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ +
-    ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ 2 * (X * ε * (3 * c₁ + c₂)) * Real.log X + Real.log (3 * X) := by exact add_le_add largeSumBound2 (le_trans inter10 inter1)
-  clear inter1 inter10 largeSumBound2
-
-  have largeSumBound4 : ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ +
-    ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ 2 * (X * ε * (3 * c₁ + c₂)) * (2 * Real.log X + Real.log (3)) := by
-    nth_rewrite 2 [two_mul, add_assoc]
-    rw [← Real.log_mul (by positivity) (by positivity), mul_comm X 3]
-    apply le_trans largeSumBound3
-    nth_rewrite 2 [mul_add]
-    apply add_le_add_left
-    nth_rewrite 1 [← one_mul (Real.log (3 * X))]
-    apply mul_le_mul_of_nonneg_right _ (log_nonneg (by linarith))
-    linarith
-
-  clear largeSumBound3
-
-  have largeSumBoundFinal : ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖ + ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ +
-    ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ ≤ (6 * (X * ε * (3 * c₁ + c₂))) * Real.log (X) := by
-    apply le_trans largeSumBound4
-    rw[mul_add]
-    have : (6 : ℝ) = 4 + 2 := by ring
-    rw[this, add_mul, add_mul]
-    apply add_le_add
-    ring_nf
-    rfl
-    apply mul_le_mul_of_nonneg_left _ (by positivity)
-    exact Real.log_le_log (by positivity) (by linarith)
-
-  clear largeSumBound4
-
-  rw[C_eq]
-  linear_combination largeSumBoundFinal
+  calc
+    _ = ‖∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((↑n + ↑n₀) / X) - ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), Λ (x + n₀) +
+        Λ n₁ * F (↑n₁ / X)‖ := by
+      congr 1
+      ring
+    _ ≤ (∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖) +
+        ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ +
+        ‖Λ n₁‖ * ‖F (↑n₁ / X)‖ := by
+      apply norm_add_le_of_le
+      · apply norm_sub_le_of_le
+        · apply norm_sum_le_of_le
+          intro b hb
+          exact norm_mul_le_of_le (by rfl) (by rfl)
+        apply norm_sum_le_of_le
+        intro b hb
+        rfl
+      exact_mod_cast norm_mul_le_of_le (by rfl) (by rfl)
+    _ ≤ 2 * (X * ε * (3 * c₁ + c₂)) * Real.log X + Real.log (3 * X) := by
+      apply add_le_add
+      · apply le_trans <| add_le_add bnd1 bnd2
+        rw [(by ring : 2 * (X * ε * (3 * c₁ + c₂)) = 2 * (X * ε * (c₁ + c₂)) + 4 * (X * ε * c₁)), add_mul]
+        apply add_le_add
+        · calc
+            _ ≤ (X * ε * (c₂ + c₁)) * (Real.log (X) + Real.log (3)) := by
+              apply mul_le_mul n₁_sub_n₀ _ (log_nonneg (by linarith)) (by positivity)
+              rw[← Real.log_mul (by positivity) (by positivity)]
+              nth_rewrite 3 [mul_comm]
+              exact inter1
+            _ ≤ 2 * ((X * ε * (c₂ + c₁)) * Real.log X) := by
+              rw[two_mul, mul_add]
+              bound
+            _ = _ := by ring
+        calc
+          _ ≤ 2 * (X * ε * c₁) * (Real.log (X) + Real.log (3)) := by
+            apply mul_le_mul _ _ (log_nonneg (by linarith)) (by positivity)
+            · rw [(by ring : 2 * (X * ε * c₁) = (X * (1 + ε * c₁)) - (X * (1 - ε * c₁)))]
+              apply sub_le_sub
+              · apply le_trans floor_X_add_one_le_self
+                ring_nf
+                rw[add_comm, add_le_add_iff_left]
+                exact X_bound_1
+              nth_rewrite 2 [mul_comm]
+              exact n₀_gt
+            rw[← Real.log_mul (by positivity) (by norm_num), mul_comm]
+            exact Real.log_le_log (by positivity) (by linarith)
+          _ = 2 * (X * ε * c₁ * Real.log X) + 2 * (X * ε * c₁ * Real.log 3) := by ring
+          _ ≤ 2 * (X * ε * c₁ * Real.log X) + 2 * (X * ε * c₁ * Real.log X) := by gcongr
+          _ = _ := by ring
+      · apply le_trans _ inter1
+        rw[← mul_one (Real.log (X * (1 + c₂ * ε)))]
+        apply mul_le_mul _ _ (norm_nonneg _) (log_nonneg (by bound))
+        · rw[Real.norm_of_nonneg ArithmeticFunction.vonMangoldt_nonneg]
+          exact le_trans ArithmeticFunction.vonMangoldt_le_log <| Real.log_le_log (mod_cast n₁_pos) n₁_le
+        rw[Real.norm_of_nonneg <| smooth1BddBelow _ n₁_pos]
+        apply smooth1BddAbove _ n₁_pos
+    _ ≤ 2 * (X * ε * (3 * c₁ + c₂)) * (Real.log X + (Real.log X + Real.log 3)) := by
+      rw [← Real.log_mul (by positivity) (by positivity), mul_comm X 3]
+      nth_rewrite 2 [mul_add]
+      apply add_le_add_left
+      nth_rewrite 1 [← one_mul (Real.log (3 * X))]
+      apply mul_le_mul_of_nonneg_right _ (log_nonneg (by linarith))
+      linarith
+    _ = 4 * (X * ε * (3 * c₁ + c₂)) * Real.log X + 2 * (X * ε * (3 * c₁ + c₂)) * Real.log 3 := by ring
+    _ ≤ 4 * (X * ε * (3 * c₁ + c₂)) * Real.log X + 2 * (X * ε * (3 * c₁ + c₂)) * Real.log X := by gcongr
+    _ = _ := by
+      rw [C_eq]
+      ring
 
 theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
