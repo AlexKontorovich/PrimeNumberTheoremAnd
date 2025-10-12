@@ -545,6 +545,77 @@ open Nat Filter
 
 
 
+/-%%
+\begin{lemma}[ShiftZeroBound]\label{ShiftZeroBound}\lean{ShiftZeroBound}
+    For all $\delta\in(0,1)$ we have
+    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\frac{1}{\delta}+O(1).$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{riemannZetaLogDerivResidue}
+    From Theorem \ref{riemannZetaLogDerivResidue} we know that
+    $$-\frac{\zeta'}{\zeta}(s)=\frac{1}{s-1}+O(1).$$
+    Changing variables $s\mapsto 1+\delta$ and applying the triangle inequality we have that
+    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\left|-\frac{\zeta'}{\zeta}(1+\delta)\right|\leq\frac{1}{\delta}+O(1).$$
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[ThreeFourOneTrigIdentity]\label{ThreeFourOneTrigIdentity}\lean{ThreeFourOneTrigIdentity}
+    We have that
+    $$0\leq 3+4\cos\theta+\cos2\theta$$
+    for all $\theta\in\mathbb{R}$.
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{}
+    We know that $\cos(2\theta)=2\cos^2\theta-1$, thus
+    $$3+4\cos\theta+\cos2\theta=2+4\cos\theta+2\cos^2\theta=2\,(1+\cos\theta)^2.$$
+    Noting that $0\leq 1+\cos\theta$ completes the proof.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{theorem}[ZeroInequality]\label{ZeroInequality}\lean{ZeroInequality}
+    There exists a constant $0 < C<1$ such that for all $\rho=\sigma+it$ with $\zeta(\rho)=0$ and $|t|\geq 3$, one has
+    $$\frac{1}{\log(2+|t|)}\ll1-\sigma.$$
+\end{theorem}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{LogDerivativeDirichlet, ShiftZeroBound, ShiftOneBound, ShiftTwoBound}
+    From Theorem \ref{LogDerivativeDirichlet} when $\mathfrak{R}s>1$ we have
+    $$-\frac{\zeta'}{\zeta}(s)=\sum_{1\leq n}\frac{\Lambda(n)}{n^s}.$$
+    Thus,
+    $$-3\,\frac{\zeta'}{\zeta}(1+\delta)-4\,\frac{\zeta'}{\zeta}(1+\delta+it)-\frac{\zeta'}{\zeta}(1+\delta+2it)=\sum_{1\leq n}\Lambda(n)\,n^{-(1+\delta)}\left(3+4n^{-it}+n^{-2it}\right).$$
+    Now applying Euler's identity
+    \begin{align*}
+        -3\,\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta)\right)&-4\,\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right) \\
+        &\qquad\qquad\qquad=\sum_{1\leq n}\Lambda(n)\,n^{-(1+\delta)}\left(3+4\cos(-it\log n)+\cos(-2it\log n)\right)
+    \end{align*}
+    By Lemma \ref{ThreeFourOneTrigIdentity} we know that the series on the right hand side is bounded below by $0$, and by Lemmas \ref{ShiftTwoBound}, \ref{ShiftOneBound}, and \ref{ShiftZeroBound} we have an upper bound on the left hand side. So,
+    $$0\leq\frac{3}{\delta}+3A-\frac{4}{1+\delta-\sigma}+4B\log(2+|t|)+C\log(2+|t|)$$
+    where $A$, $B$, and $C$ are the implied constants coming from Lemmas \ref{ShiftZeroBound}, \ref{ShiftOneBound}, and \ref{ShiftTwoBound} respectively. By choosing $D\geq 3A/\log 5+4B+C$ we have
+    $$\frac{4}{1+\delta-\sigma}\leq\frac{3}{\delta}+D\log(2+|t|)$$
+    by some manipulation. Now if we choose $\delta=(2D\log(2+|t|))^{-1}$ then we have
+    $$\frac{4}{1-\sigma+1/(2D\log(2+|t|))}\leq7D\log(2+|t|).$$
+    So with some manipulation we have that
+    $$\frac{1}{14D\log(2+|t|)}\leq 1-\sigma.$$
+    This is exactly the desired result with an implied constant of $(14D)^{-1}$.
+\end{proof}
+%%-/
+
+
+
 /-%
 
 Main Theorem: The Prime Number Theorem in strong form.
