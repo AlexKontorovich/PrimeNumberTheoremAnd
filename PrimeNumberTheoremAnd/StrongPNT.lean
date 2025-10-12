@@ -592,7 +592,7 @@ open Nat Filter
 
 /-%%
 \begin{proof}
-\uses{LogDerivativeDirichlet, ShiftZeroBound, ShiftOneBound, ShiftTwoBound}
+\uses{LogDerivativeDirichlet, ThreeFourOneTrigIdentity, ShiftZeroBound, ShiftOneBound, ShiftTwoBound}
     From Theorem \ref{LogDerivativeDirichlet} when $\mathfrak{R}s>1$ we have
     $$-\frac{\zeta'}{\zeta}(s)=\sum_{1\leq n}\frac{\Lambda(n)}{n^s}.$$
     Thus,
