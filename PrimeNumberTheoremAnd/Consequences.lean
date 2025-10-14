@@ -357,7 +357,7 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx : 0 ≤ x) :
 
 /-- Auxiliary lemma II for `chebyshev_asymptotic`: Controlling the error. -/
 lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx : 2 ≤ x) :
-  |∑ n ∈ Iic ⌊x⌋₊, Λ n - ∑ p ∈ filter Nat.Prime (Iic ⌊ x⌋₊), log p| ≤ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log) := by
+    |∑ n ∈ Iic ⌊x⌋₊, Λ n - ∑ p ∈ filter Nat.Prime (Iic ⌊ x⌋₊), log p| ≤ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log) := by
   have hx_one : 1 ≤ x := one_le_two.trans hx
   have hx_pos : 0 < x := lt_of_lt_of_le zero_lt_two hx
   have hx_nonneg : 0 ≤ x := le_of_lt hx_pos
@@ -435,7 +435,7 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx : 2 ≤ x) :
     _ ≤ _ := by
       simp only [sum_const, card_Icc, reduceSubDiff, nsmul_eq_mul]
       gcongr
-      apply LE.le.trans _ (Nat.floor_le _)
+      apply le_trans _ (Nat.floor_le _)
       · simp only [cast_le, tsub_le_iff_right, le_add_iff_nonneg_right, _root_.zero_le]
       exact div_nonneg hlogx_nonneg (le_of_lt log2_pos)
 
