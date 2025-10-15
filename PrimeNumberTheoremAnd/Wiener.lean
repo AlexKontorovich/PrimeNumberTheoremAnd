@@ -1579,7 +1579,7 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
     apply this.trans_lt
     apply (mul_le_mul (d := 1 + M) le_rfl (by simp) (by positivity) W21.norm_nonneg).trans_lt
     have : 0 < 1 + M := by positivity
-    convert (mul_lt_mul_right this).mpr hRψ using 1 ; field_simp
+    convert (mul_lt_mul_iff_left₀ this).mpr hRψ using 1 ; field_simp
 
   -- Conclude the proof
   have S1_sub_1 x : 𝓕 (⇑ψ - ⇑(Ψ R)) x = 𝓕 ψ x - 𝓕 (Ψ R) x := by
