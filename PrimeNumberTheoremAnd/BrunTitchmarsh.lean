@@ -157,7 +157,7 @@ theorem floor_div_approx (x : ℝ) (hx : 0 ≤ x) (d : ℕ) : ∃ C, |C| ≤ 2 �
     obtain ⟨C₂, hC₂_le, hC₂⟩ := floor_approx x hx
     rw [hC₁, hC₂]
     refine ⟨C₁ + C₂/d, ?_, by ring⟩
-    have : |C₁ + C₂/d| ≤ |C₁| + |C₂/d| := abs_add C₁ (C₂ / ↑d)
+    have : |C₁ + C₂/d| ≤ |C₁| + |C₂/d| := abs_add_le C₁ (C₂ / ↑d)
     have : |C₂/d| ≤ |C₂| := by
       rw [abs_div]
       refine div_le_self (abs_nonneg C₂) ?_
@@ -182,7 +182,7 @@ theorem abs_rem_le {d : ℕ} (hd : d ≠ 0) :
   obtain ⟨C₃, hC₃_le, hC₃⟩ := ceil_approx (x) (by linarith)
   rw [hC₁, hC₂, Nat.cast_sub, hC₃]
   · ring_nf
-    have : |(↑d)⁻¹ - (↑d)⁻¹ * C₃ + (C₁ - C₂)| ≤ |(↑d)⁻¹ - (↑d)⁻¹*C₃| + |C₁ - C₂| := abs_add _ _
+    have : |(↑d)⁻¹ - (↑d)⁻¹ * C₃ + (C₁ - C₂)| ≤ |(↑d)⁻¹ - (↑d)⁻¹*C₃| + |C₁ - C₂| := abs_add_le _ _
     have : |(↑d)⁻¹ - (↑d)⁻¹*C₃| ≤ |(↑d)⁻¹| + |(↑d)⁻¹*C₃| := abs_sub _ _
     have : |C₁ - C₂| ≤ |C₁| + |C₂| := abs_sub _ _
     have : |(d:ℝ)⁻¹| ≤ 1 := by
@@ -461,12 +461,8 @@ theorem card_range_filter_isPrimePow_le : ∃ C, ∀ N, ((Finset.range N).filter
     apply Real.log_nonneg
     norm_cast; omega
   apply IsBigO.nat_Top_of_atTop _ _ card_isPrimePow_isBigO
-  simp only [div_eq_zero_iff, Nat.cast_eq_zero, Real.log_eq_zero, Nat.cast_eq_one, or_self_left,
-    Finset.card_eq_zero, forall_eq_or_imp, Finset.range_zero, Finset.filter_empty, Finset.range_one,
-    true_and]
-  refine ⟨rfl, fun a ha ↦ ?_⟩
-  exfalso
-  linarith [show 0 ≤ (a : ℝ) by positivity]
+  have (a : ℕ) : (a : ℝ) ≠ -1 := by linarith [show 0 ≤ (a : ℝ) by positivity]
+  simp [this, not_isPrimePow_zero]
 
 -- #print axioms card_isPrimePow_isBigO
 

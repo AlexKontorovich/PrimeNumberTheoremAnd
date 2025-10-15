@@ -2733,18 +2733,23 @@ lemma ZetaLowerBound3 :
 
   use (div_le_div_of_nonneg_left zero_le_one pos_right denom_bound).trans' ?_
   simp_rw [abs_mul, abs_two, neg_div, Real.rpow_neg (sub_pos.2 σ_gt).le] at *
-  field_simp [*, sub_pos, mul_assoc, mul_left_comm, mul_le_mul_iff_right₀, one_mul,Real.log_mul,
-    Real.log_pos, ht.trans', show Real.log 2 + .log |t| ≤ .log 2 * .log |t| from (? _),div_le_div_iff_of_pos_left, Real.mul_rpow, Real.log_le_self]
-  have hlog : 0 < Real.log (2 * |t|) := Real.log_pos (ht_2.trans' (by norm_num))
-  apply div_le_div_of_nonneg_left
+  have hlog : 0 < Real.log |t| := Real.log_pos <| ht.trans' <| by norm_num
+  have : 0 < Real.log |t| ^ (1 / 4 : ℝ) := Real.rpow_pos_of_pos hlog _
+  have hlog2 : 0 < Real.log (2 * |t|) := Real.log_pos <| ht_2.trans' <| by norm_num
+  have : 0 < Real.log (2 * |t|) ^ (1 / 4 : ℝ) := Real.rpow_pos_of_pos hlog2 (1 / 4)
+  field_simp
+  move_mul [(σ - 1) ^ (3 / 4)]
+  rw [mul_le_mul_iff_left₀]
+  swap
   · have := sub_pos_of_lt σ_gt
     positivity
+  rw [Real.mul_rpow two_pos.le hC.le]
+  move_mul [C ^ (1 / 4)]
+  rw [mul_le_mul_iff_left₀]
+  swap
   · positivity
-  rw [mul_comm 2 C, Real.mul_rpow hC.le two_pos.le]
-  simp_rw [mul_assoc]
-  gcongr
-  rw [← Real.mul_rpow two_pos.le (Real.log_nonneg (ht.trans' (by norm_num)).le)]
-  apply Real.rpow_le_rpow hlog.le ?_ (by norm_num)
+  rw [← Real.mul_rpow two_pos.le hlog.le]
+  apply Real.rpow_le_rpow hlog2.le ?_ (by norm_num)
   rw [← Real.log_rpow (ht.trans' (by norm_num))]
   apply Real.log_le_log (ht_2.trans' (by norm_num))
   rw [Real.rpow_two, sq]
@@ -3409,7 +3414,7 @@ lemma ZetaNoZerosInBox (T : ℝ) :
   by_contra h
   push_neg at h
 
-  have hn (n : ℕ) := h (σ := 1 - 1 / (n + 1)) (sub_lt_self _ (by positivity))
+  have hn (n : ℕ) := h (1 - 1 / (n + 1)) (sub_lt_self _ (by positivity))
 
   have : ∃ (tn : ℕ → ℝ) (σn : ℕ → ℝ), (∀ n, σn n ≤ 1) ∧
     (∀ n, (1 : ℝ) - 1 / (n + 1) ≤ σn n) ∧ (∀ n, |tn n| ≤ T) ∧

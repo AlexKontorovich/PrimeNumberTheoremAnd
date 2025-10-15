@@ -931,8 +931,8 @@ lemma Smooth1Properties_above_aux {x ε : ℝ} (hx : 1 + (2 * Real.log 2) * ε �
     2 * Real.log 2 > 2 * (1 - 2 ^ (-ε)) / ε := ?_
     _ > 2 ^ ε * (1 - 2 ^ (-ε)) / ε := ?_
     _ = (2 ^ ε - 1) / ε := ?_
-  · have := (mul_lt_mul_left (a := 2) (by norm_num)).mpr <| Smooth1Properties_estimate hε.1
-    field_simp at this; simp [this]
+  · field_simp
+    exact Smooth1Properties_estimate hε.1
   · have : (2 : ℝ) ^ ε < 2 := by
       nth_rewrite 1 [← pow_one 2]
       convert rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) hε.2 <;> norm_num
@@ -940,7 +940,7 @@ lemma Smooth1Properties_above_aux {x ε : ℝ} (hx : 1 + (2 * Real.log 2) * ε �
       refine div_pos ?_ hε.1
       rw [sub_pos]
       convert rpow_lt_rpow_of_exponent_lt (x := 2) (by norm_num) (neg_lt_zero.mpr hε.1); norm_num
-    have := (mul_lt_mul_right pos).mpr this
+    have := (mul_lt_mul_iff_left₀ pos).mpr this
     ring_nf at this ⊢
     exact this
   · have : (2 : ℝ) ^ ε * (2 : ℝ) ^ (-ε) = (2 : ℝ) ^ (ε - ε) := by
@@ -1118,7 +1118,7 @@ lemma Smooth1LeOne {ν : ℝ → ℝ} (νnonneg : ∀ x > 0, 0 ≤ ν x)
       by_cases h : y ≤ 1
       · aesop
       field_simp
-      simp only [mem_Ioc, h, and_false, ↓reduceIte, one_div]
+      simp only [mem_Ioc, h, and_false, ↓reduceIte, one_div, mul_zero]
       simp only [mem_Ioi] at hy
       apply div_nonneg
       · apply νnonneg; exact rpow_pos_of_pos (div_pos xpos <| mem_Ioi.mp hy) _
