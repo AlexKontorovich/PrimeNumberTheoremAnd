@@ -335,7 +335,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
     have h (n : ℕ) (t : ℝ) : ((n : ℂ) / X) ^ ((-1 : ℂ) * (σ + t * I)) =
         ((n / X) ^ (-1 : ℂ)) ^ (σ + ↑t * I) := by
       rw [cpow_mul] <;> {rw [this n]; simp [Real.pi_pos, Real.pi_nonneg]}
-    conv => rhs; rhs; intro n; rhs; rhs; rhs; intro t; rhs; rw [ht t, h n t]; lhs; rw [hn]
+    conv => rhs; lhs; intro n; rhs; rhs; rhs; intro t; rhs; rw [ht t, h n t]; lhs; rw [hn]
   · push_cast
     congr
     ext n
@@ -2037,7 +2037,7 @@ theorem I1Bound
       simp only [zero_lt_one]
 
     have Z2 : 1 + (Real.log X)⁻¹ < 1 + (Real.log 3)⁻¹ := by
-      exact (Real.add_lt_add_iff_left 1).mpr Z1
+      exact (add_lt_add_iff_left 1).mpr Z1
 
     have Z3 : 1 + (Real.log 3)⁻¹ < 2 := by
       calc
@@ -2335,7 +2335,7 @@ where we used that $\sigma_0=1+1/\log X$, and $X^{\sigma_0} = X\cdot X^{1/\log X
 %%-/
 lemma one_add_inv_log {X : ℝ} (X_ge : 3 ≤ X) : (1 + (Real.log X)⁻¹) < 2 := by
   rw[← one_add_one_eq_two]
-  refine (Real.add_lt_add_iff_left 1).mpr ?_
+  refine (add_lt_add_iff_left 1).mpr ?_
   refine inv_lt_one_of_one_lt₀ (logt_gt_one X_ge)
 
 /-%%
@@ -2808,8 +2808,7 @@ lemma log_pow_over_xsq_integral_bounded :
           · exact logTpos
           · exact pow_nonneg logTpos d
         · field_simp
-          apply one_div_nonneg.mpr
-          linarith
+          simp
       let S := Real.log T * Real.log T ^ d * T⁻¹
       have : (-(Real.log T * Real.log T ^ d * T⁻¹) + Real.log 3 * Real.log 3 ^ d * (1 / 3) +
                 ↑d * ∫ (x : ℝ) in Ioo 3 T, Real.log x ^ d * x⁻¹ ^ 2) +
@@ -3757,17 +3756,9 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
     intervalIntegral.norm_integral_le_of_norm_le_const T1
   simp only [ge_iff_le]
 
-  have S : |π|⁻¹ * 2⁻¹ * (Const * ε⁻¹ * X ^ σ₂ * |3 + 3|) = C * X ^ σ₂ / ε :=
-    by
-      unfold C
-      ring_nf
-      simp only [Nat.abs_ofNat, one_div]
-      have T :  6 * (2 : ℝ)⁻¹ = 3 := by
-        refine (mul_inv_eq_iff_eq_mul₀ ?_).mpr ?_
-        · exact Ne.symm (NeZero.ne' 2)
-        · norm_cast
-      rw [←T]
-      ring_nf
+  have S : |π|⁻¹ * 2⁻¹ * (Const * ε⁻¹ * X ^ σ₂ * |3 + 3|) = C * X ^ σ₂ / ε := by
+    unfold C
+    ring_nf
 
   simp only [sub_neg_eq_add] at Z
   simp only [← S, ge_iff_le]
