@@ -7,6 +7,7 @@ import PrimeNumberTheoremAnd.Auxiliary
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+import Mathlib.NumberTheory.AbelSummation
 
 set_option lang.lemmaCmd true
 
@@ -927,45 +928,64 @@ lemma uIcc_subsets {a b c : ℝ} (hc : c ∈ Icc a b) :
   any_goals apply Icc_subset_Icc
   all_goals linarith [hc.1, hc.2]
 
-lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (a_lt_b : a < b)
+
+lemma Finset_coe_Nat_Int (f : ℤ → ℂ) (m n : ℕ) :
+    (∑ x ∈ Finset.Ioc m n, f x) = ∑ x ∈ Finset.Ioc (m : ℤ) n, f x := by
+/-
+instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated using `Finset.map`
+-/
+  apply Finset.sum_nbij (i := (fun (x : ℕ) ↦ (x : ℤ))) ?_ ?_ ?_ fun _ _ ↦ rfl
+  · intro x hx; simp only [Finset.mem_Ioc, Nat.cast_lt, Nat.cast_le] at hx ⊢; exact hx
+  · intro x₁ _ x₂ _ h; simp only [Nat.cast_inj] at h; exact h
+  · intro x hx
+    simp only [Finset.coe_Ioc, mem_image, mem_Ioc] at hx ⊢
+    lift x to ℕ using (by linarith); exact ⟨x, by exact_mod_cast hx, rfl⟩
+
+lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (apos : 0 ≤ a) (a_lt_b : a < b)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
     (derivφCont : ContinuousOn (deriv φ) [[a, b]]) :
     ∑ n ∈ Finset.Ioc ⌊a⌋ ⌊b⌋, φ n =
       (∫ x in a..b, φ x) + (⌊b⌋ + 1 / 2 - b) * φ b - (⌊a⌋ + 1 / 2 - a) * φ a
         - ∫ x in a..b, (⌊x⌋ + 1 / 2 - x) * deriv φ x := by
-  let P := fun a₁ b₁ ↦ (∀ x ∈ [[a₁, b₁]], HasDerivAt φ (deriv φ x) x) →
-    (ContinuousOn (deriv φ) [[a₁, b₁]]) →
-    ∑ n ∈ Finset.Ioc ⌊a₁⌋ ⌊b₁⌋, φ n =
-    (∫ x in a₁..b₁, φ x) + (⌊b₁⌋ + 1 / 2 - b₁) * φ b₁ - (⌊a₁⌋ + 1 / 2 - a₁) * φ a₁
-      - ∫ x in a₁..b₁, (⌊x⌋ + 1 / 2 - x) * deriv φ x
-  apply interval_induction P ?base ?step a b a_lt_b φDiff derivφCont
-  · exact fun _ _ _ k₁_le_a₁ a₁_lt_b₁ b₁_le_k₁ φDiff₁ derivφCont₁ ↦
-      sum_eq_int_deriv_aux ⟨k₁_le_a₁, a₁_lt_b₁⟩ b₁_le_k₁ φDiff₁ derivφCont₁
-  · intro a₁ k₁ b₁ a₁_lt_k₁ k₁_lt_b₁ ih₁ ih₂ φDiff₁ derivφCont₁
-    have subs := uIcc_subsets ⟨a₁_lt_k₁.le, k₁_lt_b₁.le⟩
-    have s₁ := ih₁ (fun x hx ↦ φDiff₁ x <| subs.1 hx) <| derivφCont₁.mono subs.1
-    have s₂ := ih₂ (fun x hx ↦ φDiff₁ x <| subs.2 hx) <| derivφCont₁.mono subs.2
-    convert Mathlib.Tactic.LinearCombination'.add_pf s₁ s₂ using 1
-    · rw [← Finset.sum_Ioc_add_sum_Ioc]
-      simp only [Finset.mem_Icc, Int.floor_intCast, Int.le_floor]
-      exact ⟨Int.cast_le.mp <| le_trans (Int.floor_le a₁) a₁_lt_k₁.le, k₁_lt_b₁.le⟩
-    · set I₁ := ∫ (x : ℝ) in a₁..b₁, φ x
-      set I₂ := ∫ (x : ℝ) in a₁..k₁, φ x
-      set I₃ := ∫ (x : ℝ) in k₁..b₁, φ x
-      set J₁ := ∫ (x : ℝ) in a₁..b₁, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x
-      set J₂ := ∫ (x : ℝ) in a₁..k₁, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x
-      set J₃ := ∫ (x : ℝ) in k₁..b₁, (↑⌊x⌋ + 1 / 2 - ↑x) * deriv φ x
-      have hI : I₂ + I₃ = I₁ := by
-        apply intervalIntegral.integral_add_adjacent_intervals <;>
-        apply (HasDerivAt.continuousOn <| fun x hx ↦ φDiff₁ x ?_ ).intervalIntegrable
-        · exact subs.1 hx
-        · exact subs.2 hx
-      have hJ : J₂ + J₃ = J₁ := by
-        apply intervalIntegral.integral_add_adjacent_intervals <;>
-        refine integrability_aux.mul_continuousOn <| derivφCont₁.mono ?_
-        · exact subs.1
-        · exact subs.2
-      rw [← hI, ← hJ]; ring
+  rw [uIcc_of_le a_lt_b.le] at φDiff
+  have : MeasureTheory.IntegrableOn (deriv φ) (Icc a b) := by
+    apply intervalIntegrable_iff_integrableOn_Icc_of_le a_lt_b.le |>.mp
+    exact ContinuousOn.intervalIntegrable derivφCont
+  have := sum_mul_eq_sub_sub_integral_mul (f := φ) (c := fun _ ↦ 1) apos a_lt_b.le (fun x hx ↦ (φDiff x hx).differentiableAt) this
+  simp only [mul_one, Finset.sum_const, Nat.card_Icc, tsub_zero, nsmul_eq_mul, Nat.cast_add,
+    Nat.cast_one] at this
+  have coe :=Finset_coe_Nat_Int (fun n ↦ φ n) ⌊a⌋₊ ⌊b⌋₊
+  rw [Int.natCast_floor_eq_floor apos, Int.natCast_floor_eq_floor (by linarith)] at coe
+  rw [← coe]
+  convert this using 1
+  rw [← Int.natCast_floor_eq_floor apos, ← Int.natCast_floor_eq_floor (by linarith)]
+  have := by
+    calc ∫ (t : ℝ) in Ioc a b, deriv φ t * (↑⌊t⌋₊ + 1)
+      _ = ∫ (t : ℝ) in Ioc a b, ((↑⌊t⌋ + 1 / 2 - t) * deriv φ t - (-1/2 - t) * deriv φ t) := by
+        apply MeasureTheory.setIntegral_congr_fun (by measurability)
+        intro x hx
+        beta_reduce
+        rw [← Int.natCast_floor_eq_floor (by linarith[hx.1])]
+        simp only [Int.cast_natCast]
+        ring
+      _ = (∫ (t : ℝ) in Ioc a b, (↑⌊t⌋ + 1 / 2 - t) * deriv φ t) - (∫ (t : ℝ) in Ioc a b, (-1/2 - t) * deriv φ t) := by
+        apply  MeasureTheory.integral_sub
+        · apply MeasureTheory.IntegrableOn.integrable
+          rw [← intervalIntegrable_iff_integrableOn_Ioc_of_le a_lt_b.le]
+          apply integrability_aux.mul_continuousOn derivφCont
+        · apply MeasureTheory.IntegrableOn.integrable
+          rw [← intervalIntegrable_iff_integrableOn_Ioc_of_le a_lt_b.le]
+          apply ContinuousOn.intervalIntegrable
+          exact ContinuousOn.mul (by fun_prop) derivφCont
+      _ = (∫ (t : ℝ) in Ioc a b, (⌊t⌋ + 1 / 2 - t) * deriv φ t) -
+      ((-1 / 2 - b) * φ b - (-1 / 2 - a) * φ a + ∫ (x : ℝ) in a..b, φ x) := by
+        nth_rewrite 2 [← intervalIntegral.integral_of_le a_lt_b.le]
+        rw [← uIcc_of_le a_lt_b.le] at φDiff
+        rw [sum_eq_int_deriv_aux2 _ φDiff derivφCont]
+  rw [this]
+  apply eq_of_sub_eq_zero
+  rw [← intervalIntegral.integral_of_le a_lt_b.le]
+  ring_nf!
 /-%%
 \begin{proof}\uses{sum_eq_int_deriv_aux}\leanok
   Apply Lemma \ref{sum_eq_int_deriv_aux} in blocks of length $\le 1$.
@@ -1040,7 +1060,7 @@ lemma ZetaSum_aux1 {a b : ℕ} {s : ℂ} (s_ne_one : s ≠ 1) (s_ne_zero : s ≠
   have φderiv : ∀ x ∈ [[(a : ℝ), b]], deriv φ x = φ' x := by
     exact fun x hx ↦ ZetaSum_aux1φderiv s_ne_zero (xpos x hx)
   have derivφCont : ContinuousOn (deriv φ) [[a, b]] := ZetaSum_aux1derivφCont s_ne_zero ha
-  convert sum_eq_int_deriv (by exact_mod_cast ha.2) φDiff derivφCont using 1
+  convert sum_eq_int_deriv (by linarith) (by exact_mod_cast ha.2) φDiff derivφCont using 1
   · congr <;> simp only [Int.floor_natCast]
   · rw [Int.floor_natCast, Int.floor_natCast, ← intervalIntegral.integral_const_mul]
     simp_rw [mul_div, ← mul_div, φ, ZetaSum_aux1₁ s_ne_one ha]
@@ -1191,18 +1211,6 @@ lemma finsetSum_tendsto_tsum {N : ℕ} {f : ℕ → ℂ} (hf : Summable f) :
   intro M hM
   rw [Finset.sum_Ico_eq_sub]
   linarith
-
-lemma Finset_coe_Nat_Int (f : ℤ → ℂ) (m n : ℕ) :
-    (∑ x ∈ Finset.Ioc m n, f x) = ∑ x ∈ Finset.Ioc (m : ℤ) n, f x := by
-/-
-instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated using `Finset.map`
--/
-  apply Finset.sum_nbij (i := (fun (x : ℕ) ↦ (x : ℤ))) ?_ ?_ ?_ fun _ _ ↦ rfl
-  · intro x hx; simp only [Finset.mem_Ioc, Nat.cast_lt, Nat.cast_le] at hx ⊢; exact hx
-  · intro x₁ _ x₂ _ h; simp only [Nat.cast_inj] at h; exact h
-  · intro x hx
-    simp only [Finset.coe_Ioc, mem_image, mem_Ioc] at hx ⊢
-    lift x to ℕ using (by linarith); exact ⟨x, by exact_mod_cast hx, rfl⟩
 
 lemma Complex.cpow_tendsto {s : ℂ} (s_re_gt : 1 < s.re) :
     Tendsto (fun (x : ℕ) ↦ (x : ℂ) ^ (1 - s)) atTop (𝓝 0) := by
