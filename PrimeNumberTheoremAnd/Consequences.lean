@@ -1278,7 +1278,7 @@ theorem pi_asymp'' :
       · refine log_nonneg (by linarith)
       · linarith)] at hM
     have ineq' : |const| * (log x / (x - 2)) < |const| * ((1/2) * ε / |const|) := by
-      rw [mul_lt_mul_left]
+      rw [mul_lt_mul_iff_right₀]
       · exact hM
       · simpa only [abs_pos, ne_eq]
     rw [mul_div_cancel₀] at ineq'
@@ -1910,7 +1910,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
             field_simp
         nth_rw 3 [← (one_mul 1)]
         apply Filter.Tendsto.mul
-        · simp_rw [← div_add_div_same]
+        · simp_rw [add_div]
           nth_rw 2 [← (AddMonoid.add_zero 1)]
           apply Filter.Tendsto.add
           · rw [← Filter.tendsto_add_atTop_iff_nat 1]
@@ -1931,7 +1931,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
                     positivity
 
           simp_rw [log_eq]
-          simp_rw [← div_add_div_same]
+          simp_rw [add_div]
           nth_rw 3 [← (AddMonoid.add_zero 1)]
           apply Filter.Tendsto.add
           · rw [← Filter.tendsto_add_atTop_iff_nat 2]
@@ -2154,7 +2154,7 @@ lemma smaller_terms {ε : ℝ} (hε : 0 < ε) (f : ℝ → ℝ) (hf : Tendsto f 
     exact hp
   use a
   intro b hb
-  rw [mul_lt_mul_right]
+  rw [mul_lt_mul_iff_left₀]
   · exact ha b hb
   · simp only [sup_le_iff, a] at hb
     have b_ge_one: 1 ≤ b := hb.2
@@ -2190,7 +2190,7 @@ lemma second_smaller_terms (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ
       · positivity
       · linarith
     positivity
-  rw [mul_lt_mul_right]
+  rw [mul_lt_mul_iff_left₀]
   · exact ha
   · linarith
 
@@ -2332,7 +2332,6 @@ lemma tendsto_by_squeeze (ε : ℝ) (hε : ε > 0) :
     apply Filter.Tendsto.pos_mul_atTop (C := (1 + ε) * (1 - d) - (1 + d))
     · simp only [d, sub_pos]
       field_simp
-      rw [div_lt_div_iff_of_pos_right (by positivity)]
       ring_nf
       rw [add_assoc]
       rw [add_lt_add_iff_left]
