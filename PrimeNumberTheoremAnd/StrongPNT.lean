@@ -608,7 +608,7 @@ open Nat Filter
     by some manipulation. Now if we choose $\delta=(2D\log|t|)^{-1}$ then we have
     $$\frac{4}{1-\sigma+1/(2D\log|t|)}\leq7D\log|t|.$$
     So with some manipulation we have that
-    $$\sigma\leq 1-\frac{1}{14D\log\abs{t}}.$$
+    $$\sigma\leq 1-\frac{1}{14D\log|t|}.$$
     This is exactly the desired result with the constant $E=(14D)^{-1}$
 \end{proof}
 %%-/
@@ -617,7 +617,7 @@ open Nat Filter
 
 /-%%
 \begin{definition}[DeltaT]\label{DeltaT}\lean{DeltaT}
-    Let $\delta_t=E/\log\abs{t}$ where $E$ is the constant coming from Theorem \ref{567}.
+    Let $\delta_t=E/\log|t|$ where $E$ is the constant coming from Theorem \ref{567}.
 \end{definition}
 %%-/
 
@@ -625,7 +625,7 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[DeltaRange]\label{DeltaRange}\lean{DeltaRange}
-    For all $t\in\mathbb{R}$ with $\abs{t}\geq 3$ we have that
+    For all $t\in\mathbb{R}$ with $|t|\geq 3$ we have that
     $$\delta_t<1/28.$$
 \end{lemma}
 %%-/
@@ -633,12 +633,12 @@ open Nat Filter
 /-%%
 \begin{proof}
 \uses{ZeroInequality, ShiftZeroBound, ShiftOneBound, ShiftTwoBound, SumBoundI, LogDerivZetaFinalBound}
-    Note that $\delta_t=E/\log\abs{t}$ where $E$ is the implied constant from Lemma \ref{ZeroInequality}. But we know that $E=(14D)^{-1}$ where $D\geq 3A/\log 3+4B+C$ where $A$, $B$, and $C$ are the constants coming from Lemmas \ref{ShiftZeroBound}, \ref{ShiftOneBound}, and \ref{ShiftTwoBound} respectively. Thus,
+    Note that $\delta_t=E/\log|t|$ where $E$ is the implied constant from Lemma \ref{ZeroInequality}. But we know that $E=(14D)^{-1}$ where $D\geq 3A/\log 3+4B+C$ where $A$, $B$, and $C$ are the constants coming from Lemmas \ref{ShiftZeroBound}, \ref{ShiftOneBound}, and \ref{ShiftTwoBound} respectively. Thus,
     $$E\leq\frac{1}{14\,(3A/\log 3+4B+C)}.$$
     But note that $A\geq 0$ and $B\geq 0$ by Lemmas \ref{ShiftZeroBound} and \ref{ShiftOneBound} respectively. However, we have that
     $$C\geq 2+\frac{2\log((13\,\zeta(3/2))/(3\,\zeta(3)))}{\log 3}$$
     by Theorem \ref{LogDerivZetaFinalBound} with Lemmas \ref{SumBoundI} and \ref{ShiftTwoBound}. So, by a very lazy estimate we have $C\geq 2$ and $E\leq 1/28$. Thus,
-    $$\delta_t=\frac{E}{\log\abs{t}}\leq\frac{1}{28\,\log3}<\frac{1}{28}.$$
+    $$\delta_t=\frac{E}{\log|t|}\leq\frac{1}{28\,\log3}<\frac{1}{28}.$$
 \end{proof}
 %%-/
 
@@ -646,8 +646,8 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[SumBoundII]\label{SumBoundII}\lean{SumBoundII}
-    For all $t\in\mathbb{R}$ with $\abs{t}\geq 3$ and $z=\sigma+it$ where $1-\delta_t\leq\sigma\leq 3/2$, we have that
-    $$\abs{\frac{\zeta'}{\zeta}(z)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{z-\rho}}\ll\log\abs{t}$$
+    For all $t\in\mathbb{R}$ with $|t|\geq 3$ and $z=\sigma+it$ where $1-\delta_t\leq\sigma\leq 3/2$, we have that
+    $$\left|\frac{\zeta'}{\zeta}(z)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{z-\rho}\right|\ll\log|t|.$$
 \end{lemma}
 %%-/
 
@@ -657,11 +657,11 @@ open Nat Filter
     By Lemma \ref{DeltaRange} we have that
     $$-15/28<-1/2-\delta_t\leq\sigma-3/2\leq0.$$
     We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=5/6$, and $R=8/9$. Thus for all $z\in\overline{\mathbb{D}_{5/6}}\setminus\mathcal{K}_f(5/6)$ we have that
-    $$\abs{\frac{\zeta'}{\zeta}(z+3/2+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{z-\rho}}\ll\log\abs{t}$$
-    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $\abs{t}\geq 3$. Now if we let $z=\sigma-3/2$, then $z\in(-15/28,0)\subseteq\overline{\mathbb{D}_{5/6}}$. Additionally, $f(z)=\zeta(\sigma+it)$, where $\sigma+it$ lies in the zero free region given by Lemma \ref{567}. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
-    $$\abs{\frac{\zeta'}{\zeta}(\sigma+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{\sigma-3/2-\rho}}\ll\log\abs{t}.$$
-    But now note that if $\rho\in\mathcal{K}_f(5/6)$, then $\zeta(\rho+3/2+it)=0$ and $\abs{\rho}\leq 5/6$. Additionally, note that $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us that
-    $$\abs{\frac{\zeta'}{\zeta}(\sigma+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{\sigma+it-\rho}}\ll\log\abs{t}.$$
+    $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
+    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$. Now if we let $z=\sigma-3/2$, then $z\in(-15/28,0)\subseteq\overline{\mathbb{D}_{5/6}}$. Additionally, $f(z)=\zeta(\sigma+it)$, where $\sigma+it$ lies in the zero free region given by Lemma \ref{567}. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
+    $$\left|\frac{\zeta'}{\zeta}(\sigma+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{\sigma-3/2-\rho}\right|\ll\log|t|.$$
+    But now note that if $\rho\in\mathcal{K}_f(5/6)$, then $\zeta(\rho+3/2+it)=0$ and $|\rho|\leq 5/6$. Additionally, note that $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us that
+    $$\left|\frac{\zeta'}{\zeta}(\sigma+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{\sigma+it-\rho}\right|\ll\log|t|.$$
 \end{proof}
 %%-/
 
