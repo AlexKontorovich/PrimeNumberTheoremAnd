@@ -460,22 +460,21 @@ open Nat Filter
 
 
 /-%%
-\begin{lemma}[SumBound]\label{SumBound}\lean{SumBound}
+\begin{lemma}[SumBoundI]\label{SumBoundI}\lean{SumBoundI}
     For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$ we have
-    $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log(2+|t|).$$
+    $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
 \end{lemma}
 %%-/
 
 /-%%
 \begin{proof}
 \uses{LogDerivZetaFinalBound}
-    We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=1/2$, $r=2/3$, $R'=5/6$, and $R=8/9$. Thus, for all $z\in\overline{\mathbb{D}_{5/6}}\setminus\mathcal{K}_f(5/6)$ we have that
+    We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=5/6$, and $R=8/9$. Thus, for all $z\in\overline{\mathbb{D}_{5/6}}\setminus\mathcal{K}_f(5/6)$ we have that
     $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
     where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$. Now if we let $z=-1/2+\delta$, then $z\in(-1/2,1/2)\subseteq\overline{\mathbb{D}_{5/6}}$. Additionally, $f(z)=\zeta(1+\delta+it)$, where $1+\delta+it$ lies in the zero-free region where $\sigma>1$. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{-1/2+\delta-\rho}\right|\ll\log|t|.$$
     But now note that if $\rho\in\mathcal{K}_f(5/6)$, then $\zeta(\rho+3/2+it)=0$ and $|\rho|\leq 5/6$. Thus, $\rho+3/2+it\in\mathcal{Z}_t$. Additionally, note that $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us that
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
-    Since $\log|t|\leq\log(2+|t|)$ for all $t\in\mathbb{R}$, the result follows.
 \end{proof}
 %%-/
 
@@ -484,13 +483,13 @@ open Nat Filter
 /-%%
 \begin{lemma}[ShiftTwoBound]\label{ShiftTwoBound}\lean{ShiftTwoBound}
     For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$ we have
-    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log(2+|t|).$$
+    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|t|.$$
 \end{lemma}
 %%-/
 
 /-%%
 \begin{proof}
-\uses{SumBound}
+\uses{SumBoundI}
     Note that, for $\rho\in\mathcal{Z}_{2t}$
     \begin{align*}
         \mathfrak{R}\left(\frac{1}{1+\delta+2it-\rho}\right)&=\mathfrak{R}\left(\frac{1+\delta-2it-\overline{\rho}}{(1+\delta+2it-\rho)(1+\delta-2it-\overline{\rho})}\right) \\
@@ -502,11 +501,11 @@ open Nat Filter
     \begin{equation}\label{pickupPoint4}
         0\leq\frac{12}{89}<\frac{1+\delta-\mathfrak{R}\rho}{(1+\delta-\mathfrak{R}\rho)^2+(2t-\mathfrak{I}\rho)^2}=\mathfrak{R}\left(\frac{1}{1+\delta+2it-\rho}\right).
     \end{equation}
-    Note that, from Lemma \ref{SumBound}, we have
-    $$\sum_{\rho\in\mathcal{Z}_{2t}}m_\zeta(\rho)\,\mathfrak{R}\left(\frac{1}{1+\delta+2it-\rho}\right)-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+2it)-\sum_{\rho\in\mathcal{Z}_{2t}}\frac{m_\zeta(\rho)}{1+\delta+2it-\rho}\right|\ll\log(2+|2t|).$$
+    Note that, from Lemma \ref{SumBoundI}, we have
+    $$\sum_{\rho\in\mathcal{Z}_{2t}}m_\zeta(\rho)\,\mathfrak{R}\left(\frac{1}{1+\delta+2it-\rho}\right)-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+2it)-\sum_{\rho\in\mathcal{Z}_{2t}}\frac{m_\zeta(\rho)}{1+\delta+2it-\rho}\right|\ll\log|2t|.$$
     Since $m_\zeta(\rho)\geq 0$ for all $\rho\in\mathcal{Z}_{2t}$, the inequality from Equation (\ref{pickupPoint4}) tells us that by subtracting the sum from both sides we have
-    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log(2+|2t|).$$
-    Noting that $\log(2+|2t|)\leq\log(4+|2t|)=\log(2)+\log(2+|t|)\leq 2\log(2+|t|)$ completes the proof.
+    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|2t|.$$
+    Noting that $\log|2t|=\log(2)+\log|t|\leq2\log|t|$ completes the proof.
 \end{proof}
 %%-/
 
@@ -515,13 +514,13 @@ open Nat Filter
 /-%%
 \begin{lemma}[ShiftOneBound]\label{ShiftOneBound}\lean{ShiftOneBound}
     There exists $C>0$ such that for all $\delta\in(0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$; if $\zeta(\rho)=0$ with $\rho=\sigma+it$, then
-    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{1}{1+\delta-\sigma}+C\log(2+|t|).$$
+    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{1}{1+\delta-\sigma}+C\log|t|.$$
 \end{lemma}
 %%-/
 
 /-%%
 \begin{proof}
-\uses{SumBound}
+\uses{SumBoundI}
     Note that for $\rho'\in\mathcal{Z}_t$
     \begin{align*}
         \mathfrak{R}\left(\frac{1}{1+\delta+it-\rho'}\right)&=\mathfrak{R}\left(\frac{1+\delta-it-\overline{\rho'}}{(1+\delta+it-\rho')(1+\delta-it-\overline{\rho'})}\right) \\
@@ -533,12 +532,12 @@ open Nat Filter
     \begin{equation}\label{pickupPoint5}
         0\leq\frac{12}{89}<\frac{1+\delta-\mathfrak{R}\rho'}{(1+\delta-\mathfrak{R}\rho')^2+(t-\mathfrak{I}\rho')^2}=\mathfrak{R}\left(\frac{1}{1+\delta+it-\rho'}\right).
     \end{equation}
-    Note that, from Lemma \ref{SumBound}, we have
-    $$\sum_{\rho\in\mathcal{Z}_t}m_\zeta(\rho)\,\mathfrak{R}\left(\frac{1}{1+\delta+it-\rho}\right)-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log(2+|t|).$$
+    Note that, from Lemma \ref{SumBoundI}, we have
+    $$\sum_{\rho\in\mathcal{Z}_t}m_\zeta(\rho)\,\mathfrak{R}\left(\frac{1}{1+\delta+it-\rho}\right)-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
     Since $m_\zeta(\rho)\geq 0$ for all $\rho'\in\mathcal{Z}_t$, the inequality from Equation (\ref{pickupPoint5}) tells us that by subtracting the sum over all $\rho'\in\mathcal{Z}_t\setminus\{\rho\}$ from both sides we have
-    $$\frac{m_\zeta(\rho)}{\mathfrak{R}(1+\delta+it-\rho)}-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\ll\log(2+|t|).$$
+    $$\frac{m_\zeta(\rho)}{\mathfrak{R}(1+\delta+it-\rho)}-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\ll\log|t|.$$
     But of course we have that $\mathfrak{R}(1+\delta+it-\rho)=1+\delta-\sigma$. So subtracting this term from both sides and recalling the implied constant we have
-    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{m_\zeta(\rho)}{1+\delta-\sigma}+C\log(2+|t|).$$
+    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{m_\zeta(\rho)}{1+\delta-\sigma}+C\log|t|.$$
     We have that $\sigma\leq 1$ since $\zeta$ is zero free on the right half plane $\sigma>1$. Thus $0<1+\delta-\sigma$. Noting this in combination with the fact that $1\leq m_\zeta(\rho)$ completes the proof.
 \end{proof}
 %%-/
@@ -585,8 +584,8 @@ open Nat Filter
 
 /-%%
 \begin{theorem}[ZeroInequality]\label{ZeroInequality}\lean{ZeroInequality}
-    There exists a constant $0 < C<1$ such that for all $\rho=\sigma+it$ with $\zeta(\rho)=0$ and $|t|\geq 3$, one has
-    $$\frac{1}{\log(2+|t|)}\ll1-\sigma.$$
+    There exists a constant $0 < E<1$ such that for all $\rho=\sigma+it$ with $\zeta(\rho)=0$ and $|t|\geq 3$, one has
+    $$\sigma\leq 1-\frac{E}{\log|t|}.$$
 \end{theorem}
 %%-/
 
@@ -603,21 +602,72 @@ open Nat Filter
         &\qquad\qquad\qquad=\sum_{1\leq n}\Lambda(n)\,n^{-(1+\delta)}\left(3+4\cos(-it\log n)+\cos(-2it\log n)\right)
     \end{align*}
     By Lemma \ref{ThreeFourOneTrigIdentity} we know that the series on the right hand side is bounded below by $0$, and by Lemmas \ref{ShiftTwoBound}, \ref{ShiftOneBound}, and \ref{ShiftZeroBound} we have an upper bound on the left hand side. So,
-    $$0\leq\frac{3}{\delta}+3A-\frac{4}{1+\delta-\sigma}+4B\log(2+|t|)+C\log(2+|t|)$$
-    where $A$, $B$, and $C$ are the implied constants coming from Lemmas \ref{ShiftZeroBound}, \ref{ShiftOneBound}, and \ref{ShiftTwoBound} respectively. By choosing $D\geq 3A/\log 5+4B+C$ we have
-    $$\frac{4}{1+\delta-\sigma}\leq\frac{3}{\delta}+D\log(2+|t|)$$
-    by some manipulation. Now if we choose $\delta=(2D\log(2+|t|))^{-1}$ then we have
-    $$\frac{4}{1-\sigma+1/(2D\log(2+|t|))}\leq7D\log(2+|t|).$$
+    $$0\leq\frac{3}{\delta}+3A-\frac{4}{1+\delta-\sigma}+4B\log|t|+C\log|t|$$
+    where $A$, $B$, and $C$ are the implied constants coming from Lemmas \ref{ShiftZeroBound}, \ref{ShiftOneBound}, and \ref{ShiftTwoBound} respectively. By choosing $D\geq 3A/\log 3+4B+C$ we have
+    $$\frac{4}{1+\delta-\sigma}\leq\frac{3}{\delta}+D\log|t|$$
+    by some manipulation. Now if we choose $\delta=(2D\log|t|)^{-1}$ then we have
+    $$\frac{4}{1-\sigma+1/(2D\log|t|)}\leq7D\log|t|.$$
     So with some manipulation we have that
-    $$\frac{1}{14D\log(2+|t|)}\leq 1-\sigma.$$
-    This is exactly the desired result with an implied constant of $(14D)^{-1}$.
+    $$\sigma\leq 1-\frac{1}{14D\log\abs{t}}.$$
+    This is exactly the desired result with the constant $E=(14D)^{-1}$
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{definition}[DeltaT]\label{DeltaT}\lean{DeltaT}
+    Let $\delta_t=E/\log\abs{t}$ where $E$ is the constant coming from Theorem \ref{567}.
+\end{definition}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[DeltaRange]\label{DeltaRange}\lean{DeltaRange}
+    For all $t\in\mathbb{R}$ with $\abs{t}\geq 3$ we have that
+    $$\delta_t<1/28.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{ZeroInequality, ShiftZeroBound, ShiftOneBound, ShiftTwoBound, SumBoundI, LogDerivZetaFinalBound}
+    Note that $\delta_t=E/\log\abs{t}$ where $E$ is the implied constant from Lemma \ref{ZeroInequality}. But we know that $E=(14D)^{-1}$ where $D\geq 3A/\log 3+4B+C$ where $A$, $B$, and $C$ are the constants coming from Lemmas \ref{ShiftZeroBound}, \ref{ShiftOneBound}, and \ref{ShiftTwoBound} respectively. Thus,
+    $$E\leq\frac{1}{14\,(3A/\log 3+4B+C)}.$$
+    But note that $A\geq 0$ and $B\geq 0$ by Lemmas \ref{ShiftZeroBound} and \ref{ShiftOneBound} respectively. However, we have that
+    $$C\geq 2+\frac{2\log((13\,\zeta(3/2))/(3\,\zeta(3)))}{\log 3}$$
+    by Theorem \ref{LogDerivZetaFinalBound} with Lemmas \ref{SumBoundI} and \ref{ShiftTwoBound}. So, by a very lazy estimate we have $C\geq 2$ and $E\leq 1/28$. Thus,
+    $$\delta_t=\frac{E}{\log\abs{t}}\leq\frac{1}{28\,\log3}<\frac{1}{28}.$$
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[SumBoundII]\label{SumBoundII}\lean{SumBoundII}
+    For all $t\in\mathbb{R}$ with $\abs{t}\geq 3$ and $z=\sigma+it$ where $1-\delta_t\leq\sigma\leq 3/2$, we have that
+    $$\abs{\frac{\zeta'}{\zeta}(z)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{z-\rho}}\ll\log\abs{t}$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{DeltaRange, LogDerivZetaFinalBound}
+    By Lemma \ref{DeltaRange} we have that
+    $$-15/28<-1/2-\delta_t\leq\sigma-3/2\leq0.$$
+    We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=5/6$, and $R=8/9$. Thus for all $z\in\overline{\mathbb{D}_{5/6}}\setminus\mathcal{K}_f(5/6)$ we have that
+    $$\abs{\frac{\zeta'}{\zeta}(z+3/2+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{z-\rho}}\ll\log\abs{t}$$
+    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $\abs{t}\geq 3$. Now if we let $z=\sigma-3/2$, then $z\in(-15/28,0)\subseteq\overline{\mathbb{D}_{5/6}}$. Additionally, $f(z)=\zeta(\sigma+it)$, where $\sigma+it$ lies in the zero free region given by Lemma \ref{567}. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
+    $$\abs{\frac{\zeta'}{\zeta}(\sigma+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{\sigma-3/2-\rho}}\ll\log\abs{t}.$$
+    But now note that if $\rho\in\mathcal{K}_f(5/6)$, then $\zeta(\rho+3/2+it)=0$ and $\abs{\rho}\leq 5/6$. Additionally, note that $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us that
+    $$\abs{\frac{\zeta'}{\zeta}(\sigma+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{\sigma+it-\rho}}\ll\log\abs{t}.$$
 \end{proof}
 %%-/
 
 
 
 /-%
-
 Main Theorem: The Prime Number Theorem in strong form.
 \begin{theorem}[PrimeNumberTheorem]\label{StrongPNT}\lean{PrimeNumberTheorem}\uses{thm:StrongZeroFree, ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval}
 There is a constant $c > 0$ such that
@@ -626,7 +676,6 @@ $$
 $$
 as $x\to \infty$.
 \end{theorem}
-
 %-/
 
 -- *** Prime Number Theorem *** The `ChebyshevPsi` function is asymptotic to `x`.
