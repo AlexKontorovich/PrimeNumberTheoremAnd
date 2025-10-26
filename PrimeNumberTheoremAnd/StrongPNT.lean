@@ -646,22 +646,78 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[SumBoundII]\label{SumBoundII}\lean{SumBoundII}
-    For all $t\in\mathbb{R}$ with $|t|\geq 3$ and $z=\sigma+it$ where $1-\delta_t\leq\sigma\leq 3/2$, we have that
+    For all $t\in\mathbb{R}$ with $|t|\geq 3$ and $z=\sigma+it$ where $1-\delta_t/3\leq\sigma\leq 3/2$, we have that
     $$\left|\frac{\zeta'}{\zeta}(z)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{z-\rho}\right|\ll\log|t|.$$
 \end{lemma}
 %%-/
 
 /-%%
 \begin{proof}
-\uses{DeltaRange, LogDerivZetaFinalBound}
+\uses{DeltaRange, LogDerivZetaFinalBound, ZeroInequality}
     By Lemma \ref{DeltaRange} we have that
-    $$-15/28<-1/2-\delta_t\leq\sigma-3/2\leq0.$$
+    $$-43/84<-1/2-\delta_t/3\leq\sigma-3/2\leq0.$$
     We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=5/6$, and $R=8/9$. Thus for all $z\in\overline{\mathbb{D}_{5/6}}\setminus\mathcal{K}_f(5/6)$ we have that
     $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
-    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$. Now if we let $z=\sigma-3/2$, then $z\in(-15/28,0)\subseteq\overline{\mathbb{D}_{5/6}}$. Additionally, $f(z)=\zeta(\sigma+it)$, where $\sigma+it$ lies in the zero free region given by Lemma \ref{567}. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
+    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$. Now if we let $z=\sigma-3/2$, then $z\in(-43/84,0)\subseteq\overline{\mathbb{D}_{5/6}}$. Additionally, $f(z)=\zeta(\sigma+it)$, where $\sigma+it$ lies in the zero free region given by Lemma \ref{ZeroInequality} since $\sigma\geq 1-\delta_t/3\geq 1-\delta_t$. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
     $$\left|\frac{\zeta'}{\zeta}(\sigma+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{\sigma-3/2-\rho}\right|\ll\log|t|.$$
     But now note that if $\rho\in\mathcal{K}_f(5/6)$, then $\zeta(\rho+3/2+it)=0$ and $|\rho|\leq 5/6$. Additionally, note that $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us that
     $$\left|\frac{\zeta'}{\zeta}(\sigma+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{\sigma+it-\rho}\right|\ll\log|t|.$$
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[GapSize]\label{GapSize}\lean{GapSize}
+   Let $t\in\mathbb{R}$ with $|t|\geq 4$ and $z=\sigma+it$ where $1-\delta_t/3\leq\sigma\leq 3/2$. Additionally, let $\rho\in\mathcal{Z}_t$. Then we have that
+   $$|z-\rho|\geq\delta_t/6.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{ZeroInequality}
+    Let $\rho=\sigma'+it'$ and note that since $\rho\in\mathcal{Z}_t$, we have $t'\in(t-5/6,t+5/6)$. Thus, if $t>1$ we have
+    $$\log|t'|\leq\log|t+5/6|\leq\log|2t|=\log 2+\log|t|\leq 2\log|t|.$$
+    And otherwise if $t<-1$ we have
+    $$\log|t'|\leq\log|t-5/6|\leq\log|2t|=\log 2+\log|t|\leq 2\log|t|.$$
+    So by taking reciprocals and multiplying through by a constant we have that $\delta_t\leq2\delta_{t'}$. Now note that since $\rho\in\mathcal{Z}_t$ we know that $\sigma'\leq 1-\delta_{t'}$ by Theorem \ref{ZeroInequality} (here we use the fact that $|t|\geq 4$ to give us that $|t'|\geq 3$). Thus,
+    $$\delta_t/6\leq\delta_{t'}-\delta_t/3=1-\delta_t/3-(1-\delta_{t'})\leq\sigma-\sigma'\leq|z-\rho|.$$
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[LogDerivZetaUniformLogSquaredBoundStrip]\label{LogDerivZetaUniformLogSquaredBoundStrip}\lean{LogDerivZetaUniformLogSquaredBoundStrip}
+    There exists a constant $F\in(0,1/2)$ such that for all $t\in\mathbb{R}$ with $|t|\geq 4$ one has
+    $$1-\frac{F}{\log|t|}\leq\sigma\leq 3/2\implies\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\ll\log^2|t|$$
+    where the implied constant is uniform in $\sigma$.
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{ZeroInequality, SumBoundII, GapSize, ZetaFixedLowerBound, GlobalBound, ZerosBound}
+    Take $F=E/3$ where $E$ comes from Theorem \ref{ZeroInequality}. Then we have that $\sigma\geq 1-\delta_t/3$. So, we apply Lemma \ref{SumBoundII}, which gives us that
+    $$\left|\frac{\zeta'}{\zeta}(z)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{z-\rho}\right|\ll\log|t|.$$
+    Using the reverse triangle inequality and rearranging, we have that
+    $$\left|\frac{\zeta'}{\zeta}(z)\right|\leq\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{|z-\rho|}+C\,\log|t|$$
+    where $C$ is the implied constant in Lemma \ref{SumBoundII}. Now applying Lemma \ref{GapSize} we have that
+    $$\left|\frac{\zeta'}{\zeta}(z)\right|\leq\frac{6}{\delta_t}\sum_{\rho\in\mathcal{Z}_t}m_\zeta(\rho)+C\,\log|t|.$$
+    Now let $f(z)=\zeta(z+3/2+it)/\zeta(3/2+it)$ with $\rho=\rho'+3/2+it$. Then if $\rho\in\mathcal{Z}_t$ we have that
+    $$0=\zeta(\rho)=\zeta(\rho'+3/2+it)=f(\rho')$$
+    with the same multiplicity of zero, that is $m_\zeta(\rho)=m_f(\rho')$. And also if $\rho\in\mathcal{Z}_t$ then
+    $$5/6\geq|\rho-(3/2+it)|=|\rho'|.$$
+    Thus we change variables to have that
+    $$\left|\frac{\zeta'}{\zeta}(z)\right|\leq\frac{6}{\delta_t}\sum_{\rho'\in\mathcal{K}_f(5/6)}m_f(\rho')+C\,\log|t|.$$
+    Now note that $f(0)=1$ and for $|z|\leq 8/9$ we have
+    $$|f(z)|=\frac{|\zeta(z+3/2+it)|}{|\zeta(3/2+it)|}\leq\frac{\zeta(3/2)}{\zeta(3)}\cdot(7+2\,|t|)\leq\frac{15\,\zeta(3/2)}{4\,\zeta(3)}\,|t|$$
+    by Theorems \ref{ZetaFixedLowerBound} and \ref{GlobalBound}. Thus by Theorem \ref{ZerosBound} we have that
+    $$\sum_{\rho'\in\mathcal{K}_f(5/6)}m_f(\rho')\leq\frac{\log|t|+\log(15\,\zeta(3/2)/(4\,\zeta(3)))}{\log((8/9)/(5/6))}\leq D\log|t|$$
+    where $D$ is taken to be sufficiently large. Recall, by definition that, $\delta_t=E/\log|t|$ with $E$ coming from Theorem \ref{ZeroInequality}. By using this fact and the above, we have that
+    $$\left|\frac{\zeta'}{\zeta}(z)\right|\ll\log^2|t|+\log|t|$$
+    where the implied constant is taken to be bigger than $\max(6D/E,C)$. We know that the RHS is bounded above by $\ll\log^2|t|$; so the result follows.
 \end{proof}
 %%-/
 
