@@ -11,8 +11,8 @@ import Mathlib.Analysis.Calculus.Deriv.Slope
 import Mathlib.Analysis.Analytic.Within
 import Mathlib.Analysis.Normed.Group.Basic
 import Mathlib.Analysis.Complex.AbsMax
-import «PrimeNumberTheoremAnd».StrongPNT.BorelCaratheodory
-import «PrimeNumberTheoremAnd».StrongPNT.DerivativeBound
+import «PrimeNumberTheoremAnd».BorelCaratheodory
+import «PrimeNumberTheoremAnd».DerivativeBound
 
 open Nat Filter
 
