@@ -178,35 +178,67 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
 \end{proof}
 %%-/
 
-
+/-%%
+\begin{definition}\label{schwartzQuotient}\lean{schwartzQuotient}
+\uses{divRemovable_zero}
+\leanok
+    Given a complex function $f$ and a real number $M$, we define the function
+    $$f_{M}(z):=\frac{g(z)}{2M - f(z)},$$
+    where $g$ is defined as in Definition~\ref{divRemovable_zero}.
+\end{definition}
+%%-/
 noncomputable abbrev schwartzQuotient (f : ℂ → ℂ) (M : ℝ) : ℂ → ℂ :=
   fun z ↦ (divRemovable_zero f z) / (2 * M - f z)
 
 -- AnalyticOn.schwartzQuotient establishes that f_{M}(z) is analytic.
-
+/-%%
+\begin{lemma}\label{AnalyticOn.schwartzQuotient}\lean{AnalyticOn.schwartzQuotient}\leanok
+    Let $M>0$. Let $f$ be analytic on the closed ball $\abs{z}\leq R$ such that $f(0)=0$
+    and suppose that $2M - f(z)\neq 0$ for all $\abs{z}\leq R$.
+    Then, with $f_{M}$ defined as in Definition~\ref{schwartzQuotient}, $f_{M}$ is analytic on
+    $\abs{z}\leq R$.
+\end{lemma}
+%%-/
 lemma AnalyticOn.schwartzQuotient {f : ℂ → ℂ} {R : ℝ} (M : ℝ)
     (Rpos : 0 < R) (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (nonzero : ∀ z ∈ Metric.closedBall 0 R, 2 * M - f z ≠ 0)
-    (zero : f 0 = 0) : AnalyticOn ℂ (schwartzQuotient f M) (Metric.closedBall 0 R) := by
-
-  have sInNhds0 : Metric.closedBall 0 R ∈ nhds 0 := by
-    apply Metric.closedBall_mem_nhds; exact Rpos
-
-  exact AnalyticOn.div
+    (zero : f 0 = 0) : AnalyticOn ℂ (schwartzQuotient f M) (Metric.closedBall 0 R) :=
+  AnalyticOn.div
     (AnalyticOn_divRemovable_zero_closedBall Rpos analytic zero)
     (AnalyticOn.sub (analyticOn_const) analytic) nonzero
+/-%%
+\begin{proof}\uses{schwartzQuotient, AnalyticOn_divRemovable_zero_closedBall}\leanok
+    This follows directly from Lemma~\ref{AnalyticOn_divRemovable_zero_closedBall} and the fact that the difference of two analytic functions is analytic.
+\end{proof}
+%%-/
+
 
 -- If Re x ≤ M then |x| ≤ |2 * M - x|, this simple inequality is used
 -- in the proof of borelCaratheodory_closedBall.
-
+/-%%
+\begin{lemma}\label{Complex.norm_le_norm_two_mul_sub_of_re_le}\lean{Complex.norm_le_norm_two_mul_sub_of_re_le}\leanok
+    Let $M>0$ and let $x$ be a complex number such that $\Re x\leq M$.
+    Then, $\abs{x}\leq\abs{2M - x}$.
+\end{lemma}
+%%-/
 lemma Complex.norm_le_norm_two_mul_sub_of_re_le {M : ℝ} {x : ℂ}
     (Mpos : 0 < M) (hyp_re_x : x.re ≤ M) : ‖x‖ ≤ ‖2 * M - x‖ := by
   rw [← sq_le_sq₀ (by positivity) (by positivity)]
   repeat rw [Complex.sq_norm, Complex.normSq_apply]
-  simp only [sub_re, mul_re, re_ofNat, ofReal_re, im_ofNat, ofReal_im, mul_zero, sub_zero, sub_im, mul_im, zero_mul, add_zero, zero_sub, mul_neg, neg_mul, neg_neg, add_le_add_iff_right]
+  simp only [sub_re, mul_re, re_ofNat, ofReal_re, im_ofNat, ofReal_im, mul_zero, sub_zero,
+    sub_im, mul_im, zero_mul, add_zero, zero_sub, mul_neg, neg_mul, neg_neg, add_le_add_iff_right]
   ring_nf
-  simp only [add_comm (-(x.re * M * 4)) (x.re ^ 2), sq M, add_assoc, le_add_iff_nonneg_right (x.re ^ 2), le_neg_add_iff_add_le, add_zero, Nat.ofNat_pos, mul_le_mul_iff_left₀, mul_le_mul_iff_left₀ Mpos]
-  exact hyp_re_x
+  simp only [add_comm (-(x.re * M * 4)) (x.re ^ 2), sq M, add_assoc,
+    le_add_iff_nonneg_right (x.re ^ 2), le_neg_add_iff_add_le, add_zero, Nat.ofNat_pos,
+    mul_le_mul_iff_left₀, mul_le_mul_iff_left₀ Mpos, hyp_re_x]
+/-%%
+\begin{proof}\leanok
+    We square both sides and simplify to obtain the equivalent inequality
+    $$0\leq 4M^2 -4M\Re x,$$
+    which follows directly from the assumption $\Re x\leq M$ and the positivity of $M$.
+\end{proof}
+%%-/
+
 
 -- This is a version of the maximum modulus principle specialized to closed balls.
 
@@ -228,7 +260,7 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
 /-%%
 \begin{theorem}[BorelCaratheodory]\label{BorelCaratheodory}\lean{BorelCaratheodory}
     Let $R,\,M>0$. Let $f$ be analytic on $\abs{z}\leq R$ such that $f(0)=0$ and suppose
-    $\mathfrak{R}f(z)\leq M$ for all $\abs{z}\leq R$. Then for any $0 < r < R$,
+    $\Re f(z)\leq M$ for all $\abs{z}\leq R$. Then for any $0 < r < R$,
     $$\sup_{\abs{z}\leq r}\abs{f(z)}\leq\frac{2Mr}{R-r}.$$
 \end{theorem}
 %%-/
