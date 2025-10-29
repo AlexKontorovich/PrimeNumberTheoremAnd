@@ -57,25 +57,50 @@ lemma divRemovable_zero_of_ne_zero {z : ℂ} (f : ℂ → ℂ) (z_ne_0 : z ≠ 0
 lemma AnalyticOn.divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
     (sInNhds0 : s ∈ nhds 0) (zero : f 0 = 0) (o : IsOpen s)
     (analytic : AnalyticOn ℂ f s) : AnalyticOn ℂ (divRemovable_zero f) s := by
-  rw [Complex.analyticOn_iff_differentiableOn o]
-  rw [←(Complex.differentiableOn_compl_singleton_and_continuousAt_iff sInNhds0)]
+  rw [Complex.analyticOn_iff_differentiableOn o,
+    ←(Complex.differentiableOn_compl_singleton_and_continuousAt_iff sInNhds0)]
   constructor
-  · rw [differentiableOn_congr (by intro x hyp_x; apply Function.update_of_ne; rw [Set.mem_diff, Set.mem_singleton_iff] at hyp_x; rw [ne_eq]; exact hyp_x.right)]
+  · rw [differentiableOn_congr
+      (by intro x hyp_x; apply Function.update_of_ne; rw [Set.mem_diff,
+      Set.mem_singleton_iff] at hyp_x; rw [ne_eq]; exact hyp_x.right)]
     exact DifferentiableOn.fun_div
       (AnalyticOn.differentiableOn (AnalyticOn.mono analytic Set.diff_subset))
       (DifferentiableOn.mono (differentiableOn_id (s := Set.univ))
-      (Set.subset_univ (s \ {0}))) (by intro x hyp_x; rw [Set.mem_diff, Set.mem_singleton_iff] at hyp_x; rw [ne_eq]; exact hyp_x.right)
+      (Set.subset_univ (s \ {0}))) (by intro x hyp_x; rw [Set.mem_diff,
+      Set.mem_singleton_iff] at hyp_x; rw [ne_eq]; exact hyp_x.right)
 
   · have U := HasDerivAt.continuousAt_div (c := 0) (a := (deriv f) 0) (f := f)
       (DifferentiableOn.hasDerivAt
          ((Complex.analyticOn_iff_differentiableOn o).mp analytic) sInNhds0)
-    have T : (fun (x : ℂ) ↦ (f x - 0) / (x - 0)) = (fun (x : ℂ) ↦ (f x) / x) := by funext x; rw [sub_zero, sub_zero]
-    rw [zero, T] at U; exact U
+    have T : (fun (x : ℂ) ↦ (f x - 0) / (x - 0)) = (fun (x : ℂ) ↦ (f x) / x) := by
+      funext x; rw [sub_zero, sub_zero]
+    rwa [zero, T] at U
+/-%%
+\begin{proof}\uses{divRemovable_zero}
+\leanok
+    We need to show that $g$ is complex differentiable at every point in $s$.
+    For $z\neq 0$, this follows directly from the definition of $g$ and the fact that $f$ is analytic on $s$.
+    For $z=0$, we use the definition of the derivative and the fact that $f(0)=0$:
+    \[
+    \lim_{z\to 0}\frac{g(z)-g(0)}{z-0}=\lim_{z\to 0}\frac{\frac{f(z)}{z}-f'(0)}{z}=\lim_{z\to 0}\frac{f(z)-f'(0)z}{z^2}=\lim_{z\to 0}\frac{f(z)-f(0)-f'(0)(z-0)}{(z-0)^2}=0,
+    \]
+    where the last equality follows from the definition of the derivative of $f$ at $0$.
+    Thus, $g$ is complex differentiable at $0$ with derivative $0$, completing the proof.
+\end{proof}
+%%-/
+
 
 -- The proof of the Lemma below is cumbersome, a proper way would be to
 -- show that if f is analytic on a closed set C, then it is analytic on an
 -- open set O containing the closed set C and apply the previous lemma.
-
+/-%%
+\begin{lemma}\label{AnalyticOn_divRemovable_zero_closedBall}
+  \lean{AnalyticOn_divRemovable_zero_closedBall}\leanok
+    Let $f$ be a complex function analytic on the closed ball $\abs{z}\leq R$ such that $f(0)=0$.
+    Then, with $g$ defined as in Definition~\ref{divRemovable_zero}, $g$ is analytic on
+    $\abs{z}\leq R$.
+\end{lemma}
+%%-/
 lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
     (Rpos : 0 < R) (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (zero : f 0 = 0) : AnalyticOn ℂ (divRemovable_zero f) (Metric.closedBall 0 R) := by
@@ -87,10 +112,12 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
     · exact Metric.isOpen_ball
     · constructor
       · simp only [Metric.mem_ball, dist_self, Nat.ofNat_pos, div_pos_iff_of_pos_right]; positivity
-      · have Z : ∀ w ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2), divRemovable_zero f w = f w / w := by
+      · have Z : ∀ w ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2),
+            divRemovable_zero f w = f w / w := by
           intro x₂ hyp_x₂
           apply divRemovable_zero_of_ne_zero
-          rw [ball_eq, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right, Set.mem_setOf_eq] at hyp_x₂
+          rw [ball_eq, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right,
+            Set.mem_setOf_eq] at hyp_x₂
           rw [← norm_pos_iff]
           calc 0
             _ < R - ‖x₂ - x‖ := by let ⟨u,v⟩ := hyp_x₂; linarith
@@ -101,7 +128,8 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
         apply AnalyticOn.congr
         · apply AnalyticOn.div (AnalyticOn.mono analytic Set.inter_subset_left) analyticOn_id
           · intro x₁ hyp_x₁
-            rw [ball_eq, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right, Set.mem_setOf_eq] at hyp_x₁
+            rw [ball_eq, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right,
+              Set.mem_setOf_eq] at hyp_x₁
             rw [← norm_pos_iff]
             calc 0
               _ < R - ‖x₁ - x‖ := by let ⟨u,v⟩ := hyp_x₁; linarith
@@ -109,7 +137,8 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
               _ ≤ ‖x - (-(x₁ - x))‖ := by apply norm_sub_norm_le
               _ = ‖x₁‖ := by rw [neg_sub, sub_sub_cancel]
 
-        · simp only [Set.EqOn.eq_1, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right, Metric.mem_ball, and_imp]
+        · simp only [Set.EqOn.eq_1, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right,
+            Metric.mem_ball, and_imp]
           intro x₃ hyp_x₃ dist_hyp
           have : x₃ ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2) := by
             apply Set.mem_inter
@@ -121,7 +150,8 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
     constructor
     · exact Metric.isOpen_ball
     · constructor
-      · simp only [ball_eq, sub_zero, Set.mem_setOf_eq]; simp only [Metric.mem_closedBall, dist_zero_right] at x_hyp
+      · simp only [ball_eq, sub_zero, Set.mem_setOf_eq]; simp only [Metric.mem_closedBall,
+          dist_zero_right] at x_hyp
         apply lt_of_le_of_ne x_hyp
         · rw [ne_eq]; exact h
       · have si : Metric.closedBall (0 : ℂ) R ∩ Metric.ball (0 : ℂ) R = Metric.ball (0 : ℂ) R := by
@@ -134,6 +164,20 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
         · exact zero
         · apply Metric.isOpen_ball
         · apply AnalyticOn.mono analytic Metric.ball_subset_closedBall
+/-%%
+\begin{proof}
+\uses{AnalyticOn.divRemovable_zero}
+\leanok
+    The proof is similar to that of Lemma~\ref{AnalyticOn_divRemovable_zero}, but we need to consider two cases:
+    when $x$ is on the boundary of the closed ball and when it is in the interior.
+    In the first case, we take a small open ball around $x$ that lies entirely within the closed ball,
+    and apply Lemma~\ref{AnalyticOn_divRemovable_zero} on this smaller ball.
+    In the second case, we can take the entire open ball centered at $0$ with radius $R$,
+    and again apply Lemma~\ref{AnalyticOn_divRemovable_zero}.
+    In both cases, we use the fact that $f(0)=0$ to ensure that the removable singularity at $0$ is handled correctly.
+\end{proof}
+%%-/
+
 
 noncomputable abbrev schwartzQuotient (f : ℂ → ℂ) (M : ℝ) : ℂ → ℂ :=
   fun z ↦ (divRemovable_zero f z) / (2 * M - f z)
