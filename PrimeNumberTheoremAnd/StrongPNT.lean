@@ -23,15 +23,14 @@ open Nat Filter
 %%-/
 
 /-%%
-\begin{theorem}[BorelCaratheodory]\label{BorelCaratheodory}\lean{BorelCaratheodory}
+\begin{theorem}[borelCaratheodory_closedBall]\label{borelCaratheodory_closedBall}\lean{borelCaratheodory_closedBall}\leanok
     Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\mathfrak{R}f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
     $$\sup_{|z|\leq r}|f(z)|\leq\frac{2Mr}{R-r}.$$
 \end{theorem}
 %%-/
 
 /-%%
-\begin{proof}
-\uses{}
+\begin{proof}\leanok
     Let
     $$f_M(z)=\frac{f(z)/z}{2M-f(z)}.$$
     Note that $2M-f(z)\neq 0$ because $\mathfrak{R}(2M-f(z))=2M-\mathfrak{R}f(z)\geq M>0$. Additionally, since $f(z)$ has a zero at $0$, we know that $f(z)/z$ is analytic on $|z|\leq R$. Likewise, $f_M(z)$ is analytic on $|z|\leq R$.
@@ -59,14 +58,14 @@ open Nat Filter
 
 /-%%
 \begin{proof}
-\uses{BorelCaratheodory}
+\uses{borelCaratheodory_closedBall}
     By Cauchy's integral formula we know that
     $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
     Thus,
     \begin{equation}\label{pickupPoint1}
         |f'(z)|=\left|\frac{1}{2\pi}\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt\right|\leq\frac{1}{2\pi}\int_0^{2\pi}\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
     \end{equation}
-    Now applying Theorem \ref{BorelCaratheodory}, and noting that $r'-r\leq|r'e^{it}-z|$, we have that
+    Now applying Theorem \ref{borelCaratheodory_closedBall}, and noting that $r'-r\leq|r'e^{it}-z|$, we have that
     $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
     Substituting this into Equation (\ref{pickupPoint1}) and evaluating the integral completes the proof.
 \end{proof}
