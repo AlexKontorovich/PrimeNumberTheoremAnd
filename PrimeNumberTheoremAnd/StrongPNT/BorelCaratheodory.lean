@@ -18,17 +18,42 @@ import Mathlib.Analysis.Analytic.Within
 import Mathlib.Analysis.Normed.Group.Basic
 import Mathlib.Analysis.Complex.AbsMax
 
+/-%%
+\begin{definition}\label{divRemovable_zero}\lean{divRemovable_zero}\leanok
+    Given a complex function $f$, we define the function
+    $$g(z):=\begin{cases}
+    \frac{f(z)}{z}, & z\neq 0;\\
+    f'(0), & z=0.
+    \end{cases}$$
+\end{definition}
+%%-/
 noncomputable abbrev divRemovable_zero (f : ℂ → ℂ) : ℂ → ℂ :=
   Function.update (fun z ↦ (f z) / z) 0 ((deriv f) 0)
 
+/-%%
+\begin{lemma}\label{divRemovable_zero_of_ne_zero}\lean{divRemovable_zero_of_ne_zero}\leanok
+    Let $f$ be a complex function and let $z\neq 0$. Then, with $g$ defined as in Definition~\ref{divRemovable_zero},
+    $$g(z)=\frac{f(z)}{z}.$$
+\end{lemma}
+%%-/
 -- Away from zero divRemovable_zero f z is equal to f z / z
-
-lemma divRemovable_zero_of_ne_zero {z : ℂ} (f : ℂ → ℂ) (z_ne_0 : z ≠ 0) : divRemovable_zero f z = f z / z := by
-  unfold divRemovable_zero; apply Function.update_of_ne z_ne_0
+lemma divRemovable_zero_of_ne_zero {z : ℂ} (f : ℂ → ℂ) (z_ne_0 : z ≠ 0) :
+    divRemovable_zero f z = f z / z := by
+  apply Function.update_of_ne z_ne_0
+/-%%
+\begin{proof}\leanok
+    This follows directly from the definition of $g$.
+\end{proof}
+%%-/
 
 -- If f is analytic on an open set and f 0 = 0 then f z / z is also
 -- analytic on the same open set.
-
+/-%%
+\begin{lemma}\label{AnalyticOn_divRemovable_zero}\lean{AnalyticOn_divRemovable_zero}\leanok
+    Let $f$ be a complex function analytic on an open set $s$ containing $0$ such that $f(0)=0$.
+    Then, with $g$ defined as in Definition~\ref{divRemovable_zero}, $g$ is analytic on $s$.
+\end{lemma}
+%%-/
 lemma AnalyticOn.divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
     (sInNhds0 : s ∈ nhds 0) (zero : f 0 = 0) (o : IsOpen s)
     (analytic : AnalyticOn ℂ f s) : AnalyticOn ℂ (divRemovable_zero f) s := by
