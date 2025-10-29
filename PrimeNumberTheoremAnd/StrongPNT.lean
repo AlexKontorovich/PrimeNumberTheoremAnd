@@ -11,8 +11,8 @@ import Mathlib.Analysis.Calculus.Deriv.Slope
 import Mathlib.Analysis.Analytic.Within
 import Mathlib.Analysis.Normed.Group.Basic
 import Mathlib.Analysis.Complex.AbsMax
-import «PrimeNumberTheoremAnd».StrongPNT.BorelCaratheodory
-import «PrimeNumberTheoremAnd».StrongPNT.DerivativeBound
+import «PrimeNumberTheoremAnd».BorelCaratheodory
+import «PrimeNumberTheoremAnd».DerivativeBound
 
 open Nat Filter
 
@@ -24,7 +24,7 @@ open Nat Filter
 
 /-%%
 \begin{theorem}[borelCaratheodory_closedBall]\label{borelCaratheodory_closedBall}\lean{borelCaratheodory_closedBall}\leanok
-    Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\mathfrak{R}f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
+    Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
     $$\sup_{|z|\leq r}|f(z)|\leq\frac{2Mr}{R-r}.$$
 \end{theorem}
 %%-/
@@ -33,9 +33,9 @@ open Nat Filter
 \begin{proof}\leanok
     Let
     $$f_M(z)=\frac{f(z)/z}{2M-f(z)}.$$
-    Note that $2M-f(z)\neq 0$ because $\mathfrak{R}(2M-f(z))=2M-\mathfrak{R}f(z)\geq M>0$. Additionally, since $f(z)$ has a zero at $0$, we know that $f(z)/z$ is analytic on $|z|\leq R$. Likewise, $f_M(z)$ is analytic on $|z|\leq R$.
+    Note that $2M-f(z)\neq 0$ because $\Re (2M-f(z))=2M-\Re f(z)\geq M>0$. Additionally, since $f(z)$ has a zero at $0$, we know that $f(z)/z$ is analytic on $|z|\leq R$. Likewise, $f_M(z)$ is analytic on $|z|\leq R$.
 
-    Now note that $|f(z)|\leq|2M-f(z)|$ since $\mathfrak{R}f(z)\leq M$. Thus we have that
+    Now note that $|f(z)|\leq|2M-f(z)|$ since $\Re f(z)\leq M$. Thus we have that
     $$|f_M(z)|=\frac{|f(z)|/|z|}{|2M-f(z)|}\leq\frac{1}{|z|}.$$
     Now by the maximum modulus principle, we know the maximum of $|f_M|$ must occur on the boundary where $|z|=R$. Thus, $|f_M(z)|\leq 1/R$ for all $|z|\leq R$. So for $|z|=r$ we have
     $$|f_M(z)|=\frac{|f(z)|/r}{|2M-f(z)|}\leq\frac{1}{R}\implies R\,|f(z)|\leq r\,|2M-f(z)|\leq 2Mr+r\,|f(z)|.$$
@@ -50,7 +50,7 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[DerivativeBound]\label{DerivativeBound}\lean{DerivativeBound}
-    Let $R,\,M>0$ and $0 < r < r' < R$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\mathfrak{R}f(z)\leq M$ for all $|z|\leq R$. Then we have that
+    Let $R,\,M>0$ and $0 < r < r' < R$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then we have that
     $$|f'(z)|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}$$
     for all $|z|\leq r$.
 \end{lemma}
@@ -75,7 +75,7 @@ open Nat Filter
 
 /-%%
 \begin{theorem}[BorelCaratheodoryDeriv]\label{BorelCaratheodoryDeriv}\lean{BorelCaratheodoryDeriv}
-    Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\mathfrak{R}f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
+    Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
     $$|f'(z)|\leq\frac{16MR^2}{(R-r)^3}$$
     for all $|z|\leq r$.
 \end{theorem}
@@ -97,7 +97,7 @@ open Nat Filter
     \begin{itemize}
         \item $J_B(0)=0$
         \item $J_B'(z)=B'(z)/B(z)$
-        \item $\log|B(z)|-\log|B(0)|=\mathfrak{R}J_B(z)$
+        \item $\log|B(z)|-\log|B(0)|=\Re J_B(z)$
     \end{itemize}
     for all $z\in\overline{\mathbb{D}_r}$.
 \end{theorem}
@@ -109,7 +109,7 @@ open Nat Filter
     We let $J_B(z)=\mathrm{Log}\,B(z)-\mathrm{Log}\,B(0)$. Then clearly, $J_B(0)=0$ and $J_B'(z)=B'(z)/B(z)$. Showing the third property is a little more difficult, but by no standards terrible. Exponentiating $J_B(z)$ we have that
     $$\exp(J_B(z))=\exp(\mathrm{Log}\,B(z)-\mathrm{Log}\,B(0))=\frac{B(z)}{B(0)}\implies B(z)=B(0)\exp(J_B(z)).$$
     Now taking the modulus
-    $$|B(z)|=|B(0)|\cdot|\exp(J_B(z))|=|B(0)|\cdot\exp(\mathfrak{R}J_B(z)).$$
+    $$|B(z)|=|B(0)|\cdot|\exp(J_B(z))|=|B(0)|\cdot\exp(\Re J_B(z)).$$
     Taking the real logarithm of both sides and rearranging gives the third point.
 \end{proof}
 %%-/
@@ -294,7 +294,7 @@ open Nat Filter
 \begin{proof}
 \uses{DiskBound, JBlaschke, LogOfAnalyticFunction, BorelCaratheodoryDeriv}
     By Lemma \ref{DiskBound} we immediately know that $|B_f(z)|\leq B$ for all $|z|\leq R$. Now since $L_f=J_{B_f}$ by Definition \ref{JBlaschke}, by Theorem \ref{LogOfAnalyticFunction} we know that
-    $$L_f(0)=0\qquad\text{and}\qquad \mathfrak{R}L_f(z)=\log|B_f(z)|-\log|B_f(0)|\leq\log|B_f(z)|\leq\log B$$
+    $$L_f(0)=0\qquad\text{and}\qquad \Re L_f(z)=\log|B_f(z)|-\log|B_f(0)|\leq\log|B_f(z)|\leq\log B$$
     for all $|z|\leq r$. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
     $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
     for all $|z|\leq r'$.
@@ -343,7 +343,7 @@ open Nat Filter
 /-%%
 \begin{proof}
 \uses{}
-    From the Euler product expansion of $\zeta$, we have that for $\mathfrak{R}s>1$
+    From the Euler product expansion of $\zeta$, we have that for $\Re s>1$
     $$\zeta(s)=\prod_p\frac{1}{1-p^{-s}}.$$
     Thus, we have that
     $$\frac{\zeta(2s)}{\zeta(s)}=\prod_p\frac{1-p^{-s}}{1-p^{-2s}}=\prod_p\frac{1}{1+p^{-s}}.$$
@@ -384,7 +384,7 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[ZetaAltFormulaAnalytic]\label{ZetaAltFormulaAnalytic}\lean{ZetaAltFormulaAnalytic}
-    We have that $\zeta_0(s)$ is analytic for all $s\in S$ where $S=\{s\in\mathbb{C}:\mathfrak{R}s>0,\,s\neq 1\}$.
+    We have that $\zeta_0(s)$ is analytic for all $s\in S$ where $S=\{s\in\mathbb{C}:\Re s>0,\,s\neq 1\}$.
 \end{lemma}
 %%-/
 
@@ -426,10 +426,10 @@ open Nat Filter
 /-%%
 \begin{proof}
 \uses{ZetaExtend}
-    For the sake of clearer proof writing let $z=s+3/2+it$. Since $|s|\leq 1$ we know that $1/2\leq\mathfrak{R}z$; additionally, as $|t|\geq 3$, we know $z\in S$. Thus, from Lemma \ref{ZetaExtend} we know that
+    For the sake of clearer proof writing let $z=s+3/2+it$. Since $|s|\leq 1$ we know that $1/2\leq\Re z$; additionally, as $|t|\geq 3$, we know $z\in S$. Thus, from Lemma \ref{ZetaExtend} we know that
     $$|\zeta(z)|\leq 1+\frac{1}{|z-1|}+|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|$$
     by applying the triangle inequality. Now note that $|z-1|\geq 1$. Likewise,
-    $$|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|\leq|z|\int_1^\infty|\{x\}\,x^{-z-1}|\,dx\leq|z|\int_1^\infty x^{-\mathfrak{R}z-1}\,dx=\frac{|z|}{\mathfrak{R}z}\leq 2\,|z|.$$
+    $$|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|\leq|z|\int_1^\infty|\{x\}\,x^{-z-1}|\,dx\leq|z|\int_1^\infty x^{-\Re z-1}\,dx=\frac{|z|}{\Re z}\leq 2\,|z|.$$
     Thus we have that,
     $$|\zeta(s+3/2+it)|=|\zeta(z)|\leq 1+1+2\,|z|=2+2\,|s+3/2+it|\leq2+2\,|s|+3+2\,|it|\leq 7+2\,|t|.$$
 \end{proof}
@@ -492,7 +492,7 @@ open Nat Filter
 /-%%
 \begin{lemma}[ShiftTwoBound]\label{ShiftTwoBound}\lean{ShiftTwoBound}
     For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$ we have
-    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|t|.$$
+    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|t|.$$
 \end{lemma}
 %%-/
 
@@ -501,19 +501,19 @@ open Nat Filter
 \uses{SumBoundI}
     Note that, for $\rho\in\mathcal{Z}_{2t}$
     \begin{align*}
-        \mathfrak{R}\left(\frac{1}{1+\delta+2it-\rho}\right)&=\mathfrak{R}\left(\frac{1+\delta-2it-\overline{\rho}}{(1+\delta+2it-\rho)(1+\delta-2it-\overline{\rho})}\right) \\
-        &=\frac{\mathfrak{R}(1+\delta-2it-\overline{\rho})}{|1+\delta+2it-\rho|^2}=\frac{1+\delta-\mathfrak{R}\rho}{(1+\delta-\mathfrak{R}\rho)^2+(2t-\mathfrak{I}\rho)^2}.
+        \Re \left(\frac{1}{1+\delta+2it-\rho}\right)&=\Re \left(\frac{1+\delta-2it-\overline{\rho}}{(1+\delta+2it-\rho)(1+\delta-2it-\overline{\rho})}\right) \\
+        &=\frac{\Re (1+\delta-2it-\overline{\rho})}{|1+\delta+2it-\rho|^2}=\frac{1+\delta-\Re \rho}{(1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2}.
     \end{align*}
-    Now since $\rho\in\mathcal{Z}_{2t}$, we have that $|\rho-(3/2+2it)|\leq 5/6$. So, we have $\mathfrak{R}\rho\in(2/3,7/3)$ and $\mathfrak{I}\rho\in(2t-5/6,2t+5/6)$. Thus, we have that
-    $$1/3<1+\delta-\mathfrak{R}\rho\qquad\text{and}\qquad(1+\delta-\mathfrak{R}\rho)^2+(2t-\mathfrak{I}\rho)^2<16/9+25/36=89/36.$$
+    Now since $\rho\in\mathcal{Z}_{2t}$, we have that $|\rho-(3/2+2it)|\leq 5/6$. So, we have $\Re \rho\in(2/3,7/3)$ and $\mathfrak{I}\rho\in(2t-5/6,2t+5/6)$. Thus, we have that
+    $$1/3<1+\delta-\Re \rho\qquad\text{and}\qquad(1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2<16/9+25/36=89/36.$$
     Which implies that
     \begin{equation}\label{pickupPoint4}
-        0\leq\frac{12}{89}<\frac{1+\delta-\mathfrak{R}\rho}{(1+\delta-\mathfrak{R}\rho)^2+(2t-\mathfrak{I}\rho)^2}=\mathfrak{R}\left(\frac{1}{1+\delta+2it-\rho}\right).
+        0\leq\frac{12}{89}<\frac{1+\delta-\Re \rho}{(1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2}=\Re \left(\frac{1}{1+\delta+2it-\rho}\right).
     \end{equation}
     Note that, from Lemma \ref{SumBoundI}, we have
-    $$\sum_{\rho\in\mathcal{Z}_{2t}}m_\zeta(\rho)\,\mathfrak{R}\left(\frac{1}{1+\delta+2it-\rho}\right)-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+2it)-\sum_{\rho\in\mathcal{Z}_{2t}}\frac{m_\zeta(\rho)}{1+\delta+2it-\rho}\right|\ll\log|2t|.$$
+    $$\sum_{\rho\in\mathcal{Z}_{2t}}m_\zeta(\rho)\,\Re \left(\frac{1}{1+\delta+2it-\rho}\right)-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+2it)-\sum_{\rho\in\mathcal{Z}_{2t}}\frac{m_\zeta(\rho)}{1+\delta+2it-\rho}\right|\ll\log|2t|.$$
     Since $m_\zeta(\rho)\geq 0$ for all $\rho\in\mathcal{Z}_{2t}$, the inequality from Equation (\ref{pickupPoint4}) tells us that by subtracting the sum from both sides we have
-    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|2t|.$$
+    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|2t|.$$
     Noting that $\log|2t|=\log(2)+\log|t|\leq2\log|t|$ completes the proof.
 \end{proof}
 %%-/
@@ -523,7 +523,7 @@ open Nat Filter
 /-%%
 \begin{lemma}[ShiftOneBound]\label{ShiftOneBound}\lean{ShiftOneBound}
     There exists $C>0$ such that for all $\delta\in(0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$; if $\zeta(\rho)=0$ with $\rho=\sigma+it$, then
-    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{1}{1+\delta-\sigma}+C\log|t|.$$
+    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{1}{1+\delta-\sigma}+C\log|t|.$$
 \end{lemma}
 %%-/
 
@@ -532,21 +532,21 @@ open Nat Filter
 \uses{SumBoundI}
     Note that for $\rho'\in\mathcal{Z}_t$
     \begin{align*}
-        \mathfrak{R}\left(\frac{1}{1+\delta+it-\rho'}\right)&=\mathfrak{R}\left(\frac{1+\delta-it-\overline{\rho'}}{(1+\delta+it-\rho')(1+\delta-it-\overline{\rho'})}\right) \\
-        &=\frac{\mathfrak{R}(1+\delta-it-\overline{\rho'})}{|1+\delta+it-\rho'|^2}=\frac{1+\delta-\mathfrak{R}\rho'}{(1+\delta-\mathfrak{R}\rho')^2+(t-\mathfrak{I}\rho')^2}.
+        \Re \left(\frac{1}{1+\delta+it-\rho'}\right)&=\Re \left(\frac{1+\delta-it-\overline{\rho'}}{(1+\delta+it-\rho')(1+\delta-it-\overline{\rho'})}\right) \\
+        &=\frac{\Re (1+\delta-it-\overline{\rho'})}{|1+\delta+it-\rho'|^2}=\frac{1+\delta-\Re \rho'}{(1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2}.
     \end{align*}
-    Now since $\rho'\in\mathcal{Z}_t$, we have that $|\rho-(3/2+it)|\leq 5/6$. So, we have $\mathfrak{R}\rho'\in(2/3,7/3)$ and $\mathfrak{I}\rho'\in(t-5/6,t+5/6)$. Thus we have that
-    $$1/3<1+\delta-\mathfrak{R}\rho'\qquad\text{and}\qquad (1+\delta-\mathfrak{R}\rho')^2+(t-\mathfrak{I}\rho')^2<16/9+25/36=89/36.$$
+    Now since $\rho'\in\mathcal{Z}_t$, we have that $|\rho-(3/2+it)|\leq 5/6$. So, we have $\Re \rho'\in(2/3,7/3)$ and $\mathfrak{I}\rho'\in(t-5/6,t+5/6)$. Thus we have that
+    $$1/3<1+\delta-\Re \rho'\qquad\text{and}\qquad (1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2<16/9+25/36=89/36.$$
     Which implies that
     \begin{equation}\label{pickupPoint5}
-        0\leq\frac{12}{89}<\frac{1+\delta-\mathfrak{R}\rho'}{(1+\delta-\mathfrak{R}\rho')^2+(t-\mathfrak{I}\rho')^2}=\mathfrak{R}\left(\frac{1}{1+\delta+it-\rho'}\right).
+        0\leq\frac{12}{89}<\frac{1+\delta-\Re \rho'}{(1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2}=\Re \left(\frac{1}{1+\delta+it-\rho'}\right).
     \end{equation}
     Note that, from Lemma \ref{SumBoundI}, we have
-    $$\sum_{\rho\in\mathcal{Z}_t}m_\zeta(\rho)\,\mathfrak{R}\left(\frac{1}{1+\delta+it-\rho}\right)-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
+    $$\sum_{\rho\in\mathcal{Z}_t}m_\zeta(\rho)\,\Re \left(\frac{1}{1+\delta+it-\rho}\right)-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
     Since $m_\zeta(\rho)\geq 0$ for all $\rho'\in\mathcal{Z}_t$, the inequality from Equation (\ref{pickupPoint5}) tells us that by subtracting the sum over all $\rho'\in\mathcal{Z}_t\setminus\{\rho\}$ from both sides we have
-    $$\frac{m_\zeta(\rho)}{\mathfrak{R}(1+\delta+it-\rho)}-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\ll\log|t|.$$
-    But of course we have that $\mathfrak{R}(1+\delta+it-\rho)=1+\delta-\sigma$. So subtracting this term from both sides and recalling the implied constant we have
-    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{m_\zeta(\rho)}{1+\delta-\sigma}+C\log|t|.$$
+    $$\frac{m_\zeta(\rho)}{\Re (1+\delta+it-\rho)}-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\ll\log|t|.$$
+    But of course we have that $\Re (1+\delta+it-\rho)=1+\delta-\sigma$. So subtracting this term from both sides and recalling the implied constant we have
+    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{m_\zeta(\rho)}{1+\delta-\sigma}+C\log|t|.$$
     We have that $\sigma\leq 1$ since $\zeta$ is zero free on the right half plane $\sigma>1$. Thus $0<1+\delta-\sigma$. Noting this in combination with the fact that $1\leq m_\zeta(\rho)$ completes the proof.
 \end{proof}
 %%-/
@@ -556,7 +556,7 @@ open Nat Filter
 /-%%
 \begin{lemma}[ShiftZeroBound]\label{ShiftZeroBound}\lean{ShiftZeroBound}
     For all $\delta\in(0,1)$ we have
-    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\frac{1}{\delta}+O(1).$$
+    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\frac{1}{\delta}+O(1).$$
 \end{lemma}
 %%-/
 
@@ -566,7 +566,7 @@ open Nat Filter
     From Theorem \ref{riemannZetaLogDerivResidue} we know that
     $$-\frac{\zeta'}{\zeta}(s)=\frac{1}{s-1}+O(1).$$
     Changing variables $s\mapsto 1+\delta$ and applying the triangle inequality we have that
-    $$-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\left|-\frac{\zeta'}{\zeta}(1+\delta)\right|\leq\frac{1}{\delta}+O(1).$$
+    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\left|-\frac{\zeta'}{\zeta}(1+\delta)\right|\leq\frac{1}{\delta}+O(1).$$
 \end{proof}
 %%-/
 
@@ -601,13 +601,13 @@ open Nat Filter
 /-%%
 \begin{proof}
 \uses{LogDerivativeDirichlet, ThreeFourOneTrigIdentity, ShiftZeroBound, ShiftOneBound, ShiftTwoBound}
-    From Theorem \ref{LogDerivativeDirichlet} when $\mathfrak{R}s>1$ we have
+    From Theorem \ref{LogDerivativeDirichlet} when $\Re s>1$ we have
     $$-\frac{\zeta'}{\zeta}(s)=\sum_{1\leq n}\frac{\Lambda(n)}{n^s}.$$
     Thus,
     $$-3\,\frac{\zeta'}{\zeta}(1+\delta)-4\,\frac{\zeta'}{\zeta}(1+\delta+it)-\frac{\zeta'}{\zeta}(1+\delta+2it)=\sum_{1\leq n}\Lambda(n)\,n^{-(1+\delta)}\left(3+4n^{-it}+n^{-2it}\right).$$
     Now applying Euler's identity
     \begin{align*}
-        -3\,\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta)\right)&-4\,\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)-\mathfrak{R}\left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right) \\
+        -3\,\Re \left(\frac{\zeta'}{\zeta}(1+\delta)\right)&-4\,\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right) \\
         &\qquad\qquad\qquad=\sum_{1\leq n}\Lambda(n)\,n^{-(1+\delta)}\left(3+4\cos(-it\log n)+\cos(-2it\log n)\right)
     \end{align*}
     By Lemma \ref{ThreeFourOneTrigIdentity} we know that the series on the right hand side is bounded below by $0$, and by Lemmas \ref{ShiftTwoBound}, \ref{ShiftOneBound}, and \ref{ShiftZeroBound} we have an upper bound on the left hand side. So,

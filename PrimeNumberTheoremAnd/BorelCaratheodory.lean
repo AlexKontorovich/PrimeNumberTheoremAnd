@@ -18,39 +18,89 @@ import Mathlib.Analysis.Analytic.Within
 import Mathlib.Analysis.Normed.Group.Basic
 import Mathlib.Analysis.Complex.AbsMax
 
+/-%%
+\begin{definition}\label{divRemovable_zero}\lean{divRemovable_zero}\leanok
+    Given a complex function $f$, we define the function
+    $$g(z):=\begin{cases}
+    \frac{f(z)}{z}, & z\neq 0;\\
+    f'(0), & z=0.
+    \end{cases}$$
+\end{definition}
+%%-/
 noncomputable abbrev divRemovable_zero (f : ℂ → ℂ) : ℂ → ℂ :=
   Function.update (fun z ↦ (f z) / z) 0 ((deriv f) 0)
 
+/-%%
+\begin{lemma}\label{divRemovable_zero_of_ne_zero}\lean{divRemovable_zero_of_ne_zero}\leanok
+    Let $f$ be a complex function and let $z\neq 0$. Then, with $g$ defined as in Definition~\ref{divRemovable_zero},
+    $$g(z)=\frac{f(z)}{z}.$$
+\end{lemma}
+%%-/
 -- Away from zero divRemovable_zero f z is equal to f z / z
-
-lemma divRemovable_zero_of_ne_zero {z : ℂ} (f : ℂ → ℂ) (z_ne_0 : z ≠ 0) : divRemovable_zero f z = f z / z := by
-  unfold divRemovable_zero; apply Function.update_of_ne z_ne_0
+lemma divRemovable_zero_of_ne_zero {z : ℂ} (f : ℂ → ℂ) (z_ne_0 : z ≠ 0) :
+    divRemovable_zero f z = f z / z := by
+  apply Function.update_of_ne z_ne_0
+/-%%
+\begin{proof}\leanok
+    This follows directly from the definition of $g$.
+\end{proof}
+%%-/
 
 -- If f is analytic on an open set and f 0 = 0 then f z / z is also
 -- analytic on the same open set.
-
+/-%%
+\begin{lemma}\label{AnalyticOn_divRemovable_zero}\lean{AnalyticOn_divRemovable_zero}\leanok
+    Let $f$ be a complex function analytic on an open set $s$ containing $0$ such that $f(0)=0$.
+    Then, with $g$ defined as in Definition~\ref{divRemovable_zero}, $g$ is analytic on $s$.
+\end{lemma}
+%%-/
 lemma AnalyticOn.divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
     (sInNhds0 : s ∈ nhds 0) (zero : f 0 = 0) (o : IsOpen s)
     (analytic : AnalyticOn ℂ f s) : AnalyticOn ℂ (divRemovable_zero f) s := by
-  rw [Complex.analyticOn_iff_differentiableOn o]
-  rw [←(Complex.differentiableOn_compl_singleton_and_continuousAt_iff sInNhds0)]
+  rw [Complex.analyticOn_iff_differentiableOn o,
+    ←(Complex.differentiableOn_compl_singleton_and_continuousAt_iff sInNhds0)]
   constructor
-  · rw [differentiableOn_congr (by intro x hyp_x; apply Function.update_of_ne; rw [Set.mem_diff, Set.mem_singleton_iff] at hyp_x; rw [ne_eq]; exact hyp_x.right)]
+  · rw [differentiableOn_congr
+      (by intro x hyp_x; apply Function.update_of_ne; rw [Set.mem_diff,
+      Set.mem_singleton_iff] at hyp_x; rw [ne_eq]; exact hyp_x.right)]
     exact DifferentiableOn.fun_div
       (AnalyticOn.differentiableOn (AnalyticOn.mono analytic Set.diff_subset))
       (DifferentiableOn.mono (differentiableOn_id (s := Set.univ))
-      (Set.subset_univ (s \ {0}))) (by intro x hyp_x; rw [Set.mem_diff, Set.mem_singleton_iff] at hyp_x; rw [ne_eq]; exact hyp_x.right)
+      (Set.subset_univ (s \ {0}))) (by intro x hyp_x; rw [Set.mem_diff,
+      Set.mem_singleton_iff] at hyp_x; rw [ne_eq]; exact hyp_x.right)
 
   · have U := HasDerivAt.continuousAt_div (c := 0) (a := (deriv f) 0) (f := f)
       (DifferentiableOn.hasDerivAt
          ((Complex.analyticOn_iff_differentiableOn o).mp analytic) sInNhds0)
-    have T : (fun (x : ℂ) ↦ (f x - 0) / (x - 0)) = (fun (x : ℂ) ↦ (f x) / x) := by funext x; rw [sub_zero, sub_zero]
-    rw [zero, T] at U; exact U
+    have T : (fun (x : ℂ) ↦ (f x - 0) / (x - 0)) = (fun (x : ℂ) ↦ (f x) / x) := by
+      funext x; rw [sub_zero, sub_zero]
+    rwa [zero, T] at U
+/-%%
+\begin{proof}\uses{divRemovable_zero}
+\leanok
+    We need to show that $g$ is complex differentiable at every point in $s$.
+    For $z\neq 0$, this follows directly from the definition of $g$ and the fact that $f$ is analytic on $s$.
+    For $z=0$, we use the definition of the derivative and the fact that $f(0)=0$:
+    \[
+    \lim_{z\to 0}\frac{g(z)-g(0)}{z-0}=\lim_{z\to 0}\frac{\frac{f(z)}{z}-f'(0)}{z}=\lim_{z\to 0}\frac{f(z)-f'(0)z}{z^2}=\lim_{z\to 0}\frac{f(z)-f(0)-f'(0)(z-0)}{(z-0)^2}=0,
+    \]
+    where the last equality follows from the definition of the derivative of $f$ at $0$.
+    Thus, $g$ is complex differentiable at $0$ with derivative $0$, completing the proof.
+\end{proof}
+%%-/
+
 
 -- The proof of the Lemma below is cumbersome, a proper way would be to
 -- show that if f is analytic on a closed set C, then it is analytic on an
 -- open set O containing the closed set C and apply the previous lemma.
-
+/-%%
+\begin{lemma}\label{AnalyticOn_divRemovable_zero_closedBall}
+  \lean{AnalyticOn_divRemovable_zero_closedBall}\leanok
+    Let $f$ be a complex function analytic on the closed ball $\abs{z}\leq R$ such that $f(0)=0$.
+    Then, with $g$ defined as in Definition~\ref{divRemovable_zero}, $g$ is analytic on
+    $\abs{z}\leq R$.
+\end{lemma}
+%%-/
 lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
     (Rpos : 0 < R) (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (zero : f 0 = 0) : AnalyticOn ℂ (divRemovable_zero f) (Metric.closedBall 0 R) := by
@@ -62,10 +112,12 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
     · exact Metric.isOpen_ball
     · constructor
       · simp only [Metric.mem_ball, dist_self, Nat.ofNat_pos, div_pos_iff_of_pos_right]; positivity
-      · have Z : ∀ w ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2), divRemovable_zero f w = f w / w := by
+      · have Z : ∀ w ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2),
+            divRemovable_zero f w = f w / w := by
           intro x₂ hyp_x₂
           apply divRemovable_zero_of_ne_zero
-          rw [ball_eq, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right, Set.mem_setOf_eq] at hyp_x₂
+          rw [ball_eq, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right,
+            Set.mem_setOf_eq] at hyp_x₂
           rw [← norm_pos_iff]
           calc 0
             _ < R - ‖x₂ - x‖ := by let ⟨u,v⟩ := hyp_x₂; linarith
@@ -76,7 +128,8 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
         apply AnalyticOn.congr
         · apply AnalyticOn.div (AnalyticOn.mono analytic Set.inter_subset_left) analyticOn_id
           · intro x₁ hyp_x₁
-            rw [ball_eq, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right, Set.mem_setOf_eq] at hyp_x₁
+            rw [ball_eq, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right,
+              Set.mem_setOf_eq] at hyp_x₁
             rw [← norm_pos_iff]
             calc 0
               _ < R - ‖x₁ - x‖ := by let ⟨u,v⟩ := hyp_x₁; linarith
@@ -84,7 +137,8 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
               _ ≤ ‖x - (-(x₁ - x))‖ := by apply norm_sub_norm_le
               _ = ‖x₁‖ := by rw [neg_sub, sub_sub_cancel]
 
-        · simp only [Set.EqOn.eq_1, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right, Metric.mem_ball, and_imp]
+        · simp only [Set.EqOn.eq_1, Set.mem_inter_iff, Metric.mem_closedBall, dist_zero_right,
+            Metric.mem_ball, and_imp]
           intro x₃ hyp_x₃ dist_hyp
           have : x₃ ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2) := by
             apply Set.mem_inter
@@ -96,7 +150,8 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
     constructor
     · exact Metric.isOpen_ball
     · constructor
-      · simp only [ball_eq, sub_zero, Set.mem_setOf_eq]; simp only [Metric.mem_closedBall, dist_zero_right] at x_hyp
+      · simp only [ball_eq, sub_zero, Set.mem_setOf_eq]; simp only [Metric.mem_closedBall,
+          dist_zero_right] at x_hyp
         apply lt_of_le_of_ne x_hyp
         · rw [ne_eq]; exact h
       · have si : Metric.closedBall (0 : ℂ) R ∩ Metric.ball (0 : ℂ) R = Metric.ball (0 : ℂ) R := by
@@ -109,35 +164,80 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
         · exact zero
         · apply Metric.isOpen_ball
         · apply AnalyticOn.mono analytic Metric.ball_subset_closedBall
+/-%%
+\begin{proof}
+\uses{AnalyticOn.divRemovable_zero}
+\leanok
+    The proof is similar to that of Lemma~\ref{AnalyticOn_divRemovable_zero}, but we need to consider two cases:
+    when $x$ is on the boundary of the closed ball and when it is in the interior.
+    In the first case, we take a small open ball around $x$ that lies entirely within the closed ball,
+    and apply Lemma~\ref{AnalyticOn_divRemovable_zero} on this smaller ball.
+    In the second case, we can take the entire open ball centered at $0$ with radius $R$,
+    and again apply Lemma~\ref{AnalyticOn_divRemovable_zero}.
+    In both cases, we use the fact that $f(0)=0$ to ensure that the removable singularity at $0$ is handled correctly.
+\end{proof}
+%%-/
 
+/-%%
+\begin{definition}\label{schwartzQuotient}\lean{schwartzQuotient}
+\uses{divRemovable_zero}
+\leanok
+    Given a complex function $f$ and a real number $M$, we define the function
+    $$f_{M}(z):=\frac{g(z)}{2M - f(z)},$$
+    where $g$ is defined as in Definition~\ref{divRemovable_zero}.
+\end{definition}
+%%-/
 noncomputable abbrev schwartzQuotient (f : ℂ → ℂ) (M : ℝ) : ℂ → ℂ :=
   fun z ↦ (divRemovable_zero f z) / (2 * M - f z)
 
 -- AnalyticOn.schwartzQuotient establishes that f_{M}(z) is analytic.
-
+/-%%
+\begin{lemma}\label{AnalyticOn.schwartzQuotient}\lean{AnalyticOn.schwartzQuotient}\leanok
+    Let $M>0$. Let $f$ be analytic on the closed ball $\abs{z}\leq R$ such that $f(0)=0$
+    and suppose that $2M - f(z)\neq 0$ for all $\abs{z}\leq R$.
+    Then, with $f_{M}$ defined as in Definition~\ref{schwartzQuotient}, $f_{M}$ is analytic on
+    $\abs{z}\leq R$.
+\end{lemma}
+%%-/
 lemma AnalyticOn.schwartzQuotient {f : ℂ → ℂ} {R : ℝ} (M : ℝ)
     (Rpos : 0 < R) (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (nonzero : ∀ z ∈ Metric.closedBall 0 R, 2 * M - f z ≠ 0)
-    (zero : f 0 = 0) : AnalyticOn ℂ (schwartzQuotient f M) (Metric.closedBall 0 R) := by
-
-  have sInNhds0 : Metric.closedBall 0 R ∈ nhds 0 := by
-    apply Metric.closedBall_mem_nhds; exact Rpos
-
-  exact AnalyticOn.div
+    (zero : f 0 = 0) : AnalyticOn ℂ (schwartzQuotient f M) (Metric.closedBall 0 R) :=
+  AnalyticOn.div
     (AnalyticOn_divRemovable_zero_closedBall Rpos analytic zero)
     (AnalyticOn.sub (analyticOn_const) analytic) nonzero
+/-%%
+\begin{proof}\uses{schwartzQuotient, AnalyticOn_divRemovable_zero_closedBall}\leanok
+    This follows directly from Lemma~\ref{AnalyticOn_divRemovable_zero_closedBall} and the fact that the difference of two analytic functions is analytic.
+\end{proof}
+%%-/
+
 
 -- If Re x ≤ M then |x| ≤ |2 * M - x|, this simple inequality is used
 -- in the proof of borelCaratheodory_closedBall.
-
+/-%%
+\begin{lemma}\label{Complex.norm_le_norm_two_mul_sub_of_re_le}\lean{Complex.norm_le_norm_two_mul_sub_of_re_le}\leanok
+    Let $M>0$ and let $x$ be a complex number such that $\Re x\leq M$.
+    Then, $\abs{x}\leq\abs{2M - x}$.
+\end{lemma}
+%%-/
 lemma Complex.norm_le_norm_two_mul_sub_of_re_le {M : ℝ} {x : ℂ}
     (Mpos : 0 < M) (hyp_re_x : x.re ≤ M) : ‖x‖ ≤ ‖2 * M - x‖ := by
   rw [← sq_le_sq₀ (by positivity) (by positivity)]
   repeat rw [Complex.sq_norm, Complex.normSq_apply]
-  simp only [sub_re, mul_re, re_ofNat, ofReal_re, im_ofNat, ofReal_im, mul_zero, sub_zero, sub_im, mul_im, zero_mul, add_zero, zero_sub, mul_neg, neg_mul, neg_neg, add_le_add_iff_right]
-  ring_nf
-  simp only [add_comm (-(x.re * M * 4)) (x.re ^ 2), sq M, add_assoc, le_add_iff_nonneg_right (x.re ^ 2), le_neg_add_iff_add_le, add_zero, Nat.ofNat_pos, mul_le_mul_iff_left₀, mul_le_mul_iff_left₀ Mpos]
-  exact hyp_re_x
+  rw [calc
+    (2 * M - x).re * (2 * M - x).re + (2 * M - x).im * (2 * M - x).im =
+      (2 * M - x.re) * (2 * M - x.re) + x.im * x.im := by simp
+    _ = x.re * x.re + (x.im * x.im + 4 * M * (M - x.re)) := by ring]
+  bound
+/-%%
+\begin{proof}\leanok
+    We square both sides and simplify to obtain the equivalent inequality
+    $$0\leq 4M^2 -4M\Re x,$$
+    which follows directly from the assumption $\Re x\leq M$ and the positivity of $M$.
+\end{proof}
+%%-/
+
 
 -- This is a version of the maximum modulus principle specialized to closed balls.
 
@@ -159,7 +259,7 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
 /-%%
 \begin{theorem}[BorelCaratheodory]\label{BorelCaratheodory}\lean{BorelCaratheodory}
     Let $R,\,M>0$. Let $f$ be analytic on $\abs{z}\leq R$ such that $f(0)=0$ and suppose
-    $\mathfrak{R}f(z)\leq M$ for all $\abs{z}\leq R$. Then for any $0 < r < R$,
+    $\Re f(z)\leq M$ for all $\abs{z}\leq R$. Then for any $0 < r < R$,
     $$\sup_{\abs{z}\leq r}\abs{f(z)}\leq\frac{2Mr}{R-r}.$$
 \end{theorem}
 %%-/
