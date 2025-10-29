@@ -225,12 +225,11 @@ lemma Complex.norm_le_norm_two_mul_sub_of_re_le {M : ℝ} {x : ℂ}
     (Mpos : 0 < M) (hyp_re_x : x.re ≤ M) : ‖x‖ ≤ ‖2 * M - x‖ := by
   rw [← sq_le_sq₀ (by positivity) (by positivity)]
   repeat rw [Complex.sq_norm, Complex.normSq_apply]
-  simp only [sub_re, mul_re, re_ofNat, ofReal_re, im_ofNat, ofReal_im, mul_zero, sub_zero,
-    sub_im, mul_im, zero_mul, add_zero, zero_sub, mul_neg, neg_mul, neg_neg, add_le_add_iff_right]
-  ring_nf
-  simp only [add_comm (-(x.re * M * 4)) (x.re ^ 2), sq M, add_assoc,
-    le_add_iff_nonneg_right (x.re ^ 2), le_neg_add_iff_add_le, add_zero, Nat.ofNat_pos,
-    mul_le_mul_iff_left₀, mul_le_mul_iff_left₀ Mpos, hyp_re_x]
+  rw [calc
+    (2 * M - x).re * (2 * M - x).re + (2 * M - x).im * (2 * M - x).im =
+      (2 * M - x.re) * (2 * M - x.re) + x.im * x.im := by simp
+    _ = x.re * x.re + (x.im * x.im + 4 * M * (M - x.re)) := by ring]
+  bound
 /-%%
 \begin{proof}\leanok
     We square both sides and simplify to obtain the equivalent inequality
