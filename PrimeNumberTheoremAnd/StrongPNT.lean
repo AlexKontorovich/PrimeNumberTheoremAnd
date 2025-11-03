@@ -727,8 +727,8 @@ open Nat Filter
 
 /-%%
 \begin{theorem}[LogDerivZetaUniformLogSquaredBound]\label{LogDerivZetaUniformLogSquaredBound}\lean{LogDerivZetaUniformLogSquaredBound}
-    There exists a constant $F\in(0,1/2)$ such that for all $t\in\mathbb{R}$ with $\abs{t}\geq 4$ one has
-    $$1-\frac{F}{\log\abs{t}}\leq\sigma\implies\abs{\frac{\zeta'}{\zeta}(\sigma+it)}\ll\log^2\abs{t}$$
+    There exists a constant $F\in(0,1/2)$ such that for all $t\in\mathbb{R}$ with $|t|\geq 4$ one has
+    $$1-\frac{F}{\log|t|}\leq\sigma\implies\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\ll\log^2|t|$$
     where the implied constant is uniform in $\sigma$.
 \end{theorem}
 %%-/
@@ -737,11 +737,11 @@ open Nat Filter
 \begin{proof}
 \ uses{riemannZetaLogDerivResidue, LogDerivZetaUniformLogSquaredBoundStrip}
     Note that
-    $$\abs{\frac{\zeta'}{\zeta}(\sigma+it)}=\sum_{1\leq n}\frac{\Lambda(n)}{\abs{n^{\sigma+it}}}=\sum_{1\leq n}\frac{\Lambda(n)}{n^\sigma}=-\frac{\zeta'}{\zeta}(\sigma)\leq\abs{\frac{\zeta'}{\zeta}(\sigma)}.$$
+    $$\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|=\sum_{1\leq n}\frac{\Lambda(n)}{|n^{\sigma+it}|}=\sum_{1\leq n}\frac{\Lambda(n)}{n^\sigma}=-\frac{\zeta'}{\zeta}(\sigma)\leq\left|\frac{\zeta'}{\zeta}(\sigma)\right|.$$
     From Theorem \ref{riemannZetaLogDerivResidue}, and applying the triangle inequality we know that
-    $$\abs{\frac{\zeta'}{\zeta}(s)}\leq\frac{1}{\abs{s-1}}+C.$$
+    $$\left|\frac{\zeta'}{\zeta}(s)\right|\leq\frac{1}{|s-1|}+C.$$
     where $C>0$ is some constant. Thus, for $\sigma\geq 3/2$ we have that
-    $$\abs{\frac{\zeta'}{\zeta}(\sigma+it)}\leq\abs{\frac{\zeta'}{\zeta}(\sigma)}\leq\frac{1}{\sigma-1}+C\leq 2+C\ll 1\ll\log^2\abs{t}.$$
+    $$\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\leq\left|\frac{\zeta'}{\zeta}(\sigma)\right|\leq\frac{1}{\sigma-1}+C\leq 2+C\ll 1\ll\log^2|t|.$$
     Putting this together with Lemma \ref{LogDerivZetaUniformLogSquaredBoundStrip} completes the proof.
 \end{proof}
 %%-/
@@ -750,20 +750,20 @@ open Nat Filter
 
 /-%%
 \begin{theorem}[LogDerivZetaLogSquaredBoundSmallt]\label{LogDerivZetaLogSquaredBoundSmallt}\lean{LogDerivZetaLogSquaredBoundSmallt}
-    For $T>0$ and $\sigma'=1-\delta_T/3=1-F/\log T$, if $\abs{t}\leq T$ then we have that
-    $$\abs{\frac{\zeta'}{\zeta}(\sigma'+it)}\ll\log^2(2+T).$$
+    For $T>0$ and $\sigma'=1-\delta_T/3=1-F/\log T$, if $|t|\leq T$ then we have that
+    $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\ll\log^2(2+T).$$
 \end{theorem}
 %%-/
 
 /-%%
 \begin{proof}
 \uses{LogDerivZetaUniformLogSquaredBound, riemannZetaLogDerivResidue}
-    Note that if $\abs{t}\geq 4$ then from Theorem \ref{LogDerivZetaUniformLogSquaredBound} we have that
-    $$\abs{\frac{\zeta'}{\zeta}(\sigma'+it)}\ll\log^2\abs{t}\ll\log^2T\ll\log^2(2+T).$$
-    Otherwise, if $\abs{t}\leq 4$, then from Theorem \ref{riemannZetaLogDerivResidue} and applying the triangle inequality we know
-    $$\abs{\frac{\zeta'}{\zeta}(\sigma'+it)}\leq\frac{1}{\abs{(\sigma'-1)+it}}+C\leq\frac{\log T}{F}+C$$
+    Note that if $|t|\geq 4$ then from Theorem \ref{LogDerivZetaUniformLogSquaredBound} we have that
+    $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\ll\log^2|t|\leq\log^2T\leq\log^2(2+T).$$
+    Otherwise, if $|t|\leq 4$, then from Theorem \ref{riemannZetaLogDerivResidue} and applying the triangle inequality we know
+    $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\leq\frac{1}{|(\sigma'-1)+it|}+C\leq\frac{\log T}{F}+C$$
     where $C\geq 0$. Thus, we have that
-    $$\abs{\frac{\zeta'}{\zeta}(\sigma'+it)}\leq\left(\frac{\log T}{F\,\log 2}+\frac{C}{\log 2}\right)\,\log(2+\abs{t})\leq\left(\frac{\log(2+T)}{F\,\log 2}+\frac{C}{\log 2}\right)\log(2+T)\ll\log^2(2+T).$$
+    $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\leq\left(\frac{\log T}{F\,\log 2}+\frac{C}{\log 2}\right)\,\log(2+|t|)\leq\left(\frac{\log(2+T)}{F\,\log 2}+\frac{C}{\log 2}\right)\log(2+T)\ll\log^2(2+T).$$
 \end{proof}
 %%-/
 
@@ -820,26 +820,26 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 /-%%
 \begin{lemma}[I1NewBound]\label{I1NewBound}\lean{I1NewBound}
     We have that
-    $$\abs{I_1(\nu,\varepsilon,X,T)}\ll\frac{X}{\varepsilon\sqrt{T}}.$$
+    $$|I_1(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
 %%-/
 
 /-%%
 \begin{proof}
 \uses{LogDerivZetaUniformLogSquaredBound, MellinOfSmooth1b}
-    Note that $\abs{I_1(\nu,\varepsilon,X,T)}=$
-    $$\abs{\frac{1}{2\pi i}\int_{-\infty}^{-T}\left(-\frac{\zeta'}{\zeta}(\sigma+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)\,X^{\sigma+it}\,dt}\ll\int_{-\infty}^{-T}\abs{\frac{\zeta'}{\zeta}(\sigma+it)}\cdot\abs{\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)}\cdot X^\sigma\,dt.$$
+    Note that $|I_1(\nu,\varepsilon,X,T)|=$
+    $$\left|\frac{1}{2\pi i}\int_{-\infty}^{-T}\left(-\frac{\zeta'}{\zeta}(\sigma+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)\,X^{\sigma+it}\,dt\right|\ll\int_{-\infty}^{-T}\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\cdot|\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)|\cdot X^\sigma\,dt.$$
     Applying Theorem \ref{LogDerivZetaUniformLogSquaredBound} and Lemma \ref{MellinOfSmooth1b}, we have that
-    $$\abs{I_1(\nu,\varepsilon,X,T)}\ll\int_{-\infty}^{-T}\log^2\abs{t}\cdot\frac{X^\sigma}{\varepsilon\,\abs{\sigma+it}^2}\,dt\ll\frac{X}{\varepsilon}\int_T^\infty\frac{\sqrt{t}\,dt}{t^2}\ll\frac{X}{\varepsilon\sqrt{T}}.$$
-    Here we are using the fact that $\log^2 t$ grows slower than $\sqrt{t}$, $\abs{\sigma
+    $$|I_1(\nu,\varepsilon,X,T)|\ll\int_{-\infty}^{-T}\log^2|t|\cdot\frac{X^\sigma}{\varepsilon\,|\sigma+it|^2}\,dt\ll\frac{X}{\varepsilon}\int_T^\infty\frac{\sqrt{t}\,dt}{t^2}\ll\frac{X}{\varepsilon\sqrt{T}}.$$
+    Here we are using the fact that $\log^2 t$ grows slower than $\sqrt{t}$, $|\sigma+it|^2\geq t^2$, and $X^\sigma=X\cdot X^{1/\log X}=eX$.
+\end{proof}
 %%-/
-
 
 
 /-%%
 \begin{lemma}[I5NewBound]\label{I5NewBound}\lean{I5NewBound}
     We have that
-    $$\abs{I_5(\nu,\varepsilon,X,T)}\ll\frac{X}{\varepsilon\sqrt{T}}.$$
+    $$|I_5(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
 %%-/
 
@@ -847,7 +847,7 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 \begin{proof}
 \uses{I1NewBound}
     By symmetry, note that
-    $$\abs{I_1(\nu,\varepsilon,X,T)}=\abs{\overline{I_5(\nu,\varepsilon,X,T)}}=\abs{I_5(\nu,\varepsilon,X,T)}.$$
+    $$|I_1(\nu,\varepsilon,X,T)|=|\overline{I_5(\nu,\varepsilon,X,T)}|=|I_5(\nu,\varepsilon,X,T)|.$$
     Applying Lemma \ref{I1NewBound} completes the proof.
 \end{proof}
 %%-/
@@ -875,19 +875,19 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 /-%%
 \begin{lemma}[I2NewBound]\label{I2NewBound}\lean{I2NewBound}
     We have that
-    $$\abs{I_2(\nu,\varepsilon,X,T)}\ll\frac{X}{\varepsilon\sqrt{T}}.$$
+    $$|I_2(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
 %%-/
 
 /-%%
 \begin{proof}
 \uses{LogDerivZetaUniformLogSquaredBound, MellinOfSmooth1b}
-    Note that $\abs{I_2(\nu,\varepsilon,X,T)}=$
-    $$\abs{\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0-iT)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0-iT)\,X^{\sigma_0-iT}\,d\sigma_0}\ll\int_{\sigma'}^\sigma\abs{\frac{\zeta'}{\zeta}(\sigma_0-iT)}\cdot\abs{\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0-iT)}\cdot X^{\sigma_0}\,d\sigma_0.$$
+    Note that $|I_2(\nu,\varepsilon,X,T)|=$
+    $$\left|\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0-iT)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0-iT)\,X^{\sigma_0-iT}\,d\sigma_0\right|\ll\int_{\sigma'}^\sigma\left|\frac{\zeta'}{\zeta}(\sigma_0-iT)\right|\cdot|\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0-iT)|\cdot X^{\sigma_0}\,d\sigma_0.$$
     Applying Theorem \ref{LogDerivZetaUniformLogSquaredBound} and Lemma \ref{MellinOfSmooth1b}, we have that
-    $$\abs{I_2(\nu,\varepsilon,X,T)}\ll\int_{\sigma'}^\sigma\log^2 T\cdot\frac{X^{\sigma_0}}{\varepsilon\,\abs{\sigma_0-iT}^2}\,d\sigma_0\ll\frac{X\,\log^2T}{\varepsilon\,T^2}\int_{\sigma'}^\sigma d\,\sigma_0=\frac{X\,\log^2T}{\varepsilon\,T^2}\,(\sigma-\sigma').$$
-    Here we are using the fact that $X^{\sigma_0}\leq X^\sigma=X\cdot X^{1/\log X}=eX$ and $\abs{\sigma_0-iT}^2\geq T^2$. Now note that
-    $$\abs{I_2(\nu,\varepsilon,X,T)}\ll\frac{X\,\log^2T}{\varepsilon\,T^2}\,(\sigma-\sigma')=\frac{X\,\log^2T}{\varepsilon\,T^2\,\log X}+\frac{FX\,\log T}{\varepsilon\,T^2}\ll\frac{X}{\varepsilon\sqrt{T}}.$$
+    $$|I_2(\nu,\varepsilon,X,T)|\ll\int_{\sigma'}^\sigma\log^2 T\cdot\frac{X^{\sigma_0}}{\varepsilon\,|\sigma_0-iT|^2}\,d\sigma_0\ll\frac{X\,\log^2T}{\varepsilon\,T^2}\int_{\sigma'}^\sigma d\,\sigma_0=\frac{X\,\log^2T}{\varepsilon\,T^2}\,(\sigma-\sigma').$$
+    Here we are using the fact that $X^{\sigma_0}\leq X^\sigma=X\cdot X^{1/\log X}=eX$ and $|\sigma_0-iT|^2\geq T^2$. Now note that
+    $$|I_2(\nu,\varepsilon,X,T)|\ll\frac{X\,\log^2T}{\varepsilon\,T^2}\,(\sigma-\sigma')=\frac{X\,\log^2T}{\varepsilon\,T^2\,\log X}+\frac{FX\,\log T}{\varepsilon\,T^2}\ll\frac{X}{\varepsilon\sqrt{T}}.$$
     Here we are using the fact that $\log T\ll T^{3/2}$, $\log^2T\ll T^{3/2}$, and $X/\log X\ll X$.
 \end{proof}
 %%-/
@@ -897,7 +897,7 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 /-%%
 \begin{lemma}[I4NewBound]\label{I4NewBound}\lean{I4NewBound}
     We have that
-    $$\abs{I_4(\nu,\varepsilon,X,T)}\ll\frac{X}{\varepsilon\sqrt{T}}.$$
+    $$|I_4(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
 %%-/
 
@@ -905,7 +905,7 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 \begin{proof}
 \uses{I2NewBound}
     By symmetry, note that
-    $$\abs{I_2(\nu,\varepsilon,X,T)}=\abs{\overline{I_4(\nu,\varepsilon,X,T)}}=\abs{I_4(\nu,\varepsilon,X,T)}.$$
+    $$|I_2(\nu,\varepsilon,X,T)|=|\overline{I_4(\nu,\varepsilon,X,T)}|=|I_4(\nu,\varepsilon,X,T)|.$$
     Applying Lemma \ref{I2NewBound} completes the proof.
 \end{proof}
 %%-/
@@ -924,21 +924,21 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 /-%%
 \begin{lemma}[I3NewBound]
     We have that
-    $$\abs{I_3(\nu,\varepsilon,X,T)}\ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}.$$
+    $$|I_3(\nu,\varepsilon,X,T)|\ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}.$$
 \end{lemma}
 %%-/
 
 /-%%
 \begin{proof}
 \uses{LogDerivZetaLogSquaredBoundSmallt, MellinOfSmooth1b, DeltaRange}
-    Note that $\abs{I_3(\nu,\varepsilon,X,T)}=$
-    $$\abs{\frac{1}{2\pi i}\int_{-T}^T\left(-\frac{\zeta'}{\zeta}(\sigma'+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma'+it)\,X^{\sigma'+it}\,dt}\ll\int_{-T}^T\abs{\frac{\zeta'}{\zeta}(\sigma'+it)}\cdot\abs{\mathcal{M}(\tilde{1}_\varepsilon)(\sigma'+it)}\cdot X^{\sigma'}\,dt.$$
+    Note that $|I_3(\nu,\varepsilon,X,T)|=$
+    $$\left|\frac{1}{2\pi i}\int_{-T}^T\left(-\frac{\zeta'}{\zeta}(\sigma'+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma'+it)\,X^{\sigma'+it}\,dt\right|\ll\int_{-T}^T\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\cdot|\mathcal{M}(\tilde{1}_\varepsilon)(\sigma'+it)|\cdot X^{\sigma'}\,dt.$$
     Applying Theorem \ref{LogDerivZetaLogSquaredBoundSmallt} and Lemma \ref{MellinOfSmooth1b}, we have that
-    $$\abs{I_3(\nu,\varepsilon,X,T)}\ll\int_{-T}^T\log^2(2+T)\cdot\frac{X^{\sigma'}}{\varepsilon\,\abs{\sigma'+it}^2}\,dt\ll\frac{X^{1-F/\log T}\,\sqrt{T}}{\varepsilon}\int_0^T\frac{dt}{\abs{\sigma'+it}^2}.$$
+    $$|I_3(\nu,\varepsilon,X,T)|\ll\int_{-T}^T\log^2(2+T)\cdot\frac{X^{\sigma'}}{\varepsilon\,|\sigma'+it|^2}\,dt\ll\frac{X^{1-F/\log T}\,\sqrt{T}}{\varepsilon}\int_0^T\frac{dt}{|\sigma'+it|^2}.$$
     Here we are using the fact that this integrand is symmetric in $t$ about $0$ and that $\log^2(2+T)\ll\sqrt{T}$ for sufficiently large $T$. Now note that, by Lemma \ref{DeltaRange}, we have
-    $$\frac{1}{\abs{\sigma'+it}^2}=\frac{1}{(1-\delta_T/3)^2+t^2}<\frac{1}{(83/84)^2+t^2}.$$
+    $$\frac{1}{|\sigma'+it|^2}=\frac{1}{(1-\delta_T/3)^2+t^2}<\frac{1}{(83/84)^2+t^2}.$$
     Thus,
-    $$\abs{I_3(\nu,\varepsilon,X,T)}\ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^T\frac{dt}{\abs{\sigma'+it}^2}\leq\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^\infty\frac{dt}{(83/84)^2+t^2}.$$
+    $$|I_3(\nu,\varepsilon,X,T)|\ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^T\frac{dt}{|\sigma'+it|^2}\leq\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^\infty\frac{dt}{(83/84)^2+t^2}.$$
     The integral on the right hand side evaluates to $42\pi/83$, which is just a constant, so the desired result follows.
 \end{proof}
 %%-/
