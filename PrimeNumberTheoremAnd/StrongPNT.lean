@@ -954,7 +954,7 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 
 /-%%
 \begin{proof}
-\uses{SmoothedChebyshevClose, SmoothedChebyshevPull3, MellinOfSmooth1c, I2NewBound, I3NewBound, I4NewBound, I5NewBound}
+\uses{SmoothedChebyshevClose, SmoothedChebyshevPull3, MellinOfSmooth1c, I1NewBound, I2NewBound, I3NewBound, I4NewBound, I5NewBound}
     By Theorem \ref{SmoothedChebyshevClose} and \label{SmoothedChebyshevPull3} we have that
     $$\mathcal{M}(\tilde{1}_\varepsilon)(1)\,x^1+I_1-I_2+I_3+I_4+I_5=\psi(x)+O(\varepsilon x\log x).$$
     Applying Theorem \ref{MellinOfSmooth1c} and Lemmas \ref{I1NewBound}, \ref{I2NewBound}, \ref{I3NewBound}, \ref{I4NewBound}, and \ref{I5NewBound} we have that
