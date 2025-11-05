@@ -922,7 +922,7 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 
 
 /-%%
-\begin{lemma}[I3NewBound]
+\begin{lemma}[I3NewBound]\label{I3NewBound}\lean{I3NewBound}
     We have that
     $$|I_3(\nu,\varepsilon,X,T)|\ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}.$$
 \end{lemma}
