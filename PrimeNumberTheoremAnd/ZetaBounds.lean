@@ -2534,6 +2534,14 @@ theorem ZetaLowerBound3_aux5
   0 < ‖ζ σ‖ ^ ((3 : ℝ) / 4) * ‖ζ (σ + 2 * t * I)‖ ^ ((1 : ℝ) / 4) :=
   pos_of_mul_pos_left (this.trans_lt' zero_lt_one) (norm_nonneg _)
 
+/-%%
+\begin{lemma}[ZetaLowerBound3]\label{ZetaLowerBound3}\lean{ZetaLowerBound3}\leanok
+There exists a $c>0$ such that for all $1 < \sigma <= 2$ and $3 < |t|$,
+$$
+c \frac{(\sigma-1)^{3/4}}{(\log |t|)^{1/4}} \le |\zeta(\sigma + tI)|.
+$$
+\end{lemma}
+%%-/
 lemma ZetaLowerBound3 :
     ∃ c > 0, ∀ {σ : ℝ} (_ : σ ∈ Ioc 1 2) (t : ℝ) (_ : 3 < |t|),
     c * (σ - 1) ^ ((3 : ℝ) / 4) / (Real.log |t|) ^ ((1 : ℝ) / 4) ≤ ‖ζ (σ + t * I)‖ := by
@@ -2621,7 +2629,13 @@ lemma ZetaLowerBound3 :
   rw [Real.rpow_two, sq]
   gcongr
   exact ht.trans' (by norm_num) |>.le
-
+/-%%
+\begin{proof}\uses{ZetaUpperBnd, ZetaNear1BndExact}\leanok
+Combine Lemma \ref{ZetaLowerBound2} with upper bounds for
+$|\zeta(\sigma)|$ (from Lemma \ref{ZetaNear1BndExact}) and
+$|\zeta(\sigma+2it)|$ (from Lemma \ref{ZetaUpperBnd}).
+\end{proof}
+%%-/
 
 /-%%
 \begin{lemma}[ZetaInvBound1]\label{ZetaInvBound1}\lean{ZetaInvBound1}\leanok

@@ -1811,8 +1811,7 @@ lemma IBound_aux1 (X₀ : ℝ) (X₀pos : X₀ > 0) (k : ℕ) : ∃ C ≥ 1, ∀
         exact le_max_right C₁ 1
 
 /-%%
-\begin{proof}
-\uses{isLittleO_log_rpow_rpow_atTop}\leanok
+\begin{proof}\leanok
 We use the fact that $\log^k X / X$ goes to $0$ as $X \to \infty$.
 Then we use the extreme value theorem to find a constant $C$ that works for all $X \geq X_0$.
 \end{proof}

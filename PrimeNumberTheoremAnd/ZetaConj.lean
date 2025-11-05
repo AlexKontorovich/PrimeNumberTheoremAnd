@@ -142,8 +142,21 @@ By the previous lemma, the two sides are equal on the half-plane $\{s \in \mathb
 theorem riemannZeta_conj (s : ℂ) : riemannZeta (conj s) = conj (riemannZeta s) := by
   rw [← conj_riemannZeta_conj, Complex.conj_conj]
 
+/-%%
+\begin{theorem}[deriv_riemannZeta_conj]\label{deriv_riemannZeta_conj}\lean{deriv_riemannZeta_conj}\leanok
+Conjugation symmetry of the derivative of the Riemann zeta function.
+Let $s \in \mathbb{C}$.
+Then $$\zeta'(\overline{s}) = \overline{\zeta'(s)}.$$
+\end{theorem}
+%%-/
 theorem deriv_riemannZeta_conj (s : ℂ) : deriv riemannZeta (conj s) = conj (deriv riemannZeta s) := by
   simp[← deriv_conj_conj, conj_riemannZeta_conj]
+/-%%
+\begin{proof}\leanok
+We apply the derivative conjugation symmetry to the Riemann zeta function and use the conjugation symmetry of the Riemann zeta function itself.
+\end{proof}
+%%-/
+
 
 theorem logDerivZeta_conj (s : ℂ) : (deriv riemannZeta / riemannZeta) (conj s) = conj ((deriv riemannZeta / riemannZeta) s) := by
   simp[deriv_riemannZeta_conj, riemannZeta_conj]
