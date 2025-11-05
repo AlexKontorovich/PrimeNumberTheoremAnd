@@ -146,13 +146,6 @@ Let $s \in \mathbb{C}$.
 Then $$\zeta(\overline{s})} = \overline{\zeta(s)}.$$
 \end{theorem}
 %%-/
-/-%%
-\begin{theorem}[riemannZeta_conj]\label{riemannZeta_conj}\lean{riemannZeta_conj}
-Conjugation symmetry of the Riemann zeta function.
-Let $s \in \mathbb{C}$.
-Then $$\zeta(\overline{s})} = \overline{\zeta(s)}.$$
-\end{theorem}
-%%-/
 theorem riemannZeta_conj (s : ℂ) : riemannZeta (conj s) = conj (riemannZeta s) := by
   rw [← conj_riemannZeta_conj, Complex.conj_conj]
 /-%%
