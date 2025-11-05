@@ -54,7 +54,7 @@ lemma divRemovable_zero_of_ne_zero {z : ℂ} (f : ℂ → ℂ) (z_ne_0 : z ≠ 0
     Then, with $g$ defined as in Definition~\ref{divRemovable_zero}, $g$ is analytic on $s$.
 \end{lemma}
 %%-/
-lemma AnalyticOn.divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
+lemma AnalyticOn_divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
     (sInNhds0 : s ∈ nhds 0) (zero : f 0 = 0) (o : IsOpen s)
     (analytic : AnalyticOn ℂ f s) : AnalyticOn ℂ (divRemovable_zero f) s := by
   rw [Complex.analyticOn_iff_differentiableOn o,
@@ -159,14 +159,14 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
           rw [Metric.mem_closedBall, dist_zero_right] at x_hyp
           exact Metric.ball_subset_closedBall
         rw [si]
-        apply AnalyticOn.divRemovable_zero
+        apply AnalyticOn_divRemovable_zero
         · apply Metric.ball_mem_nhds; positivity
         · exact zero
         · apply Metric.isOpen_ball
         · apply AnalyticOn.mono analytic Metric.ball_subset_closedBall
 /-%%
 \begin{proof}
-\uses{AnalyticOn.divRemovable_zero}
+\uses{AnalyticOn_divRemovable_zero}
 \leanok
     The proof is similar to that of Lemma~\ref{AnalyticOn_divRemovable_zero}, but we need to consider two cases:
     when $x$ is on the boundary of the closed ball and when it is in the interior.
