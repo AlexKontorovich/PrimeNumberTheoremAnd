@@ -13,6 +13,7 @@ import Mathlib.Analysis.Normed.Group.Basic
 import Mathlib.Analysis.Complex.AbsMax
 import «PrimeNumberTheoremAnd».BorelCaratheodory
 import «PrimeNumberTheoremAnd».DerivativeBound
+import «PrimeNumberTheoremAnd».MediumPNT
 
 open Nat Filter
 
@@ -798,20 +799,26 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 
 
 /-%%
-\begin{definition}[I1New]\label{I1New}\lean{I1New}
+\begin{definition}[I1New]\label{I1New}\lean{I1New}\leanok
     Let
     $$I_1(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{-\infty}^{-T}\left(-\frac{\zeta'}{\zeta}(\sigma+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)\,X^{\sigma+it}\,dt.$$
 \end{definition}
 %%-/
+noncomputable def I1New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * (I * (∫ t : ℝ in Iic (-T),
+      SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
 
 
 
 /-%%
-\begin{definition}[I5New]\label{I5New}\lean{I5New}
+\begin{definition}[I5New]\label{I5New}\lean{I5New}\leanok
     Let
     $$I_5(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_T^\infty\left(-\frac{\zeta'}{\zeta}(\sigma+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)\,X^{\sigma+it}\,dt.$$
 \end{definition}
 %%-/
+noncomputable def I5New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * (I * (∫ t : ℝ in Ici T,
+      SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
 
 
 
@@ -853,20 +860,26 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 
 
 /-%%
-\begin{definition}[I2New]\label{I2New}\lean{I2New}
+\begin{definition}[I2New]\label{I2New}\lean{I2New}\leanok
     Let
     $$I_2(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0-iT)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0-iT)\,X^{\sigma_0-iT}\,d\sigma_0.$$
 \end{definition}
 %%-/
+noncomputable def I2New (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * ((∫ σ in σ₁..(1 + (Real.log X)⁻¹),
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ - T * I)))
 
 
 
 /-%%
-\begin{definition}[I4New]\label{I4New}\lean{I4New}
+\begin{definition}[I4New]\label{I4New}\lean{I4New}\leanok
     Let
     $$I_4(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0+iT)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0+iT)\,X^{\sigma_0+iT}\,d\sigma_0.$$
 \end{definition}
 %%-/
+noncomputable def I4New (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * ((∫ σ in σ₁..(1 + (Real.log X)⁻¹),
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ + T * I)))
 
 
 
@@ -911,11 +924,14 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 
 
 /-%%
-\begin{definition}[I3New]\label{I3New}\lean{I3New}
+\begin{definition}[I3New]\label{I3New}\lean{I3New}\leanok
     Let
     $$I_3(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{-T}^T\left(-\frac{\zeta'}{\zeta}(\sigma'+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma'+it)\,X^{\sigma'+it}\,dt.$$
 \end{definition}
 %%-/
+noncomputable def I3New (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * (I * (∫ t in (-T)..T,
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ₁ + t * I)))
 
 
 
