@@ -862,9 +862,9 @@ noncomputable def I5New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
     $$I_2(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0-iT)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0-iT)\,X^{\sigma_0-iT}\,d\sigma_0.$$
 \end{definition}
 %%-/
-noncomputable def I2New (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
-  (1 / (2 * π * I)) * ((∫ σ in σ₁..(1 + (Real.log X)⁻¹),
-    SmoothedChebyshevIntegrand SmoothingF ε X (σ - T * I)))
+noncomputable def I2New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * ((∫ σ₀ in σ'..(1 + (Real.log X)⁻¹),
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ - T * I)))
 
 
 
@@ -874,9 +874,9 @@ noncomputable def I2New (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
     $$I_4(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0+iT)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0+iT)\,X^{\sigma_0+iT}\,d\sigma_0.$$
 \end{definition}
 %%-/
-noncomputable def I4New (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
-  (1 / (2 * π * I)) * ((∫ σ in σ₁..(1 + (Real.log X)⁻¹),
-    SmoothedChebyshevIntegrand SmoothingF ε X (σ + T * I)))
+noncomputable def I4New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * ((∫ σ₀ in σ'..(1 + (Real.log X)⁻¹),
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + T * I)))
 
 
 
@@ -926,9 +926,9 @@ noncomputable def I4New (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
     $$I_3(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{-T}^T\left(-\frac{\zeta'}{\zeta}(\sigma'+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma'+it)\,X^{\sigma'+it}\,dt.$$
 \end{definition}
 %%-/
-noncomputable def I3New (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
+noncomputable def I3New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-T)..T,
-    SmoothedChebyshevIntegrand SmoothingF ε X (σ₁ + t * I)))
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ' + t * I)))
 
 
 
@@ -965,18 +965,18 @@ noncomputable def I3New (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
 theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε)
     (ε_lt_one : ε < 1)
     (X : ℝ) (X_gt : 3 < X)
-    {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
-    (σ₁_pos : 0 < σ₁) (σ₁_lt_one : σ₁ < 1)
-    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₁ 2) ×ℂ (Icc (-T) T) \ {1}))
+    {T : ℝ} (T_pos : 0 < T) {σ' : ℝ}
+    (σ₁_pos : 0 < σ') (σ₁_lt_one : σ' < 1)
+    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ' 2) ×ℂ (Icc (-T) T) \ {1}))
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
     SmoothedChebyshev SmoothingF ε X =
       I1New SmoothingF ε X T -
-      I2New SmoothingF ε T X σ₁ +
-      I3New SmoothingF ε T X σ₁ +
-      I4New SmoothingF ε T X σ₁ +
+      I2New SmoothingF ε T X σ' +
+      I3New SmoothingF ε T X σ' +
+      I4New SmoothingF ε T X σ' +
       I5New SmoothingF ε X T
       + 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) 1 * X := by sorry
 /-%%
