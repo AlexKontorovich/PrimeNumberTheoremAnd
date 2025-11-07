@@ -705,7 +705,7 @@ local notation "ψ" => ChebyshevPsi
 
 /-%%
 \begin{lemma}[LogDerivZetaUniformLogSquaredBoundStrip]\label{LogDerivZetaUniformLogSquaredBoundStrip}\lean{LogDerivZetaUniformLogSquaredBoundStrip}
-    There exists a constant $F\in(0,1/2)$ such that for all $t\in\mathbb{R}$ with $|t|\geq 4$ one has
+    There exists a constant $F\in(0,1/2)$ such that for all $t\in\mathbb{R}$ with $|t|\geq 3$ one has
     $$1-\frac{F}{\log|t|}\leq\sigma\leq 3/2\implies\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\ll\log^2|t|$$
     where the implied constant is uniform in $\sigma$.
 \end{lemma}
