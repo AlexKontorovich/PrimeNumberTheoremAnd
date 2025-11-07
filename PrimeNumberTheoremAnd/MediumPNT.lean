@@ -118,6 +118,7 @@ lemma smoothedChebyshevIntegrand_conj {SmoothingF : ℝ → ℝ} {ε X : ℝ} (X
     exact Real.pi_ne_zero.symm
 /-%%
 \begin{proof}\leanok
+\ uses{deriv_riemannZeta_conj, riemannZeta_conj}
 We expand the definition of the smoothed Chebyshev integrand and compute, using the corresponding
 conjugation symmetries of the Riemann zeta function and its derivative.
 \end{proof}
