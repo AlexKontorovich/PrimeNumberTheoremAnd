@@ -425,7 +425,7 @@ local notation "ψ" => ChebyshevPsi
 
 /-%%
 \begin{theorem}[GlobalBound]\label{GlobalBound}\lean{GlobalBound}
-    For all $s\in\mathbb{C}$ with $|s|\leq 1$ and $t\in\mathbb{R}$ with $|t|\geq 3$, we have that
+    For all $s\in\mathbb{C}$ with $|s|\leq 1$ and $t\in\mathbb{R}$ with $|t|\geq 2$, we have that
     $$|\zeta(s+3/2+it)|\leq 7+2\,|t|.$$
 \end{theorem}
 %%-/
@@ -433,7 +433,7 @@ local notation "ψ" => ChebyshevPsi
 /-%%
 \begin{proof}
 \uses{ZetaExtend}
-    For the sake of clearer proof writing let $z=s+3/2+it$. Since $|s|\leq 1$ we know that $1/2\leq\Re z$; additionally, as $|t|\geq 3$, we know $z\in S$. Thus, from Lemma \ref{ZetaExtend} we know that
+    For the sake of clearer proof writing let $z=s+3/2+it$. Since $|s|\leq 1$ we know that $1/2\leq\mathfrak{R}z$; additionally, as $|t|\geq 2$, we know $1\leq|\mathfrak{I}z|$. So, $z\in S$. Thus, from Lemma \ref{ZetaExtend} we know that
     $$|\zeta(z)|\leq 1+\frac{1}{|z-1|}+|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|$$
     by applying the triangle inequality. Now note that $|z-1|\geq 1$. Likewise,
     $$|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|\leq|z|\int_1^\infty|\{x\}\,x^{-z-1}|\,dx\leq|z|\int_1^\infty x^{-\Re z-1}\,dx=\frac{|z|}{\Re z}\leq 2\,|z|.$$
