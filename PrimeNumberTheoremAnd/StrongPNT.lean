@@ -477,7 +477,7 @@ local notation "ψ" => ChebyshevPsi
 
 /-%%
 \begin{lemma}[SumBoundI]\label{SumBoundI}\lean{SumBoundI}
-    For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$ we have
+    For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 2$ we have
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
 \end{lemma}
 %%-/
