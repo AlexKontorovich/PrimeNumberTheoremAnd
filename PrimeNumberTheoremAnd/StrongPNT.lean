@@ -446,7 +446,7 @@ local notation "ψ" => ChebyshevPsi
 
 /-%%
 \begin{theorem}[LogDerivZetaFinalBound]\label{LogDerivZetaFinalBound}\lean{LogDerivZetaFinalBound}
-    Let $t\in\mathbb{R}$ with $|t|\geq 3$ and $0 < r' < r < R' < R<1$. If  $f(z)=\zeta(z+3/2+it)$, then for all $z\in\overline{\mathbb{D}_R'}\setminus\mathcal{K}_f(R')$ we have that
+    Let $t\in\mathbb{R}$ with $|t|\geq 2$ and $0 < r' < r < R' < R<1$. If  $f(z)=\zeta(z+3/2+it)$, then for all $z\in\overline{\mathbb{D}_R'}\setminus\mathcal{K}_f(R')$ we have that
     $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|.$$
 \end{theorem}
 %%-/
