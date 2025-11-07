@@ -139,8 +139,21 @@ By the previous lemma, the two sides are equal on the half-plane $\{s \in \mathb
 \end{proof}
 %%-/
 
+/-%%
+\begin{theorem}[riemannZeta_conj]\label{riemannZeta_conj}\lean{riemannZeta_conj}\leanok
+Conjugation symmetry of the Riemann zeta function.
+Let $s \in \mathbb{C}$.
+Then $$\zeta(\overline{s}) = \overline{\zeta(s)}.$$
+\end{theorem}
+%%-/
 theorem riemannZeta_conj (s : ℂ) : riemannZeta (conj s) = conj (riemannZeta s) := by
   rw [← conj_riemannZeta_conj, Complex.conj_conj]
+/-%%
+\begin{proof}\leanok
+This follows as an immediate corollary of Theorem \ref{conj_riemannZeta_conj}.
+\end{proof}
+%%-/
+
 
 /-%%
 \begin{theorem}[deriv_riemannZeta_conj]\label{deriv_riemannZeta_conj}\lean{deriv_riemannZeta_conj}\leanok

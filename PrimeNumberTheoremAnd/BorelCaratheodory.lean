@@ -96,9 +96,9 @@ lemma AnalyticOn_divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
 /-%%
 \begin{lemma}\label{AnalyticOn_divRemovable_zero_closedBall}
   \lean{AnalyticOn_divRemovable_zero_closedBall}\leanok
-    Let $f$ be a complex function analytic on the closed ball $\abs{z}\leq R$ such that $f(0)=0$.
+    Let $f$ be a complex function analytic on the closed ball $|z|\leq R$ such that $f(0)=0$.
     Then, with $g$ defined as in Definition~\ref{divRemovable_zero}, $g$ is analytic on
-    $\abs{z}\leq R$.
+    $|z|\leq R$.
 \end{lemma}
 %%-/
 lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
@@ -193,10 +193,10 @@ noncomputable abbrev schwartzQuotient (f : ℂ → ℂ) (M : ℝ) : ℂ → ℂ 
 -- AnalyticOn.schwartzQuotient establishes that f_{M}(z) is analytic.
 /-%%
 \begin{lemma}\label{AnalyticOn.schwartzQuotient}\lean{AnalyticOn.schwartzQuotient}\leanok
-    Let $M>0$. Let $f$ be analytic on the closed ball $\abs{z}\leq R$ such that $f(0)=0$
-    and suppose that $2M - f(z)\neq 0$ for all $\abs{z}\leq R$.
+    Let $M>0$. Let $f$ be analytic on the closed ball $|z|\leq R$ such that $f(0)=0$
+    and suppose that $2M - f(z)\neq 0$ for all $|z|\leq R$.
     Then, with $f_{M}$ defined as in Definition~\ref{schwartzQuotient}, $f_{M}$ is analytic on
-    $\abs{z}\leq R$.
+    $|z|\leq R$.
 \end{lemma}
 %%-/
 lemma AnalyticOn.schwartzQuotient {f : ℂ → ℂ} {R : ℝ} (M : ℝ)
@@ -218,7 +218,7 @@ lemma AnalyticOn.schwartzQuotient {f : ℂ → ℂ} {R : ℝ} (M : ℝ)
 /-%%
 \begin{lemma}\label{Complex.norm_le_norm_two_mul_sub_of_re_le}\lean{Complex.norm_le_norm_two_mul_sub_of_re_le}\leanok
     Let $M>0$ and let $x$ be a complex number such that $\Re x\leq M$.
-    Then, $\abs{x}\leq\abs{2M - x}$.
+    Then, $|x|\leq|2M - x|$.
 \end{lemma}
 %%-/
 lemma Complex.norm_le_norm_two_mul_sub_of_re_le {M : ℝ} {x : ℂ}
@@ -258,9 +258,9 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
 
 /-%%
 \begin{theorem}[BorelCaratheodory]\label{BorelCaratheodory}\lean{BorelCaratheodory}
-    Let $R,\,M>0$. Let $f$ be analytic on $\abs{z}\leq R$ such that $f(0)=0$ and suppose
-    $\Re f(z)\leq M$ for all $\abs{z}\leq R$. Then for any $0 < r < R$,
-    $$\sup_{\abs{z}\leq r}\abs{f(z)}\leq\frac{2Mr}{R-r}.$$
+    Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose
+    $\Re f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
+    $$\sup_{|z|\leq r}|f(z)|\leq\frac{2Mr}{R-r}.$$
 \end{theorem}
 %%-/
 

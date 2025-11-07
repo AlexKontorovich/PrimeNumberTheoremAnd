@@ -105,7 +105,6 @@ open Nat Filter
 
 /-%%
 \begin{proof}
-\uses{}
     We let $J_B(z)=\mathrm{Log}\,B(z)-\mathrm{Log}\,B(0)$. Then clearly, $J_B(0)=0$ and $J_B'(z)=B'(z)/B(z)$. Showing the third property is a little more difficult, but by no standards terrible. Exponentiating $J_B(z)$ we have that
     $$\exp(J_B(z))=\exp(\mathrm{Log}\,B(z)-\mathrm{Log}\,B(0))=\frac{B(z)}{B(0)}\implies B(z)=B(0)\exp(J_B(z)).$$
     Now taking the modulus
@@ -140,7 +139,6 @@ open Nat Filter
 
 /-%%
 \begin{proof}
-\uses{}
     Since $f$ is analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ we know that there exists a series expansion about $\rho$:
     $$f(z)=\sum_{0\leq n}a_n\,(z-\rho)^n.$$
     Now if we let $m$ be the smallest number such that $a_m\neq 0$, then
@@ -342,7 +340,6 @@ open Nat Filter
 
 /-%%
 \begin{proof}
-\uses{}
     From the Euler product expansion of $\zeta$, we have that for $\Re s>1$
     $$\zeta(s)=\prod_p\frac{1}{1-p^{-s}}.$$
     Thus, we have that
@@ -365,7 +362,6 @@ open Nat Filter
 
 /-%%
 \begin{proof}
-\uses{}
     Note that for $\sigma>1$ we have
     $$\zeta(s)=\sum_{n=1}^\infty\frac{1}{n^s}=\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=1}^\infty\frac{n-1}{n^s}=\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=0}^\infty\frac{n}{(n+1)^s}=\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=1}^\infty\frac{n}{(n+1)^s}.$$
     Thus
@@ -390,7 +386,6 @@ open Nat Filter
 
 /-%%
 \begin{proof}
-\uses{}
     Note that we have
     $$\left|\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}\right|\leq\int_1^\infty|\{x\}\,x^{-s-1}|\,dx\leq\int_1^\infty x^{-\sigma-1}\,dx=\frac{1}{\sigma}.$$
     So this integral converges uniformly on compact subsets of $S$, which tells us that it is analytic on $S$. So it immediately follows that $\zeta_0(s)$ is analytic on $S$ as well, since $S$ avoids the pole at $s=1$ coming from the $(s-1)^{-1}$ term.
@@ -409,7 +404,6 @@ open Nat Filter
 
 /-%%
 \begin{proof}
-\uses{}
     This is an immediate consequence of the identity theorem.
 \end{proof}
 %%-/
@@ -582,7 +576,6 @@ open Nat Filter
 
 /-%%
 \begin{proof}
-\uses{}
     We know that $\cos(2\theta)=2\cos^2\theta-1$, thus
     $$3+4\cos\theta+\cos2\theta=2+4\cos\theta+2\cos^2\theta=2\,(1+\cos\theta)^2.$$
     Noting that $0\leq 1+\cos\theta$ completes the proof.
@@ -732,16 +725,249 @@ open Nat Filter
 
 
 
-/-%
-Main Theorem: The Prime Number Theorem in strong form.
-\begin{theorem}[PrimeNumberTheorem]\label{StrongPNT}\lean{PrimeNumberTheorem}\uses{thm:StrongZeroFree, ChebyshevPsi, SmoothedChebyshevClose, ZetaBoxEval}
-There is a constant $c > 0$ such that
-$$
-\psi(x) = x + O(x \exp(-c \sqrt{\log x}))
-$$
-as $x\to \infty$.
+/-%%
+\begin{theorem}[LogDerivZetaUniformLogSquaredBound]\label{LogDerivZetaUniformLogSquaredBound}\lean{LogDerivZetaUniformLogSquaredBound}
+    There exists a constant $F\in(0,1/2)$ such that for all $t\in\mathbb{R}$ with $|t|\geq 4$ one has
+    $$1-\frac{F}{\log|t|}\leq\sigma\implies\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\ll\log^2|t|$$
+    where the implied constant is uniform in $\sigma$.
 \end{theorem}
-%-/
+%%-/
+
+/-%%
+\begin{proof}
+\ uses{riemannZetaLogDerivResidue, LogDerivZetaUniformLogSquaredBoundStrip}
+    Note that
+    $$\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|=\sum_{1\leq n}\frac{\Lambda(n)}{|n^{\sigma+it}|}=\sum_{1\leq n}\frac{\Lambda(n)}{n^\sigma}=-\frac{\zeta'}{\zeta}(\sigma)\leq\left|\frac{\zeta'}{\zeta}(\sigma)\right|.$$
+    From Theorem \ref{riemannZetaLogDerivResidue}, and applying the triangle inequality we know that
+    $$\left|\frac{\zeta'}{\zeta}(s)\right|\leq\frac{1}{|s-1|}+C.$$
+    where $C>0$ is some constant. Thus, for $\sigma\geq 3/2$ we have that
+    $$\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\leq\left|\frac{\zeta'}{\zeta}(\sigma)\right|\leq\frac{1}{\sigma-1}+C\leq 2+C\ll 1\ll\log^2|t|.$$
+    Putting this together with Lemma \ref{LogDerivZetaUniformLogSquaredBoundStrip} completes the proof.
+\end{proof}
+%%-/
+
+/-%%
+\begin{theorem}[LogDerivZetaLogSquaredBoundSmallt]\label{LogDerivZetaLogSquaredBoundSmallt}\lean{LogDerivZetaLogSquaredBoundSmallt}
+    For $T>0$ and $\sigma'=1-\delta_T/3=1-F/\log T$, if $|t|\leq T$ then we have that
+    $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\ll\log^2(2+T).$$
+\end{theorem}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{LogDerivZetaUniformLogSquaredBound, riemannZetaLogDerivResidue}
+    Note that if $|t|\geq 4$ then from Theorem \ref{LogDerivZetaUniformLogSquaredBound} we have that
+    $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\ll\log^2|t|\leq\log^2T\leq\log^2(2+T).$$
+    Otherwise, if $|t|\leq 4$, then from Theorem \ref{riemannZetaLogDerivResidue} and applying the triangle inequality we know
+    $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\leq\frac{1}{|(\sigma'-1)+it|}+C\leq\frac{\log T}{F}+C$$
+    where $C\geq 0$. Thus, we have that
+    $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\leq\left(\frac{\log T}{F\,\log 2}+\frac{C}{\log 2}\right)\,\log(2+|t|)\leq\left(\frac{\log(2+T)}{F\,\log 2}+\frac{C}{\log 2}\right)\log(2+T)\ll\log^2(2+T).$$
+\end{proof}
+%%-/
+
+
+
+/-%%
+From here out we closely follow our previous proof of the Medium PNT and we modify it using our new estimate in Theorem \ref{LogDerivZetaUniformLogSquaredBound}. Recall Definition \ref{SmoothedChebyshev}; for fixed $\varepsilon>0$ and a bump function $\nu$ supported on $[1/2,2]$ we have
+$$\psi_\varepsilon(X)=\frac{1}{2\pi i}\int_{(\sigma)}\left(-\frac{\zeta'}{\zeta}(s)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(s)\,X^s\,ds$$
+where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and we take $\sigma'=1-\delta_T/3=1-F/\log T$ with $F$ coming from Theorem \ref{LogDerivZetaUniformLogSquaredBound}. We integrate along the $\sigma$ vertical line, and we pull contours  accumulating the pole at $s=1$ when we integrate along the curves
+\begin{itemize}
+    \item $I_1$: $\sigma-i\infty$ to $\sigma-iT$
+    \item $I_2$: $\sigma'-iT$ to $\sigma-iT$
+    \item $I_3$: $\sigma'-iT$ to $\sigma'+iT$
+    \item $I_4$: $\sigma'+iT$ to $\sigma+iT$
+    \item $I_5$: $\sigma+iT$ to $\sigma+i\infty$.
+\end{itemize}
+%%-/
+
+
+
+/-%%
+\begin{theorem}[SmoothedChebyshevPull3]\label{SmoothedChebyshevPull3}\lean{SmoothedChebyshevPull3}
+    We have that
+    $$\psi_\varepsilon(X)=\mathcal{M}(\tilde{1}_\varepsilon)(1)\,X^1+I_1-I_2+I_3+I_4+I_5.$$
+\end{theorem}
+%%-/
+
+/-%%
+\begin{proof}
+    Pull contours and accumulate the pole of $\zeta'/\zeta$ at $s=1$.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{definition}[I1New]\label{I1New}\lean{I1New}
+    Let
+    $$I_1(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{-\infty}^{-T}\left(-\frac{\zeta'}{\zeta}(\sigma+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)\,X^{\sigma+it}\,dt.$$
+\end{definition}
+%%-/
+
+
+
+/-%%
+\begin{definition}[I5New]\label{I5New}\lean{I5New}
+    Let
+    $$I_5(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_T^\infty\left(-\frac{\zeta'}{\zeta}(\sigma+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)\,X^{\sigma+it}\,dt.$$
+\end{definition}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[I1NewBound]\label{I1NewBound}\lean{I1NewBound}
+    We have that
+    $$|I_1(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{LogDerivZetaUniformLogSquaredBound, MellinOfSmooth1b}
+    Note that $|I_1(\nu,\varepsilon,X,T)|=$
+    $$\left|\frac{1}{2\pi i}\int_{-\infty}^{-T}\left(-\frac{\zeta'}{\zeta}(\sigma+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)\,X^{\sigma+it}\,dt\right|\ll\int_{-\infty}^{-T}\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\cdot|\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)|\cdot X^\sigma\,dt.$$
+    Applying Theorem \ref{LogDerivZetaUniformLogSquaredBound} and Lemma \ref{MellinOfSmooth1b}, we have that
+    $$|I_1(\nu,\varepsilon,X,T)|\ll\int_{-\infty}^{-T}\log^2|t|\cdot\frac{X^\sigma}{\varepsilon\,|\sigma+it|^2}\,dt\ll\frac{X}{\varepsilon}\int_T^\infty\frac{\sqrt{t}\,dt}{t^2}\ll\frac{X}{\varepsilon\sqrt{T}}.$$
+    Here we are using the fact that $\log^2 t$ grows slower than $\sqrt{t}$, $|\sigma+it|^2\geq t^2$, and $X^\sigma=X\cdot X^{1/\log X}=eX$.
+\end{proof}
+%%-/
+
+
+/-%%
+\begin{lemma}[I5NewBound]\label{I5NewBound}\lean{I5NewBound}
+    We have that
+    $$|I_5(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{I1NewBound}
+    By symmetry, note that
+    $$|I_1(\nu,\varepsilon,X,T)|=|\overline{I_5(\nu,\varepsilon,X,T)}|=|I_5(\nu,\varepsilon,X,T)|.$$
+    Applying Lemma \ref{I1NewBound} completes the proof.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{definition}[I2New]\label{I2New}\lean{I2New}
+    Let
+    $$I_2(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0-iT)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0-iT)\,X^{\sigma_0-iT}\,d\sigma_0.$$
+\end{definition}
+%%-/
+
+
+
+/-%%
+\begin{definition}[I4New]\label{I4New}\lean{I4New}
+    Let
+    $$I_4(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0+iT)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0+iT)\,X^{\sigma_0+iT}\,d\sigma_0.$$
+\end{definition}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[I2NewBound]\label{I2NewBound}\lean{I2NewBound}
+    We have that
+    $$|I_2(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{LogDerivZetaUniformLogSquaredBound, MellinOfSmooth1b}
+    Note that $|I_2(\nu,\varepsilon,X,T)|=$
+    $$\left|\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0-iT)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0-iT)\,X^{\sigma_0-iT}\,d\sigma_0\right|\ll\int_{\sigma'}^\sigma\left|\frac{\zeta'}{\zeta}(\sigma_0-iT)\right|\cdot|\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0-iT)|\cdot X^{\sigma_0}\,d\sigma_0.$$
+    Applying Theorem \ref{LogDerivZetaUniformLogSquaredBound} and Lemma \ref{MellinOfSmooth1b}, we have that
+    $$|I_2(\nu,\varepsilon,X,T)|\ll\int_{\sigma'}^\sigma\log^2 T\cdot\frac{X^{\sigma_0}}{\varepsilon\,|\sigma_0-iT|^2}\,d\sigma_0\ll\frac{X\,\log^2T}{\varepsilon\,T^2}\int_{\sigma'}^\sigma d\,\sigma_0=\frac{X\,\log^2T}{\varepsilon\,T^2}\,(\sigma-\sigma').$$
+    Here we are using the fact that $X^{\sigma_0}\leq X^\sigma=X\cdot X^{1/\log X}=eX$ and $|\sigma_0-iT|^2\geq T^2$. Now note that
+    $$|I_2(\nu,\varepsilon,X,T)|\ll\frac{X\,\log^2T}{\varepsilon\,T^2}\,(\sigma-\sigma')=\frac{X\,\log^2T}{\varepsilon\,T^2\,\log X}+\frac{FX\,\log T}{\varepsilon\,T^2}\ll\frac{X}{\varepsilon\sqrt{T}}.$$
+    Here we are using the fact that $\log T\ll T^{3/2}$, $\log^2T\ll T^{3/2}$, and $X/\log X\ll X$.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[I4NewBound]\label{I4NewBound}\lean{I4NewBound}
+    We have that
+    $$|I_4(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{I2NewBound}
+    By symmetry, note that
+    $$|I_2(\nu,\varepsilon,X,T)|=|\overline{I_4(\nu,\varepsilon,X,T)}|=|I_4(\nu,\varepsilon,X,T)|.$$
+    Applying Lemma \ref{I2NewBound} completes the proof.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{definition}[I3New]\label{I3New}\lean{I3New}
+    Let
+    $$I_3(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{-T}^T\left(-\frac{\zeta'}{\zeta}(\sigma'+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma'+it)\,X^{\sigma'+it}\,dt.$$
+\end{definition}
+%%-/
+
+
+
+/-%%
+\begin{lemma}[I3NewBound]\label{I3NewBound}\lean{I3NewBound}
+    We have that
+    $$|I_3(\nu,\varepsilon,X,T)|\ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}.$$
+\end{lemma}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{LogDerivZetaLogSquaredBoundSmallt, MellinOfSmooth1b, DeltaRange}
+    Note that $|I_3(\nu,\varepsilon,X,T)|=$
+    $$\left|\frac{1}{2\pi i}\int_{-T}^T\left(-\frac{\zeta'}{\zeta}(\sigma'+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma'+it)\,X^{\sigma'+it}\,dt\right|\ll\int_{-T}^T\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\cdot|\mathcal{M}(\tilde{1}_\varepsilon)(\sigma'+it)|\cdot X^{\sigma'}\,dt.$$
+    Applying Theorem \ref{LogDerivZetaLogSquaredBoundSmallt} and Lemma \ref{MellinOfSmooth1b}, we have that
+    $$|I_3(\nu,\varepsilon,X,T)|\ll\int_{-T}^T\log^2(2+T)\cdot\frac{X^{\sigma'}}{\varepsilon\,|\sigma'+it|^2}\,dt\ll\frac{X^{1-F/\log T}\,\sqrt{T}}{\varepsilon}\int_0^T\frac{dt}{|\sigma'+it|^2}.$$
+    Here we are using the fact that this integrand is symmetric in $t$ about $0$ and that $\log^2(2+T)\ll\sqrt{T}$ for sufficiently large $T$. Now note that, by Lemma \ref{DeltaRange}, we have
+    $$\frac{1}{|\sigma'+it|^2}=\frac{1}{(1-\delta_T/3)^2+t^2}<\frac{1}{(83/84)^2+t^2}.$$
+    Thus,
+    $$|I_3(\nu,\varepsilon,X,T)|\ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^T\frac{dt}{|\sigma'+it|^2}\leq\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^\infty\frac{dt}{(83/84)^2+t^2}.$$
+    The integral on the right hand side evaluates to $42\pi/83$, which is just a constant, so the desired result follows.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{theorem}[StrongPNT]\label{StrongPNT}\lean{StrongPNT}
+    We have
+    $$\sum_{n\leq x}\Lambda(n)=x+O\left(x\exp(-c\sqrt{\log x})\right).$$
+\end{theorem}
+%%-/
+
+/-%%
+\begin{proof}
+\uses{SmoothedChebyshevClose, SmoothedChebyshevPull3, MellinOfSmooth1c, I1NewBound, I2NewBound, I3NewBound, I4NewBound, I5NewBound}
+    By Theorem \ref{SmoothedChebyshevClose} and \ref{SmoothedChebyshevPull3} we have that
+    $$\mathcal{M}(\tilde{1}_\varepsilon)(1)\,x^1+I_1-I_2+I_3+I_4+I_5=\psi(x)+O(\varepsilon x\log x).$$
+    Applying Theorem \ref{MellinOfSmooth1c} and Lemmas \ref{I1NewBound}, \ref{I2NewBound}, \ref{I3NewBound}, \ref{I4NewBound}, and \ref{I5NewBound} we have that
+    $$\psi(x)=x+O(\varepsilon x)+O(\varepsilon x\log x)+O\left(\frac{x}{\varepsilon\sqrt{T}}\right)+O\left(\frac{x^{1-F/\log T}\sqrt{T}}{\varepsilon}\right).$$
+    We absorb the $O(\varepsilon x)$ term into the $O(\varepsilon x\log x)$ term and balance the last two terms in $T$.
+    $$\frac{x}{\varepsilon\sqrt{T}}=\frac{x^{1-F/\log T}\sqrt{T}}{\varepsilon}\implies T=\exp(\sqrt{F\log x}).$$
+    Thus,
+    $$\psi(x)=x+O(\varepsilon x\log x)+O\left(\frac{x}{\displaystyle\varepsilon\exp((1/2)\cdot\sqrt{F\log x})}\right).$$
+    Now we balance the last two terms in $\varepsilon$.
+    $$\varepsilon x\log x=\frac{x}{\displaystyle\varepsilon\exp((1/2)\cdot\sqrt{F\log x})}\implies\varepsilon\log x=\frac{\displaystyle\sqrt{\log x}}{\displaystyle\exp((1/4)\cdot\sqrt{F\log x})}.$$
+    Thus,
+    $$\psi(x)=x+O\left(x\exp(-(\sqrt{F}/4)\cdot\sqrt{\log x})\sqrt{\log x}\right).$$
+    Absorbing the $\displaystyle\sqrt{\log x}$ into the $\displaystyle\exp(-(\sqrt{F}/4)\cdot\sqrt{\log x})$ completes the proof.
+\end{proof}
+%%-/
 
 -- *** Prime Number Theorem *** The `ChebyshevPsi` function is asymptotic to `x`.
 -- theorem PrimeNumberTheorem : ∃ (c : ℝ) (hc : c > 0),
