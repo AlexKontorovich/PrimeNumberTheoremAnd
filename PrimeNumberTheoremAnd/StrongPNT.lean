@@ -796,21 +796,6 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 
 
 /-%%
-\begin{theorem}[SmoothedChebyshevPull3]\label{SmoothedChebyshevPull3}\lean{SmoothedChebyshevPull3}
-    We have that
-    $$\psi_\varepsilon(X)=\mathcal{M}(\tilde{1}_\varepsilon)(1)\,X^1+I_1-I_2+I_3+I_4+I_5.$$
-\end{theorem}
-%%-/
-
-/-%%
-\begin{proof}
-    Pull contours and accumulate the pole of $\zeta'/\zeta$ at $s=1$.
-\end{proof}
-%%-/
-
-
-
-/-%%
 \begin{definition}[I1New]\label{I1New}\lean{I1New}\leanok
     Let
     $$I_1(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{-\infty}^{-T}\left(-\frac{\zeta'}{\zeta}(\sigma+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)\,X^{\sigma+it}\,dt.$$
@@ -966,6 +951,37 @@ noncomputable def I3New (SmoothingF : ℝ → ℝ) (ε T X σ₁ : ℝ) : ℂ :=
     Thus,
     $$|I_3(\nu,\varepsilon,X,T)|\ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^T\frac{dt}{|\sigma'+it|^2}\leq\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^\infty\frac{dt}{(83/84)^2+t^2}.$$
     The integral on the right hand side evaluates to $42\pi/83$, which is just a constant, so the desired result follows.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{theorem}[SmoothedChebyshevPull3]\label{SmoothedChebyshevPull3}\lean{SmoothedChebyshevPull3}
+    We have that
+    $$\psi_\varepsilon(X)=\mathcal{M}(\tilde{1}_\varepsilon)(1)\,X^1+I_1-I_2+I_3+I_4+I_5.$$
+\end{theorem}
+%%-/
+theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε)
+    (ε_lt_one : ε < 1)
+    (X : ℝ) (X_gt : 3 < X)
+    {T : ℝ} (T_pos : 0 < T) {σ₁ : ℝ}
+    (σ₁_pos : 0 < σ₁) (σ₁_lt_one : σ₁ < 1)
+    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ₁ 2) ×ℂ (Icc (-T) T) \ {1}))
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
+    SmoothedChebyshev SmoothingF ε X =
+      I1New SmoothingF ε X T -
+      I2New SmoothingF ε T X σ₁ +
+      I3New SmoothingF ε T X σ₁ +
+      I4New SmoothingF ε T X σ₁ +
+      I5New SmoothingF ε X T
+      + 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) 1 * X := by sorry
+/-%%
+\begin{proof}
+    Pull contours and accumulate the pole of $\zeta'/\zeta$ at $s=1$.
 \end{proof}
 %%-/
 
