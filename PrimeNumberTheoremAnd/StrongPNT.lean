@@ -11,11 +11,23 @@ import Mathlib.Analysis.Calculus.Deriv.Slope
 import Mathlib.Analysis.Analytic.Within
 import Mathlib.Analysis.Normed.Group.Basic
 import Mathlib.Analysis.Complex.AbsMax
-import «PrimeNumberTheoremAnd».BorelCaratheodory
-import «PrimeNumberTheoremAnd».DerivativeBound
-import «PrimeNumberTheoremAnd».MediumPNT
+import PrimeNumberTheoremAnd.BorelCaratheodory
+import PrimeNumberTheoremAnd.DerivativeBound
+import PrimeNumberTheoremAnd.MediumPNT
 
-open Nat Filter
+open Nat Filter Set Function Complex Real
+
+open ArithmeticFunction (vonMangoldt)
+
+local notation (name := mellintransform2) "𝓜" => mellin
+
+local notation "Λ" => vonMangoldt
+
+local notation "ζ" => riemannZeta
+
+local notation "ζ'" => deriv ζ
+
+local notation "ψ" => ChebyshevPsi
 
 --open scoped ArithmeticFunction
 
