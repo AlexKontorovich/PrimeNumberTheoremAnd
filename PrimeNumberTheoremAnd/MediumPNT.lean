@@ -1225,7 +1225,6 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
         SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₀ + ↑T * I) =
         ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x T := by rfl
     rw[this]
-    repeat rw[← add_assoc]
     have : (((I * -∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y) +
         -∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x (-T)) +
         I * ∫ (y : ℝ) in -T..T, fTempRR σ₁ y) +
