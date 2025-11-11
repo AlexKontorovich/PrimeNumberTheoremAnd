@@ -14,8 +14,9 @@ import Mathlib.Analysis.Complex.AbsMax
 import PrimeNumberTheoremAnd.BorelCaratheodory
 import PrimeNumberTheoremAnd.DerivativeBound
 import PrimeNumberTheoremAnd.MediumPNT
+import PrimeNumberTheoremAnd.ZetaConj
 
-open Nat Filter Set Function Complex Real
+open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory
 
 open ArithmeticFunction (vonMangoldt)
 
@@ -904,7 +905,7 @@ lemma I1NewBound {SmoothingF : ℝ → ℝ}
 
 
 /-%%
-\begin{lemma}[I5NewBound]\label{I5NewBound}\lean{I5NewBound}
+\begin{lemma}[I5NewBound]\label{I5NewBound}\lean{I5NewBound}\leanok
     We have that
     $$|I_5(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
@@ -914,9 +915,26 @@ lemma I5NewBound {SmoothingF : ℝ → ℝ}
     (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
     ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
     ‖I5New SmoothingF ε X T‖ ≤ C * (X / (ε * Real.sqrt T)) := by
-    sorry
+    obtain ⟨C, Cnonneg, hI1NewBound⟩ := I1NewBound suppSmoothingF ContDiffSmoothingF
+    use C, Cnonneg
+    intro ε X T εinIoo Xgt3 Tgt3
+    have I1NewI5New : I5New SmoothingF ε X T = conj (I1New SmoothingF ε X T) := by
+        unfold I1New I5New
+        simp only [map_mul, map_div₀, conj_I, conj_ofReal, conj_ofNat, map_one]
+        rw [neg_mul, mul_neg, ← neg_mul]
+        congr
+        ·   ring
+        ·   rw [← integral_conj, ← integral_comp_neg_Ioi, integral_Ici_eq_integral_Ioi]
+            apply setIntegral_congr_fun <| measurableSet_Ioi
+            intro x hx
+            simp only []
+            rw[← smoothedChebyshevIntegrand_conj (by linarith)]
+            simp only [ofReal_inv, ofReal_neg, neg_mul, map_add, map_one, map_inv₀, conj_ofReal,
+              map_neg, map_mul, conj_I, mul_neg, neg_neg]
+    rw[I1NewI5New, RCLike.norm_conj]
+    exact hI1NewBound εinIoo Xgt3 Tgt3
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{I1NewBound}
     By symmetry, note that
     $$|I_1(\nu,\varepsilon,X,T)|=|\overline{I_5(\nu,\varepsilon,X,T)}|=|I_5(\nu,\varepsilon,X,T)|.$$
@@ -990,7 +1008,22 @@ lemma I4NewBound {SmoothingF : ℝ → ℝ}
     ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
     let σ' := 1 - F / Real.log T
     ‖I4New SmoothingF ε X T σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
-    sorry
+    obtain ⟨C, Cnonneg, hI2NewBound⟩ := I2NewBound suppSmoothingF ContDiffSmoothingF
+    use C, Cnonneg
+    intro ε X T εinIoo Xgt3 Tgt3 σ'
+    have I2NewI4New : I4New SmoothingF ε X T σ' = -conj (I2New SmoothingF ε X T σ') := by
+        unfold I2New I4New
+        simp only [map_mul, map_div₀, conj_I, conj_ofReal, conj_ofNat, map_one]
+        rw [mul_neg, div_neg, neg_mul_comm, ← mul_neg]
+        congr
+        rw [← intervalIntegral_conj, neg_neg]
+        apply intervalIntegral.integral_congr
+        intro x hx
+        simp only []
+        rw[← smoothedChebyshevIntegrand_conj (by linarith)]
+        simp only [map_sub, conj_ofReal, map_mul, conj_I, mul_neg, sub_neg_eq_add]
+    rw[I2NewI4New, norm_neg, RCLike.norm_conj]
+    exact hI2NewBound εinIoo Xgt3 Tgt3
 /-%%
 \begin{proof}
 \uses{I2NewBound}
