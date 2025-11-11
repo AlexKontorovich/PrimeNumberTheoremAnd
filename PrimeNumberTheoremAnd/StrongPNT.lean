@@ -603,7 +603,14 @@ local notation "ψ" => ChebyshevPsi
     $$\sigma\leq 1-\frac{E}{\log|t|}.$$
 \end{theorem}
 %%-/
-
+theorem ZeroInequality : ∃ (E : ℝ) (EinIoo : E ∈ Ioo (0 : ℝ) 1),
+    ∀ (ρ : ℂ) (σ t : ℝ),
+    ζ ρ = 0 →
+        σ = ρ.re →
+            t = ρ.im →
+                |t| ≥ 2 →
+                    σ ≤ 1 - E / log |t| := by
+    sorry
 /-%%
 \begin{proof}
 \uses{LogDerivativeDirichlet, ThreeFourOneTrigIdentity, ShiftZeroBound, ShiftOneBound, ShiftTwoBound}
@@ -631,10 +638,21 @@ local notation "ψ" => ChebyshevPsi
 
 
 /-%%
-\begin{definition}[DeltaT]\label{DeltaT}\lean{DeltaT}
-    Let $\delta_t=E/\log|t|$ where $E$ is the constant coming from Theorem \ref{567}.
+\begin{definition}[DeltaT]\label{DeltaT}\lean{DeltaT}\leanok
+    Let $\delta_t=E/\log|t|$ where $E$ is the constant coming from Theorem \ref{ZeroInequality}.
 \end{definition}
 %%-/
+noncomputable def E : ℝ := ZeroInequality.choose
+lemma EinIoo : E ∈ Ioo (0 : ℝ) 1 := by
+    exact ZeroInequality.choose_spec.1
+theorem ZeroInequalitySpecialized : ∀ (ρ : ℂ) (σ t : ℝ),
+    ζ ρ = 0 →
+        σ = ρ.re →
+            t = ρ.im →
+                |t| ≥ 2 →
+                    σ ≤ 1 - E / log |t| :=
+    by exact ZeroInequality.choose_spec.2
+noncomputable def DeltaT (t : ℝ) : ℝ := E / log |t|
 
 
 
@@ -644,7 +662,10 @@ local notation "ψ" => ChebyshevPsi
     $$\delta_t<1/14.$$
 \end{lemma}
 %%-/
-
+lemma DeltaRange : ∀ (t : ℝ),
+    |t| ≥ 2 →
+        DeltaT t < (1 : ℝ) / 14 := by
+    sorry
 /-%%
 \begin{proof}
 \uses{ZeroInequality, ShiftZeroBound, ShiftOneBound, ShiftTwoBound, SumBoundI, LogDerivZetaFinalBound}
@@ -710,7 +731,16 @@ local notation "ψ" => ChebyshevPsi
     where the implied constant is uniform in $\sigma$.
 \end{lemma}
 %%-/
-
+lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (Fequ : F = E / 3) (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ (σ t : ℝ),
+    3 ≤ |t| →
+        σ ∈ Set.Icc (1 - F / Real.log |t|) (3 / 2) →
+            ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 := by
+    use E / 3
+    refine exists_prop.mpr ?_
+    constructor
+    ·   rfl
+    ·   sorry
 /-%%
 \begin{proof}
 \uses{ZeroInequality, SumBoundII, GapSize, ZetaFixedLowerBound, GlobalBound, ZerosBound}
@@ -738,6 +768,21 @@ local notation "ψ" => ChebyshevPsi
 
 
 
+noncomputable def F : ℝ := LogDerivZetaUniformLogSquaredBoundStrip.choose
+lemma Fequ : F = E / 3 := by
+    exact LogDerivZetaUniformLogSquaredBoundStrip.choose_spec.1
+lemma LogDerivZetaUniformLogSquaredBoundStripSpec : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ (σ t : ℝ),
+    3 ≤ |t| →
+        σ ∈ Set.Icc (1 - F / Real.log |t|) (3 / 2) →
+            ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 :=
+    by exact LogDerivZetaUniformLogSquaredBoundStrip.choose_spec.2
+lemma FLogTtoDeltaT : ∀ (t : ℝ),
+    DeltaT t / 3 = F / Real.log |t| := by
+    sorry
+
+
+
 /-%%
 \begin{theorem}[LogDerivZetaUniformLogSquaredBound]\label{LogDerivZetaUniformLogSquaredBound}\lean{LogDerivZetaUniformLogSquaredBound}
     There exists a constant $F\in(0,1/2)$ such that for all $t\in\mathbb{R}$ with $|t|\geq 3$ one has
@@ -745,7 +790,12 @@ local notation "ψ" => ChebyshevPsi
     where the implied constant is uniform in $\sigma$.
 \end{theorem}
 %%-/
-
+theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ (σ t : ℝ),
+    3 < |t| →
+        σ ∈ Set.Ici (1 - F / Real.log |t|) →
+            ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
+    sorry
 /-%%
 \begin{proof}
 \ uses{riemannZetaLogDerivResidue, LogDerivZetaUniformLogSquaredBoundStrip}
@@ -759,13 +809,20 @@ local notation "ψ" => ChebyshevPsi
 \end{proof}
 %%-/
 
+
+
 /-%%
 \begin{theorem}[LogDerivZetaLogSquaredBoundSmallt]\label{LogDerivZetaLogSquaredBoundSmallt}\lean{LogDerivZetaLogSquaredBoundSmallt}
     For $T>0$ and $\sigma'=1-\delta_T/3=1-F/\log T$, if $|t|\leq T$ then we have that
     $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\ll\log^2(2+T).$$
 \end{theorem}
 %%-/
-
+theorem LogDerivZetaLogSquaredBoundSmallt : ∃ (C : ℝ) (Cnonneg : C ≥ 0),
+    ∀ (σ t T : ℝ) (Tpos: T > 0),
+    |t| ≤ T →
+        σ = 1 - F / Real.log T →
+            ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log (2 + T) ^ 2 := by
+    sorry
 /-%%
 \begin{proof}
 \uses{LogDerivZetaUniformLogSquaredBound, riemannZetaLogDerivResidue}
@@ -957,7 +1014,7 @@ noncomputable def I3New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
 
 
 /-%%
-\begin{theorem}[SmoothedChebyshevPull3]\label{SmoothedChebyshevPull3}\lean{SmoothedChebyshevPull3}
+\begin{theorem}[SmoothedChebyshevPull3]\label{SmoothedChebyshevPull3}\lean{SmoothedChebyshevPull3}\leanok
     We have that
     $$\psi_\varepsilon(X)=\mathcal{M}(\tilde{1}_\varepsilon)(1)\,X^1+I_1-I_2+I_3+I_4+I_5.$$
 \end{theorem}
@@ -1129,7 +1186,7 @@ theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
             ring
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
     Pull contours and accumulate the pole of $\zeta'/\zeta$ at $s=1$.
 \end{proof}
 %%-/
