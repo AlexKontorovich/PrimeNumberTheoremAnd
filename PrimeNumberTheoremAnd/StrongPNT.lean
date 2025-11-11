@@ -779,7 +779,10 @@ lemma LogDerivZetaUniformLogSquaredBoundStripSpec : ∃ (C : ℝ) (Cnonneg : 0 �
     by exact LogDerivZetaUniformLogSquaredBoundStrip.choose_spec.2
 lemma FLogTtoDeltaT : ∀ (t : ℝ),
     DeltaT t / 3 = F / Real.log |t| := by
-    sorry
+    unfold DeltaT
+    rw [Fequ]
+    ring_nf
+    exact fun t ↦ trivial
 
 
 
@@ -882,7 +885,12 @@ noncomputable def I5New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
     $$|I_1(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
 %%-/
-
+lemma I1NewBound {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    ‖I1New SmoothingF ε X T‖ ≤ C * (X / (ε * Real.sqrt T)) := by
+    sorry
 /-%%
 \begin{proof}
 \uses{LogDerivZetaUniformLogSquaredBound, MellinOfSmooth1b}
@@ -901,7 +909,12 @@ noncomputable def I5New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
     $$|I_5(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
 %%-/
-
+lemma I5NewBound {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    ‖I5New SmoothingF ε X T‖ ≤ C * (X / (ε * Real.sqrt T)) := by
+    sorry
 /-%%
 \begin{proof}
 \uses{I1NewBound}
@@ -943,7 +956,13 @@ noncomputable def I4New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
     $$|I_2(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
 %%-/
-
+lemma I2NewBound {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    let σ' := 1 - F / Real.log T
+    ‖I2New SmoothingF ε X T σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
+    sorry
 /-%%
 \begin{proof}
 \uses{LogDerivZetaUniformLogSquaredBound, MellinOfSmooth1b}
@@ -965,7 +984,13 @@ noncomputable def I4New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
     $$|I_4(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
 %%-/
-
+lemma I4NewBound {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    let σ' := 1 - F / Real.log T
+    ‖I4New SmoothingF ε X T σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
+    sorry
 /-%%
 \begin{proof}
 \uses{I2NewBound}
@@ -995,7 +1020,13 @@ noncomputable def I3New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
     $$|I_3(\nu,\varepsilon,X,T)|\ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}.$$
 \end{lemma}
 %%-/
-
+lemma I3NewBound {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    let σ' := 1 - F / Real.log T
+    ‖I3New SmoothingF ε X T σ'‖ ≤ C * (X ^ (1 - F / Real.log T) * Real.sqrt T) / ε := by
+    sorry
 /-%%
 \begin{proof}
 \uses{LogDerivZetaLogSquaredBoundSmallt, MellinOfSmooth1b, DeltaRange}
@@ -1184,7 +1215,6 @@ theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
             ext
             simp [f, g]
             ring
-
 /-%%
 \begin{proof}\leanok
     Pull contours and accumulate the pole of $\zeta'/\zeta$ at $s=1$.
