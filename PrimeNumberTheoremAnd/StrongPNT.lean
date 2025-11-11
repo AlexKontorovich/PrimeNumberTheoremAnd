@@ -997,7 +997,7 @@ lemma I2NewBound {SmoothingF : ℝ → ℝ}
 
 
 /-%%
-\begin{lemma}[I4NewBound]\label{I4NewBound}\lean{I4NewBound}
+\begin{lemma}[I4NewBound]\label{I4NewBound}\lean{I4NewBound}\leanok
     We have that
     $$|I_4(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
@@ -1025,7 +1025,7 @@ lemma I4NewBound {SmoothingF : ℝ → ℝ}
     rw[I2NewI4New, norm_neg, RCLike.norm_conj]
     exact hI2NewBound εinIoo Xgt3 Tgt3
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{I2NewBound}
     By symmetry, note that
     $$|I_2(\nu,\varepsilon,X,T)|=|\overline{I_4(\nu,\varepsilon,X,T)}|=|I_4(\nu,\varepsilon,X,T)|.$$
