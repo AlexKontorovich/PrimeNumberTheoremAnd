@@ -1192,74 +1192,57 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
   · exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_gt_one
       X_eq_le_two suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
   · have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by simp
-    repeat rw[smul_eq_mul]
     unfold I₁
-    rw[temp, mul_add, mul_add, add_assoc, sub_eq_add_neg]
-    nth_rewrite 4 [add_assoc]
-    nth_rewrite 3 [add_assoc]
-    nth_rewrite 2 [add_assoc]
-    rw[add_assoc, add_left_cancel_iff, add_assoc]
-    nth_rewrite 7 [add_comm]
-    rw[← add_assoc]
+    simp only [smul_eq_mul, mul_add, temp, sub_eq_add_neg, add_assoc, add_left_cancel_iff]
     unfold I₉
+    nth_rewrite 6 [add_comm]
+    simp only [← add_assoc]
     rw[add_right_cancel_iff, ← add_right_inj (1 / (2 * ↑π * I) *
-      -VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) (1 + (Real.log X)⁻¹) (-T) T),
-      ← mul_add, ← sub_eq_neg_add, sub_self, mul_zero]
+        -VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) (1 + (Real.log X)⁻¹) (-T) T),
+        ← mul_add, ← sub_eq_neg_add, sub_self, mul_zero]
     unfold VIntegral I₂ I₃₇ I₈
-    rw[smul_eq_mul, temp, ← add_assoc, ← add_assoc]
-    nth_rewrite 2 [div_mul_comm]
-    rw[mul_one, ← neg_div, ← mul_neg]
-    nth_rewrite 2 [← one_div_mul_eq_div]
-    repeat rw[← mul_add]
+    simp only [smul_eq_mul, temp, ← add_assoc, ← mul_neg, ← mul_add]
     let fTempRR : ℝ → ℝ → ℂ := fun x ↦ fun y ↦
       SmoothedChebyshevIntegrand SmoothingF ε X ((x : ℝ) + (y : ℝ) * I)
     let fTempC : ℂ → ℂ := fun z ↦ fTempRR z.re z.im
     have : ∫ (y : ℝ) in -T..T,
         SmoothedChebyshevIntegrand SmoothingF ε X (1 + ↑(Real.log X)⁻¹ + ↑y * I) =
-      ∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y := by
-      unfold fTempRR
-      rw[temp]
+        ∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y := by
+        unfold fTempRR
+        simp only [temp]
     rw[this]
-    have : ∫ (σ : ℝ) in σ₁..1 + (Real.log X)⁻¹,
-        SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I) =
-      ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x (-T) := by
-      unfold fTempRR
-      rw[Complex.ofReal_neg, neg_mul]
-      rfl
+    have : ∫ (σ₀ : ℝ) in σ₁..1 + (Real.log X)⁻¹,
+        SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₀ - ↑T * I) =
+        ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x (-T) := by
+        unfold fTempRR
+        simp only [ofReal_neg, neg_mul, sub_eq_add_neg]
     rw[this]
-    have : ∫ (t : ℝ) in -T..T, SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₁ + ↑t * I) =
-      ∫ (y : ℝ) in -T..T, fTempRR σ₁ y := by rfl
+    have : ∫ (t : ℝ) in -T..T,
+        SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₁ + ↑t * I) =
+        ∫ (y : ℝ) in -T..T, fTempRR σ₁ y := by rfl
     rw[this]
-    have : ∫ (σ : ℝ) in σ₁..1 + (Real.log X)⁻¹,
-        SmoothedChebyshevIntegrand SmoothingF ε X (↑σ + ↑T * I) =
-      ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x T := by rfl
+    have : ∫ (σ₀ : ℝ) in σ₁..1 + (Real.log X)⁻¹,
+        SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₀ + ↑T * I) =
+        ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x T := by rfl
     rw[this]
-    repeat rw[← add_assoc]
     have : (((I * -∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y) +
-      -∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x (-T)) +
-      I * ∫ (y : ℝ) in -T..T, fTempRR σ₁ y) +
-      ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x T =
-        -1 * RectangleIntegral fTempC ((1 : ℝ) + (Real.log X)⁻¹ + T * I) (σ₁ - T * I) := by
-      unfold RectangleIntegral
-      rw[HIntegral_symm, VIntegral_symm]
-      nth_rewrite 2 [HIntegral_symm, VIntegral_symm]
-      unfold HIntegral VIntegral fTempC
-      simp
-      ring_nf
-    rw[this, neg_one_mul, div_mul_comm, mul_one,
-        ← add_right_inj
-        (RectangleIntegral fTempC (1 + ↑(Real.log X)⁻¹ + ↑T * I) (↑σ₁ - ↑T * I) / (2 * ↑π * I)),
-        ← add_assoc]
-    have : RectangleIntegral fTempC (1 + ↑(Real.log X)⁻¹ + ↑T * I) (↑σ₁ - ↑T * I) =
-      RectangleIntegral' fTempC (σ₁ - T * I) (1 + ↑(Real.log X)⁻¹ + T * I) * (2 * ↑π * I) := by
-      rw[rectangleIntegral_symm]
-      unfold RectangleIntegral'
-      rw[smul_eq_mul]
-      field_simp
-    simp only [ofReal_one]
-    rw[this, add_assoc _ (_ / _)]
-    congr 1
+        -∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x (-T)) +
+        I * ∫ (y : ℝ) in -T..T, fTempRR σ₁ y) +
+        ∫ (x : ℝ) in σ₁..1 + (Real.log X)⁻¹, fTempRR x T =
+        -(2 * ↑π * I) * RectangleIntegral' fTempC (σ₁ - T * I) (1 + ↑(Real.log X)⁻¹ + T * I) := by
+        unfold RectangleIntegral' RectangleIntegral HIntegral VIntegral fTempC
+        simp only [mul_neg, one_div, mul_inv_rev, inv_I, neg_mul, sub_im, ofReal_im, mul_im,
+          ofReal_re, I_im, mul_one, I_re, mul_zero, add_zero, zero_sub, ofReal_neg, add_re,
+          neg_re, mul_re, sub_self, neg_zero, add_im, neg_im, zero_add, sub_re, sub_zero,
+          ofReal_inv, one_re, inv_re, normSq_ofReal, div_self_mul_self', one_im, inv_im,
+          zero_div, ofReal_add, ofReal_one, smul_eq_mul, neg_neg]
+        ring_nf
+        simp only [I_sq, neg_mul, one_mul, ne_eq, ofReal_eq_zero, pi_ne_zero, not_false_eq_true,
+          mul_inv_cancel_right₀, sub_neg_eq_add, I_pow_three]
+        ring_nf
+    rw[this]
     field_simp
+    rw[mul_comm, eq_comm, neg_add_eq_zero]
 
     have pInRectangleInterior :
         (Rectangle (σ₁ - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) ∈ nhds 1) := by
@@ -1276,7 +1259,6 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
         rw [min_eq_left (by linarith), max_eq_right (by linarith)]
         exact mem_Ioo.mpr ⟨(by linarith), (by linarith)⟩
 
-    rw [eq_comm, neg_add_eq_zero]
     apply ResidueTheoremOnRectangleWithSimplePole'
     · simp; linarith
     · simp; linarith
@@ -1333,12 +1315,11 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
             sub_zero, add_re, one_re, inv_re, normSq_ofReal, div_self_mul_self', add_zero] at this
           rw [uIcc_of_le (by linarith)] at this
           linarith [this.1]
-
-        unfold HPow.hPow instHPow
-        apply DifferentiableAt.const_cpow differentiableAt_fun_id
-        left
-        norm_cast
-        linarith
+        · unfold HPow.hPow instHPow
+          apply DifferentiableAt.const_cpow differentiableAt_fun_id
+          left
+          norm_cast
+          linarith
       have f_near_p : (f - fun (z : ℂ) => 1 * (z - 1)⁻¹) =O[nhdsWithin 1 {1}ᶜ] (1 : ℂ → ℂ) := by
         simp only [one_mul, f]
         exact riemannZetaLogDerivResidueBigO

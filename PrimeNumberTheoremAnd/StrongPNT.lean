@@ -11,10 +11,24 @@ import Mathlib.Analysis.Calculus.Deriv.Slope
 import Mathlib.Analysis.Analytic.Within
 import Mathlib.Analysis.Normed.Group.Basic
 import Mathlib.Analysis.Complex.AbsMax
-import «PrimeNumberTheoremAnd».BorelCaratheodory
-import «PrimeNumberTheoremAnd».DerivativeBound
+import PrimeNumberTheoremAnd.BorelCaratheodory
+import PrimeNumberTheoremAnd.DerivativeBound
+import PrimeNumberTheoremAnd.MediumPNT
+import PrimeNumberTheoremAnd.ZetaConj
 
-open Nat Filter
+open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory
+
+open ArithmeticFunction (vonMangoldt)
+
+local notation (name := mellintransform2) "𝓜" => mellin
+
+local notation "Λ" => vonMangoldt
+
+local notation "ζ" => riemannZeta
+
+local notation "ζ'" => deriv ζ
+
+local notation "ψ" => ChebyshevPsi
 
 --open scoped ArithmeticFunction
 
@@ -412,7 +426,7 @@ open Nat Filter
 
 /-%%
 \begin{theorem}[GlobalBound]\label{GlobalBound}\lean{GlobalBound}
-    For all $s\in\mathbb{C}$ with $|s|\leq 1$ and $t\in\mathbb{R}$ with $|t|\geq 3$, we have that
+    For all $s\in\mathbb{C}$ with $|s|\leq 1$ and $t\in\mathbb{R}$ with $|t|\geq 2$, we have that
     $$|\zeta(s+3/2+it)|\leq 7+2\,|t|.$$
 \end{theorem}
 %%-/
@@ -420,7 +434,7 @@ open Nat Filter
 /-%%
 \begin{proof}
 \uses{ZetaExtend}
-    For the sake of clearer proof writing let $z=s+3/2+it$. Since $|s|\leq 1$ we know that $1/2\leq\Re z$; additionally, as $|t|\geq 3$, we know $z\in S$. Thus, from Lemma \ref{ZetaExtend} we know that
+    For the sake of clearer proof writing let $z=s+3/2+it$. Since $|s|\leq 1$ we know that $1/2\leq\mathfrak{R}z$; additionally, as $|t|\geq 2$, we know $1\leq|\mathfrak{I}z|$. So, $z\in S$. Thus, from Lemma \ref{ZetaExtend} we know that
     $$|\zeta(z)|\leq 1+\frac{1}{|z-1|}+|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|$$
     by applying the triangle inequality. Now note that $|z-1|\geq 1$. Likewise,
     $$|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|\leq|z|\int_1^\infty|\{x\}\,x^{-z-1}|\,dx\leq|z|\int_1^\infty x^{-\Re z-1}\,dx=\frac{|z|}{\Re z}\leq 2\,|z|.$$
@@ -433,7 +447,7 @@ open Nat Filter
 
 /-%%
 \begin{theorem}[LogDerivZetaFinalBound]\label{LogDerivZetaFinalBound}\lean{LogDerivZetaFinalBound}
-    Let $t\in\mathbb{R}$ with $|t|\geq 3$ and $0 < r' < r < R' < R<1$. If  $f(z)=\zeta(z+3/2+it)$, then for all $z\in\overline{\mathbb{D}_R'}\setminus\mathcal{K}_f(R')$ we have that
+    Let $t\in\mathbb{R}$ with $|t|\geq 2$ and $0 < r' < r < R' < R<1$. If  $f(z)=\zeta(z+3/2+it)$, then for all $z\in\overline{\mathbb{D}_R'}\setminus\mathcal{K}_f(R')$ we have that
     $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|.$$
 \end{theorem}
 %%-/
@@ -448,7 +462,7 @@ open Nat Filter
     Now note that $f'/f=g'/g$, $\mathcal{K}_f(R')=\mathcal{K}_g(R')$, and $m_g(\rho)=m_f(\rho)$ for all $\rho\in\mathcal{K}_f(R')$. Thus we have that,
     $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|$$
     where the implied constant $C$ is taken to be
-    $$C\geq 1+\frac{\log((13\,\zeta(3/2))/(3\,\zeta(3)))}{\log 3}.$$
+    $$C\geq 1+\frac{\log((13\,\zeta(3/2))/(3\,\zeta(3)))}{\log 2}.$$
 \end{proof}
 %%-/
 
@@ -464,7 +478,7 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[SumBoundI]\label{SumBoundI}\lean{SumBoundI}
-    For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$ we have
+    For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 2$ we have
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
 \end{lemma}
 %%-/
@@ -485,7 +499,7 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[ShiftTwoBound]\label{ShiftTwoBound}\lean{ShiftTwoBound}
-    For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$ we have
+    For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 2$ we have
     $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|t|.$$
 \end{lemma}
 %%-/
@@ -586,11 +600,18 @@ open Nat Filter
 
 /-%%
 \begin{theorem}[ZeroInequality]\label{ZeroInequality}\lean{ZeroInequality}
-    There exists a constant $0 < E<1$ such that for all $\rho=\sigma+it$ with $\zeta(\rho)=0$ and $|t|\geq 3$, one has
+    There exists a constant $0 < E<1$ such that for all $\rho=\sigma+it$ with $\zeta(\rho)=0$ and $|t|\geq 2$, one has
     $$\sigma\leq 1-\frac{E}{\log|t|}.$$
 \end{theorem}
 %%-/
-
+theorem ZeroInequality : ∃ (E : ℝ) (EinIoo : E ∈ Ioo (0 : ℝ) 1),
+    ∀ (ρ : ℂ) (σ t : ℝ),
+    ζ ρ = 0 →
+        σ = ρ.re →
+            t = ρ.im →
+                |t| ≥ 2 →
+                    σ ≤ 1 - E / log |t| := by
+    sorry
 /-%%
 \begin{proof}
 \uses{LogDerivativeDirichlet, ThreeFourOneTrigIdentity, ShiftZeroBound, ShiftOneBound, ShiftTwoBound}
@@ -605,7 +626,7 @@ open Nat Filter
     \end{align*}
     By Lemma \ref{ThreeFourOneTrigIdentity} we know that the series on the right hand side is bounded below by $0$, and by Lemmas \ref{ShiftTwoBound}, \ref{ShiftOneBound}, and \ref{ShiftZeroBound} we have an upper bound on the left hand side. So,
     $$0\leq\frac{3}{\delta}+3A-\frac{4}{1+\delta-\sigma}+4B\log|t|+C\log|t|$$
-    where $A$, $B$, and $C$ are the implied constants coming from Lemmas \ref{ShiftZeroBound}, \ref{ShiftOneBound}, and \ref{ShiftTwoBound} respectively. By choosing $D\geq 3A/\log 3+4B+C$ we have
+    where $A$, $B$, and $C$ are the implied constants coming from Lemmas \ref{ShiftZeroBound}, \ref{ShiftOneBound}, and \ref{ShiftTwoBound} respectively. By choosing $D\geq 3A/\log 2+4B+C$ we have
     $$\frac{4}{1+\delta-\sigma}\leq\frac{3}{\delta}+D\log|t|$$
     by some manipulation. Now if we choose $\delta=(2D\log|t|)^{-1}$ then we have
     $$\frac{4}{1-\sigma+1/(2D\log|t|)}\leq7D\log|t|.$$
@@ -618,29 +639,43 @@ open Nat Filter
 
 
 /-%%
-\begin{definition}[DeltaT]\label{DeltaT}\lean{DeltaT}
-    Let $\delta_t=E/\log|t|$ where $E$ is the constant coming from Theorem \ref{567}.
+\begin{definition}[DeltaT]\label{DeltaT}\lean{DeltaT}\leanok
+    Let $\delta_t=E/\log|t|$ where $E$ is the constant coming from Theorem \ref{ZeroInequality}.
 \end{definition}
 %%-/
+noncomputable def E : ℝ := ZeroInequality.choose
+lemma EinIoo : E ∈ Ioo (0 : ℝ) 1 := by
+    exact ZeroInequality.choose_spec.1
+theorem ZeroInequalitySpecialized : ∀ (ρ : ℂ) (σ t : ℝ),
+    ζ ρ = 0 →
+        σ = ρ.re →
+            t = ρ.im →
+                |t| ≥ 2 →
+                    σ ≤ 1 - E / log |t| :=
+    by exact ZeroInequality.choose_spec.2
+noncomputable def DeltaT (t : ℝ) : ℝ := E / log |t|
 
 
 
 /-%%
 \begin{lemma}[DeltaRange]\label{DeltaRange}\lean{DeltaRange}
-    For all $t\in\mathbb{R}$ with $|t|\geq 3$ we have that
-    $$\delta_t<1/28.$$
+    For all $t\in\mathbb{R}$ with $|t|\geq 2$ we have that
+    $$\delta_t<1/14.$$
 \end{lemma}
 %%-/
-
+lemma DeltaRange : ∀ (t : ℝ),
+    |t| ≥ 2 →
+        DeltaT t < (1 : ℝ) / 14 := by
+    sorry
 /-%%
 \begin{proof}
 \uses{ZeroInequality, ShiftZeroBound, ShiftOneBound, ShiftTwoBound, SumBoundI, LogDerivZetaFinalBound}
-    Note that $\delta_t=E/\log|t|$ where $E$ is the implied constant from Lemma \ref{ZeroInequality}. But we know that $E=(14D)^{-1}$ where $D\geq 3A/\log 3+4B+C$ where $A$, $B$, and $C$ are the constants coming from Lemmas \ref{ShiftZeroBound}, \ref{ShiftOneBound}, and \ref{ShiftTwoBound} respectively. Thus,
-    $$E\leq\frac{1}{14\,(3A/\log 3+4B+C)}.$$
+    Note that $\delta_t=E/\log|t|$ where $E$ is the implied constant from Lemma \ref{ZeroInequality}. But we know that $E=(14D)^{-1}$ where $D\geq 3A/\log 2+4B+C$ where $A$, $B$, and $C$ are the constants coming from Lemmas \ref{ShiftZeroBound}, \ref{ShiftOneBound}, and \ref{ShiftTwoBound} respectively. Thus,
+    $$E\leq\frac{1}{14\,(3A/\log 2+4B+C)}.$$
     But note that $A\geq 0$ and $B\geq 0$ by Lemmas \ref{ShiftZeroBound} and \ref{ShiftOneBound} respectively. However, we have that
-    $$C\geq 2+\frac{2\log((13\,\zeta(3/2))/(3\,\zeta(3)))}{\log 3}$$
+    $$C\geq 2+\frac{2\log((13\,\zeta(3/2))/(3\,\zeta(3)))}{\log 2}$$
     by Theorem \ref{LogDerivZetaFinalBound} with Lemmas \ref{SumBoundI} and \ref{ShiftTwoBound}. So, by a very lazy estimate we have $C\geq 2$ and $E\leq 1/28$. Thus,
-    $$\delta_t=\frac{E}{\log|t|}\leq\frac{1}{28\,\log3}<\frac{1}{28}.$$
+    $$\delta_t=\frac{E}{\log|t|}\leq\frac{1}{28\,\log2}<\frac{1}{14}.$$
 \end{proof}
 %%-/
 
@@ -648,7 +683,7 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[SumBoundII]\label{SumBoundII}\lean{SumBoundII}
-    For all $t\in\mathbb{R}$ with $|t|\geq 3$ and $z=\sigma+it$ where $1-\delta_t/3\leq\sigma\leq 3/2$, we have that
+    For all $t\in\mathbb{R}$ with $|t|\geq 2$ and $z=\sigma+it$ where $1-\delta_t/3\leq\sigma\leq 3/2$, we have that
     $$\left|\frac{\zeta'}{\zeta}(z)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{z-\rho}\right|\ll\log|t|.$$
 \end{lemma}
 %%-/
@@ -657,10 +692,10 @@ open Nat Filter
 \begin{proof}
 \uses{DeltaRange, LogDerivZetaFinalBound, ZeroInequality}
     By Lemma \ref{DeltaRange} we have that
-    $$-43/84<-1/2-\delta_t/3\leq\sigma-3/2\leq0.$$
+    $$-11/21<-1/2-\delta_t/3\leq\sigma-3/2\leq0.$$
     We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=5/6$, and $R=8/9$. Thus for all $z\in\overline{\mathbb{D}_{5/6}}\setminus\mathcal{K}_f(5/6)$ we have that
     $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
-    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$. Now if we let $z=\sigma-3/2$, then $z\in(-43/84,0)\subseteq\overline{\mathbb{D}_{5/6}}$. Additionally, $f(z)=\zeta(\sigma+it)$, where $\sigma+it$ lies in the zero free region given by Lemma \ref{ZeroInequality} since $\sigma\geq 1-\delta_t/3\geq 1-\delta_t$. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
+    where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$. Now if we let $z=\sigma-3/2$, then $z\in(-11/21,0)\subseteq\overline{\mathbb{D}_{5/6}}$. Additionally, $f(z)=\zeta(\sigma+it)$, where $\sigma+it$ lies in the zero free region given by Lemma \ref{ZeroInequality} since $\sigma\geq 1-\delta_t/3\geq 1-\delta_t$. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
     $$\left|\frac{\zeta'}{\zeta}(\sigma+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{\sigma-3/2-\rho}\right|\ll\log|t|.$$
     But now note that if $\rho\in\mathcal{K}_f(5/6)$, then $\zeta(\rho+3/2+it)=0$ and $|\rho|\leq 5/6$. Additionally, note that $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us that
     $$\left|\frac{\zeta'}{\zeta}(\sigma+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{\sigma+it-\rho}\right|\ll\log|t|.$$
@@ -671,7 +706,7 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[GapSize]\label{GapSize}\lean{GapSize}
-   Let $t\in\mathbb{R}$ with $|t|\geq 4$ and $z=\sigma+it$ where $1-\delta_t/3\leq\sigma\leq 3/2$. Additionally, let $\rho\in\mathcal{Z}_t$. Then we have that
+   Let $t\in\mathbb{R}$ with $|t|\geq 3$ and $z=\sigma+it$ where $1-\delta_t/3\leq\sigma\leq 3/2$. Additionally, let $\rho\in\mathcal{Z}_t$. Then we have that
    $$|z-\rho|\geq\delta_t/6.$$
 \end{lemma}
 %%-/
@@ -683,7 +718,7 @@ open Nat Filter
     $$\log|t'|\leq\log|t+5/6|\leq\log|2t|=\log 2+\log|t|\leq 2\log|t|.$$
     And otherwise if $t<-1$ we have
     $$\log|t'|\leq\log|t-5/6|\leq\log|2t|=\log 2+\log|t|\leq 2\log|t|.$$
-    So by taking reciprocals and multiplying through by a constant we have that $\delta_t\leq2\delta_{t'}$. Now note that since $\rho\in\mathcal{Z}_t$ we know that $\sigma'\leq 1-\delta_{t'}$ by Theorem \ref{ZeroInequality} (here we use the fact that $|t|\geq 4$ to give us that $|t'|\geq 3$). Thus,
+    So by taking reciprocals and multiplying through by a constant we have that $\delta_t\leq2\delta_{t'}$. Now note that since $\rho\in\mathcal{Z}_t$ we know that $\sigma'\leq 1-\delta_{t'}$ by Theorem \ref{ZeroInequality} (here we use the fact that $|t|\geq 3$ to give us that $|t'|\geq 2$). Thus,
     $$\delta_t/6\leq\delta_{t'}-\delta_t/3=1-\delta_t/3-(1-\delta_{t'})\leq\sigma-\sigma'\leq|z-\rho|.$$
 \end{proof}
 %%-/
@@ -692,12 +727,21 @@ open Nat Filter
 
 /-%%
 \begin{lemma}[LogDerivZetaUniformLogSquaredBoundStrip]\label{LogDerivZetaUniformLogSquaredBoundStrip}\lean{LogDerivZetaUniformLogSquaredBoundStrip}
-    There exists a constant $F\in(0,1/2)$ such that for all $t\in\mathbb{R}$ with $|t|\geq 4$ one has
+    There exists a constant $F\in(0,1/2)$ such that for all $t\in\mathbb{R}$ with $|t|\geq 3$ one has
     $$1-\frac{F}{\log|t|}\leq\sigma\leq 3/2\implies\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\ll\log^2|t|$$
     where the implied constant is uniform in $\sigma$.
 \end{lemma}
 %%-/
-
+lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (Fequ : F = E / 3) (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ (σ t : ℝ),
+    3 ≤ |t| →
+        σ ∈ Set.Icc (1 - F / Real.log |t|) (3 / 2) →
+            ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 := by
+    use E / 3
+    refine exists_prop.mpr ?_
+    constructor
+    ·   rfl
+    ·   sorry
 /-%%
 \begin{proof}
 \uses{ZeroInequality, SumBoundII, GapSize, ZetaFixedLowerBound, GlobalBound, ZerosBound}
@@ -714,9 +758,9 @@ open Nat Filter
     Thus we change variables to have that
     $$\left|\frac{\zeta'}{\zeta}(z)\right|\leq\frac{6}{\delta_t}\sum_{\rho'\in\mathcal{K}_f(5/6)}m_f(\rho')+C\,\log|t|.$$
     Now note that $f(0)=1$ and for $|z|\leq 8/9$ we have
-    $$|f(z)|=\frac{|\zeta(z+3/2+it)|}{|\zeta(3/2+it)|}\leq\frac{\zeta(3/2)}{\zeta(3)}\cdot(7+2\,|t|)\leq\frac{15\,\zeta(3/2)}{4\,\zeta(3)}\,|t|$$
+    $$|f(z)|=\frac{|\zeta(z+3/2+it)|}{|\zeta(3/2+it)|}\leq\frac{\zeta(3/2)}{\zeta(3)}\cdot(7+2\,|t|)\leq\frac{13\,\zeta(3/2)}{3\,\zeta(3)}\,|t|$$
     by Theorems \ref{ZetaFixedLowerBound} and \ref{GlobalBound}. Thus by Theorem \ref{ZerosBound} we have that
-    $$\sum_{\rho'\in\mathcal{K}_f(5/6)}m_f(\rho')\leq\frac{\log|t|+\log(15\,\zeta(3/2)/(4\,\zeta(3)))}{\log((8/9)/(5/6))}\leq D\log|t|$$
+    $$\sum_{\rho'\in\mathcal{K}_f(5/6)}m_f(\rho')\leq\frac{\log|t|+\log(13\,\zeta(3/2)/(3\,\zeta(3)))}{\log((8/9)/(5/6))}\leq D\log|t|$$
     where $D$ is taken to be sufficiently large. Recall, by definition that, $\delta_t=E/\log|t|$ with $E$ coming from Theorem \ref{ZeroInequality}. By using this fact and the above, we have that
     $$\left|\frac{\zeta'}{\zeta}(z)\right|\ll\log^2|t|+\log|t|$$
     where the implied constant is taken to be bigger than $\max(6D/E,C)$. We know that the RHS is bounded above by $\ll\log^2|t|$; so the result follows.
@@ -725,14 +769,37 @@ open Nat Filter
 
 
 
+noncomputable def F : ℝ := LogDerivZetaUniformLogSquaredBoundStrip.choose
+lemma Fequ : F = E / 3 := by
+    exact LogDerivZetaUniformLogSquaredBoundStrip.choose_spec.1
+lemma LogDerivZetaUniformLogSquaredBoundStripSpec : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ (σ t : ℝ),
+    3 ≤ |t| →
+        σ ∈ Set.Icc (1 - F / Real.log |t|) (3 / 2) →
+            ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * (Real.log |t|) ^ 2 :=
+    by exact LogDerivZetaUniformLogSquaredBoundStrip.choose_spec.2
+lemma FLogTtoDeltaT : ∀ (t : ℝ),
+    DeltaT t / 3 = F / Real.log |t| := by
+    unfold DeltaT
+    rw [Fequ]
+    ring_nf
+    exact fun t ↦ trivial
+
+
+
 /-%%
 \begin{theorem}[LogDerivZetaUniformLogSquaredBound]\label{LogDerivZetaUniformLogSquaredBound}\lean{LogDerivZetaUniformLogSquaredBound}
-    There exists a constant $F\in(0,1/2)$ such that for all $t\in\mathbb{R}$ with $|t|\geq 4$ one has
+    There exists a constant $F\in(0,1/2)$ such that for all $t\in\mathbb{R}$ with $|t|\geq 3$ one has
     $$1-\frac{F}{\log|t|}\leq\sigma\implies\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\ll\log^2|t|$$
     where the implied constant is uniform in $\sigma$.
 \end{theorem}
 %%-/
-
+theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ (σ t : ℝ),
+    3 < |t| →
+        σ ∈ Set.Ici (1 - F / Real.log |t|) →
+            ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
+    sorry
 /-%%
 \begin{proof}
 \ uses{riemannZetaLogDerivResidue, LogDerivZetaUniformLogSquaredBoundStrip}
@@ -746,19 +813,26 @@ open Nat Filter
 \end{proof}
 %%-/
 
+
+
 /-%%
 \begin{theorem}[LogDerivZetaLogSquaredBoundSmallt]\label{LogDerivZetaLogSquaredBoundSmallt}\lean{LogDerivZetaLogSquaredBoundSmallt}
     For $T>0$ and $\sigma'=1-\delta_T/3=1-F/\log T$, if $|t|\leq T$ then we have that
     $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\ll\log^2(2+T).$$
 \end{theorem}
 %%-/
-
+theorem LogDerivZetaLogSquaredBoundSmallt : ∃ (C : ℝ) (Cnonneg : C ≥ 0),
+    ∀ (σ t T : ℝ) (Tpos: T > 0),
+    |t| ≤ T →
+        σ = 1 - F / Real.log T →
+            ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log (2 + T) ^ 2 := by
+    sorry
 /-%%
 \begin{proof}
 \uses{LogDerivZetaUniformLogSquaredBound, riemannZetaLogDerivResidue}
-    Note that if $|t|\geq 4$ then from Theorem \ref{LogDerivZetaUniformLogSquaredBound} we have that
+    Note that if $|t|\geq 3$ then from Theorem \ref{LogDerivZetaUniformLogSquaredBound} we have that
     $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\ll\log^2|t|\leq\log^2T\leq\log^2(2+T).$$
-    Otherwise, if $|t|\leq 4$, then from Theorem \ref{riemannZetaLogDerivResidue} and applying the triangle inequality we know
+    Otherwise, if $|t|\leq 3$, then from Theorem \ref{riemannZetaLogDerivResidue} and applying the triangle inequality we know
     $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\leq\frac{1}{|(\sigma'-1)+it|}+C\leq\frac{\log T}{F}+C$$
     where $C\geq 0$. Thus, we have that
     $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\leq\left(\frac{\log T}{F\,\log 2}+\frac{C}{\log 2}\right)\,\log(2+|t|)\leq\left(\frac{\log(2+T)}{F\,\log 2}+\frac{C}{\log 2}\right)\log(2+T)\ll\log^2(2+T).$$
@@ -770,7 +844,7 @@ open Nat Filter
 /-%%
 From here out we closely follow our previous proof of the Medium PNT and we modify it using our new estimate in Theorem \ref{LogDerivZetaUniformLogSquaredBound}. Recall Definition \ref{SmoothedChebyshev}; for fixed $\varepsilon>0$ and a bump function $\nu$ supported on $[1/2,2]$ we have
 $$\psi_\varepsilon(X)=\frac{1}{2\pi i}\int_{(\sigma)}\left(-\frac{\zeta'}{\zeta}(s)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(s)\,X^s\,ds$$
-where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and we take $\sigma'=1-\delta_T/3=1-F/\log T$ with $F$ coming from Theorem \ref{LogDerivZetaUniformLogSquaredBound}. We integrate along the $\sigma$ vertical line, and we pull contours  accumulating the pole at $s=1$ when we integrate along the curves
+where $\sigma=1+1/\log X$. Let $T>3$ be a large constant to be chosen later, and we take $\sigma'=1-\delta_T/3=1-F/\log T$ with $F$ coming from Theorem \ref{LogDerivZetaUniformLogSquaredBound}. We integrate along the $\sigma$ vertical line, and we pull contours  accumulating the pole at $s=1$ when we integrate along the curves
 \begin{itemize}
     \item $I_1$: $\sigma-i\infty$ to $\sigma-iT$
     \item $I_2$: $\sigma'-iT$ to $\sigma-iT$
@@ -783,35 +857,26 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 
 
 /-%%
-\begin{theorem}[SmoothedChebyshevPull3]\label{SmoothedChebyshevPull3}\lean{SmoothedChebyshevPull3}
-    We have that
-    $$\psi_\varepsilon(X)=\mathcal{M}(\tilde{1}_\varepsilon)(1)\,X^1+I_1-I_2+I_3+I_4+I_5.$$
-\end{theorem}
-%%-/
-
-/-%%
-\begin{proof}
-    Pull contours and accumulate the pole of $\zeta'/\zeta$ at $s=1$.
-\end{proof}
-%%-/
-
-
-
-/-%%
-\begin{definition}[I1New]\label{I1New}\lean{I1New}
+\begin{definition}[I1New]\label{I1New}\lean{I1New}\leanok
     Let
     $$I_1(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{-\infty}^{-T}\left(-\frac{\zeta'}{\zeta}(\sigma+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)\,X^{\sigma+it}\,dt.$$
 \end{definition}
 %%-/
+noncomputable def I1New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * (I * (∫ t : ℝ in Iic (-T),
+      SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
 
 
 
 /-%%
-\begin{definition}[I5New]\label{I5New}\lean{I5New}
+\begin{definition}[I5New]\label{I5New}\lean{I5New}\leanok
     Let
     $$I_5(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_T^\infty\left(-\frac{\zeta'}{\zeta}(\sigma+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma+it)\,X^{\sigma+it}\,dt.$$
 \end{definition}
 %%-/
+noncomputable def I5New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * (I * (∫ t : ℝ in Ici T,
+      SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
 
 
 
@@ -821,7 +886,12 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
     $$|I_1(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
 %%-/
-
+lemma I1NewBound {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    ‖I1New SmoothingF ε X T‖ ≤ C * (X / (ε * Real.sqrt T)) := by
+    sorry
 /-%%
 \begin{proof}
 \uses{LogDerivZetaUniformLogSquaredBound, MellinOfSmooth1b}
@@ -835,14 +905,36 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 
 
 /-%%
-\begin{lemma}[I5NewBound]\label{I5NewBound}\lean{I5NewBound}
+\begin{lemma}[I5NewBound]\label{I5NewBound}\lean{I5NewBound}\leanok
     We have that
     $$|I_5(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
 %%-/
-
+lemma I5NewBound {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    ‖I5New SmoothingF ε X T‖ ≤ C * (X / (ε * Real.sqrt T)) := by
+    obtain ⟨C, Cnonneg, hI1NewBound⟩ := I1NewBound suppSmoothingF ContDiffSmoothingF
+    use C, Cnonneg
+    intro ε X T εinIoo Xgt3 Tgt3
+    have I1NewI5New : I5New SmoothingF ε X T = conj (I1New SmoothingF ε X T) := by
+        unfold I1New I5New
+        simp only [map_mul, map_div₀, conj_I, conj_ofReal, conj_ofNat, map_one]
+        rw [neg_mul, mul_neg, ← neg_mul]
+        congr
+        ·   ring
+        ·   rw [← integral_conj, ← integral_comp_neg_Ioi, integral_Ici_eq_integral_Ioi]
+            apply setIntegral_congr_fun <| measurableSet_Ioi
+            intro x hx
+            simp only []
+            rw[← smoothedChebyshevIntegrand_conj (by linarith)]
+            simp only [ofReal_inv, ofReal_neg, neg_mul, map_add, map_one, map_inv₀, conj_ofReal,
+              map_neg, map_mul, conj_I, mul_neg, neg_neg]
+    rw[I1NewI5New, RCLike.norm_conj]
+    exact hI1NewBound εinIoo Xgt3 Tgt3
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{I1NewBound}
     By symmetry, note that
     $$|I_1(\nu,\varepsilon,X,T)|=|\overline{I_5(\nu,\varepsilon,X,T)}|=|I_5(\nu,\varepsilon,X,T)|.$$
@@ -853,20 +945,26 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 
 
 /-%%
-\begin{definition}[I2New]\label{I2New}\lean{I2New}
+\begin{definition}[I2New]\label{I2New}\lean{I2New}\leanok
     Let
     $$I_2(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0-iT)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0-iT)\,X^{\sigma_0-iT}\,d\sigma_0.$$
 \end{definition}
 %%-/
+noncomputable def I2New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * ((∫ σ₀ in σ'..(1 + (Real.log X)⁻¹),
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ - T * I)))
 
 
 
 /-%%
-\begin{definition}[I4New]\label{I4New}\lean{I4New}
+\begin{definition}[I4New]\label{I4New}\lean{I4New}\leanok
     Let
     $$I_4(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{\sigma'}^\sigma\left(-\frac{\zeta'}{\zeta}(\sigma_0+iT)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma_0+iT)\,X^{\sigma_0+iT}\,d\sigma_0.$$
 \end{definition}
 %%-/
+noncomputable def I4New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * ((∫ σ₀ in σ'..(1 + (Real.log X)⁻¹),
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + T * I)))
 
 
 
@@ -876,7 +974,13 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
     $$|I_2(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
 %%-/
-
+lemma I2NewBound {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    let σ' := 1 - F / Real.log T
+    ‖I2New SmoothingF ε X T σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
+    sorry
 /-%%
 \begin{proof}
 \uses{LogDerivZetaUniformLogSquaredBound, MellinOfSmooth1b}
@@ -893,14 +997,35 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 
 
 /-%%
-\begin{lemma}[I4NewBound]\label{I4NewBound}\lean{I4NewBound}
+\begin{lemma}[I4NewBound]\label{I4NewBound}\lean{I4NewBound}\leanok
     We have that
     $$|I_4(\nu,\varepsilon,X,T)|\ll\frac{X}{\varepsilon\sqrt{T}}.$$
 \end{lemma}
 %%-/
-
+lemma I4NewBound {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    let σ' := 1 - F / Real.log T
+    ‖I4New SmoothingF ε X T σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
+    obtain ⟨C, Cnonneg, hI2NewBound⟩ := I2NewBound suppSmoothingF ContDiffSmoothingF
+    use C, Cnonneg
+    intro ε X T εinIoo Xgt3 Tgt3 σ'
+    have I2NewI4New : I4New SmoothingF ε X T σ' = -conj (I2New SmoothingF ε X T σ') := by
+        unfold I2New I4New
+        simp only [map_mul, map_div₀, conj_I, conj_ofReal, conj_ofNat, map_one]
+        rw [mul_neg, div_neg, neg_mul_comm, ← mul_neg]
+        congr
+        rw [← intervalIntegral_conj, neg_neg]
+        apply intervalIntegral.integral_congr
+        intro x hx
+        simp only []
+        rw[← smoothedChebyshevIntegrand_conj (by linarith)]
+        simp only [map_sub, conj_ofReal, map_mul, conj_I, mul_neg, sub_neg_eq_add]
+    rw[I2NewI4New, norm_neg, RCLike.norm_conj]
+    exact hI2NewBound εinIoo Xgt3 Tgt3
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{I2NewBound}
     By symmetry, note that
     $$|I_2(\nu,\varepsilon,X,T)|=|\overline{I_4(\nu,\varepsilon,X,T)}|=|I_4(\nu,\varepsilon,X,T)|.$$
@@ -911,11 +1036,14 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
 
 
 /-%%
-\begin{definition}[I3New]\label{I3New}\lean{I3New}
+\begin{definition}[I3New]\label{I3New}\lean{I3New}\leanok
     Let
     $$I_3(\nu,\varepsilon,X,T)=\frac{1}{2\pi i}\int_{-T}^T\left(-\frac{\zeta'}{\zeta}(\sigma'+it)\right)\,\mathcal{M}(\tilde{1}_\varepsilon)(\sigma'+it)\,X^{\sigma'+it}\,dt.$$
 \end{definition}
 %%-/
+noncomputable def I3New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
+  (1 / (2 * π * I)) * (I * (∫ t in (-T)..T,
+    SmoothedChebyshevIntegrand SmoothingF ε X (σ' + t * I)))
 
 
 
@@ -925,7 +1053,13 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
     $$|I_3(\nu,\varepsilon,X,T)|\ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}.$$
 \end{lemma}
 %%-/
-
+lemma I3NewBound {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    let σ' := 1 - F / Real.log T
+    ‖I3New SmoothingF ε X T σ'‖ ≤ C * (X ^ (1 - F / Real.log T) * Real.sqrt T) / ε := by
+    sorry
 /-%%
 \begin{proof}
 \uses{LogDerivZetaLogSquaredBoundSmallt, MellinOfSmooth1b, DeltaRange}
@@ -934,10 +1068,189 @@ where $\sigma=1+1/\log X$. Let $T>4$ be a large constant to be chosen later, and
     Applying Theorem \ref{LogDerivZetaLogSquaredBoundSmallt} and Lemma \ref{MellinOfSmooth1b}, we have that
     $$|I_3(\nu,\varepsilon,X,T)|\ll\int_{-T}^T\log^2(2+T)\cdot\frac{X^{\sigma'}}{\varepsilon\,|\sigma'+it|^2}\,dt\ll\frac{X^{1-F/\log T}\,\sqrt{T}}{\varepsilon}\int_0^T\frac{dt}{|\sigma'+it|^2}.$$
     Here we are using the fact that this integrand is symmetric in $t$ about $0$ and that $\log^2(2+T)\ll\sqrt{T}$ for sufficiently large $T$. Now note that, by Lemma \ref{DeltaRange}, we have
-    $$\frac{1}{|\sigma'+it|^2}=\frac{1}{(1-\delta_T/3)^2+t^2}<\frac{1}{(83/84)^2+t^2}.$$
+    $$\frac{1}{|\sigma'+it|^2}=\frac{1}{(1-\delta_T/3)^2+t^2}<\frac{1}{(41/42)^2+t^2}.$$
     Thus,
-    $$|I_3(\nu,\varepsilon,X,T)|\ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^T\frac{dt}{|\sigma'+it|^2}\leq\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^\infty\frac{dt}{(83/84)^2+t^2}.$$
-    The integral on the right hand side evaluates to $42\pi/83$, which is just a constant, so the desired result follows.
+    $$|I_3(\nu,\varepsilon,X,T)|\ll\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^T\frac{dt}{|\sigma'+it|^2}\leq\frac{X^{1-F/\log T}\sqrt{T}}{\varepsilon}\int_0^\infty\frac{dt}{(41/42)^2+t^2}.$$
+    The integral on the right hand side evaluates to $21\pi/41$, which is just a constant, so the desired result follows.
+\end{proof}
+%%-/
+
+
+
+/-%%
+\begin{theorem}[SmoothedChebyshevPull3]\label{SmoothedChebyshevPull3}\lean{SmoothedChebyshevPull3}\leanok
+    We have that
+    $$\psi_\varepsilon(X)=\mathcal{M}(\tilde{1}_\varepsilon)(1)\,X^1+I_1-I_2+I_3+I_4+I_5.$$
+\end{theorem}
+%%-/
+theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0 < ε)
+    (ε_lt_one : ε < 1)
+    (X : ℝ) (X_gt : 3 < X)
+    {T : ℝ} (T_pos : 0 < T) {σ' : ℝ}
+    (σ'_pos : 0 < σ') (σ'_lt_one : σ' < 1)
+    (holoOn : HolomorphicOn (ζ' / ζ) ((Icc σ' 2) ×ℂ (Icc (-T) T) \ {1}))
+    (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
+    (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
+    (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
+    SmoothedChebyshev SmoothingF ε X =
+      I1New SmoothingF ε X T -
+      I2New SmoothingF ε T X σ' +
+      I3New SmoothingF ε T X σ' +
+      I4New SmoothingF ε T X σ' +
+      I5New SmoothingF ε X T
+      + 𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) 1 * X := by
+    unfold SmoothedChebyshev VerticalIntegral'
+    have X_eq_gt_one : 1 < 1 + (Real.log X)⁻¹ := by
+        nth_rewrite 1 [← add_zero 1]
+        bound
+    have X_eq_lt_two : (1 + (Real.log X)⁻¹) < 2 := by
+        rw[← one_add_one_eq_two]
+        gcongr
+        exact inv_lt_one_of_one_lt₀ <| logt_gt_one X_gt.le
+    have X_eq_le_two : 1 + (Real.log X)⁻¹ ≤ 2 := X_eq_lt_two.le
+    rw [verticalIntegral_split_three (a := -T) (b := T)]
+    swap
+    ·   exact SmoothedChebyshevPull1_aux_integrable ε_pos ε_lt_one X_gt X_eq_gt_one
+            X_eq_le_two suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
+    ·   have temp : ↑(1 + (Real.log X)⁻¹) = (1 : ℂ) + ↑(Real.log X)⁻¹ := by simp
+        unfold I1New
+        simp only [smul_eq_mul, mul_add, temp, sub_eq_add_neg, add_assoc, add_left_cancel_iff]
+        unfold I5New
+        nth_rewrite 6 [add_comm]
+        simp only [← add_assoc]
+        rw[add_right_cancel_iff, ← add_right_inj (1 / (2 * ↑π * I) *
+            -VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) (1 + (Real.log X)⁻¹) (-T) T),
+            ← mul_add, ← sub_eq_neg_add, sub_self, mul_zero]
+        unfold VIntegral I2New I3New I4New
+        simp only [smul_eq_mul, temp, ← add_assoc, ← mul_neg, ← mul_add]
+        let fTempRR : ℝ → ℝ → ℂ := fun x ↦ fun y ↦
+            SmoothedChebyshevIntegrand SmoothingF ε X ((x : ℝ) + (y : ℝ) * I)
+        let fTempC : ℂ → ℂ := fun z ↦ fTempRR z.re z.im
+        have : ∫ (y : ℝ) in -T..T,
+            SmoothedChebyshevIntegrand SmoothingF ε X (1 + ↑(Real.log X)⁻¹ + ↑y * I) =
+            ∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y := by
+            unfold fTempRR
+            simp only [temp]
+        rw[this]
+        have : ∫ (σ₀ : ℝ) in σ'..1 + (Real.log X)⁻¹,
+            SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₀ - ↑T * I) =
+            ∫ (x : ℝ) in σ'..1 + (Real.log X)⁻¹, fTempRR x (-T) := by
+            unfold fTempRR
+            simp only [ofReal_neg, neg_mul, sub_eq_add_neg]
+        rw[this]
+        have : ∫ (t : ℝ) in -T..T,
+            SmoothedChebyshevIntegrand SmoothingF ε X (↑σ' + ↑t * I) =
+            ∫ (y : ℝ) in -T..T, fTempRR σ' y := by rfl
+        rw[this]
+        have : ∫ (σ₀ : ℝ) in σ'..1 + (Real.log X)⁻¹,
+            SmoothedChebyshevIntegrand SmoothingF ε X (↑σ₀ + ↑T * I) =
+            ∫ (x : ℝ) in σ'..1 + (Real.log X)⁻¹, fTempRR x T := by rfl
+        rw[this]
+        have : (((I * -∫ (y : ℝ) in -T..T, fTempRR (1 + (Real.log X)⁻¹) y) +
+            -∫ (x : ℝ) in σ'..1 + (Real.log X)⁻¹, fTempRR x (-T)) +
+            I * ∫ (y : ℝ) in -T..T, fTempRR σ' y) +
+            ∫ (x : ℝ) in σ'..1 + (Real.log X)⁻¹, fTempRR x T =
+            -(2 * ↑π * I) * RectangleIntegral' fTempC (σ' - T * I) (1 + ↑(Real.log X)⁻¹ + T * I) := by
+            unfold RectangleIntegral' RectangleIntegral HIntegral VIntegral fTempC
+            simp only [mul_neg, one_div, mul_inv_rev, inv_I, neg_mul, sub_im, ofReal_im, mul_im,
+              ofReal_re, I_im, mul_one, I_re, mul_zero, add_zero, zero_sub, ofReal_neg, add_re,
+              neg_re, mul_re, sub_self, neg_zero, add_im, neg_im, zero_add, sub_re, sub_zero,
+              ofReal_inv, one_re, inv_re, normSq_ofReal, div_self_mul_self', one_im, inv_im,
+              zero_div, ofReal_add, ofReal_one, smul_eq_mul, neg_neg]
+            ring_nf
+            simp only [I_sq, neg_mul, one_mul, ne_eq, ofReal_eq_zero, pi_ne_zero, not_false_eq_true,
+              mul_inv_cancel_right₀, sub_neg_eq_add, I_pow_three]
+            ring_nf
+        rw[this]
+        field_simp
+        rw[mul_comm, eq_comm, neg_add_eq_zero]
+
+        have pInRectangleInterior : (Rectangle (σ' - ↑T * I) (1 + (Real.log X)⁻¹ + T * I) ∈ nhds 1) := by
+            refine rectangle_mem_nhds_iff.mpr ?_
+            refine mem_reProdIm.mpr ?_
+            simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+                sub_zero, ofReal_inv, add_re, one_re, inv_re, normSq_ofReal, div_self_mul_self', add_zero,
+                sub_im, mul_im, zero_sub, add_im, one_im, inv_im, neg_zero, zero_div, zero_add]
+            constructor
+            ·   unfold uIoo
+                rw [min_eq_left (by linarith), max_eq_right (by linarith)]
+                exact mem_Ioo.mpr ⟨σ'_lt_one, (by linarith)⟩
+            ·   unfold uIoo
+                rw [min_eq_left (by linarith), max_eq_right (by linarith)]
+                exact mem_Ioo.mpr ⟨(by linarith), (by linarith)⟩
+
+        apply ResidueTheoremOnRectangleWithSimplePole'
+        ·   simp; linarith
+        ·   simp; linarith
+        ·   simp only [one_div]
+            exact pInRectangleInterior
+        ·   apply DifferentiableOn.mul
+            ·   apply DifferentiableOn.mul
+                ·   simp only [re_add_im]
+                    have : (fun z ↦ -ζ' z / ζ z) = -(ζ' / ζ) := by ext; simp; ring
+                    rw [this]
+                    apply DifferentiableOn.neg
+                    apply holoOn.mono
+                    apply diff_subset_diff_left
+                    apply reProdIm_subset_iff'.mpr
+                    left
+                    simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+                        sub_zero, one_div, ofReal_inv, add_re, one_re, inv_re, normSq_ofReal,
+                        div_self_mul_self', add_zero, sub_im, mul_im, zero_sub, add_im, one_im, inv_im,
+                        neg_zero, zero_div, zero_add]
+                    constructor <;> apply uIcc_subset_Icc <;> constructor <;> linarith
+                ·   intro s hs
+                    apply DifferentiableAt.differentiableWithinAt
+                    simp only [re_add_im]
+                    apply Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one
+                    have := mem_reProdIm.mp hs.1 |>.1
+                    simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+                        sub_zero, one_div, ofReal_inv, add_re, one_re, inv_re, normSq_ofReal,
+                        div_self_mul_self', add_zero] at this
+                    rw [uIcc_of_le (by linarith)] at this
+                    linarith [this.1]
+            ·   intro s hs
+                apply DifferentiableAt.differentiableWithinAt
+                simp only [re_add_im]
+                apply DifferentiableAt.const_cpow (by fun_prop)
+                left
+                norm_cast
+                linarith
+        ·   let U : Set ℂ := Rectangle (σ' - ↑T * I) (1 + (Real.log X)⁻¹ + T * I)
+            let f : ℂ → ℂ := fun z ↦ -ζ' z / ζ z
+            let g : ℂ → ℂ := fun z ↦ 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) z * ↑X ^ z
+            unfold fTempC fTempRR SmoothedChebyshevIntegrand
+            simp only [re_add_im]
+            have g_holc : HolomorphicOn g U := by
+                intro u uInU
+                apply DifferentiableAt.differentiableWithinAt
+                simp only [g]
+                apply DifferentiableAt.mul
+                ·   apply Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one
+                    simp only [ofReal_inv, U] at uInU
+                    unfold Rectangle at uInU
+                    rw[Complex.mem_reProdIm] at uInU
+                    have := uInU.1
+                    simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+                        sub_zero, add_re, one_re, inv_re, normSq_ofReal, div_self_mul_self', add_zero] at this
+                    rw [uIcc_of_le (by linarith)] at this
+                    linarith [this.1]
+                ·   unfold HPow.hPow instHPow
+                    apply DifferentiableAt.const_cpow differentiableAt_fun_id
+                    left
+                    norm_cast
+                    linarith
+            have f_near_p : (f - fun (z : ℂ) => 1 * (z - 1)⁻¹) =O[nhdsWithin 1 {1}ᶜ] (1 : ℂ → ℂ) := by
+                simp only [one_mul, f]
+                exact riemannZetaLogDerivResidueBigO
+            convert ResidueMult g_holc pInRectangleInterior f_near_p using 1
+            ext
+            simp [f, g]
+            ring
+/-%%
+\begin{proof}\leanok
+    Pull contours and accumulate the pole of $\zeta'/\zeta$ at $s=1$.
 \end{proof}
 %%-/
 
