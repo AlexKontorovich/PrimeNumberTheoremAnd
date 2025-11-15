@@ -52,7 +52,7 @@ lemma fourierIntegral_deriv_aux2 (e : ℝ →ᵇ ℂ) {f : ℝ → ℂ} (hf : In
 end lemmas
 
 theorem fourierIntegral_self_add_deriv_deriv (f : W21) (u : ℝ) :
-    (1 + u ^ 2) * 𝓕 f u = 𝓕 (fun u => f u - (1 / (4 * π ^ 2)) * deriv^[2] f u) u := by
+    (1 + u ^ 2) * 𝓕 (f : ℝ → ℂ) u = 𝓕 (fun u : ℝ => (f u - (1 / (4 * π ^ 2)) * deriv^[2] f u : ℂ)) u := by
   have l1 : Integrable (fun x => (((π : ℂ) ^ 2)⁻¹ * 4⁻¹) * deriv (deriv f) x) := by
     apply Integrable.const_mul ; simpa [iteratedDeriv_succ] using f.integrable le_rfl
   have l4 : Differentiable ℝ f := f.differentiable

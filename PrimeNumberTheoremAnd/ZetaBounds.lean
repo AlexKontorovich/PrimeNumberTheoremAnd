@@ -1290,7 +1290,7 @@ lemma integrable_log_over_pow {r : ℝ} (rneg : r < 0) {N : ℕ} (Npos : 0 < N) 
     have := hx₀ y y_gt
     simp only [Real.norm_eq_abs] at this
     rw [← mul_assoc, mul_comm C, mul_assoc]
-    exact mul_le_mul_of_nonneg_left (h := this) (a := |y ^ (r - 1)|) (a0 := by simp)
+    exact mul_le_mul_of_nonneg_left (hbc := this) (a := |y ^ (r - 1)|) (ha := by simp)
   · have := integrableOn_Ioi_rpow_iff (s := r / 2 - 1) (t := N) (by simp [Npos]) |>.mpr
       (by linarith [rneg])
     exact integrableOn_Ioi_iff_integrableAtFilter_atTop_nhdsWithin.mp this |>.1
@@ -2724,7 +2724,9 @@ lemma ZetaInvBound2 :
     <;> exact abs_eq_self.mpr <| Real.rpow_nonneg (norm_nonneg _) _
   · have bnd1: ‖ζ σ‖ ^ (3 / 4 : ℝ) ≤ ((σ - 1) / c) ^ (-(3 : ℝ) / 4) := by
       have : ((σ - 1) / c) ^ (-(3 : ℝ) / 4) = (((σ - 1) / c) ^ (-1 : ℝ)) ^ (3 / 4 : ℝ) := by
-        rw [← Real.rpow_mul ?_]; ring_nf; exact div_nonneg (by linarith) hc.le
+        rw [← Real.rpow_mul ?_]
+        · ring_nf
+        · exact div_nonneg (by linarith) hc.le
       rw [this]
       apply Real.rpow_le_rpow (by simp [norm_nonneg]) ?_ (by norm_num)
       convert h_inv σ ⟨σ_gt, σ_le⟩ using 1; simp [Real.rpow_neg_one, inv_div]
@@ -3064,11 +3066,11 @@ lemma ZetaLowerBnd :
   have right_sub :  -‖ζ (σ + t * I) -  ζ (σ' + t * I)‖ ≥ - C₂ * Real.log |t| ^ 2 * (σ' - σ) := by
     change - C₂ * Real.log |t| ^ 2 * (σ' - σ) ≤ -‖ζ (σ + t * I) -  ζ (σ' + t * I)‖
     have := hC₂ σ σ' t L ?_ ?_ ?_
-    convert neg_le_neg this using 1
-    · ring
-    · congr! 1
-      have : ζ (↑σ + ↑t * I) - ζ (↑σ' + ↑t * I) = - (ζ (↑σ' + ↑t * I) - ζ (↑σ + ↑t * I)) := by ring
-      rw [this, norm_neg]
+    · convert neg_le_neg this using 1
+      · ring
+      · congr! 1
+        have : ζ (↑σ + ↑t * I) - ζ (↑σ' + ↑t * I) = - (ζ (↑σ' + ↑t * I) - ζ (↑σ + ↑t * I)) := by ring
+        rw [this, norm_neg]
     · have : 1 - A' / Real.log |t| ≤ 1 - A / (Real.log |t|) ^ 9 := by
         gcongr
         · exact hA'.1.le
@@ -3313,7 +3315,7 @@ lemma ZetaNoZerosInBox (T : ℝ) :
 
   have σTo1 : Filter.Tendsto σ' Filter.atTop (𝓝 1) := by
     use sub_zero (1: ℝ)▸tendsto_order.2 ⟨fun A B=>? _,fun A B=>?_⟩
-    · apply(((tendsto_inverse_atTop_nhds_zero_nat.comp (Filter.tendsto_add_atTop_nat (1))).congr (by norm_num)).const_sub 1).eventually_const_lt B|>.mono (hσ'_ge ·|>.trans_lt')
+    · apply(((tendsto_inv_atTop_nhds_zero_nat.comp (Filter.tendsto_add_atTop_nat (1))).congr (by norm_num)).const_sub 1).eventually_const_lt B|>.mono (hσ'_ge ·|>.trans_lt')
     · norm_num[(hσ'_le _).trans_lt, B.trans_le']
 
   have : ∃ (t₀ : ℝ) (subseq : ℕ → ℕ),

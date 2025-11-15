@@ -15,7 +15,7 @@ import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.SelbergBounds
 
 open Sieve SelbergSieve BoundingSieve
 open Filter Asymptotics
-open scoped Nat ArithmeticFunction BigOperators
+open scoped Nat ArithmeticFunction BigOperators ArithmeticFunction.zeta ArithmeticFunction.omega
 
 noncomputable section
 namespace BrunTitchmarsh
@@ -173,8 +173,8 @@ theorem abs_rem_le {d : ℕ} (hd : d ≠ 0) :
     rw [Nat.cast_sub]
     gcongr
     rw [Nat.le_floor_iff, ← add_le_add_iff_right 1]
-    rw_mod_cast [Nat.sub_add_cancel (by simp [hx])]
-    linarith [Nat.ceil_le_self_add_one x (le_of_lt hx)]
+    · rw_mod_cast [Nat.sub_add_cancel (by simp [hx])]
+      linarith [Nat.ceil_le_self_add_one x (le_of_lt hx)]
     linarith
   rw [hpush]
   obtain ⟨C₁, hC₁_le, hC₁⟩ := floor_div_approx (x + y) (by linarith) d
