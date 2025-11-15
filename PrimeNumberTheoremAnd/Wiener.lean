@@ -640,7 +640,7 @@ lemma summable_inv_mul_log_sq : Summable (fun n : ℕ => (n * (Real.log n) ^ 2)�
   apply (summable_condensed_iff_of_nonneg l4 (fun _ _ _ a ↦ l2 a)).mp
   suffices this : ∀ᶠ k : ℕ in atTop, 2 ^ k * v (2 ^ k) = ((k : ℝ) ^ 2)⁻¹ * ((Real.log 2) ^ 2)⁻¹ by
     exact (summable_congr_ae this).mpr <| (Real.summable_nat_pow_inv.mpr one_lt_two).mul_right _
-  have l5 : ∀ᶠ k in atTop, v (2 ^ k) = u (2 ^ k) := l3.comp_tendsto <| Nat.tendsto_pow_atTop_atTop_of_one_lt Nat.le.refl
+  have l5 : ∀ᶠ k in atTop, v (2 ^ k) = u (2 ^ k) := l3.comp_tendsto <| tendsto_pow_atTop_atTop_of_one_lt Nat.le.refl
   filter_upwards [l5, l8] with k l5 l8
   simp only [l5, mul_inv_rev, Nat.cast_pow, Nat.cast_ofNat, log_pow, u]
   field_simp
@@ -1260,7 +1260,9 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
     apply IntegrableOn.intervalIntegrable
     simp only [le_add_iff_nonneg_right, zero_le_one, uIcc_of_le]
     apply hfi.mono_set
-    apply Icc_subset_Icc ; linarith ; simp
+    apply Icc_subset_Icc
+    · linarith
+    · simp
   have l5 x (hx : x ∈ Ioc x₀ (x₀ + 1)) : (fun x ↦ f (x₀ + 1)) x ≤ f x := by
     rcases hx with ⟨hx1, hx2⟩
     refine hf ⟨hx1, by linarith⟩ ⟨by linarith, by linarith⟩ hx2
@@ -1582,7 +1584,7 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
     convert (mul_lt_mul_iff_left₀ this).mpr hRψ using 1 ; field_simp
 
   -- Conclude the proof
-  have S1_sub_1 x : 𝓕 (⇑ψ - ⇑(Ψ R)) x = 𝓕 (ψ : ℝ → ℂ) x - 𝓕 (Ψ R) x := by
+  have S1_sub_1 x : 𝓕 (⇑ψ - ⇑(Ψ R)) x = 𝓕 (ψ : ℝ → ℂ) x - 𝓕 ⇑(Ψ R) x := by
     have l1 : AEStronglyMeasurable (fun x_1 : ℝ ↦ cexp (-(2 * ↑π * (↑x_1 * ↑x) * I))) volume := by
       refine (Continuous.mul ?_ continuous_const).neg.cexp.aestronglyMeasurable
       apply continuous_const.mul <| contDiff_ofReal.continuous.mul continuous_const
@@ -1603,7 +1605,8 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
       simpa using this
 
   have S2_sub : S2 x (ψ - Ψ R) = S2 x ψ - S2 x (Ψ R) := by
-    simp [S2, S1_sub_1] ; rw [integral_sub] ; ring
+    simp [S2, S1_sub_1] ; rw [integral_sub]
+    · ring
     · exact ψ.integrable_fourier (by positivity) |>.restrict
     · exact (Ψ R : W21).integrable_fourier (by positivity) |>.restrict
 
@@ -1639,7 +1642,7 @@ Combining the two estimates and letting $R$ be large, we obtain the claim.
 
 -- just the surjectivity is stated here, as this is all that is needed for the current application, but perhaps one should state and prove bijectivity instead
 
-lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f := by
+lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 (g : ℝ → ℂ) = f := by
   refine ⟨(fourierTransformCLE ℝ).symm f, ?_⟩
   rw [← fourierTransformCLE_apply ℝ]
   simp
@@ -1755,7 +1758,7 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     simpa using (comp_exp_support hsupp hplus).comp_smul this |>.mul_left
   obtain ⟨g, hg⟩ := fourier_surjection_on_schwartz (toSchwartz h h1 h2)
 
-  have l1 {y} (hy : 0 < y) : y * Ψ y = 𝓕 g (1 / (2 * π) * Real.log y) := by
+  have l1 {y} (hy : 0 < y) : y * Ψ y = 𝓕 (g : ℝ → ℂ) (1 / (2 * π) * Real.log y) := by
     simp only [one_div, mul_inv_rev, hg, toSchwartz, ofReal_exp, ofReal_mul, ofReal_ofNat,
       toSchwartz_apply, ofReal_inv, h]
     field_simp
@@ -1768,7 +1771,8 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
       ∑' (n : ℕ), f n * Ψ (↑n / x) / x := by
     filter_upwards [eventually_gt_atTop 0] with x hx
     congr ; ext n
-    by_cases hn : n = 0 ; simp [hn, (comp_exp_support0 hplus).self_of_nhds]
+    by_cases hn : n = 0
+    · simp [hn, (comp_exp_support0 hplus).self_of_nhds]
     rw [← l1 (by positivity)]
     have : (n : ℂ) ≠ 0 := by simpa using hn
     have : (x : ℂ) ≠ 0 := by simpa using hx.ne.symm
@@ -1908,7 +1912,8 @@ lemma WI_sum_Iab_le {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : cheby
     simp at hi ⊢ ; right ; rintro - ; rw [le_div_iff₀ hx] ; linarith
   have l2 (i : ℕ) (_ : i ∈ Finset.range ⌈b * x⌉₊) : f i * indicator (Ico a b) 1 (i / x) ≤ |f i| := by
     rw [abs_eq_self.mpr (hpos _)]
-    convert_to _ ≤ f i * 1 ; ring
+    convert_to _ ≤ f i * 1
+    · ring
     apply mul_le_mul_of_nonneg_left ?_ (hpos _)
     by_cases hi : (i / x) ∈ (Ico a b) <;> simp [hi]
   rw [tsum_eq_sum l1, div_le_iff₀ hx, mul_assoc, mul_assoc]
@@ -2143,7 +2148,9 @@ noncomputable def S (f : ℕ → 𝕜) (ε : ℝ) (N : ℕ) : 𝕜 := (∑ n ∈
 lemma S_sub_S {f : ℕ → 𝕜} {ε : ℝ} {N : ℕ} (hε : ε ≤ 1) : S f 0 N - S f ε N = cumsum f ⌈ε * N⌉₊ / N := by
   have r1 : Finset.range N = Finset.range ⌈ε * N⌉₊ ∪ Finset.Ico ⌈ε * N⌉₊ N := by
     rw [Finset.range_eq_Ico] ; symm ; apply Finset.Ico_union_Ico_eq_Ico (by simp)
-    simp ; convert_to ε * ↑N ≤ 1 * ↑N ; ring ; gcongr
+    simp ; convert_to ε * ↑N ≤ 1 * ↑N
+    · ring
+    · gcongr
   have r2 : Disjoint (Finset.range ⌈ε * N⌉₊) (Finset.Ico ⌈ε * N⌉₊ N) := by
     rw [Finset.range_eq_Ico] ; apply Finset.Ico_disjoint_Ico_consecutive
   simp [S, r1, Finset.sum_union r2, cumsum, add_div]
