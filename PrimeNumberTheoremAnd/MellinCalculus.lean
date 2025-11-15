@@ -494,7 +494,8 @@ lemma MellinOfPsi {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
     intro σ₁ σ₁pos s hs₁ hs₂
     have s_ne_zero: s ≠ 0 := fun h ↦ by linarith [zero_re ▸ h ▸ hs₁]
     simp only [mellin, f, MellinOfPsi_aux diffν suppν s_ne_zero, norm_mul, smul_eq_mul, mul_comm]
-    gcongr; simp
+    gcongr
+    · simp
     calc
       _ ≤ ∫ (x : ℝ) in Ioi 0, ‖(deriv ν x * (x : ℂ) ^ s)‖ := ?_
       _ = ∫ (x : ℝ) in Icc (1 / 2) 2, ‖(deriv ν x * (x : ℂ) ^ s)‖ := ?_
@@ -813,8 +814,8 @@ lemma Smooth1Properties_estimate {ε : ℝ} (εpos : 0 < ε) :
       intro x hx; simp only [mem_Ici] at hx; simp only [id_eq, ne_eq]; linarith
     · intro x hx; simp only [nonempty_Iio, interior_Ici', mem_Ioi] at hx
       dsimp only [f]
-      rw [deriv_fun_sub, deriv_fun_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel₀]; simp
-      · exact log_pos hx
+      rw [deriv_fun_sub, deriv_fun_mul, deriv_log, deriv_id'', one_mul, mul_inv_cancel₀]
+      · simp [log_pos hx]
       · linarith
       · simp only [differentiableAt_fun_id]
       · simp only [differentiableAt_log_iff, ne_eq]; linarith
@@ -1184,14 +1185,16 @@ lemma MellinOfSmooth1a {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
       by_cases hS : ⟨x, y⟩ ∈ S <;> simp only [hS, piecewise]
       <;> simp only [mem_prod, mem_Ioi, mem_setOf_eq, not_and, not_le, S] at hz hS
       · simp [div_pos hz.1 hz.2, (div_le_one hz.2).mpr hS.2.1]
-      · by_cases hxy : x / y ≤ 1; swap; simp [hxy]
+      · by_cases hxy : x / y ≤ 1
+        swap
+        · simp [hxy]
         have hy : y ∉ Icc (2 ^ (-ε)) (2 ^ ε) := by
           simp only [mem_Icc, not_and, not_le]; exact hS hz.1 <| (div_le_one hz.2).mp hxy
         simp [DeltaSpikeSupport εpos hz.2.le suppν hy]
     · apply Integrable.piecewise Smeas ?_ integrableOn_zero
       simp only [IntegrableOn, Measure.restrict_restrict_of_subset SsubI]
       apply MeasureTheory.Integrable.mono_measure ?_
-      apply MeasureTheory.Measure.restrict_mono' (HasSubset.Subset.eventuallyLE SsubT) le_rfl
+      · apply MeasureTheory.Measure.restrict_mono' (HasSubset.Subset.eventuallyLE SsubT) le_rfl
       have : volume.restrict (Tx ×ˢ Ty) = (volume.restrict Tx).prod (volume.restrict Ty) := by
         rw [Measure.prod_restrict, MeasureTheory.Measure.volume_eq_prod]
       conv => rw [this]; lhs; intro; rw [mul_comm]

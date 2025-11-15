@@ -17,6 +17,7 @@ open ArithmeticFunction hiding log
 open Nat hiding log
 open Finset
 open BigOperators Filter Real Classical Asymptotics MeasureTheory intervalIntegral
+open scoped ArithmeticFunction.Moebius ArithmeticFunction.Omega
 
 lemma Set.Ico_subset_Ico_of_Icc_subset_Icc {a b c d : ℝ} (h : Set.Icc a b ⊆ Set.Icc c d) :
     Set.Ico a b ⊆ Set.Ico c d := by
@@ -1111,14 +1112,14 @@ theorem pi_asymp'' :
                   exact ⟨by linarith, by linarith, by linarith⟩
               · exact isCompact_Icc
             · rw [integrable_const_mul_iff]
-              refine ContinuousOn.integrableOn_Icc <|
-                ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
-              · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and, not_le,
-                  isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
-              · intro t ht
-                simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
-                  pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
-                exact ⟨by linarith, by linarith, by linarith⟩
+              · refine ContinuousOn.integrableOn_Icc <|
+                  ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
+                · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and, not_le,
+                    isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
+                · intro t ht
+                  simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
+                    pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
+                  exact ⟨by linarith, by linarith, by linarith⟩
               · simp only [isUnit_iff_ne_zero, ne_eq, _root_.mul_eq_zero, not_or]
                 exact ⟨by linarith, by linarith⟩
             · simp only [EventuallyLE, measurableSet_Icc, ae_restrict_eq, eventually_inf_principal,
@@ -1917,7 +1918,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
             field_simp
             simp
           · simp only [one_div]
-            exact tendsto_inverse_atTop_nhds_zero_nat
+            exact tendsto_inv_atTop_nhds_zero_nat
         · have log_eq: ∀ (n: ℕ), log (↑n + 1) = log ↑n + log (1 + 1/n) := by
             intro n
             by_cases n_eq_zero: n = 0
@@ -2006,8 +2007,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
       have denom_nonzero: ∀ n, ((1 + k (n + t)) * ↑(n + t) * log ↑(n + t)) ≠ 0 := by
         intro n
         simp
-        refine ⟨?_, ?_, ?_⟩
-        refine ⟨?_, ?_⟩
+        refine ⟨⟨?_, ?_⟩, ?_, ?_⟩
         · exact ht n
         · norm_cast
           omega

@@ -1,7 +1,7 @@
 import Mathlib.Data.Nat.Factorization.Basic
 import Mathlib.NumberTheory.ArithmeticFunction
 
-open ArithmeticFunction BigOperators Nat Finset
+open ArithmeticFunction ArithmeticFunction.zeta BigOperators Nat Finset
 
 theorem ArithmeticFunction.sum_range_mul_zeta
     {R : Type*} [Semiring R] (f : ArithmeticFunction R) (N : ℕ) :

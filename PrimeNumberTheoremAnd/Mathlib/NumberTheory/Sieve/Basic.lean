@@ -13,7 +13,7 @@ import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.AuxResults
 
 noncomputable section
 
-open scoped BigOperators ArithmeticFunction
+open scoped BigOperators ArithmeticFunction ArithmeticFunction.Moebius
 
 open Finset Real Nat Aux BoundingSieve
 
@@ -211,7 +211,7 @@ theorem upperMoebius_of_lambda_sq (weights : ℕ → ℝ) (hw : weights 1 = 1) :
     rw [sum_mul, sum_comm]
     apply sum_congr rfl; intro d2 hd2
     rw [sum_ite_eq_of_mem']
-    ring
+    · ring
     rw [mem_divisors, Nat.lcm_dvd_iff]
     exact ⟨⟨dvd_of_mem_divisors hd1, dvd_of_mem_divisors hd2⟩, (mem_divisors.mp hd1).2⟩
   rw [h_sq]

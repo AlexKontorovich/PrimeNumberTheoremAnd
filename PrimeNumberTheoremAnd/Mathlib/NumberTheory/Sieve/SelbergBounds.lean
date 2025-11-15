@@ -20,7 +20,7 @@ This file proves a number of results to help bound `Sieve.selbergSum`
 
 set_option lang.lemmaCmd true
 
-open scoped Nat ArithmeticFunction BigOperators Classical
+open scoped Nat ArithmeticFunction BigOperators Classical ArithmeticFunction.zeta ArithmeticFunction.omega
 open BoundingSieve SelbergSieve
 
 noncomputable section
@@ -197,10 +197,11 @@ theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFu
       · intro q _ hq
         rw [Nat.factorization_pow, Finsupp.smul_apply, smul_eq_zero]; right
         apply Nat.factorization_eq_zero_of_not_dvd
-        rw [Nat.Prime.dvd_iff_eq, ← exists_eq_subtype_mk_iff]; push_neg
-        exact fun _ => hq
-        exact Nat.prime_of_mem_primeFactorsList <| List.mem_toFinset.mp q.2
-        exact (Nat.prime_of_mem_primeFactorsList <| List.mem_toFinset.mp hp).ne_one
+        rw [Nat.Prime.dvd_iff_eq, ← exists_eq_subtype_mk_iff]
+        · push_neg
+          exact fun _ => hq
+        · exact Nat.prime_of_mem_primeFactorsList <| List.mem_toFinset.mp q.2
+        · exact (Nat.prime_of_mem_primeFactorsList <| List.mem_toFinset.mp hp).ne_one
       · intro h
         exfalso
         exact h (Finset.mem_attach _ _)
@@ -208,7 +209,7 @@ theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFu
     · rw [dif_neg hp]
       by_cases hpp : p.Prime
       swap
-      · apply Nat.factorization_eq_zero_of_non_prime _ hpp
+      · apply Nat.factorization_eq_zero_of_not_prime _ hpp
       apply Nat.factorization_eq_zero_of_not_dvd
       intro hp_dvd
       obtain ⟨⟨q, hq⟩, _, hp_dvd_pow⟩ := Prime.exists_mem_finset_dvd hpp.prime hp_dvd
@@ -405,13 +406,15 @@ theorem selbergBoundingSum_ge_sum_div (s : SelbergSieve) (hP : ∀ p:ℕ, p.Prim
       · rw [←Nat.factorization_le_iff_dvd _ hprod_ne_zero, Nat.factorization_pow]
         · intro p
           have hy_mul_prod_nonneg : 0 ≤ ⌊s.level⌋₊ * (Nat.factorization (∏ p ∈ m.primeFactors, p)) p := by
-            apply mul_nonneg; apply Nat.le_floor; norm_cast; linarith only [s.one_le_level]; norm_num
+            apply mul_nonneg
+            · apply Nat.le_floor; norm_cast; linarith only [s.one_le_level]
+            · norm_num
           trans (Nat.factorization m) p * 1
           · rw [mul_one]
           rw [Finsupp.smul_apply, smul_eq_mul]
           by_cases hpp : p.Prime
           swap
-          · rw [Nat.factorization_eq_zero_of_non_prime _ hpp, zero_mul]; exact hy_mul_prod_nonneg
+          · rw [Nat.factorization_eq_zero_of_not_prime _ hpp, zero_mul]; exact hy_mul_prod_nonneg
           by_cases hpdvd : p ∣ m
           swap
           · rw [Nat.factorization_eq_zero_of_not_dvd hpdvd, zero_mul]; exact hy_mul_prod_nonneg

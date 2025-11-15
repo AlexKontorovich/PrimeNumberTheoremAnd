@@ -19,7 +19,7 @@ import Mathlib.NumberTheory.ArithmeticFunction
 
 noncomputable section
 
-open scoped BigOperators ArithmeticFunction
+open scoped BigOperators ArithmeticFunction ArithmeticFunction.Moebius ArithmeticFunction.omega
 
 open Nat ArithmeticFunction Finset
 

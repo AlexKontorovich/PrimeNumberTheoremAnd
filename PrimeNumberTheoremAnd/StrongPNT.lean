@@ -772,7 +772,7 @@ lemma LogDerivZetaUniformLogSquaredBoundStrip : ∃ (F : ℝ) (Fequ : F = E / 3)
 noncomputable def F : ℝ := LogDerivZetaUniformLogSquaredBoundStrip.choose
 lemma Fequ : F = E / 3 := by
     exact LogDerivZetaUniformLogSquaredBoundStrip.choose_spec.1
-lemma LogDerivZetaUniformLogSquaredBoundStripSpec : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
+lemma LogDerivZetaUniformLogSquaredBoundStripSpec : ∃ (C : ℝ) (_ : 0 ≤ C),
     ∀ (σ t : ℝ),
     3 ≤ |t| →
         σ ∈ Set.Icc (1 - F / Real.log |t|) (3 / 2) →
@@ -912,9 +912,10 @@ lemma I1NewBound {SmoothingF : ℝ → ℝ}
 %%-/
 lemma I5NewBound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
-    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
-    ‖I5New SmoothingF ε X T‖ ≤ C * (X / (ε * Real.sqrt T)) := by
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
+    ∃ (C : ℝ) (_ : 0 ≤ C),
+      ∀ {ε X T : ℝ} (_ : ε ∈ Ioo 0 1) (_ : 3 < X) (_ : 3 < T),
+        ‖I5New SmoothingF ε X T‖ ≤ C * (X / (ε * Real.sqrt T)) := by
     obtain ⟨C, Cnonneg, hI1NewBound⟩ := I1NewBound suppSmoothingF ContDiffSmoothingF
     use C, Cnonneg
     intro ε X T εinIoo Xgt3 Tgt3
@@ -1004,10 +1005,11 @@ lemma I2NewBound {SmoothingF : ℝ → ℝ}
 %%-/
 lemma I4NewBound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
-    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
-    let σ' := 1 - F / Real.log T
-    ‖I4New SmoothingF ε X T σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
+    ∃ (C : ℝ) (_ : 0 ≤ C),
+      ∀ {ε X T : ℝ} (_ : ε ∈ Ioo 0 1) (_ : 3 < X) (_ : 3 < T),
+        let σ' := 1 - F / Real.log T
+        ‖I4New SmoothingF ε X T σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
     obtain ⟨C, Cnonneg, hI2NewBound⟩ := I2NewBound suppSmoothingF ContDiffSmoothingF
     use C, Cnonneg
     intro ε X T εinIoo Xgt3 Tgt3 σ'

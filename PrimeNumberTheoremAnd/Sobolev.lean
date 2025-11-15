@@ -292,16 +292,19 @@ theorem W21_approximation (f : W21) (g : trunc) :
         have hR' : R ≠ 0 := by linarith
         have : 0 ≤ R := by linarith
         simp [h', CS.deriv_scale, abs_mul, abs_inv, abs_eq_self.mpr this] ; simp [CS.scale, funscale, hR']
-        convert_to _ ≤ c1 * 1 ; simp ; rw [mul_comm]
-        apply mul_le_mul (mg' _) (inv_le_of_inv_le₀ (by linarith) (by simpa using hR)) (by positivity)
-        exact (abs_nonneg _).trans (mg' 0)
+        convert_to _ ≤ c1 * 1
+        · simp
+        · rw [mul_comm]
+          apply mul_le_mul (mg' _) (inv_le_of_inv_le₀ (by linarith) (by simpa using hR)) (by positivity)
+          exact (abs_nonneg _).trans (mg' 0)
       have hc2 : ∀ᶠ R in atTop, ∀ v, |h'' R v| ≤ c2 := by
         filter_upwards [eventually_ge_atTop 1] with R hR v
         have e1 : 0 ≤ R := by linarith
         have e2 : R⁻¹ ≤ 1 := inv_le_of_inv_le₀ (by linarith) (by simpa using hR)
         have e3 : R ≠ 0 := by linarith
         simp [h'', CS.deriv_scale, CS.deriv_smul, abs_mul, abs_inv, abs_eq_self.mpr e1]
-        convert_to _ ≤ 1 * (1 * c2) ; simp
+        convert_to _ ≤ 1 * (1 * c2)
+        · simp
         apply mul_le_mul e2 ?_ (by positivity) zero_le_one
         apply mul_le_mul e2 ?_ (by positivity) zero_le_one
         simp [CS.scale, e3, funscale] ; apply mg''
