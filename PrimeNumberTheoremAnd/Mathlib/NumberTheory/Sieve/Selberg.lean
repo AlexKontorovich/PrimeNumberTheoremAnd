@@ -18,7 +18,7 @@ set_option lang.lemmaCmd true
 
 noncomputable section
 
-open scoped BigOperators Classical SelbergSieve
+open scoped BigOperators Classical SelbergSieve ArithmeticFunction.Moebius ArithmeticFunction.omega
 
 open Finset Real Nat SelbergSieve.UpperBoundSieve ArithmeticFunction SelbergSieve BoundingSieve
 

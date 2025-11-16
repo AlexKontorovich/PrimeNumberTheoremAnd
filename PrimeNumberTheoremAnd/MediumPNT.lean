@@ -556,9 +556,9 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     ≤ (n₁ - n₀) * Real.log (X * (1 + c₂ * ε)) := by
     have : (n₁ - n₀) * Real.log (X * (1 + c₂ * ε)) = (∑ n ∈ Finset.range (n₁ - n₀), Real.log (X * (1 + c₂ * ε))) := by
       rw[← Nat.cast_sub]
-      nth_rewrite 1 [← Finset.card_range (n₁ - n₀)]
-      rw[Finset.cast_card, Finset.sum_const, smul_one_mul]
-      exact Eq.symm (Finset.sum_const (Real.log (X * (1 + c₂ * ε))))
+      · nth_rewrite 1 [← Finset.card_range (n₁ - n₀)]
+        rw[Finset.cast_card, Finset.sum_const, smul_one_mul]
+        exact Eq.symm (Finset.sum_const (Real.log (X * (1 + c₂ * ε))))
       exact n₁_ge_n₀
     rw [this]
     apply Finset.sum_le_sum
@@ -566,9 +566,9 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     rw [← mul_one (Real.log (X * (1 + c₂ * ε)))]
     apply mul_le_mul (vonBnd1 _ hn) _ (norm_nonneg _) (log_nonneg (by bound))
     rw[Real.norm_of_nonneg, ← Nat.cast_add]
-    dsimp only [F]
-    apply smooth1BddAbove
-    bound
+    · dsimp only [F]
+      apply smooth1BddAbove
+      bound
     rw[← Nat.cast_add]
     dsimp only [F]
     apply smooth1BddBelow
@@ -578,9 +578,9 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ ≤ (⌊X + 1⌋₊ - n₀) * Real.log (X + 1) := by
     have : (⌊X + 1⌋₊ - n₀) * Real.log (X + 1) = (∑ n ∈ Finset.range (⌊X + 1⌋₊ - n₀), Real.log (X + 1)) := by
       rw[← Nat.cast_sub]
-      nth_rewrite 1 [← Finset.card_range (⌊X + 1⌋₊ - n₀)]
-      rw[Finset.cast_card, Finset.sum_const, smul_one_mul]
-      exact Eq.symm (Finset.sum_const (Real.log (X + 1)))
+      · nth_rewrite 1 [← Finset.card_range (⌊X + 1⌋₊ - n₀)]
+        rw[Finset.cast_card, Finset.sum_const, smul_one_mul]
+        exact Eq.symm (Finset.sum_const (Real.log (X + 1)))
       simp only [Nat.ceil_le, n₀]
       exact Preorder.le_trans (X * (1 - c₁ * ε)) X (↑⌊X + 1⌋₊) n₀_inside_le_X X_le_floor_add_one
     rw[this]
@@ -591,7 +591,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
       rw[← add_le_add_iff_right (-↑n₀), add_assoc, ← sub_eq_add_neg, sub_self, add_zero, ← sub_eq_add_neg]
       have temp: (n : ℝ) < ⌊X + 1⌋₊ - n₀ := by
         rw [← Nat.cast_sub, Nat.cast_lt]
-        exact hn
+        · exact hn
         simp only [Nat.ceil_le, n₀]
         exact le_trans n₀_inside_le_X X_le_floor_add_one
       have : ↑⌊X + 1⌋₊ - ↑n₀ ≤ X + 1 - ↑n₀ := by
@@ -703,10 +703,10 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     rw[c₂_eq]
     nth_rewrite 3 [← mul_one 2]
     apply mul_lt_mul'
-    rfl
-    exact lt_trans (Real.log_two_lt_d9) (by norm_num)
-    exact Real.log_nonneg (by norm_num)
-    positivity
+    · rfl
+    · exact lt_trans (Real.log_two_lt_d9) (by norm_num)
+    · exact Real.log_nonneg (by norm_num)
+    · positivity
 
   let C : ℝ := 6 * (3 * c₁ + c₂)
   have C_eq : C = 6 * (3 * c₁ + c₂) := rfl
@@ -751,30 +751,31 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
 
   have X_bound_1 : 1 ≤ X * ε * c₁ := by
     rw[c₁_eq, ← div_le_iff₀]
-    have : 1 / Real.log 2 < 2 := by
-      nth_rewrite 2 [← one_div_one_div 2]
-      rw[one_div_lt_one_div]
-      exact lt_of_le_of_lt (by norm_num) (Real.log_two_gt_d9)
-      exact Real.log_pos (by norm_num)
-      norm_num
-    apply le_of_lt
-    exact gt_trans X_bound this
+    · have : 1 / Real.log 2 < 2 := by
+        nth_rewrite 2 [← one_div_one_div 2]
+        rw[one_div_lt_one_div]
+        · exact lt_of_le_of_lt (by norm_num) (Real.log_two_gt_d9)
+        · exact Real.log_pos (by norm_num)
+        norm_num
+      apply le_of_lt
+      exact gt_trans X_bound this
     exact Real.log_pos (by norm_num)
 
   have X_bound_2 : 1 ≤ X * ε * c₂ := by
     rw[c₂_eq, ← div_le_iff₀]
-    have : 1 / (2 * Real.log 2) < 2 := by
-      nth_rewrite 3 [← one_div_one_div 2]
-      rw[one_div_lt_one_div, ← one_mul (1 / 2)]
-      apply mul_lt_mul
-      norm_num
+    · have : 1 / (2 * Real.log 2) < 2 := by
+        nth_rewrite 3 [← one_div_one_div 2]
+        · rw[one_div_lt_one_div, ← one_mul (1 / 2)]
+          · apply mul_lt_mul
+            · norm_num
+            · apply le_of_lt
+              exact lt_trans (by norm_num) (Real.log_two_gt_d9)
+            repeat norm_num
+          · norm_num
+            exact Real.log_pos (by norm_num)
+          · norm_num
       apply le_of_lt
-      exact lt_trans (by norm_num) (Real.log_two_gt_d9)
-      repeat norm_num
-      exact Real.log_pos (by norm_num)
-      norm_num
-    apply le_of_lt
-    exact gt_trans X_bound this
+      exact gt_trans X_bound this
     norm_num
     exact Real.log_pos (by norm_num)
 
@@ -1675,8 +1676,8 @@ theorem integral_evaluation (x : ℝ) (T : ℝ) (T_large : 3 < T) :
     rw [Complex.norm_add_mul_I x t]
     ring_nf
     rw [Real.sq_sqrt _]
-    simp only [le_add_iff_nonneg_right]; positivity
-    positivity
+    · simp only [le_add_iff_nonneg_right]; positivity
+    · positivity
 
   have T0 : ∀ (x t : ℝ), t ≠ 0 → (‖x + t * I‖^2)⁻¹ ≤ (t^2)⁻¹ := by
     intro x
@@ -1686,8 +1687,8 @@ theorem integral_evaluation (x : ℝ) (T : ℝ) (T_large : 3 < T) :
     have U1 : 0 < ‖x + t * I‖^2 := by
       rw [Complex.norm_add_mul_I x t]
       rw [Real.sq_sqrt _]
-      positivity
-      positivity
+      · positivity
+      · positivity
     rw [inv_le_inv₀ U1 U0]
     exact (T00 x t)
 
@@ -1900,9 +1901,9 @@ theorem I1Bound
 
     have Z02 : (Real.log 3)⁻¹ < 1 := by
       have T01 := (inv_lt_inv₀ ?_ ?_).mpr Z01
-      simp only [inv_one] at T01
-      exact T01
-      exact Zpos0
+      · simp only [inv_one] at T01
+        exact T01
+      · exact Zpos0
       simp only [zero_lt_one]
 
     have Z2 : 1 + (Real.log X)⁻¹ < 1 + (Real.log 3)⁻¹ := by
@@ -2093,13 +2094,7 @@ theorem I1Bound
                 · refine Left.mul_nonneg ?_ ?_
                   · exact exp_nonneg 1
                   · exact le_of_lt X_pos_triv
-              have U1 := IsOrderedRing.mul_le_mul_of_nonneg_left
-                (∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹)
-                (T⁻¹)
-                ((K * M) * Real.log X * X ^ pts_re * eps⁻¹)
-                U
-                U2
-              exact U1
+              exact mul_le_mul_of_nonneg_left U U2
         _ = (Real.exp 1 * K * M) * Real.log X * X * eps⁻¹ * T⁻¹ := by
           rw [S]
           ring_nf
@@ -2117,8 +2112,7 @@ theorem I1Bound
   have Z2 : 0 ≤ |π|⁻¹ * 2⁻¹ := by positivity
   simp only [ofReal_inv] at Z
   simp only [ge_iff_le]
-  have Z4 :=
-    IsOrderedRing.mul_le_mul_of_nonneg_left _ _ _ Z Z2
+  have Z4 := mul_le_mul_of_nonneg_left Z Z2
   ring_nf
   ring_nf at Z4
   exact Z4
@@ -2252,7 +2246,7 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
     · rw[inv_nonneg, log_nonneg_iff Xpos]
       exact le_trans (by norm_num) (le_of_lt X_gt)
     · refine div_nonneg ?_ ?_
-      exact A_in.1.le
+      · exact A_in.1.le
       apply pow_nonneg
       rw[log_nonneg_iff Tpos]
       exact le_trans (by norm_num) (le_of_lt T_gt)
@@ -2279,10 +2273,10 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
         exact interval_length_nonneg
       _ ≤ C' * X / (ε * T) * 2 := by
         apply mul_le_mul_of_nonneg_left
-        rw[abs_of_nonneg (sub_nonneg.mpr interval_length_nonneg)]
-        calc
-          1 + (Real.log X)⁻¹ - σ₁ ≤ 1 + (Real.log X)⁻¹ := by linarith
-          _ ≤ 2 := (one_add_inv_log X_gt.le).le
+        · rw[abs_of_nonneg (sub_nonneg.mpr interval_length_nonneg)]
+          calc
+            1 + (Real.log X)⁻¹ - σ₁ ≤ 1 + (Real.log X)⁻¹ := by linarith
+            _ ≤ 2 := (one_add_inv_log X_gt.le).le
         positivity
       _ = 2 * C' * X / (ε * T) := by ring
   -- Now bound the integrand
@@ -2509,9 +2503,9 @@ lemma log_pow_over_xsq_integral_bounded :
           exact Nat.cast_add_one_pos d
         refine add_lt_add ?_ term2_pos
         refine div_lt_div₀ logpowpos ?_ ?_ ?_
-        linarith
-        linarith
-        linarith
+        · linarith
+        · linarith
+        · linarith
       ring_nf at this
       ring_nf
       exact this
@@ -3260,7 +3254,7 @@ lemma I4Bound {SmoothingF : ℝ → ℝ}
     have : 1 / (2 * π) < 1 / 6 := by
       rw[one_div_lt_one_div]
       · refine (div_lt_iff₀' ?_).mp ?_
-        norm_num
+        · norm_num
         ring_nf
         refine gt_iff_lt.mpr ?_
         exact Real.pi_gt_three
@@ -3563,10 +3557,17 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
     by
       intro t
       rw [inv_le_inv₀]
-      rw [Complex.sq_norm]; rw [Complex.normSq_apply]; simp only [add_re, ofReal_re, mul_re, I_re,
-        mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]; ring_nf; simp only [le_add_iff_nonneg_right]; exact zpow_two_nonneg t
-      rw [Complex.sq_norm, Complex.normSq_apply]; simp only [add_re, ofReal_re, mul_re, I_re,
-        mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add]; ring_nf; positivity
+      · rw [Complex.sq_norm, Complex.normSq_apply]
+        simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+          add_zero, add_im, mul_im, zero_add]
+        ring_nf
+        simp only [le_add_iff_nonneg_right]
+        exact zpow_two_nonneg t
+      · rw [Complex.sq_norm, Complex.normSq_apply]
+        simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+          add_zero, add_im, mul_im, zero_add]
+        ring_nf
+        positivity
       positivity
 
   have T1 : ∀(t : ℝ), t ∈ uIoc (-3) (3 : ℝ) → ‖-ζ' (↑σ₂ + ↑t * I) / ζ (↑σ₂ + ↑t * I) * 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑σ₂ + ↑t * I) *
@@ -3606,8 +3607,8 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
           linear_combination (abs zeta_bound * M * easy_bound t * ε⁻¹ * ‖(↑X : ℂ) ^ (↑σ₂ + ↑t * I)‖)
         _ = abs zeta_bound * M * (σ₂^2)⁻¹ * ε⁻¹ * X ^ (σ₂) := by
           rw [Complex.norm_cpow_eq_rpow_re_of_pos]
-          simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
-            add_zero]
+          · simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+              sub_self, add_zero]
           positivity
         _ ≤ Const * ε⁻¹ * X ^ σ₂ := by
           unfold Const
