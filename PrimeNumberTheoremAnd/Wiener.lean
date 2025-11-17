@@ -403,7 +403,7 @@ lemma decay_bounds_cor (ψ : W21) :
 
 @[continuity, fun_prop] lemma continuous_FourierIntegral (ψ : W21) : Continuous (𝓕 (ψ : ℝ → ℂ)) :=
   VectorFourier.fourierIntegral_continuous continuous_fourierChar
-    (by simp only [innerₗ_apply, RCLike.inner_apply', conj_trivial, continuous_mul])
+    (by simp only [innerₗ_apply_apply, RCLike.inner_apply', conj_trivial, continuous_mul])
     ψ.hf
 
 lemma W21.integrable_fourier (ψ : W21) (hc : c ≠ 0) :
@@ -1654,7 +1654,7 @@ Combining the two estimates and letting $R$ be large, we obtain the claim.
 
 -- just the surjectivity is stated here, as this is all that is needed for the current application, but perhaps one should state and prove bijectivity instead
 
-lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 (g : ℝ → ℂ) = f := by
+lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f := by
   refine ⟨(fourierTransformCLE ℝ).symm f, ?_⟩
   rw [← fourierTransformCLE_apply ℝ]
   simp
@@ -1776,7 +1776,7 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     simpa using (comp_exp_support hsupp hplus).comp_smul this |>.mul_left
   obtain ⟨g, hg⟩ := fourier_surjection_on_schwartz (toSchwartz h h1 h2)
 
-  have l1 {y} (hy : 0 < y) : y * Ψ y = 𝓕 (g : ℝ → ℂ) (1 / (2 * π) * Real.log y) := by
+  have l1 {y} (hy : 0 < y) : y * Ψ y = 𝓕 g (1 / (2 * π) * Real.log y) := by
     simp only [one_div, mul_inv_rev, hg, toSchwartz, ofReal_exp, ofReal_mul, ofReal_ofNat,
       toSchwartz_apply, ofReal_inv, h]
     field_simp
@@ -1785,7 +1785,7 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
 
   have key := limiting_cor_schwartz g hf hcheby hG hG'
 
-  have l2 : ∀ᶠ x in atTop, ∑' (n : ℕ), f n / ↑n * 𝓕 (⇑g) (1 / (2 * π) * Real.log (↑n / x)) =
+  have l2 : ∀ᶠ x in atTop, ∑' (n : ℕ), f n / ↑n * 𝓕 g (1 / (2 * π) * Real.log (↑n / x)) =
       ∑' (n : ℕ), f n * Ψ (↑n / x) / x := by
     filter_upwards [eventually_gt_atTop 0] with x hx
     congr ; ext n
@@ -1797,7 +1797,7 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
     simp only [ofReal_div, ofReal_natCast]
     field_simp
 
-  have l3 : ∀ᶠ x in atTop, ↑A * ∫ (u : ℝ) in Ici (-Real.log x), 𝓕 (⇑g) (u / (2 * π)) =
+  have l3 : ∀ᶠ x in atTop, ↑A * ∫ (u : ℝ) in Ici (-Real.log x), 𝓕 g (u / (2 * π)) =
       ↑A * ∫ (y : ℝ) in Ioi x⁻¹, Ψ y := by
     filter_upwards [eventually_gt_atTop 0] with x hx
     congr 1
