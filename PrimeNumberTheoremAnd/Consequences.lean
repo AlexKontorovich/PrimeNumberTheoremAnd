@@ -260,101 +260,83 @@ lemma log2_pos : 0 < log 2 := by
 lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx : 0 ≤ x) :
   ∑ n ∈ Iic ⌊x⌋₊, Λ n =
     ∑ k ∈ Icc 1 ⌊ log x / log 2⌋₊,
-      ∑ p ∈ filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), log p := calc
-    _ = ∑ n ∈ Iic ⌊x⌋₊, ∑ k ∈ Icc 1 ⌊ log x / log 2⌋₊, ∑ p ∈ filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), if n = p^k then log p else 0 := by
-      apply Finset.sum_congr rfl
-      intro n hn
-      rw [mem_Iic, Nat.le_floor_iff hx] at hn
-      rw [ArithmeticFunction.vonMangoldt_apply]
-      by_cases h : IsPrimePow n
-      · simp [h]
-        rw [isPrimePow_def] at h
-        obtain ⟨ p, k, ⟨ h1, h2, h3 ⟩ ⟩ := h
-        rw [← h3]
-        replace h1 := h1.nat_prime
-        calc
-          _ = log p := by
-            congr
-            apply Nat.Prime.pow_minFac h1 (Nat.ne_zero_of_lt h2)
-          _ = ∑ k' ∈ Icc 1 ⌊ log x / log 2⌋₊, if k' = k then log p else 0 := by
-            simp
-            have h : k ≤ ⌊x.log / log 2⌋₊ := by
-              have h5 : 2^k ≤ n := by
-                rw [← h3]
-                apply Nat.pow_le_pow_left (Prime.two_le h1)
-              have h6 : 1 ≤ x := by
-                apply LE.le.trans _ hn
-                simp only [one_le_cast]
-                exact LE.le.trans Nat.one_le_two_pow h5
-              have h7 : 0 < x := by linarith
-              rw [Nat.le_floor_iff, le_div_iff₀ log2_pos, le_log_iff_exp_le h7, mul_comm, exp_mul, exp_log zero_lt_two]
-              · apply LE.le.trans _ hn
-                norm_cast
-              apply div_nonneg (Real.log_nonneg h6) (le_of_lt log2_pos)
-            have : 1 ≤ k ∧ k ≤ ⌊x.log / log 2⌋₊ := ⟨ h2, h ⟩
-            simp [this]
-          _ = ∑ k' ∈ Icc 1 ⌊ log x / log 2⌋₊,
-      ∑ p' ∈ filter Nat.Prime (Iic ⌊ x^((k':ℝ)⁻¹) ⌋₊), if k'=k ∧ p'=p then log p else 0 := by
-            apply Finset.sum_congr rfl
-            intro k' _
-            by_cases h : k' = k
-            · have : p ≤ ⌊x ^ (k:ℝ)⁻¹⌋₊ := by
-                rw [Nat.le_floor_iff]
-                · rw [le_rpow_inv_iff_of_pos (cast_nonneg p) hx (cast_pos.mpr h2)]
-                  apply LE.le.trans _ hn
-                  rw [← h3]
-                  norm_num
-                positivity
-              simp [h, h1, this]
-            simp [h]
-          _ = _ := by
-            apply Finset.sum_congr rfl
-            intro k' _
-            apply Finset.sum_congr rfl
-            intro p' hp'
-            by_cases h : p ^ k = p' ^ k'
-            · simp at hp'
-              have : (k' = k ∧ p' = p) := by
-                have := eq_of_prime_pow_eq h1.prime hp'.2.prime h2 h
-                rw [← this, pow_right_inj₀] at h
-                · exact ⟨ h.symm, this.symm ⟩
-                · exact Prime.pos h1
-                exact Nat.Prime.ne_one h1
-              simp [h, this]
-            have :¬ (k' = k ∧ p' = p) := by
-              contrapose! h
-              rw [h.1, h.2]
-            simp [h, this]
-      simp [h]
+      ∑ p ∈ filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), log p := by
+  simp_rw [vonMangoldt_apply, ← sum_filter]
+  trans ∑ ⟨k, p⟩ ∈ Icc 1 ⌊log x / log 2⌋₊ ×ˢ (Iic ⌊x⌋₊).filter Nat.Prime with p ≤ ⌊x ^ (k : ℝ)⁻¹⌋₊, log p
+  · symm
+    apply sum_bij (i := fun ⟨k, p⟩ _ ↦ p ^ k )
+    · intro ⟨k, p⟩ h
+      simp only [mem_filter, mem_Iic]
+      simp [mem_filter] at h
+      have k_ne : k ≠ 0 := by linarith
+      constructor
+      · apply le_floor
+        push_cast
+        trans (x ^ ((k : ℝ)⁻¹)) ^ k
+        · gcongr
+          trans ↑⌊x ^ (k : ℝ)⁻¹⌋₊
+          · exact mod_cast h.2
+          · exact floor_le <| rpow_nonneg hx _
+        · exact rpow_inv_natCast_pow hx k_ne |>.le
+      · exact isPrimePow_def _ |>.mpr ⟨p, k, h.1.2.2.prime, zero_lt_of_ne_zero k_ne, rfl⟩
+    · intro ⟨k1, p1⟩ h1 ⟨k2, p2⟩ h2
+      simp only [Prod.mk.injEq]
+      simp only [mem_filter, mem_product, mem_Icc, mem_Iic] at *
+      intro h
       symm
-      apply Finset.sum_eq_zero
-      intro k hk
-      apply Finset.sum_eq_zero
-      intro p hp
-      simp at hp ⊢
-      intro hn'
-      contrapose! h; clear h
-      rw [isPrimePow_def]
-      use p, k
-      refine ⟨ Nat.Prime.prime hp.2, ⟨ ?_, hn'.symm ⟩ ⟩
-      simp at hk
-      exact hk.1
-    _ = ∑ k ∈ Icc 1 ⌊ log x / log 2⌋₊, ∑ p ∈ filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), ∑ n ∈ Iic ⌊x⌋₊, if n = p^k then log p else 0 := by
-      rw [Finset.sum_comm]
-      apply Finset.sum_congr rfl
-      intro k _
-      rw [Finset.sum_comm]
-    _ = _ := by
-      apply Finset.sum_congr rfl
-      intro k hk
-      apply Finset.sum_congr rfl
-      intro p hp
-      simp at hk hp ⊢
-      intro hpk
-      rw [Nat.floor_lt hx] at hpk
-      rw [Nat.le_floor_iff (rpow_nonneg hx (k:ℝ)⁻¹), Real.le_rpow_inv_iff_of_pos (cast_nonneg p) hx (cast_pos.mpr hk.1)] at hp
-      simp at hpk hp
-      linarith [hp.1]
+      rw [← Nat.sub_add_cancel (by linarith : 1 ≤ k1), ← Nat.sub_add_cancel (by linarith : 1 ≤ k2)] at h
+      convert Prime.pow_inj h1.1.2.2 h2.1.2.2 h using 1
+      cutsat
+    · intro n hn
+      simp only [mem_filter, mem_Iic] at hn
+      simp only [mem_filter, mem_product, mem_Icc, mem_Iic, exists_prop, Prod.exists]
+      obtain ⟨p, k, hp, hk, hpk⟩ := isPrimePow_def _ |>.mp hn.2
+      refine ⟨k, p, ⟨⟨⟨(by linarith), ?_⟩, ?_, hp.nat_prime⟩, ?_⟩, hpk⟩
+      · have : log (p ^ k) = log n := by rw_mod_cast [hpk]
+        rw [Real.log_pow] at this
+        have log_ne : log p ≠ 0 := by
+          apply Real.log_pos _ |>.ne.symm
+          norm_cast
+          apply hp.nat_prime.one_lt
+        apply le_floor
+        rw [eq_div_of_mul_eq log_ne this]
+        gcongr
+        · apply log_nonneg
+          trans (n : ℝ)
+          · rw_mod_cast [← hpk]
+            exact one_le_pow _ _ hp.nat_prime.pos
+          · apply le_floor_iff hx |>.mp hn.1
+        · rw_mod_cast [← hpk]
+          apply pow_pos <| hp.nat_prime.pos
+        · apply le_floor_iff hx |>.mp hn.1
+        · norm_cast
+          apply hp.nat_prime.two_le
+      · grw [← hn.1, ← hpk]
+        exact le_pow hk
+      · apply le_floor
+        rw [← rpow_rpow_inv (cast_nonneg p) (cast_ne_zero.mpr hk.ne.symm)]
+        apply rpow_le_rpow
+        · bound
+        · rw_mod_cast [hpk]
+          exact le_floor_iff hx |>.mp hn.1
+        · bound
+    · simp only [mem_filter, mem_product, mem_Icc, mem_Iic, and_imp, Prod.forall]
+      intro _ _ _ _ _ p_prime _
+      rw [p_prime.pow_minFac (by linarith)]
+  simp only
+  rw [sum_filter, sum_product]
+  refine sum_congr rfl fun k hk ↦ ?_
+  simp only [sum_ite, not_le, sum_const_zero, add_zero]
+  congr 1
+  ext p
+  simp only [mem_filter, mem_Iic]
+  refine ⟨fun _ ↦ (by simp_all), fun h ↦ ?_⟩
+  simp_all only [mem_Icc, and_true]
+  grw [h.1, floor_le_floor]
+  apply rpow_le_self_of_one_le _ (by bound)
+  have := one_le_floor_iff _|>.mp <| le_trans (one_le_cast.mp h.2.one_le) h.1
+  contrapose! this
+  apply rpow_lt_one hx this (by bound)
 
 /-- Auxiliary lemma II for `chebyshev_asymptotic`: Controlling the error. -/
 lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx : 2 ≤ x) :
