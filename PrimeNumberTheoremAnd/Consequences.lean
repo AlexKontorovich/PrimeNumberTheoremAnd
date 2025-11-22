@@ -259,8 +259,7 @@ lemma log2_pos : 0 < log 2 := by
 /-- Auxiliary lemma I for `chebyshev_asymptotic`: Expressing the sum over Λ up to N as a double sum over primes and exponents. -/
 lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx : 0 ≤ x) :
   ∑ n ∈ Iic ⌊x⌋₊, Λ n =
-    ∑ k ∈ Icc 1 ⌊ log x / log 2⌋₊,
-      ∑ p ∈ filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), log p := by
+    ∑ k ∈ Icc 1 ⌊ log x / log 2⌋₊, th (x^((k:ℝ)⁻¹)) := by
   simp_rw [vonMangoldt_apply, ← sum_filter]
   trans ∑ ⟨k, p⟩ ∈ Icc 1 ⌊log x / log 2⌋₊ ×ˢ (Iic ⌊x⌋₊).filter Nat.Prime with p ≤ ⌊x ^ (k : ℝ)⁻¹⌋₊, log p
   · symm
@@ -340,34 +339,26 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx : 0 ≤ x) :
 
 /-- Auxiliary lemma II for `chebyshev_asymptotic`: Controlling the error. -/
 lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx : 2 ≤ x) :
-    |∑ n ∈ Iic ⌊x⌋₊, Λ n - ∑ p ∈ filter Nat.Prime (Iic ⌊ x⌋₊), log p| ≤ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log) := by
+    |∑ n ∈ Iic ⌊x⌋₊, Λ n - th x| ≤ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log) := by
   have hx_one : 1 ≤ x := one_le_two.trans hx
   have hx_pos : 0 < x := lt_of_lt_of_le zero_lt_two hx
   have hx_nonneg : 0 ≤ x := le_of_lt hx_pos
   have hlogx_nonneg : 0 ≤ log x := log_nonneg hx_one
-
+  rw [sum_von_mangoldt_as_double_sum x (by linarith)]
   calc
-    _ = |∑ k ∈ Icc 2 ⌊ log x / log 2⌋₊,
-      ∑ p ∈ filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), log p + ∑ p ∈ filter Nat.Prime (Iic ⌊ x^((1:ℝ)⁻¹) ⌋₊), log p - ∑ p ∈ filter Nat.Prime (Iic ⌊ x⌋₊), log p| := by
-      rw [sum_von_mangoldt_as_double_sum x hx_nonneg]
+    _ = |∑ k ∈ Icc 2 ⌊ log x / log 2⌋₊, th (x^((k:ℝ)⁻¹))
+      + th (x^((1:ℝ)⁻¹)) - th x| := by
       congr
       have h : 1 ∈ Icc 1 ⌊ log x / log 2⌋₊ := by
-        simp only [mem_Icc, le_refl, one_le_floor_iff, true_and]
+        apply left_mem_Icc.mpr
+        simp only [one_le_floor_iff]
         rwa [le_div_iff₀ log2_pos, one_mul, le_log_iff_exp_le hx_pos, exp_log zero_lt_two]
-      set s := Icc 2 ⌊ log x / log 2⌋₊
-      convert (Finset.sum_erase_add _ _ h).symm
-      · ext n
-        simp only [mem_Icc, Icc_erase_left, mem_Ioc, and_congr_left_iff, s]
-        intro _
-        rfl
-      exact Eq.symm cast_one
-    _ = |∑ k ∈ Icc 2 ⌊ log x / log 2⌋₊,
-      ∑ p ∈ filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), log p| := by
-        congr
-        convert add_sub_cancel_right _ (∑ p ∈ filter Nat.Prime (Iic ⌊ x⌋₊), log p)
-        simp only [inv_one, rpow_one]
+      rw [← Finset.sum_erase_add _ _ h, Icc_erase_left]
+      congr
+      norm_cast
+    _ = |∑ k ∈ Icc 2 ⌊ log x / log 2⌋₊, th (x^((k:ℝ)⁻¹))| := by simp
     _ ≤ ∑ k ∈ Icc 2 ⌊ log x / log 2⌋₊,
-      |∑ p ∈ filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), log p| := abs_sum_le_sum_abs _ _
+      |th (x^((k:ℝ)⁻¹))| := abs_sum_le_sum_abs _ _
     _ ≤ ∑ k ∈ Icc 2 ⌊ log x / log 2⌋₊,
       ∑ p ∈ filter Nat.Prime (Iic ⌊ x^((k:ℝ)⁻¹) ⌋₊), |log p| := by
         apply sum_le_sum
@@ -386,16 +377,11 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx : 2 ≤ x) :
         rw [abs_of_nonneg, log_le_log_iff _ hx_pos]
         · apply hp.trans
           calc
-            _ ≤ x^(1:ℝ) := by
-              apply rpow_le_rpow_of_exponent_le hx_one
-              apply inv_le_one_of_one_le₀
-              simp only [one_le_cast]
-              exact one_le_two.trans hk.1
+            _ ≤ x^(1:ℝ) := by bound
             _ = _ := by
               simp only [rpow_one]
         · simpa only [cast_pos]
-        apply log_nonneg
-        simp only [one_le_cast, hp']
+        bound
     _ ≤ ∑ k ∈ Icc 2 ⌊ log x / log 2⌋₊,
       (x^((2:ℝ)⁻¹)+1) * log x := by
         apply sum_le_sum
@@ -491,7 +477,7 @@ theorem WeakPNT'' : (fun x ↦ ∑ n ∈ (Iic ⌊x⌋₊), Λ n) ~[atTop] (fun x
 \end{theorem}
 %%-/
 theorem chebyshev_asymptotic :
-    (fun x ↦ ∑ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, log p) ~[atTop] (fun x ↦ x) := by
+    th ~[atTop] id := by
   apply WeakPNT''.add_isLittleO''
   apply IsBigO.trans_isLittleO (g := fun x ↦ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log))
   · rw [isBigO_iff']
