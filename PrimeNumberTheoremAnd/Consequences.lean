@@ -83,29 +83,27 @@ theorem extracted_2 (x : ℝ) (z : ℝ) (hz_pos : 0 < z) (hz : z ≠ 1) :
 
 theorem extracted_1 (x : ℝ) (hx : 2 ≤ x) :
     IntegrableOn
-      (fun t ↦ (∑ p ∈ filter Nat.Prime (Iic ⌊t⌋₊), log ↑p) / (t * log t ^ 2))
+      (fun t ↦ (th t) / (t * log t ^ 2))
       (Set.Icc 2 x) volume := by
   have hx0 : 0 ≤ x := zero_le_two.trans hx
   have hx2 : (2 : ℝ) ≤ ⌊x⌋₊ := by
     rwa [← Nat.cast_ofNat, Nat.cast_le, Nat.le_floor_iff hx0, Nat.cast_ofNat]
   have h (n : ℕ) (hn : 2 ≤ n) :
-      IntegrableOn (fun t ↦ (∑ p ∈ filter Nat.Prime (Icc 0 ⌊t⌋₊), log ↑p) / (t * log t ^ 2))
+      IntegrableOn (fun t ↦ (th t) / (t * log t ^ 2))
         (Set.Ico (n) (n + 1)) volume := by
     have hn2 : (2 : ℝ) ≤ n := by norm_cast
     have hn32 : (3 / 2 : ℝ) ≤ n := le_trans (by norm_num) hn2
     simp_rw [div_eq_mul_inv]
     apply IntegrableOn.mul_continuousOn_of_subset ?_ ?_
       measurableSet_Ico isCompact_Icc Set.Ico_subset_Icc_self
-    · apply Integrable.congr (integrable_const (∑ p ∈ filter Nat.Prime (Icc 0 n), log p))
+    · apply Integrable.congr (integrable_const (∑ p ∈ filter Nat.Prime (Iic n), log p))
       simp only [measurableSet_Ico, ae_restrict_eq]
       rw [eventuallyEq_inf_principal_iff]
-      apply Eventually.of_forall
-      intro z hz
-      simp [Nat.floor_eq_on_Ico _ _ hz]
+      filter_upwards [] with z hz
+      simp [th, Nat.floor_eq_on_Ico _ _ hz]
     · intro z hz
       apply ContinuousWithinAt.mono (extracted_2 _ _ _ _) (Set.Icc_subset_Icc_left hn32) <;>
       · simp only [Set.mem_Icc] at hz; linarith
-  rw [Iic_eq_Icc, bot_eq_zero]
   have : Set.Icc 2 x = Set.Ico (2 : ℝ) ⌊x⌋₊ ∪ Set.Icc (⌊x⌋₊ : ℝ) x :=
     Set.Ico_union_Icc_eq_Icc hx2 (floor_le hx0) |>.symm
   rw [this]
@@ -533,6 +531,7 @@ theorem chebyshev_asymptotic' (ε : ℝ) (hε : 0 < ε) :
     simp only [measurableSet_Icc, ae_restrict_eq, EventuallyEq, eventually_inf_principal]
     refine .of_forall fun t ⟨ht1, _⟩ => ?_
     rw [div_mul_cancel₀]
+    · rfl
     simpa only [ne_eq, _root_.mul_eq_zero, OfNat.ofNat_ne_zero, not_false_eq_true, pow_eq_zero_iff,
       log_eq_zero, or_self_left, not_or] using ⟨by linarith, by linarith, by linarith⟩
   refine ⟨f, ?_, integrable, ?_⟩
