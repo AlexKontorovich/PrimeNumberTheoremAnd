@@ -85,55 +85,16 @@ theorem extracted_1 (x : ℝ) (hx : 2 ≤ x) :
     IntegrableOn
       (fun t ↦ (th t) / (t * log t ^ 2))
       (Set.Icc 2 x) volume := by
-  have hx0 : 0 ≤ x := zero_le_two.trans hx
-  have hx2 : (2 : ℝ) ≤ ⌊x⌋₊ := by
-    rwa [← Nat.cast_ofNat, Nat.cast_le, Nat.le_floor_iff hx0, Nat.cast_ofNat]
-  have h (n : ℕ) (hn : 2 ≤ n) :
-      IntegrableOn (fun t ↦ (th t) / (t * log t ^ 2))
-        (Set.Ico (n) (n + 1)) volume := by
-    have hn2 : (2 : ℝ) ≤ n := by norm_cast
-    have hn32 : (3 / 2 : ℝ) ≤ n := le_trans (by norm_num) hn2
-    simp_rw [div_eq_mul_inv]
-    apply IntegrableOn.mul_continuousOn_of_subset ?_ ?_
-      measurableSet_Ico isCompact_Icc Set.Ico_subset_Icc_self
-    · apply Integrable.congr (integrable_const (∑ p ∈ filter Nat.Prime (Iic n), log p))
-      simp only [measurableSet_Ico, ae_restrict_eq]
-      rw [eventuallyEq_inf_principal_iff]
-      filter_upwards [] with z hz
-      simp [th, Nat.floor_eq_on_Ico _ _ hz]
-    · intro z hz
-      apply ContinuousWithinAt.mono (extracted_2 _ _ _ _) (Set.Icc_subset_Icc_left hn32) <;>
-      · simp only [Set.mem_Icc] at hz; linarith
-  have : Set.Icc 2 x = Set.Ico (2 : ℝ) ⌊x⌋₊ ∪ Set.Icc (⌊x⌋₊ : ℝ) x :=
-    Set.Ico_union_Icc_eq_Icc hx2 (floor_le hx0) |>.symm
-  rw [this]
-  apply IntegrableOn.union
-  swap
-  · apply IntegrableOn.mono_set (t := Set.Ico (⌊x⌋₊ : ℝ) (⌊x⌋₊ + 1))
-    · apply h
-      exact_mod_cast hx2
-    · apply Set.Icc_subset_Ico_right
-      exact lt_floor_add_one x
-  have : Set.Ico (2 : ℝ) ⌊x⌋₊ = ⋃ i ∈ Ico 2 ⌊x⌋₊, Set.Ico (i : ℝ) (i + 1) := by
-    ext y
-    simp only [Set.mem_Ico, mem_Ico, Set.mem_iUnion, exists_and_left, exists_prop]
-    constructor
-    · rintro ⟨h1, h2⟩
-      use ⌊y⌋₊
-      have : 0 ≤ y := zero_le_two.trans h1
-      simp [Nat.floor_le, Nat.floor_lt, this, lt_floor_add_one, h2, le_floor, h1]
-    · rintro ⟨n', h⟩
-      have : (2 : ℝ) ≤ n' := by
-        rw [← Nat.cast_ofNat, Nat.cast_le]
-        exact h.2.1.1
-      refine ⟨this.trans h.1, h.2.2.trans_le ?_⟩
-      rw [← Nat.cast_add_one, Nat.cast_le, Nat.add_one_le_iff]
-      exact h.2.1.2
-  rw [this]
-  apply MeasureTheory.integrableOn_finset_iUnion.mpr
-  intro n hn
-  simp only [mem_Ico] at hn
-  apply h _ hn.1
+  conv => arg 1; ext; rw [th, div_eq_mul_one_div, mul_comm, sum_filter]
+  apply integrableOn_mul_sum_Icc _ (by norm_num)
+  apply ContinuousOn.integrableOn_Icc
+  intro x hx
+  apply ContinuousAt.continuousWithinAt
+  have : x ≠ 0 := by linarith [hx.1]
+  have : x * log x ^ 2 ≠ 0 := by
+    apply mul_ne_zero this
+    apply pow_ne_zero _ <| log_ne_zero_of_pos_of_ne_one _ _ <;> linarith [hx.1]
+  fun_prop (disch := assumption)
 
 lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     Nat.primeCounting ⌊x⌋₊ =
