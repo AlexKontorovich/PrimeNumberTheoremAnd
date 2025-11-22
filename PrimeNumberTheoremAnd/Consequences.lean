@@ -74,13 +74,12 @@ lemma th_eq_zero_of_lt_two {x : ℝ} (hx : x < 2) : th x = 0 := by
 
 theorem extracted_2 (x : ℝ) (z : ℝ) (hz_pos : 0 < z) (hz : z ≠ 1) :
     ContinuousWithinAt (fun x ↦ (x * log x ^ 2)⁻¹) (Set.Icc (3 / 2) x) z := by
-  apply ContinuousWithinAt.inv₀
-  · apply continuousWithinAt_id.mul <| (continuousWithinAt_id.log ?_).pow _
-    simp [hz_pos.ne']
-  · apply mul_ne_zero
-    · exact hz_pos.ne'
-    · apply pow_ne_zero _ <| log_ne_zero_of_pos_of_ne_one hz_pos hz
-
+  apply ContinuousAt.continuousWithinAt
+  have : z ≠ 0 := by linarith
+  have : z * log z ^ 2 ≠ 0 := by
+    apply mul_ne_zero this
+    apply pow_ne_zero _ <| log_ne_zero_of_pos_of_ne_one hz_pos hz
+  fun_prop (disch := assumption)
 
 theorem extracted_1 (x : ℝ) (hx : 2 ≤ x) :
     IntegrableOn
