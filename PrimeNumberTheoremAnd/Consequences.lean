@@ -388,25 +388,20 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx : 2 ≤ x) :
         intro k hk
         simp only [sum_const, nsmul_eq_mul]
         gcongr
-        rw [← Nat.le_floor_iff]
-        · apply (Finset.card_filter_le _ _).trans
-          rw [card_Iic, Nat.floor_add_one]
-          · apply Nat.add_le_add _ NeZero.one_le
-            apply floor_le_floor
-            apply rpow_le_rpow_of_exponent_le hx_one
-            simp at hk
-            rw [inv_le_inv₀ _ zero_lt_two]
-            · exact ofNat_le_cast.mpr hk.1
-            simp only [cast_pos]
-            exact lt_of_lt_of_le zero_lt_two hk.1
-          exact rpow_nonneg hx_nonneg 2⁻¹
-        exact add_nonneg (rpow_nonneg hx_nonneg (2:ℝ)⁻¹) zero_le_one
+        rw [← Nat.le_floor_iff (by bound)]
+        apply (Finset.card_filter_le _ _).trans
+        rw [card_Iic, Nat.floor_add_one (by bound)]
+        apply Nat.add_le_add _ NeZero.one_le
+        apply floor_le_floor
+        simp at hk
+        gcongr
+        · exact hx_one
+        exact_mod_cast hk.1
     _ ≤ _ := by
       simp only [sum_const, card_Icc, reduceSubDiff, nsmul_eq_mul]
       gcongr
-      apply le_trans _ (Nat.floor_le _)
-      · simp only [cast_le, tsub_le_iff_right, le_add_iff_nonneg_right, _root_.zero_le]
-      exact div_nonneg hlogx_nonneg (le_of_lt log2_pos)
+      apply le_trans _ (Nat.floor_le (by bound))
+      simp only [cast_le, tsub_le_iff_right, le_add_iff_nonneg_right, _root_.zero_le]
 
 
 
