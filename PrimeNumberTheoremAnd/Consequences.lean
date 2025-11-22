@@ -81,7 +81,7 @@ theorem extracted_2 (x : ℝ) (z : ℝ) (hz_pos : 0 < z) (hz : z ≠ 1) :
     apply pow_ne_zero _ <| log_ne_zero_of_pos_of_ne_one hz_pos hz
   fun_prop (disch := assumption)
 
-theorem extracted_1 (x : ℝ) (hx : 2 ≤ x) :
+theorem extracted_1 (x : ℝ) :
     IntegrableOn
       (fun t ↦ (th t) / (t * log t ^ 2))
       (Set.Icc 2 x) volume := by
@@ -128,7 +128,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
         simp_all
       · exact measurableSet_Ico
     · unfold th
-      apply extracted_1 _ hx
+      apply extracted_1 _
   let a : ℕ → ℝ := Set.indicator (setOf Nat.Prime) (fun n => log n)
   have h3 (n : ℕ) : (log n)⁻¹ * a n = if n.Prime then 1 else 0 := by
     simp only [a]
@@ -484,7 +484,7 @@ theorem chebyshev_asymptotic' (ε : ℝ) (hε : 0 < ε) :
   have integrable (x : ℝ) (hx : 2 ≤ x) : IntegrableOn f (Set.Icc 2 x) := by
     rw [IntegrableOn]
     refine Integrable.sub ?_ (ContinuousOn.integrableOn_Icc (continuousOn_id' _))
-    refine extracted_1 x hx |>.mul_continuousOn (g' := fun t => t * log t ^ 2)
+    refine extracted_1 x |>.mul_continuousOn (g' := fun t => t * log t ^ 2)
       (ContinuousOn.mul (continuousOn_id' _) (ContinuousOn.pow (continuousOn_log |>.mono <| by
         rintro t ⟨ht1, _⟩
         simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
