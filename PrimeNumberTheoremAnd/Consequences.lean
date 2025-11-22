@@ -752,8 +752,8 @@ theorem pi_asymp'' :
       integral_union_ae
         (by rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (by aesop) (by aesop), volume_singleton])
         (by simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet])
-        (by apply extracted_1; aesop)
-        (by exact extracted_1 x (by aesop) |>.mono (Set.Icc_subset_Icc_left <| by aesop) le_rfl),
+        (by apply extracted_1)
+        (by exact extracted_1 x |>.mono (Set.Icc_subset_Icc_left <| by aesop) le_rfl),
       add_right_inj]
     refine integral_congr_ae ?_
     simp only [measurableSet_Icc, ae_restrict_eq, EventuallyEq, eventually_inf_principal]
