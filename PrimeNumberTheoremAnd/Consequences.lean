@@ -1849,13 +1849,39 @@ as $n \to \infty$.
 \end{proposition}
 %%-/
 theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
-    ∀ n : ℕ, Nat.nth Nat.Prime n = (1 + c n) * n * log n := by
+    ∀ n : ℕ, n > 1 → Nat.nth Nat.Prime n = (1 + c n) * n * log n := by
+  let c : ℕ → ℝ := fun n ↦ (Nat.nth Nat.Prime n) / (n * log n) - 1
+  refine ⟨c, ?_, ?_⟩
+  swap
+  · intro n hn
+    have : log n ≠ 0 := by rw [Real.log_ne_zero]; rify at hn; grind
+    simp [c]
+    field_simp
+  rw [Asymptotics.isLittleO_one_iff, Metric.tendsto_nhds]
+  intro ε hε
+  rw [Filter.eventually_atTop]
+  let N := 10
+  use N
+  intro n hn
+  have hnpos: n > 0 := by grind
+  have hpn : nth Nat.Prime n > 0 := by
+    have := Nat.add_two_le_nth_prime n
+    linarith
+  rify at hn
+  have hlog : log n > 0 := by apply Real.log_pos; grind
+  simp [c, abs_lt]
+  constructor
+  · rcases lt_or_ge ε 1 with hε' | hε'
+    swap
+    · have : 0 < (nth Nat.Prime n) / (n * log n) := by positivity
+      grind
+    sorry
   sorry
 
 /-%%
 \begin{proof}
 \uses{pi_alt}
-Use Corollary \ref{pi_alt} to show that for any $\eps>0$, and for $x$ sufficiently large, the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up to $(1+\eps) n \log n$ is greater than $n$.
+Use Corollary \ref{pi_alt} to show that for any $\eps>0$, and for $n$ sufficiently large, the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up to $(1+\eps) n \log n$ is greater than $n$.
 \end{proof}
 %%-/
 
@@ -1871,7 +1897,13 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
   use (fun n => (Nat.nth Nat.Prime (n+1) - Nat.nth Nat.Prime n) / Nat.nth Nat.Prime n)
   refine ⟨?_, ?_⟩
   · obtain ⟨k, k_o1, p_n_eq⟩ := pn_asymptotic
-    simp only [p_n_eq, cast_add, cast_one, isLittleO_one_iff]
+    simp only [isLittleO_one_iff]
+    rw [Filter.tendsto_congr' (f₂ := fun n ↦ ((1 + k (n+1))*(n+1)*log (n+1) - (1 + k n)*n*log n) / ((1 + k n)*n*log n))]
+    swap
+    · simp [Filter.EventuallyEq.eq_1]
+      use 2; intro n hn
+      rw [p_n_eq n (by linarith), p_n_eq (n+1) (by linarith)]
+      grind
     simp_rw [sub_div]
     have zero_eq_minus: (0 : ℝ) = 1 - 1 := by
       simp
@@ -2028,7 +2060,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
 
 /-%%
 \begin{proof}
-\uses{pn_asymptotic}
+\uses{pn_asymptotic}\leanok
   Easy consequence of preceding proposition.
 \end{proof}
 %%-/
@@ -2426,7 +2458,7 @@ theorem prime_between {ε : ℝ} (hε : 0 < ε) :
 
 /-%%
 \begin{proof}
-\uses{pi_alt}
+\uses{pi_alt}\leanok
 Use Corollary \ref{pi_alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infinity as $x \to \infty$.
 \end{proof}
 %%-/
