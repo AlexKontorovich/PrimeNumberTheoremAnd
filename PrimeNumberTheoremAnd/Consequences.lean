@@ -103,84 +103,77 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
   swap
   · congr 1
     have : Set.Icc (3/2) x = Set.Ico (3/2) 2 ∪ Set.Icc 2 x := by
-      symm
-      apply Set.Ico_union_Icc_eq_Icc ?_ hx
-      norm_num
-    rw [this, setIntegral_union]
+      exact Set.Ico_union_Icc_eq_Icc (by norm_num) hx |>.symm
+    rw [this, setIntegral_union _ measurableSet_Icc _ _]
     · simp only [add_eq_right]
       apply integral_eq_zero_of_ae
       simp only [measurableSet_Ico, ae_restrict_eq]
       refine eventuallyEq_inf_principal_iff.mpr ?_
-      apply Eventually.of_forall
-      intro y hy
-      simp only [Set.mem_Ico] at hy
-      have := th_eq_zero_of_lt_two hy.2
-      simp_all
+      filter_upwards [] with y hy
+      simp [th_eq_zero_of_lt_two hy.2]
     · rw [Set.disjoint_iff, Set.subset_empty_iff]
       ext y
       simp (config := {contextual := true})
-    · exact measurableSet_Icc
-    · rw [integrableOn_congr_fun (g := 0)]
+    · rw [integrableOn_congr_fun (g := 0) _ measurableSet_Ico]
       · exact integrableOn_zero
       · intro y hy
         simp only [Set.mem_Ico] at hy
         have := th_eq_zero_of_lt_two hy.2
         simp_all
-      · exact measurableSet_Ico
-    · unfold th
-      apply extracted_1 _
+    · apply extracted_1 _
   let a : ℕ → ℝ := Set.indicator (setOf Nat.Prime) (fun n => log n)
-  have h3 (n : ℕ) : (log n)⁻¹ * a n = if n.Prime then 1 else 0 := by
-    simp only [a]
-    simp [Set.indicator_apply]
+  have floor32 : ⌊(3/2 : ℝ)⌋₊ = 1 := by rw [floor_div_ofNat, Nat.floor_ofNat]
+  simp [primeCounting, primeCounting', count_eq_card_filter_range]
+  rw [card_eq_sum_ones, range_succ_eq_Icc_zero]
+  trans ∑ x ∈ Ioc ⌊(3/2 : ℝ)⌋₊ ⌊x⌋₊ with Nat.Prime x, 1
+  · norm_cast
+    congr 1
+    ext p
+    constructor <;> intro h
+    · simp_all only [mem_filter, mem_Icc, _root_.zero_le, true_and, mem_Ioc, and_true]
+      apply h.2.one_lt
+    · simp_all
+  rw [sum_filter]
+  trans ∑ n ∈ Ioc ⌊(3/2 : ℝ)⌋₊ ⌊x⌋₊, (1 / log n) * a n
+  · refine sum_congr rfl fun n hn ↦ ?_
+    unfold a
     split_ifs with h
-    · rw [mul_comm]
-      refine mul_inv_cancel₀ ?_
-      refine log_ne_zero_of_pos_of_ne_one ?_ ?_ <;> norm_cast
-      exacts [h.pos, h.ne_one]
-    · rfl
-  have h9 : 3/2 ≤ x := by linarith
-  have h2 := sum_mul_eq_sub_sub_integral_mul (f := fun x ↦ (log x)⁻¹) (c := a) (by norm_num) h9
-  have h4 : ⌊(3/2 : ℝ)⌋₊ = 1 := by rw [@floor_div_ofNat]; rw [Nat.floor_ofNat]
-  have h5 : Icc 0 1 = {0, 1} := by ext; simp; omega
-  have h6 (N : ℕ) : (filter Nat.Prime (Ioc 1 N)).card = Nat.primeCounting N := by
-    have : filter Nat.Prime (Ioc 1 N) = filter Nat.Prime (range (N + 1)) := by
-      ext n
-      simp only [mem_filter, mem_Ioc, mem_range, and_congr_left_iff]
-      intro hn
-      simp [lt_succ, hn.one_lt]
-    rw [this]
-    simp [primeCounting, primeCounting', count_eq_card_filter_range]
-  have h7 : a 1 = 0 := by
-    simp [a]
-  have h8 (f : ℝ → ℝ) :
-    ∫ (u : ℝ) in Set.Ioc (3 / 2) x, deriv (fun x ↦ (log x)⁻¹) u * f u =
-    ∫ (u : ℝ) in Set.Icc (3 / 2) x, f u * -(u * log u ^ 2)⁻¹ := by
-    rw [← integral_Icc_eq_integral_Ioc]
-    apply setIntegral_congr_ae measurableSet_Icc
-    refine Eventually.of_forall (fun u hu => ?_)
-    have hu' : 1 < u := by
-      simp only [Set.mem_Icc] at hu
-      linarith
-    rw [deriv_smoothingFn hu']
-    ring
-
-  simp [h3, h4, h5, h6, h7, h8, MeasureTheory.integral_neg] at h2
-  rw [h2]
-  · simp [a, ← th_def', div_eq_mul_inv, mul_comm]
-  · intro z hz1 hz2
-    refine (differentiableAt_fun_id.log ?_).inv (log_ne_zero_of_pos_of_ne_one ?_ ?_) <;> linarith
-  · have : ∀ y ∈ Set.Icc (3 / 2) x, deriv (fun x ↦ (log x)⁻¹) y = -(y * log y ^ 2)⁻¹:= by
+    · simp [h]
+      have : log n ≠ 0 := by
+        apply log_ne_zero_of_pos_of_ne_one <;> norm_cast
+        exacts [h.pos, h.ne_one]
+      field
+    simp [h]
+  rw [sum_mul_eq_sub_sub_integral_mul a (f := fun n ↦ 1 / log n) (by norm_num) (by linarith), floor32, show Icc 0 1 = {0, 1} by ext; simp; omega]
+  · simp only [Set.indicator_apply, Set.mem_setOf_eq, mem_singleton, zero_ne_one,
+      not_false_eq_true, sum_insert, CharP.cast_eq_zero, log_zero, ite_self, sum_singleton, cast_one,
+      log_one, add_zero, mul_zero, sub_zero, th, a, sum_filter]
+    have h8 (f : ℝ → ℝ) :
+      ∫ (u : ℝ) in Set.Ioc (3 / 2) x, deriv (fun x ↦ 1 / log x) u * f u =
+      ∫ (u : ℝ) in Set.Icc (3 / 2) x, f u * -(u * log u ^ 2)⁻¹ := by
+      rw [← integral_Icc_eq_integral_Ioc]
+      apply setIntegral_congr_ae measurableSet_Icc
+      refine Eventually.of_forall (fun u hu => ?_)
+      simp only [one_div, mul_inv_rev, mul_neg]
+      rw [deriv_smoothingFn (by linarith [hu.1])]
+      ring
+    simp_rw [h8, mul_neg, MeasureTheory.integral_neg]
+    ring_nf!
+  · intro z hz
+    have : z ≠ 0 := by linarith [hz.1]
+    have : log z ≠ 0 := by
+      apply log_ne_zero_of_pos_of_ne_one <;> linarith [hz.1]
+    fun_prop (disch := assumption)
+  · simp only [one_div]
+    have : ∀ y ∈ Set.Icc (3 / 2) x, deriv (fun x ↦ (log x)⁻¹) y = -(y * log y ^ 2)⁻¹:= by
       intro y hy
-      simp only [Set.mem_Icc] at hy
       rw [deriv_smoothingFn, mul_inv, ← div_eq_mul_inv, neg_div]
-      linarith
+      linarith [hy.1]
     apply ContinuousOn.integrableOn_Icc
     intro z hz
     apply ContinuousWithinAt.congr (f := fun x => - (x * log x ^ 2)⁻¹)
     · apply ContinuousWithinAt.neg
-      simp only [Set.mem_Icc] at hz
-      apply extracted_2 <;> linarith
+      apply extracted_2 <;> linarith [hz.1]
     · apply this
     · apply this z hz
 
