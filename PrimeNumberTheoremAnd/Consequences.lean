@@ -54,23 +54,11 @@ lemma th_def' (x : ℝ) :
 
 lemma th_eq_zero_of_lt_two {x : ℝ} (hx : x < 2) : th x = 0 := by
   unfold th
-  convert sum_empty
-  ext y
-  simp only [mem_filter, mem_Iic, notMem_empty, iff_false, not_and]
-  intro hy
-  have : y < 2 := by
-    cases lt_or_ge x 0 with
-    | inl hx' =>
-      have := Nat.floor_of_nonpos hx'.le
-      rw [this, nonpos_iff_eq_zero] at hy
-      rw [hy]
-      norm_num
-    | inr hx' =>
-      rw [← Nat.cast_lt_ofNat (α := ℝ)]
-      apply lt_of_le_of_lt ?_ hx
-      refine (le_floor_iff hx').mp hy
-  contrapose! this
-  exact this.two_le
+  apply sum_eq_zero
+  intro n hn
+  contrapose! hx
+  simp only [mem_filter, mem_Iic] at hn
+  exact le_floor_iff' (by norm_num)|>.mp <| le_trans hn.2.two_le hn.1
 
 theorem extracted_2 (x : ℝ) (z : ℝ) (hz_pos : 0 < z) (hz : z ≠ 1) :
     ContinuousWithinAt (fun x ↦ (x * log x ^ 2)⁻¹) (Set.Icc (3 / 2) x) z := by
