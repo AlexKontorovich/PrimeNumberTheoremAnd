@@ -1,11 +1,15 @@
 import Mathlib.Tactic
 
 /-%%
-\section{Problem statement and notation}
+\section{The least common multiple sequence is not highly abundant for large \(n\)}
 %%-/
 
 /-%%
-\begin{definition} $\sigmafunc(n)$ is the sum of the divisors of $n$.
+\subsection{Problem statement and notation}
+%%-/
+
+/-%%
+\begin{definition} $\sigma(n)$ is the sum of the divisors of $n$.
 \end{definition}
 %%-/
 
@@ -13,9 +17,9 @@ import Mathlib.Tactic
 \begin{definition}
 A positive integer \(N\) is called \emph{highly abundant} (HA) if
 \[
-  \sigmafunc(N) > \sigmafunc(m)
+  \sigma(N) > \sigma(m)
 \]
-for all positive integers \(m < N\), where \(\sigmafunc(n)\) denotes the sum of the positive divisors of \(n\).
+for all positive integers \(m < N\), where \(\sigma(n)\) denotes the sum of the positive divisors of \(n\).
 \end{definition}
 %%-/
 
@@ -33,7 +37,7 @@ We call \((L_n)_{n \ge 1}\) the \emph{least common multiple sequence}.
 \begin{definition}
 We say that \(L_n\) is \emph{highly abundant} if \(L_n\) is a highly abundant integer in the sense above, i.e.
 \[
-  \sigmafunc(L_n) > \sigmafunc(m)
+  \sigma(L_n) > \sigma(m)
   \quad\text{for all } m < L_n.
 \]
 \end{definition}
@@ -50,7 +54,7 @@ Is it true that every value in the sequence \(L_n = \lcm(1,2,\dots,n)\) is highl
 
 In this note we record the structure of an argument showing that, for all sufficiently large \(n\), the integer \(L_n\) is \emph{not} highly abundant.  This argument was taken from \href{https://mathoverflow.net/questions/501066/is-the-least-common-multiple-sequence-textlcm1-2-dots-n-a-subset-of-t?noredirect=1#comment1313839_501066}{this MathOverflow answer}.
 
-\section{A general criterion using three medium primes and three large primes}
+\subsection{A general criterion using three medium primes and three large primes}
 %%-/
 
 /-%%
@@ -117,9 +121,9 @@ Since \(q_i < n\), the prime \(q_i\) divides \(L_n\) exactly once (as \(q_i^2 > 
 \begin{lemma}[Normalised divisor sum for \(L_n\)]\label{lem:sigmaLn}
 Let \(L'\) be as in Lemma~\ref{lem:Lprime-def}. Then
 \begin{equation}\label{eq:sigmaLn}
-  \frac{\sigmafunc(L_n)}{L_n}
+  \frac{\sigma(L_n)}{L_n}
   \;=\;
-  \frac{\sigmafunc(L')}{L'} \prod_{i=1}^3 \Bigl(1 + \frac{1}{q_i}\Bigr).
+  \frac{\sigma(L')}{L'} \prod_{i=1}^3 \Bigl(1 + \frac{1}{q_i}\Bigr).
 \end{equation}
 \end{lemma}
 %%-/
@@ -127,17 +131,17 @@ Let \(L'\) be as in Lemma~\ref{lem:Lprime-def}. Then
 /-%%
 
 \begin{proof}
-Use the multiplicativity of \(\sigmafunc(\cdot)\) and the fact that each \(q_i\) occurs to the first power in \(L_n\).  Then
+Use the multiplicativity of \(\sigma(\cdot)\) and the fact that each \(q_i\) occurs to the first power in \(L_n\).  Then
 \[
-  \sigmafunc(L_n)
-  = \sigmafunc(L') \prod_{i=1}^3 \sigmafunc(q_i)
-  = \sigmafunc(L') \prod_{i=1}^3 (1+q_i).
+  \sigma(L_n)
+  = \sigma(L') \prod_{i=1}^3 \sigma(q_i)
+  = \sigma(L') \prod_{i=1}^3 (1+q_i).
 \]
 Dividing by \(L_n = L' \prod_{i=1}^3 q_i\) gives
 \[
-  \frac{\sigmafunc(L_n)}{L_n}
-  = \frac{\sigmafunc(L')}{L'} \prod_{i=1}^3 \frac{1+q_i}{q_i}
-  = \frac{\sigmafunc(L')}{L'} \prod_{i=1}^3 \Bigl(1 + \frac{1}{q_i}\Bigr).
+  \frac{\sigma(L_n)}{L_n}
+  = \frac{\sigma(L')}{L'} \prod_{i=1}^3 \frac{1+q_i}{q_i}
+  = \frac{\sigma(L')}{L'} \prod_{i=1}^3 \Bigl(1 + \frac{1}{q_i}\Bigr).
 \]
 \end{proof}
 %%-/
@@ -213,7 +217,7 @@ so
 
 \subsection{A sufficient condition}
 
-We give a sufficient condition for $\sigmafunc(M) \geq \sigmafunc(L_n)$.
+We give a sufficient condition for $\sigma(M) \geq \sigma(L_n)$.
 %%-/
 
 /-%%
@@ -221,11 +225,11 @@ We give a sufficient condition for $\sigmafunc(M) \geq \sigmafunc(L_n)$.
 \begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient}
 Suppose
 \[
-  \frac{\sigmafunc(M)}{M}
+  \frac{\sigma(M)}{M}
   \Bigl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Bigr)
-  \;\ge\; \frac{\sigmafunc(L_n)}{L_n}.
+  \;\ge\; \frac{\sigma(L_n)}{L_n}.
 \]
-Then \(\sigmafunc(M) \ge \sigmafunc(L_n)\).
+Then \(\sigma(M) \ge \sigma(L_n)\).
 \end{lemma}
 %%-/
 
@@ -238,17 +242,17 @@ By Lemma~\ref{lem:M-basic},
 \]
 Hence
 \[
-  \frac{\sigmafunc(M)}{M} \ge \frac{\sigmafunc(L_n)}{L_n}
+  \frac{\sigma(M)}{M} \ge \frac{\sigma(L_n)}{L_n}
   \Bigl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Bigr)^{-1}
-  > \frac{\sigmafunc(L_n)}{L_n} \cdot \frac{M}{L_n}.
+  > \frac{\sigma(L_n)}{L_n} \cdot \frac{M}{L_n}.
 \]
 Multiplying both sides by \(M\) gives
 \[
-  \sigmafunc(M) > \sigmafunc(L_n) \cdot \frac{M}{L_n}
+  \sigma(M) > \sigma(L_n) \cdot \frac{M}{L_n}
 \]
 and hence
 \[
-  \sigmafunc(M) \ge \sigmafunc(L_n),
+  \sigma(M) \ge \sigma(L_n),
 \]
 since \(M/L_n<1\) and both sides are integers.
 \end{proof}
@@ -256,22 +260,22 @@ since \(M/L_n<1\) and both sides are integers.
 
 /-%%
 
-Combining Lemma \ref{lem:criterion-sufficient} with Lemma \ref{lem:sigmaLn}, we see that it suffices to bound \(\sigmafunc(M)/M\) from below in terms of \(\sigmafunc(L')/L'\):
+Combining Lemma \ref{lem:criterion-sufficient} with Lemma \ref{lem:sigmaLn}, we see that it suffices to bound \(\sigma(M)/M\) from below in terms of \(\sigma(L')/L'\):
 
-\begin{lemma}[Reduction to a lower bound for \(\sigmafunc(M)/M\)]\label{lem:criterion-reduced}
+\begin{lemma}[Reduction to a lower bound for \(\sigma(M)/M\)]\label{lem:criterion-reduced}
 If
 \begin{equation}\label{eq:sigmaM-lower}
-  \frac{\sigmafunc(M)}{M}
+  \frac{\sigma(M)}{M}
   \;\ge\;
-  \frac{\sigmafunc(L')}{L'}
+  \frac{\sigma(L')}{L'}
   \Biggl( \prod_{i=1}^3 \Bigl(1+\frac{1}{p_i(p_i+1)}\Bigr) \Biggr)
   \Bigl(1 + \frac{3}{8n}\Bigr),
 \end{equation}
 then
 \[
-  \frac{\sigmafunc(M)}{M}
+  \frac{\sigma(M)}{M}
   \Bigl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Bigr)
-  \ge \frac{\sigmafunc(L_n)}{L_n}.
+  \ge \frac{\sigma(L_n)}{L_n}.
 \]
 \end{lemma}
 %%-/
@@ -287,7 +291,7 @@ Insert \eqref{eq:sigmaM-lower} and \eqref{eq:sigmaLn} into the desired inequalit
 
 \subsection{Effect of modifying prime powers}
 
-Now we estimate the effect on \(\sigmafunc(\cdot)/(\cdot)\) of increasing certain prime exponents.
+Now we estimate the effect on \(\sigma(\cdot)/(\cdot)\) of increasing certain prime exponents.
 
 \begin{lemma}[Effect of increasing the exponent of \(p_i\)]\label{lem:effect-pi}
 Fix \(i \in \{1,2,3\}\). Suppose that in passing from \(L'\) to \(M\) we increase the exponent of \(p_i\) by exactly \(1\). Then the normalised divisor sum is multiplied by a factor
@@ -301,7 +305,7 @@ Fix \(i \in \{1,2,3\}\). Suppose that in passing from \(L'\) to \(M\) we increas
 /-%%
 
 \begin{proof}
-If the exponent of \(p_i\) in \(L'\) is \(e\), the contribution of \(p_i\) to \(\sigmafunc(L')/L'\) is
+If the exponent of \(p_i\) in \(L'\) is \(e\), the contribution of \(p_i\) to \(\sigma(L')/L'\) is
 \[
   \frac{1 + p_i + \dots + p_i^e}{p_i^e}.
 \]
@@ -341,7 +345,7 @@ Let \(k\) be the largest integer such that \(2^k \le n\). Then the exponent of \
 \begin{proof}
 Since \(2^k \le n\), the number \(2^k\) divides \(\lcm(1,2,\dots,n)\), hence \(2^k\) divides \(L_n\) and thus also divides \(L'\).  The definition of \(M\) multiplies \(L'\) by \(4 = 2^2\), so the exponent of \(2\) in \(M\) is at least \(k+2\).
 
-The ratio of contributions of \(2\) to \(\sigmafunc(M)/M\) and \(\sigmafunc(L')/L'\) is
+The ratio of contributions of \(2\) to \(\sigma(M)/M\) and \(\sigma(L')/L'\) is
 \[
   \frac{(1+2+\dots+2^{k+2})/2^{k+2}}{(1+2+\dots+2^k)/2^k}.
 \]
@@ -366,9 +370,9 @@ giving the second inequality.
 \begin{lemma}[Effect of the remaining factor \(m\)]\label{lem:m-nonnegative}
 The extra factor \(m\) in the definition of \(M\) can only increase the normalised divisor sum:
 \[
-  \frac{\sigmafunc(M)}{M}
+  \frac{\sigma(M)}{M}
   \ge
-  \frac{\sigmafunc(L')}{L'} \times
+  \frac{\sigma(L')}{L'} \times
   \Bigl(\text{multiplicative factors coming from }p_i\text{ and }2\Bigr).
 \]
 \end{lemma}
@@ -381,7 +385,7 @@ Since \(m\) is a positive integer, any extra primes (or higher exponents) it int
 \[
   \frac{1+p+\dots+p^e}{p^e} \ge 1.
 \]
-Hence they can only increase the value of \(\sigmafunc(M)/M\).
+Hence they can only increase the value of \(\sigma(M)/M\).
 \end{proof}
 %%-/
 
@@ -389,12 +393,12 @@ Hence they can only increase the value of \(\sigmafunc(M)/M\).
 
 \subsection{Conclusion of the criterion}
 
-\begin{lemma}[Lower bound for \(\sigmafunc(M)/M\)]\label{lem:sigmaM-lower-final}
+\begin{lemma}[Lower bound for \(\sigma(M)/M\)]\label{lem:sigmaM-lower-final}
 With notation as above,
 \[
-  \frac{\sigmafunc(M)}{M}
+  \frac{\sigma(M)}{M}
   \ge
-  \frac{\sigmafunc(L')}{L'}
+  \frac{\sigma(L')}{L'}
   \Biggl( \prod_{i=1}^3 \Bigl(1 + \frac{1}{p_i(p_i+1)}\Bigr) \Biggr)
   \Bigl(1 + \frac{3}{8n}\Bigr).
 \]
@@ -413,11 +417,11 @@ Multiply the contributions from Lemma~\ref{lem:effect-pi} for \(i=1,2,3\), from 
 \begin{proof}[Proof of Theorem~\ref{thm:criterion}]
 By Lemma~\ref{lem:sigmaM-lower-final}, the condition \eqref{eq:sigmaM-lower} holds.  By Lemma~\ref{lem:criterion-reduced} this implies
 \[
-  \frac{\sigmafunc(M)}{M}
+  \frac{\sigma(M)}{M}
   \Bigl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Bigr)
-  \ge \frac{\sigmafunc(L_n)}{L_n}.
+  \ge \frac{\sigma(L_n)}{L_n}.
 \]
-Applying Lemma~\ref{lem:criterion-sufficient}, we obtain \(\sigmafunc(M) \ge \sigmafunc(L_n)\) with \(M < L_n\), so \(L_n\) cannot be highly abundant.
+Applying Lemma~\ref{lem:criterion-sufficient}, we obtain \(\sigma(M) \ge \sigma(L_n)\) with \(M < L_n\), so \(L_n\) cannot be highly abundant.
 \end{proof}
 %%-/
 
@@ -430,7 +434,7 @@ Analogous arguments allow other pairs \((c,\alpha)\) in place of \((4,3/8)\), su
 
 /-%%
 
-\section{Asymptotic selection of primes using Dusart's result}
+\subsection{Asymptotic selection of primes using Dusart's result}
 
 In this section we use explicit prime gap estimates to show that the hypotheses of Theorem~\ref{thm:criterion} hold for all sufficiently large \(n\).
 

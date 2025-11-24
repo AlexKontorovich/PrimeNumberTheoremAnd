@@ -1,0 +1,9 @@
+import Mathlib.Tactic
+
+/-%%
+\section{The arguments of Rosser and Schoenfeld}
+%%-/
+
+/-%%
+In this section we formalize the arguments of Rosser and Schoenfeld that can convert primary estimates to secondary estimates, with an emphasis on parameter flexibility.
+%%-/
