@@ -6,6 +6,7 @@ import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
 import Mathlib.NumberTheory.PrimeCounting
+import Mathlib.Analysis.Polynomial.Basic
 
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.ArithmeticFunction
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
@@ -1912,7 +1913,41 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
     rw [Real.le_log_iff_exp_le (by positivity)]
     have := Real.exp_one_lt_d9
     rify at hn; linarith
-  have h5 : ∀ᶠ n:ℕ in atTop, n < (1 + c' ((1 + ε) * n * log n - 1)) * ((1 + ε) * n * log n - 1) / log ((1 + ε) * n * log n - 1) := by sorry
+  have h5 : ∀ᶠ n:ℕ in atTop, n < (1 + c' ((1 + ε) * n * log n - 1)) * ((1 + ε) * n * log n - 1) / log ((1 + ε) * n * log n - 1) := by
+      suffices ∀ᶠ n:ℕ in atTop, (1 + c' ((1 + ε) * n * log n - 1)) * (((1 + ε) * log n - 1/n) / log ((1 + ε) * n * log n - 1)) > 1 by
+        filter_upwards [h1, this]
+        intro n hn₀ hn
+        replace hn := mul_lt_mul_of_pos_right hn (show 0 < (n:ℝ) by  positivity)
+        convert hn using 1 <;> field_simp
+      apply Tendsto.eventually_const_lt (show 1+ε > 1 by linarith)
+      convert Tendsto.mul (a := 1) (b := 1+ε) ?_ ?_ using 2
+      · simp
+      · convert Tendsto.const_add (c := 0) (b := 1) (f := fun (n:ℕ) ↦ c' ((1+ε) * n * log n - 1)) ?_ using 2
+        · simp
+        rw [Asymptotics.isLittleO_one_iff] at hc'
+        apply Tendsto.comp hc'
+        apply Tendsto.comp (g := fun x ↦ (1+ε) * x * log x - 1) _ tendsto_natCast_atTop_atTop
+        convert Tendsto.comp (g := fun x ↦ (1+ε) * x - 1) (y := Filter.atTop) (f := fun x ↦ x * log x) ?_ ?_ using 2 with x
+        · grind
+        · have deg_1 : (1:ℕ) ≤ ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).degree := by
+            apply Polynomial.le_degree_of_ne_zero
+            simp [Polynomial.coeff_one]
+            grind
+          have deg_2 : ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).degree ≤ (1:ℕ) := by
+            apply (Polynomial.degree_sub_le _ _).trans
+            simp
+            apply (Polynomial.degree_smul_le _ _).trans
+            simp
+          have deg_3 : ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).degree = (1:ℕ) := by order
+          have deg_4 : ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).natDegree = 1 := Polynomial.natDegree_eq_of_degree_eq_some deg_3
+          convert Polynomial.tendsto_atTop_of_leadingCoeff_nonneg ((1+ε) • Polynomial.X - 1: Polynomial ℝ) ?_ ?_ with x
+          · simp
+          · simp [deg_3]
+          simp [←Polynomial.coeff_natDegree, deg_4, Polynomial.coeff_one]
+          linarith
+        apply Filter.Tendsto.atTop_mul_atTop₀ _ Real.tendsto_log_atTop
+        exact fun ⦃U⦄ a ↦ a
+      sorry
 
   filter_upwards [h1, h2, h3, h4, h5]
   intro n h1n h2n h3n h4n h5n
