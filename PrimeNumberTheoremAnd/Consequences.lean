@@ -1868,6 +1868,8 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
     rw [eventually_atTop]; use 1; grind
   have h2 : ∀ᶠ n:ℕ in atTop, log n > 0 := by
     rw [eventually_atTop]; use 2; intro n hn; apply Real.log_pos; norm_num; linarith
+  have h2a : ∀ᶠ n:ℕ in atTop, log ((1+ε)*(log n)*n) > 0 := by
+    sorry
   have h3 : ∀ᶠ n:ℕ in atTop, ε < 1 → (1 + c' ((1 - ε) * n * log n)) * ((1 - ε) * n * log n) / log ((1 - ε) * n * log n) ≤ n := by
     rcases lt_or_ge ε 1 with hε' | hε'
     swap
@@ -1947,8 +1949,43 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
           linarith
         apply Filter.Tendsto.atTop_mul_atTop₀ _ Real.tendsto_log_atTop
         exact fun ⦃U⦄ a ↦ a
-      sorry
-
+      let f1 : ℕ → ℝ := fun x ↦ 1 - ((1+ε)* x * log x)⁻¹
+      let f2 : ℕ → ℝ := fun x ↦ log ((1+ε)*x*log x - 1) / log ((1+ε)*x*log x)
+      let f3 : ℕ → ℝ := fun x ↦ log ((1+ε)*x*log x) / log x
+      suffices Tendsto (fun n ↦ (1+ε) * ((f1 n) / (f2 n * f3 n))) Filter.atTop (nhds (1+ε)) by
+        apply (Filter.tendsto_congr' _).mp this
+        filter_upwards [h1, h2, h2a]
+        intro n h1n h2n h2an
+        simp [f1, f2, f3]
+        field_simp
+      convert Tendsto.const_mul (c := 1) (b := 1+ε) ?_ using 2
+      · simp
+      convert Tendsto.div (a:=1) (b:=1) (f:=f1) (g:=f2*f3) ?_ ?_ (by positivity)
+      · simp
+      · unfold f1
+        convert Tendsto.const_sub 1 (c := 0) (f := fun (x:ℕ) ↦ ((1+ε)*x*log x)⁻¹) ?_
+        · simp
+        apply Tendsto.comp tendsto_inv_atTop_zero _
+        apply Tendsto.comp (g := fun x ↦ (1+ε)*x*log x) _ tendsto_natCast_atTop_atTop
+        apply Filter.Tendsto.atTop_mul_atTop₀ _ Real.tendsto_log_atTop
+        apply Tendsto.const_mul_atTop' (by linarith)
+        exact fun ⦃U⦄ a ↦ a
+      convert Tendsto.mul (a := 1) (b := 1) (f := f2) ?_ ?_ using 2
+      · simp
+      · sorry
+      suffices Tendsto (fun n:ℕ ↦ (log (1 + ε)/log n) + (log (log n) / log n) + 1) atTop (nhds 1) by
+        apply (Filter.tendsto_congr' _).mp this
+        filter_upwards [h1, h2]
+        intro n h1n h2n
+        unfold f3; field_simp
+        rw [Real.log_mul, Real.log_mul] <;> try positivity
+      convert Tendsto.add_const (c := 0) (b := 1) (f := fun (n:ℕ) ↦ (log (1 + ε)/log n) + (log (log n) / log n) ) ?_
+      · simp
+      convert Tendsto.add (a := 0) (b := 0) (f := fun (n:ℕ) ↦ (log (1 + ε)/log n)) ?_ ?_
+      · simp
+      · apply Filter.Tendsto.const_div_atTop hlog
+      apply Tendsto.comp (g := fun x ↦ log x / x) _ hlog
+      convert Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by positivity) with n <;> simp
   filter_upwards [h1, h2, h3, h4, h5]
   intro n h1n h2n h3n h4n h5n
 
