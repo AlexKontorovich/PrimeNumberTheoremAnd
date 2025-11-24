@@ -1848,6 +1848,7 @@ Let $p_n$ denote the $n^{th}$ prime.
 as $n \to \infty$.
 \end{proposition}
 %%-/
+open Filter in
 theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     ∀ n : ℕ, n > 1 → Nat.nth Nat.Prime n = (1 + c n) * n * log n := by
   let c : ℕ → ℝ := fun n ↦ (Nat.nth Nat.Prime n) / (n * log n) - 1
@@ -1860,21 +1861,58 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
   rw [Asymptotics.isLittleO_one_iff, Metric.tendsto_nhds]
   intro ε hε
   obtain ⟨ c', hc', hcount ⟩ := pi_alt
+  have hlog := Tendsto.comp Real.tendsto_log_atTop tendsto_natCast_atTop_atTop
 
-  have h1 : ∀ᶠ n:ℕ in Filter.atTop, n > 0 := by
-    rw [Filter.eventually_atTop]; use 1; grind
-  have h2 : ∀ᶠ n:ℕ in Filter.atTop, log n > 0 := by
-    rw [Filter.eventually_atTop]; use 2; intro n hn; apply Real.log_pos; norm_num; linarith
-  have h3 : ∀ᶠ n:ℕ in Filter.atTop, (1 + c' ((1 - ε) * n * log n)) * ((1 - ε) * n * log n) / log ((1 - ε) * n * log n) ≤ n := by sorry
-  have h4 : ∀ᶠ n:ℕ in Filter.atTop, 1 ≤ (1+ε) * n * log n := by
-    rw [Filter.eventually_atTop]; use 3; intro n hn
+  have h1 : ∀ᶠ n:ℕ in atTop, n > 0 := by
+    rw [eventually_atTop]; use 1; grind
+  have h2 : ∀ᶠ n:ℕ in atTop, log n > 0 := by
+    rw [eventually_atTop]; use 2; intro n hn; apply Real.log_pos; norm_num; linarith
+  have h3 : ∀ᶠ n:ℕ in atTop, ε < 1 → (1 + c' ((1 - ε) * n * log n)) * ((1 - ε) * n * log n) / log ((1 - ε) * n * log n) ≤ n := by
+    rcases lt_or_ge ε 1 with hε' | hε'
+    swap
+    · apply Filter.Eventually.of_forall
+      grind
+    suffices ∀ᶠ n:ℕ in atTop, ((1 + c' ((1 - ε) * n * log n)) * (1 - ε)) * (log n / log ((1 - ε) * n * log n)) ≤ 1 by
+      apply Eventually.mono this
+      intro n hn _
+      replace hn := mul_le_mul_of_nonneg_right hn (show 0 ≤ (n:ℝ) by positivity)
+      convert hn using 1 <;> ring
+    apply Tendsto.eventually_le_const (show 1-ε < 1 by linarith)
+    convert Tendsto.mul (a := 1-ε) (b := 1) ?_ ?_ using 2
+    · simp
+    · convert Tendsto.mul_const (c := 1) (b := 1-ε) ?_ using 2
+      · simp
+      convert Tendsto.const_add (c := 0) (b := 1) (f := fun (n:ℕ) ↦ c' ((1-ε) * n * log n)) ?_ using 2
+      · simp
+      rw [Asymptotics.isLittleO_one_iff] at hc'
+      apply Tendsto.comp hc'
+      apply Tendsto.atTop_mul_atTop₀ _ hlog
+      apply Tendsto.const_mul_atTop' (by linarith) tendsto_natCast_atTop_atTop
+    rw [←tendsto_inv_iff₀ (by positivity)]
+    simp [inv_div]
+    suffices Tendsto (fun n:ℕ ↦ (log (1 - ε)/log n) + (log (log n) / log n) + 1) atTop (nhds 1) by
+      apply (Filter.tendsto_congr' _).mp this
+      filter_upwards [h1, h2]
+      intro n h1n h2n
+      field_simp
+      have : 1-ε ≠ 0 := by linarith
+      rw [Real.log_mul, Real.log_mul] <;> try positivity
+    convert Tendsto.add_const (c := 0) (b := 1) (f := fun (n:ℕ) ↦ (log (1 - ε)/log n) + (log (log n) / log n) ) ?_
+    · simp
+    convert Tendsto.add (a := 0) (b := 0) (f := fun (n:ℕ) ↦ (log (1 - ε)/log n)) ?_ ?_
+    · simp
+    · apply Filter.Tendsto.const_div_atTop hlog
+    apply Tendsto.comp (g := fun x ↦ log x / x) _ hlog
+    convert Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by positivity) with n <;> simp
+  have h4 : ∀ᶠ n:ℕ in atTop, 1 ≤ (1+ε) * n * log n := by
+    rw [eventually_atTop]; use 3; intro n hn
     apply_rules [one_le_mul_of_one_le_of_one_le]
     · linarith
     · norm_num; omega
     rw [Real.le_log_iff_exp_le (by positivity)]
     have := Real.exp_one_lt_d9
     rify at hn; linarith
-  have h5 : ∀ᶠ n:ℕ in Filter.atTop, n < (1 + c' ((1 + ε) * n * log n - 1)) * ((1 + ε) * n * log n - 1) / log ((1 + ε) * n * log n - 1) := by sorry
+  have h5 : ∀ᶠ n:ℕ in atTop, n < (1 + c' ((1 + ε) * n * log n - 1)) * ((1 + ε) * n * log n - 1) / log ((1 + ε) * n * log n - 1) := by sorry
 
   filter_upwards [h1, h2, h3, h4, h5]
   intro n h1n h2n h3n h4n h5n
@@ -1896,7 +1934,7 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
       ring
     rw [←Nat.count_le_iff_le_nth Nat.infinite_setOf_prime]
     change x.primeCounting ≤ n
-    rify; rwa [hcount]
+    rify; rw [hcount]; grind
   let x := ⌊ (1+ε) * n * log n ⌋₊
   suffices h: nth Nat.Prime n < x by
     calc
