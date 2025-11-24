@@ -1859,24 +1859,53 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
     field_simp
   rw [Asymptotics.isLittleO_one_iff, Metric.tendsto_nhds]
   intro ε hε
-  rw [Filter.eventually_atTop]
-  let N := 10
-  use N
-  intro n hn
-  have hnpos: n > 0 := by grind
+  obtain ⟨ c', hc', hcount ⟩ := pi_alt
+
+  have h1 : ∀ᶠ n:ℕ in Filter.atTop, n > 0 := by
+    rw [Filter.eventually_atTop]; use 1; grind
+  have h2 : ∀ᶠ n:ℕ in Filter.atTop, log n > 0 := by
+    rw [Filter.eventually_atTop]; use 2; intro n hn; apply Real.log_pos; norm_num; linarith
+  have h3 : ∀ᶠ n:ℕ in Filter.atTop, (1 + c' ((1 - ε) * n * log n)) * ((1 - ε) * n * log n) / log ((1 - ε) * n * log n) ≤ n := by sorry
+  have h4 : ∀ᶠ n:ℕ in Filter.atTop, 1 ≤ (1+ε) * n * log n := by sorry
+  have h5 : ∀ᶠ n:ℕ in Filter.atTop, n < (1 + c' ((1 + ε) * n * log n - 1)) * ((1 + ε) * n * log n - 1) / log ((1 + ε) * n * log n - 1) := by sorry
+
+  filter_upwards [h1, h2, h3, h4, h5]
+  intro n h1n h2n h3n h4n h5n
+
   have hpn : nth Nat.Prime n > 0 := by
     have := Nat.add_two_le_nth_prime n
     linarith
-  rify at hn
-  have hlog : log n > 0 := by apply Real.log_pos; grind
   simp [c, abs_lt]
   constructor
   · rcases lt_or_ge ε 1 with hε' | hε'
     swap
     · have : 0 < (nth Nat.Prime n) / (n * log n) := by positivity
       grind
-    sorry
-  sorry
+    let x := ⌊ (1-ε) * n * log n ⌋₊
+    suffices h: x+1 ≤ nth Nat.Prime n by
+      grw [←h]
+      rw [←sub_lt_iff_lt_add', lt_div_iff₀ (by positivity)]
+      simp; convert Nat.lt_floor_add_one ((1 - ε) * (↑n * log ↑n)) using 4
+      ring
+    rw [←Nat.count_le_iff_le_nth Nat.infinite_setOf_prime]
+    change x.primeCounting ≤ n
+    rify; rwa [hcount]
+  let x := ⌊ (1+ε) * n * log n ⌋₊
+  suffices h: nth Nat.Prime n < x by
+    calc
+      _ < x / (↑n * log ↑n) - 1 := by gcongr
+      _ ≤ _ := by
+        rw [sub_le_iff_le_add', div_le_iff₀ (by positivity)]
+        convert Nat.floor_le _ using 1
+        · ring
+        positivity
+  apply Nat.nth_lt_of_lt_count
+  replace : x = ⌊ (1+ε) * n * log n - 1⌋₊+1 := by
+    rw [←Nat.floor_add_one]
+    · unfold x; congr; linarith
+    linarith
+  rw [this]; change n < ⌊ (1+ε) * n * log n - 1⌋₊.primeCounting
+  rify; rwa [hcount]
 
 /-%%
 \begin{proof}
