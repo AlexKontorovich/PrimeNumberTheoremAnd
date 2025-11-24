@@ -3348,7 +3348,7 @@ lemma ZetaNoZerosInBox (T : ℝ) :
 
   by_cases ht₀ : t₀ = 0
   · have ZetaBlowsUp : ∀ᶠ s in 𝓝[≠](1 : ℂ), ‖ζ s‖ ≥ 1 := by
-      simp_all[Function.comp_def,eventually_nhdsWithin_iff,norm_eq_sqrt_real_inner]
+      simp_all[Function.comp_def,eventually_nhdsWithin_iff,norm_eq_sqrt_real_inner, -inner_self_eq_norm_sq_to_K]
       contrapose! h
       simp_all
       delta abs at*
