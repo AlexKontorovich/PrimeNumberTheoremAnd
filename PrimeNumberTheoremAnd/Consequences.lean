@@ -1866,7 +1866,14 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
   have h2 : ∀ᶠ n:ℕ in Filter.atTop, log n > 0 := by
     rw [Filter.eventually_atTop]; use 2; intro n hn; apply Real.log_pos; norm_num; linarith
   have h3 : ∀ᶠ n:ℕ in Filter.atTop, (1 + c' ((1 - ε) * n * log n)) * ((1 - ε) * n * log n) / log ((1 - ε) * n * log n) ≤ n := by sorry
-  have h4 : ∀ᶠ n:ℕ in Filter.atTop, 1 ≤ (1+ε) * n * log n := by sorry
+  have h4 : ∀ᶠ n:ℕ in Filter.atTop, 1 ≤ (1+ε) * n * log n := by
+    rw [Filter.eventually_atTop]; use 3; intro n hn
+    apply_rules [one_le_mul_of_one_le_of_one_le]
+    · linarith
+    · norm_num; omega
+    rw [Real.le_log_iff_exp_le (by positivity)]
+    have := Real.exp_one_lt_d9
+    rify at hn; linarith
   have h5 : ∀ᶠ n:ℕ in Filter.atTop, n < (1 + c' ((1 + ε) * n * log n - 1)) * ((1 + ε) * n * log n - 1) / log ((1 + ε) * n * log n - 1) := by sorry
 
   filter_upwards [h1, h2, h3, h4, h5]
