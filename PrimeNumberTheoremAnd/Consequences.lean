@@ -1849,6 +1849,9 @@ Let $p_n$ denote the $n^{th}$ prime.
 as $n \to \infty$.
 \end{proposition}
 %%-/
+
+set_option maxHeartbeats 300000 in
+-- A large number of limit calculations necessitated a heartbeat limit increase. -
 open Filter in
 theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     ∀ n : ℕ, n > 1 → Nat.nth Nat.Prime n = (1 + c n) * n * log n := by
@@ -1868,8 +1871,7 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
     rw [eventually_atTop]; use 1; grind
   have h2 : ∀ᶠ n:ℕ in atTop, log n > 0 := by
     rw [eventually_atTop]; use 2; intro n hn; apply Real.log_pos; norm_num; linarith
-  have h2a : ∀ᶠ n:ℕ in atTop, log ((1+ε)*(log n)*n) > 0 := by
-    sorry
+
   have h3 : ∀ᶠ n:ℕ in atTop, ε < 1 → (1 + c' ((1 - ε) * n * log n)) * ((1 - ε) * n * log n) / log ((1 - ε) * n * log n) ≤ n := by
     rcases lt_or_ge ε 1 with hε' | hε'
     swap
@@ -1907,14 +1909,20 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
     · apply Filter.Tendsto.const_div_atTop hlog
     apply Tendsto.comp (g := fun x ↦ log x / x) _ hlog
     convert Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by positivity) with n <;> simp
-  have h4 : ∀ᶠ n:ℕ in atTop, 1 ≤ (1+ε) * n * log n := by
+  have h4 : ∀ᶠ n:ℕ in atTop, 1 < (1+ε) * n * log n := by
     rw [eventually_atTop]; use 3; intro n hn
-    apply_rules [one_le_mul_of_one_le_of_one_le]
+    apply_rules [one_lt_mul_of_lt_of_le]
     · linarith
     · norm_num; omega
     rw [Real.le_log_iff_exp_le (by positivity)]
     have := Real.exp_one_lt_d9
     rify at hn; linarith
+  have h2a : ∀ᶠ n:ℕ in atTop, log ((1+ε)*(log n)*n) > 0 := by
+    filter_upwards [h4]
+    intro n hn
+    apply Real.log_pos
+    convert hn using 1
+    ring
   have h5 : ∀ᶠ n:ℕ in atTop, n < (1 + c' ((1 + ε) * n * log n - 1)) * ((1 + ε) * n * log n - 1) / log ((1 + ε) * n * log n - 1) := by
       suffices ∀ᶠ n:ℕ in atTop, (1 + c' ((1 + ε) * n * log n - 1)) * (((1 + ε) * log n - 1/n) / log ((1 + ε) * n * log n - 1)) > 1 by
         filter_upwards [h1, this]
@@ -1952,6 +1960,12 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
       let f1 : ℕ → ℝ := fun x ↦ 1 - ((1+ε)* x * log x)⁻¹
       let f2 : ℕ → ℝ := fun x ↦ log ((1+ε)*x*log x - 1) / log ((1+ε)*x*log x)
       let f3 : ℕ → ℝ := fun x ↦ log ((1+ε)*x*log x) / log x
+      have h6 : Tendsto (fun n:ℕ ↦ (1 + ε) * n * log n) atTop atTop := by
+        apply Tendsto.comp (g := fun x ↦ (1+ε)*x*log x) _ tendsto_natCast_atTop_atTop
+        apply Tendsto.atTop_mul_atTop₀ _ Real.tendsto_log_atTop
+        apply Tendsto.const_mul_atTop' (by linarith)
+        exact fun ⦃U⦄ a ↦ a
+
       suffices Tendsto (fun n ↦ (1+ε) * ((f1 n) / (f2 n * f3 n))) Filter.atTop (nhds (1+ε)) by
         apply (Filter.tendsto_congr' _).mp this
         filter_upwards [h1, h2, h2a]
@@ -1965,14 +1979,31 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
       · unfold f1
         convert Tendsto.const_sub 1 (c := 0) (f := fun (x:ℕ) ↦ ((1+ε)*x*log x)⁻¹) ?_
         · simp
-        apply Tendsto.comp tendsto_inv_atTop_zero _
-        apply Tendsto.comp (g := fun x ↦ (1+ε)*x*log x) _ tendsto_natCast_atTop_atTop
-        apply Filter.Tendsto.atTop_mul_atTop₀ _ Real.tendsto_log_atTop
-        apply Tendsto.const_mul_atTop' (by linarith)
-        exact fun ⦃U⦄ a ↦ a
+        apply Tendsto.comp tendsto_inv_atTop_zero h6
       convert Tendsto.mul (a := 1) (b := 1) (f := f2) ?_ ?_ using 2
       · simp
-      · sorry
+      · suffices Tendsto (fun n:ℕ ↦ log (1 - ((1+ε)*n*log n)⁻¹) / log ((1+ε)*n*log n) + 1) atTop (nhds 1) by
+          apply (Filter.tendsto_congr' _).mp this
+          filter_upwards [h1, h2, h2a]
+          intro n h1n h2n h2an
+          have : log ((1 + ε) * n * log n) > 0 := by convert h2an using 2; ring
+          have : 1 < (1+ε)*n*log n := by
+            rw [←Real.log_pos_iff]
+            · order
+            positivity
+          unfold f2; field_simp
+          rw [←Real.log_mul] <;> try grind
+          congr
+          field_simp
+        convert Tendsto.add_const (c := 0) (b := 1) (f := fun n:ℕ ↦ log (1 - ((1 + ε) * n * log n)⁻¹) / log ((1 + ε) * n * log n)) ?_
+        · simp
+        apply Tendsto.div_atTop (a := 0)
+        · convert Filter.Tendsto.log (x := 1) ?_ (by positivity)
+          · simp
+          convert Tendsto.const_sub 1 (c := 0) (f := fun (x:ℕ) ↦ ((1+ε)*x*log x)⁻¹) ?_
+          · simp
+          apply Tendsto.comp tendsto_inv_atTop_zero h6
+        apply Tendsto.comp Real.tendsto_log_atTop h6
       suffices Tendsto (fun n:ℕ ↦ (log (1 + ε)/log n) + (log (log n) / log n) + 1) atTop (nhds 1) by
         apply (Filter.tendsto_congr' _).mp this
         filter_upwards [h1, h2]
@@ -2026,7 +2057,7 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
 
 /-%%
 \begin{proof}
-\uses{pi_alt}
+\uses{pi_alt}\leanok
 Use Corollary \ref{pi_alt} to show that for any $\eps>0$, and for $n$ sufficiently large, the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up to $(1+\eps) n \log n$ is greater than $n$.
 \end{proof}
 %%-/
