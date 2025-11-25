@@ -1,4 +1,8 @@
-import Mathlib.Tactic
+import PrimeNumberTheoremAnd.SecondarySummary
+
+namespace Lcm
+
+open ArithmeticFunction
 
 /-%%
 \section{The least common multiple sequence is not highly abundant for large \(n\)}
@@ -9,12 +13,15 @@ import Mathlib.Tactic
 %%-/
 
 /-%%
-\begin{definition} $\sigma(n)$ is the sum of the divisors of $n$.
+\begin{definition}\label{sigma-def}\lean{σ}\leanok $\sigma(n)$ is the sum of the divisors of $n$.
 \end{definition}
 %%-/
 
+def σ : ArithmeticFunction ℕ := sigma 1
+
+
 /-%%
-\begin{definition}
+\begin{definition}\label{highlyabundant-def}\lean{HighlyAbundant}\leanok
 A positive integer \(N\) is called \emph{highly abundant} (HA) if
 \[
   \sigma(N) > \sigma(m)
@@ -23,8 +30,11 @@ for all positive integers \(m < N\), where \(\sigma(n)\) denotes the sum of the 
 \end{definition}
 %%-/
 
+def HighlyAbundant (N : ℕ) : Prop :=
+  ∀ m : ℕ, m < N → σ m < σ N
+
 /-%%
-\begin{definition}
+\begin{definition}\label{Ln-def}\lean{L}\leanok
 For each integer \(n \ge 1\), define
 \[
   L_n := \lcm(1,2,\dots,n).
@@ -33,15 +43,7 @@ We call \((L_n)_{n \ge 1}\) the \emph{least common multiple sequence}.
 \end{definition}
 %%-/
 
-/-%%
-\begin{definition}
-We say that \(L_n\) is \emph{highly abundant} if \(L_n\) is a highly abundant integer in the sense above, i.e.
-\[
-  \sigma(L_n) > \sigma(m)
-  \quad\text{for all } m < L_n.
-\]
-\end{definition}
-%%-/
+def L (n : ℕ) : ℕ := (Finset.Icc 1 n).lcm _root_.id
 
 /-%%
 \begin{quote}
@@ -432,28 +434,9 @@ Analogous arguments allow other pairs \((c,\alpha)\) in place of \((4,3/8)\), su
 \end{remark}
 %%-/
 
-/-%%
-
-\subsection{Asymptotic selection of primes using Dusart's result}
-
-In this section we use explicit prime gap estimates to show that the hypotheses of Theorem~\ref{thm:criterion} hold for all sufficiently large \(n\).
-
-\subsection{An explicit prime gap result (Dusart)}
-
-\begin{theorem}[Dusart]\label{thm:Dusart}
-There exists a constant \(X_0\) (one may take \(X_0 = 89693\)) with the following property:
-for every real \(x \ge X_0\), there exists a prime \(p\) with
-\[
-  x < p \le x\Bigl(1 + \frac{1}{\log^3 x}\Bigr).
-\]
-\end{theorem}
-%%-/
 
 /-%%
 
-\begin{remark}
-In the Lean formalization, Theorem~\ref{thm:Dusart} will be taken as an axiom or imported lemma, without re-proving it.
-\end{remark}
 
 \subsection{Choice of six primes \(p_i,q_i\) for large \(n\)}
 
@@ -699,10 +682,13 @@ Combine Lemma~\ref{lem:qi-product}, Lemma~\ref{lem:pi-product}, and Lemma~\ref{l
 
 \subsection{Conclusion for large \(n\)}
 
-\begin{theorem}[Non-highly abundant for large \(n\)]\label{thm:large-n-final}
+\begin{theorem}[Non-highly abundant for large \(n\)]\label{thm:large-n-final}\lean{L_not_HA_of_ge}\leanok
 For every integer \(n \ge 89693^2\), the integer \(L_n\) is not highly abundant.
 \end{theorem}
 %%-/
+
+theorem L_not_HA_of_ge (n : ℕ) (hn : n ≥ 89693 ^ 2) : ¬ HighlyAbundant (L n) := sorry
+
 
 /-%%
 
@@ -715,3 +701,5 @@ In combination with earlier arguments and computations for smaller \(n\), one ca
 \end{remark}
 
 %%-/
+
+end Lcm
