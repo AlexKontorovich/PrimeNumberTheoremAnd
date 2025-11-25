@@ -19,6 +19,7 @@ open ArithmeticFunction
 
 def σ : ArithmeticFunction ℕ := sigma 1
 
+noncomputable abbrev σnorm (n : ℕ) : ℝ := (σ n : ℝ) / (n : ℝ)
 
 /-%%
 \begin{definition}\label{highlyabundant-def}\lean{HighlyAbundant}\leanok
@@ -59,6 +60,23 @@ In this note we record the structure of an argument showing that, for all suffic
 \subsection{A general criterion using three medium primes and three large primes}
 %%-/
 
+/-%%
+In this subsection we assume that $n \geq 1$ and that \(p_1,p_2,p_3,q_1,q_2,q_3\) are primes satisfiying
+\[
+  \sqrt{n} < p_1 < p_2 < p_3 < q_1 < q_2 < q_3 < n
+\]
+and the key criterion
+\begin{equation}\label{eq:main-ineq}
+  \prod_{i=1}^3\Bigl(1+\frac{1}{q_i}\Bigr)
+  \le
+  \Biggl( \prod_{i=1}^3 \Bigl(1+\frac{1}{p_i(p_i+1)}\Bigr) \Biggr)
+  \Bigl(1 + \frac{3}{8n}\Bigr)
+  \Biggl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Biggr).
+\end{equation}
+%%-/
+
+
+
 structure Criterion where
   n : ℕ
   hn : n ≥ 1
@@ -73,31 +91,8 @@ structure Criterion where
   h_ord_3 : q 2 < n
   h_crit : ∏ i, (1 + ((1:ℝ)/q i)) ≤ (∏ i, (1 + (1:ℝ)/(p i * (p i + 1)))) * (1 + (3:ℝ)/(8 * n)) * (1 - 4 * ∏ i, (p i : ℝ) / ∏ i, (q i : ℝ))
 
-/-%%
-
-The goal of this section is to prove:
-
-\begin{theorem}\label{thm:criterion}  Let $n \geq 1$.
-Suppose that primes \(p_1,p_2,p_3,q_1,q_2,q_3\) satisfy
-\[
-  \sqrt{n} < p_1 < p_2 < p_3 < q_1 < q_2 < q_3 < n
-\]
-and the key criterion
-\begin{equation}\label{eq:main-ineq}
-  \prod_{i=1}^3\Bigl(1+\frac{1}{q_i}\Bigr)
-  \le
-  \Biggl( \prod_{i=1}^3 \Bigl(1+\frac{1}{p_i(p_i+1)}\Bigr) \Biggr)
-  \Bigl(1 + \frac{3}{8n}\Bigr)
-  \Biggl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Biggr).
-\end{equation}
-Then \(L_n\) is not highly abundant.
-\end{theorem}
-%%-/
 
 /-%%
-
-In the rest of the section we assume the hypotheses of Theorem \ref{thm:criterion}.
-
 \begin{lemma}\label{lem:4p3q3}\lean{Criterion.prod_p_le_prod_q}\leanok  We have $4 p_1 p_2 p_3 < q_1 q_2 q_3$.
 \end{lemma}
 %%-/
@@ -143,7 +138,7 @@ Since \(q_i < n\), the prime \(q_i\) divides \(L_n\) exactly once (as \(q_i^2 > 
 
 /-%%
 
-\begin{lemma}[Normalised divisor sum for \(L_n\)]\label{lem:sigmaLn}\lean{Criterion.sigma_ln_div_ln_eq}\leanok
+\begin{lemma}[Normalised divisor sum for \(L_n\)]\label{lem:sigmaLn}\lean{Criterion.σnorm_ln_eq}\leanok
 Let \(L'\) be as in Lemma~\ref{lem:Lprime-def}. Then
 \begin{equation}\label{eq:sigmaLn}
   \frac{\sigma(L_n)}{L_n}
@@ -153,7 +148,7 @@ Let \(L'\) be as in Lemma~\ref{lem:Lprime-def}. Then
 \end{lemma}
 %%-/
 
-theorem Criterion.sigma_ln_div_ln_eq (c : Criterion) : (σ (L c.n)) / (L c.n) = (σ (c.L')) / (c.L') * ∏ i, (1 + 1/(c.q i)) := by sorry
+theorem Criterion.σnorm_ln_eq (c : Criterion) : σnorm (L c.n) = σnorm (c.L') * ∏ i, (1 + 1/(c.q i)) := by sorry
 
 /-%%
 
@@ -268,18 +263,18 @@ We give a sufficient condition for $\sigma(M) \geq \sigma(L_n)$.
 
 /-%%
 
-\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient}\lean{Criterion.sigma_ge_sigma}\leanok
+\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient}\lean{Criterion.not_highlyAbundant_1}\leanok
 Suppose
 \[
   \frac{\sigma(M)}{M}
   \Bigl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Bigr)
   \;\ge\; \frac{\sigma(L_n)}{L_n}.
 \]
-Then \(\sigma(M) \ge \sigma(L_n)\).
+Then \(\sigma(M) \ge \sigma(L_n)\), and so \(L_n\) is not highly abundant.
 \end{lemma}
 %%-/
 
-theorem Criterion.sigma_ge_sigma (c : Criterion) (h : (σ (c.M)) / (c.M) * (1 - (4 : ℝ) * ∏ i, c.p i / ∏ i, c.q i) ≥ (σ (L c.n)) / (L c.n)) : σ (c.M) ≥ σ (L c.n) := by sorry
+theorem Criterion.not_highlyAbundant_1 (c : Criterion) (h : (σnorm (c.M)) * (1 - (4 : ℝ) * ∏ i, c.p i / ∏ i, c.q i) ≥ σnorm (L c.n)) : ¬ HighlyAbundant (L c.n) := by sorry
 
 
 /-%%
@@ -310,7 +305,7 @@ since \(M/L_n<1\) and both sides are integers.
 
 Combining Lemma \ref{lem:criterion-sufficient} with Lemma \ref{lem:sigmaLn}, we see that it suffices to bound \(\sigma(M)/M\) from below in terms of \(\sigma(L')/L'\):
 
-\begin{lemma}[Reduction to a lower bound for \(\sigma(M)/M\)]\label{lem:criterion-reduced}
+\begin{lemma}[Reduction to a lower bound for \(\sigma(M)/M\)]\label{lem:criterion-reduced}\lean{Criterion.not_highlyAbundant_2}\leanok
 If
 \begin{equation}\label{eq:sigmaM-lower}
   \frac{\sigma(M)}{M}
@@ -319,14 +314,12 @@ If
   \Biggl( \prod_{i=1}^3 \Bigl(1+\frac{1}{p_i(p_i+1)}\Bigr) \Biggr)
   \Bigl(1 + \frac{3}{8n}\Bigr),
 \end{equation}
-then
-\[
-  \frac{\sigma(M)}{M}
-  \Bigl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Bigr)
-  \ge \frac{\sigma(L_n)}{L_n}.
-\]
+then $L_n$ is not highly abundant.
 \end{lemma}
 %%-/
+
+theorem Criterion.not_highlyAbundant_2 (c : Criterion) (h : (σnorm c.M) ≥ (σnorm c.L') * ∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ))) * (1 + (3 : ℝ) / (8 * c.n))) : ¬ HighlyAbundant (L c.n) := by sorry
+
 
 /-%%
 
@@ -349,6 +342,8 @@ Fix \(i \in \{1,2,3\}\). Suppose that in passing from \(L'\) to \(M\) we increas
 \]
 \end{lemma}
 %%-/
+
+
 
 /-%%
 
@@ -441,7 +436,7 @@ Hence they can only increase the value of \(\sigma(M)/M\).
 
 \subsection{Conclusion of the criterion}
 
-\begin{lemma}[Lower bound for \(\sigma(M)/M\)]\label{lem:sigmaM-lower-final}
+\begin{lemma}[Lower bound for \(\sigma(M)/M\)]\label{lem:sigmaM-lower-final}\lean{Criterion.σnorm_M_ge_σnorm_L'_mul}\leanok
 With notation as above,
 \[
   \frac{\sigma(M)}{M}
@@ -453,16 +448,40 @@ With notation as above,
 \end{lemma}
 %%-/
 
-/-%%
+theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) : (σnorm c.M) ≥ (σnorm c.L') * ∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ))) * (1 + (3:ℝ) / (8 * c.n)) := by sorry
 
+
+/-%%
 \begin{proof}
 Multiply the contributions from Lemma~\ref{lem:effect-pi} for \(i=1,2,3\), from Lemma~\ref{lem:effect-2} for the prime \(2\), and note that Lemma~\ref{lem:m-nonnegative} allows us to ignore any additional (non-decreasing) contribution from \(m\).  This gives exactly the stated lower bound.
 \end{proof}
 %%-/
 
+
 /-%%
 
-\begin{proof}[Proof of Theorem~\ref{thm:criterion}]
+\begin{theorem}\label{thm:criterion}\lean{Criterion.not_highlyAbundant}\leanok  Let $n \geq 1$.
+Suppose that primes \(p_1,p_2,p_3,q_1,q_2,q_3\) satisfy
+\[
+  \sqrt{n} < p_1 < p_2 < p_3 < q_1 < q_2 < q_3 < n
+\]
+and the key criterion
+\begin{equation}\label{eq:main-ineq}
+  \prod_{i=1}^3\Bigl(1+\frac{1}{q_i}\Bigr)
+  \le
+  \Biggl( \prod_{i=1}^3 \Bigl(1+\frac{1}{p_i(p_i+1)}\Bigr) \Biggr)
+  \Bigl(1 + \frac{3}{8n}\Bigr)
+  \Biggl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Biggr).
+\end{equation}
+Then \(L_n\) is not highly abundant.
+\end{theorem}
+%%-/
+
+theorem Criterion.not_highlyAbundant (c : Criterion) : ¬ HighlyAbundant (L c.n) := c.not_highlyAbundant_2 c.σnorm_M_ge_σnorm_L'_mul
+
+/-%%
+
+\begin{proof}\leanok
 By Lemma~\ref{lem:sigmaM-lower-final}, the condition \eqref{eq:sigmaM-lower} holds.  By Lemma~\ref{lem:criterion-reduced} this implies
 \[
   \frac{\sigma(M)}{M}
@@ -481,18 +500,19 @@ Analogous arguments allow other pairs \((c,\alpha)\) in place of \((4,3/8)\), su
 %%-/
 
 
-/-%%
+abbrev X₀ := 89693
 
+/-%%
 
 \subsection{Choice of six primes \(p_i,q_i\) for large \(n\)}
 
 \begin{lemma}[Choice of medium primes \(p_i\)]\label{lem:choose-pi}
-Let \(n \ge X_0^2\). Set \(x := \sqrt{n}\). Then, by repeated application of Theorem~\ref{thm:Dusart}, there exist primes \(p_1,p_2,p_3\) with
+Let \(n \ge X_0^2\). Set \(x := \sqrt{n}\). Then there exist primes \(p_1,p_2,p_3\) with
 \[
   p_i \le x \Bigl(1 + \frac{1}{\log^3 x}\Bigr)^i
 \]
 and \(p_1 < p_2 < p_3\).
-Moreover, \(\sqrt{n} < p_1\) (for \(n\) sufficiently large).
+Moreover, \(\sqrt{n} < p_1\)
 \end{lemma}
 %%-/
 
