@@ -1,4 +1,8 @@
-import Mathlib.Tactic
+import PrimeNumberTheoremAnd.SecondarySummary
+
+namespace Lcm
+
+open ArithmeticFunction
 
 /-%%
 \section{The least common multiple sequence is not highly abundant for large \(n\)}
@@ -9,12 +13,16 @@ import Mathlib.Tactic
 %%-/
 
 /-%%
-\begin{definition} $\sigma(n)$ is the sum of the divisors of $n$.
+\begin{definition}\label{sigma-def}\lean{σ}\leanok $\sigma(n)$ is the sum of the divisors of $n$.
 \end{definition}
 %%-/
 
+def σ : ArithmeticFunction ℕ := sigma 1
+
+noncomputable abbrev σnorm (n : ℕ) : ℝ := (σ n : ℝ) / (n : ℝ)
+
 /-%%
-\begin{definition}
+\begin{definition}\label{highlyabundant-def}\lean{HighlyAbundant}\leanok
 A positive integer \(N\) is called \emph{highly abundant} (HA) if
 \[
   \sigma(N) > \sigma(m)
@@ -23,8 +31,11 @@ for all positive integers \(m < N\), where \(\sigma(n)\) denotes the sum of the 
 \end{definition}
 %%-/
 
+def HighlyAbundant (N : ℕ) : Prop :=
+  ∀ m : ℕ, m < N → σ m < σ N
+
 /-%%
-\begin{definition}
+\begin{definition}\label{Ln-def}\lean{L}\leanok
 For each integer \(n \ge 1\), define
 \[
   L_n := \lcm(1,2,\dots,n).
@@ -33,15 +44,7 @@ We call \((L_n)_{n \ge 1}\) the \emph{least common multiple sequence}.
 \end{definition}
 %%-/
 
-/-%%
-\begin{definition}
-We say that \(L_n\) is \emph{highly abundant} if \(L_n\) is a highly abundant integer in the sense above, i.e.
-\[
-  \sigma(L_n) > \sigma(m)
-  \quad\text{for all } m < L_n.
-\]
-\end{definition}
-%%-/
+def L (n : ℕ) : ℕ := (Finset.Icc 1 n).lcm _root_.id
 
 /-%%
 \begin{quote}
@@ -58,12 +61,7 @@ In this note we record the structure of an argument showing that, for all suffic
 %%-/
 
 /-%%
-
-
-The goal of this section is to prove:
-
-\begin{theorem}\label{thm:criterion}  Let $n \geq 1$.
-Suppose that primes \(p_1,p_2,p_3,q_1,q_2,q_3\) satisfy
+In this subsection we assume that $n \geq 1$ and that \(p_1,p_2,p_3,q_1,q_2,q_3\) are primes satisfiying
 \[
   \sqrt{n} < p_1 < p_2 < p_3 < q_1 < q_2 < q_3 < n
 \]
@@ -75,17 +73,33 @@ and the key criterion
   \Bigl(1 + \frac{3}{8n}\Bigr)
   \Biggl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Biggr).
 \end{equation}
-Then \(L_n\) is not highly abundant.
-\end{theorem}
 %%-/
+
+
+
+structure Criterion where
+  n : ℕ
+  hn : n ≥ 1
+  p : Fin 3 → ℕ
+  hp : ∀ i, Nat.Prime (p i)
+  hp_mono : StrictMono p
+  q : Fin 3 → ℕ
+  hq : ∀ i, Nat.Prime (q i)
+  hq_mono : StrictMono q
+  h_ord_1 : √(n : ℝ) < p 0
+  h_ord_2 : p 2 < q 0
+  h_ord_3 : q 2 < n
+  h_crit : ∏ i, (1 + ((1:ℝ)/q i)) ≤ (∏ i, (1 + (1:ℝ)/(p i * (p i + 1)))) * (1 + (3:ℝ)/(8 * n)) * (1 - 4 * ∏ i, (p i : ℝ) / ∏ i, (q i : ℝ))
+
 
 /-%%
-
-In the rest of the section we assume the hypotheses of Theorem \ref{thm:criterion}.
-
-\begin{lemma}  We have $4 p_1 p_2 p_3 < q_1 q_2 q_3$.
+\begin{lemma}\label{lem:4p3q3}\lean{Criterion.prod_p_le_prod_q}\leanok  We have $4 p_1 p_2 p_3 < q_1 q_2 q_3$.
 \end{lemma}
 %%-/
+
+
+theorem Criterion.prod_p_le_prod_q (c : Criterion) : 4 * ∏ i, (c.p i) < ∏ i, (c.q i) := by sorry
+
 
 /-%%
 
@@ -100,7 +114,7 @@ In the rest of the section we assume the hypotheses of Theorem \ref{thm:criterio
 
 /-%%
 
-\begin{lemma}[Factorisation of \(L_n\)]\label{lem:Lprime-def}
+\begin{lemma}[Factorisation of \(L_n\)]\label{lem:Lprime-def}\lean{Criterion.ln_eq, Criterion.q_not_dvd_L'}\leanok
 There exists a positive integer \(L'\) such that
 \[
   L_n = q_1 q_2 q_3 \, L'
@@ -108,6 +122,12 @@ There exists a positive integer \(L'\) such that
 and each prime \(q_i\) divides \(L_n\) exactly once and does not divide \(L'\).
 \end{lemma}
 %%-/
+
+noncomputable def Criterion.L' (c : Criterion) : ℕ := L c.n / ∏ i, c.q i
+
+theorem Criterion.ln_eq (c : Criterion) : L c.n = (c.q 0) * (c.q 1) * (c.q 2) * c.L' := by sorry
+
+theorem Criterion.q_not_dvd_L' (c : Criterion) : ∀ i, ¬(c.q i ∣ c.L') := by sorry
 
 /-%%
 
@@ -118,7 +138,7 @@ Since \(q_i < n\), the prime \(q_i\) divides \(L_n\) exactly once (as \(q_i^2 > 
 
 /-%%
 
-\begin{lemma}[Normalised divisor sum for \(L_n\)]\label{lem:sigmaLn}
+\begin{lemma}[Normalised divisor sum for \(L_n\)]\label{lem:sigmaLn}\lean{Criterion.σnorm_ln_eq}\leanok
 Let \(L'\) be as in Lemma~\ref{lem:Lprime-def}. Then
 \begin{equation}\label{eq:sigmaLn}
   \frac{\sigma(L_n)}{L_n}
@@ -127,6 +147,8 @@ Let \(L'\) be as in Lemma~\ref{lem:Lprime-def}. Then
 \end{equation}
 \end{lemma}
 %%-/
+
+theorem Criterion.σnorm_ln_eq (c : Criterion) : σnorm (L c.n) = σnorm (c.L') * ∏ i, (1 + 1/(c.q i)) := by sorry
 
 /-%%
 
@@ -148,12 +170,23 @@ Dividing by \(L_n = L' \prod_{i=1}^3 q_i\) gives
 
 /-%%
 
-\begin{lemma} There exist integers \(m \ge 0\) and \(r\) satisfying \(0 < r < 4 p_1 p_2 p_3\) and
+\begin{lemma}\label{div-remainder}\lean{Criterion.r_ge, Criterion.r_le, Criterion.prod_q_eq}\leanok There exist integers \(m \ge 0\) and \(r\) satisfying \(0 < r < 4 p_1 p_2 p_3\) and
 \[
   q_1 q_2 q_3 = 4 p_1 p_2 p_3 m + r
 \]
 \end{lemma}
 %%-/
+
+def Criterion.m (c : Criterion) : ℕ := (∏ i, c.q i) / (4 * ∏ i, c.p i)
+
+def Criterion.r (c : Criterion) : ℕ := (∏ i, c.q i) % (4 * ∏ i, c.p i)
+
+theorem Criterion.r_ge (c : Criterion) : 0 < c.r := by sorry
+
+theorem Criterion.r_le (c : Criterion) : c.r < 4 * ∏ i, c.p i := by sorry
+
+theorem Criterion.prod_q_eq (c : Criterion) : ∏ i, c.q i = 4 * ∏ i, c.p i * c.m + c.r := by sorry
+
 
 /-%%
 
@@ -163,19 +196,20 @@ Dividing by \(L_n = L' \prod_{i=1}^3 q_i\) gives
 
 /-%%
 
-\begin{definition}  With $m,r$ as above, define the competitor
+\begin{definition}\label{M-def}\lean{Criterion.M}\leanok  With $m,r$ as above, define the competitor
 \[
   M := 4 p_1 p_2 p_3 m L'.
 \]
 \end{definition}
 %%-/
 
+noncomputable def Criterion.M (c : Criterion) : ℕ := 4 * ∏ i, c.p i * c.m * c.L'
+
 /-%%
 
-\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic}
+\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic}\lean{Criterion.M_lt, Criterion.Ln_div_M_gt, Criterion.Ln_div_M_lt}\leanok
 With notation as above, we have:
 \begin{enumerate}
-  \item \(0 < r < 4 p_1 p_2 p_3\).
   \item \(M < L_n\).
   \item
   \[
@@ -185,6 +219,13 @@ With notation as above, we have:
 \end{enumerate}
 \end{lemma}
 %%-/
+
+theorem Criterion.M_lt (c : Criterion) : c.M < L c.n := by sorry
+
+theorem Criterion.Ln_div_M_gt (c : Criterion) : 1 < (L c.n) / (c.M) := by sorry
+
+theorem Criterion.Ln_div_M_lt (c : Criterion) : (L c.n) / (c.M) < (1 - ((4:ℝ) * ∏ i, c.p i) / (∏ i, c.q i))⁻¹ := by sorry
+
 
 /-%%
 
@@ -222,19 +263,21 @@ We give a sufficient condition for $\sigma(M) \geq \sigma(L_n)$.
 
 /-%%
 
-\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient}
+\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient}\lean{Criterion.not_highlyAbundant_1}\leanok
 Suppose
 \[
   \frac{\sigma(M)}{M}
   \Bigl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Bigr)
   \;\ge\; \frac{\sigma(L_n)}{L_n}.
 \]
-Then \(\sigma(M) \ge \sigma(L_n)\).
+Then \(\sigma(M) \ge \sigma(L_n)\), and so \(L_n\) is not highly abundant.
 \end{lemma}
 %%-/
 
-/-%%
+theorem Criterion.not_highlyAbundant_1 (c : Criterion) (h : (σnorm (c.M)) * (1 - (4 : ℝ) * ∏ i, c.p i / ∏ i, c.q i) ≥ σnorm (L c.n)) : ¬ HighlyAbundant (L c.n) := by sorry
 
+
+/-%%
 \begin{proof}
 By Lemma~\ref{lem:M-basic},
 \[
@@ -262,7 +305,7 @@ since \(M/L_n<1\) and both sides are integers.
 
 Combining Lemma \ref{lem:criterion-sufficient} with Lemma \ref{lem:sigmaLn}, we see that it suffices to bound \(\sigma(M)/M\) from below in terms of \(\sigma(L')/L'\):
 
-\begin{lemma}[Reduction to a lower bound for \(\sigma(M)/M\)]\label{lem:criterion-reduced}
+\begin{lemma}[Reduction to a lower bound for \(\sigma(M)/M\)]\label{lem:criterion-reduced}\lean{Criterion.not_highlyAbundant_2}\leanok
 If
 \begin{equation}\label{eq:sigmaM-lower}
   \frac{\sigma(M)}{M}
@@ -271,14 +314,12 @@ If
   \Biggl( \prod_{i=1}^3 \Bigl(1+\frac{1}{p_i(p_i+1)}\Bigr) \Biggr)
   \Bigl(1 + \frac{3}{8n}\Bigr),
 \end{equation}
-then
-\[
-  \frac{\sigma(M)}{M}
-  \Bigl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Bigr)
-  \ge \frac{\sigma(L_n)}{L_n}.
-\]
+then $L_n$ is not highly abundant.
 \end{lemma}
 %%-/
+
+theorem Criterion.not_highlyAbundant_2 (c : Criterion) (h : (σnorm c.M) ≥ (σnorm c.L') * ∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ))) * (1 + (3 : ℝ) / (8 * c.n))) : ¬ HighlyAbundant (L c.n) := by sorry
+
 
 /-%%
 
@@ -301,6 +342,8 @@ Fix \(i \in \{1,2,3\}\). Suppose that in passing from \(L'\) to \(M\) we increas
 \]
 \end{lemma}
 %%-/
+
+
 
 /-%%
 
@@ -393,7 +436,7 @@ Hence they can only increase the value of \(\sigma(M)/M\).
 
 \subsection{Conclusion of the criterion}
 
-\begin{lemma}[Lower bound for \(\sigma(M)/M\)]\label{lem:sigmaM-lower-final}
+\begin{lemma}[Lower bound for \(\sigma(M)/M\)]\label{lem:sigmaM-lower-final}\lean{Criterion.σnorm_M_ge_σnorm_L'_mul}\leanok
 With notation as above,
 \[
   \frac{\sigma(M)}{M}
@@ -405,16 +448,40 @@ With notation as above,
 \end{lemma}
 %%-/
 
-/-%%
+theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) : (σnorm c.M) ≥ (σnorm c.L') * ∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ))) * (1 + (3:ℝ) / (8 * c.n)) := by sorry
 
+
+/-%%
 \begin{proof}
 Multiply the contributions from Lemma~\ref{lem:effect-pi} for \(i=1,2,3\), from Lemma~\ref{lem:effect-2} for the prime \(2\), and note that Lemma~\ref{lem:m-nonnegative} allows us to ignore any additional (non-decreasing) contribution from \(m\).  This gives exactly the stated lower bound.
 \end{proof}
 %%-/
 
+
 /-%%
 
-\begin{proof}[Proof of Theorem~\ref{thm:criterion}]
+\begin{theorem}\label{thm:criterion}\lean{Criterion.not_highlyAbundant}\leanok  Let $n \geq 1$.
+Suppose that primes \(p_1,p_2,p_3,q_1,q_2,q_3\) satisfy
+\[
+  \sqrt{n} < p_1 < p_2 < p_3 < q_1 < q_2 < q_3 < n
+\]
+and the key criterion
+\begin{equation}\label{eq:main-ineq}
+  \prod_{i=1}^3\Bigl(1+\frac{1}{q_i}\Bigr)
+  \le
+  \Biggl( \prod_{i=1}^3 \Bigl(1+\frac{1}{p_i(p_i+1)}\Bigr) \Biggr)
+  \Bigl(1 + \frac{3}{8n}\Bigr)
+  \Biggl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Biggr).
+\end{equation}
+Then \(L_n\) is not highly abundant.
+\end{theorem}
+%%-/
+
+theorem Criterion.not_highlyAbundant (c : Criterion) : ¬ HighlyAbundant (L c.n) := c.not_highlyAbundant_2 c.σnorm_M_ge_σnorm_L'_mul
+
+/-%%
+
+\begin{proof}\leanok
 By Lemma~\ref{lem:sigmaM-lower-final}, the condition \eqref{eq:sigmaM-lower} holds.  By Lemma~\ref{lem:criterion-reduced} this implies
 \[
   \frac{\sigma(M)}{M}
@@ -432,38 +499,20 @@ Analogous arguments allow other pairs \((c,\alpha)\) in place of \((4,3/8)\), su
 \end{remark}
 %%-/
 
-/-%%
 
-\subsection{Asymptotic selection of primes using Dusart's result}
-
-In this section we use explicit prime gap estimates to show that the hypotheses of Theorem~\ref{thm:criterion} hold for all sufficiently large \(n\).
-
-\subsection{An explicit prime gap result (Dusart)}
-
-\begin{theorem}[Dusart]\label{thm:Dusart}
-There exists a constant \(X_0\) (one may take \(X_0 = 89693\)) with the following property:
-for every real \(x \ge X_0\), there exists a prime \(p\) with
-\[
-  x < p \le x\Bigl(1 + \frac{1}{\log^3 x}\Bigr).
-\]
-\end{theorem}
-%%-/
+abbrev X₀ := 89693
 
 /-%%
-
-\begin{remark}
-In the Lean formalization, Theorem~\ref{thm:Dusart} will be taken as an axiom or imported lemma, without re-proving it.
-\end{remark}
 
 \subsection{Choice of six primes \(p_i,q_i\) for large \(n\)}
 
 \begin{lemma}[Choice of medium primes \(p_i\)]\label{lem:choose-pi}
-Let \(n \ge X_0^2\). Set \(x := \sqrt{n}\). Then, by repeated application of Theorem~\ref{thm:Dusart}, there exist primes \(p_1,p_2,p_3\) with
+Let \(n \ge X_0^2\). Set \(x := \sqrt{n}\). Then there exist primes \(p_1,p_2,p_3\) with
 \[
   p_i \le x \Bigl(1 + \frac{1}{\log^3 x}\Bigr)^i
 \]
 and \(p_1 < p_2 < p_3\).
-Moreover, \(\sqrt{n} < p_1\) (for \(n\) sufficiently large).
+Moreover, \(\sqrt{n} < p_1\)
 \end{lemma}
 %%-/
 
@@ -699,10 +748,13 @@ Combine Lemma~\ref{lem:qi-product}, Lemma~\ref{lem:pi-product}, and Lemma~\ref{l
 
 \subsection{Conclusion for large \(n\)}
 
-\begin{theorem}[Non-highly abundant for large \(n\)]\label{thm:large-n-final}
+\begin{theorem}[Non-highly abundant for large \(n\)]\label{thm:large-n-final}\lean{L_not_HA_of_ge}\leanok
 For every integer \(n \ge 89693^2\), the integer \(L_n\) is not highly abundant.
 \end{theorem}
 %%-/
+
+theorem L_not_HA_of_ge (n : ℕ) (hn : n ≥ 89693 ^ 2) : ¬ HighlyAbundant (L n) := sorry
+
 
 /-%%
 
@@ -715,3 +767,5 @@ In combination with earlier arguments and computations for smaller \(n\), one ca
 \end{remark}
 
 %%-/
+
+end Lcm
