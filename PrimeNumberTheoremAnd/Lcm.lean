@@ -59,8 +59,21 @@ In this note we record the structure of an argument showing that, for all suffic
 \subsection{A general criterion using three medium primes and three large primes}
 %%-/
 
-/-%%
+structure Criterion where
+  n : ℕ
+  hn : n ≥ 1
+  p : Fin 3 → ℕ
+  hp : ∀ i, Nat.Prime (p i)
+  hp_mono : StrictMono p
+  q : Fin 3 → ℕ
+  hq : ∀ i, Nat.Prime (q i)
+  hq_mono : StrictMono q
+  h_ord_1 : √(n : ℝ) < p 0
+  h_ord_2 : p 2 < q 0
+  h_ord_3 : q 2 < n
+  h_crit : ∏ i, (1 + ((1:ℝ)/q i)) ≤ (∏ i, (1 + (1:ℝ)/(p i * (p i + 1)))) * (1 + (3:ℝ)/(8 * n)) * (1 - 4 * ∏ i, (p i : ℝ) / ∏ i, (q i : ℝ))
 
+/-%%
 
 The goal of this section is to prove:
 
@@ -85,9 +98,13 @@ Then \(L_n\) is not highly abundant.
 
 In the rest of the section we assume the hypotheses of Theorem \ref{thm:criterion}.
 
-\begin{lemma}  We have $4 p_1 p_2 p_3 < q_1 q_2 q_3$.
+\begin{lemma}\label{lem:4p3q3}\lean{Criterion.prod_p_le_prod_q}\leanok  We have $4 p_1 p_2 p_3 < q_1 q_2 q_3$.
 \end{lemma}
 %%-/
+
+
+theorem Criterion.prod_p_le_prod_q (c : Criterion) : 4 * ∏ i, (c.p i) < ∏ i, (c.q i) := by sorry
+
 
 /-%%
 
@@ -102,7 +119,7 @@ In the rest of the section we assume the hypotheses of Theorem \ref{thm:criterio
 
 /-%%
 
-\begin{lemma}[Factorisation of \(L_n\)]\label{lem:Lprime-def}
+\begin{lemma}[Factorisation of \(L_n\)]\label{lem:Lprime-def}\lean{Criterion.ln_eq, Criterion.q_not_dvd_L'}\leanok
 There exists a positive integer \(L'\) such that
 \[
   L_n = q_1 q_2 q_3 \, L'
@@ -110,6 +127,12 @@ There exists a positive integer \(L'\) such that
 and each prime \(q_i\) divides \(L_n\) exactly once and does not divide \(L'\).
 \end{lemma}
 %%-/
+
+noncomputable def Criterion.L' (c : Criterion) : ℕ := L c.n / ∏ i, c.q i
+
+theorem Criterion.ln_eq (c : Criterion) : L c.n = (c.q 0) * (c.q 1) * (c.q 2) * c.L' := by sorry
+
+theorem Criterion.q_not_dvd_L' (c : Criterion) : ∀ i, ¬(c.q i ∣ c.L') := by sorry
 
 /-%%
 
@@ -120,7 +143,7 @@ Since \(q_i < n\), the prime \(q_i\) divides \(L_n\) exactly once (as \(q_i^2 > 
 
 /-%%
 
-\begin{lemma}[Normalised divisor sum for \(L_n\)]\label{lem:sigmaLn}
+\begin{lemma}[Normalised divisor sum for \(L_n\)]\label{lem:sigmaLn}\lean{Criterion.sigma_ln_div_ln_eq}\leanok
 Let \(L'\) be as in Lemma~\ref{lem:Lprime-def}. Then
 \begin{equation}\label{eq:sigmaLn}
   \frac{\sigma(L_n)}{L_n}
@@ -129,6 +152,8 @@ Let \(L'\) be as in Lemma~\ref{lem:Lprime-def}. Then
 \end{equation}
 \end{lemma}
 %%-/
+
+theorem Criterion.sigma_ln_div_ln_eq (c : Criterion) : (σ (L c.n)) / (L c.n) = (σ (c.L')) / (c.L') * ∏ i, (1 + 1/(c.q i)) := by sorry
 
 /-%%
 
@@ -150,12 +175,23 @@ Dividing by \(L_n = L' \prod_{i=1}^3 q_i\) gives
 
 /-%%
 
-\begin{lemma} There exist integers \(m \ge 0\) and \(r\) satisfying \(0 < r < 4 p_1 p_2 p_3\) and
+\begin{lemma}\label{div-remainder}\lean{Criterion.r_ge, Criterion.r_le, Criterion.prod_q_eq}\leanok There exist integers \(m \ge 0\) and \(r\) satisfying \(0 < r < 4 p_1 p_2 p_3\) and
 \[
   q_1 q_2 q_3 = 4 p_1 p_2 p_3 m + r
 \]
 \end{lemma}
 %%-/
+
+def Criterion.m (c : Criterion) : ℕ := (∏ i, c.q i) / (4 * ∏ i, c.p i)
+
+def Criterion.r (c : Criterion) : ℕ := (∏ i, c.q i) % (4 * ∏ i, c.p i)
+
+theorem Criterion.r_ge (c : Criterion) : 0 < c.r := by sorry
+
+theorem Criterion.r_le (c : Criterion) : c.r < 4 * ∏ i, c.p i := by sorry
+
+theorem Criterion.prod_q_eq (c : Criterion) : ∏ i, c.q i = 4 * ∏ i, c.p i * c.m + c.r := by sorry
+
 
 /-%%
 
@@ -165,19 +201,20 @@ Dividing by \(L_n = L' \prod_{i=1}^3 q_i\) gives
 
 /-%%
 
-\begin{definition}  With $m,r$ as above, define the competitor
+\begin{definition}\label{M-def}\lean{Criterion.M}\leanok  With $m,r$ as above, define the competitor
 \[
   M := 4 p_1 p_2 p_3 m L'.
 \]
 \end{definition}
 %%-/
 
+noncomputable def Criterion.M (c : Criterion) : ℕ := 4 * ∏ i, c.p i * c.m * c.L'
+
 /-%%
 
-\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic}
+\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic}\lean{Criterion.M_lt, Criterion.Ln_div_M_gt, Criterion.Ln_div_M_lt}\leanok
 With notation as above, we have:
 \begin{enumerate}
-  \item \(0 < r < 4 p_1 p_2 p_3\).
   \item \(M < L_n\).
   \item
   \[
@@ -187,6 +224,13 @@ With notation as above, we have:
 \end{enumerate}
 \end{lemma}
 %%-/
+
+theorem Criterion.M_lt (c : Criterion) : c.M < L c.n := by sorry
+
+theorem Criterion.Ln_div_M_gt (c : Criterion) : 1 < (L c.n) / (c.M) := by sorry
+
+theorem Criterion.Ln_div_M_lt (c : Criterion) : (L c.n) / (c.M) < (1 - ((4:ℝ) * ∏ i, c.p i) / (∏ i, c.q i))⁻¹ := by sorry
+
 
 /-%%
 
@@ -224,7 +268,7 @@ We give a sufficient condition for $\sigma(M) \geq \sigma(L_n)$.
 
 /-%%
 
-\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient}
+\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient}\lean{Criterion.sigma_ge_sigma}\leanok
 Suppose
 \[
   \frac{\sigma(M)}{M}
@@ -235,8 +279,10 @@ Then \(\sigma(M) \ge \sigma(L_n)\).
 \end{lemma}
 %%-/
 
-/-%%
+theorem Criterion.sigma_ge_sigma (c : Criterion) (h : (σ (c.M)) / (c.M) * (1 - (4 : ℝ) * ∏ i, c.p i / ∏ i, c.q i) ≥ (σ (L c.n)) / (L c.n)) : σ (c.M) ≥ σ (L c.n) := by sorry
 
+
+/-%%
 \begin{proof}
 By Lemma~\ref{lem:M-basic},
 \[
