@@ -781,7 +781,8 @@ lemma Smooth1_def_ite {ν : ℝ → ℝ} {ε x : ℝ} (xpos : 0 < x) :
   unfold MellinConvolution
   apply MeasureTheory.integral_congr_ae
   filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi]
-  simp +contextual
+  simp +contextual only [mem_Ioi, true_and, ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id,
+    id_eq, mul_ite, mul_zero]
   intro y ypos
   rw [eq_comm, if_neg (by push_neg; positivity)]
 
@@ -1366,7 +1367,7 @@ lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}
     · fun_prop
   · filter_upwards [lt_mem_nhds ypos] with x hx
     filter_upwards [ae_restrict_mem (by measurability)] with t ht
-    simp
+    simp only [mul_ite, mul_one, mul_zero, RCLike.ofReal_real_eq_id, id_eq, norm_div, norm_eq_abs]
     by_cases h : DeltaSpike SmoothingF ε t = 0
     · simp [h]
     push_neg at h
@@ -1382,8 +1383,8 @@ lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}
         rw [_root_.abs_of_nonneg dsnonneg, mul_comm, div_eq_mul_one_div, _root_.abs_of_pos ht]
         gcongr
         apply (one_div_le ht (by bound)).mpr
-        · convert this.1 using 1; field_simp
-          rw [← rpow_add (by norm_num), add_neg_cancel, rpow_zero]
+        · convert this.1 using 1
+          rw [div_eq_iff (by positivity), ← rpow_add (by norm_num), neg_add_cancel, rpow_zero]
   · apply Integrable.const_mul
     apply (integrable_indicator_iff (by measurability)).mp
     apply (integrableOn_iff_integrable_of_support_subset (s := Icc (2 ^ (-ε)) (2 ^ ε)) _).mp
@@ -1399,32 +1400,23 @@ lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}
     · unfold indicator
       simp_rw [mem_Ioi]
       apply Function.support_subset_iff.mpr
-      intro x
-      simp
-      intro hx
+      simp only [ne_eq, ite_eq_right_iff, Classical.not_imp, mem_Icc, and_imp]
+      intro x hx
       apply DeltaSpikeSupport' εpos hx.le suppSmoothingF
   · have : ∀ᵐ (a : ℝ) ∂volume.restrict (Ioi 0), a ≠ y := by
       apply ae_iff.mpr
       simp
     filter_upwards [ae_restrict_mem (by measurability), this] with x hx hx2
-    simp at hx
+    simp only [mem_Ioi] at hx
     apply ContinuousAt.div_const
     apply ContinuousAt.mul (by fun_prop)
     have : (fun x_1 ↦ if 0 < x_1 / x ∧ x_1 / x ≤ 1 then 1 else 0) = (Ioc 0 x).indicator (fun _ ↦ (1 : ℝ)) := by
       ext t
       unfold indicator
-      congr 1
-      simp
-      apply and_congr
-      · exact div_pos_iff_of_pos_right hx
-      · exact div_le_one₀ hx
+      simp [div_pos_iff_of_pos_right, div_le_one₀, hx]
     rw [this]
     apply ContinuousOn.continuousAt_indicator (by fun_prop)
-    rw [frontier_Ioc hx]
-    simp
-    constructor <;> push_neg
-    · exact ypos.ne.symm
-    · exact hx2.symm
+    simp [frontier_Ioc hx, ypos.ne', hx2.symm]
 
 
 /-%%
@@ -1448,11 +1440,13 @@ lemma Smooth1MellinConvergent {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDiff �
     obtain ⟨c, cpos, ceq, hc⟩ := Smooth1Properties_above suppΨ
     filter_upwards [eventually_ge_atTop (1 + c * ε)] with x hx
     rw [hc _ _ hε hx]
-    simp; bound
+    simp only [ofReal_zero, norm_zero, neg_mul, one_mul, norm_eq_abs, abs_exp]
+    bound
   · rw [Asymptotics.isBigO_iff]
     use 1
     filter_upwards [eventually_mem_nhdsWithin] with x hx
-    simp
+    simp only [norm_real, norm_eq_abs, neg_zero, rpow_zero, one_mem, CStarRing.norm_of_mem_unitary,
+      mul_one]
     rw [_root_.abs_of_nonneg <| Smooth1Nonneg Ψnonneg hx hε.1]
     exact Smooth1LeOne Ψnonneg mass_one hε.1 hx
 
@@ -1470,10 +1464,12 @@ lemma Smooth1MellinDifferentiable {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDi
     obtain ⟨c, cpos, ceq, hc⟩ := Smooth1Properties_above suppΨ
     filter_upwards [eventually_ge_atTop (1 + c * ε)] with x hx
     rw [hc _ _ hε hx]
-    simp; bound
+    simp only [ofReal_zero, norm_zero, neg_mul, one_mul, norm_eq_abs, abs_exp]
+    bound
   · rw [Asymptotics.isBigO_iff]
     use 1
     filter_upwards [eventually_mem_nhdsWithin] with x hx
-    simp
+    simp only [norm_real, norm_eq_abs, neg_zero, rpow_zero, one_mem, CStarRing.norm_of_mem_unitary,
+      mul_one]
     rw [_root_.abs_of_nonneg <| Smooth1Nonneg Ψnonneg hx hε.1]
     exact Smooth1LeOne Ψnonneg mass_one hε.1 hx

@@ -164,7 +164,8 @@ theorem rectangleIntegral_symm (f : ℂ → E) (z w : ℂ) :
 
 theorem rectangleIntegral_symm_re (f : ℂ → E) (z w : ℂ) :
     RectangleIntegral f (w.re + z.im * I) (z.re + w.im * I) = - RectangleIntegral f z w := by
-  simp [RectangleIntegral, ← sub_eq_zero]
+  simp only [RectangleIntegral, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
+    sub_self, add_zero, add_im, mul_im, zero_add, neg_sub, ← sub_eq_zero, sub_zero]
   rw [HIntegral_symm (y := z.im), HIntegral_symm (y := w.im)]
   abel
 
@@ -561,7 +562,7 @@ what remains is handled by Lemma \ref{ResidueTheoremAtOrigin}.
 lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
   (f_near_p : f =O[𝓝[≠] p] (1 : ℂ → ℂ)) :
   ∃ U ∈ 𝓝 p, BddAbove (norm ∘ f '' (U \ {p})) := by
-  simp [isBigO_iff] at f_near_p
+  simp only [isBigO_iff, Pi.one_apply, one_mem, CStarRing.norm_of_mem_unitary, mul_one] at f_near_p
   obtain ⟨c, hc⟩ := f_near_p
   dsimp [Filter.Eventually, nhdsWithin] at hc
   rw [mem_inf_principal'] at hc
@@ -575,9 +576,7 @@ lemma IsBigO_to_BddAbove {f : ℂ → ℂ} {p : ℂ}
     simp only [Function.comp_apply, mem_image, mem_diff, mem_singleton_iff] at hy
     obtain ⟨x, ⟨x_in_U, x_not_p⟩, fxy⟩ := hy
     rw [← fxy]
-    have this := hU x_in_U
-    simp [x_not_p] at this
-    exact this
+    simpa [x_not_p] using hU x_in_U
 
 theorem BddAbove_on_rectangle_of_bdd_near {z w p : ℂ} {f : ℂ → ℂ}
     (f_cont : ContinuousOn f ((Rectangle z w) \ {p}))

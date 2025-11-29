@@ -10,13 +10,13 @@ open Filter Real
 theorem Real.tendsto_pow_log_div_pow_atTop (a : ℝ) (b : ℝ) (ha : 0 < a) :
     Filter.Tendsto (fun x ↦ log x ^ b / x^a) Filter.atTop (nhds 0) := by
   convert squeeze_zero' (f := fun x ↦ log x ^ b / x^a) (g := fun x ↦ (log x ^ ⌈ b/a ⌉₊ / x)^a ) (t₀ := atTop) ?_ ?_ ?_
-  · simp
+  · simp only [eventually_atTop, ge_iff_le]
     use 1
     intro x hx
     apply div_nonneg <;> apply Real.rpow_nonneg
     · exact log_nonneg hx
     linarith
-  · simp
+  · simp only [eventually_atTop, ge_iff_le]
     use exp 1
     intro x hx
     have h0 : 0 < x := by
@@ -31,8 +31,6 @@ theorem Real.tendsto_pow_log_div_pow_atTop (a : ℝ) (b : ℝ) (ha : 0 < a) :
     apply pow_nonneg (by linarith)
   rw [(zero_rpow (_root_.ne_of_lt ha).symm).symm]
   apply Tendsto.rpow_const
-  · have := tendsto_pow_log_div_mul_add_atTop 1 0 ⌈b/a⌉₊ zero_ne_one.symm
-    simp at this
-    exact this
+  · simpa using tendsto_pow_log_div_mul_add_atTop 1 0 ⌈b/a⌉₊ zero_ne_one.symm
   right
   exact le_of_lt ha
