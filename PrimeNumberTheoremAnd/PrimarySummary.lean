@@ -18,7 +18,7 @@ FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
 
 
 /-%%
-\begin{theorem}[FKS1 Corollary 1.4]\label{fks_cor_14}\lean{FKS_corollary_1_4}\leanok
+\begin{theorem}[FKS1 Corollary 1.4]\label{fks_cor_14}\uses{classical bound}\lean{FKS_corollary_1_4}\leanok
 For all x > 2 we have $E_ψ(x) < 9.22022(\log x)^{3/2} \exp(-0.8476836 \sqrt{\log x})$.
 \end{theorem}
 %%-/
