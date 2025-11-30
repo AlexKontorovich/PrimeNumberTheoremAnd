@@ -33,7 +33,7 @@ for all $x \geq \exp(2000)$.
 \end{theorem}
 %%-/
 
-theorem PT_Cor2: Eπ.classicalBound 235 0.52 0.8 1 (exp 2000) := sorry
+theorem PT_Cor2: Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := sorry
 
 /-%%
 \begin{theorem}[JY Corollary 1.3]\label{thm:jy_13}\lean{JY_Cor13}\leanok
@@ -45,8 +45,21 @@ for all $x \geq 2$.
 \end{theorem}
 %%-/
 
-theorem JY_Cor13: Eπ.classicalBound 9.59 0.515 0.8274 1 2 := sorry
+theorem JY_Cor13: Eπ.classicalBound 9.59 1.515 0.8274 1 2 := sorry
 
+/-%%
+\begin{theorem}[JY Theorem 1.4]\label{thm:jy_14}\lean{JY_Thm14}\leanok
+One has
+\[
+|\pi(x) - \mathrm{Li}(x)| \leq 0.028 x (\log x)^{0.801} \exp(-0.1853 \log^{3/5} x / (\log \log x)^{1/5}))
+\]
+for all $x \geq 2$.
+\end{theorem}
+%%-/
+
+theorem JY_Thm14: Eπ.vinogradovBound 0.028 0.801 0.1853 2 := sorry
+
+/-%% TODO: input other results from JY %%-/
 
 /-%%
 \begin{theorem}[FKS2 Corollary 22]\label{thm:fks2_22}\lean{FKS2_Cor22}\leanok
@@ -58,7 +71,7 @@ for all $x \geq 2$.
 \end{theorem}
 %%-/
 
-theorem FKS2_Cor22: Eπ.classicalBound 9.2211 (3/2) 0.8476 1 2 := sorry
+theorem FKS2_Cor22: Eπ.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
 
 /-%%
 \begin{theorem}[FKS2 Corollary 26]\label{thm:fks2_26}\lean{FKS2_Cor26}\leanok
@@ -85,3 +98,5 @@ for every real \(x \ge X_0\), there exists a prime \(p\) with
 %%-/
 
 theorem Dusart_thm : HasPrimeInInterval.log_thm 89693 3 := sorry
+
+/-%% TODO: input other results from Dusart %%-/

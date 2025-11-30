@@ -39,8 +39,17 @@ One has a classical zero-free region with $R = 5.558691$.
 theorem MTY_theorem : riemannZeta.classicalZeroFree 5.558691 := sorry
 
 /-%%
+\begin{theorem}[FKS1 Corollary 1.3]\label{fks_cor_13}\uses{classical bound}\lean{FKS_corollary_1_3}\leanok
+For all x > 2 we have $E_ψ(x) \leq 121.096 (\log x/R)^{3/2} \exp(-2 \sqrt{\log x/R})$ with $R = 5.5666305$.
+\end{theorem}
+%%-/
+
+theorem FKS_corollary_1_3 :
+  Eψ.classicalBound 121.096 (3/2) 2 5.5666305 2 := sorry
+
+/-%%
 \begin{theorem}[FKS1 Corollary 1.4]\label{fks_cor_14}\uses{classical bound}\lean{FKS_corollary_1_4}\leanok
-For all x > 2 we have $E_ψ(x) < 9.22022(\log x)^{3/2} \exp(-0.8476836 \sqrt{\log x})$.
+For all x > 2 we have $E_ψ(x) \leq 9.22022(\log x)^{3/2} \exp(-0.8476836 \sqrt{\log x})$.
 \end{theorem}
 %%-/
 
