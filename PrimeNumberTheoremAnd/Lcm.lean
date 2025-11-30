@@ -330,110 +330,6 @@ Insert \eqref{eq:sigmaM-lower} and \eqref{eq:sigmaLn} into the desired inequalit
 
 /-%%
 
-\subsection{Effect of modifying prime powers}
-
-Now we estimate the effect on \(\sigma(\cdot)/(\cdot)\) of increasing certain prime exponents.
-
-\begin{lemma}[Effect of increasing the exponent of \(p_i\)]\label{lem:effect-pi}
-Fix \(i \in \{1,2,3\}\). Suppose that in passing from \(L'\) to \(M\) we increase the exponent of \(p_i\) by exactly \(1\). Then the normalised divisor sum is multiplied by a factor
-\[
-  \frac{(1+p_i+p_i^2)/p_i^2}{(1+p_i)/p_i}
-  = 1 + \frac{1}{p_i(p_i+1)}.
-\]
-\end{lemma}
-%%-/
-
-
-
-/-%%
-
-\begin{proof}
-If the exponent of \(p_i\) in \(L'\) is \(e\), the contribution of \(p_i\) to \(\sigma(L')/L'\) is
-\[
-  \frac{1 + p_i + \dots + p_i^e}{p_i^e}.
-\]
-Increasing the exponent to \(e+1\) multiplies this factor by
-\[
-  \frac{(1+p_i+\dots+p_i^{e+1})/p_i^{e+1}}{(1+p_i+\dots+p_i^e)/p_i^e}
-  = \frac{1+p_i+\dots+p_i^{e+1}}{p_i(1+p_i+\dots+p_i^e)}
-  = \frac{1+p_i+\dots+p_i^e + p_i^{e+1}}{p_i(1+p_i+\dots+p_i^e)}.
-\]
-Since all terms \(1,p_i,\dots\) are positive, replacing \(e\) by \(1\) only decreases this ratio.  Thus
-\[
-  \frac{(1+p_i+p_i^2)/p_i^2}{(1+p_i)/p_i}
-  \le
-  \frac{(1+p_i+\dots+p_i^{e+1})/p_i^{e+1}}{(1+p_i+\dots+p_i^e)/p_i^e}.
-\]
-In our application, the exponent is exactly increased by \(1\), and we may bound from below by the case \(e=1\), giving the claimed factor
-\[
-  1 + \frac{1}{p_i(p_i+1)}.
-\]
-\end{proof}
-%%-/
-
-/-%%
-
-\begin{lemma}[Effect of increasing the exponent of \(2\)]\label{lem:effect-2}
-Let \(k\) be the largest integer such that \(2^k \le n\). Then the exponent of \(2\) in \(L'\) is at least \(k\), and the exponent of \(2\) in \(M\) is at least \(k+2\). Consequently,
-\begin{equation}\label{eq:2-lower}
-  \frac{(1+2+\dots+2^{k+2})/2^{k+2}}{(1+2+\dots+2^k)/2^k}
-  \ge 1 + \frac{3}{2^{k+3}-4}
-  \ge 1 + \frac{3}{8n}.
-\end{equation}
-\end{lemma}
-%%-/
-
-/-%%
-
-\begin{proof}
-Since \(2^k \le n\), the number \(2^k\) divides \(\operatorname{lcm}(1,2,\dots,n)\), hence \(2^k\) divides \(L_n\) and thus also divides \(L'\).  The definition of \(M\) multiplies \(L'\) by \(4 = 2^2\), so the exponent of \(2\) in \(M\) is at least \(k+2\).
-
-The ratio of contributions of \(2\) to \(\sigma(M)/M\) and \(\sigma(L')/L'\) is
-\[
-  \frac{(1+2+\dots+2^{k+2})/2^{k+2}}{(1+2+\dots+2^k)/2^k}.
-\]
-A direct calculation yields
-\[
-  \frac{1+2+\dots+2^{k+2}}{1+2+\dots+2^k}
-  = \frac{2^{k+3}-1}{2^{k+1}-1}
-  = 1 + \frac{3(2^k-1)}{2^{k+1}-1}
-  \ge 1 + \frac{3}{2^{k+3}-4},
-\]
-giving the first inequality in \eqref{eq:2-lower}.
-Finally, since \(2^k \le n < 2^{k+1}\), we have \(2^{k+3} < 8n\), so
-\[
-  \frac{3}{2^{k+3}-4} \ge \frac{3}{8n},
-\]
-giving the second inequality.
-\end{proof}
-%%-/
-
-/-%%
-
-\begin{lemma}[Effect of the remaining factor \(m\)]\label{lem:m-nonnegative}
-The extra factor \(m\) in the definition of \(M\) can only increase the normalised divisor sum:
-\[
-  \frac{\sigma(M)}{M}
-  \ge
-  \frac{\sigma(L')}{L'} \times
-  \Bigl(\text{multiplicative factors coming from }p_i\text{ and }2\Bigr).
-\]
-\end{lemma}
-%%-/
-
-/-%%
-
-\begin{proof}
-Since \(m\) is a positive integer, any extra primes (or higher exponents) it introduces appear as multiplicative factors of the form
-\[
-  \frac{1+p+\dots+p^e}{p^e} \ge 1.
-\]
-Hence they can only increase the value of \(\sigma(M)/M\).
-\end{proof}
-%%-/
-
-/-%%
-
 \subsection{Conclusion of the criterion}
 
 \begin{lemma}[Lower bound for \(\sigma(M)/M\)]\label{lem:sigmaM-lower-final}\lean{Criterion.σnorm_M_ge_σnorm_L'_mul}\leanok
@@ -452,8 +348,37 @@ theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) : (σnorm c.M) ≥ (
 
 
 /-%%
-\begin{proof}
-Multiply the contributions from Lemma~\ref{lem:effect-pi} for \(i=1,2,3\), from Lemma~\ref{lem:effect-2} for the prime \(2\), and note that Lemma~\ref{lem:m-nonnegative} allows us to ignore any additional (non-decreasing) contribution from \(m\).  This gives exactly the stated lower bound.
+\begin{proof}  By multiplicativity, we have
+$$
+  \frac{\sigma(M)}{M}
+  \ge
+  \frac{\sigma(L')}{L'}
+  \prod_p \frac{1+p^{-1}+\dots+p^{-\nu_p(M)}}{1+p^{-1}+\dots+p^{-\nu_p(L')}.
+$$
+The contribution of $p=p_i$ is
+\[
+  \frac{(1+p_i+p_i^2)/p_i^2}{(1+p_i)/p_i}
+  = 1 + \frac{1}{p_i(p_i+1)}.
+\]
+The contribution of $p=2$ is
+\[
+  \frac{(1+2+\dots+2^{k+2})/2^{k+2}}{(1+2+\dots+2^k)/2^k},
+\]
+where \(k\) is the largest integer such that \(2^k \le n\)
+A direct calculation yields
+\[
+  \frac{1+2+\dots+2^{k+2}}{1+2+\dots+2^k}
+  = \frac{2^{k+3}-1}{2^{k+1}-1}
+  = 1 + \frac{3(2^k-1)}{2^{k+1}-1}
+  \ge 1 + \frac{3}{2^{k+3}-4},
+\]
+Finally, since \(2^k \le n < 2^{k+1}\), we have \(2^{k+3} < 8n\), so
+\[
+  \frac{3}{2^{k+3}-4} \ge \frac{3}{8n},
+\]
+So the contribution from the prime \(2\) is at least \(1 + 3/(8n)\).
+
+Finally, the contribution of all other primes is at least \(1\).
 \end{proof}
 %%-/
 
