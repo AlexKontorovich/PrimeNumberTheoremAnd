@@ -112,7 +112,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     · apply extracted_1 _
   let a : ℕ → ℝ := Set.indicator (setOf Nat.Prime) (fun n => log n)
   have floor32 : ⌊(3/2 : ℝ)⌋₊ = 1 := by rw [floor_div_ofNat, Nat.floor_ofNat]
-  simp [primeCounting, primeCounting', count_eq_card_filter_range]
+  simp only [primeCounting, primeCounting', count_eq_card_filter_range]
   rw [card_eq_sum_ones, range_succ_eq_Icc_zero]
   trans ∑ x ∈ Ioc ⌊(3/2 : ℝ)⌋₊ ⌊x⌋₊ with Nat.Prime x, 1
   · norm_cast
@@ -206,7 +206,7 @@ lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx : 0 ≤ x) :
     apply sum_bij (i := fun ⟨k, p⟩ _ ↦ p ^ k )
     · intro ⟨k, p⟩ h
       simp only [mem_filter, mem_Iic]
-      simp [mem_filter] at h
+      simp only [mem_filter, mem_product, mem_Icc, mem_Iic] at h
       have k_ne : k ≠ 0 := by linarith
       constructor
       · apply le_floor
@@ -310,7 +310,7 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx : 2 ≤ x) :
         intro k hk
         apply sum_le_sum
         intro p hp
-        simp at hk hp
+        simp only [mem_Icc, mem_filter, mem_Iic] at hk hp
         have hp' : 1 ≤ p := Nat.Prime.one_le hp.2
         have hp'': p ≠ 0 := Nat.ne_zero_of_lt hp'
         replace hp := (Nat.le_floor_iff' hp'').mp hp.1
@@ -333,7 +333,7 @@ lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx : 2 ≤ x) :
         rw [card_Iic, Nat.floor_add_one (by bound)]
         apply Nat.add_le_add _ NeZero.one_le
         apply floor_le_floor
-        simp at hk
+        simp only [mem_Icc] at hk
         gcongr
         · exact hx_one
         exact_mod_cast hk.1
@@ -372,13 +372,11 @@ theorem WeakPNT' : Tendsto (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) atTop (nhds 1
   apply Tendsto.add WeakPNT
   convert squeeze_zero (f := fun N ↦ Λ N / N) (g := fun N ↦ log N / N) (t₀ := atTop) ?_ ?_ ?_
   · intro N
-    simp
     exact div_nonneg vonMangoldt_nonneg (cast_nonneg N)
   · intro N
-    simp
     exact div_le_div_of_nonneg_right vonMangoldt_le_log (cast_nonneg N)
   have := Real.tendsto_pow_log_div_pow_atTop 1 1 Real.zero_lt_one
-  simp at this
+  simp only [rpow_one] at this
   exact Tendsto.comp this tendsto_natCast_atTop_atTop
 
 /-- An alternate form of the Weak PNT. -/
@@ -396,7 +394,7 @@ theorem WeakPNT'' : (fun x ↦ ∑ n ∈ (Iic ⌊x⌋₊), Λ n) ~[atTop] (fun x
     rw [← isLittleO_neg_left]
     apply IsLittleO.of_bound
     intro ε hε
-    simp
+    simp only [Pi.sub_apply, neg_sub, norm_eq_abs, eventually_atTop, ge_iff_le]
     use ε⁻¹
     intro b hb
     have hb' : 0 ≤ b := le_of_lt (lt_of_lt_of_le (inv_pos_of_pos hε) hb)
@@ -427,7 +425,7 @@ theorem chebyshev_asymptotic :
     simp [hx]
   suffices h : Tendsto (fun x:ℝ ↦ ((x.log^2 / x ^ (2:ℝ)⁻¹) / log 2 + (x.log^2 / x) / log 2)) atTop (nhds 0) by
     apply Filter.Tendsto.congr' _ h
-    simp [EventuallyEq]
+    simp only [EventuallyEq, eventually_atTop, ge_iff_le]
     use 2
     intro x hx
     field_simp
@@ -544,8 +542,7 @@ theorem primorial_bounds :
   constructor
   · exact Asymptotics.IsEquivalent.isLittleO chebyshev_asymptotic
   intro x
-  simp
-  rw [@exp_sum]
+  simp only [cast_prod, add_sub_cancel, exp_sum]
   apply Finset.prod_congr rfl
   intros x hx
   rw[Real.exp_log]
@@ -625,7 +622,7 @@ lemma integral_log_inv (a b : ℝ) (ha : 2 ≤ a) (hb : a ≤ b) :
         apply HasDerivAt.comp
           (h := fun t => log t) (h₂ := fun t => t⁻¹) (x := x)
         · simpa using HasDerivAt.inv (c := fun t : ℝ => t) (c' := 1) (x := log x) (hasDerivAt_id' (log x))
-            (by simp; refine ⟨?_, ?_, ?_⟩ <;> linarith)
+            (by simp only [ne_eq, log_eq_zero, not_or]; refine ⟨?_, ?_, ?_⟩ <;> linarith)
         · apply hasDerivAt_log; linarith)
       (fun x _ => hasDerivAt_id' x)
       (by
@@ -1671,7 +1668,8 @@ theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     intro x hx
     have hC : C ≤ x := by linarith [le_of_max_le_left hx]
     rw [← not_lt] at hC
-    simp [hC]
+    simp only [hC, ↓reduceIte, norm_eq_abs, one_mem, CStarRing.norm_of_mem_unitary, mul_one,
+      ge_iff_le]
     trans |f x + f' x| + |f x| * |f' x|
     · rw [← abs_mul]
       exact abs_add_le _ _
@@ -1680,7 +1678,7 @@ theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
         exact abs_add_le _ _
       · specialize hf x (le_of_max_le_left (le_of_max_le_right hx))
         specialize hf' x (le_of_max_le_right (le_of_max_le_right hx))
-        simp at hf hf'
+        simp only [norm_eq_abs, one_mem, CStarRing.norm_of_mem_unitary, mul_one] at hf hf'
         have h1 : |f x| ≤ m / 4 := by aesop
         have h2 : |f' x| ≤ m / 4 := by aesop
         have h3 : |f x| * |f' x| ≤ m / 4 := by
@@ -1797,7 +1795,7 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
       apply Tendsto.atTop_mul_atTop₀ _ hlog
       apply Tendsto.const_mul_atTop' (by linarith) tendsto_natCast_atTop_atTop
     rw [←tendsto_inv_iff₀ (by positivity)]
-    simp [inv_div]
+    simp only [inv_div, inv_one]
     suffices Tendsto (fun n:ℕ ↦ (log (1 - ε)/log n) + (log (log n) / log n) + 1) atTop (nhds 1) by
       apply (Filter.tendsto_congr' _).mp this
       filter_upwards [h1, h2]
@@ -1848,7 +1846,7 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
             grind
           have deg_2 : ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).degree ≤ (1:ℕ) := by
             apply (Polynomial.degree_sub_le _ _).trans
-            simp
+            simp only [Polynomial.degree_one, cast_one, sup_le_iff, zero_le_one, and_true]
             apply (Polynomial.degree_smul_le _ _).trans
             simp
           have deg_3 : ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).degree = (1:ℕ) := by order
@@ -1926,7 +1924,7 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
   have hpn : nth Nat.Prime n > 0 := by
     have := Nat.add_two_le_nth_prime n
     linarith
-  simp [c, abs_lt]
+  simp only [dist_zero_right, norm_eq_abs, abs_lt, neg_lt_sub_iff_lt_add, c]
   constructor
   · rcases lt_or_ge ε 1 with hε' | hε'
     swap
@@ -1936,7 +1934,8 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
     suffices h: x+1 ≤ nth Nat.Prime n by
       grw [←h]
       rw [←sub_lt_iff_lt_add', lt_div_iff₀ (by positivity)]
-      simp; convert Nat.lt_floor_add_one ((1 - ε) * (↑n * log ↑n)) using 4
+      simp only [cast_add, cast_one]
+      convert Nat.lt_floor_add_one ((1 - ε) * (↑n * log ↑n)) using 4
       ring
     rw [←Nat.count_le_iff_le_nth Nat.infinite_setOf_prime]
     change x.primeCounting ≤ n
@@ -1980,7 +1979,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
     simp only [isLittleO_one_iff]
     rw [Filter.tendsto_congr' (f₂ := fun n ↦ ((1 + k (n+1))*(n+1)*log (n+1) - (1 + k n)*n*log n) / ((1 + k n)*n*log n))]
     swap
-    · simp [Filter.EventuallyEq.eq_1]
+    · simp only [EventuallyEq, eventually_atTop, ge_iff_le]
       use 2; intro n hn
       rw [p_n_eq n (by linarith), p_n_eq (n+1) (by linarith)]
       grind
@@ -2050,7 +2049,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
           · rw [← Filter.tendsto_add_atTop_iff_nat 2]
             have log_not_zero: ∀ n: ℕ, log (n + 2) ≠ 0 := by
               intro n
-              simp
+              simp only [ne_eq, log_eq_zero, not_or]
               refine ⟨?_, ?_, ?_⟩
               · norm_cast
               · norm_cast
@@ -2103,7 +2102,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
           intro n
           specialize ha (n + (a + 3))
           have a_le_plus: a ≤ n + (a + 3) := by omega
-          simp [a_le_plus] at ha
+          simp only [a_le_plus, forall_const] at ha
 
           by_contra!
           rw [add_eq_zero_iff_eq_neg] at this
@@ -2118,7 +2117,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
       rw [← Filter.tendsto_add_atTop_iff_nat t]
       have denom_nonzero: ∀ n, ((1 + k (n + t)) * ↑(n + t) * log ↑(n + t)) ≠ 0 := by
         intro n
-        simp
+        simp only [cast_add, ne_eq, _root_.mul_eq_zero, log_eq_zero, not_or]
         refine ⟨⟨?_, ?_⟩, ?_, ?_⟩
         · exact ht n
         · norm_cast
@@ -2349,8 +2348,8 @@ lemma tendsto_by_squeeze (ε : ℝ) (hε : ε > 0) :
     )
   · rw [Filter.EventuallyLE]
 
-    simp at first_helper
-    simp at second_helper
+    simp only [eventually_atTop, ge_iff_le] at first_helper
+    simp only [gt_iff_lt, eventually_atTop, ge_iff_le] at second_helper
 
     obtain ⟨a1, ha1⟩ := first_helper
     obtain ⟨a2, ha2⟩ := second_helper
@@ -2588,12 +2587,12 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
     exact Int.fract_lt_one _
   have h_bound : |∑ d ∈ range (N + 1), μ d * Int.fract ((N : ℚ) / d)| ≤ N - 1 := by
     /- range (N + 1) → Icc 1 N + part that evals to 0 -/
-    rw [range_eq_Ico, ← Finset.insert_Ico_add_one_left_eq_Ico, sum_insert, ArithmeticFunction.map_zero,
-      Int.cast_zero, zero_mul, zero_add, Finset.Ico_add_one_right_eq_Icc]
-    all_goals simp
+    rw [range_eq_Ico, ← Finset.insert_Ico_add_one_left_eq_Ico (by simp), sum_insert (by simp),
+      ArithmeticFunction.map_zero, Int.cast_zero, zero_mul, zero_add,
+      Finset.Ico_add_one_right_eq_Icc, zero_add]
     /- Ico 1 (N + 1) → Ico 1 N ∪ {N + 1} that evals to 0 -/
-    rw [← Ico_insert_right, sum_insert, div_self, Int.fract_one, mul_zero]
-    all_goals simp [hN, Nat.pos_iff_ne_zero.mp hN]
+    rw [← Ico_insert_right hN, sum_insert (by simp), div_self (by simp; grind), Int.fract_one,
+      mul_zero, zero_add]
     /- bound sum -/
     have (d : ℕ) : |μ d * Int.fract ((N : ℚ) / d)| ≤ 1 := by
       rw [abs_mul, ← one_mul 1]
