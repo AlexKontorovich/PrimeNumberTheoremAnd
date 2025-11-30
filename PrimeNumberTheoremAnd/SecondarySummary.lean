@@ -15,7 +15,38 @@ Dusart: https://piyanit.nl/wp-content/uploads/2020/10/art_10.1007_s11139-016-983
 FKS1: Fiori--Kadiri--Swidninsky arXiv:2204.02588
 
 FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
+
+PT: D. J. Platt and T. S. Trudgian, The error term in the prime number theorem, Math. Comp. 90 (2021), no. 328, 871–881.
+
+JY: D. R. Johnston, A. Yang, Some explicit estimates for the error term in the prime number theorem, arXiv:2204.01980.
 %%-/
+
+open Real
+
+/-%%
+\begin{theorem}[PT Corollary 2]\label{thm:pt_2}\lean{PT_Cor2}\leanok
+One has
+\[
+|\pi(x) - \mathrm{Li}(x)| \leq 235 x (\log x)^{0.52} \exp(-0.8 \sqrt{\log x})
+\]
+for all $x \geq \exp(2000)$.
+\end{theorem}
+%%-/
+
+theorem PT_Cor2: Eπ.classicalBound 235 0.52 0.8 1 (exp 2000) := sorry
+
+/-%%
+\begin{theorem}[JY Corollary 1.3]\label{thm:jy_13}\lean{JY_Cor13}\leanok
+One has
+\[
+|\pi(x) - \mathrm{Li}(x)| \leq 9.59 x (\log x)^{0.515} \exp(-0.8274 \sqrt{\log x})
+\]
+for all $x \geq 2$.
+\end{theorem}
+%%-/
+
+theorem JY_Cor13: Eπ.classicalBound 9.59 0.515 0.8274 1 2 := sorry
+
 
 /-%%
 \begin{theorem}[FKS2 Corollary 22]\label{thm:fks2_22}\lean{FKS2_Cor22}\leanok

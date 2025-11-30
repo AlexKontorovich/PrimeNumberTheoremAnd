@@ -17,7 +17,10 @@ FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
 
 open Real Finset
 
+/-- Standard arithmetic functions. TODO: align this with notation used elsewhere in PNT+ -/
 noncomputable def pi (x : ℝ) : ℝ :=  Nat.primeCounting ⌊x⌋₊
+
+noncomputable def li (x : ℝ) : ℝ := ∫ t in 0..x, 1 / log t
 
 noncomputable def Li (x : ℝ) : ℝ := ∫ t in 2..x, 1 / log t
 
