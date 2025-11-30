@@ -8,7 +8,11 @@ import PrimeNumberTheoremAnd.PrimaryDefinitions
 %%-/
 
 /-%%
-In this section we define the basic types of secondary estimates we will work with in the project.
+In this section we define the basic types of secondary estimates we will work with in the project. Key references:
+
+FKS1: Fiori--Kadiri--Swidninsky arXiv:2204.02588
+
+FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
 %%-/
 
 open Real Finset
@@ -45,7 +49,7 @@ def Eθ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eθ x ≤ 
 def Eπ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ A * (log x / R) ^ B * exp (-C * (log x / R) ^ (1/2))
 
 
-
+def Eπ.bound (ε x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ ε
 
 
 
