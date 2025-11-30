@@ -2,7 +2,8 @@ import PrimeNumberTheoremAnd.SecondarySummary
 
 namespace Lcm
 
-open ArithmeticFunction
+open ArithmeticFunction hiding log
+open Real
 
 /-%%
 \section{The least common multiple sequence is not highly abundant for large \(n\)}
@@ -22,7 +23,7 @@ def σ : ArithmeticFunction ℕ := sigma 1
 noncomputable abbrev σnorm (n : ℕ) : ℝ := (σ n : ℝ) / (n : ℝ)
 
 /-%%
-\begin{definition}\label{highlyabundant-def}\lean{HighlyAbundant}\leanok
+\begin{definition}\label{highlyabundant-def}\lean{HighlyAbundant}\leanok\uses{sigma-def}
 A positive integer \(N\) is called \emph{highly abundant} (HA) if
 \[
   \sigma(N) > \sigma(m)
@@ -38,7 +39,7 @@ def HighlyAbundant (N : ℕ) : Prop :=
 \begin{definition}\label{Ln-def}\lean{L}\leanok
 For each integer \(n \ge 1\), define
 \[
-  L_n := \operatorname{lcm}(1,2,\dots,n).
+  L_n := \mathrm{lcm}(1,2,\dots,n).
 \]
 We call \((L_n)_{n \ge 1}\) the \emph{least common multiple sequence}.
 \end{definition}
@@ -49,7 +50,7 @@ def L (n : ℕ) : ℕ := (Finset.Icc 1 n).lcm _root_.id
 /-%%
 \begin{quote}
 \textbf{Original MathOverflow question.}
-Is it true that every value in the sequence \(L_n = \operatorname{lcm}(1,2,\dots,n)\) is highly abundant?  Equivalently,
+Is it true that every value in the sequence \(L_n = \mathrm{lcm}(1,2,\dots,n)\) is highly abundant?  Equivalently,
 \[
   \{L_n : n \ge 1\} \subseteq HA?
 \]
@@ -152,7 +153,7 @@ theorem Criterion.σnorm_ln_eq (c : Criterion) : σnorm (L c.n) = σnorm (c.L') 
 
 /-%%
 
-\begin{proof}
+\begin{proof}\uses{lem:Lprime-def}
 Use the multiplicativity of \(\sigma(\cdot)\) and the fact that each \(q_i\) occurs to the first power in \(L_n\).  Then
 \[
   \sigma(L_n)
@@ -196,7 +197,7 @@ theorem Criterion.prod_q_eq (c : Criterion) : ∏ i, c.q i = 4 * ∏ i, c.p i * 
 
 /-%%
 
-\begin{definition}\label{M-def}\lean{Criterion.M}\leanok  With $m,r$ as above, define the competitor
+\begin{definition}\label{M-def}\lean{Criterion.M}\leanok\uses{div-remainder}  With $m,r$ as above, define the competitor
 \[
   M := 4 p_1 p_2 p_3 m L'.
 \]
@@ -207,7 +208,7 @@ noncomputable def Criterion.M (c : Criterion) : ℕ := 4 * ∏ i, c.p i * c.m * 
 
 /-%%
 
-\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic}\lean{Criterion.M_lt, Criterion.Ln_div_M_gt, Criterion.Ln_div_M_lt}\leanok
+\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic}\lean{Criterion.M_lt, Criterion.Ln_div_M_gt, Criterion.Ln_div_M_lt}\leanok\uses{M-def}
 With notation as above, we have:
 \begin{enumerate}
   \item \(M < L_n\).
@@ -263,7 +264,7 @@ We give a sufficient condition for $\sigma(M) \geq \sigma(L_n)$.
 
 /-%%
 
-\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient}\lean{Criterion.not_highlyAbundant_1}\leanok
+\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient}\lean{Criterion.not_highlyAbundant_1}\leanok\uses{M-def}
 Suppose
 \[
   \frac{\sigma(M)}{M}
@@ -278,7 +279,7 @@ theorem Criterion.not_highlyAbundant_1 (c : Criterion) (h : (σnorm (c.M)) * (1 
 
 
 /-%%
-\begin{proof}
+\begin{proof}\uses{lem:M-basic}
 By Lemma~\ref{lem:M-basic},
 \[
   \frac{L_n}{M} < \Bigl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Bigr)^{-1}.
@@ -323,12 +324,14 @@ theorem Criterion.not_highlyAbundant_2 (c : Criterion) (h : (σnorm c.M) ≥ (σ
 
 /-%%
 
-\begin{proof}
+\begin{proof}\uses{lem:sigmaLn, lem:criterion-sufficient}
 Insert \eqref{eq:sigmaM-lower} and \eqref{eq:sigmaLn} into the desired inequality and compare with the assumed bound \eqref{eq:main-ineq}; this is a straightforward rearrangement.
 \end{proof}
 %%-/
 
 /-%%
+
+
 
 \subsection{Conclusion of the criterion}
 
@@ -390,14 +393,7 @@ Suppose that primes \(p_1,p_2,p_3,q_1,q_2,q_3\) satisfy
 \[
   \sqrt{n} < p_1 < p_2 < p_3 < q_1 < q_2 < q_3 < n
 \]
-and the key criterion
-\begin{equation}\label{eq:main-ineq}
-  \prod_{i=1}^3\Bigl(1+\frac{1}{q_i}\Bigr)
-  \le
-  \Biggl( \prod_{i=1}^3 \Bigl(1+\frac{1}{p_i(p_i+1)}\Bigr) \Biggr)
-  \Bigl(1 + \frac{3}{8n}\Bigr)
-  \Biggl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Biggr).
-\end{equation}
+and the key criterion \eqref{eq:main-ineq}.
 Then \(L_n\) is not highly abundant.
 \end{theorem}
 %%-/
@@ -406,7 +402,7 @@ theorem Criterion.not_highlyAbundant (c : Criterion) : ¬ HighlyAbundant (L c.n)
 
 /-%%
 
-\begin{proof}\leanok
+\begin{proof}\leanok\uses{leam:sigmaM-lower-final, lem:criterion-reduced, lem:criterion-sufficient}
 By Lemma~\ref{lem:sigmaM-lower-final}, the condition \eqref{eq:sigmaM-lower} holds.  By Lemma~\ref{lem:criterion-reduced} this implies
 \[
   \frac{\sigma(M)}{M}
@@ -431,7 +427,7 @@ abbrev X₀ := 89693
 
 \subsection{Choice of six primes \(p_i,q_i\) for large \(n\)}
 
-\begin{lemma}[Choice of medium primes \(p_i\)]\label{lem:choose-pi}
+\begin{lemma}[Choice of medium primes \(p_i\)]\label{lem:choose-pi}\lean{exists_p_primes}\leanok
 Let \(n \ge X_0^2\). Set \(x := \sqrt{n}\). Then there exist primes \(p_1,p_2,p_3\) with
 \[
   p_i \le x \Bigl(1 + \frac{1}{\log^3 x}\Bigr)^i
@@ -441,16 +437,18 @@ Moreover, \(\sqrt{n} < p_1\)
 \end{lemma}
 %%-/
 
+theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) : ∃ p : Fin 3 → ℕ, (∀ i, Nat.Prime (p i)) ∧ StrictMono p ∧ (∀ i, p i ≤ √(n : ℝ) * (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ (i+1:ℝ)) ∧ (√(n : ℝ) < p 0) := by sorry
+
 /-%%
 
-\begin{proof}
+\begin{proof}\uses{thm:Dusart}
 Apply Theorem~\ref{thm:Dusart} successively with \(x, x(1+1/\log^3 x), x(1+1/\log^3 x)^2\), keeping track of the resulting primes and bounds.  For \(n\) large and \(x = \sqrt{n}\), we have \(\sqrt{n} < p_1\) as soon as the first interval lies strictly above \(\sqrt{n}\); this can be enforced by taking \(n\) large enough.
 \end{proof}
 %%-/
 
 /-%%
 
-\begin{lemma}[Choice of large primes \(q_i\)]\label{lem:choose-qi}
+\begin{lemma}[Choice of large primes \(q_i\)]\label{lem:choose-qi}\lean{exists_q_primes}\leanok
 Let \(n \ge X_0^2\). Then there exist primes \(q_1 < q_2 < q_3\) with
 \[
   q_{4-i} \ge n \Bigl(1 + \frac{1}{\log^3 \sqrt{n}}\Bigr)^{-i}
@@ -459,9 +457,12 @@ for \(i = 1,2,3\), and \(q_1 < q_2 < q_3 < n\).
 \end{lemma}
 %%-/
 
+theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) : ∃ q : Fin 3 → ℕ, (∀ i, Nat.Prime (q i)) ∧ StrictMono q ∧ (∀ i:Fin 3, n * (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ (3-(i:ℕ)) ≤ q i) ∧ (q 2 < n) := by sorry
+
+
 /-%%
 
-\begin{proof}
+\begin{proof}\uses{thm:Dusart}
 Apply Theorem~\ref{thm:Dusart} with suitable values of \(x\) slightly below \(n\), e.g.\ \(x = n(1+1/\log^3\sqrt{n})^{-i}\), again keeping track of the intervals.  For \(n\) large enough, these intervals lie in \((\sqrt{n},n)\) and contain primes \(q_i\) with the desired ordering.
 \end{proof}
 %%-/
@@ -470,7 +471,7 @@ Apply Theorem~\ref{thm:Dusart} with suitable values of \(x\) slightly below \(n\
 
 \subsection{Bounding the factors in \eqref{eq:main-ineq}}
 
-\begin{lemma}[Bounds for the \(q_i\)-product]\label{lem:qi-product}
+\begin{lemma}[Bounds for the \(q_i\)-product]\label{lem:qi-product}\lean{prod_q_ge}\leanok
 With \(p_i,q_i\) as in Lemmas~\ref{lem:choose-pi} and \ref{lem:choose-qi}, we have
 \begin{equation}\label{eq:qi-upper}
   \prod_{i=1}^3 \Bigl(1 + \frac{1}{q_i}\Bigr)
@@ -480,9 +481,12 @@ With \(p_i,q_i\) as in Lemmas~\ref{lem:choose-pi} and \ref{lem:choose-qi}, we ha
 \end{lemma}
 %%-/
 
+theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : ∏ i, (1 + (1:ℝ) / ((exists_q_primes hn).choose i)) ≤ ∏ i:Fin 3, (1 + (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ ((i:ℕ)+1:ℝ) / n) := by sorry
+
+
 /-%%
 
-\begin{proof}
+\begin{proof}\uses{lem:choose-qi}
 By Lemma~\ref{lem:choose-qi}, each \(q_i\) is at least
 \[
   n\Bigl(1 + \frac{1}{\log^3 \sqrt{n}}\Bigr)^{-j}
@@ -497,7 +501,7 @@ after reindexing. Multiplying the three inequalities gives \eqref{eq:qi-upper}.
 
 /-%%
 
-\begin{lemma}[Bounds for the \(p_i\)-product]\label{lem:pi-product}
+\begin{lemma}[Bounds for the \(p_i\)-product]\label{lem:pi-product}\lean{prod_p_ge}\leanok
 With \(p_i\) as in Lemma~\ref{lem:choose-pi}, we have for large \(n\)
 \begin{equation}\label{eq:pi-lower}
   \prod_{i=1}^3 \Bigl(1 + \frac{1}{p_i(p_i+1)}\Bigr)
@@ -509,6 +513,9 @@ With \(p_i\) as in Lemma~\ref{lem:choose-pi}, we have for large \(n\)
 \end{equation}
 \end{lemma}
 %%-/
+
+theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : ∏ i, (1 + (1:ℝ) / ((exists_p_primes hn).choose i)*((exists_p_primes hn).choose i + 1)) ≥ ∏ i:Fin 3, (1 + (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ (2*(i:ℕ)+2:ℝ) * (n + √n)) := by sorry
+
 
 /-%%
 
@@ -534,7 +541,7 @@ Taking \(1+\cdot\) and multiplying over \(i=1,2,3\) gives \eqref{eq:pi-lower}.
 
 /-%%
 
-\begin{lemma}[Lower bound for the product ratio \(p_i/q_i\)]\label{lem:pq-ratio}
+\begin{lemma}[Lower bound for the product ratio \(p_i/q_i\)]\label{lem:pq-ratio}\lean{pq_ratio_ge}\leanok
 With \(p_i,q_i\) as in Lemmas~\ref{lem:choose-pi} and \ref{lem:choose-qi}, we have
 \begin{equation}\label{eq:pq-ratio}
   1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}
@@ -543,6 +550,8 @@ With \(p_i,q_i\) as in Lemmas~\ref{lem:choose-pi} and \ref{lem:choose-qi}, we ha
 \end{equation}
 \end{lemma}
 %%-/
+
+theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : 1 - (4 : ℝ) * ∏ i, (exists_p_primes hn).choose i / ∏ i, (exists_q_primes hn).choose i ≥ 1 - (4 * (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ 12) / (n ^ (3 / 2)) := by sorry
 
 /-%%
 
@@ -569,7 +578,7 @@ This implies \eqref{eq:pq-ratio}.
 
 \subsection{Reduction to a small epsilon-inequality}
 
-\begin{lemma}[Uniform bounds for large \(n\)]\label{lem:eps-bounds}
+\begin{lemma}[Uniform bounds for large \(n\)]\label{lem:eps-bounds}\lean{inv_cube_log_sqrt_le, inv_n_pow_3_div_2_le}\leanok
 For all \(n \ge X_0^2 = 89693^2\) we have
 \[
   \frac{1}{\log^3 \sqrt{n}}
@@ -581,25 +590,20 @@ For all \(n \ge X_0^2 = 89693^2\) we have
 
 %%-/
 
+theorem inv_cube_log_sqrt_le (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (log (√(n : ℝ))) ^ 3 ≤ 0.000675 := by sorry
+
+theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (n ^ (3 / 2)) ≤ (1 / (89693 : ℝ)) * (1 / (n : ℝ)) := by sorry
+
 /-%%
 \begin{proof}
 This is a straightforward calculus and monotonicity check: the left-hand sides are decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at \(n=X_0^2\).  One can verify numerically or symbolically.
 \end{proof}
 %%-/
 
-/-%%
-
-\begin{definition}
-For \(n \ge X_0^2\), define \(\varepsilon := 1/n\). Then
-\[
-  0 < \varepsilon \le \frac{1}{X_0^2} = \frac{1}{89693^2}.
-\]
-\end{definition}
-%%-/
 
 /-%%
 
-\begin{lemma}[Polynomial approximation of the inequality]\label{lem:poly-ineq}
+\begin{lemma}[Polynomial approximation of the inequality]\label{lem:poly-ineq}\lean{prod_epsilon_le, prod_epsilon_ge}\leanok
 For \(0 \le \varepsilon \le 1/89693^2\), we have
 \[
   \prod_{i=1}^3 (1 + 1.000675^i \varepsilon)
@@ -617,6 +621,10 @@ and
 \end{lemma}
 %%-/
 
+theorem prod_epsilon_le (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) : ∏ i:Fin 3, (1 + (1.000675 : ℝ) ^ ((i:ℕ)+1:ℝ) * ε) ≤ 1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 := by sorry
+
+theorem prod_epsilon_ge (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) : (∏ i:Fin 3, (1 + ε / (1.000675 : ℝ) ^ (2*((i:ℕ)+1:ℝ)))) * (1 + (3 : ℝ) / 8 * ε) * (1 - (4 * (1.000675 : ℝ) ^ 12) / 89693 * ε) ≥ 1 + 3.37 * ε - 0.01 * ε ^ 2 := by sorry
+
 /-%%
 
 \begin{proof}
@@ -631,7 +639,7 @@ All coefficients can be bounded numerically in a rigorous way; this step is a fi
 
 /-%%
 
-\begin{lemma}[Final polynomial comparison]\label{lem:final-comparison}
+\begin{lemma}[Final polynomial comparison]\label{lem:final-comparison}\lean{final_comparison}\leanok
 For \(0 \le \varepsilon \le 1/89693^2\), we have
 \[
   1 + 3.01\varepsilon + 3.01\varepsilon^2 + 1.01\varepsilon^3
@@ -639,6 +647,8 @@ For \(0 \le \varepsilon \le 1/89693^2\), we have
 \]
 \end{lemma}
 %%-/
+
+theorem final_comparison (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) : 1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.37 * ε - 0.01 * ε ^ 2 := by sorry
 
 /-%%
 \begin{proof}
@@ -657,14 +667,29 @@ Factor out \(\varepsilon\) and use that \(0<\varepsilon \le 1/89693^2\) to check
 
 /-%%
 
-\begin{proposition}[Verification of \eqref{eq:main-ineq} for large \(n\)]\label{prop:ineq-holds-large-n}
+\begin{proposition}[Verification of \eqref{eq:main-ineq} for large \(n\)]\label{prop:ineq-holds-large-n}\lean{Criterion.mk'}\leanok
 For every integer \(n \ge X_0^2 = 89693^2 \approx 8.04\times 10^9\), the primes \(p_i,q_i\) constructed in Lemmas~\ref{lem:choose-pi} and \ref{lem:choose-qi} satisfy the inequality \eqref{eq:main-ineq}.
 \end{proposition}
 %%-/
 
+noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion := {
+  n := n
+  p := (exists_p_primes hn).choose
+  q := (exists_q_primes hn).choose
+  hn := sorry
+  hp := sorry
+  hp_mono := sorry
+  hq := sorry
+  hq_mono := sorry
+  h_ord_1 := sorry
+  h_ord_2 := sorry
+  h_ord_3 := sorry
+  h_crit  := sorry
+}
+
 /-%%
 
-\begin{proof}
+\begin{proof}\uses{lem:qi-product, lem:pi-product, lem:pq-ratio, lem:eps-bounds, lem:poly-ineq, lem:final-comparison}
 Combine Lemma~\ref{lem:qi-product}, Lemma~\ref{lem:pi-product}, and Lemma~\ref{lem:pq-ratio}.  Then apply Lemma~\ref{lem:eps-bounds} and set \(\varepsilon = 1/n\).  The products are bounded by the expressions in Lemma~\ref{lem:poly-ineq}, and the inequality in Lemma~\ref{lem:final-comparison} then ensures that \eqref{eq:main-ineq} holds.
 \end{proof}
 %%-/
@@ -683,13 +708,10 @@ theorem L_not_HA_of_ge (n : ℕ) (hn : n ≥ 89693 ^ 2) : ¬ HighlyAbundant (L n
 
 /-%%
 
-\begin{proof}
+\begin{proof}\uses{prop:ineq-holds-large-n, thm:criterion}
 By Proposition~\ref{prop:ineq-holds-large-n}, there exist primes \(p_1,p_2,p_3,q_1,q_2,q_3\) satisfying the hypotheses of Theorem~\ref{thm:criterion}.  Hence \(L_n\) is not highly abundant.
 \end{proof}
 
-\begin{remark}
-In combination with earlier arguments and computations for smaller \(n\), one can conclude that \(L_n\) is highly abundant only for finitely many indices \(n\), and these indices can be determined explicitly by exhaustive computation.
-\end{remark}
 
 %%-/
 
