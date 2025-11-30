@@ -38,7 +38,7 @@ def HighlyAbundant (N : ℕ) : Prop :=
 \begin{definition}\label{Ln-def}\lean{L}\leanok
 For each integer \(n \ge 1\), define
 \[
-  L_n := \lcm(1,2,\dots,n).
+  L_n := \operatorname{lcm}(1,2,\dots,n).
 \]
 We call \((L_n)_{n \ge 1}\) the \emph{least common multiple sequence}.
 \end{definition}
@@ -49,7 +49,7 @@ def L (n : ℕ) : ℕ := (Finset.Icc 1 n).lcm _root_.id
 /-%%
 \begin{quote}
 \textbf{Original MathOverflow question.}
-Is it true that every value in the sequence \(L_n = \lcm(1,2,\dots,n)\) is highly abundant?  Equivalently,
+Is it true that every value in the sequence \(L_n = \operatorname{lcm}(1,2,\dots,n)\) is highly abundant?  Equivalently,
 \[
   \{L_n : n \ge 1\} \subseteq HA?
 \]
@@ -386,7 +386,7 @@ Let \(k\) be the largest integer such that \(2^k \le n\). Then the exponent of \
 /-%%
 
 \begin{proof}
-Since \(2^k \le n\), the number \(2^k\) divides \(\lcm(1,2,\dots,n)\), hence \(2^k\) divides \(L_n\) and thus also divides \(L'\).  The definition of \(M\) multiplies \(L'\) by \(4 = 2^2\), so the exponent of \(2\) in \(M\) is at least \(k+2\).
+Since \(2^k \le n\), the number \(2^k\) divides \(\operatorname{lcm}(1,2,\dots,n)\), hence \(2^k\) divides \(L_n\) and thus also divides \(L'\).  The definition of \(M\) multiplies \(L'\) by \(4 = 2^2\), so the exponent of \(2\) in \(M\) is at least \(k+2\).
 
 The ratio of contributions of \(2\) to \(\sigma(M)/M\) and \(\sigma(L')/L'\) is
 \[
