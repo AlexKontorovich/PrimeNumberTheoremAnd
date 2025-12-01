@@ -87,9 +87,10 @@ noncomputable def scale (g : CS n E) (R : ℝ) : CS n E := by
     · exact g.h2.comp_smul (inv_ne_zero h)
 
 lemma deriv_scale {f : CS (n + 1) E} : (f.scale R).deriv = R⁻¹ • f.deriv.scale R := by
-  ext v ; by_cases hR : R = 0 <;> simp [hR, scale]
-  · simp [deriv]
-  · exact ((f.hasDerivAt (R⁻¹ • v)).scomp v (by simpa using (hasDerivAt_id v).const_smul R⁻¹)).deriv
+  ext v ; by_cases hR : R = 0
+  · simp [hR, scale, deriv]
+  · simp only [scale, hR, ↓reduceDIte, smul_apply]
+    exact ((f.hasDerivAt (R⁻¹ • v)).scomp v (by simpa using (hasDerivAt_id v).const_smul R⁻¹)).deriv
 
 lemma deriv_scale' {f : CS (n + 1) E} : (f.scale R).deriv v = R⁻¹ • f.deriv (R⁻¹ • v) := by
   rw [deriv_scale, smul_apply]
@@ -234,10 +235,13 @@ theorem W21_approximation (f : W21) (g : trunc) :
   have ch'' {R} : Continuous (fun v => (h'' R v : ℂ)) := continuous_ofReal.comp (CS.continuous _)
   have dh R v : HasDerivAt (h R) (h' R v) v := by
     convert CS.hasDerivAt_scale (g : CS 2 ℝ) R v |>.const_sub 1 using 1
-    simp [h', CS.deriv_scale'] ; left ; rfl
+    simp [h', CS.deriv_scale', show g.deriv.toFun = deriv g.toFun from rfl]
   have dh' R v : HasDerivAt (h' R) (h'' R v) v := ((g.scale R).deriv.hasDerivAt v).neg
   have hh1 R v : |h R v| ≤ 1 := by
-    by_cases hR : R = 0 <;> simp [h, hR, CS.scale, funscale] ; rw [abs_le] ; constructor <;>
+    by_cases hR : R = 0 <;>
+      simp only [CS.scale, funscale, smul_eq_mul, hR, ↓reduceDIte, Pi.zero_apply, sub_zero, abs_one,
+        le_refl, h]
+    rw [abs_le] ; constructor <;>
     linarith [g.le_one (R⁻¹ * v), g.nonneg (R⁻¹ * v)]
   have vR v : Tendsto (fun R : ℝ => v * R⁻¹) atTop (𝓝 0) := by simpa using tendsto_inv_atTop_zero.const_mul v
 
@@ -291,7 +295,9 @@ theorem W21_approximation (f : W21) (g : trunc) :
         filter_upwards [eventually_ge_atTop 1] with R hR v
         have hR' : R ≠ 0 := by linarith
         have : 0 ≤ R := by linarith
-        simp [h', CS.deriv_scale, abs_mul, abs_inv, abs_eq_self.mpr this] ; simp [CS.scale, funscale, hR']
+        simp only [CS.deriv_scale, CS.neg_apply, CS.smul_apply, smul_eq_mul, abs_neg, abs_mul,
+          abs_inv, abs_eq_self.mpr this, ge_iff_le, h']
+        simp only [CS.scale, hR', ↓reduceDIte, funscale, smul_eq_mul]
         convert_to _ ≤ c1 * 1
         · simp
         · rw [mul_comm]
@@ -302,17 +308,19 @@ theorem W21_approximation (f : W21) (g : trunc) :
         have e1 : 0 ≤ R := by linarith
         have e2 : R⁻¹ ≤ 1 := inv_le_of_inv_le₀ (by linarith) (by simpa using hR)
         have e3 : R ≠ 0 := by linarith
-        simp [h'', CS.deriv_scale, CS.deriv_smul, abs_mul, abs_inv, abs_eq_self.mpr e1]
+        simp only [CS.deriv_scale, CS.deriv_smul, CS.neg_apply, CS.smul_apply, smul_eq_mul, abs_neg,
+          abs_mul, abs_inv, abs_eq_self.mpr e1, ge_iff_le, h'']
         convert_to _ ≤ 1 * (1 * c2)
         · simp
         apply mul_le_mul e2 ?_ (by positivity) zero_le_one
         apply mul_le_mul e2 ?_ (by positivity) zero_le_one
-        simp [CS.scale, e3, funscale] ; apply mg''
+        simp only [CS.scale, e3, ↓reduceDIte, funscale, smul_eq_mul] ; apply mg''
       filter_upwards [hc1, hc2] with R hc1 hc2
       apply Eventually.of_forall ; intro v ; specialize hc1 v ; specialize hc2 v
       simp only [F, bound, norm_norm]
       refine (norm_add_le _ _).trans ?_ ; apply add_le_add
-      · refine (norm_add_le _ _).trans ?_ ; apply add_le_add <;> simp <;> gcongr
+      · refine (norm_add_le _ _).trans ?_ ; apply add_le_add <;> simp only [Complex.norm_mul,
+        Complex.norm_ofNat, norm_real, norm_eq_abs] <;> gcongr
       · simpa using mul_le_mul (hh1 R v) le_rfl (by simp) zero_le_one
     have e3 : Integrable bound volume := (((f.hf.norm).const_mul _).add ((f.hf'.norm).const_mul _)).add f.hf''.norm
     have e4 : ∀ᵐ (a : ℝ), Tendsto (fun n ↦ F n a) atTop (𝓝 0) := by
@@ -322,8 +330,9 @@ theorem W21_approximation (f : W21) (g : trunc) :
       refine tendsto_norm_zero.comp <| (ZeroAtFilter.add ?_ ?_).add ?_
       · have eh'' v : ∀ᶠ R in atTop, h'' R v = 0 := by
           filter_upwards [(vR v).eventually evg'', eventually_ne_atTop 0] with R hR hR'
-          simp [h'', CS.deriv_scale, CS.deriv_smul, hR']
-          simp [CS.scale, hR', funscale, mul_comm R⁻¹]
+          simp only [CS.deriv_scale, CS.deriv_smul, CS.neg_apply, CS.smul_apply, smul_eq_mul,
+            neg_eq_zero, mul_eq_zero, inv_eq_zero, hR', false_or, h'']
+          simp only [CS.scale, hR', ↓reduceDIte, funscale, smul_eq_mul, mul_comm R⁻¹]
           exact hR
         apply tendsto_nhds_of_eventually_eq
         filter_upwards [eh'' v] with R hR ; simp [hR]
