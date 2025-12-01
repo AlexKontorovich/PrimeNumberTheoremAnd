@@ -47,9 +47,9 @@ We say that $E_θ$ satisfies a \emph{classical bound} with parameters $A, B, C, 
 Similarly for $E_π$.
 \end{definition}
 %%-/
-def Eθ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eθ x ≤ A * (log x / R) ^ B * exp (-C * (log x / R) ^ (1/2))
+def Eθ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eθ x ≤ admissible_bound A B C R x
 
-def Eπ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ A * (log x / R) ^ B * exp (-C * (log x / R) ^ (1/2))
+def Eπ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ admissible_bound A B C R x
 
 def Eπ.vinogradovBound (A B C x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ A * (log x) ^ B * exp (-C * (log x) ^ (3/5) / (log (log x)) ^ (1/5))
 

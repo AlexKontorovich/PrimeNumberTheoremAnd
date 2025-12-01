@@ -36,7 +36,9 @@ We say that $E_ψ$ satisfies a \emph{classical bound} with parameters $A, B, C, 
 \end{definition}
 %%-/
 
-def Eψ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eψ x ≤ A * (log x / R) ^ B * exp (-C * (log x / R) ^ (1/2))
+noncomputable def admissible_bound (A B C R : ℝ) (x : ℝ) := A * (log x / R) ^ B * exp (-C * (log x / R) ^ (1/2))
+
+def Eψ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eψ x ≤ admissible_bound A B C R x
 
 /-%%
 \begin{definition}[Section 1.1, FKS2]\label{classical zero-free region}\lean{riemannZeta.classicalZeroFree}\leanok
