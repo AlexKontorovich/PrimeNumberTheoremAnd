@@ -425,7 +425,9 @@ theorem logDerivResidue' {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
   have log_deriv_f_plus_pole_equal_log_deriv_h :
       EqOn (deriv f * f⁻¹ + fun s ↦ (s - p)⁻¹) ((deriv h) * h⁻¹) (U \ {p}) := by
-    simp [*] at *
+    simp only [mem_diff, mem_singleton_iff, ne_eq, and_imp, Function.comp_apply, Pi.sub_apply,
+      DifferentiableOn.sub_iff_right, differentiableOn_const, DifferentiableOn.fun_sub_iff_left,
+      holc] at *
     intro x hyp_x
     have x_not_p : x ≠ p := by
       exact ((Set.mem_diff x).mp hyp_x).2
@@ -599,7 +601,7 @@ theorem ResidueMult {f g : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
       ring
     refine (Asymptotics.isBigO_mul_iff_isBigO_div ?_).mpr ?_
     · filter_upwards [self_mem_nhdsWithin] with x hx
-      simp at hx
+      simp only [mem_compl_iff, mem_singleton_iff] at hx
       push_neg at hx
       exact inv_ne_zero (sub_ne_zero.mpr hx)
     · simp only [div_inv_eq_mul]
@@ -2096,7 +2098,7 @@ lemma DerivUpperBnd_aux7_tendsto {σ : ℝ} (σpos : 0 < σ) :
   have h2 := h1.const_mul (1 / σ^2)
   have h3 : Tendsto (fun t : ℝ ↦ t ^ (-σ) * Real.log t) atTop (nhds 0) := by
     have := Real.tendsto_pow_log_div_pow_atTop σ 1 σpos
-    simp at this
+    simp only [Real.rpow_one] at this
     apply Tendsto.congr' _ this
     filter_upwards [eventually_ge_atTop 0] with x hx
     rw [mul_comm]
@@ -2162,7 +2164,7 @@ theorem DerivUpperBnd_aux7 {A σ t : ℝ} (t_gt : 3 < |t|) (hσ : σ ∈ Icc (1 
     _ = ∫ (x : ℝ) in Ioi (N : ℝ), |(↑⌊x⌋ + 1 / 2 - x)| * x ^ (-σ - 1) * x.log := by
       apply setIntegral_congr_fun (by measurability)
       intro x hx
-      simp at hx
+      simp only [mem_Ioi] at hx
       exact DerivUpperBnd_aux7_1 (lt_of_le_of_lt (mod_cast Npos) hx).le
     _ ≤ ∫ (x : ℝ) in Ioi (N : ℝ), x ^ (-σ - 1) * x.log := by
       apply setIntegral_mono_on _ _ (by measurability)
@@ -2360,10 +2362,9 @@ lemma Tendsto_nhdsWithin_punctured_map_add {f : ℝ → ℝ} (a x : ℝ)
     simp only [mem_nhdsWithin]
     use t
     simp only [subset_inter_iff, inter_subset_left, inter_subset_right, and_self,
-      and_true, t]
-    simp
+      and_true, t, mem_setOf_eq]
     refine ⟨?_, by simp [hu2]⟩
-    simp [Metric.isOpen_iff] at hu ⊢
+    simp only [Metric.isOpen_iff, gt_iff_lt, mem_setOf_eq] at hu ⊢
     intro x hx
     obtain ⟨ε, εpos, hε⟩ := hu (f x + a) hx
     simp only [Metric.ball, setOf_subset_setOf] at hε ⊢
@@ -3348,9 +3349,12 @@ lemma ZetaNoZerosInBox (T : ℝ) :
 
   by_cases ht₀ : t₀ = 0
   · have ZetaBlowsUp : ∀ᶠ s in 𝓝[≠](1 : ℂ), ‖ζ s‖ ≥ 1 := by
-      simp_all[Function.comp_def,eventually_nhdsWithin_iff,norm_eq_sqrt_real_inner, -inner_self_eq_norm_sq_to_K]
+      simp_all only [ge_iff_le, one_div, tsub_le_iff_right, Function.comp_def, ofReal_zero,
+        mul_zero, add_zero, norm_eq_sqrt_real_inner, Complex.inner, mul_re, conj_re, conj_im,
+        mul_neg, sub_neg_eq_add, Real.one_le_sqrt, eventually_nhdsWithin_iff, mem_compl_iff,
+        mem_singleton_iff]
       contrapose! h
-      simp_all
+      simp_all only [ne_eq, not_eventually, Classical.not_imp, not_le]
       delta abs at*
       exfalso
       simp_rw [Metric.nhds_basis_ball.frequently_iff]at*
@@ -3431,8 +3435,8 @@ theorem LogDerivZetaHolcSmallT :
     simp only [Set.mem_preimage] at him
     obtain ⟨him_lower, him_upper⟩ := him
     apply abs_le.2
-    simp at him_lower
-    simp at him_upper
+    simp only [neg_le_self_iff, Nat.ofNat_nonneg, inf_of_le_left] at him_lower
+    simp only [neg_le_self_iff, Nat.ofNat_nonneg, sup_of_le_right] at him_upper
     exact ⟨him_lower, him_upper⟩
 
   have s_in_U_re_ges2 : ∀ s ∈ U, σ₂ ≤ s.re := by
@@ -3592,7 +3596,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
     EMetric.ball (1 : ℂ) ε ⊆ U := by
       unfold ε
       by_cases h : ε₀ = ⊤
-      · simp [*]
+      · simp only [↓reduceIte, ENNReal.ofReal_one, h]
         have T : EMetric.ball (1 : ℂ) 1 ⊆ EMetric.ball 1 ε₀ := by
           simp [*]
         exact subset_trans (subset_trans T metric_ball_around_1_is_in_U') open_in_U_subs_U
@@ -3621,7 +3625,8 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
       have U : ε_div_two ≠ ⊤ := by
         refine ENNReal.div_ne_top O1 ?_
         simp
-      simp [ENNReal.toReal_add _ U]
+      simp only [ENNReal.toReal_one, ne_eq, ENNReal.one_ne_top, not_false_eq_true,
+        ENNReal.toReal_add _ U, lt_add_iff_pos_right, gt_iff_lt]
       refine ENNReal.toReal_pos ?_ ?_
       · unfold ε_div_two
         simp [*]
@@ -3651,8 +3656,8 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
       rw [edist_dist, dist_eq_norm]
       norm_cast
       have U : 0 ≤ σ₀ - 1 := by linarith
-      simp [Real.norm_of_nonneg U]
-      simp [ENNReal.ofReal_lt_iff_lt_toReal U O1]
+      simp only [Real.norm_of_nonneg U, gt_iff_lt]
+      simp only [ENNReal.ofReal_lt_iff_lt_toReal U O1]
       calc
         _ ≤ boundary - 1 := by linarith
         _ = ENNReal.toReal (1 + ε_div_two) - 1 := rfl
@@ -3671,7 +3676,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
         linarith
 
     have bdd := Set.forall_mem_image.mp bound_prop (σ₀_in_U)
-    simp [*] at bdd
+    simp only [Function.comp_apply, Pi.sub_apply, Pi.neg_apply, Pi.div_apply] at bdd
 
     calc
       _ ≤ ‖ζ' σ₀ / ζ σ₀‖ := by
@@ -3702,12 +3707,12 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
     have boundary_in_ball : (↑boundary : ℂ) ∈ metric_ball_around_1 := by
       unfold metric_ball_around_1
       unfold EMetric.ball
-      simp [*]
+      simp only [mem_setOf_eq]
       rw [edist_dist, dist_eq_norm]
       norm_cast
       have U : 0 ≤ boundary - 1 := by linarith
-      simp [Real.norm_of_nonneg U]
-      simp [ENNReal.ofReal_lt_iff_lt_toReal U O1]
+      simp only [Real.norm_of_nonneg U, gt_iff_lt]
+      simp only [ENNReal.ofReal_lt_iff_lt_toReal U O1]
       calc
         _ = ENNReal.toReal (1 + ε_div_two) - 1 := rfl
         _ = ENNReal.toReal (1 + ε_div_two) - ENNReal.toReal (ENNReal.ofReal 1) := by simp
@@ -3740,10 +3745,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
         ring_nf
         norm_cast at U9
         norm_cast
-        simp [*] at U9
-        simp [*]
-        exact U9
-
+        simpa [*] using U9
       _ ≤ const + (boundary - 1)⁻¹ := by
         simp [norm_inv]
         have pos : 0 ≤ boundary - 1 := by

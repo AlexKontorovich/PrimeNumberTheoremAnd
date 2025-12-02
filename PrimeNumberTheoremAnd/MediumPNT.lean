@@ -1383,7 +1383,7 @@ theorem SmoothedChebyshevPull2_aux1 {T σ₁ : ℝ} (σ₁lt : σ₁ < 1)
   apply ContinuousOn.neg
   apply holoOn.continuousOn.comp (by fun_prop)
   intro t ht
-  simp
+  simp only [mem_diff, mem_singleton_iff]
   constructor
   · apply mem_reProdIm.mpr
     simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add, left_mem_Icc, ht, and_true]
@@ -2287,7 +2287,10 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
       ‖ζ' (σ - (T : ℝ) * I) / ζ (σ - (T : ℝ) * I)‖ = ‖ζ' (σ + (-T : ℝ) * I) / ζ (σ + (-T : ℝ) * I)‖ := by
         have Z : σ - (T : ℝ) * I = σ + (- T : ℝ) * I := by simp; ring_nf
         simp [Z]
-      _ ≤ C₂ * Real.log |-T| ^ 9 := has_bound σ (-T) (by simp; rw [abs_of_pos Tpos]; exact T_gt) (by unfold σ₁ at hσ; simp at hσ ⊢; replace hσ := hσ.1; linarith)
+      _ ≤ C₂ * Real.log |-T| ^ 9 := has_bound σ (-T)
+          (by simp only [abs_neg]; rw [abs_of_pos Tpos]; exact T_gt)
+          (by unfold σ₁ at hσ; simp only [mem_Ioc, abs_neg, log_abs, mem_Ici,
+            tsub_le_iff_right] at hσ ⊢; replace hσ := hσ.1; linarith)
       _ ≤ C₂ * Real.log T ^ 9 := by simp
       _ ≤ C₂ * (C₃ * T) := by gcongr; exact hC₃ T (by linarith)
 
@@ -3777,7 +3780,8 @@ theorem MediumPNT : ∃ c > 0,
   have holo2 : HolomorphicOn (fun s ↦ ζ' s / ζ s) (uIcc σ₂ 2 ×ℂ uIcc (-3) 3 \ {1}) := by
     apply holo2'.mono
     intro s hs
-    simp [mem_reProdIm] at hs ⊢
+    simp only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le, mem_diff, mem_reProdIm, mem_Icc,
+      mem_singleton_iff] at hs ⊢
     refine ⟨?_, hs.2⟩
     refine ⟨?_, hs.1.2⟩
     rcases hs.1.1 with ⟨left, right⟩
