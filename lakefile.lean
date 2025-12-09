@@ -9,7 +9,8 @@ package «PrimeNumberTheoremAnd» where
     ⟨`relaxedAutoImplicit, false⟩,
     ⟨`linter.mathlibStandardSet, true⟩,
     ⟨`linter.style.openClassical, false⟩,
-    ⟨`linter.style.longLine, false⟩
+    ⟨`linter.style.longLine, false⟩,
+    ⟨`linter.flexible, true⟩
   ]
 
 @[default_target]

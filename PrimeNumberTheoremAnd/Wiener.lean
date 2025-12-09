@@ -1278,7 +1278,9 @@ theorem sum_le_integral {x₀ : ℝ} {f : ℝ → ℝ} {n : ℕ} (hf : AntitoneO
     (hfi : IntegrableOn f (Icc x₀ (x₀ + n))) :
     (∑ i ∈ Finset.range n, f (x₀ + ↑(i + 1))) ≤ ∫ x in x₀..x₀ + n, f x := by
 
-  cases n with simp at hf ⊢
+  cases n with simp only [Nat.cast_add, Nat.cast_one, CharP.cast_eq_zero, add_zero, lt_self_iff_false, not_false_eq_true,
+    Ioc_eq_empty, Finset.range_zero, Nat.cast_add, Nat.cast_one, Finset.sum_empty,
+    intervalIntegral.integral_same, le_refl] at hf ⊢
   | succ n =>
   have : Finset.range (n + 1) = {0} ∪ Finset.Ico 1 (n + 1) := by
     ext i ; by_cases hi : i = 0 <;> simp [hi] ; omega
@@ -1376,8 +1378,8 @@ lemma hh_integrable_aux (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     rw [Metric.tendsto_nhdsWithin_nhdsWithin]
     intro ε hε
     refine ⟨c * ε, by positivity, fun x hx1 hx2 => ⟨?_, ?_⟩⟩
-    · simp at hx1 ⊢ ; positivity
-    · simp [abs_eq_self.mpr hc.le] at hx2 ⊢ ; rwa [div_lt_iff₀ hc, mul_comm]
+    · simp only [mem_Ioi] at hx1 ⊢ ; positivity
+    · simp only [dist_zero_right, norm_eq_abs, norm_div, abs_eq_self.mpr hc.le] at hx2 ⊢ ; rwa [div_lt_iff₀ hc, mul_comm]
 
   have k3 : ContinuousWithinAt g₀ (Ici 0) 0 := by
     rw [Metric.continuousWithinAt_iff]
@@ -1390,7 +1392,7 @@ lemma hh_integrable_aux (ha : 0 < a) (hb : 0 < b) (hc : 0 < c) :
     | inr hx => simp [g₀, hx.symm, hε]
 
   have k4 : ∀ x ∈ Ioi 0, 0 ≤ g' x := by
-    intro x (hx : 0 < x) ; simp [g'] ; positivity
+    intro x (hx : 0 < x) ; simp only [mul_inv_rev, inv_div, g'] ; positivity
 
   constructor
   · convert_to IntegrableOn g' _
@@ -1420,7 +1422,8 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
   have l1 i : 0 ≤ ggg i := by by_cases hi : i = 0 <;> simp only [gg, one_div, mul_inv_rev, hi,
     ↓reduceIte, zero_le_one, ggg] ; positivity
   have l2 : Antitone ggg := by
-    intro i j hij ; by_cases hi : i = 0 <;> by_cases hj : j = 0 <;> simp [ggg, hi, hj]
+    intro i j hij ; by_cases hi : i = 0 <;> by_cases hj : j = 0 <;> simp only [hj, ↓reduceIte, hi,
+      le_refl, ggg]
     · exact gg_le_one _
     · omega
     · simp only [gg_of_hh l0]
@@ -1438,7 +1441,7 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
     intro u ⟨hu1, _⟩ v ⟨hv1, _⟩ huv
     simp only
     apply mul_le_mul le_rfl ?_ (hh_nonneg _ (by positivity)) (by positivity)
-    apply hh_antitone one_div_two_pi_mem_Ioo (by simp ; positivity) (by simp ; positivity)
+    apply hh_antitone one_div_two_pi_mem_Ioo (by simp only [mem_Ioi] ; positivity) (by simp only [mem_Ioi] ; positivity)
     apply (div_le_div_iff_of_pos_right (by positivity)).mpr huv
 
   have l6 {n : ℕ} : IntegrableOn (fun t ↦ x⁻¹ * hh (π⁻¹ * 2⁻¹) (t / x)) (Icc 0 n) volume := by
@@ -1453,14 +1456,15 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
       field_simp
 
   apply cancel_main' (fun _ => norm_nonneg _) (by simp [hf0]) l1 hf l2 n |>.trans
-  gcongr ; simp [ggg, cumsum, gg_of_hh l0]
+  gcongr ; simp only [cumsum, gg_of_hh l0, one_div, mul_inv_rev, ggg]
 
   by_cases hn : n = 0
-  · simp [hn] ; positivity
+  · simp only [hn, Finset.range_zero, Finset.sum_empty] ; positivity
   replace hn : 0 < n := by omega
   have : Finset.range n = {0} ∪ Finset.Ico 1 n := by
     ext i ; simp ; by_cases hi : i = 0 <;> simp [hi, hn] ; omega
-  simp [this]
+  simp only [this, Finset.singleton_union, Finset.mem_Ico, nonpos_iff_eq_zero, one_ne_zero,
+    false_and, not_false_eq_true, Finset.sum_insert, ↓reduceIte, add_le_add_iff_left, ge_iff_le]
   convert_to ∑ x_1 ∈ Finset.Ico 1 n, x⁻¹ * hh (π⁻¹ * 2⁻¹) (↑x_1 / x) ≤ _
   · apply Finset.sum_congr rfl (fun i hi => ?_)
     simp at hi
@@ -1471,10 +1475,11 @@ lemma bound_sum_log {C : ℝ} (hf0 : f 0 = 0) (hf : chebyWith C f) {x : ℝ} (hx
   simp only [zero_add] at this
   apply this.trans
   rw [@intervalIntegral.integral_comp_div ℝ _ _ 0 ↑(n - 1) x (fun t => x⁻¹ * hh (π⁻¹ * 2⁻¹) (t)) l0]
-  simp [← mul_assoc, mul_inv_cancel₀ l0]
+  simp only [zero_div, intervalIntegral.integral_const_mul, smul_eq_mul, ← mul_assoc,
+    mul_inv_cancel₀ l0, one_mul]
   have : (0 : ℝ) ≤ ↑(n - 1) / x := by positivity
   rw [intervalIntegral.intervalIntegral_eq_integral_uIoc]
-  simp [this]
+  simp only [this, ↓reduceIte, uIoc_of_le, smul_eq_mul, one_mul, ge_iff_le]
   apply integral_mono_measure
   · apply Measure.restrict_mono Ioc_subset_Ioi_self le_rfl
   · apply eventually_of_mem (self_mem_ae_restrict measurableSet_Ioi)
@@ -1623,7 +1628,7 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
       use 1 ; simp [Complex.norm_exp]
 
   have S1_sub : S1 x (ψ - Ψ R) = S1 x ψ - S1 x (Ψ R) := by
-    simp [S1, S1_sub_1, mul_sub] ; apply Summable.tsum_sub
+    simp only [one_div, mul_inv_rev, S1_sub_1, mul_sub, S1] ; apply Summable.tsum_sub
     · have := summable_fourier x (by positivity) ψ ⟨_, hcheby⟩
       rw [summable_norm_iff] at this
       simpa using this
@@ -1632,7 +1637,7 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
       simpa using this
 
   have S2_sub : S2 x (ψ - Ψ R) = S2 x ψ - S2 x (Ψ R) := by
-    simp [S2, S1_sub_1] ; rw [integral_sub]
+    simp only [S1_sub_1, S2] ; rw [integral_sub]
     · ring
     · exact ψ.integrable_fourier (by positivity) |>.restrict
     · exact (Ψ R : W21).integrable_fourier (by positivity) |>.restrict
@@ -1742,7 +1747,12 @@ theorem wiener_ikehara_smooth_sub (h1 : Integrable Ψ) (hplus : closure (Functio
   have l2 : Integrable (indicator (Ioi 0) (fun x : ℝ => Ψ x)) := h1.indicator measurableSet_Ioi
 
   simp_rw [← MeasureTheory.integral_indicator measurableSet_Ioi, ← mul_sub, ← integral_sub l1 l2]
-  simp ; right ; apply MeasureTheory.integral_eq_zero_of_ae ; apply Eventually.of_forall ; intro t ; simp
+  simp only [mul_eq_zero, ofReal_eq_zero]
+  right
+  apply MeasureTheory.integral_eq_zero_of_ae
+  apply Eventually.of_forall
+  intro t
+  simp only [Pi.zero_apply]
 
   have hε' : 0 < ε⁻¹ := by positivity
   have hx : 0 < x := by linarith
@@ -1947,7 +1957,7 @@ lemma WI_sum_Iab_le {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : cheby
   have hx : 0 < x := by linarith
   have hxb' : 2 < x * b := (div_lt_iff₀ hb).mp hxb
   have l1 (i : ℕ) (hi : i ∉ Finset.range ⌈b * x⌉₊) : f i * indicator (Ico a b) 1 (i / x) = 0 := by
-    simp at hi ⊢ ; right ; rintro - ; rw [le_div_iff₀ hx] ; linarith
+    simp_all [le_div_iff₀ hx]
   have l2 (i : ℕ) (_ : i ∈ Finset.range ⌈b * x⌉₊) : f i * indicator (Ico a b) 1 (i / x) ≤ |f i| := by
     rw [abs_eq_self.mpr (hpos _)]
     convert_to _ ≤ f i * 1
@@ -1956,7 +1966,7 @@ lemma WI_sum_Iab_le {f : ℕ → ℝ} (hpos : 0 ≤ f) {C : ℝ} (hcheby : cheby
     by_cases hi : (i / x) ∈ (Ico a b) <;> simp [hi]
   rw [tsum_eq_sum l1, div_le_iff₀ hx, mul_assoc, mul_assoc]
   apply Finset.sum_le_sum l2 |>.trans
-  have := hcheby ⌈b * x⌉₊ ; simp at this ; apply this.trans
+  have := hcheby ⌈b * x⌉₊ ; simp only [norm_real, norm_eq_abs] at this ; apply this.trans
   have : 0 ≤ C := by have := hcheby 1 ; simp only [cumsum, Finset.range_one, norm_real,
     Finset.sum_singleton, Nat.cast_one, mul_one] at this ; exact (abs_nonneg _).trans this
   refine mul_le_mul_of_nonneg_left ?_ this
@@ -2088,7 +2098,7 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
     apply le_of_eventually_nhdsWithin
     have key : 0 < A := lt_of_le_of_ne hA h.symm
     filter_upwards [WI_tendsto_aux a b key l_sup] with x hx
-    simp at hx ; convert hx ; field_simp
+    simpa [mul_div_cancel₀ _ h] using hx
 
   -- Bound from below by a smooth function
   have le_inf : A * (b - a) ≤ liminf (S Iab) atTop := by
