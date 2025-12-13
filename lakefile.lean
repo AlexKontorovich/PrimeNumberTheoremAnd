@@ -10,6 +10,7 @@ package «PrimeNumberTheoremAnd» where
     ⟨`linter.mathlibStandardSet, true⟩,
     ⟨`linter.style.openClassical, false⟩,
     ⟨`linter.style.longLine, false⟩,
+    ⟨`linter.style.emptyLine, false⟩,
     ⟨`linter.flexible, true⟩
   ]
 
@@ -22,7 +23,7 @@ lean_lib «PrimeNumberTheoremAnd»
 -- the commit to a more recent one.
 --
 require mathlib from git
-  "https://github.com/leanprover-community/mathlib4.git" @ "v4.25.2"
+  "https://github.com/leanprover-community/mathlib4.git" @ "v4.26.0"
 
 meta if get_config? env = some "dev" then require «doc-gen4» from git
-  "https://github.com/leanprover/doc-gen4.git" @ "v4.25.1"
+  "https://github.com/leanprover/doc-gen4.git" @ "v4.26.0"

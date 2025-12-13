@@ -5,9 +5,6 @@ Author: Arend Mellendijk
 
 ! This file was ported from Lean 3 source module sieve
 -/
-import Mathlib.Algebra.BigOperators.Ring.Finset
-import Mathlib.Analysis.Asymptotics.Lemmas
-import Mathlib.NumberTheory.ArithmeticFunction
 import Mathlib.NumberTheory.SelbergSieve
 import PrimeNumberTheoremAnd.Mathlib.NumberTheory.Sieve.AuxResults
 

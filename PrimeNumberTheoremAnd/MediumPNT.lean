@@ -345,7 +345,7 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
     have n_pos : 0 < n := by
       simpa only [n_zero, gt_iff_lt, false_or] using (Nat.eq_zero_or_pos n)
     congr
-    have := mellin_inversion σ (f := fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (x := n / X)
+    have := mellinInv_mellin_eq σ (f := fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (x := n / X)
       ?_ ?_ ?_ ?_
     · beta_reduce at this
       dsimp [mellinInv, VerticalIntegral] at this
@@ -610,7 +610,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     have const_le_2: 1 + c₂ * ε ≤ 3 := by
       have : (3 : ℝ) = 1 + 2 := by ring
       rw[this]
-      apply add_le_add_left
+      apply add_le_add_right
       rw[← mul_one 2]
       exact mul_le_mul (by linarith) (by linarith) (by positivity) (by positivity)
     rw[mul_comm]
@@ -674,7 +674,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     _ ≤ 2 * (X * ε * (3 * c₁ + c₂)) * (Real.log X + (Real.log X + Real.log 3)) := by
       rw [← Real.log_mul (by positivity) (by positivity), mul_comm X 3]
       nth_rewrite 2 [mul_add]
-      apply add_le_add_left
+      apply add_le_add_right
       nth_rewrite 1 [← one_mul (Real.log (3 * X))]
       apply mul_le_mul_of_nonneg_right _ (log_nonneg (by linarith))
       linarith
@@ -1085,7 +1085,7 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
           add_zero, ne_eq]
         linarith
   convert (SmoothedChebyshevDirichlet_aux_integrable ContDiffSmoothingF SmoothingFnonneg
-    suppSmoothingF mass_one ε_pos ε_lt_one σ₀_gt σ₀_le_2).bdd_mul ?_ ⟨c, this⟩ using 2
+    suppSmoothingF mass_one ε_pos ε_lt_one σ₀_gt σ₀_le_2).bdd_mul (c := c) ?_ (ae_of_all _ this) using 2
   · unfold SmoothedChebyshevIntegrand
     ring
   · apply Continuous.aestronglyMeasurable
@@ -2241,7 +2241,7 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
     rw[sub_le_iff_le_add]
     nth_rw 1 [← add_zero 1]
     rw[add_assoc]
-    apply add_le_add_left
+    apply add_le_add_right
     refine Left.add_nonneg ?_ ?_
     · rw[inv_nonneg, log_nonneg_iff Xpos]
       exact le_trans (by norm_num) (le_of_lt X_gt)
@@ -2702,7 +2702,7 @@ lemma log_pow_over_xsq_integral_bounded :
         exact Nat.cast_nonneg d
 
       rw[add_assoc]
-      apply add_lt_add_left
+      apply add_lt_add_right
       field_simp
       linarith
 
