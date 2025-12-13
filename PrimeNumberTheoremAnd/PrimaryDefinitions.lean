@@ -1,4 +1,5 @@
 import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
+import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 
 open Real
@@ -19,7 +20,7 @@ FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
 %%-/
 
 /-- The Chebyshev function ψ.  TODO: align this with notation used elsewhere in PNT+ -/
-noncomputable def ψ (x : ℝ) : ℝ := ∑ᶠ (n : ℕ) (_: n < x), Λ n
+noncomputable def ψ (x : ℝ) : ℝ := Chebyshev.psi x
 
 /-%%
 \begin{definition}[Equation (2) of FKS2]\label{Epsi-def}\lean{Eψ}\leanok
