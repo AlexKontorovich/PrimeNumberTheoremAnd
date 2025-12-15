@@ -30,10 +30,10 @@ theorem hasDerivAt_e {u x : ℝ} : HasDerivAt (e u) (-2 * π * u * I * e u x) x 
   simp ; ring
 
 lemma fourierIntegral_deriv_aux2 (e : ℝ →ᵇ ℂ) {f : ℝ → ℂ} (hf : Integrable f) : Integrable (⇑e * f) :=
-  hf.bdd_mul e.continuous.aestronglyMeasurable ⟨_, e.norm_coe_le_norm⟩
+  hf.bdd_mul e.continuous.aestronglyMeasurable (ae_of_all _ e.norm_coe_le_norm)
 
 @[simp] lemma F_neg {f : ℝ → ℂ} {u : ℝ} : 𝓕 (fun x => -f x) u = - 𝓕 f u := by
-  simp [fourierIntegral_eq, integral_neg]
+  simp [fourier_eq, integral_neg]
 
 @[simp] lemma F_add {f g : ℝ → ℂ} (hf : Integrable f) (hg : Integrable g) (x : ℝ) :
     𝓕 (fun x => f x + g x) x = 𝓕 f x + 𝓕 g x := by
@@ -46,7 +46,7 @@ lemma fourierIntegral_deriv_aux2 (e : ℝ →ᵇ ℂ) {f : ℝ → ℂ} (hf : In
   simpa [sub_eq_add_neg, Pi.neg_def] using F_add hf hg.neg x
 
 @[simp] lemma F_mul {f : ℝ → ℂ} {c : ℂ} {u : ℝ} : 𝓕 (fun x => c * f x) u = c * 𝓕 f u := by
-  simp [fourierIntegral_real_eq, ← integral_const_mul, Real.fourierChar, Circle.exp,
+  simp [fourier_real_eq, ← integral_const_mul, Real.fourierChar, Circle.exp,
     ← smul_mul_assoc, mul_smul_comm]
 
 end lemmas
@@ -57,7 +57,7 @@ theorem fourierIntegral_self_add_deriv_deriv (f : W21) (u : ℝ) :
     apply Integrable.const_mul ; simpa [iteratedDeriv_succ] using f.integrable le_rfl
   have l4 : Differentiable ℝ f := f.differentiable
   have l5 : Differentiable ℝ (deriv f) := f.deriv.differentiable
-  simp [f.hf, l1, add_mul, Real.fourierIntegral_deriv f.hf' l5 f.hf'', Real.fourierIntegral_deriv f.hf l4 f.hf']
+  simp [f.hf, l1, add_mul, Real.fourier_deriv f.hf' l5 f.hf'', Real.fourier_deriv f.hf l4 f.hf']
   field_simp [pi_ne_zero] ; ring_nf ; simp
 
 @[simp] lemma deriv_ofReal : deriv ofReal = fun _ => 1 := by

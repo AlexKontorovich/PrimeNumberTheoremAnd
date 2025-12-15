@@ -6,16 +6,9 @@ Author: Arend Mellendijk
 ! This file was ported from Lean 3 source module aux_results
 -/
 import Mathlib.Algebra.Order.Antidiag.Nat
-import Mathlib.Analysis.Asymptotics.Lemmas
 import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Mathlib.Analysis.SpecialFunctions.NonIntegrable
 import Mathlib.Analysis.SumIntegralComparisons
-import Mathlib.Data.Nat.Prime.Basic
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
-import Mathlib.NumberTheory.ArithmeticFunction
+import Mathlib.NumberTheory.ArithmeticFunction.Moebius
 
 noncomputable section
 
@@ -245,7 +238,7 @@ theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (h
       · intro d; rw[mem_filter, mem_Icc]
         intro hd
         constructor
-        · rw [Nat.succ_le]; exact pos_of_mem_divisors hd.1
+        · rw [Nat.succ_le_iff]; exact pos_of_mem_divisors hd.1
         · rw [le_floor_iff hx_pos.le]
           exact hd.2
       · norm_num

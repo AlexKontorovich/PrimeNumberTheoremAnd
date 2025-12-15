@@ -1,5 +1,4 @@
-import Mathlib.Data.Nat.Factorization.Basic
-import Mathlib.NumberTheory.ArithmeticFunction
+import Mathlib.NumberTheory.ArithmeticFunction.Zeta
 
 open ArithmeticFunction ArithmeticFunction.zeta BigOperators Nat Finset
 
@@ -17,7 +16,7 @@ theorem ArithmeticFunction.sum_range_mul_zeta
       · exact (mem_filter.mp hd).right
       · have h : d ≤ x := by
           rw [divisors, mem_filter] at hd
-          exact lt_succ.mp (mem_Ico.mp hd.left).right
+          exact Nat.lt_succ_iff.mp (mem_Ico.mp hd.left).right
         exact mem_filter.mpr ⟨mem_range.mpr (lt_of_le_of_lt h <| mem_range.mp hx), hd⟩
     _ = ∑ d ∈ range (N + 1), ∑ _m ∈ (range (N + 1)).filter (d ∈ divisors ·), f d := by
       rw [sum_filter, sum_product_right]
@@ -29,7 +28,7 @@ theorem ArithmeticFunction.sum_range_mul_zeta
       simp_rw [mem_divisors, and_comm (b := _ ≠ 0), ← filter_filter]
       have : (range (N + 1)).filter (· ≠ 0) = Ioc 0 N := by
         ext a
-        rw [mem_filter, mem_Ioc, mem_range, pos_iff_ne_zero, lt_succ, and_comm]
+        rw [mem_filter, mem_Ioc, mem_range, pos_iff_ne_zero, Nat.lt_succ_iff, and_comm]
       rw [this, Nat.Ioc_filter_dvd_card_eq_div]
 
 theorem ArithmeticFunction.sum_Icc_mul_zeta

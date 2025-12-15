@@ -1,4 +1,4 @@
-import Mathlib.Analysis.NormedSpace.Connected
+import Mathlib.Analysis.Normed.Module.Connected
 import Mathlib.NumberTheory.Harmonic.ZetaAsymp
 
 open scoped Complex ComplexConjugate

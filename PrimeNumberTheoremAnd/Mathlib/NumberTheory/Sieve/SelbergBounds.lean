@@ -56,7 +56,7 @@ theorem zeta_lt_self_of_prime : ∀ (p : ℕ), Nat.Prime p → (↑ζ:Arithmetic
   intro p hp
   rw [ArithmeticFunction.natCoe_apply, ArithmeticFunction.zeta_apply, if_neg (Nat.Prime.ne_zero hp)]
   norm_num;
-  exact Nat.succ_le.mp (Nat.Prime.two_le hp)
+  exact Nat.succ_le_iff.mp (Nat.Prime.two_le hp)
 
 theorem prime_dvd_primorial_iff (n p : ℕ) (hp : p.Prime) :
     p ∣ primorial n ↔ p ≤ n := by
@@ -68,11 +68,11 @@ theorem prime_dvd_primorial_iff (n p : ℕ) (hp : p.Prime) :
     rw [Finset.mem_filter, Finset.mem_range] at hq
     rw [prime_dvd_prime_iff_eq (Nat.Prime.prime hp) (Nat.Prime.prime hq.1.2)] at hq
     rw [hq.2]
-    exact Nat.lt_succ.mp hq.1.1
+    exact Nat.lt_succ_iff.mp hq.1.1
   · intro h
     apply Finset.dvd_prod_of_mem
     rw [Finset.mem_filter, Finset.mem_range]
-    exact ⟨Nat.lt_succ.mpr h, hp⟩
+    exact ⟨Nat.lt_succ_iff.mpr h, hp⟩
 
 theorem siftedSum_eq (s : SelbergSieve) (hw : ∀ i ∈ s.support, s.weights i = 1) (z : ℝ) (hz : 1 ≤ z) (hP : s.prodPrimes = primorial (Nat.floor z)) :
     siftedSum (s := s.toBoundingSieve) = (s.support.filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card := by
@@ -263,13 +263,13 @@ theorem prod_factors_sum_pow_compMult (M : ℕ) (hM : M ≠ 0) (f : ArithmeticFu
     apply symm
     apply hf.isMultiplicative.map_prod
     intro x _ y _ hxy
-    simp_rw [Finset.mem_pi, Finset.mem_Icc, Nat.succ_le] at ha
+    simp_rw [Finset.mem_pi, Finset.mem_Icc, Nat.succ_le_iff] at ha
     apply (Nat.coprime_pow_left_iff (ha x x.2).1 ..).mpr
     apply (Nat.coprime_pow_right_iff (ha y y.2).1 ..).mpr
     have hxp := Nat.prime_of_mem_primeFactorsList (List.mem_toFinset.mp x.2)
     rw [Nat.Prime.coprime_iff_not_dvd hxp]
     rw [Nat.prime_dvd_prime_iff_eq hxp <| Nat.prime_of_mem_primeFactorsList (List.mem_toFinset.mp y.2)]
-    exact fun hc => hxy (Subtype.eq hc)
+    exact fun hc => hxy (Subtype.ext hc)
 
   have i_inj : ∀ a ha b hb, i a ha = i b hb → a = b := by
     intro a ha b hb hiab
@@ -384,7 +384,7 @@ theorem selbergBoundingSum_ge_sum_div (s : SelbergSieve) (hP : ∀ p:ℕ, p.Prim
     rw [Finset.mem_biUnion]; simp_rw [Finset.mem_filter, Nat.mem_divisors]
     rw [Finset.mem_Icc, Nat.le_floor_iff] at hm
     · have hm_ne_zero : m ≠ 0 := by
-        exact ne_of_gt <| Nat.succ_le.mp hm.1
+        exact ne_of_gt <| Nat.succ_le_iff.mp hm.1
       use ∏ p ∈ m.primeFactors, p
       constructor; constructor; constructor
       · apply prod_primes_dvd_of_dvd <;> intro p hp
@@ -398,7 +398,7 @@ theorem selbergBoundingSum_ge_sum_div (s : SelbergSieve) (hP : ∀ p:ℕ, p.Prim
       · exact prodPrimes_ne_zero
       · rw [←Real.sqrt_le_sqrt_iff (by linarith only [s.one_le_level]), Real.sqrt_sq]
         · trans (m:ℝ)
-          · norm_cast; apply Nat.le_of_dvd (Nat.succ_le.mp hm.1)
+          · norm_cast; apply Nat.le_of_dvd (Nat.succ_le_iff.mp hm.1)
             exact Nat.prod_primeFactors_dvd m
           exact hm.2
         apply le_of_lt; norm_cast

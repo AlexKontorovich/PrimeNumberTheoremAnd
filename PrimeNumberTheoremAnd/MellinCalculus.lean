@@ -1110,7 +1110,7 @@ lemma Smooth1LeOne {ν : ℝ → ℝ} (νnonneg : ∀ x > 0, 0 ≤ ν x)
     simp only [ite_mul, one_mul, zero_mul, RCLike.ofReal_real_eq_id, id_eq, mem_Ioc]
     intro y hy; aesop
   · refine setIntegral_mono_on ?_ (integrable_of_integral_eq_one this) (by simp) ?_
-    · refine integrable_of_integral_eq_one this |>.bdd_mul ?_ (by use 1; aesop)
+    · refine integrable_of_integral_eq_one this |>.bdd_mul ?_ (ae_of_all _ <| by aesop)
       have : (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) = indicator (Ioc 0 1) (1 : ℝ → ℝ) := by
         aesop
       simp only [mem_Ioc, this, measurableSet_Ioc, aestronglyMeasurable_indicator_iff]

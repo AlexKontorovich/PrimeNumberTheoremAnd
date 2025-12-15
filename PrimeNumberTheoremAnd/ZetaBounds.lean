@@ -64,7 +64,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     calc ‖(s - p) * f s‖ = ‖((s - p) * f s - A) + A‖ := by
           ring_nf
         _ ≤ ‖(s - p) * f s - A‖ + ‖A‖ := norm_add_le ((s - p) * f s - A) A
-        _ ≤ 1 + ‖A‖ := add_le_add_right (le_of_lt (hV₀_mem s hV₀ hsne)) ‖A‖
+        _ ≤ 1 + ‖A‖ := add_le_add_left (le_of_lt (hV₀_mem s hV₀ hsne)) ‖A‖
         _ = ‖A‖ + 1 := add_comm 1 ‖A‖
   have h_bdd :
       BddAbove (norm ∘ (fun s ↦ (s - p) * f s) '' (V₀ \ {p})) := by
@@ -124,7 +124,7 @@ theorem ResidueOfTendsTo {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
     calc ‖q z‖ = ‖(q z - deriv g p) + (deriv g p)‖ := by
           ring_nf
         _ ≤ ‖q z - deriv g p‖ + ‖deriv g p‖ := norm_add_le (q z - deriv g p) (deriv g p)
-        _ ≤ 1 + ‖deriv g p‖  := add_le_add_right (le_of_lt (hV₁_mem z hV₁ hz_ne)) ‖deriv g p‖
+        _ ≤ 1 + ‖deriv g p‖  := add_le_add_left (le_of_lt (hV₁_mem z hV₁ hz_ne)) ‖deriv g p‖
         _ = ‖deriv g p‖ + 1 := add_comm 1 ‖deriv g p‖
   -- Step 4.  Relate `f` to `q` and pass the bound.
   have h_eq_diff :
@@ -1105,8 +1105,10 @@ lemma ZetaSum_aux3 {N : ℕ} {s : ℂ} (s_re_gt : 1 < s.re) :
 lemma integrableOn_of_Zeta0_fun {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 0 < s.re) :
     MeasureTheory.IntegrableOn (fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1))) (Ioi N)
     MeasureTheory.volume := by
-  apply MeasureTheory.Integrable.bdd_mul ?_ ?_
-  · convert ZetaSum_aux2a; simp only [← Complex.norm_real]; simp
+  obtain ⟨c, hc⟩ := ZetaSum_aux2a
+  apply MeasureTheory.Integrable.bdd_mul (c := c) ?_ ?_
+  · apply MeasureTheory.ae_of_all
+    convert hc; simp only [← Complex.norm_real]; simp
   · apply integrableOn_Ioi_cpow_iff (by positivity) |>.mpr (by simp [s_re_gt])
   · refine Measurable.add ?_ measurable_const |>.sub (by fun_prop) |>.aestronglyMeasurable
     exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
@@ -1302,7 +1304,8 @@ lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt 
     IntegrableOn (fun (x : ℝ) ↦ (⌊x⌋ + 1 / 2 - x) * (x : ℂ) ^ (-(s + 1)) * (-Real.log x)) (Ioi N)
     volume := by
   simp_rw [mul_assoc]
-  apply Integrable.bdd_mul ?_ ?_ ?_
+  obtain ⟨c, hc⟩ := ZetaSum_aux2a
+  apply Integrable.bdd_mul (c := c) ?_ ?_ ?_
   · simp only [neg_add_rev, mul_neg, add_comm, ← sub_eq_add_neg]
     apply integrable_norm_iff ?_ |>.mp ?_ |>.neg
     · apply ContinuousOn.mul ?_ ?_ |>.aestronglyMeasurable (by simp)
@@ -1324,7 +1327,8 @@ lemma integrableOn_of_Zeta0_fun_log {N : ℕ} (Npos : 0 < N) {s : ℂ} (s_re_gt 
         abs_eq_self.mpr xpos.le]
   · apply Measurable.add ?_ measurable_const |>.sub (by fun_prop) |>.aestronglyMeasurable
     exact Measurable.comp (fun _ _ ↦ trivial) Int.measurable_floor
-  · convert ZetaSum_aux2a with _ x; simp only [← Complex.norm_real]; simp
+  · apply MeasureTheory.ae_of_all
+    convert hc with _ x; simp only [← Complex.norm_real]; simp
 
 open MeasureTheory in
 lemma hasDerivAt_Zeta0Integral {N : ℕ} (Npos : 0 < N) {s : ℂ} (hs : s ∈ {s | 0 < s.re}) :
@@ -1949,7 +1953,7 @@ lemma DerivUpperBnd_aux1 {A C σ t : ℝ} (hA : A ∈ Ioc 0 (1 / 2))
     simp only [norm_mul, norm_div, norm_neg, norm_one, one_div, natCast_log, ← norm_inv, cpow_neg]
     congr; exact norm_complex_log_ofNat n
   have := norm_sum_le_of_le (Finset.range (N + 1))
-    (by simp only [Finset.mem_range, Nat.lt_succ]; exact fact3)
+    (by simp only [Finset.mem_range, Nat.lt_succ_iff]; exact fact3)
   rw [← Finset.sum_mul, ← Finset.sum_mul, mul_comm _ A.exp, mul_assoc] at this
   rw [mul_assoc]
   apply le_trans this <| (mul_le_mul_iff_right₀ A.exp_pos).mpr ?_
@@ -2122,9 +2126,9 @@ open MeasureTheory in
 lemma DerivUpperBnd_aux7_5 {a σ : ℝ} (σpos : 0 < σ) (ha : 1 ≤ a) :
     IntegrableOn (fun x ↦ |(↑⌊x⌋ + (1 : ℝ) / 2 - x)| * x ^ (-σ - 1) * Real.log x) (Ioi a) volume := by
   simp_rw [mul_assoc]
-  apply Integrable.bdd_mul <| DerivUpperBnd_aux7_4 σpos ha
+  apply Integrable.bdd_mul (c := 1 / 2) <| DerivUpperBnd_aux7_4 σpos ha
   · exact Measurable.aestronglyMeasurable <| Measurable.abs measurable_floor_add_half_sub
-  use 1 / 2
+  apply ae_of_all
   intro x
   simp only [Real.norm_eq_abs, _root_.abs_abs]
   exact  ZetaSum_aux1_3 x
@@ -3354,7 +3358,7 @@ lemma ZetaNoZerosInBox (T : ℝ) :
         mul_neg, sub_neg_eq_add, Real.one_le_sqrt, eventually_nhdsWithin_iff, mem_compl_iff,
         mem_singleton_iff]
       contrapose! h
-      simp_all only [ne_eq, not_eventually, Classical.not_imp, not_le]
+      simp_all only [ne_eq]
       delta abs at*
       exfalso
       simp_rw [Metric.nhds_basis_ball.frequently_iff]at*
@@ -3687,7 +3691,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
         have Z := norm_add_le (- ζ' σ₀ / ζ σ₀ - (σ₀ - 1)⁻¹) ((σ₀ - 1)⁻¹)
         norm_cast at Z
       _ ≤ const + ‖(σ₀ - 1)⁻¹‖ := by
-        have U := add_le_add_right bdd ‖(σ₀ - 1)⁻¹‖
+        have U := add_le_add_left bdd ‖(σ₀ - 1)⁻¹‖
         ring_nf at U
         ring_nf
         norm_cast at U
@@ -3740,7 +3744,7 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
         have Z := norm_add_le (- ζ' boundary / ζ boundary - (boundary - 1)⁻¹) ((boundary - 1)⁻¹)
         norm_cast at Z
       _ ≤ const + ‖(boundary - 1)⁻¹‖ := by
-        have U9 := add_le_add_right bdd ‖(boundary - 1)⁻¹‖
+        have U9 := add_le_add_left bdd ‖(boundary - 1)⁻¹‖
         ring_nf at U9
         ring_nf
         norm_cast at U9

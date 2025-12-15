@@ -1,5 +1,4 @@
-import Mathlib.NumberTheory.ArithmeticFunction
-import Mathlib.NumberTheory.LSeries.PrimesInAP
+import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 
 open Real

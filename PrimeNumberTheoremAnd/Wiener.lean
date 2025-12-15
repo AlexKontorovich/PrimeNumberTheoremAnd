@@ -1,24 +1,9 @@
-import Mathlib.Analysis.Fourier.FourierTransform
-import Mathlib.Analysis.Fourier.FourierTransformDeriv
-import Mathlib.NumberTheory.ArithmeticFunction
-import Mathlib.NumberTheory.LSeries.PrimesInAP
-import Mathlib.Topology.Algebra.Support
-import Mathlib.Analysis.Calculus.ContDiff.Defs
-import Mathlib.Geometry.Manifold.PartitionOfUnity
-import Mathlib.Tactic.FunProp
-import Mathlib.Analysis.Normed.Group.Tannery
-import Mathlib.Algebra.Order.Field.Basic
-import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
-import Mathlib.Analysis.SumIntegralComparisons
-import Mathlib.Algebra.GroupWithZero.Units.Basic
-import Mathlib.Analysis.Distribution.FourierSchwartz
-import Mathlib.Topology.UniformSpace.UniformConvergence
+import Mathlib.Analysis.Normed.Group.Tannery
+import Mathlib.NumberTheory.LSeries.PrimesInAP
 import Mathlib.NumberTheory.MulChar.Lemmas
-
-import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.BrunTitchmarsh
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
+import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.SmoothExistence
 
 set_option lang.lemmaCmd true
@@ -132,7 +117,7 @@ the claim then follows from Fubini's theorem.
 %%-/
   calc
     _ = ∑' n, term f σ' n * ∫ (v : ℝ), 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
-      simp only [Real.fourierIntegral_eq]
+      simp only [Real.fourier_eq]
       simp only [one_div, mul_inv_rev, RCLike.inner_apply', conj_trivial]
     _ = ∑' n, ∫ (v : ℝ), term f σ' n * 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
       simp [integral_const_mul]
@@ -232,7 +217,7 @@ so by Fubini's theorem it suffices to verify the identity
 \end{align*}
 \end{proof}
 %%-/
-  conv in ↑(rexp _) * _ => { rw [Real.fourierIntegral_real_eq, ← smul_eq_mul, ← integral_smul] }
+  conv in ↑(rexp _) * _ => { rw [Real.fourier_real_eq, ← smul_eq_mul, ← integral_smul] }
   rw [MeasureTheory.integral_integral_swap]
   swap
   · exact second_fourier_integrable_aux1 hcont hsupp hσ
@@ -1058,7 +1043,7 @@ lemma limiting_cor_aux {f : ℝ → ℂ} : Tendsto (fun x : ℝ ↦ ∫ t, f t *
       neg_mul]
     congr
     rw [← neg_mul] ; congr ; norm_cast ; field_simp
-  refine (zero_at_infty_fourierIntegral f).comp <| Tendsto.mono_right ?_ _root_.atBot_le_cocompact
+  refine (Real.zero_at_infty_fourier f).comp <| Tendsto.mono_right ?_ _root_.atBot_le_cocompact
   exact (tendsto_neg_atBot_iff.mpr tendsto_log_atTop).atBot_mul_const (inv_pos.mpr two_pi_pos)
 
 lemma limiting_cor (ψ : CS 2 ℂ) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
@@ -1620,12 +1605,12 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
     have l1 : AEStronglyMeasurable (fun x_1 : ℝ ↦ cexp (-(2 * ↑π * (↑x_1 * ↑x) * I))) volume := by
       refine (Continuous.mul ?_ continuous_const).neg.cexp.aestronglyMeasurable
       apply continuous_const.mul <| contDiff_ofReal.continuous.mul continuous_const
-    simp only [fourierIntegral_eq', neg_mul, RCLike.inner_apply', conj_trivial, ofReal_neg,
+    simp only [Real.fourier_eq', neg_mul, RCLike.inner_apply', conj_trivial, ofReal_neg,
       ofReal_mul, ofReal_ofNat, Pi.sub_apply, smul_eq_mul, mul_sub]
     apply integral_sub
-    · apply ψ.hf.bdd_mul l1 ; use 1 ; simp [Complex.norm_exp]
-    · apply (Ψ R : W21) |>.hf |>.bdd_mul l1
-      use 1 ; simp [Complex.norm_exp]
+    · apply ψ.hf.bdd_mul (c := 1) l1 ; simp [Complex.norm_exp]
+    · apply (Ψ R : W21) |>.hf |>.bdd_mul (c := 1) l1
+      simp [Complex.norm_exp]
 
   have S1_sub : S1 x (ψ - Ψ R) = S1 x ψ - S1 x (Ψ R) := by
     simp only [one_div, mul_inv_rev, S1_sub_1, mul_sub, S1] ; apply Summable.tsum_sub
