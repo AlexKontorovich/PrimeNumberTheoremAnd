@@ -24,7 +24,7 @@ noncomputable def li (x : ℝ) : ℝ := ∫ t in 0..x, 1 / log t
 
 noncomputable def Li (x : ℝ) : ℝ := ∫ t in 2..x, 1 / log t
 
-noncomputable def θ (x : ℝ) := ∑ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, log p
+noncomputable def θ (x : ℝ) := Chebyshev.theta x
 
 /-%%
 \begin{definition}[Equation (1) of FKS2]\label{Epi-def}\lean{Eπ}\leanok

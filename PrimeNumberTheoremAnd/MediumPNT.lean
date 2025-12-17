@@ -5,12 +5,14 @@ import PrimeNumberTheoremAnd.SmoothExistence
 import Mathlib.Algebra.Group.Support
 import Mathlib.Analysis.MellinInversion
 import Mathlib.Analysis.Real.Pi.Bounds
+import Mathlib.NumberTheory.Chebyshev
 
 set_option lang.lemmaCmd true
 
 open Set Function Filter Complex Real
 
 open ArithmeticFunction (vonMangoldt)
+open scoped Chebyshev
 
 /-%%
 The approach here is completely standard. We follow the use of
@@ -25,6 +27,14 @@ local notation "ζ" => riemannZeta
 
 local notation "ζ'" => deriv ζ
 
+namespace Chebyshev
+
+theorem psi_eq_sum_range (x : ℝ) :
+    ψ x = ∑ n ∈ Finset.range (⌊x⌋₊ + 1), Λ n := by
+  rw [psi_eq_sum_Icc, Nat.range_succ_eq_Icc_zero]
+
+end Chebyshev
+
 /-%%
 \begin{definition}\label{ChebyshevPsi}\lean{ChebyshevPsi}\leanok
 The (second) Chebyshev Psi function is defined as
@@ -34,10 +44,8 @@ $$
 where $\Lambda(n)$ is the von Mangoldt function.
 \end{definition}
 %%-/
-noncomputable def ChebyshevPsi (x : ℝ) : ℝ :=
-  (Finset.range ⌊x + 1⌋₊).sum Λ
-
-local notation "ψ" => ChebyshevPsi
+noncomputable abbrev ChebyshevPsi (x : ℝ) : ℝ :=
+  Chebyshev.psi x
 
 /-%%
 It has already been established that zeta doesn't vanish on the 1 line, and has a pole at $s=1$
@@ -406,8 +414,7 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     (smooth1BddBelow : ∀ (n : ℕ), 0 < n → Smooth1 SmoothingF ε (↑n / X) ≥ 0)
     (smoothIs1 : ∀ (n : ℕ), 0 < n → ↑n ≤ X * (1 - c₁ * ε) → Smooth1 SmoothingF ε (↑n / X) = 1)
     (smoothIs0 : ∀ (n : ℕ), 1 + c₂ * ε ≤ ↑n / X → Smooth1 SmoothingF ε (↑n / X) = 0) :
-  ‖(↑((∑' (n : ℕ), ArithmeticFunction.vonMangoldt n * Smooth1 SmoothingF ε (↑n / X))) : ℂ) -
-        ↑((Finset.range ⌊X + 1⌋₊).sum ⇑ArithmeticFunction.vonMangoldt)‖ ≤
+  ‖(↑((∑' (n : ℕ), ArithmeticFunction.vonMangoldt n * Smooth1 SmoothingF ε (↑n / X))) : ℂ) - ψ X‖ ≤
     C * ε * X * Real.log X := by
   norm_cast
 
@@ -517,12 +524,13 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
 
   have floor_X_add_one_le_self : ↑⌊X + 1⌋₊ ≤ X + 1 := by exact Nat.floor_le (by positivity)
 
-  rw [show ∑ x ∈ Finset.range ⌊X + 1⌋₊, Λ x =
+  rw [show ψ X =
       (∑ x ∈ Finset.range n₀, Λ x) +
       ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), Λ (x + ↑n₀) by
     field_simp
     simp only [add_comm _ n₀]
-    rw [← Finset.sum_range_add, Nat.add_sub_of_le]
+    rw [← Finset.sum_range_add, Nat.add_sub_of_le, Chebyshev.psi_eq_sum_range,
+      Nat.floor_add_one X_pos.le]
     dsimp only [n₀]
     exact Nat.ceil_le.mpr (by linarith)]
 
@@ -690,7 +698,7 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     (SmoothingFnonneg : ∀ x > 0, 0 ≤ SmoothingF x)
     (mass_one : ∫ x in Ioi 0, SmoothingF x / x = 1) :
     ∃ C > 0, ∀ (X : ℝ) (_ : 3 < X) (ε : ℝ) (_ : 0 < ε) (_ : ε < 1) (_ : 2 < X * ε),
-    ‖SmoothedChebyshev SmoothingF ε X - ChebyshevPsi X‖ ≤ C * ε * X * Real.log X := by
+    ‖SmoothedChebyshev SmoothingF ε X - ψ X‖ ≤ C * ε * X * Real.log X := by
   obtain ⟨c₁, c₁_pos, c₁_eq, hc₁⟩ := Smooth1Properties_below suppSmoothingF mass_one
 
   obtain ⟨c₂, c₂_pos, c₂_eq, hc₂⟩ := Smooth1Properties_above suppSmoothingF
@@ -718,7 +726,6 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
     positivity
 
   refine ⟨C, Cpos, fun X X_ge_C ε εpos ε_lt_one ↦ ?_⟩
-  unfold ChebyshevPsi
 
   have X_gt_zero : (0 : ℝ) < X := by linarith
 
