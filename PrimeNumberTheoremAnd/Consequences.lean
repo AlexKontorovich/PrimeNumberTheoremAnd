@@ -4,6 +4,7 @@ import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
+import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.Analysis.Polynomial.Basic
 
@@ -17,7 +18,7 @@ open ArithmeticFunction hiding log
 open Nat hiding log
 open Finset
 open BigOperators Filter Real Classical Asymptotics MeasureTheory intervalIntegral
-open scoped ArithmeticFunction.Moebius ArithmeticFunction.Omega
+open scoped ArithmeticFunction.Moebius ArithmeticFunction.Omega Chebyshev
 
 lemma Set.Ico_subset_Ico_of_Icc_subset_Icc {a b c d : ℝ} (h : Set.Icc a b ⊆ Set.Icc c d) :
     Set.Ico a b ⊆ Set.Ico c d := by
@@ -43,7 +44,18 @@ lemma deriv_smoothingFn' {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) : deriv (fun 
 lemma deriv_smoothingFn {x : ℝ} (hx : 1 < x) : deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) :=
   deriv_smoothingFn' (by positivity) (ne_of_gt hx)
 
+lemma Chebyshev.psi_eq_sum_Iic (x : ℝ) :
+    ψ x = ∑ n ∈ Iic ⌊x⌋₊, Λ n := by
+  rw [Chebyshev.psi_eq_sum_Icc]
+  rfl
+
+
 noncomputable def th (x : ℝ) := ∑ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, Real.log p
+
+lemma th_eq_theta (x : ℝ) :
+    th x = θ x := by
+  rw [Chebyshev.theta_eq_sum_Icc, th]
+  rfl
 
 lemma th_def' (x : ℝ) :
     th x = ∑ n ∈ Icc 0 ⌊x⌋₊, Set.indicator (setOf Nat.Prime) (fun n => log n) n := by
@@ -53,12 +65,7 @@ lemma th_def' (x : ℝ) :
   simp [Set.indicator_apply]
 
 lemma th_eq_zero_of_lt_two {x : ℝ} (hx : x < 2) : th x = 0 := by
-  unfold th
-  apply sum_eq_zero
-  intro n hn
-  contrapose! hx
-  simp only [mem_filter, mem_Iic] at hn
-  exact le_floor_iff' (by norm_num)|>.mp <| le_trans hn.2.two_le hn.1
+  rw [th_eq_theta, Chebyshev.theta_eq_zero_of_lt_two hx]
 
 theorem extracted_2 (x : ℝ) (z : ℝ) (hz_pos : 0 < z) (hz : z ≠ 1) :
     ContinuousWithinAt (fun x ↦ (x * log x ^ 2)⁻¹) (Set.Icc (3 / 2) x) z := by
@@ -197,88 +204,13 @@ lemma log2_pos : 0 < log 2 := by
 
 /-- Auxiliary lemma I for `chebyshev_asymptotic`: Expressing the sum over Λ up to N as a double sum over primes and exponents. -/
 lemma sum_von_mangoldt_as_double_sum (x : ℝ) (hx : 0 ≤ x) :
-  ∑ n ∈ Iic ⌊x⌋₊, Λ n =
-    ∑ k ∈ Icc 1 ⌊ log x / log 2⌋₊, th (x^((k:ℝ)⁻¹)) := by
-  simp_rw [vonMangoldt_apply, ← sum_filter]
-  trans ∑ ⟨k, p⟩ ∈ Icc 1 ⌊log x / log 2⌋₊ ×ˢ (Iic ⌊x⌋₊).filter Nat.Prime with p ≤ ⌊x ^ (k : ℝ)⁻¹⌋₊, log p
-  · symm
-    apply sum_bij (i := fun ⟨k, p⟩ _ ↦ p ^ k )
-    · intro ⟨k, p⟩ h
-      simp only [mem_filter, mem_Iic]
-      simp only [mem_filter, mem_product, mem_Icc, mem_Iic] at h
-      have k_ne : k ≠ 0 := by linarith
-      constructor
-      · apply le_floor
-        push_cast
-        trans (x ^ ((k : ℝ)⁻¹)) ^ k
-        · gcongr
-          trans ↑⌊x ^ (k : ℝ)⁻¹⌋₊
-          · exact mod_cast h.2
-          · exact floor_le <| rpow_nonneg hx _
-        · exact rpow_inv_natCast_pow hx k_ne |>.le
-      · exact isPrimePow_def _ |>.mpr ⟨p, k, h.1.2.2.prime, zero_lt_of_ne_zero k_ne, rfl⟩
-    · intro ⟨k1, p1⟩ h1 ⟨k2, p2⟩ h2
-      simp only [Prod.mk.injEq]
-      simp only [mem_filter, mem_product, mem_Icc, mem_Iic] at *
-      intro h
-      symm
-      rw [← Nat.sub_add_cancel (by linarith : 1 ≤ k1), ← Nat.sub_add_cancel (by linarith : 1 ≤ k2)] at h
-      convert Prime.pow_inj h1.1.2.2 h2.1.2.2 h using 1
-      cutsat
-    · intro n hn
-      simp only [mem_filter, mem_Iic] at hn
-      simp only [mem_filter, mem_product, mem_Icc, mem_Iic, exists_prop, Prod.exists]
-      obtain ⟨p, k, hp, hk, hpk⟩ := isPrimePow_def _ |>.mp hn.2
-      refine ⟨k, p, ⟨⟨⟨(by linarith), ?_⟩, ?_, hp.nat_prime⟩, ?_⟩, hpk⟩
-      · have : log (p ^ k) = log n := by rw_mod_cast [hpk]
-        rw [Real.log_pow] at this
-        have log_ne : log p ≠ 0 := by
-          apply Real.log_pos _ |>.ne.symm
-          norm_cast
-          apply hp.nat_prime.one_lt
-        apply le_floor
-        rw [eq_div_of_mul_eq log_ne this]
-        gcongr
-        · apply log_nonneg
-          trans (n : ℝ)
-          · rw_mod_cast [← hpk]
-            exact one_le_pow _ _ hp.nat_prime.pos
-          · apply le_floor_iff hx |>.mp hn.1
-        · rw_mod_cast [← hpk]
-          apply pow_pos <| hp.nat_prime.pos
-        · apply le_floor_iff hx |>.mp hn.1
-        · norm_cast
-          apply hp.nat_prime.two_le
-      · grw [← hn.1, ← hpk]
-        exact le_pow hk
-      · apply le_floor
-        rw [← rpow_rpow_inv (cast_nonneg p) (cast_ne_zero.mpr hk.ne.symm)]
-        apply rpow_le_rpow
-        · bound
-        · rw_mod_cast [hpk]
-          exact le_floor_iff hx |>.mp hn.1
-        · bound
-    · simp only [mem_filter, mem_product, mem_Icc, mem_Iic, and_imp, Prod.forall]
-      intro _ _ _ _ _ p_prime _
-      rw [p_prime.pow_minFac (by linarith)]
-  simp only
-  rw [sum_filter, sum_product]
-  refine sum_congr rfl fun k hk ↦ ?_
-  simp only [sum_ite, not_le, sum_const_zero, add_zero]
-  congr 1
-  ext p
-  simp only [mem_filter, mem_Iic]
-  refine ⟨fun _ ↦ (by simp_all), fun h ↦ ?_⟩
-  simp_all only [mem_Icc, and_true]
-  grw [h.1, floor_le_floor]
-  apply rpow_le_self_of_one_le _ (by bound)
-  have := one_le_floor_iff _|>.mp <| le_trans (one_le_cast.mp h.2.one_le) h.1
-  contrapose! this
-  apply rpow_lt_one hx this (by bound)
+  ψ x = ∑ k ∈ Icc 1 ⌊ log x / log 2⌋₊, θ (x^((k:ℝ)⁻¹)) := by
+  convert Chebyshev.psi_eq_sum_theta hx using 4
+  simp
 
 /-- Auxiliary lemma II for `chebyshev_asymptotic`: Controlling the error. -/
 lemma sum_von_mangoldt_sub_sum_primes_le (x : ℝ) (hx : 2 ≤ x) :
-    |∑ n ∈ Iic ⌊x⌋₊, Λ n - th x| ≤ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log) := by
+    |ψ x - θ x| ≤ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log) := by
   have hx_one : 1 ≤ x := one_le_two.trans hx
   have hx_pos : 0 < x := lt_of_lt_of_le zero_lt_two hx
   have hx_nonneg : 0 ≤ x := le_of_lt hx_pos
@@ -379,7 +311,8 @@ theorem WeakPNT' : Tendsto (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) atTop (nhds 1
   exact Tendsto.comp this tendsto_natCast_atTop_atTop
 
 /-- An alternate form of the Weak PNT. -/
-theorem WeakPNT'' : (fun x ↦ ∑ n ∈ (Iic ⌊x⌋₊), Λ n) ~[atTop] (fun x ↦ x) := by
+theorem WeakPNT'' : (fun x ↦ ψ x) ~[atTop] (fun x ↦ x) := by
+    simp_rw [Chebyshev.psi_eq_sum_Iic]
     apply IsEquivalent.trans (v := fun x ↦ (⌊x⌋₊:ℝ))
     · rw [isEquivalent_iff_tendsto_one]
       · convert Tendsto.comp WeakPNT' tendsto_nat_floor_atTop
@@ -409,7 +342,7 @@ theorem WeakPNT'' : (fun x ↦ ∑ n ∈ (Iic ⌊x⌋₊), Λ n) ~[atTop] (fun x
 \end{theorem}
 %%-/
 theorem chebyshev_asymptotic :
-    th ~[atTop] id := by
+    θ ~[atTop] id := by
   apply WeakPNT''.add_isLittleO''
   apply IsBigO.trans_isLittleO (g := fun x ↦ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log))
   · rw [isBigO_iff']
