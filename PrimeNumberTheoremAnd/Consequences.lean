@@ -344,41 +344,22 @@ theorem WeakPNT'' : (fun x ↦ ψ x) ~[atTop] (fun x ↦ x) := by
 theorem chebyshev_asymptotic :
     θ ~[atTop] id := by
   apply WeakPNT''.add_isLittleO''
-  apply IsBigO.trans_isLittleO (g := fun x ↦ (x.log / log 2) * ((x ^ (2:ℝ)⁻¹ + 1) * x.log))
+  apply IsBigO.trans_isLittleO (g := fun x ↦ 2 * x.sqrt * x.log)
   · rw [isBigO_iff']
     use 1
     simp only [gt_iff_lt, zero_lt_one, Pi.sub_apply, norm_eq_abs, one_mul,
       eventually_atTop, ge_iff_le, true_and]
     use 2
     intro x hx
-    exact (sum_von_mangoldt_sub_sum_primes_le x hx).trans (le_abs_self _)
-  apply Asymptotics.isLittleO_of_tendsto
-  · intro x hx
-    simp [hx]
-  suffices h : Tendsto (fun x:ℝ ↦ ((x.log^2 / x ^ (2:ℝ)⁻¹) / log 2 + (x.log^2 / x) / log 2)) atTop (nhds 0) by
-    apply Filter.Tendsto.congr' _ h
-    simp only [EventuallyEq, eventually_atTop, ge_iff_le]
-    use 2
-    intro x hx
-    field_simp
-    ring_nf
-    rw [← Real.rpow_mul_natCast]
-    · simp
-      ring
-    linarith
-  have h1 : (0:ℝ) = 0 + 0 := left_eq_add.mpr rfl
-  have h2 : (0:ℝ) = 0 / log 2 := (zero_div _).symm
-  rw [h1]
-  apply Tendsto.add
-  · rw [h2]
-    apply Tendsto.div_const
-    convert Real.tendsto_pow_log_div_pow_atTop (2:ℝ)⁻¹ 2 (by positivity) with x
-    exact (rpow_two x.log).symm
-  rw [h2]
-  apply Tendsto.div_const
-  convert Real.tendsto_pow_log_div_pow_atTop 1 2 (by positivity) with x
-  · exact (rpow_two x.log).symm
-  exact (rpow_one x).symm
+    nth_rewrite 2 [abs_of_nonneg (by bound)]
+    exact Chebyshev.abs_psi_sub_theta_le_sqrt_mul_log (by linarith)
+  simp_rw [mul_assoc]
+  apply IsLittleO.const_mul_left
+  apply isLittleO_mul_iff_isLittleO_div _|>.mpr
+  · simp_rw [div_sqrt, sqrt_eq_rpow]
+    apply isLittleO_log_rpow_atTop (by norm_num)
+  filter_upwards [eventually_gt_atTop 0] with x hx
+  apply sqrt_ne_zero _|>.mpr <;> linarith
 
 theorem chebyshev_asymptotic_finsum :
     (fun x ↦ ∑ᶠ (p : ℕ) (_ : p ≤ x) (_ : Nat.Prime p), log p) ~[atTop] fun x ↦ x := by
