@@ -8,7 +8,6 @@ import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.Analysis.Polynomial.Basic
 
-import PrimeNumberTheoremAnd.Mathlib.NumberTheory.ArithmeticFunction
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 import PrimeNumberTheoremAnd.Wiener
 
@@ -2383,9 +2382,10 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
       rw [Icc_eq_cons_Ioc hN, Finset.sum_cons, divisors_one, sum_singleton, moebius_apply_one,
         sum_congr rfl (fun _ ↦ this), sum_const, smul_zero, add_zero, Int.cast_one]
     _ = ∑ d ∈ range (N + 1), μ d * (N / d) := by
-      simp_rw [← coe_mul_zeta_apply, ArithmeticFunction.sum_Icc_mul_zeta, nsmul_eq_mul, mul_comm]
+      have : Icc 1 N = Ioc 0 N := by rfl
+      simp_rw [← coe_mul_zeta_apply, this, ArithmeticFunction.sum_Ioc_mul_zeta_eq_sum]
       rw [range_eq_Ico, ← Finset.insert_Ico_succ_left_eq_Ico (succ_pos _),
-        sum_insert (by simp), ArithmeticFunction.map_zero, mul_zero, zero_add]
+        sum_insert (by simp), ArithmeticFunction.map_zero, zero_mul, zero_add]
       rfl
     _ = ∑ d ∈ range (N + 1), (μ d : ℚ) * (N / d : ℕ) := by
       norm_num [Int.cast_sum]
