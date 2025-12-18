@@ -44,29 +44,6 @@ lemma deriv_smoothingFn' {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) : deriv (fun 
 lemma deriv_smoothingFn {x : ℝ} (hx : 1 < x) : deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) :=
   deriv_smoothingFn' (by positivity) (ne_of_gt hx)
 
-lemma Chebyshev.psi_eq_sum_Iic (x : ℝ) :
-    ψ x = ∑ n ∈ Iic ⌊x⌋₊, Λ n := by
-  rw [Chebyshev.psi_eq_sum_Icc]
-  rfl
-
-
-noncomputable def th (x : ℝ) := ∑ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, Real.log p
-
-lemma th_eq_theta (x : ℝ) :
-    th x = θ x := by
-  rw [Chebyshev.theta_eq_sum_Icc, th]
-  rfl
-
-lemma th_def' (x : ℝ) :
-    th x = ∑ n ∈ Icc 0 ⌊x⌋₊, Set.indicator (setOf Nat.Prime) (fun n => log n) n := by
-  unfold th
-  rw [sum_filter]
-  refine sum_congr rfl fun n _ => ?_
-  simp [Set.indicator_apply]
-
-lemma th_eq_zero_of_lt_two {x : ℝ} (hx : x < 2) : th x = 0 := by
-  rw [th_eq_theta, Chebyshev.theta_eq_zero_of_lt_two hx]
-
 theorem extracted_2 (x : ℝ) (z : ℝ) (hz_pos : 0 < z) (hz : z ≠ 1) :
     ContinuousWithinAt (fun x ↦ (x * log x ^ 2)⁻¹) (Set.Icc (3 / 2) x) z := by
   apply ContinuousAt.continuousWithinAt
@@ -78,9 +55,9 @@ theorem extracted_2 (x : ℝ) (z : ℝ) (hz_pos : 0 < z) (hz : z ≠ 1) :
 
 theorem extracted_1 (x : ℝ) :
     IntegrableOn
-      (fun t ↦ (th t) / (t * log t ^ 2))
+      (fun t ↦ (θ t) / (t * log t ^ 2))
       (Set.Icc 2 x) volume := by
-  conv => arg 1; ext; rw [th, div_eq_mul_one_div, mul_comm, sum_filter]
+  conv => arg 1; ext; rw [Chebyshev.theta_eq_sum_Icc, div_eq_mul_one_div, mul_comm, sum_filter]
   apply integrableOn_mul_sum_Icc _ (by norm_num)
   apply ContinuousOn.integrableOn_Icc
   intro x hx
@@ -93,8 +70,8 @@ theorem extracted_1 (x : ℝ) :
 
 lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     Nat.primeCounting ⌊x⌋₊ =
-      th x / log x + ∫ t in Set.Icc 2 x, th t / (t * (Real.log t) ^ 2) := by
-  trans th x / log x + ∫ t in Set.Icc (3 / 2) x, th t / (t * (Real.log t) ^ 2)
+      θ x / log x + ∫ t in Set.Icc 2 x, θ t / (t * (Real.log t) ^ 2) := by
+  trans θ x / log x + ∫ t in Set.Icc (3 / 2) x, θ t / (t * (Real.log t) ^ 2)
   swap
   · congr 1
     have : Set.Icc (3/2) x = Set.Ico (3/2) 2 ∪ Set.Icc 2 x := by
@@ -105,7 +82,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       simp only [measurableSet_Ico, ae_restrict_eq]
       refine eventuallyEq_inf_principal_iff.mpr ?_
       filter_upwards [] with y hy
-      simp [th_eq_zero_of_lt_two hy.2]
+      simp [Chebyshev.theta_eq_zero_of_lt_two hy.2]
     · rw [Set.disjoint_iff, Set.subset_empty_iff]
       ext y
       simp (config := {contextual := true})
@@ -113,7 +90,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       · exact integrableOn_zero
       · intro y hy
         simp only [Set.mem_Ico] at hy
-        have := th_eq_zero_of_lt_two hy.2
+        have := Chebyshev.theta_eq_zero_of_lt_two hy.2
         simp_all
     · apply extracted_1 _
   let a : ℕ → ℝ := Set.indicator (setOf Nat.Prime) (fun n => log n)
@@ -142,7 +119,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
   rw [sum_mul_eq_sub_sub_integral_mul a (f := fun n ↦ 1 / log n) (by norm_num) (by linarith), floor32, show Icc 0 1 = {0, 1} by ext; simp; omega]
   · simp only [Set.indicator_apply, Set.mem_setOf_eq, mem_singleton, zero_ne_one,
       not_false_eq_true, sum_insert, CharP.cast_eq_zero, log_zero, ite_self, sum_singleton, cast_one,
-      log_one, add_zero, mul_zero, sub_zero, th, a, sum_filter]
+      log_one, add_zero, mul_zero, sub_zero, Chebyshev.theta_eq_sum_Icc, a, sum_filter]
     have h8 (f : ℝ → ℝ) :
       ∫ (u : ℝ) in Set.Ioc (3 / 2) x, deriv (fun x ↦ 1 / log x) u * f u =
       ∫ (u : ℝ) in Set.Icc (3 / 2) x, f u * -(u * log u ^ 2)⁻¹ := by
@@ -239,7 +216,7 @@ theorem WeakPNT' : Tendsto (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) atTop (nhds 1
 
 /-- An alternate form of the Weak PNT. -/
 theorem WeakPNT'' : (fun x ↦ ψ x) ~[atTop] (fun x ↦ x) := by
-    simp_rw [Chebyshev.psi_eq_sum_Iic]
+    simp_rw [Chebyshev.psi_eq_sum_Icc]
     apply IsEquivalent.trans (v := fun x ↦ (⌊x⌋₊:ℝ))
     · rw [isEquivalent_iff_tendsto_one]
       · convert Tendsto.comp WeakPNT' tendsto_nat_floor_atTop
@@ -546,8 +523,8 @@ lemma pi_asymp_aux (x : ℝ) (hx : 2 ≤ x) : Nat.primeCounting ⌊x⌋₊ =
       ∫ t in Set.Icc 2 x,
         (∑ p ∈ (Iic ⌊t⌋₊).filter Nat.Prime, log p) * (t * log t ^ 2)⁻¹ := by
   rw [th43_b _ hx]
-  simp_rw [div_eq_mul_inv, th]
-  ring
+  simp_rw [div_eq_mul_inv, Chebyshev.theta_eq_sum_Icc]
+  ring_nf!
 
 theorem pi_asymp'' :
     (fun x => (((Nat.primeCounting ⌊x⌋₊ : ℝ) / ∫ t in Set.Icc 2 x, 1 / (log t)) - (1 : ℝ))) =o[atTop]
