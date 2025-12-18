@@ -214,7 +214,8 @@ theorem WeakPNT' : Tendsto (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) atTop (nhds 1
   exact Tendsto.comp this tendsto_natCast_atTop_atTop
 
 /-- An alternate form of the Weak PNT. -/
-theorem WeakPNT'' : (fun x ↦ ψ x) ~[atTop] (fun x ↦ x) := by
+theorem WeakPNT'' : ψ ~[atTop] (fun x ↦ x) := by
+    rw [(by rfl : ψ = (fun x ↦ ψ x))]
     simp_rw [Chebyshev.psi_eq_sum_Icc]
     apply IsEquivalent.trans (v := fun x ↦ (⌊x⌋₊:ℝ))
     · rw [isEquivalent_iff_tendsto_one]
