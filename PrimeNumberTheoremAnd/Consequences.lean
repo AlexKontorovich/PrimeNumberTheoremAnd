@@ -2369,35 +2369,27 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
   | zero => simp only [range_zero, sum_empty, abs_zero, zero_le_one]
   | succ N =>
   /- simple cases -/
-  by_cases hN : 1 ≤ N; swap
-  · simp only [not_le, lt_one_iff] at hN
-    subst hN
-    simp
+  obtain rfl | hN := N.eq_zero_or_pos
+  · simp
   /- annoying case -/
-  have h_sum : 1 = ∑ d ∈ range (N + 1), (μ d : ℚ) * (N / d : ℕ) := by calc
-    (1 : ℚ) = ∑ m ∈ Icc 1 N, ∑ d ∈ m.divisors, μ d := by
-      have {x : ℕ} (hx : x ∈ Ioc 1 N) : ∑ d ∈ divisors x, μ d = 0 := by
+  have h_sum : 1 = (∑ d ∈ range (N + 1), (μ d / d : ℚ)) * N - ∑ d ∈ range (N + 1), μ d * Int.fract (N / d : ℚ) := calc
+    (1 : ℚ) = ∑ m ∈ Ioc 0 N, ∑ d ∈ m.divisors, μ d := by
+      have (x : ℕ) (hx : x ∈ Ioc 0 N) : ∑ d ∈ divisors x, μ d = if x = 1 then 1 else 0 := by
         rw [mem_Ioc] at hx
         rw [← coe_mul_zeta_apply, moebius_mul_coe_zeta, one_apply]
-        omega
-      rw [Icc_eq_cons_Ioc hN, Finset.sum_cons, divisors_one, sum_singleton, moebius_apply_one,
-        sum_congr rfl (fun _ ↦ this), sum_const, smul_zero, add_zero, Int.cast_one]
-    _ = ∑ d ∈ range (N + 1), μ d * (N / d) := by
-      have : Icc 1 N = Ioc 0 N := by rfl
-      simp_rw [← coe_mul_zeta_apply, this, ArithmeticFunction.sum_Ioc_mul_zeta_eq_sum]
-      rw [range_eq_Ico, ← Finset.insert_Ico_succ_left_eq_Ico (succ_pos _),
-        sum_insert (by simp), ArithmeticFunction.map_zero, zero_mul, zero_add]
-      rfl
-    _ = ∑ d ∈ range (N + 1), (μ d : ℚ) * (N / d : ℕ) := by
-      norm_num [Int.cast_sum]
-      rfl
-
-  /- rewrite Nat division (N / d) as ⌊N / d⌋ -/
-  rw [sum_congr rfl (g := fun d ↦ (μ d : ℚ) * ⌊(N : ℚ) / (d : ℚ)⌋)] at h_sum
-  swap
-  · intros
-    rw [show (N : ℚ) = ((N : ℤ) : ℚ) by norm_cast, Rat.floor_intCast_div_natCast]
-    congr
+      rw [sum_congr rfl this]
+      simp [hN.ne']
+    _ = ∑ d ∈ range (N + 1), μ d * (N / d : ℕ) := by
+      simp_rw [← coe_mul_zeta_apply, ArithmeticFunction.sum_Ioc_mul_zeta_eq_sum]
+      rw [range_eq_Ico, ← Finset.insert_Ico_add_one_left_eq_Ico (add_one_pos _),
+        sum_insert (by simp), Ico_add_one_add_one_eq_Ioc]
+      simp
+    _ = ∑ d ∈ range (N + 1), (μ d : ℚ) * ⌊(N / d : ℚ)⌋ := by
+      simp_rw [Rat.floor_natCast_div_natCast]
+      simp [← Int.natCast_ediv]
+    _ = (∑ d ∈ range (N + 1), (μ d / d : ℚ)) * N - ∑ d ∈ range (N + 1), μ d * Int.fract (N / d : ℚ) := by
+      simp_rw [sum_mul, ← sum_sub_distrib, mul_comm_div, ← mul_sub, Int.self_sub_fract]
+  rw [eq_sub_iff_add_eq, eq_comm, ← eq_div_iff (by norm_num [Nat.pos_iff_ne_zero.mp hN])] at h_sum
 
   /- Next, we establish bounds for the error term -/
   have hf' (d : ℕ) : |Int.fract ((N : ℚ) / d)| < 1 := by
@@ -2416,17 +2408,10 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
       rw [abs_mul, ← one_mul 1]
       refine mul_le_mul ?_ (hf' _).le (abs_nonneg _) zero_le_one
       norm_cast
-      simp [moebius]
-      split_ifs <;> simp only [abs_zero, zero_le_one, abs_pow, abs_neg, abs_one, one_pow, le_refl]
+      exact abs_moebius_le_one
     apply (abs_sum_le_sum_abs _ _).trans
     apply (sum_le_sum fun d _ ↦ this d).trans
-    all_goals simp [cast_sub hN]
-
-  rw [sum_congr rfl (g := fun d : ℕ ↦ μ d * ((N : ℚ) / d - Int.fract ((N : ℚ) / d)))
-    fun d _ ↦ by simp only [Int.fract, sub_sub_self]] at h_sum
-  simp_rw (config := {singlePass := true}) [mul_sub] at h_sum
-  simp_rw [← mul_comm_div, sum_sub_distrib, ← sum_mul] at h_sum
-  rw [eq_sub_iff_add_eq, eq_comm, ← eq_div_iff (by norm_num [Nat.pos_iff_ne_zero.mp hN])] at h_sum
+    simp [cast_sub (one_le_iff_ne_zero.mpr hN.ne')]
 
   rw [h_sum, abs_le]
   rw [abs_le, neg_sub] at h_bound
