@@ -1,8 +1,10 @@
 import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
 import Mathlib.Analysis.Normed.Group.Tannery
+import Mathlib.Analysis.SumIntegralComparisons
+import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.LSeries.PrimesInAP
 import Mathlib.NumberTheory.MulChar.Lemmas
-import PrimeNumberTheoremAnd.BrunTitchmarsh
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.SmoothExistence
 
@@ -2227,46 +2229,17 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f)
 %%-/
 
 theorem vonMangoldt_cheby : cheby Λ := by
-  obtain ⟨C, hC⟩ := BrunTitchmarsh.card_range_filter_isPrimePow_le
-  have hC_nonneg : 0 ≤ C := by
-    have := hC 2
-    norm_cast at this
-    have hpos : 0 < 2 / Real.log 2 := by positivity
-    rw [← mul_le_mul_iff_left₀ hpos]
-    linarith
-  use C
-  intro n
-  calc
-    _ = ∑ i ∈ Finset.range n, Λ i := Finset.sum_congr rfl (by simp)
-    _ ≤ ∑ i ∈ Finset.range n, if IsPrimePow i then Real.log i else 0 := by
-      apply Finset.sum_le_sum
-      intro i _
-      rw [ArithmeticFunction.vonMangoldt_apply]
-      split_ifs with h
-      · have := (Nat.minFac_prime (h.ne_one)).pos
-        gcongr
-        apply Nat.minFac_le h.pos
-      · rfl
-    _ ≤ ∑ _i ∈ (Finset.range n).filter IsPrimePow, Real.log n := by
-      rw [← Finset.sum_filter]
-      apply Finset.sum_le_sum
-      simp only [Finset.mem_filter, Finset.mem_range, and_imp]
-      intro i hi hi_p
-      have := hi_p.pos
-      gcongr
-    _ ≤ C * (n / Real.log n) * Real.log n := by
-      simp only [Finset.sum_const, nsmul_eq_mul]
-      gcongr
-      apply hC
-    _ ≤ _ := by
-      by_cases hn : n = 0 ; · simp [hn]
-      by_cases hn1 : n = 1 ; · simp [hn1, hC_nonneg]
-      have : 0 < Real.log n := by
-        apply Real.log_pos
-        norm_cast
-        omega
-      field_simp
-      simp
+  use Real.log 4 + 4
+  intro N
+  by_cases! h : N = 0
+  · simp [h, cumsum]
+  simp only [cumsum, norm_real, norm_eq_abs]
+  rw [Nat.range_eq_Icc_zero_sub_one _ h, (by simp : N - 1 = ⌊(N : ℝ) - 1⌋₊)]
+  simp_rw [abs_of_nonneg vonMangoldt_nonneg]
+  rw [← Chebyshev.psi_eq_sum_Icc]
+  grw [Chebyshev.psi_le_const_mul_self <| sub_nonneg_of_le <| Nat.one_le_cast_iff_ne_zero.mpr h]
+  gcongr
+  linarith
 
 /-%%
 \section{Weak PNT}
