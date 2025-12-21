@@ -274,11 +274,10 @@ theorem chebyshev_asymptotic' (ε : ℝ) (hε : 0 < ε) :
     ∃ (f : ℝ → ℝ),
       (f =o[atTop] fun t ↦ ε * t) ∧
       (∀ (x : ℝ), 2 ≤ x → IntegrableOn f (Set.Icc 2 x)) ∧
-      ∀ᶠ (x : ℝ) in atTop,
-        ∑ p ∈ (filter Nat.Prime (Iic ⌊x⌋₊)), log p = x + f x := by
+      ∀ᶠ (x : ℝ) in atTop, θ x = x + f x := by
   have H := chebyshev_asymptotic
   rw [IsEquivalent, isLittleO_iff] at H
-  let f := (fun x ↦ ∑ p ∈ filter Nat.Prime (Iic ⌊x⌋₊), log p - x)
+  let f := (fun x ↦ θ x - x)
   have integrable (x : ℝ) (hx : 2 ≤ x) : IntegrableOn f (Set.Icc 2 x) := by
     rw [IntegrableOn]
     refine Integrable.sub ?_ (ContinuousOn.integrableOn_Icc (continuousOn_id' _))
@@ -290,7 +289,6 @@ theorem chebyshev_asymptotic' (ε : ℝ) (hε : 0 < ε) :
     simp only [measurableSet_Icc, ae_restrict_eq, EventuallyEq, eventually_inf_principal]
     refine .of_forall fun t ⟨ht1, _⟩ => ?_
     rw [div_mul_cancel₀]
-    · rfl
     simpa only [ne_eq, _root_.mul_eq_zero, OfNat.ofNat_ne_zero, not_false_eq_true, pow_eq_zero_iff,
       log_eq_zero, or_self_left, not_or] using ⟨by linarith, by linarith, by linarith⟩
   refine ⟨f, ?_, integrable, ?_⟩
@@ -306,8 +304,7 @@ theorem chebyshev_asymptotic'' (ε : ℝ) (hε : 0 < ε) :
     ∃ (f : ℝ → ℝ),
       (f =o[atTop] fun _ ↦ ε) ∧
       (∀ (x : ℝ), 2 ≤ x → IntegrableOn f (Set.Icc 2 x)) ∧
-      ∀ᶠ (x : ℝ) in atTop,
-        ∑ p ∈ (filter Nat.Prime (Iic ⌊x⌋₊)), log p = x + x * (f x) := by
+      ∀ᶠ (x : ℝ) in atTop, θ x = x + x * (f x) := by
   obtain ⟨f, hf1, inte, hf2⟩ := chebyshev_asymptotic' ε hε
   refine ⟨fun t => f t / t, ?_, ?_, ?_⟩
   · simp only [isLittleO_iff, norm_eq_abs, norm_mul, eventually_atTop, ge_iff_le,
@@ -520,9 +517,7 @@ lemma integral_log_inv_ne_zero (x : ℝ) (hx : 2 < x) :
 \end{proof}
 %%-/
 lemma pi_asymp_aux (x : ℝ) (hx : 2 ≤ x) : Nat.primeCounting ⌊x⌋₊ =
-    (log x)⁻¹ * ∑ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, log p +
-      ∫ t in Set.Icc 2 x,
-        (∑ p ∈ (Iic ⌊t⌋₊).filter Nat.Prime, log p) * (t * log t ^ 2)⁻¹ := by
+    (log x)⁻¹ * θ x + ∫ t in Set.Icc 2 x, θ t * (t * log t ^ 2)⁻¹ := by
   rw [th43_b _ hx]
   simp_rw [div_eq_mul_inv, Chebyshev.theta_eq_sum_Icc]
   ring_nf!
@@ -539,8 +534,7 @@ theorem pi_asymp'' :
       (log x)⁻¹ * (x + x * f ε hε x) +
       (∫ t in Set.Icc (max 2 (N ε hε)) x,
         (t + t * f ε hε t) * (t * log t ^ 2)⁻¹) +
-      (∫ t in Set.Icc 2 (max 2 (N ε hε)),
-        (∑ p ∈ (Iic ⌊t⌋₊).filter Nat.Prime, log p) * (t * log t ^ 2)⁻¹) := by
+      (∫ t in Set.Icc 2 (max 2 (N ε hε)), θ t * (t * log t ^ 2)⁻¹) := by
     rw [eventually_atTop]
     refine ⟨max 2 (N ε hε), fun x hx => ?_⟩
     rw [pi_asymp_aux x (by aesop), hN ε hε x (by aesop), add_assoc, add_right_inj, add_comm]
