@@ -274,7 +274,7 @@ theorem chebyshev_asymptotic' :
     ∃ (f : ℝ → ℝ),
       (∀ ε > (0 : ℝ), (f =o[atTop] fun t ↦ ε * t)) ∧
       (∀ (x : ℝ), 2 ≤ x → IntegrableOn f (Set.Icc 2 x)) ∧
-      ∀ᶠ (x : ℝ) in atTop, θ x = x + f x := by
+      ∀ (x : ℝ), θ x = x + f x := by
   have H := chebyshev_asymptotic
   rw [IsEquivalent, isLittleO_iff] at H
   let f := (fun x ↦ θ x - x)
@@ -298,7 +298,7 @@ theorem chebyshev_asymptotic' :
     simp only [Pi.sub_apply, norm_eq_abs, mul_assoc, eventually_atTop, ge_iff_le, norm_mul,
       abs_of_pos hε, f] at H ⊢
     exact H
-  refine .of_forall fun r => by simp [f]
+  refine fun r => by simp [f]
 
 theorem chebyshev_asymptotic'' :
     ∃ (f : ℝ → ℝ),
@@ -323,14 +323,11 @@ theorem chebyshev_asymptotic'' :
       rintro t ⟨ht1, _⟩
       simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
       linarith) isCompact_Icc |>.congr_fun_ae <| .of_forall <| by simp [div_eq_mul_inv]
-  simp only [eventually_atTop, ge_iff_le] at hf2 ⊢
-  obtain ⟨N, hN⟩ := hf2
-  use |N| + 1
+  simp only [eventually_atTop, ge_iff_le] at ⊢
+  use 1
   intro x hx
-  rw [hN x (le_trans (le_trans (le_abs_self N) (by linarith)) hx)]
-  rw [mul_div_cancel₀]
-
-  exact Ne.symm <| ne_of_lt <| lt_of_lt_of_le (by positivity) hx
+  rw [hf2, mul_div_cancel₀]
+  linarith
 
 -- one could also consider adding a version with p < x instead of p \leq x
 
