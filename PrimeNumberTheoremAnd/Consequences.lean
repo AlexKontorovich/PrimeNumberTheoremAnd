@@ -304,7 +304,7 @@ theorem chebyshev_asymptotic'' :
     ∃ (f : ℝ → ℝ),
       (∀ ε > (0 : ℝ), (f =o[atTop] fun _ ↦ ε)) ∧
       (∀ (x : ℝ), 2 ≤ x → IntegrableOn f (Set.Icc 2 x)) ∧
-      ∀ᶠ (x : ℝ) in atTop, θ x = x + x * (f x) := by
+      ∀ x > (0 : ℝ), θ x = x + x * (f x) := by
   obtain ⟨f, hf1, inte, hf2⟩ := chebyshev_asymptotic'
   refine ⟨fun t => f t / t, fun ε hε ↦ ?_, ?_, ?_⟩
   · simp only [isLittleO_iff, norm_eq_abs, norm_mul, eventually_atTop, ge_iff_le,
@@ -323,8 +323,6 @@ theorem chebyshev_asymptotic'' :
       rintro t ⟨ht1, _⟩
       simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
       linarith) isCompact_Icc |>.congr_fun_ae <| .of_forall <| by simp [div_eq_mul_inv]
-  simp only [eventually_atTop, ge_iff_le] at ⊢
-  use 1
   intro x hx
   rw [hf2, mul_div_cancel₀]
   linarith
@@ -524,68 +522,45 @@ theorem pi_asymp'' :
     (fun x => (((Nat.primeCounting ⌊x⌋₊ : ℝ) / ∫ t in Set.Icc 2 x, 1 / (log t)) - (1 : ℝ))) =o[atTop]
     fun _ => (1 : ℝ) := by
   obtain ⟨f, hf, f_int, hf'⟩ := chebyshev_asymptotic''
-  simp only [eventually_atTop, ge_iff_le] at hf'
-  choose N hN using hf'
-
   have eq1 : ∀ᶠ (x : ℝ) in atTop,
       ⌊x⌋₊.primeCounting =
       (log x)⁻¹ * (x + x * f x) +
-      (∫ t in Set.Icc (max 2 N) x,
-        (t + t * f t) * (t * log t ^ 2)⁻¹) +
-      (∫ t in Set.Icc 2 (max 2 N), θ t * (t * log t ^ 2)⁻¹) := by
-    rw [eventually_atTop]
-    refine ⟨max 2 N, fun x hx => ?_⟩
-    rw [pi_asymp_aux x (by aesop), hN x (by aesop), add_assoc, add_right_inj, add_comm]
-    rw [show Set.Icc 2 x = Set.Icc 2 (max 2 N) ∪ Set.Icc (max 2 N) x by
-      rw [Set.Icc_union_Icc_eq_Icc] <;> aesop,
-      integral_union_ae
-        (by rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (by aesop) (by aesop), volume_singleton])
-        (by simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet])
-        (by apply extracted_1)
-        (by exact extracted_1 x |>.mono (Set.Icc_subset_Icc_left <| by aesop) le_rfl),
-      add_right_inj]
+      (∫ t in Set.Icc 2 x,
+        (t + t * f t) * (t * log t ^ 2)⁻¹) := by
+    filter_upwards [eventually_ge_atTop 2] with x hx
+    rw [pi_asymp_aux x hx, hf' x (by linarith)]
+    congr 1
     refine integral_congr_ae ?_
     simp only [measurableSet_Icc, ae_restrict_eq, EventuallyEq, eventually_inf_principal]
     refine .of_forall ?_
     rintro t ⟨ht1, _⟩
-    rw [hN t]
-    simp only [max_le_iff] at ht1
-    exact ht1.2
+    rw [hf' t (by linarith)]
 
   replace eq1 :
-    ∃ (C : ℝ), ∀ᶠ (x : ℝ) in atTop,
+    ∀ᶠ (x : ℝ) in atTop,
       ⌊x⌋₊.primeCounting =
       (log x)⁻¹ * (x + x * f x) +
-      (∫ t in Set.Icc (max 2 N) x,
-        (t + t * f t) * (t * log t ^ 2)⁻¹) + C:= ⟨_, eq1⟩
-
-  replace eq1 :
-    ∃ (C : ℝ), ∀ᶠ (x : ℝ) in atTop,
-      ⌊x⌋₊.primeCounting =
-      (log x)⁻¹ * (x + x * f x) +
-      ((∫ t in Set.Icc (max 2 N) x, (log t ^ 2)⁻¹) +
-        (∫ t in Set.Icc (max 2 N) x, (f t) * (log t ^ 2)⁻¹)) + C:= by
-    obtain ⟨C, eq1⟩ := eq1
-    use C
+      ((∫ t in Set.Icc 2 x, (log t ^ 2)⁻¹) +
+        (∫ t in Set.Icc 2 x, (f t) * (log t ^ 2)⁻¹)) := by
     simp only [mul_inv_rev, eventually_atTop, ge_iff_le] at eq1 ⊢
     obtain ⟨M, hM⟩ := eq1
     use max 2 M
     intro x hx
     simp only [max_le_iff] at hx
-    rw [hM x (by linarith), add_left_inj, add_right_inj]
+    rw [hM x (by linarith), add_right_inj]
     simp_rw [add_mul]
     rw [MeasureTheory.integral_add]
     · congr 1
       · refine integral_congr_ae ?_
         simp only [EventuallyEq, measurableSet_Icc, ae_restrict_eq, eventually_inf_principal,
-          Set.mem_Icc, max_le_iff, and_imp]
-        refine .of_forall fun t ht1 _ _ => ?_
+          Set.mem_Icc,  and_imp]
+        refine .of_forall fun t ht1 _ => ?_
         rw [mul_comm _ t⁻¹, ← mul_assoc, mul_inv_cancel₀, one_mul]
         linarith
       · refine integral_congr_ae ?_
         simp only [EventuallyEq, measurableSet_Icc, ae_restrict_eq, eventually_inf_principal,
-          Set.mem_Icc, max_le_iff, and_imp]
-        refine .of_forall fun t ht1 _ _ => ?_
+          Set.mem_Icc, and_imp]
+        refine .of_forall fun t ht1 _ => ?_
         rw [mul_comm _ t⁻¹, ← mul_assoc, mul_assoc _ _ t⁻¹, mul_comm _ t⁻¹, ← mul_assoc,
            mul_inv_cancel₀, one_mul]
         linarith
@@ -594,101 +569,61 @@ theorem pi_asymp'' :
         (hK := isCompact_Icc)
       apply continuousOn_log1.mono ?_
       intro y h
-      simp only [Set.mem_Icc, max_le_iff, Set.mem_compl_iff, Set.mem_insert_iff,
+      simp only [Set.mem_Icc, Set.mem_compl_iff, Set.mem_insert_iff,
         Set.mem_singleton_iff, not_or] at h ⊢
       exact ⟨by linarith, by linarith, by linarith⟩
     · rw [show (fun t ↦ t * f t * ((log t ^ 2)⁻¹ * t⁻¹)) =
         fun t ↦ f t * (t * (log t ^ 2)⁻¹ * t⁻¹) by ext; ring]
       apply IntegrableOn.mul_continuousOn (hK := isCompact_Icc)
-      · apply f_int x (by linarith) |>.mono
-        · refine Set.Icc_subset_Icc_left ?_
-          exact le_max_left 2 N
-        · rfl
+      · apply f_int x (by linarith)
       · simp_rw [mul_assoc]
-        refine ContinuousOn.mul (continuousOn_id' (Set.Icc (max 2 N) x)) ?_
+        refine ContinuousOn.mul (continuousOn_id' (Set.Icc 2 x)) ?_
         apply continuousOn_log1.mono ?_
         intro y h
-        simp only [Set.mem_Icc, max_le_iff, Set.mem_compl_iff, Set.mem_insert_iff,
+        simp only [Set.mem_Icc, Set.mem_compl_iff, Set.mem_insert_iff,
           Set.mem_singleton_iff, not_or] at h ⊢
         exact ⟨by linarith, by linarith, by linarith⟩
 
   simp_rw [mul_add] at eq1
   simp_rw [show ∀ (x : ℝ),
     (log x)⁻¹ * x + (log x)⁻¹ * (x * f x) +
-    ((∫ (t : ℝ) in Set.Icc (max 2 N) x, (log t ^ 2)⁻¹) +
-      ∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹) =
-    ((log x)⁻¹ * x + (∫ (t : ℝ) in Set.Icc (max 2 N) x, (log t ^ 2)⁻¹)) +
+    ((∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹) +
+      ∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹) =
+    ((log x)⁻¹ * x + (∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹)) +
     ((log x)⁻¹ * (x * f x) +
-      ∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹)
+      ∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)
     by intros; ring] at eq1
-
-  replace eq1 :
-    ∃ (C : ℝ), ∀ᶠ (x : ℝ) in atTop,
-      ⌊x⌋₊.primeCounting =
-      (∫ (t : ℝ) in Set.Icc (max 2 N) x, (log t)⁻¹) +
-      ((log x)⁻¹ * (x * f x) +
-        ∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹) +
-      C := by
-    obtain ⟨C, hC⟩ := eq1
-    use (C + (log (max 2 N))⁻¹ * max 2 N)
-    rw [eventually_atTop] at hC ⊢
-    obtain ⟨M, hM⟩ := hC
-    use max 2 (max M N)
-    intro x hx
-    specialize hM x (by simp only [ge_iff_le, max_le_iff] at hx; exact hx.2.1)
-    rw [hM, ← integral_log_inv'']
-    · ring
-    · exact le_max_left 2 N
-    · exact le_trans (max_le_max_left _ <| le_max_right M N) hx
 
   replace eq1 :
     ∃ (C : ℝ), ∀ᶠ (x : ℝ) in atTop,
       ⌊x⌋₊.primeCounting =
       (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
       ((log x)⁻¹ * (x * f x) +
-        ∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹) +
+        ∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹) +
       C := by
-    obtain ⟨C, hC⟩ := eq1
-    use C - ∫ t in Set.Icc 2 (max 2 N), (log t)⁻¹
-    simp only [eventually_atTop, ge_iff_le] at hC ⊢
-    obtain ⟨M, hM⟩ := hC
-    use max M (max 2 N)
+    use ((log 2)⁻¹ * 2)
+    rw [eventually_atTop] at eq1 ⊢
+    obtain ⟨M, hM⟩ := eq1
+    use max 2 (max M 2)
     intro x hx
-    rw [hM _ (le_trans (le_max_left M (max 2 N)) hx), ← add_sub_assoc, eq_sub_iff_add_eq,
-      show ∀ (a b c d : ℝ), a + b + c + d = (a + d) + (b + c) by intros; ring,
-      add_comm (∫ _ in _, _) (∫ _ in _, _), ← integral_union_ae, Set.Icc_union_Icc_eq_Icc,
-      ← add_assoc]
-    · exact le_max_left 2 N
-    · exact le_trans (le_max_right M (max 2 N)) hx
-    · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton, volume_singleton]
-      · exact le_max_left 2 N
-      · exact le_trans (le_max_right M (max 2 N)) hx
-    · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
-    · refine ContinuousOn.integrableOn_Icc <| ContinuousOn.inv₀ (continuousOn_log.mono ?_) ?_
-      · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, le_max_iff, ofNat_nonneg, true_or,
-        and_true, not_le, ofNat_pos]
-      · intro t ht
-        simp only [Set.mem_Icc, le_max_iff, ne_eq, log_eq_zero, not_or] at ht ⊢
-        exact ⟨by linarith, by linarith, by linarith⟩
-    · refine ContinuousOn.integrableOn_Icc <| ContinuousOn.inv₀ (continuousOn_log.mono ?_) ?_
-      · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and, not_le,
-          isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
-      · intro t ht
-        simp only [Set.mem_Icc, max_le_iff, ne_eq, log_eq_zero, not_or] at ht ⊢
-        exact ⟨by linarith, by linarith, by linarith⟩
+    specialize hM x (by simp only [ge_iff_le, max_le_iff] at hx; exact hx.2.1)
+    rw [hM, ← integral_log_inv'']
+    · ring
+    · rfl
+    · apply le_trans (le_max_left ..) hx
 
   replace eq1 :
     ∃ (C : ℝ), ∀ᶠ (x : ℝ) in atTop,
       (⌊x⌋₊.primeCounting / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - 1 =
       ((log x)⁻¹ * (x * f x) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        (∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹) /
+        (∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹) /
           (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)) +
       C / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
     obtain ⟨C, hC⟩ := eq1
     use C
     simp only [eventually_atTop, ge_iff_le] at hC ⊢
     obtain ⟨M, hM⟩ := hC
-    use max M (max 3 N)
+    use max M 3
     intro x hx
     simp only [max_le_iff] at hx
     rw [sub_eq_iff_eq_add, div_eq_iff_mul_eq, add_mul, one_mul, add_mul, div_mul_cancel₀,
@@ -708,7 +643,7 @@ theorem pi_asymp'' :
   choose L hL using hC
 
   have ineq1 (ε : ℝ) (hε : 0 < ε) (c : ℝ) (hc : 0 < c) (x : ℝ)
-    (hx : max 2 (max N (M ε hε hc)) < x) :
+    (hx : max 2 (max 2 (M ε hε hc)) < x) :
     (log x)⁻¹ * x * |f x| ≤ c * ε * ((log x)⁻¹ * x) := by
     simp only [ge_iff_le, norm_eq_abs] at hM
     simp only [max_lt_iff] at hx
@@ -725,31 +660,31 @@ theorem pi_asymp'' :
 
   have ineq2 (ε : ℝ) (hε : 0 < ε) (c : ℝ) (hc : 0 < c)  :
     ∃ (D : ℝ),
-      ∀ (x : ℝ) (hx : max 2 (max N (M ε hε hc)) < x),
-      |∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹| ≤
+      ∀ (x : ℝ) (hx : max 2 (max 2 (M ε hε hc)) < x),
+      |∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹| ≤
       c * ε * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - (log x)⁻¹ * x) + D := by
-    have ineq (x : ℝ) (hx : max 2 (max N (M ε hε hc)) < x) :=
-      calc |∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹|
-        _ ≤ ∫ (t : ℝ) in Set.Icc (max 2 N) x, |f t * (log t ^ 2)⁻¹| :=
+    have ineq (x : ℝ) (hx : max 2 (max 2 (M ε hε hc)) < x) :=
+      calc |∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹|
+        _ ≤ ∫ (t : ℝ) in Set.Icc 2 x, |f t * (log t ^ 2)⁻¹| :=
           norm_integral_le_integral_norm fun a ↦ f a * (log a ^ 2)⁻¹
-        _ = ∫ (t : ℝ) in Set.Icc (max 2 N) x, |f t| * (log t ^ 2)⁻¹ := by
+        _ = ∫ (t : ℝ) in Set.Icc 2 x, |f t| * (log t ^ 2)⁻¹ := by
           refine integral_congr_ae ?_
           simp only [EventuallyEq, measurableSet_Icc, ae_restrict_eq, eventually_inf_principal,
-            Set.mem_Icc, max_le_iff, and_imp]
-          refine .of_forall fun t ht1 _ _ => ?_
+            Set.mem_Icc, and_imp]
+          refine .of_forall fun t ht1 _ => ?_
           rw [abs_mul, abs_of_nonneg (a := (log t ^ 2)⁻¹)]
           norm_num
           apply pow_nonneg
           exact log_nonneg <| by linarith
-        _ = (∫ (t : ℝ) in Set.Icc (max 2 N) (max 2 (max N (M ε hε hc))),
+        _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))),
             |f t| * (log t ^ 2)⁻¹) +
-            (∫ (t : ℝ) in Set.Icc (max 2 (max N (M ε hε hc))) x,
+            (∫ (t : ℝ) in Set.Icc (max 2 (max 2 (M ε hε hc))) x,
             |f t| * (log t ^ 2)⁻¹) := by
           rw [← integral_union_ae, Set.Icc_union_Icc_eq_Icc]
-          · refine max_le_max_left _ (le_max_left N (M ε hε hc))
+          · exact le_max_left ..
           · exact le_of_lt hx
           · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton, volume_singleton]
-            · refine max_le_max_left _ (le_max_left N (M ε hε hc))
+            · exact le_max_left ..
             · exact le_of_lt hx
           · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
           · apply IntegrableOn.mul_continuousOn
@@ -759,20 +694,20 @@ theorem pi_asymp'' :
                   linarith) |>.mono _ le_rfl |>.1)]
               swap
               · apply Set.Icc_subset_Icc
-                · exact le_max_left 2 N
+                · rfl
                 · exact le_of_lt hx
               · refine f_int x (by
                   simp only [max_lt_iff] at hx
                   linarith) |>.mono ?_ le_rfl
                 apply Set.Icc_subset_Icc
-                · exact le_max_left 2 N
+                · rfl
                 · exact le_of_lt hx
 
             · refine ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
-              · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and,
+              · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, not_and,
                   not_le, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
               · intro t ht
-                simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
+                simp only [Set.mem_Icc, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
                   pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
                 exact ⟨by linarith, by linarith, by linarith⟩
             · exact isCompact_Icc
@@ -783,13 +718,13 @@ theorem pi_asymp'' :
                   linarith) |>.mono _ le_rfl |>.1)]
               swap
               · apply Set.Icc_subset_Icc
-                · exact le_max_left 2 (max N (M ε hε hc))
+                · exact le_max_left ..
                 · rfl
               · refine f_int x (by
                   simp only [max_lt_iff] at hx
                   linarith) |>.mono ?_ le_rfl
                 apply Set.Icc_subset_Icc
-                · exact le_max_left 2 (max N (M ε hε hc))
+                · exact le_max_left ..
                 · rfl
 
             · refine ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
@@ -800,9 +735,9 @@ theorem pi_asymp'' :
                   pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
                 exact ⟨by linarith, by linarith, by linarith⟩
             · exact isCompact_Icc
-        _ ≤ (∫ (t : ℝ) in Set.Icc (max 2 N) (max 2 (max N (M ε hε hc))),
+        _ ≤ (∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))),
             |f t| * (log t ^ 2)⁻¹) +
-            (∫ (t : ℝ) in Set.Icc (max 2 (max N (M ε hε hc))) x,
+            (∫ (t : ℝ) in Set.Icc (max 2 (max 2 (M ε hε hc))) x,
             (c * ε) * (log t ^ 2)⁻¹) := by
             refine _root_.add_le_add (h₁ := le_rfl) ?_
             refine integral_mono_ae ?_ ?_ ?_
@@ -841,29 +776,29 @@ theorem pi_asymp'' :
                 simp only [norm_eq_abs, abs_of_pos hε, le_refl]
               · norm_num
                 refine pow_nonneg (log_nonneg <| by linarith) 2
-        _ = (∫ (t : ℝ) in Set.Icc (max 2 N) (max 2 (max N (M ε hε hc))),
+        _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))),
             |f t| * (log t ^ 2)⁻¹) +
-            ((c * ε) * ∫ (t : ℝ) in Set.Icc (max 2 (max N (M ε hε hc))) x, (log t ^ 2)⁻¹) := by
+            ((c * ε) * ∫ (t : ℝ) in Set.Icc (max 2 (max 2 (M ε hε hc))) x, (log t ^ 2)⁻¹) := by
             congr 1
             exact integral_const_mul (c * ε) _
-        _ = (∫ (t : ℝ) in Set.Icc (max 2 N) (max 2 (max N (M ε hε hc))),
+        _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))),
             |f t| * (log t ^ 2)⁻¹) +
             ((c * ε) *
-              ((∫ (t : ℝ) in Set.Icc (max 2 (max N (M ε hε hc))) x, (log t ^ 2)⁻¹) +
-              ((∫ (t : ℝ) in Set.Icc 2 (max 2 (max N (M ε hε hc))), (log t ^ 2)⁻¹)) -
-              ((∫ (t : ℝ) in Set.Icc 2 (max 2 (max N (M ε hε hc))), (log t ^ 2)⁻¹)))) := by
+              ((∫ (t : ℝ) in Set.Icc (max 2 (max 2 (M ε hε hc))) x, (log t ^ 2)⁻¹) +
+              ((∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))), (log t ^ 2)⁻¹)) -
+              ((∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))), (log t ^ 2)⁻¹)))) := by
             simp only [add_sub_cancel_right]
-        _ = (∫ (t : ℝ) in Set.Icc (max 2 N) (max 2 (max N (M ε hε hc))),
+        _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))),
             |f t| * (log t ^ 2)⁻¹) +
             ((c * ε) *
               ((∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹) -
-                ((∫ (t : ℝ) in Set.Icc 2 (max 2 (max N (M ε hε hc))), (log t ^ 2)⁻¹)))) := by
+                ((∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))), (log t ^ 2)⁻¹)))) := by
             congr 3
             rw [add_comm, ← integral_union_ae, Set.Icc_union_Icc_eq_Icc]
-            · exact le_max_left 2 (max N (M ε hε hc))
+            · exact le_max_left ..
             · exact le_of_lt hx
             · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton, volume_singleton]
-              · exact le_max_left 2 (max N (M ε hε hc))
+              · exact le_max_left ..
               · exact le_of_lt hx
             · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
             · refine ContinuousOn.integrableOn_Icc <|
@@ -882,20 +817,20 @@ theorem pi_asymp'' :
                 simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
                   pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
                 exact ⟨by linarith, by linarith, by linarith⟩
-          _ = ((∫ (t : ℝ) in Set.Icc (max 2 N) (max 2 (max N (M ε hε hc))),
+          _ = ((∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))),
             |f t| * (log t ^ 2)⁻¹) -
-            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (max N (M ε hε hc))), (log t ^ 2)⁻¹)) +
+            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))), (log t ^ 2)⁻¹)) +
             ((c * ε) * (∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹)) := by ring
           _ = ((c * ε) * (∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹)) +
-            ((∫ (t : ℝ) in Set.Icc (max 2 N) (max 2 (max N (M ε hε hc))),
+            ((∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))),
             |f t| * (log t ^ 2)⁻¹) -
-            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (max N (M ε hε hc))), (log t ^ 2)⁻¹)) := by
+            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))), (log t ^ 2)⁻¹)) := by
             ring
           _ = ((c * ε) * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
                 ((log 2)⁻¹ * 2) - ((log x)⁻¹ * x))) +
-            ((∫ (t : ℝ) in Set.Icc (max 2 N) (max 2 (max N (M ε hε hc))),
+            ((∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))),
             |f t| * (log t ^ 2)⁻¹) -
-            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (max N (M ε hε hc))), (log t ^ 2)⁻¹)) := by
+            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))), (log t ^ 2)⁻¹)) := by
             congr 2
             rw [integral_log_inv']
             · ring
@@ -903,9 +838,9 @@ theorem pi_asymp'' :
             · simp only [max_lt_iff] at hx
               linarith
           _ = (c * ε) * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - ((log x)⁻¹ * x)) +
-            ((∫ (t : ℝ) in Set.Icc (max 2 N) (max 2 (max N (M ε hε hc))),
+            ((∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))),
             |f t| * (log t ^ 2)⁻¹) -
-            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (max N (M ε hε hc))), (log t ^ 2)⁻¹) +
+            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (max 2 (M ε hε hc))), (log t ^ 2)⁻¹) +
             (c * ε) * (((log 2)⁻¹ * 2))) := by
             ring
 
@@ -1004,7 +939,7 @@ theorem pi_asymp'' :
   specialize ineq4 (|D ε hε (1/2) (by linarith)| + |C|) ε hε
   obtain ⟨B, hB⟩ := ineq4
   simp only [one_div, norm_eq_abs, norm_one, mul_one, eventually_atTop, ge_iff_le]
-  use max 3 (max (L + 1) (max B (max (N + 1) (@M ε hε (1/2) (by linarith) + 1))))
+  use max 3 (max (L + 1) (max B (max 3 (@M ε hε (1/2) (by linarith) + 1))))
 
   intro x hx
   simp only [one_div, max_le_iff] at hx
@@ -1012,36 +947,36 @@ theorem pi_asymp'' :
   rw [hL]
   calc _
     _ ≤ |((log x)⁻¹ * (x * f x) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)| +
-        |(∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
         |C / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
       apply abs_add_three
     _ = |(log x)⁻¹ * (x * f x)| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
-        |(∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹)| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
         |C| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
       rw [abs_div, abs_div, abs_div]
     _ = |(log x)⁻¹ * (x * f x)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹)| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
         |C| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
         congr
         rw [abs_of_pos]
         apply integral_log_inv_pos
         linarith
     _ = |(log x)⁻¹ * (x * f x)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
         congr
         rw [abs_of_pos]
         apply integral_log_inv_pos
         linarith
     _ = |(log x)⁻¹ * (x * f x)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
         congr
         rw [abs_of_pos]
         apply integral_log_inv_pos
         linarith
     _ = ((log x)⁻¹ * x * |f x|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
         congr
         rw [abs_mul, abs_mul, abs_of_nonneg, abs_of_nonneg, mul_assoc]
@@ -1050,14 +985,14 @@ theorem pi_asymp'' :
         refine log_nonneg ?_
         linarith
     _ ≤ ((1/2) * ε * ((log x)⁻¹ * x)) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc (max 2 N) x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
         apply _root_.add_le_add (h₂ := le_rfl)
         apply _root_.add_le_add (h₂ := le_rfl)
         apply div_le_div₀
         · apply mul_nonneg <;> try apply mul_nonneg <;> try linarith
           norm_num; exact log_nonneg <| by linarith
-        · exact ineq1 ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith, by linarith⟩)
+        · exact ineq1 ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith⟩)
         · apply integral_log_inv_pos
           linarith
         · rfl
@@ -1069,8 +1004,8 @@ theorem pi_asymp'' :
         apply _root_.add_le_add (h₁ := le_rfl)
         apply div_le_div₀
         · exact le_trans (abs_nonneg _) <|
-            hD ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith, by linarith⟩)
-        · exact hD ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith, by linarith⟩)
+            hD ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith⟩)
+        · exact hD ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith⟩)
         · apply integral_log_inv_pos
           linarith
         · rfl
