@@ -659,9 +659,7 @@ theorem pi_asymp'' :
             |f t| * (log t ^ 2)⁻¹) +
             (∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x,
             |f t| * (log t ^ 2)⁻¹) := by
-          rw [← integral_union_ae, Set.Icc_union_Icc_eq_Icc]
-          · exact le_max_left ..
-          · exact le_of_lt hx
+          rw [← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
           · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton, volume_singleton]
             · exact le_max_left ..
             · exact le_of_lt hx
@@ -705,19 +703,13 @@ theorem pi_asymp'' :
               ((∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹) -
                 ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)))) := by
             congr 3
-            rw [add_comm, ← integral_union_ae, Set.Icc_union_Icc_eq_Icc]
-            · exact le_max_left ..
-            · exact le_of_lt hx
+            rw [add_comm, ← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
             · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton, volume_singleton]
               · exact le_max_left ..
               · exact le_of_lt hx
             · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
             · apply int_inv_log_sq (by rfl) (le_max_left ..)
             · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
-          _ = ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) -
-            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) +
-            ((c * ε) * (∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹)) := by ring
           _ = ((c * ε) * (∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹)) +
             ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
             |f t| * (log t ^ 2)⁻¹) -
@@ -729,9 +721,8 @@ theorem pi_asymp'' :
             |f t| * (log t ^ 2)⁻¹) -
             (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) := by
             congr 2
-            rw [integral_log_inv']
+            rw [integral_log_inv' _ _ (by rfl)]
             · ring
-            · rfl
             · simp only [max_lt_iff] at hx
               linarith
           _ = (c * ε) * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - ((log x)⁻¹ * x)) +
@@ -747,18 +738,13 @@ theorem pi_asymp'' :
 
   have ineq4 (const : ℝ) (ε : ℝ) (hε : 0 < ε) :
     ∀ᶠ x in atTop, |const / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)| ≤ 1/2 * ε := by
-    by_cases hconst : const = 0
-    · subst hconst
-      simp only [zero_div, abs_zero, one_div, inv_pos, ofNat_pos, mul_nonneg_iff_of_pos_left,
-        eventually_atTop, ge_iff_le]
-      use 0
-      intro x _
-      exact le_of_lt hε
+    obtain rfl|hconst := eq_or_ne const 0
+    · filter_upwards with x
+      simp[hε.le]
     have ineq (x : ℝ) (hx : 2 < x) :=
       calc (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)
         _ ≥ (∫ (_ : ℝ) in Set.Icc 2 x, (log x)⁻¹) := by
-          refine integral_mono_ae ?_ ?_ ?_
-          · exact integrable_const _
+          apply setIntegral_mono_on (integrable_const _)
           · refine ContinuousOn.integrableOn_Icc <|
               ContinuousOn.inv₀ (continuousOn_log |>.mono ?_) ?_
             · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, not_and, not_le,
@@ -766,15 +752,12 @@ theorem pi_asymp'' :
             · intro t ht
               simp only [Set.mem_Icc, ne_eq, log_eq_zero, not_or] at ht ⊢
               exact ⟨by linarith, by linarith, by linarith⟩
-          · simp only [EventuallyLE, measurableSet_Icc, ae_restrict_eq, eventually_inf_principal,
-            Set.mem_Icc, and_imp]
-            refine .of_forall fun t ht1 ht2 => ?_
+          · exact measurableSet_Icc
+          · intro t ht
             rw [inv_le_inv₀]
-            · exact strictMonoOn_log.monotoneOn (a := t) (b := x)
-                (by simpa only [Set.mem_Ioi] using (by linarith))
-                (by simpa only [Set.mem_Ioi] using (by linarith)) ht2
-            · rw [Real.log_pos_iff] <;> linarith
-            · rw [Real.log_pos_iff] <;> linarith
+            · apply strictMonoOn_log.monotoneOn <;> grind
+            · rw [Real.log_pos_iff] <;> grind
+            · rw [Real.log_pos_iff] <;> grind
         _ = (x - 2) * (log x)⁻¹ := by
           rw [MeasureTheory.integral_const]
           simp only [MeasurableSet.univ, Measure.restrict_apply, Set.univ_inter, volume_Icc,
@@ -786,9 +769,7 @@ theorem pi_asymp'' :
     have ineq (x : ℝ) (hx : 2 < x) :
         |const| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| ≤
         |const| / ((x - 2) * (log x)⁻¹) := by
-      apply div_le_div₀
-      · exact abs_nonneg _
-      · rfl
+      apply div_le_div₀ (abs_nonneg _) (by rfl)
       · apply mul_pos
         · linarith
         · norm_num
@@ -943,9 +924,7 @@ theorem pi_asymp'' :
       · apply integral_log_inv_pos; linarith
       · apply add_nonneg <;> apply abs_nonneg
     _ = ε := by
-      rw [← mul_two, mul_comm _ ε, _root_.mul_assoc]
-      simp only [one_div, isUnit_iff_ne_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
-        IsUnit.inv_mul_cancel, mul_one]
+      field
 
 /-%%
 \begin{theorem}[pi_asymp]\label{pi_asymp}\lean{pi_asymp}\leanok
