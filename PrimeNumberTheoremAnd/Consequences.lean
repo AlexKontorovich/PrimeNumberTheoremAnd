@@ -619,6 +619,27 @@ theorem pi_asymp'' :
     gcongr
     bound
 
+  have int_flog {a b : ℝ} (ha: 2 ≤ a) (hb : 2 ≤ b) : IntegrableOn (fun t ↦ |f t| * (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
+    apply IntegrableOn.mul_continuousOn
+    · apply Integrable.abs <| f_int b hb |>.mono (Set.Icc_subset_Icc_left ha) (by rfl)
+    · refine ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
+      · simp
+        grind
+      · intro t ht
+        simp only [Set.mem_Icc, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
+          pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
+        exact ⟨by linarith, by linarith, by linarith⟩
+    · exact isCompact_Icc
+
+  have int_inv_log_sq {a b : ℝ} (ha : 2 ≤ a) (hb : 2 ≤ b):  IntegrableOn (fun t ↦ (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
+    refine ContinuousOn.integrableOn_Icc <|
+      ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
+    · grind
+    · intro t ht
+      simp only [Set.mem_Icc, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
+        pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
+      exact ⟨by linarith, by linarith, by linarith⟩
+
   have ineq2 (ε : ℝ) (hε : 0 < ε) (c : ℝ) (hc : 0 < c)  :
     ∃ (D : ℝ),
       ∀ (x : ℝ) (hx : max 2 (M ε hε hc) < x),
@@ -645,75 +666,17 @@ theorem pi_asymp'' :
             · exact le_max_left ..
             · exact le_of_lt hx
           · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
-          · apply IntegrableOn.mul_continuousOn
-            · simp_rw [← norm_eq_abs]
-              rw [IntegrableOn, integrable_norm_iff (hf := f_int x (by
-                  simp only [max_lt_iff] at hx
-                  linarith) |>.mono _ le_rfl |>.1)]
-              swap
-              · apply Set.Icc_subset_Icc_right hx.le
-              · refine f_int x (by
-                  simp only [max_lt_iff] at hx
-                  linarith) |>.mono ?_ le_rfl
-                apply Set.Icc_subset_Icc_right hx.le
-            · refine ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
-              · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, not_and,
-                  not_le, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
-              · intro t ht
-                simp only [Set.mem_Icc, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
-                  pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
-                exact ⟨by linarith, by linarith, by linarith⟩
-            · exact isCompact_Icc
-          · apply IntegrableOn.mul_continuousOn
-            · simp_rw [← norm_eq_abs]
-              rw [IntegrableOn, integrable_norm_iff (hf := f_int x (by
-                  simp only [max_lt_iff] at hx
-                  linarith) |>.mono _ le_rfl |>.1)]
-              swap
-              · apply Set.Icc_subset_Icc_left <| le_max_left ..
-              · refine f_int x (by
-                  simp only [max_lt_iff] at hx
-                  linarith) |>.mono ?_ le_rfl
-                apply Set.Icc_subset_Icc_left <| le_max_left ..
-            · refine ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
-              · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and,
-                  not_le, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
-              · intro t ht
-                simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
-                  pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
-                exact ⟨by linarith, by linarith, by linarith⟩
-            · exact isCompact_Icc
+          · apply int_flog (by rfl) (le_max_left ..)
+          · apply int_flog (le_max_left ..) (le_trans (le_max_left ..) hx.le)
         _ ≤ (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
             |f t| * (log t ^ 2)⁻¹) +
             (∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x,
             (c * ε) * (log t ^ 2)⁻¹) := by
             gcongr 1
             apply setIntegral_mono_on
-            · apply IntegrableOn.mul_continuousOn
-              · simp_rw [← norm_eq_abs]
-                rw [IntegrableOn, integrable_norm_iff (hf := f_int x (by
-                    simp only [max_lt_iff] at hx
-                    linarith) |>.mono (Set.Icc_subset_Icc_left <| le_max_left 2 _) le_rfl |>.1)]
-                exact f_int x (by
-                    simp only [max_lt_iff] at hx
-                    linarith) |>.mono (Set.Icc_subset_Icc_left <| le_max_left 2 _) le_rfl
-              · refine ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
-                · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and,
-                    not_le, isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
-                · intro t ht
-                  simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
-                    pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
-                  exact ⟨by linarith, by linarith, by linarith⟩
-              · exact isCompact_Icc
+            · apply int_flog (le_max_left ..) (le_trans (le_max_left ..) hx.le)
             · rw [IntegrableOn, integrable_const_mul_iff]
-              · refine ContinuousOn.integrableOn_Icc <|
-                  ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
-                · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and, not_le,
-                    isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
-                · intro t ht
-                  simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
-                    pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
-                  exact ⟨by linarith, by linarith, by linarith⟩
+              · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
               · simp only [isUnit_iff_ne_zero, ne_eq, _root_.mul_eq_zero, not_or]
                 exact ⟨by linarith, by linarith⟩
             · exact measurableSet_Icc
@@ -749,22 +712,8 @@ theorem pi_asymp'' :
               · exact le_max_left ..
               · exact le_of_lt hx
             · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
-            · refine ContinuousOn.integrableOn_Icc <|
-                ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
-              · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, not_and, not_le,
-                  isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
-              · intro t ht
-                simp only [Set.mem_Icc, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
-                  pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
-                exact ⟨by linarith, by linarith, by linarith⟩
-            · refine ContinuousOn.integrableOn_Icc <|
-                ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
-              · simp only [Set.subset_compl_singleton_iff, Set.mem_Icc, max_le_iff, not_and, not_le,
-                  isEmpty_Prop, ofNat_pos, IsEmpty.forall_iff]
-              · intro t ht
-                simp only [Set.mem_Icc, max_le_iff, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
-                  pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
-                exact ⟨by linarith, by linarith, by linarith⟩
+            · apply int_inv_log_sq (by rfl) (le_max_left ..)
+            · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
           _ = ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
             |f t| * (log t ^ 2)⁻¹) -
             (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) +
