@@ -660,9 +660,7 @@ theorem pi_asymp'' :
             (∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x,
             |f t| * (log t ^ 2)⁻¹) := by
           rw [← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
-          · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton, volume_singleton]
-            · exact le_max_left ..
-            · exact le_of_lt hx
+          · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le, volume_singleton]
           · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
           · apply int_flog (by rfl) (le_max_left ..)
           · apply int_flog (le_max_left ..) (le_trans (le_max_left ..) hx.le)
@@ -704,9 +702,7 @@ theorem pi_asymp'' :
                 ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)))) := by
             congr 3
             rw [add_comm, ← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
-            · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton, volume_singleton]
-              · exact le_max_left ..
-              · exact le_of_lt hx
+            · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le, volume_singleton]
             · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
             · apply int_inv_log_sq (by rfl) (le_max_left ..)
             · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
@@ -753,11 +749,9 @@ theorem pi_asymp'' :
               simp only [Set.mem_Icc, ne_eq, log_eq_zero, not_or] at ht ⊢
               exact ⟨by linarith, by linarith, by linarith⟩
           · exact measurableSet_Icc
-          · intro t ht
-            rw [inv_le_inv₀]
-            · apply strictMonoOn_log.monotoneOn <;> grind
-            · rw [Real.log_pos_iff] <;> grind
-            · rw [Real.log_pos_iff] <;> grind
+          · intro t ⟨ht1, ht2⟩
+            gcongr
+            bound
         _ = (x - 2) * (log x)⁻¹ := by
           rw [MeasureTheory.integral_const]
           simp only [MeasurableSet.univ, Measure.restrict_apply, Set.univ_inter, volume_Icc,
