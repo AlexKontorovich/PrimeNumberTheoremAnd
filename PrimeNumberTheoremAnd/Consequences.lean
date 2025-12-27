@@ -605,6 +605,8 @@ theorem pi_asymp'' :
   choose M hM using hf
 
   choose C hC using eq1
+  simp_rw [← one_div] at hC
+  apply isLittleO_congr hC (by rfl) |>.mpr
   simp only [eventually_atTop, ge_iff_le] at hC
   choose L hL using hC
 
@@ -815,8 +817,6 @@ theorem pi_asymp'' :
 
   intro x hx
   simp only [one_div, max_le_iff] at hx
-  specialize hL x (by linarith)
-  rw [hL]
   calc _
     _ ≤ |((log x)⁻¹ * (x * f x) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)| +
         |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
@@ -887,16 +887,9 @@ theorem pi_asymp'' :
         (D ε hε (1/2) (by linarith) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)) := by
         rw [_root_.add_div, ← add_assoc, ← add_assoc]
-    _ = ((1/2) * ε * ((log x)⁻¹ * x + (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - (log x)⁻¹ * x)) /
-          (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        (D ε hε (1/2) (by linarith) + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
-      simp only [← _root_.add_div, ← _root_.mul_add]
-      congr 1
-      ring
     _ = ((1/2) * ε * (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)) /
           (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         (D ε hε (1/2) (by linarith) + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
-      congr 1
       ring
     _ = (1/2) * ε + (D ε hε (1/2) (by linarith) + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
       congr 1
@@ -904,19 +897,15 @@ theorem pi_asymp'' :
       apply integral_log_inv_ne_zero
       linarith
     _ ≤ (1/2) * ε + (|D ε hε (1/2) (by linarith)| + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
-      apply _root_.add_le_add (h₁ := le_rfl)
-      apply div_le_div₀
-      · apply add_nonneg <;> exact abs_nonneg _
-      · apply _root_.add_le_add (h₂ := le_rfl); exact le_abs_self _
-      · apply integral_log_inv_pos; linarith
-      · rfl
+      gcongr
+      · exact integral_log_inv_pos _ (by linarith) |>.le
+      · apply le_abs_self
     _ ≤ (1/2) * ε + (1/2) * ε := by
-      apply _root_.add_le_add (h₁ := le_rfl)
       specialize hB x (by linarith)
       rw [abs_div, abs_of_nonneg, abs_of_pos (a := ∫ _ in _, _)] at hB
-      · exact hB
+      · gcongr
       · apply integral_log_inv_pos; linarith
-      · apply add_nonneg <;> apply abs_nonneg
+      · positivity
     _ = ε := by
       field
 
