@@ -608,7 +608,6 @@ theorem pi_asymp'' :
   simp_rw [← one_div] at hC
   apply isLittleO_congr hC (by rfl) |>.mpr
   simp only [eventually_atTop, ge_iff_le] at hC
-  choose L hL using hC
 
   have ineq1 (ε : ℝ) (hε : 0 < ε) (c : ℝ) (hc : 0 < c) (x : ℝ)
     (hx : max 2 (M ε hε hc) < x) :
@@ -813,7 +812,7 @@ theorem pi_asymp'' :
   specialize ineq4 (|D ε hε (1/2) (by linarith)| + |C|) ε hε
   obtain ⟨B, hB⟩ := ineq4
   simp only [one_div, norm_eq_abs, norm_one, mul_one, eventually_atTop, ge_iff_le]
-  use max 3 (max (L + 1) (max B (max 3 (@M ε hε (1/2) (by linarith) + 1))))
+  use max 3 (max B (max 3 (@M ε hε (1/2) (by linarith) + 1)))
 
   intro x hx
   simp only [one_div, max_le_iff] at hx
@@ -881,12 +880,6 @@ theorem pi_asymp'' :
         · apply integral_log_inv_pos
           linarith
         · rfl
-    _ ≤ (((1/2) * ε * ((log x)⁻¹ * x)) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        ((1/2) * ε * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - (log x)⁻¹ * x)) /
-          (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹))  +
-        (D ε hε (1/2) (by linarith) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)) := by
-        rw [_root_.add_div, ← add_assoc, ← add_assoc]
     _ = ((1/2) * ε * (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)) /
           (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         (D ε hε (1/2) (by linarith) + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
