@@ -804,17 +804,11 @@ theorem pi_asymp'' :
     rw [mul_div_cancel₀] at ineq'
     · refine le_of_lt ineq'
     · simpa only [ne_eq, abs_eq_zero]
-
-  simp only [eventually_atTop, ge_iff_le] at ineq4
-
   rw [isLittleO_iff]
   intro ε hε
   specialize ineq4 (|D ε hε (1/2) (by linarith)| + |C|) ε hε
-  obtain ⟨B, hB⟩ := ineq4
-  simp only [one_div, norm_eq_abs, norm_one, mul_one, eventually_atTop, ge_iff_le]
-  use max 3 (max B (max 3 (@M ε hε (1/2) (by linarith) + 1)))
-
-  intro x hx
+  simp only [one_div, norm_eq_abs, norm_one, mul_one]
+  filter_upwards [eventually_ge_atTop (max 3 (@M ε hε (1/2) (by linarith) + 1)), ineq4] with x hx hB
   simp only [one_div, max_le_iff] at hx
   calc _
     _ ≤ |((log x)⁻¹ * (x * f x) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)| +
@@ -894,7 +888,6 @@ theorem pi_asymp'' :
       · exact integral_log_inv_pos _ (by linarith) |>.le
       · apply le_abs_self
     _ ≤ (1/2) * ε + (1/2) * ε := by
-      specialize hB x (by linarith)
       rw [abs_div, abs_of_nonneg, abs_of_pos (a := ∫ _ in _, _)] at hB
       · gcongr
       · apply integral_log_inv_pos; linarith
