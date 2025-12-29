@@ -605,7 +605,7 @@ theorem pi_asymp'' :
 
   have ineq2 (ε : ℝ) (hε : 0 < ε) (c : ℝ) (hc : 0 < c)  :
     ∃ (D : ℝ),
-      ∀ (x : ℝ) (hx : max 2 (M ε hε hc) < x),
+      ∀ᶠ (x : ℝ) in atTop,
       |∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹| ≤
       c * ε * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - (log x)⁻¹ * x) + D := by
     have ineq (x : ℝ) (hx : max 2 (M ε hε hc) < x) :=
@@ -691,7 +691,7 @@ theorem pi_asymp'' :
             (c * ε) * (((log 2)⁻¹ * 2))) := by
             ring
 
-    exact ⟨_, fun x hx => ineq x hx⟩
+    exact ⟨_, (by     filter_upwards [eventually_gt_atTop (max 2 (M ε hε hc))] with x hx using ineq x hx)⟩
 
   choose D hD using ineq2
 
@@ -770,10 +770,8 @@ theorem pi_asymp'' :
   intro ε hε
   specialize ineq4 (|D ε hε (1/2) (by linarith)| + |C|) ε hε
   simp only [one_div, norm_eq_abs, norm_one, mul_one]
-  filter_upwards [eventually_ge_atTop (max 3 (@M ε hε (1/2) (by linarith) + 1)), ineq4, ineq1 ε hε (1 / 2) (by norm_num)] with x hx hB ineq1
-  simp only [one_div, max_le_iff] at hx
+  filter_upwards [eventually_gt_atTop 2, ineq4, ineq1 ε hε (1 / 2) (by norm_num), hD ε hε (1 / 2) (by norm_num)] with x hx hB ineq1 hD
   have := integral_log_inv_pos x (by linarith) |>.le
-  specialize hD ε hε (1 / 2) (by norm_num) x (by simpa using ⟨by linarith, by linarith⟩)
   calc _
     _ ≤ |((log x)⁻¹ * (x * f x) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)| +
         |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
