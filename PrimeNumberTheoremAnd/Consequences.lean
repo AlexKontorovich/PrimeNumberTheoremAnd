@@ -782,60 +782,27 @@ theorem pi_asymp'' :
         |C| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
       rw [abs_div, abs_div, abs_div]
     _ = |(log x)⁻¹ * (x * f x)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
-        |C| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
-        congr
-        rw [abs_of_pos]
-        apply integral_log_inv_pos
-        linarith
-    _ = |(log x)⁻¹ * (x * f x)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |C| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
-        congr
-        rw [abs_of_pos]
-        apply integral_log_inv_pos
-        linarith
-    _ = |(log x)⁻¹ * (x * f x)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
-        congr
-        rw [abs_of_pos]
-        apply integral_log_inv_pos
-        linarith
+        repeat rw [abs_of_pos <| integral_log_inv_pos _ (by linarith)]
     _ = ((log x)⁻¹ * x * |f x|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
         congr
-        rw [abs_mul, abs_mul, abs_of_nonneg, abs_of_nonneg, mul_assoc]
-        · linarith
-        norm_num
-        refine log_nonneg ?_
-        linarith
+        rw [abs_mul, abs_mul, abs_of_nonneg (by bound), abs_of_nonneg (by linarith), mul_assoc]
     _ ≤ ((1/2) * ε * ((log x)⁻¹ * x)) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
-        apply _root_.add_le_add (h₂ := le_rfl)
-        apply _root_.add_le_add (h₂ := le_rfl)
-        apply div_le_div₀
-        · apply mul_nonneg <;> try apply mul_nonneg <;> try linarith
-          norm_num; exact log_nonneg <| by linarith
-        · exact ineq1 ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith⟩)
-        · apply integral_log_inv_pos
-          linarith
-        · rfl
+        specialize ineq1 ε hε (1 / 2) (by norm_num) x (by simpa using ⟨by linarith, by linarith⟩)
+        gcongr
+        apply integral_log_inv_pos _ (by linarith) |>.le
     _ ≤ ((1/2) * ε * ((log x)⁻¹ * x)) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         ((1/2) * ε * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - (log x)⁻¹ * x) +
           D ε hε (1/2) (by linarith)) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
-        apply _root_.add_le_add (h₂ := le_rfl)
-        apply _root_.add_le_add (h₁ := le_rfl)
-        apply div_le_div₀
-        · exact le_trans (abs_nonneg _) <|
-            hD ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith⟩)
-        · exact hD ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith⟩)
-        · apply integral_log_inv_pos
-          linarith
-        · rfl
+        specialize hD ε hε (1 / 2) (by norm_num) x (by simpa using ⟨by linarith, by linarith⟩)
+        gcongr
+        apply integral_log_inv_pos _ (by linarith) |>.le
     _ = ((1/2) * ε * (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)) /
           (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         (D ε hε (1/2) (by linarith) + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
