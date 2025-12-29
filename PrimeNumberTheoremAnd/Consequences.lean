@@ -368,50 +368,12 @@ theorem primorial_bounds_finprod :
 
 lemma continuousOn_log0 :
     ContinuousOn (fun x ↦ -1 / (x * log x ^ 2)) {0, 1, -1}ᶜ := by
-  have := ContinuousOn.comp (f := fun t => t * log t ^ 2) (g := fun t => -t⁻¹)
-    (s := {0, 1, -1}ᶜ) (t := {0}ᶜ)
-    (ContinuousOn.comp (f := fun t : ℝ => t⁻¹) (g := fun t : ℝ => -t)
-        (continuousOn_neg (s := {0}ᶜ))
-        (continuousOn_inv₀ |>.mono <| by
-          intro x hx
-          simp only [Set.mem_compl_iff, Set.mem_singleton_iff] at hx ⊢
-          tauto)
-        (by
-          intro x hx
-          simp only [Set.mem_compl_iff, Set.mem_singleton_iff,
-            inv_eq_iff_eq_inv, inv_zero] at hx ⊢
-          tauto))
-    (ContinuousOn.mul (continuousOn_id' _)
-      (by
-        simp_rw [pow_two]
-        apply ContinuousOn.mul <;>
-        refine continuousOn_log |>.mono ?_ <;>
-        intro x hx <;>
-        simp only [Set.mem_compl_iff, Set.mem_insert_iff, Set.mem_singleton_iff,
-          not_or] at hx ⊢ <;>
-        tauto))
-    (by
-      intro x hx
-      simp only [Set.mem_compl_iff, Set.mem_insert_iff, Set.mem_singleton_iff, not_or,
-        _root_.mul_eq_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, pow_eq_zero_iff,
-        log_eq_zero, or_self_left] at hx ⊢
-      tauto)
-  convert this using 1
-  ext x
-  simp only [Function.comp_apply, mul_inv_rev]
-  rw [mul_comm x]
-  field_simp
+  refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+  fun_prop (disch := simp_all)
 
 lemma continuousOn_log1 : ContinuousOn (fun x ↦ (log x ^ 2)⁻¹ * x⁻¹) {0, 1, -1}ᶜ := by
-  refine continuousOn_log0.comp (f := fun x : ℝ ↦ -x) ?_ ?_ |>.congr fun x hx ↦ ?_
-  · exact continuousOn_neg
-  · intro x hx
-    simp only [Set.mem_compl_iff, Set.mem_insert_iff, Set.mem_singleton_iff, not_or, neg_eq_zero,
-      neg_inj] at hx ⊢
-    rw [neg_eq_iff_eq_neg]
-    tauto
-
-  simp
+  refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+  fun_prop (disch := simp_all)
 
 lemma integral_log_inv (a b : ℝ) (ha : 2 ≤ a) (hb : a ≤ b) :
     ∫ t in a..b, (log t)⁻¹ =
