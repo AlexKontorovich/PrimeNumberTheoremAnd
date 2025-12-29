@@ -772,6 +772,7 @@ theorem pi_asymp'' :
   simp only [one_div, norm_eq_abs, norm_one, mul_one]
   filter_upwards [eventually_ge_atTop (max 3 (@M ε hε (1/2) (by linarith) + 1)), ineq4] with x hx hB
   simp only [one_div, max_le_iff] at hx
+  have := integral_log_inv_pos x (by linarith) |>.le
   calc _
     _ ≤ |((log x)⁻¹ * (x * f x) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)| +
         |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
@@ -795,14 +796,12 @@ theorem pi_asymp'' :
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
         specialize ineq1 ε hε (1 / 2) (by norm_num) x (by simpa using ⟨by linarith, by linarith⟩)
         gcongr
-        apply integral_log_inv_pos _ (by linarith) |>.le
     _ ≤ ((1/2) * ε * ((log x)⁻¹ * x)) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         ((1/2) * ε * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - (log x)⁻¹ * x) +
           D ε hε (1/2) (by linarith)) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
         specialize hD ε hε (1 / 2) (by norm_num) x (by simpa using ⟨by linarith, by linarith⟩)
         gcongr
-        apply integral_log_inv_pos _ (by linarith) |>.le
     _ = ((1/2) * ε * (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)) /
           (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         (D ε hε (1/2) (by linarith) + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
@@ -814,8 +813,7 @@ theorem pi_asymp'' :
       linarith
     _ ≤ (1/2) * ε + (|D ε hε (1/2) (by linarith)| + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
       gcongr
-      · exact integral_log_inv_pos _ (by linarith) |>.le
-      · apply le_abs_self
+      apply le_abs_self
     _ ≤ (1/2) * ε + (1/2) * ε := by
       rw [abs_div, abs_of_nonneg, abs_of_pos (a := ∫ _ in _, _)] at hB
       · gcongr
