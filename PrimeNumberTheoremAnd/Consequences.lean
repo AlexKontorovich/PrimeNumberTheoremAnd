@@ -1037,100 +1037,35 @@ lemma integral_div_log_asymptotic : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ 
   obtain ⟨c, hc⟩ := inv_div_log_asy
   use fun x => ((∫ (t : ℝ) in Set.Icc 2 x, 1 / log t ^ 2) - 2 / log 2) * log x / x
   constructor
-  · rw [isLittleO_iff]
-    intro m hm
-    rw [eventually_atTop] at *
-    obtain ⟨a, ha⟩ := hc
-    have h1 : ∃ N, ∀ x ≥ N, |2 / log 2 * log x / x| ≤ m / 2 := by
-      have h := Real.isLittleO_log_id_atTop
-      rw [isLittleO_iff] at h
-      have h' : log 2 * m / 4 > 0 := by
-        apply _root_.div_pos _ (by norm_num)
-        apply mul_pos _ hm
-        apply Real.log_pos (by norm_num)
-      specialize h h'
-      rw [eventually_atTop] at h
-      obtain ⟨a, ha⟩ := h
-      use max a 1
-      intro x hx
-      specialize ha x (by aesop)
-      rw [abs_div, div_le_iff₀]
-      · simp only [norm_eq_abs, id_eq] at ha
-        rw [abs_mul, mul_comm, ← le_div_iff₀]
-        · suffices log 2 * m / 4 * |x| =  m / 2 * |x| / |2 / log 2| by rwa [← this]
-          rw [abs_div, show (4 : ℝ) = 2 * 2 by norm_num, show |(2 : ℝ)| = 2 by norm_num,
-            show |log 2| = log 2 by simp only [abs_eq_self]; apply log_nonneg; norm_num]
-          field_simp
-        · simp only [abs_pos, ne_eq, div_eq_zero_iff, OfNat.ofNat_ne_zero, log_eq_zero,
-          OfNat.ofNat_ne_one, false_or]
-          norm_num
-      · simp only [abs_pos, ne_eq]
-        linarith [le_of_max_le_right hx]
-    have h2 : ∃ N, ∀ x ≥ N, |c| / |log x| ≤ m / 2 := by
-      use max 2 (Real.exp (2 * |c| / m))
-      intro x hx
-      rw [div_le_iff₀, mul_comm, ← div_le_iff₀ (by linarith)]
-      · rw [← div_mul, mul_comm, mul_div]
-        nth_rw 2 [abs_eq_self.2]
-        · rw [Real.le_log_iff_exp_le (by linarith [le_of_max_le_left hx])]
-          linarith [le_of_max_le_right hx]
-        · apply log_nonneg
-          linarith [le_of_max_le_left hx]
-      · simp only [abs_pos, ne_eq, log_eq_zero, not_or]
-        have : 2 ≤ x := by aesop
-        constructor <;> try linarith
-        constructor <;> linarith
-    obtain ⟨N, hN⟩ := h1
-    obtain ⟨N', hN'⟩ := h2
-    use max (max a 2) (max N N')
-    intro x hx
-    rw [sub_mul, sub_div]
-    simp only [norm_eq_abs, norm_one, mul_one]
-    trans |(∫ (t : ℝ) in Set.Icc 2 x, 1/ (log t ^ 2)) * log x / x| + |2 / log 2 * log x / x|
-    · exact abs_sub _ _
-    · specialize ha x (by aesop)
-      specialize hN x (by aesop)
-      specialize hN' x (by aesop)
-      calc
-      _ ≤ |c| * |x / log x ^ 2| * |log x / x| + |2 / log 2 * log x / x| := by
-        apply _root_.add_le_add _ (by linarith)
-        rw [← mul_div, abs_mul]
-        apply mul_le_mul_of_nonneg_right _ (by positivity)
-        trans |c * (x / log x ^ 2)|
-        · apply abs_le_abs_of_nonneg _ ha
-          rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le
-            (by aesop)]
-          apply intervalIntegral.integral_nonneg (by aesop)
-          intro y _
-          positivity
-        · rw [abs_mul]
-      _ ≤ m / 2 + m / 2 := by
-        apply _root_.add_le_add _ hN
-        rw [mul_assoc, ← abs_mul,
-          show x / log x ^ 2 * (log x / x) = (x * log x) / (x * log x) / log x by ring, div_self]
-        · rwa [← abs_mul, mul_one_div, abs_div]
-        · apply mul_ne_zero
-          · suffices 2 ≤ x by linarith
-            aesop
-          · have : 2 ≤ x := by aesop
-            apply log_ne_zero_of_pos_of_ne_one <;> linarith
-      _ ≤ m := by linarith
-  · rw [eventually_atTop] at *
-    obtain ⟨a, _⟩ := hc
-    use max 4 a
-    intro x hx
-    rw [integral_log_inv_pialt x (le_of_max_le_left hx), add_mul, _root_.add_div, sub_add, sub_eq_add_neg,
-      one_mul, neg_sub]
-    congr
-    rw [← mul_div, ← mul_div, mul_assoc]
-    nth_rw 1 [← mul_one (a := (∫ (t : ℝ) in Set.Icc 2 x, 1 / log t ^ 2) - 2 / log 2)]
-    congr
-    rw [div_mul_eq_mul_div, mul_div, div_div, mul_comm, div_self]
-    apply mul_ne_zero
-    · linarith [le_of_max_le_left hx]
-    · simp only [ne_eq, log_eq_zero, not_or]
-      constructor <;> try linarith [le_of_max_le_left hx]
-      constructor <;> linarith [le_of_max_le_left hx]
+  · simp_rw [mul_div_assoc, mul_comm]
+    apply isLittleO_mul_iff_isLittleO_div _|>.mpr
+    · simp_rw [one_div_div]
+      apply IsLittleO.sub
+      · apply IsBigO.trans_isLittleO (g := (fun x ↦ x / log x ^ 2))
+        · rw [isBigO_iff]
+          use c
+          filter_upwards [eventually_ge_atTop 2, hc] with x hx hc
+          simp only [norm_eq_abs]
+          rwa [abs_of_nonneg, abs_of_nonneg]
+          · bound
+          · apply setIntegral_nonneg measurableSet_Icc fun t ht ↦ (by bound)
+        apply isLittleO_of_tendsto
+        · simp
+        apply tendsto_log_atTop.inv_tendsto_atTop.congr'
+        filter_upwards [eventually_ne_atTop 0] with x hx
+        simp only [Pi.inv_apply]
+        field
+      apply isLittleO_mul_iff_isLittleO_div _|>.mp
+      · conv => arg 2; ext; rw [mul_comm]
+        apply IsLittleO.const_mul_left isLittleO_log_id_atTop
+      · filter_upwards [eventually_ge_atTop 2] with x hx
+        simp; grind
+    filter_upwards [eventually_ge_atTop 2] with x hx
+    simp
+    grind
+  · filter_upwards [eventually_ge_atTop 4] with x hx
+    rw [integral_log_inv_pialt x hx]
+    field [show log x ≠ 0 by simp; grind]
 
 /-%%
 \begin{corollary}[pi_alt]\label{pi_alt}\lean{pi_alt}\leanok  One has
