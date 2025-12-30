@@ -1099,6 +1099,17 @@ theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     have : log x ≠ 0 := by simp_all
     field
 
+theorem pi_alt' : (fun (x : ℝ) ↦ (primeCounting ⌊x⌋₊ : ℝ)) ~[atTop] (fun x ↦ x / log x) := by
+  obtain ⟨f, ⟨hf1, hf2⟩⟩ := pi_alt
+  simp_rw [hf2, IsEquivalent]
+  have : ((fun x ↦ (1 + f x) * x / log x) - fun x ↦ x / log x) = (fun x ↦ f x * x / log x) := by
+    ext
+    simp
+    ring
+  rw [this]
+  convert hf1.mul_isBigO (f₂ := (fun x ↦ x / log x)) (g₂ := (fun x ↦ x /log x)) (isBigO_refl ..) using 2
+  all_goals ring
+
 /-%%
 \begin{proof}\leanok
 \uses{pi_asymp}
