@@ -1,6 +1,7 @@
 import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
 import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.LSeries.RiemannZeta
+import Mathlib.NumberTheory.PrimeCounting
 
 open Real
 open ArithmeticFunction hiding log

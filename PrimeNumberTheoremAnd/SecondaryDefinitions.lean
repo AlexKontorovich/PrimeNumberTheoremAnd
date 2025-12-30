@@ -17,6 +17,8 @@ FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
 
 open Real Finset
 
+
+
 /-- Standard arithmetic functions. TODO: align this with notation used elsewhere in PNT+ -/
 noncomputable def pi (x : ℝ) : ℝ :=  Nat.primeCounting ⌊x⌋₊
 
@@ -40,6 +42,8 @@ noncomputable def Eπ (x : ℝ) : ℝ := |pi x - Li x| / (x / log x)
 %%-/
 noncomputable def Eθ (x : ℝ) : ℝ := |θ x - x| / x
 
+
+
 /-%%
 \begin{definition}[Definition 1, FKS2]\label{classical bound'}\lean{Eθ.classicalBound, Eπ.classicalBound}\leanok
 We say that $E_θ$ satisfies a \emph{classical bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
@@ -54,7 +58,6 @@ def Eπ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ 
 def Eπ.vinogradovBound (A B C x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ A * (log x) ^ B * exp (-C * (log x) ^ (3/5) / (log (log x)) ^ (1/5))
 
 def Eπ.bound (ε x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ ε
-
 
 
 def HasPrimeInInterval (x h : ℝ) : Prop :=

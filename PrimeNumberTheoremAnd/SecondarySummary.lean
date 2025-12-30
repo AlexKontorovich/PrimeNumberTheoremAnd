@@ -86,6 +86,95 @@ for all $x \geq 2$.
 theorem FKS2_Cor226 : Eπ.bound 0.4298 2 := sorry
 
 
+/-%% A bound of Staple: The Combinatorial Algorithm for Computing π(x) Ph.D. Thesis, Dalhousie (2015) http://hdl.handle.net/10222/60524
+
+\begin{lemma}[$\pi(10^{15})$]\label{pi_10_15} $\pi(10^{15}) = 29844570422669$
+\end{lemma}
+%%-/
+
+theorem Staple_pi_10_15 : pi (10 ^ 15) = 29844570422669 := by sorry
+
+/-%% A bound of P. Dusart, Estimates of ψ and θ for large values of without the Riemann hypothesis, Math. Comp. 85 (2016), no. 298, 875–888 :
+
+\begin{lemma}[$\theta(10^{15})$]\label{theta_10_15} $\theta(10^{15}) = 999999965752660.939840$
+\end{lemma}
+%%-/
+
+theorem Dusart_theta_10_15 : θ (10 ^ 15) ∈ Set.Icc 999999965752660.939840 999999965752660.939841 := by sorry
+
+/-%%
+\begin{lemma}[$\mathrm{Li}(10^{15})$]\label{li_10_15} $\mathrm{Li}(10^{15}) = 29844571475286.535901$
+\end{lemma}
+%%-/
+
+theorem li_10_15 : li (10 ^ 15) ∈ Set.Icc 29844571475286.535901 29844571475286.535902 := by sorry
+
+/-%%
+\begin{lemma}[$E_\pi(10^{15}) - E_\theta(10^{15})$]\label{epi_etheta_10_15} $E_\pi(10^{15}) - E_\theta(10^{15}) = (−2.1087826...) \times 10^{−9}$
+\end{lemma}
+%%-/
+
+theorem epi_etheta_10_15 : Eπ (10 ^ 15) - Eθ (10 ^ 15) ∈ Set.Icc (-2.1087827e-9) (-2.1087825e-9) := by sorry
+
+/-%%
+\begin{remark}[Remark 4, FKS2] one has $\pi(x_0)$ − Li(x_0))/(x_0/\log(x_0)) − \theta(x_0)−x_0 =0$ for $x_0 = 40.787732519...$.
+\end{remark}
+%%-/
+
+theorem fks2_remark_4 : ∃ x₀ : ℝ, x₀ ∈ Set.Icc 40.787732519 40.787732520 ∧ Eπ x₀ = Eθ x₀ := sorry
+
+/-%% Table 1 of D. R. Johnston, A. Yang, Some explicit estimates for the error term in the prime number theorem, arXiv:2204.01980. TODO: expand this
+
+\begin{lemma}[Table 1, JY]\label{jy_table_1} $A_\theta =23.14$, $B = 1.503$, $C = 2.0429...$, $x_0 = e^{10^5}$ are admissible asymptotic bounds for $\theta$.
+\end{lemma}
+%%-/
+
+theorem jy_table_1 : Eθ.classicalBound 23.14 1.503 2.0429 1 (exp (100000)) := sorry
+
+/-%% Table 2 of FKS2. TODO: Expand this
+\begin{lemma}[Table 2, FKS2]\label{fks_table_2} If $x_0 = \exp(10^5)$ then $|E_\theta x_0| ≤ 7.7824 \times 10^{−109}$.
+\end{lemma}
+%%-/
+
+theorem fks2_table_2 : |Eθ (exp (100000))| ≤ 7.7824e-109 := by sorry
+/-%% Table 4 of FKS2. TODO: Expand this
+\begin{lemma}[Table 4, FKS2]\label{fks_table_4} If $x_0 = \exp(10^5)$ then $|E_\pi x_0| ≤ 7.7825 \times 10^{−10^9}$.
+\end{lemma}
+%%-/
+theorem fks2_table_4 : |Eπ (exp (100000))| ≤ 7.7825e-109:= by sorry
+
+/-%%
+\begin{lemma}[Combining Table 2 and Table 4 of FKS2]\label{fks_table_24_cor} If $x_0 = \exp(10^5)$ then $|E_\pi x_0 - E_\theta x_0 | ≤ 1.56849 \times 10^{−108}$.
+\end{lemma}
+%%-/
+theorem fks2_tables_24_cor : |Eπ (exp (100000)) - Eθ (exp (100000))| ≤ 1.56849e-108:= by sorry
+
+/-%%
+\begin{lemma}[Computing $\mu_{asymp}$]\label{fks_remark4_mu} With $A_\theta =23.14$, $B = 1.503$, $C = 2.0429...$, $R = 1$, $x_0 = \exp(10^5)$, and $x_1 = \exp(10^5)$ one has $\mu_{asymp}(x_0,x_1) ≤ 2252.31$.
+\end{lemma}
+%%-/
+theorem fks2_mu_asymp_calc : μ_asymp 23.14 1.503 2.0429 1 (exp (100000)) (exp (100000)) ≤ 2252.31 := by sorry
+
+/-%%
+\begin{lemma}[Example of $E_\pi$ bound]\label{fks_remark4_epi} One has an admissible asymptotic bound for $E_\pi$ with parameters $52141.6, 1.503, 2.0429..., 1, \exp(10^5)$.
+\end{lemma}
+%%-/
+theorem fks2_remark4_pi_asymp_example : Eπ.classicalBound 52141.6 1.503 2.0429 1 (exp (100000)) := by sorry
+
+/-%%
+\begin{lemma}[Alternate computation of $\mu_{asymp}$]\label{fks_remark4_mu_alt} With $A_\theta =23.14$, $B = 1.503$, $C = 2.0429...$, $R = 1$, $x_0 = \exp(10^5)$, and $x_1 = \exp(100016)$ one has $\mu_{asymp}(x_0,x_1) ≤ 2.66336 \times 10^{-4}$.
+\end{lemma}
+%%-/
+
+theorem fks2_mu_asymp_calc_alt : mu_asymp 23.14 1.503 2.0429 1 (exp (100000)) (exp (100016)) ≤ 2.66336e-4 := by sorry
+
+/-%%
+\begin{lemma}[Alternate $E_\pi$ bound]\label{fks_remark4_epi_alt} One has an admissible asymptotic bound for $E_\pi$ with parameters $23.15, 1.503, 2.0429..., 1, \exp(100016)$.
+\end{lemma}
+%%-/
+
+theorem fks2_remark4_pi_asymp_example_alt : Eπ.classicalBound 23.15 1.503 2.0429 1 (exp (100016)) := by sorry
+
 
 /-%%
 \begin{theorem}[Dusart Proposition 5.4]\label{thm:Dusart}
