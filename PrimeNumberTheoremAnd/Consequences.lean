@@ -815,11 +815,10 @@ theorem pi_asymp :
       ∀ᶠ (x : ℝ) in atTop,
         Nat.primeCounting ⌊x⌋₊ = (1 + c x) * ∫ t in (2 : ℝ)..x, 1 / (log t) := by
   refine ⟨_, pi_asymp'', ?_⟩
-  simp only [one_div, add_sub_cancel, eventually_atTop, ge_iff_le]
-  refine ⟨3, fun x hx => ?_⟩
+  filter_upwards [eventually_ge_atTop 3] with x hx
   rw [intervalIntegral.integral_of_le (by linarith),
-    ← MeasureTheory.integral_Icc_eq_integral_Ioc, div_mul_cancel₀]
-  exact (integral_log_inv_pos x (by linarith)).ne'
+    ← MeasureTheory.integral_Icc_eq_integral_Ioc]
+  field [(integral_log_inv_pos x (by linarith)).ne']
 
 /-%%
 \begin{proof}\leanok
