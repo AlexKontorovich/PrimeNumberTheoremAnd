@@ -563,23 +563,18 @@ theorem pi_asymp'' :
     filter_upwards [hC, eventually_gt_atTop 2] with x hC hx
     rw [hC]
     field [integral_log_inv_ne_zero]
-  simp_rw [isLittleO_iff, eventually_atTop] at hf
-  choose M hM using hf
-
+  simp_rw [isLittleO_iff] at hf
   choose C hC using eq1
   simp_rw [← one_div] at hC
   apply isLittleO_congr hC (by rfl) |>.mpr
   have ineq1 (ε : ℝ) (hε : 0 < ε) (c : ℝ) (hc : 0 < c) : ∀ᶠ(x : ℝ) in atTop,
     (log x)⁻¹ * x * |f x| ≤ c * ε * ((log x)⁻¹ * x) := by
-    filter_upwards [eventually_gt_atTop (max 2 (M ε hε hc))] with x hx
+    filter_upwards [eventually_ge_atTop 2, hf ε hε hc] with x hx hM
     simp only [ge_iff_le, norm_eq_abs] at hM
-    simp only [max_lt_iff] at hx
-    specialize hM ε hε hc x (by linarith)
     rw [abs_of_pos hε] at hM
     rw [mul_comm (c * ε)]
     gcongr
     bound
-
   have int_flog {a b : ℝ} (ha: 2 ≤ a) (hb : 2 ≤ b) : IntegrableOn (fun t ↦ |f t| * (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
     apply IntegrableOn.mul_continuousOn
     · apply Integrable.abs <| f_int b hb |>.mono (Set.Icc_subset_Icc_left ha) (by rfl)
@@ -591,7 +586,6 @@ theorem pi_asymp'' :
           pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
         exact ⟨by linarith, by linarith, by linarith⟩
     · exact isCompact_Icc
-
   have int_inv_log_sq {a b : ℝ} (ha : 2 ≤ a) (hb : 2 ≤ b):  IntegrableOn (fun t ↦ (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
     refine ContinuousOn.integrableOn_Icc <|
       ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
@@ -600,7 +594,8 @@ theorem pi_asymp'' :
       simp only [Set.mem_Icc, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
         pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
       exact ⟨by linarith, by linarith, by linarith⟩
-
+  simp_rw [eventually_atTop] at hf
+  choose M hM using hf
   have ineq2 (ε : ℝ) (hε : 0 < ε) (c : ℝ) (hc : 0 < c)  :
     ∃ (D : ℝ),
       ∀ᶠ (x : ℝ) in atTop,
