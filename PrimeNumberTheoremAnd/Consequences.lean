@@ -1077,85 +1077,27 @@ theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     ∀ x : ℝ, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * x / log x := by
   obtain ⟨f, hf, h⟩ := pi_asymp
   obtain ⟨f', hf', h'⟩ := integral_div_log_asymptotic
-  rw [eventually_atTop] at h h'
-  obtain ⟨c, hc⟩ := h
-  obtain ⟨c', hc'⟩ := h'
-  set C := max 2 (max c c')
-  use (fun x => if x < C then (log x / x) * ⌊x⌋₊.primeCounting - 1 else (f x + f' x + (f x) * (f' x)))
+  use (fun x => (log x / x) * ⌊x⌋₊.primeCounting - 1)
   constructor
-  · rw [isLittleO_iff] at *
-    intro m hm
-    rw [eventually_atTop]
-    set C' := min (m / 4) 1
-    have h1 : 0 < C' := by
-      apply lt_min
-      · linarith
-      · norm_num
-    specialize hf h1
-    specialize hf' h1
-    rw [eventually_atTop] at hf hf'
-    obtain ⟨a1, hf⟩ := hf
-    obtain ⟨a2, hf'⟩ := hf'
-    use max C (max a1 a2)
-    intro x hx
-    have hC : C ≤ x := by linarith [le_of_max_le_left hx]
-    rw [← not_lt] at hC
-    simp only [hC, ↓reduceIte, norm_eq_abs, one_mem, CStarRing.norm_of_mem_unitary, mul_one,
-      ge_iff_le]
-    trans |f x + f' x| + |f x| * |f' x|
-    · rw [← abs_mul]
-      exact abs_add_le _ _
-    · trans |f x| + |f' x| + |f x| * |f' x|
-      · apply _root_.add_le_add _ (by linarith)
-        exact abs_add_le _ _
-      · specialize hf x (le_of_max_le_left (le_of_max_le_right hx))
-        specialize hf' x (le_of_max_le_right (le_of_max_le_right hx))
-        simp only [norm_eq_abs, one_mem, CStarRing.norm_of_mem_unitary, mul_one] at hf hf'
-        have h1 : |f x| ≤ m / 4 := by aesop
-        have h2 : |f' x| ≤ m / 4 := by aesop
-        have h3 : |f x| * |f' x| ≤ m / 4 := by
-          trans |f x|
-          · suffices |f' x| ≤ 1 by
-              apply mul_le_of_le_one_right (by positivity) this
-            aesop
-          · exact h1
-        linarith
-  · intro x
-    by_cases hx : x < C
-    · simp only [hx, ↓reduceIte, add_sub_cancel]
-      by_cases hx' : x = 0 ∨ |x| = 1
-      · rcases hx' with (rfl | hx)
-        · simp only [floor_zero, primeCounting_zero, CharP.cast_eq_zero, log_zero, div_zero,
-            mul_zero]
-        · have hx := eq_or_eq_neg_of_abs_eq hx
-          rcases hx with (hx | hx)
-          · simp only [hx, floor_one, primeCounting_one, CharP.cast_eq_zero, log_one,
-            div_one, mul_zero, mul_one, div_zero]
-          · simp only [hx, log_neg_eq_log, log_one, zero_div, zero_mul,
-            mul_neg, mul_one, neg_zero, div_zero, cast_eq_zero,
-            primeCounting_eq_zero_iff, ge_iff_le]
-            suffices ⌊(-1 : ℝ)⌋₊ = 0  by rw [this]; linarith
-            rw [Nat.floor_eq_zero]
-            norm_num
-      · simp only [not_or] at hx'
-        rw [← mul_div, mul_comm, ← mul_assoc, mul_div, div_mul_eq_mul_div (a := x), div_div]
-        nth_rw 2 [mul_comm]
-        rw [div_self, one_mul]
-        apply mul_ne_zero
-        · simp only [ne_eq, log_eq_zero, not_or]
-          rw [show (1 : ℝ) = |1| by simp, abs_eq_abs] at hx'
-          simp only [not_or] at hx'
-          exact hx'
-        · exact hx'.1
-    · simp only [hx, ↓reduceIte]
-      simp only [not_lt] at hx
-      specialize hc x (le_of_max_le_left (le_of_max_le_right hx))
-      specialize hc' x (le_of_max_le_right (le_of_max_le_right hx))
-      rw [intervalIntegral.integral_of_le ((le_max_left _ _).trans hx),
-        ← MeasureTheory.integral_Icc_eq_integral_Ioc] at hc
-      rw [hc, hc', mul_div]
-      congr 1
+  · apply IsLittleO.congr' (f₁ := (fun x ↦ f x + f x * f' x + f' x)) _ _ (by rfl)
+    · apply IsLittleO.add _ hf'
+      apply IsLittleO.add hf
+      convert hf.mul hf'
       ring
+    · filter_upwards [eventually_ge_atTop 2, h, h'] with x hx h h'
+      rw [h, intervalIntegral.integral_of_le hx, ← integral_Icc_eq_integral_Ioc, h']
+      have : log x ≠ 0 := by simp; grind
+      field
+  · intro x
+    obtain rfl|hx := eq_or_ne x 0
+    · simp
+    obtain rfl|hx := eq_or_ne x 1
+    · simp
+    obtain rfl|hx := eq_or_ne x (-1 : ℝ)
+    · simp
+      norm_num
+    have : log x ≠ 0 := by simp_all
+    field
 
 /-%%
 \begin{proof}\leanok
