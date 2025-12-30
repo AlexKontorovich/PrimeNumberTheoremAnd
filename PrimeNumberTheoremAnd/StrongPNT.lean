@@ -47,6 +47,49 @@ local notation "ψ" => ChebyshevPsi
 
 
 /-%%
+\begin{lemma}[cauchy_formula_deriv]\label{cauchy_formula_deriv}\lean{cauchy_formula_deriv}
+Let $f$ be analytic on $|z|\leq R$. For any $z$ with $|z|\leq r$ and any $r'$ with $0 < r < r' < R$ we have
+$$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
+%%-/
+
+lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
+    (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
+    (pos_r : 0 < r)
+    (r_lt_r' : r < r')
+    (r'_lt_R : r' < R)
+    {z : ℂ} (hz : z ∈ Metric.closedBall 0 r) :
+    deriv f z = (1 / (2 * Real.pi * I)) • ∮ w in C(0, r'), (w - z)⁻¹ ^ 2 • f w := by
+    obtain ⟨U', hU'_open, h_subset, hf_diff_U'⟩ := hf_domain
+    have hz_in_ball : z ∈ Metric.ball (0 : ℂ) r' := by
+        apply Metric.mem_ball.mpr
+        have h1 : ‖z - 0‖ ≤ r := Metric.mem_closedBall.mp hz
+        simp only [sub_zero] at h1
+        have h2 : ‖z‖ < r' := lt_of_le_of_lt h1 r_lt_r'
+        rwa [dist_eq_norm, sub_zero]
+    set U := Metric.ball (0 : ℂ) R
+    have hc_subset : Metric.closedBall (0 : ℂ) r' ⊆ U := by
+        apply Metric.closedBall_subset_ball
+        exact r'_lt_R
+    have hf_on_U : DifferentiableOn ℂ f U := by
+        apply DifferentiableOn.mono hf_diff_U'
+        calc U = Metric.ball 0 R := rfl
+            _ ⊆ Metric.closedBall 0 R := Metric.ball_subset_closedBall
+            _ ⊆ U' := h_subset
+    have cauchy_eq := Complex.two_pi_I_inv_smul_circleIntegral_sub_sq_inv_smul_of_differentiable
+        Metric.isOpen_ball hc_subset hf_on_U hz_in_ball
+    rw [← cauchy_eq]
+    congr 2
+    ·   simp only [one_div]
+    ·   ext w
+        rw [← inv_pow]
+
+/-%%
+\begin{proof}
+This is just Cauchy's integral formula for derivatives.
+\end{proof}
+%%-/
+
+/-%%
 \begin{lemma}[DerivativeBound]\label{DerivativeBound}\lean{DerivativeBound}
     Let $R,\,M>0$ and $0 < r < r' < R$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then we have that
     $$|f'(z)|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}$$
@@ -54,10 +97,45 @@ local notation "ψ" => ChebyshevPsi
 \end{lemma}
 %%-/
 
+lemma derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
+    (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
+    (f_zero_at_zero : f 0 = 0)
+    (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
+    (re_f_le_M : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
+    (pos_r : 0 < r) (z_in_r : z ∈ Metric.closedBall 0 r)
+    (r_lt_r' : r < r') (r'_lt_R : r' < R) :
+    ‖(deriv f) z‖ ≤ 2 * M * (r')^2 / ((R - r') * (r' - r)^2) := by
+    have cauchy_param : deriv f z = (1 / (2 * Real.pi * I)) * (∫ (θ : ℝ) in 0..(2 * Real.pi), (I * r' * Complex.exp (I * θ) * ((r' * Complex.exp (I * θ)) - z)⁻¹ ^ 2) * f (r' * Complex.exp (I * θ))) := by
+        rw[cauchy_formula_deriv hf_domain pos_r r_lt_r' r'_lt_R z_in_r, smul_eq_mul]
+        unfold circleIntegral circleMap
+        simp only [one_div, mul_inv_rev, inv_I, neg_mul, zero_add, differentiableAt_const,
+            deriv_const_mul_field', inv_pow, smul_eq_mul, neg_inj, mul_eq_mul_left_iff,
+            _root_.mul_eq_zero, I_ne_zero, inv_eq_zero, ofReal_eq_zero, pi_ne_zero,
+            OfNat.ofNat_ne_zero, or_self, or_false]
+        congr 1
+        funext θ
+        rw[deriv_cexp, deriv_mul_const]
+        ·   simp only [_root_.deriv_ofReal, one_mul]
+            ring_nf
+        ·   exact differentiableAt_ofReal θ
+        ·   refine DifferentiableAt.mul_const ?_ I
+            exact differentiableAt_ofReal θ
+    rw[cauchy_param]
+    simp only [one_div, mul_inv_rev, inv_I, neg_mul, inv_pow, norm_neg, Complex.norm_mul, norm_I,
+        norm_inv, norm_real, norm_eq_abs, Complex.norm_ofNat, one_mul, ge_iff_le]
+    rw[abs_of_pos, mul_assoc, inv_mul_le_iff₀, inv_mul_le_iff₀, ← mul_assoc]
+    ·   nth_rewrite 3 [mul_comm]
+        nth_rewrite 2 [← abs_of_pos two_pi_pos, ← sub_zero (2 * π)]
+        -- use intervalIntegral.norm_integral_le_of_norm_le_const
+        sorry
+    ·   exact zero_lt_two
+    ·   exact pi_pos
+    ·   exact pi_pos
+
 /-%%
 \begin{proof}
 \uses{borelCaratheodory_closedBall}
-    By Cauchy's integral formula we know that
+    By Lemma \ref{cauchy_formula_deriv} we know that
     $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
     Thus,
     \begin{equation}\label{pickupPoint1}
