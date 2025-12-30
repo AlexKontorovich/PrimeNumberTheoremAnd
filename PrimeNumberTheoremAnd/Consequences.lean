@@ -570,7 +570,7 @@ theorem pi_asymp'' :
   have ineq1 (ε : ℝ) (hε : 0 < ε) (c : ℝ) (hc : 0 < c) : ∀ᶠ(x : ℝ) in atTop,
     (log x)⁻¹ * x * |f x| ≤ c * ε * ((log x)⁻¹ * x) := by
     filter_upwards [eventually_ge_atTop 2, hf ε hε hc] with x hx hM
-    simp only [ge_iff_le, norm_eq_abs] at hM
+    simp only [norm_eq_abs] at hM
     rw [abs_of_pos hε] at hM
     rw [mul_comm (c * ε)]
     gcongr
@@ -601,91 +601,86 @@ theorem pi_asymp'' :
       ∀ᶠ (x : ℝ) in atTop,
       |∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹| ≤
       c * ε * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - (log x)⁻¹ * x) + D := by
-    have ineq (x : ℝ) (hx : max 2 (M ε hε hc) < x) :=
-      calc |∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹|
-        _ ≤ ∫ (t : ℝ) in Set.Icc 2 x, |f t * (log t ^ 2)⁻¹| :=
-          norm_integral_le_integral_norm fun a ↦ f a * (log a ^ 2)⁻¹
-        _ = ∫ (t : ℝ) in Set.Icc 2 x, |f t| * (log t ^ 2)⁻¹ := by
-          apply setIntegral_congr_fun measurableSet_Icc fun t ht ↦ ?_
-          rw [abs_mul, abs_of_nonneg (a := (log t ^ 2)⁻¹)]
-          norm_num
-          apply pow_nonneg
-          exact log_nonneg <| by grind
-        _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) +
-            (∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x,
-            |f t| * (log t ^ 2)⁻¹) := by
-          rw [← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
+    use (((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), |f t| * (log t ^ 2)⁻¹) -
+              c * ε * ∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹) +
+            c * ε * ((log 2)⁻¹ * 2))
+    filter_upwards [eventually_gt_atTop (max 2 (M ε hε hc))] with x hx
+    calc _
+      _ ≤ ∫ (t : ℝ) in Set.Icc 2 x, |f t * (log t ^ 2)⁻¹| :=
+        norm_integral_le_integral_norm fun a ↦ f a * (log a ^ 2)⁻¹
+      _ = ∫ (t : ℝ) in Set.Icc 2 x, |f t| * (log t ^ 2)⁻¹ := by
+        apply setIntegral_congr_fun measurableSet_Icc fun t ht ↦ ?_
+        rw [abs_mul, abs_of_nonneg (a := (log t ^ 2)⁻¹)]
+        norm_num
+        apply pow_nonneg
+        exact log_nonneg <| by grind
+      _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+          |f t| * (log t ^ 2)⁻¹) +
+          (∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x,
+          |f t| * (log t ^ 2)⁻¹) := by
+        rw [← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
+        · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le, volume_singleton]
+        · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
+        · apply int_flog (by rfl) (le_max_left ..)
+        · apply int_flog (le_max_left ..) (le_trans (le_max_left ..) hx.le)
+      _ ≤ (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+          |f t| * (log t ^ 2)⁻¹) +
+          (∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x,
+          (c * ε) * (log t ^ 2)⁻¹) := by
+          gcongr 1
+          apply setIntegral_mono_on
+          · apply int_flog (le_max_left ..) (le_trans (le_max_left ..) hx.le)
+          · rw [IntegrableOn, integrable_const_mul_iff]
+            · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
+            · simp only [isUnit_iff_ne_zero, ne_eq, _root_.mul_eq_zero, not_or]
+              exact ⟨by linarith, by linarith⟩
+          · exact measurableSet_Icc
+          · intro t ht
+            simp only [Set.mem_Icc, sup_le_iff] at ht
+            apply mul_le_mul_of_nonneg_right
+            · refine hM ε hε hc t ht.1.2 |>.trans ?_
+              simp only [norm_eq_abs, abs_of_pos hε, le_refl]
+            · norm_num
+              refine pow_nonneg (log_nonneg <| by linarith) 2
+      _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+          |f t| * (log t ^ 2)⁻¹) +
+          ((c * ε) * ∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x, (log t ^ 2)⁻¹) := by
+          congr 1
+          exact integral_const_mul (c * ε) _
+      _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+          |f t| * (log t ^ 2)⁻¹) +
+          ((c * ε) *
+            ((∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x, (log t ^ 2)⁻¹) +
+            ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) -
+            ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)))) := by
+        ring
+      _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+          |f t| * (log t ^ 2)⁻¹) +
+          ((c * ε) *
+            ((∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹) -
+              ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)))) := by
+          congr 3
+          rw [add_comm, ← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
           · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le, volume_singleton]
           · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
-          · apply int_flog (by rfl) (le_max_left ..)
-          · apply int_flog (le_max_left ..) (le_trans (le_max_left ..) hx.le)
-        _ ≤ (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) +
-            (∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x,
-            (c * ε) * (log t ^ 2)⁻¹) := by
-            gcongr 1
-            apply setIntegral_mono_on
-            · apply int_flog (le_max_left ..) (le_trans (le_max_left ..) hx.le)
-            · rw [IntegrableOn, integrable_const_mul_iff]
-              · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
-              · simp only [isUnit_iff_ne_zero, ne_eq, _root_.mul_eq_zero, not_or]
-                exact ⟨by linarith, by linarith⟩
-            · exact measurableSet_Icc
-            · intro t ht
-              simp only [Set.mem_Icc, sup_le_iff] at ht
-              apply mul_le_mul_of_nonneg_right
-              · refine hM ε hε hc t ht.1.2 |>.trans ?_
-                simp only [norm_eq_abs, abs_of_pos hε, le_refl]
-              · norm_num
-                refine pow_nonneg (log_nonneg <| by linarith) 2
-        _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) +
-            ((c * ε) * ∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x, (log t ^ 2)⁻¹) := by
-            congr 1
-            exact integral_const_mul (c * ε) _
-        _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) +
-            ((c * ε) *
-              ((∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x, (log t ^ 2)⁻¹) +
-              ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) -
-              ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)))) := by
-            simp only [add_sub_cancel_right]
-        _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) +
-            ((c * ε) *
-              ((∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹) -
-                ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)))) := by
-            congr 3
-            rw [add_comm, ← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
-            · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le, volume_singleton]
-            · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
-            · apply int_inv_log_sq (by rfl) (le_max_left ..)
-            · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
-          _ = ((c * ε) * (∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹)) +
-            ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) -
-            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) := by
-            ring
-          _ = ((c * ε) * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-                ((log 2)⁻¹ * 2) - ((log x)⁻¹ * x))) +
-            ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) -
-            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) := by
-            congr 2
-            rw [integral_log_inv' _ _ (by rfl)]
-            · ring
-            · simp only [max_lt_iff] at hx
-              linarith
-          _ = (c * ε) * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - ((log x)⁻¹ * x)) +
-            ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) -
-            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹) +
-            (c * ε) * (((log 2)⁻¹ * 2))) := by
-            ring
-
-    exact ⟨_, (by     filter_upwards [eventually_gt_atTop (max 2 (M ε hε hc))] with x hx using ineq x hx)⟩
-
+          · apply int_inv_log_sq (by rfl) (le_max_left ..)
+          · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
+      _ = ((c * ε) * (∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹)) +
+        ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+        |f t| * (log t ^ 2)⁻¹) -
+        (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) := by
+        ring
+      _ = ((c * ε) * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
+            ((log 2)⁻¹ * 2) - ((log x)⁻¹ * x))) +
+        ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+        |f t| * (log t ^ 2)⁻¹) -
+        (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) := by
+        congr 2
+        rw [integral_log_inv' _ _ (by rfl)]
+        · ring
+        · simp only [max_lt_iff] at hx
+          linarith
+      _ = _ := by ring
   choose D hD using ineq2
 
   have ineq4 (const : ℝ) (ε : ℝ) (hε : 0 < ε) :
