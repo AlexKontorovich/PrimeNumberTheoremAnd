@@ -264,7 +264,7 @@ We give a sufficient condition for $\sigma(M) \geq \sigma(L_n)$.
 
 /-%%
 
-\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient}\lean{Criterion.not_highlyAbundant_1}\leanok\uses{M-def}
+\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient}% \lean{Criterion.not_highlyAbundant_1}\leanok\uses{M-def}
 Suppose
 \[
   \frac{\sigma(M)}{M}
@@ -306,7 +306,7 @@ since \(M/L_n<1\) and both sides are integers.
 
 Combining Lemma \ref{lem:criterion-sufficient} with Lemma \ref{lem:sigmaLn}, we see that it suffices to bound \(\sigma(M)/M\) from below in terms of \(\sigma(L')/L'\):
 
-\begin{lemma}[Reduction to a lower bound for \(\sigma(M)/M\)]\label{lem:criterion-reduced}\lean{Criterion.not_highlyAbundant_2}\leanok
+\begin{lemma}[Reduction to a lower bound for \(\sigma(M)/M\)]\label{lem:criterion-reduced} % \lean{Criterion.not_highlyAbundant_2}\leanok
 If
 \begin{equation}\label{eq:sigmaM-lower}
   \frac{\sigma(M)}{M}
@@ -335,7 +335,7 @@ Insert \eqref{eq:sigmaM-lower} and \eqref{eq:sigmaLn} into the desired inequalit
 
 \subsection{Conclusion of the criterion}
 
-\begin{lemma}[Lower bound for \(\sigma(M)/M\)]\label{lem:sigmaM-lower-final}\lean{Criterion.σnorm_M_ge_σnorm_L'_mul}\leanok
+\begin{lemma}[Lower bound for \(\sigma(M)/M\)]\label{lem:sigmaM-lower-final} % \lean{Criterion.σnorm_M_ge_σnorm_L'_mul}\leanok
 With notation as above,
 \[
   \frac{\sigma(M)}{M}
@@ -388,7 +388,8 @@ Finally, the contribution of all other primes is at least \(1\).
 
 /-%%
 
-\begin{theorem}\label{thm:criterion}\lean{Criterion.not_highlyAbundant}\leanok  Let $n \geq 1$.
+\begin{theorem}\label{thm:criterion} % \lean{Criterion.not_highlyAbundant}\leanok
+Let $n \geq 1$.
 Suppose that primes \(p_1,p_2,p_3,q_1,q_2,q_3\) satisfy
 \[
   \sqrt{n} < p_1 < p_2 < p_3 < q_1 < q_2 < q_3 < n
@@ -427,7 +428,7 @@ abbrev X₀ := 89693
 
 \subsection{Choice of six primes \(p_i,q_i\) for large \(n\)}
 
-\begin{lemma}[Choice of medium primes \(p_i\)]\label{lem:choose-pi}\lean{exists_p_primes}\leanok
+\begin{lemma}[Choice of medium primes \(p_i\)]\label{lem:choose-pi} % \lean{exists_p_primes}\leanok
 Let \(n \ge X_0^2\). Set \(x := \sqrt{n}\). Then there exist primes \(p_1,p_2,p_3\) with
 \[
   p_i \le x \Bigl(1 + \frac{1}{\log^3 x}\Bigr)^i
@@ -448,7 +449,7 @@ Apply Theorem~\ref{thm:Dusart} successively with \(x, x(1+1/\log^3 x), x(1+1/\lo
 
 /-%%
 
-\begin{lemma}[Choice of large primes \(q_i\)]\label{lem:choose-qi}\lean{exists_q_primes}\leanok
+\begin{lemma}[Choice of large primes \(q_i\)]\label{lem:choose-qi} % \lean{exists_q_primes}\leanok
 Let \(n \ge X_0^2\). Then there exist primes \(q_1 < q_2 < q_3\) with
 \[
   q_{4-i} \ge n \Bigl(1 + \frac{1}{\log^3 \sqrt{n}}\Bigr)^{-i}
@@ -471,7 +472,7 @@ Apply Theorem~\ref{thm:Dusart} with suitable values of \(x\) slightly below \(n\
 
 \subsection{Bounding the factors in \eqref{eq:main-ineq}}
 
-\begin{lemma}[Bounds for the \(q_i\)-product]\label{lem:qi-product}\lean{prod_q_ge}\leanok
+\begin{lemma}[Bounds for the \(q_i\)-product]\label{lem:qi-product} % \lean{prod_q_ge}\leanok
 With \(p_i,q_i\) as in Lemmas~\ref{lem:choose-pi} and \ref{lem:choose-qi}, we have
 \begin{equation}\label{eq:qi-upper}
   \prod_{i=1}^3 \Bigl(1 + \frac{1}{q_i}\Bigr)
@@ -501,7 +502,7 @@ after reindexing. Multiplying the three inequalities gives \eqref{eq:qi-upper}.
 
 /-%%
 
-\begin{lemma}[Bounds for the \(p_i\)-product]\label{lem:pi-product}\lean{prod_p_ge}\leanok
+\begin{lemma}[Bounds for the \(p_i\)-product]\label{lem:pi-product} % \lean{prod_p_ge}\leanok
 With \(p_i\) as in Lemma~\ref{lem:choose-pi}, we have for large \(n\)
 \begin{equation}\label{eq:pi-lower}
   \prod_{i=1}^3 \Bigl(1 + \frac{1}{p_i(p_i+1)}\Bigr)
@@ -541,7 +542,7 @@ Taking \(1+\cdot\) and multiplying over \(i=1,2,3\) gives \eqref{eq:pi-lower}.
 
 /-%%
 
-\begin{lemma}[Lower bound for the product ratio \(p_i/q_i\)]\label{lem:pq-ratio}\lean{pq_ratio_ge}\leanok
+\begin{lemma}[Lower bound for the product ratio \(p_i/q_i\)]\label{lem:pq-ratio} % \lean{pq_ratio_ge}\leanok
 With \(p_i,q_i\) as in Lemmas~\ref{lem:choose-pi} and \ref{lem:choose-qi}, we have
 \begin{equation}\label{eq:pq-ratio}
   1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}
@@ -578,7 +579,7 @@ This implies \eqref{eq:pq-ratio}.
 
 \subsection{Reduction to a small epsilon-inequality}
 
-\begin{lemma}[Uniform bounds for large \(n\)]\label{lem:eps-bounds}\lean{inv_cube_log_sqrt_le, inv_n_pow_3_div_2_le}\leanok
+\begin{lemma}[Uniform bounds for large \(n\)]\label{lem:eps-bounds} % \lean{inv_cube_log_sqrt_le, inv_n_pow_3_div_2_le}\leanok
 For all \(n \ge X_0^2 = 89693^2\) we have
 \[
   \frac{1}{\log^3 \sqrt{n}}
@@ -603,7 +604,7 @@ This is a straightforward calculus and monotonicity check: the left-hand sides a
 
 /-%%
 
-\begin{lemma}[Polynomial approximation of the inequality]\label{lem:poly-ineq}\lean{prod_epsilon_le, prod_epsilon_ge}\leanok
+\begin{lemma}[Polynomial approximation of the inequality]\label{lem:poly-ineq} % \lean{prod_epsilon_le, prod_epsilon_ge}\leanok
 For \(0 \le \varepsilon \le 1/89693^2\), we have
 \[
   \prod_{i=1}^3 (1 + 1.000675^i \varepsilon)
@@ -639,7 +640,7 @@ All coefficients can be bounded numerically in a rigorous way; this step is a fi
 
 /-%%
 
-\begin{lemma}[Final polynomial comparison]\label{lem:final-comparison}\lean{final_comparison}\leanok
+\begin{lemma}[Final polynomial comparison]\label{lem:final-comparison} % \lean{final_comparison}\leanok
 For \(0 \le \varepsilon \le 1/89693^2\), we have
 \[
   1 + 3.01\varepsilon + 3.01\varepsilon^2 + 1.01\varepsilon^3
@@ -698,7 +699,7 @@ Combine Lemma~\ref{lem:qi-product}, Lemma~\ref{lem:pi-product}, and Lemma~\ref{l
 
 \subsection{Conclusion for large \(n\)}
 
-\begin{theorem}[Non-highly abundant for large \(n\)]\label{thm:large-n-final}\lean{L_not_HA_of_ge}\leanok
+\begin{theorem}[Non-highly abundant for large \(n\)]\label{thm:large-n-final} % \lean{L_not_HA_of_ge}\leanok
 For every integer \(n \ge 89693^2\), the integer \(L_n\) is not highly abundant.
 \end{theorem}
 %%-/
