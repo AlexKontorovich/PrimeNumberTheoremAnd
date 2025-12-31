@@ -114,7 +114,7 @@ theorem Criterion.prod_p_le_prod_q (c : Criterion) : 4 * ∏ i, (c.p i) < ∏ i,
 
 /-%%
 
-\begin{lemma}[Factorisation of \(L_n\)]\label{lem:Lprime-def} % \lean{Criterion.ln_eq, Criterion.q_not_dvd_L'}\leanok
+\begin{lemma}[Factorisation of \(L_n\)]\label{lem:Lprime-def}\lean{Criterion.ln_eq, Criterion.q_not_dvd_L'}\leanok
 There exists a positive integer \(L'\) such that
 \[
   L_n = q_1 q_2 q_3 \, L'
@@ -170,7 +170,7 @@ Dividing by \(L_n = L' \prod_{i=1}^3 q_i\) gives
 
 /-%%
 
-\begin{lemma}\label{div-remainder} % \lean{Criterion.r_ge, Criterion.r_le, Criterion.prod_q_eq}\leanok
+\begin{lemma}\label{div-remainder}\lean{Criterion.r_ge, Criterion.r_le, Criterion.prod_q_eq}\leanok
 There exist integers \(m \ge 0\) and \(r\) satisfying \(0 < r < 4 p_1 p_2 p_3\) and
 \[
   q_1 q_2 q_3 = 4 p_1 p_2 p_3 m + r
@@ -209,7 +209,7 @@ noncomputable def Criterion.M (c : Criterion) : ℕ := 4 * ∏ i, c.p i * c.m * 
 
 /-%%
 
-\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic} % \lean{Criterion.M_lt, Criterion.Ln_div_M_gt, Criterion.Ln_div_M_lt}\leanok\uses{M-def}
+\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic}\lean{Criterion.M_lt, Criterion.Ln_div_M_gt, Criterion.Ln_div_M_lt}\leanok\uses{M-def}
 With notation as above, we have:
 \begin{enumerate}
   \item \(M < L_n\).
@@ -265,7 +265,7 @@ We give a sufficient condition for $\sigma(M) \geq \sigma(L_n)$.
 
 /-%%
 
-\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient} % \lean{Criterion.not_highlyAbundant_1}\leanok\uses{M-def}
+\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient}\lean{Criterion.not_highlyAbundant_1}\leanok\uses{M-def}
 Suppose
 \[
   \frac{\sigma(M)}{M}
@@ -307,7 +307,7 @@ since \(M/L_n<1\) and both sides are integers.
 
 Combining Lemma \ref{lem:criterion-sufficient} with Lemma \ref{lem:sigmaLn}, we see that it suffices to bound \(\sigma(M)/M\) from below in terms of \(\sigma(L')/L'\):
 
-\begin{lemma}[Reduction to a lower bound for \(\sigma(M)/M\)]\label{lem:criterion-reduced} % \lean{Criterion.not_highlyAbundant_2}\leanok
+\begin{lemma}[Reduction to a lower bound for \(\sigma(M)/M\)]\label{lem:criterion-reduced} % \lean{Criterion.not_highlyAbundant_2}\leanok % Problematic, flagged as line 220
 If
 \begin{equation}\label{eq:sigmaM-lower}
   \frac{\sigma(M)}{M}
@@ -336,7 +336,7 @@ Insert \eqref{eq:sigmaM-lower} and \eqref{eq:sigmaLn} into the desired inequalit
 
 \subsection{Conclusion of the criterion}
 
-\begin{lemma}[Lower bound for \(\sigma(M)/M\)]\label{lem:sigmaM-lower-final} % \lean{Criterion.σnorm_M_ge_σnorm_L'_mul}\leanok
+\begin{lemma}[Lower bound for \(\sigma(M)/M\)]\label{lem:sigmaM-lower-final}\lean{Criterion.σnorm_M_ge_σnorm_L'_mul}\leanok
 With notation as above,
 \[
   \frac{\sigma(M)}{M}
