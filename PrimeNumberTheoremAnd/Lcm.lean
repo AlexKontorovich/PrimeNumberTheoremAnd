@@ -138,7 +138,7 @@ Since \(q_i < n\), the prime \(q_i\) divides \(L_n\) exactly once (as \(q_i^2 > 
 
 /-%%
 
-\begin{lemma}[Normalised divisor sum for \(L_n\)]\label{lem:sigmaLn} % \lean{Criterion.σnorm_ln_eq}\leanok
+\begin{lemma}[Normalised divisor sum for \(L_n\)]\label{lem:sigmaLn}\lean{Criterion.σnorm_ln_eq}\leanok
 Let \(L'\) be as in Lemma~\ref{lem:Lprime-def}. Then
 \begin{equation}\label{eq:sigmaLn}
   \frac{\sigma(L_n)}{L_n}
