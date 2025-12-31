@@ -563,25 +563,18 @@ theorem pi_asymp'' :
     filter_upwards [hC, eventually_gt_atTop 2] with x hC hx
     rw [hC]
     field [integral_log_inv_ne_zero]
-  simp_rw [isLittleO_iff, eventually_atTop] at hf
-  choose M hM using hf
-
+  simp_rw [isLittleO_iff] at hf
   choose C hC using eq1
   simp_rw [← one_div] at hC
   apply isLittleO_congr hC (by rfl) |>.mpr
-  simp only [eventually_atTop, ge_iff_le] at hC
-
-  have ineq1 (ε : ℝ) (hε : 0 < ε) (c : ℝ) (hc : 0 < c) (x : ℝ)
-    (hx : max 2 (M ε hε hc) < x) :
+  have ineq1 (ε : ℝ) (hε : 0 < ε) (c : ℝ) (hc : 0 < c) : ∀ᶠ(x : ℝ) in atTop,
     (log x)⁻¹ * x * |f x| ≤ c * ε * ((log x)⁻¹ * x) := by
-    simp only [ge_iff_le, norm_eq_abs] at hM
-    simp only [max_lt_iff] at hx
-    specialize hM ε hε hc x (by linarith)
+    filter_upwards [eventually_ge_atTop 2, hf ε hε hc] with x hx hM
+    simp only [norm_eq_abs] at hM
     rw [abs_of_pos hε] at hM
     rw [mul_comm (c * ε)]
     gcongr
     bound
-
   have int_flog {a b : ℝ} (ha: 2 ≤ a) (hb : 2 ≤ b) : IntegrableOn (fun t ↦ |f t| * (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
     apply IntegrableOn.mul_continuousOn
     · apply Integrable.abs <| f_int b hb |>.mono (Set.Icc_subset_Icc_left ha) (by rfl)
@@ -593,7 +586,6 @@ theorem pi_asymp'' :
           pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
         exact ⟨by linarith, by linarith, by linarith⟩
     · exact isCompact_Icc
-
   have int_inv_log_sq {a b : ℝ} (ha : 2 ≤ a) (hb : 2 ≤ b):  IntegrableOn (fun t ↦ (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
     refine ContinuousOn.integrableOn_Icc <|
       ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
@@ -602,97 +594,93 @@ theorem pi_asymp'' :
       simp only [Set.mem_Icc, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
         pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
       exact ⟨by linarith, by linarith, by linarith⟩
-
+  simp_rw [eventually_atTop] at hf
+  choose M hM using hf
   have ineq2 (ε : ℝ) (hε : 0 < ε) (c : ℝ) (hc : 0 < c)  :
     ∃ (D : ℝ),
-      ∀ (x : ℝ) (hx : max 2 (M ε hε hc) < x),
+      ∀ᶠ (x : ℝ) in atTop,
       |∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹| ≤
       c * ε * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - (log x)⁻¹ * x) + D := by
-    have ineq (x : ℝ) (hx : max 2 (M ε hε hc) < x) :=
-      calc |∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹|
-        _ ≤ ∫ (t : ℝ) in Set.Icc 2 x, |f t * (log t ^ 2)⁻¹| :=
-          norm_integral_le_integral_norm fun a ↦ f a * (log a ^ 2)⁻¹
-        _ = ∫ (t : ℝ) in Set.Icc 2 x, |f t| * (log t ^ 2)⁻¹ := by
-          apply setIntegral_congr_fun measurableSet_Icc fun t ht ↦ ?_
-          rw [abs_mul, abs_of_nonneg (a := (log t ^ 2)⁻¹)]
-          norm_num
-          apply pow_nonneg
-          exact log_nonneg <| by grind
-        _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) +
-            (∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x,
-            |f t| * (log t ^ 2)⁻¹) := by
-          rw [← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
+    use (((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), |f t| * (log t ^ 2)⁻¹) -
+              c * ε * ∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹) +
+            c * ε * ((log 2)⁻¹ * 2))
+    filter_upwards [eventually_gt_atTop (max 2 (M ε hε hc))] with x hx
+    calc _
+      _ ≤ ∫ (t : ℝ) in Set.Icc 2 x, |f t * (log t ^ 2)⁻¹| :=
+        norm_integral_le_integral_norm fun a ↦ f a * (log a ^ 2)⁻¹
+      _ = ∫ (t : ℝ) in Set.Icc 2 x, |f t| * (log t ^ 2)⁻¹ := by
+        apply setIntegral_congr_fun measurableSet_Icc fun t ht ↦ ?_
+        rw [abs_mul, abs_of_nonneg (a := (log t ^ 2)⁻¹)]
+        norm_num
+        apply pow_nonneg
+        exact log_nonneg <| by grind
+      _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+          |f t| * (log t ^ 2)⁻¹) +
+          (∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x,
+          |f t| * (log t ^ 2)⁻¹) := by
+        rw [← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
+        · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le, volume_singleton]
+        · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
+        · apply int_flog (by rfl) (le_max_left ..)
+        · apply int_flog (le_max_left ..) (le_trans (le_max_left ..) hx.le)
+      _ ≤ (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+          |f t| * (log t ^ 2)⁻¹) +
+          (∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x,
+          (c * ε) * (log t ^ 2)⁻¹) := by
+          gcongr 1
+          apply setIntegral_mono_on
+          · apply int_flog (le_max_left ..) (le_trans (le_max_left ..) hx.le)
+          · rw [IntegrableOn, integrable_const_mul_iff]
+            · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
+            · simp only [isUnit_iff_ne_zero, ne_eq, _root_.mul_eq_zero, not_or]
+              exact ⟨by linarith, by linarith⟩
+          · exact measurableSet_Icc
+          · intro t ht
+            simp only [Set.mem_Icc, sup_le_iff] at ht
+            apply mul_le_mul_of_nonneg_right
+            · refine hM ε hε hc t ht.1.2 |>.trans ?_
+              simp only [norm_eq_abs, abs_of_pos hε, le_refl]
+            · norm_num
+              refine pow_nonneg (log_nonneg <| by linarith) 2
+      _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+          |f t| * (log t ^ 2)⁻¹) +
+          ((c * ε) * ∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x, (log t ^ 2)⁻¹) := by
+          congr 1
+          exact integral_const_mul (c * ε) _
+      _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+          |f t| * (log t ^ 2)⁻¹) +
+          ((c * ε) *
+            ((∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x, (log t ^ 2)⁻¹) +
+            ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) -
+            ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)))) := by
+        ring
+      _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+          |f t| * (log t ^ 2)⁻¹) +
+          ((c * ε) *
+            ((∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹) -
+              ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)))) := by
+          congr 3
+          rw [add_comm, ← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
           · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le, volume_singleton]
           · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
-          · apply int_flog (by rfl) (le_max_left ..)
-          · apply int_flog (le_max_left ..) (le_trans (le_max_left ..) hx.le)
-        _ ≤ (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) +
-            (∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x,
-            (c * ε) * (log t ^ 2)⁻¹) := by
-            gcongr 1
-            apply setIntegral_mono_on
-            · apply int_flog (le_max_left ..) (le_trans (le_max_left ..) hx.le)
-            · rw [IntegrableOn, integrable_const_mul_iff]
-              · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
-              · simp only [isUnit_iff_ne_zero, ne_eq, _root_.mul_eq_zero, not_or]
-                exact ⟨by linarith, by linarith⟩
-            · exact measurableSet_Icc
-            · intro t ht
-              simp only [Set.mem_Icc, sup_le_iff] at ht
-              apply mul_le_mul_of_nonneg_right
-              · refine hM ε hε hc t ht.1.2 |>.trans ?_
-                simp only [norm_eq_abs, abs_of_pos hε, le_refl]
-              · norm_num
-                refine pow_nonneg (log_nonneg <| by linarith) 2
-        _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) +
-            ((c * ε) * ∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x, (log t ^ 2)⁻¹) := by
-            congr 1
-            exact integral_const_mul (c * ε) _
-        _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) +
-            ((c * ε) *
-              ((∫ (t : ℝ) in Set.Icc (max 2 (M ε hε hc)) x, (log t ^ 2)⁻¹) +
-              ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) -
-              ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)))) := by
-            simp only [add_sub_cancel_right]
-        _ = (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) +
-            ((c * ε) *
-              ((∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹) -
-                ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)))) := by
-            congr 3
-            rw [add_comm, ← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
-            · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le, volume_singleton]
-            · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
-            · apply int_inv_log_sq (by rfl) (le_max_left ..)
-            · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
-          _ = ((c * ε) * (∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹)) +
-            ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) -
-            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) := by
-            ring
-          _ = ((c * ε) * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-                ((log 2)⁻¹ * 2) - ((log x)⁻¹ * x))) +
-            ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) -
-            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) := by
-            congr 2
-            rw [integral_log_inv' _ _ (by rfl)]
-            · ring
-            · simp only [max_lt_iff] at hx
-              linarith
-          _ = (c * ε) * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - ((log x)⁻¹ * x)) +
-            ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
-            |f t| * (log t ^ 2)⁻¹) -
-            (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹) +
-            (c * ε) * (((log 2)⁻¹ * 2))) := by
-            ring
-
-    exact ⟨_, fun x hx => ineq x hx⟩
-
+          · apply int_inv_log_sq (by rfl) (le_max_left ..)
+          · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
+      _ = ((c * ε) * (∫ (t : ℝ) in Set.Icc 2 x, (log t ^ 2)⁻¹)) +
+        ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+        |f t| * (log t ^ 2)⁻¹) -
+        (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) := by
+        ring
+      _ = ((c * ε) * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
+            ((log 2)⁻¹ * 2) - ((log x)⁻¹ * x))) +
+        ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)),
+        |f t| * (log t ^ 2)⁻¹) -
+        (c * ε) * (∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)) := by
+        congr 2
+        rw [integral_log_inv' _ _ (by rfl)]
+        · ring
+        · simp only [max_lt_iff] at hx
+          linarith
+      _ = _ := by ring
   choose D hD using ineq2
 
   have ineq4 (const : ℝ) (ε : ℝ) (hε : 0 < ε) :
@@ -770,8 +758,8 @@ theorem pi_asymp'' :
   intro ε hε
   specialize ineq4 (|D ε hε (1/2) (by linarith)| + |C|) ε hε
   simp only [one_div, norm_eq_abs, norm_one, mul_one]
-  filter_upwards [eventually_ge_atTop (max 3 (@M ε hε (1/2) (by linarith) + 1)), ineq4] with x hx hB
-  simp only [one_div, max_le_iff] at hx
+  filter_upwards [eventually_gt_atTop 2, ineq4, ineq1 ε hε (1 / 2) (by norm_num), hD ε hε (1 / 2) (by norm_num)] with x hx hB ineq1 hD
+  have := integral_log_inv_pos x (by linarith) |>.le
   calc _
     _ ≤ |((log x)⁻¹ * (x * f x) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)| +
         |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
@@ -782,60 +770,19 @@ theorem pi_asymp'' :
         |C| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
       rw [abs_div, abs_div, abs_div]
     _ = |(log x)⁻¹ * (x * f x)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
-        |C| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
-        congr
-        rw [abs_of_pos]
-        apply integral_log_inv_pos
-        linarith
-    _ = |(log x)⁻¹ * (x * f x)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |C| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
-        congr
-        rw [abs_of_pos]
-        apply integral_log_inv_pos
-        linarith
-    _ = |(log x)⁻¹ * (x * f x)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
-        congr
-        rw [abs_of_pos]
-        apply integral_log_inv_pos
-        linarith
+        repeat rw [abs_of_pos <| integral_log_inv_pos _ (by linarith)]
     _ = ((log x)⁻¹ * x * |f x|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
         congr
-        rw [abs_mul, abs_mul, abs_of_nonneg, abs_of_nonneg, mul_assoc]
-        · linarith
-        norm_num
-        refine log_nonneg ?_
-        linarith
-    _ ≤ ((1/2) * ε * ((log x)⁻¹ * x)) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
-        apply _root_.add_le_add (h₂ := le_rfl)
-        apply _root_.add_le_add (h₂ := le_rfl)
-        apply div_le_div₀
-        · apply mul_nonneg <;> try apply mul_nonneg <;> try linarith
-          norm_num; exact log_nonneg <| by linarith
-        · exact ineq1 ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith⟩)
-        · apply integral_log_inv_pos
-          linarith
-        · rfl
+        rw [abs_mul, abs_mul, abs_of_nonneg (by bound), abs_of_nonneg (by linarith), mul_assoc]
     _ ≤ ((1/2) * ε * ((log x)⁻¹ * x)) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         ((1/2) * ε * ((∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) - (log x)⁻¹ * x) +
           D ε hε (1/2) (by linarith)) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
-        apply _root_.add_le_add (h₂ := le_rfl)
-        apply _root_.add_le_add (h₁ := le_rfl)
-        apply div_le_div₀
-        · exact le_trans (abs_nonneg _) <|
-            hD ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith⟩)
-        · exact hD ε hε (1/2) (by linarith) x (by simpa using ⟨by linarith, by linarith⟩)
-        · apply integral_log_inv_pos
-          linarith
-        · rfl
+        gcongr
     _ = ((1/2) * ε * (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)) /
           (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         (D ε hε (1/2) (by linarith) + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
@@ -847,8 +794,7 @@ theorem pi_asymp'' :
       linarith
     _ ≤ (1/2) * ε + (|D ε hε (1/2) (by linarith)| + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
       gcongr
-      · exact integral_log_inv_pos _ (by linarith) |>.le
-      · apply le_abs_self
+      apply le_abs_self
     _ ≤ (1/2) * ε + (1/2) * ε := by
       rw [abs_div, abs_of_nonneg, abs_of_pos (a := ∫ _ in _, _)] at hB
       · gcongr
@@ -869,11 +815,10 @@ theorem pi_asymp :
       ∀ᶠ (x : ℝ) in atTop,
         Nat.primeCounting ⌊x⌋₊ = (1 + c x) * ∫ t in (2 : ℝ)..x, 1 / (log t) := by
   refine ⟨_, pi_asymp'', ?_⟩
-  simp only [one_div, add_sub_cancel, eventually_atTop, ge_iff_le]
-  refine ⟨3, fun x hx => ?_⟩
+  filter_upwards [eventually_ge_atTop 3] with x hx
   rw [intervalIntegral.integral_of_le (by linarith),
-    ← MeasureTheory.integral_Icc_eq_integral_Ioc, div_mul_cancel₀]
-  exact (integral_log_inv_pos x (by linarith)).ne'
+    ← MeasureTheory.integral_Icc_eq_integral_Ioc]
+  field [(integral_log_inv_pos x (by linarith)).ne']
 
 /-%%
 \begin{proof}\leanok
@@ -1092,100 +1037,35 @@ lemma integral_div_log_asymptotic : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ 
   obtain ⟨c, hc⟩ := inv_div_log_asy
   use fun x => ((∫ (t : ℝ) in Set.Icc 2 x, 1 / log t ^ 2) - 2 / log 2) * log x / x
   constructor
-  · rw [isLittleO_iff]
-    intro m hm
-    rw [eventually_atTop] at *
-    obtain ⟨a, ha⟩ := hc
-    have h1 : ∃ N, ∀ x ≥ N, |2 / log 2 * log x / x| ≤ m / 2 := by
-      have h := Real.isLittleO_log_id_atTop
-      rw [isLittleO_iff] at h
-      have h' : log 2 * m / 4 > 0 := by
-        apply _root_.div_pos _ (by norm_num)
-        apply mul_pos _ hm
-        apply Real.log_pos (by norm_num)
-      specialize h h'
-      rw [eventually_atTop] at h
-      obtain ⟨a, ha⟩ := h
-      use max a 1
-      intro x hx
-      specialize ha x (by aesop)
-      rw [abs_div, div_le_iff₀]
-      · simp only [norm_eq_abs, id_eq] at ha
-        rw [abs_mul, mul_comm, ← le_div_iff₀]
-        · suffices log 2 * m / 4 * |x| =  m / 2 * |x| / |2 / log 2| by rwa [← this]
-          rw [abs_div, show (4 : ℝ) = 2 * 2 by norm_num, show |(2 : ℝ)| = 2 by norm_num,
-            show |log 2| = log 2 by simp only [abs_eq_self]; apply log_nonneg; norm_num]
-          field_simp
-        · simp only [abs_pos, ne_eq, div_eq_zero_iff, OfNat.ofNat_ne_zero, log_eq_zero,
-          OfNat.ofNat_ne_one, false_or]
-          norm_num
-      · simp only [abs_pos, ne_eq]
-        linarith [le_of_max_le_right hx]
-    have h2 : ∃ N, ∀ x ≥ N, |c| / |log x| ≤ m / 2 := by
-      use max 2 (Real.exp (2 * |c| / m))
-      intro x hx
-      rw [div_le_iff₀, mul_comm, ← div_le_iff₀ (by linarith)]
-      · rw [← div_mul, mul_comm, mul_div]
-        nth_rw 2 [abs_eq_self.2]
-        · rw [Real.le_log_iff_exp_le (by linarith [le_of_max_le_left hx])]
-          linarith [le_of_max_le_right hx]
-        · apply log_nonneg
-          linarith [le_of_max_le_left hx]
-      · simp only [abs_pos, ne_eq, log_eq_zero, not_or]
-        have : 2 ≤ x := by aesop
-        constructor <;> try linarith
-        constructor <;> linarith
-    obtain ⟨N, hN⟩ := h1
-    obtain ⟨N', hN'⟩ := h2
-    use max (max a 2) (max N N')
-    intro x hx
-    rw [sub_mul, sub_div]
-    simp only [norm_eq_abs, norm_one, mul_one]
-    trans |(∫ (t : ℝ) in Set.Icc 2 x, 1/ (log t ^ 2)) * log x / x| + |2 / log 2 * log x / x|
-    · exact abs_sub _ _
-    · specialize ha x (by aesop)
-      specialize hN x (by aesop)
-      specialize hN' x (by aesop)
-      calc
-      _ ≤ |c| * |x / log x ^ 2| * |log x / x| + |2 / log 2 * log x / x| := by
-        apply _root_.add_le_add _ (by linarith)
-        rw [← mul_div, abs_mul]
-        apply mul_le_mul_of_nonneg_right _ (by positivity)
-        trans |c * (x / log x ^ 2)|
-        · apply abs_le_abs_of_nonneg _ ha
-          rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le
-            (by aesop)]
-          apply intervalIntegral.integral_nonneg (by aesop)
-          intro y _
-          positivity
-        · rw [abs_mul]
-      _ ≤ m / 2 + m / 2 := by
-        apply _root_.add_le_add _ hN
-        rw [mul_assoc, ← abs_mul,
-          show x / log x ^ 2 * (log x / x) = (x * log x) / (x * log x) / log x by ring, div_self]
-        · rwa [← abs_mul, mul_one_div, abs_div]
-        · apply mul_ne_zero
-          · suffices 2 ≤ x by linarith
-            aesop
-          · have : 2 ≤ x := by aesop
-            apply log_ne_zero_of_pos_of_ne_one <;> linarith
-      _ ≤ m := by linarith
-  · rw [eventually_atTop] at *
-    obtain ⟨a, _⟩ := hc
-    use max 4 a
-    intro x hx
-    rw [integral_log_inv_pialt x (le_of_max_le_left hx), add_mul, _root_.add_div, sub_add, sub_eq_add_neg,
-      one_mul, neg_sub]
-    congr
-    rw [← mul_div, ← mul_div, mul_assoc]
-    nth_rw 1 [← mul_one (a := (∫ (t : ℝ) in Set.Icc 2 x, 1 / log t ^ 2) - 2 / log 2)]
-    congr
-    rw [div_mul_eq_mul_div, mul_div, div_div, mul_comm, div_self]
-    apply mul_ne_zero
-    · linarith [le_of_max_le_left hx]
-    · simp only [ne_eq, log_eq_zero, not_or]
-      constructor <;> try linarith [le_of_max_le_left hx]
-      constructor <;> linarith [le_of_max_le_left hx]
+  · simp_rw [mul_div_assoc, mul_comm]
+    apply isLittleO_mul_iff_isLittleO_div _|>.mpr
+    · simp_rw [one_div_div]
+      apply IsLittleO.sub
+      · apply IsBigO.trans_isLittleO (g := (fun x ↦ x / log x ^ 2))
+        · rw [isBigO_iff]
+          use c
+          filter_upwards [eventually_ge_atTop 2, hc] with x hx hc
+          simp only [norm_eq_abs]
+          rwa [abs_of_nonneg, abs_of_nonneg]
+          · bound
+          · apply setIntegral_nonneg measurableSet_Icc fun t ht ↦ (by bound)
+        apply isLittleO_of_tendsto
+        · simp
+        apply tendsto_log_atTop.inv_tendsto_atTop.congr'
+        filter_upwards [eventually_ne_atTop 0] with x hx
+        simp only [Pi.inv_apply]
+        field
+      apply isLittleO_mul_iff_isLittleO_div _|>.mp
+      · conv => arg 2; ext; rw [mul_comm]
+        apply IsLittleO.const_mul_left isLittleO_log_id_atTop
+      · filter_upwards [eventually_ge_atTop 2] with x hx
+        simp; grind
+    filter_upwards [eventually_ge_atTop 2] with x hx
+    simp
+    grind
+  · filter_upwards [eventually_ge_atTop 4] with x hx
+    rw [integral_log_inv_pialt x hx]
+    field [show log x ≠ 0 by simp; grind]
 
 /-%%
 \begin{corollary}[pi_alt]\label{pi_alt}\lean{pi_alt}\leanok  One has
@@ -1197,85 +1077,38 @@ theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     ∀ x : ℝ, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * x / log x := by
   obtain ⟨f, hf, h⟩ := pi_asymp
   obtain ⟨f', hf', h'⟩ := integral_div_log_asymptotic
-  rw [eventually_atTop] at h h'
-  obtain ⟨c, hc⟩ := h
-  obtain ⟨c', hc'⟩ := h'
-  set C := max 2 (max c c')
-  use (fun x => if x < C then (log x / x) * ⌊x⌋₊.primeCounting - 1 else (f x + f' x + (f x) * (f' x)))
+  use (fun x => (log x / x) * ⌊x⌋₊.primeCounting - 1)
   constructor
-  · rw [isLittleO_iff] at *
-    intro m hm
-    rw [eventually_atTop]
-    set C' := min (m / 4) 1
-    have h1 : 0 < C' := by
-      apply lt_min
-      · linarith
-      · norm_num
-    specialize hf h1
-    specialize hf' h1
-    rw [eventually_atTop] at hf hf'
-    obtain ⟨a1, hf⟩ := hf
-    obtain ⟨a2, hf'⟩ := hf'
-    use max C (max a1 a2)
-    intro x hx
-    have hC : C ≤ x := by linarith [le_of_max_le_left hx]
-    rw [← not_lt] at hC
-    simp only [hC, ↓reduceIte, norm_eq_abs, one_mem, CStarRing.norm_of_mem_unitary, mul_one,
-      ge_iff_le]
-    trans |f x + f' x| + |f x| * |f' x|
-    · rw [← abs_mul]
-      exact abs_add_le _ _
-    · trans |f x| + |f' x| + |f x| * |f' x|
-      · apply _root_.add_le_add _ (by linarith)
-        exact abs_add_le _ _
-      · specialize hf x (le_of_max_le_left (le_of_max_le_right hx))
-        specialize hf' x (le_of_max_le_right (le_of_max_le_right hx))
-        simp only [norm_eq_abs, one_mem, CStarRing.norm_of_mem_unitary, mul_one] at hf hf'
-        have h1 : |f x| ≤ m / 4 := by aesop
-        have h2 : |f' x| ≤ m / 4 := by aesop
-        have h3 : |f x| * |f' x| ≤ m / 4 := by
-          trans |f x|
-          · suffices |f' x| ≤ 1 by
-              apply mul_le_of_le_one_right (by positivity) this
-            aesop
-          · exact h1
-        linarith
-  · intro x
-    by_cases hx : x < C
-    · simp only [hx, ↓reduceIte, add_sub_cancel]
-      by_cases hx' : x = 0 ∨ |x| = 1
-      · rcases hx' with (rfl | hx)
-        · simp only [floor_zero, primeCounting_zero, CharP.cast_eq_zero, log_zero, div_zero,
-            mul_zero]
-        · have hx := eq_or_eq_neg_of_abs_eq hx
-          rcases hx with (hx | hx)
-          · simp only [hx, floor_one, primeCounting_one, CharP.cast_eq_zero, log_one,
-            div_one, mul_zero, mul_one, div_zero]
-          · simp only [hx, log_neg_eq_log, log_one, zero_div, zero_mul,
-            mul_neg, mul_one, neg_zero, div_zero, cast_eq_zero,
-            primeCounting_eq_zero_iff, ge_iff_le]
-            suffices ⌊(-1 : ℝ)⌋₊ = 0  by rw [this]; linarith
-            rw [Nat.floor_eq_zero]
-            norm_num
-      · simp only [not_or] at hx'
-        rw [← mul_div, mul_comm, ← mul_assoc, mul_div, div_mul_eq_mul_div (a := x), div_div]
-        nth_rw 2 [mul_comm]
-        rw [div_self, one_mul]
-        apply mul_ne_zero
-        · simp only [ne_eq, log_eq_zero, not_or]
-          rw [show (1 : ℝ) = |1| by simp, abs_eq_abs] at hx'
-          simp only [not_or] at hx'
-          exact hx'
-        · exact hx'.1
-    · simp only [hx, ↓reduceIte]
-      simp only [not_lt] at hx
-      specialize hc x (le_of_max_le_left (le_of_max_le_right hx))
-      specialize hc' x (le_of_max_le_right (le_of_max_le_right hx))
-      rw [intervalIntegral.integral_of_le ((le_max_left _ _).trans hx),
-        ← MeasureTheory.integral_Icc_eq_integral_Ioc] at hc
-      rw [hc, hc', mul_div]
-      congr 1
+  · apply IsLittleO.congr' (f₁ := (fun x ↦ f x + f x * f' x + f' x)) _ _ (by rfl)
+    · apply IsLittleO.add _ hf'
+      apply IsLittleO.add hf
+      convert hf.mul hf'
       ring
+    · filter_upwards [eventually_ge_atTop 2, h, h'] with x hx h h'
+      rw [h, intervalIntegral.integral_of_le hx, ← integral_Icc_eq_integral_Ioc, h']
+      have : log x ≠ 0 := by simp; grind
+      field
+  · intro x
+    obtain rfl|hx := eq_or_ne x 0
+    · simp
+    obtain rfl|hx := eq_or_ne x 1
+    · simp
+    obtain rfl|hx := eq_or_ne x (-1 : ℝ)
+    · simp
+      norm_num
+    have : log x ≠ 0 := by simp_all
+    field
+
+theorem pi_alt' : (fun (x : ℝ) ↦ (primeCounting ⌊x⌋₊ : ℝ)) ~[atTop] (fun x ↦ x / log x) := by
+  obtain ⟨f, ⟨hf1, hf2⟩⟩ := pi_alt
+  simp_rw [hf2, IsEquivalent]
+  have : ((fun x ↦ (1 + f x) * x / log x) - fun x ↦ x / log x) = (fun x ↦ f x * x / log x) := by
+    ext
+    simp
+    ring
+  rw [this]
+  convert hf1.mul_isBigO (f₂ := (fun x ↦ x / log x)) (g₂ := (fun x ↦ x /log x)) (isBigO_refl ..) using 2
+  all_goals ring
 
 /-%%
 \begin{proof}\leanok
