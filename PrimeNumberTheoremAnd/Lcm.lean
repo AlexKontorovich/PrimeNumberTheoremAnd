@@ -23,7 +23,7 @@ def σ : ArithmeticFunction ℕ := sigma 1
 noncomputable abbrev σnorm (n : ℕ) : ℝ := (σ n : ℝ) / (n : ℝ)
 
 /-%%
-\begin{definition}\label{highlyabundant-def} % \lean{HighlyAbundant}\leanok\uses{sigma-def}
+\begin{definition}\label{highlyabundant-def}\lean{HighlyAbundant}\leanok\uses{sigma-def}
 A positive integer \(N\) is called \emph{highly abundant} (HA) if
 \[
   \sigma(N) > \sigma(m)
@@ -92,7 +92,7 @@ structure Criterion where
 
 
 /-%%
-\begin{lemma}\label{lem:4p3q3} % \lean{Criterion.prod_p_le_prod_q}\leanok  We have $4 p_1 p_2 p_3 < q_1 q_2 q_3$.
+\begin{lemma}\label{lem:4p3q3}\lean{Criterion.prod_p_le_prod_q}\leanok  We have $4 p_1 p_2 p_3 < q_1 q_2 q_3$.
 \end{lemma}
 %%-/
 
@@ -113,7 +113,7 @@ theorem Criterion.prod_p_le_prod_q (c : Criterion) : 4 * ∏ i, (c.p i) < ∏ i,
 
 /-%%
 
-\begin{lemma}[Factorisation of \(L_n\)]\label{lem:Lprime-def} % \lean{Criterion.ln_eq, Criterion.q_not_dvd_L'}\leanok
+\begin{lemma}[Factorisation of \(L_n\)]\label{lem:Lprime-def}\lean{Criterion.ln_eq, Criterion.q_not_dvd_L'}\leanok
 There exists a positive integer \(L'\) such that
 \[
   L_n = q_1 q_2 q_3 \, L'
