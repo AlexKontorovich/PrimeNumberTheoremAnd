@@ -170,7 +170,7 @@ Dividing by \(L_n = L' \prod_{i=1}^3 q_i\) gives
 
 /-%%
 
-\begin{lemma}\label{div-remainder} % \lean{Criterion.r_ge, Criterion.r_le, Criterion.prod_q_eq}\leanok
+\begin{lemma}\label{div-remainder}\lean{Criterion.r_ge, Criterion.r_le, Criterion.prod_q_eq}\leanok
 There exist integers \(m \ge 0\) and \(r\) satisfying \(0 < r < 4 p_1 p_2 p_3\) and
 \[
   q_1 q_2 q_3 = 4 p_1 p_2 p_3 m + r
@@ -197,7 +197,7 @@ theorem Criterion.prod_q_eq (c : Criterion) : ∏ i, c.q i = 4 * ∏ i, c.p i * 
 
 /-%%
 
-\begin{definition}\label{M-def} % \lean{Criterion.M}\leanok\uses{div-remainder}
+\begin{definition}\label{M-def}\lean{Criterion.M}\leanok\uses{div-remainder}
 With $m,r$ as above, define the competitor
 \[
   M := 4 p_1 p_2 p_3 m L'.
@@ -209,7 +209,7 @@ noncomputable def Criterion.M (c : Criterion) : ℕ := 4 * ∏ i, c.p i * c.m * 
 
 /-%%
 
-\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic} % \lean{Criterion.M_lt, Criterion.Ln_div_M_gt, Criterion.Ln_div_M_lt}\leanok\uses{M-def}
+\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic}\lean{Criterion.M_lt, Criterion.Ln_div_M_gt, Criterion.Ln_div_M_lt}\leanok\uses{M-def}
 With notation as above, we have:
 \begin{enumerate}
   \item \(M < L_n\).
@@ -307,7 +307,7 @@ since \(M/L_n<1\) and both sides are integers.
 
 Combining Lemma \ref{lem:criterion-sufficient} with Lemma \ref{lem:sigmaLn}, we see that it suffices to bound \(\sigma(M)/M\) from below in terms of \(\sigma(L')/L'\):
 
-\begin{lemma}[Reduction to a lower bound for \(\sigma(M)/M\)]\label{lem:criterion-reduced} % \lean{Criterion.not_highlyAbundant_2}\leanok
+\begin{lemma}[Reduction to a lower bound for \(\sigma(M)/M\)]\label{lem:criterion-reduced}\lean{Criterion.not_highlyAbundant_2}\leanok
 If
 \begin{equation}\label{eq:sigmaM-lower}
   \frac{\sigma(M)}{M}
