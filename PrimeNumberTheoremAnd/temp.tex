@@ -64,3 +64,33 @@ $$ \nu_{asymp}(x_0) = \frac{1}{A_\psi} (\frac{R}{\log x_0})^B \exp(C \sqrt{\frac
 
 \begin{theorem}[FKS2 Remark 15]\label{FKS2_remark_15} If $\log x_0 \geq 1000$ then we have an admissible bound for $E_\theta$ with the indicated choice of $A(x_0)$, $B = 3/2$, $C = 2$, and $R = 5.5666305$.
 \end{theorem}
+
+\begin{proposition}[FKS2 Proposition 17]\label{FKS2_proposition_17} Let $x > x_0 > 2$.  IF $E_\psi(x) \leq \varepsilon_{\psi,num}(x_0)$, then
+    $$ - \varepsilon_{\theta,num}(x_0) \leq \frac{\theta(x)-x}{x} \leq \varepsilon_{\psi,num}(x_0) \leq \varepsilon_{\theta,num}(x_0)$$
+  where
+  $$ \varepsilon_{\theta,num}(x_0) = \varepsilon_{\psi,num}(x_0) + 1.00000002(x_0^{-1/2}+x_0^{-2/3}+x_0^{-4/5}) + 0.94 (x_0^{-3/4} + x_0^{-5/6} + x_0^{-9/10})$$
+\end{proposition}
+
+\begin{lemma}[FKS2 Lemma 19]\label{FKS2_lemma_19} Let $x_1 > x_0 \geq 2$, $N \in \N$, and let $(b_i)_{i=1}^N$ be a finite partition of $[x_0,x_1]$.  Then
+    $$ |\int_{x_0}^{x_1} \frac{\theta(t)-t}{t \log^2 t}\ dt| \leq \sum_{i=1}^{N-1} \vareps_{\theta,num}(e^{b_i}) (Li(e^{b_{i+1}}) - Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}}).$$
+\end{lemma}
+
+\begin{lemma}[FKS2 Lemma 20]\label{FKS2_lemma_20} Assume $x \geq 6.58$. Then $Li(x) - \frac{x}{\log x}$ is strictly increasing and $Li(x) - \frac{x}{\log x} > \frac{x-6.58}{\log^2 x} > 0$.
+\end{lemma}
+
+\begin{corollary}[FKS2 Corollary 21]\label{FKS2_corollary_21} Let $B \geq \max(\frac{3}{2}, 1 + \frac{C^2}{16R})$.  Let $x_0, x_1 > 0$ with $x_1 \geq \max(x_0, \exp( (1 + \frac{C}{2\sqrt{R}})^2))$. If $E_\psi$ satisfies an admissible classical bound with parameters $A_\psi,B,C,R,x_0$, then $E_\pi$ satisfies an admissible classical bound with $A_\pi, B, C, R, x_1$, where
+    $$ A_\pi = (1 + \nu_{asymp}(x_0)) (1 + \mu_{asymp}(x_0, x_1)) A_\psi$$
+    for all $x \geq x_0$, where
+    $$ |E_\theta(x)| \leq \varepsilon_{\theta,asymp}(x) := A (1 + \mu_{asymp}(x_0,x)) \exp(-C \sqrt{\frac{\log x}{R}})$$
+    where
+    $$ \nu_{asymp}(x_0) = \frac{1}{A_\psi} (\frac{R}{\log x_0})^B \exp(C \sqrt{\frac{\log x_0}{R}}) (a_1 (\log x_0) x_0^{-1/2} + a_2 (\log x_0) x_0^{-2/3})$$
+and
+    $$ \mu_{asymp}(x_0,x_1) = \frac{x_0 \log x_1}{\eps_{\theta,asymp}(x_1)x_1 \log x_0} |E_\pi(x_0) - E_\theta(x_0)| + \frac{2 D_+(\sqrt{\log x} - \frac{C}{2\sqrt{R}})}{\sqrt{\log x_1}}.$$
+\end{corollary}
+
+\begin{corollary}[FKS2 Corollary 23]\label{FKS2_corollary_23} $A_\pi, B, C, x_0$ as in Table 6 give an admissible asymptotic bound for $E_\pi$ with $R = 5.5666305$.
+\end{corollary}
+
+
+\begin{corollary}[FKS2 Corollary 24]\label{FKS2_corollary_24} We have the bounds $E_\pi(x) \leq B(x)$, where $B(x)$ is given by Table 7.
+\end{corollary}

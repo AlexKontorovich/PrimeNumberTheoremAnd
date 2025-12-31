@@ -33,7 +33,7 @@ for all $x \geq \exp(2000)$.
 \end{theorem}
 %%-/
 
-theorem PT_Cor2: Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := sorry
+theorem PT.Cor2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := sorry
 
 /-%%
 \begin{theorem}[JY Corollary 1.3]\label{thm:jy_13}\lean{JY_Cor13}\leanok
@@ -45,7 +45,7 @@ for all $x \geq 2$.
 \end{theorem}
 %%-/
 
-theorem JY_Cor13: Eπ.classicalBound 9.59 1.515 0.8274 1 2 := sorry
+theorem JY.Cor13 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := sorry
 
 /-%%
 \begin{theorem}[JY Theorem 1.4]\label{thm:jy_14}\lean{JY_Thm14}\leanok
@@ -57,33 +57,9 @@ for all $x \geq 2$.
 \end{theorem}
 %%-/
 
-theorem JY_Thm14: Eπ.vinogradovBound 0.028 0.801 0.1853 2 := sorry
+theorem JY.Thm14 : Eπ.vinogradovBound 0.028 0.801 0.1853 2 := sorry
 
 /-%% TODO: input other results from JY %%-/
-
-/-%%
-\begin{theorem}[FKS2 Corollary 22]\label{thm:fks2_22}\lean{FKS2_Cor22}\leanok
-One has
-\[
-|\pi(x) - \mathrm{Li}(x)| \leq 9.2211 x \sqrt{\log x} \exp(-0.8476 \sqrt{\log x})
-\]
-for all $x \geq 2$.
-\end{theorem}
-%%-/
-
-theorem FKS2_Cor22: Eπ.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
-
-/-%%
-\begin{theorem}[FKS2 Corollary 26]\label{thm:fks2_26}\lean{FKS2_Cor26}\leanok
-One has
-\[
-|\pi(x) - \mathrm{Li}(x)| \leq 0.4298 \frac{x}{\log x}
-\]
-for all $x \geq 2$.
-\end{theorem}
-%%-/
-
-theorem FKS2_Cor226 : Eπ.bound 0.4298 2 := sorry
 
 
 /-%% A bound of Staple: The Combinatorial Algorithm for Computing π(x) Ph.D. Thesis, Dalhousie (2015) http://hdl.handle.net/10222/60524
@@ -92,7 +68,7 @@ theorem FKS2_Cor226 : Eπ.bound 0.4298 2 := sorry
 \end{lemma}
 %%-/
 
-theorem Staple_pi_10_15 : pi (10 ^ 15) = 29844570422669 := by sorry
+theorem Staple.pi_10_15 : pi (10 ^ 15) = 29844570422669 := by sorry
 
 /-%% A bound of P. Dusart, Estimates of ψ and θ for large values of without the Riemann hypothesis, Math. Comp. 85 (2016), no. 298, 875–888 :
 
@@ -100,7 +76,7 @@ theorem Staple_pi_10_15 : pi (10 ^ 15) = 29844570422669 := by sorry
 \end{lemma}
 %%-/
 
-theorem Dusart_theta_10_15 : θ (10 ^ 15) ∈ Set.Icc 999999965752660.939840 999999965752660.939841 := by sorry
+theorem Dusart.theta_10_15 : θ (10 ^ 15) ∈ Set.Icc 999999965752660.939840 999999965752660.939841 := by sorry
 
 /-%%
 \begin{lemma}[$\mathrm{Li}(10^{15})$]\label{li_10_15} $\mathrm{Li}(10^{15}) = 29844571475286.535901$
@@ -121,7 +97,7 @@ theorem epi_etheta_10_15 : Eπ (10 ^ 15) - Eθ (10 ^ 15) ∈ Set.Icc (-2.1087827
 \end{remark}
 %%-/
 
-theorem fks2_remark_4 : ∃ x₀ : ℝ, x₀ ∈ Set.Icc 40.787732519 40.787732520 ∧ Eπ x₀ = Eθ x₀ := sorry
+theorem FKS2.remark_4 : ∃ x₀ : ℝ, x₀ ∈ Set.Icc 40.787732519 40.787732520 ∧ Eπ x₀ = Eθ x₀ := sorry
 
 /-%% Table 1 of D. R. Johnston, A. Yang, Some explicit estimates for the error term in the prime number theorem, arXiv:2204.01980. TODO: expand this
 
@@ -129,51 +105,51 @@ theorem fks2_remark_4 : ∃ x₀ : ℝ, x₀ ∈ Set.Icc 40.787732519 40.7877325
 \end{lemma}
 %%-/
 
-theorem jy_table_1 : Eθ.classicalBound 23.14 1.503 2.0429 1 (exp (100000)) := sorry
+theorem JY.table_1 : Eθ.classicalBound 23.14 1.503 2.0429 1 (exp (100000)) := sorry
 
 /-%% Table 2 of FKS2. TODO: Expand this
 \begin{lemma}[Table 2, FKS2]\label{fks_table_2} If $x_0 = \exp(10^5)$ then $|E_\theta x_0| ≤ 7.7824 \times 10^{−109}$.
 \end{lemma}
 %%-/
 
-theorem fks2_table_2 : |Eθ (exp (100000))| ≤ 7.7824e-109 := by sorry
+theorem FKS2.table_2 : |Eθ (exp (100000))| ≤ 7.7824e-109 := by sorry
 /-%% Table 4 of FKS2. TODO: Expand this
 \begin{lemma}[Table 4, FKS2]\label{fks_table_4} If $x_0 = \exp(10^5)$ then $|E_\pi x_0| ≤ 7.7825 \times 10^{−10^9}$.
 \end{lemma}
 %%-/
-theorem fks2_table_4 : |Eπ (exp (100000))| ≤ 7.7825e-109:= by sorry
+theorem FKS2.table_4 : |Eπ (exp (100000))| ≤ 7.7825e-109:= by sorry
 
 /-%%
 \begin{lemma}[Combining Table 2 and Table 4 of FKS2]\label{fks_table_24_cor} If $x_0 = \exp(10^5)$ then $|E_\pi x_0 - E_\theta x_0 | ≤ 1.56849 \times 10^{−108}$.
 \end{lemma}
 %%-/
-theorem fks2_tables_24_cor : |Eπ (exp (100000)) - Eθ (exp (100000))| ≤ 1.56849e-108:= by sorry
+theorem FKS2.tables_24_cor : |Eπ (exp (100000)) - Eθ (exp (100000))| ≤ 1.56849e-108:= by sorry
 
 /-%%
 \begin{lemma}[Computing $\mu_{asymp}$]\label{fks_remark4_mu} With $A_\theta =23.14$, $B = 1.503$, $C = 2.0429...$, $R = 1$, $x_0 = \exp(10^5)$, and $x_1 = \exp(10^5)$ one has $\mu_{asymp}(x_0,x_1) ≤ 2252.31$.
 \end{lemma}
 %%-/
-theorem fks2_mu_asymp_calc : μ_asymp 23.14 1.503 2.0429 1 (exp (100000)) (exp (100000)) ≤ 2252.31 := by sorry
+theorem FKS2.μ_asymp_calc : μ_asymp 23.14 1.503 2.0429 1 (exp (100000)) (exp (100000)) ≤ 2252.31 := by sorry
 
 /-%%
 \begin{lemma}[Example of $E_\pi$ bound]\label{fks_remark4_epi} One has an admissible asymptotic bound for $E_\pi$ with parameters $52141.6, 1.503, 2.0429..., 1, \exp(10^5)$.
 \end{lemma}
 %%-/
-theorem fks2_remark4_pi_asymp_example : Eπ.classicalBound 52141.6 1.503 2.0429 1 (exp (100000)) := by sorry
+theorem FKS2.remark4_pi_asymp_example : Eπ.classicalBound 52141.6 1.503 2.0429 1 (exp (100000)) := by sorry
 
 /-%%
 \begin{lemma}[Alternate computation of $\mu_{asymp}$]\label{fks_remark4_mu_alt} With $A_\theta =23.14$, $B = 1.503$, $C = 2.0429...$, $R = 1$, $x_0 = \exp(10^5)$, and $x_1 = \exp(100016)$ one has $\mu_{asymp}(x_0,x_1) ≤ 2.66336 \times 10^{-4}$.
 \end{lemma}
 %%-/
 
-theorem fks2_mu_asymp_calc_alt : mu_asymp 23.14 1.503 2.0429 1 (exp (100000)) (exp (100016)) ≤ 2.66336e-4 := by sorry
+theorem FKS2.μ_asymp_calc_alt : μ_asymp 23.14 1.503 2.0429 1 (exp (100000)) (exp (100016)) ≤ 2.66336e-4 := by sorry
 
 /-%%
 \begin{lemma}[Alternate $E_\pi$ bound]\label{fks_remark4_epi_alt} One has an admissible asymptotic bound for $E_\pi$ with parameters $23.15, 1.503, 2.0429..., 1, \exp(100016)$.
 \end{lemma}
 %%-/
 
-theorem fks2_remark4_pi_asymp_example_alt : Eπ.classicalBound 23.15 1.503 2.0429 1 (exp (100016)) := by sorry
+theorem FKS2.remark4_pi_asymp_example_alt : Eπ.classicalBound 23.15 1.503 2.0429 1 (exp (100016)) := by sorry
 
 
 /-%%
@@ -186,6 +162,6 @@ for every real \(x \ge X_0\), there exists a prime \(p\) with
 \end{theorem}
 %%-/
 
-theorem Dusart_thm : HasPrimeInInterval.log_thm 89693 3 := sorry
+theorem Dusart.thm : HasPrimeInInterval.log_thm 89693 3 := sorry
 
 /-%% TODO: input other results from Dusart %%-/
