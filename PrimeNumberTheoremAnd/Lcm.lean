@@ -92,7 +92,8 @@ structure Criterion where
 
 
 /-%%
-\begin{lemma}\label{lem:4p3q3}\lean{Criterion.prod_p_le_prod_q}\leanok  We have $4 p_1 p_2 p_3 < q_1 q_2 q_3$.
+\begin{lemma}\label{lem:4p3q3} % \lean{Criterion.prod_p_le_prod_q}\leanok
+We have $4 p_1 p_2 p_3 < q_1 q_2 q_3$.
 \end{lemma}
 %%-/
 
