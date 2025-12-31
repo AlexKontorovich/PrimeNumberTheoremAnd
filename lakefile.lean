@@ -11,7 +11,10 @@ package «PrimeNumberTheoremAnd» where
     ⟨`linter.style.openClassical, false⟩,
     ⟨`linter.style.longLine, false⟩
   ]
-
+  moreLinkArgs := #[
+    "-L./.lake/packages/LeanCopilot/.lake/build/lib",
+    "-lctranslate2"
+  ]
 @[default_target]
 lean_lib «PrimeNumberTheoremAnd»
 
@@ -24,4 +27,6 @@ require mathlib from git
   "https://github.com/leanprover-community/mathlib4.git" @ "v4.25.1"
 
 meta if get_config? env = some "dev" then require «doc-gen4» from git
-  "https://github.com/leanprover/doc-gen4.git" @ "v4.25.1"
+  "https://github.com/leanprover/doc-gen4.git" @ "v4.25"
+
+require LeanCopilot from git "https://github.com/lean-dojo/LeanCopilot.git" @ "main"
