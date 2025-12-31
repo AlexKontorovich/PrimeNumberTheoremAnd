@@ -170,7 +170,7 @@ Dividing by \(L_n = L' \prod_{i=1}^3 q_i\) gives
 
 /-%%
 
-\begin{lemma}\label{div-remainder}\lean{Criterion.r_ge, Criterion.r_le, Criterion.prod_q_eq}\leanok
+\begin{lemma}\label{div-remainder} % \lean{Criterion.r_ge, Criterion.r_le, Criterion.prod_q_eq}\leanok
 There exist integers \(m \ge 0\) and \(r\) satisfying \(0 < r < 4 p_1 p_2 p_3\) and
 \[
   q_1 q_2 q_3 = 4 p_1 p_2 p_3 m + r
@@ -209,7 +209,7 @@ noncomputable def Criterion.M (c : Criterion) : ℕ := 4 * ∏ i, c.p i * c.m * 
 
 /-%%
 
-\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic}\lean{Criterion.M_lt, Criterion.Ln_div_M_gt, Criterion.Ln_div_M_lt}\leanok\uses{M-def}
+\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic} % \lean{Criterion.M_lt, Criterion.Ln_div_M_gt, Criterion.Ln_div_M_lt}\leanok\uses{M-def}
 With notation as above, we have:
 \begin{enumerate}
   \item \(M < L_n\).
