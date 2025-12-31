@@ -209,7 +209,7 @@ noncomputable def Criterion.M (c : Criterion) : ℕ := 4 * ∏ i, c.p i * c.m * 
 
 /-%%
 
-\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic} % \lean{Criterion.M_lt, Criterion.Ln_div_M_gt, Criterion.Ln_div_M_lt}\leanok\uses{M-def}
+\begin{lemma}[Basic properties of \(M\)]\label{lem:M-basic}\lean{Criterion.M_lt, Criterion.Ln_div_M_gt, Criterion.Ln_div_M_lt}\leanok\uses{M-def}
 With notation as above, we have:
 \begin{enumerate}
   \item \(M < L_n\).
