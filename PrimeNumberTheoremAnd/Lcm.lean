@@ -48,11 +48,13 @@ We call \((L_n)_{n \ge 1}\) the \emph{least common multiple sequence}.
 def L (n : ℕ) : ℕ := (Finset.Icc 1 n).lcm _root_.id
 
 /-%%
+\begin{quote}
 \textbf{Original MathOverflow question.}
 Is it true that every value in the sequence \(L_n = \mathrm{lcm}(1,2,\dots,n)\) is highly abundant?  Equivalently,
 \[
   \{L_n : n \ge 1\} \subseteq HA?
 \]
+\end{quote}
 
 In this note we record the structure of an argument showing that, for all sufficiently large \(n\), the integer \(L_n\) is \emph{not} highly abundant.  This argument was taken from \href{https://mathoverflow.net/questions/501066/is-the-least-common-multiple-sequence-textlcm1-2-dots-n-a-subset-of-t?noredirect=1#comment1313839_501066}{this MathOverflow answer}.
 
@@ -265,7 +267,7 @@ We give a sufficient condition for $\sigma(M) \geq \sigma(L_n)$.
 
 /-%%
 
-\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient} % \lean{Criterion.not_highlyAbundant_1}\leanok\uses{M-def}
+\begin{lemma}[A sufficient inequality]\label{lem:criterion-sufficient} % \lean{Criterion.not_highlyAbundant_1}\leanok\uses{M-def} % Problematic, flagged as line 183
 Suppose
 \[
   \frac{\sigma(M)}{M}
