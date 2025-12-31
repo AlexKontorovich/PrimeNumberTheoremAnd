@@ -138,7 +138,7 @@ Since \(q_i < n\), the prime \(q_i\) divides \(L_n\) exactly once (as \(q_i^2 > 
 
 /-%%
 
-\begin{lemma}[Normalised divisor sum for \(L_n\)]\label{lem:sigmaLn} % \lean{Criterion.σnorm_ln_eq}\leanok
+\begin{lemma}[Normalised divisor sum for \(L_n\)]\label{lem:sigmaLn}\lean{Criterion.σnorm_ln_eq}\leanok
 Let \(L'\) be as in Lemma~\ref{lem:Lprime-def}. Then
 \begin{equation}\label{eq:sigmaLn}
   \frac{\sigma(L_n)}{L_n}
@@ -307,7 +307,7 @@ since \(M/L_n<1\) and both sides are integers.
 
 Combining Lemma \ref{lem:criterion-sufficient} with Lemma \ref{lem:sigmaLn}, we see that it suffices to bound \(\sigma(M)/M\) from below in terms of \(\sigma(L')/L'\):
 
-\begin{lemma}[Reduction to a lower bound for \(\sigma(M)/M\)]\label{lem:criterion-reduced}\lean{Criterion.not_highlyAbundant_2}\leanok
+\begin{lemma}[Reduction to a lower bound for \(\sigma(M)/M\)]\label{lem:criterion-reduced} % \lean{Criterion.not_highlyAbundant_2}\leanok
 If
 \begin{equation}\label{eq:sigmaM-lower}
   \frac{\sigma(M)}{M}
