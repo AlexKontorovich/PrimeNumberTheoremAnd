@@ -62,32 +62,6 @@ theorem JY.theorem_1_4: Eπ.vinogradovBound 0.028 0.801 0.1853 2 := sorry
 /-%% TODO: input other results from JY %%-/
 
 /-%%
-\begin{theorem}[FKS2 Corollary 22]\label{thm:fks2_22}\lean{FKS2.corollary_22}\leanok
-One has
-\[
-|\pi(x) - \mathrm{Li}(x)| \leq 9.2211 x \sqrt{\log x} \exp(-0.8476 \sqrt{\log x})
-\]
-for all $x \geq 2$.
-\end{theorem}
-%%-/
-
-theorem FKS2.corollary_22: Eπ.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
-
-/-%%
-\begin{theorem}[FKS2 Corollary 26]\label{thm:fks2_26}\lean{FKS2.corollary_26}\leanok
-One has
-\[
-|\pi(x) - \mathrm{Li}(x)| \leq 0.4298 \frac{x}{\log x}
-\]
-for all $x \geq 2$.
-\end{theorem}
-%%-/
-
-theorem FKS2.corollary_26 : Eπ.bound 0.4298 2 := sorry
-
-
-
-/-%%
 \begin{theorem}[Dusart Proposition 5.4]\label{thm:Dusart}\lean{Dusart.proposition_5_4}\leanok
 There exists a constant \(X_0\) (one may take \(X_0 = 89693\)) with the following property:
 for every real \(x \ge X_0\), there exists a prime \(p\) with
