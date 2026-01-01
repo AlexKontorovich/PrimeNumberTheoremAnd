@@ -34,8 +34,8 @@ section Basic
 variable [Norm E] [Norm F] {f : ι × α → E} {g : α → F} {l : Filter α}
 
 /-- If f = O(g) uniformly on `s`, then f_i = O(g) for any i.` -/
-theorem isBigO_of_isBigOUniformly (h : f =O[𝓟 s ×ˢ l] (g ∘ Prod.snd)) {i : ι} (hi : i ∈ s) :
-    (fun x ↦ f (i, x)) =O[l] g := by
+theorem isBigO_of_isBigOUniformly (h : f =O[𝓟 s ×ˢ l] (g ∘ Prod.snd)) {i : ι}
+    (hi : i ∈ s) : (fun x ↦ f (i, x)) =O[l] g := by
   obtain ⟨C, hC⟩ := h.bound
   obtain ⟨t, htl, ht⟩ := hC.exists_mem
   obtain ⟨u, hu, v, hv, huv⟩ := Filter.mem_prod_iff.mp htl
@@ -43,8 +43,8 @@ theorem isBigO_of_isBigOUniformly (h : f =O[𝓟 s ×ˢ l] (g ∘ Prod.snd)) {i 
   exact fun y hy ↦ ht _ <| huv ⟨hu hi, hy⟩
 
 /-- If f = Ω(g) uniformly on `s`, then f_i = Ω(g) for any i.` -/
-theorem isBigO_rev_of_isBigOUniformly_rev (h : (g ∘ Prod.snd) =O[𝓟 s ×ˢ l] f) {i : ι} (hi : i ∈ s) :
-    g =O[l] fun x ↦ f (i, x) := by
+theorem isBigO_rev_of_isBigOUniformly_rev (h : (g ∘ Prod.snd) =O[𝓟 s ×ˢ l] f) {i : ι}
+    (hi : i ∈ s) : g =O[l] fun x ↦ f (i, x) := by
   obtain ⟨C, hC⟩ := h.bound
   obtain ⟨t, htl, ht⟩ := hC.exists_mem
   obtain ⟨u, hu, v, hv, huv⟩ := Filter.mem_prod_iff.mp htl
@@ -52,8 +52,8 @@ theorem isBigO_rev_of_isBigOUniformly_rev (h : (g ∘ Prod.snd) =O[𝓟 s ×ˢ l
   exact fun y hy ↦ ht (i, y) <| huv ⟨hu hi, hy⟩
 
 /-- If f = Θ(g) uniformly on `s`, then f_i = Θ(g) for any i.` -/
-theorem isTheta_of_isThetaUniformly (h : f =Θ[𝓟 s ×ˢ l] (g ∘ Prod.snd)) {i : ι} (hi : i ∈ s) :
-    (fun x ↦ f (i, x)) =Θ[l] g :=
+theorem isTheta_of_isThetaUniformly (h : f =Θ[𝓟 s ×ˢ l] (g ∘ Prod.snd)) {i : ι}
+    (hi : i ∈ s) : (fun x ↦ f (i, x)) =Θ[l] g :=
   ⟨isBigO_of_isBigOUniformly h.1 hi, isBigO_rev_of_isBigOUniformly_rev h.2 hi⟩
 
 end Basic
@@ -65,28 +65,28 @@ variable [NormedAddCommGroup α] [LinearOrder α] [ProperSpace α] [NormedAddCom
 theorem isLittleO_const_fst_atBot [NoMinOrder α] [ClosedIicTopology α] (c : F) (ly : Filter E) :
     (fun (_ : α × E) ↦ c) =o[atBot ×ˢ ly] Prod.fst := by
   refine ly.eq_or_neBot.casesOn (fun h ↦ by simp [h]) (fun _ ↦ ?_)
-  show ((fun _ ↦ c) ∘ Prod.fst) =o[atBot ×ˢ ly] (id ∘ Prod.fst)
+  change ((fun _ ↦ c) ∘ Prod.fst) =o[atBot ×ˢ ly] (id ∘ Prod.fst)
   rewrite [← isLittleO_map, map_fst_prod]
   exact isLittleO_const_id_atBot2 c
 
 theorem isLittleO_const_snd_atBot [NoMinOrder α] [ClosedIicTopology α] (c : F) (lx : Filter E) :
     (fun (_ : E × α) ↦ c) =o[lx ×ˢ atBot] Prod.snd := by
   refine lx.eq_or_neBot.casesOn (fun h ↦ by simp [h]) (fun _ ↦ ?_)
-  show ((fun _ ↦ c) ∘ Prod.snd) =o[lx ×ˢ atBot] (id ∘ Prod.snd)
+  change ((fun _ ↦ c) ∘ Prod.snd) =o[lx ×ˢ atBot] (id ∘ Prod.snd)
   rewrite [← isLittleO_map, map_snd_prod]
   exact isLittleO_const_id_atBot2 c
 
 theorem isLittleO_const_fst_atTop [NoMaxOrder α] [ClosedIciTopology α] (c : F) (ly : Filter E) :
     (fun (_ : α × E) ↦ c) =o[atTop ×ˢ ly] Prod.fst := by
   refine ly.eq_or_neBot.casesOn (fun h ↦ by simp [h]) (fun _ ↦ ?_)
-  show ((fun _ ↦ c) ∘ Prod.fst) =o[atTop ×ˢ ly] (id ∘ Prod.fst)
+  change ((fun _ ↦ c) ∘ Prod.fst) =o[atTop ×ˢ ly] (id ∘ Prod.fst)
   rewrite [← isLittleO_map, map_fst_prod]
   exact isLittleO_const_id_atTop2 c
 
 theorem isLittleO_const_snd_atTop [NoMaxOrder α] [ClosedIciTopology α] (c : F) (lx : Filter E) :
     (fun (_ : E × α) ↦ c) =o[lx ×ˢ atTop] Prod.snd := by
   refine lx.eq_or_neBot.casesOn (fun h ↦ by simp [h]) (fun _ ↦ ?_)
-  show ((fun _ ↦ c) ∘ Prod.snd) =o[lx ×ˢ atTop] (id ∘ Prod.snd)
+  change ((fun _ ↦ c) ∘ Prod.snd) =o[lx ×ˢ atTop] (id ∘ Prod.snd)
   rewrite [← isLittleO_map, map_snd_prod]
   exact isLittleO_const_id_atTop2 c
 
@@ -155,8 +155,10 @@ if `s` is compact and `C` is continuous with no zeros on `s`. -/
 theorem _root_.ContinuousOn.const_isThetaUniformlyOn_isCompact (hf : ContinuousOn C s)
     (hs : IsCompact s) (hc : ‖c‖ ≠ 0) (hC : ∀ i ∈ s, C i ≠ 0) (l : Filter α) :
     (fun (i, _x) ↦ C i) =Θ[𝓟 s ×ˢ l] fun _ => c :=
-  ⟨hf.const_isBigOUniformlyOn_isCompact hs hc l, hf.const_isBigOUniformlyOn_isCompact_rev hs hC l⟩
+  ⟨hf.const_isBigOUniformlyOn_isCompact hs hc l,
+    hf.const_isBigOUniformlyOn_isCompact_rev hs hC l⟩
 
 end IsTheta
 
 end ContinuousOn
+end Asymptotics
