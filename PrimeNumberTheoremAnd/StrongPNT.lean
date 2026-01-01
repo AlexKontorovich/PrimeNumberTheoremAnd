@@ -98,7 +98,7 @@ This is just Cauchy's integral formula for derivatives.
 \end{lemma}
 %%-/
 
-lemma derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
+lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (Mpos : 0 < M)
     (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (f_zero_at_zero : f 0 = 0)
@@ -106,7 +106,7 @@ lemma derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (re_f_le_M : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
     (pos_r : 0 < r) (z_in_r : z ∈ Metric.closedBall 0 r)
     (r_lt_r' : r < r') (r'_lt_R : r' < R) :
-    ‖(deriv f) z‖ ≤ 2 * M * (r')^2 / ((R - r') * (r' - r)^2) := by
+    ‖(deriv f) z‖ ≤ 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
     have diff_neg : r - r' ≤ 0 := by linarith
     have cauchy_param : deriv f z = (1 / (2 * Real.pi * I)) * (∫ (θ : ℝ) in 0..(2 * Real.pi), (I * r' * Complex.exp (I * θ) * ((r' * Complex.exp (I * θ)) - z)⁻¹ ^ 2) * f (r' * Complex.exp (I * θ))) := by
         rw[cauchy_formula_deriv hf_domain pos_r r_lt_r' r'_lt_R z_in_r, smul_eq_mul]
@@ -189,14 +189,29 @@ lemma derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
 \end{theorem}
 %%-/
 
-theorem borelCaratheodoryDeriv {M R : ℝ} {z : ℂ} {f : ℂ → ℂ}
-    (Rpos : 0 < R) (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
+theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
+    (rpos : 0 < r) (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (zeroAtZero : f 0 = 0) (Mpos : 0 < M)
     (realPartBounded : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
-    (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r) :
-    ‖deriv f z‖ ≤ (16 * M * R ^ 2) / (R - r) ^ 3 := by
-
-    sorry
+    (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r)
+    (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U) :
+    ‖deriv f z‖ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
+    let r' : ℝ := (R + r) / 2
+    have h0 : ‖deriv f z‖ ≤ 4 * M * (R + r) ^ 2 / (R - r) ^ 3 := by
+        have : 4 * M * (R + r) ^ 2 / (R - r) ^ 3 = 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
+            simp[r']
+            sorry
+        rw[this]
+        refine DerivativeBound (Mpos) (analytic_f) (zeroAtZero) (hf_domain) (realPartBounded) (rpos) (hyp_z) ?_ ?_
+        ·   simp[r']
+            linarith
+        ·   simp[r']
+            linarith
+    have h1 : 4 * M * (R + r) ^ 2 / (R - r) ^ 3 ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
+        have : 16 * M * R ^ 2 = 4 * M * (2 * R) ^ 2 := by ring_nf
+        rw[this]
+        bound
+    exact le_trans h0 h1
 
 /-%%
 \begin{proof}
