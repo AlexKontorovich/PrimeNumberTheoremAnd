@@ -415,7 +415,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
   /- This proof is adapted from `vertIntBound` -/
   use 1 / (2 * π) *  ‖(∫ (t : ℝ), 1 / ((4⁻¹ + t ^ 2).sqrt * (4⁻¹ + t ^ 2).sqrt : ℂ))‖
   intro σ hσ
-  simp only [VerticalIntegral', abs_of_pos Real.pi_pos, smul_eq_mul, norm_mul, f]
+  simp only [VerticalIntegral', smul_eq_mul, norm_mul]
   rw [(by simp [pi_nonneg] : ‖1 / (2 * ↑π * I)‖ = 1 / (2 * π)), mul_assoc]
   apply (mul_le_mul_iff_right₀ (by simp [pi_pos])).mpr
   calc

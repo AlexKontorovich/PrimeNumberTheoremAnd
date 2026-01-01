@@ -178,20 +178,18 @@ theorem differentiableAt_deriv_riemannZeta {s : ℂ} (s_ne_one : s ≠ 1) :
   is bounded in a neighborhood of $s=1$.
   -/)
   (proof := /--
-  From `riemannZeta_residue_one` (in Mathlib), we know that
+  From \texttt{riemannZeta\_residue\_one} (in Mathlib), we know that
   $(s-1)\zeta(s)$ goes to $1$ as $s\to1$. Now apply Theorem \ref{ResidueOfTendsTo}.
   (This can also be done using $\zeta_0$ below, which is expressed as
   $1/(s-1)$ plus things that are holomorphic for $\Re(s)>0$...)
   -/)]
 theorem riemannZetaResidue :
-
     ∃ U ∈ 𝓝 1, BddAbove (norm ∘ (ζ - (fun s ↦ (s - 1)⁻¹)) '' (U \ {1})) := by
   have zeta_holc : HolomorphicOn ζ (univ \ {1}) := by
     intro y hy
     exact DifferentiableAt.differentiableWithinAt <| differentiableAt_riemannZeta hy.2
   convert ResidueOfTendsTo univ_mem zeta_holc riemannZeta_residue_one using 6
   simp
-
 
 
 -- Main theorem: if functions agree on a punctured set, their derivatives agree there too
@@ -204,7 +202,6 @@ theorem deriv_eqOn_of_eqOn_punctured (f g : ℂ → ℂ) (U : Set ℂ) (p : ℂ)
   -- hx : x ∈ U \ {p}, so x ∈ U and x ≠ p
   have hx_in_U : x ∈ U := hx.1
   have hx_ne_p : x ≠ p := hx.2
-
   -- Since f and g agree on U \ {p} and x ≠ p,
   -- we can find a neighborhood of x where f = g
   have h_eq_nhds : ∀ᶠ y in 𝓝 x, f y = g y := by
@@ -213,9 +210,7 @@ theorem deriv_eqOn_of_eqOn_punctured (f g : ℂ → ℂ) (U : Set ℂ) (p : ℂ)
     rw [eventually_nhds_iff]
     use U \ {p}
     exact ⟨h_eq, hU_open.sdiff isClosed_singleton, hx⟩
-
   -- Now use the fact that if f = g in a neighborhood, then deriv f = deriv g
-
   exact EventuallyEq.deriv_eq h_eq_nhds
 
 /- New two theorems to be proven -/
