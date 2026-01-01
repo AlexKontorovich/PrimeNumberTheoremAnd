@@ -1202,7 +1202,8 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
     · simp
     · convert Tendsto.mul_const (c := 1) (b := 1-ε) ?_ using 2
       · simp
-      convert Tendsto.const_add (c := 0) (b := 1) (f := fun (n:ℕ) ↦ c' ((1-ε) * n * log n)) ?_ using 2
+      convert Tendsto.const_add (c := 0) (b := 1)
+        (f := fun (n:ℕ) ↦ c' ((1-ε) * n * log n)) ?_ using 2
       · simp
       rw [Asymptotics.isLittleO_one_iff] at hc'
       apply Tendsto.comp hc'
@@ -1217,7 +1218,8 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
       field_simp
       have : 1-ε ≠ 0 := by linarith
       rw [Real.log_mul, Real.log_mul] <;> try positivity
-    convert Tendsto.add_const (c := 0) (b := 1) (f := fun (n:ℕ) ↦ (log (1 - ε)/log n) + (log (log n) / log n) ) ?_
+    convert Tendsto.add_const (c := 0) (b := 1) (f :=
+      fun (n:ℕ) ↦ (log (1 - ε)/log n) + (log (log n) / log n) ) ?_
     · simp
     convert Tendsto.add (a := 0) (b := 0) (f := fun (n:ℕ) ↦ (log (1 - ε)/log n)) ?_ ?_
     · simp
@@ -1241,7 +1243,8 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
   have h5 : ∀ᶠ n:ℕ in atTop,
       n < (1 + c' ((1 + ε) * n * log n - 1)) * ((1 + ε) * n * log n - 1) /
         log ((1 + ε) * n * log n - 1) := by
-      suffices ∀ᶠ n:ℕ in atTop, (1 + c' ((1 + ε) * n * log n - 1)) * (((1 + ε) * log n - 1/n) / log ((1 + ε) * n * log n - 1)) > 1 by
+      suffices ∀ᶠ n:ℕ in atTop, (1 + c' ((1 + ε) * n * log n - 1)) *
+        (((1 + ε) * log n - 1/n) / log ((1 + ε) * n * log n - 1)) > 1 by
         filter_upwards [h1, this]
         intro n hn₀ hn
         replace hn := mul_lt_mul_of_pos_right hn (show 0 < (n:ℝ) by  positivity)
@@ -1269,8 +1272,10 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
             apply (Polynomial.degree_smul_le _ _).trans
             simp
           have deg_3 : ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).degree = (1:ℕ) := by order
-          have deg_4 : ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).natDegree = 1 := Polynomial.natDegree_eq_of_degree_eq_some deg_3
-          convert Polynomial.tendsto_atTop_of_leadingCoeff_nonneg ((1+ε) • Polynomial.X - 1: Polynomial ℝ) ?_ ?_ with x
+          have deg_4 : ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).natDegree = 1 :=
+            Polynomial.natDegree_eq_of_degree_eq_some deg_3
+          convert Polynomial.tendsto_atTop_of_leadingCoeff_nonneg
+            ((1+ε) • Polynomial.X - 1: Polynomial ℝ) ?_ ?_ with x
           · simp
           · simp [deg_3]
           simp [←Polynomial.coeff_natDegree, deg_4, Polynomial.coeff_one]
@@ -1317,7 +1322,8 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
           rw [←Real.log_mul] <;> try grind
           congr
           field_simp
-        convert Tendsto.add_const (c := 0) (b := 1) (f := fun n:ℕ ↦ log (1 - ((1 + ε) * n * log n)⁻¹) / log ((1 + ε) * n * log n)) ?_
+        convert Tendsto.add_const (c := 0) (b := 1) (f :=
+          fun n:ℕ ↦ log (1 - ((1 + ε) * n * log n)⁻¹) / log ((1 + ε) * n * log n)) ?_
         · simp
         apply Tendsto.div_atTop (a := 0)
         · convert Filter.Tendsto.log (x := 1) ?_ (by positivity)
@@ -1332,7 +1338,8 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
         intro n h1n h2n
         unfold f3; field_simp
         rw [Real.log_mul, Real.log_mul] <;> try positivity
-      convert Tendsto.add_const (c := 0) (b := 1) (f := fun (n:ℕ) ↦ (log (1 + ε)/log n) + (log (log n) / log n) ) ?_
+      convert Tendsto.add_const (c := 0) (b := 1) (f :=
+        fun (n:ℕ) ↦ (log (1 + ε)/log n) + (log (log n) / log n) ) ?_
       · simp
       convert Tendsto.add (a := 0) (b := 0) (f := fun (n:ℕ) ↦ (log (1 + ε)/log n)) ?_ ?_
       · simp
@@ -1503,7 +1510,8 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
             · apply Filter.Tendsto.div_atTop (l := atTop) (a := log 2)
               · simp
               · norm_cast
-                have shift_fn := Filter.tendsto_add_atTop_iff_nat (f := fun n => log (n)) (l := atTop) 2
+                have shift_fn :=
+                  Filter.tendsto_add_atTop_iff_nat (f := fun n => log (n)) (l := atTop) 2
                 rw [shift_fn]
                 apply Filter.Tendsto.comp Real.tendsto_log_atTop
                 exact tendsto_natCast_atTop_atTop
@@ -1611,7 +1619,8 @@ lemma bound_f_second_term (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ 
   exact bound_one_plus_f b δ (ha b (by linarith))
 
 
-lemma bound_f_first_term {ε : ℝ} (hε : 0 < ε) (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ : ℝ) (hδ : δ > 0) :
+lemma bound_f_first_term {ε : ℝ} (hε : 0 < ε) (f : ℝ → ℝ)
+    (hf : Tendsto f atTop (nhds 0)) (δ : ℝ) (hδ : δ > 0) :
     ∀ᶠ x: ℝ in atTop, (1 + f ((1 + ε) * x)) > (1 - δ)  := by
   have bound_one_plus_f: ∀ y: ℝ, ∀ z: ℝ, |f y| < z → 1 + (f y) > 1 - z := by
     intro y z hf
@@ -1658,7 +1667,8 @@ lemma bound_f_first_term {ε : ℝ} (hε : 0 < ε) (f : ℝ → ℝ) (hf : Tends
 
 lemma smaller_terms {ε : ℝ} (hε : 0 < ε) (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ : ℝ)
     (hδ : δ > 0) :
-    ∀ᶠ x: ℝ in atTop, (1 - δ) * (((1 + ε) * x / (Real.log ((1 + ε) * x)))) < (1 + f ((1 + ε) * x)) * ((1 + ε) * x / (Real.log ((1 + ε) * x))) := by
+    ∀ᶠ x: ℝ in atTop, (1 - δ) * (((1 + ε) * x / (Real.log ((1 + ε) * x)))) <
+      (1 + f ((1 + ε) * x)) * ((1 + ε) * x / (Real.log ((1 + ε) * x))) := by
   have first_term := bound_f_first_term hε f hf δ hδ
   simp only [gt_iff_lt, eventually_atTop, ge_iff_le] at first_term
   obtain ⟨p, hp⟩ := first_term
@@ -1713,7 +1723,8 @@ lemma second_smaller_terms (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ
   · linarith
 
 lemma x_log_x_atTop : Filter.Tendsto (fun x => x / Real.log x) Filter.atTop Filter.atTop := by
-  have inv_log_x_div := Filter.Tendsto.comp (f := fun x => Real.log x / x) (g := fun x => x⁻¹) (x := Filter.atTop) (y := (nhdsWithin 0 (Set.Ioi 0))) (z := Filter.atTop) ?_ ?_
+  have inv_log_x_div := Filter.Tendsto.comp (f := fun x => Real.log x / x) (g := fun x => x⁻¹)
+    (x := Filter.atTop) (y := (nhdsWithin 0 (Set.Ioi 0))) (z := Filter.atTop) ?_ ?_
   · simp_rw [Function.comp_def, inv_div] at inv_log_x_div
     exact inv_log_x_div
   · exact tendsto_inv_nhdsGT_zero (𝕜 := ℝ)
@@ -1779,12 +1790,14 @@ lemma tendsto_by_squeeze (ε : ℝ) (hε : ε > 0) :
     field_simp at ha1 ha2
     exact ⟨ha1, ha2⟩
   · rw [← Filter.tendsto_comp_val_Ioi_atTop (a := 1)]
-    have log_split: ∀ x: Set.Ioi 1, x.val / log ((1 + ε) * x.val) = x.val / (log (1 + ε) + log (x.val)) := by
+    have log_split: ∀ x: Set.Ioi 1, x.val / log ((1 + ε) * x.val) =
+      x.val / (log (1 + ε) + log (x.val)) := by
       intro x
       have x_ge_one: 1 < x.val := Set.mem_Ioi.mp x.property
       rw [Real.log_mul (by linarith) (by linarith)]
 
-    have log_factor: ∀ x: Set.Ioi 1, x.val / (log (1 + ε) + log (x.val)) = x.val / ((1 + (log (1 + ε)/(log x.val))) * (log x.val)) := by
+    have log_factor: ∀ x: Set.Ioi 1, x.val / (log (1 + ε) + log (x.val)) =
+      x.val / ((1 + (log (1 + ε)/(log x.val))) * (log x.val)) := by
       intro x
       have : log (x.val) ≠ 0 := by
         have pos := Real.log_pos x.property
@@ -1810,7 +1823,8 @@ lemma tendsto_by_squeeze (ε : ℝ) (hε : ε > 0) :
       lhs
       rw [log_factor]
 
-    suffices Tendsto (fun x : Set.Ioi (1 : ℝ) ↦ (1 - d) * ((1 + ε) * x) / ((1 + log (1 + ε) / log x) * log x) - (1 + d) * x / log x) atTop atTop by
+    suffices Tendsto (fun x : Set.Ioi (1 : ℝ) ↦ (1 - d) * ((1 + ε) * x) /
+      ((1 + log (1 + ε) / log x) * log x) - (1 + d) * x / log x) atTop atTop by
       field_simp at this ⊢
       exact this
     conv =>
@@ -1922,8 +1936,10 @@ lemma tendsto_by_squeeze (ε : ℝ) (hε : ε > 0) :
 
 @[blueprint
   (title := "prime_between")
-  (statement := /-- For every $\eps>0$, there is a prime between $x$ and $(1+\eps)x$ for all sufficiently large $x$. -/)
-  (proof := /-- Use Corollary \ref{pi_alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infinity as $x \to \infty$. -/)
+  (statement := /-- For every $\eps>0$, there is a prime between $x$ and $(1+\eps)x$ for
+  all sufficiently large $x$. -/)
+  (proof := /-- Use Corollary \ref{pi_alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infinity
+  as $x \to \infty$. -/)
   (latexEnv := "corollary")]
 theorem prime_between {ε : ℝ} (hε : 0 < ε) :
     ∀ᶠ x : ℝ in atTop, ∃ p : ℕ, Nat.Prime p ∧ x < p ∧ p < (1 + ε) * x := by
@@ -1968,7 +1984,8 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
   obtain rfl | hN := N.eq_zero_or_pos
   · simp
   /- annoying case -/
-  have h_sum : 1 = (∑ d ∈ range (N + 1), (μ d / d : ℚ)) * N - ∑ d ∈ range (N + 1), μ d * Int.fract (N / d : ℚ) := calc
+  have h_sum : 1 = (∑ d ∈ range (N + 1), (μ d / d : ℚ)) * N - ∑ d ∈ range (N + 1),
+      μ d * Int.fract (N / d : ℚ) := calc
     (1 : ℚ) = ∑ m ∈ Ioc 0 N, ∑ d ∈ m.divisors, μ d := by
       have (x : ℕ) (hx : x ∈ Ioc 0 N) : ∑ d ∈ divisors x, μ d = if x = 1 then 1 else 0 := by
         rw [mem_Ioc] at hx
@@ -1983,7 +2000,8 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
     _ = ∑ d ∈ range (N + 1), (μ d : ℚ) * ⌊(N / d : ℚ)⌋ := by
       simp_rw [Rat.floor_natCast_div_natCast]
       simp [← Int.natCast_ediv]
-    _ = (∑ d ∈ range (N + 1), (μ d / d : ℚ)) * N - ∑ d ∈ range (N + 1), μ d * Int.fract (N / d : ℚ) := by
+    _ = (∑ d ∈ range (N + 1), (μ d / d : ℚ)) * N - ∑ d ∈ range (N + 1),
+        μ d * Int.fract (N / d : ℚ) := by
       simp_rw [sum_mul, ← sum_sub_distrib, mul_comm_div, ← mul_sub, Int.self_sub_fract]
   rw [eq_sub_iff_add_eq, eq_comm, ← eq_div_iff (by norm_num [Nat.pos_iff_ne_zero.mp hN])] at h_sum
 
@@ -2113,7 +2131,7 @@ blueprint_comment /--
   (proof := /-- This is a routine modification of the proof of Theorem \ref{chebyshev_asymptotic}. -/)
   (proofUses := ["chebyshev_asymptotic"])
   (latexEnv := "theorem")]
-theorem chebyshev_asymptotic_pnt {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) :
+theorem chebyshev_asymptotic_pnt {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) :
     (fun x ↦ ∑ p ∈ (filter Nat.Prime (Iic ⌊x⌋₊)), if (p % q = a) then log p else 0) ~[atTop] (fun x ↦ x / (Nat.totient q)) := by sorry
 
 @[blueprint
@@ -2122,7 +2140,8 @@ theorem chebyshev_asymptotic_pnt {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime 
   (proof := /-- If this were not the case, then the sum $\sum_{p \leq x: p = a\ (q)} \log p$ would be bounded in $x$, contradicting Theorem \ref{chebyshev_asymptotic_pnt}. -/)
   (proofUses := ["chebyshev_asymptotic_pnt"])
   (latexEnv := "corollary")]
-theorem dirichlet_thm {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) : Infinite { p // p.Prime ∧ p % q = a } := by sorry
+theorem dirichlet_thm {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) :
+    Infinite { p // p.Prime ∧ p % q = a } := by sorry
 
 blueprint_comment /--
 \section{Consequences of the Chebotarev density theorem}
