@@ -198,11 +198,11 @@ theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     ‖deriv f z‖ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
     let r' : ℝ := (R + r) / 2
     have h0 : ‖deriv f z‖ ≤ 4 * M * (R + r) ^ 2 / (R - r) ^ 3 := by
-        have test : 4 * M * (R + r) ^ 2 / (R - r) ^ 3 = 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
+        have : 4 * M * (R + r) ^ 2 / (R - r) ^ 3 = 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
             simp[r']
             field_simp
             ring_nf
-        rw[test]
+        rw[this]
         refine DerivativeBound (Mpos) (analytic_f) (zeroAtZero) (hf_domain) (realPartBounded) (rpos) (hyp_z) ?_ ?_
         ·   simp[r']
             linarith
