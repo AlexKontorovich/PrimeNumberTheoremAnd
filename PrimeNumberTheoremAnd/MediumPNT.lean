@@ -360,9 +360,6 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
         εpos (by positivity)
 
 
-
-
-
 blueprint_comment /--
 The smoothed Chebyshev function is close to the actual Chebyshev function.
 -/
@@ -787,31 +784,38 @@ contours (via rectangles!) to go
 from $\sigma_0-i\infty$ up to $\sigma_0-iT$, then over to $\sigma_1-iT$,
 up to $\sigma_1-3i$, over to $\sigma_2-3i$, up to $\sigma_2+3i$, back over to $\sigma_1+3i$, up to $\sigma_1+iT$, over to $\sigma_0+iT$, and finally up to $\sigma_0+i\infty$.
 
-\begin{verbatim}
-                    |
-                    | I₉
-              +-----+
-              |  I₈
-              |
-           I₇ |
-              |
-              |
-  +-----------+
-  |       I₆
-I₅|
---σ₂----------σ₁--1-σ₀----
-  |
-  |       I₄
-  +-----------+
-              |
-              |
-            I₃|
-              |
-              |  I₂
-              +-----+
-                    | I₁
-                    |
-\end{verbatim}
+\begin{center}
+\begin{tikzpicture}[scale=0.8]
+  % Vertical line at σ₀
+  \draw[thick] (4,4) -- (4,3) node[right] {$I_9$};
+  \draw[thick] (4,3) -- (4,2);
+  % Horizontal line from σ₀ to σ₁ (top)
+  \draw[thick] (4,2) -- (2,2) node[above,midway] {$I_8$};
+  % Vertical line at σ₁ (upper part)
+  \draw[thick] (2,2) -- (2,1) node[left] {$I_7$};
+  % Horizontal line from σ₁ to σ₂ (upper)
+  \draw[thick] (2,1) -- (0,1) node[above,midway] {$I_6$};
+  % Vertical line at σ₂
+  \draw[thick] (0,1) -- (0,-1) node[left] {$I_5$};
+  % Horizontal line from σ₂ to σ₁ (lower)
+  \draw[thick] (0,-1) -- (2,-1) node[below,midway] {$I_4$};
+  % Vertical line at σ₁ (lower part)
+  \draw[thick] (2,-1) -- (2,-2) node[left] {$I_3$};
+  % Horizontal line from σ₁ to σ₀ (bottom)
+  \draw[thick] (2,-2) -- (4,-2) node[below,midway] {$I_2$};
+  % Vertical line at σ₀ (lower part)
+  \draw[thick] (4,-2) -- (4,-3) node[right] {$I_1$};
+  \draw[thick] (4,-3) -- (4,-4);
+  % Labels for sigma values
+  \draw[dashed] (0,-4) -- (0,4);
+  \draw[dashed] (2,-4) -- (2,4);
+  \draw[dashed] (4,-4) -- (4,4);
+  \node at (0,-4.3) {$\sigma_2$};
+  \node at (2,-4.3) {$\sigma_1$};
+  \node at (3,-4.3) {$1$};
+  \node at (4,-4.3) {$\sigma_0$};
+\end{tikzpicture}
+\end{center}
 
 In the process, we will pick up the residue at $s=1$.
 We will do this in several stages. Here the interval integrals are defined as follows:
