@@ -2519,7 +2519,7 @@ The goal here is to prove the Chebotarev density theorem for the case of cycloto
 -/
 
 blueprint_comment /--
-\begin{lemma}[Dedekind_factor]\label{Dedekind_factor}  We have
+\begin{lemma}[Dedekind-factor]\label{Dedekind-factor}  We have
 $$ \zeta_L(s) = \prod_{\chi} L(\chi,s)$$
 for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ and $L$ is the
 Artin $L$-function.
@@ -2533,7 +2533,7 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-\begin{lemma}[Simple pole]\label{Dedekind_pole}  $\zeta_L$ has a simple pole at $s=1$.
+\begin{lemma}[Simple pole]\label{Dedekind-pole}  $\zeta_L$ has a simple pole at $s=1$.
 \end{lemma}
 -/
 
@@ -2543,15 +2543,15 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-\begin{lemma}[Dedekind_nonvanishing]\label{Dedekind_nonvanishing}  For any non-principal character
+\begin{lemma}[Dedekind-nonvanishing]\label{Dedekind-nonvanishing}  For any non-principal character
 $\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
 \end{lemma}
 
 -/
 
 blueprint_comment /--
-\begin{proof}\uses{Dedekind_factor, Dedekind_pole} For $s=1$, this will follow from
-Lemmas \ref{Dedekind_factor}, \ref{Dedekind_pole}. For the rest of the line, one should be able to
+\begin{proof}\uses{Dedekind-factor, Dedekind-pole} For $s=1$, this will follow from
+Lemmas \ref{Dedekind-factor}, \ref{Dedekind-pole}. For the rest of the line, one should be able to
 adapt the arguments for the Dirichet L-function.
 \end{proof}
 -/
@@ -2579,7 +2579,7 @@ $Gal(K/L)$, $$ \sum_{N \mathfrak{p} \leq x} \chi(\mathfrak{p}) \log N \mathfrak{
 -/
 
 blueprint_comment /--
-\begin{proof}\uses{Dedekind_nonvanishing} This should follow from Lemma \ref{Dedekind_nonvanishing}
+\begin{proof}\uses{Dedekind-nonvanishing} This should follow from Lemma \ref{Dedekind-nonvanishing}
 and the arguments for the Dirichlet L-function. (It may be more convenient to work with a
 von Mangoldt type function instead of $\log N\mathfrak{p}$).
 \end{proof}
