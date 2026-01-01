@@ -204,7 +204,7 @@ lemma second_fourier_aux (hx : 0 < x) :
 @[blueprint
   (title := "second_fourier")
   (statement := /--
-   If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
+  If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
   $$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du = x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt.$$
   -/)
   (proof := /--
