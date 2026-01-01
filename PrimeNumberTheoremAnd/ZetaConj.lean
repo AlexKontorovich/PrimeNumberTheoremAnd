@@ -8,7 +8,7 @@ blueprint_comment /--
 Already on Mathlib (with a shortened proof):
 -/
 @[blueprint
-  (title := "hasDerivAt_conj_conj")
+  (title := "hasDerivAt-conj-conj")
   (statement := /--
   Let $f : \mathbb{C} \to \mathbb{C}$ be a complex differentiable function at $p \in \mathbb{C}$ with derivative $a$.
   Then the function $g(z) = \overline{f(\overline{z})}$ is complex differentiable at $\overline{p}$ with derivative $\overline{a}$.
@@ -33,7 +33,7 @@ blueprint_comment /--
 Submitted to Mathlib:
 -/
 @[blueprint
-  (title := "deriv_conj_conj")
+  (title := "deriv-conj-conj")
   (statement := /--
   Let $f : \mathbb{C} \to \mathbb{C}$ be a function at $p \in \mathbb{C}$ with derivative $a$.
   Then the derivative of the function $g(z) = \overline{f(\overline{z})}$ at $\overline{p}$ is $\overline{a}$.
@@ -59,7 +59,7 @@ theorem deriv_conj_conj (f : ℂ → ℂ) (p : ℂ) :
 
 
 @[blueprint
-  (title := "conj_riemannZeta_conj_aux1")
+  (title := "conj-riemannZeta-conj-aux1")
   (statement := /--
   Conjugation symmetry of the Riemann zeta function in the half-plane of convergence.
   Let $s \in \mathbb{C}$ with $\Re(s) > 1$.
@@ -87,7 +87,7 @@ blueprint_comment /--
 % TODO: Submit this and the following corollaries to Mathlib.
 -/
 @[blueprint
-  (title := "conj_riemannZeta_conj")
+  (title := "conj-riemannZeta-conj")
   (statement := /--
   Conjugation symmetry of the Riemann zeta function.
   Let $s \in \mathbb{C}$.
@@ -136,7 +136,7 @@ theorem conj_riemannZeta_conj (s : ℂ) : conj (riemannZeta (conj s)) = riemannZ
 
 
 @[blueprint
-  (title := "riemannZeta_conj")
+  (title := "riemannZeta-conj")
   (statement := /--
   Conjugation symmetry of the Riemann zeta function.
   Let $s \in \mathbb{C}$.
@@ -150,7 +150,7 @@ theorem riemannZeta_conj (s : ℂ) : riemannZeta (conj s) = conj (riemannZeta s)
 
 
 @[blueprint
-  (title := "deriv_riemannZeta_conj")
+  (title := "deriv-riemannZeta-conj")
   (statement := /--
   Conjugation symmetry of the derivative of the Riemann zeta function.
   Let $s \in \mathbb{C}$.
@@ -172,7 +172,7 @@ blueprint_comment /--
 % TODO: Submit this to Mathlib.
 -/
 @[blueprint
-  (title := "intervalIntegral_conj")
+  (title := "intervalIntegral-conj")
   (statement := /--
   The conjugation symmetry of the interval integral.
   Let $f : \mathbb{R} \to \mathbb{C}$ be a measurable function, and let $a, b \in \mathbb{R}$.

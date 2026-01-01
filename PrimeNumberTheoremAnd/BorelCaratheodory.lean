@@ -237,7 +237,7 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
 
 
 @[blueprint
-  (title := "borelCaratheodory_closedBall")
+  (title := "borelCaratheodory-closedBall")
   (statement := /--
   Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose
   $\Re f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,

@@ -500,7 +500,7 @@ theorem logDerivResidue {f : ℂ → ℂ} {p : ℂ} {U : Set ℂ}
 
 
 @[blueprint
-  (title := "BddAbove_to_IsBigO")
+  (title := "BddAbove-to-IsBigO")
   (statement := /-- If $f$ is bounded above in a punctured neighborhood of $p$, then $f$ is $O(1)$ in that neighborhood. -/)
   (proof := /-- Elementary. -/)]
 lemma BddAbove_to_IsBigO {f : ℂ → ℂ} {p : ℂ}
@@ -783,7 +783,7 @@ instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated us
     lift x to ℕ using (by linarith); exact ⟨x, by exact_mod_cast hx, rfl⟩
 
 @[blueprint
-  (title := "sum_eq_int_deriv")
+  (title := "sum-eq-int-deriv")
   (statement := /--
   Let $a < b$, and let $\phi$ be continuously differentiable on $[a, b]$.
   Then
@@ -884,7 +884,7 @@ lemma ZetaSum_aux1derivφCont {s : ℂ} (s_ne_zero : s ≠ 0) {a b : ℕ} (ha : 
   exact fun x hx ↦ ofReal_mem_slitPlane.mpr <| xpos_of_uIcc ha hx
 
 @[blueprint
-  (title := "ZetaSum_aux1")
+  (title := "ZetaSum-aux1")
   (statement := /--
   Let $0 < a < b$ be natural numbers and $s\in \C$ with $s \ne 1$ and $s \ne 0$.
   Then
@@ -998,7 +998,7 @@ lemma ZetaSum_aux1_5 {a b : ℝ} (apos : 0 < a) (a_lt_b : a < b) {s : ℂ} (σpo
   · exact ZetaSum_aux1_5b apos a_lt_b σpos
 
 @[blueprint
-  (title := "ZetaBnd_aux1a")
+  (title := "ZetaBnd-aux1a")
   (statement := /--
   For any $0 < a < b$ and  $s \in \C$ with $\sigma=\Re(s)>0$,
   $$
@@ -1093,7 +1093,7 @@ lemma integrableOn_of_Zeta0_fun {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 0
     exact Measurable.comp (by exact fun _ _ ↦ trivial) Int.measurable_floor
 
 @[blueprint
-  (title := "ZetaSum_aux2")
+  (title := "ZetaSum-aux2")
   (statement := /--
   Let $N$ be a natural number and $s\in \C$, $\Re(s)>1$.
   Then
@@ -1132,7 +1132,7 @@ lemma ZetaSum_aux2 {N : ℕ} (N_pos : 0 < N) {s : ℂ} (s_re_gt : 1 < s.re) :
 
 open MeasureTheory in
 @[blueprint
-  (title := "ZetaBnd_aux1b")
+  (title := "ZetaBnd-aux1b")
   (statement := /--
   For any $N\ge1$ and $s = \sigma + tI \in \C$, $\sigma > 0$,
   $$
@@ -1168,7 +1168,7 @@ lemma ZetaBnd_aux1b (N : ℕ) (Npos : 1 ≤ N) {σ t : ℝ} (σpos : 0 < σ) :
     convert ZetaBnd_aux1a (a := N) (b := t) (by positivity) (by linarith) ?_ <;> simp [σpos]
 
 @[blueprint
-  (title := "ZetaBnd_aux1")
+  (title := "ZetaBnd-aux1")
   (statement := /--
   For any $N\ge1$ and $s = \sigma + tI \in \C$, $\sigma=\in(0,2], 2 < |t|$,
   $$
@@ -1193,7 +1193,7 @@ blueprint_comment /--
 Big-Oh version of Lemma \ref{ZetaBnd_aux1}.
 -/
 @[blueprint
-  (title := "ZetaBnd_aux1p")
+  (title := "ZetaBnd-aux1p")
   (statement := /--
   For any $N\ge1$ and $s = \sigma + tI \in \C$, $\sigma=\in(0,2], 2 < |t|$,
   $$
@@ -1437,7 +1437,7 @@ lemma HasDerivAtZeta0 {N : ℕ} (Npos : 0 < N) {s : ℂ} (reS_pos : 0 < s.re) (s
     convert hasDerivAt_id s |>.mul <| hasDerivAt_Zeta0Integral Npos reS_pos using 1
 
 @[blueprint
-  (title := "HolomorphicOn_riemannZeta0")
+  (title := "HolomorphicOn-riemannZeta0")
   (statement := /--
   For any $N\ge1$, the function $\zeta_0(N,s)$ is holomorphic on $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$.
   -/)
@@ -1457,7 +1457,7 @@ lemma HolomophicOn_riemannZeta :
   exact (differentiableAt_riemannZeta hz).differentiableWithinAt
 
 @[blueprint
-  (title := "isPathConnected_aux")
+  (title := "isPathConnected-aux")
   (statement := /-- The set $\{s\in \C\mid \Re(s)>0 ∧ s \ne 1\}$ is path-connected. -/)
   (proof := /-- Construct explicit paths from $2$ to any point, either a line segment or two joined ones. -/)
   (latexEnv := "lemma")]
@@ -1604,7 +1604,7 @@ lemma mul_le_mul₃ {α : Type*} {a b c d e f : α} [MulZeroClass α] [Preorder 
   apply mul_le_mul (mul_le_mul h₁ h₂ c0 b0) h₃ e0 <| mul_nonneg b0 <| le_trans c0 h₂
 
 @[blueprint
-  (title := "ZetaBnd_aux2")
+  (title := "ZetaBnd-aux2")
   (statement := /--
   Given $n ≤ t$ and $\sigma$ with $1-A/\log t \le \sigma$, we have
   that
@@ -2097,7 +2097,7 @@ lemma DerivUpperBnd_aux7_integral_eq {a σ : ℝ} (ha : 1 ≤ a) (σpos : 0 < σ
 
 open MeasureTheory in
 @[blueprint
-  (title := "DerivUpperBnd_aux7")
+  (title := "DerivUpperBnd-aux7")
   (statement := /--
   For any $s = \sigma + tI \in \C$, $1/2 \le \sigma\le 2, 3 < |t|$, and any $0 < A < 1$ sufficiently small,
   and $1-A/\log |t| \le \sigma$, we have
@@ -2750,7 +2750,7 @@ lemma deriv_fun_re {t : ℝ} {f : ℂ → ℂ} (diff : ∀ (σ : ℝ), Different
   · apply DifferentiableAt.add_const _ <| differentiableAt_ofReal σ
 
 @[blueprint
-  (title := "Zeta_eq_int_derivZeta")
+  (title := "Zeta-eq-int-derivZeta")
   (statement := /--
   For any $t\ne0$ (so we don't pass through the pole), and $\sigma_1 < \sigma_2$,
   $$
@@ -2786,7 +2786,7 @@ lemma Zeta_eq_int_derivZeta {σ₁ σ₂ t : ℝ} (t_ne_zero : t ≠ 0) :
     · exact continuous_ofReal.continuousOn.add continuousOn_const
 
 @[blueprint
-  (title := "Zeta_diff_Bnd")
+  (title := "Zeta-diff-Bnd")
   (statement := /--
   For any $A>0$ sufficiently small, there is a constant $C>0$ so that
   whenever $1- A / \log t \le \sigma_1 < \sigma_2\le 2$ and $3 < |t|$, we have that:

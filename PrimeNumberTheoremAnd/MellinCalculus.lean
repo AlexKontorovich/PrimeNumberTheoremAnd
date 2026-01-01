@@ -675,7 +675,7 @@ lemma MellinOfDeltaSpikeAt1 (ν : ℝ → ℝ) {ε : ℝ} (εpos : ε > 0) :
 
 
 @[blueprint
-  (title := "MellinOfDeltaSpikeAt1_asymp")
+  (title := "MellinOfDeltaSpikeAt1-asymp")
   (statement := /--
   As $\epsilon\to 0$, we have
   $$\mathcal{M}(\nu_\epsilon)(1) = 1+O(\epsilon).$$
@@ -848,7 +848,7 @@ lemma Smooth1Properties_below_aux {x ε : ℝ} (hx : x ≤ 1 - Real.log 2 * ε) 
   exact (div_lt_iff₀ εpos).mp <| Smooth1Properties_estimate εpos
 
 @[blueprint
-  (title := "Smooth1Properties_below")
+  (title := "Smooth1Properties-below")
   (statement := /--
   Fix $\epsilon>0$. There is an absolute constant $c>0$ so that:
   If $0 < x \leq (1-c\epsilon)$, then
@@ -968,7 +968,7 @@ lemma Smooth1Properties_above_aux2 {x y ε : ℝ} (hε : ε ∈ Ioo 0 1) (hy : y
   · rw [ge_iff_le, le_div_iff₀ <| ypos]; exact (mul_le_iff_le_one_right zero_lt_two).mpr y1
 
 @[blueprint
-  (title := "Smooth1Properties_above")
+  (title := "Smooth1Properties-above")
   (statement := /--
   Fix $0<\epsilon<1$. There is an absolute constant $c>0$ so that:
   if $x\geq (1+c\epsilon)$, then

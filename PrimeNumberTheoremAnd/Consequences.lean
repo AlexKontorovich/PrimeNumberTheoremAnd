@@ -154,7 +154,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     · apply this z hz
 
 @[blueprint
-  (title := "finsum_range_eq_sum_range")
+  (title := "finsum-range-eq-sum-range")
   (statement := /--
    For any arithmetic function $f$ and real number $x$, one has
   $$ \sum_{n \leq x} f(n) = \sum_{n \leq ⌊x⌋_+} f(n)$$
@@ -247,7 +247,7 @@ theorem WeakPNT'' : ψ ~[atTop] (fun x ↦ x) := by
     exact floor_le hb'
 
 @[blueprint
-  (title := "chebyshev_asymptotic")
+  (title := "chebyshev-asymptotic")
   (statement := /--
   One has
   $$ \sum_{p \leq x} \log p = x + o(x).$$
@@ -347,7 +347,7 @@ theorem chebyshev_asymptotic'' :
 
 
 @[blueprint
-  (title := "primorial_bounds")
+  (title := "primorial-bounds")
   (statement := /--
   We have
     $$ \prod_{p \leq x} p = \exp( x + o(x) )$$
@@ -818,7 +818,7 @@ theorem pi_asymp'' :
       field
 
 @[blueprint
-  (title := "pi_asymp")
+  (title := "pi-asymp")
   (statement := /--
   There exists a function $c(x)$ such that $c(x) = o(1)$ as $x \to \infty$ and
   $$ \pi(x) = (1 + c(x)) \int_2^x \frac{dt}{\log t}$$
@@ -1086,7 +1086,7 @@ lemma integral_div_log_asymptotic : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ 
     field [show log x ≠ 0 by simp; grind]
 
 @[blueprint
-  (title := "pi_alt")
+  (title := "pi-alt")
   (statement := /--
     One has
   $$ \pi(x) = (1+o(1)) \frac{x}{\log x}$$
@@ -1153,7 +1153,7 @@ set_option maxHeartbeats 300000 in
 -- A large number of limit calculations necessitated a heartbeat limit increase. -
 open Filter in
 @[blueprint
-  (title := "pn_asymptotic")
+  (title := "pn-asymptotic")
   (statement := /--
    One has
     $$ p_n = (1+o(1)) n \log n$$
@@ -1388,7 +1388,7 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
 
 
 @[blueprint
-  (title := "pn_pn_plus_one")
+  (title := "pn-pn-plus-one")
   (statement := /--
   We have $p_{n+1} - p_n = o(p_n)$
     as $n \to \infty$.
@@ -1935,7 +1935,7 @@ lemma tendsto_by_squeeze (ε : ℝ) (hε : ε > 0) :
       exact x_log_x_atTop
 
 @[blueprint
-  (title := "prime_between")
+  (title := "prime-between")
   (statement := /-- For every $\eps>0$, there is a prime between $x$ and $(1+\eps)x$ for
   all sufficiently large $x$. -/)
   (proof := /-- Use Corollary \ref{pi_alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infinity

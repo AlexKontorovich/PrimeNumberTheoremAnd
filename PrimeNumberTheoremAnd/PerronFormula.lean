@@ -236,7 +236,7 @@ lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3 / 2)
 
 
 @[blueprint
-  (title := "tendsto_rpow_atTop_nhds_zero_of_norm_lt_one")
+  (title := "tendsto-rpow-atTop-nhds-zero-of-norm-lt-one")
   (statement := /--
   Let $x>0$ and $x<1$. Then
   $$\lim_{\sigma\to\infty}x^\sigma=0.$$
@@ -251,7 +251,7 @@ lemma tendsto_rpow_atTop_nhds_zero_of_norm_lt_one {x : ℝ} (xpos : 0 < x) (x_lt
 
 
 @[blueprint
-  (title := "tendsto_rpow_atTop_nhds_zero_of_norm_gt_one")
+  (title := "tendsto-rpow-atTop-nhds-zero-of-norm-gt-one")
   (statement := /--
   Let $x>1$. Then
   $$\lim_{\sigma\to-\infty}x^\sigma=0.$$
@@ -511,8 +511,7 @@ lemma isTheta (xpos : 0 < x) :
   isTheta_sup.mp <| isTheta_of_isThetaUniformly (isTheta_uniformlyOn_uIcc xpos σ σ) left_mem_uIcc
 
 
-@[blueprint
-  "isIntegrable"
+@[blueprint "isIntegrable"
   (title := "isIntegrable")
   (statement := /--
   Let $x>0$ and $\sigma\in\R$. Then
@@ -529,12 +528,12 @@ lemma isIntegrable (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ �
   /-- Also, $|f(x)| = \Theta(x^{-2})$ as $x\to\infty$, -/
   refine this.locallyIntegrable.integrable_of_isBigO_atTop_of_norm_eq_norm_neg
     (univ_mem' fun y ↦ ?_) (isTheta xpos).2.isBigO ⟨Ioi 1, Ioi_mem_atTop 1, ?_⟩
-  /-- and $|f(-x)| = \Theta(x^{-2})$ as $x\to\infty$. -/
-  · show ‖f x (↑σ + ↑y * I)‖ = ‖f x (↑σ + ↑(-y) * I)‖
+  · /-- and $|f(-x)| = \Theta(x^{-2})$ as $x\to\infty$. -/
+    change ‖f x (↑σ + ↑y * I)‖ = ‖f x (↑σ + ↑(-y) * I)‖
     have : (↑σ + ↑(-y) * I) = conj (↑σ + ↑y * I) := Complex.ext (by simp) (by simp)
     simp_rw [this, map_conj xpos.le, norm_conj]
-  /-- Since $g(x) = x^{-2}$ is integrable on $[a,\infty)$ for any $a>0$, we conclude. -/
-  · refine integrableOn_Ioi_rpow_of_lt (show (-2 : ℝ) < -1 by norm_num)
+  · /-- Since $g(x) = x^{-2}$ is integrable on $[a,\infty)$ for any $a>0$, we conclude. -/
+    refine integrableOn_Ioi_rpow_of_lt (show (-2 : ℝ) < -1 by norm_num)
       (show (0 : ℝ) < 1 by norm_num) |>.congr_fun (fun y hy ↦ ?_) measurableSet_Ioi
     rw [rpow_neg (show (0 : ℝ) < 1 by norm_num |>.trans hy |>.le), inv_eq_one_div, rpow_two]
 
@@ -555,7 +554,7 @@ theorem horizontal_integral_isBigO
 
 @[blueprint
   "tendsto_zero_Lower"
-  (title := "tendsto_zero_Lower")
+  (title := "tendsto-zero-Lower")
   (statement := /--
   Let $x>0$ and $\sigma',\sigma''\in\R$. Then
   $$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
@@ -575,8 +574,7 @@ lemma tendsto_zero_Lower (xpos : 0 < x) (σ' σ'' : ℝ) :
 
 
 @[blueprint
-  "tendsto_zero_Upper"
-  (title := "tendsto_zero_Upper")
+  (title := "tendsto-zero-Upper")
   (statement := /--
   Let $x>0$ and $\sigma',\sigma''\in\R$. Then
   $$\int_{\sigma'}^{\sigma''}\frac{x^{\sigma+it}}{(\sigma+it)(1+\sigma + it)}d\sigma$$
@@ -999,8 +997,9 @@ lemma formulaGtOne (x_gt_one : 1 < x) (σ_pos : 0 < σ) :
     · filter_upwards [eventually_lt_atBot (-3/2)]
       (conv at hC => intro σ hσ; rw [mul_comm]); exact fun _ ↦ hC _
   /-- So pulling contours gives $\int_{(-3/2)}=0$. -/
-  rw [limitOfConstantLeft (σ := -3/2) (Eq.le rfl) contourPull₃ ?_]; ring
-  exact tendsto_zero_iff_norm_tendsto_zero.mpr AbsVertIntTendsto
+  rw [limitOfConstantLeft (σ := -3/2) (Eq.le rfl) contourPull₃ ?_]
+  · ring
+  · exact tendsto_zero_iff_norm_tendsto_zero.mpr AbsVertIntTendsto
 
 
 blueprint_comment /--

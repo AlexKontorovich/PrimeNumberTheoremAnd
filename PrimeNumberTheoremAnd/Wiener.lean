@@ -2358,8 +2358,8 @@ lemma limiting_fourier_variant
 
 
 
-@[blueprint
-  (title := "crude_upper_bound")
+@[blueprint "crude-upper-bound"
+  (title := "crude-upper-bound")
   (statement := /--
     If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, then there exists a constant $B$ such that
   $$ |\sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )| \leq B$$
@@ -2378,15 +2378,15 @@ lemma crude_upper_bound
     ∃ B : ℝ, ∀ x : ℝ, 0 < x → ‖∑' n, f n / n * 𝓕 (ψ : ℝ → ℂ) (1 / (2 * π) * log (n / x))‖ ≤ B := by sorry
 
 
-@[blueprint
-  (title := "auto_cheby")
+@[blueprint "auto-cheby"
+  (title := "auto-cheby")
   (statement := /--
     One has
   $$ \sum_{n \leq x} f(n) = O(x)$$
   for all $x \geq 1$.
   -/)
   (proof := /--
-   By applying Corollary \ref{crude_upper_bound} for a specific compactly supported function $\psi$, one can obtain a bound of the form
+   By applying Corollary \ref{crude-upper-bound} for a specific compactly supported function $\psi$, one can obtain a bound of the form
   $\sum_{(1-\varepsilon)x < n \leq x} f(n) = O(x)$ for all $x$ and some absolute constant $\varepsilon$ (which can be made explicit).  If $C$ is a sufficiently large constant, the claim $|\sum_{n \leq x} f(n)| \leq Cx$ can now be proven by strong induction on $x$, as the claim for $(1-\varepsilon)x$ implies the claim for $x$ by the triangle inequality (and the claim is trivial for $x < 1$).
 
 
@@ -2397,9 +2397,9 @@ lemma crude_upper_bound
 
 
   \begin{proof}
-   Use Corollary \ref{auto_cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
+   Use Corollary \ref{auto-cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
   -/)
-  (proofUses := ["crude_upper_bound", "WienerIkehara"])
+  (proofUses := ["crude-upper-bound", "WienerIkehara"])
   (latexEnv := "corollary")]
 lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hG : ContinuousOn G {s | 1 ≤ s.re})
@@ -2426,7 +2426,7 @@ blueprint_comment /--
 -/
 
 @[blueprint
-  (title := "WeakPNT_character")
+  (title := "WeakPNT-character")
   (statement := /--
     If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
   $$
@@ -2466,7 +2466,7 @@ theorem WeakPNT_character
 
 
 @[blueprint
-  (title := "WeakPNT_AP_prelim")
+  (title := "WeakPNT-AP-prelim")
   (statement := /--
   If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to $\mathrm{Re}(s)=1$.
   -/)
@@ -2489,7 +2489,7 @@ theorem WeakPNT_AP_prelim {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a
 
 
 @[blueprint
-  (title := "WeakPNT_AP")
+  (title := "WeakPNT-AP")
   (statement := /--
   If $q ≥ 1$ and $a$ is coprime to $q$, we have
   $$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$

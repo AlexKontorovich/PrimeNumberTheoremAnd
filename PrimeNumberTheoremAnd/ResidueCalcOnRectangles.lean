@@ -114,7 +114,7 @@ Follows directly from the definitions.
 abbrev HolomorphicOn (f : ℂ → E) (s : Set ℂ) : Prop := DifferentiableOn ℂ f s
 
 @[blueprint
-  (title := "existsDifferentiableOn_of_bddAbove")
+  (title := "existsDifferentiableOn-of-bddAbove")
   (statement := /-- If $f$ is differentiable on a set $s$ except at $c\in s$, and $f$ is bounded above on $s\setminus\{c\}$, then there exists a differentiable function $g$ on $s$ such that $f$ and $g$ agree on $s\setminus\{c\}$. -/)
   (proof := /-- This is the Riemann Removable Singularity Theorem, slightly rephrased from what's in Mathlib. (We don't care what the function $g$ is, just that it's holomorphic.) -/)]
 theorem existsDifferentiableOn_of_bddAbove [CompleteSpace E] {s : Set ℂ} {c : ℂ} (hc : s ∈ nhds c)

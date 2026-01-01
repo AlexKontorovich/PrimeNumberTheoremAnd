@@ -114,7 +114,7 @@ open MeasureTheory
 
 
 @[blueprint
-  (title := "SmoothedChebyshevDirichlet_aux_integrable")
+  (title := "SmoothedChebyshevDirichlet-aux-integrable")
   (statement := /--
   Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, and $\sigma\in (1, 2]$, the function
   $$
@@ -163,7 +163,7 @@ lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ}
 attribute [fun_prop] Continuous.const_cpow
 
 @[blueprint
-  (title := "SmoothedChebyshevDirichlet_aux_tsum_integral")
+  (title := "SmoothedChebyshevDirichlet-aux-tsum-integral")
   (statement := /--
   Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in
   $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$ and $\sigma\in(1,2]$, the
@@ -1022,7 +1022,7 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_explicit {σ₀ : ℝ} (σ₀_gt 
 
 -- TODO : Move elsewhere (should be in Mathlib!) NOT NEEDED
 @[blueprint
-  (title := "dlog_riemannZeta_bdd_on_vertical_lines")
+  (title := "dlog-riemannZeta-bdd-on-vertical-lines")
   (statement := /--
   For $\sigma_0 > 1$, there exists a constant $C > 0$ such that
   $$
@@ -1044,7 +1044,7 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ�
 
 
 @[blueprint
-  (title := "SmoothedChebyshevPull1_aux_integrable")
+  (title := "SmoothedChebyshevPull1-aux-integrable")
   (statement := /--
   The integrand $$\zeta'(s)/\zeta(s)\mathcal{M}(\widetilde{1_{\epsilon}})(s)X^{s}$$
   is integrable on the contour $\sigma_0 + t i$ for $t \in \R$ and $\sigma_0 > 1$.
@@ -1739,7 +1739,7 @@ blueprint_comment /--
 This auxiliary lemma is useful for what follows.
 -/
 @[blueprint
-  (title := "IBound_aux1")
+  (title := "IBound-aux1")
   (statement := /--
   Given a natural number $k$ and a real number $X_0 > 0$, there exists $C \geq 1$ so that for all $X \geq X_0$,
   $$
