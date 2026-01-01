@@ -127,8 +127,9 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
               Set.mem_setOf_eq] at hyp_x₁
             rw [← norm_pos_iff]
             calc 0
-              _ < R - ‖x₁ - x‖ := by let ⟨u,v⟩ := hyp_x₁; linarith
-              _ = ‖x‖ - ‖-(x₁ - x)‖ := by rw [h, neg_sub, sub_right_inj]; apply norm_sub_rev
+              _ < R - ‖x₁ - x‖ := by let ⟨u, v⟩ := hyp_x₁; linarith
+              _ = ‖x‖ - ‖-(x₁ - x)‖ := by
+                rw [h, neg_sub, sub_right_inj]; apply norm_sub_rev
               _ ≤ ‖x - (-(x₁ - x))‖ := by apply norm_sub_norm_le
               _ = ‖x₁‖ := by rw [neg_sub, sub_sub_cancel]
 
@@ -149,7 +150,8 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
           dist_zero_right] at x_hyp
         apply lt_of_le_of_ne x_hyp
         · rw [ne_eq]; exact h
-      · have si : Metric.closedBall (0 : ℂ) R ∩ Metric.ball (0 : ℂ) R = Metric.ball (0 : ℂ) R := by
+      · have si :
+            Metric.closedBall (0 : ℂ) R ∩ Metric.ball (0 : ℂ) R = Metric.ball (0 : ℂ) R := by
           apply Set.inter_eq_self_of_subset_right
           rw [Metric.mem_closedBall, dist_zero_right] at x_hyp
           exact Metric.ball_subset_closedBall
@@ -266,7 +268,8 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r)
     : ‖f z‖ ≤ (2 * M * r) / (R - r) := by
 
-  have zInSFunc : ∀ r ≤ R, ∀ z ∈ Metric.sphere (0 : ℂ) r, z ∈ Metric.closedBall (0 : ℂ) R := by
+  have zInSFunc :
+      ∀ r ≤ R, ∀ z ∈ Metric.sphere (0 : ℂ) r, z ∈ Metric.closedBall (0 : ℂ) R := by
     intro r hyp_r z hyp_z
     apply Set.mem_of_mem_of_subset (s := Metric.sphere 0 r) hyp_z
     · calc Metric.sphere (0 : ℂ) r
@@ -308,7 +311,8 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
       (AnalyticOn.schwartzQuotient M Rpos analytic fPosAll zeroAtZero)
       (by rfl) schwartzQuotientBounded
 
-  have boundForF : ∀ r < R, 0 < r → ∀ z ∈ Metric.sphere 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
+  have boundForF :
+      ∀ r < R, 0 < r → ∀ z ∈ Metric.sphere 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
     intro r hyp_r r_pos z zOnR
     have zInS : z ∈ Metric.closedBall 0 R := zInSFunc r (by linarith) z (zOnR)
     rw [mem_sphere_zero_iff_norm] at zOnR
