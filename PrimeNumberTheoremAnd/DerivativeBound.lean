@@ -5,8 +5,12 @@ Authors: Maksym Radziwill
 -/
 
 import Architect
-import Mathlib.NumberTheory.VonMangoldt
-import Mathlib.NumberTheory.ArithmeticFunction
+import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
+import Mathlib.NumberTheory.ArithmeticFunction.Defs
+import Mathlib.NumberTheory.ArithmeticFunction.Misc
+import Mathlib.NumberTheory.ArithmeticFunction.Moebius
+import Mathlib.NumberTheory.ArithmeticFunction.VonMangoldt
+import Mathlib.NumberTheory.ArithmeticFunction.Zeta
 import Mathlib.Topology.EMetricSpace.Defs
 import Mathlib.Analysis.Analytic.Basic
 import Mathlib.Data.Complex.Basic
