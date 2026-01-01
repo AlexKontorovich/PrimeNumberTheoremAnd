@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - LeanArchitect
   pull_request:
     branches:
       - main
