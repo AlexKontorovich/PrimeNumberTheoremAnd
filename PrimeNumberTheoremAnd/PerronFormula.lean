@@ -223,12 +223,10 @@ lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3 / 2)
   /--
   \begin{align*}
     \lim_{\sigma'\to-\infty}a(\sigma) &= \lim_{\sigma'\to-\infty}a(\sigma') \\
-  -/
-  have := eventuallyEq_of_mem (mem_atBot (-3/2)) fun σ' h ↦ ha σ' σ h σlt
-  /--
     &= 0
   \end{align*}
   -/
+  have := eventuallyEq_of_mem (mem_atBot (-3/2)) fun σ' h ↦ ha σ' σ h σlt
   exact tendsto_const_nhds_iff.mp (ha'.congr' this)
 
 
