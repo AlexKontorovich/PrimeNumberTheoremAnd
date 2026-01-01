@@ -431,8 +431,7 @@ blueprint_comment /--
 
 -/
 
-@[blueprint
-  "lem:sigmaM-lower-final"
+@[blueprint "lem:sigmaM-lower-final"
   (title := "Lower bound for \\(\\sigma(M)/M\\)")
   (statement := /--
   With notation as above,
@@ -478,7 +477,9 @@ blueprint_comment /--
   Finally, the contribution of all other primes is at least \(1\).
   -/)
   (latexEnv := "lemma")]
-theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) : (σnorm c.M) ≥ (σnorm c.L') * ∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ))) * (1 + (3:ℝ) / (8 * c.n)) := by sorry
+theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) :
+    (σnorm c.M) ≥ (σnorm c.L') * ∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ))) * (1 + 3 / (8 * c.n)) := by
+  sorry
 
 
 
@@ -537,12 +538,14 @@ blueprint_comment /--
   (proof := /-- Apply Theorem~\ref{thm:Dusart} successively with \(x, x(1+1/\log^3 x), x(1+1/\log^3 x)^2\), keeping track of the resulting primes and bounds.  For \(n\) large and \(x = \sqrt{n}\), we have \(\sqrt{n} < p_1\) as soon as the first interval lies strictly above \(\sqrt{n}\); this can be enforced by taking \(n\) large enough. -/)
   (proofUses := ["thm:Dusart"])
   (latexEnv := "lemma")]
-theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) : ∃ p : Fin 3 → ℕ, (∀ i, Nat.Prime (p i)) ∧ StrictMono p ∧ (∀ i, p i ≤ √(n : ℝ) * (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ (i+1:ℝ)) ∧ (√(n : ℝ) < p 0) := by sorry
+theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    ∃ p : Fin 3 → ℕ, (∀ i, Nat.Prime (p i)) ∧ StrictMono p ∧
+    (∀ i, p i ≤ √(n : ℝ) * (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ (i+1:ℝ)) ∧ (√(n : ℝ) < p 0) := by
+  sorry
 
 
 
-@[blueprint
-  "lem:choose-qi"
+@[blueprint "lem:choose-qi"
   (title := "Choice of large primes \\(q_i\\)")
   (statement := /--
   Let \(n \ge X_0^2\). Then there exist primes \(q_1 < q_2 < q_3\) with
@@ -554,7 +557,10 @@ theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) : ∃ p : Fin 3 → ℕ,
   (proof := /-- Apply Theorem~\ref{thm:Dusart} with suitable values of \(x\) slightly below \(n\), e.g.\ \(x = n(1+1/\log^3\sqrt{n})^{-i}\), again keeping track of the intervals.  For \(n\) large enough, these intervals lie in \((\sqrt{n},n)\) and contain primes \(q_i\) with the desired ordering. -/)
   (proofUses := ["thm:Dusart"])
   (latexEnv := "lemma")]
-theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) : ∃ q : Fin 3 → ℕ, (∀ i, Nat.Prime (q i)) ∧ StrictMono q ∧ (∀ i:Fin 3, n * (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ (3-(i:ℕ)) ≤ q i) ∧ (q 2 < n) := by sorry
+theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    ∃ q : Fin 3 → ℕ, (∀ i, Nat.Prime (q i)) ∧ StrictMono q ∧
+      (∀ i:Fin 3, n * (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ (3-(i:ℕ)) ≤ q i) ∧ (q 2 < n) := by
+  sorry
 
 
 
