@@ -36,14 +36,6 @@ noncomputable def dawson (x : ℝ) : ℝ := exp (-x ^ 2) * ∫ t in 0..x, exp (t
 noncomputable def mu_asymp (A B C R x₀ x₁ : ℝ) : ℝ := (x₀ * log x₁) / ((admissible_bound A B C R x₁) * x₁ * log x₀) * |Eπ x₀ - Eθ x₀| + 2 * (dawson (sqrt (log x₁) - C / (2 * sqrt R))) / (sqrt (log x₁))
 
 
-
-
-
-
-
-
-
-
 @[blueprint
   "fks2-theorem-3"
   (title := "FKS2 Theorem 3")
