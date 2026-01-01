@@ -6,5 +6,6 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-In this section we formalize the arguments of Rosser and Schoenfeld that can convert primary estimates to secondary estimates, with an emphasis on parameter flexibility.
+In this section we formalize the arguments of Rosser and Schoenfeld that can convert primary
+estimates to secondary estimates, with an emphasis on parameter flexibility.
 -/
