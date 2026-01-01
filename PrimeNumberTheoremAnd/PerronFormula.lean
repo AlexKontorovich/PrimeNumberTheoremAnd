@@ -19,34 +19,33 @@ blueprint_comment /--
 The following is preparatory material used in the proof of the Perron formula, see Lemma \ref{formulaLtOne}.
 -/
 
-/-%
-TODO: move to general section.
-\begin{lemma}[zeroTendstoDiff]\label{zeroTendstoDiff}\lean{zeroTendstoDiff}\leanok
-If the limit of $0$ is $L₁ - L₂$, then $L₁ = L₂$.
-\end{lemma}
-%-/
+/- TODO: move to general section. -/
+@[blueprint
+  (title := "zeroTendstoDiff")
+  (statement := /--
+  If the limit of $0$ is $L_1 - L_2$, then $L_1 = L_2$.
+  -/)
+  (proof := /-- Obvious. -/)
+  (latexEnv := "lemma")]
 lemma zeroTendstoDiff (L₁ L₂ : ℂ) (f : ℝ → ℂ) (h : ∀ᶠ T in atTop, f T = 0)
     (h' : Tendsto f atTop (𝓝 (L₂ - L₁))) : L₁ = L₂ := by
   rw [← zero_add L₁, ← @eq_sub_iff_add_eq]
   exact tendsto_nhds_unique (EventuallyEq.tendsto h) h'
-/-%
-\begin{proof}\leanok
-Obvious.
-\end{proof}
-%-/
 
-/-%
-TODO: Move this to general section.
-\begin{lemma}[RectangleIntegral_tendsTo_VerticalIntegral]\label{RectangleIntegral_tendsTo_VerticalIntegral}\lean{RectangleIntegral_tendsTo_VerticalIntegral}\leanok
-\uses{RectangleIntegral}
-Let $\sigma,\sigma' ∈ \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
-the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
-the horizontal integral $\int_{(\sigma)}^{\sigma'}f(x + yi)dx$ vanishes as $y \to \pm \infty$.
-Then the limit of rectangle integrals
-$$\lim_{T\to\infty}\int_{\sigma-iT}^{\sigma'+iT}f(s)ds =
-\int_{(\sigma')}f(s)ds - \int_{(\sigma)}f(s)ds.$$
-\end{lemma}
-%-/
+/- TODO: Move this to general section. -/
+@[blueprint
+  (title := "RectangleIntegral-tendsTo-VerticalIntegral")
+  (statement := /--
+  Let $\sigma,\sigma' \in \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
+  the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
+  the horizontal integral $\int_{(\sigma)}^{\sigma'}f(x + yi)dx$ vanishes as $y \to \pm \infty$.
+  Then the limit of rectangle integrals
+  $$\lim_{T\to\infty}\int_{\sigma-iT}^{\sigma'+iT}f(s)ds =
+  \int_{(\sigma')}f(s)ds - \int_{(\sigma)}f(s)ds.$$
+  -/)
+  (proof := /-- Almost by definition. -/)
+  (proofUses := ["RectangleIntegral"])
+  (latexEnv := "lemma")]
 lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
     (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
     (htop : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
@@ -54,10 +53,6 @@ lemma RectangleIntegral_tendsTo_VerticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (T : ℝ) ↦ RectangleIntegral f (σ - I * T) (σ' + I * T)) atTop
       (𝓝 (VerticalIntegral f σ' - VerticalIntegral f σ)) := by
-/-%
-\begin{proof}\leanok
-Almost by definition.
-%-/
   simp only [RectangleIntegral, sub_re, ofReal_re, mul_re, I_re, zero_mul, I_im, ofReal_im,
     mul_zero, sub_self, sub_zero, add_re, add_zero, sub_im, mul_im, one_mul, zero_add, zero_sub,
     add_im]
@@ -66,7 +61,6 @@ Almost by definition.
     apply Tendsto.add <| Tendsto.sub (hbot.comp tendsto_neg_atTop_atBot) htop
     exact (intervalIntegral_tendsto_integral hright tendsto_neg_atTop_atBot tendsto_id).const_smul I
   · exact (intervalIntegral_tendsto_integral hleft tendsto_neg_atTop_atBot tendsto_id).const_smul I
---%\end{proof}
 
 lemma verticalIntegral_eq_verticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
     (hf : HolomorphicOn f ([[σ, σ']] ×ℂ univ))
@@ -107,27 +101,25 @@ lemma verticalIntegral_sub_verticalIntegral_eq_squareIntegral {σ σ' : ℝ} {f 
   · refine hf.mono (diff_subset_diff ?_ subset_rfl)
     simpa [Rectangle, uIcc_of_lt (hσ.1.trans hσ.2)] using fun x ⟨hx, _⟩ ↦ ⟨hx, trivial⟩
 
-/-% ** Wrong delimiter on purpose **
-\begin{lemma}[RectangleIntegral_tendsTo_UpperU]\label{RectangleIntegral_tendsTo_UpperU}\lean{RectangleIntegral_tendsTo_UpperU}\leanok
-Let $\sigma,\sigma' ∈ \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
-the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
-the horizontal integral $\int_{(\sigma)}^{\sigma'}f(x + yi)dx$ vanishes as $y \to \pm \infty$.
-Then the limit of rectangle integrals
-$$\int_{\sigma+iT}^{\sigma'+iU}f(s)ds$$
-as $U\to\infty$ is the ``UpperUIntegral'' of $f$.
-\end{lemma}
-%-/
+@[blueprint
+  (title := "RectangleIntegral-tendsTo-UpperU")
+  (statement := /--
+  Let $\sigma,\sigma' \in \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
+  the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
+  the horizontal integral $\int_{(\sigma)}^{\sigma'}f(x + yi)dx$ vanishes as $y \to \pm \infty$.
+  Then the limit of rectangle integrals
+  $$\int_{\sigma+iT}^{\sigma'+iU}f(s)ds$$
+  as $U\to\infty$ is the ``UpperUIntegral'' of $f$.
+  -/)
+  (proof := /-- Almost by definition. -/)
+  (proofUses := ["RectangleIntegral", "UpperUIntegral"])
+  (latexEnv := "lemma")]
 lemma RectangleIntegral_tendsTo_UpperU {σ σ' T : ℝ} {f : ℂ → ℂ}
     (htop : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ + I * T) (σ' + I * U)) atTop
       (𝓝 (UpperUIntegral f σ σ' T)) := by
-/-%
-\begin{proof}\leanok
-\uses{RectangleIntegral, UpperUIntegral}
-Almost by definition.
-%-/
   have h_re  (s : ℝ) (t : ℝ) : (s  + I * t).re = s  := by simp
   have h_im  (s : ℝ) (t : ℝ) : (s  + I * t).im = t  := by simp
   have hbot : Tendsto (fun (_ : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + T * I)) atTop (𝓝 <| ∫ (x : ℝ) in σ..σ', f (x + T * I)) := by
@@ -137,29 +129,26 @@ Almost by definition.
     exact (intervalIntegral_tendsto_integral_Ioi T int.restrict tendsto_id).const_smul I
   have := ((hbot.sub htop).add (hvert σ' hright)).sub (hvert σ hleft)
   simpa only [RectangleIntegral, UpperUIntegral, h_re, h_im, sub_zero, ←integral_Ici_eq_integral_Ioi]
---%\end{proof}
 
-/-% ** Wrong delimiter on purpose **
-\begin{lemma}[RectangleIntegral_tendsTo_LowerU]\label{RectangleIntegral_tendsTo_LowerU}\lean{RectangleIntegral_tendsTo_LowerU}\leanok
-Let $\sigma,\sigma' ∈ \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
-the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
-the horizontal integral $\int_{(\sigma)}^{\sigma'}f(x + yi)dx$ vanishes as $y \to -\infty$.
-Then the limit of rectangle integrals
-$$\int_{\sigma-iU}^{\sigma'-iT}f(s)ds$$
-as $U\to\infty$ is the ``LowerUIntegral'' of $f$.
-\end{lemma}
-%-/
+@[blueprint
+  (title := "RectangleIntegral-tendsTo-LowerU")
+  (statement := /--
+  Let $\sigma,\sigma' \in \mathbb{R}$, and $f : \mathbb{C} \to \mathbb{C}$ such that
+  the vertical integrals $\int_{(\sigma)}f(s)ds$ and $\int_{(\sigma')}f(s)ds$ exist and
+  the horizontal integral $\int_{(\sigma)}^{\sigma'}f(x + yi)dx$ vanishes as $y \to -\infty$.
+  Then the limit of rectangle integrals
+  $$\int_{\sigma-iU}^{\sigma'-iT}f(s)ds$$
+  as $U\to\infty$ is the ``LowerUIntegral'' of $f$.
+  -/)
+  (proof := /-- Almost by definition. -/)
+  (proofUses := ["RectangleIntegral", "LowerUIntegral"])
+  (latexEnv := "lemma")]
 lemma RectangleIntegral_tendsTo_LowerU {σ σ' T : ℝ} {f : ℂ → ℂ}
     (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
     (hright : Integrable (fun (y : ℝ) ↦ f (σ' + y * I))) :
     Tendsto (fun (U : ℝ) ↦ RectangleIntegral f (σ - I * U) (σ' - I * T)) atTop
       (𝓝 (- LowerUIntegral f σ σ' T)) := by
-/-%
-\begin{proof}\leanok
-\uses{RectangleIntegral, LowerUIntegral}
-Almost by definition.
-%-/
   have h_re  (s : ℝ) (t : ℝ) : (s  - I * t).re = s  := by simp
   have h_im  (s : ℝ) (t : ℝ) : (s  - I * t).im = -t  := by simp
   have hbot' : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x - y * I)) atTop (𝓝 0) := by
@@ -233,14 +222,13 @@ lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3 / 2)
 
 @[blueprint
   (title := "tendsto-rpow-atTop-nhds-zero-of-norm-lt-one")
-  (statement := /--
-  Let $x>0$ and $x<1$. Then
+  (statement := /-- Let $x>0$ and $x<1$. Then
   $$\lim_{\sigma\to\infty}x^\sigma=0.$$
   -/)
+  (proof := /-- Standard. -/)
   (latexEnv := "lemma")]
 lemma tendsto_rpow_atTop_nhds_zero_of_norm_lt_one {x : ℝ} (xpos : 0 < x) (x_lt_one : x < 1) (C : ℝ) :
     Tendsto (fun (σ : ℝ) ↦ x ^ σ * C) atTop (𝓝 0) := by
-  /-- Standard. -/
   have := Tendsto.mul_const C (tendsto_rpow_atTop_of_base_lt_one x (by linarith) x_lt_one)
   simpa only [rpow_eq_pow, zero_mul] using this
 
@@ -248,10 +236,7 @@ lemma tendsto_rpow_atTop_nhds_zero_of_norm_lt_one {x : ℝ} (xpos : 0 < x) (x_lt
 
 @[blueprint
   (title := "tendsto-rpow-atTop-nhds-zero-of-norm-gt-one")
-  (statement := /--
-  Let $x>1$. Then
-  $$\lim_{\sigma\to-\infty}x^\sigma=0.$$
-  -/)
+  (statement := /-- Let $x>1$. Then $$\lim_{\sigma\to-\infty}x^\sigma=0.$$ -/)
   (proof := /-- Standard. -/)
   (latexEnv := "lemma")]
 lemma tendsto_rpow_atTop_nhds_zero_of_norm_gt_one {x : ℝ} (x_gt_one : 1 < x) (C : ℝ) :
