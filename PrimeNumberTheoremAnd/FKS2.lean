@@ -33,7 +33,7 @@ noncomputable def dawson (x : ℝ) : ℝ := exp (-x ^ 2) * ∫ t in 0..x, exp (t
 noncomputable def g_bound (a b c x : ℝ) : ℝ := x^(-a) * (log x)^b * exp (c * (log x)^(1/2))
 
 /-%%
-\begin{lemma}[FKS2 equation (17)]\label{FKS2_eq_17}\lean{FKS2.eq_17}\leanok} For any $2 \leq x_0 < x$ one has
+\begin{lemma}[FKS2 equation (17)]\label{FKS2_eq_17}\lean{FKS2.eq_17}\leanok For any $2 \leq x_0 < x$ one has
     $$ (\pi(x) - Li(x)) - (\pi(x_0) - Li(x_0)) = \frac{\theta(x) - x}{\log x} - \frac{\theta(x_0) - x_0}{\log x_0} + \int_{x_0}^x \frac{\theta(t) - t}{t \log^2 t} dt.$$
 \end{lemma}
 %%-/
@@ -238,7 +238,7 @@ theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
   sorry
 
 /-%%
-\begin{lemma}[FKS2 Lemma 20]\label{FKS2_lemma_20} Assume $x \geq 6.58$. Then $Li(x) - \frac{x}{\log x}$ is strictly increasing and $Li(x) - \frac{x}{\log x} > \frac{x-6.58}{\log^2 x} > 0$.
+\begin{lemma}[FKS2 Lemma 20]\label{FKS2_lemma_20}\lean{FKS2.lemma_20_a, FKS2.lemma_20_b}\leanok Assume $x \geq 6.58$. Then $Li(x) - \frac{x}{\log x}$ is strictly increasing and $Li(x) - \frac{x}{\log x} > \frac{x-6.58}{\log^2 x} > 0$.
 \end{lemma}
 %%-/
 
@@ -251,7 +251,7 @@ theorem lemma_20_b {x : ℝ} (hx : x ≥ 6.58) :
 
 
 /-%%
-\begin{theorem}[FKS2 Theorem 6]\label{FKS2_theorem_6}  Let $x_0 > 0$ be chosen such that $\pi(x_0)$ and $\theta(x_0)$ are computable, and let $x_1 \geq \max(x_0, 14)$. Let $\{b_i\}_{i=1}^N$ be a finite partition of $[\log x_0, \log x_1]$, with $b_1 = \log x_0$ and $b_N = \log x_1$, and suppose that $\varepsilon_{\theta,\mathrm{num}}$ gives computable admissible numerical bounds for $x = \exp(b_i)$, for each $i=1,\dots,N$.  For $x_1 \leq x_2 \leq x_1 \log x_1$, we define
+\begin{theorem}[FKS2 Theorem 6]\label{FKS2_theorem_6}\lean{FKS2.theorem_6, FKS2.theorem_6_alt}\leanok  Let $x_0 > 0$ be chosen such that $\pi(x_0)$ and $\theta(x_0)$ are computable, and let $x_1 \geq \max(x_0, 14)$. Let $\{b_i\}_{i=1}^N$ be a finite partition of $[\log x_0, \log x_1]$, with $b_1 = \log x_0$ and $b_N = \log x_1$, and suppose that $\varepsilon_{\theta,\mathrm{num}}$ gives computable admissible numerical bounds for $x = \exp(b_i)$, for each $i=1,\dots,N$.  For $x_1 \leq x_2 \leq x_1 \log x_1$, we define
     $$ \mu_{num}(x_0,x_1,x_2) = \frac{x_0 \log x_1}{\varepsilon_{\theta,num}(x_0) x_1 \log x_0} \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right|$$
 
 $$ + \frac{\log x_1}{\varepsilon_{theta,num}(x_1) x_1} \sum_{i=1}^{N-1} \varepsilon_{\theta,num}(\exp(b_i)) \left( Li(e^{b_{i+1}}) - Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}}$$
@@ -283,7 +283,7 @@ theorem theorem_6_alt {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   sorry
 
 /-%%
-\begin{corollary}[FKS2 Corollary 8]\label{FKS2_corollary_8} Let $\{b'_i\}_{i=1}^M$ be a set of finite subdivisions of $[\log(x_1),\infty)$, with $b'_1 = \log(x_1)$ and $b'_M = \infty$. Define
+\begin{corollary}[FKS2 Corollary 8]\label{FKS2_corollary_8}\lean{FKS2.corollary_8}\leanok Let $\{b'_i\}_{i=1}^M$ be a set of finite subdivisions of $[\log(x_1),\infty)$, with $b'_1 = \log(x_1)$ and $b'_M = \infty$. Define
     $$ \varepsilon_{\pi, num}(x_1) := \max_{1 \leq i \leq M-1}\varepsilon_{\pi, num}(\exp(b'_i), \exp(b'_{i+1})).$$
     Then $E_\pi(x) \leq \varepsilon_{\pi,num}(x_1)$ for all $x \geq x_1$.
 \end{corollary}
@@ -299,7 +299,7 @@ theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
   sorry
 
 /-%%
-\begin{corollary}[FKS2 Corollary 21]\label{FKS2_corollary_21} Let $B \geq \max(\frac{3}{2}, 1 + \frac{C^2}{16R})$.  Let $x_0, x_1 > 0$ with $x_1 \geq \max(x_0, \exp( (1 + \frac{C}{2\sqrt{R}})^2))$. If $E_\psi$ satisfies an admissible classical bound with parameters $A_\psi,B,C,R,x_0$, then $E_\pi$ satisfies an admissible classical bound with $A_\pi, B, C, R, x_1$, where
+\begin{corollary}[FKS2 Corollary 21]\label{FKS2_corollary_21}\lean{FKS2.corollary_21}\leanok Let $B \geq \max(\frac{3}{2}, 1 + \frac{C^2}{16R})$.  Let $x_0, x_1 > 0$ with $x_1 \geq \max(x_0, \exp( (1 + \frac{C}{2\sqrt{R}})^2))$. If $E_\psi$ satisfies an admissible classical bound with parameters $A_\psi,B,C,R,x_0$, then $E_\pi$ satisfies an admissible classical bound with $A_\pi, B, C, R, x_1$, where
     $$ A_\pi = (1 + \nu_{asymp}(x_0)) (1 + \mu_{asymp}(x_0, x_1)) A_\psi$$
     for all $x \geq x_0$, where
     $$ |E_\theta(x)| \leq \varepsilon_{\theta,asymp}(x) := A (1 + \mu_{asymp}(x_0,x)) \exp(-C \sqrt{\frac{\log x}{R}})$$
@@ -334,7 +334,7 @@ for all $x \geq 2$.
 theorem corollary_22 : Eπ.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
 
 /-%%
-\begin{corollary}[FKS2 Corollary 23]\label{FKS2_corollary_23} $A_\pi, B, C, x_0$ as in Table 6 give an admissible asymptotic bound for $E_\pi$ with $R = 5.5666305$.
+\begin{corollary}[FKS2 Corollary 23]\label{FKS2_corollary_23}\lean{FKS2.corollary_23}\leanok $A_\pi, B, C, x_0$ as in Table 6 give an admissible asymptotic bound for $E_\pi$ with $R = 5.5666305$.
 \end{corollary}
 %%-/
 
@@ -351,7 +351,7 @@ def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
 theorem corollary_23 (Aπ B C x₀ : ℝ) (h : [Aπ, B, C, x₀] ∈ table6) : Eπ.classicalBound Aπ B C 5.5666305 x₀ := sorry
 
 /-%%
-\begin{corollary}[FKS2 Corollary 24]\label{FKS2_corollary_24} We have the bounds $E_\pi(x) \leq B(x)$, where $B(x)$ is given by Table 7.
+\begin{corollary}[FKS2 Corollary 24]\label{FKS2_corollary_24}\lean{FKS2.corollary_24}\leanok We have the bounds $E_\pi(x) \leq B(x)$, where $B(x)$ is given by Table 7.
 \end{corollary}
 %%-/
 
