@@ -1136,6 +1136,25 @@ as $n \to \infty$.
 \end{proposition}
 %%-/
 
+lemma pi_nth_prime (n : ℕ) :
+    primeCounting (Nat.nth Nat.Prime n) = n + 1 := by
+  rw [primeCounting, primeCounting', count_nth_succ_of_infinite]
+  exact infinite_setOf_prime
+
+lemma pi_nth_prime_asymp :  (fun n ↦ (Nat.nth Nat.Prime n) / (log (Nat.nth Nat.Prime n))) ~[atTop] (fun (n : ℕ) ↦ (n : ℝ)) := by
+  trans (fun (n : ℕ) ↦ ( n + 1 : ℝ))
+  swap
+  · apply IsEquivalent.add_isLittleO (by rfl)
+    exact isLittleO_const_id_atTop (1 : ℝ) |>.natCast_atTop
+  have : Tendsto (fun n ↦ Nat.nth Nat.Prime n) atTop atTop := by
+    exact nth_strictMono infinite_setOf_prime |>.tendsto_atTop
+  have : Tendsto (fun n ↦ ((Nat.nth Nat.Prime n) : ℝ)) atTop atTop := by
+    apply tendsto_natCast_atTop_iff.mpr this
+  convert pi_alt'.comp_tendsto this |>.symm
+  simp only [Function.comp_apply, floor_natCast]
+  rw [pi_nth_prime]
+  norm_cast
+
 set_option maxHeartbeats 300000 in
 -- A large number of limit calculations necessitated a heartbeat limit increase. -
 open Filter in
