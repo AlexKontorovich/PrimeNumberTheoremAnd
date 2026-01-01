@@ -50,7 +50,8 @@ variable (x y z : ℝ) (hx : 0 < x) (hy : 0 < y) (hz : 1 ≤ z)
 open Classical in
 theorem siftedSum_eq_card :
     siftedSum (s := toBoundingSieve (self := primeInterSieve x y z hz)) =
-      ((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card := by
+      ((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter
+        (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card := by
   apply Sieve.siftedSum_eq
   · exact fun _ _ ↦ rfl
   · exact hz
@@ -59,8 +60,8 @@ theorem siftedSum_eq_card :
 open Classical in
 theorem primesBetween_subset :
   (Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter (Nat.Prime) ⊆
-    (Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d) ∪
-    (Finset.Icc 1 (Nat.floor z)) := by
+    (Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter
+      (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d) ∪ (Finset.Icc 1 (Nat.floor z)) := by
   intro p
   simp only [Finset.mem_filter, Finset.mem_Icc, Nat.ceil_le, Finset.mem_union, and_imp]
   intro hx hxy hp
@@ -75,14 +76,16 @@ theorem primesBetween_subset :
     exact hpz hqz
 
 theorem primesBetween_le_siftedSum_add :
-    primesBetween x (x+y) ≤ siftedSum (s := toBoundingSieve (self := primeInterSieve x y z hz)) + z := by
+    primesBetween x (x+y) ≤
+      siftedSum (s := toBoundingSieve (self := primeInterSieve x y z hz)) + z := by
   classical
-  trans ↑((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)
-      ∪ (Finset.Icc 1 (Nat.floor z))).card
+  trans ↑((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter
+      (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d) ∪ (Finset.Icc 1 (Nat.floor z))).card
   · rw [primesBetween]
     exact_mod_cast Finset.card_le_card (primesBetween_subset _ _ _)
-  trans ↑((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card
-    + ↑(Finset.Icc 1 (Nat.floor z)).card
+  trans ↑((Finset.Icc (Nat.ceil x) (Nat.floor (x+y))).filter
+      (fun d => ∀ p:ℕ, p.Prime → p ≤ z → ¬p ∣ d)).card +
+      ↑(Finset.Icc 1 (Nat.floor z)).card
   · exact_mod_cast Finset.card_union_le _ _
   rw [siftedSum_eq_card]
   gcongr
@@ -101,17 +104,21 @@ theorem Ioc_filter_dvd_eq (d a b : ℕ) (hd : d ≠ 0) :
   constructor
   · intro hn
     rcases hn with ⟨⟨han, hnb⟩, hd⟩
-    refine ⟨n/d, ⟨Nat.div_lt_div_of_lt_of_dvd hd han, Nat.div_le_div_right (Nat.le_floor hnb)⟩, Nat.div_mul_cancel hd⟩
+    refine ⟨n/d, ⟨Nat.div_lt_div_of_lt_of_dvd hd han,
+      Nat.div_le_div_right (Nat.le_floor hnb)⟩, Nat.div_mul_cancel hd⟩
   · rintro ⟨r, ⟨ha, ha'⟩, rfl⟩
-    refine ⟨⟨(Nat.div_lt_iff_lt_mul (by omega)).mp ha, Nat.mul_le_of_le_div d r b ha'⟩, Nat.dvd_mul_left d r⟩
+    refine ⟨⟨(Nat.div_lt_iff_lt_mul (by omega)).mp ha, Nat.mul_le_of_le_div d r b ha'⟩,
+      Nat.dvd_mul_left d r⟩
 
 theorem card_Ioc_filter_dvd (d a b : ℕ) (hd : d ≠ 0) :
-    (Finset.filter (fun x => d ∣ x) (Finset.Ioc a b)).card = b / d - a / d  := by
-  rw [Ioc_filter_dvd_eq _ _ _ hd, Finset.card_image_of_injective _ <| mul_left_injective₀ hd, Nat.card_Ioc]
+    (Finset.filter (fun x => d ∣ x) (Finset.Ioc a b)).card = b / d - a / d := by
+  rw [Ioc_filter_dvd_eq _ _ _ hd,
+    Finset.card_image_of_injective _ <| mul_left_injective₀ hd, Nat.card_Ioc]
 
 include hx in
 theorem multSum_eq (d : ℕ) (hd : d ≠ 0) :
-    multSum (s := toBoundingSieve (self := primeInterSieve x y z hz)) d = ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) := by
+    multSum (s := toBoundingSieve (self := primeInterSieve x y z hz)) d =
+      ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) := by
   unfold multSum
   rw [primeInterSieve]
   simp only [Finset.sum_boole, Nat.cast_inj]
@@ -133,7 +140,8 @@ theorem Nat.ceil_le_self_add_one (x : ℝ) (hx : 0 ≤ x) : Nat.ceil x ≤ x + 1
   · gcongr
     exact Nat.floor_le hx
 
-theorem floor_approx (x : ℝ) (hx : 0 ≤ x) : ∃ C, |C| ≤ 1 ∧ ↑((Nat.floor x)) = x + C := by
+theorem floor_approx (x : ℝ) (hx : 0 ≤ x) :
+    ∃ C, |C| ≤ 1 ∧ ↑((Nat.floor x)) = x + C := by
   use ↑(Nat.floor x) - x
   simp only [add_sub_cancel, and_true]
   rw [abs_le]
@@ -150,7 +158,8 @@ theorem nat_div_approx (a b : ℕ) : ∃ C, |C| ≤ 1 ∧ ↑(a/b) = (a/b : ℝ)
   rw [← Nat.floor_div_eq_div (K := ℝ)]
   exact floor_approx (a/b:ℝ) (by positivity)
 
-theorem floor_div_approx (x : ℝ) (hx : 0 ≤ x) (d : ℕ) : ∃ C, |C| ≤ 2 ∧  ↑((Nat.floor x)/d) = x / d + C := by
+theorem floor_div_approx (x : ℝ) (hx : 0 ≤ x) (d : ℕ) :
+    ∃ C, |C| ≤ 2 ∧ ↑((Nat.floor x)/d) = x / d + C := by
   by_cases hd : d = 0
   · simp [hd]
   · obtain ⟨C₁, hC₁_le, hC₁⟩ := nat_div_approx (Nat.floor x) d
@@ -169,7 +178,8 @@ include hx hy in
 theorem abs_rem_le {d : ℕ} (hd : d ≠ 0) :
     |rem (s := toBoundingSieve (self := primeInterSieve x y z hz)) d| ≤ 5 := by
   rw [rem_eq _ _ _ hx hz _ hd]
-  have hpush : ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) = ( ↑(⌊x + y⌋₊ / d) - ↑((⌈x⌉₊ - 1) / d) : ℝ) := by
+  have hpush :
+      ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) = (↑(⌊x + y⌋₊ / d) - ↑((⌈x⌉₊ - 1) / d) : ℝ) := by
     rw [Nat.cast_sub]
     gcongr
     rw [Nat.le_floor_iff, ← add_le_add_iff_right 1]
@@ -182,7 +192,8 @@ theorem abs_rem_le {d : ℕ} (hd : d ≠ 0) :
   obtain ⟨C₃, hC₃_le, hC₃⟩ := ceil_approx (x) (by linarith)
   rw [hC₁, hC₂, Nat.cast_sub, hC₃]
   · ring_nf
-    have : |(↑d)⁻¹ - (↑d)⁻¹ * C₃ + (C₁ - C₂)| ≤ |(↑d)⁻¹ - (↑d)⁻¹*C₃| + |C₁ - C₂| := abs_add_le _ _
+    have : |(↑d)⁻¹ - (↑d)⁻¹ * C₃ + (C₁ - C₂)| ≤
+        |(↑d)⁻¹ - (↑d)⁻¹*C₃| + |C₁ - C₂| := abs_add_le _ _
     have : |(↑d)⁻¹ - (↑d)⁻¹*C₃| ≤ |(↑d)⁻¹| + |(↑d)⁻¹*C₃| := abs_sub _ _
     have : |C₁ - C₂| ≤ |C₁| + |C₂| := abs_sub _ _
     have : |(d:ℝ)⁻¹| ≤ 1 := by
@@ -209,7 +220,8 @@ theorem boudingSum_ge : (primeInterSieve x y z hz).selbergBoundingSum ≥ Real.l
 include hx hy in
 theorem primeSieve_rem_sum_le :
     ∑ d ∈ (primeInterSieve x y z hz).prodPrimes.divisors,
-        (if (d : ℝ) ≤ z then (3:ℝ) ^ ω d * |rem (s := toBoundingSieve (self := primeInterSieve x y z hz)) d| else 0)
+        (if (d : ℝ) ≤ z then (3:ℝ) ^ ω d *
+          |rem (s := toBoundingSieve (self := primeInterSieve x y z hz)) d| else 0)
       ≤ 5 * z * (1+Real.log z)^3 := by
   refine rem_sum_le_of_const (primeInterSieve x y z hz) 5 (fun d hd ↦ ?_)
   apply abs_rem_le _ _ _ <;> linarith
@@ -237,7 +249,8 @@ theorem primesBetween_le (hz : 1 < z) :
       linarith [Real.log_nonneg (by linarith)]
   linarith [siftedSum_le _ _ _ hx hy hz, primesBetween_le_siftedSum_add x y z hz.le]
 
-theorem primesBetween_one (n : ℕ) : primesBetween 1 n = ((Finset.range (n+1)).filter Nat.Prime).card := by
+theorem primesBetween_one (n : ℕ) :
+    primesBetween 1 n = ((Finset.range (n+1)).filter Nat.Prime).card := by
   rw [primesBetween]
   congr 1
   ext p
@@ -245,13 +258,16 @@ theorem primesBetween_one (n : ℕ) : primesBetween 1 n = ((Finset.range (n+1)).
     and_congr_left_iff]
   exact fun hp ↦ ⟨fun h => by omega, fun h => ⟨by have := hp.pos; omega, by omega⟩⟩
 
-theorem primesBetween_mono_right (a b c : ℝ) (hbc : b ≤ c) : primesBetween a b ≤ primesBetween a c := by
+theorem primesBetween_mono_right (a b c : ℝ) (hbc : b ≤ c) :
+    primesBetween a b ≤ primesBetween a c := by
   dsimp only [primesBetween]
   refine Finset.card_le_card fun p ↦ ?_
   simp only [Finset.mem_filter, Finset.mem_Icc, Nat.ceil_le, and_imp]
   exact fun ha hb hp ↦ ⟨⟨ha, hb.trans (Nat.floor_mono hbc)⟩, hp⟩
 
-theorem tmp (N : ℕ) : ((Finset.range N).filter Nat.Prime).card ≤ 4 * (N / Real.log N) + 6 *(N ^ (1/2 : ℝ) * (1 + 1/2 * Real.log N)^3) := by
+theorem tmp (N : ℕ) :
+    ((Finset.range N).filter Nat.Prime).card ≤
+      4 * (N / Real.log N) + 6 * (N ^ (1/2 : ℝ) * (1 + 1/2 * Real.log N)^3) := by
   trans ↑((Finset.range (N+1)).filter Nat.Prime).card
   · norm_cast
     refine Finset.card_le_card fun n ↦ ?_
@@ -263,7 +279,8 @@ theorem tmp (N : ℕ) : ((Finset.range N).filter Nat.Prime).card ≤ 4 * (N / Re
   by_cases hN : N = 1
   · simp (config := {decide:=true}) [hN, primesBetween]
   have h : primesBetween 1 (1 + N) ≤
-      2 * (N / Real.log (N^(1/2:ℝ))) + 6 * (N ^ (1 / 2 : ℝ) * (1 + Real.log (N ^ (1 / 2 : ℝ))) ^ 3) := by
+      2 * (N / Real.log (N^(1/2:ℝ))) +
+        6 * (N ^ (1 / 2 : ℝ) * (1 + Real.log (N ^ (1 / 2 : ℝ))) ^ 3) := by
     convert (primesBetween_le 1 N (N ^ (1/2 : ℝ)) (by norm_num) (by norm_cast; omega)
       (Real.one_lt_rpow (by norm_cast; omega) (by norm_num))) using 1
     ring
@@ -275,8 +292,11 @@ theorem tmp (N : ℕ) : ((Finset.range N).filter Nat.Prime).card ≤ 4 * (N / Re
       convert h using 2
       ring
 
-theorem rpow_mul_rpow_log_isBigO_id_div_log (k : ℝ) {r : ℝ} (hr : r < 1) : (fun x ↦ (x : ℝ) ^ (r : ℝ) * (Real.log x)^k) =O[atTop] (fun x ↦ x / Real.log x) := calc
-  (fun x ↦ (x : ℝ) ^ (r : ℝ) * (Real.log x)^k) =O[atTop] (fun x ↦ (x : ℝ) ^ (r : ℝ) * x ^ ((1-r)/2 : ℝ)) := by
+theorem rpow_mul_rpow_log_isBigO_id_div_log (k : ℝ) {r : ℝ} (hr : r < 1) :
+    (fun x ↦ (x : ℝ) ^ (r : ℝ) * (Real.log x)^k) =O[atTop]
+      (fun x ↦ x / Real.log x) := calc
+  (fun x ↦ (x : ℝ) ^ (r : ℝ) * (Real.log x)^k) =O[atTop]
+      (fun x ↦ (x : ℝ) ^ (r : ℝ) * x ^ ((1-r)/2 : ℝ)) := by
     apply IsBigO.mul (isBigO_refl ..)
     apply (isLittleO_log_rpow_rpow_atTop k (by linarith) ..).isBigO
   _ =ᶠ[atTop] (fun N ↦ (N : ℝ) * (N ^ ((1-r)/2 : ℝ))⁻¹) := by
@@ -296,22 +316,31 @@ theorem rpow_mul_rpow_log_isBigO_id_div_log (k : ℝ) {r : ℝ} (hr : r < 1) : (
   _ = (fun N ↦ (N : ℝ)/(Real.log N)) := by
     simp_rw [div_eq_mul_inv]
 
-theorem err_isBigO : (fun x ↦ (x ^ (1 / 2 : ℝ) * (1 + 1 / 2 * Real.log x) ^ 3)) =O[atTop] fun x ↦ (x / Real.log x) := by
+theorem err_isBigO :
+    (fun x ↦ (x ^ (1 / 2 : ℝ) * (1 + 1 / 2 * Real.log x) ^ 3)) =O[atTop]
+      fun x ↦ (x / Real.log x) := by
   calc
     _ =O[atTop] (fun x ↦ x ^ (1/2:ℝ) * (Real.log x) ^ 3) := by
-      apply IsBigO.mul (isBigO_refl ..) (Real.isLittleO_const_log_atTop.isBigO.add ((isBigO_refl ..).const_mul_left ..) |>.pow _)
+      apply IsBigO.mul (isBigO_refl ..)
+        (Real.isLittleO_const_log_atTop.isBigO.add
+          ((isBigO_refl ..).const_mul_left ..) |>.pow _)
     _ =O[atTop] _ := by
       convert rpow_mul_rpow_log_isBigO_id_div_log 3 (?_) <;> norm_num
 
-theorem card_range_filter_prime_isBigO : (fun N ↦ ((Finset.range N).filter Nat.Prime).card : ℕ → ℝ) =O[atTop] (fun N ↦ N / Real.log N) := calc
-  _ =O[atTop] (fun N ↦ 4 * (N / Real.log N) + 6 * (N ^ (1/2 : ℝ) * (1 + 1/2 * Real.log N)^3) : ℕ→ℝ) := by
+theorem card_range_filter_prime_isBigO :
+    (fun N ↦ ((Finset.range N).filter Nat.Prime).card : ℕ → ℝ) =O[atTop]
+      (fun N ↦ N / Real.log N) := calc
+  _ =O[atTop]
+      (fun N ↦ 4 * (N / Real.log N) +
+        6 * (N ^ (1/2 : ℝ) * (1 + 1/2 * Real.log N)^3) : ℕ→ℝ) := by
     apply isBigO_of_le
     intro N
     simp only [RCLike.norm_natCast, one_div, Real.norm_eq_abs]
     rw [abs_of_nonneg]
     convert tmp N using 4 <;> norm_num
     positivity
-  _ =O[atTop] _ := ((isBigO_refl ..).const_mul_left ..).add (err_isBigO.natCast.const_mul_left _)
+  _ =O[atTop] _ :=
+    ((isBigO_refl ..).const_mul_left ..).add (err_isBigO.natCast.const_mul_left _)
 
 theorem prime_or_pow (N n : ℕ) (hnN : n < N) (hnprime : IsPrimePow n) :
     Nat.Prime n ∨ (∃ (m : ℕ), m < Real.sqrt N ∧ ∃ k ≤ Nat.log 2 N, n = m ^ k) := by
@@ -337,12 +366,12 @@ theorem prime_or_pow (N n : ℕ) (hnN : n < N) (hnprime : IsPrimePow n) :
   · exact_mod_cast hpkn.symm
 
 theorem range_filter_isPrimePow_subset_union (N : ℕ) :
-  ((Finset.range N).filter IsPrimePow) ⊆ (Finset.range N).filter Nat.Prime ∪
-    ((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ Finset.range (Nat.log 2 N + 1)).image (fun p ↦ p.1 ^ p.2)
-    := by
+    ((Finset.range N).filter IsPrimePow) ⊆ (Finset.range N).filter Nat.Prime ∪
+      ((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ Finset.range (Nat.log 2 N + 1)).image
+        (fun p ↦ p.1 ^ p.2) := by
   intro n
-  simp only [Finset.mem_Ico, Finset.mem_filter, Finset.mem_range, Finset.mem_union, Finset.mem_image,
-    Finset.mem_product, Prod.exists, and_imp]
+  simp only [Finset.mem_Ico, Finset.mem_filter, Finset.mem_range, Finset.mem_union,
+    Finset.mem_image, Finset.mem_product, Prod.exists, and_imp]
   intro hnN hnprime
   rcases prime_or_pow N n hnN hnprime with hp | ⟨m, hm, k, hk, h⟩
   · left; exact ⟨hnN, hp⟩
@@ -358,8 +387,8 @@ theorem range_filter_isPrimePow_subset_union (N : ℕ) :
     have : 1 ≤ m := by omega
     aesop
 
-theorem IsBigO.nat_Top_of_atTop (f g : ℕ → ℝ) (h : f =O[Filter.atTop] g) (h0 : ∀ n, g n = 0 → f n = 0) :
-    f =O[⊤] g := by
+theorem IsBigO.nat_Top_of_atTop (f g : ℕ → ℝ) (h : f =O[Filter.atTop] g)
+    (h0 : ∀ n, g n = 0 → f n = 0) : f =O[⊤] g := by
   simp only [Asymptotics.isBigO_top, Real.norm_eq_abs]
   rw [Asymptotics.isBigO_atTop_iff_eventually_exists] at h
   simp only [ge_iff_le, Real.norm_eq_abs, Filter.eventually_atTop] at h
@@ -383,9 +412,11 @@ theorem IsBigO.nat_Top_of_atTop (f g : ℕ → ℝ) (h : f =O[Filter.atTop] g) (
     · simp [hg]
 
 theorem pows_small_primes_le (N : ℕ) :
-  (((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ Finset.range (Nat.log 2 N + 1)).image (fun p ↦ p.1 ^ p.2)).card
-    ≤ (N : ℝ) ^ (1/2 : ℝ) * (1 + Real.log N / Real.log 2):= calc
-  _ ≤ (((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ Finset.range (Nat.log 2 N + 1)).card : ℝ) := by
+    (((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ Finset.range (Nat.log 2 N + 1)).image
+      (fun p ↦ p.1 ^ p.2)).card ≤
+        (N : ℝ) ^ (1/2 : ℝ) * (1 + Real.log N / Real.log 2) := calc
+  _ ≤ (((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ
+      Finset.range (Nat.log 2 N + 1)).card : ℝ) := by
     norm_cast
     exact Finset.card_image_le
   _ ≤ _ := by
@@ -400,7 +431,8 @@ theorem pows_small_primes_le (N : ℕ) :
     · rw [← Real.sqrt_eq_rpow, Nat.cast_sub this, Nat.cast_one]
       have := Nat.ceil_lt_add_one (show 0 ≤ Real.sqrt N by positivity)
       linarith
-    rw [← Real.natFloor_logb_natCast, Real.log_div_log, Nat.cast_two, add_comm, add_le_add_iff_left]
+    rw [← Real.natFloor_logb_natCast, Real.log_div_log, Nat.cast_two, add_comm,
+      add_le_add_iff_left]
     apply Nat.floor_le
     apply Real.logb_nonneg one_lt_two
     norm_cast; omega
@@ -415,7 +447,8 @@ theorem one_add_log_div_log_two_isBigO :
 theorem pow_half_mul_one_add_log_div_isBigO :
     (fun N ↦ (N : ℝ) ^ (1/2 : ℝ) * (1 + Real.log N / Real.log 2)) =O[Filter.atTop]
       (fun N ↦ N / Real.log N) := calc
-  (fun N ↦ (N : ℝ) ^ (1/2 : ℝ) * (1 + Real.log N / Real.log 2)) =O[atTop] (fun N ↦ (N : ℝ) ^ (1/2 : ℝ) * Real.log N) := by
+  (fun N ↦ (N : ℝ) ^ (1/2 : ℝ) * (1 + Real.log N / Real.log 2)) =O[atTop]
+      (fun N ↦ (N : ℝ) ^ (1/2 : ℝ) * Real.log N) := by
     apply IsBigO.mul
     · apply isBigO_refl
     apply one_add_log_div_log_two_isBigO
@@ -423,7 +456,10 @@ theorem pow_half_mul_one_add_log_div_isBigO :
     convert rpow_mul_rpow_log_isBigO_id_div_log 1 (show 1/2 < (1:ℝ) by norm_num) using 1
     simp
 
-theorem card_pows_aux : (fun N ↦ (((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ Finset.range (Nat.log 2 N + 1)).image (fun p ↦ p.1 ^ p.2)).card : ℕ → ℝ) =O[atTop] fun N ↦ N / Real.log N := by
+theorem card_pows_aux :
+    (fun N ↦ (((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ
+      Finset.range (Nat.log 2 N + 1)).image (fun p ↦ p.1 ^ p.2)).card : ℕ → ℝ) =O[atTop]
+        fun N ↦ N / Real.log N := by
   apply IsBigO.trans ?_ pow_half_mul_one_add_log_div_isBigO.natCast
   apply isBigO_of_le
   intro N
@@ -434,25 +470,34 @@ theorem card_pows_aux : (fun N ↦ (((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×�
   by_cases hN : N = 0
   · simp [hN]
   rw [Real.log_div_log]
-  linarith [Real.logb_nonneg (show 1 < (2:ℝ) by norm_num) (show (1 : ℝ) ≤ N by norm_num; omega)]
+  linarith [Real.logb_nonneg (show 1 < (2:ℝ) by norm_num)
+    (show (1 : ℝ) ≤ N by norm_num; omega)]
 
 theorem card_isPrimePow_isBigO :
-  (fun N ↦ (((Finset.range N).filter IsPrimePow).card:ℝ)) =O[atTop] (fun N ↦ N / Real.log N) := calc
-  (fun N ↦ (((Finset.range N).filter IsPrimePow).card:ℝ)) =O[atTop] (fun N ↦ (((Finset.range N).filter Nat.Prime ∪
-    ((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ Finset.range (Nat.log 2 N + 1)).image (fun p ↦ p.1 ^ p.2)).card:ℝ)) := by
+    (fun N ↦ (((Finset.range N).filter IsPrimePow).card:ℝ)) =O[atTop]
+      (fun N ↦ N / Real.log N) := calc
+  (fun N ↦ (((Finset.range N).filter IsPrimePow).card:ℝ)) =O[atTop]
+      (fun N ↦ (((Finset.range N).filter Nat.Prime ∪
+        ((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ
+          Finset.range (Nat.log 2 N + 1)).image (fun p ↦ p.1 ^ p.2)).card:ℝ)) := by
     apply isBigO_of_le
     simp only [RCLike.norm_natCast, Nat.cast_le]
     exact fun N ↦ Finset.card_le_card (range_filter_isPrimePow_subset_union _)
-  _ =O[atTop] fun N ↦ (((Finset.range N).filter Nat.Prime).card + (((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ Finset.range (Nat.log 2 N + 1)).image (fun p ↦ p.1 ^ p.2)).card : ℝ):= by
+  _ =O[atTop] fun N ↦ (((Finset.range N).filter Nat.Prime).card +
+      (((Finset.Ico 1 (Nat.ceil (Real.sqrt N))) ×ˢ
+        Finset.range (Nat.log 2 N + 1)).image (fun p ↦ p.1 ^ p.2)).card : ℝ) := by
     apply isBigO_of_le
     simp only [RCLike.norm_natCast, Real.norm_eq_abs]
     intro N
     rw [abs_of_nonneg (by positivity)]
     exact_mod_cast Finset.card_union_le _ _
-  _ =O[atTop] fun N ↦ N / Real.log N := IsBigO.add (card_range_filter_prime_isBigO) card_pows_aux
+  _ =O[atTop] fun N ↦ N / Real.log N :=
+    IsBigO.add (card_range_filter_prime_isBigO) card_pows_aux
 
-theorem card_range_filter_isPrimePow_le : ∃ C, ∀ N, ((Finset.range N).filter IsPrimePow).card ≤ C * (N / Real.log N) := by
-  convert_to (fun N ↦ ((Finset.range N).filter IsPrimePow).card : ℕ → ℝ) =O[⊤] (fun N ↦ (N / Real.log N))
+theorem card_range_filter_isPrimePow_le :
+    ∃ C, ∀ N, ((Finset.range N).filter IsPrimePow).card ≤ C * (N / Real.log N) := by
+  convert_to (fun N ↦ ((Finset.range N).filter IsPrimePow).card : ℕ → ℝ) =O[⊤]
+      (fun N ↦ (N / Real.log N))
   · simp only [isBigO_top, RCLike.norm_natCast, norm_div, Real.norm_eq_abs]
     peel with C N
     by_cases hN : N = 0
