@@ -49,7 +49,6 @@
 
 ## Editor
 *.swp
-.vscode/settings.json
 
 ## Project
 /scratch.lean
