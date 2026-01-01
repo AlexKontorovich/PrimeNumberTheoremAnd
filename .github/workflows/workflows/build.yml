@@ -1,9 +1,10 @@
-name: Build Project 
+name: Build Project
 
 on:
   push:
     branches:
       - main
+      - LeanArchitect
   pull_request:
     branches:
       - main
