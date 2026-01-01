@@ -1,3 +1,4 @@
+import PrimeNumberTheoremAnd.BorelCaratheodory
 import PrimeNumberTheoremAnd.MediumPNT
 
 open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory
@@ -98,6 +99,7 @@ This is just Cauchy's integral formula for derivatives.
 %%-/
 
 lemma derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
+    (Mpos : 0 < M)
     (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (f_zero_at_zero : f 0 = 0)
     (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
@@ -105,6 +107,7 @@ lemma derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (pos_r : 0 < r) (z_in_r : z ∈ Metric.closedBall 0 r)
     (r_lt_r' : r < r') (r'_lt_R : r' < R) :
     ‖(deriv f) z‖ ≤ 2 * M * (r')^2 / ((R - r') * (r' - r)^2) := by
+    have diff_neg : r - r' ≤ 0 := by linarith
     have cauchy_param : deriv f z = (1 / (2 * Real.pi * I)) * (∫ (θ : ℝ) in 0..(2 * Real.pi), (I * r' * Complex.exp (I * θ) * ((r' * Complex.exp (I * θ)) - z)⁻¹ ^ 2) * f (r' * Complex.exp (I * θ))) := by
         rw[cauchy_formula_deriv hf_domain pos_r r_lt_r' r'_lt_R z_in_r, smul_eq_mul]
         unfold circleIntegral circleMap
@@ -126,15 +129,44 @@ lemma derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     rw[abs_of_pos, mul_assoc, inv_mul_le_iff₀, inv_mul_le_iff₀, ← mul_assoc]
     ·   nth_rewrite 3 [mul_comm]
         nth_rewrite 2 [← abs_of_pos two_pi_pos, ← sub_zero (2 * π)]
-        -- use intervalIntegral.norm_integral_le_of_norm_le_const
-        sorry
+        refine intervalIntegral.norm_integral_le_of_norm_le_const ?_
+        intro θ hθ
+        simp only [Complex.norm_mul, norm_I, norm_real, norm_eq_abs, one_mul, norm_exp_I_mul_ofReal,
+            mul_one, norm_inv, norm_pow]
+        rw[abs_of_pos (lt_trans pos_r r_lt_r'), div_mul_eq_div_mul_one_div, pow_two r', ← mul_assoc]
+        nth_rewrite 8 [mul_comm]
+        rw[← mul_div, mul_right_comm]
+        have h0 : (‖(r' : ℂ) * cexp (I * (θ : ℂ)) - z‖ ^ 2)⁻¹ ≤ 1 / (r' - r) ^ 2 := by
+            rw[← inv_eq_one_div]
+            refine inv_anti₀ ?_ ?_
+            ·   rw[sq_pos_iff]
+                linarith
+            ·   rw[sq_le_sq, abs_norm]
+                refine abs_sub_le_iff.mpr ⟨?_, ?_⟩
+                ·   have : r' - r ≤ ‖(r' : ℂ) * cexp (I * (θ : ℂ))‖ - ‖z‖ := by
+                        refine sub_le_sub ?_ (by exact mem_closedBall_zero_iff.mp z_in_r)
+                        simp only [Complex.norm_mul, norm_real, norm_eq_abs,
+                            norm_exp_I_mul_ofReal, mul_one]
+                        exact le_abs_self r'
+                    exact le_trans this (by exact norm_sub_norm_le (↑r' * cexp (I * ↑θ)) z)
+                ·   exact le_trans (diff_neg) (by exact norm_nonneg (↑r' * cexp (I * ↑θ) - z))
+        have h1 : ‖f ((r' : ℂ) * cexp (I * (θ : ℂ)))‖ ≤ 2 * M * r' / (R - r') := by
+            refine borelCaratheodory_closedBall (by linarith) (analytic_f) (f_zero_at_zero) (Mpos) (re_f_le_M) (r'_lt_R) ?_
+            refine mem_closedBall_zero_iff.mpr ?_
+            simp only [Complex.norm_mul, norm_real, norm_eq_abs, norm_exp_I_mul_ofReal, mul_one]
+            rw[abs_of_pos]
+            exact lt_trans pos_r r_lt_r'
+        refine mul_le_mul₃ (by rfl) h1 h0 ?_ (by linarith) ?_
+        ·   exact norm_nonneg (f (↑r' * cexp (I * ↑θ)))
+        ·   rw[inv_nonneg]
+            exact sq_nonneg ‖↑r' * cexp (I * ↑θ) - z‖
     ·   exact zero_lt_two
     ·   exact pi_pos
     ·   exact pi_pos
 
 /-%%
 \begin{proof}
-\uses{borelCaratheodory_closedBall}
+\uses{borelCaratheodory_closedBall, cauchy_formula_deriv}
     By Lemma \ref{cauchy_formula_deriv} we know that
     $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
     Thus,
@@ -156,6 +188,15 @@ lemma derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     for all $|z|\leq r$.
 \end{theorem}
 %%-/
+
+theorem borelCaratheodoryDeriv {M R : ℝ} {z : ℂ} {f : ℂ → ℂ}
+    (Rpos : 0 < R) (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
+    (zeroAtZero : f 0 = 0) (Mpos : 0 < M)
+    (realPartBounded : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
+    (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r) :
+    ‖deriv f z‖ ≤ (16 * M * R ^ 2) / (R - r) ^ 3 := by
+
+    sorry
 
 /-%%
 \begin{proof}
