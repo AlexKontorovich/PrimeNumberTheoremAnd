@@ -25,7 +25,7 @@ TODO: move to general section.
 If the limit of $0$ is $L₁ - L₂$, then $L₁ = L₂$.
 \end{lemma}
 %-/
-lemma zeroTendstoDiff (L₁ L₂ : ℂ) (f : ℝ → ℂ) (h : ∀ᶠ T in atTop,  f T = 0)
+lemma zeroTendstoDiff (L₁ L₂ : ℂ) (f : ℝ → ℂ) (h : ∀ᶠ T in atTop, f T = 0)
     (h' : Tendsto f atTop (𝓝 (L₂ - L₁))) : L₁ = L₂ := by
   rw [← zero_add L₁, ← @eq_sub_iff_add_eq]
   exact tendsto_nhds_unique (EventuallyEq.tendsto h) h'
@@ -69,7 +69,7 @@ Almost by definition.
 --%\end{proof}
 
 lemma verticalIntegral_eq_verticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
-    (hf : HolomorphicOn f ([[σ,  σ']] ×ℂ univ))
+    (hf : HolomorphicOn f ([[σ, σ']] ×ℂ univ))
     (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
     (htop : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
@@ -81,7 +81,7 @@ lemma verticalIntegral_eq_verticalIntegral {σ σ' : ℝ} {f : ℂ → ℂ}
     (hf.mono fun z hrect ↦ ⟨by simpa using hrect.1, trivial⟩)
 
 lemma verticalIntegral_sub_verticalIntegral_eq_squareIntegral {σ σ' : ℝ} {f : ℂ → ℂ} {p : ℂ}
-    (hσ: σ < p.re ∧ p.re < σ') (hf : HolomorphicOn f (Icc σ  σ' ×ℂ univ \ {p}))
+    (hσ : σ < p.re ∧ p.re < σ') (hf : HolomorphicOn f (Icc σ σ' ×ℂ univ \ {p}))
     (hbot : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atBot (𝓝 0))
     (htop : Tendsto (fun (y : ℝ) ↦ ∫ (x : ℝ) in σ..σ', f (x + y * I)) atTop (𝓝 0))
     (hleft : Integrable (fun (y : ℝ) ↦ f (σ + y * I)))
@@ -219,8 +219,8 @@ lemma limitOfConstant {a : ℝ → ℂ} {σ : ℝ} (σpos : 0 < σ)
   $\lim_{\sigma\to-\infty}a(\sigma)=0$. Then $a(\sigma)=0$.
   -/)
   (latexEnv := "lemma")]
-lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3/2)
-    (ha : ∀ (σ' : ℝ) (σ'' : ℝ) (_ : σ' ≤ -3/2) (_ : σ'' ≤ -3/2), a σ' = a σ'')
+lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3 / 2)
+    (ha : ∀ (σ' : ℝ) (σ'' : ℝ) (_ : σ' ≤ -3 / 2) (_ : σ'' ≤ -3 / 2), a σ' = a σ'')
     (ha' : Tendsto a atBot (𝓝 0)) : a σ = 0 := by
   /--
   \begin{align*}
@@ -242,7 +242,7 @@ lemma limitOfConstantLeft {a : ℝ → ℂ} {σ : ℝ} (σlt : σ ≤ -3/2)
   $$\lim_{\sigma\to\infty}x^\sigma=0.$$
   -/)
   (latexEnv := "lemma")]
-lemma tendsto_rpow_atTop_nhds_zero_of_norm_lt_one {x : ℝ}  (xpos : 0 < x) (x_lt_one : x < 1) (C : ℝ) :
+lemma tendsto_rpow_atTop_nhds_zero_of_norm_lt_one {x : ℝ} (xpos : 0 < x) (x_lt_one : x < 1) (C : ℝ) :
     Tendsto (fun (σ : ℝ) ↦ x ^ σ * C) atTop (𝓝 0) := by
   /-- Standard. -/
   have := Tendsto.mul_const C (tendsto_rpow_atTop_of_base_lt_one x (by linarith) x_lt_one)
@@ -444,7 +444,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
     _ = x ^ σ * ∫ (t : ℝ), 1 / (‖σ + t * I‖ * ‖σ + t * I + 1‖) := ?_
     _ ≤ x ^ σ * ∫ (t : ℝ), 1 / ((4⁻¹ + t ^ 2).sqrt * (4⁻¹ + t ^ 2).sqrt) := ?_
     _ ≤ _ := ?_
-  · simp [VerticalIntegral, Real.pi_nonneg]
+  · simp [VerticalIntegral]
   · congr with t
     rw [norm_div, Complex.norm_cpow_eq_rpow_re_of_pos xpos, add_re, ofReal_re,
       re_ofReal_mul, I_re, mul_zero, add_zero]
@@ -453,7 +453,7 @@ lemma vertIntBoundLeft (xpos : 0 < x) :
     by_cases hint : Integrable fun (a : ℝ) ↦ 1 / (‖σ + ↑a * I‖ * ‖σ + ↑a * I + 1‖)
     swap
     · rw [integral_undef hint]
-      exact integral_nonneg <| fun t ↦ by simp only [Pi.le_def, Pi.zero_apply]; positivity
+      exact integral_nonneg <| fun t ↦ by simp only [Pi.zero_apply]; positivity
     apply integral_mono hint
     · have := integralPosAux' (4⁻¹) (4⁻¹) (by norm_num) (by norm_num)
       contrapose! this
@@ -699,7 +699,7 @@ lemma keyIdentity (x : ℝ) {s : ℂ} (s_ne_zero : s ≠ 0) (s_ne_neg_one : s �
     field_simp [sPlusOneNeZero, mul_ne_zero]; ring_nf
 
 
-variable  {α β : Type*} [LinearOrder β] [NoMaxOrder β] [TopologicalSpace β] [ClosedIciTopology β]
+variable {α β : Type*} [LinearOrder β] [NoMaxOrder β] [TopologicalSpace β] [ClosedIciTopology β]
   {y : β} {l : Filter α}
 
 lemma _root_.Filter.Tendsto.eventually_bddAbove {f : α → β} (hf : Tendsto f l (𝓝 y)) :
@@ -955,7 +955,7 @@ lemma residuePull2 (x_gt_one : 1 < x) :
   -/)
   (proof := /-- Pull contour from $(-3/2)$ to $(\sigma)$. -/)
   (latexEnv := "lemma")]
-lemma contourPull3 (x_gt_one : 1 < x) (σ'le : σ' ≤ -3/2) (σ''le : σ'' ≤ -3/2) :
+lemma contourPull3 (x_gt_one : 1 < x) (σ'le : σ' ≤ -3 / 2) (σ''le : σ'' ≤ -3 / 2) :
     VerticalIntegral' (fun s ↦ x ^ s / (s * (s + 1))) σ' = VerticalIntegral' (fun s ↦ x ^ s / (s * (s + 1))) σ'' := by
 
   unfold VerticalIntegral'
@@ -1015,3 +1015,5 @@ $$
 \end{cases}.
 $$
 -/
+
+end Perron
