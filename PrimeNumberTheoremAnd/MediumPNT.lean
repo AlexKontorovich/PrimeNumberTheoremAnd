@@ -2400,13 +2400,8 @@ lemma I8Bound {SmoothingF : ℝ → ℝ}
   exact i2Bound
 
 
-
-
-
-
 @[blueprint
-  "IntegralofLogx^n/x^2Bounded"
-  (title := "IntegralofLogx^n/x^2Bounded")
+  (title := "log-pow-over-xsq-integral-bounded")
   (statement := /--
   For every $n$ there is some absolute constant $C>0$ such that
   $$

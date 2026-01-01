@@ -35,10 +35,10 @@ noncomputable def Eψ (x : ℝ) : ℝ := |ψ x - x| / x
 noncomputable def admissible_bound (A B C R : ℝ) (x : ℝ) := A * (log x / R) ^ B * exp (-C * (log x / R) ^ (1/2))
 
 @[blueprint
-  "classical bound"
+  "classical-bound"
   (title := "Definition 1, FKS2")
   (statement := /--
-  We say that $E_ψ$ satisfies a \emph{classical bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
+  We say that $E_ψ$ satisfies a \emph{classical-bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
   \[ E_ψ(x) \leq A \left(\frac{\log x}{R}\right)^B \exp\left(-C \left(\frac{\log x}{R}\right)^{1/2}\right). \]
   -/)]
 def Eψ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eψ x ≤ admissible_bound A B C R x

@@ -43,20 +43,20 @@ noncomputable def Eθ (x : ℝ) : ℝ := |θ x - x| / x
 
 
 @[blueprint
-  "classical bound'"
+  "classical-bound'"
   (title := "Definition 1, FKS2")
   (statement := /--
-  We say that $E_θ$ satisfies a \emph{classical bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
+  We say that $E_θ$ satisfies a \emph{classical-bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
   \[ E_θ(x) \leq A \left(\frac{\log x}{R}\right)^B \exp\left(-C \left(\frac{\log x}{R}\right)^{1/2}\right). \]
   Similarly for $E_π$.
   -/)]
 def Eθ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eθ x ≤ admissible_bound A B C R x
 
 @[blueprint
-  "classical bound'"
+  "classical-bound'"
   (title := "Definition 1, FKS2")
   (statement := /--
-  We say that $E_θ$ satisfies a \emph{classical bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
+  We say that $E_θ$ satisfies a \emph{classical-bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
   \[ E_θ(x) \leq A \left(\frac{\log x}{R}\right)^B \exp\left(-C \left(\frac{\log x}{R}\right)^{1/2}\right). \]
   Similarly for $E_π$.
   -/)]

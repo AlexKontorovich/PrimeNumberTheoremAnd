@@ -24,7 +24,7 @@ import Mathlib.Analysis.Normed.Group.Basic
 import Mathlib.Analysis.Complex.AbsMax
 import PrimeNumberTheoremAnd.BorelCaratheodory
 
-@[blueprint
+@[blueprint "DerivativeBound"
   (title := "DerivativeBound")
   (statement := /--
   Let $R,\,M>0$ and $0 < r < r' < R$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and

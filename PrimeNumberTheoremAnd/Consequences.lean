@@ -2156,6 +2156,6 @@ $$ \sum_{N \mathfrak{p} \leq x; N \mathfrak{p} = a\ (m)} \log N \mathfrak{p}  =
 -/
 
 blueprint_comment /--
-\begin{proof}\uses{Dedekind-PNT, WeakPNT_AP} This should follow from Lemma \ref{Dedekind-PNT} by a Fourier expansion.
+\begin{proof}\uses{Dedekind-PNT, WeakPNT-AP} This should follow from Lemma \ref{Dedekind-PNT} by a Fourier expansion.
 \end{proof}
 -/

@@ -101,7 +101,7 @@ theorem FKS2_Cor226 : Eπ.bound 0.4298 2 := sorry
 
 
 
-@[blueprint
+@[blueprint "thm:Dusart"
   (title := "Dusart Proposition 5.4")
   (statement := /--
   There exists a constant $X_0$ (one may take $X_0 = 89693$) with the following property:
