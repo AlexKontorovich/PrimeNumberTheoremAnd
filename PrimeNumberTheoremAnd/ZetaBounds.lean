@@ -34,7 +34,7 @@ local notation (name := riemannzeta) "ζ" => riemannZeta
 local notation (name := derivriemannzeta) "ζ'" => deriv riemannZeta
 
 /-%%
-We record here some prelimiaries about the zeta function and general
+We record here some preliminaries about the zeta function and general
 holomorphic functions.
 
 \begin{theorem}[ResidueOfTendsTo]\label{ResidueOfTendsTo}\lean{ResidueOfTendsTo}\leanok
