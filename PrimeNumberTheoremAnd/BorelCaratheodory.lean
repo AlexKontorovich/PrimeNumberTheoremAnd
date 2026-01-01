@@ -236,7 +236,7 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
 -- We can now prove Borel-Caratheodory for closed balls
 
 
-@[blueprint
+@[blueprint "borelCaratheodory-closedBall"
   (title := "borelCaratheodory-closedBall")
   (statement := /--
   Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose

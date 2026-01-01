@@ -40,11 +40,11 @@ import PrimeNumberTheoremAnd.BorelCaratheodory
   \begin{equation}\label{pickupPoint1}
       |f'(z)|=\left|\frac{1}{2\pi}\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt\right|\leq\frac{1}{2\pi}\int_0^{2\pi}\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
   \end{equation}
-  Now applying Theorem \ref{borelCaratheodory_closedBall}, and noting that $r'-r\leq|r'e^{it}-z|$, we have that
+  Now applying Theorem \ref{borelCaratheodory-closedBall}, and noting that $r'-r\leq|r'e^{it}-z|$, we have that
   $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
   Substituting this into Equation (\ref{pickupPoint1}) and evaluating the integral completes the proof.
   -/)
-  (proofUses := [borelCaratheodory_closedBall])]
+  (proofUses := ["borelCaratheodory-closedBall"])]
 theorem derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
   (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
   (f_zero_at_zero : f 0 = 0)
