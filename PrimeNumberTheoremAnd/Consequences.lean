@@ -38,11 +38,13 @@ lemma Set.Ico_subset_Ico_of_Icc_subset_Icc {a b c d : ℝ} (h : Set.Icc a b ⊆ 
   exact this.2
 
 -- AkraBazzi.lean
-lemma deriv_smoothingFn' {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) : deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) := by
+lemma deriv_smoothingFn' {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) :
+    deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) := by
   have : log x ≠ 0 := Real.log_ne_zero_of_pos_of_ne_one hx_pos hx
   rw [deriv_fun_inv''] <;> aesop
 
-lemma deriv_smoothingFn {x : ℝ} (hx : 1 < x) : deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) :=
+lemma deriv_smoothingFn {x : ℝ} (hx : 1 < x) :
+    deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) :=
   deriv_smoothingFn' (by positivity) (ne_of_gt hx)
 
 theorem extracted_2 (x : ℝ) (z : ℝ) (hz_pos : 0 < z) (hz : z ≠ 1) :
@@ -117,10 +119,11 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
         exacts [h.pos, h.ne_one]
       field
     simp [h]
-  rw [sum_mul_eq_sub_sub_integral_mul a (f := fun n ↦ 1 / log n) (by norm_num) (by linarith), floor32, show Icc 0 1 = {0, 1} by ext; simp; omega]
-  · simp only [Set.indicator_apply, Set.mem_setOf_eq, mem_singleton, zero_ne_one,
-      not_false_eq_true, sum_insert, CharP.cast_eq_zero, log_zero, ite_self, sum_singleton, cast_one,
-      log_one, add_zero, mul_zero, sub_zero, Chebyshev.theta_eq_sum_Icc, a, sum_filter]
+  rw [sum_mul_eq_sub_sub_integral_mul a (f := fun n ↦ 1 / log n) (by norm_num) (by linarith),
+    floor32, show Icc 0 1 = {0, 1} by ext; simp; omega]
+  · simp only [Set.indicator_apply, Set.mem_setOf_eq, mem_singleton, zero_ne_one, not_false_eq_true,
+      sum_insert, CharP.cast_eq_zero, log_zero, ite_self, sum_singleton, cast_one, log_one,
+      add_zero, mul_zero, sub_zero, Chebyshev.theta_eq_sum_Icc, a, sum_filter]
     have h8 (f : ℝ → ℝ) :
       ∫ (u : ℝ) in Set.Ioc (3 / 2) x, deriv (fun x ↦ 1 / log x) u * f u =
       ∫ (u : ℝ) in Set.Icc (3 / 2) x, f u * -(u * log u ^ 2)⁻¹ := by
@@ -138,7 +141,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       apply log_ne_zero_of_pos_of_ne_one <;> linarith [hz.1]
     fun_prop (disch := assumption)
   · simp only [one_div]
-    have : ∀ y ∈ Set.Icc (3 / 2) x, deriv (fun x ↦ (log x)⁻¹) y = -(y * log y ^ 2)⁻¹:= by
+    have : ∀ y ∈ Set.Icc (3 / 2) x, deriv (fun x ↦ (log x)⁻¹) y = -(y * log y ^ 2)⁻¹ := by
       intro y hy
       rw [deriv_smoothingFn, mul_inv, ← div_eq_mul_inv, neg_div]
       linarith [hy.1]
@@ -167,8 +170,8 @@ lemma finsum_range_eq_sum_range {R : Type*} [AddCommMonoid R] {f : ArithmeticFun
   simp only [mem_range]
   exact Iff.symm Nat.lt_ceil
 
-lemma finsum_range_eq_sum_range' {R : Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
-    ∑ᶠ (n : ℕ) (_ : n ≤ x), f n = ∑ n ∈ Iic ⌊x⌋₊, f n := by
+lemma finsum_range_eq_sum_range' {R : Type*} [AddCommMonoid R] {f : ArithmeticFunction R}
+    (x : ℝ) : ∑ᶠ (n : ℕ) (_ : n ≤ x), f n = ∑ n ∈ Iic ⌊x⌋₊, f n := by
   apply finsum_cond_eq_sum_of_cond_iff f
   intro n h
   simp only [mem_Iic]
@@ -182,23 +185,24 @@ lemma log2_pos : 0 < log 2 := by
 
 
 /-- If u ~ v and w-u = o(v) then w ~ v. -/
-theorem Asymptotics.IsEquivalent.add_isLittleO'
-    {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β}
-    {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (w - u) =o[l] v) :
+theorem Asymptotics.IsEquivalent.add_isLittleO' {α : Type*} {β : Type*} [NormedAddCommGroup β]
+    {u : α → β} {v : α → β} {w : α → β} {l : Filter α}
+    (huv : Asymptotics.IsEquivalent l u v) (hwu : (w - u) =o[l] v) :
     Asymptotics.IsEquivalent l w v := by
   rw [← add_sub_cancel u w]
   exact add_isLittleO huv hwu
 
 /-- If u ~ v and u-w = o(v) then w ~ v. -/
-theorem Asymptotics.IsEquivalent.add_isLittleO''
-    {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β}
-    {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (u - w) =o[l] v) :
+theorem Asymptotics.IsEquivalent.add_isLittleO'' {α : Type*} {β : Type*} [NormedAddCommGroup β]
+    {u : α → β} {v : α → β} {w : α → β} {l : Filter α}
+    (huv : Asymptotics.IsEquivalent l u v) (hwu : (u - w) =o[l] v) :
     Asymptotics.IsEquivalent l w v := by
   rw [← sub_sub_self u w]
   exact sub_isLittleO huv hwu
 
 theorem WeakPNT' : Tendsto (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) atTop (nhds 1) := by
-  have : (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) = (fun N ↦ (∑ n ∈ range N, Λ n)/N + Λ N / N) := by
+  have : (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) =
+      (fun N ↦ (∑ n ∈ range N, Λ n)/N + Λ N / N) := by
     ext N
     have : N ∈ Iic N := mem_Iic.mpr (le_refl _)
     rw [← Finset.sum_erase_add _ _ this, ← Nat.Iio_eq_range, Iic_erase]
@@ -253,7 +257,9 @@ theorem WeakPNT'' : ψ ~[atTop] (fun x ↦ x) := by
   $$ \sum_{n \leq x} \Lambda(n) = x + o(x)$$
   so it suffices to show that
   $$ \sum_{j \geq 2} \sum_{p^j \leq x} \log p = o(x).$$
-  Only the terms with $j \leq \log x / \log 2$ contribute, and each $j$ contributes at most $\sqrt{x} \log x$ to the sum, so the left-hand side is $O( \sqrt{x} \log^2 x ) = o(x)$ as required.
+  Only the terms with $j \leq \log x / \log 2$ contribute, and each $j$ contributes at most
+  $\sqrt{x} \log x$ to the sum, so the left-hand side is $O( \sqrt{x} \log^2 x ) = o(x)$ as
+  required.
   -/)]
 theorem chebyshev_asymptotic :
     θ ~[atTop] id := by
@@ -328,10 +334,11 @@ theorem chebyshev_asymptotic'' :
     exact hN x (le_trans (le_trans (le_abs_self N) (by linarith)) hx)
 
   · intro x hx
-    refine inte x hx |>.mul_continuousOn (g' := fun t : ℝ => t⁻¹) (continuousOn_inv₀ |>.mono <| by
-      rintro t ⟨ht1, _⟩
-      simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
-      linarith) isCompact_Icc |>.congr_fun_ae <| .of_forall <| by simp [div_eq_mul_inv]
+    refine inte x hx |>.mul_continuousOn (g' := fun t : ℝ => t⁻¹)
+      (continuousOn_inv₀ |>.mono <| by
+        rintro t ⟨ht1, _⟩
+        simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
+        linarith) isCompact_Icc |>.congr_fun_ae <| .of_forall <| by simp [div_eq_mul_inv]
   intro x hx
   rw [hf2, mul_div_cancel₀]
   linarith
@@ -392,10 +399,12 @@ lemma integral_log_inv (a b : ℝ) (ha : 2 ≤ a) (hb : a ≤ b) :
         rw [Set.uIcc_eq_union, Set.Icc_eq_empty (lt_iff_not_ge |>.1 hb), Set.union_empty] at hx
         obtain ⟨hx1, _⟩ := hx
         simp only
-        rw [show (-1 / (x * log x ^ 2)) = (-1 / log x ^ 2) * (x⁻¹) by rw [mul_comm x]; field_simp]
+        rw [show (-1 / (x * log x ^ 2)) = (-1 / log x ^ 2) * (x⁻¹) by
+          rw [mul_comm x]; field_simp]
         apply HasDerivAt.comp
           (h := fun t => log t) (h₂ := fun t => t⁻¹) (x := x)
-        · simpa using HasDerivAt.inv (c := fun t : ℝ => t) (c' := 1) (x := log x) (hasDerivAt_id' (log x))
+        · simpa using HasDerivAt.inv (c := fun t : ℝ => t) (c' := 1) (x := log x)
+            (hasDerivAt_id' (log x))
             (by simp only [ne_eq, log_eq_zero, not_or]; refine ⟨?_, ?_, ?_⟩ <;> linarith)
         · apply hasDerivAt_log; linarith)
       (fun x _ => hasDerivAt_id' x)
@@ -476,8 +485,8 @@ lemma pi_asymp_aux (x : ℝ) (hx : 2 ≤ x) : Nat.primeCounting ⌊x⌋₊ =
   ring_nf!
 
 theorem pi_asymp'' :
-    (fun x => (((Nat.primeCounting ⌊x⌋₊ : ℝ) / ∫ t in Set.Icc 2 x, 1 / (log t)) - (1 : ℝ))) =o[atTop]
-    fun _ => (1 : ℝ) := by
+    (fun x => (((Nat.primeCounting ⌊x⌋₊ : ℝ) / ∫ t in Set.Icc 2 x, 1 / (log t)) - (1 : ℝ)))
+    =o[atTop] fun _ => (1 : ℝ) := by
   obtain ⟨f, hf, f_int, hf'⟩ := chebyshev_asymptotic''
   have eq1 : ∀ᶠ (x : ℝ) in atTop,
       ⌊x⌋₊.primeCounting =
@@ -570,7 +579,8 @@ theorem pi_asymp'' :
     rw [mul_comm (c * ε)]
     gcongr
     bound
-  have int_flog {a b : ℝ} (ha: 2 ≤ a) (hb : 2 ≤ b) : IntegrableOn (fun t ↦ |f t| * (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
+  have int_flog {a b : ℝ} (ha: 2 ≤ a) (hb : 2 ≤ b) :
+      IntegrableOn (fun t ↦ |f t| * (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
     apply IntegrableOn.mul_continuousOn
     · apply Integrable.abs <| f_int b hb |>.mono (Set.Icc_subset_Icc_left ha) (by rfl)
     · refine ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
@@ -581,7 +591,8 @@ theorem pi_asymp'' :
           pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
         exact ⟨by linarith, by linarith, by linarith⟩
     · exact isCompact_Icc
-  have int_inv_log_sq {a b : ℝ} (ha : 2 ≤ a) (hb : 2 ≤ b):  IntegrableOn (fun t ↦ (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
+  have int_inv_log_sq {a b : ℝ} (ha : 2 ≤ a) (hb : 2 ≤ b) :
+      IntegrableOn (fun t ↦ (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
     refine ContinuousOn.integrableOn_Icc <|
       ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
     · grind
@@ -656,7 +667,8 @@ theorem pi_asymp'' :
               ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)))) := by
           congr 3
           rw [add_comm, ← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
-          · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le, volume_singleton]
+          · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le,
+              volume_singleton]
           · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
           · apply int_inv_log_sq (by rfl) (le_max_left ..)
           · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
@@ -753,23 +765,28 @@ theorem pi_asymp'' :
   intro ε hε
   specialize ineq4 (|D ε hε (1/2) (by linarith)| + |C|) ε hε
   simp only [one_div, norm_eq_abs, norm_one, mul_one]
-  filter_upwards [eventually_gt_atTop 2, ineq4, ineq1 ε hε (1 / 2) (by norm_num), hD ε hε (1 / 2) (by norm_num)] with x hx hB ineq1 hD
+  filter_upwards [eventually_gt_atTop 2, ineq4, ineq1 ε hε (1 / 2) (by norm_num),
+      hD ε hε (1 / 2) (by norm_num)] with x hx hB ineq1 hD
   have := integral_log_inv_pos x (by linarith) |>.le
   calc _
     _ ≤ |((log x)⁻¹ * (x * f x) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)| +
-        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹) /
+          ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
         |C / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
       apply abs_add_three
     _ = |(log x)⁻¹ * (x * f x)| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
-        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| /
+          |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
         |C| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
       rw [abs_div, abs_div, abs_div]
     _ = |(log x)⁻¹ * (x * f x)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| /
+          (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
         repeat rw [abs_of_pos <| integral_log_inv_pos _ (by linarith)]
     _ = ((log x)⁻¹ * x * |f x|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| /
+          (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
         congr
         rw [abs_mul, abs_mul, abs_of_nonneg (by bound), abs_of_nonneg (by linarith), mul_assoc]
@@ -782,12 +799,14 @@ theorem pi_asymp'' :
           (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         (D ε hε (1/2) (by linarith) + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
       ring
-    _ = (1/2) * ε + (D ε hε (1/2) (by linarith) + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
+    _ = (1/2) * ε + (D ε hε (1/2) (by linarith) + |C|) /
+        (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
       congr 1
       rw [mul_div_assoc, div_self, mul_one]
       apply integral_log_inv_ne_zero
       linarith
-    _ ≤ (1/2) * ε + (|D ε hε (1/2) (by linarith)| + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
+    _ ≤ (1/2) * ε + (|D ε hε (1/2) (by linarith)| + |C|) /
+        (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
       gcongr
       apply le_abs_self
     _ ≤ (1/2) * ε + (1/2) * ε := by
@@ -809,11 +828,13 @@ theorem pi_asymp'' :
   We have the identity
   $$ \pi(x) = \frac{1}{\log x} \sum_{p \leq x} \log p
   + \int_2^x (\sum_{p \leq t} \log p) \frac{dt}{t \log^2 t}$$
-  as can be proven by interchanging the sum and integral and using the fundamental theorem of calculus.  For any $\eps$, we know from Theorem \ref{chebyshev_asymptotic} that there is $x_\eps$ such that
-  $\sum_{p \leq t} \log p = t + O(\eps t)$ for $t \geq x_\eps$, hence for $x \geq x_\eps$
+  as can be proven by interchanging the sum and integral and using the fundamental theorem of
+  calculus.  For any $\eps$, we know from Theorem \ref{chebyshev_asymptotic} that there is $x_\eps$
+  such that $\sum_{p \leq t} \log p = t + O(\eps t)$ for $t \geq x_\eps$, hence for $x \geq x_\eps$
   $$ \pi(x) = \frac{1}{\log x} (x + O(\eps x))
   + \int_{x_\eps}^x (t + O(\eps t)) \frac{dt}{t \log^2 t} + O_\eps(1)$$
-  where the $O_\eps(1)$ term can depend on $x_\eps$ but is independent of $x$.  One can evaluate this after an integration by parts as
+  where the $O_\eps(1)$ term can depend on $x_\eps$ but is independent of $x$.  One can evaluate
+  this after an integration by parts as
   $$ \pi(x) = (1+O(\eps)) \int_{x_\eps}^x \frac{dt}{\log t} + O_\eps(1)$$
   $$  = (1+O(\eps)) \int_{2}^x \frac{dt}{\log t} $$
   for $x$ large enough, giving the claim.
@@ -942,7 +963,8 @@ lemma inv_div_log_asy : ∃ c, ∀ᶠ (x : ℝ) in atTop,
   calc
   _ = (∫ (t : ℝ) in (2)..(√x), 1 / log t ^ 2) + ∫ (t : ℝ) in (√x)..x, 1 / log t ^ 2 := by
     simp only [one_div]
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by linarith [(le_of_max_le_left hx)]),
+    rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
+      ← intervalIntegral.integral_of_le (by linarith [(le_of_max_le_left hx)]),
       ← intervalIntegral.integral_add_adjacent_intervals (b := √x)]
     · apply ContinuousOn.intervalIntegrable_of_Icc (by linarith [hx'.1])
       apply ContinuousOn.inv₀
@@ -969,8 +991,10 @@ lemma inv_div_log_asy : ∃ c, ∀ᶠ (x : ℝ) in atTop,
   _ ≤ c1 * √x + c2 * (x / log x ^ 2) := by
     specialize hc1 x (le_of_max_le_left (le_of_max_le_right (le_of_max_le_right hx)))
     specialize hc2 x (le_of_max_le_right (le_of_max_le_right (le_of_max_le_right hx)))
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by linarith [hx'.1]) ] at hc1
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hx'.2] at hc2
+    rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
+      ← intervalIntegral.integral_of_le (by linarith [hx'.1]) ] at hc1
+    rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
+      ← intervalIntegral.integral_of_le hx'.2] at hc2
     apply _root_.add_le_add hc1 hc2
   _ ≤ (c1 + c2) * (x / log x ^ 2) := by
     specialize hc0 x (le_of_max_le_left (le_of_max_le_right hx))
@@ -1019,8 +1043,10 @@ lemma inv_div_log_asy : ∃ c, ∀ᶠ (x : ℝ) in atTop,
 lemma integral_log_inv_pialt (x : ℝ) (hx : 4 ≤ x) : ∫ (t : ℝ) in Set.Icc 2 x, 1 / log t =
     x / log x - 2 / log 2 + ∫ (t : ℝ) in Set.Icc 2 x, 1 / (log t) ^ 2 := by
   have := integral_log_inv 2 x (by norm_num) (by linarith)
-  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by linarith [hx]),
-    MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by linarith [hx]),
+  rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
+    ← intervalIntegral.integral_of_le (by linarith [hx]),
+    MeasureTheory.integral_Icc_eq_integral_Ioc,
+      ← intervalIntegral.integral_of_le (by linarith [hx]),
     ← mul_one_div, one_div, ← mul_one_div, one_div]
   simp only [one_div, this, mul_comm]
 
@@ -1068,7 +1094,8 @@ lemma integral_div_log_asymptotic : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ 
   -/)
   (proof := /--
   An integration by parts gives
-    $$ \int_2^x \frac{dt}{\log t} = \frac{x}{\log x} - \frac{2}{\log 2} + \int_2^x \frac{dt}{\log^2 t}.$$
+  $$ \int_2^x \frac{dt}{\log t} = \frac{x}{\log x} - \frac{2}{\log 2} +
+  \int_2^x \frac{dt}{\log^2 t}.$$
   We have the crude bounds
   $$ \int_2^{\sqrt{x}} \frac{dt}{\log^2 t} = O( \sqrt{x} )$$
   and
@@ -1113,7 +1140,8 @@ theorem pi_alt' : (fun (x : ℝ) ↦ (primeCounting ⌊x⌋₊ : ℝ)) ~[atTop] 
     simp
     ring
   rw [this]
-  convert hf1.mul_isBigO (f₂ := (fun x ↦ x / log x)) (g₂ := (fun x ↦ x /log x)) (isBigO_refl ..) using 2
+  convert hf1.mul_isBigO (f₂ := (fun x ↦ x / log x)) (g₂ := (fun x ↦ x /log x))
+      (isBigO_refl ..) using 2
   all_goals ring
 
 
@@ -1131,7 +1159,11 @@ open Filter in
     $$ p_n = (1+o(1)) n \log n$$
   as $n \to \infty$.
   -/)
-  (proof := /-- Use Corollary \ref{pi_alt} to show that for any $\eps>0$, and for $n$ sufficiently large, the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up to $(1+\eps) n \log n$ is greater than $n$. -/)
+  (proof := /--
+    Use Corollary \ref{pi_alt} to show that for any $\eps>0$, and for $n$ sufficiently large,
+    the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up
+    to $(1+\eps) n \log n$ is greater than $n$.
+  -/)
   (latexEnv := "proposition")]
 theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     ∀ n : ℕ, n > 1 → Nat.nth Nat.Prime n = (1 + c n) * n * log n := by
@@ -1152,12 +1184,15 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
   have h2 : ∀ᶠ n:ℕ in atTop, log n > 0 := by
     rw [eventually_atTop]; use 2; intro n hn; apply Real.log_pos; norm_num; linarith
 
-  have h3 : ∀ᶠ n:ℕ in atTop, ε < 1 → (1 + c' ((1 - ε) * n * log n)) * ((1 - ε) * n * log n) / log ((1 - ε) * n * log n) ≤ n := by
+  have h3 : ∀ᶠ n:ℕ in atTop, ε < 1 →
+      (1 + c' ((1 - ε) * n * log n)) * ((1 - ε) * n * log n) /
+        log ((1 - ε) * n * log n) ≤ n := by
     rcases lt_or_ge ε 1 with hε' | hε'
     swap
     · apply Filter.Eventually.of_forall
       grind
-    suffices ∀ᶠ n:ℕ in atTop, ((1 + c' ((1 - ε) * n * log n)) * (1 - ε)) * (log n / log ((1 - ε) * n * log n)) ≤ 1 by
+    suffices ∀ᶠ n:ℕ in atTop, ((1 + c' ((1 - ε) * n * log n)) * (1 - ε)) *
+        (log n / log ((1 - ε) * n * log n)) ≤ 1 by
       apply Eventually.mono this
       intro n hn _
       replace hn := mul_le_mul_of_nonneg_right hn (show 0 ≤ (n:ℝ) by positivity)
@@ -1203,7 +1238,9 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
     apply Real.log_pos
     convert hn using 1
     ring
-  have h5 : ∀ᶠ n:ℕ in atTop, n < (1 + c' ((1 + ε) * n * log n - 1)) * ((1 + ε) * n * log n - 1) / log ((1 + ε) * n * log n - 1) := by
+  have h5 : ∀ᶠ n:ℕ in atTop,
+      n < (1 + c' ((1 + ε) * n * log n - 1)) * ((1 + ε) * n * log n - 1) /
+        log ((1 + ε) * n * log n - 1) := by
       suffices ∀ᶠ n:ℕ in atTop, (1 + c' ((1 + ε) * n * log n - 1)) * (((1 + ε) * log n - 1/n) / log ((1 + ε) * n * log n - 1)) > 1 by
         filter_upwards [h1, this]
         intro n hn₀ hn
@@ -1212,12 +1249,15 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
       apply Tendsto.eventually_const_lt (show 1+ε > 1 by linarith)
       convert Tendsto.mul (a := 1) (b := 1+ε) ?_ ?_ using 2
       · simp
-      · convert Tendsto.const_add (c := 0) (b := 1) (f := fun (n:ℕ) ↦ c' ((1+ε) * n * log n - 1)) ?_ using 2
+      · convert Tendsto.const_add (c := 0) (b := 1)
+            (f := fun (n:ℕ) ↦ c' ((1+ε) * n * log n - 1)) ?_ using 2
         · simp
         rw [Asymptotics.isLittleO_one_iff] at hc'
         apply Tendsto.comp hc'
-        apply Tendsto.comp (g := fun x ↦ (1+ε) * x * log x - 1) _ tendsto_natCast_atTop_atTop
-        convert Tendsto.comp (g := fun x ↦ (1+ε) * x - 1) (y := Filter.atTop) (f := fun x ↦ x * log x) ?_ ?_ using 2 with x
+        apply Tendsto.comp (g := fun x ↦ (1+ε) * x * log x - 1) _
+            tendsto_natCast_atTop_atTop
+        convert Tendsto.comp (g := fun x ↦ (1+ε) * x - 1) (y := Filter.atTop)
+            (f := fun x ↦ x * log x) ?_ ?_ using 2 with x
         · grind
         · have deg_1 : (1:ℕ) ≤ ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).degree := by
             apply Polynomial.le_degree_of_ne_zero
@@ -1262,7 +1302,9 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
         apply Tendsto.comp tendsto_inv_atTop_zero h6
       convert Tendsto.mul (a := 1) (b := 1) (f := f2) ?_ ?_ using 2
       · simp
-      · suffices Tendsto (fun n:ℕ ↦ log (1 - ((1+ε)*n*log n)⁻¹) / log ((1+ε)*n*log n) + 1) atTop (nhds 1) by
+      · suffices Tendsto
+            (fun n:ℕ ↦ log (1 - ((1+ε)*n*log n)⁻¹) / log ((1+ε)*n*log n) + 1)
+            atTop (nhds 1) by
           apply (Filter.tendsto_congr' _).mp this
           filter_upwards [h1, h2, h2a]
           intro n h1n h2n h2an
@@ -1352,7 +1394,8 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
   refine ⟨?_, ?_⟩
   · obtain ⟨k, k_o1, p_n_eq⟩ := pn_asymptotic
     simp only [isLittleO_one_iff]
-    rw [Filter.tendsto_congr' (f₂ := fun n ↦ ((1 + k (n+1))*(n+1)*log (n+1) - (1 + k n)*n*log n) / ((1 + k n)*n*log n))]
+    rw [Filter.tendsto_congr' (f₂ := fun n ↦
+        ((1 + k (n+1))*(n+1)*log (n+1) - (1 + k n)*n*log n) / ((1 + k n)*n*log n))]
     swap
     · simp only [EventuallyEq, eventually_atTop, ge_iff_le]
       use 2; intro n hn
