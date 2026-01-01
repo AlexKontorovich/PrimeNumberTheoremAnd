@@ -42,21 +42,21 @@ noncomputable def RectangleIntegral (f : ℂ → E) (z w : ℂ) : E := HIntegral
 noncomputable abbrev RectangleIntegral' (f : ℂ → E) (z w : ℂ) : E :=
     (1 / (2 * π * I)) • RectangleIntegral f z w
 
-/-% ** Wrong delimiter on purpose **
-An UpperUIntegral is the integral of a function over a |\_| shape.
-\begin{definition}\label{UpperUIntegral}\lean{UpperUIntegral}\leanok
-An UpperUIntegral of a function $f$ comes from $\sigma+i\infty$ down to $\sigma+iT$, over to $\sigma'+iT$, and back up to $\sigma'+i\infty$.
-\end{definition}
-%-/
+/- An UpperUIntegral is the integral of a function over a |\_| shape. -/
+@[blueprint
+  (title := "UpperUIntegral")
+  (statement := /--
+  An UpperUIntegral of a function $f$ comes from $\sigma+i\infty$ down to $\sigma+iT$, over to
+  $\sigma'+iT$, and back up to $\sigma'+i\infty$. -/)]
 noncomputable def UpperUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegral f σ σ' T +
     I • (∫ y : ℝ in Ici T, f (σ' + y * I)) - I • (∫ y : ℝ in Ici T, f (σ + y * I))
 
-/-% ** Wrong delimiter on purpose **
-A LowerUIntegral is the integral of a function over a |-| shape.
-\begin{definition}[LowerUIntegral]\label{LowerUIntegral}\lean{LowerUIntegral}\leanok
-A LowerUIntegral of a function $f$ comes from $\sigma-i\infty$ up to $\sigma-iT$, over to $\sigma'-iT$, and back down to $\sigma'-i\infty$.
-\end{definition}
-%-/
+/- A LowerUIntegral is the integral of a function over a |-| shape. -/
+@[blueprint
+  (title := "LowerUIntegral")
+  (statement := /--
+  A LowerUIntegral of a function $f$ comes from $\sigma-i\infty$ up to $\sigma-iT$, over to $\sigma'-iT$, and back down to $\sigma'-i\infty$.
+  -/)]
 noncomputable def LowerUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegral f σ σ' (-T) -
     I • (∫ y : ℝ in Iic (-T), f (σ' + y * I)) + I • (∫ y : ℝ in Iic (-T), f (σ + y * I))
 
@@ -85,11 +85,14 @@ lemma verticalIntegral_split_three (a b : ℝ) (hf : Integrable (fun t : ℝ ↦
 
 -- set_option trace.Meta.Tactic.simp.rewrite true
 
-/-% ** Wrong delimiter on purpose **
-\begin{lemma}[DiffVertRect_eq_UpperLowerUs]\label{DiffVertRect_eq_UpperLowerUs}\lean{DiffVertRect_eq_UpperLowerUs}\leanok
-The difference of two vertical integrals and a rectangle is the difference of an upper and a lower U integrals.
-\end{lemma}
-%-/
+@[blueprint
+  (title := "DiffVertRect-eq-UpperLowerUs")
+  (statement := /--
+  The difference of two vertical integrals and a rectangle is the difference of an upper and a lower U integrals.
+  -/)
+  (proof := /-- Follows directly from the definitions. -/)
+  (proofUses := ["UpperUIntegral", "LowerUIntegral"])
+  (latexEnv := "lemma")]
 lemma DiffVertRect_eq_UpperLowerUs {σ σ' T : ℝ}
     (f_int_σ : Integrable (fun (t : ℝ) ↦ f (σ + t * I)))
     (f_int_σ' : Integrable (fun (t : ℝ) ↦ f (σ' + t * I))) :
@@ -104,11 +107,6 @@ lemma DiffVertRect_eq_UpperLowerUs {σ σ' T : ℝ}
   ring_nf
   -- step 4: normalize expressions in `E`
   abel
-/-%
-\begin{proof}\uses{UpperUIntegral, LowerUIntegral}\leanok
-Follows directly from the definitions.
-\end{proof}
-%-/
 
 /-- A function is `HolomorphicOn` a set if it is complex differentiable on that set. -/
 abbrev HolomorphicOn (f : ℂ → E) (s : Set ℂ) : Prop := DifferentiableOn ℂ f s
