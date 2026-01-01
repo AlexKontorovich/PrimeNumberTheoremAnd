@@ -1136,12 +1136,14 @@ as $n \to \infty$.
 \end{proposition}
 %%-/
 
+noncomputable abbrev nth_prime (n : ℕ) : ℕ := Nat.nth Nat.Prime n
+
 lemma pi_nth_prime (n : ℕ) :
-    primeCounting (Nat.nth Nat.Prime n) = n + 1 := by
+    primeCounting (nth_prime n) = n + 1 := by
   rw [primeCounting, primeCounting', count_nth_succ_of_infinite]
   exact infinite_setOf_prime
 
-lemma pi_nth_prime_asymp :  (fun n ↦ (Nat.nth Nat.Prime n) / (log (Nat.nth Nat.Prime n))) ~[atTop] (fun (n : ℕ) ↦ (n : ℝ)) := by
+lemma pi_nth_prime_asymp :  (fun n ↦ (nth_prime n) / (log (nth_prime n))) ~[atTop] (fun (n : ℕ) ↦ (n : ℝ)) := by
   trans (fun (n : ℕ) ↦ ( n + 1 : ℝ))
   swap
   · apply IsEquivalent.add_isLittleO (by rfl)
@@ -1154,6 +1156,56 @@ lemma pi_nth_prime_asymp :  (fun n ↦ (Nat.nth Nat.Prime n) / (log (Nat.nth Nat
   simp only [Function.comp_apply, floor_natCast]
   rw [pi_nth_prime]
   norm_cast
+
+lemma Asymptotics.IsEquivalent.log {f g : ℕ → ℝ} (hfg : f ~[atTop] g)
+  (hf : ∀ᶠ (n : ℕ) in atTop, f n ≠ 0) (hg : ∀ᶠ (n : ℕ) in atTop, g n ≠ 0) (hg2 : Tendsto (fun n ↦ ‖Real.log (g n)‖) atTop atTop) :
+    (fun n ↦ log (f n)) ~[atTop] (fun n ↦ log (g n)) := by
+  rw [isEquivalent_iff_tendsto_one hg] at hfg
+  have := hfg.log (by norm_num)
+  simp at this
+  apply IsLittleO.isEquivalent
+  have := this.congr' (f₂ := (fun n ↦ Real.log (f n) - Real.log (g n))) ?_
+  swap
+  · filter_upwards [hf, hg] with n hf hg using log_div hf hg
+  trans (fun n ↦ 1)
+  · exact (isLittleO_one_iff ℝ).mpr this
+  rwa [isLittleO_one_left_iff]
+
+lemma log_nth_prime_asymp : (fun n ↦ log (nth_prime n)) ~[atTop] (fun n ↦ log n) := by
+  have := pi_nth_prime_asymp.log ?_ ?_ ?_
+  · apply IsEquivalent.trans _ this
+    apply IsEquivalent.congr_right (v := (fun n ↦ log (nth_prime n) - log (log (nth_prime n))))
+    swap
+    · filter_upwards with n
+      rw [log_div]
+      · exact_mod_cast prime_nth_prime n |>.ne_zero
+      · apply log_ne_zero.mpr ⟨?_, ?_, ?_⟩
+        <;> norm_cast<;> linarith [prime_nth_prime n |>.two_le]
+    symm
+    apply IsEquivalent.sub_isLittleO (by rfl)
+    apply IsLittleO.comp_tendsto isLittleO_log_id_atTop
+    have : Tendsto (fun n ↦ Nat.nth Nat.Prime n) atTop atTop := by
+      exact nth_strictMono infinite_setOf_prime |>.tendsto_atTop
+    have : Tendsto (fun n ↦ ((Nat.nth Nat.Prime n) : ℝ)) atTop atTop := by
+      apply tendsto_natCast_atTop_iff.mpr this
+    apply tendsto_log_atTop.comp this
+  · filter_upwards with n
+    have := prime_nth_prime n |>.two_le
+    simp_all
+    refine ⟨?_, ?_, ?_⟩ <;> linarith
+  · filter_upwards [eventually_ne_atTop 0] with n hn
+    exact_mod_cast hn
+  · apply tendsto_abs_atTop_atTop.comp <| tendsto_log_atTop.comp tendsto_natCast_atTop_atTop
+
+lemma nth_prime_asymp : (fun n ↦ ((nth_prime n) : ℝ)) ~[atTop] (fun n ↦ n * log n) := by
+  have := pi_nth_prime_asymp.mul log_nth_prime_asymp
+  convert this using 1
+  ext n
+  simp only [Pi.mul_apply]
+  have : log (nth_prime n) ≠ 0 :=by
+    apply log_ne_zero.mpr ⟨?_, ?_, ?_⟩
+      <;> norm_cast<;> linarith [prime_nth_prime n |>.two_le]
+  field
 
 set_option maxHeartbeats 300000 in
 -- A large number of limit calculations necessitated a heartbeat limit increase. -
