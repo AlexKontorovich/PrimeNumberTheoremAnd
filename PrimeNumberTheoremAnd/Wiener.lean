@@ -2425,12 +2425,13 @@ blueprint_comment /--
 
 -/
 
-@[blueprint
+@[blueprint "WeakPNT-character"
   (title := "WeakPNT-character")
   (statement := /--
     If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
   $$
-  \sum_{n: n = a\ (q)} \frac{\Lambda(n)}{n^s} = - \frac{1}{\varphi(q)} \sum_{\chi\ (q)} \overline{\chi(a)} \frac{L'(s,\chi)}{L(s,\chi)}.$$
+  \sum_{n: n = a\ (q)} \frac{\Lambda(n)}{n^s} = - \frac{1}{\varphi(q)} \sum_{\chi\ (q)}
+  \overline{\chi(a)} \frac{L'(s,\chi)}{L(s,\chi)}.$$
   -/)
   (proof := /--
     From the Fourier inversion formula on the multiplicative group $(\Z/q\Z)^\times$, we have
@@ -2445,8 +2446,8 @@ theorem WeakPNT_character
     {q a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) {s : ℂ} (hs : 1 < s.re) :
     LSeries (fun n ↦ if n % q = a then Λ n else 0) s =
       - (∑' χ : DirichletCharacter ℂ q,
-          ((starRingEnd ℂ) (χ a) * ((deriv (LSeries (fun n:ℕ ↦ χ n)) s)) / (LSeries (fun n:ℕ ↦ χ n) s))) /
-        (Nat.totient q : ℂ) := by
+          ((starRingEnd ℂ) (χ a) * ((deriv (LSeries (fun n:ℕ ↦ χ n)) s)) /
+          (LSeries (fun n:ℕ ↦ χ n) s))) / (Nat.totient q : ℂ) := by
   have : NeZero q := ⟨by omega⟩
   convert vonMangoldt.LSeries_residueClass_eq ((ZMod.isUnit_iff_coprime a q).mpr ha) hs using 1
   · congr with n
@@ -2465,22 +2466,29 @@ theorem WeakPNT_character
 
 
 
-@[blueprint
+@[blueprint "WeakPNT-AP-prelim"
   (title := "WeakPNT-AP-prelim")
   (statement := /--
-  If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to $\mathrm{Re}(s)=1$.
+  If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series
+  $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to
+  $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to
+  $\mathrm{Re}(s)=1$.
   -/)
   (proof := /--
-  We expand out the left-hand side using Lemma \ref{WeakPNT_character}.  The contribution of the non-principal characters $\chi$ extend continuously to $\mathrm{Re}(s) = 1$ thanks to the non-vanishing of $L(s,\chi)$ on this line (which should follow from another component of this project), so it suffices to show that for the principal character $\chi_0$, that
+  We expand out the left-hand side using Lemma \ref{WeakPNT-character}.  The contribution of the
+  non-principal characters $\chi$ extend continuously to $\mathrm{Re}(s) = 1$ thanks to the
+  non-vanishing of $L(s,\chi)$ on this line (which should follow from another component of
+  this project), so it suffices to show that for the principal character $\chi_0$, that
   $$ -\frac{L'(s,\chi_0)}{L(s,\chi_0)} - \frac{1}{s-1}$$
   also extends continuously here.  But we already know that
   $$ -\frac{\zeta'(s)}{\zeta(s)} - \frac{1}{s-1}$$
   extends, and from Euler product machinery one has the identity
   $$ \frac{L'(s,\chi_0)}{L(s,\chi_0)}
   = \frac{\zeta'(s)}{\zeta(s)} + \sum_{p|q} \frac{\log p}{p^s-1}.$$
-  Since there are only finitely many primes dividing $q$, and each summand $\frac{\log p}{p^s-1}$ extends continuously, the claim follows.
+  Since there are only finitely many primes dividing $q$, and each summand $\frac{\log p}{p^s-1}$
+  extends continuously, the claim follows.
   -/)
-  (proofUses := ["ChebyshevPsi", WeakPNT_character])
+  (proofUses := ["ChebyshevPsi", "WeakPNT-character"])
   (latexEnv := "proposition")]
 theorem WeakPNT_AP_prelim {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) :
     ∃ G: ℂ → ℂ, (ContinuousOn G {s | 1 ≤ s.re}) ∧
@@ -2488,13 +2496,13 @@ theorem WeakPNT_AP_prelim {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a
       ((Nat.totient q) * (s - 1))) {s | 1 < s.re}) := sorry
 
 
-@[blueprint
+@[blueprint "WeakPNT-AP"
   (title := "WeakPNT-AP")
   (statement := /--
   If $q ≥ 1$ and $a$ is coprime to $q$, we have
   $$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$
   -/)
-  (proofUses := ["WienerIkehara", WeakPNT_AP_prelim])]
+  (proofUses := ["WienerIkehara", "WeakPNT-AP-prelim"])]
 theorem WeakPNT_AP {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) :
     Tendsto (fun N ↦ cumsum (fun n ↦ if (n % q = a) then Λ n else 0) N / N)
       atTop (𝓝 (1 / (Nat.totient q))) := sorry
@@ -2504,7 +2512,8 @@ theorem WeakPNT_AP {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha
 blueprint_comment /--
 \section{The Chebotarev density theorem: the case of cyclotomic extensions}
 
-In this section, $K$ is a number field, $L = K(\mu_m)$ for some natural number $m$, and $G = Gal(K/L)$.
+In this section, $K$ is a number field, $L = K(\mu_m)$ for some natural number $m$, and
+$G = Gal(K/L)$.
 
 The goal here is to prove the Chebotarev density theorem for the case of cyclotomic extensions.
 -/
@@ -2512,7 +2521,8 @@ The goal here is to prove the Chebotarev density theorem for the case of cycloto
 blueprint_comment /--
 \begin{lemma}[Dedekind_factor]\label{Dedekind_factor}  We have
 $$ \zeta_L(s) = \prod_{\chi} L(\chi,s)$$
-for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ and $L$ is the Artin $L$-function.
+for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ and $L$ is the
+Artin $L$-function.
 \end{lemma}
 
 -/
@@ -2533,37 +2543,44 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-\begin{lemma}[Dedekind_nonvanishing]\label{Dedekind_nonvanishing}  For any non-principal character $\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
+\begin{lemma}[Dedekind_nonvanishing]\label{Dedekind_nonvanishing}  For any non-principal character
+$\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
 \end{lemma}
 
 -/
 
 blueprint_comment /--
-\begin{proof}\uses{Dedekind_factor, Dedekind_pole} For $s=1$, this will follow from Lemmas \ref{Dedekind_factor}, \ref{Dedekind_pole}. For the rest of the line, one should be able to adapt the arguments for the Dirichet L-function.
+\begin{proof}\uses{Dedekind_factor, Dedekind_pole} For $s=1$, this will follow from
+Lemmas \ref{Dedekind_factor}, \ref{Dedekind_pole}. For the rest of the line, one should be able to
+adapt the arguments for the Dirichet L-function.
 \end{proof}
 -/
 
 blueprint_comment /--
 \section{The Chebotarev density theorem: the case of abelian extensions}
 
-(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the previous results to abelian extensions (actually just cyclic extensions would suffice))
+(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the
+previous results to abelian extensions (actually just cyclic extensions would suffice))
 
 -/
 
 blueprint_comment /--
 \section{The Chebotarev density theorem: the general case}
 
-(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the previous results to arbitrary extensions
+(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the
+previous results to arbitrary extensions
 
 -/
 
 blueprint_comment /--
-\begin{lemma}[PNT for one character]\label{Dedekind-PNT}  For any non-principal character $\chi$ of $Gal(K/L)$,
-$$ \sum_{N \mathfrak{p} \leq x} \chi(\mathfrak{p}) \log N \mathfrak{p}  = o(x).$$
+\begin{lemma}[PNT for one character]\label{Dedekind-PNT}  For any non-principal character $\chi$ of
+$Gal(K/L)$, $$ \sum_{N \mathfrak{p} \leq x} \chi(\mathfrak{p}) \log N \mathfrak{p}  = o(x).$$
 \end{lemma}
 -/
 
 blueprint_comment /--
-\begin{proof}\uses{Dedekind_nonvanishing} This should follow from Lemma \ref{Dedekind_nonvanishing} and the arguments for the Dirichlet L-function. (It may be more convenient to work with a von Mangoldt type function instead of $\log N\mathfrak{p}$).
+\begin{proof}\uses{Dedekind_nonvanishing} This should follow from Lemma \ref{Dedekind_nonvanishing}
+and the arguments for the Dirichlet L-function. (It may be more convenient to work with a
+von Mangoldt type function instead of $\log N\mathfrak{p}$).
 \end{proof}
 -/
