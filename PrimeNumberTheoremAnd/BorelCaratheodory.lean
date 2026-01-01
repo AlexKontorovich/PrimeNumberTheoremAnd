@@ -22,7 +22,8 @@ noncomputable abbrev divRemovable_zero (f : ℂ → ℂ) : ℂ → ℂ :=
 -- Away from zero divRemovable_zero f z is equal to f z / z
 @[blueprint
   (statement := /--
-  Let $f$ be a complex function and let $z\neq 0$. Then, with $g$ defined as in Definition~\ref{divRemovable_zero},
+  Let $f$ be a complex function and let $z\neq 0$. Then, with $g$ defined as in
+  Definition~\ref{divRemovable_zero},
   $$g(z)=\frac{f(z)}{z}.$$
   -/)
   (proof := /-- This follows directly from the definition of $g$. -/)
@@ -40,10 +41,11 @@ lemma divRemovable_zero_of_ne_zero {z : ℂ} (f : ℂ → ℂ) (z_ne_0 : z ≠ 0
   -/)
   (proof := /--
   We need to show that $g$ is complex differentiable at every point in $s$.
-  For $z\neq 0$, this follows directly from the definition of $g$ and the fact that $f$ is analytic on $s$.
-  For $z=0$, we use the definition of the derivative and the fact that $f(0)=0$:
+  For $z\neq 0$, this follows directly from the definition of $g$ and the fact that $f$ is
+  analytic on $s$. For $z=0$, we use the definition of the derivative and the fact that $f(0)=0$:
   \[
-  \lim_{z\to 0}\frac{g(z)-g(0)}{z-0}=\lim_{z\to 0}\frac{\frac{f(z)}{z}-f'(0)}{z}=\lim_{z\to 0}\frac{f(z)-f'(0)z}{z^2}=\lim_{z\to 0}\frac{f(z)-f(0)-f'(0)(z-0)}{(z-0)^2}=0,
+  \lim_{z\to 0}\frac{g(z)-g(0)}{z-0}=\lim_{z\to 0}\frac{\frac{f(z)}{z}-f'(0)}{z}
+  =\lim_{z\to 0}\frac{f(z)-f'(0)z}{z^2}=\lim_{z\to 0}\frac{f(z)-f(0)-f'(0)(z-0)}{(z-0)^2}=0,
   \]
   where the last equality follows from the definition of the derivative of $f$ at $0$.
   Thus, $g$ is complex differentiable at $0$ with derivative $0$, completing the proof.
@@ -82,13 +84,15 @@ lemma AnalyticOn_divRemovable_zero {f : ℂ → ℂ} {s : Set ℂ}
   $|z|\leq R$.
   -/)
   (proof := /--
-  The proof is similar to that of Lemma~\ref{AnalyticOn_divRemovable_zero}, but we need to consider two cases:
-  when $x$ is on the boundary of the closed ball and when it is in the interior.
+  The proof is similar to that of Lemma~\ref{AnalyticOn_divRemovable_zero}, but we need to
+  consider two cases: when $x$ is on the boundary of the closed ball and when it is in the
+  interior.
   In the first case, we take a small open ball around $x$ that lies entirely within the closed ball,
   and apply Lemma~\ref{AnalyticOn_divRemovable_zero} on this smaller ball.
   In the second case, we can take the entire open ball centered at $0$ with radius $R$,
   and again apply Lemma~\ref{AnalyticOn_divRemovable_zero}.
-  In both cases, we use the fact that $f(0)=0$ to ensure that the removable singularity at $0$ is handled correctly.
+  In both cases, we use the fact that $f(0)=0$ to ensure that the removable singularity at $0$
+  is handled correctly.
   -/)
   (latexEnv := "lemma")]
 lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
@@ -101,7 +105,8 @@ lemma AnalyticOn_divRemovable_zero_closedBall {f : ℂ → ℂ} {R : ℝ}
     constructor
     · exact Metric.isOpen_ball
     · constructor
-      · simp only [Metric.mem_ball, dist_self, Nat.ofNat_pos, div_pos_iff_of_pos_right]; positivity
+      · simp only [Metric.mem_ball, dist_self, Nat.ofNat_pos, div_pos_iff_of_pos_right]
+        positivity
       · have Z : ∀ w ∈ Metric.closedBall 0 R ∩ Metric.ball x (R / 2),
             divRemovable_zero f w = f w / w := by
           intro x₂ hyp_x₂
@@ -172,7 +177,10 @@ noncomputable abbrev schwartzQuotient (f : ℂ → ℂ) (M : ℝ) : ℂ → ℂ 
   Then, with $f_{M}$ defined as in Definition~\ref{schwartzQuotient}, $f_{M}$ is analytic on
   $|z|\leq R$.
   -/)
-  (proof := /-- This follows directly from Lemma~\ref{AnalyticOn_divRemovable_zero_closedBall} and the fact that the difference of two analytic functions is analytic. -/)
+  (proof := /--
+  This follows directly from Lemma~\ref{AnalyticOn_divRemovable_zero_closedBall} and the fact
+  that the difference of two analytic functions is analytic.
+  -/)
   (latexEnv := "lemma")]
 lemma AnalyticOn.schwartzQuotient {f : ℂ → ℂ} {R : ℝ} (M : ℝ)
     (Rpos : 0 < R) (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
@@ -217,7 +225,8 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
     (U := Metric.closedBall 0 r) (Metric.isBounded_closedBall)
   · apply DifferentiableOn.diffContOnCl; rw [Metric.closure_closedBall]
     apply AnalyticOn.differentiableOn
-    apply AnalyticOn.mono (f := f) (s := Metric.closedBall 0 r) (t := Metric.closedBall 0 R) (𝕜 := ℂ) analytic
+    apply AnalyticOn.mono (f := f) (s := Metric.closedBall 0 r) (t := Metric.closedBall 0 R)
+      (𝕜 := ℂ) analytic
     · apply Metric.closedBall_subset_closedBall; linarith
   · rw [frontier_closedBall']; exact cond
   · rw [Metric.closure_closedBall]; exact wInS
@@ -228,21 +237,27 @@ lemma AnalyticOn.norm_le_of_norm_le_on_sphere {f : ℂ → ℂ} {C R r : ℝ}
 @[blueprint
   (title := "borelCaratheodory_closedBall")
   (statement := /--
-  Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
+  Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose
+  $\Re f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
   $$\sup_{|z|\leq r}|f(z)|\leq\frac{2Mr}{R-r}.$$
   -/)
   (proof := /--
   Let
   $$f_M(z)=\frac{f(z)/z}{2M-f(z)}.$$
-  Note that $2M-f(z)\neq 0$ because $\Re (2M-f(z))=2M-\Re f(z)\geq M>0$. Additionally, since $f(z)$ has a zero at $0$, we know that $f(z)/z$ is analytic on $|z|\leq R$. Likewise, $f_M(z)$ is analytic on $|z|\leq R$.
+  Note that $2M-f(z)\neq 0$ because $\Re (2M-f(z))=2M-\Re f(z)\geq M>0$. Additionally, since
+  $f(z)$ has a zero at $0$, we know that $f(z)/z$ is analytic on $|z|\leq R$. Likewise, $f_M(z)$
+  is analytic on $|z|\leq R$.
 
   Now note that $|f(z)|\leq|2M-f(z)|$ since $\Re f(z)\leq M$. Thus we have that
   $$|f_M(z)|=\frac{|f(z)|/|z|}{|2M-f(z)|}\leq\frac{1}{|z|}.$$
-  Now by the maximum modulus principle, we know the maximum of $|f_M|$ must occur on the boundary where $|z|=R$. Thus, $|f_M(z)|\leq 1/R$ for all $|z|\leq R$. So for $|z|=r$ we have
-  $$|f_M(z)|=\frac{|f(z)|/r}{|2M-f(z)|}\leq\frac{1}{R}\implies R\,|f(z)|\leq r\,|2M-f(z)|\leq 2Mr+r\,|f(z)|.$$
+  Now by the maximum modulus principle, we know the maximum of $|f_M|$ must occur on the boundary
+  where $|z|=R$. Thus, $|f_M(z)|\leq 1/R$ for all $|z|\leq R$. So for $|z|=r$ we have
+  $$|f_M(z)|=\frac{|f(z)|/r}{|2M-f(z)|}\leq\frac{1}{R}\implies R\,|f(z)|\leq r\,|2M-f(z)|\leq
+  2Mr+r\,|f(z)|.$$
   Which by algebraic manipulation gives
   $$|f(z)|\leq\frac{2Mr}{R-r}.$$
-  Once more, by the maximum modulus principle, we know the maximum of $|f|$ must occur on the boundary where $|z|=r$. Thus, the desired result immediately follows
+  Once more, by the maximum modulus principle, we know the maximum of $|f|$ must occur on the
+  boundary where $|z|=r$. Thus, the desired result immediately follows
   -/)]
 theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (Rpos : 0 < R) (analytic : AnalyticOn ℂ f (Metric.closedBall 0 R))
@@ -260,9 +275,13 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
 
   have fPosAll : ∀ z ∈ Metric.closedBall 0 R, 2 * M - f z ≠ 0 := by
     intro z zInS
-    exact Complex.ne_zero_of_re_pos (by rw [Complex.sub_re, Complex.mul_re, Complex.re_ofNat, Complex.ofReal_re, Complex.im_ofNat, Complex.ofReal_im, mul_zero, sub_zero, sub_pos]; linarith [realPartBounded z zInS])
+    exact Complex.ne_zero_of_re_pos (by
+      rw [Complex.sub_re, Complex.mul_re, Complex.re_ofNat, Complex.ofReal_re, Complex.im_ofNat,
+        Complex.ofReal_im, mul_zero, sub_zero, sub_pos]
+      linarith [realPartBounded z zInS])
 
-  have schwartzQuotientBounded : ∀ z ∈ Metric.sphere 0 R, ‖schwartzQuotient f M z‖ ≤ 1 / R := by
+  have schwartzQuotientBounded :
+      ∀ z ∈ Metric.sphere 0 R, ‖schwartzQuotient f M z‖ ≤ 1 / R := by
     intro z hyp_z
     have zNe0 : z ≠ 0 := by
       rw [mem_sphere_zero_iff_norm] at hyp_z
@@ -271,7 +290,8 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     rw [mem_sphere_iff_norm, sub_zero] at hyp_z
 
     calc ‖schwartzQuotient f M z‖
-      _ = (‖f z‖ / ‖z‖) / ‖2 * M - f z‖ := by simp only [Complex.norm_div, divRemovable_zero_of_ne_zero f zNe0]
+      _ = (‖f z‖ / ‖z‖) / ‖2 * M - f z‖ := by
+        simp only [Complex.norm_div, divRemovable_zero_of_ne_zero f zNe0]
       _ ≤ (‖f z‖ / ‖z‖) / ‖f z‖ := by
         by_cases h : ‖f z‖ = 0;
         · simp only [h, zero_div, div_zero, le_refl]
@@ -297,7 +317,9 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     have U : z ≠ 0 := by rw [← norm_pos_iff]; linarith
     rw [divRemovable_zero_of_ne_zero f U] at this
     simp only [Complex.norm_div, one_div] at this
-    have U : 0 < r * ‖2 * M - f z‖ := by simp only [r_pos, mul_pos_iff_of_pos_left, norm_pos_iff, ne_eq, fPosAll z zInS, not_false_eq_true]
+    have U : 0 < r * ‖2 * M - f z‖ := by
+      simp only [r_pos, mul_pos_iff_of_pos_left, norm_pos_iff, ne_eq, fPosAll z zInS,
+        not_false_eq_true]
     rw [zOnR, div_div, div_le_iff₀' U] at this
     have U0 : ‖f z‖ ≤ 2 * M * r / R + ( r / R ) * ‖f z‖ := by
       calc ‖f z‖
@@ -305,8 +327,10 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
         _ ≤ r * (‖(2 : ℂ) * M‖ + ‖f z‖) * R⁻¹ := by
           gcongr; apply norm_sub_le (E := ℂ) ((2 : ℂ) * ↑M) (f z)
         _ = r * (2 * M + ‖f z‖) * R⁻¹ := by
-          have U : ‖(2 : ℂ) * M‖ = 2 * M := by simp only [Complex.norm_mul, Complex.norm_ofNat, Complex.norm_real, Real.norm_eq_abs, mul_eq_mul_left_iff,
-  abs_eq_self, OfNat.ofNat_ne_zero, or_false]; linarith
+          have U : ‖(2 : ℂ) * M‖ = 2 * M := by
+            simp only [Complex.norm_mul, Complex.norm_ofNat, Complex.norm_real, Real.norm_eq_abs,
+              mul_eq_mul_left_iff, abs_eq_self, OfNat.ofNat_ne_zero, or_false]
+            linarith
           rw [U]
         _ = 2 * M * r / R + (r / R) * ‖f z‖ := by ring_nf
     have U1 : ‖f z‖ - ‖f z‖ * (r * R⁻¹) = ‖f z‖ * (1 - r * R⁻¹) := by ring
@@ -318,20 +342,24 @@ theorem borelCaratheodory_closedBall {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
       have : R ≠ 0 := by linarith
       rw [← mul_div_mul_left (r * R⁻¹ * M * (2 : ℝ)) ((1 : ℝ) - r * R⁻¹) this ];
       ring_nf
-      have U : R * r * R⁻¹ = r := by rw [mul_comm, ← mul_assoc, ← mul_comm R R⁻¹, CommGroupWithZero.mul_inv_cancel R this, one_mul]
+      have U : R * r * R⁻¹ = r := by
+        rw [mul_comm, ← mul_assoc, ← mul_comm R R⁻¹, CommGroupWithZero.mul_inv_cancel R this,
+          one_mul]
       rw [U]
 
     rw [← sub_le_sub_iff_right ((r / R) * ‖f z‖)] at U0; ring_nf at U0
     rw [mul_assoc, U1, ← le_div_iff₀ U2, U3] at U0
     exact U0
 
-  have maxBoundForF : ∀ r < R, 0 < r → ∀ z ∈ Metric.closedBall 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
+  have maxBoundForF :
+      ∀ r < R, 0 < r → ∀ z ∈ Metric.closedBall 0 r, ‖f z‖ ≤ 2 * M * r / (R - r) := by
     intro r hyp_r pos_r
     exact AnalyticOn.norm_le_of_norm_le_on_sphere analytic
       (by linarith) (boundForF r hyp_r pos_r)
 
   by_cases pos_r : r = 0
-  · have U : z = 0 := by rw [pos_r, Metric.closedBall_zero, Set.mem_singleton_iff] at hyp_z; exact hyp_z
+  · have U : z = 0 := by
+      rw [pos_r, Metric.closedBall_zero, Set.mem_singleton_iff] at hyp_z; exact hyp_z
     rw [U, pos_r]; rw [mul_zero, sub_zero, zero_div, norm_le_zero_iff]; exact zeroAtZero
   · have U : 0 ≤ r := by
       rw [mem_closedBall_iff_norm, sub_zero] at hyp_z; linarith [norm_nonneg z]
