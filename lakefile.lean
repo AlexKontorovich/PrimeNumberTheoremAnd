@@ -17,6 +17,8 @@ package «PrimeNumberTheoremAnd» where
 @[default_target]
 lean_lib «PrimeNumberTheoremAnd»
 
+require LeanArchitect from git "https://github.com/hanwenzhu/LeanArchitect.git" @ "v4.26.0"
+
 --
 -- DO NOT REPLACE WITH '@ "master"': the pace of development of mathlib is too
 -- fast for us to keep up. If you need to bump the version of mathlib, change

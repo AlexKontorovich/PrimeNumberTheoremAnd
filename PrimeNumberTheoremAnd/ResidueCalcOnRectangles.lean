@@ -1,3 +1,4 @@
+import Architect
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.Analysis.Complex.Convex
 import Mathlib.Analysis.Complex.RemovableSingularity
@@ -25,14 +26,14 @@ lemma HIntegral_symm : HIntegral f x₁ x₂ y = - HIntegral f x₂ x₁ y := in
 lemma VIntegral_symm : VIntegral f x y₁ y₂ = - VIntegral f x y₂ y₁ := by
   simp_rw [VIntegral, integral_symm y₁ y₂, smul_neg, neg_neg]
 
-/-%%
-\begin{definition}[RectangleIntegral]\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
-A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ and $w$ in $\C$.
-We will sometimes denote it by $\int_{z}^{w} f$. (There is also a primed version, which is $1/(2\pi i)$ times the original.)
-\end{definition}
-%%-/
 /-- A `RectangleIntegral` of a function `f` is one over a rectangle determined by
   `z` and `w` in `ℂ`. -/
+@[blueprint
+  (title := "RectangleIntegral")
+  (statement := /--
+  A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ and $w$ in $\C$.
+  We will sometimes denote it by $\int_{z}^{w} f$. (There is also a primed version, which is $1/(2\pi i)$ times the original.)
+  -/)]
 noncomputable def RectangleIntegral (f : ℂ → E) (z w : ℂ) : E := HIntegral f z.re w.re z.im -
     HIntegral f z.re w.re w.im + VIntegral f w.re z.im w.im - VIntegral f z.re z.im w.im
 
@@ -59,16 +60,18 @@ A LowerUIntegral of a function $f$ comes from $\sigma-i\infty$ up to $\sigma-iT$
 noncomputable def LowerUIntegral (f : ℂ → E) (σ σ' T : ℝ) : E := HIntegral f σ σ' (-T) -
     I • (∫ y : ℝ in Iic (-T), f (σ' + y * I)) + I • (∫ y : ℝ in Iic (-T), f (σ + y * I))
 
-/-%%
+blueprint_comment /--
 It is very convenient to define integrals along vertical lines in the complex plane, as follows.
-\begin{definition}[VerticalIntegral]\label{VerticalIntegral}\lean{VerticalIntegral}\leanok
-Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a real number. Then we define
-$$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
-\end{definition}
-%%-/
+-/
+@[blueprint
+  (title := "VerticalIntegral")
+  (statement := /--
+  Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a real number. Then we define
+  $$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
+  -/)]
 noncomputable def VerticalIntegral (f : ℂ → E) (σ : ℝ) : E := I • ∫ t : ℝ, f (σ + t * I)
 
---%% We also have a version with a factor of $1/(2\pi i)$.
+blueprint_comment /-- We also have a version with a factor of $1/(2\pi i)$. -/
 noncomputable abbrev VerticalIntegral' (f : ℂ → E) (σ : ℝ) : E :=
     (1 / (2 * π * I)) • VerticalIntegral f σ
 
@@ -110,37 +113,25 @@ Follows directly from the definitions.
 /-- A function is `HolomorphicOn` a set if it is complex differentiable on that set. -/
 abbrev HolomorphicOn (f : ℂ → E) (s : Set ℂ) : Prop := DifferentiableOn ℂ f s
 
-/-%%
-\begin{theorem}[existsDifferentiableOn_of_bddAbove]\label{existsDifferentiableOn_of_bddAbove}\lean{existsDifferentiableOn_of_bddAbove}\leanok
-If $f$ is differentiable on a set $s$ except at $c\in s$, and $f$ is bounded above on $s\setminus\{c\}$, then there exists a differentiable function $g$ on $s$ such that $f$ and $g$ agree on $s\setminus\{c\}$.
-\end{theorem}
-%%-/
+@[blueprint
+  (title := "existsDifferentiableOn_of_bddAbove")
+  (statement := /-- If $f$ is differentiable on a set $s$ except at $c\in s$, and $f$ is bounded above on $s\setminus\{c\}$, then there exists a differentiable function $g$ on $s$ such that $f$ and $g$ agree on $s\setminus\{c\}$. -/)
+  (proof := /-- This is the Riemann Removable Singularity Theorem, slightly rephrased from what's in Mathlib. (We don't care what the function $g$ is, just that it's holomorphic.) -/)]
 theorem existsDifferentiableOn_of_bddAbove [CompleteSpace E] {s : Set ℂ} {c : ℂ} (hc : s ∈ nhds c)
     (hd : HolomorphicOn f (s \ {c})) (hb : BddAbove (norm ∘ f '' (s \ {c}))) :
     ∃ (g : ℂ → E), HolomorphicOn g s ∧ (Set.EqOn f g (s \ {c})) :=
   ⟨Function.update f c (limUnder (𝓝[{c}ᶜ] c) f),
     differentiableOn_update_limUnder_of_bddAbove hc hd hb,
     fun z hz ↦ if h : z = c then (hz.2 h).elim else by simp [h]⟩
-/-%%
-\begin{proof}\leanok
-This is the Riemann Removable Singularity Theorem, slightly rephrased from what's in Mathlib. (We don't care what the function $g$ is, just that it's holomorphic.)
-\end{proof}
-%%-/
 
-/-%%
-\begin{theorem}[HolomorphicOn.vanishesOnRectangle]\label{HolomorphicOn.vanishesOnRectangle}\lean{HolomorphicOn.vanishesOnRectangle}\leanok
-If $f$ is holomorphic on a rectangle $z$ and $w$, then the integral of $f$ over the rectangle with corners $z$ and $w$ is $0$.
-\end{theorem}
-%%-/
+@[blueprint
+  (title := "HolomorphicOn.vanishesOnRectangle")
+  (statement := /-- If $f$ is holomorphic on a rectangle $z$ and $w$, then the integral of $f$ over the rectangle with corners $z$ and $w$ is $0$. -/)
+  (proof := /-- This is in a Mathlib PR. -/)]
 theorem HolomorphicOn.vanishesOnRectangle [CompleteSpace E] {U : Set ℂ}
     (f_holo : HolomorphicOn f U) (hU : Rectangle z w ⊆ U) :
     RectangleIntegral f z w = 0 :=
   integral_boundary_rect_eq_zero_of_differentiableOn f z w (f_holo.mono hU)
-/-%%
-\begin{proof}\leanok\uses{RectangleBorder}
-This is in a Mathlib PR.
-\end{proof}
-%%-/
 
 theorem RectangleIntegral_congr (h : Set.EqOn f g (RectangleBorder z w)) :
     RectangleIntegral f z w = RectangleIntegral g z w := by
@@ -326,36 +317,36 @@ lemma RectanglePullToNhdOfPole' [CompleteSpace E] {z₀ z₁ z₂ z₃ p : ℂ}
   simp only [re_add_im] at *
   additive_combination h₁ + h₂ + h₃ + h₄ + h₅ + h₆ + h₇ + h₈
 
-/-%%
+blueprint_comment /--
 The next lemma allows to zoom a big rectangle down to a small square, centered at a pole.
-
-\begin{lemma}[RectanglePullToNhdOfPole]\label{RectanglePullToNhdOfPole}\lean{RectanglePullToNhdOfPole}\leanok
-If $f$ is holomorphic on a rectangle $z$ and $w$ except at a point $p$, then the integral of $f$
-over the rectangle with corners $z$ and $w$ is the same as the integral of $f$ over a small square
-centered at $p$.
-\end{lemma}
-%%-/
+-/
 /-- Given `f` holomorphic on a rectangle `z` and `w` except at a point `p`, the integral of `f` over
 the rectangle with corners `z` and `w` is the same as the integral of `f` over a small square
 centered at `p`. -/
+@[blueprint
+  (title := "RectanglePullToNhdOfPole")
+  (statement := /--
+  If $f$ is holomorphic on a rectangle $z$ and $w$ except at a point $p$, then the integral of $f$
+  over the rectangle with corners $z$ and $w$ is the same as the integral of $f$ over a small square
+  centered at $p$.
+  -/)
+  (proof := /--
+  Chop the big rectangle with two vertical cuts and two horizontal cuts into smaller rectangles,
+  the middle one being the desired square. The integral over each of the outer rectangles
+  vanishes, since $f$ is holomorphic there. (The constant $c$ being ``small enough'' here just means
+  that the inner square is strictly contained in the big rectangle.)
+  -/)
+  (latexEnv := "lemma")]
 lemma RectanglePullToNhdOfPole [CompleteSpace E] {z w p : ℂ} (zRe_lt_wRe : z.re ≤ w.re)
     (zIm_lt_wIm : z.im ≤ w.im) (hp : Rectangle z w ∈ 𝓝 p)
     (fHolo : HolomorphicOn f (Rectangle z w \ {p})) :
     ∀ᶠ (c : ℝ) in 𝓝[>]0,
     RectangleIntegral f z w = RectangleIntegral f (-c - I * c + p) (c + I * c + p) := by
-/-%%
-\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, RectangleBorder}\leanok
-Chop the big rectangle with two vertical cuts and two horizontal cuts into smaller rectangles,
-the middle one being the desired square. The integral over each of the outer rectangles
-vanishes, since $f$ is holomorphic there. (The constant $c$ being ``small enough'' here just means
-that the inner square is strictly contained in the big rectangle.)
-%%-/
   filter_upwards [Ioo_mem_nhdsGT zero_lt_one, SmallSquareInRectangle hp]
   intro c ⟨cpos, _⟩ hc
   simp_rw [mul_comm I]
   exact RectanglePullToNhdOfPole' (by simp_all [cpos.le])
     (square_mem_nhds p (ne_of_gt cpos)) hc fHolo
---%%\end{proof}
 
 lemma RectanglePullToNhdOfPole'' [CompleteSpace E] {z w p : ℂ} (zRe_le_wRe : z.re ≤ w.re)
     (zIm_le_wIm : z.im ≤ w.im) (pInRectInterior : Rectangle z w ∈ 𝓝 p)
@@ -484,30 +475,32 @@ theorem ResidueTheoremInRectangle (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.i
   have : 1 / (2 * ↑π * I) * (2 * I * ↑π * c) = c := by field_simp
   rwa [ResidueTheoremAtOrigin'] ; all_goals { simp [*] }
 
-/-%%
-\begin{lemma}[ResidueTheoremAtOrigin]\label{ResidueTheoremAtOrigin}
-\lean{ResidueTheoremAtOrigin}\leanok
-The rectangle (square) integral of $f(s) = 1/s$ with corners $-1-i$ and $1+i$ is equal to $2\pi i$.
-\end{lemma}
-%%-/
+@[blueprint
+  (title := "ResidueTheoremAtOrigin")
+  (statement := /-- The rectangle (square) integral of $f(s) = 1/s$ with corners $-1-i$ and $1+i$ is equal to $2\pi i$. -/)
+  (proof := /-- This is a special case of the more general result above. -/)
+  (latexEnv := "lemma")]
 lemma ResidueTheoremAtOrigin : RectangleIntegral' (fun s ↦ 1 / s) (-1 - I) (1 + I) = 1 := by
   rw [RectangleIntegral', ResidueTheoremAtOrigin']
   all_goals { simp [field] }
-/-%%
-\begin{proof}\leanok
-This is a special case of the more general result above.
-\end{proof}
-%%-/
 
-/-%%
-\begin{lemma}[ResidueTheoremOnRectangleWithSimplePole]\label{ResidueTheoremOnRectangleWithSimplePole}
-\lean{ResidueTheoremOnRectangleWithSimplePole}\leanok
-Suppose that $f$ is a holomorphic function on a rectangle, except for a simple pole
-at $p$. By the latter, we mean that there is a function $g$ holomorphic on the rectangle such that, $f = g + A/(s-p)$ for some $A\in\C$. Then the integral of $f$ over the
-rectangle is $A$.
-\end{lemma}
-%%-/
 -- TODO: generalize to `f g : ℂ → E`
+@[blueprint
+  (title := "ResidueTheoremOnRectangleWithSimplePole")
+  (statement := /--
+  Suppose that $f$ is a holomorphic function on a rectangle, except for a simple pole
+  at $p$. By the latter, we mean that there is a function $g$ holomorphic on the rectangle such that, $f = g + A/(s-p)$ for some $A\in\C$. Then the integral of $f$ over the
+  rectangle is $A$.
+  -/)
+  (proof := /--
+  Replace $f$ with $g + A/(s-p)$ in the integral.
+  The integral of $g$ vanishes by Lemma \ref{HolomorphicOn.vanishesOnRectangle}.
+   To evaluate the integral of $1/(s-p)$,
+  pull everything to a square about the origin using Lemma \ref{RectanglePullToNhdOfPole},
+  and rescale by $c$;
+  what remains is handled by Lemma \ref{ResidueTheoremAtOrigin}.
+  -/)
+  (latexEnv := "lemma")]
 lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ}
     (zRe_le_wRe : z.re ≤ w.re) (zIm_le_wIm : z.im ≤ w.im)
     (pInRectInterior : Rectangle z w ∈ 𝓝 p)
@@ -539,18 +532,6 @@ lemma ResidueTheoremOnRectangleWithSimplePole {f g : ℂ → ℂ} {z w p A : ℂ
 
   exact ResidueTheoremInRectangle zRe_le_wRe zIm_le_wIm pInRectInterior
 
-/-%%
-\begin{proof}
-\uses{ResidueTheoremAtOrigin, RectanglePullToNhdOfPole, HolomorphicOn.vanishesOnRectangle}
-\leanok
-Replace $f$ with $g + A/(s-p)$ in the integral.
-The integral of $g$ vanishes by Lemma \ref{HolomorphicOn.vanishesOnRectangle}.
- To evaluate the integral of $1/(s-p)$,
-pull everything to a square about the origin using Lemma \ref{RectanglePullToNhdOfPole},
-and rescale by $c$;
-what remains is handled by Lemma \ref{ResidueTheoremAtOrigin}.
-\end{proof}
-%%-/
 
 -- theorem nhds_basis_square (p : ℂ) : HasBasis (𝓝 p) (0 < ·) (Square p ·) := by
 --   apply Filter.HasBasis.to_hasBasis' Metric.nhds_basis_closedBall <;> intro c hc

@@ -1,3 +1,4 @@
+import Architect
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.NumberTheory.ArithmeticFunction.Defs
 import Mathlib.NumberTheory.ArithmeticFunction.Misc
@@ -11,7 +12,7 @@ open Complex BigOperators Finset Nat Classical
 
 open scoped ArithmeticFunction Interval
 
-/-%%
+blueprint_comment /--
 
 In this file, we use the Hoffstein-Lockhart construction to prove a zero-free region for zeta.
 
@@ -69,4 +70,4 @@ Use Theorem \ref{FsigmaThm} and Hadamard factorization.
 This allows us to quantify precisely the relationship between $T$ and $\delta$ in
 Theorem \ref{ZetaNoZerosInBox}....
 
-%%-/
+-/

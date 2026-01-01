@@ -1,3 +1,4 @@
+import Architect
 import Batteries.Tactic.Lemma
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import Mathlib.Tactic.Bound
@@ -47,19 +48,23 @@ lemma smooth_urysohn_support_Ioo {a b c d : ℝ} (h1 : a < b) (h3 : c < d) :
 lemma Function.support_id : Function.support (fun x : ℝ ↦ x) = Iio 0 ∪ Ioi 0 := by
   ext x; simp only [mem_support, ne_eq, Iio_union_Ioi, mem_compl_iff, mem_singleton_iff]
 
-/-%%
+blueprint_comment /--
 Let $\nu$ be a bumpfunction.
-\begin{theorem}[SmoothExistence]\label{SmoothExistence}\lean{SmoothExistence}\leanok
-There exists a smooth (once differentiable would be enough), nonnegative ``bumpfunction'' $\nu$,
- supported in $[1/2,2]$ with total mass one:
-$$
-\int_0^\infty \nu(x)\frac{dx}{x} = 1.
-$$
-\end{theorem}
-%%-/
+-/
 
 attribute [-simp] one_div in
 
+attribute [-simp] one_div in
+@[blueprint
+  (title := "SmoothExistence")
+  (statement := /--
+  There exists a smooth (once differentiable would be enough), nonnegative ``bumpfunction'' $\nu$,
+   supported in $[1/2,2]$ with total mass one:
+  $$
+  \int_0^\infty \nu(x)\frac{dx}{x} = 1.
+  $$
+  -/)
+  (proof := /-- Same idea as Urysohn-type argument. -/)]
 lemma SmoothExistence : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x, 0 ≤ ν x) ∧
     ν.support ⊆ Icc (1 / 2) 2 ∧ ∫ x in Ici 0, ν x / x = 1 := by
   suffices h : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x, 0 ≤ ν x) ∧
@@ -103,9 +108,9 @@ lemma SmoothExistence : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x
       apply ContinuousOn.integrableOn_compact isCompact_Icc
       apply hνContDiff.continuous.continuousOn.div continuousOn_id ?_
       simp only [mem_Icc, ne_eq, and_imp, id_eq]; intros;linarith
-/-%%
+blueprint_comment /--
 \begin{proof}\leanok
 \uses{smooth-ury}
 Same idea as Urysohn-type argument.
 \end{proof}
-%%-/
+-/

@@ -1,3 +1,5 @@
+\input{../../.lake/build/blueprint/library/PrimeNumberTheoremAnd}
+
 \usepackage{amsmath, amsthm}
 \usepackage{hyperref}
 
@@ -17,7 +19,6 @@
 \newcommand{\C}{\mathbb{C}}
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\N}{\mathbb{N}}
-
 
 \begin{document}
 \maketitle
@@ -64,46 +65,46 @@ A word about the expected ``rate-limiting-steps'' in each of the approaches.
 \chapter{First approach: Wiener-Ikehara Tauberian theorem.}
 
 \section{A Fourier-analytic proof of the Wiener-Ikehara theorem}
-\input{Wiener.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.Wiener}
 
 
 \chapter{Second approach}
 
 \section{Residue calculus on rectangles}
-\input{Rectangle.tex}
-\input{ResidueCalcOnRectangles.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.Rectangle}
+\inputleanmodule{PrimeNumberTheoremAnd.ResidueCalcOnRectangles}
 
 \section{Perron Formula}
-\input{PerronFormula.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.PerronFormula}
 
 \section{Mellin transforms}
-\input{MellinCalculus.tex}
-\input{SmoothExistence.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.MellinCalculus}
+\inputleanmodule{PrimeNumberTheoremAnd.SmoothExistence}
 
 \section{Zeta Bounds}
-\input{ZetaConj.tex}
-\input{ZetaBounds.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.ZetaConj}
+\inputleanmodule{PrimeNumberTheoremAnd.ZetaBounds}
 
 \section{Proof of Medium PNT}
-\input{MediumPNT.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.MediumPNT}
 
 
 \chapter{Third Approach}
 
 %\section{Hadamard factorization}
-%\input{HadamardFactorization.tex}
+%\inputleanmodule{PrimeNumberTheoremAnd.HadamardFactorization}
 
 %\section{Hoffstein-Lockhart}
-%\input{HoffsteinLockhart.tex}
+%\inputleanmodule{PrimeNumberTheoremAnd.HoffsteinLockhart}
 
 \section{Strong PNT}
-\input{BorelCaratheodory.tex}
-\input{StrongPNT.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.BorelCaratheodory}
+\inputleanmodule{PrimeNumberTheoremAnd.StrongPNT}
 
 
 \chapter{Elementary Corollaries}
 
-\input{Consequences.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.Consequences}
 
 \chapter{Explicit estimates}
 
@@ -119,22 +120,22 @@ In this project we will state the best available primary estimates known in the 
 
 \chapter{Primary explicit estimates}
 
-\input{PrimaryDefinitions.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.PrimaryDefinitions}
 
-\input{FioriKadiriSwidinsky.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.FioriKadiriSwidinsky}
 
-\input{PrimarySummary.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.PrimarySummary}
 
 \chapter{Secondary explicit estimates}
 
-\input{SecondaryDefinitions.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.SecondaryDefinitions}
 
-\input{RosserSchoenfeld.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.RosserSchoenfeld}
 
-\input{SecondarySummary.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.SecondarySummary}
 
 \chapter{Tertiary explicit estimates}
 
-\input{Lcm.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.Lcm}
 
 \end{document}

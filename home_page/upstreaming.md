@@ -1,3 +1,7 @@
+---
+usemathjax: false
+---
+
 # Upstreaming dashboard
 
 ## Files ready to upstream

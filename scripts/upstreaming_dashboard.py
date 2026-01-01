@@ -16,7 +16,7 @@ from typing import Any
 MODULE = "PrimeNumberTheoremAnd"
 REPOSITORY = "AlexKontorovich/PrimeNumberTheoremAnd"
 BRANCH = "main"
-FOLDER_PATH = "./docs/_includes"
+FOLDER_PATH = "./home_page/_include"
 
 QUEUEBOARD = (
     "https://raw.githubusercontent.com/leanprover-community/queueboard/refs/"
