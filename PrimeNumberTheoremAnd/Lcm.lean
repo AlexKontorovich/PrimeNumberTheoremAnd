@@ -402,7 +402,7 @@ theorem Criterion.not_highlyAbundant (c : Criterion) : ¬ HighlyAbundant (L c.n)
 
 /-%%
 
-\begin{proof}\leanok\uses{lem:sigmaM-lower-final, lem:criterion-reduced, lem:criterion-sufficient}
+\begin{proof}\leanok\uses{leam:sigmaM-lower-final, lem:criterion-reduced, lem:criterion-sufficient}
 By Lemma~\ref{lem:sigmaM-lower-final}, the condition \eqref{eq:sigmaM-lower} holds.  By Lemma~\ref{lem:criterion-reduced} this implies
 \[
   \frac{\sigma(M)}{M}
