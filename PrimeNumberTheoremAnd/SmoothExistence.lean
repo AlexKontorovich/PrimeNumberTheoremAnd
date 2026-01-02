@@ -111,9 +111,3 @@ lemma SmoothExistence : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x
       apply ContinuousOn.integrableOn_compact isCompact_Icc
       apply hνContDiff.continuous.continuousOn.div continuousOn_id ?_
       simp only [mem_Icc, ne_eq, and_imp, id_eq]; intros;linarith
-blueprint_comment /--
-\begin{proof}\leanok
-\uses{smooth-ury}
-Same idea as Urysohn-type argument.
-\end{proof}
--/
