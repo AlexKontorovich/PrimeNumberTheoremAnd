@@ -1,3 +1,4 @@
+import Architect
 import Batteries.Tactic.Lemma
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import Mathlib.Tactic.Bound
@@ -9,7 +10,8 @@ open scoped ContDiff
 
 -- This version makes the support of Ψ explicit, and this is easier for some later proofs
 lemma smooth_urysohn_support_Ioo {a b c d : ℝ} (h1 : a < b) (h3 : c < d) :
-    ∃ Ψ : ℝ → ℝ, (ContDiff ℝ ∞ Ψ) ∧ (HasCompactSupport Ψ) ∧ Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧
+    ∃ Ψ : ℝ → ℝ, (ContDiff ℝ ∞ Ψ) ∧ (HasCompactSupport Ψ) ∧
+    Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧
     Ψ ≤ Set.indicator (Set.Ioo a d) 1 ∧ (Function.support Ψ = Set.Ioo a d) := by
 
   have := exists_msmooth_zero_iff_one_iff_of_isClosed
@@ -17,8 +19,9 @@ lemma smooth_urysohn_support_Ioo {a b c d : ℝ} (h1 : a < b) (h3 : c < d) :
     (IsClosed.union isClosed_Iic isClosed_Ici)
     (isClosed_Icc)
     (by
-      simp_rw [Set.disjoint_union_left, Set.disjoint_iff, Set.subset_def, Set.mem_inter_iff, Set.mem_Iic, Set.mem_Icc,
-        Set.mem_empty_iff_false, and_imp, imp_false, not_le, Set.mem_Ici]
+      simp_rw [Set.disjoint_union_left, Set.disjoint_iff, Set.subset_def, Set.mem_inter_iff,
+        Set.mem_Iic, Set.mem_Icc, Set.mem_empty_iff_false, and_imp, imp_false, not_le,
+        Set.mem_Ici]
       constructor <;> intros <;> linarith)
 
   rcases this with ⟨Ψ, hΨSmooth, hΨrange, hΨ0, hΨ1⟩
@@ -47,19 +50,23 @@ lemma smooth_urysohn_support_Ioo {a b c d : ℝ} (h1 : a < b) (h3 : c < d) :
 lemma Function.support_id : Function.support (fun x : ℝ ↦ x) = Iio 0 ∪ Ioi 0 := by
   ext x; simp only [mem_support, ne_eq, Iio_union_Ioi, mem_compl_iff, mem_singleton_iff]
 
-/-%%
+blueprint_comment /--
 Let $\nu$ be a bumpfunction.
-\begin{theorem}[SmoothExistence]\label{SmoothExistence}\lean{SmoothExistence}\leanok
-There exists a smooth (once differentiable would be enough), nonnegative ``bumpfunction'' $\nu$,
- supported in $[1/2,2]$ with total mass one:
-$$
-\int_0^\infty \nu(x)\frac{dx}{x} = 1.
-$$
-\end{theorem}
-%%-/
+-/
 
 attribute [-simp] one_div in
 
+attribute [-simp] one_div in
+@[blueprint
+  (title := "SmoothExistence")
+  (statement := /--
+  There exists a smooth (once differentiable would be enough), nonnegative ``bumpfunction'' $\nu$,
+   supported in $[1/2,2]$ with total mass one:
+  $$
+  \int_0^\infty \nu(x)\frac{dx}{x} = 1.
+  $$
+  -/)
+  (proof := /-- Same idea as Urysohn-type argument. -/)]
 lemma SmoothExistence : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x, 0 ≤ ν x) ∧
     ν.support ⊆ Icc (1 / 2) 2 ∧ ∫ x in Ici 0, ν x / x = 1 := by
   suffices h : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x, 0 ≤ ν x) ∧
@@ -83,7 +90,8 @@ lemma SmoothExistence : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x
   · exact fun x ↦ le_trans (by simp [apply_ite]) (hν0 x)
   · exact fun y hy hy' ↦ ⟨by linarith, by linarith⟩
   · rw [integral_pos_iff_support_of_nonneg]
-    · simp only [Function.support_div, measurableSet_Ici, Measure.restrict_apply', hνSupport, Function.support_id]
+    · simp only [Function.support_div, measurableSet_Ici, Measure.restrict_apply', hνSupport,
+        Function.support_id]
       have : (Ioo (1 / 2 : ℝ) 2 ∩ (Iio 0 ∪ Ioi 0) ∩ Ici 0) = Ioo (1 / 2) 2 := by
         ext x
         simp only [mem_inter_iff, mem_Ioo, mem_Ici, mem_Iio, mem_Ioi, mem_union]
@@ -103,9 +111,3 @@ lemma SmoothExistence : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x
       apply ContinuousOn.integrableOn_compact isCompact_Icc
       apply hνContDiff.continuous.continuousOn.div continuousOn_id ?_
       simp only [mem_Icc, ne_eq, and_imp, id_eq]; intros;linarith
-/-%%
-\begin{proof}\leanok
-\uses{smooth-ury}
-Same idea as Urysohn-type argument.
-\end{proof}
-%%-/

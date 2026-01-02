@@ -1,3 +1,4 @@
+import Architect
 import Mathlib.Algebra.Order.Floor.Semifield
 import Mathlib.Analysis.Asymptotics.Lemmas
 import Mathlib.NumberTheory.AbelSummation
@@ -37,11 +38,13 @@ lemma Set.Ico_subset_Ico_of_Icc_subset_Icc {a b c d : ℝ} (h : Set.Icc a b ⊆ 
   exact this.2
 
 -- AkraBazzi.lean
-lemma deriv_smoothingFn' {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) : deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) := by
+lemma deriv_smoothingFn' {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) :
+    deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) := by
   have : log x ≠ 0 := Real.log_ne_zero_of_pos_of_ne_one hx_pos hx
   rw [deriv_fun_inv''] <;> aesop
 
-lemma deriv_smoothingFn {x : ℝ} (hx : 1 < x) : deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) :=
+lemma deriv_smoothingFn {x : ℝ} (hx : 1 < x) :
+    deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) :=
   deriv_smoothingFn' (by positivity) (ne_of_gt hx)
 
 theorem extracted_2 (x : ℝ) (z : ℝ) (hz_pos : 0 < z) (hz : z ≠ 1) :
@@ -116,10 +119,11 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
         exacts [h.pos, h.ne_one]
       field
     simp [h]
-  rw [sum_mul_eq_sub_sub_integral_mul a (f := fun n ↦ 1 / log n) (by norm_num) (by linarith), floor32, show Icc 0 1 = {0, 1} by ext; simp; omega]
-  · simp only [Set.indicator_apply, Set.mem_setOf_eq, mem_singleton, zero_ne_one,
-      not_false_eq_true, sum_insert, CharP.cast_eq_zero, log_zero, ite_self, sum_singleton, cast_one,
-      log_one, add_zero, mul_zero, sub_zero, Chebyshev.theta_eq_sum_Icc, a, sum_filter]
+  rw [sum_mul_eq_sub_sub_integral_mul a (f := fun n ↦ 1 / log n) (by norm_num) (by linarith),
+    floor32, show Icc 0 1 = {0, 1} by ext; simp; omega]
+  · simp only [Set.indicator_apply, Set.mem_setOf_eq, mem_singleton, zero_ne_one, not_false_eq_true,
+      sum_insert, CharP.cast_eq_zero, log_zero, ite_self, sum_singleton, cast_one, log_one,
+      add_zero, mul_zero, sub_zero, Chebyshev.theta_eq_sum_Icc, a, sum_filter]
     have h8 (f : ℝ → ℝ) :
       ∫ (u : ℝ) in Set.Ioc (3 / 2) x, deriv (fun x ↦ 1 / log x) u * f u =
       ∫ (u : ℝ) in Set.Icc (3 / 2) x, f u * -(u * log u ^ 2)⁻¹ := by
@@ -137,7 +141,7 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
       apply log_ne_zero_of_pos_of_ne_one <;> linarith [hz.1]
     fun_prop (disch := assumption)
   · simp only [one_div]
-    have : ∀ y ∈ Set.Icc (3 / 2) x, deriv (fun x ↦ (log x)⁻¹) y = -(y * log y ^ 2)⁻¹:= by
+    have : ∀ y ∈ Set.Icc (3 / 2) x, deriv (fun x ↦ (log x)⁻¹) y = -(y * log y ^ 2)⁻¹ := by
       intro y hy
       rw [deriv_smoothingFn, mul_inv, ← div_eq_mul_inv, neg_div]
       linarith [hy.1]
@@ -149,13 +153,16 @@ lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     · apply this
     · apply this z hz
 
-/-%%
-\begin{lemma}[finsum_range_eq_sum_range]\label{finsum_range_eq_sum_range}\lean{finsum_range_eq_sum_range}\leanok For any arithmetic function $f$ and real number $x$, one has
-$$ \sum_{n \leq x} f(n) = \sum_{n \leq ⌊x⌋_+} f(n)$$
-and
-$$ \sum_{n < x} f(n) = \sum_{n < ⌈x⌉_+} f(n).$$
-\end{lemma}
-%%-/
+@[blueprint
+  (title := "finsum-range-eq-sum-range")
+  (statement := /--
+   For any arithmetic function $f$ and real number $x$, one has
+  $$ \sum_{n \leq x} f(n) = \sum_{n \leq ⌊x⌋_+} f(n)$$
+  and
+  $$ \sum_{n < x} f(n) = \sum_{n < ⌈x⌉_+} f(n).$$
+  -/)
+  (proof := /-- Straightforward. -/)
+  (latexEnv := "lemma")]
 lemma finsum_range_eq_sum_range {R : Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
     ∑ᶠ (n : ℕ) (_: n < x), f n = ∑ n ∈ range ⌈x⌉₊, f n := by
   apply finsum_cond_eq_sum_of_cond_iff f
@@ -163,17 +170,14 @@ lemma finsum_range_eq_sum_range {R : Type*} [AddCommMonoid R] {f : ArithmeticFun
   simp only [mem_range]
   exact Iff.symm Nat.lt_ceil
 
-lemma finsum_range_eq_sum_range' {R : Type*} [AddCommMonoid R] {f : ArithmeticFunction R} (x : ℝ) :
-    ∑ᶠ (n : ℕ) (_ : n ≤ x), f n = ∑ n ∈ Iic ⌊x⌋₊, f n := by
+lemma finsum_range_eq_sum_range' {R : Type*} [AddCommMonoid R] {f : ArithmeticFunction R}
+    (x : ℝ) : ∑ᶠ (n : ℕ) (_ : n ≤ x), f n = ∑ n ∈ Iic ⌊x⌋₊, f n := by
   apply finsum_cond_eq_sum_of_cond_iff f
   intro n h
   simp only [mem_Iic]
   exact Iff.symm <| Nat.le_floor_iff'
     fun (hc : n = 0) ↦ (h : f n ≠ 0) <| (congrArg f hc).trans ArithmeticFunction.map_zero
 
-/-%%
-\begin{proof}\leanok Straightforward. \end{proof}
-%%-/
 
 lemma log2_pos : 0 < log 2 := by
   rw [Real.log_pos_iff zero_le_two]
@@ -181,23 +185,24 @@ lemma log2_pos : 0 < log 2 := by
 
 
 /-- If u ~ v and w-u = o(v) then w ~ v. -/
-theorem Asymptotics.IsEquivalent.add_isLittleO'
-    {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β}
-    {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (w - u) =o[l] v) :
+theorem Asymptotics.IsEquivalent.add_isLittleO' {α : Type*} {β : Type*} [NormedAddCommGroup β]
+    {u : α → β} {v : α → β} {w : α → β} {l : Filter α}
+    (huv : Asymptotics.IsEquivalent l u v) (hwu : (w - u) =o[l] v) :
     Asymptotics.IsEquivalent l w v := by
   rw [← add_sub_cancel u w]
   exact add_isLittleO huv hwu
 
 /-- If u ~ v and u-w = o(v) then w ~ v. -/
-theorem Asymptotics.IsEquivalent.add_isLittleO''
-    {α : Type*} {β : Type*} [NormedAddCommGroup β] {u : α → β} {v : α → β} {w : α → β}
-    {l : Filter α} (huv : Asymptotics.IsEquivalent l u v) (hwu : (u - w) =o[l] v) :
+theorem Asymptotics.IsEquivalent.add_isLittleO'' {α : Type*} {β : Type*} [NormedAddCommGroup β]
+    {u : α → β} {v : α → β} {w : α → β} {l : Filter α}
+    (huv : Asymptotics.IsEquivalent l u v) (hwu : (u - w) =o[l] v) :
     Asymptotics.IsEquivalent l w v := by
   rw [← sub_sub_self u w]
   exact sub_isLittleO huv hwu
 
 theorem WeakPNT' : Tendsto (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) atTop (nhds 1) := by
-  have : (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) = (fun N ↦ (∑ n ∈ range N, Λ n)/N + Λ N / N) := by
+  have : (fun N ↦ (∑ n ∈ Iic N, Λ n) / N) =
+      (fun N ↦ (∑ n ∈ range N, Λ n)/N + Λ N / N) := by
     ext N
     have : N ∈ Iic N := mem_Iic.mpr (le_refl _)
     rw [← Finset.sum_erase_add _ _ this, ← Nat.Iio_eq_range, Iic_erase]
@@ -241,11 +246,21 @@ theorem WeakPNT'' : ψ ~[atTop] (fun x ↦ x) := by
     rw [sub_nonneg]
     exact floor_le hb'
 
-/-%%
-\begin{theorem}[chebyshev_asymptotic]\label{chebyshev_asymptotic}\lean{chebyshev_asymptotic}\leanok  One has
+@[blueprint
+  (title := "chebyshev-asymptotic")
+  (statement := /--
+  One has
   $$ \sum_{p \leq x} \log p = x + o(x).$$
-\end{theorem}
-%%-/
+  -/)
+  (proof := /--
+  From the prime number theorem we already have
+  $$ \sum_{n \leq x} \Lambda(n) = x + o(x)$$
+  so it suffices to show that
+  $$ \sum_{j \geq 2} \sum_{p^j \leq x} \log p = o(x).$$
+  Only the terms with $j \leq \log x / \log 2$ contribute, and each $j$ contributes at most
+  $\sqrt{x} \log x$ to the sum, so the left-hand side is $O( \sqrt{x} \log^2 x ) = o(x)$ as
+  required.
+  -/)]
 theorem chebyshev_asymptotic :
     θ ~[atTop] id := by
   apply WeakPNT''.add_isLittleO''
@@ -319,33 +334,26 @@ theorem chebyshev_asymptotic'' :
     exact hN x (le_trans (le_trans (le_abs_self N) (by linarith)) hx)
 
   · intro x hx
-    refine inte x hx |>.mul_continuousOn (g' := fun t : ℝ => t⁻¹) (continuousOn_inv₀ |>.mono <| by
-      rintro t ⟨ht1, _⟩
-      simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
-      linarith) isCompact_Icc |>.congr_fun_ae <| .of_forall <| by simp [div_eq_mul_inv]
+    refine inte x hx |>.mul_continuousOn (g' := fun t : ℝ => t⁻¹)
+      (continuousOn_inv₀ |>.mono <| by
+        rintro t ⟨ht1, _⟩
+        simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
+        linarith) isCompact_Icc |>.congr_fun_ae <| .of_forall <| by simp [div_eq_mul_inv]
   intro x hx
   rw [hf2, mul_div_cancel₀]
   linarith
 
 -- one could also consider adding a version with p < x instead of p \leq x
 
-/-%%
-\begin{proof}
-\uses{WeakPNT, finsum_range_eq_sum_range}\leanok
-From the prime number theorem we already have
-$$ \sum_{n \leq x} \Lambda(n) = x + o(x)$$
-so it suffices to show that
-$$ \sum_{j \geq 2} \sum_{p^j \leq x} \log p = o(x).$$
-Only the terms with $j \leq \log x / \log 2$ contribute, and each $j$ contributes at most $\sqrt{x} \log x$ to the sum, so the left-hand side is $O( \sqrt{x} \log^2 x ) = o(x)$ as required.
-\end{proof}
-%%-/
 
-/-%%
-\begin{corollary}[primorial_bounds]  \label{primorial_bounds}\lean{primorial_bounds}\leanok
-We have
-  $$ \prod_{p \leq x} p = \exp( x + o(x) )$$
-\end{corollary}
-%%-/
+@[blueprint
+  (title := "primorial-bounds")
+  (statement := /--
+  We have
+    $$ \prod_{p \leq x} p = \exp( x + o(x) )$$
+  -/)
+  (proof := /-- Exponentiate Theorem \ref{chebyshev_asymptotic}. -/)
+  (latexEnv := "corollary")]
 theorem primorial_bounds :
     ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
       ∀ x : ℝ, ∏ p ∈ (Iic ⌊x⌋₊).filter Nat.Prime, p = exp (x + E x) := by
@@ -391,10 +399,12 @@ lemma integral_log_inv (a b : ℝ) (ha : 2 ≤ a) (hb : a ≤ b) :
         rw [Set.uIcc_eq_union, Set.Icc_eq_empty (lt_iff_not_ge |>.1 hb), Set.union_empty] at hx
         obtain ⟨hx1, _⟩ := hx
         simp only
-        rw [show (-1 / (x * log x ^ 2)) = (-1 / log x ^ 2) * (x⁻¹) by rw [mul_comm x]; field_simp]
+        rw [show (-1 / (x * log x ^ 2)) = (-1 / log x ^ 2) * (x⁻¹) by
+          rw [mul_comm x]; field_simp]
         apply HasDerivAt.comp
           (h := fun t => log t) (h₂ := fun t => t⁻¹) (x := x)
-        · simpa using HasDerivAt.inv (c := fun t : ℝ => t) (c' := 1) (x := log x) (hasDerivAt_id' (log x))
+        · simpa using HasDerivAt.inv (c := fun t : ℝ => t) (c' := 1) (x := log x)
+            (hasDerivAt_id' (log x))
             (by simp only [ne_eq, log_eq_zero, not_or]; refine ⟨?_, ?_, ?_⟩ <;> linarith)
         · apply hasDerivAt_log; linarith)
       (fun x _ => hasDerivAt_id' x)
@@ -468,12 +478,6 @@ lemma integral_log_inv_ne_zero (x : ℝ) (hx : 2 < x) :
   have := integral_log_inv_pos x hx
   linarith
 
-/-%%
-\begin{proof}\leanok
-\uses{chebyshev_asymptotic}
-  Exponentiate Theorem \ref{chebyshev_asymptotic}.
-\end{proof}
-%%-/
 lemma pi_asymp_aux (x : ℝ) (hx : 2 ≤ x) : Nat.primeCounting ⌊x⌋₊ =
     (log x)⁻¹ * θ x + ∫ t in Set.Icc 2 x, θ t * (t * log t ^ 2)⁻¹ := by
   rw [th43_b _ hx]
@@ -481,8 +485,8 @@ lemma pi_asymp_aux (x : ℝ) (hx : 2 ≤ x) : Nat.primeCounting ⌊x⌋₊ =
   ring_nf!
 
 theorem pi_asymp'' :
-    (fun x => (((Nat.primeCounting ⌊x⌋₊ : ℝ) / ∫ t in Set.Icc 2 x, 1 / (log t)) - (1 : ℝ))) =o[atTop]
-    fun _ => (1 : ℝ) := by
+    (fun x => (((Nat.primeCounting ⌊x⌋₊ : ℝ) / ∫ t in Set.Icc 2 x, 1 / (log t)) - (1 : ℝ)))
+    =o[atTop] fun _ => (1 : ℝ) := by
   obtain ⟨f, hf, f_int, hf'⟩ := chebyshev_asymptotic''
   have eq1 : ∀ᶠ (x : ℝ) in atTop,
       ⌊x⌋₊.primeCounting =
@@ -575,7 +579,8 @@ theorem pi_asymp'' :
     rw [mul_comm (c * ε)]
     gcongr
     bound
-  have int_flog {a b : ℝ} (ha: 2 ≤ a) (hb : 2 ≤ b) : IntegrableOn (fun t ↦ |f t| * (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
+  have int_flog {a b : ℝ} (ha: 2 ≤ a) (hb : 2 ≤ b) :
+      IntegrableOn (fun t ↦ |f t| * (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
     apply IntegrableOn.mul_continuousOn
     · apply Integrable.abs <| f_int b hb |>.mono (Set.Icc_subset_Icc_left ha) (by rfl)
     · refine ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
@@ -586,7 +591,8 @@ theorem pi_asymp'' :
           pow_eq_zero_iff, log_eq_zero, not_or] at ht ⊢
         exact ⟨by linarith, by linarith, by linarith⟩
     · exact isCompact_Icc
-  have int_inv_log_sq {a b : ℝ} (ha : 2 ≤ a) (hb : 2 ≤ b):  IntegrableOn (fun t ↦ (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
+  have int_inv_log_sq {a b : ℝ} (ha : 2 ≤ a) (hb : 2 ≤ b) :
+      IntegrableOn (fun t ↦ (log t ^ 2)⁻¹) (Set.Icc a b) volume := by
     refine ContinuousOn.integrableOn_Icc <|
       ContinuousOn.inv₀ (ContinuousOn.pow (continuousOn_log |>.mono ?_) 2) ?_
     · grind
@@ -661,7 +667,8 @@ theorem pi_asymp'' :
               ((∫ (t : ℝ) in Set.Icc 2 (max 2 (M ε hε hc)), (log t ^ 2)⁻¹)))) := by
           congr 3
           rw [add_comm, ← integral_union_ae, Set.Icc_union_Icc_eq_Icc (le_max_left ..) hx.le]
-          · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le, volume_singleton]
+          · rw [AEDisjoint, Set.Icc_inter_Icc_eq_singleton (le_max_left ..) hx.le,
+              volume_singleton]
           · simp only [measurableSet_Icc, MeasurableSet.nullMeasurableSet]
           · apply int_inv_log_sq (by rfl) (le_max_left ..)
           · apply int_inv_log_sq (le_max_left ..) (le_trans (le_max_left ..) hx.le)
@@ -758,23 +765,28 @@ theorem pi_asymp'' :
   intro ε hε
   specialize ineq4 (|D ε hε (1/2) (by linarith)| + |C|) ε hε
   simp only [one_div, norm_eq_abs, norm_one, mul_one]
-  filter_upwards [eventually_gt_atTop 2, ineq4, ineq1 ε hε (1 / 2) (by norm_num), hD ε hε (1 / 2) (by norm_num)] with x hx hB ineq1 hD
+  filter_upwards [eventually_gt_atTop 2, ineq4, ineq1 ε hε (1 / 2) (by norm_num),
+      hD ε hε (1 / 2) (by norm_num)] with x hx hB ineq1 hD
   have := integral_log_inv_pos x (by linarith) |>.le
   calc _
     _ ≤ |((log x)⁻¹ * (x * f x) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹)| +
-        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹) / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹) /
+          ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
         |C / ∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
       apply abs_add_three
     _ = |(log x)⁻¹ * (x * f x)| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
-        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| /
+          |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| +
         |C| / |∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹| := by
       rw [abs_div, abs_div, abs_div]
     _ = |(log x)⁻¹ * (x * f x)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| /
+          (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
         repeat rw [abs_of_pos <| integral_log_inv_pos _ (by linarith)]
     _ = ((log x)⁻¹ * x * |f x|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
-        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
+        |(∫ (t : ℝ) in Set.Icc 2 x, f t * (log t ^ 2)⁻¹)| /
+          (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         |C| / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
         congr
         rw [abs_mul, abs_mul, abs_of_nonneg (by bound), abs_of_nonneg (by linarith), mul_assoc]
@@ -787,12 +799,14 @@ theorem pi_asymp'' :
           (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) +
         (D ε hε (1/2) (by linarith) + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
       ring
-    _ = (1/2) * ε + (D ε hε (1/2) (by linarith) + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
+    _ = (1/2) * ε + (D ε hε (1/2) (by linarith) + |C|) /
+        (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
       congr 1
       rw [mul_div_assoc, div_self, mul_one]
       apply integral_log_inv_ne_zero
       linarith
-    _ ≤ (1/2) * ε + (|D ε hε (1/2) (by linarith)| + |C|) / (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
+    _ ≤ (1/2) * ε + (|D ε hε (1/2) (by linarith)| + |C|) /
+        (∫ (t : ℝ) in Set.Icc 2 x, (log t)⁻¹) := by
       gcongr
       apply le_abs_self
     _ ≤ (1/2) * ε + (1/2) * ε := by
@@ -803,13 +817,28 @@ theorem pi_asymp'' :
     _ = ε := by
       field
 
-/-%%
-\begin{theorem}[pi_asymp]\label{pi_asymp}\lean{pi_asymp}\leanok
-There exists a function $c(x)$ such that $c(x) = o(1)$ as $x \to \infty$ and
-$$ \pi(x) = (1 + c(x)) \int_2^x \frac{dt}{\log t}$$
-for all $x$ large enough.
-\end{theorem}
-%%-/
+@[blueprint
+  (title := "pi-asymp")
+  (statement := /--
+  There exists a function $c(x)$ such that $c(x) = o(1)$ as $x \to \infty$ and
+  $$ \pi(x) = (1 + c(x)) \int_2^x \frac{dt}{\log t}$$
+  for all $x$ large enough.
+  -/)
+  (proof := /--
+  We have the identity
+  $$ \pi(x) = \frac{1}{\log x} \sum_{p \leq x} \log p
+  + \int_2^x (\sum_{p \leq t} \log p) \frac{dt}{t \log^2 t}$$
+  as can be proven by interchanging the sum and integral and using the fundamental theorem of
+  calculus.  For any $\eps$, we know from Theorem \ref{chebyshev_asymptotic} that there is $x_\eps$
+  such that $\sum_{p \leq t} \log p = t + O(\eps t)$ for $t \geq x_\eps$, hence for $x \geq x_\eps$
+  $$ \pi(x) = \frac{1}{\log x} (x + O(\eps x))
+  + \int_{x_\eps}^x (t + O(\eps t)) \frac{dt}{t \log^2 t} + O_\eps(1)$$
+  where the $O_\eps(1)$ term can depend on $x_\eps$ but is independent of $x$.  One can evaluate
+  this after an integration by parts as
+  $$ \pi(x) = (1+O(\eps)) \int_{x_\eps}^x \frac{dt}{\log t} + O_\eps(1)$$
+  $$  = (1+O(\eps)) \int_{2}^x \frac{dt}{\log t} $$
+  for $x$ large enough, giving the claim.
+  -/)]
 theorem pi_asymp :
     ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
       ∀ᶠ (x : ℝ) in atTop,
@@ -820,22 +849,6 @@ theorem pi_asymp :
     ← MeasureTheory.integral_Icc_eq_integral_Ioc]
   field [(integral_log_inv_pos x (by linarith)).ne']
 
-/-%%
-\begin{proof}\leanok
-\uses{chebyshev_asymptotic}
-We have the identity
-$$ \pi(x) = \frac{1}{\log x} \sum_{p \leq x} \log p
-+ \int_2^x (\sum_{p \leq t} \log p) \frac{dt}{t \log^2 t}$$
-as can be proven by interchanging the sum and integral and using the fundamental theorem of calculus.  For any $\eps$, we know from Theorem \ref{chebyshev_asymptotic} that there is $x_\eps$ such that
-$\sum_{p \leq t} \log p = t + O(\eps t)$ for $t \geq x_\eps$, hence for $x \geq x_\eps$
-$$ \pi(x) = \frac{1}{\log x} (x + O(\eps x))
-+ \int_{x_\eps}^x (t + O(\eps t)) \frac{dt}{t \log^2 t} + O_\eps(1)$$
-where the $O_\eps(1)$ term can depend on $x_\eps$ but is independent of $x$.  One can evaluate this after an integration by parts as
-$$ \pi(x) = (1+O(\eps)) \int_{x_\eps}^x \frac{dt}{\log t} + O_\eps(1)$$
-$$  = (1+O(\eps)) \int_{2}^x \frac{dt}{\log t} $$
-for $x$ large enough, giving the claim.
-\end{proof}
-%%-/
 
 lemma pi_alt_Oaux1 : ∃ c, ∀ᶠ (x : ℝ) in atTop,
     ∫ (t : ℝ) in Set.Icc 2 √x, 1 / log t ^ 2 ≤ c * √x := by
@@ -950,7 +963,8 @@ lemma inv_div_log_asy : ∃ c, ∀ᶠ (x : ℝ) in atTop,
   calc
   _ = (∫ (t : ℝ) in (2)..(√x), 1 / log t ^ 2) + ∫ (t : ℝ) in (√x)..x, 1 / log t ^ 2 := by
     simp only [one_div]
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by linarith [(le_of_max_le_left hx)]),
+    rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
+      ← intervalIntegral.integral_of_le (by linarith [(le_of_max_le_left hx)]),
       ← intervalIntegral.integral_add_adjacent_intervals (b := √x)]
     · apply ContinuousOn.intervalIntegrable_of_Icc (by linarith [hx'.1])
       apply ContinuousOn.inv₀
@@ -977,8 +991,10 @@ lemma inv_div_log_asy : ∃ c, ∀ᶠ (x : ℝ) in atTop,
   _ ≤ c1 * √x + c2 * (x / log x ^ 2) := by
     specialize hc1 x (le_of_max_le_left (le_of_max_le_right (le_of_max_le_right hx)))
     specialize hc2 x (le_of_max_le_right (le_of_max_le_right (le_of_max_le_right hx)))
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by linarith [hx'.1]) ] at hc1
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hx'.2] at hc2
+    rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
+      ← intervalIntegral.integral_of_le (by linarith [hx'.1]) ] at hc1
+    rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
+      ← intervalIntegral.integral_of_le hx'.2] at hc2
     apply _root_.add_le_add hc1 hc2
   _ ≤ (c1 + c2) * (x / log x ^ 2) := by
     specialize hc0 x (le_of_max_le_left (le_of_max_le_right hx))
@@ -1027,8 +1043,10 @@ lemma inv_div_log_asy : ∃ c, ∀ᶠ (x : ℝ) in atTop,
 lemma integral_log_inv_pialt (x : ℝ) (hx : 4 ≤ x) : ∫ (t : ℝ) in Set.Icc 2 x, 1 / log t =
     x / log x - 2 / log 2 + ∫ (t : ℝ) in Set.Icc 2 x, 1 / (log t) ^ 2 := by
   have := integral_log_inv 2 x (by norm_num) (by linarith)
-  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by linarith [hx]),
-    MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by linarith [hx]),
+  rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
+    ← intervalIntegral.integral_of_le (by linarith [hx]),
+    MeasureTheory.integral_Icc_eq_integral_Ioc,
+      ← intervalIntegral.integral_of_le (by linarith [hx]),
     ← mul_one_div, one_div, ← mul_one_div, one_div]
   simp only [one_div, this, mul_comm]
 
@@ -1067,12 +1085,27 @@ lemma integral_div_log_asymptotic : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ 
     rw [integral_log_inv_pialt x hx]
     field [show log x ≠ 0 by simp; grind]
 
-/-%%
-\begin{corollary}[pi_alt]\label{pi_alt}\lean{pi_alt}\leanok  One has
-$$ \pi(x) = (1+o(1)) \frac{x}{\log x}$$
-as $x \to \infty$.
-\end{corollary}
-%%-/
+@[blueprint
+  (title := "pi-alt")
+  (statement := /--
+    One has
+  $$ \pi(x) = (1+o(1)) \frac{x}{\log x}$$
+  as $x \to \infty$.
+  -/)
+  (proof := /--
+  An integration by parts gives
+  $$ \int_2^x \frac{dt}{\log t} = \frac{x}{\log x} - \frac{2}{\log 2} +
+  \int_2^x \frac{dt}{\log^2 t}.$$
+  We have the crude bounds
+  $$ \int_2^{\sqrt{x}} \frac{dt}{\log^2 t} = O( \sqrt{x} )$$
+  and
+  $$ \int_{\sqrt{x}}^x \frac{dt}{\log^2 t} = O( \frac{x}{\log^2 x} )$$
+  and combining all this we obtain
+  $$ \int_2^x \frac{dt}{\log t} = \frac{x}{\log x} + O( \frac{x}{\log^2 x} )$$
+  $$ = (1+o(1)) \frac{x}{\log x}$$
+  and the claim then follows from Theorem \ref{pi_asymp}.
+  -/)
+  (latexEnv := "corollary")]
 theorem pi_alt : ∃ c : ℝ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     ∀ x : ℝ, Nat.primeCounting ⌊x⌋₊ = (1 + c x) * x / log x := by
   obtain ⟨f, hf, h⟩ := pi_asymp
@@ -1107,34 +1140,14 @@ theorem pi_alt' : (fun (x : ℝ) ↦ (primeCounting ⌊x⌋₊ : ℝ)) ~[atTop] 
     simp
     ring
   rw [this]
-  convert hf1.mul_isBigO (f₂ := (fun x ↦ x / log x)) (g₂ := (fun x ↦ x /log x)) (isBigO_refl ..) using 2
+  convert hf1.mul_isBigO (f₂ := (fun x ↦ x / log x)) (g₂ := (fun x ↦ x /log x))
+      (isBigO_refl ..) using 2
   all_goals ring
 
-/-%%
-\begin{proof}\leanok
-\uses{pi_asymp}
-An integration by parts gives
-  $$ \int_2^x \frac{dt}{\log t} = \frac{x}{\log x} - \frac{2}{\log 2} + \int_2^x \frac{dt}{\log^2 t}.$$
-We have the crude bounds
-$$ \int_2^{\sqrt{x}} \frac{dt}{\log^2 t} = O( \sqrt{x} )$$
-and
-$$ \int_{\sqrt{x}}^x \frac{dt}{\log^2 t} = O( \frac{x}{\log^2 x} )$$
-and combining all this we obtain
-$$ \int_2^x \frac{dt}{\log t} = \frac{x}{\log x} + O( \frac{x}{\log^2 x} )$$
-$$ = (1+o(1)) \frac{x}{\log x}$$
-and the claim then follows from Theorem \ref{pi_asymp}.
-\end{proof}
-%%-/
 
-/-%%
+blueprint_comment /--
 Let $p_n$ denote the $n^{th}$ prime.
-
-\begin{proposition}[pn_asymptotic]\label{pn_asymptotic}\lean{pn_asymptotic}\leanok
- One has
-  $$ p_n = (1+o(1)) n \log n$$
-as $n \to \infty$.
-\end{proposition}
-%%-/
+-/
 
 noncomputable abbrev nth_prime (n : ℕ) : ℕ := Nat.nth Nat.Prime n
 
@@ -1206,6 +1219,19 @@ lemma nth_prime_asymp : (fun n ↦ ((nth_prime n) : ℝ)) ~[atTop] (fun n ↦ n 
   field
 
 open Filter in
+@[blueprint
+  (title := "pn-asymptotic")
+  (statement := /--
+   One has
+    $$ p_n = (1+o(1)) n \log n$$
+  as $n \to \infty$.
+  -/)
+  (proof := /--
+    Use Corollary \ref{pi_alt} to show that for any $\eps>0$, and for $n$ sufficiently large,
+    the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up
+    to $(1+\eps) n \log n$ is greater than $n$.
+  -/)
+  (latexEnv := "proposition")]
 theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     ∀ n : ℕ, n > 1 → Nat.nth Nat.Prime n = (1 + c n) * n * log n := by
   let c : ℕ → ℝ := fun n ↦ (Nat.nth Nat.Prime n) / (n * log n) - 1
@@ -1228,27 +1254,23 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
   convert this.add_const (-1 : ℝ) using 2
   norm_num
 
-/-%%
-\begin{proof}
-\uses{pi_alt}\leanok
-Use Corollary \ref{pi_alt} to show that for any $\eps>0$, and for $n$ sufficiently large, the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up to $(1+\eps) n \log n$ is greater than $n$.
-\end{proof}
-%%-/
 
-/-%%
-\begin{corollary}[pn_pn_plus_one] \label{pn_pn_plus_one}\lean{pn_pn_plus_one}\leanok
-We have $p_{n+1} - p_n = o(p_n)$
-  as $n \to \infty$.
-\end{corollary}
-%%-/
-
+@[blueprint
+  (title := "pn-pn-plus-one")
+  (statement := /--
+  We have $p_{n+1} - p_n = o(p_n)$
+    as $n \to \infty$.
+  -/)
+  (proof := /-- Easy consequence of preceding proposition. -/)
+  (latexEnv := "corollary")]
 theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
     ∀ n : ℕ, Nat.nth Nat.Prime (n + 1) - Nat.nth Nat.Prime n = (c n) * Nat.nth Nat.Prime n := by
   use (fun n => (Nat.nth Nat.Prime (n+1) - Nat.nth Nat.Prime n) / Nat.nth Nat.Prime n)
   refine ⟨?_, ?_⟩
   · obtain ⟨k, k_o1, p_n_eq⟩ := pn_asymptotic
     simp only [isLittleO_one_iff]
-    rw [Filter.tendsto_congr' (f₂ := fun n ↦ ((1 + k (n+1))*(n+1)*log (n+1) - (1 + k n)*n*log n) / ((1 + k n)*n*log n))]
+    rw [Filter.tendsto_congr' (f₂ := fun n ↦
+        ((1 + k (n+1))*(n+1)*log (n+1) - (1 + k n)*n*log n) / ((1 + k n)*n*log n))]
     swap
     · simp only [EventuallyEq, eventually_atTop, ge_iff_le]
       use 2; intro n hn
@@ -1356,7 +1378,8 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
             · apply Filter.Tendsto.div_atTop (l := atTop) (a := log 2)
               · simp
               · norm_cast
-                have shift_fn := Filter.tendsto_add_atTop_iff_nat (f := fun n => log (n)) (l := atTop) 2
+                have shift_fn :=
+                  Filter.tendsto_add_atTop_iff_nat (f := fun n => log (n)) (l := atTop) 2
                 rw [shift_fn]
                 apply Filter.Tendsto.comp Real.tendsto_log_atTop
                 exact tendsto_natCast_atTop_atTop
@@ -1408,18 +1431,7 @@ theorem pn_pn_plus_one : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) 
       exact Nat.Prime.ne_zero (prime_nth_prime n)
     simp [nth_nonzero]
 
-/-%%
-\begin{proof}
-\uses{pn_asymptotic}\leanok
-  Easy consequence of preceding proposition.
-\end{proof}
-%%-/
 
-/-%%
-\begin{corollary}[prime_between]  \label{prime_between}\lean{prime_between}\leanok
-For every $\eps>0$, there is a prime between $x$ and $(1+\eps)x$ for all sufficiently large $x$.
-\end{corollary}
-%%-/
 
 lemma prime_in_gap' (a b : ℕ) (h : a.primeCounting < b.primeCounting)
     : ∃ (p : ℕ), p.Prime ∧ (a + 1) ≤ p ∧ p < (b + 1) := by
@@ -1475,7 +1487,8 @@ lemma bound_f_second_term (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ 
   exact bound_one_plus_f b δ (ha b (by linarith))
 
 
-lemma bound_f_first_term {ε : ℝ} (hε : 0 < ε) (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ : ℝ) (hδ : δ > 0) :
+lemma bound_f_first_term {ε : ℝ} (hε : 0 < ε) (f : ℝ → ℝ)
+    (hf : Tendsto f atTop (nhds 0)) (δ : ℝ) (hδ : δ > 0) :
     ∀ᶠ x: ℝ in atTop, (1 + f ((1 + ε) * x)) > (1 - δ)  := by
   have bound_one_plus_f: ∀ y: ℝ, ∀ z: ℝ, |f y| < z → 1 + (f y) > 1 - z := by
     intro y z hf
@@ -1522,7 +1535,8 @@ lemma bound_f_first_term {ε : ℝ} (hε : 0 < ε) (f : ℝ → ℝ) (hf : Tends
 
 lemma smaller_terms {ε : ℝ} (hε : 0 < ε) (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ : ℝ)
     (hδ : δ > 0) :
-    ∀ᶠ x: ℝ in atTop, (1 - δ) * (((1 + ε) * x / (Real.log ((1 + ε) * x)))) < (1 + f ((1 + ε) * x)) * ((1 + ε) * x / (Real.log ((1 + ε) * x))) := by
+    ∀ᶠ x: ℝ in atTop, (1 - δ) * (((1 + ε) * x / (Real.log ((1 + ε) * x)))) <
+      (1 + f ((1 + ε) * x)) * ((1 + ε) * x / (Real.log ((1 + ε) * x))) := by
   have first_term := bound_f_first_term hε f hf δ hδ
   simp only [gt_iff_lt, eventually_atTop, ge_iff_le] at first_term
   obtain ⟨p, hp⟩ := first_term
@@ -1577,7 +1591,8 @@ lemma second_smaller_terms (f : ℝ → ℝ) (hf : Tendsto f atTop (nhds 0)) (δ
   · linarith
 
 lemma x_log_x_atTop : Filter.Tendsto (fun x => x / Real.log x) Filter.atTop Filter.atTop := by
-  have inv_log_x_div := Filter.Tendsto.comp (f := fun x => Real.log x / x) (g := fun x => x⁻¹) (x := Filter.atTop) (y := (nhdsWithin 0 (Set.Ioi 0))) (z := Filter.atTop) ?_ ?_
+  have inv_log_x_div := Filter.Tendsto.comp (f := fun x => Real.log x / x) (g := fun x => x⁻¹)
+    (x := Filter.atTop) (y := (nhdsWithin 0 (Set.Ioi 0))) (z := Filter.atTop) ?_ ?_
   · simp_rw [Function.comp_def, inv_div] at inv_log_x_div
     exact inv_log_x_div
   · exact tendsto_inv_nhdsGT_zero (𝕜 := ℝ)
@@ -1643,12 +1658,14 @@ lemma tendsto_by_squeeze (ε : ℝ) (hε : ε > 0) :
     field_simp at ha1 ha2
     exact ⟨ha1, ha2⟩
   · rw [← Filter.tendsto_comp_val_Ioi_atTop (a := 1)]
-    have log_split: ∀ x: Set.Ioi 1, x.val / log ((1 + ε) * x.val) = x.val / (log (1 + ε) + log (x.val)) := by
+    have log_split: ∀ x: Set.Ioi 1, x.val / log ((1 + ε) * x.val) =
+      x.val / (log (1 + ε) + log (x.val)) := by
       intro x
       have x_ge_one: 1 < x.val := Set.mem_Ioi.mp x.property
       rw [Real.log_mul (by linarith) (by linarith)]
 
-    have log_factor: ∀ x: Set.Ioi 1, x.val / (log (1 + ε) + log (x.val)) = x.val / ((1 + (log (1 + ε)/(log x.val))) * (log x.val)) := by
+    have log_factor: ∀ x: Set.Ioi 1, x.val / (log (1 + ε) + log (x.val)) =
+      x.val / ((1 + (log (1 + ε)/(log x.val))) * (log x.val)) := by
       intro x
       have : log (x.val) ≠ 0 := by
         have pos := Real.log_pos x.property
@@ -1674,7 +1691,8 @@ lemma tendsto_by_squeeze (ε : ℝ) (hε : ε > 0) :
       lhs
       rw [log_factor]
 
-    suffices Tendsto (fun x : Set.Ioi (1 : ℝ) ↦ (1 - d) * ((1 + ε) * x) / ((1 + log (1 + ε) / log x) * log x) - (1 + d) * x / log x) atTop atTop by
+    suffices Tendsto (fun x : Set.Ioi (1 : ℝ) ↦ (1 - d) * ((1 + ε) * x) /
+      ((1 + log (1 + ε) / log x) * log x) - (1 + d) * x / log x) atTop atTop by
       field_simp at this ⊢
       exact this
     conv =>
@@ -1784,6 +1802,13 @@ lemma tendsto_by_squeeze (ε : ℝ) (hε : ε > 0) :
       rw [Filter.tendsto_comp_val_Ioi_atTop (a := 1)]
       exact x_log_x_atTop
 
+@[blueprint
+  (title := "prime-between")
+  (statement := /-- For every $\eps>0$, there is a prime between $x$ and $(1+\eps)x$ for
+  all sufficiently large $x$. -/)
+  (proof := /-- Use Corollary \ref{pi_alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infinity
+  as $x \to \infty$. -/)
+  (latexEnv := "corollary")]
 theorem prime_between {ε : ℝ} (hε : 0 < ε) :
     ∀ᶠ x : ℝ in atTop, ∃ p : ℕ, Nat.Prime p ∧ x < p ∧ p < (1 + ε) * x := by
   have squeeze := tendsto_by_squeeze (ε/2) (by linarith)
@@ -1806,18 +1831,19 @@ theorem prime_between {ε : ℝ} (hε : 0 < ε) :
     linarith
   use p
 
-/-%%
-\begin{proof}
-\uses{pi_alt}\leanok
-Use Corollary \ref{pi_alt} to show that $\pi((1+\eps)x) - \pi(x)$ goes to infinity as $x \to \infty$.
-\end{proof}
-%%-/
 
-/-%%
-\begin{proposition}\label{mun}\lean{sum_mobius_div_self_le}\leanok
-We have $|\sum_{n \leq x} \frac{\mu(n)}{n}| \leq 1$.
-\end{proposition}
-%%-/
+@[blueprint
+  "mun"
+  (statement := /-- We have $|\sum_{n \leq x} \frac{\mu(n)}{n}| \leq 1$. -/)
+  (proof := /--
+  From M\"obius inversion $1_{n=1} = \sum_{d|n} \mu(d)$ and summing we have
+    $$ 1 = \sum_{d \leq x} \mu(d) \lfloor \frac{x}{d} \rfloor$$
+    for any $x \geq 1$. Since $\lfloor \frac{x}{d} \rfloor = \frac{x}{d} - \epsilon_d$ with
+    $0 \leq \epsilon_d < 1$ and $\epsilon_x = 0$, we conclude that
+    $$ 1 ≥ x \sum_{d \leq x} \frac{\mu(d)}{d} - (x - 1)$$
+    and the claim follows.
+  -/)
+  (latexEnv := "proposition")]
 theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)| ≤ 1 := by
   cases N with
   | zero => simp only [range_zero, sum_empty, abs_zero, zero_le_one]
@@ -1826,7 +1852,8 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
   obtain rfl | hN := N.eq_zero_or_pos
   · simp
   /- annoying case -/
-  have h_sum : 1 = (∑ d ∈ range (N + 1), (μ d / d : ℚ)) * N - ∑ d ∈ range (N + 1), μ d * Int.fract (N / d : ℚ) := calc
+  have h_sum : 1 = (∑ d ∈ range (N + 1), (μ d / d : ℚ)) * N - ∑ d ∈ range (N + 1),
+      μ d * Int.fract (N / d : ℚ) := calc
     (1 : ℚ) = ∑ m ∈ Ioc 0 N, ∑ d ∈ m.divisors, μ d := by
       have (x : ℕ) (hx : x ∈ Ioc 0 N) : ∑ d ∈ divisors x, μ d = if x = 1 then 1 else 0 := by
         rw [mem_Ioc] at hx
@@ -1841,7 +1868,8 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
     _ = ∑ d ∈ range (N + 1), (μ d : ℚ) * ⌊(N / d : ℚ)⌋ := by
       simp_rw [Rat.floor_natCast_div_natCast]
       simp [← Int.natCast_ediv]
-    _ = (∑ d ∈ range (N + 1), (μ d / d : ℚ)) * N - ∑ d ∈ range (N + 1), μ d * Int.fract (N / d : ℚ) := by
+    _ = (∑ d ∈ range (N + 1), (μ d / d : ℚ)) * N - ∑ d ∈ range (N + 1),
+        μ d * Int.fract (N / d : ℚ) := by
       simp_rw [sum_mul, ← sum_sub_distrib, mul_comm_div, ← mul_sub, Int.self_sub_fract]
   rw [eq_sub_iff_add_eq, eq_comm, ← eq_div_iff (by norm_num [Nat.pos_iff_ne_zero.mp hN])] at h_sum
 
@@ -1873,152 +1901,129 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
   <;> simp only [le_div_iff₀, div_le_iff₀, cast_pos.mpr hN]
   <;> linarith [h_bound.left]
 
-/-%%
-\begin{proof}\leanok
-From M\"obius inversion $1_{n=1} = \sum_{d|n} \mu(d)$ and summing we have
-  $$ 1 = \sum_{d \leq x} \mu(d) \lfloor \frac{x}{d} \rfloor$$
-  for any $x \geq 1$. Since $\lfloor \frac{x}{d} \rfloor = \frac{x}{d} - \epsilon_d$ with
-  $0 \leq \epsilon_d < 1$ and $\epsilon_x = 0$, we conclude that
-  $$ 1 ≥ x \sum_{d \leq x} \frac{\mu(d)}{d} - (x - 1)$$
-  and the claim follows.
-\end{proof}
-%%-/
 
-/-%%
-\begin{proposition}[M\"obius form of prime number theorem]\label{mu-pnt}\lean{mu_pnt}\leanok  We have $\sum_{n \leq x} \mu(n) = o(x)$.
-\end{proposition}
-%%-/
 
+@[blueprint
+  "mu-pnt"
+  (title := "M\\\"obius form of prime number theorem")
+  (statement := /-- We have $\sum_{n \leq x} \mu(n) = o(x)$. -/)
+  (proof := /--
+  From the Dirichlet convolution identity
+    $$ \mu(n) \log n = - \sum_{d|n} \mu(d) \Lambda(n/d)$$
+  and summing we obtain
+  $$ \sum_{n \leq x} \mu(n) \log n = - \sum_{d \leq x} \mu(d) \sum_{m \leq x/d} \Lambda(m).$$
+  For any $\eps>0$, we have from the prime number theorem that
+  $$ \sum_{m \leq x/d} \Lambda(m) = x/d + O(\eps x/d) + O_\eps(1)$$
+  (divide into cases depending on whether $x/d$ is large or small compared to $\eps$).
+  We conclude that
+  $$ \sum_{n \leq x} \mu(n) \log n = - x \sum_{d \leq x} \frac{\mu(d)}{d} + O(\eps x \log x) + O_\eps(x).$$
+  Applying \eqref{mun} we conclude that
+  $$ \sum_{n \leq x} \mu(n) \log n = O(\eps x \log x) + O_\eps(x).$$
+  and hence
+  $$ \sum_{n \leq x} \mu(n) \log x = O(\eps x \log x) + O_\eps(x) + O( \sum_{n \leq x} (\log x - \log n) ).$$
+  From Stirling's formula one has
+  $$  \sum_{n \leq x} (\log x - \log n) = O(x)$$
+  thus
+  $$ \sum_{n \leq x} \mu(n) \log x = O(\eps x \log x) + O_\eps(x)$$
+  and thus
+  $$ \sum_{n \leq x} \mu(n) = O(\eps x) + O_\eps(\frac{x}{\log x}).$$
+  Sending $\eps \to 0$ we obtain the claim.
+  -/)
+  (proofUses := ["WeakPNT", "mun"])
+  (latexEnv := "proposition")]
 theorem mu_pnt : (fun x : ℝ ↦ ∑ n ∈ range ⌊x⌋₊, μ n) =o[atTop] fun x ↦ x := by sorry
 
-/-%%
-\begin{proof}
-\uses{mun, WeakPNT}
-From the Dirichlet convolution identity
-  $$ \mu(n) \log n = - \sum_{d|n} \mu(d) \Lambda(n/d)$$
-and summing we obtain
-$$ \sum_{n \leq x} \mu(n) \log n = - \sum_{d \leq x} \mu(d) \sum_{m \leq x/d} \Lambda(m).$$
-For any $\eps>0$, we have from the prime number theorem that
-$$ \sum_{m \leq x/d} \Lambda(m) = x/d + O(\eps x/d) + O_\eps(1)$$
-(divide into cases depending on whether $x/d$ is large or small compared to $\eps$).
-We conclude that
-$$ \sum_{n \leq x} \mu(n) \log n = - x \sum_{d \leq x} \frac{\mu(d)}{d} + O(\eps x \log x) + O_\eps(x).$$
-Applying \eqref{mun} we conclude that
-$$ \sum_{n \leq x} \mu(n) \log n = O(\eps x \log x) + O_\eps(x).$$
-and hence
-$$ \sum_{n \leq x} \mu(n) \log x = O(\eps x \log x) + O_\eps(x) + O( \sum_{n \leq x} (\log x - \log n) ).$$
-From Stirling's formula one has
-$$  \sum_{n \leq x} (\log x - \log n) = O(x)$$
-thus
-$$ \sum_{n \leq x} \mu(n) \log x = O(\eps x \log x) + O_\eps(x)$$
-and thus
-$$ \sum_{n \leq x} \mu(n) = O(\eps x) + O_\eps(\frac{x}{\log x}).$$
-Sending $\eps \to 0$ we obtain the claim.
-\end{proof}
-%%-/
 
 
-/-%%
-\begin{proposition}\label{lambda-pnt}\lean{lambda_pnt}\leanok
-We have $\sum_{n \leq x} \lambda(n) = o(x)$.
-\end{proposition}
-%%-/
 
+@[blueprint
+  "lambda-pnt"
+  (statement := /-- We have $\sum_{n \leq x} \lambda(n) = o(x)$. -/)
+  (proof := /--
+  From the identity
+    $$ \lambda(n) = \sum_{d^2|n} \mu(n/d^2)$$
+  and summing, we have
+  $$ \sum_{n \leq x} \lambda(n) = \sum_{d \leq \sqrt{x}} \sum_{n \leq x/d^2} \mu(n).$$
+  For any $\eps>0$, we have from Proposition \ref{mu-pnt} that
+  $$ \sum_{n \leq x/d^2} \mu(n) = O(\eps x/d^2) + O_\eps(1)$$
+  and hence on summing in $d$
+  $$ \sum_{n \leq x} \lambda(n) = O(\eps x) + O_\eps(x^{1/2}).$$
+  Sending $\eps \to 0$ we obtain the claim.
+  -/)
+  (proofUses := ["mu-pnt"])
+  (latexEnv := "proposition")]
 theorem lambda_pnt : (fun x : ℝ ↦ ∑ n ∈ range ⌊x⌋₊, (-1)^(Ω n)) =o[atTop] fun x ↦ x := by
   sorry
 
-/-%%
-\begin{proof}
-\uses{mu-pnt}
-From the identity
-  $$ \lambda(n) = \sum_{d^2|n} \mu(n/d^2)$$
-and summing, we have
-$$ \sum_{n \leq x} \lambda(n) = \sum_{d \leq \sqrt{x}} \sum_{n \leq x/d^2} \mu(n).$$
-For any $\eps>0$, we have from Proposition \ref{mu-pnt} that
-$$ \sum_{n \leq x/d^2} \mu(n) = O(\eps x/d^2) + O_\eps(1)$$
-and hence on summing in $d$
-$$ \sum_{n \leq x} \lambda(n) = O(\eps x) + O_\eps(x^{1/2}).$$
-Sending $\eps \to 0$ we obtain the claim.
-\end{proof}
 
-%%-/
 
-/-%%
-\begin{proposition}[Alternate M\"obius form of prime number theorem]\label{mu-pnt-alt}\lean{mu_pnt_alt}\leanok  We have $\sum_{n \leq x} \mu(n)/n = o(1)$.
-\end{proposition}
-%%-/
-
+@[blueprint
+  "mu-pnt-alt"
+  (title := "Alternate M\\\"obius form of prime number theorem")
+  (statement := /-- We have $\sum_{n \leq x} \mu(n)/n = o(1)$. -/)
+  (proof := /--
+  As in the proof of Theorem \ref{mun}, we have
+    $$ 1 = \sum_{d \leq x} \mu(d) \lfloor \frac{x}{d} \rfloor$$
+    $$ = x \sum_{d \leq x} \frac{\mu(d)}{d} - \sum_{d \leq x} \mu(d) \{ \frac{x}{d} \}$$
+  so it will suffice to show that
+  $$ \sum_{d \leq x} \mu(d) \{ \frac{x}{d} \} = o(x).$$
+  Let $N$  be a natural number.  It suffices to show that
+  $$ \sum_{d \leq x} \mu(d) \{ \frac{x}{d} \} = O(x/N).$$
+  if $x$ is large enough depending on $N$.
+  We can split the left-hand side as the sum of
+  $$ \sum_{d \leq x/N} \mu(d) \{ \frac{x}{d} \} $$
+  and
+  $$ \sum_{j=1}^{N-1} \sum_{x/(j+1) < d \leq x/j} \mu(d) (x/d - j).$$
+  The first term is clearly $O(x/N)$.  For the second term, we can use Theorem \ref{mu-pnt} and summation by parts (using the fact that $x/d-j$ is monotone and bounded) to find that
+  $$ \sum_{x/(j+1) < d \leq x/j} \mu(d) (x/d - j) = o(x)$$
+  for any given $j$, so in particular
+  $$ \sum_{x/(j+1) < d \leq x/j} \mu(d) (x/d - j) = O(x/N^2)$$
+  for all $j=1,\dots,N-1$ if $x$ is large enough depending on $N$.  Summing all the bounds, we obtain the claim.
+  -/)
+  (proofUses := ["mu-pnt"])
+  (latexEnv := "proposition")]
 theorem mu_pnt_alt : (fun x : ℝ ↦ ∑ n ∈ range ⌊x⌋₊, (μ n : ℝ) / n) =o[atTop] fun x ↦ (1 : ℝ) := by
   sorry
 
-/-%%
-\begin{proof}
-\uses{mu-pnt}
-As in the proof of Theorem \ref{mun}, we have
-  $$ 1 = \sum_{d \leq x} \mu(d) \lfloor \frac{x}{d} \rfloor$$
-  $$ = x \sum_{d \leq x} \frac{\mu(d)}{d} - \sum_{d \leq x} \mu(d) \{ \frac{x}{d} \}$$
-so it will suffice to show that
-$$ \sum_{d \leq x} \mu(d) \{ \frac{x}{d} \} = o(x).$$
-Let $N$  be a natural number.  It suffices to show that
-$$ \sum_{d \leq x} \mu(d) \{ \frac{x}{d} \} = O(x/N).$$
-if $x$ is large enough depending on $N$.
-We can split the left-hand side as the sum of
-$$ \sum_{d \leq x/N} \mu(d) \{ \frac{x}{d} \} $$
-and
-$$ \sum_{j=1}^{N-1} \sum_{x/(j+1) < d \leq x/j} \mu(d) (x/d - j).$$
-The first term is clearly $O(x/N)$.  For the second term, we can use Theorem \ref{mu-pnt} and summation by parts (using the fact that $x/d-j$ is monotone and bounded) to find that
-$$ \sum_{x/(j+1) < d \leq x/j} \mu(d) (x/d - j) = o(x)$$
-for any given $j$, so in particular
-$$ \sum_{x/(j+1) < d \leq x/j} \mu(d) (x/d - j) = O(x/N^2)$$
-for all $j=1,\dots,N-1$ if $x$ is large enough depending on $N$.  Summing all the bounds, we obtain the claim.
-\end{proof}
-%%-/
 
-/-%%
+blueprint_comment /--
 \section{Consequences of the PNT in arithmetic progressions}
-
-\begin{theorem}[Prime number theorem in AP]\label{chebyshev_asymptotic_pnt}\lean{chebyshev_asymptotic_pnt}\leanok  If $a\ (q)$ is a primitive residue class, then one has
-  $$ \sum_{p \leq x: p = a\ (q)} \log p = \frac{x}{\phi(q)} + o(x).$$
-\end{theorem}
-%%-/
-
-proof_wanted chebyshev_asymptotic_pnt {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) :
-    (fun x ↦ ∑ p ∈ (filter Nat.Prime (Iic ⌊x⌋₊)), if (p % q = a) then log p else 0) ~[atTop] (fun x ↦ x / (Nat.totient q))
-
-/-%%
-\begin{proof}
-\uses{chebyshev_asymptotic}
-This is a routine modification of the proof of Theorem \ref{chebyshev_asymptotic}.
-\end{proof}
-%%-/
-
-/-%%
-\begin{corollary}[Dirichlet's theorem]\label{dirichlet_thm}\lean{dirichlet_thm}\leanok  Any primitive residue class contains an infinite number of primes.
-\end{corollary}
-%%-/
-
-proof_wanted dirichlet_thm {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) : Infinite { p // p.Prime ∧ p % q = a }
-
-/-%%
-\begin{proof}
-\uses{chebyshev_asymptotic_pnt}
-If this were not the case, then the sum $\sum_{p \leq x: p = a\ (q)} \log p$ would be bounded in $x$, contradicting Theorem \ref{chebyshev_asymptotic_pnt}.
-\end{proof}
 -/
 
-/-%%
+@[blueprint
+  (title := "Prime number theorem in AP")
+  (statement := /--
+  If $a\ (q)$ is a primitive residue class, then one has
+  $$ \sum_{p \leq x: p = a\ (q)} \log p = \frac{x}{\phi(q)} + o(x).$$
+  -/)
+  (proof := /-- This is a routine modification of the proof of Theorem \ref{chebyshev_asymptotic}. -/)
+  (proofUses := ["chebyshev_asymptotic"])
+  (latexEnv := "theorem")]
+theorem chebyshev_asymptotic_pnt {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) :
+    (fun x ↦ ∑ p ∈ (filter Nat.Prime (Iic ⌊x⌋₊)), if (p % q = a) then log p else 0) ~[atTop] (fun x ↦ x / (Nat.totient q)) := by sorry
+
+@[blueprint
+  (title := "Dirichlet's theorem")
+  (statement := /-- Any primitive residue class contains an infinite number of primes. -/)
+  (proof := /-- If this were not the case, then the sum $\sum_{p \leq x: p = a\ (q)} \log p$ would be bounded in $x$, contradicting Theorem \ref{chebyshev_asymptotic_pnt}. -/)
+  (proofUses := ["chebyshev_asymptotic_pnt"])
+  (latexEnv := "corollary")]
+theorem dirichlet_thm {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) :
+    Infinite { p // p.Prime ∧ p % q = a } := by sorry
+
+blueprint_comment /--
 \section{Consequences of the Chebotarev density theorem}
 
-%%-/
+-/
 
-/-%%
+blueprint_comment /--
 \begin{lemma}[Cyclotomic Chebotarev]\label{Chebotarev-cyclic}  For any $a$ coprime to $m$,
 $$ \sum_{N \mathfrak{p} \leq x; N \mathfrak{p} = a\ (m)} \log N \mathfrak{p}  =
 \frac{1}{|G|} \sum_{N \mathfrak{p} \leq x} \log N \mathfrak{p}.$$
 \end{lemma}
-%%-/
+-/
 
-/-%%
-\begin{proof}\uses{Dedekind-PNT, WeakPNT_AP} This should follow from Lemma \ref{Dedekind-PNT} by a Fourier expansion.
+blueprint_comment /--
+\begin{proof}\uses{Dedekind-PNT, WeakPNT-AP} This should follow from Lemma \ref{Dedekind-PNT} by a Fourier expansion.
 \end{proof}
-%%-/
+-/

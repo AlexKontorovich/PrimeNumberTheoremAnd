@@ -105,7 +105,8 @@ lemma tendsto_scale (f : CS n E) (x : ℝ) : Tendsto (fun R => f.scale R x) atTo
   filter_upwards [eventually_ne_atTop 0] with R hR ; simp [scale, hR]
 
 lemma bounded : ∃ C, ∀ v, ‖f v‖ ≤ C := by
-  obtain ⟨x, hx⟩ := (continuous_norm.comp f.continuous).exists_forall_ge_of_hasCompactSupport f.h2.norm
+  obtain ⟨x, hx⟩ :=
+    (continuous_norm.comp f.continuous).exists_forall_ge_of_hasCompactSupport f.h2.norm
   exact ⟨_, hx⟩
 
 end CS
@@ -211,9 +212,11 @@ instance : HMul (CS 2 ℝ) W21 (CS 2 ℂ) where hMul g f := (g : CS 2 ℂ) * f
 
 lemma hf (f : W21) : Integrable f := f.integrable zero_le_two
 
-lemma hf' (f : W21) : Integrable (deriv f) := by simpa [iteratedDeriv_succ] using f.integrable one_le_two
+lemma hf' (f : W21) : Integrable (deriv f) := by
+  simpa [iteratedDeriv_succ] using f.integrable one_le_two
 
-lemma hf'' (f : W21) : Integrable (deriv (deriv f))  := by simpa [iteratedDeriv_succ] using f.integrable le_rfl
+lemma hf'' (f : W21) : Integrable (deriv (deriv f))  := by
+  simpa [iteratedDeriv_succ] using f.integrable le_rfl
 
 end W21
 

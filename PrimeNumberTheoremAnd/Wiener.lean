@@ -1,3 +1,4 @@
+import Architect
 import Mathlib.Analysis.Fourier.RiemannLebesgueLemma
 import Mathlib.Analysis.Normed.Group.Tannery
 import Mathlib.Analysis.SumIntegralComparisons
@@ -14,22 +15,24 @@ set_option lang.lemmaCmd true
 -- impossible to hide, and hence parameters that are traditionally called σ will
 -- have to be called σ' instead in this file.
 
-open Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries Asymptotics SchwartzMap
+open Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransform LSeries
+  Asymptotics SchwartzMap
 open Complex hiding log
 open scoped Topology
 open scoped ContDiff
 
-variable {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ Ψ : ℝ → ℂ} {F G : ℂ → ℂ} {f : ℕ → ℂ} {𝕜 : Type} [RCLike 𝕜]
+variable {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ Ψ : ℝ → ℂ} {F G : ℂ → ℂ} {f : ℕ → ℂ} {𝕜 : Type}
+  [RCLike 𝕜]
 
-/-%%
-The Fourier transform of an absolutely integrable function $\psi: \R \to \C$ is defined by the formula
-$$ \hat \psi(u) := \int_\R e(-tu) \psi(t)\ dt$$
-where $e(\theta) := e^{2\pi i \theta}$.
+blueprint_comment /--
+The Fourier transform of an absolutely integrable function $\psi: \R \to \C$ is defined by the
+formula $$ \hat \psi(u) := \int_\R e(-tu) \psi(t)\ dt$$ where $e(\theta) := e^{2\pi i \theta}$.
 
-Let $f: \N \to \C$ be an arithmetic function such that $\sum_{n=1}^\infty \frac{|f(n)|}{n^\sigma} < \infty$ for all $\sigma>1$.  Then the Dirichlet series
+Let $f: \N \to \C$ be an arithmetic function such that $\sum_{n=1}^\infty \frac{|f(n)|}{n^\sigma} <
+\infty$ for all $\sigma>1$.  Then the Dirichlet series
 $$ F(s) := \sum_{n=1}^\infty \frac{f(n)}{n^s}$$
 is absolutely convergent for $\sigma>1$.
-%%-/
+-/
 
 noncomputable
 def nterm (f : ℕ → ℂ) (σ' : ℝ) (n : ℕ) : ℝ := if n = 0 then 0 else ‖f n‖ / n ^ σ'
@@ -78,7 +81,8 @@ lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
   · simp [term, hn]
   simp only [term, hn, ↓reduceIte]
   calc
-    _ = (f n * (cexp ((2 * π * -(y * (1 / (2 * π) * Real.log (n / x)))) * I) / ↑((n : ℝ) ^ σ'))) • ψ y := by
+    _ = (f n * (cexp ((2 * π * -(y * (1 / (2 * π) * Real.log (n / x)))) * I) /
+        ↑((n : ℝ) ^ σ'))) • ψ y := by
       rw [Circle.smul_def, fourierChar_apply, ofReal_cpow (by norm_num)]
       simp only [one_div, mul_inv_rev, mul_neg, ofReal_neg, ofReal_mul, ofReal_ofNat, ofReal_inv,
         neg_mul, smul_eq_mul, ofReal_natCast]
@@ -98,32 +102,41 @@ lemma first_fourier_aux2 (hx : 0 < x) (n : ℕ) :
       ring
     _ = _ := by simp ; group
 
-/-%%
-\begin{lemma}[first_fourier]\label{first_fourier}\lean{first_fourier}\leanok  If $\psi: \R \to \C$ is integrable and $x > 0$, then for any $\sigma>1$
-  $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = \int_\R F(\sigma + it) \psi(t) x^{it}\ dt.$$
-\end{lemma}
-%%-/
+
+@[blueprint "first-fourier"
+  (title := "first-fourier")
+  (statement := /--
+  If $\psi: \R \to \C$ is integrable and $x > 0$, then for any $\sigma>1$
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) =
+  \int_\R F(\sigma + it) \psi(t) x^{it}\ dt.$$
+  -/)
+  (proof := /--
+    By the definition of the Fourier transform, the left-hand side expands as
+  $$ \sum_{n=1}^\infty \int_\R \frac{f(n)}{n^\sigma} \psi(t) e( - \frac{1}{2\pi} t \log
+  \frac{n}{x})\ dt$$
+  while the right-hand side expands as
+  $$ \int_\R \sum_{n=1}^\infty \frac{f(n)}{n^{\sigma+it}} \psi(t) x^{it}\ dt.$$
+  Since
+  $$\frac{f(n)}{n^\sigma} \psi(t) e( - \frac{1}{2\pi} t \log \frac{n}{x}) =
+  \frac{f(n)}{n^{\sigma+it}} \psi(t) x^{it}$$
+  the claim then follows from Fubini's theorem.
+  -/)
+  (latexEnv := "lemma")]
 lemma first_fourier (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hsupp : Integrable ψ) (hx : 0 < x) (hσ : 1 < σ') :
     ∑' n : ℕ, term f σ' n * (𝓕 (ψ : ℝ → ℂ) (1 / (2 * π) * log (n / x))) =
     ∫ t : ℝ, LSeries f (σ' + t * I) * ψ t * x ^ (t * I) := by
-/-%%
-\begin{proof}\leanok  By the definition of the Fourier transform, the left-hand side expands as
-$$ \sum_{n=1}^\infty \int_\R \frac{f(n)}{n^\sigma} \psi(t) e( - \frac{1}{2\pi} t \log \frac{n}{x})\ dt$$
-while the right-hand side expands as
-$$ \int_\R \sum_{n=1}^\infty \frac{f(n)}{n^{\sigma+it}} \psi(t) x^{it}\ dt.$$
-Since
-$$\frac{f(n)}{n^\sigma} \psi(t) e( - \frac{1}{2\pi} t \log \frac{n}{x}) = \frac{f(n)}{n^{\sigma+it}} \psi(t) x^{it}$$
-the claim then follows from Fubini's theorem.
-\end{proof}
-%%-/
+
   calc
-    _ = ∑' n, term f σ' n * ∫ (v : ℝ), 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
+    _ = ∑' n, term f σ' n * ∫ (v : ℝ), 𝐞 (-(v * ((1 : ℝ) /
+        ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
       simp only [Real.fourier_eq]
       simp only [one_div, mul_inv_rev, RCLike.inner_apply', conj_trivial]
-    _ = ∑' n, ∫ (v : ℝ), term f σ' n * 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
+    _ = ∑' n, ∫ (v : ℝ), term f σ' n * 𝐞 (-(v * ((1 : ℝ) /
+        ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
       simp [integral_const_mul]
-    _ = ∫ (v : ℝ), ∑' n, term f σ' n * 𝐞 (-(v * ((1 : ℝ) / ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
+    _ = ∫ (v : ℝ), ∑' n, term f σ' n * 𝐞 (-(v * ((1 : ℝ) /
+        ((2 : ℝ) * π) * Real.log (n / x)))) • ψ v := by
       refine (integral_tsum ?_ ?_).symm
       · refine fun _ ↦ AEMeasurable.aestronglyMeasurable ?_
         have := hsupp.aemeasurable
@@ -145,11 +158,7 @@ the claim then follows from Fubini's theorem.
         rw [norm_term_eq_nterm_re]
         simp
 
-/-%%
-\begin{lemma}[second_fourier]\label{second_fourier}\lean{second_fourier}\leanok If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
-$$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du = x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt.$$
-\end{lemma}
-%%-/
+
 
 @[continuity]
 lemma continuous_multiplicative_ofAdd : Continuous (⇑Multiplicative.ofAdd : ℝ → ℝ) := ⟨fun _ ↦ id⟩
@@ -194,31 +203,39 @@ lemma second_fourier_aux (hx : 0 < x) :
     -(cexp (-((1 - ↑σ' - ↑t * I) * ↑(Real.log x))) / (1 - ↑σ' - ↑t * I)) =
     ↑(x ^ (σ' - 1)) * (↑σ' + ↑t * I - 1)⁻¹ * ↑x ^ (↑t * I) := by
   calc
-    _ = cexp (↑(Real.log x) * ((↑σ' - 1) + ↑t * I)) * (↑σ' + ↑t * I - 1)⁻¹ := by rw [← div_neg]; ring_nf
+    _ = cexp (↑(Real.log x) * ((↑σ' - 1) + ↑t * I)) * (↑σ' + ↑t * I - 1)⁻¹ := by
+      rw [← div_neg]; ring_nf
     _ = (x ^ ((↑σ' - 1) + ↑t * I)) * (↑σ' + ↑t * I - 1)⁻¹ := by
       rw [Complex.cpow_def_of_ne_zero (ofReal_ne_zero.mpr (ne_of_gt hx)), Complex.ofReal_log hx.le]
     _ = (x ^ ((σ' : ℂ) - 1)) * (x ^ (↑t * I)) * (↑σ' + ↑t * I - 1)⁻¹ := by
       rw [Complex.cpow_add _ _ (ofReal_ne_zero.mpr (ne_of_gt hx))]
     _ = _ := by rw [ofReal_cpow hx.le]; push_cast; ring
 
+@[blueprint "second-fourier"
+  (title := "second-fourier")
+  (statement := /--
+  If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
+  $$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du =
+  x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt.$$
+  -/)
+  (proof := /--
+  The left-hand side expands as
+  $$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt\ du \atop{?}=
+  x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt$$
+  so by Fubini's theorem it suffices to verify the identity
+  \begin{align*}
+  \int_{-\log x}^\infty e^{-u(\sigma-1)} e(-\frac{tu}{2\pi})\ du
+  &= \int_{-\log x}^\infty e^{(it - \sigma + 1)u}\ du \\
+  &= \frac{1}{it - \sigma + 1} e^{(it - \sigma + 1)u}\ \Big|_{-\log x}^\infty \\
+  &= x^{\sigma - 1} \frac{1}{\sigma+it-1} x^{it}
+  \end{align*}
+  -/)
+  (latexEnv := "lemma")]
 lemma second_fourier (hcont : Continuous ψ) (hsupp : Integrable ψ)
     {x σ' : ℝ} (hx : 0 < x) (hσ : 1 < σ') :
     ∫ u in Ici (-log x), Real.exp (-u * (σ' - 1)) * 𝓕 (ψ : ℝ → ℂ) (u / (2 * π)) =
     (x^(σ' - 1) : ℝ) * ∫ t, (1 / (σ' + t * I - 1)) * ψ t * x^(t * I) ∂ volume := by
-/-%%
-\begin{proof}\leanok
-The left-hand side expands as
-$$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt\ du \atop{?}=
-x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt$$
-so by Fubini's theorem it suffices to verify the identity
-\begin{align*}
-\int_{-\log x}^\infty e^{-u(\sigma-1)} e(-\frac{tu}{2\pi})\ du
-&= \int_{-\log x}^\infty e^{(it - \sigma + 1)u}\ du \\
-&= \frac{1}{it - \sigma + 1} e^{(it - \sigma + 1)u}\ \Big|_{-\log x}^\infty \\
-&= x^{\sigma - 1} \frac{1}{\sigma+it-1} x^{it}
-\end{align*}
-\end{proof}
-%%-/
+
   conv in ↑(rexp _) * _ => { rw [Real.fourier_real_eq, ← smul_eq_mul, ← integral_smul] }
   rw [MeasureTheory.integral_integral_swap]
   swap
@@ -253,7 +270,8 @@ so by Fubini's theorem it suffices to verify the identity
     exact (hasDerivAt_id' u).ofReal_comp.const_mul c |>.cexp.div_const c
   have hf : Tendsto f atTop (𝓝 0) := by
     apply tendsto_zero_iff_norm_tendsto_zero.mpr
-    suffices Tendsto (fun (x : ℝ) ↦ ‖cexp (c * ↑x)‖ / ‖c‖) atTop (𝓝 (0 / ‖c‖)) by simpa [f, f'] using this
+    suffices Tendsto (fun (x : ℝ) ↦ ‖cexp (c * ↑x)‖ / ‖c‖) atTop (𝓝 (0 / ‖c‖)) by
+      simpa [f, f'] using this
     apply Filter.Tendsto.div_const
     suffices Tendsto (· * (1 - σ')) atTop atBot by simpa [Complex.norm_exp, mul_comm (1 - σ'), c]
     exact Tendsto.atTop_mul_const_of_neg (by linarith) fun ⦃s⦄ h ↦ h
@@ -261,81 +279,77 @@ so by Fubini's theorem it suffices to verify the identity
     integral_Ioi_of_hasDerivAt_of_tendsto' hderiv (second_fourier_integrable_aux2 hσ) hf]
   simpa [f, f'] using second_fourier_aux hx
 
-/-%%
-Now let $A \in \C$, and suppose that there is a continuous function $G(s)$ defined on $\mathrm{Re} s \geq 1$ such that $G(s) = F(s) - \frac{A}{s-1}$ whenever $\mathrm{Re} s > 1$.  We also make the Chebyshev-type hypothesis
+blueprint_comment /--
+Now let $A \in \C$, and suppose that there is a continuous function $G(s)$ defined on
+$\mathrm{Re} s \geq 1$ such that $G(s) = F(s) - \frac{A}{s-1}$ whenever $\mathrm{Re} s > 1$.
+We also make the Chebyshev-type hypothesis
 \begin{equation}\label{cheby}
 \sum_{n \leq x} |f(n)| \ll x
 \end{equation}
-for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies the arguments and can be obtained fairly easily in applications).
-%%-/
+for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies the arguments and
+can be obtained fairly easily in applications).
+-/
 
 lemma one_add_sq_pos (u : ℝ) : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa using sq_nonneg u)
 
-/-%%
+blueprint_comment /--
 \begin{lemma}[Preliminary decay bound I]\label{prelim-decay}
 If $\psi:\R \to \C$ is absolutely integrable then
 $$ |\hat \psi(u)| \leq \| \psi \|_1 $$
 for all $u \in \R$. where $C$ is an absolute constant.
 \end{lemma}
-%%-/
+-/
 
-/-%%
+blueprint_comment /--
 \begin{proof} Immediate from the triangle inequality.
 \end{proof}
-%%-/
+-/
 
-/-%%
+blueprint_comment /--
 \begin{lemma}[Preliminary decay bound II]\label{prelim-decay-2}
-If $\psi:\R \to \C$ is absolutely integrable and of bounded variation, and $\psi'$ is bounded variation, then
+If $\psi:\R \to \C$ is absolutely integrable and of bounded variation, and $\psi'$ is bounded
+variation, then
 $$ |\hat \psi(u)| \leq \| \psi \|_{TV} / 2\pi |u| $$
 for all non-zero $u \in \R$.
 \end{lemma}
-%%-/
+-/
 
-/-%%
+blueprint_comment /--
 \begin{proof} By integration by parts we will have
 $$ 2\pi i u \hat \psi(u) = \int _\R e(-tu) \psi'(t)\ dt$$
 and the claim then follows from the triangle inequality.
 \end{proof}
-%%-/
+-/
 
-/-%%
+blueprint_comment /--
 \begin{lemma}[Preliminary decay bound III]\label{prelim-decay-3}
-If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
+If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded
+variation, then
 $$ |\hat \psi(u)| \leq \| \psi' \|_{TV} / (2\pi |u|)^2$$
 for all non-zero $u \in \R$.
 \end{lemma}
-%%-/
+-/
 
-/-%%
+blueprint_comment /--
 \begin{proof}\uses{prelim-decay-2} Should follow from previous lemma.
 \end{proof}
-%%-/
+-/
 
-/-%%
-\begin{lemma}[Decay bound, alternate form]\label{decay-alt}  If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
+blueprint_comment /--
+\begin{lemma}[Decay bound, alternate form]\label{decay-alt}  If $\psi:\R \to \C$ is absolutely
+integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
 $$ |\hat \psi(u)| \leq ( \|\psi\|_1 + \| \psi' \|_{TV} / (2\pi)^2) / (1+|u|^2)$$
 for all $u \in \R$.
 \end{lemma}
-%%-/
+-/
 
-/-%%
+blueprint_comment /--
 \begin{proof}\uses{prelim-decay, prelim-decay-3, decay} Should follow from previous lemmas.
 \end{proof}
-%%-/
+-/
 
 
-/-%%
 
-It should be possible to refactor the lemma below to follow from Lemma \ref{decay-alt} instead.
-
-\begin{lemma}[Decay bounds]\label{decay}\lean{decay_bounds}\leanok  If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
-  $$ |\psi(t)|, |\psi''(t)| \leq A / (1 + |t|^2)$$
-  for all $t \in \R$, then
-$$ |\hat \psi(u)| \leq C A / (1+|u|^2)$$
-for all $u \in \R$, where $C$ is an absolute constant.
-\end{lemma}
-%%-/
 
 lemma decay_bounds_key (f : W21) (u : ℝ) : ‖𝓕 (f : ℝ → ℂ) u‖ ≤ ‖f‖ * (1 + u ^ 2)⁻¹ := by
   have l1 : 0 < 1 + u ^ 2 := one_add_sq_pos _
@@ -351,7 +365,8 @@ lemma decay_bounds_key (f : W21) (u : ℝ) : ‖𝓕 (f : ℝ → ℂ) u‖ ≤ 
   rw [norm_neg, F_mul, norm_mul, W21.norm]
   gcongr <;> apply VectorFourier.norm_fourierIntegral_le_integral_norm
 
-lemma decay_bounds_aux {f : ℝ → ℂ} (hf : AEStronglyMeasurable f volume) (h : ∀ t, ‖f t‖ ≤ A * (1 + t ^ 2)⁻¹) :
+lemma decay_bounds_aux {f : ℝ → ℂ} (hf : AEStronglyMeasurable f volume)
+    (h : ∀ t, ‖f t‖ ≤ A * (1 + t ^ 2)⁻¹) :
     ∫ t, ‖f t‖ ≤ π * A := by
   have l1 : Integrable (fun x ↦ A * (1 + x ^ 2)⁻¹) := integrable_inv_one_add_sq.const_mul A
   simp_rw [← integral_univ_inv_one_add_sq, mul_comm, ← integral_const_mul]
@@ -371,7 +386,25 @@ theorem decay_bounds_W21 (f : W21) (hA : ∀ t, ‖f t‖ ≤ A / (1 + t ^ 2))
   change W21.norm _ * _ ≤ _
   simp_rw [W21.norm, div_eq_mul_inv, add_mul, l0] ; gcongr
 
-lemma decay_bounds (ψ : CS 2 ℂ) (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2)) (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) :
+@[blueprint
+  "decay"
+  (title := "Decay bounds")
+  (statement := /--
+    If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
+    $$ |\psi(t)|, |\psi''(t)| \leq A / (1 + |t|^2)$$
+    for all $t \in \R$, then
+  $$ |\hat \psi(u)| \leq C A / (1+|u|^2)$$
+  for all $u \in \R$, where $C$ is an absolute constant.
+  -/)
+  (proof := /--
+   From two integration by parts we obtain the identity
+  $$ (1+u^2) \hat \psi(u) = \int_{\bf R} (\psi(t) - \frac{u}{4\pi^2} \psi''(t)) e(-tu)\ dt.$$
+  Now apply the triangle inequality and the identity $\int_{\bf R} \frac{dt}{1+t^2}\ dt = \pi$ to
+  obtain the claim with $C = \pi + 1 / 4 \pi$.
+  -/)
+  (latexEnv := "lemma")]
+lemma decay_bounds (ψ : CS 2 ℂ) (hA : ∀ t, ‖ψ t‖ ≤ A / (1 + t ^ 2))
+    (hA' : ∀ t, ‖deriv^[2] ψ t‖ ≤ A / (1 + t ^ 2)) :
     ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (π + 1 / (4 * π)) * A / (1 + u ^ 2) := by
   exact decay_bounds_W21 ψ hA hA' u
 
@@ -403,18 +436,9 @@ lemma W21.integrable_fourier (ψ : W21) (hc : c ≠ 0) :
   apply @Integrable.mono' ℝ ℂ _ volume _ _ (fun u => C / (1 + (u / c) ^ 2)) (l1 C) l2 ?_
   apply Eventually.of_forall (fun x => h _)
 
-/-%%
-\begin{proof}\leanok From two integration by parts we obtain the identity
-$$ (1+u^2) \hat \psi(u) = \int_{\bf R} (\psi(t) - \frac{u}{4\pi^2} \psi''(t)) e(-tu)\ dt.$$
-Now apply the triangle inequality and the identity $\int_{\bf R} \frac{dt}{1+t^2}\ dt = \pi$ to obtain the claim with $C = \pi + 1 / 4 \pi$.
-\end{proof}
-%%-/
 
-/-%%
-\begin{lemma}[Limiting Fourier identity]\label{limiting}\lean{limiting_fourier}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported and $x \geq 1$, then
-$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
-\end{lemma}
-%%-/
+
+
 
 lemma continuous_LSeries_aux (hf : Summable (nterm f σ')) :
     Continuous fun x : ℝ => LSeries f (σ' + x * I) := by
@@ -422,7 +446,8 @@ lemma continuous_LSeries_aux (hf : Summable (nterm f σ')) :
   have l1 i : Continuous fun x : ℝ ↦ term f (σ' + x * I) i := by
     by_cases h : i = 0
     · simpa [h] using continuous_const
-    · simpa [h] using continuous_const.div (continuous_const.cpow (by fun_prop) (by simp [h])) (fun x => by simp [h])
+    · simpa [h] using continuous_const.div (continuous_const.cpow (by fun_prop) (by simp [h]))
+        (fun x => by simp [h])
   have l2 n (x : ℝ) : ‖term f (σ' + x * I) n‖ = nterm f σ' n := by
     by_cases h : n = 0
     · simp [h, nterm]
@@ -432,11 +457,11 @@ lemma continuous_LSeries_aux (hf : Summable (nterm f σ')) :
 
 -- Here compact support is used but perhaps it is not necessary
 lemma limiting_fourier_aux (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
-    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (ψ : CS 2 ℂ) (hx : 1 ≤ x) (σ' : ℝ) (hσ' : 1 < σ') :
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (ψ : CS 2 ℂ) (hx : 1 ≤ x) (σ' : ℝ)
+    (hσ' : 1 < σ') :
     ∑' n, term f σ' n * 𝓕 (ψ : ℝ → ℂ) (1 / (2 * π) * log (n / x)) -
-    A * (x ^ (1 - σ') : ℝ) * ∫ u in Ici (- log x), rexp (-u * (σ' - 1)) * 𝓕 (ψ : ℝ → ℂ) (u / (2 * π)) =
-    ∫ t : ℝ, G (σ' + t * I) * ψ t * x ^ (t * I) := by
-
+    A * (x ^ (1 - σ') : ℝ) * ∫ u in Ici (- log x), rexp (-u * (σ' - 1)) * 𝓕 (ψ : ℝ → ℂ)
+      (u / (2 * π)) = ∫ t : ℝ, G (σ' + t * I) * ψ t * x ^ (t * I) := by
   have hint : Integrable ψ := ψ.h1.continuous.integrable_of_hasCompactSupport ψ.h2
   have l3 : 0 < x := zero_lt_one.trans_le hx
   have l1 (σ') (hσ' : 1 < σ') := first_fourier hf hint l3 hσ'
@@ -449,11 +474,13 @@ lemma limiting_fourier_aux (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1
     exact l6.integrable_of_hasCompactSupport ψ.h2.mul_left.mul_right
   have e2 (u : ℝ) : σ' + u * I - 1 ≠ 0 := by
     intro h ; have := congr_arg Complex.re h ; simp at this ; linarith
-  have l7 : Continuous fun a ↦ A * ↑(x ^ (1 - σ')) * (↑(x ^ (σ' - 1)) * (1 / (σ' + a * I - 1) * ψ a * x ^ (a * I))) := by
+  have l7 : Continuous fun a ↦ A * ↑(x ^ (1 - σ')) * (↑(x ^ (σ' - 1)) *
+      (1 / (σ' + a * I - 1) * ψ a * x ^ (a * I))) := by
     simp only [one_div, ← mul_assoc]
     refine ((continuous_const.mul <| Continuous.inv₀ ?_ e2).mul ψ.h1.continuous).mul l8
     fun_prop
-  have l5 : Integrable fun a ↦ A * ↑(x ^ (1 - σ')) * (↑(x ^ (σ' - 1)) * (1 / (σ' + a * I - 1) * ψ a * x ^ (a * I))) := by
+  have l5 : Integrable fun a ↦ A * ↑(x ^ (1 - σ')) * (↑(x ^ (σ' - 1)) *
+      (1 / (σ' + a * I - 1) * ψ a * x ^ (a * I))) := by
     apply l7.integrable_of_hasCompactSupport
     exact ψ.h2.mul_left.mul_right.mul_left.mul_left
 
@@ -492,9 +519,11 @@ lemma cumsum_succ [AddCommMonoid E] {u : ℕ → E} (n : ℕ) :
 @[simp] lemma nabla_cumsum [AddCommGroup E] {u : ℕ → E} : nabla (cumsum u) = u := by
   ext n ; simp [nabla, cumsum, Finset.range_add_one]
 
-lemma neg_cumsum [AddCommGroup E] {u : ℕ → E} : -(cumsum u) = cumsum (-u) := funext (fun n => by simp [cumsum])
+lemma neg_cumsum [AddCommGroup E] {u : ℕ → E} : -(cumsum u) = cumsum (-u) :=
+  funext (fun n => by simp [cumsum])
 
-lemma cumsum_nonneg {u : ℕ → ℝ} (hu : 0 ≤ u) : 0 ≤ cumsum u := fun _ => Finset.sum_nonneg (fun i _ => hu i)
+lemma cumsum_nonneg {u : ℕ → ℝ} (hu : 0 ≤ u) : 0 ≤ cumsum u :=
+  fun _ => Finset.sum_nonneg (fun i _ => hu i)
 
 omit [Sub α] in
 lemma neg_nabla [Ring E] {u : α → E} : -(nabla u) = nnabla u := by ext n ; simp [nabla, nnabla]
@@ -504,7 +533,8 @@ omit [Sub α] in
   ext n ; simp [nabla, mul_sub]
 
 omit [Sub α] in
-@[simp] lemma nnabla_mul [Ring E] {u : α → E} {c : E} : nnabla (fun n => c * u n) = c • nnabla u := by
+@[simp] lemma nnabla_mul [Ring E] {u : α → E} {c : E} :
+    nnabla (fun n => c * u n) = c • nnabla u := by
   ext n ; simp [nnabla, mul_sub]
 
 lemma nnabla_cast (u : ℝ → E) [Sub E] : nnabla u ∘ ((↑) : ℕ → ℝ) = nnabla (u ∘ (↑)) := by
@@ -524,14 +554,18 @@ lemma Finset.sum_shift_back {E : Type*} [Ring E] {u : ℕ → E} {n : ℕ} :
     cumsum u (n + 1) = cumsum u n + u n := by
   simp [cumsum, Finset.range_add_one, add_comm]
 
-lemma Finset.sum_shift_back' {E : Type*} [Ring E] {u : ℕ → E} : shift (cumsum u) = cumsum u + u := by
+lemma Finset.sum_shift_back' {E : Type*} [Ring E] {u : ℕ → E} :
+    shift (cumsum u) = cumsum u + u := by
   ext n ; apply Finset.sum_shift_back
 
 lemma summation_by_parts {E : Type*} [Ring E] {a A b : ℕ → E} (ha : a = nabla A) {n : ℕ} :
-    cumsum (a * b) (n + 1) = A (n + 1) * b n - A 0 * b 0 - cumsum (shift A * fun i => (b (i + 1) - b i)) n := by
-  have l1 : ∑ x ∈ Finset.range (n + 1), A (x + 1) * b x = ∑ x ∈ Finset.range n, A (x + 1) * b x + A (n + 1) * b n :=
+    cumsum (a * b) (n + 1) = A (n + 1) * b n - A 0 * b 0 -
+    cumsum (shift A * fun i => (b (i + 1) - b i)) n := by
+  have l1 : ∑ x ∈ Finset.range (n + 1), A (x + 1) * b x = ∑ x ∈ Finset.range n,
+      A (x + 1) * b x + A (n + 1) * b n :=
     Finset.sum_shift_back
-  have l2 : ∑ x ∈ Finset.range (n + 1), A x * b x = A 0 * b 0 + ∑ x ∈ Finset.range n, A (x + 1) * b (x + 1) :=
+  have l2 : ∑ x ∈ Finset.range (n + 1), A x * b x = A 0 * b 0 + ∑ x ∈ Finset.range n,
+      A (x + 1) * b (x + 1) :=
     Finset.sum_shift_front
   simp only [cumsum, ha, Pi.mul_apply, nabla, sub_mul, Finset.sum_sub_distrib, l1, l2, shift,
     mul_sub]
@@ -545,7 +579,8 @@ lemma summation_by_parts'' {E : Type*} [Ring E] {a b : ℕ → E} :
     shift (cumsum (a * b)) = shift (cumsum a) * b - cumsum (shift (cumsum a) * nabla b) := by
   ext n ; apply summation_by_parts'
 
-lemma summable_iff_bounded {u : ℕ → ℝ} (hu : 0 ≤ u) : Summable u ↔ BoundedAtFilter atTop (cumsum u) := by
+lemma summable_iff_bounded {u : ℕ → ℝ} (hu : 0 ≤ u) :
+    Summable u ↔ BoundedAtFilter atTop (cumsum u) := by
   have l1 : (cumsum u =O[atTop] 1) ↔ _ := isBigO_one_nat_atTop_iff
   have l2 n : ‖cumsum u n‖ = cumsum u n := by simpa using cumsum_nonneg hu n
   simp only [BoundedAtFilter, l1, l2]
@@ -553,7 +588,8 @@ lemma summable_iff_bounded {u : ℕ → ℝ} (hu : 0 ≤ u) : Summable u ↔ Bou
   · exact ⟨C, fun n => sum_le_hasSum _ (fun i _ => hu i) h1⟩
   · exact summable_of_sum_range_le hu h1
 
-lemma Filter.EventuallyEq.summable {u v : ℕ → ℝ} (h : u =ᶠ[atTop] v) (hu : Summable v) : Summable u :=
+lemma Filter.EventuallyEq.summable {u v : ℕ → ℝ} (h : u =ᶠ[atTop] v) (hu : Summable v) :
+    Summable u :=
   summable_of_isBigO_nat hu h.isBigO
 
 lemma summable_congr_ae {u v : ℕ → ℝ} (huv : u =ᶠ[atTop] v) : Summable u ↔ Summable v := by
@@ -585,7 +621,8 @@ lemma summable_iff_bounded' {u : ℕ → ℝ} (hu : ∀ᶠ n in atTop, 0 ≤ u n
   rw [← summable_nat_add_iff N, summable_iff_bounded (fun n => hu _ <| Nat.le_add_left N n), e2]
   simp_rw [sub_eq_add_neg, BoundedAtFilter.add_const, BoundedAtFilter.comp_add]
 
-lemma bounded_of_shift {u : ℕ → ℝ} (h : BoundedAtFilter atTop (shift u)) : BoundedAtFilter atTop u := by
+lemma bounded_of_shift {u : ℕ → ℝ} (h : BoundedAtFilter atTop (shift u)) :
+    BoundedAtFilter atTop u := by
   simp only [BoundedAtFilter, isBigO_iff, eventually_atTop] at h ⊢
   obtain ⟨C, N, hC⟩ := h
   refine ⟨C, N + 1, fun n hn => ?_⟩
@@ -603,7 +640,8 @@ lemma dirichlet_test' {a b : ℕ → ℝ} (ha : 0 ≤ a) (hb : 0 ≤ b)
   rw [summable_iff_bounded (mul_nonneg ha hb)]
   rw [summable_iff_bounded' l1] at h
   apply bounded_of_shift
-  simpa only [summation_by_parts'', sub_eq_add_neg, neg_cumsum, ← mul_neg, neg_nabla] using hAb.add h
+  simpa only [summation_by_parts'', sub_eq_add_neg, neg_cumsum, ← mul_neg, neg_nabla]
+    using hAb.add h
 
 lemma exists_antitone_of_eventually {u : ℕ → ℝ} (hu : ∀ᶠ n in atTop, u (n + 1) ≤ u n) :
     ∃ v : ℕ → ℝ, range v ⊆ range u ∧ Antitone v ∧ v =ᶠ[atTop] u := by
@@ -623,16 +661,19 @@ lemma exists_antitone_of_eventually {u : ℕ → ℝ} (hu : ∀ᶠ n in atTop, u
 
 lemma summable_inv_mul_log_sq : Summable (fun n : ℕ => (n * (Real.log n) ^ 2)⁻¹) := by
   let u (n : ℕ) := (n * (Real.log n) ^ 2)⁻¹
-  have l7 : ∀ᶠ n : ℕ in atTop, 1 ≤ Real.log n := tendsto_atTop.mp (tendsto_log_atTop.comp tendsto_natCast_atTop_atTop) 1
+  have l7 : ∀ᶠ n : ℕ in atTop, 1 ≤ Real.log n :=
+    tendsto_atTop.mp (tendsto_log_atTop.comp tendsto_natCast_atTop_atTop) 1
   have l8 : ∀ᶠ n : ℕ in atTop, 1 ≤ n := eventually_ge_atTop 1
-  have l9 : ∀ᶠ n in atTop, u (n + 1) ≤ u n := by filter_upwards [l7, l8] with n l2 l8 ; dsimp [u] ; gcongr <;> simp
+  have l9 : ∀ᶠ n in atTop, u (n + 1) ≤ u n := by
+    filter_upwards [l7, l8] with n l2 l8; dsimp [u]; gcongr <;> simp
   obtain ⟨v, l1, l2, l3⟩ := exists_antitone_of_eventually l9
   rw [summable_congr_ae l3.symm]
   have l4 (n : ℕ) : 0 ≤ v n := by obtain ⟨k, hk⟩ := l1 ⟨n, rfl⟩ ; rw [← hk] ; positivity
   apply (summable_condensed_iff_of_nonneg l4 (fun _ _ _ a ↦ l2 a)).mp
   suffices this : ∀ᶠ k : ℕ in atTop, 2 ^ k * v (2 ^ k) = ((k : ℝ) ^ 2)⁻¹ * ((Real.log 2) ^ 2)⁻¹ by
     exact (summable_congr_ae this).mpr <| (Real.summable_nat_pow_inv.mpr one_lt_two).mul_right _
-  have l5 : ∀ᶠ k in atTop, v (2 ^ k) = u (2 ^ k) := l3.comp_tendsto <| tendsto_pow_atTop_atTop_of_one_lt Nat.le.refl
+  have l5 : ∀ᶠ k in atTop, v (2 ^ k) = u (2 ^ k) :=
+    l3.comp_tendsto <| tendsto_pow_atTop_atTop_of_one_lt Nat.le.refl
   filter_upwards [l5, l8] with k l5 l8
   simp only [l5, mul_inv_rev, Nat.cast_pow, Nat.cast_ofNat, log_pow, u]
   field_simp
@@ -998,6 +1039,19 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re}) (ψ : CS 2 
     · exact ((continuous_ofReal.tendsto _).add tendsto_const_nhds).mono_left nhdsWithin_le_nhds
     · exact eventually_nhdsWithin_of_forall (fun x (hx : 1 < x) => by simp [hx.le])
 
+@[blueprint
+  "limiting"
+  (title := "Limiting Fourier identity")
+  (statement := /--
+    If $\psi: \R \to \C$ is $C^2$ and compactly supported and $x \geq 1$, then
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
+  -/)
+  (proof := /--
+  By Lemma \ref{first-fourier} and Lemma \ref{second-fourier}, we know that for any $\sigma>1$, we have
+   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A x^{1-\sigma} \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(\sigma+it) \psi(t) x^{it}\ dt.$$
+   Now take limits as $\sigma \to 1$ using dominated convergence together with \eqref{cheby} and Lemma \ref{decay} to obtain the result.
+  -/)
+  (latexEnv := "lemma")]
 lemma limiting_fourier (hcheby : cheby f)
     (hG : ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (ψ : CS 2 ℂ) (hx : 1 ≤ x) :
@@ -1011,21 +1065,9 @@ lemma limiting_fourier (hcheby : cheby f)
   apply tendsto_nhds_unique_of_eventuallyEq (l1.sub l2) l3
   simpa [eventuallyEq_nhdsWithin_iff] using Eventually.of_forall (limiting_fourier_aux hG' hf ψ hx)
 
-/-%%
-\begin{proof}
-\uses{first_fourier, second_fourier, decay} \leanok
- By Lemma \ref{first_fourier} and Lemma \ref{second_fourier}, we know that for any $\sigma>1$, we have
-  $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A x^{1-\sigma} \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(\sigma+it) \psi(t) x^{it}\ dt.$$
-  Now take limits as $\sigma \to 1$ using dominated convergence together with \eqref{cheby} and Lemma \ref{decay} to obtain the result.
-\end{proof}
-%%-/
 
-/-%%
-\begin{corollary}[Corollary of limiting identity]\label{limiting-cor}\lean{limiting_cor}\leanok  With the hypotheses as above, we have
-  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
-  as $x \to \infty$.
-\end{corollary}
-%%-/
+
+
 
 lemma limiting_cor_aux {f : ℝ → ℂ} : Tendsto (fun x : ℝ ↦ ∫ t, f t * x ^ (t * I)) atTop (𝓝 0) := by
 
@@ -1048,6 +1090,16 @@ lemma limiting_cor_aux {f : ℝ → ℂ} : Tendsto (fun x : ℝ ↦ ∫ t, f t *
   refine (Real.zero_at_infty_fourier f).comp <| Tendsto.mono_right ?_ _root_.atBot_le_cocompact
   exact (tendsto_neg_atBot_iff.mpr tendsto_log_atTop).atBot_mul_const (inv_pos.mpr two_pi_pos)
 
+@[blueprint
+  "limiting-cor"
+  (title := "Corollary of limiting identity")
+  (statement := /--
+  With the hypotheses as above, we have
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
+  as $x \to \infty$.
+  -/)
+  (proof := /-- Immediate from the Riemann-Lebesgue lemma, and also noting that $\int_{-\infty}^{-\log x} \hat \psi(\frac{u}{2\pi})\ du = o(1)$. -/)
+  (latexEnv := "corollary")]
 lemma limiting_cor (ψ : CS 2 ℂ) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
     (hG : ContinuousOn G {s | 1 ≤ s.re}) (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
     Tendsto (fun x : ℝ ↦ ∑' n, f n / n * 𝓕 (ψ : ℝ → ℂ) (1 / (2 * π) * log (n / x)) -
@@ -1056,18 +1108,16 @@ lemma limiting_cor (ψ : CS 2 ℂ) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (
   apply limiting_cor_aux.congr'
   filter_upwards [eventually_ge_atTop 1] with x hx using limiting_fourier hcheby hG hG' hf ψ hx |>.symm
 
-/-%%
-\begin{proof}
-\uses{limiting} \leanok
- Immediate from the Riemann-Lebesgue lemma, and also noting that $\int_{-\infty}^{-\log x} \hat \psi(\frac{u}{2\pi})\ du = o(1)$.
-\end{proof}
-%%-/
 
-/-%%
-\begin{lemma}[Smooth Urysohn lemma]\label{smooth-ury}\lean{smooth_urysohn}\leanok  If $I$ is a closed interval contained in an open interval $J$, then there exists a smooth function $\Psi: \R \to \R$ with $1_I \leq \Psi \leq 1_J$.
-\end{lemma}
-%%-/
 
+
+
+@[blueprint
+  "smooth-ury"
+  (title := "Smooth Urysohn lemma")
+  (statement := /-- If $I$ is a closed interval contained in an open interval $J$, then there exists a smooth function $\Psi: \R \to \R$ with $1_I \leq \Psi \leq 1_J$. -/)
+  (proof := /-- A standard analysis lemma, which can be proven by convolving $1_K$ with a smooth approximation to the identity for some interval $K$ between $I$ and $J$. Note that we have ``SmoothBumpFunction''s on smooth manifolds in Mathlib, so this shouldn't be too hard... -/)
+  (latexEnv := "lemma")]
 lemma smooth_urysohn (a b c d : ℝ) (h1 : a < b) (h3 : c < d) : ∃ Ψ : ℝ → ℝ,
     (ContDiff ℝ ∞ Ψ) ∧ (HasCompactSupport Ψ) ∧
       Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧ Ψ ≤ Set.indicator (Set.Ioo a d) 1 := by
@@ -1075,11 +1125,7 @@ lemma smooth_urysohn (a b c d : ℝ) (h1 : a < b) (h3 : c < d) : ∃ Ψ : ℝ �
   obtain ⟨ψ, l1, l2, l3, l4, -⟩ := smooth_urysohn_support_Ioo h1 h3
   refine ⟨ψ, l1, l2, l3, l4⟩
 
-/-%%
-\begin{proof}  \leanok
-A standard analysis lemma, which can be proven by convolving $1_K$ with a smooth approximation to the identity for some interval $K$ between $I$ and $J$. Note that we have ``SmoothBumpFunction''s on smooth manifolds in Mathlib, so this shouldn't be too hard...
-\end{proof}
-%%-/
+
 
 noncomputable def exists_trunc : trunc := by
   choose ψ h1 h2 h3 h4 using smooth_urysohn (-2) (-1) (1) (2) (by linarith) (by linarith)
@@ -1558,10 +1604,7 @@ lemma bound_main {C : ℝ} (A : ℂ) (x : ℝ) (hx : 1 ≤ x) (ψ : W21)
   apply norm_sub_le _ _ |>.trans ; rw [norm_mul]
   convert _root_.add_le_add l1 l2 using 1 ; ring
 
-/-%%
-\begin{lemma}[Limiting identity for Schwartz functions]\label{schwarz-id}\lean{limiting_cor_schwartz}\leanok  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.
-\end{lemma}
-%%-/
+
 
 lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG : ContinuousOn G {s | 1 ≤ s.re})
@@ -1632,6 +1675,22 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
   have S_sub : S x (ψ - Ψ R) = S x ψ - S x (Ψ R) := by simp [S, S1_sub, S2_sub] ; ring
   simpa [S_sub, Ψ] using norm_add_le _ _ |>.trans_lt (_root_.add_lt_add key3 key)
 
+@[blueprint
+  "schwarz-id"
+  (title := "Limiting identity for Schwartz functions")
+  (statement := /-- The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported. -/)
+  (proof := /--
+  For any $R>1$, one can use a smooth cutoff function (provided by Lemma \ref{smooth-ury} to write $\psi = \psi_{\leq R} + \psi_{>R}$, where $\psi_{\leq R}$ is $C^2$ (in fact smooth) and compactly supported (on $[-R,R]$), and $\psi_{>R}$ obeys bounds of the form
+  $$ |\psi_{>R}(t)|, |\psi''_{>R}(t)| \ll R^{-1} / (1 + |t|^2) $$
+  where the implied constants depend on $\psi$.  By Lemma \ref{decay} we then have
+  $$ \hat \psi_{>R}(u) \ll R^{-1} / (1+|u|^2).$$
+  Using this and \eqref{cheby} one can show that
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{>R}( \frac{1}{2\pi} \log \frac{n}{x} ), A \int_{-\infty}^\infty \hat \psi_{>R} (\frac{u}{2\pi})\ du \ll R^{-1} $$
+  (with implied constants also depending on $A$), while from Lemma \ref{limiting-cor} one has
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{\leq R}( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi_{\leq R} (\frac{u}{2\pi})\ du + o(1).$$
+  Combining the two estimates and letting $R$ be large, we obtain the claim.
+  -/)
+  (latexEnv := "lemma")]
 lemma limiting_cor_schwartz (ψ : 𝓢(ℝ, ℂ)) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG : ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
@@ -1639,42 +1698,29 @@ lemma limiting_cor_schwartz (ψ : 𝓢(ℝ, ℂ)) (hf : ∀ (σ' : ℝ), 1 < σ'
       A * ∫ u in Set.Ici (-log x), 𝓕 (ψ : ℝ → ℂ) (u / (2 * π))) atTop (𝓝 0) :=
   limiting_cor_W21 ψ hf hcheby hG hG'
 
-/-%%
-\begin{proof}
-\uses{limiting-cor, smooth-ury}\leanok
-For any $R>1$, one can use a smooth cutoff function (provided by Lemma \ref{smooth-ury} to write $\psi = \psi_{\leq R} + \psi_{>R}$, where $\psi_{\leq R}$ is $C^2$ (in fact smooth) and compactly supported (on $[-R,R]$), and $\psi_{>R}$ obeys bounds of the form
-$$ |\psi_{>R}(t)|, |\psi''_{>R}(t)| \ll R^{-1} / (1 + |t|^2) $$
-where the implied constants depend on $\psi$.  By Lemma \ref{decay} we then have
-$$ \hat \psi_{>R}(u) \ll R^{-1} / (1+|u|^2).$$
-Using this and \eqref{cheby} one can show that
-$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{>R}( \frac{1}{2\pi} \log \frac{n}{x} ), A \int_{-\infty}^\infty \hat \psi_{>R} (\frac{u}{2\pi})\ du \ll R^{-1} $$
-(with implied constants also depending on $A$), while from Lemma \ref{limiting-cor} one has
-$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{\leq R}( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi_{\leq R} (\frac{u}{2\pi})\ du + o(1).$$
-Combining the two estimates and letting $R$ be large, we obtain the claim.
-\end{proof}
-%%-/
 
-/-%%
-\begin{lemma}[Bijectivity of Fourier transform]\label{bij}\lean{fourier_surjection_on_schwartz}\leanok  The Fourier transform is a bijection on the Schwartz class. [Note: only surjectivity is actually used.]
-\end{lemma}
-%%-/
+
+
 
 -- just the surjectivity is stated here, as this is all that is needed for the current application, but perhaps one should state and prove bijectivity instead
 
+@[blueprint
+  "bij"
+  (title := "Bijectivity of Fourier transform")
+  (statement := /-- The Fourier transform is a bijection on the Schwartz class. [Note: only surjectivity is actually used.] -/)
+  (proof := /--
+   This is a standard result in Fourier analysis.
+  It can be proved here by appealing to Mellin inversion, Theorem \ref{MellinInversion}.
+  In particular, given $f$ in the Schwartz class, let $F : \R_+ \to \C : x \mapsto f(\log x)$ be a function in the ``Mellin space''; then the Mellin transform of $F$ on the imaginary axis $s=it$ is the Fourier transform of $f$.  The Mellin inversion theorem gives Fourier inversion.
+  -/)
+  (latexEnv := "lemma")]
 lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f := by
   refine ⟨(fourierTransformCLE ℝ).symm f, ?_⟩
   rw [← fourierTransformCLE_apply ℝ]
   simp
 
 
-/-%%
-\begin{proof}
-  \leanok
- This is a standard result in Fourier analysis.
-It can be proved here by appealing to Mellin inversion, Theorem \ref{MellinInversion}.
-In particular, given $f$ in the Schwartz class, let $F : \R_+ \to \C : x \mapsto f(\log x)$ be a function in the ``Mellin space''; then the Mellin transform of $F$ on the imaginary axis $s=it$ is the Fourier transform of $f$.  The Mellin inversion theorem gives Fourier inversion.
-\end{proof}
-%%-/
+
 
 noncomputable def toSchwartz (f : ℝ → ℂ) (h1 : ContDiff ℝ ∞ f) (h2 : HasCompactSupport f) : 𝓢(ℝ, ℂ) where
   toFun := f
@@ -1764,14 +1810,24 @@ theorem wiener_ikehara_smooth_sub (h1 : Integrable Ψ) (hplus : closure (Functio
     rw [abs_le] ; constructor <;> linarith
   simp [ht]
 
-/-%%
-\begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
-  If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then,
-$$ \sum_{n=1}^\infty f(n) \Psi( \frac{n}{x} ) = A x \int_0^\infty \Psi(y)\ dy + o(x)$$
-as $x \to \infty$.
-\end{corollary}
-%%-/
 
+
+@[blueprint
+  "WienerIkeharaSmooth"
+  (title := "Smoothed Wiener-Ikehara")
+  (statement := /--
+    If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then,
+  $$ \sum_{n=1}^\infty f(n) \Psi( \frac{n}{x} ) = A x \int_0^\infty \Psi(y)\ dy + o(x)$$
+  as $x \to \infty$.
+  -/)
+  (proof := /--
+   By Lemma \ref{bij}, we can write
+  $$ y \Psi(y) = \hat \psi( \frac{1}{2\pi} \log y )$$
+  for all $y>0$ and some Schwartz function $\psi$.  Making this substitution, the claim is then equivalent after standard manipulations to
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
+  and the claim follows from Lemma \ref{schwarz-id}.
+  -/)
+  (latexEnv := "corollary")]
 lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
     (hG : ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
@@ -1824,16 +1880,7 @@ lemma wiener_ikehara_smooth (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f
 
   simpa [tsum_div_const] using (key.congr' <| EventuallyEq.sub l2 l3) |>.add l4
 
-/-%%
-\begin{proof}
-\uses{bij,schwarz-id}\leanok
- By Lemma \ref{bij}, we can write
-$$ y \Psi(y) = \hat \psi( \frac{1}{2\pi} \log y )$$
-for all $y>0$ and some Schwartz function $\psi$.  Making this substitution, the claim is then equivalent after standard manipulations to
-$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
-and the claim follows from Lemma \ref{schwarz-id}.
-\end{proof}
-%%-/
+
 
 lemma wiener_ikehara_smooth' (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
     (hG : ContinuousOn G {s | 1 ≤ s.re})
@@ -2031,16 +2078,19 @@ theorem residue_nonneg {f : ℕ → ℝ} (hpos : 0 ≤ f)
     simpa [setIntegral_pos_iff_support_of_nonneg_ae r1 r2] using zero_lt_one.trans_le r5
   have := div_nonneg l3 l4.le ; field_simp at this ; exact this
 
-/-%%
+blueprint_comment /--
 Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
 
-\begin{proposition}[Wiener-Ikehara in an interval]
-\label{WienerIkeharaInterval}\lean{WienerIkeharaInterval}\leanok
+-/
+
+@[blueprint
+  (title := "Wiener-Ikehara in an interval")
+  (statement := /--
   For any closed interval $I \subset (0,+\infty)$, we have
   $$ \sum_{n=1}^\infty f(n) 1_I( \frac{n}{x} ) = A x |I|  + o(x).$$
-\end{proposition}
-%%-/
-
+  -/)
+  (proof := /-- Use Lemma \ref{smooth-ury} to bound $1_I$ above and below by smooth compactly supported functions whose integral is close to the measure of $|I|$, and use the non-negativity of $f$. -/)
+  (latexEnv := "proposition")]
 lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG : ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) (ha : 0 < a) (hb : a ≤ b) :
@@ -2108,12 +2158,7 @@ lemma WienerIkeharaInterval {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : ∀ (σ' : 
   have : liminf (S Iab) atTop ≤ limsup (S Iab) atTop := liminf_le_limsup Iab2 Iab3
   refine tendsto_of_liminf_eq_limsup ?_ ?_ Iab2 Iab3 <;> linarith
 
-/-%%
-\begin{proof}
-\uses{smooth-ury, WienerIkeharaSmooth} \leanok
-  Use Lemma \ref{smooth-ury} to bound $1_I$ above and below by smooth compactly supported functions whose integral is close to the measure of $|I|$, and use the non-negativity of $f$.
-\end{proof}
-%%-/
+
 
 lemma le_floor_mul_iff (hb : 0 ≤ b) (hx : 0 < x) : n ≤ ⌊b * x⌋₊ ↔ n / x ≤ b := by
   rw [div_le_iff₀ hx, Nat.le_floor_iff] ; positivity
@@ -2152,12 +2197,7 @@ lemma WienerIkeharaInterval_discrete' {f : ℕ → ℝ} (hpos : 0 ≤ f) (hf : �
 
 -- TODO with `Ico`
 
-/-%%
-\begin{corollary}[Wiener-Ikehara theorem]\label{WienerIkehara}\lean{WienerIkeharaTheorem'}\leanok
-  We have
-$$ \sum_{n\leq x} f(n) = A x + o(x).$$
-\end{corollary}
-%%-/
+
 
 /-- A version of the *Wiener-Ikehara Tauberian Theorem*: If `f` is a nonnegative arithmetic
 function whose L-series has a simple pole at `s = 1` with residue `A` and otherwise extends
@@ -2206,6 +2246,14 @@ lemma tendsto_S_S_zero {f : ℕ → ℝ} (hpos : 0 ≤ f) (hcheby : cheby f) :
     apply div_le_div_of_nonneg_right r1 (by positivity)
   simpa [← S_sub_S h2.2] using l2.trans_lt h1
 
+@[blueprint "WienerIkehara"
+  (title := "Wiener-Ikehara Theorem (1)")
+  (statement := /--
+    We have
+  $$ \sum_{n\leq x} f(n) = A x + o(x).$$
+  -/)
+  (proof := /-- Apply the preceding proposition with $I = [\varepsilon,1]$ and then send $\varepsilon$ to zero (using \eqref{cheby} to control the error). -/)
+  (latexEnv := "corollary")]
 theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f)
     (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hcheby : cheby f) (hG : ContinuousOn G {s | 1 ≤ s.re})
@@ -2221,12 +2269,7 @@ theorem WienerIkeharaTheorem' {f : ℕ → ℝ} (hpos : 0 ≤ f)
   · have : Tendsto (fun ε : ℝ => ε) (𝓝[>] 0) (𝓝 0) := nhdsWithin_le_nhds
     simpa using (this.const_sub 1).const_mul A
 
-/-%%
-\begin{proof}
-\uses{WienerIkeharaInterval} \leanok
-  Apply the preceding proposition with $I = [\varepsilon,1]$ and then send $\varepsilon$ to zero (using \eqref{cheby} to control the error).
-\end{proof}
-%%-/
+
 
 theorem vonMangoldt_cheby : cheby Λ := by
   use Real.log 4 + 4
@@ -2241,18 +2284,22 @@ theorem vonMangoldt_cheby : cheby Λ := by
   gcongr
   linarith
 
-/-%%
+blueprint_comment /--
 \section{Weak PNT}
 
-\begin{theorem}[WeakPNT]\label{WeakPNT}\lean{WeakPNT}\leanok  We have
-$$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
-\end{theorem}
-%%-/
+-/
 
 -- Proof extracted from the `EulerProducts` project so we can adapt it to the
 -- version of the Wiener-Ikehara theorem proved above (with the `cheby`
 -- hypothesis)
 
+@[blueprint
+  (title := "WeakPNT")
+  (statement := /--
+    We have
+  $$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
+  -/)
+  (proof := /-- Already done by Stoll, assuming Wiener-Ikehara. -/)]
 theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (𝓝 1) := by
   let F := vonMangoldt.LFunctionResidueClassAux (q := 1) 1
   have hnv := riemannZeta_ne_zero_of_one_le_re
@@ -2272,27 +2319,28 @@ theorem WeakPNT : Tendsto (fun N ↦ cumsum Λ N / N) atTop (𝓝 1) := by
 
 -- #print axioms WeakPNT
 
-/-%%
-\begin{proof}
-\uses{WienerIkehara, ChebyshevPsi} \leanok
-  Already done by Stoll, assuming Wiener-Ikehara.
-\end{proof}
-%%-/
+
 
 section auto_cheby
 
 variable {f : ℕ → ℝ}
 
-/-%%
+blueprint_comment /--
 \section{Removing the Chebyshev hypothesis}
 
 In this section we do *not* assume the bound \eqref{cheby}, but instead derive it from the other hypotheses.
 
-\begin{lemma}[limiting_fourier_variant]\label{limiting_fourier_variant}\lean{limiting_fourier_variant}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, and $x \geq 1$, then
-$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
-\end{lemma}
-%%-/
+-/
 
+@[blueprint "limiting-fourier-variant"
+  (title := "limiting-fourier-variant")
+  (statement := /--
+    If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, and $x \geq 1$, then
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
+  -/)
+  (proof := /-- Repeat the proof of Lemma \ref{limiting-fourier-variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.) -/)
+  (proofUses := ["decay", "second-fourier", "first-fourier"])
+  (latexEnv := "lemma")]
 lemma limiting_fourier_variant
     (hpos : 0 ≤ f)
     (hG : ContinuousOn G {s | 1 ≤ s.re})
@@ -2305,19 +2353,20 @@ lemma limiting_fourier_variant
       A * ∫ u in Set.Ici (-log x), 𝓕 (ψ : ℝ → ℂ) (u / (2 * π)) =
       ∫ (t : ℝ), (G (1 + t * I)) * (ψ t) * x ^ (t * I) := by sorry
 
-/-%%
-\begin{proof}
-\uses{first_fourier, second_fourier, decay}  Repeat the proof of Lemma \ref{limiting_fourier_variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.)
-\end{proof}
-%%-/
 
-/-%%
-\begin{corollary}[crude_upper_bound]\label{crude_upper_bound}\lean{crude_upper_bound}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, then there exists a constant $B$ such that
-$$ |\sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )| \leq B$$
-for all $x > 0$.
-\end{corollary}
-%%-/
 
+
+
+@[blueprint "crude-upper-bound"
+  (title := "crude-upper-bound")
+  (statement := /--
+    If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, then there exists a constant $B$ such that
+  $$ |\sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )| \leq B$$
+  for all $x > 0$.
+  -/)
+  (proof := /-- For $x \geq 1$, this readily follows from the previous lemma and the triangle inequality. For $x < 1$, only a bounded number of summands can contribute and the claim is trivial. -/)
+  (proofUses := ["limiting-fourier-variant"])
+  (latexEnv := "corollary")]
 lemma crude_upper_bound
     (hpos : 0 ≤ f)
     (hG : ContinuousOn G {s | 1 ≤ s.re})
@@ -2327,66 +2376,80 @@ lemma crude_upper_bound
     (hψpos : ∀ y, 0 ≤ (𝓕 (ψ : ℝ → ℂ) y).re ∧ (𝓕 (ψ : ℝ → ℂ) y).im = 0) :
     ∃ B : ℝ, ∀ x : ℝ, 0 < x → ‖∑' n, f n / n * 𝓕 (ψ : ℝ → ℂ) (1 / (2 * π) * log (n / x))‖ ≤ B := by sorry
 
-/-%%
-\begin{proof}
-\uses{limiting_fourier_variant} For $x \geq 1$, this readily follows from the previous lemma and the triangle inequality. For $x < 1$, only a bounded number of summands can contribute and the claim is trivial.
-\end{proof}
-%%-/
 
-/-%%
-\begin{corollary}[auto_cheby]\label{auto_cheby}\lean{auto_cheby}\leanok  One has
-$$ \sum_{n \leq x} f(n) = O(x)$$
-for all $x \geq 1$.
-\end{corollary}
-%%-/
+@[blueprint "auto-cheby"
+  (title := "auto-cheby")
+  (statement := /-- One has $$ \sum_{n \leq x} f(n) = O(x)$$ for all $x \geq 1$. -/)
+  (proof := /--
+  By applying Corollary \ref{crude-upper-bound} for a specific compactly supported function $\psi$,
+  one can obtain a bound of the form $\sum_{(1-\varepsilon)x < n \leq x} f(n) = O(x)$ for all $x$
+  and some absolute constant $\varepsilon$ (which can be made explicit).
 
+  If $C$ is a sufficiently large constant, the claim $|\sum_{n \leq x} f(n)| \leq Cx$ can now be
+  proven by strong induction on $x$, as the claim for $(1-\varepsilon)x$ implies the claim for $x$
+  by the triangle inequality (and the claim is trivial for $x < 1$).
+  -/)
+  (proofUses := ["crude-upper-bound", "WienerIkehara"])
+  (latexEnv := "corollary")]
 lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hG : ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) : cheby f := by
   sorry
 
-/-%%
-\begin{proof}
-\uses{crude_upper_bound} By applying Corollary \ref{crude_upper_bound} for a specific compactly supported function $\psi$, one can obtain a bound of the form
-$\sum_{(1-\varepsilon)x < n \leq x} f(n) = O(x)$ for all $x$ and some absolute constant $\varepsilon$ (which can be made explicit).  If $C$ is a sufficiently large constant, the claim $|\sum_{n \leq x} f(n)| \leq Cx$ can now be proven by strong induction on $x$, as the claim for $(1-\varepsilon)x$ implies the claim for $x$ by the triangle inequality (and the claim is trivial for $x < 1$).
-%%-/
+/-
+  \begin{corollary}[WienerIkeharaTheorem'']\label{WienerIkeharaTheorem''}
+    We have $$ \sum_{n\leq x} f(n) = A x + o(x).$$
+  \end{corollary}
 
-/-%%
-\begin{corollary}[WienerIkeharaTheorem'']\label{WienerIkeharaTheorem''}\lean{WienerIkeharaTheorem''}\leanok
-  We have
-$$ \sum_{n\leq x} f(n) = A x + o(x).$$
-\end{corollary}
-%%-/
+  \begin{proof}
+   Use Corollary \ref{auto-cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
+  \end{proof}
+-/
 
+
+@[blueprint "WienerIkehara2"
+  (title := "Wiener-Ikehara Theorem (2)")
+  (statement := /-- We have $$ \sum_{n\leq x} f(n) = A x + o(x).$$ -/)
+  (proof := /-- Use Corollary \ref{auto-cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}. -/)
+  (latexEnv := "theorem")]
 theorem WienerIkeharaTheorem'' (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hG : ContinuousOn F {s | 1 ≤ s.re})
     (hG' : Set.EqOn F (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
     Tendsto (fun N => cumsum f N / N) atTop (𝓝 A) :=
   WienerIkeharaTheorem' hpos hf (auto_cheby hpos hf hG hG') hG hG'
 
-/-%%
-\begin{proof}
-\uses{auto_cheby, WienerIkehara}\leanok Use Corollary \ref{auto_cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
-\end{proof}
-%%-/
+
 
 end auto_cheby
 
-/-%%
+blueprint_comment /--
 \section{The prime number theorem in arithmetic progressions}
 
-\begin{lemma}[WeakPNT_character]\label{WeakPNT_character}\lean{WeakPNT_character}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
-$$
-\sum_{n: n = a\ (q)} \frac{\Lambda(n)}{n^s} = - \frac{1}{\varphi(q)} \sum_{\chi\ (q)} \overline{\chi(a)} \frac{L'(s,\chi)}{L(s,\chi)}.$$
-\end{lemma}
-%%-/
+-/
 
+@[blueprint "WeakPNT-character"
+  (title := "WeakPNT-character")
+  (statement := /--
+    If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
+  $$
+  \sum_{n: n = a\ (q)} \frac{\Lambda(n)}{n^s} = - \frac{1}{\varphi(q)} \sum_{\chi\ (q)}
+  \overline{\chi(a)} \frac{L'(s,\chi)}{L(s,\chi)}.$$
+  -/)
+  (proof := /--
+    From the Fourier inversion formula on the multiplicative group $(\Z/q\Z)^\times$, we have
+  $$ 1_{n=a\ (q)} = \frac{\varphi(q)}{q} \sum_{\chi\ (q)} \overline{\chi(a)} \chi(n).$$
+  On the other hand, from standard facts about L-series we have for each character $\chi$ that
+  $$
+  \sum_{n} \frac{\Lambda(n) \chi(n)}{n^s} = - \frac{L'(s,\chi)}{L(s,\chi)}.$$
+  Combining these two facts, we obtain the claim.
+  -/)
+  (latexEnv := "lemma")]
 theorem WeakPNT_character
     {q a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) {s : ℂ} (hs : 1 < s.re) :
     LSeries (fun n ↦ if n % q = a then Λ n else 0) s =
       - (∑' χ : DirichletCharacter ℂ q,
-          ((starRingEnd ℂ) (χ a) * ((deriv (LSeries (fun n:ℕ ↦ χ n)) s)) / (LSeries (fun n:ℕ ↦ χ n) s))) /
-        (Nat.totient q : ℂ) := by
+          ((starRingEnd ℂ) (χ a) * ((deriv (LSeries (fun n:ℕ ↦ χ n)) s)) /
+          (LSeries (fun n:ℕ ↦ χ n) s))) / (Nat.totient q : ℂ) := by
   have : NeZero q := ⟨by omega⟩
   convert vonMangoldt.LSeries_residueClass_eq ((ZMod.isUnit_iff_coprime a q).mpr ha) hs using 1
   · congr with n
@@ -2402,119 +2465,124 @@ theorem WeakPNT_character
     rw [starRingEnd_apply, MulChar.star_apply', MulChar.inv_apply_eq_inv',
       ← ZMod.coe_unitOfCoprime a ha, ZMod.inv_coe_unit, map_units_inv]
 
-/-%%
-\begin{proof}\leanok  From the Fourier inversion formula on the multiplicative group $(\Z/q\Z)^\times$, we have
-$$ 1_{n=a\ (q)} = \frac{\varphi(q)}{q} \sum_{\chi\ (q)} \overline{\chi(a)} \chi(n).$$
-On the other hand, from standard facts about L-series we have for each character $\chi$ that
-$$
-\sum_{n} \frac{\Lambda(n) \chi(n)}{n^s} = - \frac{L'(s,\chi)}{L(s,\chi)}.$$
-Combining these two facts, we obtain the claim.
-\end{proof}
-%%-/
 
 
-/-%%
-\begin{proposition}[WeakPNT_AP_prelim]\label{WeakPNT_AP_prelim}\lean{WeakPNT_AP_prelim}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to $\mathrm{Re}(s)=1$.
-\end{proposition}
-%%-/
 
-proof_wanted WeakPNT_AP_prelim {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q) : ∃ G: ℂ → ℂ, (ContinuousOn G {s | 1 ≤ s.re}) ∧ (Set.EqOn G (fun s ↦ LSeries (fun n ↦ if n % q = a then Λ n else 0) s - 1 / ((Nat.totient q) * (s - 1))) {s | 1 < s.re})
+@[blueprint "WeakPNT-AP-prelim"
+  (title := "WeakPNT-AP-prelim")
+  (statement := /--
+  If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series
+  $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to
+  $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to
+  $\mathrm{Re}(s)=1$.
+  -/)
+  (proof := /--
+  We expand out the left-hand side using Lemma \ref{WeakPNT-character}.  The contribution of the
+  non-principal characters $\chi$ extend continuously to $\mathrm{Re}(s) = 1$ thanks to the
+  non-vanishing of $L(s,\chi)$ on this line (which should follow from another component of
+  this project), so it suffices to show that for the principal character $\chi_0$, that
+  $$ -\frac{L'(s,\chi_0)}{L(s,\chi_0)} - \frac{1}{s-1}$$
+  also extends continuously here.  But we already know that
+  $$ -\frac{\zeta'(s)}{\zeta(s)} - \frac{1}{s-1}$$
+  extends, and from Euler product machinery one has the identity
+  $$ \frac{L'(s,\chi_0)}{L(s,\chi_0)}
+  = \frac{\zeta'(s)}{\zeta(s)} + \sum_{p|q} \frac{\log p}{p^s-1}.$$
+  Since there are only finitely many primes dividing $q$, and each summand $\frac{\log p}{p^s-1}$
+  extends continuously, the claim follows.
+  -/)
+  (proofUses := ["ChebyshevPsi", "WeakPNT-character"])
+  (latexEnv := "proposition")]
+theorem WeakPNT_AP_prelim {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) :
+    ∃ G: ℂ → ℂ, (ContinuousOn G {s | 1 ≤ s.re}) ∧
+    (Set.EqOn G (fun s ↦ LSeries (fun n ↦ if n % q = a then Λ n else 0) s - 1 /
+      ((Nat.totient q) * (s - 1))) {s | 1 < s.re}) := sorry
 
-/-%%
 
-\begin{proof}
-\uses{ChebyshevPsi, WeakPNT_character}
-We expand out the left-hand side using Lemma \ref{WeakPNT_character}.  The contribution of the non-principal characters $\chi$ extend continuously to $\mathrm{Re}(s) = 1$ thanks to the non-vanishing of $L(s,\chi)$ on this line (which should follow from another component of this project), so it suffices to show that for the principal character $\chi_0$, that
-$$ -\frac{L'(s,\chi_0)}{L(s,\chi_0)} - \frac{1}{s-1}$$
-also extends continuously here.  But we already know that
-$$ -\frac{\zeta'(s)}{\zeta(s)} - \frac{1}{s-1}$$
-extends, and from Euler product machinery one has the identity
-$$ \frac{L'(s,\chi_0)}{L(s,\chi_0)}
-= \frac{\zeta'(s)}{\zeta(s)} + \sum_{p|q} \frac{\log p}{p^s-1}.$$
-Since there are only finitely many primes dividing $q$, and each summand $\frac{\log p}{p^s-1}$ extends continuously, the claim follows.
-\end{proof}
-%%-/
+@[blueprint "WeakPNT-AP"
+  (title := "WeakPNT-AP")
+  (statement := /--
+  If $q ≥ 1$ and $a$ is coprime to $q$, we have
+  $$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$
+  -/)
+  (proofUses := ["WienerIkehara", "WeakPNT-AP-prelim"])]
+theorem WeakPNT_AP {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) :
+    Tendsto (fun N ↦ cumsum (fun n ↦ if (n % q = a) then Λ n else 0) N / N)
+      atTop (𝓝 (1 / (Nat.totient q))) := sorry
 
 
-/-%%
-\begin{theorem}[WeakPNT_AP]\label{WeakPNT_AP}\lean{WeakPNT_AP}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, we have
-$$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$
-\end{theorem}
-%%-/
 
-proof_wanted WeakPNT_AP {q:ℕ} {a:ℕ} (hq: q ≥ 1) (ha: Nat.Coprime a q) (ha': a < q): Tendsto (fun N ↦ cumsum (fun n ↦ if (n % q = a) then Λ n else 0) N / N) atTop (𝓝 (1 / (Nat.totient q)))
-
-
-/-%%
-\begin{proof}\uses{WienerIkehara, WeakPNT_AP_prelim}
-Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkeharaTheorem''}) to Proposition \ref{WeakPNT_AP_prelim}.  (The Chebyshev bound follows from the corresponding bound for $\Lambda$.)
-\end{proof}
-
-%%-/
-
-/-%%
+blueprint_comment /--
 \section{The Chebotarev density theorem: the case of cyclotomic extensions}
 
-In this section, $K$ is a number field, $L = K(\mu_m)$ for some natural number $m$, and $G = Gal(K/L)$.
+In this section, $K$ is a number field, $L = K(\mu_m)$ for some natural number $m$, and
+$G = Gal(K/L)$.
 
 The goal here is to prove the Chebotarev density theorem for the case of cyclotomic extensions.
-%%-/
+-/
 
-/-%%
-\begin{lemma}[Dedekind_factor]\label{Dedekind_factor}  We have
+blueprint_comment /--
+\begin{lemma}[Dedekind-factor]\label{Dedekind-factor}  We have
 $$ \zeta_L(s) = \prod_{\chi} L(\chi,s)$$
-for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ and $L$ is the Artin $L$-function.
+for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ and $L$ is the
+Artin $L$-function.
 \end{lemma}
 
-%%-/
+-/
 
-/-%%
-\begin{proof} See Propositions 7.1.16, 7.1.19 of https://www.math.ucla.edu/~sharifi/algnum.pdf .
+blueprint_comment /--
+\begin{proof} See Propositions 7.1.16, 7.1.19 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.
 \end{proof}
-%%-/
+-/
 
-/-%%
-\begin{lemma}[Simple pole]\label{Dedekind_pole}  $\zeta_L$ has a simple pole at $s=1$.
+blueprint_comment /--
+\begin{lemma}[Simple pole]\label{Dedekind-pole}  $\zeta_L$ has a simple pole at $s=1$.
 \end{lemma}
-%%-/
+-/
 
-/-%%
-\begin{proof} See Theorem 7.1.12 of https://www.math.ucla.edu/~sharifi/algnum.pdf .
+blueprint_comment /--
+\begin{proof} See Theorem 7.1.12 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.
 \end{proof}
-%%-/
+-/
 
-/-%%
-\begin{lemma}[Dedekind_nonvanishing]\label{Dedekind_nonvanishing}  For any non-principal character $\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
+blueprint_comment /--
+\begin{lemma}[Dedekind-nonvanishing]\label{Dedekind-nonvanishing}  For any non-principal character
+$\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
 \end{lemma}
 
-%%-/
+-/
 
-/-%%
-\begin{proof}\uses{Dedekind_factor, Dedekind_pole} For $s=1$, this will follow from Lemmas \ref{Dedekind_factor}, \ref{Dedekind_pole}. For the rest of the line, one should be able to adapt the arguments for the Dirichet L-function.
+blueprint_comment /--
+\begin{proof}\uses{Dedekind-factor, Dedekind-pole} For $s=1$, this will follow from
+Lemmas \ref{Dedekind-factor}, \ref{Dedekind-pole}. For the rest of the line, one should be able to
+adapt the arguments for the Dirichet L-function.
 \end{proof}
-%%-/
+-/
 
-/-%%
+blueprint_comment /--
 \section{The Chebotarev density theorem: the case of abelian extensions}
 
-(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the previous results to abelian extensions (actually just cyclic extensions would suffice))
+(Use the arguments in Theorem 7.2.2 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf} to extend the
+previous results to abelian extensions (actually just cyclic extensions would suffice))
 
-%%-/
+-/
 
-/-%%
+blueprint_comment /--
 \section{The Chebotarev density theorem: the general case}
 
-(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the previous results to arbitrary extensions
+(Use the arguments in Theorem 7.2.2 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf} to extend the
+previous results to arbitrary extensions
 
-%%-/
+-/
 
-/-%%
-\begin{lemma}[PNT for one character]\label{Dedekind-PNT}  For any non-principal character $\chi$ of $Gal(K/L)$,
-$$ \sum_{N \mathfrak{p} \leq x} \chi(\mathfrak{p}) \log N \mathfrak{p}  = o(x).$$
+blueprint_comment /--
+\begin{lemma}[PNT for one character]\label{Dedekind-PNT}  For any non-principal character $\chi$ of
+$Gal(K/L)$, $$ \sum_{N \mathfrak{p} \leq x} \chi(\mathfrak{p}) \log N \mathfrak{p}  = o(x).$$
 \end{lemma}
-%%-/
+-/
 
-/-%%
-\begin{proof}\uses{Dedekind_nonvanishing} This should follow from Lemma \ref{Dedekind_nonvanishing} and the arguments for the Dirichlet L-function. (It may be more convenient to work with a von Mangoldt type function instead of $\log N\mathfrak{p}$).
+blueprint_comment /--
+\begin{proof}\uses{Dedekind-nonvanishing} This should follow from Lemma \ref{Dedekind-nonvanishing}
+and the arguments for the Dirichlet L-function. (It may be more convenient to work with a
+von Mangoldt type function instead of $\log N\mathfrak{p}$).
 \end{proof}
-%%-/
+-/

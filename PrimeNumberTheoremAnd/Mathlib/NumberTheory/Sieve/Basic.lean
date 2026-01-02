@@ -132,8 +132,8 @@ theorem conv_selbergTerms_eq_selbergTerms_mul_nu {d : ℕ} (hd : d ∣ P) :
     (∑ l ∈ divisors P, if l ∣ d then g l else 0) =
         ∑ l ∈ divisors P, if l ∣ d then g (d / l) else 0 := by
       rw [← sum_over_dvd_ite prodPrimes_ne_zero hd,
-        ← Nat.sum_divisorsAntidiagonal fun x _ => g x, Nat.sum_divisorsAntidiagonal' fun x _ => g x,
-        sum_over_dvd_ite prodPrimes_ne_zero hd]
+        ← Nat.sum_divisorsAntidiagonal fun x _ => g x,
+        Nat.sum_divisorsAntidiagonal' fun x _ => g x, sum_over_dvd_ite prodPrimes_ne_zero hd]
     _ = g d * ∑ l ∈ divisors P, if l ∣ d then 1 / g l else 0 := by
       rw [mul_sum]; apply sum_congr rfl; intro l hl
       rw [mul_ite_zero]; apply if_ctx_congr Iff.rfl _ (fun _ => rfl); intro h
@@ -157,9 +157,11 @@ end SieveLemmas
 section LambdaSquared
 
 def lambdaSquared (weights : ℕ → ℝ) : ℕ → ℝ := fun d =>
-  ∑ d1 ∈ d.divisors, ∑ d2 ∈ d.divisors, if d = Nat.lcm d1 d2 then weights d1 * weights d2 else 0
+  ∑ d1 ∈ d.divisors, ∑ d2 ∈ d.divisors,
+    if d = Nat.lcm d1 d2 then weights d1 * weights d2 else 0
 
-private theorem lambdaSquared_eq_zero_of_support_wlog {w : ℕ → ℝ} {y : ℝ} (hw : ∀ (d : ℕ), ¬d ^ 2 ≤ y → w d = 0)
+private theorem lambdaSquared_eq_zero_of_support_wlog {w : ℕ → ℝ} {y : ℝ}
+    (hw : ∀ (d : ℕ), ¬d ^ 2 ≤ y → w d = 0)
     {d : ℕ} (hd : ¬↑d ≤ y) (d1 : ℕ) (d2 : ℕ) (h : d = Nat.lcm d1 d2) (hle : d1 ≤ d2) :
     w d1 * w d2 = 0 := by
   rw [hw d2, mul_zero]
@@ -186,14 +188,16 @@ theorem lambdaSquared_eq_zero_of_support (w : ℕ → ℝ) (y : ℝ)
     apply sum_eq_zero; intro d2 _
     rw [this d1, this d2]
     simp only [mul_zero, ite_self]
-  apply sum_eq_zero; intro d1 _; apply sum_eq_zero; intro d2 _
+  apply sum_eq_zero; intro d1 _
+  apply sum_eq_zero; intro d2 _
   split_ifs with h
   swap
   · rfl
   rcases Nat.le_or_le d1 d2 with hle | hle
   · apply lambdaSquared_eq_zero_of_support_wlog hw hd d1 d2 h hle
-  · rw[mul_comm]
-    apply lambdaSquared_eq_zero_of_support_wlog hw hd d2 d1 (Nat.lcm_comm d1 d2 ▸ h) hle
+  · rw [mul_comm]
+    apply lambdaSquared_eq_zero_of_support_wlog hw hd d2 d1
+      (Nat.lcm_comm d1 d2 ▸ h) hle
 
 theorem upperMoebius_of_lambda_sq (weights : ℕ → ℝ) (hw : weights 1 = 1) :
     IsUpperMoebius <| lambdaSquared weights := by
@@ -243,7 +247,8 @@ theorem lambdaSquared_mainSum_eq_quad_form (w : ℕ → ℝ) :
   · apply conv_lambda_sq_larger_sum
   rw [sum_comm, sum_congr rfl]; intro d1 hd1
   rw [sum_comm, sum_congr rfl]; intro d2 hd2
-  have h : d1.lcm d2 ∣ P := Nat.lcm_dvd_iff.mpr ⟨dvd_of_mem_divisors hd1, dvd_of_mem_divisors hd2⟩
+  have h : d1.lcm d2 ∣ P :=
+    Nat.lcm_dvd_iff.mpr ⟨dvd_of_mem_divisors hd1, dvd_of_mem_divisors hd2⟩
   rw [sum_ite_eq_of_mem' (divisors P) (d1.lcm d2) _ (mem_divisors.mpr ⟨h, prodPrimes_ne_zero⟩)]
   rw [s.nu_mult.map_lcm]
   · ring
@@ -268,7 +273,8 @@ theorem lambdaSquared_mainSum_eq_diag_quad_form (w : ℕ → ℝ) :
     ring
   trans (∑ l ∈ divisors P, ∑ d1 ∈ divisors P, ∑ d2 ∈ divisors P,
         if l ∣ Nat.gcd d1 d2 then 1 / selbergTerms s l * (ν d1 * w d1) * (ν d2 * w d2) else 0)
-  · apply symm; rw [sum_comm, sum_congr rfl]; intro d1 _; rw[sum_comm];
+  · apply symm; rw [sum_comm, sum_congr rfl]; intro d1 _
+    rw [sum_comm]
   apply sum_congr rfl; intro l _
   rw [sq, sum_mul, mul_sum, sum_congr rfl]; intro d1 _
   rw [mul_sum, mul_sum, sum_congr rfl]; intro d2 _
