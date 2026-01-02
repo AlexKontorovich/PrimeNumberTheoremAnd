@@ -30,8 +30,6 @@ noncomputable def ψ (x : ℝ) : ℝ := Chebyshev.psi x
   (statement := /-- $E_ψ(x) = |ψ(x) - x| / x$ -/)]
 noncomputable def Eψ (x : ℝ) : ℝ := |ψ x - x| / x
 
-
-
 noncomputable def admissible_bound (A B C R : ℝ) (x : ℝ) := A * (log x / R) ^ B * exp (-C * (log x / R) ^ (1/2))
 
 @[blueprint
@@ -43,10 +41,8 @@ noncomputable def admissible_bound (A B C R : ℝ) (x : ℝ) := A * (log x / R) 
   -/)]
 def Eψ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eψ x ≤ admissible_bound A B C R x
 
-
-
 @[blueprint
-  "classical zero-free region"
+  "classical-zero-free-region"
   (title := "Section 1.1, FKS2")
   (statement := /-- We say that one has a classical zero-free region with parameter $R$ if $zeta(s)$ has no zeroes in the region $Re(s) \geq 1 - 1 / R * \log |\Im s|$ for $\Im(s) > 3$. -/)]
 noncomputable def riemannZeta.classicalZeroFree (R : ℝ) := ∀ (σ t : ℝ), t ≥ 3 → σ ≥ 1 / (R * log t) → riemannZeta (σ + t * Complex.I) ≠ 0
