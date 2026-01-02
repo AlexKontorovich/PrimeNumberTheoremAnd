@@ -22,43 +22,24 @@ MTY: M. J. Mossinghoff, T. S. Trudgian, and A. Yang, Nonnegative trigonometric p
 
 -/
 
-
-blueprint_comment /--
-\begin{theorem}[MT Theorem 1]\label{mt_theorem_1}\uses{classical zero-free region}\lean{MT_theorem_1}\leanok
-One has a classical zero-free region with $R = 5.5666305$.
-\end{theorem}
--/
-
 @[blueprint
   "mt_theorem_1"
   (title := "MT Theorem 1")
   (statement := /-- One has a classical zero-free region with $R = 5.5666305$. -/)
-  (uses := ["classical zero-free region"])
+  (uses := ["classical-zero-free-region"])
   (latexEnv := "theorem")]
 theorem MT_theorem_1 : riemannZeta.classicalZeroFree 5.5666305 := sorry
-
-blueprint_comment /--
-\begin{theorem}[MTY]\label{mty_theorem}\uses{classical zero-free region}\lean{MTY_theorem}\leanok
-One has a classical zero-free region with $R = 5.558691$.
-\end{theorem}
--/
 
 @[blueprint
   "mty_theorem"
   (title := "MTY")
   (statement := /-- One has a classical zero-free region with $R = 5.558691$. -/)
-  (uses := ["classical zero-free region"])
+  (uses := ["classical-zero-free-region"])
   (latexEnv := "theorem")]
 theorem MTY_theorem : riemannZeta.classicalZeroFree 5.558691 := sorry
 
-blueprint_comment /--
-\begin{theorem}[FKS1 Corollary 1.3]\label{fks_cor_13}\uses{classical-bound}\lean{FKS_corollary_1_3}\leanok
-For all x > 2 we have $E_ψ(x) \leq 121.096 (\log x/R)^{3/2} \exp(-2 \sqrt{\log x/R})$ with $R = 5.5666305$.
-\end{theorem}
--/
 
-@[blueprint
-  "fks_cor_13"
+@[blueprint "fks_cor_13"
   (title := "FKS1 Corollary 1.3")
   (statement := /-- For all x > 2 we have $E_ψ(x) \leq 121.096 (\log x/R)^{3/2} \exp(-2 \sqrt{\log x/R})$ with $R = 5.5666305$. -/)
   (uses := ["classical-bound"])
@@ -66,21 +47,9 @@ For all x > 2 we have $E_ψ(x) \leq 121.096 (\log x/R)^{3/2} \exp(-2 \sqrt{\log 
 theorem FKS_corollary_1_3 :
   Eψ.classicalBound 121.096 (3/2) 2 5.5666305 2 := sorry
 
-blueprint_comment /--
-\begin{theorem}[FKS1 Corollary 1.4]\label{fks_cor_14}\uses{classical-bound}\lean{FKS_corollary_1_4}\leanok
-For all x > 2 we have $E_ψ(x) \leq 9.22022(\log x)^{3/2} \exp(-0.8476836 \sqrt{\log x})$.
-\end{theorem}
--/
-
-@[blueprint
-  "fks_cor_14"
+@[blueprint "fks_cor_14"
   (title := "FKS1 Corollary 1.4")
   (statement := /-- For all x > 2 we have $E_ψ(x) \leq 9.22022(\log x)^{3/2} \exp(-0.8476836 \sqrt{\log x})$. -/)
   (proof := /-- TODO. -/)]
 theorem FKS_corollary_1_4 :
   Eψ.classicalBound 9.22022 (3/2) 0.8476836 1 2 := sorry
-
-blueprint_comment /--
-\begin{proof} TODO.
-\end{proof}
--/
