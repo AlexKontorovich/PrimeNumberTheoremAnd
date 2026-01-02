@@ -26,7 +26,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{theorem}[BorelCaratheodoryDeriv]\label{BorelCaratheodoryDeriv}\lean{BorelCaratheodoryDeriv}
+\begin{theorem}[BorelCaratheodoryDeriv]\label{BorelCaratheodoryDeriv}
     Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
     $$|f'(z)|\leq\frac{16MR^2}{(R-r)^3}$$
     for all $|z|\leq r$.
@@ -44,7 +44,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{theorem}[LogOfAnalyticFunction]\label{LogOfAnalyticFunction}\lean{LogOfAnalyticFunction}
+\begin{theorem}[LogOfAnalyticFunction]\label{LogOfAnalyticFunction}
     Let $0 < r < R<1$. Let $B:\overline{\mathbb{D}_R}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_R}$ with $B(z)\neq 0$ for all $z\in\overline{\mathbb{D}_R}$. Then there exists $J_B:\overline{\mathbb{D}_r}\to\mathbb{C}$ that is analytic on neighborhoods of points in $\overline{\mathbb{D}_r}$ such that
     \begin{itemize}
         \item $J_B(0)=0$
@@ -68,7 +68,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{definition}[SetOfZeros]\label{SetOfZeros}\lean{SetOfZeros}
+\begin{definition}[SetOfZeros]\label{SetOfZeros}
     Let $R>0$ and $f:\overline{\mathbb{D}_R}\to\mathbb{C}$. Define the set of zeros $\mathcal{K}_f(R)=\{\rho\in\mathbb{C}:|\rho|\leq R,\,f(\rho)=0\}$.
 \end{definition}
 -/
@@ -76,7 +76,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{definition}[ZeroOrder]\label{ZeroOrder}\lean{ZeroOrder}
+\begin{definition}[ZeroOrder]\label{ZeroOrder}
     Let $0 < R<1$ and $f:\mathbb{C}\to\mathbb{C}$ be analtyic on neighborhoods of points in $\overline{\mathbb{D}_1}$. For any zero $\rho\in\mathcal{K}_f(R)$, we define $m_f(\rho)$ as the order of the zero $\rho$ w.r.t $f$.
 \end{definition}
 -/
@@ -84,7 +84,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[ZeroFactorization]\label{ZeroFactorization}\lean{ZeroFactorization}
+\begin{lemma}[ZeroFactorization]\label{ZeroFactorization}
     Let $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be  analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. For all $\rho\in\mathcal{K}_f(1)$ there exists $h_\rho(z)$ that is analytic at $\rho$, $h_\rho(\rho)\neq 0$, and $f(z)=(z-\rho)^{m_f(\rho)}\,h_\rho(z)$.
 \end{lemma}
 -/
@@ -103,7 +103,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{definition}[CFunction]\label{CFunction}\lean{CFunction}
+\begin{definition}[CFunction]\label{CFunction}
     Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. We define a function $C_f:\overline{\mathbb{D}_R}\to\mathbb{C}$ as follows. This function is constructed by dividing $f(z)$ by a polynomial whose roots are the zeros of $f$ inside $\overline{\mathbb{D}_r}$.
     $$C_f(z)=\begin{cases}
         \displaystyle\frac{f(z)}{\prod_{\rho\in\mathcal{K}_f(r)}(z-\rho)^{m_f(\rho)}}\qquad\text{for }z\not\in\mathcal{K}_f(r) \\
@@ -116,7 +116,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{definition}[BlaschkeB]\label{BlaschkeB}\lean{BlaschkeB}
+\begin{definition}[BlaschkeB]\label{BlaschkeB}
     Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. We define a function $B_f:\overline{\mathbb{D}_R}\to\mathbb{C}$ as follows.
     $$B_f(z)=C_f(z)\prod_{\rho\in\mathcal{K}_f(r)}\left(R-\frac{z\overline{\rho}}{R}\right)^{m_f(\rho)}$$
 \end{definition}
@@ -125,7 +125,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[BlaschkeOfZero]\label{BlaschkeOfZero}\lean{BlaschkeOfZero}
+\begin{lemma}[BlaschkeOfZero]\label{BlaschkeOfZero}
     Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. Then
     $$|B_f(0)|=|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
 \end{lemma}
@@ -144,7 +144,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[DiskBound]\label{DiskBound}\lean{DiskBound}
+\begin{lemma}[DiskBound]\label{DiskBound}
     Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $|f(z)|\leq B$ for $|z|\leq R$, then $|B_f(z)|\leq B$ for $|z|\leq R$ also.
 \end{lemma}
 -/
@@ -165,7 +165,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{theorem}[ZerosBound]\label{ZerosBound}\lean{ZerosBound}
+\begin{theorem}[ZerosBound]\label{ZerosBound}
     Let $B>1$ and $0< r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for $|z|\leq R$, then
     $$\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)\leq\frac{\log B}{\log(R/r)}.$$
 \end{theorem}
@@ -185,7 +185,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{definition}[JBlaschke]\label{JBlaschke}\lean{JBlaschke}
+\begin{definition}[JBlaschke]\label{JBlaschke}
     Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$, define $L_f(z)=J_{B_f}(z)$ where $J$ is from Theorem \ref{LogOfAnalyticFunction} and $B_f$ is from Definition \ref{BlaschkeB}.
 \end{definition}
 -/
@@ -193,7 +193,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[BlaschkeNonZero]\label{BlaschkeNonZero}\lean{BlaschkeNonZero}
+\begin{lemma}[BlaschkeNonZero]\label{BlaschkeNonZero}
     Let $0 < r < R<1$ and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$. Then $B_f(z)\neq 0$ for all $z\in\overline{\mathbb{D}_r}$.
 \end{lemma}
 -/
@@ -234,7 +234,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{theorem}[JBlaschkeDerivBound]\label{JBlaschkeDerivBound}\lean{JBlaschkeDerivBound}
+\begin{theorem}[JBlaschkeDerivBound]\label{JBlaschkeDerivBound}
     Let $B>1$ and $0 < r' < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for all $|z|\leq R$, then for all $|z|\leq r'$
     $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
 \end{theorem}
@@ -254,7 +254,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{theorem}[FinalBound]\label{FinalBound}\lean{FinalBound}
+\begin{theorem}[FinalBound]\label{FinalBound}
     Let $B>1$ and $0 < r' < r < R' < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for all $|z|\leq R$, then for all $z\in\overline{\mathbb{D}_{R'}}\setminus\mathcal{K}_f(R')$ we have
     $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\leq\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log B.$$
 \end{theorem}
@@ -284,7 +284,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{theorem}[ZetaFixedLowerBound]\label{ZetaFixedLowerBound}\lean{ZetaFixedLowerBound}
+\begin{theorem}[ZetaFixedLowerBound]\label{ZetaFixedLowerBound}
     For all $t\in\mathbb{R}$ one has
     $$|\zeta(3/2+it)|\geq\frac{\zeta(3)}{\zeta(3/2)}.$$
 \end{theorem}
@@ -305,7 +305,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[ZetaAltFormula]\label{ZetaAltFormula}\lean{ZetaAltFormula}
+\begin{lemma}[ZetaAltFormula]\label{ZetaAltFormula}
     Let
     $$\zeta_0(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}.$$
     We have that $\zeta(s)=\zeta_0(s)$ for $\sigma>1$.
@@ -331,7 +331,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[ZetaAltFormulaAnalytic]\label{ZetaAltFormulaAnalytic}\lean{ZetaAltFormulaAnalytic}
+\begin{lemma}[ZetaAltFormulaAnalytic]\label{ZetaAltFormulaAnalytic}
     We have that $\zeta_0(s)$ is analytic for all $s\in S$ where $S=\{s\in\mathbb{C}:\Re s>0,\,s\neq 1\}$.
 \end{lemma}
 -/
@@ -347,7 +347,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[ZetaExtend]\label{ZetaExtend}\lean{ZetaExtend}
+\begin{lemma}[ZetaExtend]\label{ZetaExtend}
     We have that
     $$\zeta(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}$$
     for all $s\in S$.
@@ -363,7 +363,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{theorem}[GlobalBound]\label{GlobalBound}\lean{GlobalBound}
+\begin{theorem}[GlobalBound]\label{GlobalBound}
     For all $s\in\mathbb{C}$ with $|s|\leq 1$ and $t\in\mathbb{R}$ with $|t|\geq 2$, we have that
     $$|\zeta(s+3/2+it)|\leq 7+2\,|t|.$$
 \end{theorem}
@@ -384,7 +384,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{theorem}[LogDerivZetaFinalBound]\label{LogDerivZetaFinalBound}\lean{LogDerivZetaFinalBound}
+\begin{theorem}[LogDerivZetaFinalBound]\label{LogDerivZetaFinalBound}
     Let $t\in\mathbb{R}$ with $|t|\geq 2$ and $0 < r' < r < R' < R<1$. If  $f(z)=\zeta(z+3/2+it)$, then for all $z\in\overline{\mathbb{D}_R'}\setminus\mathcal{K}_f(R')$ we have that
     $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|.$$
 \end{theorem}
@@ -407,7 +407,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{definition}[ZeroWindows]\label{ZeroWindows}\lean{ZeroWindows}
+\begin{definition}[ZeroWindows]\label{ZeroWindows}
     Let $\mathcal{Z}_t=\{\rho\in\mathbb{C}:\zeta(\rho)=0,\,|\rho-(3/2+it)|\leq 5/6\}$.
 \end{definition}
 -/
@@ -415,7 +415,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[SumBoundI]\label{SumBoundI}\lean{SumBoundI}
+\begin{lemma}[SumBoundI]\label{SumBoundI}
     For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 2$ we have
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
 \end{lemma}
@@ -436,7 +436,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[ShiftTwoBound]\label{ShiftTwoBound}\lean{ShiftTwoBound}
+\begin{lemma}[ShiftTwoBound]\label{ShiftTwoBound}
     For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 2$ we have
     $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|t|.$$
 \end{lemma}
@@ -467,7 +467,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[ShiftOneBound]\label{ShiftOneBound}\lean{ShiftOneBound}
+\begin{lemma}[ShiftOneBound]\label{ShiftOneBound}
     There exists $C>0$ such that for all $\delta\in(0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$; if $\zeta(\rho)=0$ with $\rho=\sigma+it$, then
     $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{1}{1+\delta-\sigma}+C\log|t|.$$
 \end{lemma}
@@ -500,7 +500,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[ShiftZeroBound]\label{ShiftZeroBound}\lean{ShiftZeroBound}
+\begin{lemma}[ShiftZeroBound]\label{ShiftZeroBound}
     For all $\delta\in(0,1)$ we have
     $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\frac{1}{\delta}+O(1).$$
 \end{lemma}
@@ -519,7 +519,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[ThreeFourOneTrigIdentity]\label{ThreeFourOneTrigIdentity}\lean{ThreeFourOneTrigIdentity}
+\begin{lemma}[ThreeFourOneTrigIdentity]\label{ThreeFourOneTrigIdentity}
     We have that
     $$0\leq 3+4\cos\theta+\cos2\theta$$
     for all $\theta\in\mathbb{R}$.
@@ -615,7 +615,7 @@ lemma DeltaRange : ∀ (t : ℝ),
 
 
 blueprint_comment /--
-\begin{lemma}[SumBoundII]\label{SumBoundII}\lean{SumBoundII}
+\begin{lemma}[SumBoundII]\label{SumBoundII}
     For all $t\in\mathbb{R}$ with $|t|\geq 2$ and $z=\sigma+it$ where $1-\delta_t/3\leq\sigma\leq 3/2$, we have that
     $$\left|\frac{\zeta'}{\zeta}(z)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{z-\rho}\right|\ll\log|t|.$$
 \end{lemma}
@@ -638,7 +638,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[GapSize]\label{GapSize}\lean{GapSize}
+\begin{lemma}[GapSize]\label{GapSize}
    Let $t\in\mathbb{R}$ with $|t|\geq 3$ and $z=\sigma+it$ where $1-\delta_t/3\leq\sigma\leq 3/2$. Additionally, let $\rho\in\mathcal{Z}_t$. Then we have that
    $$|z-\rho|\geq\delta_t/6.$$
 \end{lemma}
@@ -1192,7 +1192,7 @@ theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
 
 
 blueprint_comment /--
-\begin{theorem}[StrongPNT]\label{StrongPNT}\lean{StrongPNT}
+\begin{theorem}[StrongPNT]\label{StrongPNT}
     We have
     $$\sum_{n\leq x}\Lambda(n)=x+O\left(x\exp(-c\sqrt{\log x})\right).$$
 \end{theorem}
