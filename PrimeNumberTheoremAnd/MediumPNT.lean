@@ -36,14 +36,16 @@ theorem psi_eq_sum_range (x : ℝ) :
 
 end Chebyshev
 
-@[blueprint
+@[blueprint "ChebyshevPsi"
+  (title := "ChebyshevPsi")
   (statement := /--
   The (second) Chebyshev Psi function is defined as
   $$
   \psi(x) := \sum_{n \le x} \Lambda(n),
   $$
   where $\Lambda(n)$ is the von Mangoldt function.
-  -/)]
+  -/)
+  (latexEnv := "definition")]
 noncomputable abbrev ChebyshevPsi (x : ℝ) : ℝ :=
   Chebyshev.psi x
 
@@ -52,6 +54,13 @@ It has already been established that zeta doesn't vanish on the 1 line, and has 
 of order 1.
 We also have the following.
 -/
+
+@[blueprint "LogDerivativeDirichlet"
+  (title := "LogDerivativeDirichlet")
+  (statement := /--
+  We have that, for $\Re(s)>1$,
+  $$-\frac{\zeta'(s)}{\zeta(s)} = \sum_{n=1}^\infty \frac{\Lambda(n)}{n^s}. $$-/)
+  (proof := /-- Already in Mathlib. -/)]
 theorem LogDerivativeDirichlet (s : ℂ) (hs : 1 < s.re) :
     - deriv riemannZeta s / riemannZeta s = ∑' n, Λ n / (n : ℂ) ^ s := by
   rw [← ArithmeticFunction.LSeries_vonMangoldt_eq_deriv_riemannZeta_div hs]
@@ -62,12 +71,13 @@ theorem LogDerivativeDirichlet (s : ℂ) (hs : 1 < s.re) :
     dsimp [LSeriesSummable] at this
     convert this; rename ℕ => n
     by_cases h : n = 0 <;> simp [LSeries.term, h]
+
 blueprint_comment /--
 
 The main object of study is the following inverse Mellin-type transform, which will turn out to
 be a smoothed Chebyshev function.
-
 -/
+
 noncomputable abbrev SmoothedChebyshevIntegrand (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ → ℂ :=
   fun s ↦ (- deriv riemannZeta s) / riemannZeta s *
     𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) s * (X : ℂ) ^ s

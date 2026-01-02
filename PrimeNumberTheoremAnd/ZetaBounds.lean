@@ -3693,37 +3693,6 @@ theorem triv_bound_zeta :  ∃C ≥ 0, ∀(σ₀ t : ℝ), 1 < σ₀ →
   -/)
   (proof := /--
   For $\sigma$ close to $1$ use Lemma \ref{LogDerivZetaBnd}, otherwise estimate trivially.
-
-
-
-  \section{Proof of Medium PNT}
-
-  The approach here is completely standard. We follow the use of
-  $\mathcal{M}(\widetilde{1_{\epsilon}})$ as in [Kontorovich 2015].
-
-
-  \begin{definition}\label{ChebyshevPsi}
-  The (second) Chebyshev Psi function is defined as
-  $$
-  \psi(x) := \sum_{n \le x} \Lambda(n),
-  $$
-  where $\Lambda(n)$ is the von Mangoldt function.
-  \end{definition}
-
-
-  It has already been established that zeta doesn't vanish on the 1 line, and has a pole at $s=1$
-  of order 1.
-  We also have the following.
-  \begin{theorem}[LogDerivativeDirichlet]\label{LogDerivativeDirichlet}
-  We have that, for $\Re(s)>1$,
-  $$
-  -\frac{\zeta'(s)}{\zeta(s)} = \sum_{n=1}^\infty \frac{\Lambda(n)}{n^s}.
-  $$
-  \end{theorem}
-
-
-  \begin{proof}
-  Already in Mathlib.
   -/)
   (latexEnv := "lemma")]
 lemma LogDerivZetaBndUnif :
