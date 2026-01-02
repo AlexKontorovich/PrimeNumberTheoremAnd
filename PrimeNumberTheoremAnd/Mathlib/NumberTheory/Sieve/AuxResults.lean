@@ -21,7 +21,8 @@ namespace ArithmeticFunction.IsMultiplicative
 
 variable {R : Type*}
 
-theorem prod_factors_of_mult (f : ArithmeticFunction ℝ) (h_mult : ArithmeticFunction.IsMultiplicative f) {l : ℕ} (hl : Squarefree l) :
+theorem prod_factors_of_mult (f : ArithmeticFunction ℝ)
+    (h_mult : ArithmeticFunction.IsMultiplicative f) {l : ℕ} (hl : Squarefree l) :
     ∏ a ∈ l.primeFactors, f a = f l := by
   rw [←IsMultiplicative.map_prod_of_subset_primeFactors h_mult l _ Finset.Subset.rfl,
     Nat.prod_primeFactors_of_squarefree hl]
@@ -47,7 +48,8 @@ theorem conv_lambda_sq_larger_sum (f : ℕ → ℕ → ℕ → ℝ) (n : ℕ) :
           ∑ d2 ∈ n.divisors, if d = Nat.lcm d1 d2 then f d1 d2 d else 0 := by
   apply sum_congr rfl; intro d hd
   rw [mem_divisors] at hd
-  simp_rw [←Nat.divisors_filter_dvd_of_dvd hd.2 hd.1, sum_filter, ←ite_and, ite_sum_zero, ←ite_and]
+  simp_rw [←Nat.divisors_filter_dvd_of_dvd hd.2 hd.1, sum_filter, ←ite_and, ite_sum_zero,
+    ←ite_and]
   congr with d1
   congr with d2
   congr
@@ -61,7 +63,8 @@ theorem moebius_inv_dvd_lower_bound (l m : ℕ) (hm : Squarefree m) :
   have hm_pos : 0 < m := Nat.pos_of_ne_zero hm.ne_zero
   revert hm
   revert m
-  apply (ArithmeticFunction.sum_eq_iff_sum_smul_moebius_eq_on {n | Squarefree n} (fun _ _ => Squarefree.squarefree_of_dvd)).mpr
+  apply (ArithmeticFunction.sum_eq_iff_sum_smul_moebius_eq_on
+    {n | Squarefree n} (fun _ _ => Squarefree.squarefree_of_dvd)).mpr
   intro m hm_pos hm
   rw [sum_divisorsAntidiagonal' (f:= fun x y => μ x • if l=y then μ l else 0)]--
   by_cases hl : l ∣ m
@@ -85,18 +88,19 @@ theorem moebius_inv_dvd_lower_bound' {P : ℕ} (hP : Squarefree P) (l m : ℕ) (
   simp_rw[ite_and, ←sum_filter, filter_comm]
 
 theorem moebius_inv_dvd_lower_bound_real {P : ℕ} (hP : Squarefree P) (l m : ℕ) (hm : m ∣ P) :
-    (∑ d ∈ P.divisors, if l ∣ d ∧ d ∣ m then (μ d : ℝ) else 0) = if l = m then (μ l : ℝ) else 0 := by
+    (∑ d ∈ P.divisors, if l ∣ d ∧ d ∣ m then (μ d : ℝ) else 0) =
+      if l = m then (μ l : ℝ) else 0 := by
   norm_cast
   apply moebius_inv_dvd_lower_bound' hP l m hm
 
-theorem multiplicative_zero_of_zero_dvd (f : ArithmeticFunction ℝ) (h_mult : IsMultiplicative f) {m n : ℕ}
-    (h_sq : Squarefree n) (hmn : m ∣ n) (h_zero : f m = 0) : f n = 0 := by
+theorem multiplicative_zero_of_zero_dvd (f : ArithmeticFunction ℝ) (h_mult : IsMultiplicative f)
+    {m n : ℕ} (h_sq : Squarefree n) (hmn : m ∣ n) (h_zero : f m = 0) : f n = 0 := by
   rcases hmn with ⟨k, rfl⟩
-  simp only [MulZeroClass.zero_mul, h_mult.map_mul_of_coprime (coprime_of_squarefree_mul h_sq),
-    h_zero]
+  simp only [MulZeroClass.zero_mul,
+    h_mult.map_mul_of_coprime (coprime_of_squarefree_mul h_sq), h_zero]
 
-theorem div_mult_of_dvd_squarefree (f : ArithmeticFunction ℝ) (h_mult : IsMultiplicative f) (l d : ℕ) (hdl : d ∣ l)
-    (hl : Squarefree l) (hd : f d ≠ 0) : f l / f d = f (l / d) := by
+theorem div_mult_of_dvd_squarefree (f : ArithmeticFunction ℝ) (h_mult : IsMultiplicative f)
+    (l d : ℕ) (hdl : d ∣ l) (hl : Squarefree l) (hd : f d ≠ 0) : f l / f d = f (l / d) := by
   apply div_eq_of_eq_mul hd
   rw [← h_mult.right, Nat.div_mul_cancel hdl]
   apply coprime_of_squarefree_mul
@@ -195,7 +199,8 @@ theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (h
     _ ≤ ∑ a ∈ Fintype.piFinset fun _i : Fin k => P.divisors,
           ∏ i, if ↑(a i) ≤ x then (a i : ℝ)⁻¹ else 0 := ?_
     _ = ∏ _i : Fin k, ∑ d ∈ P.divisors, if ↑d ≤ x then (d : ℝ)⁻¹ else 0 := by rw [prod_univ_sum]
-    _ = (∑ d ∈ P.divisors, if ↑d ≤ x then (d : ℝ)⁻¹ else 0) ^ k := by rw [prod_const, Finset.card_fin]
+    _ = (∑ d ∈ P.divisors, if ↑d ≤ x then (d : ℝ)⁻¹ else 0) ^ k := by
+      rw [prod_const, Finset.card_fin]
     _ ≤ (1 + Real.log x) ^ k := ?_
 
   · apply sum_congr rfl; intro d hd
@@ -247,7 +252,8 @@ theorem sum_pow_cardDistinctFactors_div_self_le_log_pow {P k : ℕ} (x : ℝ) (h
 
 theorem sum_pow_cardDistinctFactors_le_self_mul_log_pow {P h : ℕ} (x : ℝ) (hx : 1 ≤ x)
     (hP : Squarefree P) :
-    (∑ d ∈ P.divisors, if ↑d ≤ x then (h : ℝ) ^ ω d else (0 : ℝ)) ≤ x * (1 + Real.log x) ^ h := by
+    (∑ d ∈ P.divisors, if ↑d ≤ x then (h : ℝ) ^ ω d else (0 : ℝ)) ≤
+      x * (1 + Real.log x) ^ h := by
   trans (∑ d ∈ P.divisors, x * if ↑d ≤ x then (h : ℝ) ^ ω d / d else (0 : ℝ))
   · simp_rw [mul_ite, mul_zero, ←sum_filter]
     gcongr with i hi

@@ -1,3 +1,5 @@
+\input{../../.lake/build/blueprint/library/PrimeNumberTheoremAnd}
+
 \usepackage{amsmath, amsthm}
 \usepackage{hyperref}
 
@@ -7,6 +9,7 @@
 \newtheorem{proposition}{Proposition}
 \newtheorem{lemma}{Lemma}
 \newtheorem{corollary}{Corollary}
+\newtheorem{remark}{Remark}
 
 \title{Prime Number Theorem And ...}
 
@@ -17,7 +20,6 @@
 \newcommand{\C}{\mathbb{C}}
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\N}{\mathbb{N}}
-
 
 \begin{document}
 \maketitle
@@ -61,80 +63,90 @@ A word about the expected ``rate-limiting-steps'' in each of the approaches.
 
 (*) In approach (3), it's obviously the Hadamard factorization, which needs quite a lot of nontrivial mathematics. (But after that, the math is not hard, on top of things in approach (2) -- and if we're getting the strong error term, we can afford to lose $\log X$ in the Chebyshev discussion above...).
 
-\chapter{First approach: Wiener-Ikehara Tauberian theorem.}
+\chapter{First approach: Wiener-Ikehara Tauberian theorem}
 
 \section{A Fourier-analytic proof of the Wiener-Ikehara theorem}
-\input{Wiener.tex}
-
+\inputleanmodule{PrimeNumberTheoremAnd.Wiener}
 
 \chapter{Second approach}
 
 \section{Residue calculus on rectangles}
-\input{Rectangle.tex}
-\input{ResidueCalcOnRectangles.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.Rectangle}
+\inputleanmodule{PrimeNumberTheoremAnd.ResidueCalcOnRectangles}
 
 \section{Perron Formula}
-\input{PerronFormula.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.PerronFormula}
 
 \section{Mellin transforms}
-\input{MellinCalculus.tex}
-\input{SmoothExistence.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.MellinCalculus}
+\inputleanmodule{PrimeNumberTheoremAnd.SmoothExistence}
 
 \section{Zeta Bounds}
-\input{ZetaConj.tex}
-\input{ZetaBounds.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.ZetaConj}
+\inputleanmodule{PrimeNumberTheoremAnd.ZetaBounds}
 
 \section{Proof of Medium PNT}
-\input{MediumPNT.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.MediumPNT}
 
 
 \chapter{Third Approach}
 
-%\section{Hadamard factorization}
-%\input{HadamardFactorization.tex}
+\section{Hadamard factorization}
+\inputleanmodule{PrimeNumberTheoremAnd.HadamardFactorization}
 
-%\section{Hoffstein-Lockhart}
-%\input{HoffsteinLockhart.tex}
+\section{Hoffstein-Lockhart}
+\inputleanmodule{PrimeNumberTheoremAnd.HoffsteinLockhart}
 
 \section{Strong PNT}
-\input{BorelCaratheodory.tex}
-\input{StrongPNT.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.BorelCaratheodory}
+\inputleanmodule{PrimeNumberTheoremAnd.DerivativeBound}
+\inputleanmodule{PrimeNumberTheoremAnd.StrongPNT}
 
 
 \chapter{Elementary Corollaries}
 
-\input{Consequences.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.Consequences}
 
 \chapter{Explicit estimates}
 
-We will try to systematically collect explicit estimates related to the prime number theorem from the literature, and formalize them in a modular fashion.  We divide such estimates into three classes:
+We will try to systematically collect explicit estimates related to the prime number theorem from
+the literature, and formalize them in a modular fashion.  We divide such estimates into three
+classes:
 
 \begin{itemize}
-    \item \emph{Primary} explicit estimates: those that are directly control $\psi(x)$ and $M(x)$, usually via information on the zeta function.
-    \item \emph{Secondary} explicit estimates: these are useful general-purpose estimates on functions relating to the primes, such as bounds on the $n$-th prime, or estimates for the prime counting function $\pi(x)$.  These are generally derived from primary estimates and elementary arguments.
-    \item \emph{Tertiary} explicit estimates: these are bespoke applications to particular problems in analytic number theory or combinatorics that often require secondary estimates as input.
+    \item \emph{Primary} explicit estimates: those that are directly control $\psi(x)$ and $M(x)$,
+    usually via information on the zeta function.
+    \item \emph{Secondary} explicit estimates: these are useful general-purpose estimates on
+    functions relating to the primes, such as bounds on the $n$-th prime, or estimates for the prime
+    counting function $\pi(x)$.  These are generally derived from primary estimates and elementary arguments.
+    \item \emph{Tertiary} explicit estimates: these are bespoke applications to particular problems
+    in analytic number theory or combinatorics that often require secondary estimates as input.
 \end{itemize}
 
-In this project we will state the best available primary estimates known in the literature, and try to formalize at least some of them; state the best available secondary estimates known in the literature, as well as various tools from passing from primary to secondary estimates, and formalize these; and then finally formalize some tertiary estimates as applications of the secondary ones.
+In this project we will state the best available primary estimates known in the literature, and try
+to formalize at least some of them; state the best available secondary estimates known in the
+literature, as well as various tools from passing from primary to secondary estimates, and
+formalize these; and then finally formalize some tertiary estimates as applications of the
+secondary ones.
 
 \chapter{Primary explicit estimates}
 
-\input{PrimaryDefinitions.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.PrimaryDefinitions}
 
-\input{FioriKadiriSwidinsky.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.FioriKadiriSwidinsky}
 
-\input{PrimarySummary.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.PrimarySummary}
 
 \chapter{Secondary explicit estimates}
 
-\input{SecondaryDefinitions.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.SecondaryDefinitions}
 
-\input{RosserSchoenfeld.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.RosserSchoenfeld}
 
-\input{SecondarySummary.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.SecondarySummary}
 
 \chapter{Tertiary explicit estimates}
 
-\input{Lcm.tex}
+\inputleanmodule{PrimeNumberTheoremAnd.Lcm}
 
 \end{document}

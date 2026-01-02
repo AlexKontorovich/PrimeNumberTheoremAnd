@@ -30,7 +30,8 @@ theorem isLittleO_const_id_atBot2 [LinearOrder F''] [NoMinOrder F''] [ClosedIicT
     [ProperSpace F''] (c : E'') : (fun _x : F'' => c) =o[atBot] id :=
   (isLittleO_const_id_cocompact c).mono atBot_le_cocompact
 
-theorem _root_.Filter.Eventually.natCast {f : ℝ → Prop} (hf : ∀ᶠ x in atTop, f x) : ∀ᶠ n : ℕ in atTop, f n :=
+theorem _root_.Filter.Eventually.natCast {f : ℝ → Prop} (hf : ∀ᶠ x in atTop, f x) :
+    ∀ᶠ n : ℕ in atTop, f n :=
   tendsto_natCast_atTop_atTop.eventually hf
 
 theorem IsBigO.natCast {f g : ℝ → E} (h : f =O[atTop] g) :

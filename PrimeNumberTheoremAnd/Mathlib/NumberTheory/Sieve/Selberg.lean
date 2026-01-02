@@ -180,10 +180,12 @@ theorem selbergWeights_eq_dvds_sum (d : ℕ) :
       constructor
       · intro h
         push_cast at h
-        exact ⟨h.2.2, coprime_of_squarefree_mul <| Squarefree.squarefree_of_dvd h.1 s.prodPrimes_squarefree⟩
+        exact ⟨h.2.2, coprime_of_squarefree_mul
+          <| Squarefree.squarefree_of_dvd h.1 s.prodPrimes_squarefree⟩
       · intro h
         push_cast
-        exact ⟨ Coprime.mul_dvd_of_dvd_of_dvd h.2 h_dvd (dvd_of_mem_divisors hm), Nat.dvd_mul_right d m, h.1⟩
+        exact ⟨ Coprime.mul_dvd_of_dvd_of_dvd h.2 h_dvd (dvd_of_mem_divisors hm),
+          Nat.dvd_mul_right d m, h.1⟩
     · intro h
       trans ((ν d)⁻¹ * (ν d) * g d * μ d / S * g m)
       · rw [inv_mul_cancel₀ (nu_ne_zero h_dvd),
@@ -366,7 +368,8 @@ theorem selbergBoundingSum_ge {d : ℕ} (hdP : d ∣ P) :
   _ = _ := by
     conv => enter [1, 2, k]; rw [← ite_zero_mul]
     rw [←sum_mul, conv_selbergTerms_eq_selbergTerms_mul_nu _ hdP]
-    trans (S * S⁻¹ * (μ d:ℝ)^2 * (ν d)⁻¹ * g d * (∑ m ∈ divisors P, if (d*m) ^ 2 ≤ y ∧ Coprime m d then g m else 0))
+    trans (S * S⁻¹ * (μ d:ℝ)^2 * (ν d)⁻¹ * g d * (∑ m ∈ divisors P, if (d*m) ^ 2 ≤ y ∧
+      Coprime m d then g m else 0))
     · rw [mul_inv_cancel₀, ←Int.cast_pow, moebius_sq_eq_one_of_squarefree]
       · ring
       · exact Squarefree.squarefree_of_dvd hdP s.prodPrimes_squarefree
@@ -436,7 +439,8 @@ theorem selberg_bound_simple :
         ∑ d ∈ divisors P, if (d : ℝ) ≤ y then (3:ℝ) ^ ω d * |R d| else 0 := by
   let μPlus := s.selbergUbSieve
   calc
-    siftedSum ≤ X * mainSum μPlus + errSum μPlus := siftedSum_le_mainSum_errSum_of_UpperBoundSieve _ μPlus
+    siftedSum ≤ X * mainSum μPlus + errSum μPlus :=
+      siftedSum_le_mainSum_errSum_of_UpperBoundSieve _ μPlus
     _ ≤ _ := ?_
   gcongr
   · erw [s.selberg_bound_simple_mainSum, div_eq_mul_inv]
