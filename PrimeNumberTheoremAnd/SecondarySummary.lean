@@ -11,7 +11,7 @@ In this section we summarize the secondary results known in the literature (or o
 
 Key references:
 
-Dusart: https://piyanit.nl/wp-content/uploads/2020/10/art_10.1007_s11139-016-9839-4.pdf
+Dusart: \url{https://piyanit.nl/wp-content/uploads/2020/10/art_10.1007_s11139-016-9839-4.pdf}
 
 FKS1: Fiori--Kadiri--Swidninsky arXiv:2204.02588
 
@@ -25,9 +25,7 @@ JY: D. R. Johnston, A. Yang, Some explicit estimates for the error term in the p
 open Real
 
 
-
-@[blueprint
-  "thm:pt_2"
+@[blueprint "thm:pt_2"
   (title := "PT Corollary 2")
   (statement := /--
   One has
@@ -37,8 +35,7 @@ open Real
   for all $x \geq \exp(2000)$.
   -/)
   (latexEnv := "theorem")]
-theorem PT_Cor2 : E_pi.classicalBound 235 1.52 0.8 1 (exp 2000) := sorry
-
+theorem PT_Cor2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := sorry
 
 
 @[blueprint
@@ -52,7 +49,7 @@ theorem PT_Cor2 : E_pi.classicalBound 235 1.52 0.8 1 (exp 2000) := sorry
   for all $x \geq 2$.
   -/)
   (latexEnv := "theorem")]
-theorem JY_Cor13 : E_pi.classicalBound 9.59 1.515 0.8274 1 2 := sorry
+theorem JY_Cor13 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := sorry
 
 
 
@@ -67,11 +64,9 @@ theorem JY_Cor13 : E_pi.classicalBound 9.59 1.515 0.8274 1 2 := sorry
   for all $x \geq 2$.
   -/)
   (latexEnv := "theorem")]
-theorem JY_Thm14 : E_pi.vinogradovBound 0.028 0.801 0.1853 2 := sorry
+theorem JY_Thm14 : Eπ.vinogradovBound 0.028 0.801 0.1853 2 := sorry
 
 blueprint_comment /-- TODO: input other results from JY -/
-
-
 
 @[blueprint
   "thm:fks2_22"
@@ -84,7 +79,7 @@ blueprint_comment /-- TODO: input other results from JY -/
   for all $x \geq 2$.
   -/)
   (latexEnv := "theorem")]
-theorem FKS2_Cor22 : E_pi.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
+theorem FKS2_Cor22 : Eπ.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
 
 
 @[blueprint
@@ -97,8 +92,7 @@ theorem FKS2_Cor22 : E_pi.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
   \]
   for all $x \geq 2$.
   -/)]
-theorem FKS2_Cor226 : E_pi.bound 0.4298 2 := sorry
-
+theorem FKS2_Cor226 : Eπ.bound 0.4298 2 := sorry
 
 
 @[blueprint "thm:Dusart"

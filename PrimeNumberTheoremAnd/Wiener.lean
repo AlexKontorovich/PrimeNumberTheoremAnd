@@ -2530,7 +2530,7 @@ Artin $L$-function.
 -/
 
 blueprint_comment /--
-\begin{proof} See Propositions 7.1.16, 7.1.19 of https://www.math.ucla.edu/~sharifi/algnum.pdf .
+\begin{proof} See Propositions 7.1.16, 7.1.19 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.
 \end{proof}
 -/
 
@@ -2540,7 +2540,7 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-\begin{proof} See Theorem 7.1.12 of https://www.math.ucla.edu/~sharifi/algnum.pdf .
+\begin{proof} See Theorem 7.1.12 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf}.
 \end{proof}
 -/
 
@@ -2561,7 +2561,7 @@ adapt the arguments for the Dirichet L-function.
 blueprint_comment /--
 \section{The Chebotarev density theorem: the case of abelian extensions}
 
-(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the
+(Use the arguments in Theorem 7.2.2 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf} to extend the
 previous results to abelian extensions (actually just cyclic extensions would suffice))
 
 -/
@@ -2569,7 +2569,7 @@ previous results to abelian extensions (actually just cyclic extensions would su
 blueprint_comment /--
 \section{The Chebotarev density theorem: the general case}
 
-(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the
+(Use the arguments in Theorem 7.2.2 of \url{https://www.math.ucla.edu/~sharifi/algnum.pdf} to extend the
 previous results to arbitrary extensions
 
 -/

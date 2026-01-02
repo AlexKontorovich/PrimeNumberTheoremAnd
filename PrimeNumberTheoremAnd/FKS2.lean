@@ -38,7 +38,7 @@ noncomputable def dawson (x : ℝ) : ℝ := exp (-x ^ 2) * ∫ t in 0..x, exp (t
   \frac{2D_+(\sqrt{\log(x_1)} - \frac{C}{2\sqrt{R}}}{\sqrt{\log x_1}}$$.
   -/)]
 noncomputable def mu_asymp (A B C R x₀ x₁ : ℝ) : ℝ :=
-  (x₀ * log x₁) / ((admissible_bound A B C R x₁) * x₁ * log x₀) * |E_pi x₀ - E_theta x₀| +
+  (x₀ * log x₁) / ((admissible_bound A B C R x₁) * x₁ * log x₀) * |Eπ x₀ - Eθ x₀| +
     2 * (dawson (sqrt (log x₁) - C / (2 * sqrt R))) / (sqrt (log x₁))
 
 
@@ -57,7 +57,7 @@ noncomputable def mu_asymp (A B C R x₀ x₁ : ℝ) : ℝ :=
 theorem fks_theorem_3 (A B C R x₀ x₁ : ℝ)
   (hB : B ≥ max (3 / 2) (1 + C ^ 2 / (16 * R)))
   (hx0 : x₀ > 0)
-  (hE_theta : E_theta.classicalBound A B C R x₀)
+  (hE_theta : Eθ.classicalBound A B C R x₀)
   (hx1 : x₁ ≥ max x₀ (exp ((1 + C / (2 * sqrt R)) ^ 2))) :
-  E_pi.classicalBound (A * (1 + mu_asymp A B C R x₀ x₁)) B C R x₁ :=
+  Eπ.classicalBound (A * (1 + mu_asymp A B C R x₀ x₁)) B C R x₁ :=
   sorry

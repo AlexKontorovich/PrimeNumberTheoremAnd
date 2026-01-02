@@ -449,7 +449,7 @@ blueprint_comment /--
     \frac{\sigma(M)}{M}
     \ge
     \frac{\sigma(L')}{L'}
-    \prod_p \frac{1+p^{-1}+\dots+p^{-\nu_p(M)}}{1+p^{-1}+\dots+p^{-\nu_p(L')}.
+    \prod_p \frac{1+p^{-1}+\dots+p^{-\nu_p(M)}}{1+p^{-1}+\dots+p^{-\nu_p(L')}}.
   $$
   The contribution of $p=p_i$ is
   \[
@@ -509,9 +509,10 @@ theorem Criterion.not_highlyAbundant (c : Criterion) : ¬ HighlyAbundant (L c.n)
 
 
 blueprint_comment /--
-
 \begin{remark}
-Analogous arguments allow other pairs \((c,\alpha)\) in place of \((4,3/8)\), such as \((2,1/4)\), \((6,17/36)\), \((30,0.632\dots)\); or even \((1,0)\) provided more primes are used on the \(p\)-side than the \(q\)-side to restore an asymptotic advantage.
+Analogous arguments allow other pairs \((c,\alpha)\) in place of \((4,3/8)\),
+such as \((2,1/4)\), \((6,17/36)\), \((30,0.632\dots)\); or even \((1,0)\) provided more primes are
+used on the \(p\)-side than the \(q\)-side to restore an asymptotic advantage.
 \end{remark}
 -/
 

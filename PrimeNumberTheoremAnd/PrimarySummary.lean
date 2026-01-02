@@ -42,7 +42,7 @@ theorem MTY_theorem : riemannZeta.classicalZeroFree 5.558691 := sorry
 @[blueprint "fks_cor_13"
   (title := "FKS1 Corollary 1.3")
   (statement := /-- For all x > 2 we have $E_ψ(x) \leq 121.096 (\log x/R)^{3/2} \exp(-2 \sqrt{\log x/R})$ with $R = 5.5666305$. -/)
-  (uses := ["classical-bound"])
+  (uses := ["classical-bound-psi"])
   (latexEnv := "theorem")]
 theorem FKS_corollary_1_3 :
   Eψ.classicalBound 121.096 (3/2) 2 5.5666305 2 := sorry

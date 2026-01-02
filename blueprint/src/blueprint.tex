@@ -9,6 +9,7 @@
 \newtheorem{proposition}{Proposition}
 \newtheorem{lemma}{Lemma}
 \newtheorem{corollary}{Corollary}
+\newtheorem{remark}{Remark}
 
 \title{Prime Number Theorem And ...}
 
@@ -62,11 +63,10 @@ A word about the expected ``rate-limiting-steps'' in each of the approaches.
 
 (*) In approach (3), it's obviously the Hadamard factorization, which needs quite a lot of nontrivial mathematics. (But after that, the math is not hard, on top of things in approach (2) -- and if we're getting the strong error term, we can afford to lose $\log X$ in the Chebyshev discussion above...).
 
-\chapter{First approach: Wiener-Ikehara Tauberian theorem.}
+\chapter{First approach: Wiener-Ikehara Tauberian theorem}
 
 \section{A Fourier-analytic proof of the Wiener-Ikehara theorem}
 \inputleanmodule{PrimeNumberTheoremAnd.Wiener}
-
 
 \chapter{Second approach}
 
@@ -91,11 +91,11 @@ A word about the expected ``rate-limiting-steps'' in each of the approaches.
 
 \chapter{Third Approach}
 
-%\section{Hadamard factorization}
-%\inputleanmodule{PrimeNumberTheoremAnd.HadamardFactorization}
+\section{Hadamard factorization}
+\inputleanmodule{PrimeNumberTheoremAnd.HadamardFactorization}
 
-%\section{Hoffstein-Lockhart}
-%\inputleanmodule{PrimeNumberTheoremAnd.HoffsteinLockhart}
+\section{Hoffstein-Lockhart}
+\inputleanmodule{PrimeNumberTheoremAnd.HoffsteinLockhart}
 
 \section{Strong PNT}
 \inputleanmodule{PrimeNumberTheoremAnd.BorelCaratheodory}
@@ -109,7 +109,9 @@ A word about the expected ``rate-limiting-steps'' in each of the approaches.
 
 \chapter{Explicit estimates}
 
-We will try to systematically collect explicit estimates related to the prime number theorem from the literature, and formalize them in a modular fashion.  We divide such estimates into three classes:
+We will try to systematically collect explicit estimates related to the prime number theorem from
+the literature, and formalize them in a modular fashion.  We divide such estimates into three
+classes:
 
 \begin{itemize}
     \item \emph{Primary} explicit estimates: those that are directly control $\psi(x)$ and $M(x)$,
