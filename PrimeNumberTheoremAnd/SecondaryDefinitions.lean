@@ -43,7 +43,7 @@ noncomputable def E_theta (x : ℝ) : ℝ := |θ x - x| / x
 
 
 @[blueprint
-  "classical-bound-1"
+  "classical-bound-theta"
   (title := "Definition 1, FKS2")
   (statement := /--
   We say that $E_\theta$ satisfies a \emph{classical bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
@@ -53,7 +53,7 @@ noncomputable def E_theta (x : ℝ) : ℝ := |θ x - x| / x
 def E_theta.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, E_theta x ≤ admissible_bound A B C R x
 
 @[blueprint
-  "classical-bound-2"
+  "classical-bound-pi"
   (title := "Definition 1, FKS2")
   (statement := /--
   We say that $E_\pi$ satisfies a \emph{classical bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
