@@ -2246,9 +2246,8 @@ lemma tendsto_S_S_zero {f : ℕ → ℝ} (hpos : 0 ≤ f) (hcheby : cheby f) :
     apply div_le_div_of_nonneg_right r1 (by positivity)
   simpa [← S_sub_S h2.2] using l2.trans_lt h1
 
-@[blueprint
-  "WienerIkehara"
-  (title := "Wiener-Ikehara theorem")
+@[blueprint "WienerIkehara"
+  (title := "Wiener-Ikehara Theorem (1)")
   (statement := /--
     We have
   $$ \sum_{n\leq x} f(n) = A x + o(x).$$
@@ -2380,24 +2379,15 @@ lemma crude_upper_bound
 
 @[blueprint "auto-cheby"
   (title := "auto-cheby")
-  (statement := /--
-    One has
-  $$ \sum_{n \leq x} f(n) = O(x)$$
-  for all $x \geq 1$.
-  -/)
+  (statement := /-- One has $$ \sum_{n \leq x} f(n) = O(x)$$ for all $x \geq 1$. -/)
   (proof := /--
-   By applying Corollary \ref{crude-upper-bound} for a specific compactly supported function $\psi$, one can obtain a bound of the form
-  $\sum_{(1-\varepsilon)x < n \leq x} f(n) = O(x)$ for all $x$ and some absolute constant $\varepsilon$ (which can be made explicit).  If $C$ is a sufficiently large constant, the claim $|\sum_{n \leq x} f(n)| \leq Cx$ can now be proven by strong induction on $x$, as the claim for $(1-\varepsilon)x$ implies the claim for $x$ by the triangle inequality (and the claim is trivial for $x < 1$).
+  By applying Corollary \ref{crude-upper-bound} for a specific compactly supported function $\psi$,
+  one can obtain a bound of the form $\sum_{(1-\varepsilon)x < n \leq x} f(n) = O(x)$ for all $x$
+  and some absolute constant $\varepsilon$ (which can be made explicit).
 
-
-  \begin{corollary}[WienerIkeharaTheorem'']\label{WienerIkeharaTheorem''}
-    We have
-  $$ \sum_{n\leq x} f(n) = A x + o(x).$$
-  \end{corollary}
-
-
-  \begin{proof}
-   Use Corollary \ref{auto-cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
+  If $C$ is a sufficiently large constant, the claim $|\sum_{n \leq x} f(n)| \leq Cx$ can now be
+  proven by strong induction on $x$, as the claim for $(1-\varepsilon)x$ implies the claim for $x$
+  by the triangle inequality (and the claim is trivial for $x < 1$).
   -/)
   (proofUses := ["crude-upper-bound", "WienerIkehara"])
   (latexEnv := "corollary")]
@@ -2406,10 +2396,22 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) : cheby f := by
   sorry
 
+/-
+  \begin{corollary}[WienerIkeharaTheorem'']\label{WienerIkeharaTheorem''}
+    We have $$ \sum_{n\leq x} f(n) = A x + o(x).$$
+  \end{corollary}
+
+  \begin{proof}
+   Use Corollary \ref{auto-cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
+  \end{proof}
+-/
 
 
-
-
+@[blueprint "WienerIkehara2"
+  (title := "Wiener-Ikehara Theorem (2)")
+  (statement := /-- We have $$ \sum_{n\leq x} f(n) = A x + o(x).$$ -/)
+  (proof := /-- Use Corollary \ref{auto-cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}. -/)
+  (latexEnv := "theorem")]
 theorem WienerIkeharaTheorem'' (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hG : ContinuousOn F {s | 1 ≤ s.re})
     (hG' : Set.EqOn F (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) :
