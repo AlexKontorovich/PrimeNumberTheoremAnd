@@ -82,7 +82,7 @@ theorem remark_after_corollary_11 : ∃ x₀ : ℝ, x₀ ∈ Set.Icc 0.942 0.943
   (title := "FKS2 Lemma 12")
   (statement := /--
   Suppose that $E_\theta$ satisfies an admissible classical bound with parameters $A,B,C,R,x_0$. Then, for all $x \geq x_0$,
-      $$ \int_{x_0}^x |\frac{E_\theta(t)}{\log^2 t} dt| \leq \frac{2A}{R^B} x m(x_0,x) \exp(-C \sqrt{\frac{\log x}{R}}) D_+( \sqrt{\log x} - \frac{C}{2\sqrt{R} )$$
+      $$ \int_{x_0}^x |\frac{E_\theta(t)}{\log^2 t} dt| \leq \frac{2A}{R^B} x m(x_0,x) \exp(-C \sqrt{\frac{\log x}{R}}) D_+( \sqrt{\log x} - \frac{C}{2\sqrt{R}} )$$
       where
       $$ m(x_0,x) = \max ( (\log x_0)^{(2B-3)/2}, (\log x)^{(2B-3)/2} ). $$
   -/)]
