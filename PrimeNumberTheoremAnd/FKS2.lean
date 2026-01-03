@@ -235,7 +235,7 @@ theorem proposition_17 {x x₀ : ℝ} (hx : x > x₀) (hx₀ : x₀ > 2) (εψ :
   (title := "FKS2 Lemma 19")
   (statement := /--
   Let $x_1 > x_0 \geq 2$, $N \in \N$, and let $(b_i)_{i=1}^N$ be a finite partition of $[x_0,x_1]$.  Then
-      $$ |\int_{x_0}^{x_1} \frac{\theta(t)-t}{t \log^2 t}\ dt| \leq \sum_{i=1}^{N-1} \vareps_{\theta,num}(e^{b_i}) (Li(e^{b_{i+1}}) - Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}}).$$ -/)]
+      $$ |\int_{x_0}^{x_1} \frac{\theta(t)-t}{t \log^2 t}\ dt| \leq \sum_{i=1}^{N-1} \eps_{\theta,num}(e^{b_i}) (Li(e^{b_{i+1}}) - Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}}).$$ -/)]
 theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
   {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
   (h_b_start : b 0 = log x₀)
@@ -251,20 +251,32 @@ theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
 
 @[blueprint
   "fks2-lemma-20"
+]
+theorem lemma_20_a : StrictAntiOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) := sorry
+
+@[blueprint
+  "fks2-lemma-20"
   (title := "FKS2 Lemma 20")
   (statement := /--
   Assume $x \geq 6.58$. Then $Li(x) - \frac{x}{\log x}$ is strictly increasing and $Li(x) - \frac{x}{\log x} > \frac{x-6.58}{\log^2 x} > 0$.
   -/)]
-theorem lemma_20_a : StrictAntiOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) := sorry
-
-@[blueprint
-  "fks2-lemma-20"]
 theorem lemma_20_b {x : ℝ} (hx : x ≥ 6.58) :
   Li x - x / log x > (x - 6.58) / (log x) ^ 2 ∧
   (x - 6.58) / (log x) ^ 2 > 0 :=
   sorry
 
 
+
+@[blueprint
+  "fks2-theorem-6"]
+theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
+  {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
+  (h_b_start : b 0 = log x₀)
+  (h_b_end : b (Fin.last N) = log x₁)
+  (εθ_num : ℝ → ℝ)
+  (h_εθ_num : Eθ.numericalBound x₁ εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) (hx₂ : x.toEReal ≤ x₂) :
+  Eπ x ≤ επ_num b εθ_num x₀ x₁ x₂ :=
+  sorry
 
 @[blueprint
   "fks2-theorem-6"
@@ -280,17 +292,6 @@ theorem lemma_20_b {x : ℝ} (hx : x ≥ 6.58) :
   $$ + \frac{1}{\log x_1 + \log\log x_1 - 1}.$$
   Then, for all $x_1 \leq x \leq x_2$ we have
   $$ E_\pi(x) \leq \varepsilon_{\pi,num}(x_1,x_2) := \varepsilon_{\theta,num}(x_1)(1 + \mu_{num}(x_0,x_1,x_2)).$$ -/)]
-theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
-  {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
-  (h_b_start : b 0 = log x₀)
-  (h_b_end : b (Fin.last N) = log x₁)
-  (εθ_num : ℝ → ℝ)
-  (h_εθ_num : Eθ.numericalBound x₁ εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) (hx₂ : x.toEReal ≤ x₂) :
-  Eπ x ≤ επ_num b εθ_num x₀ x₁ x₂ :=
-  sorry
-
-@[blueprint
-  "fks2-theorem-6"]
 theorem theorem_6_alt {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
   (h_b_start : b 0 = log x₀)
