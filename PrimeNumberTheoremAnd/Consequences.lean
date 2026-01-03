@@ -1160,19 +1160,20 @@ lemma tendsto_nth_prime_atTop : Tendsto nth_prime atTop atTop :=
 
 lemma pi_nth_prime_asymp :  (fun n ↦ (nth_prime n) / (log (nth_prime n))) ~[atTop] (fun (n : ℕ) ↦ (n : ℝ)) := by
   trans (fun (n : ℕ) ↦ ( n + 1 : ℝ))
-  swap
+  · have : Tendsto (fun n ↦ ((Nat.nth Nat.Prime n) : ℝ)) atTop atTop := by
+      apply tendsto_natCast_atTop_iff.mpr tendsto_nth_prime_atTop
+    convert pi_alt'.comp_tendsto this |>.symm
+    simp only [Function.comp_apply, floor_natCast]
+    rw [pi_nth_prime]
+    norm_cast
   · apply IsEquivalent.add_isLittleO (by rfl)
     exact isLittleO_const_id_atTop (1 : ℝ) |>.natCast_atTop
-  have : Tendsto (fun n ↦ ((Nat.nth Nat.Prime n) : ℝ)) atTop atTop := by
-    apply tendsto_natCast_atTop_iff.mpr tendsto_nth_prime_atTop
-  convert pi_alt'.comp_tendsto this |>.symm
-  simp only [Function.comp_apply, floor_natCast]
-  rw [pi_nth_prime]
-  norm_cast
 
 lemma Asymptotics.IsEquivalent.log {f g : ℕ → ℝ} (hfg : f ~[atTop] g)
-  (hf : ∀ᶠ (n : ℕ) in atTop, f n ≠ 0) (hg : ∀ᶠ (n : ℕ) in atTop, g n ≠ 0) (hg2 : Tendsto (fun n ↦ ‖Real.log (g n)‖) atTop atTop) :
+    (g_tendsto : Tendsto g atTop atTop) :
     (fun n ↦ log (f n)) ~[atTop] (fun n ↦ log (g n)) := by
+  have hg := g_tendsto.eventually_ne_atTop 0
+  have hf := hfg.symm.tendsto_atTop g_tendsto|>.eventually_ne_atTop 0
   rw [isEquivalent_iff_tendsto_one hg] at hfg
   have := hfg.log (by norm_num)
   simp only [Pi.div_apply, log_one] at this
@@ -1182,10 +1183,11 @@ lemma Asymptotics.IsEquivalent.log {f g : ℕ → ℝ} (hfg : f ~[atTop] g)
   · filter_upwards [hf, hg] with n hf hg using log_div hf hg
   trans (fun n ↦ 1)
   · exact (isLittleO_one_iff ℝ).mpr this
-  rwa [isLittleO_one_left_iff]
+  rw [isLittleO_one_left_iff]
+  exact tendsto_abs_atTop_atTop.comp <| tendsto_log_atTop|>.comp g_tendsto
 
 lemma log_nth_prime_asymp : (fun n ↦ log (nth_prime n)) ~[atTop] (fun n ↦ log n) := by
-  have := pi_nth_prime_asymp.log ?_ ?_ ?_
+  have := pi_nth_prime_asymp.log tendsto_natCast_atTop_atTop
   · apply IsEquivalent.trans _ this
     apply IsEquivalent.congr_right (v := (fun n ↦ log (nth_prime n) - log (log (nth_prime n))))
     swap
@@ -1200,13 +1202,6 @@ lemma log_nth_prime_asymp : (fun n ↦ log (nth_prime n)) ~[atTop] (fun n ↦ lo
     have : Tendsto (fun n ↦ ((Nat.nth Nat.Prime n) : ℝ)) atTop atTop := by
       apply tendsto_natCast_atTop_iff.mpr tendsto_nth_prime_atTop
     apply tendsto_log_atTop.comp this
-  · filter_upwards with n
-    have := prime_nth_prime n |>.two_le
-    simp only [ne_eq, div_eq_zero_iff, cast_eq_zero, log_eq_zero, cast_eq_one, or_self_left, not_or]
-    refine ⟨?_, ?_, ?_⟩ <;> linarith
-  · filter_upwards [eventually_ne_atTop 0] with n hn
-    exact_mod_cast hn
-  · apply tendsto_abs_atTop_atTop.comp <| tendsto_log_atTop.comp tendsto_natCast_atTop_atTop
 
 lemma nth_prime_asymp : (fun n ↦ ((nth_prime n) : ℝ)) ~[atTop] (fun n ↦ n * log n) := by
   have := pi_nth_prime_asymp.mul log_nth_prime_asymp
@@ -1218,7 +1213,6 @@ lemma nth_prime_asymp : (fun n ↦ ((nth_prime n) : ℝ)) ~[atTop] (fun n ↦ n 
       <;> norm_cast<;> linarith [prime_nth_prime n |>.two_le]
   field
 
-open Filter in
 @[blueprint
   (title := "pn-asymptotic")
   (statement := /--
