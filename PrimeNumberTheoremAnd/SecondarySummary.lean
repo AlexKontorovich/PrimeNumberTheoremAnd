@@ -35,7 +35,7 @@ open Real
   for all $x \geq \exp(2000)$.
   -/)
   (latexEnv := "theorem")]
-theorem PT_Cor2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := sorry
+theorem PT.corollary_2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := sorry
 
 
 @[blueprint
@@ -49,7 +49,7 @@ theorem PT_Cor2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := sorry
   for all $x \geq 2$.
   -/)
   (latexEnv := "theorem")]
-theorem JY_Cor13 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := sorry
+theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := sorry
 
 
 
@@ -64,36 +64,9 @@ theorem JY_Cor13 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := sorry
   for all $x \geq 2$.
   -/)
   (latexEnv := "theorem")]
-theorem JY_Thm14 : Eπ.vinogradovBound 0.028 0.801 0.1853 2 := sorry
+theorem JY.theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 2 := sorry
 
 blueprint_comment /-- TODO: input other results from JY -/
-
-@[blueprint
-  "thm:fks2_22"
-  (title := "FKS2 Corollary 22")
-  (statement := /--
-  One has
-  \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 9.2211 x \sqrt{\log x} \exp(-0.8476 \sqrt{\log x})
-  \]
-  for all $x \geq 2$.
-  -/)
-  (latexEnv := "theorem")]
-theorem FKS2_Cor22 : Eπ.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
-
-
-@[blueprint
-  "thm:fks2_26"
-  (title := "FKS2 Corollary 26")
-  (statement := /--
-  One has
-  \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 0.4298 \frac{x}{\log x}
-  \]
-  for all $x \geq 2$.
-  -/)]
-theorem FKS2_Cor226 : Eπ.bound 0.4298 2 := sorry
-
 
 @[blueprint "thm:Dusart"
   (title := "Dusart Proposition 5.4")
@@ -104,6 +77,6 @@ theorem FKS2_Cor226 : Eπ.bound 0.4298 2 := sorry
   x < p \le x\Bigl(1 + \frac{1}{\log^3 x}\Bigr).
   \]
   -/)]
-theorem Dusart_thm : HasPrimeInInterval.log_thm 89693 3 := sorry
+theorem Dusart.proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := sorry
 
 blueprint_comment /-- TODO: input other results from Dusart -/
