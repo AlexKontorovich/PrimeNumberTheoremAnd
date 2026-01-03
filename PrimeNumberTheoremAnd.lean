@@ -1,5 +1,5 @@
 import PrimeNumberTheoremAnd.Auxiliary
-import PrimeNumberTheoremAnd.BKNLW
+import PrimeNumberTheoremAnd.BKLNW
 import PrimeNumberTheoremAnd.BorelCaratheodory
 import PrimeNumberTheoremAnd.BrunTitchmarsh
 import PrimeNumberTheoremAnd.Consequences
