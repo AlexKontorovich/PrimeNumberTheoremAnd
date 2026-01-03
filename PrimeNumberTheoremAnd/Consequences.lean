@@ -1169,9 +1169,9 @@ lemma pi_nth_prime_asymp :  (fun n ↦ (nth_prime n) / (log (nth_prime n))) ~[at
   · apply IsEquivalent.add_isLittleO (by rfl)
     exact isLittleO_const_id_atTop (1 : ℝ) |>.natCast_atTop
 
-lemma Asymptotics.IsEquivalent.log {α : Type*} [Preorder α] {f g : α → ℝ} (hfg : f ~[atTop] g)
-    (g_tendsto : Tendsto g atTop atTop) :
-    (fun n ↦ log (f n)) ~[atTop] (fun n ↦ log (g n)) := by
+lemma Asymptotics.IsEquivalent.log {α : Type*} {l : Filter α} {f g : α → ℝ} (hfg : f ~[l] g)
+    (g_tendsto : Tendsto g l atTop) :
+    (fun n ↦ log (f n)) ~[l] (fun n ↦ log (g n)) := by
   have hg := g_tendsto.eventually_ne_atTop 0
   have hf := hfg.symm.tendsto_atTop g_tendsto|>.eventually_ne_atTop 0
   rw [isEquivalent_iff_tendsto_one hg] at hfg
