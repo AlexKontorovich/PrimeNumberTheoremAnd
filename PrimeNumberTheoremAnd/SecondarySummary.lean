@@ -68,33 +68,6 @@ theorem JY.theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 2 := sorry
 
 blueprint_comment /-- TODO: input other results from JY -/
 
-@[blueprint
-  "thm:fks2_22"
-  (title := "FKS2 Corollary 22")
-  (statement := /--
-  One has
-  \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 9.2211 x \sqrt{\log x} \exp(-0.8476 \sqrt{\log x})
-  \]
-  for all $x \geq 2$.
-  -/)
-  (latexEnv := "theorem")]
-theorem FKS2.corollary_22 : Eπ.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
-
-
-@[blueprint
-  "thm:fks2_26"
-  (title := "FKS2 Corollary 26")
-  (statement := /--
-  One has
-  \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 0.4298 \frac{x}{\log x}
-  \]
-  for all $x \geq 2$.
-  -/)]
-theorem FKS2.corollary_26 : Eπ.bound 0.4298 2 := sorry
-
-
 @[blueprint "thm:Dusart"
   (title := "Dusart Proposition 5.4")
   (statement := /--
