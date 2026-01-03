@@ -4,7 +4,7 @@ import PrimeNumberTheoremAnd.SecondarySummary
 namespace Lcm
 
 open ArithmeticFunction hiding log
-open Real
+open Nat Real
 
 blueprint_comment /--
 \section{The least common multiple sequence is not highly abundant for large \(n\)}
@@ -199,7 +199,8 @@ theorem Criterion.r_ge (c : Criterion) : 0 < c.r := by sorry
   -/)
   (proof := /-- This is division with remainder. -/)
   (latexEnv := "lemma")]
-theorem Criterion.r_le (c : Criterion) : c.r < 4 * ∏ i, c.p i := by sorry
+theorem Criterion.r_le (c : Criterion) : c.r < 4 * ∏ i, c.p i :=
+  mod_lt _ <| mul_pos (zero_lt_succ 3) <| Finset.prod_pos <| fun i _ ↦ Prime.pos (c.hp i)
 
 @[blueprint
   "div-remainder"
@@ -796,7 +797,9 @@ theorem prod_epsilon_ge (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   Factor out \(\varepsilon\) and use that \(0<\varepsilon \le 1/89693^2\) to check that the resulting quadratic in \(\varepsilon\) is nonnegative on this interval.  Again, this is a finite computation that can be verified mechanically.
   -/)
   (latexEnv := "lemma")]
-theorem final_comparison (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) : 1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.37 * ε - 0.01 * ε ^ 2 := by sorry
+theorem final_comparison (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
+    1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.37 * ε - 0.01 * ε ^ 2 := by
+  nlinarith
 
 
 
