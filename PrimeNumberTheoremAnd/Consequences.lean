@@ -1221,9 +1221,9 @@ lemma nth_prime_asymp : (fun n ↦ ((nth_prime n) : ℝ)) ~[atTop] (fun n ↦ n 
   as $n \to \infty$.
   -/)
   (proof := /--
-    Use Corollary \ref{pi_alt} to show that for any $\eps>0$, and for $n$ sufficiently large,
-    the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up
-    to $(1+\eps) n \log n$ is greater than $n$.
+    Use Corollary \ref{pi_alt} to show that $n=\pi(p_n)\sim p_n/\log p_n$
+    Taking logs gives $\log n \sim \log p_n - \log\log p_n \sim \log p_n$.
+    Multiplying these gives $p_n\sim n\log n$ from which the result follows.
   -/)
   (latexEnv := "proposition")]
 theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
