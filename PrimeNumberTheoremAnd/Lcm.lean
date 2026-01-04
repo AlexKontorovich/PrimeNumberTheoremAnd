@@ -90,7 +90,7 @@ structure Criterion where
   h_ord_1 : √(n : ℝ) < p 0
   h_ord_2 : p 2 < q 0
   h_ord_3 : q 2 < n
-  h_crit : ∏ i, (1 + ((1:ℝ)/q i)) ≤ (∏ i, (1 + (1:ℝ)/(p i * (p i + 1)))) * (1 + (3:ℝ)/(8 * n)) * (1 - 4 * ∏ i, (p i : ℝ) / ∏ i, (q i : ℝ))
+  h_crit : ∏ i, (1 + ((1:ℝ)/q i)) ≤ (∏ i, (1 + (1:ℝ)/(p i * (p i + 1)))) * (1 + (3:ℝ)/(8 * n)) * (1 - 4 * (∏ i, (p i : ℝ)) / ∏ i, (q i : ℝ))
 
 
 
@@ -100,8 +100,123 @@ structure Criterion where
   (statement := /-- We have $4 p_1 p_2 p_3 < q_1 q_2 q_3$. -/)
   (proof := /-- Obvious from the non-negativity of the left-hand side of \eqref{eq:main-ineq}. -/)
   (latexEnv := "lemma")]
-theorem Criterion.prod_p_le_prod_q (c : Criterion) : 4 * ∏ i, (c.p i) < ∏ i, (c.q i) := by sorry
+theorem Criterion.prod_p_le_prod_q (c : Criterion) : 4 * ∏ i, (c.p i) < ∏ i, (c.q i) :=
+  -- Abbreviations for readability
+  let L : ℝ := ∏ i : Fin 3, (1 + ((1 : ℝ) / c.q i))
+  let B : ℝ := (∏ i, (1 + (1:ℝ)/(c.p i * (c.p i + 1))))
+  let C : ℝ := (1 + (3:ℝ)/(8 * c.n))
+  let R : ℝ :=(1 - 4 * (∏ i, (c.p i : ℝ)) / (∏ i, (c.q i : ℝ)))
 
+  -- Rewrite h_crit in terms of L, P, Q, A
+  have h_crit' : L ≤ B * C * R := by
+    apply c.h_crit
+  /- Step 1: L > 0 -/
+  have hL_pos : 0 < L := by
+    -- Each factor (1 + 1 / q i) is positive
+    have hfac : ∀ i : Fin 3, 0 < (1 + (1 : ℝ) / c.q i) := by
+      intro i
+      -- q i is a positive prime
+      have hq_pos_nat : 0 < c.q i := (c.hq i).pos
+      have hq_pos : 0 < (c.q i : ℝ) := by exact_mod_cast hq_pos_nat
+      have hfrac_pos : 0 < (1 : ℝ) / c.q i :=
+        div_pos (by norm_num) hq_pos
+      -- 1 + positive > 0
+      have := add_pos_of_nonneg_of_pos (show (0 : ℝ) ≤ 1 by norm_num) hfrac_pos
+      simpa [add_comm] using this
+    -- Product over Fin 3 of positive terms is positive
+    have := Finset.prod_pos (s := (Finset.univ : Finset (Fin 3))) (by
+      intro i hi; exact hfac i)
+    simpa [L] using this
+
+  have hBRC_pos: B * C * R > 0 :=
+    lt_of_lt_of_le  hL_pos  h_crit'
+  have hA_pos : 0 < B * C  := by
+    -- First factor: ∏ (1 + 1/(p i * (p i + 1))) > 0
+    have hfac_p : ∀ i : Fin 3,
+        0 < (1 + (1 : ℝ) / (c.p i * (c.p i + 1))) := by
+      intro i
+      -- p i is a positive prime
+      have hp_pos_nat : 0 < c.p i := (c.hp i).pos
+      have hp_pos : 0 < (c.p i : ℝ) := by exact_mod_cast hp_pos_nat
+      -- p i + 1 > 0
+      have hp1_pos : 0 < (c.p i : ℝ) + 1 := by
+        have : (0 : ℝ) < 1 := by norm_num
+        exact add_pos_of_nonneg_of_pos (le_of_lt hp_pos) this
+      -- Product p i * (p i + 1) > 0
+      have hden_pos : 0 < (c.p i : ℝ) * ((c.p i : ℝ) + 1) :=
+        mul_pos hp_pos hp1_pos
+      -- So 1 / (p i * (p i + 1)) > 0
+      have hfrac_pos : 0 < (1 : ℝ) / (c.p i * (c.p i + 1)) :=
+        div_pos (by norm_num) hden_pos
+      have := add_pos_of_nonneg_of_pos (show (0 : ℝ) ≤ 1 by norm_num) hfrac_pos
+      simpa [add_comm] using this
+    have hprod_p_pos : 0 <
+        ∏ i : Fin 3, (1 + (1 : ℝ) / (c.p i * (c.p i + 1))) := by
+      have := Finset.prod_pos (s := (Finset.univ : Finset (Fin 3))) (by
+        intro i hi; exact hfac_p i)
+      simpa using this
+    -- Second factor: 1 + 3 / (8 * n) > 0
+    have hn_pos_nat : 0 < c.n := Nat.succ_le_iff.mp c.hn
+      -- hn : n ≥ 1 ⇒ 0 < n
+    have hn_pos : 0 < (c.n : ℝ) := by exact_mod_cast hn_pos_nat
+    have h8n_pos : 0 < (8 : ℝ) * (c.n : ℝ) :=
+      mul_pos (by norm_num) hn_pos
+    have hfrac_n_pos : 0 < (3 : ℝ) / (8 * c.n) :=
+      div_pos (by norm_num) h8n_pos
+    have h1_plus : 0 < 1 + (3 : ℝ) / (8 * c.n) := by
+      have := add_pos_of_nonneg_of_pos (show (0 : ℝ) ≤ 1 by norm_num) hfrac_n_pos
+      simpa [add_comm] using this
+
+    -- A is product of two positive factors
+    have := mul_pos hprod_p_pos h1_plus
+    simpa [B , C] using this
+
+
+
+
+  /- Step 4: Show 1 - 4 * P / Q > 0 using h_crit and positivity -/
+  have hR_pos : 0 < R := by
+    -- If it were ≤ 0, the RHS of h_crit' would be ≤ 0, contradicting L > 0.
+    by_contra hD
+    have hD_le :R ≤ 0 := le_of_not_gt hD
+    have hRHS_nonpos : B * C  * R  ≤ 0 :=
+      mul_nonpos_of_nonneg_of_nonpos (le_of_lt hA_pos) hD_le
+    have hL_le_zero : L ≤ 0 := le_trans h_crit' hRHS_nonpos
+    exact (not_le_of_gt hL_pos) hL_le_zero
+
+  have hR_pos' :  ( 1 - 4 * (∏ i, (c.p i : ℝ)) / (∏ i, (c.q i : ℝ)) )>0  := hR_pos
+
+  have hratio: (4 * (∏ i, (c.p i : ℝ) )) / (∏ i, (c.q i : ℝ)) < 1:= by
+    linarith
+
+  have hYpos: ∏ i, (c.q i : ℝ) > 0 := by
+    have hfac' : ∀ i : Fin 3, 0 <  (c.q i : ℝ )  := by
+      intro i
+      -- q i is a positive prime
+      have hq_pos_nat' : 0 < (c.q i ):= (c.hq i).pos
+      have hq_pos' : 0 < (c.q i : ℝ) := by exact_mod_cast hq_pos_nat'
+      exact hq_pos'
+    -- Product over Fin 3 of positive terms is positive
+    apply Finset.prod_pos (s := (Finset.univ : Finset (Fin 3))) (by
+      intro i hi; exact hfac' i )
+
+
+  have h_conclusion: (4 * ∏ i, (c.p i : ℝ )) < (∏ i, (c.q i : ℝ ) ) :=
+    let X := (4 * ∏ i, (c.p i : ℝ ))
+    let Y := (∏ i, (c.q i : ℝ ) )
+    have ratio: X / Y < 1 := hratio
+    -- we already know Y > 0
+    have xleqy':  0 < Y ∧ X < Y ∨ Y = 0 ∨ Y < 0 ∧ Y < X  := div_lt_one_iff.mp ratio
+    have xleqy : X < Y := by
+      cases xleqy' with
+      | inr a =>  cases a with
+        | inr aa => linarith
+        | inl ab => linarith
+      | inl b => exact b.right
+
+    by simpa
+    --rw [← div_lt_one_iff ]
+  by exact_mod_cast h_conclusion
 
 
 blueprint_comment /--
