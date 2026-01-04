@@ -42,8 +42,9 @@ noncomputable def admissible_bound (A B C R : ℝ) (x : ℝ) := A * (log x / R) 
   -/)]
 def Eψ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eψ x ≤ admissible_bound A B C R x
 
-/-- May need to guard against junk value at s=1 -/
-noncomputable def riemannZeta.zeroes : Set ℂ := {s : ℂ | riemannZeta s = 0 }
+noncomputable def riemannZeta.zeroes : Set ℂ := {s : ℂ | s ≠ 1 ∧ riemannZeta s = 0 } -- Explicitly excluded the pole at 1 to avoid issues with junk values
+
+noncomputable def riemannZeta.zeroes_rect (I J : Set ℝ) : Set ℂ := { s : ℂ | s.re ∈ I ∧ s.im ∈ J ∧ s ∈ zeroes }
 
 def WithTop.top_to_zero {α : Type*} [Zero α] (a : WithTop α) : α := match a with
 | ⊤ => 0
@@ -51,23 +52,26 @@ def WithTop.top_to_zero {α : Type*} [Zero α] (a : WithTop α) : α := match a 
 
 noncomputable def riemannZeta.order (s : ℂ) : ℤ := (meromorphicOrderAt (riemannZeta) s).top_to_zero
 
+noncomputable def riemannZeta.zeroes_sum {α : Type*} [RCLike α] (I J : Set ℝ) (f : ℂ → α) : α := ∑' ρ : riemannZeta.zeroes_rect I J, (f ρ) * (riemannZeta.order ρ)
+
+
 @[blueprint
   "classical-zero-free-region"
   (title := "Section 1.1, FKS2")
   (statement := /-- We say that one has a classical zero-free region with parameter $R$ if $zeta(s)$ has no zeroes in the region $Re(s) \geq 1 - 1 / R * \log |\Im s|$ for $\Im(s) > 3$. -/)]
-noncomputable def riemannZeta.classicalZeroFree (R : ℝ) := ∀ (σ t : ℝ), t ≥ 3 → σ ≥ 1 / (R * log t) → riemannZeta (σ + t * Complex.I) ≠ 0
+noncomputable def riemannZeta.classicalZeroFree (R : ℝ) := ∀ (σ t : ℝ), t ≥ 3 → σ ≥ 1 / (R * log t) → σ + t * Complex.I ∉ zeroes
 
 @[blueprint
   "zero-counting-function"
   (title := "Zero counting function N(T)")
   (statement := /-- The number of zeroes of imaginary part between 0 and T, counting multiplicity -/)]
-noncomputable def riemannZeta.N (T : ℝ) : ℝ := ∑' ρ : { s:ℂ | s ∈ riemannZeta.zeroes ∧ 0 < s.im ∧ s.im < T }, riemannZeta.order ρ
+noncomputable def riemannZeta.N (T : ℝ) : ℝ := zeroes_sum Set.univ (Set.Ioo 0 T) (fun ρ ↦ 1)
 
 @[blueprint
   "zero-counting-function"
   (title := "Zero counting function N(σ,T)")
   (statement := /-- The number of zeroes of imaginary part between 0 and T, with real part greater than $\sigma$, counting multiplicity -/)]
-noncomputable def riemannZeta.N' (σ T : ℝ) : ℝ := ∑' ρ : { s:ℂ | s ∈ riemannZeta.zeroes ∧ 0 < s.re ∧ 0 < s.im ∧ s.im < T }, riemannZeta.order ρ
+noncomputable def riemannZeta.N' (σ T : ℝ) : ℝ := zeroes_sum (Set.Ioo σ 1) (Set.Ioo 0 T) 1
 
 noncomputable def riemannZeta.R (b₁ b₂ b₃ T : ℝ) : ℝ := b₁ * log T + b₂ * log (log T) + b₃
 

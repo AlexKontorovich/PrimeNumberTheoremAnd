@@ -21,7 +21,7 @@ noncomputable def B₁ (b₁ b₂ b₃ U V : ℝ) := ( 1/(2*π) + ((b₁ * log U
   (title := "FKS Lemma 2.1")
   (statement := /--
   If $|N(T) - (T/2\pi \log(T/2\pi e) + 7/8)| \leq R(T)$ then $\sum_{U \leq \gamma < V} 1/γ} ≤ B_1(U,V)$.-/)]
-theorem lemma_2_1 {b₁ b₂ b₃ U V : ℝ} (hU : U ≥ 1) (hV : V ≥ U) (hR : riemannZeta.Riemann_vonMangoldt_bound b₁ b₂ b₃) : ∑' ρ : { s | s ∈ riemannZeta.zeroes ∧ U ≤ s.im ∧ s.im < V }, riemannZeta.order ρ / ρ.val.im ≤ B₁ b₁ b₂ b₃ U V := by sorry
+theorem lemma_2_1 {b₁ b₂ b₃ U V : ℝ} (hU : U ≥ 1) (hV : V ≥ U) (hR : riemannZeta.Riemann_vonMangoldt_bound b₁ b₂ b₃) : riemannZeta.zeroes_sum Set.univ (Set.Ico U V) (fun ρ ↦ 1 / ρ.im) ≤ B₁ b₁ b₂ b₃ U V := by sorry
 
 def table_1 : List (ℝ × ℝ) :=
   [ (100, 0.5922435112),
@@ -39,12 +39,32 @@ def table_1 : List (ℝ × ℝ) :=
 @[blueprint
   "fks-corollary_2_3"
   (title := "FKS Corollary 2.3")
-  (statement := /-- For each pair $T_0,S_0$ in Table 1 we have, for all $V > T_0$, $\sum_{0 < γ < V} 1/\gamma} < S_0 + B_1(T_0,V)$. -/)]
-theorem corollary_2_3 {T₀ S₀ V : ℝ} (h : (T₀, S₀) ∈ table_1) (hV : V > T₀) : ∑' ρ : { s | s ∈ riemannZeta.zeroes ∧ 0 < s.im ∧ s.im < V }, riemannZeta.order ρ / ρ.val.im < S₀ + B₁ 0.137 0.443 1.588 T₀ V := by sorry
+  (statement := /-- For each pair $T_0,S_0$ in Table 1 we have, for all $V > T_0$, $\sum_{0 < \gamma < V} 1/\gamma} < S_0 + B_1(T_0,V)$. -/)]
+theorem corollary_2_3 {T₀ S₀ V : ℝ} (h : (T₀, S₀) ∈ table_1) (hV : V > T₀) : riemannZeta.zeroes_sum Set.univ (Set.Ioo 0 V) (fun ρ ↦ 1 / ρ.im) < S₀ + B₁ 0.137 0.443 1.588 T₀ V := by sorry
 
+noncomputable def s₀ (σ U V : ℝ) := riemannZeta.zeroes_sum (Set.Ico σ 1) (Set.Ico U V) (fun ρ ↦ 1 / ρ.im)
 
+noncomputable def _root_.Real.Gamma.incomplete (s : ℝ) (x : ℝ) : ℝ := ∫ t in Set.Ioi x, exp (-t) * t ^ (s - 1)
 
+noncomputable def _root_.Complex.Gamma.incomplete (s : ℂ) (x : ℝ) : ℂ := ∫ t in Set.Ioi x, exp (-t) * t ^ (s - 1)
 
+noncomputable def B₀ (c₁ c₂ p q : ℝ) (U V : ℝ) : ℝ :=
+  c₁ * (log V)^q / V ^ (1 - p) + c₂ * (log V)^2 / V
+  + (c₁ / (1 - p)^(q+1)) * (Real.Gamma.incomplete (q+1) ((1-p)*(log U)) - Real.Gamma.incomplete (q+1) ((1-p)*(log V)))
+  + c₂ * (Real.Gamma.incomplete 3 ((log U)) - Real.Gamma.incomplete 3 ((log V))
+  )
+
+@[blueprint
+  "fks-lemma-2-5"
+  (title := "FKS Lemma 2.5")
+  (statement := /-- Let $T_0 \geq 2$ and $\gamma > 0$.  Assume that there exist $c_1, c_2, p, q, T_0$ for which one has a zero density bound.  Assume $\sigma \geq 5/8$ and $T_0 ≤ U < V$.  Then $s_0(σ,U,V) ≤ B_0(\sigma,U,V)$. -/)]
+theorem lemma_2_5 {T₀ σ c₁ c₂ p q U V : ℝ}
+  (hT₀ : T₀ ≥ 2)
+  (hσ : σ ≥ 5 / 8)
+  (hU : U ≥ T₀)
+  (hV : V > U)
+  (hZDB : riemannZeta.zero_density_bound T₀ σ c₁ c₂ p q) :
+  s₀ σ U V ≤ B₀ c₁ c₂ p q U V := by sorry
 
 noncomputable def A (x₀ : ℝ) : ℝ :=
   if log x₀ < 1000 then 0 -- junk value
