@@ -20,7 +20,7 @@ noncomputable def B₁ (b₁ b₂ b₃ U V : ℝ) := ( 1/(2*π) + ((b₁ * log U
   "fks-lemma-2-1"
   (title := "FKS Lemma 2.1")
   (statement := /--
-  If $|N(T) - (T/2\pi \log(T/2\pi e) + 7/8)| \leq R(T)$ then $\sum_{U \leq \gamma < V} 1/\gamma} ≤ B_1(U,V)$.-/)]
+  If $|N(T) - (T/2\pi \log(T/2\pi e) + 7/8)| \leq R(T)$ then $\sum_{U \leq \gamma < V} 1/\gamma} \leq B_1(U,V)$.-/)]
 theorem lemma_2_1 {b₁ b₂ b₃ U V : ℝ} (hU : U ≥ 1) (hV : V ≥ U) (hR : riemannZeta.Riemann_vonMangoldt_bound b₁ b₂ b₃) : riemannZeta.zeroes_sum Set.univ (Set.Ico U V) (fun ρ ↦ 1 / ρ.im) ≤ B₁ b₁ b₂ b₃ U V := by sorry
 
 def table_1 : List (ℝ × ℝ) :=
