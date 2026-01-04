@@ -394,7 +394,22 @@ theorem primorial_bounds :
 theorem primorial_bounds_finprod :
     ∃ E : ℝ → ℝ, E =o[atTop] (fun x ↦ x) ∧
       ∀ x : ℝ, ∏ᶠ (p : ℕ) (_ : p ≤ x) (_ : Nat.Prime p), p = exp (x + E x) := by
-  sorry
+  obtain ⟨E, hE, hprod⟩ := primorial_bounds
+  refine ⟨E, hE, fun x ↦ ?_⟩
+  have hfin : {p : ℕ | (p : ℝ) ≤ x ∧ p.Prime}.Finite :=
+    (Iic ⌊x⌋₊).finite_toSet.subset fun p ⟨hpx, _⟩ ↦ mem_Iic.mpr <| le_floor hpx
+  have heq : ∏ᶠ (p : ℕ) (_ : (p : ℝ) ≤ x) (_ : p.Prime), p =
+      ∏ p ∈ (Iic ⌊x⌋₊).filter Prime, p := by
+    calc ∏ᶠ (p : ℕ) (_ : (p : ℝ) ≤ x) (_ : p.Prime), p = ∏ᶠ (p : ℕ) (_ : (p : ℝ) ≤ x ∧ p.Prime), p :=
+      finprod_congr fun p ↦ by by_cases hp : p.Prime <;> simp [hp]
+      _ = ∏ p ∈ hfin.toFinset, p := finprod_mem_eq_finite_toFinset_prod _ hfin
+      _ = _ := prod_congr (by ext p; simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq,
+          mem_filter, mem_Iic, and_congr_left_iff]; exact fun hp ↦
+          ⟨le_floor, fun hpn ↦ (le_or_gt 0 x).elim
+          (fun hx ↦ (Nat.floor_le hx).trans' (cast_le.mpr hpn)) fun hx ↦
+          absurd (le_zero.mp (floor_eq_zero.mpr (hx.trans_le zero_le_one) ▸ hpn))
+          hp.ne_zero⟩) (fun _ _ ↦ rfl)
+  simp only [heq, hprod]
 
 lemma continuousOn_log0 :
     ContinuousOn (fun x ↦ -1 / (x * log x ^ 2)) {0, 1, -1}ᶜ := by
