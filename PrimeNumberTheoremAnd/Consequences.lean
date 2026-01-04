@@ -1186,9 +1186,70 @@ blueprint_comment /--
 Let $p_n$ denote the $n^{th}$ prime.
 -/
 
-set_option maxHeartbeats 300000 in
--- A large number of limit calculations necessitated a heartbeat limit increase. -
-open Filter in
+noncomputable abbrev nth_prime (n : ℕ) : ℕ := Nat.nth Nat.Prime n
+
+lemma pi_nth_prime (n : ℕ) :
+    primeCounting (nth_prime n) = n + 1 := by
+  rw [primeCounting, primeCounting', count_nth_succ_of_infinite infinite_setOf_prime]
+
+lemma tendsto_nth_prime_atTop : Tendsto nth_prime atTop atTop :=
+  nth_strictMono infinite_setOf_prime |>.tendsto_atTop
+
+lemma pi_nth_prime_asymp :  (fun n ↦ (nth_prime n) / (log (nth_prime n))) ~[atTop] (fun (n : ℕ) ↦ (n : ℝ)) := by
+  trans (fun (n : ℕ) ↦ ( n + 1 : ℝ))
+  · have : Tendsto (fun n ↦ ((Nat.nth Nat.Prime n) : ℝ)) atTop atTop := by
+      apply tendsto_natCast_atTop_iff.mpr tendsto_nth_prime_atTop
+    convert pi_alt'.comp_tendsto this |>.symm
+    simp only [Function.comp_apply, floor_natCast]
+    rw [pi_nth_prime]
+    norm_cast
+  · apply IsEquivalent.add_isLittleO (by rfl)
+    exact isLittleO_const_id_atTop (1 : ℝ) |>.natCast_atTop
+
+lemma Asymptotics.IsEquivalent.log {α : Type*} {l : Filter α} {f g : α → ℝ} (hfg : f ~[l] g)
+    (g_tendsto : Tendsto g l atTop) :
+    (fun n ↦ log (f n)) ~[l] (fun n ↦ log (g n)) := by
+  have hg := g_tendsto.eventually_ne_atTop 0
+  have hf := hfg.symm.tendsto_atTop g_tendsto|>.eventually_ne_atTop 0
+  rw [isEquivalent_iff_tendsto_one hg] at hfg
+  have := hfg.log (by norm_num)
+  simp only [Pi.div_apply, log_one] at this
+  apply IsLittleO.isEquivalent
+  have := this.congr' (f₂ := (fun n ↦ Real.log (f n) - Real.log (g n))) ?_
+  swap
+  · filter_upwards [hf, hg] with n hf hg using log_div hf hg
+  trans (fun n ↦ 1)
+  · exact (isLittleO_one_iff ℝ).mpr this
+  rw [isLittleO_one_left_iff]
+  exact tendsto_abs_atTop_atTop.comp <| tendsto_log_atTop|>.comp g_tendsto
+
+lemma log_nth_prime_asymp : (fun n ↦ log (nth_prime n)) ~[atTop] (fun n ↦ log n) := by
+  have := pi_nth_prime_asymp.log tendsto_natCast_atTop_atTop
+  · apply IsEquivalent.trans _ this
+    apply IsEquivalent.congr_right (v := (fun n ↦ log (nth_prime n) - log (log (nth_prime n))))
+    swap
+    · filter_upwards with n
+      rw [log_div]
+      · exact_mod_cast prime_nth_prime n |>.ne_zero
+      · apply log_ne_zero.mpr ⟨?_, ?_, ?_⟩
+        <;> norm_cast<;> linarith [prime_nth_prime n |>.two_le]
+    symm
+    apply IsEquivalent.sub_isLittleO (by rfl)
+    apply IsLittleO.comp_tendsto isLittleO_log_id_atTop
+    have : Tendsto (fun n ↦ ((Nat.nth Nat.Prime n) : ℝ)) atTop atTop := by
+      apply tendsto_natCast_atTop_iff.mpr tendsto_nth_prime_atTop
+    apply tendsto_log_atTop.comp this
+
+lemma nth_prime_asymp : (fun n ↦ ((nth_prime n) : ℝ)) ~[atTop] (fun n ↦ n * log n) := by
+  have := pi_nth_prime_asymp.mul log_nth_prime_asymp
+  convert this using 1
+  ext n
+  simp only [Pi.mul_apply]
+  have : log (nth_prime n) ≠ 0 :=by
+    apply log_ne_zero.mpr ⟨?_, ?_, ?_⟩
+      <;> norm_cast<;> linarith [prime_nth_prime n |>.two_le]
+  field
+
 @[blueprint
   (title := "pn-asymptotic")
   (statement := /--
@@ -1197,9 +1258,9 @@ open Filter in
   as $n \to \infty$.
   -/)
   (proof := /--
-    Use Corollary \ref{pi_alt} to show that for any $\eps>0$, and for $n$ sufficiently large,
-    the number of primes up to $(1-\eps) n \log n$ is less than $n$, and the number of primes up
-    to $(1+\eps) n \log n$ is greater than $n$.
+    Use Corollary \ref{pi_alt} to show that $n=\pi(p_n)\sim p_n/\log p_n$
+    Taking logs gives $\log n \sim \log p_n - \log\log p_n \sim \log p_n$.
+    Multiplying these gives $p_n\sim n\log n$ from which the result follows.
   -/)
   (latexEnv := "proposition")]
 theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) ∧
@@ -1211,217 +1272,18 @@ theorem pn_asymptotic : ∃ c : ℕ → ℝ, c =o[atTop] (fun _ ↦ (1 : ℝ)) �
     have : log n ≠ 0 := by rw [Real.log_ne_zero]; rify at hn; grind
     simp [c]
     field_simp
-  rw [Asymptotics.isLittleO_one_iff, Metric.tendsto_nhds]
-  intro ε hε
-  obtain ⟨ c', hc', hcount ⟩ := pi_alt
-  have hlog := Tendsto.comp Real.tendsto_log_atTop tendsto_natCast_atTop_atTop
-
-  have h1 : ∀ᶠ n:ℕ in atTop, n > 0 := by
-    rw [eventually_atTop]; use 1; grind
-  have h2 : ∀ᶠ n:ℕ in atTop, log n > 0 := by
-    rw [eventually_atTop]; use 2; intro n hn; apply Real.log_pos; norm_num; linarith
-
-  have h3 : ∀ᶠ n:ℕ in atTop, ε < 1 →
-      (1 + c' ((1 - ε) * n * log n)) * ((1 - ε) * n * log n) /
-        log ((1 - ε) * n * log n) ≤ n := by
-    rcases lt_or_ge ε 1 with hε' | hε'
-    swap
-    · apply Filter.Eventually.of_forall
-      grind
-    suffices ∀ᶠ n:ℕ in atTop, ((1 + c' ((1 - ε) * n * log n)) * (1 - ε)) *
-        (log n / log ((1 - ε) * n * log n)) ≤ 1 by
-      apply Eventually.mono this
-      intro n hn _
-      replace hn := mul_le_mul_of_nonneg_right hn (show 0 ≤ (n:ℝ) by positivity)
-      convert hn using 1 <;> ring
-    apply Tendsto.eventually_le_const (show 1-ε < 1 by linarith)
-    convert Tendsto.mul (a := 1-ε) (b := 1) ?_ ?_ using 2
-    · simp
-    · convert Tendsto.mul_const (c := 1) (b := 1-ε) ?_ using 2
-      · simp
-      convert Tendsto.const_add (c := 0) (b := 1)
-        (f := fun (n:ℕ) ↦ c' ((1-ε) * n * log n)) ?_ using 2
-      · simp
-      rw [Asymptotics.isLittleO_one_iff] at hc'
-      apply Tendsto.comp hc'
-      apply Tendsto.atTop_mul_atTop₀ _ hlog
-      apply Tendsto.const_mul_atTop' (by linarith) tendsto_natCast_atTop_atTop
-    rw [←tendsto_inv_iff₀ (by positivity)]
-    simp only [inv_div, inv_one]
-    suffices Tendsto (fun n:ℕ ↦ (log (1 - ε)/log n) + (log (log n) / log n) + 1) atTop (nhds 1) by
-      apply (Filter.tendsto_congr' _).mp this
-      filter_upwards [h1, h2]
-      intro n h1n h2n
-      field_simp
-      have : 1-ε ≠ 0 := by linarith
-      rw [Real.log_mul, Real.log_mul] <;> try positivity
-    convert Tendsto.add_const (c := 0) (b := 1) (f :=
-      fun (n:ℕ) ↦ (log (1 - ε)/log n) + (log (log n) / log n) ) ?_
-    · simp
-    convert Tendsto.add (a := 0) (b := 0) (f := fun (n:ℕ) ↦ (log (1 - ε)/log n)) ?_ ?_
-    · simp
-    · apply Filter.Tendsto.const_div_atTop hlog
-    apply Tendsto.comp (g := fun x ↦ log x / x) _ hlog
-    convert Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by positivity) with n <;> simp
-  have h4 : ∀ᶠ n:ℕ in atTop, 1 < (1+ε) * n * log n := by
-    rw [eventually_atTop]; use 3; intro n hn
-    apply_rules [one_lt_mul_of_lt_of_le]
-    · linarith
-    · norm_num; omega
-    rw [Real.le_log_iff_exp_le (by positivity)]
-    have := Real.exp_one_lt_d9
-    rify at hn; linarith
-  have h2a : ∀ᶠ n:ℕ in atTop, log ((1+ε)*(log n)*n) > 0 := by
-    filter_upwards [h4]
-    intro n hn
-    apply Real.log_pos
-    convert hn using 1
-    ring
-  have h5 : ∀ᶠ n:ℕ in atTop,
-      n < (1 + c' ((1 + ε) * n * log n - 1)) * ((1 + ε) * n * log n - 1) /
-        log ((1 + ε) * n * log n - 1) := by
-      suffices ∀ᶠ n:ℕ in atTop, (1 + c' ((1 + ε) * n * log n - 1)) *
-        (((1 + ε) * log n - 1/n) / log ((1 + ε) * n * log n - 1)) > 1 by
-        filter_upwards [h1, this]
-        intro n hn₀ hn
-        replace hn := mul_lt_mul_of_pos_right hn (show 0 < (n:ℝ) by  positivity)
-        convert hn using 1 <;> field_simp
-      apply Tendsto.eventually_const_lt (show 1+ε > 1 by linarith)
-      convert Tendsto.mul (a := 1) (b := 1+ε) ?_ ?_ using 2
-      · simp
-      · convert Tendsto.const_add (c := 0) (b := 1)
-            (f := fun (n:ℕ) ↦ c' ((1+ε) * n * log n - 1)) ?_ using 2
-        · simp
-        rw [Asymptotics.isLittleO_one_iff] at hc'
-        apply Tendsto.comp hc'
-        apply Tendsto.comp (g := fun x ↦ (1+ε) * x * log x - 1) _
-            tendsto_natCast_atTop_atTop
-        convert Tendsto.comp (g := fun x ↦ (1+ε) * x - 1) (y := Filter.atTop)
-            (f := fun x ↦ x * log x) ?_ ?_ using 2 with x
-        · grind
-        · have deg_1 : (1:ℕ) ≤ ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).degree := by
-            apply Polynomial.le_degree_of_ne_zero
-            simp [Polynomial.coeff_one]
-            grind
-          have deg_2 : ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).degree ≤ (1:ℕ) := by
-            apply (Polynomial.degree_sub_le _ _).trans
-            simp only [Polynomial.degree_one, cast_one, sup_le_iff, zero_le_one, and_true]
-            apply (Polynomial.degree_smul_le _ _).trans
-            simp
-          have deg_3 : ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).degree = (1:ℕ) := by order
-          have deg_4 : ((1 + ε) • Polynomial.X - 1: Polynomial ℝ).natDegree = 1 :=
-            Polynomial.natDegree_eq_of_degree_eq_some deg_3
-          convert Polynomial.tendsto_atTop_of_leadingCoeff_nonneg
-            ((1+ε) • Polynomial.X - 1: Polynomial ℝ) ?_ ?_ with x
-          · simp
-          · simp [deg_3]
-          simp [←Polynomial.coeff_natDegree, deg_4, Polynomial.coeff_one]
-          linarith
-        apply Filter.Tendsto.atTop_mul_atTop₀ _ Real.tendsto_log_atTop
-        exact fun ⦃U⦄ a ↦ a
-      let f1 : ℕ → ℝ := fun x ↦ 1 - ((1+ε)* x * log x)⁻¹
-      let f2 : ℕ → ℝ := fun x ↦ log ((1+ε)*x*log x - 1) / log ((1+ε)*x*log x)
-      let f3 : ℕ → ℝ := fun x ↦ log ((1+ε)*x*log x) / log x
-      have h6 : Tendsto (fun n:ℕ ↦ (1 + ε) * n * log n) atTop atTop := by
-        apply Tendsto.comp (g := fun x ↦ (1+ε)*x*log x) _ tendsto_natCast_atTop_atTop
-        apply Tendsto.atTop_mul_atTop₀ _ Real.tendsto_log_atTop
-        apply Tendsto.const_mul_atTop' (by linarith)
-        exact fun ⦃U⦄ a ↦ a
-
-      suffices Tendsto (fun n ↦ (1+ε) * ((f1 n) / (f2 n * f3 n))) Filter.atTop (nhds (1+ε)) by
-        apply (Filter.tendsto_congr' _).mp this
-        filter_upwards [h1, h2, h2a]
-        intro n h1n h2n h2an
-        simp [f1, f2, f3]
-        field_simp
-      convert Tendsto.const_mul (c := 1) (b := 1+ε) ?_ using 2
-      · simp
-      convert Tendsto.div (a:=1) (b:=1) (f:=f1) (g:=f2*f3) ?_ ?_ (by positivity)
-      · simp
-      · unfold f1
-        convert Tendsto.const_sub 1 (c := 0) (f := fun (x:ℕ) ↦ ((1+ε)*x*log x)⁻¹) ?_
-        · simp
-        apply Tendsto.comp tendsto_inv_atTop_zero h6
-      convert Tendsto.mul (a := 1) (b := 1) (f := f2) ?_ ?_ using 2
-      · simp
-      · suffices Tendsto
-            (fun n:ℕ ↦ log (1 - ((1+ε)*n*log n)⁻¹) / log ((1+ε)*n*log n) + 1)
-            atTop (nhds 1) by
-          apply (Filter.tendsto_congr' _).mp this
-          filter_upwards [h1, h2, h2a]
-          intro n h1n h2n h2an
-          have : log ((1 + ε) * n * log n) > 0 := by convert h2an using 2; ring
-          have : 1 < (1+ε)*n*log n := by
-            rw [←Real.log_pos_iff]
-            · order
-            positivity
-          unfold f2; field_simp
-          rw [←Real.log_mul] <;> try grind
-          congr
-          field_simp
-        convert Tendsto.add_const (c := 0) (b := 1) (f :=
-          fun n:ℕ ↦ log (1 - ((1 + ε) * n * log n)⁻¹) / log ((1 + ε) * n * log n)) ?_
-        · simp
-        apply Tendsto.div_atTop (a := 0)
-        · convert Filter.Tendsto.log (x := 1) ?_ (by positivity)
-          · simp
-          convert Tendsto.const_sub 1 (c := 0) (f := fun (x:ℕ) ↦ ((1+ε)*x*log x)⁻¹) ?_
-          · simp
-          apply Tendsto.comp tendsto_inv_atTop_zero h6
-        apply Tendsto.comp Real.tendsto_log_atTop h6
-      suffices Tendsto (fun n:ℕ ↦ (log (1 + ε)/log n) + (log (log n) / log n) + 1) atTop (nhds 1) by
-        apply (Filter.tendsto_congr' _).mp this
-        filter_upwards [h1, h2]
-        intro n h1n h2n
-        unfold f3; field_simp
-        rw [Real.log_mul, Real.log_mul] <;> try positivity
-      convert Tendsto.add_const (c := 0) (b := 1) (f :=
-        fun (n:ℕ) ↦ (log (1 + ε)/log n) + (log (log n) / log n) ) ?_
-      · simp
-      convert Tendsto.add (a := 0) (b := 0) (f := fun (n:ℕ) ↦ (log (1 + ε)/log n)) ?_ ?_
-      · simp
-      · apply Filter.Tendsto.const_div_atTop hlog
-      apply Tendsto.comp (g := fun x ↦ log x / x) _ hlog
-      convert Real.tendsto_pow_log_div_mul_add_atTop 1 0 1 (by positivity) with n <;> simp
-  filter_upwards [h1, h2, h3, h4, h5]
-  intro n h1n h2n h3n h4n h5n
-
-  have hpn : nth Nat.Prime n > 0 := by
-    have := Nat.add_two_le_nth_prime n
-    linarith
-  simp only [dist_zero_right, norm_eq_abs, abs_lt, neg_lt_sub_iff_lt_add, c]
-  constructor
-  · rcases lt_or_ge ε 1 with hε' | hε'
-    swap
-    · have : 0 < (nth Nat.Prime n) / (n * log n) := by positivity
-      grind
-    let x := ⌊ (1-ε) * n * log n ⌋₊
-    suffices h: x+1 ≤ nth Nat.Prime n by
-      grw [←h]
-      rw [←sub_lt_iff_lt_add', lt_div_iff₀ (by positivity)]
-      simp only [cast_add, cast_one]
-      convert Nat.lt_floor_add_one ((1 - ε) * (↑n * log ↑n)) using 4
-      ring
-    rw [←Nat.count_le_iff_le_nth Nat.infinite_setOf_prime]
-    change x.primeCounting ≤ n
-    rify; rw [hcount]; grind
-  let x := ⌊ (1+ε) * n * log n ⌋₊
-  suffices h: nth Nat.Prime n < x by
-    calc
-      _ < x / (↑n * log ↑n) - 1 := by gcongr
-      _ ≤ _ := by
-        rw [sub_le_iff_le_add', div_le_iff₀ (by positivity)]
-        convert Nat.floor_le _ using 1
-        · ring
-        positivity
-  apply Nat.nth_lt_of_lt_count
-  replace : x = ⌊ (1+ε) * n * log n - 1⌋₊+1 := by
-    rw [←Nat.floor_add_one]
-    · unfold x; congr; linarith
-    linarith
-  rw [this]; change n < ⌊ (1+ε) * n * log n - 1⌋₊.primeCounting
-  rify; rwa [hcount]
-
+  apply isLittleO_of_tendsto
+  · simp
+  simp only [div_one]
+  unfold c
+  have := isEquivalent_iff_tendsto_one ?_|>.mp nth_prime_asymp
+  swap 
+  · filter_upwards [eventually_ge_atTop 2] with n hn
+    simp
+    norm_cast
+    grind
+  convert this.add_const (-1 : ℝ) using 2
+  norm_num
 
 
 @[blueprint
