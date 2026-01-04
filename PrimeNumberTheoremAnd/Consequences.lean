@@ -283,7 +283,29 @@ theorem chebyshev_asymptotic :
 
 theorem chebyshev_asymptotic_finsum :
     (fun x ↦ ∑ᶠ (p : ℕ) (_ : p ≤ x) (_ : Nat.Prime p), log p) ~[atTop] fun x ↦ x := by
-  sorry
+  have hReal : (fun x : ℝ ↦ ∑ᶠ (p : ℕ) (_ : (p : ℝ) ≤ x) (_ : p.Prime), log (p : ℝ)) ~[atTop]
+      fun x ↦ x := by
+    have h x : ∑ᶠ (p : ℕ) (_ : (p : ℝ) ≤ x) (_ : p.Prime), log (p : ℝ) = θ x := by
+      rw [Chebyshev.theta_eq_sum_Icc]
+      have hfin : {p : ℕ | (p : ℝ) ≤ x ∧ p.Prime}.Finite :=
+        (Iic ⌊x⌋₊).finite_toSet.subset fun p ⟨hpx, _⟩ ↦ mem_Iic.mpr (Nat.le_floor hpx)
+      calc ∑ᶠ (p : ℕ) (_ : (p : ℝ) ≤ x) (_ : p.Prime), log (p : ℝ)
+          = ∑ᶠ (p : ℕ) (_ : (p : ℝ) ≤ x ∧ p.Prime), log (p : ℝ) :=
+            finsum_congr fun p ↦ by by_cases hp : p.Prime <;> simp [hp]
+        _ = ∑ p ∈ hfin.toFinset, log (p : ℝ) := finsum_mem_eq_finite_toFinset_sum _ hfin
+        _ = _ := sum_congr (by ext p; simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq,
+            mem_filter, mem_Icc, and_congr_left_iff]; exact fun hp ↦
+            ⟨fun hpx ↦ ⟨Nat.zero_le _, Nat.le_floor hpx⟩, fun ⟨_, hpn⟩ ↦ (le_or_gt 0 x).elim
+            (fun hx ↦ (Nat.floor_le hx).trans' (Nat.cast_le.mpr hpn)) fun hx ↦
+            absurd (Nat.le_zero.mp (Nat.floor_eq_zero.mpr (hx.trans_le zero_le_one) ▸ hpn))
+            hp.ne_zero⟩) (fun _ _ ↦ rfl)
+    have heq : (fun x : ℝ ↦ ∑ᶠ (p : ℕ) (_ : (p : ℝ) ≤ x) (_ : p.Prime), log (p : ℝ)) =ᶠ[atTop] θ :=
+      Filter.Eventually.of_forall h
+    exact chebyshev_asymptotic.congr_left heq.symm
+  simp only [IsEquivalent, show (fun n : ℕ ↦ ∑ᶠ (p : ℕ) (_ : p ≤ n) (_ : p.Prime), log (p : ℝ)) =
+      (fun x : ℝ ↦ ∑ᶠ (p : ℕ) (_ : (p : ℝ) ≤ x) (_ : p.Prime), log (p : ℝ)) ∘ Nat.cast from
+      funext fun _ ↦ finsum_congr fun _ ↦ by simp]
+  exact hReal.isLittleO.comp_tendsto tendsto_natCast_atTop_atTop
 
 theorem chebyshev_asymptotic' :
     ∃ (f : ℝ → ℝ),
