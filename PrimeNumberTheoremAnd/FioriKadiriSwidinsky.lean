@@ -39,7 +39,7 @@ def table_1 : List (ℝ × ℝ) :=
 @[blueprint
   "fks-corollary_2_3"
   (title := "FKS Corollary 2.3")
-  (statement := /-- For each pair $T_0,S_0$ in Table 1 we have, for all $V > T_0$, $\sum_{0 < \gamma < V} 1/\gamma} < S_0 + B_1(T_0,V)$. -/)]
+  (statement := /-- For each pair $T_0,S_0$ in Table 1 we have, for all $V > T_0$, $\sum_{0 < \gamma < V} 1/\gamma < S_0 + B_1(T_0,V)$. -/)]
 theorem corollary_2_3 {T₀ S₀ V : ℝ} (h : (T₀, S₀) ∈ table_1) (hV : V > T₀) : riemannZeta.zeroes_sum Set.univ (Set.Ioo 0 V) (fun ρ ↦ 1 / ρ.im) < S₀ + B₁ 0.137 0.443 1.588 T₀ V := by sorry
 
 noncomputable def s₀ (σ U V : ℝ) := riemannZeta.zeroes_sum (Set.Ico σ 1) (Set.Ico U V) (fun ρ ↦ 1 / ρ.im)
@@ -57,7 +57,7 @@ noncomputable def B₀ (c₁ c₂ p q : ℝ) (U V : ℝ) : ℝ :=
 @[blueprint
   "fks-lemma-2-5"
   (title := "FKS Lemma 2.5")
-  (statement := /-- Let $T_0 \geq 2$ and $\gamma > 0$.  Assume that there exist $c_1, c_2, p, q, T_0$ for which one has a zero density bound.  Assume $\sigma \geq 5/8$ and $T_0 ≤ U < V$.  Then $s_0(σ,U,V) ≤ B_0(\sigma,U,V)$. -/)]
+  (statement := /-- Let $T_0 \geq 2$ and $\gamma > 0$.  Assume that there exist $c_1, c_2, p, q, T_0$ for which one has a zero density bound.  Assume $\sigma \geq 5/8$ and $T_0 \leq U < V$.  Then $s_0(σ,U,V) \leq B_0(\sigma,U,V)$. -/)]
 theorem lemma_2_5 {T₀ σ c₁ c₂ p q U V : ℝ}
   (hT₀ : T₀ ≥ 2)
   (hσ : σ ≥ 5 / 8)
@@ -84,7 +84,7 @@ theorem remark_2_6_b (s : ℝ) (h : s > 1) : Filter.Tendsto (fun x ↦ Real.Gamm
   (statement := /-- Let $H_0$ denote a verification height for RH.  Let $10^9/H_0≤ k \leq 1$, $t > 0$, $H \in [1002, H_0)$, $α > 0$, $δ ≥ 1$, $\eta_0 = 0.23622$, $1 + \eta_0 \leq \mu \leq 1+\eta$, and $\eta \in (\eta_0, 1/2)$ be fixed. Let $\sigma > 1/2 + d / \log H_0$.  Then for any $T \geq H_0$, one has
   $$ N(\sigma,T) \leq (T-H) \log T / (2\pi d) * \log ( 1 + CC_1(\log(kT))^{2\sigma} (\log T)^{4(1-\sigma)} T^{8/3(1-\sigma)} / (T-H) ) + CC_2 * \log^2 T / 2 \pi d$$
 and
-  $$ N(\sigma,T) \leq \frac{CC_1}{2\pi d} (\log kT)^{2\sigma} (\log T)^{5-4*\sigma} T^{8/3(1-\sigma)} + CC_2 * \log^2 T / 2 \pi d$$\
+  $$ N(\sigma,T) \leq \frac{CC_1}{2\pi d} (\log kT)^{2\sigma} (\log T)^{5-4*\sigma} T^{8/3(1-\sigma)} + CC_2 * \log^2 T / 2 \pi d$$
 .-/)]
 theorem theorem_2_7 {H₀ k δ α d η₀ η μ σ H T : ℝ}
   (hH₀ : riemannZeta.RH_up_to H₀)
