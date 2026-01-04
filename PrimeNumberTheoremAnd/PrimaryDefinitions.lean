@@ -42,18 +42,15 @@ noncomputable def admissible_bound (A B C R : ℝ) (x : ℝ) := A * (log x / R) 
   -/)]
 def Eψ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eψ x ≤ admissible_bound A B C R x
 
-noncomputable def riemannZeta.zeroes : Set ℂ := {s : ℂ | s ≠ 1 ∧ riemannZeta s = 0 } -- Explicitly excluded the pole at 1 to avoid issues with junk values
+noncomputable def riemannZeta.zeroes : Set ℂ := {s : ℂ | riemannZeta s = 0 } -- Note that the junk value of zeta at s=1 is known to be nonzero
 
 noncomputable def riemannZeta.zeroes_rect (I J : Set ℝ) : Set ℂ := { s : ℂ | s.re ∈ I ∧ s.im ∈ J ∧ s ∈ zeroes }
 
-def WithTop.top_to_zero {α : Type*} [Zero α] (a : WithTop α) : α := match a with
-| ⊤ => 0
-| (some x) => x
-
-noncomputable def riemannZeta.order (s : ℂ) : ℤ := (meromorphicOrderAt (riemannZeta) s).top_to_zero
+noncomputable def riemannZeta.order (s : ℂ) : ℤ := (meromorphicOrderAt (riemannZeta) s).untopD 0
 
 noncomputable def riemannZeta.zeroes_sum {α : Type*} [RCLike α] (I J : Set ℝ) (f : ℂ → α) : α := ∑' ρ : riemannZeta.zeroes_rect I J, (f ρ) * (riemannZeta.order ρ)
 
+noncomputable def riemannZeta.RH_up_to (T : ℝ) : Prop := ∀ ρ ∈ riemannZeta.zeroes_rect (Set.Ioo 0.5 1) (Set.Ioo 0 T), ρ.re = 0.5
 
 @[blueprint
   "classical-zero-free-region"

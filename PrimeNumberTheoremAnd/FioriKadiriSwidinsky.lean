@@ -1,5 +1,6 @@
 import Architect
 import PrimeNumberTheoremAnd.PrimaryDefinitions
+import PrimeNumberTheoremAnd.KLN
 
 blueprint_comment /--
 \section{The estimates of Fiori, Kadiri, and Swidinsky}
@@ -71,7 +72,34 @@ theorem lemma_2_5 {T₀ σ c₁ c₂ p q U V : ℝ}
   (statement := /-- $\Gamma(3,x) = (x^2 + 2(x+1)) e^{-x}$.-/)]
 theorem remark_2_6_a (x : ℝ) : Real.Gamma.incomplete 3 x = (x^2 + 2 * (x + 1)) * exp (-x) := by sorry
 
+@[blueprint
+  "fks-remark-2-6-b"
+  (title := "FKS Remark 2-6-b")
+  (statement := /-- For $s>1$, one has $\Gamma(s,x) \sim x^{s-1} e^{-x}.-/)]
+theorem remark_2_6_b (s : ℝ) (h : s > 1) : Filter.Tendsto (fun x ↦ Real.Gamma.incomplete s x / (x^(s-1) * exp (-x))) Filter.atTop (nhds 1) := by sorry
 
+@[blueprint
+  "fks-theorem-2-7"
+  (title := "FKS Theorem 2.7")
+  (statement := /-- Let $H_0$ denote a verification height for RH.  Let $10^9/H_0≤ k \leq 1$, $t > 0$, $H \in [1002, H_0)$, $α > 0$, $δ ≥ 1$, $\eta_0 = 0.23622$, $1 + \eta_0 \leq \mu \leq 1+\eta$, and $\eta \in (\eta_0, 1/2)$ be fixed. Let $\sigma > 1/2 + d / \log H_0$.  Then for any $T \geq H_0$, one has
+  $$ N(\sigma,T) \leq (T-H) \log T / (2\pi d) * \log ( 1 + CC_1(\log(kT))^{2\sigma} (\log T)^{4(1-\sigma)} T^{8/3(1-\sigma)} / (T-H) ) + CC_2 * \log^2 T / 2 \pi d$$
+and
+  $$ N(\sigma,T) \leq \frac{CC_1}{2\pi d} (\log kT)^{2\sigma} (\log T)^{5-4*\sigma} T^{8/3(1-\sigma)} + CC_2 * \log^2 T / 2 \pi d$$\
+.-/)]
+theorem theorem_2_7 {H₀ k δ α d η₀ η μ σ H T : ℝ}
+  (hH₀ : riemannZeta.RH_up_to H₀)
+  (hk : k ∈ Set.Icc ((10 ^ 9) / H₀) 1)
+  (hα : α > 0)
+  (hδ : δ ≥ 1)
+  (hη₀ : η₀ = 0.23622)
+  (hμ : μ ∈ Set.Icc (1 + η₀) (1 + η))
+  (hη : η ∈ Set.Ioo η₀ 0.5)
+  (hσ : σ > 0.5 + d / log H₀)
+  (hH : H ∈ Set.Ico 1002 H₀)
+  (hT : T ≥ H₀) :
+  riemannZeta.N' σ T ≤ ( (T - H) * log T ) / (2 * π * d) * log (1 + KLN.CC₁ H₀ α d δ k H σ * (log (k * T))^(2*σ) * (log T)^(4*(1-σ)) * T^(8/3*(1-σ)) / (T - H) ) + KLN.CC₂ H₀ d η k H μ σ * (log T)^2 / (2 * π * d)
+  ∧
+  riemannZeta.N' σ T ≤ KLN.CC₁ H₀ α d δ k H σ * (log (k * T))^(2*σ) * (log T)^(5 - 4*σ) * T^(8/3*(1-σ)) / (2 * π * d) + KLN.CC₂ H₀ d η k H μ σ * (log T)^2 / (2 * π * d) := by sorry
 
 noncomputable def A (x₀ : ℝ) : ℝ :=
   if log x₀ < 1000 then 0 -- junk value
