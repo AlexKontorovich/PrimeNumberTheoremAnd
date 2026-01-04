@@ -250,8 +250,7 @@ theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
   sorry
 
 @[blueprint
-  "fks2-lemma-20"
-]
+  "fks2-lemma-20"]
 theorem lemma_20_a : StrictAntiOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) := sorry
 
 @[blueprint

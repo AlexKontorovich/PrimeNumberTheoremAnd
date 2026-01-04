@@ -58,4 +58,4 @@ theorem FKS_corollary_1_4 :
   "Hasanalizade-Shen-Wang"
   (title := "Hasanalizade-Shen-Wang")
   (statement := /-- One has a Riemann von Mangoldt estimate with parameters 0.1038, 0.2573, and 9.3675. --/)]
-theorem HSW.main_theorem : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675
+theorem HSW.main_theorem : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 := sorry

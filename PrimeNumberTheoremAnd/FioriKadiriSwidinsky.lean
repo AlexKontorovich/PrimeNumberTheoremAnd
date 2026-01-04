@@ -37,10 +37,12 @@ def table_1 : List (ℝ × ℝ) :=
   ]
 
 @[blueprint
-  "fks-corollyar_2_3"
+  "fks-corollary_2_3"
   (title := "FKS Corollary 2.3")
   (statement := /-- For each pair $T_0,S_0$ in Table 1 we have, for all $V > T_0$, $\sum_{0 < γ < V} 1/\gamma} < S_0 + B_1(T_0,V)$. -/)]
 theorem corollary_2_3 {T₀ S₀ V : ℝ} (h : (T₀, S₀) ∈ table_1) (hV : V > T₀) : ∑' ρ : { s | s ∈ riemannZeta.zeroes ∧ 0 < s.im ∧ s.im < V }, riemannZeta.order ρ / ρ.val.im < S₀ + B₁ 0.137 0.443 1.588 T₀ V := by sorry
+
+
 
 
 

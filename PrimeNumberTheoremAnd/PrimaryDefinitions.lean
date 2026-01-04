@@ -59,9 +59,15 @@ noncomputable def riemannZeta.classicalZeroFree (R : ℝ) := ∀ (σ t : ℝ), t
 
 @[blueprint
   "zero-counting-function"
-  (title := "Zero counting function N")
+  (title := "Zero counting function N(T)")
   (statement := /-- The number of zeroes of imaginary part between 0 and T, counting multiplicity -/)]
 noncomputable def riemannZeta.N (T : ℝ) : ℝ := ∑' ρ : { s:ℂ | s ∈ riemannZeta.zeroes ∧ 0 < s.im ∧ s.im < T }, riemannZeta.order ρ
+
+@[blueprint
+  "zero-counting-function"
+  (title := "Zero counting function N(σ,T)")
+  (statement := /-- The number of zeroes of imaginary part between 0 and T, with real part greater than $\sigma$, counting multiplicity -/)]
+noncomputable def riemannZeta.N' (σ T : ℝ) : ℝ := ∑' ρ : { s:ℂ | s ∈ riemannZeta.zeroes ∧ 0 < s.re ∧ 0 < s.im ∧ s.im < T }, riemannZeta.order ρ
 
 noncomputable def riemannZeta.R (b₁ b₂ b₃ T : ℝ) : ℝ := b₁ * log T + b₂ * log (log T) + b₃
 
@@ -71,3 +77,11 @@ noncomputable def riemannZeta.R (b₁ b₂ b₃ T : ℝ) : ℝ := b₁ * log T +
   (statement := /-- An estimate of the form $N(T) - \frac{T}{2\pi} \log \frac{T}{2\pi e} + \frac{7}{8}| ≤ b_1 \log T + b_2 \log\log T + b_3$ for $T \geq 2$. -/)]
 def riemannZeta.Riemann_vonMangoldt_bound (b₁ b₂ b₃ : ℝ) : Prop :=
   ∀ T ≥ 2, |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7/8)| ≤ R b₁ b₂ b₃ T
+
+@[blueprint
+  "zero-density-bound"
+  (title := "Zero density bound")
+  (statement := /-- An estimate of the form $N(\sigma,T) \leq c₁ T^p \log^q T + c₂ \log^2 T - \frac{T}{2\pi} \log \frac{T}{2\pi e} + \frac{7}{8}| ≤ b_1 \log T + b_2 \log\log T + b_3$ for $T \geq 2$. -/)]
+def riemannZeta.zero_density_bound (T₀ σ c₁ c₂ p q : ℝ) : Prop :=
+ ∀ T ≥ T₀,
+    riemannZeta.N' σ T ≤ c₁ * T ^ p * (log T) ^ q + c₂ * (log T) ^ 2
