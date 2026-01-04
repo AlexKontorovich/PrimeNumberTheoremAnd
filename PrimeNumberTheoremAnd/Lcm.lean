@@ -1,7 +1,6 @@
 import Mathlib
 
 import PrimeNumberTheoremAnd.SecondarySummary
-import LeanCopilot
 import Mathlib
 namespace Lcm
 
