@@ -821,8 +821,11 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion := {
   n := n
   p := (exists_p_primes hn).choose
   q := (exists_q_primes hn).choose
-  hn := sorry
-  hp := sorry
+  hn :=
+   calc
+    1 ≤ 89693 ^ 2 := by decide
+    _ ≤ n := hn
+  hp := (exists_p_primes hn).choose_spec.1,
   hp_mono := sorry
   hq := sorry
   hq_mono := sorry
