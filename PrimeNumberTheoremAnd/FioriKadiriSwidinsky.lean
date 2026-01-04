@@ -75,7 +75,7 @@ theorem remark_2_6_a (x : ℝ) : Real.Gamma.incomplete 3 x = (x^2 + 2 * (x + 1))
 @[blueprint
   "fks-remark-2-6-b"
   (title := "FKS Remark 2-6-b")
-  (statement := /-- For $s>1$, one has $\Gamma(s,x) \sim x^{s-1} e^{-x}.-/)]
+  (statement := /-- For $s>1$, one has $\Gamma(s,x) \sim x^{s-1} e^{-x}$.-/)]
 theorem remark_2_6_b (s : ℝ) (h : s > 1) : Filter.Tendsto (fun x ↦ Real.Gamma.incomplete s x / (x^(s-1) * exp (-x))) Filter.atTop (nhds 1) := by sorry
 
 @[blueprint
