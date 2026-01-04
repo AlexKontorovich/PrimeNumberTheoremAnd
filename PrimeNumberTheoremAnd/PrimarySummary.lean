@@ -8,7 +8,7 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-In this section we summarize the primary results known in the literature, and (if their proof has already been formalized) provide a proof.
+In this section we summarize the primary results known in the literature, and (if their proof has already been formalized) provide a proof.  TO DO: Move many of these results into dedicated files for each paper.
 
 Key references:
 
@@ -53,3 +53,9 @@ theorem FKS_corollary_1_3 :
   (proof := /-- TODO. -/)]
 theorem FKS_corollary_1_4 :
   Eψ.classicalBound 9.22022 (3/2) 0.8476836 1 2 := sorry
+
+@[blueprint
+  "Hasanalizade-Shen-Wang"
+  (title := "Hasanalizade-Shen-Wang")
+  (statement := /-- One has a Riemann von Mangoldt estimate with parameters 0.1038, 0.2573, and 9.3675. --/)]
+theorem HSW.main_theorem : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 := sorry
