@@ -707,8 +707,15 @@ theorem inv_cube_log_sqrt_le (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (log (√(n :
   -/)
   (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at \(n=X_0^2\).  One can verify numerically or symbolically. -/)
   (latexEnv := "lemma")]
-theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (n ^ (3 / 2)) ≤ (1 / (89693 : ℝ)) * (1 / (n : ℝ)) := by sorry
-
+theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
+    1 / ((n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (89693 : ℝ)) * (1 / (n : ℝ)) := by
+  have hn_pos : (0 : ℝ) < n := cast_pos.mpr (lt_of_lt_of_le (by grind) hn)
+  rw [one_div_mul_one_div, one_div_le_one_div (rpow_pos_of_pos hn_pos _)
+    (mul_pos (by norm_num) hn_pos), show (3 / 2 : ℝ) = 1 + 1 / 2 by ring,
+      rpow_add hn_pos, rpow_one, mul_comm, ← sqrt_eq_rpow]
+  refine mul_le_mul_of_nonneg_left ?_ hn_pos.le
+  have := Real.sqrt_le_sqrt (cast_le.mpr hn)
+  simp_all
 
 
 
