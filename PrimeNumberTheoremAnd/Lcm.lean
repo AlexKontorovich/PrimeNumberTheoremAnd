@@ -4,7 +4,7 @@ import PrimeNumberTheoremAnd.SecondarySummary
 namespace Lcm
 
 open ArithmeticFunction hiding log
-open Real
+open Nat Real
 
 blueprint_comment /--
 \section{The least common multiple sequence is not highly abundant for large \(n\)}
@@ -199,7 +199,8 @@ theorem Criterion.r_ge (c : Criterion) : 0 < c.r := by sorry
   -/)
   (proof := /-- This is division with remainder. -/)
   (latexEnv := "lemma")]
-theorem Criterion.r_le (c : Criterion) : c.r < 4 * ∏ i, c.p i := by sorry
+theorem Criterion.r_le (c : Criterion) : c.r < 4 * ∏ i, c.p i :=
+  mod_lt _ <| mul_pos (zero_lt_succ 3) <| Finset.prod_pos <| fun i _ ↦ Prime.pos (c.hp i)
 
 @[blueprint
   "div-remainder"
@@ -706,8 +707,15 @@ theorem inv_cube_log_sqrt_le (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (log (√(n :
   -/)
   (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at \(n=X_0^2\).  One can verify numerically or symbolically. -/)
   (latexEnv := "lemma")]
-theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (n ^ (3 / 2)) ≤ (1 / (89693 : ℝ)) * (1 / (n : ℝ)) := by sorry
-
+theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
+    1 / ((n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (89693 : ℝ)) * (1 / (n : ℝ)) := by
+  have hn_pos : (0 : ℝ) < n := cast_pos.mpr (lt_of_lt_of_le (by grind) hn)
+  rw [one_div_mul_one_div, one_div_le_one_div (rpow_pos_of_pos hn_pos _)
+    (mul_pos (by norm_num) hn_pos), show (3 / 2 : ℝ) = 1 + 1 / 2 by ring,
+      rpow_add hn_pos, rpow_one, mul_comm, ← sqrt_eq_rpow]
+  refine mul_le_mul_of_nonneg_left ?_ hn_pos.le
+  have := Real.sqrt_le_sqrt (cast_le.mpr hn)
+  simp_all
 
 
 
@@ -796,7 +804,9 @@ theorem prod_epsilon_ge (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   Factor out \(\varepsilon\) and use that \(0<\varepsilon \le 1/89693^2\) to check that the resulting quadratic in \(\varepsilon\) is nonnegative on this interval.  Again, this is a finite computation that can be verified mechanically.
   -/)
   (latexEnv := "lemma")]
-theorem final_comparison (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) : 1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.37 * ε - 0.01 * ε ^ 2 := by sorry
+theorem final_comparison (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
+    1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.37 * ε - 0.01 * ε ^ 2 := by
+  nlinarith
 
 
 
