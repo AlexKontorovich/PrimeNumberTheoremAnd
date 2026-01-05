@@ -26,7 +26,7 @@ blueprint_comment /--
 
 
 blueprint_comment /--
-\begin{lemma}[cauchy_formula_deriv]\label{cauchy_formula_deriv}\lean{cauchy_formula_deriv}\leanok
+\begin{lemma}[cauchy-formula-deriv]\label{cauchy_formula_deriv}\lean{cauchy_formula_deriv}\leanok
 Let $f$ be analytic on $|z|\leq R$. For any $z$ with $|z|\leq r$ and any $r'$ with $0 < r < r' < R$ we have
 $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
 -/
