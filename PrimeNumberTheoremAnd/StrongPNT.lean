@@ -48,7 +48,7 @@ local notation "ψ" => ChebyshevPsi
 
 
 /-%%
-\begin{lemma}[cauchy_formula_deriv]\label{cauchy_formula_deriv}\lean{cauchy_formula_deriv}
+\begin{lemma}[cauchy_formula_deriv]\label{cauchy_formula_deriv}\lean{cauchy_formula_deriv}\leanok
 Let $f$ be analytic on $|z|\leq R$. For any $z$ with $|z|\leq r$ and any $r'$ with $0 < r < r' < R$ we have
 $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
 %%-/
@@ -85,13 +85,13 @@ lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
         rw [← inv_pow]
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 This is just Cauchy's integral formula for derivatives.
 \end{proof}
 %%-/
 
 /-%%
-\begin{lemma}[DerivativeBound]\label{DerivativeBound}\lean{DerivativeBound}
+\begin{lemma}[DerivativeBound]\label{DerivativeBound}\lean{DerivativeBound}\leanok
     Let $R,\,M>0$ and $0 < r < r' < R$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then we have that
     $$|f'(z)|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}$$
     for all $|z|\leq r$.
@@ -126,46 +126,43 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     rw[cauchy_param]
     simp only [one_div, mul_inv_rev, inv_I, neg_mul, inv_pow, norm_neg, Complex.norm_mul, norm_I,
         norm_inv, norm_real, norm_eq_abs, Complex.norm_ofNat, one_mul, ge_iff_le]
-    rw[abs_of_pos, mul_assoc, inv_mul_le_iff₀, inv_mul_le_iff₀, ← mul_assoc]
-    ·   nth_rewrite 3 [mul_comm]
-        nth_rewrite 2 [← abs_of_pos two_pi_pos, ← sub_zero (2 * π)]
-        refine intervalIntegral.norm_integral_le_of_norm_le_const ?_
-        intro θ hθ
-        simp only [Complex.norm_mul, norm_I, norm_real, norm_eq_abs, one_mul, norm_exp_I_mul_ofReal,
-            mul_one, norm_inv, norm_pow]
-        rw[abs_of_pos (lt_trans pos_r r_lt_r'), div_mul_eq_div_mul_one_div, pow_two r', ← mul_assoc]
-        nth_rewrite 8 [mul_comm]
-        rw[← mul_div, mul_right_comm]
-        have h0 : (‖(r' : ℂ) * cexp (I * (θ : ℂ)) - z‖ ^ 2)⁻¹ ≤ 1 / (r' - r) ^ 2 := by
-            rw[← inv_eq_one_div]
-            refine inv_anti₀ ?_ ?_
-            ·   rw[sq_pos_iff]
-                linarith
-            ·   rw[sq_le_sq, abs_norm]
-                refine abs_sub_le_iff.mpr ⟨?_, ?_⟩
-                ·   have : r' - r ≤ ‖(r' : ℂ) * cexp (I * (θ : ℂ))‖ - ‖z‖ := by
-                        refine sub_le_sub ?_ (by exact mem_closedBall_zero_iff.mp z_in_r)
-                        simp only [Complex.norm_mul, norm_real, norm_eq_abs,
-                            norm_exp_I_mul_ofReal, mul_one]
-                        exact le_abs_self r'
-                    exact le_trans this (by exact norm_sub_norm_le (↑r' * cexp (I * ↑θ)) z)
-                ·   exact le_trans (diff_neg) (by exact norm_nonneg (↑r' * cexp (I * ↑θ) - z))
-        have h1 : ‖f ((r' : ℂ) * cexp (I * (θ : ℂ)))‖ ≤ 2 * M * r' / (R - r') := by
-            refine borelCaratheodory_closedBall (by linarith) (analytic_f) (f_zero_at_zero) (Mpos) (re_f_le_M) (r'_lt_R) ?_
-            refine mem_closedBall_zero_iff.mpr ?_
-            simp only [Complex.norm_mul, norm_real, norm_eq_abs, norm_exp_I_mul_ofReal, mul_one]
-            rw[abs_of_pos]
-            exact lt_trans pos_r r_lt_r'
-        refine mul_le_mul₃ (by rfl) h1 h0 ?_ (by linarith) ?_
-        ·   exact norm_nonneg (f (↑r' * cexp (I * ↑θ)))
-        ·   rw[inv_nonneg]
-            exact sq_nonneg ‖↑r' * cexp (I * ↑θ) - z‖
-    ·   exact zero_lt_two
-    ·   exact pi_pos
-    ·   exact pi_pos
+    rw[abs_of_pos pi_pos, mul_assoc, inv_mul_le_iff₀ pi_pos, inv_mul_le_iff₀ zero_lt_two, ← mul_assoc]
+    nth_rewrite 3 [mul_comm]
+    nth_rewrite 2 [← abs_of_pos two_pi_pos, ← sub_zero (2 * π)]
+    refine intervalIntegral.norm_integral_le_of_norm_le_const ?_
+    intro θ hθ
+    simp only [Complex.norm_mul, norm_I, norm_real, norm_eq_abs, one_mul, norm_exp_I_mul_ofReal,
+        mul_one, norm_inv, norm_pow]
+    rw[abs_of_pos (lt_trans pos_r r_lt_r'), div_mul_eq_div_mul_one_div, pow_two r', ← mul_assoc]
+    nth_rewrite 8 [mul_comm]
+    rw[← mul_div, mul_right_comm]
+    refine mul_le_mul₃ (by rfl) ?_ ?_ ?_ (by linarith) ?_
+    ·   refine borelCaratheodory_closedBall (by linarith) (analytic_f) (f_zero_at_zero) (Mpos) (re_f_le_M) (r'_lt_R) ?_
+        refine mem_closedBall_zero_iff.mpr ?_
+        simp only [Complex.norm_mul, norm_real, norm_eq_abs, norm_exp_I_mul_ofReal, mul_one]
+        rw[abs_of_pos]
+        exact lt_trans pos_r r_lt_r'
+    ·   rw[← inv_eq_one_div]
+        refine inv_anti₀ ?_ ?_
+        ·   rw[sq_pos_iff]
+            linarith
+        ·   rw[sq_le_sq, abs_norm]
+            refine abs_sub_le_iff.mpr ⟨?_, ?_⟩
+            ·   have : r' - r ≤ ‖(r' : ℂ) * cexp (I * (θ : ℂ))‖ - ‖z‖ := by
+                    refine sub_le_sub ?_ (by exact mem_closedBall_zero_iff.mp z_in_r)
+                    simp only [Complex.norm_mul, norm_real, norm_eq_abs,
+                        norm_exp_I_mul_ofReal, mul_one]
+                    exact le_abs_self r'
+                exact le_trans this (by exact norm_sub_norm_le (↑r' * cexp (I * ↑θ)) z)
+            ·   exact le_trans (diff_neg) (by exact norm_nonneg (↑r' * cexp (I * ↑θ) - z))
+    ·   exact norm_nonneg (f (↑r' * cexp (I * ↑θ)))
+    ·   rw[inv_nonneg]
+        exact sq_nonneg ‖↑r' * cexp (I * ↑θ) - z‖
+
+
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{borelCaratheodory_closedBall, cauchy_formula_deriv}
     By Lemma \ref{cauchy_formula_deriv} we know that
     $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
@@ -182,7 +179,7 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
 
 
 /-%%
-\begin{theorem}[BorelCaratheodoryDeriv]\label{BorelCaratheodoryDeriv}\lean{BorelCaratheodoryDeriv}
+\begin{theorem}[BorelCaratheodoryDeriv]\label{BorelCaratheodoryDeriv}\lean{BorelCaratheodoryDeriv}\leanok
     Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
     $$|f'(z)|\leq\frac{16MR^2}{(R-r)^3}$$
     for all $|z|\leq r$.
@@ -197,25 +194,25 @@ theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U) :
     ‖deriv f z‖ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
     let r' : ℝ := (R + r) / 2
-    have h0 : ‖deriv f z‖ ≤ 4 * M * (R + r) ^ 2 / (R - r) ^ 3 := by
-        have : 4 * M * (R + r) ^ 2 / (R - r) ^ 3 = 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
-            simp[r']
-            field_simp
-            ring_nf
-        rw[this]
-        refine DerivativeBound (Mpos) (analytic_f) (zeroAtZero) (hf_domain) (realPartBounded) (rpos) (hyp_z) ?_ ?_
-        ·   simp[r']
-            linarith
-        ·   simp[r']
-            linarith
-    have h1 : 4 * M * (R + r) ^ 2 / (R - r) ^ 3 ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
-        have : 16 * M * R ^ 2 = 4 * M * (2 * R) ^ 2 := by ring_nf
-        rw[this]
-        bound
-    exact le_trans h0 h1
+    calc
+        ‖deriv f z‖ ≤ 4 * M * (R + r) ^ 2 / (R - r) ^ 3 := by
+            have : 4 * M * (R + r) ^ 2 / (R - r) ^ 3 = 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
+                simp[r']
+                field_simp
+                ring_nf
+            rw[this]
+            refine DerivativeBound Mpos analytic_f zeroAtZero hf_domain realPartBounded rpos hyp_z ?_ ?_
+            ·   simp[r']
+                linarith
+            ·   simp[r']
+                linarith
+        _ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
+            have : 16 * M * R ^ 2 = 4 * M * (2 * R) ^ 2 := by ring_nf
+            rw[this]
+            bound
 
 /-%%
-\begin{proof}
+\begin{proof}\leanok
 \uses{DerivativeBound}
     Using Lemma \ref{DerivativeBound} with $r'=(R+r)/2$, and noting that $r < R$, we have that
     $$|f'(z)|\leq\frac{4M(R+r)^2}{(R-r)^3}\leq\frac{16MR^2}{(R-r)^3}.$$
