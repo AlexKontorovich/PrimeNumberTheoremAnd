@@ -36,7 +36,6 @@ blueprint_comment /--
 
 lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
     (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
-    (pos_r : 0 < r)
     (r_lt_r' : r < r')
     (r'_lt_R : r' < R)
     {z : ℂ} (hz : z ∈ Metric.closedBall 0 r) :
@@ -94,12 +93,12 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     ‖(deriv f) z‖ ≤ 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
     have diff_neg : r - r' ≤ 0 := by linarith
     have cauchy_param : deriv f z = (1 / (2 * Real.pi * I)) * (∫ (θ : ℝ) in 0..(2 * Real.pi), (I * r' * Complex.exp (I * θ) * ((r' * Complex.exp (I * θ)) - z)⁻¹ ^ 2) * f (r' * Complex.exp (I * θ))) := by
-        rw[cauchy_formula_deriv hf_domain pos_r r_lt_r' r'_lt_R z_in_r, smul_eq_mul]
+        rw[cauchy_formula_deriv hf_domain r_lt_r' r'_lt_R z_in_r, smul_eq_mul]
         unfold circleIntegral circleMap
-        simp only [one_div, mul_inv_rev, inv_I, neg_mul, zero_add, differentiableAt_const,
-            deriv_const_mul_field', inv_pow, smul_eq_mul, neg_inj, mul_eq_mul_left_iff,
-            _root_.mul_eq_zero, I_ne_zero, inv_eq_zero, ofReal_eq_zero, pi_ne_zero,
-            OfNat.ofNat_ne_zero, or_self, or_false]
+        simp only [one_div, mul_inv_rev, inv_I, neg_mul, zero_add, deriv_const_mul_field',
+            inv_pow, smul_eq_mul, neg_inj, mul_eq_mul_left_iff, _root_.mul_eq_zero,
+            I_ne_zero, inv_eq_zero, ofReal_eq_zero, pi_ne_zero, OfNat.ofNat_ne_zero,
+            or_self, or_false]
         congr 1
         funext θ
         rw[deriv_cexp, deriv_mul_const]
