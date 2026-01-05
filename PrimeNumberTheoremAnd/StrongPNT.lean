@@ -36,6 +36,7 @@ blueprint_comment /--
 
 lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
     (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
+    (pos_r : 0 < r)
     (r_lt_r' : r < r')
     (r'_lt_R : r' < R)
     {z : ℂ} (hz : z ∈ Metric.closedBall 0 r) :
