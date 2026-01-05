@@ -25,15 +25,17 @@ blueprint_comment /--
 
 
 
-blueprint_comment /--
-\begin{lemma}[cauchy-formula-deriv]\label{cauchy_formula_deriv}\lean{cauchy_formula_deriv}\leanok
-Let $f$ be analytic on $|z|\leq R$. For any $z$ with $|z|\leq r$ and any $r'$ with $0 < r < r' < R$ we have
-$$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
--/
+@[blueprint "cauchy_formula_deriv"
+  (title := "cauchy-formula-deriv")
+  (statement := /-- Let $f$ be analytic on $|z|\leq R$. For any $z$ with $|z|\leq r$ and any $r'$
+  with $0 < r < r' < R$ we have
+  $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi}
+  \int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$ -/)
+  (proof := /-- This is just Cauchy's integral formula for derivatives. -/)
+  (latexEnv := "lemma")]
 
 lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
     (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
-    (pos_r : 0 < r)
     (r_lt_r' : r < r')
     (r'_lt_R : r' < R)
     {z : ℂ} (hz : z ∈ Metric.closedBall 0 r) :
@@ -62,19 +64,23 @@ lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
     ·   ext w
         rw [← inv_pow]
 
-blueprint_comment /--
-\begin{proof}\leanok
-This is just Cauchy's integral formula for derivatives.
-\end{proof}
--/
 
-blueprint_comment /--
-\begin{lemma}[DerivativeBound]\label{DerivativeBound}\lean{DerivativeBound}\leanok
-    Let $R,\,M>0$ and $0 < r < r' < R$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then we have that
+
+@[blueprint "DerivativeBound"
+  (title := "DerivativeBound")
+  (statement := /-- Let $R,\,M>0$ and $0 < r < r' < R$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then we have that
     $$|f'(z)|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}$$
-    for all $|z|\leq r$.
-\end{lemma}
--/
+    for all $|z|\leq r$. -/)
+  (proof := /-- By Lemma \ref{cauchy_formula_deriv} we know that
+    $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
+    Thus,
+    \begin{equation}\label{pickupPoint1}
+        |f'(z)|=\left|\frac{1}{2\pi}\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt\right|\leq\frac{1}{2\pi}\int_0^{2\pi}\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
+    \end{equation}
+    Now applying Theorem \ref{borelCaratheodory_closedBall}, and noting that $r'-r\leq|r'e^{it}-z|$, we have that
+    $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
+    Substituting this into Equation (\ref{pickupPoint1}) and evaluating the integral completes the proof. -/)
+  (latexEnv := "lemma")]
 
 lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (Mpos : 0 < M)
@@ -137,30 +143,16 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     ·   rw[inv_nonneg]
         exact sq_nonneg ‖↑r' * cexp (I * ↑θ) - z‖
 
-blueprint_comment /--
-\begin{proof}\leanok
-\uses{borelCaratheodory_closedBall, cauchy_formula_deriv}
-    By Lemma \ref{cauchy_formula_deriv} we know that
-    $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
-    Thus,
-    \begin{equation}\label{pickupPoint1}
-        |f'(z)|=\left|\frac{1}{2\pi}\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt\right|\leq\frac{1}{2\pi}\int_0^{2\pi}\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
-    \end{equation}
-    Now applying Theorem \ref{borelCaratheodory_closedBall}, and noting that $r'-r\leq|r'e^{it}-z|$, we have that
-    $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
-    Substituting this into Equation (\ref{pickupPoint1}) and evaluating the integral completes the proof.
-\end{proof}
--/
 
 
-
-blueprint_comment /--
-\begin{theorem}[BorelCaratheodoryDeriv]\label{BorelCaratheodoryDeriv}\lean{BorelCaratheodoryDeriv}\leanok
-    Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
+@[blueprint "BorelCaratheodoryDeriv"
+  (title := "BorelCaratheodoryDeriv")
+  (statement := /-- Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
     $$|f'(z)|\leq\frac{16MR^2}{(R-r)^3}$$
-    for all $|z|\leq r$.
-\end{theorem}
--/
+    for all $|z|\leq r$. -/)
+  (proof := /-- Using Lemma \ref{DerivativeBound} with $r'=(R+r)/2$, and noting that $r < R$, we have that
+    $$|f'(z)|\leq\frac{4M(R+r)^2}{(R-r)^3}\leq\frac{16MR^2}{(R-r)^3}.$$ -/)
+  (latexEnv := "theorem")]
 
 theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (rpos : 0 < r) (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
@@ -187,175 +179,123 @@ theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
             rw[this]
             bound
 
-blueprint_comment /--
-\begin{proof}\leanok
-\uses{DerivativeBound}
-    Using Lemma \ref{DerivativeBound} with $r'=(R+r)/2$, and noting that $r < R$, we have that
-    $$|f'(z)|\leq\frac{4M(R+r)^2}{(R-r)^3}\leq\frac{16MR^2}{(R-r)^3}.$$
-\end{proof}
--/
 
 
-
-blueprint_comment /--
-\begin{theorem}[LogOfAnalyticFunction]\label{LogOfAnalyticFunction}
-    Let $0 < r < R<1$. Let $B:\overline{\mathbb{D}_R}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_R}$ with $B(z)\neq 0$ for all $z\in\overline{\mathbb{D}_R}$. Then there exists $J_B:\overline{\mathbb{D}_r}\to\mathbb{C}$ that is analytic on neighborhoods of points in $\overline{\mathbb{D}_r}$ such that
+@[blueprint "LogOfAnalyticFunction"
+  (title := "LogOfAnalyticFunction")
+  (statement := /-- Let $0 < r < R<1$. Let $B:\overline{\mathbb{D}_R}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_R}$ with $B(z)\neq 0$ for all $z\in\overline{\mathbb{D}_R}$. Then there exists $J_B:\overline{\mathbb{D}_r}\to\mathbb{C}$ that is analytic on neighborhoods of points in $\overline{\mathbb{D}_r}$ such that
     \begin{itemize}
         \item $J_B(0)=0$
         \item $J_B'(z)=B'(z)/B(z)$
         \item $\log|B(z)|-\log|B(0)|=\Re J_B(z)$
     \end{itemize}
-    for all $z\in\overline{\mathbb{D}_r}$.
-\end{theorem}
--/
-
-blueprint_comment /--
-\begin{proof}
-    We let $J_B(z)=\mathrm{Log}\,B(z)-\mathrm{Log}\,B(0)$. Then clearly, $J_B(0)=0$ and $J_B'(z)=B'(z)/B(z)$. Showing the third property is a little more difficult, but by no standards terrible. Exponentiating $J_B(z)$ we have that
+    for all $z\in\overline{\mathbb{D}_r}$. -/)
+  (proof := /-- We let $J_B(z)=\mathrm{Log}\,B(z)-\mathrm{Log}\,B(0)$. Then clearly, $J_B(0)=0$ and $J_B'(z)=B'(z)/B(z)$. Showing the third property is a little more difficult, but by no standards terrible. Exponentiating $J_B(z)$ we have that
     $$\exp(J_B(z))=\exp(\mathrm{Log}\,B(z)-\mathrm{Log}\,B(0))=\frac{B(z)}{B(0)}\implies B(z)=B(0)\exp(J_B(z)).$$
     Now taking the modulus
     $$|B(z)|=|B(0)|\cdot|\exp(J_B(z))|=|B(0)|\cdot\exp(\Re J_B(z)).$$
-    Taking the real logarithm of both sides and rearranging gives the third point.
-\end{proof}
--/
+    Taking the real logarithm of both sides and rearranging gives the third point. -/)
+  (latexEnv := "theorem")]
 
 
 
-blueprint_comment /--
-\begin{definition}[SetOfZeros]\label{SetOfZeros}
-    Let $R>0$ and $f:\overline{\mathbb{D}_R}\to\mathbb{C}$. Define the set of zeros $\mathcal{K}_f(R)=\{\rho\in\mathbb{C}:|\rho|\leq R,\,f(\rho)=0\}$.
-\end{definition}
--/
+@[blueprint "SetOfZeros"
+  (title := "SetOfZeros")
+  (statement := /-- Let $R>0$ and $f:\overline{\mathbb{D}_R}\to\mathbb{C}$. Define the set of zeros $\mathcal{K}_f(R)=\{\rho\in\mathbb{C}:|\rho|\leq R,\,f(\rho)=0\}$. -/)
+  (latexEnv := "definition")]
 
 
 
-blueprint_comment /--
-\begin{definition}[ZeroOrder]\label{ZeroOrder}
-    Let $0 < R<1$ and $f:\mathbb{C}\to\mathbb{C}$ be analtyic on neighborhoods of points in $\overline{\mathbb{D}_1}$. For any zero $\rho\in\mathcal{K}_f(R)$, we define $m_f(\rho)$ as the order of the zero $\rho$ w.r.t $f$.
-\end{definition}
--/
+@[blueprint "ZeroOrder"
+  (title := "ZeroOrder")
+  (statement := /-- Let $0 < R<1$ and $f:\mathbb{C}\to\mathbb{C}$ be analtyic on neighborhoods of points in $\overline{\mathbb{D}_1}$. For any zero $\rho\in\mathcal{K}_f(R)$, we define $m_f(\rho)$ as the order of the zero $\rho$ w.r.t $f$. -/)
+  (latexEnv := "definition")]
 
 
 
-blueprint_comment /--
-\begin{lemma}[ZeroFactorization]\label{ZeroFactorization}
-    Let $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be  analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. For all $\rho\in\mathcal{K}_f(1)$ there exists $h_\rho(z)$ that is analytic at $\rho$, $h_\rho(\rho)\neq 0$, and $f(z)=(z-\rho)^{m_f(\rho)}\,h_\rho(z)$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-    Since $f$ is analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ we know that there exists a series expansion about $\rho$:
+@[blueprint "ZeroFactorization"
+  (title := "ZeroFactorization")
+  (statement := /-- Let $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be  analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. For all $\rho\in\mathcal{K}_f(1)$ there exists $h_\rho(z)$ that is analytic at $\rho$, $h_\rho(\rho)\neq 0$, and $f(z)=(z-\rho)^{m_f(\rho)}\,h_\rho(z)$. -/)
+  (proof := /-- Since $f$ is analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ we know that there exists a series expansion about $\rho$:
     $$f(z)=\sum_{0\leq n}a_n\,(z-\rho)^n.$$
     Now if we let $m$ be the smallest number such that $a_m\neq 0$, then
     $$f(z)=\sum_{0\leq n}a_n\,(z-\rho)^n=\sum_{m\leq n}a_n\,(z-\rho)^n=(z-\rho)^m\sum_{m\leq n}a_n\,(z-\rho)^{n-m}=(z-\rho)^m\,h_\rho(z).$$
     Trivially, $h_\rho(z)$ is analytic at $\rho$ (we have written down the series expansion); now note that
-    $$h_\rho(\rho)=\sum_{m\leq n}a_n(\rho-\rho)^{n-m}=\sum_{m\leq n}a_n0^{n-m}=a_m\neq 0.$$
-\end{proof}
--/
+    $$h_\rho(\rho)=\sum_{m\leq n}a_n(\rho-\rho)^{n-m}=\sum_{m\leq n}a_n0^{n-m}=a_m\neq 0.$$ -/)
+  (latexEnv := "lemma")]
 
 
 
-blueprint_comment /--
-\begin{definition}[CFunction]\label{CFunction}
-    Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. We define a function $C_f:\overline{\mathbb{D}_R}\to\mathbb{C}$ as follows. This function is constructed by dividing $f(z)$ by a polynomial whose roots are the zeros of $f$ inside $\overline{\mathbb{D}_r}$.
+@[blueprint "CFunction"
+  (title := "CFunction")
+  (statement := /-- Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. We define a function $C_f:\overline{\mathbb{D}_R}\to\mathbb{C}$ as follows. This function is constructed by dividing $f(z)$ by a polynomial whose roots are the zeros of $f$ inside $\overline{\mathbb{D}_r}$.
     $$C_f(z)=\begin{cases}
         \displaystyle\frac{f(z)}{\prod_{\rho\in\mathcal{K}_f(r)}(z-\rho)^{m_f(\rho)}}\qquad\text{for }z\not\in\mathcal{K}_f(r) \\
         \displaystyle\frac{h_z(z)}{\prod_{\rho\in\mathcal{K}_f(r)\setminus\{z\}}(z-\rho)^{m_f(\rho)}}\qquad\text{for }z\in\mathcal{K}_f(r)
     \end{cases}$$
-    where $h_z(z)$ comes from Lemma \ref{ZeroFactorization}.
-\end{definition}
--/
+    where $h_z(z)$ comes from Lemma \ref{ZeroFactorization}. -/)
+  (latexEnv := "definition")]
 
 
 
-blueprint_comment /--
-\begin{definition}[BlaschkeB]\label{BlaschkeB}
-    Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. We define a function $B_f:\overline{\mathbb{D}_R}\to\mathbb{C}$ as follows.
-    $$B_f(z)=C_f(z)\prod_{\rho\in\mathcal{K}_f(r)}\left(R-\frac{z\overline{\rho}}{R}\right)^{m_f(\rho)}$$
-\end{definition}
--/
+@[blueprint "BlaschkeB"
+  (title := "BlaschkeB")
+  (statement := /-- Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. We define a function $B_f:\overline{\mathbb{D}_R}\to\mathbb{C}$ as follows.
+    $$B_f(z)=C_f(z)\prod_{\rho\in\mathcal{K}_f(r)}\left(R-\frac{z\overline{\rho}}{R}\right)^{m_f(\rho)}.$$ -/)
+  (latexEnv := "definition")]
 
 
 
-blueprint_comment /--
-\begin{lemma}[BlaschkeOfZero]\label{BlaschkeOfZero}
-    Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. Then
-    $$|B_f(0)|=|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{BlaschkeB}
-    Since $f(0)\neq 0$, we know that $0\not\in\mathcal{K}_f(r)$. Thus,
+@[blueprint "BlaschkeOfZero"
+  (title := "BlaschkeOfZero")
+  (statement := /-- Let $0 < r < R<1$, and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)\neq 0$. Then
+    $$|B_f(0)|=|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$ -/)
+  (proof := /-- Since $f(0)\neq 0$, we know that $0\not\in\mathcal{K}_f(r)$. Thus,
     $$C_f(0)=\frac{f(0)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(-\rho)^{m_f(\rho)}}.$$
     Thus, substituting this into Definition \ref{BlaschkeB},
-    $$|B_f(0)|=|C_f(0)|\prod_{\rho\in\mathcal{K}_f(r)}R^{m_f(\rho)}=|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
-\end{proof}
--/
+    $$|B_f(0)|=|C_f(0)|\prod_{\rho\in\mathcal{K}_f(r)}R^{m_f(\rho)}=|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$ -/)
+  (latexEnv := "lemma")]
 
 
 
-blueprint_comment /--
-\begin{lemma}[DiskBound]\label{DiskBound}
-    Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $|f(z)|\leq B$ for $|z|\leq R$, then $|B_f(z)|\leq B$ for $|z|\leq R$ also.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{BlaschkeB}
-    For $|z|=R$, we know that $z\not\in\mathcal{K}_f(r)$. Thus,
+@[blueprint "DiskBound"
+  (title := "DiskBound")
+  (statement := /-- Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $|f(z)|\leq B$ for $|z|\leq R$, then $|B_f(z)|\leq B$ for $|z|\leq R$ also. -/)
+  (proof := /-- For $|z|=R$, we know that $z\not\in\mathcal{K}_f(r)$. Thus,
     $$C_f(z)=\frac{f(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(z-\rho)^{m_f(\rho)}}.$$
     Thus, substituting this into Definition \ref{BlaschkeB},
     $$|B_f(z)|=|f(z)|\prod_{\rho\in\mathcal{K}_f(r)}\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|^{m_f(\rho)}.$$
     But note that
     $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|=\frac{|R^2-z\overline{\rho}|/R}{|z-\rho|}=\frac{|z|\cdot|\overline{z-\rho}|/R}{|z-\rho|}=1.$$
-    So we have that $|B_f(z)|=|f(z)|\leq B$ when $|z|=R$. Now by the maximum modulus principle, we know that the maximum of $|B_f|$ must occur on the boundary where $|z|=R$. Thus $|B_f(z)|\leq B$ for all $|z|\leq R$.
-\end{proof}
--/
+    So we have that $|B_f(z)|=|f(z)|\leq B$ when $|z|=R$. Now by the maximum modulus principle, we know that the maximum of $|B_f|$ must occur on the boundary where $|z|=R$. Thus $|B_f(z)|\leq B$ for all $|z|\leq R$. -/)
+  (latexEnv := "lemma")]
 
 
 
-blueprint_comment /--
-\begin{theorem}[ZerosBound]\label{ZerosBound}
-    Let $B>1$ and $0< r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for $|z|\leq R$, then
-    $$\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)\leq\frac{\log B}{\log(R/r)}.$$
-\end{theorem}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{BlaschkeB, DiskBound}
-    Since $f(0)=1$, we know that $0\not\in\mathcal{K}_f(r)$. Thus,
+@[blueprint "ZerosBound"
+  (title := "ZerosBound")
+  (statement := /-- Let $B>1$ and $0< r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for $|z|\leq R$, then
+    $$\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)\leq\frac{\log B}{\log(R/r)}.$$ -/)
+  (proof := /-- Since $f(0)=1$, we know that $0\not\in\mathcal{K}_f(r)$. Thus,
     $$C_f(0)=\frac{f(0)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(-\rho)^{m_f(\rho)}}.$$
     Thus, substituting this into Definition \ref{BlaschkeB},
     $$(R/r)^{\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)}=\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{r}\right)^{m_f(\rho)}\leq\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}=|B_f(0)|\leq B$$
-    whereby Lemma \ref{DiskBound} we know that $|B_f(z)|\leq B$ for all $|z|\leq R$. Taking the logarithm of both sides and rearranging gives the desired result.
-\end{proof}
--/
+    whereby Lemma \ref{DiskBound} we know that $|B_f(z)|\leq B$ for all $|z|\leq R$. Taking the logarithm of both sides and rearranging gives the desired result. -/)
+  (latexEnv := "theorem")]
 
 
 
-blueprint_comment /--
-\begin{definition}[JBlaschke]\label{JBlaschke}
-    Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$, define $L_f(z)=J_{B_f}(z)$ where $J$ is from Theorem \ref{LogOfAnalyticFunction} and $B_f$ is from Definition \ref{BlaschkeB}.
-\end{definition}
--/
+@[blueprint "JBlaschke"
+  (title := "JBlaschke")
+  (statement := /-- Let $B>1$ and $0 < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$, define $L_f(z)=J_{B_f}(z)$ where $J$ is from Theorem \ref{LogOfAnalyticFunction} and $B_f$ is from Definition \ref{BlaschkeB}. -/)
+  (latexEnv := "definition")]
 
 
 
-blueprint_comment /--
-\begin{lemma}[BlaschkeNonZero]\label{BlaschkeNonZero}
-    Let $0 < r < R<1$ and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$. Then $B_f(z)\neq 0$ for all $z\in\overline{\mathbb{D}_r}$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{ZeroFactorization, BlaschkeB}
-    Suppose that $z\in\mathcal{K}_f(r)$. Then we have that
+@[blueprint "BlaschkeNonZero"
+  (title := "BlaschkeNonZero")
+  (statement := /-- Let $0 < r < R<1$ and $f:\overline{\mathbb{D}_1}\to\mathbb{C}$ be analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$. Then $B_f(z)\neq 0$ for all $z\in\overline{\mathbb{D}_r}$. -/)
+  (proof := /-- Suppose that $z\in\mathcal{K}_f(r)$. Then we have that
     $$C_f(z)=\frac{h_z(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)\setminus\{z\}}(z-\rho)^{m_f(\rho)}}.$$
     where $h_z(z)\neq 0$ according to Lemma \ref{ZeroFactorization}. Thus, substituting this into Definition \ref{BlaschkeB},
     \begin{equation}\label{pickupPoint2}
@@ -381,43 +321,29 @@ blueprint_comment /--
     $$\left|\frac{R-z\overline{\rho}/R}{z-\rho}\right|\neq 0\quad\text{for all}\quad\rho\in\mathcal{K}_f(r).$$
     Applying this to Equation (\ref{pickupPoint3}) we have that $|B_f(z)|\neq 0$. So, $B_f(z)\neq 0$.
 
-    We have shown that $B_f(z)\neq 0$ for both $z\in\mathcal{K}_f(r)$ and $z\not\in\mathcal{K}_f(r)$, so the result follows.
-\end{proof}
--/
+    We have shown that $B_f(z)\neq 0$ for both $z\in\mathcal{K}_f(r)$ and $z\not\in\mathcal{K}_f(r)$, so the result follows. -/)
+  (latexEnv := "lemma")]
 
 
 
-blueprint_comment /--
-\begin{theorem}[JBlaschkeDerivBound]\label{JBlaschkeDerivBound}
-    Let $B>1$ and $0 < r' < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for all $|z|\leq R$, then for all $|z|\leq r'$
-    $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
-\end{theorem}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{DiskBound, JBlaschke, LogOfAnalyticFunction, BorelCaratheodoryDeriv}
-    By Lemma \ref{DiskBound} we immediately know that $|B_f(z)|\leq B$ for all $|z|\leq R$. Now since $L_f=J_{B_f}$ by Definition \ref{JBlaschke}, by Theorem \ref{LogOfAnalyticFunction} we know that
+@[blueprint "JBlaschkeDerivBound"
+  (title := "JBlaschkeDerivBound")
+  (statement := /-- Let $B>1$ and $0 < r' < r < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for all $|z|\leq R$, then for all $|z|\leq r'$
+    $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}.$$ -/)
+  (proof := /-- By Lemma \ref{DiskBound} we immediately know that $|B_f(z)|\leq B$ for all $|z|\leq R$. Now since $L_f=J_{B_f}$ by Definition \ref{JBlaschke}, by Theorem \ref{LogOfAnalyticFunction} we know that
     $$L_f(0)=0\qquad\text{and}\qquad \Re L_f(z)=\log|B_f(z)|-\log|B_f(0)|\leq\log|B_f(z)|\leq\log B$$
     for all $|z|\leq r$. So by Theorem \ref{BorelCaratheodoryDeriv}, it follows that
     $$|L_f'(z)|\leq\frac{16\log(B)\,r^2}{(r-r')^3}$$
-    for all $|z|\leq r'$.
-\end{proof}
--/
+    for all $|z|\leq r'$. -/)
+  (latexEnv := "theorem")]
 
 
 
-blueprint_comment /--
-\begin{theorem}[FinalBound]\label{FinalBound}
-    Let $B>1$ and $0 < r' < r < R' < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for all $|z|\leq R$, then for all $z\in\overline{\mathbb{D}_{R'}}\setminus\mathcal{K}_f(R')$ we have
-    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\leq\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log B.$$
-\end{theorem}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{CFunction, BlaschkeB, JBlaschke, LogOfAnalyticFunction, ZerosBound, JBlaschkeDerivBound}
-    Since $z\in\overline{\mathbb{D}_{r'}}\setminus\mathcal{K}_f(R')$ we know that $z\not\in\mathcal{K}_f(R')$; thus, by Definition \ref{CFunction} we know that
+@[blueprint "FinalBound"
+  (title := "FinalBound")
+  (statement := /-- Let $B>1$ and $0 < r' < r < R' < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and $|f(z)|\leq B$ for all $|z|\leq R$, then for all $z\in\overline{\mathbb{D}_{R'}}\setminus\mathcal{K}_f(R')$ we have
+    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\leq\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log B.$$ -/)
+  (proof := /-- Since $z\in\overline{\mathbb{D}_{r'}}\setminus\mathcal{K}_f(R')$ we know that $z\not\in\mathcal{K}_f(R')$; thus, by Definition \ref{CFunction} we know that
     $$C_f(z)=\frac{f(z)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(R')}(z-\rho)^{m_f(\rho)}}.$$
     Substituting this into Definition \ref{BlaschkeB} we have that
     $$B_f(z)=f(z)\prod_{\rho\in\mathcal{K}_f(R')}\left(\frac{R-z\overline{\rho}/R}{z-\rho}\right)^{m_f(\rho)}.$$
@@ -431,44 +357,32 @@ blueprint_comment /--
     $$\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}=L_f'(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-R^2/\rho}.$$
     Now since $z\in\overline{\mathbb{D}_{R'}}$ and $\rho\in\mathcal{K}_f(R')$, we know that $R^2/R'-R'\leq|z-R^2/\rho|$. Thus by the triangle inequality we have
     $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\leq|L_f'(z)|+\left(\frac{1}{R^2/R'-R'}\right)\sum_{\rho\in\mathcal{K}_f(R')}m_f(\rho).$$
-    Now by Theorem \ref{ZerosBound} and \ref{JBlaschkeDerivBound} we get our desired result with a little algebraic manipulation.
-\end{proof}
--/
+    Now by Theorem \ref{ZerosBound} and \ref{JBlaschkeDerivBound} we get our desired result with a little algebraic manipulation. -/)
+  (latexEnv := "theorem")]
 
 
 
-blueprint_comment /--
-\begin{theorem}[ZetaFixedLowerBound]\label{ZetaFixedLowerBound}
-    For all $t\in\mathbb{R}$ one has
-    $$|\zeta(3/2+it)|\geq\frac{\zeta(3)}{\zeta(3/2)}.$$
-\end{theorem}
--/
-
-blueprint_comment /--
-\begin{proof}
-    From the Euler product expansion of $\zeta$, we have that for $\Re s>1$
+@[blueprint "ZetaFixedLowerBound"
+  (title := "ZetaFixedLowerBound")
+  (statement := /-- For all $t\in\mathbb{R}$ one has
+    $$|\zeta(3/2+it)|\geq\frac{\zeta(3)}{\zeta(3/2)}.$$ -/)
+  (proof := /-- From the Euler product expansion of $\zeta$, we have that for $\Re s>1$
     $$\zeta(s)=\prod_p\frac{1}{1-p^{-s}}.$$
     Thus, we have that
     $$\frac{\zeta(2s)}{\zeta(s)}=\prod_p\frac{1-p^{-s}}{1-p^{-2s}}=\prod_p\frac{1}{1+p^{-s}}.$$
     Now note that $|1-p^{-(3/2+it)}|\leq 1+|p^{-(3/2+it)}|=1+p^{-3/2}$. Thus,
     $$|\zeta(3/2+it)|=\prod_p\frac{1}{|1-p^{-(3/2+it)}|}\geq\prod_p\frac{1}{1+p^{-3/2}}=\frac{\zeta(3)}{\zeta(3/2)}$$
-    for all $t\in\mathbb{R}$ as desired.
-\end{proof}
--/
+    for all $t\in\mathbb{R}$ as desired. -/)
+  (latexEnv := "theorem")]
 
 
 
-blueprint_comment /--
-\begin{lemma}[ZetaAltFormula]\label{ZetaAltFormula}
-    Let
+@[blueprint "ZetaAltFormula"
+  (title := "ZetaAltFormula")
+  (statement := /-- Let
     $$\zeta_0(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}.$$
-    We have that $\zeta(s)=\zeta_0(s)$ for $\sigma>1$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-    Note that for $\sigma>1$ we have
+    We have that $\zeta(s)=\zeta_0(s)$ for $\sigma>1$. -/)
+  (proof := /-- Note that for $\sigma>1$ we have
     $$\zeta(s)=\sum_{n=1}^\infty\frac{1}{n^s}=\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=1}^\infty\frac{n-1}{n^s}=\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=0}^\infty\frac{n}{(n+1)^s}=\sum_{n=1}^\infty\frac{n}{n^s}-\sum_{n=1}^\infty\frac{n}{(n+1)^s}.$$
     Thus
     $$\zeta(s)=\sum_{n=1}^\infty n\,(n^{-s}-(n+1)^{-s}).$$
@@ -478,128 +392,87 @@ blueprint_comment /--
     $$\zeta(s)=\sum_{n=1}^\infty n\,(n^{-s}-(n+1)^{-s})=s\sum_{n=1}^\infty n\int_n^{n+1}x^{-s}\,\frac{dx}{x}=s\int_1^\infty\lfloor x\rfloor\,x^{-s}\,\frac{dx}{x}.$$
     But noting that $\lfloor x\rfloor =x-\{x\}$ we have that
     $$\zeta(s)=s\int_1^\infty\lfloor x\rfloor\,x^{-s}\,\frac{dx}{x}=s\int_1^\infty x^{-s}\,dx-s\int_1^\infty \{x\}\,x^{-s}\,\frac{dx}{x}.$$
-    Evaluating the first integral completes the result.
-\end{proof}
--/
+    Evaluating the first integral completes the result. -/)
+  (latexEnv := "lemma")]
 
 
 
-blueprint_comment /--
-\begin{lemma}[ZetaAltFormulaAnalytic]\label{ZetaAltFormulaAnalytic}
-    We have that $\zeta_0(s)$ is analytic for all $s\in S$ where $S=\{s\in\mathbb{C}:\Re s>0,\,s\neq 1\}$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-    Note that we have
+@[blueprint "ZetaAltFormulaAnalytic"
+  (title := "ZetaAltFormulaAnalytic")
+  (statement := /-- We have that $\zeta_0(s)$ is analytic for all $s\in S$ where $S=\{s\in\mathbb{C}:\Re s>0,\,s\neq 1\}$. -/)
+  (proof := /-- Note that we have
     $$\left|\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}\right|\leq\int_1^\infty|\{x\}\,x^{-s-1}|\,dx\leq\int_1^\infty x^{-\sigma-1}\,dx=\frac{1}{\sigma}.$$
-    So this integral converges uniformly on compact subsets of $S$, which tells us that it is analytic on $S$. So it immediately follows that $\zeta_0(s)$ is analytic on $S$ as well, since $S$ avoids the pole at $s=1$ coming from the $(s-1)^{-1}$ term.
-\end{proof}
--/
+    So this integral converges uniformly on compact subsets of $S$, which tells us that it is analytic on $S$. So it immediately follows that $\zeta_0(s)$ is analytic on $S$ as well, since $S$ avoids the pole at $s=1$ coming from the $(s-1)^{-1}$ term. -/)
+  (latexEnv := "lemma")]
 
 
 
-blueprint_comment /--
-\begin{lemma}[ZetaExtend]\label{ZetaExtend}
-    We have that
+@[blueprint "ZetaExtend"
+  (title := "ZetaExtend")
+  (statement := /-- We have that
     $$\zeta(s)=1+\frac{1}{s-1}-s\int_1^\infty\{x\}\,x^{-s}\,\frac{dx}{x}$$
-    for all $s\in S$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-    This is an immediate consequence of the identity theorem.
-\end{proof}
--/
+    for all $s\in S$. -/)
+  (proof := /-- This is an immediate consequence of the identity theorem. -/)
+  (latexEnv := "lemma")]
 
 
 
-blueprint_comment /--
-\begin{theorem}[GlobalBound]\label{GlobalBound}
-    For all $s\in\mathbb{C}$ with $|s|\leq 1$ and $t\in\mathbb{R}$ with $|t|\geq 2$, we have that
-    $$|\zeta(s+3/2+it)|\leq 7+2\,|t|.$$
-\end{theorem}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{ZetaExtend}
-    For the sake of clearer proof writing let $z=s+3/2+it$. Since $|s|\leq 1$ we know that $1/2\leq\mathfrak{R}z$; additionally, as $|t|\geq 2$, we know $1\leq|\mathfrak{I}z|$. So, $z\in S$. Thus, from Lemma \ref{ZetaExtend} we know that
+@[blueprint "GlobalBound"
+  (title := "GlobalBound")
+  (statement := /-- For all $s\in\mathbb{C}$ with $|s|\leq 1$ and $t\in\mathbb{R}$ with $|t|\geq 2$, we have that
+    $$|\zeta(s+3/2+it)|\leq 7+2\,|t|.$$ -/)
+  (proof := /-- For the sake of clearer proof writing let $z=s+3/2+it$. Since $|s|\leq 1$ we know that $1/2\leq\mathfrak{R}z$; additionally, as $|t|\geq 2$, we know $1\leq|\mathfrak{I}z|$. So, $z\in S$. Thus, from Lemma \ref{ZetaExtend} we know that
     $$|\zeta(z)|\leq 1+\frac{1}{|z-1|}+|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|$$
     by applying the triangle inequality. Now note that $|z-1|\geq 1$. Likewise,
     $$|z|\cdot\left|\int_1^\infty\{x\}\,x^{-z}\,\frac{dx}{x}\right|\leq|z|\int_1^\infty|\{x\}\,x^{-z-1}|\,dx\leq|z|\int_1^\infty x^{-\Re z-1}\,dx=\frac{|z|}{\Re z}\leq 2\,|z|.$$
     Thus we have that,
-    $$|\zeta(s+3/2+it)|=|\zeta(z)|\leq 1+1+2\,|z|=2+2\,|s+3/2+it|\leq2+2\,|s|+3+2\,|it|\leq 7+2\,|t|.$$
-\end{proof}
--/
+    $$|\zeta(s+3/2+it)|=|\zeta(z)|\leq 1+1+2\,|z|=2+2\,|s+3/2+it|\leq2+2\,|s|+3+2\,|it|\leq 7+2\,|t|.$$ -/)
+  (latexEnv := "theorem")]
 
 
 
-blueprint_comment /--
-\begin{theorem}[LogDerivZetaFinalBound]\label{LogDerivZetaFinalBound}
-    Let $t\in\mathbb{R}$ with $|t|\geq 2$ and $0 < r' < r < R' < R<1$. If  $f(z)=\zeta(z+3/2+it)$, then for all $z\in\overline{\mathbb{D}_R'}\setminus\mathcal{K}_f(R')$ we have that
-    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|.$$
-\end{theorem}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{ZetaFixedLowerBound, GlobalBound, FinalBound}
-    Let $g(z)=\zeta(z+3/2+it)/\zeta(3/2+it)$. Note that $g(0)=1$ and for $|z|\leq R$
+@[blueprint "LogDerivZetaFinalBound"
+  (title := "LogDerivZetaFinalBound")
+  (statement := /-- Let $t\in\mathbb{R}$ with $|t|\geq 2$ and $0 < r' < r < R' < R<1$. If  $f(z)=\zeta(z+3/2+it)$, then for all $z\in\overline{\mathbb{D}_R'}\setminus\mathcal{K}_f(R')$ we have that
+    $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|.$$ -/)
+  (proof := /-- Let $g(z)=\zeta(z+3/2+it)/\zeta(3/2+it)$. Note that $g(0)=1$ and for $|z|\leq R$
     $$|g(z)|=\frac{|\zeta(z+3/2+it)|}{|\zeta(3/2+it)|}\leq\frac{\zeta(3/2)}{\zeta(3)}\cdot(7+2\,|t|)\leq\frac{13\,\zeta(3/2)}{3\,\zeta(3)}\,|t|$$
     by Theorems \ref{ZetaFixedLowerBound} and \ref{GlobalBound}. Thus by Theorem \ref{FinalBound} we have that
     $$\left|\frac{g'}{g}(z)-\sum_{\rho\in\mathcal{K}_g(R')}\frac{m_g(\rho)}{z-\rho}\right|\leq\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\left(\log|t|+\log\left(\frac{13\,\zeta(3/2)}{3\,\zeta(3)}\right)\right).$$
     Now note that $f'/f=g'/g$, $\mathcal{K}_f(R')=\mathcal{K}_g(R')$, and $m_g(\rho)=m_f(\rho)$ for all $\rho\in\mathcal{K}_f(R')$. Thus we have that,
     $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|\ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|$$
     where the implied constant $C$ is taken to be
-    $$C\geq 1+\frac{\log((13\,\zeta(3/2))/(3\,\zeta(3)))}{\log 2}.$$
-\end{proof}
--/
+    $$C\geq 1+\frac{\log((13\,\zeta(3/2))/(3\,\zeta(3)))}{\log 2}.$$ -/)
+  (latexEnv := "theorem")]
 
 
 
-blueprint_comment /--
-\begin{definition}[ZeroWindows]\label{ZeroWindows}
-    Let $\mathcal{Z}_t=\{\rho\in\mathbb{C}:\zeta(\rho)=0,\,|\rho-(3/2+it)|\leq 5/6\}$.
-\end{definition}
--/
+@[blueprint "ZeroWindows"
+  (title := "ZeroWindows")
+  (statement := /-- Let $\mathcal{Z}_t=\{\rho\in\mathbb{C}:\zeta(\rho)=0,\,|\rho-(3/2+it)|\leq 5/6\}$. -/)
+  (latexEnv := "definition")]
 
 
 
-blueprint_comment /--
-\begin{lemma}[SumBoundI]\label{SumBoundI}
-    For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 2$ we have
-    $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{LogDerivZetaFinalBound}
-    We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=5/6$, and $R=8/9$. Thus, for all $z\in\overline{\mathbb{D}_{5/6}}\setminus\mathcal{K}_f(5/6)$ we have that
+@[blueprint "SumBoundI"
+  (title := "SumBoundI")
+  (statement := /-- For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 2$ we have
+    $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$ -/)
+  (proof := /-- We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=5/6$, and $R=8/9$. Thus, for all $z\in\overline{\mathbb{D}_{5/6}}\setminus\mathcal{K}_f(5/6)$ we have that
     $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
     where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$. Now if we let $z=-1/2+\delta$, then $z\in(-1/2,1/2)\subseteq\overline{\mathbb{D}_{5/6}}$. Additionally, $f(z)=\zeta(1+\delta+it)$, where $1+\delta+it$ lies in the zero-free region where $\sigma>1$. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{-1/2+\delta-\rho}\right|\ll\log|t|.$$
     But now note that if $\rho\in\mathcal{K}_f(5/6)$, then $\zeta(\rho+3/2+it)=0$ and $|\rho|\leq 5/6$. Thus, $\rho+3/2+it\in\mathcal{Z}_t$. Additionally, note that $m_f(\rho)=m_\zeta(\rho+3/2+it)$. So changing variables using these facts gives us that
-    $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
-\end{proof}
--/
+    $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$ -/)
+  (latexEnv := "lemma")]
 
 
 
-blueprint_comment /--
-\begin{lemma}[ShiftTwoBound]\label{ShiftTwoBound}
-    For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 2$ we have
-    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|t|.$$
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{SumBoundI}
-    Note that, for $\rho\in\mathcal{Z}_{2t}$
+@[blueprint "ShiftTwoBound"
+  (title := "ShiftTwoBound")
+  (statement := /-- For all $\delta\in (0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 2$ we have
+    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|t|.$$ -/)
+  (proof := /-- Note that, for $\rho\in\mathcal{Z}_{2t}$
     \begin{align*}
         \Re \left(\frac{1}{1+\delta+2it-\rho}\right)&=\Re \left(\frac{1+\delta-2it-\overline{\rho}}{(1+\delta+2it-\rho)(1+\delta-2it-\overline{\rho})}\right) \\
         &=\frac{\Re (1+\delta-2it-\overline{\rho})}{|1+\delta+2it-\rho|^2}=\frac{1+\delta-\Re \rho}{(1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2}.
@@ -614,23 +487,16 @@ blueprint_comment /--
     $$\sum_{\rho\in\mathcal{Z}_{2t}}m_\zeta(\rho)\,\Re \left(\frac{1}{1+\delta+2it-\rho}\right)-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+2it)-\sum_{\rho\in\mathcal{Z}_{2t}}\frac{m_\zeta(\rho)}{1+\delta+2it-\rho}\right|\ll\log|2t|.$$
     Since $m_\zeta(\rho)\geq 0$ for all $\rho\in\mathcal{Z}_{2t}$, the inequality from Equation (\ref{pickupPoint4}) tells us that by subtracting the sum from both sides we have
     $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|2t|.$$
-    Noting that $\log|2t|=\log(2)+\log|t|\leq2\log|t|$ completes the proof.
-\end{proof}
--/
+    Noting that $\log|2t|=\log(2)+\log|t|\leq2\log|t|$ completes the proof. -/)
+  (latexEnv := "lemma")]
 
 
 
-blueprint_comment /--
-\begin{lemma}[ShiftOneBound]\label{ShiftOneBound}
-    There exists $C>0$ such that for all $\delta\in(0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$; if $\zeta(\rho)=0$ with $\rho=\sigma+it$, then
-    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{1}{1+\delta-\sigma}+C\log|t|.$$
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{SumBoundI}
-    Note that for $\rho'\in\mathcal{Z}_t$
+@[blueprint "ShiftOneBound"
+  (title := "ShiftOneBound")
+  (statement := /-- There exists $C>0$ such that for all $\delta\in(0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$; if $\zeta(\rho)=0$ with $\rho=\sigma+it$, then
+    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{1}{1+\delta-\sigma}+C\log|t|.$$ -/)
+  (proof := /-- Note that for $\rho'\in\mathcal{Z}_t$
     \begin{align*}
         \Re \left(\frac{1}{1+\delta+it-\rho'}\right)&=\Re \left(\frac{1+\delta-it-\overline{\rho'}}{(1+\delta+it-\rho')(1+\delta-it-\overline{\rho'})}\right) \\
         &=\frac{\Re (1+\delta-it-\overline{\rho'})}{|1+\delta+it-\rho'|^2}=\frac{1+\delta-\Re \rho'}{(1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2}.
@@ -647,46 +513,32 @@ blueprint_comment /--
     $$\frac{m_\zeta(\rho)}{\Re (1+\delta+it-\rho)}-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\ll\log|t|.$$
     But of course we have that $\Re (1+\delta+it-\rho)=1+\delta-\sigma$. So subtracting this term from both sides and recalling the implied constant we have
     $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{m_\zeta(\rho)}{1+\delta-\sigma}+C\log|t|.$$
-    We have that $\sigma\leq 1$ since $\zeta$ is zero free on the right half plane $\sigma>1$. Thus $0<1+\delta-\sigma$. Noting this in combination with the fact that $1\leq m_\zeta(\rho)$ completes the proof.
-\end{proof}
--/
+    We have that $\sigma\leq 1$ since $\zeta$ is zero free on the right half plane $\sigma>1$. Thus $0<1+\delta-\sigma$. Noting this in combination with the fact that $1\leq m_\zeta(\rho)$ completes the proof. -/)
+  (latexEnv := "lemma")]
 
 
 
-blueprint_comment /--
-\begin{lemma}[ShiftZeroBound]\label{ShiftZeroBound}
-    For all $\delta\in(0,1)$ we have
-    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\frac{1}{\delta}+O(1).$$
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-\uses{riemannZetaLogDerivResidue}
-    From Theorem \ref{riemannZetaLogDerivResidue} we know that
+@[blueprint "ShiftZeroBound"
+  (title := "ShiftZeroBound")
+  (statement := /-- For all $\delta\in(0,1)$ we have
+    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\frac{1}{\delta}+O(1).$$ -/)
+  (proof := /-- From Theorem \ref{riemannZetaLogDerivResidue} we know that
     $$-\frac{\zeta'}{\zeta}(s)=\frac{1}{s-1}+O(1).$$
     Changing variables $s\mapsto 1+\delta$ and applying the triangle inequality we have that
-    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\left|-\frac{\zeta'}{\zeta}(1+\delta)\right|\leq\frac{1}{\delta}+O(1).$$
-\end{proof}
--/
+    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta)\right)\leq\left|-\frac{\zeta'}{\zeta}(1+\delta)\right|\leq\frac{1}{\delta}+O(1).$$ -/)
+  (latexEnv := "lemma")]
 
 
 
-blueprint_comment /--
-\begin{lemma}[ThreeFourOneTrigIdentity]\label{ThreeFourOneTrigIdentity}
-    We have that
+@[blueprint "ThreeFourOneTrigIdentity"
+  (title := "ThreeFourOneTrigIdentity")
+  (statement := /-- We have that
     $$0\leq 3+4\cos\theta+\cos2\theta$$
-    for all $\theta\in\mathbb{R}$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}
-    We know that $\cos(2\theta)=2\cos^2\theta-1$, thus
+    for all $\theta\in\mathbb{R}$. -/)
+  (proof := /-- We know that $\cos(2\theta)=2\cos^2\theta-1$, thus
     $$3+4\cos\theta+\cos2\theta=2+4\cos\theta+2\cos^2\theta=2\,(1+\cos\theta)^2.$$
-    Noting that $0\leq 1+\cos\theta$ completes the proof.
-\end{proof}
--/
+    Noting that $0\leq 1+\cos\theta$ completes the proof. -/)
+  (latexEnv := "lemma")]
 
 
 
@@ -716,7 +568,8 @@ blueprint_comment /--
   $$\sigma\leq 1-\frac{1}{14D\log|t|}.$$
   This is exactly the desired result with the constant $E=(14D)^{-1}$
   -/)
-  (proofUses := ["ShiftTwoBound", "LogDerivativeDirichlet", "ShiftOneBound", "ThreeFourOneTrigIdentity", "ShiftZeroBound"])]
+  (proofUses := ["ShiftTwoBound", "LogDerivativeDirichlet", "ShiftOneBound", "ThreeFourOneTrigIdentity", "ShiftZeroBound"])
+  (latexEnv := "theorem")]
 theorem ZeroInequality : ∃ (E : ℝ) (EinIoo : E ∈ Ioo (0 : ℝ) 1),
     ∀ (ρ : ℂ) (σ t : ℝ),
     ζ ρ = 0 →
@@ -880,16 +733,15 @@ lemma FLogTtoDeltaT : ∀ (t : ℝ),
   $$1-\frac{F}{\log|t|}\leq\sigma\implies\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\ll\log^2|t|$$
   where the implied constant is uniform in $\sigma$.
   -/)
-  (proof := /--
-  \ uses{riemannZetaLogDerivResidue, LogDerivZetaUniformLogSquaredBoundStrip}
-      Note that
+  (proof := /-- Note that
       $$\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|=\sum_{1\leq n}\frac{\Lambda(n)}{|n^{\sigma+it}|}=\sum_{1\leq n}\frac{\Lambda(n)}{n^\sigma}=-\frac{\zeta'}{\zeta}(\sigma)\leq\left|\frac{\zeta'}{\zeta}(\sigma)\right|.$$
       From Theorem \ref{riemannZetaLogDerivResidue}, and applying the triangle inequality we know that
       $$\left|\frac{\zeta'}{\zeta}(s)\right|\leq\frac{1}{|s-1|}+C.$$
       where $C>0$ is some constant. Thus, for $\sigma\geq 3/2$ we have that
       $$\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\leq\left|\frac{\zeta'}{\zeta}(\sigma)\right|\leq\frac{1}{\sigma-1}+C\leq 2+C\ll 1\ll\log^2|t|.$$
-      Putting this together with Lemma \ref{LogDerivZetaUniformLogSquaredBoundStrip} completes the proof.
-  -/)]
+      Putting this together with Lemma \ref{LogDerivZetaUniformLogSquaredBoundStrip} completes the proof. -/)
+  (proofUses := ["riemannZetaLogDerivResidue", "LogDerivZetaUniformLogSquaredBoundStrip"])
+  (latexEnv := "theorem")]
 theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
     ∀ (σ t : ℝ),
     3 < |t| →
@@ -913,7 +765,8 @@ theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
   where $C\geq 0$. Thus, we have that
   $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\leq\left(\frac{\log T}{F\,\log 2}+\frac{C}{\log 2}\right)\,\log(2+|t|)\leq\left(\frac{\log(2+T)}{F\,\log 2}+\frac{C}{\log 2}\right)\log(2+T)\ll\log^2(2+T).$$
   -/)
-  (proofUses := ["LogDerivZetaUniformLogSquaredBound", "riemannZetaLogDerivResidue"])]
+  (proofUses := ["LogDerivZetaUniformLogSquaredBound", "riemannZetaLogDerivResidue"])
+  (latexEnv := "theorem")]
 theorem LogDerivZetaLogSquaredBoundSmallt : ∃ (C : ℝ) (Cnonneg : C ≥ 0),
     ∀ (σ t T : ℝ) (Tpos: T > 0),
     |t| ≤ T →
@@ -950,7 +803,6 @@ noncomputable def I1New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
 
 
 
-
 @[blueprint
   (title := "I5New")
   (statement := /--
@@ -960,7 +812,6 @@ noncomputable def I1New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
 noncomputable def I5New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t : ℝ in Ici T,
       SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
-
 
 
 
@@ -985,7 +836,6 @@ lemma I1NewBound {SmoothingF : ℝ → ℝ}
     ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
     ‖I1New SmoothingF ε X T‖ ≤ C * (X / (ε * Real.sqrt T)) := by
     sorry
-
 
 
 
@@ -1028,8 +878,6 @@ lemma I5NewBound {SmoothingF : ℝ → ℝ}
 
 
 
-
-
 @[blueprint
   (title := "I2New")
   (statement := /--
@@ -1042,7 +890,6 @@ noncomputable def I2New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
 
 
 
-
 @[blueprint
   (title := "I4New")
   (statement := /--
@@ -1052,7 +899,6 @@ noncomputable def I2New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
 noncomputable def I4New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
   (1 / (2 * π * I)) * ((∫ σ₀ in σ'..(1 + (Real.log X)⁻¹),
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + T * I)))
-
 
 
 
@@ -1080,8 +926,6 @@ lemma I2NewBound {SmoothingF : ℝ → ℝ}
     let σ' := 1 - F / Real.log T
     ‖I2New SmoothingF ε X T σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
     sorry
-
-
 
 
 
@@ -1123,8 +967,6 @@ lemma I4NewBound {SmoothingF : ℝ → ℝ}
 
 
 
-
-
 @[blueprint
   (title := "I3New")
   (statement := /--
@@ -1134,7 +976,6 @@ lemma I4NewBound {SmoothingF : ℝ → ℝ}
 noncomputable def I3New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-T)..T,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ' + t * I)))
-
 
 
 
@@ -1164,8 +1005,6 @@ lemma I3NewBound {SmoothingF : ℝ → ℝ}
     let σ' := 1 - F / Real.log T
     ‖I3New SmoothingF ε X T σ'‖ ≤ C * (X ^ (1 - F / Real.log T) * Real.sqrt T) / ε := by
     sorry
-
-
 
 
 
@@ -1341,7 +1180,6 @@ theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
             ext
             simp [f, g]
             ring
-
 
 
 
