@@ -14,14 +14,12 @@ blueprint_comment /--
 \subsection{Problem statement and notation}
 -/
 
-
 @[blueprint
   "sigma-def"
   (statement := /-- $\sigma(n)$ is the sum of the divisors of $n$. -/)]
 def σ : ArithmeticFunction ℕ := sigma 1
 
 noncomputable abbrev σnorm (n : ℕ) : ℝ := (σ n : ℝ) / (n : ℝ)
-
 
 @[blueprint
   "highlyabundant-def"
@@ -30,11 +28,11 @@ noncomputable abbrev σnorm (n : ℕ) : ℝ := (σ n : ℝ) / (n : ℝ)
   \[
     \sigma(N) > \sigma(m)
   \]
-  for all positive integers \(m < N\), where \(\sigma(n)\) denotes the sum of the positive divisors of \(n\).
+  for all positive integers \(m < N\), where \(\sigma(n)\) denotes the sum of the positive divisors
+  of \(n\).
   -/)]
 def HighlyAbundant (N : ℕ) : Prop :=
   ∀ m : ℕ, m < N → σ m < σ N
-
 
 @[blueprint
   "Ln-def"
@@ -50,19 +48,23 @@ def L (n : ℕ) : ℕ := (Finset.Icc 1 n).lcm _root_.id
 blueprint_comment /--
 \begin{quote}
 \textbf{Original MathOverflow question.}
-Is it true that every value in the sequence \(L_n = \mathrm{lcm}(1,2,\dots,n)\) is highly abundant?  Equivalently,
+Is it true that every value in the sequence \(L_n = \mathrm{lcm}(1,2,\dots,n)\) is highly abundant?
+Equivalently,
 \[
   \{L_n : n \ge 1\} \subseteq HA?
 \]
 \end{quote}
 
-In this note we record the structure of an argument showing that, for all sufficiently large \(n\), the integer \(L_n\) is \emph{not} highly abundant.  This argument was taken from \href{https://mathoverflow.net/questions/501066/is-the-least-common-multiple-sequence-textlcm1-2-dots-n-a-subset-of-t?noredirect=1\#comment1313839_501066}{this MathOverflow answer}.
+In this note we record the structure of an argument showing that, for all sufficiently large \(n\),
+the integer \(L_n\) is \emph{not} highly abundant.  This argument was taken from
+\href{https://mathoverflow.net/questions/501066/is-the-least-common-multiple-sequence-textlcm1-2-dots-n-a-subset-of-t?noredirect=1\#comment1313839_501066}{this MathOverflow answer}.
 
 \subsection{A general criterion using three medium primes and three large primes}
 -/
 
 blueprint_comment /--
-In this subsection we assume that $n \geq 1$ and that \(p_1,p_2,p_3,q_1,q_2,q_3\) are primes satisfiying
+In this subsection we assume that $n \geq 1$ and that \(p_1,p_2,p_3,q_1,q_2,q_3\) are primes
+satisfiying
 \[
   \sqrt{n} < p_1 < p_2 < p_3 < q_1 < q_2 < q_3 < n
 \]
@@ -76,8 +78,6 @@ and the key criterion
 \end{equation}
 -/
 
-
-
 structure Criterion where
   n : ℕ
   hn : n ≥ 1
@@ -90,140 +90,34 @@ structure Criterion where
   h_ord_1 : √(n : ℝ) < p 0
   h_ord_2 : p 2 < q 0
   h_ord_3 : q 2 < n
-  h_crit : ∏ i, (1 + ((1:ℝ)/q i)) ≤ (∏ i, (1 + (1:ℝ)/(p i * (p i + 1)))) * (1 + (3:ℝ)/(8 * n)) * (1 - 4 * (∏ i, (p i : ℝ)) / ∏ i, (q i : ℝ))
-
-
-
+  h_crit : ∏ i, (1 + (1 : ℝ) / q i) ≤
+    (∏ i, (1 + (1 : ℝ) / (p i * (p i + 1)))) * (1 + (3 : ℝ) / (8 * n)) *
+      (1 - 4 * (∏ i, (p i : ℝ)) / ∏ i, (q i : ℝ))
 
 @[blueprint
   "lem:4p3q3"
   (statement := /-- We have $4 p_1 p_2 p_3 < q_1 q_2 q_3$. -/)
   (proof := /-- Obvious from the non-negativity of the left-hand side of \eqref{eq:main-ineq}. -/)
   (latexEnv := "lemma")]
-theorem Criterion.prod_p_le_prod_q (c : Criterion) : 4 * ∏ i, (c.p i) < ∏ i, (c.q i) :=
-  -- Abbreviations for readability
-  let L : ℝ := ∏ i : Fin 3, (1 + ((1 : ℝ) / c.q i))
-  let B : ℝ := (∏ i, (1 + (1:ℝ)/(c.p i * (c.p i + 1))))
-  let C : ℝ := (1 + (3:ℝ)/(8 * c.n))
-  let R : ℝ :=(1 - 4 * (∏ i, (c.p i : ℝ)) / (∏ i, (c.q i : ℝ)))
-
-  -- Rewrite h_crit in terms of L, P, Q, A
-  have h_crit' : L ≤ B * C * R := by
-    apply c.h_crit
-  /- Step 1: L > 0 -/
-  have hL_pos : 0 < L := by
-    -- Each factor (1 + 1 / q i) is positive
-    have hfac : ∀ i : Fin 3, 0 < (1 + (1 : ℝ) / c.q i) := by
-      intro i
-      -- q i is a positive prime
-      have hq_pos_nat : 0 < c.q i := (c.hq i).pos
-      have hq_pos : 0 < (c.q i : ℝ) := by exact_mod_cast hq_pos_nat
-      have hfrac_pos : 0 < (1 : ℝ) / c.q i :=
-        div_pos (by norm_num) hq_pos
-      -- 1 + positive > 0
-      have := add_pos_of_nonneg_of_pos (show (0 : ℝ) ≤ 1 by norm_num) hfrac_pos
-      simpa [add_comm] using this
-    -- Product over Fin 3 of positive terms is positive
-    have := Finset.prod_pos (s := (Finset.univ : Finset (Fin 3))) (by
-      intro i hi; exact hfac i)
-    simpa [L] using this
-
-  have hBRC_pos: B * C * R > 0 :=
-    lt_of_lt_of_le  hL_pos  h_crit'
-  have hA_pos : 0 < B * C  := by
-    -- First factor: ∏ (1 + 1/(p i * (p i + 1))) > 0
-    have hfac_p : ∀ i : Fin 3,
-        0 < (1 + (1 : ℝ) / (c.p i * (c.p i + 1))) := by
-      intro i
-      -- p i is a positive prime
-      have hp_pos_nat : 0 < c.p i := (c.hp i).pos
-      have hp_pos : 0 < (c.p i : ℝ) := by exact_mod_cast hp_pos_nat
-      -- p i + 1 > 0
-      have hp1_pos : 0 < (c.p i : ℝ) + 1 := by
-        have : (0 : ℝ) < 1 := by norm_num
-        exact add_pos_of_nonneg_of_pos (le_of_lt hp_pos) this
-      -- Product p i * (p i + 1) > 0
-      have hden_pos : 0 < (c.p i : ℝ) * ((c.p i : ℝ) + 1) :=
-        mul_pos hp_pos hp1_pos
-      -- So 1 / (p i * (p i + 1)) > 0
-      have hfrac_pos : 0 < (1 : ℝ) / (c.p i * (c.p i + 1)) :=
-        div_pos (by norm_num) hden_pos
-      have := add_pos_of_nonneg_of_pos (show (0 : ℝ) ≤ 1 by norm_num) hfrac_pos
-      simpa [add_comm] using this
-    have hprod_p_pos : 0 <
-        ∏ i : Fin 3, (1 + (1 : ℝ) / (c.p i * (c.p i + 1))) := by
-      have := Finset.prod_pos (s := (Finset.univ : Finset (Fin 3))) (by
-        intro i hi; exact hfac_p i)
-      simpa using this
-    -- Second factor: 1 + 3 / (8 * n) > 0
-    have hn_pos_nat : 0 < c.n := Nat.succ_le_iff.mp c.hn
-      -- hn : n ≥ 1 ⇒ 0 < n
-    have hn_pos : 0 < (c.n : ℝ) := by exact_mod_cast hn_pos_nat
-    have h8n_pos : 0 < (8 : ℝ) * (c.n : ℝ) :=
-      mul_pos (by norm_num) hn_pos
-    have hfrac_n_pos : 0 < (3 : ℝ) / (8 * c.n) :=
-      div_pos (by norm_num) h8n_pos
-    have h1_plus : 0 < 1 + (3 : ℝ) / (8 * c.n) := by
-      have := add_pos_of_nonneg_of_pos (show (0 : ℝ) ≤ 1 by norm_num) hfrac_n_pos
-      simpa [add_comm] using this
-
-    -- A is product of two positive factors
-    have := mul_pos hprod_p_pos h1_plus
-    simpa [B , C] using this
-
-
-
-
-  /- Step 4: Show 1 - 4 * P / Q > 0 using h_crit and positivity -/
-  have hR_pos : 0 < R := by
-    -- If it were ≤ 0, the RHS of h_crit' would be ≤ 0, contradicting L > 0.
-    by_contra hD
-    have hD_le :R ≤ 0 := le_of_not_gt hD
-    have hRHS_nonpos : B * C  * R  ≤ 0 :=
-      mul_nonpos_of_nonneg_of_nonpos (le_of_lt hA_pos) hD_le
-    have hL_le_zero : L ≤ 0 := le_trans h_crit' hRHS_nonpos
-    exact (not_le_of_gt hL_pos) hL_le_zero
-
-  have hR_pos' :  ( 1 - 4 * (∏ i, (c.p i : ℝ)) / (∏ i, (c.q i : ℝ)) )>0  := hR_pos
-
-  have hratio: (4 * (∏ i, (c.p i : ℝ) )) / (∏ i, (c.q i : ℝ)) < 1:= by
-    linarith
-
-  have hYpos: ∏ i, (c.q i : ℝ) > 0 := by
-    have hfac' : ∀ i : Fin 3, 0 <  (c.q i : ℝ )  := by
-      intro i
-      -- q i is a positive prime
-      have hq_pos_nat' : 0 < (c.q i ):= (c.hq i).pos
-      have hq_pos' : 0 < (c.q i : ℝ) := by exact_mod_cast hq_pos_nat'
-      exact hq_pos'
-    -- Product over Fin 3 of positive terms is positive
-    apply Finset.prod_pos (s := (Finset.univ : Finset (Fin 3))) (by
-      intro i hi; exact hfac' i )
-
-
-  have h_conclusion: (4 * ∏ i, (c.p i : ℝ )) < (∏ i, (c.q i : ℝ ) ) :=
-    let X := (4 * ∏ i, (c.p i : ℝ ))
-    let Y := (∏ i, (c.q i : ℝ ) )
-    have ratio: X / Y < 1 := hratio
-    -- we already know Y > 0
-    have xleqy':  0 < Y ∧ X < Y ∨ Y = 0 ∨ Y < 0 ∧ Y < X  := div_lt_one_iff.mp ratio
-    have xleqy : X < Y := by
-      cases xleqy' with
-      | inr a =>  cases a with
-        | inr aa => linarith
-        | inl ab => linarith
-      | inl b => exact b.right
-
-    by simpa
-    --rw [← div_lt_one_iff ]
-  by exact_mod_cast h_conclusion
-
+theorem Criterion.prod_p_le_prod_q (c : Criterion) : 4 * ∏ i, c.p i < ∏ i, c.q i := by
+  have hp_pos : ∀ i, (0 : ℝ) < c.p i := fun i ↦ cast_pos.mpr (c.hp i).pos
+  have hq_pos : ∀ i, (0 : ℝ) < c.q i := fun i ↦ cast_pos.mpr (c.hq i).pos
+  have hn_pos : (0 : ℝ) < c.n := cast_pos.mpr (lt_of_lt_of_le zero_lt_one c.hn)
+  have hL_pos : 0 < ∏ i : Fin 3, (1 + (1 : ℝ) / c.q i) :=
+    Finset.prod_pos fun i _ ↦ by positivity
+  have hBC_pos : 0 < (∏ i, (1 + (1 : ℝ) / (c.p i * (c.p i + 1)))) * (1 + 3 / (8 * c.n)) := by
+    positivity
+  have hR_pos : 0 < 1 - 4 * (∏ i, (c.p i : ℝ)) / ∏ i, (c.q i : ℝ) := by
+    by_contra h
+    exact absurd (c.h_crit.trans (mul_nonpos_of_nonneg_of_nonpos hBC_pos.le (not_lt.mp h)))
+      (not_le.mpr hL_pos)
+  have hQ_pos : 0 < ∏ i, (c.q i : ℝ) := Finset.prod_pos fun i _ ↦ hq_pos i
+  rw [sub_pos, div_lt_one hQ_pos] at hR_pos
+  exact_mod_cast hR_pos
 
 blueprint_comment /--
-
 \subsection{Factorisation of \(L_n\) and construction of a competitor}
 -/
-
 
 noncomputable def Criterion.L' (c : Criterion) : ℕ := L c.n / ∏ i, c.q i
 
@@ -237,9 +131,11 @@ noncomputable def Criterion.L' (c : Criterion) : ℕ := L c.n / ∏ i, c.q i
   \]
   and each prime \(q_i\) divides \(L_n\) exactly once and does not divide \(L'\).
   -/)
-  (proof := /-- Since \(q_i < n\), the prime \(q_i\) divides \(L_n\) exactly once (as \(q_i^2 > n\)).  Hence we may write \(L_n = q_1 q_2 q_3 L'\) where \(L'\) is the quotient obtained by removing these prime factors.  By construction, \(q_i \nmid L'\) for each \(i\). -/)
+  (proof := /-- Since \(q_i < n\), the prime \(q_i\) divides \(L_n\) exactly once (as \(q_i^2 > n\)).
+  Hence we may write \(L_n = q_1 q_2 q_3 L'\) where \(L'\) is the quotient obtained by removing
+  these prime factors.  By construction, \(q_i \nmid L'\) for each \(i\). -/)
   (latexEnv := "lemma")]
-theorem Criterion.ln_eq (c : Criterion) : L c.n = (c.q 0) * (c.q 1) * (c.q 2) * c.L' := by sorry
+theorem Criterion.ln_eq (c : Criterion) : L c.n = c.q 0 * c.q 1 * c.q 2 * c.L' := by sorry
 
 @[blueprint
   "lem:Lprime-def"
@@ -251,11 +147,11 @@ theorem Criterion.ln_eq (c : Criterion) : L c.n = (c.q 0) * (c.q 1) * (c.q 2) * 
   \]
   and each prime \(q_i\) divides \(L_n\) exactly once and does not divide \(L'\).
   -/)
-  (proof := /-- Since \(q_i < n\), the prime \(q_i\) divides \(L_n\) exactly once (as \(q_i^2 > n\)).  Hence we may write \(L_n = q_1 q_2 q_3 L'\) where \(L'\) is the quotient obtained by removing these prime factors.  By construction, \(q_i \nmid L'\) for each \(i\). -/)
+  (proof := /-- Since \(q_i < n\), the prime \(q_i\) divides \(L_n\) exactly once (as \(q_i^2 > n\)).
+  Hence we may write \(L_n = q_1 q_2 q_3 L'\) where \(L'\) is the quotient obtained by removing these
+  prime factors.  By construction, \(q_i \nmid L'\) for each \(i\). -/)
   (latexEnv := "lemma")]
 theorem Criterion.q_not_dvd_L' (c : Criterion) : ∀ i, ¬(c.q i ∣ c.L') := by sorry
-
-
 
 @[blueprint
   "lem:sigmaLn"
@@ -269,7 +165,8 @@ theorem Criterion.q_not_dvd_L' (c : Criterion) : ∀ i, ¬(c.q i ∣ c.L') := by
   \end{equation}
   -/)
   (proof := /--
-  Use the multiplicativity of \(\sigma(\cdot)\) and the fact that each \(q_i\) occurs to the first power in \(L_n\).  Then
+  Use the multiplicativity of \(\sigma(\cdot)\) and the fact that each \(q_i\) occurs to the first
+  power in \(L_n\).  Then
   \[
     \sigma(L_n)
     = \sigma(L') \prod_{i=1}^3 \sigma(q_i)
@@ -284,9 +181,9 @@ theorem Criterion.q_not_dvd_L' (c : Criterion) : ∀ i, ¬(c.q i ∣ c.L') := by
   -/)
   (proofUses := ["lem:Lprime-def"])
   (latexEnv := "lemma")]
-theorem Criterion.σnorm_ln_eq (c : Criterion) : σnorm (L c.n) = σnorm (c.L') * ∏ i, (1 + 1/(c.q i)) := by sorry
-
-
+theorem Criterion.σnorm_ln_eq (c : Criterion) :
+    σnorm (L c.n) = σnorm c.L' * ∏ i, (1 + 1 / c.q i) := by
+  sorry
 
 def Criterion.m (c : Criterion) : ℕ := (∏ i, c.q i) / (4 * ∏ i, c.p i)
 
@@ -296,38 +193,19 @@ def Criterion.r (c : Criterion) : ℕ := (∏ i, c.q i) % (4 * ∏ i, c.p i)
   "div-remainder"
   (statement := /--
    There exist integers \(m \ge 0\) and \(r\) satisfying \(0 < r < 4 p_1 p_2 p_3\) and
-  \[
-    q_1 q_2 q_3 = 4 p_1 p_2 p_3 m + r
-  \]
+   \[q_1 q_2 q_3 = 4 p_1 p_2 p_3 m + r \]
   -/)
   (proof := /-- This is division with remainder. -/)
   (latexEnv := "lemma")]
 theorem Criterion.r_ge (c : Criterion) : 0 < c.r := by
-  unfold r
-  rw [Nat.pos_iff_ne_zero]
-  intro h_eq
-  -- If r = 0, then (4 * ∏ i, c.p i) divides (∏ i, c.q i)
-  have h_dvd : 4 * ∏ i, c.p i ∣ ∏ i, c.q i := Nat.dvd_iff_mod_eq_zero.mpr h_eq
-  -- Since p_i are primes and divide the RHS, they must divide one of the q's
-  -- But p_2 < q_0 (from h_ord_2), and p_i < p_2 or p_i = p_2, so all p_i < q_0
-  -- Also q's are strictly monotone, so p_2 < q_0 ≤ q_1 ≤ q_2
-  -- Since p's are primes different from q's (by ordering), we have a contradiction
-  have hp2_prime := c.hp 2
-  have hp2_dvd : c.p 2 ∣ ∏ i, c.q i := by
-    apply Nat.dvd_trans _ h_dvd
-    apply Nat.dvd_trans _ (Nat.dvd_mul_left _ 4)
-    exact Finset.dvd_prod_of_mem _ (Finset.mem_univ 2)
-  -- p_2 is prime and divides the product, so it divides one of the factors
-  have : ∃ i, c.p 2 ∣ c.q i := by
-    simpa using hp2_prime.prime.exists_mem_finset_dvd hp2_dvd
-  obtain ⟨i, hp2_dvd_qi⟩ := this
-  -- But p_2 < q_i by ordering, so p_2 cannot divide q_i (since q_i is prime)
-  have hqi_prime := c.hq i
-  have hp2_lt_qi : c.p 2 < c.q i := by
-    calc c.p 2 < c.q 0 := c.h_ord_2
-         _ ≤ c.q i := c.hq_mono.monotone (Fin.zero_le i)
-  have : c.p 2 = c.q i := ((Nat.Prime.dvd_iff_eq hqi_prime hp2_prime.ne_one).mp hp2_dvd_qi).symm
-  omega
+  simp only [r, Nat.pos_iff_ne_zero, ne_eq]
+  intro h
+  have h_dvd : c.p 2 ∣ ∏ i, c.q i :=
+    (Finset.dvd_prod_of_mem _ (Finset.mem_univ 2)).trans <|
+      (Nat.dvd_mul_left _ 4).trans (Nat.dvd_of_mod_eq_zero h)
+  obtain ⟨i, _, hi⟩ := (c.hp 2).prime.exists_mem_finset_dvd h_dvd
+  have : c.p 2 = c.q i := ((c.hq i).dvd_iff_eq (c.hp 2).ne_one).mp hi |>.symm
+  exact absurd this (c.h_ord_2.trans_le (c.hq_mono.monotone (zero_le i))).ne
 
 @[blueprint
   "div-remainder"
@@ -353,11 +231,7 @@ theorem Criterion.r_le (c : Criterion) : c.r < 4 * ∏ i, c.p i :=
   (proof := /-- This is division with remainder. -/)
   (latexEnv := "lemma")]
 theorem Criterion.prod_q_eq (c : Criterion) : ∏ i, c.q i = (4 * ∏ i, c.p i) * c.m + c.r := by
-  unfold m r
-  rw [Nat.div_add_mod]
-
-
-
+  simp only [m, r, Nat.div_add_mod]
 
 @[blueprint
   "M-def"
@@ -368,7 +242,6 @@ theorem Criterion.prod_q_eq (c : Criterion) : ∏ i, c.q i = (4 * ∏ i, c.p i) 
   \]
   -/)]
 noncomputable def Criterion.M (c : Criterion) : ℕ := (4 * ∏ i, c.p i) * c.m * c.L'
-
 
 @[blueprint
   "lem:M-basic"
@@ -448,7 +321,7 @@ theorem Criterion.M_lt (c : Criterion) : c.M < L c.n := by sorry
   \]
   -/)
   (latexEnv := "lemma")]
-theorem Criterion.Ln_div_M_gt (c : Criterion) : 1 < (L c.n) / (c.M) := by sorry
+theorem Criterion.Ln_div_M_gt (c : Criterion) : 1 < L c.n / c.M := by sorry
 
 @[blueprint
   "lem:M-basic"
@@ -488,17 +361,15 @@ theorem Criterion.Ln_div_M_gt (c : Criterion) : 1 < (L c.n) / (c.M) := by sorry
   \]
   -/)
   (latexEnv := "lemma")]
-theorem Criterion.Ln_div_M_lt (c : Criterion) : (L c.n) / (c.M) < (1 - ((4:ℝ) * ∏ i, c.p i) / (∏ i, c.q i))⁻¹ := by sorry
-
-
+theorem Criterion.Ln_div_M_lt (c : Criterion) :
+    L c.n / c.M < (1 - (4 : ℝ) * ∏ i, c.p i / ∏ i, c.q i)⁻¹ := by
+  sorry
 
 blueprint_comment /--
-
 \subsection{A sufficient condition}
 
 We give a sufficient condition for $\sigma(M) \geq \sigma(L_n)$.
 -/
-
 
 @[blueprint
   "lem:criterion-sufficient"
@@ -535,14 +406,13 @@ We give a sufficient condition for $\sigma(M) \geq \sigma(L_n)$.
   -/)
   (proofUses := ["lem:M-basic"])
   (latexEnv := "lemma")]
-theorem Criterion.not_highlyAbundant_1 (c : Criterion) (h : (σnorm (c.M)) * (1 - (4 : ℝ) * ∏ i, c.p i / ∏ i, c.q i) ≥ σnorm (L c.n)) : ¬ HighlyAbundant (L c.n) := by sorry
-
-
+theorem Criterion.not_highlyAbundant_1 (c : Criterion)
+    (h : σnorm c.M * (1 - (4 : ℝ) * ∏ i, c.p i / ∏ i, c.q i) ≥ σnorm (L c.n)) :
+    ¬HighlyAbundant (L c.n) := by
+  sorry
 
 blueprint_comment /--
-
 Combining Lemma \ref{lem:criterion-sufficient} with Lemma \ref{lem:sigmaLn}, we see that it suffices to bound \(\sigma(M)/M\) from below in terms of \(\sigma(L')/L'\):
-
 -/
 
 @[blueprint
@@ -562,16 +432,14 @@ Combining Lemma \ref{lem:criterion-sufficient} with Lemma \ref{lem:sigmaLn}, we 
   (proof := /-- Insert \eqref{eq:sigmaM-lower} and \eqref{eq:sigmaLn} into the desired inequality and compare with the assumed bound \eqref{eq:main-ineq}; this is a straightforward rearrangement. -/)
   (proofUses := ["lem:sigmaLn", "lem:criterion-sufficient"])
   (latexEnv := "lemma")]
-theorem Criterion.not_highlyAbundant_2 (c : Criterion) (h : (σnorm c.M) ≥ (σnorm c.L') * ∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ))) * (1 + (3 : ℝ) / (8 * c.n))) : ¬ HighlyAbundant (L c.n) := by sorry
-
-
+theorem Criterion.not_highlyAbundant_2 (c : Criterion)
+    (h : σnorm c.M ≥ σnorm c.L' * ∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ))) *
+      (1 + (3 : ℝ) / (8 * c.n))) :
+    ¬HighlyAbundant (L c.n) := by
+  sorry
 
 blueprint_comment /--
-
-
-
 \subsection{Conclusion of the criterion}
-
 -/
 
 @[blueprint "lem:sigmaM-lower-final"
@@ -621,7 +489,7 @@ blueprint_comment /--
   -/)
   (latexEnv := "lemma")]
 theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) :
-    (σnorm c.M) ≥ (σnorm c.L') * ∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ))) * (1 + 3 / (8 * c.n)) := by
+    σnorm c.M ≥ σnorm c.L' * ∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ))) * (1 + 3 / (8 * c.n)) := by
   sorry
 
 
@@ -648,8 +516,8 @@ theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) :
   \]
   Applying Lemma~\ref{lem:criterion-sufficient}, we obtain \(\sigma(M) \ge \sigma(L_n)\) with \(M < L_n\), so \(L_n\) cannot be highly abundant.
   -/)]
-theorem Criterion.not_highlyAbundant (c : Criterion) : ¬ HighlyAbundant (L c.n) := c.not_highlyAbundant_2 c.σnorm_M_ge_σnorm_L'_mul
-
+theorem Criterion.not_highlyAbundant (c : Criterion) : ¬HighlyAbundant (L c.n) :=
+  c.not_highlyAbundant_2 c.σnorm_M_ge_σnorm_L'_mul
 
 blueprint_comment /--
 \begin{remark}
@@ -659,13 +527,10 @@ used on the \(p\)-side than the \(q\)-side to restore an asymptotic advantage.
 \end{remark}
 -/
 
-
 abbrev X₀ := 89693
 
 blueprint_comment /--
-
 \subsection{Choice of six primes \(p_i,q_i\) for large \(n\)}
-
 -/
 
 @[blueprint
@@ -679,12 +544,15 @@ blueprint_comment /--
   and \(p_1 < p_2 < p_3\).
   Moreover, \(\sqrt{n} < p_1\)
   -/)
-  (proof := /-- Apply Theorem~\ref{thm:Dusart} successively with \(x, x(1+1/\log^3 x), x(1+1/\log^3 x)^2\), keeping track of the resulting primes and bounds.  For \(n\) large and \(x = \sqrt{n}\), we have \(\sqrt{n} < p_1\) as soon as the first interval lies strictly above \(\sqrt{n}\); this can be enforced by taking \(n\) large enough. -/)
+  (proof := /-- Apply Theorem~\ref{thm:Dusart} successively with
+  \(x, x(1+1/\log^3 x), x(1+1/\log^3 x)^2\), keeping track of the resulting primes and bounds.
+  For \(n\) large and \(x = \sqrt{n}\), we have \(\sqrt{n} < p_1\) as soon as the first interval
+  lies strictly above \(\sqrt{n}\); this can be enforced by taking \(n\) large enough. -/)
   (proofUses := ["thm:Dusart"])
   (latexEnv := "lemma")]
 theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∃ p : Fin 3 → ℕ, (∀ i, Nat.Prime (p i)) ∧ StrictMono p ∧
-    (∀ i, p i ≤ √(n : ℝ) * (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ (i+1:ℝ)) ∧ (√(n : ℝ) < p 0) := by
+      (∀ i, p i ≤ √(n : ℝ) * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ (i + 1 : ℝ)) ∧ √(n : ℝ) < p 0 := by
   sorry
 
 
@@ -698,20 +566,19 @@ theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   \]
   for \(i = 1,2,3\), and \(q_1 < q_2 < q_3 < n\).
   -/)
-  (proof := /-- Apply Theorem~\ref{thm:Dusart} with suitable values of \(x\) slightly below \(n\), e.g.\ \(x = n(1+1/\log^3\sqrt{n})^{-i}\), again keeping track of the intervals.  For \(n\) large enough, these intervals lie in \((\sqrt{n},n)\) and contain primes \(q_i\) with the desired ordering. -/)
+  (proof := /-- Apply Theorem~\ref{thm:Dusart} with suitable values of \(x\) slightly below \(n\),
+  e.g.\ \(x = n(1+1/\log^3\sqrt{n})^{-i}\), again keeping track of the intervals.  For \(n\) large
+  enough, these intervals lie in \((\sqrt{n},n)\) and contain primes \(q_i\) with the desired
+  ordering. -/)
   (proofUses := ["thm:Dusart"])
   (latexEnv := "lemma")]
 theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∃ q : Fin 3 → ℕ, (∀ i, Nat.Prime (q i)) ∧ StrictMono q ∧
-      (∀ i:Fin 3, n * (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ (3-(i:ℕ)) ≤ q i) ∧ (q 2 < n) := by
+      (∀ i : Fin 3, n * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ (3 - (i : ℕ)) ≤ q i) ∧ q 2 < n := by
   sorry
 
-
-
 blueprint_comment /--
-
 \subsection{Bounding the factors in \eqref{eq:main-ineq}}
-
 -/
 
 @[blueprint
@@ -738,10 +605,10 @@ blueprint_comment /--
   -/)
   (proofUses := ["lem:choose-qi"])
   (latexEnv := "lemma")]
-theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : ∏ i, (1 + (1:ℝ) / ((exists_q_primes hn).choose i)) ≤ ∏ i:Fin 3, (1 + (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ ((i:ℕ)+1:ℝ) / n) := by sorry
-
-
-
+theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    ∏ i, (1 + (1 : ℝ) / (exists_q_primes hn).choose i) ≤
+      ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((i : ℕ) + 1 : ℝ) / n) := by
+  sorry
 
 @[blueprint
   "lem:pi-product"
@@ -776,10 +643,10 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : ∏ i, (1 + (1:ℝ) / ((exis
   Taking \(1+\cdot\) and multiplying over \(i=1,2,3\) gives \eqref{eq:pi-lower}.
   -/)
   (latexEnv := "lemma")]
-theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : ∏ i, (1 + (1:ℝ) / ((exists_p_primes hn).choose i)*((exists_p_primes hn).choose i + 1)) ≥ ∏ i:Fin 3, (1 + (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ (2*(i:ℕ)+2:ℝ) * (n + √n)) := by sorry
-
-
-
+theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    ∏ i, (1 + (1 : ℝ) / ((exists_p_primes hn).choose i * ((exists_p_primes hn).choose i + 1))) ≥
+      ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n)) := by
+  sorry
 
 @[blueprint
   "lem:pq-ratio"
@@ -804,19 +671,20 @@ theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : ∏ i, (1 + (1:ℝ) / ((exis
   Combining,
   \[
     \frac{p_1 p_2 p_3}{q_1 q_2 q_3} \le
-    \frac{n^{3/2} \bigl(1 + \frac{1}{\log^3 \sqrt{n}}\bigr)^{6}}{n^3 \bigl(1 + \frac{1}{\log^3 \sqrt{n}}\bigr)^{-6}}
+    \frac{n^{3/2} \bigl(1 + \frac{1}{\log^3 \sqrt{n}}\bigr)^{6}}{n^3
+    \bigl(1 + \frac{1}{\log^3\sqrt{n}}\bigr)^{-6}}
     = \frac{\bigl(1 + \frac{1}{\log^3 \sqrt{n}}\bigr)^{12}}{n^{3/2}}.
   \]
   This implies \eqref{eq:pq-ratio}.
   -/)
   (latexEnv := "lemma")]
-theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : 1 - (4 : ℝ) * ∏ i, (exists_p_primes hn).choose i / ∏ i, (exists_q_primes hn).choose i ≥ 1 - (4 * (1 + 1 / (log (√(n : ℝ))) ^ 3) ^ 12) / (n ^ (3 / 2)) := by sorry
-
+theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    1 - (4 : ℝ) * ∏ i, (exists_p_primes hn).choose i / ∏ i, (exists_q_primes hn).choose i ≥
+      1 - 4 * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ 12 / n ^ (3 / 2) := by
+  sorry
 
 blueprint_comment /--
-
 \subsection{Reduction to a small epsilon-inequality}
-
 -/
 
 @[blueprint
@@ -831,9 +699,13 @@ blueprint_comment /--
     \frac{1}{n^{3/2}} \le \frac{1}{89693}\cdot\frac{1}{n}.
   \]
   -/)
-  (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at \(n=X_0^2\).  One can verify numerically or symbolically. -/)
+  (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are
+  decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at
+  \(n=X_0^2\).  One can verify numerically or symbolically. -/)
   (latexEnv := "lemma")]
-theorem inv_cube_log_sqrt_le (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (log (√(n : ℝ))) ^ 3 ≤ 0.000675 := by sorry
+theorem inv_cube_log_sqrt_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
+    1 / (log √(n : ℝ)) ^ 3 ≤ 0.000675 := by
+  sorry
 
 @[blueprint
   "lem:eps-bounds"
@@ -847,7 +719,9 @@ theorem inv_cube_log_sqrt_le (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (log (√(n :
     \frac{1}{n^{3/2}} \le \frac{1}{89693}\cdot\frac{1}{n}.
   \]
   -/)
-  (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at \(n=X_0^2\).  One can verify numerically or symbolically. -/)
+  (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are
+  decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at
+  \(n=X_0^2\).  One can verify numerically or symbolically. -/)
   (latexEnv := "lemma")]
 theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
     1 / ((n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (89693 : ℝ)) * (1 / (n : ℝ)) := by
@@ -881,15 +755,20 @@ theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
   \]
   -/)
   (proof := /--
-  Expand each finite product as a polynomial in \(\varepsilon\), estimate the coefficients using the bounds in Lemma~\ref{lem:eps-bounds}, and bound the tails by simple inequalities such as
+  Expand each finite product as a polynomial in \(\varepsilon\), estimate the coefficients using
+  the bounds in Lemma~\ref{lem:eps-bounds}, and bound the tails by simple inequalities such as
   \[
     (1+C\varepsilon)^k \le 1 + k C\varepsilon + \dots
   \]
   for small \(\varepsilon\).
-  All coefficients can be bounded numerically in a rigorous way; this step is a finite computation that can be checked mechanically.
+  All coefficients can be bounded numerically in a rigorous way; this step is a finite computation
+  that can be checked mechanically.
   -/)
   (latexEnv := "lemma")]
-theorem prod_epsilon_le (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) : ∏ i:Fin 3, (1 + (1.000675 : ℝ) ^ ((i:ℕ)+1:ℝ) * ε) ≤ 1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 := by sorry
+theorem prod_epsilon_le (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
+    ∏ i : Fin 3, (1 + (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) * ε) ≤
+      1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 := by
+  sorry
 
 @[blueprint
   "lem:poly-ineq"
@@ -911,17 +790,21 @@ theorem prod_epsilon_le (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   \]
   -/)
   (proof := /--
-  Expand each finite product as a polynomial in \(\varepsilon\), estimate the coefficients using the bounds in Lemma~\ref{lem:eps-bounds}, and bound the tails by simple inequalities such as
+  Expand each finite product as a polynomial in \(\varepsilon\), estimate the coefficients using
+  the bounds in Lemma~\ref{lem:eps-bounds}, and bound the tails by simple inequalities such as
   \[
     (1+C\varepsilon)^k \le 1 + k C\varepsilon + \dots
   \]
   for small \(\varepsilon\).
-  All coefficients can be bounded numerically in a rigorous way; this step is a finite computation that can be checked mechanically.
+  All coefficients can be bounded numerically in a rigorous way; this step is a finite computation
+  that can be checked mechanically.
   -/)
   (latexEnv := "lemma")]
-theorem prod_epsilon_ge (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) : (∏ i:Fin 3, (1 + ε / (1.000675 : ℝ) ^ (2*((i:ℕ)+1:ℝ)))) * (1 + (3 : ℝ) / 8 * ε) * (1 - (4 * (1.000675 : ℝ) ^ 12) / 89693 * ε) ≥ 1 + 3.37 * ε - 0.01 * ε ^ 2 := by sorry
-
-
+theorem prod_epsilon_ge (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
+    (∏ i : Fin 3, (1 + ε / (1.000675 : ℝ) ^ (2 * ((i : ℕ) + 1 : ℝ)))) *
+        (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * ε) ≥
+      1 + 3.37 * ε - 0.01 * ε ^ 2 := by
+  sorry
 
 @[blueprint
   "lem:final-comparison"
@@ -943,55 +826,55 @@ theorem prod_epsilon_ge (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   \[
     0 \le (3.37 - 3.01)\varepsilon - (3.01+0.01)\varepsilon^2 - 1.01\varepsilon^3.
   \]
-  Factor out \(\varepsilon\) and use that \(0<\varepsilon \le 1/89693^2\) to check that the resulting quadratic in \(\varepsilon\) is nonnegative on this interval.  Again, this is a finite computation that can be verified mechanically.
+  Factor out \(\varepsilon\) and use that \(0<\varepsilon \le 1/89693^2\) to check that the
+  resulting quadratic in \(\varepsilon\) is nonnegative on this interval.  Again, this is a
+  finite computation that can be verified mechanically.
   -/)
   (latexEnv := "lemma")]
 theorem final_comparison (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
     1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.37 * ε - 0.01 * ε ^ 2 := by
   nlinarith
 
-
-
 @[blueprint
   "prop:ineq-holds-large-n"
   (title := "Verification of \\eqref{eq:main-ineq} for large \\(n\\)")
-  (statement := /-- For every integer \(n \ge X_0^2 = 89693^2 \approx 8.04\times 10^9\), the primes \(p_i,q_i\) constructed in Lemmas~\ref{lem:choose-pi} and \ref{lem:choose-qi} satisfy the inequality \eqref{eq:main-ineq}. -/)
-  (proof := /-- Combine Lemma~\ref{lem:qi-product}, Lemma~\ref{lem:pi-product}, and Lemma~\ref{lem:pq-ratio}.  Then apply Lemma~\ref{lem:eps-bounds} and set \(\varepsilon = 1/n\).  The products are bounded by the expressions in Lemma~\ref{lem:poly-ineq}, and the inequality in Lemma~\ref{lem:final-comparison} then ensures that \eqref{eq:main-ineq} holds. -/)
-  (proofUses := ["lem:eps-bounds", "lem:qi-product", "lem:final-comparison", "lem:poly-ineq", "lem:pq-ratio", "lem:pi-product"])
+  (statement := /-- For every integer \(n \ge X_0^2 = 89693^2 \approx 8.04\times 10^9\), the
+  primes \(p_i,q_i\) constructed in Lemmas~\ref{lem:choose-pi} and \ref{lem:choose-qi} satisfy the
+  inequality \eqref{eq:main-ineq}. -/)
+  (proof := /-- Combine Lemma~\ref{lem:qi-product}, Lemma~\ref{lem:pi-product}, and
+  Lemma~\ref{lem:pq-ratio}.  Then apply Lemma~\ref{lem:eps-bounds} and set \(\varepsilon = 1/n\).
+  The products are bounded by the expressions in Lemma~\ref{lem:poly-ineq}, and the inequality in
+  Lemma~\ref{lem:final-comparison} then ensures that \eqref{eq:main-ineq} holds. -/)
+  (proofUses := ["lem:eps-bounds", "lem:qi-product", "lem:final-comparison", "lem:poly-ineq",
+  "lem:pq-ratio", "lem:pi-product"])
   (latexEnv := "proposition")]
-noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion := {
+noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion where
   n := n
   p := (exists_p_primes hn).choose
   q := (exists_q_primes hn).choose
-  hn :=
-   calc
-    1 ≤ 89693 ^ 2 := by decide
-    _ ≤ n := hn
-  hp := (exists_p_primes hn).choose_spec.1,
+  hn := le_trans (by decide : 1 ≤ 89693 ^ 2) hn
+  hp := (exists_p_primes hn).choose_spec.1
   hp_mono := sorry
   hq := sorry
   hq_mono := sorry
   h_ord_1 := sorry
   h_ord_2 := sorry
   h_ord_3 := sorry
-  h_crit  := sorry
-}
-
+  h_crit := sorry
 
 blueprint_comment /--
-
 \subsection{Conclusion for large \(n\)}
-
 -/
 
 @[blueprint
   "thm:large-n-final"
   (title := "Non-highly abundant for large \\(n\\)")
-  (statement := /-- For every integer \(n \ge 89693^2\), the integer \(L_n\) is not highly abundant. -/)
-  (proof := /-- By Proposition~\ref{prop:ineq-holds-large-n}, there exist primes \(p_1,p_2,p_3,q_1,q_2,q_3\) satisfying the hypotheses of Theorem~\ref{thm:criterion}.  Hence \(L_n\) is not highly abundant. -/)
+  (statement := /-- For every integer \(n \ge 89693^2\), the integer \(L_n\) is not highly
+  abundant. -/)
+  (proof := /-- By Proposition~\ref{prop:ineq-holds-large-n}, there exist primes
+  \(p_1,p_2,p_3,q_1,q_2,q_3\) satisfying the hypotheses of Theorem~\ref{thm:criterion}.
+  Hence \(L_n\) is not highly abundant. -/)
   (proofUses := ["prop:ineq-holds-large-n", "thm:criterion"])]
-theorem L_not_HA_of_ge (n : ℕ) (hn : n ≥ 89693 ^ 2) : ¬ HighlyAbundant (L n) := sorry
-
-
+theorem L_not_HA_of_ge (n : ℕ) (hn : n ≥ 89693 ^ 2) : ¬HighlyAbundant (L n) := sorry
 
 end Lcm
