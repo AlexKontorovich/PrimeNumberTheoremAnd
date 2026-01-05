@@ -2046,9 +2046,9 @@ theorem dirichlet_thm {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) 
       have := @infinite_setOf_prime_and_eq_mod
       specialize @this q <| NeZero.of_pos hq
       simp_all only [isUnit_iff_exists_inv, forall_exists_index, ← ZMod.natCast_eq_natCast_iff]
-      exact this ((IsUnit.exists_right_inv (show IsUnit (a : ZMod q) from by
-        rwa [ZMod.isUnit_iff_coprime])).choose) ((IsUnit.exists_right_inv (show IsUnit (a : ZMod q)
-          from by rwa [ZMod.isUnit_iff_coprime])).choose_spec)
+      exact this (IsUnit.exists_right_inv (show IsUnit (a : ZMod q) from by
+        rwa [ZMod.isUnit_iff_coprime])).choose (IsUnit.exists_right_inv (show IsUnit (a : ZMod q)
+          from by rwa [ZMod.isUnit_iff_coprime])).choose_spec
     exact this.mono fun p hp ↦ ⟨hp.1, by simpa [ModEq, mod_eq_of_lt ha'] using hp.2⟩
   exact Set.infinite_coe_iff.mpr this
 
