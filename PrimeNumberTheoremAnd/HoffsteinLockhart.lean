@@ -1,3 +1,4 @@
+import Architect
 import Mathlib.Analysis.Complex.CauchyIntegral
 import Mathlib.NumberTheory.ArithmeticFunction.Defs
 import Mathlib.NumberTheory.ArithmeticFunction.Misc
@@ -11,13 +12,14 @@ open Complex BigOperators Finset Nat Classical
 
 open scoped ArithmeticFunction Interval
 
-/-%%
+blueprint_comment /--
 
 In this file, we use the Hoffstein-Lockhart construction to prove a zero-free region for zeta.
 
 Hoffstein-Lockhart + Goldfeld-Hoffstein-Liemann
 
-Instead of the ``slick'' identity $3+4\cos\theta+\cos2\theta=2(\cos\theta+1)^2\ge0$, we use the following  more robust identity.
+Instead of the ``slick'' identity $3+4\cos\theta+\cos2\theta=2(\cos\theta+1)^2\ge0$, we use the
+following more robust identity.
 \begin{theorem}\label{thm:HLineq}
 For any $p>0$ and $t\in\mathbb{R}$,
 $$
@@ -49,7 +51,8 @@ That
 $\log F(\sigma)\ge0$ for $\sigma>1$ follows from
 Theorem \ref{thm:HLineq}.
 \end{proof}
-[Note: I often prefer to avoid taking logs of functions that, even if real-valued, have to be justified as being such. Instead, I like to start with ``logF'' as a convergent
+[Note: I often prefer to avoid taking logs of functions that, even if real-valued, have to be
+justified as being such. Instead, I like to start with ``logF'' as a convergent
 Dirichlet series, show that it is real-valued and non-negative, and then exponentiate...]
 
 From this and Hadamard factorization, we deduce the following.
@@ -69,4 +72,4 @@ Use Theorem \ref{FsigmaThm} and Hadamard factorization.
 This allows us to quantify precisely the relationship between $T$ and $\delta$ in
 Theorem \ref{ZetaNoZerosInBox}....
 
-%%-/
+-/
