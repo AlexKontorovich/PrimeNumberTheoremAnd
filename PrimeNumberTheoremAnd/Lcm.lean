@@ -854,12 +854,12 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
   q := (exists_q_primes hn).choose
   hn := le_trans (by decide : 1 ≤ 89693 ^ 2) hn
   hp := (exists_p_primes hn).choose_spec.1
-  hp_mono := sorry
-  hq := sorry
-  hq_mono := sorry
-  h_ord_1 := sorry
+  hp_mono := (exists_p_primes hn).choose_spec.2.1
+  hq := (exists_q_primes hn).choose_spec.1
+  hq_mono := (exists_q_primes hn).choose_spec.2.1
+  h_ord_1 := (exists_p_primes hn).choose_spec.2.2.2
   h_ord_2 := sorry
-  h_ord_3 := sorry
+  h_ord_3 := (exists_q_primes hn).choose_spec.2.2.2
   h_crit := sorry
 
 blueprint_comment /--
@@ -875,6 +875,7 @@ blueprint_comment /--
   \(p_1,p_2,p_3,q_1,q_2,q_3\) satisfying the hypotheses of Theorem~\ref{thm:criterion}.
   Hence \(L_n\) is not highly abundant. -/)
   (proofUses := ["prop:ineq-holds-large-n", "thm:criterion"])]
-theorem L_not_HA_of_ge (n : ℕ) (hn : n ≥ 89693 ^ 2) : ¬HighlyAbundant (L n) := sorry
+theorem L_not_HA_of_ge (n : ℕ) (hn : n ≥ 89693 ^ 2) : ¬HighlyAbundant (L n) :=
+  (Criterion.mk' hn).not_highlyAbundant
 
 end Lcm
