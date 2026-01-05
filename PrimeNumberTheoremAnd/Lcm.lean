@@ -302,7 +302,32 @@ def Criterion.r (c : Criterion) : ℕ := (∏ i, c.q i) % (4 * ∏ i, c.p i)
   -/)
   (proof := /-- This is division with remainder. -/)
   (latexEnv := "lemma")]
-theorem Criterion.r_ge (c : Criterion) : 0 < c.r := by sorry
+theorem Criterion.r_ge (c : Criterion) : 0 < c.r := by
+  unfold r
+  rw [Nat.pos_iff_ne_zero]
+  intro h_eq
+  -- If r = 0, then (4 * ∏ i, c.p i) divides (∏ i, c.q i)
+  have h_dvd : 4 * ∏ i, c.p i ∣ ∏ i, c.q i := Nat.dvd_iff_mod_eq_zero.mpr h_eq
+  -- Since p_i are primes and divide the RHS, they must divide one of the q's
+  -- But p_2 < q_0 (from h_ord_2), and p_i < p_2 or p_i = p_2, so all p_i < q_0
+  -- Also q's are strictly monotone, so p_2 < q_0 ≤ q_1 ≤ q_2
+  -- Since p's are primes different from q's (by ordering), we have a contradiction
+  have hp2_prime := c.hp 2
+  have hp2_dvd : c.p 2 ∣ ∏ i, c.q i := by
+    apply Nat.dvd_trans _ h_dvd
+    apply Nat.dvd_trans _ (Nat.dvd_mul_left _ 4)
+    exact Finset.dvd_prod_of_mem _ (Finset.mem_univ 2)
+  -- p_2 is prime and divides the product, so it divides one of the factors
+  have : ∃ i, c.p 2 ∣ c.q i := by
+    simpa using hp2_prime.prime.exists_mem_finset_dvd hp2_dvd
+  obtain ⟨i, hp2_dvd_qi⟩ := this
+  -- But p_2 < q_i by ordering, so p_2 cannot divide q_i (since q_i is prime)
+  have hqi_prime := c.hq i
+  have hp2_lt_qi : c.p 2 < c.q i := by
+    calc c.p 2 < c.q 0 := c.h_ord_2
+         _ ≤ c.q i := c.hq_mono.monotone (Fin.zero_le i)
+  have : c.p 2 = c.q i := ((Nat.Prime.dvd_iff_eq hqi_prime hp2_prime.ne_one).mp hp2_dvd_qi).symm
+  omega
 
 @[blueprint
   "div-remainder"
@@ -327,7 +352,9 @@ theorem Criterion.r_le (c : Criterion) : c.r < 4 * ∏ i, c.p i :=
   -/)
   (proof := /-- This is division with remainder. -/)
   (latexEnv := "lemma")]
-theorem Criterion.prod_q_eq (c : Criterion) : ∏ i, c.q i = 4 * ∏ i, c.p i * c.m + c.r := by sorry
+theorem Criterion.prod_q_eq (c : Criterion) : ∏ i, c.q i = (4 * ∏ i, c.p i) * c.m + c.r := by
+  unfold m r
+  rw [Nat.div_add_mod]
 
 
 
@@ -340,7 +367,7 @@ theorem Criterion.prod_q_eq (c : Criterion) : ∏ i, c.q i = 4 * ∏ i, c.p i * 
     M := 4 p_1 p_2 p_3 m L'.
   \]
   -/)]
-noncomputable def Criterion.M (c : Criterion) : ℕ := 4 * ∏ i, c.p i * c.m * c.L'
+noncomputable def Criterion.M (c : Criterion) : ℕ := (4 * ∏ i, c.p i) * c.m * c.L'
 
 
 @[blueprint
