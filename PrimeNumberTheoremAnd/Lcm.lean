@@ -858,7 +858,21 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
   hq := (exists_q_primes hn).choose_spec.1
   hq_mono := (exists_q_primes hn).choose_spec.2.1
   h_ord_1 := (exists_p_primes hn).choose_spec.2.2.2
-  h_ord_2 := sorry
+  h_ord_2 := by
+    have hp := (exists_p_primes hn).choose_spec.2.2.1 2
+    have hq := (exists_q_primes hn).choose_spec.2.2.1 0
+    have hn_pos : (0 : ℝ) < n := by positivity
+    have hsqrt_ge : √(n : ℝ) ≥ 89693 := by
+      simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ 89693 ^ 2)
+    have hε_pos : 0 < 1 + 1 / (log √(n : ℝ)) ^ 3 := by
+      have : log √(n : ℝ) > 0 := log_pos (by grind)
+      positivity
+    have hsqrt : √(n : ℝ) < n := by nlinarith [mul_self_sqrt hn_pos.le, hsqrt_ge]
+    have hp' : ((exists_p_primes hn).choose 2 : ℝ) ≤ √n * (1 + 1 / (log √n) ^ 3) ^ 3 := by
+      convert hp using 2; norm_cast
+    have hq' : n * (1 + 1 / (log √n) ^ 3) ^ 3 ≤ (exists_q_primes hn).choose 0 := by
+      convert hq using 2
+    exact_mod_cast hp'.trans_lt ((mul_lt_mul_of_pos_right hsqrt (pow_pos hε_pos 3)).trans_le hq')
   h_ord_3 := (exists_q_primes hn).choose_spec.2.2.2
   h_crit := sorry
 
