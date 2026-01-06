@@ -33,7 +33,6 @@ blueprint_comment /--
   \int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$ -/)
   (proof := /-- This is just Cauchy's integral formula for derivatives. -/)
   (latexEnv := "lemma")]
-
 lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
     (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
     (r_lt_r' : r < r') (r'_lt_R : r' < R) {z : ℂ} (hz : z ∈ Metric.closedBall 0 r) :
@@ -63,7 +62,6 @@ lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
     $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
     Substituting this into Equation (\ref{pickupPoint1}) and evaluating the integral completes the proof. -/)
   (latexEnv := "lemma")]
-
 lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (Mpos : 0 < M) (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (f_zero_at_zero : f 0 = 0)
@@ -119,7 +117,6 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
   (proof := /-- Using Lemma \ref{DerivativeBound} with $r'=(R+r)/2$, and noting that $r < R$, we have that
     $$|f'(z)|\leq\frac{4M(R+r)^2}{(R-r)^3}\leq\frac{16MR^2}{(R-r)^3}.$$ -/)
   (latexEnv := "theorem")]
-
 theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (rpos : 0 < r) (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (zeroAtZero : f 0 = 0) (Mpos : 0 < M)
