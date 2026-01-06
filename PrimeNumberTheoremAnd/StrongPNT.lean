@@ -36,33 +36,15 @@ blueprint_comment /--
 
 lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
     (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
-    (r_lt_r' : r < r')
-    (r'_lt_R : r' < R)
-    {z : ℂ} (hz : z ∈ Metric.closedBall 0 r) :
+    (r_lt_r' : r < r') (r'_lt_R : r' < R) {z : ℂ} (hz : z ∈ Metric.closedBall 0 r) :
     deriv f z = (1 / (2 * Real.pi * I)) • ∮ w in C(0, r'), (w - z)⁻¹ ^ 2 • f w := by
-    obtain ⟨U', hU'_open, h_subset, hf_diff_U'⟩ := hf_domain
-    have hz_in_ball : z ∈ Metric.ball (0 : ℂ) r' := by
-        apply Metric.mem_ball.mpr
-        have h1 : ‖z - 0‖ ≤ r := Metric.mem_closedBall.mp hz
-        simp only [sub_zero] at h1
-        have h2 : ‖z‖ < r' := lt_of_le_of_lt h1 r_lt_r'
-        rwa [dist_eq_norm, sub_zero]
-    set U := Metric.ball (0 : ℂ) R
-    have hc_subset : Metric.closedBall (0 : ℂ) r' ⊆ U := by
-        apply Metric.closedBall_subset_ball
-        exact r'_lt_R
-    have hf_on_U : DifferentiableOn ℂ f U := by
-        apply DifferentiableOn.mono hf_diff_U'
-        calc U = Metric.ball 0 R := rfl
-            _ ⊆ Metric.closedBall 0 R := Metric.ball_subset_closedBall
-            _ ⊆ U' := h_subset
-    have cauchy_eq := Complex.two_pi_I_inv_smul_circleIntegral_sub_sq_inv_smul_of_differentiable
-        Metric.isOpen_ball hc_subset hf_on_U hz_in_ball
-    rw [← cauchy_eq]
-    congr 2
-    ·   simp only [one_div]
-    ·   ext w
-        rw [← inv_pow]
+  obtain ⟨_, _, h_subset, hf_diff⟩ := hf_domain
+  have hz_in_ball : z ∈ Metric.ball 0 r' :=
+    Metric.mem_ball.mpr <| (Metric.mem_closedBall.mp hz).trans_lt r_lt_r'
+  have hf_on_ball : DifferentiableOn ℂ f (Metric.ball 0 R) :=
+    hf_diff.mono <| Metric.ball_subset_closedBall.trans h_subset
+  simp [← Complex.two_pi_I_inv_smul_circleIntegral_sub_sq_inv_smul_of_differentiable
+      Metric.isOpen_ball (Metric.closedBall_subset_ball r'_lt_R) hf_on_ball hz_in_ball]
 
 
 
