@@ -180,7 +180,8 @@ lemma Factorization.replace_div_score_le {n : ℕ} (f : Factorization n) (m p : 
       replace_sum f m m' hm hm' (fun x => Real.log (n / x))
     rw [h_waste_eq]
     by_cases hn : n = 0
-    · simp [hn]; positivity
+    · simp only [hn, CharP.cast_eq_zero, zero_div, log_zero, sub_zero, add_zero,
+      le_add_iff_nonneg_right, ge_iff_le]; positivity
     · have hn_pos : (0 : ℝ) < n := Nat.cast_pos.mpr (Nat.pos_of_ne_zero hn)
       have hm_pos : (0 : ℝ) < m := Nat.cast_pos.mpr (Nat.pos_of_ne_zero hm_ne)
       have hp_pos : (0 : ℝ) < p := Nat.cast_pos.mpr hp.pos
@@ -239,7 +240,6 @@ lemma Factorization.replace_div_score_le {n : ℕ} (f : Factorization n) (m p : 
         congr 1
         rw [← Finset.sum_filter]
         simp only [Finset.filter_eq', hp_mem, ↓reduceIte, Finset.sum_singleton]
-  -- Combine waste and sum term bounds
   unfold score at *
   split_ifs <;> norm_num at *
   · linarith
@@ -270,53 +270,72 @@ theorem Factorization.lower_score_1 {n : ℕ} (f : Factorization n) (L : ℕ)
 
 @[blueprint
   "score-lower-2"
-  (statement := /-- If there is a prime $p$ in deficit larger than $L$, one can remove it without increasing the
-  score.-/)
+  (statement := /-- If there is a prime $p$ in deficit larger than $L$, one can remove it without
+  increasing the score.-/)
   (proof := /-- Add an additional factor of $p$ to the factorization.-/)]
-theorem Factorization.lower_score_2 {n : ℕ} (f : Factorization n) (L : ℕ) (hf : ∃ p ∈ (n + 1).primesBelow, p > L ∧ f.balance p < 0) : ∃ f' : Factorization n, f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by
-  obtain ⟨p, hp_prime, hp_gt_L, hp_balance⟩ := hf;
-  set f' : Erdos392.Factorization n := ⟨f.a + {p}, by
-    simp at *;
-    rintro m ( hm | rfl ) <;> [ exact f.ha m hm; exact Nat.le_of_lt_succ ( Nat.lt_of_mem_primesBelow hp_prime ) ]⟩
-  generalize_proofs at *;
+theorem Factorization.lower_score_2 {n : ℕ} (f : Factorization n) (L : ℕ)
+    (hf : ∃ p ∈ (n + 1).primesBelow, p > L ∧ f.balance p < 0) :
+    ∃ f' : Factorization n, f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by
+  obtain ⟨p, hp_mem, hp_gt_L, hp_balance⟩ := hf
+  have hp := Nat.prime_of_mem_primesBelow hp_mem
+  set f' : Factorization n := ⟨f.a + {p}, fun m hm => by
+    simp only [Multiset.mem_add, Multiset.mem_singleton] at hm
+    rcases hm with hm | rfl
+    · exact f.ha m hm
+    · exact Nat.le_of_lt_succ (Nat.lt_of_mem_primesBelow hp_mem)⟩
+  have h_balance_p : f'.balance p = f.balance p + 1 := by
+    unfold balance sum
+    simp only [show f'.a = f.a + {p} from rfl, Multiset.map_add, Multiset.sum_add,
+      Multiset.map_singleton, Multiset.sum_singleton, Nat.Prime.factorization_self hp]
+    omega
+  have h_balance_q : ∀ q, q ≠ p → f'.balance q = f.balance q := fun q hq => by
+    have hq_fac : p.factorization q = 0 := by rw [Nat.Prime.factorization hp]; simp [hq.symm]
+    unfold balance sum
+    simp only [show f'.a = f.a + {p} from rfl, Multiset.map_add, Multiset.sum_add,
+      Multiset.map_singleton, Multiset.sum_singleton, hq_fac, add_zero]
   have h_total_imbalance : f'.total_imbalance < f.total_imbalance := by
-    have h_balance_change : f'.balance p = f.balance p + 1 := by
-      unfold Erdos392.Factorization.balance;
-      simp +zetaDelta at *;
-      unfold Erdos392.Factorization.sum; simp +decide [ add_comm, add_left_comm, add_assoc ] ;
-      rw [ Nat.Prime.factorization ( Nat.prime_of_mem_primesBelow hp_prime ) ] ; norm_num ; ring;
-    fapply Finset.sum_lt_sum;
-    · intro q hq; by_cases hq' : q = p <;> simp_all +decide [ Erdos392.Factorization.balance ] ;
-      · omega;
-      · simp_all +decide [ Factorization.sum ];
-        rw [ Nat.primesBelow ] at * ; aesop;
-    · grind;
-  have h_score : f'.waste + (if f'.total_imbalance > 0 then log n else 0) + ∑ p ∈ (n + 1).primesBelow, (if f'.balance p > 0 then (f'.balance p) * (log p) else if p ≤ L then (-f'.balance p) * (log L) else (-f'.balance p) * (log (n / p))) ≤ f.waste + (if f.total_imbalance > 0 then log n else 0) + ∑ p ∈ (n + 1).primesBelow, (if f.balance p > 0 then (f.balance p) * (log p) else if p ≤ L then (-f.balance p) * (log L) else (-f.balance p) * (log (n / p))) := by
-    have h_sum_term : ∑ p ∈ (n + 1).primesBelow, (if f'.balance p > 0 then (f'.balance p) * (log p) else if p ≤ L then (-f'.balance p) * (log L) else (-f'.balance p) * (log (n / p))) ≤ ∑ p ∈ (n + 1).primesBelow, (if f.balance p > 0 then (f.balance p) * (log p) else if p ≤ L then (-f.balance p) * (log L) else (-f.balance p) * (log (n / p))) - Real.log (n / p) := by
-      have h_sum_term : ∀ q ∈ (n + 1).primesBelow, q ≠ p → (if f'.balance q > 0 then (f'.balance q) * (log q) else if q ≤ L then (-f'.balance q) * (log L) else (-f'.balance q) * (log (n / q))) = (if f.balance q > 0 then (f.balance q) * (log q) else if q ≤ L then (-f.balance q) * (log L) else (-f.balance q) * (log (n / q))) := by
-        intro q hq hqp; simp +decide [ *, mul_comm, Erdos392.Factorization.balance ] ;
-        simp +decide [ f', Erdos392.Factorization.sum ];
-        rw [ Nat.factorization_eq_zero_of_not_dvd ( show ¬ q ∣ p from fun h => hqp <| by have := Nat.prime_dvd_prime_iff_eq ( Nat.prime_of_mem_primesBelow hq ) ( Nat.prime_of_mem_primesBelow hp_prime ) ; aesop ) ] ; norm_num;
-      have h_term_p : (if f'.balance p > 0 then (f'.balance p) * (log p) else if p ≤ L then (-f'.balance p) * (log L) else (-f'.balance p) * (log (n / p))) ≤ (if f.balance p > 0 then (f.balance p) * (log p) else if p ≤ L then (-f.balance p) * (log L) else (-f.balance p) * (log (n / p))) - Real.log (n / p) := by
-        have h_balance_p : f'.balance p = f.balance p + 1 := by
-          unfold Erdos392.Factorization.balance at *;
-          unfold Erdos392.Factorization.sum at *;
-          simp +zetaDelta at *;
-          rw [ Nat.Prime.factorization ( Nat.prime_of_mem_primesBelow hp_prime ) ] ; norm_num ; ring;
-        split_ifs <;> try linarith;
-        rw [ h_balance_p ] ; push_cast ; ring_nf ; norm_num;
-      rw [ Finset.sum_eq_add_sum_diff_singleton hp_prime ];
-      rw [ Finset.sum_eq_add_sum_diff_singleton hp_prime ];
-      rw [ Finset.sum_congr rfl fun x hx => h_sum_term x ( Finset.mem_sdiff.mp hx |>.1 ) ( by aesop ) ] ; linarith;
-    have h_penalty_term : (if f'.total_imbalance > 0 then Real.log n else 0) ≤ (if f.total_imbalance > 0 then Real.log n else 0) := by
-      split_ifs <;> norm_num;
-      · linarith;
-      · positivity;
-    have h_waste_term : f'.waste ≤ f.waste + Real.log (n / p) := by
-      unfold Erdos392.Factorization.waste;
-      unfold Erdos392.Factorization.sum; aesop;
-    linarith;
-  exact ⟨ f', h_total_imbalance, h_score ⟩
+    refine Finset.sum_lt_sum (fun q _ => ?_) ⟨p, hp_mem, by rw [h_balance_p]; omega⟩
+    by_cases hq : q = p
+    · subst hq; rw [h_balance_p]; omega
+    · rw [h_balance_q q hq]
+  have h_waste : f'.waste ≤ f.waste + Real.log (n / p) := by
+    unfold waste sum
+    simp only [show f'.a = f.a + {p} from rfl, Multiset.map_add, Multiset.sum_add,
+      Multiset.map_singleton, Multiset.sum_singleton]
+    linarith
+  have h_sum_q : ∀ q ∈ (n + 1).primesBelow, q ≠ p →
+      (if f'.balance q > 0 then (f'.balance q : ℝ) * log q
+       else if q ≤ L then (-f'.balance q) * log L else (-f'.balance q) * log (n / q)) =
+      (if f.balance q > 0 then (f.balance q : ℝ) * log q
+       else if q ≤ L then (-f.balance q) * log L else (-f.balance q) * log (n / q)) := by
+    intro q _ hqp
+    rw [h_balance_q q hqp]
+  have h_term_p : (if f'.balance p > 0 then (f'.balance p : ℝ) * log p
+      else if p ≤ L then (-f'.balance p) * log L else (-f'.balance p) * log (n / p)) ≤
+      (if f.balance p > 0 then (f.balance p : ℝ) * log p
+      else if p ≤ L then (-f.balance p) * log L else (-f.balance p) * log (n / p)) -
+      Real.log (n / p) := by
+    rw [h_balance_p]
+    split_ifs <;> try linarith
+    push_cast; ring_nf; norm_num
+  have h_sum_term : ∑ q ∈ (n + 1).primesBelow,
+      (if f'.balance q > 0 then (f'.balance q : ℝ) * log q
+       else if q ≤ L then (-f'.balance q) * log L else (-f'.balance q) * log (n / q)) ≤
+      ∑ q ∈ (n + 1).primesBelow,
+      (if f.balance q > 0 then (f.balance q : ℝ) * log q
+       else if q ≤ L then (-f.balance q) * log L else (-f.balance q) * log (n / q)) -
+      Real.log (n / p) := by
+    rw [Finset.sum_eq_add_sum_diff_singleton hp_mem, Finset.sum_eq_add_sum_diff_singleton hp_mem]
+    have h_rest := Finset.sum_congr rfl fun x hx =>
+      h_sum_q x (Finset.mem_sdiff.mp hx).1 (fun h => (Finset.mem_sdiff.mp hx).2 (Finset.mem_singleton.mpr h))
+    linarith
+  have h_penalty : (if f'.total_imbalance > 0 then Real.log n else 0) ≤
+      (if f.total_imbalance > 0 then Real.log n else 0) := by
+    split_ifs <;> first | linarith | positivity
+  have h_score : f'.score L ≤ f.score L := by
+    unfold score
+    linarith
+  exact ⟨f', h_total_imbalance, h_score⟩
 
 @[blueprint
   "score-lower-3"
