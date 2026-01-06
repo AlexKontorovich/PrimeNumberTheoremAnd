@@ -156,6 +156,30 @@ def table_8 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ)
   (statement := /-- For each $\sigma_1, \sigma_2, \tilde c_1, \tilde c_2$ given in Table 8, we have $N(\sigma,T) \leq \tilde c_1 T^{p(\sigma)} \log^{q(\sigma)} + \tilde c_2 \log^2 T$ for $\sigma_1 \leq \sigma \leq \sigma_2$ with $p(\sigma) = 8/3 (1-\sigma)$ and $q(σ) = 5-2\sigma$.-/)]
 theorem corollary_2_9 {σ₁ σ₂ α δ d CC_1 c₁ CC_2 c₂ : ℝ} (h : (σ₁, σ₂, α, δ, d, CC_1, c₁, CC_2, c₂) ∈ table_8) : ∀ σ ∈ Set.Icc σ₁ σ₂, riemannZeta.zero_density_bound 3e12 σ c₁ c₂ (8/3 * (1 - σ)) (5 - 2 * σ) := by sorry
 
+@[blueprint
+  "fks-theorem-3-1"
+  (title := "FKS Theorem 3.1")
+  (statement := /-- Let $x > e^{50}$ be half an odd integer and suppose that $50 < T < x$.  Then $E_\psi(x) \leq \sum_{|\gamma| < T} |x^{\rho-1}/\rho| + 2 \log^2 x / T.$ -/)]
+theorem theorem_3_1 {x T : ℝ} (hx : x > exp 50) (hodd : ∃ X, Odd X ∧ x = X/2)  (hT : T ∈ Set.Ioo 50 x) : Eψ x ≤ riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-T) T) (fun ρ ↦ ‖x^(ρ - 1) / ρ‖) + 2 * (log x)^2 / T := by sorry
+
+@[blueprint
+  "fks-theorem-3-2"
+  (title := "FKS Theorem 3.2")
+  (statement := /-- For any $\alpha \in (0,1/2]$ and $\omega \in [0,1]$ there exist $M, x_M$ such that for $\max(51, \log x) < T < (x^\alpha-2)/5$ and some $T^* \in [T, 2.45 T]$,
+  $$ |\psi(x) - (x - \sum_{|\gamma| \leq T^*} x^\rho/\rho)| ≤ M x / T * log^{1-\omega} x  $$ for all $x ≥ x_M$. -/)]
+theorem theorem_3_2 (α ω : ℝ) (hα : α ∈ Set.Ioc 0 (1/2)) (hω : ω ∈ Set.Icc 0 1) : ∃ M xM : ℝ, ∀ x, ∀ T ∈ Set.Ioo (max 51 (log x)) ((x^α - 2) / 5), ∃ Tstar ∈ Set.Icc T (2.45 * T), ∀ x ≥ xM, ‖ψ x - (x - riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-Tstar) Tstar) (fun ρ ↦ x^ρ / ρ))‖ ≤ M * x / T * (log x)^(1 - ω) := by sorry
+
+@[blueprint
+  "fks-proposition-3-4"
+  (title := "FKS Proposition 3.4")
+  (statement := /--  Let $x > e^{50}$ and $3 \log x < T < \sqrt{x}/3$.  Then
+  $$ E_\psi(x) ≤ \sum_{|\gamma| < T} |x^{\rho-1}/\rho| + 2 \log^2 x / T.$$-/)]
+theorem proposition_3_4 {x T : ℝ} (hx : x > exp 50) (hT : T ∈ Set.Ioo (3 * log x) (sqrt x / 3)) : Eψ x ≤ riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-T) T) (fun ρ ↦ ‖x^(ρ - 1) / ρ‖) + 2 * (log x)^2 / T := by sorry
+
+noncomputable def riemannZeta.Sigma (T x a b : ℝ) : ℝ := 2 * (riemannZeta.zeroes_sum (Set.Ico a b) (Set.Ioo 0 T) (fun ρ ↦ x^(ρ.re - 1) / ρ.im))
+
+
+
 noncomputable def A (x₀ : ℝ) : ℝ :=
   if log x₀ < 1000 then 0 -- junk value
   else if log x₀ < 2000 then 338.3058
