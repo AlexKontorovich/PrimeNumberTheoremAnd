@@ -65,65 +65,49 @@ lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
   (latexEnv := "lemma")]
 
 lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
-    (Mpos : 0 < M)
-    (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
+    (Mpos : 0 < M) (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
     (f_zero_at_zero : f 0 = 0)
     (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
     (re_f_le_M : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
-    (pos_r : 0 < r) (z_in_r : z ∈ Metric.closedBall 0 r)
-    (r_lt_r' : r < r') (r'_lt_R : r' < R) :
+    (pos_r : 0 < r) (z_in_r : z ∈ Metric.closedBall 0 r) (r_lt_r' : r < r') (r'_lt_R : r' < R) :
     ‖(deriv f) z‖ ≤ 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
-    have diff_neg : r - r' ≤ 0 := by linarith
-    have cauchy_param : deriv f z = (1 / (2 * Real.pi * I)) * (∫ (θ : ℝ) in 0..(2 * Real.pi), (I * r' * Complex.exp (I * θ) * ((r' * Complex.exp (I * θ)) - z)⁻¹ ^ 2) * f (r' * Complex.exp (I * θ))) := by
-        rw[cauchy_formula_deriv hf_domain r_lt_r' r'_lt_R z_in_r, smul_eq_mul]
-        unfold circleIntegral circleMap
-        simp only [one_div, mul_inv_rev, inv_I, neg_mul, zero_add, deriv_const_mul_field',
-            inv_pow, smul_eq_mul, neg_inj, mul_eq_mul_left_iff, _root_.mul_eq_zero,
-            I_ne_zero, inv_eq_zero, ofReal_eq_zero, pi_ne_zero, OfNat.ofNat_ne_zero,
-            or_self, or_false]
-        congr 1
-        funext θ
-        rw[deriv_cexp, deriv_mul_const]
-        ·   simp only [_root_.deriv_ofReal, one_mul]
-            ring_nf
-        ·   exact differentiableAt_ofReal θ
-        ·   refine DifferentiableAt.mul_const ?_ I
-            exact differentiableAt_ofReal θ
-    rw[cauchy_param]
-    simp only [one_div, mul_inv_rev, inv_I, neg_mul, inv_pow, norm_neg, Complex.norm_mul, norm_I,
-        norm_inv, norm_real, norm_eq_abs, Complex.norm_ofNat, one_mul, ge_iff_le]
-    rw[abs_of_pos pi_pos, mul_assoc, inv_mul_le_iff₀ pi_pos, inv_mul_le_iff₀ zero_lt_two, ← mul_assoc]
-    nth_rewrite 3 [mul_comm]
-    nth_rewrite 2 [← abs_of_pos two_pi_pos, ← sub_zero (2 * π)]
-    refine intervalIntegral.norm_integral_le_of_norm_le_const ?_
-    intro θ hθ
-    simp only [Complex.norm_mul, norm_I, norm_real, norm_eq_abs, one_mul, norm_exp_I_mul_ofReal,
-        mul_one, norm_inv, norm_pow]
-    rw[abs_of_pos (lt_trans pos_r r_lt_r'), div_mul_eq_div_mul_one_div, pow_two r', ← mul_assoc]
-    nth_rewrite 8 [mul_comm]
-    rw[← mul_div, mul_right_comm]
-    refine mul_le_mul₃ (by rfl) ?_ ?_ ?_ (by linarith) ?_
-    ·   refine borelCaratheodory_closedBall (by linarith) (analytic_f) (f_zero_at_zero) (Mpos) (re_f_le_M) (r'_lt_R) ?_
-        refine mem_closedBall_zero_iff.mpr ?_
-        simp only [Complex.norm_mul, norm_real, norm_eq_abs, norm_exp_I_mul_ofReal, mul_one]
-        rw[abs_of_pos]
-        exact lt_trans pos_r r_lt_r'
-    ·   rw[← inv_eq_one_div]
-        refine inv_anti₀ ?_ ?_
-        ·   rw[sq_pos_iff]
-            linarith
-        ·   rw[sq_le_sq, abs_norm]
-            refine abs_sub_le_iff.mpr ⟨?_, ?_⟩
-            ·   have : r' - r ≤ ‖(r' : ℂ) * cexp (I * (θ : ℂ))‖ - ‖z‖ := by
-                    refine sub_le_sub ?_ (by exact mem_closedBall_zero_iff.mp z_in_r)
-                    simp only [Complex.norm_mul, norm_real, norm_eq_abs,
-                        norm_exp_I_mul_ofReal, mul_one]
-                    exact le_abs_self r'
-                exact le_trans this (by exact norm_sub_norm_le (↑r' * cexp (I * ↑θ)) z)
-            ·   exact le_trans (diff_neg) (by exact norm_nonneg (↑r' * cexp (I * ↑θ) - z))
-    ·   exact norm_nonneg (f (↑r' * cexp (I * ↑θ)))
-    ·   rw[inv_nonneg]
-        exact sq_nonneg ‖↑r' * cexp (I * ↑θ) - z‖
+  have cauchy_param : deriv f z = (1 / (2 * Real.pi * I)) *
+      ∫ θ in (0 : ℝ)..(2 * Real.pi), I * r' * cexp (I * θ) * (r' * cexp (I * θ) - z)⁻¹ ^ 2 *
+        f (r' * cexp (I * θ)) := by
+    rw [cauchy_formula_deriv hf_domain r_lt_r' r'_lt_R z_in_r, smul_eq_mul]
+    unfold circleIntegral circleMap
+    simp only [one_div, mul_inv_rev, inv_I, neg_mul, zero_add, deriv_const_mul_field',
+      inv_pow, smul_eq_mul, neg_inj, mul_eq_mul_left_iff, _root_.mul_eq_zero,
+      I_ne_zero, inv_eq_zero, ofReal_eq_zero, pi_ne_zero, OfNat.ofNat_ne_zero, or_self, or_false]
+    congr 1
+    ext θ
+    rw [deriv_cexp, deriv_mul_const]
+    · simp only [_root_.deriv_ofReal, one_mul]; ring_nf
+    · exact differentiableAt_ofReal θ
+    · exact (differentiableAt_ofReal θ).mul_const I
+  rw [cauchy_param]
+  simp only [one_div, mul_inv_rev, inv_I, neg_mul, inv_pow, norm_neg, Complex.norm_mul, norm_I,
+    norm_inv, norm_real, norm_eq_abs, Complex.norm_ofNat, one_mul]
+  rw [abs_of_pos pi_pos, mul_assoc, inv_mul_le_iff₀ pi_pos, inv_mul_le_iff₀ two_pos, ← mul_assoc]
+  nth_rewrite 3 [mul_comm]
+  nth_rewrite 2 [← abs_of_pos two_pi_pos, ← sub_zero (2 * π)]
+  refine intervalIntegral.norm_integral_le_of_norm_le_const fun θ _ ↦ ?_
+  simp only [Complex.norm_mul, norm_I, norm_real, norm_eq_abs, one_mul, norm_exp_I_mul_ofReal,
+    mul_one, norm_inv, norm_pow, abs_of_pos <| pos_r.trans r_lt_r']
+  rw [div_mul_eq_div_mul_one_div, pow_two r', ← mul_assoc]
+  nth_rewrite 8 [mul_comm]
+  rw [← mul_div, mul_right_comm]
+  have hz_norm : ‖z‖ ≤ r := mem_closedBall_zero_iff.mp z_in_r
+  refine mul_le_mul₃ rfl.le ?_ ?_ (norm_nonneg _) (by grind) (inv_nonneg.mpr (sq_nonneg _))
+  · exact borelCaratheodory_closedBall (by grind) analytic_f f_zero_at_zero Mpos re_f_le_M
+      r'_lt_R (mem_closedBall_zero_iff.mpr (by simp [abs_of_pos <| pos_r.trans r_lt_r']))
+  · rw [← inv_eq_one_div]
+    refine inv_anti₀ (sq_pos_of_pos (by grind)) (sq_le_sq' ?_ ?_)
+    · calc -(‖(r' : ℂ) * cexp (I * θ) - z‖) ≤ 0 := neg_nonpos.mpr (norm_nonneg _)
+        _ ≤ r' - r := by grind
+    · calc r' - r ≤ |r'| - ‖z‖ := sub_le_sub (le_abs_self _) hz_norm
+        _ = ‖(r' : ℂ) * cexp (I * θ)‖ - ‖z‖ := by simp [abs_of_pos <| pos_r.trans r_lt_r']
+        _ ≤ ‖r' * cexp (I * θ) - z‖ := norm_sub_norm_le _ _
 
 
 
