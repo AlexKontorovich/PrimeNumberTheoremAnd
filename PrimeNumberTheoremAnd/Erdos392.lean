@@ -10,7 +10,7 @@ blueprint_comment /--
 \section{Erdos problem 392}
 
 The proof here is adapted from \url{https://www.erdosproblems.com/forum/thread/392#post-2696} which
-in turn is inspired by the arguments in \url{https://arxiv.org/abs/2503.20170}
+in turn is inspired by the arguments in \url{https://arxiv.org/abs/2503.20170}.
 -/
 
 open Real
