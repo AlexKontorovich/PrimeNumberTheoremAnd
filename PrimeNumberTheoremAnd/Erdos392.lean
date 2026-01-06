@@ -44,7 +44,8 @@ def Factorization.balance {n : ℕ} (f : Factorization n) (p : ℕ) : ℤ := f.s
   (statement := /--
   The total imbalance of a factorization $a_1 \dots a_t$ is the sum of absolute values of the balances at each prime.
   -/)]
-def Factorization.total_imbalance {n : ℕ} (f : Factorization n) : ℕ := (∑ p ∈ (n+1).primesBelow, f.balance p).natAbs
+def Factorization.total_imbalance {n : ℕ} (f : Factorization n) : ℕ :=
+  ∑ p ∈ (n+1).primesBelow, (f.balance p).natAbs
 
 @[blueprint
   "balance-zero"
