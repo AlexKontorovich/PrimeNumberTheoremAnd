@@ -84,11 +84,7 @@ noncomputable def Factorization.score {n : ℕ} (f : Factorization n) (L : ℕ) 
   -/)]
 theorem Factorization.score_eq {n : ℕ} {f : Factorization n} (hf : f.total_imbalance = 0) (L : ℕ) :
     f.score L = f.waste := by
-  simp only [score, hf, lt_self_iff_false, ↓reduceIte, add_zero]
-  have hsum : ∑ p ∈ (n + 1).primesBelow, (if f.balance p > 0 then ↑(f.balance p) * log ↑p
-      else if p ≤ L then -↑(f.balance p) * log ↑L else -↑(f.balance p) * log (↑n / ↑p)) = 0 :=
-    sum_eq_zero fun p hp ↦ by simp [Int.natAbs_eq_zero.mp (sum_eq_zero_iff.mp hf p hp)]
-  grind
+  simp_all [total_imbalance, score]
 
 @[blueprint
   "score-lower-1"
