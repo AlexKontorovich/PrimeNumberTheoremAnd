@@ -207,13 +207,13 @@ theorem Params.initial.score (ε : ℝ) (hε : ε > 0) : ∀ᶠ n in Filter.atTo
   "erdos-sol-1"
   (statement := /-- One can find a balanced factorization of $n!$ with cardinality at least $n - n / \log n - o(n / \log n)$.--/)
   (proof := /-- Combine Theorem \ref{initial-score} with Theorem \ref{card-bound} and the Stirling approximation.-/)]
-theorem Erdos392_solution_1 (ε : ℝ) (hε : ε > 0) : ∀ᶠ n in Filter.atTop, ∃ f : Factorization n, f.total_imbalance = 0 ∧ f.a.card ≥ n - n / (log n) - ε * n / (log n) := by sorry
+theorem Solution_1 (ε : ℝ) (hε : ε > 0) : ∀ᶠ n in Filter.atTop, ∃ f : Factorization n, f.total_imbalance = 0 ∧ f.a.card ≥ n - n / (log n) - ε * n / (log n) := by sorry
 
 @[blueprint
   "erdos-sol-2"
   (statement := /-- One can find a factor $n!$ into at least $n/2 - n / 2\log n - o(n / \log n)$ numbers of size at most $n^2$.--/)
   (proof := /-- Group the factorization arising in Theorem \ref{erdos-sol-1} into pairs, using Theorem \ref{balance-zero}.-/)]
-theorem Erdos392_solution_2 (ε : ℝ) (hε : ε > 0) : ∀ᶠ n in Filter.atTop, ∃ (t : ℕ) (a : Fin t → ℕ), ∏ i, a i = n.factorial ∧ ∀ i, a i ≤ n^2 ∧ t ≥ (n/2) - n/(2*log n) - ε * n / (log n) := by sorry
+theorem Solution_2 (ε : ℝ) (hε : ε > 0) : ∀ᶠ n in Filter.atTop, ∃ (t : ℕ) (a : Fin t → ℕ), ∏ i, a i = n.factorial ∧ ∀ i, a i ≤ n^2 ∧ t ≥ (n/2) - n/(2*log n) - ε * n / (log n) := by sorry
 
 
 end Erdos392
