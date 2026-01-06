@@ -12,7 +12,7 @@ blueprint_comment /--
 The proof here is adapted from https://www.erdosproblems.com/forum/thread/392#post-2696 which in turn is inspired by the arguments in https://arxiv.org/abs/2503.20170
 -/
 
-open Real
+open Finset Real Multiset
 
 @[blueprint
   "factorization-def"
@@ -81,7 +81,13 @@ noncomputable def Factorization.score {n : ℕ} (f : Factorization n) (L : ℕ) 
   (statement := /--
   If one is in total balance, then the score is equal to the waste.
   -/)]
-theorem Factorization.score_eq {n : ℕ} {f : Factorization n} (hf : f.total_imbalance = 0) (L : ℕ) : f.score L = f.waste := by sorry
+theorem Factorization.score_eq {n : ℕ} {f : Factorization n} (hf : f.total_imbalance = 0) (L : ℕ) :
+    f.score L = f.waste := by
+  simp only [score, hf, lt_self_iff_false, ↓reduceIte, add_zero]
+  have hsum : ∑ p ∈ (n + 1).primesBelow, (if f.balance p > 0 then ↑(f.balance p) * log ↑p
+      else if p ≤ L then -↑(f.balance p) * log ↑L else -↑(f.balance p) * log (↑n / ↑p)) = 0 :=
+    sum_eq_zero fun p hp ↦ by simp [Int.natAbs_eq_zero.mp (sum_eq_zero_iff.mp hf p hp)]
+  grind
 
 @[blueprint
   "score-lower-1"
@@ -104,26 +110,60 @@ theorem Factorization.lower_score_2 {n : ℕ} (f : Factorization n) (L : ℕ) (h
   (statement := /--
   If there is a prime $p$ in deficit less than $L$, one can remove it without increasing the score.
   -/)
-  (proof := /-- Without loss of generality we may assume that one is not in the previous two situations, i.e., wlog there are no surplus primes and all primes in deficit are at most $L$.
-
-  If all deficit primes multiply to $n$ or less, add that product to the factorization (this increases the waste by at most $\log n$, but we save a $\log n$ from now being in balance).  Otherwise, greedily multiply all primes together while staying below $n$ until one cannot do so any further; add this product to the factorization, increasing the waste by at most $\log L$.-/)]
-theorem Factorization.lower_score_3 {n : ℕ} (f : Factorization n) (L : ℕ) (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0) : ∃ f' : Factorization n, f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by sorry
+  (proof := /-- Without loss of generality we may assume that one is not in the previous two
+  situations, i.e., wlog there are no surplus primes and all primes in deficit are at most $L$.
+  If all deficit primes multiply to $n$ or less, add that product to the factorization (this
+  increases the waste by at most $\log n$, but we save a $\log n$ from now being in balance).
+  Otherwise, greedily multiply all primes together while staying below $n$ until one cannot do so
+  any further; add this product to the factorization, increasing the waste by at most $\log L$.-/)]
+theorem Factorization.lower_score_3 {n : ℕ} (f : Factorization n) (L : ℕ)
+    (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0) : ∃ f' :
+    Factorization n, f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by
+  sorry
 
 @[blueprint
   "score-lowest"
-  (statement := /--
-  One can bring any factorization into balance without increasing the score.
-  -/)
-  (proof := /-- Apply strong induction on the total imbalance of the factorization and use the previous three theorems.-/)]
-theorem Factorization.lowest_score {n : ℕ} (f : Factorization n) (L : ℕ) : ∃ f' : Factorization n, f'.total_imbalance = 0 ∧ f'.score L ≤ f.score L := by sorry
-
+  (statement := /-- One can bring any factorization into balance without increasing the score. -/)
+  (proof := /-- Apply strong induction on the total imbalance of the factorization and use the
+  previous three theorems.-/)]
+theorem Factorization.lowest_score {n : ℕ} (f : Factorization n) (L : ℕ) :
+    ∃ f' : Factorization n, f'.total_imbalance = 0 ∧ f'.score L ≤ f.score L := by
+  induction h : f.total_imbalance using Nat.strong_induction_on generalizing f with
+  | _ k ih =>
+    obtain rfl | hk := k.eq_zero_or_pos
+    · exact ⟨f, h, le_refl _⟩
+    · have step : ∀ g : Factorization n, g.total_imbalance < k →
+          ∃ f' : Factorization n, f'.total_imbalance = 0 ∧ f'.score L ≤ g.score L := fun g hg =>
+        ih g.total_imbalance (h ▸ hg) g rfl
+      by_cases h1 : ∃ p ∈ (n + 1).primesBelow, f.balance p > 0
+      · obtain ⟨f₁, hlt, hle⟩ := lower_score_1 f L h1
+        obtain ⟨f', hbal, hle'⟩ := step f₁ (h ▸ hlt)
+        exact ⟨f', hbal, hle'.trans hle⟩
+      · by_cases h2 : ∃ p ∈ (n + 1).primesBelow, p > L ∧ f.balance p < 0
+        · obtain ⟨f₁, hlt, hle⟩ := lower_score_2 f L h2
+          obtain ⟨f', hbal, hle'⟩ := step f₁ (h ▸ hlt)
+          exact ⟨f', hbal, hle'.trans hle⟩
+        · have h3 : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0 := by
+            simp only [not_exists, not_and, not_lt] at h1 h2; by_contra hc; push_neg at hc
+            exact hk.ne' <| h ▸ sum_eq_zero fun p hp ↦ by
+              have := h1 p hp; have := if hpL : p ≤ L then hc p hp hpL
+                else h2 p hp (Nat.lt_of_not_le hpL); omega
+          obtain ⟨f₁, hlt, hle⟩ := lower_score_3 f L h3
+          obtain ⟨f', hbal, hle'⟩ := step f₁ (h ▸ hlt)
+          exact ⟨f', hbal, hle'.trans hle⟩
 
 @[blueprint
   "card-bound"
   (statement := /--
-  Starting from any factorization $f$, one can find a factorization $f'$ in balance whose cardinality is at most $\log n!$ plus the score of $f$, divided by $\log n$.-/)
-  (proof := /-- Combine Theorem \ref{score-lowest}, Theorem \ref{score-eq}, and Theorem \ref{waste-eq}.-/)]
-theorem Factorization.card_bound {n : ℕ} (f : Factorization n) (L : ℕ) : ∃ f' : Factorization n, f'.total_imbalance = 0 ∧ (f'.a.card : ℝ) * (log n) ≤ log n.factorial + (f.score L) := by sorry
+  Starting from any factorization $f$, one can find a factorization $f'$ in balance whose
+  cardinality is at most $\log n!$ plus the score of $f$, divided by $\log n$.-/)
+  (proof := /-- Combine Theorem \ref{score-lowest}, Theorem \ref{score-eq}, and
+  Theorem \ref{waste-eq}.-/)]
+theorem Factorization.card_bound {n : ℕ} (f : Factorization n) (L : ℕ) : ∃ f' :
+    Factorization n, f'.total_imbalance = 0 ∧ (f'.a.card : ℝ) * (log n)
+      ≤ log n.factorial + (f.score L) := by
+  obtain ⟨f', hf'_bal, hf'_score⟩ := lowest_score f L
+  exact ⟨f', hf'_bal, by rw [waste_eq f' hf'_bal]; linarith [score_eq hf'_bal L]⟩
 
 @[blueprint
   "params-set"
@@ -136,22 +176,31 @@ structure Params where
 
 @[blueprint
   "initial-factorization-def"
-  (statement := /-- We perform an initial factorization by taking the natural numbers between $n-n/M$ and $n$ repeated $M$ times, deleting those elements that are not $n/L$-smooth. -/)]
+  (statement := /-- We perform an initial factorization by taking the natural numbers between
+  $n-n/M$ and $n$ repeated $M$ times, deleting those elements that are not $n/L$-smooth. -/)]
 def Params.initial (P : Params) : Factorization P.n := {
-  a := (Multiset.replicate P.M (Multiset.Ico (P.n - P.n/P.M) P.n)).join.filter (fun m ↦ m ∈ (P.n/P.L).smoothNumbers)
-  ha := by
-    intro m hm
-    simp only [Multiset.mem_filter, Multiset.mem_join] at hm
-    obtain ⟨ s, hs, hs2 ⟩ := hm.1
-    replace hs := Multiset.eq_of_mem_replicate hs
-    simp [hs] at hs2
+  a := (replicate P.M (.Ico (P.n - P.n/P.M) P.n)).join.filter
+    (fun m ↦ m ∈ (P.n/P.L).smoothNumbers)
+  ha := fun m hm ↦ by
+    simp only [Multiset.mem_filter, mem_join, mem_replicate] at hm
+    obtain ⟨⟨_, ⟨_, rfl⟩, hs⟩, _⟩ := hm
+    rw [Multiset.mem_Ico, tsub_le_iff_right] at hs
     grind
 }
 
 @[blueprint
   "initial-factorization-card"
   (statement := /-- The number of elements in this initial factorization is at most $n$. -/)]
-theorem Params.initial.card (P : Params) : P.initial.a.card ≤ P.n := by sorry
+theorem Params.initial.card (P : Params) : P.initial.a.card ≤ P.n := by
+  calc Multiset.card (filter (fun m ↦ m ∈ (P.n / P.L).smoothNumbers)
+      (replicate P.M (Multiset.Ico (P.n - P.n / P.M) P.n)).join)
+    _ ≤ Multiset.card (replicate P.M (Multiset.Ico (P.n - P.n / P.M) P.n)).join :=
+        card_le_card (filter_le _ _)
+    _ = P.M * Multiset.card (Multiset.Ico (P.n - P.n / P.M) P.n) := by
+        rw [card_join, map_replicate, sum_replicate, smul_eq_mul]
+    _ = P.M * (P.n - (P.n - P.n / P.M)) := by congr 1; simp [Multiset.Ico]
+    _ = P.M * (P.n / P.M) := by congr 1; exact Nat.sub_sub_self (Nat.div_le_self P.n P.M)
+    _ ≤ P.n := Nat.mul_div_le P.n P.M
 
 @[blueprint
   "initial-factorization-waste"
@@ -162,13 +211,25 @@ theorem Params.initial.waste (P : Params) : P.initial.waste ≤ P.n * log (1 - 1
   "initial-factorization-large-prime-le"
   (statement := /-- A large prime $p > n/L$ cannot be in surplus. -/)
   (proof := /-- No such prime can be present in the factorization.-/)]
-theorem Params.initial.balance_large_prime_le (P : Params) {p : ℕ} (hq : p > P.n / P.L) : P.initial.balance p ≤ 0 := by sorry
+theorem Params.initial.balance_large_prime_le (P : Params) {p : ℕ} (hp : p > P.n / P.L) :
+    P.initial.balance p ≤ 0 := by
+  simp only [Factorization.balance, Factorization.sum, Params.initial, sub_nonpos]
+  have : (map (fun m ↦ m.factorization p)
+      (filter (fun m ↦ m ∈ (P.n / P.L).smoothNumbers)
+      (replicate P.M (Multiset.Ico (P.n - P.n / P.M) P.n)).join)).sum = 0 :=
+    sum_eq_zero fun x hx ↦ by
+      simp only [Multiset.mem_map, Multiset.mem_filter] at hx
+      obtain ⟨m, ⟨_, hsmooth⟩, rfl⟩ := hx
+      rw [Nat.factorization_eq_zero_iff]; rw [Nat.mem_smoothNumbers'] at hsmooth; grind
+  simp [this]
 
 @[blueprint
   "initial-factorization-large-prime-le"
   (statement := /-- A large prime $p > n/L$ can be in deficit by at most $n/p$. -/)
   (proof := /-- This is the number of times $p$ can divide $n!$. -/)]
-theorem Params.initial.balance_large_prime_ge (P : Params) {p : ℕ} (hp : p > P.n / P.L) : P.initial.balance p ≥ - (P.n/p) := by sorry
+theorem Params.initial.balance_large_prime_ge (P : Params) {p : ℕ} (hp : p > P.n / P.L) :
+    P.initial.balance p ≥ - (P.n/p) := by
+  sorry
 
 @[blueprint
   "initial-factorization-medium-prime-le"
@@ -192,7 +253,8 @@ theorem Params.initial.balance_small_prime_le (P : Params) {p : ℕ} (hp : p ≤
   "initial-factorization-small-prime-ge"
   (statement := /-- A small prime $L < p \leq \sqrt{n}$ can be in deficit by at most $M\log n$.-/)
   (proof := /-- Routine computation using Legendre's formula.-/)]
-theorem Params.initial.balance_small_prime_ge (P : Params) {p : ℕ} (hp : p ≤ sqrt P.n) (hp' : p > P.L) : P.initial.balance p ≥ - P.M * (log P.n) := by sorry
+theorem Params.initial.balance_small_prime_ge (P : Params) {p : ℕ} (hp : p ≤ sqrt P.n) (hp' : p > P.L) : P.initial.balance p ≥ - P.M * (log P.n) := by
+  sorry
 
 @[blueprint
   "initial-factorization-tiny-prime-ge"
@@ -216,7 +278,8 @@ theorem Solution_1 (ε : ℝ) (hε : ε > 0) : ∀ᶠ n in Filter.atTop, ∃ f :
   "erdos-sol-2"
   (statement := /-- One can find a factor $n!$ into at least $n/2 - n / 2\log n - o(n / \log n)$ numbers of size at most $n^2$.--/)
   (proof := /-- Group the factorization arising in Theorem \ref{erdos-sol-1} into pairs, using Theorem \ref{balance-zero}.-/)]
-theorem Solution_2 (ε : ℝ) (hε : ε > 0) : ∀ᶠ n in Filter.atTop, ∃ (t : ℕ) (a : Fin t → ℕ), ∏ i, a i = n.factorial ∧ ∀ i, a i ≤ n^2 ∧ t ≥ (n/2) - n/(2*log n) - ε * n / (log n) := by sorry
+theorem Solution_2 (ε : ℝ) (hε : ε > 0) :
+    ∀ᶠ n in Filter.atTop, ∃ (t : ℕ) (a : Fin t → ℕ), ∏ i, a i = n.factorial ∧ ∀ i, a i ≤ n^2 ∧ t ≥ (n/2) - n/(2*log n) - ε * n / (log n) := by sorry
 
 
 end Erdos392
