@@ -263,9 +263,7 @@ theorem Factorization.lower_score_1 {n : ℕ} (f : Factorization n) (L : ℕ)
   obtain ⟨p, hp_mem, hp_pos⟩ := hf
   obtain ⟨m, hm, h_fac_pos⟩ : ∃ m ∈ f.a, 0 < m.factorization p := by
     contrapose! hp_pos
-    unfold Erdos392.Factorization.balance
-    unfold Erdos392.Factorization.sum
-    aesop
+    simp_all [balance, sum]
   exact ⟨_, replace_div_total_imbalance f m p hm h_fac_pos (Nat.prime_of_mem_primesBelow hp_mem)
     hp_mem hp_pos, Erdos392.Factorization.replace_div_score_le f m p hm h_fac_pos
       (Nat.prime_of_mem_primesBelow hp_mem) hp_mem hp_pos L⟩
