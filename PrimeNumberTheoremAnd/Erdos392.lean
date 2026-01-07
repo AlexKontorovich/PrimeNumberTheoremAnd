@@ -512,10 +512,32 @@ lemma Params.initial.div_le (P : Params) (m : ℕ) (hm : m ∈ P.initial.a) :
   calc (P.n : ℝ) / m ≤ P.n / (P.n - P.n / P.M) := by
         gcongr; rw [sub_pos]; exact div_lt_self hn_pos <| one_lt_cast.mpr P.hM
     _ = P.n / (P.n * (1 - 1 / (P.M : ℝ))) := by rw [mul_sub, mul_one, mul_one_div]
+    _ = (1 - 1 / (P.M : ℝ))⁻¹ := by rw [div_mul_eq_div_div, div_self hn_pos.ne', one_div]
+
 @[blueprint
   "initial-factorization-waste"
-  (statement := /-- The total waste in this initial factorization is at most $n \log \frac{1}{1-1/M}$. -/)]
-theorem Params.initial.waste (P : Params) : P.initial.waste ≤ P.n * log (1 - 1/P.M)⁻¹ := by sorry
+  (statement := /-- The total waste in this initial factorization is at most
+  $n \log \frac{1}{1-1/M}$. -/)]
+theorem Params.initial.waste (P : Params) : P.initial.waste ≤ P.n * log (1 - 1/(P.M : ℝ))⁻¹ := by
+  unfold Factorization.waste Factorization.sum
+  have hM_pos : (0 : ℝ) < P.M := cast_pos.mpr (Nat.zero_lt_of_lt P.hM)
+  have h_denom_pos : 0 < 1 - 1 / (P.M : ℝ) := by
+    rw [sub_pos, div_lt_one hM_pos]; exact one_lt_cast.mpr P.hM
+  have h_inv_ge_one : 1 ≤ (1 - 1 / (P.M : ℝ))⁻¹ := by
+    rw [one_le_inv₀ h_denom_pos]; linarith [one_div_pos.mpr hM_pos]
+  have h_each : ∀ m ∈ P.initial.a, log ((P.n : ℝ) / m) ≤ log (1 - 1 / (P.M : ℝ))⁻¹ := fun m hm ↦
+    log_le_log (div_pos (Nat.cast_pos.mpr (Nat.lt_of_lt_of_le (P.initial.hpos m hm)
+      (mem_range P m hm).2.le)) (Nat.cast_pos.mpr (P.initial.hpos m hm))) (div_le P m hm)
+  calc (P.initial.a.map fun (m : ℕ) ↦ log ((P.n : ℝ) / m)).sum
+      ≤ P.initial.a.card * log (1 - 1 / (P.M : ℝ))⁻¹ := by
+        rw [← nsmul_eq_mul, ← Multiset.card_map (fun (m : ℕ) ↦ log ((P.n : ℝ) / m)) P.initial.a]
+        refine Multiset.sum_le_card_nsmul _ _ fun x hx ↦ ?_
+        obtain ⟨m, hm, rfl⟩ := Multiset.mem_map.mp hx
+        exact h_each m hm
+    _ ≤ P.n * log (1 - 1 / (P.M : ℝ))⁻¹ := by
+        gcongr
+        · exact Real.log_nonneg h_inv_ge_one
+        · exact_mod_cast card P
 
 @[blueprint
   "initial-factorization-large-prime-le"
