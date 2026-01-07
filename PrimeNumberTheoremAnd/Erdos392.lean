@@ -442,7 +442,7 @@ theorem Factorization.lowest_score {n : ℕ} (f : Factorization n) (L : ℕ) :
             simp only [not_exists, not_and, not_lt] at h1 h2; by_contra hc; push_neg at hc
             exact hk.ne' <| h ▸ sum_eq_zero fun p hp ↦ by
               have := h1 p hp; have := if hpL : p ≤ L then hc p hp hpL
-                else h2 p hp (lt_of_not_le hpL); omega
+                else h2 p hp (lt_of_not_ge hpL); omega
           obtain ⟨f₁, hlt, hle⟩ := lower_score_3 f L h3
           obtain ⟨f', hbal, hle'⟩ := step f₁ (h ▸ hlt)
           exact ⟨f', hbal, hle'.trans hle⟩
