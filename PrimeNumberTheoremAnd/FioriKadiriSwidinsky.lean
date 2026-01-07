@@ -224,6 +224,15 @@ theorem proposition_3_8 {H₀ R σ₁ σ₂ T x : ℝ} (N : ℕ) (hH₀ : rieman
   (statement := /-- If $\sigma_1 \geq 0.9$ then $\Sigma_{\sigma_1}^{\sigma_2} \leq 0.00125994 x^{\sigma_2-1}$.-/)]
 theorem corollary_3_10 {σ₁ σ₂ T x : ℝ} (hσ₁ : σ₁ ∈ Set.Icc 0.9 1) (hσ₂ : σ₂ ∈ Set.Ioc σ₁ 1) : riemannZeta.Sigma T x σ₁ σ₂ ≤ 0.00125994 * x^(σ₂ - 1) := by sorry
 
+@[blueprint
+"fks-proposition-3-11"
+  (title := "FKS Proposition 3.11")
+  (statement := /-- Let $5/8 < \sigma_2 \leq 1$, $t_0 = t_0(\sigma_2,x) = \max(H_\sigma_2, \exp( \sqrt{\log x}/R))$ and $T > 0$.  Let $K \geq 2$ and consider a strictly increasing sequence $(t_k)_{k=0}^K$ such that $t_k = T$.  Then $\Sigma_{\sigma_2}^1 ≤ 2 N(\sigma_2,T) x^{-1/R\log t_0}/t_0$ and $\Sigma_{\sigma_2}^1 ≤ 2 ((\sum_{k=1}^{K-1} N(\sigma_2, t_k) (x^{-1/R\log t_{k-1}} / t_{k-1} - x^{-1/(R \log t_k)}/t_k)) + x^{-1/R \log t_{K-1}}/t_{K-1} N(\sigma_2,T))$.-/)]
+theorem proposition_3_11 {H₀ R σ₂ T x : ℝ} (K : ℕ) (hH₀ : riemannZeta.RH_up_to H₀) (hR : riemannZeta.classicalZeroFree R) (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1) (t_seq : Fin (K+2) → ℝ) (ht0 : t_seq 0 = max (Hσ H₀ R σ₂) (exp (sqrt (log x) / R))) (htK : t_seq (Fin.last (K+1)) = T) (ht_incr : StrictMono t_seq) : riemannZeta.Sigma T x σ₂ 1 ≤ 2 * (riemannZeta.N' σ₂ T) * x^(-1 / (R * log (t_seq 0))) / (t_seq 0)
+  ∧
+  riemannZeta.Sigma T x σ₂ 1 ≤ 2 * (∑ k ∈ Finset.Ioo 0 (Fin.last (K+1)), riemannZeta.N' σ₂ (t_seq k) * (x^(-1 / (R * log (t_seq (k - 1)))) / (t_seq (k - 1)) - x^(-1 / (R * log (t_seq k))) / (t_seq k)) ) + x^(-1 / (R * log (t_seq (Fin.last K).castSucc))) / (t_seq (Fin.last K).castSucc) * riemannZeta.N' σ₂ T := by sorry
+
+
 
 
 noncomputable def A (x₀ : ℝ) : ℝ :=
