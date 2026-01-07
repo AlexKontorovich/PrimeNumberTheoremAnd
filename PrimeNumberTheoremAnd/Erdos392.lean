@@ -454,6 +454,7 @@ structure Params where
   n : ℕ
   M : ℕ
   L : ℕ
+  hM : M > 1
   hL_pos : L > 0
   hL : n > L * L
 
@@ -489,10 +490,54 @@ theorem Params.initial.card (P : Params) : P.initial.a.card ≤ P.n := by
     _ = P.M * (P.n / P.M) := by congr 1; exact Nat.sub_sub_self (div_le_self P.n P.M)
     _ ≤ P.n := mul_div_le P.n P.M
 
+/-- Elements of the initial factorization lie in the interval `[n - n/M, n)`. -/
+lemma Params.initial.mem_range (P : Params) (m : ℕ) (hm : m ∈ P.initial.a) :
+    P.n - P.n / P.M ≤ m ∧ m < P.n := by
+  simp only [initial, Multiset.mem_filter, mem_join, mem_replicate] at hm
+  obtain ⟨⟨_, ⟨_, rfl⟩, hs⟩, _⟩ := hm
+  exact Multiset.mem_Ico.mp hs
+
+/-- For elements `m` in the initial factorization, `n/m ≤ (1 - 1/M)⁻¹`. -/
+lemma Params.initial.div_le (P : Params) (m : ℕ) (hm : m ∈ P.initial.a) :
+    (P.n : ℝ) / m ≤ (1 - 1 / (P.M : ℝ))⁻¹ := by
+  have ⟨hlo, hhi⟩ := mem_range P m hm
+  have hM_pos : (0 : ℝ) < P.M := Nat.cast_pos.mpr (Nat.zero_lt_of_lt P.hM)
+  have h_denom_pos : 0 < 1 - 1 / (P.M : ℝ) := by
+    rw [sub_pos, div_lt_one hM_pos]; exact Nat.one_lt_cast.mpr P.hM
+  have hn_pos : (0 : ℝ) < P.n := Nat.cast_pos.mpr (Nat.lt_of_lt_of_le (P.initial.hpos m hm) hhi.le)
+  have hlo' : (P.n : ℝ) - P.n / P.M ≤ m := by
+    calc (P.n : ℝ) - P.n / P.M ≤ P.n - (P.n / P.M : ℕ) := by gcongr; exact Nat.cast_div_le
+      _ = ((P.n - P.n / P.M : ℕ) : ℝ) := by rw [Nat.cast_sub (Nat.div_le_self ..)]
+      _ ≤ m := by exact_mod_cast hlo
+  calc (P.n : ℝ) / m ≤ P.n / (P.n - P.n / P.M) := by
+        gcongr; rw [sub_pos]; exact div_lt_self hn_pos <| one_lt_cast.mpr P.hM
+    _ = P.n / (P.n * (1 - 1 / (P.M : ℝ))) := by rw [mul_sub, mul_one, mul_one_div]
+    _ = (1 - 1 / (P.M : ℝ))⁻¹ := by rw [div_mul_eq_div_div, div_self hn_pos.ne', one_div]
+
 @[blueprint
   "initial-factorization-waste"
-  (statement := /-- The total waste in this initial factorization is at most $n \log \frac{1}{1-1/M}$. -/)]
-theorem Params.initial.waste (P : Params) : P.initial.waste ≤ P.n * log (1 - 1/P.M)⁻¹ := by sorry
+  (statement := /-- The total waste in this initial factorization is at most
+  $n \log \frac{1}{1-1/M}$. -/)]
+theorem Params.initial.waste (P : Params) : P.initial.waste ≤ P.n * log (1 - 1/(P.M : ℝ))⁻¹ := by
+  unfold Factorization.waste Factorization.sum
+  have hM_pos : (0 : ℝ) < P.M := cast_pos.mpr (Nat.zero_lt_of_lt P.hM)
+  have h_denom_pos : 0 < 1 - 1 / (P.M : ℝ) := by
+    rw [sub_pos, div_lt_one hM_pos]; exact one_lt_cast.mpr P.hM
+  have h_inv_ge_one : 1 ≤ (1 - 1 / (P.M : ℝ))⁻¹ := by
+    rw [one_le_inv₀ h_denom_pos]; linarith [one_div_pos.mpr hM_pos]
+  have h_each : ∀ m ∈ P.initial.a, log ((P.n : ℝ) / m) ≤ log (1 - 1 / (P.M : ℝ))⁻¹ := fun m hm ↦
+    log_le_log (div_pos (Nat.cast_pos.mpr (Nat.lt_of_lt_of_le (P.initial.hpos m hm)
+      (mem_range P m hm).2.le)) (Nat.cast_pos.mpr (P.initial.hpos m hm))) (div_le P m hm)
+  calc (P.initial.a.map fun (m : ℕ) ↦ log ((P.n : ℝ) / m)).sum
+      ≤ P.initial.a.card * log (1 - 1 / (P.M : ℝ))⁻¹ := by
+        rw [← nsmul_eq_mul, ← Multiset.card_map (fun (m : ℕ) ↦ log ((P.n : ℝ) / m)) P.initial.a]
+        refine Multiset.sum_le_card_nsmul _ _ fun x hx ↦ ?_
+        obtain ⟨m, hm, rfl⟩ := Multiset.mem_map.mp hx
+        exact h_each m hm
+    _ ≤ P.n * log (1 - 1 / (P.M : ℝ))⁻¹ := by
+        gcongr
+        · exact Real.log_nonneg h_inv_ge_one
+        · exact_mod_cast card P
 
 @[blueprint
   "initial-factorization-large-prime-le"
