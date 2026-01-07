@@ -25,21 +25,130 @@ blueprint_comment /--
 
 
 
-blueprint_comment /--
-\begin{theorem}[BorelCaratheodoryDeriv]\label{BorelCaratheodoryDeriv}
-    Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
-    $$|f'(z)|\leq\frac{16MR^2}{(R-r)^3}$$
-    for all $|z|\leq r$.
-\end{theorem}
--/
+@[blueprint "cauchy_formula_deriv"
+  (title := "cauchy-formula-deriv")
+  (statement := /-- Let $f$ be analytic on $|z|\leq R$. For any $z$ with $|z|\leq r$ and any $r'$
+  with $0 < r < r' < R$ we have
+  $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi}
+  \int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$ -/)
+  (proof := /-- This is just Cauchy's integral formula for derivatives. -/)
+  (latexEnv := "lemma")]
+lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
+    (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
+    (r_lt_r' : r < r') (r'_lt_R : r' < R) {z : ℂ} (hz : z ∈ Metric.closedBall 0 r) :
+    deriv f z = (1 / (2 * Real.pi * I)) • ∮ w in C(0, r'), (w - z)⁻¹ ^ 2 • f w := by
+  obtain ⟨_, _, h_subset, hf_diff⟩ := hf_domain
+  have hz_in_ball : z ∈ Metric.ball 0 r' :=
+    Metric.mem_ball.mpr <| (Metric.mem_closedBall.mp hz).trans_lt r_lt_r'
+  have hf_on_ball : DifferentiableOn ℂ f (Metric.ball 0 R) :=
+    hf_diff.mono <| Metric.ball_subset_closedBall.trans h_subset
+  simp [← Complex.two_pi_I_inv_smul_circleIntegral_sub_sq_inv_smul_of_differentiable
+      Metric.isOpen_ball (Metric.closedBall_subset_ball r'_lt_R) hf_on_ball hz_in_ball]
 
-blueprint_comment /--
-\begin{proof}
-\uses{DerivativeBound}
-    Using Lemma \ref{DerivativeBound} with $r'=(R+r)/2$, and noting that $r < R$, we have that
-    $$|f'(z)|\leq\frac{4M(R+r)^2}{(R-r)^3}\leq\frac{16MR^2}{(R-r)^3}.$$
-\end{proof}
--/
+
+
+@[blueprint "DerivativeBound"
+  (title := "DerivativeBound")
+  (statement := /-- Let $R,\,M>0$ and $0 < r < r' < R$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then we have that
+    $$|f'(z)|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}$$
+    for all $|z|\leq r$. -/)
+  (proof := /-- By Lemma \ref{cauchy_formula_deriv} we know that
+    $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
+    Thus,
+    \begin{equation}\label{pickupPoint1}
+        |f'(z)|=\left|\frac{1}{2\pi}\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt\right|\leq\frac{1}{2\pi}\int_0^{2\pi}\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
+    \end{equation}
+    Now applying Theorem \ref{borelCaratheodory_closedBall}, and noting that $r'-r\leq|r'e^{it}-z|$, we have that
+    $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
+    Substituting this into Equation (\ref{pickupPoint1}) and evaluating the integral completes the proof. -/)
+  (latexEnv := "lemma")]
+lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
+    (Mpos : 0 < M)
+    (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
+    (f_zero_at_zero : f 0 = 0)
+    (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U)
+    (re_f_le_M : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
+    (pos_r : 0 < r) (z_in_r : z ∈ Metric.closedBall 0 r)
+    (r_lt_r' : r < r') (r'_lt_R : r' < R) :
+    ‖(deriv f) z‖ ≤ 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
+    have diff_neg : r - r' < 0 := by linarith
+    have cauchy_param : deriv f z = (1 / (2 * Real.pi * I)) * (∫ (θ : ℝ) in 0..(2 * Real.pi), (I * r' * Complex.exp (I * θ) * ((r' * Complex.exp (I * θ)) - z)⁻¹ ^ 2) * f (r' * Complex.exp (I * θ))) := by
+        rw[cauchy_formula_deriv hf_domain r_lt_r' r'_lt_R z_in_r, smul_eq_mul]
+        unfold circleIntegral circleMap
+        simp only [one_div, mul_inv_rev, inv_I, neg_mul, zero_add, deriv_const_mul_field',
+            inv_pow, smul_eq_mul, neg_inj, mul_eq_mul_left_iff, _root_.mul_eq_zero,
+            I_ne_zero, inv_eq_zero, ofReal_eq_zero, pi_ne_zero, OfNat.ofNat_ne_zero,
+            or_self, or_false]
+        congr 1
+        funext θ
+        rw[deriv_cexp, deriv_mul_const]
+        ·   simp only [_root_.deriv_ofReal, one_mul]
+            ring_nf
+        ·   exact differentiableAt_ofReal θ
+        ·   refine DifferentiableAt.mul_const ?_ I
+            exact differentiableAt_ofReal θ
+    rw[cauchy_param]
+    calc ‖1 / (2 * ↑π * I) * ∫ (θ : ℝ) in 0..2 * π, I * ↑r' * cexp (I * ↑θ) * (↑r' * cexp (I * ↑θ) - z)⁻¹ ^ 2 * f (↑r' * cexp (I * ↑θ))‖
+        = (2 * π)⁻¹ * ‖∫ (θ : ℝ) in 0..2 * π, I * ↑r' * cexp (I * ↑θ) * (↑r' * cexp (I * ↑θ) - z)⁻¹ ^ 2 * f (↑r' * cexp (I * ↑θ))‖ := by
+            simp only [one_div, mul_inv_rev, inv_I, neg_mul, inv_pow, norm_neg, Complex.norm_mul,
+                norm_I, norm_inv, norm_real, norm_eq_abs, Complex.norm_ofNat, one_mul]
+            rw [abs_of_pos pi_pos]
+        _ ≤ (2 * π)⁻¹ * (r' * ((r' - r) ^ 2)⁻¹ * (2 * M * r' / (R - r'))) * |2 * π - 0| := by
+            rw[mul_assoc]
+            refine mul_le_mul (by rfl) ?_ (by grind) (inv_nonneg.mpr (le_of_lt two_pi_pos))
+            apply intervalIntegral.norm_integral_le_of_norm_le_const
+            intro θ hθ
+            simp only [inv_pow, Complex.norm_mul, norm_I, norm_real, norm_eq_abs, one_mul,
+                norm_exp_I_mul_ofReal, mul_one, norm_inv, norm_pow]
+            rw[abs_of_pos (lt_trans pos_r r_lt_r')]
+            refine mul_le_mul₃ (rfl.le) ?_ ?_ (inv_nonneg.mpr (sq_nonneg _)) (le_of_lt (lt_trans pos_r r_lt_r')) (norm_nonneg (f (↑r' * cexp (I * ↑θ))))
+            ·   have hz_norm : ‖z‖ ≤ r := mem_closedBall_zero_iff.mp z_in_r
+                refine inv_anti₀ (sq_pos_of_pos (by grind)) (sq_le_sq' ?_ ?_)
+                · calc -(‖(r' : ℂ) * cexp (I * θ) - z‖) ≤ 0 := neg_nonpos.mpr (norm_nonneg _)
+                    _ ≤ r' - r := by grind
+                · calc r' - r ≤ |r'| - ‖z‖ := sub_le_sub (le_abs_self _) hz_norm
+                    _ = ‖(r' : ℂ) * cexp (I * θ)‖ - ‖z‖ := by simp [abs_of_pos <| pos_r.trans r_lt_r']
+                    _ ≤ ‖r' * cexp (I * θ) - z‖ := norm_sub_norm_le _ _
+            ·   exact borelCaratheodory_closedBall (by grind) analytic_f f_zero_at_zero Mpos re_f_le_M
+                    r'_lt_R (mem_closedBall_zero_iff.mpr (by simp [abs_of_pos <| pos_r.trans r_lt_r']))
+        _ = 2 * M * r' ^ 2 / ((R - r') * (r' - r) ^ 2) := by
+            rw[sub_zero, abs_of_pos two_pi_pos]
+            field_simp
+
+
+
+@[blueprint "BorelCaratheodoryDeriv"
+  (title := "BorelCaratheodoryDeriv")
+  (statement := /-- Let $R,\,M>0$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then for any $0 < r < R$,
+    $$|f'(z)|\leq\frac{16MR^2}{(R-r)^3}$$
+    for all $|z|\leq r$. -/)
+  (proof := /-- Using Lemma \ref{DerivativeBound} with $r'=(R+r)/2$, and noting that $r < R$, we have that
+    $$|f'(z)|\leq\frac{4M(R+r)^2}{(R-r)^3}\leq\frac{16MR^2}{(R-r)^3}.$$ -/)
+  (latexEnv := "theorem")]
+theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
+    (rpos : 0 < r) (analytic_f : AnalyticOn ℂ f (Metric.closedBall 0 R))
+    (zeroAtZero : f 0 = 0) (Mpos : 0 < M)
+    (realPartBounded : ∀ z ∈ Metric.closedBall 0 R, (f z).re ≤ M)
+    (hyp_r : r < R) (hyp_z : z ∈ Metric.closedBall 0 r)
+    (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R ⊆ U ∧ DifferentiableOn ℂ f U) :
+    ‖deriv f z‖ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
+    let r' : ℝ := (R + r) / 2
+    calc
+        ‖deriv f z‖ ≤ 4 * M * (R + r) ^ 2 / (R - r) ^ 3 := by
+            have : 4 * M * (R + r) ^ 2 / (R - r) ^ 3 = 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
+                simp[r']
+                field_simp
+                ring_nf
+            rw[this]
+            refine DerivativeBound Mpos analytic_f zeroAtZero hf_domain realPartBounded rpos hyp_z ?_ ?_
+            ·   simp[r']
+                linarith
+            ·   simp[r']
+                linarith
+        _ ≤ 16 * M * R ^ 2 / (R - r) ^ 3 := by
+            have : 16 * M * R ^ 2 = 4 * M * (2 * R) ^ 2 := by ring_nf
+            rw[this]
+            bound
 
 
 
@@ -562,7 +671,8 @@ blueprint_comment /--
   $$\sigma\leq 1-\frac{1}{14D\log|t|}.$$
   This is exactly the desired result with the constant $E=(14D)^{-1}$
   -/)
-  (proofUses := ["ShiftTwoBound", "LogDerivativeDirichlet", "ShiftOneBound", "ThreeFourOneTrigIdentity", "ShiftZeroBound"])]
+  (proofUses := ["ShiftTwoBound", "LogDerivativeDirichlet", "ShiftOneBound", "ThreeFourOneTrigIdentity", "ShiftZeroBound"])
+  (latexEnv := "theorem")]
 theorem ZeroInequality : ∃ (E : ℝ) (EinIoo : E ∈ Ioo (0 : ℝ) 1),
     ∀ (ρ : ℂ) (σ t : ℝ),
     ζ ρ = 0 →
@@ -726,16 +836,15 @@ lemma FLogTtoDeltaT : ∀ (t : ℝ),
   $$1-\frac{F}{\log|t|}\leq\sigma\implies\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\ll\log^2|t|$$
   where the implied constant is uniform in $\sigma$.
   -/)
-  (proof := /--
-  \ uses{riemannZetaLogDerivResidue, LogDerivZetaUniformLogSquaredBoundStrip}
-      Note that
+  (proof := /-- Note that
       $$\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|=\sum_{1\leq n}\frac{\Lambda(n)}{|n^{\sigma+it}|}=\sum_{1\leq n}\frac{\Lambda(n)}{n^\sigma}=-\frac{\zeta'}{\zeta}(\sigma)\leq\left|\frac{\zeta'}{\zeta}(\sigma)\right|.$$
       From Theorem \ref{riemannZetaLogDerivResidue}, and applying the triangle inequality we know that
       $$\left|\frac{\zeta'}{\zeta}(s)\right|\leq\frac{1}{|s-1|}+C.$$
       where $C>0$ is some constant. Thus, for $\sigma\geq 3/2$ we have that
       $$\left|\frac{\zeta'}{\zeta}(\sigma+it)\right|\leq\left|\frac{\zeta'}{\zeta}(\sigma)\right|\leq\frac{1}{\sigma-1}+C\leq 2+C\ll 1\ll\log^2|t|.$$
-      Putting this together with Lemma \ref{LogDerivZetaUniformLogSquaredBoundStrip} completes the proof.
-  -/)]
+      Putting this together with Lemma \ref{LogDerivZetaUniformLogSquaredBoundStrip} completes the proof. -/)
+  (proofUses := ["riemannZetaLogDerivResidue", "LogDerivZetaUniformLogSquaredBoundStrip"])
+  (latexEnv := "theorem")]
 theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
     ∀ (σ t : ℝ),
     3 < |t| →
@@ -759,7 +868,8 @@ theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
   where $C\geq 0$. Thus, we have that
   $$\left|\frac{\zeta'}{\zeta}(\sigma'+it)\right|\leq\left(\frac{\log T}{F\,\log 2}+\frac{C}{\log 2}\right)\,\log(2+|t|)\leq\left(\frac{\log(2+T)}{F\,\log 2}+\frac{C}{\log 2}\right)\log(2+T)\ll\log^2(2+T).$$
   -/)
-  (proofUses := ["LogDerivZetaUniformLogSquaredBound", "riemannZetaLogDerivResidue"])]
+  (proofUses := ["LogDerivZetaUniformLogSquaredBound", "riemannZetaLogDerivResidue"])
+  (latexEnv := "theorem")]
 theorem LogDerivZetaLogSquaredBoundSmallt : ∃ (C : ℝ) (Cnonneg : C ≥ 0),
     ∀ (σ t T : ℝ) (Tpos: T > 0),
     |t| ≤ T →
@@ -796,7 +906,6 @@ noncomputable def I1New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
 
 
 
-
 @[blueprint
   (title := "I5New")
   (statement := /--
@@ -806,7 +915,6 @@ noncomputable def I1New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
 noncomputable def I5New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t : ℝ in Ici T,
       SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
-
 
 
 
@@ -831,7 +939,6 @@ lemma I1NewBound {SmoothingF : ℝ → ℝ}
     ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
     ‖I1New SmoothingF ε X T‖ ≤ C * (X / (ε * Real.sqrt T)) := by
     sorry
-
 
 
 
@@ -874,8 +981,6 @@ lemma I5NewBound {SmoothingF : ℝ → ℝ}
 
 
 
-
-
 @[blueprint
   (title := "I2New")
   (statement := /--
@@ -888,7 +993,6 @@ noncomputable def I2New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
 
 
 
-
 @[blueprint
   (title := "I4New")
   (statement := /--
@@ -898,7 +1002,6 @@ noncomputable def I2New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
 noncomputable def I4New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
   (1 / (2 * π * I)) * ((∫ σ₀ in σ'..(1 + (Real.log X)⁻¹),
     SmoothedChebyshevIntegrand SmoothingF ε X (σ₀ + T * I)))
-
 
 
 
@@ -926,8 +1029,6 @@ lemma I2NewBound {SmoothingF : ℝ → ℝ}
     let σ' := 1 - F / Real.log T
     ‖I2New SmoothingF ε X T σ'‖ ≤ C * (X / (ε * Real.sqrt T)) := by
     sorry
-
-
 
 
 
@@ -969,8 +1070,6 @@ lemma I4NewBound {SmoothingF : ℝ → ℝ}
 
 
 
-
-
 @[blueprint
   (title := "I3New")
   (statement := /--
@@ -980,7 +1079,6 @@ lemma I4NewBound {SmoothingF : ℝ → ℝ}
 noncomputable def I3New (SmoothingF : ℝ → ℝ) (ε T X σ' : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t in (-T)..T,
     SmoothedChebyshevIntegrand SmoothingF ε X (σ' + t * I)))
-
 
 
 
@@ -1010,8 +1108,6 @@ lemma I3NewBound {SmoothingF : ℝ → ℝ}
     let σ' := 1 - F / Real.log T
     ‖I3New SmoothingF ε X T σ'‖ ≤ C * (X ^ (1 - F / Real.log T) * Real.sqrt T) / ε := by
     sorry
-
-
 
 
 
@@ -1187,7 +1283,6 @@ theorem SmoothedChebyshevPull3 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
             ext
             simp [f, g]
             ring
-
 
 
 
