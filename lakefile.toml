@@ -28,6 +28,3 @@ git = "https://github.com/PatrickMassot/checkdecls.git"
 
 [[lean_lib]]
 name = "PrimeNumberTheoremAnd"
-
-[[lean_lib]]
-name = "development"
