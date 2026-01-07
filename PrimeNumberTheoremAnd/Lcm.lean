@@ -135,7 +135,12 @@ noncomputable def Criterion.L' (c : Criterion) : ℕ := L c.n / ∏ i, c.q i
   Hence we may write \(L_n = q_1 q_2 q_3 L'\) where \(L'\) is the quotient obtained by removing
   these prime factors.  By construction, \(q_i \nmid L'\) for each \(i\). -/)
   (latexEnv := "lemma")]
-theorem Criterion.ln_eq (c : Criterion) : L c.n = c.q 0 * c.q 1 * c.q 2 * c.L' := by sorry
+theorem Criterion.ln_eq (c : Criterion) : L c.n = c.q 0 * c.q 1 * c.q 2 * c.L' := by
+  rw [L', ← Fin.prod_univ_three, Nat.mul_div_cancel' <| Fintype.prod_dvd_of_isRelPrime ?_ ?_]
+  · refine fun i j h ↦ Nat.coprime_iff_isRelPrime.mp ?_
+    exact Nat.coprime_primes (c.hq i) (c.hq j) |>.mpr <| c.hq_mono.injective.ne h
+  refine fun i ↦ Finset.dvd_lcm <| Finset.mem_Icc.mpr ⟨c.hq i |>.one_le, le_trans ?_ c.h_ord_3.le⟩
+  exact c.hq_mono.monotone <| Fin.le_last i
 
 @[blueprint
   "lem:Lprime-def"
