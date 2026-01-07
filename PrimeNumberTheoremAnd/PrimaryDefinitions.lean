@@ -62,7 +62,7 @@ noncomputable def riemannZeta.classicalZeroFree (R : ℝ) := ∀ (σ t : ℝ), t
   "zero-counting-function"
   (title := "Zero counting function N(T)")
   (statement := /-- The number of zeroes of imaginary part between 0 and T, counting multiplicity -/)]
-noncomputable def riemannZeta.N (T : ℝ) : ℝ := zeroes_sum Set.univ (Set.Ioo 0 T) (fun ρ ↦ 1)
+noncomputable def riemannZeta.N (T : ℝ) : ℝ := zeroes_sum Set.univ (Set.Ioo 0 T) (fun _ ↦ 1)
 
 @[blueprint
   "zero-counting-function"
@@ -83,6 +83,12 @@ def riemannZeta.Riemann_vonMangoldt_bound (b₁ b₂ b₃ : ℝ) : Prop :=
   "zero-density-bound"
   (title := "Zero density bound")
   (statement := /-- An estimate of the form $N(\sigma,T) \leq c₁ T^p \log^q T + c₂ \log^2 T - \frac{T}{2\pi} \log \frac{T}{2\pi e} + \frac{7}{8}| ≤ b_1 \log T + b_2 \log\log T + b_3$ for $T \geq 2$. -/)]
-def riemannZeta.zero_density_bound (T₀ σ c₁ c₂ p q : ℝ) : Prop :=
- ∀ T ≥ T₀,
-    riemannZeta.N' σ T ≤ c₁ * T ^ p * (log T) ^ q + c₂ * (log T) ^ 2
+structure riemannZeta.zero_density_bound where
+T₀ : ℝ
+σ_range : Set ℝ
+c₁ : ℝ → ℝ
+c₂ : ℝ → ℝ
+p : ℝ → ℝ
+q : ℝ → ℝ
+bound : ∀ T ≥ T₀, ∀ σ ∈ σ_range,
+    riemannZeta.N' σ T ≤ (c₁ σ) * T ^ (p σ) * (log T) ^ (q σ) + (c₂ σ) * (log T) ^ 2

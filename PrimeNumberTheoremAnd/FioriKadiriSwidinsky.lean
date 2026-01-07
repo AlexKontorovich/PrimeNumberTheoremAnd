@@ -40,7 +40,7 @@ def table_1 : List (ℝ × ℝ) :=
   "fks-corollary_2_3"
   (title := "FKS Corollary 2.3")
   (statement := /-- For each pair $T_0,S_0$ in Table 1 we have, for all $V > T_0$, $\sum_{0 < \gamma < V} 1/\gamma < S_0 + B_1(T_0,V)$. -/)]
-theorem corollary_2_3 {T₀ S₀ V : ℝ} (h : (T₀, S₀) ∈ table_1) (hV : V > T₀) : riemannZeta.zeroes_sum Set.univ (Set.Ioo 0 V) (fun ρ ↦ 1 / ρ.im) < S₀ + B₁ 0.137 0.443 1.588 T₀ V := by sorry
+theorem corollary_2_3 {b₁ b₂ b₃ T₀ S₀ V : ℝ} (hR : riemannZeta.Riemann_vonMangoldt_bound b₁ b₂ b₃) (h : (T₀, S₀) ∈ table_1) (hV : V > T₀) : riemannZeta.zeroes_sum Set.univ (Set.Ioo 0 V) (fun ρ ↦ 1 / ρ.im) < S₀ + B₁ b₁ b₂ b₃ T₀ V := by sorry
 
 noncomputable def s₀ (σ U V : ℝ) := riemannZeta.zeroes_sum (Set.Ico σ 1) (Set.Ico U V) (fun ρ ↦ 1 / ρ.im)
 
@@ -48,23 +48,23 @@ noncomputable def _root_.Real.Gamma.incomplete (s : ℝ) (x : ℝ) : ℝ := ∫ 
 
 noncomputable def _root_.Complex.Gamma.incomplete (s : ℂ) (x : ℝ) : ℂ := ∫ t in Set.Ioi x, exp (-t) * t ^ (s - 1)
 
-noncomputable def B₀ (c₁ c₂ p q : ℝ) (U V : ℝ) : ℝ :=
-  c₁ * (log V)^q / V ^ (1 - p) + c₂ * (log V)^2 / V
-  + (c₁ / (1 - p)^(q+1)) * (Real.Gamma.incomplete (q+1) ((1-p)*(log U)) - Real.Gamma.incomplete (q+1) ((1-p)*(log V)))
-  + c₂ * (Real.Gamma.incomplete 3 ((log U)) - Real.Gamma.incomplete 3 ((log V))
+noncomputable def riemannZeta.zero_density_bound.B₀ (ZDB : riemannZeta.zero_density_bound) (σ U V : ℝ) : ℝ :=
+  (ZDB.c₁ σ) * (log V)^(ZDB.q σ) / V ^ (1 - (ZDB.p σ)) + (ZDB.c₂ σ) * (log V)^2 / V
+  + (ZDB.c₁ σ / (1 - ZDB.p σ)^(ZDB.q σ+1)) * (Real.Gamma.incomplete (ZDB.q σ+1) ((1-ZDB.p σ)*(log U)) - Real.Gamma.incomplete (ZDB.q σ+1) ((1-ZDB.p σ)*(log V)))
+  + (ZDB.c₂ σ) * (Real.Gamma.incomplete 3 ((log U)) - Real.Gamma.incomplete 3 ((log V))
   )
 
 @[blueprint
   "fks-lemma-2-5"
   (title := "FKS Lemma 2.5")
   (statement := /-- Let $T_0 \geq 2$ and $\gamma > 0$.  Assume that there exist $c_1, c_2, p, q, T_0$ for which one has a zero density bound.  Assume $\sigma \geq 5/8$ and $T_0 \leq U < V$.  Then $s_0(σ,U,V) \leq B_0(\sigma,U,V)$. -/)]
-theorem lemma_2_5 {T₀ σ c₁ c₂ p q U V : ℝ}
-  (hT₀ : T₀ ≥ 2)
+theorem lemma_2_5 (ZDB: riemannZeta.zero_density_bound) {σ U V : ℝ}
+  (hT₀ : ZDB.T₀ ≥ 2)
   (hσ : σ ≥ 5 / 8)
-  (hU : U ≥ T₀)
-  (hV : V > U)
-  (hZDB : riemannZeta.zero_density_bound T₀ σ c₁ c₂ p q) :
-  s₀ σ U V ≤ B₀ c₁ c₂ p q U V := by sorry
+  (hσ' : σ ∈ ZDB.σ_range)
+  (hU : U ≥ ZDB.T₀)
+  (hV : V > U) :
+  s₀ σ U V ≤ riemannZeta.zero_density_bound.B₀ ZDB σ U V := by sorry
 
 @[blueprint
   "fks-remark-2-6-a"
@@ -154,20 +154,28 @@ def table_8 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ)
   "fks-corollary-2-9"
   (title := "FKS Corollary 2.9")
   (statement := /-- For each $\sigma_1, \sigma_2, \tilde c_1, \tilde c_2$ given in Table 8, we have $N(\sigma,T) \leq \tilde c_1 T^{p(\sigma)} \log^{q(\sigma)} + \tilde c_2 \log^2 T$ for $\sigma_1 \leq \sigma \leq \sigma_2$ with $p(\sigma) = 8/3 (1-\sigma)$ and $q(σ) = 5-2\sigma$.-/)]
-theorem corollary_2_9 {σ₁ σ₂ α δ d CC_1 c₁ CC_2 c₂ : ℝ} (h : (σ₁, σ₂, α, δ, d, CC_1, c₁, CC_2, c₂) ∈ table_8) : ∀ σ ∈ Set.Icc σ₁ σ₂, riemannZeta.zero_density_bound 3e12 σ c₁ c₂ (8/3 * (1 - σ)) (5 - 2 * σ) := by sorry
+noncomputable def corollary_2_9 {σ₁ σ₂ α δ d CC_1 c₁ CC_2 c₂ : ℝ} (h : (σ₁, σ₂, α, δ, d, CC_1, c₁, CC_2, c₂) ∈ table_8) : riemannZeta.zero_density_bound := {
+    T₀ := 3e12
+    σ_range := Set.Icc σ₁ σ₂
+    c₁ σ := c₁
+    c₂ σ := c₂
+    p σ := 8 / 3 * (1 - σ)
+    q σ := 5 - 2 * σ
+    bound := by sorry
+}
 
 @[blueprint
   "fks-theorem-3-1"
   (title := "FKS Theorem 3.1")
   (statement := /-- Let $x > e^{50}$ be half an odd integer and suppose that $50 < T < x$.  Then $E_\psi(x) \leq \sum_{|\gamma| < T} |x^{\rho-1}/\rho| + 2 \log^2 x / T.$ -/)]
-theorem theorem_3_1 {x T : ℝ} (hx : x > exp 50) (hodd : ∃ X, Odd X ∧ x = X/2)  (hT : T ∈ Set.Ioo 50 x) : Eψ x ≤ riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-T) T) (fun ρ ↦ ‖x^(ρ - 1) / ρ‖) + 2 * (log x)^2 / T := by sorry
+theorem theorem_3_1 {x T : ℝ} (hx : x > exp 50) (hodd : ∃ X, Odd X ∧ x = X / 2) (hT : T ∈ Set.Ioo 50 x) : Eψ x ≤ riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-T) T) (fun ρ ↦ ‖x^(ρ - 1) / ρ‖) + 2 * (log x)^2 / T := by sorry
 
 @[blueprint
   "fks-theorem-3-2"
   (title := "FKS Theorem 3.2")
   (statement := /-- For any $\alpha \in (0,1/2]$ and $\omega \in [0,1]$ there exist $M, x_M$ such that for $\max(51, \log x) < T < (x^\alpha-2)/5$ and some $T^* \in [T, 2.45 T]$,
   $$ |\psi(x) - (x - \sum_{|\gamma| \leq T^*} x^\rho/\rho)| ≤ M x / T * log^{1-\omega} x  $$ for all $x ≥ x_M$. -/)]
-theorem theorem_3_2 (α ω : ℝ) (hα : α ∈ Set.Ioc 0 (1/2)) (hω : ω ∈ Set.Icc 0 1) : ∃ M xM : ℝ, ∀ x, ∀ T ∈ Set.Ioo (max 51 (log x)) ((x^α - 2) / 5), ∃ Tstar ∈ Set.Icc T (2.45 * T), ∀ x ≥ xM, ‖ψ x - (x - riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-Tstar) Tstar) (fun ρ ↦ x^ρ / ρ))‖ ≤ M * x / T * (log x)^(1 - ω) := by sorry
+theorem theorem_3_2 (α ω : ℝ) (hα : α ∈ Set.Ioc 0 (1 / 2)) (hω : ω ∈ Set.Icc 0 1) : ∃ M xM : ℝ, ∀ x, ∀ T ∈ Set.Ioo (max 51 (log x)) ((x^α - 2) / 5), ∃ Tstar ∈ Set.Icc T (2.45 * T), ∀ x ≥ xM, ‖ψ x - (x - riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-Tstar) Tstar) (fun ρ ↦ x^ρ / ρ))‖ ≤ M * x / T * (log x)^(1 - ω) := by sorry
 
 @[blueprint
   "fks-proposition-3-4"
@@ -177,6 +185,44 @@ theorem theorem_3_2 (α ω : ℝ) (hα : α ∈ Set.Ioc 0 (1/2)) (hω : ω ∈ S
 theorem proposition_3_4 {x T : ℝ} (hx : x > exp 50) (hT : T ∈ Set.Ioo (3 * log x) (sqrt x / 3)) : Eψ x ≤ riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-T) T) (fun ρ ↦ ‖x^(ρ - 1) / ρ‖) + 2 * (log x)^2 / T := by sorry
 
 noncomputable def riemannZeta.Sigma (T x a b : ℝ) : ℝ := 2 * (riemannZeta.zeroes_sum (Set.Ico a b) (Set.Ioo 0 T) (fun ρ ↦ x^(ρ.re - 1) / ρ.im))
+
+@[blueprint
+  "fks-proposition-3-6"
+  (title := "FKS Proposition 3.6")
+  (statement := /-- Let $\sigma_1 \in (1/2,1)$ and let $(T_0,S_0)$ be taken from Table 1.  Then $\Sigma_0^\sigma_1 ≤ 2 x^{-1/2} (S_0 + B_1(T_0,T)) + (x_1^{\sigma_1-1} - x^{-1/2}) B_1(H_0,T)$.-/)]
+theorem proposition_3_6 {b₁ b₂ b₃ H₀ σ₁ T₀ S₀ T x : ℝ} (hR : riemannZeta.Riemann_vonMangoldt_bound b₁ b₂ b₃) (hH₀ : riemannZeta.RH_up_to H₀) (hσ_1 : σ₁ ∈ Set.Icc 0.5 1) (hT₀S₀ : (T₀, S₀) ∈ table_1) (hT : T > T₀) (x : ℝ) : riemannZeta.Sigma T x 0 σ₁ ≤ 2 * x^(-0.5:ℝ) * (S₀ + B₁ b₁ b₂ b₃ T₀ T) + (x^(σ₁ - 1) - x^(-0.5:ℝ)) * (B₁ b₁ b₂ b₃ H₀ T) := by sorry
+
+noncomputable def Hσ (H₀ R σ : ℝ) : ℝ := max H₀ (exp (1 / (R*(1-σ))))
+
+theorem riemannZeta.Hσ_zeroes (H₀ R σ : ℝ) (hH₀ : riemannZeta.RH_up_to H₀) (hR : riemannZeta.classicalZeroFree R) : riemannZeta.N' σ (Hσ H₀ R σ) = 0 := by sorry
+
+@[blueprint
+"fks-eq13"
+  (title := "FKS equation (3.13)")
+  (statement := /-- $\Sigma_a^b = 2 * \sum_{H_a ≤ \gamma < T; a \leq \beta < b} \frac{x^{\beta-1}}{\gamma}$.-/)]
+theorem eq_13 {H₀ R a b T x : ℝ} (hH₀ : riemannZeta.RH_up_to H₀) (hR : riemannZeta.classicalZeroFree R) : riemannZeta.Sigma T x a b = 2 * riemannZeta.zeroes_sum (Set.Ico a b) (Set.Ioc (Hσ H₀ R a) T) (fun ρ ↦ x^(ρ.re - 1) / ρ.im) := by sorry
+
+noncomputable def σn (σ₁ σ₂ : ℝ) (n N : ℕ) : ℝ := σ₁ + (σ₂ - σ₁) * n / N
+
+noncomputable def Hn (H₀ R σ₁ σ₂ : ℝ) (n N : ℕ) : ℝ := Hσ H₀ R (σn σ₁ σ₂ n N)
+
+@[blueprint
+"fks-remark-3-7"
+  (title := "FKS Remark 3.7")
+  (statement := /-- If $\sigma < 1 - 1/R \log H_0$ then $H_σ = H_0$.-/)]
+theorem remark_3_7 {H₀ R σ : ℝ} (hσ : σ < 1 - 1 / (R * log H₀)) : Hσ H₀ R σ = H₀ := by sorry
+
+@[blueprint
+"fks-proposition-3-8"
+  (title := "FKS Proposition 3.8")
+  (statement := /-- Let $N \geq 2$ be an integer.  If $5/8 \leq \sigma_1 < \sigma_2 \leq 1$, $T \geq H_0$, then $\Sigma_{\sigma_1}^{\sigma_2} ≤ 2 x^{-(1-\sigma_1)+(\sigma_2-\sigma_1/N)}B_0(\sigma_1, H_{\sigma_1, T) + 2 x^{(1-\sigma_1)} (1 - x^{-(\sigma_2-\sigma_1)/N}) \sum_{n=1}^{N-1} B_0(\sigma^{(n)}, H^{(n)}, T) x^{(\sigma_2-\sigma_1) (n+1)/N}$.-/)]
+theorem proposition_3_8 {H₀ R σ₁ σ₂ T x : ℝ} (N : ℕ) (hH₀ : riemannZeta.RH_up_to H₀) (hR : riemannZeta.classicalZeroFree R) (ZDB : riemannZeta.zero_density_bound) (hσ₁ : σ₁ ∈ Set.Icc (5 / 8) 1) (hσ₂ : σ₂ ∈ Set.Ioc σ₁ 1) (hσ : Set.Icc σ₁ σ₂ ⊆ ZDB.σ_range) (hT : T ≥ H₀) : riemannZeta.Sigma T x σ₁ σ₂ ≤ 2 * x^(-(1 - σ₁) + (σ₂ - σ₁) / N) * (riemannZeta.zero_density_bound.B₀ ZDB σ₁ (Hσ H₀ R σ₁) T) + 2 * x^(1 - σ₁) * (1 - x^(-(σ₂ - σ₁) / N)) * ∑ n ∈ Finset.Ico 1 N, (riemannZeta.zero_density_bound.B₀ ZDB (σn σ₁ σ₂ n N) (Hn H₀ R σ₁ σ₂ n N) T) * x^((σ₂ - σ₁) * (n + 1) / N) := by sorry
+
+@[blueprint
+"fks-corollary-3-10"
+  (title := "FKS Corollary 3.10")
+  (statement := /-- If $\sigma_1 \geq 0.9$ then $\Sigma_{\sigma_1}^{\sigma_2} \leq 0.00125994 x^{\sigma_2-1}$.-/)]
+theorem corollary_3_10 {σ₁ σ₂ T x : ℝ} (hσ₁ : σ₁ ∈ Set.Icc 0.9 1) (hσ₂ : σ₂ ∈ Set.Ioc σ₁ 1) : riemannZeta.Sigma T x σ₁ σ₂ ≤ 0.00125994 * x^(σ₂ - 1) := by sorry
 
 
 
