@@ -23,6 +23,7 @@ open Finset Real Multiset
 structure Factorization (n : ℕ) where
   a : Multiset ℕ
   ha : ∀ m ∈ a, m ≤ n
+  hpos : ∀ m ∈ a, 0 < m
 
 def Factorization.sum {n : ℕ} (f : Factorization n) {R : Type*} [AddCommMonoid R] (F : ℕ → R) : R := (f.a.map F).sum
 
@@ -50,12 +51,52 @@ def Factorization.balance {n : ℕ} (f : Factorization n) (p : ℕ) : ℤ := f.s
 def Factorization.total_imbalance {n : ℕ} (f : Factorization n) : ℕ :=
   ∑ p ∈ (n+1).primesBelow, (f.balance p).natAbs
 
+/-- The factorization of a multiset product equals the sum of factorizations. -/
+private lemma factorization_multiset_prod (s : Multiset ℕ) (h : (0 : ℕ) ∉ s) (p : ℕ) :
+    s.prod.factorization p = (s.map (·.factorization p)).sum := by
+  induction s using Multiset.induction_on with
+  | empty => simp
+  | cons a t ih =>
+    simp only [Multiset.prod_cons, Multiset.map_cons, Multiset.sum_cons]
+    have ht : 0 ∉ t := fun h' ↦ h (mem_cons_of_mem h')
+    have ha : a ≠ 0 := fun h' ↦ h (h' ▸ Multiset.mem_cons_self 0 t)
+    rw [Nat.factorization_mul ha (Multiset.prod_ne_zero ht), Finsupp.coe_add, Pi.add_apply, ih ht]
+
 @[blueprint
   "balance-zero"
   (statement := /--
   If a factorization has zero total imbalance, then it exactly factors $n!$.
   -/)]
-theorem Factorization.zero_total_imbalance {n : ℕ} (f : Factorization n) (hf : f.total_imbalance = 0) : f.prod id = n.factorial := by sorry
+theorem Factorization.zero_total_imbalance {n : ℕ} (f : Factorization n)
+    (hf : f.total_imbalance = 0) : f.prod id = n.factorial := by
+  have h_balance_zero : ∀ p ∈ (n + 1).primesBelow, f.balance p = 0 := fun p hp => by
+    have : (f.balance p).natAbs = 0 := Finset.sum_eq_zero_iff_of_nonneg
+      (fun _ _ => Nat.zero_le _) |>.mp hf p hp
+    omega
+  have h_zero_not_mem : (0 : ℕ) ∉ f.a := fun h => (f.hpos 0 h).false
+  have h_prod_ne_zero : f.prod id ≠ 0 := by
+    simp only [prod, Multiset.map_id]
+    exact Multiset.prod_ne_zero h_zero_not_mem
+  refine Nat.eq_of_factorization_eq h_prod_ne_zero (Nat.factorial_pos n).ne' fun p ↦ ?_
+  by_cases hp : p.Prime
+  · by_cases hp_le : p ≤ n
+    · have hp_mem : p ∈ (n + 1).primesBelow :=
+        Nat.mem_primesBelow.mpr ⟨Nat.lt_succ_of_le hp_le, hp⟩
+      have hbal := h_balance_zero p hp_mem
+      unfold balance sum at hbal
+      have hbal' : (Multiset.map (fun m ↦ m.factorization p) f.a).sum =
+          n.factorial.factorization p := by omega
+      simp only [prod, Multiset.map_id]
+      rw [factorization_multiset_prod f.a h_zero_not_mem, hbal']
+    · have hp_gt : p > n := Nat.lt_of_not_le hp_le
+      have h_fac_eq_zero : ∀ m ∈ f.a, m.factorization p = 0 := fun m hm ↦
+        Nat.factorization_eq_zero_of_lt ((f.ha m hm).trans_lt hp_gt)
+      rw [prod, Multiset.map_id, factorization_multiset_prod f.a h_zero_not_mem,
+        Nat.factorization_factorial_eq_zero_of_lt hp_gt]
+      exact Multiset.sum_eq_zero fun x hx ↦ by
+        obtain ⟨m, hm, rfl⟩ := mem_map.mp hx
+        exact h_fac_eq_zero m hm
+  · aesop
 
 @[blueprint
   "waste-eq"
@@ -89,13 +130,18 @@ theorem Factorization.score_eq {n : ℕ} {f : Factorization n} (hf : f.total_imb
 /-- Given a factorization `f`, an element `m` in it, and a new number `m' ≤ n`,
 `replace` returns a new factorization with `m` replaced by `m'`. -/
 def Factorization.replace {n : ℕ} (f : Factorization n) (m m' : ℕ)
-    (_hm : m ∈ f.a) (hm' : m' ≤ n) : Factorization n where
+    (_hm : m ∈ f.a) (hm' : m' ≤ n) (hm'_pos : 0 < m') : Factorization n where
   a := (f.a.erase m).cons m'
   ha x hx := by
     simp only [Multiset.mem_cons] at hx
     rcases hx with rfl | hx
     · exact hm'
     · exact f.ha x (Multiset.mem_of_mem_erase hx)
+  hpos x hx := by
+    simp only [Multiset.mem_cons] at hx
+    rcases hx with rfl | hx
+    · exact hm'_pos
+    · exact f.hpos x (Multiset.mem_of_mem_erase hx)
 
 /-- If the balance of a prime `p` is positive in factorization `f`, then there exists
 a number `m` in `f` that is divisible by `p`. -/
@@ -103,8 +149,8 @@ lemma Factorization.exists_mem_dvd_of_balance_pos {n : ℕ} (f : Factorization n
     (p : ℕ) (_hp : p.Prime) (h : f.balance p > 0) : ∃ m ∈ f.a, p ∣ m := by
   contrapose! h
   simp only [balance, sum, sub_nonpos, Nat.cast_le]
-  calc (f.a.map fun m => m.factorization p).sum
-      = (f.a.map fun _ => (0 : ℕ)).sum := by
+  calc (f.a.map fun m ↦ m.factorization p).sum
+      = (f.a.map fun _ ↦ (0 : ℕ)).sum := by
           congr 1; exact Multiset.map_congr rfl fun x hx =>
             Nat.factorization_eq_zero_of_not_dvd (h x hx)
     _ = 0 := by simp
@@ -113,8 +159,8 @@ lemma Factorization.exists_mem_dvd_of_balance_pos {n : ℕ} (f : Factorization n
 /-- The sum of a function `F` over a factorization after replacing `m` with `m'`
 equals the original sum minus `F m` plus `F m'`. -/
 lemma Factorization.replace_sum {n : ℕ} (f : Factorization n) (m m' : ℕ)
-    (hm : m ∈ f.a) (hm' : m' ≤ n) {R : Type*} [AddCommGroup R] (F : ℕ → R) :
-    (f.replace m m' hm hm').sum F = f.sum F - F m + F m' := by
+    (hm : m ∈ f.a) (hm' : m' ≤ n) (hm'_pos : 0 < m') {R : Type*} [AddCommGroup R] (F : ℕ → R) :
+    (f.replace m m' hm hm' hm'_pos).sum F = f.sum F - F m + F m' := by
   simp only [replace, sum, Multiset.map_cons, Multiset.sum_cons]
   conv_rhs => rw [← cons_erase hm, Multiset.map_cons, Multiset.sum_cons]
   grind
@@ -122,8 +168,8 @@ lemma Factorization.replace_sum {n : ℕ} (f : Factorization n) (m m' : ℕ)
 /-- The balance of a prime `q` after replacing `m` with `m'` equals the original balance
 minus the exponent of `q` in `m` plus the exponent of `q` in `m'`. -/
 lemma Factorization.replace_balance {n : ℕ} (f : Factorization n) (m m' : ℕ)
-    (hm : m ∈ f.a) (hm' : m' ≤ n) (q : ℕ) :
-    (f.replace m m' hm hm').balance q =
+    (hm : m ∈ f.a) (hm' : m' ≤ n) (hm'_pos : 0 < m') (q : ℕ) :
+    (f.replace m m' hm hm' hm'_pos).balance q =
       f.balance q - m.factorization q + m'.factorization q := by
   simp only [balance, replace, sum, Multiset.map_cons, Multiset.sum_cons]
   conv_rhs => rw [← Multiset.cons_erase hm, Multiset.map_cons, Multiset.sum_cons]
@@ -135,9 +181,13 @@ lemma Factorization.replace_div_balance {n : ℕ} (f : Factorization n) (m p : �
     (hm : m ∈ f.a) (h_fac_pos : 0 < m.factorization p) (hp : p.Prime) (q : ℕ) :
     let m' := m / p
     have hm' : m' ≤ n := (Nat.div_le_self m p).trans (f.ha m hm)
-    (f.replace m m' hm hm').balance q = if q = p then f.balance q - 1 else f.balance q := by
-  have hm_ne : m ≠ 0 := pos_of_ne_zero (fun h ↦ by simp [h] at h_fac_pos) |> pos_iff_ne_zero.mp
+    have hm'_pos : 0 < m' := Nat.div_pos (Nat.le_of_dvd (f.hpos m hm)
+      (hp.dvd_iff_one_le_factorization (f.hpos m hm).ne' |>.mpr h_fac_pos)) hp.pos
+    (f.replace m m' hm hm' hm'_pos).balance q = if q = p then f.balance q - 1 else f.balance q := by
+  have hm_pos : 0 < m := f.hpos m hm
+  have hm_ne : m ≠ 0 := hm_pos.ne'
   have hp_dvd : p ∣ m := hp.dvd_iff_one_le_factorization hm_ne |>.mpr h_fac_pos
+  have hm'_pos : 0 < m / p := Nat.div_pos (Nat.le_of_dvd hm_pos hp_dvd) hp.pos
   simp only [replace_balance, Nat.factorization_div hp_dvd]
   split_ifs with hq
   · subst hq
@@ -154,7 +204,12 @@ lemma Factorization.replace_div_total_imbalance {n : ℕ} (f : Factorization n) 
     (hp_mem : p ∈ (n + 1).primesBelow) (h_bal_pos : f.balance p > 0) :
     let m' := m / p
     have hm' : m' ≤ n := (Nat.div_le_self m p).trans (f.ha m hm)
-    (f.replace m m' hm hm').total_imbalance < f.total_imbalance := by
+    have hm'_pos : 0 < m' := Nat.div_pos (Nat.le_of_dvd (f.hpos m hm)
+      (hp.dvd_iff_one_le_factorization (f.hpos m hm).ne' |>.mpr h_fac_pos)) hp.pos
+    (f.replace m m' hm hm' hm'_pos).total_imbalance < f.total_imbalance := by
+  have hm_pos : 0 < m := f.hpos m hm
+  have hp_dvd : p ∣ m := hp.dvd_iff_one_le_factorization hm_pos.ne' |>.mpr h_fac_pos
+  have hm'_pos : 0 < m / p := Nat.div_pos (Nat.le_of_dvd hm_pos hp_dvd) hp.pos
   refine Finset.sum_lt_sum (fun q _ ↦ ?_) <| ⟨p, hp_mem, by
     rw [replace_div_balance f m p hm h_fac_pos hp p, if_pos rfl]; grind⟩
   rw [replace_div_balance f m p hm h_fac_pos hp q]
@@ -168,16 +223,20 @@ lemma Factorization.replace_div_score_le {n : ℕ} (f : Factorization n) (m p : 
     (hp_mem : p ∈ (n + 1).primesBelow) (_h_bal_pos : f.balance p > 0) (L : ℕ) :
     let m' := m / p
     have hm' : m' ≤ n := (Nat.div_le_self m p).trans (f.ha m hm)
-    (f.replace m m' hm hm').score L ≤ f.score L := by
+    have hm'_pos : 0 < m' := Nat.div_pos (Nat.le_of_dvd (f.hpos m hm)
+      (hp.dvd_iff_one_le_factorization (f.hpos m hm).ne' |>.mpr h_fac_pos)) hp.pos
+    (f.replace m m' hm hm' hm'_pos).score L ≤ f.score L := by
   simp only
   set m' := m / p with hm'_def
   have hm' : m' ≤ n := (Nat.div_le_self m p).trans (f.ha m hm)
-  have hm_ne : m ≠ 0 := Nat.pos_iff_ne_zero.mp (Nat.pos_of_ne_zero fun h ↦ by simp [h] at h_fac_pos)
+  have hm_pos : 0 < m := f.hpos m hm
+  have hm_ne : m ≠ 0 := hm_pos.ne'
   have hp_dvd : p ∣ m := hp.dvd_iff_one_le_factorization hm_ne |>.mpr h_fac_pos
-  have h_waste : (f.replace m m' hm hm').waste ≤ f.waste + Real.log p := by
-    have h_waste_eq : (f.replace m m' hm hm').waste =
+  have hm'_pos : 0 < m' := Nat.div_pos (Nat.le_of_dvd hm_pos hp_dvd) hp.pos
+  have h_waste : (f.replace m m' hm hm' hm'_pos).waste ≤ f.waste + Real.log p := by
+    have h_waste_eq : (f.replace m m' hm hm' hm'_pos).waste =
         f.waste - Real.log (n / m) + Real.log (n / m') :=
-      replace_sum f m m' hm hm' (fun x => Real.log (n / x))
+      replace_sum f m m' hm hm' hm'_pos (fun x ↦ Real.log (n / x))
     rw [h_waste_eq]
     by_cases hn : n = 0
     · simp only [hn, CharP.cast_eq_zero, zero_div, log_zero, sub_zero, add_zero,
@@ -198,16 +257,16 @@ lemma Factorization.replace_div_score_le {n : ℕ} (f : Factorization n) (m p : 
       ring_nf
       rfl
   have h_pointwise : ∀ q ∈ (n + 1).primesBelow,
-      (if (f.replace m m' hm hm').balance q > 0
-       then ((f.replace m m' hm hm').balance q : ℝ) * Real.log q
-       else if q ≤ L then -((f.replace m m' hm hm').balance q : ℝ) * Real.log L
-       else -((f.replace m m' hm hm').balance q : ℝ) * Real.log (n / q)) ≤
+      (if (f.replace m m' hm hm' hm'_pos).balance q > 0
+       then ((f.replace m m' hm hm' hm'_pos).balance q : ℝ) * Real.log q
+       else if q ≤ L then -((f.replace m m' hm hm' hm'_pos).balance q : ℝ) * Real.log L
+       else -((f.replace m m' hm hm' hm'_pos).balance q : ℝ) * Real.log (n / q)) ≤
       (if f.balance q > 0 then (f.balance q : ℝ) * Real.log q
        else if q ≤ L then -(f.balance q : ℝ) * Real.log L
        else -(f.balance q : ℝ) * Real.log (n / q)) -
       (if q = p then Real.log p else 0) := fun q _ ↦ by
     by_cases hq_eq_p : q = p
-    · have h_bal : (f.replace m m' hm hm').balance q = f.balance q - 1 := by
+    · have h_bal : (f.replace m m' hm hm' hm'_pos).balance q = f.balance q - 1 := by
         rw [replace_div_balance f m p hm h_fac_pos hp q, if_pos hq_eq_p]
       have hbp : 0 < f.balance q := hq_eq_p ▸ _h_bal_pos
       simp only [hq_eq_p, ↓reduceIte]
@@ -215,17 +274,17 @@ lemma Factorization.replace_div_score_le {n : ℕ} (f : Factorization n) (m p : 
       · split_ifs with h2 h3 <;> simp_all; nlinarith
       · rw [← hq_eq_p, h_bal, ← h1]
         simp
-    · have h_bal_eq : (f.replace m m' hm hm').balance q = f.balance q := by
+    · have h_bal_eq : (f.replace m m' hm hm' hm'_pos).balance q = f.balance q := by
         rw [replace_div_balance f m p hm h_fac_pos hp q, if_neg hq_eq_p]
       simp only [hq_eq_p, ↓reduceIte, sub_zero, h_bal_eq, le_refl]
   have h_sum_term := Finset.sum_le_sum h_pointwise
   simp only [Finset.sum_ite] at h_sum_term
   simp only [Finset.sum_sub_distrib] at h_sum_term
   have h_sum_term' : ∑ q ∈ (n + 1).primesBelow,
-      (if (f.replace m m' hm hm').balance q > 0
-       then ((f.replace m m' hm hm').balance q : ℝ) * Real.log q
-       else if q ≤ L then -((f.replace m m' hm hm').balance q : ℝ) * Real.log L
-       else -((f.replace m m' hm hm').balance q : ℝ) * Real.log (n / q)) ≤
+      (if (f.replace m m' hm hm' hm'_pos).balance q > 0
+       then ((f.replace m m' hm hm' hm'_pos).balance q : ℝ) * Real.log q
+       else if q ≤ L then -((f.replace m m' hm hm' hm'_pos).balance q : ℝ) * Real.log L
+       else -((f.replace m m' hm hm' hm'_pos).balance q : ℝ) * Real.log (n / q)) ≤
       ∑ q ∈ (n + 1).primesBelow,
       (if f.balance q > 0 then (f.balance q : ℝ) * Real.log q
        else if q ≤ L then -(f.balance q : ℝ) * Real.log L
@@ -282,7 +341,12 @@ theorem Factorization.lower_score_2 {n : ℕ} (f : Factorization n) (L : ℕ)
     simp only [Multiset.mem_add, Multiset.mem_singleton] at hm
     rcases hm with hm | rfl
     · exact f.ha m hm
-    · exact Nat.le_of_lt_succ (Nat.lt_of_mem_primesBelow hp_mem)⟩
+    · exact Nat.le_of_lt_succ (Nat.lt_of_mem_primesBelow hp_mem),
+    fun m hm => by
+    simp only [Multiset.mem_add, Multiset.mem_singleton] at hm
+    rcases hm with hm | rfl
+    · exact f.hpos m hm
+    · exact hp.pos⟩
   have h_balance_p : f'.balance p = f.balance p + 1 := by
     unfold balance sum
     simp only [show f'.a = f.a + {p} from rfl, Multiset.map_add, Multiset.sum_add,
@@ -418,6 +482,10 @@ def Params.initial (P : Params) : Factorization P.n := {
     obtain ⟨⟨_, ⟨_, rfl⟩, hs⟩, _⟩ := hm
     rw [Multiset.mem_Ico, tsub_le_iff_right] at hs
     grind
+  hpos := fun m hm ↦ by
+    simp only [Multiset.mem_filter, mem_join, mem_replicate] at hm
+    obtain ⟨_, hsmooth⟩ := hm
+    exact Nat.pos_of_ne_zero (Nat.mem_smoothNumbers.mp hsmooth).1
 }
 
 @[blueprint
