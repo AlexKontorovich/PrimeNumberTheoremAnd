@@ -454,6 +454,7 @@ structure Params where
   n : ℕ
   M : ℕ
   L : ℕ
+  hL_pos : L > 0
   hL : n > L * L
 
 @[blueprint
@@ -530,9 +531,9 @@ lemma Params.initial.factorial_factorization_eq_div {n p : ℕ} (hp : p.Prime) (
 
 @[blueprint
   "initial-factorization-large-prime-ge"
-  (statement := /-- A large prime $p > n/L$ can be in deficit by at most $n/p$ (when $L > 0$). -/)
+  (statement := /-- A large prime $p > n/L$ can be in deficit by at most $n/p$. -/)
   (proof := /-- This is the number of times $p$ can divide $n!$. -/)]
-theorem Params.initial.balance_large_prime_ge (P : Params) (hL : P.L > 0) {p : ℕ}
+theorem Params.initial.balance_large_prime_ge (P : Params) {p : ℕ}
     (hp : p > P.n / P.L) : P.initial.balance p ≥ -(P.n / p) := by
   have hsum : (P.initial.a.map (·.factorization p)).sum = 0 := sum_eq_zero fun x hx ↦ by
     simp only [Multiset.mem_map, Params.initial, Multiset.mem_filter] at hx
@@ -544,34 +545,33 @@ theorem Params.initial.balance_large_prime_ge (P : Params) (hL : P.L > 0) {p : �
       · exact .inr (.inl hdvd)
     · exact .inl hprime
   have hfact : (P.n.factorial.factorization p : ℤ) ≤ P.n / p := by
-    rcases eq_or_ne p 0 with rfl | _;
-    · simp
+    rcases eq_or_ne p 0 with rfl | -; · simp
     by_cases hprime : p.Prime
     · have hn_pos : (0 : ℝ) < P.n := by
-        have := Nat.lt_of_lt_of_le (Nat.mul_pos hL hL) P.hL.le; exact_mod_cast this
+        have := Nat.lt_of_lt_of_le (Nat.mul_pos P.hL_pos P.hL_pos) P.hL.le; exact_mod_cast this
       have hL_lt_sqrt : (P.L : ℝ) < Real.sqrt P.n := by
         rw [Real.lt_sqrt (Nat.cast_nonneg _)]; exact_mod_cast by nlinarith [P.hL]
       have hp_gt_sqrt : (p : ℝ) > Real.sqrt P.n := calc
         (p : ℝ) ≥ (P.n / P.L : ℕ) + 1 := by exact_mod_cast hp
         _ > P.n / P.L := by
-          have hL_pos : (0 : ℝ) < P.L := by exact_mod_cast hL
+          have hL_pos : (0 : ℝ) < P.L := by exact_mod_cast P.hL_pos
           have h := Nat.div_add_mod P.n P.L
           have heq : (P.n : ℝ) = (P.n / P.L : ℕ) * P.L + (P.n % P.L : ℕ) := by
             have : P.L * (P.n / P.L) + P.n % P.L = P.n := h
             have := congrArg (· : ℕ → ℝ) this; simp only [Nat.cast_add, Nat.cast_mul] at this
             grind
-          have hmod : ((P.n % P.L : ℕ) : ℝ) < P.L := by exact_mod_cast Nat.mod_lt P.n hL
+          have hmod : ((P.n % P.L : ℕ) : ℝ) < P.L := by exact_mod_cast Nat.mod_lt P.n P.hL_pos
           have hfloor : (P.n : ℝ) / P.L < (P.n / P.L : ℕ) + 1 := by
             rw [div_lt_iff₀ hL_pos, heq]; grind
           grind
         _ > Real.sqrt P.n := by
-          rw [gt_iff_lt, lt_div_iff₀' (by exact_mod_cast hL : (0 : ℝ) < P.L)]
+          rw [gt_iff_lt, lt_div_iff₀' (by exact_mod_cast P.hL_pos : (0 : ℝ) < P.L)]
           calc P.L * Real.sqrt P.n < Real.sqrt P.n * Real.sqrt P.n := by nlinarith
             _ = P.n := Real.mul_self_sqrt hn_pos.le
       rw [factorial_factorization_eq_div hprime hp_gt_sqrt,
         Int.le_ediv_iff_mul_le (by exact_mod_cast hprime.pos)]
       exact_mod_cast Nat.div_mul_le_self P.n p
-    · simp only [Nat.factorization_eq_zero_of_not_prime _ hprime, Nat.cast_zero]; grind
+    · simp only [Nat.factorization_eq_zero_of_not_prime _ hprime, Nat.cast_zero]; positivity
   simp only [Factorization.balance, Factorization.sum, hsum, Nat.cast_zero, zero_sub,
     neg_le_neg_iff, hfact]
 
