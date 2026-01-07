@@ -143,19 +143,6 @@ def Factorization.replace {n : ℕ} (f : Factorization n) (m m' : ℕ)
     · exact hm'_pos
     · exact f.hpos x (Multiset.mem_of_mem_erase hx)
 
-/-- If the balance of a prime `p` is positive in factorization `f`, then there exists
-a number `m` in `f` that is divisible by `p`. -/
-lemma Factorization.exists_mem_dvd_of_balance_pos {n : ℕ} (f : Factorization n)
-    (p : ℕ) (_hp : p.Prime) (h : f.balance p > 0) : ∃ m ∈ f.a, p ∣ m := by
-  contrapose! h
-  simp only [balance, sum, sub_nonpos, cast_le]
-  calc (f.a.map fun m ↦ m.factorization p).sum
-      = (f.a.map fun _ ↦ (0 : ℕ)).sum := by
-          congr 1; exact Multiset.map_congr rfl fun x hx =>
-            factorization_eq_zero_of_not_dvd (h x hx)
-    _ = 0 := by simp
-    _ ≤ _ := Nat.zero_le _
-
 /-- The sum of a function `F` over a factorization after replacing `m` with `m'`
 equals the original sum minus `F m` plus `F m'`. -/
 lemma Factorization.replace_sum {n : ℕ} (f : Factorization n) (m m' : ℕ)
@@ -529,28 +516,6 @@ theorem Params.initial.balance_large_prime_le (P : Params) {p : ℕ} (hp : p > P
 theorem Params.initial.balance_large_prime_ge (P : Params) {p : ℕ} (hp : p > P.n / P.L) :
     P.initial.balance p ≥ - (P.n/p) := by
   sorry
-
-/-- For `p > √n` and `0 < m < n`, we have `νₚ(m) ≤ 1`. -/
-lemma Params.initial.factorization_le_one {n p m : ℕ} (h_sqrt : (p : ℝ) > Real.sqrt n) (hm : m < n) (hm_pos : m ≠ 0) :
-    m.factorization p ≤ 1 := by
-  refine le_of_not_gt fun h ↦ absurd (dvd_trans (pow_dvd_pow p h) (ordProj_dvd m p)) <|
-    not_dvd_of_pos_of_lt (pos_of_ne_zero hm_pos) ?_
-  rw [gt_iff_lt, Real.sqrt_lt] at h_sqrt <;> norm_cast at * <;> grind
-
-/-- A floor arithmetic bound `M · (⌊n/p⌋ - ⌊(n - n/M)/p⌋) ≤ ⌊n/p⌋ + M`. -/
-lemma Params.initial.nat_floor_inequality (n M p : ℕ) (hM : M > 0) :
-    M * (n / p - (n - n / M) / p) ≤ n / p + M := by
-  by_cases hp : p = 0
-  · simp_all
-  · zify
-    cases le_total (n / p) ((n - n / M) / p) <;> simp_all only [Nat.sub_eq_zero_of_le, cast_sub,
-      Int.natCast_ediv, cast_sub (div_le_self _ _)]
-    · grind
-    · nlinarith [div_mul_le_self n p, div_mul_le_self n M, div_add_mod n p,
-        mod_lt n (pos_of_ne_zero hp), div_add_mod n M, mod_lt n hM,
-        Int.mul_ediv_add_emod (n - n / M) p,
-        Int.emod_nonneg (n - n / M) (cast_ne_zero.mpr hp),
-        Int.emod_lt_of_pos (n - n / M) (cast_pos.mpr (pos_of_ne_zero hp))]
 
 /-- For primes `p > √n`, the `p`-adic valuation of `n!` equals `⌊n/p⌋`. This follows from
 Legendre's formula since `p² > n` implies all higher power terms vanish. -/
