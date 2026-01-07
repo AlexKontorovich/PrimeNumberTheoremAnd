@@ -64,9 +64,7 @@ private lemma factorization_multiset_prod (s : Multiset ℕ) (h : (0 : ℕ) ∉ 
 
 @[blueprint
   "balance-zero"
-  (statement := /--
-  If a factorization has zero total imbalance, then it exactly factors $n!$.
-  -/)]
+  (statement := /-- If a factorization has zero total imbalance, then it exactly factors $n!$.-/)]
 theorem Factorization.zero_total_imbalance {n : ℕ} (f : Factorization n)
     (hf : f.total_imbalance = 0) : f.prod id = n.factorial := by
   have h_balance_zero : ∀ p ∈ (n + 1).primesBelow, f.balance p = 0 := fun p hp ↦ by
@@ -87,10 +85,25 @@ theorem Factorization.zero_total_imbalance {n : ℕ} (f : Factorization n)
 
 @[blueprint
   "waste-eq"
-  (statement := /--
-  The waste of a factorization is equal to $t \log n - \log n!$, where $t$ is the number of elements.
-  -/)]
-theorem Factorization.waste_eq {n : ℕ} (f : Factorization n) (hf : f.total_imbalance = 0) : f.a.card * (log n) = log n.factorial + f.waste := by sorry
+  (statement := /-- The waste of a factorization is equal to $t \log n - \log n!$, where $t$ is the
+  number of elements.-/)]
+theorem Factorization.waste_eq {n : ℕ} (f : Factorization n) (hf : f.total_imbalance = 0) :
+    f.a.card * (log n) = log n.factorial + f.waste := by
+  unfold waste sum
+  have hlog : log (n.factorial : ℝ) = (f.a.map (fun m : ℕ ↦ log (m : ℝ))).sum := by
+    rw [← f.zero_total_imbalance hf, prod, map_id, Nat.cast_multiset_prod, log_multiset_prod,
+      Multiset.map_map]
+    · rfl
+    · exact fun x hx ↦ by
+        obtain ⟨m, hm, rfl⟩ := Multiset.mem_map.mp hx; exact Nat.cast_ne_zero.mpr (f.hpos m hm).ne'
+  rcases eq_or_ne n 0 with rfl | hn
+  · simp [Multiset.eq_zero_of_forall_notMem fun m hm ↦ (f.hpos m hm).ne' (Nat.le_zero.mp (f.ha m hm))]
+  · have hn_pos : (0 : ℝ) < n := Nat.cast_pos.mpr (Nat.pos_of_ne_zero hn)
+    rw [hlog, ← Multiset.sum_map_add]
+    conv_lhs => rw [show f.a.card * log (n : ℝ) = (f.a.map (fun _ ↦ log (n : ℝ))).sum from
+      by rw [Multiset.map_const', Multiset.sum_replicate, nsmul_eq_mul]]
+    exact congrArg _ (Multiset.map_congr rfl fun m hm ↦ by
+      rw [Real.log_div hn_pos.ne' (Nat.cast_ne_zero.mpr (f.hpos m hm).ne')]; ring)
 
 @[blueprint
   "score-def"
