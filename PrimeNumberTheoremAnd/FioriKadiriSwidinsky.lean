@@ -189,7 +189,7 @@ noncomputable def riemannZeta.Sigma (T x a b : ℝ) : ℝ := 2 * (riemannZeta.ze
 @[blueprint
   "fks-proposition-3-6"
   (title := "FKS Proposition 3.6")
-  (statement := /-- Let $\sigma_1 \in (1/2,1)$ and let $(T_0,S_0)$ be taken from Table 1.  Then $\Sigma_0^\sigma_1 ≤ 2 x^{-1/2} (S_0 + B_1(T_0,T)) + (x_1^{\sigma_1-1} - x^{-1/2}) B_1(H_0,T)$.-/)]
+  (statement := /-- Let $\sigma_1 \in (1/2,1)$ and let $(T_0,S_0)$ be taken from Table 1.  Then $\Sigma_0^{\sigma_1} ≤ 2 x^{-1/2} (S_0 + B_1(T_0,T)) + (x_1^{\sigma_1-1} - x^{-1/2}) B_1(H_0,T)$.-/)]
 theorem proposition_3_6 {b₁ b₂ b₃ H₀ σ₁ T₀ S₀ T x : ℝ} (hR : riemannZeta.Riemann_vonMangoldt_bound b₁ b₂ b₃) (hH₀ : riemannZeta.RH_up_to H₀) (hσ_1 : σ₁ ∈ Set.Icc 0.5 1) (hT₀S₀ : (T₀, S₀) ∈ table_1) (hT : T > T₀) (x : ℝ) : riemannZeta.Sigma T x 0 σ₁ ≤ 2 * x^(-0.5:ℝ) * (S₀ + B₁ b₁ b₂ b₃ T₀ T) + (x^(σ₁ - 1) - x^(-0.5:ℝ)) * (B₁ b₁ b₂ b₃ H₀ T) := by sorry
 
 noncomputable def Hσ (H₀ R σ : ℝ) : ℝ := max H₀ (exp (1 / (R*(1-σ))))
