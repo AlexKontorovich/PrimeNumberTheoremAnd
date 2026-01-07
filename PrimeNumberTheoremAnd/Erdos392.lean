@@ -531,14 +531,14 @@ theorem Params.initial.balance_large_prime_ge (P : Params) {p : ℕ} (hp : p > P
   sorry
 
 /-- For `p > √n` and `0 < m < n`, we have `νₚ(m) ≤ 1`. -/
-lemma factorization_le_one {n p m : ℕ} (h_sqrt : (p : ℝ) > Real.sqrt n) (hm : m < n) (hm_pos : m ≠ 0) :
+lemma Params.initial.factorization_le_one {n p m : ℕ} (h_sqrt : (p : ℝ) > Real.sqrt n) (hm : m < n) (hm_pos : m ≠ 0) :
     m.factorization p ≤ 1 := by
   refine le_of_not_gt fun h ↦ absurd (dvd_trans (pow_dvd_pow p h) (ordProj_dvd m p)) <|
     not_dvd_of_pos_of_lt (pos_of_ne_zero hm_pos) ?_
   rw [gt_iff_lt, Real.sqrt_lt] at h_sqrt <;> norm_cast at * <;> grind
 
 /-- A floor arithmetic bound `M · (⌊n/p⌋ - ⌊(n - n/M)/p⌋) ≤ ⌊n/p⌋ + M`. -/
-lemma nat_floor_inequality (n M p : ℕ) (hM : M > 0) :
+lemma Params.initial.nat_floor_inequality (n M p : ℕ) (hM : M > 0) :
     M * (n / p - (n - n / M) / p) ≤ n / p + M := by
   by_cases hp : p = 0
   · simp_all
@@ -554,7 +554,7 @@ lemma nat_floor_inequality (n M p : ℕ) (hM : M > 0) :
 
 /-- For primes `p > √n`, the `p`-adic valuation of `n!` equals `⌊n/p⌋`. This follows from
 Legendre's formula since `p² > n` implies all higher power terms vanish. -/
-lemma factorial_factorization_eq_div {n p : ℕ} (hp : p.Prime) (h_sqrt : p > Real.sqrt n) :
+lemma Params.initial.factorial_factorization_eq_div {n p : ℕ} (hp : p.Prime) (h_sqrt : p > Real.sqrt n) :
     (n.factorial).factorization p = n / p := by
   have h_legendre : (factorial n).factorization p =
       ∑ k ∈ Finset.Ico 1 (log p n + 1), n / p ^ k := by
@@ -573,7 +573,7 @@ lemma factorial_factorization_eq_div {n p : ℕ} (hp : p.Prime) (h_sqrt : p > Re
 
 /-- The number of multiples of `p` in `[A, B)` is at most `⌈(B - A)/p⌉`, computed as
 `(B - A + p - 1) / p`. -/
-lemma count_multiples_le (A B p : ℕ) (hp : p > 0) :
+lemma Params.initial.count_multiples_le (A B p : ℕ) (hp : p > 0) :
     (Finset.filter (p ∣ ·) (Finset.Ico A B)).card ≤ (B - A + p - 1) / p := by
   have hsub : Finset.filter (p ∣ ·) (.Ico A B) ⊆ image (p * ·) (.Ico ((A + p - 1) / p)
       ((B + p - 1) / p)) := fun m hm ↦ by
@@ -592,7 +592,7 @@ lemma count_multiples_le (A B p : ℕ) (hp : p > 0) :
 
 /-- An auxiliary bound `M · ⌈(n/M)/p⌉ ≤ ⌊n/p⌋ + M`, where the ceiling is computed as
 `(n/M + p - 1) / p`. -/
-lemma count_bound_aux (n M p : ℕ) (hp : p > 0) : M * ((n / M + p - 1) / p) ≤ n / p + M := by
+lemma Params.initial.count_bound_aux (n M p : ℕ) (hp : p > 0) : M * ((n / M + p - 1) / p) ≤ n / p + M := by
   have h_ceil_le : (n / M + p - 1) / p ≤ n / M / p + 1 :=
     le_of_lt_succ <| Nat.div_lt_of_lt_mul <| by
       linarith [Nat.sub_add_cancel (show 1 ≤ n / M + p from one_le_iff_ne_zero.mpr (by grind)),
@@ -603,7 +603,7 @@ lemma count_bound_aux (n M p : ℕ) (hp : p > 0) : M * ((n / M + p - 1) / p) ≤
 
 /-- For primes `p > √n`, the sum of `p`-adic valuations in the initial factorization is bounded by
 `M` times the count of multiples of `p` in `[n - n/M, n)`. -/
-lemma sum_valuation_le_M_mul_interval_count (P : Params) {p : ℕ}
+lemma Params.initial.sum_valuation_le_M_mul_interval_count (P : Params) {p : ℕ}
     (hp' : (p : ℝ) > Real.sqrt P.n) : (P.initial.a.map (·.factorization p)).sum ≤
       P.M * (Finset.filter (p ∣ ·) (Finset.Ico (P.n - P.n / P.M) P.n)).card := by
   set S := Multiset.join (Multiset.replicate P.M (Multiset.Ico (P.n - P.n / P.M) P.n))
