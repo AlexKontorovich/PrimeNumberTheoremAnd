@@ -69,34 +69,21 @@ private lemma factorization_multiset_prod (s : Multiset ℕ) (h : (0 : ℕ) ∉ 
   -/)]
 theorem Factorization.zero_total_imbalance {n : ℕ} (f : Factorization n)
     (hf : f.total_imbalance = 0) : f.prod id = n.factorial := by
-  have h_balance_zero : ∀ p ∈ (n + 1).primesBelow, f.balance p = 0 := fun p hp => by
-    have : (f.balance p).natAbs = 0 := Finset.sum_eq_zero_iff_of_nonneg
-      (fun _ _ => Nat.zero_le _) |>.mp hf p hp
-    omega
-  have h_zero_not_mem : (0 : ℕ) ∉ f.a := fun h => (f.hpos 0 h).false
-  have h_prod_ne_zero : f.prod id ≠ 0 := by
-    simp only [prod, Multiset.map_id]
-    exact Multiset.prod_ne_zero h_zero_not_mem
-  refine Nat.eq_of_factorization_eq h_prod_ne_zero (Nat.factorial_pos n).ne' fun p ↦ ?_
-  by_cases hp : p.Prime
-  · by_cases hp_le : p ≤ n
-    · have hp_mem : p ∈ (n + 1).primesBelow :=
-        Nat.mem_primesBelow.mpr ⟨Nat.lt_succ_of_le hp_le, hp⟩
-      have hbal := h_balance_zero p hp_mem
-      unfold balance sum at hbal
-      have hbal' : (Multiset.map (fun m ↦ m.factorization p) f.a).sum =
-          n.factorial.factorization p := by omega
-      simp only [prod, Multiset.map_id]
-      rw [factorization_multiset_prod f.a h_zero_not_mem, hbal']
-    · have hp_gt : p > n := Nat.lt_of_not_le hp_le
-      have h_fac_eq_zero : ∀ m ∈ f.a, m.factorization p = 0 := fun m hm ↦
-        Nat.factorization_eq_zero_of_lt ((f.ha m hm).trans_lt hp_gt)
-      rw [prod, Multiset.map_id, factorization_multiset_prod f.a h_zero_not_mem,
-        Nat.factorization_factorial_eq_zero_of_lt hp_gt]
-      exact Multiset.sum_eq_zero fun x hx ↦ by
-        obtain ⟨m, hm, rfl⟩ := mem_map.mp hx
-        exact h_fac_eq_zero m hm
-  · aesop
+  have h_balance_zero : ∀ p ∈ (n + 1).primesBelow, f.balance p = 0 := fun p hp ↦ by
+    have := Finset.sum_eq_zero_iff_of_nonneg (fun _ _ ↦ Nat.zero_le _) |>.mp hf p hp; omega
+  have h0 : (0 : ℕ) ∉ f.a := fun h ↦ (f.hpos 0 h).false
+  simp only [prod, Multiset.map_id]
+  refine Nat.eq_of_factorization_eq (Multiset.prod_ne_zero h0) (Nat.factorial_pos n).ne' fun p ↦ ?_
+  by_cases hp : p.Prime <;> by_cases hp_le : p ≤ n
+  · have hbal := h_balance_zero p (Nat.mem_primesBelow.mpr ⟨Nat.lt_succ_of_le hp_le, hp⟩)
+    unfold balance sum at hbal
+    simp only [factorization_multiset_prod f.a h0]; omega
+  · simp only [factorization_multiset_prod f.a h0,
+      Nat.factorization_factorial_eq_zero_of_lt (Nat.lt_of_not_le hp_le)]
+    exact Multiset.sum_eq_zero fun x hx ↦ by
+      obtain ⟨m, hm, rfl⟩ := Multiset.mem_map.mp hx
+      exact Nat.factorization_eq_zero_of_lt ((f.ha m hm).trans_lt (Nat.lt_of_not_le hp_le))
+  all_goals aesop
 
 @[blueprint
   "waste-eq"
