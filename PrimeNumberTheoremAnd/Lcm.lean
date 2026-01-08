@@ -1042,10 +1042,11 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
       positivity
     have hp' : ((exists_p_primes hn).choose 2 : ℝ) ≤ √n * (1 + 1 / (log √n) ^ 3) ^ 3 := by
       convert (exists_p_primes hn).choose_spec.2.2.1 2 using 2; norm_cast
-    have hq' : n * (1 + 1 / (log √n) ^ 3) ^ 3 ≤ (exists_q_primes hn).choose 0 := by
+    have hq' : n * (1 + 1 / (log √n) ^ 3) ^ (-3:ℝ) ≤ (exists_q_primes hn).choose 0 := by
       convert (exists_q_primes hn).choose_spec.2.2.1 0 using 2
-    exact_mod_cast hp'.trans_lt <| (mul_lt_mul_of_pos_right
-      (by nlinarith [mul_self_sqrt hn_pos.le, hsqrt_ge]) (pow_pos hε_pos 3)).trans_le hq'
+      norm_num
+    have hmid : √n * (1 + 1 / (log √n) ^ 3) ^ 3 < n * (1 + 1 / (log √n) ^ 3) ^ (-3:ℝ) := by sorry
+    exact_mod_cast hp'.trans_lt <| hmid.trans_le hq'
   h_ord_3 := (exists_q_primes hn).choose_spec.2.2.2
   h_crit := sorry
 
