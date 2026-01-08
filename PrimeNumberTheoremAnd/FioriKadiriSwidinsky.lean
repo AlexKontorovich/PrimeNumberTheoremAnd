@@ -24,18 +24,9 @@ structure Inputs where
   hH₀ : riemannZeta.RH_up_to H₀
   R : ℝ
   hR : riemannZeta.classicalZeroFree R
-
-
-noncomputable def Inputs.RvM (I : Inputs) (U : ℝ) := riemannZeta.RvM I.b₁ I.b₂ I.b₃ U
-
-noncomputable def Inputs.B₁ (I : Inputs) (U V : ℝ) := ( 1/(2*π) + ((I.b₁ * log U) + I.b₂)/(U * (log U) * (log (U/(2*π)))) ) * (log (V/U) * (log ( sqrt (V*U) / (2*π) ))) + 2 * (I.RvM U) / U
-
-@[blueprint
-  "fks-lemma-2-1"
-  (title := "FKS Lemma 2.1")
-  (statement := /--
-  If $|N(T) - (T/2\pi \log(T/2\pi e) + 7/8)| \leq R(T)$ then $\sum_{U \leq \gamma < V} 1/\gamma \leq B_1(U,V)$.-/)]
-theorem lemma_2_1 (I : Inputs) {U V : ℝ} (hU : U ≥ 1) (hV : V ≥ U) : riemannZeta.zeroes_sum Set.univ (Set.Ico U V) (fun ρ ↦ 1 / ρ.im) ≤ I.B₁ U V := by sorry
+  S₀ : ℝ
+  T₀ : ℝ
+  hS₀T₀ : riemannZeta.zeroes_sum Set.univ (Set.Ioo 0 T₀) (fun ρ ↦ 1 / ρ.im) < S₀
 
 def table_1 : List (ℝ × ℝ) :=
   [ (100, 0.5922435112),
@@ -50,47 +41,39 @@ def table_1 : List (ℝ × ℝ) :=
     (30610046000, 39.5797647802)
   ]
 
+theorem table_1_prop {T₀ S₀ : ℝ} (h : (T₀, S₀) ∈ table_1) : riemannZeta.zeroes_sum Set.univ (Set.Ioo 0 T₀) (fun ρ ↦ 1 / ρ.im) < S₀ := by sorry
+
+
+-- TODO: move to separate file
 @[blueprint
-  "fks-corollary_2_3"
-  (title := "FKS Corollary 2.3")
-  (statement := /-- For each pair $T_0,S_0$ in Table 1 we have, for all $V > T_0$, $\sum_{0 < \gamma < V} 1/\gamma < S_0 + B_1(T_0,V)$. -/)]
-theorem corollary_2_3 (I : Inputs) {T₀ S₀ V : ℝ} (h : (T₀, S₀) ∈ table_1) (hV : V > T₀) : riemannZeta.zeroes_sum Set.univ (Set.Ioo 0 V) (fun ρ ↦ 1 / ρ.im) < S₀ + I.B₁ T₀ V := by sorry
+  "Hasanalizade-Shen-Wang"
+  (title := "Hasanalizade-Shen-Wang")
+  (statement := /-- One has a Riemann von Mangoldt estimate with parameters 0.1038, 0.2573, and 9.3675. --/)]
+theorem HSW.main_theorem : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 := sorry
 
-noncomputable def s₀ (σ U V : ℝ) := riemannZeta.zeroes_sum (Set.Ico σ 1) (Set.Ico U V) (fun ρ ↦ 1 / ρ.im)
-
-noncomputable def _root_.Real.Gamma.incomplete (s : ℝ) (x : ℝ) : ℝ := ∫ t in Set.Ioi x, exp (-t) * t ^ (s - 1)
-
-noncomputable def _root_.Complex.Gamma.incomplete (s : ℂ) (x : ℝ) : ℂ := ∫ t in Set.Ioi x, exp (-t) * t ^ (s - 1)
-
-noncomputable def Inputs.B₀ (I : Inputs) (σ U V : ℝ) : ℝ :=
-  (I.ZDB.c₁ σ) * (log V)^(I.ZDB.q σ) / V ^ (1 - (I.ZDB.p σ)) + (I.ZDB.c₂ σ) * (log V)^2 / V
-  + (I.ZDB.c₁ σ / (1 - I.ZDB.p σ)^(I.ZDB.q σ+1)) * (Real.Gamma.incomplete (I.ZDB.q σ+1) ((1-I.ZDB.p σ)*(log U)) - Real.Gamma.incomplete (I.ZDB.q σ+1) ((1-I.ZDB.p σ)*(log V)))
-  + (I.ZDB.c₂ σ) * (Real.Gamma.incomplete 3 ((log U)) - Real.Gamma.incomplete 3 ((log V))
-  )
 
 @[blueprint
-  "fks-lemma-2-5"
-  (title := "FKS Lemma 2.5")
-  (statement := /-- Let $T_0 \geq 2$ and $\gamma > 0$.  Assume that there exist $c_1, c_2, p, q, T_0$ for which one has a zero density bound.  Assume $\sigma \geq 5/8$ and $T_0 \leq U < V$.  Then $s_0(σ,U,V) \leq B_0(\sigma,U,V)$. -/)]
-theorem lemma_2_5 (I : Inputs) {σ U V : ℝ}
-  (hT₀ : I.ZDB.T₀ ≥ 2)
-  (hσ : σ ≥ 5 / 8)
-  (hσ' : σ ∈ I.ZDB.σ_range)
-  (hU : U ≥ I.ZDB.T₀)
-  (hV : V > U) :
-  s₀ σ U V ≤ I.B₀ σ U V := by sorry
+  "mt_theorem_1"
+  (title := "MT Theorem 1")
+  (statement := /-- One has a classical zero-free region with $R = 5.5666305$. -/)
+  (uses := ["classical-zero-free-region"])
+  (latexEnv := "theorem")]
+theorem MT_theorem_1 : riemannZeta.classicalZeroFree 5.5666305 := sorry
 
 @[blueprint
-  "fks-remark-2-6-a"
-  (title := "FKS Remark 2-6-a")
-  (statement := /-- $\Gamma(3,x) = (x^2 + 2(x+1)) e^{-x}$.-/)]
-theorem remark_2_6_a (x : ℝ) : Real.Gamma.incomplete 3 x = (x^2 + 2 * (x + 1)) * exp (-x) := by sorry
+  "mty_theorem"
+  (title := "MTY")
+  (statement := /-- One has a classical zero-free region with $R = 5.558691$. -/)
+  (uses := ["classical-zero-free-region"])
+  (latexEnv := "theorem")]
+theorem MTY_theorem : riemannZeta.classicalZeroFree 5.558691 := sorry
 
 @[blueprint
-  "fks-remark-2-6-b"
-  (title := "FKS Remark 2-6-b")
-  (statement := /-- For $s>1$, one has $\Gamma(s,x) \sim x^{s-1} e^{-x}$.-/)]
-theorem remark_2_6_b (s : ℝ) (h : s > 1) : Filter.Tendsto (fun x ↦ Real.Gamma.incomplete s x / (x^(s-1) * exp (-x))) Filter.atTop (nhds 1) := by sorry
+  "pt_theorem_1"
+  (title := "PT Theorem 1")
+  (statement := /-- The Riemann hypothesis is verified up to $H_0 = 3 \times 10^{12}$. -/)
+  (latexEnv := "theorem")]
+theorem PT_theorem_1 : riemannZeta.RH_up_to 3e12 := sorry
 
 @[blueprint
   "fks-theorem-2-7"
@@ -177,6 +160,89 @@ noncomputable def corollary_2_9 {σ₁ σ₂ α δ d CC_1 c₁ CC_2 c₂ : ℝ} 
     bound := by sorry
 }
 
+/-- Need to merge all the individual estimates above into one single estimate -/
+noncomputable def corollary_2_9_merged : zero_density_bound := {
+    T₀ := 3e12
+    σ_range := Set.Icc 0.6 1
+    c₁ σ := sorry
+    c₂ σ := sorry
+    p σ := 8 / 3 * (1 - σ)
+    q σ := 5 - 2 * σ
+    bound := by sorry
+}
+
+noncomputable def Inputs.default : Inputs := {
+  b₁ := 0.1038
+  b₂ := 0.2573
+  b₃ := 9.3675
+  hRvM := HSW.main_theorem
+  ZDB := corollary_2_9_merged
+  H₀ := 3e12
+  hH₀ := PT_theorem_1
+  R := 5.5666305
+  hR := MT_theorem_1
+  S₀ := 39.5797647802
+  T₀ := 30610046000
+  hS₀T₀ := table_1_prop (by unfold table_1; aesop)
+}
+
+
+
+noncomputable def Inputs.RvM (I : Inputs) (U : ℝ) : ℝ := riemannZeta.RvM I.b₁ I.b₂ I.b₃ U
+
+noncomputable def Inputs.B₁ (I : Inputs) (U V : ℝ) : ℝ := ( 1/(2*π) + ((I.b₁ * log U) + I.b₂)/(U * (log U) * (log (U/(2*π)))) ) * (log (V/U) * (log ( sqrt (V*U) / (2*π) ))) + 2 * (I.RvM U) / U
+
+@[blueprint
+  "fks-lemma-2-1"
+  (title := "FKS Lemma 2.1")
+  (statement := /--
+  If $|N(T) - (T/2\pi \log(T/2\pi e) + 7/8)| \leq R(T)$ then $\sum_{U \leq \gamma < V} 1/\gamma \leq B_1(U,V)$.-/)]
+theorem lemma_2_1 (I : Inputs) {U V : ℝ} (hU : U ≥ 1) (hV : V ≥ U) : riemannZeta.zeroes_sum Set.univ (Set.Ico U V) (fun ρ ↦ 1 / ρ.im) ≤ I.B₁ U V := by sorry
+
+@[blueprint
+  "fks-corollary_2_3"
+  (title := "FKS Corollary 2.3")
+  (statement := /-- For each pair $T_0,S_0$ in Table 1 we have, for all $V > T_0$, $\sum_{0 < \gamma < V} 1/\gamma < S_0 + B_1(T_0,V)$. -/)]
+theorem corollary_2_3 (I : Inputs) {V : ℝ} (hV : V > I.T₀) : riemannZeta.zeroes_sum Set.univ (Set.Ioo 0 V) (fun ρ ↦ 1 / ρ.im) < I.S₀ + I.B₁ I.T₀ V := by sorry
+
+noncomputable def s₀ (σ U V : ℝ) := riemannZeta.zeroes_sum (Set.Ico σ 1) (Set.Ico U V) (fun ρ ↦ 1 / ρ.im)
+
+noncomputable def _root_.Real.Gamma.incomplete (s : ℝ) (x : ℝ) : ℝ := ∫ t in Set.Ioi x, exp (-t) * t ^ (s - 1)
+
+noncomputable def _root_.Complex.Gamma.incomplete (s : ℂ) (x : ℝ) : ℂ := ∫ t in Set.Ioi x, exp (-t) * t ^ (s - 1)
+
+noncomputable def Inputs.B₀ (I : Inputs) (σ U V : ℝ) : ℝ :=
+  (I.ZDB.c₁ σ) * (log V)^(I.ZDB.q σ) / V ^ (1 - (I.ZDB.p σ)) + (I.ZDB.c₂ σ) * (log V)^2 / V
+  + (I.ZDB.c₁ σ / (1 - I.ZDB.p σ)^(I.ZDB.q σ+1)) * (Real.Gamma.incomplete (I.ZDB.q σ+1) ((1-I.ZDB.p σ)*(log U)) - Real.Gamma.incomplete (I.ZDB.q σ+1) ((1-I.ZDB.p σ)*(log V)))
+  + (I.ZDB.c₂ σ) * (Real.Gamma.incomplete 3 ((log U)) - Real.Gamma.incomplete 3 ((log V))
+  )
+
+@[blueprint
+  "fks-lemma-2-5"
+  (title := "FKS Lemma 2.5")
+  (statement := /-- Let $T_0 \geq 2$ and $\gamma > 0$.  Assume that there exist $c_1, c_2, p, q, T_0$ for which one has a zero density bound.  Assume $\sigma \geq 5/8$ and $T_0 \leq U < V$.  Then $s_0(σ,U,V) \leq B_0(\sigma,U,V)$. -/)]
+theorem lemma_2_5 (I : Inputs) {σ U V : ℝ}
+  (hT₀ : I.ZDB.T₀ ≥ 2)
+  (hσ : σ ≥ 5 / 8)
+  (hσ' : σ ∈ I.ZDB.σ_range)
+  (hU : U ≥ I.ZDB.T₀)
+  (hV : V > U) :
+  s₀ σ U V ≤ I.B₀ σ U V := by sorry
+
+@[blueprint
+  "fks-remark-2-6-a"
+  (title := "FKS Remark 2-6-a")
+  (statement := /-- $\Gamma(3,x) = (x^2 + 2(x+1)) e^{-x}$.-/)]
+theorem remark_2_6_a (x : ℝ) : Real.Gamma.incomplete 3 x = (x^2 + 2 * (x + 1)) * exp (-x) := by sorry
+
+@[blueprint
+  "fks-remark-2-6-b"
+  (title := "FKS Remark 2-6-b")
+  (statement := /-- For $s>1$, one has $\Gamma(s,x) \sim x^{s-1} e^{-x}$.-/)]
+theorem remark_2_6_b (s : ℝ) (h : s > 1) : Filter.Tendsto (fun x ↦ Real.Gamma.incomplete s x / (x^(s-1) * exp (-x))) Filter.atTop (nhds 1) := by sorry
+
+
+
 @[blueprint
   "fks-theorem-3-1"
   (title := "FKS Theorem 3.1")
@@ -201,13 +267,13 @@ theorem proposition_3_4 {x T : ℝ} (hx : x > exp 50) (hT : T ∈ Set.Ioo (3 * l
 
 noncomputable def riemannZeta.Sigma (T x a b : ℝ) : ℝ := 2 * (riemannZeta.zeroes_sum (Set.Ico a b) (Set.Ioo 0 T) (fun ρ ↦ x^(ρ.re - 1) / ρ.im))
 
-noncomputable def ε₂ (I : Inputs) (x σ₁ S₀ T₀ T : ℝ) : ℝ := 2 * x^(-0.5:ℝ) * (S₀ + I.B₁ T₀ T) + (x^(σ₁ - 1) - x^(-0.5:ℝ)) * (I.B₁ I.H₀ T)
+noncomputable def ε₂ (I : Inputs) (x σ₁ T : ℝ) : ℝ := 2 * x^(-0.5:ℝ) * (I.S₀ + I.B₁ I.T₀ T) + (x^(σ₁ - 1) - x^(-0.5:ℝ)) * (I.B₁ I.H₀ T)
 
 @[blueprint
   "fks-proposition-3-6"
   (title := "FKS Proposition 3.6")
   (statement := /-- Let $\sigma_1 \in (1/2,1)$ and let $(T_0,S_0)$ be taken from Table 1.  Then $\Sigma_0^{\sigma_1} ≤ 2 x^{-1/2} (S_0 + B_1(T_0,T)) + (x_1^{\sigma_1-1} - x^{-1/2}) B_1(H_0,T)$.-/)]
-theorem proposition_3_6 (I : Inputs) {σ₁ T₀ S₀ T x : ℝ} (hσ_1 : σ₁ ∈ Set.Icc 0.5 1) (hT₀S₀ : (T₀, S₀) ∈ table_1) (hT : T > T₀) (x : ℝ) : riemannZeta.Sigma T x 0 σ₁ ≤ ε₂ I x σ₁ S₀ T₀ T := by sorry
+theorem proposition_3_6 (I : Inputs) {σ₁ T x : ℝ} (hσ_1 : σ₁ ∈ Set.Icc 0.5 1) (hT : T > I.T₀) (x : ℝ) : riemannZeta.Sigma T x 0 σ₁ ≤ ε₂ I x σ₁ T := by sorry
 
 noncomputable def Hσ (H₀ R σ : ℝ) : ℝ := max H₀ (exp (1 / (R*(1-σ))))
 
@@ -229,7 +295,7 @@ noncomputable def Hn (H₀ R σ₁ σ₂ : ℝ) (n N : ℕ) : ℝ := Hσ H₀ R 
   (statement := /-- If $\sigma < 1 - 1/R \log H_0$ then $H_σ = H_0$.-/)]
 theorem remark_3_7 {H₀ R σ : ℝ} (hσ : σ < 1 - 1 / (R * log H₀)) : Hσ H₀ R σ = H₀ := by sorry
 
-noncomputable def ε₃ (I : Inputs) (σ₁ σ₂ T x : ℝ) (N : ℕ) : ℝ :=
+noncomputable def ε₃ (I : Inputs) (x σ₁ σ₂ : ℝ) (N : ℕ) (T : ℝ) : ℝ :=
   2 * x^(-(1 - σ₁) + (σ₂ - σ₁) / N) * (I.B₀ σ₁ (Hσ I.H₀ I.R σ₁) T) +
   2 * x^(1 - σ₁) * (1 - x^(-(σ₂ - σ₁) / N)) * ∑ n ∈ Finset.Ico 1 N, (I.B₀ (σn σ₁ σ₂ n N) (Hn I.H₀ I.R σ₁ σ₂ n N) T) * x^((σ₂ - σ₁) * (n + 1) / N)
 
@@ -237,7 +303,7 @@ noncomputable def ε₃ (I : Inputs) (σ₁ σ₂ T x : ℝ) (N : ℕ) : ℝ :=
 "fks-proposition-3-8"
   (title := "FKS Proposition 3.8")
   (statement := /-- Let $N \geq 2$ be an integer.  If $5/8 \leq \sigma_1 < \sigma_2 \leq 1$, $T \geq H_0$, then $\Sigma_{\sigma_1}^{\sigma_2} ≤ 2 x^{-(1-\sigma_1)+(\sigma_2-\sigma_1/N)}B_0(\sigma_1, H_{\sigma_1}, T) + 2 x^{(1-\sigma_1)} (1 - x^{-(\sigma_2-\sigma_1)/N}) \sum_{n=1}^{N-1} B_0(\sigma^{(n)}, H^{(n)}, T) x^{(\sigma_2-\sigma_1) (n+1)/N}$.-/)]
-theorem proposition_3_8 (I : Inputs) {σ₁ σ₂ T x : ℝ} (N : ℕ) (ZDB : zero_density_bound) (hσ₁ : σ₁ ∈ Set.Icc (5 / 8) 1) (hσ₂ : σ₂ ∈ Set.Ioc σ₁ 1) (hσ : Set.Icc σ₁ σ₂ ⊆ ZDB.σ_range) (hT : T ≥ I.H₀) : riemannZeta.Sigma T x σ₁ σ₂ ≤ ε₃ I σ₁ σ₂ T x N := by sorry
+theorem proposition_3_8 (I : Inputs) (x : ℝ) {σ₁ σ₂ : ℝ} (N : ℕ) (T : ℝ) (hσ₁ : σ₁ ∈ Set.Icc (5 / 8) 1) (hσ₂ : σ₂ ∈ Set.Ioc σ₁ 1) (hσ : Set.Icc σ₁ σ₂ ⊆ I.ZDB.σ_range) (hT : T ≥ I.H₀) : riemannZeta.Sigma T x σ₁ σ₂ ≤ ε₃ I x σ₁ σ₂ N T := by sorry
 
 @[blueprint
 "fks-corollary-3-10"
@@ -297,6 +363,75 @@ theorem proposition_3_14 (I : Inputs) {c : ℝ} (K : ℕ) (hc : c > 1) (hK : K �
     ∧ AntitoneOn (fun x ↦ ε₄ I (t₀ x) x (σ₂ x) K (T x)) (Set.Ioi (exp (I.R * exp 2))) ∧ AntitoneOn (fun x ↦ (ε₄ I (t₀ x) x (σ₂ x) K (T x)) * (t₀ x)^2 / (log (t₀ x))^3) (Set.Ioi (exp (I.R * exp 2)))
     := by sorry
 
+noncomputable def ε (I : Inputs) (x₀ σ₂ c : ℝ) (N K : ℕ) : ℝ :=
+  let t₀ := max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x₀) / I.R))
+  let T := t₀^c
+  ε₁ x₀ T + ε₂ I x₀ 0.9 T + ε₃ I x₀ 0.9 σ₂ N T + ε₄ I t₀ x₀ σ₂ K T
+
+@[blueprint
+"fks-theorem-1-1"
+  (title := "FKS Theorem 1.1")
+  (statement := /-- For any $x_0$ with $\log x_0 > 1000$, and all $0.9 < \sigma_2 < 1$, $2 \leq c \leq 30$, and $N, K \geq 1$ the formula $\varepsilon(x_0) := \varepsilon(x_0, \sigma_2, c, N, K)$ as defined in (4.1) gives an effectively computable bound
+\[
+E_\psi(x) \leq \varepsilon(x_0) \quad \text{for all } x \geq x_0.
+\]
+-/)]
+theorem theorem_1_1 (I : Inputs) (x₀ σ₂ c : ℝ) (N K : ℕ) (hlog : log x₀ > 1000) (hσ₂ : σ₂ ∈ Set.Ioo 0.9 1) (hc : c ∈ Set.Icc 2 30) (hN : N ≥ 1) (hK : K ≥ 1) : ∀ x ≥ x₀, Eψ x ≤ ε I x₀ σ₂ c N K := by sorry
+
+/-
+Table5. Tableofvaluesforε(x0)=ε(x0,σ2,c,N,K)asdefinedin(4.1)forTheorem 1.1. withvalues c=3, σ1=0.9,N=⌈100000(σ2−σ1)⌉andK=100000,R= 5.5666305andusingDudek’sε1.Note: σ2 isonlyoptimizedto5digits. log(x0) σ2 ε1 ε2 ε3 ε4 ε(x0) 1000 0.99130 6.8931e-12 2.2179e-42 1.1486e-10 1.2595e-9 1.3812e-9 2000 0.99221 1.6115e-18 2.5382e-85 1.0478e-13 2.3698e-12 2.4746e-12 2100 0.99227 4.3625e-19 1.2306e-89 5.4150e-14 1.2705e-12 1.3246e-12 2200 0.99232 1.2152e-19 5.9424e-94 2.7737e-14 6.8202e-13 7.0976e-13 2300 0.99236 3.4763e-20 2.8594e-98 1.4038e-14 3.6655e-13 3.8059e-13 2400 0.99241 1.0198e-20 1.3716e-102 7.3304e-15 1.9693e-13 2.0426e-13 2500 0.99245 3.0626e-21 6.5602e-107 3.7746e-15 1.0595e-13 1.0972e-13 2600 0.99249 9.4049e-22 3.1298e-111 1.9595e-15 5.7018e-14 5.8978e-14 2700 0.99253 2.9495e-22 1.4897e-115 1.0255e-15 3.0704e-14 3.1729e-14 2800 0.99256 9.4362e-23 7.0758e-120 5.2650e-16 1.6561e-14 1.7087e-14 2900 0.99260 3.0766e-23 3.3544e-124 2.7975e-16 8.9293e-15 9.2091e-15 3000 0.99263 1.0213e-23 1.5874e-128 1.4554e-16 4.8223e-15 4.9678e-15 4000 0.99289 3.8012e-28 8.3087e-172 2.5203e-19 1.0769e-17 1.1021e-17 5000 0.99311 4.4810e-32 3.9878e-215 6.0477e-22 2.9338e-20 2.9942e-20 6000 0.99334 1.2102e-35 1.8179e-258 2.3940e-24 1.2737e-22 1.2976e-22 7000 0.99356 6.1586e-39 8.0082e-302 1.4021e-26 8.3760e-25 8.5162e-25 8000 0.99379 5.1936e-42 3.4432e-345 1.3533e-28 7.6506e-27 7.7860e-27 9000 0.99417 6.6323e-45 1.4537e-388 2.4527e-30 8.9809e-29 9.2262e-29 10000 0.99449 1.2006e-47 6.0512e-432 3.7257e-32 1.3316e-30 1.3688e-30 20000 0.99619 6.4252e-70 6.3468e-866 4.0934e-47 1.8958e-45 1.9367e-45 30000 0.99693 4.0605e-87 4.8888e-1300 1.2153e-58 6.5467e-57 6.6682e-57 40000 0.99736 1.1531e-101 3.3291e-1734 2.0196e-68 1.3291e-66 1.3493e-66 50000 0.99766 1.6581e-114 2.1204e-2168 5.6525e-77 3.6804e-75 3.7369e-75 60000 0.99787 3.9127e-126 1.2951e-2602 8.2972e-85 6.5977e-83 6.6806e-83 70000 0.99804 7.7353e-137 7.6841e-3037 6.2358e-92 4.8619e-90 4.9243e-90 80000 0.99817 8.2566e-147 4.4645e-3471 1.2079e-98 1.1046e-96 1.1166e-96 90000 0.99828 3.5041e-156 2.5526e-3905 6.4784e-105 6.2867e-103 6.3515e-103 100000 0.99838 4.7299e-165 1.4411e-4339 9.8527e-111 7.7127e-109 7.8112e-109 200000 0.99887 8.7978e-237 3.2889e-8682 1.0317e-158 1.2350e-156 1.2453e-156 300000 0.99908 6.2208e-292 5.6126e-13025 1.0986e-195 2.1996e-193 2.2106e-193 400000 0.99921 1.7897e-338 8.5065e-17368 1.5373e-226 2.1209e-224 2.1363e-224 500000 0.99929 1.6709e-379 1.2083e-21710 3.2223e-254 9.6746e-252 9.7068e-252 600000 0.99935 1.2951e-416 1.6472e-26053 3.4804e-279 1.7998e-276 1.8032e-276 700000 0.99940 9.4139e-451 2.1829e-30396 8.0982e-302 3.1872e-299 3.1953e-299 800000 0.99944 1.5480e-482 2.8336e-34739 7.0513e-323 2.0918e-320 2.0988e-320 900000 0.99947 2.1427e-512 3.6206e-39082 5.1196e-343 2.6418e-340 2.6470e-340 1000000 0.99950 1.2150e-540 4.5688e-43425 1.9527e-361 3.9371e-359 3.9566e-359
+-/
+
+def table_5 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ) := [
+  (1000, 0.99130, 6.8931e-12, 2.2179e-42, 1.1486e-10, 1.2595e-9, 1.3812e-9),
+  (2000, 0.99221, 1.6115e-18, 2.5382e-85, 1.0478e-13, 2.3698e-12, 2.4746e-12),
+  (2100, 0.99227, 4.3625e-19, 1.2306e-89, 5.4150e-14, 1.2705e-12, 1.3246e-12),
+  (2200, 0.99232, 1.2152e-19, 5.9424e-94, 2.7737e-14, 6.8202e-13, 7.0976e-13),
+  (2300, 0.99236, 3.4763e-20, 2.8594e-98, 1.4038e-14, 3.6655e-13, 3.8059e-13),
+  (2400, 0.99241, 1.0198e-20, 1.3716e-102, 7.3304e-15, 1.9693e-13, 2.0426e-13),
+  (2500, 0.99245, 3.0626e-21, 6.5602e-107, 3.7746e-15, 1.0595e-13, 1.0972e-13),
+  (2600, 0.99249, 9.4049e-22, 3.1298e-111, 1.9595e-15, 5.7018e-14, 5.8978e-14),
+  (2700, 0.99253, 2.9495e-22, 1.4897e-115, 1.0255e-15, 3.0704e-14, 3.1729e-14),
+  (2800, 0.99256, 9.4362e-23, 7.0758e-120, 5.2650e-16, 1.6561e-14, 1.7087e-14),
+  (2900, 0.99260, 3.0766e-23, 3.3544e-124, 2.7975e-16, 8.9293e-15, 9.2091e-15),
+  (3000, 0.99263, 1.0213e-23, 1.5874e-128, 1.4554e-16, 4.8223e-15, 4.9678e-15),
+  (4000, 0.99289, 3.8012e-28, 8.3087e-172, 2.5203e-19, 1.0769e-17, 1.1021e-17),
+  (5000, 0.99311, 4.4810e-32, 3.9878e-215, 6.0477e-22, 2.9338e-20, 2.9942e-20),
+  (6000, 0.99334, 1.2102e-35, 1.8179e-258, 2.3940e-24, 1.2737e-22, 1.2976e-22),
+  (7000, 0.99356, 6.1586e-39, 8.0082e-302, 1.4021e-26, 8.3760e-25, 8.5162e-25),
+  (8000, 0.99379, 5.1936e-42, 3.4432e-345, 1.3533e-28, 7.6506e-27, 7.7860e-27),
+  (9000, 0.99417, 6.6323e-45, 1.4537e-388, 2.4527e-30, 8.9809e-29, 9.2262e-29),
+  (10000, 0.99449, 1.2006e-47, 6.0512e-432, 3.7257e-32, 1.3316e-30, 1.3688e-30),
+  (20000, 0.99619, 6.4252e-70, 6.3468e-866, 4.0934e-47, 1.8958e-45, 1.9367e-45),
+  (30000, 0.99693, 4.0605e-87, 4.8888e-1300, 1.2153e-58, 6.5467e-57, 6.6682e-57),
+  (40000, 0.99736, 1.1531e-101, 3.3291e-1734, 2.0196e-68, 1.3291e-66, 1.3493e-66),
+  (50000, 0.99766, 1.6581e-114, 2.1204e-2168, 5.6525e-77, 3.6804e-75, 3.7369e-75),
+  (60000, 0.99787, 3.9127e-126, 1.2951e-2602, 8.2972e-85, 6.5977e-83, 6.6806e-83),
+  (70000, 0.99804, 7.7353e-137, 7.6841e-3037, 6.2358e-92, 4.8619e-90, 4.9243e-90),
+  (80000, 0.99817, 8.2566e-147, 4.4645e-3471, 1.2079e-98, 1.1046e-96, 1.1166e-96),
+  (90000, 0.99828, 3.5041e-156, 2.5526e-3905, 6.4784e-105, 6.2867e-103, 6.3515e-103),
+  (100000, 0.99838, 4.7299e-165, 1.4411e-4339, 9.8527e-111, 7.7127e-109, 7.8112e-109),
+  (200000, 0.99887, 8.7978e-237, 3.2889e-8682, 1.0317e-158, 1.2350e-156, 1.2453e-156),
+  (300000, 0.99908, 6.2208e-292, 5.6126e-13025, 1.0986e-195, 2.1996e-193, 2.2106e-193),
+  (400000, 0.99921, 1.7897e-338, 8.5065e-17368, 1.5373e-226, 2.1209e-224, 2.1363e-224),
+  (500000, 0.99929, 1.6709e-379, 1.2083e-21710, 3.2223e-254, 9.6746e-252, 9.7068e-252),
+  (600000, 0.99935, 1.2951e-416, 1.6472e-26053, 3.4804e-279, 1.7998e-276, 1.8032e-276),
+  (700000, 0.99940, 9.4139e-451, 2.1829e-30396, 8.0982e-302, 3.1872e-299, 3.1953e-299),
+  (800000, 0.99944, 1.5480e-482, 2.8336e-34739, 7.0513e-323, 2.0918e-320, 2.0988e-320),
+  (900000, 0.99947, 2.1427e-512, 3.6206e-39082, 5.1196e-343, 2.6418e-340, 2.6470e-340),
+  (1000000, 0.99950, 1.2150e-540, 4.5688e-43425, 1.9527e-361, 3.9371e-359, 3.9566e-359)
+]
+
+
+@[blueprint
+"fks-theorem-1-1b"
+  (title := "FKS Theorem 1.1b")
+  (statement := /-- Moreover, a collection of values, $\varepsilon(x_0)$ computed with well chosen parameters are provided in Table 5.
+-/)]
+theorem theorem_1_1b {log_x0 σ2 c N K ε1 ε2 ε3 ε4 ε_total : ℝ}
+    (h : (log_x0, σ2, ε1, ε2, ε3, ε4, ε_total) ∈ table_5) : ∀ x, log x ≥ log_x0 → Eψ x ≤ ε_total :=
+  by sorry
+
 
 
 noncomputable def A (x₀ : ℝ) : ℝ :=
@@ -340,5 +475,22 @@ noncomputable def A (x₀ : ℝ) : ℝ :=
   If $\log x_0 \geq 1000$ then we have an admissible bound for $E_\psi$ with the indicated choice of $A(x_0)$, $B = 3/2$, $C = 2$, and $R = 5.5666305$.
   -/)]
 theorem theorem_1_2b (x₀ : ℝ) (h : log x₀ ≥ 1000) : Eψ.classicalBound (A x₀) (3/2) 2 5.5666305 x₀ := by sorry
+
+
+@[blueprint "fks_cor_13"
+  (title := "FKS1 Corollary 1.3")
+  (statement := /-- For all x > 2 we have $E_ψ(x) \leq 121.096 (\log x/R)^{3/2} \exp(-2 \sqrt{\log x/R})$ with $R = 5.5666305$. -/)
+  (uses := ["classical-bound-psi"])
+  (latexEnv := "theorem")]
+theorem FKS_corollary_1_3 :
+  Eψ.classicalBound 121.096 (3/2) 2 5.5666305 2 := sorry
+
+@[blueprint "fks_cor_14"
+  (title := "FKS1 Corollary 1.4")
+  (statement := /-- For all x > 2 we have $E_ψ(x) \leq 9.22022(\log x)^{3/2} \exp(-0.8476836 \sqrt{\log x})$. -/)
+  (proof := /-- TODO. -/)]
+theorem FKS_corollary_1_4 :
+  Eψ.classicalBound 9.22022 (3/2) 0.8476836 1 2 := sorry
+
 
 end FKS
