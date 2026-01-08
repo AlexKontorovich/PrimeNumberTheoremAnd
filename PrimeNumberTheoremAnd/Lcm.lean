@@ -144,10 +144,15 @@ lemma Criterion.L_eq_prod_q_mul_L' (c : Criterion) : L c.n = (∏ i, c.q i) * c.
   (latexEnv := "lemma")]
 theorem Criterion.ln_eq (c : Criterion) : L c.n = c.q 0 * c.q 1 * c.q 2 * c.L' := by
   rw [L', ← Fin.prod_univ_three, Nat.mul_div_cancel' <| Fintype.prod_dvd_of_isRelPrime ?_ ?_]
-  · refine fun i j h ↦ Nat.coprime_iff_isRelPrime.mp ?_
-    exact Nat.coprime_primes (c.hq i) (c.hq j) |>.mpr <| c.hq_mono.injective.ne h
+  · refine fun i j h ↦ coprime_iff_isRelPrime.mp ?_
+    exact coprime_primes (c.hq i) (c.hq j) |>.mpr <| c.hq_mono.injective.ne h
   refine fun i ↦ Finset.dvd_lcm <| Finset.mem_Icc.mpr ⟨c.hq i |>.one_le, le_trans ?_ c.h_ord_3.le⟩
   exact c.hq_mono.monotone <| Fin.le_last i
+
+@[simp]
+theorem prime_pow_dvd_ln_iff {p n : ℕ} (hp : p.Prime) (hn : n ≠ 0) (k : ℕ) :
+    p ^ k ∣ L n ↔ p ^ k ≤ n := by
+  sorry
 
 @[blueprint
   "lem:Lprime-def"
@@ -163,7 +168,14 @@ theorem Criterion.ln_eq (c : Criterion) : L c.n = c.q 0 * c.q 1 * c.q 2 * c.L' :
   Hence we may write \(L_n = q_1 q_2 q_3 L'\) where \(L'\) is the quotient obtained by removing these
   prime factors.  By construction, \(q_i \nmid L'\) for each \(i\). -/)
   (latexEnv := "lemma")]
-theorem Criterion.q_not_dvd_L' (c : Criterion) : ∀ i, ¬(c.q i ∣ c.L') := by sorry
+theorem Criterion.q_not_dvd_L' (c : Criterion) (i : Fin 3) : ¬(c.q i ∣ c.L') := by
+  have := Real.lt_sq_of_sqrt_lt <| c.h_ord_1.trans_le <| cast_le.mpr <| show c.p 0 ≤ c.q i by
+    grw [c.hp_mono.monotone <| Fin.zero_le 2, c.h_ord_2, c.hq_mono.monotone <| Fin.zero_le i]
+  norm_cast at this
+  refine fun h ↦ Nat.not_le_of_gt this ?_
+  refine prime_pow_dvd_ln_iff (c.hq i) (Nat.ne_of_gt c.hn) 2 |>.mp <| Nat.pow_two _ ▸ ?_
+  refine Nat.mul_dvd_mul_right (Finset.dvd_prod_of_mem c.q <| Finset.mem_univ i) _ |>.trans ?_
+  exact Fin.prod_univ_three c.q ▸ c.ln_eq ▸ Nat.mul_dvd_mul_left _ h
 
 @[blueprint
   "lem:sigmaLn"
