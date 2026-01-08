@@ -297,6 +297,315 @@ lemma Factorization.replace_div_score_le {n : ℕ} (f : Factorization n) (m p : 
     linarith [Real.log_nonneg hp_ge_one, Real.log_le_log (cast_pos.mpr hp.pos) hp_le_n]
   · linarith
 
+/-- Extends a factorization by adding a new factor `m`. -/
+def Factorization.addFactor {n : ℕ} (f : Factorization n) (m : ℕ) (hm : m ≤ n) (hm_pos : 0 < m) :
+    Factorization n where
+  a := cons m f.a
+  ha x hx := by rcases mem_cons.mp hx with rfl | h <;> [exact hm; exact f.ha x h]
+  hpos x hx := by rcases mem_cons.mp hx with rfl | h <;> [exact hm_pos; exact f.hpos x h]
+
+/-- Adding a factor increases balance by the factor's factorization. -/
+lemma Factorization.addFactor_balance {n : ℕ} (f : Factorization n) (m : ℕ) (hm : m ≤ n)
+    (hm_pos : 0 < m) (p : ℕ) :
+    (addFactor f m hm hm_pos).balance p = f.balance p + m.factorization p := by
+  simp only [balance, sum, addFactor, Multiset.map_cons, Multiset.sum_cons, Int.natCast_add]; ring
+
+/-- Adding a factor increases waste by `log (n / m)`. -/
+lemma Factorization.addFactor_waste {n : ℕ} (f : Factorization n) (m : ℕ) (hm : m ≤ n)
+    (hm_pos : 0 < m) : (addFactor f m hm hm_pos).waste = f.waste + Real.log (n / m) := by
+  simp only [addFactor, waste, sum, Multiset.map_cons, Multiset.sum_cons, add_comm]
+
+/-- The multiset of deficit primes at most `L`, each repeated `|balance p|` times. -/
+def Factorization.deficitMultiset {n : ℕ} (f : Factorization n) (L : ℕ) : Multiset ℕ :=
+  ((n + 1).primesBelow.filter (fun p ↦ p ≤ L ∧ f.balance p < 0)).val.bind
+    fun p ↦ replicate (f.balance p).natAbs p
+
+/-- Elements of the deficit multiset are primes at most `L`. -/
+lemma Factorization.mem_deficitMultiset {n : ℕ} (f : Factorization n) (L : ℕ) (q : ℕ) :
+    q ∈ deficitMultiset f L → q.Prime ∧ q ≤ L := by
+  simp only [deficitMultiset, mem_bind, mem_val, Finset.mem_filter, forall_exists_index]
+  intro x ⟨⟨hx, hx_le, _⟩, hq⟩
+  rw [eq_of_mem_replicate hq]
+  exact ⟨prime_of_mem_primesBelow hx, hx_le⟩
+
+/-- Given a multiset of numbers `≤ L` with product `> n`, there exists a sub-multiset
+whose product `m` satisfies `n / L < m ≤ n`. -/
+lemma exists_submultiset_prod_between {n L : ℕ} (D : Multiset ℕ) (hL : 0 < L) (hn : 1 ≤ n)
+    (hD_le : ∀ p ∈ D, p ≤ L) (hD_prod : D.prod > n) :
+    ∃ M ≤ D, n < M.prod * L ∧ M.prod ≤ n := by
+  induction D using Multiset.induction with
+  | empty => aesop
+  | cons p D ih =>
+    by_cases hD_prod' : D.prod > n
+    · obtain ⟨M, hM_le, hM⟩ := ih (fun q hq ↦ hD_le q (mem_cons_of_mem hq)) hD_prod'
+      exact ⟨M, hM_le.trans (le_cons_self _ _), hM⟩
+    · refine ⟨D, le_cons_self _ _, ?_, by omega⟩
+      simp only [Multiset.prod_cons, gt_iff_lt] at hD_prod
+      nlinarith [hD_le p (mem_cons_self p D)]
+
+/-- A prime with negative balance is at most `n`. -/
+lemma Factorization.deficit_implies_le_n {n : ℕ} (f : Factorization n) (p : ℕ)
+    (hp : f.balance p < 0) : p ≤ n := by
+  contrapose! hp; simp_all [factorization_factorial_eq_zero_of_lt hp, balance]
+
+/-- The factorization of a product of primes at `p` equals the count of `p` in the multiset. -/
+lemma factorization_prod_eq_count {D : Multiset ℕ} (hD : ∀ p ∈ D, p.Prime) (p : ℕ) :
+    D.prod.factorization p = D.count p := by
+  induction D using Multiset.induction with
+  | empty => simp
+  | cons q D ih =>
+    have hq : q.Prime := hD q (mem_cons_self q D)
+    have hD' : ∀ r ∈ D, r.Prime := fun r hr ↦ hD r (Multiset.mem_cons_of_mem hr)
+    have hprod_ne : D.prod ≠ 0 :=
+      fun h ↦ by rw [Multiset.prod_eq_zero_iff] at h; exact not_prime_zero (hD' 0 h)
+    simp only [Multiset.prod_cons, factorization_mul hq.ne_zero hprod_ne, Finsupp.add_apply,
+      hq.factorization, Finsupp.single_apply, Multiset.count_cons, ih hD']
+    split_ifs <;> omega
+
+/-- The product of the deficit multiset is positive. -/
+lemma Factorization.deficitMultiset_prod_pos {n : ℕ} (f : Factorization n) (L : ℕ) :
+    0 < (deficitMultiset f L).prod := by
+  apply pos_of_ne_zero; simp only [deficitMultiset, primesBelow]; aesop
+
+/-- The count of `p` in the deficit multiset equals `|balance p|` if `p` is a deficit prime
+at most `L`, and `0` otherwise. -/
+lemma Factorization.count_deficitMultiset {n : ℕ} (f : Factorization n) (L : ℕ) (p : ℕ) :
+    (deficitMultiset f L).count p =
+    if p ∈ (n + 1).primesBelow ∧ p ≤ L ∧ f.balance p < 0 then (f.balance p).natAbs else 0 := by
+  simp only [deficitMultiset, count_bind, count_replicate]
+  split_ifs with h <;> simp_all [sum_map_eq_nsmul_single p, and_self]
+  simp [count_eq_one_of_mem (n + 1).primesBelow.nodup h.1, one_mul]
+
+/-- Adding the full deficit multiset product to a factorization with no surplus primes and all
+deficit primes at most `L` results in zero balance for all primes. -/
+lemma Factorization.addFactor_deficit_balance_eq_zero {n : ℕ} (f : Factorization n) (L : ℕ)
+    (h_surplus : ∀ p, f.balance p ≤ 0) (h_deficit_large : ∀ p, f.balance p < 0 → p ≤ L)
+    (m : ℕ) (hm : m ≤ n) (hm_pos : 0 < m) (h_m_def : m = (deficitMultiset f L).prod) :
+    ∀ p, (addFactor f m hm hm_pos).balance p = 0 := fun p ↦ by
+  by_cases hp : p.Prime <;> by_cases hp_le_L : p ≤ L <;> simp_all only [addFactor_balance]
+  · simp_all only [CanonicallyOrderedAdd.multiset_prod_pos]
+    simp only [factorization_prod_eq_count (fun q hq ↦ (mem_deficitMultiset f L q hq).1)]
+    by_cases hp_def : f.balance p < 0 <;> simp_all only [cast_ite, cast_natAbs, Int.cast_eq,
+      CharP.cast_eq_zero, count_deficitMultiset, abs_of_nonneg (le_of_not_gt hp_def)]
+    · split_ifs <;> simp_all only [abs_of_neg hp_def, add_neg_cancel, primesBelow,
+        Finset.mem_filter, Finset.mem_range, and_true]
+      · linarith [h_deficit_large p hp_def, deficit_implies_le_n f p hp_def]
+    · split_ifs <;> grind
+  · simp_all only [CanonicallyOrderedAdd.multiset_prod_pos, not_le]
+    have h_bal_zero : f.balance p = 0 :=
+      le_antisymm (h_surplus p) (not_lt.mp fun h ↦ hp_le_L.not_ge (h_deficit_large p h))
+    simp only [factorization_prod_eq_count (fun q hq ↦ (mem_deficitMultiset f L q hq).1),
+      count_deficitMultiset]
+    grind
+  · simp_all [balance, sum]
+  · simp_all [balance, sum]
+
+/-- Case 1 of `lower_score_3`: if the product of deficit primes is `≤ n`, adding the full
+deficit multiset yields a factorization with zero imbalance and lower score. -/
+lemma Factorization.lower_score_3_case1 {n : ℕ} (f : Factorization n) (L : ℕ)
+    (h_surplus : ∀ p, f.balance p ≤ 0) (h_deficit_large : ∀ p, f.balance p < 0 → p ≤ L)
+    (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0)
+    (h_prod : (deficitMultiset f L).prod ≤ n) :
+    ∃ f' : Factorization n, f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by
+  set f' := addFactor f (deficitMultiset f L).prod h_prod (deficitMultiset_prod_pos f L) with hf'
+  have h_zero_bal : ∀ p, f'.balance p = 0 :=
+    addFactor_deficit_balance_eq_zero f L h_surplus h_deficit_large _ h_prod
+      (deficitMultiset_prod_pos f L) rfl
+  have hf'_imb : f'.total_imbalance = 0 :=
+    Finset.sum_eq_zero fun p _ ↦ by simp [h_zero_bal p]
+  obtain ⟨p₀, hp₀_mem, _, hp₀_bal⟩ := hf
+  have hn_pos : 0 < n := (prime_of_mem_primesBelow hp₀_mem).pos.trans_le
+    (Nat.lt_succ_iff.mp (mem_primesBelow.mp hp₀_mem).1)
+  have hf'_score : f'.score L ≤ f.score L := by
+    rw [score_eq (Finset.sum_eq_zero fun p _ ↦ by simp [h_zero_bal p])]
+    unfold score
+    split_ifs with h
+    · rw [addFactor_waste]
+      have h_log_ineq : Real.log (n / (deficitMultiset f L).prod) ≤ Real.log n :=
+        Real.log_le_log (div_pos (Nat.cast_pos.mpr hn_pos)
+          (Nat.cast_pos.mpr (deficitMultiset_prod_pos f L)))
+          (div_le_self (Nat.cast_nonneg _) (by exact_mod_cast deficitMultiset_prod_pos f L))
+      have h_sum_nonneg : 0 ≤ ∑ p ∈ (n + 1).primesBelow,
+          if f.balance p > 0 then (f.balance p : ℝ) * Real.log p
+          else if p ≤ L then (-f.balance p : ℝ) * Real.log L
+          else (-f.balance p : ℝ) * Real.log (n / p) :=
+        Finset.sum_nonneg fun p hp ↦ by
+          split_ifs with h1 h2
+          · linarith [h_surplus p]
+          · exact mul_nonneg (by simp; linarith [h_surplus p])
+              (Real.log_nonneg (by norm_cast; linarith [(prime_of_mem_primesBelow hp).two_le]))
+          · have h_bal_zero : f.balance p = 0 :=
+              le_antisymm (h_surplus p) (not_lt.mp fun hlt ↦ h2 (h_deficit_large p hlt))
+            simp [h_bal_zero]
+      linarith
+    · simp_all [total_imbalance]
+  have h_imb_pos : 0 < f.total_imbalance :=
+    Finset.single_le_sum (fun _ _ ↦ Nat.zero_le _) hp₀_mem |>.trans_lt' (Int.natAbs_pos.mpr hp₀_bal.ne)
+  exact ⟨f', hf'_imb ▸ h_imb_pos, hf'_score⟩
+
+/-- Adding a submultiset `M` of deficit primes to a factorization reduces the total imbalance
+by `M.card`. -/
+lemma Factorization.addFactor_submultiset_total_imbalance {n : ℕ} (f : Factorization n) (L : ℕ)
+    (h_surplus : ∀ p, f.balance p ≤ 0) (M : Multiset ℕ) (hM : M ≤ deficitMultiset f L)
+    (m : ℕ) (hm : m ≤ n) (hm_pos : 0 < m) (h_m_prod : m = M.prod) :
+    (addFactor f m hm hm_pos).total_imbalance = f.total_imbalance - M.card := by
+  have h_bal : ∀ p ∈ (n + 1).primesBelow,
+      (addFactor f m hm hm_pos).balance p = f.balance p + M.count p := fun p _ ↦ by
+    rw [addFactor_balance, h_m_prod, factorization_prod_eq_count]
+    exact fun q hq ↦ (mem_deficitMultiset f L q (Multiset.mem_of_le hM hq)).1
+  have h_ptwise : ∀ p ∈ (n + 1).primesBelow,
+      (f.balance p + M.count p).natAbs = (f.balance p).natAbs - M.count p := fun p _ ↦ by
+    have h_count_le : M.count p ≤ (f.balance p).natAbs := by
+      have := Multiset.count_le_of_le p hM
+      rw [count_deficitMultiset] at this; aesop
+    have h_neg : f.balance p ≤ 0 := h_surplus p
+    have h1 : ((f.balance p).natAbs : ℤ) = -f.balance p := Int.ofNat_natAbs_of_nonpos h_neg
+    have h2 : ((f.balance p + M.count p).natAbs : ℤ) = -(f.balance p + M.count p) :=
+      Int.ofNat_natAbs_of_nonpos (by omega : f.balance p + M.count p ≤ 0)
+    omega
+  have h_sum : ∑ p ∈ (n + 1).primesBelow, (f.balance p + M.count p).natAbs =
+      ∑ p ∈ (n + 1).primesBelow, (f.balance p).natAbs - ∑ p ∈ (n + 1).primesBelow, M.count p := by
+    have h_le : ∀ p ∈ (n + 1).primesBelow, M.count p ≤ (f.balance p).natAbs := fun p _ ↦ by
+      have := Multiset.count_le_of_le p hM
+      rw [count_deficitMultiset] at this; aesop
+    rw [Finset.sum_congr rfl h_ptwise]
+    have h_add : ∑ p ∈ (n + 1).primesBelow, ((f.balance p).natAbs - M.count p + M.count p) =
+        ∑ p ∈ (n + 1).primesBelow, (f.balance p).natAbs :=
+      Finset.sum_congr rfl fun x hx ↦ Nat.sub_add_cancel (h_le x hx)
+    rw [Finset.sum_add_distrib] at h_add
+    omega
+  have h_card_eq : ∀ {M : Multiset ℕ}, (∀ p ∈ M, p ∈ (n + 1).primesBelow) →
+      M.card = ∑ p ∈ (n + 1).primesBelow, M.count p := fun {M} hM ↦ by
+    induction M using Multiset.induction with
+    | empty => simp
+    | cons a M ih =>
+      simp only [Multiset.card_cons, Multiset.count_cons]
+      rw [ih (fun p hp ↦ hM p (Multiset.mem_cons_of_mem hp)), Finset.sum_add_distrib,
+          Finset.sum_ite_eq' _ a, if_pos (hM a (Multiset.mem_cons_self a M))]
+  convert h_sum using 2
+  · simp only [total_imbalance]
+    exact Finset.sum_congr rfl fun p hp ↦ congrArg Int.natAbs (h_bal p hp)
+  · exact h_card_eq fun p hp ↦ by
+      obtain ⟨a, ha, ha'⟩ := Multiset.mem_bind.mp (Multiset.mem_of_le hM hp)
+      rw [Multiset.mem_replicate] at ha'
+      exact ha'.2 ▸ (Finset.mem_filter.mp ha).1
+
+/-- The change in the score sum when one deficit prime `p` (with `p ≤ L`) has its balance
+increased by 1 (still `≤ 0`). -/
+lemma Factorization.score_sum_change {n : ℕ} (f f' : Factorization n) (L p : ℕ)
+    (hp_mem : p ∈ (n + 1).primesBelow) (hp_le_L : p ≤ L) (h_bal_p : f.balance p < 0)
+    (h_bal_p' : f'.balance p = f.balance p + 1)
+    (h_bal_eq : ∀ q ∈ (n + 1).primesBelow, q ≠ p → f'.balance q = f.balance q) :
+    (∑ q ∈ (n + 1).primesBelow,
+      if f'.balance q > 0 then (f'.balance q) * Real.log q
+      else if q ≤ L then (-f'.balance q) * Real.log L
+      else (-f'.balance q) * Real.log (n / q)) -
+    (∑ q ∈ (n + 1).primesBelow,
+      if f.balance q > 0 then (f.balance q) * Real.log q
+      else if q ≤ L then (-f.balance q) * Real.log L
+      else (-f.balance q) * Real.log (n / q)) = -Real.log L := by
+  rw [← Finset.sum_sub_distrib, Finset.sum_eq_single p]
+  · simp only [h_bal_p', h_bal_p.not_gt, ↓reduceIte, hp_le_L, Int.cast_add, Int.cast_one]
+    split_ifs with h
+    · omega
+    · ring
+  · exact fun q hq hqp ↦ by simp only [h_bal_eq q hq hqp, sub_self]
+  · exact absurd hp_mem
+
+/-- The change in the score sum when a submultiset of deficit primes `M` is added. -/
+lemma Factorization.score_sum_change_multiset {n : ℕ} (f f' : Factorization n) (L : ℕ)
+    (M : Multiset ℕ) (hM_le : M ≤ deficitMultiset f L)
+    (h_bal_eq : ∀ p ∈ (n + 1).primesBelow, f'.balance p = f.balance p + M.count p) :
+    (∑ q ∈ (n + 1).primesBelow,
+      if f'.balance q > 0 then (f'.balance q) * Real.log q
+      else if q ≤ L then (-f'.balance q) * Real.log L
+      else ↑(-f'.balance q) * Real.log (↑n / ↑q)) -
+    (∑ q ∈ (n + 1).primesBelow,
+      if f.balance q > 0 then ↑(f.balance q) * Real.log ↑q
+      else if q ≤ L then (-f.balance q) * Real.log ↑L
+      else ↑(-f.balance q) * Real.log (↑n / ↑q)) = -↑(M.card) * Real.log L := by
+  have h_term : ∀ p ∈ (n + 1).primesBelow,
+      (if f'.balance p > 0 then (f'.balance p : ℝ) * Real.log p
+       else if p ≤ L then (-f'.balance p : ℝ) * Real.log L
+       else (-f'.balance p : ℝ) * Real.log (n / p)) -
+      (if f.balance p > 0 then (f.balance p : ℝ) * Real.log p
+       else if p ≤ L then (-f.balance p : ℝ) * Real.log L
+       else (-f.balance p : ℝ) * Real.log (n / p)) = -M.count p * Real.log L := by
+    intro p hp
+    by_cases hdef : f.balance p < 0
+    · by_cases hL : p ≤ L <;> simp_all
+      · split_ifs <;> try linarith
+        have hcnt := Multiset.count_le_of_le p hM_le; rw [count_deficitMultiset] at hcnt
+        have : M.count p ≤ (f.balance p).natAbs := by grind
+        linarith [abs_of_neg hdef]
+      · have : M.count p = 0 := Nat.eq_zero_of_le_zero <|
+          (count_deficitMultiset f L p ▸ if_neg (by omega)).symm ▸ Multiset.count_le_of_le _ hM_le
+        aesop
+    · have : M.count p = 0 := Nat.eq_zero_of_le_zero <|
+        (count_deficitMultiset f L p ▸ if_neg (by tauto)).symm ▸ Multiset.count_le_of_le _ hM_le
+      aesop
+  have h_card : ∑ p ∈ (n + 1).primesBelow, M.count p = M.card := by
+    have aux : ∀ {S : Multiset ℕ}, (∀ p ∈ S, p ∈ (n + 1).primesBelow) →
+        ∑ p ∈ (n + 1).primesBelow, S.count p = S.card := by
+      intro S hS; induction S using Multiset.induction <;> aesop
+    refine aux fun p hp ↦ ?_
+    have hmem := Multiset.mem_of_le hM_le hp
+    simp only [deficitMultiset, filter_val, mem_bind, Multiset.mem_filter] at hmem ⊢
+    rcases hmem with ⟨a, ⟨ha, _⟩, hp⟩
+    exact (Multiset.mem_replicate.mp hp).2 ▸ ha
+  simp_all only [gt_iff_lt, Int.cast_add, Int.cast_natCast, neg_add_rev, neg_mul, Int.cast_neg,
+    ← sum_sub_distrib, sum_neg_distrib]
+  rw [← h_card, Nat.cast_sum, Finset.sum_mul]
+
+/-- Adding a submultiset `M` of deficit primes reduces the score if `n < M.prod * L`. -/
+lemma Factorization.score_le_of_add_submultiset {n : ℕ} (f : Factorization n) (L : ℕ)
+    (M : Multiset ℕ) (hM_le : M ≤ deficitMultiset f L)
+    (m : ℕ) (hm : m ≤ n) (hm_pos : 0 < m) (h_m_prod : m = M.prod)
+    (h_prod_gt : n < m * L) (hM_card_pos : 0 < M.card) (hL_ge_2 : 2 ≤ L) :
+    (addFactor f m hm hm_pos).score L ≤ f.score L := by
+  unfold score
+  let f' := addFactor f m hm hm_pos
+  have h_sum_eq : (∑ p ∈ (n + 1).primesBelow,
+      if f'.balance p > 0 then (f'.balance p : ℝ) * Real.log p
+      else if p ≤ L then -(f'.balance p : ℝ) * Real.log L
+      else -(f'.balance p : ℝ) * Real.log (n / p)) -
+    (∑ p ∈ (n + 1).primesBelow,
+      if f.balance p > 0 then (f.balance p : ℝ) * Real.log p
+      else if p ≤ L then -(f.balance p : ℝ) * Real.log L
+      else -(f.balance p : ℝ) * Real.log (n / p)) = -M.card * Real.log L := by
+    convert score_sum_change_multiset f f' L M hM_le (fun p _ ↦ ?_) using 1
+    · norm_num [Finset.sum_ite]
+    · simp only [f', addFactor_balance]
+      rw [h_m_prod, factorization_prod_eq_count (fun q hq ↦
+        (mem_deficitMultiset f L q (Multiset.mem_of_le hM_le hq)).1)]
+  have h_waste_eq : f'.waste = f.waste + Real.log (n / m) := addFactor_waste f m hm hm_pos
+  have h_score_diff : f'.waste + (∑ p ∈ (n + 1).primesBelow,
+      if f'.balance p > 0 then (f'.balance p : ℝ) * Real.log p
+      else if p ≤ L then -(f'.balance p : ℝ) * Real.log L
+      else -(f'.balance p : ℝ) * Real.log (n / p)) ≤
+    (f.waste + (∑ p ∈ (n + 1).primesBelow,
+      if f.balance p > 0 then (f.balance p : ℝ) * Real.log p
+      else if p ≤ L then -(f.balance p : ℝ) * Real.log L
+      else -(f.balance p : ℝ) * Real.log (n / p))) + (Real.log n - Real.log m - Real.log L) := by
+    rw [Real.log_div (by norm_cast; omega) (by positivity)] at h_waste_eq
+    nlinarith [show (M.card : ℝ) ≥ 1 by norm_cast,
+      log_nonneg (show (L : ℝ) ≥ 1 by norm_cast; omega),
+        log_le_log (by positivity) (by norm_cast : (m : ℝ) ≤ n)]
+  split_ifs with h_imb_pos h_imb_zero <;> norm_num at *
+  · have h_log_sum : Real.log m + Real.log L ≥ Real.log n := by
+      rw [← log_mul (by positivity) (by positivity)]
+      exact log_le_log (by norm_cast; omega) (by norm_cast; omega)
+    linarith
+  · have h_bal_zero : ∀ p ∈ (n + 1).primesBelow, f.balance p = 0 := by
+      unfold total_imbalance at h_imb_zero; aesop
+    have h_deficit_empty : deficitMultiset f L = 0 := by unfold deficitMultiset; aesop
+    simp [Multiset.le_zero.mp (h_deficit_empty ▸ hM_le)] at hM_card_pos
+  · linarith [log_nonneg (show (m : ℝ) ≥ 1 by norm_cast),
+      log_nonneg (show (L : ℝ) ≥ 1 by norm_cast; omega)]
+  · refine h_score_diff.trans ?_
+    norm_num [add_assoc]
+    rw [← log_mul (by positivity) (by positivity), log_le_log_iff] <;> norm_cast <;> nlinarith
+
 @[blueprint
   "score-lower-1"
   (statement := /-- If there is a prime $p$ in surplus, one can remove it without increasing the
@@ -387,6 +696,81 @@ theorem Factorization.lower_score_2 {n : ℕ} (f : Factorization n) (L : ℕ)
     linarith
   exact ⟨f', h_total_imbalance, h_score⟩
 
+/-- Case 2a of `lower_score_3`: If `L > n` and there is a deficit prime, we can add it to reduce
+the score. -/
+lemma Factorization.lower_score_3_case2a {n : ℕ} (f : Factorization n) (L : ℕ)
+    (h_surplus : ∀ p, f.balance p ≤ 0)
+    (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0) (hL_gt_n : L > n) :
+    ∃ f' : Factorization n, f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by
+  obtain ⟨p, hp_mem, hp_le_L, hp_def⟩ := hf
+  have hp_le_n : p ≤ n := Nat.lt_succ_iff.mp (mem_primesBelow.mp hp_mem).1
+  have hp_pos : 0 < p := (prime_of_mem_primesBelow hp_mem).pos
+  have hn_pos : 0 < n := hp_pos.trans_le hp_le_n
+  have hp_prime : p.Prime := prime_of_mem_primesBelow hp_mem
+  have h_imb : (addFactor f p hp_le_n hp_pos).total_imbalance = f.total_imbalance - 1 := by
+    have hM : {p} ≤ deficitMultiset f L := Multiset.singleton_le.mpr <|
+      Multiset.mem_bind.mpr ⟨p, Finset.mem_filter.mpr ⟨hp_mem, hp_le_L, hp_def⟩,
+        Multiset.mem_replicate.mpr ⟨(Int.natAbs_pos.mpr hp_def.ne).ne', rfl⟩⟩
+    simpa using addFactor_submultiset_total_imbalance f L h_surplus {p} hM p
+      hp_le_n hp_pos (Multiset.prod_singleton (a := p)).symm
+  have h_bal : (addFactor f p hp_le_n hp_pos).balance p = f.balance p + 1 := by
+    rw [addFactor_balance, hp_prime.factorization, Finsupp.single_eq_same]; ring
+  have h_bal_eq : ∀ q ∈ (n + 1).primesBelow, q ≠ p →
+      (addFactor f p hp_le_n hp_pos).balance q = f.balance q := fun q hq hq_ne_p ↦ by
+    rw [addFactor_balance, factorization_eq_zero_of_not_dvd, Int.ofNat_zero, add_zero]
+    exact fun hdvd ↦
+      hq_ne_p ((prime_dvd_prime_iff_eq (prime_of_mem_primesBelow hq) hp_prime).mp hdvd)
+  have h_score_sum := score_sum_change f (addFactor f p hp_le_n hp_pos) L p hp_mem hp_le_L hp_def
+    h_bal h_bal_eq
+  have h_waste := addFactor_waste f p hp_le_n hp_pos
+  have h_total_imb_pos : f.total_imbalance > 0 :=
+    (Int.natAbs_pos.mpr hp_def.ne).trans_le
+      (Finset.single_le_sum (fun q _ ↦ (Int.natAbs (f.balance q)).zero_le) hp_mem)
+  have h_imbalance_penalty :
+      (addFactor f p hp_le_n hp_pos).score L ≤ f.score L + Real.log (n / p) - Real.log L := by
+    unfold score at *
+    have h_log_n : log (n : ℝ) ≥ 0 := log_nonneg (by exact_mod_cast hn_pos)
+    split_ifs at * <;> linarith [h_score_sum, h_waste, h_total_imb_pos]
+  refine ⟨addFactor f p hp_le_n hp_pos, ?_, h_imbalance_penalty.trans ?_⟩
+  · exact h_imb ▸ sub_lt h_total_imb_pos one_pos
+  · rw [add_sub_assoc]
+    refine add_le_of_nonpos_right (sub_nonpos_of_le (log_le_log (by positivity) ?_))
+    rw [div_le_iff₀ (by positivity : (0 : ℝ) < p)]
+    have h1 : (n : ℝ) * 1 ≤ n * p := by exact_mod_cast mul_le_mul_left n <| one_le_iff_ne_zero.mpr hp_pos.ne'
+    have h2 : (n : ℝ) * p < L * p := by exact_mod_cast mul_lt_mul_of_pos_right hL_gt_n hp_pos
+    linarith
+
+/-- Case 2b of `lower_score_3`: If `L ≤ n` and the product of deficit primes is `> n`,
+we can find a submultiset to add that reduces the score. -/
+lemma Factorization.lower_score_3_case2b {n : ℕ} (f : Factorization n) (L : ℕ)
+    (h_surplus : ∀ p, f.balance p ≤ 0) (h_deficit_large : ∀ p, f.balance p < 0 → p ≤ L)
+    (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0)
+    (h_prod : n < (deficitMultiset f L).prod) (hL_le_n : L ≤ n) :
+    ∃ f' : Factorization n, f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by
+  obtain ⟨p₀, hp₀_mem, hp₀_le, hp₀_bal⟩ := hf
+  have hp₀ := prime_of_mem_primesBelow hp₀_mem
+  obtain ⟨M, hM_sub, hM_lb, hM_ub⟩ := exists_submultiset_prod_between (deficitMultiset f L)
+    (hp₀.pos.trans_le hp₀_le) ((hp₀.pos.trans_le hp₀_le).trans_le hL_le_n)
+      (fun p hp ↦ (mem_deficitMultiset f L p hp).2) h_prod
+  refine ⟨addFactor f M.prod hM_ub (pos_of_ne_zero fun h ↦ by grind), ?_, ?_⟩
+  · have h_imb := addFactor_submultiset_total_imbalance f L h_surplus M hM_sub
+      M.prod hM_ub (pos_of_ne_zero fun h ↦ by grind) rfl
+    refine h_imb ▸ sub_lt ?_ <| card_pos.mpr (by grind)
+    exact pos_of_ne_zero fun h ↦ hp₀_bal.ne <| by have := sum_eq_zero_iff.mp h _ hp₀_mem; grind
+  · exact score_le_of_add_submultiset f L M hM_sub M.prod hM_ub (by grind) rfl hM_lb
+      (card_pos.mpr (by grind)) <| hp₀.two_le.trans hp₀_le
+
+/-- The clean case of `lower_score_3`, combining the three subcases. -/
+lemma Factorization.lower_score_3_clean {n : ℕ} (f : Factorization n) (L : ℕ)
+    (h_surplus : ∀ p, f.balance p ≤ 0) (h_deficit_large : ∀ p, f.balance p < 0 → p ≤ L)
+    (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0) :
+    ∃ f' : Factorization n, f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by
+  by_cases h_prod : (deficitMultiset f L).prod ≤ n
+  · exact lower_score_3_case1 f L h_surplus h_deficit_large hf h_prod
+  by_cases hL_gt_n : n < L
+  · exact lower_score_3_case2a f L h_surplus hf hL_gt_n
+  · exact lower_score_3_case2b f L h_surplus h_deficit_large hf (not_le.mp h_prod) (not_lt.mp hL_gt_n)
+
 @[blueprint
   "score-lower-3"
   (statement := /--
@@ -399,9 +783,24 @@ theorem Factorization.lower_score_2 {n : ℕ} (f : Factorization n) (L : ℕ)
   Otherwise, greedily multiply all primes together while staying below $n$ until one cannot do so
   any further; add this product to the factorization, increasing the waste by at most $\log L$.-/)]
 theorem Factorization.lower_score_3 {n : ℕ} (f : Factorization n) (L : ℕ)
-    (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0) : ∃ f' :
-    Factorization n, f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by
-  sorry
+    (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0) :
+    ∃ f' : Factorization n, f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by
+  by_cases h1 : ∃ p ∈ (n + 1).primesBelow, f.balance p > 0
+  · exact lower_score_1 f L h1
+  by_cases h2 : ∃ p ∈ (n + 1).primesBelow, p > L ∧ f.balance p < 0
+  · exact lower_score_2 f L h2
+  push_neg at h1 h2
+  refine lower_score_3_clean f L (fun p ↦ ?_) (fun p hp ↦ ?_) hf
+  · by_cases hp : p.Prime
+    · by_cases hp' : p ≤ n
+      · exact h1 p <| mem_primesBelow.mpr ⟨Nat.lt_succ_of_le hp', hp⟩
+      · have := fun m hm ↦ factorization_eq_zero_of_not_dvd fun h ↦ hp' <| (f.ha m hm).trans'
+          (le_of_dvd (f.hpos m hm) h); simp [balance, sum, map_congr rfl this]
+    · simp [balance, sum, factorization_eq_zero_of_not_prime _ hp]
+  · have hp_prime : p.Prime := of_not_not fun hnp ↦ hp.ne <| by simp [balance, sum,
+      factorization_eq_zero_of_not_prime _ hnp]
+    exact not_lt.mp fun hpL ↦ hp.not_ge <| h2 p (mem_primesBelow.mpr ⟨Nat.lt_succ_of_le
+      (deficit_implies_le_n f p hp), hp_prime⟩) hpL
 
 @[blueprint
   "score-lowest"
@@ -415,24 +814,22 @@ theorem Factorization.lowest_score {n : ℕ} (f : Factorization n) (L : ℕ) :
     obtain rfl | hk := k.eq_zero_or_pos
     · exact ⟨f, h, le_refl _⟩
     · have step : ∀ g : Factorization n, g.total_imbalance < k →
-          ∃ f' : Factorization n, f'.total_imbalance = 0 ∧ f'.score L ≤ g.score L := fun g hg =>
-        ih g.total_imbalance (h ▸ hg) g rfl
+          ∃ f' : Factorization n, f'.total_imbalance = 0 ∧ f'.score L ≤ g.score L :=
+        fun g hg ↦ ih g.total_imbalance (h ▸ hg) g rfl
+      have reduce (f₁ : Factorization n) (hlt : f₁.total_imbalance < f.total_imbalance)
+          (hle : f₁.score L ≤ f.score L) :
+          ∃ f' : Factorization n, f'.total_imbalance = 0 ∧ f'.score L ≤ f.score L :=
+        let ⟨f', hbal, hle'⟩ := step f₁ (h ▸ hlt); ⟨f', hbal, hle'.trans hle⟩
       by_cases h1 : ∃ p ∈ (n + 1).primesBelow, f.balance p > 0
-      · obtain ⟨f₁, hlt, hle⟩ := lower_score_1 f L h1
-        obtain ⟨f', hbal, hle'⟩ := step f₁ (h ▸ hlt)
-        exact ⟨f', hbal, hle'.trans hle⟩
+      · exact let ⟨f₁, hlt, hle⟩ := lower_score_1 f L h1; reduce f₁ hlt hle
       · by_cases h2 : ∃ p ∈ (n + 1).primesBelow, p > L ∧ f.balance p < 0
-        · obtain ⟨f₁, hlt, hle⟩ := lower_score_2 f L h2
-          obtain ⟨f', hbal, hle'⟩ := step f₁ (h ▸ hlt)
-          exact ⟨f', hbal, hle'.trans hle⟩
+        · exact let ⟨f₁, hlt, hle⟩ := lower_score_2 f L h2; reduce f₁ hlt hle
         · have h3 : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0 := by
-            simp only [not_exists, not_and, not_lt] at h1 h2; by_contra hc; push_neg at hc
+            push_neg at h1 h2; by_contra hc; push_neg at hc
             exact hk.ne' <| h ▸ sum_eq_zero fun p hp ↦ by
               have := h1 p hp; have := if hpL : p ≤ L then hc p hp hpL
                 else h2 p hp (lt_of_not_ge hpL); omega
-          obtain ⟨f₁, hlt, hle⟩ := lower_score_3 f L h3
-          obtain ⟨f', hbal, hle'⟩ := step f₁ (h ▸ hlt)
-          exact ⟨f', hbal, hle'.trans hle⟩
+          exact let ⟨f₁, hlt, hle⟩ := lower_score_3 f L h3; reduce f₁ hlt hle
 
 @[blueprint
   "card-bound"
@@ -546,7 +943,7 @@ theorem Params.initial.waste (P : Params) : P.initial.waste ≤ P.n * log (1 - 1
   (proof := /-- No such prime can be present in the factorization.-/)]
 theorem Params.initial.balance_large_prime_le (P : Params) {p : ℕ} (hp : p ≥ P.n / P.L) :
     P.initial.balance p ≤ 0 := by
-  simp only [Factorization.balance, Factorization.sum, Params.initial, sub_nonpos]
+  simp only [Factorization.balance, Factorization.sum, initial, sub_nonpos]
   have : (map (fun m ↦ m.factorization p)
       (filter (fun m ↦ m ∈ (P.n / P.L).smoothNumbers)
       (replicate P.M (Multiset.Ico (P.n - P.n / P.M) P.n)).join)).sum = 0 :=
@@ -582,7 +979,7 @@ lemma Params.initial.factorial_factorization_eq_div {n p : ℕ} (hp : p.Prime) (
 theorem Params.initial.balance_large_prime_ge (P : Params) {p : ℕ}
     (hp : p ≥ P.n / P.L) : P.initial.balance p ≥ -(P.n / p) := by
   have hsum : (P.initial.a.map (·.factorization p)).sum = 0 := sum_eq_zero fun x hx ↦ by
-    simp only [Multiset.mem_map, Params.initial, Multiset.mem_filter] at hx
+    simp only [Multiset.mem_map, initial, Multiset.mem_filter] at hx
     obtain ⟨m, ⟨_, hsmooth⟩, rfl⟩ := hx
     rw [factorization_eq_zero_iff, mem_smoothNumbers'] at *
     by_cases hprime : p.Prime
@@ -643,7 +1040,7 @@ lemma Params.initial.sum_valuation_le_M_mul_interval_count (P : Params) {p : ℕ
     (hp' : (p : ℝ) > Real.sqrt P.n) : (P.initial.a.map (·.factorization p)).sum ≤
       P.M * (Finset.filter (p ∣ ·) (Finset.Ico (P.n - P.n / P.M) P.n)).card := by
   set S := Multiset.join (Multiset.replicate P.M (Multiset.Ico (P.n - P.n / P.M) P.n))
-  have hle : P.initial.a ≤ S := by unfold Params.initial; aesop
+  have hle : P.initial.a ≤ S := by unfold initial; aesop
   have hval : ∀ m ∈ S, m.factorization p ≤ if p ∣ m then 1 else 0 := fun m hm ↦ by
     have h1 : m.factorization p ≤ 1 := by
       by_cases hm_zero : m = 0
