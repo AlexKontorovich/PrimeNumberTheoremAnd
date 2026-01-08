@@ -449,7 +449,7 @@ theorem Factorization.card_bound {n : ℕ} (f : Factorization n) (L : ℕ) : ∃
 
 @[blueprint
   "params-set"
-  (statement := /-- Now let $M,L$ be additional parameters with $n > L^2$. -/)]
+  (statement := /-- Now let $M,L$ be additional parameters with $n > L^2$; we also need the minor variant $\lfloor n/L \rfloor > \sqrt{n}$. -/)]
 structure Params where
   n : ℕ
   M : ℕ
@@ -457,11 +457,12 @@ structure Params where
   hM : M > 1
   hL_pos : L > 0
   hL : n > L * L
+  hL' : (n/L:ℕ) > Real.sqrt n  -- almost implied by hL, but not quite
 
 @[blueprint
   "initial-factorization-def"
   (statement := /-- We perform an initial factorization by taking the natural numbers between
-  $n-n/M$ and $n$ repeated $M$ times, deleting those elements that are not $n/L$-smooth. -/)]
+  $n-n/M$ (inclusive) and $n$ (exclusive) repeated $M$ times, deleting those elements that are not $n/L$-smooth (i.e., have a prime factor greater than or equal to $n/L$). -/)]
 def Params.initial (P : Params) : Factorization P.n := {
   a := (replicate P.M (.Ico (P.n - P.n/P.M) P.n)).join.filter
     (fun m ↦ m ∈ (P.n/P.L).smoothNumbers)
@@ -541,9 +542,9 @@ theorem Params.initial.waste (P : Params) : P.initial.waste ≤ P.n * log (1 - 1
 
 @[blueprint
   "initial-factorization-large-prime-le"
-  (statement := /-- A large prime $p > n/L$ cannot be in surplus. -/)
+  (statement := /-- A large prime $p \geq n/L$ cannot be in surplus. -/)
   (proof := /-- No such prime can be present in the factorization.-/)]
-theorem Params.initial.balance_large_prime_le (P : Params) {p : ℕ} (hp : p > P.n / P.L) :
+theorem Params.initial.balance_large_prime_le (P : Params) {p : ℕ} (hp : p ≥ P.n / P.L) :
     P.initial.balance p ≤ 0 := by
   simp only [Factorization.balance, Factorization.sum, Params.initial, sub_nonpos]
   have : (map (fun m ↦ m.factorization p)
@@ -576,17 +577,17 @@ lemma Params.initial.factorial_factorization_eq_div {n p : ℕ} (hp : p.Prime) (
 
 @[blueprint
   "initial-factorization-large-prime-ge"
-  (statement := /-- A large prime $p > n/L$ can be in deficit by at most $n/p$. -/)
+  (statement := /-- A large prime $p \geq n/L$ can be in deficit by at most $n/p$. -/)
   (proof := /-- This is the number of times $p$ can divide $n!$. -/)]
 theorem Params.initial.balance_large_prime_ge (P : Params) {p : ℕ}
-    (hp : p > P.n / P.L) : P.initial.balance p ≥ -(P.n / p) := by
+    (hp : p ≥ P.n / P.L) : P.initial.balance p ≥ -(P.n / p) := by
   have hsum : (P.initial.a.map (·.factorization p)).sum = 0 := sum_eq_zero fun x hx ↦ by
     simp only [Multiset.mem_map, Params.initial, Multiset.mem_filter] at hx
     obtain ⟨m, ⟨_, hsmooth⟩, rfl⟩ := hx
     rw [factorization_eq_zero_iff, mem_smoothNumbers'] at *
     by_cases hprime : p.Prime
     · by_cases hdvd : p ∣ m
-      · exact ((hsmooth p hprime hdvd).not_gt hp).elim
+      · exact ((hsmooth p hprime hdvd).not_ge hp).elim
       · exact .inr (.inl hdvd)
     · exact .inl hprime
   have hfact : (P.n.factorial.factorization p : ℤ) ≤ P.n / p := by
@@ -597,22 +598,8 @@ theorem Params.initial.balance_large_prime_ge (P : Params) {p : ℕ}
       have hL_lt_sqrt : (P.L : ℝ) < Real.sqrt P.n := by
         rw [Real.lt_sqrt (Nat.cast_nonneg _)]; exact_mod_cast by nlinarith [P.hL]
       have hp_gt_sqrt : (p : ℝ) > Real.sqrt P.n := calc
-        (p : ℝ) ≥ (P.n / P.L : ℕ) + 1 := by exact_mod_cast hp
-        _ > P.n / P.L := by
-          have hL_pos : (0 : ℝ) < P.L := by exact_mod_cast P.hL_pos
-          have h := Nat.div_add_mod P.n P.L
-          have heq : (P.n : ℝ) = (P.n / P.L : ℕ) * P.L + (P.n % P.L : ℕ) := by
-            have : P.L * (P.n / P.L) + P.n % P.L = P.n := h
-            have := congrArg (· : ℕ → ℝ) this; simp only [Nat.cast_add, Nat.cast_mul] at this
-            grind
-          have hmod : ((P.n % P.L : ℕ) : ℝ) < P.L := by exact_mod_cast Nat.mod_lt P.n P.hL_pos
-          have hfloor : (P.n : ℝ) / P.L < (P.n / P.L : ℕ) + 1 := by
-            rw [div_lt_iff₀ hL_pos, heq]; grind
-          grind
-        _ > Real.sqrt P.n := by
-          rw [gt_iff_lt, lt_div_iff₀' (by exact_mod_cast P.hL_pos : (0 : ℝ) < P.L)]
-          calc P.L * Real.sqrt P.n < Real.sqrt P.n * Real.sqrt P.n := by nlinarith
-            _ = P.n := Real.mul_self_sqrt hn_pos.le
+        (p : ℝ) ≥ (P.n / P.L : ℕ) := by exact_mod_cast hp
+        _ > Real.sqrt P.n := P.hL'
       rw [factorial_factorization_eq_div hprime hp_gt_sqrt,
         Int.le_ediv_iff_mul_le (by exact_mod_cast hprime.pos)]
       exact_mod_cast Nat.div_mul_le_self P.n p
@@ -702,8 +689,8 @@ theorem Params.initial.balance_medium_prime_le (P : Params) {p : ℕ} (hp : p > 
 @[blueprint
   "initial-factorization-medium-prime-ge"
   (statement := /-- A medium prime $\sqrt{n} < p ≤ n/L$ can be in deficit by at most $M$.-/)
-  (proof := /-- Routine computation using Legendre's formula.-/)]
-theorem Params.initial.balance_medium_prime_ge (P : Params) {p : ℕ} (hp : p ≤ P.n / P.L) (hp' : p > Real.sqrt P.n) : P.initial.balance p ≥ -P.M := by sorry
+  (proof := /-- The number of times $p$ divides $a_1 \dots a_t$ is at least $M \lfloor n/Mp \rfloor ≥ n/p - M$ (note that the removal of the non-smooth numbers does not remove any multiples of $p$).  Meanwhile, the number of times $p$ divides $n!$ is at most $n/p$.-/)]
+theorem Params.initial.balance_medium_prime_ge (P : Params) {p : ℕ} (hp : p < P.n / P.L) (hp' : p > Real.sqrt P.n) : P.initial.balance p ≥ -P.M := by sorry
 
 @[blueprint
   "initial-factorization-small-prime-le"
