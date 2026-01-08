@@ -680,7 +680,7 @@ theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     linarith [sq (1 + ε), upper (by grind) (log_le_log hx_pos (by grind)) hp₁_ub]
   have hp₂_ub' : (p₂ : ℝ) ≤ x * (1 + ε) ^ 3 := by
     linarith [pow_succ (1 + ε) 2, upper (by grind) (log_le_log hx_pos (by grind)) hp₂_ub]
-  refine ⟨![p₀, p₁, p₂], fun i => by fin_cases i <;> assumption, Fin.strictMono_iff_lt_succ.mpr fun i ↦ by
+  refine ⟨![p₀, p₁, p₂], fun i ↦ by fin_cases i <;> assumption, Fin.strictMono_iff_lt_succ.mpr fun i ↦ by
     fin_cases i
     · exact cast_lt.mp (hp₀_ub'.trans_lt hp₁_lb)
     · exact cast_lt.mp (hp₁_ub'.trans_lt hp₂_lb), fun i ↦ ?_, hp₀_lb⟩
