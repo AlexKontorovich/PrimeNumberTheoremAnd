@@ -479,7 +479,7 @@ theorem lemma_5_3 {x : ℝ} (h : log x ∈ Set.Ioc 0 2100) :
   (title := "FKS Lemma 5.3")
   (statement := /-- For all $2100 < \log x \leq 200000$ we have that
 \[
-E_\psi(x) \leq 9.22022(\log x)^{3/2} \exp\left(-0.8476836\sqrt{\log x}\right). ⟧
+E_\psi(x) \leq 9.22022(\log x)^{3/2} \exp\left(-0.8476836\sqrt{\log x}\right). \]
 -/)]
 theorem lemma_5_4 {x : ℝ} (h : log x ∈ Set.Ioc 2100 200000) :
   Eψ x ≤ 9.22022 * (log x)^(3/2) * exp (-0.8476836 * sqrt (log x)) := by sorry
