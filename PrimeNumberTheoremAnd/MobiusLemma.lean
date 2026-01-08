@@ -38,7 +38,7 @@ noncomputable def M (x : ℝ) : ℤ := ∑ n ∈ Finset.Ioc 0 ⌊x⌋₊, moebiu
   (title := "Mobius Lemma 1")
   (statement := /-- For any $x>0$,
 \begin{equation}\label{eq:antenor}
-R(x) = \sum_{k\leq x} M\left(\sqrt{\frac{x}{k}}\right) - \int_0^x M\left(\sqrt{\frac{x}{u}}\right) du.\end{equation}
+R(x) = \sum_{k\leq x} M\left(\sqrt{\frac{x}{k}}\right) - \int_0^x M\left(\sqrt{\frac{x}{u}}\right) du.
 \end{equation}
 .-/)
  (proof := /--
