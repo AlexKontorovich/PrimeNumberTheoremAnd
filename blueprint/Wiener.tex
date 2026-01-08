@@ -1,0 +1,382 @@
+
+The Fourier transform of an absolutely integrable function $\psi: \R \to \C$ is defined by the formula
+$$ \hat \psi(u) := \int_\R e(-tu) \psi(t)\ dt$$
+where $e(\theta) := e^{2\pi i \theta}$.
+
+Let $f: \N \to \C$ be an arithmetic function such that $\sum_{n=1}^\infty \frac{|f(n)|}{n^\sigma} < \infty$ for all $\sigma>1$.  Then the Dirichlet series
+$$ F(s) := \sum_{n=1}^\infty \frac{f(n)}{n^s}$$
+is absolutely convergent for $\sigma>1$.
+
+
+\begin{lemma}[first_fourier]\label{first_fourier}\lean{first_fourier}\leanok  If $\psi: \R \to \C$ is integrable and $x > 0$, then for any $\sigma>1$
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = \int_\R F(\sigma + it) \psi(t) x^{it}\ dt.$$
+\end{lemma}
+
+
+\begin{proof}\leanok  By the definition of the Fourier transform, the left-hand side expands as
+$$ \sum_{n=1}^\infty \int_\R \frac{f(n)}{n^\sigma} \psi(t) e( - \frac{1}{2\pi} t \log \frac{n}{x})\ dt$$
+while the right-hand side expands as
+$$ \int_\R \sum_{n=1}^\infty \frac{f(n)}{n^{\sigma+it}} \psi(t) x^{it}\ dt.$$
+Since
+$$\frac{f(n)}{n^\sigma} \psi(t) e( - \frac{1}{2\pi} t \log \frac{n}{x}) = \frac{f(n)}{n^{\sigma+it}} \psi(t) x^{it}$$
+the claim then follows from Fubini's theorem.
+\end{proof}
+
+
+\begin{lemma}[second_fourier]\label{second_fourier}\lean{second_fourier}\leanok If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
+$$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du = x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt.$$
+\end{lemma}
+
+
+\begin{proof}\leanok
+The left-hand side expands as
+$$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt\ du \atop{?}=
+x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt$$
+so by Fubini's theorem it suffices to verify the identity
+\begin{align*}
+\int_{-\log x}^\infty e^{-u(\sigma-1)} e(-\frac{tu}{2\pi})\ du
+&= \int_{-\log x}^\infty e^{(it - \sigma + 1)u}\ du \\
+&= \frac{1}{it - \sigma + 1} e^{(it - \sigma + 1)u}\ \Big|_{-\log x}^\infty \\
+&= x^{\sigma - 1} \frac{1}{\sigma+it-1} x^{it}
+\end{align*}
+\end{proof}
+
+
+Now let $A \in \C$, and suppose that there is a continuous function $G(s)$ defined on $\mathrm{Re} s \geq 1$ such that $G(s) = F(s) - \frac{A}{s-1}$ whenever $\mathrm{Re} s > 1$.  We also make the Chebyshev-type hypothesis
+\begin{equation}\label{cheby}
+\sum_{n \leq x} |f(n)| \ll x
+\end{equation}
+for all $x \geq 1$ (this hypothesis is not strictly necessary, but simplifies the arguments and can be obtained fairly easily in applications).
+
+
+\begin{lemma}[Preliminary decay bound I]\label{prelim-decay}
+If $\psi:\R \to \C$ is absolutely integrable then
+$$ |\hat \psi(u)| \leq \| \psi \|_1 $$
+for all $u \in \R$. where $C$ is an absolute constant.
+\end{lemma}
+
+
+\begin{proof} Immediate from the triangle inequality.
+\end{proof}
+
+
+\begin{lemma}[Preliminary decay bound II]\label{prelim-decay-2}
+If $\psi:\R \to \C$ is absolutely integrable and of bounded variation, and $\psi'$ is bounded variation, then
+$$ |\hat \psi(u)| \leq \| \psi \|_{TV} / 2\pi |u| $$
+for all non-zero $u \in \R$.
+\end{lemma}
+
+
+\begin{proof} By integration by parts we will have
+$$ 2\pi i u \hat \psi(u) = \int _\R e(-tu) \psi'(t)\ dt$$
+and the claim then follows from the triangle inequality.
+\end{proof}
+
+
+\begin{lemma}[Preliminary decay bound III]\label{prelim-decay-3}
+If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
+$$ |\hat \psi(u)| \leq \| \psi' \|_{TV} / (2\pi |u|)^2$$
+for all non-zero $u \in \R$.
+\end{lemma}
+
+
+\begin{proof}\uses{prelim-decay-2} Should follow from previous lemma.
+\end{proof}
+
+
+\begin{lemma}[Decay bound, alternate form]\label{decay-alt}  If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
+$$ |\hat \psi(u)| \leq ( \|\psi\|_1 + \| \psi' \|_{TV} / (2\pi)^2) / (1+|u|^2)$$
+for all $u \in \R$.
+\end{lemma}
+
+
+\begin{proof}\uses{prelim-decay, prelim-decay-3, decay} Should follow from previous lemmas.
+\end{proof}
+
+
+
+It should be possible to refactor the lemma below to follow from Lemma \ref{decay-alt} instead.
+
+\begin{lemma}[Decay bounds]\label{decay}\lean{decay_bounds}\leanok  If $\psi:\R \to \C$ is $C^2$ and obeys the bounds
+  $$ |\psi(t)|, |\psi''(t)| \leq A / (1 + |t|^2)$$
+  for all $t \in \R$, then
+$$ |\hat \psi(u)| \leq C A / (1+|u|^2)$$
+for all $u \in \R$, where $C$ is an absolute constant.
+\end{lemma}
+
+
+\begin{proof}\leanok From two integration by parts we obtain the identity
+$$ (1+u^2) \hat \psi(u) = \int_{\bf R} (\psi(t) - \frac{u}{4\pi^2} \psi''(t)) e(-tu)\ dt.$$
+Now apply the triangle inequality and the identity $\int_{\bf R} \frac{dt}{1+t^2}\ dt = \pi$ to obtain the claim with $C = \pi + 1 / 4 \pi$.
+\end{proof}
+
+
+\begin{lemma}[Limiting Fourier identity]\label{limiting}\lean{limiting_fourier}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported and $x \geq 1$, then
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
+\end{lemma}
+
+
+\begin{proof}
+\uses{first_fourier, second_fourier, decay} \leanok
+ By Lemma \ref{first_fourier} and Lemma \ref{second_fourier}, we know that for any $\sigma>1$, we have
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A x^{1-\sigma} \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(\sigma+it) \psi(t) x^{it}\ dt.$$
+  Now take limits as $\sigma \to 1$ using dominated convergence together with \eqref{cheby} and Lemma \ref{decay} to obtain the result.
+\end{proof}
+
+
+\begin{corollary}[Corollary of limiting identity]\label{limiting-cor}\lean{limiting_cor}\leanok  With the hypotheses as above, we have
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
+  as $x \to \infty$.
+\end{corollary}
+
+
+\begin{proof}
+\uses{limiting} \leanok
+ Immediate from the Riemann-Lebesgue lemma, and also noting that $\int_{-\infty}^{-\log x} \hat \psi(\frac{u}{2\pi})\ du = o(1)$.
+\end{proof}
+
+
+\begin{lemma}[Smooth Urysohn lemma]\label{smooth-ury}\lean{smooth_urysohn}\leanok  If $I$ is a closed interval contained in an open interval $J$, then there exists a smooth function $\Psi: \R \to \R$ with $1_I \leq \Psi \leq 1_J$.
+\end{lemma}
+
+
+\begin{proof}  \leanok
+A standard analysis lemma, which can be proven by convolving $1_K$ with a smooth approximation to the identity for some interval $K$ between $I$ and $J$. Note that we have ``SmoothBumpFunction''s on smooth manifolds in Mathlib, so this shouldn't be too hard...
+\end{proof}
+
+
+\begin{lemma}[Limiting identity for Schwartz functions]\label{schwarz-id}\lean{limiting_cor_schwartz}\leanok  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported.
+\end{lemma}
+
+
+\begin{proof}
+\uses{limiting-cor, smooth-ury}\leanok
+For any $R>1$, one can use a smooth cutoff function (provided by Lemma \ref{smooth-ury} to write $\psi = \psi_{\leq R} + \psi_{>R}$, where $\psi_{\leq R}$ is $C^2$ (in fact smooth) and compactly supported (on $[-R,R]$), and $\psi_{>R}$ obeys bounds of the form
+$$ |\psi_{>R}(t)|, |\psi''_{>R}(t)| \ll R^{-1} / (1 + |t|^2) $$
+where the implied constants depend on $\psi$.  By Lemma \ref{decay} we then have
+$$ \hat \psi_{>R}(u) \ll R^{-1} / (1+|u|^2).$$
+Using this and \eqref{cheby} one can show that
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{>R}( \frac{1}{2\pi} \log \frac{n}{x} ), A \int_{-\infty}^\infty \hat \psi_{>R} (\frac{u}{2\pi})\ du \ll R^{-1} $$
+(with implied constants also depending on $A$), while from Lemma \ref{limiting-cor} one has
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{\leq R}( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi_{\leq R} (\frac{u}{2\pi})\ du + o(1).$$
+Combining the two estimates and letting $R$ be large, we obtain the claim.
+\end{proof}
+
+
+\begin{lemma}[Bijectivity of Fourier transform]\label{bij}\lean{fourier_surjection_on_schwartz}\leanok  The Fourier transform is a bijection on the Schwartz class. [Note: only surjectivity is actually used.]
+\end{lemma}
+
+
+\begin{proof}
+  \leanok
+ This is a standard result in Fourier analysis.
+It can be proved here by appealing to Mellin inversion, Theorem \ref{MellinInversion}.
+In particular, given $f$ in the Schwartz class, let $F : \R_+ \to \C : x \mapsto f(\log x)$ be a function in the ``Mellin space''; then the Mellin transform of $F$ on the imaginary axis $s=it$ is the Fourier transform of $f$.  The Mellin inversion theorem gives Fourier inversion.
+\end{proof}
+
+
+\begin{corollary}[Smoothed Wiener-Ikehara]\label{WienerIkeharaSmooth}\lean{wiener_ikehara_smooth}\leanok
+  If $\Psi: (0,\infty) \to \C$ is smooth and compactly supported away from the origin, then,
+$$ \sum_{n=1}^\infty f(n) \Psi( \frac{n}{x} ) = A x \int_0^\infty \Psi(y)\ dy + o(x)$$
+as $x \to \infty$.
+\end{corollary}
+
+
+\begin{proof}
+\uses{bij,schwarz-id}\leanok
+ By Lemma \ref{bij}, we can write
+$$ y \Psi(y) = \hat \psi( \frac{1}{2\pi} \log y )$$
+for all $y>0$ and some Schwartz function $\psi$.  Making this substitution, the claim is then equivalent after standard manipulations to
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
+and the claim follows from Lemma \ref{schwarz-id}.
+\end{proof}
+
+
+Now we add the hypothesis that $f(n) \geq 0$ for all $n$.
+
+\begin{proposition}[Wiener-Ikehara in an interval]
+\label{WienerIkeharaInterval}\lean{WienerIkeharaInterval}\leanok
+  For any closed interval $I \subset (0,+\infty)$, we have
+  $$ \sum_{n=1}^\infty f(n) 1_I( \frac{n}{x} ) = A x |I|  + o(x).$$
+\end{proposition}
+
+
+\begin{proof}
+\uses{smooth-ury, WienerIkeharaSmooth} \leanok
+  Use Lemma \ref{smooth-ury} to bound $1_I$ above and below by smooth compactly supported functions whose integral is close to the measure of $|I|$, and use the non-negativity of $f$.
+\end{proof}
+
+
+\begin{corollary}[Wiener-Ikehara theorem]\label{WienerIkehara}\lean{WienerIkeharaTheorem'}\leanok
+  We have
+$$ \sum_{n\leq x} f(n) = A x + o(x).$$
+\end{corollary}
+
+
+\begin{proof}
+\uses{WienerIkeharaInterval} \leanok
+  Apply the preceding proposition with $I = [\varepsilon,1]$ and then send $\varepsilon$ to zero (using \eqref{cheby} to control the error).
+\end{proof}
+
+
+\section{Weak PNT}
+
+\begin{theorem}[WeakPNT]\label{WeakPNT}\lean{WeakPNT}\leanok  We have
+$$ \sum_{n \leq x} \Lambda(n) = x + o(x).$$
+\end{theorem}
+
+
+\begin{proof}
+\uses{WienerIkehara, ChebyshevPsi} \leanok
+  Already done by Stoll, assuming Wiener-Ikehara.
+\end{proof}
+
+
+\section{Removing the Chebyshev hypothesis}
+
+In this section we do *not* assume the bound \eqref{cheby}, but instead derive it from the other hypotheses.
+
+\begin{lemma}[limiting_fourier_variant]\label{limiting_fourier_variant}\lean{limiting_fourier_variant}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, and $x \geq 1$, then
+$$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
+\end{lemma}
+
+
+\begin{proof}
+\uses{first_fourier, second_fourier, decay}  Repeat the proof of Lemma \ref{limiting_fourier_variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.)
+\end{proof}
+
+
+\begin{corollary}[crude_upper_bound]\label{crude_upper_bound}\lean{crude_upper_bound}\leanok  If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, then there exists a constant $B$ such that
+$$ |\sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )| \leq B$$
+for all $x > 0$.
+\end{corollary}
+
+
+\begin{proof}
+\uses{limiting_fourier_variant} For $x \geq 1$, this readily follows from the previous lemma and the triangle inequality. For $x < 1$, only a bounded number of summands can contribute and the claim is trivial.
+\end{proof}
+
+
+\begin{corollary}[auto_cheby]\label{auto_cheby}\lean{auto_cheby}\leanok  One has
+$$ \sum_{n \leq x} f(n) = O(x)$$
+for all $x \geq 1$.
+\end{corollary}
+
+
+\begin{proof}
+\uses{crude_upper_bound} By applying Corollary \ref{crude_upper_bound} for a specific compactly supported function $\psi$, one can obtain a bound of the form
+$\sum_{(1-\varepsilon)x < n \leq x} f(n) = O(x)$ for all $x$ and some absolute constant $\varepsilon$ (which can be made explicit).  If $C$ is a sufficiently large constant, the claim $|\sum_{n \leq x} f(n)| \leq Cx$ can now be proven by strong induction on $x$, as the claim for $(1-\varepsilon)x$ implies the claim for $x$ by the triangle inequality (and the claim is trivial for $x < 1$).
+
+
+\begin{corollary}[WienerIkeharaTheorem'']\label{WienerIkeharaTheorem''}\lean{WienerIkeharaTheorem''}\leanok
+  We have
+$$ \sum_{n\leq x} f(n) = A x + o(x).$$
+\end{corollary}
+
+
+\begin{proof}
+\uses{auto_cheby, WienerIkehara}\leanok Use Corollary \ref{auto_cheby} to remove the Chebyshev hypothesis in Theorem \ref{WienerIkehara}.
+\end{proof}
+
+
+\section{The prime number theorem in arithmetic progressions}
+
+\begin{lemma}[WeakPNT_character]\label{WeakPNT_character}\lean{WeakPNT_character}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, and $\mathrm{Re} s > 1$, we have
+$$
+\sum_{n: n = a\ (q)} \frac{\Lambda(n)}{n^s} = - \frac{1}{\varphi(q)} \sum_{\chi\ (q)} \overline{\chi(a)} \frac{L'(s,\chi)}{L(s,\chi)}.$$
+\end{lemma}
+
+
+\begin{proof}\leanok  From the Fourier inversion formula on the multiplicative group $(\Z/q\Z)^\times$, we have
+$$ 1_{n=a\ (q)} = \frac{\varphi(q)}{q} \sum_{\chi\ (q)} \overline{\chi(a)} \chi(n).$$
+On the other hand, from standard facts about L-series we have for each character $\chi$ that
+$$
+\sum_{n} \frac{\Lambda(n) \chi(n)}{n^s} = - \frac{L'(s,\chi)}{L(s,\chi)}.$$
+Combining these two facts, we obtain the claim.
+\end{proof}
+
+
+\begin{proposition}[WeakPNT_AP_prelim]\label{WeakPNT_AP_prelim}\lean{WeakPNT_AP_prelim}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to $\mathrm{Re}(s)=1$.
+\end{proposition}
+
+
+
+\begin{proof}
+\uses{ChebyshevPsi, WeakPNT_character}
+We expand out the left-hand side using Lemma \ref{WeakPNT_character}.  The contribution of the non-principal characters $\chi$ extend continuously to $\mathrm{Re}(s) = 1$ thanks to the non-vanishing of $L(s,\chi)$ on this line (which should follow from another component of this project), so it suffices to show that for the principal character $\chi_0$, that
+$$ -\frac{L'(s,\chi_0)}{L(s,\chi_0)} - \frac{1}{s-1}$$
+also extends continuously here.  But we already know that
+$$ -\frac{\zeta'(s)}{\zeta(s)} - \frac{1}{s-1}$$
+extends, and from Euler product machinery one has the identity
+$$ \frac{L'(s,\chi_0)}{L(s,\chi_0)}
+= \frac{\zeta'(s)}{\zeta(s)} + \sum_{p|q} \frac{\log p}{p^s-1}.$$
+Since there are only finitely many primes dividing $q$, and each summand $\frac{\log p}{p^s-1}$ extends continuously, the claim follows.
+\end{proof}
+
+
+\begin{theorem}[WeakPNT_AP]\label{WeakPNT_AP}\lean{WeakPNT_AP}\leanok  If $q ≥ 1$ and $a$ is coprime to $q$, we have
+$$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$
+\end{theorem}
+
+
+\begin{proof}\uses{WienerIkehara, WeakPNT_AP_prelim}
+Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkeharaTheorem''}) to Proposition \ref{WeakPNT_AP_prelim}.  (The Chebyshev bound follows from the corresponding bound for $\Lambda$.)
+\end{proof}
+
+
+
+\section{The Chebotarev density theorem: the case of cyclotomic extensions}
+
+In this section, $K$ is a number field, $L = K(\mu_m)$ for some natural number $m$, and $G = Gal(K/L)$.
+
+The goal here is to prove the Chebotarev density theorem for the case of cyclotomic extensions.
+
+
+\begin{lemma}[Dedekind_factor]\label{Dedekind_factor}  We have
+$$ \zeta_L(s) = \prod_{\chi} L(\chi,s)$$
+for $\Re(s) > 1$, where $\chi$ runs over homomorphisms from $G$ to $\C^\times$ and $L$ is the Artin $L$-function.
+\end{lemma}
+
+
+
+\begin{proof} See Propositions 7.1.16, 7.1.19 of https://www.math.ucla.edu/~sharifi/algnum.pdf .
+\end{proof}
+
+
+\begin{lemma}[Simple pole]\label{Dedekind_pole}  $\zeta_L$ has a simple pole at $s=1$.
+\end{lemma}
+
+
+\begin{proof} See Theorem 7.1.12 of https://www.math.ucla.edu/~sharifi/algnum.pdf .
+\end{proof}
+
+
+\begin{lemma}[Dedekind_nonvanishing]\label{Dedekind_nonvanishing}  For any non-principal character $\chi$ of $Gal(K/L)$, $L(\chi,s)$ does not vanish for $\Re(s)=1$.
+\end{lemma}
+
+
+
+\begin{proof}\uses{Dedekind_factor, Dedekind_pole} For $s=1$, this will follow from Lemmas \ref{Dedekind_factor}, \ref{Dedekind_pole}. For the rest of the line, one should be able to adapt the arguments for the Dirichet L-function.
+\end{proof}
+
+
+\section{The Chebotarev density theorem: the case of abelian extensions}
+
+(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the previous results to abelian extensions (actually just cyclic extensions would suffice))
+
+
+
+\section{The Chebotarev density theorem: the general case}
+
+(Use the arguments in Theorem 7.2.2 of https://www.math.ucla.edu/~sharifi/algnum.pdf to extend the previous results to arbitrary extensions
+
+
+
+\begin{lemma}[PNT for one character]\label{Dedekind-PNT}  For any non-principal character $\chi$ of $Gal(K/L)$,
+$$ \sum_{N \mathfrak{p} \leq x} \chi(\mathfrak{p}) \log N \mathfrak{p}  = o(x).$$
+\end{lemma}
+
+
+\begin{proof}\uses{Dedekind_nonvanishing} This should follow from Lemma \ref{Dedekind_nonvanishing} and the arguments for the Dirichlet L-function. (It may be more convenient to work with a von Mangoldt type function instead of $\log N\mathfrak{p}$).
+\end{proof}
+

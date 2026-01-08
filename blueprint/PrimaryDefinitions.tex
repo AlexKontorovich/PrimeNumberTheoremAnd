@@ -1,0 +1,28 @@
+
+\section{Definitions}
+
+
+In this section we define the basic types of primary estimates we will work with in the project.
+
+Key references:
+
+FKS1: Fiori--Kadiri--Swidninsky arXiv:2204.02588
+
+FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
+
+
+\begin{definition}[Equation (2) of FKS2]\label{Epsi-def}\lean{Eψ}\leanok
+ $E_ψ(x) = |ψ(x) - x| / x$
+\end{definition}
+
+
+\begin{definition}[Definition 1, FKS2]\label{classical bound}\lean{Eψ.classicalBound}\leanok
+We say that $E_ψ$ satisfies a \emph{classical bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
+\[ E_ψ(x) \leq A \left(\frac{\log x}{R}\right)^B \exp\left(-C \left(\frac{\log x}{R}\right)^{1/2}\right). \]
+\end{definition}
+
+
+\begin{definition}[Section 1.1, FKS2]\label{classical zero-free region}\lean{riemannZeta.classicalZeroFree}\leanok
+We say that one has a classical zero-free region with parameter $R$ if $zeta(s)$ has no zeroes in the region $Re(s) \geq 1 - 1 / R * \log |\Im s|$ for $\Im(s) > 3$.
+\end{definition}
+
