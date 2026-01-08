@@ -70,14 +70,14 @@ noncomputable def riemannZeta.N (T : ℝ) : ℝ := zeroes_sum Set.univ (Set.Ioo 
   (statement := /-- The number of zeroes of imaginary part between 0 and T, with real part greater than $\sigma$, counting multiplicity -/)]
 noncomputable def riemannZeta.N' (σ T : ℝ) : ℝ := zeroes_sum (Set.Ioo σ 1) (Set.Ioo 0 T) 1
 
-noncomputable def riemannZeta.R (b₁ b₂ b₃ T : ℝ) : ℝ := b₁ * log T + b₂ * log (log T) + b₃
+noncomputable def riemannZeta.RvM (b₁ b₂ b₃ T : ℝ) : ℝ := b₁ * log T + b₂ * log (log T) + b₃
 
 @[blueprint
   "Riemann-von-Mangoldt-estimate"
   (title := "Riemann von Mangoldt estimate")
   (statement := /-- An estimate of the form $N(T) - \frac{T}{2\pi} \log \frac{T}{2\pi e} + \frac{7}{8}| ≤ b_1 \log T + b_2 \log\log T + b_3$ for $T \geq 2$. -/)]
 def riemannZeta.Riemann_vonMangoldt_bound (b₁ b₂ b₃ : ℝ) : Prop :=
-  ∀ T ≥ 2, |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7/8)| ≤ R b₁ b₂ b₃ T
+  ∀ T ≥ 2, |riemannZeta.N T - (T / (2 * π) * log (T / (2 * π)) - T / (2 * π) + 7/8)| ≤ RvM b₁ b₂ b₃ T
 
 @[blueprint
   "zero-density-bound"

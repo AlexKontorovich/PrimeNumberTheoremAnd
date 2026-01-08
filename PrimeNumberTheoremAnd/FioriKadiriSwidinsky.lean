@@ -14,14 +14,28 @@ open Real
 
 namespace FKS
 
-noncomputable def B₁ (b₁ b₂ b₃ U V : ℝ) := ( 1/(2*π) + ((b₁ * log U) + b₂)/(U * (log U) * (log (U/(2*π)))) ) * (log (V/U) * (log ( sqrt (V*U) / (2*π) ))) + 2 * (riemannZeta.R b₁ b₂ b₃ U) / U
+structure Inputs where
+  b₁ : ℝ
+  b₂ : ℝ
+  b₃ : ℝ
+  hRvM : riemannZeta.Riemann_vonMangoldt_bound b₁ b₂ b₃
+  ZDB : zero_density_bound
+  H₀ : ℝ
+  hH₀ : riemannZeta.RH_up_to H₀
+  R : ℝ
+  hR : riemannZeta.classicalZeroFree R
+
+
+noncomputable def Inputs.RvM (I : Inputs) (U : ℝ) := riemannZeta.RvM I.b₁ I.b₂ I.b₃ U
+
+noncomputable def Inputs.B₁ (I : Inputs) (U V : ℝ) := ( 1/(2*π) + ((I.b₁ * log U) + I.b₂)/(U * (log U) * (log (U/(2*π)))) ) * (log (V/U) * (log ( sqrt (V*U) / (2*π) ))) + 2 * (I.RvM U) / U
 
 @[blueprint
   "fks-lemma-2-1"
   (title := "FKS Lemma 2.1")
   (statement := /--
   If $|N(T) - (T/2\pi \log(T/2\pi e) + 7/8)| \leq R(T)$ then $\sum_{U \leq \gamma < V} 1/\gamma \leq B_1(U,V)$.-/)]
-theorem lemma_2_1 {b₁ b₂ b₃ U V : ℝ} (hU : U ≥ 1) (hV : V ≥ U) (hR : riemannZeta.Riemann_vonMangoldt_bound b₁ b₂ b₃) : riemannZeta.zeroes_sum Set.univ (Set.Ico U V) (fun ρ ↦ 1 / ρ.im) ≤ B₁ b₁ b₂ b₃ U V := by sorry
+theorem lemma_2_1 (I : Inputs) {U V : ℝ} (hU : U ≥ 1) (hV : V ≥ U) : riemannZeta.zeroes_sum Set.univ (Set.Ico U V) (fun ρ ↦ 1 / ρ.im) ≤ I.B₁ U V := by sorry
 
 def table_1 : List (ℝ × ℝ) :=
   [ (100, 0.5922435112),
@@ -40,7 +54,7 @@ def table_1 : List (ℝ × ℝ) :=
   "fks-corollary_2_3"
   (title := "FKS Corollary 2.3")
   (statement := /-- For each pair $T_0,S_0$ in Table 1 we have, for all $V > T_0$, $\sum_{0 < \gamma < V} 1/\gamma < S_0 + B_1(T_0,V)$. -/)]
-theorem corollary_2_3 {b₁ b₂ b₃ T₀ S₀ V : ℝ} (hR : riemannZeta.Riemann_vonMangoldt_bound b₁ b₂ b₃) (h : (T₀, S₀) ∈ table_1) (hV : V > T₀) : riemannZeta.zeroes_sum Set.univ (Set.Ioo 0 V) (fun ρ ↦ 1 / ρ.im) < S₀ + B₁ b₁ b₂ b₃ T₀ V := by sorry
+theorem corollary_2_3 (I : Inputs) {T₀ S₀ V : ℝ} (h : (T₀, S₀) ∈ table_1) (hV : V > T₀) : riemannZeta.zeroes_sum Set.univ (Set.Ioo 0 V) (fun ρ ↦ 1 / ρ.im) < S₀ + I.B₁ T₀ V := by sorry
 
 noncomputable def s₀ (σ U V : ℝ) := riemannZeta.zeroes_sum (Set.Ico σ 1) (Set.Ico U V) (fun ρ ↦ 1 / ρ.im)
 
@@ -48,23 +62,23 @@ noncomputable def _root_.Real.Gamma.incomplete (s : ℝ) (x : ℝ) : ℝ := ∫ 
 
 noncomputable def _root_.Complex.Gamma.incomplete (s : ℂ) (x : ℝ) : ℂ := ∫ t in Set.Ioi x, exp (-t) * t ^ (s - 1)
 
-noncomputable def _root_.zero_density_bound.B₀ (ZDB : zero_density_bound) (σ U V : ℝ) : ℝ :=
-  (ZDB.c₁ σ) * (log V)^(ZDB.q σ) / V ^ (1 - (ZDB.p σ)) + (ZDB.c₂ σ) * (log V)^2 / V
-  + (ZDB.c₁ σ / (1 - ZDB.p σ)^(ZDB.q σ+1)) * (Real.Gamma.incomplete (ZDB.q σ+1) ((1-ZDB.p σ)*(log U)) - Real.Gamma.incomplete (ZDB.q σ+1) ((1-ZDB.p σ)*(log V)))
-  + (ZDB.c₂ σ) * (Real.Gamma.incomplete 3 ((log U)) - Real.Gamma.incomplete 3 ((log V))
+noncomputable def Inputs.B₀ (I : Inputs) (σ U V : ℝ) : ℝ :=
+  (I.ZDB.c₁ σ) * (log V)^(I.ZDB.q σ) / V ^ (1 - (I.ZDB.p σ)) + (I.ZDB.c₂ σ) * (log V)^2 / V
+  + (I.ZDB.c₁ σ / (1 - I.ZDB.p σ)^(I.ZDB.q σ+1)) * (Real.Gamma.incomplete (I.ZDB.q σ+1) ((1-I.ZDB.p σ)*(log U)) - Real.Gamma.incomplete (I.ZDB.q σ+1) ((1-I.ZDB.p σ)*(log V)))
+  + (I.ZDB.c₂ σ) * (Real.Gamma.incomplete 3 ((log U)) - Real.Gamma.incomplete 3 ((log V))
   )
 
 @[blueprint
   "fks-lemma-2-5"
   (title := "FKS Lemma 2.5")
   (statement := /-- Let $T_0 \geq 2$ and $\gamma > 0$.  Assume that there exist $c_1, c_2, p, q, T_0$ for which one has a zero density bound.  Assume $\sigma \geq 5/8$ and $T_0 \leq U < V$.  Then $s_0(σ,U,V) \leq B_0(\sigma,U,V)$. -/)]
-theorem lemma_2_5 (ZDB: zero_density_bound) {σ U V : ℝ}
-  (hT₀ : ZDB.T₀ ≥ 2)
+theorem lemma_2_5 (I : Inputs) {σ U V : ℝ}
+  (hT₀ : I.ZDB.T₀ ≥ 2)
   (hσ : σ ≥ 5 / 8)
-  (hσ' : σ ∈ ZDB.σ_range)
-  (hU : U ≥ ZDB.T₀)
+  (hσ' : σ ∈ I.ZDB.σ_range)
+  (hU : U ≥ I.ZDB.T₀)
   (hV : V > U) :
-  s₀ σ U V ≤ ZDB.B₀ σ U V := by sorry
+  s₀ σ U V ≤ I.B₀ σ U V := by sorry
 
 @[blueprint
   "fks-remark-2-6-a"
@@ -86,20 +100,19 @@ theorem remark_2_6_b (s : ℝ) (h : s > 1) : Filter.Tendsto (fun x ↦ Real.Gamm
 and
   $$ N(\sigma,T) \leq \frac{CC_1}{2\pi d} (\log kT)^{2\sigma} (\log T)^{5-4*\sigma} T^{8/3(1-\sigma)} + CC_2 * \log^2 T / 2 \pi d$$
 .-/)]
-theorem theorem_2_7 {H₀ k δ α d η₀ η μ σ H T : ℝ}
-  (hH₀ : riemannZeta.RH_up_to H₀)
-  (hk : k ∈ Set.Icc ((10 ^ 9) / H₀) 1)
+theorem theorem_2_7 (I : Inputs) {k δ α d η₀ η μ σ H T : ℝ}
+  (hk : k ∈ Set.Icc ((10 ^ 9) / I.H₀) 1)
   (hα : α > 0)
   (hδ : δ ≥ 1)
   (hη₀ : η₀ = 0.23622)
   (hμ : μ ∈ Set.Icc (1 + η₀) (1 + η))
   (hη : η ∈ Set.Ioo η₀ 0.5)
-  (hσ : σ > 0.5 + d / log H₀)
-  (hH : H ∈ Set.Ico 1002 H₀)
-  (hT : T ≥ H₀) :
-  riemannZeta.N' σ T ≤ ( (T - H) * log T ) / (2 * π * d) * log (1 + KLN.CC₁ H₀ α d δ k H σ * (log (k * T))^(2*σ) * (log T)^(4*(1-σ)) * T^(8/3*(1-σ)) / (T - H) ) + KLN.CC₂ H₀ d η k H μ σ * (log T)^2 / (2 * π * d)
+  (hσ : σ > 0.5 + d / log I.H₀)
+  (hH : H ∈ Set.Ico 1002 I.H₀)
+  (hT : T ≥ I.H₀) :
+  riemannZeta.N' σ T ≤ ( (T - H) * log T ) / (2 * π * d) * log (1 + KLN.CC₁ I.H₀ α d δ k H σ * (log (k * T))^(2*σ) * (log T)^(4*(1-σ)) * T^(8/3*(1-σ)) / (T - H) ) + KLN.CC₂ I.H₀ d η k H μ σ * (log T)^2 / (2 * π * d)
   ∧
-  riemannZeta.N' σ T ≤ KLN.CC₁ H₀ α d δ k H σ * (log (k * T))^(2*σ) * (log T)^(5 - 4*σ) * T^(8/3*(1-σ)) / (2 * π * d) + KLN.CC₂ H₀ d η k H μ σ * (log T)^2 / (2 * π * d) := by sorry
+  riemannZeta.N' σ T ≤ KLN.CC₁ I.H₀ α d δ k H σ * (log (k * T))^(2*σ) * (log T)^(5 - 4*σ) * T^(8/3*(1-σ)) / (2 * π * d) + KLN.CC₂ I.H₀ d η k H μ σ * (log T)^2 / (2 * π * d) := by sorry
 
 def table_8 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ) := [
     (0.60, 0.65, 0.2456, 0.3089, 0.3405, 8.0587, 3.7669, 11.3285, 5.2954),
@@ -177,20 +190,24 @@ theorem theorem_3_1 {x T : ℝ} (hx : x > exp 50) (hodd : ∃ X, Odd X ∧ x = X
   $$ |\psi(x) - (x - \sum_{|\gamma| \leq T^*} x^\rho/\rho)| ≤ M x / T * log^{1-\omega} x  $$ for all $x ≥ x_M$. -/)]
 theorem theorem_3_2 (α ω : ℝ) (hα : α ∈ Set.Ioc 0 (1 / 2)) (hω : ω ∈ Set.Icc 0 1) : ∃ M xM : ℝ, ∀ x, ∀ T ∈ Set.Ioo (max 51 (log x)) ((x^α - 2) / 5), ∃ Tstar ∈ Set.Icc T (2.45 * T), ∀ x ≥ xM, ‖ψ x - (x - riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-Tstar) Tstar) (fun ρ ↦ x^ρ / ρ))‖ ≤ M * x / T * (log x)^(1 - ω) := by sorry
 
+noncomputable def ε₁ (x T : ℝ) : ℝ := 2 * (log x)^2 / T
+
 @[blueprint
   "fks-proposition-3-4"
   (title := "FKS Proposition 3.4")
   (statement := /--  Let $x > e^{50}$ and $3 \log x < T < \sqrt{x}/3$.  Then
   $$ E_\psi(x) ≤ \sum_{|\gamma| < T} |x^{\rho-1}/\rho| + 2 \log^2 x / T.$$-/)]
-theorem proposition_3_4 {x T : ℝ} (hx : x > exp 50) (hT : T ∈ Set.Ioo (3 * log x) (sqrt x / 3)) : Eψ x ≤ riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-T) T) (fun ρ ↦ ‖x^(ρ - 1) / ρ‖) + 2 * (log x)^2 / T := by sorry
+theorem proposition_3_4 {x T : ℝ} (hx : x > exp 50) (hT : T ∈ Set.Ioo (3 * log x) (sqrt x / 3)) : Eψ x ≤ riemannZeta.zeroes_sum (Set.Ioo 0 1) (Set.Ioo (-T) T) (fun ρ ↦ ‖x^(ρ - 1) / ρ‖) + ε₁ x T := by sorry
 
 noncomputable def riemannZeta.Sigma (T x a b : ℝ) : ℝ := 2 * (riemannZeta.zeroes_sum (Set.Ico a b) (Set.Ioo 0 T) (fun ρ ↦ x^(ρ.re - 1) / ρ.im))
+
+noncomputable def ε₂ (I : Inputs) (x σ₁ S₀ T₀ T : ℝ) : ℝ := 2 * x^(-0.5:ℝ) * (S₀ + I.B₁ T₀ T) + (x^(σ₁ - 1) - x^(-0.5:ℝ)) * (I.B₁ I.H₀ T)
 
 @[blueprint
   "fks-proposition-3-6"
   (title := "FKS Proposition 3.6")
   (statement := /-- Let $\sigma_1 \in (1/2,1)$ and let $(T_0,S_0)$ be taken from Table 1.  Then $\Sigma_0^{\sigma_1} ≤ 2 x^{-1/2} (S_0 + B_1(T_0,T)) + (x_1^{\sigma_1-1} - x^{-1/2}) B_1(H_0,T)$.-/)]
-theorem proposition_3_6 {b₁ b₂ b₃ H₀ σ₁ T₀ S₀ T x : ℝ} (hR : riemannZeta.Riemann_vonMangoldt_bound b₁ b₂ b₃) (hH₀ : riemannZeta.RH_up_to H₀) (hσ_1 : σ₁ ∈ Set.Icc 0.5 1) (hT₀S₀ : (T₀, S₀) ∈ table_1) (hT : T > T₀) (x : ℝ) : riemannZeta.Sigma T x 0 σ₁ ≤ 2 * x^(-0.5:ℝ) * (S₀ + B₁ b₁ b₂ b₃ T₀ T) + (x^(σ₁ - 1) - x^(-0.5:ℝ)) * (B₁ b₁ b₂ b₃ H₀ T) := by sorry
+theorem proposition_3_6 (I : Inputs) {σ₁ T₀ S₀ T x : ℝ} (hσ_1 : σ₁ ∈ Set.Icc 0.5 1) (hT₀S₀ : (T₀, S₀) ∈ table_1) (hT : T > T₀) (x : ℝ) : riemannZeta.Sigma T x 0 σ₁ ≤ ε₂ I x σ₁ S₀ T₀ T := by sorry
 
 noncomputable def Hσ (H₀ R σ : ℝ) : ℝ := max H₀ (exp (1 / (R*(1-σ))))
 
@@ -212,11 +229,15 @@ noncomputable def Hn (H₀ R σ₁ σ₂ : ℝ) (n N : ℕ) : ℝ := Hσ H₀ R 
   (statement := /-- If $\sigma < 1 - 1/R \log H_0$ then $H_σ = H_0$.-/)]
 theorem remark_3_7 {H₀ R σ : ℝ} (hσ : σ < 1 - 1 / (R * log H₀)) : Hσ H₀ R σ = H₀ := by sorry
 
+noncomputable def ε₃ (I : Inputs) (σ₁ σ₂ T x : ℝ) (N : ℕ) : ℝ :=
+  2 * x^(-(1 - σ₁) + (σ₂ - σ₁) / N) * (I.B₀ σ₁ (Hσ I.H₀ I.R σ₁) T) +
+  2 * x^(1 - σ₁) * (1 - x^(-(σ₂ - σ₁) / N)) * ∑ n ∈ Finset.Ico 1 N, (I.B₀ (σn σ₁ σ₂ n N) (Hn I.H₀ I.R σ₁ σ₂ n N) T) * x^((σ₂ - σ₁) * (n + 1) / N)
+
 @[blueprint
 "fks-proposition-3-8"
   (title := "FKS Proposition 3.8")
   (statement := /-- Let $N \geq 2$ be an integer.  If $5/8 \leq \sigma_1 < \sigma_2 \leq 1$, $T \geq H_0$, then $\Sigma_{\sigma_1}^{\sigma_2} ≤ 2 x^{-(1-\sigma_1)+(\sigma_2-\sigma_1/N)}B_0(\sigma_1, H_{\sigma_1}, T) + 2 x^{(1-\sigma_1)} (1 - x^{-(\sigma_2-\sigma_1)/N}) \sum_{n=1}^{N-1} B_0(\sigma^{(n)}, H^{(n)}, T) x^{(\sigma_2-\sigma_1) (n+1)/N}$.-/)]
-theorem proposition_3_8 {H₀ R σ₁ σ₂ T x : ℝ} (N : ℕ) (hH₀ : riemannZeta.RH_up_to H₀) (hR : riemannZeta.classicalZeroFree R) (ZDB : zero_density_bound) (hσ₁ : σ₁ ∈ Set.Icc (5 / 8) 1) (hσ₂ : σ₂ ∈ Set.Ioc σ₁ 1) (hσ : Set.Icc σ₁ σ₂ ⊆ ZDB.σ_range) (hT : T ≥ H₀) : riemannZeta.Sigma T x σ₁ σ₂ ≤ 2 * x^(-(1 - σ₁) + (σ₂ - σ₁) / N) * (ZDB.B₀  σ₁ (Hσ H₀ R σ₁) T) + 2 * x^(1 - σ₁) * (1 - x^(-(σ₂ - σ₁) / N)) * ∑ n ∈ Finset.Ico 1 N, (ZDB.B₀ (σn σ₁ σ₂ n N) (Hn H₀ R σ₁ σ₂ n N) T) * x^((σ₂ - σ₁) * (n + 1) / N) := by sorry
+theorem proposition_3_8 (I : Inputs) {σ₁ σ₂ T x : ℝ} (N : ℕ) (ZDB : zero_density_bound) (hσ₁ : σ₁ ∈ Set.Icc (5 / 8) 1) (hσ₂ : σ₂ ∈ Set.Ioc σ₁ 1) (hσ : Set.Icc σ₁ σ₂ ⊆ ZDB.σ_range) (hT : T ≥ I.H₀) : riemannZeta.Sigma T x σ₁ σ₂ ≤ ε₃ I σ₁ σ₂ T x N := by sorry
 
 @[blueprint
 "fks-corollary-3-10"
@@ -228,13 +249,13 @@ theorem corollary_3_10 {σ₁ σ₂ T x : ℝ} (hσ₁ : σ₁ ∈ Set.Icc 0.9 1
 "fks-proposition-3-11"
   (title := "FKS Proposition 3.11")
   (statement := /-- Let $5/8 < \sigma_2 \leq 1$, $t_0 = t_0(\sigma_2,x) = \max(H_{\sigma_2}, \exp( \sqrt{\log x}/R))$ and $T > 0$.  Let $K \geq 2$ and consider a strictly increasing sequence $(t_k)_{k=0}^K$ such that $t_k = T$.  Then $\Sigma_{\sigma_2}^1 ≤ 2 N(\sigma_2,T) x^{-1/R\log t_0}/t_0$ and $\Sigma_{\sigma_2}^1 ≤ 2 ((\sum_{k=1}^{K-1} N(\sigma_2, t_k) (x^{-1/R\log t_{k-1}} / t_{k-1} - x^{-1/(R \log t_k)}/t_k)) + x^{-1/R \log t_{K-1}}/t_{K-1} N(\sigma_2,T))$.-/)]
-theorem proposition_3_11 {H₀ R σ₂ T x : ℝ} (K : ℕ) (hH₀ : riemannZeta.RH_up_to H₀) (hR : riemannZeta.classicalZeroFree R) (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1) (t_seq : Fin (K+2) → ℝ) (ht0 : t_seq 0 = max (Hσ H₀ R σ₂) (exp (sqrt (log x) / R))) (htK : t_seq (Fin.last (K+1)) = T) (ht_incr : StrictMono t_seq) : riemannZeta.Sigma T x σ₂ 1 ≤ 2 * (riemannZeta.N' σ₂ T) * x^(-1 / (R * log (t_seq 0))) / (t_seq 0)
+theorem proposition_3_11 (I : Inputs) {σ₂ T x : ℝ} (K : ℕ) (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1) (t_seq : Fin (K + 2) → ℝ) (ht0 : t_seq 0 = max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x) / I.R))) (htK : t_seq (Fin.last (K + 1)) = T) (ht_incr : StrictMono t_seq) : riemannZeta.Sigma T x σ₂ 1 ≤ 2 * (riemannZeta.N' σ₂ T) * x^(-1 / (I.R * log (t_seq 0))) / (t_seq 0)
   ∧
-  riemannZeta.Sigma T x σ₂ 1 ≤ 2 * (∑ k ∈ Finset.Ioo 0 (Fin.last (K+1)), riemannZeta.N' σ₂ (t_seq k) * (x^(-1 / (R * log (t_seq (k - 1)))) / (t_seq (k - 1)) - x^(-1 / (R * log (t_seq k))) / (t_seq k)) ) + x^(-1 / (R * log (t_seq (Fin.last K).castSucc))) / (t_seq (Fin.last K).castSucc) * riemannZeta.N' σ₂ T := by sorry
+  riemannZeta.Sigma T x σ₂ 1 ≤ 2 * (∑ k ∈ Finset.Ioo 0 (Fin.last (K+1)), riemannZeta.N' σ₂ (t_seq k) * (x^(-1 / (I.R * log (t_seq (k - 1)))) / (t_seq (k - 1)) - x^(-1 / (I.R * log (t_seq k))) / (t_seq k)) ) + x^(-1 / (I.R * log (t_seq (Fin.last K).castSucc))) / (t_seq (Fin.last K).castSucc) * riemannZeta.N' σ₂ T := by sorry
 
-noncomputable def ε₄ (t₀ R x σ₂ : ℝ) (K : ℕ) (T : ℝ) (ZDB : zero_density_bound) : ℝ :=
+noncomputable def ε₄ (I : Inputs) (t₀ x σ₂ : ℝ) (K : ℕ) (T : ℝ) : ℝ :=
   let t : Fin (K+2) → ℝ := fun k ↦ t₀ * (T / t₀)^(k / K)
-  2 * ∑ k ∈ Finset.Ioo 0 (Fin.last (K+1)), (x^(-1 / (R * log (t k))) / (t k)) * (ZDB.N σ₂ (t (k + 1)) - ZDB.N σ₂ (t k)) + 2 * (ZDB.N σ₂ (t 1)) * x^(-1 / (R * log (t 0))) / (t 0)
+  2 * ∑ k ∈ Finset.Ioo 0 (Fin.last (K+1)), (x^(-1 / (I.R * log (t k))) / (t k)) * (I.ZDB.N σ₂ (t (k + 1)) - I.ZDB.N σ₂ (t k)) + 2 * (I.ZDB.N σ₂ (t 1)) * x^(-1 / (I.R * log (t 0))) / (t 0)
 
 @[blueprint
 "fks-corollary-3-12"
@@ -249,8 +270,8 @@ where
 \]
 and $\tilde{N}(\sigma, T)$ satisfy (ZDB) $N(\sigma, T) \leq \tilde{N}(\sigma, T)$.
 -/)]
-theorem corollary_3_12 {H₀ R σ₂ t₀ T x : ℝ} (K : ℕ) (hH₀ : riemannZeta.RH_up_to H₀) (hR : riemannZeta.classicalZeroFree R) (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1) (ht₀ : t₀ = max (Hσ H₀ R σ₂) (exp (sqrt (log x) / R))) (hT : T > t₀) (ZDB : zero_density_bound) :
-  riemannZeta.Sigma T x σ₂ 1 ≤ ε₄ t₀ R x σ₂ K T ZDB := by sorry
+theorem corollary_3_12 (I : Inputs) {σ₂ t₀ T x : ℝ} (K : ℕ) (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1) (ht₀ : t₀ = max (Hσ I.H₀ I.R σ₂) (exp (sqrt (log x) / I.R))) (hT : T > t₀) (ZDB : zero_density_bound) :
+  riemannZeta.Sigma T x σ₂ 1 ≤ ε₄ I t₀ x σ₂ K T := by sorry
 
 @[blueprint
 "fks-proposition-3-14"
@@ -265,15 +286,15 @@ Then, with $\varepsilon_4(x, \sigma_2, K, T)$ as defined in (3.22), we have that
 \end{equation}
 where $c_1$ is an admissible value for (ZDB) on some interval $[\sigma_1, 1]$. Moreover, both $\varepsilon_4(x, \sigma_2, K, T)$ and $\frac{\varepsilon_4(x, \sigma_2, K, T) t_0^2}{(\log t_0)^3}$ are decreasing in $x$ for $x > \exp(Re^2)$.
 -/)]
-theorem proposition_3_14 {R c : ℝ} (K : ℕ) (hR : riemannZeta.classicalZeroFree R) (hc : c > 1) (hK : K ≥ 2) (ZDB : zero_density_bound) :
-    let t₀ : ℝ → ℝ := fun x ↦ exp (sqrt (log x) / R)
+theorem proposition_3_14 (I : Inputs) {c : ℝ} (K : ℕ) (hc : c > 1) (hK : K ≥ 2) :
+    let t₀ : ℝ → ℝ := fun x ↦ exp (sqrt (log x) / I.R)
     let T : ℝ → ℝ := fun x ↦ (t₀ x)^c
-    let σ₂ : ℝ → ℝ := fun x ↦ 1 - 2 / (R * log (t₀ x))
+    let σ₂ : ℝ → ℝ := fun x ↦ 1 - 2 / (I.R * log (t₀ x))
     let w₁ : ℝ := 1 + (c - 1) / K
-    let C := 2 * (ZDB.c₁ (σ₂ 1)) * exp (16 * w₁ / (3 * R)) * w₁^3
-    let f : ℝ → ℝ := fun x ↦ C * (log (t₀ x))^(3 + 4 / (R * log (t₀ x))) / (t₀ x)^2
-    Asymptotics.IsEquivalent Filter.atTop (fun x ↦ ε₄ (t₀ x) R x (σ₂ x) K (T x) ZDB) f
-    ∧ AntitoneOn (fun x ↦ ε₄ (t₀ x) R x (σ₂ x) K (T x) ZDB) (Set.Ioi (exp (R * exp 2))) ∧ AntitoneOn (fun x ↦ (ε₄ (t₀ x) R x (σ₂ x) K (T x) ZDB) * (t₀ x)^2 / (log (t₀ x))^3) (Set.Ioi (exp (R * exp 2)))
+    let C := 2 * (I.ZDB.c₁ (σ₂ 1)) * exp (16 * w₁ / (3 * I.R)) * w₁^3
+    let f : ℝ → ℝ := fun x ↦ C * (log (t₀ x))^(3 + 4 / (I.R * log (t₀ x))) / (t₀ x)^2
+    Asymptotics.IsEquivalent Filter.atTop (fun x ↦ ε₄ I (t₀ x) x (σ₂ x) K (T x)) f
+    ∧ AntitoneOn (fun x ↦ ε₄ I (t₀ x) x (σ₂ x) K (T x)) (Set.Ioi (exp (I.R * exp 2))) ∧ AntitoneOn (fun x ↦ (ε₄ I (t₀ x) x (σ₂ x) K (T x)) * (t₀ x)^2 / (log (t₀ x))^3) (Set.Ioi (exp (I.R * exp 2)))
     := by sorry
 
 
