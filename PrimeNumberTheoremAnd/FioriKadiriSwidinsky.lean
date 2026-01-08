@@ -232,6 +232,10 @@ theorem proposition_3_11 {H₀ R σ₂ T x : ℝ} (K : ℕ) (hH₀ : riemannZeta
   ∧
   riemannZeta.Sigma T x σ₂ 1 ≤ 2 * (∑ k ∈ Finset.Ioo 0 (Fin.last (K+1)), riemannZeta.N' σ₂ (t_seq k) * (x^(-1 / (R * log (t_seq (k - 1)))) / (t_seq (k - 1)) - x^(-1 / (R * log (t_seq k))) / (t_seq k)) ) + x^(-1 / (R * log (t_seq (Fin.last K).castSucc))) / (t_seq (Fin.last K).castSucc) * riemannZeta.N' σ₂ T := by sorry
 
+noncomputable def ε₄ (t₀ R x σ₂ : ℝ) (K : ℕ) (T : ℝ) (ZDB : zero_density_bound) : ℝ :=
+  let t : Fin (K+2) → ℝ := fun k ↦ t₀ * (T / t₀)^(k / K)
+  2 * ∑ k ∈ Finset.Ioo 0 (Fin.last (K+1)), (x^(-1 / (R * log (t k))) / (t k)) * (ZDB.N σ₂ (t (k + 1)) - ZDB.N σ₂ (t k)) + 2 * (ZDB.N σ₂ (t 1)) * x^(-1 / (R * log (t 0))) / (t 0)
+
 @[blueprint
 "fks-corollary-3-12"
   (title := "FKS Corollary 3.12")
@@ -245,9 +249,34 @@ where
 \]
 and $\tilde{N}(\sigma, T)$ satisfy (ZDB) $N(\sigma, T) \leq \tilde{N}(\sigma, T)$.
 -/)]
-theorem corollary_3_12 {H₀ R σ₂ t₀ T x : ℝ} (K : ℕ) (hH₀ : riemannZeta.RH_up_to H₀) (hR : riemannZeta.classicalZeroFree R) (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1) (ht₀: t₀ = max (Hσ H₀ R σ₂) (exp (sqrt (log x) / R))) (hT: T > t₀) (ZDB : zero_density_bound) :
-  have t : Fin (K+2) → ℝ := fun k ↦ t₀ * (T / t₀)^(k / K)
-  riemannZeta.Sigma T x σ₂ 1 ≤ 2 * ∑ k ∈ Finset.Ioo 0 (Fin.last (K+1)), (x^(-1 / (R * log (t k)) / (t k)) * (ZDB.N σ₂ (t (k+1)) - ZDB.N σ₂ (t k)) ) + 2 * (ZDB.N σ₂ (t 1)) * x^(-1/R*(log (t 0))) / (t 0) := by sorry
+theorem corollary_3_12 {H₀ R σ₂ t₀ T x : ℝ} (K : ℕ) (hH₀ : riemannZeta.RH_up_to H₀) (hR : riemannZeta.classicalZeroFree R) (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1) (ht₀ : t₀ = max (Hσ H₀ R σ₂) (exp (sqrt (log x) / R))) (hT : T > t₀) (ZDB : zero_density_bound) :
+  riemannZeta.Sigma T x σ₂ 1 ≤ ε₄ t₀ R x σ₂ K T ZDB := by sorry
+
+@[blueprint
+"fks-proposition-3-14"
+  (title := "FKS Proposition 3-14")
+  (statement := /-- Fix $K \geq 2$ and $c > 1$, and set $t_0$, $T$, and $\sigma_2$ as functions of $x$ defined by
+\begin{equation}
+t_0 = t_0(x) = \exp\left(\sqrt{\frac{\log x}{R}}\right), \quad T = t_0^c, \quad \text{and} \quad \sigma_2 = 1 - \frac{2}{R \log t_0}.
+\end{equation}
+Then, with $\varepsilon_4(x, \sigma_2, K, T)$ as defined in (3.22), we have that as $x \to \infty$,
+\begin{equation}
+\varepsilon_4(x, \sigma_2, K, T) = (1 + o(1)) C \frac{(\log t_0)^{3 + \frac{4}{R \log t_0}}}{t_0^2}, \quad \text{with } C = 2c_1 e^{\frac{16w_1}{3R}} w_1^3, \text{ and } w_1 = 1 + \frac{c-1}{K},
+\end{equation}
+where $c_1$ is an admissible value for (ZDB) on some interval $[\sigma_1, 1]$. Moreover, both $\varepsilon_4(x, \sigma_2, K, T)$ and $\frac{\varepsilon_4(x, \sigma_2, K, T) t_0^2}{(\log t_0)^3}$ are decreasing in $x$ for $x > \exp(Re^2)$.
+-/)]
+theorem proposition_3_14 {R c : ℝ} (K : ℕ) (hR : riemannZeta.classicalZeroFree R) (hc : c > 1) (hK : K ≥ 2) (ZDB : zero_density_bound) :
+    let t₀ : ℝ → ℝ := fun x ↦ exp (sqrt (log x) / R)
+    let T : ℝ → ℝ := fun x ↦ (t₀ x)^c
+    let σ₂ : ℝ → ℝ := fun x ↦ 1 - 2 / (R * log (t₀ x))
+    let w₁ : ℝ := 1 + (c - 1) / K
+    let C := 2 * (ZDB.c₁ (σ₂ 1)) * exp (16 * w₁ / (3 * R)) * w₁^3
+    let f : ℝ → ℝ := fun x ↦ C * (log (t₀ x))^(3 + 4 / (R * log (t₀ x))) / (t₀ x)^2
+    Asymptotics.IsEquivalent Filter.atTop (fun x ↦ ε₄ (t₀ x) R x (σ₂ x) K (T x) ZDB) f
+    ∧ AntitoneOn (fun x ↦ ε₄ (t₀ x) R x (σ₂ x) K (T x) ZDB) (Set.Ioi (exp (R * exp 2))) ∧ AntitoneOn (fun x ↦ (ε₄ (t₀ x) R x (σ₂ x) K (T x) ZDB) * (t₀ x)^2 / (log (t₀ x))^3) (Set.Ioi (exp (R * exp 2)))
+    := by sorry
+
+
 
 noncomputable def A (x₀ : ℝ) : ℝ :=
   if log x₀ < 1000 then 0 -- junk value
