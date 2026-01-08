@@ -4,7 +4,7 @@ import PrimeNumberTheoremAnd.SecondarySummary
 namespace Lcm
 
 open ArithmeticFunction hiding log
-open Nat Real
+open Finset Nat Real
 
 blueprint_comment /--
 \section{The least common multiple sequence is not highly abundant for large \(n\)}
@@ -100,19 +100,12 @@ structure Criterion where
   (proof := /-- Obvious from the non-negativity of the left-hand side of \eqref{eq:main-ineq}. -/)
   (latexEnv := "lemma")]
 theorem Criterion.prod_p_le_prod_q (c : Criterion) : 4 * ∏ i, c.p i < ∏ i, c.q i := by
-  have hp_pos : ∀ i, (0 : ℝ) < c.p i := fun i ↦ cast_pos.mpr (c.hp i).pos
-  have hq_pos : ∀ i, (0 : ℝ) < c.q i := fun i ↦ cast_pos.mpr (c.hq i).pos
-  have hn_pos : (0 : ℝ) < c.n := cast_pos.mpr (lt_of_lt_of_le zero_lt_one c.hn)
-  have hL_pos : 0 < ∏ i : Fin 3, (1 + (1 : ℝ) / c.q i) :=
-    Finset.prod_pos fun i _ ↦ by positivity
-  have hBC_pos : 0 < (∏ i, (1 + (1 : ℝ) / (c.p i * (c.p i + 1)))) * (1 + 3 / (8 * c.n)) := by
-    positivity
+  have hBC_pos : 0 < (∏ i, (1 + (1 : ℝ) / (c.p i * (c.p i + 1)))) * (1 + 3 / (8 * c.n)) := by positivity
   have hR_pos : 0 < 1 - 4 * (∏ i, (c.p i : ℝ)) / ∏ i, (c.q i : ℝ) := by
     by_contra h
     exact absurd (c.h_crit.trans (mul_nonpos_of_nonneg_of_nonpos hBC_pos.le (not_lt.mp h)))
-      (not_le.mpr hL_pos)
-  have hQ_pos : 0 < ∏ i, (c.q i : ℝ) := Finset.prod_pos fun i _ ↦ hq_pos i
-  rw [sub_pos, div_lt_one hQ_pos] at hR_pos
+      (not_le.mpr <| prod_pos fun i _ ↦ by positivity)
+  rw [sub_pos, div_lt_one <| prod_pos fun i _ ↦ cast_pos.mpr (c.hq i).pos] at hR_pos
   exact_mod_cast hR_pos
 
 blueprint_comment /--
@@ -248,45 +241,25 @@ theorem Criterion.prod_q_eq (c : Criterion) : ∏ i, c.q i = (4 * ∏ i, c.p i) 
   -/)]
 noncomputable def Criterion.M (c : Criterion) : ℕ := (4 * ∏ i, c.p i) * c.m * c.L'
 
-@[blueprint
-  "lem:M-basic"
-  (title := "Basic properties of \\(M\\)")
-  (statement := /--
-  With notation as above, we have:
-  \begin{enumerate}
-    \item \(M < L_n\).
-    \item
-    \[
-      1 < \frac{L_n}{M} = \Bigl(1 - \frac{r}{q_1 q_2 q_3}\Bigr)^{-1}
-        < \Bigl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Bigr)^{-1}.
-    \]
-  \end{enumerate}
-  -/)
-  (proof := /--
-  The first item is by construction of the division algorithm.
-  For the second, note that
-  \[
-    L_n = q_1 q_2 q_3 L' = (4 p_1 p_2 p_3 m + r) L' > 4 p_1 p_2 p_3 m L' = M,
-  \]
-  since \(r>0\). For the third,
-  \[
-    \frac{L_n}{M} = \frac{4 p_1 p_2 p_3 m + r}{4 p_1 p_2 p_3 m}
-                = 1 + \frac{r}{4 p_1 p_2 p_3 m}
-                = \Bigl(1 - \frac{r}{4 p_1 p_2 p_3 m + r}\Bigr)^{-1}
-                = \Bigl(1 - \frac{r}{q_1 q_2 q_3}\Bigr)^{-1}.
-  \]
-  Since \(0 < r < 4p_1p_2p_3\) and \(4p_1p_2p_3 < q_1q_2q_3\), we have
-  \[
-    0<\frac{r}{q_1 q_2 q_3}<\frac{4p_1p_2p_3}{q_1 q_2 q_3},
-  \]
-  so
-  \[
-    \Bigl(1-\frac{r}{q_1 q_2 q_3}\Bigr)^{-1}
-    < \Bigl(1-\frac{4p_1p_2p_3}{q_1 q_2 q_3}\Bigr)^{-1}.
-  \]
-  -/)
-  (latexEnv := "lemma")]
-theorem Criterion.M_lt (c : Criterion) : c.M < L c.n := by sorry
+lemma Criterion.prod_q_dvd_L (c : Criterion) : ∏ i, c.q i ∣ L c.n :=
+  Fintype.prod_dvd_of_isRelPrime (fun i j h ↦ coprime_iff_isRelPrime.mp <|
+    (coprime_primes (c.hq i) (c.hq j)).mpr (c.hq_mono.injective.ne h)) fun i ↦ dvd_lcm <|
+      mem_Icc.mpr ⟨(c.hq i).one_le, (c.hq_mono.monotone (Fin.le_last i)).trans c.h_ord_3.le⟩
+
+lemma Criterion.L_pos (c : Criterion) : 0 < L c.n :=
+  lt_of_lt_of_le Nat.zero_lt_one <| one_le_iff_ne_zero.mpr fun h ↦ by simp_all [L]
+
+lemma Criterion.L'_pos (c : Criterion) : 0 < c.L' :=
+  div_pos (le_of_dvd c.L_pos c.prod_q_dvd_L) (prod_pos fun i _ ↦ (c.hq i).pos)
+
+lemma Criterion.m_pos (c : Criterion) : 0 < c.m :=
+  Nat.div_pos c.prod_p_le_prod_q.le (mul_pos (zero_lt_succ 3) (prod_pos fun i _ ↦ (c.hp i).pos))
+
+lemma Criterion.M_pos (c : Criterion) : 0 < c.M :=
+  mul_pos (mul_pos (mul_pos (zero_lt_succ 3) (prod_pos fun i _ ↦ (c.hp i).pos)) c.m_pos) c.L'_pos
+
+lemma Criterion.L_eq_prod_q_mul_L' (c : Criterion) : L c.n = (∏ i, c.q i) * c.L' := by
+  rw [L', Nat.mul_div_cancel' c.prod_q_dvd_L]
 
 @[blueprint
   "lem:M-basic"
@@ -326,7 +299,53 @@ theorem Criterion.M_lt (c : Criterion) : c.M < L c.n := by sorry
   \]
   -/)
   (latexEnv := "lemma")]
-theorem Criterion.Ln_div_M_gt (c : Criterion) : 1 < L c.n / c.M := by sorry
+theorem Criterion.M_lt (c : Criterion) : c.M < L c.n := by
+  calc c.M < ((4 * ∏ i, c.p i) * c.m + c.r) * c.L' :=
+        mul_lt_mul_of_pos_right (Nat.lt_add_of_pos_right c.r_ge) c.L'_pos
+    _ = (∏ i, c.q i) * c.L' := by rw [← c.prod_q_eq]
+    _ = L c.n := c.L_eq_prod_q_mul_L'.symm
+
+@[blueprint
+  "lem:M-basic"
+  (title := "Basic properties of \\(M\\)")
+  (statement := /--
+  With notation as above, we have:
+  \begin{enumerate}
+    \item \(M < L_n\).
+    \item
+    \[
+      1 < \frac{L_n}{M} = \Bigl(1 - \frac{r}{q_1 q_2 q_3}\Bigr)^{-1}
+        < \Bigl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Bigr)^{-1}.
+    \]
+  \end{enumerate}
+  -/)
+  (proof := /--
+  The first item is by construction of the division algorithm.
+  For the second, note that
+  \[
+    L_n = q_1 q_2 q_3 L' = (4 p_1 p_2 p_3 m + r) L' > 4 p_1 p_2 p_3 m L' = M,
+  \]
+  since \(r>0\). For the third,
+  \[
+    \frac{L_n}{M} = \frac{4 p_1 p_2 p_3 m + r}{4 p_1 p_2 p_3 m}
+                = 1 + \frac{r}{4 p_1 p_2 p_3 m}
+                = \Bigl(1 - \frac{r}{4 p_1 p_2 p_3 m + r}\Bigr)^{-1}
+                = \Bigl(1 - \frac{r}{q_1 q_2 q_3}\Bigr)^{-1}.
+  \]
+  Since \(0 < r < 4p_1p_2p_3\) and \(4p_1p_2p_3 < q_1q_2q_3\), we have
+  \[
+    0<\frac{r}{q_1 q_2 q_3}<\frac{4p_1p_2p_3}{q_1 q_2 q_3},
+  \]
+  so
+  \[
+    \Bigl(1-\frac{r}{q_1 q_2 q_3}\Bigr)^{-1}
+    < \Bigl(1-\frac{4p_1p_2p_3}{q_1 q_2 q_3}\Bigr)^{-1}.
+  \]
+  -/)
+  (latexEnv := "lemma")]
+theorem Criterion.Ln_div_M_gt (c : Criterion) : (1 : ℝ) < L c.n / c.M := by
+  rw [one_lt_div (cast_pos.mpr c.M_pos)]
+  exact_mod_cast c.M_lt
 
 @[blueprint
   "lem:M-basic"
@@ -367,8 +386,32 @@ theorem Criterion.Ln_div_M_gt (c : Criterion) : 1 < L c.n / c.M := by sorry
   -/)
   (latexEnv := "lemma")]
 theorem Criterion.Ln_div_M_lt (c : Criterion) :
-    L c.n / c.M < (1 - (4 : ℝ) * ∏ i, c.p i / ∏ i, c.q i)⁻¹ := by
-  sorry
+    L c.n / c.M < (1 - (4 : ℝ) * (∏ i, c.p i) / (∏ i, c.q i))⁻¹ := by
+  have hprod_q_pos_R : (0 : ℝ) < (∏ i, c.q i) := cast_pos.mpr <| prod_pos fun i _ ↦ (c.hq i).pos
+  have hLM_eq : (L c.n : ℝ) / c.M = ((∏ i, c.q i) : ℝ) / (((4 * ∏ i, c.p i) * c.m) : ℕ) := by
+    simp only [c.L_eq_prod_q_mul_L', M, cast_mul]
+    have hL'_ne : (c.L' : ℝ) ≠ 0 := cast_ne_zero.mpr c.L'_pos.ne'
+    field_simp
+    congr 1
+    exact prod_natCast univ c.q
+  have hLM_eq' : (L c.n : ℝ) / c.M = (1 - (c.r : ℝ) / (∏ i, c.q i))⁻¹ := by
+    have hprod_q_eq_R : ((∏ i, c.q i) : ℝ) = ((4 * ∏ i, c.p i) * c.m : ℕ) + c.r := by
+      exact_mod_cast c.prod_q_eq
+    have h4pm_pos : 0 < (4 * ∏ i, c.p i) * c.m := mul_pos
+      (mul_pos (by norm_num) <| prod_pos fun i _ ↦ (c.hp i).pos) c.m_pos
+    rw [hLM_eq, hprod_q_eq_R]
+    have hne : (((4 * ∏ i, c.p i) * c.m : ℕ) : ℝ) ≠ 0 := cast_ne_zero.mpr h4pm_pos.ne'
+    have hsum_pos : (0 : ℝ) < ((4 * ∏ i, c.p i) * c.m : ℕ) + c.r := by positivity
+    field_simp
+    simp_all
+  have h1_sub_pos : (0 : ℝ) < 1 - (4 : ℝ) * (∏ i, c.p i) / (∏ i, c.q i) := by
+    rw [sub_pos, div_lt_one hprod_q_pos_R]; exact_mod_cast c.prod_p_le_prod_q
+  have hsub_lt : 1 - (4 : ℝ) * (∏ i, c.p i) / (∏ i, c.q i) <
+      1 - (c.r : ℝ) / (∏ i, c.q i) := by gcongr; exact_mod_cast c.r_le
+  rw [hLM_eq']
+  have hinv := one_div_lt_one_div_of_lt h1_sub_pos hsub_lt
+  simp only [one_div] at hinv
+  convert hinv using 2
 
 blueprint_comment /--
 \subsection{A sufficient condition}
