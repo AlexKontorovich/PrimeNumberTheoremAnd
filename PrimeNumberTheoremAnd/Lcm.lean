@@ -1045,7 +1045,22 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
     have hq' : n * (1 + 1 / (log √n) ^ 3) ^ (-3:ℝ) ≤ (exists_q_primes hn).choose 0 := by
       convert (exists_q_primes hn).choose_spec.2.2.1 0 using 2
       norm_num
-    have hmid : √n * (1 + 1 / (log √n) ^ 3) ^ 3 < n * (1 + 1 / (log √n) ^ 3) ^ (-3:ℝ) := by sorry
+    have hmid : √n * (1 + 1 / (log √n) ^ 3) ^ 3 < n * (1 + 1 / (log √n) ^ 3) ^ (-3 : ℝ) := by
+      norm_cast
+      norm_num [rpow_neg_one] at *
+      rw [← div_eq_mul_inv, lt_div_iff₀ <| pow_pos hε_pos 3]
+      have hlog : log √n > 11 := by
+        rw [gt_iff_lt, lt_log_iff_exp_lt (by positivity)]
+        calc exp 11 = exp 1 ^ 11 := by norm_num [← exp_nat_mul]
+          _ < 89693 := by
+            have := exp_one_lt_d9.le
+            calc exp 1 ^ 11 ≤ 2.7182818286 ^ 11 := by gcongr
+              _ < 89693 := by norm_num
+          _ ≤ √n := hsqrt_ge
+      have : (1 + ((log √n) ^ 3)⁻¹) ^ 6 < 2 :=
+        calc (1 + ((log √n) ^ 3)⁻¹) ^ 6 < (1 + (11 ^ 3 : ℝ)⁻¹) ^ 6 := by gcongr
+          _ ≤ 2 := by norm_num
+      nlinarith [mul_self_sqrt (Nat.cast_nonneg n)]
     exact_mod_cast hp'.trans_lt <| hmid.trans_le hq'
   h_ord_3 := (exists_q_primes hn).choose_spec.2.2.2
   h_crit := sorry
