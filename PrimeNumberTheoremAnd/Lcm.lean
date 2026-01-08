@@ -59,6 +59,8 @@ In this note we record the structure of an argument showing that, for all suffic
 the integer \(L_n\) is \emph{not} highly abundant.  This argument was taken from
 \href{https://mathoverflow.net/questions/501066/is-the-least-common-multiple-sequence-textlcm1-2-dots-n-a-subset-of-t?noredirect=1\#comment1313839_501066}{this MathOverflow answer}.
 
+It has previously been verified in Lean that \(L_n\) is highly aboundant for $n \leq 70$, $81 \leq n \leq 96$, $125 \leq n \leq 148$, $169 \leq n \leq 172$, and not highly aboundant for all other $n ≤ 10^{10}$.  The arguments here establish the non-highly-abundance of \(L_n\) for all $n \geq 89683^2$ sufficiently large \(n\), thus completing the determination in Lean of all $n$ for which \(L_n\) is highly abundant.
+
 \subsection{A general criterion using three medium primes and three large primes}
 -/
 
