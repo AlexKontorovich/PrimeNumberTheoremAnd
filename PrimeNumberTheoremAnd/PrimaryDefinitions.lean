@@ -83,7 +83,7 @@ def riemannZeta.Riemann_vonMangoldt_bound (b₁ b₂ b₃ : ℝ) : Prop :=
   "zero-density-bound"
   (title := "Zero density bound")
   (statement := /-- An estimate of the form $N(\sigma,T) \leq c₁ T^p \log^q T + c₂ \log^2 T - \frac{T}{2\pi} \log \frac{T}{2\pi e} + \frac{7}{8}| ≤ b_1 \log T + b_2 \log\log T + b_3$ for $T \geq 2$. -/)]
-structure riemannZeta.zero_density_bound where
+structure zero_density_bound where
 T₀ : ℝ
 σ_range : Set ℝ
 c₁ : ℝ → ℝ
@@ -92,3 +92,5 @@ p : ℝ → ℝ
 q : ℝ → ℝ
 bound : ∀ T ≥ T₀, ∀ σ ∈ σ_range,
     riemannZeta.N' σ T ≤ (c₁ σ) * T ^ (p σ) * (log T) ^ (q σ) + (c₂ σ) * (log T) ^ 2
+
+noncomputable def zero_density_bound.N {ZDB : zero_density_bound} (σ T : ℝ) : ℝ := (ZDB.c₁ σ) * T ^ (ZDB.p σ) * (log T) ^ (ZDB.q σ) + (ZDB.c₂ σ) * (log T) ^ 2

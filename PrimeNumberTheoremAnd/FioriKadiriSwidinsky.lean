@@ -48,7 +48,7 @@ noncomputable def _root_.Real.Gamma.incomplete (s : ℝ) (x : ℝ) : ℝ := ∫ 
 
 noncomputable def _root_.Complex.Gamma.incomplete (s : ℂ) (x : ℝ) : ℂ := ∫ t in Set.Ioi x, exp (-t) * t ^ (s - 1)
 
-noncomputable def riemannZeta.zero_density_bound.B₀ (ZDB : riemannZeta.zero_density_bound) (σ U V : ℝ) : ℝ :=
+noncomputable def _root_.zero_density_bound.B₀ (ZDB : zero_density_bound) (σ U V : ℝ) : ℝ :=
   (ZDB.c₁ σ) * (log V)^(ZDB.q σ) / V ^ (1 - (ZDB.p σ)) + (ZDB.c₂ σ) * (log V)^2 / V
   + (ZDB.c₁ σ / (1 - ZDB.p σ)^(ZDB.q σ+1)) * (Real.Gamma.incomplete (ZDB.q σ+1) ((1-ZDB.p σ)*(log U)) - Real.Gamma.incomplete (ZDB.q σ+1) ((1-ZDB.p σ)*(log V)))
   + (ZDB.c₂ σ) * (Real.Gamma.incomplete 3 ((log U)) - Real.Gamma.incomplete 3 ((log V))
@@ -58,13 +58,13 @@ noncomputable def riemannZeta.zero_density_bound.B₀ (ZDB : riemannZeta.zero_de
   "fks-lemma-2-5"
   (title := "FKS Lemma 2.5")
   (statement := /-- Let $T_0 \geq 2$ and $\gamma > 0$.  Assume that there exist $c_1, c_2, p, q, T_0$ for which one has a zero density bound.  Assume $\sigma \geq 5/8$ and $T_0 \leq U < V$.  Then $s_0(σ,U,V) \leq B_0(\sigma,U,V)$. -/)]
-theorem lemma_2_5 (ZDB: riemannZeta.zero_density_bound) {σ U V : ℝ}
+theorem lemma_2_5 (ZDB: zero_density_bound) {σ U V : ℝ}
   (hT₀ : ZDB.T₀ ≥ 2)
   (hσ : σ ≥ 5 / 8)
   (hσ' : σ ∈ ZDB.σ_range)
   (hU : U ≥ ZDB.T₀)
   (hV : V > U) :
-  s₀ σ U V ≤ riemannZeta.zero_density_bound.B₀ ZDB σ U V := by sorry
+  s₀ σ U V ≤ ZDB.B₀ σ U V := by sorry
 
 @[blueprint
   "fks-remark-2-6-a"
@@ -154,7 +154,7 @@ def table_8 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ)
   "fks-corollary-2-9"
   (title := "FKS Corollary 2.9")
   (statement := /-- For each $\sigma_1, \sigma_2, \tilde c_1, \tilde c_2$ given in Table 8, we have $N(\sigma,T) \leq \tilde c_1 T^{p(\sigma)} \log^{q(\sigma)} + \tilde c_2 \log^2 T$ for $\sigma_1 \leq \sigma \leq \sigma_2$ with $p(\sigma) = 8/3 (1-\sigma)$ and $q(σ) = 5-2\sigma$.-/)]
-noncomputable def corollary_2_9 {σ₁ σ₂ α δ d CC_1 c₁ CC_2 c₂ : ℝ} (h : (σ₁, σ₂, α, δ, d, CC_1, c₁, CC_2, c₂) ∈ table_8) : riemannZeta.zero_density_bound := {
+noncomputable def corollary_2_9 {σ₁ σ₂ α δ d CC_1 c₁ CC_2 c₂ : ℝ} (h : (σ₁, σ₂, α, δ, d, CC_1, c₁, CC_2, c₂) ∈ table_8) : zero_density_bound := {
     T₀ := 3e12
     σ_range := Set.Icc σ₁ σ₂
     c₁ σ := c₁
@@ -216,7 +216,7 @@ theorem remark_3_7 {H₀ R σ : ℝ} (hσ : σ < 1 - 1 / (R * log H₀)) : Hσ H
 "fks-proposition-3-8"
   (title := "FKS Proposition 3.8")
   (statement := /-- Let $N \geq 2$ be an integer.  If $5/8 \leq \sigma_1 < \sigma_2 \leq 1$, $T \geq H_0$, then $\Sigma_{\sigma_1}^{\sigma_2} ≤ 2 x^{-(1-\sigma_1)+(\sigma_2-\sigma_1/N)}B_0(\sigma_1, H_{\sigma_1}, T) + 2 x^{(1-\sigma_1)} (1 - x^{-(\sigma_2-\sigma_1)/N}) \sum_{n=1}^{N-1} B_0(\sigma^{(n)}, H^{(n)}, T) x^{(\sigma_2-\sigma_1) (n+1)/N}$.-/)]
-theorem proposition_3_8 {H₀ R σ₁ σ₂ T x : ℝ} (N : ℕ) (hH₀ : riemannZeta.RH_up_to H₀) (hR : riemannZeta.classicalZeroFree R) (ZDB : riemannZeta.zero_density_bound) (hσ₁ : σ₁ ∈ Set.Icc (5 / 8) 1) (hσ₂ : σ₂ ∈ Set.Ioc σ₁ 1) (hσ : Set.Icc σ₁ σ₂ ⊆ ZDB.σ_range) (hT : T ≥ H₀) : riemannZeta.Sigma T x σ₁ σ₂ ≤ 2 * x^(-(1 - σ₁) + (σ₂ - σ₁) / N) * (riemannZeta.zero_density_bound.B₀ ZDB σ₁ (Hσ H₀ R σ₁) T) + 2 * x^(1 - σ₁) * (1 - x^(-(σ₂ - σ₁) / N)) * ∑ n ∈ Finset.Ico 1 N, (riemannZeta.zero_density_bound.B₀ ZDB (σn σ₁ σ₂ n N) (Hn H₀ R σ₁ σ₂ n N) T) * x^((σ₂ - σ₁) * (n + 1) / N) := by sorry
+theorem proposition_3_8 {H₀ R σ₁ σ₂ T x : ℝ} (N : ℕ) (hH₀ : riemannZeta.RH_up_to H₀) (hR : riemannZeta.classicalZeroFree R) (ZDB : zero_density_bound) (hσ₁ : σ₁ ∈ Set.Icc (5 / 8) 1) (hσ₂ : σ₂ ∈ Set.Ioc σ₁ 1) (hσ : Set.Icc σ₁ σ₂ ⊆ ZDB.σ_range) (hT : T ≥ H₀) : riemannZeta.Sigma T x σ₁ σ₂ ≤ 2 * x^(-(1 - σ₁) + (σ₂ - σ₁) / N) * (ZDB.B₀  σ₁ (Hσ H₀ R σ₁) T) + 2 * x^(1 - σ₁) * (1 - x^(-(σ₂ - σ₁) / N)) * ∑ n ∈ Finset.Ico 1 N, (ZDB.B₀ (σn σ₁ σ₂ n N) (Hn H₀ R σ₁ σ₂ n N) T) * x^((σ₂ - σ₁) * (n + 1) / N) := by sorry
 
 @[blueprint
 "fks-corollary-3-10"
@@ -232,8 +232,22 @@ theorem proposition_3_11 {H₀ R σ₂ T x : ℝ} (K : ℕ) (hH₀ : riemannZeta
   ∧
   riemannZeta.Sigma T x σ₂ 1 ≤ 2 * (∑ k ∈ Finset.Ioo 0 (Fin.last (K+1)), riemannZeta.N' σ₂ (t_seq k) * (x^(-1 / (R * log (t_seq (k - 1)))) / (t_seq (k - 1)) - x^(-1 / (R * log (t_seq k))) / (t_seq k)) ) + x^(-1 / (R * log (t_seq (Fin.last K).castSucc))) / (t_seq (Fin.last K).castSucc) * riemannZeta.N' σ₂ T := by sorry
 
-
-
+@[blueprint
+"fks-corollary-3-12"
+  (title := "FKS Corollary 3.12")
+  (statement := /-- Let $5/8 < \sigma_2 \leq 1$, $t_0 = t_0(\sigma_2, x) = \max\left(H_{\sigma_2}, \exp\left(\sqrt{\frac{\log x}{R}}\right)\right)$, $T > t_0$. Let $K \geq 2$, $\lambda = (T/t_0)^{1/K}$, and consider $(t_k)_{k=0}^K$ the sequence given by $t_k = t_0 \lambda^k$. Then
+\[
+\Sigma^1_{\sigma_2} = 2 \sum_{\substack{0 < \gamma < T \\ \sigma_2 \leq \beta < 1}} \frac{x^{\beta-1}}{\gamma} \leq \varepsilon_4(x, \sigma_2, K, T),
+\]
+where
+\[
+\varepsilon_4(x, \sigma_2, K, T) = 2 \sum_{k=1}^{K-1} \frac{x^{-\frac{1}{R \log t_k}}}{t_k} \left( \tilde{N}(\sigma_2, t_{k+1}) - \tilde{N}(\sigma_2, t_k) \right) + 2\tilde{N}(\sigma_2, t_1) \frac{x^{-\frac{1}{R(\log t_0)}}}{t_0},
+\]
+and $\tilde{N}(\sigma, T)$ satisfy (ZDB) $N(\sigma, T) \leq \tilde{N}(\sigma, T)$.
+-/)]
+theorem corollary_3_12 {H₀ R σ₂ t₀ T x : ℝ} (K : ℕ) (hH₀ : riemannZeta.RH_up_to H₀) (hR : riemannZeta.classicalZeroFree R) (hσ₂ : σ₂ ∈ Set.Ioc (5 / 8) 1) (ht₀: t₀ = max (Hσ H₀ R σ₂) (exp (sqrt (log x) / R))) (hT: T > t₀) (ZDB : zero_density_bound) :
+  have t : Fin (K+2) → ℝ := fun k ↦ t₀ * (T / t₀)^(k / K)
+  riemannZeta.Sigma T x σ₂ 1 ≤ 2 * ∑ k ∈ Finset.Ioo 0 (Fin.last (K+1)), (x^(-1 / (R * log (t k)) / (t k)) * (ZDB.N σ₂ (t (k+1)) - ZDB.N σ₂ (t k)) ) + 2 * (ZDB.N σ₂ (t 1)) * x^(-1/R*(log (t 0))) / (t 0) := by sorry
 
 noncomputable def A (x₀ : ℝ) : ℝ :=
   if log x₀ < 1000 then 0 -- junk value
