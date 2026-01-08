@@ -3,11 +3,11 @@ import PrimeNumberTheoremAnd.PrimaryDefinitions
 import Mathlib.NumberTheory.ArithmeticFunction.Moebius
 
 blueprint_comment /--
-\section{A Lemma involving the M\"obius Function}"}
+\section{A Lemma involving the M\"obius Function"}
 -/
 
 blueprint_comment /--
-In this section we establish a lemma involving sums of the M\"obius function
+In this section we establish a lemma involving sums of the M\"obius function.
 -/
 
 namespace MobiusLemma
@@ -52,6 +52,11 @@ $$\int_0^x M\left(\sqrt{\frac{x}{u}}\right) du = \int_0^x \sum_{n\leq \sqrt{\fra
 theorem mobius_lemma_1 (x : ℝ) (hx : x > 0) :
   R x = ∑ k ∈ Finset.Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) -
         ∫ u in 0..x, (M (Real.sqrt (x / u)) : ℝ) := by sorry
+
+blueprint_comment /--
+Since our sums start from $1$, the sum $\sum_{k\leq K}$ is empty for $K=0$.
+-/
+
 
 @[blueprint
   "mobius-lemma-2"
