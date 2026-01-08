@@ -455,9 +455,30 @@ We give a sufficient condition for $\sigma(M) \geq \sigma(L_n)$.
   (proofUses := ["lem:M-basic"])
   (latexEnv := "lemma")]
 theorem Criterion.not_highlyAbundant_1 (c : Criterion)
-    (h : σnorm c.M * (1 - (4 : ℝ) * ∏ i, c.p i / ∏ i, c.q i) ≥ σnorm (L c.n)) :
+    (h : σnorm c.M * (1 - (4 : ℝ) * (∏ i, c.p i) / (∏ i, c.q i)) ≥ σnorm (L c.n)) :
     ¬HighlyAbundant (L c.n) := by
-  sorry
+  intro hHA
+  have hM_pos : (0 : ℝ) < c.M := cast_pos.mpr c.M_pos
+  have hLn_pos : (0 : ℝ) < L c.n := cast_pos.mpr c.L_pos
+  have hσnorm_Ln_pos : 0 < σnorm (L c.n) := by
+    rw [σnorm]; exact div_pos (cast_pos.mpr <| by rw [σ, sigma_pos_iff]; exact c.L_pos) hLn_pos
+  have hprod_q_pos : (0 : ℝ) < (∏ i, c.q i) := cast_pos.mpr (prod_pos fun i _ ↦ (c.hq i).pos)
+  have h1_sub_pos : (0 : ℝ) < 1 - (4 : ℝ) * (∏ i, c.p i) / (∏ i, c.q i) := by
+    rw [sub_pos, div_lt_one hprod_q_pos]; exact_mod_cast c.prod_p_le_prod_q
+  have h1_sub_lt : 1 - (4 : ℝ) * (∏ i, c.p i) / (∏ i, c.q i) < c.M / L c.n := by
+    have hinv_lt := c.Ln_div_M_lt
+    rw [lt_inv_comm₀ (div_pos hLn_pos hM_pos) h1_sub_pos, inv_div] at hinv_lt
+    exact hinv_lt
+  have hσM_gt : (σ c.M : ℝ) > σ (L c.n) := by
+    have hσnorm_gt : σnorm c.M > σnorm (L c.n) * (L c.n / c.M) :=
+      calc σnorm c.M ≥ σnorm (L c.n) / (1 - (4 : ℝ) * (∏ i, c.p i) / (∏ i, c.q i)) := by
+            rw [ge_iff_le, div_le_iff₀ h1_sub_pos]; exact h
+        _ > σnorm (L c.n) / (c.M / L c.n) := by gcongr
+        _ = σnorm (L c.n) * (L c.n / c.M) := by rw [div_div_eq_mul_div, mul_div_assoc]
+    calc (σ c.M : ℝ) = σnorm c.M * c.M := by field_simp [σnorm]
+      _ > σnorm (L c.n) * (L c.n / c.M) * c.M := by nlinarith
+      _ = σ (L c.n) := by field_simp [σnorm, c.M_pos.ne']
+  exact not_lt.mpr (cast_lt.mp hσM_gt).le (hHA c.M c.M_lt)
 
 blueprint_comment /--
 Combining Lemma \ref{lem:criterion-sufficient} with Lemma \ref{lem:sigmaLn}, we see that it suffices to bound \(\sigma(M)/M\) from below in terms of \(\sigma(L')/L'\):
