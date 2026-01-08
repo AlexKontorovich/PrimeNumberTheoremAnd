@@ -1,0 +1,160 @@
+\input{../../.lake/build/blueprint/library/PrimeNumberTheoremAnd}
+
+\usepackage{amsmath, amsthm}
+\usepackage{hyperref}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{remark}{Remark}
+
+\title{Prime Number Theorem And ...}
+
+\newcommand{\eps}{\varepsilon}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\li}{\operatorname{li}}
+\newcommand{\Li}{\operatorname{Li}}
+
+\begin{document}
+\maketitle
+
+\chapter{The project}
+
+The project github page is \url{https://github.com/AlexKontorovich/PrimeNumberTheoremAnd}.
+
+The project docs page is \url{https://alexkontorovich.github.io/PrimeNumberTheoremAnd/docs}.
+
+The first main goal is to prove the Prime Number Theorem in Lean.
+(This remains one of the outstanding problems on Wiedijk's list of 100 theorems to formalize.)
+Note that PNT has been formalized before, first by Avigad et al in Isabelle,
+\url{https://arxiv.org/abs/cs/0509025}
+following the Selberg / Erdos method, then
+by Harrison in HOL Light
+\url{https://www.cl.cam.ac.uk/$\sim$jrh13/papers/mikefest.html}
+via Newman's proof.
+Carniero gave another formalization in Metamath of the Selberg / Erdos method:
+\url{https://arxiv.org/abs/1608.02029},
+and Eberl-Paulson gave a formalization of Newman's proof in Isabelle:
+\url{https://www.isa-afp.org/entries/Prime\_Number\_Theorem.html}
+
+Continuations of this project aim to extend
+this work to primes in progressions (Dirichlet's theorem), Chebotarev's density theorem, etc
+etc.
+
+There are (at least) three approaches to PNT that we may want to pursue simultaneously. The quickest, at this stage, is likely to
+follow
+ the ``Euler Products'' project by Michael Stoll, which has a proof of PNT missing only the Wiener-Ikehara Tauberian theorem.
+
+The second develops some complex analysis (residue calculus on rectangles, argument principle, Mellin transforms), to pull contours and derive a PNT with an error term which is stronger than any power of log savings.
+
+The third approach, which will be the most general of the three, is to: (1) develop the residue calculus et al, as above, (2) add the Hadamard factorization theorem, (3) use it to prove the zero-free region for zeta via Hoffstein-Lockhart+Goldfeld-Hoffstein-Liemann (which generalizes to higher degree L-functions), and (4) use this to prove the prime number theorem with exp-root-log savings.
+
+A word about the expected ``rate-limiting-steps'' in each of the approaches.
+
+(*) In approach (1), I think it will be the fact that the Fourier transform is a bijection on the Schwartz class. There is a recent PR (\url{https://github.com/leanprover-community/mathlib4/pull/9773}) with David Loeffler and Heather Macbeth making the first steps in that direction, just computing the (Frechet) derivative of the Fourier transform. One will need to iterate on that to get arbitrary derivatives, to conclude that the transform of a Schwartz function is Schwartz. Then to get the bijection, we need an inversion formula. We can derive Fourier inversion *from* Mellin inversion! So it seems that the most important thing to start is Perron's formula.
+
+(*) In approach (2), there are two rate-limiting-steps, neither too serious (in my estimation). The first is how to handle meromorphic functions on rectangles. Perhaps in this project, it should not be done in any generality, but on a case by case basis. There are two simple poles whose residues need to be computed in the proof of the Perron formula, and one simple pole in the log-derivative of zeta, nothing too complicated, and maybe we shouldn't get bogged down in the general case. The other is the fact that the $\epsilon$-smoothed Chebyshev function differs from the unsmoothed by $\epsilon X$ (and not $\epsilon X \log X$, as follows from a trivial bound). This needs a Brun-Titchmarsh type theorem, perhaps can be done even more easily in this case with a Selberg sieve, on which there is (partial?) progress in Mathlib.
+
+(*) In approach (3), it's obviously the Hadamard factorization, which needs quite a lot of nontrivial mathematics. (But after that, the math is not hard, on top of things in approach (2) -- and if we're getting the strong error term, we can afford to lose $\log X$ in the Chebyshev discussion above...).
+
+\chapter{First approach: Wiener-Ikehara Tauberian theorem}
+
+\section{A Fourier-analytic proof of the Wiener-Ikehara theorem}
+\inputleanmodule{PrimeNumberTheoremAnd.Wiener}
+
+\chapter{Second approach}
+
+\section{Residue calculus on rectangles}
+\inputleanmodule{PrimeNumberTheoremAnd.Rectangle}
+\inputleanmodule{PrimeNumberTheoremAnd.ResidueCalcOnRectangles}
+
+\section{Perron Formula}
+\inputleanmodule{PrimeNumberTheoremAnd.PerronFormula}
+
+\section{Mellin transforms}
+\inputleanmodule{PrimeNumberTheoremAnd.MellinCalculus}
+\inputleanmodule{PrimeNumberTheoremAnd.SmoothExistence}
+
+\section{Zeta Bounds}
+\inputleanmodule{PrimeNumberTheoremAnd.ZetaConj}
+\inputleanmodule{PrimeNumberTheoremAnd.ZetaBounds}
+
+\section{Proof of Medium PNT}
+\inputleanmodule{PrimeNumberTheoremAnd.MediumPNT}
+
+
+\chapter{Third Approach}
+
+\section{Hadamard factorization}
+\inputleanmodule{PrimeNumberTheoremAnd.HadamardFactorization}
+
+\section{Hoffstein-Lockhart}
+\inputleanmodule{PrimeNumberTheoremAnd.HoffsteinLockhart}
+
+\section{Strong PNT}
+\inputleanmodule{PrimeNumberTheoremAnd.BorelCaratheodory}
+\inputleanmodule{PrimeNumberTheoremAnd.DerivativeBound}
+\inputleanmodule{PrimeNumberTheoremAnd.StrongPNT}
+
+
+\chapter{Elementary Corollaries}
+
+\inputleanmodule{PrimeNumberTheoremAnd.Consequences}
+
+\chapter{Explicit estimates}
+
+We will try to systematically collect explicit estimates related to the prime number theorem from
+the literature, and formalize them in a modular fashion.  We divide such estimates into three
+classes:
+
+\begin{itemize}
+    \item \emph{Primary} explicit estimates: those that are directly control $\psi(x)$ and $M(x)$,
+    usually via information on the zeta function.
+    \item \emph{Secondary} explicit estimates: these are useful general-purpose estimates on
+    functions relating to the primes, such as bounds on the $n$-th prime, or estimates for the prime
+    counting function $\pi(x)$.  These are generally derived from primary estimates and elementary arguments.
+    \item \emph{Tertiary} explicit estimates: these are bespoke applications to particular problems
+    in analytic number theory or combinatorics that often require secondary estimates as input.
+\end{itemize}
+
+In this project we will state the best available primary estimates known in the literature, and try
+to formalize at least some of them; state the best available secondary estimates known in the
+literature, as well as various tools from passing from primary to secondary estimates, and
+formalize these; and then finally formalize some tertiary estimates as applications of the
+secondary ones.
+
+\chapter{Primary explicit estimates}
+
+\inputleanmodule{PrimeNumberTheoremAnd.PrimaryDefinitions}
+
+\inputleanmodule{PrimeNumberTheoremAnd.FioriKadiriSwidinsky}
+
+\inputleanmodule{PrimeNumberTheoremAnd.PrimarySummary}
+
+\chapter{Secondary explicit estimates}
+
+\inputleanmodule{PrimeNumberTheoremAnd.SecondaryDefinitions}
+
+\inputleanmodule{PrimeNumberTheoremAnd.RosserSchoenfeld}
+
+\inputleanmodule{PrimeNumberTheoremAnd.BKLNW}
+
+\inputleanmodule{PrimeNumberTheoremAnd.FKS2}
+
+\inputleanmodule{PrimeNumberTheoremAnd.SecondarySummary}
+
+\chapter{Tertiary explicit estimates}
+
+\inputleanmodule{PrimeNumberTheoremAnd.Lcm}
+
+\inputleanmodule{PrimeNumberTheoremAnd.Erdos392}
+
+\end{document}

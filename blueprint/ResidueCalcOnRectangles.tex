@@ -1,0 +1,84 @@
+
+\begin{definition}[RectangleIntegral]\label{RectangleIntegral}\lean{RectangleIntegral}\leanok
+A RectangleIntegral of a function $f$ is one over a rectangle determined by $z$ and $w$ in $\C$.
+We will sometimes denote it by $\int_{z}^{w} f$. (There is also a primed version, which is $1/(2\pi i)$ times the original.)
+\end{definition}
+
+
+It is very convenient to define integrals along vertical lines in the complex plane, as follows.
+\begin{definition}[VerticalIntegral]\label{VerticalIntegral}\lean{VerticalIntegral}\leanok
+Let $f$ be a function from $\mathbb{C}$ to $\mathbb{C}$, and let $\sigma$ be a real number. Then we define
+$$\int_{(\sigma)}f(s)ds = \int_{\sigma-i\infty}^{\sigma+i\infty}f(s)ds.$$
+\end{definition}
+
+ We also have a version with a factor of $1/(2\pi i)$.
+
+
+\begin{theorem}[existsDifferentiableOn_of_bddAbove]\label{existsDifferentiableOn_of_bddAbove}\lean{existsDifferentiableOn_of_bddAbove}\leanok
+If $f$ is differentiable on a set $s$ except at $c\in s$, and $f$ is bounded above on $s\setminus\{c\}$, then there exists a differentiable function $g$ on $s$ such that $f$ and $g$ agree on $s\setminus\{c\}$.
+\end{theorem}
+
+
+\begin{proof}\leanok
+This is the Riemann Removable Singularity Theorem, slightly rephrased from what's in Mathlib. (We don't care what the function $g$ is, just that it's holomorphic.)
+\end{proof}
+
+
+\begin{theorem}[HolomorphicOn.vanishesOnRectangle]\label{HolomorphicOn.vanishesOnRectangle}\lean{HolomorphicOn.vanishesOnRectangle}\leanok
+If $f$ is holomorphic on a rectangle $z$ and $w$, then the integral of $f$ over the rectangle with corners $z$ and $w$ is $0$.
+\end{theorem}
+
+
+\begin{proof}\leanok\uses{RectangleBorder}
+This is in a Mathlib PR.
+\end{proof}
+
+
+The next lemma allows to zoom a big rectangle down to a small square, centered at a pole.
+
+\begin{lemma}[RectanglePullToNhdOfPole]\label{RectanglePullToNhdOfPole}\lean{RectanglePullToNhdOfPole}\leanok
+If $f$ is holomorphic on a rectangle $z$ and $w$ except at a point $p$, then the integral of $f$
+over the rectangle with corners $z$ and $w$ is the same as the integral of $f$ over a small square
+centered at $p$.
+\end{lemma}
+
+
+\begin{proof}\uses{HolomorphicOn.vanishesOnRectangle, RectangleBorder}\leanok
+Chop the big rectangle with two vertical cuts and two horizontal cuts into smaller rectangles,
+the middle one being the desired square. The integral over each of the outer rectangles
+vanishes, since $f$ is holomorphic there. (The constant $c$ being ``small enough'' here just means
+that the inner square is strictly contained in the big rectangle.)
+
+\end{proof}
+
+
+\begin{lemma}[ResidueTheoremAtOrigin]\label{ResidueTheoremAtOrigin}
+\lean{ResidueTheoremAtOrigin}\leanok
+The rectangle (square) integral of $f(s) = 1/s$ with corners $-1-i$ and $1+i$ is equal to $2\pi i$.
+\end{lemma}
+
+
+\begin{proof}\leanok
+This is a special case of the more general result above.
+\end{proof}
+
+
+\begin{lemma}[ResidueTheoremOnRectangleWithSimplePole]\label{ResidueTheoremOnRectangleWithSimplePole}
+\lean{ResidueTheoremOnRectangleWithSimplePole}\leanok
+Suppose that $f$ is a holomorphic function on a rectangle, except for a simple pole
+at $p$. By the latter, we mean that there is a function $g$ holomorphic on the rectangle such that, $f = g + A/(s-p)$ for some $A\in\C$. Then the integral of $f$ over the
+rectangle is $A$.
+\end{lemma}
+
+
+\begin{proof}
+\uses{ResidueTheoremAtOrigin, RectanglePullToNhdOfPole, HolomorphicOn.vanishesOnRectangle}
+\leanok
+Replace $f$ with $g + A/(s-p)$ in the integral.
+The integral of $g$ vanishes by Lemma \ref{HolomorphicOn.vanishesOnRectangle}.
+ To evaluate the integral of $1/(s-p)$,
+pull everything to a square about the origin using Lemma \ref{RectanglePullToNhdOfPole},
+and rescale by $c$;
+what remains is handled by Lemma \ref{ResidueTheoremAtOrigin}.
+\end{proof}
+
