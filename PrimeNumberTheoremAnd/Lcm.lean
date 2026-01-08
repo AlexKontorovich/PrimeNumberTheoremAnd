@@ -663,11 +663,11 @@ theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   have upper {y : ℝ} (hy : 0 < y) (hlog_ge : log y ≥ log x) {p : ℕ}
       (hp : (p : ℝ) ≤ y + y / (log y) ^ (3 : ℝ)) : (p : ℝ) ≤ y * (1 + ε) := by
     have h : y / (log y) ^ (3 : ℝ) ≤ y / (log x) ^ (3 : ℝ) :=
-      div_le_div_of_nonneg_left hy.le (Real.rpow_pos_of_pos hlog_pos 3)
+      div_le_div_of_nonneg_left hy.le (rpow_pos_of_pos hlog_pos 3)
         (rpow_le_rpow hlog_pos.le hlog_ge (by grind))
     calc (p : ℝ) ≤ y + y / (log y) ^ (3 : ℝ) := hp
       _ ≤ y + y / (log x) ^ (3 : ℝ) := add_le_add_right h y
-      _ = y * (1 + ε) := by simp only [hε_def, ← Real.rpow_natCast]; grind
+      _ = y * (1 + ε) := by simp only [hε_def, ← rpow_natCast]; grind
   have hε_pos : 0 < ε := by positivity
   have hx1_ge : x * (1 + ε) ≥ X₀ := hx_ge.trans (le_mul_of_one_le_right hx_pos.le (by grind))
   have hx2_ge : x * (1 + ε) ^ 2 ≥ X₀ := hx_ge.trans (le_mul_of_one_le_right hx_pos.le
@@ -677,14 +677,13 @@ theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   obtain ⟨p₂, hp₂_prime, hp₂_lb, hp₂_ub⟩ := Dusart.proposition_5_4 _ hx2_ge
   have hp₀_ub' : (p₀ : ℝ) ≤ x * (1 + ε) := upper hx_pos le_rfl hp₀_ub
   have hp₁_ub' : (p₁ : ℝ) ≤ x * (1 + ε) ^ 2 := by
-    linarith [sq (1 + ε), upper (by grind) (Real.log_le_log hx_pos (by grind)) hp₁_ub]
+    linarith [sq (1 + ε), upper (by grind) (log_le_log hx_pos (by grind)) hp₁_ub]
   have hp₂_ub' : (p₂ : ℝ) ≤ x * (1 + ε) ^ 3 := by
-    linarith [pow_succ (1 + ε) 2, upper (by grind) (Real.log_le_log hx_pos (by grind)) hp₂_ub]
-  refine ⟨![p₀, p₁, p₂], fun i => by fin_cases i <;> assumption,
-    Fin.strictMono_iff_lt_succ.mpr fun i => by
-      fin_cases i
-      · exact cast_lt.mp (hp₀_ub'.trans_lt hp₁_lb)
-      · exact cast_lt.mp (hp₁_ub'.trans_lt hp₂_lb), fun i => ?_, hp₀_lb⟩
+    linarith [pow_succ (1 + ε) 2, upper (by grind) (log_le_log hx_pos (by grind)) hp₂_ub]
+  refine ⟨![p₀, p₁, p₂], fun i => by fin_cases i <;> assumption, Fin.strictMono_iff_lt_succ.mpr fun i ↦ by
+    fin_cases i
+    · exact cast_lt.mp (hp₀_ub'.trans_lt hp₁_lb)
+    · exact cast_lt.mp (hp₁_ub'.trans_lt hp₂_lb), fun i ↦ ?_, hp₀_lb⟩
   fin_cases i <;> norm_num
   · convert hp₀_ub' using 2
   · convert hp₁_ub' using 2
