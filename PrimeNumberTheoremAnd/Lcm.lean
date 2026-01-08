@@ -868,7 +868,7 @@ theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
 theorem prod_epsilon_le (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
     ∏ i : Fin 3, (1 + (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) * ε) ≤
       1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 := by
-  sorry
+  norm_cast; norm_num [Fin.prod_univ_three]; nlinarith
 
 @[blueprint
   "lem:poly-ineq"
@@ -886,7 +886,7 @@ theorem prod_epsilon_le (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
     \Bigl(1 + \frac{3}{8}\varepsilon\Bigr)
     \Bigl(1 - \frac{4 \times 1.000675^{12}}{89693}\varepsilon\Bigr)
     \ge
-    1 + 3.37\varepsilon - 0.01\varepsilon^2.
+    1 + 3.36687\varepsilon - 0.01\varepsilon^2.
   \]
   -/)
   (proof := /--
@@ -903,8 +903,8 @@ theorem prod_epsilon_le (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
 theorem prod_epsilon_ge (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
     (∏ i : Fin 3, (1 + ε / (1.000675 : ℝ) ^ (2 * ((i : ℕ) + 1 : ℝ)))) *
         (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * ε) ≥
-      1 + 3.37 * ε - 0.01 * ε ^ 2 := by
-  sorry
+      1 + 3.36687 * ε - 0.01 * ε ^ 2 := by
+  norm_cast; norm_num [Fin.prod_univ_three]; nlinarith [pow_nonneg hε.left 3, pow_nonneg hε.left 4]
 
 @[blueprint
   "lem:final-comparison"
@@ -913,18 +913,18 @@ theorem prod_epsilon_ge (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   For \(0 \le \varepsilon \le 1/89693^2\), we have
   \[
     1 + 3.01\varepsilon + 3.01\varepsilon^2 + 1.01\varepsilon^3
-    \le 1 + 3.37\varepsilon - 0.01\varepsilon^2.
+    \le 1 + 3.36687\varepsilon - 0.01\varepsilon^2.
   \]
   -/)
   (proof := /--
   This is equivalent to
   \[
     3.01\varepsilon + 3.01\varepsilon^2 + 1.01\varepsilon^3
-    \le 3.37\varepsilon - 0.01\varepsilon^2,
+    \le 3.36687\varepsilon - 0.01\varepsilon^2,
   \]
   or
   \[
-    0 \le (3.37 - 3.01)\varepsilon - (3.01+0.01)\varepsilon^2 - 1.01\varepsilon^3.
+    0 \le (3.36687 - 3.01)\varepsilon - (3.01+0.01)\varepsilon^2 - 1.01\varepsilon^3.
   \]
   Factor out \(\varepsilon\) and use that \(0<\varepsilon \le 1/89693^2\) to check that the
   resulting quadratic in \(\varepsilon\) is nonnegative on this interval.  Again, this is a
@@ -932,7 +932,7 @@ theorem prod_epsilon_ge (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   -/)
   (latexEnv := "lemma")]
 theorem final_comparison (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
-    1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.37 * ε - 0.01 * ε ^ 2 := by
+    1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.36687 * ε - 0.01 * ε ^ 2 := by
   nlinarith
 
 @[blueprint
