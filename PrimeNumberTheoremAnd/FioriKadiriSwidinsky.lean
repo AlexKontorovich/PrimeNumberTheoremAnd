@@ -50,8 +50,8 @@ noncomputable def _root_.Complex.Gamma.incomplete (s : ℂ) (x : ℝ) : ℂ := �
 
 noncomputable def B₀ (c₁ c₂ p q : ℝ) (U V : ℝ) : ℝ :=
   c₁ * (log V)^q / V ^ (1 - p) + c₂ * (log V)^2 / V
-  + (c₁ / (1 - p)^(q+1)) * (Real.Gamma.incomplete (q+1) ((1-p)*(log U)) - Real.Gamma.incomplete (q+1) ((1-p)*(log V)))
-  + c₂ * (Real.Gamma.incomplete 3 ((log U)) - Real.Gamma.incomplete 3 ((log V))
+  + (c₁ / (1 - p)^(q+1)) * (Gamma.incomplete (q+1) ((1-p)*(log U)) - Gamma.incomplete (q+1) ((1-p)*(log V)))
+  + c₂ * (Gamma.incomplete 3 ((log U)) - Gamma.incomplete 3 ((log V))
   )
 
 @[blueprint
@@ -70,60 +70,46 @@ theorem lemma_2_5 {T₀ σ c₁ c₂ p q U V : ℝ}
   "fks-remark-2-6-a"
   (title := "FKS Remark 2-6-a")
   (statement := /-- $\Gamma(3,x) = (x^2 + 2(x+1)) e^{-x}$.-/)]
-theorem remark_2_6_a (x : ℝ) (hx : 0 ≤ x) : Real.Gamma.incomplete 3 x = (x^2 + 2 * (x + 1)) * exp (-x) := by
-
-  have Gamma_incomplete_integrand_intervalIntegrable (s : ℝ) {x a : ℝ} (hs : 0 < s) (ha : 0 ≤ a) :
-    IntegrableOn (fun x => exp (-x) * x ^ (s - 1) : ℝ → ℝ) (Set.Ioi a) := by
-    have hf_integrable : Integrable (fun x => exp (-x) * x ^ (s - 1) : ℝ → ℝ) (MeasureTheory.volume.restrict (Set.Ioi (0 : ℝ))) := by
-      simpa [IntegrableOn] using GammaIntegral_convergent hs
-    apply hf_integrable.mono_measure
-    exact MeasureTheory.Measure.restrict_mono_set _ (Set.Ioi_subset_Ioi (by linarith ))
-
-  have Gamma_incomplete_add_one (s : ℝ) (hs : 0 < s) {x : ℝ} (hx : 0 ≤ x) :
-    Real.Gamma.incomplete (s + 1) x = x ^ s * exp (-x) + s * Real.Gamma.incomplete s x := by
-    unfold Real.Gamma.incomplete
+theorem remark_2_6_a (x : ℝ) (hx : 0 ≤ x) :
+    Gamma.incomplete 3 x = (x ^ 2 + 2 * (x + 1)) * exp (-x) := by
+  have integrableOn_Ioi (s : ℝ) {a : ℝ} (hs : 0 < s) (ha : 0 ≤ a) :
+      IntegrableOn (fun t ↦ exp (-t) * t ^ (s - 1)) (Set.Ioi a) :=
+    (GammaIntegral_convergent hs).mono_set (Set.Ioi_subset_Ioi ha)
+  have recurrence (s : ℝ) (hs : 0 < s) {y : ℝ} (hy : 0 ≤ y) :
+      Gamma.incomplete (s + 1) y = y ^ s * exp (-y) + s * Gamma.incomplete s y := by
+    unfold Gamma.incomplete
     conv_lhs => arg 2; intro t; rw [mul_comm]
     norm_num
-    rw [MeasureTheory.integral_Ioi_mul_deriv_eq_deriv_mul
-      (u := fun t => t^s)
-      (v := fun t => -exp (-t))
-      (u' := fun t => s*t^(s-1))
-      (v' := fun t => exp (-t))
-      (a' := - x ^ s * exp (-x) )
-      (b' := 0)
-    ]
+    rw [integral_Ioi_mul_deriv_eq_deriv_mul (u := fun t ↦ t ^ s) (v := fun t ↦ -exp (-t))
+        (u' := fun t ↦ s * t ^ (s - 1)) (v' := fun t ↦ exp (-t))
+        (a' := -y ^ s * exp (-y)) (b' := 0)]
     · ring_nf
       simp [sub_eq_add_neg, integral_neg, ← integral_const_mul, mul_assoc, mul_comm]
-    · intro t ht;
-      exact Real.hasDerivAt_rpow_const ( Or.inl ( by linarith [ Set.mem_Ioi.mp ht ] ) )
-    · intro t _; convert (hasDerivAt_neg t).exp.neg using 1; norm_num;
-    · specialize Gamma_incomplete_integrand_intervalIntegrable (s + 1) (by linarith) (by linarith);
-      · exact 0;
-      · simpa [ mul_comm ] using Gamma_incomplete_integrand_intervalIntegrable
-    · have := @Gamma_incomplete_integrand_intervalIntegrable s x x hs hx;
-      apply this.const_mul ( -s ) |> fun h => h.congr _;
-      filter_upwards [ MeasureTheory.ae_restrict_mem measurableSet_Ioi ] with t ht using by norm_num; ring;
-    · convert Filter.Tendsto.mul ( Filter.Tendsto.rpow ( Filter.tendsto_id.mono_left inf_le_left ) tendsto_const_nhds _ ) ( Filter.Tendsto.neg ( Real.continuous_exp.continuousAt.tendsto.comp ( Filter.Tendsto.neg ( Filter.tendsto_id.mono_left inf_le_left ) ) ) ) using 1 <;> aesop
-    · have h_lim : Filter.Tendsto (fun t : ℝ => t ^ s * Real.exp (-t)) Filter.atTop (nhds 0) := by
-        have := Real.tendsto_pow_mul_exp_neg_atTop_nhds_zero;
-        apply squeeze_zero_norm' _ ( this ⌈s⌉₊ );
-        filter_upwards [ Filter.eventually_gt_atTop 1 ] with x hx using by rw [ Real.norm_of_nonneg ( by positivity ) ] ; exact mul_le_mul_of_nonneg_right ( by simpa using Real.rpow_le_rpow_of_exponent_le hx.le <| Nat.le_ceil s ) <| by positivity;
+    · exact fun t ht ↦ hasDerivAt_rpow_const (by grind)
+    · exact fun t _ ↦ by convert (hasDerivAt_neg t).exp.neg using 1; norm_num
+    · simpa [mul_comm] using integrableOn_Ioi (s + 1) (by grind) (by grind : 0 ≤ y)
+    · refine ((integrableOn_Ioi s hs hy).const_mul (-s)).congr ?_
+      filter_upwards [ae_restrict_mem measurableSet_Ioi] with t _; norm_num; ring
+    · convert Filter.Tendsto.mul
+        (Filter.Tendsto.rpow (Filter.tendsto_id.mono_left inf_le_left) tendsto_const_nhds _)
+        (Filter.Tendsto.neg (continuous_exp.continuousAt.tendsto.comp
+          (Filter.Tendsto.neg (Filter.tendsto_id.mono_left inf_le_left)))) using 1 <;> aesop
+    · have h_lim : Filter.Tendsto (fun t : ℝ ↦ t ^ s * exp (-t)) Filter.atTop (nhds 0) := by
+        apply squeeze_zero_norm' _ (tendsto_pow_mul_exp_neg_atTop_nhds_zero ⌈s⌉₊)
+        filter_upwards [Filter.eventually_gt_atTop 1] with t ht
+        rw [norm_of_nonneg (by positivity)]
+        exact mul_le_mul_of_nonneg_right
+          (by simpa using rpow_le_rpow_of_exponent_le ht.le <| Nat.le_ceil s) (by positivity)
       convert h_lim.neg using 2 <;> norm_num
-
-  rw [show (3 : ℝ) = 2 + 1 by norm_num]
-  rw [Gamma_incomplete_add_one 2 (by linarith) hx]
-  rw [show (2 : ℝ) = 1 + 1 by norm_num]
-  rw [Gamma_incomplete_add_one 1 (by linarith) hx]
-  unfold Real.Gamma.incomplete
-  have h_int : ∫ t in Set.Ioi x, Real.exp (-t) = Real.exp (-x) := by
-      simpa using integral_exp_neg_Ioi x;
-  norm_num [ h_int ] ; ring
+  rw [show (3 : ℝ) = 2 + 1 by norm_num, recurrence 2 (by norm_num) hx,
+      show (2 : ℝ) = 1 + 1 by norm_num, recurrence 1 (by norm_num) hx]
+  norm_num [Gamma.incomplete, integral_exp_neg_Ioi x]; ring
 
 @[blueprint
   "fks-remark-2-6-b"
   (title := "FKS Remark 2-6-b")
   (statement := /-- For $s>1$, one has $\Gamma(s,x) \sim x^{s-1} e^{-x}$.-/)]
-theorem remark_2_6_b (s : ℝ) (h : s > 1) : Filter.Tendsto (fun x ↦ Real.Gamma.incomplete s x / (x^(s-1) * exp (-x))) Filter.atTop (nhds 1) := by sorry
+theorem remark_2_6_b (s : ℝ) (h : s > 1) : Filter.Tendsto (fun x ↦ Gamma.incomplete s x / (x^(s-1) * exp (-x))) Filter.atTop (nhds 1) := by sorry
 
 @[blueprint
   "fks-theorem-2-7"
