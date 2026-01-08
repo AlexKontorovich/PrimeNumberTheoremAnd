@@ -520,10 +520,27 @@ Combining Lemma \ref{lem:criterion-sufficient} with Lemma \ref{lem:sigmaLn}, we 
   (proofUses := ["lem:sigmaLn", "lem:criterion-sufficient"])
   (latexEnv := "lemma")]
 theorem Criterion.not_highlyAbundant_2 (c : Criterion)
-    (h : σnorm c.M ≥ σnorm c.L' * ∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ))) *
-      (1 + (3 : ℝ) / (8 * c.n))) :
-    ¬HighlyAbundant (L c.n) := by
-  sorry
+    (h : σnorm c.M ≥ σnorm c.L' * (∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ)))) *
+    (1 + (3 : ℝ) / (8 * c.n))) : ¬HighlyAbundant (L c.n) := by
+  refine c.not_highlyAbundant_1 ?_
+  have hL'_pos : 0 < σnorm c.L' := by
+    rw [σnorm]; exact div_pos (cast_pos.mpr <| by rw [σ, sigma_pos_iff]; exact c.L'_pos)
+      (cast_pos.mpr c.L'_pos)
+  have hR_pos : (0 : ℝ) < 1 - 4 * (∏ i, c.p i) / (∏ i, c.q i) := by
+    rw [sub_pos, div_lt_one (cast_pos.mpr <| prod_pos fun i _ ↦ (c.hq i).pos)]
+    exact_mod_cast c.prod_p_le_prod_q
+  have hcrit : (∏ i, (1 + (1 : ℝ) / c.q i)) ≤ (∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ)))) *
+      (1 + 3 / (8 * c.n)) * (1 - (4 : ℝ) * (∏ i, c.p i) / (∏ i, c.q i)) := by
+    convert c.h_crit using 3; simp only [prod_natCast]
+  rw [c.σnorm_ln_eq]
+  calc σnorm c.L' * ∏ i, (1 + (1 : ℝ) / c.q i)
+    ≤ σnorm c.L' * ((∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ)))) * (1 + 3 / (8 * c.n)) *
+        (1 - (4 : ℝ) * (∏ i, c.p i) / (∏ i, c.q i))) :=
+          mul_le_mul_of_nonneg_left hcrit hL'_pos.le
+  _ = σnorm c.L' * (∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ)))) * (1 + 3 / (8 * c.n)) *
+    (1 - (4 : ℝ) * (∏ i, c.p i) / (∏ i, c.q i)) := by ring
+  _ ≤ σnorm c.M * (1 - (4 : ℝ) * (∏ i, c.p i) / (∏ i, c.q i)) :=
+    mul_le_mul_of_nonneg_right h hR_pos.le
 
 blueprint_comment /--
 \subsection{Conclusion of the criterion}
@@ -576,7 +593,7 @@ blueprint_comment /--
   -/)
   (latexEnv := "lemma")]
 theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) :
-    σnorm c.M ≥ σnorm c.L' * ∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ))) * (1 + 3 / (8 * c.n)) := by
+    σnorm c.M ≥ σnorm c.L' * (∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ)))) * (1 + 3 / (8 * c.n)) := by
   sorry
 
 
