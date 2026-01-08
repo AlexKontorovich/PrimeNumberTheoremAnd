@@ -78,6 +78,8 @@ and the key criterion
   \Bigl(1 + \frac{3}{8n}\Bigr)
   \Biggl(1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}\Biggr).
 \end{equation}
+
+NOTE: In the Lean formalization of this argument, we index the primes from 0 to 2 rather than from 1 to 3.
 -/
 
 structure Criterion where
