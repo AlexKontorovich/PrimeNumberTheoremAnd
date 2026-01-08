@@ -822,7 +822,7 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   (latexEnv := "lemma")]
 theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∏ i, (1 + (1 : ℝ) / ((exists_p_primes hn).choose i * ((exists_p_primes hn).choose i + 1))) ≥
-      ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n)) := by
+      ∏ i : Fin 3, (1 + 1 / ((1 + 1 / (log √(n : ℝ)) ^ 3) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n))) := by
   sorry
 
 @[blueprint
