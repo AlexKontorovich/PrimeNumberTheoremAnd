@@ -562,26 +562,24 @@ blueprint_comment /--
     By multiplicativity, we have
   $$
     \frac{\sigma(M)}{M}
-    \ge
-    \frac{\sigma(L')}{L'}
+    = \frac{\sigma(L')}{L'}
     \prod_p \frac{1+p^{-1}+\dots+p^{-\nu_p(M)}}{1+p^{-1}+\dots+p^{-\nu_p(L')}}.
   $$
   The contribution of $p=p_i$ is
   \[
-    \frac{(1+p_i+p_i^2)/p_i^2}{(1+p_i)/p_i}
+    \frac{(1+p_i^{-1}+p_i^^{-2})}{1+p^{-1}_i}
     = 1 + \frac{1}{p_i(p_i+1)}.
   \]
   The contribution of $p=2$ is
   \[
-    \frac{(1+2+\dots+2^{k+2})/2^{k+2}}{(1+2+\dots+2^k)/2^k},
+    \frac{1+2^{-1}+\dots+2^{-k-2}}{1+2^{-1}+\dots+2^{-k}},
   \]
-  where \(k\) is the largest integer such that \(2^k \le n\)
+  where \(k\) is the largest integer such that \(2^k \le n\).
   A direct calculation yields
   \[
-    \frac{1+2+\dots+2^{k+2}}{1+2+\dots+2^k}
-    = \frac{2^{k+3}-1}{2^{k+1}-1}
-    = 1 + \frac{3(2^k-1)}{2^{k+1}-1}
-    \ge 1 + \frac{3}{2^{k+3}-4},
+    \frac{(1+2^{-1}+\dots+2^{-k-2})}{1+2^{-1}+\dots+2^{-k}}
+    = \frac{2^{k+3}-1}{2^{k+3}-4}
+    = 1 + \frac{3}{2^{k+3}-4},
   \]
   Finally, since \(2^k \le n < 2^{k+1}\), we have \(2^{k+3} < 8n\), so
   \[
