@@ -381,19 +381,20 @@ lemma vertIntBound (xpos : 0 < x) (σ_gt_one : 1 < σ) :
   · simp [VerticalIntegral]
   · simp [Complex.norm_cpow_eq_rpow_re_of_pos xpos]
   · simp [integral_const_mul, div_eq_mul_inv]
-  by_cases hint : Integrable fun (a : ℝ) ↦ 1 / (‖σ + a * I‖ * ‖σ + a * I + 1‖)
-  swap; rw [integral_undef hint]; exact integral_nonneg <| fun t ↦ by positivity
-  conv => rhs; rhs; intro a; rhs
-  apply integral_mono hint
-  · have := integralPosAux
-    contrapose! this
-    simp_rw [integral_undef this, le_rfl]
-  rw [Pi.le_def]
-  intro t
-  gcongr <;> apply sqrt_le_sqrt
-  · simp_rw [normSq_add_mul_I, add_le_add_iff_right, one_le_pow₀ σ_gt_one.le]
-  · rw [add_right_comm, ← ofReal_one, ← ofReal_add, normSq_add_mul_I, add_le_add_iff_right]
-    nlinarith
+  · by_cases hint : Integrable fun (a : ℝ) ↦ 1 / (‖σ + a * I‖ * ‖σ + a * I + 1‖)
+    swap
+    · rw [integral_undef hint]; exact integral_nonneg <| fun t ↦ by positivity
+    conv => rhs; rhs; intro a; rhs
+    apply integral_mono hint
+    · have := integralPosAux
+      contrapose! this
+      simp_rw [integral_undef this, le_rfl]
+    rw [Pi.le_def]
+    intro t
+    gcongr <;> apply sqrt_le_sqrt
+    · simp_rw [normSq_add_mul_I, add_le_add_iff_right, one_le_pow₀ σ_gt_one.le]
+    · rw [add_right_comm, ← ofReal_one, ← ofReal_add, normSq_add_mul_I, add_le_add_iff_right]
+      nlinarith
   rfl
 
 
