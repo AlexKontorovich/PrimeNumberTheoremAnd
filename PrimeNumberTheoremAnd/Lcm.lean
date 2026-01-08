@@ -567,7 +567,7 @@ blueprint_comment /--
   $$
   The contribution of $p=p_i$ is
   \[
-    \frac{(1+p_i^{-1}+p_i^^{-2})}{1+p^{-1}_i}
+    \frac{(1+p_i^{-1}+p_i^{-2})}{1+p^{-1}_i}
     = 1 + \frac{1}{p_i(p_i+1)}.
   \]
   The contribution of $p=2$ is
