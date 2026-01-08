@@ -710,7 +710,7 @@ theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   (latexEnv := "lemma")]
 theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∃ q : Fin 3 → ℕ, (∀ i, Nat.Prime (q i)) ∧ StrictMono q ∧
-      (∀ i : Fin 3, n * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ (3 - (i : ℕ)) ≤ q i) ∧ q 2 < n := by
+      (∀ i : Fin 3, n * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ (-((3 : ℝ) - (i : ℕ))) ≤ q i) ∧ q 2 < n := by
   sorry
 
 blueprint_comment /--
@@ -744,7 +744,46 @@ blueprint_comment /--
 theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∏ i, (1 + (1 : ℝ) / (exists_q_primes hn).choose i) ≤
       ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((i : ℕ) + 1 : ℝ) / n) := by
-  sorry
+  rw [show ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((i : ℕ) + 1 : ℝ) / n) = ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) / n) by
+    rw [Fin.prod_univ_three, Fin.prod_univ_three]
+    conv =>
+      enter [1, 1, 1, 2, 1, 2]
+      equals 1 => simp
+    conv =>
+      enter [1, 1, 2, 2, 1, 2]
+      equals 2 => norm_cast
+    conv =>
+      enter [2, 1, 1, 2, 1, 2]
+      equals 3 => norm_cast
+    conv =>
+      enter [1, 2, 2, 1, 2]
+      equals 3 => norm_cast
+    conv =>
+      enter [2, 2, 2, 1, 2]
+      equals 1 => norm_cast
+    conv =>
+      enter [2, 1, 2, 2, 1, 2]
+      equals 2 => norm_cast
+    ring]
+  apply Finset.prod_le_prod (fun _ _ ↦ by positivity)
+  intro i _
+  suffices h : (1 : ℝ) / (exists_q_primes hn).choose i ≤ (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) / n from (by linarith)
+  have := (exists_q_primes hn).choose_spec.2.2.1 i
+  rw [show (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) / n = 1 / (n / (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) ) by field_simp]
+  have nbd : (10 : ℝ) < n := by norm_cast; linarith
+  have f0 : (0 : ℝ) < (log √(n : ℝ)) ^ 3 := by
+    apply pow_pos
+    apply Real.log_pos
+    rw [show (1 : ℝ) = √1 by norm_num]
+    apply Real.sqrt_lt_sqrt <;> linarith
+  have f : (0 : ℝ) < (1 + 1 / (log √(n : ℝ)) ^ 3) := by positivity
+  have f' : (0 : ℝ) < (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) := by positivity
+  apply one_div_le_one_div_of_le
+  · positivity
+  · convert this using 1
+    field_simp
+    rw [← rpow_add f]
+    simp
 
 @[blueprint
   "lem:pi-product"
