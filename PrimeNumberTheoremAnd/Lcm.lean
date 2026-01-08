@@ -114,6 +114,20 @@ blueprint_comment /--
 
 noncomputable def Criterion.L' (c : Criterion) : ℕ := L c.n / ∏ i, c.q i
 
+lemma Criterion.prod_q_dvd_L (c : Criterion) : ∏ i, c.q i ∣ L c.n :=
+  Fintype.prod_dvd_of_isRelPrime (fun i j h ↦ coprime_iff_isRelPrime.mp <|
+    (coprime_primes (c.hq i) (c.hq j)).mpr (c.hq_mono.injective.ne h)) fun i ↦ dvd_lcm <|
+      mem_Icc.mpr ⟨(c.hq i).one_le, (c.hq_mono.monotone (Fin.le_last i)).trans c.h_ord_3.le⟩
+
+lemma Criterion.L_pos (c : Criterion) : 0 < L c.n :=
+  lt_of_lt_of_le Nat.zero_lt_one <| one_le_iff_ne_zero.mpr fun h ↦ by simp_all [L]
+
+lemma Criterion.L'_pos (c : Criterion) : 0 < c.L' :=
+  div_pos (le_of_dvd c.L_pos c.prod_q_dvd_L) (prod_pos fun i _ ↦ (c.hq i).pos)
+
+lemma Criterion.L_eq_prod_q_mul_L' (c : Criterion) : L c.n = (∏ i, c.q i) * c.L' := by
+  rw [L', Nat.mul_div_cancel' c.prod_q_dvd_L]
+
 @[blueprint
   "lem:Lprime-def"
   (title := "Factorisation of \\(L_n\\)")
@@ -180,8 +194,26 @@ theorem Criterion.q_not_dvd_L' (c : Criterion) : ∀ i, ¬(c.q i ∣ c.L') := by
   (proofUses := ["lem:Lprime-def"])
   (latexEnv := "lemma")]
 theorem Criterion.σnorm_ln_eq (c : Criterion) :
-    σnorm (L c.n) = σnorm c.L' * ∏ i, (1 + 1 / c.q i) := by
-  sorry
+    σnorm (L c.n) = σnorm c.L' * ∏ i, (1 + (1 : ℝ) / c.q i) := by
+  have hcop : ∀ i j, i ≠ j → (c.q i).Coprime (c.q j) := fun i j h ↦
+    (coprime_primes (c.hq i) (c.hq j)).mpr (c.hq_mono.injective.ne h)
+  have hcopL' : ∀ i, (c.q i).Coprime c.L' := fun i ↦
+    (c.hq i).coprime_iff_not_dvd.mpr (c.q_not_dvd_L' i)
+  have hσ_prime : ∀ i, sigma 1 (c.q i) = 1 + c.q i := fun i ↦ by
+    rw [← pow_one (c.q i), sigma_one_apply_prime_pow (c.hq i), Finset.sum_range_succ,
+      Finset.range_one, Finset.sum_singleton, pow_zero, pow_one]
+  simp only [σnorm, σ, c.L_eq_prod_q_mul_L', Fin.prod_univ_three]
+  rw [show c.q 0 * c.q 1 * c.q 2 * c.L' = (c.q 0 * c.q 1 * c.q 2) * c.L' by ring,
+      isMultiplicative_sigma.map_mul_of_coprime (coprime_mul_iff_left.mpr
+        ⟨coprime_mul_iff_left.mpr ⟨hcopL' 0, hcopL' 1⟩, hcopL' 2⟩),
+      show c.q 0 * c.q 1 * c.q 2 = c.q 0 * (c.q 1 * c.q 2) by ring,
+      isMultiplicative_sigma.map_mul_of_coprime (coprime_mul_iff_right.mpr
+        ⟨hcop 0 1 Fin.zero_ne_one, hcop 0 2 <| not_eq_of_beq_eq_false rfl⟩),
+      isMultiplicative_sigma.map_mul_of_coprime (hcop 1 2 <| not_eq_of_beq_eq_false rfl),
+      hσ_prime, hσ_prime, hσ_prime]
+  have hq_ne : ∀ i, (c.q i : ℝ) ≠ 0 := fun i ↦ (cast_pos.mpr (c.hq i).pos).ne'
+  field_simp [hq_ne, (cast_pos.mpr c.L'_pos).ne']
+  grind
 
 def Criterion.m (c : Criterion) : ℕ := (∏ i, c.q i) / (4 * ∏ i, c.p i)
 
@@ -241,25 +273,11 @@ theorem Criterion.prod_q_eq (c : Criterion) : ∏ i, c.q i = (4 * ∏ i, c.p i) 
   -/)]
 noncomputable def Criterion.M (c : Criterion) : ℕ := (4 * ∏ i, c.p i) * c.m * c.L'
 
-lemma Criterion.prod_q_dvd_L (c : Criterion) : ∏ i, c.q i ∣ L c.n :=
-  Fintype.prod_dvd_of_isRelPrime (fun i j h ↦ coprime_iff_isRelPrime.mp <|
-    (coprime_primes (c.hq i) (c.hq j)).mpr (c.hq_mono.injective.ne h)) fun i ↦ dvd_lcm <|
-      mem_Icc.mpr ⟨(c.hq i).one_le, (c.hq_mono.monotone (Fin.le_last i)).trans c.h_ord_3.le⟩
-
-lemma Criterion.L_pos (c : Criterion) : 0 < L c.n :=
-  lt_of_lt_of_le Nat.zero_lt_one <| one_le_iff_ne_zero.mpr fun h ↦ by simp_all [L]
-
-lemma Criterion.L'_pos (c : Criterion) : 0 < c.L' :=
-  div_pos (le_of_dvd c.L_pos c.prod_q_dvd_L) (prod_pos fun i _ ↦ (c.hq i).pos)
-
 lemma Criterion.m_pos (c : Criterion) : 0 < c.m :=
   Nat.div_pos c.prod_p_le_prod_q.le (mul_pos (zero_lt_succ 3) (prod_pos fun i _ ↦ (c.hp i).pos))
 
 lemma Criterion.M_pos (c : Criterion) : 0 < c.M :=
   mul_pos (mul_pos (mul_pos (zero_lt_succ 3) (prod_pos fun i _ ↦ (c.hp i).pos)) c.m_pos) c.L'_pos
-
-lemma Criterion.L_eq_prod_q_mul_L' (c : Criterion) : L c.n = (∏ i, c.q i) * c.L' := by
-  rw [L', Nat.mul_div_cancel' c.prod_q_dvd_L]
 
 @[blueprint
   "lem:M-basic"
@@ -801,8 +819,6 @@ theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
   refine mul_le_mul_of_nonneg_left ?_ hn_pos.le
   have := Real.sqrt_le_sqrt (cast_le.mpr hn)
   simp_all
-
-
 
 @[blueprint
   "lem:poly-ineq"
