@@ -863,7 +863,38 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∏ i, (1 + (1 : ℝ) / ((exists_p_primes hn).choose i * ((exists_p_primes hn).choose i + 1))) ≥
       ∏ i : Fin 3, (1 + 1 / ((1 + 1 / (log √(n : ℝ)) ^ 3) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n))) := by
-  sorry
+  apply Finset.prod_le_prod
+  · intro i hi
+    have : 0 ≤ Real.log √n := by
+      rw [Real.log_sqrt (by simp)]
+      grw [hn]
+      simp [Real.log_nonneg]
+    positivity
+  set p := (exists_p_primes hn).choose
+  have h₀ : ∀ i, √n < p i := by
+    intro i
+    have : p 0 ≤ p i := by
+      apply (exists_p_primes hn).choose_spec.2.1.monotone
+      simp
+    grw [← this]
+    exact (exists_p_primes hn).choose_spec.2.2.2
+  intro i hi
+  gcongr 1 + 1 / ?_
+  · have := ((exists_p_primes hn).choose_spec.1 i).pos
+    positivity
+  have : p i ≤ √n * (1 + 1 / log √n ^ 3) ^ (i + 1 : ℝ) := (exists_p_primes hn).choose_spec.2.2.1 i
+  have h₁ : p i ^ 2 ≤ n * (1 + 1 / log √n ^ 3) ^ (2 * i + 2 : ℝ) := by
+    grw [this, mul_pow, sq_sqrt (by simp)]
+    norm_cast
+    rw [← pow_mul]
+    grind
+  have : 0 < (n : ℝ) := by positivity
+  have h₂ : p i + 1 ≤ p i * (1 / n * (n + √n)) := by
+    field_simp [this]
+    linear_combination √n * h₀ i - sq_sqrt (cast_nonneg n)
+  grw [h₂, ← mul_assoc, ← sq, h₁]
+  field_simp
+  rfl
 
 @[blueprint
   "lem:pq-ratio"
