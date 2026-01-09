@@ -23,3 +23,6 @@ Simply visit: <https://gitpod.io/new/#https://github.com/AlexKontorovich/PrimeNu
 
 All the required dependencies will be loaded (this takes a few minutes), after which you will be brought to a web-based
 vscode window, where you can edit the code, and submit PR's.
+
+## License
+This project is licensed under the Apache 2.0 License. ee the [LICENSE](LICENSE) file for details.
