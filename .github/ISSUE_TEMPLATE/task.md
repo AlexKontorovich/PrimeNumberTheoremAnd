@@ -1,7 +1,7 @@
 ---
 name: Formalization Task
 about: Create a new formalization task for contributors
-title: ''
+title: '[FILE]: Task'
 labels: 'task'
 assignees: ''
 
