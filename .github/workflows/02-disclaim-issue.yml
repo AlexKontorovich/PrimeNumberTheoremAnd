@@ -8,6 +8,8 @@ jobs:
   disclaim_issue:
     if: github.event.issue.pull_request == null && contains(github.event.comment.body, 'disclaim')
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
 
     steps:
     - name: Check if comment contains only 'disclaim' (ignoring white spaces, newlines, and case)
