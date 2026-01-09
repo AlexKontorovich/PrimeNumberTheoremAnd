@@ -1115,18 +1115,84 @@ theorem Params.initial.balance_tiny_prime_ge (P : Params) {p : ℕ} (hp : p ≤ 
   sorry
 
 @[blueprint
-  "initial-score"
-  (statement := /-- The score of the initial factorization can be taken to be $o(n)$.-/)
-  (proof := /-- Pick $M$ large depending on $\varepsilon$, then $L = M^2$, then assume $n$ large.
-  Using the prime number theorem and Theorem \ref{initial-factorization-waste},
+  "initial-score-bound"
+  (statement := /-- The initial score is bounded by
+  $$ n \log(1-1/M)^{-1} + \sum_{p \leq n/L} M \log n + \sum_{p \leq \sqrt{n}} M \log^2 n + \sum_{n/L < p \leq n} \frac{n}{p} \log \frac{n}{p} + \sum_{p \leq L} (M \log n + M L \pi(n)) \log L.$$ -/)
+  (proof := /-- Combine Theorem \ref{initial-factorization-waste},
   Theorem \ref{initial-factorization-large-prime-le},
   Theorem \ref{initial-factorization-large-prime-ge},
   Theorem \ref{initial-factorization-medium-prime-le},
   Theorem \ref{initial-factorization-medium-prime-ge},
   Theorem \ref{initial-factorization-small-prime-le},
   Theorem \ref{initial-factorization-small-prime-ge}, and
-  Theorem \ref{initial-factorization-tiny-prime-ge}, one can hold all losses to be of size
-  $O(\varepsilon n)$.-/)]
+  Theorem \ref{initial-factorization-tiny-prime-ge}, and combine $\log p$ and $\log (n/p)$ to $\log n$.-/)]
+theorem Params.initial.score_bound (P : Params) :
+    P.initial.score P.L ≤ P.n * log (1 - 1 / (P.M : ℝ))⁻¹ +
+      ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)), P.M * Real.log P.n +
+      ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊(Real.sqrt P.n)⌋₊),
+        P.M * Real.log P.n * Real.log P.n +
+      ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n),
+        (P.n / p) * Real.log (P.n / p) +
+      ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic P.L),
+        (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L := by sorry
+
+@[blueprint
+  "bound-score-1"
+  (statement := /-- If $M$ is sufficiently large depending on $\varepsilon$, then
+$n \log(1-1/M)^{-1} \leq \varepsilon n$. -/)
+  (proof := /-- Use the fact that $\log(1-1/M)^{-1}$ goes to zero as $M \to \infty$.-/)]
+theorem Params.initial.bound_score_1 (ε : ℝ) (hε : ε > 0) :
+    ∀ᶠ M in Filter.atTop, ∀ P : Params,
+      P.M = M → P.n * log (1 - 1 / (P.M : ℝ))⁻¹ ≤ ε * P.n := by sorry
+
+@[blueprint
+  "bound-score-2"
+  (statement := /-- If $L$ is sufficiently large depending on $M, \varepsilon$, and $n$ sufficiently large depending on $L$, then
+$\sum_{p \leq n/L} M \log n  \leq \varepsilon n$. -/)
+  (proof := /-- Use the prime number theorem (or the Chebyshev bound). -/)]
+theorem Params.initial.bound_score_2 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
+    ∀ᶠ L in Filter.atTop, ∀ᶠ n in Filter.atTop, ∀ P : Params,
+      P.L = L → P.n = n →
+        ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)), P.M * Real.log P.n ≤ ε * P.n := by sorry
+
+@[blueprint
+  "bound-score-3"
+  (statement := /-- If $n$ sufficiently large depending on $M, \varepsilon$, then
+$\sum_{p \leq \sqrt{n}} M \log^2 n \leq \varepsilon n$. -/)
+  (proof := /-- Crude estimation. -/)]
+theorem Params.initial.bound_score_3 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
+    ∀ᶠ n in Filter.atTop, ∀ P : Params,
+      P.n = n →
+        ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊(Real.sqrt P.n)⌋₊),
+          P.M * Real.log P.n * Real.log P.n ≤ ε * P.n := by sorry
+
+@[blueprint
+  "bound-score-4"
+  (statement := /-- If $n$ sufficiently large depending on $L, \varepsilon$, then
+$\sum_{n/L < p \leq n} \frac{n}{p} \log \frac{n}{p} \leq \varepsilon n$. -/)
+  (proof := /-- Bound $\frac{n}{p}$ by $L$ and use the prime number theorem (or the Chebyshev bound). -/)]
+theorem Params.initial.bound_score_4 (ε : ℝ) (hε : ε > 0) (L : ℕ) :
+    ∀ᶠ n in Filter.atTop, ∀ P : Params,
+      P.n = n →
+        ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n),
+          (P.n / p) * Real.log (P.n / p) ≤ ε * P.n := by sorry
+
+@[blueprint
+  "bound-score-5"
+  (statement := /-- If $n$ sufficiently large depending on $M, L, \varepsilon$, then
+$\sum_{p \leq L} (M \log n + M L \pi(n)) \log L \leq \varepsilon n$. -/)
+  (proof := /-- Use the prime number theorem (or the Chebyshev bound). -/)]
+theorem Params.initial.bound_score_5 (ε : ℝ) (hε : ε > 0) (M L : ℕ) :
+    ∀ᶠ n in Filter.atTop, ∀ P : Params,
+      P.n = n →
+        ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic P.L),
+          (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L ≤ ε * P.n := by
+  sorry
+
+@[blueprint
+  "initial-score"
+  (statement := /-- The score of the initial factorization can be taken to be $o(n)$.-/)
+  (proof := /-- Pick $M$ large depending on $\varepsilon$, then $L$ sufficiently large depending on $M, \varepsilon$, then $n$ sufficiently large depending on $M,L,\varepsilon$, so that the bounds in Theorem \ref{bound-score-1}, Theorem \ref{bound-score-2}, Theorem \ref{bound-score-3}, Theorem \ref{bound-score-4}, and Theorem \ref{bound-score-5} each contribute at most $(\varepsilon/5) n$.  Then use Theorem \ref{initial-score-bound}.-/)]
 theorem Params.initial.score (ε : ℝ) (hε : ε > 0) :
     ∀ᶠ n in Filter.atTop, ∃ P : Params, P.n = n ∧ P.initial.score P.L ≤ ε * n := by
   sorry
