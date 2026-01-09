@@ -54,9 +54,6 @@ blueprint_comment /--
 Let $\nu$ be a bumpfunction.
 -/
 
-attribute [-simp] one_div in
-
-attribute [-simp] one_div in
 @[blueprint
   (title := "SmoothExistence")
   (statement := /--
