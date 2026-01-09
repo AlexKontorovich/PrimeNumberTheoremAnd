@@ -1042,7 +1042,21 @@ theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
   \(n=X_0^2\).  One can verify numerically or symbolically. -/)
   (latexEnv := "lemma")]
 theorem inv_n_add_sqrt_ge (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (n + √(n : ℝ)) ≥ (1 / (1 + 1 / (89693 : ℝ))) * (1 / (n : ℝ)) := by
-  sorry
+-- solved with help from AlphaProof
+  field_simp [one_mul,Lcm.X₀] at *
+  field_simp [div_le_div_iff₀, mul_add, add_mul,(mul_le_mul_of_nonneg_right (Real.le_sqrt_of_sq_le
+    (by norm_cast:89693^2≤(n:ℝ))) ↑_).trans]
+  ring_nf
+  rw [show (n : ℝ) * 89694 = ↑n * 89693 + n by ring]
+  gcongr
+  nth_rewrite 2 [show (n : ℝ) = √n * √n by
+    rw [show  √(n : ℝ) * √n = (√n) ^ 2 by ring]
+    rw [sq_sqrt (by positivity)]]
+  gcongr
+  apply Real.le_sqrt_of_sq_le
+  norm_cast
+
+
 
 @[blueprint
   "lem:poly-ineq"
