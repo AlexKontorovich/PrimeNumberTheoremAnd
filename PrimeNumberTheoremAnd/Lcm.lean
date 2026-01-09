@@ -938,7 +938,31 @@ theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     1 - (4 : ℝ) * ∏ i, (exists_p_primes hn).choose i / ∏ i, (exists_q_primes hn).choose i ≥
       1 - 4 * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ 12 / n ^ (3 / 2) := by
-  sorry
+-- PROOF FOUND BY ALPHAPROOF!!
+  have := @exists_q_primes
+  rw[ Finset.prod_eq_zero_iff.2]
+  · use sub_le_sub_left (.trans (by rw [Nat.cast_zero,mul_zero]) (by positivity)) (1)
+  norm_num[Nat.Prime.pos _,(this hn).choose_spec,(Finset.prod_lt_prod ↑_ (fun R L=>((this hn).choose_spec.1 R).one_le) ⟨0, _⟩).trans_le']
+  delta Exists.choose
+  delta Classical.choose
+  cases Classical.indefiniteDescription ..
+  cases Classical.indefiniteDescription ..
+  rename_i property val_1 property_1
+  simp_all only [ge_iff_le, one_div, Fin.isValue, neg_sub]
+  simp_all only [one_div, neg_sub, Fin.isValue]
+  obtain ⟨left, right⟩ := property
+  obtain ⟨left_1, right_1⟩ := property_1
+  obtain ⟨left_2, right⟩ := right
+  obtain ⟨left_3, right_1⟩ := right_1
+  obtain ⟨left_4, right⟩ := right
+  obtain ⟨left_5, right_1⟩ := right_1
+  use(0),.inr (Nat.cast_lt.1 ((left_5 0).trans_lt ?_))
+  norm_num[Real.log_sqrt, Lcm.X₀, Fin.prod_univ_three, Fin.forall_iff_succ] at hn left_4⊢
+  apply(mul_le_mul_of_nonneg_right (mul_le_mul (Nat.cast_le.2 (left 0).two_le) (Nat.cast_le.2 (left 1).two_le) (by bound) (by bound)) (by bound)).trans_lt'
+  have: 1 ≤Real.log n := by norm_num[hn.trans',Real.le_log_iff_exp_le, right.pos,Real.exp_one_lt_d9.le.trans.comp (Nat.cast_le.2 hn).trans']
+  have:=inv_anti₀ (by bound)<|pow_le_pow_left₀ (by bound) (div_le_div_of_nonneg_right this two_pos.le) 3
+  have:=mul_le_mul_of_nonneg_left this (n:ℝ).sqrt_nonneg
+  nlinarith [ (by norm_cast:804483424_9≤(n: ℝ)), (mul_inv_le_iff₀ (by positivity)).1 (Real.rpow_neg_one _▸ left_4.2.2),Real.sq_sqrt n.cast_nonneg]
 
 blueprint_comment /--
 \subsection{Reduction to a small epsilon-inequality}
