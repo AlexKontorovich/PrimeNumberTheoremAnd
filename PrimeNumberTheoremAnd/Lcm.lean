@@ -675,6 +675,14 @@ used on the \(p\)-side than the \(q\)-side to restore an asymptotic advantage.
 
 abbrev X₀ := 89693
 
+lemma log_X₀_gt : Real.log X₀ > 11.4 := by
+  rw [gt_iff_lt, show (11.4 : ℝ) = 57 / (5 : ℕ) by norm_num, div_lt_iff₀ (by norm_num), mul_comm,
+    ← Real.log_pow, Real.lt_log_iff_exp_lt (by norm_num), ← Real.exp_one_rpow]
+  grw [Real.exp_one_lt_d9]
+  norm_num
+
+lemma log_X₀_pos : 0 < Real.log X₀ := by linear_combination log_X₀_gt
+
 blueprint_comment /--
 \subsection{Choice of six primes \(p_i,q_i\) for large \(n\)}
 -/
@@ -922,7 +930,13 @@ blueprint_comment /--
   (latexEnv := "lemma")]
 theorem inv_cube_log_sqrt_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
     1 / (log √(n : ℝ)) ^ 3 ≤ 0.000675 := by
-  sorry
+  calc
+    1 / Real.log √n ^ 3 ≤ 1 / Real.log X₀ ^ 3 := by
+      gcongr
+      exact Real.le_sqrt_of_sq_le (mod_cast hn)
+    _ ≤ _ := by
+      grw [← log_X₀_gt.le]
+      norm_num
 
 @[blueprint
   "lem:eps-bounds"
