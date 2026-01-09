@@ -2,6 +2,7 @@ import Architect
 import Batteries.Tactic.Lemma
 import Mathlib.Geometry.Manifold.PartitionOfUnity
 import Mathlib.Tactic.Bound
+import PrimeNumberTheoremAnd.Mathlib.Algebra.Notation.Support
 
 set_option lang.lemmaCmd true
 
@@ -47,9 +48,6 @@ lemma smooth_urysohn_support_Ioo {a b c d : ℝ} (h1 : a < b) (h3 : c < d) :
   · ext x
     simp only [Function.mem_support, ne_eq, mem_Ioo, ← hΨ0, not_or, not_le]
 
-lemma Function.support_id : Function.support (fun x : ℝ ↦ x) = Iio 0 ∪ Ioi 0 := by
-  ext x; simp only [mem_support, ne_eq, Iio_union_Ioi, mem_compl_iff, mem_singleton_iff]
-
 blueprint_comment /--
 Let $\nu$ be a bumpfunction.
 -/
@@ -91,10 +89,10 @@ lemma SmoothExistence : ∃ (ν : ℝ → ℝ), (ContDiff ℝ ∞ ν) ∧ (∀ x
   · exact fun y hy hy' ↦ ⟨by linarith, by linarith⟩
   · rw [integral_pos_iff_support_of_nonneg]
     · simp only [Function.support_div, measurableSet_Ici, Measure.restrict_apply', hνSupport,
-        Function.support_id]
-      have : (Ioo (1 / 2 : ℝ) 2 ∩ (Iio 0 ∪ Ioi 0) ∩ Ici 0) = Ioo (1 / 2) 2 := by
+        Function.support_id']
+      have : (Ioo (1 / 2 : ℝ) 2 ∩ {0}ᶜ ∩ Ici 0) = Ioo (1 / 2) 2 := by
         ext x
-        simp only [mem_inter_iff, mem_Ioo, mem_Ici, mem_Iio, mem_Ioi, mem_union]
+        simp only [one_div, mem_inter_iff, mem_Ioo, mem_compl_iff, mem_singleton_iff, mem_Ici]
         bound
       simp only [this, volume_Ioo, ENNReal.ofReal_pos, sub_pos, gt_iff_lt]
       linarith
