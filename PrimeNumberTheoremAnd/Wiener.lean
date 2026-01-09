@@ -3210,7 +3210,7 @@ In this section we do *not* assume the bound \eqref{cheby}, but instead derive i
 @[blueprint "limiting-fourier-variant"
   (title := "limiting-fourier-variant")
   (statement := /--
-    If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, and $0 \lt x$, then
+    If $\psi: \R \to \C$ is $C^2$ and compactly supported with $f$ and $\hat \psi$ non-negative, and $0 < x$, then
   $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
   -/)
   (proof := /-- Repeat the proof of Lemma \ref{limiting-fourier-variant}, but use monotone convergence instead of dominated convergence.  (The proof should be simpler, as one no longer needs to establish domination for the sum.) -/)
