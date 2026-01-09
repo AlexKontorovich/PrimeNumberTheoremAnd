@@ -169,133 +169,45 @@ theorem Criterion.ln_eq (c : Criterion) : L c.n = c.q 0 * c.q 1 * c.q 2 * c.L' :
   (latexEnv := "lemma")]
 theorem Criterion.q_not_dvd_L' (c : Criterion) : ∀ i, ¬(c.q i ∣ c.L') := by
   intro i hqi
+  have hn_lt_q_sq := Real.lt_sq_of_sqrt_lt <| c.h_ord_1.trans_le <| cast_le.mpr <|
+    show c.p 0 ≤ c.q i by
+      grw [c.hp_mono.monotone <| Fin.zero_le 2, c.h_ord_2, c.hq_mono.monotone <| Fin.zero_le i]
+  norm_cast at hn_lt_q_sq
+  suffices ¬(c.q i) ^ 2 ∣ L c.n from this <| Nat.pow_two _ ▸ by
+    refine mul_dvd_mul_right (Finset.dvd_prod_of_mem c.q <| Finset.mem_univ i) _ |>.trans ?_
+    exact Fin.prod_univ_three c.q ▸ c.ln_eq ▸ mul_dvd_mul_left _ hqi
 
-  --------------------------------------------------------------------
-  -- Local helper 1: √n < q i
-  --------------------------------------------------------------------
-  have hsqrt_lt_qi : Real.sqrt (c.n : ℝ) < (c.q i : ℝ) := by
-    have hp02 : c.p 0 < c.p 2 := c.hp_mono (by decide : (0 : Fin 3) < 2)
-    have hsqrt_lt_p2 : Real.sqrt (c.n : ℝ) < (c.p 2 : ℝ) :=
-      lt_trans c.h_ord_1 (by exact_mod_cast hp02)
-    have hsqrt_lt_q0 : Real.sqrt (c.n : ℝ) < (c.q 0 : ℝ) :=
-      lt_trans hsqrt_lt_p2 (by exact_mod_cast c.h_ord_2)
-    have hq0_le_qi : (c.q 0 : ℝ) ≤ c.q i := by
-      exact_mod_cast (c.hq_mono.monotone (zero_le i))
-    exact lt_of_lt_of_le hsqrt_lt_q0 hq0_le_qi
+  set p : ℕ := c.q i
+  have hp : Nat.Prime p := c.hq i
 
-  --------------------------------------------------------------------
-  -- Local helper 2: n < (q i)^2
-  --------------------------------------------------------------------
-  have hn_lt_q_sq : c.n < (c.q i) ^ 2 := by
-    have hs2 : (Real.sqrt (c.n : ℝ)) ^ 2 < (c.q i : ℝ) ^ 2 := by
-      have h0 : 0 ≤ Real.sqrt (c.n : ℝ) := Real.sqrt_nonneg _
-      have hq_nonneg : 0 ≤ (c.q i : ℝ) := by exact_mod_cast (Nat.zero_le _)
-      exact (sq_lt_sq₀ h0 hq_nonneg).2 hsqrt_lt_qi
+  -- 1) prime power divides binary lcm iff divides one side
+  have pow_dvd_lcm_iff (a b k : ℕ) (ha : a ≠ 0) (hb : b ≠ 0) :
+      p ^ k ∣ Nat.lcm a b ↔ (p ^ k ∣ a ∨ p ^ k ∣ b) := by
+    refine ⟨?_, by grind [dvd_trans, Nat.dvd_lcm_left, Nat.dvd_lcm_right]⟩
+    grind [Prime.pow_dvd_iff_le_factorization, lcm_ne_zero, factorization_lcm, Finsupp.sup_apply]
 
-    have hn0 : (0 : ℝ) ≤ (c.n : ℝ) := by exact_mod_cast (Nat.zero_le c.n)
-    have hn_real : (c.n : ℝ) < (c.q i : ℝ) ^ 2 := by
-      simpa [pow_two, Real.mul_self_sqrt hn0] using hs2
-    exact_mod_cast hn_real
+  -- 2) prime power divides finset-lcm -> appears in some member
+  have exists_mem_of_pow_dvd_finset_lcm (s : Finset ℕ) (hs_nz : ∀ x ∈ s, x ≠ 0) (k) (hk : 0 < k)
+      (h : p ^ k ∣ s.lcm _root_.id) : ∃ m ∈ s, p ^ k ∣ m := by
+    induction s using Finset.induction with
+    | empty =>
+      have := one_lt_pow hk.ne' hp.one_lt |>.trans_le <| le_of_dvd zero_lt_one h
+      contradiction
+    | insert a s ha ih =>
+      have ha0 := hs_nz _ <| mem_insert_self a s
+      have hs_nz' := (hs_nz · <| mem_insert_of_mem ·)
+      have hs0 := lcm_ne_zero_iff.mpr hs_nz'
+      have := (pow_dvd_lcm_iff _ _ k ha0 hs0).1 <| by simpa using h
+      rcases this with hpa | hps
+      · exact ⟨a, mem_insert_self a s, hpa⟩
+      · have ⟨m, hmS, hpm⟩ := ih hs_nz' hps
+        exact ⟨m, mem_insert_of_mem hmS, hpm⟩
 
-  --------------------------------------------------------------------
-  -- Local helper 3: ¬ (q i)^2 ∣ L n
-  --------------------------------------------------------------------
-  have hq_sq_not_dvd_Ln : ¬ (c.q i) ^ 2 ∣ L c.n := by
-    classical
-    set p : ℕ := c.q i
-    have hp : Nat.Prime p := by simpa [p] using c.hq i
-
-    -- 1) prime power divides binary lcm iff divides one side
-    have pow_dvd_lcm_iff (a b k : ℕ) (ha : a ≠ 0) (hb : b ≠ 0) :
-        p ^ k ∣ Nat.lcm a b ↔ (p ^ k ∣ a ∨ p ^ k ∣ b) := by
-      constructor
-      · intro h
-        have hlcm0 : Nat.lcm a b ≠ 0 := Nat.lcm_ne_zero ha hb
-        have hk_le :
-            k ≤ (Nat.lcm a b).factorization p :=
-          (hp.pow_dvd_iff_le_factorization hlcm0).1 h
-        have hk_le' :
-            k ≤ (a.factorization ⊔ b.factorization) p := by
-          simpa [Nat.factorization_lcm ha hb] using hk_le
-        have hk_le_or :
-            k ≤ a.factorization p ∨ k ≤ b.factorization p := by
-          have hk_le'' : k ≤ max (a.factorization p) (b.factorization p) := by
-            simpa [Finsupp.sup_apply] using hk_le'
-          simpa [le_max_iff] using hk_le''
-        exact hk_le_or.elim
-          (fun hka => Or.inl <| (hp.pow_dvd_iff_le_factorization ha).2 hka)
-          (fun hkb => Or.inr <| (hp.pow_dvd_iff_le_factorization hb).2 hkb)
-      · rintro (ha' | hb')
-        · exact ha'.trans (Nat.dvd_lcm_left a b)
-        · exact hb'.trans (Nat.dvd_lcm_right a b)
-
-    -- 2) prime power divides finset-lcm -> appears in some member
-    have exists_mem_of_pow_dvd_finset_lcm :
-        ∀ (s : Finset ℕ), (∀ x ∈ s, x ≠ 0) →
-          ∀ k : ℕ, 0 < k → p ^ k ∣ s.lcm _root_.id → ∃ m ∈ s, p ^ k ∣ m := by
-      intro s
-      classical
-      refine Finset.induction_on s ?base ?step
-      · intro _ k hk h
-        exfalso
-        have h_dvd_one : p ^ k ∣ (1 : ℕ) := by simpa using h
-        have h_le_one : p ^ k ≤ 1 := Nat.le_of_dvd (by decide : 0 < 1) h_dvd_one
-        have hk0 : k ≠ 0 := Nat.ne_of_gt hk
-        have h_gt_one : 1 < p ^ k := Nat.one_lt_pow hk0 hp.one_lt
-        exact (lt_irrefl (1 : ℕ)) (lt_of_lt_of_le h_gt_one h_le_one)
-      · intro a s ha ih hs_nz k hk h
-        have hs_nz' : ∀ x ∈ s, x ≠ 0 := fun x hx => hs_nz x (by simp [hx])
-        have h_lcm : p ^ k ∣ Nat.lcm a (s.lcm _root_.id) := by
-          simpa [Finset.lcm_insert, ha] using h
-        have ha0 : a ≠ 0 := hs_nz _ (by simp [ha])
-        have hs0 : s.lcm _root_.id ≠ 0 := by
-          intro hz
-          have : ∃ x ∈ s, (_root_.id x) = 0 := (Finset.lcm_eq_zero_iff).1 hz
-          rcases this with ⟨x, hx, hx0⟩
-          exact (hs_nz' x hx) hx0
-        have h_or : p ^ k ∣ a ∨ p ^ k ∣ s.lcm _root_.id :=
-          (pow_dvd_lcm_iff (a := a) (b := s.lcm _root_.id) (k := k) ha0 hs0).1 h_lcm
-        rcases h_or with hpa | hps
-        · exact ⟨a, by simp [ha], hpa⟩
-        · rcases ih hs_nz' k hk hps with ⟨m, hmS, hpm⟩
-          exact ⟨m, by simp [hmS], hpm⟩
-
-    intro hq2
-
-    have hs_pos : ∀ x ∈ Finset.Icc 1 c.n, x ≠ 0 := by
-      intro x hx
-      have hx1 : 1 ≤ x := (Finset.mem_Icc.mp hx).1
-      exact Nat.ne_of_gt (Nat.succ_le_iff.mp hx1)
-
-    have hm :
-        ∃ m ∈ Finset.Icc 1 c.n, p ^ 2 ∣ m :=
-      exists_mem_of_pow_dvd_finset_lcm (Finset.Icc 1 c.n) hs_pos 2 (by decide)
-        (by simpa [L, p] using hq2)
-
-    rcases hm with ⟨m, hmIcc, hpm⟩
-    have hm_pos : 0 < m := Nat.succ_le_iff.mp ((Finset.mem_Icc.mp hmIcc).1)
-    have hm_le : m ≤ c.n := (Finset.mem_Icc.mp hmIcc).2
-    have hp2_le_m : p ^ 2 ≤ m := Nat.le_of_dvd hm_pos hpm
-    have hp2_le_n : p ^ 2 ≤ c.n := le_trans hp2_le_m hm_le
-    exact (not_lt_of_ge hp2_le_n) (by simpa [p] using hn_lt_q_sq)
-
-  --------------------------------------------------------------------
-  -- Main proof (same as yours): q i | ∏ qj and q i | L' ⇒ (q i)^2 | L n
-  --------------------------------------------------------------------
-  have hq_prod : c.q i ∣ ∏ j : Fin 3, c.q j := by
-    classical
-    simpa using
-      (Finset.dvd_prod_of_mem (s := (Finset.univ : Finset (Fin 3)))
-        (f := fun j => c.q j) (a := i) (by simp))
-
-  have hq_sq_dvd_prod_mul : (c.q i) ^ 2 ∣ (∏ j : Fin 3, c.q j) * c.L' := by
-    simpa [pow_two] using Nat.mul_dvd_mul hq_prod hqi
-
-  have hq_sq_dvd_Ln : (c.q i) ^ 2 ∣ L c.n := by
-    simpa [c.ln_eq, Fin.prod_univ_three, mul_assoc] using hq_sq_dvd_prod_mul
-
-  exact hq_sq_not_dvd_Ln hq_sq_dvd_Ln
-
+  intro hq2
+  have ⟨m, hmIcc, hpm⟩ := exists_mem_of_pow_dvd_finset_lcm _ (by grind) 2 zero_lt_two hq2
+  refine not_lt_of_ge ?_ hn_lt_q_sq
+  refine le_trans (le_of_dvd ?_ hpm) (Finset.mem_Icc.mp hmIcc).2
+  exact succ_le_iff.mp (Finset.mem_Icc.mp hmIcc).1
 
 @[blueprint
   "lem:sigmaLn"
