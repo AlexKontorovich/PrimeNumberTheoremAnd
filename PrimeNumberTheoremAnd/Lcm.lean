@@ -675,6 +675,14 @@ used on the \(p\)-side than the \(q\)-side to restore an asymptotic advantage.
 
 abbrev X₀ := 89693
 
+lemma log_X₀_gt : Real.log X₀ > 11.4 := by
+  rw [gt_iff_lt, show (11.4 : ℝ) = 57 / (5 : ℕ) by norm_num, div_lt_iff₀ (by norm_num), mul_comm,
+    ← Real.log_pow, Real.lt_log_iff_exp_lt (by norm_num), ← Real.exp_one_rpow]
+  grw [Real.exp_one_lt_d9]
+  norm_num
+
+lemma log_X₀_pos : 0 < Real.log X₀ := by linear_combination log_X₀_gt
+
 blueprint_comment /--
 \subsection{Choice of six primes \(p_i,q_i\) for large \(n\)}
 -/
@@ -863,7 +871,38 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∏ i, (1 + (1 : ℝ) / ((exists_p_primes hn).choose i * ((exists_p_primes hn).choose i + 1))) ≥
       ∏ i : Fin 3, (1 + 1 / ((1 + 1 / (log √(n : ℝ)) ^ 3) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n))) := by
-  sorry
+  apply Finset.prod_le_prod
+  · intro i hi
+    have : 0 ≤ Real.log √n := by
+      rw [Real.log_sqrt (by simp)]
+      grw [hn]
+      simp [Real.log_nonneg]
+    positivity
+  set p := (exists_p_primes hn).choose
+  have h₀ : ∀ i, √n < p i := by
+    intro i
+    have : p 0 ≤ p i := by
+      apply (exists_p_primes hn).choose_spec.2.1.monotone
+      simp
+    grw [← this]
+    exact (exists_p_primes hn).choose_spec.2.2.2
+  intro i hi
+  gcongr 1 + 1 / ?_
+  · have := ((exists_p_primes hn).choose_spec.1 i).pos
+    positivity
+  have : p i ≤ √n * (1 + 1 / log √n ^ 3) ^ (i + 1 : ℝ) := (exists_p_primes hn).choose_spec.2.2.1 i
+  have h₁ : p i ^ 2 ≤ n * (1 + 1 / log √n ^ 3) ^ (2 * i + 2 : ℝ) := by
+    grw [this, mul_pow, sq_sqrt (by simp)]
+    norm_cast
+    rw [← pow_mul]
+    grind
+  have : 0 < (n : ℝ) := by positivity
+  have h₂ : p i + 1 ≤ p i * (1 / n * (n + √n)) := by
+    field_simp [this]
+    linear_combination √n * h₀ i - sq_sqrt (cast_nonneg n)
+  grw [h₂, ← mul_assoc, ← sq, h₁]
+  field_simp
+  rfl
 
 @[blueprint
   "lem:pq-ratio"
@@ -915,6 +954,8 @@ blueprint_comment /--
     \qquad
     \frac{1}{n^{3/2}} \le \frac{1}{89693}\cdot\frac{1}{n}.
   \]
+  and
+  \[ \frac{1}{n+\sqrt{n}} \ge \frac{1}{1 + 1/89693}\cdot\frac{1}{n}. \]
   -/)
   (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are
   decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at
@@ -922,7 +963,13 @@ blueprint_comment /--
   (latexEnv := "lemma")]
 theorem inv_cube_log_sqrt_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
     1 / (log √(n : ℝ)) ^ 3 ≤ 0.000675 := by
-  sorry
+  calc
+    1 / Real.log √n ^ 3 ≤ 1 / Real.log X₀ ^ 3 := by
+      gcongr
+      exact Real.le_sqrt_of_sq_le (mod_cast hn)
+    _ ≤ _ := by
+      grw [← log_X₀_gt.le]
+      norm_num
 
 @[blueprint
   "lem:eps-bounds"
@@ -935,6 +982,8 @@ theorem inv_cube_log_sqrt_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
     \qquad
     \frac{1}{n^{3/2}} \le \frac{1}{89693}\cdot\frac{1}{n}.
   \]
+  and
+  \[ \frac{1}{n+\sqrt{n}} \ge \frac{1}{1 + 1/89693}\cdot\frac{1}{n}. \]
   -/)
   (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are
   decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at
@@ -949,6 +998,27 @@ theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
   refine mul_le_mul_of_nonneg_left ?_ hn_pos.le
   have := Real.sqrt_le_sqrt (cast_le.mpr hn)
   simp_all
+
+@[blueprint
+  "lem:eps-bounds"
+  (title := "Uniform bounds for large \\(n\\)")
+  (statement := /--
+  For all \(n \ge X_0^2 = 89693^2\) we have
+  \[
+    \frac{1}{\log^3 \sqrt{n}}
+    \le 0.000675,
+    \qquad
+    \frac{1}{n^{3/2}} \le \frac{1}{89693}\cdot\frac{1}{n}.
+  \]
+  and
+  \[ \frac{1}{n+\sqrt{n}} \ge \frac{1}{1 + 1/89693}\cdot\frac{1}{n}. \]
+  -/)
+  (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are
+  decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at
+  \(n=X_0^2\).  One can verify numerically or symbolically. -/)
+  (latexEnv := "lemma")]
+theorem inv_n_add_sqrt_ge (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (n + √(n : ℝ)) ≥ (1 / (1 + 1 / (89693 : ℝ))) * (1 / (n : ℝ)) := by
+  sorry
 
 @[blueprint
   "lem:poly-ineq"
@@ -1016,7 +1086,7 @@ theorem prod_epsilon_le (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   -/)
   (latexEnv := "lemma")]
 theorem prod_epsilon_ge (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
-    (∏ i : Fin 3, (1 + ε / (1.000675 : ℝ) ^ (2 * ((i : ℕ) + 1 : ℝ)))) *
+    (∏ i : Fin 3, (1 + ε / ((1.000675 : ℝ) ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 + 1/89693))) *
         (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * ε) ≥
       1 + 3.36687 * ε - 0.01 * ε ^ 2 := by
   norm_cast; norm_num [Fin.prod_univ_three]; nlinarith [pow_nonneg hε.left 3, pow_nonneg hε.left 4]

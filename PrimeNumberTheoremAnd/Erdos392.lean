@@ -1083,25 +1083,120 @@ theorem Params.initial.balance_medium_prime_le (P : Params) {p : ℕ} (hp : p > 
     omega
   · simp_all [Factorization.balance, Factorization.sum]
 
+/-- If `√n < p < n/L` and `p ∣ m` with `0 < m < n`, then `m` is `(n/L)`-smooth. -/
+lemma Params.initial.smooth_of_multiple (P : Params) {p m : ℕ} (hp : p > Real.sqrt P.n)
+    (hps : p < P.n / P.L) (hm : m < P.n) (hm0 : m ≠ 0) (hpm : p ∣ m) :
+    m ∈ smoothNumbers (P.n / P.L) := by
+  contrapose! hps
+  refine le_of_not_gt fun h ↦ hps ?_
+  obtain ⟨q, hq, hqm, hqn⟩ : ∃ q, Prime q ∧ q ∣ m ∧ q ≥ P.n / P.L := by simp_all [smoothNumbers]
+  have : p * q > P.n := by rw [gt_iff_lt, Real.sqrt_lt] at hp <;> norm_cast at * <;> nlinarith
+  exact absurd (le_of_dvd (pos_of_ne_zero hm0) (Coprime.mul_dvd_of_dvd_of_dvd
+    (coprime_comm.mp <| hq.coprime_iff_not_dvd.mpr <| not_dvd_of_pos_of_lt
+      (pos_of_ne_zero <| by grind) <| by nlinarith [div_mul_le_self P.n P.L]) hpm hqm)) (by omega)
+
+/-- For `√n < p` prime and `p ∣ m` with `0 < m < n`, we have `ν_p(m) = 1` since `p² > n ≥ m`. -/
+lemma Params.initial.valuation_eq_one (P : Params) {p m : ℕ} (hp : p.Prime) (hp' : p > Real.sqrt P.n)
+    (hm : m < P.n) (hm0 : m ≠ 0) (hpm : p ∣ m) : m.factorization p = 1 := by
+  have : p ^ 2 ∣ m → False := fun h => by
+    have := le_of_dvd (pos_of_ne_zero hm0) h
+    rw [gt_iff_lt, Real.sqrt_lt] at hp' <;> norm_cast at * <;> grind
+  exact le_antisymm (Nat.le_of_not_lt fun h => this <| dvd_trans (pow_dvd_pow _ h) <| ordProj_dvd _ _) (Nat.pos_of_ne_zero <| Finsupp.mem_support_iff.mp <| by aesop)
+
+/-- The interval `[n - n/M, n)` contains at least `⌊n/M⌋/p` multiples of `p`. -/
+lemma Params.initial.count_multiples_lower_bound (n M p : ℕ) (hM : M > 0) (hp : p > 0) :
+    M * (Finset.filter (p ∣ ·) (Finset.Ico (n - n / M) n)).card + M ≥ n / p := by
+  have h1 : (Finset.filter (p ∣ ·) (Finset.Ico (n - n / M) n)).card ≥ (n / M) / p := by
+    have hsup : Finset.filter (p ∣ ·) (Finset.Ico (n - n / M) n) ⊇
+        Finset.image (p * ·) (Finset.Ico ((n - n / M + p - 1) / p) ((n + p - 1) / p)) := fun _ hx => by
+      simp +zetaDelta only [gt_iff_lt, mem_image, Finset.mem_Ico, Finset.mem_filter,
+        tsub_le_iff_right] at *
+      obtain ⟨a, ⟨ha₁, ha₂⟩, rfl⟩ := hx
+      refine ⟨⟨?_, ?_⟩, by norm_num⟩
+      · nlinarith [div_add_mod (n - n / M + p - 1) p, mod_lt (n - n / M + p - 1) hp,
+          Nat.sub_add_cancel (div_le_self n M), Nat.sub_add_cancel (succ_le_of_lt (by omega :
+            0 < n - n / M + p))]
+      · nlinarith [div_mul_le_self (n + p - 1) p, Nat.sub_add_cancel (by omega : 1 ≤ n + p)]
+    refine le_trans ?_ (Finset.card_mono hsup)
+    rw [Finset.card_image_of_injective _ fun _ _ h => mul_left_cancel₀ hp.ne' h]
+    simp +arith only [card_Ico, div_le_iff_le_mul_add_pred hp]; zify
+    repeat rw [Nat.cast_sub] <;> push_cast <;> try omega
+    · nlinarith [Int.mul_ediv_add_emod (n + p - 1) p,
+        Int.emod_nonneg (n + p - 1) (by omega : (p : ℤ) ≠ 0),
+        Int.emod_lt_of_pos (n + p - 1) (by omega : (p : ℤ) > 0),
+        Int.mul_ediv_add_emod (p + (n - n / M) - 1) p,
+        Int.emod_nonneg (p + (n - n / M) - 1) (by omega : (p : ℤ) ≠ 0),
+        Int.emod_lt_of_pos (p + (n - n / M) - 1) (by omega : (p : ℤ) > 0),
+        div_mul_le_self n M]
+    · exact div_le_self _ _
+    · rw [div_le_iff_le_mul_add_pred hp]
+      rcases p with _ | _ | p <;> simp_all [succ_mul]
+      nlinarith [div_add_mod (n + (p + 1)) (p + 1 + 1), mod_lt (n + (p + 1)) (by omega :
+        p + 1 + 1 > 0), sub_le n (n / M), div_mul_le_self n M]
+  have h2 : n / p ≤ M * ((n / M) / p) + M := le_of_lt_succ (Nat.div_lt_of_lt_mul <| by
+    nlinarith [div_add_mod n M, mod_lt n hM, div_add_mod (n / M) p, mod_lt (n / M) hp])
+  exact h2.trans (by gcongr)
+
+/-- For `√n < p < n/L` and `0 < m < n`: smooth `m` has `ν_p(m) = 1` iff `p ∣ m`. -/
+lemma Params.initial.valuation_eq_indicator (P : Params) {p m : ℕ} (hp : p.Prime)
+    (hp' : p > Real.sqrt P.n) (hps : p < P.n / P.L) (hm : m < P.n) (hm0 : m ≠ 0) :
+    (if m ∈ smoothNumbers (P.n / P.L) then m.factorization p else 0) = if p ∣ m then 1 else 0 := by
+  split_ifs with hs hd hd' <;> simp_all only [gt_iff_lt, factorization_eq_zero_iff,
+    not_false_eq_true, or_false, or_true]
+  · exact valuation_eq_one P hp hp' hm hm0 hd
+  · exact hs <| smooth_of_multiple P hp' hps hm hm0 hd'
+
+/-- For `√n < p < n/L`, `∑_{a ∈ initial.a} ν_p(a) = M · #{m ∈ [n-n/M, n) : p ∣ m}`. -/
+lemma Params.initial.sum_valuation_eq (P : Params) {p : ℕ} (hp : p.Prime)
+    (hp' : p > Real.sqrt P.n) (hps : p < P.n / P.L) : (P.initial.a.map (·.factorization p)).sum =
+    P.M * (Finset.filter (p ∣ ·) (Finset.Ico (P.n - P.n / P.M) P.n)).card := by
+  have h1 : ∀ m ∈ Finset.Ico (P.n - P.n / P.M) P.n, (if m ∈ smoothNumbers (P.n / P.L)
+      then m.factorization p else 0) = if p ∣ m then 1 else 0 := fun m hm => by
+    by_cases m = 0
+    · simp_all only [Finset.mem_Ico, nonpos_iff_eq_zero]
+      exact absurd hm.1 (Nat.ne_of_gt (Nat.sub_pos_of_lt (Nat.div_lt_self hm.2 (by linarith [P.hM]))))
+    · simp_all [valuation_eq_indicator]
+  have h2 : (P.initial.a.map (·.factorization p)).sum = P.M * ∑ m ∈ Finset.Ico (P.n - P.n / P.M) P.n,
+      if m ∈ smoothNumbers (P.n / P.L) then m.factorization p else 0 := by
+    have : (P.initial.a.map (·.factorization p)).sum =
+        (map (fun m => if m ∈ smoothNumbers (P.n / P.L) then m.factorization p else 0)
+          (join (replicate P.M (Finset.Ico (P.n - P.n / P.M) P.n).val))).sum := by
+      conv_lhs => rw [show P.initial.a = filter (· ∈ smoothNumbers (P.n / P.L))
+          (join (replicate P.M (Finset.Ico (P.n - P.n / P.M) P.n).val)) from rfl]
+      induction (replicate P.M (Finset.Ico (P.n - P.n / P.M) P.n).val).join
+        using Multiset.induction <;> aesop
+    simp_all
+  simp_all [sum_congr rfl h1]
+
 @[blueprint
   "initial-factorization-medium-prime-ge"
   (statement := /-- A medium prime $\sqrt{n} < p ≤ n/L$ can be in deficit by at most $M$.-/)
-  (proof := /-- The number of times $p$ divides $a_1 \dots a_t$ is at least $M \lfloor n/Mp \rfloor ≥ n/p - M$ (note that the removal of the non-smooth numbers does not remove any multiples of $p$).  Meanwhile, the number of times $p$ divides $n!$ is at most $n/p$.-/)]
-theorem Params.initial.balance_medium_prime_ge (P : Params) {p : ℕ} (hp : p < P.n / P.L) (hp' : p > Real.sqrt P.n) : P.initial.balance p ≥ -P.M := by sorry
+  (proof := /-- The number of times $p$ divides $a_1 \dots a_t$ is at least $M \lfloor n/Mp
+  \rfloor ≥ n/p - M$ (note that the removal of the non-smooth numbers does not remove any multiples
+  of $p$).  Meanwhile, the number of times $p$ divides $n!$ is at most $n/p$.-/)]
+theorem Params.initial.balance_medium_prime_ge (P : Params) {p : ℕ} (hp : p < P.n / P.L)
+    (hp' : p > Real.sqrt P.n) : P.initial.balance p ≥ -P.M := by
+  by_cases hp_prime : p.Prime
+  · have : (P.initial.a.map (·.factorization p)).sum ≥ P.n / p - P.M :=
+      (initial.sum_valuation_eq P hp_prime hp' hp).symm ▸ sub_le_of_le_add
+        (initial.count_multiples_lower_bound P.n P.M p (by linarith [P.hM]) hp_prime.pos)
+    simp only [Factorization.balance, Factorization.sum, factorial_factorization_eq_div hp_prime hp']
+    omega
+  · simp_all [Factorization.balance, Factorization.sum]
 
 @[blueprint
   "initial-factorization-small-prime-le"
   (statement := /-- A small prime $p \leq \sqrt{n}$ can be in surplus by at most $M\log n$.-/)
-  (proof := /-- Routine computation using Legendre's formula.-/)]
+  (proof := /-- Routine computation using Legendre's formula, noting that at most $\log n / \log 2$ powers of $p$ divide any given number up to $n$.-/)]
 theorem Params.initial.balance_small_prime_le (P : Params) {p : ℕ} (hp : p ≤ Real.sqrt P.n) :
-    P.initial.balance p ≤ P.M * (Real.log P.n) := by sorry
+    P.initial.balance p ≤ P.M * (Real.log P.n) / (Real.log 2):= by sorry
 
 @[blueprint
   "initial-factorization-small-prime-ge"
   (statement := /-- A small prime $L < p \leq \sqrt{n}$ can be in deficit by at most $M\log n$.-/)
-  (proof := /-- Routine computation using Legendre's formula.-/)]
+  (proof := /-- Routine computation using Legendre's formula, noting that at most $\log n / \log 2$ powers of $p$ divide any given number up to $n$.-/)]
 theorem Params.initial.balance_small_prime_ge (P : Params) {p : ℕ} (hp : p ≤ Real.sqrt P.n)
-    (hp' : p > P.L) : P.initial.balance p ≥ - P.M * (Real.log P.n) := by
+    (hp' : p > P.L) : P.initial.balance p ≥ - P.M * (Real.log P.n) / (Real.log 2) := by
   sorry
 
 @[blueprint
@@ -1117,7 +1212,7 @@ theorem Params.initial.balance_tiny_prime_ge (P : Params) {p : ℕ} (hp : p ≤ 
 @[blueprint
   "initial-score-bound"
   (statement := /-- The initial score is bounded by
-  $$ n \log(1-1/M)^{-1} + \sum_{p \leq n/L} M \log n + \sum_{p \leq \sqrt{n}} M \log^2 n + \sum_{n/L < p \leq n} \frac{n}{p} \log \frac{n}{p} + \sum_{p \leq L} (M \log n + M L \pi(n)) \log L.$$ -/)
+  $$ n \log(1-1/M)^{-1} + \sum_{p \leq n/L} M \log n + \sum_{p \leq \sqrt{n}} M \log^2 n / \log 2 + \sum_{n/L < p \leq n} \frac{n}{p} \log \frac{n}{p} + \sum_{p \leq L} (M \log n + M L \pi(n)) \log L.$$ -/)
   (proof := /-- Combine Theorem \ref{initial-factorization-waste},
   Theorem \ref{initial-factorization-large-prime-le},
   Theorem \ref{initial-factorization-large-prime-ge},
@@ -1130,7 +1225,7 @@ theorem Params.initial.score_bound (P : Params) :
     P.initial.score P.L ≤ P.n * log (1 - 1 / (P.M : ℝ))⁻¹ +
       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)), P.M * Real.log P.n +
       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊(Real.sqrt P.n)⌋₊),
-        P.M * Real.log P.n * Real.log P.n +
+        P.M * Real.log P.n * Real.log P.n / Real.log 2 +
       ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n),
         (P.n / p) * Real.log (P.n / p) +
       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic P.L),
@@ -1158,13 +1253,13 @@ theorem Params.initial.bound_score_2 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
 @[blueprint
   "bound-score-3"
   (statement := /-- If $n$ sufficiently large depending on $M, \varepsilon$, then
-$\sum_{p \leq \sqrt{n}} M \log^2 n \leq \varepsilon n$. -/)
+$\sum_{p \leq \sqrt{n}} M \log^2 n / \log 2 \leq \varepsilon n$. -/)
   (proof := /-- Crude estimation. -/)]
 theorem Params.initial.bound_score_3 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
     ∀ᶠ n in Filter.atTop, ∀ P : Params,
       P.n = n →
         ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊(Real.sqrt P.n)⌋₊),
-          P.M * Real.log P.n * Real.log P.n ≤ ε * P.n := by sorry
+          P.M * Real.log P.n * Real.log P.n / Real.log 2 ≤ ε * P.n := by sorry
 
 @[blueprint
   "bound-score-4"
