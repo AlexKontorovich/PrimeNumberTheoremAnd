@@ -67,7 +67,7 @@ Since our sums start from $1$, the sum $\sum_{k\leq K}$ is empty for $K=0$.
 R(x) = \sum_{k\leq K} M\left(\sqrt{\frac{x}{k}}\right)  -
 \int_0^{K+\frac{1}{2}} M\left(\sqrt{\frac{x}{u}}\right) du \\
 &-\sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}} \left(M\left(\sqrt{\frac{x}{u}}\right) -M\left(\sqrt{\frac{x}{k}}\right)\right) du \\
-& - 2 x \sum_{K < k\leq x} \int_{\sqrt{\frac{x}{k+1 / 2}}}^{\sqrt{\frac{x}{k-1/2}}} \frac{M(t)- M\left(\sqrt{\frac{x}{k}}\right)}{t^3} dt$$
+& - 2 x \sum_{K < k\leq x} \int_{\sqrt{\frac{x}{k+1 / 2}}}^{\sqrt{\frac{x}{k-1/2}}} \frac{M(t)- M\left(\sqrt{\frac{x}{k}}\right)}{t^3} dt
 \end{aligned}
 \end{equation}
 .-/)
