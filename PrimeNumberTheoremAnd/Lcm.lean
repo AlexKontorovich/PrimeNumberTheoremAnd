@@ -954,6 +954,8 @@ blueprint_comment /--
     \qquad
     \frac{1}{n^{3/2}} \le \frac{1}{89693}\cdot\frac{1}{n}.
   \]
+  and
+  \[ \frac{1}{n+\sqrt{n}} \ge \frac{1}{1 + 1/89693}\cdot\frac{1}{n}. \]
   -/)
   (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are
   decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at
@@ -980,6 +982,8 @@ theorem inv_cube_log_sqrt_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
     \qquad
     \frac{1}{n^{3/2}} \le \frac{1}{89693}\cdot\frac{1}{n}.
   \]
+  and
+  \[ \frac{1}{n+\sqrt{n}} \ge \frac{1}{1 + 1/89693}\cdot\frac{1}{n}. \]
   -/)
   (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are
   decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at
@@ -994,6 +998,27 @@ theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
   refine mul_le_mul_of_nonneg_left ?_ hn_pos.le
   have := Real.sqrt_le_sqrt (cast_le.mpr hn)
   simp_all
+
+@[blueprint
+  "lem:eps-bounds"
+  (title := "Uniform bounds for large \\(n\\)")
+  (statement := /--
+  For all \(n \ge X_0^2 = 89693^2\) we have
+  \[
+    \frac{1}{\log^3 \sqrt{n}}
+    \le 0.000675,
+    \qquad
+    \frac{1}{n^{3/2}} \le \frac{1}{89693}\cdot\frac{1}{n}.
+  \]
+  and
+  \[ \frac{1}{n+\sqrt{n}} \ge \frac{1}{1 + 1/89693}\cdot\frac{1}{n}. \]
+  -/)
+  (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are
+  decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at
+  \(n=X_0^2\).  One can verify numerically or symbolically. -/)
+  (latexEnv := "lemma")]
+theorem inv_n_add_sqrt_ge (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (n + √(n : ℝ)) ≥ (1 / (1 + 1 / (89693 : ℝ))) * (1 / (n : ℝ)) := by
+  sorry
 
 @[blueprint
   "lem:poly-ineq"
@@ -1061,7 +1086,7 @@ theorem prod_epsilon_le (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   -/)
   (latexEnv := "lemma")]
 theorem prod_epsilon_ge (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
-    (∏ i : Fin 3, (1 + ε / (1.000675 : ℝ) ^ (2 * ((i : ℕ) + 1 : ℝ)))) *
+    (∏ i : Fin 3, (1 + ε / ((1.000675 : ℝ) ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 + 1/89693))) *
         (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * ε) ≥
       1 + 3.36687 * ε - 0.01 * ε ^ 2 := by
   norm_cast; norm_num [Fin.prod_univ_three]; nlinarith [pow_nonneg hε.left 3, pow_nonneg hε.left 4]
