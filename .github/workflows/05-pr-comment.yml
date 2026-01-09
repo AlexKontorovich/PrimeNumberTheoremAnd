@@ -8,6 +8,8 @@ jobs:
   awaiting_author:
     if: github.event.issue.pull_request != null && contains(github.event.comment.body, 'awaiting-author')
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
     - name: Add 'awaiting-author; and remove any 'awaiting-review'
       uses: actions/github-script@v8
@@ -21,6 +23,8 @@ jobs:
   awaiting_review:
     if: github.event.issue.pull_request != null && contains(github.event.comment.body, 'awaiting-review')
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
 
     steps:
     - name: Add 'awaiting-review; and remove any 'awaiting-author'

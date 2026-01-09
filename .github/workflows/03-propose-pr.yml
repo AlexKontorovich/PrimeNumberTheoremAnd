@@ -8,6 +8,8 @@ jobs:
   propose_pr:
     if: github.event.issue.pull_request == null && contains(github.event.comment.body, 'propose')
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
 
     steps:
     - name: Check if the comment contains "propose #PR_NUMBER"

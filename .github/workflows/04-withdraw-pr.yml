@@ -8,6 +8,8 @@ jobs:
   withdraw_pr:
     if: github.event.issue.pull_request == null && contains(github.event.comment.body, 'withdraw')
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
 
     steps:
     - name: Check if the comment contains "withdraw #PR_NUMBER"
