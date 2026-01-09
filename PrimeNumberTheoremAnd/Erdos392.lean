@@ -1237,8 +1237,34 @@ theorem Params.initial.score_bound (P : Params) :
 $n \log(1-1/M)^{-1} \leq \varepsilon n$. -/)
   (proof := /-- Use the fact that $\log(1-1/M)^{-1}$ goes to zero as $M \to \infty$.-/)]
 theorem Params.initial.bound_score_1 (ε : ℝ) (hε : ε > 0) :
-    ∀ᶠ M in Filter.atTop, ∀ P : Params,
-      P.M = M → P.n * log (1 - 1 / (P.M : ℝ))⁻¹ ≤ ε * P.n := by sorry
+    ∀ᶠ M in .atTop, ∀ P : Params,
+      P.M = M → P.n * log (1 - 1 / (P.M : ℝ))⁻¹ ≤ ε * P.n := by
+  have h_tendsto : Filter.Tendsto (fun M : ℕ ↦ log (1 - 1 / (M : ℝ))⁻¹) .atTop (nhds 0) := by
+    have : Filter.Tendsto (fun M : ℕ ↦ (1 : ℝ) / M) .atTop (nhds 0) :=
+      tendsto_const_div_atTop_nhds_zero_nat 1
+    have : Filter.Tendsto (fun M : ℕ ↦ 1 - 1 / (M : ℝ)) .atTop (nhds 1) := by
+      simpa only [one_div, sub_zero] using tendsto_const_nhds.sub this
+    have : Filter.Tendsto (fun M : ℕ ↦ (1 - 1 / (M : ℝ))⁻¹) .atTop (nhds 1) := by
+      simpa using this.inv₀ one_ne_zero
+    have h : Filter.Tendsto (fun x : ℝ ↦ log x) (nhds 1) (nhds 0) := by
+      simpa [ContinuousAt, log_one] using continuousAt_log (x := (1 : ℝ)) one_ne_zero
+    exact h.comp this
+  rw [Metric.tendsto_atTop] at h_tendsto
+  obtain ⟨N, hN⟩ := h_tendsto ε hε
+  filter_upwards [Filter.eventually_ge_atTop N] with M hM P hPM
+  rcases eq_or_ne P.n 0 with hn | hn
+  · simp [hn]
+  have hM_pos : (0 : ℝ) < M := cast_pos.mpr (zero_lt_of_lt <| hPM ▸ P.hM)
+  have h_one_sub_pos : 0 < 1 - 1 / (M : ℝ) := by
+    rw [sub_pos, div_lt_one hM_pos]; exact one_lt_cast.mpr <| hPM ▸ P.hM
+  have h_inv_ge_one : 1 ≤ (1 - 1 / (M : ℝ))⁻¹ := by
+    rw [one_le_inv_iff₀]; exact ⟨h_one_sub_pos, by linarith [div_nonneg one_pos.le hM_pos.le]⟩
+  have h_log_lt : log (1 - 1 / (M : ℝ))⁻¹ < ε := by
+    have := hN M hM; rw [Real.dist_eq, log_inv, sub_zero, abs_neg] at this; rw [log_inv]
+    rwa [abs_of_neg (log_neg h_one_sub_pos (by linarith [div_pos one_pos hM_pos]))] at this
+  calc P.n * log (1 - 1 / (P.M : ℝ))⁻¹ = P.n * log (1 - 1 / (M : ℝ))⁻¹ := by rw [hPM]
+    _ ≤ P.n * ε := by gcongr
+    _ = ε * P.n := mul_comm ..
 
 @[blueprint
   "bound-score-2"
