@@ -2343,7 +2343,7 @@ lemma norm_x_cpow_it (x t : ℝ) (hx : 0 < x) :
     (Complex.norm_exp_ofReal_mul_I (t * Real.log x))
 
 
-lemma limiting_fourier_aux_ver2 (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
+lemma limiting_fourier_aux_gt_zero (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re})
     (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (ψ : CS 2 ℂ) (hx : 0 < x) (σ' : ℝ) (hσ' : 1 < σ') :
     ∑' n, term f σ' n * 𝓕 (ψ : ℝ → ℂ) (1 / (2 * π) * log (n / x)) -
     A * (x ^ (1 - σ') : ℝ) * ∫ u in Ici (- log x), rexp (-u * (σ' - 1)) * 𝓕 (ψ : ℝ → ℂ) (u / (2 * π)) =
@@ -2381,7 +2381,7 @@ lemma limiting_fourier_aux_ver2 (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (
 
 
 
-theorem limiting_fourier_lim2_ver2 (A : ℝ) (ψ : W21) (hx : 0 < x) :
+theorem limiting_fourier_lim2_gt_zero (A : ℝ) (ψ : W21) (hx : 0 < x) :
     Tendsto
       (fun σ' ↦
         A * ↑(x ^ (1 - σ')) *
@@ -2465,7 +2465,7 @@ theorem limiting_fourier_lim2_ver2 (A : ℝ) (ψ : W21) (hx : 0 < x) :
 
 
 
-theorem limiting_fourier_lim3_ver2
+theorem limiting_fourier_lim3_gt_zero
     (hG : ContinuousOn G {s | 1 ≤ s.re}) (ψ : CS 2 ℂ) (hx : 0 < x) :
     Tendsto (fun σ' : ℝ ↦ ∫ t : ℝ, G (σ' + t * I) * ψ t * x ^ (t * I)) (𝓝[>] 1)
       (𝓝 (∫ t : ℝ, G (1 + t * I) * ψ t * x ^ (t * I))) := by
@@ -3228,8 +3228,8 @@ lemma limiting_fourier_variant
       A * ∫ u in Set.Ici (-log x), 𝓕 (ψ : ℝ → ℂ) (u / (2 * π)) =
       ∫ (t : ℝ), (G (1 + t * I)) * (ψ t) * x ^ (t * I) := by
 
-  have l2 := limiting_fourier_lim2_ver2 (A := A) (x := x) ψ hx
-  have l3 := limiting_fourier_lim3_ver2 (G := G) (x := x) hG ψ hx
+  have l2 := limiting_fourier_lim2_gt_zero (A := A) (x := x) ψ hx
+  have l3 := limiting_fourier_lim3_gt_zero (G := G) (x := x) hG ψ hx
 
   let S : ℝ → ℂ := fun σ' =>
     ∑' n : ℕ,
@@ -3262,7 +3262,7 @@ lemma limiting_fourier_variant
     intro σ' hσ'
     have hσ' : (1 : ℝ) < σ' := by
       simpa [Set.mem_Ioi] using hσ'
-    simpa using (limiting_fourier_aux_ver2 (G := G) (f := f) (A := A) hG' hf ψ hx σ' hσ')
+    simpa using (limiting_fourier_aux_gt_zero (G := G) (f := f) (A := A) hG' hf ψ hx σ' hσ')
 
   have haux' :
     (fun σ' : ℝ => S σ') =ᶠ[𝓝[>] (1 : ℝ)] (fun σ' : ℝ => RHS σ' + Pole σ') := by
