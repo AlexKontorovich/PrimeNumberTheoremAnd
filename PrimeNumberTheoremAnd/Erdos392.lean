@@ -1187,16 +1187,16 @@ theorem Params.initial.balance_medium_prime_ge (P : Params) {p : ℕ} (hp : p < 
 @[blueprint
   "initial-factorization-small-prime-le"
   (statement := /-- A small prime $p \leq \sqrt{n}$ can be in surplus by at most $M\log n$.-/)
-  (proof := /-- Routine computation using Legendre's formula.-/)]
+  (proof := /-- Routine computation using Legendre's formula, noting that at most $\log n / \log 2$ powers of $p$ divide any given number up to $n$.-/)]
 theorem Params.initial.balance_small_prime_le (P : Params) {p : ℕ} (hp : p ≤ Real.sqrt P.n) :
-    P.initial.balance p ≤ P.M * (Real.log P.n) := by sorry
+    P.initial.balance p ≤ P.M * (Real.log P.n) / (Real.log 2):= by sorry
 
 @[blueprint
   "initial-factorization-small-prime-ge"
   (statement := /-- A small prime $L < p \leq \sqrt{n}$ can be in deficit by at most $M\log n$.-/)
-  (proof := /-- Routine computation using Legendre's formula.-/)]
+  (proof := /-- Routine computation using Legendre's formula, noting that at most $\log n / \log 2$ powers of $p$ divide any given number up to $n$.-/)]
 theorem Params.initial.balance_small_prime_ge (P : Params) {p : ℕ} (hp : p ≤ Real.sqrt P.n)
-    (hp' : p > P.L) : P.initial.balance p ≥ - P.M * (Real.log P.n) := by
+    (hp' : p > P.L) : P.initial.balance p ≥ - P.M * (Real.log P.n) / (Real.log 2) := by
   sorry
 
 @[blueprint
@@ -1212,7 +1212,7 @@ theorem Params.initial.balance_tiny_prime_ge (P : Params) {p : ℕ} (hp : p ≤ 
 @[blueprint
   "initial-score-bound"
   (statement := /-- The initial score is bounded by
-  $$ n \log(1-1/M)^{-1} + \sum_{p \leq n/L} M \log n + \sum_{p \leq \sqrt{n}} M \log^2 n + \sum_{n/L < p \leq n} \frac{n}{p} \log \frac{n}{p} + \sum_{p \leq L} (M \log n + M L \pi(n)) \log L.$$ -/)
+  $$ n \log(1-1/M)^{-1} + \sum_{p \leq n/L} M \log n + \sum_{p \leq \sqrt{n}} M \log^2 n / \log 2 + \sum_{n/L < p \leq n} \frac{n}{p} \log \frac{n}{p} + \sum_{p \leq L} (M \log n + M L \pi(n)) \log L.$$ -/)
   (proof := /-- Combine Theorem \ref{initial-factorization-waste},
   Theorem \ref{initial-factorization-large-prime-le},
   Theorem \ref{initial-factorization-large-prime-ge},
@@ -1225,7 +1225,7 @@ theorem Params.initial.score_bound (P : Params) :
     P.initial.score P.L ≤ P.n * log (1 - 1 / (P.M : ℝ))⁻¹ +
       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)), P.M * Real.log P.n +
       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊(Real.sqrt P.n)⌋₊),
-        P.M * Real.log P.n * Real.log P.n +
+        P.M * Real.log P.n * Real.log P.n / Real.log 2 +
       ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n),
         (P.n / p) * Real.log (P.n / p) +
       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic P.L),
@@ -1253,13 +1253,13 @@ theorem Params.initial.bound_score_2 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
 @[blueprint
   "bound-score-3"
   (statement := /-- If $n$ sufficiently large depending on $M, \varepsilon$, then
-$\sum_{p \leq \sqrt{n}} M \log^2 n \leq \varepsilon n$. -/)
+$\sum_{p \leq \sqrt{n}} M \log^2 n / \log 2 \leq \varepsilon n$. -/)
   (proof := /-- Crude estimation. -/)]
 theorem Params.initial.bound_score_3 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
     ∀ᶠ n in Filter.atTop, ∀ P : Params,
       P.n = n →
         ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊(Real.sqrt P.n)⌋₊),
-          P.M * Real.log P.n * Real.log P.n ≤ ε * P.n := by sorry
+          P.M * Real.log P.n * Real.log P.n / Real.log 2 ≤ ε * P.n := by sorry
 
 @[blueprint
   "bound-score-4"
