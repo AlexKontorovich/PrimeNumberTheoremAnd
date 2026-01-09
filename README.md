@@ -11,6 +11,10 @@ The objective of this project is to formalize in Lean the Prime Number Theorem (
 
 The project is coordinated via a [Lean Zulip channel](https://leanprover.zulipchat.com/#narrow/channel/423402-PrimeNumberTheorem.2B).
 
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for instructions on how to claim issues, submit PRs, and participate in the project.
+
 ## Quick contributions via gitpod
 If you want to quickly contribute to the project without installing your own copy of lean, you can do so using gitpod.
 Simply visit: <https://gitpod.io/new/#https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/>, or click the button below:
