@@ -933,11 +933,36 @@ theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   \]
   This implies \eqref{eq:pq-ratio}.
   -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 510)]
 theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     1 - (4 : ℝ) * ∏ i, (exists_p_primes hn).choose i / ∏ i, (exists_q_primes hn).choose i ≥
       1 - 4 * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ 12 / n ^ (3 / 2) := by
-  sorry
+-- PROOF FOUND BY ALPHAPROOF!!
+  have := @exists_q_primes
+  rw[ Finset.prod_eq_zero_iff.2]
+  · use sub_le_sub_left (.trans (by rw [Nat.cast_zero,mul_zero]) (by positivity)) (1)
+  norm_num[Nat.Prime.pos _,(this hn).choose_spec,(Finset.prod_lt_prod ↑_ (fun R L=>((this hn).choose_spec.1 R).one_le) ⟨0, _⟩).trans_le']
+  delta Exists.choose
+  delta Classical.choose
+  cases Classical.indefiniteDescription ..
+  cases Classical.indefiniteDescription ..
+  rename_i property val_1 property_1
+  simp_all only [ge_iff_le, one_div, Fin.isValue, neg_sub]
+  simp_all only [one_div, neg_sub, Fin.isValue]
+  obtain ⟨left, right⟩ := property
+  obtain ⟨left_1, right_1⟩ := property_1
+  obtain ⟨left_2, right⟩ := right
+  obtain ⟨left_3, right_1⟩ := right_1
+  obtain ⟨left_4, right⟩ := right
+  obtain ⟨left_5, right_1⟩ := right_1
+  use(0),.inr (Nat.cast_lt.1 ((left_5 0).trans_lt ?_))
+  norm_num[Real.log_sqrt, Lcm.X₀, Fin.prod_univ_three, Fin.forall_iff_succ] at hn left_4⊢
+  apply(mul_le_mul_of_nonneg_right (mul_le_mul (Nat.cast_le.2 (left 0).two_le) (Nat.cast_le.2 (left 1).two_le) (by bound) (by bound)) (by bound)).trans_lt'
+  have: 1 ≤Real.log n := by norm_num[hn.trans',Real.le_log_iff_exp_le, right.pos,Real.exp_one_lt_d9.le.trans.comp (Nat.cast_le.2 hn).trans']
+  have:=inv_anti₀ (by bound)<|pow_le_pow_left₀ (by bound) (div_le_div_of_nonneg_right this two_pos.le) 3
+  have:=mul_le_mul_of_nonneg_left this (n:ℝ).sqrt_nonneg
+  nlinarith [ (by norm_cast:804483424_9≤(n: ℝ)), (mul_inv_le_iff₀ (by positivity)).1 (Real.rpow_neg_one _▸ left_4.2.2),Real.sq_sqrt n.cast_nonneg]
 
 blueprint_comment /--
 \subsection{Reduction to a small epsilon-inequality}
@@ -1016,9 +1041,23 @@ theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
   (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are
   decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at
   \(n=X_0^2\).  One can verify numerically or symbolically. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 511)]
 theorem inv_n_add_sqrt_ge (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (n + √(n : ℝ)) ≥ (1 / (1 + 1 / (89693 : ℝ))) * (1 / (n : ℝ)) := by
-  sorry
+  field_simp [one_mul,Lcm.X₀] at *
+  field_simp [div_le_div_iff₀, mul_add, add_mul,(mul_le_mul_of_nonneg_right (Real.le_sqrt_of_sq_le
+    (by norm_cast:89693^2≤(n:ℝ))) ↑_).trans]
+  ring_nf
+  rw [show (n : ℝ) * 89694 = ↑n * 89693 + n by ring]
+  gcongr
+  nth_rewrite 2 [show (n : ℝ) = √n * √n by
+    rw [show  √(n : ℝ) * √n = (√n) ^ 2 by ring]
+    rw [sq_sqrt (by positivity)]]
+  gcongr
+  apply Real.le_sqrt_of_sq_le
+  norm_cast
+
+
 
 @[blueprint
   "lem:poly-ineq"
@@ -1132,7 +1171,8 @@ theorem final_comparison (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : 
   Lemma~\ref{lem:final-comparison} then ensures that \eqref{eq:main-ineq} holds. -/)
   (proofUses := ["lem:eps-bounds", "lem:qi-product", "lem:final-comparison", "lem:poly-ineq",
   "lem:pq-ratio", "lem:pi-product"])
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 512)]
 noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion where
   n := n
   p := (exists_p_primes hn).choose
