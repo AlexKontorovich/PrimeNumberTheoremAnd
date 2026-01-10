@@ -933,7 +933,8 @@ theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   \]
   This implies \eqref{eq:pq-ratio}.
   -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 510)]
 theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     1 - (4 : ℝ) * ∏ i, (exists_p_primes hn).choose i / ∏ i, (exists_q_primes hn).choose i ≥
       1 - 4 * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ 12 / n ^ (3 / 2) := by
@@ -1040,7 +1041,8 @@ theorem inv_n_pow_3_div_2_le (n : ℕ) (hn : n ≥ X₀ ^ 2) :
   (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are
   decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at
   \(n=X_0^2\).  One can verify numerically or symbolically. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 511)]
 theorem inv_n_add_sqrt_ge (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (n + √(n : ℝ)) ≥ (1 / (1 + 1 / (89693 : ℝ))) * (1 / (n : ℝ)) := by
   field_simp [one_mul,Lcm.X₀] at *
   field_simp [div_le_div_iff₀, mul_add, add_mul,(mul_le_mul_of_nonneg_right (Real.le_sqrt_of_sq_le
@@ -1169,7 +1171,8 @@ theorem final_comparison (ε : ℝ) (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : 
   Lemma~\ref{lem:final-comparison} then ensures that \eqref{eq:main-ineq} holds. -/)
   (proofUses := ["lem:eps-bounds", "lem:qi-product", "lem:final-comparison", "lem:poly-ineq",
   "lem:pq-ratio", "lem:pi-product"])
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 512)]
 noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion where
   n := n
   p := (exists_p_primes hn).choose
