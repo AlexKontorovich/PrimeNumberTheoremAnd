@@ -42,7 +42,8 @@ $$Q(x) = \sum_{k\leq x} M\left(\sqrt{\frac{x}{k}}\right)$$
 We compute
 $$Q(x) = \sum_{n\leq x} \sum_{d: d^2|n} \mu(d) = \sum_{k, d: k d^2\leq x} \mu(d)$$
 giving the claim.-/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 526)]
 theorem mobius_lemma_1_sub (x : ℝ) (hx : x > 0) :
   Q x = ∑ k ∈ Finset.Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) := by sorry
 
@@ -60,7 +61,8 @@ $\sum_n |\mu(n)|\int_0^{x/n^2} du \leq \sum_n x/n^2 < \infty$)
 $$\int_0^x M\left(\sqrt{\frac{x}{u}}\right) du = \int_0^x \sum_{n\leq \sqrt{\frac{x}{u}}} \mu(n) du
 =\sum_n \mu(n) \int_0^{\frac{x}{n^2}} du = x \sum_n \frac{\mu(n)}{n^2} = \frac{x}{\zeta(2)}.$$
   -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 527)]
 theorem mobius_lemma_1 (x : ℝ) (hx : x > 0) :
   R x = ∑ k ∈ Finset.Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) -
         ∫ u in 0..x, (M (Real.sqrt (x / u)) : ℝ) := by sorry
@@ -79,7 +81,8 @@ $$
 $$
 .-/)
   (proof := /-- This is just splitting the sum at $K$. -/)
-    (latexEnv := "sublemma")]
+    (latexEnv := "sublemma")
+    (discussion := 528)]
 theorem mobius_lemma_2_sub_1 (x : ℝ) (hx : x > 0) (K : ℕ) (hK : (K : ℝ) ≤ x) :
   ∑ k ∈ Finset.Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) =
     ∑ k ∈ Finset.range (K + 1), M (Real.sqrt (x / k)) +
@@ -93,7 +96,8 @@ theorem mobius_lemma_2_sub_1 (x : ℝ) (hx : x > 0) (K : ℕ) (hK : (K : ℝ) �
 \[\sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}} f(u) du = \int_{K+\frac{1}{2}}^{\lfloor x\rfloor + \frac{3}{2}} f(u) du
 = \int_{K+\frac{1}{2}}^x f(u) du,\].-/)
   (proof := /-- This is just splitting the integral at $K$, since $f(u) = M(\sqrt{x/u}) = 0$ for $x>u$. -/)
-    (latexEnv := "sublemma")]
+    (latexEnv := "sublemma")
+    (discussion := 529)]
 theorem mobius_lemma_2_sub_2 (x : ℝ) (hx : x > 0) (K : ℕ) (hK : (K : ℝ) ≤ x) :
   let f : ℝ → ℝ := fun u ↦ (M (Real.sqrt (x / u)) : ℝ)
   ∑ k ∈ Finset.Ico (K + 1) (⌊x⌋₊ + 2),
@@ -118,7 +122,8 @@ $M(t)=0$ for $t<1$, so \eqref{eq:singdot} holds.
 
 Now suppose that $K \leq x$. Then we combine Sublemma \ref{mobius-lemma-2-sub-1} and Sublemma \ref{mobius-lemma-2-sub-2} with Lemma \ref{mobius-lemma-1} to give the claim.
   -/)
-    (latexEnv := "lemma")]
+    (latexEnv := "lemma")
+    (discussion := 530)]
 theorem mobius_lemma_2 (x : ℝ) (hx : x > 0) (K : ℕ) : R x =
   ∑ k ∈ Finset.range (K + 1), M (Real.sqrt (x / k)) -
   ∫ u in 0..(K + 0.5), (M (Real.sqrt (x / u)) : ℝ) -

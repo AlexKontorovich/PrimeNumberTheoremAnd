@@ -7,7 +7,7 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-In this section we establish the primary results of Kadiri, Lumley, and Ng from this paper: arXiv:2101.12263
+In this section we establish the primary results of \cite{KLN}.
 -/
 
 namespace KLN
