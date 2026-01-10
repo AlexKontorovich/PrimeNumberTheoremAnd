@@ -7,15 +7,11 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-In this section we summarize the secondary results known in the literature (or obtained from this project), and (if their proof has already been formalized) provide a proof that reduces them to primary results, as well as implications of primary results to secondary results with appropriate choices of parameters.
+Here we list some papers that we plan to incorporate into this section in the future, and list some results that have not yet been moved into dedicated paper sections.
 
-Key references:
+References to add:
 
 Dusart: \url{https://piyanit.nl/wp-content/uploads/2020/10/art_10.1007_s11139-016-9839-4.pdf}
-
-FKS1: Fiori--Kadiri--Swidninsky arXiv:2204.02588
-
-FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
 
 PT: D. J. Platt and T. S. Trudgian, The error term in the prime number theorem, Math. Comp. 90 (2021), no. 328, 871–881.
 

@@ -19,5 +19,15 @@
     "files.readonlyInclude": {
         "**/.elan/**": true,
         "**/.lake/**": true
-    }
+    },
+    // Explicit Folding rules for LeanArchitect docstrings
+    "explicitFolding.rules": {
+        "*": [
+            {
+                "begin": "/--",
+                "end": "-/"
+            }
+        ]
+    },
+    "editor.foldingStrategy": "auto"
 }
