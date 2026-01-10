@@ -1296,7 +1296,7 @@ theorem Params.initial.bound_score_1 (ε : ℝ) (hε : ε > 0) :
   (proof := /-- Use the prime number theorem (or the Chebyshev bound). -/)
   (latexEnv := "sublemma")]
 theorem Params.initial.bound_score_2 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
-    ∀ᶠ L in Filter.atTop, ∀ᶠ n in Filter.atTop, ∀ P : Params,
+    ∀ᶠ L in .atTop, ∀ᶠ n in .atTop, ∀ P : Params,
       P.L = L → P.n = n → P.M = M → ∑ _p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)),
         P.M * Real.log P.n ≤ ε * P.n := by
   have pi_equiv := pi_alt'
@@ -1413,19 +1413,66 @@ theorem Params.initial.bound_score_5 (ε : ℝ) (hε : ε > 0) (M L : ℕ) :
 @[blueprint
   "initial-score"
   (statement := /-- The score of the initial factorization can be taken to be $o(n)$.-/)
-  (proof := /-- Pick $M$ large depending on $\varepsilon$, then $L$ sufficiently large depending on $M, \varepsilon$, then $n$ sufficiently large depending on $M,L,\varepsilon$, so that the bounds in Sublemma \ref{bound-score-1}, Sublemma \ref{bound-score-2}, Sublemma \ref{bound-score-3}, Sublemma \ref{bound-score-4}, and Sublemma \ref{bound-score-5} each contribute at most $(\varepsilon/5) n$.  Then use Proposition \ref{initial-score-bound}.-/)
+  (proof := /-- Pick $M$ large depending on $\varepsilon$, then $L$ sufficiently large depending
+  on $M, \varepsilon$, then $n$ sufficiently large depending on $M,L,\varepsilon$, so that the bounds in Sublemma \ref{bound-score-1}, Sublemma \ref{bound-score-2}, Sublemma \ref{bound-score-3}, Sublemma \ref{bound-score-4}, and Sublemma \ref{bound-score-5} each contribute at most $(\varepsilon/5) n$.  Then use Proposition \ref{initial-score-bound}.-/)
   (discussion := 519)
   (latexEnv := "proposition")]
 theorem Params.initial.score (ε : ℝ) (hε : ε > 0) :
-    ∀ᶠ n in Filter.atTop, ∃ P : Params, P.n = n ∧ P.initial.score P.L ≤ ε * n := by
-  sorry
+    ∀ᶠ n in .atTop, ∃ P : Params, P.n = n ∧ P.initial.score P.L ≤ ε * n := by
+  have h_bound_score_1 : ∀ᶠ M in .atTop, ∀ P : Params,
+      P.M = M → P.n * log (1 - 1 / (P.M : ℝ))⁻¹ ≤ ε * P.n / 5 :=
+    (initial.bound_score_1 (ε := ε / 5) (by positivity)).mono fun M hM P hP ↦ by linarith [hM P hP]
+  obtain ⟨M₀, hM₀⟩ := Filter.eventually_atTop.mp h_bound_score_1
+  let M := max M₀ 2
+  have hM : M > 1 ∧ ∀ P : Params, P.M = M → P.n * log (1 - 1 / (P.M : ℝ))⁻¹ ≤ ε * P.n / 5 :=
+    ⟨by omega, fun P hP ↦ hM₀ _ (le_max_left _ _) _ hP⟩
+  have h_bound_score_2 : ∀ᶠ L in .atTop, ∀ᶠ n in .atTop, ∀ P : Params,
+      P.L = L → P.n = n → P.M = M → ∑ _p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)),
+        P.M * Real.log P.n ≤ ε * P.n / 5 :=
+    (initial.bound_score_2 (ε / 5) (by positivity) M).mono fun L hL ↦
+      hL.mono fun n hn P hPL hPn hPM ↦ by linarith [hn P hPL hPn hPM]
+  obtain ⟨L₀, hL₀⟩ := Filter.eventually_atTop.mp h_bound_score_2
+  let L := max L₀ 1
+  have h_bound_score_3 : ∀ᶠ n in .atTop, ∀ P : Params,
+      P.M = M → P.n = n → ∑ _p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊(Real.sqrt P.n)⌋₊),
+        P.M * Real.log P.n * Real.log P.n / Real.log 2 ≤ ε * P.n / 5 :=
+    (initial.bound_score_3 (ε / 5) (by positivity) M).mono fun n hn P hPM hPn ↦ by grind
+  have h_bound_score_4 : ∀ᶠ n in .atTop, ∀ P : Params,
+      P.L = L → P.n = n → ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n),
+        (P.n / p) * Real.log (P.n / p) ≤ ε * P.n / 5 :=
+    (initial.bound_score_4 (ε / 5) (by linarith) L).mono fun n hn P hPL hPn ↦ by grind
+  have h_bound_score_5 : ∀ᶠ n in .atTop, ∀ P : Params,
+      P.M = M → P.L = L → P.n = n → ∑ _p ∈ filter (·.Prime) (Finset.Iic P.L),
+        (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L ≤ ε * P.n / 5 :=
+    (initial.bound_score_5 (ε / 5) (by positivity) M L).mono fun n hn P hPM hPL hPn ↦ by grind
+  have h_exists_n₀ : ∃ n₀ : ℕ, ∀ n ≥ n₀, n > L * L ∧ (n / L : ℕ) > Real.sqrt n := by
+    refine ⟨L^2 + L^2 + 1, fun n hn ↦ ⟨by grind, ?_⟩⟩
+    have hmod : n % L < L := mod_lt n (by positivity)
+    rw [gt_iff_lt, sqrt_lt' (Nat.cast_pos.mpr <| by nlinarith [div_add_mod n L, hmod])]
+    have : n < (n / L)^2 := by
+      have : n ≤ L * (n / L) + (L - 1) := by
+        calc n = L * (n / L) + n % L := (div_add_mod n L).symm
+          _ ≤ L * (n / L) + (L - 1) := by omega
+      have : (n / L)^2 ≥ (L + 1)^2 := Nat.pow_le_pow_left (by nlinarith [div_add_mod n L, hmod]) 2
+      nlinarith [div_add_mod n L, hmod]
+    exact_mod_cast this
+  filter_upwards [Filter.eventually_ge_atTop h_exists_n₀.choose, hL₀ L (le_max_left _ _),
+    h_bound_score_3, h_bound_score_4, h_bound_score_5] with n hn hn2 hn3 hn4 hn5
+  obtain ⟨hn_LL, hn_sqrt⟩ := h_exists_n₀.choose_spec n hn
+  let P : Params := ⟨n, M, L, hM.1, by positivity, hn_LL, hn_sqrt⟩
+  refine ⟨P, rfl, ?_⟩
+  calc P.initial.score P.L ≤ _ := initial.score_bound P
+    _ ≤ ε * P.n / 5 + ε * P.n / 5 + ε * P.n / 5 + ε * P.n / 5 + ε * P.n / 5 := by
+        gcongr <;> first | exact hM.2 P rfl | exact hn2 P rfl rfl rfl |
+          exact hn3 P rfl rfl | exact hn4 P rfl rfl | exact hn5 P rfl rfl rfl
+    _ = ε * n := by ring
 
 @[blueprint
   "erdos-sol-1"
   (statement := /-- One can find a balanced factorization of $n!$ with cardinality at least $n - n / \log n - o(n / \log n)$.--/)
   (proof := /-- Combine Proposition \ref{initial-score} with Proposition \ref{card-bound} and the Stirling approximation.-/)
   (latexEnv := "theorem")]
-theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in Filter.atTop, ∃ f : Factorization n,
+theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Factorization n,
     f.total_imbalance = 0 ∧ f.a.card ≥ n - n / Real.log n - ε * n / Real.log n := by
   refine .of_forall fun n ↦ ⟨⟨Multiset.Ico 1 (n + 1), fun _ hm ↦ ?_, fun _ hm ↦ ?_⟩, ?_, ?_⟩
   · exact le_of_lt_succ (Multiset.mem_Ico.mp hm).2
@@ -1459,7 +1506,7 @@ theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in Filter.atTop, ∃ f 
   Lemma \ref{balance-zero}.-/)
   (latexEnv := "theorem")]
 theorem Solution_2 (ε : ℝ) (hε : ε > 0) :
-    ∀ᶠ n in Filter.atTop, ∃ (t : ℕ) (a : Fin t → ℕ), ∏ i, a i = n.factorial ∧ ∀ i, a i ≤ n ^ 2 ∧
+    ∀ᶠ n in .atTop, ∃ (t : ℕ) (a : Fin t → ℕ), ∏ i, a i = n.factorial ∧ ∀ i, a i ≤ n ^ 2 ∧
         t ≥ (n / 2) - n / (2 * Real.log n) - ε * n / Real.log n := by
   norm_num
   refine ⟨2, fun b _hb ↦ ⟨b, (· + 1), ?_, ?_⟩⟩ <;> norm_num
