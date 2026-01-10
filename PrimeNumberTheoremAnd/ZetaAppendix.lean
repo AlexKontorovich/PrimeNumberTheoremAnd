@@ -1,5 +1,5 @@
 import Architect
-import PrimeNumberTheoremAnd.PrimaryDefinitions
+import PrimeNumberTheoremAnd.ZetaDefinitions
 
 blueprint_comment /--
 \section{Approximating the Riemann zeta function}
