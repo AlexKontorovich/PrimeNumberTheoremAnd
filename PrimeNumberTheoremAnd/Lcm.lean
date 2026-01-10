@@ -1077,7 +1077,7 @@ theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   This implies \eqref{eq:pq-ratio}.
   -/)
   (latexEnv := "lemma")
-  (discussion := 510)]
+  (discussion := 534)]
 theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     1 - ((4 : ℝ) * ∏ i, ((exists_p_primes hn).choose i : ℝ))
     / ∏ i, ((exists_q_primes hn).choose i : ℝ) ≥
