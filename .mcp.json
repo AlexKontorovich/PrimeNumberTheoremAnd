@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "lean-lsp": {
+      "type": "stdio",
+      "command": "/Users/eric/.local/bin/uvx",
+      "args": [
+        "lean-lsp-mcp"
+      ],
+      "env": {}
+    }
+  }
+}
