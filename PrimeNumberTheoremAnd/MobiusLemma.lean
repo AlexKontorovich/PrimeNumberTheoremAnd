@@ -17,19 +17,19 @@ open ArithmeticFunction
 @[blueprint
   "Q-def"
   (title := "Q")
-  (statement := /--  $Q(x)$ is the number of squarefree integers $\leq x$ -/)]
+  (statement := /--  $Q(x)$ is the number of squarefree integers $\leq x$. -/)]
 noncomputable def Q (x : ℝ) : ℕ := ∑ n ∈ Finset.Ioc 0 ⌊x⌋₊, if Squarefree n then 1 else 0
 
 @[blueprint
   "R-def"
   (title := "R")
-  (statement := /--  $R(x) = Q(x) - x / \zeta(2)$ -/)]
+  (statement := /--  $R(x) = Q(x) - x / \zeta(2)$. -/)]
 noncomputable def R (x : ℝ) : ℝ := Q x - x / (riemannZeta 2).re
 
 @[blueprint
   "M-def"
   (title := "M")
-  (statement := /--  $M(x)$ is the summatory function of the M\"obius function -/)]
+  (statement := /--  $M(x)$ is the summatory function of the M\"obius function. -/)]
 noncomputable def M (x : ℝ) : ℤ := ∑ n ∈ Finset.Ioc 0 ⌊x⌋₊, moebius n
 
 @[blueprint
@@ -41,7 +41,8 @@ $$Q(x) = \sum_{k\leq x} M\left(\sqrt{\frac{x}{k}}\right)$$
  (proof := /--
 We compute
 $$Q(x) = \sum_{n\leq x} \sum_{d: d^2|n} \mu(d) = \sum_{k, d: k d^2\leq x} \mu(d)$$
-giving the claim.-/)]
+giving the claim.-/)
+  (latexEnv := "sublemma")]
 theorem mobius_lemma_1_sub (x : ℝ) (hx : x > 0) :
   Q x = ∑ k ∈ Finset.Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) := by sorry
 
@@ -58,7 +59,8 @@ The equality is immediate from Theorem \ref{mobius-lemma-1-sub} and exchanging t
 $\sum_n |\mu(n)|\int_0^{x/n^2} du \leq \sum_n x/n^2 < \infty$)
 $$\int_0^x M\left(\sqrt{\frac{x}{u}}\right) du = \int_0^x \sum_{n\leq \sqrt{\frac{x}{u}}} \mu(n) du
 =\sum_n \mu(n) \int_0^{\frac{x}{n^2}} du = x \sum_n \frac{\mu(n)}{n^2} = \frac{x}{\zeta(2)}.$$
-  -/)]
+  -/)
+  (latexEnv := "lemma")]
 theorem mobius_lemma_1 (x : ℝ) (hx : x > 0) :
   R x = ∑ k ∈ Finset.Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) -
         ∫ u in 0..x, (M (Real.sqrt (x / u)) : ℝ) := by sorry
@@ -67,6 +69,35 @@ blueprint_comment /--
 Since our sums start from $1$, the sum $\sum_{k\leq K}$ is empty for $K=0$.
 -/
 
+@[blueprint
+  "mobius-lemma-2-sub-1"
+  (title := "Mobius Lemma 2 - first step")
+  (statement := /-- For any $K \leq x$,
+$$
+\sum_{k\leq x} M\left(\sqrt{\frac{x}{k}}\right) = \sum_{k\leq K} M\left(\sqrt{\frac{x}{k}}\right)
++ \sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}} M\left(\sqrt{\frac{x}{k}}\right) du.
+$$
+.-/)
+  (proof := /-- This is just splitting the sum at $K$. -/)
+    (latexEnv := "sublemma")]
+theorem mobius_lemma_2_sub_1 (x : ℝ) (hx : x > 0) (K : ℕ) (hK : (K : ℝ) ≤ x) :
+  ∑ k ∈ Finset.Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) =
+    ∑ k ∈ Finset.range (K + 1), M (Real.sqrt (x / k)) +
+    ∑ k ∈ Finset.Ico (K + 1) (⌊x⌋₊ + 2),
+      ∫ u in (k - 0.5)..(k + 0.5), (M (Real.sqrt (x / k)) : ℝ) := by sorry
+
+@[blueprint
+  "mobius-lemma-2-sub-2"
+  (title := "Mobius Lemma 2 - second step")
+  (statement := /-- For any $K \leq x$, for $f(u) = M(\sqrt{x/u})$,
+\[\sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}} f(u) du = \int_{K+\frac{1}{2}}^{\lfloor x\rfloor + \frac{3}{2}} f(u) du
+= \int_{K+\frac{1}{2}}^x f(u) du,\].-/)
+  (proof := /-- This is just splitting the integral at $K$, since $f(u) = M(\sqrt{x/u}) = 0$ for $x>u$. -/)
+    (latexEnv := "sublemma")]
+theorem mobius_lemma_2_sub_2 (x : ℝ) (hx : x > 0) (K : ℕ) (hK : (K : ℝ) ≤ x) :
+  let f : ℝ → ℝ := fun u ↦ (M (Real.sqrt (x / u)) : ℝ)
+  ∑ k ∈ Finset.Ico (K + 1) (⌊x⌋₊ + 2),
+    ∫ u in (k - 0.5)..(k + 0.5), f u = ∫ u in (K + 0.5)..(⌊x⌋₊ + 1.5), f u := by sorry
 
 @[blueprint
   "mobius-lemma-2"
@@ -85,16 +116,9 @@ If $K>x$, the second line of \eqref{eq:singdot}
 is empty, and the first one equals \eqref{eq:antenor}, by
 $M(t)=0$ for $t<1$, so \eqref{eq:singdot} holds.
 
-Now suppose that $K \leq x$. Then
-$$
-\sum_{k\leq x} M\left(\sqrt{\frac{x}{k}}\right) = \sum_{k\leq K} M\left(\sqrt{\frac{x}{k}}\right)
-+ \sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}} M\left(\sqrt{\frac{x}{k}}\right) du.
-$$
-Meanwhile, for $f(u) = M(\sqrt{x/u})$,
-\[\sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}} f(u) du = \int_{K+\frac{1}{2}}^{\lfloor x\rfloor + \frac{3}{2}} f(u) du
-= \int_{K+\frac{1}{2}}^x f(u) du,\]
-since $f(u) = M(\sqrt{x/u}) = 0$ for $x>u$.  Combining thiese bounds with Lemma \ref{mobius-lemma-1} gives the claim.
-  -/)]
+Now suppose that $K \leq x$. Then we combine Sublemma \ref{mobius-lemma-2-sub-1} and Sublemma \ref{mobius-lemma-2-sub-2} with Lemma \ref{mobius-lemma-1} to give the claim.
+  -/)
+    (latexEnv := "lemma")]
 theorem mobius_lemma_2 (x : ℝ) (hx : x > 0) (K : ℕ) : R x =
   ∑ k ∈ Finset.range (K + 1), M (Real.sqrt (x / k)) -
   ∫ u in 0..(K + 0.5), (M (Real.sqrt (x / u)) : ℝ) -
