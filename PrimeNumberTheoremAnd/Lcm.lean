@@ -34,6 +34,10 @@ noncomputable abbrev σnorm (n : ℕ) : ℝ := (σ n : ℝ) / (n : ℝ)
 def HighlyAbundant (N : ℕ) : Prop :=
   ∀ m : ℕ, m < N → σ m < σ N
 
+blueprint_comment /--
+Informally, a highly abundant number has an unusually large sum of divisors.
+-/
+
 @[blueprint
   "Ln-def"
   (statement := /--
@@ -46,6 +50,11 @@ def HighlyAbundant (N : ℕ) : Prop :=
 def L (n : ℕ) : ℕ := (Finset.Icc 1 n).lcm _root_.id
 
 blueprint_comment /--
+Clearly $L_n$ has a lot of divisors, and numerical experiments for small $n$ suggests that $L_n$ is often highly abundant.  This leads to the following question:
+-/
+
+
+blueprint_comment /--
 \begin{quote}
 \textbf{Original MathOverflow question.}
 Is it true that every value in the sequence \(L_n = \mathrm{lcm}(1,2,\dots,n)\) is highly abundant?
@@ -55,17 +64,20 @@ Equivalently,
 \]
 \end{quote}
 
-In this note we record the structure of an argument showing that, for all sufficiently large \(n\),
-the integer \(L_n\) is \emph{not} highly abundant.  This argument was taken from
-\href{https://mathoverflow.net/questions/501066/is-the-least-common-multiple-sequence-textlcm1-2-dots-n-a-subset-of-t?noredirect=1\#comment1313839_501066}{this MathOverflow answer}.
+Somewhat surprisingly, the answer is \emph{no}: not every \(L_n\) is highly abundant.
 
-It has previously been verified in Lean that \(L_n\) is highly aboundant for $n \leq 70$, $81 \leq n \leq 96$, $125 \leq n \leq 148$, $169 \leq n \leq 172$, and not highly aboundant for all other $n ≤ 10^{10}$.  The arguments here establish the non-highly-abundance of \(L_n\) for all $n \geq 89683^2$ sufficiently large \(n\), thus completing the determination in Lean of all $n$ for which \(L_n\) is highly abundant.
+It has previously been verified in Lean that \(L_n\) is highly aboundant for $n \leq 70$, $81 \leq n \leq 96$, $125 \leq n \leq 148$, $169 \leq n \leq 172$, and not highly abondant for all other $n ≤ 10^{10}$.  The arguments here establish the non-highly-abundance of \(L_n\) for all $n \geq 89683^2$ sufficiently large \(n\), thus completing the determination in Lean of all $n$ for which \(L_n\) is highly abundant. This argument was taken from
+\href{https://mathoverflow.net/questions/501066/is-the-least-common-multiple-sequence-textlcm1-2-dots-n-a-subset-of-t?noredirect=1\#comment1313839_501066}{this MathOverflow answer}.
 
 \subsection{A general criterion using three medium primes and three large primes}
 -/
 
 blueprint_comment /--
-In this subsection we assume that $n \geq 1$ and that \(p_1,p_2,p_3,q_1,q_2,q_3\) are primes
+The key step in the proof is to show that, if one can find six primes $p_1,p_2,p_3,q_1,q_2,q_3$ obeying a certain inequality, then one can find a competitor $M < L_n$ to $L_n$ with $\sigma(M) > \sigma(L_n)$, which will demonstrate that $L_n$ is not highly abundant. More precisely: -/
+
+@[blueprint
+  "lcm-criterion"
+  (statement := /-- In the next few subsections we assume that $n \geq 1$ and that \(p_1,p_2,p_3,q_1,q_2,q_3\) are primes
 satisfiying
 \[
   \sqrt{n} < p_1 < p_2 < p_3 < q_1 < q_2 < q_3 < n
@@ -80,8 +92,7 @@ and the key criterion
 \end{equation}
 
 NOTE: In the Lean formalization of this argument, we index the primes from 0 to 2 rather than from 1 to 3.
--/
-
+-/)]
 structure Criterion where
   n : ℕ
   hn : n ≥ 1
@@ -308,7 +319,7 @@ theorem Criterion.prod_q_eq (c : Criterion) : ∏ i, c.q i = (4 * ∏ i, c.p i) 
   simp only [m, r, Nat.div_add_mod]
 
 @[blueprint
-  "M-def"
+  "lcm-M-def"
   (statement := /--
     With $m,r$ as above, define the competitor
   \[
@@ -640,7 +651,8 @@ theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) :
 
 
 
-
+blueprint_comment /--
+We have thus completed the key step of demonstrating a sufficient criterion to establish that $L_n$ is not highly abundant: -/
 
 @[blueprint
   "thm:criterion"
@@ -686,6 +698,9 @@ lemma log_X₀_pos : 0 < Real.log X₀ := by linear_combination log_X₀_gt
 blueprint_comment /--
 \subsection{Choice of six primes \(p_i,q_i\) for large \(n\)}
 -/
+
+blueprint_comment /--
+To finish the proof we need to locate six primes $p_1,p_2,p_3,q_1,q_2,q_3$ obeying the required inequality.  Here we will rely on the prime number theorem of Dusart \cite{Dusart2018}. -/
 
 @[blueprint
   "lem:choose-pi"
