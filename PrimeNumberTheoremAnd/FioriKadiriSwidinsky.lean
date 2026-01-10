@@ -1,6 +1,5 @@
 import Architect
 import PrimeNumberTheoremAnd.PrimaryDefinitions
-import PrimeNumberTheoremAnd.KLN
 
 blueprint_comment /--
 \section{The estimates of Fiori, Kadiri, and Swidinsky}
@@ -43,61 +42,6 @@ def table_1 : List (ℝ × ℝ) :=
 
 theorem table_1_prop {T₀ S₀ : ℝ} (h : (T₀, S₀) ∈ table_1) : riemannZeta.zeroes_sum Set.univ (Set.Ioo 0 T₀) (fun ρ ↦ 1 / ρ.im) < S₀ := by sorry
 
-
--- TODO: move to separate file
-@[blueprint
-  "Hasanalizade-Shen-Wang"
-  (title := "Hasanalizade-Shen-Wang")
-  (statement := /-- One has a Riemann von Mangoldt estimate with parameters 0.1038, 0.2573, and 9.3675. --/)]
-theorem HSW.main_theorem : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 := sorry
-
--- TODO: move to separate file
-@[blueprint
-  "mt_theorem_1"
-  (title := "MT Theorem 1")
-  (statement := /-- One has a classical zero-free region with $R = 5.5666305$. -/)
-  (uses := ["classical-zero-free-region"])
-  (latexEnv := "theorem")]
-theorem MT_theorem_1 : riemannZeta.classicalZeroFree 5.5666305 := sorry
-
--- TODO: move to separate file
-@[blueprint
-  "mty_theorem"
-  (title := "MTY")
-  (statement := /-- One has a classical zero-free region with $R = 5.558691$. -/)
-  (uses := ["classical-zero-free-region"])
-  (latexEnv := "theorem")]
-theorem MTY_theorem : riemannZeta.classicalZeroFree 5.558691 := sorry
-
--- TODO: move to separate file
-@[blueprint
-  "pt_theorem_1"
-  (title := "PT Theorem 1")
-  (statement := /-- The Riemann hypothesis is verified up to $H_0 = 3 \times 10^{12}$. -/)
-  (latexEnv := "theorem")]
-theorem PT_theorem_1 : riemannZeta.RH_up_to 3e12 := sorry
-
-@[blueprint
-  "fks-theorem-2-7"
-  (title := "FKS Theorem 2.7")
-  (statement := /-- Let $H_0$ denote a verification height for RH.  Let $10^9/H_0≤ k \leq 1$, $t > 0$, $H \in [1002, H_0)$, $α > 0$, $δ ≥ 1$, $\eta_0 = 0.23622$, $1 + \eta_0 \leq \mu \leq 1+\eta$, and $\eta \in (\eta_0, 1/2)$ be fixed. Let $\sigma > 1/2 + d / \log H_0$.  Then for any $T \geq H_0$, one has
-  $$ N(\sigma,T) \leq (T-H) \log T / (2\pi d) * \log ( 1 + CC_1(\log(kT))^{2\sigma} (\log T)^{4(1-\sigma)} T^{8/3(1-\sigma)} / (T-H) ) + CC_2 * \log^2 T / 2 \pi d$$
-and
-  $$ N(\sigma,T) \leq \frac{CC_1}{2\pi d} (\log kT)^{2\sigma} (\log T)^{5-4*\sigma} T^{8/3(1-\sigma)} + CC_2 * \log^2 T / 2 \pi d$$
-.-/)]
-theorem theorem_2_7 (I : Inputs) {k δ α d η₀ η μ σ H T : ℝ}
-  (hk : k ∈ Set.Icc ((10 ^ 9) / I.H₀) 1)
-  (hα : α > 0)
-  (hδ : δ ≥ 1)
-  (hη₀ : η₀ = 0.23622)
-  (hμ : μ ∈ Set.Icc (1 + η₀) (1 + η))
-  (hη : η ∈ Set.Ioo η₀ 0.5)
-  (hσ : σ > 0.5 + d / log I.H₀)
-  (hH : H ∈ Set.Ico 1002 I.H₀)
-  (hT : T ≥ I.H₀) :
-  riemannZeta.N' σ T ≤ ( (T - H) * log T ) / (2 * π * d) * log (1 + KLN.CC₁ I.H₀ α d δ k H σ * (log (k * T))^(2*σ) * (log T)^(4*(1-σ)) * T^(8/3*(1-σ)) / (T - H) ) + KLN.CC₂ I.H₀ d η k H μ σ * (log T)^2 / (2 * π * d)
-  ∧
-  riemannZeta.N' σ T ≤ KLN.CC₁ I.H₀ α d δ k H σ * (log (k * T))^(2*σ) * (log T)^(5 - 4*σ) * T^(8/3*(1-σ)) / (2 * π * d) + KLN.CC₂ I.H₀ d η k H μ σ * (log T)^2 / (2 * π * d) := by sorry
 
 def table_8 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ) := [
     (0.60, 0.65, 0.2456, 0.3089, 0.3405, 8.0587, 3.7669, 11.3285, 5.2954),
@@ -149,6 +93,29 @@ def table_8 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ)
     ]
 
 @[blueprint
+  "fks-theorem-2-7"
+  (title := "FKS Theorem 2.7")
+  (statement := /-- Let $H_0$ denote a verification height for RH.  Let $10^9/H_0≤ k \leq 1$, $t > 0$, $H \in [1002, H_0)$, $α > 0$, $δ ≥ 1$, $\eta_0 = 0.23622$, $1 + \eta_0 \leq \mu \leq 1+\eta$, and $\eta \in (\eta_0, 1/2)$ be fixed. Let $\sigma > 1/2 + d / \log H_0$.  Then for any $T \geq H_0$, one has
+  $$ N(\sigma,T) \leq (T-H) \log T / (2\pi d) * \log ( 1 + CC_1(\log(kT))^{2\sigma} (\log T)^{4(1-\sigma)} T^{8/3(1-\sigma)} / (T-H) ) + CC_2 * \log^2 T / 2 \pi d$$
+and
+  $$ N(\sigma,T) \leq \frac{CC_1}{2\pi d} (\log kT)^{2\sigma} (\log T)^{5-4*\sigma} T^{8/3(1-\sigma)} + CC_2 * \log^2 T / 2 \pi d$$
+.-/)]
+theorem theorem_2_7 (I : Inputs) {k δ α d η₀ η μ σ H T : ℝ}
+  (hk : k ∈ Set.Icc ((10 ^ 9) / I.H₀) 1)
+  (hα : α > 0)
+  (hδ : δ ≥ 1)
+  (hη₀ : η₀ = 0.23622)
+  (hμ : μ ∈ Set.Icc (1 + η₀) (1 + η))
+  (hη : η ∈ Set.Ioo η₀ 0.5)
+  (hσ : σ > 0.5 + d / log I.H₀)
+  (hH : H ∈ Set.Ico 1002 I.H₀)
+  (hT : T ≥ I.H₀) :
+  riemannZeta.N' σ T ≤ ( (T - H) * log T ) / (2 * π * d) * log (1 + KLN.CC₁ I.H₀ α d δ k H σ * (log (k * T))^(2*σ) * (log T)^(4*(1-σ)) * T^(8/3*(1-σ)) / (T - H) ) + KLN.CC₂ I.H₀ d η k H μ σ * (log T)^2 / (2 * π * d)
+  ∧
+  riemannZeta.N' σ T ≤ KLN.CC₁ I.H₀ α d δ k H σ * (log (k * T))^(2*σ) * (log T)^(5 - 4*σ) * T^(8/3*(1-σ)) / (2 * π * d) + KLN.CC₂ I.H₀ d η k H μ σ * (log T)^2 / (2 * π * d) := by sorry
+
+
+@[blueprint
   "fks-corollary-2-9"
   (title := "FKS Corollary 2.9")
   (statement := /-- For each $\sigma_1, \sigma_2, \tilde c_1, \tilde c_2$ given in Table 8, we have $N(\sigma,T) \leq \tilde c_1 T^{p(\sigma)} \log^{q(\sigma)} + \tilde c_2 \log^2 T$ for $\sigma_1 \leq \sigma \leq \sigma_2$ with $p(\sigma) = 8/3 (1-\sigma)$ and $q(σ) = 5-2\sigma$.-/)]
@@ -172,6 +139,7 @@ noncomputable def corollary_2_9_merged : zero_density_bound := {
     q σ := 5 - 2 * σ
     bound := by sorry
 }
+
 
 noncomputable def Inputs.default : Inputs := {
   b₁ := 0.1038

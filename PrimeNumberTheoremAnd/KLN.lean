@@ -1,5 +1,5 @@
 import Architect
-import PrimeNumberTheoremAnd.PrimaryDefinitions
+import PrimeNumberTheoremAnd.ZetaDefinitions
 import Mathlib.NumberTheory.Harmonic.EulerMascheroni
 
 blueprint_comment /--
