@@ -3,6 +3,7 @@ import Mathlib.Tactic
 import Mathlib.Algebra.BigOperators.Group.Multiset.Defs
 import Mathlib.NumberTheory.SmoothNumbers
 import Mathlib.NumberTheory.PrimeCounting
+import PrimeNumberTheoremAnd.Consequences
 
 namespace Erdos392
 
@@ -1290,14 +1291,87 @@ theorem Params.initial.bound_score_1 (ε : ℝ) (hε : ε > 0) :
 
 @[blueprint
   "bound-score-2"
-  (statement := /-- If $L$ is sufficiently large depending on $M, \varepsilon$, and $n$ sufficiently large depending on $L$, then
-$\sum_{p \leq n/L} M \log n  \leq \varepsilon n$. -/)
+  (statement := /-- If $L$ is sufficiently large depending on $M, \varepsilon$, and $n$
+  sufficiently large depending on $L$, then $\sum_{p \leq n/L} M \log n  \leq \varepsilon n$. -/)
   (proof := /-- Use the prime number theorem (or the Chebyshev bound). -/)
   (latexEnv := "sublemma")]
 theorem Params.initial.bound_score_2 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
     ∀ᶠ L in Filter.atTop, ∀ᶠ n in Filter.atTop, ∀ P : Params,
-      P.L = L → P.n = n →
-        ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)), P.M * Real.log P.n ≤ ε * P.n := by sorry
+      P.L = L → P.n = n → P.M = M → ∑ _p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)),
+        P.M * Real.log P.n ≤ ε * P.n := by
+  have pi_equiv := pi_alt'
+  rw [Asymptotics.IsEquivalent, Asymptotics.isLittleO_iff] at pi_equiv
+  specialize pi_equiv (by norm_num : (1 : ℝ) / 2 > 0)
+  rw [Filter.eventually_atTop] at pi_equiv
+  obtain ⟨N₀, hN₀⟩ := pi_equiv
+  filter_upwards [Filter.eventually_ge_atTop (max 2 (max (⌈N₀⌉₊ + 1) (⌈4 * M / ε⌉₊ + 1)))] with L hL
+  have hL2 : L ≥ 2 := le_of_max_le_left hL
+  have hLN₀ : (L : ℝ) > N₀ :=
+    (le_ceil N₀).trans_lt (by exact_mod_cast (le_max_left _ _).trans (le_of_max_le_right hL))
+  have hL4Mε : (L : ℝ) > 4 * M / ε :=
+    (le_ceil _).trans_lt (by exact_mod_cast (le_max_right _ _).trans (le_of_max_le_right hL))
+  have hLpos : (L : ℝ) > 0 := by positivity
+  filter_upwards [Filter.eventually_ge_atTop (4 * L ^ 2)] with n hn P hPL hPn hPM
+  simp only [hPM, hPL, hPn]
+  have hnL2 : n ≥ L ^ 2 := (Nat.le_mul_of_pos_left _ (by omega : 0 < 4)).trans hn
+  have hnLge : n / L ≥ L := le_div_iff_mul_le (by omega) |>.mpr (by rw [sq] at hnL2; exact hnL2)
+  have hnLN₀ : ((n / L : ℕ) : ℝ) > N₀ := hLN₀.trans_le (by exact_mod_cast hnLge)
+  conv_lhs => rw [Finset.sum_const, nsmul_eq_mul]
+  have hcard : (filter Prime (Finset.Iic (n / L))).card = primeCounting (n / L) := by
+    simp only [primeCounting, primeCounting', card_filter, count_eq_card_filter_range]
+    congr 1; ext p
+    rw [Finset.mem_Iic, Finset.mem_range, Nat.lt_succ_iff]
+  rw [hcard]
+  rcases eq_or_ne M 0 with rfl | hMne
+  · simp [mul_nonneg (hε.le) (cast_nonneg _)]
+  have hnLgt1 : (1 : ℝ) < (n / L : ℕ) := by exact_mod_cast hL2.trans hnLge
+  have hlogPos : Real.log (n / L : ℕ) > 0 := Real.log_pos hnLgt1
+  have hdivPos : (0 : ℝ) < (n / L : ℕ) / Real.log (n / L : ℕ) := div_pos (by grind) hlogPos
+  have hπ : (primeCounting (n / L) : ℝ) ≤ 3 / 2 * ((n / L : ℕ) / Real.log (n / L : ℕ)) := by
+    have h := hN₀ ((n / L : ℕ) : ℝ) hnLN₀.le
+    simp only [Pi.sub_apply, floor_natCast, norm_eq_abs, abs_of_pos hdivPos] at h
+    linarith [abs_sub_le_iff.mp h]
+  have hn4 : n ≥ 4 := (Nat.pow_le_pow_left hL2 2).trans hnL2
+  have hnpos : (n : ℝ) > 0 := cast_pos.mpr (by positivity)
+  have hn_gt_1 : (1 : ℝ) < n := by exact_mod_cast (by grind)
+  have hlogN : Real.log (n / L : ℕ) ≥ Real.log n / 2 := by
+    have hsqrt : ((n / L : ℕ) : ℝ) ≥ Real.sqrt n := by
+      have h1 : Real.sqrt n ≤ n / (2 * L) := by
+        rw [sqrt_le_iff]
+        refine ⟨by positivity, ?_⟩
+        rw [div_pow, le_div_iff₀ (by positivity)]
+        have hn4L2 : (4 : ℝ) * L ^ 2 ≤ n := by exact_mod_cast hn
+        have h2L_sq : ((2 : ℝ) * L) ^ 2 = 4 * L ^ 2 := by ring
+        nlinarith [h2L_sq, sq_nonneg ((n : ℝ) - 4 * L ^ 2)]
+      have h2 : (n : ℝ) / L - Real.sqrt n ≥ 1 := by
+        have hL_ne : (L : ℝ) ≠ 0 := by positivity
+        calc (n : ℝ) / L - Real.sqrt n ≥ n / L - n / (2 * L) := by grind
+          _ = n / (2 * L) := by grind
+          _ ≥ 4 * L ^ 2 / (2 * L) := by gcongr; exact_mod_cast hn
+          _ = 2 * L := by grind
+          _ ≥ 4 := by have hL2' : (2 : ℝ) ≤ L := ofNat_le_cast.mpr hL2; grind
+          _ ≥ 1 := by grind
+      have h3 : ((n / L : ℕ) : ℝ) ≥ (n : ℝ) / L - 1 := by
+        have hlt := sub_one_lt_floor (a := (n : ℝ) / L)
+        rw [floor_div_eq_div] at hlt
+        grind
+      grind
+    calc
+      Real.log (n / L : ℕ) ≥ Real.log (Real.sqrt n) := log_le_log (sqrt_pos.mpr hnpos) hsqrt
+      _ = Real.log n / 2 := log_sqrt hnpos.le
+  calc
+    (primeCounting (n / L) : ℝ) * (M * Real.log n)
+      ≤ 3 / 2 * ((n / L : ℕ) / Real.log (n / L : ℕ)) * (M * Real.log n) := by gcongr
+    _ ≤ 3 / 2 * ((n : ℝ) / L / Real.log (n / L : ℕ)) * (M * Real.log n) := by
+        have : ((n / L : ℕ) : ℝ) ≤ (n : ℝ) / L := cast_div_le; gcongr
+    _ ≤ 3 / 2 * ((n : ℝ) / L / (Real.log n / 2)) * (M * Real.log n) := by
+        have : 0 < Real.log n / 2 := div_pos (log_pos hn_gt_1) (by grind); gcongr
+    _ = 3 * M * n / L := by field_simp [log_ne_zero_of_pos_of_ne_one hnpos <| ne_of_gt hn_gt_1]
+    _ ≤ ε * n := by
+        rw [div_le_iff₀ hLpos]
+        have : 4 * M < ε * L := by linarith [(div_lt_iff₀ hε).mp hL4Mε]
+        calc 3 * M * n ≤ ε * L * n := by nlinarith
+          _ = ε * n * L := by ring
 
 @[blueprint
   "bound-score-3"
@@ -1308,8 +1382,7 @@ $\sum_{p \leq \sqrt{n}} M \log^2 n / \log 2 \leq \varepsilon n$. -/)
   (latexEnv := "sublemma")]
 theorem Params.initial.bound_score_3 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
     ∀ᶠ n in Filter.atTop, ∀ P : Params,
-      P.n = n →
-        ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊(Real.sqrt P.n)⌋₊),
+      P.M = M → P.n = n → ∑ _p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊(Real.sqrt P.n)⌋₊),
           P.M * Real.log P.n * Real.log P.n / Real.log 2 ≤ ε * P.n := by sorry
 
 @[blueprint
@@ -1321,8 +1394,7 @@ $\sum_{n/L < p \leq n} \frac{n}{p} \log \frac{n}{p} \leq \varepsilon n$. -/)
   (latexEnv := "sublemma")]
 theorem Params.initial.bound_score_4 (ε : ℝ) (hε : ε > 0) (L : ℕ) :
     ∀ᶠ n in Filter.atTop, ∀ P : Params,
-      P.n = n →
-        ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n),
+      P.L = L → P.n = n → ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n),
           (P.n / p) * Real.log (P.n / p) ≤ ε * P.n := by sorry
 
 @[blueprint
@@ -1334,8 +1406,7 @@ $\sum_{p \leq L} (M \log n + M L \pi(n)) \log L \leq \varepsilon n$. -/)
   (latexEnv := "sublemma")]
 theorem Params.initial.bound_score_5 (ε : ℝ) (hε : ε > 0) (M L : ℕ) :
     ∀ᶠ n in Filter.atTop, ∀ P : Params,
-      P.n = n →
-        ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic P.L),
+      P.M = M → P.L = L → P.n = n → ∑ _p ∈ Finset.filter (·.Prime) (Finset.Iic P.L),
           (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L ≤ ε * P.n := by
   sorry
 
