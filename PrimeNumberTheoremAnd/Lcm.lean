@@ -776,7 +776,135 @@ theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∃ q : Fin 3 → ℕ, (∀ i, Nat.Prime (q i)) ∧ StrictMono q ∧
       (∀ i : Fin 3, n * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ (-((3 : ℝ) - (i : ℕ))) ≤ q i) ∧ q 2 < n := by
-  sorry
+  let x := √(n : ℝ)
+  have hx_ge : x ≥ X₀ := by simpa using sqrt_le_sqrt (by exact_mod_cast hn : (X₀ : ℝ) ^ 2 ≤ n)
+  have hx_pos : 0 < x := (by grind : (0 : ℝ) < X₀).trans_le hx_ge
+  have hlog_pos : 0 < log x := log_pos ((by grind : (1 : ℝ) < X₀).trans_le hx_ge)
+  set ε := 1 / (log x) ^ 3 with hε_def
+  have hε_pos : 0 < ε := by positivity
+  have h1ε_pos : 0 < 1 + ε := by linarith
+  have hn_pos : (0 : ℝ) < n := by
+    have : (0 : ℝ) < X₀ ^ 2 := by grind
+    linarith [show (X₀ : ℝ) ^ 2 ≤ n by exact_mod_cast hn]
+  have hn_eq_x2 : (n : ℝ) = x ^ 2 := (sq_sqrt hn_pos.le).symm
+  -- Show that ε is small (ε ≤ 1/11.4³)
+  have hlog_ge_114 : log x ≥ 11.4 := by
+    calc log x ≥ log (X₀ : ℝ) := log_le_log (by grind : (0 : ℝ) < X₀) hx_ge
+      _ ≥ 11.4 := log_X₀_gt.le
+  have hε_small : ε ≤ 1 / 11.4 ^ 3 := by
+    simp only [hε_def]
+    apply div_le_div_of_nonneg_left (by norm_num : (0 : ℝ) ≤ 1)
+    · apply pow_pos; linarith [log_X₀_gt]
+    · apply pow_le_pow_left₀ (by linarith : (0 : ℝ) ≤ 11.4) hlog_ge_114
+  have h1ε3_pos : 0 < (1 + ε) ^ 3 := by positivity
+  have h1ε2_pos : 0 < (1 + ε) ^ 2 := by positivity
+  have h1ε3_le_2 : (1 + ε) ^ 3 ≤ 2 := by
+    have h1 : (1 + ε) ^ 3 ≤ (1 + 1 / 11.4 ^ 3) ^ 3 := by
+      apply pow_le_pow_left₀ (by linarith) (by linarith)
+    calc (1 + ε) ^ 3 ≤ (1 + 1 / 11.4 ^ 3) ^ 3 := h1
+      _ ≤ 2 := by norm_num
+  -- Define y_i = n / (1 + ε)^(3-i), and show y_i ≥ X₀
+  have hy₀_ge : n / (1 + ε) ^ 3 ≥ X₀ := by
+    calc n / (1 + ε) ^ 3 = x ^ 2 / (1 + ε) ^ 3 := by rw [hn_eq_x2]
+      _ ≥ x ^ 2 / 2 := div_le_div_of_nonneg_left (sq_nonneg x) (by grind) h1ε3_le_2
+      _ ≥ X₀ ^ 2 / 2 := by apply div_le_div_of_nonneg_right (sq_le_sq' (by linarith) hx_ge); norm_num
+      _ ≥ X₀ := by norm_num
+  have h1ε2_le_1ε3 : (1 + ε) ^ 2 ≤ (1 + ε) ^ 3 := by nlinarith [sq_nonneg ε]
+  have h1ε_le_1ε2 : 1 + ε ≤ (1 + ε) ^ 2 := by nlinarith [sq_nonneg ε]
+  have hy₁_ge : n / (1 + ε) ^ 2 ≥ X₀ := le_trans hy₀_ge
+    (div_le_div_of_nonneg_left hn_pos.le h1ε2_pos h1ε2_le_1ε3)
+  have hy₂_ge : n / (1 + ε) ≥ X₀ := le_trans hy₁_ge
+    (div_le_div_of_nonneg_left hn_pos.le h1ε_pos h1ε_le_1ε2)
+  -- Apply Dusart to get primes
+  obtain ⟨q₀, hq₀_prime, hq₀_lb, hq₀_ub⟩ := Dusart.proposition_5_4 (n / (1 + ε) ^ 3) hy₀_ge
+  obtain ⟨q₁, hq₁_prime, hq₁_lb, hq₁_ub⟩ := Dusart.proposition_5_4 (n / (1 + ε) ^ 2) hy₁_ge
+  obtain ⟨q₂, hq₂_prime, hq₂_lb, hq₂_ub⟩ := Dusart.proposition_5_4 (n / (1 + ε)) hy₂_ge
+  -- Show y_i ≥ x (needed for upper bound helper)
+  have hx_ge_2 : x ≥ 2 := by linarith [hx_ge, (by grind : (2 : ℝ) ≤ X₀)]
+  have hy₀_ge_x : n / (1 + ε) ^ 3 ≥ x := by
+    calc n / (1 + ε) ^ 3 = x ^ 2 / (1 + ε) ^ 3 := by rw [hn_eq_x2]
+      _ ≥ x ^ 2 / 2 := div_le_div_of_nonneg_left (sq_nonneg x) (by grind) h1ε3_le_2
+      _ ≥ x := by rw [ge_iff_le, le_div_iff₀' (by norm_num : (0 : ℝ) < 2)]; nlinarith
+  have hy₁_ge_x : n / (1 + ε) ^ 2 ≥ x := le_trans hy₀_ge_x
+    (div_le_div_of_nonneg_left hn_pos.le h1ε2_pos h1ε2_le_1ε3)
+  have hy₂_ge_x : n / (1 + ε) ≥ x := le_trans hy₁_ge_x
+    (div_le_div_of_nonneg_left hn_pos.le h1ε_pos h1ε_le_1ε2)
+  -- Upper bound helper: show q_i upper bound implies q_i ≤ next threshold
+  have upper {y : ℝ} (hy_pos : 0 < y) (hy_ge : y ≥ x) {q : ℕ}
+      (hq : (q : ℝ) ≤ y + y / (log y) ^ (3 : ℝ)) : (q : ℝ) ≤ y * (1 + ε) := by
+    have hlog_ge : log y ≥ log x := log_le_log hx_pos hy_ge
+    have h : y / (log y) ^ (3 : ℝ) ≤ y / (log x) ^ (3 : ℝ) :=
+      div_le_div_of_nonneg_left hy_pos.le (rpow_pos_of_pos hlog_pos 3)
+        (rpow_le_rpow hlog_pos.le hlog_ge (by grind))
+    calc (q : ℝ) ≤ y + y / (log y) ^ (3 : ℝ) := hq
+      _ ≤ y + y / (log x) ^ (3 : ℝ) := add_le_add_right h y
+      _ = y * (1 + ε) := by simp only [hε_def, ← rpow_natCast]; field_simp; ring_nf
+  -- Get upper bounds
+  have hq₀_ub' : (q₀ : ℝ) ≤ n / (1 + ε) ^ 2 := by
+    have := upper (by positivity) hy₀_ge_x hq₀_ub
+    calc (q₀ : ℝ) ≤ (n / (1 + ε) ^ 3) * (1 + ε) := this
+      _ = n / (1 + ε) ^ 2 := by field_simp
+  have hq₁_ub' : (q₁ : ℝ) ≤ n / (1 + ε) := by
+    have := upper (by positivity) hy₁_ge_x hq₁_ub
+    calc (q₁ : ℝ) ≤ (n / (1 + ε) ^ 2) * (1 + ε) := this
+      _ = n / (1 + ε) := by field_simp
+  have hq₂_ub' : (q₂ : ℝ) ≤ n := by
+    have := upper (by positivity) hy₂_ge_x hq₂_ub
+    calc (q₂ : ℝ) ≤ (n / (1 + ε)) * (1 + ε) := this
+      _ = n := by field_simp
+  -- StrictMono: q₀ < q₁ < q₂
+  have hq₀_lt_q₁ : q₀ < q₁ := Nat.cast_lt.mp (hq₀_ub'.trans_lt hq₁_lb)
+  have hq₁_lt_q₂ : q₁ < q₂ := Nat.cast_lt.mp (hq₁_ub'.trans_lt hq₂_lb)
+  -- q₂ < n: the Dusart interval has upper bound y₂ * (1 + 1/(log y₂)³) < y₂ * (1 + ε) = n
+  have hq₂_lt_n : q₂ < n := by
+    have hy₂_pos : 0 < (n : ℝ) / (1 + ε) := by positivity
+    have hy₂_lt_n : n / (1 + ε) < n := div_lt_self hn_pos (by linarith)
+    have hlog_y₂_pos : 0 < log (n / (1 + ε)) := log_pos (by linarith : 1 < (n : ℝ) / (1 + ε))
+    have hx_lt_y₂ : x < n / (1 + ε) := by
+      have h1ε_lt_1ε3 : (1 + ε) < (1 + ε) ^ 3 := by nlinarith [sq_nonneg ε, sq_nonneg (1 + ε)]
+      have h1 : n / (1 + ε) ^ 3 < n / (1 + ε) :=
+        div_lt_div_of_pos_left hn_pos h1ε_pos h1ε_lt_1ε3
+      calc x ≤ n / (1 + ε) ^ 3 := hy₀_ge_x
+        _ < n / (1 + ε) := h1
+    have hlog_y₂_gt : log (n / (1 + ε)) > log x := log_lt_log hx_pos hx_lt_y₂
+    have hq₂_strict : (q₂ : ℝ) < n := by
+      calc (q₂ : ℝ) ≤ n / (1 + ε) + (n / (1 + ε)) / (log (n / (1 + ε))) ^ 3 := hq₂_ub
+        _ = (n / (1 + ε)) * (1 + 1 / (log (n / (1 + ε))) ^ 3) := by
+            have hpos : (0 : ℝ) < log (n / (1 + ε)) := hlog_y₂_pos
+            field_simp [hpos.ne']
+            rw [mul_comm]
+            norm_cast
+        _ < (n / (1 + ε)) * (1 + 1 / (log x) ^ 3) := by
+          apply mul_lt_mul_of_pos_left _ hy₂_pos
+          gcongr
+        _ = (n / (1 + ε)) * (1 + ε) := by simp only [hε_def]
+        _ = n := by field_simp
+    exact Nat.cast_lt.mp hq₂_strict
+  refine ⟨![q₀, q₁, q₂], fun i ↦ by fin_cases i <;> assumption,
+    Fin.strictMono_iff_lt_succ.mpr fun i ↦ by fin_cases i <;> assumption, fun i ↦ ?_, hq₂_lt_n⟩
+  fin_cases i <;> simp only [hε_def]
+  · -- Case i = 0: n * (1 + ε)^(-3) ≤ q₀
+    simp only [CharP.cast_eq_zero, sub_zero]
+    have heq : (n : ℝ) * (1 + 1 / (log x) ^ 3) ^ (-(3 : ℝ)) = n / (1 + ε) ^ 3 := by
+      rw [rpow_neg h1ε_pos.le, div_eq_mul_inv]
+      norm_cast
+    rw [heq]
+    exact hq₀_lb.le
+  · -- Case i = 1: show n * (1 + ε)^(-2) ≤ q₁
+    simp only [Nat.cast_one]
+    have heq : (n : ℝ) * (1 + 1 / (log x) ^ 3) ^ (-(3 - 1 : ℝ)) = n / (1 + ε) ^ 2 := by
+      have h1 : -(3 - 1 : ℝ) = -2 := by ring
+      rw [h1, rpow_neg h1ε_pos.le, div_eq_mul_inv]
+      norm_cast
+    rw [heq]
+    exact hq₁_lb.le
+  · -- Case i = 2: show n * (1 + ε)^(-1) ≤ q₂
+    simp only [Nat.cast_ofNat]
+    have heq : (n : ℝ) * (1 + 1 / (log x) ^ 3) ^ (-(3 - 2 : ℝ)) = n / (1 + ε) := by
+      have h1 : -(3 - 2 : ℝ) = -1 := by ring
+      rw [h1, rpow_neg h1ε_pos.le, rpow_one, div_eq_mul_inv]
+    rw [heq]
+    exact hq₂_lb.le
 
 blueprint_comment /--
 \subsection{Bounding the factors in \eqref{eq:main-ineq}}
