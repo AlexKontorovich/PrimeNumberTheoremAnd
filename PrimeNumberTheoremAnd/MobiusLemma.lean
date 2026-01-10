@@ -3,7 +3,7 @@ import PrimeNumberTheoremAnd.PrimaryDefinitions
 import Mathlib.NumberTheory.ArithmeticFunction.Moebius
 
 blueprint_comment /--
-\section{A Lemma involving the M\"obius Function"}
+\section{A Lemma involving the M\"obius Function}
 -/
 
 blueprint_comment /--
@@ -32,6 +32,18 @@ noncomputable def R (x : ℝ) : ℝ := Q x - x / (riemannZeta 2).re
   (statement := /--  $M(x)$ is the summatory function of the M\"obius function -/)]
 noncomputable def M (x : ℝ) : ℤ := ∑ n ∈ Finset.Ioc 0 ⌊x⌋₊, moebius n
 
+@[blueprint
+  "mobius-lemma-1-sub"
+  (title := "Mobius Lemma 1, initial step")
+  (statement := /-- For any $x>0$,
+$$Q(x) = \sum_{k\leq x} M\left(\sqrt{\frac{x}{k}}\right)$$
+.-/)
+ (proof := /--
+We compute
+$$Q(x) = \sum_{n\leq x} \sum_{d: d^2|n} \mu(d) = \sum_{k, d: k d^2\leq x} \mu(d)$$
+giving the claim.-/)]
+theorem mobius_lemma_1_sub (x : ℝ) (hx : x > 0) :
+  Q x = ∑ k ∈ Finset.Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) := by sorry
 
 @[blueprint
   "mobius-lemma-1"
@@ -42,9 +54,7 @@ R(x) = \sum_{k\leq x} M\left(\sqrt{\frac{x}{k}}\right) - \int_0^x M\left(\sqrt{\
 \end{equation}
 .-/)
  (proof := /--
-The equality is immediate from
-$$Q(x) = \sum_{n\leq x} \sum_{d: d^2|n} \mu(d) = \sum_{k, d: k d^2\leq x} \mu(d) = \sum_{k\leq x} M\left(\sqrt{\frac{x}{k}}\right)$$
-and (by exchanging the order of $\sum$ and $\int$, as is justified by
+The equality is immediate from Theorem \ref{mobius-lemma-1-sub} and exchanging the order of $\sum$ and $\int$, as is justified by
 $\sum_n |\mu(n)|\int_0^{x/n^2} du \leq \sum_n x/n^2 < \infty$)
 $$\int_0^x M\left(\sqrt{\frac{x}{u}}\right) du = \int_0^x \sum_{n\leq \sqrt{\frac{x}{u}}} \mu(n) du
 =\sum_n \mu(n) \int_0^{\frac{x}{n^2}} du = x \sum_n \frac{\mu(n)}{n^2} = \frac{x}{\zeta(2)}.$$
@@ -64,22 +74,26 @@ Since our sums start from $1$, the sum $\sum_{k\leq K}$ is empty for $K=0$.
   (statement := /-- For any $x>0$ and any integer $K\geq 0$,
 \begin{equation}\label{eq:singdot}
 \begin{aligned}
-R(x) = \sum_{k\leq K} M\left(\sqrt{\frac{x}{k}}\right)  -
+R(x) &= \sum_{k\leq K} M\left(\sqrt{\frac{x}{k}}\right)  -
 \int_0^{K+\frac{1}{2}} M\left(\sqrt{\frac{x}{u}}\right) du \\
-&-\sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}} \left(M\left(\sqrt{\frac{x}{u}}\right) -M\left(\sqrt{\frac{x}{k}}\right)\right) du \\
-& - 2 x \sum_{K < k\leq x} \int_{\sqrt{\frac{x}{k+1 / 2}}}^{\sqrt{\frac{x}{k-1/2}}} \frac{M(t)- M\left(\sqrt{\frac{x}{k}}\right)}{t^3} dt
+&-\sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}} \left(M\left(\sqrt{\frac{x}{u}}\right) -M\left(\sqrt{\frac{x}{k}}\right)\right) du
 \end{aligned}
 \end{equation}
 .-/)
- (proof := /--
-It is clear that the terms of the form $M(\sqrt{x/k})$ can all be
-grouped as $\sum_{k\leq x+1} M(\sqrt{x/k})$; the term $M(\sqrt{x/k})$ for $k = \lfloor x+1\rfloor > x$ equals $0$. For $f(u) = M(\sqrt{x/u})$,
-\[\sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}} f(u) du = \int_{K+\frac{1}{2}}^{\lfloor x\rfloor + \frac{3}{2}} f(u) du
-= \int_{K+\frac{1}{2}}^x f(u) du,\]
-since $f(u) = M(\sqrt{x/u}) = 0$ for $x>u$. Here we are assuming that
-$K\leq x$. If $K>x$, the second line of \eqref{eq:singdot}
+ (proof := /-- We split into two cases.
+If $K>x$, the second line of \eqref{eq:singdot}
 is empty, and the first one equals \eqref{eq:antenor}, by
 $M(t)=0$ for $t<1$, so \eqref{eq:singdot} holds.
+
+Now suppose that $K \leq x$. Then
+$$
+\sum_{k\leq x} M\left(\sqrt{\frac{x}{k}}\right) = \sum_{k\leq K} M\left(\sqrt{\frac{x}{k}}\right)
++ \sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}} M\left(\sqrt{\frac{x}{k}}\right) du.
+$$
+Meanwhile, for $f(u) = M(\sqrt{x/u})$,
+\[\sum_{K < k\leq x+1} \int_{k-\frac{1}{2}}^{k+\frac{1}{2}} f(u) du = \int_{K+\frac{1}{2}}^{\lfloor x\rfloor + \frac{3}{2}} f(u) du
+= \int_{K+\frac{1}{2}}^x f(u) du,\]
+since $f(u) = M(\sqrt{x/u}) = 0$ for $x>u$.  Combining thiese bounds with Lemma \ref{mobius-lemma-1} gives the claim.
   -/)]
 theorem mobius_lemma_2 (x : ℝ) (hx : x > 0) (K : ℕ) : R x =
   ∑ k ∈ Finset.range (K + 1), M (Real.sqrt (x / k)) -
