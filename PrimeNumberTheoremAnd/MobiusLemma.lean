@@ -3,6 +3,7 @@ import PrimeNumberTheoremAnd.PrimaryDefinitions
 import Mathlib.Algebra.Order.Ring.Star
 import Mathlib.Data.Int.Star
 import Mathlib.Data.Real.StarOrdered
+import Mathlib.MeasureTheory.Function.Floor
 import Mathlib.NumberTheory.ArithmeticFunction.Moebius
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 
@@ -16,7 +17,7 @@ In this section we establish a lemma involving sums of the M\"obius function.
 
 namespace MobiusLemma
 
-open ArithmeticFunction Real Finset
+open ArithmeticFunction Real Finset MeasureTheory Measurable
 
 @[blueprint
   "Q-def"
@@ -258,10 +259,51 @@ theorem mobius_lemma_2_sub_1 (x : ℝ) (hx : x > 0) (K : ℕ) (hK : (K : ℝ) �
   (proof := /-- This is just splitting the integral at $K$, since $f(u) = M(\sqrt{x/u}) = 0$ for $x>u$. -/)
     (latexEnv := "sublemma")
     (discussion := 529)]
-theorem mobius_lemma_2_sub_2 (x : ℝ) (hx : x > 0) (K : ℕ) (hK : (K : ℝ) ≤ x) :
-  let f : ℝ → ℝ := fun u ↦ (M (Real.sqrt (x / u)) : ℝ)
-  ∑ k ∈ Finset.Ico (K + 1) (⌊x⌋₊ + 2),
-    ∫ u in (k - 0.5)..(k + 0.5), f u = ∫ u in (K + 0.5)..(⌊x⌋₊ + 1.5), f u := by sorry
+theorem mobius_lemma_2_sub_2 (x : ℝ) (K : ℕ) (hK : (K : ℝ) ≤ x) :
+    let f : ℝ → ℝ := fun u ↦ (M (sqrt (x / u)) : ℝ)
+      ∑ k ∈ Ico (K + 1) (⌊x⌋₊ + 2), ∫ u in (k - 0.5)..(k + 0.5), f u = ∫ u in (K + 0.5)..(⌊x⌋₊ + 1.5), f u := by
+  intro f
+  have h_split : ∑ k ∈ Ico (K + 1) (⌊x⌋₊ + 2), ∫ u in ((k : ℝ) - 0.5)..((k : ℝ) + 0.5), f u =
+      ∫ u in (↑(K + 1) - 0.5)..(↑(⌊x⌋₊ + 2) - 0.5), f u := by
+    rw [sum_Ico_eq_sum_range]
+    convert intervalIntegral.sum_integral_adjacent_intervals _ using 3
+    · push_cast; ring
+    · rw [Nat.add_sub_of_le (by linarith [Nat.le_floor hK])]
+    · intro k hk
+      apply_rules [IntegrableOn.intervalIntegrable]
+      refine Integrable.mono' (g := fun u ↦ 2 ^ (Nat.floor (Real.sqrt (x / u)))) ?_ ?_ ?_
+      · refine Integrable.mono'
+          (g := fun u ↦ 2 ^ (Nat.floor (Real.sqrt (x / ((K + 1 + k : ℝ) - 0.5))) + 1)) ?_ ?_ ?_
+        · exact Continuous.integrableOn_Icc (by continuity)
+        · exact aestronglyMeasurable <| by measurability
+        · filter_upwards [ae_restrict_mem measurableSet_Icc] with u hu
+          norm_num at *
+          refine pow_le_pow_right₀ (by norm_num) ?_
+          refine Nat.le_of_lt_succ ?_
+          rw [Nat.floor_lt', Real.sqrt_lt'] <;> norm_num <;> try positivity
+          rw [div_lt_iff₀]
+          · have := Nat.lt_floor_add_one (Real.sqrt (x / (K + 1 + k - 1 / 2)))
+            rw [sqrt_lt' <| by positivity] at this
+            rw [div_lt_iff₀] at this <;> nlinarith [show (⌊sqrt (x / (K + 1 + k - 1 / 2))⌋₊ : ℝ) ≥ 0 by positivity]
+          · linarith
+      · refine aestronglyMeasurable ?_
+        have h_meas_floor : Measurable (fun u ↦ Nat.floor (sqrt (x / u))) :=
+          nat_floor (.sqrt (measurable_const.div measurable_id'))
+        have h_meas_sum : Measurable (fun n : ℕ ↦ ∑ k ∈ Ioc 0 n, (moebius k : ℤ)) := by fun_prop
+        exact Measurable.comp (by fun_prop) (h_meas_sum.comp h_meas_floor)
+      · refine Filter.Eventually.of_forall fun u ↦ ?_
+        norm_num [f, M, moebius]
+        refine le_trans (abs_sum_le_sum_abs ..) ?_
+        refine le_trans (sum_le_sum (g := fun _ ↦ 1) fun i hi ↦ ?_) ?_
+        · split_ifs <;> norm_num
+        · induction ⌊sqrt (x / u)⌋₊ with
+          | zero => simp
+          | succ n ih =>
+            norm_num [Nat.pow_succ', sum_Ioc_succ_top] at *
+            rw [pow_succ']
+            linarith [show (1 : ℝ) ≤ 2 ^ n by exact one_le_pow₀ (by norm_num)]
+  convert h_split using 2 <;>
+  · push_cast; ring
 
 @[blueprint
   "mobius-lemma-2"
