@@ -3839,7 +3839,7 @@ theorem WeakPNT_character
   (title := "WeakPNT-AP-prelim")
   (statement := /--
   If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series
-  $\sum_{n \leq x: n = a\ (q)} \frac\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to
+  $\sum_{n \leq x: n = a\ (q)} \frac{\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to
   $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to
   $\mathrm{Re}(s)=1$.
   -/)
