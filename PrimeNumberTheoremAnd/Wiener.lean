@@ -3839,7 +3839,7 @@ theorem WeakPNT_character
   (title := "WeakPNT-AP-prelim")
   (statement := /--
   If $q ≥ 1$ and $a$ is coprime to $q$, the Dirichlet series
-  $\sum_{n \leq x: n = a\ (q)} {\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to
+  $\sum_{n \leq x: n = a\ (q)} \frac\Lambda(n)}{n^s}$ converges for $\mathrm{Re}(s) > 1$ to
   $\frac{1}{\varphi(q)} \frac{1}{s-1} + G(s)$ where $G$ has a continuous extension to
   $\mathrm{Re}(s)=1$.
   -/)
@@ -3871,6 +3871,7 @@ theorem WeakPNT_AP_prelim {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a
   If $q ≥ 1$ and $a$ is coprime to $q$, we have
   $$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$
   -/)
+  (proof := /-- Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkehara2} to avoid checking the Chebyshev condition) using Proposition \ref{WeakPNT-AP-prelim}.-/)
   (proofUses := ["WienerIkehara", "WeakPNT-AP-prelim"])]
 theorem WeakPNT_AP {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) :
     Tendsto (fun N ↦ cumsum (fun n ↦ if (n % q = a) then Λ n else 0) N / N)

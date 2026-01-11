@@ -84,11 +84,11 @@ theorem lemma_aachIBP (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 0
   (title := "Total variation of a function with monotone absolute value")
    (statement := /--
 Let $g:[a,b]\to \mathbb{R}$ be continuous, with $|g(t)|$ non-increasing. Then
-$g$ is monotone, and $\|g\|_{\TV} = |g(a)|-|g(b)|$.
+$g$ is monotone, and $\|g\|_{\mathrm{TV}} = |g(a)|-|g(b)|$.
  -/)
  (proof := /-- Suppose $g$ changed sign: $g(a')>0>g(b')$ or $g(a') <0 < g(b')$ for some $a\leq a'< b'\leq b$. By IVT, there would be an $r\in [a',b']$ such that $g(r)=0$. Since $|g|$ is non-increasing, $g(b')=0$; contradiction. So, $g$ does not change sign: either $g\leq 0$ or $g\geq 0$.
 
-Thus, there is an $\varepsilon\in \{-1,1\}$ such that  $g(t) = \varepsilon |g(t)|$ for all $t\in [a,b]$. Hence, $g$ is monotone. Then $\|g\|_{\TV} = |g(a)-g(b)|$. Since $|g(a)|\geq |g(b)|$ and $g(a)$, $g(b)$
+Thus, there is an $\varepsilon\in \{-1,1\}$ such that  $g(t) = \varepsilon |g(t)|$ for all $t\in [a,b]$. Hence, $g$ is monotone. Then $\|g\|_{\mathrm{TV}} = |g(a)-g(b)|$. Since $|g(a)|\geq |g(b)|$ and $g(a)$, $g(b)$
 are either both non-positive or non-negative, $|g(a)-g(b)| = |g(a)|-|g(b)|$.
  -/)
  (latexEnv := "lemma")]
@@ -120,7 +120,7 @@ The first term on the right has absolute value $\leq \frac{|g(a)|+|g(b)|}{2\pi}$
 Again by Lemma \ref{lem:aachra},
 \[\left|
 \int_a^b e(\varphi(t))\, d\left(\frac{h(t)}{2\pi i \varphi'(t)}\right)
-\right|\leq \frac{1}{2\pi} \|g\|_{\TV} = \frac{|g(a)|-|g(b)|}{2\pi}.
+\right|\leq \frac{1}{2\pi} \|g\|_{\mathrm{TV}} = \frac{|g(a)|-|g(b)|}{2\pi}.
 \]
 We are done by $\frac{|g(a)|+|g(b)|}{2\pi} + \frac{|g(a)|-|g(b)|}{2\pi} = \frac{|g(a)|}{\pi}$.
   -/)
