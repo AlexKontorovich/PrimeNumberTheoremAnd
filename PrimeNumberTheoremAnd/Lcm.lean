@@ -1101,7 +1101,7 @@ theorem prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
     \Bigl(1 + \frac{3}{8}\varepsilon\Bigr)
     \Bigl(1 - \frac{4 \times 1.000675^{12}}{89693}\varepsilon\Bigr)
     \ge
-    1 + 3.36687\varepsilon - 0.01\varepsilon^2.
+    1 + 3.36683\varepsilon - 0.01\varepsilon^2.
   \]
   -/)
   (proof := /--
@@ -1128,18 +1128,18 @@ theorem prod_epsilon_ge {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   For \(0 \le \varepsilon \le 1/89693^2\), we have
   \[
     1 + 3.01\varepsilon + 3.01\varepsilon^2 + 1.01\varepsilon^3
-    \le 1 + 3.36687\varepsilon - 0.01\varepsilon^2.
+    \le 1 + 3.36683\varepsilon - 0.01\varepsilon^2.
   \]
   -/)
   (proof := /--
   This is equivalent to
   \[
     3.01\varepsilon + 3.01\varepsilon^2 + 1.01\varepsilon^3
-    \le 3.36687\varepsilon - 0.01\varepsilon^2,
+    \le 3.36683\varepsilon - 0.01\varepsilon^2,
   \]
   or
   \[
-    0 \le (3.36687 - 3.01)\varepsilon - (3.01+0.01)\varepsilon^2 - 1.01\varepsilon^3.
+    0 \le (3.36683 - 3.01)\varepsilon - (3.01+0.01)\varepsilon^2 - 1.01\varepsilon^3.
   \]
   Factor out \(\varepsilon\) and use that \(0<\varepsilon \le 1/89693^2\) to check that the
   resulting quadratic in \(\varepsilon\) is nonnegative on this interval.  Again, this is a
@@ -1214,9 +1214,16 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
       grw [one_div_nonneg, pow_nonneg]
       exact log_nonneg (Real.sqrt_one ▸ (sqrt_le_sqrt_iff' zero_lt_one).2 (by norm_num; grind))
     have h3 : 1 + 1 / Real.log √n ^ 3 ≤ 1.000675 := by linarith [inv_cube_log_sqrt_le hn]
-    have h4 : 0 ≤ (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * (n : ℝ)⁻¹) := by sorry
+    have h4 : 0 ≤ (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * (n : ℝ)⁻¹) := by
+      suffices 0 ≤ (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * (X₀ ^ 2 : ℝ)⁻¹) from by
+        apply this.trans; gcongr; norm_cast
+      norm_num
     have h5 : 1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * (n : ℝ)⁻¹ ≤
-      1 - 4 * (1 + 1 / Real.log √n ^ 3) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by sorry
+      1 - 4 * (1 + 1 / Real.log √n ^ 3) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
+      rw [inv_eq_one_div, div_eq_mul_one_div, div_eq_mul_one_div (b := (n : ℝ) ^ (3 / 2 : ℝ)),
+        mul_assoc]
+      have := inv_n_pow_3_div_2_le hn
+      gcongr
     calc
     _ ≤ ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((i : ℕ) + 1 : ℝ) / n) := prod_q_ge hn
     _ ≤ ∏ i : Fin 3, (1 + (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) * (n : ℝ)⁻¹) := by
