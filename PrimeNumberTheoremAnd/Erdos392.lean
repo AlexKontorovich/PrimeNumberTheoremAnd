@@ -14,7 +14,7 @@ The proof here is adapted from \url{https://www.erdosproblems.com/forum/thread/3
 in turn is inspired by the arguments in \url{https://arxiv.org/abs/2503.20170}.
 -/
 
-open Finset Nat Real Multiset
+open Finset Nat Real Multiset Asymptotics
 
 @[blueprint
   "factorization-def"
@@ -1300,7 +1300,7 @@ theorem Params.initial.bound_score_2 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
       P.L = L → P.n = n → P.M = M → ∑ _p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)),
         P.M * Real.log P.n ≤ ε * P.n := by
   have pi_equiv := pi_alt'
-  rw [Asymptotics.IsEquivalent, Asymptotics.isLittleO_iff] at pi_equiv
+  rw [IsEquivalent, isLittleO_iff] at pi_equiv
   specialize pi_equiv (by norm_num : (1 : ℝ) / 2 > 0)
   rw [Filter.eventually_atTop] at pi_equiv
   obtain ⟨N₀, hN₀⟩ := pi_equiv
@@ -1373,17 +1373,82 @@ theorem Params.initial.bound_score_2 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
         calc 3 * M * n ≤ ε * L * n := by nlinarith
           _ = ε * n * L := by ring
 
-@[blueprint
-  "bound-score-3"
+@[blueprint "bound-score-3"
   (statement := /-- If $n$ sufficiently large depending on $M, \varepsilon$, then
-$\sum_{p \leq \sqrt{n}} M \log^2 n / \log 2 \leq \varepsilon n$. -/)
+  $\sum_{p \leq \sqrt{n}} M \log^2 n / \log 2 \leq \varepsilon n$. -/)
   (proof := /-- Crude estimation. -/)
   (discussion := 516)
   (latexEnv := "sublemma")]
 theorem Params.initial.bound_score_3 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
-    ∀ᶠ n in Filter.atTop, ∀ P : Params,
-      P.M = M → P.n = n → ∑ _p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊(Real.sqrt P.n)⌋₊),
-          P.M * Real.log P.n * Real.log P.n / Real.log 2 ≤ ε * P.n := by sorry
+    ∀ᶠ n in .atTop, ∀ P : Params,
+      P.M = M → P.n = n → ∑ _p ∈ filter (·.Prime) (Finset.Iic ⌊(Real.sqrt P.n)⌋₊),
+          P.M * Real.log P.n * Real.log P.n / Real.log 2 ≤ ε * P.n := by
+  have h_littleO : (fun x : ℝ ↦ Real.sqrt x * Real.log x) =o[Filter.atTop] (fun x ↦ x) :=
+    (isLittleO_mul_iff_isLittleO_div (hf := by
+      filter_upwards [Filter.eventually_gt_atTop 0] with x hx; exact sqrt_ne_zero'.mpr hx)).mpr
+      (by simp_rw [div_sqrt, sqrt_eq_rpow]; exact isLittleO_log_rpow_atTop one_half_pos)
+  obtain ⟨N₀, hN₀⟩ := Metric.tendsto_atTop.mp
+    (h_littleO.tendsto_div_nhds_zero.comp tendsto_natCast_atTop_atTop)
+      (ε * Real.log 2 / (8 * (M + 1))) (by positivity)
+  obtain ⟨N₁, hN₁⟩ := Filter.eventually_atTop.mp <| isLittleO_iff.mp pi_alt' one_half_pos
+  filter_upwards [Filter.eventually_ge_atTop (max 16 (max N₀ ((⌈N₁⌉₊ + 1) ^ 2)))] with n hn P hPM hPn
+  simp only [hPM, hPn]; have hn16 : n ≥ 16 := le_of_max_le_left hn
+  have hnpos : (n : ℝ) > 0 := by positivity
+  have hlogn_pos : Real.log n > 0 := log_pos (by exact_mod_cast lt_of_add_left_lt hn16)
+  have hsqrt_pos : Real.sqrt n > 0 := sqrt_pos.mpr hnpos
+  have hn16' : (16 : ℝ) ≤ n := by exact_mod_cast hn16
+  have hsqrt_ge_4 : Real.sqrt n ≥ 4 := by nlinarith [Real.sq_sqrt hnpos.le, sq_nonneg (Real.sqrt n - 4)]
+  have hfloor_gt_1 : (1 : ℝ) < ⌊Real.sqrt n⌋₊ := by
+    exact_mod_cast lt_of_add_left_lt (le_floor (by linarith : (3 : ℝ) ≤ Real.sqrt n))
+  conv_lhs => rw [sum_const, nsmul_eq_mul]
+  rw [show (filter Nat.Prime (Finset.Iic ⌊Real.sqrt n⌋₊)).card = primeCounting ⌊Real.sqrt n⌋₊ by
+    simp only [primeCounting, primeCounting', card_filter, count_eq_card_filter_range]
+    congr 1; ext p; simp only [Finset.mem_Iic, Finset.mem_range, Nat.lt_succ_iff]]
+  rcases eq_or_ne M 0 with rfl | hMne; · simp [mul_nonneg hε.le (cast_nonneg _)]
+  have hsqrt_N₁ : (⌊Real.sqrt n⌋₊ : ℝ) > N₁ := by
+    have hnsq : n ≥ (⌈N₁⌉₊ + 1) ^ 2 := (le_max_right _ _).trans (le_of_max_le_right hn)
+    have : Real.sqrt n ≥ ⌈N₁⌉₊ + 1 := by
+      calc (⌈N₁⌉₊ : ℝ) + 1 = Real.sqrt (((⌈N₁⌉₊ + 1 : ℕ) : ℝ) ^ 2) := by
+            rw [Real.sqrt_sq (cast_nonneg' (⌈N₁⌉₊ + 1))]; simp
+        _ ≤ Real.sqrt n := sqrt_le_sqrt (by exact_mod_cast hnsq)
+    linarith [le_ceil N₁, sub_one_lt_floor (Real.sqrt n)]
+  have hlog_floor_pos : Real.log ⌊Real.sqrt n⌋₊ > 0 := log_pos hfloor_gt_1
+  have hπ : (primeCounting ⌊Real.sqrt n⌋₊ : ℝ) ≤ 3 / 2 * (⌊Real.sqrt n⌋₊ / Real.log ⌊Real.sqrt n⌋₊) := by
+    have := hN₁ ⌊Real.sqrt n⌋₊ hsqrt_N₁.le
+    simp only [Pi.sub_apply, floor_natCast, norm_eq_abs, abs_of_pos (by positivity :
+      (0 : ℝ) < ⌊Real.sqrt n⌋₊ / Real.log ⌊Real.sqrt n⌋₊)] at this
+    linarith [(abs_le.mp this).2]
+  have hlog_floor_ge : Real.log ⌊Real.sqrt n⌋₊ ≥ Real.log n / 4 := by
+    have hfloor_ge : (⌊Real.sqrt n⌋₊ : ℝ) ≥ Real.sqrt n / 2 := by linarith [sub_one_lt_floor (Real.sqrt n)]
+    calc Real.log ⌊Real.sqrt n⌋₊ ≥ log (Real.sqrt n / 2) := log_le_log (by positivity) hfloor_ge
+      _ = Real.log n / 2 - Real.log 2 := by rw [log_div hsqrt_pos.ne' two_ne_zero, log_sqrt hnpos.le]
+      _ ≥ Real.log n / 4 := by
+          have : Real.log n ≥ 4 * Real.log 2 := by
+            calc Real.log n ≥ Real.log 16 := log_le_log ofNat_pos' <| ofNat_le_cast.mpr hn16
+              _ = 4 * Real.log 2 := by rw [show (16 : ℝ) = 2 ^ 4 by norm_num, Real.log_pow]; ring
+          linarith
+  have hbound := hN₀ n ((le_max_left ..).trans (le_of_max_le_right hn))
+  simp only [Function.comp_apply, Real.dist_eq, sub_zero] at hbound
+  have h_sqrt_log : Real.sqrt n * Real.log n < ε * Real.log 2 * n / (8 * (M + 1)) := by
+    have : Real.sqrt n * Real.log n / n < ε * Real.log 2 / (8 * (M + 1)) := by
+      linarith [(abs_lt.mp hbound).2, (by positivity : Real.sqrt n * Real.log n / n ≥ 0)]
+    calc Real.sqrt n * Real.log n = Real.sqrt n * Real.log n / n * n := by field_simp
+      _ < ε * Real.log 2 / (8 * (M + 1)) * n := by gcongr
+      _ = _ := by ring
+  calc (primeCounting ⌊Real.sqrt n⌋₊ : ℝ) * (M * Real.log n * Real.log n / Real.log 2)
+      ≤ 3 / 2 * (⌊Real.sqrt n⌋₊ / Real.log ⌊Real.sqrt n⌋₊) *
+          (M * Real.log n * Real.log n / Real.log 2) := by gcongr
+    _ ≤ 3 / 2 * (Real.sqrt n / (Real.log n / 4)) *
+          (M * Real.log n * Real.log n / Real.log 2) := by gcongr; exact floor_le hsqrt_pos.le
+    _ = 6 * M * Real.sqrt n * Real.log n / Real.log 2 := by field_simp; ring
+    _ ≤ 8 * (M + 1) * Real.sqrt n * Real.log n / Real.log 2 := by
+        have h6le8 : (6 : ℝ) * M ≤ 8 * (M + 1) := by exact_mod_cast (by omega : 6 * M ≤ 8 * (M + 1))
+        have := hlogn_pos; gcongr
+    _ ≤ ε * n := by
+        rw [div_le_iff₀ (log_pos one_lt_two)]
+        calc 8 * (M + 1) * Real.sqrt n * Real.log n
+          ≤ 8 * (M + 1) * (ε * Real.log 2 * n / (8 * (M + 1))) := le_of_lt (by nlinarith [h_sqrt_log])
+        _ = ε * n * Real.log 2 := by field_simp
 
 @[blueprint
   "bound-score-4"
