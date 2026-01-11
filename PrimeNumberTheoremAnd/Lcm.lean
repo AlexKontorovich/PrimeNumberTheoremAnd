@@ -1062,7 +1062,7 @@ theorem inv_n_add_sqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : 1 / (n + √(n : ℝ
   \]
   and
   \[
-    \prod_{i=1}^3 \Bigl(1 + \frac{\varepsilon}{1.000675^{2i}}\Bigr)
+    \prod_{i=1}^3 \Bigl(1 + \frac{(1 + 1/89693)\varepsilon}{1.000675^{2i}}\Bigr)
     \Bigl(1 + \frac{3}{8}\varepsilon\Bigr)
     \Bigl(1 - \frac{4 \times 1.000675^{12}}{89693}\varepsilon\Bigr)
     \ge
@@ -1116,9 +1116,9 @@ theorem prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   -/)
   (latexEnv := "lemma")]
 theorem prod_epsilon_ge {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
-    (∏ i : Fin 3, (1 + ε / ((1.000675 : ℝ) ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 + 1/89693))) *
+    (∏ i : Fin 3, (1 + ε / ((1.000675 : ℝ) ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 / (1 + 1/89693)))) *
         (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * ε) ≥
-      1 + 3.36687 * ε - 0.01 * ε ^ 2 := by
+      1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
   norm_cast; norm_num [Fin.prod_univ_three]; nlinarith [pow_nonneg hε.left 3, pow_nonneg hε.left 4]
 
 @[blueprint
@@ -1147,7 +1147,7 @@ theorem prod_epsilon_ge {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   -/)
   (latexEnv := "lemma")]
 theorem final_comparison {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
-    1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.36687 * ε - 0.01 * ε ^ 2 := by
+    1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
   nlinarith
 
 @[blueprint
@@ -1209,7 +1209,7 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
       rw [inv_eq_one_div]
       refine one_div_le_one_div_of_le (by linarith) ?_
       norm_cast
-    have h2 : 0 ≤ 1 + 1 / (log √(n : ℝ)) ^ 3 := by
+    have h2 : 0 < 1 + 1 / (log √(n : ℝ)) ^ 3 := by
       suffices 0 ≤ 1 / (log √(n : ℝ)) ^ 3 from by linarith
       grw [one_div_nonneg, pow_nonneg]
       exact log_nonneg (Real.sqrt_one ▸ (sqrt_le_sqrt_iff' zero_lt_one).2 (by norm_num; grind))
@@ -1224,9 +1224,10 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
       gcongr with i
     _ ≤ 1 + 3.01 * (n : ℝ)⁻¹ + 3.01 * (n : ℝ)⁻¹ ^ 2 + 1.01 * (n : ℝ)⁻¹ ^ 3 :=
       prod_epsilon_le ⟨by positivity, h1⟩
-    _ ≤ 1 + 3.36687 * (n : ℝ)⁻¹ - 0.01 * (n : ℝ)⁻¹ ^ 2 := final_comparison ⟨by positivity, h1⟩
-    _ ≤ (∏ i : Fin 3, (1 + (n : ℝ)⁻¹ / ((1.000675 : ℝ) ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 + 1/89693)))
-        * (1 + (3 : ℝ) / 8 * (n : ℝ)⁻¹) * (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * (n : ℝ)⁻¹) :=
+    _ ≤ 1 + 3.36683 * (n : ℝ)⁻¹ - 0.01 * (n : ℝ)⁻¹ ^ 2 := final_comparison ⟨by positivity, h1⟩
+    _ ≤ (∏ i : Fin 3, (1 + (n : ℝ)⁻¹ / ((1.000675 : ℝ) ^ (2 * ((i : ℕ) + 1 : ℝ))) *
+        (1 / (1 + 1/89693)))) * (1 + (3 : ℝ) / 8 * (n : ℝ)⁻¹) * (1 - 4 * (1.000675 : ℝ) ^ 12 /
+        89693 * (n : ℝ)⁻¹) :=
       prod_epsilon_ge ⟨by positivity, h1⟩
     _ ≤ (∏ i : Fin 3, (1 + 1 / ((1 + 1 / (log √(n : ℝ)) ^ 3) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n))))
         * (1 + (3 : ℝ) / 8 * (n : ℝ)⁻¹)
@@ -1235,8 +1236,7 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
       rw [div_eq_mul_one_div, mul_comm (n : ℝ)⁻¹, inv_eq_one_div, ← one_div_mul_one_div, mul_assoc,
         mul_comm (1 / (n : ℝ))]
       gcongr
-      · sorry
-      · sorry
+      · field_simp; gcongr
       · exact (ge_iff_le.1 (inv_n_add_sqrt_ge hn))
     _ ≤ (∏ i, (1 + (1 : ℝ) / ((exists_p_primes hn).choose i * ((exists_p_primes hn).choose i + 1))))
         * (1 + (3 : ℝ) / (8 * n)) * (1 - ((4 : ℝ) * ∏ i, ((exists_p_primes hn).choose i : ℝ)) /
