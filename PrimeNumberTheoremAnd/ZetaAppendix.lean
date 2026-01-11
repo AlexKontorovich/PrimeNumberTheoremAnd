@@ -43,7 +43,7 @@ noncomputable def e (α : ℝ) : ℂ := exp (2 * π * I * α)
 
 blueprint_comment /--
 \subsection{The decay of a Fourier transform}
-Our first objective will be to estimate the Fourier transform of $t^{-s} \mathds{1}_{[a,b]}$. In particular, we will show that, if $a$ and $b$ are half-integers, the Fourier cosine transform has quadratic decay {\em when evaluated at integers}. In general, for real arguments, the Fourier transform of a discontinuous function such as $t^{-s} \mathds{1}_{[a,b]}$ does not have quadratic decay. -/
+Our first objective will be to estimate the Fourier transform of $t^{-s} \mathbb{1}_{[a,b]}$. In particular, we will show that, if $a$ and $b$ are half-integers, the Fourier cosine transform has quadratic decay {\em when evaluated at integers}. In general, for real arguments, the Fourier transform of a discontinuous function such as $t^{-s} \mathbb{1}_{[a,b]}$ does not have quadratic decay. -/
 
 @[blueprint
   "lem:aachIBP"
@@ -233,6 +233,9 @@ theorem lemma_aachcanc (s : ℂ) {n : ℤ} (hn : 0 < n)
   (1 / 2) * (Φ n b - Φ n a + Φ (-n) b - Φ (-n) a) = Ψ b - Ψ a
    := by
   sorry
+
+blueprint_comment /-- It is this easy step that gives us quadratic decay on $n$. It is just as
+in the proof of van der Corput's Process B in, say, \cite[I.6.3, Thm.~4]{zbMATH06471876}. -/
 
 @[blueprint
   "prop:applem"
