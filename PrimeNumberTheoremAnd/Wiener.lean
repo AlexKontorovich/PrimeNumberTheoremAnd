@@ -5,6 +5,7 @@ import Mathlib.Analysis.SumIntegralComparisons
 import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.LSeries.PrimesInAP
 import Mathlib.NumberTheory.MulChar.Lemmas
+import Mathlib.Topology.EMetricSpace.BoundedVariation
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.SmoothExistence
@@ -292,64 +293,67 @@ can be obtained fairly easily in applications).
 
 lemma one_add_sq_pos (u : ℝ) : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa using sq_nonneg u)
 
-blueprint_comment /--
-\begin{lemma}[Preliminary decay bound I]\label{prelim-decay}
+@[blueprint "prelim-decay"
+  (title := "Preliminary decay bound I")
+  (statement := /--
 If $\psi:\R \to \C$ is absolutely integrable then
 $$ |\hat \psi(u)| \leq \| \psi \|_1 $$
 for all $u \in \R$. where $C$ is an absolute constant.
-\end{lemma}
--/
+  -/)
+  (proof := /-- Immediate from the triangle inequality. -/)
+  (latexEnv := "lemma")]
+theorem prelim_decay (ψ : ℝ → ℂ) (hψ : Integrable ψ) (u : ℝ) :
+    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ ∫ t, ‖ψ t‖ := by sorry
 
-blueprint_comment /--
-\begin{proof} Immediate from the triangle inequality.
-\end{proof}
--/
-
-blueprint_comment /--
-\begin{lemma}[Preliminary decay bound II]\label{prelim-decay-2}
-If $\psi:\R \to \C$ is absolutely integrable and of bounded variation, and $\psi'$ is bounded
-variation, then
+@[blueprint "prelim-decay-2"
+  (title := "Preliminary decay bound II")
+  (statement := /--
+If $\psi:\R \to \C$ is absolutely integrable and of bounded variation, then
 $$ |\hat \psi(u)| \leq \| \psi \|_{TV} / 2\pi |u| $$
 for all non-zero $u \in \R$.
-\end{lemma}
--/
+  -/)
+  (proof := /-- By Lebesgue--Stiejtes integration by parts we have
+$$ 2\pi i u \hat \psi(u) = \int _\R e(-tu) d\psi(t)$$
+and the claim then follows from the triangle inequality. -/)
+  (latexEnv := "lemma")]
+theorem prelim_decay_2 (ψ : ℝ → ℂ) (hψ : Integrable ψ) (hvar : BoundedVariationOn ψ Set.univ)
+    (u : ℝ) (hu : u ≠ 0) :
+    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn ψ Set.univ).toReal / (2 * π * ‖u‖) := by sorry
 
-blueprint_comment /--
-\begin{proof} By integration by parts we will have
-$$ 2\pi i u \hat \psi(u) = \int _\R e(-tu) \psi'(t)\ dt$$
-and the claim then follows from the triangle inequality.
-\end{proof}
--/
+noncomputable def AbsolutelyContinuous (f : ℝ → ℂ) : Prop := (∀ᵐ x, DifferentiableAt ℝ f x) ∧
+  ∀ a b : ℝ, f b - f a = ∫ t in a..b, deriv f t
 
-blueprint_comment /--
-\begin{lemma}[Preliminary decay bound III]\label{prelim-decay-3}
+@[blueprint "prelim-decay-3"
+  (title := "Preliminary decay bound III")
+  (statement := /--
 If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded
 variation, then
 $$ |\hat \psi(u)| \leq \| \psi' \|_{TV} / (2\pi |u|)^2$$
 for all non-zero $u \in \R$.
-\end{lemma}
--/
+  -/)
+  (proof := /-- Should follow from previous lemma. -/)
+  (proofUses := ["prelim_decay_2"])
+  (latexEnv := "lemma")]
+theorem prelim_decay_3 (ψ : ℝ → ℂ) (hψ : Integrable ψ)
+    (habscont : AbsolutelyContinuous ψ)
+    (hvar : BoundedVariationOn (deriv ψ) Set.univ) (u : ℝ) (hu : u ≠ 0) :
+    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn (deriv ψ) Set.univ).toReal / (2 * π * ‖u‖) ^ 2 := by sorry
 
-blueprint_comment /--
-\begin{proof}\uses{prelim-decay-2} Should follow from previous lemma.
-\end{proof}
--/
-
-blueprint_comment /--
-\begin{lemma}[Decay bound, alternate form]\label{decay-alt}  If $\psi:\R \to \C$ is absolutely
+@[blueprint "decay-alt"
+  (title := "Decay bound, alternate form")
+  (statement := /--
+If $\psi:\R \to \C$ is absolutely
 integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
 $$ |\hat \psi(u)| \leq ( \|\psi\|_1 + \| \psi' \|_{TV} / (2\pi)^2) / (1+|u|^2)$$
-for all $u \in \R$.
-\end{lemma}
--/
-
-blueprint_comment /--
-\begin{proof}\uses{prelim-decay, prelim-decay-3, decay} Should follow from previous lemmas.
-\end{proof}
--/
-
-
-
+for all $u \in \R$.  -/)
+  (proof := /-- Should follow from previous lemmas. -/)
+  (proofUses := ["prelim_decay", "prelim_decay_3", "decay"])
+  (latexEnv := "lemma")]
+theorem decay_alt (ψ : ℝ → ℂ) (hψ : Integrable ψ)
+    (habscont : AbsolutelyContinuous ψ)
+    (hvar : BoundedVariationOn (deriv ψ) Set.univ) (u : ℝ) :
+    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤
+      ((∫ t, ‖ψ t‖) + (eVariationOn (deriv ψ) Set.univ).toReal / (2 * π) ^ 2) / (1 + ‖u‖ ^ 2) := by sorry
 
 lemma decay_bounds_key (f : W21) (u : ℝ) : ‖𝓕 (f : ℝ → ℂ) u‖ ≤ ‖f‖ * (1 + u ^ 2)⁻¹ := by
   have l1 : 0 < 1 + u ^ 2 := one_add_sq_pos _
