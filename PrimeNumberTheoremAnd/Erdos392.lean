@@ -643,7 +643,7 @@ theorem Factorization.lower_score_2 {n : ℕ} (f : Factorization n) (L : ℕ)
     rcases hm with hm | rfl
     · exact f.ha m hm
     · exact le_of_lt_succ (lt_of_mem_primesBelow hp_mem),
-    fun m hm => by
+    fun m hm ↦ by
     simp only [Multiset.mem_add, Multiset.mem_singleton] at hm
     rcases hm with hm | rfl
     · exact f.hpos m hm
@@ -653,13 +653,13 @@ theorem Factorization.lower_score_2 {n : ℕ} (f : Factorization n) (L : ℕ)
     simp only [show f'.a = f.a + {p} from rfl, Multiset.map_add, Multiset.sum_add,
       Multiset.map_singleton, Multiset.sum_singleton, Prime.factorization_self hp]
     omega
-  have h_balance_q : ∀ q, q ≠ p → f'.balance q = f.balance q := fun q hq => by
+  have h_balance_q : ∀ q, q ≠ p → f'.balance q = f.balance q := fun q hq ↦ by
     have hq_fac : p.factorization q = 0 := by rw [Prime.factorization hp]; simp [hq.symm]
     unfold balance sum
     simp only [show f'.a = f.a + {p} from rfl, Multiset.map_add, Multiset.sum_add,
       Multiset.map_singleton, Multiset.sum_singleton, hq_fac, add_zero]
   have h_total_imbalance : f'.total_imbalance < f.total_imbalance := by
-    refine Finset.sum_lt_sum (fun q _ => ?_) ⟨p, hp_mem, by rw [h_balance_p]; omega⟩
+    refine Finset.sum_lt_sum (fun q _ ↦ ?_) ⟨p, hp_mem, by rw [h_balance_p]; omega⟩
     by_cases hq : q = p
     · subst hq; rw [h_balance_p]; omega
     · rw [h_balance_q q hq]
@@ -691,8 +691,8 @@ theorem Factorization.lower_score_2 {n : ℕ} (f : Factorization n) (L : ℕ)
        else if q ≤ L then (-f.balance q) * Real.log L else (-f.balance q) * Real.log (n / q)) -
       Real.log (n / p) := by
     rw [Finset.sum_eq_add_sum_diff_singleton hp_mem, Finset.sum_eq_add_sum_diff_singleton hp_mem]
-    have h_rest := Finset.sum_congr rfl fun x hx =>
-      h_sum_q x (Finset.mem_sdiff.mp hx).1 (fun h => (Finset.mem_sdiff.mp hx).2 (Finset.mem_singleton.mpr h))
+    have h_rest := Finset.sum_congr rfl fun x hx ↦
+      h_sum_q x (Finset.mem_sdiff.mp hx).1 (fun h ↦ (Finset.mem_sdiff.mp hx).2 (Finset.mem_singleton.mpr h))
     linarith
   have h_penalty : (if f'.total_imbalance > 0 then Real.log n else 0) ≤
       (if f.total_imbalance > 0 then Real.log n else 0) := by
@@ -1112,17 +1112,17 @@ lemma Params.initial.smooth_of_multiple (P : Params) {p m : ℕ} (hp : p > Real.
 /-- For `√n < p` prime and `p ∣ m` with `0 < m < n`, we have `ν_p(m) = 1` since `p² > n ≥ m`. -/
 lemma Params.initial.valuation_eq_one (P : Params) {p m : ℕ} (hp : p.Prime) (hp' : p > Real.sqrt P.n)
     (hm : m < P.n) (hm0 : m ≠ 0) (hpm : p ∣ m) : m.factorization p = 1 := by
-  have : p ^ 2 ∣ m → False := fun h => by
+  have : p ^ 2 ∣ m → False := fun h ↦ by
     have := le_of_dvd (pos_of_ne_zero hm0) h
     rw [gt_iff_lt, Real.sqrt_lt] at hp' <;> norm_cast at * <;> grind
-  exact le_antisymm (Nat.le_of_not_lt fun h => this <| dvd_trans (pow_dvd_pow _ h) <| ordProj_dvd _ _) (Nat.pos_of_ne_zero <| Finsupp.mem_support_iff.mp <| by aesop)
+  exact le_antisymm (Nat.le_of_not_lt fun h ↦ this <| dvd_trans (pow_dvd_pow _ h) <| ordProj_dvd _ _) (Nat.pos_of_ne_zero <| Finsupp.mem_support_iff.mp <| by aesop)
 
 /-- The interval `[n - n/M, n)` contains at least `⌊n/M⌋/p` multiples of `p`. -/
 lemma Params.initial.count_multiples_lower_bound (n M p : ℕ) (hM : M > 0) (hp : p > 0) :
     M * (Finset.filter (p ∣ ·) (Finset.Ico (n - n / M) n)).card + M ≥ n / p := by
   have h1 : (Finset.filter (p ∣ ·) (Finset.Ico (n - n / M) n)).card ≥ (n / M) / p := by
     have hsup : Finset.filter (p ∣ ·) (Finset.Ico (n - n / M) n) ⊇
-        Finset.image (p * ·) (Finset.Ico ((n - n / M + p - 1) / p) ((n + p - 1) / p)) := fun _ hx => by
+        Finset.image (p * ·) (Finset.Ico ((n - n / M + p - 1) / p) ((n + p - 1) / p)) := fun _ hx ↦ by
       simp +zetaDelta only [gt_iff_lt, mem_image, Finset.mem_Ico, Finset.mem_filter,
         tsub_le_iff_right] at *
       obtain ⟨a, ⟨ha₁, ha₂⟩, rfl⟩ := hx
@@ -1132,7 +1132,7 @@ lemma Params.initial.count_multiples_lower_bound (n M p : ℕ) (hM : M > 0) (hp 
             0 < n - n / M + p))]
       · nlinarith [div_mul_le_self (n + p - 1) p, Nat.sub_add_cancel (by omega : 1 ≤ n + p)]
     refine le_trans ?_ (Finset.card_mono hsup)
-    rw [Finset.card_image_of_injective _ fun _ _ h => mul_left_cancel₀ hp.ne' h]
+    rw [Finset.card_image_of_injective _ fun _ _ h ↦ mul_left_cancel₀ hp.ne' h]
     simp +arith only [card_Ico, div_le_iff_le_mul_add_pred hp]; zify
     repeat rw [Nat.cast_sub] <;> push_cast <;> try omega
     · nlinarith [Int.mul_ediv_add_emod (n + p - 1) p,
@@ -1165,7 +1165,7 @@ lemma Params.initial.sum_valuation_eq (P : Params) {p : ℕ} (hp : p.Prime)
     (hp' : p > Real.sqrt P.n) (hps : p < P.n / P.L) : (P.initial.a.map (·.factorization p)).sum =
     P.M * (Finset.filter (p ∣ ·) (Finset.Ico (P.n - P.n / P.M) P.n)).card := by
   have h1 : ∀ m ∈ Finset.Ico (P.n - P.n / P.M) P.n, (if m ∈ smoothNumbers (P.n / P.L)
-      then m.factorization p else 0) = if p ∣ m then 1 else 0 := fun m hm => by
+      then m.factorization p else 0) = if p ∣ m then 1 else 0 := fun m hm ↦ by
     by_cases m = 0
     · simp_all only [Finset.mem_Ico, nonpos_iff_eq_zero]
       exact absurd hm.1 (Nat.ne_of_gt (Nat.sub_pos_of_lt (Nat.div_lt_self hm.2 (by linarith [P.hM]))))
@@ -1173,7 +1173,7 @@ lemma Params.initial.sum_valuation_eq (P : Params) {p : ℕ} (hp : p.Prime)
   have h2 : (P.initial.a.map (·.factorization p)).sum = P.M * ∑ m ∈ Finset.Ico (P.n - P.n / P.M) P.n,
       if m ∈ smoothNumbers (P.n / P.L) then m.factorization p else 0 := by
     have : (P.initial.a.map (·.factorization p)).sum =
-        (map (fun m => if m ∈ smoothNumbers (P.n / P.L) then m.factorization p else 0)
+        (map (fun m ↦ if m ∈ smoothNumbers (P.n / P.L) then m.factorization p else 0)
           (join (replicate P.M (Finset.Ico (P.n - P.n / P.M) P.n).val))).sum := by
       conv_lhs => rw [show P.initial.a = filter (· ∈ smoothNumbers (P.n / P.L))
           (join (replicate P.M (Finset.Ico (P.n - P.n / P.M) P.n).val)) from rfl]
@@ -1199,14 +1199,118 @@ theorem Params.initial.balance_medium_prime_ge (P : Params) {p : ℕ} (hp : p < 
     omega
   · simp_all [Factorization.balance, Factorization.sum]
 
+/-- The sum of `p`-adic valuations of numbers in an interval equals the sum over `k` of the count of
+multiples of `p^k` in that interval. -/
+lemma sum_factorization_eq_sum_multiples {A B p : ℕ} (hp : p.Prime) (hA : 0 < A) :
+    ∑ m ∈ .Ico A B, m.factorization p = ∑ k ∈ .Ico 1 B, ((Finset.Ico A B).filter (p ^ k ∣ ·)).card := by
+  have h_factorization : ∀ m ∈ Finset.Ico A B, m.factorization p = ∑ k ∈ .Ico 1 B,
+      if p^k ∣ m then 1 else 0 := fun m hm ↦ by
+    have hm' : m ≠ 0 := (hA.trans_le (Finset.mem_Ico.mp hm).1).ne'
+    have : (Finset.Ico 1 B).filter (p^· ∣ m) = Finset.Ico 1 (m.factorization p + 1) := by
+      ext k
+      simp only [Finset.mem_filter, Finset.mem_Ico]
+      exact ⟨fun ⟨⟨h1, _⟩, h2⟩ ↦ ⟨h1, Nat.lt_succ_iff.mpr <| le_of_not_gt fun h ↦
+        pow_succ_factorization_not_dvd hm' hp <| (pow_dvd_pow p h).trans h2⟩,
+        fun ⟨h1, h2⟩ ↦ ⟨⟨h1, (le_of_lt_succ h2).trans_lt (factorization_lt p hm') |>.trans_le
+          (Finset.mem_Ico.mp hm).2.le⟩, (pow_dvd_pow p (le_of_lt_succ h2)).trans (ordProj_dvd m p)⟩⟩
+    simp [sum_boole, this]
+  rw [sum_congr rfl h_factorization, sum_comm]
+  simp [sum_boole]
+
+/-- The contribution of the `k`-th power of `p` to the balance is bounded by `M`.
+Specifically, `M * count(p^k) ≤ floor(n/p^k) + M`. -/
+lemma Params.initial.term_bound (P : Params) {p k : ℕ} (hp : p.Prime) :
+    P.M * ((Finset.Ico (P.n - P.n / P.M) P.n).filter (p ^ k ∣ ·)).card ≤ P.n / p ^ k + P.M := by
+  calc
+    _ ≤ P.M * ((P.n / P.M + p ^ k - 1) / p ^ k) := Nat.mul_le_mul_left _ (by
+        convert Params.initial.count_multiples_le (P.n - P.n / P.M) P.n (p ^ k) <| pow_pos hp.pos k using 1
+        rw [Nat.sub_sub_self (div_le_self _ _)])
+    _ ≤ P.M * (P.n / P.M / p ^ k + 1) := mul_le_mul_left _
+      (by rw [← add_div_right _ <| pow_pos hp.pos k]; exact Nat.div_le_div_right <| sub_le ..)
+    _ ≤ P.n / p ^ k + P.M := by
+        rw [mul_add, mul_one]
+        exact Nat.add_le_add_right (le_trans (mul_div_le_mul_div_assoc ..)
+          (Nat.div_le_div_right <| by rw [mul_comm]; exact div_mul_le_self ..)) ..
+
+/-- The sum of valuations in the initial factorization is bounded by `M` times the sum of valuations
+in the interval. This is because the initial factorization is a subset of `M` copies of the interval. -/
+lemma Params.initial.sum_valuation_le (P : Params) (p : ℕ) : (initial P).sum (fun m ↦ m.factorization p) ≤
+    P.M * ∑ m ∈ .Ico (P.n - P.n / P.M) P.n, m.factorization p := by
+  have h_subset : P.initial.a ≤ Multiset.bind (replicate P.M (Finset.Ico (P.n - P.n / P.M) P.n))
+      (fun s ↦ s.val) := by
+    simp only [initial, le_iff_count]
+    intro a
+    by_cases a ∈ (P.n / P.L).smoothNumbers
+    · simp_all only [join, count_filter_of_pos]
+      simp only [sum_replicate, count_nsmul, count_bind, map_replicate]
+      rfl
+    · simp_all [join]
+  have h_sum_le : ∀ {s t : Multiset ℕ}, s ≤ t →
+      (s.map (fun m ↦ m.factorization p)).sum ≤ (t.map (fun m ↦ m.factorization p)).sum := by
+    intro s t hst
+    obtain ⟨u, rfl⟩ := Multiset.le_iff_exists_add.mp hst
+    simp
+  convert h_sum_le h_subset using 1
+  simp [Multiset.bind]
+
 @[blueprint
   "initial-factorization-small-prime-le"
   (statement := /-- A small prime $p \leq \sqrt{n}$ can be in surplus by at most $M\log n$.-/)
-  (proof := /-- Routine computation using Legendre's formula, noting that at most $\log n / \log 2$ powers of $p$ divide any given number up to $n$.-/)
+  (proof := /-- Routine computation using Legendre's formula, noting that at most
+  $\log n / \log 2$ powers of $p$ divide any given number up to $n$.-/)
   (latexEnv := "sublemma")
   (discussion := 513)]
-theorem Params.initial.balance_small_prime_le (P : Params) {p : ℕ} (hp : p ≤ Real.sqrt P.n) :
-    P.initial.balance p ≤ P.M * (Real.log P.n) / (Real.log 2):= by sorry
+theorem Params.initial.balance_small_prime_le (P : Params) {p : ℕ} :
+    P.initial.balance p ≤ P.M * (Real.log P.n) / (Real.log 2):= by
+  have h_sum_valuation_le_M_sum_multiples : (initial P).sum (fun m ↦ m.factorization p) ≤ P.M * (∑ m ∈ Finset.Ico (P.n - P.n / P.M) P.n, m.factorization p) := by exact sum_valuation_le P p
+  by_cases hp_prime : Nat.Prime p
+  · have h_sum_multiples : ∑ m ∈ Finset.Ico (P.n - P.n / P.M) P.n, m.factorization p =
+        ∑ k ∈ .Ico 1 (Nat.log p P.n + 1), ((Finset.Ico (P.n - P.n / P.M) P.n).filter (p ^ k ∣ ·)).card := by
+      have h_sum_multiples_aux : ∀ m ∈ Finset.Ico (P.n - P.n / P.M) P.n, m.factorization p =
+          ∑ k ∈ .Ico 1 (Nat.log p P.n + 1), (if p ^ k ∣ m then 1 else 0) := by
+        intro m hm
+        have h_factorization_eq : m.factorization p = ∑ k ∈ .Ico 1 (m.factorization p + 1), 1 := by simp
+        rw [h_factorization_eq, ← Finset.sum_filter]
+        refine sum_bij (fun k hk ↦ k) ?_ ?_ ?_ ?_ <;> norm_num
+        · refine fun a ha₁ ha₂ ↦ ⟨⟨ha₁, lt_succ_of_le (Nat.le_log_of_pow_le hp_prime.one_lt ?_)⟩, ?_⟩
+          · refine le_trans (Nat.pow_le_pow_right hp_prime.pos (le_of_lt_succ ha₂)) ?_
+            refine le_trans (le_of_dvd (pos_of_ne_zero (by aesop)) (ordProj_dvd ..)) ?_
+            linarith [Finset.mem_Ico.mp hm]
+          · exact dvd_trans (pow_dvd_pow _ <| le_of_lt_succ ha₂) <| ordProj_dvd ..
+        · refine fun b hb₁ hb₂ hb₃ ↦ ⟨hb₁, lt_succ_of_le (le_of_not_gt fun hb₄ ↦
+            absurd (dvd_trans (pow_dvd_pow _ hb₄) hb₃) <| pow_succ_factorization_not_dvd ?_ hp_prime)⟩
+          linarith [Finset.mem_Ico.mp hm, Nat.sub_pos_of_lt (show P.n / P.M < P.n from
+            div_lt_self (pos_of_ne_zero (by grind)) (by linarith [P.hM]))]
+      rw [sum_congr rfl h_sum_multiples_aux, sum_comm]; simp_all
+    have h_factorial_factorization : (P.n.factorial.factorization p : ℤ) =
+        ∑ k ∈ Ico 1 (log p P.n + 1), (P.n / p ^ k : ℤ) := by
+      rw [factorization_def]
+      · have := Fact.mk hp_prime
+        rw [padicValNat_factorial] <;> aesop
+      · assumption
+    have h_balance_bound : (P.initial.balance p : ℤ) ≤ ∑ k ∈ .Ico 1 (Nat.log p P.n + 1),
+        (P.M * ((Finset.Ico (P.n - P.n / P.M) P.n).filter (p ^ k ∣ ·)).card - (P.n / p ^ k : ℤ)) := by
+      simp_all only [Factorization.balance, sum_sub_distrib, ← mul_sum .., tsub_le_iff_right, sub_add_cancel]
+      exact_mod_cast h_sum_valuation_le_M_sum_multiples
+    have h_term_bound : ∀ k ∈ Finset.Ico 1 (Nat.log p P.n + 1),
+        (P.M * ((Finset.Ico (P.n - P.n / P.M) P.n).filter (p ^ k ∣ ·)).card - (P.n / p ^ k : ℤ)) ≤ P.M :=
+      fun k hk ↦ sub_le_iff_le_add'.mpr (mod_cast initial.term_bound P hp_prime (k := k))
+    have h_num_terms_bound : (Nat.log p P.n : ℤ) ≤ Real.log P.n / Real.log p := by
+      rw [le_div_iff₀ (log_pos <| Nat.one_lt_cast.mpr hp_prime.one_lt)]
+      simpa using log_le_log (by norm_cast; exact Nat.Prime.pos hp_prime |> fun h ↦ pow_pos h _)
+        (show (p ^ Nat.log p P.n : ℝ) ≤ P.n from mod_cast pow_log_le_self p <| by
+          linarith [show P.n > 0 from pos_of_ne_zero <| by rintro h; have := P.hL; grind])
+    have : Real.log p ≥ Real.log 2 := log_le_log (by norm_num) (mod_cast hp_prime.two_le)
+    refine le_trans (Int.cast_le.mpr h_balance_bound) <| le_trans (Int.cast_le.mpr <| sum_le_sum h_term_bound) ?_
+    norm_num [mul_div_assoc, mul_comm] at *
+    gcongr
+    exact h_num_terms_bound.trans (div_le_div_of_nonneg_left (log_nonneg <|
+      mod_cast Nat.one_le_iff_ne_zero.mpr <| by rintro h; have := P.hL; grind)
+        (log_pos <| by norm_num) this)
+  · field_simp
+    rw [show P.initial.balance p = 0 from ?_] <;> norm_num
+    · exact mul_nonneg (cast_nonneg _) <| log_natCast_nonneg _
+    · simp_all [Factorization.balance]
 
 @[blueprint
   "initial-factorization-small-prime-ge"
