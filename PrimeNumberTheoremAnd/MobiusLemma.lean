@@ -244,10 +244,17 @@ $$
     (latexEnv := "sublemma")
     (discussion := 528)]
 theorem mobius_lemma_2_sub_1 (x : ℝ) (hx : x > 0) (K : ℕ) (hK : (K : ℝ) ≤ x) :
-  ∑ k ∈ Finset.Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) =
-    ∑ k ∈ Finset.range (K + 1), M (Real.sqrt (x / k)) +
-    ∑ k ∈ Finset.Ico (K + 1) (⌊x⌋₊ + 2),
-      ∫ u in (k - 0.5)..(k + 0.5), (M (Real.sqrt (x / k)) : ℝ) := by sorry
+    ∑ k ∈ Finset.Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) = ∑ k ∈ Finset.range (K + 1), M (Real.sqrt (x / k)) +
+      ∑ k ∈ Finset.Ico (K + 1) (⌊x⌋₊ + 2), ∫ _ in (k - 0.5)..(k + 0.5), (M (Real.sqrt (x / k)) : ℝ) := by
+  norm_num [Finset.sum_Ico_eq_sub]
+  rw [Finset.sum_range_add_sum_Ico]
+  · erw [← Finset.Icc_succ_left_eq_Ioc, Finset.sum_Ico_eq_sub _]
+    · norm_num [Finset.sum_range_succ, M]
+      rw [Nat.floor_eq_zero.mpr]
+      · norm_num
+      · rw [div_lt_one (by positivity), sqrt_lt_sqrt_iff] <;> linarith [Nat.lt_floor_add_one x]
+    · simp
+  · linarith [Nat.le_floor hK]
 
 @[blueprint
   "mobius-lemma-2-sub-2"
