@@ -205,7 +205,7 @@ def _root_.Real.IsHalfInteger (x : ℝ) : Prop := ∃ k : ℤ, x = k + 1 / 2
 @[blueprint
   "lem:aachcanc"
   (title := "Estimating an sum")
-    (statement := /-- \begin{lemma}\label{lem:aachcanc}
+    (statement := /--
 Let $s = \sigma + i \tau$, $\sigma,\tau \in \mathbb{R}$.
 Let $n\in \mathbb{Z}_{>0}$. Let $a,b\in \mathbb{Z} + \frac{1}{2}$, $b>a>\frac{|\tau|}{2\pi n}$. Write $\varphi_\nu(t) = \nu t - \frac{\tau}{2\pi} \log t$.
 Then
