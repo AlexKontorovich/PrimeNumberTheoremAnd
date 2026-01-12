@@ -687,11 +687,21 @@ used on the \(p\)-side than the \(q\)-side to restore an asymptotic advantage.
 
 abbrev X₀ := 89693
 
+lemma hsqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : √(n : ℝ) ≥ 89693 := by
+  simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ 89693 ^ 2)
+
 lemma log_X₀_gt : Real.log X₀ > 11.4 := by
   rw [gt_iff_lt, show (11.4 : ℝ) = 57 / (5 : ℕ) by norm_num, div_lt_iff₀ (by norm_num), mul_comm,
     ← Real.log_pow, Real.lt_log_iff_exp_lt (by norm_num), ← Real.exp_one_rpow]
   grw [Real.exp_one_lt_d9]
   norm_num
+
+lemma hlog {n : ℕ} (hn : n ≥ X₀ ^ 2) : log √(n : ℝ) ≥ 11.4 := by
+  calc log √(n : ℝ) ≥ log (X₀ : ℝ) := log_le_log (by grind : (0 : ℝ) < X₀) (hsqrt_ge hn)
+      _ ≥ 11.4 := log_X₀_gt.le
+
+lemma hε_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < 1 + 1 / (log √(n : ℝ)) ^ 3 := by
+  positivity [hlog hn]
 
 lemma log_X₀_pos : 0 < Real.log X₀ := by linear_combination log_X₀_gt
 
@@ -723,9 +733,8 @@ theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∃ p : Fin 3 → ℕ, (∀ i, Nat.Prime (p i)) ∧ StrictMono p ∧
       (∀ i, p i ≤ √(n : ℝ) * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ (i + 1 : ℝ)) ∧ √(n : ℝ) < p 0 := by
   let x := √(n : ℝ)
-  have hx_ge : x ≥ X₀ := by simpa using sqrt_le_sqrt (by exact_mod_cast hn : (X₀ : ℝ) ^ 2 ≤ n)
-  have hx_pos : 0 < x := (by grind : (0 : ℝ) < X₀).trans_le hx_ge
-  have hlog_pos : 0 < log x := log_pos ((by grind : (1 : ℝ) < X₀).trans_le hx_ge)
+  have hx_pos : 0 < x := (by grind : (0 : ℝ) < X₀).trans_le (hsqrt_ge hn)
+  have hlog_pos : 0 < log x := by positivity [hlog hn]
   set ε := 1 / (log x) ^ 3 with hε_def
   have upper {y : ℝ} (hy : 0 < y) (hlog_ge : log y ≥ log x) {p : ℕ}
       (hp : (p : ℝ) ≤ y + y / (log y) ^ (3 : ℝ)) : (p : ℝ) ≤ y * (1 + ε) := by
@@ -736,10 +745,11 @@ theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
       _ ≤ y + y / (log x) ^ (3 : ℝ) := add_le_add_right h y
       _ = y * (1 + ε) := by simp only [hε_def, ← rpow_natCast]; grind
   have hε_pos : 0 < ε := by positivity
-  have hx1_ge : x * (1 + ε) ≥ X₀ := hx_ge.trans (le_mul_of_one_le_right hx_pos.le (by grind))
-  have hx2_ge : x * (1 + ε) ^ 2 ≥ X₀ := hx_ge.trans (le_mul_of_one_le_right hx_pos.le
+  have hx1_ge : x * (1 + ε) ≥ X₀ := (hsqrt_ge hn).trans (le_mul_of_one_le_right hx_pos.le
+    (by grind))
+  have hx2_ge : x * (1 + ε) ^ 2 ≥ X₀ := (hsqrt_ge hn).trans (le_mul_of_one_le_right hx_pos.le
     (by nlinarith [sq_nonneg ε]))
-  obtain ⟨p₀, hp₀_prime, hp₀_lb, hp₀_ub⟩ := Dusart.proposition_5_4 x hx_ge
+  obtain ⟨p₀, hp₀_prime, hp₀_lb, hp₀_ub⟩ := Dusart.proposition_5_4 x (hsqrt_ge hn)
   obtain ⟨p₁, hp₁_prime, hp₁_lb, hp₁_ub⟩ := Dusart.proposition_5_4 _ hx1_ge
   obtain ⟨p₂, hp₂_prime, hp₂_lb, hp₂_ub⟩ := Dusart.proposition_5_4 _ hx2_ge
   have hp₀_ub' : (p₀ : ℝ) ≤ x * (1 + ε) := upper hx_pos le_rfl hp₀_ub
@@ -909,21 +919,6 @@ theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 blueprint_comment /--
 \subsection{Bounding the factors in \eqref{eq:main-ineq}}
 -/
-
-lemma hsqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : √(n : ℝ) ≥ 89693 := by
-  simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ 89693 ^ 2)
-
-lemma hlog {n : ℕ} (hn : n ≥ X₀ ^ 2) : log √(n : ℝ) > 11 := by
-  rw [gt_iff_lt, lt_log_iff_exp_lt (by positivity)]
-  calc exp 11 = exp 1 ^ 11 := by norm_num [← exp_nat_mul]
-    _ < 89693 := by
-      have := exp_one_lt_d9.le
-      calc exp 1 ^ 11 ≤ 2.7182818286 ^ 11 := by gcongr
-        _ < 89693 := by norm_num
-    _ ≤ √n := hsqrt_ge hn
-
-lemma hε_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < 1 + 1 / (log √(n : ℝ)) ^ 3 := by
-  positivity [hlog hn]
 
 @[blueprint
   "lem:qi-product"
