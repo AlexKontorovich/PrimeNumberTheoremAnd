@@ -298,7 +298,8 @@ lemma one_add_sq_pos (u : ℝ) : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa
   (statement := /-- If $\psi:\R \to \C$ is absolutely integrable then $$ |\hat \psi(u)| \leq \| \psi \|_1 $$
   for all $u \in \R$. where $C$ is an absolute constant. -/)
   (proof := /-- Immediate from the triangle inequality. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 561)]
 theorem prelim_decay (ψ : ℝ → ℂ) (u : ℝ) : ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ ∫ t, ‖ψ t‖ :=
   VectorFourier.norm_fourierIntegral_le_integral_norm ..
 
@@ -312,7 +313,8 @@ for all non-zero $u \in \R$.
   (proof := /-- By Lebesgue--Stiejtes integration by parts we have
 $$ 2\pi i u \hat \psi(u) = \int _\R e(-tu) d\psi(t)$$
 and the claim then follows from the triangle inequality. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 562)]
 theorem prelim_decay_2 (ψ : ℝ → ℂ) (hψ : Integrable ψ) (hvar : BoundedVariationOn ψ Set.univ)
     (u : ℝ) (hu : u ≠ 0) :
     ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn ψ Set.univ).toReal / (2 * π * ‖u‖) := by sorry
@@ -330,7 +332,8 @@ for all non-zero $u \in \R$.
   -/)
   (proof := /-- Should follow from previous lemma. -/)
   (proofUses := ["prelim_decay_2"])
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 563)]
 theorem prelim_decay_3 (ψ : ℝ → ℂ) (hψ : Integrable ψ)
     (habscont : AbsolutelyContinuous ψ)
     (hvar : BoundedVariationOn (deriv ψ) Set.univ) (u : ℝ) (hu : u ≠ 0) :
@@ -345,7 +348,8 @@ $$ |\hat \psi(u)| \leq ( \|\psi\|_1 + \| \psi' \|_{TV} / (2\pi)^2) / (1+|u|^2)$$
 for all $u \in \R$.  -/)
   (proof := /-- Should follow from previous lemmas. -/)
   (proofUses := ["prelim_decay", "prelim_decay_3", "decay"])
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 564)]
 theorem decay_alt (ψ : ℝ → ℂ) (hψ : Integrable ψ) (habscont : AbsolutelyContinuous ψ)
     (hvar : BoundedVariationOn (deriv ψ) Set.univ) (u : ℝ) :
     ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ ((∫ t, ‖ψ t‖) + (eVariationOn (deriv ψ) Set.univ).toReal / (2 * π) ^ 2) / (1 + ‖u‖ ^ 2) := by
