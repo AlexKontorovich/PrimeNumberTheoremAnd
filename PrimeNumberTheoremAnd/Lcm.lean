@@ -1099,7 +1099,6 @@ theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   · exact fun _ _ => by positivity [hε_pos hn]
   · exact (exists_q_primes hn).choose_spec.2.2.1 _
 
-
 blueprint_comment /--
 \subsection{Reduction to a small epsilon-inequality}
 -/
