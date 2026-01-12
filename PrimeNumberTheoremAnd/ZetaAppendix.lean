@@ -2,6 +2,7 @@ import Architect
 import Mathlib.Topology.EMetricSpace.BoundedVariation
 import Mathlib.Analysis.Fourier.FourierTransform
 import PrimeNumberTheoremAnd.ZetaDefinitions
+import PrimeNumberTheoremAnd.ZetaBounds
 
 blueprint_comment /--
 \section{Approximating the Riemann zeta function}
@@ -340,17 +341,16 @@ We start with an application of Euler-Maclaurin.
   "lem:abadeulmac"
   (title := "Identity for a partial sum of zeta(s)")
   (statement := /--
-Let $b>0$, $b\in \mathbb{Z} + \frac{1}{2}$.
+Let $b>0$, $b\in \mathbb{Z}$. ***EDITED***
 Then, for all $s\in \mathbb{C}\setminus \{1\}$ with $\Re s > 0$,
 \begin{equation}\label{eq:abak1}
-  \sum_{n\leq b} \frac{1}{n^s} = \zeta(s) + \frac{b^{1-s}}{1-s}
+  \sum_{n \leq b} \frac{1}{n^s} = \zeta(s) + \frac{b^{1-s}}{1-s} + \frac{b^{-s}}{2}
   + s \int_b^\infty \left(\{y\}-\frac{1}{2}\right) \frac{dy}{y^{s+1}}.
 \end{equation}
 -/)
   (proof := /--
-Assume first that $\Re s > 1$. By first-order Euler-Maclaurin and
-$b\in \mathbb{Z}+\frac{1}{2}$,
-\[\sum_{n>b}\frac{1}{n^s} = \int_b^\infty \frac{dy}{y^s} + \int_b^\infty
+Assume first that $\Re s > 1$. By first-order Euler-Maclaurin,
+\[\sum_{n > b}\frac{1}{n^s} = \int_b^\infty \frac{dy}{y^s} + \int_b^\infty
  \left(\{y\}-\frac{1}{2}\right) d\left(\frac{1}{y^s}\right).
 \]
 Here $\int_b^\infty \frac{dy}{y^s} = -\frac{b^{1-s}}{1-s}$ and
@@ -364,12 +364,38 @@ to $\{s\in \mathbb{C}: \Re s>0, s\ne 1\}$; thus, the equation holds throughout t
 -/)
   (latexEnv := "lemma")
   (discussion := 566)]
-theorem lemma_abadeulmac {b : ℝ} (hb : 0 < b) (hb' : b.IsHalfInteger) {s : ℂ}
+theorem lemma_abadeulmac {b : ℕ} (hb : 0 < b) {s : ℂ}
     (hs1 : s ≠ 1) (hsigma : 0 < s.re) :
-    ∑ n ∈ Finset.Icc 1 ⌊b⌋₊, (n : ℂ) ^ (-s) =
-      riemannZeta s + (b ^ (1 - s) : ℂ) / (1 - s) +
-      s * ∫ y in Set.Ioi b, (Int.fract y - 1 / 2) * (y ^ (-(s.re + 1)) : ℝ) := by
-  sorry
+    ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) =
+      riemannZeta s + (b ^ (1 - s) : ℂ) / (1 - s) + (b ^ (-s) : ℂ) / (2) +
+      s * ∫ y in Set.Ioi (b : ℝ), (Int.fract y - 1 / 2) * ((y : ℂ) ^ (-(s + 1))) := by
+  rw [← Zeta0EqZeta hb (by linarith) hs1]
+  unfold riemannZeta0
+  rw [show ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) = (∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s)) + 0 by ring]
+  rw [show ∑ n ∈ Finset.range (b + 1), 1 / (n : ℂ) ^ s = ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) by sorry]
+  rw [show (∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) + -(b : ℂ) ^ (1 - s) / (1 - s) + -(b : ℂ) ^ (-s) / 2 +
+          s * ∫ (x : ℝ) in Set.Ioi ↑b, (⌊x⌋ + 1 / 2 - x : ℂ) / (x : ℂ) ^ (s + 1)) +
+        (b : ℂ) ^ (1 - s) / (1 - s) +
+      (b : ℂ) ^ (-s) / 2 +
+    s * ∫ (y : ℝ) in Set.Ioi ↑b, ((Int.fract y) - 1 / 2) * (y : ℂ) ^ (-(s + 1)) =
+      ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) + (
+          s * (∫ (x : ℝ) in Set.Ioi ↑b, (⌊x⌋ + 1 / 2 - x : ℂ) / (x : ℂ) ^ (s + 1))   +
+    s * ∫ (y : ℝ) in Set.Ioi ↑b, ((Int.fract y) - 1 / 2) * (y : ℂ) ^ (-(s + 1))) by ring]
+  congr! 1
+  suffices h : ∫ (x : ℝ) in Set.Ioi ↑b, (⌊x⌋ + 1 / 2 - x : ℂ) / ↑x ^ (s + 1) =
+             -∫ (y : ℝ) in Set.Ioi ↑b, ((Int.fract y) - 1 / 2 : ℂ) * ↑y ^ (-(s + 1)) by
+    rw [h]; ring
+  rw [← MeasureTheory.integral_neg]
+  congr 1
+  ext x
+  unfold Int.fract
+  rw [show (x : ℂ) ^ (-(s + 1)) = 1 / (↑x : ℂ) ^ (s + 1) by
+    rw [cpow_neg, one_div]]
+  rw [mul_one_div, ← neg_div]
+  congr
+  ring_nf
+  push_cast
+  ring_nf
 
 @[blueprint
   "lem:abadtoabsum"
