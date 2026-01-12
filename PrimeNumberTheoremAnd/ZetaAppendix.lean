@@ -372,7 +372,17 @@ theorem lemma_abadeulmac {b : ℕ} (hb : 0 < b) {s : ℂ}
   rw [← Zeta0EqZeta hb (by linarith) hs1]
   unfold riemannZeta0
   rw [show ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) = (∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s)) + 0 by ring]
-  rw [show ∑ n ∈ Finset.range (b + 1), 1 / (n : ℂ) ^ s = ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) by sorry]
+  rw [show ∑ n ∈ Finset.range (b + 1), 1 / (n : ℂ) ^ s = ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) by
+    rw [Finset.range_eq_Ico]
+    rw [Finset.sum_eq_sum_Ico_succ_bot (by linarith )]
+    norm_cast
+    rw [Complex.zero_cpow (by aesop)]
+    simp only [div_zero, zero_add, one_div]
+    rw [← Finset.Ico_succ_right_eq_Icc]
+    congr
+    ext x
+    push_cast
+    rw [cpow_neg]]
   rw [show (∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) + -(b : ℂ) ^ (1 - s) / (1 - s) + -(b : ℂ) ^ (-s) / 2 +
           s * ∫ (x : ℝ) in Set.Ioi ↑b, (⌊x⌋ + 1 / 2 - x : ℂ) / (x : ℂ) ^ (s + 1)) +
         (b : ℂ) ^ (1 - s) / (1 - s) +
