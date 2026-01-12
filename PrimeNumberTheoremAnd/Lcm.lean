@@ -787,25 +787,19 @@ theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∃ q : Fin 3 → ℕ, (∀ i, Nat.Prime (q i)) ∧ StrictMono q ∧
       (∀ i : Fin 3, n * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ (-((3 : ℝ) - (i : ℕ))) ≤ q i) ∧ q 2 < n := by
   let x := √(n : ℝ)
-  have hx_ge : x ≥ X₀ := by simpa using sqrt_le_sqrt (by exact_mod_cast hn : (X₀ : ℝ) ^ 2 ≤ n)
-  have hx_pos : 0 < x := (by grind : (0 : ℝ) < X₀).trans_le hx_ge
-  have hlog_pos : 0 < log x := log_pos ((by grind : (1 : ℝ) < X₀).trans_le hx_ge)
+  have hx_pos : 0 < x := (by grind : (0 : ℝ) < X₀).trans_le (hsqrt_ge hn)
+  have hlog_pos : 0 < log x := by positivity [hlog hn]
   set ε := 1 / (log x) ^ 3 with hε_def
   have hε_pos : 0 < ε := by positivity
   have h1ε_pos : 0 < 1 + ε := by linarith
-  have hn_pos : (0 : ℝ) < n := by
-    have : (0 : ℝ) < X₀ ^ 2 := by grind
-    linarith [show (X₀ : ℝ) ^ 2 ≤ n by exact_mod_cast hn]
+  have hn_pos : (0 : ℝ) < n := by positivity
   have hn_eq_x2 : (n : ℝ) = x ^ 2 := (sq_sqrt hn_pos.le).symm
   -- Show that ε is small (ε ≤ 1/11.4³)
-  have hlog_ge_114 : log x ≥ 11.4 := by
-    calc log x ≥ log (X₀ : ℝ) := log_le_log (by grind : (0 : ℝ) < X₀) hx_ge
-      _ ≥ 11.4 := log_X₀_gt.le
   have hε_small : ε ≤ 1 / 11.4 ^ 3 := by
     simp only [hε_def]
     apply div_le_div_of_nonneg_left (by norm_num : (0 : ℝ) ≤ 1)
     · apply pow_pos; linarith [log_X₀_gt]
-    · apply pow_le_pow_left₀ (by linarith : (0 : ℝ) ≤ 11.4) hlog_ge_114
+    · apply pow_le_pow_left₀ (by linarith : (0 : ℝ) ≤ 11.4) (hlog hn)
   have h1ε3_pos : 0 < (1 + ε) ^ 3 := by positivity
   have h1ε2_pos : 0 < (1 + ε) ^ 2 := by positivity
   have h1ε3_le_2 : (1 + ε) ^ 3 ≤ 2 := by
@@ -817,7 +811,9 @@ theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   have hy₀_ge : n / (1 + ε) ^ 3 ≥ X₀ := by
     calc n / (1 + ε) ^ 3 = x ^ 2 / (1 + ε) ^ 3 := by rw [hn_eq_x2]
       _ ≥ x ^ 2 / 2 := div_le_div_of_nonneg_left (sq_nonneg x) (by grind) h1ε3_le_2
-      _ ≥ X₀ ^ 2 / 2 := by apply div_le_div_of_nonneg_right (sq_le_sq' (by linarith) hx_ge); norm_num
+      _ ≥ X₀ ^ 2 / 2 := by
+        apply div_le_div_of_nonneg_right (sq_le_sq' (by linarith) (hsqrt_ge hn))
+        norm_num
       _ ≥ X₀ := by norm_num
   have h1ε2_le_1ε3 : (1 + ε) ^ 2 ≤ (1 + ε) ^ 3 := by nlinarith [sq_nonneg ε]
   have h1ε_le_1ε2 : 1 + ε ≤ (1 + ε) ^ 2 := by nlinarith [sq_nonneg ε]
@@ -830,7 +826,7 @@ theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   obtain ⟨q₁, hq₁_prime, hq₁_lb, hq₁_ub⟩ := Dusart.proposition_5_4 (n / (1 + ε) ^ 2) hy₁_ge
   obtain ⟨q₂, hq₂_prime, hq₂_lb, hq₂_ub⟩ := Dusart.proposition_5_4 (n / (1 + ε)) hy₂_ge
   -- Show y_i ≥ x (needed for upper bound helper)
-  have hx_ge_2 : x ≥ 2 := by linarith [hx_ge, (by grind : (2 : ℝ) ≤ X₀)]
+  have hx_ge_2 : x ≥ 2 := by linarith [hsqrt_ge hn, (by grind : (2 : ℝ) ≤ X₀)]
   have hy₀_ge_x : n / (1 + ε) ^ 3 ≥ x := by
     calc n / (1 + ε) ^ 3 = x ^ 2 / (1 + ε) ^ 3 := by rw [hn_eq_x2]
       _ ≥ x ^ 2 / 2 := div_le_div_of_nonneg_left (sq_nonneg x) (by grind) h1ε3_le_2
@@ -1214,7 +1210,7 @@ theorem inv_n_add_sqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : 1 / (n + √(n : ℝ
     \Bigl(1 + \frac{3}{8}\varepsilon\Bigr)
     \Bigl(1 - \frac{4 \times 1.000675^{12}}{89693}\varepsilon\Bigr)
     \ge
-    1 + 3.37\varepsilon - 0.01\varepsilon^2.
+    1 + 3.36683\varepsilon - 0.01\varepsilon^2.
   \]
   -/)
   (proof := /--
@@ -1335,7 +1331,7 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
       norm_num [rpow_neg_one] at *
       rw [← div_eq_mul_inv, lt_div_iff₀ <| pow_pos hε_pos 3]
       have : (1 + ((log √n) ^ 3)⁻¹) ^ 6 < 2 :=
-        calc (1 + ((log √n) ^ 3)⁻¹) ^ 6 < (1 + (11 ^ 3 : ℝ)⁻¹) ^ 6 := by gcongr; exact hlog hn
+        calc (1 + ((log √n) ^ 3)⁻¹) ^ 6 < (1 + (11 ^ 3 : ℝ)⁻¹) ^ 6 := by gcongr; linarith [hlog hn]
           _ ≤ 2 := by norm_num
       nlinarith [mul_self_sqrt (Nat.cast_nonneg n), hsqrt_ge hn]
     exact_mod_cast hp'.trans_lt <| hmid.trans_le hq'
