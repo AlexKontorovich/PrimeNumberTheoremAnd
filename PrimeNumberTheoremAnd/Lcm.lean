@@ -1277,7 +1277,7 @@ theorem prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   \]
   and
   \[
-    \prod_{i=1}^3 \Bigl(1 + \frac{\varepsilon}{1.000675^{2i}}\Bigr)
+    \prod_{i=1}^3 \Bigl(1 + \frac{\varepsilon}{1.000675^{2i} (1 + \frac{1}{89693})}\Bigr)
     \Bigl(1 + \frac{3}{8}\varepsilon\Bigr)
     \Bigl(1 - \frac{4 \times 1.000675^{12}}{89693}\varepsilon\Bigr)
     \ge
