@@ -2587,7 +2587,8 @@ lemma log_pow_over_xsq_integral_bounded :
         rw [fun1]
         exact ContinuousAt.comp cont2 (HasDerivAt.neg (hasDerivAt_id x)).continuousAt
 
-      have deriv_u : (∀ x ∈ Set.Ioo (3 ⊓ T) (3 ⊔ T), HasDerivAt u (u' x) x) := by
+      have deriv_u :
+          (∀ x ∈ Set.Ioo (3 ⊓ T) (3 ⊔ T), HasDerivAt u (u' x) x) := by
         intro x hx
         have min3t : min 3 T = 3 := by
           exact min_eq_left_of_lt Tgt3
