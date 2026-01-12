@@ -1402,11 +1402,13 @@ times the sum over `k` of the count of multiples of `p^k` in the interval. -/
 lemma Params.initial.sum_valuation_eq_small (P : Params) {p : ℕ} (hp : p.Prime)
     (hp_le : p ≤ Real.sqrt P.n) (hp_gt : p > P.L) :
     (P.initial.a.map (·.factorization p)).sum =
-    P.M * ∑ k ∈ Finset.Ico 1 (Nat.log p P.n + 1), (Finset.filter (p^k ∣ ·) (Finset.Ico (P.n - P.n / P.M) P.n)).card := by
+    P.M * ∑ k ∈ Finset.Ico 1 (Nat.log p P.n + 1),
+      (Finset.filter (p^k ∣ ·) (Finset.Ico (P.n - P.n / P.M) P.n)).card := by
   have h_sum_factorizations : (P.initial.a.map (·.factorization p)).sum =
       P.M * (∑ m ∈ Finset.Ico (P.n - P.n / P.M) P.n, m.factorization p) := by
-    have h_sum_smooth : (P.initial.a.map (·.factorization p)).sum = P.M * (∑ m ∈ filter
-        (fun m ↦ m ∈ smoothNumbers (P.n / P.L)) (Ico (P.n - P.n / P.M) P.n), m.factorization p) := by
+    have h_sum_smooth : (P.initial.a.map (·.factorization p)).sum =
+        P.M * (∑ m ∈ filter (fun m ↦ m ∈ smoothNumbers (P.n / P.L))
+          (Ico (P.n - P.n / P.M) P.n), m.factorization p) := by
       simp only [initial, join, sum_replicate, sum_filter, filter_nsmul]
       simp only [Finset.sum_ite, sum_const_zero, add_zero]
       induction P.M with
@@ -1456,13 +1458,15 @@ lemma Params.initial.sum_valuation_eq_small (P : Params) {p : ℕ} (hp : p.Prime
 
 /-- The balance of a small prime `p` is at least `-M * floor(log_p n)`. -/
 lemma Params.initial.balance_ge_neg_M_mul_log (P : Params) {p : ℕ} (hp : p.Prime)
-    (hp_le : p ≤ Real.sqrt P.n) (hp_gt : p > P.L) : P.initial.balance p ≥ - (P.M * (Nat.log p P.n) : ℤ) := by
+    (hp_le : p ≤ Real.sqrt P.n) (hp_gt : p > P.L) :
+    P.initial.balance p ≥ - (P.M * (Nat.log p P.n) : ℤ) := by
   have := Fact.mk hp
   rw [Factorization.balance, Factorization.sum, initial.sum_valuation_eq_small P hp hp_le hp_gt,
     factorization_def _ hp, padicValNat_factorial]
   simp only [cast_mul, cast_sum, Int.natCast_ediv, cast_pow, ge_iff_le, neg_le_sub_iff_le_add]
   · calc
-    _ ≤ ∑ k ∈ Ico 1 (Nat.log p P.n + 1), ((P.M : ℤ) * (Finset.filter (p^k ∣ ·) (Ico (P.n - P.n / P.M) P.n)).card + P.M) :=
+    _ ≤ ∑ k ∈ Ico 1 (Nat.log p P.n + 1), ((P.M : ℤ) *
+        (Finset.filter (p^k ∣ ·) (Ico (P.n - P.n / P.M) P.n)).card + P.M) :=
       sum_le_sum fun k _ ↦ mod_cast initial.count_multiples_lower_bound P.n P.M (p^k)
         (by linarith [P.hM]) (pow_pos hp.pos _)
     _ = _ := by simp [sum_add_distrib, mul_sum, mul_comm]
