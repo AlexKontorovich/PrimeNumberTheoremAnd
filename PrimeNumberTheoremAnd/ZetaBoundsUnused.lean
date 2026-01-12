@@ -12,11 +12,11 @@ constants but instead systematically using big Oh notation... The punchline woul
 @[blueprint
   (title := "LogDerivZetaBndAlt")
   (statement := /--
-  There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1$ and $|t|\to\infty$,
-  $$
-  |\frac {\zeta'}{\zeta} (\sigma+it)| \ll \log^9 |t|.
-  $$
-  (Same statement but using big-Oh and filters.)
+    There is an $A>0$ so that for $1-A/\log^9 |t| \le \sigma < 1$ and $|t|\to\infty$,
+    $$
+    |\frac {\zeta'}{\zeta} (\sigma+it)| \ll \log^9 |t|.
+    $$
+    (Same statement but using big-Oh and filters.)
   -/)
   (proof := /-- Same as above. -/)
   (latexEnv := "lemma")]

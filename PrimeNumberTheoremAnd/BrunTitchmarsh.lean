@@ -178,8 +178,8 @@ include hx hy in
 theorem abs_rem_le {d : ℕ} (hd : d ≠ 0) :
     |rem (s := toBoundingSieve (self := primeInterSieve x y z hz)) d| ≤ 5 := by
   rw [rem_eq _ _ _ hx hz _ hd]
-  have hpush :
-      ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) = (↑(⌊x + y⌋₊ / d) - ↑((⌈x⌉₊ - 1) / d) : ℝ) := by
+  have hpush : ↑(⌊x + y⌋₊ / d - (⌈x⌉₊ - 1) / d) =
+      (↑(⌊x + y⌋₊ / d) - ↑((⌈x⌉₊ - 1) / d) : ℝ) := by
     rw [Nat.cast_sub]
     gcongr
     rw [Nat.le_floor_iff, ← add_le_add_iff_right 1]

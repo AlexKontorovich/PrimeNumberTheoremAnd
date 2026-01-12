@@ -37,8 +37,9 @@ We will use first-order Euler-Maclaurin and Poisson summation. We assume that $a
 half-integer; if one inserts the same assumption into \cite[Lemma 2.10]{zbMATH07557592},
 one can improve the result there, yielding an error term closer to the one here.
 
-For additional context, see
-\url{https://leanprover.zulipchat.com/\#narrow/channel/423402-PrimeNumberTheorem.2B/topic/Let.20us.20formalize.20an.20appendix}
+For additional context, see the Zulip discussion at
+\url{https://leanprover.zulipchat.com/\#narrow/channel/423402-PrimeNumberTheorem.2B/
+topic/Let.20us.20formalize.20an.20appendix}
 -/
 
 namespace ZetaAppendix
@@ -94,9 +95,11 @@ while
 theorem lemma_aachIBP (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 0) (a b : ℝ)
     (ha : a > |s.im| / (2 * π * |ν|)) (hb : b > a) :
     let φ : ℝ → ℝ := fun t ↦ ν * t - (s.im / (2 * π)) * Real.log t
-    let Φ : ℝ → ℂ := fun t ↦ (t ^ (-s.re) : ℝ) * e (φ t) / (2 * π * I * (deriv φ t))
+    let Φ : ℝ → ℂ := fun t ↦
+      (t ^ (-s.re) : ℝ) * e (φ t) / (2 * π * I * (deriv φ t))
     ∫ t in Set.Icc a b, t ^ (-s) * e (ν * t) = Φ b - Φ a +
-      s.re * ∫ t in Set.Icc a b, (t ^ (-s.re - 1) : ℝ) / (2 * π * I * (deriv φ t)) * e (φ t) +
+      s.re * ∫ t in Set.Icc a b,
+        (t ^ (-s.re - 1) : ℝ) / (2 * π * I * (deriv φ t)) * e (φ t) +
       ∫ t in Set.Icc a b, (t ^ (-s.re) : ℝ) * (deriv (deriv φ) t) /
         (2 * π * I * (deriv φ t) ^ 2) * e (φ t) := by
   sorry
@@ -121,7 +124,8 @@ $|g(a)-g(b)| = |g(a)|-|g(b)|$.
 -/)
   (latexEnv := "lemma")
   (discussion := 547)]
-theorem lemma_aachra {a b : ℝ} (ha : a < b) (g : ℝ → ℝ) (hg_cont : ContinuousOn g (Set.Icc a b))
+theorem lemma_aachra {a b : ℝ} (ha : a < b) (g : ℝ → ℝ)
+    (hg_cont : ContinuousOn g (Set.Icc a b))
     (hg_mon : AntitoneOn (fun t ↦ |g t|) (Set.Icc a b)) :
     BoundedVariationOn g (Set.Icc a b) ∧
     (eVariationOn g (Set.Icc a b)).toReal = |g a| - |g b| := by
@@ -156,8 +160,10 @@ $\frac{|g(a)|+|g(b)|}{2\pi} + \frac{|g(a)|-|g(b)|}{2\pi} = \frac{|g(a)|}{\pi}$.
   (latexEnv := "lemma")
   (discussion := 548)]
 theorem lemma_aachmonophase {a b : ℝ} (ha : a < b) (φ : ℝ → ℝ)
-    (hφ_C1 : ContDiffOn ℝ 1 φ (Set.Icc a b)) (hφ'_ne0 : ∀ t ∈ Set.Icc a b, deriv φ t ≠ 0)
-    (h g : ℝ → ℝ) (hg : ∀ t, g t = h t / deriv φ t) (hg_cont : ContinuousOn g (Set.Icc a b))
+    (hφ_C1 : ContDiffOn ℝ 1 φ (Set.Icc a b))
+    (hφ'_ne0 : ∀ t ∈ Set.Icc a b, deriv φ t ≠ 0)
+    (h g : ℝ → ℝ) (hg : ∀ t, g t = h t / deriv φ t)
+    (hg_cont : ContinuousOn g (Set.Icc a b))
     (hg_mon : AntitoneOn (fun t ↦ |g t|) (Set.Icc a b)) :
     ‖∫ t in Set.Icc a b, h t * e (φ t)‖ ≤ |g a| / π := by
   sorry
@@ -182,7 +188,8 @@ $2\pi k + \frac{\tau}{t \nu}>0$, and, as we said, $2\pi - \frac{\tau}{t \nu}>0$.
 -/)
   (latexEnv := "lemma")
   (discussion := 549)]
-theorem lemma_aachdecre (σ : ℝ) (hσ : 0 ≤ σ) (τ : ℝ) (ν : ℝ) (hν : ν ≠ 0) (a b : ℝ)
+theorem lemma_aachdecre (σ : ℝ) (hσ : 0 ≤ σ) (τ : ℝ) (ν : ℝ) (hν : ν ≠ 0)
+    (a b : ℝ)
     (ha : a > |τ| / (2 * π * |ν|)) (hb : b > a) (k : ℕ) (hk : 1 ≤ k) :
     let f : ℝ → ℝ := fun t ↦ t ^ (-σ - k) * |2 * π * ν - τ / t| ^ (-(k : ℝ) - 1)
     AntitoneOn f (Set.Icc a b) := by
