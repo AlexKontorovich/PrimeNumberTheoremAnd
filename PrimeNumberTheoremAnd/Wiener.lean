@@ -1815,16 +1815,23 @@ lemma limiting_cor_schwartz (ψ : 𝓢(ℝ, ℂ)) (hf : ∀ (σ' : ℝ), 1 < σ'
 
 
 
--- just the surjectivity is stated here, as this is all that is needed for the current application, but perhaps one should state and prove bijectivity instead
+-- just the surjectivity is stated here, as this is all that is needed for the current
+-- application, but perhaps one should state and prove bijectivity instead
 
 @[blueprint
   "bij"
   (title := "Bijectivity of Fourier transform")
-  (statement := /-- The Fourier transform is a bijection on the Schwartz class. [Note: only surjectivity is actually used.] -/)
+  (statement := /--
+  The Fourier transform is a bijection on the Schwartz class. [Note: only surjectivity is
+  actually used.]
+  -/)
   (proof := /--
-   This is a standard result in Fourier analysis.
+  This is a standard result in Fourier analysis.
   It can be proved here by appealing to Mellin inversion, Theorem \ref{MellinInversion}.
-  In particular, given $f$ in the Schwartz class, let $F : \R_+ \to \C : x \mapsto f(\log x)$ be a function in the ``Mellin space''; then the Mellin transform of $F$ on the imaginary axis $s=it$ is the Fourier transform of $f$.  The Mellin inversion theorem gives Fourier inversion.
+  In particular, given $f$ in the Schwartz class, let
+  $F : \R_+ \to \C : x \mapsto f(\log x)$ be a function in the ``Mellin space''; then the
+  Mellin transform of $F$ on the imaginary axis $s=it$ is the Fourier transform of $f$.
+  The Mellin inversion theorem gives Fourier inversion.
   -/)
   (latexEnv := "lemma")]
 lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f := by
@@ -1835,14 +1842,16 @@ lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, �
 
 
 
-noncomputable def toSchwartz (f : ℝ → ℂ) (h1 : ContDiff ℝ ∞ f) (h2 : HasCompactSupport f) : 𝓢(ℝ, ℂ) where
+noncomputable def toSchwartz (f : ℝ → ℂ) (h1 : ContDiff ℝ ∞ f)
+    (h2 : HasCompactSupport f) : 𝓢(ℝ, ℂ) where
   toFun := f
   smooth' := h1
   decay' k n := by
     have l1 : Continuous (fun x => ‖x‖ ^ k * ‖iteratedFDeriv ℝ n f x‖) := by
       have : ContDiff ℝ ∞ (iteratedFDeriv ℝ n f) := h1.iteratedFDeriv_right (mod_cast le_top)
       exact Continuous.mul (by continuity) this.continuous.norm
-    have l2 : HasCompactSupport (fun x ↦ ‖x‖ ^ k * ‖iteratedFDeriv ℝ n f x‖) := (h2.iteratedFDeriv _).norm.mul_left
+    have l2 : HasCompactSupport (fun x ↦ ‖x‖ ^ k * ‖iteratedFDeriv ℝ n f x‖) :=
+      (h2.iteratedFDeriv _).norm.mul_left
     simpa using l1.bounded_above_of_compact_support l2
 
 @[simp] lemma toSchwartz_apply (f : ℝ → ℂ) {h1 h2 x} : SchwartzMap.mk f h1 h2 x = f x := rfl
@@ -1857,12 +1866,14 @@ lemma comp_exp_support1 {Ψ : ℝ → ℂ} (hplus : closure (Function.support Ψ
 
 lemma comp_exp_support2 {Ψ : ℝ → ℂ} (hsupp : HasCompactSupport Ψ) :
     ∀ᶠ (x : ℝ) in atTop, (Ψ ∘ rexp) x = 0 := by
-  simp only [hasCompactSupport_iff_eventuallyEq, coclosedCompact_eq_cocompact, cocompact_eq_atBot_atTop] at hsupp
+  simp only [hasCompactSupport_iff_eventuallyEq, coclosedCompact_eq_cocompact,
+    cocompact_eq_atBot_atTop] at hsupp
   exact Real.tendsto_exp_atTop hsupp.2
 
-theorem comp_exp_support {Ψ : ℝ → ℂ} (hsupp : HasCompactSupport Ψ) (hplus : closure (Function.support Ψ) ⊆ Ioi 0) :
-    HasCompactSupport (Ψ ∘ rexp) := by
-  simp only [hasCompactSupport_iff_eventuallyEq, coclosedCompact_eq_cocompact, cocompact_eq_atBot_atTop]
+theorem comp_exp_support {Ψ : ℝ → ℂ} (hsupp : HasCompactSupport Ψ)
+    (hplus : closure (Function.support Ψ) ⊆ Ioi 0) : HasCompactSupport (Ψ ∘ rexp) := by
+  simp only [hasCompactSupport_iff_eventuallyEq, coclosedCompact_eq_cocompact,
+    cocompact_eq_atBot_atTop]
   exact ⟨comp_exp_support1 hplus, comp_exp_support2 hsupp⟩
 
 lemma wiener_ikehara_smooth_aux (l0 : Continuous Ψ) (hsupp : HasCompactSupport Ψ)

@@ -739,8 +739,10 @@ blueprint_comment /--
 
 blueprint_comment /--
 \begin{lemma}[ShiftOneBound]\label{ShiftOneBound}
-    There exists $C>0$ such that for all $\delta\in(0,1)$ and $t\in\mathbb{R}$ with $|t|\geq 3$; if $\zeta(\rho)=0$ with $\rho=\sigma+it$, then
-    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{1}{1+\delta-\sigma}+C\log|t|.$$
+    There exists $C>0$ such that for all $\delta\in(0,1)$ and $t\in\mathbb{R}$ with
+    $|t|\geq 3$; if $\zeta(\rho)=0$ with $\rho=\sigma+it$, then
+    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)
+      \leq -\frac{1}{1+\delta-\sigma}+C\log|t|.$$
 \end{lemma}
 -/
 
@@ -749,22 +751,42 @@ blueprint_comment /--
 \uses{SumBoundI}
     Note that for $\rho'\in\mathcal{Z}_t$
     \begin{align*}
-        \Re \left(\frac{1}{1+\delta+it-\rho'}\right)&=\Re \left(\frac{1+\delta-it-\overline{\rho'}}{(1+\delta+it-\rho')(1+\delta-it-\overline{\rho'})}\right) \\
-        &=\frac{\Re (1+\delta-it-\overline{\rho'})}{|1+\delta+it-\rho'|^2}=\frac{1+\delta-\Re \rho'}{(1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2}.
+        \Re \left(\frac{1}{1+\delta+it-\rho'}\right)
+          &=\Re \left(\frac{1+\delta-it-\overline{\rho'}}
+            {(1+\delta+it-\rho')(1+\delta-it-\overline{\rho'})}\right) \\
+          &=\frac{\Re (1+\delta-it-\overline{\rho'})}{|1+\delta+it-\rho'|^2}
+            =\frac{1+\delta-\Re \rho'}{(1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2}.
     \end{align*}
-    Now since $\rho'\in\mathcal{Z}_t$, we have that $|\rho-(3/2+it)|\leq 5/6$. So, we have $\Re \rho'\in(2/3,7/3)$ and $\mathfrak{I}\rho'\in(t-5/6,t+5/6)$. Thus we have that
-    $$1/3<1+\delta-\Re \rho'\qquad\text{and}\qquad (1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2<16/9+25/36=89/36.$$
+    Now since $\rho'\in\mathcal{Z}_t$, we have that $|\rho-(3/2+it)|\leq 5/6$. So, we
+    have $\Re \rho'\in(2/3,7/3)$ and $\mathfrak{I}\rho'\in(t-5/6,t+5/6)$. Thus we have
+    that
+    $$1/3<1+\delta-\Re \rho'\qquad\text{and}\qquad
+      (1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2<16/9+25/36=89/36.$$
     Which implies that
     \begin{equation}\label{pickupPoint5}
-        0\leq\frac{12}{89}<\frac{1+\delta-\Re \rho'}{(1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2}=\Re \left(\frac{1}{1+\delta+it-\rho'}\right).
+        0\leq\frac{12}{89}
+          <\frac{1+\delta-\Re \rho'}{(1+\delta-\Re \rho')^2+(t-\mathfrak{I}\rho')^2}
+          =\Re \left(\frac{1}{1+\delta+it-\rho'}\right).
     \end{equation}
     Note that, from Lemma \ref{SumBoundI}, we have
-    $$\sum_{\rho\in\mathcal{Z}_t}m_\zeta(\rho)\,\Re \left(\frac{1}{1+\delta+it-\rho}\right)-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+it)-\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|\ll\log|t|.$$
-    Since $m_\zeta(\rho)\geq 0$ for all $\rho'\in\mathcal{Z}_t$, the inequality from Equation (\ref{pickupPoint5}) tells us that by subtracting the sum over all $\rho'\in\mathcal{Z}_t\setminus\{\rho\}$ from both sides we have
-    $$\frac{m_\zeta(\rho)}{\Re (1+\delta+it-\rho)}-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\ll\log|t|.$$
-    But of course we have that $\Re (1+\delta+it-\rho)=1+\delta-\sigma$. So subtracting this term from both sides and recalling the implied constant we have
-    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\leq -\frac{m_\zeta(\rho)}{1+\delta-\sigma}+C\log|t|.$$
-    We have that $\sigma\leq 1$ since $\zeta$ is zero free on the right half plane $\sigma>1$. Thus $0<1+\delta-\sigma$. Noting this in combination with the fact that $1\leq m_\zeta(\rho)$ completes the proof.
+    $$\sum_{\rho\in\mathcal{Z}_t}m_\zeta(\rho)\,
+      \Re \left(\frac{1}{1+\delta+it-\rho}\right)
+      -\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)
+      \leq\left|\frac{\zeta'}{\zeta}(1+\delta+it)
+      -\sum_{\rho\in\mathcal{Z}_t}\frac{m_\zeta(\rho)}{1+\delta+it-\rho}\right|
+      \ll\log|t|.$$
+    Since $m_\zeta(\rho)\geq 0$ for all $\rho'\in\mathcal{Z}_t$, the inequality from
+    Equation (\ref{pickupPoint5}) tells us that by subtracting the sum over all
+    $\rho'\in\mathcal{Z}_t\setminus\{\rho\}$ from both sides we have
+    $$\frac{m_\zeta(\rho)}{\Re (1+\delta+it-\rho)}
+      -\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)\ll\log|t|.$$
+    But of course we have that $\Re (1+\delta+it-\rho)=1+\delta-\sigma$. So subtracting
+    this term from both sides and recalling the implied constant we have
+    $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+it)\right)
+      \leq -\frac{m_\zeta(\rho)}{1+\delta-\sigma}+C\log|t|.$$
+    We have that $\sigma\leq 1$ since $\zeta$ is zero free on the right half plane
+    $\sigma>1$. Thus $0<1+\delta-\sigma$. Noting this in combination with the fact that
+    $1\leq m_\zeta(\rho)$ completes the proof.
 \end{proof}
 -/
 

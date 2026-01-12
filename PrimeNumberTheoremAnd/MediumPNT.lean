@@ -2073,14 +2073,16 @@ theorem I1Bound
 
     have T1 : f = g := by rfl
 
-    have final_bound_pointwise : ‖f t‖ ≤ K * Real.log X * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
+    have final_bound_pointwise :
+        ‖f t‖ ≤ K * Real.log X * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
       rw [T1]
       unfold g
       rw [mul_assoc]
       exact g_bound t
 
-    have trivialize : K * Real.log X * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) = (K * M) * Real.log X * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
-            ring_nf
+    have trivialize :
+        K * Real.log X * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) =
+          (K * M) * Real.log X * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by ring_nf
 
     rw [trivialize] at final_bound_pointwise
     exact final_bound_pointwise
@@ -2092,9 +2094,11 @@ theorem I1Bound
     -- LOL!
     exact
       Preorder.le_trans (1 + (Real.log X)⁻¹) (pts (SmoothingF (SmoothingF M))).re 2
-        (triv_pts_lo_bound (SmoothingF (SmoothingF M))) (triv_pts_up_bound (SmoothingF (SmoothingF M)))
+        (triv_pts_lo_bound (SmoothingF (SmoothingF M)))
+        (triv_pts_up_bound (SmoothingF (SmoothingF M)))
 
-  have f_integrable := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt σ₀_le_2 suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
+  have f_integrable := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt
+    σ₀_le_2 suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
 
   have S : X^pts_re = rexp 1 * X := by
     unfold pts_re
