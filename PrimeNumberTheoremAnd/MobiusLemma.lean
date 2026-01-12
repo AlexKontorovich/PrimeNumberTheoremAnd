@@ -1,11 +1,15 @@
 import Architect
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import Mathlib.Algebra.Order.Ring.Star
+import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Data.Int.Star
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.MeasureTheory.Function.Floor
+import Mathlib.NumberTheory.LSeries.Dirichlet
+import Mathlib.NumberTheory.LSeries.HurwitzZetaValues
 import Mathlib.NumberTheory.ArithmeticFunction.Moebius
 import Mathlib.NumberTheory.LSeries.RiemannZeta
+import Mathlib.Tactic.NormNum.RealSqrt
 
 blueprint_comment /--
 \section{A Lemma involving the M\"obius Function}
@@ -17,7 +21,7 @@ In this section we establish a lemma involving sums of the M\"obius function.
 
 namespace MobiusLemma
 
-open ArithmeticFunction Real Finset MeasureTheory Measurable
+open ArithmeticFunction Real Finset MeasureTheory Measurable Complex
 
 @[blueprint
   "Q-def"
@@ -207,6 +211,120 @@ theorem mobius_lemma_1_sub (x : ℝ) (hx : x > 0) :
     · intro a ha; simp_all
   simp_all only [Q, M, sum_boole, Nat.cast_id]; rfl
 
+/-- The sum `∑' n, μ(n) / n² = 1 / ζ(2)`. -/
+theorem sum_moebius_div_sq : ∑' n, (moebius n) / (n : ℝ) ^ 2 = 1 / (riemannZeta 2).re := by
+  have h_sum : ∑' n, (moebius n) / (n : ℂ) ^ 2 = 1 / riemannZeta 2 := by
+    have h_zeta2 : riemannZeta 2 * ∑' n, (moebius n : ℂ) / (n : ℂ) ^ 2 = 1 := by
+      convert LSeries_zeta_mul_Lseries_moebius (show 1 < (2 : ℂ).re by norm_num) using 1
+      norm_num [LSeries]; congr! 1
+      · rw [zeta_eq_tsum_one_div_nat_cpow] <;> norm_num [LSeries.term]
+        exact tsum_congr fun n ↦ by aesop
+      · norm_num [LSeries.term]; exact tsum_congr fun n ↦ by aesop
+    exact eq_one_div_of_mul_eq_one_right h_zeta2
+  convert congr_arg re h_sum using 1
+  · rw_mod_cast [re_tsum]
+    · rfl
+    · contrapose! h_sum
+      rw [tsum_eq_zero_of_not_summable h_sum]; norm_num [riemannZeta_two]
+      exact (div_ne_zero (by norm_num) (pow_ne_zero 2 (ofReal_ne_zero.mpr Real.pi_ne_zero))).symm
+  · norm_num [normSq, div_re]
+    rw [inv_eq_one_div, div_eq_div_iff] <;> norm_num [riemannZeta_two]
+    · norm_cast
+    · norm_cast; positivity
+    · norm_cast; positivity
+
+/-- The integral `∫ u in 0..x, M(√(x/u)) = x · ∑' n, μ(n)/n²`. -/
+theorem integral_M_sqrt_div (x : ℝ) (hx : 0 < x) :
+    ∫ u in 0..x, (M (sqrt (x / u)) : ℝ) = x * ∑' n : ℕ, (moebius n : ℝ) / (n : ℝ) ^ 2 := by
+  have h_abs : ∀ n : ℕ, |(moebius n : ℝ)| ≤ 1 := fun n ↦ by simp only [moebius, coe_mk]; split_ifs <;> norm_num
+  have h_integral : ∫ u in (0 : ℝ)..x, (M (sqrt (x / u)) : ℝ) =
+      ∑' n : ℕ, (moebius n : ℝ) * ∫ u in (0 : ℝ)..x, if n ≤ sqrt (x / u) then 1 else 0 := by
+    have h_rewrite : ∫ u in (0 : ℝ)..x, (M (sqrt (x / u)) : ℝ) =
+        ∫ u in (0 : ℝ)..x, ∑' n : ℕ, (moebius n : ℝ) * (if n ≤ sqrt (x / u) then 1 else 0) := by
+      refine intervalIntegral.integral_congr fun u _ ↦ ?_
+      rw [tsum_eq_sum (s := Ioc 0 ⌊sqrt (x / u)⌋₊)]
+      · simp only [M, Int.cast_sum]
+        refine sum_congr rfl fun i hi ↦ ?_
+        rw [mul_ite, mul_one, mul_zero, if_pos]
+        exact le_trans (Nat.cast_le.mpr (mem_Ioc.mp hi).2) (Nat.floor_le (sqrt_nonneg _))
+      · intro n hn
+        simp only [mul_ite, mul_one, mul_zero]
+        by_cases hn0 : n = 0
+        · simp [hn0, moebius]
+        · rw [if_neg]; intro hle; apply hn; rw [mem_Ioc]
+          exact ⟨Nat.pos_of_ne_zero hn0, Nat.le_floor hle⟩
+    rw [h_rewrite, intervalIntegral.integral_of_le hx.le, integral_tsum]
+    · exact tsum_congr fun n ↦ by rw [intervalIntegral.integral_of_le hx.le, integral_const_mul]
+    · exact fun n ↦ (measurable_const.mul
+        (Measurable.ite (measurableSet_le measurable_const
+          (continuous_sqrt.measurable.comp (measurable_const.div measurable_id')))
+            measurable_const measurable_const)).aestronglyMeasurable
+    · refine ne_of_lt (lt_of_le_of_lt (ENNReal.tsum_le_tsum (g := fun n ↦ ENNReal.ofReal
+        (|moebius n| * (x / n ^ 2))) ?_) ?_)
+      · intro n
+        by_cases hn : n = 0
+        · simp [hn]
+        · have hdiv_le : x / (n : ℝ) ^ 2 ≤ x :=
+            div_le_self hx.le (mod_cast Nat.one_le_pow _ _ (Nat.pos_of_ne_zero hn))
+          calc ∫⁻ u in Set.Ioc 0 x, ‖(moebius n : ℝ) * if n ≤ sqrt (x / u) then 1 else 0‖ₑ
+            _ ≤ ∫⁻ u in Set.Ioc 0 x, (Set.Ioc 0 (x / n ^ 2)).indicator
+                  (fun _ ↦ ENNReal.ofReal |(moebius n : ℝ)|) u := by
+                apply lintegral_mono_ae
+                filter_upwards [ae_restrict_mem measurableSet_Ioc] with u hu
+                simp only [Set.mem_Ioc] at hu
+                by_cases h1 : (n : ℝ) ≤ sqrt (x / u)
+                · have h2 : u ≤ x / n ^ 2 := by
+                    rw [le_sqrt (by positivity) (div_nonneg hx.le hu.1.le)] at h1
+                    rwa [le_div_iff₀ hu.1, mul_comm, ← le_div_iff₀ (by positivity)] at h1
+                  simp only [h1, ↓reduceIte, mul_one]
+                  rw [Set.indicator_of_mem (Set.mem_Ioc.mpr ⟨hu.1, h2⟩)]
+                  rw [enorm_eq_ofReal_abs]
+                · simp only [h1, ↓reduceIte, mul_zero]
+                  rw [enorm_zero]
+                  exact zero_le _
+            _ = ∫⁻ u in Set.Ioc 0 (x / n ^ 2), ENNReal.ofReal |(moebius n : ℝ)| := by
+                rw [lintegral_indicator measurableSet_Ioc, Measure.restrict_restrict measurableSet_Ioc]
+                congr 1
+                exact Measure.restrict_congr_set
+                  (Set.inter_eq_left.mpr (Set.Ioc_subset_Ioc_right hdiv_le)).eventuallyEq
+            _ = ENNReal.ofReal |(moebius n : ℝ)| * volume (Set.Ioc 0 (x / n ^ 2)) := setLIntegral_const ..
+            _ = ENNReal.ofReal |(moebius n : ℝ)| * ENNReal.ofReal (x / n ^ 2) := by rw [Real.volume_Ioc, sub_zero]
+            _ = ENNReal.ofReal (|(moebius n : ℝ)| * (x / n ^ 2)) := by rw [← ENNReal.ofReal_mul (abs_nonneg _)]
+            _ = ENNReal.ofReal (|moebius n| * (x / n ^ 2)) := by rw [Int.cast_abs]
+      · rw [← ENNReal.ofReal_tsum_of_nonneg]
+        · exact ENNReal.ofReal_lt_top
+        · exact fun n ↦ mul_nonneg (by positivity : (0 : ℝ) ≤ |moebius n|) (div_nonneg hx.le (sq_nonneg _))
+        · refine Summable.of_nonneg_of_le (fun n ↦ mul_nonneg (by positivity) (div_nonneg hx.le (sq_nonneg _)))
+            (fun n ↦ mul_le_of_le_one_left (div_nonneg hx.le (sq_nonneg _)) ?_)
+            (Summable.mul_left _ <| summable_nat_pow_inv.2 one_lt_two)
+          rw [Int.cast_abs]; exact h_abs n
+  have h_inner : ∀ n : ℕ, n ≠ 0 → ∫ u in (0 : ℝ)..x, (if n ≤ sqrt (x / u) then 1 else 0) = x / n ^ 2 := by
+    intro n hn_ne
+    have h_equiv : ∀ u ∈ Set.Ioc 0 x, (n : ℝ) ≤ sqrt (x / u) ↔ u ≤ x / n ^ 2 := fun u hu ↦ by
+      rw [le_sqrt (by positivity) (div_nonneg hx.le hu.1.le), le_div_iff₀ hu.1, le_div_iff₀
+        (by positivity : (0 : ℝ) < n ^ 2)]
+      ring_nf
+    have h_inner_eval : ∫ u in (0 : ℝ)..x, (if n ≤ sqrt (x / u) then 1 else 0) = ∫ u in (0 : ℝ)..x / n ^ 2, (1 : ℝ) := by
+      rw [intervalIntegral.integral_of_le hx.le, intervalIntegral.integral_of_le (by positivity),
+          ← integral_indicator measurableSet_Ioc, ← integral_indicator measurableSet_Ioc]
+      congr 1 with u
+      simp only [Set.indicator]
+      by_cases hu1 : 0 < u
+      · by_cases hu2 : u ≤ x
+        · simp only [Set.mem_Ioc, hu1, hu2, and_self, ↓reduceIte]
+          by_cases hu3 : u ≤ x / n ^ 2
+          · simp [hu3, (h_equiv u ⟨hu1, hu2⟩).mpr hu3]
+          · simp [hu3, mt (h_equiv u ⟨hu1, hu2⟩).mp hu3]
+        · have hle : x / n ^ 2 < u := lt_of_le_of_lt
+            (div_le_self hx.le (mod_cast Nat.one_le_pow _ _ (Nat.pos_of_ne_zero hn_ne))) (lt_of_not_ge hu2)
+          simp [not_and_of_not_right _ (not_le.mpr (lt_of_not_ge hu2)), not_and_of_not_right _ (not_le.mpr hle)]
+      · simp [not_and_of_not_left _ (not_lt.mpr <| le_of_not_gt hu1)]
+    simp only [h_inner_eval, intervalIntegral.integral_const, smul_eq_mul, mul_one, sub_zero]
+  rw [h_integral, ← tsum_mul_left]
+  congr 1; ext n
+  by_cases hn : n = 0
+  · simp [hn]
+  · rw [h_inner n hn]; ring
 
 @[blueprint
   "mobius-lemma-1"
@@ -225,8 +343,12 @@ $$\int_0^x M\left(\sqrt{\frac{x}{u}}\right) du = \int_0^x \sum_{n\leq \sqrt{\fra
   (latexEnv := "lemma")
   (discussion := 527)]
 theorem mobius_lemma_1 (x : ℝ) (hx : x > 0) :
-  R x = ∑ k ∈ Finset.Ioc 0 ⌊x⌋₊, M (Real.sqrt (x / k)) -
-        ∫ u in 0..x, (M (Real.sqrt (x / u)) : ℝ) := by sorry
+    R x = ∑ k ∈ Ioc 0 ⌊x⌋₊, M (sqrt (x / k)) - ∫ u in 0..x, (M (sqrt (x / u)) : ℝ) := by
+  unfold R
+  congr 1
+  · exact mod_cast mobius_lemma_1_sub x hx ▸ rfl
+  · rw [integral_M_sqrt_div x hx, div_eq_mul_inv, mul_eq_mul_left_iff]
+    exact Or.inl <| by simpa using sum_moebius_div_sq.symm
 
 blueprint_comment /--
 Since our sums start from $1$, the sum $\sum_{k\leq K}$ is empty for $K=0$.
