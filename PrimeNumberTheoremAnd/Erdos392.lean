@@ -1474,8 +1474,10 @@ lemma Params.initial.balance_ge_neg_M_mul_log (P : Params) {p : ℕ} (hp : p.Pri
 
 @[blueprint
   "initial-factorization-small-prime-ge"
-  (statement := /-- A small prime $L < p \leq \sqrt{n}$ can be in deficit by at most $M\log n$.-/)
-  (proof := /-- Routine computation using Legendre's formula, noting that at most $\log n / \log 2$ powers of $p$ divide any given number up to $n$.-/)
+  (statement := /-- A small prime $L < p \leq \sqrt{n}$ can be in deficit by at most
+  $M\log n$.-/)
+  (proof := /-- Routine computation using Legendre's formula, noting that at most
+  $\log n / \log 2$ powers of $p$ divide any given number up to $n$.-/)
   (latexEnv := "sublemma")
   (discussion := 514)]
 theorem Params.initial.balance_small_prime_ge (P : Params) {p : ℕ} (hp : p ≤ Real.sqrt P.n)
@@ -1515,7 +1517,9 @@ theorem Params.initial.balance_tiny_prime_ge (P : Params) {p : ℕ} (hp : p ≤ 
 @[blueprint
   "initial-score-bound"
   (statement := /-- The initial score is bounded by
-  $$ n \log(1-1/M)^{-1} + \sum_{p \leq n/L} M \log n + \sum_{p \leq \sqrt{n}} M \log^2 n / \log 2 + \sum_{n/L < p \leq n} \frac{n}{p} \log \frac{n}{p} + \sum_{p \leq L} (M \log n + M L \pi(n)) \log L.$$ -/)
+  $$ n \log(1-1/M)^{-1} + \sum_{p \leq n/L} M \log n + \sum_{p \leq \sqrt{n}} M \log^2 n / \log 2
+  + \sum_{n/L < p \leq n} \frac{n}{p} \log \frac{n}{p}
+  + \sum_{p \leq L} (M \log n + M L \pi(n)) \log L.$$ -/)
   (latexEnv := "proposition")
   (proof := /-- Combine Lemma \ref{initial-factorization-waste},
   Sublemma \ref{initial-factorization-large-prime-le},

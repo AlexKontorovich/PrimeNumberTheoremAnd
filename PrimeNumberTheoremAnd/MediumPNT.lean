@@ -2145,14 +2145,19 @@ theorem I1Bound
                    unfold pts
                    exact poisson_kernel_integrable pts_re (pts_re_neq_zero)
 
-              have U := MeasureTheory.Integrable.const_mul simple_int ((K * M) * Real.log X * eps⁻¹ * X ^ pts_re)
+              have U := MeasureTheory.Integrable.const_mul simple_int
+                ((K * M) * Real.log X * eps⁻¹ * X ^ pts_re)
               refine MeasureTheory.Integrable.restrict ?_
               exact U
-        _ = (K * M) * Real.log X * X ^ pts_re * eps⁻¹ * ∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹ := by
-              have simpli_fun : (fun (t : ℝ) ↦ (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re ) = (fun (t : ℝ) ↦ ((K * M) * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹)) :=
+        _ = (K * M) * Real.log X * X ^ pts_re * eps⁻¹ *
+              ∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹ := by
+              have simpli_fun :
+                  (fun (t : ℝ) ↦ (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re) =
+                    (fun (t : ℝ) ↦ ((K * M) * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹)) :=
                 by funext t; ring_nf
               rw [simpli_fun]
-              exact MeasureTheory.integral_const_mul ((K * M) * Real.log X * X ^ pts_re * eps⁻¹) (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
+              exact MeasureTheory.integral_const_mul ((K * M) * Real.log X * X ^ pts_re * eps⁻¹)
+                (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
         _ ≤ (K * M) * Real.log X * X ^ pts_re * eps⁻¹ * T⁻¹ := by
               have U := integral_evaluation (pts_re) T (T_large)
               unfold pts
@@ -2318,7 +2323,8 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
         refine div_le_div_of_nonneg_left (by norm_num) (by norm_num) ?_
         exact one_le_pow₀ (logt_gt_one T_gt.le).le
       _ < 1 := by norm_num
-  suffices ∀ σ ∈ Ioc σ₁ (1 + (Real.log X)⁻¹), ‖SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I)‖ ≤ C' * X / (ε * T) by
+  suffices ∀ σ ∈ Ioc σ₁ (1 + (Real.log X)⁻¹),
+      ‖SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I)‖ ≤ C' * X / (ε * T) by
     calc
       ‖∫ (σ : ℝ) in σ₁..1 + (Real.log X)⁻¹,
           SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I)‖ ≤
@@ -2452,7 +2458,9 @@ lemma I8I2 {SmoothingF : ℝ → ℝ}
   .
   $$
   -/)
-  (proof := /-- We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$. -/)
+  (proof := /--
+  We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$.
+  -/)
   (latexEnv := "lemma")]
 lemma I8Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)

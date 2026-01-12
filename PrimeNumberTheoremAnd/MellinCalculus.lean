@@ -433,7 +433,8 @@ lemma MellinConvolutionTransform (f g : ℝ → ℂ) (s : ℂ)
 
 
 lemma mem_within_strip (σ₁ σ₂ : ℝ) :
-    {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈ 𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} :=
+    {s : ℂ | σ₁ ≤ s.re ∧ s.re ≤ σ₂} ∈
+      𝓟 {s | σ₁ ≤ s.re ∧ s.re ≤ σ₂} :=
   mem_principal_self _
 
 lemma MellinOfPsi_aux {ν : ℝ → ℝ} (diffν : ContDiff ℝ 1 ν)
@@ -1097,8 +1098,8 @@ lemma MellinConvNonNeg_of_NonNeg {f g : ℝ → ℝ} (f_nonneg : ∀ x > 0, 0 �
   and all the factors in the integrand are nonnegative.
   -/)
   (latexEnv := "lemma")]
-lemma Smooth1Nonneg {ν : ℝ → ℝ} (νnonneg : ∀ x > 0, 0 ≤ ν x) {ε x : ℝ} (xpos : 0 < x)
-    (εpos : 0 < ε) : 0 ≤ Smooth1 ν ε x := by
+lemma Smooth1Nonneg {ν : ℝ → ℝ} (νnonneg : ∀ x > 0, 0 ≤ ν x) {ε x : ℝ}
+    (xpos : 0 < x) (εpos : 0 < ε) : 0 ≤ Smooth1 ν ε x := by
   dsimp [Smooth1]
   apply MellinConvNonNeg_of_NonNeg ?_ ?_ xpos
   · intro y hy; by_cases h : y ≤ 1 <;> simp [h, hy]
