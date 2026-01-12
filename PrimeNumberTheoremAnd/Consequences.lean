@@ -1972,38 +1972,24 @@ lemma mu_log_mul_zeta : mu_log * ArithmeticFunction.zeta = -Λ := by
 lemma mu_log_eq_mu_mul_neg_lambda : mu_log = μ * -Λ := by
   rw [← mu_log_mul_zeta, mul_comm, mul_assoc, coe_zeta_mul_coe_moebius, mul_one]
 
-lemma moebius_mul_log_eq_neg_vonMangoldt_conv_moebius (n : ℕ) :
-    (μ n : ℝ) * log n = - ∑ d ∈ n.divisors, (μ d : ℝ) * (Λ (n/d) : ℝ) := by
-  rw [← log_apply, ← mu_log_apply, mu_log_eq_mu_mul_neg_lambda, mul_apply,
-    sum_divisorsAntidiagonal (f := (fun x y ↦ (μ : ArithmeticFunction ℝ) x * (-Λ) y)) (n := n), ← Finset.sum_neg_distrib]
-  refine sum_congr rfl fun d hd ↦ ?_
-  rw [(by rfl : (-Λ) (n / d) = - Λ (n / d))]
-  simp
-
 lemma sum_mu_Lambda (x : ℝ) : ∑ n ∈ Iic ⌊x⌋₊, (μ n : ℝ) * log n = - ∑ k ∈ Iic ⌊x⌋₊, (μ k : ℝ) * Psi (x/k) := by
-  have h_interchange : ∑ n ∈ Finset.Iic ⌊x⌋₊, ∑ d ∈ Nat.divisors n, (μ d : ℝ) * (Λ (n / d)) = ∑ d ∈ Finset.Iic ⌊x⌋₊, ∑ n ∈ Finset.Iic ⌊x⌋₊, (μ d : ℝ) * (Λ (n / d)) * (if d ∣ n then 1 else 0) := by
-    rw [Finset.sum_comm, Finset.sum_congr rfl]
-    simp +contextual only [mem_Iic, mul_ite, mul_one, mul_zero, sum_ite, sum_const_zero, add_zero]
-    intro n hn; rw [← Finset.sum_subset (show n.divisors ⊆ Finset.filter (fun d => d ∣ n) (Finset.Iic ⌊x⌋₊) from fun d hd => Finset.mem_filter.mpr ⟨Finset.mem_Iic.mpr <| Nat.le_trans (Nat.divisor_le hd) hn, Nat.dvd_of_mem_divisors hd⟩)] ; aesop
-  have h_inner : ∀ d ∈ Finset.Iic ⌊x⌋₊, ∑ n ∈ Finset.Iic ⌊x⌋₊, (μ d : ℝ) * (Λ (n / d)) * (if d ∣ n then 1 else 0) = (μ d : ℝ) * ∑ k ∈ Finset.Iic ⌊x / d⌋₊, (Λ k : ℝ) := by
-    intro d hd
-    have h_inner_sum : ∑ n ∈ Finset.Iic ⌊x⌋₊, (Λ (n / d)) * (if d ∣ n then 1 else 0) = ∑ k ∈ Finset.Iic ⌊x / d⌋₊, (Λ k) := by
-      by_cases hd : d = 0 <;> simp_all +decide only [mul_ite, mul_one, mul_zero, mem_Iic, floor_div_natCast]
-      · norm_num [Finset.Iic_eq_Icc]
-      · rw [← Finset.sum_filter]
-        refine Finset.sum_bij (fun n hn => n / d) ?_ ?_ ?_ ?_
-        · simp_all +decide only [mem_filter, mem_Iic, and_imp]
-          exact fun a ha₁ _ => by
-            simpa [Nat.floor_div_natCast] using Nat.div_le_div_right ha₁
-        · simp_all +decide only [mem_filter, mem_Iic, Nat.div_left_inj, implies_true]
-        · simp_all +decide only [mem_Iic, mem_filter, exists_prop]
-          exact fun b hb => ⟨b * d, ⟨by nlinarith [Nat.div_mul_le_self ⌊x⌋₊ d], dvd_mul_left _ _⟩, by rw [Nat.mul_div_cancel _ (Nat.pos_of_ne_zero hd)]⟩
-        · simp_all +decide only [mem_filter, mem_Iic, implies_true]
-    simp +decide only [mul_assoc, ← h_inner_sum, Finset.mul_sum _ _ _]
-  have h_final : ∑ n ∈ Finset.Iic ⌊x⌋₊, ∑ d ∈ Nat.divisors n, (μ d : ℝ) * (Λ (n / d)) = ∑ d ∈ Finset.Iic ⌊x⌋₊, (μ d : ℝ) * (∑ k ∈ Finset.Iic ⌊x / d⌋₊, (Λ k : ℝ)) := by
-    exact h_interchange.trans (Finset.sum_congr rfl h_inner)
-  convert congr_arg Neg.neg h_final using 1
-  rw [← Finset.sum_neg_distrib] ; exact Finset.sum_congr rfl fun n hn => by rw [moebius_mul_log_eq_neg_vonMangoldt_conv_moebius]
+  rw [(by rfl : Iic ⌊x⌋₊ = Icc 0 ⌊x⌋₊), ← add_sum_Ioc_eq_sum_Icc (by simp), ← add_sum_Ioc_eq_sum_Icc (by simp)]
+  simp only [ArithmeticFunction.map_zero, Int.cast_zero, CharP.cast_eq_zero, log_zero, mul_zero,
+    zero_add, div_zero, zero_mul]
+  simp_rw [← log_apply, ← mu_log_apply, mu_log_eq_mu_mul_neg_lambda]
+  rw [sum_Ioc_mul_eq_sum_sum, ← sum_neg_distrib]
+  refine sum_congr rfl fun n hn ↦ ?_
+  conv => lhs; arg 2; arg 2; ext m; rw [(by rfl : (-Λ) m = - Λ m)]
+  rw [sum_neg_distrib]
+  ring_nf
+  congr 2
+  unfold Psi
+  rw [(by rfl : Iic ⌊x * (↑n)⁻¹⌋₊ = Icc 0 ⌊x * (↑n)⁻¹⌋₊), ← add_sum_Ioc_eq_sum_Icc (by simp)]
+  simp only [ArithmeticFunction.map_zero, zero_add]
+  congr
+  rw [← floor_div_natCast]
+  rfl
+
 lemma M_log_identity (x : ℝ) (hx : 1 ≤ x) : M x * log x = ∑ k ∈ Iic ⌊x⌋₊, (μ k : ℝ) * (log (x/k) - Psi (x/k)) := by
   -- Use the identity $\sum_{k \leq x} \mu(k) \log(x/k) = \sum_{k \leq x} \mu(k) \log x - \sum_{k \leq x} \mu(k) \log k$.
   have h_log_identity : ∑ k ∈ Iic ⌊x⌋₊, (μ k : ℝ) * Real.log (x / k) = (∑ k ∈ Iic ⌊x⌋₊, (μ k : ℝ)) * Real.log x - ∑ k ∈ Iic ⌊x⌋₊, (μ k : ℝ) * Real.log k := by
