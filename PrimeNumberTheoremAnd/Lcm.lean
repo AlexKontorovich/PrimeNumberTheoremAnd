@@ -1341,10 +1341,7 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
       rw [inv_eq_one_div]
       refine one_div_le_one_div_of_le (by linarith) ?_
       norm_cast
-    have h2 : 0 < 1 + 1 / (log √(n : ℝ)) ^ 3 := by
-      suffices 0 ≤ 1 / (log √(n : ℝ)) ^ 3 from by linarith
-      grw [one_div_nonneg, pow_nonneg]
-      exact log_nonneg (Real.sqrt_one ▸ (sqrt_le_sqrt_iff' zero_lt_one).2 (by norm_num; grind))
+    have h2 := hε_pos hn
     have h3 : 1 + 1 / Real.log √n ^ 3 ≤ 1.000675 := by linarith [inv_cube_log_sqrt_le hn]
     have h4 : 0 ≤ (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * (n : ℝ)⁻¹) := by
       suffices 0 ≤ (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * (X₀ ^ 2 : ℝ)⁻¹) from by
