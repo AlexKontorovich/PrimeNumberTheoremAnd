@@ -39,7 +39,7 @@ open Real Complex
 @[blueprint
   "e-def"
   (title := "e")
-   (statement := /-- We recall that $e(\alpha) = e^{2\pi i \alpha}$ -/)]
+   (statement := /-- We recall that $e(\alpha) = e^{2\pi i \alpha}$. -/)]
 noncomputable def e (α : ℝ) : ℂ := exp (2 * π * I * α)
 
 blueprint_comment /--
@@ -296,7 +296,8 @@ $$\sum_{n\leq b} \frac{1}{n^s} = \zeta(s) + \frac{b^{1-s}}{1-s} +
  \left(\{y\}-\frac{1}{2}\right) \frac{s}{y^{s+1}} dy.$$
  Since the integral converges absolutely for $\Re s > 0$, both sides extend holomorphically to $\{s\in \mathbb{C}: \Re s>0, s\ne 1\}$; thus, the equation holds throughout that region.
   -/)
-   (latexEnv := "lemma")]
+   (latexEnv := "lemma")
+   (discussion := 566)]
 theorem lemma_abadeulmac {b : ℝ} (hb : 0 < b) (hb' : b.IsHalfInteger) {s : ℂ}
   (hs1 : s ≠ 1) (hsigma : 0 < s.re) :
   ∑ n ∈ Finset.Icc 1 ⌊ b ⌋₊, (n:ℂ) ^ (-s) =
@@ -314,7 +315,8 @@ $$\sum_{n\leq a} \frac{1}{n^s} = -\sum_{a < n\leq b} \frac{1}{n^s} + \zeta(s) + 
   (proof := /-- By Lemma \ref{lem:abadeulmac}, $\sum_{n\leq a} = \sum_{n\leq b} - \sum_{a < n\leq b}$,
 $\left|\{y\}-\frac{1}{2}\right| \leq \frac{1}{2}$ and $\int_b^\infty \frac{dy}{|y^{s+1}|} = \frac{1}{\sigma b^\sigma}$.
  -/)
-   (latexEnv := "lemma")]
+   (latexEnv := "lemma")
+   (discussion := 567)]
 theorem lemma_abadtoabsum {a b : ℝ} (hb : 0 < a) (hb' : b.IsHalfInteger)
   (hab : b > a) {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 < s.re) :
   ∃ E, ∑ n ∈ Finset.Icc 1 ⌊ a ⌋₊, (n:ℂ) ^ (-s) =
@@ -341,7 +343,8 @@ $a,b\not\in \mathbb{Z}$)
 continuous at every integer. Now
 $$\widehat{f}(0) = \int_{\mathbb{R}} f(y) dy = \int_a^b \frac{dy}{y^s} = \frac{b^{1-s}-a^{1-s}}{1-s}.$$
  -/)
-   (latexEnv := "lemma")]
+   (latexEnv := "lemma")
+   (discussion := 568)]
 theorem lemma_abadusepoisson {a b : ℝ} (ha : ¬ ∃ n:ℤ, a = n) (hb : ¬ ∃ n:ℤ, b = n) (hab : b > a) (ha : 0 < a)
   {s : ℂ} (hs1 : s ≠ 1) :
   let f : ℝ → ℂ := fun y ↦ if a ≤ y ∧ y ≤ b then (y ^ (-s.re) : ℝ) * e (-(s.im / (2 * π)) * Real.log y) else 0
@@ -372,7 +375,8 @@ blueprint_comment /-- We could prove these equations starting from Euler's produ
     \end{aligned}\]
     after reindexing the second sum. Regrouping terms again, we obtain our equation.
 -/)
-   (latexEnv := "lemma")]
+   (latexEnv := "lemma")
+   (discussion := 569)]
 theorem lemma_abadeuleulmit1 {z : ℂ} (hz : ¬ ∃ n:ℤ, z = n) :
   (π / Complex.sin (π * z) : ℂ) =
     (1 / z : ℂ) +
@@ -389,7 +393,8 @@ theorem lemma_abadeuleulmit1 {z : ℂ} (hz : ¬ ∃ n:ℤ, z = n) :
       By $\left(\pi \cot \pi z\right)' = - \frac{\pi^2}{\sin^2 \pi z}$ and
       $\left(\frac{1}{z\pm n}\right)' = -\frac{1}{(z\pm n)^2}$ , we are done.
   -/)
-    (latexEnv := "lemma")]
+    (latexEnv := "lemma")
+    (discussion := 570)]
 theorem lemma_abadeulmit2 {z : ℂ} (hz : ¬ ∃ n:ℤ, z = n) :
   (π ^ 2 / (Complex.sin (π * z) ^ 2 : ℂ)) =
     ∑' n : ℤ, (1 / ((z - n) ^ 2 : ℂ)) := by sorry
@@ -411,7 +416,8 @@ Since $1/u^3$ is convex, $\frac{1}{(n+1/2-t)^3} + \frac{1}{(n+1/2+t)^3}$ reaches
 \[\sum_{n=1}^\infty \left(\frac{1}{\left(n+1-|\vartheta|\right)^3} + \frac{1}{\left(n+|\vartheta|\right)^3}\right) \leq \sum_{n=1}^\infty \left(\frac{1}{n^3} + \frac{1}{(n+1)^3}\right) =  2 \zeta(3)-1.
 \]
   -/)
-    (latexEnv := "lemma")]
+    (latexEnv := "lemma")
+    (discussion := 571)]
 theorem lemma_abadimpseri {ϑ : ℝ} (hϑ : 0 ≤ |ϑ| ∧ |ϑ| < 1) :
   ∑' n : ℤ, (1 / ((n - ϑ) ^ 3 : ℝ) + 1 / ((n + ϑ) ^ 3 : ℝ)) ≤
     (1 / ((1 - |ϑ|) ^ 3 : ℝ)) + 2 * (riemannZeta 3).re - 1 := by sorry
@@ -443,12 +449,12 @@ Define $f:\mathbb{R}\to\mathbb{C}$ by
   where $\vartheta_- = \tau/(2\pi b)$. Note $|\vartheta_-|\leq |\vartheta|<1$.
 %since $b^{-s} \frac{\tau}{2\pi b} = a b^{-s-1} \vartheta$ and
 % $n^2-\left(\frac{\tau}{2\pi b}\right)^2> n^2 - \vartheta^2$.
-By the first equation in Lemma \ref{lem:abadeulmit},
+By the Lemma \ref{lem:abadeulmit1},
 \[\sum_n  \frac{(-1)^{n+1} 2 z}{n^2 - z^2}  =
 \frac{\pi}{\sin \pi z} - \frac{1}{z}
 \] for $z\ne 0$, while $\sum_n  \frac{(-1)^{n+1} 2 z}{n^2 - z^2} = \sum_n 0 = 0$ for
 $z=0$.
-Moreover, by Lemmas \ref{lem:abadeulmit} and \ref{lem:abadimpseri}, for $\vartheta\ne 0$,
+Moreover, by Lemmas \ref{lem:abadeulmit2} and \ref{lem:abadimpseri}, for $\vartheta\ne 0$,
 \[\sum_n \left(\frac{\sigma}{(n-\vartheta)^2} + \frac{\sigma}{(n+\vartheta)^2}\right)\leq
 \sigma\cdot \left(\frac{\pi^2}{\sin^2 \pi \vartheta} - \frac{1}{\vartheta^2}\right),\]
 \[\sum_n \left(\frac{|\vartheta|}{(n-\vartheta)^3} + \frac{|\vartheta|}{(n+\vartheta)^3}\right)
@@ -456,7 +462,8 @@ Moreover, by Lemmas \ref{lem:abadeulmit} and \ref{lem:abadimpseri}, for $\varthe
 \]
 If $\vartheta=0$, then $\sum_n \left(\frac{\sigma}{(n-\vartheta)^2} + \frac{\sigma}{(n+\vartheta)^2}\right) = 2 \sigma \sum_{n=1}^\infty \frac{1}{n^2} = \sigma \frac{\pi^2}{3}$.
  -/)
-   (latexEnv := "lemma")]
+   (latexEnv := "lemma")
+   (discussion := 572)]
 theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : ℝ} (ha: 0 < a)
 (hab : a < b) (ha' : a.IsHalfInteger) (hb' : b.IsHalfInteger)
   (haτ : a > |s.im| / (2 * π)) :
@@ -490,7 +497,7 @@ where $\vartheta = \frac{\tau}{2\pi a}$,
 $c_\vartheta = \frac{i}{2}  \left(\frac{1}{\sin \pi \vartheta} - \frac{1}{\pi \vartheta}\right)$
 for $\vartheta\ne 0$, $c_0 =0$, and $C_{\sigma,\vartheta}$ is as in \eqref{eq:defcsigth}. -/)
   (proof := /-- Assume first that $\sigma>0$. Let $b\in \mathbb{Z}+\frac{1}{2}$ with $b>a$, and define
- $f(y) = \frac{1_{[a,b]}(y)}{y^s}$.  By Corollary~\ref{cor:abadtoabsum} and Lemma~\ref{lem:abadusepoisson},
+ $f(y) = \frac{1_{[a,b]}(y)}{y^s}$.  By Lemma~\ref{lem:abadtoabsum} and Lemma~\ref{lem:abadusepoisson},
 $$\sum_{n\leq a} \frac{1}{n^s} = \zeta(s) + \frac{a^{1-s}}{1-s} - \lim_{N\to \infty} \sum_{n=1}^N (\widehat{f}(n) + \widehat{f}(-n)) + O^*\left(\frac{2 |s|}{\sigma b^\sigma}\right).$$
 We apply Lemma~\ref{lem:abadsumas} to estimate
 $\lim_{N\to \infty} \sum_{n=1}^N (\widehat{f}(n) + \widehat{f}(-n))$. We obtain
@@ -504,7 +511,8 @@ since $b^{-\sigma}\to 0$, $\vartheta_-\to 0$ and  $g(\vartheta_-)\to g(0) = 0$  
 
 Finally, the case $\sigma=0$ follows since all terms  in \eqref{eq:abadlondie} extend continuously to $\sigma=0$.
  -/)
-   (latexEnv := "proposition")]
+   (latexEnv := "proposition")
+   (discussion := 573)]
 theorem proposition_dadaro {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a : ℝ} (ha : 0 < a)
   (ha' : a.IsHalfInteger) (haτ : a > |s.im| / (2 * π)) :
   let ϑ : ℝ := s.im / (2 * π * a)
