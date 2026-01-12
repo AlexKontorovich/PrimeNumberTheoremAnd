@@ -1950,108 +1950,92 @@ theorem sum_mobius_div_self_le (N : ℕ) : |∑ n ∈ range N, μ n / (n : ℚ)|
 
 lemma sum_mobius_mul_floor (x : ℝ) (hx : 1 ≤ x) :
   ∑ n ∈ Iic ⌊x⌋₊, (ArithmeticFunction.moebius n : ℝ) * (⌊x/n⌋ : ℝ) = 1 := by
-  have h_sum_floor :
-      ∑ n ∈ Finset.Iic (Nat.floor x), (μ n : ℝ) * ⌊x / n⌋ =
-        ∑ k ∈ Finset.Icc 1 (Nat.floor x),
-          ∑ n ∈ Finset.filter (fun n => n ∣ k) (Finset.Icc 1 (Nat.floor x)), (μ n : ℝ) := by
-    have h_sum_floor' :
-        ∑ n ∈ Finset.Icc 1 ⌊x⌋₊, (μ n : ℝ) * ⌊x / n⌋ =
-          ∑ k ∈ Finset.Icc 1 ⌊x⌋₊,
-            ∑ n ∈ Finset.filter (fun n => n ∣ k) (Finset.Icc 1 ⌊x⌋₊), (μ n : ℝ) := by
-      have h_sum_divisors :
-          ∀ n ∈ Finset.Icc 1 ⌊x⌋₊,
-            (μ n : ℝ) * ⌊x / (n : ℝ)⌋ =
-              ∑ k ∈ Finset.Icc 1 ⌊x⌋₊, (μ n : ℝ) * (if n ∣ k then 1 else 0) := by
-        have h_divisors_set :
-            ∀ n ∈ Finset.Icc 1 ⌊x⌋₊,
-              Finset.filter (fun k => n ∣ k) (Finset.Icc 1 ⌊x⌋₊) =
-                Finset.image (fun m => n * m) (Finset.Icc 1 ⌊x / (n : ℝ)⌋₊) := by
-          intros n hn
-          ext k
-          simp only [mem_filter, mem_Icc, mem_image]
-          constructor <;> intro hk
-          · obtain ⟨a, rfl⟩ := hk.2
-            exact
-              ⟨a,
-                ⟨by
-                    nlinarith [Finset.mem_Icc.mp hn],
-                  Nat.le_floor <| by
-                    rw [le_div_iff₀ <| Nat.cast_pos.mpr <| (Finset.mem_Icc.mp hn).1]
-                    nlinarith
-                      [ Nat.floor_le <| show 0 ≤ x by positivity
-                      , (by
-                          norm_cast
-                          linarith [Finset.mem_Icc.mp hn] : (n : ℝ) * a ≤ ⌊x⌋₊)
-                      , Nat.lt_floor_add_one x
-                      , (by
-                          norm_cast
-                          linarith [Finset.mem_Icc.mp hn] : (n : ℝ) ≥ 1)
-                      ]⟩,
-                rfl⟩
-          · obtain ⟨a, ha₁, ha₂⟩ := hk
-            have h_le : n * a ≤ x := by
-              exact
-                le_trans
-                  (mul_le_mul_of_nonneg_left (Nat.cast_le.mpr ha₁.2) (Nat.cast_nonneg _))
-                  (by
-                    nlinarith
-                      [ Nat.floor_le (show 0 ≤ x / (n : ℝ) by positivity)
-                      , mul_div_cancel₀ x
-                          (show (n : ℝ) ≠ 0 by
-                            norm_cast
-                            linarith [Finset.mem_Icc.mp hn])
-                      ])
-            exact
-              ⟨⟨by nlinarith [Finset.mem_Icc.mp hn],
-                  Nat.le_floor <| by simpa [← ha₂] using h_le⟩,
-                ha₂ ▸ dvd_mul_right _ _⟩
-        simp_all +decide only [mem_Icc, and_imp, mul_ite, mul_one, mul_zero, sum_ite, sum_const, nsmul_eq_mul, add_zero]
-        intro n hn hn'
-        rw [Finset.card_image_of_injective _ fun a b h => mul_left_cancel₀ (by positivity) h]
-        norm_num [mul_comm]
-        exact Or.inl <| mod_cast Eq.symm <| Int.toNat_of_nonneg <| Int.floor_nonneg.2 <| by positivity
-      rw [Finset.sum_congr rfl h_sum_divisors, Finset.sum_comm]
-      simp +decide only [mul_ite, mul_one, mul_zero, sum_ite, sum_const_zero, add_zero]
-    convert h_sum_floor' using 1
-    ring_nf!
-    erw [Finset.sum_Ico_eq_sub _] <;> norm_num
-    erw [Finset.sum_Ico_eq_sub _] <;> norm_num [Finset.sum_range_succ']
-  have h_moebius : ∀ k : ℕ, k ≠ 0 → ∑ n ∈ Nat.divisors k, (μ n : ℝ) = if k = 1 then 1 else 0 := by
-    intro k hk_ne_zero
-    have h_moebius_sum : ∑ n ∈ Nat.divisors k, (μ n : ℤ) = if k = 1 then 1 else 0 := by
-      have h_moebius_sum : ∑ n ∈ Nat.divisors k, (μ n : ℤ) = (ArithmeticFunction.moebius * ArithmeticFunction.zeta) k := by
-        simp +decide only [moebius, Int.reduceNeg, coe_mk, zeta, mul_apply, natCoe_apply, cast_ite, CharP.cast_eq_zero, cast_one, mul_ite, mul_zero, mul_one]
-        rw [Nat.sum_divisorsAntidiagonal fun i j =>
-          if j = 0 then 0 else if Squarefree i then (-1 : ℤ) ^ (Ω i) else 0]
-        exact
-          Finset.sum_congr rfl fun i hi => by
-            rw [if_neg
-              (Nat.ne_of_gt
-                (Nat.div_pos
-                  (Nat.le_of_dvd (Nat.pos_of_ne_zero hk_ne_zero) (Nat.dvd_of_mem_divisors hi))
-                  (Nat.pos_of_mem_divisors hi)))]
-      aesop
-    exact_mod_cast h_moebius_sum
-  have h_apply_moebius : ∀ k ∈ Finset.Icc 1 (Nat.floor x), ∑ n ∈ Finset.filter (fun n => n ∣ k) (Finset.Icc 1 (Nat.floor x)), (μ n : ℝ) = if k = 1 then 1 else 0 := by
-    intros k hk
-    have h_divisors : Finset.filter (fun n => n ∣ k) (Finset.Icc 1 (Nat.floor x)) = Nat.divisors k := by
-      ext
-      simp only [mem_filter, mem_Icc, mem_divisors, ne_eq]
-      exact
-        ⟨fun h => ⟨h.2, by linarith [Finset.mem_Icc.mp hk]⟩,
-          fun h =>
-            ⟨⟨Nat.pos_of_dvd_of_pos h.1 (by linarith [Finset.mem_Icc.mp hk]),
-                Nat.le_trans (Nat.le_of_dvd (by linarith [Finset.mem_Icc.mp hk]) h.1)
-                  (by linarith [Finset.mem_Icc.mp hk])⟩,
-              h.1⟩⟩
-    specialize h_moebius k
-    aesop
-  rw [h_sum_floor, Finset.sum_congr rfl h_apply_moebius]
-  aesop
+  classical
+  have hx0 : 0 ≤ x := by linarith
+  set N : ℕ := ⌊x⌋₊
+  have hN : 0 < N := by
+    simpa [N] using (Nat.floor_pos.mpr hx)
 
+  have h_floor (n : ℕ) : (⌊x / n⌋ : ℝ) = ((N / n : ℕ) : ℝ) := by
+    have h1 : (⌊x / n⌋ : ℝ) = (⌊x / n⌋₊ : ℝ) := by
+      simpa using
+        (natCast_floor_eq_intCast_floor (R := ℝ) (a := x / n)
+            (div_nonneg hx0 (Nat.cast_nonneg n))).symm
+    simpa [N, h1] using congrArg (fun m : ℕ => (m : ℝ)) (Nat.floor_div_natCast (a := x) n)
 
+  have h_div (n : ℕ) : ((N / n : ℕ) : ℝ) = ((#{k ∈ Ioc 0 N | n ∣ k} : ℕ) : ℝ) := by
+    exact_mod_cast (Nat.Ioc_filter_dvd_card_eq_div N n).symm
 
-noncomputable def Psi (x : ℝ) : ℝ := ∑ n ∈ Iic ⌊x⌋₊, (Λ n : ℝ)
+  have h_card (n : ℕ) :
+      ((#{k ∈ Ioc 0 N | n ∣ k} : ℕ) : ℝ) = ∑ k ∈ Ioc 0 N, (if n ∣ k then (1 : ℝ) else 0) := by
+    rw [← Finset.sum_filter]
+    simp [Finset.sum_const]
+
+  have h_expand (n : ℕ) :
+      (μ n : ℝ) * ((#{k ∈ Ioc 0 N | n ∣ k} : ℕ) : ℝ) =
+        ∑ k ∈ Ioc 0 N, if n ∣ k then (μ n : ℝ) else 0 := by
+    rw [h_card n]
+    rw [Finset.mul_sum]
+    simp [mul_ite]
+
+  have h_moebius_sum (k : ℕ) : (∑ d ∈ k.divisors, (μ d : ℝ)) = (if k = 1 then 1 else 0) := by
+    have h : (μ * (ArithmeticFunction.zeta : ArithmeticFunction ℝ)) k = (1 : ArithmeticFunction ℝ) k := by
+      exact congrArg (fun f : ArithmeticFunction ℝ => f k)
+        (ArithmeticFunction.coe_moebius_mul_coe_zeta (R := ℝ))
+    rw [ArithmeticFunction.coe_mul_zeta_apply] at h
+    simpa [ArithmeticFunction.one_apply] using h
+
+  simp_rw [h_floor]
+  calc
+    (∑ n ∈ Iic N, (μ n : ℝ) * ((N / n : ℕ) : ℝ)) =
+        ∑ n ∈ Iic N, (μ n : ℝ) * ((#{k ∈ Ioc 0 N | n ∣ k} : ℕ) : ℝ) := by
+          refine Finset.sum_congr rfl ?_
+          intro n hn
+          rw [h_div n]
+    _ = ∑ n ∈ Iic N, ∑ k ∈ Ioc 0 N, if n ∣ k then (μ n : ℝ) else 0 := by
+          refine Finset.sum_congr rfl ?_
+          intro n hn
+          exact h_expand n
+    _ = ∑ k ∈ Ioc 0 N, ∑ n ∈ Iic N, if n ∣ k then (μ n : ℝ) else 0 := by
+          exact Finset.sum_comm
+    _ = ∑ k ∈ Ioc 0 N, (if k = 1 then (1 : ℝ) else 0) := by
+          refine Finset.sum_congr rfl ?_
+          intro k hk
+          have hk0 : 0 < k := (Finset.mem_Ioc.mp hk).1
+          have hkN : k ≤ N := (Finset.mem_Ioc.mp hk).2
+          have hsum : (∑ n ∈ Iic N, if n ∣ k then (μ n : ℝ) else 0) =
+              ∑ d ∈ k.divisors, (μ d : ℝ) := by
+            have hfilter_sum : (∑ n ∈ Iic N, if n ∣ k then (μ n : ℝ) else 0) =
+                ∑ n ∈ Iic N with n ∣ k, (μ n : ℝ) := by
+              exact (Finset.sum_filter (s := Iic N) (p := fun n => n ∣ k)
+                (f := fun n => (μ n : ℝ))).symm
+            rw [hfilter_sum]
+            have hfilter : (Iic N).filter (fun n => n ∣ k) = k.divisors := by
+              ext n
+              constructor
+              · intro hn
+                have hn' := Finset.mem_filter.mp hn
+                exact (Nat.mem_divisors).2 ⟨hn'.2, hk0.ne'⟩
+              · intro hn
+                have hn_dvd : n ∣ k := (Nat.mem_divisors.mp hn).1
+                have hn_le_k : n ≤ k := Nat.le_of_dvd hk0 hn_dvd
+                have hn_le_N : n ≤ N := hn_le_k.trans hkN
+                exact Finset.mem_filter.mpr ⟨Finset.mem_Iic.mpr hn_le_N, hn_dvd⟩
+            simp [hfilter]
+          calc
+            (∑ n ∈ Iic N, if n ∣ k then (μ n : ℝ) else 0) =
+                ∑ d ∈ k.divisors, (μ d : ℝ) := hsum
+            _ = if k = 1 then 1 else 0 := h_moebius_sum k
+    _ = 1 := by
+          have h1N : 1 ≤ N := Nat.succ_le_iff.2 hN
+          have hmem : (1 : ℕ) ∈ Ioc 0 N := by
+            simp [Finset.mem_Ioc, h1N]
+          have hsum : (∑ k ∈ Ioc 0 N, if k = 1 then (1 : ℝ) else 0) =
+              if (1 : ℕ) ∈ Ioc 0 N then (1 : ℝ) else 0 :=
+            Finset.sum_ite_eq' (s := Ioc 0 N) (a := 1) (b := fun _ => (1 : ℝ))
+          simp [hsum, hmem]
+
+noncomputable abbrev Psi (x : ℝ) : ℝ := ψ x
 
 noncomputable def M (x : ℝ) : ℝ := ∑ n ∈ Iic ⌊x⌋₊, (μ n : ℝ)
 
@@ -2084,19 +2068,18 @@ lemma moebius_mul_log_eq_neg_vonMangoldt_conv_moebius (n : ℕ) :
       simp_all +decide [mul_assoc, mul_comm, mul_left_comm, Finset.mul_sum _ _ _]
     have h_inner : ∀ d ∈ Nat.divisors n, d ≠ n → ∑ x ∈ Nat.divisors (n / d), (μ x : ℝ) = 0 := by
       intros d hd hdn
-      have h_inner_sum : ∑ x ∈ Nat.divisors (n / d), (μ x : ℝ) = 0 := by
-        have h_divisors : ∑ x ∈ Nat.divisors (n / d), (μ x : ℝ) = ∑ x ∈ Nat.divisors (n / d), (ArithmeticFunction.moebius x : ℝ) := by
-          rfl
-        have h_inner_sum : ∑ x ∈ Nat.divisors (n / d), (ArithmeticFunction.moebius x : ℝ) = (ArithmeticFunction.moebius * ArithmeticFunction.zeta) (n / d) := by
-          simp +decide only [moebius, Int.reduceNeg, coe_mk, Int.cast_ite, Int.cast_pow, Int.cast_neg, Int.cast_one,
-    Int.cast_zero, zeta, mul_apply, natCoe_apply, cast_ite, CharP.cast_eq_zero, cast_one, mul_ite, mul_zero, mul_one,
-    Int.cast_sum]
-          rw [Nat.sum_divisorsAntidiagonal fun x y => if y = 0 then 0 else if Squarefree x then (-1 : ℝ) ^ (Ω x) else 0]
-          exact Finset.sum_congr rfl fun x hx => by rw [if_neg (Nat.ne_of_gt (Nat.div_pos (Nat.le_of_dvd (Nat.div_pos (Nat.le_of_dvd (Nat.pos_of_ne_zero hn) (Nat.dvd_of_mem_divisors hd)) (Nat.pos_of_mem_divisors hd)) (Nat.dvd_of_mem_divisors hx)) (Nat.pos_of_mem_divisors hx)))]
-        simp_all +decide only [mul_neg, sum_neg_distrib, neg_inj, mem_divisors, ne_eq, not_false_eq_true, and_true,
-    moebius_mul_coe_zeta, Int.cast_eq_zero]
-        exact if_neg (by contrapose! hdn; nlinarith [Nat.div_mul_cancel hd, Nat.pos_of_ne_zero hn])
-      convert h_inner_sum using 1
+      have hdvd : d ∣ n := Nat.dvd_of_mem_divisors hd
+      have hnd : n / d ≠ 1 := by
+        intro hnd'
+        apply hdn
+        simpa [hnd'] using (Nat.div_mul_cancel hdvd)
+      have h :
+          (μ * (ArithmeticFunction.zeta : ArithmeticFunction ℝ)) (n / d) =
+            (1 : ArithmeticFunction ℝ) (n / d) := by
+        exact congrArg (fun f : ArithmeticFunction ℝ => f (n / d))
+          (ArithmeticFunction.coe_moebius_mul_coe_zeta (R := ℝ))
+      rw [ArithmeticFunction.coe_mul_zeta_apply] at h
+      simpa [ArithmeticFunction.one_apply, hnd] using h
     have h_survive : ∑ d ∈ Nat.divisors n, (μ d : ℝ) * Real.log d * ∑ x ∈ Nat.divisors (n / d), (μ x : ℝ) = (μ n : ℝ) * Real.log n * ∑ x ∈ Nat.divisors (n / n), (μ x : ℝ) := by
       rw [Finset.sum_eq_single n] <;> aesop
     simp_all +decide [Nat.div_self (Nat.pos_of_ne_zero hn)]
@@ -2124,14 +2107,15 @@ lemma sum_mu_Lambda (x : ℝ) : ∑ n ∈ Iic ⌊x⌋₊, (μ n : ℝ) * log n =
   have h_final : ∑ n ∈ Finset.Iic ⌊x⌋₊, ∑ d ∈ Nat.divisors n, (μ d : ℝ) * (Λ (n / d)) = ∑ d ∈ Finset.Iic ⌊x⌋₊, (μ d : ℝ) * (∑ k ∈ Finset.Iic ⌊x / d⌋₊, (Λ k : ℝ)) := by
     exact h_interchange.trans (Finset.sum_congr rfl h_inner)
   convert congr_arg Neg.neg h_final using 1
-  rw [← Finset.sum_neg_distrib] ; exact Finset.sum_congr rfl fun n hn => by rw [moebius_mul_log_eq_neg_vonMangoldt_conv_moebius]
+  · rw [← Finset.sum_neg_distrib]
+    exact Finset.sum_congr rfl fun n hn => by rw [moebius_mul_log_eq_neg_vonMangoldt_conv_moebius]
+  · simp [Psi, Chebyshev.psi_eq_sum_Icc, Finset.Iic_eq_Icc]
+
 lemma M_log_identity (x : ℝ) (hx : 1 ≤ x) : M x * log x = ∑ k ∈ Iic ⌊x⌋₊, (μ k : ℝ) * (log (x/k) - Psi (x/k)) := by
-  -- Use the identity $\sum_{k \leq x} \mu(k) \log(x/k) = \sum_{k \leq x} \mu(k) \log x - \sum_{k \leq x} \mu(k) \log k$.
   have h_log_identity : ∑ k ∈ Iic ⌊x⌋₊, (μ k : ℝ) * Real.log (x / k) = (∑ k ∈ Iic ⌊x⌋₊, (μ k : ℝ)) * Real.log x - ∑ k ∈ Iic ⌊x⌋₊, (μ k : ℝ) * Real.log k := by
     rw [Finset.sum_mul _ _ _]
     rw [← Finset.sum_sub_distrib] ; refine Finset.sum_congr rfl fun i hi => ?_ ; by_cases hi' : i = 0 <;> simp +decide [*, Real.log_div, ne_of_gt (zero_lt_one.trans_le hx)] ; ring
   generalize_proofs at *
-  -- Use the identity $\sum_{k \leq x} \mu(k) \log k = -\sum_{k \leq x} \mu(k) \psi(x/k)$.
   have h_log_identity' : ∑ k ∈ Iic ⌊x⌋₊, (μ k : ℝ) * Real.log k = -∑ k ∈ Iic ⌊x⌋₊, (μ k : ℝ) * Psi (x / k) := by
     convert sum_mu_Lambda x using 1
   have h_psi_identity :
@@ -2157,16 +2141,10 @@ lemma M_log_identity (x : ℝ) (hx : 1 ≤ x) : M x * log x = ∑ k ∈ Iic ⌊x
 
 noncomputable def R (x : ℝ) : ℝ := Psi x - x
 
-lemma Psi_eq_psi (x : ℝ) : Psi x = ψ x := by
-  unfold Psi
-  rw [Chebyshev.psi_eq_sum_Icc]
-  congr 1
-
 lemma R_isLittleO : R =o[atTop] id := by
   have h_pnt : (fun x => Psi x - x) =o[atTop] (fun x => x) := by
     have h_psi : (fun x => Psi x) ~[atTop] (fun x => x) := by
-      simp_rw [Psi_eq_psi]
-      exact WeakPNT''
+      simpa [Psi] using WeakPNT''
     exact h_psi
   convert h_pnt using 1
 
@@ -2206,9 +2184,8 @@ lemma sum_log_div_isBigO : (fun x : ℝ => ∑ k ∈ Iic ⌊x⌋₊, log (x / k)
 lemma R_locally_bounded (K : ℝ) (hK : 0 ≤ K) : ∃ C, ∀ y ∈ Set.Icc 0 K, |R y| ≤ C := by
   have hR_bounded : BddAbove (Set.image (fun y => |R y|) (Set.Icc 0 K)) := by
     have hR_bounded : ∀ y ∈ Set.Icc 0 K, |R y| ≤ ∑ p ∈ Iic ⌊K⌋₊, log p + K := by
-      unfold R
-      unfold Psi
       intro y hy
+      simp only [R, Psi, Chebyshev.psi_eq_sum_Icc]
       refine abs_sub_le_iff.mpr ⟨?_, ?_⟩
       · refine le_trans (sub_le_self _ hy.1) ?_
         refine le_trans (Finset.sum_le_sum_of_subset_of_nonneg (Finset.Iic_subset_Iic.mpr <| Nat.floor_mono hy.2) fun ?_ ?_ ?_ => ?_) ?_
@@ -2274,11 +2251,13 @@ lemma sum_abs_R_isLittleO : (fun x : ℝ => ∑ k ∈ Iic ⌊x⌋₊, |R (x / k)
     exact ⟨Max.max x₀ (Max.max A 2), fun x hx => le_trans (h_sum_bound x (le_trans (le_max_right _ _) hx)) (by nlinarith [hx₀ x (le_trans (le_max_left _ _) hx), le_max_right x₀ (Max.max A 2), le_max_left x₀ (Max.max A 2), le_max_right A 2, le_max_left A 2, Real.log_nonneg (show x ≥ 1 by linarith [le_max_right x₀ (Max.max A 2), le_max_left x₀ (Max.max A 2), le_max_right A 2, le_max_left A 2])])⟩
   rw [Asymptotics.isLittleO_iff_tendsto']
   · have h_sum_eq : ∀ x : ℝ, x ≥ 1 → (∑ k ∈ Finset.Iic ⌊x⌋₊, |R (x / k)|) = (∑ k ∈ Finset.Icc 1 ⌊x⌋₊, |R (x / k)|) := by
-      intro x hx; erw [Finset.sum_Ico_eq_sub _] <;> norm_num
-      erw [Finset.sum_Ico_eq_sub _ _] <;> norm_num
-      unfold R; norm_num
-      unfold Psi; norm_num
-      norm_num [Finset.Iic_eq_Icc]
+      intro x hx
+      have h0 : (0 : ℕ) ∈ Finset.Iic ⌊x⌋₊ := by simp [Finset.mem_Iic]
+      have hI : (Finset.Iic ⌊x⌋₊).erase 0 = Finset.Icc 1 ⌊x⌋₊ := by
+        ext n
+        simp [Finset.mem_Iic, Finset.mem_Icc, Nat.one_le_iff_ne_zero, and_comm]
+      rw [← Finset.sum_erase_add (Finset.Iic ⌊x⌋₊) (fun k => |R (x / k)|) h0]
+      simp [hI, R, Psi, Chebyshev.psi_eq_sum_Icc]
     rw [Metric.tendsto_nhds]
     simp +zetaDelta only [gt_iff_lt, ge_iff_le, dist_zero_right, norm_div, norm_eq_abs, norm_mul,
     eventually_atTop] at *
@@ -2433,33 +2412,14 @@ theorem lambda_pnt : (fun x : ℝ ↦ ∑ n ∈ range ⌊x⌋₊, (-1)^(Ω n)) =
 
 
 lemma sum_mobius_floor (x : ℝ) (hx : 1 ≤ x) : ∑ n ∈ Icc 1 ⌊x⌋₊, (μ n : ℝ) * ⌊x / n⌋ = 1 := by
-  have h_interchange : ∑ n ∈ Finset.Icc 1 ⌊x⌋₊, (μ n : ℝ) * ⌊x / n⌋₊ = ∑ m ∈ Finset.Icc 1 ⌊x⌋₊, ∑ n ∈ Nat.divisors m, (μ n : ℝ) := by
-    have h_interchange : ∑ n ∈ Finset.Icc 1 ⌊x⌋₊, (μ n : ℝ) * ⌊x / n⌋₊ = ∑ m ∈ Finset.Icc 1 ⌊x⌋₊, ∑ n ∈ Finset.filter (fun n => n ∣ m) (Finset.Icc 1 ⌊x⌋₊), (μ n : ℝ) := by
-      have h_interchange : ∀ n ∈ Finset.Icc 1 ⌊x⌋₊, (μ n : ℝ) * ⌊x / n⌋₊ = ∑ m ∈ Finset.Icc 1 ⌊x⌋₊, if n ∣ m then (μ n : ℝ) else 0 := by
-        have h_count_multiples : ∀ n ∈ Finset.Icc 1 ⌊x⌋₊, ∑ m ∈ Finset.Icc 1 ⌊x⌋₊, (if n ∣ m then 1 else 0) = ⌊x / n⌋₊ := by
-          have h_multiples : ∀ n ∈ Finset.Icc 1 ⌊x⌋₊, Finset.filter (fun m => n ∣ m) (Finset.Icc 1 ⌊x⌋₊) = Finset.image (fun m => n * m) (Finset.Icc 1 (⌊x / n⌋₊)) := by
-            intros n hn
-            ext m
-            simp only [mem_filter, mem_Icc, mem_image]
-            constructor <;> intro h
-            · obtain ⟨a, rfl⟩ := h.2
-              exact ⟨a, ⟨by nlinarith [Finset.mem_Icc.mp hn], Nat.le_floor <| by rw [le_div_iff₀ <| Nat.cast_pos.mpr <| Finset.mem_Icc.mp hn |>.1] ; nlinarith [Nat.floor_le <| show 0 ≤ x by positivity, (by norm_cast; linarith [Finset.mem_Icc.mp hn] : (n :ℝ) * a ≤ ⌊x⌋₊)]⟩, rfl⟩
-            · rcases h with ⟨a, ⟨ha₁, ha₂⟩, rfl⟩ ; exact ⟨⟨by nlinarith [Finset.mem_Icc.mp hn], Nat.le_trans (Nat.mul_le_mul_left _ ha₂) <| Nat.le_floor <| by push_cast; nlinarith [Nat.floor_le <| show 0 ≤ x / n by positivity, Nat.lt_floor_add_one <| x / n, mul_div_cancel₀ x <| show (n :ℝ) ≠ 0 by norm_cast; linarith [Finset.mem_Icc.mp hn]]⟩, dvd_mul_right _ _⟩
-          simp_all +decide only [mem_Icc, and_imp, sum_boole, cast_id]
-          exact fun n hn hn' => by rw [Finset.card_image_of_injective _ fun a b h => mul_left_cancel₀ (by positivity) h] ; simp +decide
-        intro n hn; rw [← h_count_multiples n hn] ; simp +decide [Finset.sum_ite] ; ring
-      rw [Finset.sum_congr rfl h_interchange, Finset.sum_comm]
-      simp +decide [Finset.sum_ite]
-    refine h_interchange.trans (Finset.sum_congr rfl fun m hm => ?_)
-    rw [← Finset.sum_subset (show Nat.divisors m ⊆ Finset.filter (fun n => n ∣ m) (Finset.Icc 1 ⌊x⌋₊) from fun n hn => Finset.mem_filter.mpr ⟨Finset.mem_Icc.mpr ⟨Nat.pos_of_mem_divisors hn, Nat.le_trans (Nat.le_of_dvd (Finset.mem_Icc.mp hm |>.1) (Nat.dvd_of_mem_divisors hn)) (Finset.mem_Icc.mp hm |>.2)⟩, Nat.dvd_of_mem_divisors hn⟩)] ; aesop
-  have h_inner_sum : ∀ m ∈ Finset.Icc 1 ⌊x⌋₊, ∑ n ∈ Nat.divisors m, (μ n : ℝ) = if m = 1 then 1 else 0 := by
-    intro m hm_pos
-    have h_moebius_sum : ∑ n ∈ Nat.divisors m, (μ n : ℤ) = if m = 1 then 1 else 0 := by
-      have h_moebius_sum : ∑ n ∈ Nat.divisors m, (μ n : ℤ) = (ArithmeticFunction.moebius * ArithmeticFunction.zeta) m := by
-        exact Eq.symm coe_mul_zeta_apply
-      aesop
-    exact_mod_cast h_moebius_sum
-  rw [Finset.sum_congr rfl fun n hn => by rw [show ⌊x / (n : ℝ) ⌋ = ⌊x / (n : ℝ) ⌋₊ by exact Eq.symm <| Int.toNat_of_nonneg <| Int.floor_nonneg.2 <| by positivity]] ; aesop
+  classical
+  have h := sum_mobius_mul_floor x hx
+  have h0 : (0 : ℕ) ∈ Iic ⌊x⌋₊ := by simp [Finset.mem_Iic]
+  have hI : (Iic ⌊x⌋₊).erase 0 = Icc 1 ⌊x⌋₊ := by
+    ext n
+    simp [Finset.mem_Iic, Finset.mem_Icc, Nat.one_le_iff_ne_zero, and_comm]
+  rw [← Finset.sum_erase_add (Iic ⌊x⌋₊) (fun n => (μ n : ℝ) * (⌊x / n⌋ : ℝ)) h0] at h
+  simpa [hI] using h
 
 lemma sum_mobius_floor_tail_isLittleO (K : ℕ) (hK : 0 < K) :
     (fun x : ℝ => ∑ n ∈ Finset.Ioc ⌊x/K⌋₊ ⌊x⌋₊, (μ n : ℝ) * (⌊x / (n : ℝ)⌋ : ℝ)) =o[atTop] fun x => x := by
