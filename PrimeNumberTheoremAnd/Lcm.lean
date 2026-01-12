@@ -923,8 +923,7 @@ lemma hlog {n : ℕ} (hn : n ≥ X₀ ^ 2) : log √(n : ℝ) > 11 := by
     _ ≤ √n := hsqrt_ge hn
 
 lemma hε_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < 1 + 1 / (log √(n : ℝ)) ^ 3 := by
-  have : log √(n : ℝ) > 11 := hlog hn
-  positivity
+  positivity [hlog hn]
 
 @[blueprint
   "lem:qi-product"
@@ -979,9 +978,7 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   suffices h : (1 : ℝ) / (exists_q_primes hn).choose i ≤ (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) / n from (by linarith)
   have := (exists_q_primes hn).choose_spec.2.2.1 i
   rw [show (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) / n = 1 / (n / (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) ) by field_simp]
-  have f0 : (0 : ℝ) < (log √(n : ℝ)) ^ 3 := by
-    have : log √(n : ℝ) > 11 := hlog hn
-    positivity
+  have f0 : (0 : ℝ) < (log √(n : ℝ)) ^ 3 := by positivity [hlog hn]
   apply one_div_le_one_div_of_le
   · positivity
   · convert this using 1
@@ -1025,22 +1022,14 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∏ i, (1 + (1 : ℝ) / ((exists_p_primes hn).choose i * ((exists_p_primes hn).choose i + 1))) ≥
       ∏ i : Fin 3, (1 + 1 / ((1 + 1 / (log √(n : ℝ)) ^ 3) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n))) := by
-  apply Finset.prod_le_prod
-  · intro i hi
-    have : 0 ≤ Real.log √n := by
-      rw [Real.log_sqrt (by simp)]
-      grw [hn]
-      simp [Real.log_nonneg]
-    positivity
+  refine Finset.prod_le_prod (fun i _ => by positivity [hlog hn]) fun i _ => ?_
   set p := (exists_p_primes hn).choose
-  have h₀ : ∀ i, √n < p i := by
-    intro i
+  have h₀ (i) : √n < p i := by
     have : p 0 ≤ p i := by
       apply (exists_p_primes hn).choose_spec.2.1.monotone
       simp
     grw [← this]
     exact (exists_p_primes hn).choose_spec.2.2.2
-  intro i hi
   gcongr 1 + 1 / ?_
   · have := ((exists_p_primes hn).choose_spec.1 i).pos
     positivity
@@ -1050,7 +1039,6 @@ theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     norm_cast
     rw [← pow_mul]
     grind
-  have : 0 < (n : ℝ) := by positivity
   have h₂ : p i + 1 ≤ p i * (1 / n * (n + √n)) := by
     field_simp [this]
     linear_combination √n * h₀ i - sq_sqrt (cast_nonneg n)
