@@ -295,15 +295,12 @@ lemma one_add_sq_pos (u : ℝ) : 0 < 1 + u ^ 2 := zero_lt_one.trans_le (by simpa
 
 @[blueprint "prelim-decay"
   (title := "Preliminary decay bound I")
-  (statement := /--
-If $\psi:\R \to \C$ is absolutely integrable then
-$$ |\hat \psi(u)| \leq \| \psi \|_1 $$
-for all $u \in \R$. where $C$ is an absolute constant.
-  -/)
+  (statement := /-- If $\psi:\R \to \C$ is absolutely integrable then $$ |\hat \psi(u)| \leq \| \psi \|_1 $$
+  for all $u \in \R$. where $C$ is an absolute constant. -/)
   (proof := /-- Immediate from the triangle inequality. -/)
   (latexEnv := "lemma")]
-theorem prelim_decay (ψ : ℝ → ℂ) (hψ : Integrable ψ) (u : ℝ) :
-    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ ∫ t, ‖ψ t‖ := by sorry
+theorem prelim_decay (ψ : ℝ → ℂ) (u : ℝ) : ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ ∫ t, ‖ψ t‖ :=
+  VectorFourier.norm_fourierIntegral_le_integral_norm ..
 
 @[blueprint "prelim-decay-2"
   (title := "Preliminary decay bound II")
