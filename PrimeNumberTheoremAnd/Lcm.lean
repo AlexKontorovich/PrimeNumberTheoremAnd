@@ -1084,26 +1084,28 @@ theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   have l1 : ((1 + 1 / Real.log √n ^ 3) ^ 12 / n ^ (3 / 2 : ℝ)) =
     (n ^ (3 / 2 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ 6) /
     (n ^ (3 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ (- 6 : ℝ)) := by
-    rw [rpow_neg, ← div_eq_mul_inv, div_div_eq_mul_div, mul_assoc, mul_comm, ← rpow_natCast,
-      ← rpow_natCast (n := 6), ← rpow_add, ← div_div_eq_mul_div]
+    rw [rpow_neg (hε_pos hn).le, ← div_eq_mul_inv, div_div_eq_mul_div, mul_assoc, mul_comm,
+      ← rpow_natCast, ← rpow_natCast (n := 6), ← rpow_add (hε_pos hn), ← div_div_eq_mul_div]
     · congr
       · grind
       · rw [← rpow_sub (by norm_cast; linarith)]; grind
-    · exact hε_pos hn
-    · exact (hε_pos hn).le
   have l2 : n ^ (3 / 2 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ 6 = ∏ i : Fin 3,
-    √n * (1 + 1 / Real.log √n ^ 3) ^ ((i : ℝ) + 1) := by sorry
-  have l3 : ∏ i : Fin 3, n * (1 + 1 / Real.log √n ^ 3) ^ (-((3 : ℝ) - i.1)) =
-    n ^ (3 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ (- 6 : ℝ) := by sorry
-  have l4 (i : Fin 3) (_ : i ∈ univ) : 0 < n * (1 + 1 / Real.log √n ^ 3) ^ (-((3 : ℝ) - i.1)) := by
-    sorry
-  rw [← mul_div_assoc', ← mul_div_assoc', l1, l2, ← l3]
+    √n * (1 + 1 / Real.log √n ^ 3) ^ ((i : ℝ) + 1) := by
+    rw [← Finset.pow_card_mul_prod, Fin.prod_univ_three, ← rpow_add (hε_pos hn),
+      ← rpow_add (hε_pos hn), rpow_div_two_eq_sqrt _ (by linarith)]
+    norm_num
+  have l3 : n ^ (3 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ (- 6 : ℝ) =
+    ∏ i : Fin 3, n * (1 + 1 / Real.log √n ^ 3) ^ (-((3 : ℝ) - i.1))  := by
+    rw [← Finset.pow_card_mul_prod, Fin.prod_univ_three, ← rpow_add (hε_pos hn),
+      ← rpow_add (hε_pos hn)]
+    norm_num
+  rw [← mul_div_assoc', ← mul_div_assoc', l1, l2, l3]
   gcongr
   · have := hε_pos hn
-    exact Finset.prod_nonneg fun i _ => (by positivity)
-  · exact Finset.prod_pos l4
+    exact Finset.prod_nonneg fun i _ => by positivity
+  · exact Finset.prod_pos fun i _ => by positivity [hε_pos hn]
   · exact (exists_p_primes hn).choose_spec.2.2.1 _
-  · exact fun i hi => (l4 i hi).le
+  · exact fun i hi => by positivity [hε_pos hn]
   · exact (exists_q_primes hn).choose_spec.2.2.1 _
 
 
