@@ -1091,7 +1091,8 @@ lemma MellinConvNonNeg_of_NonNeg {f g : ℝ → ℝ} (f_nonneg : ∀ x > 0, 0 �
   (proof := /--
   By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
   $$
-    \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\nu((x/y)^{\frac1\epsilon}) \frac{dy}y
+    \widetilde{1_\epsilon}(x)
+    =\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\nu((x/y)^{\frac1\epsilon}) \frac{dy}y
   $$
   and all the factors in the integrand are nonnegative.
   -/)
@@ -1127,7 +1128,8 @@ lemma Smooth1LeOne_aux {x ε : ℝ} {ν : ℝ → ℝ} (xpos : 0 < x) (εpos : 0
   (proof := /--
   By Definitions \ref{Smooth1}, \ref{MellinConvolution} and \ref{DeltaSpike}
   $$
-    \widetilde{1_\epsilon}(x)=\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\nu((x/y)^{\frac1\epsilon}) \frac{dy}y
+    \widetilde{1_\epsilon}(x)
+    =\int_0^\infty 1_{(0,1]}(y)\frac1\epsilon\nu((x/y)^{\frac1\epsilon}) \frac{dy}y
   $$
   and since $1_{(0,1]}(y)\le 1$, and all the factors in the integrand are nonnegative,
   $$
@@ -1159,7 +1161,8 @@ lemma Smooth1LeOne {ν : ℝ → ℝ} (νnonneg : ∀ x > 0, 0 ≤ ν x)
   · refine setIntegral_mono_on ?_ (integrable_of_integral_eq_one this) (by simp) ?_
     · refine integrable_of_integral_eq_one this |>.bdd_mul ?_
         (ae_of_all _ <| by aesop)
-      have : (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) = indicator (Ioc 0 1) (1 : ℝ → ℝ) := by
+      have : (fun x ↦ if 0 < x ∧ x ≤ 1 then 1 else 0) =
+          indicator (Ioc 0 1) (1 : ℝ → ℝ) := by
         aesop
       simp only [mem_Ioc, this, measurableSet_Ioc, aestronglyMeasurable_indicator_iff]
       exact aestronglyMeasurable_one
@@ -1474,10 +1477,9 @@ lemma Smooth1ContinuousAt {SmoothingF : ℝ → ℝ}
 
 
 lemma Smooth1MellinConvergent {Ψ : ℝ → ℝ} {ε : ℝ} (diffΨ : ContDiff ℝ 1 Ψ)
-    (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2) (hε : ε ∈ Ioo 0 1) (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x)
-    (mass_one : ∫ x in Ioi 0, Ψ x / x = 1)
-    {s : ℂ} (hs : 0 < s.re) :
-    MellinConvergent (fun x ↦ (Smooth1 Ψ ε x : ℂ)) s := by
+    (suppΨ : Ψ.support ⊆ Icc (1 / 2) 2) (hε : ε ∈ Ioo 0 1)
+    (Ψnonneg : ∀ x > 0, 0 ≤ Ψ x) (mass_one : ∫ x in Ioi 0, Ψ x / x = 1)
+    {s : ℂ} (hs : 0 < s.re) : MellinConvergent (fun x ↦ (Smooth1 Ψ ε x : ℂ)) s := by
   apply mellinConvergent_of_isBigO_rpow_exp zero_lt_one _ _ _ hs
   · apply ContinuousOn.locallyIntegrableOn _ (by measurability)
     apply continuousOn_of_forall_continuousAt

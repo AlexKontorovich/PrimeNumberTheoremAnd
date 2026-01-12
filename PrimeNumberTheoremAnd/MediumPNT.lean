@@ -1734,7 +1734,8 @@ theorem integral_evaluation (x : ℝ) (T : ℝ) (T_large : 3 < T) :
         exact ae_volume_of_contains_compl_singleton_zero _ U
 
   have T3 : Integrable (fun (t : ℝ) ↦ (t^2)⁻¹) (volume.restrict (Iic (-T))) := by
-    have D3 := integrableOn_Ioi_rpow_of_lt (by norm_num : (-2 : ℝ) < -1) (by linarith : 0 < T) |>.comp_neg
+    have D3 := integrableOn_Ioi_rpow_of_lt (by norm_num : (-2 : ℝ) < -1)
+      (by linarith : 0 < T) |>.comp_neg
     simp only [rpow_neg_ofNat, Int.reduceNeg, zpow_neg, involutiveNeg, neg_Ioi] at D3
     have D4 :=
       (integrableOn_Iic_iff_integrableOn_Iio'
@@ -1987,7 +1988,8 @@ theorem I1Bound
     simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, mul_inv_rev, gt_iff_lt,
       Complex.norm_div, add_sub_cancel_left, inv_inv]
 
-  have K_bounds_zeta_at_any_t : ∀(t : ℝ), ‖ζ' (pts t) / ζ (pts t)‖ ≤ K * Real.log X := by
+  have K_bounds_zeta_at_any_t :
+      ∀(t : ℝ), ‖ζ' (pts t) / ζ (pts t)‖ ≤ K * Real.log X := by
     intro t
     rw [←inve]
     exact K_bounds_zeta_at_any_t' t pts_re pts_re_ge_one pts_re_le_one
@@ -2024,7 +2026,9 @@ theorem I1Bound
 
     intro t
 
-    let M_bounds_mellin_easy := fun (t : ℝ) ↦ M_bounds_mellin_hard pts_re pts_re_pos (pts t) (triv_pts_lo_bound t) (triv_pts_up_bound t) eps eps_pos eps_less_one
+    let M_bounds_mellin_easy := fun (t : ℝ) ↦
+      M_bounds_mellin_hard pts_re pts_re_pos (pts t) (triv_pts_lo_bound t) (triv_pts_up_bound t)
+        eps eps_pos eps_less_one
 
     let zeta_part := (fun (t : ℝ) ↦ -ζ' (pts t) / ζ (pts t))
     let mellin_part := (fun (t : ℝ) ↦ 𝓜 (fun x ↦ (Smooth1 SmoothingF eps x : ℂ)) (pts t))
@@ -2046,7 +2050,8 @@ theorem I1Bound
       intro t
       exact M_bounds_mellin_easy t
 
-    have X_part_and_mellin_bound : ∀(t : ℝ),‖mellin_part t * X_part t‖ ≤ M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
+    have X_part_and_mellin_bound :
+        ∀(t : ℝ), ‖mellin_part t * X_part t‖ ≤ M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
       intro t
       exact norm_mul_le_of_le (mellin_bound t) (X_part_bound t)
 
@@ -2061,7 +2066,8 @@ theorem I1Bound
       rw [T2]
       exact K_bounds_zeta_at_any_t t
 
-    have g_bound : ∀(t : ℝ), ‖zeta_part t * (mellin_part t * X_part t)‖ ≤ (K * Real.log X) * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
+    have g_bound : ∀(t : ℝ), ‖zeta_part t * (mellin_part t * X_part t)‖ ≤
+        (K * Real.log X) * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
       intro t
       exact norm_mul_le_of_le (zeta_bound t) (X_part_and_mellin_bound t)
 

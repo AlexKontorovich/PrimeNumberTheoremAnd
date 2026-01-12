@@ -1311,23 +1311,29 @@ lemma Params.initial.sum_valuation_le (P : Params) (p : ℕ) :
   (discussion := 513)]
 theorem Params.initial.balance_small_prime_le (P : Params) {p : ℕ} :
     P.initial.balance p ≤ P.M * (Real.log P.n) / (Real.log 2):= by
-  have h_sum_valuation_le_M_sum_multiples : (initial P).sum (fun m ↦ m.factorization p) ≤ P.M * (∑ m ∈ Finset.Ico (P.n - P.n / P.M) P.n, m.factorization p) := by exact sum_valuation_le P p
+  have h_sum_valuation_le_M_sum_multiples :
+      (initial P).sum (fun m ↦ m.factorization p) ≤
+        P.M * (∑ m ∈ Finset.Ico (P.n - P.n / P.M) P.n, m.factorization p) := by
+    exact sum_valuation_le P p
   by_cases hp_prime : Nat.Prime p
   · have h_sum_multiples : ∑ m ∈ Finset.Ico (P.n - P.n / P.M) P.n, m.factorization p =
-        ∑ k ∈ .Ico 1 (Nat.log p P.n + 1), ((Finset.Ico (P.n - P.n / P.M) P.n).filter (p ^ k ∣ ·)).card := by
+        ∑ k ∈ .Ico 1 (Nat.log p P.n + 1),
+          ((Finset.Ico (P.n - P.n / P.M) P.n).filter (p ^ k ∣ ·)).card := by
       have h_sum_multiples_aux : ∀ m ∈ Finset.Ico (P.n - P.n / P.M) P.n, m.factorization p =
           ∑ k ∈ .Ico 1 (Nat.log p P.n + 1), (if p ^ k ∣ m then 1 else 0) := by
         intro m hm
         have h_factorization_eq : m.factorization p = ∑ k ∈ .Ico 1 (m.factorization p + 1), 1 := by simp
         rw [h_factorization_eq, ← Finset.sum_filter]
         refine sum_bij (fun k hk ↦ k) ?_ ?_ ?_ ?_ <;> norm_num
-        · refine fun a ha₁ ha₂ ↦ ⟨⟨ha₁, lt_succ_of_le (Nat.le_log_of_pow_le hp_prime.one_lt ?_)⟩, ?_⟩
+        · refine fun a ha₁ ha₂ ↦
+            ⟨⟨ha₁, lt_succ_of_le (Nat.le_log_of_pow_le hp_prime.one_lt ?_)⟩, ?_⟩
           · refine le_trans (Nat.pow_le_pow_right hp_prime.pos (le_of_lt_succ ha₂)) ?_
             refine le_trans (le_of_dvd (pos_of_ne_zero (by aesop)) (ordProj_dvd ..)) ?_
             linarith [Finset.mem_Ico.mp hm]
           · exact dvd_trans (pow_dvd_pow _ <| le_of_lt_succ ha₂) <| ordProj_dvd ..
         · refine fun b hb₁ hb₂ hb₃ ↦ ⟨hb₁, lt_succ_of_le (le_of_not_gt fun hb₄ ↦
-            absurd (dvd_trans (pow_dvd_pow _ hb₄) hb₃) <| pow_succ_factorization_not_dvd ?_ hp_prime)⟩
+            absurd (dvd_trans (pow_dvd_pow _ hb₄) hb₃) <|
+              pow_succ_factorization_not_dvd ?_ hp_prime)⟩
           linarith [Finset.mem_Ico.mp hm, Nat.sub_pos_of_lt (show P.n / P.M < P.n from
             div_lt_self (pos_of_ne_zero (by grind)) (by linarith [P.hM]))]
       rw [sum_congr rfl h_sum_multiples_aux, sum_comm]; simp_all
@@ -1338,11 +1344,14 @@ theorem Params.initial.balance_small_prime_le (P : Params) {p : ℕ} :
         rw [padicValNat_factorial] <;> aesop
       · assumption
     have h_balance_bound : (P.initial.balance p : ℤ) ≤ ∑ k ∈ .Ico 1 (Nat.log p P.n + 1),
-        (P.M * ((Finset.Ico (P.n - P.n / P.M) P.n).filter (p ^ k ∣ ·)).card - (P.n / p ^ k : ℤ)) := by
-      simp_all only [Factorization.balance, sum_sub_distrib, ← mul_sum .., tsub_le_iff_right, sub_add_cancel]
+        (P.M * ((Finset.Ico (P.n - P.n / P.M) P.n).filter (p ^ k ∣ ·)).card -
+          (P.n / p ^ k : ℤ)) := by
+      simp_all only [Factorization.balance, sum_sub_distrib, ← mul_sum ..,
+        tsub_le_iff_right, sub_add_cancel]
       exact_mod_cast h_sum_valuation_le_M_sum_multiples
     have h_term_bound : ∀ k ∈ Finset.Ico 1 (Nat.log p P.n + 1),
-        (P.M * ((Finset.Ico (P.n - P.n / P.M) P.n).filter (p ^ k ∣ ·)).card - (P.n / p ^ k : ℤ)) ≤ P.M :=
+        (P.M * ((Finset.Ico (P.n - P.n / P.M) P.n).filter (p ^ k ∣ ·)).card -
+          (P.n / p ^ k : ℤ)) ≤ P.M :=
       fun k hk ↦ sub_le_iff_le_add'.mpr (mod_cast initial.term_bound P hp_prime (k := k))
     have h_num_terms_bound : (Nat.log p P.n : ℤ) ≤ Real.log P.n / Real.log p := by
       rw [le_div_iff₀ (log_pos <| Nat.one_lt_cast.mpr hp_prime.one_lt)]
@@ -1350,7 +1359,8 @@ theorem Params.initial.balance_small_prime_le (P : Params) {p : ℕ} :
         (show (p ^ Nat.log p P.n : ℝ) ≤ P.n from mod_cast pow_log_le_self p <| by
           linarith [show P.n > 0 from pos_of_ne_zero <| by rintro h; have := P.hL; grind])
     have : Real.log p ≥ Real.log 2 := log_le_log (by norm_num) (mod_cast hp_prime.two_le)
-    refine le_trans (Int.cast_le.mpr h_balance_bound) <| le_trans (Int.cast_le.mpr <| sum_le_sum h_term_bound) ?_
+    refine le_trans (Int.cast_le.mpr h_balance_bound) <|
+      le_trans (Int.cast_le.mpr <| sum_le_sum h_term_bound) ?_
     norm_num [mul_div_assoc, mul_comm] at *
     gcongr
     exact h_num_terms_bound.trans (div_le_div_of_nonneg_left (log_nonneg <|

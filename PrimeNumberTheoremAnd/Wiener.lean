@@ -1106,13 +1106,19 @@ theorem limiting_fourier_lim3 (hG : ContinuousOn G {s | 1 ≤ s.re}) (ψ : CS 2 
   "limiting"
   (title := "Limiting Fourier identity")
   (statement := /--
-    If $\psi: \R \to \C$ is $C^2$ and compactly supported and $x \geq 1$, then
-  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
+  If $\psi: \R \to \C$ is $C^2$ and compactly supported and $x \geq 1$, then
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )
+    - A \int_{-\log x}^\infty \hat \psi(\frac{u}{2\pi})\ du
+    = \int_\R G(1+it) \psi(t) x^{it}\ dt.$$
   -/)
   (proof := /--
-  By Lemma \ref{first-fourier} and Lemma \ref{second-fourier}, we know that for any $\sigma>1$, we have
-   $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) - A x^{1-\sigma} \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du =  \int_\R G(\sigma+it) \psi(t) x^{it}\ dt.$$
-   Now take limits as $\sigma \to 1$ using dominated convergence together with \eqref{cheby} and Lemma \ref{decay} to obtain the result.
+  By Lemma \ref{first-fourier} and Lemma \ref{second-fourier}, we know that for any $\sigma>1$,
+  we have
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n^\sigma} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )
+    - A x^{1-\sigma} \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du
+    = \int_\R G(\sigma+it) \psi(t) x^{it}\ dt.$$
+  Now take limits as $\sigma \to 1$ using dominated convergence together with \eqref{cheby}
+  and Lemma \ref{decay} to obtain the result.
   -/)
   (latexEnv := "lemma")]
 lemma limiting_fourier (hcheby : cheby f)
@@ -1159,10 +1165,14 @@ lemma limiting_cor_aux {f : ℝ → ℂ} : Tendsto (fun x : ℝ ↦ ∫ t, f t *
   (title := "Corollary of limiting identity")
   (statement := /--
   With the hypotheses as above, we have
-  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi( \frac{1}{2\pi} \log \frac{n}{x} )
+    = A \int_{-\infty}^\infty \hat \psi(\frac{u}{2\pi})\ du + o(1)$$
   as $x \to \infty$.
   -/)
-  (proof := /-- Immediate from the Riemann-Lebesgue lemma, and also noting that $\int_{-\infty}^{-\log x} \hat \psi(\frac{u}{2\pi})\ du = o(1)$. -/)
+  (proof := /--
+  Immediate from the Riemann-Lebesgue lemma, and also noting that
+  $\int_{-\infty}^{-\log x} \hat \psi(\frac{u}{2\pi})\ du = o(1)$.
+  -/)
   (latexEnv := "corollary")]
 lemma limiting_cor (ψ : CS 2 ℂ) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ')) (hcheby : cheby f)
     (hG : ContinuousOn G {s | 1 ≤ s.re})
@@ -1774,16 +1784,23 @@ lemma limiting_cor_W21 (ψ : W21) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
 @[blueprint
   "schwarz-id"
   (title := "Limiting identity for Schwartz functions")
-  (statement := /-- The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz class, as opposed to being $C^2$ and compactly supported. -/)
+  (statement := /--
+  The previous corollary also holds for functions $\psi$ that are assumed to be in the Schwartz
+  class, as opposed to being $C^2$ and compactly supported.
+  -/)
   (proof := /--
-  For any $R>1$, one can use a smooth cutoff function (provided by Lemma \ref{smooth-ury} to write $\psi = \psi_{\leq R} + \psi_{>R}$, where $\psi_{\leq R}$ is $C^2$ (in fact smooth) and compactly supported (on $[-R,R]$), and $\psi_{>R}$ obeys bounds of the form
+  For any $R>1$, one can use a smooth cutoff function (provided by Lemma \ref{smooth-ury} to write
+  $\psi = \psi_{\leq R} + \psi_{>R}$, where $\psi_{\leq R}$ is $C^2$ (in fact smooth) and compactly
+  supported (on $[-R,R]$), and $\psi_{>R}$ obeys bounds of the form
   $$ |\psi_{>R}(t)|, |\psi''_{>R}(t)| \ll R^{-1} / (1 + |t|^2) $$
   where the implied constants depend on $\psi$.  By Lemma \ref{decay} we then have
   $$ \hat \psi_{>R}(u) \ll R^{-1} / (1+|u|^2).$$
   Using this and \eqref{cheby} one can show that
-  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{>R}( \frac{1}{2\pi} \log \frac{n}{x} ), A \int_{-\infty}^\infty \hat \psi_{>R} (\frac{u}{2\pi})\ du \ll R^{-1} $$
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{>R}( \frac{1}{2\pi} \log \frac{n}{x} ),
+    A \int_{-\infty}^\infty \hat \psi_{>R} (\frac{u}{2\pi})\ du \ll R^{-1} $$
   (with implied constants also depending on $A$), while from Lemma \ref{limiting-cor} one has
-  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{\leq R}( \frac{1}{2\pi} \log \frac{n}{x} ) = A \int_{-\infty}^\infty \hat \psi_{\leq R} (\frac{u}{2\pi})\ du + o(1).$$
+  $$ \sum_{n=1}^\infty \frac{f(n)}{n} \hat \psi_{\leq R}( \frac{1}{2\pi} \log \frac{n}{x} )
+    = A \int_{-\infty}^\infty \hat \psi_{\leq R} (\frac{u}{2\pi})\ du + o(1).$$
   Combining the two estimates and letting $R$ be large, we obtain the claim.
   -/)
   (latexEnv := "lemma")]

@@ -703,18 +703,33 @@ blueprint_comment /--
 \uses{SumBoundI}
     Note that, for $\rho\in\mathcal{Z}_{2t}$
     \begin{align*}
-        \Re \left(\frac{1}{1+\delta+2it-\rho}\right)&=\Re \left(\frac{1+\delta-2it-\overline{\rho}}{(1+\delta+2it-\rho)(1+\delta-2it-\overline{\rho})}\right) \\
-        &=\frac{\Re (1+\delta-2it-\overline{\rho})}{|1+\delta+2it-\rho|^2}=\frac{1+\delta-\Re \rho}{(1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2}.
+        \Re \left(\frac{1}{1+\delta+2it-\rho}\right)
+          &=\Re \left(\frac{1+\delta-2it-\overline{\rho}}
+            {(1+\delta+2it-\rho)(1+\delta-2it-\overline{\rho})}\right) \\
+          &=\frac{\Re (1+\delta-2it-\overline{\rho})}{|1+\delta+2it-\rho|^2}
+            =\frac{1+\delta-\Re \rho}{(1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2}.
     \end{align*}
-    Now since $\rho\in\mathcal{Z}_{2t}$, we have that $|\rho-(3/2+2it)|\leq 5/6$. So, we have $\Re \rho\in(2/3,7/3)$ and $\mathfrak{I}\rho\in(2t-5/6,2t+5/6)$. Thus, we have that
-    $$1/3<1+\delta-\Re \rho\qquad\text{and}\qquad(1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2<16/9+25/36=89/36.$$
+    Now since $\rho\in\mathcal{Z}_{2t}$, we have that $|\rho-(3/2+2it)|\leq 5/6$. So,
+    we have $\Re \rho\in(2/3,7/3)$ and $\mathfrak{I}\rho\in(2t-5/6,2t+5/6)$. Thus, we
+    have that
+    $$1/3<1+\delta-\Re \rho\qquad\text{and}\qquad
+      (1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2<16/9+25/36=89/36.$$
     Which implies that
     \begin{equation}\label{pickupPoint4}
-        0\leq\frac{12}{89}<\frac{1+\delta-\Re \rho}{(1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2}=\Re \left(\frac{1}{1+\delta+2it-\rho}\right).
+        0\leq\frac{12}{89}
+          <\frac{1+\delta-\Re \rho}{(1+\delta-\Re \rho)^2+(2t-\mathfrak{I}\rho)^2}
+          =\Re \left(\frac{1}{1+\delta+2it-\rho}\right).
     \end{equation}
     Note that, from Lemma \ref{SumBoundI}, we have
-    $$\sum_{\rho\in\mathcal{Z}_{2t}}m_\zeta(\rho)\,\Re \left(\frac{1}{1+\delta+2it-\rho}\right)-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\leq\left|\frac{\zeta'}{\zeta}(1+\delta+2it)-\sum_{\rho\in\mathcal{Z}_{2t}}\frac{m_\zeta(\rho)}{1+\delta+2it-\rho}\right|\ll\log|2t|.$$
-    Since $m_\zeta(\rho)\geq 0$ for all $\rho\in\mathcal{Z}_{2t}$, the inequality from Equation (\ref{pickupPoint4}) tells us that by subtracting the sum from both sides we have
+    $$\sum_{\rho\in\mathcal{Z}_{2t}}m_\zeta(\rho)\,
+      \Re \left(\frac{1}{1+\delta+2it-\rho}\right)
+      -\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)
+      \leq\left|\frac{\zeta'}{\zeta}(1+\delta+2it)
+      -\sum_{\rho\in\mathcal{Z}_{2t}}\frac{m_\zeta(\rho)}{1+\delta+2it-\rho}\right|
+      \ll\log|2t|.$$
+    Since $m_\zeta(\rho)\geq 0$ for all $\rho\in\mathcal{Z}_{2t}$, the inequality from
+    Equation (\ref{pickupPoint4}) tells us that by subtracting the sum from both sides
+    we have
     $$-\Re \left(\frac{\zeta'}{\zeta}(1+\delta+2it)\right)\ll\log|2t|.$$
     Noting that $\log|2t|=\log(2)+\log|t|\leq2\log|t|$ completes the proof.
 \end{proof}
