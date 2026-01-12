@@ -3293,7 +3293,7 @@ the box $[\sigma,1] \times_{ℂ} [-T,T]$ is free of zeros of $\zeta$.
   If $t_0\ne0$, use the continuity of $\zeta$ to get that $\zeta(1 + it_0) = 0$;
   this is a contradiction.
   If $t_0=0$, $\zeta$ blows up near $1$, so can't be zero nearby.
-  -/))
+  -/)
   (latexEnv := "lemma")]
 lemma ZetaNoZerosInBox (T : ℝ) :
     ∃ (σ : ℝ) (_ : σ < 1), ∀ (t : ℝ) (_ : |t| ≤ T)
