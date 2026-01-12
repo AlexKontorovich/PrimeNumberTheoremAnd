@@ -286,12 +286,88 @@ $2\pi k + \frac{\tau}{t \nu}>0$, and, as we said, $2\pi - \frac{\tau}{t \nu}>0$.
 -/)
   (latexEnv := "lemma")
   (discussion := 549)]
-theorem lemma_aachdecre (σ : ℝ) (hσ : 0 ≤ σ) (τ : ℝ) (ν : ℝ) (hν : ν ≠ 0)
-    (a b : ℝ)
+theorem lemma_aachdecre (σ : ℝ) (hσ : 0 ≤ σ) (τ : ℝ) (ν : ℝ) (hν : ν ≠ 0) (a b : ℝ)
     (ha : a > |τ| / (2 * π * |ν|)) (hb : b > a) (k : ℕ) (hk : 1 ≤ k) :
     let f : ℝ → ℝ := fun t ↦ t ^ (-σ - k) * |2 * π * ν - τ / t| ^ (-(k : ℝ) - 1)
     AntitoneOn f (Set.Icc a b) := by
-  sorry
+  have h_deriv_neg : ∀ t ∈ Set.Icc a b,
+      deriv (fun t ↦ -(σ + k) * Real.log t - (k + 1) * Real.log |2 * Real.pi * ν - τ / t|) t < 0 := by
+    intro t ht
+    have h_abs : |τ / (t * ν)| < 2 * Real.pi := by
+      rw [abs_div, abs_mul]
+      rw [div_lt_iff₀] at *
+      all_goals cases abs_cases t <;> cases abs_cases ν <;>
+        nlinarith [Real.pi_gt_three, ht.1, ht.2, mul_pos Real.pi_pos (abs_pos.mpr hν),
+          abs_nonneg τ, mul_div_cancel₀ (|τ|) (by positivity : (2 * Real.pi * |ν|) ≠ 0)]
+    have h_deriv_neg :
+        deriv (fun t ↦ -(σ + k) * Real.log t - (k + 1) * Real.log |2 * Real.pi * ν - τ / t|) t =
+          -(σ + k) / t - (k + 1) * (τ / t ^ 2) / (2 * Real.pi * ν - τ / t) := by
+      have ht_ne : t ≠ 0 := by linarith [ht.1, show 0 < a from lt_of_le_of_lt (by positivity) ha]
+      convert HasDerivAt.deriv (HasDerivAt.sub (HasDerivAt.const_mul (-(σ + k : ℝ))
+        (Real.hasDerivAt_log (show t ≠ 0 from ht_ne))) (HasDerivAt.const_mul (k + 1 : ℝ)
+        (HasDerivAt.log (HasDerivAt.sub (hasDerivAt_const _ _) (HasDerivAt.const_mul τ
+        (hasDerivAt_inv (show t ≠ 0 from ht_ne)))) _))) using 1 <;> norm_num
+      · congr! 1
+      · ring
+      · contrapose! h_abs
+        field_simp
+        rw [abs_div, abs_mul, le_div_iff₀ (mul_pos (abs_pos.mpr
+          (by linarith [ht.1, lt_of_le_of_lt (by positivity) ha])) (abs_pos.mpr hν))]
+        have ht_ne' : t ≠ 0 := by positivity
+        cases abs_cases t <;> cases abs_cases ν <;> cases abs_cases τ <;> push_cast [*] <;>
+          nlinarith [inv_mul_cancel_left₀ ht_ne' τ, inv_mul_cancel₀ ht_ne', Real.pi_pos]
+    have h_deriv_eq :
+        deriv (fun t ↦ -(σ + k) * Real.log t - (k + 1) * Real.log |2 * Real.pi * ν - τ / t|) t =
+          -(σ + k) / t - (k + 1) * (τ / (t * ν)) / (2 * Real.pi - τ / (t * ν)) / t := by
+      convert h_deriv_neg using 1; simp only [neg_add_rev, sub_right_inj]; ring_nf; grind
+    have h_expr_neg : -(σ + k) - (k + 1) * (τ / (t * ν)) / (2 * Real.pi - τ / (t * ν)) < 0 := by
+      rw [sub_div', div_lt_iff₀] <;> nlinarith [abs_lt.mp h_abs, show (k : ℝ) ≥ 1 by norm_cast]
+    have ht_pos : 0 < t := lt_of_lt_of_le (lt_of_le_of_lt (by positivity) ha) ht.1
+    rw [h_deriv_eq]
+    have h_goal : -(σ + k) / t - (k + 1) * (τ / (t * ν)) / (2 * Real.pi - τ / (t * ν)) / t =
+        (-(σ + k) - (k + 1) * (τ / (t * ν)) / (2 * Real.pi - τ / (t * ν))) / t := by ring
+    exact h_goal ▸ div_neg_of_neg_of_pos h_expr_neg ht_pos
+  have h_decreasing : ∀ t1 t2 : ℝ, a ≤ t1 → t1 < t2 → t2 ≤ b →
+      Real.exp ((-(σ + k) * Real.log t1) - (k + 1) * Real.log |2 * Real.pi * ν - τ / t1|) ≥
+        Real.exp ((-(σ + k) * Real.log t2) - (k + 1) * Real.log |2 * Real.pi * ν - τ / t2|) := by
+    intro t1 t2 ht1 ht2 ht3
+    have h_mean_val : ∃ c ∈ Set.Ioo t1 t2,
+        deriv (fun t ↦ -(σ + k) * Real.log t - (k + 1) * Real.log |2 * Real.pi * ν - τ / t|) c =
+          ((fun t ↦ -(σ + k) * Real.log t - (k + 1) * Real.log |2 * Real.pi * ν - τ / t|) t2 -
+            (fun t ↦ -(σ + k) * Real.log t - (k + 1) * Real.log |2 * Real.pi * ν - τ / t|) t1) /
+              (t2 - t1) := by
+      apply_rules [exists_deriv_eq_slope]
+      · exact continuousOn_of_forall_continuousAt fun t ht ↦ DifferentiableAt.continuousAt <|
+          differentiableAt_of_deriv_ne_zero <| ne_of_lt <| h_deriv_neg t ⟨by grind, by grind⟩
+      · exact fun x hx ↦ DifferentiableAt.differentiableWithinAt (by
+          exact differentiableAt_of_deriv_ne_zero (ne_of_lt
+            (h_deriv_neg x ⟨by linarith [hx.1], by linarith [hx.2]⟩)))
+    obtain ⟨c, ⟨hc1, hc2⟩, hc3⟩ := h_mean_val
+    let f := fun t ↦ -(σ + ↑k) * Real.log t - (↑k + 1) * Real.log |2 * π * ν - τ / t|
+    have h_diff_neg : f t2 - f t1 < 0 := neg_of_div_neg_left
+      (hc3 ▸ h_deriv_neg c ⟨by linarith, by linarith⟩) (le_of_lt <| sub_pos.mpr ht2)
+    exact exp_le_exp.mpr (le_of_lt <| sub_neg.mp h_diff_neg)
+  have h_f_eq_exp : ∀ t ∈ Set.Icc a b,
+      t ^ (-σ - k : ℝ) * |2 * Real.pi * ν - τ / t| ^ (-(k : ℝ) - 1) =
+        Real.exp ((-(σ + k) * Real.log t) - (k + 1) * Real.log |2 * Real.pi * ν - τ / t|) := by
+    intro t ht
+    have h_pos : 0 < t ∧ 0 < |2 * Real.pi * ν - τ / t| := by
+      have ht_pos : 0 < t := lt_of_lt_of_le (lt_of_le_of_lt (by positivity) ha) ht.1
+      constructor
+      · exact ht_pos
+      · rw [abs_pos, sub_ne_zero, ne_eq, eq_div_iff (ne_of_gt ht_pos)]
+        intro h_eq
+        have : |τ| / (2 * π * |ν|) ≥ a := by
+          rw [ge_iff_le, le_div_iff₀ (by positivity)]
+          calc a * (2 * π * |ν|) = 2 * π * |ν| * a := by ring
+            _ ≤ 2 * π * |ν| * t := mul_le_mul_of_nonneg_left ht.1 (by positivity)
+            _ = |2 * π * ν * t| := by
+              rw [abs_mul, abs_mul, abs_of_pos Real.two_pi_pos, abs_of_pos ht_pos]
+            _ = |τ| := by rw [h_eq]
+        linarith
+    rw [rpow_def_of_pos h_pos.1, rpow_def_of_pos h_pos.2, ← Real.exp_add]; ring_nf
+  refine fun x hx y hy hxy ↦ by cases eq_or_lt_of_le hxy <;> simp_all only [Set.mem_Icc, and_imp, le_refl]
+
 
 @[blueprint
   "lem:aachfour"
