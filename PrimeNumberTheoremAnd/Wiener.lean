@@ -2038,12 +2038,14 @@ lemma wiener_ikehara_smooth_real {f : ℕ → ℝ} {Ψ : ℝ → ℝ}
   have l1 : ContDiff ℝ ∞ Ψ' := contDiff_ofReal.comp hsmooth
   have l2 : HasCompactSupport Ψ' := hsupp.comp_left rfl
   have l3 : closure (Function.support Ψ') ⊆ Ioi 0 := by rwa [Function.support_comp_eq] ; simp
-  have key := (continuous_re.tendsto _).comp (@wiener_ikehara_smooth' A Ψ G f hf hcheby hG hG' l1 l2 l3)
+  have key := (continuous_re.tendsto _).comp
+    (@wiener_ikehara_smooth' A Ψ G f hf hcheby hG hG' l1 l2 l3)
   simp at key ; norm_cast at key
 
 lemma interval_approx_inf (ha : 0 < a) (hab : a < b) :
-    ∀ᶠ ε in 𝓝[>] 0, ∃ ψ : ℝ → ℝ, ContDiff ℝ ∞ ψ ∧ HasCompactSupport ψ ∧ closure (Function.support ψ) ⊆ Set.Ioi 0 ∧
-      ψ ≤ indicator (Ico a b) 1 ∧ b - a - ε ≤ ∫ y in Ioi 0, ψ y := by
+    ∀ᶠ ε in 𝓝[>] 0, ∃ ψ : ℝ → ℝ, ContDiff ℝ ∞ ψ ∧ HasCompactSupport ψ ∧
+      closure (Function.support ψ) ⊆ Set.Ioi 0 ∧
+        ψ ≤ indicator (Ico a b) 1 ∧ b - a - ε ≤ ∫ y in Ioi 0, ψ y := by
 
   have l1 : Iio ((b - a) / 3) ∈ 𝓝[>] 0 := nhdsWithin_le_nhds <| Iio_mem_nhds <| by
     rw [← sub_pos] at hab
@@ -2060,7 +2062,8 @@ lemma interval_approx_inf (ha : 0 < a) (hab : a < b) :
       intro t ht
       simp only [mem_Icc, mem_Ioi] at ht ⊢
       exact ha.trans <| l2.trans_le <| ht.1
-    have l6 : Icc (a + ε / 2) (b - ε / 2) ∩ Ioi 0 = Icc (a + ε / 2) (b - ε / 2) := inter_eq_left.mpr l5
+    have l6 : Icc (a + ε / 2) (b - ε / 2) ∩ Ioi 0 = Icc (a + ε / 2) (b - ε / 2) :=
+      inter_eq_left.mpr l5
     have l7 : ∫ y in Ioi 0, indicator (Icc (a + ε / 2) (b - ε / 2)) 1 y = b - a - ε := by
       simp only [measurableSet_Icc, integral_indicator_one, measureReal_restrict_apply, l6,
         volume_real_Icc]

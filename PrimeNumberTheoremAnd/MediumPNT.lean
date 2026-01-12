@@ -2813,7 +2813,8 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
     rw [← Set.neg_mem_Ioo_iff, mem_Ioo] at ht
     rwa [this]
 
-  have logt9gt1_bounds : ∀ t, t ∈ Set.Icc (-T) (-3) → Real.log |t| ^ 9 > 1 := by
+  have logt9gt1_bounds :
+      ∀ t, t ∈ Set.Icc (-T) (-3) → Real.log |t| ^ 9 > 1 := by
     intro t ht
     refine one_lt_pow₀ (logt_gt_one ?_) ?_
     · have : |t| = -t := by
@@ -2855,7 +2856,8 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
     unfold σ₁
     linarith[AoverlogT9in0half.2]
 
-  have quotient_bound : ∀ t ∈ Ioo (-T) (-3), Real.log |t| ^ 9 / (σ₁ ^ 2 + t ^ 2) ≤ Real.log |t| ^ 9 / t ^ 2  := by
+  have quotient_bound :
+      ∀ t ∈ Ioo (-T) (-3), Real.log |t| ^ 9 / (σ₁ ^ 2 + t ^ 2) ≤ Real.log |t| ^ 9 / t ^ 2 := by
     intro t ht
     have loght := logt9gt1_bounds t (Ioo_subset_Icc_self ht)
     have logpos : Real.log |t| ^ 9 > 0 := zero_lt_one.trans loght

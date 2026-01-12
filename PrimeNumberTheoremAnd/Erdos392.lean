@@ -1765,7 +1765,11 @@ theorem Params.initial.bound_score_5 (ε : ℝ) (hε : ε > 0) (M L : ℕ) :
   "initial-score"
   (statement := /-- The score of the initial factorization can be taken to be $o(n)$.-/)
   (proof := /-- Pick $M$ large depending on $\varepsilon$, then $L$ sufficiently large depending
-  on $M, \varepsilon$, then $n$ sufficiently large depending on $M,L,\varepsilon$, so that the bounds in Sublemma \ref{bound-score-1}, Sublemma \ref{bound-score-2}, Sublemma \ref{bound-score-3}, Sublemma \ref{bound-score-4}, and Sublemma \ref{bound-score-5} each contribute at most $(\varepsilon/5) n$.  Then use Proposition \ref{initial-score-bound}.-/)
+  on $M, \varepsilon$, then $n$ sufficiently large depending on $M,L,\varepsilon$, so that the
+  bounds in Sublemma \ref{bound-score-1}, Sublemma \ref{bound-score-2},
+  Sublemma \ref{bound-score-3}, Sublemma \ref{bound-score-4}, and Sublemma \ref{bound-score-5}
+  each contribute at most $(\varepsilon/5) n$.  Then use Proposition \ref{initial-score-bound}.
+  -/)
   (discussion := 519)
   (latexEnv := "proposition")]
 theorem Params.initial.score (ε : ℝ) (hε : ε > 0) :
@@ -1820,12 +1824,15 @@ theorem Params.initial.score (ε : ℝ) (hε : ε > 0) :
 
 @[blueprint
   "erdos-sol-1"
-  (statement := /-- One can find a balanced factorization of $n!$ with cardinality at least $n - n / \log n - o(n / \log n)$.--/)
-  (proof := /-- Combine Proposition \ref{initial-score} with Proposition \ref{card-bound} and the Stirling approximation.-/)
+  (statement := /-- One can find a balanced factorization of $n!$ with cardinality at least
+  $n - n / \log n - o(n / \log n)$.--/)
+  (proof := /-- Combine Proposition \ref{initial-score} with Proposition \ref{card-bound} and
+  the Stirling approximation.-/)
   (latexEnv := "theorem")]
 theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Factorization n,
     f.total_imbalance = 0 ∧ f.a.card ≥ n - n / Real.log n - ε * n / Real.log n := by
-  refine .of_forall fun n ↦ ⟨⟨Multiset.Ico 1 (n + 1), fun _ hm ↦ ?_, fun _ hm ↦ ?_⟩, ?_, ?_⟩
+  refine .of_forall fun n ↦
+    ⟨⟨Multiset.Ico 1 (n + 1), fun _ hm ↦ ?_, fun _ hm ↦ ?_⟩, ?_, ?_⟩
   · exact le_of_lt_succ (Multiset.mem_Ico.mp hm).2
   · exact (Multiset.mem_Ico.mp hm).1
   · rw [Factorization.total_imbalance]
