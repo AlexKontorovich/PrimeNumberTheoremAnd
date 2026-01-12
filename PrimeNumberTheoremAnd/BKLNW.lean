@@ -3,7 +3,8 @@ import PrimeNumberTheoremAnd.SecondaryDefinitions
 blueprint_comment /--
 \section{Tools from BKLNW}
 In this file we record the results from
-S. Broadbent, H. Kadiri, A. Lumley, N. Ng, K. Wilk, Sharper bounds for the Chebyshev function θ(x), Math. Comp. 90 (2021), no. 331, 2281–2315.
+S. Broadbent, H. Kadiri, A. Lumley, N. Ng, K. Wilk, Sharper bounds for the Chebyshev function θ(x),
+Math. Comp. 90 (2021), no. 331, 2281–2315.
 --/
 
 open Real
@@ -71,6 +72,8 @@ noncomputable def BKLNW.ε (b : ℝ) : ℝ :=
   else if b < 25000 then 1.07022e-48
   else 7.57240e-50
 
-noncomputable def BKLNW.a₁ (b : ℝ) : ℝ := if b ≤ 38 * log 10 then 1 + 1.93378e-8 else 1 + BKLNW.ε (b/2)
+noncomputable def BKLNW.a₁ (b : ℝ) : ℝ :=
+  if b ≤ 38 * log 10 then 1 + 1.93378e-8 else 1 + BKLNW.ε (b / 2)
 
-noncomputable def BKLNW.a₂ (b : ℝ) : ℝ := (1 + 1.93378e-8) * (max (BKLNW.f (exp b)) (BKLNW.f (⌊b/(log 2)⌋+1)))
+noncomputable def BKLNW.a₂ (b : ℝ) : ℝ :=
+  (1 + 1.93378e-8) * (max (BKLNW.f (exp b)) (BKLNW.f (⌊b / (log 2)⌋ + 1)))
