@@ -2068,7 +2068,8 @@ lemma interval_approx_inf (ha : 0 < a) (hab : a < b) :
       simp only [measurableSet_Icc, integral_indicator_one, measureReal_restrict_apply, l6,
         volume_real_Icc]
       convert max_eq_left l4 using 1 ; ring_nf
-    have l8 : IntegrableOn ψ (Ioi 0) volume := (h1.continuous.integrable_of_hasCompactSupport h2).integrableOn
+    have l8 : IntegrableOn ψ (Ioi 0) volume :=
+      (h1.continuous.integrable_of_hasCompactSupport h2).integrableOn
     rw [← l7] ; apply setIntegral_mono ?_ l8 h3
     rw [IntegrableOn, integrable_indicator_iff measurableSet_Icc]
     apply IntegrableOn.mono ?_ subset_rfl Measure.restrict_le_self
@@ -2076,8 +2077,9 @@ lemma interval_approx_inf (ha : 0 < a) (hab : a < b) :
     simp
 
 lemma interval_approx_sup (ha : 0 < a) (hab : a < b) :
-    ∀ᶠ ε in 𝓝[>] 0, ∃ ψ : ℝ → ℝ, ContDiff ℝ ∞ ψ ∧ HasCompactSupport ψ ∧ closure (Function.support ψ) ⊆ Set.Ioi 0 ∧
-      indicator (Ico a b) 1 ≤ ψ ∧ ∫ y in Ioi 0, ψ y ≤ b - a + ε := by
+    ∀ᶠ ε in 𝓝[>] 0, ∃ ψ : ℝ → ℝ, ContDiff ℝ ∞ ψ ∧ HasCompactSupport ψ ∧
+      closure (Function.support ψ) ⊆ Set.Ioi 0 ∧
+        indicator (Ico a b) 1 ≤ ψ ∧ ∫ y in Ioi 0, ψ y ≤ b - a + ε := by
 
   have l1 : Iio (a / 2) ∈ 𝓝[>] 0 := nhdsWithin_le_nhds <| Iio_mem_nhds (by linarith)
   filter_upwards [self_mem_nhdsWithin, l1] with ε (hε : 0 < ε) (hε' : ε < a / 2)

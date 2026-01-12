@@ -1840,7 +1840,8 @@ theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Fact
     simp only [Factorization.balance, Factorization.sum, Int.natAbs_eq_zero, sub_eq_zero]
     norm_cast
     simp only [Multiset.Ico, ← sum_eq_multiset_sum]
-    have : ∀ {m : ℕ}, m > 0 → m.factorial.factorization p = ∑ k ∈ Ico 1 (m + 1), k.factorization p := by
+    have : ∀ {m : ℕ}, m > 0 →
+        m.factorial.factorization p = ∑ k ∈ Ico 1 (m + 1), k.factorization p := by
       intro m hm
       induction hm with
       | refl => simp [factorial]
@@ -1853,7 +1854,8 @@ theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Fact
     · exact (this n.succ_pos).symm
   · simp only [Multiset.Ico, Finset.card_val, ge_iff_le, tsub_le_iff_right, card_Ico,
       add_tsub_cancel_right]
-    have : (0 : ℝ) ≤ n / Real.log n ∧ (0 : ℝ) ≤ ε * n / Real.log n := ⟨by positivity, by positivity⟩
+    have : (0 : ℝ) ≤ n / Real.log n ∧ (0 : ℝ) ≤ ε * n / Real.log n :=
+      ⟨by positivity, by positivity⟩
     linarith
 
 @[blueprint

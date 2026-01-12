@@ -2869,7 +2869,9 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
     have denom2_pos : 0 < σ₁ ^ 2 + t ^ 2 := add_pos_of_nonneg_of_pos (sq_nonneg _) denom_pos
     exact (div_le_div_iff_of_pos_left logpos denom2_pos denom_pos).mpr denom_le
 
-  have MellinBound : ∀ (t : ℝ) , ‖𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (σ₁ + t * I)‖ ≤ CM * (ε * ‖(σ₁ + t * I)‖ ^ 2)⁻¹ := by
+  have MellinBound : ∀ (t : ℝ),
+      ‖𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (σ₁ + t * I)‖ ≤
+        CM * (ε * ‖(σ₁ + t * I)‖ ^ 2)⁻¹ := by
     intro t
     refine CMhyp σ₁ σ₁pos _ ?_ ?_ _ εgt0 εlt1 <;> simp [σ₁lt1.le.trans one_le_two]
 
