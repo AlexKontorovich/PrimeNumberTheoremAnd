@@ -331,7 +331,7 @@ $$ |\hat \psi(u)| \leq \| \psi' \|_{TV} / (2\pi |u|)^2$$
 for all non-zero $u \in \R$.
   -/)
   (proof := /-- Should follow from previous lemma. -/)
-  (proofUses := ["prelim_decay_2"])
+  (proofUses := ["prelim-decay-2"])
   (latexEnv := "lemma")
   (discussion := 563)]
 theorem prelim_decay_3 (ψ : ℝ → ℂ) (hψ : Integrable ψ)
@@ -347,7 +347,7 @@ integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
 $$ |\hat \psi(u)| \leq ( \|\psi\|_1 + \| \psi' \|_{TV} / (2\pi)^2) / (1+|u|^2)$$
 for all $u \in \R$.  -/)
   (proof := /-- Should follow from previous lemmas. -/)
-  (proofUses := ["prelim_decay", "prelim_decay_3", "decay"])
+  (proofUses := ["prelim-decay", "prelim-decay-3", "decay"])
   (latexEnv := "lemma")
   (discussion := 564)]
 theorem decay_alt (ψ : ℝ → ℂ) (hψ : Integrable ψ) (habscont : AbsolutelyContinuous ψ)
