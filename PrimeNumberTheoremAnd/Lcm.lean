@@ -1093,10 +1093,10 @@ theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   rw [← mul_div_assoc', ← mul_div_assoc', l1, l2, l3]
   gcongr
   · have := hε_pos hn
-    exact Finset.prod_nonneg fun i _ => by positivity
-  · exact Finset.prod_pos fun i _ => by positivity [hε_pos hn]
+    exact Finset.prod_nonneg fun _ _ => by positivity
+  · exact Finset.prod_pos fun _ _ => by positivity [hε_pos hn]
   · exact (exists_p_primes hn).choose_spec.2.2.1 _
-  · exact fun i hi => by positivity [hε_pos hn]
+  · exact fun _ _ => by positivity [hε_pos hn]
   · exact (exists_q_primes hn).choose_spec.2.2.1 _
 
 
