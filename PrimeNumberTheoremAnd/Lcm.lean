@@ -1381,8 +1381,7 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
       norm_num [rpow_neg_one] at *
       rw [← div_eq_mul_inv, lt_div_iff₀ <| pow_pos hε_pos 3]
       have : (1 + ((log √n) ^ 3)⁻¹) ^ 6 < 2 :=
-        calc (1 + ((log √n) ^ 3)⁻¹) ^ 6 < (1 + (11 ^ 3 : ℝ)⁻¹) ^ 6 := by
-            gcongr; linarith [hlog hn]
+        calc (1 + ((log √n) ^ 3)⁻¹) ^ 6 < (1 + (11 ^ 3 : ℝ)⁻¹) ^ 6 := by gcongr; linarith [hlog hn]
           _ ≤ 2 := by norm_num
       nlinarith [mul_self_sqrt (Nat.cast_nonneg n), hsqrt_ge hn]
     exact_mod_cast hp'.trans_lt <| hmid.trans_le hq'
