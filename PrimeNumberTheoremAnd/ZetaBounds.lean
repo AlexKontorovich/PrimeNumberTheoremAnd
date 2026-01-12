@@ -804,7 +804,7 @@ instead use `Finset.sum_map` and a version of `Nat.image_cast_int_Ioc` stated us
   (proof := /--
   Specialize Abel summation from Mathlib to the trivial arithmetic function and then manipulate
   integrals.
-  -/))
+  -/)
   (latexEnv := "lemma")]
 lemma sum_eq_int_deriv {φ : ℝ → ℂ} {a b : ℝ} (apos : 0 ≤ a) (a_lt_b : a < b)
     (φDiff : ∀ x ∈ [[a, b]], HasDerivAt φ (deriv φ x) x)
