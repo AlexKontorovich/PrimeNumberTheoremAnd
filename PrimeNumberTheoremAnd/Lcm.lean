@@ -910,6 +910,22 @@ blueprint_comment /--
 \subsection{Bounding the factors in \eqref{eq:main-ineq}}
 -/
 
+lemma hsqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : √(n : ℝ) ≥ 89693 := by
+  simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ 89693 ^ 2)
+
+lemma hlog {n : ℕ} (hn : n ≥ X₀ ^ 2) : log √(n : ℝ) > 11 := by
+  rw [gt_iff_lt, lt_log_iff_exp_lt (by positivity)]
+  calc exp 11 = exp 1 ^ 11 := by norm_num [← exp_nat_mul]
+    _ < 89693 := by
+      have := exp_one_lt_d9.le
+      calc exp 1 ^ 11 ≤ 2.7182818286 ^ 11 := by gcongr
+        _ < 89693 := by norm_num
+    _ ≤ √n := hsqrt_ge hn
+
+lemma hε_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < 1 + 1 / (log √(n : ℝ)) ^ 3 := by
+  have : log √(n : ℝ) > 11 := hlog hn
+  positivity
+
 @[blueprint
   "lem:qi-product"
   (title := "Bounds for the \\(q_i\\)-product")
@@ -963,19 +979,14 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   suffices h : (1 : ℝ) / (exists_q_primes hn).choose i ≤ (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) / n from (by linarith)
   have := (exists_q_primes hn).choose_spec.2.2.1 i
   rw [show (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) / n = 1 / (n / (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) ) by field_simp]
-  have nbd : (10 : ℝ) < n := by norm_cast; linarith
   have f0 : (0 : ℝ) < (log √(n : ℝ)) ^ 3 := by
-    apply pow_pos
-    apply Real.log_pos
-    rw [show (1 : ℝ) = √1 by norm_num]
-    apply Real.sqrt_lt_sqrt <;> linarith
-  have f : (0 : ℝ) < (1 + 1 / (log √(n : ℝ)) ^ 3) := by positivity
-  have f' : (0 : ℝ) < (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) := by positivity
+    have : log √(n : ℝ) > 11 := hlog hn
+    positivity
   apply one_div_le_one_div_of_le
   · positivity
   · convert this using 1
     field_simp
-    rw [← rpow_add f]
+    rw [← rpow_add (hε_pos hn)]
     simp
 
 @[blueprint
@@ -1082,7 +1093,31 @@ theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     1 - ((4 : ℝ) * ∏ i, ((exists_p_primes hn).choose i : ℝ))
     / ∏ i, ((exists_q_primes hn).choose i : ℝ) ≥
     1 - 4 * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ 12 / n ^ (3 / 2 : ℝ) := by
-  sorry
+  have l1 : ((1 + 1 / Real.log √n ^ 3) ^ 12 / n ^ (3 / 2 : ℝ)) =
+    (n ^ (3 / 2 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ 6) /
+    (n ^ (3 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ (- 6 : ℝ)) := by
+    rw [rpow_neg, ← div_eq_mul_inv, div_div_eq_mul_div, mul_assoc, mul_comm, ← rpow_natCast,
+      ← rpow_natCast (n := 6), ← rpow_add, ← div_div_eq_mul_div]
+    · congr
+      · grind
+      · rw [← rpow_sub (by norm_cast; linarith)]; grind
+    · exact hε_pos hn
+    · exact (hε_pos hn).le
+  have l2 : n ^ (3 / 2 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ 6 = ∏ i : Fin 3,
+    √n * (1 + 1 / Real.log √n ^ 3) ^ ((i : ℝ) + 1) := by sorry
+  have l3 : ∏ i : Fin 3, n * (1 + 1 / Real.log √n ^ 3) ^ (-((3 : ℝ) - i.1)) =
+    n ^ (3 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ (- 6 : ℝ) := by sorry
+  have l4 (i : Fin 3) (_ : i ∈ univ) : 0 < n * (1 + 1 / Real.log √n ^ 3) ^ (-((3 : ℝ) - i.1)) := by
+    sorry
+  rw [← mul_div_assoc', ← mul_div_assoc', l1, l2, ← l3]
+  gcongr
+  · have := hε_pos hn
+    exact Finset.prod_nonneg fun i _ => (by positivity)
+  · exact Finset.prod_pos l4
+  · exact (exists_p_primes hn).choose_spec.2.2.1 _
+  · exact fun i hi => (l4 i hi).le
+  · exact (exists_q_primes hn).choose_spec.2.2.1 _
+
 
 blueprint_comment /--
 \subsection{Reduction to a small epsilon-inequality}
@@ -1304,32 +1339,20 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
   h_ord_1 := (exists_p_primes hn).choose_spec.2.2.2
   h_ord_2 := by
     have hn_pos : (0 : ℝ) < n := by positivity
-    have hsqrt_ge : √(n : ℝ) ≥ 89693 := by
-      simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ 89693 ^ 2)
-    have hε_pos : 0 < 1 + 1 / (log √(n : ℝ)) ^ 3 := by
-      have : log √(n : ℝ) > 0 := log_pos (by grind)
-      positivity
     have hp' : ((exists_p_primes hn).choose 2 : ℝ) ≤ √n * (1 + 1 / (log √n) ^ 3) ^ 3 := by
       convert (exists_p_primes hn).choose_spec.2.2.1 2 using 2; norm_cast
-    have hq' : n * (1 + 1 / (log √n) ^ 3) ^ (-3:ℝ) ≤ (exists_q_primes hn).choose 0 := by
+    have hq' : n * (1 + 1 / (log √n) ^ 3) ^ (-3 : ℝ) ≤ (exists_q_primes hn).choose 0 := by
       convert (exists_q_primes hn).choose_spec.2.2.1 0 using 2
       norm_num
+    have hε_pos := hε_pos hn
     have hmid : √n * (1 + 1 / (log √n) ^ 3) ^ 3 < n * (1 + 1 / (log √n) ^ 3) ^ (-3 : ℝ) := by
       norm_cast
       norm_num [rpow_neg_one] at *
       rw [← div_eq_mul_inv, lt_div_iff₀ <| pow_pos hε_pos 3]
-      have hlog : log √n > 11 := by
-        rw [gt_iff_lt, lt_log_iff_exp_lt (by positivity)]
-        calc exp 11 = exp 1 ^ 11 := by norm_num [← exp_nat_mul]
-          _ < 89693 := by
-            have := exp_one_lt_d9.le
-            calc exp 1 ^ 11 ≤ 2.7182818286 ^ 11 := by gcongr
-              _ < 89693 := by norm_num
-          _ ≤ √n := hsqrt_ge
       have : (1 + ((log √n) ^ 3)⁻¹) ^ 6 < 2 :=
-        calc (1 + ((log √n) ^ 3)⁻¹) ^ 6 < (1 + (11 ^ 3 : ℝ)⁻¹) ^ 6 := by gcongr
+        calc (1 + ((log √n) ^ 3)⁻¹) ^ 6 < (1 + (11 ^ 3 : ℝ)⁻¹) ^ 6 := by gcongr; exact hlog hn
           _ ≤ 2 := by norm_num
-      nlinarith [mul_self_sqrt (Nat.cast_nonneg n)]
+      nlinarith [mul_self_sqrt (Nat.cast_nonneg n), hsqrt_ge hn]
     exact_mod_cast hp'.trans_lt <| hmid.trans_le hq'
   h_ord_3 := (exists_q_primes hn).choose_spec.2.2.2
   h_crit := by
