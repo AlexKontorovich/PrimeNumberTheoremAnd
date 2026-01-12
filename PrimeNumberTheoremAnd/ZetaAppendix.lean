@@ -357,7 +357,7 @@ blueprint_comment /-- We could prove these equations starting from Euler's produ
   (title := "Euler/Mittag-Leffler expansion for cosec")
     (statement :=  /-- Let $z\in \mathbb{C}$, $z\notin \mathbb{Z}$. Then
  \[ \frac{\pi}{\sin \pi z} =  \frac{1}{z} +
- \sum_n (-1)^n\left(\frac{1}{z - n} + \frac{1}{z + n}\right).\]
+ \sum_n (-1)^n\left(\frac{1}{z - n} + \frac{1}{z + n}\right).
  \] -/)
   (proof := /--     Let us start from the Mittag-Leffler expansion $\pi \cot \pi s =
     \frac{1}{s} + \sum_n \left(\frac{1}{s-n} + \frac{1}{s+n}\right)$.
