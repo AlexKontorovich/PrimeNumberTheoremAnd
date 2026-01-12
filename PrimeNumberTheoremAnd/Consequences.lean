@@ -529,7 +529,7 @@ lemma pi_asymp_aux (x : ℝ) (hx : 2 ≤ x) : Nat.primeCounting ⌊x⌋₊ =
   ring_nf!
 
 theorem pi_asymp'' :
-    (fun x => (Nat.primeCounting ⌊x⌋₊ : ℝ) / ∫ t in Set.Icc 2 x, 1 / log t - (1 : ℝ)) =o[atTop]
+    (fun x => (Nat.primeCounting ⌊x⌋₊ : ℝ) / ∫ t in Set.Icc 2 x, 1 / (log t) - (1 : ℝ)) =o[atTop]
       fun _ => (1 : ℝ) := by
   obtain ⟨f, hf, f_int, hf'⟩ := chebyshev_asymptotic''
   have eq1 : ∀ᶠ (x : ℝ) in atTop,
