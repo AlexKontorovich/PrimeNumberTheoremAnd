@@ -1956,51 +1956,29 @@ noncomputable def Psi (x : ℝ) : ℝ := ∑ n ∈ Iic ⌊x⌋₊, (Λ n : ℝ)
 
 noncomputable def M (x : ℝ) : ℝ := ∑ n ∈ Iic ⌊x⌋₊, (μ n : ℝ)
 
+noncomputable def mu_log : ArithmeticFunction ℝ :=
+    ⟨(fun n ↦ μ n * ArithmeticFunction.log n), (by simp)⟩
+
+lemma mu_log_apply (n : ℕ) : mu_log n = μ n * ArithmeticFunction.log n := by
+  rfl
+
+lemma mu_log_mul_zeta : mu_log * ArithmeticFunction.zeta = -Λ := by
+  ext n
+  rw [coe_mul_zeta_apply]
+  simp_rw [mu_log_apply]
+  rw [sum_moebius_mul_log_eq]
+  rfl
+
+lemma mu_log_eq_mu_mul_neg_lambda : mu_log = μ * -Λ := by
+  rw [← mu_log_mul_zeta, mul_comm, mul_assoc, coe_zeta_mul_coe_moebius, mul_one]
+
 lemma moebius_mul_log_eq_neg_vonMangoldt_conv_moebius (n : ℕ) :
-  (μ n : ℝ) * log n = - ∑ d ∈ n.divisors, (μ d : ℝ) * (Λ (n/d) : ℝ) := by
-    field_simp
-    have h_lambda : ∀ n : ℕ, n > 0 → Λ n = -∑ d ∈ Nat.divisors n, (μ d : ℝ) * Real.log d := by
-      have h_sum_divisors : ∀ n : ℕ, n > 0 → ∑ d ∈ Nat.divisors n, (μ d : ℝ) * Real.log d = -Λ n := by
-        exact fun n a => sum_moebius_mul_log_eq
-      aesop
-    by_cases hn : n = 0 <;> simp_all +decide only [gt_iff_lt, ArithmeticFunction.map_zero, Int.cast_zero, CharP.cast_eq_zero, log_zero,
-    mul_zero, divisors_zero, Nat.zero_div, sum_const_zero, neg_zero]
-    have h_subst : ∑ x ∈ Nat.divisors n, (μ x : ℝ) * (Λ (n / x)) = ∑ x ∈ Nat.divisors n, (μ x : ℝ) * (-∑ d ∈ Nat.divisors (n / x), (μ d : ℝ) * Real.log d) := by
-      exact Finset.sum_congr rfl fun x hx => by rw [h_lambda _ (Nat.div_pos (Nat.le_of_dvd (Nat.pos_of_ne_zero hn) (Nat.dvd_of_mem_divisors hx)) (Nat.pos_of_mem_divisors hx))]
-    have h_interchange : ∑ x ∈ Nat.divisors n, (μ x : ℝ) * (-∑ d ∈ Nat.divisors (n / x), (μ d : ℝ) * Real.log d) = -∑ d ∈ Nat.divisors n, (μ d : ℝ) * Real.log d * ∑ x ∈ Nat.divisors (n / d), (μ x : ℝ) := by
-      have h_interchange : ∑ x ∈ Nat.divisors n, ∑ d ∈ Nat.divisors (n / x), (μ x : ℝ) * (μ d : ℝ) * Real.log d = ∑ d ∈ Nat.divisors n, ∑ x ∈ Nat.divisors (n / d), (μ x : ℝ) * (μ d : ℝ) * Real.log d := by
-        rw [Finset.sum_sigma', Finset.sum_sigma']
-        apply Finset.sum_bij (fun x _ => ⟨x.snd, x.fst⟩) _ _ _ _
-        · simp +contextual only [mem_sigma, mem_divisors, ne_eq, Nat.div_eq_zero_iff, not_or, not_lt, not_false_eq_true,
-    and_true, and_imp, dvd_div_iff_mul_dvd]
-          intro a ha₁ ha₂ ha₃ ha₄ ha₅; exact ⟨dvd_of_mul_left_dvd ha₃, Nat.dvd_div_of_mul_dvd <| by simpa only [mul_comm] using ha₃, Nat.ne_of_gt <| Nat.pos_of_dvd_of_pos (dvd_of_mul_left_dvd ha₃) <| Nat.pos_of_ne_zero ha₂, Nat.le_of_dvd (Nat.pos_of_ne_zero ha₂) <| dvd_of_mul_left_dvd ha₃⟩
-        · simp +contextual only [mem_sigma, mem_divisors, ne_eq, Nat.div_eq_zero_iff, not_or, not_lt, not_false_eq_true,
-    and_true, Sigma.mk.injEq, heq_eq_eq, and_imp, dvd_div_iff_mul_dvd]
-          aesop
-        · simp +contextual only [mem_sigma, mem_divisors, ne_eq, Nat.div_eq_zero_iff, not_or, not_lt, not_false_eq_true,
-    and_true, exists_prop, Sigma.exists, and_imp, dvd_div_iff_mul_dvd]
-          exact fun b hb₁ hb₂ hb₃ hb₄ hb₅ => ⟨b.2, b.1, ⟨Nat.dvd_trans (by aesop) hb₃, Nat.dvd_div_of_mul_dvd <| by simpa only [mul_comm] using hb₃, by aesop, by exact Nat.le_of_dvd (Nat.pos_of_ne_zero hb₂) <| Nat.dvd_trans (by aesop) hb₃⟩, rfl⟩
-        · simp +contextual only [mem_sigma, mem_divisors, ne_eq, Nat.div_eq_zero_iff, not_or, not_lt, mul_comm,
-    implies_true]
-      simp_all +decide [mul_assoc, mul_comm, mul_left_comm, Finset.mul_sum _ _ _]
-    have h_inner : ∀ d ∈ Nat.divisors n, d ≠ n → ∑ x ∈ Nat.divisors (n / d), (μ x : ℝ) = 0 := by
-      intros d hd hdn
-      have h_inner_sum : ∑ x ∈ Nat.divisors (n / d), (μ x : ℝ) = 0 := by
-        have h_divisors : ∑ x ∈ Nat.divisors (n / d), (μ x : ℝ) = ∑ x ∈ Nat.divisors (n / d), (ArithmeticFunction.moebius x : ℝ) := by
-          rfl
-        have h_inner_sum : ∑ x ∈ Nat.divisors (n / d), (ArithmeticFunction.moebius x : ℝ) = (ArithmeticFunction.moebius * ArithmeticFunction.zeta) (n / d) := by
-          simp +decide only [moebius, Int.reduceNeg, coe_mk, Int.cast_ite, Int.cast_pow, Int.cast_neg, Int.cast_one,
-    Int.cast_zero, zeta, mul_apply, natCoe_apply, cast_ite, CharP.cast_eq_zero, cast_one, mul_ite, mul_zero, mul_one,
-    Int.cast_sum]
-          rw [Nat.sum_divisorsAntidiagonal fun x y => if y = 0 then 0 else if Squarefree x then (-1 : ℝ) ^ (Ω x) else 0]
-          exact Finset.sum_congr rfl fun x hx => by rw [if_neg (Nat.ne_of_gt (Nat.div_pos (Nat.le_of_dvd (Nat.div_pos (Nat.le_of_dvd (Nat.pos_of_ne_zero hn) (Nat.dvd_of_mem_divisors hd)) (Nat.pos_of_mem_divisors hd)) (Nat.dvd_of_mem_divisors hx)) (Nat.pos_of_mem_divisors hx)))]
-        simp_all +decide only [mul_neg, sum_neg_distrib, neg_inj, mem_divisors, ne_eq, not_false_eq_true, and_true,
-    moebius_mul_coe_zeta, Int.cast_eq_zero]
-        exact if_neg (by contrapose! hdn; nlinarith [Nat.div_mul_cancel hd, Nat.pos_of_ne_zero hn])
-      convert h_inner_sum using 1
-    have h_survive : ∑ d ∈ Nat.divisors n, (μ d : ℝ) * Real.log d * ∑ x ∈ Nat.divisors (n / d), (μ x : ℝ) = (μ n : ℝ) * Real.log n * ∑ x ∈ Nat.divisors (n / n), (μ x : ℝ) := by
-      rw [Finset.sum_eq_single n] <;> aesop
-    simp_all +decide [Nat.div_self (Nat.pos_of_ne_zero hn)]
+    (μ n : ℝ) * log n = - ∑ d ∈ n.divisors, (μ d : ℝ) * (Λ (n/d) : ℝ) := by
+  rw [← log_apply, ← mu_log_apply, mu_log_eq_mu_mul_neg_lambda, mul_apply,
+    sum_divisorsAntidiagonal (f := (fun x y ↦ (μ : ArithmeticFunction ℝ) x * (-Λ) y)) (n := n), ← Finset.sum_neg_distrib]
+  refine sum_congr rfl fun d hd ↦ ?_
+  rw [(by rfl : (-Λ) (n / d) = - Λ (n / d))]
+  simp
 
 lemma sum_mu_Lambda (x : ℝ) : ∑ n ∈ Iic ⌊x⌋₊, (μ n : ℝ) * log n = - ∑ k ∈ Iic ⌊x⌋₊, (μ k : ℝ) * Psi (x/k) := by
   have h_interchange : ∑ n ∈ Finset.Iic ⌊x⌋₊, ∑ d ∈ Nat.divisors n, (μ d : ℝ) * (Λ (n / d)) = ∑ d ∈ Finset.Iic ⌊x⌋₊, ∑ n ∈ Finset.Iic ⌊x⌋₊, (μ d : ℝ) * (Λ (n / d)) * (if d ∣ n then 1 else 0) := by
