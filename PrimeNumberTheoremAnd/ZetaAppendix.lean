@@ -69,7 +69,8 @@ t^{-\sigma} e(\varphi_\nu(t)) dt,\]
 while
 \[du = \left(\frac{-\sigma t^{-\sigma-1}}{2\pi i \varphi_\nu'(t)} - \frac{t^{-\sigma} \varphi_\nu''(t)}{2\pi i (\varphi_\nu'(t))^2}\right) dt.\]
  -/)
- (latexEnv := "lemma")]
+ (latexEnv := "lemma")
+ (discussion := 546)]
 theorem lemma_aachIBP (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 0)
   (a b : ℝ) (ha : a > |s.im| / (2 * π * |ν|)) (hb : b > a) :
   let φ : ℝ → ℝ := fun t ↦ ν * t - (s.im / (2 * π)) * Real.log t
@@ -92,7 +93,8 @@ $g$ is monotone, and $\|g\|_{\mathrm{TV}} = |g(a)|-|g(b)|$.
 Thus, there is an $\varepsilon\in \{-1,1\}$ such that  $g(t) = \varepsilon |g(t)|$ for all $t\in [a,b]$. Hence, $g$ is monotone. Then $\|g\|_{\mathrm{TV}} = |g(a)-g(b)|$. Since $|g(a)|\geq |g(b)|$ and $g(a)$, $g(b)$
 are either both non-positive or non-negative, $|g(a)-g(b)| = |g(a)|-|g(b)|$.
  -/)
- (latexEnv := "lemma")]
+ (latexEnv := "lemma")
+ (discussion := 547)]
 theorem lemma_aachra {a b : ℝ} (ha : a < b) (g : ℝ → ℝ)
   (hg_cont : ContinuousOn g (Set.Icc a b))
   (hg_mon : AntitoneOn (fun t ↦ |g t|) (Set.Icc a b)) :
@@ -125,7 +127,8 @@ Again by Lemma \ref{lem:aachra},
 \]
 We are done by $\frac{|g(a)|+|g(b)|}{2\pi} + \frac{|g(a)|-|g(b)|}{2\pi} = \frac{|g(a)|}{\pi}$.
   -/)
-   (latexEnv := "lemma")]
+   (latexEnv := "lemma")
+   (discussion := 548)]
 theorem lemma_aachmonophase {a b : ℝ} (ha : a < b) (φ : ℝ → ℝ)
   (hφ_C1 : ContDiffOn ℝ 1 φ (Set.Icc a b))
   (hφ'_ne0 : ∀ t ∈ Set.Icc a b, deriv φ t ≠ 0)
@@ -148,7 +151,8 @@ we take logarithmic derivatives:
 since, again by $\frac{|\tau|}{t |\nu|} < 2\pi$ and $k\geq 1$, we have
 $2\pi k + \frac{\tau}{t \nu}>0$, and, as we said, $2\pi - \frac{\tau}{t \nu}>0$.
   -/)
-   (latexEnv := "lemma")]
+   (latexEnv := "lemma")
+   (discussion := 549)]
 theorem lemma_aachdecre (σ : ℝ) (hσ : 0 ≤ σ) (τ : ℝ) (ν : ℝ) (hν : ν ≠ 0)
   (a b : ℝ) (ha : a > |τ| / (2 * π * |ν|)) (hb : b > a)
   (k : ℕ) (hk : 1 ≤ k) :
@@ -190,7 +194,8 @@ that $g_2(t)$ is continuous. Hence, again by Lemma \ref{lem:aachmonophase},
  \frac{a^{-\sigma-1} |\vartheta|}{\left|\nu - \vartheta\right|^3}.
  \]
   -/)
-   (latexEnv := "lemma")]
+   (latexEnv := "lemma")
+   (discussion := 550)]
 theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 0)
   (a b : ℝ) (ha : a > |s.im| / (2 * π * |ν|)) (hb : b > a) :
   let φ : ℝ → ℝ := fun t ↦ ν * t - (s.im / (2 * π)) * Real.log t
@@ -223,7 +228,8 @@ for $\nu = \pm n$. Clearly $(-1)^{\nu} = (-1)^n$. Since $\varphi_\nu'(t) = \nu -
 \frac{1/2}{- n - \alpha} = \frac{-\alpha}{\alpha^2-n^2} = \frac{\alpha}{n^2-\alpha^2}.
 \]
   -/)
-   (latexEnv := "lemma")]
+   (latexEnv := "lemma")
+   (discussion := 551)]
 theorem lemma_aachcanc (s : ℂ) {n : ℤ} (hn : 0 < n)
   {a b : ℝ} (ha : a > |s.im| / (2 * π * n)) (hb : b > a)
   (ha' : a.IsHalfInteger) (hb' : b.IsHalfInteger) :
@@ -252,7 +258,8 @@ Lemma \ref{lem:aachfour} with $\nu = \pm n$.
 We then apply Lemma~\ref{lem:aachcanc} to combine the boundary contributions $\left.  \right|_a^b$
 for $\nu=\pm n$.
   -/)
-   (latexEnv := "proposition")]
+   (latexEnv := "proposition")
+   (discussion := 552)]
 theorem proposition_applem (s : ℂ) (hsigma : 0 ≤ s.re) {a b : ℝ}
   (ha : a > |s.im| / (2 * π)) (hb : b > a) (ha' : a.IsHalfInteger) (hb' : b.IsHalfInteger) {n : ℕ} (hn : 1 ≤ n) :
   let ϑ : ℝ := s.im / (2 * π * a)
@@ -266,13 +273,13 @@ theorem proposition_applem (s : ℂ) (hsigma : 0 ≤ s.re) {a b : ℝ}
     |ϑ| / (|n - ϑ| ^ 3) + |ϑ| / (|n + ϑ| ^ 3) := by sorry
 
 
-blueprint_comment /-- \subsection{Approximating $\zeta(s)$}
+blueprint_comment /-- \subsection{Approximating zeta(s)}
 We start with an application of Euler-Maclaurin.
 -/
 
 @[blueprint
   "lem:abadeulmac"
-  (title := "Identity for a partial sum of $\\zeta(s)$")
+  (title := "Identity for a partial sum of zeta(s)")
     (statement := /-- Let $b>0$, $b\in \mathbb{Z} + \frac{1}{2}$. Then, for all $s\in \mathbb{C}\setminus \{1\}$ with $\Re s > 0$,
 \begin{equation}\label{eq:abak1}\sum_{n\leq b} \frac{1}{n^s} = \zeta(s) + \frac{b^{1-s}}{1-s} + s \int_b^\infty \left(\{y\}-\frac{1}{2}\right) \frac{dy}{y^{s+1}}.
 \end{equation} -/)
@@ -347,7 +354,7 @@ blueprint_comment /-- We could prove these equations starting from Euler's produ
 
 @[blueprint
   "lem:abadeuleulmit1"
-  (title := "Euler/Mittag-Leffler expansion for $\\csc$ and $\\csc^2$")
+  (title := "Euler/Mittag-Leffler expansion for cosec")
     (statement :=  /-- Let $z\in \mathbb{C}$, $z\notin \mathbb{Z}$. Then
  \[ \frac{\pi}{\sin \pi z} =  \frac{1}{z} +
  \sum_n (-1)^n\left(\frac{1}{z - n} + \frac{1}{z + n}\right).\]
@@ -373,7 +380,7 @@ theorem lemma_abadeuleulmit1 {z : ℂ} (hz : ¬ ∃ n:ℤ, z = n) :
 
 @[blueprint
   "lem:abadeulmit2"
-  (title := "Euler/Mittag-Leffler expansion for $\\csc^2$")
+  (title := "Euler/Mittag-Leffler expansion for cosec squared")
     (statement := /-- Let $z\in \mathbb{C}$, $z\notin \mathbb{Z}$. Then
 \[\frac{\pi^2}{\sin^2 \pi z} = \sum_{n=-\infty}^\infty \frac{1}{(z-n)^2} .\]
   -/)
@@ -475,7 +482,7 @@ theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : �
 
 @[blueprint
   "prop:dadaro"
-  (title := "Approximation of $\\zeta(s)$ by a partial sum")
+  (title := "Approximation of zeta(s) by a partial sum")
     (statement := /-- Let $s = \sigma + i \tau$, $\sigma\geq 0$, $\tau\in \mathbb{R}$, with $s\ne 1$.
  Let $a\in \mathbb{Z} + \frac{1}{2}$ with $a>\frac{|\tau|}{2\pi}$. Then
 \begin{equation}\label{eq:abadlondie}\zeta(s) = \sum_{n\leq a} \frac{1}{n^s} - \frac{a^{1-s}}{1-s} + c_\vartheta a^{-s} + O^*\left(\frac{C_{\sigma,\vartheta}}{a^{\sigma+1}}\right),\end{equation}
