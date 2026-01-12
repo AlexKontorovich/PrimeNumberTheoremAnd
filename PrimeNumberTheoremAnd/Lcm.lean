@@ -1226,19 +1226,9 @@ theorem inv_n_pow_3_div_2_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   (discussion := 511)]
 theorem inv_n_add_sqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     1 / (n + √(n : ℝ)) ≥ (1 / (1 + 1 / (89693 : ℝ))) * (1 / (n : ℝ)) := by
-  field_simp [one_mul, Lcm.X₀] at *
-  field_simp [div_le_div_iff₀, mul_add, add_mul,
-    (mul_le_mul_of_nonneg_right (Real.le_sqrt_of_sq_le
-      (by norm_cast : 89693 ^ 2 ≤ (n : ℝ))) ↑_).trans]
-  ring_nf
-  rw [show (n : ℝ) * 89694 = ↑n * 89693 + n by ring]
-  gcongr
-  nth_rewrite 2 [show (n : ℝ) = √n * √n by
-    rw [show  √(n : ℝ) * √n = (√n) ^ 2 by ring]
-    rw [sq_sqrt (by positivity)]]
-  gcongr
-  apply Real.le_sqrt_of_sq_le
-  norm_cast
+  field_simp
+  have : 89693 ≤ √n := by grw [hn]; simp
+  linear_combination √n * this + sq_sqrt (cast_nonneg n)
 
 @[blueprint
   "lem:poly-ineq"
@@ -1287,7 +1277,7 @@ theorem prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   \]
   and
   \[
-    \prod_{i=1}^3 \Bigl(1 + \frac{\varepsilon}{1.000675^{2i}}\Bigr)
+    \prod_{i=1}^3 \Bigl(1 + \frac{\varepsilon}{1.000675^{2i} (1 + \frac{1}{89693})}\Bigr)
     \Bigl(1 + \frac{3}{8}\varepsilon\Bigr)
     \Bigl(1 - \frac{4 \times 1.000675^{12}}{89693}\varepsilon\Bigr)
     \ge
@@ -1386,56 +1376,34 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
     exact_mod_cast hp'.trans_lt <| hmid.trans_le hq'
   h_ord_3 := (exists_q_primes hn).choose_spec.2.2.2
   h_crit := by
-    have h1 : (n : ℝ)⁻¹ ≤ 1 / 89693 ^ 2 := by
-      rw [inv_eq_one_div]
-      refine one_div_le_one_div_of_le (by linarith) ?_
-      norm_cast
-    have h2 := hε_pos hn
-    have h3 : 1 + 1 / Real.log √n ^ 3 ≤ 1.000675 := by linarith [inv_cube_log_sqrt_le hn]
-    have h4 : 0 ≤ (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * (n : ℝ)⁻¹) := by
-      suffices 0 ≤ (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * (X₀ ^ 2 : ℝ)⁻¹) from by
-        apply this.trans; gcongr; norm_cast
+    have hn₀ : 0 ≤ Real.log √n := by
+      grw [hn]
+      simp [log_nonneg]
+    have h₁ : 1 - (4 : ℝ) *
+        (∏ i, (exists_p_primes hn).choose i : ℝ) / ∏ i, ((exists_q_primes hn).choose i : ℝ) ≥
+        1 - 4 * (1 + 0.000675) ^ 12 * ((1 / 89693) * (1 / n)) := by
+      grw [pq_ratio_ge hn, inv_cube_log_sqrt_le hn, ← inv_n_pow_3_div_2_le hn]
+      simp [field]
+    have : 0 ≤ 1 - 4 * (1 + 0.000675 : ℝ) ^ 12 * ((1 / 89693) * (1 / n)) := by
+      grw [hn]
       norm_num
-    have h5 : 1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * (n : ℝ)⁻¹ ≤
-      1 - 4 * (1 + 1 / Real.log √n ^ 3) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
-      rw [inv_eq_one_div, div_eq_mul_one_div, div_eq_mul_one_div (b := (n : ℝ) ^ (3 / 2 : ℝ)),
-        mul_assoc]
-      have := inv_n_pow_3_div_2_le hn
-      gcongr
+    have := this.trans h₁
+    have hn' : (0 : ℝ) ≤ 1 / ↑n ∧ (1 : ℝ) / ↑n ≤ 1 / 89693 ^ 2 := ⟨by simp, by grw [hn]; simp⟩
+    grw [Lcm.prod_q_ge hn, Lcm.prod_p_ge hn, h₁]
+    simp_rw [div_eq_mul_one_div (_ ^ (_ : ℝ) : ℝ) (n : ℝ),
+      show 3 / (8 * n : ℝ) = 3 / 8 * (1 / n) by field_simp, ← one_div_mul_one_div]
+    grw [inv_cube_log_sqrt_le hn, inv_n_add_sqrt_ge hn]
+    set ε : ℝ := 1 / n
     calc
-    _ ≤ ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((i : ℕ) + 1 : ℝ) / n) :=
-        prod_q_ge hn
-    _ ≤ ∏ i : Fin 3, (1 + (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) * (n : ℝ)⁻¹) := by
-        simp only [div_eq_mul_inv _ (n : ℝ)]
-        gcongr with i
-    _ ≤ 1 + 3.01 * (n : ℝ)⁻¹ + 3.01 * (n : ℝ)⁻¹ ^ 2 + 1.01 * (n : ℝ)⁻¹ ^ 3 :=
-        prod_epsilon_le ⟨by positivity, h1⟩
-    _ ≤ 1 + 3.36683 * (n : ℝ)⁻¹ - 0.01 * (n : ℝ)⁻¹ ^ 2 :=
-        final_comparison ⟨by positivity, h1⟩
-    _ ≤ (∏ i : Fin 3, (1 + (n : ℝ)⁻¹ / ((1.000675 : ℝ) ^ (2 * ((i : ℕ) + 1 : ℝ))) *
-          (1 / (1 + 1/89693)))) * (1 + (3 : ℝ) / 8 * (n : ℝ)⁻¹) *
-          (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * (n : ℝ)⁻¹) :=
-        prod_epsilon_ge ⟨by positivity, h1⟩
-    _ ≤ (∏ i : Fin 3,
-          (1 + 1 / ((1 + 1 / (log √(n : ℝ)) ^ 3) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n)))) *
-          (1 + (3 : ℝ) / 8 * (n : ℝ)⁻¹) *
-          (1 - 4 * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ 12 / n ^ (3 / 2 : ℝ)) := by
-        gcongr with i
-        rw [div_eq_mul_one_div, mul_comm (n : ℝ)⁻¹, inv_eq_one_div, ← one_div_mul_one_div,
-          mul_assoc, mul_comm (1 / (n : ℝ))]
-        gcongr
-        · field_simp; gcongr
-        · exact (ge_iff_le.1 (inv_n_add_sqrt_ge hn))
-    _ ≤ (∏ i, (1 + (1 : ℝ) /
-          ((exists_p_primes hn).choose i * ((exists_p_primes hn).choose i + 1)))) *
-          (1 + (3 : ℝ) / (8 * n)) *
-          (1 - ((4 : ℝ) * ∏ i, ((exists_p_primes hn).choose i : ℝ)) /
-          ∏ i, ((exists_q_primes hn).choose i : ℝ)) := by
-        refine mul_le_mul_of_nonneg ?_ (ge_iff_le.1 (pq_ratio_ge hn)) (by positivity)
-          (h4.trans ?_)
-        · refine mul_le_mul_of_nonneg (prod_p_ge hn) (by ring_nf; rfl) ?_ (by positivity)
-          exact Finset.prod_nonneg fun i _ => by positivity
-        · exact h5.trans (ge_iff_le.1 (pq_ratio_ge hn))
+      _ ≤ ∏ i : Fin 3, (1 + (1 + 0.000675 : ℝ) ^ (i + 1 : ℝ) * ε) := by gcongr
+      _ = ∏ i : Fin 3, (1 + (1.000675 : ℝ) ^ (i + 1 : ℝ) * ε) := by norm_num [div_eq_mul_inv]
+      _ ≤ _ := (prod_epsilon_le (ε := ε) hn')
+      _ ≤ _ := final_comparison hn'
+      _ ≤ _ := by
+        grw [← prod_epsilon_ge hn']
+        apply le_of_eq
+        simp [field]
+        ring_nf
 
 blueprint_comment /--
 \subsection{Conclusion for large \(n\)}
