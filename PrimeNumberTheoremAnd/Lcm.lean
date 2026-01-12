@@ -1222,12 +1222,14 @@ theorem inv_n_pow_3_div_2_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are
   decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at
   \(n=X_0^2\).  One can verify numerically or symbolically. -/)
-  (latexEnv := "lemma")]
-theorem inv_n_add_sqrt_ge (n : ℕ) (hn : n ≥ X₀ ^ 2) : 1 / (n + √(n : ℝ)) ≥ (1 / (1 + 1 / (89693 : ℝ))) * (1 / (n : ℝ)) := by
--- solved with help from AlphaProof
-  field_simp [one_mul,Lcm.X₀] at *
-  field_simp [div_le_div_iff₀, mul_add, add_mul,(mul_le_mul_of_nonneg_right (Real.le_sqrt_of_sq_le
-    (by norm_cast:89693^2≤(n:ℝ))) ↑_).trans]
+  (latexEnv := "lemma")
+  (discussion := 511)]
+theorem inv_n_add_sqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    1 / (n + √(n : ℝ)) ≥ (1 / (1 + 1 / (89693 : ℝ))) * (1 / (n : ℝ)) := by
+  field_simp [one_mul, Lcm.X₀] at *
+  field_simp [div_le_div_iff₀, mul_add, add_mul,
+    (mul_le_mul_of_nonneg_right (Real.le_sqrt_of_sq_le
+      (by norm_cast : 89693 ^ 2 ≤ (n : ℝ))) ↑_).trans]
   ring_nf
   rw [show (n : ℝ) * 89694 = ↑n * 89693 + n by ring]
   gcongr
@@ -1423,7 +1425,7 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
           mul_assoc, mul_comm (1 / (n : ℝ))]
         gcongr
         · field_simp; gcongr
-        · exact (ge_iff_le.1 (inv_n_add_sqrt_ge n hn))
+        · exact (ge_iff_le.1 (inv_n_add_sqrt_ge hn))
     _ ≤ (∏ i, (1 + (1 : ℝ) /
           ((exists_p_primes hn).choose i * ((exists_p_primes hn).choose i + 1)))) *
           (1 + (3 : ℝ) / (8 * n)) *
