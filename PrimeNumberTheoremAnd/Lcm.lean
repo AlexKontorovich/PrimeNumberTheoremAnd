@@ -1395,7 +1395,6 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
         1 - 4 * (1 + 0.000675) ^ 12 * ((1 / 89693) * (1 / n)) := by
       grw [pq_ratio_ge hn, inv_cube_log_sqrt_le hn, ← inv_n_pow_3_div_2_le hn]
       simp [field]
-      rfl
     have : 0 ≤ 1 - 4 * (1 + 0.000675 : ℝ) ^ 12 * ((1 / 89693) * (1 / n)) := by
       grw [hn]
       norm_num
