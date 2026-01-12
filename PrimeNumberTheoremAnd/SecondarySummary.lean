@@ -7,19 +7,18 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-In this section we summarize the secondary results known in the literature (or obtained from this project), and (if their proof has already been formalized) provide a proof that reduces them to primary results, as well as implications of primary results to secondary results with appropriate choices of parameters.
+Here we list some papers that we plan to incorporate into this section in the future, and list
+some results that have not yet been moved into dedicated paper sections.
 
-Key references:
+References to add:
 
 Dusart: \url{https://piyanit.nl/wp-content/uploads/2020/10/art_10.1007_s11139-016-9839-4.pdf}
 
-FKS1: Fiori--Kadiri--Swidninsky arXiv:2204.02588
+PT: D. J. Platt and T. S. Trudgian, The error term in the prime number theorem,
+Math. Comp. 90 (2021), no. 328, 871–881.
 
-FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
-
-PT: D. J. Platt and T. S. Trudgian, The error term in the prime number theorem, Math. Comp. 90 (2021), no. 328, 871–881.
-
-JY: D. R. Johnston, A. Yang, Some explicit estimates for the error term in the prime number theorem, arXiv:2204.01980.
+JY: D. R. Johnston, A. Yang, Some explicit estimates for the error term in the prime number
+theorem, arXiv:2204.01980.
 -/
 
 open Real
@@ -59,7 +58,8 @@ theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := sorry
   (statement := /--
   One has
   \[
-  |\pi(x) - \mathrm{Li}(x)| \leq 0.028 x (\log x)^{0.801} \exp(-0.1853 \log^{3/5} x / (\log \log x)^{1/5}))
+  |\pi(x) - \mathrm{Li}(x)| \leq 0.028 x (\log x)^{0.801}
+    \exp(-0.1853 \log^{3/5} x / (\log \log x)^{1/5}))
   \]
   for all $x \geq 2$.
   -/)

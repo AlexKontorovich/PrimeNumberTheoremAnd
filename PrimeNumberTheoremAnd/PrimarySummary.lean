@@ -9,16 +9,11 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-In this section we summarize the primary results known in the literature, and (if their proof has already been formalized) provide a proof.  TO DO: Move many of these results into dedicated files for each paper.
+In this section we list some papers that we plan to incorporate into this section in the future,
+and list some results that have not yet been moved into dedicated paper sections.
 
-Key references:
+References to add:
 
-FKS1: Fiori--Kadiri--Swidninsky arXiv:2204.02588
-
-FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
-
-MT: M. J. Mossinghoff and T. S. Trudgian, Nonnegative trigonometric polynomials and a zero-free region for the Riemann zeta-function, J. Number Theory. 157 (2015), 329–349.
-
-MTY: M. J. Mossinghoff, T. S. Trudgian, and A. Yang, Nonnegative trigonometric polynomials and a zero-free region for the Riemann zeta-function, arXiv:2212.06867.
+None yet.
 
 -/

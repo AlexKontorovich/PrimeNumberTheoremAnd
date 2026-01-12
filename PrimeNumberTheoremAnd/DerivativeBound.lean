@@ -38,11 +38,15 @@ import PrimeNumberTheoremAnd.BorelCaratheodory
   \frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
   Thus,
   \begin{equation}\label{pickupPoint1}
-      |f'(z)|=\left|\frac{1}{2\pi}\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt\right|\leq\frac{1}{2\pi}\int_0^{2\pi}\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
+      |f'(z)|=\left|\frac{1}{2\pi}\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt\right|
+      \leq\frac{1}{2\pi}\int_0^{2\pi}\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
   \end{equation}
-  Now applying Theorem \ref{borelCaratheodory-closedBall}, and noting that $r'-r\leq|r'e^{it}-z|$, we have that
-  $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
-  Substituting this into Equation (\ref{pickupPoint1}) and evaluating the integral completes the proof.
+  Now applying Theorem \ref{borelCaratheodory-closedBall}, and noting that $r'-r\leq|r'e^{it}-z|$,
+  we have that
+  $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|
+  \leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
+  Substituting this into Equation (\ref{pickupPoint1}) and evaluating the integral completes the
+  proof.
   -/)
   (proofUses := ["borelCaratheodory-closedBall"])]
 theorem derivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
