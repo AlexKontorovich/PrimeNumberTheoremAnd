@@ -1076,8 +1076,8 @@ theorem proposition_applem (s : ℂ) (hsigma : 0 ≤ s.re) {a b : ℝ} (ha : a >
       congr with t
       norm_num [e, Complex.cos]
       ring_nf
-    · exact (h_cont_pow.mul (continuous_exp.comp (by continuity)).continuousOn).integrableOn_Icc
-    · exact (h_cont_pow.mul (continuous_exp.comp (by continuity)).continuousOn).integrableOn_Icc
+    · exact (h_cont_pow.mul (Complex.continuous_exp.comp (by continuity)).continuousOn).integrableOn_Icc
+    · exact (h_cont_pow.mul (Complex.continuous_exp.comp (by continuity)).continuousOn).integrableOn_Icc
   constructor
   · have h_lem := lemma_aachcanc s (by grind) h_bound_aux hb ha' hb'
     simp only [zpow_natCast, Int.cast_natCast, one_div, neg_mul] at h_lem
@@ -1501,10 +1501,10 @@ theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : �
     let f : ℝ → ℂ := fun y ↦
       if a ≤ y ∧ y ≤ b then (y ^ (-s.re) : ℝ) * e (-(s.im / (2 * π)) * Real.log y) else 0
     let g : ℝ → ℂ := fun t ↦
-      if t ≠ 0 then (1 / sin (π * t) : ℂ) - (1 / (π * t : ℂ)) else 0
+      if t ≠ 0 then (1 / Complex.sin (π * t) : ℂ) - (1 / (π * t : ℂ)) else 0
     let C : ℝ :=
       if ϑ ≠ 0 then
-        s.re / 2 * ((1 / (sin (π * ϑ) ^ 2 : ℂ)).re - (1 / ((π * ϑ) ^ 2 : ℂ)).re) +
+        s.re / 2 * ((1 / (Complex.sin (π * ϑ) ^ 2 : ℂ)).re - (1 / ((π * ϑ) ^ 2 : ℂ)).re) +
           |ϑ| / (2 * π ^ 2) * ((1 / ((1 - |ϑ|) ^ 3 : ℝ)) + 2 * (riemannZeta 3).re - 1)
       else
         s.re / 6
@@ -1556,13 +1556,13 @@ theorem proposition_dadaro {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a : 
     let ϑ : ℝ := s.im / (2 * π * a)
     let C : ℝ :=
       if ϑ ≠ 0 then
-        s.re / 2 * ((1 / (sin (π * ϑ) ^ 2 : ℂ)).re - (1 / ((π * ϑ) ^ 2 : ℂ)).re) +
+        s.re / 2 * ((1 / (Complex.sin (π * ϑ) ^ 2 : ℂ)).re - (1 / ((π * ϑ) ^ 2 : ℂ)).re) +
           |ϑ| / (2 * π ^ 2) * ((1 / ((1 - |ϑ|) ^ 3 : ℝ)) + 2 * (riemannZeta 3).re - 1)
       else
         s.re / 6
     let c : ℂ :=
       if ϑ ≠ 0 then
-        I / 2 * ((1 / sin (π * ϑ) : ℂ) - (1 / (π * ϑ : ℂ)))
+        I / 2 * ((1 / Complex.sin (π * ϑ) : ℂ) - (1 / (π * ϑ : ℂ)))
       else
         0
     ∃ E : ℂ, riemannZeta s =
