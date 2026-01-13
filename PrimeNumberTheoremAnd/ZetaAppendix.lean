@@ -3,6 +3,7 @@ import Mathlib.Algebra.Order.Ring.Star
 import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Analysis.ConstantSpeed
 import Mathlib.Analysis.Real.Pi.Bounds
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Cotangent
 import Mathlib.Data.Int.Star
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.NumberTheory.LSeries.RiemannZeta
@@ -745,10 +746,10 @@ after reindexing the second sum. Regrouping terms again, we obtain our equation.
 -/)
   (latexEnv := "lemma")
   (discussion := 569)]
-theorem lemma_abadeuleulmit1 {z : ℂ} (hz : ¬∃ n : ℤ, z = n) :
+theorem lemma_abadeuleulmit1 {z : ℂ} (hz : z ∈ integerComplement) :
     (π / Complex.sin (π * z) : ℂ) =
       (1 / z : ℂ) + ∑' n : ℤ, (-1) ^ n * ((1 / (z - n) : ℂ) + (1 / (z + n) : ℂ)) := by
-  sorry
+  have := cot_series_rep'
 
 @[blueprint
   "lem:abadeulmit2"
