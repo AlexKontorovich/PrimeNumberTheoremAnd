@@ -716,8 +716,8 @@ used on the \(p\)-side than the \(q\)-side to restore an asymptotic advantage.
 
 abbrev X₀ := 89693
 
-lemma hsqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : √(n : ℝ) ≥ 89693 := by
-  simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ 89693 ^ 2)
+lemma hsqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : √(n : ℝ) ≥ X₀ := by
+  simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ X₀ ^ 2)
 
 lemma log_X₀_gt : Real.log X₀ > 11.4 := by
   rw [gt_iff_lt, show (11.4 : ℝ) = 57 / (5 : ℕ) by norm_num, div_lt_iff₀ (by norm_num),
@@ -1196,7 +1196,7 @@ theorem inv_cube_log_sqrt_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   \(n=X_0^2\).  One can verify numerically or symbolically. -/)
   (latexEnv := "lemma")]
 theorem inv_n_pow_3_div_2_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    1 / ((n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (89693 : ℝ)) * (1 / (n : ℝ)) := by
+    1 / ((n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (X₀ : ℝ)) * (1 / (n : ℝ)) := by
   have hn_pos : (0 : ℝ) < n := cast_pos.mpr (lt_of_lt_of_le (by grind) hn)
   rw [one_div_mul_one_div, one_div_le_one_div (rpow_pos_of_pos hn_pos _)
     (mul_pos (by norm_num) hn_pos), show (3 / 2 : ℝ) = 1 + 1 / 2 by ring,
@@ -1225,9 +1225,9 @@ theorem inv_n_pow_3_div_2_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   (latexEnv := "lemma")
   (discussion := 511)]
 theorem inv_n_add_sqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    1 / (n + √(n : ℝ)) ≥ (1 / (1 + 1 / (89693 : ℝ))) * (1 / (n : ℝ)) := by
+    1 / (n + √(n : ℝ)) ≥ (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) := by
   field_simp
-  have : 89693 ≤ √n := by grw [hn]; simp
+  have : X₀ ≤ √n := by grw [hn]; simp
   linear_combination √n * this + sq_sqrt (cast_nonneg n)
 
 @[blueprint
@@ -1260,7 +1260,7 @@ theorem inv_n_add_sqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   that can be checked mechanically.
   -/)
   (latexEnv := "lemma")]
-theorem prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
+theorem prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
     ∏ i : Fin 3, (1 + (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) * ε) ≤
       1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 := by
   norm_cast; norm_num [Fin.prod_univ_three]; nlinarith
@@ -1295,10 +1295,10 @@ theorem prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   that can be checked mechanically.
   -/)
   (latexEnv := "lemma")]
-theorem prod_epsilon_ge {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
+theorem prod_epsilon_ge {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
     (∏ i : Fin 3,
-      (1 + ε / ((1.000675 : ℝ) ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 / (1 + 1/89693)))) *
-        (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * (1.000675 : ℝ) ^ 12 / 89693 * ε) ≥
+      (1 + ε / ((1.000675 : ℝ) ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 / (1 + 1/X₀)))) *
+        (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * (1.000675 : ℝ) ^ 12 / X₀ * ε) ≥
       1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
   norm_cast; norm_num [Fin.prod_univ_three]
   nlinarith [pow_nonneg hε.left 3, pow_nonneg hε.left 4]
@@ -1328,7 +1328,7 @@ theorem prod_epsilon_ge {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : �
   finite computation that can be verified mechanically.
   -/)
   (latexEnv := "lemma")]
-theorem final_comparison {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (89693 ^ 2 : ℝ)) :
+theorem final_comparison {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
     1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
   nlinarith
 
@@ -1350,7 +1350,7 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
   n := n
   p := (exists_p_primes hn).choose
   q := (exists_q_primes hn).choose
-  hn := le_trans (by decide : 1 ≤ 89693 ^ 2) hn
+  hn := le_trans (by decide : 1 ≤ X₀ ^ 2) hn
   hp := (exists_p_primes hn).choose_spec.1
   hp_mono := (exists_p_primes hn).choose_spec.2.1
   hq := (exists_q_primes hn).choose_spec.1
@@ -1381,14 +1381,14 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
       simp [log_nonneg]
     have h₁ : 1 - (4 : ℝ) *
         (∏ i, (exists_p_primes hn).choose i : ℝ) / ∏ i, ((exists_q_primes hn).choose i : ℝ) ≥
-        1 - 4 * (1 + 0.000675) ^ 12 * ((1 / 89693) * (1 / n)) := by
+        1 - 4 * (1 + 0.000675) ^ 12 * ((1 / X₀) * (1 / n)) := by
       grw [pq_ratio_ge hn, inv_cube_log_sqrt_le hn, ← inv_n_pow_3_div_2_le hn]
       simp [field]
-    have : 0 ≤ 1 - 4 * (1 + 0.000675 : ℝ) ^ 12 * ((1 / 89693) * (1 / n)) := by
+    have : 0 ≤ 1 - 4 * (1 + 0.000675 : ℝ) ^ 12 * ((1 / X₀) * (1 / n)) := by
       grw [hn]
       norm_num
     have := this.trans h₁
-    have hn' : (0 : ℝ) ≤ 1 / ↑n ∧ (1 : ℝ) / ↑n ≤ 1 / 89693 ^ 2 := ⟨by simp, by grw [hn]; simp⟩
+    have hn' : (0 : ℝ) ≤ 1 / ↑n ∧ (1 : ℝ) / ↑n ≤ 1 / X₀ ^ 2 := ⟨by simp, by grw [hn]; simp⟩
     grw [Lcm.prod_q_ge hn, Lcm.prod_p_ge hn, h₁]
     simp_rw [div_eq_mul_one_div (_ ^ (_ : ℝ) : ℝ) (n : ℝ),
       show 3 / (8 * n : ℝ) = 3 / 8 * (1 / n) by field_simp, ← one_div_mul_one_div]
@@ -1418,7 +1418,7 @@ blueprint_comment /--
   \(p_1,p_2,p_3,q_1,q_2,q_3\) satisfying the hypotheses of Theorem~\ref{thm:criterion}.
   Hence \(L_n\) is not highly abundant. -/)
   (proofUses := ["prop:ineq-holds-large-n", "thm:criterion"])]
-theorem L_not_HA_of_ge (n : ℕ) (hn : n ≥ 89693 ^ 2) : ¬HighlyAbundant (L n) :=
+theorem L_not_HA_of_ge (n : ℕ) (hn : n ≥ X₀ ^ 2) : ¬HighlyAbundant (L n) :=
   (Criterion.mk' hn).not_highlyAbundant
 
 end Lcm
