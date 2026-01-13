@@ -338,10 +338,10 @@ We start with an application of Euler-Maclaurin.
 -/
 
 @[blueprint
-  "lem:abadeulmac"
+  "lem:abadeulmac'"
   (title := "Identity for a partial sum of zeta(s)")
   (statement := /--
-Let $b>0$, $b\in \mathbb{Z}$. ***EDITED***
+Let $b>0$, $b\in \mathbb{Z}$.
 Then, for all $s\in \mathbb{C}\setminus \{1\}$ with $\Re s > 0$,
 \begin{equation}\label{eq:abak1}
   \sum_{n \leq b} \frac{1}{n^s} = \zeta(s) + \frac{b^{1-s}}{1-s} + \frac{b^{-s}}{2}
@@ -364,7 +364,7 @@ to $\{s\in \mathbb{C}: \Re s>0, s\ne 1\}$; thus, the equation holds throughout t
 -/)
   (latexEnv := "lemma")
   (discussion := 566)]
-theorem lemma_abadeulmac {b : ℕ} (hb : 0 < b) {s : ℂ}
+theorem lemma_abadeulmac' {b : ℕ} (hb : 0 < b) {s : ℂ}
     (hs1 : s ≠ 1) (hsigma : 0 < s.re) :
     ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) =
       riemannZeta s + (b ^ (1 - s) : ℂ) / (1 - s) + (b ^ (-s) : ℂ) / (2) +
@@ -381,7 +381,6 @@ theorem lemma_abadeulmac {b : ℕ} (hb : 0 < b) {s : ℂ}
     rw [← Finset.Ico_succ_right_eq_Icc]
     congr
     ext x
-    push_cast
     rw [cpow_neg]]
   rw [show (∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) + -(b : ℂ) ^ (1 - s) / (1 - s) + -(b : ℂ) ^ (-s) / 2 +
           s * ∫ (x : ℝ) in Set.Ioi ↑b, (⌊x⌋ + 1 / 2 - x : ℂ) / (x : ℂ) ^ (s + 1)) +
@@ -406,6 +405,44 @@ theorem lemma_abadeulmac {b : ℕ} (hb : 0 < b) {s : ℂ}
   ring_nf
   push_cast
   ring_nf
+
+
+@[blueprint
+  "lem:abadeulmac"
+  (title := "Identity for a partial sum of zeta(s)")
+  (statement := /--
+Let $b>0$, $b\in \mathbb{Z} + \frac{1}{2}$.
+Then, for all $s\in \mathbb{C}\setminus \{1\}$ with $\Re s > 0$,
+\begin{equation}\label{eq:abak1}
+  \sum_{n\leq b} \frac{1}{n^s} = \zeta(s) + \frac{b^{1-s}}{1-s}
+  + s \int_b^\infty \left(\{y\}-\frac{1}{2}\right) \frac{dy}{y^{s+1}}.
+\end{equation}
+-/)
+  (proof := /--
+Assume first that $\Re s > 1$. By first-order Euler-Maclaurin and
+$b\in \mathbb{Z}+\frac{1}{2}$,
+\[\sum_{n>b}\frac{1}{n^s} = \int_b^\infty \frac{dy}{y^s} + \int_b^\infty
+ \left(\{y\}-\frac{1}{2}\right) d\left(\frac{1}{y^s}\right).
+\]
+Here $\int_b^\infty \frac{dy}{y^s} = -\frac{b^{1-s}}{1-s}$ and
+$d\left(\frac{1}{y^s}\right) = - \frac{s}{y^{s+1}} dy$.
+Hence, by $\sum_{n\leq b} \frac{1}{n^s} = \zeta(s) - \sum_{n>b} \frac{1}{n^s}$
+for $\Re s > 1$,
+$$\sum_{n\leq b} \frac{1}{n^s} = \zeta(s) + \frac{b^{1-s}}{1-s} +
+\int_b^\infty \left(\{y\}-\frac{1}{2}\right) \frac{s}{y^{s+1}} dy.$$
+Since the integral converges absolutely for $\Re s > 0$, both sides extend holomorphically
+to $\{s\in \mathbb{C}: \Re s>0, s\ne 1\}$; thus, the equation holds throughout that region.
+-/)
+  (latexEnv := "lemma")
+  (discussion := 566)]
+theorem lemma_abadeulmac {b : ℝ} (hb : 0 < b) (hb' : b.IsHalfInteger) {s : ℂ}
+    (hs1 : s ≠ 1) (hsigma : 0 < s.re) :
+    ∑ n ∈ Finset.Icc 1 ⌊b⌋₊, (n : ℂ) ^ (-s) =
+      riemannZeta s + (b ^ (1 - s) : ℂ) / (1 - s) +
+      s * ∫ y in Set.Ioi b, (Int.fract y - 1 / 2) * (y ^ (-(s.re + 1)) : ℝ) := by
+  unfold IsHalfInteger at hb'
+  have := @lemma_abadeulmac'
+  sorry
 
 @[blueprint
   "lem:abadtoabsum"
