@@ -1939,12 +1939,9 @@ lemma sum_mobius_mul_floor (x : ℝ) (hx : 1 ≤ x) :
   ∑ n ∈ Iic ⌊x⌋₊, (ArithmeticFunction.moebius n : ℝ) * (⌊x/n⌋ : ℝ) = 1 := by
   norm_cast
   convert ArithmeticFunction.sum_Ioc_mul_zeta_eq_sum μ ⌊x⌋₊ |>.symm using 1
-  · have : Iic ⌊x⌋₊ = {0} ∪ Ioc 0 ⌊x⌋₊ := by
-      simp
-      rfl
-    rw [this, sum_union (by simp)]
-    simp only [sum_singleton, ArithmeticFunction.map_zero, CharP.cast_eq_zero, div_zero,
-      Int.floor_zero, mul_zero, zero_add, Int.natCast_ediv]
+  · rw [Iic_eq_Icc, bot_eq_zero, ← add_sum_Ioc_eq_sum_Icc (by simp)]
+    simp only [ArithmeticFunction.map_zero, CharP.cast_eq_zero, div_zero, Int.floor_zero, mul_zero,
+      zero_add, Int.natCast_ediv]
     refine sum_congr rfl fun n hn ↦ ?_
     congr
     norm_cast
@@ -1972,19 +1969,22 @@ lemma mu_log_mul_zeta : mu_log * ArithmeticFunction.zeta = -Λ := by
 lemma mu_log_eq_mu_mul_neg_lambda : mu_log = μ * -Λ := by
   rw [← mu_log_mul_zeta, mul_comm, mul_assoc, coe_zeta_mul_coe_moebius, mul_one]
 
+lemma ArithmeticFunction.neg_apply {R : Type*} [NegZeroClass R] {f : ArithmeticFunction R} {n : ℕ}
+    : (-f) n = -f n := by
+  rfl
+
 lemma sum_mu_Lambda (x : ℝ) : ∑ n ∈ Iic ⌊x⌋₊, (μ n : ℝ) * log n = - ∑ k ∈ Iic ⌊x⌋₊, (μ k : ℝ) * Psi (x/k) := by
-  rw [(by rfl : Iic ⌊x⌋₊ = Icc 0 ⌊x⌋₊), ← add_sum_Ioc_eq_sum_Icc (by simp), ← add_sum_Ioc_eq_sum_Icc (by simp)]
+  rw [Iic_eq_Icc, bot_eq_zero, ← add_sum_Ioc_eq_sum_Icc (by simp), ← add_sum_Ioc_eq_sum_Icc (by simp)]
   simp only [ArithmeticFunction.map_zero, Int.cast_zero, CharP.cast_eq_zero, log_zero, mul_zero,
     zero_add, div_zero, zero_mul]
   simp_rw [← log_apply, ← mu_log_apply, mu_log_eq_mu_mul_neg_lambda]
   rw [sum_Ioc_mul_eq_sum_sum, ← sum_neg_distrib]
   refine sum_congr rfl fun n hn ↦ ?_
-  conv => lhs; arg 2; arg 2; ext m; rw [(by rfl : (-Λ) m = - Λ m)]
-  rw [sum_neg_distrib]
+  simp_rw [ArithmeticFunction.neg_apply, sum_neg_distrib]
   ring_nf
   congr 2
   unfold Psi
-  rw [(by rfl : Iic ⌊x * (↑n)⁻¹⌋₊ = Icc 0 ⌊x * (↑n)⁻¹⌋₊), ← add_sum_Ioc_eq_sum_Icc (by simp)]
+  rw [Iic_eq_Icc, bot_eq_zero, ← add_sum_Ioc_eq_sum_Icc (by simp)]
   simp only [ArithmeticFunction.map_zero, zero_add]
   congr
   rw [← floor_div_natCast]
