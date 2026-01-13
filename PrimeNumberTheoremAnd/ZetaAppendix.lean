@@ -853,7 +853,7 @@ We could prove these equations starting from Euler's product for $\sin \pi z$.
   (statement := /--
 Let $z\in \mathbb{C}$, $z\notin \mathbb{Z}$. Then
 \[ \frac{\pi}{\sin \pi z} = \frac{1}{z} +
- \sum_n (-1)^n\left(\frac{1}{z - n} + \frac{1}{z + n}\right).
+ \sum_{n > 0} (-1)^n\left(\frac{1}{z - n} + \frac{1}{z + n}\right).
 \]
 -/)
   (proof := /--
@@ -877,8 +877,8 @@ after reindexing the second sum. Regrouping terms again, we obtain our equation.
   (latexEnv := "lemma")
   (discussion := 569)]
 theorem lemma_abadeuleulmit1 {z : ℂ} (hz : ¬∃ n : ℤ, z = n) :
-    (π / Complex.sin (π * z) : ℂ) =
-      (1 / z : ℂ) + ∑' n : ℤ, (-1) ^ n * ((1 / (z - n) : ℂ) + (1 / (z + n) : ℂ)) := by
+    (π / Complex.sin (π * z)) =
+      (1 / z) + ∑' (n : {m : ℤ // m > 0}), (-1) ^ (n : ℤ) * ((1 / (z - n) : ℂ) + (1 / (z + n) : ℂ)) := by
   sorry
 
 @[blueprint
