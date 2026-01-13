@@ -624,11 +624,11 @@ We start with an application of Euler-Maclaurin.
 
 @[blueprint
   "lem:abadeulmac'"
-  (title := "Identity for a partial sum of zeta(s)")
+  (title := "Identity for a partial sum of zeta(s) for integer b")
   (statement := /--
 Let $b>0$, $b\in \mathbb{Z}$.
 Then, for all $s\in \mathbb{C}\setminus \{1\}$ with $\Re s > 0$,
-\begin{equation}\label{eq:abak1}
+\begin{equation}\label{eq:abak1'}
   \sum_{n \leq b} \frac{1}{n^s} = \zeta(s) + \frac{b^{1-s}}{1-s} + \frac{b^{-s}}{2}
   + s \int_b^\infty \left(\{y\}-\frac{1}{2}\right) \frac{dy}{y^{s+1}}.
 \end{equation}
