@@ -1,13 +1,11 @@
 import Architect
+import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Algebra.Order.Ring.Star
 import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Analysis.ConstantSpeed
 import Mathlib.Analysis.Real.Pi.Bounds
 import Mathlib.Data.Int.Star
 import Mathlib.Data.Real.StarOrdered
-import Mathlib.NumberTheory.LSeries.RiemannZeta
-import Mathlib.Tactic.LinearCombination'
-import PrimeNumberTheoremAnd.ZetaDefinitions
 import PrimeNumberTheoremAnd.ZetaBounds
 
 blueprint_comment /--
@@ -51,7 +49,7 @@ topic/Let.20us.20formalize.20an.20appendix}
 
 namespace ZetaAppendix
 
-open Real Complex MeasureTheory
+open Real Complex MeasureTheory Finset
 
 -- may want to move this to a more globally accessible location
 
@@ -171,9 +169,9 @@ theorem lemma_aachra {a b : ℝ} (ha : a < b) (g : ℝ → ℝ)
       · refine csSup_le ?_ ?_ <;> norm_num
         · exact ⟨_, ⟨⟨0, ⟨fun _ ↦ a, fun _ _ _ ↦ by grind, fun _ ↦ ⟨by grind, by grind⟩⟩⟩, rfl⟩⟩
         · rintro _ n x hx₁ hx₂ rfl
-          calc ∑ i ∈ Finset.range n, edist (g (x (i + 1))) (g (x i))
-              ≤ ∑ i ∈ Finset.range n, ENNReal.ofReal (g (x i) - g (x (i + 1))) := by
-                refine Finset.sum_le_sum (fun i _ ↦ ?_)
+          calc ∑ i ∈ range n, edist (g (x (i + 1))) (g (x i))
+              ≤ ∑ i ∈ range n, ENNReal.ofReal (g (x i) - g (x (i + 1))) := by
+                refine sum_le_sum (fun i _ ↦ ?_)
                 simp only [edist_dist, sub_nonneg, h_monotone (hx₂ i) (hx₂ (i + 1)) (hx₁ (Nat.le_succ _)),
                   ENNReal.ofReal_le_ofReal_iff]
                 rw [dist_eq_norm, Real.norm_of_nonpos] <;>
@@ -181,7 +179,7 @@ theorem lemma_aachra {a b : ℝ} (ha : a < b) (g : ℝ → ℝ)
             _ ≤ ENNReal.ofReal (g a - g b) := by
                 rw [← ENNReal.ofReal_sum_of_nonneg] <;> norm_num
                 · apply ENNReal.ofReal_le_ofReal
-                  have := Finset.sum_range_sub' (fun i ↦ g (x i)) n
+                  have := sum_range_sub' (fun i ↦ g (x i)) n
                   norm_num at *
                   linarith [h_monotone ⟨le_refl a, ha.le⟩ (hx₂ 0) (by linarith [hx₂ 0]),
                     h_monotone (hx₂ n) ⟨ha.le, le_refl b⟩ (by linarith [hx₂ n])]
@@ -203,14 +201,14 @@ theorem lemma_aachra {a b : ℝ} (ha : a < b) (g : ℝ → ℝ)
       · refine csSup_le ?_ ?_ <;> norm_num
         · exact ⟨_, ⟨⟨0, ⟨fun _ ↦ a, fun _ _ _ ↦ by grind, fun _ ↦ ⟨by grind, by grind⟩⟩⟩, rfl⟩⟩
         · rintro _ n x hx₁ hx₂ rfl
-          calc ∑ i ∈ Finset.range n, edist (g (x (i + 1))) (g (x i))
-              ≤ ∑ i ∈ Finset.range n, ENNReal.ofReal (g (x (i + 1)) - g (x i)) := by
-                refine Finset.sum_le_sum (fun i _ ↦ ?_)
+          calc ∑ i ∈ range n, edist (g (x (i + 1))) (g (x i))
+              ≤ ∑ i ∈ range n, ENNReal.ofReal (g (x (i + 1)) - g (x i)) := by
+                refine sum_le_sum (fun i _ ↦ ?_)
                 rw [edist_dist, dist_eq_norm, Real.norm_of_nonneg (sub_nonneg.mpr (h_monotone (hx₂ _)
                   (hx₂ _) (hx₁ (Nat.le_succ _))))]
             _ ≤ ENNReal.ofReal (g b - g a) := by
                 rw [← ENNReal.ofReal_sum_of_nonneg]
-                · rw [Finset.sum_range_sub (fun i ↦ g (x i))]
+                · rw [sum_range_sub (fun i ↦ g (x i))]
                   apply ENNReal.ofReal_le_ofReal
                   have hx0_mem : x 0 ∈ Set.Icc a b := ⟨by linarith [hx₂ 0], by linarith [hx₂ 0]⟩
                   have hxn_mem : x n ∈ Set.Icc a b := ⟨by linarith [hx₂ n], by linarith [hx₂ n]⟩
@@ -401,7 +399,7 @@ in front of an integral in \eqref{eq:aachquno}.
 Since $\varphi_\nu'(t)$ is as above and $\varphi_\nu''(t) = \tau/(2\pi t^2)$, we know
 by Lemma \ref{lem:aachdecre} (with $k=2$) that
 $g_2(t) = \frac{t^{-\sigma} |\varphi_\nu''(t)|}{|\varphi_\nu'(t)|^3} =
-\frac{|\tau|}{2\pi} \frac{t^{-\sigma-2}}{|\varphi_\nu'(t)|^3}$ is decreasing on $[a,b]$;
+\frac{|\tau|}{2\pi} \frac{t^{-\sigma-2}}{|\varphi_\nu'(t)|^3}$ is decreasing on $[a,b]$
 we also know, as before, that $g_2(t)$ is continuous.
 Hence, again by Lemma \ref{lem:aachmonophase},
 \[\left|\int_a^b \frac{t^{-\sigma} \varphi_\nu''(t)}{2\pi i (\varphi_\nu'(t))^2}
@@ -651,28 +649,28 @@ to $\{s\in \mathbb{C}: \Re s>0, s\ne 1\}$; thus, the equation holds throughout t
   (discussion := 566)]
 theorem lemma_abadeulmac' {b : ℕ} (hb : 0 < b) {s : ℂ}
     (hs1 : s ≠ 1) (hsigma : 0 < s.re) :
-    ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) =
+    ∑ n ∈ Icc 1 b, (n : ℂ) ^ (-s) =
       riemannZeta s + (b ^ (1 - s) : ℂ) / (1 - s) + (b ^ (-s) : ℂ) / (2) +
       s * ∫ y in Set.Ioi (b : ℝ), (Int.fract y - 1 / 2) * ((y : ℂ) ^ (-(s + 1))) := by
   rw [← Zeta0EqZeta hb (by linarith) hs1]
   unfold riemannZeta0
-  rw [show ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) = (∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s)) + 0 by ring]
-  rw [show ∑ n ∈ Finset.range (b + 1), 1 / (n : ℂ) ^ s = ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) by
-    rw [Finset.range_eq_Ico]
-    rw [Finset.sum_eq_sum_Ico_succ_bot (by linarith )]
+  rw [show ∑ n ∈ Icc 1 b, (n : ℂ) ^ (-s) = (∑ n ∈ Icc 1 b, (n : ℂ) ^ (-s)) + 0 by ring]
+  rw [show ∑ n ∈ range (b + 1), 1 / (n : ℂ) ^ s = ∑ n ∈ Icc 1 b, (n : ℂ) ^ (-s) by
+    rw [range_eq_Ico]
+    rw [sum_eq_sum_Ico_succ_bot (by linarith)]
     norm_cast
     rw [Complex.zero_cpow (by aesop)]
     simp only [div_zero, zero_add, one_div]
-    rw [← Finset.Ico_succ_right_eq_Icc]
+    rw [← Ico_succ_right_eq_Icc]
     congr
     ext x
     rw [cpow_neg]]
-  rw [show (∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) + -(b : ℂ) ^ (1 - s) / (1 - s) + -(b : ℂ) ^ (-s) / 2 +
+  rw [show (∑ n ∈ Icc 1 b, (n : ℂ) ^ (-s) + -(b : ℂ) ^ (1 - s) / (1 - s) + -(b : ℂ) ^ (-s) / 2 +
           s * ∫ (x : ℝ) in Set.Ioi ↑b, (⌊x⌋ + 1 / 2 - x : ℂ) / (x : ℂ) ^ (s + 1)) +
         (b : ℂ) ^ (1 - s) / (1 - s) +
       (b : ℂ) ^ (-s) / 2 +
     s * ∫ (y : ℝ) in Set.Ioi ↑b, ((Int.fract y) - 1 / 2) * (y : ℂ) ^ (-(s + 1)) =
-      ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) + (
+      ∑ n ∈ Icc 1 b, (n : ℂ) ^ (-s) + (
           s * (∫ (x : ℝ) in Set.Ioi ↑b, (⌊x⌋ + 1 / 2 - x : ℂ) / (x : ℂ) ^ (s + 1))   +
     s * ∫ (y : ℝ) in Set.Ioi ↑b, ((Int.fract y) - 1 / 2) * (y : ℂ) ^ (-(s + 1))) by ring]
   congr! 1
@@ -722,14 +720,14 @@ to $\{s\in \mathbb{C}: \Re s>0, s\ne 1\}$; thus, the equation holds throughout t
   (discussion := 566)]
 theorem lemma_abadeulmac {b : ℝ} (hb : 0 < b) (hb' : b.IsHalfInteger) {s : ℂ}
     (hs1 : s ≠ 1) (hsigma : 0 < s.re) :
-    ∑ n ∈ Finset.Icc 1 ⌊b⌋₊, (n : ℂ) ^ (-s) =
+    ∑ n ∈ Icc 1 ⌊b⌋₊, (n : ℂ) ^ (-s) =
       riemannZeta s + (b ^ (1 - s) : ℂ) / (1 - s) +
       s * ∫ y in Set.Ioi b, (Int.fract y - 1 / 2 : ℂ) * ((y : ℂ) ^ (-(s + 1))) := by
   have := @lemma_abadeulmac'
   obtain ⟨k, rfl⟩:=hb'
   lift k to@ℕ using Int.le_of_lt_add_one (mod_cast (by linear_combination hb:0<(k: ℝ) + 1))
   specialize this k.succ_pos hs1 hsigma
-  norm_num[k.floor_eq_iff (hb.le.trans ↑ _)|>.mpr, Finset.sum_Icc_succ_top]at*
+  norm_num[k.floor_eq_iff (hb.le.trans ↑ _)|>.mpr, sum_Icc_succ_top]at*
   conv =>
     enter [2, 2, 2, 1, 2, 1]
     equals (1 : ℝ) / 2 + k => ring_nf
@@ -745,10 +743,10 @@ theorem lemma_abadeulmac {b : ℝ} (hb : 0 < b) (hb' : b.IsHalfInteger) {s : ℂ
       · norm_num[*,←intervalIntegral.integral_of_le _,integral_cpow _,intervalIntegral.intervalIntegrable_cpow]
         rw [integral_cpow]
         · norm_num
-          linear_combination(norm:=ring_nf)this-div_self (s.ne_zero_of_re_pos hsigma)*( (k + 1)^(-s)-(k+1/2)^(-s))
-          norm_num[add_comm ( 1/2 : ℂ),mul_assoc, sub_eq_neg_add, add_assoc,mul_comm s,s.ne_zero_of_re_pos hsigma,Complex.cpow_add,(mod_cast _: (1: ℂ)+k≠0),hb.ne']
+          linear_combination(norm:=ring_nf)this-div_self (s.ne_zero_of_re_pos hsigma)*((k + 1)^(-s)-(k+1/2)^(-s))
+          norm_num[add_comm (1/2 : ℂ),mul_assoc, sub_eq_neg_add, add_assoc,mul_comm s,s.ne_zero_of_re_pos hsigma,Complex.cpow_add,(mod_cast _: (1: ℂ)+k≠0),hb.ne']
           norm_num[*, add_assoc,←one_add_mul,←mul_assoc,mul_comm (k+1 : ℂ),neg_add_eq_zero.eq,Complex.cpow_add,ne_of_gt]
-          exact (.symm (.trans (by rw [Complex.cpow_add _ _ (by ·norm_num [Complex.ext_iff,hb.ne']),Complex.cpow_one]) ↑( add_eq_of_eq_sub' ↑(add_eq_of_eq_sub' ↑(add_eq_of_eq_sub' ↑(add_eq_of_eq_sub' (by·grind)))))))
+          exact (.symm (.trans (by rw [Complex.cpow_add _ _ (by ·norm_num [Complex.ext_iff,hb.ne']),Complex.cpow_one]) ↑(add_eq_of_eq_sub' ↑(add_eq_of_eq_sub' ↑(add_eq_of_eq_sub' ↑(add_eq_of_eq_sub' (by·grind)))))))
         · use .inr ⟨sub_eq_self.not.2 fun and=>by simp_all,((lt_min hb k.cast_add_one_pos).not_ge ·.1)⟩
       · use fun A B=>by norm_num[sub_mul,mul_comm (A : ℂ), (hb.trans B.1).ne',Complex.cpow_add,Complex.cpow_neg]
     · use fun and p=>by zify[Int.fract,Int.floor_eq_iff.2 (p.imp_left (by linear_combination·)),Int.cast_natCast]
@@ -803,13 +801,58 @@ $\int_b^\infty \frac{dy}{|y^{s+1}|} = \frac{1}{\sigma b^\sigma}$.
 -/)
   (latexEnv := "lemma")
   (discussion := 567)]
-theorem lemma_abadtoabsum {a b : ℝ} (hb : 0 < a) (hb' : b.IsHalfInteger) (hab : b > a) {s : ℂ}
+theorem lemma_abadtoabsum {a b : ℝ} (ha : 0 < a) (hb' : b.IsHalfInteger) (hab : b > a) {s : ℂ}
     (hs1 : s ≠ 1) (hsigma : 0 < s.re) :
-    ∃ E, ∑ n ∈ Finset.Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) =
-      -∑ n ∈ Finset.Ioc ⌊a⌋₊ ⌊b⌋₊, (n : ℂ) ^ (-s) +
-      riemannZeta s + (b ^ (1 - s) : ℂ) / (1 - s) + E ∧
+    ∃ E, ∑ n ∈ Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) = -∑ n ∈ Ioc ⌊a⌋₊ ⌊b⌋₊,
+      (n : ℂ) ^ (-s) + riemannZeta s + (b ^ (1 - s) : ℂ) / (1 - s) + E ∧
       ‖E‖ ≤ ‖s‖ / (2 * s.re * (b ^ s.re : ℝ)) := by
-  sorry
+  have hb_pos : 0 < b := ha.trans hab
+  have hmac := lemma_abadeulmac hb_pos hb' hs1 hsigma
+  let E := s * ∫ y in Set.Ioi b, (Int.fract y - 1 / 2 : ℂ) * ((y : ℂ) ^ (-(s + 1)))
+  refine ⟨E, ?_, ?_⟩
+  · have hfinset : (Icc 1 ⌊b⌋₊ : Finset ℕ) = Icc 1 ⌊a⌋₊ ∪ Ioc ⌊a⌋₊ ⌊b⌋₊ := by
+      ext n; simp only [mem_union, mem_Icc, mem_Ioc]
+      refine ⟨fun ⟨h1, hn⟩ ↦ ?_, fun h ↦ ?_⟩
+      · by_cases hn' : n ≤ ⌊a⌋₊
+        · exact Or.inl ⟨h1, hn'⟩
+        · exact Or.inr ⟨Nat.lt_of_not_le hn', hn⟩
+      · rcases h with ⟨h1, hn⟩ | ⟨hn1, hn2⟩
+        · exact ⟨h1, hn.trans <| Nat.floor_mono hab.le⟩
+        · exact ⟨by omega, hn2⟩
+    have hdisjoint : Disjoint (Icc 1 ⌊a⌋₊) (Ioc ⌊a⌋₊ ⌊b⌋₊) :=
+      disjoint_left.mpr fun x hx₁ hx₂ ↦ by simp only [mem_Icc] at hx₁; simp only [mem_Ioc] at hx₂; omega
+    rw [hfinset, sum_union hdisjoint] at hmac
+    linear_combination' hmac
+  · have h_integral_bound : ‖∫ y in Set.Ioi b, (Int.fract y - 1 / 2 : ℂ) * ((y : ℂ) ^ (-(s + 1)))‖ ≤
+        (1 / 2) * (1 / (s.re * b ^ s.re)) := by
+      have hstep1 : ‖∫ y in Set.Ioi b, (Int.fract y - 1 / 2 : ℂ) * ((y : ℂ) ^ (-(s + 1)))‖ ≤
+          ∫ y in Set.Ioi b, ‖(Int.fract y - 1 / 2 : ℂ) * ((y : ℂ) ^ (-(s + 1)))‖ :=
+        norm_integral_le_integral_norm _
+      have : ∫ y in Set.Ioi b, ‖(Int.fract y - 1 / 2 : ℂ) * ((y : ℂ) ^ (-(s + 1)))‖ ≤
+          ∫ y in Set.Ioi b, (1 / 2 : ℝ) * (y : ℝ) ^ (-(s.re + 1)) := by
+        apply integral_mono_of_nonneg (Filter.Eventually.of_forall fun _ ↦ norm_nonneg _)
+          ((integrableOn_Ioi_rpow_of_lt (by linarith) hb_pos).const_mul _) _
+        filter_upwards [ae_restrict_mem measurableSet_Ioi] with y hy
+        simp only [norm_mul, norm_cpow_eq_rpow_re_of_pos (hb_pos.trans hy), neg_add_rev, add_re,
+          neg_re, one_re]
+        apply mul_le_mul_of_nonneg_right _ (rpow_nonneg (hb_pos.trans hy).le _)
+        rw [norm_sub_rev]
+        have hfract_bound : ‖(1 / 2 : ℂ) - ↑(Int.fract y)‖ ≤ 1 / 2 := by
+          have : (1 / 2 : ℂ) - ↑(Int.fract y) = ↑((1 / 2 : ℝ) - (Int.fract y : ℝ)) := by
+            simp only [ofReal_sub, ofReal_div, ofReal_one, ofReal_ofNat]
+          rw [this, norm_real, norm_eq_abs, abs_le]
+          constructor <;> linarith [Int.fract_nonneg y, Int.fract_lt_one y]
+        exact hfract_bound
+      have : ∫ y in Set.Ioi b, (1 / 2 : ℝ) * (y : ℝ) ^ (-(s.re + 1)) =
+          (1 / 2) * (1 / (s.re * b ^ s.re)) := by
+        rw [integral_const_mul, integral_Ioi_rpow_of_lt (by linarith : -(s.re + 1) < -1) hb_pos]
+        have : -(s.re + 1) + 1 = -s.re := by ring
+        have : b ^ (-s.re) = (b ^ s.re)⁻¹ := rpow_neg hb_pos.le s.re
+        aesop
+      linarith
+    calc ‖E‖ = ‖s‖ * ‖∫ y in Set.Ioi b, (Int.fract y - 1 / 2 : ℂ) * ((y : ℂ) ^ (-(s + 1)))‖ := by simp only [E, norm_mul]
+      _ ≤ ‖s‖ * ((1 / 2) * (1 / (s.re * b ^ s.re))) := mul_le_mul_of_nonneg_left h_integral_bound (norm_nonneg _)
+      _ = ‖s‖ / (2 * s.re * b ^ s.re) := by ring
 
 @[blueprint
   "lem:abadusepoisson"
@@ -837,9 +880,9 @@ theorem lemma_abadusepoisson {a b : ℝ} (ha : ¬∃ n : ℤ, a = n) (hb : ¬∃
     let f : ℝ → ℂ := fun y ↦
       if a ≤ y ∧ y ≤ b then (y ^ (-s.re) : ℝ) * e (-(s.im / (2 * π)) * Real.log y) else 0
     ∃ L : ℂ, Filter.atTop.Tendsto
-      (fun (N : ℕ) ↦ ∑ n ∈ Finset.Ioc 1 N,
+      (fun (N : ℕ) ↦ ∑ n ∈ Ioc 1 N,
         (FourierTransform.fourier f n + FourierTransform.fourier f (-n))) (nhds L) ∧
-      ∑ n ∈ Finset.Ioc ⌊a⌋₊ ⌊b⌋₊, (n : ℂ) ^ (-s) =
+      ∑ n ∈ Ioc ⌊a⌋₊ ⌊b⌋₊, (n : ℂ) ^ (-s) =
         ((b ^ (1 - s) : ℂ) - (a ^ (1 - s) : ℂ)) / (1 - s) + L := by
   sorry
 
@@ -852,7 +895,7 @@ We could prove these equations starting from Euler's product for $\sin \pi z$.
   (title := "Euler/Mittag-Leffler expansion for cosec")
   (statement := /--
 Let $z\in \mathbb{C}$, $z\notin \mathbb{Z}$. Then
-\[ \frac{\pi}{\sin \pi z} = \frac{1}{z} +
+\[\frac{\pi}{\sin \pi z} = \frac{1}{z} +
  \sum_{n > 0} (-1)^n\left(\frac{1}{z - n} + \frac{1}{z + n}\right).
 \]
 -/)
@@ -968,7 +1011,7 @@ Moreover, by Lemmas \ref{lem:abadeulmit2} and \ref{lem:abadimpseri}, for $\varth
 \[\sum_n \left(\frac{\sigma}{(n-\vartheta)^2} + \frac{\sigma}{(n+\vartheta)^2}\right)\leq
 \sigma\cdot \left(\frac{\pi^2}{\sin^2 \pi \vartheta} - \frac{1}{\vartheta^2}\right),\]
 \[\sum_n \left(\frac{|\vartheta|}{(n-\vartheta)^3} + \frac{|\vartheta|}{(n+\vartheta)^3}\right)
-\leq |\vartheta|\cdot \left( \frac{1}{(1-|\vartheta|)^3} + 2\zeta(3)-1\right).
+\leq |\vartheta|\cdot \left(\frac{1}{(1-|\vartheta|)^3} + 2\zeta(3)-1\right).
 \]
 If $\vartheta=0$, then
 $\sum_n \left(\frac{\sigma}{(n-\vartheta)^2} + \frac{\sigma}{(n+\vartheta)^2}\right)
@@ -1048,7 +1091,7 @@ theorem proposition_dadaro {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a : 
       else
         0
     ∃ E : ℂ, riemannZeta s =
-      ∑ n ∈ Finset.Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) -
+      ∑ n ∈ Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) -
       (a ^ (1 - s) : ℂ) / (1 - s) + c * (a ^ (-s) : ℂ) + E ∧
       ‖E‖ ≤ C / (a ^ (s.re + 1 : ℝ)) := by
   sorry
