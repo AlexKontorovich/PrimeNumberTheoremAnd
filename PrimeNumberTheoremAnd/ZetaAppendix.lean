@@ -8,6 +8,7 @@ import Mathlib.Data.Real.StarOrdered
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.Tactic.LinearCombination'
 import PrimeNumberTheoremAnd.ZetaDefinitions
+import PrimeNumberTheoremAnd.ZetaBounds
 
 blueprint_comment /--
 \section{Approximating the Riemann zeta function}
@@ -622,6 +623,76 @@ We start with an application of Euler-Maclaurin.
 -/
 
 @[blueprint
+  "lem:abadeulmac'"
+  (title := "Identity for a partial sum of zeta(s)")
+  (statement := /--
+Let $b>0$, $b\in \mathbb{Z}$.
+Then, for all $s\in \mathbb{C}\setminus \{1\}$ with $\Re s > 0$,
+\begin{equation}\label{eq:abak1}
+  \sum_{n \leq b} \frac{1}{n^s} = \zeta(s) + \frac{b^{1-s}}{1-s} + \frac{b^{-s}}{2}
+  + s \int_b^\infty \left(\{y\}-\frac{1}{2}\right) \frac{dy}{y^{s+1}}.
+\end{equation}
+-/)
+  (proof := /--
+Assume first that $\Re s > 1$. By first-order Euler-Maclaurin,
+\[\sum_{n > b}\frac{1}{n^s} = \int_b^\infty \frac{dy}{y^s} + \int_b^\infty
+ \left(\{y\}-\frac{1}{2}\right) d\left(\frac{1}{y^s}\right).
+\]
+Here $\int_b^\infty \frac{dy}{y^s} = -\frac{b^{1-s}}{1-s}$ and
+$d\left(\frac{1}{y^s}\right) = - \frac{s}{y^{s+1}} dy$.
+Hence, by $\sum_{n\leq b} \frac{1}{n^s} = \zeta(s) - \sum_{n>b} \frac{1}{n^s}$
+for $\Re s > 1$,
+$$\sum_{n\leq b} \frac{1}{n^s} = \zeta(s) + \frac{b^{1-s}}{1-s} +
+\int_b^\infty \left(\{y\}-\frac{1}{2}\right) \frac{s}{y^{s+1}} dy.$$
+Since the integral converges absolutely for $\Re s > 0$, both sides extend holomorphically
+to $\{s\in \mathbb{C}: \Re s>0, s\ne 1\}$; thus, the equation holds throughout that region.
+-/)
+  (latexEnv := "lemma")
+  (discussion := 566)]
+theorem lemma_abadeulmac' {b : ℕ} (hb : 0 < b) {s : ℂ}
+    (hs1 : s ≠ 1) (hsigma : 0 < s.re) :
+    ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) =
+      riemannZeta s + (b ^ (1 - s) : ℂ) / (1 - s) + (b ^ (-s) : ℂ) / (2) +
+      s * ∫ y in Set.Ioi (b : ℝ), (Int.fract y - 1 / 2) * ((y : ℂ) ^ (-(s + 1))) := by
+  rw [← Zeta0EqZeta hb (by linarith) hs1]
+  unfold riemannZeta0
+  rw [show ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) = (∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s)) + 0 by ring]
+  rw [show ∑ n ∈ Finset.range (b + 1), 1 / (n : ℂ) ^ s = ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) by
+    rw [Finset.range_eq_Ico]
+    rw [Finset.sum_eq_sum_Ico_succ_bot (by linarith )]
+    norm_cast
+    rw [Complex.zero_cpow (by aesop)]
+    simp only [div_zero, zero_add, one_div]
+    rw [← Finset.Ico_succ_right_eq_Icc]
+    congr
+    ext x
+    rw [cpow_neg]]
+  rw [show (∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) + -(b : ℂ) ^ (1 - s) / (1 - s) + -(b : ℂ) ^ (-s) / 2 +
+          s * ∫ (x : ℝ) in Set.Ioi ↑b, (⌊x⌋ + 1 / 2 - x : ℂ) / (x : ℂ) ^ (s + 1)) +
+        (b : ℂ) ^ (1 - s) / (1 - s) +
+      (b : ℂ) ^ (-s) / 2 +
+    s * ∫ (y : ℝ) in Set.Ioi ↑b, ((Int.fract y) - 1 / 2) * (y : ℂ) ^ (-(s + 1)) =
+      ∑ n ∈ Finset.Icc 1 b, (n : ℂ) ^ (-s) + (
+          s * (∫ (x : ℝ) in Set.Ioi ↑b, (⌊x⌋ + 1 / 2 - x : ℂ) / (x : ℂ) ^ (s + 1))   +
+    s * ∫ (y : ℝ) in Set.Ioi ↑b, ((Int.fract y) - 1 / 2) * (y : ℂ) ^ (-(s + 1))) by ring]
+  congr! 1
+  suffices h : ∫ (x : ℝ) in Set.Ioi ↑b, (⌊x⌋ + 1 / 2 - x : ℂ) / ↑x ^ (s + 1) =
+             -∫ (y : ℝ) in Set.Ioi ↑b, ((Int.fract y) - 1 / 2 : ℂ) * ↑y ^ (-(s + 1)) by
+    rw [h]; ring
+  rw [← MeasureTheory.integral_neg]
+  congr 1
+  ext x
+  unfold Int.fract
+  rw [show (x : ℂ) ^ (-(s + 1)) = 1 / (↑x : ℂ) ^ (s + 1) by
+    rw [cpow_neg, one_div]]
+  rw [mul_one_div, ← neg_div]
+  congr
+  ring_nf
+  push_cast
+  ring_nf
+
+
+@[blueprint
   "lem:abadeulmac"
   (title := "Identity for a partial sum of zeta(s)")
   (statement := /--
@@ -653,8 +724,68 @@ theorem lemma_abadeulmac {b : ℝ} (hb : 0 < b) (hb' : b.IsHalfInteger) {s : ℂ
     (hs1 : s ≠ 1) (hsigma : 0 < s.re) :
     ∑ n ∈ Finset.Icc 1 ⌊b⌋₊, (n : ℂ) ^ (-s) =
       riemannZeta s + (b ^ (1 - s) : ℂ) / (1 - s) +
-      s * ∫ y in Set.Ioi b, (Int.fract y - 1 / 2) * (y ^ (-(s.re + 1)) : ℝ) := by
-  sorry
+      s * ∫ y in Set.Ioi b, (Int.fract y - 1 / 2 : ℂ) * ((y : ℂ) ^ (-(s + 1))) := by
+  have := @lemma_abadeulmac'
+  obtain ⟨k, rfl⟩:=hb'
+  lift k to@ℕ using Int.le_of_lt_add_one (mod_cast (by linear_combination hb:0<(k: ℝ) + 1))
+  specialize this k.succ_pos hs1 hsigma
+  norm_num[k.floor_eq_iff (hb.le.trans ↑ _)|>.mpr, Finset.sum_Icc_succ_top]at*
+  conv =>
+    enter [2, 2, 2, 1, 2, 1]
+    equals (1 : ℝ) / 2 + k => ring_nf
+  rw [←Set.Ioc_union_Ioi_eq_Ioi (add_le_add_left one_half_lt_one.le _),MeasureTheory.integral_union_ae]
+  · conv =>
+      enter [2, 2, 2, 1, 1, 2, 1]
+      equals (k : ℝ) + 1/2 => ring_nf
+    conv =>
+      enter [2, 2, 2, 1, 1, 2, 2]
+      equals (k : ℝ) + 1 => ring_nf
+    rw [MeasureTheory.integral_Ioc_eq_integral_Ioo, MeasureTheory.setIntegral_congr_fun (g := fun x : ℝ => (x - k - 1/2 : ℂ) * x ^ (-1 + -s)) measurableSet_Ioo]
+    · rw[MeasureTheory.setIntegral_congr_fun (g:=fun x:ℝ=>(x : ℂ)^(-s)-k*x^(-1+-s)-1/2*x^(-1+-s)) (measurableSet_Ioo),←MeasureTheory.integral_Ioc_eq_integral_Ioo]
+      · norm_num[*,←intervalIntegral.integral_of_le _,integral_cpow _,intervalIntegral.intervalIntegrable_cpow]
+        rw [integral_cpow]
+        · norm_num
+          linear_combination(norm:=ring_nf)this-div_self (s.ne_zero_of_re_pos hsigma)*( (k + 1)^(-s)-(k+1/2)^(-s))
+          norm_num[add_comm ( 1/2 : ℂ),mul_assoc, sub_eq_neg_add, add_assoc,mul_comm s,s.ne_zero_of_re_pos hsigma,Complex.cpow_add,(mod_cast _: (1: ℂ)+k≠0),hb.ne']
+          norm_num[*, add_assoc,←one_add_mul,←mul_assoc,mul_comm (k+1 : ℂ),neg_add_eq_zero.eq,Complex.cpow_add,ne_of_gt]
+          exact (.symm (.trans (by rw [Complex.cpow_add _ _ (by ·norm_num [Complex.ext_iff,hb.ne']),Complex.cpow_one]) ↑( add_eq_of_eq_sub' ↑(add_eq_of_eq_sub' ↑(add_eq_of_eq_sub' ↑(add_eq_of_eq_sub' (by·grind)))))))
+        · use .inr ⟨sub_eq_self.not.2 fun and=>by simp_all,((lt_min hb k.cast_add_one_pos).not_ge ·.1)⟩
+      · use fun A B=>by norm_num[sub_mul,mul_comm (A : ℂ), (hb.trans B.1).ne',Complex.cpow_add,Complex.cpow_neg]
+    · use fun and p=>by zify[Int.fract,Int.floor_eq_iff.2 (p.imp_left (by linear_combination·)),Int.cast_natCast]
+  · norm_num[MeasureTheory.AEDisjoint]
+  · norm_num
+  · conv =>
+      enter [2, 1]
+      equals (k : ℝ) + 1/2 => ring_nf
+    conv =>
+      enter [2, 2]
+      equals (k : ℝ) + 1 => ring_nf
+    rw[integrableOn_Ioc_iff_integrableOn_Ioo,MeasureTheory.integrableOn_congr_fun (fun A B=>by rw [Int.fract,Int.floor_eq_iff.2 (B.imp_left (by linear_combination·))]) measurableSet_Ioo]
+    exact (ContinuousOn.mul (by fun_prop) (.cpow_const (by fun_prop) fun and c=>.inl (hb.trans_le c.1))).integrableOn_Icc.mono_set Set.Ioo_subset_Icc_self
+  · apply(integrableOn_Ioi_rpow_of_lt (by norm_num[*]:-1+-s.1< _) (by bound)).norm.mono' ((measurable_fract.complex_ofReal.sub_const _).mul (by fun_prop)).aestronglyMeasurable
+    filter_upwards[MeasureTheory.ae_restrict_mem (by norm_num)] with S(F: S> _)
+    have := k.cast_add_one_pos (α := ℝ)
+    conv at this =>
+      enter [2]
+      equals (1 : ℝ) + k => ring_nf
+
+    norm_num[abs_of_pos, S.rpow_pos_of_pos, (F.trans' this).le, Complex.norm_cpow_eq_rpow_re_of_nonneg, ne_of_gt,(norm_sub_le _ _).trans ∘le_of_lt]
+    rw [Complex.norm_cpow_eq_rpow_re_of_nonneg]
+    conv =>
+      enter [1, 2, 2]
+      equals (-1 : ℝ) + -s.re => simp
+    · rw [abs_of_pos]
+      · conv =>
+          enter [2]
+          equals (1 : ℝ) * S ^ (-1 + -s.re) => ring_nf
+        gcongr
+        · apply (S.rpow_pos_of_pos (by linarith) _).le
+
+        exact (congr_arg _ (by zify)).trans_le ((Complex.norm_real (Int.fract S-1/2)).le.trans (max_le (by linear_combination Int.fract_lt_one S) (by linear_combination Int.fract_nonneg S)))
+      · apply (S.rpow_pos_of_pos (by linarith) _)
+    · linarith
+    · simp only [add_re, neg_re, one_re, ne_eq]
+      linarith
 
 @[blueprint
   "lem:abadtoabsum"
