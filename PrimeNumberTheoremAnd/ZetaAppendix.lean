@@ -897,7 +897,7 @@ $\left(\frac{1}{z\pm n}\right)' = -\frac{1}{(z\pm n)^2}$, we are done.
   (latexEnv := "lemma")
   (discussion := 570)]
 theorem lemma_abadeulmit2 {z : ℂ} (hz : ¬∃ n : ℤ, z = n) :
-    (π ^ 2 / (Complex.sin (π * z) ^ 2 : ℂ)) = ∑' n : ℤ, (1 / ((z - n) ^ 2 : ℂ)) := by
+    (π ^ 2 / (Complex.sin (π * z) ^ 2 : ℂ)) = ∑' (n : {m : ℤ // m > 0}), (1 / ((z - n) ^ 2 : ℂ)) := by
   sorry
 
 @[blueprint
@@ -927,7 +927,7 @@ maximum on $[-1/2,1/2]$ at the endpoints. Hence
   (latexEnv := "lemma")
   (discussion := 571)]
 theorem lemma_abadimpseri {ϑ : ℝ} (hϑ : 0 ≤ |ϑ| ∧ |ϑ| < 1) :
-    ∑' n : ℤ, (1 / ((n - ϑ) ^ 3 : ℝ) + 1 / ((n + ϑ) ^ 3 : ℝ)) ≤
+    ∑' (n : {m : ℤ // m > 0}), (1 / ((n - ϑ) ^ 3 : ℝ) + 1 / ((n + ϑ) ^ 3 : ℝ)) ≤
       (1 / ((1 - |ϑ|) ^ 3 : ℝ)) + 2 * (riemannZeta 3).re - 1 := by
   sorry
 
