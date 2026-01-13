@@ -1,6 +1,12 @@
 import Architect
-import Mathlib.Topology.EMetricSpace.BoundedVariation
-import Mathlib.Analysis.Fourier.FourierTransform
+import Mathlib.Algebra.Order.Ring.Star
+import Mathlib.Analysis.CStarAlgebra.Classes
+import Mathlib.Analysis.ConstantSpeed
+import Mathlib.Analysis.Real.Pi.Bounds
+import Mathlib.Data.Int.Star
+import Mathlib.Data.Real.StarOrdered
+import Mathlib.NumberTheory.LSeries.RiemannZeta
+import Mathlib.Tactic.LinearCombination'
 import PrimeNumberTheoremAnd.ZetaDefinitions
 import PrimeNumberTheoremAnd.ZetaBounds
 
@@ -45,7 +51,7 @@ topic/Let.20us.20formalize.20an.20appendix}
 
 namespace ZetaAppendix
 
-open Real Complex
+open Real Complex MeasureTheory
 
 -- may want to move this to a more globally accessible location
 
@@ -130,7 +136,99 @@ theorem lemma_aachra {a b : ℝ} (ha : a < b) (g : ℝ → ℝ)
     (hg_mon : AntitoneOn (fun t ↦ |g t|) (Set.Icc a b)) :
     BoundedVariationOn g (Set.Icc a b) ∧
     (eVariationOn g (Set.Icc a b)).toReal = |g a| - |g b| := by
-  sorry
+  have h_no_sign_change : (∀ t ∈ Set.Icc a b, g t ≥ 0) ∨ (∀ t ∈ Set.Icc a b, g t ≤ 0) := by
+    by_contra h_contra
+    obtain ⟨a', b', ha', hb', hab', h_sign⟩ :
+        ∃ a' b' : ℝ, a ≤ a' ∧ a' < b' ∧ b' ≤ b ∧ (g a' > 0 ∧ g b' < 0) ∨
+        (∃ a' b' : ℝ, a ≤ a' ∧ a' < b' ∧ b' ≤ b ∧ (g a' < 0 ∧ g b' > 0)) := by
+      simp only [Set.mem_Icc, and_imp, not_or, not_forall, not_le, exists_and_left] at *
+      obtain ⟨⟨x, hx₁, hx₂, hx₃⟩, ⟨y, hy₁, hy₂, hy₃⟩⟩ := h_contra
+      cases lt_trichotomy x y with
+      | inl hxy => exact ⟨x, y, Or.inr ⟨x, hx₁, y, by grind, by grind, hx₃, hy₃⟩⟩
+      | inr h => cases h with
+        | inl heq => grind
+        | inr hxy => exact ⟨y, x, Or.inl ⟨by grind, hxy, by grind, hy₃, hx₃⟩⟩
+    · obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo a' b', g c = 0 := by
+        refine intermediate_value_Ioo' (by grind) (hg_cont.mono <| Set.Icc_subset_Icc ha' hab')
+          ⟨?_, ?_⟩ <;> linarith [h_sign.1, h_sign.2]
+      have := hg_mon ⟨by linarith [hc.1.1], by linarith [hc.1.2]⟩
+        ⟨by linarith [hc.1.1], by linarith [hc.1.2]⟩ hc.1.2.le
+      aesop
+    · obtain ⟨a', b', ha', hb', hab', h₁, h₂⟩ := ‹_›
+      obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo a' b', g c = 0 := by
+        apply intermediate_value_Ioo
+        · grind
+        · exact hg_cont.mono (Set.Icc_subset_Icc ha' hab')
+        · constructor <;> grind
+      have := hg_mon ⟨by linarith [hc.1.1], by linarith [hc.1.2]⟩
+        ⟨by linarith [hc.1.1], by linarith [hc.1.2]⟩ hc.1.2.le
+      simp_all
+  rcases h_no_sign_change with h | h
+  · have h_monotone : AntitoneOn g (Set.Icc a b) := fun x hx y hy hxy => by
+      simpa only [abs_of_nonneg (h x hx), abs_of_nonneg (h y hy)] using hg_mon hx hy hxy
+    have h_total_variation : eVariationOn g (Set.Icc a b) = ENNReal.ofReal (g a - g b) := by
+      refine le_antisymm ?_ ?_
+      · refine csSup_le ?_ ?_ <;> norm_num
+        · exact ⟨_, ⟨⟨0, ⟨fun _ ↦ a, fun _ _ _ ↦ by grind, fun _ ↦ ⟨by grind, by grind⟩⟩⟩, rfl⟩⟩
+        · rintro _ n x hx₁ hx₂ rfl
+          calc ∑ i ∈ Finset.range n, edist (g (x (i + 1))) (g (x i))
+              ≤ ∑ i ∈ Finset.range n, ENNReal.ofReal (g (x i) - g (x (i + 1))) := by
+                refine Finset.sum_le_sum (fun i _ ↦ ?_)
+                simp only [edist_dist, sub_nonneg, h_monotone (hx₂ i) (hx₂ (i + 1)) (hx₁ (Nat.le_succ _)),
+                  ENNReal.ofReal_le_ofReal_iff]
+                rw [dist_eq_norm, Real.norm_of_nonpos] <;>
+                linarith [h_monotone (hx₂ i) (hx₂ (i + 1)) (hx₁ (Nat.le_succ _))]
+            _ ≤ ENNReal.ofReal (g a - g b) := by
+                rw [← ENNReal.ofReal_sum_of_nonneg] <;> norm_num
+                · apply ENNReal.ofReal_le_ofReal
+                  have := Finset.sum_range_sub' (fun i ↦ g (x i)) n
+                  norm_num at *
+                  linarith [h_monotone ⟨le_refl a, ha.le⟩ (hx₂ 0) (by linarith [hx₂ 0]),
+                    h_monotone (hx₂ n) ⟨ha.le, le_refl b⟩ (by linarith [hx₂ n])]
+                · exact fun i hi ↦ h_monotone (hx₂ i) (hx₂ (i + 1)) (hx₁ (Nat.le_succ _))
+      · refine le_csSup ?_ ?_ <;> norm_num
+        refine ⟨1, fun i ↦ if i = 0 then a else b, ?_, ?_⟩ <;> norm_num [Monotone]
+        · grind
+        · simp only [edist_dist, dist_eq_norm, norm_eq_abs, abs_sub_comm, abs_of_nonneg
+            (sub_nonneg.mpr (h_monotone (Set.left_mem_Icc.mpr ha.le) (Set.right_mem_Icc.mpr ha.le) ha.le))]
+    rw [h_total_variation, ENNReal.toReal_ofReal]
+    · constructor
+      · exact ne_of_lt <| lt_of_le_of_lt h_total_variation.le ENNReal.ofReal_lt_top
+      · rw [abs_of_nonneg <| h a <| Set.left_mem_Icc.mpr ha.le,
+            abs_of_nonneg <| h b <| Set.right_mem_Icc.mpr ha.le]
+    · linarith [h_monotone (Set.left_mem_Icc.mpr ha.le) (Set.right_mem_Icc.mpr ha.le) ha.le]
+  · have h_monotone : MonotoneOn g (Set.Icc a b) := fun x hx y hy hxy ↦ by have := hg_mon hx hy hxy; grind
+    have h_bounded_variation : eVariationOn g (Set.Icc a b) = ENNReal.ofReal (g b - g a) := by
+      refine le_antisymm ?_ ?_
+      · refine csSup_le ?_ ?_ <;> norm_num
+        · exact ⟨_, ⟨⟨0, ⟨fun _ ↦ a, fun _ _ _ ↦ by grind, fun _ ↦ ⟨by grind, by grind⟩⟩⟩, rfl⟩⟩
+        · rintro _ n x hx₁ hx₂ rfl
+          calc ∑ i ∈ Finset.range n, edist (g (x (i + 1))) (g (x i))
+              ≤ ∑ i ∈ Finset.range n, ENNReal.ofReal (g (x (i + 1)) - g (x i)) := by
+                refine Finset.sum_le_sum (fun i _ ↦ ?_)
+                rw [edist_dist, dist_eq_norm, Real.norm_of_nonneg (sub_nonneg.mpr (h_monotone (hx₂ _)
+                  (hx₂ _) (hx₁ (Nat.le_succ _))))]
+            _ ≤ ENNReal.ofReal (g b - g a) := by
+                rw [← ENNReal.ofReal_sum_of_nonneg]
+                · rw [Finset.sum_range_sub (fun i ↦ g (x i))]
+                  apply ENNReal.ofReal_le_ofReal
+                  have hx0_mem : x 0 ∈ Set.Icc a b := ⟨by linarith [hx₂ 0], by linarith [hx₂ 0]⟩
+                  have hxn_mem : x n ∈ Set.Icc a b := ⟨by linarith [hx₂ n], by linarith [hx₂ n]⟩
+                  linarith [h_monotone ⟨le_refl a, ha.le⟩ hx0_mem (by linarith [hx₂ 0]),
+                    h_monotone hxn_mem ⟨ha.le, le_refl b⟩ (by linarith [hx₂ n])]
+                · exact fun i hi ↦ sub_nonneg_of_le <| h_monotone (hx₂ _) (hx₂ _) <| hx₁ <| Nat.le_succ _
+      · refine le_csSup ?_ ?_ <;> norm_num
+        refine ⟨1, fun i ↦ if i = 0 then a else b, ?_, ?_⟩ <;> norm_num [Monotone]
+        · grind
+        · simp [edist_dist, Real.dist_eq, abs_of_nonneg, h_monotone (show a ∈ Set.Icc a b by
+            constructor <;> grind) (show b ∈ Set.Icc a b by constructor <;> grind) ha.le]
+    simp_all only [Set.mem_Icc, and_imp]
+    constructor
+    · rw [BoundedVariationOn]
+      exact ne_of_lt (lt_of_le_of_lt h_bounded_variation.le ENNReal.ofReal_lt_top)
+    · rw [ENNReal.toReal_ofReal (sub_nonneg.mpr (h_monotone ⟨by grind, by grind⟩ ⟨by grind, by grind⟩ ha.le)),
+        abs_of_nonpos (h a le_rfl ha.le), abs_of_nonpos (h b ha.le le_rfl)]
+      ring
 
 @[blueprint
   "lem:aachmonophase"
@@ -249,6 +347,58 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
 
 def _root_.Real.IsHalfInteger (x : ℝ) : Prop := ∃ k : ℤ, x = k + 1 / 2
 
+/-- At half-integers, `(Φ n t + Φ (-n) t) / 2 = Ψ t` where `Φ` and `Ψ` are as in `lemma_aachcanc`. -/
+lemma lemma_aachcanc_pointwise (s : ℂ) {n : ℤ} (hn : n ≠ 0)
+    (t : ℝ) (ht : t.IsHalfInteger) (ht_pos : t > 0)
+    (h_deriv_n : deriv (fun x ↦ (n : ℝ) * x - (s.im / (2 * π)) * Real.log x) t ≠ 0)
+    (h_deriv_neg_n : deriv (fun x ↦ -(n : ℝ) * x - (s.im / (2 * π)) * Real.log x) t ≠ 0)
+    (h_denom : (n : ℂ) ^ 2 - (s.im / (2 * π * t)) ^ 2 ≠ 0) :
+    let ϕ : ℝ → ℝ → ℝ := fun ν t ↦ ν * t - (s.im / (2 * π)) * Real.log t
+    let Φ : ℝ → ℝ → ℂ := fun ν t ↦ (t ^ (-s.re) : ℝ) * e (ϕ ν t) / (2 * π * I * (deriv (ϕ ν) t))
+    let Ψ : ℝ → ℂ := fun t ↦ (-1) ^ n * (t ^ (-s) : ℂ) * (s.im / (2 * π * t)) /
+      (2 * π * I * (n ^ 2 - (s.im / (2 * π * t)) ^ 2))
+    (1 / 2) * (Φ n t + Φ (-n) t) = Ψ t := by
+  have h_exp : e (n * t - s.im / (2 * Real.pi) * Real.log t) = (-1 : ℝ) ^ n * t ^ (-s.im * I) ∧
+      e (-n * t - s.im / (2 * Real.pi) * Real.log t) = (-1 : ℝ) ^ n * t ^ (-s.im * I) := by
+    unfold e
+    norm_num [exp_re, exp_im, log_re, log_im, cpow_def]
+    ring_nf
+    have h_inner : exp (Real.pi * I * n * t * 2) = (-1 : ℂ) ^ n ∧ exp (-Real.pi * I * n * t * 2) = (-1 : ℂ) ^ n := by
+      obtain ⟨k, rfl⟩ := ht
+      norm_num [Complex.ext_iff, exp_re, exp_im, mul_assoc, mul_comm Real.pi]
+      rcases Int.even_or_odd' n with ⟨c, rfl | rfl⟩ <;>
+      · norm_num [zpow_add₀, zpow_mul]
+        ring_nf
+        norm_num [mul_assoc, mul_comm Real.pi _, mul_div]
+        constructor
+        · rw [Real.cos_eq_one_iff]; use c * k * 2; push_cast; ring
+        · rw [Real.sin_eq_zero_iff]; use c * k * 4; push_cast; ring
+    simp_all [Complex.exp_sub]
+    norm_num [ofReal_log ht_pos.le, mul_assoc, mul_comm, mul_left_comm, pi_ne_zero]
+    norm_num [Complex.exp_neg, Complex.exp_log, ht_pos.ne', mul_assoc, mul_left_comm, pi_ne_zero]
+    ring_nf
+    field_simp
+  simp_all only [ne_eq, gt_iff_lt, neg_mul, ofReal_neg, ofReal_one, one_div, ofReal_cpow ht_pos.le]
+  norm_num [mul_comm, pi_ne_zero, ht_pos.ne', h_deriv_n, h_deriv_neg_n]
+  rw [div_add_div, mul_div, div_eq_div_iff]
+  · rw [show (-s : ℂ) = -(s.re : ℂ) - I * (s.im : ℂ) by simp [Complex.ext_iff]]
+    rw [cpow_def_of_ne_zero (by norm_cast; positivity)]
+    ring_nf
+    rw [cpow_def_of_ne_zero (by norm_cast; positivity), cpow_def_of_ne_zero (by norm_cast; positivity)]
+    ring_nf
+    rw [sub_eq_add_neg, Complex.exp_add]
+    ring_nf
+  · simp_all only [sub_eq_iff_eq_add, zero_add, ne_eq, mul_eq_zero, I_ne_zero, ofReal_eq_zero,
+      pi_ne_zero, OfNat.ofNat_ne_zero, false_or, not_or]
+    constructor <;> exact fun h ↦ h_denom <| by linear_combination' h * h
+  · simp_all [mul_assoc, mul_comm]
+  · contrapose! h_deriv_n
+    simp_all [mul_assoc, mul_comm, mul_left_comm, div_eq_mul_inv, sub_eq_iff_eq_add]
+  · norm_num [Complex.ext_iff, pi_ne_zero, ht_pos.ne'] at *
+    norm_cast at *
+    simp_all [mul_comm, div_eq_mul_inv]
+    grind
+
 @[blueprint
   "lem:aachcanc"
   (title := "Estimating an sum")
@@ -287,7 +437,31 @@ theorem lemma_aachcanc (s : ℂ) {n : ℤ} (hn : 0 < n) {a b : ℝ}
     let Ψ : ℝ → ℂ := fun t ↦ (-1) ^ n * (t ^ (-s) : ℂ) * (s.im / (2 * π * t)) /
       (2 * π * I * (n ^ 2 - (s.im / (2 * π * t)) ^ 2))
     (1 / 2) * (Φ n b - Φ n a + Φ (-n) b - Φ (-n) a) = Ψ b - Ψ a := by
-  sorry
+  intro phi Φ Ψ
+  have h_apply : ∀ t : ℝ, t > |s.im| / (2 * .pi * n) → t.IsHalfInteger → t > 0 →
+      (1 / 2) * (Φ n t + Φ (-n) t) = Ψ t := by
+    intro t ht ht' ht''
+    have h_bound : |s.im| < t * (2 * .pi * n) := by
+      rw [gt_iff_lt] at ht; exact (div_lt_iff₀ (by positivity)).mp ht
+    convert lemma_aachcanc_pointwise s (show n ≠ 0 by linarith) t ht' ht'' ?_ ?_ ?_ using 1
+    all_goals norm_num [mul_comm]
+    · norm_num [ht''.ne', pi_ne_zero, mul_comm]
+      field_simp
+      cases abs_cases s.im <;> nlinarith [pi_pos, h_bound]
+    · norm_num [ht''.ne', Real.differentiableAt_log]
+      field_simp
+      cases abs_cases s.im <;> nlinarith [pi_pos, h_bound]
+    · rw [sub_eq_zero, eq_comm]
+      norm_num [div_pow, ← mul_assoc, Complex.ext_iff]
+      norm_cast
+      norm_num
+      rw [div_eq_iff (by positivity)]
+      rw [abs_lt] at h_bound
+      nlinarith [pi_pos]
+  have hb_pos : b > 0 := lt_trans (lt_of_le_of_lt (by positivity) ha) hb
+  trans (1 / 2) * (Φ n b + Φ (-n) b) - (1 / 2) * (Φ n a + Φ (-n) a)
+  · ring
+  rw [h_apply b (lt_trans ha hb) hb' hb_pos, h_apply a ha ha' (lt_of_le_of_lt (by positivity) ha)]
 
 blueprint_comment /--
 It is this easy step that gives us quadratic decay on $n$. It is just as
@@ -329,7 +503,42 @@ theorem proposition_applem (s : ℂ) (hsigma : 0 ≤ s.re) {a b : ℝ} (ha : a >
       ((a ^ (-s.re - 1) : ℝ) / (4 * π ^ 2)) * E ∧
       ‖E‖ ≤ s.re / ((n - ϑ) ^ 2) + s.re / ((n + ϑ) ^ 2) +
         |ϑ| / (|n - ϑ| ^ 3) + |ϑ| / (|n + ϑ| ^ 3) := by
-  sorry
+  have h_pos_a : 0 < a := lt_of_le_of_lt (by positivity) ha
+  have h_bound_aux : |s.im| / (2 * π * n) < a := by
+    refine ha.trans_le' <| div_le_div_of_nonneg_left (abs_nonneg _) (by positivity) ?_
+    nlinarith [pi_gt_three, show (n : ℝ) ≥ 1 by norm_cast]
+  have h_neg := lemma_aachfour s hsigma (-n : ℝ) (by norm_num; linarith) a b (by
+    simp only [abs_neg, abs_of_nonneg (show 0 ≤ (n : ℝ) by positivity)]
+    exact h_bound_aux) hb
+  have h_pos := lemma_aachfour s hsigma (n : ℝ) (by norm_num; linarith) a b (by
+    simp only [abs_of_nonneg (show 0 ≤ (n : ℝ) by positivity)]
+    exact h_bound_aux) hb
+  obtain ⟨E1, hE1_eq, hE1_bound⟩ := h_pos
+  obtain ⟨E2, hE2_eq, hE2_bound⟩ := h_neg
+  use E1 + E2
+  have h_cont_pow : ContinuousOn (fun t : ℝ ↦ (t : ℂ) ^ (-s)) (Set.Icc a b) :=
+    ContinuousOn.cpow Complex.continuous_ofReal.continuousOn continuousOn_const
+      fun x hx ↦ Or.inl (by norm_cast; linarith [hx.1, h_pos_a])
+  have h_integral : ∫ t in Set.Icc a b, (t : ℂ) ^ (-s) * (Real.cos (2 * Real.pi * n * t)) =
+      (1 / 2) * (∫ t in Set.Icc a b, (t : ℂ) ^ (-s) * ZetaAppendix.e (n * t)) +
+        (1 / 2) * (∫ t in Set.Icc a b, (t : ℂ) ^ (-s) * ZetaAppendix.e (-n * t)) := by
+    rw [← mul_add, ← integral_add]
+    · rw [← integral_const_mul]
+      congr with t
+      norm_num [ZetaAppendix.e, Complex.cos]
+      ring_nf
+    · exact (h_cont_pow.mul (Complex.continuous_exp.comp (by continuity)).continuousOn).integrableOn_Icc
+    · exact (h_cont_pow.mul (Complex.continuous_exp.comp (by continuity)).continuousOn).integrableOn_Icc
+  constructor
+  · have h_lem := lemma_aachcanc s (by grind) h_bound_aux hb ha' hb'
+    simp only [zpow_natCast, Int.cast_natCast, one_div, neg_mul] at h_lem
+    simp only [h_integral, hE1_eq, hE2_eq]
+    convert congrArg (· + (↑(a ^ (-s.re - 1)) / (4 * ↑π ^ 2)) * (E1 + E2)) h_lem using 1; ring_nf
+  · have : |-(n : ℝ) - s.im / (2 * π * a)| = |(n : ℝ) + s.im / (2 * π * a)| := by
+      rw [show -(n : ℝ) - s.im / (2 * π * a) = -((n : ℝ) + s.im / (2 * π * a)) by ring, abs_neg]
+    calc ‖E1 + E2‖ ≤ ‖E1‖ + ‖E2‖ := norm_add_le E1 E2
+      _ ≤ _ := add_le_add hE1_bound hE2_bound
+      _ = _ := by simp only [sq_abs, this]; ring
 
 
 blueprint_comment /--
