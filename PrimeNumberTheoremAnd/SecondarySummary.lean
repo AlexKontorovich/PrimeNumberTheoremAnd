@@ -68,6 +68,10 @@ theorem JY.theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 2 := sorry
 
 blueprint_comment /-- TODO: input other results from JY -/
 
+namespace Dusart
+
+def X₀ : ℕ := 89693
+
 @[blueprint "thm:Dusart"
   (title := "Dusart Proposition 5.4")
   (statement := /--
@@ -77,6 +81,9 @@ blueprint_comment /-- TODO: input other results from JY -/
   x < p \le x\Bigl(1 + \frac{1}{\log^3 x}\Bigr).
   \]
   -/)]
-theorem Dusart.proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := sorry
+theorem proposition_5_4 : HasPrimeInInterval.log_thm X₀ 3 := sorry
+-- simpa [X₀] using (proposition_5_4_numeral : HasPrimeInInterval.log_thm 89693 3)
 
 blueprint_comment /-- TODO: input other results from Dusart -/
+
+end Dusart
