@@ -749,7 +749,7 @@ after reindexing the second sum. Regrouping terms again, we obtain our equation.
 theorem lemma_abadeuleulmit1 {z : ℂ} (hz : z ∈ integerComplement) :
     (π / Complex.sin (π * z) : ℂ) =
       (1 / z : ℂ) + ∑' n : ℤ, (-1) ^ n * ((1 / (z - n) : ℂ) + (1 / (z + n) : ℂ)) := by
-  have := cot_series_rep'
+  sorry
 
 @[blueprint
   "lem:abadeulmit2"
