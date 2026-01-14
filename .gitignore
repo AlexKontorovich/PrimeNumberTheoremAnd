@@ -51,6 +51,10 @@
 ## Editor
 *.swp
 
+## Python
+__pycache__/
+*.pyc
+
 ## Project
 /scratch.lean
 /tmp/
