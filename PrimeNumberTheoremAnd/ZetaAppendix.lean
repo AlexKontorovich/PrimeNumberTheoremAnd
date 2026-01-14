@@ -844,6 +844,24 @@ theorem lemma_abadusepoisson {a b : ℝ} (ha : ¬∃ n : ℤ, a = n) (hb : ¬∃
         ((b ^ (1 - s) : ℂ) - (a ^ (1 - s) : ℂ)) / (1 - s) + L := by
   sorry
 
+lemma trig (z : ℂ) : tan z = - cot (z + π / 2) := by
+  simp [Complex.tan, Complex.cot, Complex.cos_add_pi_div_two, neg_div', Complex.sin_add_pi_div_two]
+
+lemma sin_ne_zero {z : ℂ} (hz : ¬∃ (n : ℤ), n * π / 2 = z) : sin z ≠ 0 :=
+  Complex.sin_ne_zero_iff.2 fun k h => hz ⟨2 * k, by grind⟩
+
+lemma cos_ne_zero {z : ℂ} (hz : ¬∃ (n : ℤ), n * π / 2 = z) : cos z ≠ 0 :=
+  Complex.cos_ne_zero_iff.2 fun k h => hz ⟨2 * k + 1, by grind⟩
+
+lemma trig' {z : ℂ} (hz : ¬∃ (n : ℤ), n * π / 2 = z) : cot z + tan z = 2 / sin (2 * z) := by
+  simp [Complex.tan, Complex.cot, div_add_div (cos z) (sin z) (sin_ne_zero hz) (cos_ne_zero hz),
+    ← pow_two, Complex.cos_sq_add_sin_sq, Complex.sin_two_mul]
+  field_simp
+
+lemma trig'' {z : ℂ} (hz : ¬∃ (n : ℤ), n * π / 2 = z) :
+    cot z - cot (z + π / 2) = 2 / sin (2 * z) := by
+  simp [sub_eq_neg_add, ← trig, ← trig' hz, add_comm]
+
 blueprint_comment /--
 We could prove these equations starting from Euler's product for $\sin \pi z$.
 -/
@@ -877,10 +895,67 @@ after reindexing the second sum. Regrouping terms again, we obtain our equation.
 -/)
   (latexEnv := "lemma")
   (discussion := 569)]
-theorem lemma_abadeuleulmit1 {z : ℂ} (hz : ¬∃ n : ℤ, z = n) :
-    (π / Complex.sin (π * z)) =
-      (1 / z) + ∑' (n : {m : ℤ // m > 0}), (-1) ^ (n : ℤ) * ((1 / (z - n) : ℂ) + (1 / (z + n) : ℂ)) := by
-  sorry
+theorem lemma_abadeuleulmit1 {z : ℂ} (hz : z ∈ integerComplement) :
+    (π / sin (π * z)) =
+    (1 / z) + ∑' (n : ℕ+), (- 1) ^ (n : ℂ) * ((1 / (z - n) : ℂ) + (1 / (z + n) : ℂ)) := calc
+  _ = (1 / 2) * π * 2 / sin (π * z) := by field_simp
+  _ = (1 / 2) * (π * cot (π * z / 2)) - (1 / 2) * (π * cot (π * (z + 1) / 2)) := by
+    have : π * z / 2 + π / 2 = π * (z + 1) / 2 := by grind
+    have := this ▸ trig'' (z := π * z / 2) ?_
+    · by_contra!
+      obtain ⟨n, hn⟩ := this
+      have := mul_right_cancel₀ (by exact_mod_cast pi_ne_zero)
+        ((mul_comm (π : ℂ) z) ▸ ((div_left_inj' (by grind)).1 hn))
+      simp_all [integerComplement]
+    · rw [mul_div_assoc, ← mul_sub, ← mul_sub, mul_assoc, this]; field_simp
+  _ = (1 / 2) * (1 / (z / 2) + ∑' n : ℕ+, (1 / (z / 2 - n) + 1 / (z / 2 + n))) -
+      (1 / 2) * (1 / ((z + 1) / 2) + ∑' n : ℕ+, (1 / ((z + 1) / 2 - n)
+      + 1 / ((z + 1) / 2 + n))) := by
+      congr
+      · have : z / 2 ∈ integerComplement := by
+          simp_all only [integerComplement, Set.mem_compl_iff, Set.mem_range, not_exists]
+          refine fun n hn => hz (2 * n) ?_
+          grind
+        simpa [mul_div_assoc] using cot_series_rep this
+      · have : (z + 1) / 2 ∈ integerComplement := by
+          simp_all only [integerComplement, Set.mem_compl_iff, Set.mem_range, not_exists]
+          refine fun n hn => hz (2 * n - 1) ?_
+          grind
+        simpa [mul_div_assoc] using cot_series_rep this
+  _ = 1 / z + ∑' n : ℕ+, (1 / (z - 2 * n) + 1 / (z + 2 * n)) -
+      (1 / (z + 1) + ∑' n : ℕ+, (1 / (z + 1 - 2 * n) + 1 / (z + 1 + 2 * n))) := by
+      field_simp
+      rw [mul_sub, mul_add, mul_add, ← div_eq_mul_one_div, ← div_eq_mul_one_div,
+        Summable.tsum_mul_left, Summable.tsum_mul_left]
+      · sorry
+      · sorry
+  _ = 1 / z + ∑' n : ℕ+, (1 / (z - 2 * n) + 1 / (z + 2 * n)) -
+      ∑' n : ℕ+, (1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1))) := by
+      congr
+      refine Eq.symm (sub_eq_iff_eq_add.1 ?_)
+      rw [← Summable.tsum_sub]
+      · simp only [sub_sub_eq_add_sub, add_sub_add_left_eq_sub]
+        sorry
+      · sorry
+      · sorry
+  _ = 1 / z + ∑' n : ℕ+, (- 1) ^ (2 * n : ℂ) * (1 / (z - 2 * n) + 1 / (z + 2 * n)) +
+      ∑' n : ℕ+, (- 1) * (1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1))) := by
+      rw [Summable.tsum_mul_left (- 1), neg_one_mul, ← sub_eq_add_neg]
+      · congr
+        ext n
+        suffices (- 1 : ℂ) ^ (2 * n : ℂ) = 1 from by grind
+        sorry
+      · sorry
+  _ = 1 / z + ∑' n : ℕ+, (- 1) ^ (2 * n : ℂ) * (1 / (z - 2 * n) + 1 / (z + 2 * n)) +
+      ∑' n : ℕ+, (- 1) ^ (2 * n - 1 : ℂ) * (1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1))) := by
+      congr
+      ext n
+      suffices (- 1 : ℂ) ^ (2 * n - 1 : ℂ) = - 1 from by grind
+      sorry
+  _ = (1 / z) + ∑' (n : ℕ+), (- 1) ^ (n : ℂ) * ((1 / (z - n) : ℂ) + (1 / (z + n) : ℂ)) := by
+      rw [add_assoc]
+      congr
+      sorry
 
 @[blueprint
   "lem:abadeulmit2"
