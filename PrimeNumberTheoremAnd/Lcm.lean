@@ -984,26 +984,7 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
       ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((i : ℕ) + 1 : ℝ) / n) := by
   rw [show ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((i : ℕ) + 1 : ℝ) / n) =
       ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) / n) by
-    rw [Fin.prod_univ_three, Fin.prod_univ_three]
-    conv =>
-      enter [1, 1, 1, 2, 1, 2]
-      equals 1 => simp
-    conv =>
-      enter [1, 1, 2, 2, 1, 2]
-      equals 2 => norm_cast
-    conv =>
-      enter [2, 1, 1, 2, 1, 2]
-      equals 3 => norm_cast
-    conv =>
-      enter [1, 2, 2, 1, 2]
-      equals 3 => norm_cast
-    conv =>
-      enter [2, 2, 2, 1, 2]
-      equals 1 => norm_cast
-    conv =>
-      enter [2, 1, 2, 2, 1, 2]
-      equals 2 => norm_cast
-    ring]
+    simp only [Fin.prod_univ_three, Fin.val_zero, Fin.val_one, Fin.val_two]; ring_nf]
   apply Finset.prod_le_prod (fun _ _ ↦ by positivity)
   intro i _
   suffices h : (1 : ℝ) / (exists_q_primes hn).choose i ≤
