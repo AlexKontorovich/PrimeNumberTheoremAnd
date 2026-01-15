@@ -771,8 +771,7 @@ lemma Factorization.lower_score_3_case2a {n : ℕ} (f : Factorization n) (L : �
 /-- Case 2b of `lower_score_3`: If `L ≤ n` and the product of deficit primes is `> n`,
 we can find a submultiset to add that reduces the score. -/
 lemma Factorization.lower_score_3_case2b {n : ℕ} (f : Factorization n) (L : ℕ)
-    (h_surplus : ∀ p, f.balance p ≤ 0) (h_deficit_large : ∀ p, f.balance p < 0 → p ≤ L)
-    (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0)
+    (h_surplus : ∀ p, f.balance p ≤ 0) (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0)
     (h_prod : n < (deficitMultiset f L).prod) (hL_le_n : L ≤ n) :
     ∃ f' : Factorization n,
       f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by
@@ -800,7 +799,7 @@ lemma Factorization.lower_score_3_clean {n : ℕ} (f : Factorization n) (L : ℕ
   · exact lower_score_3_case1 f L h_surplus h_deficit_large hf h_prod
   by_cases hL_gt_n : n < L
   · exact lower_score_3_case2a f L h_surplus hf hL_gt_n
-  · exact lower_score_3_case2b f L h_surplus h_deficit_large hf
+  · exact lower_score_3_case2b f L h_surplus hf
       (not_le.mp h_prod) (not_lt.mp hL_gt_n)
 
 @[blueprint
@@ -1326,14 +1325,14 @@ theorem Params.initial.balance_small_prime_le (P : Params) {p : ℕ} :
         rw [h_factorization_eq, ← Finset.sum_filter]
         refine sum_bij (fun k hk ↦ k) ?_ ?_ ?_ ?_ <;> norm_num
         · refine fun a ha₁ ha₂ ↦
-            ⟨⟨ha₁, lt_succ_of_le (Nat.le_log_of_pow_le hp_prime.one_lt ?_)⟩, ?_⟩
-          · refine le_trans (Nat.pow_le_pow_right hp_prime.pos (le_of_lt_succ ha₂)) ?_
+            ⟨⟨ha₁, Nat.le_log_of_pow_le (y := P.n) hp_prime.one_lt ?_⟩, ?_⟩
+          · refine le_trans (Nat.pow_le_pow_right hp_prime.pos ha₂) ?_
             refine le_trans (le_of_dvd (pos_of_ne_zero (by aesop)) (ordProj_dvd ..)) ?_
             linarith [Finset.mem_Ico.mp hm]
-          · exact dvd_trans (pow_dvd_pow _ <| le_of_lt_succ ha₂) <| ordProj_dvd ..
-        · refine fun b hb₁ hb₂ hb₃ ↦ ⟨hb₁, lt_succ_of_le (le_of_not_gt fun hb₄ ↦
+          · exact dvd_trans (pow_dvd_pow _ ha₂) <| ordProj_dvd ..
+        · refine fun b hb₁ hb₂ hb₃ ↦ ⟨hb₁, Nat.le_of_not_gt fun hb₄ ↦
             absurd (dvd_trans (pow_dvd_pow _ hb₄) hb₃) <|
-              pow_succ_factorization_not_dvd ?_ hp_prime)⟩
+              pow_succ_factorization_not_dvd ?_ hp_prime⟩
           linarith [Finset.mem_Ico.mp hm, Nat.sub_pos_of_lt (show P.n / P.M < P.n from
             div_lt_self (pos_of_ne_zero (by grind)) (by linarith [P.hM]))]
       rw [sum_congr rfl h_sum_multiples_aux, sum_comm]; simp_all
@@ -1447,7 +1446,7 @@ lemma Params.initial.sum_valuation_eq_small (P : Params) {p : ℕ} (hp : p.Prime
       intro x hx₁ hx₂ hx₃
       contrapose! hx₃
       rw [← factorization_le_iff_dvd] at hx₃ <;> norm_num at *
-      · exact lt_succ_of_le (by simpa [hp] using hx₃ p)
+      · simpa [hp] using hx₃ p
       · exact fun h ↦ absurd h hp.ne_zero
       · rintro rfl
         norm_num at *
