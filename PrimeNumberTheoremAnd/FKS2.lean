@@ -22,14 +22,6 @@ namespace FKS2
 theorem sec_1_1_remark : ∀ x > 2, li x - Li x = li 2 := sorry
 
 @[blueprint
-  "fks2-eq-19"
-  (title := "Dawson function, FKS2 (19)")
-  (statement := /--
-  The Dawson function $D_+ : \mathbb{R} \to \mathbb{R}$ is defined by the formula
-  $D_+(x) := e^{-x^2} \int_0^x e^{t^2}\ dt$. -/)]
-noncomputable def dawson (x : ℝ) : ℝ := exp (-x ^ 2) * ∫ t in 0..x, exp (t ^ 2)
-
-@[blueprint
   "fks2-eq-16"
   (title := "g function, FKS2 (16)")
   (statement := /--
@@ -82,8 +74,7 @@ theorem lemma_10_substep_2 {a b c x : ℝ} (hx : x > 1) :
   (statement := /-- If $a>0$, $c>0$ and $b < -c^2/16a$, then $g(a,b,c,x)$ decreases with $x$. -/)
   (proof := /-- We apply Lemma \ref{fks2-lemma-10-substep-2}. There are no roots when $b < -\frac{c^2}{16a}$, and the derivative is always negative in this case.
  -/)
-  (latexEnv := "lemma")
-  ]
+  (latexEnv := "lemma")]
 theorem lemma_10a {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b < -c ^ 2 / (16 * a)) :
   StrictAnti (g_bound a b c) :=
   sorry
@@ -117,17 +108,30 @@ theorem lemma_10c {b c : ℝ} (hc : c > 0) :
   "fks2-corollary-11"
   (title := "FKS2 Corollary 11")
   (statement := /--
-  If $B \geq 1 + C^2 / 16R$ then $g(1,1-B,C/\sqrt{R},x)$ is decreasing in $x$. -/)]
+  If $B \geq 1 + C^2 / 16R$ then $g(1,1-B,C/\sqrt{R},x)$ is decreasing in $x$. -/)
+  (proof := /-- This follows from Lemma \ref{fks2-lemma-10a} applied with $a=1$, $b=1-B$ and $c=C/\sqrt{R}$. -/)
+  (latexEnv := "corollary")]
 theorem corollary_11 {B C R : ℝ} (hB : B ≥ 1 + C ^ 2 / (16 * R)) :
     StrictAnti (g_bound 1 (1 - B) (C / sqrt R)) :=
   sorry
+
+@[blueprint
+  "fks2-eq-19"
+  (title := "Dawson function, FKS2 (19)")
+  (statement := /--
+  The Dawson function $D_+ : \mathbb{R} \to \mathbb{R}$ is defined by the formula
+  $D_+(x) := e^{-x^2} \int_0^x e^{t^2}\ dt$. -/)]
+noncomputable def dawson (x : ℝ) : ℝ := exp (-x ^ 2) * ∫ t in 0..x, exp (t ^ 2)
+
 
 @[blueprint
   "fks2-remark-after-corollary-11"
   (title := "FKS2 remark after Corollary 11")
   (statement := /--
   The Dawson function has a single maximum at $x \approx 0.942$, after which the function is
-  decreasing. -/)]
+  decreasing. -/)
+  (proof := /-- The Dawson function satisfies the differential equation $F'(x) + 2xF(x) = 1$ from which it follows that the second derivative satisfies $F''(x) = −2F(x) − 2x(−2xF(x) + 1)$, so that at every critical point (where we have $F(x) = \frac{1}{2x}$) we have $F''(x) = −\frac{1}{x}$.  It follows that every positive critical value gives a local maximum, hence there is a unique such critical value and the function decreases after it. Numerically one may verify this is near 0.9241 see https://oeis.org/ A133841. -/)
+  (latexEnv := "remark")]
 theorem remark_after_corollary_11 :
     ∃ x₀ : ℝ, x₀ ∈ Set.Icc 0.942 0.943 ∧ (∀ x, dawson x ≤ dawson x₀) ∧
       StrictAntiOn dawson (Set.Ioi x₀) := sorry
@@ -142,7 +146,26 @@ theorem remark_after_corollary_11 :
     \exp(-C \sqrt{\frac{\log x}{R}}) D_+( \sqrt{\log x} - \frac{C}{2\sqrt{R}} )$$
   where
   $$ m(x_0,x) = \max ( (\log x_0)^{(2B-3)/2}, (\log x)^{(2B-3)/2} ). $$
-  -/)]
+  -/)
+  (proof := /-- Since $\varepsilon_{\theta,\mathrm{asymp}}(t)$ provides an admissible bound on $\theta(t)$ for all $t \geq x_0$, we have
+\[
+\int_{x_0}^{x} \left| \frac{\theta(t) - t}{t(\log(t))^2} \right| dt \leq \int_{x_0}^{x} \frac{\varepsilon_{\theta,\mathrm{asymp}}(t)}{(\log(t))^2} = \frac{A_\theta}{R^B} \int_{x_0}^{x} (\log(t))^{B-2} \exp\left( -C\sqrt{\frac{\log(t)}{R}} \right) dt.
+\]
+We perform the substitution $u = \sqrt{\log(t)}$ and note that $u^{2B-3} \leq m(x_0, x)$ as defined in (21). Thus the above is bounded above by
+\[
+\frac{2A_\theta m(x_0, x)}{R^B} \int_{\sqrt{\log(x_0)}}^{\sqrt{\log(x)}} \exp\left( u^2 - \frac{Cu}{\sqrt{R}} \right) du.
+\]
+Then, by completing the square $u^2 - \frac{Cu}{\sqrt{R}} = \left( u - \frac{C}{2\sqrt{R}} \right)^2 - \frac{C^2}{4R}$ and doing the substitution $v = u - \frac{C}{2\sqrt{R}}$, the above becomes
+\[
+\frac{2A_\theta m(x_0, x)}{R^B} \exp\left( -\frac{C^2}{4R} \right) \int_{\sqrt{\log(x_0)} - \frac{C}{2\sqrt{R}}}^{\sqrt{\log(x)} - \frac{C}{2\sqrt{R}}} \exp(v^2) \, dv.
+\]
+Now we have
+\begin{align*}
+\int_{\sqrt{\log(x_0)} - \frac{C}{2\sqrt{R}}}^{\sqrt{\log(x)} - \frac{C}{2\sqrt{R}}} \exp(v^2) \, dv &\leq \int_{0}^{\sqrt{\log(x)} - \frac{C}{2\sqrt{R}}} \exp(v^2) \, dv \\
+&= x \exp\left( \frac{C^2}{4R} \right) \exp\left( -C\sqrt{\frac{\log(x)}{R}} \right) D_+\left( \sqrt{\log(x)} - \frac{C}{2\sqrt{R}} \right).
+\end{align*}
+Combining the above completes the proof. -/)
+  (latexEnv := "lemma")]
 theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀) (hx : x ≥ x₀) :
   ∫ t in x₀..x, |Eθ t| / log t ^ 2 ≤
     (2 * A) / (R ^ B) * x * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) *
