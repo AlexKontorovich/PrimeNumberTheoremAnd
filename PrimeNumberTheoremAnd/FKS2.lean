@@ -15,7 +15,9 @@ namespace FKS2
 @[blueprint
   "fks2-rem"
   (title := "Remark in FKS2 Section 1.1")
-  (statement := /-- $\li(x) - \Li(x) = \li(2)$. -/)]
+  (statement := /-- $\li(x) - \Li(x) = \li(2)$. -/)
+  (proof := /-- This follows directly from the definitions of $\li$ and $\Li$. -/)
+  (latexEnv := "remark")]
 theorem sec_1_1_remark : ∀ x > 2, li x - Li x = li 2 := sorry
 
 @[blueprint
@@ -26,6 +28,12 @@ theorem sec_1_1_remark : ∀ x > 2, li x - Li x = li 2 := sorry
   $D_+(x) := e^{-x^2} \int_0^x e^{t^2}\ dt$. -/)]
 noncomputable def dawson (x : ℝ) : ℝ := exp (-x ^ 2) * ∫ t in 0..x, exp (t ^ 2)
 
+@[blueprint
+  "fks2-eq-16"
+  (title := "g function, FKS2 (16)")
+  (statement := /--
+  For any $a,b,c,x \in \mathbb{R}$ we define
+  $g(a,b,c,x) := x^{-a} (\log x)^b \exp( c (\log x)^{1/2} )$. -/)]
 noncomputable def g_bound (a b c x : ℝ) : ℝ := x^(-a) * (log x)^b * exp (c * (log x)^(1/2))
 
 @[blueprint
@@ -33,7 +41,7 @@ noncomputable def g_bound (a b c x : ℝ) : ℝ := x^(-a) * (log x)^b * exp (c *
   (title := "FKS2 equation (17)")
   (statement := /--
   For any $2 \leq x_0 < x$ one has
-  $$ (\pi(x) - Li(x)) - (\pi(x_0) - Li(x_0)) = \frac{\theta(x) - x}{\log x}
+  $$ (\pi(x) - \Li(x)) - (\pi(x_0) - \Li(x_0)) = \frac{\theta(x) - x}{\log x}
     - \frac{\theta(x_0) - x_0}{\log x_0} + \int_{x_0}^x \frac{\theta(t) - t}{t \log^2 t} dt.$$ -/)]
 theorem eq_17 {x₀ x : ℝ} (hx₀ : x₀ ≥ 2) (hx : x > x₀) :
   (pi x - Li x) - (pi x₀ - Li x₀) =
