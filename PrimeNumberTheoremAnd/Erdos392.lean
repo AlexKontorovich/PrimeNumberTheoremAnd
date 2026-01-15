@@ -771,8 +771,7 @@ lemma Factorization.lower_score_3_case2a {n : ℕ} (f : Factorization n) (L : �
 /-- Case 2b of `lower_score_3`: If `L ≤ n` and the product of deficit primes is `> n`,
 we can find a submultiset to add that reduces the score. -/
 lemma Factorization.lower_score_3_case2b {n : ℕ} (f : Factorization n) (L : ℕ)
-    (h_surplus : ∀ p, f.balance p ≤ 0) (h_deficit_large : ∀ p, f.balance p < 0 → p ≤ L)
-    (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0)
+    (h_surplus : ∀ p, f.balance p ≤ 0) (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0)
     (h_prod : n < (deficitMultiset f L).prod) (hL_le_n : L ≤ n) :
     ∃ f' : Factorization n,
       f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by
@@ -800,7 +799,7 @@ lemma Factorization.lower_score_3_clean {n : ℕ} (f : Factorization n) (L : ℕ
   · exact lower_score_3_case1 f L h_surplus h_deficit_large hf h_prod
   by_cases hL_gt_n : n < L
   · exact lower_score_3_case2a f L h_surplus hf hL_gt_n
-  · exact lower_score_3_case2b f L h_surplus h_deficit_large hf
+  · exact lower_score_3_case2b f L h_surplus hf
       (not_le.mp h_prod) (not_lt.mp hL_gt_n)
 
 @[blueprint
