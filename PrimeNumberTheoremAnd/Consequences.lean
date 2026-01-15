@@ -1238,23 +1238,6 @@ lemma pi_nth_prime_asymp :
   · apply IsEquivalent.add_isLittleO (by rfl)
     exact isLittleO_const_id_atTop (1 : ℝ) |>.natCast_atTop
 
-lemma Asymptotics.IsEquivalent.log {α : Type*} {l : Filter α} {f g : α → ℝ} (hfg : f ~[l] g)
-    (g_tendsto : Tendsto g l atTop) :
-    (fun n ↦ log (f n)) ~[l] (fun n ↦ log (g n)) := by
-  have hg := g_tendsto.eventually_ne_atTop 0
-  have hf := hfg.symm.tendsto_atTop g_tendsto|>.eventually_ne_atTop 0
-  rw [isEquivalent_iff_tendsto_one hg] at hfg
-  have := hfg.log (by norm_num)
-  simp only [Pi.div_apply, log_one] at this
-  apply IsLittleO.isEquivalent
-  have := this.congr' (f₂ := (fun n ↦ Real.log (f n) - Real.log (g n))) ?_
-  swap
-  · filter_upwards [hf, hg] with n hf hg using log_div hf hg
-  trans (fun n ↦ 1)
-  · exact (isLittleO_one_iff ℝ).mpr this
-  rw [isLittleO_one_left_iff]
-  exact tendsto_abs_atTop_atTop.comp <| tendsto_log_atTop|>.comp g_tendsto
-
 lemma log_nth_prime_asymp : (fun n ↦ log (nth_prime n)) ~[atTop] (fun n ↦ log n) := by
   have := pi_nth_prime_asymp.log tendsto_natCast_atTop_atTop
   · apply IsEquivalent.trans _ this
@@ -2779,7 +2762,7 @@ theorem chebyshev_asymptotic_pnt
     simp only [cumsum, ← Iio_eq_range] at hW
     have hψ_eq x : ψ_aq x = ∑ n ∈ Iio (⌊x⌋₊ + 1), if n % q = a then Λ n else 0 := by
       simp only [ψ_aq, show Icc 1 ⌊x⌋₊ = (Iio (⌊x⌋₊ + 1)).filter (1 ≤ ·) by
-        ext n; simp [mem_Icc, mem_filter, Nat.lt_add_one_iff]; tauto, sum_filter]
+        ext n; simp [mem_Icc, mem_filter]; tauto, sum_filter]
       refine sum_congr rfl fun n _ ↦ ?_
       by_cases hn : 1 ≤ n <;> simp only [hn, ↓reduceIte]
       push_neg at hn; interval_cases n; simp
