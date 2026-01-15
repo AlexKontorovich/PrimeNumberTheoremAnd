@@ -136,8 +136,13 @@ theorem eq_418 (x : ℝ) :
       ∫ y in 2..x, θ y * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
 
 @[blueprint
+  "rs-419"]
+theorem mertens_second_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
+    ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), 1 / p - log (log x) - B) (nhds 0) := by sorry
+
+@[blueprint
   "rs-419"
-  (title := "RS equation (4.19)")
+  (title := "RS equation (4.19) and Mertens' second theorem")
   (statement := /--
   $$\sum_{p \leq x} \frac{1}{p} = \log \log x + B + \frac{\vartheta(x) - x}{x \log x} $$
   $$ - \int_2^x \frac{(\vartheta(y)-y) (1 + \log y)\ dy}{y^2 \log^2 y}.$$
@@ -151,8 +156,17 @@ theorem eq_419 (x : ℝ) :
       ∫ y in 2..x, (θ y - y) * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
 
 @[blueprint
+  "rs-419"]
+theorem mertens_second_theorem' : ∃ C, ∀ x, |∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), 1 / p - log (log x)| ≤ C := by sorry
+
+@[blueprint
+  "rs-420"]
+theorem mertens_first_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
+    ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), log p / p - log x - E) (nhds 0) := by sorry
+
+@[blueprint
   "rs-420"
-  (title := "RS equation (4.19)")
+  (title := "RS equation (4.19) and Mertens' first theorem")
   (statement := /--
   $$\sum_{p \leq x} \frac{\log p}{p} = \log x + E + \frac{\vartheta(x) - x}{x} $$
   $$ - \int_2^x \frac{(\vartheta(y)-y)\ dy}{y^2}.$$
@@ -165,6 +179,9 @@ theorem eq_420 (x : ℝ) :
       (θ x - x) / x -
       ∫ y in 2..x, (θ y - y) / (y ^ 2) := by sorry
 
+@[blueprint
+  "rs-420"]
+theorem mertens_first_theorem' : ∃ C, ∀ x, |∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), log p / p - log x| ≤ C := by sorry
 
 
 end RS_prime
