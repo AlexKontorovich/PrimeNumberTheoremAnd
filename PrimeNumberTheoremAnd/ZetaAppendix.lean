@@ -52,7 +52,8 @@ topic/Let.20us.20formalize.20an.20appendix}
 
 namespace ZetaAppendix
 
-open Real Complex MeasureTheory
+open scoped Topology
+open Real Complex MeasureTheory Filter
 
 -- may want to move this to a more globally accessible location
 
@@ -862,6 +863,70 @@ lemma trig'' {z : ℂ} (hz : ¬∃ (n : ℤ), n * π / 2 = z) :
     cot z - cot (z + π / 2) = 2 / sin (2 * z) := by
   simp [sub_eq_neg_add, ← trig, ← trig' hz, add_comm]
 
+lemma hsummable {z : ℂ} (hz : z ∈ integerComplement) :
+    Summable fun n : ℕ+ ↦ 1 / (z - 2 * n) + 1 / (z + 2 * n) := by
+  have he (n : ℕ+) := cotTerm_identity hz (2 * n - 1)
+  have hi : (fun n : ℕ+ => (2 * n : ℤ)).Injective := fun _ _ _ => by simp_all
+  have := Summable.mul_left (2 * z)
+    ((EisensteinSeries.summable_linear_sub_mul_linear_add z 1 1).comp_injective hi)
+  simp_all [cotTerm, mul_comm (z + _)⁻¹]
+
+lemma asummable {z : ℂ} (hz : z ∈ integerComplement) :
+    Summable fun n : ℕ+ ↦ (-1) ^ (2 * n : ℕ) * (1 / (z - 2 * n) + 1 / (z + 2 * n)) := by
+  convert hsummable hz using 2
+  simp
+
+lemma hsummable' {z : ℂ} (hz : z ∈ integerComplement) :
+    Summable fun n : ℕ+ ↦ 1 / (z + 1 - 2 * n) + 1 / (z + 1 + 2 * n) := by
+  have : z + 1 ∈ integerComplement := by
+    simp_all only [integerComplement, Set.mem_compl_iff, Set.mem_range, not_exists]
+    refine fun n hn => hz (n - 1) ?_
+    grind
+  exact hsummable this
+
+lemma hsummable'' {z : ℂ} (hz : z ∈ integerComplement) :
+    Summable fun n : ℕ+ ↦ 1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1)) := by
+  have he (n : ℕ+) := cotTerm_identity hz (2 * n - 2)
+  have hi : (fun n : ℕ+ => (2 * n - 1: ℤ)).Injective := fun _ _ _ => by simp_all
+  have := Summable.mul_left (2 * z)
+    ((EisensteinSeries.summable_linear_sub_mul_linear_add z 1 1).comp_injective hi)
+  have (n : ℕ+) : ((2 * n - 2 : ℕ) : ℂ) + 1 = ((2 * n : ℕ) : ℂ) - 1 := by
+    norm_cast
+    rw [Nat.cast_add, Int.subNatNat_eq_coe, Nat.cast_sub] <;> push_cast <;> linarith [n.pos]
+  simp_all [cotTerm, mul_comm (z + _)⁻¹]
+
+lemma neg_one_pow (n : ℕ+) : (-1 : ℂ) ^ (2 * n - 1 : ℕ) = -1 := (neg_one_pow_eq_neg_one_iff_odd
+  (by grind)).2 ⟨n - 1, by cases n using PNat.recOn <;> norm_num; linarith⟩
+
+lemma asummable'' {z : ℂ} (hz : z ∈ integerComplement) :
+    Summable fun n : ℕ+ ↦ (-1) ^ (2 * n - 1 : ℕ) *
+    (1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1))) := by
+  convert Summable.mul_left (-1) (hsummable'' hz) using 1
+  simp [neg_one_pow]
+
+lemma ssummable {z : ℂ} (hz : z ∈ integerComplement) :
+    Summable fun n : ℕ+ ↦ 1 / (z + (2 * n - 1)) - 1 / (z + 1 + 2 * n) := by
+  sorry
+
+lemma telescoping_sum (z : ℂ) (n : ℕ) :
+    ∑ k ∈ Finset.range n, (1 / (z + (2 * (k + 1 : ℕ) - 1)) - 1 / (z + (2 * (k + 1 : ℕ) + 1))) =
+    1 / (z + 1) - 1 / (z + (2 * n + 1)) := by
+  induction n with
+  | zero => simp
+  | succ n ih => rw [Finset.sum_range_succ, ih]; ring_nf; grind
+
+theorem tsum_even_add_odd' {M : Type*} [AddCommMonoid M] [TopologicalSpace M]
+    [T2Space M] [ContinuousAdd M] {f : ℕ+ → M}
+    (he : Summable fun (k : ℕ+) => f (2 * k))
+    (ho : Summable fun (k : ℕ+) => f (2 * k - 1)) :
+    ∑' (k : ℕ+), f (2 * k - 1) + ∑' (k : ℕ+), f (2 * k) = ∑' (k : ℕ+), f k := by
+  symm
+  rw [← Equiv.tsum_eq (Equiv.pnatEquivNat.symm), ← tsum_even_add_odd,
+    ← Equiv.tsum_eq (Equiv.pnatEquivNat.symm), ← Equiv.tsum_eq (Equiv.pnatEquivNat.symm)]
+  · congr
+  · simpa [← Equiv.summable_iff (Equiv.pnatEquivNat.symm)] using ho
+  · simpa [← Equiv.summable_iff (Equiv.pnatEquivNat.symm)] using he
+
 blueprint_comment /--
 We could prove these equations starting from Euler's product for $\sin \pi z$.
 -/
@@ -897,7 +962,7 @@ after reindexing the second sum. Regrouping terms again, we obtain our equation.
   (discussion := 569)]
 theorem lemma_abadeuleulmit1 {z : ℂ} (hz : z ∈ integerComplement) :
     (π / sin (π * z)) =
-    (1 / z) + ∑' (n : ℕ+), (- 1) ^ (n : ℂ) * ((1 / (z - n) : ℂ) + (1 / (z + n) : ℂ)) := calc
+    (1 / z) + ∑' (n : ℕ+), (-1) ^ (n : ℕ) * ((1 / (z - n) : ℂ) + (1 / (z + n) : ℂ)) := calc
   _ = (1 / 2) * π * 2 / sin (π * z) := by field_simp
   _ = (1 / 2) * (π * cot (π * z / 2)) - (1 / 2) * (π * cot (π * (z + 1) / 2)) := by
     have : π * z / 2 + π / 2 = π * (z + 1) / 2 := by grind
@@ -926,36 +991,40 @@ theorem lemma_abadeuleulmit1 {z : ℂ} (hz : z ∈ integerComplement) :
       (1 / (z + 1) + ∑' n : ℕ+, (1 / (z + 1 - 2 * n) + 1 / (z + 1 + 2 * n))) := by
       field_simp
       rw [mul_sub, mul_add, mul_add, ← div_eq_mul_one_div, ← div_eq_mul_one_div,
-        Summable.tsum_mul_left, Summable.tsum_mul_left]
-      · sorry
-      · sorry
+        Summable.tsum_mul_left 2 (hsummable hz), Summable.tsum_mul_left 2 (hsummable' hz)]
   _ = 1 / z + ∑' n : ℕ+, (1 / (z - 2 * n) + 1 / (z + 2 * n)) -
       ∑' n : ℕ+, (1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1))) := by
       congr
       refine Eq.symm (sub_eq_iff_eq_add.1 ?_)
-      rw [← Summable.tsum_sub]
-      · simp only [sub_sub_eq_add_sub, add_sub_add_left_eq_sub]
-        sorry
-      · sorry
-      · sorry
-  _ = 1 / z + ∑' n : ℕ+, (- 1) ^ (2 * n : ℂ) * (1 / (z - 2 * n) + 1 / (z + 2 * n)) +
-      ∑' n : ℕ+, (- 1) * (1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1))) := by
-      rw [Summable.tsum_mul_left (- 1), neg_one_mul, ← sub_eq_add_neg]
-      · congr
-        ext n
-        suffices (- 1 : ℂ) ^ (2 * n : ℂ) = 1 from by grind
-        sorry
-      · sorry
-  _ = 1 / z + ∑' n : ℕ+, (- 1) ^ (2 * n : ℂ) * (1 / (z - 2 * n) + 1 / (z + 2 * n)) +
-      ∑' n : ℕ+, (- 1) ^ (2 * n - 1 : ℂ) * (1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1))) := by
-      congr
-      ext n
-      suffices (- 1 : ℂ) ^ (2 * n - 1 : ℂ) = - 1 from by grind
-      sorry
-  _ = (1 / z) + ∑' (n : ℕ+), (- 1) ^ (n : ℂ) * ((1 / (z - n) : ℂ) + (1 / (z + n) : ℂ)) := by
-      rw [add_assoc]
-      congr
-      sorry
+      rw [← Summable.tsum_sub ?_ (hsummable' hz)]
+      · simp only [sub_sub_eq_add_sub, add_sub_add_left_eq_sub, tsum_pnat_eq_tsum_succ
+          (f := fun b => (1 / (z + (2 * b - 1)) - 1 / (z + (2 * b + 1)))), add_assoc z 1,
+          add_comm (1 : ℂ)]
+        refine HasSum.tsum_eq ((Summable.hasSum_iff_tendsto_nat ?_).2 ?_)
+        · sorry
+        · refine (Filter.tendsto_congr (telescoping_sum z)).2 ?_
+          nth_rw 2 [← sub_zero (1 / (z + 1))]
+          refine Filter.Tendsto.const_sub (1 / (z + 1)) ?_
+          simp only [add_comm _ (1 : ℂ), ← add_assoc]
+          sorry
+      · exact hsummable'' hz
+  _ = 1 / z + ∑' n : ℕ+, (-1) ^ (2 * n : ℕ) * (1 / (z - 2 * n) + 1 / (z + 2 * n)) +
+      ∑' n : ℕ+, (-1) * (1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1))) := by
+      rw [Summable.tsum_mul_left (-1), neg_one_mul, ← sub_eq_add_neg]
+      · congr; ext ; simp
+      · exact hsummable'' hz
+  _ = 1 / z + ∑' n : ℕ+, (-1) ^ (2 * n : ℕ) * (1 / (z - 2 * n) + 1 / (z + 2 * n)) +
+      ∑' n : ℕ+, (-1) ^ (2 * n - 1 : ℕ) * (1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1))) := by
+      congr; simp [neg_one_pow]
+  _ = (1 / z) + ∑' (n : ℕ+), (-1) ^ (n : ℕ) * ((1 / (z - n) : ℂ) + (1 / (z + n) : ℂ)) := by
+      have hn (n : ℕ+) : ((2 * n - 1 : ℕ+) : ℕ) = 2 * n - 1 := by
+        have : 1 < 2 * n := Nat.le_trans (by norm_num) (Nat.mul_le_mul_left 2 n.2)
+        simp [PNat.sub_coe, this]
+      rw [add_assoc, ← tsum_even_add_odd' (f := fun n => (-1) ^ (n : ℕ) * ((1 / (z - n) : ℂ)
+        + (1 / (z + n) : ℂ))), add_comm (∑' (k : ℕ+), (-1) ^ ((2 * k - 1 : ℕ+) : ℕ) * _) _]
+      · congr <;> aesop
+      · simpa using asummable hz
+      · convert asummable'' hz <;> aesop
 
 @[blueprint
   "lem:abadeulmit2"
