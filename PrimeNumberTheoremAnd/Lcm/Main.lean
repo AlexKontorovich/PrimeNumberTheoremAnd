@@ -1165,43 +1165,50 @@ theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   -/)
   (latexEnv := "lemma")
   (discussion := 534)]
--- theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
---     1 - ((4 : ℝ) * ∏ i, ((exists_p_primes hn).choose i : ℝ))
---     / ∏ i, ((exists_q_primes hn).choose i : ℝ) ≥
---     1 - 4 * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ 12 / n ^ (3 / 2 : ℝ) := by
---   have l1 : ((1 + 1 / Real.log √n ^ 3) ^ 12 / n ^ (3 / 2 : ℝ)) =
---     (n ^ (3 / 2 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ 6) /
---     (n ^ (3 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ (- 6 : ℝ)) := by
---     rw [rpow_neg (hε_pos hn).le, ← div_eq_mul_inv, div_div_eq_mul_div, mul_assoc,
---       mul_comm, ← rpow_natCast, ← rpow_natCast (n := 6), ← rpow_add (hε_pos hn),
---       ← div_div_eq_mul_div]
---     · congr
---       · grind
---       · rw [← rpow_sub (by norm_cast; linarith)]; grind
---   have l2 : n ^ (3 / 2 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ 6 = ∏ i : Fin 3,
---     √n * (1 + 1 / Real.log √n ^ 3) ^ ((i : ℝ) + 1) := by
---     rw [← Finset.pow_card_mul_prod, Fin.prod_univ_three, ← rpow_add (hε_pos hn),
---       ← rpow_add (hε_pos hn), rpow_div_two_eq_sqrt _ (by linarith)]
---     norm_num
---   have l3 : n ^ (3 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ (- 6 : ℝ) =
---     ∏ i : Fin 3, n * (1 + 1 / Real.log √n ^ 3) ^ (-((3 : ℝ) - i.1))  := by
---     rw [← Finset.pow_card_mul_prod, Fin.prod_univ_three, ← rpow_add (hε_pos hn),
---       ← rpow_add (hε_pos hn)]
---     norm_num
---   rw [← mul_div_assoc', ← mul_div_assoc', l1, l2, l3]
---   gcongr
---   · have := hε_pos hn
---     exact Finset.prod_nonneg fun _ _ => by positivity
---   · exact Finset.prod_pos fun _ _ => by positivity [hε_pos hn]
---   · exact (exists_p_primes hn).choose_spec.2.2.1 _
---   · exact fun _ _ => by positivity [hε_pos hn]
---   · exact (exists_q_primes hn).choose_spec.2.2.1 _
-
 theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     1 - ((4 : ℝ) * ∏ i, ((exists_p_primes hn).choose i : ℝ))
     / ∏ i, ((exists_q_primes hn).choose i : ℝ) ≥
     1 - 4 * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ 12 / n ^ (3 / 2 : ℝ) := by
-    sorry
+  have hn_pos : (0 : ℝ) < (n : ℝ) := by
+    have hx0sq_pos : (0 : ℝ) < (X₀ : ℝ) ^ (2 : ℕ) := by
+      dsimp [X₀]
+      norm_num
+    have hx0sq_le_n : (X₀ : ℝ) ^ (2 : ℕ) ≤ (n : ℝ) := by
+      exact_mod_cast hn
+    exact hx0sq_pos.trans_le hx0sq_le_n
+  have l1 : ((1 + 1 / Real.log √n ^ 3) ^ 12 / n ^ (3 / 2 : ℝ)) =
+    (n ^ (3 / 2 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ 6) /
+    (n ^ (3 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ (- 6 : ℝ)) := by
+    rw [rpow_neg (hε_pos hn).le, ← div_eq_mul_inv, div_div_eq_mul_div, mul_assoc,
+      mul_comm, ← rpow_natCast, ← rpow_natCast (n := 6), ← rpow_add (hε_pos hn),
+      ← div_div_eq_mul_div]
+    · congr
+      · grind
+      · have hn_nonneg : (0 : ℝ) ≤ (n : ℝ) := le_of_lt hn_pos
+        have hpow : (n : ℝ) ^ (3 : ℝ) = (n : ℝ) ^ (3 / 2 : ℝ) * (n : ℝ) ^ (3 / 2 : ℝ) := by
+          convert (Real.rpow_add hn_pos (3 / 2 : ℝ) (3 / 2 : ℝ)) using 1
+          · ring_nf
+        field_simp [hn_pos.ne']
+        simp [pow_two, hpow]
+  have l2 : n ^ (3 / 2 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ 6 = ∏ i : Fin 3,
+    √n * (1 + 1 / Real.log √n ^ 3) ^ ((i : ℝ) + 1) := by
+    rw [← Finset.pow_card_mul_prod, Fin.prod_univ_three, ← rpow_add (hε_pos hn),
+      ← rpow_add (hε_pos hn), rpow_div_two_eq_sqrt _ (by linarith)]
+    norm_num
+  have l3 : n ^ (3 : ℝ) * (1 + 1 / Real.log √n ^ 3) ^ (- 6 : ℝ) =
+    ∏ i : Fin 3, n * (1 + 1 / Real.log √n ^ 3) ^ (-((3 : ℝ) - i.1))  := by
+    rw [← Finset.pow_card_mul_prod, Fin.prod_univ_three, ← rpow_add (hε_pos hn),
+      ← rpow_add (hε_pos hn)]
+    norm_num
+  rw [← mul_div_assoc', ← mul_div_assoc', l1, l2, l3]
+  gcongr
+  · have := hε_pos hn
+    exact Finset.prod_nonneg fun _ _ => by positivity
+  · exact Finset.prod_pos fun _ _ => by positivity [hε_pos hn, hn_pos]
+  · exact (exists_p_primes hn).choose_spec.2.2.1 _
+  · exact fun _ _ => by positivity [hε_pos hn]
+  · exact (exists_q_primes hn).choose_spec.2.2.1 _
+
 
 
 blueprint_comment /--
@@ -1251,14 +1258,49 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
     have hε_pos := hε_pos hn
     have hmid :
         √n * (1 + 1 / (log √n) ^ 3) ^ 3 < n * (1 + 1 / (log √n) ^ 3) ^ (-3 : ℝ) := by
-        sorry
-      -- norm_cast
-      -- norm_num [rpow_neg_one] at *
-      -- rw [← div_eq_mul_inv, lt_div_iff₀ <| pow_pos hε_pos 3]
-      -- have : (1 + ((log √n) ^ 3)⁻¹) ^ 6 < 2 :=
-      --   calc (1 + ((log √n) ^ 3)⁻¹) ^ 6 < (1 + (11 ^ 3 : ℝ)⁻¹) ^ 6 := by gcongr; linarith [hlog hn]
-      --     _ ≤ 2 := by norm_num
-      -- nlinarith [mul_self_sqrt (Nat.cast_nonneg n), hsqrt_ge hn]
+      set ε : ℝ := 1 + 1 / (log √n) ^ 3
+      have hε_pos' : 0 < ε := by
+        simpa [ε] using hε_pos
+      have hε3_pos : 0 < ε ^ 3 := by
+        positivity [hε_pos']
+      have hε6_lt2 : ε ^ 6 < 2 := by
+        have hlog : (11.4 : ℝ) ≤ log √n := hlog hn
+        have hpow : (11.4 : ℝ) ^ 3 ≤ (log √n) ^ 3 := by
+          exact (pow_le_pow_left₀ (by linarith : (0 : ℝ) ≤ 11.4) hlog) 3
+        have hdiv : 1 / (log √n) ^ 3 ≤ 1 / (11.4 : ℝ) ^ 3 := by
+          have hpos : 0 < (11.4 : ℝ) ^ 3 := by norm_num
+          exact one_div_le_one_div_of_le hpos hpow
+        have hε_le : ε ≤ 1 + 1 / (11.4 : ℝ) ^ 3 := by linarith [hdiv]
+        have hε6_le : ε ^ 6 ≤ (1 + 1 / (11.4 : ℝ) ^ 3) ^ 6 := by
+          exact (pow_le_pow_left₀ (by linarith [hε_pos']) hε_le) 6
+        have hε6_lt : (1 + 1 / (11.4 : ℝ) ^ 3) ^ 6 < 2 := by
+          norm_num
+        exact lt_of_le_of_lt hε6_le hε6_lt
+      have hsqrt_ge2 : (2 : ℝ) ≤ √n := by
+        have hx0_ge2 : (2 : ℝ) ≤ X₀ := by
+          dsimp [X₀]
+          norm_num
+        exact le_trans hx0_ge2 (hsqrt_ge hn)
+      have hε6_lt_sqrt : ε ^ 6 < √n := lt_of_lt_of_le hε6_lt2 hsqrt_ge2
+      have hsqrt_pos : 0 < (√n : ℝ) := by positivity [hn_pos]
+      have h1 : √n * ε ^ 6 < (n : ℝ) := by
+        have hmul : √n * ε ^ 6 < √n * √n :=
+          mul_lt_mul_of_pos_left hε6_lt_sqrt hsqrt_pos
+        exact hmul.trans_eq (by
+          simpa [mul_comm] using (mul_self_sqrt (Nat.cast_nonneg n)))
+      have hdiv := (div_lt_div_of_pos_right h1 hε3_pos)
+      have hdiv' : √n * ε ^ 3 < (n : ℝ) / ε ^ 3 := by
+        calc
+          √n * ε ^ 3 = (√n * ε ^ 6) / ε ^ 3 := by
+            field_simp [hε3_pos.ne', pow_add, mul_assoc, mul_left_comm, mul_comm]
+          _ < (n : ℝ) / ε ^ 3 := hdiv
+      -- rewrite back to the original form
+      have hneg : (n : ℝ) * ε ^ (-3 : ℝ) = (n : ℝ) / ε ^ 3 := by
+        rw [rpow_neg hε_pos'.le, div_eq_mul_inv]
+        simp [Real.rpow_natCast, mul_comm, mul_left_comm, mul_assoc]
+      calc
+        √n * ε ^ 3 < (n : ℝ) / ε ^ 3 := hdiv'
+        _ = (n : ℝ) * ε ^ (-3 : ℝ) := hneg.symm
     exact_mod_cast hp'.trans_lt <| hmid.trans_le hq'
   h_ord_3 := (exists_q_primes hn).choose_spec.2.2.2
   h_crit := by
