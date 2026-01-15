@@ -134,12 +134,6 @@ theorem inv_n_pow_3_div_2_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   \(n=X_0^2\).  One can verify numerically or symbolically. -/)
   (latexEnv := "lemma")
   (discussion := 511)]
--- theorem inv_n_add_sqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
---     1 / (n + √(n : ℝ)) ≥ (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) := by
---   field_simp
---   have : X₀ ≤ √n := by grw [hn]; simp;
---   linear_combination √n * this + sq_sqrt (cast_nonneg n)
-
 theorem inv_n_add_sqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     1 / (n + √(n : ℝ)) ≥ (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) := by
   sorry
