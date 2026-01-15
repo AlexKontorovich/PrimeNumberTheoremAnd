@@ -45,7 +45,7 @@ noncomputable def E : ℝ :=
   (statement := /-- The function $\vartheta(x) = \sum_{p \leq x} \log p$ defines a Stieltjes function (monotone and right continuous). -/)
   (proof := /-- Trivial -/)
   (latexEnv := "sublemma")]
-noncomputable def θ.Stieltjes : StieltjesFunction := {
+noncomputable def θ.Stieltjes : StieltjesFunction ℝ := {
   toFun := θ
   mono' := by sorry
   right_continuous' := by sorry
