@@ -5,11 +5,7 @@ import PrimeNumberTheoremAnd.BKLNW
 blueprint_comment /--
 \section{The implications of FKS2}
 
-In this file we record the implications in the paper
-
-FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
-
-that allow one to convert primary bounds on $E_\psi$ into secondary bounds on $E_\pi$, $E_\theta$.
+In this file we record the implications in the paper \cite{FKS2} that allow one to convert primary bounds on $E_\psi$ into secondary bounds on $E_\pi$, $E_\theta$.
 -/
 
 open Real
