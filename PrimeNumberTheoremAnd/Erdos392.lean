@@ -1777,7 +1777,15 @@ lemma exists_phi_div_self_lt {ε : ℝ} (hε : 0 < ε) : ∃ a : ℕ, a ≠ 0 �
     · exact fun _ _ hi' ↦ hi'.pos
   · aesop
 
-/-- The prime counting function satisfies `π(n) = o(n)` as `n → ∞`. -/
+@[blueprint
+  "primeCounting-is-o-id"
+  (statement := /-- $$\pi(n) = o(n) \quad \text{as } n \to \infty.$$ -/)
+  (proof := /-- Given $\varepsilon > 0$, choose $a \neq 0$ with $\varphi(a)/a < \varepsilon/2$
+(using $\prod_{p \leq n}(1 - 1/p) \to 0$). For $n \geq a + 2$,
+$$\pi(n) \leq \frac{\varphi(a)}{a} \cdot n + \varphi(a) + \pi(a+1) + 1.$$
+Since $\varphi(a)/a < \varepsilon/2$, for $n$ large enough the constant terms are absorbed,
+giving $\pi(n) < \varepsilon n$. -/)
+  (latexEnv := "lemma")]
 lemma primeCounting_is_o_id :
     IsLittleO .atTop (fun n ↦ (primeCounting n : ℝ)) (fun n ↦ (n : ℝ)) := by
   refine isLittleO_iff.mpr fun ε hε ↦ ?_
