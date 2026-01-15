@@ -17,7 +17,7 @@ open Real
 @[blueprint
   "rs-pnt"
   (title := "A medium version of the prime number theorem")
-  (statement := /-- $\vartheta(x) = x + O( x / \log^2 x). -/)
+  (statement := /-- $\vartheta(x) = x + O( x / \log^2 x)$. -/)
   (proof := /-- This in principle follows by establishing an analogue of Theorem \ref{chebyshev-asymptotic}, using mediumPNT in place of weakPNT. -/)
   (latexEnv := "theorem")]
 theorem pnt : ∃ C, ∀ x ≥ 2, |θ x - x| ≤ C * x / log x ^ 2 := by sorry
@@ -64,7 +64,7 @@ theorem pre_413 {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Ici 2)) (x : ℝ) :
 @[blueprint
   "rs-413"
   (title := "RS equation (4.13)")
-  (statement := /-- $\sum_{p \leq x} f(p) = \frac{f(x) \vartheta(x)}{\log x} - \int_2^x \vartheta(x) \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy. -/)
+  (statement := /-- $\sum_{p \leq x} f(p) = \frac{f(x) \vartheta(x)}{\log x} - \int_2^x \vartheta(x) \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$ -/)
   (proof := /-- Follows from Sublemma \ref{rs-pre-413} and integration by parts. -/)
   (latexEnv := "sublemma")]
 theorem eq_413 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) (x : ℝ) :
@@ -90,7 +90,8 @@ theorem eq_414 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) (x : 
   "rs-416"
   (title := "RS equation (4.16)")
   (statement := /--
-  $$L_f := \frac{2f(2)}{\log 2} - \int_2^\infty (\vartheta(y) - y) \frac{d}{dy} (\frac{f(y)}{\log y})\ dy.$$ -/)]
+  $$L_f := \frac{2f(2)}{\log 2} - \int_2^\infty (\vartheta(y) - y) \frac{d}{dy} (\frac{f(y)}{\log y})\ dy.$$ -/)
+  (latexEnv := "sublemma")]
 noncomputable def L (f : ℝ → ℝ) : ℝ :=
     2 * f 2 / log 2 - ∫ y in Set.Ici 2, (θ y - y) * deriv (fun t ↦ f t / log t) y
 
@@ -156,7 +157,7 @@ theorem eq_419 (x : ℝ) :
   $$\sum_{p \leq x} \frac{\log p}{p} = \log x + E + \frac{\vartheta(x) - x}{x} $$
   $$ - \int_2^x \frac{(\vartheta(y)-y)\ dy}{y^2}.$$
 -/)
-  (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = \log t / t$.  Convergence may need a good version of the prime number theorem. -/)
+  (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = \log t / t$.  Convergence will need Theorem \ref{rs-pnt}. -/)
   (latexEnv := "sublemma")]
 theorem eq_420 (x : ℝ) :
     ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), log p / p =
