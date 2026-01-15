@@ -279,7 +279,7 @@ lemma filter_prime_Iic_eq_Icc (n : ℕ) : filter Prime (Iic n) = filter Prime (I
 lemma Icc_zero_eq_insert (n : ℕ) : Icc 0 n = insert 0 (Icc 1 n) := by
   ext m; simp [mem_Icc]; omega
 
-@[blueprint
+@[blueprint "chebyshev-asymptotic"
   (title := "chebyshev-asymptotic")
   (statement := /--
   One has
