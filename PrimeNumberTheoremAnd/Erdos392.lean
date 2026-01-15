@@ -1748,7 +1748,17 @@ theorem Params.initial.bound_score_4 (ε : ℝ) (hε : ε > 0) (L : ℕ) :
       P.L = L → P.n = n → ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n),
           (P.n / p) * Real.log (P.n / p) ≤ ε * P.n := by sorry
 
-/-- Upper bound on prime counting function: `π(n) ≤ √n + 2n log 4 / log n`. -/
+@[blueprint
+  "primeCounting-le-bound"
+  (statement := /-- For all $n \geq 2$, one has $$\pi(n) \leq \sqrt{n} + \frac{2n \log 4}{\log n}.$$ -/)
+  (proof := /-- By Chebyshev's bound, $\prod_{p \leq n} p \leq 4^n$, so
+$\sum_{p \leq n} \log p \leq n \log 4$. The number of primes $p \leq \sqrt{n}$ is trivially
+at most $\sqrt{n}$. For primes $p > \sqrt{n}$, we have $\log p > \frac{1}{2} \log n$, hence
+$$\bigl(\pi(n) - \pi(\sqrt{n})\bigr) \cdot \tfrac{1}{2} \log n
+  < \sum_{\sqrt{n} < p \leq n} \log p \leq n \log 4,$$
+giving $\pi(n) - \pi(\sqrt{n}) < \frac{2n \log 4}{\log n}$. Adding $\pi(\sqrt{n}) \leq \sqrt{n}$
+yields the result. -/)
+  (latexEnv := "sublemma")]
 lemma primeCounting_le_bound (n : ℕ) (hn : 2 ≤ n) :
     (Nat.primeCounting n : ℝ) ≤ Real.sqrt n + (2 * n * Real.log 4) / Real.log n := by
   have h_sum_log_bound :
