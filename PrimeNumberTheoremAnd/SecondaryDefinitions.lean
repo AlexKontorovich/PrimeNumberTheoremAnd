@@ -18,13 +18,29 @@ FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
 
 open Real Finset
 
-/-- Standard arithmetic functions. TODO: align this with notation used elsewhere in PNT+ -/
+/- Standard arithmetic functions. TODO: align this with notation used elsewhere in PNT+ -/
+
+@[blueprint
+  "pi-def"
+  (title := "pi")
+  (statement := /-- $\pi(x)$ is the number of primes less than or equal to $x$. -/)]
 noncomputable def pi (x : ℝ) : ℝ :=  Nat.primeCounting ⌊x⌋₊
 
+@[blueprint
+  "li-def"
+  (title := "li and Li")
+  (statement := /-- $\mathrm{li}(x) = \int_0^x \frac{dt}{\log t}$ and $\mathrm{Li}(x) = \int_2^x \frac{dt}{\log t}$. -/)]
 noncomputable def li (x : ℝ) : ℝ := ∫ t in 0..x, 1 / log t
 
+@[blueprint
+  "li-def"
+]
 noncomputable def Li (x : ℝ) : ℝ := ∫ t in 2..x, 1 / log t
 
+@[blueprint
+  "theta-def"
+  (title := "theta")
+  (statement := /-- $\theta(x) = \sum_{p \leq x} \log p$ where the sum is over primes $p$. -/)]
 noncomputable def θ (x : ℝ) := Chebyshev.theta x
 
 
