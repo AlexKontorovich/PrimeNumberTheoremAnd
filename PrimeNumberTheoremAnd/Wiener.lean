@@ -1835,9 +1835,8 @@ lemma limiting_cor_schwartz (ψ : 𝓢(ℝ, ℂ)) (hf : ∀ (σ' : ℝ), 1 < σ'
   -/)
   (latexEnv := "lemma")]
 lemma fourier_surjection_on_schwartz (f : 𝓢(ℝ, ℂ)) : ∃ g : 𝓢(ℝ, ℂ), 𝓕 g = f := by
-  refine ⟨(fourierTransformCLE ℝ).symm f, ?_⟩
-  rw [← fourierTransformCLE_apply ℝ]
-  simp
+  refine ⟨𝓕⁻ f, ?_⟩
+  exact FourierTransform.fourier_fourierInv_eq f
 
 
 

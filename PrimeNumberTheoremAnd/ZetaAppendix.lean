@@ -246,8 +246,8 @@ theorem lemma_IBP_bound_C1 {a b : ℝ} (hab : a < b) (g : ℝ → ℝ) (F : ℝ 
       have hxa : x > a := by cases max_cases a b <;> cases min_cases a b <;> linarith [hx.1, hx.2]
       have hxb : x < b := by cases max_cases a b <;> cases min_cases a b <;> linarith [hx.1, hx.2]
       convert HasDerivAt.hasDerivWithinAt <| HasDerivAt.mul
-        (HasDerivAt.ofReal_comp <| hg.differentiableOn le_rfl |> DifferentiableOn.hasDerivAt <| Icc_mem_nhds hxa hxb)
-          (hF.differentiableOn le_rfl |> DifferentiableOn.hasDerivAt <| Icc_mem_nhds hxa hxb)
+        (HasDerivAt.ofReal_comp <| hg.differentiableOn_one |> DifferentiableOn.hasDerivAt <| Icc_mem_nhds hxa hxb)
+          (hF.differentiableOn_one |> DifferentiableOn.hasDerivAt <| Icc_mem_nhds hxa hxb)
             using 1
       ring
     · rw [intervalIntegrable_iff_integrableOn_Ioo_of_le hab.le]
@@ -362,7 +362,7 @@ theorem lemma_IBP_bound_C1_monotone {a b : ℝ} (hab : a < b) (g : ℝ → ℝ) 
     ‖(∫ t in Icc a b, (g t : ℂ) * deriv F t) - (g b * F b - g a * F a)‖ ≤
     (⨆ t ∈ Icc a b, ‖F t‖) * (g b - g a) := by
   have hbound := @lemma_IBP_bound_C1 a b hab g F hg hF
-  have hdiff : DifferentiableOn ℝ g (Icc a b) := hg.differentiableOn le_rfl
+  have hdiff : DifferentiableOn ℝ g (Icc a b) := hg.differentiableOn_one
   have hderiv_nonneg : ∀ t ∈ Ioo a b, 0 ≤ deriv g t := by
     intro t ht
     have hlim : Tendsto (fun h ↦ (g (t + h) - g t) / h) (𝓝[Ioi 0] 0) (𝓝 (deriv g t)) := by
@@ -720,13 +720,13 @@ theorem lemma_aachmonophase {a b : ℝ} (ha : a < b) (φ : ℝ → ℝ) (hφ_C1 
     rw [deriv_const_mul]
     · norm_num [Complex.exp_ne_zero, mul_comm]
       erw [HasDerivAt.deriv (HasDerivAt.comp t (Complex.hasDerivAt_exp _) (HasDerivAt.mul (HasDerivAt.ofReal_comp
-        (hφ_C1.differentiableOn le_rfl |> DifferentiableOn.hasDerivAt <| Icc_mem_nhds ht.1 ht.2)) <| hasDerivAt_const ..))]
+        (hφ_C1.differentiableOn_one |> DifferentiableOn.hasDerivAt <| Icc_mem_nhds ht.1 ht.2)) <| hasDerivAt_const ..))]
       norm_num
       ring_nf
       simp
     · apply Complex.differentiableAt_exp.comp
       apply DifferentiableAt.const_mul <| ofRealCLM.differentiableAt.comp _ <| DifferentiableOn.differentiableAt
-        (hφ_C1.differentiableOn le_rfl) (Icc_mem_nhds ht.1 ht.2) ..
+        hφ_C1.differentiableOn_one (Icc_mem_nhds ht.1 ht.2) ..
   have h_norm_F : ⨆ t ∈ Set.Icc a b, ‖F t‖ = 1 / (2 * Real.pi) := by
     dsimp only [F]
     rw [@ciSup_eq_of_forall_le_of_forall_lt_exists_gt] <;> norm_num [norm_exp, abs_of_nonneg pi_pos.le]
