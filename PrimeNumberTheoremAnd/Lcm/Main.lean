@@ -976,50 +976,71 @@ blueprint_comment /--
   -/)
   (proofUses := ["lem:choose-qi"])
   (latexEnv := "lemma")]
--- theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
---     ∏ i, (1 + (1 : ℝ) / (exists_q_primes hn).choose i) ≤
---       ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((i : ℕ) + 1 : ℝ) / n) := by
---   rw [show ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((i : ℕ) + 1 : ℝ) / n) =
---       ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) / n) by
---     rw [Fin.prod_univ_three, Fin.prod_univ_three]
---     conv =>
---       enter [1, 1, 1, 2, 1, 2]
---       equals 1 => simp
---     conv =>
---       enter [1, 1, 2, 2, 1, 2]
---       equals 2 => norm_cast
---     conv =>
---       enter [2, 1, 1, 2, 1, 2]
---       equals 3 => norm_cast
---     conv =>
---       enter [1, 2, 2, 1, 2]
---       equals 3 => norm_cast
---     conv =>
---       enter [2, 2, 2, 1, 2]
---       equals 1 => norm_cast
---     conv =>
---       enter [2, 1, 2, 2, 1, 2]
---       equals 2 => norm_cast
---     ring]
---   apply Finset.prod_le_prod (fun _ _ ↦ by positivity)
---   intro i _
---   suffices h : (1 : ℝ) / (exists_q_primes hn).choose i ≤
---       (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) / n from (by linarith)
---   have := (exists_q_primes hn).choose_spec.2.2.1 i
---   rw [show (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) / n =
---       1 / (n / (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) ) by field_simp]
---   have f0 : (0 : ℝ) < (log √(n : ℝ)) ^ 3 := by positivity [hlog hn]
---   apply one_div_le_one_div_of_le
---   · positivity
---   · convert this using 1
---     field_simp
---     rw [← rpow_add (hε_pos hn)]
---     simp
-
 theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∏ i, (1 + (1 : ℝ) / (exists_q_primes hn).choose i) ≤
       ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((i : ℕ) + 1 : ℝ) / n) := by
-    sorry
+  set b : ℝ := (1 + 1 / (log √(n : ℝ)) ^ 3)
+  have hb_pos : 0 < b := by
+    have : 0 < (log √(n : ℝ)) ^ 3 := by positivity [hlog hn]
+    have : 0 < 1 / (log √(n : ℝ)) ^ 3 := by exact one_div_pos.mpr this
+    linarith
+  have hb_ne : b ≠ 0 := ne_of_gt hb_pos
+  have hn_pos : (0 : ℝ) < n := by
+    have hx0sq_pos : (0 : ℝ) < (X₀ : ℝ) ^ (2 : ℕ) := by
+      dsimp [X₀]
+      norm_num
+    have hx0sq_le_n : (X₀ : ℝ) ^ (2 : ℕ) ≤ (n : ℝ) := by
+      exact_mod_cast hn
+    exact hx0sq_pos.trans_le hx0sq_le_n
+  rw [show ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((i : ℕ) + 1 : ℝ) / n) =
+      ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) / n) by
+    rw [Fin.prod_univ_three, Fin.prod_univ_three]
+    conv =>
+      enter [1, 1, 1, 2, 1, 2]
+      equals 1 => simp
+    conv =>
+      enter [1, 1, 2, 2, 1, 2]
+      equals 2 => norm_cast
+    conv =>
+      enter [2, 1, 1, 2, 1, 2]
+      equals 3 => norm_cast
+    conv =>
+      enter [1, 2, 2, 1, 2]
+      equals 3 => norm_cast
+    conv =>
+      enter [2, 2, 2, 1, 2]
+      equals 1 => norm_cast
+    conv =>
+      enter [2, 1, 2, 2, 1, 2]
+      equals 2 => norm_cast
+    ring]
+  apply Finset.prod_le_prod (fun _ _ ↦ by positivity)
+  intro i _
+  suffices h : (1 : ℝ) / (exists_q_primes hn).choose i ≤
+      b ^ ((3 : ℝ) - (i : ℕ)) / n from (by linarith)
+  set t : ℝ := (3 : ℝ) - (i : ℕ)
+  have hqi : (n : ℝ) * b ^ (-t) ≤ (exists_q_primes hn).choose i := by
+    simpa [b, t] using (exists_q_primes hn).choose_spec.2.2.1 i
+  have hpos : (0 : ℝ) < (n : ℝ) * b ^ (-t) := by
+    exact mul_pos hn_pos (Real.rpow_pos_of_pos hb_pos _)
+  have h1 : (1 : ℝ) / (exists_q_primes hn).choose i ≤
+      1 / ((n : ℝ) * b ^ (-t)) :=
+    one_div_le_one_div_of_le hpos hqi
+  calc
+    (1 : ℝ) / (exists_q_primes hn).choose i ≤ 1 / ((n : ℝ) * b ^ (-t)) := h1
+    _ = b ^ t / n := by
+      have hbpow_pos : 0 < b ^ t := Real.rpow_pos_of_pos hb_pos _
+      have hbpow_ne : b ^ t ≠ 0 := ne_of_gt hbpow_pos
+      have hneg : b ^ (-t) = (b ^ t)⁻¹ := by
+        simpa using (Real.rpow_neg (x := b) (y := t) hb_pos.le)
+      calc
+        1 / ((n : ℝ) * b ^ (-t)) = 1 / ((n : ℝ) * (b ^ t)⁻¹) := by simp [hneg]
+        _ = (1 / n) * b ^ t := by
+          field_simp [hn_pos.ne', hbpow_ne, mul_assoc, mul_left_comm, mul_comm]
+        _ = b ^ t / n := by
+          simp [div_eq_mul_inv, mul_comm]
+
+
 
 @[blueprint
   "lem:pi-product"
@@ -1054,37 +1075,6 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   Taking \(1+\cdot\) and multiplying over \(i=1,2,3\) gives \eqref{eq:pi-lower}.
   -/)
   (latexEnv := "lemma")]
-
--- theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
---     ∏ i, (1 + (1 : ℝ) /
---         ((exists_p_primes hn).choose i * ((exists_p_primes hn).choose i + 1))) ≥
---       ∏ i : Fin 3,
---         (1 + 1 / ((1 + 1 / (log √(n : ℝ)) ^ 3) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n))) := by
---   refine Finset.prod_le_prod (fun i _ => by positivity [hlog hn]) fun i _ => ?_
---   set p := (exists_p_primes hn).choose
---   have h₀ (i) : √n < p i := by
---     have : p 0 ≤ p i := by
---       apply (exists_p_primes hn).choose_spec.2.1.monotone
---       simp
---     grw [← this]
---     exact (exists_p_primes hn).choose_spec.2.2.2
---   gcongr 1 + 1 / ?_
---   · have := ((exists_p_primes hn).choose_spec.1 i).pos
---     positivity
---   have : p i ≤ √n * (1 + 1 / log √n ^ 3) ^ (i + 1 : ℝ) :=
---     (exists_p_primes hn).choose_spec.2.2.1 i
---   have h₁ : p i ^ 2 ≤ n * (1 + 1 / log √n ^ 3) ^ (2 * i + 2 : ℝ) := by
---     grw [this, mul_pow, sq_sqrt (by simp)]
---     norm_cast
---     rw [← pow_mul]
---     grind
---   have h₂ : p i + 1 ≤ p i * (1 / n * (n + √n)) := by
---     field_simp [this]
---     linear_combination √n * h₀ i - sq_sqrt (cast_nonneg n)
---   grw [h₂, ← mul_assoc, ← sq, h₁]
---   field_simp
---   rfl
-
 theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∏ i, (1 + (1 : ℝ) /
         ((exists_p_primes hn).choose i * ((exists_p_primes hn).choose i + 1))) ≥
