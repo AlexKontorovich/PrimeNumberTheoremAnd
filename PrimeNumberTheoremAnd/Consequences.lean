@@ -2762,7 +2762,7 @@ theorem chebyshev_asymptotic_pnt
     simp only [cumsum, ← Iio_eq_range] at hW
     have hψ_eq x : ψ_aq x = ∑ n ∈ Iio (⌊x⌋₊ + 1), if n % q = a then Λ n else 0 := by
       simp only [ψ_aq, show Icc 1 ⌊x⌋₊ = (Iio (⌊x⌋₊ + 1)).filter (1 ≤ ·) by
-        ext n; simp [mem_Icc, mem_filter, Nat.lt_add_one_iff]; tauto, sum_filter]
+        ext n; simp [mem_Icc, mem_filter]; tauto, sum_filter]
       refine sum_congr rfl fun n _ ↦ ?_
       by_cases hn : 1 ≤ n <;> simp only [hn, ↓reduceIte]
       push_neg at hn; interval_cases n; simp
