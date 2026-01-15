@@ -1006,7 +1006,7 @@ theorem lemma_abadeuleulmit1 {z : ℂ} (hz : z ∈ integerComplement) :
           nth_rw 2 [← sub_zero (1 / (z + 1))]
           refine Filter.Tendsto.const_sub (1 / (z + 1)) ?_
           simp only [add_comm _ (1 : ℂ), ← add_assoc]
-          sorry
+          have := EisensteinSeries.tendsto_zero_inv_linear (z + 1) 1
       · exact hsummable'' hz
   _ = 1 / z + ∑' n : ℕ+, (-1) ^ (2 * n : ℕ) * (1 / (z - 2 * n) + 1 / (z + 2 * n)) +
       ∑' n : ℕ+, (-1) * (1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1))) := by
