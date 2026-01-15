@@ -54,10 +54,10 @@ lemma HasDerivAt.of_hasDerivAt_ofReal_comp {z : ℝ} {f : ℝ → ℝ} {u : ℂ}
   lift u to ℝ
   · have H := (imCLM.hasFDerivAt.comp z hf.hasFDerivAt).hasDerivAt.deriv
     simp only [Function.comp_def, imCLM_apply, ofReal_im, deriv_const] at H
-    rwa [eq_comm, comp_apply, imCLM_apply, smulRight_apply, one_apply, one_smul] at H
+    rwa [eq_comm, comp_apply, imCLM_apply, toSpanSingleton_apply_one] at H
   refine ⟨u, rfl, ?_⟩
   convert (reCLM.hasFDerivAt.comp z hf.hasFDerivAt).hasDerivAt
-  rw [comp_apply, smulRight_apply, one_apply, one_smul, reCLM_apply, ofReal_re]
+  rw [comp_apply, toSpanSingleton_apply_one, reCLM_apply, ofReal_re]
 
 lemma DifferentiableAt.ofReal_comp_iff {z : ℝ} {f : ℝ → ℝ} :
     DifferentiableAt ℝ (fun (y : ℝ) ↦ (f y : ℂ)) z ↔ DifferentiableAt ℝ f z := by
