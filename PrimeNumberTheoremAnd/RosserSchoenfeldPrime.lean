@@ -142,7 +142,7 @@ theorem mertens_second_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
 
 @[blueprint
   "rs-419"
-  (title := "RS equation (4.19)")
+  (title := "RS equation (4.19) and Mertens' second theorem")
   (statement := /--
   $$\sum_{p \leq x} \frac{1}{p} = \log \log x + B + \frac{\vartheta(x) - x}{x \log x} $$
   $$ - \int_2^x \frac{(\vartheta(y)-y) (1 + \log y)\ dy}{y^2 \log^2 y}.$$
@@ -166,7 +166,7 @@ theorem mertens_first_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
 
 @[blueprint
   "rs-420"
-  (title := "RS equation (4.19)")
+  (title := "RS equation (4.19) and Mertens' first theorem")
   (statement := /--
   $$\sum_{p \leq x} \frac{\log p}{p} = \log x + E + \frac{\vartheta(x) - x}{x} $$
   $$ - \int_2^x \frac{(\vartheta(y)-y)\ dy}{y^2}.$$
