@@ -2,9 +2,7 @@ import PrimeNumberTheoremAnd.SecondaryDefinitions
 
 blueprint_comment /--
 \section{Tools from BKLNW}
-In this file we record the results from
-S. Broadbent, H. Kadiri, A. Lumley, N. Ng, K. Wilk, Sharper bounds for the Chebyshev function θ(x),
-Math. Comp. 90 (2021), no. 331, 2281–2315.
+In this file we record the results from \cite{BKLNW}.
 --/
 
 open Real
