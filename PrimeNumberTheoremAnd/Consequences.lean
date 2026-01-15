@@ -3,13 +3,13 @@ import Mathlib.Algebra.Order.Floor.Semifield
 import Mathlib.Analysis.Asymptotics.Lemmas
 import Mathlib.NumberTheory.AbelSummation
 import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
+import Mathlib.Analysis.Asymptotics.SpecificAsymptotics
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
 import Mathlib.NumberTheory.Chebyshev
 import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.Analysis.Polynomial.Basic
-
 import Mathlib.NumberTheory.Harmonic.Bounds
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 import PrimeNumberTheoremAnd.Wiener
@@ -248,6 +248,37 @@ theorem WeakPNT'' : ψ ~[atTop] (fun x ↦ x) := by
     rw [sub_nonneg]
     exact floor_le hb'
 
+/-- `√x · log x = o(x)` as `x → ∞`. -/
+lemma isLittleO_sqrt_mul_log : (fun x : ℝ ↦ x.sqrt * x.log) =o[atTop] _root_.id := by
+  have : (fun x : ℝ ↦ x.sqrt * x.log) =o[atTop] fun x ↦ x := by
+    refine (isLittleO_mul_iff_isLittleO_div ?_).mpr ?_
+    · filter_upwards [eventually_gt_atTop 0] with x hx; exact (sqrt_ne_zero hx.le).mpr hx.ne'
+    · convert isLittleO_log_rpow_atTop (by norm_num : (0 : ℝ) < 1 / 2) using 2 with x
+      rw [div_sqrt, sqrt_eq_rpow]
+  exact this
+
+/-- `(⌊x⌋₊ + 1) / x → 1` as `x → ∞`. -/
+lemma tendsto_floor_add_one_div_self : Tendsto (fun x : ℝ ↦ (⌊x⌋₊ + 1 : ℝ) / x) atTop (nhds 1) := by
+  have h := Asymptotics.isEquivalent_nat_floor (R := ℝ)
+  have h' : IsEquivalent atTop (fun x : ℝ ↦ (⌊x⌋₊ : ℝ) + 1) _root_.id :=
+    h.add_isLittleO (isLittleO_const_id_atTop 1)
+  rwa [isEquivalent_iff_tendsto_one
+    (by filter_upwards [eventually_gt_atTop 0] with x hx a; simp only [_root_.id] at a; linarith)] at h'
+
+/-- `x =Θ x / c` for nonzero constant `c`. -/
+lemma isTheta_self_div_const {c : ℝ} (hc : c ≠ 0) : (fun x : ℝ ↦ x) =Θ[atTop] fun x ↦ x / c := by
+  have : (fun x : ℝ ↦ x / c) = fun x ↦ c⁻¹ * x := by ext x; ring
+  exact this ▸ (isTheta_const_mul_left (inv_ne_zero hc)).mpr (isTheta_refl ..) |>.symm
+
+/-- Filtered sum over `Iic n` equals filtered sum over `Icc 1 n` for primes. -/
+lemma filter_prime_Iic_eq_Icc (n : ℕ) : filter Prime (Iic n) = filter Prime (Icc 1 n) := by
+  ext p; simp only [mem_filter, mem_Iic, mem_Icc, and_congr_left_iff]
+  exact fun hp ↦ ⟨fun h ↦ ⟨hp.one_lt.le, h⟩, fun ⟨_, h⟩ ↦ h⟩
+
+/-- `Icc 0 n = insert 0 (Icc 1 n)` -/
+lemma Icc_zero_eq_insert (n : ℕ) : Icc 0 n = insert 0 (Icc 1 n) := by
+  ext m; simp [mem_Icc]; omega
+
 @[blueprint
   (title := "chebyshev-asymptotic")
   (statement := /--
@@ -263,25 +294,15 @@ theorem WeakPNT'' : ψ ~[atTop] (fun x ↦ x) := by
   $\sqrt{x} \log x$ to the sum, so the left-hand side is $O( \sqrt{x} \log^2 x ) = o(x)$ as
   required.
   -/)]
-theorem chebyshev_asymptotic :
-    θ ~[atTop] id := by
-  apply WeakPNT''.add_isLittleO''
-  apply IsBigO.trans_isLittleO (g := fun x ↦ 2 * x.sqrt * x.log)
-  · rw [isBigO_iff']
-    use 1
-    simp only [gt_iff_lt, zero_lt_one, Pi.sub_apply, norm_eq_abs, one_mul,
-      eventually_atTop, ge_iff_le, true_and]
-    use 2
-    intro x hx
-    nth_rewrite 2 [abs_of_nonneg (by bound)]
-    exact Chebyshev.abs_psi_sub_theta_le_sqrt_mul_log (by linarith)
-  simp_rw [mul_assoc]
-  apply IsLittleO.const_mul_left
-  apply isLittleO_mul_iff_isLittleO_div _|>.mpr
-  · simp_rw [div_sqrt, sqrt_eq_rpow]
-    apply isLittleO_log_rpow_atTop (by norm_num)
-  filter_upwards [eventually_gt_atTop 0] with x hx
-  apply sqrt_ne_zero _|>.mpr <;> linarith
+theorem chebyshev_asymptotic : θ ~[atTop] id := by
+  refine WeakPNT''.add_isLittleO'' (IsBigO.trans_isLittleO (g := fun x ↦ 2 * x.sqrt * x.log) ?_ ?_)
+  · rw [isBigO_iff']; refine ⟨1, one_pos, ?_⟩
+    simp only [one_mul, eventually_atTop, ge_iff_le]
+    exact ⟨2, fun x hx ↦ by
+      rw [Pi.sub_apply, norm_eq_abs, norm_eq_abs, abs_of_nonneg (by bound : 0 ≤ 2 * √x * log x)]
+      exact (abs_of_nonneg (sub_nonneg.mpr (Chebyshev.theta_le_psi x))).symm ▸
+        Chebyshev.abs_psi_sub_theta_le_sqrt_mul_log (by linarith : 1 ≤ x)⟩
+  · simpa only [mul_assoc] using isLittleO_sqrt_mul_log.const_mul_left 2
 
 theorem chebyshev_asymptotic_finsum :
     (fun x ↦ ∑ᶠ (p : ℕ) (_ : p ≤ x) (_ : Nat.Prime p), log p) ~[atTop] fun x ↦ x := by
@@ -2498,9 +2519,70 @@ blueprint_comment /--
   (proofUses := ["chebyshev_asymptotic"])
   (latexEnv := "theorem")]
 theorem chebyshev_asymptotic_pnt
-    {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) :
-    (fun x ↦ ∑ p ∈ (filter Nat.Prime (Iic ⌊x⌋₊)), if (p % q = a) then log p else 0) ~[atTop]
-      (fun x ↦ x / (Nat.totient q)) := by sorry
+    {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : a.Coprime q) (ha' : a < q) :
+    (fun x ↦ ∑ p ∈ filter Nat.Prime (Iic ⌊x⌋₊), if p % q = a then log p else 0) ~[atTop]
+      fun x ↦ x / q.totient := by
+  let ψ_aq : ℝ → ℝ := fun x ↦ ∑ n ∈ Icc 1 ⌊x⌋₊, if n % q = a then Λ n else 0
+  have htot_pos : (0 : ℝ) < q.totient := cast_pos.mpr (totient_pos.mpr hq)
+  have hψ_equiv : ψ_aq ~[atTop] fun x ↦ x / q.totient := by
+    have hW := WeakPNT_AP hq ha ha'
+    simp only [cumsum, ← Iio_eq_range] at hW
+    have hψ_eq x : ψ_aq x = ∑ n ∈ Iio (⌊x⌋₊ + 1), if n % q = a then Λ n else 0 := by
+      simp only [ψ_aq, show Icc 1 ⌊x⌋₊ = (Iio (⌊x⌋₊ + 1)).filter (1 ≤ ·) by
+        ext n; simp [mem_Icc, mem_filter, Nat.lt_add_one_iff]; tauto, sum_filter]
+      refine sum_congr rfl fun n _ ↦ ?_
+      by_cases hn : 1 ≤ n <;> simp only [hn, ↓reduceIte]
+      push_neg at hn; interval_cases n; simp
+    refine (isEquivalent_iff_tendsto_one ?_).mpr ?_
+    · filter_upwards [eventually_ge_atTop 1] with x hx; exact div_ne_zero (by linarith) htot_pos.ne'
+    have hlim1 : Tendsto (fun x : ℝ ↦ (∑ n ∈ Iio (⌊x⌋₊ + 1), if n % q = a then Λ n else 0) /
+        (⌊x⌋₊ + 1 : ℝ)) atTop (nhds (1 / q.totient)) := by
+      have heq : (fun x : ℝ ↦ (∑ n ∈ Iio (⌊x⌋₊ + 1), if n % q = a then Λ n else 0) /
+          (⌊x⌋₊ + 1 : ℝ)) = (fun N ↦ (∑ n ∈ Iio N, if n % q = a then Λ n else 0) / N) ∘
+          (fun x : ℝ ↦ ⌊x⌋₊ + 1) := by ext x; simp [Function.comp_apply]
+      exact heq ▸ hW.comp ((tendsto_add_atTop_nat 1).comp tendsto_nat_floor_atTop)
+    have hgoal_eq : (ψ_aq / fun x ↦ x / (q.totient : ℝ)) =
+        fun x ↦ ψ_aq x / x * q.totient := by ext x; simp only [Pi.div_apply, div_div_eq_mul_div]; ring
+    rw [hgoal_eq, show (1 : ℝ) = 1 / q.totient * 1 * q.totient by field_simp]
+    refine Tendsto.mul ?_ tendsto_const_nhds
+    have heq' : (fun x ↦ ψ_aq x / x) =ᶠ[atTop]
+        fun x ↦ (∑ n ∈ Iio (⌊x⌋₊ + 1), if n % q = a then Λ n else 0) / (⌊x⌋₊ + 1 : ℝ) * ((⌊x⌋₊ + 1 : ℝ) / x) := by
+      filter_upwards [eventually_gt_atTop 0] with x hx
+      simp only [hψ_eq]; field_simp
+    exact Tendsto.congr' heq'.symm (hlim1.mul tendsto_floor_add_one_div_self)
+  refine hψ_equiv.add_isLittleO'' (IsBigO.trans_isLittleO (g := fun x ↦ 2 * x.sqrt * x.log) ?_ ?_)
+  · rw [isBigO_iff']; refine ⟨1, one_pos, eventually_atTop.mpr ⟨2, fun x hx ↦ ?_⟩⟩
+    simp only [Pi.sub_apply, norm_eq_abs, one_mul]
+    have hdiff_nonneg : 0 ≤ ψ_aq x - ∑ p ∈ filter Nat.Prime (Iic ⌊x⌋₊), if p % q = a then log p else 0 := by
+      simp only [ψ_aq, sub_nonneg]
+      calc (∑ p ∈ filter Nat.Prime (Iic ⌊x⌋₊), if p % q = a then log p else (0 : ℝ))
+          ≤ ∑ p ∈ filter Nat.Prime (Iic ⌊x⌋₊), if p % q = a then Λ p else (0 : ℝ) :=
+            sum_le_sum fun p hp ↦ by split_ifs <;> simp [vonMangoldt_apply_prime (mem_filter.mp hp).2]
+        _ ≤ ∑ n ∈ Icc 1 ⌊x⌋₊, if n % q = a then Λ n else (0 : ℝ) :=
+            sum_le_sum_of_subset_of_nonneg
+              (fun p hp ↦ by simp only [mem_filter, mem_Iic, mem_Icc] at hp ⊢; exact ⟨hp.2.one_lt.le, hp.1⟩)
+              (fun n _ _ ↦ by split_ifs <;> [exact vonMangoldt_nonneg; rfl])
+    have hdiff_le : ψ_aq x - (∑ p ∈ filter Nat.Prime (Iic ⌊x⌋₊), if p % q = a then log p else (0 : ℝ)) ≤ ψ x - θ x := by
+      simp only [ψ_aq, Chebyshev.psi_eq_sum_Icc, Chebyshev.theta_eq_sum_Icc]
+      conv_rhs => rw [Icc_zero_eq_insert, sum_insert (by simp : (0 : ℕ) ∉ Icc 1 ⌊x⌋₊),
+        show Λ 0 = 0 by simp only [ArithmeticFunction.map_zero], zero_add,
+        show filter Nat.Prime (insert 0 (Icc 1 ⌊x⌋₊)) = filter Nat.Prime (Icc 1 ⌊x⌋₊) by
+          simp [filter_insert, Nat.not_prime_zero]]
+      rw [filter_prime_Iic_eq_Icc, ← sum_filter_add_sum_filter_not (Icc 1 ⌊x⌋₊) Nat.Prime,
+        show (∑ p ∈ filter Nat.Prime (Icc 1 ⌊x⌋₊), if p % q = a then log p else (0 : ℝ)) =
+          ∑ p ∈ filter Nat.Prime (Icc 1 ⌊x⌋₊), if p % q = a then Λ p else (0 : ℝ) from
+          sum_congr rfl fun p hp ↦ by simp only [mem_filter] at hp; split_ifs <;> simp [vonMangoldt_apply_prime hp.2],
+        ← sum_filter_add_sum_filter_not (Icc 1 ⌊x⌋₊) Nat.Prime,
+        show (∑ p ∈ filter Nat.Prime (Icc 1 ⌊x⌋₊), Λ p) = ∑ p ∈ filter Nat.Prime (Icc 1 ⌊x⌋₊), log p from
+          sum_congr rfl fun p hp ↦ vonMangoldt_apply_prime (mem_filter.mp hp).2]
+      have h1 : (∑ n ∈ (Icc 1 ⌊x⌋₊).filter (¬Nat.Prime ·), if n % q = a then Λ n else (0 : ℝ)) ≤
+          ∑ n ∈ (Icc 1 ⌊x⌋₊).filter (¬Nat.Prime ·), Λ n :=
+        sum_le_sum fun n _ ↦ by split_ifs <;> [exact le_refl _; exact vonMangoldt_nonneg]
+      linarith
+    rw [abs_of_nonneg hdiff_nonneg, abs_of_nonneg (by bound)]
+    exact hdiff_le.trans ((le_abs_self _).trans (Chebyshev.abs_psi_sub_theta_le_sqrt_mul_log (by linarith)))
+  · simpa only [mul_assoc] using
+      (isLittleO_sqrt_mul_log.const_mul_left 2).trans_isTheta (isTheta_self_div_const htot_pos.ne')
 
 @[blueprint
   (title := "Dirichlet's theorem")
