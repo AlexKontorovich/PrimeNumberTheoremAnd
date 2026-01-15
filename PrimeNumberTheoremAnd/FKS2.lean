@@ -1,6 +1,7 @@
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.BKLNW
+import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 
 blueprint_comment /--
 \section{The implications of FKS2}

@@ -31,6 +31,7 @@ import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.PrimarySummary
 import PrimeNumberTheoremAnd.Rectangle
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
+import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.RosserSchoenfeldZeta
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.SecondarySummary
