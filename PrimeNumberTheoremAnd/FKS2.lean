@@ -1,15 +1,12 @@
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.BKLNW
+import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 
 blueprint_comment /--
 \section{The implications of FKS2}
 
-In this file we record the implications in the paper
-
-FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
-
-that allow one to convert primary bounds on $E_\psi$ into secondary bounds on $E_\pi$, $E_\theta$.
+In this file we record the implications in the paper \cite{FKS2} that allow one to convert primary bounds on $E_\psi$ into secondary bounds on $E_\pi$, $E_\theta$.
 -/
 
 open Real
@@ -19,17 +16,17 @@ namespace FKS2
 @[blueprint
   "fks2-rem"
   (title := "Remark in FKS2 Section 1.1")
-  (statement := /-- $\li(x) - \Li(x) = \li(2)$. -/)]
+  (statement := /-- $\li(x) - \Li(x) = \li(2)$. -/)
+  (proof := /-- This follows directly from the definitions of $\li$ and $\Li$. -/)
+  (latexEnv := "remark")]
 theorem sec_1_1_remark : ∀ x > 2, li x - Li x = li 2 := sorry
 
 @[blueprint
-  "fks2-eq-19"
-  (title := "Dawson function, FKS2 (19)")
+  "fks2-eq-16"
+  (title := "g function, FKS2 (16)")
   (statement := /--
-  The Dawson function $D_+ : \mathbb{R} \to \mathbb{R}$ is defined by the formula
-  $D_+(x) := e^{-x^2} \int_0^x e^{t^2}\ dt$. -/)]
-noncomputable def dawson (x : ℝ) : ℝ := exp (-x ^ 2) * ∫ t in 0..x, exp (t ^ 2)
-
+  For any $a,b,c,x \in \mathbb{R}$ we define
+  $g(a,b,c,x) := x^{-a} (\log x)^b \exp( c (\log x)^{1/2} )$. -/)]
 noncomputable def g_bound (a b c x : ℝ) : ℝ := x^(-a) * (log x)^b * exp (c * (log x)^(1/2))
 
 @[blueprint
@@ -37,8 +34,10 @@ noncomputable def g_bound (a b c x : ℝ) : ℝ := x^(-a) * (log x)^b * exp (c *
   (title := "FKS2 equation (17)")
   (statement := /--
   For any $2 \leq x_0 < x$ one has
-  $$ (\pi(x) - Li(x)) - (\pi(x_0) - Li(x_0)) = \frac{\theta(x) - x}{\log x}
-    - \frac{\theta(x_0) - x_0}{\log x_0} + \int_{x_0}^x \frac{\theta(t) - t}{t \log^2 t} dt.$$ -/)]
+  $$ (\pi(x) - \Li(x)) - (\pi(x_0) - \Li(x_0)) = \frac{\theta(x) - x}{\log x}
+    - \frac{\theta(x_0) - x_0}{\log x_0} + \int_{x_0}^x \frac{\theta(t) - t}{t \log^2 t} dt.$$ -/)
+  (proof := /-- This follows from Sublemma \ref{rs-417}. -/)
+  (latexEnv := "sublemma")]
 theorem eq_17 {x₀ x : ℝ} (hx₀ : x₀ ≥ 2) (hx : x > x₀) :
   (pi x - Li x) - (pi x₀ - Li x₀) =
     (θ x - x) / log x - (θ x₀ - x₀) / log x₀ +
@@ -46,9 +45,36 @@ theorem eq_17 {x₀ x : ℝ} (hx₀ : x₀ ≥ 2) (hx : x > x₀) :
   sorry
 
 @[blueprint
+  "fks2-lemma-10-substep"
+  (title := "FKS2 Sublemma 10-1")
+  (statement := /-- We have
+$$ \frac{d}{dx} g(a, b, c, x) = \left( -a \log(x) + b + \frac{c}{2}\sqrt{\log(x)} \right) x^{-a-1} (\log(x))^{b-1} \exp(c\sqrt{\log(x)}).$$
+  -/)
+  (proof := /-- This follows from straightforward differentiation. -/)
+  (latexEnv := "sublemma")]
+theorem lemma_10_substep {a b c x : ℝ} (hx : x > 1) :
+  deriv (g_bound a b c) x =
+    (-a * log x + b + (c / 2) * sqrt (log x)) * x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x)) :=
+  sorry
+
+@[blueprint
+  "fks2-lemma-10-substep-2"
+  (title := "FKS2 Sublemma 10-2")
+  (statement := /-- $\frac{d}{dx} g(a, b, c, x) $ is negative when $-au^2 + \frac{c}{2}u + b < 0$, where $u = \sqrt{\log(x)}$.
+  -/)
+  (proof := /-- Clear from previous sublemma. -/)
+  (latexEnv := "sublemma")]
+theorem lemma_10_substep_2 {a b c x : ℝ} (hx : x > 1) :
+  deriv (g_bound a b c) x < 0 ↔
+    -a * (sqrt (log x)) ^ 2 + (c / 2) * sqrt (log x) + b < 0 := sorry
+
+@[blueprint
   "fks2-lemma-10a"
   (title := "FKS2 Lemma 10a")
-  (statement := /-- If $a>0$, $c>0$ and $b < -c^2/16a$, then $g(a,b,c,x)$ decreases with $x$. -/)]
+  (statement := /-- If $a>0$, $c>0$ and $b < -c^2/16a$, then $g(a,b,c,x)$ decreases with $x$. -/)
+  (proof := /-- We apply Lemma \ref{fks2-lemma-10-substep-2}. There are no roots when $b < -\frac{c^2}{16a}$, and the derivative is always negative in this case.
+ -/)
+  (latexEnv := "lemma")]
 theorem lemma_10a {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b < -c ^ 2 / (16 * a)) :
   StrictAnti (g_bound a b c) :=
   sorry
@@ -58,7 +84,10 @@ theorem lemma_10a {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b < -c ^ 2 / (16
   (title := "FKS2 Lemma 10b")
   (statement := /--
   For any $a>0$, $c>0$ and $b \geq -c^2/16a$, $g(a,b,c,x)$ decreases with $x$ for
-  $x > \exp((\frac{c}{4a} + \frac{1}{2a} \sqrt{\frac{c^2}{4} + 4ab})^2)$. -/)]
+  $x > \exp((\frac{c}{4a} + \frac{1}{2a} \sqrt{\frac{c^2}{4} + 4ab})^2)$. -/)
+  (proof := /-- We apply Lemma \ref{fks2-lemma-10-substep-2}. If $a > 0$, there are two real roots only if $\frac{c^2}{4} + 4ab \geq 0$ or equivalently $b \geq -\frac{c^2}{16a}$, and the derivative is negative for $u > \frac{\frac{c}{2} + \sqrt{\frac{c^2}{4} + 4ab}}{2a}$.
+ -/)
+  (latexEnv := "lemma")]
 theorem lemma_10b {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b ≥ -c ^ 2 / (16 * a)) :
     StrictAntiOn (g_bound a b c)
       (Set.Ioi (exp ((c / (4 * a) + (1 / (2 * a)) * sqrt (c ^ 2 / 4 + 4 * a * b)) ^ 2))) :=
@@ -68,7 +97,10 @@ theorem lemma_10b {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b ≥ -c ^ 2 / (
   "fks2-lemma-10c"
   (title := "FKS2 Lemma 10c")
   (statement := /--
-  If $c>0$, $g(0,b,c,x)$ decreases with $x$ for $\sqrt{\log x} > -2b/c$. -/)]
+  If $c>0$, $g(0,b,c,x)$ decreases with $x$ for $\sqrt{\log x} > -2b/c$. -/)
+  (proof := /-- We apply Lemma \ref{fks2-lemma-10-substep-2}. If $a = 0$, it is negative when $u < \frac{-2b}{c}$.
+ -/)
+  (latexEnv := "lemma")]
 theorem lemma_10c {b c : ℝ} (hc : c > 0) :
     StrictAntiOn (g_bound 0 b c) (Set.Ioi (exp ((-2 * b / c) ^ 2))) := sorry
 
@@ -76,19 +108,32 @@ theorem lemma_10c {b c : ℝ} (hc : c > 0) :
   "fks2-corollary-11"
   (title := "FKS2 Corollary 11")
   (statement := /--
-  If $B \geq 1 + C^2 / 16R$ then $g(1,1-B,C/\sqrt{R},x)$ is decreasing in $x$. -/)]
+  If $B \geq 1 + C^2 / 16R$ then $g(1,1-B,C/\sqrt{R},x)$ is decreasing in $x$. -/)
+  (proof := /-- This follows from Lemma \ref{fks2-lemma-10a} applied with $a=1$, $b=1-B$ and $c=C/\sqrt{R}$. -/)
+  (latexEnv := "corollary")]
 theorem corollary_11 {B C R : ℝ} (hB : B ≥ 1 + C ^ 2 / (16 * R)) :
     StrictAnti (g_bound 1 (1 - B) (C / sqrt R)) :=
   sorry
+
+@[blueprint
+  "fks2-eq-19"
+  (title := "Dawson function, FKS2 (19)")
+  (statement := /--
+  The Dawson function $D_+ : \mathbb{R} \to \mathbb{R}$ is defined by the formula
+  $D_+(x) := e^{-x^2} \int_0^x e^{t^2}\ dt$. -/)]
+noncomputable def dawson (x : ℝ) : ℝ := exp (-x ^ 2) * ∫ t in 0..x, exp (t ^ 2)
+
 
 @[blueprint
   "fks2-remark-after-corollary-11"
   (title := "FKS2 remark after Corollary 11")
   (statement := /--
   The Dawson function has a single maximum at $x \approx 0.942$, after which the function is
-  decreasing. -/)]
+  decreasing. -/)
+  (proof := /-- The Dawson function satisfies the differential equation $F'(x) + 2xF(x) = 1$ from which it follows that the second derivative satisfies $F''(x) = −2F(x) − 2x(−2xF(x) + 1)$, so that at every critical point (where we have $F(x) = \frac{1}{2x}$) we have $F''(x) = −\frac{1}{x}$.  It follows that every positive critical value gives a local maximum, hence there is a unique such critical value and the function decreases after it. Numerically one may verify this is near 0.9241 see https://oeis.org/ A133841. -/)
+  (latexEnv := "remark")]
 theorem remark_after_corollary_11 :
-    ∃ x₀ : ℝ, x₀ ∈ Set.Icc 0.942 0.943 ∧ (∀ x, dawson x ≤ dawson x₀) ∧
+    ∃ x₀ : ℝ, x₀ ∈ Set.Icc 0.924 0.925 ∧ (∀ x, dawson x ≤ dawson x₀) ∧
       StrictAntiOn dawson (Set.Ioi x₀) := sorry
 
 @[blueprint
@@ -101,7 +146,26 @@ theorem remark_after_corollary_11 :
     \exp(-C \sqrt{\frac{\log x}{R}}) D_+( \sqrt{\log x} - \frac{C}{2\sqrt{R}} )$$
   where
   $$ m(x_0,x) = \max ( (\log x_0)^{(2B-3)/2}, (\log x)^{(2B-3)/2} ). $$
-  -/)]
+  -/)
+  (proof := /-- Since $\varepsilon_{\theta,\mathrm{asymp}}(t)$ provides an admissible bound on $\theta(t)$ for all $t \geq x_0$, we have
+\[
+\int_{x_0}^{x} \left| \frac{\theta(t) - t}{t(\log(t))^2} \right| dt \leq \int_{x_0}^{x} \frac{\varepsilon_{\theta,\mathrm{asymp}}(t)}{(\log(t))^2} = \frac{A_\theta}{R^B} \int_{x_0}^{x} (\log(t))^{B-2} \exp\left( -C\sqrt{\frac{\log(t)}{R}} \right) dt.
+\]
+We perform the substitution $u = \sqrt{\log(t)}$ and note that $u^{2B-3} \leq m(x_0, x)$ as defined in (21). Thus the above is bounded above by
+\[
+\frac{2A_\theta m(x_0, x)}{R^B} \int_{\sqrt{\log(x_0)}}^{\sqrt{\log(x)}} \exp\left( u^2 - \frac{Cu}{\sqrt{R}} \right) du.
+\]
+Then, by completing the square $u^2 - \frac{Cu}{\sqrt{R}} = \left( u - \frac{C}{2\sqrt{R}} \right)^2 - \frac{C^2}{4R}$ and doing the substitution $v = u - \frac{C}{2\sqrt{R}}$, the above becomes
+\[
+\frac{2A_\theta m(x_0, x)}{R^B} \exp\left( -\frac{C^2}{4R} \right) \int_{\sqrt{\log(x_0)} - \frac{C}{2\sqrt{R}}}^{\sqrt{\log(x)} - \frac{C}{2\sqrt{R}}} \exp(v^2) \, dv.
+\]
+Now we have
+\begin{align*}
+\int_{\sqrt{\log(x_0)} - \frac{C}{2\sqrt{R}}}^{\sqrt{\log(x)} - \frac{C}{2\sqrt{R}}} \exp(v^2) \, dv &\leq \int_{0}^{\sqrt{\log(x)} - \frac{C}{2\sqrt{R}}} \exp(v^2) \, dv \\
+&= x \exp\left( \frac{C^2}{4R} \right) \exp\left( -C\sqrt{\frac{\log(x)}{R}} \right) D_+\left( \sqrt{\log(x)} - \frac{C}{2\sqrt{R}} \right).
+\end{align*}
+Combining the above completes the proof. -/)
+  (latexEnv := "lemma")]
 theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀) (hx : x ≥ x₀) :
   ∫ t in x₀..x, |Eθ t| / log t ^ 2 ≤
     (2 * A) / (R ^ B) * x * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) *

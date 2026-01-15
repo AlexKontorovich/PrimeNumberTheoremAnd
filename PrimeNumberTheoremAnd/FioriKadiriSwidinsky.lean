@@ -6,8 +6,7 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-In this section we establish the primary results of Fiori, Kadiri, and Swidinsky from this paper:
-arXiv:2204.02588
+In this section we establish the primary results of Fiori, Kadiri, and Swidinsky \cite{FKS}.
 -/
 
 open Real MeasureTheory
