@@ -66,7 +66,16 @@ theorem lemma_10_substep {a b c x : ℝ} (hx : x > 1) :
   (latexEnv := "sublemma")]
 theorem lemma_10_substep_2 {a b c x : ℝ} (hx : x > 1) :
   deriv (g_bound a b c) x < 0 ↔
-    -a * (sqrt (log x)) ^ 2 + (c / 2) * sqrt (log x) + b < 0 := sorry
+    -a * (sqrt (log x)) ^ 2 + (c / 2) * sqrt (log x) + b < 0 := by
+  have hlogx := log_pos hx
+  rw [lemma_10_substep hx, sq_sqrt hlogx.le]
+  have hpos : 0 < x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x)) := by positivity
+  rw [show ∀ y, y * x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x)) =
+      y * (x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x))) from fun _ => by ring]
+  rw [mul_neg_iff]
+  constructor <;> intro h
+  · rcases h with ⟨-, hc⟩ | ⟨h, -⟩ <;> linarith
+  · exact Or.inr ⟨by linarith, hpos⟩
 
 @[blueprint
   "fks2-lemma-10a"

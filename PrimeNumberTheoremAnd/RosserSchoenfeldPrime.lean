@@ -12,7 +12,7 @@ In this section we formalize the prime number bounds of Rosser and Schoenfeld \c
 
 namespace RS_prime
 
-open Real
+open Chebyshev Finset Nat Real
 
 @[blueprint
   "rs-pnt"
@@ -37,18 +37,26 @@ noncomputable def B : ℝ :=
   (statement := /--
   $E := \lim_{x \to \infty} \left( \sum_{p \leq x} \frac{\log p}{p} - \log x \right)$. -/)]
 noncomputable def E : ℝ :=
-  lim (Filter.atTop.comap (fun x : ℝ ↦ ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), log p / p - log x))
+  lim (Filter.atTop.comap (fun x : ℝ ↦ ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), Real.log p / p - log x))
 
 @[blueprint
   "theta-stieltjes"
   (title := "The Chebyshev function is Stieltjes")
   (statement := /-- The function $\vartheta(x) = \sum_{p \leq x} \log p$ defines a Stieltjes function (monotone and right continuous). -/)
   (proof := /-- Trivial -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 598)]
 noncomputable def θ.Stieltjes : StieltjesFunction ℝ := {
   toFun := θ
-  mono' := by sorry
-  right_continuous' := by sorry
+  mono' := theta_mono
+  right_continuous' := fun x ↦ by
+    rw [ContinuousWithinAt, theta_eq_theta_coe_floor x]
+    refine Filter.Tendsto.congr' ?_ tendsto_const_nhds
+    obtain hx | hx := le_total 0 x
+    · filter_upwards [Ico_mem_nhdsGE_of_mem ⟨floor_le hx, lt_floor_add_one x⟩] with y hy
+      rw [theta_eq_theta_coe_floor y, floor_eq_on_Ico _ _ hy]
+    · filter_upwards [Ico_mem_nhdsGE (by grind : x < 1)] with y hy
+      simp [floor_of_nonpos hx, theta_eq_theta_coe_floor y, floor_eq_zero.mpr hy.2]
 }
 
 @[blueprint
@@ -58,7 +66,7 @@ noncomputable def θ.Stieltjes : StieltjesFunction ℝ := {
   (proof := /-- This follows from the definition of the Stieltjes integral. -/)
   (latexEnv := "sublemma")]
 theorem pre_413 {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Ici 2)) (x : ℝ) :
-    ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), f p =
+    ∑ p ∈ filter Prime (range ⌊x⌋₊), f p =
       ∫ y in Set.Icc 2 x, f y / log y ∂θ.Stieltjes.measure := by sorry
 
 @[blueprint
@@ -68,7 +76,7 @@ theorem pre_413 {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Ici 2)) (x : ℝ) :
   (proof := /-- Follows from Sublemma \ref{rs-pre-413} and integration by parts. -/)
   (latexEnv := "sublemma")]
 theorem eq_413 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) (x : ℝ) :
-    ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), f p =
+    ∑ p ∈ filter Prime (range ⌊x⌋₊), f p =
       f x * θ x / log x -
       ∫ y in 2..x, θ y * deriv (fun t ↦ f t / log t) y := by sorry
 
@@ -81,8 +89,8 @@ theorem eq_413 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) (x : 
   (proof := /-- Follows from Sublemma \ref{rs-413} and integration by parts. -/)
   (latexEnv := "sublemma")]
 theorem eq_414 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) (x : ℝ) :
-    ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), f p =
-      ∫ y in 2..x, f y / log y + 2 * f 2 / log 2 +
+    ∑ p ∈ filter Prime (range ⌊x⌋₊), f p =
+      ∫ y in 2..x, f y / log y + 2 * f 2 / Real.log 2 +
       f x * (θ x - x) / log x -
       ∫ y in 2..x, (θ y - y) * deriv (fun t ↦ deriv (fun s ↦ f s / log s) t) y := by sorry
 
@@ -93,7 +101,7 @@ theorem eq_414 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) (x : 
   $$L_f := \frac{2f(2)}{\log 2} - \int_2^\infty (\vartheta(y) - y) \frac{d}{dy} (\frac{f(y)}{\log y})\ dy.$$ -/)
   (latexEnv := "sublemma")]
 noncomputable def L (f : ℝ → ℝ) : ℝ :=
-    2 * f 2 / log 2 - ∫ y in Set.Ici 2, (θ y - y) * deriv (fun t ↦ f t / log t) y
+    2 * f 2 / Real.log 2 - ∫ y in Set.Ici 2, (θ y - y) * deriv (fun t ↦ f t / log t) y
 
 @[blueprint
   "rs-415"
@@ -104,12 +112,9 @@ noncomputable def L (f : ℝ → ℝ) : ℝ :=
   (proof := /-- Follows from Sublemma \ref{rs-414} and Definition \ref{rs-416}. -/)
   (latexEnv := "sublemma")]
 theorem eq_415 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) (x : ℝ)
-   (hbound : ∃ C, ∀ x ∈ Set.Ici 2, |f x| ≤ C / x ∧ |deriv f x| ≤ C / x ^ 2)
-   :
-    ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), f p =
-      ∫ y in 2..x, f y / log y + L f +
-      f x * (θ x - x) / log x +
-      ∫ y in Set.Ioi x, (θ y - y) * deriv (fun t ↦ deriv (fun s ↦ f s / log s) t) y := by sorry
+   (hbound : ∃ C, ∀ x ∈ Set.Ici 2, |f x| ≤ C / x ∧ |deriv f x| ≤ C / x ^ 2) :
+   ∑ p ∈ filter Prime (range ⌊x⌋₊), f p = ∫ y in 2..x, f y / log y + L f +
+    f x * (θ x - x) / log x + ∫ y in Set.Ioi x, (θ y - y) * deriv (fun t ↦ deriv (fun s ↦ f s / log s) t) y := by sorry
 
 @[blueprint
   "rs-417"
@@ -131,14 +136,13 @@ theorem eq_417 (x : ℝ) :
   (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = 1/t$. -/)
   (latexEnv := "sublemma")]
 theorem eq_418 (x : ℝ) :
-    ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), 1 / p =
-      θ x / (x * log x) +
-      ∫ y in 2..x, θ y * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
+    ∑ p ∈ filter Prime (range ⌊x⌋₊), 1 / p =
+      θ x / (x * log x) + ∫ y in 2..x, θ y * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
 
 @[blueprint
   "rs-419"]
 theorem mertens_second_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
-    ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), 1 / p - log (log x) - B) (nhds 0) := by sorry
+    ∑ p ∈ filter Nat.Prime (range ⌊x⌋₊), 1 / p - log (log x) - B) (nhds 0) := by sorry
 
 @[blueprint
   "rs-419"
@@ -150,19 +154,18 @@ theorem mertens_second_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
   (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = 1/t$. One can also use this identity to demonstrate convergence of the limit defining $B$.-/)
   (latexEnv := "sublemma")]
 theorem eq_419 (x : ℝ) :
-    ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), 1 / p =
-      log (log x) + B +
-      (θ x - x) / (x * log x) -
-      ∫ y in 2..x, (θ y - y) * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
+    ∑ p ∈ filter Prime (range ⌊x⌋₊), 1 / p =
+      log (log x) + B + (θ x - x) / (x * log x) - ∫ y in 2..x, (θ y - y) * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
 
 @[blueprint
   "rs-419"]
-theorem mertens_second_theorem' : ∃ C, ∀ x, |∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), 1 / p - log (log x)| ≤ C := by sorry
+theorem mertens_second_theorem' :
+    ∃ C, ∀ x, |∑ p ∈ filter Prime (range ⌊x⌋₊), 1 / p - log (log x)| ≤ C := by sorry
 
 @[blueprint
   "rs-420"]
 theorem mertens_first_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
-    ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), log p / p - log x - E) (nhds 0) := by sorry
+    ∑ p ∈ filter Nat.Prime (range ⌊x⌋₊), Real.log p / p - log x - E) (nhds 0) := by sorry
 
 @[blueprint
   "rs-420"
@@ -174,14 +177,13 @@ theorem mertens_first_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
   (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = \log t / t$.  Convergence will need Theorem \ref{rs-pnt}. -/)
   (latexEnv := "sublemma")]
 theorem eq_420 (x : ℝ) :
-    ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), log p / p =
-      log x + E +
-      (θ x - x) / x -
-      ∫ y in 2..x, (θ y - y) / (y ^ 2) := by sorry
+    ∑ p ∈ filter Prime (range ⌊x⌋₊), Real.log p / p =
+      log x + E + (θ x - x) / x - ∫ y in 2..x, (θ y - y) / (y ^ 2) := by sorry
 
 @[blueprint
   "rs-420"]
-theorem mertens_first_theorem' : ∃ C, ∀ x, |∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), log p / p - log x| ≤ C := by sorry
+theorem mertens_first_theorem' :
+    ∃ C, ∀ x, |∑ p ∈ filter Prime (range ⌊x⌋₊), Real.log p / p - Real.log x| ≤ C := by sorry
 
 
 end RS_prime
