@@ -2043,7 +2043,8 @@ theorem Params.initial.score (ε : ℝ) (hε : ε > 0) :
   $n - n / \log n + o(n / \log n)$.--/)
   (proof := /-- Combine Proposition \ref{initial-score} with Proposition \ref{card-bound} and
   the Stirling approximation.-/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 648)]
 theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Factorization n,
     f.total_imbalance = 0 ∧ f.a.card ≤ n - n / Real.log n + ε * n / Real.log n := by sorry
 
@@ -2053,7 +2054,8 @@ theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Fact
   numbers of size at most $n^2$.--/)
   (proof := /-- Group the factorization arising in Theorem \ref{erdos-sol-1} into pairs, using
   Lemma \ref{balance-zero}.-/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 649)]
 theorem Solution_2 (ε : ℝ) (hε : ε > 0) :
     ∀ᶠ n in .atTop, ∃ (t : ℕ) (a : Fin t → ℕ), ∏ i, a i = n.factorial ∧ ∀ i, a i ≤ n ^ 2 ∧
         t ≤ (n / 2) - n / (2 * Real.log n) + ε * n / Real.log n := by sorry

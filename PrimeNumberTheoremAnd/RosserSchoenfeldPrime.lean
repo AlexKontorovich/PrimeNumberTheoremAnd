@@ -19,7 +19,8 @@ open Chebyshev Finset Nat Real
   (title := "A medium version of the prime number theorem")
   (statement := /-- $\vartheta(x) = x + O( x / \log^2 x)$. -/)
   (proof := /-- This in principle follows by establishing an analogue of Theorem \ref{chebyshev-asymptotic}, using mediumPNT in place of weakPNT. -/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 597)]
 theorem pnt : ∃ C, ∀ x ≥ 2, |θ x - x| ≤ C * x / log x ^ 2 := by sorry
 
 @[blueprint
@@ -64,7 +65,8 @@ noncomputable def θ.Stieltjes : StieltjesFunction ℝ := {
   (title := "RS-prime display before (4.13)")
   (statement := /-- $\sum_{p \leq x} f(p) = \int_{2}^x \frac{f(y)}{\log y}\ d\vartheta(y)$. -/)
   (proof := /-- This follows from the definition of the Stieltjes integral. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 599)]
 theorem pre_413 {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p =
       ∫ y in Set.Icc 2 x, f y / log y ∂θ.Stieltjes.measure := by sorry
@@ -74,7 +76,8 @@ theorem pre_413 {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Ici 2)) {x : ℝ} (h
   (title := "RS equation (4.13)")
   (statement := /-- $\sum_{p \leq x} f(p) = \frac{f(x) \vartheta(x)}{\log x} - \int_2^x \vartheta(x) \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$ -/)
   (proof := /-- Follows from Sublemma \ref{rs-pre-413} and integration by parts. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 650)]
 theorem eq_413 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p = f x * θ x / log x -
       ∫ y in 2..x, θ y * deriv (fun t ↦ f t / log t) y := by
@@ -87,7 +90,8 @@ theorem eq_413 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : 
   $$\sum_{p \leq x} f(p) = \int_2^x \frac{f(y)\ dy}{\log y} + \frac{2 f(2)}{\log 2} $$
   $$ + \frac{f(x) (\vartheta(x) - x)}{\log x} - \int_2^x (\vartheta(y) - y) \frac{d}{dy} \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$$ -/)
   (proof := /-- Follows from Sublemma \ref{rs-413} and integration by parts. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 600)]
 theorem eq_414 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p =
       ∫ y in 2..x, f y / log y + 2 * f 2 / Real.log 2 +
@@ -112,7 +116,8 @@ noncomputable def L (f : ℝ → ℝ) : ℝ :=
   $$\sum_{p \leq x} f(p) = \int_2^x \frac{f(y)\ dy}{\log y} + L_f $$
   $$ + \frac{f(x) (\vartheta(x) - x)}{\log x} + \int_x^\infty (\vartheta(y) - y) \frac{d}{dy} \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$$ -/)
   (proof := /-- Follows from Sublemma \ref{rs-414} and Definition \ref{rs-416}. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 601)]
 theorem eq_415 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x)
    (hbound : ∃ C, ∀ x ∈ Set.Ici 2, |f x| ≤ C / x ∧ |deriv f x| ≤ C / x ^ 2) :
    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p = ∫ y in 2..x, f y / log y + L f +
@@ -125,7 +130,8 @@ theorem eq_415 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : 
   $$\pi(x) = \frac{\vartheta(x)}{\log x} + \int_2^x \frac{\vartheta(y)\ dy}{y \log^2 y}.$$
 -/)
   (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = 1$. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 602)]
 theorem eq_417 (x : ℝ) :
     pi x = θ x / log x + ∫ y in 2..x, θ y / (y * log y ^ 2) := by sorry
 
@@ -136,7 +142,8 @@ theorem eq_417 (x : ℝ) :
   $$\sum_{p \leq x} \frac{1}{p} = \frac{\vartheta(x)}{x \log x} + \int_2^x \frac{\vartheta(y) (1 + \log y)\ dy}{y^2 \log^2 y}.$$
 -/)
   (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = 1/t$. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 652)]
 theorem eq_418 {x : ℝ} (hx : 2 ≤ x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / p = θ x / (x * log x) +
       ∫ y in 2..x, θ y * (1 + log y) / (y ^ 2 * log y ^ 2) := by
@@ -155,7 +162,8 @@ theorem mertens_second_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
   $$ - \int_2^x \frac{(\vartheta(y)-y) (1 + \log y)\ dy}{y^2 \log^2 y}.$$
 -/)
   (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = 1/t$. One can also use this identity to demonstrate convergence of the limit defining $B$.-/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 603)]
 theorem eq_419 {x : ℝ} (hx : 2 ≤ x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / p =
       log (log x) + B + (θ x - x) / (x * log x) - ∫ y in 2..x, (θ y - y) * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
@@ -178,7 +186,8 @@ theorem mertens_first_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
   $$ - \int_2^x \frac{(\vartheta(y)-y)\ dy}{y^2}.$$
 -/)
   (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = \log t / t$.  Convergence will need Theorem \ref{rs-pnt}. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 604)]
 theorem eq_420 {x : ℝ} (hx : 2 ≤ x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), Real.log p / p =
       log x + E + (θ x - x) / x - ∫ y in 2..x, (θ y - y) / (y ^ 2) := by sorry
