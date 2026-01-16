@@ -88,6 +88,61 @@ lemma log_ge_neg_max0_log_inv {x : ℝ} (_hx : 0 ≤ x) :
     have hmax : max 0 (-Real.log x) = -Real.log x := max_eq_right (by linarith)
     simp [hmax]
 
+/-!
+### Bridge lemma: from the 1D singularity `φ` to a complex lower bound
+
+On a circle `‖u‖ = r`, the quantity `log ‖1 - u/a‖` is bounded below in terms of `φ(r/‖a‖)`.
+This is the local estimate used in Tao's probabilistic-radius argument.
+-/
+
+lemma log_norm_one_sub_div_ge_neg_phi {u a : ℂ} {r : ℝ}
+    (hur : ‖u‖ = r) (ha : a ≠ 0) (hr : r ≠ ‖a‖) :
+    Real.log ‖(1 : ℂ) - u / a‖ ≥ -φ (r / ‖a‖) := by
+  have ha_norm : 0 < ‖a‖ := norm_pos_iff.2 ha
+  have hnorm_eq : ‖(1 : ℂ) - u / a‖ = ‖a - u‖ / ‖a‖ := by
+    have : (1 : ℂ) - u / a = (a - u) / a := by
+      field_simp [ha]
+    calc
+      ‖(1 : ℂ) - u / a‖ = ‖(a - u) / a‖ := by simpa [this]
+      _ = ‖a - u‖ / ‖a‖ := by simp [norm_div]
+  have hrev : |‖a‖ - ‖u‖| ≤ ‖a - u‖ := by
+    simpa using (abs_norm_sub_norm_le a u)
+  have hdiv : |‖a‖ - ‖u‖| / ‖a‖ ≤ ‖a - u‖ / ‖a‖ :=
+    div_le_div_of_nonneg_right hrev (le_of_lt ha_norm)
+  have habs : |1 - (r / ‖a‖)| = |‖a‖ - ‖u‖| / ‖a‖ := by
+    have hu : ‖u‖ = r := hur
+    have ha0 : (‖a‖ : ℝ) ≠ 0 := ha_norm.ne'
+    have h1 : (1 : ℝ) - (r / ‖a‖) = (‖a‖ - r) / ‖a‖ := by
+      field_simp [ha0]
+    calc
+      |1 - (r / ‖a‖)| = |(‖a‖ - r) / ‖a‖| := by simpa [h1]
+      _ = |‖a‖ - r| / ‖a‖ := by simp [abs_div, abs_of_pos ha_norm]
+      _ = |‖a‖ - ‖u‖| / ‖a‖ := by simpa [hu]
+  have hnorm_ge : |1 - (r / ‖a‖)| ≤ ‖(1 : ℂ) - u / a‖ := by
+    have : |1 - (r / ‖a‖)| ≤ ‖a - u‖ / ‖a‖ := by
+      simpa [habs] using hdiv
+    simpa [hnorm_eq] using this
+  have hx0 : 0 < |1 - (r / ‖a‖)| := by
+    have : (1 - (r / ‖a‖) : ℝ) ≠ 0 := by
+      intro h0
+      have : r = ‖a‖ := by
+        have : r / ‖a‖ = (1 : ℝ) := by linarith
+        simpa using (div_eq_iff ha_norm.ne').1 this
+      exact hr this
+    have : |1 - (r / ‖a‖)| ≠ 0 := by
+      simpa [abs_eq_zero] using this
+    exact lt_of_le_of_ne (abs_nonneg _) (Ne.symm this)
+  have hlogx :
+      Real.log |1 - (r / ‖a‖)| ≥ -max 0 (Real.log (1 / |1 - (r / ‖a‖)|)) :=
+    log_ge_neg_max0_log_inv (x := |1 - (r / ‖a‖)|) (le_of_lt hx0)
+  have hlog_mono :
+      Real.log |1 - (r / ‖a‖)| ≤ Real.log ‖(1 : ℂ) - u / a‖ :=
+    Real.log_le_log (by positivity) hnorm_ge
+  have hphi :
+      -max 0 (Real.log (1 / |1 - (r / ‖a‖)|)) = -φ (r / ‖a‖) := by
+    simp [φ, abs_sub_comm]
+  linarith [hlog_mono, hlogx, hphi]
+
 noncomputable def K : ℝ :=
   ∫ (t : ℝ) in (1 / 4 : ℝ)..(4 : ℝ), Real.sqrt (2 / |1 - t|) ∂volume
 
@@ -816,4 +871,3 @@ lemma exists_radius_Ioc_sum_mul_phi_div_le_Cφ_mul_sum_avoid
 
 end LogSingularity
 end Complex.Hadamard
-
