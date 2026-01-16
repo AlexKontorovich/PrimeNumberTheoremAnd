@@ -257,7 +257,7 @@ where
   (proof := /-- We apply Proposition \ref{bklnw-prop-3} with $x_0 = e^b$ where we observe that $x_0 = e^b \geq e^7 > 2^9$.
  -/)
   (latexEnv := "corollary")
-  (disucssion := 640)]
+  (discussion := 640)]
 theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (x : ℝ) (hx : x ≥ exp b) :
     ψ x - θ x - θ (x^(1/2)) ≤
       (1 + I.α) * max (f (exp b)) (f (2^(⌊ b/(log 2) ⌋ + 1))) * x^(1/3) := by sorry
