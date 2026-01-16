@@ -2049,7 +2049,7 @@ theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Fact
 
 @[blueprint
   "erdos-sol-2"
-  (statement := /-- One can find a factor $n!$ into at most $n/2 - n / 2\log n + o(n / \log n)$
+  (statement := /-- One can factorize $n!$ into at most $n/2 - n / 2\log n + o(n / \log n)$
   numbers of size at most $n^2$.--/)
   (proof := /-- Group the factorization arising in Theorem \ref{erdos-sol-1} into pairs, using
   Lemma \ref{balance-zero}.-/)
