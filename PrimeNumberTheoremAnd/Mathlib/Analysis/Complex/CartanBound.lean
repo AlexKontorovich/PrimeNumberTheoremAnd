@@ -1,6 +1,7 @@
 import Mathlib.MeasureTheory.Integral.Average
 import Mathlib.Analysis.SpecialFunctions.Pow.Integral
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardLogSingularity
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.LogSingularity
+
 
 /-!
 ## Cartan / minimum-modulus infrastructure for intrinsic Hadamard factorization
@@ -492,6 +493,179 @@ lemma integral_phi_le_Cφ_mul {A : ℝ} (hA : 0 ≤ A) :
                       exact Real.log_nonneg (by norm_num)
                     linarith [hlog_nonneg]
                   exact mul_le_mul_of_nonneg_right this hA
+
+/-!
+### A “good radius” lemma (probabilistic-radius / Cartan averaging)
+
+This is the abstract selection principle used in Tao’s dyadic averaging: if an averaged singularity
+kernel has controlled integral on `[R,2R]`, then there exists a radius `r ∈ (R,2R]` where the
+pointwise sum is controlled.
+-/
+
+open scoped BigOperators
+
+lemma integral_phi_div_le_Cφ_mul {a R : ℝ} (ha : 0 < a) (hR : 0 ≤ R) :
+    (∫ (r : ℝ) in R..(2 * R), φ (r / a) ∂volume) ≤ Cφ * R := by
+  have ha0 : a ≠ 0 := ne_of_gt ha
+  -- change variables using `intervalIntegral.integral_comp_div`
+  have hrew :
+      (∫ (r : ℝ) in R..(2 * R), φ (r / a) ∂volume)
+        = a * (∫ (t : ℝ) in (R / a)..(2 * R / a), φ t ∂volume) := by
+    -- `•` is scalar multiplication; on `ℝ` it is just `(*)`
+    simpa [smul_eq_mul, mul_assoc, mul_left_comm, mul_comm, div_eq_mul_inv, ha0] using
+      (intervalIntegral.integral_comp_div (f := φ) (a := R) (b := 2 * R) ha0)
+  rw [hrew]
+  have hA : 0 ≤ R / a := by
+    exact div_nonneg hR ha.le
+  have hle : (∫ (t : ℝ) in (R / a)..(2 * (R / a)), φ t ∂volume) ≤ Cφ * (R / a) :=
+    integral_phi_le_Cφ_mul (A := R / a) hA
+  -- rewrite `2*R/a` as `2*(R/a)` on the integral bound
+  have hEq : (2 * R / a) = 2 * (R / a) := by ring
+  have hle' :
+      (∫ (t : ℝ) in (R / a)..(2 * R / a), φ t ∂volume) ≤ Cφ * (R / a) := by
+    simpa [hEq] using hle
+  -- multiply by `a` and simplify
+  have ha_nonneg : 0 ≤ a := ha.le
+  have := mul_le_mul_of_nonneg_left hle' ha_nonneg
+  -- `a * (Cφ * (R/a)) = Cφ * R`
+  -- rewrite the RHS as `a * (Cφ * (R / a))` and then cancel
+  have hRHS : a * (Cφ * (R / a)) = Cφ * R := by
+    field_simp [ha0]
+  -- also rewrite the LHS to match
+  simpa [hRHS, mul_assoc, mul_left_comm, mul_comm] using this
+
+lemma exists_radius_Ioc_sum_mul_phi_div_le_Cφ_mul_sum
+    {ι : Type} (s : Finset ι) (w : ι → ℝ) (a : ι → ℝ)
+    (hw : ∀ i ∈ s, 0 ≤ w i) (ha : ∀ i ∈ s, 0 < a i) {R : ℝ} (hR : 0 < R) :
+    ∃ r ∈ Set.Ioc R (2 * R), (∑ i ∈ s, w i * φ (r / a i)) ≤ Cφ * (∑ i ∈ s, w i) := by
+  classical
+  -- Suppose not; then `Cφ * sum w < ...` everywhere on `Ioc R (2R)` and we get a strict integral inequality.
+  by_contra hbad
+  have hforall :
+      ∀ r ∈ Set.Ioc R (2 * R), Cφ * (∑ i ∈ s, w i) < (∑ i ∈ s, w i * φ (r / a i)) := by
+    intro r hr
+    have : ¬(∑ i ∈ s, w i * φ (r / a i)) ≤ Cφ * (∑ i ∈ s, w i) := by
+      intro hle
+      exact hbad ⟨r, hr, hle⟩
+    exact lt_of_not_ge this
+
+  -- Define `g` as a (finite) sum of functions; this makes `IntervalIntegrable.sum` match by defeq.
+  let g : ℝ → ℝ := ∑ i ∈ s, fun r : ℝ => w i * φ (r / a i)
+  have hg_int : IntervalIntegrable g volume R (2 * R) := by
+    -- finite sum of interval integrable terms
+    -- (Lean produces `IntervalIntegrable (∑ i ∈ s, fun r => ...)`; `simpa [g]` at the end.)
+    have : IntervalIntegrable (∑ i ∈ s, fun r : ℝ => w i * φ (r / a i)) volume R (2 * R) := by
+      refine IntervalIntegrable.sum (μ := volume) (a := R) (b := 2 * R)
+        (s := s) (f := fun i : ι => fun r : ℝ => w i * φ (r / a i)) ?_
+      intro i hi
+      have hai : 0 < a i := ha i hi
+      have hφi : IntervalIntegrable (fun r : ℝ => φ (r / a i)) volume R (2 * R) :=
+        intervalIntegrable_phi_div (a := a i) (R := R) hai hR.le
+      simpa [mul_assoc] using hφi.const_mul (w i)
+    simpa [g] using this
+
+  have hconst_int :
+      IntervalIntegrable (fun _r : ℝ => Cφ * (∑ i ∈ s, w i)) volume R (2 * R) :=
+    intervalIntegral.intervalIntegrable_const
+
+  have hIoc_meas : (volume : MeasureTheory.Measure ℝ) (Set.Ioc R (2 * R)) ≠ 0 := by
+    have hpos : (0 : ℝ) < 2 * R - R := by nlinarith [hR]
+    -- `volume (Ioc a b) = ofReal (b-a)`
+    -- so nonzero follows from `b-a > 0`.
+    simpa [Real.volume_Ioc, ENNReal.ofReal_eq_zero, not_le_of_gt hpos] using
+      (show (volume : MeasureTheory.Measure ℝ) (Set.Ioc R (2 * R)) ≠ 0 from by
+        -- simp closes the goal after rewriting by `Real.volume_Ioc`
+        simp [Real.volume_Ioc, ENNReal.ofReal_eq_zero, not_le_of_gt hpos])
+
+  have hlt_meas :
+      (volume.restrict (Set.Ioc R (2 * R))) {r | (Cφ * (∑ i ∈ s, w i)) < g r} ≠ 0 := by
+    -- `Ioc ⊆ {r | const < g r}`, hence the restricted measure of `{r | ...}` is ≥ the
+    -- restricted measure of `Ioc`, which is `volume (Ioc ...) ≠ 0`.
+    have hall : Set.Ioc R (2 * R) ⊆ {r | (Cφ * (∑ i ∈ s, w i)) < g r} := by
+      intro r hr
+      -- unfold `g` at `r`
+      simpa [g] using hforall r hr
+    have hpos' : (volume.restrict (Set.Ioc R (2 * R))) (Set.Ioc R (2 * R)) ≠ 0 := by
+      -- `μ.restrict S S = μ S`
+      simpa [MeasureTheory.Measure.restrict_apply, measurableSet_Ioc, Set.inter_self] using hIoc_meas
+    have hle :
+        (volume.restrict (Set.Ioc R (2 * R))) (Set.Ioc R (2 * R))
+          ≤ (volume.restrict (Set.Ioc R (2 * R))) {r | (Cφ * (∑ i ∈ s, w i)) < g r} :=
+      MeasureTheory.measure_mono hall
+    -- if the larger set had measure `0`, the smaller one would too
+    intro hzero
+    have : (volume.restrict (Set.Ioc R (2 * R))) (Set.Ioc R (2 * R)) = 0 :=
+      le_antisymm (le_trans hle (le_of_eq hzero)) (zero_le _)
+    exact hpos' this
+
+  have hlt_int :
+      (∫ r in R..(2 * R), (Cφ * (∑ i ∈ s, w i)) ∂volume)
+        < ∫ r in R..(2 * R), g r ∂volume := by
+    have hab : R ≤ 2 * R := by nlinarith [hR.le]
+    refine intervalIntegral.integral_lt_integral_of_ae_le_of_measure_setOf_lt_ne_zero (μ := volume)
+      (a := R) (b := 2 * R) (f := fun _ => (Cφ * (∑ i ∈ s, w i))) (g := g)
+      hab hconst_int hg_int ?_ hlt_meas
+    refine MeasureTheory.ae_restrict_of_forall_mem (by simpa using measurableSet_Ioc) ?_
+    intro r hr
+    simpa [g] using le_of_lt (hforall r hr)
+
+  have hconst_eval :
+      (∫ r in R..(2 * R), (Cφ * (∑ i ∈ s, w i)) ∂volume) = Cφ * (∑ i ∈ s, w i) * R := by
+    -- `∫ const = (b-a) * const`, then `2R - R = R`
+    simp [intervalIntegral.integral_const, sub_eq_add_neg, mul_assoc, mul_left_comm, mul_comm]
+    ring
+
+  have hg_le :
+      (∫ r in R..(2 * R), g r ∂volume) ≤ Cφ * (∑ i ∈ s, w i) * R := by
+    -- linearity + termwise bounds using `integral_phi_div_le_Cφ_mul`
+    have hint : ∀ i ∈ s, IntervalIntegrable (fun r : ℝ => w i * φ (r / a i)) volume R (2 * R) := by
+      intro i hi
+      have hai : 0 < a i := ha i hi
+      have hφi : IntervalIntegrable (fun r : ℝ => φ (r / a i)) volume R (2 * R) :=
+        intervalIntegrable_phi_div (a := a i) (R := R) hai hR.le
+      simpa [mul_assoc] using hφi.const_mul (w i)
+    have hsum_int :
+        (∫ r in R..(2 * R), g r ∂volume)
+          = ∑ i ∈ s, ∫ r in R..(2 * R), (fun r : ℝ => w i * φ (r / a i)) r ∂volume := by
+      -- `intervalIntegral.integral_finset_sum` expects the summand as `f i r`
+      simpa [g] using
+        (intervalIntegral.integral_finset_sum (μ := volume) (a := R) (b := 2 * R)
+          (s := s) (f := fun i : ι => fun r : ℝ => w i * φ (r / a i)) hint)
+    rw [hsum_int]
+    -- termwise bound and sum
+    have hterm : ∀ i ∈ s,
+        (∫ r in R..(2 * R), (fun r : ℝ => w i * φ (r / a i)) r ∂volume) ≤ (w i) * (Cφ * R) := by
+      intro i hi
+      have hw' : 0 ≤ w i := hw i hi
+      have hai : 0 < a i := ha i hi
+      have hphi :
+          (∫ r in R..(2 * R), φ (r / a i) ∂volume) ≤ Cφ * R :=
+        integral_phi_div_le_Cφ_mul (a := a i) (R := R) hai hR.le
+      have := mul_le_mul_of_nonneg_left hphi hw'
+      simpa [mul_assoc, mul_left_comm, mul_comm] using this
+    -- sum over `s`
+    have hsum_le : (∑ i ∈ s,
+        (∫ r in R..(2 * R), (fun r : ℝ => w i * φ (r / a i)) r ∂volume))
+        ≤ ∑ i ∈ s, (w i) * (Cφ * R) := by
+      exact Finset.sum_le_sum (fun i hi => hterm i hi)
+    -- combine and rewrite the RHS as a pulled-out constant
+    refine le_trans hsum_le ?_
+    -- `∑ wᵢ * (Cφ*R) = Cφ * (∑ wᵢ) * R`
+    have hEqFinal :
+        (∑ i ∈ s, (w i) * (Cφ * R)) = Cφ * (∑ i ∈ s, w i) * R := by
+      calc
+        (∑ i ∈ s, (w i) * (Cφ * R)) = (∑ i ∈ s, w i) * (Cφ * R) := by
+          simp [Finset.sum_mul]
+        _ = Cφ * (∑ i ∈ s, w i) * R := by
+          -- commutativity/associativity in `ℝ`
+          ac_rfl
+    exact le_of_eq hEqFinal
+
+  have : ¬(Cφ * (∑ i ∈ s, w i) * R < Cφ * (∑ i ∈ s, w i) * R) := lt_irrefl _
+  have hcontra : Cφ * (∑ i ∈ s, w i) * R < Cφ * (∑ i ∈ s, w i) * R := by
+    have := hlt_int
+    simpa [hconst_eval] using (this.trans_le hg_le)
+  exact this hcontra
 
 end LogSingularity
 end Complex.Hadamard
