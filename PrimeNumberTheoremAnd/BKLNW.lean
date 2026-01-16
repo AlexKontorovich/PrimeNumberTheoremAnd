@@ -111,7 +111,7 @@ noncomputable def Inputs.default : Inputs := {
   ε := table_8_ε
   hε := theorem_2
   x₁ := 1e19
-  hx₁ := by sorry
+  hx₁ := by grw [← exp_one_rpow, rpow_ofNat, exp_one_lt_three]; norm_num
   hx₁' := buthe_eq_1_7
 }
 
