@@ -65,8 +65,8 @@ noncomputable def θ.Stieltjes : StieltjesFunction ℝ := {
   (statement := /-- $\sum_{p \leq x} f(p) = \int_{2}^x \frac{f(y)}{\log y}\ d\vartheta(y)$. -/)
   (proof := /-- This follows from the definition of the Stieltjes integral. -/)
   (latexEnv := "sublemma")]
-theorem pre_413 {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Ici 2)) (x : ℝ) :
-    ∑ p ∈ filter Prime (range ⌊x⌋₊), f p =
+theorem pre_413 {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x) :
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p =
       ∫ y in Set.Icc 2 x, f y / log y ∂θ.Stieltjes.measure := by sorry
 
 @[blueprint
@@ -75,10 +75,10 @@ theorem pre_413 {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Ici 2)) (x : ℝ) :
   (statement := /-- $\sum_{p \leq x} f(p) = \frac{f(x) \vartheta(x)}{\log x} - \int_2^x \vartheta(x) \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$ -/)
   (proof := /-- Follows from Sublemma \ref{rs-pre-413} and integration by parts. -/)
   (latexEnv := "sublemma")]
-theorem eq_413 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) (x : ℝ) :
-    ∑ p ∈ filter Prime (range ⌊x⌋₊), f p =
-      f x * θ x / log x -
-      ∫ y in 2..x, θ y * deriv (fun t ↦ f t / log t) y := by sorry
+theorem eq_413 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x) :
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p = f x * θ x / log x -
+      ∫ y in 2..x, θ y * deriv (fun t ↦ f t / log t) y := by
+  sorry
 
 @[blueprint
   "rs-414"
@@ -88,11 +88,13 @@ theorem eq_413 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) (x : 
   $$ + \frac{f(x) (\vartheta(x) - x)}{\log x} - \int_2^x (\vartheta(y) - y) \frac{d}{dy} \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$$ -/)
   (proof := /-- Follows from Sublemma \ref{rs-413} and integration by parts. -/)
   (latexEnv := "sublemma")]
-theorem eq_414 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) (x : ℝ) :
-    ∑ p ∈ filter Prime (range ⌊x⌋₊), f p =
+theorem eq_414 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x) :
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p =
       ∫ y in 2..x, f y / log y + 2 * f 2 / Real.log 2 +
       f x * (θ x - x) / log x -
-      ∫ y in 2..x, (θ y - y) * deriv (fun t ↦ deriv (fun s ↦ f s / log s) t) y := by sorry
+      ∫ y in 2..x, (θ y - y) * deriv (fun t ↦ deriv (fun s ↦ f s / log s) t) y := by
+  sorry
+
 
 @[blueprint
   "rs-416"
@@ -111,9 +113,9 @@ noncomputable def L (f : ℝ → ℝ) : ℝ :=
   $$ + \frac{f(x) (\vartheta(x) - x)}{\log x} + \int_x^\infty (\vartheta(y) - y) \frac{d}{dy} \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$$ -/)
   (proof := /-- Follows from Sublemma \ref{rs-414} and Definition \ref{rs-416}. -/)
   (latexEnv := "sublemma")]
-theorem eq_415 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) (x : ℝ)
+theorem eq_415 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x)
    (hbound : ∃ C, ∀ x ∈ Set.Ici 2, |f x| ≤ C / x ∧ |deriv f x| ≤ C / x ^ 2) :
-   ∑ p ∈ filter Prime (range ⌊x⌋₊), f p = ∫ y in 2..x, f y / log y + L f +
+   ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p = ∫ y in 2..x, f y / log y + L f +
     f x * (θ x - x) / log x + ∫ y in Set.Ioi x, (θ y - y) * deriv (fun t ↦ deriv (fun s ↦ f s / log s) t) y := by sorry
 
 @[blueprint
@@ -135,9 +137,10 @@ theorem eq_417 (x : ℝ) :
 -/)
   (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = 1/t$. -/)
   (latexEnv := "sublemma")]
-theorem eq_418 (x : ℝ) :
-    ∑ p ∈ filter Prime (range ⌊x⌋₊), 1 / p =
-      θ x / (x * log x) + ∫ y in 2..x, θ y * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
+theorem eq_418 {x : ℝ} (hx : 2 ≤ x) :
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / p = θ x / (x * log x) +
+      ∫ y in 2..x, θ y * (1 + log y) / (y ^ 2 * log y ^ 2) := by
+  sorry
 
 @[blueprint
   "rs-419"]
@@ -153,8 +156,8 @@ theorem mertens_second_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
 -/)
   (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = 1/t$. One can also use this identity to demonstrate convergence of the limit defining $B$.-/)
   (latexEnv := "sublemma")]
-theorem eq_419 (x : ℝ) :
-    ∑ p ∈ filter Prime (range ⌊x⌋₊), 1 / p =
+theorem eq_419 {x : ℝ} (hx : 2 ≤ x) :
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / p =
       log (log x) + B + (θ x - x) / (x * log x) - ∫ y in 2..x, (θ y - y) * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
 
 @[blueprint
@@ -176,8 +179,8 @@ theorem mertens_first_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
 -/)
   (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = \log t / t$.  Convergence will need Theorem \ref{rs-pnt}. -/)
   (latexEnv := "sublemma")]
-theorem eq_420 (x : ℝ) :
-    ∑ p ∈ filter Prime (range ⌊x⌋₊), Real.log p / p =
+theorem eq_420 {x : ℝ} (hx : 2 ≤ x) :
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), Real.log p / p =
       log x + E + (θ x - x) / x - ∫ y in 2..x, (θ y - y) / (y ^ 2) := by sorry
 
 @[blueprint
