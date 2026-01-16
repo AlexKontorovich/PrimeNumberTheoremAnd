@@ -3,7 +3,7 @@ import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.Analysis.SpecialFunctions.Gamma.Deligne
 import Mathlib.Analysis.SpecialFunctions.Stirling
 import Mathlib.Data.Real.StarOrdered
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
+import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.GaussianIntegral
 
 noncomputable section
 
