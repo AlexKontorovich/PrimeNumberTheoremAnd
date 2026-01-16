@@ -271,4 +271,119 @@ theorem weierstrassFactor_sub_one_pow_bound {m : ℕ} {z : ℂ} (hz : ‖z‖ �
       _ ≤ 2 * (2 * ‖z‖ ^ (m + 1)) := by gcongr
       _ = 4 * ‖z‖ ^ (m + 1) := by ring
 
+/-!
+## Lower bounds for `Real.log ‖weierstrassFactor m z‖`
+
+These are the “near” and “far” regime estimates used in the Cartan / minimum-modulus step
+of Hadamard factorization (matching `academic_framework/HadamardFactorization/Lemmas.lean`).
+-/
+
+open scoped BigOperators
+
+lemma log_norm_weierstrassFactor_ge_neg_two_pow {m : ℕ} {z : ℂ} (hz : ‖z‖ ≤ (1 / 2 : ℝ)) :
+    (-2 : ℝ) * ‖z‖ ^ (m + 1) ≤ Real.log ‖weierstrassFactor m z‖ := by
+  have hz_lt : ‖z‖ < (1 : ℝ) := lt_of_le_of_lt hz (by norm_num)
+  have hz1 : z ≠ (1 : ℂ) := by
+    intro h
+    have : (1 : ℝ) ≤ (1 / 2 : ℝ) := by
+      simpa [h] using hz
+    norm_num at this
+  have hEq : weierstrassFactor m z = Complex.exp (-logTail m z) :=
+    weierstrassFactor_eq_exp_neg_tail m hz_lt hz1
+  have hlog :
+      Real.log ‖weierstrassFactor m z‖ = (-logTail m z).re := by
+    simp [hEq, Complex.norm_exp, Real.log_exp]
+  have hre : (-logTail m z).re ≥ -‖logTail m z‖ := by
+    have habs : |(-logTail m z).re| ≤ ‖-logTail m z‖ := Complex.abs_re_le_norm _
+    have : (-‖-logTail m z‖) ≤ (-logTail m z).re := by
+      have := neg_le_of_abs_le habs
+      simpa using this
+    simpa [norm_neg] using this
+  have htail :
+      ‖logTail m z‖ ≤ 2 * ‖z‖ ^ (m + 1) := by
+    have h1 : ‖logTail m z‖ ≤ ‖z‖ ^ (m + 1) / (1 - ‖z‖) :=
+      norm_logTail_le hz_lt m
+    have h2 : ‖z‖ ^ (m + 1) / (1 - ‖z‖) ≤ 2 * ‖z‖ ^ (m + 1) :=
+      norm_pow_div_one_sub_le_two hz m
+    exact h1.trans h2
+  have : (-logTail m z).re ≥ (-2 : ℝ) * ‖z‖ ^ (m + 1) := by
+    calc
+      (-logTail m z).re ≥ -‖logTail m z‖ := hre
+      _ ≥ (-2 : ℝ) * ‖z‖ ^ (m + 1) := by
+            nlinarith [htail]
+  simpa [hlog, mul_assoc, mul_left_comm, mul_comm] using this
+
+lemma log_norm_weierstrassFactor_ge_log_norm_one_sub_sub
+    (m : ℕ) (z : ℂ) :
+    Real.log ‖1 - z‖ - (m : ℝ) * max 1 (‖z‖ ^ m) ≤ Real.log ‖weierstrassFactor m z‖ := by
+  classical
+  by_cases hz1 : z = (1 : ℂ)
+  · subst hz1
+    simp [weierstrassFactor]
+  set S : ℂ := partialLogSum m z
+  have hS : weierstrassFactor m z = (1 - z) * Complex.exp S := by
+    simp [weierstrassFactor, S]
+  have hnorm_pos : 0 < ‖(1 : ℂ) - z‖ :=
+    norm_pos_iff.mpr (sub_ne_zero.mpr (Ne.symm hz1))
+  have hlog :
+      Real.log ‖weierstrassFactor m z‖ = Real.log ‖1 - z‖ + S.re := by
+    have hne : ‖(1 : ℂ) - z‖ ≠ 0 := ne_of_gt hnorm_pos
+    calc
+      Real.log ‖weierstrassFactor m z‖
+          = Real.log (‖(1 : ℂ) - z‖ * ‖Complex.exp S‖) := by
+                simp [hS]
+      _ = Real.log ‖(1 : ℂ) - z‖ + Real.log ‖Complex.exp S‖ := by
+            simpa using (Real.log_mul hne (by
+              exact (ne_of_gt (by simp))))
+      _ = Real.log ‖(1 : ℂ) - z‖ + S.re := by
+            simp [Complex.norm_exp, Real.log_exp]
+      _ = Real.log ‖1 - z‖ + S.re := by simp [sub_eq_add_neg, add_comm]
+  have hre : S.re ≥ -‖S‖ := by
+    have habs : |S.re| ≤ ‖S‖ := Complex.abs_re_le_norm _
+    have := neg_le_of_abs_le habs
+    simpa using this
+  have hnormS :
+      ‖S‖ ≤ (m : ℝ) * max 1 (‖z‖ ^ m) := by
+    have hsum :
+        ‖S‖ ≤ ∑ k ∈ Finset.range m, ‖z ^ (k + 1) / (k + 1)‖ := by
+      simpa [S, partialLogSum] using
+        (norm_sum_le (Finset.range m) (fun k => z ^ (k + 1) / (k + 1)))
+    have hterm : ∀ k ∈ Finset.range m, ‖z ^ (k + 1) / (k + 1)‖ ≤ max 1 (‖z‖ ^ m) := by
+      intro k hk
+      rw [norm_div, norm_pow]
+      have hk1 : (1 : ℝ) ≤ (k : ℝ) + 1 := by
+        have hk1_nat : (1 : ℕ) ≤ k + 1 := Nat.succ_le_succ (Nat.zero_le k)
+        exact_mod_cast hk1_nat
+      have hdenom : ‖((k : ℂ) + 1)‖ = (k : ℝ) + 1 := by
+        simpa [Nat.cast_add_one, add_assoc, add_comm, add_left_comm] using
+          (Complex.norm_natCast (k + 1))
+      have hk_le : k + 1 ≤ m := Nat.succ_le_iff.2 (Finset.mem_range.1 hk)
+      have hpow_le : ‖z‖ ^ (k + 1) ≤ max 1 (‖z‖ ^ m) := by
+        have hz0 : 0 ≤ ‖z‖ := norm_nonneg z
+        by_cases hz1 : ‖z‖ ≤ (1 : ℝ)
+        ·
+          have : ‖z‖ ^ (k + 1) ≤ 1 := by exact pow_le_one₀ hz0 hz1
+          exact this.trans (le_max_left _ _)
+        ·
+          have hz1' : (1 : ℝ) ≤ ‖z‖ := le_of_lt (lt_of_not_ge hz1)
+          have : ‖z‖ ^ (k + 1) ≤ ‖z‖ ^ m := pow_le_pow_right₀ hz1' hk_le
+          exact this.trans (le_max_right _ _)
+      calc
+        ‖z‖ ^ (k + 1) / ‖((k : ℂ) + 1)‖
+            = ‖z‖ ^ (k + 1) / ((k : ℝ) + 1) := by simp [hdenom]
+        _ ≤ ‖z‖ ^ (k + 1) := by
+              exact div_le_self (pow_nonneg (norm_nonneg z) _) hk1
+        _ ≤ max 1 (‖z‖ ^ m) := hpow_le
+    have hsum_le :
+        (∑ k ∈ Finset.range m, ‖z ^ (k + 1) / (k + 1)‖) ≤
+          ∑ _k ∈ Finset.range m, max 1 (‖z‖ ^ m) :=
+      Finset.sum_le_sum (fun k hk => hterm k hk)
+    have : ∑ _k ∈ Finset.range m, max 1 (‖z‖ ^ m) = (m : ℝ) * max 1 (‖z‖ ^ m) := by
+      simp [Finset.sum_const]
+    exact hsum.trans (hsum_le.trans_eq this)
+  -- finish via `hlog` and `Re(S) ≥ -‖S‖`
+  have : Real.log ‖weierstrassFactor m z‖ ≥ Real.log ‖1 - z‖ - ‖S‖ := by
+    linarith [hlog, hre]
+  linarith [this, hnormS]
+
 end Complex.Hadamard
