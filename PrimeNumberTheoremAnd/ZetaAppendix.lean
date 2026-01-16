@@ -1521,9 +1521,9 @@ theorem lemma_abadeuleulmit1 {z : ℂ} (hz : z ∈ integerComplement) :
         · sorry
         · refine (Filter.tendsto_congr (telescoping_sum z)).2 ?_
           nth_rw 2 [← sub_zero (1 / (z + 1))]
-          refine Filter.Tendsto.const_sub (1 / (z + 1)) ?_
-          simp only [add_comm _ (1 : ℂ), ← add_assoc]
-          have := EisensteinSeries.tendsto_zero_inv_linear (z + 1) 1
+          simpa [add_comm _ (1 : ℂ), ← add_assoc, one_mul, - one_div, Function.comp_def] using
+            ((EisensteinSeries.tendsto_zero_inv_linear (1 + z) 1).comp
+            (tendsto_id.const_mul_atTop' (by linarith))).const_sub (1 / (z + 1))
       · exact hsummable'' hz
   _ = 1 / z + ∑' n : ℕ+, (-1) ^ (2 * n : ℕ) * (1 / (z - 2 * n) + 1 / (z + 2 * n)) +
       ∑' n : ℕ+, (-1) * (1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1))) := by
