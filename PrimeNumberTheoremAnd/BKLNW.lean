@@ -141,9 +141,7 @@ theorem prop_3_sub_1 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 1)
 @[blueprint
   "bklnw-prop-3-sub-2"
   (title := "Proposition 3, substep 2")
-  (statement := /-- $f$ decreases on $[2^n, 2^{n+1}]$.
-\]
--/)
+  (statement := /-- $f$ decreases on $[2^n, 2^{n+1}]$.-/)
   (proof := /-- Clear. -/)
   (latexEnv := "sublemma")]
 theorem prop_3_sub_2 (n : ℕ) : StrictAntiOn f (Set.Icc (2^n) (2^(n + 1))) := by sorry
@@ -153,9 +151,7 @@ noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - 
 @[blueprint
   "bklnw-prop-3-sub-3"
   (title := "Proposition 3, substep 3")
-  (statement := /-- $f(2^n) = 1 + u_n$.
-\]
--/)
+  (statement := /-- $f(2^n) = 1 + u_n$.-/)
   (proof := /-- Clear. -/)
   (latexEnv := "sublemma")]
 theorem prop_3_sub_3 (n : ℕ) : f (2^n) = 1 + u n := by sorry
@@ -163,9 +159,7 @@ theorem prop_3_sub_3 (n : ℕ) : f (2^n) = 1 + u n := by sorry
 @[blueprint
   "bklnw-prop-3-sub-4"
   (title := "Proposition 3, substep 4")
-  (statement := /-- $u_{n+1} < u_n$ for $n \geq 9$.
-\]
--/)
+  (statement := /-- $u_{n+1} < u_n$ for $n \geq 9$.-/)
   (proof := /-- We have
 \begin{equation}
 u_{n+1} - u_n = \sum_{k=4}^{n} 2^{\frac{n+1}{k} - \frac{n+1}{3}}(1 - 2^{\frac{1}{3} - \frac{1}{k}}) + 2^{1 - \frac{n+1}{3}} = 2^{-\frac{n+1}{3}} \left( 2 - \sum_{k=4}^{n} 2^{\frac{n+1}{k}}(2^{\frac{1}{3} - \frac{1}{k}} - 1) \right).
