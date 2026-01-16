@@ -7,10 +7,26 @@ In this file we record the results from \cite{BKLNW}.
 
 open Real
 
-noncomputable def BKLNW.f (x : ℝ) : ℝ := ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋, x^(1/k - 1/3)
+namespace BKLNW
 
-noncomputable def BKLNW.ε (b : ℝ) : ℝ :=
-  if b < 20 then 0   -- junk value
+structure Inputs where
+  α : ℝ
+  hα : ∀ x > 0, θ x ≤ (1 + α) * x
+  ε : ℝ → ℝ
+  hε : ∀ b ≥ 0, ∀ x ≥ exp b, |ψ x - x| ≤ ε b * x
+  x₁ : ℝ
+  hx₁ : x₁ ≥ exp 7
+  hx₁' : ∀ x ∈ Set.Icc 1 x₁, θ x < x
+
+@[blueprint
+  "bklnw-cor-2-1"
+  (title := "Corollary 2.1")
+  (statement := /-- $\theta(x) \leq (1 + 1.93378 \times 10^{-8}) x$. -/)
+  (latexEnv := "corollary")]
+theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + 1.93378e-8) * x := by sorry
+
+noncomputable def table_8_ε (b : ℝ) : ℝ :=
+  if b < 20 then 1   -- junk value
   else if b < 21 then 4.2670e-5
   else if b < 22 then 2.58843e-5
   else if b < 23 then 1.56996e-5
@@ -70,8 +86,259 @@ noncomputable def BKLNW.ε (b : ℝ) : ℝ :=
   else if b < 25000 then 1.07022e-48
   else 7.57240e-50
 
-noncomputable def BKLNW.a₁ (b : ℝ) : ℝ :=
-  if b ≤ 38 * log 10 then 1 + 1.93378e-8 else 1 + BKLNW.ε (b / 2)
+@[blueprint
+  "bknlw-theorem-2"
+  (title := "Theorem 2")
+  (statement := /-- If $b>0$ then $|\psi(x) - x| \leq \varepsilon(b) x$ for all $x \geq \exp(b)$. -/)
+  (latexEnv := "theorem")]
+theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
+    |ψ x - x| ≤ table_8_ε b * x := by sorry
 
-noncomputable def BKLNW.a₂ (b : ℝ) : ℝ :=
-  (1 + 1.93378e-8) * (max (BKLNW.f (exp b)) (BKLNW.f (⌊b / (log 2)⌋ + 1)))
+@[blueprint
+  "buthe-eq-1-7"
+  (title := "Buthe equation (1.7)")
+  (statement := /-- $\theta(x) < x$ for all $1 \leq x \leq 10^{19}$. -/)
+  (latexEnv := "sublemma")]
+theorem buthe_eq_1_7 : ∀ x ∈ Set.Icc 1 1e19, θ x < x := by sorry
+
+@[blueprint
+  "bklnw-inputs"
+  (title := "Default input parameters")
+  (statement := /-- We take $\alpha = 1.93378 \times 10^{-8}$, $\varepsilon$ as in Table 8 of \cite{BKLNW}, and $x_1 = 10^{19}$. -/)]
+noncomputable def Inputs.default : Inputs := {
+  α := 1.93378e-8
+  hα := cor_2_1
+  ε := table_8_ε
+  hε := theorem_2
+  x₁ := 1e19
+  hx₁ := by sorry
+  hx₁' := buthe_eq_1_7
+}
+
+
+@[blueprint
+  "bklnw-eq-2-4"
+  (title := "Equation 2.4")
+  (statement := /--
+  $$ f(x) := \sum_{k=3}^{\lfloor \log x / \log 2 \rfloor} x^{1/k - 1/3}.$$
+  -/)]
+noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋, x^(1/k - 1/3)
+
+@[blueprint
+  "bklnw-prop-3-sub-1"
+  (title := "Proposition 3, substep 1")
+  (statement := /-- Let $x \geq x_0$ and let $\alpha$ be admissible. Then
+\[
+\frac{\psi(x) - \theta(x) - \theta(x^{1/2})}{x^{1/3}} \leq (1 + \alpha) \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} x^{\frac{1}{k} - \frac{1}{3}}.
+\]
+-/)
+  (proof := /-- Bound each $\theta(x^{1/k})$ term by $(1 + \alpha)x^{1/k}$. -/)
+  (latexEnv := "sublemma")]
+theorem prop_3_sub_1 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 1)
+    (hx : x ≥ x₀) :
+    (ψ x - θ x - θ (x^(1/2))) / x^(1/3) ≤ (1 + I.α) * f x := by sorry
+
+@[blueprint
+  "bklnw-prop-3-sub-2"
+  (title := "Proposition 3, substep 2")
+  (statement := /-- $f$ decreases on $[2^n, 2^{n+1}]$.-/)
+  (proof := /-- Clear. -/)
+  (latexEnv := "sublemma")]
+theorem prop_3_sub_2 (n : ℕ) : StrictAntiOn f (Set.Icc (2^n) (2^(n + 1))) := by sorry
+
+noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - (n/3:ℝ))
+
+@[blueprint
+  "bklnw-prop-3-sub-3"
+  (title := "Proposition 3, substep 3")
+  (statement := /-- $f(2^n) = 1 + u_n$.-/)
+  (proof := /-- Clear. -/)
+  (latexEnv := "sublemma")]
+theorem prop_3_sub_3 (n : ℕ) : f (2^n) = 1 + u n := by sorry
+
+@[blueprint
+  "bklnw-prop-3-sub-4"
+  (title := "Proposition 3, substep 4")
+  (statement := /-- $u_{n+1} < u_n$ for $n \geq 9$.-/)
+  (proof := /-- We have
+\begin{equation}
+u_{n+1} - u_n = \sum_{k=4}^{n} 2^{\frac{n+1}{k} - \frac{n+1}{3}}(1 - 2^{\frac{1}{3} - \frac{1}{k}}) + 2^{1 - \frac{n+1}{3}} = 2^{-\frac{n+1}{3}} \left( 2 - \sum_{k=4}^{n} 2^{\frac{n+1}{k}}(2^{\frac{1}{3} - \frac{1}{k}} - 1) \right).
+\end{equation}
+Observe that if $n \geq 20$, then
+\[
+\sum_{k=4}^{n} 2^{\frac{n+1}{k}}(2^{\frac{1}{3} - \frac{1}{k}} - 1) > 2^{\frac{n+1}{4}}(2^{\frac{1}{3} - \frac{1}{4}} - 1) \geq 2^{\frac{21}{4}}(2^{\frac{1}{12}} - 1) > 2
+\]
+and it follows that $u_{n+1} - u_n < 0$ for $n \geq 20$. Finally, a numerical calculation verifies that the right hand side of the equation above is negative for $9 \leq n \leq 19$. -/)
+  (latexEnv := "sublemma")]
+theorem prop_3_sub_4 (n : ℕ) (hn : n ≥ 9) : u (n + 1) < u n := by sorry
+
+@[blueprint
+  "bklnw-prop-3-sub-5"
+  (title := "Proposition 3, substep 5")
+  (statement := /-- $f(2^n) > f(2^{n+1})$ for $n \geq 9$. -/)
+  (proof := /-- This follows from Sublemmas \ref{bklnw-prop-3-sub-3} and \ref{bklnw-prop-3-sub-4}. -/)
+  (latexEnv := "sublemma")]
+theorem prop_3_sub_5 (n : ℕ) (hn : n ≥ 9) : f (2^n) > f (2^(n + 1)) := by sorry
+
+@[blueprint
+  "bklnw-prop-3-sub-6"
+  (title := "Proposition 3, substep 6")
+  (statement := /-- $f(x) \leq f(2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1})$ on $[2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1}, \infty)$. -/)
+  (proof := /-- Follows from Sublemmas \ref{bklnw-prop-3-sub-2} and \ref{bklnw-prop-3-sub-5}. -/)
+  (latexEnv := "sublemma")]
+theorem prop_3_sub_6 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
+    (hx : x ≥ 2 ^ (⌊(log x₀) / (log 2)⌋ + 1)) :
+    f x ≤ f (2 ^ (⌊(log x₀)/(log 2)⌋ + 1)) := by sorry
+
+@[blueprint
+  "bklnw-prop-3-sub-7"
+  (title := "Proposition 3, substep 7")
+  (statement := /-- $f(x) \leq f(x_0)$ for $x \in [x_0, 2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1})$. -/)
+  (proof := /-- Follows since $f(x)$ decreases on $[2^{\lfloor \frac{\log x_0}{\log 2} \rfloor}, 2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1})$. -/)
+  (latexEnv := "sublemma")]
+theorem prop_3_sub_7 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
+    (hx : x ∈ Set.Icc x₀ (2 ^ (⌊(log x₀) / (log 2)⌋ + 1))) :
+    f x ≤ f x₀ := by sorry
+
+@[blueprint
+  "bklnw-prop-3-sub-8"
+  (title := "Proposition 3, substep 8")
+  (statement := /--  $f(x) \leq \max\left(f(x_0), f(2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1})\right)$. -/)
+  (proof := /-- Combines previous sublemmas. -/)
+  (latexEnv := "sublemma")]
+theorem prop_3_sub_8 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
+    (hx : x ≥ x₀) :
+    f x ≤ max (f x₀) (f (2 ^ (⌊ (log x₀)/(log 2) ⌋ + 1))) := by sorry
+
+@[blueprint
+  "bklnw-prop-3"
+  (title := "Proposition 3")
+  (statement := /--  Let $x_0 \geq 2^9$. Let $\alpha > 0$ exist such that $\theta(x) \leq (1 + \alpha)x$ for $x > 0$. Then for $x \geq x_0$,
+\begin{equation}
+\sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} \theta(x^{1/k}) \leq \eta x^{1/3},
+\end{equation}
+where
+\begin{equation}
+\eta = \eta(x_0) = (1 + \alpha) \max\left(f(x_0), f(2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1})\right)
+\end{equation}
+with
+\begin{equation}
+f(x) := \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} x^{\frac{1}{k} - \frac{1}{3}}.
+\end{equation}
+ -/)
+  (proof := /-- Combines previous sublemmas. -/)
+  (latexEnv := "proposition")]
+theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9)
+    (hx : x ≥ x₀) :
+    ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋, θ (x^(1/k)) ≤
+      (1 + I.α) * max (f x₀) (f (2^(⌊ (log x₀)/(log 2) ⌋ + 1))) * x^(1/3) := by sorry
+
+@[blueprint
+  "bklnw-cor-3-1"
+  (title := "Corollary 3.1")
+  (statement := /--  Let $b \geq 7$. Assume $x \geq e^b$. Then we have
+\[
+\psi(x) - \theta(x) - \theta(x^{1/2}) \leq \eta x^{1/3},
+\]
+where
+\begin{equation}
+\eta = (1 + \alpha) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}) \right)
+\end{equation}
+ -/)
+  (proof := /-- We apply Proposition \ref{bklnw-prop-3} with $x_0 = e^b$ where we observe that $x_0 = e^b \geq e^7 > 2^9$.
+ -/)
+  (latexEnv := "corollary")]
+theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (x : ℝ) (hx : x ≥ exp b) :
+    ψ x - θ x - θ (x^(1/2)) ≤
+      (1 + I.α) * max (f (exp b)) (f (2^(⌊ b/(log 2) ⌋ + 1))) * x^(1/3) := by sorry
+
+@[blueprint
+  "bklnw-prop-4-a"
+  (title := "Proposition 4, part a")
+  (statement := /--  If $b \leq 2\log x_1$, then we have
+\begin{equation}
+\theta(x^{1/2}) < (1 + \varepsilon(\log x_1))x^{1/2} \quad \text{for } x \geq e^b.
+\end{equation}
+ -/)
+  (proof := /-- If $e^b \leq x \leq x_1^2$, then $x^{1/2} \leq x_1$, and thus
+\[
+\theta(x^{1/2}) < x^{1/2} \quad \text{for } e^b \leq x \leq x_1^2.
+\]
+On the other hand, if $x^{1/2} > x_1 = e^{\log x_1}$, then we have by (2.7)
+\[
+\theta(x^{1/2}) \leq \psi(x^{1/2}) \leq (1 + \varepsilon(\log x_1))x^{1/2},
+\]
+since $\log x_1 \geq 7$. The last two inequalities for $\theta(x^{1/2})$ combine to establish (2.8).
+ -/)
+  (latexEnv := "proposition")]
+theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : b ≤ 2 * log I.x₁) (hx : x ≥ exp b) :
+    θ (x^(1/2)) < (1 + I.ε (log I.x₁)) * x^(1/2) := by sorry
+
+@[blueprint
+  "bklnw-prop-4-b"
+  (title := "Proposition 4, part b")
+  (statement := /--  If $b > 2\log x_1$, then we have
+\[
+\theta(x^{1/2}) < (1 + \varepsilon(b/2))x^{1/2} \quad \text{for } x \geq e^b.
+\]
+ -/)
+  (proof := /-- As in the above subcase, we have for $x \geq e^b$
+\[
+\theta(x^{1/2}) \leq \psi(x^{1/2}) \leq (1 + \varepsilon(b/2))x^{1/2},
+\]
+since $x^{1/2} > e^{b/2} > x_1 \geq e^7$.
+ -/)
+  (latexEnv := "proposition")]
+theorem prop_4_b (I : Inputs) {b x : ℝ} (hb : b > 2 * log I.x₁) (hx : x ≥ exp b) :
+    θ (x^(1/2)) < (1 + I.ε (b / 2)) * x^(1/2) := by sorry
+
+noncomputable def Inputs.a₁ (I : Inputs) (b : ℝ) : ℝ :=
+  if b ≤ 2 * log I.x₁ then 1 + I.ε (log I.x₁)
+  else 1 + I.ε (b / 2)
+
+noncomputable def Inputs.a₂ (I : Inputs) (b : ℝ) : ℝ :=
+  (1 + I.α) * (max (f (exp b)) (f (⌊ b / (log 2) ⌋ + 1)))
+
+@[blueprint
+  "bklnw-thm-5"
+  (title := "Theorem 5")
+  (statement := /--  Let $\alpha > 0$ exist such that
+\[
+\theta(x) \leq (1 + \alpha)x \quad \text{for all } x > 0.
+\]
+Assume for every $b \geq 7$ there exists a positive constant $\varepsilon(b)$ such that
+\[
+\psi(x) - x \leq \varepsilon(b)x \quad \text{for all } x \geq e^b.
+\]
+Assume there exists $x_1 \geq e^7$ such that
+\begin{equation}
+\theta(x) < x \quad \text{for } x \leq x_1.
+\end{equation}
+Let $b \geq 7$. Then, for all $x \geq e^b$ we have
+\[
+\psi(x) - \theta(x) < a_1 x^{1/2} + a_2 x^{1/3},
+\]
+where
+\[
+a_1 = \begin{cases}
+1 + \varepsilon(\log x_1) & \text{if } b \leq 2\log x_1, \\
+1 + \varepsilon(b/2) & \text{if } b > 2\log x_1,
+\end{cases}
+\]
+and
+\[
+a_2 = (1 + \alpha) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}) \right).
+\]
+  -/)
+  (proof := /-- We have $\psi(x) - \theta(x) = \theta(x^{1/2}) + \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} \theta(x^{1/k})$. For any $b \geq 7$, setting $x_0 = e^b$ in Proposition 4, we bound $\sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} \theta(x^{1/k})$ by $\eta x^{1/3}$ as defined in (2.3). We bound $\theta(x^{1/2})$ with Proposition \ref{bklnw-prop-4} by taking either $a_1 = 1 + \varepsilon(\log x_1)$ for $b \leq 2\log x_1$ or $a_1 = 1 + \varepsilon(b/2)$ for $b > 2\log x_1$.
+ -/)
+  (latexEnv := "theorem")]
+theorem thm_5 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
+    ψ x - θ x < Inputs.a₁ I b * x^(1/2) + Inputs.a₂ I b * x^(1/3) := by sorry
+
+
+noncomputable def a₁ : ℝ → ℝ := Inputs.default.a₁
+
+noncomputable def a₂ : ℝ → ℝ := Inputs.default.a₂
+
+end BKLNW
