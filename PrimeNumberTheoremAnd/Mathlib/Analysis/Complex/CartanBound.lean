@@ -2,7 +2,6 @@ import Mathlib.MeasureTheory.Integral.Average
 import Mathlib.Analysis.SpecialFunctions.Pow.Integral
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.LogSingularity
 
-
 /-!
 ## Cartan / minimum-modulus infrastructure for intrinsic Hadamard factorization
 
@@ -871,3 +870,4 @@ lemma exists_radius_Ioc_sum_mul_phi_div_le_Cφ_mul_sum_avoid
 
 end LogSingularity
 end Complex.Hadamard
+
