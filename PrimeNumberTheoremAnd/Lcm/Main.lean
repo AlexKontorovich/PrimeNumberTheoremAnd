@@ -1,11 +1,8 @@
 import Architect
-import PrimeNumberTheoremAnd.SecondarySummary
-import PrimeNumberTheoremAnd.PrimeGaps.Latest
 import PrimeNumberTheoremAnd.Lcm.Cert
 
 namespace Lcm
 
-open PrimeGapsLatest
 open ArithmeticFunction hiding log
 open Finset Nat Real
 
@@ -745,44 +742,70 @@ inequality.  Here we will rely on the prime number theorem of Dusart \cite{Dusar
   (latexEnv := "lemma")]
 theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∃ p : Fin 3 → ℕ, (∀ i, Nat.Prime (p i)) ∧ StrictMono p ∧
-      (∀ i, p i ≤ √(n : ℝ) * (1 + 1 / (log √(n : ℝ)) ^ 3) ^ (i + 1 : ℝ)) ∧
+      (∀ i, p i ≤ √(n : ℝ) * (1 + gap.δ (√(n : ℝ))) ^ (i + 1 : ℝ)) ∧
       √(n : ℝ) < p 0 := by
-  let x := √(n : ℝ)
-  have hx₀_pos : (0 : ℝ) < X₀ := by
-    unfold X₀; norm_num
-  have hx_pos : 0 < x := hx₀_pos.trans_le (hsqrt_ge hn)
-  have hlog_pos : 0 < log x := by positivity [hlog hn]
-  set ε := 1 / (log x) ^ 3 with hε_def
-  have upper {y : ℝ} (hy : 0 < y) (hlog_ge : log y ≥ log x) {p : ℕ}
-      (hp : (p : ℝ) ≤ y + y / (log y) ^ (3 : ℝ)) : (p : ℝ) ≤ y * (1 + ε) := by
-    have h : y / (log y) ^ (3 : ℝ) ≤ y / (log x) ^ (3 : ℝ) :=
-      div_le_div_of_nonneg_left hy.le (rpow_pos_of_pos hlog_pos 3)
-        (rpow_le_rpow hlog_pos.le hlog_ge (by grind))
-    calc (p : ℝ) ≤ y + y / (log y) ^ (3 : ℝ) := hp
-      _ ≤ y + y / (log x) ^ (3 : ℝ) := add_le_add_right h y
-      _ = y * (1 + ε) := by simp only [hε_def, ← rpow_natCast]; grind
-  have hε_pos : 0 < ε := by positivity
-  have hx1_ge : x * (1 + ε) ≥ X₀ := (hsqrt_ge hn).trans (le_mul_of_one_le_right hx_pos.le
-    (by grind))
-  have hx2_ge : x * (1 + ε) ^ 2 ≥ X₀ := (hsqrt_ge hn).trans (le_mul_of_one_le_right hx_pos.le
-    (by nlinarith [sq_nonneg ε]))
-  obtain ⟨p₀, hp₀_prime, hp₀_lb, hp₀_ub⟩ := proposition_5_4 x (hsqrt_ge hn)
-  obtain ⟨p₁, hp₁_prime, hp₁_lb, hp₁_ub⟩ := proposition_5_4 _ hx1_ge
-  obtain ⟨p₂, hp₂_prime, hp₂_lb, hp₂_ub⟩ := proposition_5_4 _ hx2_ge
-  have hp₀_ub' : (p₀ : ℝ) ≤ x * (1 + ε) := upper hx_pos le_rfl hp₀_ub
+  -- define the “base point”
+  let x : ℝ := √(n : ℝ)
+  have hxX : (X₀ : ℝ) ≤ x := by
+    simpa [x] using sqrt_ge_X₀ (n := n) hn
+  -- define ε once (this is where `hε` comes from if you use `set`)
+  let ε : ℝ := gap.δ x
+
+  -- (1) first prime at x
+  obtain ⟨p₀, hp₀_prime, hp₀_lb, hp₀_ub⟩ :=
+    gap.prime_in_Icc (x := x) hxX
+  have hp₀_ub' : (p₀ : ℝ) ≤ x * (1 + ε) := by
+    simpa [ε] using hp₀_ub
+
+  -- (2) second prime at x*(1+ε)
+  have hx1X : (X₀ : ℝ) ≤ x * (1 + ε) := by
+    -- Cert lemma C4, rewritten to use `x`/`ε`
+    -- (since x = √n and ε = δ x)
+    simpa [x, ε] using step1_ge_X₀ (n := n) hn
+
+  obtain ⟨p₁, hp₁_prime, hp₁_lb, hp₁_ub⟩ :=
+    gap.prime_in_Icc (x := x * (1 + ε)) hx1X
+
   have hp₁_ub' : (p₁ : ℝ) ≤ x * (1 + ε) ^ 2 := by
-    linarith [sq (1 + ε), upper (by grind) (log_le_log hx_pos (by grind)) hp₁_ub]
+    -- provider gives `p₁ ≤ (x*(1+ε)) * (1 + δ(x*(1+ε)))`
+    -- Cert lemma C6 turns that into `≤ x*(1+ε)^2`
+    refine le_trans (by simpa [ε] using hp₁_ub) ?_
+    simpa [x, ε] using step1_upper (n := n) hn
+
+  -- (3) third prime at x*(1+ε)^2
+  have hx2X : (X₀ : ℝ) ≤ x * (1 + ε) ^ 2 := by
+    simpa [x, ε] using step2_ge_X₀ (n := n) hn
+
+  obtain ⟨p₂, hp₂_prime, hp₂_lb, hp₂_ub⟩ :=
+    gap.prime_in_Icc (x := x * (1 + ε) ^ 2) hx2X
+
   have hp₂_ub' : (p₂ : ℝ) ≤ x * (1 + ε) ^ 3 := by
-    linarith [pow_succ (1 + ε) 2, upper (by grind) (log_le_log hx_pos (by grind)) hp₂_ub]
-  refine ⟨![p₀, p₁, p₂], fun i ↦ by fin_cases i <;> assumption,
-    Fin.strictMono_iff_lt_succ.mpr fun i ↦ by
-      fin_cases i
-      · exact cast_lt.mp (hp₀_ub'.trans_lt hp₁_lb)
-      · exact cast_lt.mp (hp₁_ub'.trans_lt hp₂_lb), fun i ↦ ?_, hp₀_lb⟩
-  fin_cases i <;> norm_num
-  · convert hp₀_ub' using 2
-  · convert hp₁_ub' using 2
-  · convert hp₂_ub' using 2
+    refine le_trans (by simpa [ε] using hp₂_ub) ?_
+    simpa [x, ε] using step2_upper (n := n) hn
+
+  -- package the primes
+  refine ⟨![p₀, p₁, p₂], ?_, ?_, ?_, ?_⟩
+  · intro i
+    fin_cases i <;> assumption
+  · -- StrictMono via "prev upper < next lower"
+    refine Fin.strictMono_iff_lt_succ.mpr ?_
+    intro i
+    fin_cases i
+    · -- p0 < p1
+      exact cast_lt.mp (hp₀_ub'.trans_lt hp₁_lb)
+    · -- p1 < p2
+      exact cast_lt.mp (hp₁_ub'.trans_lt hp₂_lb)
+  · -- upper bounds by cases
+    intro i
+    fin_cases i <;> norm_num
+    · -- i = 0 : exponent is 1
+      simpa [x, ε] using hp₀_ub'
+    · -- i = 1 : exponent is 2
+      simpa [x, ε] using hp₁_ub'
+    · -- i = 2 : exponent is 3
+      simpa [x, ε] using hp₂_ub'
+  · -- √n < p0
+    simpa [x] using hp₀_lb
 
 
 

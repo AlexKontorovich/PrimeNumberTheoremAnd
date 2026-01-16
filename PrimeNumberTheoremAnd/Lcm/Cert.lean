@@ -1,10 +1,8 @@
 import Architect
-import PrimeNumberTheoremAnd.SecondarySummary
-import PrimeNumberTheoremAnd.PrimeGaps.Latest
+import PrimeNumberTheoremAnd.Lcm.Base
 
 namespace Lcm
 
-open PrimeGapsLatest
 open ArithmeticFunction hiding log
 open Finset Nat Real
 
@@ -19,10 +17,20 @@ noncomputable abbrev eps_log : ℝ := (0.000675 : ℝ)
 noncomputable abbrev onePlusEps_log : ℝ := (1 : ℝ) + eps_log
 
 
+
+-- What was refactored out of theorem exists_p_primes
+-- lemma 1
+lemma hx₀_pos : (0 : ℝ) < X₀ := by
+    unfold X₀; norm_num
+@[simp] lemma X₀_pos : (0 : ℝ) < (X₀ : ℝ) := by
+  exact hx₀_pos
+
+-- lemma 2
 lemma hsqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : √(n : ℝ) ≥ X₀ := by
   simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ X₀ ^ 2)
 
 
+-- lemma 3
 lemma log_X₀_gt : Real.log X₀ > 11.4 := by
   dsimp [X₀]
   rw [gt_iff_lt, show (11.4 : ℝ) = 57 / (5 : ℕ) by norm_num, div_lt_iff₀ (by norm_num),
@@ -30,7 +38,7 @@ lemma log_X₀_gt : Real.log X₀ > 11.4 := by
   grw [Real.exp_one_lt_d9]
   norm_num
 
-
+-- lemma 4
 lemma hlog {n : ℕ} (hn : n ≥ X₀ ^ 2) : log √(n : ℝ) ≥ 11.4 := by
   have hpos : (0 : ℝ) < X₀ := by
     -- try without unfolding first
@@ -45,6 +53,62 @@ lemma hε_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < 1 + 1 / (log √(n : ℝ)) ^
   positivity [hlog hn]
 
 lemma log_X₀_pos : 0 < Real.log X₀ := by linear_combination log_X₀_gt
+
+
+
+
+/-- (C1) `x := √n` is above the provider threshold. -/
+lemma sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (X₀ : ℝ) ≤ √(n : ℝ) := by
+  simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ X₀ ^ 2)
+
+
+/-- (C2) positivity of `x := √n`. -/
+lemma sqrt_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    0 < √(n : ℝ) := by
+  -- can be `lt_of_lt_of_le (show (0:ℝ) < (X₀:ℝ) from ...) (sqrt_ge_X₀ hn)`
+  -- or whatever you currently do
+  sorry
+
+/-- (C3) nonnegativity of `ε := δ(x)` at `x := √n`. -/
+lemma eps_nonneg {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    0 ≤ gap.δ (√(n : ℝ)) := by
+  -- Dusart: follows from `0 < log x` hence `(log x)^3 > 0` hence `1/(...) ≥ 0`.
+  -- Other providers: whatever you can prove.
+  sorry
+
+/-- (C4) step-1 threshold propagation:
+`x*(1+ε)` is still ≥ X₀ so we can apply the provider at that point. -/
+lemma step1_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (X₀ : ℝ) ≤ (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) := by
+  -- uses sqrt_ge_X₀ + eps_nonneg + le_mul_of_one_le_right etc
+  sorry
+
+/-- (C5) step-2 threshold propagation:
+`x*(1+ε)^2` is still ≥ X₀. -/
+lemma step2_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (X₀ : ℝ) ≤ (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) ^ 2 := by
+  -- same pattern; uses `pow_two`/`sq_nonneg` etc
+  sorry
+
+/-- (C6) step-1 *upper bound* simplifier:
+turn provider’s bound at `y = x*(1+ε)` into a bound by `x*(1+ε)^2`. -/
+lemma step1_upper {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    let x : ℝ := √(n : ℝ)
+    let ε : ℝ := gap.δ x
+    (x * (1 + ε)) * (1 + gap.δ (x * (1 + ε))) ≤ x * (1 + ε) ^ 2 := by
+  -- This is exactly where your old `upper` lemma + log monotonicity lives.
+  -- For Dusart: δ decreases with x, so δ(x*(1+ε)) ≤ δ(x)=ε, then multiply out.
+  sorry
+
+/-- (C7) step-2 upper bound:
+turn provider’s bound at `y = x*(1+ε)^2` into ≤ `x*(1+ε)^3`. -/
+lemma step2_upper {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    let x : ℝ := √(n : ℝ)
+    let ε : ℝ := gap.δ x
+    (x * (1 + ε) ^ 2) * (1 + gap.δ (x * (1 + ε) ^ 2)) ≤ x * (1 + ε) ^ 3 := by
+  -- Same style as step1_upper.
+  sorry
 
 
 
