@@ -1404,7 +1404,7 @@ lemma hsummable' {z : ℂ} (hz : z ∈ integerComplement) :
 lemma hsummable'' {z : ℂ} (hz : z ∈ integerComplement) :
     Summable fun n : ℕ+ ↦ 1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1)) := by
   have he (n : ℕ+) := cotTerm_identity hz (2 * n - 2)
-  have hi : (fun n : ℕ+ => (2 * n - 1: ℤ)).Injective := fun _ _ _ => by simp_all
+  have hi : (fun n : ℕ+ => (2 * n - 1 : ℤ)).Injective := fun _ _ _ => by simp_all
   have := Summable.mul_left (2 * z)
     ((EisensteinSeries.summable_linear_sub_mul_linear_add z 1 1).comp_injective hi)
   have (n : ℕ+) : ((2 * n - 2 : ℕ) : ℂ) + 1 = ((2 * n : ℕ) : ℂ) - 1 := by
@@ -1420,10 +1420,6 @@ lemma asummable'' {z : ℂ} (hz : z ∈ integerComplement) :
     (1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1))) := by
   convert Summable.mul_left (-1) (hsummable'' hz) using 1
   simp [neg_one_pow]
-
-lemma ssummable {z : ℂ} (hz : z ∈ integerComplement) :
-    Summable fun n : ℕ+ ↦ 1 / (z + (2 * n - 1)) - 1 / (z + 1 + 2 * n) := by
-  sorry
 
 lemma telescoping_sum (z : ℂ) (n : ℕ) :
     ∑ k ∈ Finset.range n, (1 / (z + (2 * (k + 1 : ℕ) - 1)) - 1 / (z + (2 * (k + 1 : ℕ) + 1))) =
@@ -1518,7 +1514,22 @@ theorem lemma_abadeuleulmit1 {z : ℂ} (hz : z ∈ integerComplement) :
           (f := fun b => (1 / (z + (2 * b - 1)) - 1 / (z + (2 * b + 1)))), add_assoc z 1,
           add_comm (1 : ℂ)]
         refine HasSum.tsum_eq ((Summable.hasSum_iff_tendsto_nat ?_).2 ?_)
-        · sorry
+        · suffices Summable (fun n : ℤ => 2 * ((z + n + 1) * (z + n + 3))⁻¹) by
+            have hi : (fun n : ℕ => (2 * n : ℤ)).Injective := fun _ _ _ => by simp_all
+            have := this.comp_injective hi
+            convert this using 2 with n
+            rw [one_div, one_div, inv_sub_inv]
+            · simp; field_simp; ring
+            · simp_all only [integerComplement, mem_compl_iff, Set.mem_range, not_exists,
+                ne_eq, add_eq_zero_iff_eq_neg]
+              exact fun h => hz (-(2 * (n + 1) - 1)) (by simp_all)
+            · simp_all only [integerComplement, mem_compl_iff, Set.mem_range, not_exists,
+                ne_eq, add_eq_zero_iff_eq_neg]
+              exact fun h => hz (-(2 * (n + 1) + 1)) (by simp_all)
+          refine Summable.mul_left 2 ?_
+          apply EisensteinSeries.summable_inv_of_isBigO_rpow_inv (a := 2) (by norm_cast)
+          simpa [pow_two] using (EisensteinSeries.linear_inv_isBigO_right_add 1 3 z).mul
+            (EisensteinSeries.linear_inv_isBigO_right_add 1 1 z)
         · refine (Filter.tendsto_congr (telescoping_sum z)).2 ?_
           nth_rw 2 [← sub_zero (1 / (z + 1))]
           simpa [add_comm _ (1 : ℂ), ← add_assoc, one_mul, - one_div, Function.comp_def] using
