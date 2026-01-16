@@ -667,5 +667,153 @@ lemma exists_radius_Ioc_sum_mul_phi_div_le_Cφ_mul_sum
     simpa [hconst_eval] using (this.trans_le hg_le)
   exact this hcontra
 
+lemma exists_radius_Ioc_sum_mul_phi_div_le_Cφ_mul_sum_avoid
+    {ι : Type} (s : Finset ι) (w : ι → ℝ) (a : ι → ℝ)
+    (hw : ∀ i ∈ s, 0 ≤ w i) (ha : ∀ i ∈ s, 0 < a i)
+    (bad : Finset ℝ) {R : ℝ} (hR : 0 < R) :
+    ∃ r ∈ Set.Ioc R (2 * R), r ∉ bad ∧
+      (∑ i ∈ s, w i * φ (r / a i)) ≤ Cφ * (∑ i ∈ s, w i) := by
+  classical
+  -- Run the same contradiction argument, but only assume the inequality fails off a finite bad set.
+  by_contra hbad
+  have hforall :
+      ∀ r ∈ Set.Ioc R (2 * R), r ∉ bad →
+        Cφ * (∑ i ∈ s, w i) < (∑ i ∈ s, w i * φ (r / a i)) := by
+    intro r hr hrbad
+    have : ¬(∑ i ∈ s, w i * φ (r / a i)) ≤ Cφ * (∑ i ∈ s, w i) := by
+      intro hle
+      exact hbad ⟨r, hr, hrbad, hle⟩
+    exact lt_of_not_ge this
+
+  let g : ℝ → ℝ := ∑ i ∈ s, fun r : ℝ => w i * φ (r / a i)
+  have hg_int : IntervalIntegrable g volume R (2 * R) := by
+    have : IntervalIntegrable (∑ i ∈ s, fun r : ℝ => w i * φ (r / a i)) volume R (2 * R) := by
+      refine IntervalIntegrable.sum (μ := volume) (a := R) (b := 2 * R)
+        (s := s) (f := fun i : ι => fun r : ℝ => w i * φ (r / a i)) ?_
+      intro i hi
+      have hai : 0 < a i := ha i hi
+      have hφi : IntervalIntegrable (fun r : ℝ => φ (r / a i)) volume R (2 * R) :=
+        intervalIntegrable_phi_div (a := a i) (R := R) hai hR.le
+      simpa [mul_assoc] using hφi.const_mul (w i)
+    simpa [g] using this
+
+  have hconst_int :
+      IntervalIntegrable (fun _r : ℝ => Cφ * (∑ i ∈ s, w i)) volume R (2 * R) :=
+    intervalIntegral.intervalIntegrable_const
+
+  -- The set of “good” points has nonzero measure since removing a finite set does not change volume.
+  have hIoc_meas : (volume : MeasureTheory.Measure ℝ) (Set.Ioc R (2 * R)) ≠ 0 := by
+    have hpos : (0 : ℝ) < 2 * R - R := by nlinarith [hR]
+    simp [Real.volume_Ioc, ENNReal.ofReal_eq_zero, not_le_of_gt hpos]
+
+  have hbad_meas : (volume : MeasureTheory.Measure ℝ) (bad : Set ℝ) = 0 := by
+    -- Lebesgue measure is atomless.
+    simpa using (bad.measure_zero (μ := (volume : MeasureTheory.Measure ℝ)))
+
+  have hIoc_diff_meas : (volume : MeasureTheory.Measure ℝ) (Set.Ioc R (2 * R) \ (bad : Set ℝ)) ≠ 0 := by
+    have : (volume : MeasureTheory.Measure ℝ) (Set.Ioc R (2 * R) \ (bad : Set ℝ))
+        = (volume : MeasureTheory.Measure ℝ) (Set.Ioc R (2 * R)) := by
+      -- remove a null set
+      simpa [Set.diff_eq, Set.inter_assoc, Set.inter_left_comm, Set.inter_comm] using
+        (MeasureTheory.measure_diff_null (s := Set.Ioc R (2 * R)) (t := (bad : Set ℝ)) hbad_meas)
+    simpa [this] using hIoc_meas
+
+  have hlt_meas :
+      (volume.restrict (Set.Ioc R (2 * R)))
+        {r | Cφ * (∑ i ∈ s, w i) < g r} ≠ 0 := by
+    -- it contains `Ioc \ bad`
+    have hall : Set.Ioc R (2 * R) \ (bad : Set ℝ) ⊆ {r | Cφ * (∑ i ∈ s, w i) < g r} := by
+      intro r hr
+      have hrIoc : r ∈ Set.Ioc R (2 * R) := hr.1
+      have hrbad : r ∉ bad := by simpa using hr.2
+      simpa [g] using hforall r hrIoc hrbad
+    have hle :
+        (volume.restrict (Set.Ioc R (2 * R))) (Set.Ioc R (2 * R) \ (bad : Set ℝ))
+          ≤ (volume.restrict (Set.Ioc R (2 * R))) {r | Cφ * (∑ i ∈ s, w i) < g r} :=
+      MeasureTheory.measure_mono hall
+    have hpos' :
+        (volume.restrict (Set.Ioc R (2 * R))) (Set.Ioc R (2 * R) \ (bad : Set ℝ)) ≠ 0 := by
+      -- `μ.restrict S` of a subset equals `μ` of that subset.
+      have hsubset : Set.Ioc R (2 * R) \ (bad : Set ℝ) ⊆ Set.Ioc R (2 * R) := by
+        intro r hr
+        exact hr.1
+      have hinter :
+          (Set.Ioc R (2 * R) \ (bad : Set ℝ)) ∩ Set.Ioc R (2 * R)
+            = (Set.Ioc R (2 * R) \ (bad : Set ℝ)) := by
+        exact Set.inter_eq_left.mpr hsubset
+      -- `μ.restrict s t = μ (t ∩ s)`
+      simpa [MeasureTheory.Measure.restrict_apply, measurableSet_Ioc, hinter] using hIoc_diff_meas
+    intro hzero
+    have : (volume.restrict (Set.Ioc R (2 * R))) (Set.Ioc R (2 * R) \ (bad : Set ℝ)) = 0 :=
+      le_antisymm (le_trans hle (le_of_eq hzero)) (zero_le _)
+    exact hpos' this
+
+  have hlt_int :
+      (∫ r in R..(2 * R), (Cφ * (∑ i ∈ s, w i)) ∂volume)
+        < ∫ r in R..(2 * R), g r ∂volume := by
+    have hab : R ≤ 2 * R := by nlinarith [hR.le]
+    refine intervalIntegral.integral_lt_integral_of_ae_le_of_measure_setOf_lt_ne_zero (μ := volume)
+      (a := R) (b := 2 * R) (f := fun _ => (Cφ * (∑ i ∈ s, w i))) (g := g)
+      hab hconst_int hg_int ?_ hlt_meas
+    -- `f ≤ g` a.e. on `Ioc`, since it holds on `Ioc \ bad` and `bad` is null.
+    have hmem : ∀ᵐ r ∂ (volume.restrict (Set.Ioc R (2 * R))), r ∈ Set.Ioc R (2 * R) :=
+      MeasureTheory.ae_restrict_mem (by simpa using measurableSet_Ioc)
+    have hnotBad :
+        ∀ᵐ r ∂ (volume.restrict (Set.Ioc R (2 * R))), r ∉ (bad : Set ℝ) := by
+      -- `bad` is finite, hence null for an atomless measure; restrict preserves no-atoms.
+      simpa using (bad.finite_toSet.countable.ae_notMem (μ := (volume.restrict (Set.Ioc R (2 * R)))))
+    filter_upwards [hmem, hnotBad] with r hrIoc hrNotBad
+    have hrNotBad' : r ∉ bad := by simpa using hrNotBad
+    exact le_of_lt (by simpa [g] using hforall r hrIoc hrNotBad')
+
+  have hconst_eval :
+      (∫ r in R..(2 * R), (Cφ * (∑ i ∈ s, w i)) ∂volume) = Cφ * (∑ i ∈ s, w i) * R := by
+    simp [intervalIntegral.integral_const, sub_eq_add_neg, mul_assoc, mul_left_comm, mul_comm]
+    ring
+
+  have hg_le :
+      (∫ r in R..(2 * R), g r ∂volume) ≤ Cφ * (∑ i ∈ s, w i) * R := by
+    -- same bound as in the non-avoid lemma
+    have hint : ∀ i ∈ s, IntervalIntegrable (fun r : ℝ => w i * φ (r / a i)) volume R (2 * R) := by
+      intro i hi
+      have hai : 0 < a i := ha i hi
+      have hφi : IntervalIntegrable (fun r : ℝ => φ (r / a i)) volume R (2 * R) :=
+        intervalIntegrable_phi_div (a := a i) (R := R) hai hR.le
+      simpa [mul_assoc] using hφi.const_mul (w i)
+    have hsum_int :
+        (∫ r in R..(2 * R), g r ∂volume)
+          = ∑ i ∈ s, ∫ r in R..(2 * R), (fun r : ℝ => w i * φ (r / a i)) r ∂volume := by
+      simpa [g] using
+        (intervalIntegral.integral_finset_sum (μ := volume) (a := R) (b := 2 * R)
+          (s := s) (f := fun i : ι => fun r : ℝ => w i * φ (r / a i)) hint)
+    rw [hsum_int]
+    have hsum_le :
+        (∑ i ∈ s, ∫ r in R..(2 * R), (fun r : ℝ => w i * φ (r / a i)) r ∂volume)
+          ≤ ∑ i ∈ s, w i * (Cφ * R) := by
+      refine Finset.sum_le_sum ?_
+      intro i hi
+      have hw' : 0 ≤ w i := hw i hi
+      have hai : 0 < a i := ha i hi
+      have hphi :
+          (∫ r in R..(2 * R), φ (r / a i) ∂volume) ≤ Cφ * R :=
+        integral_phi_div_le_Cφ_mul (a := a i) (R := R) hai hR.le
+      have := mul_le_mul_of_nonneg_left hphi hw'
+      simpa [mul_assoc, mul_left_comm, mul_comm] using this
+    refine le_trans hsum_le ?_
+    -- pull out constant
+    have : (∑ i ∈ s, w i * (Cφ * R)) = Cφ * (∑ i ∈ s, w i) * R := by
+      calc
+        (∑ i ∈ s, w i * (Cφ * R)) = (∑ i ∈ s, w i) * (Cφ * R) := by
+          simp [Finset.sum_mul]
+        _ = Cφ * (∑ i ∈ s, w i) * R := by ac_rfl
+    exact le_of_eq this
+
+  have : ¬(Cφ * (∑ i ∈ s, w i) * R < Cφ * (∑ i ∈ s, w i) * R) := lt_irrefl _
+  have hcontra : Cφ * (∑ i ∈ s, w i) * R < Cφ * (∑ i ∈ s, w i) * R := by
+    have := hlt_int
+    simpa [hconst_eval] using (this.trans_le hg_le)
+  exact this hcontra
+
 end LogSingularity
 end Complex.Hadamard
+
