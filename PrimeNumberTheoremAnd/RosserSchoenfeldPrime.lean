@@ -75,10 +75,10 @@ theorem pre_413 {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Ici 2)) (x : ℝ) :
   (statement := /-- $\sum_{p \leq x} f(p) = \frac{f(x) \vartheta(x)}{\log x} - \int_2^x \vartheta(x) \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$ -/)
   (proof := /-- Follows from Sublemma \ref{rs-pre-413} and integration by parts. -/)
   (latexEnv := "sublemma")]
-theorem eq_413 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) (x : ℝ) :
-    ∑ p ∈ filter Prime (range ⌊x⌋₊), f p =
-      f x * θ x / log x -
-      ∫ y in 2..x, θ y * deriv (fun t ↦ f t / log t) y := by sorry
+theorem eq_413 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x) :
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p = f x * θ x / log x -
+      ∫ y in 2..x, θ y * deriv (fun t ↦ f t / log t) y := by
+  sorry
 
 @[blueprint
   "rs-414"
@@ -135,9 +135,10 @@ theorem eq_417 (x : ℝ) :
 -/)
   (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = 1/t$. -/)
   (latexEnv := "sublemma")]
-theorem eq_418 (x : ℝ) :
-    ∑ p ∈ filter Prime (range ⌊x⌋₊), 1 / p =
-      θ x / (x * log x) + ∫ y in 2..x, θ y * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
+theorem eq_418 {x : ℝ} (hx : 2 ≤ x) :
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / p = θ x / (x * log x) +
+      ∫ y in 2..x, θ y * (1 + log y) / (y ^ 2 * log y ^ 2) := by
+  sorry
 
 @[blueprint
   "rs-419"]
