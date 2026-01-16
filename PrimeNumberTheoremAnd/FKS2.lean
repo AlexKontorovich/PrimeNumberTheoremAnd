@@ -143,7 +143,153 @@ noncomputable def dawson (x : ℝ) : ℝ := exp (-x ^ 2) * ∫ t in 0..x, exp (t
   (latexEnv := "remark")]
 theorem remark_after_corollary_11 :
     ∃ x₀ : ℝ, x₀ ∈ Set.Icc 0.924 0.925 ∧ (∀ x, dawson x ≤ dawson x₀) ∧
-      StrictAntiOn dawson (Set.Ioi x₀) := sorry
+      StrictAntiOn dawson (Set.Ioi x₀) := by
+
+    have deriv_eq: ∀ x, (deriv dawson) x + (2 * x * (dawson x)) = 1 := by
+      sorry
+
+
+    have deriv_expand (x: ℝ): (deriv dawson) x = (1 : ℝ) - (2 * x * (exp (-(x : ℝ)^2)) * (∫ t in 0..x, exp (t ^ 2))) := by
+      specialize deriv_eq x
+      rw [← eq_sub_iff_add_eq] at deriv_eq
+      rw [deriv_eq]
+      simp [dawson]
+      ring
+
+
+    let c: ℝ := 0.92414
+    let d: ℝ := 0.90
+    let n := 10
+
+    have deriv_c_neg: (deriv dawson) c < 0 := by
+      rw [deriv_expand]
+      simp only [sub_neg]
+      rw [← div_lt_iff₀' (by positivity)]
+      simp only [one_div, mul_inv_rev]
+      rw [Real.exp_neg]
+      rw [← gt_iff_lt]
+      grw [(intervalIntegral.integral_mono (f := (fun t => ∑ i ∈ Finset.range n, t ^ (2 * i) / ↑i.factorial) ) ?_ ?_ ?_ ?_).ge]
+      .
+        rw [intervalIntegral.integral_finset_sum]
+        repeat rw [Finset.sum_range_succ]
+        .
+          simp
+          grw [Real.exp_bound' (n := 7)]
+          .
+            repeat rw [Finset.sum_range_succ]
+            simp [Nat.factorial]
+            norm_num
+          . norm_num
+          . norm_num
+          . simp
+        . intro i hi
+          apply Continuous.intervalIntegrable
+          fun_prop
+      . norm_num
+      . apply Continuous.intervalIntegrable
+        fun_prop
+      . apply Continuous.intervalIntegrable
+        fun_prop
+      .
+        rw [Pi.le_def]
+        intro t
+        grw [← Real.sum_le_exp_of_nonneg (n := n) (by positivity)]
+        ring
+        rfl
+
+    have deriv_d_pos: 0 < (deriv dawson) d := by
+      rw [deriv_expand]
+      simp only [sub_pos]
+      rw [← lt_div_iff₀' (by positivity)]
+      simp only [one_div, mul_inv_rev]
+      rw [Real.exp_neg]
+      rw [← gt_iff_lt]
+      simp
+      grw [(intervalIntegral.integral_mono_on (g := (fun t => (∑ i ∈ Finset.range n, t ^ (2 * i) / ↑i.factorial) + (t ^ (2 * n) * (n + 1) / (n.factorial * n))) ) ?_ ?_ ?_ ?_)]
+      .
+
+        rw [intervalIntegral.integral_add]
+        rw [intervalIntegral.integral_finset_sum]
+        grw [(Real.sum_le_exp_of_nonneg (by positivity) (n + 1)).ge]
+        .
+          rw [Finset.sum_range_succ (n := n)]
+          rw [add_mul]
+          apply add_lt_add
+          .
+            rw [Finset.sum_mul]
+            apply Finset.sum_lt_sum_of_nonempty
+            . simp [n]
+            . intro i hi
+              simp
+              field_simp
+              rw [← lt_div_iff₀ (by positivity)]
+              grw [pow_le_pow_of_le_one (m := 2 * i)]
+              .
+                field_simp
+                rw [← pow_mul]
+                rw [mul_div_assoc]
+                nth_rw 2 [← Real.rpow_natCast]
+                rw [← Real.rpow_sub_one]
+                simp
+                rw [mul_comm]
+                apply mul_lt_mul
+                . sorry
+                .
+                  rw [← Real.rpow_natCast]
+                  grw [Real.rpow_le_rpow_left_iff_of_base_lt_one]
+                  . norm_num
+                  . norm_num
+                  . norm_num
+                . norm_num
+                . norm_cast
+                  simp
+                . norm_num
+              . norm_num
+              . norm_num
+              . omega
+          .
+            simp
+            norm_num
+            simp [Nat.factorial]
+            norm_num
+        .
+          intro i hi
+          apply Continuous.intervalIntegrable
+          fun_prop
+        .
+          apply Continuous.intervalIntegrable
+          fun_prop
+        .
+          apply Continuous.intervalIntegrable
+          fun_prop
+      . norm_num
+      . apply Continuous.intervalIntegrable
+        fun_prop
+      . apply Continuous.intervalIntegrable
+        fun_prop
+      .
+        intro t ht
+        grw [Real.exp_bound' (n := (n))]
+        .
+          simp
+          field_simp
+          ring
+          apply le_refl
+        . positivity
+        .
+          simp at ht
+          rw [pow_le_one_iff_of_nonneg]
+          .
+            simp [d] at ht
+            linarith
+          . grind
+          . simp
+        . simp [n]
+
+    sorry
+
+
+
 
 @[blueprint
   "fks2-lemma-12"
