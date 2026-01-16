@@ -3,8 +3,8 @@ import Mathlib.Analysis.Analytic.Basic
 import Mathlib.Analysis.SpecialFunctions.Complex.Log
 import Mathlib.Tactic
 import Mathlib.NumberTheory.LSeries.RiemannZeta
-import Riemann.academic_framework.ZetaFunctionalEquation
-import Riemann.academic_framework.Domain
+import PrimeNumberTheoremAnd.Mathlib.SpecialFunctions.ZetaFunctionalEquation
+import PrimeNumberTheoremAnd.Mathlib.SpecialFunctions.Domain
 import Mathlib.Topology.Basic
 import Mathlib.Analysis.Complex.CauchyIntegral
 
