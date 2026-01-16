@@ -106,12 +106,13 @@ theorem lemma_10b {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b ≥ -c ^ 2 / (
   "fks2-lemma-10c"
   (title := "FKS2 Lemma 10c")
   (statement := /--
-  If $c>0$, $g(0,b,c,x)$ decreases with $x$ for $\sqrt{\log x} > -2b/c$. -/)
+  If $c>0$, $g(0,b,c,x)$ decreases with $x$ for $\sqrt{\log x} < -2b/c$. -/)
   (proof := /-- We apply Lemma \ref{fks2-lemma-10-substep-2}. If $a = 0$, it is negative when $u < \frac{-2b}{c}$.
+  Note: this lemma is mistyped as $\sqrt{\log x} > -2b/c$ in \cite{FKS2}.
  -/)
   (latexEnv := "lemma")]
 theorem lemma_10c {b c : ℝ} (hc : c > 0) :
-    StrictAntiOn (g_bound 0 b c) (Set.Ioi (exp ((-2 * b / c) ^ 2))) := sorry
+    StrictAntiOn (g_bound 0 b c) (Set.Ioo 1 (exp ((-2 * b / c) ^ 2))) := sorry
 
 @[blueprint
   "fks2-corollary-11"
