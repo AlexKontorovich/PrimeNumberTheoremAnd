@@ -569,17 +569,16 @@ lemma norm_cos_le_exp_abs_im (z : ℂ) : ‖Complex.cos z‖ ≤ Real.exp |z.im|
     simpa [hcos] using hdiv
   exact le_trans this hsum
 
-/-  (disabled)
 
-This section packaged a coarse growth bound for `(s-1)ζ(s)`. It is not needed for the intrinsic
-Hadamard factorization statement below, and it was previously maintained in the `ZeroData`-based
-pipeline. It will be reinstated after the remaining non-Hadamard analytic estimates are fully
-ported out of `academic_framework`.
 
+
+
+set_option maxHeartbeats 800000 in
 /-- A coarse global growth bound for the entire function `(s-1)ζ(s)`.
 
 Since Λ₀(s) = π^{-s/2} Γ(s/2) ζ(s), and Λ₀ has finite order, the growth of
 (s-1)ζ(s) is controlled by the growth of Λ₀ divided by π^{-s/2} Γ(s/2). -/
+
 theorem zeta_minus_pole_entire_growth :
     ∃ C > 0, ∀ z : ℂ,
       Real.log (1 + ‖zetaTimesSMinusOne_entire z‖) ≤ C * (1 + ‖z‖) ^ (2 : ℝ) := by
@@ -668,352 +667,340 @@ theorem zeta_minus_pole_entire_growth :
       have hmain :
           ‖zetaTimesSMinusOne_entire z‖ ≤ Real.exp (C * A ^ (2 : ℝ)) := by
         by_cases hz_re : (1 / 10 : ℝ) < z.re
-          · -- Right half-plane: `lem_zetaBound2`.
-            have hζ := lem_zetaBound2 z hz_re hz_ne1
-            have hzm1_le : ‖z - 1‖ ≤ A := by
-              simpa [A, sub_eq_add_neg, add_comm, add_left_comm, add_assoc] using (norm_sub_le z (1 : ℂ))
-            have hzre_pos : 0 < z.re := lt_trans (by norm_num) hz_re
-            have hz_re_le : (1 : ℝ) / z.re ≤ 10 := by
-              have ha : (0 : ℝ) < (1 / 10 : ℝ) := by norm_num
-              have hz_ge : (1 / 10 : ℝ) ≤ z.re := le_of_lt hz_re
-              have := one_div_le_one_div_of_le ha hz_ge
-              -- `1/(1/10) = 10`
-              simpa using this
-            have hfrac : ‖z‖ / z.re ≤ 10 * ‖z‖ := by
-              have : ‖z‖ / z.re ≤ ‖z‖ * 10 := by
-                simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
-                  using (mul_le_mul_of_nonneg_left hz_re_le (norm_nonneg z))
-              simpa [mul_comm] using this
-            have hpoly :
-                ‖(z - 1) * riemannZeta z‖ ≤ (40 : ℝ) * A ^ (2 : ℝ) := by
-              have hz0 : 0 ≤ ‖z‖ := norm_nonneg z
-              have hz_le_A : ‖z‖ ≤ A := by dsimp [A]; linarith [hz0]
-              have hζ' : ‖riemannZeta z‖ ≤ 1 + ‖(1 : ℂ) / (z - 1)‖ + 10 * ‖z‖ := by
-                calc
-                  ‖riemannZeta z‖ ≤ 1 + ‖1 / (z - 1)‖ + ‖z‖ / z.re := hζ
-                  _ ≤ 1 + ‖1 / (z - 1)‖ + 10 * ‖z‖ := by gcongr
-              have hmul_inv : ‖z - 1‖ * ‖(1 : ℂ) / (z - 1)‖ = 1 := by
-                have hz1' : z - 1 ≠ (0 : ℂ) := sub_ne_zero.2 hz_ne1
-                -- `‖z-1‖ * ‖1/(z-1)‖ = ‖(z-1) * (1/(z-1))‖ = 1`
-                simp [hz1']
+        · -- Right half-plane: `lem_zetaBound2`.
+          have hζ := lem_zetaBound2 z hz_re hz_ne1
+          have hzm1_le : ‖z - 1‖ ≤ A := by
+            simpa [A, sub_eq_add_neg, add_comm, add_left_comm, add_assoc] using (norm_sub_le z (1 : ℂ))
+          have hzre_pos : 0 < z.re := lt_trans (by norm_num) hz_re
+          have hz_re_le : (1 : ℝ) / z.re ≤ 10 := by
+            have ha : (0 : ℝ) < (1 / 10 : ℝ) := by norm_num
+            have hz_ge : (1 / 10 : ℝ) ≤ z.re := le_of_lt hz_re
+            have := one_div_le_one_div_of_le ha hz_ge
+            -- `1/(1/10) = 10`
+            simpa using this
+          have hfrac : ‖z‖ / z.re ≤ 10 * ‖z‖ := by
+            have : ‖z‖ / z.re ≤ ‖z‖ * 10 := by
+              simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
+                using (mul_le_mul_of_nonneg_left hz_re_le (norm_nonneg z))
+            simpa [mul_comm] using this
+          have hpoly :
+              ‖(z - 1) * riemannZeta z‖ ≤ (40 : ℝ) * A ^ (2 : ℝ) := by
+            have hz0 : 0 ≤ ‖z‖ := norm_nonneg z
+            have hz_le_A : ‖z‖ ≤ A := by dsimp [A]; linarith [hz0]
+            have hζ' : ‖riemannZeta z‖ ≤ 1 + ‖(1 : ℂ) / (z - 1)‖ + 10 * ‖z‖ := by
               calc
-                ‖(z - 1) * riemannZeta z‖ ≤ ‖z - 1‖ * ‖riemannZeta z‖ := by
+                ‖riemannZeta z‖ ≤ 1 + ‖1 / (z - 1)‖ + ‖z‖ / z.re := hζ
+                _ ≤ 1 + ‖1 / (z - 1)‖ + 10 * ‖z‖ := by gcongr
+            have hmul_inv : ‖z - 1‖ * ‖(1 : ℂ) / (z - 1)‖ = 1 := by
+              have hz1' : z - 1 ≠ (0 : ℂ) := sub_ne_zero.2 hz_ne1
+              simp [hz1']
+            have hterm3 : ‖z - 1‖ * (10 * ‖z‖) ≤ A * (10 * ‖z‖) :=
+              mul_le_mul_of_nonneg_right hzm1_le (by positivity)
+            have hApos : (0 : ℝ) ≤ A := le_trans (by norm_num) hA1
+            have hA2 : A * (10 * ‖z‖) ≤ 10 * (A ^ (2 : ℕ)) := by
+              -- use `‖z‖ ≤ A`
+              have : A * ‖z‖ ≤ A * A := by nlinarith [hz_le_A]
+              nlinarith [this]
+            have hstep : A + 1 + A * (10 * ‖z‖) ≤ (40 : ℝ) * (A ^ (2 : ℕ)) := by
+              -- `A + 1 ≤ 2*A` and `2*A + 10*A^2 ≤ 40*A^2` for `A ≥ 1`
+              have hA1' : A + 1 ≤ 2 * A := by nlinarith [hA1]
+              have hstep1 : A + 1 + A * (10 * ‖z‖) ≤ 2 * A + 10 * (A ^ (2 : ℕ)) := by
+                nlinarith [hA1', hA2]
+              have hA_le_sq : A ≤ (A ^ (2 : ℕ)) := by
+                simpa [pow_two] using (mul_le_mul_of_nonneg_right hA1 hApos)
+              have hstep2 : 2 * A + 10 * (A ^ (2 : ℕ)) ≤ (40 : ℝ) * (A ^ (2 : ℕ)) := by
+                nlinarith [hA_le_sq]
+              exact le_trans hstep1 hstep2
+            calc
+              ‖(z - 1) * riemannZeta z‖ ≤ ‖z - 1‖ * ‖riemannZeta z‖ := by simp
+              _ ≤ ‖z - 1‖ * (1 + ‖(1 : ℂ) / (z - 1)‖ + 10 * ‖z‖) := by gcongr
+              _ = ‖z - 1‖ + (‖z - 1‖ * ‖(1 : ℂ) / (z - 1)‖) + ‖z - 1‖ * (10 * ‖z‖) := by ring
+              _ ≤ A + 1 + A * (10 * ‖z‖) := by nlinarith [hzm1_le, hmul_inv, hterm3]
+              _ ≤ (40 : ℝ) * (A ^ (2 : ℕ)) := hstep
+              _ = (40 : ℝ) * A ^ (2 : ℝ) := by simp [Real.rpow_natCast]
+          have hC_ge : (40 : ℝ) ≤ C := by
+            -- `40 ≤ max 40 (20*CΓ+500) ≤ C`
+            have h1 : (40 : ℝ) ≤ max (40 : ℝ) (20 * CΓ + 500) := le_max_left _ _
+            have h2 : max (40 : ℝ) (20 * CΓ + 500) ≤ C := by
+              simp [C]
+            exact le_trans h1 h2
+          have hle : (40 : ℝ) * A ^ (2 : ℝ) ≤ C * A ^ (2 : ℝ) := by
+            simpa [mul_assoc] using (mul_le_mul_of_nonneg_right hC_ge hA2_nonneg)
+          have : ‖(z - 1) * riemannZeta z‖ ≤ Real.exp (C * A ^ (2 : ℝ)) :=
+            le_trans (le_trans hpoly hle) (Real.le_exp_self' _)
+          simpa [hzeta_def] using this
+        · -- Left half-plane: use the functional equation at `w := 1 - z`.
+          have hz_re_le : z.re ≤ (1 / 10 : ℝ) := le_of_not_gt hz_re
+          let w : ℂ := 1 - z
+          have hw_re_ge : (9 / 10 : ℝ) ≤ w.re := by
+            have : w.re = 1 - z.re := by simp [w]
+            linarith [this, hz_re_le]
+          have hw_re0 : 0 ≤ w.re := le_trans (by norm_num : (0 : ℝ) ≤ 9 / 10) hw_re_ge
+          have hw_re1 : (1 / 10 : ℝ) < w.re := lt_of_lt_of_le (by norm_num) hw_re_ge
+          have hw_ne1 : w ≠ 1 := by
+            intro hw
+            have : z = 0 := by
+              have : (1 : ℂ) - z = (1 : ℂ) := by simpa [w] using hw
+              simpa using (sub_eq_self.mp this)
+            have : (‖z‖ : ℝ) = 0 := by simp [this]
+            linarith [hz_large, this]
+          have hw_ne_neg : ∀ n : ℕ, w ≠ -n := by
+            intro n hn
+            have : (w.re : ℝ) = (- (n : ℂ)).re := congrArg Complex.re hn
+            have : (w.re : ℝ) = -(n : ℝ) := by simpa using this
+            have : (w.re : ℝ) ≤ 0 := by nlinarith [this]
+            have : (0 : ℝ) < w.re := lt_trans (by norm_num) hw_re1
+            linarith
+          have hzeta_fe :
+              riemannZeta z =
+                2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) * riemannZeta w := by
+            have h := riemannZeta_one_sub (s := w) (hs := hw_ne_neg) (hs' := hw_ne1)
+            have : (1 - w) = z := by simp [w, sub_eq_add_neg, add_comm, add_left_comm]
+            simpa [this, mul_assoc, mul_left_comm, mul_comm] using h
+          have hpow_le1 : ‖(2 * π : ℂ) ^ (-w)‖ ≤ 1 := by
+            have hbase : (1 : ℝ) ≤ (2 * Real.pi) := by
+              have : (1 : ℝ) < (2 * Real.pi) := by
+                have : (3 : ℝ) < Real.pi := Real.pi_gt_three
+                nlinarith
+              exact le_of_lt this
+            have hbase_pos : (0 : ℝ) < (2 * Real.pi) := by nlinarith [Real.pi_pos]
+            have hbaseC : (2 * π : ℂ) = ((2 * Real.pi : ℝ) : ℂ) := by
+              -- unfold `π : ℂ` as `Real.pi` and push casts
+              simp
+            have hnorm' :
+                ‖(((2 * Real.pi : ℝ) : ℂ) ^ (-w))‖ = (2 * Real.pi) ^ ((-w : ℂ).re) := by
+              simpa using (norm_cpow_eq_rpow_re_of_pos (x := (2 * Real.pi)) hbase_pos (-w))
+            have hnorm :
+                ‖(2 * π : ℂ) ^ (-w)‖ = (2 * Real.pi) ^ ((-w : ℂ).re) := by
+              simpa using hnorm'
+            rw [hnorm]
+            have : ((-w : ℂ).re : ℝ) ≤ 0 := by
+              simp
+              linarith [hw_re0]
+            exact Real.rpow_le_one_of_one_le_of_nonpos hbase this
+          have hw_norm_le : ‖w‖ ≤ A := by
+            have : ‖1 - z‖ ≤ ‖(1 : ℂ)‖ + ‖z‖ := by simpa using (norm_sub_le (1 : ℂ) z)
+            simpa [w, A, norm_one, add_comm, add_left_comm, add_assoc] using this
+          have hw_norm_ge1 : (1 : ℝ) ≤ ‖w‖ := by
+            have hw_ge : (‖z‖ - 1 : ℝ) ≤ ‖w‖ := by
+              have := norm_sub_norm_le z (1 : ℂ)
+              simpa [w, norm_one, norm_sub_rev] using this
+            have h2 : (2 : ℝ) < ‖z‖ - 1 := by linarith [hz_large]
+            have hw_gt : (2 : ℝ) < ‖w‖ := lt_of_lt_of_le h2 hw_ge
+            linarith
+          have hΓw : ‖Complex.Gamma w‖ ≤ Real.exp (CΓ * A ^ (2 : ℝ)) := by
+            have hΓ0 := hΓ w hw_re0 hw_norm_ge1
+            have hlog_le : Real.log (1 + ‖w‖) ≤ A := by
+              have : Real.log (1 + ‖w‖) ≤ (1 + ‖w‖) - 1 := by
+                have : (0 : ℝ) < 1 + ‖w‖ := by positivity
+                simpa using (Real.log_le_sub_one_of_pos this)
+              have : Real.log (1 + ‖w‖) ≤ ‖w‖ := by simpa [sub_eq_add_neg] using this
+              exact le_trans this hw_norm_le
+            have hmul : ‖w‖ * Real.log (1 + ‖w‖) ≤ A ^ (2 : ℝ) := by
+              have : ‖w‖ * Real.log (1 + ‖w‖) ≤ A * A := by nlinarith [hw_norm_le, hlog_le]
+              simpa [pow_two] using this
+            have hexp : CΓ * ‖w‖ * Real.log (1 + ‖w‖) ≤ CΓ * A ^ (2 : ℝ) := by
+              have hC0 : 0 ≤ CΓ := le_of_lt hCΓ_pos
+              nlinarith [hmul, hC0]
+            exact le_trans hΓ0 (Real.exp_le_exp.mpr hexp)
+          have hcosw : ‖Complex.cos (π * w / 2)‖ ≤ Real.exp (2 * A ^ (2 : ℝ)) := by
+            have h1 := norm_cos_le_exp_abs_im (π * w / 2)
+            have him : |(π * w / 2).im| ≤ 2 * A ^ (2 : ℝ) := by
+              have : |(π * w / 2).im| ≤ ‖π * w / 2‖ := Complex.abs_im_le_norm _
+              have hnorm : ‖π * w / 2‖ = (Real.pi / 2) * ‖w‖ := by
+                have hrew : (π * w / 2 : ℂ) = (π / 2) * w := by
+                  simp [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
+                calc
+                  ‖π * w / 2‖ = ‖(π / 2) * w‖ := by simp [hrew]
+                  _ = ‖(π / 2)‖ * ‖w‖ := by simp
+                  _ = (Real.pi / 2) * ‖w‖ := by
+                    -- `π/2` is real and nonnegative.
+                    have hpi0 : 0 ≤ Real.pi / 2 := by nlinarith [Real.pi_pos.le]
+                    have hnorm_pi : ‖((Real.pi / 2 : ℝ) : ℂ)‖ = ‖(Real.pi / 2 : ℝ)‖ := by
                       simp
-                _ ≤ ‖z - 1‖ * (1 + ‖(1 : ℂ) / (z - 1)‖ + 10 * ‖z‖) := by gcongr
-                _ = ‖z - 1‖ + (‖z - 1‖ * ‖(1 : ℂ) / (z - 1)‖) + ‖z - 1‖ * (10 * ‖z‖) := by ring
-                _ ≤ A + 1 + A * (10 * ‖z‖) := by
-                      have hterm3 :
-                          ‖z - 1‖ * (10 * ‖z‖) ≤ A * (10 * ‖z‖) :=
-                        mul_le_mul_of_nonneg_right hzm1_le (by positivity)
-                      -- use `hmul_inv` to rewrite the middle term to `1`
-                      nlinarith [hzm1_le, hmul_inv, hterm3]
-                _ ≤ (40 : ℝ) * A ^ (2 : ℝ) := by
-                      -- very coarse: `A + 1 + 10*A*‖z‖ ≤ 40*A^2` for `A ≥ 1` and `‖z‖ ≤ A`
-                      have hA2 : A * (10 * ‖z‖) ≤ 10 * (A ^ (2 : ℕ)) := by
-                        have : A * ‖z‖ ≤ A * A := by nlinarith [hz_le_A]
-                        -- multiply by `10`
-                        nlinarith [this]
-                      have hstep :
-                          A + 1 + A * (10 * ‖z‖) ≤ (40 : ℝ) * (A ^ (2 : ℕ)) := by
-                        -- `A + 1 ≤ 2*A` and `2*A + 10*A^2 ≤ 40*A^2` for `A ≥ 1`
-                        have hA1' : A + 1 ≤ 2 * A := by nlinarith [hA1]
-                        have hstep1 : A + 1 + A * (10 * ‖z‖) ≤ 2 * A + 10 * (A ^ (2 : ℕ)) := by
-                          nlinarith [hA1', hA2]
-                        have hstep2 : 2 * A + 10 * (A ^ (2 : ℕ)) ≤ (40 : ℝ) * (A ^ (2 : ℕ)) := by
-                          -- `2*A ≤ 30*A^2` for `A ≥ 1`
-                          have hApos : 0 ≤ A := le_trans (by norm_num) hA1
-                          have hlin : (2 : ℝ) * A ≤ 30 * (A ^ (2 : ℕ)) := by
-                            -- since `A ≤ A^2` for `A ≥ 1`
-                            have hA_le_sq : A ≤ (A ^ (2 : ℕ)) := by
-                              simpa [pow_two] using (mul_le_mul_of_nonneg_right hA1 (show (0 : ℝ) ≤ A by exact hApos))
-                            nlinarith [hA_le_sq]
-                          nlinarith [hlin]
-                        exact le_trans hstep1 hstep2
-                      -- convert `A^(2:ℕ)` to `A^(2:ℝ)`
-                      simpa [Real.rpow_natCast] using hstep
-            have hC_ge : (40 : ℝ) ≤ C := by
-              -- `40 ≤ max 40 (20*CΓ+500) ≤ C`
-              have h1 : (40 : ℝ) ≤ max (40 : ℝ) (20 * CΓ + 500) := le_max_left _ _
-              have h2 : max (40 : ℝ) (20 * CΓ + 500) ≤ C := by
-                simp [C]
-              exact le_trans h1 h2
-            have hle : (40 : ℝ) * A ^ (2 : ℝ) ≤ C * A ^ (2 : ℝ) := by
-              simpa [mul_assoc] using (mul_le_mul_of_nonneg_right hC_ge hA2_nonneg)
-            have : ‖(z - 1) * riemannZeta z‖ ≤ Real.exp (C * A ^ (2 : ℝ)) :=
-              le_trans (le_trans hpoly hle) (Real.le_exp_self' _)
-            simpa [hzeta_def] using this
-          · -- Left half-plane: use the functional equation at `w := 1 - z`.
-            have hz_re_le : z.re ≤ (1 / 10 : ℝ) := le_of_not_gt hz_re
-            let w : ℂ := 1 - z
-            have hw_re_ge : (9 / 10 : ℝ) ≤ w.re := by
-              have : w.re = 1 - z.re := by simp [w]
-              linarith [this, hz_re_le]
-            have hw_re0 : 0 ≤ w.re := le_trans (by norm_num : (0 : ℝ) ≤ 9 / 10) hw_re_ge
-            have hw_re1 : (1 / 10 : ℝ) < w.re := lt_of_lt_of_le (by norm_num) hw_re_ge
-            have hw_ne1 : w ≠ 1 := by
-              intro hw
-              have : z = 0 := by
-                have : (1 : ℂ) - z = (1 : ℂ) := by simpa [w] using hw
-                simpa using (sub_eq_self.mp this)
-              have : (‖z‖ : ℝ) = 0 := by simp [this]
-              linarith [hz_large, this]
-            have hw_ne_neg : ∀ n : ℕ, w ≠ -n := by
-              intro n hn
-              have : (w.re : ℝ) = (- (n : ℂ)).re := congrArg Complex.re hn
-              have : (w.re : ℝ) = -(n : ℝ) := by simpa using this
-              have : (w.re : ℝ) ≤ 0 := by nlinarith [this]
-              have : (0 : ℝ) < w.re := lt_trans (by norm_num) hw_re1
-              linarith
-            have hzeta_fe :
-                riemannZeta z =
-                  2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) * riemannZeta w := by
-              have h := riemannZeta_one_sub (s := w) (hs := hw_ne_neg) (hs' := hw_ne1)
-              have : (1 - w) = z := by simp [w, sub_eq_add_neg, add_comm, add_left_comm]
-              simpa [this, mul_assoc, mul_left_comm, mul_comm] using h
-            have hpow_le1 : ‖(2 * π : ℂ) ^ (-w)‖ ≤ 1 := by
-              have hbase : (1 : ℝ) ≤ (2 * Real.pi) := by
-                have : (1 : ℝ) < (2 * Real.pi) := by
-                  have : (3 : ℝ) < Real.pi := Real.pi_gt_three
-                  nlinarith
-                exact le_of_lt this
-              have hbase_pos : (0 : ℝ) < (2 * Real.pi) := by nlinarith [Real.pi_pos]
-              have hbaseC : (2 * π : ℂ) = ((2 * Real.pi : ℝ) : ℂ) := by
-                -- unfold `π : ℂ` as `Real.pi` and push casts
-                simp
-              have hnorm' :
-                  ‖(((2 * Real.pi : ℝ) : ℂ) ^ (-w))‖ = (2 * Real.pi) ^ ((-w : ℂ).re) := by
-                simpa using (norm_cpow_eq_rpow_re_of_pos (x := (2 * Real.pi)) hbase_pos (-w))
-              have hnorm :
-                  ‖(2 * π : ℂ) ^ (-w)‖ = (2 * Real.pi) ^ ((-w : ℂ).re) := by
-                simpa using hnorm'
-              rw [hnorm]
-              have : ((-w : ℂ).re : ℝ) ≤ 0 := by
-                simp
-                linarith [hw_re0]
-              exact Real.rpow_le_one_of_one_le_of_nonpos hbase this
-            have hw_norm_le : ‖w‖ ≤ A := by
-              have : ‖1 - z‖ ≤ ‖(1 : ℂ)‖ + ‖z‖ := by simpa using (norm_sub_le (1 : ℂ) z)
-              simpa [w, A, norm_one, add_comm, add_left_comm, add_assoc] using this
-            have hw_norm_ge1 : (1 : ℝ) ≤ ‖w‖ := by
-              have hw_ge : (‖z‖ - 1 : ℝ) ≤ ‖w‖ := by
-                have := norm_sub_norm_le z (1 : ℂ)
-                simpa [w, norm_one, norm_sub_rev] using this
-              have h2 : (2 : ℝ) < ‖z‖ - 1 := by linarith [hz_large]
-              have hw_gt : (2 : ℝ) < ‖w‖ := lt_of_lt_of_le h2 hw_ge
-              linarith
-            have hΓw : ‖Complex.Gamma w‖ ≤ Real.exp (CΓ * A ^ (2 : ℝ)) := by
-              have hΓ0 := hΓ w hw_re0 hw_norm_ge1
-              have hlog_le : Real.log (1 + ‖w‖) ≤ A := by
-                have : Real.log (1 + ‖w‖) ≤ (1 + ‖w‖) - 1 := by
-                  have : (0 : ℝ) < 1 + ‖w‖ := by positivity
-                  simpa using (Real.log_le_sub_one_of_pos this)
-                have : Real.log (1 + ‖w‖) ≤ ‖w‖ := by simpa [sub_eq_add_neg] using this
-                exact le_trans this hw_norm_le
-              have hmul : ‖w‖ * Real.log (1 + ‖w‖) ≤ A ^ (2 : ℝ) := by
-                have : ‖w‖ * Real.log (1 + ‖w‖) ≤ A * A := by nlinarith [hw_norm_le, hlog_le]
-                simpa [pow_two] using this
-              have hexp : CΓ * ‖w‖ * Real.log (1 + ‖w‖) ≤ CΓ * A ^ (2 : ℝ) := by
-                have hC0 : 0 ≤ CΓ := le_of_lt hCΓ_pos
-                nlinarith [hmul, hC0]
-              exact le_trans hΓ0 (Real.exp_le_exp.mpr hexp)
-            have hcosw : ‖Complex.cos (π * w / 2)‖ ≤ Real.exp (2 * A ^ (2 : ℝ)) := by
-              have h1 := norm_cos_le_exp_abs_im (π * w / 2)
-              have him : |(π * w / 2).im| ≤ 2 * A ^ (2 : ℝ) := by
-                have : |(π * w / 2).im| ≤ ‖π * w / 2‖ := Complex.abs_im_le_norm _
-                have hnorm : ‖π * w / 2‖ = (Real.pi / 2) * ‖w‖ := by
-                  have hrew : (π * w / 2 : ℂ) = (π / 2) * w := by
-                    simp [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
-                  calc
-                    ‖π * w / 2‖ = ‖(π / 2) * w‖ := by simp [hrew]
-                    _ = ‖(π / 2)‖ * ‖w‖ := by simp
-                    _ = (Real.pi / 2) * ‖w‖ := by
-                      -- `π/2` is real and nonnegative.
-                      have hpi0 : 0 ≤ Real.pi / 2 := by nlinarith [Real.pi_pos.le]
-                      have hnorm_pi : ‖((Real.pi / 2 : ℝ) : ℂ)‖ = ‖(Real.pi / 2 : ℝ)‖ := by
-                        simp
-                      have hnorm_pi' : ‖((Real.pi / 2 : ℝ) : ℂ)‖ = (Real.pi / 2 : ℝ) := by
-                        simpa [Real.norm_of_nonneg hpi0] using hnorm_pi
-                      -- rewrite `π/2 : ℂ` as the real scalar `Real.pi/2`
-                      simpa using congrArg (fun t => t * ‖w‖) hnorm_pi'
-                have hpi : (Real.pi / 2 : ℝ) ≤ 2 := by
-                  have : (Real.pi : ℝ) ≤ 4 := by linarith [Real.pi_lt_four.le]
-                  nlinarith
-                have him1 : |(π * w / 2).im| ≤ 2 * ‖w‖ := by
-                  calc
-                    |(π * w / 2).im| ≤ ‖π * w / 2‖ := this
-                    _ = (Real.pi / 2) * ‖w‖ := hnorm
-                    _ ≤ 2 * ‖w‖ := by gcongr
-                have him2 : 2 * ‖w‖ ≤ 2 * A ^ (2 : ℝ) := by
-                  have : ‖w‖ ≤ A ^ (2 : ℝ) := by
-                    have : A ≤ A ^ (2 : ℝ) := by
-                      have := Real.rpow_le_rpow_of_exponent_le hA1 (by norm_num : (1 : ℝ) ≤ (2 : ℝ))
-                      simpa [Real.rpow_one] using this
-                    exact le_trans hw_norm_le this
-                  nlinarith [this]
-                exact le_trans him1 him2
-              exact le_trans h1 (Real.exp_le_exp.mpr him)
-            have hζw : ‖riemannZeta w‖ ≤ Real.exp (40 * A ^ (2 : ℝ)) := by
-              have hζ0 := lem_zetaBound2 w hw_re1 hw_ne1
-              have hwre_pos : 0 < w.re := lt_trans (by norm_num) hw_re1
-              have hw_re_le : (1 : ℝ) / w.re ≤ 10 := by
-                have ha : (0 : ℝ) < (1 / 10 : ℝ) := by norm_num
-                have hw_ge : (1 / 10 : ℝ) ≤ w.re := le_of_lt hw_re1
-                have := one_div_le_one_div_of_le ha hw_ge
-                simpa using this
-              have hfrac : ‖w‖ / w.re ≤ 10 * ‖w‖ := by
-                have : ‖w‖ / w.re ≤ ‖w‖ * 10 := by
-                  simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
-                    using (mul_le_mul_of_nonneg_left hw_re_le (norm_nonneg w))
-                simpa [mul_comm] using this
-              have hpoly : ‖riemannZeta w‖ ≤ (40 : ℝ) * A ^ (2 : ℝ) := by
-                have : ‖riemannZeta w‖ ≤ 2 + 10 * ‖w‖ := by
-                  calc
-                    ‖riemannZeta w‖ ≤ 1 + ‖1 / (w - 1)‖ + ‖w‖ / w.re := hζ0
-                    _ ≤ 1 + ‖1 / (w - 1)‖ + 10 * ‖w‖ := by gcongr
-                    _ ≤ 2 + 10 * ‖w‖ := by
-                          -- since `w - 1 = -z` and `‖z‖ > 3`, we have `‖1/(w-1)‖ = ‖1/z‖ ≤ 1`
-                          have hw1 : w - 1 = -z := by
-                            dsimp [w]
-                            ring
-                          have hz1 : (1 : ℝ) ≤ ‖z‖ := le_trans (by norm_num) (le_of_lt hz_large)
-                          have hinv_le : ‖(1 : ℂ) / (w - 1)‖ ≤ 1 := by
-                            -- `‖z‖⁻¹ ≤ 1` since `1 ≤ ‖z‖`
-                            have hinv : (‖z‖ : ℝ)⁻¹ ≤ (1 : ℝ) := by
-                              -- use the `_₀` lemma to avoid typeclass mismatches
-                              simpa using (inv_le_one_of_one_le₀ (a := (‖z‖ : ℝ)) hz1)
-                            -- rewrite `‖(1:ℂ)/(w-1)‖` using `w-1=-z`
-                            simpa [div_eq_mul_inv, hw1] using hinv
-                          nlinarith [hinv_le]
+                    have hnorm_pi' : ‖((Real.pi / 2 : ℝ) : ℂ)‖ = (Real.pi / 2 : ℝ) := by
+                      simpa [Real.norm_of_nonneg hpi0] using hnorm_pi
+                    -- rewrite `π/2 : ℂ` as the real scalar `Real.pi/2`
+                    simpa using congrArg (fun t => t * ‖w‖) hnorm_pi'
+              have hpi : (Real.pi / 2 : ℝ) ≤ 2 := by
+                have : (Real.pi : ℝ) ≤ 4 := by linarith [Real.pi_lt_four.le]
+                nlinarith
+              have him1 : |(π * w / 2).im| ≤ 2 * ‖w‖ := by
                 calc
-                  ‖riemannZeta w‖ ≤ 2 + 10 * ‖w‖ := this
-                  _ ≤ 2 + 10 * A := by gcongr
-                  _ ≤ (40 : ℝ) * A ^ (2 : ℝ) := by
-                        simp [pow_two]
-                        nlinarith [hA1]
-              exact le_trans hpoly (Real.le_exp_self' _)
-            have hprod :
-                ‖(z - 1) * riemannZeta z‖ ≤
-                  (‖w‖ * 2) * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖ := by
-              have hz1 : (z - 1 : ℂ) = -w := by simp [w]
-              have : ‖riemannZeta z‖ ≤ ‖2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) * riemannZeta w‖ := by
-                simp [hzeta_fe]
+                  |(π * w / 2).im| ≤ ‖π * w / 2‖ := this
+                  _ = (Real.pi / 2) * ‖w‖ := hnorm
+                  _ ≤ 2 * ‖w‖ := by gcongr
+              have him2 : 2 * ‖w‖ ≤ 2 * A ^ (2 : ℝ) := by
+                have : ‖w‖ ≤ A ^ (2 : ℝ) := by
+                  have : A ≤ A ^ (2 : ℝ) := by
+                    have := Real.rpow_le_rpow_of_exponent_le hA1 (by norm_num : (1 : ℝ) ≤ (2 : ℝ))
+                    simpa [Real.rpow_one] using this
+                  exact le_trans hw_norm_le this
+                nlinarith [this]
+              exact le_trans him1 him2
+            exact le_trans h1 (Real.exp_le_exp.mpr him)
+          have hζw : ‖riemannZeta w‖ ≤ Real.exp (40 * A ^ (2 : ℝ)) := by
+            have hζ0 := lem_zetaBound2 w hw_re1 hw_ne1
+            have hwre_pos : 0 < w.re := lt_trans (by norm_num) hw_re1
+            have hw_re_le : (1 : ℝ) / w.re ≤ 10 := by
+              have ha : (0 : ℝ) < (1 / 10 : ℝ) := by norm_num
+              have hw_ge : (1 / 10 : ℝ) ≤ w.re := le_of_lt hw_re1
+              have := one_div_le_one_div_of_le ha hw_ge
+              simpa using this
+            have hfrac : ‖w‖ / w.re ≤ 10 * ‖w‖ := by
+              have : ‖w‖ / w.re ≤ ‖w‖ * 10 := by
+                simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
+                  using (mul_le_mul_of_nonneg_left hw_re_le (norm_nonneg w))
+              simpa [mul_comm] using this
+            have hpoly : ‖riemannZeta w‖ ≤ (40 : ℝ) * A ^ (2 : ℝ) := by
+              have : ‖riemannZeta w‖ ≤ 2 + 10 * ‖w‖ := by
+                calc
+                  ‖riemannZeta w‖ ≤ 1 + ‖1 / (w - 1)‖ + ‖w‖ / w.re := hζ0
+                  _ ≤ 1 + ‖1 / (w - 1)‖ + 10 * ‖w‖ := by gcongr
+                  _ ≤ 2 + 10 * ‖w‖ := by
+                        -- since `w - 1 = -z` and `‖z‖ > 3`, we have `‖1/(w-1)‖ = ‖1/z‖ ≤ 1`
+                        have hw1 : w - 1 = -z := by
+                          dsimp [w]
+                          ring
+                        have hz1 : (1 : ℝ) ≤ ‖z‖ := le_trans (by norm_num) (le_of_lt hz_large)
+                        have hinv_le : ‖(1 : ℂ) / (w - 1)‖ ≤ 1 := by
+                          -- `‖z‖⁻¹ ≤ 1` since `1 ≤ ‖z‖`
+                          have hinv : (‖z‖ : ℝ)⁻¹ ≤ (1 : ℝ) := by
+                            -- use the `_₀` lemma to avoid typeclass mismatches
+                            simpa using (inv_le_one_of_one_le₀ (a := (‖z‖ : ℝ)) hz1)
+                          -- rewrite `‖(1:ℂ)/(w-1)‖` using `w-1=-z`
+                          simpa [div_eq_mul_inv, hw1] using hinv
+                        nlinarith [hinv_le]
               calc
-                ‖(z - 1) * riemannZeta z‖
-                    ≤ ‖z - 1‖ * ‖riemannZeta z‖ := by simp
-                _ ≤ ‖z - 1‖ * ‖2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) * riemannZeta w‖ := by
-                      gcongr
-                _ = ‖w‖ * ‖2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) * riemannZeta w‖ := by
-                      simp [hz1]
-                _ ≤ ‖w‖ * ((2 : ℝ) * ‖(2 * π : ℂ) ^ (-w)‖ * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖) := by
-                      have : ‖2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) * riemannZeta w‖
-                            ≤ (2 : ℝ) * ‖(2 * π : ℂ) ^ (-w)‖ * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖ := by
-                        simp [mul_assoc, mul_left_comm, mul_comm]
-                      gcongr
-                _ ≤ ‖w‖ * ((2 : ℝ) * 1 * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖) := by
-                      gcongr
-                _ = (‖w‖ * 2) * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖ := by
-                      ring
-            have hw2 : ‖w‖ * 2 ≤ Real.exp (2 * A ^ (2 : ℝ)) := by
-              have h1 : ‖w‖ * 2 ≤ 2 * A := by nlinarith [hw_norm_le]
-              have h2 : 2 * A ≤ 2 * A ^ (2 : ℝ) := by
-                have : A ≤ A ^ (2 : ℝ) := by
-                  have := Real.rpow_le_rpow_of_exponent_le hA1 (by norm_num : (1 : ℝ) ≤ (2 : ℝ))
-                  simpa [Real.rpow_one] using this
-                nlinarith [this]
-              exact le_trans (le_trans h1 h2) (Real.le_exp_self' _)
-            have hmul_exp :
-                (‖w‖ * 2) * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖
-                  ≤ rexp ((2 + CΓ + 2 + 40) * A ^ (2 : ℝ)) := by
-              have ha : ‖w‖ * 2 ≤ rexp (2 * A ^ (2 : ℝ)) := by simpa using hw2
-              have hb : ‖Complex.Gamma w‖ ≤ rexp (CΓ * A ^ (2 : ℝ)) := by simpa using hΓw
-              have hc : ‖Complex.cos (π * w / 2)‖ ≤ rexp (2 * A ^ (2 : ℝ)) := by simpa using hcosw
-              have hd : ‖riemannZeta w‖ ≤ rexp (40 * A ^ (2 : ℝ)) := by simpa using hζw
-              have hab :
-                  (‖w‖ * 2) * ‖Complex.Gamma w‖
-                    ≤ rexp (2 * A ^ (2 : ℝ)) * rexp (CΓ * A ^ (2 : ℝ)) := by
-                simpa [mul_assoc, mul_left_comm, mul_comm] using
-                  (mul_le_mul ha hb (by positivity) (by positivity))
-              have habc :
-                  ((‖w‖ * 2) * ‖Complex.Gamma w‖) * ‖Complex.cos (π * w / 2)‖
-                    ≤ (rexp (2 * A ^ (2 : ℝ)) * rexp (CΓ * A ^ (2 : ℝ))) *
-                        rexp (2 * A ^ (2 : ℝ)) := by
-                simpa [mul_assoc, mul_left_comm, mul_comm] using
-                  (mul_le_mul hab hc (by positivity) (by positivity))
-              have habcd :
-                  (((‖w‖ * 2) * ‖Complex.Gamma w‖) * ‖Complex.cos (π * w / 2)‖) * ‖riemannZeta w‖
-                    ≤ ((rexp (2 * A ^ (2 : ℝ)) * rexp (CΓ * A ^ (2 : ℝ))) *
-                        rexp (2 * A ^ (2 : ℝ))) * rexp (40 * A ^ (2 : ℝ)) := by
-                simpa [mul_assoc, mul_left_comm, mul_comm] using
-                  (mul_le_mul habc hd (by positivity) (by positivity))
-              have hexp :
-                  ((rexp (2 * A ^ (2 : ℝ)) * rexp (CΓ * A ^ (2 : ℝ))) *
-                        rexp (2 * A ^ (2 : ℝ))) * rexp (40 * A ^ (2 : ℝ))
-                    = rexp ((2 + CΓ + 2 + 40) * A ^ (2 : ℝ)) := by
-                -- combine exponentials pairwise using `exp_add` in reverse
-                -- Use fresh names to avoid clashing with earlier hypotheses named `ha`, `hb`, ...
-                set aa : ℝ := 2 * A ^ (2 : ℝ) with haa
-                set bb : ℝ := CΓ * A ^ (2 : ℝ) with hbb
-                set cc : ℝ := 2 * A ^ (2 : ℝ) with hcc
-                set dd : ℝ := 40 * A ^ (2 : ℝ) with hdd
-                have hab : rexp aa * rexp bb = rexp (aa + bb) := by
-                  simpa using (Eq.symm (Real.exp_add aa bb))
-                have habc : rexp (aa + bb) * rexp cc = rexp (aa + bb + cc) := by
-                  simpa [add_assoc] using (Eq.symm (Real.exp_add (aa + bb) cc))
-                have habcd : rexp (aa + bb + cc) * rexp dd = rexp (aa + bb + cc + dd) := by
-                  simpa [add_assoc] using (Eq.symm (Real.exp_add (aa + bb + cc) dd))
-                have hsum : aa + bb + cc + dd = (2 + CΓ + 2 + 40) * A ^ (2 : ℝ) := by
-                  simp [haa, hbb, hcc, hdd]
-                  ring
-                calc
-                  ((rexp aa * rexp bb) * rexp cc) * rexp dd
-                      = ((rexp (aa + bb)) * rexp cc) * rexp dd := by
-                          simp [hab, mul_assoc]
-                  _ = (rexp (aa + bb + cc)) * rexp dd := by
-                          simp [habc]
-                  _ = rexp (aa + bb + cc + dd) := by
-                          simpa [mul_assoc] using habcd
-                  _ = rexp ((2 + CΓ + 2 + 40) * A ^ (2 : ℝ)) := by simp [hsum]
-              -- massage the LHS into the same association as `habcd`
-              have : (‖w‖ * 2) * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖
-                    ≤ ((rexp (2 * A ^ (2 : ℝ)) * rexp (CΓ * A ^ (2 : ℝ))) *
-                        rexp (2 * A ^ (2 : ℝ))) * rexp (40 * A ^ (2 : ℝ)) := by
-                simpa [mul_assoc, mul_left_comm, mul_comm] using habcd
-              exact le_trans this (le_of_eq hexp)
-            have hcoef : (2 + CΓ + 2 + 40 : ℝ) ≤ C := by
-              have : (20 * CΓ + 500 : ℝ) ≤ C := le_trans (le_max_right _ _) (le_max_right _ _)
-              nlinarith [this, hCΓ_pos.le]
-            have hdom :
-                rexp ((2 + CΓ + 2 + 40) * A ^ (2 : ℝ)) ≤ rexp (C * A ^ (2 : ℝ)) := by
-              -- monotonicity of `exp`
-              refine (Real.exp_le_exp).2 ?_
-              -- multiply `hcoef` by the nonnegative factor `A^2`
-              have := mul_le_mul_of_nonneg_right hcoef hA2_nonneg
-              simpa [mul_assoc] using this
-            have : ‖(z - 1) * riemannZeta z‖ ≤ rexp (C * A ^ (2 : ℝ)) :=
-              le_trans (le_trans hprod hmul_exp) hdom
-            simpa [hzeta_def] using this
-
-        have hC0 : 0 ≤ C := by
-          -- `C = max (log(1+M0)+10) (max 40 (20*CΓ+500))`, so `C ≥ 40 ≥ 0`.
-          have h0 : (0 : ℝ) ≤ max (40 : ℝ) (20 * CΓ + 500) :=
-            le_trans (by norm_num) (le_max_left _ _)
-          have hle : max (40 : ℝ) (20 * CΓ + 500) ≤ C := by simp [C]
-          exact le_trans h0 hle
-        have hB0 : 0 ≤ C * A ^ (2 : ℝ) := mul_nonneg hC0 hA2_nonneg
-        have hlog := log_one_add_exp_le (C * A ^ (2 : ℝ)) hB0
-        have hA2_ge1 : (1 : ℝ) ≤ A ^ (2 : ℝ) :=
-          Real.one_le_rpow hA1 (by norm_num)
-        calc
-          Real.log (1 + ‖zetaTimesSMinusOne_entire z‖)
-              ≤ Real.log (1 + rexp (C * A ^ (2 : ℝ))) := by
+                ‖riemannZeta w‖ ≤ 2 + 10 * ‖w‖ := this
+                _ ≤ 2 + 10 * A := by gcongr
+                _ ≤ (40 : ℝ) * A ^ (2 : ℝ) := by
+                      simp [pow_two]
+                      nlinarith [hA1]
+            exact le_trans hpoly (Real.le_exp_self' _)
+          have hprod :
+              ‖(z - 1) * riemannZeta z‖ ≤
+                (‖w‖ * 2) * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖ := by
+            have hz1 : (z - 1 : ℂ) = -w := by simp [w]
+            have : ‖riemannZeta z‖ ≤ ‖2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) * riemannZeta w‖ := by
+              simp [hzeta_fe]
+            calc
+              ‖(z - 1) * riemannZeta z‖
+                  ≤ ‖z - 1‖ * ‖riemannZeta z‖ := by simp
+              _ ≤ ‖z - 1‖ * ‖2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) * riemannZeta w‖ := by
                     gcongr
-          _ ≤ C * A ^ (2 : ℝ) + Real.log 2 := hlog
-          _ ≤ (C + Real.log 2) * A ^ (2 : ℝ) := by
-                have hlog2 : 0 ≤ Real.log 2 := Real.log_nonneg (by norm_num)
-                -- use `Real.log 2 ≤ Real.log 2 * A^2` since `A^2 ≥ 1`
-                have : Real.log 2 ≤ Real.log 2 * A ^ (2 : ℝ) := by
-                  simpa [one_mul] using (mul_le_mul_of_nonneg_left hA2_ge1 hlog2)
-                nlinarith [this]
+              _ = ‖w‖ * ‖2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) * riemannZeta w‖ := by
+                    simp [hz1]
+              _ ≤ ‖w‖ * ((2 : ℝ) * ‖(2 * π : ℂ) ^ (-w)‖ * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖) := by
+                    have : ‖2 * (2 * π) ^ (-w) * Complex.Gamma w * Complex.cos (π * w / 2) * riemannZeta w‖
+                          ≤ (2 : ℝ) * ‖(2 * π : ℂ) ^ (-w)‖ * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖ := by
+                      simp [mul_assoc, mul_left_comm, mul_comm]
+                    gcongr
+              _ ≤ ‖w‖ * ((2 : ℝ) * 1 * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖) := by
+                    gcongr
+              _ = (‖w‖ * 2) * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖ := by
+                    ring
+          have hw2 : ‖w‖ * 2 ≤ Real.exp (2 * A ^ (2 : ℝ)) := by
+            have h1 : ‖w‖ * 2 ≤ 2 * A := by nlinarith [hw_norm_le]
+            have h2 : 2 * A ≤ 2 * A ^ (2 : ℝ) := by
+              have : A ≤ A ^ (2 : ℝ) := by
+                have := Real.rpow_le_rpow_of_exponent_le hA1 (by norm_num : (1 : ℝ) ≤ (2 : ℝ))
+                simpa [Real.rpow_one] using this
+              nlinarith [this]
+            exact le_trans (le_trans h1 h2) (Real.le_exp_self' _)
+          have hmul_exp :
+              (‖w‖ * 2) * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖
+                ≤ rexp ((2 + CΓ + 2 + 40) * A ^ (2 : ℝ)) := by
+            have ha : ‖w‖ * 2 ≤ rexp (2 * A ^ (2 : ℝ)) := by simpa using hw2
+            have hb : ‖Complex.Gamma w‖ ≤ rexp (CΓ * A ^ (2 : ℝ)) := by simpa using hΓw
+            have hc : ‖Complex.cos (π * w / 2)‖ ≤ rexp (2 * A ^ (2 : ℝ)) := by simpa using hcosw
+            have hd : ‖riemannZeta w‖ ≤ rexp (40 * A ^ (2 : ℝ)) := by simpa using hζw
+            have hab :
+                (‖w‖ * 2) * ‖Complex.Gamma w‖
+                  ≤ rexp (2 * A ^ (2 : ℝ)) * rexp (CΓ * A ^ (2 : ℝ)) := by
+              simpa [mul_assoc, mul_left_comm, mul_comm] using
+                (mul_le_mul ha hb (by positivity) (by positivity))
+            have habc :
+                ((‖w‖ * 2) * ‖Complex.Gamma w‖) * ‖Complex.cos (π * w / 2)‖
+                  ≤ (rexp (2 * A ^ (2 : ℝ)) * rexp (CΓ * A ^ (2 : ℝ))) *
+                      rexp (2 * A ^ (2 : ℝ)) := by
+              simpa [mul_assoc, mul_left_comm, mul_comm] using
+                (mul_le_mul hab hc (by positivity) (by positivity))
+            have habcd :
+                (((‖w‖ * 2) * ‖Complex.Gamma w‖) * ‖Complex.cos (π * w / 2)‖) * ‖riemannZeta w‖
+                  ≤ ((rexp (2 * A ^ (2 : ℝ)) * rexp (CΓ * A ^ (2 : ℝ))) *
+                      rexp (2 * A ^ (2 : ℝ))) * rexp (40 * A ^ (2 : ℝ)) := by
+              simpa [mul_assoc, mul_left_comm, mul_comm] using
+                (mul_le_mul habc hd (by positivity) (by positivity))
+            have hexp :
+                ((rexp (2 * A ^ (2 : ℝ)) * rexp (CΓ * A ^ (2 : ℝ))) *
+                      rexp (2 * A ^ (2 : ℝ))) * rexp (40 * A ^ (2 : ℝ))
+                  = rexp ((2 + CΓ + 2 + 40) * A ^ (2 : ℝ)) := by
+              -- combine exponentials pairwise using `exp_add` in reverse
+              -- Use fresh names to avoid clashing with earlier hypotheses named `ha`, `hb`, ...
+              set aa : ℝ := 2 * A ^ (2 : ℝ) with haa
+              set bb : ℝ := CΓ * A ^ (2 : ℝ) with hbb
+              set cc : ℝ := 2 * A ^ (2 : ℝ) with hcc
+              set dd : ℝ := 40 * A ^ (2 : ℝ) with hdd
+              have hab : rexp aa * rexp bb = rexp (aa + bb) := by
+                simpa using (Eq.symm (Real.exp_add aa bb))
+              have habc : rexp (aa + bb) * rexp cc = rexp (aa + bb + cc) := by
+                simpa [add_assoc] using (Eq.symm (Real.exp_add (aa + bb) cc))
+              have habcd : rexp (aa + bb + cc) * rexp dd = rexp (aa + bb + cc + dd) := by
+                simpa [add_assoc] using (Eq.symm (Real.exp_add (aa + bb + cc) dd))
+              have hsum : aa + bb + cc + dd = (2 + CΓ + 2 + 40) * A ^ (2 : ℝ) := by
+                simp [haa, hbb, hcc, hdd]
+                ring
+              calc
+                ((rexp aa * rexp bb) * rexp cc) * rexp dd
+                    = ((rexp (aa + bb)) * rexp cc) * rexp dd := by
+                        simp [hab, mul_assoc]
+                _ = (rexp (aa + bb + cc)) * rexp dd := by
+                        simp [habc]
+                _ = rexp (aa + bb + cc + dd) := by
+                        simpa [mul_assoc] using habcd
+                _ = rexp ((2 + CΓ + 2 + 40) * A ^ (2 : ℝ)) := by simp [hsum]
+            -- massage the LHS into the same association as `habcd`
+            have : (‖w‖ * 2) * ‖Complex.Gamma w‖ * ‖Complex.cos (π * w / 2)‖ * ‖riemannZeta w‖
+                  ≤ ((rexp (2 * A ^ (2 : ℝ)) * rexp (CΓ * A ^ (2 : ℝ))) *
+                      rexp (2 * A ^ (2 : ℝ))) * rexp (40 * A ^ (2 : ℝ)) := by
+              simpa [mul_assoc, mul_left_comm, mul_comm] using habcd
+            exact le_trans this (le_of_eq hexp)
+          have hcoef : (2 + CΓ + 2 + 40 : ℝ) ≤ C := by
+            have : (20 * CΓ + 500 : ℝ) ≤ C := le_trans (le_max_right _ _) (le_max_right _ _)
+            nlinarith [this, hCΓ_pos.le]
+          have hdom :
+              rexp ((2 + CΓ + 2 + 40) * A ^ (2 : ℝ)) ≤ rexp (C * A ^ (2 : ℝ)) := by
+            -- monotonicity of `exp`
+            refine (Real.exp_le_exp).2 ?_
+            -- multiply `hcoef` by the nonnegative factor `A^2`
+            have := mul_le_mul_of_nonneg_right hcoef hA2_nonneg
+            simpa [mul_assoc] using this
+          have : ‖(z - 1) * riemannZeta z‖ ≤ rexp (C * A ^ (2 : ℝ)) :=
+            le_trans (le_trans hprod hmul_exp) hdom
+          simpa [hzeta_def] using this
 
--/
+      have hC0 : 0 ≤ C := by
+        -- `C = max (log(1+M0)+10) (max 40 (20*CΓ+500))`, so `C ≥ 40 ≥ 0`.
+        have h0 : (0 : ℝ) ≤ max (40 : ℝ) (20 * CΓ + 500) :=
+          le_trans (by norm_num) (le_max_left _ _)
+        have hle : max (40 : ℝ) (20 * CΓ + 500) ≤ C := by simp [C]
+        exact le_trans h0 hle
+      have hB0 : 0 ≤ C * A ^ (2 : ℝ) := mul_nonneg hC0 hA2_nonneg
+      have hlog := log_one_add_exp_le (C * A ^ (2 : ℝ)) hB0
+      have hA2_ge1 : (1 : ℝ) ≤ A ^ (2 : ℝ) :=
+        Real.one_le_rpow hA1 (by norm_num)
+      calc
+        Real.log (1 + ‖zetaTimesSMinusOne_entire z‖)
+            ≤ Real.log (1 + rexp (C * A ^ (2 : ℝ))) := by
+                  gcongr
+        _ ≤ C * A ^ (2 : ℝ) + Real.log 2 := hlog
+        _ ≤ (C + Real.log 2) * A ^ (2 : ℝ) := by
+              have hlog2 : 0 ≤ Real.log 2 := Real.log_nonneg (by norm_num)
+              -- use `Real.log 2 ≤ Real.log 2 * A^2` since `A^2 ≥ 1`
+              have : Real.log 2 ≤ Real.log 2 * A ^ (2 : ℝ) := by
+                simpa [one_mul] using (mul_le_mul_of_nonneg_left hA2_ge1 hlog2)
+              nlinarith [this]
+
+
 end Complex
