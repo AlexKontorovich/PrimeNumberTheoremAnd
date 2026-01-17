@@ -14,6 +14,11 @@ namespace RS_prime
 
 open Chebyshev Finset Nat Real
 
+lemma Chebyshev.theta_pos {y : ℝ} (hy : 2 ≤ y) : 0 < θ y := by
+  refine sum_pos (fun n hn ↦ log_pos ?_) ⟨2, ?_⟩
+  · simp only [mem_filter] at hn; exact_mod_cast hn.2.one_lt
+  · simpa using ⟨(le_floor_iff (by grind : 0 ≤ y)).2 hy, Nat.prime_two⟩
+
 @[blueprint
   "rs-pnt"
   (title := "A medium version of the prime number theorem")
@@ -57,7 +62,7 @@ theorem pre_413 {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Ici 2)) {x : ℝ} (h
 @[blueprint
   "rs-413"
   (title := "RS equation (4.13)")
-  (statement := /-- $\sum_{p \leq x} f(p) = \frac{f(x) \vartheta(x)}{\log x} - \int_2^x \vartheta(x) \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$ -/)
+  (statement := /-- $\sum_{p \leq x} f(p) = \frac{f(x) \vartheta(x)}{\log x} - \int_2^x \vartheta(y) \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$ -/)
   (proof := /-- Follows from Sublemma \ref{rs-pre-413} and integration by parts. -/)
   (latexEnv := "sublemma")
   (discussion := 650)]
@@ -129,14 +134,25 @@ theorem eq_417 {x : ℝ} (hx : 2 ≤ x) :
   (latexEnv := "sublemma")
   (discussion := 652)]
 theorem eq_418 {x : ℝ} (hx : 2 ≤ x) :
-    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / p = θ x / (x * log x) +
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / (p : ℝ) = θ x / (x * log x) +
       ∫ y in 2..x, θ y * (1 + log y) / (y ^ 2 * log y ^ 2) := by
-  sorry
+  have : DifferentiableOn ℝ (fun x : ℝ ↦ 1 / x) (Set.Ici 2) :=
+    fun x hx => by simpa [one_div] using differentiableWithinAt_inv (by grind) (Set.Ici 2)
+  rw [eq_413 (f := fun x => 1 / x) this hx, mul_comm_div, one_mul, div_div, sub_eq_add_neg,
+    ← intervalIntegral.integral_neg, add_left_cancel_iff]
+  refine intervalIntegral.integral_congr fun y hy => ?_
+  have hy := Set.uIcc_of_le hx ▸ hy
+  have := deriv_fun_inv'' (y.hasDerivAt_mul_log (by grind)).differentiableAt
+    (mul_ne_zero_iff.2 ⟨by grind, by linarith [Real.log_pos (by grind : 1 < y)]⟩)
+  simp only [neg_mul_eq_mul_neg, mul_div_assoc, mul_left_cancel_iff_of_pos
+  (Chebyshev.theta_pos hy.1), div_div, fun t : ℝ => one_div (t * log t), this,
+  deriv_mul_log (by grind : y ≠ 0)]
+  ring
 
 @[blueprint
   "rs-419"]
 theorem mertens_second_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
-    ∑ p ∈ filter Nat.Prime (range ⌊x⌋₊), 1 / p - log (log x) - meisselMertensConstant) (nhds 0) := by sorry
+    ∑ p ∈ filter Nat.Prime (range ⌊x⌋₊), 1 / (p : ℝ) - log (log x) - meisselMertensConstant) (nhds 0) := by sorry
 
 @[blueprint
   "rs-419"
@@ -149,12 +165,13 @@ theorem mertens_second_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
   (latexEnv := "sublemma")
   (discussion := 603)]
 theorem eq_419 {x : ℝ} (hx : 2 ≤ x) :
-    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / p =
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / (p : ℝ) =
       log (log x) + meisselMertensConstant + (θ x - x) / (x * log x) - ∫ y in 2..x, (θ y - y) * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
+
 @[blueprint
   "rs-419"]
 theorem mertens_second_theorem' :
-    ∃ C, ∀ x, |∑ p ∈ filter Prime (range ⌊x⌋₊), 1 / p - log (log x)| ≤ C := by sorry
+    ∃ C, ∀ x, |∑ p ∈ filter Prime (range ⌊x⌋₊), 1 / (p : ℝ) - log (log x)| ≤ C := by sorry
 
 @[blueprint
   "rs-420"]
