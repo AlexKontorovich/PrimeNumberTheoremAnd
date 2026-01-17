@@ -1,11 +1,4 @@
 import Architect
-import Mathlib.Algebra.Order.Floor.Semifield
-import Mathlib.Analysis.Asymptotics.Lemmas
-import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
-import Mathlib.NumberTheory.Chebyshev
-import Mathlib.NumberTheory.PrimeCounting
 import Mathlib.NumberTheory.Harmonic.Bounds
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 import PrimeNumberTheoremAnd.Wiener
