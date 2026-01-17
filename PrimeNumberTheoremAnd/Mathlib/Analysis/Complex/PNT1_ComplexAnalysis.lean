@@ -7,6 +7,7 @@ import Mathlib.Data.Real.StarOrdered
 import Mathlib.Order.CompletePartialOrder
 import Mathlib.RingTheory.SimpleRing.Principal
 import Mathlib.Tactic
+import PrimeNumberTheoremAnd.StrongPNT
 
 set_option linter.unusedVariables false
 set_option linter.unusedSimpArgs false
@@ -1636,6 +1637,7 @@ sSup ((norm ∘ f) '' (closure (ballDR r))) ≤ (2 * r / (R - r)) * M := by
 
 def I := Complex.I
 
+/-
 lemma cauchy_formula_deriv {f : ℂ → ℂ} {R_analytic r_z r_int : ℝ}
     (hf_domain : ∃ U, IsOpen U ∧ Metric.closedBall 0 R_analytic ⊆ U ∧ DifferentiableOn ℂ f U)
     (h_r_z_pos : 0 < r_z)
@@ -1686,7 +1688,7 @@ deriv f z = (1 / (2 * Real.pi * I)) • ∮ w in C(0, r_int), (w - z)⁻¹ ^ 2 �
     rfl
   · -- ((w - z) ^ 2)⁻¹ • f w = (w - z)⁻¹ ^ 2 • f w
     ext w
-    rw [← inv_pow]
+    rw [← inv_pow]-/
 
 lemma lem_dw_dt {r_int : ℝ} (t : ℝ) :
 deriv (fun t' => r_int * Complex.exp (I * t')) t = I * r_int * Complex.exp (I * t) := by
@@ -1777,7 +1779,7 @@ lemma lem_CIF_deriv_param {f : ℂ → ℂ} {R_analytic r_z r_int : ℝ}
     deriv f z = (1 / (2 * Real.pi * I)) * (∫ (t : ℝ) in Set.Icc 0 (2 * Real.pi),
 (I * r_int * Complex.exp (I * t) * ((r_int * Complex.exp (I * t)) - z)⁻¹ ^ 2) * f (r_int * Complex.exp (I * t))) := by
   -- Apply cauchy_formula_deriv to get the circle integral form
-  rw [cauchy_formula_deriv hf_domain h_r_z_pos h_r_z_lt_r_int h_r_int_lt_R_analytic hz]
+  rw [cauchy_formula_deriv hf_domain h_r_z_lt_r_int h_r_int_lt_R_analytic hz]
 
   -- Convert circle integral to parametric integral using circleIntegral_def_Icc
   rw [circleIntegral_def_Icc]
