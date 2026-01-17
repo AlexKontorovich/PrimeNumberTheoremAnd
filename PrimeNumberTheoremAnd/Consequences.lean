@@ -27,25 +27,6 @@ lemma Set.Ico_subset_Ico_of_Icc_subset_Icc {a b c d : ℝ} (h : Set.Icc a b ⊆ 
   simp only [mem_Icc] at this
   exact this.2
 
--- AkraBazzi.lean
-lemma deriv_smoothingFn' {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) :
-    deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) := by
-  have : log x ≠ 0 := Real.log_ne_zero_of_pos_of_ne_one hx_pos hx
-  rw [deriv_fun_inv''] <;> aesop
-
-lemma deriv_smoothingFn {x : ℝ} (hx : 1 < x) :
-    deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) :=
-  deriv_smoothingFn' (by positivity) (ne_of_gt hx)
-
-theorem extracted_2 (x : ℝ) (z : ℝ) (hz_pos : 0 < z) (hz : z ≠ 1) :
-    ContinuousWithinAt (fun x ↦ (x * log x ^ 2)⁻¹) (Set.Icc (3 / 2) x) z := by
-  apply ContinuousAt.continuousWithinAt
-  have : z ≠ 0 := by linarith
-  have : z * log z ^ 2 ≠ 0 := by
-    apply mul_ne_zero this
-    apply pow_ne_zero _ <| log_ne_zero_of_pos_of_ne_one hz_pos hz
-  fun_prop (disch := assumption)
-
 theorem extracted_1 (x : ℝ) :
     IntegrableOn
       (fun t ↦ (θ t) / (t * log t ^ 2))
