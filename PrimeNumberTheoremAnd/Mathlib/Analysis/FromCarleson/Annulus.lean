@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: James Sundstrom
 -/
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Metric
-import Carleson.ToMathlib.Interval
+import PrimeNUmberTheoremAnd.Mathlib.FromCarleson.Interval
 
 /-!
 # Annulus
