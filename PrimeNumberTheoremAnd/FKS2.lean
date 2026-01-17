@@ -111,7 +111,7 @@ theorem lemma_10b {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b ≥ -c ^ 2 / (
   Note: this lemma is mistyped as $\sqrt{\log x} > -2b/c$ in \cite{FKS2}.
  -/)
   (latexEnv := "lemma")]
-theorem lemma_10c {b c : ℝ} (hc : c > 0) (hb : b < 0) :
+theorem lemma_10c {b c : ℝ} (hb : b < 0) :
     StrictAntiOn (g_bound 0 b c) (Set.Ioo 1 (exp ((-2 * b / c) ^ 2))) := by
     intro x hx y hy hxy
     simp only [g_bound, neg_zero, rpow_zero, one_mul, Nat.reduceDiv, pow_zero, mul_one]
