@@ -2341,11 +2341,9 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
     simpa [m] using
       (summable_norm_inv_pow_divisorZeroIndex₀_of_growth (f := f) (ρ := ρ)
         hρ hentire hnot hgrowth)
-
   -- Step 2: quotient step (intrinsic): split off the canonical product and the origin power.
   rcases exists_entire_nonzero_hadamardQuotient (m := m) (f := f) hentire hnot h_sum with
     ⟨H, hH_entire, hH_ne, hfactor⟩
-
   -- Step 3: Cartan/minimum-modulus step: show `H` has growth exponent `< m+1`, hence `H = exp(P)`
   -- with `deg P ≤ m`, and conclude the factorization.
   --
@@ -2373,11 +2371,9 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
       simpa [add_assoc, add_comm, add_left_comm] using hτ_lt
     -- apply `Nat.floor_eq_iff`
     exact (Nat.floor_eq_iff hτ_nonneg).2 ⟨hm_le_τ, hτ_lt_m1⟩
-
   -- Intrinsic Cartan/minimum-modulus growth bound for the Hadamard quotient:
   -- Tao-style “good radius + minimum modulus”, implemented intrinsically over `divisorZeroIndex₀`,
   -- producing `‖H z‖ ≤ exp(C*(1+‖z‖)^τ)` for `ρ < τ < m+1`.
-
   have hH_bound_rpow :
       ∃ C > 0, ∀ z : ℂ, ‖H z‖ ≤ Real.exp (C * (1 + ‖z‖) ^ τ) := by
     classical
@@ -2391,7 +2387,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
     let Sτ : ℝ := ∑' p : divisorZeroIndex₀ f (Set.univ : Set ℂ), ‖divisorZeroIndex₀_val p‖⁻¹ ^ τ
     have hSτ_nonneg : 0 ≤ Sτ := tsum_nonneg (fun _ => by
       exact Real.rpow_nonneg (inv_nonneg.2 (norm_nonneg _)) _)
-
     -- A coarse constant for the canonical product inverse bound on good circles.
     let Cprod : ℝ := ((LogSingularity.Cφ + (2 : ℝ) * m) * (4 : ℝ) ^ τ + 3) * (Sτ + 1)
     have hCprod_nonneg : 0 ≤ Cprod := by
@@ -2402,7 +2397,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
         have h4τ : 0 ≤ (4 : ℝ) ^ τ := by positivity
         nlinarith [hCφ, hm0, h4τ]
       simpa [Cprod] using mul_nonneg hA hS
-
     refine ⟨(Cf + Cprod + 10) * (3 : ℝ) ^ τ, by
       have h3τ : 0 < (3 : ℝ) ^ τ := by positivity
       nlinarith [hCfpos, hCprod_nonneg, h3τ], ?_⟩
@@ -2430,7 +2424,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
     have hR_le_r : R ≤ r := le_of_lt hr_mem.1
     have hr_le_2R : r ≤ 2 * R := hr_mem.2
     have hrpos : 0 < r := lt_of_lt_of_le hRpos hR_le_r
-
     -- bound `‖H‖` on the circle `‖u‖ = r`, then propagate to the ball by maximum modulus.
     have hcircle :
         ∀ u : ℂ, ‖u‖ = r → ‖H u‖ ≤ Real.exp ((Cf + Cprod + 10) * (1 + r) ^ τ) := by
@@ -2463,13 +2456,11 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
           exact (hr_not_bad this).elim
         exact no_zero_on_sphere_of_forall_val_norm_ne (f := f) hentire hnot
           (B := 4 * R) (r := r) hrpos hr_le_4R hr_not u hur
-
       have hden_ne :
           (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u) ≠ 0 := by
         intro hden0
         have : f u = 0 := by simpa [hden0] using hden_eq
         exact hfu_ne this
-
       have hHu : H u = f u / (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u) := by
         -- divide the identity `f u = H u * denom` by `denom`
         have : (H u * (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)) /
@@ -2479,7 +2470,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
         have : f u / (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u) = H u := by
           simpa [hden_eq, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using this
         exact this.symm
-
       -- bound `‖f u‖` by the τ-growth (we weaken `ρ` to `τ`)
       have hf_u : ‖f u‖ ≤ Real.exp (Cf * (1 + r) ^ τ) := by
         have hlog := hCf u
@@ -2495,7 +2485,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
           (Real.log_le_iff_le_exp hpos).1 hlog'
         have : ‖f u‖ ≤ Real.exp (Cf * (1 + ‖u‖) ^ τ) := by linarith
         simpa [hur] using this
-
       -- crude bound on the inverse denominator: use `Cprod` (full minimum-modulus proof to be filled)
       have hden_inv : ‖(u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖
           ≤ Real.exp (Cprod * (1 + r) ^ τ) := by
@@ -2511,11 +2500,9 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
           have : (‖u‖ : ℝ)⁻¹ ^ analyticOrderNatAt f 0 ≤ 1 ^ analyticOrderNatAt f 0 :=
             pow_le_pow_left₀ hnn hinv _
           simpa [norm_inv, norm_pow] using this
-
         -- Now bound the inverse canonical product `∏' p, E_m(u / a_p)`.
         let fac : divisorZeroIndex₀ f (Set.univ : Set ℂ) → ℂ :=
           fun p => weierstrassFactor m (u / divisorZeroIndex₀_val p)
-
         have hloc :
             HasProdLocallyUniformlyOn
               (fun (p : divisorZeroIndex₀ f (Set.univ : Set ℂ)) (w : ℂ) =>
@@ -2526,7 +2513,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
         have hprod :
             HasProd fac (divisorCanonicalProduct m f (Set.univ : Set ℂ) u) :=
           hloc.hasProd (by simp : u ∈ (Set.univ : Set ℂ))
-
         -- Majorant `b p` and pointwise estimate `‖(fac p)⁻¹‖ ≤ exp(b p)`.
         let ap : divisorZeroIndex₀ f (Set.univ : Set ℂ) → ℝ := fun p => ‖divisorZeroIndex₀_val p‖
         let b : divisorZeroIndex₀ f (Set.univ : Set ℂ) → ℝ :=
@@ -2535,7 +2521,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
               LogSingularity.φ (r / ap p) + (m : ℝ) * (1 + (r / ap p) ^ τ)
             else
               (2 : ℝ) * (r / ap p) ^ τ
-
         have hterm : ∀ p, ‖(fac p)⁻¹‖ ≤ Real.exp (b p) := by
           intro p
           by_cases hp : p ∈ small
@@ -2593,7 +2578,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
                     (u := u) (a := divisorZeroIndex₀_val p)
                     (hur := hur) (ha := divisorZeroIndex₀_val_ne_zero p) (hz := hz') hτ_le)
             simpa [fac, b, hp] using hfar
-
         -- Tao-style bound on partial sums of the majorant `b`:
         -- prove `Summable b` and bound `tsum b`, then use `sum_le_tsum`.
         have hb_le :
@@ -2609,8 +2593,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
               (hRpos := hRpos) (hrpos := hrpos) (hR_le_r := hR_le_r) (hτ_nonneg := hτ_nonneg)
               (smallSet := smallSet) (hsmall_fin := hsmall_fin) (hsmallSet := hsmallSet')
               (hsumτ := hsumτ) (hr_phi := hr_phi) s)
-
-
         have hcprod_inv :
             ‖(divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖ ≤ Real.exp (Cprod * (1 + r) ^ τ) := by
           -- Use the reusable lemma: pointwise `‖fac⁻¹‖ ≤ exp(b)` plus a bound on all partial sums of `b`
@@ -2622,7 +2604,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
           · exact hterm
           · intro s
             exact hb_le s
-
         -- Put the two factors together.
         have hmul :
             ‖(u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖
@@ -2633,8 +2614,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
               ≤ 1 * Real.exp (Cprod * (1 + r) ^ τ) :=
           mul_le_mul hpow_inv_le1 hcprod_inv (by positivity) (by positivity)
         simpa using this
-
-      -- combine
       have : ‖H u‖ ≤ ‖f u‖ * ‖(u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖ := by
         -- `H = f / denom`
         have : ‖H u‖ = ‖f u / (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)‖ := by
@@ -2658,7 +2637,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
         have hnn : 0 ≤ (1 + r) ^ τ := by positivity
         nlinarith
       exact this.trans hslack
-
     -- Now use maximum modulus on the ball of radius `r` to bound `H z` (since `‖z‖ ≤ R ≤ r`).
     have hz_ball : z ∈ Metric.ball (0 : ℂ) r := by
       have : dist z (0 : ℂ) < r := by
@@ -2719,7 +2697,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
         Real.exp (((Cf + Cprod + 10) * (3 : ℝ) ^ τ) * (1 + ‖z‖) ^ τ)
           = Real.exp (((Cf + Cprod + 10) * (3 : ℝ) ^ τ) * (1 + ‖z‖) ^ τ) := rfl
     simpa [mul_assoc] using (le_trans (le_trans hball hmain) (le_of_eq hmain'))
-
   -- Deduce an integer-exponent growth bound to apply `zero_free_polynomial_growth_is_exp_poly`.
   have hH_growth_nat :
       ∃ C > 0, ∀ z : ℂ, ‖H z‖ ≤ Real.exp (C * (1 + ‖z‖) ^ (m + 1)) := by
@@ -2736,7 +2713,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
       nlinarith [hpow, hpow']
     have := Real.exp_le_exp.2 this
     exact (hC z).trans this
-
   rcases (zero_free_polynomial_growth_is_exp_poly (H := H) (n := m + 1)
       hH_entire hH_ne hH_growth_nat) with ⟨P, hPn, hHP⟩
   -- sharp degree bound via the integer-order obstruction at exponent `τ`
@@ -2779,7 +2755,6 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
       exact this.trans hlin
     have := natDegree_le_floor_of_growth_exp_eval (ρ := τ) hτ_nonneg P hlog_growth
     simpa [hfloorτ] using this
-
   refine ⟨P, ?_, ?_⟩
   · -- `degree ≤ floor ρ = m`
     -- use `natDegree` bound and relate to `degree`.
