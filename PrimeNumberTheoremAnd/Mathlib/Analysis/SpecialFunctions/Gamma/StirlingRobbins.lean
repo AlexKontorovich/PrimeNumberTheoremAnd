@@ -23,8 +23,7 @@ This file builds on:
 - `BinetKernel.lean`: The kernel K̃(t) with bounds 0 ≤ K̃(t) ≤ 1/12
 - `BinetFormula.lean`: The Binet integral J(z) with bound |J(z)| ≤ 1/(12·Re(z))
 
-Note: `GammaStirlingAux.lean` has `factorial_asymptotic` with sorry.
-This file provides the Robbins proof completing that result.
+
 
 ## Strategy
 
