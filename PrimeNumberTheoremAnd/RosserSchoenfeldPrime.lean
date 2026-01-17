@@ -34,7 +34,7 @@ theorem pnt : ∃ C, ∀ x ≥ 2, |θ x - x| ≤ C * x / log x ^ 2 := by sorry
   (statement := /--
   $B := \lim_{x \to \infty} \left( \sum_{p \leq x} \frac{1}{p} - \log \log x \right)$. -/)]
 noncomputable def B : ℝ :=
-  lim (Filter.atTop.comap (fun x : ℝ ↦ ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), 1 / p - log (log x)))
+  lim (Filter.atTop.comap (fun x : ℝ ↦ ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), 1 / (p : ℝ) - log (log x)))
 
 
 @[blueprint
@@ -168,7 +168,7 @@ theorem eq_418 {x : ℝ} (hx : 2 ≤ x) :
 @[blueprint
   "rs-419"]
 theorem mertens_second_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
-    ∑ p ∈ filter Nat.Prime (range ⌊x⌋₊), 1 / p - log (log x) - B) (nhds 0) := by sorry
+    ∑ p ∈ filter Nat.Prime (range ⌊x⌋₊), 1 / (p : ℝ) - log (log x) - B) (nhds 0) := by sorry
 
 @[blueprint
   "rs-419"
@@ -181,13 +181,13 @@ theorem mertens_second_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
   (latexEnv := "sublemma")
   (discussion := 603)]
 theorem eq_419 {x : ℝ} (hx : 2 ≤ x) :
-    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / p =
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / (p : ℝ) =
       log (log x) + B + (θ x - x) / (x * log x) - ∫ y in 2..x, (θ y - y) * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
 
 @[blueprint
   "rs-419"]
 theorem mertens_second_theorem' :
-    ∃ C, ∀ x, |∑ p ∈ filter Prime (range ⌊x⌋₊), 1 / p - log (log x)| ≤ C := by sorry
+    ∃ C, ∀ x, |∑ p ∈ filter Prime (range ⌊x⌋₊), 1 / (p : ℝ) - log (log x)| ≤ C := by sorry
 
 @[blueprint
   "rs-420"]
