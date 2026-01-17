@@ -18,7 +18,8 @@ namespace FKS2
   (title := "Remark in FKS2 Section 1.1")
   (statement := /-- $\li(x) - \Li(x) = \li(2)$. -/)
   (proof := /-- This follows directly from the definitions of $\li$ and $\Li$. -/)
-  (latexEnv := "remark")]
+  (latexEnv := "remark")
+  (discussion := 608)]
 theorem sec_1_1_remark : ∀ x > 2, li x - Li x = li 2 := sorry
 
 @[blueprint
@@ -37,7 +38,8 @@ noncomputable def g_bound (a b c x : ℝ) : ℝ := x^(-a) * (log x)^b * exp (c *
   $$ (\pi(x) - \Li(x)) - (\pi(x_0) - \Li(x_0)) = \frac{\theta(x) - x}{\log x}
     - \frac{\theta(x_0) - x_0}{\log x_0} + \int_{x_0}^x \frac{\theta(t) - t}{t \log^2 t} dt.$$ -/)
   (proof := /-- This follows from Sublemma \ref{rs-417}. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 609)]
 theorem eq_17 {x₀ x : ℝ} (hx₀ : x₀ ≥ 2) (hx : x > x₀) :
   (pi x - Li x) - (pi x₀ - Li x₀) =
     (θ x - x) / log x - (θ x₀ - x₀) / log x₀ +
@@ -51,7 +53,8 @@ theorem eq_17 {x₀ x : ℝ} (hx₀ : x₀ ≥ 2) (hx : x > x₀) :
 $$ \frac{d}{dx} g(a, b, c, x) = \left( -a \log(x) + b + \frac{c}{2}\sqrt{\log(x)} \right) x^{-a-1} (\log(x))^{b-1} \exp(c\sqrt{\log(x)}).$$
   -/)
   (proof := /-- This follows from straightforward differentiation. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 610)]
 theorem lemma_10_substep {a b c x : ℝ} (hx : x > 1) :
   deriv (g_bound a b c) x =
     (-a * log x + b + (c / 2) * sqrt (log x)) * x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x)) :=
@@ -63,7 +66,8 @@ theorem lemma_10_substep {a b c x : ℝ} (hx : x > 1) :
   (statement := /-- $\frac{d}{dx} g(a, b, c, x) $ is negative when $-au^2 + \frac{c}{2}u + b < 0$, where $u = \sqrt{\log(x)}$.
   -/)
   (proof := /-- Clear from previous sublemma. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 611)]
 theorem lemma_10_substep_2 {a b c x : ℝ} (hx : x > 1) :
   deriv (g_bound a b c) x < 0 ↔
     -a * (sqrt (log x)) ^ 2 + (c / 2) * sqrt (log x) + b < 0 := by
@@ -83,7 +87,8 @@ theorem lemma_10_substep_2 {a b c x : ℝ} (hx : x > 1) :
   (statement := /-- If $a>0$, $c>0$ and $b < -c^2/16a$, then $g(a,b,c,x)$ decreases with $x$. -/)
   (proof := /-- We apply Lemma \ref{fks2-lemma-10-substep-2}. There are no roots when $b < -\frac{c^2}{16a}$, and the derivative is always negative in this case.
  -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 612)]
 theorem lemma_10a {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b < -c ^ 2 / (16 * a)) :
   StrictAnti (g_bound a b c) :=
   sorry
@@ -96,7 +101,8 @@ theorem lemma_10a {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b < -c ^ 2 / (16
   $x > \exp((\frac{c}{4a} + \frac{1}{2a} \sqrt{\frac{c^2}{4} + 4ab})^2)$. -/)
   (proof := /-- We apply Lemma \ref{fks2-lemma-10-substep-2}. If $a > 0$, there are two real roots only if $\frac{c^2}{4} + 4ab \geq 0$ or equivalently $b \geq -\frac{c^2}{16a}$, and the derivative is negative for $u > \frac{\frac{c}{2} + \sqrt{\frac{c^2}{4} + 4ab}}{2a}$.
  -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 613)]
 theorem lemma_10b {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b ≥ -c ^ 2 / (16 * a)) :
     StrictAntiOn (g_bound a b c)
       (Set.Ioi (exp ((c / (4 * a) + (1 / (2 * a)) * sqrt (c ^ 2 / 4 + 4 * a * b)) ^ 2))) :=
@@ -110,7 +116,8 @@ theorem lemma_10b {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b ≥ -c ^ 2 / (
   (proof := /-- We apply Lemma \ref{fks2-lemma-10-substep-2}. If $a = 0$, it is negative when $u < \frac{-2b}{c}$.
   Note: this lemma is mistyped as $\sqrt{\log x} > -2b/c$ in \cite{FKS2}.
  -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 614)]
 theorem lemma_10c {b c : ℝ} (hb : b < 0) :
     StrictAntiOn (g_bound 0 b c) (Set.Ioo 1 (exp ((-2 * b / c) ^ 2))) := by
     intro x hx y hy hxy
@@ -125,7 +132,8 @@ theorem lemma_10c {b c : ℝ} (hb : b < 0) :
   (statement := /--
   If $B \geq 1 + C^2 / 16R$ then $g(1,1-B,C/\sqrt{R},x)$ is decreasing in $x$. -/)
   (proof := /-- This follows from Lemma \ref{fks2-lemma-10a} applied with $a=1$, $b=1-B$ and $c=C/\sqrt{R}$. -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 615)]
 theorem corollary_11 {B C R : ℝ} (hR : R > 0) (hB : B > 1 + C ^ 2 / (16 * R)) (hC : C > 0) :
     StrictAnti (g_bound 1 (1 - B) (C / sqrt R)) := by
   apply lemma_10a one_pos (div_pos hC (sqrt_pos.mpr hR))
@@ -148,7 +156,8 @@ noncomputable def dawson (x : ℝ) : ℝ := exp (-x ^ 2) * ∫ t in 0..x, exp (t
   The Dawson function has a single maximum at $x \approx 0.942$, after which the function is
   decreasing. -/)
   (proof := /-- The Dawson function satisfies the differential equation $F'(x) + 2xF(x) = 1$ from which it follows that the second derivative satisfies $F''(x) = −2F(x) − 2x(−2xF(x) + 1)$, so that at every critical point (where we have $F(x) = \frac{1}{2x}$) we have $F''(x) = −\frac{1}{x}$.  It follows that every positive critical value gives a local maximum, hence there is a unique such critical value and the function decreases after it. Numerically one may verify this is near 0.9241 see https://oeis.org/ A133841. -/)
-  (latexEnv := "remark")]
+  (latexEnv := "remark")
+  (discussion := 616)]
 theorem remark_after_corollary_11 :
     ∃ x₀ : ℝ, x₀ ∈ Set.Icc 0.924 0.925 ∧ (∀ x, dawson x ≤ dawson x₀) ∧
       StrictAntiOn dawson (Set.Ioi x₀) := sorry
@@ -182,7 +191,8 @@ Now we have
 &= x \exp\left( \frac{C^2}{4R} \right) \exp\left( -C\sqrt{\frac{\log(x)}{R}} \right) D_+\left( \sqrt{\log(x)} - \frac{C}{2\sqrt{R}} \right).
 \end{align*}
 Combining the above completes the proof. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 617)]
 theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀) (hx : x ≥ x₀) :
   ∫ t in x₀..x, |Eθ t| / log t ^ 2 ≤
     (2 * A) / (R ^ B) * x * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) *
