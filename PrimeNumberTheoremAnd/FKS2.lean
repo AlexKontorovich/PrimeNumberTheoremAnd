@@ -126,9 +126,11 @@ theorem lemma_10c {b c : ℝ} (hb : b < 0) :
   If $B \geq 1 + C^2 / 16R$ then $g(1,1-B,C/\sqrt{R},x)$ is decreasing in $x$. -/)
   (proof := /-- This follows from Lemma \ref{fks2-lemma-10a} applied with $a=1$, $b=1-B$ and $c=C/\sqrt{R}$. -/)
   (latexEnv := "corollary")]
-theorem corollary_11 {B C R : ℝ} (hB : B ≥ 1 + C ^ 2 / (16 * R)) :
-    StrictAnti (g_bound 1 (1 - B) (C / sqrt R)) :=
-  sorry
+theorem corollary_11 {B C R : ℝ} (hR : R > 0) (hB : B > 1 + C ^ 2 / (16 * R)) (hC : C > 0) :
+    StrictAnti (g_bound 1 (1 - B) (C / sqrt R)) := by
+  apply lemma_10a one_pos (div_pos hC (sqrt_pos.mpr hR))
+  rw [div_pow, sq_sqrt hR.le, mul_one]
+  linarith [show C ^ 2 / R / 16 = C ^ 2 / (16 * R) by ring]
 
 @[blueprint
   "fks2-eq-19"
