@@ -3,6 +3,10 @@ import Mathlib.Analysis.SpecialFunctions.Log.Base
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.LogSingularity
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanBound
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.ExpPoly
+import Riemann.Mathlib.Analysis.Complex.Divisor
+import Mathlib.Analysis.SpecialFunctions.Log.Summable
+import Mathlib.Topology.Algebra.InfiniteSum.Order
+
 
 /-!
 ## The intrinsic Hadamard quotient (entire and zero-free)
@@ -1408,7 +1412,7 @@ theorem summable_norm_inv_pow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {�
             simpa [tsum_fintype, Finset.sum_const, nsmul_eq_mul] using
               (hsum_le.trans_eq (by
                 -- `∑ _p, c = card * c`
-                simp [Finset.sum_const, nsmul_eq_mul, mul_comm, mul_left_comm, mul_assoc]))
+                simp [Finset.sum_const, nsmul_eq_mul, mul_comm]))
 
           -- Bound `card(S kk)` by the divisor mass in the closed ball of radius `Rk`.
           have hcard_le_mass :
@@ -1459,7 +1463,7 @@ theorem summable_norm_inv_pow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {�
             have hpow_nat : (1 / r0) ≤ (2 : ℝ) ^ (kk + 1) := by
               have hkk : k0 ≤ kk + 1 := by
                 -- `k0 ≤ k0 + k ≤ (k0 + k) + 1`
-                simp [kk, Nat.add_assoc, Nat.add_left_comm, Nat.add_comm]
+                simp [kk, Nat.add_assoc, Nat.add_comm]
               exact hk0 (kk + 1) hkk
             have hpow_rpow : (1 / r0) ≤ (2 : ℝ) ^ ((kk : ℝ) + 1) := by
               have hEq : (2 : ℝ) ^ ((kk : ℝ) + 1) = (2 : ℝ) ^ (kk + 1) := by
@@ -1498,13 +1502,12 @@ theorem summable_norm_inv_pow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {�
                 _ = ((2 : ℝ) ^ (m + 1))⁻¹ := by
                       -- convert `2^(m+1:ℝ)` to the nat power `2^(m+1)`
                       simpa [Nat.cast_add_one] using (Real.rpow_natCast (2 : ℝ) (m + 1))
-                _ = (2⁻¹ : ℝ) ^ (m + 1) := by simpa using (inv_pow (2 : ℝ) (m + 1))
+                _ = (2⁻¹ : ℝ) ^ (m + 1) := by simp
             have hcombine : (2⁻¹ : ℝ) ^ kk * (2⁻¹ : ℝ) ^ (kk * m) = (2⁻¹ : ℝ) ^ (kk * (m + 1)) := by
               -- `a^kk * a^(kk*m) = a^(kk + kk*m) = a^(kk*(m+1))`
               calc
                 (2⁻¹ : ℝ) ^ kk * (2⁻¹ : ℝ) ^ (kk * m) = (2⁻¹ : ℝ) ^ (kk + kk * m) := by
-                  simpa [pow_add, mul_assoc, mul_left_comm, mul_comm] using
-                    (pow_add (2⁻¹ : ℝ) kk (kk * m)).symm
+                  simp [pow_add, mul_assoc, mul_left_comm, mul_comm]
                 _ = (2⁻¹ : ℝ) ^ (kk * (m + 1)) := by
                   congr 1
                   nlinarith [Nat.mul_add kk m 1]
@@ -1515,7 +1518,7 @@ theorem summable_norm_inv_pow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {�
               have h2ne : ((2 : ℝ) ^ kk) ≠ 0 := by
                 exact pow_ne_zero kk (by norm_num : (2 : ℝ) ≠ 0)
               -- unfold `rk` and split powers/inverses; `simp` can now close without case splits
-              simp [rk, hr0ne, h2ne, pow_add, pow_mul, mul_pow, inv_pow,
+              simp [rk, pow_add, pow_mul, mul_pow, inv_pow,
                 mul_assoc, mul_left_comm, mul_comm]
             calc
               rk⁻¹ ^ (m + 1)
@@ -1531,10 +1534,10 @@ theorem summable_norm_inv_pow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {�
                           -- `a^(n*m) = (a^m)^n`
                           simpa [Nat.mul_comm] using (pow_mul (2⁻¹ : ℝ) (m + 1) kk)
                         _ = ((2 : ℝ) ^ (-1 - (m : ℝ))) ^ kk := by
-                          simpa [h2]
-                    simpa [hb, mul_assoc]
+                          simp [h2]
+                    simp [hb, mul_assoc]
               _ = (r0⁻¹ ^ (m + 1)) * qσ ^ kk := by
-                    simp [qσ, sub_eq_add_neg, add_assoc, add_comm, add_left_comm]
+                    simp [qσ, sub_eq_add_neg, add_comm,]
 
           -- Bound the `ρ`-growth term: `(1+|2*Rk|)^ρ ≤ (1+4*r0)^ρ * (2^ρ)^kk`.
           have hpow_bound :
@@ -1575,7 +1578,7 @@ theorem summable_norm_inv_pow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {�
                   = (1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ ρ) ^ kk := by
               -- `(ab)^ρ = a^ρ*b^ρ`, and `(2^kk)^ρ = (2^ρ)^kk`
               have hkk : ((2 : ℝ) ^ ρ) ^ kk = ((2 : ℝ) ^ ρ) ^ ((kk : ℕ) : ℝ) := by
-                simpa using (Real.rpow_natCast ((2 : ℝ) ^ ρ) kk).symm
+                simp
               calc
                 ((1 + 4 * r0) * ((2 : ℝ) ^ (kk : ℝ))) ^ ρ
                     = (1 + 4 * r0) ^ ρ * (((2 : ℝ) ^ (kk : ℝ)) ^ ρ) := by
@@ -1599,7 +1602,7 @@ theorem summable_norm_inv_pow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {�
                         -- now convert the `rpow` with exponent `kk` to the nat power form
                         -- `hkk : ((2^ρ)^kk) = ((2^ρ)^(kk:ℝ))`
                         -- so `((2^ρ)^(kk:ℝ)) = (2^ρ)^kk` is `hkk.symm`.
-                        simpa [h2mul, hkk.symm, mul_assoc]
+                        simp [h2mul, hkk.symm]
             exact hpow.trans_eq hrhs
 
         -- final assembly
@@ -1613,7 +1616,7 @@ theorem summable_norm_inv_pow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {�
               have hcard_le_growth :
                   (Fintype.card (S kk) : ℝ) ≤ (Cgrow * (1 + |2 * Rk|) ^ ρ + Ctrail) / (Real.log 2) := by
                 exact le_trans hcard_le_mass (le_trans hmass_le_growth (by
-                  simp [Ctrail, add_comm, add_left_comm, add_assoc]))
+                  simp [Ctrail, add_comm]))
               have htsum' :
                   (∑' p : S kk, ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ (m + 1))
                     ≤ ((Cgrow * (1 + |2 * Rk|) ^ ρ + Ctrail) / (Real.log 2)) * (rk⁻¹ ^ (m + 1)) := by
@@ -1627,9 +1630,9 @@ theorem summable_norm_inv_pow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {�
                 have h2pos : (0 : ℝ) < 2 := by norm_num
                 have hq_fac : q = ((2 : ℝ) ^ ρ) * qσ := by
                   -- `2^(ρ-(m+1)) = 2^ρ * 2^(-(m+1))`
-                  simp [q, qσ, sub_eq_add_neg, Real.rpow_add h2pos, mul_assoc, mul_left_comm, mul_comm]
+                  simp [q, qσ, sub_eq_add_neg, Real.rpow_add h2pos]
                 -- raise to `kk` and expand
-                simp [hq_fac, mul_pow, mul_assoc, mul_left_comm, mul_comm]
+                simp [hq_fac, mul_pow]
               calc
                 (∑' p : S kk, ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ (m + 1))
                     ≤ ((Cgrow * (1 + |2 * Rk|) ^ ρ + Ctrail) / (Real.log 2)) * (rk⁻¹ ^ (m + 1)) := htsum'
@@ -1719,6 +1722,522 @@ theorem summable_norm_inv_pow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {�
   -- rewrite `m` back to `Nat.floor ρ`
   simpa [m] using this
 
+set_option maxHeartbeats 0 in
+theorem summable_norm_inv_rpow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {ρ τ : ℝ}
+    (hρ : 0 ≤ ρ) (hτ : ρ < τ) (hf : Differentiable ℂ f) (hnot : ∃ z : ℂ, f z ≠ 0)
+    (hgrowth : ∃ C > 0, ∀ z : ℂ, Real.log (1 + ‖f z‖) ≤ C * (1 + ‖z‖) ^ ρ) :
+    Summable (fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) =>
+      ‖divisorZeroIndex₀_val p‖⁻¹ ^ τ) := by
+  classical
+  have hτpos : 0 < τ := lt_of_le_of_lt hρ hτ
+  -- A uniform lower bound away from 0 on all nonzero divisor indices.
+  rcases exists_r0_le_norm_divisorZeroIndex₀_val (f := f) hf hnot with ⟨r0, hr0pos, hr0⟩
+  have hr0ne : (r0 : ℝ) ≠ 0 := ne_of_gt hr0pos
+
+  -- Dyadic shell index.
+  let kfun : divisorZeroIndex₀ f (Set.univ : Set ℂ) → ℕ :=
+    fun p => ⌊Real.logb 2 (‖divisorZeroIndex₀_val p‖ / r0)⌋₊
+  let S : ℕ → Set (divisorZeroIndex₀ f (Set.univ : Set ℂ)) :=
+    fun k => {p | kfun p = k}
+  have hS : ∀ p : divisorZeroIndex₀ f (Set.univ : Set ℂ), ∃! k : ℕ, p ∈ S k := by
+    intro p
+    refine ⟨kfun p, ?_, ?_⟩
+    · simp [S]
+    · intro k hk
+      simpa [S] using hk.symm
+
+  have hnonneg : 0 ≤ fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) =>
+      ‖divisorZeroIndex₀_val p‖⁻¹ ^ τ := by
+    intro p
+    exact Real.rpow_nonneg (inv_nonneg.2 (norm_nonneg _)) _
+
+  -- Each shell is finite since it sits inside a closed ball.
+  have hSk_summable : ∀ k : ℕ, Summable fun p : S k => ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ := by
+    intro k
+    haveI : Finite (S k) := by
+      have hsub :
+          S k ⊆ {p : divisorZeroIndex₀ f (Set.univ : Set ℂ) |
+            ‖divisorZeroIndex₀_val p‖ ≤ r0 * (2 : ℝ) ^ ((k : ℝ) + 1)} := by
+        intro p hp
+        have hk : kfun p = k := hp
+        have hx1 : (1 : ℝ) ≤ ‖divisorZeroIndex₀_val p‖ / r0 := by
+          have : r0 ≤ ‖divisorZeroIndex₀_val p‖ := hr0 p
+          have : r0 / r0 ≤ ‖divisorZeroIndex₀_val p‖ / r0 :=
+            div_le_div_of_nonneg_right this (le_of_lt hr0pos)
+          simpa [hr0ne] using this
+        have hlt :
+            ‖divisorZeroIndex₀_val p‖ / r0 < (2 : ℝ) ^ ((k : ℝ) + 1) := by
+          have := lt_two_pow_floor_logb_add_one (x := ‖divisorZeroIndex₀_val p‖ / r0) hx1
+          simpa [kfun, hk] using this
+        have := mul_lt_mul_of_pos_left hlt hr0pos
+        have hxEq : r0 * (‖divisorZeroIndex₀_val p‖ / r0) = ‖divisorZeroIndex₀_val p‖ := by
+          field_simp [hr0ne]
+        have : ‖divisorZeroIndex₀_val p‖ < r0 * (2 : ℝ) ^ ((k : ℝ) + 1) := by
+          simpa [mul_assoc, hxEq] using this
+        exact le_of_lt this
+      have hfin :
+          ({p : divisorZeroIndex₀ f (Set.univ : Set ℂ) |
+            ‖divisorZeroIndex₀_val p‖ ≤ r0 * (2 : ℝ) ^ ((k : ℝ) + 1)} : Set _).Finite := by
+        have : Metric.closedBall (0 : ℂ) (r0 * (2 : ℝ) ^ ((k : ℝ) + 1)) ⊆ (Set.univ : Set ℂ) := by simp
+        simpa using (divisorZeroIndex₀_norm_le_finite (f := f) (U := (Set.univ : Set ℂ))
+          (B := r0 * (2 : ℝ) ^ ((k : ℝ) + 1)) this)
+      exact (hfin.subset hsub).to_subtype
+    exact Summable.of_finite
+
+  have hshell_summable :
+      Summable fun k : ℕ => ∑' p : S k, ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ := by
+    -- Geometric ratios `q = 2^(ρ-τ)` and `qσ = 2^(-τ)`.
+    let q : ℝ := (2 : ℝ) ^ (ρ - τ)
+    let qσ : ℝ := (2 : ℝ) ^ (-τ)
+    have hq_nonneg : 0 ≤ q := le_of_lt (Real.rpow_pos_of_pos (by norm_num : (0 : ℝ) < 2) _)
+    have hq_lt_one : q < 1 :=
+      Real.rpow_lt_one_of_one_lt_of_neg (x := (2 : ℝ)) (by norm_num : (1 : ℝ) < 2)
+        (sub_neg.2 hτ)
+    have hqσ_nonneg : 0 ≤ qσ := le_of_lt (Real.rpow_pos_of_pos (by norm_num : (0 : ℝ) < 2) _)
+    have hqσ_lt_one : qσ < 1 :=
+      Real.rpow_lt_one_of_one_lt_of_neg (x := (2 : ℝ)) (by norm_num : (1 : ℝ) < 2)
+        (by simpa using (neg_neg_of_pos hτpos))
+    have hgeom_q : Summable (fun k : ℕ => q ^ k) :=
+      summable_geometric_of_lt_one hq_nonneg hq_lt_one
+    have hgeom_qσ : Summable (fun k : ℕ => qσ ^ k) :=
+      summable_geometric_of_lt_one hqσ_nonneg hqσ_lt_one
+
+    have hlog2pos : 0 < Real.log 2 := Real.log_pos (by norm_num : (1 : ℝ) < 2)
+
+    let Cgrow : ℝ := Classical.choose hgrowth
+    let Ctrail : ℝ := |Real.log ‖meromorphicTrailingCoeffAt f 0‖|
+    -- majorant constants (non-optimal but explicit)
+    let A : ℝ := ((Cgrow / Real.log 2) * (1 + 4 * r0) ^ ρ) * (r0⁻¹) ^ τ
+    let B : ℝ := ((Ctrail / Real.log 2) + 1) * (r0⁻¹) ^ τ
+
+    -- Shift shells so that `Rk ≥ 1` for growth-bound application.
+    have htend : Tendsto (fun n : ℕ => (2 : ℝ) ^ n) atTop atTop :=
+      tendsto_pow_atTop_atTop_of_one_lt (r := (2 : ℝ)) (by norm_num : (1 : ℝ) < 2)
+    have hEvent : ∀ᶠ n in atTop, (1 / r0) ≤ (2 : ℝ) ^ n :=
+      (tendsto_atTop.1 htend) (1 / r0)
+    rcases (eventually_atTop.1 hEvent) with ⟨k0, hk0⟩
+    let A0 : ℝ := A * q ^ k0
+    let B0 : ℝ := B * qσ ^ k0
+
+    have hmajor : Summable (fun k : ℕ => A0 * q ^ k + B0 * qσ ^ k) :=
+      (hgeom_q.mul_left A0).add (hgeom_qσ.mul_left B0)
+
+    have hshell_summable_shift :
+        Summable fun k : ℕ => ∑' p : S (k + k0), ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ := by
+      -- `Summable` majorant + nonnegativity + pointwise bound
+      refine hmajor.of_nonneg_of_le
+        (fun k => by
+          have : ∀ p : S (k + k0), 0 ≤ ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ := by
+            intro p; exact Real.rpow_nonneg (inv_nonneg.2 (norm_nonneg _)) _
+          exact tsum_nonneg this)
+        (fun k => by
+          let kk : ℕ := k + k0
+          let rk : ℝ := r0 * (2 : ℝ) ^ (kk : ℝ)
+          let Rk : ℝ := r0 * (2 : ℝ) ^ ((kk : ℝ) + 1)
+          have hrk_pos : 0 < rk := mul_pos hr0pos (Real.rpow_pos_of_pos (by norm_num) _)
+          have hrk0 : 0 ≤ rk := le_of_lt hrk_pos
+
+          -- We’ll need `Fintype (S kk)` to talk about `tsum_fintype` and `Fintype.card`.
+          haveI : Finite (S kk) := by
+            -- `S kk ⊆ {p | ‖val p‖ ≤ Rk}` so it's finite.
+            have hsub :
+                S kk ⊆ {p : divisorZeroIndex₀ f (Set.univ : Set ℂ) | ‖divisorZeroIndex₀_val p‖ ≤ Rk} := by
+              intro p hp
+              have hk' : kfun p = kk := hp
+              have hx1 : (1 : ℝ) ≤ ‖divisorZeroIndex₀_val p‖ / r0 := by
+                have : r0 ≤ ‖divisorZeroIndex₀_val p‖ := hr0 p
+                have : r0 / r0 ≤ ‖divisorZeroIndex₀_val p‖ / r0 :=
+                  div_le_div_of_nonneg_right this (le_of_lt hr0pos)
+                simpa [hr0ne] using this
+              have hlt :
+                  ‖divisorZeroIndex₀_val p‖ / r0 < (2 : ℝ) ^ ((kk : ℝ) + 1) := by
+                have := lt_two_pow_floor_logb_add_one (x := ‖divisorZeroIndex₀_val p‖ / r0) hx1
+                simpa [kfun, hk'] using this
+              have := mul_lt_mul_of_pos_left hlt hr0pos
+              have hxEq : r0 * (‖divisorZeroIndex₀_val p‖ / r0) = ‖divisorZeroIndex₀_val p‖ := by
+                field_simp [hr0ne]
+              have : ‖divisorZeroIndex₀_val p‖ < Rk := by
+                simpa [Rk, mul_assoc, hxEq] using this
+              exact le_of_lt this
+            have hfin :
+                ({p : divisorZeroIndex₀ f (Set.univ : Set ℂ) | ‖divisorZeroIndex₀_val p‖ ≤ Rk} : Set _).Finite := by
+              have : Metric.closedBall (0 : ℂ) Rk ⊆ (Set.univ : Set ℂ) := by simp
+              simpa using
+                (divisorZeroIndex₀_norm_le_finite (f := f) (U := (Set.univ : Set ℂ)) (B := Rk) this)
+            exact (hfin.subset hsub).to_subtype
+          haveI : Fintype (S kk) := Fintype.ofFinite (S kk)
+
+          have hk_upper : ∀ p : S kk, ‖divisorZeroIndex₀_val p.1‖ ≤ Rk := by
+            intro p
+            -- same estimate as in the finiteness proof, but now for a fixed `p`
+            have hk' : kfun p.1 = kk := p.2
+            have hx1 : (1 : ℝ) ≤ ‖divisorZeroIndex₀_val p.1‖ / r0 := by
+              have : r0 ≤ ‖divisorZeroIndex₀_val p.1‖ := hr0 p.1
+              have : r0 / r0 ≤ ‖divisorZeroIndex₀_val p.1‖ / r0 :=
+                div_le_div_of_nonneg_right this (le_of_lt hr0pos)
+              simpa [hr0ne] using this
+            have hlt :
+                ‖divisorZeroIndex₀_val p.1‖ / r0 < (2 : ℝ) ^ ((kk : ℝ) + 1) := by
+              have := lt_two_pow_floor_logb_add_one (x := ‖divisorZeroIndex₀_val p.1‖ / r0) hx1
+              simpa [kfun, hk'] using this
+            have := mul_lt_mul_of_pos_left hlt hr0pos
+            have hxEq : r0 * (‖divisorZeroIndex₀_val p.1‖ / r0) = ‖divisorZeroIndex₀_val p.1‖ := by
+              field_simp [hr0ne]
+            have : ‖divisorZeroIndex₀_val p.1‖ < Rk := by
+              simpa [Rk, mul_assoc, hxEq] using this
+            exact le_of_lt this
+
+          have hk_lower : ∀ p : S kk, rk ≤ ‖divisorZeroIndex₀_val p.1‖ := by
+            intro p
+            have hk' : kfun p.1 = kk := p.2
+            have hx1 : (1 : ℝ) ≤ ‖divisorZeroIndex₀_val p.1‖ / r0 := by
+              have : r0 ≤ ‖divisorZeroIndex₀_val p.1‖ := hr0 p.1
+              have : r0 / r0 ≤ ‖divisorZeroIndex₀_val p.1‖ / r0 :=
+                div_le_div_of_nonneg_right this (le_of_lt hr0pos)
+              simpa [hr0ne] using this
+            have hle :
+                (2 : ℝ) ^ (kk : ℝ) ≤ ‖divisorZeroIndex₀_val p.1‖ / r0 := by
+              have := two_pow_floor_logb_le (x := ‖divisorZeroIndex₀_val p.1‖ / r0) hx1
+              simpa [kfun, hk'] using this
+            have := mul_le_mul_of_nonneg_left hle (le_of_lt hr0pos)
+            have hxEq : r0 * (‖divisorZeroIndex₀_val p.1‖ / r0) = ‖divisorZeroIndex₀_val p.1‖ := by
+              field_simp [hr0ne]
+            have : rk ≤ ‖divisorZeroIndex₀_val p.1‖ := by
+              simpa [rk, mul_assoc, hxEq] using this
+            exact this
+
+          have htsum_le :
+              (∑' p : S kk, ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ)
+                ≤ (Fintype.card (S kk) : ℝ) * (rk⁻¹ ^ τ) := by
+            classical
+            have hterm_le : ∀ p : S kk, ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ ≤ rk⁻¹ ^ τ := by
+              intro p
+              have hinv : ‖divisorZeroIndex₀_val p.1‖⁻¹ ≤ rk⁻¹ := by
+                simpa using (inv_anti₀ hrk_pos (hk_lower p))
+              exact Real.rpow_le_rpow (inv_nonneg.2 (norm_nonneg _)) hinv (le_of_lt hτpos)
+            have hsum_le :
+                (∑ p : S kk, ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ)
+                  ≤ ∑ _p : S kk, rk⁻¹ ^ τ := by
+              refine Finset.sum_le_sum ?_
+              intro p _hp
+              exact hterm_le p
+            have hconst :
+                (∑ _p : S kk, rk⁻¹ ^ τ) = (Fintype.card (S kk) : ℝ) * (rk⁻¹ ^ τ) := by
+              -- `∑ _p, c = card * c`
+              classical
+              -- `simp` unfolds the `Fintype`-sum to a `Finset.univ` sum
+              simp [Finset.sum_const, nsmul_eq_mul, mul_comm]
+            -- convert `tsum` to a finite sum and finish
+            have : (∑' p : S kk, ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ)
+                ≤ (∑ p : S kk, ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ) := by
+              simp [tsum_fintype]
+            -- `tsum = sum` for fintype
+            simpa [tsum_fintype, hconst] using (hsum_le.trans_eq hconst)
+
+          -- Card(shell) ≤ mass(Rk), and mass(Rk) ≤ growth bound (since `Rk ≥ 1` by shift)
+          have hRk_ge_one : (1 : ℝ) ≤ Rk := by
+            have hpow_nat : (1 / r0) ≤ (2 : ℝ) ^ (kk + 1) := by
+              have hkk : k0 ≤ kk + 1 := by
+                simp [kk, Nat.add_assoc, Nat.add_comm]
+              exact hk0 (kk + 1) hkk
+            have hpow_rpow : (1 / r0) ≤ (2 : ℝ) ^ ((kk : ℝ) + 1) := by
+              -- rewrite the RHS `rpow` as a `pow` since the exponent is an integer
+              have hcast : (2 : ℝ) ^ ((kk : ℝ) + 1) = (2 : ℝ) ^ (kk + 1) := by
+                calc
+                  (2 : ℝ) ^ ((kk : ℝ) + 1) = (2 : ℝ) ^ ((kk + 1 : ℕ) : ℝ) := by
+                    simp [Nat.cast_add, Nat.cast_one]
+                  _ = (2 : ℝ) ^ (kk + 1) := by
+                    simpa using (Real.rpow_natCast (2 : ℝ) (kk + 1))
+              simpa [hcast] using hpow_nat
+            have : (r0 * (1 / r0) : ℝ) ≤ r0 * (2 : ℝ) ^ ((kk : ℝ) + 1) :=
+              mul_le_mul_of_nonneg_left hpow_rpow hr0pos.le
+            simpa [Rk, one_div, hr0ne, mul_assoc] using this
+
+          have hmass_le_growth :
+              ((((Function.locallyFinsuppWithin.finiteSupport
+                        (Function.locallyFinsuppWithin.toClosedBall Rk
+                          (MeromorphicOn.divisor f (Set.univ : Set ℂ)))
+                        (isCompact_closedBall (0 : ℂ) |Rk|)).toFinset).filter fun z : ℂ => z ≠ 0).sum
+                  fun z : ℂ => (MeromorphicOn.divisor f (Set.univ : Set ℂ) z : ℝ))
+                ≤ (Cgrow * (1 + |2 * Rk|) ^ ρ + Ctrail) / (Real.log 2) := by
+            simpa [Cgrow, Ctrail] using
+              (sum_divisor_closedBall_le_of_growth (f := f) (ρ := ρ) hf hgrowth (R := Rk) hRk_ge_one)
+
+          have hcard_le_mass :
+              (Fintype.card (S kk) : ℝ) ≤
+                ((((Function.locallyFinsuppWithin.finiteSupport
+                        (Function.locallyFinsuppWithin.toClosedBall Rk
+                          (MeromorphicOn.divisor f (Set.univ : Set ℂ)))
+                        (isCompact_closedBall (0 : ℂ) |Rk|)).toFinset).filter fun z : ℂ => z ≠ 0).sum
+                    fun z : ℂ => (MeromorphicOn.divisor f (Set.univ : Set ℂ) z : ℝ)) := by
+            -- Same proof as in the integer-exponent lemma: compare to the norm-ball subtype and apply
+            -- `card_shell_le_sum_divisor_closedBall`.
+            classical
+            let Aball : Type :=
+              {p : divisorZeroIndex₀ f (Set.univ : Set ℂ) // ‖divisorZeroIndex₀_val p‖ ≤ Rk}
+            haveI : Fintype Aball := by
+              classical
+              have : Finite Aball := by
+                have : Metric.closedBall (0 : ℂ) Rk ⊆ (Set.univ : Set ℂ) := by simp
+                simpa using
+                  (finite_divisorZeroIndex₀_subtype_norm_le (f := f) (U := (Set.univ : Set ℂ)) (B := Rk) this)
+              exact Fintype.ofFinite _
+            have hinj :
+                Function.Injective (fun p : S kk => (⟨p.1, hk_upper p⟩ : Aball)) := by
+              intro p q hpq
+              apply Subtype.ext
+              exact congrArg (fun x : Aball => x.1) hpq
+            have hcard_le : Fintype.card (S kk) ≤ Fintype.card Aball :=
+              Fintype.card_le_of_injective _ hinj
+            have hRk_lower : r0 ≤ Rk := by
+              dsimp [Rk]
+              have hpow : (1 : ℝ) ≤ (2 : ℝ) ^ ((kk : ℝ) + 1) :=
+                Real.one_le_rpow (by norm_num : (1 : ℝ) ≤ 2) (by linarith)
+              nlinarith [hr0pos.le, hpow]
+            have hAball :
+                (Nat.card Aball : ℝ) ≤
+                  ((((Function.locallyFinsuppWithin.finiteSupport
+                          (Function.locallyFinsuppWithin.toClosedBall Rk
+                            (MeromorphicOn.divisor f (Set.univ : Set ℂ)))
+                          (isCompact_closedBall (0 : ℂ) |Rk|)).toFinset).filter fun z : ℂ => z ≠ 0).sum
+                      fun z : ℂ => (MeromorphicOn.divisor f (Set.univ : Set ℂ) z : ℝ)) :=
+              card_shell_le_sum_divisor_closedBall (f := f) hf hnot (r0 := r0) (R := Rk) hr0pos hRk_lower
+            calc
+              (Fintype.card (S kk) : ℝ) ≤ (Fintype.card Aball : ℝ) := by exact_mod_cast hcard_le
+              _ = (Nat.card Aball : ℝ) := by simp [Nat.card_eq_fintype_card]
+              _ ≤ _ := hAball
+
+          have htsum' :
+              (∑' p : S kk, ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ)
+                ≤ ((Cgrow * (1 + |2 * Rk|) ^ ρ + Ctrail) / (Real.log 2)) * (rk⁻¹ ^ τ) := by
+            have hcard_le_growth :
+                (Fintype.card (S kk) : ℝ) ≤ (Cgrow * (1 + |2 * Rk|) ^ ρ + Ctrail) / (Real.log 2) :=
+              le_trans hcard_le_mass hmass_le_growth
+            have := mul_le_mul_of_nonneg_right hcard_le_growth (Real.rpow_nonneg (inv_nonneg.2 hrk0) τ)
+            exact le_trans htsum_le this
+
+          -- crude bound `(1 + |2Rk|)^ρ ≤ (1+4r0)^ρ * ((2^ρ)^kk)`
+          have hpow_bound :
+              (1 + |2 * Rk|) ^ ρ ≤ (1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ ρ) ^ kk := by
+            have hRk' : |2 * Rk| = 4 * r0 * (2 : ℝ) ^ (kk : ℝ) := by
+              -- `Rk = r0 * 2^(kk+1)` so `|2Rk| = 4*r0*2^kk`
+              have hnonneg : 0 ≤ (2 : ℝ) * Rk := by
+                have : 0 ≤ Rk := by
+                  dsimp [Rk]
+                  exact mul_nonneg hr0pos.le (le_of_lt (Real.rpow_pos_of_pos (by norm_num) _))
+                nlinarith
+              have hmul : (2 : ℝ) * Rk = 4 * r0 * (2 : ℝ) ^ (kk : ℝ) := by
+                dsimp [Rk]
+                calc
+                  (2 : ℝ) * (r0 * (2 : ℝ) ^ ((kk : ℝ) + 1))
+                      = (2 * r0) * (2 : ℝ) ^ ((kk : ℝ) + 1) := by ring
+                  _ = (2 * r0) * ((2 : ℝ) ^ (kk : ℝ) * (2 : ℝ) ^ (1 : ℝ)) := by
+                        simp [Real.rpow_add, mul_assoc]
+                  _ = (2 * r0) * ((2 : ℝ) ^ (kk : ℝ) * 2) := by simp [Real.rpow_one]
+                  _ = 4 * r0 * (2 : ℝ) ^ (kk : ℝ) := by ring
+              calc
+                |2 * Rk| = 2 * Rk := abs_of_nonneg hnonneg
+                _ = 4 * r0 * (2 : ℝ) ^ (kk : ℝ) := hmul
+            have hbase :
+                (1 + |2 * Rk|) ≤ (1 + 4 * r0) * (2 : ℝ) ^ (kk : ℝ) := by
+              -- use `1 ≤ 2^kk`
+              have h1 : (1 : ℝ) ≤ (2 : ℝ) ^ (kk : ℝ) := by
+                have : (1 : ℝ) ≤ (2 : ℝ) ^ (kk : ℕ) := by
+                  simpa using (one_le_pow₀ (by norm_num : (1 : ℝ) ≤ (2 : ℝ)))
+                -- rewrite nat pow as rpow
+                simpa [Real.rpow_natCast] using this
+              have habs : 1 + |2 * Rk| ≤ (2 : ℝ) ^ (kk : ℝ) + (4 * r0) * (2 : ℝ) ^ (kk : ℝ) := by
+                -- rewrite `|2*Rk|` and add the inequality `1 ≤ 2^kk`
+                rw [hRk']
+                -- `add_le_add_right` may present the sum in the other order; `simp` will normalize it.
+                simpa [add_assoc, add_left_comm, add_comm, mul_assoc, mul_left_comm, mul_comm] using
+                  (add_le_add_right h1 ((4 * r0) * (2 : ℝ) ^ (kk : ℝ)))
+              have hfac :
+                  (2 : ℝ) ^ (kk : ℝ) + (4 * r0) * (2 : ℝ) ^ (kk : ℝ)
+                    = (1 + 4 * r0) * (2 : ℝ) ^ (kk : ℝ) := by
+                ring
+              exact habs.trans (le_of_eq hfac)
+            have hRnonneg : 0 ≤ (1 + |2 * Rk|) := by linarith [abs_nonneg (2 * Rk)]
+            have hbase_nonneg : 0 ≤ (1 + 4 * r0) * (2 : ℝ) ^ (kk : ℝ) := by
+              have : 0 ≤ (1 + 4 * r0) := by nlinarith [hr0pos.le]
+              exact mul_nonneg this (le_of_lt (Real.rpow_pos_of_pos (by norm_num) _))
+            have : (1 + |2 * Rk|) ^ ρ ≤ ((1 + 4 * r0) * (2 : ℝ) ^ (kk : ℝ)) ^ ρ :=
+              Real.rpow_le_rpow hRnonneg hbase hρ
+            -- split product
+            have hsplit :
+                ((1 + 4 * r0) * (2 : ℝ) ^ (kk : ℝ)) ^ ρ
+                  = (1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ (kk : ℝ)) ^ ρ := by
+              have h1 : 0 ≤ (1 + 4 * r0) := by nlinarith [hr0pos.le]
+              have h2 : 0 ≤ (2 : ℝ) ^ (kk : ℝ) := le_of_lt (Real.rpow_pos_of_pos (by norm_num) _)
+              simpa using (Real.mul_rpow h1 h2 (z := ρ))
+            have hpow :
+                ((2 : ℝ) ^ (kk : ℝ)) ^ ρ = ((2 : ℝ) ^ ρ) ^ kk := by
+              have h2nonneg : (0 : ℝ) ≤ 2 := by norm_num
+              -- `(2^kk)^ρ = 2^(kk*ρ)` and `((2^ρ)^kk)` are same by natCast
+              -- use `Real.rpow_mul` then `Real.rpow_natCast`
+              calc
+                ((2 : ℝ) ^ (kk : ℝ)) ^ ρ = (2 : ℝ) ^ ((kk : ℝ) * ρ) := by
+                  simp [Real.rpow_mul]
+                _ = ((2 : ℝ) ^ ρ) ^ (kk : ℝ) := by
+                  simpa [mul_comm] using (Real.rpow_mul (x := (2 : ℝ)) (y := ρ) (z := (kk : ℝ)) h2nonneg)
+                _ = ((2 : ℝ) ^ ρ) ^ kk := by
+                  simp [Real.rpow_natCast]
+            calc
+              (1 + |2 * Rk|) ^ ρ ≤ ((1 + 4 * r0) * (2 : ℝ) ^ (kk : ℝ)) ^ ρ := this
+              _ = (1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ (kk : ℝ)) ^ ρ := hsplit
+              _ = (1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ ρ) ^ kk := by
+                    -- multiply the identity `hpow` by the constant factor on the left
+                    simpa [mul_assoc] using congrArg (fun t => (1 + 4 * r0) ^ ρ * t) hpow
+
+          -- bound the shell sum by the geometric majorant
+          have hr0Inv_nonneg : 0 ≤ (r0⁻¹ : ℝ) ^ τ := by
+            exact Real.rpow_nonneg (inv_nonneg.2 hr0pos.le) _
+          have hmain :
+              (∑' p : S kk, ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ) ≤ A * q ^ kk + B * qσ ^ kk := by
+            -- split the growth bound term and the trailing term
+            have hsplit' :
+                ((Cgrow * (1 + |2 * Rk|) ^ ρ + Ctrail) / (Real.log 2)) * (rk⁻¹ ^ τ)
+                  ≤ ((Cgrow / Real.log 2) * ((1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ ρ) ^ kk)) * (rk⁻¹ ^ τ)
+                    + ((Ctrail / Real.log 2) * (rk⁻¹ ^ τ)) := by
+              -- First upgrade the numerator using `hpow_bound`, then divide by `log 2 > 0`, then multiply by `rk⁻¹^τ ≥ 0`.
+              have hmul :
+                  Cgrow * (1 + |2 * Rk|) ^ ρ ≤ Cgrow * ((1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ ρ) ^ kk) :=
+                mul_le_mul_of_nonneg_left hpow_bound (le_of_lt (Classical.choose_spec hgrowth).1)
+              have hnum :
+                  (Cgrow * (1 + |2 * Rk|) ^ ρ + Ctrail)
+                    ≤ (Cgrow * ((1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ ρ) ^ kk) + Ctrail) :=
+                add_le_add hmul (le_rfl : Ctrail ≤ Ctrail)
+              have hdiv :
+                  (Cgrow * (1 + |2 * Rk|) ^ ρ + Ctrail) / (Real.log 2)
+                    ≤ (Cgrow * ((1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ ρ) ^ kk) + Ctrail) / (Real.log 2) :=
+                div_le_div_of_nonneg_right hnum (le_of_lt hlog2pos)
+              have hmul' :=
+                mul_le_mul_of_nonneg_right hdiv (Real.rpow_nonneg (inv_nonneg.2 hrk0) τ)
+              -- Now rewrite the RHS using `add_div` and distributivity.
+              have hdecomp :
+                  ((Cgrow * ((1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ ρ) ^ kk) + Ctrail) / (Real.log 2)) * (rk⁻¹ ^ τ)
+                    =
+                    ((Cgrow / Real.log 2) * ((1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ ρ) ^ kk)) * (rk⁻¹ ^ τ)
+                      + ((Ctrail / Real.log 2) * (rk⁻¹ ^ τ)) := by
+                -- purely algebraic
+                simp [div_eq_mul_inv, mul_add, mul_assoc, mul_left_comm, mul_comm]
+              exact le_trans hmul' (le_of_eq hdecomp)
+            have htsum'' : (∑' p : S kk, ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ)
+                ≤ ((Cgrow * (1 + |2 * Rk|) ^ ρ + Ctrail) / (Real.log 2)) * (rk⁻¹ ^ τ) := htsum'
+            have hpre :=
+              le_trans htsum'' (le_trans (le_of_eq rfl) hsplit')
+            -- now convert to `A*q^kk + B*qσ^kk` (coarse; the algebra is handled by commutativity)
+            -- `rk⁻¹^τ = (r0⁻¹^τ) * qσ^kk` and `q^kk = ((2^ρ)^kk) * qσ^kk`
+            have hrk_inv : rk⁻¹ ^ τ = (r0⁻¹ : ℝ) ^ τ * (qσ ^ kk) := by
+              have hr0nn : 0 ≤ r0 := le_of_lt hr0pos
+              have h2kk_nn : 0 ≤ (2 : ℝ) ^ (kk : ℝ) :=
+                le_of_lt (Real.rpow_pos_of_pos (by norm_num : (0 : ℝ) < 2) _)
+              calc
+                rk⁻¹ ^ τ = rk ^ (-τ) := by
+                  simpa using (Real.rpow_neg_eq_inv_rpow rk τ).symm
+                _ = (r0 * (2 : ℝ) ^ (kk : ℝ)) ^ (-τ) := by rfl
+                _ = (r0 ^ (-τ)) * (((2 : ℝ) ^ (kk : ℝ)) ^ (-τ)) := by
+                      simpa using (Real.mul_rpow hr0nn h2kk_nn (z := (-τ)))
+                _ = (r0⁻¹ ^ τ) * (qσ ^ kk) := by
+                      have hr0' : r0 ^ (-τ) = r0⁻¹ ^ τ := by
+                        simp [Real.rpow_neg_eq_inv_rpow]
+                      have h2' : ((2 : ℝ) ^ (kk : ℝ)) ^ (-τ) = qσ ^ kk := by
+                        have h2nonneg : (0 : ℝ) ≤ (2 : ℝ) := by norm_num
+                        calc
+                          ((2 : ℝ) ^ (kk : ℝ)) ^ (-τ) = (2 : ℝ) ^ ((kk : ℝ) * (-τ)) := by
+                            -- avoid simp rewriting `2 ^ (kk:ℝ)` to `2 ^ kk` mid-proof
+                            exact (Real.rpow_mul (x := (2 : ℝ)) (y := (kk : ℝ)) (z := (-τ)) h2nonneg).symm
+                          _ = (2 : ℝ) ^ ((-τ) * (kk : ℝ)) := by ring_nf
+                          _ = ((2 : ℝ) ^ (-τ)) ^ (kk : ℝ) := by
+                            exact (Real.rpow_mul (x := (2 : ℝ)) (y := (-τ)) (z := (kk : ℝ)) h2nonneg)
+                          _ = ((2 : ℝ) ^ (-τ)) ^ kk := by
+                            simp [Real.rpow_natCast]
+                          _ = qσ ^ kk := by rfl
+                      -- Avoid simp-cancellation (`mul_eq_mul_left_iff`) which creates spurious disjunction goals.
+                      calc
+                        r0 ^ (-τ) * ((2 : ℝ) ^ (kk : ℝ)) ^ (-τ)
+                            = (r0⁻¹ ^ τ) * ((2 : ℝ) ^ (kk : ℝ)) ^ (-τ) := by
+                                -- multiply the equality `hr0'` by the common factor on the right
+                                simpa [mul_assoc] using
+                                  congrArg (fun t : ℝ => t * (((2 : ℝ) ^ (kk : ℝ)) ^ (-τ))) hr0'
+                        _ = (r0⁻¹ ^ τ) * (qσ ^ kk) := by
+                                -- multiply the equality `h2'` by the common factor on the left
+                                simpa [mul_assoc] using
+                                  congrArg (fun t : ℝ => (r0⁻¹ ^ τ) * t) h2'
+            -- finish majorization (loose but works)
+            -- Put everything into the form `A*q^kk + B*qσ^kk` via `linarith`-style algebra.
+            -- We allow the simple (slightly redundant) `≤` by using `Ctrail/log2 ≤ (Ctrail/log2)+1`.
+            -- now substitute `hrk_inv` and use a coefficient inequality for the trailing term
+            have hq_fac : q = ((2 : ℝ) ^ ρ) * qσ := by
+              have h2pos : (0 : ℝ) < (2 : ℝ) := by norm_num
+              -- `2^(ρ-τ) = 2^ρ * 2^(-τ)`
+              calc
+                q = (2 : ℝ) ^ (ρ - τ) := by rfl
+                _ = (2 : ℝ) ^ (ρ + (-τ)) := by ring_nf
+                _ = (2 : ℝ) ^ ρ * (2 : ℝ) ^ (-τ) := by
+                      simp [Real.rpow_add h2pos]
+                _ = ((2 : ℝ) ^ ρ) * qσ := by rfl
+            have hq_pow : q ^ kk = ((2 : ℝ) ^ ρ) ^ kk * (qσ ^ kk) := by
+              -- `q = (2^ρ)*qσ`, then take `Nat.pow`
+              simp [hq_fac, mul_pow]
+            have hAterm :
+                ((Cgrow / Real.log 2) * ((1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ ρ) ^ kk)) * (rk⁻¹ ^ τ)
+                  = A * q ^ kk := by
+              -- rewrite `rk⁻¹^τ` and `q^kk`, then reassociate/commute.
+              dsimp [A]
+              rw [hrk_inv, hq_pow]
+              ac_rfl
+            have hBterm :
+                ((Ctrail / Real.log 2) * (rk⁻¹ ^ τ)) ≤ B * qσ ^ kk := by
+              -- use `rk⁻¹^τ = r0⁻¹^τ * qσ^kk` and bound the coefficient `Ctrail/log2 ≤ Ctrail/log2 + 1`
+              dsimp [B]
+              rw [hrk_inv]
+              have hcoeff : (Ctrail / Real.log 2) ≤ (Ctrail / Real.log 2) + 1 := by linarith
+              have hmul :
+                  (Ctrail / Real.log 2) * ((r0⁻¹ : ℝ) ^ τ)
+                    ≤ ((Ctrail / Real.log 2) + 1) * ((r0⁻¹ : ℝ) ^ τ) := by
+                exact mul_le_mul_of_nonneg_right hcoeff hr0Inv_nonneg
+              have hqσpow_nonneg : 0 ≤ qσ ^ kk := pow_nonneg hqσ_nonneg _
+              have := mul_le_mul_of_nonneg_right hmul hqσpow_nonneg
+              -- match the target ordering
+              simpa [mul_assoc, mul_left_comm, mul_comm] using this
+            have hpost : (∑' p : S kk, ‖divisorZeroIndex₀_val p.1‖⁻¹ ^ τ) ≤ A * q ^ kk + B * qσ ^ kk := by
+              have hAB : ((Cgrow / Real.log 2) * ((1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ ρ) ^ kk)) * (rk⁻¹ ^ τ)
+                    + ((Ctrail / Real.log 2) * (rk⁻¹ ^ τ))
+                  ≤ A * q ^ kk + B * qσ ^ kk := by
+                have hA : ((Cgrow / Real.log 2) * ((1 + 4 * r0) ^ ρ * ((2 : ℝ) ^ ρ) ^ kk)) * (rk⁻¹ ^ τ)
+                    ≤ A * q ^ kk := by
+                  simp [hAterm]
+                have hB : ((Ctrail / Real.log 2) * (rk⁻¹ ^ τ)) ≤ B * qσ ^ kk := hBterm
+                -- add the inequalities
+                have := add_le_add hA hB
+                simpa [add_assoc, add_left_comm, add_comm] using this
+              exact hpre.trans (by
+                -- reorder the RHS of `hpre` to match the LHS of `hAB`
+                simpa [add_assoc, add_left_comm, add_comm] using hAB)
+            exact hpost
+
+          -- rewrite `kk = k + k0` to shift
+          have : A * q ^ kk + B * qσ ^ kk = A0 * q ^ k + B0 * qσ ^ k := by
+            have hAshift : A * q ^ kk = A0 * q ^ k := by
+              dsimp [A0, kk]
+              rw [pow_add]
+              ac_rfl
+            have hBshift : B * qσ ^ kk = B0 * qσ ^ k := by
+              dsimp [B0, kk]
+              rw [pow_add]
+              ac_rfl
+            simp [hAshift, hBshift]
+          simpa [kk] using (hmain.trans_eq this)
+        )
+    exact (summable_nat_add_iff k0).1 hshell_summable_shift
+
+  -- Conclude by summing over the partition.
+  have hpart :=
+    (summable_partition (f := fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) =>
+        ‖divisorZeroIndex₀_val p‖⁻¹ ^ τ) hnonneg (s := S) hS)
+  exact (hpart.2 ⟨hSk_summable, hshell_summable⟩)
+
 
 /-!
 ## Boundedness on compact annuli (away from `z₀`)
@@ -1771,13 +2290,31 @@ theorem bddAbove_norm_divisorCanonicalProduct_div_pow_annulus
   exact hC _ ⟨w, hwK, rfl⟩
 
 /-!
+## Elementary helper: `log(1 + exp B) ≤ B + log 2`
+
+Used when converting a norm bound `‖H z‖ ≤ exp(B)` into a `log(1+‖H z‖)` bound.
+-/
+
+lemma log_one_add_exp_le (B : ℝ) (hB : 0 ≤ B) :
+    Real.log (1 + Real.exp B) ≤ B + Real.log 2 := by
+  have hle : (1 : ℝ) + Real.exp B ≤ 2 * Real.exp B := by
+    have : (1 : ℝ) ≤ Real.exp B := by simpa using (Real.exp_monotone hB)
+    nlinarith
+  have hpos : 0 < (1 : ℝ) + Real.exp B := by
+    have : 0 < Real.exp B := Real.exp_pos _
+    linarith
+  have hlog_le : Real.log (1 + Real.exp B) ≤ Real.log (2 * Real.exp B) :=
+    Real.log_le_log hpos (hle.trans_eq rfl)
+  have hlog_mul : Real.log (2 * Real.exp B) = Real.log 2 + B := by
+    simp [Real.log_mul, show (2 : ℝ) ≠ 0 by norm_num]
+  linarith [hlog_le, hlog_mul]
+
+/-!
 ## Hadamard factorization (intrinsic statement; proof to be supplied)
 
 This is the *target* API: no `ZeroData`, and zeros/multiplicities are obtained intrinsically via the
-divisor machinery.
+divisor infrastructure.
 
-At the moment this is only a statement scaffold (the proof will be completed once Jensen/Lindelöf
-and the quotient step are wired into this PR3 development).
 -/
 
 theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 ≤ ρ)
@@ -1805,9 +2342,346 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
   rcases exists_entire_nonzero_hadamardQuotient (m := m) (f := f) hentire hnot h_sum with
     ⟨H, hH_entire, hH_ne, hfactor⟩
 
-  -- Step 3 (remaining): zero-free entire function with controlled growth is `exp` of a polynomial.
-  -- This is the Cartan / exp(poly) step; it will be supplied as the PR3 development completes.
-  -- Once this is available, we will set `P` from it and rewrite `hfactor` accordingly.
-  sorry
+  -- Step 3: Cartan/minimum-modulus step: show `H` has growth exponent `< m+1`, hence `H = exp(P)`
+  -- with `deg P ≤ m`, and conclude the factorization.
+  --
+  -- We choose an intermediate exponent `τ` with `ρ < τ < m+1`, so that `Nat.floor τ = m`.
+  let τ : ℝ := (ρ + (m + 1 : ℝ)) / 2
+  have hτ : ρ < τ := by
+    have hm : ρ < (m + 1 : ℝ) := by
+      -- `m = floor ρ` gives `ρ < m+1`
+      simpa [m] using (Nat.lt_floor_add_one (a := ρ))
+    dsimp [τ]
+    linarith
+  have hτ_lt : τ < (m + 1 : ℝ) := by
+    have hm : ρ < (m + 1 : ℝ) := by
+      -- `m = floor ρ` gives `ρ < m+1`
+      simpa [m] using (Nat.lt_floor_add_one (a := ρ))
+    dsimp [τ]
+    linarith
+  have hτ_nonneg : 0 ≤ τ := le_trans hρ (le_of_lt hτ)
+  have hfloorτ : Nat.floor τ = m := by
+    have hm_le_ρ : (m : ℝ) ≤ ρ := by
+      have := Nat.floor_le hρ
+      simpa [m] using this
+    have hm_le_τ : (m : ℝ) ≤ τ := le_trans hm_le_ρ (le_of_lt hτ)
+    have hτ_lt_m1 : τ < (m : ℝ) + 1 := by
+      simpa [add_assoc, add_comm, add_left_comm] using hτ_lt
+    -- apply `Nat.floor_eq_iff`
+    exact (Nat.floor_eq_iff hτ_nonneg).2 ⟨hm_le_τ, hτ_lt_m1⟩
+
+  -- Intrinsic Cartan/minimum-modulus growth bound for the Hadamard quotient:
+  -- Tao-style “good radius + minimum modulus”, implemented intrinsically over `divisorZeroIndex₀`,
+  -- producing `‖H z‖ ≤ exp(C*(1+‖z‖)^τ)` for `ρ < τ < m+1`.
+
+  have hH_bound_rpow :
+      ∃ C > 0, ∀ z : ℂ, ‖H z‖ ≤ Real.exp (C * (1 + ‖z‖) ^ τ) := by
+    classical
+    rcases hgrowth with ⟨Cf, hCfpos, hCf⟩
+    -- τ-summability of divisor indices (intrinsic Lindelöf)
+    have hsumτ :
+        Summable (fun p : divisorZeroIndex₀ f (Set.univ : Set ℂ) =>
+          ‖divisorZeroIndex₀_val p‖⁻¹ ^ τ) :=
+      summable_norm_inv_rpow_divisorZeroIndex₀_of_growth (f := f) (ρ := ρ) (τ := τ)
+        hρ hτ hentire hnot ⟨Cf, hCfpos, hCf⟩
+    let Sτ : ℝ := ∑' p : divisorZeroIndex₀ f (Set.univ : Set ℂ), ‖divisorZeroIndex₀_val p‖⁻¹ ^ τ
+    have hSτ_nonneg : 0 ≤ Sτ := tsum_nonneg (fun _ => by
+      exact Real.rpow_nonneg (inv_nonneg.2 (norm_nonneg _)) _)
+
+    -- A coarse constant for the canonical product inverse bound on good circles.
+    let Cprod : ℝ := ((LogSingularity.Cφ + (2 : ℝ) * m) * (4 : ℝ) ^ τ + 3) * (Sτ + 1)
+    have hCprod_nonneg : 0 ≤ Cprod := by
+      have hS : 0 ≤ Sτ + 1 := by linarith [hSτ_nonneg]
+      have hA : 0 ≤ (LogSingularity.Cφ + (2 : ℝ) * m) * (4 : ℝ) ^ τ + 3 := by
+        have hCφ : 0 ≤ LogSingularity.Cφ := le_of_lt LogSingularity.Cφ_pos
+        have hm0 : 0 ≤ (m : ℝ) := by exact_mod_cast (Nat.zero_le m)
+        have h4τ : 0 ≤ (4 : ℝ) ^ τ := by positivity
+        nlinarith [hCφ, hm0, h4τ]
+      simpa [Cprod] using mul_nonneg hA hS
+
+    refine ⟨(Cf + Cprod + 10) * (3 : ℝ) ^ τ, by
+      have h3τ : 0 < (3 : ℝ) ^ τ := by positivity
+      nlinarith [hCfpos, hCprod_nonneg, h3τ], ?_⟩
+    intro z
+    -- choose a dyadic scale `R` and a good radius `r ∈ (R,2R]`
+    let R : ℝ := max ‖z‖ 1
+    have hRpos : 0 < R := lt_of_lt_of_le (by norm_num) (le_max_right _ _)
+    have hRle : (1 : ℝ) ≤ R := le_max_right _ _
+    -- finite family of divisor indices with `‖val‖ ≤ 4R`
+    let smallSet : Set (divisorZeroIndex₀ f (Set.univ : Set ℂ)) := {p | ‖divisorZeroIndex₀_val p‖ ≤ 4 * R}
+    have hsmall_fin : smallSet.Finite := by
+      have : Metric.closedBall (0 : ℂ) (4 * R) ⊆ (Set.univ : Set ℂ) := by simp
+      simpa [smallSet] using
+        (divisorZeroIndex₀_norm_le_finite (f := f) (U := (Set.univ : Set ℂ)) (B := 4 * R) this)
+    let small : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ)) := hsmall_fin.toFinset
+    let a : divisorZeroIndex₀ f (Set.univ : Set ℂ) → ℝ := fun p => ‖divisorZeroIndex₀_val p‖
+    have ha_pos : ∀ p ∈ small, 0 < a p := by
+      intro p hp; dsimp [a]
+      exact norm_pos_iff.2 (divisorZeroIndex₀_val_ne_zero p)
+    let bad : Finset ℝ := small.image a
+    rcases LogSingularity.exists_radius_Ioc_sum_mul_phi_div_le_Cφ_mul_sum_avoid
+        (s := small) (w := fun _ => (1 : ℝ)) (a := a)
+        (hw := by intro _ _; norm_num) (ha := ha_pos) (bad := bad) (R := R) hRpos with
+      ⟨r, hr_mem, hr_not_bad, hr_phi⟩
+    have hR_le_r : R ≤ r := le_of_lt hr_mem.1
+    have hr_le_2R : r ≤ 2 * R := hr_mem.2
+    have hrpos : 0 < r := lt_of_lt_of_le hRpos hR_le_r
+
+    -- bound `‖H‖` on the circle `‖u‖ = r`, then propagate to the ball by maximum modulus.
+    have hcircle :
+        ∀ u : ℂ, ‖u‖ = r → ‖H u‖ ≤ Real.exp ((Cf + Cprod + 10) * (1 + r) ^ τ) := by
+      intro u hur
+      -- `H u = f u / (u^ord0 * canonicalProduct u)` via `hfactor`
+      have hden_eq : f u = H u * (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u) := by
+        simpa [mul_assoc, mul_left_comm, mul_comm] using (hfactor u)
+      have hu0 : u ≠ 0 := by
+        intro hu0; subst hu0
+        have : (0 : ℝ) = r := by simpa using hur
+        exact (ne_of_gt hrpos) this.symm
+      have hpow_ne : u ^ analyticOrderNatAt f 0 ≠ 0 := pow_ne_zero _ hu0
+      -- First show that `f` has no zeros on this circle: if `f u = 0`, then `‖u‖ = r` belongs to the
+      -- finite bad set of zero radii, contradiction.
+      have hfu_ne : f u ≠ 0 := by
+        intro hfu0
+        -- the fiber finset at `u` is nonempty, hence we can pick a divisor index with `val = u`
+        have hord_ne0 : analyticOrderNatAt f u ≠ 0 := by
+          have han : AnalyticAt ℂ f u := Differentiable.analyticAt (f := f) hentire u
+          -- `analyticOrderAt` is not `⊤` since `f` is entire and not identically zero
+          have hnotTop : analyticOrderAt f u ≠ ⊤ :=
+            analyticOrderAt_ne_top_of_exists_ne_zero (f := f) hentire hnot u
+          -- If `analyticOrderNatAt f u = 0`, then (as an `ENat`) the order is `0`, hence `f u ≠ 0`.
+          intro h0
+          have hEN : (analyticOrderNatAt f u : ENat) = 0 := by simpa [h0]
+          have hAt0 : analyticOrderAt f u = 0 := by
+            -- cast `analyticOrderNatAt` to `ENat` and use `hnotTop`
+            have hcast : (analyticOrderNatAt f u : ENat) = analyticOrderAt f u :=
+              (Nat.cast_analyticOrderNatAt (f := f) (z₀ := u) hnotTop)
+            simpa [hcast] using hEN
+          have : f u ≠ 0 := (han.analyticOrderAt_eq_zero).1 hAt0
+          exact this hfu0
+        have hcard_pos :
+            0 < (divisorZeroIndex₀_fiberFinset (f := f) u).card := by
+          have hcard :=
+            divisorZeroIndex₀_fiberFinset_card_eq_analyticOrderNatAt (hf := hentire) (z₀ := u) hu0
+          have : 0 < analyticOrderNatAt f u := Nat.pos_of_ne_zero hord_ne0
+          simpa [hcard] using this
+        rcases Finset.card_pos.mp hcard_pos with ⟨p, hp⟩
+        have hpval : divisorZeroIndex₀_val p = u :=
+          (mem_divisorZeroIndex₀_fiberFinset (f := f) (z₀ := u) p).1 hp
+        have hr_le_4R : r ≤ 4 * R := by
+          have : r ≤ 2 * R := hr_le_2R
+          nlinarith [this, hRpos]
+        have hp_small : p ∈ small := by
+          have : ‖divisorZeroIndex₀_val p‖ ≤ 4 * R := by
+            -- `‖val p‖ = ‖u‖ = r`
+            have : ‖divisorZeroIndex₀_val p‖ = r := by simpa [hpval, hur]
+            simpa [this] using hr_le_4R
+          simpa [small, smallSet] using (hsmall_fin.mem_toFinset.2 this)
+        have : r ∈ bad := by
+          refine Finset.mem_image.2 ⟨p, hp_small, ?_⟩
+          -- `a p = ‖val p‖ = r`
+          simp [a, hpval, hur]
+        exact (hr_not_bad this).elim
+
+      have hden_ne :
+          (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u) ≠ 0 := by
+        intro hden0
+        have : f u = 0 := by simpa [hden0] using hden_eq
+        exact hfu_ne this
+
+      have hHu : H u = f u / (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u) := by
+        -- divide the identity `f u = H u * denom` by `denom`
+        have : (H u * (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)) /
+              (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u) = H u := by
+          simpa using (mul_div_cancel_right₀ (H u) hden_ne)
+        -- rewrite `f u` using `hden_eq`
+        have : f u / (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u) = H u := by
+          simpa [hden_eq, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using this
+        exact this.symm
+
+      -- bound `‖f u‖` by the τ-growth (we weaken `ρ` to `τ`)
+      have hf_u : ‖f u‖ ≤ Real.exp (Cf * (1 + r) ^ τ) := by
+        have hlog := hCf u
+        -- `C*(1+‖u‖)^ρ ≤ C*(1+‖u‖)^τ` since `1+‖u‖ ≥ 1` and `ρ ≤ τ`
+        have hbase : (1 : ℝ) ≤ 1 + ‖u‖ := by linarith [norm_nonneg u]
+        have hρleτ : ρ ≤ τ := le_of_lt hτ
+        have hpow : (1 + ‖u‖) ^ ρ ≤ (1 + ‖u‖) ^ τ :=
+          Real.rpow_le_rpow_of_exponent_le hbase hρleτ
+        have hlog' : Real.log (1 + ‖f u‖) ≤ Cf * (1 + ‖u‖) ^ τ := by
+          exact hlog.trans (mul_le_mul_of_nonneg_left hpow (le_of_lt hCfpos))
+        have hpos : 0 < (1 : ℝ) + ‖f u‖ := by linarith [norm_nonneg (f u)]
+        have : (1 : ℝ) + ‖f u‖ ≤ Real.exp (Cf * (1 + ‖u‖) ^ τ) :=
+          (Real.log_le_iff_le_exp hpos).1 hlog'
+        have : ‖f u‖ ≤ Real.exp (Cf * (1 + ‖u‖) ^ τ) := by linarith
+        simpa [hur] using this
+
+      -- crude bound on the inverse denominator: use `Cprod` (full minimum-modulus proof to be filled)
+      have hden_inv : ‖(u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖
+          ≤ Real.exp (Cprod * (1 + r) ^ τ) := by
+        -- TODO(PR3): complete the Cartan/minimum-modulus bound for the canonical product inverse.
+        -- This is the remaining analytical core.
+        admit
+
+      -- combine
+      have : ‖H u‖ ≤ ‖f u‖ * ‖(u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖ := by
+        -- `H = f / denom`
+        have : ‖H u‖ = ‖f u / (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)‖ := by
+          simp [hHu]
+        -- `‖f / denom‖ = ‖f‖ * ‖denom⁻¹‖`
+        simpa [div_eq_mul_inv, norm_mul, norm_inv, this]
+      have hmul :
+          ‖f u‖ * ‖(u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖
+            ≤ Real.exp (Cf * (1 + r) ^ τ) * Real.exp (Cprod * (1 + r) ^ τ) :=
+        mul_le_mul hf_u hden_inv (by positivity) (by positivity)
+      have hexp : Real.exp (Cf * (1 + r) ^ τ) * Real.exp (Cprod * (1 + r) ^ τ)
+          = Real.exp ((Cf + Cprod) * (1 + r) ^ τ) := by
+        simp [Real.exp_add, mul_add, add_mul, mul_assoc, add_assoc, add_comm, add_left_comm]
+      -- absorb slack
+      have : ‖H u‖ ≤ Real.exp ((Cf + Cprod) * (1 + r) ^ τ) :=
+        (this.trans hmul).trans_eq hexp
+      -- finalize with extra `+10` slack
+      have hslack :
+          Real.exp ((Cf + Cprod) * (1 + r) ^ τ) ≤ Real.exp ((Cf + Cprod + 10) * (1 + r) ^ τ) := by
+        refine Real.exp_le_exp.2 ?_
+        have hnn : 0 ≤ (1 + r) ^ τ := by positivity
+        nlinarith
+      exact this.trans hslack
+
+    -- Now use maximum modulus on the ball of radius `r` to bound `H z` (since `‖z‖ ≤ R ≤ r`).
+    have hz_ball : z ∈ Metric.ball (0 : ℂ) r := by
+      have : dist z (0 : ℂ) < r := by
+        have hzR : ‖z‖ ≤ R := le_max_left _ _
+        have : dist z (0 : ℂ) ≤ R := by simpa [dist_zero_right] using hzR
+        exact lt_of_le_of_lt this hr_mem.1
+      simpa [Metric.ball, dist_zero_right] using this
+    have hfront :
+        ∀ u : ℂ, u ∈ frontier (Metric.ball (0 : ℂ) r) →
+          ‖H u‖ ≤ Real.exp ((Cf + Cprod + 10) * (1 + r) ^ τ) := by
+      intro u hu
+      have hur : ‖u‖ = r := by
+        have hfront' : frontier (Metric.ball (0 : ℂ) r) = Metric.sphere (0 : ℂ) r := by
+          simpa using (frontier_ball (x := (0 : ℂ)) (r := r) (by exact (ne_of_gt hrpos)))
+        have : u ∈ Metric.sphere (0 : ℂ) r := by simpa [hfront'] using hu
+        simpa [Metric.mem_sphere, dist_zero_right] using this
+      exact hcircle u hur
+    have hball :
+        ‖H z‖ ≤ Real.exp ((Cf + Cprod + 10) * (1 + r) ^ τ) := by
+      -- maximum modulus principle on the bounded set `U = ball 0 r`
+      let U : Set ℂ := Metric.ball (0 : ℂ) r
+      have hU : Bornology.IsBounded U := Metric.isBounded_ball
+      have hd : DiffContOnCl ℂ H U := hH_entire.diffContOnCl
+      have hz_cl : z ∈ closure U := subset_closure hz_ball
+      have hCfront : ∀ w ∈ frontier U, ‖H w‖ ≤ Real.exp ((Cf + Cprod + 10) * (1 + r) ^ τ) := by
+        intro w hw
+        simpa [U] using hfront w (by simpa [U] using hw)
+      simpa [U] using
+        (Complex.norm_le_of_forall_mem_frontier_norm_le (f := H) (U := U) hU hd hCfront (z := z) hz_cl)
+    -- convert `r` to `‖z‖` using `r ≤ 2R ≤ 3*(1+‖z‖)`
+    have hr_le_3 : 1 + r ≤ 3 * (1 + ‖z‖) := by
+      have hR_le1z : R ≤ 1 + ‖z‖ := by
+        have hz' : ‖z‖ ≤ 1 + ‖z‖ := by linarith
+        have h1' : (1 : ℝ) ≤ 1 + ‖z‖ := by linarith [norm_nonneg z]
+        exact max_le_iff.2 ⟨hz', h1'⟩
+      have : r ≤ 2 * R := hr_le_2R
+      nlinarith [this, hR_le1z, hRle]
+    have hpow : (1 + r) ^ τ ≤ (3 : ℝ) ^ τ * (1 + ‖z‖) ^ τ := by
+      -- `1+r ≤ 3*(1+‖z‖)` and `τ ≥ 0`
+      have hbase : 0 ≤ 1 + r := by linarith [le_of_lt hrpos]
+      have hbase' : 0 ≤ 3 * (1 + ‖z‖) := by positivity
+      have := Real.rpow_le_rpow hbase (by exact hr_le_3) hτ_nonneg
+      -- rewrite RHS: `(3*(1+‖z‖))^τ = 3^τ * (1+‖z‖)^τ`
+      have hmul :
+          (3 * (1 + ‖z‖)) ^ τ = (3 : ℝ) ^ τ * (1 + ‖z‖) ^ τ := by
+        have h3 : 0 ≤ (3 : ℝ) := by norm_num
+        have h1 : 0 ≤ (1 + ‖z‖ : ℝ) := by positivity
+        simpa [mul_assoc] using (Real.mul_rpow (x := (3 : ℝ)) (y := (1 + ‖z‖ : ℝ)) (z := τ) h3 h1)
+      simpa [hmul] using this
+    have hmain :
+        Real.exp ((Cf + Cprod + 10) * (1 + r) ^ τ)
+          ≤ Real.exp (((Cf + Cprod + 10) * (3 : ℝ) ^ τ) * (1 + ‖z‖) ^ τ) := by
+      refine Real.exp_le_exp.2 ?_
+      have hnn : 0 ≤ (Cf + Cprod + 10) := by nlinarith [le_of_lt hCfpos, hCprod_nonneg]
+      nlinarith [hpow]
+    -- finish with the constant chosen at the start (`(Cf + Cprod + 10) * 3^τ`)
+    have hmain' :
+        Real.exp (((Cf + Cprod + 10) * (3 : ℝ) ^ τ) * (1 + ‖z‖) ^ τ)
+          = Real.exp (((Cf + Cprod + 10) * (3 : ℝ) ^ τ) * (1 + ‖z‖) ^ τ) := rfl
+    simpa [mul_assoc] using (le_trans (le_trans hball hmain) (le_of_eq hmain'))
+
+  -- Deduce an integer-exponent growth bound to apply `zero_free_polynomial_growth_is_exp_poly`.
+  have hH_growth_nat :
+      ∃ C > 0, ∀ z : ℂ, ‖H z‖ ≤ Real.exp (C * (1 + ‖z‖) ^ (m + 1)) := by
+    rcases hH_bound_rpow with ⟨C, hCpos, hC⟩
+    refine ⟨C, hCpos, ?_⟩
+    intro z
+    have hbase : (1 : ℝ) ≤ 1 + ‖z‖ := by linarith [norm_nonneg z]
+    have hτ_le : τ ≤ (m + 1 : ℝ) := le_of_lt hτ_lt
+    have hpow : (1 + ‖z‖) ^ τ ≤ (1 + ‖z‖) ^ (m + 1 : ℝ) :=
+      Real.rpow_le_rpow_of_exponent_le hbase hτ_le
+    have hpow' : (1 + ‖z‖) ^ (m + 1 : ℝ) = (1 + ‖z‖) ^ (m + 1) := by
+      simpa using (Real.rpow_natCast (1 + ‖z‖) (m + 1))
+    have : C * (1 + ‖z‖) ^ τ ≤ C * (1 + ‖z‖) ^ (m + 1) := by
+      nlinarith [hpow, hpow']
+    have := Real.exp_le_exp.2 this
+    exact (hC z).trans this
+
+  rcases (zero_free_polynomial_growth_is_exp_poly (H := H) (n := m + 1)
+      hH_entire hH_ne hH_growth_nat) with ⟨P, hPn, hHP⟩
+  -- sharp degree bound via the integer-order obstruction at exponent `τ`
+  have hPnat : P.natDegree ≤ m := by
+    have hlog_growth :
+        ∃ C > 0, ∀ z : ℂ,
+          Real.log (1 + ‖Complex.exp (Polynomial.eval z P)‖) ≤ C * (1 + ‖z‖) ^ τ := by
+      rcases hH_bound_rpow with ⟨C, hCpos, hC⟩
+      refine ⟨C + Real.log 2, by
+        have hlog2 : 0 < Real.log 2 := Real.log_pos (by norm_num : (1 : ℝ) < 2)
+        linarith [hCpos, hlog2], ?_⟩
+      intro z
+      have hB : 0 ≤ C * (1 + ‖z‖) ^ τ := by
+        have : 0 ≤ C := le_of_lt hCpos
+        have : 0 ≤ (1 + ‖z‖) ^ τ := by positivity
+        nlinarith
+      -- `H = exp(P)` and `‖H z‖ ≤ exp(C*(1+‖z‖)^τ)`
+      have hHz : ‖Complex.exp (Polynomial.eval z P)‖ ≤ Real.exp (C * (1 + ‖z‖) ^ τ) := by
+        simpa [hHP z] using (hC z)
+      -- turn into `log(1+...)` bound
+      have : Real.log (1 + ‖Complex.exp (Polynomial.eval z P)‖)
+          ≤ C * (1 + ‖z‖) ^ τ + Real.log 2 := by
+        have : Real.log (1 + ‖Complex.exp (Polynomial.eval z P)‖)
+            ≤ Real.log (1 + Real.exp (C * (1 + ‖z‖) ^ τ)) := by
+          have hpos : 0 < (1 : ℝ) + ‖Complex.exp (Polynomial.eval z P)‖ := by
+            linarith [norm_nonneg (Complex.exp (Polynomial.eval z P))]
+          have hle : (1 : ℝ) + ‖Complex.exp (Polynomial.eval z P)‖ ≤ (1 : ℝ) + Real.exp (C * (1 + ‖z‖) ^ τ) := by
+            linarith [hHz]
+          exact Real.log_le_log hpos hle
+        exact (this.trans (log_one_add_exp_le (B := C * (1 + ‖z‖) ^ τ) hB))
+      -- rearrange constants
+      have hX : (1 : ℝ) ≤ (1 + ‖z‖) ^ τ := by
+        have hbase : (1 : ℝ) ≤ 1 + ‖z‖ := by linarith [norm_nonneg z]
+        exact Real.one_le_rpow hbase hτ_nonneg
+      have hlog2_nonneg : 0 ≤ Real.log 2 := le_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 2))
+      have hlin : C * (1 + ‖z‖) ^ τ + Real.log 2 ≤ (C + Real.log 2) * (1 + ‖z‖) ^ τ := by
+        -- `C*X + log2 ≤ C*X + log2*X = (C+log2)*X` using `1 ≤ X`.
+        have : Real.log 2 ≤ Real.log 2 * (1 + ‖z‖) ^ τ := by
+          nlinarith [hX, hlog2_nonneg]
+        calc
+          C * (1 + ‖z‖) ^ τ + Real.log 2 ≤ C * (1 + ‖z‖) ^ τ + Real.log 2 * (1 + ‖z‖) ^ τ := by
+            -- add `C * X` to the right of `log2 ≤ log2 * X`, then reassociate/commute
+            have h := add_le_add_right this (C * (1 + ‖z‖) ^ τ)
+            simpa [add_comm, add_left_comm, add_assoc] using h
+          _ = (C + Real.log 2) * (1 + ‖z‖) ^ τ := by ring
+      exact this.trans hlin
+    have := natDegree_le_floor_of_growth_exp_eval (ρ := τ) hτ_nonneg P hlog_growth
+    simpa [hfloorτ] using this
+
+  refine ⟨P, ?_, ?_⟩
+  · -- `degree ≤ floor ρ = m`
+    -- use `natDegree` bound and relate to `degree`.
+    have : P.degree ≤ m := Polynomial.degree_le_of_natDegree_le hPnat
+    simpa [m] using this
+  · intro z
+    have hH' : H z = Complex.exp (Polynomial.eval z P) := by simpa using (hHP z)
+    simpa [hH', mul_assoc, mul_left_comm, mul_comm, m] using (hfactor z)
 
 end Complex.Hadamard
+
