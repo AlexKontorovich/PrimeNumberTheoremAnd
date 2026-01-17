@@ -1,3 +1,4 @@
+import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 
 blueprint_comment /--
@@ -17,6 +18,9 @@ structure Inputs where
   x₁ : ℝ
   hx₁ : x₁ ≥ exp 7
   hx₁' : ∀ x ∈ Set.Icc 1 x₁, θ x < x
+  R : ℝ
+  hR : riemannZeta.classicalZeroFree R
+  ZDB : zero_density_bound
 
 @[blueprint
   "bklnw-cor-2-1"
@@ -113,6 +117,9 @@ noncomputable def Inputs.default : Inputs := {
   x₁ := 1e19
   hx₁ := by grw [← exp_one_rpow, rpow_ofNat, exp_one_lt_three]; norm_num
   hx₁' := buthe_eq_1_7
+  R := 5.5666305  -- a slightly more conservative value of 5.573412 was used in the paper
+  hR := MT_theorem_1
+  ZDB := FKS.corollary_2_9_merged -- stronger than what was used here, I think
 }
 
 
@@ -567,6 +574,89 @@ theorem thm_1b_table {X₀ : ℝ} {M : Fin 5 → ℝ} (h : (X₀, M) ∈ Table_1
   x * (1 - M k / (log x)^(k.val + 1)) ≤ θ x ∧ θ x ≤ x * (1 + M k / (log x)^(k.val + 1)) :=
   by sorry
 
+-- TODO: input the statements and arguments from Appendix A
 
+noncomputable def Inputs.c1 (I : Inputs) (σ : ℝ) : ℝ := I.ZDB.c₁ σ
+noncomputable def Inputs.c2 (I : Inputs) (σ : ℝ) : ℝ := I.ZDB.c₂ σ
+
+@[blueprint
+  "bklnw-eq_A_16"
+  (title := "Equation (A.16)")
+  (statement := /-- We define
+  $$ k(\sigma, x_0) = \left( \exp\left(\frac{10 - 16 \sigma}{3} \left( \frac{\log x_0}{R} \right)^{1/2} \right) \left( \frac{\log x_0}{R} \right)^{5 - 2 \sigma} \right)^{-1}. $$
+  -/)]
+noncomputable def Inputs.k (I : Inputs) (σ x₀ : ℝ) : ℝ := (exp ((10 - 16 * σ) / 3 * (log x₀ / I.R)^(1/2)) * (log x₀ / I.R)^(5 - 2 * σ))^(-1:ℝ)
+
+@[blueprint
+  "bklnw-eq_A_17"
+  (title := "Equation (A.17)")
+  (statement := /-- We define
+  $$ c_3(\sigma, x_0) = 2 \exp\left( -2 \left( \frac{\log x_0}{R} \right)^{1/2} \right) (\log x_0)^2 k(\sigma, x_0). $$
+  -/)]
+noncomputable def Inputs.c3 (I : Inputs) (σ x₀ : ℝ) : ℝ :=
+  2 * exp (-2 * (log x₀ / I.R)^(1/2)) * (log x₀)^2 * I.k σ x₀
+
+@[blueprint
+  "bklnw-eq_A_18"
+  (title := "Equation (A.18)")
+  (statement := /-- We define
+  $$ c_4(\sigma, x_0) = x_0^{\sigma - 1} \left( \frac{2 \log x_0}{\pi R} + 1.8642 \right) k(\sigma, x_0). $$
+  -/)]
+noncomputable def Inputs.c4 (I : Inputs) (σ x₀ : ℝ) : ℝ :=
+  x₀^(σ - 1:ℝ) * (2 * log x₀ / π / I.R + 1.8642) * I.k σ x₀
+
+@[blueprint
+  "bklnw-eq_A_19"
+  (title := "Equation (A.19)")
+  (statement := /-- We define
+  $$ c_5(\sigma, x_0) = 8.01 \cdot c_2(\sigma) \exp\left( -2 \left( \frac{\log x_0}{R} \right)^{1/2} \right) \frac{\log x_0}{R} k(\sigma, x_0). $$
+  -/)]
+noncomputable def Inputs.c5 (I : Inputs) (σ x₀ : ℝ) : ℝ :=
+  8.01 * I.c2 σ * exp (-2 * (log x₀ / I.R)^(1/2)) * (log x₀ / I.R) * I.k σ x₀
+
+@[blueprint
+  "bklnw-eq_A_20"
+  (title := "Equation (A.20)")
+  (statement := /-- We define
+  $$ A(\sigma, x_0) = 2.0025 \cdot 25^{-2 \sigma} \cdot c_1(\sigma) + c_3(\sigma, x_0) + c_4(\sigma, x_0) + c_5(\sigma, x_0). $$
+  -/)]
+noncomputable def Inputs.A (I : Inputs) (σ x₀ : ℝ) : ℝ :=
+  2.0025 * 25^(-2 * σ) * I.c1 σ + I.c3 σ x₀ + I.c4 σ x₀ + I.c5 σ x₀
+
+@[blueprint
+  "bklnw-eq_A_21"
+  (title := "Equation (A.21)")
+  (statement := /-- We define
+  $$ B = 5/2 - \sigma, $$
+  and
+  $$ C = 16 \sigma/3 - \frac{10}{3}. $$
+  -/)]
+noncomputable def Inputs.B (_ : Inputs) (σ : ℝ) : ℝ := 5/2 - σ
+
+@[blueprint
+  "bklnw-eq_A_21"]
+noncomputable def Inputs.C (_ : Inputs) (σ : ℝ) : ℝ := 16 * σ / 3 - 10 / 3
+
+@[blueprint
+  "bklnw-thm-14"
+  (title := "Theorem 14")
+  (statement := /-- Let $x_0 \geq 1000$ and let $\sigma \in [0.75, 1)$. For all $x \geq e^{x_0}$,
+  $$ \frac{|\psi(x) - x|}{x} \leq A \left( \frac{\log x}{R} \right)^B \exp\left( -C \left( \frac{\log x}{R} \right)^{1/2} \right) $$
+  where $A$, $B$, and $C$ are defined in (A.20) and (A.21). -/)]
+theorem thm_14 {I : Inputs} {x₀ σ x : ℝ} (hx₀ : x₀ ≥ 1000) (hσ : 0.75 ≤ σ ∧ σ < 1) (hx : x ≥ exp x₀) :
+  Eψ x ≤ I.A σ x₀ * (log x / I.R)^(I.B σ) * exp (-I.C σ * (log x / I.R)^(1/2:ℝ)) := by sorry
+
+@[blueprint
+  "bklnw-cor-14.1"
+  (title := "Corollary 14.1")
+  (statement := /-- Let $x_0 \geq 1000$. For all $x \geq e^{x_0}$,
+  $$ \frac{|\theta(x) - x|}{x} \leq A' \left( \frac{\log x}{R} \right)^B \exp\left( -C \left( \frac{\log x}{R} \right)^{1/2} \right) $$
+  where $B$ and $C$ are defined in (A.21) and
+  $$ A' = A \left( 1 + \frac{1}{A} \left( \frac{R}{\log x_0} \right)^B \exp\left( C \frac{\log x_0}{R} \right) \left( a_1(x_0) \exp\left( -\frac{x_0}{2} \right) + a_2(x_0) \exp\left( -\frac{2 x_0}{3} \right) \right) \right), $$
+  where $a_1$ and $a_2$ are defined in Corollary 5.1. -/)]
+theorem cor_14_1 {I : Inputs} {x₀ σ x : ℝ} (hx₀ : x₀ ≥ 1000) (hσ : 0.75 ≤ σ ∧ σ < 1) (hx : x ≥ exp x₀) :
+  Eθ x ≤ I.A σ x₀ * (1 + (1 / I.A σ x₀) * (I.R / log x₀)^(I.B σ) * exp (I.C σ * (log x₀ / I.R)) *
+    (I.a₁ x₀ * exp (-x₀ / 2) + I.a₂ x₀ * exp (-2 * x₀ / 3))) *
+    (log x / I.R)^(I.B σ) * exp (-I.C σ * (log x / I.R)^(1/2:ℝ)) := by sorry
 
 end BKLNW
