@@ -915,8 +915,7 @@ theorem re_J_sub_re_J_add_one {x : ℝ} (hx : 0 < x) :
     refine (MeasureTheory.Integrable.mono' (μ := volume.restrict (Set.Icc (0 : ℝ) 1))
       (hg := MeasureTheory.integrable_const (c := ‖(x⁻¹ : ℝ)‖)) ?_ ?_)
     · exact (Measurable.inv ((measurable_const.add measurable_id))).aestronglyMeasurable
-    ·
-      refine (MeasureTheory.ae_restrict_iff' (μ := volume) (s := Set.Icc (0 : ℝ) 1) measurableSet_Icc).2 ?_
+    · refine (MeasureTheory.ae_restrict_iff' (μ := volume) (s := Set.Icc (0 : ℝ) 1) measurableSet_Icc).2 ?_
       refine MeasureTheory.ae_of_all _ ?_
       intro u hu
       have hu0 : 0 ≤ u := hu.1
