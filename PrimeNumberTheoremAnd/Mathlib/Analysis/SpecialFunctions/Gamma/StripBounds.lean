@@ -4,7 +4,7 @@ import Mathlib.Analysis.SpecialFunctions.Gamma.Deligne
 import Mathlib.Analysis.SpecialFunctions.Stirling
 import Mathlib.Data.Real.StarOrdered
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.BinetFormula
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
+import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.GaussianIntegral
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.GammaBounds
 
 /-!
