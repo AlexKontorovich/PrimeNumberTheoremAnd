@@ -11,8 +11,8 @@ This is the zeta-facing theorem that lives on the `Riemann/Mathlib` side: it use
 divisor-indexed canonical product and the intrinsic Hadamard factorization theorem from
 `Riemann/Mathlib/Analysis/Complex/Hadamard.lean`.
 
-It is parameterized by an explicit growth bound, so analytic estimates (Stirling/convexity) can be
-ported independently without pulling in the legacy `ZeroData` pipeline.
+The analytic input is the growth bound proved in `ZetaFiniteOrder.lean`, and the structural input
+is the intrinsic Hadamard factorization theorem `Complex.Hadamard.hadamard_factorization_of_growth`.
 -/
 
 noncomputable section
@@ -23,10 +23,15 @@ namespace Riemann
 
 open scoped BigOperators
 
-theorem completedRiemannZeta₀_hadamard_factorization_intrinsic_of_growth
-    (hgrowth :
-      ∃ C > 0, ∀ z : ℂ,
-        Real.log (1 + ‖completedRiemannZeta₀ z‖) ≤ C * (1 + ‖z‖) ^ (3 / 2 : ℝ)) :
+/-!
+## Zeta specialization: intrinsic Hadamard factorization for `completedRiemannZeta₀`
+
+This is the zeta-facing corollary: we combine the growth estimate
+`Complex.completedRiemannZeta₀_growth` (proved in `ZetaFiniteOrder.lean`) with the intrinsic
+Hadamard factorization theorem `Complex.Hadamard.hadamard_factorization_of_growth`.
+-/
+
+theorem completedRiemannZeta₀_hadamard_factorization_intrinsic :
     ∃ (P : Polynomial ℂ),
       P.degree ≤ 1 ∧
       ∀ z : ℂ,
@@ -36,6 +41,10 @@ theorem completedRiemannZeta₀_hadamard_factorization_intrinsic_of_growth
             Complex.Hadamard.divisorCanonicalProduct 1 completedRiemannZeta₀ (Set.univ : Set ℂ) z := by
   have hρ : (0 : ℝ) ≤ (3 / 2 : ℝ) := by norm_num
   have hentire : Differentiable ℂ completedRiemannZeta₀ := differentiable_completedZeta₀
+  have hgrowth :
+      ∃ C > 0, ∀ z : ℂ,
+        Real.log (1 + ‖completedRiemannZeta₀ z‖) ≤ C * (1 + ‖z‖) ^ (3 / 2 : ℝ) := by
+    simpa using Complex.completedRiemannZeta₀_growth
   have hfloor : (Nat.floor (3 / 2 : ℝ)) = 1 := by
     have h1 : (1 : ℝ) ≤ (3 / 2 : ℝ) := by norm_num
     have h2 : (3 / 2 : ℝ) < (1 : ℝ) + 1 := by norm_num
@@ -88,7 +97,6 @@ theorem completedRiemannZeta₀_hadamard_factorization_intrinsic_of_growth
     have : ((Real.pi : ℂ) - 3) / 6 ≠ 0 := div_ne_zero hnum hden
     simpa [hΛ₀2] using this
 
-  -- Invoke intrinsic Hadamard factorization with `ρ = 3/2`.
   rcases
       (Complex.Hadamard.hadamard_factorization_of_growth
         (f := completedRiemannZeta₀) (ρ := (3 / 2 : ℝ))
@@ -98,38 +106,5 @@ theorem completedRiemannZeta₀_hadamard_factorization_intrinsic_of_growth
   · simpa [hfloor] using hdeg
   · intro z
     simpa [hfloor] using hfac z
-
-/-!
-## Zeta specialization: intrinsic Hadamard factorization for `completedRiemannZeta₀`
-
-The core theorem above is parameterized by a growth hypothesis.  The analytic work proving such
-a bound lives in `ZetaFiniteOrder.lean`, and we instantiate it here to provide a ready-to-use
-statement for the completed zeta function.
--/
-
-theorem completedRiemannZeta₀_hadamard_factorization_intrinsic :
-    ∃ (P : Polynomial ℂ),
-      P.degree ≤ 1 ∧
-      ∀ z : ℂ,
-        completedRiemannZeta₀ z =
-          Complex.exp (Polynomial.eval z P) *
-            z ^ (analyticOrderNatAt completedRiemannZeta₀ 0) *
-            Complex.Hadamard.divisorCanonicalProduct 1 completedRiemannZeta₀ (Set.univ : Set ℂ) z := by
-  have hgrowth :
-      ∃ C > 0, ∀ z : ℂ,
-        Real.log (1 + ‖completedRiemannZeta₀ z‖) ≤ C * (1 + ‖z‖) ^ (3 / 2 : ℝ) := by
-    simpa using Complex.completedRiemannZeta₀_growth
-  simpa using completedRiemannZeta₀_hadamard_factorization_intrinsic_of_growth hgrowth
-
-theorem completedRiemannZeta₀_hadamard_factorization_intrinsic_natDegree :
-    ∃ (P : Polynomial ℂ),
-      P.natDegree ≤ 1 ∧
-      ∀ z : ℂ,
-        completedRiemannZeta₀ z =
-          Complex.exp (Polynomial.eval z P) *
-            z ^ (analyticOrderNatAt completedRiemannZeta₀ 0) *
-            Complex.Hadamard.divisorCanonicalProduct 1 completedRiemannZeta₀ (Set.univ : Set ℂ) z := by
-  rcases completedRiemannZeta₀_hadamard_factorization_intrinsic with ⟨P, hdeg, hfac⟩
-  exact ⟨P, Polynomial.natDegree_le_of_degree_le hdeg, hfac⟩
 
 end Riemann
