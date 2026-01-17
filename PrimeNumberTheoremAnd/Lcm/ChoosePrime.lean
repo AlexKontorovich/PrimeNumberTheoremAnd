@@ -296,7 +296,74 @@ theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
         mul_assoc, mul_comm, mul_left_comm] using this
     )
 
+@[blueprint
+  "lem:pq-ratio"
+  (title := "Lower bound for the product ratio \\(p_i/q_i\\)")
+  (statement := /--
+  With \(p_i,q_i\) as in Lemmas~\ref{lem:choose-pi} and \ref{lem:choose-qi}, we have
+  \begin{equation}\label{eq:pq-ratio}
+    1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}
+    \ge
+    1 - \frac{4 \bigl(1 + \delta(\sqrt{n})\bigr)^{12}}{n^{3/2}}.
+  \end{equation}
+  -/)
+  (proof := /--
+  Same argument as before, but the Lean statement uses `gap.δ (√n)` instead of `log`.
+  -/)
+  (latexEnv := "lemma")
+  (discussion := 534)]
+theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    1 - ((4 : ℝ) * ∏ i, ((exists_p_primes hn).choose i : ℝ))
+        / ∏ i, ((exists_q_primes hn).choose i : ℝ) ≥
+    1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
+  -- Reduce to proving the fraction is bounded above, then use antitonicity of `1 - ·`.
+  have hnpos : (0 : ℝ) < (n : ℝ) := Numerical.n_pos (n := n) hn
+  have hbpos : 0 < (1 + gap.δ (√(n : ℝ))) := Numerical.one_add_delta_pos (n := n) hn
 
+  have hfrac :
+      ((4 : ℝ) * ∏ i, ((exists_p_primes hn).choose i : ℝ))
+        / ∏ i, ((exists_q_primes hn).choose i : ℝ)
+        ≤
+      4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
+    -- Rewrite the RHS into a product ratio that matches the pointwise `p`/`q` bounds.
+    rw [Numerical.pq_ratio_rhs_as_fraction (n := n) hn]
+    -- Now `gcongr` uses:
+    --   - p_i ≤ √n * b^(i+1)
+    --   - n / b^(3-i) ≤ q_i
+    gcongr <;> try
+    (first
+      | exact (exists_p_primes hn).choose_spec.2.2.1 _
+      | exact (exists_q_primes hn).choose_spec.2.2.1 _
+      | (refine Finset.prod_nonneg ?_; intro; intro; positivity [hbpos])
+      | (refine Finset.prod_pos ?_; intro; intro; positivity [hnpos, hbpos])
+      | (refine Finset.prod_pos ?_; intro; intro; exact_mod_cast ((exists_q_primes hn).choose_spec.1 _).pos)
+    )
+    -- gcongr
+    -- · -- side condition: RHS numerator product is nonnegative
+    --   exact Finset.prod_nonneg (fun _ _ => by positivity [hbpos])
+    -- · -- side condition: LHS denominator product is positive (product of primes)
+    --   exact Finset.prod_pos (fun j _ => by
+    --     have hprime : Nat.Prime ((exists_q_primes hn).choose j) :=
+    --       (exists_q_primes hn).choose_spec.1 j
+    --     -- cast positivity
+    --     exact_mod_cast hprime.pos)
+    -- · -- pointwise p-bound
+    --   exact (exists_p_primes hn).choose_spec.2.2.1 _
+    -- · -- side condition: each lower-q factor is positive (needed for denominator monotonicity)
+    --   exact (fun _ _ => by positivity [hnpos, hbpos])
+    -- · -- pointwise q-bound (lower term ≤ q_i)
+    --   exact (exists_q_primes hn).choose_spec.2.2.1 _
+
+  -- Convert `A ≤ B` into `1 - A ≥ 1 - B`.
+  have hsub :
+      1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
+        ≤
+      1 - ((4 : ℝ) * ∏ i, ((exists_p_primes hn).choose i : ℝ))
+            / ∏ i, ((exists_q_primes hn).choose i : ℝ) :=
+    sub_le_sub_left hfrac 1
+
+  -- goal is the same inequality but written with `≥`
+  simpa [ge_iff_le] using hsub
 
 -- theorem h_crit_of_choice (Ccert : Lcm.Numerical.Criterion) {n : ℕ} (hn : n ≥ X₀ ^ 2)
 --     (p : Fin 3 → ℕ) (q : Fin 3 → ℕ) := by sorry
