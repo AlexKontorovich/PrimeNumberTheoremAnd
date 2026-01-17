@@ -1,8 +1,5 @@
 import Architect
-import Mathlib.Tactic
-import Mathlib.Algebra.BigOperators.Group.Multiset.Defs
-import Mathlib.NumberTheory.SmoothNumbers
-import Mathlib.NumberTheory.PrimeCounting
+import Mathlib.Analysis.SpecialFunctions.Stirling
 import PrimeNumberTheoremAnd.Consequences
 
 namespace Erdos392
@@ -2045,8 +2042,68 @@ theorem Params.initial.score (ε : ℝ) (hε : ε > 0) :
   the Stirling approximation.-/)
   (latexEnv := "theorem")
   (discussion := 648)]
-theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Factorization n,
-    f.total_imbalance = 0 ∧ f.a.card ≤ n - n / Real.log n + ε * n / Real.log n := by sorry
+theorem Solution_1 (ε : ℝ) (hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Factorization n,
+    f.total_imbalance = 0 ∧ f.a.card ≤ n - n / Real.log n + ε * n / Real.log n := by
+  have h_stirling : ∀ᶠ n : ℕ in .atTop, log (n ! : ℝ) ≤ n * Real.log n - n + (ε / 4) * n := by
+    have h_ratio : Filter.Tendsto (fun n : ℕ ↦ (n ! : ℝ) / (sqrt (2 * n * π) * (n / exp 1) ^ n)) .atTop (nhds 1) := by
+      have h := Stirling.factorial_isEquivalent_stirling
+      rw [isEquivalent_iff_tendsto_one] at h
+      · exact h
+      · filter_upwards [Filter.eventually_gt_atTop 0] with n hn; positivity
+    have h_ratio_le : ∀ᶠ n : ℕ in .atTop,
+        (n ! : ℝ) / (sqrt (2 * n * π) * (n / exp 1) ^ n) ≤ 2 :=
+      h_ratio.eventually (Metric.ball_mem_nhds 1 one_pos) |>.mono fun n hn ↦ by
+        simp only [Real.dist_eq] at hn; linarith [abs_sub_lt_iff.mp hn]
+    have h_log_o := isLittleO_log_id_atTop.def (by linarith : (0 : ℝ) < ε / 16)
+    have h_const : ∀ᶠ n : ℕ in .atTop, Real.log 2 + log (2 * π) / 2 ≤ (ε / 16) * n := by
+      let c := Real.log 2 + log (2 * π) / 2
+      filter_upwards [Filter.eventually_ge_atTop (ceil (c / (ε / 16)) + 1)] with n hn
+      calc c = (ε / 16) * (c / (ε / 16)) := by field_simp
+        _ ≤ (ε / 16) * (ceil (c / (ε / 16)) + 1) := by
+            gcongr; exact (le_ceil _).trans (le_add_of_nonneg_right (by norm_num))
+        _ ≤ (ε / 16) * n := by gcongr; exact_mod_cast hn
+    filter_upwards [h_ratio_le, h_log_o.natCast_atTop, h_const, Filter.eventually_gt_atTop 0]
+      with n h_rat h_logn h_c hn_pos
+    have hn : (0 : ℝ) < n := cast_pos.mpr hn_pos
+    have h_fact : (n ! : ℝ) ≤ 2 * sqrt (2 * n * π) * (n / exp 1) ^ n := by
+      calc (n ! : ℝ) = (n ! : ℝ) / (sqrt (2 * n * π) * (n / exp 1) ^ n) *
+      have h_denom_pos : sqrt (2 * n * π) * (n / exp 1) ^ n > 0 := by positivity
+              (sqrt (2 * n * π) * (n / exp 1) ^ n) := by field_simp
+        _ ≤ 2 * (sqrt (2 * n * π) * (n / exp 1) ^ n) := by gcongr
+        _ = 2 * sqrt (2 * n * π) * (n / exp 1) ^ n := by ring
+    simp only [id, norm_eq_abs] at h_logn
+    have hn1 : (1 : ℝ) ≤ n := by exact_mod_cast one_le_iff_ne_zero.mpr (pos_iff_ne_zero.mp hn_pos)
+    rw [abs_of_nonneg (Real.log_nonneg hn1), abs_of_nonneg hn.le] at h_logn
+    have h2npi : (0 : ℝ) < 2 * n * π := by positivity
+    have h2pi : (0 : ℝ) < 2 * π := by positivity
+    have hsqrt : sqrt (2 * n * π) > 0 := by positivity
+    have hpow : (n / exp 1 : ℝ) ^ n > 0 := by positivity
+    calc Real.log (n ! : ℝ)
+        ≤ log (2 * sqrt (2 * n * π) * (n / exp 1) ^ n) := log_le_log (by positivity) h_fact
+      _ = Real.log 2 + log (2 * n * π) / 2 + n * Real.log n - n := by
+        rw [show (2 : ℝ) * sqrt (2 * n * π) * (n / exp 1) ^ n =
+              2 * (sqrt (2 * n * π) * (n / exp 1) ^ n) by ring, log_mul (by norm_num)
+                (mul_pos hsqrt hpow).ne', log_mul hsqrt.ne' hpow.ne', sqrt_eq_rpow, log_rpow h2npi,
+                  Real.log_pow, log_div hn.ne' (exp_pos 1).ne', log_exp]
+        ring
+      _ = Real.log 2 + Real.log (2 * π) / 2 + Real.log n / 2 + n * Real.log n - n := by
+          have : Real.log (2 * n * π) = Real.log (2 * π) + Real.log n := by
+            rw [show (2 : ℝ) * n * π = 2 * π * n by ring, log_mul h2pi.ne' hn.ne']
+          linarith [this]
+      _ ≤ (ε / 16) * n + (ε / 16) * n / 2 + n * Real.log n - n := by gcongr
+      _ = n * Real.log n - n + (3 * ε / 32) * n := by ring
+      _ ≤ n * Real.log n - n + (ε / 4) * n := by nlinarith
+  filter_upwards [Params.initial.score (ε / 2) (by linarith), h_stirling, Filter.eventually_gt_atTop 1]
+    with n ⟨P, hPn, hP_score⟩ h_stir hn
+  obtain ⟨f, hf_bal, hf_card⟩ := Factorization.card_bound P.initial P.L
+  subst hPn
+  refine ⟨f, hf_bal, ?_⟩
+  have hlogn_pos : Real.log P.n > 0 := Real.log_pos (by exact_mod_cast hn)
+  calc (f.a.card : ℝ)
+      ≤ (Real.log P.n.factorial + P.initial.score P.L) / Real.log P.n := by rw [le_div_iff₀ hlogn_pos]; exact hf_card
+    _ ≤ (P.n * Real.log P.n - P.n + (ε / 4) * P.n + (ε / 2) * P.n) / Real.log P.n := by gcongr
+    _ = P.n - P.n / Real.log P.n + (3 * ε / 4) * P.n / Real.log P.n := by field_simp; ring
+    _ ≤ P.n - P.n / Real.log P.n + ε * P.n / Real.log P.n := by gcongr; linarith
 
 @[blueprint
   "erdos-sol-2"
