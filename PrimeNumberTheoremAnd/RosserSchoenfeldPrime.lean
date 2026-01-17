@@ -88,7 +88,7 @@ theorem eq_413 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : 
   (title := "RS equation (4.14)")
   (statement := /--
   $$\sum_{p \leq x} f(p) = \int_2^x \frac{f(y)\ dy}{\log y} + \frac{2 f(2)}{\log 2} $$
-  $$ + \frac{f(x) (\vartheta(x) - x)}{\log x} - \int_2^x (\vartheta(y) - y) \frac{d}{dy} \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$$ -/)
+  $$ + \frac{f(x) (\vartheta(x) - x)}{\log x} - \int_2^x (\vartheta(y) - y) \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$$ -/)
   (proof := /-- Follows from Sublemma \ref{rs-413} and integration by parts. -/)
   (latexEnv := "sublemma")
   (discussion := 600)]
@@ -96,7 +96,7 @@ theorem eq_414 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : 
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p =
       ∫ y in 2..x, f y / log y + 2 * f 2 / Real.log 2 +
       f x * (θ x - x) / log x -
-      ∫ y in 2..x, (θ y - y) * deriv (fun t ↦ deriv (fun s ↦ f s / log s) t) y := by
+      ∫ y in 2..x, (θ y - y) * deriv (fun s ↦ f s / log s) y := by
   sorry
 
 
@@ -114,14 +114,14 @@ noncomputable def L (f : ℝ → ℝ) : ℝ :=
   (title := "RS equation (4.15)")
   (statement := /--
   $$\sum_{p \leq x} f(p) = \int_2^x \frac{f(y)\ dy}{\log y} + L_f $$
-  $$ + \frac{f(x) (\vartheta(x) - x)}{\log x} + \int_x^\infty (\vartheta(y) - y) \frac{d}{dy} \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$$ -/)
+  $$ + \frac{f(x) (\vartheta(x) - x)}{\log x} + \int_x^\infty (\vartheta(y) - y) \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$$ -/)
   (proof := /-- Follows from Sublemma \ref{rs-414} and Definition \ref{rs-416}. -/)
   (latexEnv := "sublemma")
   (discussion := 601)]
 theorem eq_415 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x)
    (hbound : ∃ C, ∀ x ∈ Set.Ici 2, |f x| ≤ C / x ∧ |deriv f x| ≤ C / x ^ 2) :
    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p = ∫ y in 2..x, f y / log y + L f +
-    f x * (θ x - x) / log x + ∫ y in Set.Ioi x, (θ y - y) * deriv (fun t ↦ deriv (fun s ↦ f s / log s) t) y := by sorry
+    f x * (θ x - x) / log x + ∫ y in Set.Ioi x, (θ y - y) * deriv (fun s ↦ f s / log s) y := by sorry
 
 @[blueprint
   "rs-417"
