@@ -3,9 +3,9 @@ import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Divisor
 import Mathlib.Analysis.SpecialFunctions.Log.Base
 import Mathlib.Analysis.SpecialFunctions.Log.Summable
 import Mathlib.Topology.Algebra.InfiniteSum.Order
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardLogSingularity
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardCartanBound
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardCartanProductBound
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.LogSingularity
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanBound
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanProductBound
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanInverseFactorBound
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanGoodRadius
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanMajorantBound
@@ -2765,5 +2765,3 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
     simpa [hH', mul_assoc, mul_left_comm, mul_comm, m] using (hfactor z)
 
 end Complex.Hadamard
-
-
