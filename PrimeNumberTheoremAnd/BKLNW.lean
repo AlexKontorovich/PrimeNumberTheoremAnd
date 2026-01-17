@@ -240,7 +240,7 @@ f(x) := \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} x^{\frac{1}{k} - \fra
 theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9)
     (hx : x ≥ x₀) :
     ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋, θ (x^(1/k)) ≤
-      (1 + I.α) * max (f x₀) (f (2^(⌊ (log x₀)/(log 2) ⌋ + 1))) * x^(1/3) := by sorry
+      (1 + I.α) * max (f x₀) (f (2^(⌊ (log x₀)/(log 2) ⌋ + 1))) * x^(1/3:ℝ) := by sorry
 
 @[blueprint
   "bklnw-cor-3-1"
@@ -259,8 +259,8 @@ where
   (latexEnv := "corollary")
   (discussion := 640)]
 theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (x : ℝ) (hx : x ≥ exp b) :
-    ψ x - θ x - θ (x^(1/2)) ≤
-      (1 + I.α) * max (f (exp b)) (f (2^(⌊ b/(log 2) ⌋ + 1))) * x^(1/3) := by sorry
+    ψ x - θ x - θ (x^(1/2:ℝ)) ≤
+      (1 + I.α) * max (f (exp b)) (f (2^(⌊ b/(log 2) ⌋ + 1))) * x^(1/3:ℝ) := by sorry
 
 @[blueprint
   "bklnw-prop-4-a"
@@ -283,7 +283,7 @@ since $\log x_1 \geq 7$. The last two inequalities for $\theta(x^{1/2})$ combine
   (latexEnv := "proposition")
   (discussion := 641)]
 theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : b ≤ 2 * log I.x₁) (hx : x ≥ exp b) :
-    θ (x^(1/2)) < (1 + I.ε (log I.x₁)) * x^(1/2) := by sorry
+    θ (x^(1/2:ℝ)) < (1 + I.ε (log I.x₁)) * x^(1/2:ℝ) := by sorry
 
 @[blueprint
   "bklnw-prop-4-b"
@@ -347,7 +347,7 @@ a_2 = (1 + \alpha) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}
   (latexEnv := "theorem")
   (discussion := 643)]
 theorem thm_5 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
-    ψ x - θ x < Inputs.a₁ I b * x^(1/2) + Inputs.a₂ I b * x^(1/3) := by sorry
+    ψ x - θ x < Inputs.a₁ I b * x^(1/2:ℝ) + Inputs.a₂ I b * x^(1/3:ℝ) := by sorry
 
 
 noncomputable def a₁ : ℝ → ℝ := Inputs.default.a₁
