@@ -14,6 +14,11 @@ namespace RS_prime
 
 open Chebyshev Finset Nat Real
 
+lemma Chebyshev.theta_pos {y : ℝ} (hy : 2 ≤ y) : 0 < θ y := by
+  refine sum_pos (fun n hn ↦ log_pos ?_) ⟨2, ?_⟩
+  · simp only [mem_filter] at hn; exact_mod_cast hn.2.one_lt
+  · simpa using ⟨(le_floor_iff (by grind : 0 ≤ y)).2 hy, Nat.prime_two⟩
+
 @[blueprint
   "rs-pnt"
   (title := "A medium version of the prime number theorem")
@@ -153,14 +158,12 @@ theorem eq_418 {x : ℝ} (hx : 2 ≤ x) :
     ← intervalIntegral.integral_neg, add_left_cancel_iff]
   refine intervalIntegral.integral_congr fun y hy => ?_
   have hy := Set.uIcc_of_le hx ▸ hy
-  have pos : 0 < θ y := sum_pos (fun n hn ↦ log_pos ?_) ⟨2, ?_⟩
-  · have := deriv_fun_inv'' (y.hasDerivAt_mul_log (by grind)).differentiableAt
-      (mul_ne_zero_iff.2 ⟨by grind, by linarith [Real.log_pos (by grind : 1 < y)]⟩)
-    simp only [neg_mul_eq_mul_neg, mul_div_assoc, mul_left_cancel_iff_of_pos pos, div_div,
-      fun t : ℝ => one_div (t * log t), this, deriv_mul_log (by grind : y ≠ 0)]
-    ring
-  · simp only [mem_filter] at hn; exact_mod_cast hn.2.one_lt
-  · simpa using ⟨(le_floor_iff (by grind : 0 ≤ y)).2 hy.1, Nat.prime_two⟩
+  have := deriv_fun_inv'' (y.hasDerivAt_mul_log (by grind)).differentiableAt
+    (mul_ne_zero_iff.2 ⟨by grind, by linarith [Real.log_pos (by grind : 1 < y)]⟩)
+  simp only [neg_mul_eq_mul_neg, mul_div_assoc, mul_left_cancel_iff_of_pos
+  (Chebyshev.theta_pos hy.1), div_div, fun t : ℝ => one_div (t * log t), this,
+  deriv_mul_log (by grind : y ≠ 0)]
+  ring
 
 @[blueprint
   "rs-419"]
