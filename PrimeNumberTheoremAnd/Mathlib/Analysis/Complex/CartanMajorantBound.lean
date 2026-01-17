@@ -1,6 +1,6 @@
 import Mathlib.Topology.Algebra.InfiniteSum.Real
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Divisor
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardCartanBound
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanBound
 
 /-!
 ## Cartan bookkeeping (intrinsic): Bound on finite sums of the majorant
