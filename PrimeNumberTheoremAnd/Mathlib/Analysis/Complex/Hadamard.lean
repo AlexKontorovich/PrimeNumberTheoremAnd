@@ -1,12 +1,15 @@
+
 import Riemann.Mathlib.Analysis.Complex.Divisor
 import Mathlib.Analysis.SpecialFunctions.Log.Base
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.LogSingularity
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanBound
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.ExpPoly
-import Riemann.Mathlib.Analysis.Complex.Divisor
 import Mathlib.Analysis.SpecialFunctions.Log.Summable
 import Mathlib.Topology.Algebra.InfiniteSum.Order
-
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardLogSingularity
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardCartanBound
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HadamardCartanProductBound
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanInverseFactorBound
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanGoodRadius
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.CartanMajorantBound
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.ExpPoly
 
 /-!
 ## The intrinsic Hadamard quotient (entire and zero-free)
@@ -1058,7 +1061,7 @@ private lemma lt_two_pow_floor_logb_add_one {x : ℝ} (hx : 1 ≤ x) :
   exact (Real.logb_lt_iff_lt_rpow (b := (2 : ℝ)) (x := x)
     (y := (⌊Real.logb 2 x⌋₊ : ℝ) + 1) (by norm_num : (1 : ℝ) < 2) hx0).1 hlt
 
-set_option maxHeartbeats 0 in
+--set_option maxHeartbeats 0 in
 private lemma card_shell_le_sum_divisor_closedBall
     {f : ℂ → ℂ} (hf : Differentiable ℂ f) (_hnot : ∃ z : ℂ, f z ≠ 0)
     {r0 R : ℝ} (hr0 : 0 < r0) (hR : r0 ≤ R) :
@@ -1507,7 +1510,7 @@ theorem summable_norm_inv_pow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {�
               -- `a^kk * a^(kk*m) = a^(kk + kk*m) = a^(kk*(m+1))`
               calc
                 (2⁻¹ : ℝ) ^ kk * (2⁻¹ : ℝ) ^ (kk * m) = (2⁻¹ : ℝ) ^ (kk + kk * m) := by
-                  simp [pow_add, mul_assoc, mul_left_comm, mul_comm]
+                  simp [pow_add]
                 _ = (2⁻¹ : ℝ) ^ (kk * (m + 1)) := by
                   congr 1
                   nlinarith [Nat.mul_add kk m 1]
@@ -1535,7 +1538,7 @@ theorem summable_norm_inv_pow_divisorZeroIndex₀_of_growth {f : ℂ → ℂ} {�
                           simpa [Nat.mul_comm] using (pow_mul (2⁻¹ : ℝ) (m + 1) kk)
                         _ = ((2 : ℝ) ^ (-1 - (m : ℝ))) ^ kk := by
                           simp [h2]
-                    simp [hb, mul_assoc]
+                    simp [hb]
               _ = (r0⁻¹ ^ (m + 1)) * qσ ^ kk := by
                     simp [qσ, sub_eq_add_neg, add_comm,]
 
@@ -2317,6 +2320,7 @@ divisor infrastructure.
 
 -/
 
+--set_option maxHeartbeats 800000 in
 theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 ≤ ρ)
     (hentire : Differentiable ℂ f)
     (hnot : ∃ z : ℂ, f z ≠ 0)
@@ -2442,46 +2446,23 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
       -- First show that `f` has no zeros on this circle: if `f u = 0`, then `‖u‖ = r` belongs to the
       -- finite bad set of zero radii, contradiction.
       have hfu_ne : f u ≠ 0 := by
-        intro hfu0
-        -- the fiber finset at `u` is nonempty, hence we can pick a divisor index with `val = u`
-        have hord_ne0 : analyticOrderNatAt f u ≠ 0 := by
-          have han : AnalyticAt ℂ f u := Differentiable.analyticAt (f := f) hentire u
-          -- `analyticOrderAt` is not `⊤` since `f` is entire and not identically zero
-          have hnotTop : analyticOrderAt f u ≠ ⊤ :=
-            analyticOrderAt_ne_top_of_exists_ne_zero (f := f) hentire hnot u
-          -- If `analyticOrderNatAt f u = 0`, then (as an `ENat`) the order is `0`, hence `f u ≠ 0`.
-          intro h0
-          have hEN : (analyticOrderNatAt f u : ENat) = 0 := by simpa [h0]
-          have hAt0 : analyticOrderAt f u = 0 := by
-            -- cast `analyticOrderNatAt` to `ENat` and use `hnotTop`
-            have hcast : (analyticOrderNatAt f u : ENat) = analyticOrderAt f u :=
-              (Nat.cast_analyticOrderNatAt (f := f) (z₀ := u) hnotTop)
-            simpa [hcast] using hEN
-          have : f u ≠ 0 := (han.analyticOrderAt_eq_zero).1 hAt0
-          exact this hfu0
-        have hcard_pos :
-            0 < (divisorZeroIndex₀_fiberFinset (f := f) u).card := by
-          have hcard :=
-            divisorZeroIndex₀_fiberFinset_card_eq_analyticOrderNatAt (hf := hentire) (z₀ := u) hu0
-          have : 0 < analyticOrderNatAt f u := Nat.pos_of_ne_zero hord_ne0
-          simpa [hcard] using this
-        rcases Finset.card_pos.mp hcard_pos with ⟨p, hp⟩
-        have hpval : divisorZeroIndex₀_val p = u :=
-          (mem_divisorZeroIndex₀_fiberFinset (f := f) (z₀ := u) p).1 hp
         have hr_le_4R : r ≤ 4 * R := by
           have : r ≤ 2 * R := hr_le_2R
           nlinarith [this, hRpos]
-        have hp_small : p ∈ small := by
-          have : ‖divisorZeroIndex₀_val p‖ ≤ 4 * R := by
-            -- `‖val p‖ = ‖u‖ = r`
-            have : ‖divisorZeroIndex₀_val p‖ = r := by simpa [hpval, hur]
-            simpa [this] using hr_le_4R
-          simpa [small, smallSet] using (hsmall_fin.mem_toFinset.2 this)
-        have : r ∈ bad := by
-          refine Finset.mem_image.2 ⟨p, hp_small, ?_⟩
-          -- `a p = ‖val p‖ = r`
-          simp [a, hpval, hur]
-        exact (hr_not_bad this).elim
+        -- turn `r ∉ bad` into a pointwise "radius avoids all divisor radii up to `4R`"
+        have hr_not :
+            ∀ p : divisorZeroIndex₀ f (Set.univ : Set ℂ),
+              ‖divisorZeroIndex₀_val p‖ ≤ 4 * R → r ≠ ‖divisorZeroIndex₀_val p‖ := by
+          intro p hpB
+          intro hEq
+          have hp_small : p ∈ small := by
+            simpa [small, smallSet] using (hsmall_fin.mem_toFinset.2 hpB)
+          have : r ∈ bad := by
+            refine Finset.mem_image.2 ⟨p, hp_small, ?_⟩
+            simpa [a] using hEq.symm
+          exact (hr_not_bad this).elim
+        exact no_zero_on_sphere_of_forall_val_norm_ne (f := f) hentire hnot
+          (B := 4 * R) (r := r) hrpos hr_le_4R hr_not u hur
 
       have hden_ne :
           (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u) ≠ 0 := by
@@ -2518,9 +2499,140 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
       -- crude bound on the inverse denominator: use `Cprod` (full minimum-modulus proof to be filled)
       have hden_inv : ‖(u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖
           ≤ Real.exp (Cprod * (1 + r) ^ τ) := by
-        -- TODO(PR3): complete the Cartan/minimum-modulus bound for the canonical product inverse.
-        -- This is the remaining analytical core.
-        admit
+        classical
+        -- It suffices to bound the inverse canonical product, since `‖(u^k)⁻¹‖ ≤ 1` on this circle (`r ≥ 1`).
+        have hr1 : (1 : ℝ) ≤ r := le_trans hRle hR_le_r
+        have hpow_inv_le1 : ‖(u ^ analyticOrderNatAt f 0)⁻¹‖ ≤ 1 := by
+          -- `‖u‖ = r ≥ 1` gives `‖u‖⁻¹ ≤ 1`, hence its powers are ≤ 1.
+          have hinv : (‖u‖ : ℝ)⁻¹ ≤ 1 := by
+            have : (1 : ℝ) ≤ ‖u‖ := by simpa [hur] using hr1
+            exact inv_le_one_of_one_le₀ this
+          have hnn : 0 ≤ (‖u‖ : ℝ)⁻¹ := by positivity
+          have : (‖u‖ : ℝ)⁻¹ ^ analyticOrderNatAt f 0 ≤ 1 ^ analyticOrderNatAt f 0 :=
+            pow_le_pow_left₀ hnn hinv _
+          simpa [norm_inv, norm_pow] using this
+
+        -- Now bound the inverse canonical product `∏' p, E_m(u / a_p)`.
+        let fac : divisorZeroIndex₀ f (Set.univ : Set ℂ) → ℂ :=
+          fun p => weierstrassFactor m (u / divisorZeroIndex₀_val p)
+
+        have hloc :
+            HasProdLocallyUniformlyOn
+              (fun (p : divisorZeroIndex₀ f (Set.univ : Set ℂ)) (w : ℂ) =>
+                weierstrassFactor m (w / divisorZeroIndex₀_val p))
+              (divisorCanonicalProduct m f (Set.univ : Set ℂ))
+              (Set.univ : Set ℂ) :=
+          hasProdLocallyUniformlyOn_divisorCanonicalProduct_univ (m := m) (f := f) h_sum
+        have hprod :
+            HasProd fac (divisorCanonicalProduct m f (Set.univ : Set ℂ) u) :=
+          hloc.hasProd (by simp : u ∈ (Set.univ : Set ℂ))
+
+        -- Majorant `b p` and pointwise estimate `‖(fac p)⁻¹‖ ≤ exp(b p)`.
+        let ap : divisorZeroIndex₀ f (Set.univ : Set ℂ) → ℝ := fun p => ‖divisorZeroIndex₀_val p‖
+        let b : divisorZeroIndex₀ f (Set.univ : Set ℂ) → ℝ :=
+          fun p =>
+            if hp : p ∈ small then
+              LogSingularity.φ (r / ap p) + (m : ℝ) * (1 + (r / ap p) ^ τ)
+            else
+              (2 : ℝ) * (r / ap p) ^ τ
+
+        have hterm : ∀ p, ‖(fac p)⁻¹‖ ≤ Real.exp (b p) := by
+          intro p
+          by_cases hp : p ∈ small
+          · have hval_ne : r ≠ ap p := by
+              intro hEq
+              have : r ∈ bad := by
+                refine Finset.mem_image.2 ⟨p, hp, ?_⟩
+                simp [ap, a, hEq]
+              exact (hr_not_bad this).elim
+            have hval0 : divisorZeroIndex₀_val p ≠ 0 := divisorZeroIndex₀_val_ne_zero p
+            have hmτ : (m : ℝ) ≤ τ := by
+              have hmρ : (m : ℝ) ≤ ρ := by
+                have := Nat.floor_le hρ
+                simpa [m] using this
+              exact le_trans hmρ (le_of_lt hτ)
+            have hnear :
+                ‖(weierstrassFactor m (u / divisorZeroIndex₀_val p))⁻¹‖
+                  ≤ Real.exp (LogSingularity.φ (r / ap p) + (m : ℝ) * (1 + (r / ap p) ^ τ)) := by
+              simpa [ap] using
+                (norm_inv_weierstrassFactor_le_exp_near (m := m) (τ := τ) (r := r)
+                    (u := u) (a := divisorZeroIndex₀_val p)
+                    (hur := hur) (ha := hval0) (hr := by simpa [ap] using hval_ne) hmτ)
+            simpa [fac, b, hp] using hnear
+          · -- tail regime: `‖u / a‖ ≤ 1/2`, so use the far log bound and compare exponents.
+            have hlarge : (4 * R : ℝ) < ap p := by
+              have : ¬ap p ≤ 4 * R := by
+                intro hle
+                have : p ∈ small := by
+                  -- `p ∈ small` iff `ap p ≤ 4R`
+                  simpa [small, smallSet, ap] using (hsmall_fin.mem_toFinset.2 hle)
+                exact hp this
+              exact lt_of_not_ge this
+            have hz' : ‖u / divisorZeroIndex₀_val p‖ ≤ (1 / 2 : ℝ) := by
+              have hnorm : ‖u / divisorZeroIndex₀_val p‖ = r / ap p := by
+                simp [div_eq_mul_inv, hur, ap, norm_inv]
+              rw [hnorm]
+              have hap : 0 < ap p := by
+                dsimp [ap]
+                exact norm_pos_iff.2 (divisorZeroIndex₀_val_ne_zero p)
+              have hfrac₁ : r / ap p ≤ (2 * R) / ap p :=
+                div_le_div_of_nonneg_right hr_le_2R (le_of_lt hap)
+              have hfrac₂ : (2 * R) / ap p ≤ (2 * R) / (4 * R) := by
+                have h2R0 : 0 ≤ (2 * R : ℝ) := by nlinarith [le_of_lt hRpos]
+                exact div_le_div_of_nonneg_left h2R0 (by nlinarith [hRpos]) (le_of_lt hlarge)
+              have hRsimp : (2 * R) / (4 * R) = (1 / 2 : ℝ) := by
+                have hRne : (R : ℝ) ≠ 0 := ne_of_gt hRpos
+                field_simp [hRne]; ring
+              exact (hfrac₁.trans hfrac₂).trans_eq hRsimp
+            have hτ_le : τ ≤ (m + 1 : ℝ) := le_of_lt hτ_lt
+            have hfar :
+                ‖(weierstrassFactor m (u / divisorZeroIndex₀_val p))⁻¹‖ ≤
+                  Real.exp ((2 : ℝ) * (r / ap p) ^ τ) := by
+              simpa [ap] using
+                (norm_inv_weierstrassFactor_le_exp_far (m := m) (τ := τ) (r := r)
+                    (u := u) (a := divisorZeroIndex₀_val p)
+                    (hur := hur) (ha := divisorZeroIndex₀_val_ne_zero p) (hz := hz') hτ_le)
+            simpa [fac, b, hp] using hfar
+
+        -- Tao-style bound on partial sums of the majorant `b`:
+        -- prove `Summable b` and bound `tsum b`, then use `sum_le_tsum`.
+        have hb_le :
+            ∀ s : Finset (divisorZeroIndex₀ f (Set.univ : Set ℂ)),
+              (∑ p ∈ s, b p) ≤ Cprod * (1 + r) ^ τ := by
+          intro s
+          have hsmallSet' :
+              smallSet =
+                {p : divisorZeroIndex₀ f (Set.univ : Set ℂ) | ‖divisorZeroIndex₀_val p‖ ≤ 4 * R} := rfl
+          -- Use the extracted Tao bookkeeping lemma (compiled once to `.olean`).
+          simpa [small, ap, b, Sτ, Cprod, a, hsmallSet'] using
+            (Complex.Hadamard.cartan_sum_majorant_le (f := f) (m := m) (τ := τ) (R := R) (r := r)
+              (hRpos := hRpos) (hrpos := hrpos) (hR_le_r := hR_le_r) (hτ_nonneg := hτ_nonneg)
+              (smallSet := smallSet) (hsmall_fin := hsmall_fin) (hsmallSet := hsmallSet')
+              (hsumτ := hsumτ) (hr_phi := hr_phi) s)
+
+
+        have hcprod_inv :
+            ‖(divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖ ≤ Real.exp (Cprod * (1 + r) ^ τ) := by
+          -- Use the reusable lemma: pointwise `‖fac⁻¹‖ ≤ exp(b)` plus a bound on all partial sums of `b`
+          -- gives the bound on the infinite product limit.
+          refine hasProd_norm_inv_le_exp_of_pointwise_le_exp
+            (α := divisorZeroIndex₀ f (Set.univ : Set ℂ)) (fac := fac)
+            (F := divisorCanonicalProduct m f (Set.univ : Set ℂ) u)
+            hprod (b := b) (B := Cprod * (1 + r) ^ τ) ?_ ?_
+          · exact hterm
+          · intro s
+            exact hb_le s
+
+        -- Put the two factors together.
+        have hmul :
+            ‖(u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖
+              = ‖(u ^ analyticOrderNatAt f 0)⁻¹‖ * ‖(divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖ := by
+          simp [mul_inv_rev, norm_mul, mul_assoc, mul_left_comm, mul_comm]
+        rw [hmul]
+        have : ‖(u ^ analyticOrderNatAt f 0)⁻¹‖ * ‖(divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖
+              ≤ 1 * Real.exp (Cprod * (1 + r) ^ τ) :=
+          mul_le_mul hpow_inv_le1 hcprod_inv (by positivity) (by positivity)
+        simpa using this
 
       -- combine
       have : ‖H u‖ ≤ ‖f u‖ * ‖(u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖ := by
@@ -2528,14 +2640,14 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
         have : ‖H u‖ = ‖f u / (u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)‖ := by
           simp [hHu]
         -- `‖f / denom‖ = ‖f‖ * ‖denom⁻¹‖`
-        simpa [div_eq_mul_inv, norm_mul, norm_inv, this]
+        simp [div_eq_mul_inv, norm_mul, norm_inv, this]
       have hmul :
           ‖f u‖ * ‖(u ^ analyticOrderNatAt f 0 * divisorCanonicalProduct m f (Set.univ : Set ℂ) u)⁻¹‖
             ≤ Real.exp (Cf * (1 + r) ^ τ) * Real.exp (Cprod * (1 + r) ^ τ) :=
         mul_le_mul hf_u hden_inv (by positivity) (by positivity)
       have hexp : Real.exp (Cf * (1 + r) ^ τ) * Real.exp (Cprod * (1 + r) ^ τ)
           = Real.exp ((Cf + Cprod) * (1 + r) ^ τ) := by
-        simp [Real.exp_add, mul_add, add_mul, mul_assoc, add_assoc, add_comm, add_left_comm]
+        simp [Real.exp_add, add_mul, add_comm, add_left_comm]
       -- absorb slack
       have : ‖H u‖ ≤ Real.exp ((Cf + Cprod) * (1 + r) ^ τ) :=
         (this.trans hmul).trans_eq hexp
@@ -2655,21 +2767,15 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
             linarith [hHz]
           exact Real.log_le_log hpos hle
         exact (this.trans (log_one_add_exp_le (B := C * (1 + ‖z‖) ^ τ) hB))
-      -- rearrange constants
+      -- absorb the additive constant `log 2` into the multiplicative constant using `1 ≤ (1+‖z‖)^τ`.
       have hX : (1 : ℝ) ≤ (1 + ‖z‖) ^ τ := by
         have hbase : (1 : ℝ) ≤ 1 + ‖z‖ := by linarith [norm_nonneg z]
         exact Real.one_le_rpow hbase hτ_nonneg
       have hlog2_nonneg : 0 ≤ Real.log 2 := le_of_lt (Real.log_pos (by norm_num : (1 : ℝ) < 2))
       have hlin : C * (1 + ‖z‖) ^ τ + Real.log 2 ≤ (C + Real.log 2) * (1 + ‖z‖) ^ τ := by
-        -- `C*X + log2 ≤ C*X + log2*X = (C+log2)*X` using `1 ≤ X`.
-        have : Real.log 2 ≤ Real.log 2 * (1 + ‖z‖) ^ τ := by
-          nlinarith [hX, hlog2_nonneg]
-        calc
-          C * (1 + ‖z‖) ^ τ + Real.log 2 ≤ C * (1 + ‖z‖) ^ τ + Real.log 2 * (1 + ‖z‖) ^ τ := by
-            -- add `C * X` to the right of `log2 ≤ log2 * X`, then reassociate/commute
-            have h := add_le_add_right this (C * (1 + ‖z‖) ^ τ)
-            simpa [add_comm, add_left_comm, add_assoc] using h
-          _ = (C + Real.log 2) * (1 + ‖z‖) ^ τ := by ring
+        -- `C*X + log2 ≤ C*X + log2*X` since `log2 ≤ log2*X` (with `0 ≤ log2` and `1 ≤ X`)
+        -- and the RHS is `(C+log2)*X`.
+        nlinarith [hX, hlog2_nonneg]
       exact this.trans hlin
     have := natDegree_le_floor_of_growth_exp_eval (ρ := τ) hτ_nonneg P hlog_growth
     simpa [hfloorτ] using this
@@ -2684,4 +2790,5 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
     simpa [hH', mul_assoc, mul_left_comm, mul_comm, m] using (hfactor z)
 
 end Complex.Hadamard
+
 
