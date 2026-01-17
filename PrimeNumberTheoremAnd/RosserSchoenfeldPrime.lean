@@ -137,8 +137,9 @@ theorem eq_415 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : 
   (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = 1$. -/)
   (latexEnv := "sublemma")
   (discussion := 602)]
-theorem eq_417 (x : ℝ) :
-    pi x = θ x / log x + ∫ y in 2..x, θ y / (y * log y ^ 2) := by sorry
+theorem eq_417 {x : ℝ} (hx : 2 ≤ x) :
+    pi x = θ x / log x + ∫ y in 2..x, θ y / (y * log y ^ 2) := by
+  exact Chebyshev.primeCounting_eq_theta_div_log_add_integral hx
 
 @[blueprint
   "rs-418"
@@ -192,7 +193,7 @@ theorem mertens_second_theorem' :
 @[blueprint
   "rs-420"]
 theorem mertens_first_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
-    ∑ p ∈ filter Nat.Prime (range ⌊x⌋₊), Real.log p / p - log x - E) (nhds 0) := by sorry
+    ∑ p ∈ filter Nat.Prime (range ⌊x⌋₊), Real.log p / p - log x - mertensConstant) (nhds 0) := by sorry
 
 @[blueprint
   "rs-420"
@@ -206,7 +207,7 @@ theorem mertens_first_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
   (discussion := 604)]
 theorem eq_420 {x : ℝ} (hx : 2 ≤ x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), Real.log p / p =
-      log x + E + (θ x - x) / x - ∫ y in 2..x, (θ y - y) / (y ^ 2) := by sorry
+      log x + mertensConstant + (θ x - x) / x - ∫ y in 2..x, (θ y - y) / (y ^ 2) := by sorry
 
 @[blueprint
   "rs-420"]
