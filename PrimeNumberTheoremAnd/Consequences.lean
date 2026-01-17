@@ -50,99 +50,13 @@ theorem extracted_1 (x : ℝ) :
     IntegrableOn
       (fun t ↦ (θ t) / (t * log t ^ 2))
       (Set.Icc 2 x) volume := by
-  conv => arg 1; ext; rw [Chebyshev.theta_eq_sum_Icc, div_eq_mul_one_div, mul_comm, sum_filter]
-  apply integrableOn_mul_sum_Icc _ (by norm_num)
-  apply ContinuousOn.integrableOn_Icc
-  intro x hx
-  apply ContinuousAt.continuousWithinAt
-  have : x ≠ 0 := by linarith [hx.1]
-  have : x * log x ^ 2 ≠ 0 := by
-    apply mul_ne_zero this
-    apply pow_ne_zero _ <| log_ne_zero_of_pos_of_ne_one _ _ <;> linarith [hx.1]
-  fun_prop (disch := assumption)
+  exact Chebyshev.integrableOn_theta_div_id_mul_log_sq x
 
 lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     Nat.primeCounting ⌊x⌋₊ =
       θ x / log x + ∫ t in Set.Icc 2 x, θ t / (t * (Real.log t) ^ 2) := by
-  trans θ x / log x + ∫ t in Set.Icc (3 / 2) x, θ t / (t * (Real.log t) ^ 2)
-  swap
-  · congr 1
-    have : Set.Icc (3/2) x = Set.Ico (3/2) 2 ∪ Set.Icc 2 x := by
-      exact Set.Ico_union_Icc_eq_Icc (by norm_num) hx |>.symm
-    rw [this, setIntegral_union _ measurableSet_Icc _ _]
-    · simp only [add_eq_right]
-      apply integral_eq_zero_of_ae
-      simp only [measurableSet_Ico, ae_restrict_eq]
-      refine eventuallyEq_inf_principal_iff.mpr ?_
-      filter_upwards [] with y hy
-      simp [Chebyshev.theta_eq_zero_of_lt_two hy.2]
-    · rw [Set.disjoint_iff, Set.subset_empty_iff]
-      ext y
-      simp (config := {contextual := true})
-    · rw [integrableOn_congr_fun (g := 0) _ measurableSet_Ico]
-      · exact integrableOn_zero
-      · intro y hy
-        simp only [Set.mem_Ico] at hy
-        have := Chebyshev.theta_eq_zero_of_lt_two hy.2
-        simp_all
-    · apply extracted_1 _
-  let a : ℕ → ℝ := Set.indicator (setOf Nat.Prime) (fun n => log n)
-  have floor32 : ⌊(3/2 : ℝ)⌋₊ = 1 := by rw [floor_div_ofNat, Nat.floor_ofNat]
-  simp only [primeCounting, primeCounting', count_eq_card_filter_range]
-  rw [card_eq_sum_ones, range_succ_eq_Icc_zero]
-  trans ∑ x ∈ Ioc ⌊(3/2 : ℝ)⌋₊ ⌊x⌋₊ with Nat.Prime x, 1
-  · norm_cast
-    congr 1
-    ext p
-    constructor <;> intro h
-    · simp_all only [mem_filter, mem_Icc, _root_.zero_le, true_and, mem_Ioc, and_true]
-      apply h.2.one_lt
-    · simp_all
-  rw [sum_filter]
-  trans ∑ n ∈ Ioc ⌊(3/2 : ℝ)⌋₊ ⌊x⌋₊, (1 / log n) * a n
-  · refine sum_congr rfl fun n hn ↦ ?_
-    unfold a
-    split_ifs with h
-    · simp [h]
-      have : log n ≠ 0 := by
-        apply log_ne_zero_of_pos_of_ne_one <;> norm_cast
-        exacts [h.pos, h.ne_one]
-      field
-    simp [h]
-  rw [sum_mul_eq_sub_sub_integral_mul a (f := fun n ↦ 1 / log n) (by norm_num) (by linarith),
-    floor32, show Icc 0 1 = {0, 1} by ext; simp; omega]
-  · simp only [Set.indicator_apply, Set.mem_setOf_eq, mem_singleton, zero_ne_one,
-      not_false_eq_true, sum_insert, CharP.cast_eq_zero, log_zero, ite_self, sum_singleton,
-      cast_one, log_one, add_zero, mul_zero, sub_zero, Chebyshev.theta_eq_sum_Icc, a, sum_filter]
-    have h8 (f : ℝ → ℝ) :
-      ∫ (u : ℝ) in Set.Ioc (3 / 2) x, deriv (fun x ↦ 1 / log x) u * f u =
-      ∫ (u : ℝ) in Set.Icc (3 / 2) x, f u * -(u * log u ^ 2)⁻¹ := by
-      rw [← integral_Icc_eq_integral_Ioc]
-      apply setIntegral_congr_ae measurableSet_Icc
-      refine Eventually.of_forall (fun u hu => ?_)
-      simp only [one_div, mul_inv_rev, mul_neg]
-      rw [deriv_smoothingFn (by linarith [hu.1])]
-      ring
-    simp_rw [h8, mul_neg, MeasureTheory.integral_neg]
-    ring_nf!
-  · intro z hz
-    have : z ≠ 0 := by linarith [hz.1]
-    have : log z ≠ 0 := by
-      apply log_ne_zero_of_pos_of_ne_one <;> linarith [hz.1]
-    fun_prop (disch := assumption)
-  · simp only [one_div]
-    have : ∀ y ∈ Set.Icc (3 / 2) x,
-        deriv (fun x ↦ (log x)⁻¹) y = -(y * log y ^ 2)⁻¹ := by
-      intro y hy
-      rw [deriv_smoothingFn, mul_inv, ← div_eq_mul_inv, neg_div]
-      linarith [hy.1]
-    apply ContinuousOn.integrableOn_Icc
-    intro z hz
-    apply ContinuousWithinAt.congr (f := fun x => - (x * log x ^ 2)⁻¹)
-    · apply ContinuousWithinAt.neg
-      apply extracted_2 <;> linarith [hz.1]
-    · apply this
-    · apply this z hz
+  rw [integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hx]
+  exact Chebyshev.primeCounting_eq_theta_div_log_add_integral hx
 
 @[blueprint
   (title := "finsum-range-eq-sum-range")
