@@ -6,12 +6,26 @@ namespace Lcm
 open ArithmeticFunction hiding log
 open Finset Nat Real
 
-/-!
-Numeric certification for the LCM chapter.
+namespace Numerical
 
-This file is intended to be the *only* place where the hard-coded numerical
-constants (like the 0.000675 bound) appear, so it can be regenerated when X₀ updates.
+
+/-!
+`Cert.lean` is the ONLY place with hard-coded numeric constants and proofs about them.
+
+It defines the *numeric contract* that `ChoosePrime.lean` will assume.
 -/
+
+/-- Numeric/analytic contract: the properties of `X₀` and `gap.δ` needed for prime selection. -/
+structure Criterion where
+  /- Whatever properties ChoosePrime needs, but no primes p/q here. -/
+  sqrt_ge_X₀ : ∀ {n : ℕ}, n ≥ X₀ ^ 2 → (X₀ : ℝ) ≤ √(n : ℝ)
+  eps_nonneg : ∀ {n : ℕ}, n ≥ X₀ ^ 2 → 0 ≤ gap.δ (√(n : ℝ))
+  inv_cube_log_sqrt_le :
+    ∀ {n : ℕ}, n ≥ X₀ ^ 2 → 1 / (log √(n : ℝ)) ^ 3 ≤ (0.000675 : ℝ)
+  /- add the rest of your numeric lemmas here -/
+  -- ...
+
+
 
 noncomputable abbrev eps_log : ℝ := (0.000675 : ℝ)
 noncomputable abbrev onePlusEps_log : ℝ := (1 : ℝ) + eps_log
@@ -308,5 +322,19 @@ theorem final_comparison {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : �
     nlinarith
 
 
+/-- The certified package (built from the concrete numerals in this file). -/
+noncomputable def criterion : Criterion := by
+  classical
+  refine
+    { sqrt_ge_X₀ := ?_
+      eps_nonneg := ?_
+      inv_cube_log_sqrt_le := ?_
+      -- ...
+    }
+  · intro n hn; sorry
+  · intro n hn; sorry
+  · intro n hn; sorry
+
+end Numerical
 
 end Lcm
