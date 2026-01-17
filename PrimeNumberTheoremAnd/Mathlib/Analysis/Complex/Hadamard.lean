@@ -492,8 +492,8 @@ lemma logCounting_divisor_univ_eq_circleAverage_sub_log_trailingCoeff {f : ℂ �
       = Real.circleAverage (fun z : ℂ => Real.log ‖f z‖) 0 R
         - Real.log ‖meromorphicTrailingCoeffAt f 0‖ := by
   -- `ValueDistribution.CountingFunction` reformulation of Jensen's formula, specialized to `univ`.
-  have hmero : MeromorphicOn f (⊤ : Set ℂ) := by
-    intro z _
+  have hmero : Meromorphic f := by
+    intro z
     exact (hf.analyticAt z).meromorphicAt
   -- `divisor f ⊤ = divisor f univ` by definitional equality `⊤ = univ`
   simpa [top_eq_univ] using
