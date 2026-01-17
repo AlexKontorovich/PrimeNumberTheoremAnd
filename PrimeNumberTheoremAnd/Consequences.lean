@@ -1,15 +1,4 @@
 import Architect
-import Mathlib.Algebra.Order.Floor.Semifield
-import Mathlib.Analysis.Asymptotics.Lemmas
-import Mathlib.NumberTheory.AbelSummation
-import Mathlib.Analysis.Asymptotics.AsymptoticEquivalent
-import Mathlib.Analysis.Asymptotics.SpecificAsymptotics
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
-import Mathlib.NumberTheory.Chebyshev
-import Mathlib.NumberTheory.PrimeCounting
-import Mathlib.Analysis.Polynomial.Basic
 import Mathlib.NumberTheory.Harmonic.Bounds
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 import PrimeNumberTheoremAnd.Wiener
@@ -2284,7 +2273,7 @@ theorem mu_pnt : (fun x : ℝ ↦ ∑ n ∈ range ⌊x⌋₊, μ n) =o[atTop] fu
   rw [Asymptotics.isLittleO_iff] at *
   simp_all +decide [Norm.norm]
 
--- Large proof with multiplicativity of Möbius function over square divisors
+
 lemma lambda_eq_sum_sq_dvd_mu (n : ℕ) (hn : n ≠ 0) :
     ((-1 : ℝ) ^ (Ω n)) = ∑ d ∈ (Icc 1 n).filter (fun d => d^2 ∣ n), (μ (n / d^2) : ℝ) := by
       set a : ℕ → ℕ := fun p => Nat.factorization n p with ha
