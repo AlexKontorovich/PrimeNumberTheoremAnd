@@ -138,7 +138,7 @@ def Table2 : List ( ℝ × ℝ × ℝ ) := [
   (title := "Dusart Lemma 4.1")
   (statement := /--
   We have $\vartheta(x)$ and $\psi(x)-\vartheta(x)$ for various $x$ given by \cite[Table 2]{Dusart2018}, in particular
-  $10^{15} = 999999965752660.939839805291048\dots$-/)
+  $\vartheta(10^{15}) = 999999965752660.939839805291048\dots$-/)
   (latexEnv := "lemma")]
 theorem lemma_4_1 {x ϑx ψϑx : ℝ} (h : (x, ϑx, ψϑx) ∈ Table2) : θ x ∈ Set.Icc ϑx (ϑx + 1e-6) ∧ ψ x - θ x ∈ Set.Icc ψϑx (ψϑx + 1e-6) := by sorry
 
@@ -298,7 +298,7 @@ theorem corollary_5_3_a {x : ℝ} (hx : x ≥ 5393) : pi x ≥ x / (log x - 1) :
 @[blueprint "Dusart_cor_5_3_b"
   (title := "Dusart Corollary 5.3 (b)")
   (statement := /--
-  For $x > e^{1.112}, we have
+  For $x > e^{1.112}$, we have
   \[
   \pi(x) \leq \frac{x}{\log x - 1.112}.
   \]
