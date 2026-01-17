@@ -190,7 +190,8 @@ theorem prop_3_sub_4 (n : ℕ) (hn : n ≥ 9) : u (n + 1) < u n := by sorry
   (proof := /-- This follows from Sublemmas \ref{bklnw-prop-3-sub-3} and \ref{bklnw-prop-3-sub-4}. -/)
   (latexEnv := "sublemma")
   (discussion := 635)]
-theorem prop_3_sub_5 (n : ℕ) (hn : n ≥ 9) : f (2^n) > f (2^(n + 1)) := by sorry
+theorem prop_3_sub_5 (n : ℕ) (hn : n ≥ 9) : f (2^n) > f (2^(n + 1)) := by
+  simp [prop_3_sub_3, prop_3_sub_4 n hn]
 
 @[blueprint
   "bklnw-prop-3-sub-6"
