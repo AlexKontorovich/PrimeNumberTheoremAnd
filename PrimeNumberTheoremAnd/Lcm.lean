@@ -755,11 +755,10 @@ inequality.  Here we will rely on the prime number theorem of Dusart \cite{Dusar
   and \(p_1 < p_2 < p_3\).
   Moreover, \(\sqrt{n} < p_1\)
   -/)
-  (proof := /-- Apply Theorem~\ref{thm:Dusart} successively with
+  (proof := /-- Apply Proposition~\ref{Dusart_prop_5_4} successively with
   \(x, x(1+1/\log^3 x), x(1+1/\log^3 x)^2\), keeping track of the resulting primes and bounds.
   For \(n\) large and \(x = \sqrt{n}\), we have \(\sqrt{n} < p_1\) as soon as the first interval
   lies strictly above \(\sqrt{n}\); this can be enforced by taking \(n\) large enough. -/)
-  (proofUses := ["thm:Dusart"])
   (latexEnv := "lemma")]
 theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∃ p : Fin 3 → ℕ, (∀ i, Nat.Prime (p i)) ∧ StrictMono p ∧
