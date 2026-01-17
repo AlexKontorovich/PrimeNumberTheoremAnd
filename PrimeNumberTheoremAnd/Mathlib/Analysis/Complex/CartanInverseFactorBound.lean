@@ -102,7 +102,6 @@ lemma norm_inv_weierstrassFactor_le_exp_near
 ### Far regime: if `‖u/a‖ ≤ 1/2` then `‖(E_m(u/a))⁻¹‖ ≤ exp(2*(r/‖a‖)^τ)`
 -/
 
-set_option maxHeartbeats 0 in
 lemma norm_inv_weierstrassFactor_le_exp_far
     {m : ℕ} {τ r : ℝ} {u a : ℂ}
     (hur : ‖u‖ = r) (ha : a ≠ 0)
