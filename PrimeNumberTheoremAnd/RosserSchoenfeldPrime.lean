@@ -74,7 +74,7 @@ theorem pre_413 {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Ici 2)) {x : ℝ} (h
 @[blueprint
   "rs-413"
   (title := "RS equation (4.13)")
-  (statement := /-- $\sum_{p \leq x} f(p) = \frac{f(x) \vartheta(x)}{\log x} - \int_2^x \vartheta(x) \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$ -/)
+  (statement := /-- $\sum_{p \leq x} f(p) = \frac{f(x) \vartheta(x)}{\log x} - \int_2^x \vartheta(y) \frac{d}{dy}( \frac{f(y)}{\log y} )\ dy.$ -/)
   (proof := /-- Follows from Sublemma \ref{rs-pre-413} and integration by parts. -/)
   (latexEnv := "sublemma")
   (discussion := 650)]
@@ -145,9 +145,14 @@ theorem eq_417 (x : ℝ) :
   (latexEnv := "sublemma")
   (discussion := 652)]
 theorem eq_418 {x : ℝ} (hx : 2 ≤ x) :
-    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / p = θ x / (x * log x) +
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / (p : ℝ) = θ x / (x * log x) +
       ∫ y in 2..x, θ y * (1 + log y) / (y ^ 2 * log y ^ 2) := by
+  have : DifferentiableOn ℝ (fun x : ℝ ↦ 1 / x) (Set.Ici 2) := by
+    refine fun x hx => ?_
+    simpa [one_div] using differentiableWithinAt_inv (by grind) (Set.Ici 2)
+  rw [eq_413 (f := fun x => 1 / x) this hx, mul_comm_div, one_mul, div_div, sub_eq_add_neg]
   sorry
+
 
 @[blueprint
   "rs-419"]
