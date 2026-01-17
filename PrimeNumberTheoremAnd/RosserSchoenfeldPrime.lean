@@ -147,12 +147,20 @@ theorem eq_417 (x : ℝ) :
 theorem eq_418 {x : ℝ} (hx : 2 ≤ x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / (p : ℝ) = θ x / (x * log x) +
       ∫ y in 2..x, θ y * (1 + log y) / (y ^ 2 * log y ^ 2) := by
-  have : DifferentiableOn ℝ (fun x : ℝ ↦ 1 / x) (Set.Ici 2) := by
-    refine fun x hx => ?_
-    simpa [one_div] using differentiableWithinAt_inv (by grind) (Set.Ici 2)
-  rw [eq_413 (f := fun x => 1 / x) this hx, mul_comm_div, one_mul, div_div, sub_eq_add_neg]
-  sorry
-
+  have : DifferentiableOn ℝ (fun x : ℝ ↦ 1 / x) (Set.Ici 2) :=
+    fun x hx => by simpa [one_div] using differentiableWithinAt_inv (by grind) (Set.Ici 2)
+  rw [eq_413 (f := fun x => 1 / x) this hx, mul_comm_div, one_mul, div_div, sub_eq_add_neg,
+    ← intervalIntegral.integral_neg, add_left_cancel_iff]
+  refine intervalIntegral.integral_congr fun y hy => ?_
+  have hy := Set.uIcc_of_le hx ▸ hy
+  have pos : 0 < θ y := sum_pos (fun n hn ↦ log_pos ?_) ⟨2, ?_⟩
+  · have := deriv_fun_inv'' (y.hasDerivAt_mul_log (by grind)).differentiableAt
+      (mul_ne_zero_iff.2 ⟨by grind, by linarith [Real.log_pos (by grind : 1 < y)]⟩)
+    simp only [neg_mul_eq_mul_neg, mul_div_assoc, mul_left_cancel_iff_of_pos pos, div_div,
+      fun t : ℝ => one_div (t * log t), this, deriv_mul_log (by grind : y ≠ 0)]
+    ring
+  · simp only [mem_filter] at hn; exact_mod_cast hn.2.one_lt
+  · simpa using ⟨(le_floor_iff (by grind : 0 ≤ y)).2 hy.1, Nat.prime_two⟩
 
 @[blueprint
   "rs-419"]
