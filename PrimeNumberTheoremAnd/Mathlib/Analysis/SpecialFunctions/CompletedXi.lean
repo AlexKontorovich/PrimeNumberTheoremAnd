@@ -3,8 +3,8 @@ import Mathlib.Analysis.Analytic.Basic
 import Mathlib.Analysis.SpecialFunctions.Complex.Log
 import Mathlib.Tactic
 import Mathlib.NumberTheory.LSeries.RiemannZeta
-import PrimeNumberTheoremAnd.Mathlib.SpecialFunctions.ZetaFunctionalEquation
-import PrimeNumberTheoremAnd.Mathlib.SpecialFunctions.Domain
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.ZetaFunctionalEquation
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Domain
 import Mathlib.Topology.Basic
 import Mathlib.Analysis.Complex.CauchyIntegral
 
@@ -26,7 +26,7 @@ def riemannXi_ext (s : ℂ) : ℂ := completedRiemannZeta s
 def G_ext (s : ℂ) : ℂ := Complex.Gammaℝ s
 
 /-- Open right half-plane Ω = { s | Re s > 1/2 }. -/
-private lemma isOpen_Ω : IsOpen RH.RS.Ω := by
+private lemma isOpen_Ω : IsOpen Ω := by
   change IsOpen { s : ℂ | (1 / 2 : ℝ) < s.re }
   exact isOpen_lt continuous_const Complex.continuous_re
 
@@ -37,11 +37,11 @@ lemma differentiableAt_riemannXi_ext {s : ℂ} (hs0 : s ≠ 0) (hs1 : s ≠ 1) :
 
 /-- Differentiability of `riemannXi_ext` on Ω \ {1}. -/
 theorem riemannXi_ext_differentiable_on_RSΩ_minus_one :
-  DifferentiableOn ℂ riemannXi_ext (RH.RS.Ω \ ({1} : Set ℂ)) := by
+  DifferentiableOn ℂ riemannXi_ext (Ω \ ({1} : Set ℂ)) := by
   intro z hz
   -- z ∈ Ω and z ≠ 1
   have hzΩ : (1 / 2 : ℝ) < z.re := by
-    simpa [RH.RS.Ω, Set.mem_setOf_eq] using hz.1
+    simpa [Ω, Set.mem_setOf_eq] using hz.1
   have hz0 : z ≠ 0 := by
     intro h0
     have : (0 : ℝ) < z.re := lt_trans (by norm_num : (0 : ℝ) < 1 / 2) hzΩ
@@ -51,24 +51,24 @@ theorem riemannXi_ext_differentiable_on_RSΩ_minus_one :
 
 /-- Analyticity of `riemannXi_ext` on Ω \ {1}``, via open-set equivalence. -/
 lemma riemannXi_ext_analytic_on_RSΩ_minus_one :
-  AnalyticOn ℂ riemannXi_ext (RH.RS.Ω \ ({1} : Set ℂ)) := by
-  have hOpen : IsOpen (RH.RS.Ω \ ({1} : Set ℂ)) :=
+  AnalyticOn ℂ riemannXi_ext (Ω \ ({1} : Set ℂ)) := by
+  have hOpen : IsOpen (Ω \ ({1} : Set ℂ)) :=
     (isOpen_Ω).sdiff isClosed_singleton
   -- use the equivalence on open sets
   have h :=
     (analyticOn_iff_differentiableOn (f := riemannXi_ext)
-      (s := RH.RS.Ω \ ({1} : Set ℂ)) hOpen)
+      (s := Ω \ ({1} : Set ℂ)) hOpen)
   exact h.mpr riemannXi_ext_differentiable_on_RSΩ_minus_one
 
 -- symmetry lemmas are provided in CompletedXiSymmetry to avoid duplication
 
 /-- On Ω, zeros of `riemannXi_ext` coincide with zeros of `riemannZeta`. -/
 lemma xi_ext_zeros_eq_zeta_zeros_on_Ω :
-  ∀ z ∈ RH.RS.Ω, riemannXi_ext z = 0 ↔ riemannZeta z = 0 := by
+  ∀ z ∈ Ω, riemannXi_ext z = 0 ↔ riemannZeta z = 0 := by
   intro z hzΩ
   -- From Ω: 1/2 < Re z
   have hhalf : (1 / 2 : ℝ) < z.re := by
-    simpa [RH.RS.Ω, Set.mem_setOf_eq] using hzΩ
+    simpa [Ω, Set.mem_setOf_eq] using hzΩ
   -- Hence Re z > 0 and Γℝ z ≠ 0
   have hpos : (0 : ℝ) < z.re := lt_trans (by norm_num : (0 : ℝ) < 1 / 2) hhalf
   have hΓnz : Complex.Gammaℝ z ≠ 0 := Complex.Gammaℝ_ne_zero_of_re_pos hpos
@@ -108,20 +108,20 @@ lemma xi_ext_zeros_eq_zeta_zeros_on_Ω :
     exact hΛ0
 
 /-- Nonvanishing of the Archimedean factor on Ω. -/
-lemma G_ext_nonzero_on_Ω : ∀ z ∈ RH.RS.Ω, G_ext z ≠ 0 := by
+lemma G_ext_nonzero_on_Ω : ∀ z ∈ Ω, G_ext z ≠ 0 := by
   intro z hzΩ
   have hhalf : (1 / 2 : ℝ) < z.re := by
-    simpa [RH.RS.Ω, Set.mem_setOf_eq] using hzΩ
+    simpa [Ω, Set.mem_setOf_eq] using hzΩ
   have hpos : (0 : ℝ) < z.re := lt_trans (by norm_num : (0 : ℝ) < 1 / 2) hhalf
   dsimp [G_ext]
   exact Complex.Gammaℝ_ne_zero_of_re_pos hpos
 
 /-- Factorization of `riemannXi_ext` on Ω: `riemannXi_ext = G_ext · ζ`. -/
 lemma xi_ext_factorization_on_Ω :
-  ∀ z ∈ RH.RS.Ω, riemannXi_ext z = G_ext z * riemannZeta z := by
+  ∀ z ∈ Ω, riemannXi_ext z = G_ext z * riemannZeta z := by
   intro z hzΩ
   have hhalf : (1 / 2 : ℝ) < z.re := by
-    simpa [RH.RS.Ω, Set.mem_setOf_eq] using hzΩ
+    simpa [Ω, Set.mem_setOf_eq] using hzΩ
   have hpos : (0 : ℝ) < z.re := lt_trans (by norm_num : (0 : ℝ) < 1 / 2) hhalf
   have hΓnz : Complex.Gammaℝ z ≠ 0 := Complex.Gammaℝ_ne_zero_of_re_pos hpos
   -- ζ definition away from 0 (which holds since Re z > 1/2 ⇒ z ≠ 0)
