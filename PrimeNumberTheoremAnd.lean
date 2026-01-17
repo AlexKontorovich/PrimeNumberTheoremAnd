@@ -28,7 +28,6 @@ import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.ExpPoly
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Hadamard
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.HolomorphicLog
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.LogSingularity
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.PNT1_ComplexAnalysis
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.RiemannZetaHadamard
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.TaxicabPrimitive
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.WeierstrassFactor
@@ -36,19 +35,7 @@ import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.ZetaFunctionalEquation
 import PrimeNumberTheoremAnd.Mathlib.Analysis.FromCarleson.Annulus
 import PrimeNumberTheoremAnd.Mathlib.Analysis.FromCarleson.Interval
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.CompletedXi
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.BinetFormula
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.BinetKernel
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.GammaStirlingAux
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.LargeImaginaryBounds
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.StirlingB
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.StirlingBounds
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.StirlingRobbins
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Gamma.StripBounds
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.GammaBounds
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.GammaProductBound
-import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.GammaSlitPlaneAux
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.GaussianIntegral
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
 import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Function.LocallyIntegrable
