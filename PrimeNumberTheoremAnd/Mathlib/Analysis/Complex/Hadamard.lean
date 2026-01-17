@@ -31,6 +31,9 @@ namespace Complex.Hadamard
 
 open Filter Topology Set Complex
 
+/-- The “denominator” in the Hadamard quotient construction: the product of the origin factor
+`z ^ (analyticOrderNatAt f 0)` and the canonical product built from the divisor of `f` (of genus `m`)
+on `univ`. -/
 noncomputable def hadamardDenom (m : ℕ) (f : ℂ → ℂ) (z : ℂ) : ℂ :=
   z ^ (analyticOrderNatAt f 0) * divisorCanonicalProduct m f (Set.univ : Set ℂ) z
 
@@ -2765,3 +2768,5 @@ theorem hadamard_factorization_of_growth {f : ℂ → ℂ} {ρ : ℝ} (hρ : 0 �
     simpa [hH', mul_assoc, mul_left_comm, mul_comm, m] using (hfactor z)
 
 end Complex.Hadamard
+
+#lint
