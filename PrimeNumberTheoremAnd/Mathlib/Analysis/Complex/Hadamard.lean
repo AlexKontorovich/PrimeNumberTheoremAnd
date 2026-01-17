@@ -2310,7 +2310,7 @@ lemma log_one_add_exp_le (B : ℝ) (hB : 0 ≤ B) :
   linarith [hlog_le, hlog_mul]
 
 /-!
-## Hadamard factorization (intrinsic statement; proof to be supplied)
+## Hadamard factorization (intrinsic statement)
 
 This is the *target* API: no `ZeroData`, and zeros/multiplicities are obtained intrinsically via the
 divisor infrastructure.
