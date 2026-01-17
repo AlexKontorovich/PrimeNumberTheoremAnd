@@ -1,6 +1,6 @@
 import Mathlib.Analysis.Complex.HasPrimitives
 import PrimeNumberTheoremAnd.StrongPNT
-import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.PNT1_ComplexAnalysis
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.PNT3_RiemannZeta
 
 /-!
 # Taxicab Primitives for Holomorphic Functions
@@ -79,7 +79,7 @@ lemma hasDerivAt_translatePrimitive {z₀ : ℂ} {r : ℝ} (hr : 0 < r)
   simp only [mul_one] at hcomp
   -- The derivative is f z
   have hderiv_eq : deriv G₀ (z - z₀) = f z := by
-    have huniq : UniqueDiffWithinAt ℂ (Metric.closedBall (0 : ℂ) r) (z - z₀) := by
+    have huniq : UniqueDiffWithinAt ℂ (Metric.closedBall (0 : ℂ) r) (z - z₀) :=
       uniqueDiffWithinAt_closedBall_complex_of_mem hr hz''
     have hderiv_within : derivWithin G₀ (Metric.closedBall 0 r) (z - z₀) = translateFun z₀ f (z - z₀) :=
       hG₀_deriv (z - z₀) hz''
