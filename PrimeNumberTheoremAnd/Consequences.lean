@@ -27,12 +27,6 @@ lemma Set.Ico_subset_Ico_of_Icc_subset_Icc {a b c d : ℝ} (h : Set.Icc a b ⊆ 
   simp only [mem_Icc] at this
   exact this.2
 
-theorem extracted_1 (x : ℝ) :
-    IntegrableOn
-      (fun t ↦ (θ t) / (t * log t ^ 2))
-      (Set.Icc 2 x) volume := by
-  exact Chebyshev.integrableOn_theta_div_id_mul_log_sq x
-
 lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     Nat.primeCounting ⌊x⌋₊ =
       θ x / log x + ∫ t in Set.Icc 2 x, θ t / (t * (Real.log t) ^ 2) := by
@@ -229,7 +223,7 @@ theorem chebyshev_asymptotic' :
   have integrable (x : ℝ) (hx : 2 ≤ x) : IntegrableOn f (Set.Icc 2 x) := by
     rw [IntegrableOn]
     refine Integrable.sub ?_ (ContinuousOn.integrableOn_Icc (continuousOn_id' _))
-    refine extracted_1 x |>.mul_continuousOn (g' := fun t => t * log t ^ 2)
+    refine Chebyshev.integrableOn_theta_div_id_mul_log_sq x |>.mul_continuousOn (g' := fun t => t * log t ^ 2)
       (ContinuousOn.mul (continuousOn_id' _) (ContinuousOn.pow (continuousOn_log |>.mono <| by
         rintro t ⟨ht1, _⟩
         simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
