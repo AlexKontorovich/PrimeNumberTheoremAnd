@@ -254,10 +254,10 @@ theorem eq_of_deriv_eq_zero_on_convex {U : Set ℂ} (hU_open : IsOpen U)
     have h1 : fderiv ℝ f z = (fderiv ℂ f z).restrictScalars ℝ :=
       (hf_at.hasFDerivAt.restrictScalars ℝ).fderiv
     have h2 : fderiv ℂ f z = 0 := by
-      rw [← deriv_fderiv, hderiv_z]
+      rw [← toSpanSingleton_deriv, hderiv_z]
       ext
-      simp only [ContinuousLinearMap.smulRight_apply, ContinuousLinearMap.one_apply,
-                 smul_zero, ContinuousLinearMap.zero_apply]
+      simp only [ContinuousLinearMap.zero_apply]
+      aesop
     rw [h1, h2]; simp
   exact hU_convex.is_const_of_fderivWithin_eq_zero hf_real hfderiv_zero hx hy
 
