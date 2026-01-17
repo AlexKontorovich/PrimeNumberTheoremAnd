@@ -1,4 +1,5 @@
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.Hadamard
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.ZetaFiniteOrder
 import Mathlib.NumberTheory.LSeries.RiemannZeta
 import Mathlib.NumberTheory.LSeries.HurwitzZetaValues
 import Mathlib.Analysis.Real.Pi.Irrational
@@ -97,5 +98,38 @@ theorem completedRiemannZeta₀_hadamard_factorization_intrinsic_of_growth
   · simpa [hfloor] using hdeg
   · intro z
     simpa [hfloor] using hfac z
+
+/-!
+## Zeta specialization: intrinsic Hadamard factorization for `completedRiemannZeta₀`
+
+The core theorem above is parameterized by a growth hypothesis.  The analytic work proving such
+a bound lives in `ZetaFiniteOrder.lean`, and we instantiate it here to provide a ready-to-use
+statement for the completed zeta function.
+-/
+
+theorem completedRiemannZeta₀_hadamard_factorization_intrinsic :
+    ∃ (P : Polynomial ℂ),
+      P.degree ≤ 1 ∧
+      ∀ z : ℂ,
+        completedRiemannZeta₀ z =
+          Complex.exp (Polynomial.eval z P) *
+            z ^ (analyticOrderNatAt completedRiemannZeta₀ 0) *
+            Complex.Hadamard.divisorCanonicalProduct 1 completedRiemannZeta₀ (Set.univ : Set ℂ) z := by
+  have hgrowth :
+      ∃ C > 0, ∀ z : ℂ,
+        Real.log (1 + ‖completedRiemannZeta₀ z‖) ≤ C * (1 + ‖z‖) ^ (3 / 2 : ℝ) := by
+    simpa using Complex.completedRiemannZeta₀_growth
+  simpa using completedRiemannZeta₀_hadamard_factorization_intrinsic_of_growth hgrowth
+
+theorem completedRiemannZeta₀_hadamard_factorization_intrinsic_natDegree :
+    ∃ (P : Polynomial ℂ),
+      P.natDegree ≤ 1 ∧
+      ∀ z : ℂ,
+        completedRiemannZeta₀ z =
+          Complex.exp (Polynomial.eval z P) *
+            z ^ (analyticOrderNatAt completedRiemannZeta₀ 0) *
+            Complex.Hadamard.divisorCanonicalProduct 1 completedRiemannZeta₀ (Set.univ : Set ℂ) z := by
+  rcases completedRiemannZeta₀_hadamard_factorization_intrinsic with ⟨P, hdeg, hfac⟩
+  exact ⟨P, Polynomial.natDegree_le_of_degree_le hdeg, hfac⟩
 
 end Riemann
