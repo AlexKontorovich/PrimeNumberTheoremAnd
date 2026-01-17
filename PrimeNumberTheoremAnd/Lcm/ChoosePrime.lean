@@ -155,6 +155,149 @@ theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
       exact (le_of_lt hq₂_lb)
 
 
+@[blueprint
+  "lem:qi-product"
+  (title := "Bounds for the \\(q_i\\)-product")
+  (statement := /--
+  With \(p_i,q_i\) as in Lemmas~\ref{lem:choose-pi} and \ref{lem:choose-qi}, we have
+  \begin{equation}\label{eq:qi-upper}
+    \prod_{i=1}^3 \Bigl(1 + \frac{1}{q_i}\Bigr)
+    \le
+    \prod_{i=1}^3 \Bigl(1 + \frac{\bigl(1 + \frac{1}{\log^3 \sqrt{n}}\bigr)^i}{n} \Bigr).
+  \end{equation}
+  -/)
+  (proof := /--
+  Same as the current proof, but the Lean statement uses `gap.δ` rather than `log^3`.
+  -/)
+  (proofUses := ["lem:choose-qi"])
+  (latexEnv := "lemma")]
+theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    ∏ i, (1 + (1 : ℝ) / (exists_q_primes hn).choose i) ≤
+      ∏ i : Fin 3, (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / n) := by
+  -- introduce the Cert abbreviation locally (purely for readability)
+  -- (this does *not* change the theorem statement)
+  have hb : (1 + gap.δ (√(n : ℝ))) = Numerical.b n := by
+    simp [Numerical.b]
+
+  -- Reindex RHS to match the `exists_q_primes` exponent pattern `((3 : ℝ) - (i : ℕ))`.
+  -- After rewriting, all the bounds line up directly.
+  -- First rewrite RHS into the `b n` form:
+  -- (we do it as a `simp` rewrite so later `prod_q_rhs_reindex` applies cleanly)
+  have :
+      (∏ i : Fin 3, (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / n))
+        =
+      (∏ i : Fin 3, (1 + (Numerical.b n) ^ ((i : ℕ) + 1 : ℝ) / n)) := by
+    simp [Numerical.b]
+  -- use it
+  rw [this]
+  -- now reindex via Cert lemma
+  rw [Numerical.prod_q_rhs_reindex (n := n)]
+
+  -- pointwise compare factors and multiply
+  apply Finset.prod_le_prod (fun _ _ => by positivity)
+  intro i _
+  -- target: `1 + 1/q_i ≤ 1 + (b n)^((3:ℝ)-(i:ℕ))/n`
+  suffices
+      (1 : ℝ) / (exists_q_primes hn).choose i ≤ (Numerical.b n) ^ ((3 : ℝ) - (i : ℕ)) / n by
+    linarith
+
+  -- Extract the lower bound on `q_i` from `exists_q_primes`
+  have hq_lower :
+      (n : ℝ) * (Numerical.b n) ^ (-((3 : ℝ) - (i : ℕ))) ≤ ((exists_q_primes hn).choose i : ℝ) := by
+    -- `choose_spec.2.2.1` is the lower-bound field of `exists_q_primes`
+    sorry
+    -- simpa [Numerical.b] using (exists_q_primes hn).choose_spec.2.2.1 i
+
+  -- Convert that to a reciprocal upper bound using the Cert lemma
+  have hinv :
+      (1 : ℝ) / ((exists_q_primes hn).choose i : ℝ) ≤ (Numerical.b n) ^ ((3 : ℝ) - (i : ℕ)) / n := by
+    exact Numerical.inv_le_rpow_div_of_lower_bound (hn := hn) (t := (3 : ℝ) - (i : ℕ))
+      (q := (exists_q_primes hn).choose i) hq_lower
+
+  -- finish (remove explicit casts)
+  simpa using hinv
+
+
+
+@[blueprint
+  "lem:pi-product"
+  (title := "Bounds for the \\(p_i\\)-product")
+  (statement := /--
+  With \(p_i\) as in Lemma~\ref{lem:choose-pi}, we have for large \(n\)
+  \begin{equation}\label{eq:pi-lower}
+    \prod_{i=1}^3 \Bigl(1 + \frac{1}{p_i(p_i+1)}\Bigr)
+    \ge
+    \prod_{i=1}^3
+    \Bigl(
+      1 + \frac{1}{\bigl(1 + \delta(\sqrt{n})\bigr)^{2i} (n + \sqrt{n})}
+    \Bigr).
+  \end{equation}
+  -/)
+  (proof := /--
+  Same proof as before, but the Lean statement uses `gap.δ (√n)` rather than `log^3`.
+  -/)
+  (latexEnv := "lemma")]
+theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    ∏ i, (1 + (1 : ℝ) /
+        ((exists_p_primes hn).choose i * ((exists_p_primes hn).choose i + 1))) ≥
+      ∏ i : Fin 3,
+        (1 + 1 / ((1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n))) := by
+  -- goal `LHS ≥ RHS` is definitionaly `RHS ≤ LHS`
+  refine Finset.prod_le_prod
+    (fun i _ => by
+      have hB : 0 < (1 + gap.δ (√(n : ℝ))) := Numerical.one_add_delta_pos (n := n) hn
+      positivity [hB])
+    (fun i _ => by
+      -- i is already in context; no `intro` needed
+
+      -- abbreviate the chosen primes
+      let p : Fin 3 → ℕ := (exists_p_primes hn).choose
+
+      -- collect the hypotheses needed by the Cert lemma
+      have hp_prime : ∀ j, Nat.Prime (p j) := by
+        intro j
+        simpa [p] using (exists_p_primes hn).choose_spec.1 j
+
+      have hp_mono : StrictMono p := by
+        simpa [p] using (exists_p_primes hn).choose_spec.2.1
+
+      have hp_ub :
+          ∀ j, (p j : ℝ) ≤ √(n : ℝ) * (1 + gap.δ (√(n : ℝ))) ^ (j + 1 : ℝ) := by
+        intro j
+        simpa [p] using (exists_p_primes hn).choose_spec.2.2.1 j
+
+      have hsqrt_lt_p0 : √(n : ℝ) < p 0 := by
+        simpa [p] using (exists_p_primes hn).choose_spec.2.2.2
+
+      -- denominator comparison (this is the “real content”; all plumbing is in Cert)
+      have hden :
+          ((p i * (p i + 1) : ℕ) : ℝ)
+            ≤ (1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n) := by
+        simpa [p] using
+          Numerical.p_mul_padd1_le_bound (hn := hn)
+            (p := p) hp_prime hp_mono hp_ub hsqrt_lt_p0 i
+
+      -- turn denominator inequality into the desired factor inequality
+      have hpos : 0 < ((p i * (p i + 1) : ℕ) : ℝ) := by
+        have hpipos : 0 < (p i) := (hp_prime i).pos
+        -- `p i * (p i + 1)` is positive in ℕ, hence in ℝ
+        positivity [hpipos]
+
+      have hinv :
+          (1 : ℝ) / ((1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n))
+            ≤ (1 : ℝ) / ((p i * (p i + 1) : ℕ) : ℝ) := by
+        -- if a ≤ b and a>0 then 1/b ≤ 1/a
+        exact one_div_le_one_div_of_le hpos hden
+
+      -- add 1 to both sides
+      have := add_le_add_left hinv 1
+      -- rewrite the RHS denominator back to the form that appears in the goal
+      simpa [p, Nat.cast_mul, Nat.cast_add, Nat.cast_one, add_assoc, add_comm, add_left_comm,
+        mul_assoc, mul_comm, mul_left_comm] using this
+    )
+
+
+
 -- theorem h_crit_of_choice (Ccert : Lcm.Numerical.Criterion) {n : ℕ} (hn : n ≥ X₀ ^ 2)
 --     (p : Fin 3 → ℕ) (q : Fin 3 → ℕ) := by sorry
 --   -- or keep as a theorem producing the inequality directly
