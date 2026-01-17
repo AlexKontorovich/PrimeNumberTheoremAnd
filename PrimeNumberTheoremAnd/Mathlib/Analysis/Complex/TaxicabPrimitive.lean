@@ -289,7 +289,7 @@ theorem eq_of_deriv_eq_zero_on_convex_E {U : Set ℂ} (hU_open : IsOpen U)
   intro z hz
   have hf_at := hf.differentiableAt (hU_open.mem_nhds hz)
   have hderiv_z := hf' z hz
-  rw [← deriv_fderiv, hderiv_z]
+  rw [← toSpanSingleton_deriv, hderiv_z]
   ext; simp
 
 omit [CompleteSpace E] in
