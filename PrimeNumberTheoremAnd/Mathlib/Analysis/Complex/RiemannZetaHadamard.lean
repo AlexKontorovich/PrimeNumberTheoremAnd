@@ -7,7 +7,7 @@ import Mathlib.Analysis.Real.Pi.Irrational
 /-!
 ## Intrinsic Hadamard factorization for the completed Riemann zeta function
 
-This is the zeta-facing theorem that t uses the intrinsic divisor-indexed canonical product and
+This is the zeta-facing theorem that uses the intrinsic divisor-indexed canonical product and
 the intrinsic Hadamard factorization theorem from `Mathlib/Analysis/Complex/Hadamard.lean`.
 
 The analytic input is the growth bound proved in `ZetaFiniteOrder.lean`, and the structural input
