@@ -1,5 +1,6 @@
 import Mathlib.Analysis.Complex.HasPrimitives
-import PrimeNumberTheorem.Mathlib.StrongPNT.PNT1_ComplexAnalysis
+import PrimeNumberTheoremAnd.BorelCaratheodory
+import PrimeNumberTheoremAnd.Mathlib.Analysis.Complex.PNT1_ComplexAnalysis
 
 /-!
 # Taxicab Primitives for Holomorphic Functions
