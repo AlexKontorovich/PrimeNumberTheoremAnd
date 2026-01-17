@@ -3992,6 +3992,28 @@ theorem WeakPNT_AP_prelim {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a
     (Set.EqOn G (fun s ↦ LSeries (fun n ↦ if n % q = a then Λ n else 0) s - 1 /
       ((Nat.totient q) * (s - 1))) {s | 1 < s.re}) := sorry
 
+/-- The von Mangoldt function divided by `n ^ s` is summable for `s > 1`. -/
+lemma summable_vonMangoldt_div_rpow {s : ℝ} (hs : 1 < s) : Summable (fun n ↦ Λ n / n ^ s) := by
+  have h_log_bound : ∀ n : ℕ, (Λ n : ℝ) ≤ Real.log n := fun n ↦ vonMangoldt_le_log
+  suffices h_log_sum : Summable fun n : ℕ ↦ Real.log n / (n : ℝ) ^ s by
+    exact .of_nonneg_of_le (fun n ↦ div_nonneg vonMangoldt_nonneg (by positivity))
+      (fun n ↦ div_le_div_of_nonneg_right (h_log_bound n) (by positivity)) h_log_sum
+  have h_log_le_n_eps : ∀ ε > 0, ∃ C > 0, ∀ n : ℕ, n ≥ 2 → Real.log n / (n : ℝ) ^ s ≤ C * (n : ℝ) ^ (ε - s) := by
+    intro ε hε_pos
+    obtain ⟨C, hC_pos, hC⟩ : ∃ C > 0, ∀ n : ℕ, n ≥ 2 → Real.log n ≤ C * (n : ℝ) ^ ε := by
+      refine ⟨1 / ε, by positivity, fun n hn ↦ ?_⟩
+      have := log_le_sub_one_of_pos (by positivity : 0 < (n : ℝ) ^ ε)
+      rw [log_rpow (by positivity)] at this
+      nlinarith [rpow_pos_of_pos (by positivity : 0 < (n : ℝ)) ε, mul_div_cancel₀ 1 hε_pos.ne']
+    refine ⟨C, hC_pos, fun n hn ↦ ?_⟩
+    rw [rpow_sub (by positivity)]
+    exact le_trans (div_le_div_of_nonneg_right (hC n hn) (by positivity)) (by rw [div_eq_mul_inv]; ring_nf; norm_num)
+  obtain ⟨C, _, hC⟩ : ∃ C > 0, ∀ n : ℕ, n ≥ 2 → Real.log n / (n : ℝ) ^ s ≤ C * (n : ℝ) ^ ((s - 1) / 2 - s) :=
+    h_log_le_n_eps ((s - 1) / 2) (by linarith)
+  rw [← summable_nat_add_iff 2]
+  exact Summable.of_nonneg_of_le (fun n ↦ div_nonneg (log_nonneg (by norm_cast; omega))
+    (rpow_nonneg (by positivity) _)) (fun n ↦ hC _ (by omega)) (Summable.mul_left _ <| by
+      simpa using summable_nat_add_iff 2 |>.2 <| summable_nat_rpow.2 <| by linarith)
 
 @[blueprint "WeakPNT-AP"
   (title := "WeakPNT-AP")
@@ -3999,11 +4021,37 @@ theorem WeakPNT_AP_prelim {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a
   If $q ≥ 1$ and $a$ is coprime to $q$, we have
   $$ \sum_{n \leq x: n = a\ (q)} \Lambda(n) = \frac{x}{\varphi(q)} + o(x).$$
   -/)
-  (proof := /-- Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkehara2} to avoid checking the Chebyshev condition) using Proposition \ref{WeakPNT-AP-prelim}.-/)
+  (proof := /-- Apply Theorem \ref{WienerIkehara} (or Theorem \ref{WienerIkehara2} to avoid
+  checking the Chebyshev condition) using Proposition \ref{WeakPNT-AP-prelim}.-/)
   (proofUses := ["WienerIkehara", "WeakPNT-AP-prelim"])]
-theorem WeakPNT_AP {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) :
-    Tendsto (fun N ↦ cumsum (fun n ↦ if (n % q = a) then Λ n else 0) N / N)
-      atTop (𝓝 (1 / (Nat.totient q))) := sorry
+theorem WeakPNT_AP {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : a.Coprime q) (ha' : a < q) :
+    Tendsto (fun N ↦ cumsum (fun n ↦ if n % q = a then Λ n else 0) N / N) atTop (𝓝 (1 / q.totient)) := by
+  have h_summable : ∀ s : ℝ, 1 < s → Summable (fun n ↦ (if n % q = a then Λ n else 0) / n ^ s) := by
+    intro s hs
+    refine .of_nonneg_of_le (fun n ↦ ?_) (fun n ↦ ?_) (summable_vonMangoldt_div_rpow hs)
+    · split_ifs <;> first | positivity | exact div_nonneg (not_not.mp fun h ↦ by
+        have := Nat.Prime.pos (by contrapose! h; aesop : n.Prime); aesop) (rpow_nonneg (Nat.cast_nonneg _) _)
+    · split_ifs <;> norm_num; exact div_nonneg vonMangoldt_nonneg (by positivity)
+  obtain ⟨G, hG₁, hG₂⟩ := WeakPNT_AP_prelim hq ha ha'
+  convert WienerIkeharaTheorem'' _ _ _ _ using 1
+  · use G
+  · intro n
+    simp_all only [ge_iff_le, one_div, mul_inv_rev, Pi.ofNat_apply]
+    split
+    next h => subst h; simp_all only [vonMangoldt_nonneg]
+    next h => simp_all only [le_refl]
+  · intro σ' hσ'
+    specialize h_summable σ' hσ'
+    simp_all only [ge_iff_le, one_div, mul_inv_rev]
+    convert h_summable using 1
+    ext
+    simp only [nterm, norm_real, norm_eq_abs]
+    ring_nf
+    split_ifs <;> simp [*, mul_comm]
+  · assumption
+  · convert hG₂ using 3
+    · exact tsum_congr fun n ↦ by cases n <;> aesop
+    · norm_num [div_eq_mul_inv, mul_assoc, mul_comm, mul_left_comm]
 
 
 

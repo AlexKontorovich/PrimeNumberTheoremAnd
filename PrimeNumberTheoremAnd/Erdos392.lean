@@ -2039,54 +2039,25 @@ theorem Params.initial.score (ε : ℝ) (hε : ε > 0) :
 
 @[blueprint
   "erdos-sol-1"
-  (statement := /-- One can find a balanced factorization of $n!$ with cardinality at least
-  $n - n / \log n - o(n / \log n)$.--/)
+  (statement := /-- One can find a balanced factorization of $n!$ with cardinality at most
+  $n - n / \log n + o(n / \log n)$.--/)
   (proof := /-- Combine Proposition \ref{initial-score} with Proposition \ref{card-bound} and
   the Stirling approximation.-/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 648)]
 theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Factorization n,
-    f.total_imbalance = 0 ∧ f.a.card ≥ n - n / Real.log n - ε * n / Real.log n := by
-  refine .of_forall fun n ↦
-    ⟨⟨Multiset.Ico 1 (n + 1), fun _ hm ↦ ?_, fun _ hm ↦ ?_⟩, ?_, ?_⟩
-  · exact le_of_lt_succ (Multiset.mem_Ico.mp hm).2
-  · exact (Multiset.mem_Ico.mp hm).1
-  · rw [Factorization.total_imbalance]
-    refine Finset.sum_eq_zero fun p hp ↦ ?_
-    simp only [Factorization.balance, Factorization.sum, Int.natAbs_eq_zero, sub_eq_zero]
-    norm_cast
-    simp only [Multiset.Ico, ← sum_eq_multiset_sum]
-    have : ∀ {m : ℕ}, m > 0 →
-        m.factorial.factorization p = ∑ k ∈ Ico 1 (m + 1), k.factorization p := by
-      intro m hm
-      induction hm with
-      | refl => simp [factorial]
-      | step _ ih =>
-        rw [factorial_succ, factorization_mul (by omega) (factorial_pos _).ne',
-          Finsupp.coe_add, Pi.add_apply, ih, sum_Ico_succ_top (by omega : 1 ≤ _ + 1)]
-        ring
-    rcases n with _ | n
-    · simp only [mem_primesBelow] at hp; exact (hp.2.one_lt.not_gt hp.1).elim
-    · exact (this n.succ_pos).symm
-  · simp only [Multiset.Ico, Finset.card_val, ge_iff_le, tsub_le_iff_right, card_Ico,
-      add_tsub_cancel_right]
-    have : (0 : ℝ) ≤ n / Real.log n ∧ (0 : ℝ) ≤ ε * n / Real.log n :=
-      ⟨by positivity, by positivity⟩
-    linarith
+    f.total_imbalance = 0 ∧ f.a.card ≤ n - n / Real.log n + ε * n / Real.log n := by sorry
 
 @[blueprint
   "erdos-sol-2"
-  (statement := /-- One can find a factor $n!$ into at least $n/2 - n / 2\log n - o(n / \log n)$
+  (statement := /-- One can factorize $n!$ into at most $n/2 - n / 2\log n + o(n / \log n)$
   numbers of size at most $n^2$.--/)
   (proof := /-- Group the factorization arising in Theorem \ref{erdos-sol-1} into pairs, using
   Lemma \ref{balance-zero}.-/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 649)]
 theorem Solution_2 (ε : ℝ) (hε : ε > 0) :
     ∀ᶠ n in .atTop, ∃ (t : ℕ) (a : Fin t → ℕ), ∏ i, a i = n.factorial ∧ ∀ i, a i ≤ n ^ 2 ∧
-        t ≥ (n / 2) - n / (2 * Real.log n) - ε * n / Real.log n := by
-  norm_num
-  refine ⟨2, fun b _hb ↦ ⟨b, (· + 1), ?_, ?_⟩⟩ <;> norm_num
-  · exact prod_range_add_one_eq_factorial b ▸ (prod_range (· + 1)).symm
-  · exact fun i ↦ ⟨by nlinarith [i.is_lt],
-      le_add_of_le_of_nonneg (le_add_of_le_of_nonneg (by linarith) (by positivity)) (by positivity)⟩
+        t ≤ (n / 2) - n / (2 * Real.log n) + ε * n / Real.log n := by sorry
 
 end Erdos392

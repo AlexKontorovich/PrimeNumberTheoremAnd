@@ -111,7 +111,7 @@ noncomputable def Inputs.default : Inputs := {
   ε := table_8_ε
   hε := theorem_2
   x₁ := 1e19
-  hx₁ := by sorry
+  hx₁ := by grw [← exp_one_rpow, rpow_ofNat, exp_one_lt_three]; norm_num
   hx₁' := buthe_eq_1_7
 }
 
@@ -133,7 +133,8 @@ noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2
 \]
 -/)
   (proof := /-- Bound each $\theta(x^{1/k})$ term by $(1 + \alpha)x^{1/k}$. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 630)]
 theorem prop_3_sub_1 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 1)
     (hx : x ≥ x₀) :
     (ψ x - θ x - θ (x^(1/2))) / x^(1/3) ≤ (1 + I.α) * f x := by sorry
@@ -141,10 +142,11 @@ theorem prop_3_sub_1 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 1)
 @[blueprint
   "bklnw-prop-3-sub-2"
   (title := "Proposition 3, substep 2")
-  (statement := /-- $f$ decreases on $[2^n, 2^{n+1}]$.-/)
+  (statement := /-- $f$ decreases on $[2^n, 2^{n+1})$.-/)
   (proof := /-- Clear. -/)
-  (latexEnv := "sublemma")]
-theorem prop_3_sub_2 (n : ℕ) : StrictAntiOn f (Set.Icc (2^n) (2^(n + 1))) := by sorry
+  (latexEnv := "sublemma")
+  (discussion := 632)]
+theorem prop_3_sub_2 (n : ℕ) : StrictAntiOn f (Set.Ico (2^n) (2^(n + 1))) := by sorry
 
 noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - (n/3:ℝ))
 
@@ -153,7 +155,8 @@ noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - 
   (title := "Proposition 3, substep 3")
   (statement := /-- $f(2^n) = 1 + u_n$.-/)
   (proof := /-- Clear. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 633)]
 theorem prop_3_sub_3 (n : ℕ) : f (2^n) = 1 + u n := by sorry
 
 @[blueprint
@@ -169,7 +172,8 @@ Observe that if $n \geq 20$, then
 \sum_{k=4}^{n} 2^{\frac{n+1}{k}}(2^{\frac{1}{3} - \frac{1}{k}} - 1) > 2^{\frac{n+1}{4}}(2^{\frac{1}{3} - \frac{1}{4}} - 1) \geq 2^{\frac{21}{4}}(2^{\frac{1}{12}} - 1) > 2
 \]
 and it follows that $u_{n+1} - u_n < 0$ for $n \geq 20$. Finally, a numerical calculation verifies that the right hand side of the equation above is negative for $9 \leq n \leq 19$. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 634)]
 theorem prop_3_sub_4 (n : ℕ) (hn : n ≥ 9) : u (n + 1) < u n := by sorry
 
 @[blueprint
@@ -177,7 +181,8 @@ theorem prop_3_sub_4 (n : ℕ) (hn : n ≥ 9) : u (n + 1) < u n := by sorry
   (title := "Proposition 3, substep 5")
   (statement := /-- $f(2^n) > f(2^{n+1})$ for $n \geq 9$. -/)
   (proof := /-- This follows from Sublemmas \ref{bklnw-prop-3-sub-3} and \ref{bklnw-prop-3-sub-4}. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 635)]
 theorem prop_3_sub_5 (n : ℕ) (hn : n ≥ 9) : f (2^n) > f (2^(n + 1)) := by sorry
 
 @[blueprint
@@ -185,7 +190,8 @@ theorem prop_3_sub_5 (n : ℕ) (hn : n ≥ 9) : f (2^n) > f (2^(n + 1)) := by so
   (title := "Proposition 3, substep 6")
   (statement := /-- $f(x) \leq f(2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1})$ on $[2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1}, \infty)$. -/)
   (proof := /-- Follows from Sublemmas \ref{bklnw-prop-3-sub-2} and \ref{bklnw-prop-3-sub-5}. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 636)]
 theorem prop_3_sub_6 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
     (hx : x ≥ 2 ^ (⌊(log x₀) / (log 2)⌋ + 1)) :
     f x ≤ f (2 ^ (⌊(log x₀)/(log 2)⌋ + 1)) := by sorry
@@ -195,7 +201,8 @@ theorem prop_3_sub_6 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
   (title := "Proposition 3, substep 7")
   (statement := /-- $f(x) \leq f(x_0)$ for $x \in [x_0, 2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1})$. -/)
   (proof := /-- Follows since $f(x)$ decreases on $[2^{\lfloor \frac{\log x_0}{\log 2} \rfloor}, 2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1})$. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 637)]
 theorem prop_3_sub_7 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
     (hx : x ∈ Set.Icc x₀ (2 ^ (⌊(log x₀) / (log 2)⌋ + 1))) :
     f x ≤ f x₀ := by sorry
@@ -205,7 +212,8 @@ theorem prop_3_sub_7 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
   (title := "Proposition 3, substep 8")
   (statement := /--  $f(x) \leq \max\left(f(x_0), f(2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1})\right)$. -/)
   (proof := /-- Combines previous sublemmas. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 638)]
 theorem prop_3_sub_8 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
     (hx : x ≥ x₀) :
     f x ≤ max (f x₀) (f (2 ^ (⌊ (log x₀)/(log 2) ⌋ + 1))) := by sorry
@@ -227,7 +235,8 @@ f(x) := \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} x^{\frac{1}{k} - \fra
 \end{equation}
  -/)
   (proof := /-- Combines previous sublemmas. -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 639)]
 theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9)
     (hx : x ≥ x₀) :
     ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋, θ (x^(1/k)) ≤
@@ -247,7 +256,8 @@ where
  -/)
   (proof := /-- We apply Proposition \ref{bklnw-prop-3} with $x_0 = e^b$ where we observe that $x_0 = e^b \geq e^7 > 2^9$.
  -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 640)]
 theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (x : ℝ) (hx : x ≥ exp b) :
     ψ x - θ x - θ (x^(1/2)) ≤
       (1 + I.α) * max (f (exp b)) (f (2^(⌊ b/(log 2) ⌋ + 1))) * x^(1/3) := by sorry
@@ -270,7 +280,8 @@ On the other hand, if $x^{1/2} > x_1 = e^{\log x_1}$, then we have by (2.7)
 \]
 since $\log x_1 \geq 7$. The last two inequalities for $\theta(x^{1/2})$ combine to establish (2.8).
  -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 641)]
 theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : b ≤ 2 * log I.x₁) (hx : x ≥ exp b) :
     θ (x^(1/2)) < (1 + I.ε (log I.x₁)) * x^(1/2) := by sorry
 
@@ -288,7 +299,8 @@ theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : b ≤ 2 * log I.x₁) (hx : x �
 \]
 since $x^{1/2} > e^{b/2} > x_1 \geq e^7$.
  -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 642)]
 theorem prop_4_b (I : Inputs) {b x : ℝ} (hb : b > 2 * log I.x₁) (hx : x ≥ exp b) :
     θ (x^(1/2)) < (1 + I.ε (b / 2)) * x^(1/2) := by sorry
 
@@ -332,7 +344,8 @@ a_2 = (1 + \alpha) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}
   -/)
   (proof := /-- We have $\psi(x) - \theta(x) = \theta(x^{1/2}) + \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} \theta(x^{1/k})$. For any $b \geq 7$, setting $x_0 = e^b$ in Proposition 4, we bound $\sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} \theta(x^{1/k})$ by $\eta x^{1/3}$ as defined in (2.3). We bound $\theta(x^{1/2})$ with Proposition \ref{bklnw-prop-4} by taking either $a_1 = 1 + \varepsilon(\log x_1)$ for $b \leq 2\log x_1$ or $a_1 = 1 + \varepsilon(b/2)$ for $b > 2\log x_1$.
  -/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 643)]
 theorem thm_5 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
     ψ x - θ x < Inputs.a₁ I b * x^(1/2) + Inputs.a₂ I b * x^(1/3) := by sorry
 
