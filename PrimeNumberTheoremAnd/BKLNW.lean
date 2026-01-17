@@ -130,7 +130,7 @@ noncomputable def Inputs.default : Inputs := {
   (statement := /--
   $$ f(x) := \sum_{k=3}^{\lfloor \log x / \log 2 \rfloor} x^{1/k - 1/3}.$$
   -/)]
-noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋, x^(1/k - 1/3)
+noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋, x^(1/(k:ℝ) - 1/3)
 
 @[blueprint
   "bklnw-prop-3-sub-1"
@@ -154,7 +154,25 @@ theorem prop_3_sub_1 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 1)
   (proof := /-- Clear. -/)
   (latexEnv := "sublemma")
   (discussion := 632)]
-theorem prop_3_sub_2 (n : ℕ) : StrictAntiOn f (Set.Ico (2^n) (2^(n + 1))) := by sorry
+theorem prop_3_sub_2 (n : ℕ) (hn : n ≥ 4) : StrictAntiOn f (Set.Ico (2^n) (2^(n + 1))) := by
+  have hlog2 : (0 : ℝ) < log 2 := log_pos one_lt_two
+  have hfloor : ∀ x ∈ Set.Ico (2^n : ℝ) (2^(n+1)), ⌊log x / log 2⌋ = n := fun x ⟨hlo, hhi⟩ ↦ by
+    rw [Int.floor_eq_iff, le_div_iff₀ hlog2, div_lt_iff₀ hlog2]
+    refine ⟨?_, ?_⟩
+    · calc (n : ℝ) * log 2 = log ((2 : ℝ)^n) := (log_pow 2 n).symm
+        _ ≤ log x := log_le_log (by positivity) hlo
+    · have hxpos : 0 < x := lt_of_lt_of_le (by positivity : (0 : ℝ) < 2^n) hlo
+      calc log x < log ((2 : ℝ)^(n+1)) := log_lt_log hxpos hhi
+        _ = (↑n + 1) * log 2 := by rw [log_pow]; push_cast; ring
+  intro a ha b hb hab
+  simp only [f, hfloor a ha, hfloor b hb]
+  have hapos : 0 < a := lt_of_lt_of_le (by positivity) ha.1
+  refine Finset.sum_lt_sum (fun k hk ↦ ?_) ⟨4, by simp [Finset.mem_Icc]; omega, ?_⟩
+  · rcases eq_or_ne k 3 with rfl | hk3
+    · simp
+    · have hk' : 3 < k := by simp [Finset.mem_Icc] at hk; omega
+      exact (rpow_lt_rpow_of_neg hapos hab (by have : (k:ℝ) > 3 := mod_cast hk'; field_simp; linarith)).le
+  · exact rpow_lt_rpow_of_neg hapos hab (by norm_num)
 
 noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - (n/3:ℝ))
 
