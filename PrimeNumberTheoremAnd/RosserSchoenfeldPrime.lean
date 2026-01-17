@@ -115,8 +115,9 @@ theorem eq_415 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : 
   (proof := /-- Follows from Sublemma \ref{rs-413} applied to $f(t) = 1$. -/)
   (latexEnv := "sublemma")
   (discussion := 602)]
-theorem eq_417 (x : ℝ) :
-    pi x = θ x / log x + ∫ y in 2..x, θ y / (y * log y ^ 2) := by sorry
+theorem eq_417 {x : ℝ} (hx : 2 ≤ x) :
+    pi x = θ x / log x + ∫ y in 2..x, θ y / (y * log y ^ 2) := by
+  exact Chebyshev.primeCounting_eq_theta_div_log_add_integral hx
 
 @[blueprint
   "rs-418"
