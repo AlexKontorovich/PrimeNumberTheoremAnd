@@ -1,6 +1,7 @@
 import Architect
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.FKS2
+import PrimeNumberTheoremAnd.Dusart
 
 blueprint_comment /--
 \section{Summary of results}
@@ -12,7 +13,7 @@ some results that have not yet been moved into dedicated paper sections.
 
 References to add:
 
-Dusart: \url{https://piyanit.nl/wp-content/uploads/2020/10/art_10.1007_s11139-016-9839-4.pdf}
+Dusart \cite{Dusart}
 
 PT: D. J. Platt and T. S. Trudgian, The error term in the prime number theorem,
 Math. Comp. 90 (2021), no. 328, 871–881.
@@ -67,16 +68,3 @@ theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := sorry
 theorem JY.theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 2 := sorry
 
 blueprint_comment /-- TODO: input other results from JY -/
-
-@[blueprint "thm:Dusart"
-  (title := "Dusart Proposition 5.4")
-  (statement := /--
-  There exists a constant $X_0$ (one may take $X_0 = 89693$) with the following property:
-  for every real $x \geq X_0$, there exists a prime $p$ with
-  \[
-  x < p \le x\Bigl(1 + \frac{1}{\log^3 x}\Bigr).
-  \]
-  -/)]
-theorem Dusart.proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := sorry
-
-blueprint_comment /-- TODO: input other results from Dusart -/

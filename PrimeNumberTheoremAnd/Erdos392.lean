@@ -1,8 +1,5 @@
 import Architect
-import Mathlib.Tactic
-import Mathlib.Algebra.BigOperators.Group.Multiset.Defs
-import Mathlib.NumberTheory.SmoothNumbers
-import Mathlib.NumberTheory.PrimeCounting
+import Mathlib.Analysis.SpecialFunctions.Stirling
 import PrimeNumberTheoremAnd.Consequences
 
 namespace Erdos392
@@ -2045,8 +2042,107 @@ theorem Params.initial.score (ε : ℝ) (hε : ε > 0) :
   the Stirling approximation.-/)
   (latexEnv := "theorem")
   (discussion := 648)]
-theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Factorization n,
-    f.total_imbalance = 0 ∧ f.a.card ≤ n - n / Real.log n + ε * n / Real.log n := by sorry
+theorem Solution_1 (ε : ℝ) (hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Factorization n,
+    f.total_imbalance = 0 ∧ f.a.card ≤ n - n / Real.log n + ε * n / Real.log n := by
+  have h_stirling : ∀ᶠ n : ℕ in .atTop, log (n ! : ℝ) ≤ n * Real.log n - n + (ε / 4) * n := by
+    have h_ratio : Filter.Tendsto (fun n : ℕ ↦ (n ! : ℝ) / (sqrt (2 * n * π) * (n / exp 1) ^ n)) .atTop (nhds 1) := by
+      have h := Stirling.factorial_isEquivalent_stirling
+      rw [isEquivalent_iff_tendsto_one] at h
+      · exact h
+      · filter_upwards [Filter.eventually_gt_atTop 0] with n hn; positivity
+    have h_ratio_le : ∀ᶠ n : ℕ in .atTop,
+        (n ! : ℝ) / (sqrt (2 * n * π) * (n / exp 1) ^ n) ≤ 2 :=
+      h_ratio.eventually (Metric.ball_mem_nhds 1 one_pos) |>.mono fun n hn ↦ by
+        simp only [Real.dist_eq] at hn; linarith [abs_sub_lt_iff.mp hn]
+    have h_log_o := isLittleO_log_id_atTop.def (by linarith : (0 : ℝ) < ε / 16)
+    have h_const : ∀ᶠ n : ℕ in .atTop, Real.log 2 + log (2 * π) / 2 ≤ (ε / 16) * n := by
+      let c := Real.log 2 + log (2 * π) / 2
+      filter_upwards [Filter.eventually_ge_atTop (ceil (c / (ε / 16)) + 1)] with n hn
+      calc c = (ε / 16) * (c / (ε / 16)) := by field_simp
+        _ ≤ (ε / 16) * (ceil (c / (ε / 16)) + 1) := by
+            gcongr; exact (le_ceil _).trans (le_add_of_nonneg_right (by norm_num))
+        _ ≤ (ε / 16) * n := by gcongr; exact_mod_cast hn
+    filter_upwards [h_ratio_le, h_log_o.natCast_atTop, h_const, Filter.eventually_gt_atTop 0]
+      with n h_rat h_logn h_c hn_pos
+    have hn : (0 : ℝ) < n := cast_pos.mpr hn_pos
+    have h_fact : (n ! : ℝ) ≤ 2 * sqrt (2 * n * π) * (n / exp 1) ^ n := by
+      calc (n ! : ℝ) = (n ! : ℝ) / (sqrt (2 * n * π) * (n / exp 1) ^ n) *
+      have h_denom_pos : sqrt (2 * n * π) * (n / exp 1) ^ n > 0 := by positivity
+              (sqrt (2 * n * π) * (n / exp 1) ^ n) := by field_simp
+        _ ≤ 2 * (sqrt (2 * n * π) * (n / exp 1) ^ n) := by gcongr
+        _ = 2 * sqrt (2 * n * π) * (n / exp 1) ^ n := by ring
+    simp only [id, norm_eq_abs] at h_logn
+    have hn1 : (1 : ℝ) ≤ n := by exact_mod_cast one_le_iff_ne_zero.mpr (pos_iff_ne_zero.mp hn_pos)
+    rw [abs_of_nonneg (Real.log_nonneg hn1), abs_of_nonneg hn.le] at h_logn
+    have h2npi : (0 : ℝ) < 2 * n * π := by positivity
+    have h2pi : (0 : ℝ) < 2 * π := by positivity
+    have hsqrt : sqrt (2 * n * π) > 0 := by positivity
+    have hpow : (n / exp 1 : ℝ) ^ n > 0 := by positivity
+    calc Real.log (n ! : ℝ)
+        ≤ log (2 * sqrt (2 * n * π) * (n / exp 1) ^ n) := log_le_log (by positivity) h_fact
+      _ = Real.log 2 + log (2 * n * π) / 2 + n * Real.log n - n := by
+        rw [show (2 : ℝ) * sqrt (2 * n * π) * (n / exp 1) ^ n =
+              2 * (sqrt (2 * n * π) * (n / exp 1) ^ n) by ring, log_mul (by norm_num)
+                (mul_pos hsqrt hpow).ne', log_mul hsqrt.ne' hpow.ne', sqrt_eq_rpow, log_rpow h2npi,
+                  Real.log_pow, log_div hn.ne' (exp_pos 1).ne', log_exp]
+        ring
+      _ = Real.log 2 + Real.log (2 * π) / 2 + Real.log n / 2 + n * Real.log n - n := by
+          have : Real.log (2 * n * π) = Real.log (2 * π) + Real.log n := by
+            rw [show (2 : ℝ) * n * π = 2 * π * n by ring, log_mul h2pi.ne' hn.ne']
+          linarith [this]
+      _ ≤ (ε / 16) * n + (ε / 16) * n / 2 + n * Real.log n - n := by gcongr
+      _ = n * Real.log n - n + (3 * ε / 32) * n := by ring
+      _ ≤ n * Real.log n - n + (ε / 4) * n := by nlinarith
+  filter_upwards [Params.initial.score (ε / 2) (by linarith), h_stirling, Filter.eventually_gt_atTop 1]
+    with n ⟨P, hPn, hP_score⟩ h_stir hn
+  obtain ⟨f, hf_bal, hf_card⟩ := Factorization.card_bound P.initial P.L
+  subst hPn
+  refine ⟨f, hf_bal, ?_⟩
+  have hlogn_pos : Real.log P.n > 0 := Real.log_pos (by exact_mod_cast hn)
+  calc (f.a.card : ℝ)
+      ≤ (Real.log P.n.factorial + P.initial.score P.L) / Real.log P.n := by rw [le_div_iff₀ hlogn_pos]; exact hf_card
+    _ ≤ (P.n * Real.log P.n - P.n + (ε / 4) * P.n + (ε / 2) * P.n) / Real.log P.n := by gcongr
+    _ = P.n - P.n / Real.log P.n + (3 * ε / 4) * P.n / Real.log P.n := by field_simp; ring
+    _ ≤ P.n - P.n / Real.log P.n + ε * P.n / Real.log P.n := by gcongr; linarith
+
+/-- Pair up elements of a list by multiplying consecutive pairs. -/
+def pairProd : List ℕ → List ℕ
+  | [] => []
+  | [a] => [a]
+  | a :: b :: rest => (a * b) :: pairProd rest
+
+/-- The product of a list equals the product of its paired version. -/
+lemma pairProd_prod (l : List ℕ) : l.prod = (pairProd l).prod := by
+  induction l using pairProd.induct with
+  | case1 => simp [pairProd]
+  | case2 a => simp [pairProd]
+  | case3 a b rest ih => simp [pairProd, mul_assoc, ih]
+
+/-- The length of the paired list is `⌈l.length / 2⌉ = (l.length + 1) / 2`. -/
+lemma pairProd_length (l : List ℕ) : (pairProd l).length = (l.length + 1) / 2 := by
+  induction l using pairProd.induct with
+  | case1 => simp [pairProd]
+  | case2 a => simp [pairProd]
+  | case3 a b rest ih => simp [pairProd, ih]; omega
+
+/-- If all elements of `l` are at most `n`, then all elements of `pairProd l` are at most `n²`. -/
+lemma pairProd_bound (l : List ℕ) (n : ℕ) (hl : ∀ x ∈ l, x ≤ n) :
+    ∀ x ∈ pairProd l, x ≤ n ^ 2 := by
+  induction l using pairProd.induct with
+  | case1 => simp [pairProd]
+  | case2 a =>
+    simp only [pairProd, List.mem_singleton, forall_eq]
+    calc a ≤ n := hl a (List.mem_singleton_self a)
+      _ ≤ n ^ 2 := le_self_pow (by omega) n
+  | case3 a b rest ih =>
+    intro x hx
+    rw [pairProd, List.mem_cons] at hx
+    rcases hx with rfl | hx
+    · have ha := hl a <| by simp
+      have hb := hl b <| by simp
+      calc a * b ≤ n * n := by gcongr
+        _ = n ^ 2 := (sq n).symm
+    · exact ih (fun x hx' ↦ hl x <| by grind) x hx
 
 @[blueprint
   "erdos-sol-2"
@@ -2058,6 +2154,41 @@ theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Fact
   (discussion := 649)]
 theorem Solution_2 (ε : ℝ) (hε : ε > 0) :
     ∀ᶠ n in .atTop, ∃ (t : ℕ) (a : Fin t → ℕ), ∏ i, a i = n.factorial ∧ ∀ i, a i ≤ n ^ 2 ∧
-        t ≤ (n / 2) - n / (2 * Real.log n) + ε * n / Real.log n := by sorry
+        t ≤ (n / 2) - n / (2 * Real.log n) + ε * n / Real.log n := by
+  have h_large : ∀ᶠ n : ℕ in .atTop, (1 : ℝ) / 2 ≤ (ε / 4) * n / Real.log n := by
+    have h := isLittleO_log_id_atTop.def (by linarith : (0 : ℝ) < ε / 8)
+    filter_upwards [h.natCast_atTop, Filter.eventually_gt_atTop 1] with n hlogn hn
+    simp only [id, norm_eq_abs] at hlogn
+    rw [abs_of_pos <| log_pos <| one_lt_cast.mpr hn, abs_of_pos <| cast_pos.mpr (lt_of_succ_lt hn)] at hlogn
+    have hdiv : n / Real.log n ≥ 8 / ε := by
+      rw [ge_iff_le, le_div_iff₀ <| log_pos <| one_lt_cast.mpr hn]
+      calc 8 / ε * Real.log n ≤ 8 / ε * ((ε / 8) * n) := by gcongr
+        _ = n := by field_simp
+    calc (1 : ℝ) / 2 ≤ (ε / 4) * (8 / ε) / 2 := by field_simp; norm_num
+      _ ≤ (ε / 4) * (n / Real.log n) / 2 := by gcongr
+      _ = (ε / 4) * n / Real.log n / 2 := by ring
+      _ ≤ (ε / 4) * n / Real.log n := by
+        linarith [div_pos (by positivity : (ε / 4) * n > 0) <| log_pos <| one_lt_cast.mpr hn]
+  filter_upwards [Solution_1 (ε / 2) (by linarith), Filter.eventually_gt_atTop 1, h_large]
+    with n ⟨f, hf_bal, hf_card⟩ hn hn_large
+  refine ⟨(pairProd f.a.toList).length, fun i ↦ (pairProd f.a.toList).get i, ?_, ?_⟩
+  · rw [← List.prod_ofFn, List.ofFn_get]
+    have hprod : f.prod id = n.factorial := f.zero_total_imbalance hf_bal
+    simp only [Factorization.prod, Multiset.map_id] at hprod
+    rw [← hprod, ← Multiset.prod_toList]
+    exact (pairProd_prod f.a.toList).symm
+  · have ht_bound : ((pairProd f.a.toList).length : ℝ) ≤ n / 2 - n / (2 * Real.log n) + ε * n / Real.log n := by
+      change ((pairProd f.a.toList).length : ℝ) ≤ _
+      rw [pairProd_length f.a.toList, length_toList f.a]
+      calc (((f.a.card + 1) / 2 : ℕ) : ℝ) ≤ (f.a.card + 1 : ℕ) / 2 := cast_div_le
+        _ = (f.a.card : ℝ) / 2 + 1 / 2 := by simp only [cast_add, cast_one]; ring
+        _ ≤ (n - n / Real.log n + (ε / 2) * n / Real.log n) / 2 + 1 / 2 := by gcongr
+        _ = n / 2 - n / (2 * Real.log n) + (ε / 4) * n / Real.log n + 1 / 2 := by field_simp; ring
+        _ ≤ n / 2 - n / (2 * Real.log n) + (ε / 4) * n / Real.log n + (ε / 4) * n / Real.log n := by
+            linarith [hn_large]
+        _ = n / 2 - n / (2 * Real.log n) + (ε / 2) * n / Real.log n := by ring
+        _ ≤ n / 2 - n / (2 * Real.log n) + ε * n / Real.log n := by gcongr; linarith
+    intro i
+    exact ⟨pairProd_bound f.a.toList n (fun x hx ↦ f.ha x (mem_toList.mp hx)) _ (List.get_mem ..), ht_bound⟩
 
 end Erdos392
