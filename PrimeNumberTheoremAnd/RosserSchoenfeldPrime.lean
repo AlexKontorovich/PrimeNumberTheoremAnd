@@ -23,23 +23,6 @@ open Chebyshev Finset Nat Real
 theorem pnt : ∃ C, ∀ x ≥ 2, |θ x - x| ≤ C * x / log x ^ 2 := by sorry
 
 @[blueprint
-  "rs-B"
-  (title := "Meissel-Mertens constant B")
-  (statement := /--
-  $B := \lim_{x \to \infty} \left( \sum_{p \leq x} \frac{1}{p} - \log \log x \right)$. -/)]
-noncomputable def B : ℝ :=
-  lim (Filter.atTop.comap (fun x : ℝ ↦ ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), 1 / p - log (log x)))
-
-
-@[blueprint
-  "rs-E"
-  (title := "Mertens constant E")
-  (statement := /--
-  $E := \lim_{x \to \infty} \left( \sum_{p \leq x} \frac{\log p}{p} - \log x \right)$. -/)]
-noncomputable def E : ℝ :=
-  lim (Filter.atTop.comap (fun x : ℝ ↦ ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), Real.log p / p - log x))
-
-@[blueprint
   "theta-stieltjes"
   (title := "The Chebyshev function is Stieltjes")
   (statement := /-- The function $\vartheta(x) = \sum_{p \leq x} \log p$ defines a Stieltjes function (monotone and right continuous). -/)
@@ -142,7 +125,7 @@ theorem eq_418 (x : ℝ) :
 @[blueprint
   "rs-419"]
 theorem mertens_second_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
-    ∑ p ∈ filter Nat.Prime (range ⌊x⌋₊), 1 / p - log (log x) - B) (nhds 0) := by sorry
+    ∑ p ∈ filter Nat.Prime (range ⌊x⌋₊), 1 / p - log (log x) - meisselMertensConstant) (nhds 0) := by sorry
 
 @[blueprint
   "rs-419"
@@ -155,8 +138,7 @@ theorem mertens_second_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
   (latexEnv := "sublemma")]
 theorem eq_419 (x : ℝ) :
     ∑ p ∈ filter Prime (range ⌊x⌋₊), 1 / p =
-      log (log x) + B + (θ x - x) / (x * log x) - ∫ y in 2..x, (θ y - y) * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
-
+      log (log x) + meisselMertensConstant + (θ x - x) / (x * log x) - ∫ y in 2..x, (θ y - y) * (1 + log y) / (y ^ 2 * log y ^ 2) := by sorry
 @[blueprint
   "rs-419"]
 theorem mertens_second_theorem' :
@@ -165,7 +147,7 @@ theorem mertens_second_theorem' :
 @[blueprint
   "rs-420"]
 theorem mertens_first_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
-    ∑ p ∈ filter Nat.Prime (range ⌊x⌋₊), Real.log p / p - log x - E) (nhds 0) := by sorry
+    ∑ p ∈ filter Nat.Prime (range ⌊x⌋₊), Real.log p / p - log x - mertensConstant) (nhds 0) := by sorry
 
 @[blueprint
   "rs-420"
@@ -178,7 +160,7 @@ theorem mertens_first_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
   (latexEnv := "sublemma")]
 theorem eq_420 (x : ℝ) :
     ∑ p ∈ filter Prime (range ⌊x⌋₊), Real.log p / p =
-      log x + E + (θ x - x) / x - ∫ y in 2..x, (θ y - y) / (y ^ 2) := by sorry
+      log x + mertensConstant + (θ x - x) / x - ∫ y in 2..x, (θ y - y) / (y ^ 2) := by sorry
 
 @[blueprint
   "rs-420"]

@@ -83,3 +83,19 @@ def HasPrimeInInterval (x h : ℝ) : Prop :=
 
 def HasPrimeInInterval.log_thm (X₀ : ℝ) (k : ℝ) :=
   ∀ x ≥ X₀, HasPrimeInInterval x (x / (log x)^k)
+
+@[blueprint
+  "Meissel-Mertens-constant"
+  (title := "Meissel-Mertens constant B")
+  (statement := /--
+  $B := \lim_{x \to \infty} \left( \sum_{p \leq x} \frac{1}{p} - \log \log x \right)$. -/)]
+noncomputable def meisselMertensConstant : ℝ :=
+  lim (Filter.atTop.comap (fun x : ℝ ↦ ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), 1 / p - log (log x)))
+
+@[blueprint
+  "Mertens-constant"
+  (title := "Mertens constant E")
+  (statement := /--
+  $E := \lim_{x \to \infty} \left( \sum_{p \leq x} \frac{\log p}{p} - \log x \right)$. -/)]
+noncomputable def mertensConstant : ℝ :=
+  lim (Filter.atTop.comap (fun x : ℝ ↦ ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), Real.log p / p - log x))

@@ -9,7 +9,7 @@ In this section we record the estimates of Dusart \cite{Dusart2018} on explicit 
 
 namespace Dusart
 
-open Real
+open Nat Real
 
 def Table1 : List (ℝ × ℝ × ℕ × ℝ × ℝ × ℝ) := [
   (20, 0.86, 5, 1.595e-5, 1132492, 1.067e-3),
@@ -176,7 +176,7 @@ theorem theorem_4_2 {k : ℕ} {ηk xk : ℝ} (h : (k, ηk, xk) ∈ Table_4_2) {x
   -/)
   (latexEnv := "proposition")]
 theorem proposition_4_3 {x : ℝ} (hx : x ≥ 121) :
-  ψ x - θ x ≥ 1 - (4 * log 2) / (log x) * sqrt x ∧
+  ψ x - θ x ≥ 1 - (4 * Real.log 2) / (log x) * sqrt x ∧
   ψ x - θ x ≥ sqrt (log x ^ 3 / x) * θ (x ^ (1 / 2 : ℝ)) := by sorry
 
 @[blueprint "Dusart_prop_4_4"
@@ -338,10 +338,167 @@ theorem corollary_5_3_d {x : ℝ} (hx : x > 5.6) : pi x ≤ x / (log x - 1 - 1.2
   \]
   -/)
   (latexEnv := "proposition")]
-
-
-
-
 theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := sorry
+
+@[blueprint "Dusart_cor_5_5"
+  (title := "Dusart Corollary 5.5")
+  (statement := /--
+  For all $x \geq 468991632$, there exists a prime $p$ such that
+  \[
+  x < p \leq x\Bigl(1 + \frac{1}{5000 \log^2 x}\Bigr).
+  \]
+  -/)
+  (latexEnv := "corollary")]
+theorem corollary_5_5 {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) := by sorry
+
+@[blueprint "Dusart_thm_5_6"
+  (title := "Dusart Theorem 5.6")
+  (statement := /--
+  We have for $x \geq 2278383$,
+  \[
+  \sum_{p \leq x} \frac{1}{p} = \log \log x + M + O^*\Bigl(\frac{0.2}{\log^3 x}\Bigr).
+  \]
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_5_6 {x : ℝ} (hx : x ≥ 2278383) : ∃ E,
+  ( (∑ p ∈ Finset.filter Prime (Finset.range (⌊x⌋₊ + 1)), 1 / p) = log (log x) + meisselMertensConstant + E ∧ |E| ≤ 0.2 / (log x) ^ 3 ) := by sorry
+
+@[blueprint "Dusart_thm_5_7"
+  (title := "Dusart Theorem 5.7")
+  (statement := /--
+  We have for $x \geq 912560$,
+  \[
+  \sum_{p \leq x} \frac{\log p}{p} = \log x + E + O^*\Bigl(\frac{0.3}{\log^2 x}\Bigr).
+  \]
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_5_7 {x : ℝ} (hx : x ≥ 912560) : ∃ E,
+  ( (∑ p ∈ Finset.filter Prime (Finset.range (⌊x⌋₊ + 1)), Real.log p / p) = log x
+  + mertensConstant + E ∧ |E| ≤ 0.3 / (log x) ^ 2 ) := by sorry
+
+@[blueprint "Dusart_thm_5_9a"
+  (title := "Dusart Theorem 5.9 (a)")
+  (statement := /--
+  We have for $x \geq 2278382$,
+  \[
+  \prod_{p \leq x} \Bigl(1 - \frac{1}{p}\Bigr) = \frac{e^{-\gamma}}{\log x} \Bigl(1 + O^*\Bigl(\frac{0.2}{\log^3 x}\Bigr)\Bigr).
+  \]
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_5_9a {x : ℝ} (hx : x ≥ 2278382) : ∃ E,
+  ( (∏ p ∈ Finset.filter Prime (Finset.range (⌊x⌋₊ + 1)), (1 - 1 / p)) = exp (-eulerMascheroniConstant) / log x * (1 + E) ∧ |E| ≤ 0.2 / (log x) ^ 3 ) := by sorry
+
+@[blueprint "Dusart_thm_5_9b"
+  (title := "Dusart Theorem 5.9 (b)")
+  (statement := /--
+  We have for $x \geq 2278382$,
+  \[
+  \prod_{p \leq x} \frac{p}{p-1} = e^{\gamma} \log x \Bigl(1 + O^*\Bigl(\frac{0.2}{\log^3 x}\Bigr)\Bigr).
+  \] -/)
+  (latexEnv := "theorem")]
+theorem theorem_5_9b {x : ℝ} (hx : x ≥ 2278382) : ∃ E,
+  ( (∏ p ∈ Finset.filter Prime (Finset.range (⌊x⌋₊ + 1)), p / (p - 1)) = exp eulerMascheroniConstant * log x * (1 + E) ∧ |E| ≤ 0.2 / (log x) ^ 3 ) := by sorry
+
+/- Lemma5.10 pk ⩽ kln pk for k ⩾ 4, ln pk ⩽ lnk +lnlnk +1 for k ⩾ 2. (5.8) (5.9) -/
+
+@[blueprint "Dusart_lemma_5_10a"
+  (title := "Dusart Lemma 5.10")
+  (statement := /--
+  We have for $k \geq 4$, $p_k \leq k \log p_k$.
+  -/)
+  (latexEnv := "lemma")]
+theorem lemma_5_10a {k : ℕ} (hk : k ≥ 4) : nth Nat.Prime k ≤ k * Real.log (nth Nat.Prime k) := by sorry
+
+@[blueprint "Dusart_lemma_5_10b"
+  (title := "Dusart Lemma 5.10")
+  (statement := /--
+  We have for $k \geq 2$, $\log p_k \leq \log k + \log \log k + 1$.
+  -/)
+  (latexEnv := "lemma")]
+theorem lemma_5_10b {k : ℕ} (hk : k ≥ 2) : Real.log (nth Nat.Prime k) ≤ Real.log k + Real.log (Real.log k) + 1 := by sorry
+
+@[blueprint "Massias_Robin_thm_Bv"
+  (title := "Massias and Robin Theorem B (v)")
+  (statement := /--
+  We have for $k \geq 198$,
+  \[
+  \vartheta(p_k) \leq k \log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k}.
+  \]
+  -/)
+  (latexEnv := "theorem")]
+theorem massias_robin_thm_Bv {k : ℕ} (hk : k ≥ 198) :
+  θ (nth Nat.Prime k) ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) := by sorry
+
+@[blueprint "Dusart_prop_5_11a"
+  (title := "Dusart Proposition 5.11")
+  (statement := /--
+  We have for $p_k \geq 10^{11}$,
+  \[
+  \vartheta(p_k) \geq k \log k + \log \log k - 1 + \frac{\log \log k - 2.050735}{\log k}.
+  \]
+  -/)
+  (latexEnv := "proposition")]
+theorem proposition_5_11a {k : ℕ} (hk : nth Nat.Prime k ≥ 10 ^ 11) :
+  θ (nth Nat.Prime k) ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.050735) / (Real.log k) := by sorry
+
+@[blueprint "Dusart_prop_5_11b"
+  (title := "Dusart Proposition 5.11")
+  (statement := /--
+  We have for $p_k \geq 10^{15}$,
+  \[
+  \vartheta(p_k) \geq k \log k + \log \log k - 1 + \frac{\log \log k - 2.04}{\log k}.
+  \]
+  -/)
+  (latexEnv := "proposition")]
+theorem proposition_5_11b {k : ℕ} (hk : nth Nat.Prime k ≥ 10 ^ 15) :
+  θ (nth Nat.Prime k) ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.04) / (Real.log k) := by sorry
+
+@[blueprint "Dusart_prop_5_12"
+  (title := "Dusart Proposition 5.12")
+  (statement := /--
+  We have for $k \geq 781$,
+  \[
+  \vartheta(p_k) \leq k \log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k} - \frac{0.782}{\log^2 k}.
+  \]
+  -/)
+  (latexEnv := "proposition")]
+theorem proposition_5_12 {k : ℕ} (hk : k ≥ 781) :
+  θ (nth Nat.Prime k) ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) - 0.782 / (Real.log k) ^ 2 := by sorry
+
+@[blueprint "Dusart_lemma_5_14"
+  (title := "Dusart Lemma 5.14")
+  (statement := /--
+  We have for $k \geq 178974$,
+  \[
+  p_k \leq k \log k + \log \log k - 1 + \frac{\log \log k - 1.95}{\log k}.
+  \]
+  -/)
+  (latexEnv := "lemma")]
+theorem lemma_5_14 {k : ℕ} (hk : k ≥ 178974) :
+  nth Nat.Prime k ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 1.95) / (Real.log k) := by sorry
+
+@[blueprint "Dusart_prop_5_15"
+  (title := "Dusart Proposition 5.15")
+  (statement := /--
+  We have for $k \geq 688383$,
+  \[
+  p_k \leq k \log k + \log \log k - 1 + \frac{\log \log k - 2}{\log k}.
+  \]
+  -/)
+  (latexEnv := "proposition")]
+theorem proposition_5_15 {k : ℕ} (hk : k ≥ 688383) :
+  nth Nat.Prime k ≤ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2) / (Real.log k) := by sorry
+
+@[blueprint "Dusart_prop_5_16"
+  (title := "Dusart Proposition 5.16")
+  (statement := /--
+  We have for $k \geq 3$,
+  \[
+  p_k \geq k \log k + \log \log k - 1 + \frac{\log \log k - 2.1}{\log k}.
+  \]
+  -/)
+  (latexEnv := "proposition")]
+theorem proposition_5_16 {k : ℕ} (hk : k ≥ 3) :
+  nth Nat.Prime k ≥ k * Real.log k + Real.log (Real.log k) - 1 + (Real.log (Real.log k) - 2.1) / (Real.log k) := by sorry
 
 end Dusart
