@@ -10,15 +10,7 @@ open scoped BigOperators
 
 namespace six_primes
 
-/-!
-This file defines the “Main-layer” criterion (six primes + inequalities),
-and proves existence/building lemmas from `Lcm.Cert.Criterion`.
 
-So: `Cert.Criterion  ⟹  (build a ChoosePrime.Criterion)`
--/
-
-
-/- Prime selection lemmas live here (they assume `Ccert : Lcm.Cert.Criterion`). -/
 theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∃ p : Fin 3 → ℕ, (∀ i, Nat.Prime (p i)) ∧ StrictMono p ∧
       (∀ i, p i ≤ √(n : ℝ) * (1 + gap.δ (√(n : ℝ))) ^ (i + 1 : ℝ)) ∧
@@ -139,22 +131,6 @@ theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
       exact (le_of_lt hq₂_lb)
 
 
-@[blueprint
-  "lem:qi-product"
-  (title := "Bounds for the \\(q_i\\)-product")
-  (statement := /--
-  With \(p_i,q_i\) as in Lemmas~\ref{lem:choose-pi} and \ref{lem:choose-qi}, we have
-  \begin{equation}\label{eq:qi-upper}
-    \prod_{i=1}^3 \Bigl(1 + \frac{1}{q_i}\Bigr)
-    \le
-    \prod_{i=1}^3 \Bigl(1 + \frac{\bigl(1 + \frac{1}{\log^3 \sqrt{n}}\bigr)^i}{n} \Bigr).
-  \end{equation}
-  -/)
-  (proof := /--
-  Same as the current proof, but the Lean statement uses `gap.δ` rather than `log^3`.
-  -/)
-  (proofUses := ["lem:choose-qi"])
-  (latexEnv := "lemma")]
 theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∏ i, (1 + (1 : ℝ) / (exists_q_primes hn).choose i) ≤
       ∏ i : Fin 3, (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / n) := by
@@ -203,24 +179,6 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 
 
 
-@[blueprint
-  "lem:pi-product"
-  (title := "Bounds for the \\(p_i\\)-product")
-  (statement := /--
-  With \(p_i\) as in Lemma~\ref{lem:choose-pi}, we have for large \(n\)
-  \begin{equation}\label{eq:pi-lower}
-    \prod_{i=1}^3 \Bigl(1 + \frac{1}{p_i(p_i+1)}\Bigr)
-    \ge
-    \prod_{i=1}^3
-    \Bigl(
-      1 + \frac{1}{\bigl(1 + \delta(\sqrt{n})\bigr)^{2i} (n + \sqrt{n})}
-    \Bigr).
-  \end{equation}
-  -/)
-  (proof := /--
-  Same proof as before, but the Lean statement uses `gap.δ (√n)` rather than `log^3`.
-  -/)
-  (latexEnv := "lemma")]
 theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∏ i, (1 + (1 : ℝ) /
         ((exists_p_primes hn).choose i * ((exists_p_primes hn).choose i + 1))) ≥
@@ -280,22 +238,6 @@ theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
         mul_assoc, mul_comm, mul_left_comm] using this
     )
 
-@[blueprint
-  "lem:pq-ratio"
-  (title := "Lower bound for the product ratio \\(p_i/q_i\\)")
-  (statement := /--
-  With \(p_i,q_i\) as in Lemmas~\ref{lem:choose-pi} and \ref{lem:choose-qi}, we have
-  \begin{equation}\label{eq:pq-ratio}
-    1 - \frac{4 p_1 p_2 p_3}{q_1 q_2 q_3}
-    \ge
-    1 - \frac{4 \bigl(1 + \delta(\sqrt{n})\bigr)^{12}}{n^{3/2}}.
-  \end{equation}
-  -/)
-  (proof := /--
-  Same argument as before, but the Lean statement uses `gap.δ (√n)` instead of `log`.
-  -/)
-  (latexEnv := "lemma")
-  (discussion := 534)]
 theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     1 - ((4 : ℝ) * ∏ i, ((exists_p_primes hn).choose i : ℝ))
         / ∏ i, ((exists_q_primes hn).choose i : ℝ) ≥
@@ -311,9 +253,6 @@ theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
       4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
     -- Rewrite the RHS into a product ratio that matches the pointwise `p`/`q` bounds.
     rw [Numerical.pq_ratio_rhs_as_fraction (n := n) hn]
-    -- Now `gcongr` uses:
-    --   - p_i ≤ √n * b^(i+1)
-    --   - n / b^(3-i) ≤ q_i
     gcongr <;> try
     (first
       | exact (exists_p_primes hn).choose_spec.2.2.1 _
@@ -322,22 +261,6 @@ theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
       | (refine Finset.prod_pos ?_; intro; intro; positivity [hnpos, hbpos])
       | (refine Finset.prod_pos ?_; intro; intro; exact_mod_cast ((exists_q_primes hn).choose_spec.1 _).pos)
     )
-    -- gcongr
-    -- · -- side condition: RHS numerator product is nonnegative
-    --   exact Finset.prod_nonneg (fun _ _ => by positivity [hbpos])
-    -- · -- side condition: LHS denominator product is positive (product of primes)
-    --   exact Finset.prod_pos (fun j _ => by
-    --     have hprime : Nat.Prime ((exists_q_primes hn).choose j) :=
-    --       (exists_q_primes hn).choose_spec.1 j
-    --     -- cast positivity
-    --     exact_mod_cast hprime.pos)
-    -- · -- pointwise p-bound
-    --   exact (exists_p_primes hn).choose_spec.2.2.1 _
-    -- · -- side condition: each lower-q factor is positive (needed for denominator monotonicity)
-    --   exact (fun _ _ => by positivity [hnpos, hbpos])
-    -- · -- pointwise q-bound (lower term ≤ q_i)
-    --   exact (exists_q_primes hn).choose_spec.2.2.1 _
-
   -- Convert `A ≤ B` into `1 - A ≥ 1 - B`.
   have hsub :
       1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
@@ -348,13 +271,6 @@ theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 
   -- goal is the same inequality but written with `≥`
   simpa [ge_iff_le] using hsub
-
--- theorem h_crit_of_choice (Ccert : Lcm.Numerical.Criterion) {n : ℕ} (hn : n ≥ X₀ ^ 2)
---     (p : Fin 3 → ℕ) (q : Fin 3 → ℕ) := by sorry
---   -- or keep as a theorem producing the inequality directly
-
-
-
 
 
 
