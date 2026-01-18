@@ -213,8 +213,34 @@ theorem prop_3_sub_6 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
   (latexEnv := "sublemma")
   (discussion := 637)]
 theorem prop_3_sub_7 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
-    (hx : x ∈ Set.Icc x₀ (2 ^ (⌊(log x₀) / (log 2)⌋ + 1))) :
-    f x ≤ f x₀ := by sorry
+    (hx : x ∈ Set.Ico x₀ (2 ^ (⌊(log x₀) / (log 2)⌋ + 1))) :
+    f x ≤ f x₀ := by
+  obtain ⟨hx_lo, hx_hi⟩ := hx
+  have hx₀_pos : 0 < x₀ := by positivity
+  set m := ⌊(log x₀) / (log 2)⌋
+  have hm_nonneg : 0 ≤ m := Int.floor_nonneg.mpr <| div_nonneg (log_nonneg (by linarith)) (log_pos one_lt_two).le
+  set n := m.toNat
+  have hn_eq : (n : ℤ) = m := Int.toNat_of_nonneg hm_nonneg
+  have hpow_eq : (2:ℝ)^(m + 1) = 2^(n+1) := by rw [show m + 1 = ((n + 1 : ℕ) : ℤ) by omega, zpow_natCast]
+  rw [hpow_eq] at hx_hi
+  have key : (2:ℝ)^((log x₀) / (log 2)) = x₀ := by
+    rw [rpow_def_of_pos (by norm_num : (0:ℝ) < 2), mul_comm,
+        div_mul_cancel₀ _ (log_pos one_lt_two).ne', exp_log hx₀_pos]
+  have hx₀_ge : x₀ ≥ 2^n := by
+    have h1 : (n : ℝ) ≤ (log x₀) / (log 2) := by
+      calc (n : ℝ) = (m : ℝ) := by rw [← hn_eq]; simp
+           _ ≤ (log x₀) / (log 2) := Int.floor_le _
+    calc x₀ = 2^((log x₀) / (log 2)) := key.symm
+         _ ≥ 2^(n:ℝ) := rpow_le_rpow_of_exponent_le one_le_two h1
+         _ = 2^n := rpow_natCast 2 n
+  have hx₀_lt : x₀ < 2^(n+1) := by
+    have h1 : (log x₀) / (log 2) < n + 1 := by
+      calc (log x₀) / (log 2) < m + 1 := Int.lt_floor_add_one _
+           _ = (n : ℝ) + 1 := by rw [← hn_eq]; simp
+    calc x₀ = 2^((log x₀) / (log 2)) := key.symm
+         _ < 2^((n:ℝ) + 1) := rpow_lt_rpow_of_exponent_lt one_lt_two h1
+         _ = 2^(n+1) := by rw [← rpow_natCast 2 (n+1)]; norm_cast
+  exact (prop_3_sub_2 n).le_iff_ge ⟨hx₀_ge.trans hx_lo, hx_hi⟩ ⟨hx₀_ge, hx₀_lt⟩ |>.mpr hx_lo
 
 @[blueprint
   "bklnw-prop-3-sub-8"
