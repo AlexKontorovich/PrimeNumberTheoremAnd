@@ -86,8 +86,23 @@ theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : DifferentiableOn
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p =
       (∫ y in 2..x, f y / log y) + 2 * f 2 / Real.log 2 +
       f x * (θ x - x) / log x -
-      ∫ y in 2..x, (θ y - y) * deriv (fun s ↦ f s / log s) y := by
-    let h := Set.uIcc_of_le hx
+      ∫ y in 2..x, (θ y - y) * deriv (fun s ↦ f s / log s) y :=
+    let hcc := Set.uIcc_of_le hx
+    let hoc := Set.uIoc_of_le hx
+    have hm : Set.Ioo 2 x ∈ ae (volume.restrict (Set.Ioc 2 x)) := by
+      by_cases hp : 2 < x
+      · rw [mem_ae_iff, Measure.restrict_apply' measurableSet_Ioc, ← Set.diff_eq_compl_inter,
+          Set.Ioc_diff_Ioo_same hp, volume_singleton]
+      · simp_all
+    have hae : (fun t ↦ deriv (fun s ↦ f s / Real.log s) t) =ᶠ[ae (volume.restrict (Set.Ioc 2 x))]
+      derivWithin (fun t ↦ f t / Real.log t) (Set.uIcc 2 x) := by
+      filter_upwards [hm] with y hy
+      have : Set.Icc 2 x ∈ 𝓝 y := mem_nhds_iff.2
+        ⟨Set.Ioo 2 x, Set.Ioo_subset_Icc_self, ⟨isOpen_Ioo, hy⟩⟩
+      refine (DifferentiableAt.derivWithin ?_ (uniqueDiffWithinAt_of_mem_nhds (hcc ▸ this))).symm
+      refine DifferentiableAt.fun_div ?_ (differentiableAt_log (by simp_all; linarith)) ?_
+      · refine DifferentiableWithinAt.differentiableAt (hf y (Set.Ioo_subset_Icc_self hy)) this
+      · linarith [Real.log_pos (by simp_all; linarith)]
     calc
     _ = f x * (θ x - x) / log x + x * f x / log x -
       (∫ y in 2..x, (θ y - y) * deriv (fun t ↦ f t / log t) y) -
@@ -95,7 +110,17 @@ theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : DifferentiableOn
       rw [eq_413 hx hf, ← tsub_add_eq_tsub_tsub, ← intervalIntegral.integral_add _
         (IntervalIntegrable.continuousOn_mul hd (by fun_prop))]
       · ring_nf
-      · sorry
+      · refine (intervalIntegrable_iff_integrableOn_Ioc_of_le hx).2 ?_
+        have hsm : AEStronglyMeasurable (fun t => θ t - t) (volume.restrict (Set.Ioc 2 x)) := by
+          refine AEStronglyMeasurable.sub ?_ (by fun_prop)
+          sorry
+        have hb : ∀ᵐ y ∂volume.restrict (Set.Ioc 2 x), ‖θ y - y‖ ≤ θ x + x := by
+          refine ae_restrict_of_forall_mem measurableSet_Ioc (fun y hy => ?_)
+          calc
+          _ ≤ ‖θ y‖ + ‖y‖ := by bound
+          _ = θ y + y := by rw [norm_of_nonneg (theta_nonneg y), norm_of_nonneg (by grind : 0 ≤ y)]
+          _ ≤ θ x + x := add_le_add (theta_mono hy.2) hy.2
+        exact ((intervalIntegrable_iff_integrableOn_Ioc_of_le hx).1 hd).bdd_mul hsm hb
     _ = f x * (θ x - x) / log x +
       ((∫ y in 2..x, 1 * (f y / log y)+ y * derivWithin (fun t ↦ f t / log t) (Set.uIcc 2 x) y) +
       2 * f 2 / log (2 : ℝ)) -
@@ -104,29 +129,28 @@ theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : DifferentiableOn
       rw [← sub_add_cancel (x * f x / log x) (2 * f 2 / log (2 : ℝ)),
         intervalIntegral.integral_deriv_mul_eq_sub_of_hasDerivWithinAt, mul_div, mul_div]
       · intro y _; exact (hasDerivAt_id' y).hasDerivWithinAt
-      · refine fun y hy => DifferentiableWithinAt.hasDerivWithinAt (h ▸
-          DifferentiableWithinAt.fun_div (hf y (h ▸ hy)) ?_ ?_)
+      · refine fun y hy => DifferentiableWithinAt.hasDerivWithinAt (hcc ▸
+          DifferentiableWithinAt.fun_div (hf y (hcc ▸ hy)) ?_ ?_)
         · exact (differentiableAt_log (by simp_all; linarith)).differentiableWithinAt
         · linarith [Real.log_pos (by simp_all; linarith)]
       · exact intervalIntegral.intervalIntegrable_const
-      · have : Set.Ioo 2 x ∈ ae (volume.restrict (Set.Ioc 2 x)) := by
-          by_cases hp : 2 < x
-          · rw [mem_ae_iff, Measure.restrict_apply' measurableSet_Ioc, ← Set.diff_eq_compl_inter,
-              Set.Ioc_diff_Ioo_same hp, volume_singleton]
-          · simp_all
-        refine hd.congr_ae ((Set.uIoc_of_le hx) ▸ ?_)
-        filter_upwards [this] with y hy
-        have : Set.Icc 2 x ∈ 𝓝 y := mem_nhds_iff.2
-          ⟨Set.Ioo 2 x, Set.Ioo_subset_Icc_self, ⟨isOpen_Ioo, hy⟩⟩
-        refine (DifferentiableAt.derivWithin ?_ (uniqueDiffWithinAt_of_mem_nhds (h ▸ this))).symm
-        refine DifferentiableAt.fun_div ?_ (differentiableAt_log (by simp_all; linarith)) ?_
-        · refine DifferentiableWithinAt.differentiableAt (hf y (Set.Ioo_subset_Icc_self hy)) this
-        · linarith [Real.log_pos (by simp_all; linarith)]
+      · exact hd.congr_ae (hoc ▸ hae)
     _ = f x * (θ x - x) / log x +
       ((∫ y in 2..x, f y / log y) + (∫ y in 2..x, y * deriv (fun t ↦ f t / log t) y) +
       2 * f 2 / log (2 : ℝ)) -
       (∫ y in 2..x, (θ y - y) * deriv (fun t ↦ f t / log t) y) -
-      ∫ y in 2..x, y * deriv (fun t ↦ f t / log t) y := by sorry
+      ∫ y in 2..x, y * deriv (fun t ↦ f t / log t) y := by
+      have : (fun y ↦ y * deriv (fun t ↦ f t / Real.log t) y) =ᶠ[ae (volume.restrict (Set.Ioc 2 x))]
+        fun y ↦ y * derivWithin (fun t ↦ f t / Real.log t) (Set.uIcc 2 x) y := by
+        filter_upwards [Filter.eventually_iff.1 hae.eventually] with y hy
+        grind
+      have hi := intervalIntegral.integral_congr_ae_restrict (hoc ▸ this)
+      simp only [one_mul, sub_left_inj, add_right_inj, add_left_inj, hi]
+      refine intervalIntegral.integral_add (ContinuousOn.intervalIntegrable_of_Icc hx ?_) ?_
+      · exact ContinuousOn.div₀ (by fun_prop) (continuousOn_log.mono (by grind))
+          (fun x hx => by linarith [Real.log_pos (by simp_all; linarith)])
+      · exact IntervalIntegrable.congr_ae (f := fun t ↦ t * deriv (fun s ↦ f s / log s) t)
+          (IntervalIntegrable.continuousOn_mul hd (by fun_prop)) (hoc ▸ this)
     _ = (∫ y in 2..x, f y / log y) + 2 * f 2 / Real.log 2 +
       f x * (θ x - x) / log x -
       ∫ y in 2..x, (θ y - y) * deriv (fun s ↦ f s / log s) y := by ring
