@@ -1,5 +1,6 @@
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.SecondaryDefinitions
+import PrimeNumberTheoremAnd.CostaPereira
 
 blueprint_comment /--
 \section{Tools from BKLNW}
@@ -139,7 +140,7 @@ noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2
 \frac{\psi(x) - \theta(x) - \theta(x^{1/2})}{x^{1/3}} \leq (1 + \alpha) \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} x^{\frac{1}{k} - \frac{1}{3}}.
 \]
 -/)
-  (proof := /-- Bound each $\theta(x^{1/k})$ term by $(1 + \alpha)x^{1/k}$. -/)
+  (proof := /-- Bound each $\theta(x^{1/k})$ term by $(1 + \alpha)x^{1/k}$ in Sublemma \ref{costa-pereira-sublemma-1-1}. -/)
   (latexEnv := "sublemma")
   (discussion := 630)]
 theorem prop_3_sub_1 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 1)
