@@ -214,7 +214,12 @@ noncomputable def ν_asymp (Aψ B C R x₀ : ℝ) : ℝ :=
   with
   $$ \nu_{asymp}(x_0) = \frac{1}{A_\psi} (\frac{R}{\log x_0})^B
     \exp(C \sqrt{\frac{\log x_0}{R}}) (a_1 (\log x_0) x_0^{-1/2} + a_2 (\log x_0) x_0^{-2/3}).$$
-  -/)]
+  -/)
+  (proof := /-- The proof of \cite[Corollary 14.1]{BKLNW} essentially proves the proposition, but requires that $x_0 \geq e^{1000}$ to conclude that the function
+  $$ 1 + \frac{a_1 \exp(C \sqrt{\frac{\log x}{R}})}{A_\psi \sqrt{x} (\log x/R)^{B}} + \frac{a_2 \exp(C \sqrt{\frac{\log x}{R}})}{A_\psi x^{2/3} (\log x/R)^{B}} = 1 + \frac{a_1}{A_\psi} g(1/2, -B, C/\sqrt{R}, x) + \frac{a_2}{A_\psi} g(2/3, -B, C/\sqrt{R}, x)$$
+  is decreasing. By Lemma \ref{fks2-lemma-10a}, since $B > C^2/8R$, the function is actually decreasing for all $x$. -/)
+  (latexEnv := "proposition")
+  (discussion := 671)]
 theorem proposition_13
   (Aψ B C R x₀ : ℝ)
   (h_bound : Eψ.classicalBound Aψ B C R x₀)
@@ -227,7 +232,10 @@ theorem proposition_13
   (statement := /--
   We have an admissible bound for $E_\theta$ with $A = 121.0961$, $B=3/2$, $C=2$,
   $R = 5.5666305$, $x_0=2$.
-  -/)]
+  -/)
+  (proof := /-- By \cite[Corollary 1.3]{FKS}, with $R = 5.5666305$, and using the admissible asymptotic bound for $E_\psi(x)$ with $A_\psi = 121.096$, $B = 3/2$, $C = 2$, for all $x \geq x_0 = e^{30}$, we can obtain $\nu_{asymp}(x_0) \leq 6.3376 \cdot 10^{-7}$, from which one can conclude an admissible asymptotic bound for $E_\theta(x)$ with $A_\theta = 121.0961$, $B = 3/2$, $C = 2$, for all $x \geq x_0 = e^{30}$. Additionally, the minimum value of $\varepsilon_{\theta,asymp}(x)$ for $2 \leq x \leq e^{30}$ is roughly $2.6271\ldots$ at $x=2$. The results found in \cite[Table 13 and 14]{BKLNW} give $E_\theta(x) \leq 1 < \varepsilon_{\theta,asymp}(2) \leq \varepsilon_{\theta,asymp}(x)$ for all $2 \leq x \leq e^{30}$. -/)
+  (latexEnv := "corollary")
+  (discussion := 672)]
 theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := sorry
 
 
@@ -289,9 +297,12 @@ noncomputable def default_b (x₀ x₁ : ℝ) : Fin 2 → ℝ :=
   (statement := /--
   If
   $$ \frac{d}{dx} \frac{\log x}{x}
-    \left( Li(x) - \frac{x}{\log x} - Li(x_1) + \frac{x_1}{\log x_1} \right)|_{x_2} \geq 0 $$
+    \left( \Li(x) - \frac{x}{\log x} - \Li(x_1) + \frac{x_1}{\log x_1} \right)|_{x_2} \geq 0 $$
   then $\mu_{num,1}(x_0,x_1,x_2) < \mu_{num,2}(x_0,x_1)$.
-  -/)]
+  -/)
+  (proof := /-- This follows from the definitions of $\mu_{num,1}$ and $\mu_{num,2}$. -/)
+  (latexEnv := "remark")
+  (discussion := 673)]
 theorem remark_7 {x₀ x₁ : ℝ} (x₂ : ℝ) (h : x₁ ≥ max x₀ 14)
   {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
   (h_b_start : b 0 = log x₀)
@@ -307,7 +318,9 @@ theorem remark_7 {x₀ x₁ : ℝ} (x₂ : ℝ) (h : x₁ ≥ max x₀ 14)
   (statement := /--
   If $\log x_0 \geq 1000$ then we have an admissible bound for $E_\theta$ with the indicated
   choice of $A(x_0)$, $B = 3/2$, $C = 2$, and $R = 5.5666305$.
-  -/)]
+  -/)
+  (latexEnv := "remark")
+  (discussion := 674)]
 theorem remark_15 (x₀ : ℝ) (h : log x₀ ≥ 1000) :
     Eθ.classicalBound (FKS.A x₀) (3/2) 2 5.5666305 x₀ := by sorry
 
@@ -322,7 +335,26 @@ theorem remark_15 (x₀ : ℝ) (h : log x₀ ≥ 1000) :
   $$ E_\pi(x) \leq \epsilon_{\theta,asymp}(x_1) ( 1 + \mu_{asymp}(x_0,x_1) ) $$
   for all $x \geq x_1$.  In other words, we have an admissible bound with parameters
   $(1+\mu_{asymp}(x_0,x_1))A, B, C, x_1$ for $E_\pi$.
-  -/)]
+  -/)
+  (proof := /-- We assume that $(\pi(x_0) - \Li(x_0))$ can be numerically calculated. Thus we use (17) to rewrite $(\pi(x) - \Li(x)) - (\pi(x_0) - \Li(x_0))$, so that
+  $$ |\pi(x) - \Li(x)| = \frac{\theta(x) - x}{\log(x)} - \frac{\theta(x_0) - x_0}{\log(x_0)} + \int_{x_0}^{x} \frac{\theta(t) - t}{t (\log(t))^2} dt + \pi(x_0) - \Li(x_0) $$
+  $$ \leq |\pi(x_0) - \Li(x_0) - \frac{\theta(x_0) - x_0}{\log(x_0)}| + \frac{\theta(x) - x}{\log(x)} + \int_{x_0}^{x} \frac{\theta(t) - t}{t (\log(t))^2} dt.$$
+  We use the assumption ($\varepsilon_{\theta,\mathrm{asymp}}(x)$ provides an admissible bound on $\theta(x)$ for all $x \geq x_0$) to bound $\frac{\theta(x) - x}{\log(x)}$ and Lemma \ref{fks2-lemma-12} to bound $\int_{x_0}^{x} \frac{\theta(t) - t}{t (\log(t))^2} dt$.  We obtain
+  $$ |\pi(x) - \Li(x)| \leq |\pi(x_0) - \Li(x_0) - \frac{\theta(x_0) - x_0}{\log(x_0)}| + \frac{x \varepsilon_{\theta,\mathrm{asymp}}(x)}{\log(x)} + \frac{2 A_\theta}{R^B} x m(x_0,x) \exp(-C \sqrt{\frac{\log x}{R}}) D_+\left( \sqrt{\log x} - \frac{C}{2\sqrt{R}} \right).$$
+  We recall that $x \geq x_1 \geq x_0$.  Note that, by Corollary \ref{fks2-corollary-11},
+  $$ \frac{\log(x)}{x \varepsilon_{\theta,\mathrm{asymp}}(x)} = \frac{1}{A_\theta} g(1, 1 - B, \frac{C}{\sqrt{R}}, x) $$
+  is decreasing for all $x$.  Thus,
+  $$ \frac{\log(x)}{x \varepsilon_{\theta,\mathrm{asymp}}(x)} \leq \frac{\log(x_1)}{x_1 \varepsilon_{\theta,\mathrm{asymp}}(x_1)}. $$
+  In addition, we have the simplification
+  $$ \frac{\log(x)}{x \varepsilon_{\theta,\mathrm{asymp}}(x)} \frac{2 A_\theta}{R^B} x m(x_0,x) e^{-C \sqrt{\frac{\log x}{R}}} = 2 m(x_0,x) (\log(x))^{1 - B} = 2 (\log(x))^{1 - B} \leq 2 (\log(x_1))^{1 - B}, $$
+  by definition (6) of $\varepsilon_{\theta,\mathrm{asymp}}(x)$ and by $m(x_0,x) = (\log(x))^{(2B - 3)/2}$, since $B \geq 3/2$.  Finally, since $\sqrt{\log(x_1)} - \frac{C}{2\sqrt{R}} > 1$, the Dawson function decreases for all $x \geq x_1$:
+  $$ D_+\left( \sqrt{\log x} - \frac{C}{2\sqrt{R}} \right) \leq D_+\left( \sqrt{\log x_1} - \frac{C}{2\sqrt{R}} \right). $$
+  We conclude by combining the above:
+  $$ \frac{|\pi(x) - \Li(x)|}{\frac{x \varepsilon_{\theta,\mathrm{asymp}}(x)}{\log(x)}} \leq \frac{\log(x_1)}{x_1 \varepsilon_{\theta,\mathrm{asymp}}(x_1)} |\pi(x_0) - \Li(x_0) - \frac{\theta(x_0) - x_0}{\log(x_0)}| + 1 + \frac{2 D_+\left( \sqrt{\log x_1} - \frac{C}{2\sqrt{R}} \right)}{\sqrt{\log(x_1)}}, $$
+  from which we deduce the announced bound. -/)
+  (latexEnv := "theorem")
+  (discussion := 675)
+  ]
 theorem theorem_3 (A B C R x₀ x₁ : ℝ)
   (hB : B ≥ max (3 / 2) (1 + C ^ 2 / (16 * R)))
   (hx0 : x₀ > 0)

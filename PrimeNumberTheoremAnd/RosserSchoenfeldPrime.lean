@@ -175,7 +175,7 @@ noncomputable def L (f : ℝ → ℝ) : ℝ :=
   (discussion := 601)]
 theorem eq_415 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x)
    (hbound : ∃ C, ∀ x ∈ Set.Ici 2, |f x| ≤ C / x ∧ |deriv f x| ≤ C / x ^ 2) :
-   ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p = ∫ y in 2..x, f y / log y + L f +
+   ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p = (∫ y in 2..x, f y / log y) + L f +
     f x * (θ x - x) / log x + ∫ y in Set.Ioi x, (θ y - y) * deriv (fun s ↦ f s / log s) y := by sorry
 
 @[blueprint
