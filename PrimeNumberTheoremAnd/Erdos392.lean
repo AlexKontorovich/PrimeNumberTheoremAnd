@@ -1524,7 +1524,8 @@ theorem Params.initial.balance_tiny_prime_ge (P : Params) {p : ℕ} (hp : p ≤ 
   Sublemma \ref{initial-factorization-medium-prime-ge},
   Sublemma \ref{initial-factorization-small-prime-le},
   Sublemma \ref{initial-factorization-small-prime-ge}, and
-  Sublemma \ref{initial-factorization-tiny-prime-ge}, and combine $\log p$ and $\log (n/p)$ to $\log n$.-/)]
+  Sublemma \ref{initial-factorization-tiny-prime-ge}, and combine $\log p$ and $\log (n/p)$ to $\log n$.-/)
+  (discussion := 665)]
 theorem Params.initial.score_bound (P : Params) :
     P.initial.score P.L ≤ P.n * log (1 - 1 / (P.M : ℝ))⁻¹ +
       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)), P.M * Real.log P.n +

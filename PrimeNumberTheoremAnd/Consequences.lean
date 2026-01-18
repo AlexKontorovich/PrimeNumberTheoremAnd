@@ -27,122 +27,11 @@ lemma Set.Ico_subset_Ico_of_Icc_subset_Icc {a b c d : ℝ} (h : Set.Icc a b ⊆ 
   simp only [mem_Icc] at this
   exact this.2
 
--- AkraBazzi.lean
-lemma deriv_smoothingFn' {x : ℝ} (hx_pos : 0 < x) (hx : x ≠ 1) :
-    deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) := by
-  have : log x ≠ 0 := Real.log_ne_zero_of_pos_of_ne_one hx_pos hx
-  rw [deriv_fun_inv''] <;> aesop
-
-lemma deriv_smoothingFn {x : ℝ} (hx : 1 < x) :
-    deriv (fun x => (log x)⁻¹) x = -x⁻¹ / (log x ^ 2) :=
-  deriv_smoothingFn' (by positivity) (ne_of_gt hx)
-
-theorem extracted_2 (x : ℝ) (z : ℝ) (hz_pos : 0 < z) (hz : z ≠ 1) :
-    ContinuousWithinAt (fun x ↦ (x * log x ^ 2)⁻¹) (Set.Icc (3 / 2) x) z := by
-  apply ContinuousAt.continuousWithinAt
-  have : z ≠ 0 := by linarith
-  have : z * log z ^ 2 ≠ 0 := by
-    apply mul_ne_zero this
-    apply pow_ne_zero _ <| log_ne_zero_of_pos_of_ne_one hz_pos hz
-  fun_prop (disch := assumption)
-
-theorem extracted_1 (x : ℝ) :
-    IntegrableOn
-      (fun t ↦ (θ t) / (t * log t ^ 2))
-      (Set.Icc 2 x) volume := by
-  conv => arg 1; ext; rw [Chebyshev.theta_eq_sum_Icc, div_eq_mul_one_div, mul_comm, sum_filter]
-  apply integrableOn_mul_sum_Icc _ (by norm_num)
-  apply ContinuousOn.integrableOn_Icc
-  intro x hx
-  apply ContinuousAt.continuousWithinAt
-  have : x ≠ 0 := by linarith [hx.1]
-  have : x * log x ^ 2 ≠ 0 := by
-    apply mul_ne_zero this
-    apply pow_ne_zero _ <| log_ne_zero_of_pos_of_ne_one _ _ <;> linarith [hx.1]
-  fun_prop (disch := assumption)
-
 lemma th43_b (x : ℝ) (hx : 2 ≤ x) :
     Nat.primeCounting ⌊x⌋₊ =
       θ x / log x + ∫ t in Set.Icc 2 x, θ t / (t * (Real.log t) ^ 2) := by
-  trans θ x / log x + ∫ t in Set.Icc (3 / 2) x, θ t / (t * (Real.log t) ^ 2)
-  swap
-  · congr 1
-    have : Set.Icc (3/2) x = Set.Ico (3/2) 2 ∪ Set.Icc 2 x := by
-      exact Set.Ico_union_Icc_eq_Icc (by norm_num) hx |>.symm
-    rw [this, setIntegral_union _ measurableSet_Icc _ _]
-    · simp only [add_eq_right]
-      apply integral_eq_zero_of_ae
-      simp only [measurableSet_Ico, ae_restrict_eq]
-      refine eventuallyEq_inf_principal_iff.mpr ?_
-      filter_upwards [] with y hy
-      simp [Chebyshev.theta_eq_zero_of_lt_two hy.2]
-    · rw [Set.disjoint_iff, Set.subset_empty_iff]
-      ext y
-      simp (config := {contextual := true})
-    · rw [integrableOn_congr_fun (g := 0) _ measurableSet_Ico]
-      · exact integrableOn_zero
-      · intro y hy
-        simp only [Set.mem_Ico] at hy
-        have := Chebyshev.theta_eq_zero_of_lt_two hy.2
-        simp_all
-    · apply extracted_1 _
-  let a : ℕ → ℝ := Set.indicator (setOf Nat.Prime) (fun n => log n)
-  have floor32 : ⌊(3/2 : ℝ)⌋₊ = 1 := by rw [floor_div_ofNat, Nat.floor_ofNat]
-  simp only [primeCounting, primeCounting', count_eq_card_filter_range]
-  rw [card_eq_sum_ones, range_succ_eq_Icc_zero]
-  trans ∑ x ∈ Ioc ⌊(3/2 : ℝ)⌋₊ ⌊x⌋₊ with Nat.Prime x, 1
-  · norm_cast
-    congr 1
-    ext p
-    constructor <;> intro h
-    · simp_all only [mem_filter, mem_Icc, _root_.zero_le, true_and, mem_Ioc, and_true]
-      apply h.2.one_lt
-    · simp_all
-  rw [sum_filter]
-  trans ∑ n ∈ Ioc ⌊(3/2 : ℝ)⌋₊ ⌊x⌋₊, (1 / log n) * a n
-  · refine sum_congr rfl fun n hn ↦ ?_
-    unfold a
-    split_ifs with h
-    · simp [h]
-      have : log n ≠ 0 := by
-        apply log_ne_zero_of_pos_of_ne_one <;> norm_cast
-        exacts [h.pos, h.ne_one]
-      field
-    simp [h]
-  rw [sum_mul_eq_sub_sub_integral_mul a (f := fun n ↦ 1 / log n) (by norm_num) (by linarith),
-    floor32, show Icc 0 1 = {0, 1} by ext; simp; omega]
-  · simp only [Set.indicator_apply, Set.mem_setOf_eq, mem_singleton, zero_ne_one,
-      not_false_eq_true, sum_insert, CharP.cast_eq_zero, log_zero, ite_self, sum_singleton,
-      cast_one, log_one, add_zero, mul_zero, sub_zero, Chebyshev.theta_eq_sum_Icc, a, sum_filter]
-    have h8 (f : ℝ → ℝ) :
-      ∫ (u : ℝ) in Set.Ioc (3 / 2) x, deriv (fun x ↦ 1 / log x) u * f u =
-      ∫ (u : ℝ) in Set.Icc (3 / 2) x, f u * -(u * log u ^ 2)⁻¹ := by
-      rw [← integral_Icc_eq_integral_Ioc]
-      apply setIntegral_congr_ae measurableSet_Icc
-      refine Eventually.of_forall (fun u hu => ?_)
-      simp only [one_div, mul_inv_rev, mul_neg]
-      rw [deriv_smoothingFn (by linarith [hu.1])]
-      ring
-    simp_rw [h8, mul_neg, MeasureTheory.integral_neg]
-    ring_nf!
-  · intro z hz
-    have : z ≠ 0 := by linarith [hz.1]
-    have : log z ≠ 0 := by
-      apply log_ne_zero_of_pos_of_ne_one <;> linarith [hz.1]
-    fun_prop (disch := assumption)
-  · simp only [one_div]
-    have : ∀ y ∈ Set.Icc (3 / 2) x,
-        deriv (fun x ↦ (log x)⁻¹) y = -(y * log y ^ 2)⁻¹ := by
-      intro y hy
-      rw [deriv_smoothingFn, mul_inv, ← div_eq_mul_inv, neg_div]
-      linarith [hy.1]
-    apply ContinuousOn.integrableOn_Icc
-    intro z hz
-    apply ContinuousWithinAt.congr (f := fun x => - (x * log x ^ 2)⁻¹)
-    · apply ContinuousWithinAt.neg
-      apply extracted_2 <;> linarith [hz.1]
-    · apply this
-    · apply this z hz
+  rw [integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hx]
+  exact Chebyshev.primeCounting_eq_theta_div_log_add_integral hx
 
 @[blueprint
   (title := "finsum-range-eq-sum-range")
@@ -334,7 +223,7 @@ theorem chebyshev_asymptotic' :
   have integrable (x : ℝ) (hx : 2 ≤ x) : IntegrableOn f (Set.Icc 2 x) := by
     rw [IntegrableOn]
     refine Integrable.sub ?_ (ContinuousOn.integrableOn_Icc (continuousOn_id' _))
-    refine extracted_1 x |>.mul_continuousOn (g' := fun t => t * log t ^ 2)
+    refine Chebyshev.integrableOn_theta_div_id_mul_log_sq x |>.mul_continuousOn (g' := fun t => t * log t ^ 2)
       (ContinuousOn.mul (continuousOn_id' _) (ContinuousOn.pow (continuousOn_log |>.mono <| by
         rintro t ⟨ht1, _⟩
         simp only [Set.mem_compl_iff, Set.mem_singleton_iff]
@@ -903,197 +792,17 @@ theorem pi_asymp :
     ← MeasureTheory.integral_Icc_eq_integral_Ioc]
   field [(integral_log_inv_pos x (by linarith)).ne']
 
-
-lemma pi_alt_Oaux1 : ∃ c, ∀ᶠ (x : ℝ) in atTop,
-    ∫ (t : ℝ) in Set.Icc 2 √x, 1 / log t ^ 2 ≤ c * √x := by
-  use 1 / (log 2) ^ 2
-  rw [eventually_atTop]
-  use 4
-  intro b hb
-  simp only [one_div]
-  trans ((log 2) ^ 2)⁻¹ * (b.sqrt - 2)
-  · have hb : 2 ≤ √b := by
-        rw [Real.le_sqrt (by norm_num) (by linarith)]
-        norm_num; linarith
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hb]
-    trans ∫ (t : ℝ) in (2)..√b, (log 2 ^ 2)⁻¹
-    · apply intervalIntegral.integral_mono_on hb
-      · apply ContinuousOn.intervalIntegrable_of_Icc hb
-        apply ContinuousOn.inv₀
-        · apply ContinuousOn.pow
-          apply ContinuousOn.log continuousOn_id
-          intro x hx
-          simp only [Set.mem_Icc, id_eq, ne_eq] at hx ⊢
-          linarith
-        · intro x hx
-          simp at hx ⊢
-          constructor <;> try linarith
-          constructor <;> linarith
-      · apply intervalIntegral.intervalIntegrable_const
-      · intro x hx
-        simp only [Set.mem_Icc] at hx
-        rw [inv_le_inv₀]
-        · apply pow_le_pow_left₀
-          · apply log_nonneg (by linarith)
-          · rw [log_le_log_iff] <;> linarith
-        · apply pow_pos
-          rw [Real.log_pos_iff] <;> linarith
-        · apply pow_pos
-          rw [Real.log_pos_iff] <;> linarith
-    · rw [intervalIntegral.integral_const, smul_eq_mul]
-      linarith
-  · rw [mul_sub]
-    simp only [tsub_le_iff_right, le_add_iff_nonneg_right, ofNat_pos,
-      mul_nonneg_iff_of_pos_right, inv_nonneg]
-    positivity
-
-lemma pi_alt_Oaux2 : ∃ c, ∀ᶠ (x : ℝ) in atTop,
-    ∫ (t : ℝ) in Set.Icc (√x) x, 1 / log t ^ 2 ≤ c * (x / log x ^ 2) := by
-  use 4
-  rw [eventually_atTop]
-  use 4
-  intro b hb
-  simp only [one_div]
-  trans ((log √b) ^ 2)⁻¹ * (b - b.sqrt)
-  · have hb : 2 ≤ √b ∧ √b ≤ b := by
-        constructor
-        · rw [Real.le_sqrt (by norm_num) (by linarith)]
-          norm_num; linarith
-        · rw [Real.sqrt_le_left (by linarith)]
-          apply le_self_pow₀ <;> linarith
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hb.2]
-    trans ∫ (t : ℝ) in √b..b, (log √b ^ 2)⁻¹
-    · apply intervalIntegral.integral_mono_on hb.2
-      · apply ContinuousOn.intervalIntegrable_of_Icc hb.2
-        apply ContinuousOn.inv₀
-        · apply ContinuousOn.pow
-          apply ContinuousOn.log continuousOn_id
-          intro x hx
-          simp only [Set.mem_Icc, id_eq, ne_eq] at hx ⊢
-          linarith
-        · intro x hx
-          simp at hx ⊢
-          constructor <;> try linarith
-          constructor <;> linarith
-      · apply intervalIntegral.intervalIntegrable_const
-      · intro x hx
-        simp only [Set.mem_Icc] at hx
-        rw [inv_le_inv₀]
-        · apply pow_le_pow_left₀
-          · apply log_nonneg (by linarith)
-          · rw [log_le_log_iff] <;> linarith
-        · apply pow_pos
-          rw [Real.log_pos_iff] <;> linarith
-        · apply pow_pos
-          rw [Real.log_pos_iff] <;> linarith
-    · rw [intervalIntegral.integral_const, smul_eq_mul]
-      linarith
-  · rw [mul_sub, Real.log_sqrt (by linarith), div_pow, ← one_div, one_div_div, mul_comm, mul_div,
-      mul_comm, mul_div, show (2 : ℝ) ^ 2 = 4 by norm_num]
-    suffices 0 ≤ 4 / log b ^ 2 * √b by linarith
-    positivity
-
 lemma inv_div_log_asy : ∃ c, ∀ᶠ (x : ℝ) in atTop,
     ∫ (t : ℝ) in Set.Icc 2 x, 1 / log t ^ 2 ≤ c * (x / log x ^ 2) := by
-  obtain ⟨c1, hc1⟩ := pi_alt_Oaux1
-  obtain ⟨c2, hc2⟩ := pi_alt_Oaux2
-  have h := @isLittleO_log_rpow_rpow_atTop (1 / 2) 2 (by norm_num)
-  rw [isLittleO_iff] at h
-  specialize h (show 0 < 1 by norm_num)
-  rw [eventually_atTop] at h hc1 hc2
-  obtain ⟨c0, hc0⟩ := h
-  obtain ⟨c1', hc1⟩ := hc1
-  obtain ⟨c2', hc2⟩ := hc2
-  use c1 + c2
-  rw [eventually_atTop]
-  use max 5 (max c0 (max c1' c2'))
-  intro x hx
-  have hx' : 2 < √x ∧ √x ≤ x := by
-    constructor
-    · rw [Real.lt_sqrt (by norm_num)]
-      linarith [(le_of_max_le_left hx)]
-    · rw [Real.sqrt_le_left (by linarith [(le_of_max_le_left hx)])]
-      apply le_self_pow₀ <;> linarith [(le_of_max_le_left hx)]
-  calc
-  _ = (∫ (t : ℝ) in (2)..(√x), 1 / log t ^ 2) +
-        ∫ (t : ℝ) in (√x)..x, 1 / log t ^ 2 := by
-    simp only [one_div]
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
-      ← intervalIntegral.integral_of_le (by linarith [(le_of_max_le_left hx)]),
-      ← intervalIntegral.integral_add_adjacent_intervals (b := √x)]
-    · apply ContinuousOn.intervalIntegrable_of_Icc (by linarith [hx'.1])
-      apply ContinuousOn.inv₀
-      · apply ContinuousOn.pow
-        apply ContinuousOn.log continuousOn_id
-        intro x hx
-        simp only [Set.mem_Icc, id_eq, ne_eq] at hx ⊢
-        linarith
-      · intro x hx
-        simp at hx ⊢
-        constructor <;> try linarith
-        constructor <;> linarith
-    · apply ContinuousOn.intervalIntegrable_of_Icc (by linarith [hx'.2])
-      apply ContinuousOn.inv₀
-      · apply ContinuousOn.pow
-        apply ContinuousOn.log continuousOn_id
-        intro x hx
-        simp only [Set.mem_Icc, id_eq, ne_eq] at hx ⊢
-        linarith
-      · intro x hx
-        simp at hx ⊢
-        constructor <;> try linarith
-        constructor <;> linarith
-  _ ≤ c1 * √x + c2 * (x / log x ^ 2) := by
-    specialize hc1 x (le_of_max_le_left (le_of_max_le_right (le_of_max_le_right hx)))
-    specialize hc2 x (le_of_max_le_right (le_of_max_le_right (le_of_max_le_right hx)))
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
-      ← intervalIntegral.integral_of_le (by linarith [hx'.1]) ] at hc1
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
-      ← intervalIntegral.integral_of_le hx'.2] at hc2
-    apply _root_.add_le_add hc1 hc2
-  _ ≤ (c1 + c2) * (x / log x ^ 2) := by
-    specialize hc0 x (le_of_max_le_left (le_of_max_le_right hx))
-    simp only [rpow_two, norm_pow, norm_eq_abs, sq_abs, one_mul] at hc0
-    rw [abs_eq_self.2] at hc0
-    · rw [add_mul]
-      apply _root_.add_le_add _ (by linarith)
-      rw [mul_le_mul_iff_of_pos_left]
-      · rw [le_div_iff₀]
-        · trans √x * x ^ (1 / 2 : ℝ)
-          · apply mul_le_mul (by linarith) hc0 (by positivity) (by positivity)
-          · rw [← Real.sqrt_eq_rpow, Real.mul_self_sqrt (by linarith)]
-        · apply pow_pos
-          apply Real.log_pos
-          linarith
-      · by_contra! h
-        specialize hc1 x (le_of_max_le_left (le_of_max_le_right (le_of_max_le_right hx)))
-        have : ∫ (t : ℝ) in Set.Icc 2 √x, 1 / log t ^ 2 > 0 := by
-          rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le]
-          · apply intervalIntegral.intervalIntegral_pos_of_pos_on
-            · simp only [one_div]
-              apply ContinuousOn.intervalIntegrable_of_Icc (by linarith)
-              apply ContinuousOn.inv₀
-              · apply ContinuousOn.pow
-                apply ContinuousOn.log continuousOn_id
-                intro x hx
-                simp only [Set.mem_Icc, id_eq, ne_eq] at hx ⊢
-                linarith
-              · intro x hx
-                simp at hx ⊢
-                constructor <;> try linarith
-                constructor <;> linarith
-            · intro x hx
-              simp only [Set.mem_Ioo, one_div, inv_pos] at hx ⊢
-              apply pow_pos
-              apply Real.log_pos
-              linarith
-            · linarith
-          · linarith
-        have : c1 * √x ≤ 0 := by
-          apply mul_nonpos_of_nonpos_of_nonneg h (by positivity)
-        linarith
-    · apply rpow_nonneg
-      linarith
+  have := Chebyshev.integral_one_div_log_sq_isBigO
+  rw [isBigO_iff] at this
+  obtain ⟨c, hc⟩ := this
+  use c
+  filter_upwards [hc, eventually_ge_atTop 2] with x hc hx
+  rw [integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hx]
+  apply le_trans (by apply le_norm_self)
+  nth_rewrite 2 [norm_of_nonneg (by positivity)] at hc
+  exact hc
 
 lemma integral_log_inv_pialt (x : ℝ) (hx : 4 ≤ x) : ∫ (t : ℝ) in Set.Icc 2 x, 1 / log t =
     x / log x - 2 / log 2 + ∫ (t : ℝ) in Set.Icc 2 x, 1 / (log t) ^ 2 := by

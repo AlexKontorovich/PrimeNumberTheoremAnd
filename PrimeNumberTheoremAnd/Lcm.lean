@@ -668,7 +668,8 @@ blueprint_comment /--
 
   Finally, the contribution of all other primes is at least \(1\).
   -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 664)]
 theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) :
     σnorm c.M ≥
       σnorm c.L' * (∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ)))) * (1 + 3 / (8 * c.n)) := by
