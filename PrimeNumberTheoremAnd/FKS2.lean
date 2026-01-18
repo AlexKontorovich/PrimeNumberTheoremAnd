@@ -244,7 +244,7 @@ theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := sorry
   (title := "mu asymptotic function, FKS2 (9)")
   (statement := /--
   For $x_0,x_1 > 0$, we define
-  $$ mu_{asymp}(x_0,x_1) := \frac{x_0 \log(x_1)}{\epsilon_{\theta,asymp}(x_1) x_1 \log(x_0)}
+  $$ \mu_{asymp}(x_0,x_1) := \frac{x_0 \log(x_1)}{\epsilon_{\theta,asymp}(x_1) x_1 \log(x_0)}
     \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right| +
     \frac{2D_+(\sqrt{\log(x_1)} - \frac{C}{2\sqrt{R}}}{\sqrt{\log x_1}}$$.
   -/)]
@@ -371,13 +371,27 @@ noncomputable def εθ_from_εψ (εψ : ℝ → ℝ) (x₀ : ℝ) : ℝ :=
   "fks2-proposition-17"
   (title := "FKS2 Proposition 17")
   (statement := /--
-  Let $x > x_0 > 2$.  IF $E_\psi(x) \leq \varepsilon_{\psi,num}(x_0)$, then
+  Let $x > x_0 > 2$.  If $E_\psi(x) \leq \varepsilon_{\psi,num}(x_0)$, then
   $$ - \varepsilon_{\theta,num}(x_0) \leq \frac{\theta(x)-x}{x}
     \leq \varepsilon_{\psi,num}(x_0) \leq \varepsilon_{\theta,num}(x_0)$$
   where
   $$ \varepsilon_{\theta,num}(x_0) = \varepsilon_{\psi,num}(x_0) +
     1.00000002(x_0^{-1/2}+x_0^{-2/3}+x_0^{-4/5}) +
-    0.94 (x_0^{-3/4} + x_0^{-5/6} + x_0^{-9/10})$$ -/)]
+    0.94 (x_0^{-3/4} + x_0^{-5/6} + x_0^{-9/10})$$ -/)
+  (proof := /-- The upper bound is immediate since $\theta(x) \leq \psi(x)$ for all $x$. For the lower bound, we have
+  $$\frac{\theta(x) - x}{x} = \frac{\psi(x) - x}{x} + \frac{\theta(x) - \psi(x)}{x}.$$
+  By Theorem \ref{costa-pereira-theorem-1a}, we have
+  $$\psi(x) - \theta(x) \leq \psi(x^{1/2}) + \psi(x^{1/3}) + \psi(x^{1/5}).$$
+  We use [4, Theorem 2], that for $0 < x < 11$, $\psi(x) < x$, and that $\varepsilon_{\psi,num}(10^{19}) < 2 \cdot 10^{-8}$. In particular when $2 < x < 10^{38}$,
+  $$\psi(x^{1/2}) + \psi(x^{1/3}) + \psi(x^{1/5}) \leq x^{1/2} + x^{1/3} + x^{1/5} + 0.94(x^{1/4} + x^{1/6} + x^{1/10}),$$
+  when $10^{38} \leq x < 10^{54}$,
+  $$\psi(x^{1/2}) + \psi(x^{1/3}) + \psi(x^{1/5}) \leq 1.00000002x^{1/2} + x^{1/3} + x^{1/5} + 0.94(x^{1/6} + x^{1/10}),$$
+  when $10^{54} \leq x < 10^{95}$,
+  $$\psi(x^{1/2}) + \psi(x^{1/3}) + \psi(x^{1/5}) \leq 1.00000002(x^{1/2} + x^{1/3}) + x^{1/5} + 0.94x^{1/10},$$
+  and finally when $x \geq 10^{95}$,
+  $$\psi(x^{1/2}) + \psi(x^{1/3}) + \psi(x^{1/5}) \leq 1.00000002(x^{1/2} + x^{1/3} + x^{1/5}).$$
+  The result follows by combining the worst coefficients from all cases and dividing by $x$. -/)
+  (latexEnv := "proposition")]
 theorem proposition_17 {x x₀ : ℝ} (hx : x > x₀) (hx₀ : x₀ > 2) (εψ : ℝ → ℝ)
     (hEψ : Eψ x ≤ εψ x₀) :
     -εθ_from_εψ εψ x₀ ≤ (θ x - x) / x ∧ (θ x - x) / x ≤ εψ x₀ ∧
@@ -391,7 +405,8 @@ theorem proposition_17 {x x₀ : ℝ} (hx : x > x₀) (hx₀ : x₀ > 2) (εψ :
   $[x_0,x_1]$.  Then
   $$ |\int_{x_0}^{x_1} \frac{\theta(t)-t}{t \log^2 t}\ dt|
     \leq \sum_{i=1}^{N-1} \eps_{\theta,num}(e^{b_i})
-    (Li(e^{b_{i+1}}) - Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}}).$$ -/)]
+    ( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}}).$$ -/)
+  (latexEnv := "lemma")]
 theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
   {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
   (h_b_start : b 0 = log x₀)
@@ -413,9 +428,10 @@ theorem lemma_20_a : StrictAntiOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) :=
   "fks2-lemma-20"
   (title := "FKS2 Lemma 20")
   (statement := /--
-  Assume $x \geq 6.58$. Then $Li(x) - \frac{x}{\log x}$ is strictly increasing and
-  $Li(x) - \frac{x}{\log x} > \frac{x-6.58}{\log^2 x} > 0$.
-  -/)]
+  Assume $x \geq 6.58$. Then $\Li(x) - \frac{x}{\log x}$ is strictly increasing and
+  $\Li(x) - \frac{x}{\log x} > \frac{x-6.58}{\log^2 x} > 0$.
+  -/)
+  (latexEnv := "lemma")]
 theorem lemma_20_b {x : ℝ} (hx : x ≥ 6.58) :
   Li x - x / log x > (x - 6.58) / (log x) ^ 2 ∧
   (x - 6.58) / (log x) ^ 2 > 0 :=
@@ -424,7 +440,9 @@ theorem lemma_20_b {x : ℝ} (hx : x ≥ 6.58) :
 
 
 @[blueprint
-  "fks2-theorem-6"]
+  "fks2-theorem-6"
+  (title := "FKS2 Theorem 6")
+  (latexEnv := "theorem")]
 theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
   {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
   (h_b_start : b 0 = log x₀)
@@ -479,7 +497,8 @@ theorem theorem_6_alt {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   $$ \varepsilon_{\pi, num}(x_1) :=
     \max_{1 \leq i \leq M-1}\varepsilon_{\pi, num}(\exp(b'_i), \exp(b'_{i+1})).$$
   Then $E_\pi(x) \leq \varepsilon_{\pi,num}(x_1)$ for all $x \geq x_1$.
-  -/)]
+  -/)
+  (latexEnv := "corollary")]
 theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
     {M : ℕ} (b' : Fin (M + 1) → EReal) (hmono : Monotone b')
     (h_b_start : b' 0 = log x₁)
@@ -511,7 +530,8 @@ theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
   $$ \mu_{asymp}(x_0,x_1) = \frac{x_0 \log x_1}{\eps_{\theta,asymp}(x_1)x_1 \log x_0}
     |E_\pi(x_0) - E_\theta(x_0)| + \frac{2 D_+(\sqrt{\log x} - \frac{C}{2\sqrt{R}})}
     {\sqrt{\log x_1}}.$$
-  -/)]
+  -/)
+  (latexEnv := "corollary")]
 theorem corollary_21
   (Aψ B C R x₀ x₁ : ℝ)
   (hB : B ≥ max (3 / 2) (1 + C ^ 2 / (16 * R)))
@@ -532,7 +552,8 @@ theorem corollary_21
   |\pi(x) - \mathrm{Li}(x)| \leq 9.2211 x \sqrt{\log x} \exp(-0.8476 \sqrt{\log x})
   \]
   for all $x \geq 2$.
-  -/)]
+  -/)
+  (latexEnv := "corollary")]
 theorem corollary_22 : Eπ.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
 
 def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
@@ -551,7 +572,8 @@ def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
   (statement := /--
   $A_\pi, B, C, x_0$ as in Table 6 give an admissible asymptotic bound for $E_\pi$ with
   $R = 5.5666305$.
-  -/)]
+  -/)
+  (latexEnv := "corollary")]
 theorem corollary_23 (Aπ B C x₀ : ℝ) (h : [Aπ, B, C, x₀] ∈ table6) :
     Eπ.classicalBound Aπ B C 5.5666305 x₀ := sorry
 
@@ -575,7 +597,8 @@ noncomputable def table7 : List ((ℝ → ℝ) × Set ℝ) :=
   (statement := /--
   We have the bounds $E_\pi(x) \leq B(x)$, where
   $B(x)$ is given by Table 7.
-  -/)]
+  -/)
+  (latexEnv := "corollary")]
 theorem corollary_24 (B : ℝ → ℝ) (I : Set ℝ) (h : (B, I) ∈ table7) :
     ∀ x, log x ∈ I → Eπ x ≤ B x := sorry
 
@@ -588,7 +611,8 @@ theorem corollary_24 (B : ℝ → ℝ) (I : Set ℝ) (h : (B, I) ∈ table7) :
   |\pi(x) - \mathrm{Li}(x)| \leq 0.4298 \frac{x}{\log x}
   \]
   for all $x \geq 2$.
-  -/)]
+  -/)
+  (latexEnv := "corollary")]
 theorem corollary_26 : Eπ.bound 0.4298 2 := sorry
 
 end FKS2

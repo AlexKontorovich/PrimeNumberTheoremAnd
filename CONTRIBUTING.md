@@ -53,3 +53,14 @@ Once you are assigned to an issue, begin working on the corresponding task. You 
 1. Please adhere to the issue claiming process. If an issue is already assigned to another contributor, refrain from working on it without prior communication with the current claimant. This ensures a collaborative and respectful workflow that values each contributor’s efforts.
 2. Be aware that this contribution process is still in an experimental phase. As a result, occasional issues and inefficiencies may arise. We are committed to continuously refining the process, and your constructive feedback is highly appreciated. You can share your thoughts and suggestions on the [Lean Zulip chat channel](https://leanprover.zulipchat.com/#narrow/channel/423402-PrimeNumberTheorem.2B).
 3. Until the integration of sufficient CI automation, the management of the project dashboard is handled manually by the maintainers. We ask for your patience and understanding as we work to keep the process running smoothly.
+
+# Adding new Lean files to the project
+
+To add new Lean files to the project (for instance, to formalize a new paper not currently in the network), the following steps need to be taken before submitting a pull request.
+
+1. Make sure `Architect` is imported (via `import Architect`), either directly or indirectly, in the Lean file.
+2. Add the Lean file as an import to the top-level lean file [PrimeNumberTheoremAnd.lean](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/blob/main/PrimeNumberTheoremAnd.lean)
+3. Also add the Lean file as an `\inputleanmodule{}` somewhere in [blueprint.tex](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/blob/main/blueprint/blueprint.tex)
+4. Format the Lean and LaTeX using the `blueprint_comment` and `@blueprint[]` Lean functions (one can look at other Lean files in the repository for examples of how these are used).
+5. If there are references to be added, update [references.bib](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/blob/main/blueprint/src/references.bib) in the blueprint directory accordingly.
+6. If new LaTeX macros are introduced, update the initial part of [blueprint.tex](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/blob/main/blueprint/blueprint.tex) accordingly.
