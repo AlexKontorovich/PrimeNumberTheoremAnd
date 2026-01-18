@@ -26,7 +26,7 @@ theorem sublemma_1_1 {x : ℝ} (hx : 0 < x) : ψ x = ∑' (k : ℕ), θ (x ^ (1 
     apply theta_eq_zero_of_lt_two
     by_cases hk0 : k = 0
     · simp [hk0, CharP.cast_eq_zero, div_zero, rpow_zero, one_lt_ofNat]
-    have hk_pos : (k : ℝ) > 0 := Nat.cast_pos.mpr <| pos_of_ne_zero hk0
+    have hk_pos : (k : ℝ) > 0 := cast_pos.mpr <| pos_of_ne_zero hk0
     by_cases hx1 : x < 1
     · linarith [rpow_le_one hx.le hx1.le <| one_div_cast_nonneg k]
     have h1 : log x / Real.log 2 < k := by
@@ -54,7 +54,7 @@ theorem sublemma_1_1 {x : ℝ} (hx : 0 < x) : ψ x = ∑' (k : ℕ), θ (x ^ (1 
     rw [cast_zero, div_zero, rpow_zero]; exact theta_eq_zero_of_lt_two <| by grind
   simp only [this, add_zero]
   have h_eq : Icc 0 ⌊log x / Real.log 2⌋₊ \ {0} = Icc 1 ⌊log x / Real.log 2⌋₊ := ((fun {_} ↦ val_inj.mp) rfl).symm
-  simpa [h_eq, theta, psi] using Chebyshev.psi_eq_sum_theta hx.le
+  simpa [h_eq, theta, psi] using psi_eq_sum_theta hx.le
 
 @[blueprint
   "costa-pereira-sublemma-1-2"
