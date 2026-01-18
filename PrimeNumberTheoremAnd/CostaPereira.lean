@@ -110,7 +110,7 @@ theorem sublemma_1_7 {x : ℝ} (hx : 0 < x) :
     ψ x - θ x ≤
       ψ (x ^ (1 / 2:ℝ)) +
       ψ (x ^ (1 / 3:ℝ)) +
-      ∑' k, θ (x ^ (1 / (5 * (k:ℝ)))) := by sorry
+      ∑' (k : ℕ), θ (x ^ (1 / (5 * (k:ℝ)))) := by sorry
 
 @[blueprint
   "costa-pereira-sublemma-1-8"
