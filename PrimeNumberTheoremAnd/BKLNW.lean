@@ -413,8 +413,38 @@ theorem prop_3_sub_5 (n : ℕ) (hn : n ≥ 9) : f (2^n) > f (2^(n + 1)) := by
   (latexEnv := "sublemma")
   (discussion := 636)]
 theorem prop_3_sub_6 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
-    (hx : x ≥ 2 ^ (⌊(log x₀) / (log 2)⌋ + 1)) :
-    f x ≤ f (2 ^ (⌊(log x₀)/(log 2)⌋ + 1)) := by sorry
+    (hx : x ≥ 2 ^ (⌊(log x₀) / (log 2)⌋₊ + 1)) :
+    f x ≤ f (2 ^ (⌊(log x₀)/(log 2)⌋₊ + 1)) := by
+  have hlog2 : log 2 > 0 := log_pos one_lt_two
+  have hx_pos : x > 0 := lt_of_lt_of_le (by positivity) hx
+  set m := ⌊(log x₀) / (log 2)⌋₊; set n := ⌊log x / log 2⌋₊
+  have hm : m ≥ 9 := Nat.le_floor <| (le_div_iff₀ hlog2).mpr <| by
+    rw [← log_pow]; exact Real.log_le_log (by positivity) hx₀
+  have hn : n ≥ m + 1 := Nat.le_floor <| (le_div_iff₀ hlog2).mpr <| by
+    rw [← log_pow]; exact Real.log_le_log (by positivity) hx
+  have key : x = 2 ^ (log x / log 2) := by
+    rw [rpow_def_of_pos two_pos, mul_comm, div_mul_cancel₀ _ hlog2.ne', exp_log hx_pos]
+  have hdiv : 0 ≤ log x / log 2 :=
+    div_nonneg (log_nonneg (hx.trans' (one_le_pow₀ one_le_two))) hlog2.le
+  have hlo : (2:ℝ)^n ≤ x := by
+    rw [key, ← rpow_natCast]; exact rpow_le_rpow_of_exponent_le one_le_two (Nat.floor_le hdiv)
+  have hhi : x < 2^(n+1) := by
+    rw [key, ← rpow_natCast]
+    exact rpow_lt_rpow_of_exponent_lt one_lt_two (by exact_mod_cast Nat.lt_floor_add_one _)
+  have hf_x : f x ≤ f (2^n) := by
+    by_cases hx_eq : x = 2^n; · simp [hx_eq]
+    exact (prop_3_sub_2 n (by omega)
+      ⟨le_rfl, by exact_mod_cast Nat.pow_lt_pow_right one_lt_two (Nat.lt_succ_self n)⟩
+      ⟨hlo, hhi⟩ (hlo.lt_of_ne' hx_eq)).le
+  calc f x ≤ f (2^n) := hf_x
+    _ ≤ f (2^(m+1)) := by
+      obtain ⟨d, hd⟩ := Nat.exists_eq_add_of_le hn
+      rw [hd]; clear hd
+      induction d with
+      | zero => rfl
+      | succ d ih =>
+        have hmd : m + 1 + d ≥ 9 := by omega
+        exact (prop_3_sub_5 _ hmd).le.trans ih
 
 @[blueprint
   "bklnw-prop-3-sub-7"
@@ -424,40 +454,31 @@ theorem prop_3_sub_6 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
   (latexEnv := "sublemma")
   (discussion := 637)]
 theorem prop_3_sub_7 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
-    (hx : x ∈ Set.Ico x₀ (2 ^ (⌊(log x₀) / (log 2)⌋ + 1))) :
+    (hx : x ∈ Set.Ico x₀ (2 ^ (⌊(log x₀) / (log 2)⌋₊ + 1))) :
     f x ≤ f x₀ := by
   obtain ⟨hx_lo, hx_hi⟩ := hx
   have hx₀_pos : 0 < x₀ := by positivity
-  set m := ⌊(log x₀) / (log 2)⌋
-  have hm_nonneg : 0 ≤ m := Int.floor_nonneg.mpr <| div_nonneg (log_nonneg (by linarith)) (log_pos one_lt_two).le
-  set n := m.toNat
-  have hn_eq : (n : ℤ) = m := Int.toNat_of_nonneg hm_nonneg
-  have hpow_eq : (2:ℝ)^(m + 1) = 2^(n+1) := by rw [show m + 1 = ((n + 1 : ℕ) : ℤ) by omega, zpow_natCast]
-  rw [hpow_eq] at hx_hi
+  have hlog2 : log 2 > 0 := log_pos one_lt_two
+  set n := ⌊(log x₀) / (log 2)⌋₊
   have key : (2:ℝ)^((log x₀) / (log 2)) = x₀ := by
-    rw [rpow_def_of_pos (by norm_num : (0:ℝ) < 2), mul_comm,
-        div_mul_cancel₀ _ (log_pos one_lt_two).ne', exp_log hx₀_pos]
+    rw [rpow_def_of_pos (by norm_num), mul_comm, div_mul_cancel₀ _ hlog2.ne', exp_log hx₀_pos]
   have hx₀_ge : x₀ ≥ 2^n := by
-    have h1 : (n : ℝ) ≤ (log x₀) / (log 2) := by
-      calc (n : ℝ) = (m : ℝ) := by rw [← hn_eq]; simp
-           _ ≤ (log x₀) / (log 2) := Int.floor_le _
-    calc x₀ = 2^((log x₀) / (log 2)) := key.symm
-         _ ≥ 2^(n:ℝ) := rpow_le_rpow_of_exponent_le one_le_two h1
-         _ = 2^n := rpow_natCast 2 n
+    have : (n:ℝ) ≤ log x₀ / log 2 := Nat.floor_le (div_nonneg (log_nonneg (by linarith)) hlog2.le)
+    calc x₀ = 2^(log x₀ / log 2) := key.symm
+      _ ≥ 2^(n:ℝ) := rpow_le_rpow_of_exponent_le one_le_two this
+      _ = 2^n := rpow_natCast 2 n
   have hx₀_lt : x₀ < 2^(n+1) := by
-    have h1 : (log x₀) / (log 2) < n + 1 := by
-      calc (log x₀) / (log 2) < m + 1 := Int.lt_floor_add_one _
-           _ = (n : ℝ) + 1 := by rw [← hn_eq]; simp
-    calc x₀ = 2^((log x₀) / (log 2)) := key.symm
-         _ < 2^((n:ℝ) + 1) := rpow_lt_rpow_of_exponent_lt one_lt_two h1
-         _ = 2^(n+1) := by rw [← rpow_natCast 2 (n+1)]; norm_cast
-  have : n ≥ 4 := by
+    have : log x₀ / log 2 < n + 1 := Nat.lt_floor_add_one _
+    calc x₀ = 2^(log x₀ / log 2) := key.symm
+      _ < 2^((n:ℝ)+1) := rpow_lt_rpow_of_exponent_lt one_lt_two (by exact_mod_cast this)
+      _ = 2^(n+1) := by rw [← rpow_natCast]; norm_cast
+  have hn_ge : n ≥ 4 := by
     by_contra hcon; push_neg at hcon
     have : (2 : ℝ) ^ (n + 1) ≤ 2^9 := pow_le_pow_right₀ one_le_two <| by omega
     linarith [hx₀, hx₀_lt]
   rcases hx_lo.eq_or_lt with rfl | hlt
   · rfl
-  · exact (prop_3_sub_2 n this ⟨hx₀_ge, hx₀_lt⟩ ⟨hx₀_ge.trans hx_lo, hx_hi⟩ hlt).le
+  · exact (prop_3_sub_2 n hn_ge ⟨hx₀_ge, hx₀_lt⟩ ⟨hx₀_ge.trans hx_lo, hx_hi⟩ hlt).le
 
 @[blueprint
   "bklnw-prop-3-sub-8"
@@ -468,8 +489,8 @@ theorem prop_3_sub_7 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
   (discussion := 638)]
 theorem prop_3_sub_8 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
     (hx : x ≥ x₀) :
-    f x ≤ max (f x₀) (f (2 ^ (⌊ (log x₀)/(log 2) ⌋ + 1))) := by
-  by_cases hcase : x < 2 ^ (⌊(log x₀) / (log 2)⌋ + 1)
+    f x ≤ max (f x₀) (f (2 ^ (⌊ (log x₀)/(log 2) ⌋₊ + 1))) := by
+  by_cases hcase : x < 2 ^ (⌊(log x₀) / (log 2)⌋₊ + 1)
   · exact (prop_3_sub_7 x₀ hx₀ x ⟨hx, hcase⟩).trans (le_max_left _ _)
   · exact (prop_3_sub_6 x₀ hx₀ x (not_lt.mp hcase)).trans (le_max_right _ _)
 
