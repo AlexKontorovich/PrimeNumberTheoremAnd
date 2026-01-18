@@ -138,7 +138,8 @@ theorem sublemma_1_8 {x : ℝ} (hx : 0 < x) :
   (latexEnv := "theorem")
   (discussion := 684)]
 theorem theorem_1a {x : ℝ} (hx : 0 < x) :
-    ψ x - θ x ≤ ψ (x ^ (1 / 2:ℝ)) + ψ (x ^ (1 / 3:ℝ)) + ψ (x ^ (1 / 5:ℝ)) := by sorry
+    ψ x - θ x ≤ ψ (x ^ (1 / 2:ℝ)) + ψ (x ^ (1 / 3:ℝ)) + ψ (x ^ (1 / 5:ℝ)) := by
+  simpa only [sublemma_1_2 hx 5] using sublemma_1_7 hx
 
 @[blueprint
   "costa-pereira-theorem-1b"
