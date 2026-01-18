@@ -1,7 +1,7 @@
 import Architect
 import Mathlib.Analysis.Calculus.ContDiff.Basic
+import Mathlib.MeasureTheory.Integral.Asymptotics
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Uniformly
-import PrimeNumberTheoremAnd.Mathlib.MeasureTheory.Integral.Asymptotics
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import PrimeNumberTheoremAnd.Wiener
 
@@ -536,7 +536,7 @@ lemma isIntegrable (xpos : 0 < x) (σ_ne_zero : σ ≠ 0) (σ_ne_neg_one : σ �
       not_or.mpr ?_
     simp [Complex.ext_iff, σ_ne_zero, σ_ne_neg_one]
   /-- Also, $|f(x)| = \Theta(x^{-2})$ as $x\to\infty$, -/
-  refine this.locallyIntegrable.integrable_of_isBigO_atTop_of_norm_eq_norm_neg
+  refine this.locallyIntegrable.integrable_of_isBigO_atTop_of_norm_isNegInvariant
     (univ_mem' fun y ↦ ?_) (isTheta xpos).2.isBigO ⟨Ioi 1, Ioi_mem_atTop 1, ?_⟩
   · /-- and $|f(-x)| = \Theta(x^{-2})$ as $x\to\infty$. -/
     change ‖f x (↑σ + ↑y * I)‖ = ‖f x (↑σ + ↑(-y) * I)‖
