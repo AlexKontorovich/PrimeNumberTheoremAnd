@@ -1,5 +1,7 @@
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 
+open Chebyshev Finset Nat Real
+
 blueprint_comment /--
 \section{An inequality of Costa-Pereira}
 
@@ -17,7 +19,42 @@ namespace CostaPereira
   (proof := /-- This follows directly from the definitions of $\psi$ and $\theta$. -/)
   (latexEnv := "sublemma")
   (discussion := 676)]
-theorem sublemma_1_1 {x : ℝ} (hx : 0 < x) : ψ x = ∑' k, θ (x ^ (1 / (k:ℝ))) := by sorry
+theorem sublemma_1_1 {x : ℝ} (hx : 0 < x) : ψ x = ∑' (k : ℕ), θ (x ^ (1 / (k : ℝ))) := by
+  have theta_zero_large_k : ∀ k, k ∉ Icc 0 ⌊log x / Real.log 2⌋₊ → θ (x ^ (1 / (k : ℝ))) = 0 := by
+    intro k hk
+    simp only [mem_Icc, zero_le, true_and, not_le] at hk
+    apply theta_eq_zero_of_lt_two
+    by_cases hk0 : k = 0
+    · simp [hk0, CharP.cast_eq_zero, div_zero, rpow_zero, one_lt_ofNat]
+    have hk_pos : (k : ℝ) > 0 := cast_pos.mpr <| pos_of_ne_zero hk0
+    by_cases hx1 : x < 1
+    · linarith [rpow_le_one hx.le hx1.le <| one_div_cast_nonneg k]
+    have h1 : log x / Real.log 2 < k := by
+      calc log x / Real.log 2 < ⌊log x / Real.log 2⌋₊ + 1 := lt_floor_add_one _
+        _ ≤ k := by exact_mod_cast hk
+    have : Real.log x < k * Real.log 2 := by linarith [(div_lt_iff₀ <| log_pos <| one_lt_two).mp h1]
+    have : Real.log x < Real.log (2 ^ (k : ℕ)) := by rw [Real.log_pow]; exact this
+    have : x < 2 ^ (k : ℕ) := (Real.log_lt_log_iff hx (by positivity)).mp this
+    calc x ^ (1 / (k : ℝ)) = x ^ ((k : ℝ)⁻¹) := by rw [one_div]
+      _ < (2 ^ (k : ℕ)) ^ ((k : ℝ)⁻¹) := rpow_lt_rpow hx.le this <| inv_pos.mpr hk_pos
+      _ = 2 ^ ((k : ℕ) * (k : ℝ)⁻¹) := by rw [← rpow_natCast, ← rpow_mul <| zero_le_two]
+      _ = 2 ^ (1 : ℝ) := by congr 1; field_simp
+      _ = 2 := rpow_one 2
+  rw [tsum_eq_sum (s := Icc 0 ⌊log x / Real.log 2⌋₊) theta_zero_large_k]
+  by_cases hx1 : x < 1
+  · have hpsi : ψ x = 0 := psi_eq_zero_of_lt_two (by linarith)
+    refine hpsi ▸ (sum_eq_zero fun k _ ↦ theta_eq_zero_of_lt_two ?_).symm
+    have h_exp_le : x ^ (1 / (k : ℝ)) ≤ 1 := by
+      by_cases hk0 : k = 0
+      · simp [hk0]
+      · exact rpow_le_one hx.le hx1.le <| one_div_cast_nonneg k
+    linarith
+  rw [sum_eq_sum_diff_singleton_add (i := 0) <| insert_eq_self.mp rfl]
+  have : θ (x ^ (1 / (0 : ℕ) : ℝ)) = 0 := by
+    rw [cast_zero, div_zero, rpow_zero]; exact theta_eq_zero_of_lt_two <| by grind
+  simp only [this, add_zero]
+  have h_eq : Icc 0 ⌊log x / Real.log 2⌋₊ \ {0} = Icc 1 ⌊log x / Real.log 2⌋₊ := ((fun {_} ↦ val_inj.mp) rfl).symm
+  simpa [h_eq, theta, psi] using psi_eq_sum_theta hx.le
 
 @[blueprint
   "costa-pereira-sublemma-1-2"
