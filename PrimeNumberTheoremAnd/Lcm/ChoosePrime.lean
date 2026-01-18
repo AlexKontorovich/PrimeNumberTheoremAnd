@@ -257,9 +257,9 @@ theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (first
       | exact (exists_p_primes hn).choose_spec.2.2.1 _
       | exact (exists_q_primes hn).choose_spec.2.2.1 _
-      | (refine Finset.prod_nonneg ?_; intro; intro; positivity [hbpos])
-      | (refine Finset.prod_pos ?_; intro; intro; positivity [hnpos, hbpos])
-      | (refine Finset.prod_pos ?_; intro; intro; exact_mod_cast ((exists_q_primes hn).choose_spec.1 _).pos)
+      -- | (refine Finset.prod_nonneg ?_; intro; intro; positivity [hbpos])
+      -- | (refine Finset.prod_pos ?_; intro; intro; positivity [hnpos, hbpos])
+      -- | (refine Finset.prod_pos ?_; intro; intro; exact_mod_cast ((exists_q_primes hn).choose_spec.1 _).pos)
     )
   -- Convert `A ≤ B` into `1 - A ≥ 1 - B`.
   have hsub :
