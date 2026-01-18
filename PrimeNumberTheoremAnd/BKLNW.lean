@@ -122,7 +122,7 @@ noncomputable def Inputs.default : Inputs := {
   (statement := /--
   $$ f(x) := \sum_{k=3}^{\lfloor \log x / \log 2 \rfloor} x^{1/k - 1/3}.$$
   -/)]
-noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋, x^(1/k - 1/3)
+noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋₊, x^(1/k - 1/3 : ℝ)
 
 @[blueprint
   "bklnw-prop-3-sub-1"
@@ -157,7 +157,16 @@ noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - 
   (proof := /-- Clear. -/)
   (latexEnv := "sublemma")
   (discussion := 633)]
-theorem prop_3_sub_3 (n : ℕ) : f (2^n) = 1 + u n := by sorry
+theorem prop_3_sub_3 (n : ℕ) (hn : n ≥ 3) : f (2^n) = 1 + u n := by
+  have sum_bound : ⌊ (log (2 ^ n)) / (log 2) ⌋₊ = n := by norm_num
+  rw [f, u, sum_bound]
+  rw [← Finset.add_sum_Ioc_eq_sum_Icc (by linarith), ← Finset.Ioc_eq_Icc]
+  congr
+  · norm_num
+  ext k
+  calc (2 ^ n : ℝ) ^ (1 / ↑k - 1 / 3 : ℝ)
+    _ = 2 ^ (n * (1 / ↑k - 1 / 3 : ℝ)) := by rw [← rpow_natCast _ n, ← rpow_mul (by norm_num)]
+    _ = _ := by field_simp
 
 @[blueprint
   "bklnw-prop-3-sub-4"
