@@ -122,7 +122,7 @@ theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     · exact Nat.cast_lt.mp (hq₀_ub'.trans_lt hq₁_lb)
     · exact Nat.cast_lt.mp (hq₁_ub'.trans_lt hq₂_lb)
   · intro i
-    fin_cases i <;> simp [x, ε, y0, y1, y2]
+    fin_cases i <;> simp?
     · -- i=0 : y0 ≤ q0
       exact (le_of_lt hq₀_lb)
     · -- i=1 : y1 ≤ q1

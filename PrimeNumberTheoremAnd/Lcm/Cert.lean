@@ -159,7 +159,7 @@ We do *not* export `b` into theorem statements; it’s just a local convenience 
 Try moving this entirely into `prod_q_ge` if possible.
 -/
 
-
+/- *** This lemma is likely not used *** -/
 lemma b_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < b n := by
   /-- Positivity of `b(n) = 1 + δ(√n)` for `n ≥ X₀²`. -/
   /- *** Proof idea ***:
@@ -202,21 +202,164 @@ lemma inv_le_rpow_div_of_lower_bound {n : ℕ} (hn : n ≥ X₀ ^ 2)
 /- End of theorem `prod_q_ge` lemmas-/
 
 
+
 /- theorem `prod_p_ge` lemmas -/
-/--
-Certification lemma: `1 + gap.δ(√n)` is positive once `n ≥ X₀²`.
-
-Statement mentions only `gap.δ` (no `log`).
-
-**Proof idea (Dusart provider):**
-`gap.δ x = 1/(log x)^3` and for `n ≥ X₀²` we have `√n ≥ X₀`, hence `log √n ≥ log X₀ > 0`,
-so `δ(√n) ≥ 0` and thus `1 + δ(√n) > 0`.
--/
 lemma one_add_delta_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     0 < (1 + gap.δ (√(n : ℝ))) := by
+  /- Certification lemma: `1 + gap.δ(√n)` is positive once `n ≥ X₀²`. -/
+  /- *** Proof idea (Dusart provider): ***
+  `gap.δ x = 1/(log x)^3` and for `n ≥ X₀²` we have `√n ≥ X₀`, hence `log √n ≥ log X₀ > 0`,
+  so `δ(√n) ≥ 0` and thus `1 + δ(√n) > 0`. -/
+  sorry
+
+
+lemma p_mul_padd1_le_bound
+    {n : ℕ} (hn : n ≥ X₀ ^ 2)
+    {p : Fin 3 → ℕ}
+    (hp_prime : ∀ i, Nat.Prime (p i))
+    (hp_mono : StrictMono p)
+    (hp_ub :
+      ∀ i, (p i : ℝ) ≤ √(n : ℝ) * (1 + gap.δ (√(n : ℝ))) ^ (i + 1 : ℝ))
+    (hsqrt_lt_p0 : √(n : ℝ) < p 0) :
+    ∀ i : Fin 3,
+      ((p i * (p i + 1) : ℕ) : ℝ)
+        ≤ (1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n) := by
+  /-- Key denominator bound for the `p`-product:
+      Given `p : Fin 3 → ℕ` satisfying the same hypotheses as `exists_p_primes` exports,
+      we bound `p_i(p_i+1)` above by the RHS denominator.
+      No `log` appears in the statement; only `gap.δ`. -/
+  /- *** Proof sketch (copy/paste from your old `prod_p_ge` inner proof): ***
+  From `hsqrt_lt_p0` and `hp_mono`, deduce `√n < p i` for all `i`.
+  From `hp_ub i`, square to get `(p i : ℝ)^2 ≤ (n : ℝ) * (1+δ(√n))^(2*i+2)`.
+  From `√n < p i`, show `(p i : ℝ) + 1 ≤ (p i : ℝ) * ((n+√n)/n)`
+    via your existing `field_simp; linear_combination` trick.
+  Multiply and rearrange, then cast `p i * (p i + 1)` into `ℝ`.
+  -/
   sorry
 
 /- End of theorem `prod_p_ge` lemmas-/
+
+/- theorem `pq_ratio_ge` lemmas -/
+
+lemma n_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : (0 : ℝ) < (n : ℝ) := by
+  /- Cast-positivity of `n` from the assumption `n ≥ X₀²`. -/
+  /- **Proof idea:**
+  `X₀ ≥ 1` (or just `X₀^2 > 0`) so `n > 0` in `ℕ`, then cast to `ℝ`. -/
+  sorry
+
+
+
+lemma pq_ratio_rhs_as_fraction {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
+      =
+    ((4 : ℝ) * ∏ i : Fin 3,
+        (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ))
+      /
+    (∏ i : Fin 3,
+        (n : ℝ) / (1 + gap.δ (√(n : ℝ))) ^ ((3 : ℕ) - (i : ℕ))) := by
+    /- RHS rewrite for `pq_ratio_ge`** (this is the key “plumbing lemma”).
+      It rewrites the analytic bound
+      `4 * (1 + δ(√n))^12 / n^(3/2)`
+      into a ratio of two *products* that match the pointwise bounds exported by
+      `exists_p_primes` and `exists_q_primes`. -/
+    /- **Proof idea:** let `b := 1 + gap.δ(√n)` (note `b>0`).
+    Compute explicitly over `Fin 3`:
+    - `∏ i, √n * b^((i:ℕ)+1) = n^(3/2) * b^6`
+    - `∏ i, (n:ℝ) / b^((3:ℕ)-(i:ℕ)) = n^3 * b^(-6)`
+    Then combine to get the ratio equals `b^12 / n^(3/2)` and multiply by `4`. -/
+  sorry
+/- End of theorem `pq_ratio_ge` lemmas-/
+
+
+/-
+Final criterion structure in Main.lean
+-/
+
+/- `hn` lemmas -/
+lemma one_le_X₀_sq : (1 : ℕ) ≤ X₀ ^ 2 := by
+  /-
+  Proof idea:
+  - for the current `PrimeGaps.latest`, `X₀` is a concrete positive numeral (89693),
+    so this is `decide`/`norm_num`.
+  -/
+  sorry
+/- End of `hn` lemmas-/
+
+/- `h_ord_2` lemmas -/
+lemma ord2_mid {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    √(n : ℝ) * (1 + gap.δ (√(n : ℝ))) ^ (3 : ℕ)
+      <
+    (n : ℝ) / (1 + gap.δ (√(n : ℝ))) ^ (3 : ℕ) := by
+  /- (Cert) The key “middle inequality” used in `h_ord_2`: upper bound for `p₂` is below lower bound for `q₀`. -/
+  /- *** Proof idea *** :
+  - Let b := 1 + δ(√n). From `delta_sqrt_le` get b ≤ 1.000675.
+  - Then b^6 ≤ (1.000675)^6 < 2 (checked by `norm_num`).
+  - Also from `hn : n ≥ X₀^2` we know √n ≥ X₀, and for the concrete X₀ we have 2 ≤ √n.
+  - So b^6 < √n, which is equivalent to √n*b^3 < n/b^3 (algebra, using n = (√n)^2).
+  -/
+  sorry
+/- End of `h_ord_2` lemmas -/
+
+/- Lemmas that are possibly useful in the intermediate bridge -/
+lemma delta_sqrt_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    gap.δ (√(n : ℝ)) ≤ (0.000675 : ℝ) := by
+  /-- (Cert) Numerical bound on the prime-gap delta at √n: `δ(√n) ≤ 0.000675` for `n ≥ X₀^2`. -/
+  /- *** Proof idea (Dusart provider) *** :
+  - unfold `gap := PrimeGaps.latest` and the definition of δ;
+  - use monotonicity of `x ↦ 1/(log x)^3` for x ≥ X₀ and the numerical estimate at X₀;
+  - convert `hn : n ≥ X₀^2` into `√n ≥ X₀`, then finish by monotonicity + `norm_num`.
+  -/
+  sorry
+
+lemma inv_n_pow_3_div_2_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (1 / (n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (89693 : ℝ)) * (1 / n) := by
+  /- (Cert) Bound `1/n^(3/2)` by `(1/89693) * (1/n)` for `n ≥ X₀^2`. -/
+  /- *** Proof idea *** :
+  - rewrite `n^(3/2) = n*√n`;
+  - from `hn` get `√n ≥ 89693`;
+  - conclude `1/(n*√n) ≤ (1/n)*(1/89693)`.
+  -/
+  sorry
+
+lemma inv_n_pow_3_div_2_le_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (1 / (n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (X₀ : ℝ)) * (1 / n) := by
+  /- *** Proof idea *** :
+  - rewrite `n^(3/2) = n*√n`;
+  - from `hn` get `√n ≥ 89693`;
+  - conclude `1/(n*√n) ≤ (1/n)*(1/89693)`.
+  -/
+  sorry
+
+lemma inv_n_add_sqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (1 / (n : ℝ) + √(n : ℝ)) ≥ (1 / (1 + 1 / (89693 : ℝ))) * (1 / n) := by
+  /- (Cert) Lower bound for `1/(n+√n)` in terms of `1/n`. -/
+  /- *** Proof idea *** :
+  - show `n + √n ≤ (1 + 1/89693)*n` using `√n ≤ n/89693` from `√n ≥ 89693`;
+  - invert (monotone since positive) to obtain the displayed inequality.
+  -/
+  sorry
+
+lemma inv_n_add_sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (1 / ((n : ℝ) + √(n : ℝ))) ≥ (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) := by
+  /- *** Proof idea *** :
+  - from `√n ≥ X₀` deduce `√n ≤ (n:ℝ) / X₀` (since `n = (√n)^2`)
+  - so `n + √n ≤ n + n/X₀ = (1+1/X₀)*n`
+  - invert both sides (positive) to get the lower bound for `1/(n+√n)`
+  -/
+  sorry
+
+lemma inv_n_le_inv_X₀_sq {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (1 : ℝ) / (n : ℝ) ≤ (1 : ℝ) / (X₀ ^ 2 : ℕ) := by
+  /- *** Proof idea *** :
+  - cast `hn` to reals: `(X₀^2 : ℝ) ≤ (n : ℝ)`
+  - use `one_div_le_one_div_of_le` with positivity of `(X₀^2 : ℝ)`
+  -/
+  sorry
+
+
+/- End of lemmas that are possibly useful in the intermediate bridge -/
+
+
 
 -- What was refactored out of theorem exists_p_primes
 -- lemma 1
@@ -270,90 +413,14 @@ lemma X₀_sq_pos : (0 : ℝ) < ((X₀ ^ 2 : ℕ) : ℝ) := by
 
 
 
-/--
-Key denominator bound for the `p`-product:
-
-Given `p : Fin 3 → ℕ` satisfying the same hypotheses as `exists_p_primes` exports,
-we bound `p_i(p_i+1)` above by the RHS denominator.
-
-No `log` appears in the statement; only `gap.δ`.
-
-**Proof sketch (copy/paste from your old `prod_p_ge` inner proof):**
-1. From `hsqrt_lt_p0` and `hp_mono`, deduce `√n < p i` for all `i`.
-2. From `hp_ub i`, square to get `(p i : ℝ)^2 ≤ (n : ℝ) * (1+δ(√n))^(2*i+2)`.
-3. From `√n < p i`, show `(p i : ℝ) + 1 ≤ (p i : ℝ) * ((n+√n)/n)`
-   via your existing `field_simp; linear_combination` trick.
-4. Multiply and rearrange, then cast `p i * (p i + 1)` into `ℝ`.
--/
-lemma p_mul_padd1_le_bound
-    {n : ℕ} (hn : n ≥ X₀ ^ 2)
-    {p : Fin 3 → ℕ}
-    (hp_prime : ∀ i, Nat.Prime (p i))
-    (hp_mono : StrictMono p)
-    (hp_ub :
-      ∀ i, (p i : ℝ) ≤ √(n : ℝ) * (1 + gap.δ (√(n : ℝ))) ^ (i + 1 : ℝ))
-    (hsqrt_lt_p0 : √(n : ℝ) < p 0) :
-    ∀ i : Fin 3,
-      ((p i * (p i + 1) : ℕ) : ℝ)
-        ≤ (1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n) := by
-  sorry
-/- End of lemmas in prod_p_ge-/
 
 
 
-/- The following lemmas are used in pq_ratio -/
-/-- Cast-positivity of `n` from the assumption `n ≥ X₀²`.
-
-**Proof idea:** `X₀ ≥ 1` (or just `X₀^2 > 0`) so `n > 0` in `ℕ`, then cast to `ℝ`.
--/
-lemma n_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : (0 : ℝ) < (n : ℝ) := by
-  sorry
 
 
 
-/--
-**RHS rewrite for `pq_ratio_ge`** (this is the key “plumbing lemma”).
 
-It rewrites the analytic bound
-`4 * (1 + δ(√n))^12 / n^(3/2)`
-into a ratio of two *products* that match the pointwise bounds exported by
-`exists_p_primes` and `exists_q_primes`.
 
-**Proof idea:** let `b := 1 + gap.δ(√n)` (note `b>0`).
-Compute explicitly over `Fin 3`:
-- `∏ i, √n * b^((i:ℕ)+1) = n^(3/2) * b^6`
-- `∏ i, (n:ℝ) / b^((3:ℕ)-(i:ℕ)) = n^3 * b^(-6)`
-Then combine to get the ratio equals `b^12 / n^(3/2)` and multiply by `4`.
--/
-lemma pq_ratio_rhs_as_fraction {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
-      =
-    ((4 : ℝ) * ∏ i : Fin 3,
-        (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ))
-      /
-    (∏ i : Fin 3,
-        (n : ℝ) / (1 + gap.δ (√(n : ℝ))) ^ ((3 : ℕ) - (i : ℕ))) := by
-  sorry
-/- End of lemmas in pq_ratio -/
-
-/- The following lemmas are used in the proof of the final criterion-/
-
-/-
-  This file is the “numerical/certified” layer:
-  it is the ONLY place that knows how `gap.δ` behaves numerically (e.g. δ ≤ 0.000675),
-  and the only place with “n is huge so 1/(n+√n) …” bounds.
-
-  In Main.lean, we only *apply* these lemmas.
--/
-
-/-- (Cert) For the concrete `gap := PrimeGaps.latest`, we have `X₀^2 ≥ 1`. -/
-lemma one_le_X₀_sq : (1 : ℕ) ≤ X₀ ^ 2 := by
-  /-
-  Proof idea:
-  - for the current `PrimeGaps.latest`, `X₀` is a concrete positive numeral (89693),
-    so this is `decide`/`norm_num`.
-  -/
-  sorry
 
 -- /-- (Cert) Positivity of the “b-parameter” `1 + δ(√n)` for large `n`. -/
 -- lemma one_add_delta_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) :
@@ -366,89 +433,19 @@ lemma one_le_X₀_sq : (1 : ℕ) ≤ X₀ ^ 2 := by
 --   sorry
 
 
-/-- (Cert) Numerical bound on the prime-gap delta at √n: `δ(√n) ≤ 0.000675` for `n ≥ X₀^2`. -/
-lemma delta_sqrt_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    gap.δ (√(n : ℝ)) ≤ (0.000675 : ℝ) := by
-  /-
-  Proof idea (Dusart provider):
-  - unfold `gap := PrimeGaps.latest` and the definition of δ;
-  - use monotonicity of `x ↦ 1/(log x)^3` for x ≥ X₀ and the numerical estimate at X₀;
-  - convert `hn : n ≥ X₀^2` into `√n ≥ X₀`, then finish by monotonicity + `norm_num`.
-  -/
-  sorry
-
-/-- (Cert) The key “middle inequality” used in `h_ord_2`: upper bound for `p₂` is below lower bound for `q₀`. -/
-lemma ord2_mid {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    √(n : ℝ) * (1 + gap.δ (√(n : ℝ))) ^ (3 : ℕ)
-      <
-    (n : ℝ) / (1 + gap.δ (√(n : ℝ))) ^ (3 : ℕ) := by
-  /-
-  Proof idea:
-  - Let b := 1 + δ(√n). From `delta_sqrt_le` get b ≤ 1.000675.
-  - Then b^6 ≤ (1.000675)^6 < 2 (checked by `norm_num`).
-  - Also from `hn : n ≥ X₀^2` we know √n ≥ X₀, and for the concrete X₀ we have 2 ≤ √n.
-  - So b^6 < √n, which is equivalent to √n*b^3 < n/b^3 (algebra, using n = (√n)^2).
-  -/
-  sorry
-
-/-
-  These already existed in your old file and are exactly the “1/n^{3/2}” and “1/(n+√n)”
-  bounds you said should live in Cert.lean.  If you already have them elsewhere, you
-  can delete these stubs and just `import` that file instead.
--/
-
-/-- (Cert) Bound `1/n^(3/2)` by `(1/89693) * (1/n)` for `n ≥ X₀^2`. -/
-lemma inv_n_pow_3_div_2_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (1 / (n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (89693 : ℝ)) * (1 / n) := by
-  /-
-  Proof idea:
-  - rewrite `n^(3/2) = n*√n`;
-  - from `hn` get `√n ≥ 89693`;
-  - conclude `1/(n*√n) ≤ (1/n)*(1/89693)`.
-  -/
-  sorry
-
-lemma inv_n_pow_3_div_2_le_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (1 / (n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (X₀ : ℝ)) * (1 / n) := by
-  /-
-  Proof idea:
-  - rewrite `n^(3/2) = n*√n`;
-  - from `hn` get `√n ≥ 89693`;
-  - conclude `1/(n*√n) ≤ (1/n)*(1/89693)`.
-  -/
-  sorry
-
-/-- (Cert) Lower bound for `1/(n+√n)` in terms of `1/n`. -/
-lemma inv_n_add_sqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (1 / (n : ℝ) + √(n : ℝ)) ≥ (1 / (1 + 1 / (89693 : ℝ))) * (1 / n) := by
-  /-
-  Proof idea:
-  - show `n + √n ≤ (1 + 1/89693)*n` using `√n ≤ n/89693` from `√n ≥ 89693`;
-  - invert (monotone since positive) to obtain the displayed inequality.
-  -/
-  sorry
-
-lemma inv_n_add_sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (1 / ((n : ℝ) + √(n : ℝ))) ≥ (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) := by
-  /-
-  Proof idea:
-  - from `√n ≥ X₀` deduce `√n ≤ (n:ℝ) / X₀` (since `n = (√n)^2`)
-  - so `n + √n ≤ n + n/X₀ = (1+1/X₀)*n`
-  - invert both sides (positive) to get the lower bound for `1/(n+√n)`
-  -/
-  sorry
-
-lemma inv_n_le_inv_X₀_sq {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (1 : ℝ) / (n : ℝ) ≤ (1 : ℝ) / (X₀ ^ 2 : ℕ) := by
-  /-
-  Proof idea:
-  - cast `hn` to reals: `(X₀^2 : ℝ) ≤ (n : ℝ)`
-  - use `one_div_le_one_div_of_le` with positivity of `(X₀^2 : ℝ)`
-  -/
-  sorry
 
 
-/- End of lemmas in the final criterion-/
+
+
+
+
+
+
+
+
+
+
+
 
 
 /-- (C2) positivity of `x := √n`. -/
