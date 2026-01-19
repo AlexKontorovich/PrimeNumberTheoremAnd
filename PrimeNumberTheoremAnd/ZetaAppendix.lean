@@ -50,7 +50,7 @@ topic/Let.20us.20formalize.20an.20appendix}
 
 namespace ZetaAppendix
 
-open Real Complex MeasureTheory Finset Filter Topology Set
+open Real Complex MeasureTheory Finset Filter Topology Set Summable
 
 -- may want to move this to a more globally accessible location
 
@@ -1366,10 +1366,10 @@ lemma trig (z : ℂ) : tan z = - cot (z + π / 2) := by
   simp [Complex.tan, Complex.cot, Complex.cos_add_pi_div_two, neg_div', Complex.sin_add_pi_div_two]
 
 lemma sin_ne_zero {z : ℂ} (hz : ¬∃ (n : ℤ), n * π / 2 = z) : sin z ≠ 0 :=
-  Complex.sin_ne_zero_iff.2 fun k h => hz ⟨2 * k, by grind⟩
+  Complex.sin_ne_zero_iff.2 fun k h ↦ hz ⟨2 * k, by grind⟩
 
 lemma cos_ne_zero {z : ℂ} (hz : ¬∃ (n : ℤ), n * π / 2 = z) : cos z ≠ 0 :=
-  Complex.cos_ne_zero_iff.2 fun k h => hz ⟨2 * k + 1, by grind⟩
+  Complex.cos_ne_zero_iff.2 fun k h ↦ hz ⟨2 * k + 1, by grind⟩
 
 lemma trig' {z : ℂ} (hz : ¬∃ (n : ℤ), n * π / 2 = z) : cot z + tan z = 2 / sin (2 * z) := by
   simp [Complex.tan, Complex.cot, div_add_div (cos z) (sin z) (sin_ne_zero hz) (cos_ne_zero hz),
@@ -1383,8 +1383,8 @@ lemma trig'' {z : ℂ} (hz : ¬∃ (n : ℤ), n * π / 2 = z) :
 lemma hsummable {z : ℂ} (hz : z ∈ integerComplement) :
     Summable fun n : ℕ+ ↦ 1 / (z - 2 * n) + 1 / (z + 2 * n) := by
   have he (n : ℕ+) := cotTerm_identity hz (2 * n - 1)
-  have hi : (fun n : ℕ+ => (2 * n : ℤ)).Injective := fun _ _ _ => by simp_all
-  have := Summable.mul_left (2 * z)
+  have hi : (fun n : ℕ+ ↦ (2 * n : ℤ)).Injective := fun _ _ _ ↦ by simp_all
+  have := mul_left (2 * z)
     ((EisensteinSeries.summable_linear_sub_mul_linear_add z 1 1).comp_injective hi)
   simp_all [cotTerm, mul_comm (z + _)⁻¹]
 
@@ -1397,15 +1397,15 @@ lemma hsummable' {z : ℂ} (hz : z ∈ integerComplement) :
     Summable fun n : ℕ+ ↦ 1 / (z + 1 - 2 * n) + 1 / (z + 1 + 2 * n) := by
   have : z + 1 ∈ integerComplement := by
     simp_all only [integerComplement, Set.mem_compl_iff, Set.mem_range, not_exists]
-    refine fun n hn => hz (n - 1) ?_
+    refine fun n hn ↦ hz (n - 1) ?_
     grind
   exact hsummable this
 
 lemma hsummable'' {z : ℂ} (hz : z ∈ integerComplement) :
     Summable fun n : ℕ+ ↦ 1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1)) := by
   have he (n : ℕ+) := cotTerm_identity hz (2 * n - 2)
-  have hi : (fun n : ℕ+ => (2 * n - 1 : ℤ)).Injective := fun _ _ _ => by simp_all
-  have := Summable.mul_left (2 * z)
+  have hi : (fun n : ℕ+ ↦ (2 * n - 1 : ℤ)).Injective := fun _ _ _ ↦ by simp_all
+  have := mul_left (2 * z)
     ((EisensteinSeries.summable_linear_sub_mul_linear_add z 1 1).comp_injective hi)
   have (n : ℕ+) : ((2 * n - 2 : ℕ) : ℂ) + 1 = ((2 * n : ℕ) : ℂ) - 1 := by
     norm_cast
@@ -1418,7 +1418,7 @@ lemma neg_one_pow (n : ℕ+) : (-1 : ℂ) ^ (2 * n - 1 : ℕ) = -1 := (neg_one_p
 lemma asummable'' {z : ℂ} (hz : z ∈ integerComplement) :
     Summable fun n : ℕ+ ↦ (-1) ^ (2 * n - 1 : ℕ) *
     (1 / (z - (2 * n - 1)) + 1 / (z + (2 * n - 1))) := by
-  convert Summable.mul_left (-1) (hsummable'' hz) using 1
+  convert mul_left (-1) (hsummable'' hz) using 1
   simp [neg_one_pow]
 
 lemma telescoping_sum (z : ℂ) (n : ℕ) :
@@ -1430,8 +1430,8 @@ lemma telescoping_sum (z : ℂ) (n : ℕ) :
 
 theorem tsum_even_add_odd' {M : Type*} [AddCommMonoid M] [TopologicalSpace M]
     [T2Space M] [ContinuousAdd M] {f : ℕ+ → M}
-    (he : Summable fun (k : ℕ+) => f (2 * k))
-    (ho : Summable fun (k : ℕ+) => f (2 * k - 1)) :
+    (he : Summable fun (k : ℕ+) ↦ f (2 * k))
+    (ho : Summable fun (k : ℕ+) ↦ f (2 * k - 1)) :
     ∑' (k : ℕ+), f (2 * k - 1) + ∑' (k : ℕ+), f (2 * k) = ∑' (k : ℕ+), f k := by
   symm
   rw [← Equiv.tsum_eq (Equiv.pnatEquivNat.symm), ← tsum_even_add_odd,
@@ -1492,12 +1492,12 @@ theorem lemma_abadeuleulmit1 {z : ℂ} (hz : z ∈ integerComplement) :
       congr
       · have : z / 2 ∈ integerComplement := by
           simp_all only [integerComplement, Set.mem_compl_iff, Set.mem_range, not_exists]
-          refine fun n hn => hz (2 * n) ?_
+          refine fun n hn ↦ hz (2 * n) ?_
           grind
         simpa [mul_div_assoc] using cot_series_rep this
       · have : (z + 1) / 2 ∈ integerComplement := by
           simp_all only [integerComplement, Set.mem_compl_iff, Set.mem_range, not_exists]
-          refine fun n hn => hz (2 * n - 1) ?_
+          refine fun n hn ↦ hz (2 * n - 1) ?_
           grind
         simpa [mul_div_assoc] using cot_series_rep this
   _ = 1 / z + ∑' n : ℕ+, (1 / (z - 2 * n) + 1 / (z + 2 * n)) -
@@ -1511,21 +1511,21 @@ theorem lemma_abadeuleulmit1 {z : ℂ} (hz : z ∈ integerComplement) :
       refine Eq.symm (sub_eq_iff_eq_add.1 ?_)
       rw [← Summable.tsum_sub ?_ (hsummable' hz)]
       · simp only [sub_sub_eq_add_sub, add_sub_add_left_eq_sub, tsum_pnat_eq_tsum_succ
-          (f := fun b => (1 / (z + (2 * b - 1)) - 1 / (z + (2 * b + 1)))), add_assoc z 1,
+          (f := fun b ↦ (1 / (z + (2 * b - 1)) - 1 / (z + (2 * b + 1)))), add_assoc z 1,
           add_comm (1 : ℂ)]
         refine HasSum.tsum_eq ((Summable.hasSum_iff_tendsto_nat ?_).2 ?_)
-        · suffices Summable (fun n : ℤ => 2 * ((z + n + 1) * (z + n + 3))⁻¹) by
-            have hi : (fun n : ℕ => (2 * n : ℤ)).Injective := fun _ _ _ => by simp_all
+        · suffices Summable (fun n : ℤ ↦ 2 * ((z + n + 1) * (z + n + 3))⁻¹) by
+            have hi : (fun n : ℕ ↦ (2 * n : ℤ)).Injective := fun _ _ _ ↦ by simp_all
             have := this.comp_injective hi
             convert this using 2 with n
             rw [one_div, one_div, inv_sub_inv]
             · simp; field_simp; ring
             · simp_all only [integerComplement, mem_compl_iff, Set.mem_range, not_exists,
                 ne_eq, add_eq_zero_iff_eq_neg]
-              exact fun h => hz (-(2 * (n + 1) - 1)) (by simp_all)
+              exact fun h ↦ hz (-(2 * (n + 1) - 1)) (by simp_all)
             · simp_all only [integerComplement, mem_compl_iff, Set.mem_range, not_exists,
                 ne_eq, add_eq_zero_iff_eq_neg]
-              exact fun h => hz (-(2 * (n + 1) + 1)) (by simp_all)
+              exact fun h ↦ hz (-(2 * (n + 1) + 1)) (by simp_all)
           refine Summable.mul_left 2 ?_
           apply EisensteinSeries.summable_inv_of_isBigO_rpow_inv (a := 2) (by norm_cast)
           simpa [pow_two] using (EisensteinSeries.linear_inv_isBigO_right_add 1 3 z).mul
@@ -1548,7 +1548,7 @@ theorem lemma_abadeuleulmit1 {z : ℂ} (hz : z ∈ integerComplement) :
       have hn (n : ℕ+) : ((2 * n - 1 : ℕ+) : ℕ) = 2 * n - 1 := by
         have : 1 < 2 * n := Nat.le_trans (by norm_num) (Nat.mul_le_mul_left 2 n.2)
         simp [PNat.sub_coe, this]
-      rw [add_assoc, ← tsum_even_add_odd' (f := fun n => (-1) ^ (n : ℕ) * ((1 / (z - n) : ℂ)
+      rw [add_assoc, ← tsum_even_add_odd' (f := fun n ↦ (-1) ^ (n : ℕ) * ((1 / (z - n) : ℂ)
         + (1 / (z + n) : ℂ))), add_comm (∑' (k : ℕ+), (-1) ^ ((2 * k - 1 : ℕ+) : ℕ) * _) _]
       · congr <;> aesop
       · simpa using asummable hz
@@ -1599,10 +1599,111 @@ maximum on $[-1/2,1/2]$ at the endpoints. Hence
 -/)
   (latexEnv := "lemma")
   (discussion := 571)]
-theorem lemma_abadimpseri {ϑ : ℝ} (hϑ : 0 ≤ |ϑ| ∧ |ϑ| < 1) :
-    ∑' (n : {m : ℤ // m > 0}), (1 / ((n - ϑ) ^ 3 : ℝ) + 1 / ((n + ϑ) ^ 3 : ℝ)) ≤
-      (1 / ((1 - |ϑ|) ^ 3 : ℝ)) + 2 * (riemannZeta 3).re - 1 := by
-  sorry
+lemma lemma_abadimpseri (ϑ : ℝ) (hϑ : |ϑ| < 1) :
+    ∑' n : ℕ, (1 / ((n + 1 : ℝ) - ϑ) ^ 3 + 1 / ((n + 1 : ℝ) + ϑ) ^ 3) ≤
+      1 / (1 - |ϑ|) ^ 3 + 2 * (riemannZeta 3).re - 1 := by
+  have h_sum_bound : ∀ n : ℕ, (1 / (n + 1 - ϑ) ^ 3 + 1 / (n + 1 + ϑ) ^ 3) ≤
+      (1 / (n + 1 - |ϑ|) ^ 3 + 1 / (n + 1 + |ϑ|) ^ 3) := by intro n; cases abs_cases ϑ <;> grind
+  have h_sum_bound_endpoints : (∑' n : ℕ, (1 / (n + 1 - |ϑ|) ^ 3 + 1 / (n + 1 + |ϑ|) ^ 3)) ≤
+      (1 / (1 - |ϑ|) ^ 3) + 2 * (riemannZeta 3).re - 1 := by
+    have h_sum_endpoints_bound : (∑' n : ℕ, (1 / (n + 2 - |ϑ|) ^ 3 + 1 / (n + 1 + |ϑ|) ^ 3)) ≤
+        2 * (riemannZeta 3).re - 1 := by
+      have h_term_bound : ∀ n : ℕ, (1 / (n + 2 - |ϑ|) ^ 3 + 1 / (n + 1 + |ϑ|) ^ 3) ≤
+          (1 / (n + 1) ^ 3 + 1 / (n + 2) ^ 3) := by
+        intro n
+        rw [div_add_div, div_add_div, div_le_div_iff₀] <;> try positivity
+        · have h_simp : (n + 1 + |ϑ|) ^ 3 + (n + 2 - |ϑ|) ^ 3 ≤ (n + 1) ^ 3 + (n + 2) ^ 3 := by
+            nlinarith [abs_nonneg ϑ, pow_two_nonneg (|ϑ| : ℝ), pow_two_nonneg (n : ℝ),
+              mul_lt_mul_of_pos_left hϑ <| Nat.cast_add_one_pos n]
+          field_simp
+          refine le_trans (mul_le_mul_of_nonneg_left h_simp <| by positivity) ?_
+          have h_simp : (n + 1 : ℝ) ^ 3 * (n + 2) ^ 3 ≤ (n + 1 + |ϑ|) ^ 3 * (n + 2 - |ϑ|) ^ 3 := by
+            rw [← mul_pow, ← mul_pow]; exact pow_le_pow_left₀ (by positivity) (by nlinarith [abs_nonneg ϑ]) _
+          exact mul_le_mul h_simp (by linarith) (by positivity)
+            (by exact mul_nonneg (pow_nonneg (by positivity) _) (pow_nonneg (by linarith [abs_nonneg ϑ]) _))
+        · exact mul_pos (pow_pos (by linarith [abs_nonneg ϑ]) _) (pow_pos (by linarith [abs_nonneg ϑ]) _)
+        · exact pow_ne_zero _ (by linarith [abs_nonneg ϑ])
+      refine le_trans (Summable.tsum_le_tsum h_term_bound ?_ ?_) ?_
+      · exact of_nonneg_of_le (fun n ↦ add_nonneg (one_div_nonneg.mpr (pow_nonneg (by linarith [abs_nonneg ϑ]) _))
+          (one_div_nonneg.mpr (pow_nonneg (by linarith [abs_nonneg ϑ]) _)))
+            h_term_bound (add (by exact_mod_cast summable_nat_add_iff 1 |>.2 <| summable_one_div_nat_pow.2 <| by omega)
+              (by exact_mod_cast summable_nat_add_iff 2 |>.2 <| summable_one_div_nat_pow.2 <| by omega))
+      · exact add (by simpa using summable_nat_add_iff 1 |>.2 <| summable_one_div_nat_pow.2 <| by omega)
+          (by simpa using summable_nat_add_iff 2 |>.2 <| summable_one_div_nat_pow.2 <| by omega)
+      · have h_sum_zeta : ∑' n : ℕ, (1 / (n + 1 : ℝ) ^ 3 + 1 / (n + 2 : ℝ) ^ 3) =
+            2 * (∑' n : ℕ, (1 / (n + 1 : ℝ) ^ 3)) - 1 := by
+          rw [Summable.tsum_add, Summable.tsum_eq_zero_add] <;> norm_num
+          · norm_num [add_assoc]; ring
+          · exact_mod_cast summable_nat_add_iff 1 |>.2 <| summable_nat_pow_inv.2 <| by omega
+          · exact_mod_cast summable_nat_add_iff 1 |>.2 <| summable_nat_pow_inv.2 <| by omega
+          · exact_mod_cast summable_nat_add_iff 2 |>.2 <| summable_nat_pow_inv.2 <| by omega
+        convert h_sum_zeta.le using 2
+        erw [zeta_eq_tsum_one_div_nat_add_one_cpow] <;> norm_num
+        · convert ofReal_re _; simp [Complex.ofReal_tsum]
+    rw [Summable.tsum_eq_zero_add]
+    · norm_num [add_assoc, add_left_comm, add_comm, div_eq_mul_inv, mul_add, mul_comm,
+        mul_left_comm, tsum_mul_left] at *
+      have hs₁ : Summable fun n : ℕ ↦ ((|ϑ| + (n + 1)) ^ 3)⁻¹ :=
+        of_nonneg_of_le (fun n ↦ inv_nonneg.2 (pow_nonneg (by positivity) _))
+          (fun n ↦ by simpa using inv_anti₀ (by positivity) (pow_le_pow_left₀ (by positivity)
+            (show (|ϑ| + (n + 1) : ℝ) ≥ n + 1 by linarith [abs_nonneg ϑ]) 3))
+          (summable_nat_add_iff 1 |>.2 <| Real.summable_one_div_nat_pow.2 <| by omega)
+      have hs₂ : Summable fun n : ℕ ↦ (((n : ℝ) + 2 - |ϑ|) ^ 3)⁻¹ :=
+        of_nonneg_of_le (fun n ↦ inv_nonneg.2 (pow_nonneg (by linarith [abs_nonneg ϑ]) _))
+          (fun n ↦ by rw [inv_le_comm₀] <;> norm_num <;> ring_nf <;>
+            nlinarith [abs_nonneg ϑ, pow_two_nonneg ((n : ℝ) + 1 - |ϑ|)])
+          (summable_nat_add_iff 1 |>.2 <| Real.summable_one_div_nat_pow.2 one_lt_two)
+      rw [Summable.tsum_add hs₁ hs₂] at h_sum_endpoints_bound
+      rw [Summable.tsum_add]
+      · rw [show (∑' b : ℕ, ((|ϑ| + (b + 2)) ^ 3)⁻¹) = (∑' b : ℕ, ((|ϑ| + (b + 1)) ^ 3)⁻¹) - ((|ϑ| + 1) ^ 3)⁻¹ from ?_]
+        · nlinarith [show 0 < (|ϑ| + 1) ^ 3 by positivity, inv_mul_cancel₀ (show (|ϑ| + 1) ^ 3 ≠ 0 by positivity)]
+        · rw [eq_comm, Summable.tsum_eq_zero_add]
+          · norm_num [add_assoc]
+          · exact hs₁
+      · exact_mod_cast of_nonneg_of_le (fun n ↦ by positivity)
+          (fun n ↦ by rw [inv_le_comm₀] <;> norm_num <;> ring_nf <;> nlinarith only [abs_nonneg ϑ, hϑ])
+            (summable_nat_add_iff 1 |>.2 <| Real.summable_one_div_nat_pow.2 one_lt_two)
+      · exact hs₂
+    · refine Summable.add ?_ ?_
+      · have : Summable (fun n : ℕ ↦ (1 : ℝ) / (n : ℝ) ^ 3) := summable_one_div_nat_pow.2 (by omega)
+        rw [← summable_nat_add_iff 1] at this ⊢
+        exact of_nonneg_of_le (fun n ↦ one_div_nonneg.mpr (pow_nonneg (by cases abs_cases ϑ <;> linarith) _))
+          (fun n ↦ one_div_le_one_div_of_le (by positivity)
+            (pow_le_pow_left₀ (by positivity) (by cases abs_cases ϑ <;> linarith) _)) this
+      · exact_mod_cast of_nonneg_of_le (fun n ↦ by positivity)
+          (fun n ↦ by simpa using inv_anti₀ (by positivity) (pow_le_pow_left₀ (by positivity)
+            (show (n : ℝ) + 1 + |ϑ| ≥ n + 1 by linarith [abs_nonneg ϑ]) 3))
+          (summable_nat_add_iff 1 |>.2 <| Real.summable_one_div_nat_pow.2 <| by omega)
+  refine le_trans (Summable.tsum_le_tsum h_sum_bound ?_ ?_) h_sum_bound_endpoints
+  · have h_bound : ∀ n : ℕ,
+        (1 / (n + 1 - ϑ) ^ 3 + 1 / (n + 1 + ϑ) ^ 3) ≤ 2 / (n + 1 - |ϑ|) ^ 3 := fun n ↦ by
+      have : (1 / (n + 1 - ϑ) ^ 3 + 1 / (n + 1 + ϑ) ^ 3) ≤
+          (1 / (n + 1 - |ϑ|) ^ 3 + 1 / (n + 1 - |ϑ|) ^ 3) := by
+        cases abs_cases ϑ <;> simp only [add_le_add_iff_left, one_div, sub_neg_eq_add, add_le_add_iff_right, *]
+        · exact inv_anti₀ (pow_pos (by linarith) _) (by gcongr <;> linarith)
+        · exact inv_anti₀ (pow_pos (by linarith) _)
+            (pow_le_pow_left₀ (by linarith) (by linarith) _)
+      exact this.trans_eq (by ring)
+    refine of_nonneg_of_le (fun n ↦ ?_) (fun n ↦ h_bound n) ?_
+    · exact add_nonneg (one_div_nonneg.mpr (pow_nonneg (by linarith [abs_lt.mp hϑ]) _))
+        (one_div_nonneg.mpr (pow_nonneg (by linarith [abs_lt.mp hϑ]) _))
+    · have : Summable (fun n : ℕ ↦ 2 / (n : ℝ) ^ 3) :=
+        mul_left 2 <| Real.summable_nat_pow_inv.2 (by norm_num : (1 : ℕ) < 3)
+      rw [← summable_nat_add_iff 1] at this ⊢
+      exact of_nonneg_of_le (fun n ↦ div_nonneg zero_le_two (pow_nonneg (by linarith [abs_nonneg ϑ]) _))
+        (fun n ↦ div_le_div_of_nonneg_left (by positivity) (by positivity)
+          (pow_le_pow_left₀ (by linarith [abs_nonneg ϑ]) (by linarith [abs_nonneg ϑ]) _)) this
+  · refine add ?_ ?_
+    · rw [← summable_nat_add_iff 1]
+      simp only [one_div, Nat.cast_add, Nat.cast_one] at *
+      exact of_nonneg_of_le (fun n ↦ inv_nonneg.2 (pow_nonneg (by linarith [abs_nonneg ϑ]) _))
+        (fun n ↦ by rw [inv_le_comm₀] <;> norm_num <;> ring_nf <;>
+          nlinarith [abs_nonneg ϑ, pow_two_nonneg ((n : ℝ) ^ 2), pow_two_nonneg ((n : ℝ) + 1),
+            pow_two_nonneg ((n : ℝ) + 1 - |ϑ|)]) (summable_nat_add_iff 1 |>.2 <| summable_one_div_nat_pow.2 one_lt_two)
+    · exact of_nonneg_of_le (fun n ↦ by positivity)
+        (fun n ↦ by simpa using inv_anti₀ (by positivity) (pow_le_pow_left₀ (by positivity)
+          (show (n : ℝ) + 1 + |ϑ| ≥ n + 1 by linarith [abs_nonneg ϑ]) 3))
+            (summable_nat_add_iff 1 |>.2 <| summable_one_div_nat_pow.2 <| by omega)
 
 @[blueprint
   "lem:abadsumas"
