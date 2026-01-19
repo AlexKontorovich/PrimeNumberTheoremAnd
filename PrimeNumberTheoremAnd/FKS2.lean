@@ -28,7 +28,7 @@ theorem sec_1_1_remark : ∀ x > 2, li x - Li x = li 2 := sorry
   (statement := /--
   For any $a,b,c,x \in \mathbb{R}$ we define
   $g(a,b,c,x) := x^{-a} (\log x)^b \exp( c (\log x)^{1/2} )$. -/)]
-noncomputable def g_bound (a b c x : ℝ) : ℝ := x^(-a) * (log x)^b * exp (c * (log x)^(1/2))
+noncomputable def g_bound (a b c x : ℝ) : ℝ := x^(-a) * (log x)^b * exp (c * sqrt (log x))
 
 @[blueprint
   "fks2-eq-17"
