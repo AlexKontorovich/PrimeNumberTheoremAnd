@@ -365,9 +365,13 @@ theorem main_ineq_delta_form {n : ℕ} (hn : n ≥ X₀ ^ 2) :
       * (1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
   /-
    *** Proof outline (exactly your write-up) *** :
-  1) Use `delta_sqrt_le` to bound `gap.δ(√n) ≤ 0.000675`, hence `1+gap.δ(√n) ≤ 1.000675`.
-  2) Use `inv_n_pow_3_div_2_le_X₀` to replace `1/n^(3/2)` by `(1/X₀)*(1/n)`.
-  3) Use `inv_n_add_sqrt_ge_X₀` to replace `1/(n+√n)` by `(1/(1+1/X₀))*(1/n)`.
+  1) Use `main_ineq_delta_form_lhs` to bound the LHS by an expression with
+     `0.000675` in place of `gap.δ(√n)`.
+  2) Use `main_ineq_delta_form_rhs` to bound the RHS by an expression with
+     `0.000675` in place of `gap.δ(√n)`, and `1/(1 + 1/X₀)` and `1/X₀` in place of
+     `1/(1 + gap.δ(√n))` and `1/n^(3/2)`, respectively.
+  3) Use `delta_prod_mul_nonneg` and `delta_ratio_term_nonneg` to ensure
+     the RHS expression is nonnegative.
   4) Set `ε := 1/n` and use the hypotheses `0 ≤ ε` and `ε ≤ 1/(X₀^2)` (derived from `hn`).
   5) Apply `prod_epsilon_le`, `prod_epsilon_ge`, and `final_comparison` to finish.
   -/
@@ -458,6 +462,27 @@ theorem main_ineq_delta_form_rhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
       sorry
 
 
+theorem prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
+    ∏ i : Fin 3, (1 + onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) * ε) ≤
+      1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 := by
+  norm_cast; norm_num [Fin.prod_univ_three]; nlinarith
+
+
+theorem prod_epsilon_ge {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
+    (∏ i : Fin 3,
+      (1 + ε / (onePlusEps_log ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 / (1 + 1/X₀)))) *
+        (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * onePlusEps_log ^ 12 / X₀ * ε) ≥
+      1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
+  norm_cast; norm_num [Fin.prod_univ_three]
+  dsimp [X₀] at *
+  nlinarith [pow_nonneg hε.left 3, pow_nonneg hε.left 4]
+
+
+theorem final_comparison {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
+    1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
+    dsimp [X₀] at *
+    nlinarith
+
 /- End of lemmas required to prove h_crit: `theorem main_ineq_delta_form` -/
 
 
@@ -498,31 +523,7 @@ lemma log_X₀_pos : 0 < Real.log X₀ := by linear_combination log_X₀_gt
 
 /- Original Cert lemmas -/
 
-theorem inv_cube_log_sqrt_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    1 / (log √(n : ℝ)) ^ 3 ≤ eps_log := by
-    sorry
 
-
-theorem prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
-    ∏ i : Fin 3, (1 + onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) * ε) ≤
-      1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 := by
-  norm_cast; norm_num [Fin.prod_univ_three]; nlinarith
-
-
-theorem prod_epsilon_ge {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
-    (∏ i : Fin 3,
-      (1 + ε / (onePlusEps_log ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 / (1 + 1/X₀)))) *
-        (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * onePlusEps_log ^ 12 / X₀ * ε) ≥
-      1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
-  norm_cast; norm_num [Fin.prod_univ_three]
-  dsimp [X₀] at *
-  nlinarith [pow_nonneg hε.left 3, pow_nonneg hε.left 4]
-
-
-theorem final_comparison {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
-    1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
-    dsimp [X₀] at *
-    nlinarith
 
 /- End of Original Cert lemmas -/
 
