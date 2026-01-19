@@ -32,6 +32,191 @@ noncomputable abbrev eps_log : ℝ := (0.000675 : ℝ)
 noncomputable abbrev onePlusEps_log : ℝ := (1 : ℝ) + eps_log
 
 
+/- theorem `exists_p_primes` lemmas -/
+/- vote: 2 -/
+lemma sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (X₀ : ℝ) ≤ √(n : ℝ) := by
+  /-- (C1) `x := √n` is above the provider threshold. -/
+  simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ X₀ ^ 2)
+
+
+lemma step1_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (X₀ : ℝ) ≤ (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) := by
+  /-- (C4) step-1 threshold propagation:
+    `x*(1+ε)` is still ≥ X₀ so we can apply the provider at that point. -/
+  /- *** Proof idea ***:
+  uses sqrt_ge_X₀ + eps_nonneg + le_mul_of_one_le_right etc -/
+  sorry
+
+
+lemma step2_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (X₀ : ℝ) ≤ (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) ^ 2 := by
+  /-- (C5) step-2 threshold propagation:
+    `x*(1+ε)^2` is still ≥ X₀. -/
+  /- *** Proof idea ***:
+  same pattern; uses `pow_two`/`sq_nonneg` etc
+  -/
+  sorry
+
+
+lemma step1_upper {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    let x : ℝ := √(n : ℝ)
+    let ε : ℝ := gap.δ x
+    (x * (1 + ε)) * (1 + gap.δ (x * (1 + ε))) ≤ x * (1 + ε) ^ 2 := by
+  /-- (C6) step-1 *upper bound* simplifier:
+    turn provider’s bound at `y = x*(1+ε)` into a bound by `x*(1+ε)^2`. -/
+  /- *** Proof idea ***:
+  This is exactly where your old `upper` lemma + log monotonicity lives.
+  For Dusart: δ decreases with x, so δ(x*(1+ε)) ≤ δ(x)=ε, then multiply out.
+  -/
+  sorry
+
+
+lemma step2_upper {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    let x : ℝ := √(n : ℝ)
+    let ε : ℝ := gap.δ x
+    (x * (1 + ε) ^ 2) * (1 + gap.δ (x * (1 + ε) ^ 2)) ≤ x * (1 + ε) ^ 3 := by
+  /-- (C7) step-2 upper bound:
+    turn provider’s bound at `y = x*(1+ε)^2` into ≤ `x*(1+ε)^3`. -/
+  /- *** Proof idea ***:
+  Same style as step1_upper. -/
+  sorry
+
+
+/- End of theorem `exists_p_primes` lemmas-/
+
+
+/- theorem `exists_q_primes` lemmas -/
+lemma y0_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    let x : ℝ := √(n : ℝ)
+    let ε : ℝ := gap.δ x
+    (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) ^ 3 := by
+    /- *** Proof idea ***:
+    this is your current `hy₀_ge` proof -/
+    sorry
+
+
+lemma y1_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    let x : ℝ := √(n : ℝ)
+    let ε : ℝ := gap.δ x
+    (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) ^ 2 := by
+    /- *** Proof idea ***:
+    derived from y0_ge_X₀ and monotonicity of division by positive numbers
+    -/
+    sorry
+
+lemma y2_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    let x : ℝ := √(n : ℝ)
+    let ε : ℝ := gap.δ x
+    (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) := by
+    /- *** Proof idea ***:
+    same pattern as y1_ge_X₀ -/
+    sorry
+
+lemma y0_mul_one_add_delta_le_y1 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    let x : ℝ := √(n : ℝ)
+    let ε : ℝ := gap.δ x
+    let y0 : ℝ := (n : ℝ) / (1 + ε) ^ 3
+    y0 * (1 + gap.δ y0) ≤ (n : ℝ) / (1 + ε) ^ 2 := by
+    /- Step 0: from y0’s Dusart upper bound to y1. -/
+    /- *** Proof idea ***:
+    y0 ≥ x  (proved below or inline)
+    δ(y0) ≤ ε  (Dusart monotonicity of 1/log^3)
+    algebra: y0*(1+ε)= n/(1+ε)^2 -/
+    sorry
+
+
+lemma y1_mul_one_add_delta_le_y2 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    let x : ℝ := √(n : ℝ)
+    let ε : ℝ := gap.δ x
+    let y1 : ℝ := (n : ℝ) / (1 + ε) ^ 2
+    y1 * (1 + gap.δ y1) ≤ (n : ℝ) / (1 + ε) := by
+    /-- Step 1: from y1’s upper bound to y2. -/
+    /- *** Proof idea ***:
+    same pattern-/
+    sorry
+
+lemma y2_mul_one_add_delta_lt_n {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    let x : ℝ := √(n : ℝ)
+    let ε : ℝ := gap.δ x
+    let y2 : ℝ := (n : ℝ) / (1 + ε)
+    y2 * (1 + gap.δ y2) < (n : ℝ) := by
+    /- Final strict step: from y2’s upper bound to strictly below n. -/
+    /- *** Proof idea ***:
+    this is where you currently do the “strict log inequality” work
+    i.e. prove δ(y2) < ε using y2 > x, then
+    y2*(1+δ y2) < y2*(1+ε) = n -/
+    sorry
+
+/- End of theorem `exists_q_primes` lemmas-/
+
+
+/- theorem `prod_q_ge` lemmas -/
+noncomputable abbrev b (n : ℕ) : ℝ := 1 + gap.δ (√(n : ℝ))
+/--
+`b(n)` is the “1 + δ(√n)” base that appears everywhere in q-side bounds.
+We do *not* export `b` into theorem statements; it’s just a local convenience for Cert lemmas.
+Try moving this entirely into `prod_q_ge` if possible.
+-/
+
+
+lemma b_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < b n := by
+  /-- Positivity of `b(n) = 1 + δ(√n)` for `n ≥ X₀²`. -/
+  /- *** Proof idea ***:
+  show `0 ≤ gap.δ (√n)` (Dusart: `δ(x)=1/(log x)^3` and `log √n > 0`), then `linarith`.
+  use your existing certified `log` bounds in the Dusart instance, or (better)
+  a provider-specific lemma `δ_nonneg` exported from the provider/cert layer-/
+  sorry
+
+
+lemma prod_q_rhs_reindex (n : ℕ) :
+    (∏ i : Fin 3, (1 + (b n) ^ ((i : ℕ) + 1 : ℝ) / n))
+      =
+    (∏ i : Fin 3, (1 + (b n) ^ ((3 : ℝ) - (i : ℕ)) / n)) := by
+  /-- Reindexing trick for `Fin 3`: convert exponents `i+1` to `3 - i`.
+    This is *structural*, but it’s noisy; keeping it in Cert keeps Main clean. -/
+  /- *** Proof idea ***:
+  exactly your current proof: `rw [Fin.prod_univ_three, Fin.prod_univ_three]` + the `conv` blocks + `ring`,
+  just replacing `1 + 1/(log √n)^3` by `b n`.
+  copy/paste your existing `Fin.prod_univ_three`/`conv` proof
+  with `b n` in place of `(1 + 1/(log √n)^3)`
+  -/
+  sorry
+
+
+
+lemma inv_le_rpow_div_of_lower_bound {n : ℕ} (hn : n ≥ X₀ ^ 2)
+    {t : ℝ} {q : ℕ}
+    (hq : (n : ℝ) * (b n) ^ (-t) ≤ (q : ℝ)) :
+    (1 : ℝ) / (q : ℝ) ≤ (b n) ^ t / n := by
+  /- Core inequality used in `prod_q_ge`:
+     From a lower bound `n * b(n)^(-t) ≤ q` we get the reciprocal upper bound
+     `1/q ≤ b(n)^t / n`. -/
+  /- *** Proof idea ***: (this is exactly what your current Main proof does)
+  rewrite `b(n)^t / n = 1 / (n / b(n)^t)` (via `field_simp`, using `n>0`, `b(n)>0`)
+  apply `one_div_le_one_div_of_le` using positivity of `n / b(n)^t`
+  convert `hq` to `n / b(n)^t ≤ q` using `field_simp` + `Real.rpow_add` (or `Real.rpow_neg`).
+  -/
+  sorry
+
+/- End of theorem `prod_q_ge` lemmas-/
+
+
+/- theorem `prod_p_ge` lemmas -/
+/--
+Certification lemma: `1 + gap.δ(√n)` is positive once `n ≥ X₀²`.
+
+Statement mentions only `gap.δ` (no `log`).
+
+**Proof idea (Dusart provider):**
+`gap.δ x = 1/(log x)^3` and for `n ≥ X₀²` we have `√n ≥ X₀`, hence `log √n ≥ log X₀ > 0`,
+so `δ(√n) ≥ 0` and thus `1 + δ(√n) > 0`.
+-/
+lemma one_add_delta_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    0 < (1 + gap.δ (√(n : ℝ))) := by
+  sorry
+
+/- End of theorem `prod_p_ge` lemmas-/
 
 -- What was refactored out of theorem exists_p_primes
 -- lemma 1
@@ -75,176 +260,15 @@ lemma X₀_sq_pos : (0 : ℝ) < ((X₀ ^ 2 : ℕ) : ℝ) := by
   sorry
 
 
-/- The following lemmas are used to prove exists_p_primes -/
-/-This lemma is used in exists_q_primes-/
-/-- (C1) `x := √n` is above the provider threshold. -/
-lemma sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (X₀ : ℝ) ≤ √(n : ℝ) := by
-  simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ X₀ ^ 2)
-
-
-/-- (C4) step-1 threshold propagation:
-`x*(1+ε)` is still ≥ X₀ so we can apply the provider at that point. -/
-lemma step1_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (X₀ : ℝ) ≤ (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) := by
-  -- uses sqrt_ge_X₀ + eps_nonneg + le_mul_of_one_le_right etc
-  sorry
-
-/-- (C5) step-2 threshold propagation:
-`x*(1+ε)^2` is still ≥ X₀. -/
-lemma step2_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (X₀ : ℝ) ≤ (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) ^ 2 := by
-  -- same pattern; uses `pow_two`/`sq_nonneg` etc
-  sorry
-
-/-- (C6) step-1 *upper bound* simplifier:
-turn provider’s bound at `y = x*(1+ε)` into a bound by `x*(1+ε)^2`. -/
-lemma step1_upper {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    let x : ℝ := √(n : ℝ)
-    let ε : ℝ := gap.δ x
-    (x * (1 + ε)) * (1 + gap.δ (x * (1 + ε))) ≤ x * (1 + ε) ^ 2 := by
-  -- This is exactly where your old `upper` lemma + log monotonicity lives.
-  -- For Dusart: δ decreases with x, so δ(x*(1+ε)) ≤ δ(x)=ε, then multiply out.
-  sorry
-
-/-- (C7) step-2 upper bound:
-turn provider’s bound at `y = x*(1+ε)^2` into ≤ `x*(1+ε)^3`. -/
-lemma step2_upper {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    let x : ℝ := √(n : ℝ)
-    let ε : ℝ := gap.δ x
-    (x * (1 + ε) ^ 2) * (1 + gap.δ (x * (1 + ε) ^ 2)) ≤ x * (1 + ε) ^ 3 := by
-  -- Same style as step1_upper.
-  sorry
-
-
-/- End of lemmas in exists_p_primes -/
-
-
-/- The following lemmas are used in exists_q_primes-/
-lemma y0_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    let x : ℝ := √(n : ℝ)
-    let ε : ℝ := gap.δ x
-    (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) ^ 3 := by
-    sorry
-  -- this is your current `hy₀_ge` proof
-
-lemma y1_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    let x : ℝ := √(n : ℝ)
-    let ε : ℝ := gap.δ x
-    (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) ^ 2 := by
-    sorry
-  -- derived from y0_ge_X₀ and monotonicity of division by positive numbers
-
-lemma y2_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    let x : ℝ := √(n : ℝ)
-    let ε : ℝ := gap.δ x
-    (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) := by
-    sorry
-  -- same
-
-/-- Step 0: from y0’s Dusart upper bound to y1. -/
-lemma y0_mul_one_add_delta_le_y1 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    let x : ℝ := √(n : ℝ)
-    let ε : ℝ := gap.δ x
-    let y0 : ℝ := (n : ℝ) / (1 + ε) ^ 3
-    y0 * (1 + gap.δ y0) ≤ (n : ℝ) / (1 + ε) ^ 2 := by
-    sorry
-  -- uses:
-  --   - y0 ≥ x  (proved below or inline)
-  --   - δ(y0) ≤ ε  (Dusart monotonicity of 1/log^3)
-  --   - algebra: y0*(1+ε)= n/(1+ε)^2
-
-/-- Step 1: from y1’s upper bound to y2. -/
-lemma y1_mul_one_add_delta_le_y2 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    let x : ℝ := √(n : ℝ)
-    let ε : ℝ := gap.δ x
-    let y1 : ℝ := (n : ℝ) / (1 + ε) ^ 2
-    y1 * (1 + gap.δ y1) ≤ (n : ℝ) / (1 + ε) := by
-    sorry
-  -- same pattern
-
-/-- Final strict step: from y2’s upper bound to strictly below n. -/
-lemma y2_mul_one_add_delta_lt_n {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    let x : ℝ := √(n : ℝ)
-    let ε : ℝ := gap.δ x
-    let y2 : ℝ := (n : ℝ) / (1 + ε)
-    y2 * (1 + gap.δ y2) < (n : ℝ) := by
-    sorry
-  -- this is where you currently do the “strict log inequality” work
-  -- i.e. prove δ(y2) < ε using y2 > x, then
-  -- y2*(1+δ y2) < y2*(1+ε) = n
-
-/- End of lemmas in exists_q_primes-/
-
-
-/- The following lemmas are used in prod_q_ge-/
-/--
-`b(n)` is the “1 + δ(√n)” base that appears everywhere in q-side bounds.
-
-We do *not* export `b` into theorem statements; it’s just a local convenience for Cert lemmas.
--/
-noncomputable abbrev b (n : ℕ) : ℝ := 1 + gap.δ (√(n : ℝ))
-
-/-- Positivity of `b(n) = 1 + δ(√n)` for `n ≥ X₀²`.
-
-**Proof idea:** show `0 ≤ gap.δ (√n)` (Dusart: `δ(x)=1/(log x)^3` and `log √n > 0`), then `linarith`.
--/
-lemma b_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < b n := by
-  -- use your existing certified `log` bounds in the Dusart instance, or (better)
-  -- a provider-specific lemma `δ_nonneg` exported from the provider/cert layer
-  sorry
-
-/--
-Reindexing trick for `Fin 3`: convert exponents `i+1` to `3 - i`.
-
-This is *structural*, but it’s noisy; keeping it in Cert keeps Main clean.
-
-**Proof idea:** exactly your current proof:
-`rw [Fin.prod_univ_three, Fin.prod_univ_three]` + the `conv` blocks + `ring`,
-just replacing `1 + 1/(log √n)^3` by `b n`.
--/
-lemma prod_q_rhs_reindex (n : ℕ) :
-    (∏ i : Fin 3, (1 + (b n) ^ ((i : ℕ) + 1 : ℝ) / n))
-      =
-    (∏ i : Fin 3, (1 + (b n) ^ ((3 : ℝ) - (i : ℕ)) / n)) := by
-  -- copy/paste your existing `Fin.prod_univ_three`/`conv` proof
-  -- with `b n` in place of `(1 + 1/(log √n)^3)`
-  sorry
-
-/--
-Core inequality used in `prod_q_ge`:
-
-From a lower bound `n * b(n)^(-t) ≤ q` we get the reciprocal upper bound
-`1/q ≤ b(n)^t / n`.
-
-**Proof idea:** (this is exactly what your current Main proof does)
-1. rewrite `b(n)^t / n = 1 / (n / b(n)^t)` (via `field_simp`, using `n>0`, `b(n)>0`)
-2. apply `one_div_le_one_div_of_le` using positivity of `n / b(n)^t`
-3. convert `hq` to `n / b(n)^t ≤ q` using `field_simp` + `Real.rpow_add` (or `Real.rpow_neg`).
--/
-lemma inv_le_rpow_div_of_lower_bound {n : ℕ} (hn : n ≥ X₀ ^ 2)
-    {t : ℝ} {q : ℕ}
-    (hq : (n : ℝ) * (b n) ^ (-t) ≤ (q : ℝ)) :
-    (1 : ℝ) / (q : ℝ) ≤ (b n) ^ t / n := by
-  sorry
-
-/- End of lemmas in prod_q_ge-/
 
 
 
-/- The following lemmas are used in prod_p_ge -/
-/--
-Certification lemma: `1 + gap.δ(√n)` is positive once `n ≥ X₀²`.
 
-Statement mentions only `gap.δ` (no `log`).
 
-**Proof idea (Dusart provider):**
-`gap.δ x = 1/(log x)^3` and for `n ≥ X₀²` we have `√n ≥ X₀`, hence `log √n ≥ log X₀ > 0`,
-so `δ(√n) ≥ 0` and thus `1 + δ(√n) > 0`.
--/
-lemma one_add_delta_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    0 < (1 + gap.δ (√(n : ℝ))) := by
-  sorry
+
+
+
+
 
 /--
 Key denominator bound for the `p`-product:
