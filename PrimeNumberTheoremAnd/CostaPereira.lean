@@ -164,7 +164,7 @@ theorem sublemma_1_8 {x : ℝ} (hx : 0 < x) :
     ψ x - θ x ≥
       ψ (x ^ (1 / 2:ℝ)) +
       ψ (x ^ (1 / 3:ℝ)) +
-      ∑' k, θ (x ^ (1 / (7 * (k:ℝ)))) := by sorry
+      ∑' (k : ℕ), θ (x ^ (1 / (7 * (k:ℝ)))) := by sorry
 
 @[blueprint
   "costa-pereira-theorem-1a"
@@ -189,6 +189,9 @@ theorem theorem_1a {x : ℝ} (hx : 0 < x) :
   (latexEnv := "theorem")
   (discussion := 685)]
 theorem theorem_1b {x : ℝ} (hx : 0 < x) :
-    ψ x - θ x ≥ ψ (x ^ (1 / 2:ℝ)) + ψ (x ^ (1 / 3:ℝ)) + ψ (x ^ (1 / 7:ℝ)) := by sorry
+    ψ x - θ x ≥ ψ (x ^ (1 / 2:ℝ)) + ψ (x ^ (1 / 3:ℝ)) + ψ (x ^ (1 / 7:ℝ)) := by
+  rw [show ψ (x ^ (1 / 7 : ℝ)) = ∑' k : ℕ, θ (x ^ (1 / (7 * (k : ℝ)))) from by
+    simp only [sublemma_1_1 <| rpow_pos_of_pos hx .., ← rpow_mul hx.le]; congr! 2; field_simp]
+  exact sublemma_1_8 hx
 
 end CostaPereira
