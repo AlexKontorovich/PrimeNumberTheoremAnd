@@ -253,7 +253,7 @@ theorem prop_3_sub_8 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
     (hx : x ≥ x₀) :
     f x ≤ max (f x₀) (f (2 ^ (⌊ (log x₀)/(log 2) ⌋ + 1))) := by
   by_cases hcase : x < 2 ^ (⌊(log x₀) / (log 2)⌋ + 1)
-  · exact (prop_3_sub_7 x₀ hx₀ x ⟨hx, hcase.le⟩).trans (le_max_left _ _)
+  · exact (prop_3_sub_7 x₀ hx₀ x ⟨hx, hcase⟩).trans (le_max_left _ _)
   · exact (prop_3_sub_6 x₀ hx₀ x (not_lt.mp hcase)).trans (le_max_right _ _)
 
 @[blueprint
