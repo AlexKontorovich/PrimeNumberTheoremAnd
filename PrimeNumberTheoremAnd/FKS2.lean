@@ -47,20 +47,50 @@ noncomputable def g_bound (a b c x : ℝ) : ℝ := x^(-a) * (log x)^b * exp (c *
   (proof := /-- This follows from Sublemma \ref{rs-417}. -/)
   (latexEnv := "sublemma")
   (discussion := 609)]
-theorem eq_17 {x₀ x : ℝ} (hx₀ : x₀ ≥ 2) (hx : x > x₀) :
+theorem eq_17 {x₀ x : ℝ} (hx₀ : 2 ≤ x₀) (hx : x₀ < x) :
     (pi x - Li x) - (pi x₀ - Li x₀) =
     (θ x - x) / log x - (θ x₀ - x₀) / log x₀ +
     ∫ t in x₀..x, (θ t - t) / (t * log t ^ 2) :=
-  have px : x ≥ 2 := by linarith
-  have he {x} (hx : x ≥ 2) : pi x - Li x = (θ x - x) / log x + 2 / log 2
-    + ∫ t in 2..x, (θ t - t) / (t * log t ^ 2) := by sorry
+  have px : 2 ≤ x := by linarith
+  have l0 {x} (hx : 2 ≤ x) : ContinuousOn (fun t ↦ (t * log t ^ 2)⁻¹) (Set.uIcc 2 x) := by
+    refine ContinuousOn.inv₀ (continuousOn_id.mul (ContinuousOn.pow (ContinuousOn.log
+      continuousOn_id fun y hy => ?_) 2)) fun y hy => ?_
+    repeat simp_all; grind
+  have l1 {x} (hx : 2 ≤ x) : IntervalIntegrable (fun t ↦ θ t / (t * log t ^ 2)) volume 2 x := by
+    simpa [div_eq_mul_inv] using IntervalIntegrable.mul_continuousOn
+      theta_mono.intervalIntegrable (l0 hx)
+  have l2 {x} (hx : 2 ≤ x) : IntervalIntegrable (fun t ↦ t / (t * log t ^ 2)) volume 2 x := by
+    simpa [div_eq_mul_inv] using IntervalIntegrable.mul_continuousOn
+      intervalIntegral.intervalIntegrable_id (l0 hx)
+  have hL {x} (hx : 2 ≤ x) : Li x = x / log x - 2 / log 2 + ∫ t in 2..x, 1 / (log t ^ 2) := by
+    have hnt {t} (ht : t ∈ Set.uIcc 2 x) : t ≠ 0 := by simp_all; linarith
+    rw [Li, funext fun t => (mul_one (1 / log t)).symm,
+    intervalIntegral.integral_mul_deriv_eq_deriv_mul (u := fun t => 1 / log t)
+    (u' := fun t => -(1 / t) / log t ^ 2) _ (fun t _ => hasDerivAt_id' t) _
+    intervalIntegrable_const]
+    · suffices ∫ (x : ℝ) in 2..x, - (1 / x) / log x ^ 2 * x
+        = ∫ (x : ℝ) in 2..x, - (1 / (log x ^ 2)) from by
+        rw [this, intervalIntegral.integral_neg]; ring
+      refine intervalIntegral.integral_congr fun t ht => ?_
+      ring_nf
+      rw [mul_inv_cancel₀ (hnt ht), one_mul]
+    · intro t ht
+      simpa using HasDerivAt.inv (hasDerivAt_log (hnt ht)) (by simp_all; grind)
+    · simp only [neg_div, div_div]
+      simpa using (l0 hx).intervalIntegrable.neg
+  have he {x} (hx : 2 ≤ x) : pi x - Li x = (θ x - x) / log x + 2 / log 2
+    + ∫ t in 2..x, (θ t - t) / (t * log t ^ 2) := by
+    simp only [RS_prime.eq_417 hx, hL hx, sub_div, intervalIntegral.integral_sub (l1 hx) (l2 hx)]
+    rw [intervalIntegral.integral_congr fun t ht => div_mul_cancel_left₀ _ ((log t) ^ 2)]
+    · ring_nf
+    · simp_all; grind
   calc
   _ = (θ x - x) / log x - (θ x₀ - x₀) / log x₀ + ((∫ t in 2..x, (θ t - t) / (t * log t ^ 2)) -
     ∫ t in 2..x₀, (θ t - t) / (t * log t ^ 2)) := by rw [he px, he hx₀]; ring
   _ = (θ x - x) / log x - (θ x₀ - x₀) / log x₀ + ∫ t in x₀..x, (θ t - t) / (t * log t ^ 2) := by
     rw [intervalIntegral.integral_interval_sub_left]
-    · sorry
-    · sorry
+    · simpa [sub_div] using IntervalIntegrable.sub (l1 px) (l2 px)
+    · simpa [sub_div] using IntervalIntegrable.sub (l1 hx₀) (l2 hx₀)
 
 @[blueprint
   "fks2-lemma-10-substep"
