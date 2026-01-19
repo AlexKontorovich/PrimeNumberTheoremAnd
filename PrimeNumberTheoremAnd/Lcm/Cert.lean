@@ -36,7 +36,27 @@ Complete structural assumptions:
 10. theorem `final_comparison`
 -/
 
-
+structure PrimeGap_Criterion where
+  h_X₀ : X₀ > 1
+  gap_nonneg : ∀ x : ℝ, x ≥ X₀ → 0 ≤ gap.δ x
+  gap_decreasing : ∀ x y : ℝ, X₀ ≤ x → X₀ ≤ y → x ≤ y → gap.δ y ≤ gap.δ x
+  delta_sixth_power_lt_sqrt : ∀ n : ℕ, n ≥ X₀ ^ 2 →
+    (1 + gap.δ (√(n : ℝ))) ^ 6 < √(n : ℝ)
+  delta_twelfth_power_le_n_pow_3_div_2 : ∀ n : ℕ, n ≥ X₀ ^ 2 →
+    4 * (1 + gap.δ (√(n : ℝ))) ^ 12 ≤ n ^ (3 / 2 : ℝ)
+  eps_log_bound : ∀ n : ℕ, n ≥ X₀ ^ 2 →
+    gap.δ (√(n : ℝ)) ≤ (0.000675 : ℝ)
+  prod_epsilon_le : ∀ ε : ℝ, 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ) →
+    ∏ i : Fin 3, (1 + onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) * ε) ≤
+      1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3
+  prod_epsilon_ge : ∀ ε : ℝ, 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 :ℝ) →
+    (∏ i : Fin 3,
+      (1 + ε / (onePlusEps_log ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 / (1 + 1/X₀)))) *
+        (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * onePlusEps_log ^ 12 / X₀ * ε) ≥
+      1 + 3.36683 * ε - 0.01 * ε ^ 2
+  final_comparison : ∀ ε : ℝ, 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ) →
+    1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.36683 * ε - 0.01 * ε ^ 2
+/-- End of structural assumptions -/
 
 
 
