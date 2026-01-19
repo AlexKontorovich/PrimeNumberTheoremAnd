@@ -438,24 +438,8 @@ lemma hx₀_pos : (0 : ℝ) < X₀ := by
 @[simp] lemma X₀_pos : (0 : ℝ) < (X₀ : ℝ) := by
   exact hx₀_pos
 
-lemma hsqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : √(n : ℝ) ≥ X₀ := by
-  simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ X₀ ^ 2)
 
-lemma log_X₀_gt : Real.log X₀ > 11.4 := by
-  dsimp [X₀]
-  rw [gt_iff_lt, show (11.4 : ℝ) = 57 / (5 : ℕ) by norm_num, div_lt_iff₀ (by norm_num),
-    mul_comm, ← Real.log_pow, Real.lt_log_iff_exp_lt (by norm_num), ← Real.exp_one_rpow]
-  grw [Real.exp_one_lt_d9]
-  norm_num
 
-lemma hlog {n : ℕ} (hn : n ≥ X₀ ^ 2) : log √(n : ℝ) ≥ 11.4 := by
-  have hpos : (0 : ℝ) < X₀ := by
-    -- try without unfolding first
-   unfold X₀
-   norm_num
-  calc log √(n : ℝ) ≥ log (X₀ : ℝ) :=
-        log_le_log hpos (hsqrt_ge hn)
-    _ ≥ 11.4 := log_X₀_gt.le
 
 
 
