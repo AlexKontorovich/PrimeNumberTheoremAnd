@@ -63,7 +63,8 @@ theorem sublemma_1_1 {x : ℝ} (hx : 0 < x) : ψ x = ∑' (k : ℕ), θ (x ^ (1 
   (proof := /-- Follows from Sublemma \ref{costa-pereira-sublemma-1-1} and substitution.-/)
   (latexEnv := "sublemma")
   (discussion := 677)]
-theorem sublemma_1_2 {x : ℝ} (hx : 0 < x) (n : ℝ) : ψ (x ^ (1 / n:ℝ)) = ∑' k, θ (x ^ (1 / (n * (k:ℝ)))) := by sorry
+theorem sublemma_1_2 {x : ℝ} (hx : 0 < x) (n : ℝ) : ψ (x ^ (1 / n:ℝ)) = ∑' (k : ℕ), θ (x ^ (1 / (n * (k:ℝ)))) := by
+  simp_rw [sublemma_1_1 (rpow_pos_of_pos hx _), ← rpow_mul (le_of_lt hx), _root_.div_mul_div_comm, one_mul]
 
 @[blueprint
   "costa-pereira-sublemma-1-3"
@@ -147,7 +148,7 @@ theorem sublemma_1_7 {x : ℝ} (hx : 0 < x) :
     ψ x - θ x ≤
       ψ (x ^ (1 / 2:ℝ)) +
       ψ (x ^ (1 / 3:ℝ)) +
-      ∑' k, θ (x ^ (1 / (5 * (k:ℝ)))) := by sorry
+      ∑' (k : ℕ), θ (x ^ (1 / (5 * (k:ℝ)))) := by sorry
 
 @[blueprint
   "costa-pereira-sublemma-1-8"
@@ -164,7 +165,7 @@ theorem sublemma_1_8 {x : ℝ} (hx : 0 < x) :
     ψ x - θ x ≥
       ψ (x ^ (1 / 2:ℝ)) +
       ψ (x ^ (1 / 3:ℝ)) +
-      ∑' k, θ (x ^ (1 / (7 * (k:ℝ)))) := by sorry
+      ∑' (k : ℕ), θ (x ^ (1 / (7 * (k:ℝ)))) := by sorry
 
 @[blueprint
   "costa-pereira-theorem-1a"
@@ -175,7 +176,10 @@ theorem sublemma_1_8 {x : ℝ} (hx : 0 < x) :
   (latexEnv := "theorem")
   (discussion := 684)]
 theorem theorem_1a {x : ℝ} (hx : 0 < x) :
-    ψ x - θ x ≤ ψ (x ^ (1 / 2:ℝ)) + ψ (x ^ (1 / 3:ℝ)) + ψ (x ^ (1 / 5:ℝ)) := by sorry
+    ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) := by
+  rw [show ψ (x ^ (1 / 5 : ℝ)) = ∑' k : ℕ, θ (x ^ (1 / (5 * (k : ℝ)))) from by
+    simp only [sublemma_1_1 <| rpow_pos_of_pos hx .., ← rpow_mul hx.le]; congr! 2; field_simp]
+  exact sublemma_1_7 hx
 
 @[blueprint
   "costa-pereira-theorem-1b"
@@ -186,6 +190,9 @@ theorem theorem_1a {x : ℝ} (hx : 0 < x) :
   (latexEnv := "theorem")
   (discussion := 685)]
 theorem theorem_1b {x : ℝ} (hx : 0 < x) :
-    ψ x - θ x ≥ ψ (x ^ (1 / 2:ℝ)) + ψ (x ^ (1 / 3:ℝ)) + ψ (x ^ (1 / 7:ℝ)) := by sorry
+    ψ x - θ x ≥ ψ (x ^ (1 / 2:ℝ)) + ψ (x ^ (1 / 3:ℝ)) + ψ (x ^ (1 / 7:ℝ)) := by
+  rw [show ψ (x ^ (1 / 7 : ℝ)) = ∑' k : ℕ, θ (x ^ (1 / (7 * (k : ℝ)))) from by
+    simp only [sublemma_1_1 <| rpow_pos_of_pos hx .., ← rpow_mul hx.le]; congr! 2; field_simp]
+  exact sublemma_1_8 hx
 
 end CostaPereira

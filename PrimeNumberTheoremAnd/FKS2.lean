@@ -20,7 +20,14 @@ namespace FKS2
   (proof := /-- This follows directly from the definitions of $\li$ and $\Li$. -/)
   (latexEnv := "remark")
   (discussion := 608)]
-theorem sec_1_1_remark : ∀ x > 2, li x - Li x = li 2 := sorry
+theorem sec_1_1_remark
+    (h02 : IntervalIntegrable (fun t => 1 / Real.log t) MeasureTheory.volume 0 2)
+    (x : ℝ)
+    (h2x : IntervalIntegrable (fun t => 1 / Real.log t) MeasureTheory.volume 2 x) :
+    li x - Li x = li 2 := by
+  unfold li Li
+  rw [← intervalIntegral.integral_add_adjacent_intervals h02 h2x]
+  simp
 
 @[blueprint
   "fks2-eq-16"
@@ -28,7 +35,7 @@ theorem sec_1_1_remark : ∀ x > 2, li x - Li x = li 2 := sorry
   (statement := /--
   For any $a,b,c,x \in \mathbb{R}$ we define
   $g(a,b,c,x) := x^{-a} (\log x)^b \exp( c (\log x)^{1/2} )$. -/)]
-noncomputable def g_bound (a b c x : ℝ) : ℝ := x^(-a) * (log x)^b * exp (c * (log x)^(1/2))
+noncomputable def g_bound (a b c x : ℝ) : ℝ := x^(-a) * (log x)^b * exp (c * sqrt (log x))
 
 @[blueprint
   "fks2-eq-17"
@@ -57,8 +64,17 @@ $$ \frac{d}{dx} g(a, b, c, x) = \left( -a \log(x) + b + \frac{c}{2}\sqrt{\log(x)
   (discussion := 610)]
 theorem lemma_10_substep {a b c x : ℝ} (hx : x > 1) :
   deriv (g_bound a b c) x =
-    (-a * log x + b + (c / 2) * sqrt (log x)) * x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x)) :=
-  sorry
+    (-a * log x + b + (c / 2) * sqrt (log x)) * x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x)) := by
+      have h_prod_rule : deriv (fun x => x ^ (-a) * (log x) ^ b * exp (c * sqrt (log x))) x =
+        (deriv (fun x => x ^ (-a)) x) * (log x) ^ b * exp (c * sqrt (log x)) +
+        x ^ (-a) * (deriv (fun x => (log x) ^ b) x) * exp (c * sqrt (log x)) +
+        x ^ (-a) * (log x) ^ b * (deriv (fun x => exp (c * sqrt (log x))) x) := by
+          norm_num [ DifferentiableAt.mul, DifferentiableAt.rpow, DifferentiableAt.sqrt, show x ≠ 0 by linarith, show log x ≠ 0 by exact ne_of_gt <| log_pos hx ] ; ring
+      unfold g_bound
+      rw [h_prod_rule]
+      norm_num [ show x ≠ 0 by linarith, show log x ≠ 0 by exact ne_of_gt ( log_pos hx ), sqrt_eq_rpow, rpow_sub_one, mul_assoc, mul_comm, mul_left_comm, div_eq_mul_inv ] ; ring_nf
+      norm_num [ ne_of_gt ( log_pos hx ) ]
+      rw [ show ( - ( 1 / 2 : ℝ ) ) = ( 1 / 2 : ℝ ) - 1 by norm_num, rpow_sub ( log_pos hx ) ] ; norm_num ; ring
 
 @[blueprint
   "fks2-lemma-10-substep-2"
@@ -118,13 +134,33 @@ theorem lemma_10b {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b ≥ -c ^ 2 / (
  -/)
   (latexEnv := "lemma")
   (discussion := 614)]
-theorem lemma_10c {b c : ℝ} (hb : b < 0) :
+theorem lemma_10c {b c : ℝ} (hb : b < 0) (hc : c > 0) :
     StrictAntiOn (g_bound 0 b c) (Set.Ioo 1 (exp ((-2 * b / c) ^ 2))) := by
-    intro x hx y hy hxy
-    simp only [g_bound, neg_zero, rpow_zero, one_mul, Nat.reduceDiv, pow_zero, mul_one]
-    refine mul_lt_mul_of_pos_right ?_ (by simpa [exp] using Real.exp_pos c)
-    rw [Real.rpow_lt_rpow_iff_of_neg (Real.log_pos (Set.mem_Ioo.mp hy).1) (Real.log_pos (Set.mem_Ioo.mp hx).1) hb]
-    exact Real.log_lt_log (by linarith [(Set.mem_Ioo.mp hx).1]) hxy
+  intro x hx y hy hxy
+  simp only [g_bound, neg_zero, rpow_zero, one_mul]
+  rw [rpow_def_of_pos <| log_pos hy.1, rpow_def_of_pos <| log_pos hx.1, ← exp_add, ← exp_add, exp_lt_exp]
+  have huy_bound : sqrt (log y) < -2 * b / c := by
+    rw [← sqrt_sq (div_pos (by linarith) hc).le]
+    exact sqrt_lt_sqrt (log_pos hy.1).le <| (log_exp _).symm.trans_gt (log_lt_log (by linarith [hy.1]) hy.2)
+  rw [show log (log x) = 2 * log (sqrt (log x)) from by rw [log_sqrt (log_pos hx.1).le]; ring,
+    show log (log y) = 2 * log (sqrt (log y)) from by rw [log_sqrt (log_pos hy.1).le]; ring]
+  have hderiv_neg : 2 * b / sqrt (log y) + c < 0 := by
+    have : c * sqrt (log y) < -2 * b := by
+      calc c * sqrt (log y) < c * (-2 * b / c) := mul_lt_mul_of_pos_left huy_bound hc
+        _ = -2 * b := by field_simp
+    have h2 : 2 * b / sqrt (log y) < -c := by rw [div_lt_iff₀ <| sqrt_pos.mpr <| log_pos hy.1]; linarith
+    linarith
+  have hconcave : log (sqrt (log y)) - log (sqrt (log x)) ≥ (sqrt (log y) - sqrt (log x)) / sqrt (log y) := by
+    have := one_sub_inv_le_log_of_pos <| div_pos (sqrt_pos.mpr <| log_pos hy.1) <| sqrt_pos.mpr <| log_pos hx.1
+    simp only [inv_div] at this
+    calc log (sqrt (log y)) - log (sqrt (log x)) = log (sqrt (log y) / sqrt (log x)) := by
+          rw [log_div (sqrt_pos.mpr <| log_pos hy.1).ne' (sqrt_pos.mpr <| log_pos hx.1).ne']
+      _ ≥ 1 - sqrt (log x) / sqrt (log y) := this
+      _ = (sqrt (log y) - sqrt (log x)) / sqrt (log y) := by rw [sub_div, div_self (sqrt_pos.mpr <| log_pos hy.1).ne']
+  calc 2 * log (sqrt (log y)) * b + c * sqrt (log y)
+      _ ≤ 2 * b * (log (sqrt (log x)) + (sqrt (log y) - sqrt (log x)) / sqrt (log y)) + c * sqrt (log y) := by nlinarith [hconcave]
+      _ = 2 * b * log (sqrt (log x)) + (sqrt (log y) - sqrt (log x)) * (2 * b / sqrt (log y) + c) + c * sqrt (log x) := by field_simp; ring
+      _ < 2 * log (sqrt (log x)) * b + c * sqrt (log x) := by nlinarith [hderiv_neg, sqrt_lt_sqrt (log_pos hx.1).le <| log_lt_log (by linarith [hx.1]) hxy]
 
 @[blueprint
   "fks2-corollary-11"
