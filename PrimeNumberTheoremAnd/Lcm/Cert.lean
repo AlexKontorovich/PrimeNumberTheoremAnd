@@ -300,6 +300,57 @@ lemma ord2_mid {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   sorry
 /- End of `h_ord_2` lemmas -/
 
+/- `h_crit` lemmas -/
+theorem main_ineq_delta_form {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (∏ i : Fin 3,
+        (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
+      ≤
+    (∏ i : Fin 3,
+        (1 + 1 /
+          ((1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+      * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+      * (1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+  /-
+   *** Proof outline (exactly your write-up) *** :
+  1) Use `delta_sqrt_le` to bound `gap.δ(√n) ≤ 0.000675`, hence `1+gap.δ(√n) ≤ 1.000675`.
+  2) Use `inv_n_pow_3_div_2_le_X₀` to replace `1/n^(3/2)` by `(1/X₀)*(1/n)`.
+  3) Use `inv_n_add_sqrt_ge_X₀` to replace `1/(n+√n)` by `(1/(1+1/X₀))*(1/n)`.
+  4) Set `ε := 1/n` and use the hypotheses `0 ≤ ε` and `ε ≤ 1/(X₀^2)` (derived from `hn`).
+  5) Apply `prod_epsilon_le`, `prod_epsilon_ge`, and `final_comparison` to finish.
+  -/
+  sorry
+
+
+lemma delta_prod_mul_nonneg {n : ℕ} (hn : n ≥ Lcm.X₀ ^ 2) :
+    0 ≤
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((1 + Lcm.gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ)
+              * ((n : ℝ) + √(n : ℝ)) )))
+        * (1 + (3 : ℝ) / (8 * (n : ℝ))) := by
+  /- *** Proof idea ***:
+  1) `hn` ⇒ `0 < (n:ℝ)`; hence also `0 < (n:ℝ) + √(n:ℝ)`.
+  2) `one_add_delta_pos hn` ⇒ `0 < 1 + δ(√n)` ⇒ `0 < (1+δ(√n))^(...)` by `Real.rpow_pos_of_pos`.
+  3) Therefore the denominator in each factor is positive, so `1 / denom ≥ 0`,
+     hence each factor `1 + ... ≥ 0`, so the product is ≥ 0.
+  4) Also `1 + 3/(8*n) ≥ 0`. Multiply nonnegatives.
+  -/
+  sorry
+
+lemma delta_ratio_term_nonneg {n : ℕ} (hn : n ≥ Lcm.X₀ ^ 2) :
+    0 ≤ 1 - 4 * (1 + Lcm.gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
+  /- *** Proof idea (in Cert) ***:
+  - Use `delta_sqrt_le hn : gap.δ(√n) ≤ 0.000675` so `(1+δ)^12 ≤ (1.000675)^12`.
+  - Use `inv_n_pow_3_div_2_le_X₀ hn : 1/n^(3/2) ≤ (1/X₀)*(1/n)`.
+  - Combine to show `4*(1+δ)^12 / n^(3/2) ≤ 4*(1.000675)^12*(1/X₀)*(1/n)`.
+  - Then use `hn` (so `1/n ≤ 1/X₀^2`) and `norm_num` (after `dsimp [X₀]`)
+    to show the RHS ≤ 1.
+  - Conclude `0 ≤ 1 - (...)` i.e. the subtracted term is ≤ 1.
+  -/
+  sorry
+
+/- End of `h_crit` lemmas-/
+
 /- Lemmas that are possibly useful in the intermediate bridge -/
 lemma delta_sqrt_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     gap.δ (√(n : ℝ)) ≤ (0.000675 : ℝ) := by
@@ -361,103 +412,18 @@ lemma inv_n_le_inv_X₀_sq {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 
 
 
--- What was refactored out of theorem exists_p_primes
--- lemma 1
-lemma hx₀_pos : (0 : ℝ) < X₀ := by
-    unfold X₀; norm_num
-@[simp] lemma X₀_pos : (0 : ℝ) < (X₀ : ℝ) := by
-  exact hx₀_pos
-
--- lemma 2
-lemma hsqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : √(n : ℝ) ≥ X₀ := by
-  simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ X₀ ^ 2)
-
-
--- lemma 3
-lemma log_X₀_gt : Real.log X₀ > 11.4 := by
-  dsimp [X₀]
-  rw [gt_iff_lt, show (11.4 : ℝ) = 57 / (5 : ℕ) by norm_num, div_lt_iff₀ (by norm_num),
-    mul_comm, ← Real.log_pow, Real.lt_log_iff_exp_lt (by norm_num), ← Real.exp_one_rpow]
-  grw [Real.exp_one_lt_d9]
-  norm_num
-
--- lemma 4
-lemma hlog {n : ℕ} (hn : n ≥ X₀ ^ 2) : log √(n : ℝ) ≥ 11.4 := by
-  have hpos : (0 : ℝ) < X₀ := by
-    -- try without unfolding first
-   unfold X₀
-   norm_num
-  calc log √(n : ℝ) ≥ log (X₀ : ℝ) :=
-        log_le_log hpos (hsqrt_ge hn)
-    _ ≥ 11.4 := log_X₀_gt.le
-
-
-lemma hε_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < 1 + 1 / (log √(n : ℝ)) ^ 3 := by
-  positivity [hlog hn]
-
-lemma log_X₀_pos : 0 < Real.log X₀ := by linear_combination log_X₀_gt
-
-lemma X₀_sq_pos : (0 : ℝ) < ((X₀ ^ 2 : ℕ) : ℝ) := by
-  have : (0 : ℝ) < (X₀ : ℝ) := X₀_pos
-  -- `(X₀^2 : ℝ) = (X₀:ℝ)^2` by norm_cast; then positivity
-  sorry
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- /-- (Cert) Positivity of the “b-parameter” `1 + δ(√n)` for large `n`. -/
--- lemma one_add_delta_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) :
---     0 < (1 + gap.δ (√(n : ℝ))) := by
---   /-
---   Proof idea:
---   - for Dusart-style providers δ(x) is defined as a positive expression (e.g. 1/log^3 x),
---     and √n is large hence in the domain; show δ(√n) ≥ 0 and conclude.
---   -/
---   sorry
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/-- (C2) positivity of `x := √n`. -/
+/- Lemmas that are possibly useful in the proof of theorems in Cert.lean -/
 lemma sqrt_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     0 < √(n : ℝ) := by
+  /- positivity of `x := √n`. -/
   -- can be `lt_of_lt_of_le (show (0:ℝ) < (X₀:ℝ) from ...) (sqrt_ge_X₀ hn)`
   -- or whatever you currently do
   sorry
 
-/-- (C3) nonnegativity of `ε := δ(x)` at `x := √n`. -/
+
 lemma eps_nonneg {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     0 ≤ gap.δ (√(n : ℝ)) := by
+  /-- nonnegativity of `ε := δ(x)` at `x := √n`. -/
   -- Dusart: follows from `0 < log x` hence `(log x)^3 > 0` hence `1/(...) ≥ 0`.
   -- Other providers: whatever you can prove.
   sorry
@@ -476,161 +442,56 @@ lemma crit_rhs_nonneg {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   --   simp [X₀] at the end; norm_num
   sorry
 
-theorem main_ineq_delta_form {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (∏ i : Fin 3,
-        (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
-      ≤
-    (∏ i : Fin 3,
-        (1 + 1 /
-          ((1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
-      * (1 + (3 : ℝ) / (8 * (n : ℝ)))
-      * (1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
-  /-
-  Proof outline (exactly your write-up):
-  1) Use `delta_sqrt_le` to bound `gap.δ(√n) ≤ 0.000675`, hence `1+gap.δ(√n) ≤ 1.000675`.
-  2) Use `inv_n_pow_3_div_2_le_X₀` to replace `1/n^(3/2)` by `(1/X₀)*(1/n)`.
-  3) Use `inv_n_add_sqrt_ge_X₀` to replace `1/(n+√n)` by `(1/(1+1/X₀))*(1/n)`.
-  4) Set `ε := 1/n` and use the hypotheses `0 ≤ ε` and `ε ≤ 1/(X₀^2)` (derived from `hn`).
-  5) Apply `prod_epsilon_le`, `prod_epsilon_ge`, and `final_comparison` to finish.
-  -/
-  sorry
 
-lemma delta_prod_mul_nonneg {n : ℕ} (hn : n ≥ Lcm.X₀ ^ 2) :
-    0 ≤
-      (∏ i : Fin 3,
-          (1 + 1 /
-            ((1 + Lcm.gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ)
-              * ((n : ℝ) + √(n : ℝ)) )))
-        * (1 + (3 : ℝ) / (8 * (n : ℝ))) := by
-  /-
-  Proof idea:
-  1) `hn` ⇒ `0 < (n:ℝ)`; hence also `0 < (n:ℝ) + √(n:ℝ)`.
-  2) `one_add_delta_pos hn` ⇒ `0 < 1 + δ(√n)` ⇒ `0 < (1+δ(√n))^(...)` by `Real.rpow_pos_of_pos`.
-  3) Therefore the denominator in each factor is positive, so `1 / denom ≥ 0`,
-     hence each factor `1 + ... ≥ 0`, so the product is ≥ 0.
-  4) Also `1 + 3/(8*n) ≥ 0`. Multiply nonnegatives.
-  -/
-  sorry
+/- End of lemmas that are possibly useful in the proof of theorem in Cert.lean -/
 
 
-lemma delta_ratio_term_nonneg {n : ℕ} (hn : n ≥ Lcm.X₀ ^ 2) :
-    0 ≤ 1 - 4 * (1 + Lcm.gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
-  /-
-  Proof idea (in Cert):
-  - Use `delta_sqrt_le hn : gap.δ(√n) ≤ 0.000675` so `(1+δ)^12 ≤ (1.000675)^12`.
-  - Use `inv_n_pow_3_div_2_le_X₀ hn : 1/n^(3/2) ≤ (1/X₀)*(1/n)`.
-  - Combine to show `4*(1+δ)^12 / n^(3/2) ≤ 4*(1.000675)^12*(1/X₀)*(1/n)`.
-  - Then use `hn` (so `1/n ≤ 1/X₀^2`) and `norm_num` (after `dsimp [X₀]`)
-    to show the RHS ≤ 1.
-  - Conclude `0 ≤ 1 - (...)` i.e. the subtracted term is ≤ 1.
-  -/
-  sorry
+/- Lemmas that are `possibly` not useful -/
+lemma hx₀_pos : (0 : ℝ) < X₀ := by
+    unfold X₀; norm_num
+@[simp] lemma X₀_pos : (0 : ℝ) < (X₀ : ℝ) := by
+  exact hx₀_pos
+
+lemma hsqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) : √(n : ℝ) ≥ X₀ := by
+  simpa using sqrt_le_sqrt (by exact_mod_cast hn : (n : ℝ) ≥ X₀ ^ 2)
+
+lemma log_X₀_gt : Real.log X₀ > 11.4 := by
+  dsimp [X₀]
+  rw [gt_iff_lt, show (11.4 : ℝ) = 57 / (5 : ℕ) by norm_num, div_lt_iff₀ (by norm_num),
+    mul_comm, ← Real.log_pow, Real.lt_log_iff_exp_lt (by norm_num), ← Real.exp_one_rpow]
+  grw [Real.exp_one_lt_d9]
+  norm_num
+
+lemma hlog {n : ℕ} (hn : n ≥ X₀ ^ 2) : log √(n : ℝ) ≥ 11.4 := by
+  have hpos : (0 : ℝ) < X₀ := by
+    -- try without unfolding first
+   unfold X₀
+   norm_num
+  calc log √(n : ℝ) ≥ log (X₀ : ℝ) :=
+        log_le_log hpos (hsqrt_ge hn)
+    _ ≥ 11.4 := log_X₀_gt.le
+
+
+lemma hε_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < 1 + 1 / (log √(n : ℝ)) ^ 3 := by
+  positivity [hlog hn]
+
+lemma log_X₀_pos : 0 < Real.log X₀ := by linear_combination log_X₀_gt
 
 
 
-@[blueprint
-  "lem:eps-bounds"
-  (title := "Uniform bounds for large \\(n\\)")
-  (statement := /--
-  For all \(n \ge X_0^2\) we have
-  \[
-    \frac{1}{\log^3 \sqrt{n}}
-    \le 0.000675,
-    \qquad
-    \frac{1}{n^{3/2}} \le \frac{1}{X_0}\cdot\frac{1}{n}.
-  \]
-  and
-  \[ \frac{1}{n+\sqrt{n}} \ge \frac{1}{1 + 1/X_0}\cdot\frac{1}{n}. \]
-  -/)
-  (proof := /-- This is a straightforward calculus and monotonicity check: the left-hand sides are
-  decreasing in \(n\) for \(n \ge X_0^2\), and equality (or the claimed upper bound) holds at
-  \(n=X_0^2\).  One can verify numerically or symbolically. -/)
-  (latexEnv := "lemma")]
--- theorem inv_cube_log_sqrt_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
---     1 / (log √(n : ℝ)) ^ 3 ≤ eps_log := by
---   dsimp [X₀] at *
---   calc
---     1 / Real.log √n ^ 3 ≤ 1 / Real.log X₀ ^ 3 := by
---       gcongr
---       exact Real.le_sqrt_of_sq_le (mod_cast hn)
---     _ ≤ eps_log := by
---       grw [← log_X₀_gt.le]
---       simpa [eps_log] using (show (1 / (11.4 : ℝ) ^ 3) ≤ (0.000675 : ℝ) by norm_num)
-
-
+/- Original Cert lemmas -/
 
 theorem inv_cube_log_sqrt_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     1 / (log √(n : ℝ)) ^ 3 ≤ eps_log := by
     sorry
 
 
-
-
-@[blueprint
-  "lem:poly-ineq"
-  (title := "Polynomial approximation of the inequality")
-  (statement := /--
-  For \(0 \le \varepsilon \le 1/X_0^2\), we have
-  \[
-    \prod_{i=1}^3 (1 + 1.000675^i \varepsilon)
-    \le
-    \Bigl(1 + 3.01\varepsilon + 3.01\varepsilon^2 + 1.01\varepsilon^3\Bigr),
-  \]
-  and
-  \[
-    \prod_{i=1}^3 \Bigl(1 + \frac{\varepsilon}{1.000675^{2i}}\frac{1}{1 + 1/X_0}\Bigr)
-    \Bigl(1 + \frac{3}{8}\varepsilon\Bigr)
-    \Bigl(1 - \frac{4 \times 1.000675^{12}}{X_0}\varepsilon\Bigr)
-    \ge
-    1 + 3.36683\varepsilon - 0.01\varepsilon^2.
-  \]
-  -/)
-  (proof := /--
-  Expand each finite product as a polynomial in \(\varepsilon\), estimate the coefficients using
-  the bounds in Lemma~\ref{lem:eps-bounds}, and bound the tails by simple inequalities such as
-  \[
-    (1+C\varepsilon)^k \le 1 + k C\varepsilon + \dots
-  \]
-  for small \(\varepsilon\).
-  All coefficients can be bounded numerically in a rigorous way; this step is a finite computation
-  that can be checked mechanically.
-  -/)
-  (latexEnv := "lemma")]
 theorem prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
     ∏ i : Fin 3, (1 + onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) * ε) ≤
       1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 := by
   norm_cast; norm_num [Fin.prod_univ_three]; nlinarith
 
-@[blueprint
-  "lem:poly-ineq"
-  (title := "Polynomial approximation of the inequality")
-  (statement := /--
-  For \(0 \le \varepsilon \le 1/X_0^2\), we have
-  \[
-    \prod_{i=1}^3 (1 + 1.000675^i \varepsilon)
-    \le
-    \Bigl(1 + 3.01\varepsilon + 3.01\varepsilon^2 + 1.01\varepsilon^3\Bigr),
-  \]
-  and
-  \[
-    \prod_{i=1}^3 \Bigl(1 + \frac{\varepsilon}{1.000675^{2i} (1 + \frac{1}{X_0})}\Bigr)
-    \Bigl(1 + \frac{3}{8}\varepsilon\Bigr)
-    \Bigl(1 - \frac{4 \times 1.000675^{12}}{X_0}\varepsilon\Bigr)
-    \ge
-    1 + 3.36683\varepsilon - 0.01\varepsilon^2.
-  \]
-  -/)
-  (proof := /--
-  Expand each finite product as a polynomial in \(\varepsilon\), estimate the coefficients using
-  the bounds in Lemma~\ref{lem:eps-bounds}, and bound the tails by simple inequalities such as
-  \[
-    (1+C\varepsilon)^k \le 1 + k C\varepsilon + \dots
-  \]
-  for small \(\varepsilon\).
-  All coefficients can be bounded numerically in a rigorous way; this step is a finite computation
-  that can be checked mechanically.
-  -/)
-  (latexEnv := "lemma")]
+
 theorem prod_epsilon_ge {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
     (∏ i : Fin 3,
       (1 + ε / (onePlusEps_log ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 / (1 + 1/X₀)))) *
@@ -641,35 +502,14 @@ theorem prod_epsilon_ge {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : �
   nlinarith [pow_nonneg hε.left 3, pow_nonneg hε.left 4]
 
 
-@[blueprint
-  "lem:final-comparison"
-  (title := "Final polynomial comparison")
-  (statement := /--
-  For \(0 \le \varepsilon \le 1/X_0^2\), we have
-  \[
-    1 + 3.01\varepsilon + 3.01\varepsilon^2 + 1.01\varepsilon^3
-    \le 1 + 3.36683\varepsilon - 0.01\varepsilon^2.
-  \]
-  -/)
-  (proof := /--
-  This is equivalent to
-  \[
-    3.01\varepsilon + 3.01\varepsilon^2 + 1.01\varepsilon^3
-    \le 3.36683\varepsilon - 0.01\varepsilon^2,
-  \]
-  or
-  \[
-    0 \le (3.36683 - 3.01)\varepsilon - (3.01+0.01)\varepsilon^2 - 1.01\varepsilon^3.
-  \]
-  Factor out \(\varepsilon\) and use that \(0<\varepsilon \le 1/X_0^2\) to check that the
-  resulting quadratic in \(\varepsilon\) is nonnegative on this interval.  Again, this is a
-  finite computation that can be verified mechanically.
-  -/)
-  (latexEnv := "lemma")]
 theorem final_comparison {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
     1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
     dsimp [X₀] at *
     nlinarith
+
+/- End of Original Cert lemmas -/
+
+
 
 
 /-- The certified package (built from the concrete numerals in this file). -/
