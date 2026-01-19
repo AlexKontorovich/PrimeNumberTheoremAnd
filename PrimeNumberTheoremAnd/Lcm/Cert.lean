@@ -391,9 +391,15 @@ lemma delta_ratio_term_nonneg {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 
 /- End of `h_crit` lemmas-/
 
-/- Lemmas that are possibly useful in the intermediate bridge -/
+/- Lemmas required to prove h_crit: `theorem main_ineq_delta_form` -/
+/- Structural assumptions required
+assuming n ≥ X₀ ^ 2 throughout
+  1. gap.δ(√n) ≤ 0.000675 for n ≥ X₀ ^ 2
+  2. X₀ > 0 and n > 0
+-/
 lemma delta_sqrt_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     gap.δ (√(n : ℝ)) ≤ (0.000675 : ℝ) := by
+  /- This holds when gap.δ(√n) ≤ 0.000675 for n ≥ X₀ ^ 2 -/
   /-- (Cert) Numerical bound on the prime-gap delta at √n: `δ(√n) ≤ 0.000675` for `n ≥ X₀^2`. -/
   /- *** Proof idea (Dusart provider) *** :
   - unfold `gap := PrimeGaps.latest` and the definition of δ;
@@ -402,36 +408,20 @@ lemma delta_sqrt_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   -/
   sorry
 
-lemma inv_n_pow_3_div_2_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (1 / (n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (89693 : ℝ)) * (1 / n) := by
-  /- (Cert) Bound `1/n^(3/2)` by `(1/89693) * (1/n)` for `n ≥ X₀^2`. -/
-  /- *** Proof idea *** :
-  - rewrite `n^(3/2) = n*√n`;
-  - from `hn` get `√n ≥ 89693`;
-  - conclude `1/(n*√n) ≤ (1/n)*(1/89693)`.
-  -/
-  sorry
-
 lemma inv_n_pow_3_div_2_le_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (1 / (n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (X₀ : ℝ)) * (1 / n) := by
+  /- This holds when X₀ > 0 and n > 0 -/
   /- *** Proof idea *** :
   - rewrite `n^(3/2) = n*√n`;
-  - from `hn` get `√n ≥ 89693`;
-  - conclude `1/(n*√n) ≤ (1/n)*(1/89693)`.
+  - from `hn` get `√n ≥ X₀`;
+  - conclude `1/(n*√n) ≤ (1/n)*(1/X₀)`.
   -/
   sorry
 
-lemma inv_n_add_sqrt_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (1 / (n : ℝ) + √(n : ℝ)) ≥ (1 / (1 + 1 / (89693 : ℝ))) * (1 / n) := by
-  /- (Cert) Lower bound for `1/(n+√n)` in terms of `1/n`. -/
-  /- *** Proof idea *** :
-  - show `n + √n ≤ (1 + 1/89693)*n` using `√n ≤ n/89693` from `√n ≥ 89693`;
-  - invert (monotone since positive) to obtain the displayed inequality.
-  -/
-  sorry
 
 lemma inv_n_add_sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (1 / ((n : ℝ) + √(n : ℝ))) ≥ (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) := by
+  /- This holds when X₀ > 0 and n > 0 -/
   /- *** Proof idea *** :
   - from `√n ≥ X₀` deduce `√n ≤ (n:ℝ) / X₀` (since `n = (√n)^2`)
   - so `n + √n ≤ n + n/X₀ = (1+1/X₀)*n`
@@ -441,6 +431,7 @@ lemma inv_n_add_sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 
 lemma inv_n_le_inv_X₀_sq {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (1 : ℝ) / (n : ℝ) ≤ (1 : ℝ) / (X₀ ^ 2 : ℕ) := by
+  /- This holds when n > 0 and X₀ ≠ 0 -/
   /- *** Proof idea *** :
   - cast `hn` to reals: `(X₀^2 : ℝ) ≤ (n : ℝ)`
   - use `one_div_le_one_div_of_le` with positivity of `(X₀^2 : ℝ)`
@@ -448,7 +439,7 @@ lemma inv_n_le_inv_X₀_sq {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   sorry
 
 
-/- End of lemmas that are possibly useful in the intermediate bridge -/
+/- End of lemmas required to prove h_crit: `theorem main_ineq_delta_form` -/
 
 
 
