@@ -95,6 +95,7 @@ Complete structural assumptions:
 4. √n ≤ n / (1 + gap.δ(√n)) ^ 3 for n ≥ X₀ ^ 2
     -- equivalent to (1 + gap.δ(√n)) ^ 3 ≤ √n when n, gap.δ(√n) ≥ 0
 5. (1 + gap.δ (√n)) ^ 6 < √n for n ≥ X₀ ^ 2, this implies 4. when 1 + gap.δ(√n) ≥ 0
+6. 4 * (1 + gap.δ (√n)) ^ 12 ≤ n ^ (3 / 2) for n ≥ X₀ ^ 2
 -/
 
 /- theorem `exists_p_primes` lemmas -/
@@ -323,6 +324,7 @@ assuming n ≥ X₀ ^ 2 throughout
   1. X₀ > 1
   2. gap.δ(x) ≥ 0 for x ≥ X₀
   3. (1 + gap.δ (√n)) ^ 6 < √n for n ≥ X₀ ^ 2
+  4. 4 * (1 + gap.δ (√n)) ^ 12 ≤ n ^ (3 / 2) for n ≥ X₀ ^ 2
 -/
 
 
