@@ -86,11 +86,22 @@ lemma gap_delta_strict_antitone_of_lt {a b : ℝ} (ha : 1 < a) (hab : a < b) :
     one_div_lt_one_div_of_lt hpow_pos hpow_lt
   simpa [gap_delta_def] using hdiv_lt
 
+
+/-
+Complete structural assumptions:
+1. X₀ ≥ 1
+2. gap.δ(x) ≥ 0 for x ≥ X₀
+3. gap.δ(x) is decreasing for x ≥ X₀
+4. √n ≤ n / (1 + gap.δ(√n)) ^ 3 for n ≥ X₀ ^ 2
+    -- equivalent to (1 + gap.δ(√n)) ^ 3 ≤ √n when n, gap.δ(√n) ≥ 0
+5. (1 + gap.δ (√n)) ^ 6 < √n for n ≥ X₀ ^ 2, this implies 4. when 1 + gap.δ(√n) ≥ 0
+-/
+
 /- theorem `exists_p_primes` lemmas -/
 /- Structural assumptions required
 assuming n ≥ X₀ ^ 2 throughout
   1. X₀ ≥ 0
-  2. gap.δ(x) ≥ 0 for x ≥ X₀ (holds since X₀ > 1)
+  2. gap.δ(x) ≥ 0 for x ≥ X₀
   3. gap.δ is decreasing for x ≥ X₀
 -/
 
@@ -280,7 +291,8 @@ lemma p_mul_padd1_le_bound
 /- theorem `pq_ratio_ge` lemmas -/
 /- Structural assumptions required
 assuming n ≥ X₀ ^ 2 throughout
-  1. X₀ ≠ 0
+  1. X₀ > 0
+  2. gap.δ(x) ≥ 0 for x ≥ X₀
 -/
 
 lemma n_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : (0 : ℝ) < (n : ℝ) := by
@@ -297,17 +309,9 @@ lemma pq_ratio_rhs_as_fraction {n : ℕ} (hn : n ≥ X₀ ^ 2) :
       /
     (∏ i : Fin 3,
         (n : ℝ) / (1 + gap.δ (√(n : ℝ))) ^ ((3 : ℕ) - (i : ℕ))) := by
-    /- RHS rewrite for `pq_ratio_ge`** (this is the key “plumbing lemma”).
-      It rewrites the analytic bound
-      `4 * (1 + δ(√n))^12 / n^(3/2)`
-      into a ratio of two *products* that match the pointwise bounds exported by
-      `exists_p_primes` and `exists_q_primes`. -/
-    /- **Proof idea:** let `b := 1 + gap.δ(√n)` (note `b>0`).
-    Compute explicitly over `Fin 3`:
-    - `∏ i, √n * b^((i:ℕ)+1) = n^(3/2) * b^6`
-    - `∏ i, (n:ℝ) / b^((3:ℕ)-(i:ℕ)) = n^3 * b^(-6)`
-    Then combine to get the ratio equals `b^12 / n^(3/2)` and multiply by `4`. -/
-  sorry
+    /- This is structural
+     This holds when gap.δ(x) ≥ 0 for x ≥ X₀, and X₀ > 0 -/
+    sorry
 /- End of theorem `pq_ratio_ge` lemmas-/
 
 
@@ -317,6 +321,8 @@ Final criterion structure in Main.lean
 /- Structural assumptions required
 assuming n ≥ X₀ ^ 2 throughout
   1. X₀ > 1
+  2. gap.δ(x) ≥ 0 for x ≥ X₀
+  3. (1 + gap.δ (√n)) ^ 6 < √n for n ≥ X₀ ^ 2
 -/
 
 
@@ -336,13 +342,12 @@ lemma ord2_mid {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     √(n : ℝ) * (1 + gap.δ (√(n : ℝ))) ^ (3 : ℕ)
       <
     (n : ℝ) / (1 + gap.δ (√(n : ℝ))) ^ (3 : ℕ) := by
-  /- (Cert) The key “middle inequality” used in `h_ord_2`: upper bound for `p₂` is below lower bound for `q₀`. -/
-  /- *** Proof idea *** :
-  - Let b := 1 + δ(√n). From `delta_sqrt_le` get b ≤ 1.000675.
-  - Then b^6 ≤ (1.000675)^6 < 2 (checked by `norm_num`).
-  - Also from `hn : n ≥ X₀^2` we know √n ≥ X₀, and for the concrete X₀ we have 2 ≤ √n.
-  - So b^6 < √n, which is equivalent to √n*b^3 < n/b^3 (algebra, using n = (√n)^2).
-  -/
+  /- This holds when
+    1. gap.δ(x) ≥ 0 for x ≥ X₀
+    2. X₀ > 0
+    3. (1 + gap.δ (√n)) ^ 6 < √n for n ≥ X₀ ^ 2
+    4. 4 * (1 + gap.δ (√n)) ^ 12 ≤ n ^ (3 / 2) for n ≥ X₀ ^ 2
+   -/
   sorry
 /- End of `h_ord_2` lemmas -/
 
@@ -367,32 +372,19 @@ theorem main_ineq_delta_form {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   sorry
 
 
-lemma delta_prod_mul_nonneg {n : ℕ} (hn : n ≥ Lcm.X₀ ^ 2) :
+lemma delta_prod_mul_nonneg {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     0 ≤
       (∏ i : Fin 3,
           (1 + 1 /
-            ((1 + Lcm.gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ)
+            ((1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ)
               * ((n : ℝ) + √(n : ℝ)) )))
         * (1 + (3 : ℝ) / (8 * (n : ℝ))) := by
-  /- *** Proof idea ***:
-  1) `hn` ⇒ `0 < (n:ℝ)`; hence also `0 < (n:ℝ) + √(n:ℝ)`.
-  2) `one_add_delta_pos hn` ⇒ `0 < 1 + δ(√n)` ⇒ `0 < (1+δ(√n))^(...)` by `Real.rpow_pos_of_pos`.
-  3) Therefore the denominator in each factor is positive, so `1 / denom ≥ 0`,
-     hence each factor `1 + ... ≥ 0`, so the product is ≥ 0.
-  4) Also `1 + 3/(8*n) ≥ 0`. Multiply nonnegatives.
-  -/
+  /- holds when gap.δ(x) > 0 for x ≥ X₀ and X₀ > 0 -/
   sorry
 
-lemma delta_ratio_term_nonneg {n : ℕ} (hn : n ≥ Lcm.X₀ ^ 2) :
-    0 ≤ 1 - 4 * (1 + Lcm.gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
-  /- *** Proof idea (in Cert) ***:
-  - Use `delta_sqrt_le hn : gap.δ(√n) ≤ 0.000675` so `(1+δ)^12 ≤ (1.000675)^12`.
-  - Use `inv_n_pow_3_div_2_le_X₀ hn : 1/n^(3/2) ≤ (1/X₀)*(1/n)`.
-  - Combine to show `4*(1+δ)^12 / n^(3/2) ≤ 4*(1.000675)^12*(1/X₀)*(1/n)`.
-  - Then use `hn` (so `1/n ≤ 1/X₀^2`) and `norm_num` (after `dsimp [X₀]`)
-    to show the RHS ≤ 1.
-  - Conclude `0 ≤ 1 - (...)` i.e. the subtracted term is ≤ 1.
-  -/
+lemma delta_ratio_term_nonneg {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    0 ≤ 1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
+  /- holds when 4 * (1 + gap.δ(√n)) ^ 12 ≤ n ^ (3 / 2) for n ≥ X₀ ^ 2 -/
   sorry
 
 /- End of `h_crit` lemmas-/
