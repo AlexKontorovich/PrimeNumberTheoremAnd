@@ -9,7 +9,7 @@ blueprint_comment /--
 In this file we record the implications in the paper \cite{FKS2} that allow one to convert primary bounds on $E_\psi$ into secondary bounds on $E_\pi$, $E_\theta$.
 -/
 
-open Real
+open Real MeasureTheory Chebyshev
 
 namespace FKS2
 
@@ -41,10 +41,19 @@ noncomputable def g_bound (a b c x : ℝ) : ℝ := x^(-a) * (log x)^b * exp (c *
   (latexEnv := "sublemma")
   (discussion := 609)]
 theorem eq_17 {x₀ x : ℝ} (hx₀ : x₀ ≥ 2) (hx : x > x₀) :
-  (pi x - Li x) - (pi x₀ - Li x₀) =
+    (pi x - Li x) - (pi x₀ - Li x₀) =
     (θ x - x) / log x - (θ x₀ - x₀) / log x₀ +
     ∫ t in x₀..x, (θ t - t) / (t * log t ^ 2) :=
-  sorry
+  have px : x ≥ 2 := by linarith
+  have he {x} (hx : x ≥ 2) : pi x - Li x = (θ x - x) / log x + 2 / log 2
+    + ∫ t in 2..x, (θ t - t) / (t * log t ^ 2) := by sorry
+  calc
+  _ = (θ x - x) / log x - (θ x₀ - x₀) / log x₀ + ((∫ t in 2..x, (θ t - t) / (t * log t ^ 2)) -
+    ∫ t in 2..x₀, (θ t - t) / (t * log t ^ 2)) := by rw [he px, he hx₀]; ring
+  _ = (θ x - x) / log x - (θ x₀ - x₀) / log x₀ + ∫ t in x₀..x, (θ t - t) / (t * log t ^ 2) := by
+    rw [intervalIntegral.integral_interval_sub_left]
+    · sorry
+    · sorry
 
 @[blueprint
   "fks2-lemma-10-substep"
