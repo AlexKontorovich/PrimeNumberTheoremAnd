@@ -429,6 +429,34 @@ lemma inv_n_add_sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   -/
   sorry
 
+theorem main_ineq_delta_form_lhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (∏ i : Fin 3,
+        (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
+      ≤ (∏ i : Fin 3,
+        (1 + (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ))) := by
+      /- This holds when gap.δ(√n) ≤ 0.000675 for n ≥ X₀ ^ 2 -/
+      /- *** Proof idea *** :
+        by applying `delta_sqrt_le` to bound `gap.δ (√(n : ℝ))` by `0.000675` -/
+      sorry
+
+theorem main_ineq_delta_form_rhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (∏ i : Fin 3,
+        (1 + 1 /
+          ((1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+      * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+      * (1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ))
+    ≥ (∏ i : Fin 3,
+        (1 + 1 /
+          ((1.000675) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+      * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+      * (1 - 4 * (1.000675) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ))) := by
+      /- This holds when gap.δ(√n) ≤ 0.000675 for n ≥ X₀ ^ 2, X₀ > 0, and n > 0 -/
+      /- *** Proof idea ***
+      applying `delta_sqrt_le`, `inv_n_add_sqrt_ge_X₀`, and `inv_n_pow_3_div_2_le_X₀` to rewrite
+      the inequality
+      -/
+      sorry
+
 
 /- End of lemmas required to prove h_crit: `theorem main_ineq_delta_form` -/
 
