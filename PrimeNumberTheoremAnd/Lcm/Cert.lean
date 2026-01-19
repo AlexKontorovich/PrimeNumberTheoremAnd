@@ -66,6 +66,44 @@ lemma gap_delta_antitone_of_le {a b : ℝ} (ha : 1 < a) (hab : a ≤ b) :
     one_div_le_one_div_of_le hpow_pos hpow_le
   simpa [gap_delta_def] using hdiv_le
 
+lemma gap_delta_le_one_of_three_le {x : ℝ} (hx : (3 : ℝ) ≤ x) : gap.δ x ≤ 1 := by
+  have hx_pos : 0 < x := lt_of_lt_of_le (by norm_num) hx
+
+  -- First show `1 < log x` using `exp 1 < 3 ≤ x`.
+  have hexp1_lt_x : Real.exp (1 : ℝ) < x := by
+    have hexp1_lt_3 : Real.exp (1 : ℝ) < (3 : ℝ) := by
+      sorry
+      -- simpa using Real.exp_one_lt_d9
+    have h3_lt_x : (3 : ℝ) < x := by sorry --linarith
+    exact lt_trans hexp1_lt_3 h3_lt_x
+  have hlog_gt_one : (1 : ℝ) < log x := (Real.lt_log_iff_exp_lt hx_pos).2 hexp1_lt_x
+  have h1le_log : (1 : ℝ) ≤ log x := le_of_lt hlog_gt_one
+
+  -- Hence `(log x)^3 ≥ 1`, so its reciprocal is ≤ 1.
+  have hpow_ge : (1 : ℝ) ≤ (log x) ^ (3 : ℝ) := by
+    have : (1 : ℝ) ^ (3 : ℝ) ≤ (log x) ^ (3 : ℝ) :=
+      Real.rpow_le_rpow (by norm_num) h1le_log (by norm_num)
+    simpa using this
+  have hdiv : (1 / (log x) ^ (3 : ℝ)) ≤ (1 : ℝ) := by
+    have : (1 / (log x) ^ (3 : ℝ)) ≤ 1 / (1 : ℝ) :=
+      one_div_le_one_div_of_le (by norm_num) hpow_ge
+    simpa using this
+
+  simpa [gap_delta_def] using hdiv
+
+
+lemma gap_delta_strict_antitone_of_lt {a b : ℝ} (ha : 1 < a) (hab : a < b) :
+    gap.δ b < gap.δ a := by
+  have ha_pos : 0 < a := lt_trans (by norm_num) ha
+  have hlog_lt : log a < log b := log_lt_log ha_pos hab
+  have hloga_pos : 0 < log a := Real.log_pos ha
+  have hloga_nonneg : 0 ≤ log a := le_of_lt hloga_pos
+  have hpow_lt : (log a) ^ (3 : ℝ) < (log b) ^ (3 : ℝ) := by
+    exact Real.rpow_lt_rpow hloga_nonneg hlog_lt (by norm_num)
+  have hpow_pos : 0 < (log a) ^ (3 : ℝ) := Real.rpow_pos_of_pos hloga_pos (3 : ℝ)
+  have hdiv_lt : (1 / (log b) ^ (3 : ℝ)) < 1 / (log a) ^ (3 : ℝ) :=
+    one_div_lt_one_div_of_lt hpow_pos hpow_lt
+  simpa [gap_delta_def] using hdiv_lt
 
 lemma sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (X₀ : ℝ) ≤ √(n : ℝ) := by
@@ -204,39 +242,239 @@ lemma y0_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) ^ 3 := by
-    /- *** Proof idea ***:
-    this is your current `hy₀_ge` proof -/
-    sorry
+  dsimp
+  set x : ℝ := √(n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+
+  have hxX : (X₀ : ℝ) ≤ x := by
+    simpa [hx] using (sqrt_ge_X₀ (n := n) hn)
+
+  -- Crude bounds: `x ≥ X₀ ≥ 8` and `ε ≤ 1`, hence `(1+ε)^3 ≤ 8 ≤ x`.
+  have hX₀_ge8 : (8 : ℝ) ≤ (X₀ : ℝ) := by
+    unfold X₀
+    norm_num
+  have hx_ge8 : (8 : ℝ) ≤ x := le_trans hX₀_ge8 hxX
+  have hx_ge3 : (3 : ℝ) ≤ x := by linarith [hx_ge8]
+  have hε_le_one : ε ≤ 1 := by
+    simpa [hε] using (gap_delta_le_one_of_three_le (x := x) hx_ge3)
+  have hε_nonneg : 0 ≤ ε := by
+    -- `x > 1` because `x ≥ 8`.
+    have hx_one : (1 : ℝ) < x := by linarith [hx_ge8]
+    simpa [hε] using (gap_delta_nonneg_of_one_lt (x := x) hx_one)
+  have honeplus_le2 : (1 + ε) ≤ (2 : ℝ) := by linarith
+  have honeplus_nonneg : 0 ≤ (1 + ε) := by linarith
+  have hpow3_le8 : (1 + ε) ^ 3 ≤ (8 : ℝ) := by
+    have : (1 + ε) ^ 3 ≤ (2 : ℝ) ^ 3 :=
+      -- pow_le_pow_of_le_left honeplus_nonneg honeplus_le2 3
+      sorry
+    norm_num at this
+    simpa using this
+  have hden_le_x : (1 + ε) ^ 3 ≤ x := le_trans hpow3_le8 hx_ge8
+
+  -- Turn this into `X₀ ≤ n / (1+ε)^3` by clearing denominators.
+  have hx_nonneg : 0 ≤ x := by
+    simpa [hx] using (sqrt_nonneg (n : ℝ))
+  have honeplus_pos : 0 < (1 + ε) := by linarith
+  have hden_pos : 0 < (1 + ε) ^ 3 := pow_pos honeplus_pos 3
+
+  have hxx_eq_n : x * x = (n : ℝ) := by
+    -- `x = √n` by definition.
+    simpa [hx] using (mul_self_sqrt (Nat.cast_nonneg n))
+
+  have hmul : (X₀ : ℝ) * (1 + ε) ^ 3 ≤ (n : ℝ) := by
+    -- `X₀*(1+ε)^3 ≤ x*(1+ε)^3 ≤ x*x = n`.
+    have hden_nonneg : 0 ≤ (1 + ε) ^ 3 := pow_nonneg honeplus_nonneg 3
+    have h1 : (X₀ : ℝ) * (1 + ε) ^ 3 ≤ x * (1 + ε) ^ 3 :=
+      mul_le_mul_of_nonneg_right hxX hden_nonneg
+    have h2 : x * (1 + ε) ^ 3 ≤ x * x :=
+      mul_le_mul_of_nonneg_left hden_le_x hx_nonneg
+    have : (X₀ : ℝ) * (1 + ε) ^ 3 ≤ x * x := le_trans h1 h2
+    simpa [hxx_eq_n] using this
+
+  exact (le_div_iff₀ hden_pos).2 hmul
 
 
 lemma y1_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) ^ 2 := by
-    /- *** Proof idea ***:
-    derived from y0_ge_X₀ and monotonicity of division by positive numbers
-    -/
-    sorry
+  /- Derived from `y0_ge_X₀` plus the fact that dividing by `(1+ε)^2` is larger than
+     dividing by `(1+ε)^3` when `1+ε ≥ 1`. -/
+  dsimp
+  set x : ℝ := √(n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+
+  have hy0 : (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) ^ 3 := by
+    -- reuse the previous lemma
+    simpa [hx, hε] using (y0_ge_X₀ (n := n) hn)
+
+  -- Show `(n)/(1+ε)^3 ≤ (n)/(1+ε)^2`.
+  have hX₀_ge8 : (8 : ℝ) ≤ (X₀ : ℝ) := by
+    unfold X₀
+    norm_num
+  have hxX : (X₀ : ℝ) ≤ x := by
+    simpa [hx] using (sqrt_ge_X₀ (n := n) hn)
+  have hx_ge8 : (8 : ℝ) ≤ x := le_trans hX₀_ge8 hxX
+  have hx_one : (1 : ℝ) < x := by linarith [hx_ge8]
+  have hε_nonneg : 0 ≤ ε := by
+    simpa [hε] using (gap_delta_nonneg_of_one_lt (x := x) hx_one)
+  have honeplus_pos : 0 < (1 + ε) := by linarith
+  have honeplus_nonneg : 0 ≤ (1 + ε) := by linarith
+  have hone_le : (1 : ℝ) ≤ (1 + ε) := le_add_of_nonneg_right hε_nonneg
+  have hpow_nonneg : 0 ≤ (1 + ε) ^ 2 := pow_nonneg honeplus_nonneg 2
+  have hpow_le : (1 + ε) ^ 2 ≤ (1 + ε) ^ 3 := by
+    -- `(1+ε)^3 = (1+ε)^2 * (1+ε)` and `1 ≤ 1+ε`.
+    have : (1 + ε) ^ 2 ≤ (1 + ε) ^ 2 * (1 + ε) :=
+      le_mul_of_one_le_right hpow_nonneg hone_le
+    simpa [pow_succ, mul_assoc] using this
+  have hpow_pos : 0 < (1 + ε) ^ 2 := pow_pos honeplus_pos 2
+  have hinv : (1 : ℝ) / (1 + ε) ^ 3 ≤ (1 : ℝ) / (1 + ε) ^ 2 :=
+    one_div_le_one_div_of_le hpow_pos hpow_le
+  have hn_nonneg : 0 ≤ (n : ℝ) := by positivity
+  have hdiv : (n : ℝ) / (1 + ε) ^ 3 ≤ (n : ℝ) / (1 + ε) ^ 2 := by
+    -- multiply the inverse inequality by `n ≥ 0`
+    have := mul_le_mul_of_nonneg_left hinv hn_nonneg
+    -- `n * (1/d) = n/d`
+    simpa [one_div, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using this
+
+  exact le_trans hy0 hdiv
 
 lemma y2_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) := by
-    /- *** Proof idea ***:
-    same pattern as y1_ge_X₀ -/
-    sorry
+  /- Same pattern as `y1_ge_X₀`: `n/(1+ε) ≥ n/(1+ε)^2`. -/
+  dsimp
+  set x : ℝ := √(n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+
+  have hy1 : (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) ^ 2 := by
+    simpa [hx, hε] using (y1_ge_X₀ (n := n) hn)
+
+  have hX₀_ge8 : (8 : ℝ) ≤ (X₀ : ℝ) := by
+    unfold X₀
+    norm_num
+  have hxX : (X₀ : ℝ) ≤ x := by
+    simpa [hx] using (sqrt_ge_X₀ (n := n) hn)
+  have hx_ge8 : (8 : ℝ) ≤ x := le_trans hX₀_ge8 hxX
+  have hx_one : (1 : ℝ) < x := by linarith [hx_ge8]
+  have hε_nonneg : 0 ≤ ε := by
+    simpa [hε] using (gap_delta_nonneg_of_one_lt (x := x) hx_one)
+  have honeplus_pos : 0 < (1 + ε) := by linarith
+  have honeplus_nonneg : 0 ≤ (1 + ε) := by linarith
+  have hone_le : (1 : ℝ) ≤ (1 + ε) := le_add_of_nonneg_right hε_nonneg
+
+  have hpow_nonneg : 0 ≤ (1 + ε) := honeplus_nonneg
+  have hpow_le : (1 + ε) ≤ (1 + ε) ^ 2 := by
+    -- `(1+ε)^2 = (1+ε) * (1+ε)` and `1 ≤ 1+ε`.
+    have : (1 + ε) * (1 : ℝ) ≤ (1 + ε) * (1 + ε) :=
+      mul_le_mul_of_nonneg_left hone_le hpow_nonneg
+    simpa [pow_two, mul_assoc, mul_left_comm, mul_comm] using this
+  have hpow_pos : 0 < (1 + ε) := honeplus_pos
+  have hinv : (1 : ℝ) / (1 + ε) ^ 2 ≤ (1 : ℝ) / (1 + ε) := by
+    -- Use antitonicity of `1/x`.
+    -- Here `a = 1+ε`, `b = (1+ε)^2`.
+    have hpos : 0 < (1 + ε) := honeplus_pos
+    have : (1 : ℝ) / (1 + ε) ^ 2 ≤ (1 : ℝ) / (1 + ε) := by
+      -- `1/(b) ≤ 1/(a)` since `a ≤ b`.
+      exact one_div_le_one_div_of_le hpos hpow_le
+    simpa [pow_two] using this
+  have hn_nonneg : 0 ≤ (n : ℝ) := by positivity
+  have hdiv : (n : ℝ) / (1 + ε) ^ 2 ≤ (n : ℝ) / (1 + ε) := by
+    have := mul_le_mul_of_nonneg_left hinv hn_nonneg
+    simpa [one_div, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using this
+
+  exact le_trans hy1 hdiv
 
 lemma y0_mul_one_add_delta_le_y1 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     let y0 : ℝ := (n : ℝ) / (1 + ε) ^ 3
     y0 * (1 + gap.δ y0) ≤ (n : ℝ) / (1 + ε) ^ 2 := by
-    /- Step 0: from y0’s Dusart upper bound to y1. -/
-    /- *** Proof idea ***:
-    y0 ≥ x  (proved below or inline)
-    δ(y0) ≤ ε  (Dusart monotonicity of 1/log^3)
-    algebra: y0*(1+ε)= n/(1+ε)^2 -/
+  dsimp
+  set x : ℝ := √(n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+  set y0 : ℝ := (n : ℝ) / (1 + ε) ^ 3 with hy0
+
+  have hX₀_ge8 : (8 : ℝ) ≤ (X₀ : ℝ) := by
+    unfold X₀
+    norm_num
+  have hxX : (X₀ : ℝ) ≤ x := by
+    simpa [hx] using (sqrt_ge_X₀ (n := n) hn)
+  have hx_ge8 : (8 : ℝ) ≤ x := le_trans hX₀_ge8 hxX
+  have hx_one : (1 : ℝ) < x := by linarith [hx_ge8]
+
+  have hε_nonneg : 0 ≤ ε := by
+    simpa [hε] using (gap_delta_nonneg_of_one_lt (x := x) hx_one)
+  have hε_le_one : ε ≤ 1 := by
+    have hx_ge3 : (3 : ℝ) ≤ x := by linarith [hx_ge8]
+    simpa [hε] using (gap_delta_le_one_of_three_le (x := x) hx_ge3)
+  have honeplus_nonneg : 0 ≤ (1 + ε) := by linarith
+  have honeplus_pos : 0 < (1 + ε) := by linarith
+  have honeplus_le2 : (1 + ε) ≤ (2 : ℝ) := by linarith
+  have hpow3_le8 : (1 + ε) ^ 3 ≤ (8 : ℝ) := by
+    have : (1 + ε) ^ 3 ≤ (2 : ℝ) ^ 3 :=
+      sorry
+      -- pow_le_pow_of_le_left honeplus_nonneg honeplus_le2 3
+    norm_num at this
+    simpa using this
+  have hden_le_x : (1 + ε) ^ 3 ≤ x := le_trans hpow3_le8 hx_ge8
+  have hx_nonneg : 0 ≤ x := by
+    simpa [hx] using (sqrt_nonneg (n : ℝ))
+
+  -- First show `x ≤ y0`.
+  have hxx_eq_n : x * x = (n : ℝ) := by
+    simpa [hx] using (mul_self_sqrt (Nat.cast_nonneg n))
+  have hx_le_y0 : x ≤ y0 := by
+    -- `x ≤ n / (1+ε)^3` iff `x*(1+ε)^3 ≤ n`.
+    have hmul : x * (1 + ε) ^ 3 ≤ (n : ℝ) := by
+      have : x * (1 + ε) ^ 3 ≤ x * x :=
+        mul_le_mul_of_nonneg_left hden_le_x hx_nonneg
+      simpa [hxx_eq_n] using this
+    -- clear denominators
+    have hden_pos : 0 < (1 + ε) ^ 3 := pow_pos honeplus_pos 3
+    exact (le_div_iff₀ hden_pos).2 hmul
+
+  -- Hence `δ(y0) ≤ δ(x) = ε`.
+  have hδy0_le : gap.δ y0 ≤ ε := by
+    -- We can use antitonicity on `(1,∞)`.
+    have : gap.δ y0 ≤ gap.δ x :=
+      gap_delta_antitone_of_le (a := x) (b := y0) hx_one hx_le_y0
+    simpa [hε] using this
+
+  -- Multiply out: `y0*(1+δ y0) ≤ y0*(1+ε)`.
+  have hy0_nonneg : 0 ≤ y0 := by
+    -- `n ≥ X₀^2` ensures `n > 0`, and the denominator is positive.
+    have hnpos : 0 < (n : ℝ) := by
+      have hX0pos : 0 < X₀ := by
+        unfold X₀
+        norm_num
+      have hnpos_nat : 0 < n :=
+        lt_of_lt_of_le (pow_pos hX0pos 2) hn
+      exact_mod_cast hnpos_nat
+    have hdenpos : 0 < (1 + ε) ^ 3 := pow_pos honeplus_pos 3
+    -- `y0 = n / (1+ε)^3`.
+    have : 0 ≤ (n : ℝ) / (1 + ε) ^ 3 := by
+      exact div_nonneg hnpos.le (le_of_lt hdenpos)
+    simpa [hy0] using this
+
+  have hmul_le : y0 * (1 + gap.δ y0) ≤ y0 * (1 + ε) := by
+    -- `1 + δ y0 ≤ 1 + ε` and `y0 ≥ 0`.
+    have : (1 + gap.δ y0) ≤ (1 + ε) := by linarith
+    exact mul_le_mul_of_nonneg_left this hy0_nonneg
+
+  -- Finally `y0*(1+ε) = n/(1+ε)^2`.
+  have halg : y0 * (1 + ε) = (n : ℝ) / (1 + ε) ^ 2 := by
     sorry
+    -- -- Expand `y0` and cancel one factor of `1+ε`.
+    -- -- `y0*(1+ε) = n/(1+ε)^3 * (1+ε) = n/(1+ε)^2`.
+    -- have hne : (1 + ε) ≠ 0 := by linarith
+    -- -- Use `field_simp` for clean cancellation.
+    -- -- (`field_simp` needs the nonzero of `1+ε`.)
+    -- field_simp [hy0, hne, pow_succ, mul_assoc, mul_left_comm, mul_comm]
+  -- Put everything together.
+  have := le_trans hmul_le (le_of_eq halg)
+  simpa [hy0] using this
 
 
 lemma y1_mul_one_add_delta_le_y2 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
@@ -244,22 +482,154 @@ lemma y1_mul_one_add_delta_le_y2 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let ε : ℝ := gap.δ x
     let y1 : ℝ := (n : ℝ) / (1 + ε) ^ 2
     y1 * (1 + gap.δ y1) ≤ (n : ℝ) / (1 + ε) := by
-    /-- Step 1: from y1’s upper bound to y2. -/
-    /- *** Proof idea ***:
-    same pattern-/
+  dsimp
+  set x : ℝ := √(n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+  set y1 : ℝ := (n : ℝ) / (1 + ε) ^ 2 with hy1
+
+  have hX₀_ge8 : (8 : ℝ) ≤ (X₀ : ℝ) := by
+    unfold X₀
+    norm_num
+  have hxX : (X₀ : ℝ) ≤ x := by
+    simpa [hx] using (sqrt_ge_X₀ (n := n) hn)
+  have hx_ge8 : (8 : ℝ) ≤ x := le_trans hX₀_ge8 hxX
+  have hx_one : (1 : ℝ) < x := by linarith [hx_ge8]
+  have hε_nonneg : 0 ≤ ε := by
+    simpa [hε] using (gap_delta_nonneg_of_one_lt (x := x) hx_one)
+  have honeplus_pos : 0 < (1 + ε) := by linarith
+  have honeplus_nonneg : 0 ≤ (1 + ε) := by linarith
+
+  -- First show `x ≤ y1`.
+  have hpow_le : (1 + ε) ^ 2 ≤ x := by
+    -- As before, a crude bound `(1+ε)^2 ≤ 4 ≤ x`.
+    have hx_ge3 : (3 : ℝ) ≤ x := by linarith [hx_ge8]
+    have hε_le_one : ε ≤ 1 := by
+      simpa [hε] using (gap_delta_le_one_of_three_le (x := x) hx_ge3)
+    have honeplus_le2 : (1 + ε) ≤ (2 : ℝ) := by linarith
+    have hpow2_le4 : (1 + ε) ^ 2 ≤ (4 : ℝ) := by
+      have : (1 + ε) ^ 2 ≤ (2 : ℝ) ^ 2 :=
+        sorry
+        -- pow_le_pow_of_le_left honeplus_nonneg honeplus_le2 2
+      norm_num at this
+      simpa using this
+    have hx_ge4 : (4 : ℝ) ≤ x := by linarith [hx_ge8]
+    exact le_trans hpow2_le4 hx_ge4
+
+  have hx_nonneg : 0 ≤ x := by
+    simpa [hx] using (sqrt_nonneg (n : ℝ))
+  have hxx_eq_n : x * x = (n : ℝ) := by
+    simpa [hx] using (mul_self_sqrt (Nat.cast_nonneg n))
+
+  have hx_le_y1 : x ≤ y1 := by
+    -- `x ≤ n/(1+ε)^2` iff `x*(1+ε)^2 ≤ n`.
+    have hmul : x * (1 + ε) ^ 2 ≤ (n : ℝ) := by
+      have : x * (1 + ε) ^ 2 ≤ x * x :=
+        mul_le_mul_of_nonneg_left hpow_le hx_nonneg
+      simpa [hxx_eq_n] using this
+    have hden_pos : 0 < (1 + ε) ^ 2 := pow_pos honeplus_pos 2
+    exact (le_div_iff₀ hden_pos).2 hmul
+
+  -- Hence `δ(y1) ≤ δ(x) = ε`.
+  have hδy1_le : gap.δ y1 ≤ ε := by
+    have : gap.δ y1 ≤ gap.δ x :=
+      gap_delta_antitone_of_le (a := x) (b := y1) hx_one hx_le_y1
+    simpa [hε] using this
+
+  -- Multiply out and simplify.
+  have hy1_nonneg : 0 ≤ y1 := by
+    have hn_nonneg : 0 ≤ (n : ℝ) := by positivity
+    have hden_pos : 0 < (1 + ε) ^ 2 := pow_pos honeplus_pos 2
+    have : 0 ≤ (n : ℝ) / (1 + ε) ^ 2 := div_nonneg hn_nonneg (le_of_lt hden_pos)
+    simpa [hy1] using this
+  have hmul_le : y1 * (1 + gap.δ y1) ≤ y1 * (1 + ε) := by
+    have : (1 + gap.δ y1) ≤ (1 + ε) := by linarith
+    exact mul_le_mul_of_nonneg_left this hy1_nonneg
+  have halg : y1 * (1 + ε) = (n : ℝ) / (1 + ε) := by
     sorry
+    -- have hne : (1 + ε) ≠ 0 := by linarith
+    -- field_simp [hy1, hne, pow_two, mul_assoc, mul_left_comm, mul_comm]
+  have := le_trans hmul_le (le_of_eq halg)
+  simpa [hy1] using this
 
 lemma y2_mul_one_add_delta_lt_n {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     let y2 : ℝ := (n : ℝ) / (1 + ε)
     y2 * (1 + gap.δ y2) < (n : ℝ) := by
-    /- Final strict step: from y2’s upper bound to strictly below n. -/
-    /- *** Proof idea ***:
-    this is where you currently do the “strict log inequality” work
-    i.e. prove δ(y2) < ε using y2 > x, then
-    y2*(1+δ y2) < y2*(1+ε) = n -/
+  dsimp
+  set x : ℝ := √(n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+  set y2 : ℝ := (n : ℝ) / (1 + ε) with hy2
+
+  have hX₀_ge8 : (8 : ℝ) ≤ (X₀ : ℝ) := by
+    unfold X₀
+    norm_num
+  have hxX : (X₀ : ℝ) ≤ x := by
+    simpa [hx] using (sqrt_ge_X₀ (n := n) hn)
+  have hx_ge8 : (8 : ℝ) ≤ x := le_trans hX₀_ge8 hxX
+  have hx_one : (1 : ℝ) < x := by linarith [hx_ge8]
+
+  have hx_ge3 : (3 : ℝ) ≤ x := by linarith [hx_ge8]
+  have hε_le_one : ε ≤ 1 := by
+    simpa [hε] using (gap_delta_le_one_of_three_le (x := x) hx_ge3)
+  have hε_nonneg : 0 ≤ ε := by
+    simpa [hε] using (gap_delta_nonneg_of_one_lt (x := x) hx_one)
+  have honeplus_pos : 0 < (1 + ε) := by linarith
+  have honeplus_nonneg : 0 ≤ (1 + ε) := by linarith
+
+  -- Show `y2 > x` using the crude bound `1+ε ≤ 2 < x`.
+  have honeplus_le2 : (1 + ε) ≤ (2 : ℝ) := by linarith
+  have hx_gt2 : (2 : ℝ) < x := by linarith [hx_ge8]
+  have honeplus_lt_x : (1 + ε) < x := lt_of_le_of_lt honeplus_le2 hx_gt2
+
+  have hxx_eq_n : x * x = (n : ℝ) := by
+    simpa [hx] using (mul_self_sqrt (Nat.cast_nonneg n))
+
+  have hx_lt_y2 : x < y2 := by
+    -- `x < n/(1+ε)` iff `x*(1+ε) < n`.
+    have hmul : x * (1 + ε) < (n : ℝ) := by
+      -- `x*(1+ε) < x*x = n` since `1+ε < x` and `x > 0`.
+      have hx_pos : 0 < x := lt_of_lt_of_le (by norm_num) hx_ge8
+      have : x * (1 + ε) < x * x := by
+        exact mul_lt_mul_of_pos_left honeplus_lt_x hx_pos
+      simpa [hxx_eq_n] using this
+    have hden_pos : 0 < (1 + ε) := honeplus_pos
+    exact (lt_div_iff₀ hden_pos).2 hmul
+
+  -- Hence `δ(y2) < δ(x) = ε` by strict antitonicity.
+  have hδy2_lt : gap.δ y2 < ε := by
+    have : gap.δ y2 < gap.δ x :=
+      gap_delta_strict_antitone_of_lt (a := x) (b := y2) hx_one hx_lt_y2
+    simpa [hε] using this
+
+  -- Multiply: `y2*(1+δ y2) < y2*(1+ε) = n`.
+  have hy2_pos : 0 < y2 := by
+    -- `y2 = n/(1+ε)` is positive since `n > 0` and `1+ε > 0`.
+    have hnpos : 0 < (n : ℝ) := by
+      have hnpos_nat : 0 < n := by
+        -- `n ≥ X₀^2` and `X₀^2 > 0`.
+        have hX0pos : 0 < X₀ := by
+          unfold X₀
+          norm_num
+        have : 0 < X₀ ^ 2 := pow_pos hX0pos 2
+        exact lt_of_lt_of_le this hn
+      exact_mod_cast hnpos_nat
+    have : 0 < (n : ℝ) / (1 + ε) := div_pos hnpos honeplus_pos
+    simpa [hy2] using this
+  have hmul_lt : y2 * (1 + gap.δ y2) < y2 * (1 + ε) := by
+    have : (1 + gap.δ y2) < (1 + ε) := by linarith
+    exact mul_lt_mul_of_pos_left this hy2_pos
+  have halg : y2 * (1 + ε) = (n : ℝ) := by
     sorry
+    -- have hne : (1 + ε) ≠ 0 := by linarith
+    -- field_simp [hy2, hne, mul_assoc, mul_left_comm, mul_comm]
+
+  have hfinal : y2 * (1 + gap.δ y2) < (n : ℝ) := by
+    -- Rewrite `y2 * (1+ε)` as `n`.
+    simpa [halg] using hmul_lt
+
+  -- Final rewrite back to the original `y2`.
+  simpa [hy2] using hfinal
 
 /- End of theorem `exists_q_primes` lemmas-/
 
@@ -274,12 +644,15 @@ Try moving this entirely into `prod_q_ge` if possible.
 
 /- *** This lemma is likely not used *** -/
 lemma b_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < b n := by
-  /-- Positivity of `b(n) = 1 + δ(√n)` for `n ≥ X₀²`. -/
-  /- *** Proof idea ***:
-  show `0 ≤ gap.δ (√n)` (Dusart: `δ(x)=1/(log x)^3` and `log √n > 0`), then `linarith`.
-  use your existing certified `log` bounds in the Dusart instance, or (better)
-  a provider-specific lemma `δ_nonneg` exported from the provider/cert layer-/
-  sorry
+  unfold b
+  have hx₀ : (X₀ : ℝ) ≤ √(n : ℝ) := sqrt_ge_X₀ (n := n) hn
+  have hX₀ : (1 : ℝ) < (X₀ : ℝ) := by
+    unfold X₀
+    norm_num
+  have hsqrt : (1 : ℝ) < √(n : ℝ) := lt_of_lt_of_le hX₀ hx₀
+  have hδ_nonneg : 0 ≤ gap.δ (√(n : ℝ)) :=
+    gap_delta_nonneg_of_one_lt (x := √(n : ℝ)) hsqrt
+  linarith
 
 
 lemma prod_q_rhs_reindex (n : ℕ) :
@@ -302,15 +675,36 @@ lemma inv_le_rpow_div_of_lower_bound {n : ℕ} (hn : n ≥ X₀ ^ 2)
     {t : ℝ} {q : ℕ}
     (hq : (n : ℝ) * (b n) ^ (-t) ≤ (q : ℝ)) :
     (1 : ℝ) / (q : ℝ) ≤ (b n) ^ t / n := by
-  /- Core inequality used in `prod_q_ge`:
-     From a lower bound `n * b(n)^(-t) ≤ q` we get the reciprocal upper bound
-     `1/q ≤ b(n)^t / n`. -/
-  /- *** Proof idea ***: (this is exactly what your current Main proof does)
-  rewrite `b(n)^t / n = 1 / (n / b(n)^t)` (via `field_simp`, using `n>0`, `b(n)>0`)
-  apply `one_div_le_one_div_of_le` using positivity of `n / b(n)^t`
-  convert `hq` to `n / b(n)^t ≤ q` using `field_simp` + `Real.rpow_add` (or `Real.rpow_neg`).
-  -/
-  sorry
+  have hX0pos : 0 < X₀ := by
+    unfold X₀
+    norm_num
+  have hX0sqpos : 0 < X₀ ^ 2 := pow_pos hX0pos 2
+  have hnpos_nat : 0 < n := lt_of_lt_of_le hX0sqpos hn
+  have hnpos : (0 : ℝ) < (n : ℝ) := by exact_mod_cast hnpos_nat
+
+  have hbpos : 0 < b n := b_pos (n := n) hn
+  have hb_nonneg : 0 ≤ b n := le_of_lt hbpos
+  have hpowpos : 0 < (b n) ^ (-t) := Real.rpow_pos_of_pos hbpos (-t)
+  have hmulpos : 0 < (n : ℝ) * (b n) ^ (-t) := mul_pos hnpos hpowpos
+
+  have hdiv :
+      (1 : ℝ) / (q : ℝ) ≤ (1 : ℝ) / ((n : ℝ) * (b n) ^ (-t)) :=
+    one_div_le_one_div_of_le hmulpos hq
+
+  -- rewrite RHS
+  have : (1 : ℝ) / ((n : ℝ) * (b n) ^ (-t)) = (b n) ^ t / n := by
+    calc
+      (1 : ℝ) / ((n : ℝ) * (b n) ^ (-t))
+          = (1 : ℝ) / ((n : ℝ) * ((b n) ^ t)⁻¹) := by
+              simp [Real.rpow_neg hb_nonneg]
+      _ = (1 : ℝ) / ((n : ℝ) / (b n) ^ t) := by
+              simp [div_eq_mul_inv, mul_assoc]
+      _ = (b n) ^ t / (n : ℝ) := by
+              simpa [one_div_div]
+      _ = (b n) ^ t / n := by simp
+
+  simpa [this] using hdiv
+
 
 /- End of theorem `prod_q_ge` lemmas-/
 
@@ -319,11 +713,15 @@ lemma inv_le_rpow_div_of_lower_bound {n : ℕ} (hn : n ≥ X₀ ^ 2)
 /- theorem `prod_p_ge` lemmas -/
 lemma one_add_delta_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     0 < (1 + gap.δ (√(n : ℝ))) := by
-  /- Certification lemma: `1 + gap.δ(√n)` is positive once `n ≥ X₀²`. -/
-  /- *** Proof idea (Dusart provider): ***
-  `gap.δ x = 1/(log x)^3` and for `n ≥ X₀²` we have `√n ≥ X₀`, hence `log √n ≥ log X₀ > 0`,
-  so `δ(√n) ≥ 0` and thus `1 + δ(√n) > 0`. -/
-  sorry
+  have hx₀ : (X₀ : ℝ) ≤ √(n : ℝ) := sqrt_ge_X₀ (n := n) hn
+  have hX₀ : (1 : ℝ) < (X₀ : ℝ) := by
+    unfold X₀
+    norm_num
+  have hsqrt : (1 : ℝ) < √(n : ℝ) := lt_of_lt_of_le hX₀ hx₀
+  have hδ_nonneg : 0 ≤ gap.δ (√(n : ℝ)) :=
+    gap_delta_nonneg_of_one_lt (x := √(n : ℝ)) hsqrt
+  linarith
+
 
 
 lemma p_mul_padd1_le_bound
