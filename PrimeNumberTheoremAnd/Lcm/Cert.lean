@@ -458,8 +458,7 @@ lemma hlog {n : ℕ} (hn : n ≥ X₀ ^ 2) : log √(n : ℝ) ≥ 11.4 := by
     _ ≥ 11.4 := log_X₀_gt.le
 
 
-lemma hε_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < 1 + 1 / (log √(n : ℝ)) ^ 3 := by
-  positivity [hlog hn]
+
 
 
 
