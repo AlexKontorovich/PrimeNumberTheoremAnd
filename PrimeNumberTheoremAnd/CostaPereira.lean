@@ -63,7 +63,8 @@ theorem sublemma_1_1 {x : ℝ} (hx : 0 < x) : ψ x = ∑' (k : ℕ), θ (x ^ (1 
   (proof := /-- Follows from Sublemma \ref{costa-pereira-sublemma-1-1} and substitution.-/)
   (latexEnv := "sublemma")
   (discussion := 677)]
-theorem sublemma_1_2 {x : ℝ} (hx : 0 < x) (n : ℝ) : ψ (x ^ (1 / n:ℝ)) = ∑' k, θ (x ^ (1 / (n * (k:ℝ)))) := by sorry
+theorem sublemma_1_2 {x : ℝ} (hx : 0 < x) (n : ℝ) : ψ (x ^ (1 / n:ℝ)) = ∑' (k : ℕ), θ (x ^ (1 / (n * (k:ℝ)))) := by
+  simp_rw [sublemma_1_1 (rpow_pos_of_pos hx _), ← rpow_mul (le_of_lt hx), _root_.div_mul_div_comm, one_mul]
 
 @[blueprint
   "costa-pereira-sublemma-1-3"
