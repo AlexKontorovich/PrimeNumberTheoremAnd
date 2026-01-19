@@ -57,8 +57,17 @@ $$ \frac{d}{dx} g(a, b, c, x) = \left( -a \log(x) + b + \frac{c}{2}\sqrt{\log(x)
   (discussion := 610)]
 theorem lemma_10_substep {a b c x : ℝ} (hx : x > 1) :
   deriv (g_bound a b c) x =
-    (-a * log x + b + (c / 2) * sqrt (log x)) * x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x)) :=
-  sorry
+    (-a * log x + b + (c / 2) * sqrt (log x)) * x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x)) := by
+      have h_prod_rule : deriv (fun x => x ^ (-a) * (log x) ^ b * exp (c * sqrt (log x))) x =
+        (deriv (fun x => x ^ (-a)) x) * (log x) ^ b * exp (c * sqrt (log x)) +
+        x ^ (-a) * (deriv (fun x => (log x) ^ b) x) * exp (c * sqrt (log x)) +
+        x ^ (-a) * (log x) ^ b * (deriv (fun x => exp (c * sqrt (log x))) x) := by
+          norm_num [ DifferentiableAt.mul, DifferentiableAt.rpow, DifferentiableAt.sqrt, show x ≠ 0 by linarith, show log x ≠ 0 by exact ne_of_gt <| log_pos hx ] ; ring
+      unfold g_bound
+      rw [h_prod_rule]
+      norm_num [ show x ≠ 0 by linarith, show log x ≠ 0 by exact ne_of_gt ( log_pos hx ), sqrt_eq_rpow, rpow_sub_one, mul_assoc, mul_comm, mul_left_comm, div_eq_mul_inv ] ; ring_nf
+      norm_num [ ne_of_gt ( log_pos hx ) ]
+      rw [ show ( - ( 1 / 2 : ℝ ) ) = ( 1 / 2 : ℝ ) - 1 by norm_num, rpow_sub ( log_pos hx ) ] ; norm_num ; ring
 
 @[blueprint
   "fks2-lemma-10-substep-2"
