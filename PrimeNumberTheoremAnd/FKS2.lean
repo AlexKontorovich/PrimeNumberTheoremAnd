@@ -134,13 +134,33 @@ theorem lemma_10b {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b ≥ -c ^ 2 / (
  -/)
   (latexEnv := "lemma")
   (discussion := 614)]
-theorem lemma_10c {b c : ℝ} (hb : b < 0) :
+theorem lemma_10c {b c : ℝ} (hb : b < 0) (hc : c > 0) :
     StrictAntiOn (g_bound 0 b c) (Set.Ioo 1 (exp ((-2 * b / c) ^ 2))) := by
-    intro x hx y hy hxy
-    simp only [g_bound, neg_zero, rpow_zero, one_mul, Nat.reduceDiv, pow_zero, mul_one]
-    refine mul_lt_mul_of_pos_right ?_ (by simpa [exp] using Real.exp_pos c)
-    rw [Real.rpow_lt_rpow_iff_of_neg (Real.log_pos (Set.mem_Ioo.mp hy).1) (Real.log_pos (Set.mem_Ioo.mp hx).1) hb]
-    exact Real.log_lt_log (by linarith [(Set.mem_Ioo.mp hx).1]) hxy
+  intro x hx y hy hxy
+  simp only [g_bound, neg_zero, rpow_zero, one_mul]
+  rw [rpow_def_of_pos <| log_pos hy.1, rpow_def_of_pos <| log_pos hx.1, ← exp_add, ← exp_add, exp_lt_exp]
+  have huy_bound : sqrt (log y) < -2 * b / c := by
+    rw [← sqrt_sq (div_pos (by linarith) hc).le]
+    exact sqrt_lt_sqrt (log_pos hy.1).le <| (log_exp _).symm.trans_gt (log_lt_log (by linarith [hy.1]) hy.2)
+  rw [show log (log x) = 2 * log (sqrt (log x)) from by rw [log_sqrt (log_pos hx.1).le]; ring,
+    show log (log y) = 2 * log (sqrt (log y)) from by rw [log_sqrt (log_pos hy.1).le]; ring]
+  have hderiv_neg : 2 * b / sqrt (log y) + c < 0 := by
+    have : c * sqrt (log y) < -2 * b := by
+      calc c * sqrt (log y) < c * (-2 * b / c) := mul_lt_mul_of_pos_left huy_bound hc
+        _ = -2 * b := by field_simp
+    have h2 : 2 * b / sqrt (log y) < -c := by rw [div_lt_iff₀ <| sqrt_pos.mpr <| log_pos hy.1]; linarith
+    linarith
+  have hconcave : log (sqrt (log y)) - log (sqrt (log x)) ≥ (sqrt (log y) - sqrt (log x)) / sqrt (log y) := by
+    have := one_sub_inv_le_log_of_pos <| div_pos (sqrt_pos.mpr <| log_pos hy.1) <| sqrt_pos.mpr <| log_pos hx.1
+    simp only [inv_div] at this
+    calc log (sqrt (log y)) - log (sqrt (log x)) = log (sqrt (log y) / sqrt (log x)) := by
+          rw [log_div (sqrt_pos.mpr <| log_pos hy.1).ne' (sqrt_pos.mpr <| log_pos hx.1).ne']
+      _ ≥ 1 - sqrt (log x) / sqrt (log y) := this
+      _ = (sqrt (log y) - sqrt (log x)) / sqrt (log y) := by rw [sub_div, div_self (sqrt_pos.mpr <| log_pos hy.1).ne']
+  calc 2 * log (sqrt (log y)) * b + c * sqrt (log y)
+      _ ≤ 2 * b * (log (sqrt (log x)) + (sqrt (log y) - sqrt (log x)) / sqrt (log y)) + c * sqrt (log y) := by nlinarith [hconcave]
+      _ = 2 * b * log (sqrt (log x)) + (sqrt (log y) - sqrt (log x)) * (2 * b / sqrt (log y) + c) + c * sqrt (log x) := by field_simp; ring
+      _ < 2 * log (sqrt (log x)) * b + c * sqrt (log x) := by nlinarith [hderiv_neg, sqrt_lt_sqrt (log_pos hx.1).le <| log_lt_log (by linarith [hx.1]) hxy]
 
 @[blueprint
   "fks2-corollary-11"
