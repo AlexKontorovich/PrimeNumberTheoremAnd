@@ -429,52 +429,10 @@ lemma inv_n_add_sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   -/
   sorry
 
-lemma inv_n_le_inv_X₀_sq {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (1 : ℝ) / (n : ℝ) ≤ (1 : ℝ) / (X₀ ^ 2 : ℕ) := by
-  /- This holds when n > 0 and X₀ ≠ 0 -/
-  /- *** Proof idea *** :
-  - cast `hn` to reals: `(X₀^2 : ℝ) ≤ (n : ℝ)`
-  - use `one_div_le_one_div_of_le` with positivity of `(X₀^2 : ℝ)`
-  -/
-  sorry
-
 
 /- End of lemmas required to prove h_crit: `theorem main_ineq_delta_form` -/
 
 
-
-/- Lemmas that are possibly useful in the proof of theorems in Cert.lean -/
-lemma sqrt_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    0 < √(n : ℝ) := by
-  /- positivity of `x := √n`. -/
-  -- can be `lt_of_lt_of_le (show (0:ℝ) < (X₀:ℝ) from ...) (sqrt_ge_X₀ hn)`
-  -- or whatever you currently do
-  sorry
-
-
-lemma eps_nonneg {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    0 ≤ gap.δ (√(n : ℝ)) := by
-  /-- nonnegativity of `ε := δ(x)` at `x := √n`. -/
-  -- Dusart: follows from `0 < log x` hence `(log x)^3 > 0` hence `1/(...) ≥ 0`.
-  -- Other providers: whatever you can prove.
-  sorry
-
-
-lemma crit_rhs_nonneg {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    0 ≤ 1 - 4 * (1 + (0.000675 : ℝ)) ^ 12 * ((1 / (X₀ : ℝ)) * (1 / (n : ℝ))) := by
-  /-
-  Proof idea:
-  - Use `hn` to replace `n` by `X₀^2` as worst case (since 1/n decreases with n).
-  - Then unfold `X₀` (to 89693) *inside this lemma only* and let `norm_num` finish.
-  -/
-  -- typical proof outline:
-  --   have hx : (1/(n:ℝ)) ≤ 1/((X₀^2:ℕ):ℝ) := inv_n_le_inv_X₀_sq hn
-  --   bound the expression using monotonicity in (1/n)
-  --   simp [X₀] at the end; norm_num
-  sorry
-
-
-/- End of lemmas that are possibly useful in the proof of theorem in Cert.lean -/
 
 
 /- Lemmas that are `possibly` not useful -/
