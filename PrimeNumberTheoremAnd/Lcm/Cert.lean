@@ -20,83 +20,27 @@ blueprint_comment /--
 
 
 
-/- Helper lemmas -/
-lemma gap_delta_def (x : ℝ) : gap.δ x = 1 / (log x) ^ (3 : ℝ) := by
-  -- `gap` is the (latest) Dusart provider; unfolding exposes the concrete `δ`.
-  simp [Lcm.gap, PrimeGaps.latest, PrimeGaps.provider, PrimeGaps.Dusart.provider]
-
-lemma gap_delta_nonneg_of_one_lt {x : ℝ} (hx : 1 < x) : 0 ≤ gap.δ x := by
-  have hlogpos : 0 < log x := Real.log_pos hx
-  have hdenpos : 0 < (log x) ^ (3 : ℝ) := Real.rpow_pos_of_pos hlogpos (3 : ℝ)
-  have hpos : 0 < (1 / (log x) ^ (3 : ℝ)) := one_div_pos.mpr hdenpos
-  -- rewrite back to `gap.δ`.
-  simpa [gap_delta_def] using (le_of_lt hpos)
-
-lemma gap_delta_antitone_of_le {a b : ℝ} (ha : 1 < a) (hab : a ≤ b) :
-    gap.δ b ≤ gap.δ a := by
-  -- Since `log` is increasing on `(0,∞)` and `t ↦ t^3` is increasing on `[0,∞)`, the
-  -- denominator `(log x)^3` increases with `x`, hence its reciprocal decreases.
-  have ha_pos : 0 < a := lt_trans (by norm_num) ha
-  have hlog_le : log a ≤ log b := Real.log_le_log ha_pos hab
-  have hloga_pos : 0 < log a := Real.log_pos ha
-  have hloga_nonneg : 0 ≤ log a := le_of_lt hloga_pos
-  have hpow_le : (log a) ^ (3 : ℝ) ≤ (log b) ^ (3 : ℝ) := by
-    exact Real.rpow_le_rpow hloga_nonneg hlog_le (by norm_num)
-  have hpow_pos : 0 < (log a) ^ (3 : ℝ) := Real.rpow_pos_of_pos hloga_pos (3 : ℝ)
-  have hdiv_le : (1 / (log b) ^ (3 : ℝ)) ≤ 1 / (log a) ^ (3 : ℝ) :=
-    one_div_le_one_div_of_le hpow_pos hpow_le
-  simpa [gap_delta_def] using hdiv_le
-
-lemma gap_delta_le_one_of_three_le {x : ℝ} (hx : (3 : ℝ) ≤ x) : gap.δ x ≤ 1 := by
-  have hx_pos : 0 < x := lt_of_lt_of_le (by norm_num) hx
-
-  -- First show `1 < log x` using `exp 1 < 3 ≤ x`.
-  have hexp1_lt_x : Real.exp (1 : ℝ) < x := by
-    have hexp1_lt_3 : Real.exp (1 : ℝ) < (3 : ℝ) := by
-      sorry
-      -- simpa using Real.exp_one_lt_d9
-    have h3_lt_x : (3 : ℝ) < x := by sorry --linarith
-    exact lt_trans hexp1_lt_3 h3_lt_x
-  have hlog_gt_one : (1 : ℝ) < log x := (Real.lt_log_iff_exp_lt hx_pos).2 hexp1_lt_x
-  have h1le_log : (1 : ℝ) ≤ log x := le_of_lt hlog_gt_one
-
-  -- Hence `(log x)^3 ≥ 1`, so its reciprocal is ≤ 1.
-  have hpow_ge : (1 : ℝ) ≤ (log x) ^ (3 : ℝ) := by
-    have : (1 : ℝ) ^ (3 : ℝ) ≤ (log x) ^ (3 : ℝ) :=
-      Real.rpow_le_rpow (by norm_num) h1le_log (by norm_num)
-    simpa using this
-  have hdiv : (1 / (log x) ^ (3 : ℝ)) ≤ (1 : ℝ) := by
-    have : (1 / (log x) ^ (3 : ℝ)) ≤ 1 / (1 : ℝ) :=
-      one_div_le_one_div_of_le (by norm_num) hpow_ge
-    simpa using this
-
-  simpa [gap_delta_def] using hdiv
-
-
-lemma gap_delta_strict_antitone_of_lt {a b : ℝ} (ha : 1 < a) (hab : a < b) :
-    gap.δ b < gap.δ a := by
-  have ha_pos : 0 < a := lt_trans (by norm_num) ha
-  have hlog_lt : log a < log b := log_lt_log ha_pos hab
-  have hloga_pos : 0 < log a := Real.log_pos ha
-  have hloga_nonneg : 0 ≤ log a := le_of_lt hloga_pos
-  have hpow_lt : (log a) ^ (3 : ℝ) < (log b) ^ (3 : ℝ) := by
-    exact Real.rpow_lt_rpow hloga_nonneg hlog_lt (by norm_num)
-  have hpow_pos : 0 < (log a) ^ (3 : ℝ) := Real.rpow_pos_of_pos hloga_pos (3 : ℝ)
-  have hdiv_lt : (1 / (log b) ^ (3 : ℝ)) < 1 / (log a) ^ (3 : ℝ) :=
-    one_div_lt_one_div_of_lt hpow_pos hpow_lt
-  simpa [gap_delta_def] using hdiv_lt
-
 
 /-
 Complete structural assumptions:
-1. X₀ ≥ 1
+1. X₀ > 1
 2. gap.δ(x) ≥ 0 for x ≥ X₀
 3. gap.δ(x) is decreasing for x ≥ X₀
 4. √n ≤ n / (1 + gap.δ(√n)) ^ 3 for n ≥ X₀ ^ 2
     -- equivalent to (1 + gap.δ(√n)) ^ 3 ≤ √n when n, gap.δ(√n) ≥ 0
 5. (1 + gap.δ (√n)) ^ 6 < √n for n ≥ X₀ ^ 2, this implies 4. when 1 + gap.δ(√n) ≥ 0
 6. 4 * (1 + gap.δ (√n)) ^ 12 ≤ n ^ (3 / 2) for n ≥ X₀ ^ 2
+7. gap.δ(√n) ≤ 0.000675 for n ≥ X₀ ^ 2
+8. theorem `prod_epsilon_le`
+9. theorem `prod_epsilon_ge`
+10. theorem `final_comparison`
 -/
+
+
+
+
+
+
 
 /- theorem `exists_p_primes` lemmas -/
 /- Structural assumptions required
@@ -517,15 +461,10 @@ lemma hlog {n : ℕ} (hn : n ≥ X₀ ^ 2) : log √(n : ℝ) ≥ 11.4 := by
 lemma hε_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < 1 + 1 / (log √(n : ℝ)) ^ 3 := by
   positivity [hlog hn]
 
-lemma log_X₀_pos : 0 < Real.log X₀ := by linear_combination log_X₀_gt
 
 
 
-/- Original Cert lemmas -/
 
-
-
-/- End of Original Cert lemmas -/
 
 
 end Numerical
