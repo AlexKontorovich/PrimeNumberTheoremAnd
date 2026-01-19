@@ -432,13 +432,6 @@ theorem final_comparison {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : �
 
 
 
-/- Lemmas that are `possibly` not useful -/
-lemma hx₀_pos : (0 : ℝ) < X₀ := by
-    unfold X₀; norm_num
-@[simp] lemma X₀_pos : (0 : ℝ) < (X₀ : ℝ) := by
-  exact hx₀_pos
-
-
 
 
 
