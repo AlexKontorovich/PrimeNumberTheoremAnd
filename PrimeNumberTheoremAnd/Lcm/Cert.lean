@@ -32,8 +32,41 @@ noncomputable abbrev eps_log : ℝ := (0.000675 : ℝ)
 noncomputable abbrev onePlusEps_log : ℝ := (1 : ℝ) + eps_log
 
 
+blueprint_comment /--
+\subsection{Reduction to a small epsilon-inequality}
+-/
+
+
 /- theorem `exists_p_primes` lemmas -/
 /- vote: 2 -/
+/- Helper lemmas -/
+lemma gap_delta_def (x : ℝ) : gap.δ x = 1 / (log x) ^ (3 : ℝ) := by
+  -- `gap` is the (latest) Dusart provider; unfolding exposes the concrete `δ`.
+  simp [Lcm.gap, PrimeGaps.latest, PrimeGaps.provider, PrimeGaps.Dusart.provider]
+
+lemma gap_delta_nonneg_of_one_lt {x : ℝ} (hx : 1 < x) : 0 ≤ gap.δ x := by
+  have hlogpos : 0 < log x := Real.log_pos hx
+  have hdenpos : 0 < (log x) ^ (3 : ℝ) := Real.rpow_pos_of_pos hlogpos (3 : ℝ)
+  have hpos : 0 < (1 / (log x) ^ (3 : ℝ)) := one_div_pos.mpr hdenpos
+  -- rewrite back to `gap.δ`.
+  simpa [gap_delta_def] using (le_of_lt hpos)
+
+lemma gap_delta_antitone_of_le {a b : ℝ} (ha : 1 < a) (hab : a ≤ b) :
+    gap.δ b ≤ gap.δ a := by
+  -- Since `log` is increasing on `(0,∞)` and `t ↦ t^3` is increasing on `[0,∞)`, the
+  -- denominator `(log x)^3` increases with `x`, hence its reciprocal decreases.
+  have ha_pos : 0 < a := lt_trans (by norm_num) ha
+  have hlog_le : log a ≤ log b := Real.log_le_log ha_pos hab
+  have hloga_pos : 0 < log a := Real.log_pos ha
+  have hloga_nonneg : 0 ≤ log a := le_of_lt hloga_pos
+  have hpow_le : (log a) ^ (3 : ℝ) ≤ (log b) ^ (3 : ℝ) := by
+    exact Real.rpow_le_rpow hloga_nonneg hlog_le (by norm_num)
+  have hpow_pos : 0 < (log a) ^ (3 : ℝ) := Real.rpow_pos_of_pos hloga_pos (3 : ℝ)
+  have hdiv_le : (1 / (log b) ^ (3 : ℝ)) ≤ 1 / (log a) ^ (3 : ℝ) :=
+    one_div_le_one_div_of_le hpow_pos hpow_le
+  simpa [gap_delta_def] using hdiv_le
+
+
 lemma sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (X₀ : ℝ) ≤ √(n : ℝ) := by
   /-- (C1) `x := √n` is above the provider threshold. -/
@@ -42,45 +75,125 @@ lemma sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 
 lemma step1_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (X₀ : ℝ) ≤ (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) := by
-  /-- (C4) step-1 threshold propagation:
-    `x*(1+ε)` is still ≥ X₀ so we can apply the provider at that point. -/
-  /- *** Proof idea ***:
-  uses sqrt_ge_X₀ + eps_nonneg + le_mul_of_one_le_right etc -/
-  sorry
+  have hx₀ : (X₀ : ℝ) ≤ √(n : ℝ) := sqrt_ge_X₀ (n := n) hn
+  have hX₀_one : (1 : ℝ) < (X₀ : ℝ) := by
+    unfold X₀
+    norm_num
+  have hsqrt_one : (1 : ℝ) < √(n : ℝ) := lt_of_lt_of_le hX₀_one hx₀
+  have hδ_nonneg : 0 ≤ gap.δ (√(n : ℝ)) :=
+    gap_delta_nonneg_of_one_lt (x := √(n : ℝ)) hsqrt_one
+  have hsqrt_nonneg : 0 ≤ √(n : ℝ) := sqrt_nonneg (n : ℝ)
+  have h1 : (1 : ℝ) ≤ 1 + gap.δ (√(n : ℝ)) := by
+    exact le_add_of_nonneg_right hδ_nonneg
+  have hsqrt_le : √(n : ℝ) ≤ √(n : ℝ) * (1 + gap.δ (√(n : ℝ))) :=
+    le_mul_of_one_le_right hsqrt_nonneg h1
+  exact le_trans hx₀ hsqrt_le
 
 
 lemma step2_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (X₀ : ℝ) ≤ (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) ^ 2 := by
-  /-- (C5) step-2 threshold propagation:
-    `x*(1+ε)^2` is still ≥ X₀. -/
-  /- *** Proof idea ***:
-  same pattern; uses `pow_two`/`sq_nonneg` etc
-  -/
-  sorry
+  have hstep1 : (X₀ : ℝ) ≤ (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) :=
+    step1_ge_X₀ (n := n) hn
+  have hx₀ : (X₀ : ℝ) ≤ √(n : ℝ) := sqrt_ge_X₀ (n := n) hn
+  have hX₀_one : (1 : ℝ) < (X₀ : ℝ) := by
+    unfold X₀
+    norm_num
+  have hsqrt_one : (1 : ℝ) < √(n : ℝ) := lt_of_lt_of_le hX₀_one hx₀
+  have hε_nonneg : 0 ≤ gap.δ (√(n : ℝ)) :=
+    gap_delta_nonneg_of_one_lt (x := √(n : ℝ)) hsqrt_one
+  have h1 : (1 : ℝ) ≤ 1 + gap.δ (√(n : ℝ)) :=
+    le_add_of_nonneg_right hε_nonneg
+  have hsqrt_nonneg : 0 ≤ √(n : ℝ) := sqrt_nonneg (n : ℝ)
+  have honeplus_nonneg : 0 ≤ (1 + gap.δ (√(n : ℝ))) := by
+    linarith
+  have hprod_nonneg : 0 ≤ (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) :=
+    mul_nonneg hsqrt_nonneg honeplus_nonneg
+  have hmul :
+      (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ)))
+        ≤ ((√(n : ℝ)) * (1 + gap.δ (√(n : ℝ)))) * (1 + gap.δ (√(n : ℝ))) :=
+    le_mul_of_one_le_right hprod_nonneg h1
+  have hmul' :
+      (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ)))
+        ≤ (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) ^ 2 := by
+    simpa [pow_two, mul_assoc, mul_left_comm, mul_comm] using hmul
+  exact hstep1.trans hmul'
 
 
 lemma step1_upper {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     (x * (1 + ε)) * (1 + gap.δ (x * (1 + ε))) ≤ x * (1 + ε) ^ 2 := by
-  /-- (C6) step-1 *upper bound* simplifier:
-    turn provider’s bound at `y = x*(1+ε)` into a bound by `x*(1+ε)^2`. -/
-  /- *** Proof idea ***:
-  This is exactly where your old `upper` lemma + log monotonicity lives.
-  For Dusart: δ decreases with x, so δ(x*(1+ε)) ≤ δ(x)=ε, then multiply out.
-  -/
-  sorry
+  dsimp
+  set x : ℝ := √(n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+  have hx₀ : (X₀ : ℝ) ≤ x := by
+    have : (X₀ : ℝ) ≤ √(n : ℝ) := sqrt_ge_X₀ (n := n) hn
+    simpa [hx] using this
+  have hX₀_one : (1 : ℝ) < (X₀ : ℝ) := by
+    unfold X₀
+    norm_num
+  have hx_one : (1 : ℝ) < x := lt_of_lt_of_le hX₀_one hx₀
+  have hε_nonneg : 0 ≤ ε := by
+    simpa [hε] using gap_delta_nonneg_of_one_lt (x := x) hx_one
+  have h1 : (1 : ℝ) ≤ 1 + ε := le_add_of_nonneg_right hε_nonneg
+  have hx_nonneg : 0 ≤ x := by
+    simpa [hx] using (sqrt_nonneg (n : ℝ))
+  have honeplus_nonneg : 0 ≤ (1 + ε) := by
+    linarith
+  have hxy : x ≤ x * (1 + ε) :=
+    le_mul_of_one_le_right hx_nonneg h1
+  have hδ_le : gap.δ (x * (1 + ε)) ≤ ε := by
+    have : gap.δ (x * (1 + ε)) ≤ gap.δ x :=
+      gap_delta_antitone_of_le (a := x) (b := x * (1 + ε)) hx_one hxy
+    simpa [hε] using this
+  have h1' : (1 : ℝ) + gap.δ (x * (1 + ε)) ≤ 1 + ε := by
+    linarith
+  have hmul_nonneg : 0 ≤ x * (1 + ε) := mul_nonneg hx_nonneg honeplus_nonneg
+  have hmul : (x * (1 + ε)) * (1 + gap.δ (x * (1 + ε))) ≤ (x * (1 + ε)) * (1 + ε) :=
+    mul_le_mul_of_nonneg_left h1' hmul_nonneg
+  simpa [pow_two, mul_assoc, mul_left_comm, mul_comm] using hmul
 
 
 lemma step2_upper {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     (x * (1 + ε) ^ 2) * (1 + gap.δ (x * (1 + ε) ^ 2)) ≤ x * (1 + ε) ^ 3 := by
-  /-- (C7) step-2 upper bound:
-    turn provider’s bound at `y = x*(1+ε)^2` into ≤ `x*(1+ε)^3`. -/
-  /- *** Proof idea ***:
-  Same style as step1_upper. -/
-  sorry
+  dsimp
+  set x : ℝ := √(n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+  have hx₀ : (X₀ : ℝ) ≤ x := by
+    have : (X₀ : ℝ) ≤ √(n : ℝ) := sqrt_ge_X₀ (n := n) hn
+    simpa [hx] using this
+  have hX₀_one : (1 : ℝ) < (X₀ : ℝ) := by
+    unfold X₀
+    norm_num
+  have hx_one : (1 : ℝ) < x := lt_of_lt_of_le hX₀_one hx₀
+  have hε_nonneg : 0 ≤ ε := by
+    simpa [hε] using gap_delta_nonneg_of_one_lt (x := x) hx_one
+  have h1 : (1 : ℝ) ≤ 1 + ε := le_add_of_nonneg_right hε_nonneg
+  have hx_nonneg : 0 ≤ x := by
+    simpa [hx] using (sqrt_nonneg (n : ℝ))
+  have honeplus_nonneg : 0 ≤ (1 + ε) := by
+    linarith
+  have hpow_one : (1 : ℝ) ≤ (1 + ε) ^ 2 := by
+    have hmul : (1 : ℝ) * (1 : ℝ) ≤ (1 + ε) * (1 + ε) :=
+      mul_le_mul h1 h1 (by norm_num) honeplus_nonneg
+    simpa [pow_two] using hmul
+  have hxy : x ≤ x * (1 + ε) ^ 2 :=
+    le_mul_of_one_le_right hx_nonneg hpow_one
+  have hδ_le : gap.δ (x * (1 + ε) ^ 2) ≤ ε := by
+    have : gap.δ (x * (1 + ε) ^ 2) ≤ gap.δ x :=
+      gap_delta_antitone_of_le (a := x) (b := x * (1 + ε) ^ 2) hx_one hxy
+    simpa [hε] using this
+  have h1' : (1 : ℝ) + gap.δ (x * (1 + ε) ^ 2) ≤ 1 + ε := by
+    linarith
+  have hmul_nonneg : 0 ≤ x * (1 + ε) ^ 2 := by
+    exact mul_nonneg hx_nonneg (sq_nonneg (1 + ε))
+  have hmul :
+      (x * (1 + ε) ^ 2) * (1 + gap.δ (x * (1 + ε) ^ 2))
+        ≤ (x * (1 + ε) ^ 2) * (1 + ε) :=
+    mul_le_mul_of_nonneg_left h1' hmul_nonneg
+  simpa [pow_succ, mul_assoc, mul_left_comm, mul_comm] using hmul
 
 
 /- End of theorem `exists_p_primes` lemmas-/
