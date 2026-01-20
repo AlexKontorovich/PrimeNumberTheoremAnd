@@ -83,7 +83,7 @@ noncomputable def scale (g : CS n E) (R : ℝ) : CS n E := by
   by_cases h : R = 0
   · exact ⟨0, contDiff_const, by simp [HasCompactSupport, tsupport]⟩
   · refine ⟨fun x => funscale g R x, ?_, ?_⟩
-    · exact g.h1.comp (contDiff_const.smul contDiff_id)
+    · exact g.h1.comp (contDiff_const_smul R⁻¹)
     · exact g.h2.comp_smul (inv_ne_zero h)
 
 lemma deriv_scale {f : CS (n + 1) E} : (f.scale R).deriv = R⁻¹ • f.deriv.scale R := by
@@ -173,7 +173,7 @@ instance : Sub (W1 n E) where sub := sub
 lemma integrable_iteratedDeriv_Schwarz {f : 𝓢(ℝ, ℂ)} : Integrable (iteratedDeriv n f) := by
   induction n generalizing f with
   | zero => exact f.integrable
-  | succ n ih => simpa [iteratedDeriv_succ'] using ih (f := SchwartzMap.derivCLM ℝ f)
+  | succ n ih => simpa [iteratedDeriv_succ'] using ih (f := SchwartzMap.derivCLM ℝ ℂ f)
 
 def of_Schwartz (f : 𝓢(ℝ, ℂ)) : W1 n ℂ where
   toFun := f

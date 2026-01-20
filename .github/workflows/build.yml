@@ -45,7 +45,7 @@ jobs:
           fetch-depth: 0 # Fetch all history for all branches and tags
 
       - name: Build the project
-        uses: leanprover/lean-action@434f25c2f80ded67bba02502ad3a86f25db50709 # v1.3.0
+        uses: leanprover/lean-action@c544e89643240c6b398f14a431bcdc6309e36b3e # v1.4.0
         with:
           use-github-cache: false
           build-args: :blueprint
@@ -54,8 +54,7 @@ jobs:
         run: python3 scripts/upstreaming_dashboard.py
 
       - name: Compile blueprint and documentation
-        uses: leanprover-community/docgen-action@cc833d262c7b8f179ac444cd20fde412b24b8beb # 2026-01-08
+        uses: leanprover-community/docgen-action@deed0cdc44dd8e5de07a300773eb751d33e32fc8 # 2025-10-26
         with:
           blueprint: true
           homepage: home_page
-          references: 'blueprint/src/references.bib'

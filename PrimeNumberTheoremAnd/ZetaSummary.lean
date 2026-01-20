@@ -31,11 +31,12 @@ zero-free region for the Riemann zeta-function, arXiv:2212.06867.
   --/)]
 theorem HSW.main_theorem : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 := sorry
 
+
 -- TODO: move to separate file
 @[blueprint
   "mt_theorem_1"
   (title := "MT Theorem 1")
-  (statement := /-- One has a classical zero-free region with $R = 5.5666305$. -/)
+  (statement := /-- One has a classical zero-free region with $R = 5.5666305$. (A more conservative value of $R = 5.573412$ was announced in the paper using weaker numerical verification of the Riemann hypothesis.) -/)
   (uses := ["classical-zero-free-region"])
   (latexEnv := "theorem")]
 theorem MT_theorem_1 : riemannZeta.classicalZeroFree 5.5666305 := sorry

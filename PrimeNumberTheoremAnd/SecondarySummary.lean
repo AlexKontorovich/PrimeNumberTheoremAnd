@@ -1,6 +1,7 @@
 import Architect
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.FKS2
+import PrimeNumberTheoremAnd.Dusart
 
 blueprint_comment /--
 \section{Summary of results}
@@ -12,7 +13,7 @@ some results that have not yet been moved into dedicated paper sections.
 
 References to add:
 
-Dusart: \url{https://piyanit.nl/wp-content/uploads/2020/10/art_10.1007_s11139-016-9839-4.pdf}
+Dusart \cite{Dusart}
 
 PT: D. J. Platt and T. S. Trudgian, The error term in the prime number theorem,
 Math. Comp. 90 (2021), no. 328, 871–881.

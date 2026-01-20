@@ -51,8 +51,13 @@
 ## Editor
 *.swp
 
+## Python
+__pycache__/
+*.pyc
+
 ## Project
 /scratch.lean
+/tmp/
 
 ## Generated upstreaming dashboard files
 home_page/_include/ready_to_upstream.md

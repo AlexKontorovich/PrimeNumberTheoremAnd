@@ -1,6 +1,7 @@
 import Architect
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
+import PrimeNumberTheoremAnd.Buthe
 import PrimeNumberTheoremAnd.MobiusLemma
 
 
