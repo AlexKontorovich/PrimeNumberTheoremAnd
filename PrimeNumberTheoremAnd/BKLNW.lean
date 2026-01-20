@@ -167,8 +167,8 @@ noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - 
   (discussion := 633)]
 theorem prop_3_sub_3 (n : ℕ) (hn : n ≥ 3) : f (2^n) = 1 + u n := by
   have sum_bound : ⌊ (log (2 ^ n)) / (log 2) ⌋₊ = n := by norm_num
-  rw [f, u, sum_bound, ← Finset.add_sum_Ioc_eq_sum_Icc hn, ← Finset.Ioc_eq_Icc, Nat.cast_ofNat,
-    sub_self, rpow_zero]
+  rw [f, u, sum_bound, ← Finset.add_sum_Ioc_eq_sum_Icc hn,
+    ← Finset.Icc_add_one_left_eq_Ioc, Nat.cast_ofNat, sub_self, rpow_zero]
   congr with k
   rw [← rpow_natCast _ n, ← rpow_mul (by norm_num)]
   field_simp
