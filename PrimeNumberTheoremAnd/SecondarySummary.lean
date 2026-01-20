@@ -68,23 +68,3 @@ theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := sorry
 theorem JY.theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 2 := sorry
 
 blueprint_comment /-- TODO: input other results from JY -/
-
-namespace Dusart
-
-def X₀ : ℕ := 89693
-
-@[blueprint "thm:Dusart"
-  (title := "Dusart Proposition 5.4")
-  (statement := /--
-  There exists a constant $X_0$ (one may take $X_0 = 89693$) with the following property:
-  for every real $x \geq X_0$, there exists a prime $p$ with
-  \[
-  x < p \le x\Bigl(1 + \frac{1}{\log^3 x}\Bigr).
-  \]
-  -/)]
-theorem proposition_5_4 : HasPrimeInInterval.log_thm X₀ 3 := sorry
--- simpa [X₀] using (proposition_5_4_numeral : HasPrimeInInterval.log_thm 89693 3)
-
-blueprint_comment /-- TODO: input other results from Dusart -/
-
-end Dusart

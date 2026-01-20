@@ -1,5 +1,5 @@
 import PrimeNumberTheoremAnd.PrimeGaps.Provider
-import PrimeNumberTheoremAnd.SecondarySummary
+import PrimeNumberTheoremAnd.Dusart
 
 namespace PrimeGaps
 namespace Dusart
