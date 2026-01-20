@@ -13,7 +13,7 @@ some results that have not yet been moved into dedicated paper sections.
 
 References to add:
 
-Dusart \cite{Dusart}
+Dusart \cite{Dusart2018}
 
 PT: D. J. Platt and T. S. Trudgian, The error term in the prime number theorem,
 Math. Comp. 90 (2021), no. 328, 871–881.
