@@ -145,10 +145,47 @@ theorem sublemma_1_6 {x : ℝ} (hx : 0 < x) :
   (latexEnv := "sublemma")
   (discussion := 682)]
 theorem sublemma_1_7 {x : ℝ} (hx : 0 < x) :
-    ψ x - θ x ≤
-      ψ (x ^ (1 / 2:ℝ)) +
-      ψ (x ^ (1 / 3:ℝ)) +
-      ∑' (k : ℕ), θ (x ^ (1 / (5 * (k:ℝ)))) := by sorry
+    ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ∑' k, θ (x ^ (1 / (5 * (k : ℝ)))) := by
+  by_contra h_contra
+  have : Summable (fun k : ℝ ↦ θ (x ^ (1 / (5 * k)))) := by
+    contrapose! h_contra
+    rw [tsum_eq_zero_of_not_summable h_contra, sublemma_1_6]
+    · rw [tsum_eq_zero_of_not_summable, tsum_eq_zero_of_not_summable,
+          tsum_eq_zero_of_not_summable] <;> norm_num
+      · contrapose! h_contra
+        convert h_contra.comp_injective (show Function.Injective (fun k : ℝ ↦ (5 * k - 1) / 6)
+          from fun a b h ↦ by ring_nf at h; linarith) using 2; norm_num; ring_nf
+      · contrapose! h_contra
+        convert h_contra.comp_injective (show (fun k : ℝ ↦ k * (5 / 6)).Injective from
+          fun a b h ↦ by grind) using 2; norm_num; ring_nf
+      · contrapose! h_contra
+        convert h_contra.comp_injective (show (fun k : ℝ ↦ (5 * k + 1) / 6).Injective from
+          fun a b h ↦ by grind) using 2; norm_num; ring_nf
+    · exact RCLike.ofReal_pos.mp hx
+  replace := (this.tendsto_cofinite_zero).eventually (gt_mem_nhds <| show 0 < θ x from ?_)
+  · refine this.not_infinite <| Set.infinite_of_injective_forall_mem (fun a b h ↦ ?_)
+        (fun n : ℕ ↦ show (1 / (5 * (n + 1)) : ℝ) ∈ _ from ?_) <;> norm_num at *
+    · exact add_right_cancel (congrFun (congrArg HAdd.hAdd h) a)
+    · ring_nf
+      refine sum_le_sum_of_subset_of_nonneg ?_ ?_
+      · intro p hp
+        refine mem_filter.mpr ⟨mem_Ioc.mpr ⟨?_, ?_⟩, (mem_filter.mp hp).2⟩
+        · exact (mem_Ioc.mp (mem_filter.mp hp).1).1
+        · exact (mem_Ioc.mp (mem_filter.mp hp).1).2.trans
+            (floor_mono <| le_trans (by norm_num) <| rpow_le_rpow_of_exponent_le (le_of_not_gt fun h ↦ by
+                rw [floor_eq_zero.mpr <| by grind] at hp; aesop) (by linarith : (1 + n : ℝ) ≥ 1))
+      · exact fun _ _ _ ↦ log_nonneg <| one_le_cast.2 <| Prime.pos <| by grind
+  · by_cases h₂ : x < 2
+    · have hψ2 : ψ (x ^ (1 / 2 : ℝ)) = 0 := psi_eq_zero_of_lt_two <|
+        calc x ^ (1 / 2 : ℝ) < 2 ^ (1 / 2 : ℝ) := rpow_lt_rpow hx.le h₂ (by norm_num)
+          _ < 2 := by simpa using rpow_lt_rpow_of_exponent_lt (by norm_num) (by norm_num : (1 : ℝ) / 2 < 1)
+      have hψ3 : ψ (x ^ (1 / 3 : ℝ)) = 0 := psi_eq_zero_of_lt_two <|
+        calc x ^ (1 / 3 : ℝ) < 2 ^ (1 / 3 : ℝ) := rpow_lt_rpow hx.le h₂ (by norm_num: (0 : ℝ) < 1 / 3)
+          _ < 2 := by simpa using rpow_lt_rpow_of_exponent_lt (by grind) (by norm_num : (1 : ℝ) / 3 < 1)
+      simp only [psi_eq_zero_of_lt_two h₂, hψ2, hψ3, theta_eq_zero_of_lt_two h₂, add_zero, sub_zero, zero_add] at h_contra
+      exact (h_contra (tsum_nonneg fun k : ℝ ↦ theta_nonneg _)).elim
+    · exact sum_pos (fun p hp ↦ log_pos <| one_lt_cast.2 <| Prime.one_lt <| by aesop)
+        ⟨2, mem_filter.2 ⟨mem_Icc.2 ⟨by norm_num, le_floor <| by grind⟩, prime_two⟩⟩
 
 @[blueprint
   "costa-pereira-sublemma-1-8"
