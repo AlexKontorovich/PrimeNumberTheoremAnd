@@ -6,6 +6,8 @@ namespace PrimeGaps
 structure Provider where
   X₀ : ℕ
   δ : ℝ → ℝ
+  δ_nonneg:
+    ∀ {x : ℝ}, (X₀ : ℝ) ≤ x → 0 ≤ δ x
   prime_in_Icc:
     ∀ {x : ℝ}, (X₀ : ℝ) ≤ x →
       ∃ p : ℕ, Nat.Prime p ∧ x < (p : ℝ) ∧ (p : ℝ) ≤ x * (1 + δ x)
