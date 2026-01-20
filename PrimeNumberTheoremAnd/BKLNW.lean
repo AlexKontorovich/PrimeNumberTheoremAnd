@@ -182,7 +182,30 @@ Observe that if $n \geq 20$, then
 and it follows that $u_{n+1} - u_n < 0$ for $n \geq 20$. Finally, a numerical calculation verifies that the right hand side of the equation above is negative for $9 \leq n \leq 19$. -/)
   (latexEnv := "sublemma")
   (discussion := 634)]
-theorem prop_3_sub_4 (n : ℕ) (hn : n ≥ 9) : u (n + 1) < u n := by sorry
+theorem prop_3_sub_4 (n : ℕ) (hn : 9 ≤ n) : u (n + 1) < u n := by
+  suffices u (n + 1) - u n < 0 from by linarith
+  unfold u
+  calc
+    _ = (∑ k ∈ Finset.Icc 4 n, (2 : ℝ) ^ ((n + 1) / (k : ℝ) - (n + 1) / 3) * (1 - 2 ^
+      (1 / (3 : ℝ) - 1 / ↑k))) + 2 ^ (1 - (n + 1) / (3 : ℝ)) := by
+      sorry
+    _ = (2 : ℝ) ^ (- (n + 1 : ℝ) / 3) * (2 - ∑ k ∈ Finset.Icc 4 n, 2 ^ ((n + 1) / (k : ℝ)) *
+      (2 ^ (1 / (3 : ℝ) - 1 / k) - 1)) := by
+      sorry
+  by_cases h : 20 ≤ n
+  · suffices 2 < ∑ k ∈ Finset.Icc 4 n, (2 : ℝ) ^ ((n + 1) / (k : ℝ)) *
+      (2 ^ (1 / (3 : ℝ) - 1 / k) - 1) from mul_neg_of_pos_of_neg (by positivity) (by linarith)
+    calc
+    _ < 2 ^ (21 / (4 : ℝ)) * (2 ^ (1 / (12 : ℝ)) - 1) := by sorry
+    _ < (2 : ℝ) ^ ((n + 1) / (4 : ℝ)) * (2 ^ (1 / (3 : ℝ) - 1 / 4) - 1) := by
+      sorry
+    _ < ∑ k ∈ Finset.Icc 4 n, (2 : ℝ) ^ ((n + 1) / (k : ℝ)) * (2 ^ (1 / (3 : ℝ) - 1 / k) - 1) := by
+      refine Finset.single_lt_sum (f := fun k : ℕ => (2 : ℝ) ^ ((n + 1) / (k : ℝ)) * (2 ^
+        (1 / (3 : ℝ) - 1 / k) - 1)) (j := 5) (by linarith) (by grind) (by grind) ?_ (fun k hk => ?_)
+      · sorry
+      · sorry
+  · interval_cases n
+    repeat sorry
 
 @[blueprint
   "bklnw-prop-3-sub-5"
