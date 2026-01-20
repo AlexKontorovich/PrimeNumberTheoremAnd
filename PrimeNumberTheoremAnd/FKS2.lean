@@ -6,7 +6,9 @@ import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 blueprint_comment /--
 \section{The implications of FKS2}
 
-In this file we record the implications in the paper \cite{FKS2} that allow one to convert primary bounds on $E_\psi$ into secondary bounds on $E_\pi$, $E_\theta$.
+In this file we record the implications in the paper \cite{FKS2}.  Roughly speaking, this paper has two components: a "$\psi$ to $\theta$ pipeline" that converts estimates on the first Chebyshev function $\psi$ to estimates on the second Chebyshev function $\theta$; and a "$\theta$ to $\pi$ pipeline" that converts estimates on $\theta$ to estimates on the prime counting function $\pi$.  Each pipeline converts "admissible classical bounds" (Definition \ref{fks2-def-admissible-classical-bound}) of one function to admissible classical bounds of the next function in the pipeline.
+
+Many of the results in this file only hold for $x$ above a certain threshold.  In order to lower these thresholds, this paper also imports multiple results (often numerical) from other papers to cover medium and small values of $x$.
 -/
 
 open Real MeasureTheory Chebyshev
