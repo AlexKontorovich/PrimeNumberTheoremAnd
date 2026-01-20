@@ -130,7 +130,7 @@ noncomputable def Inputs.default : Inputs := {
   (statement := /--
   $$ f(x) := \sum_{k=3}^{\lfloor \log x / \log 2 \rfloor} x^{1/k - 1/3}.$$
   -/)]
-noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋, x^(1/(k:ℝ) - 1/3)
+noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋₊, x^(1/k - 1/3 : ℝ)
 
 @[blueprint
   "bklnw-prop-3-sub-1"
@@ -183,7 +183,13 @@ noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - 
   (proof := /-- Clear. -/)
   (latexEnv := "sublemma")
   (discussion := 633)]
-theorem prop_3_sub_3 (n : ℕ) : f (2^n) = 1 + u n := by sorry
+theorem prop_3_sub_3 (n : ℕ) (hn : n ≥ 3) : f (2^n) = 1 + u n := by
+  have sum_bound : ⌊ (log (2 ^ n)) / (log 2) ⌋₊ = n := by norm_num
+  rw [f, u, sum_bound, ← Finset.add_sum_Ioc_eq_sum_Icc hn,
+    ← Finset.Icc_add_one_left_eq_Ioc, Nat.cast_ofNat, sub_self, rpow_zero]
+  congr with k
+  rw [← rpow_natCast _ n, ← rpow_mul (by norm_num)]
+  field_simp
 
 @[blueprint
   "bklnw-prop-3-sub-4"
@@ -210,7 +216,8 @@ theorem prop_3_sub_4 (n : ℕ) (hn : n ≥ 9) : u (n + 1) < u n := by sorry
   (latexEnv := "sublemma")
   (discussion := 635)]
 theorem prop_3_sub_5 (n : ℕ) (hn : n ≥ 9) : f (2^n) > f (2^(n + 1)) := by
-  simp [prop_3_sub_3, prop_3_sub_4 n hn]
+  rw [prop_3_sub_3 n (Nat.le_of_add_left_le hn), prop_3_sub_3 (n + 1) (by omega)]
+  linarith [prop_3_sub_4 n hn]
 
 @[blueprint
   "bklnw-prop-3-sub-6"
