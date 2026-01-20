@@ -258,7 +258,13 @@ theorem prop_3_sub_7 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
     calc x₀ = 2^((log x₀) / (log 2)) := key.symm
          _ < 2^((n:ℝ) + 1) := rpow_lt_rpow_of_exponent_lt one_lt_two h1
          _ = 2^(n+1) := by rw [← rpow_natCast 2 (n+1)]; norm_cast
-  exact (prop_3_sub_2 n).le_iff_ge ⟨hx₀_ge.trans hx_lo, hx_hi⟩ ⟨hx₀_ge, hx₀_lt⟩ |>.mpr hx_lo
+  have : n ≥ 4 := by
+    by_contra hcon; push_neg at hcon
+    have : (2 : ℝ) ^ (n + 1) ≤ 2^9 := pow_le_pow_right₀ one_le_two <| by omega
+    linarith [hx₀, hx₀_lt]
+  rcases hx_lo.eq_or_lt with rfl | hlt
+  · rfl
+  · exact (prop_3_sub_2 n this ⟨hx₀_ge, hx₀_lt⟩ ⟨hx₀_ge.trans hx_lo, hx_hi⟩ hlt).le
 
 @[blueprint
   "bklnw-prop-3-sub-8"
