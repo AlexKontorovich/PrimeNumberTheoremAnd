@@ -455,8 +455,7 @@ theorem eq_30 {x x₀ : ℝ} (hx : x ≥ x₀) :
   $$ \frac{|\pi(x) - \Li(x)|}{\frac{x \varepsilon_{\theta,\mathrm{asymp}}(x)}{\log(x)}} \leq \frac{\log(x_1)}{x_1 \varepsilon_{\theta,\mathrm{asymp}}(x_1)} |\pi(x_0) - \Li(x_0) - \frac{\theta(x_0) - x_0}{\log(x_0)}| + 1 + \frac{2 D_+\left( \sqrt{\log x_1} - \frac{C}{2\sqrt{R}} \right)}{\sqrt{\log(x_1)}}, $$
   from which we deduce the announced bound. -/)
   (latexEnv := "theorem")
-  (discussion := 675)
-  ]
+  (discussion := 675)]
 theorem theorem_3 (A B C R x₀ x₁ : ℝ)
   (hB : B ≥ max (3 / 2) (1 + C ^ 2 / (16 * R)))
   (hx0 : x₀ > 0)
@@ -484,7 +483,7 @@ noncomputable def εθ_from_εψ (εψ : ℝ → ℝ) (x₀ : ℝ) : ℝ :=
   $$\frac{\theta(x) - x}{x} = \frac{\psi(x) - x}{x} + \frac{\theta(x) - \psi(x)}{x}.$$
   By Theorem \ref{costa-pereira-theorem-1a}, we have
   $$\psi(x) - \theta(x) \leq \psi(x^{1/2}) + \psi(x^{1/3}) + \psi(x^{1/5}).$$
-  We use [4, Theorem 2], that for $0 < x < 11$, $\psi(x) < x$, and that $\varepsilon_{\psi,num}(10^{19}) < 2 \cdot 10^{-8}$. In particular when $2 < x < 10^{38}$,
+  We use \cite[Theorem 2]{Buthe}, that for $0 < x < 11$, $\psi(x) < x$, and that $\varepsilon_{\psi,num}(10^{19}) < 2 \cdot 10^{-8}$. In particular when $2 < x < 10^{38}$,
   $$\psi(x^{1/2}) + \psi(x^{1/3}) + \psi(x^{1/5}) \leq x^{1/2} + x^{1/3} + x^{1/5} + 0.94(x^{1/4} + x^{1/6} + x^{1/10}),$$
   when $10^{38} \leq x < 10^{54}$,
   $$\psi(x^{1/2}) + \psi(x^{1/3}) + \psi(x^{1/5}) \leq 1.00000002x^{1/2} + x^{1/3} + x^{1/5} + 0.94(x^{1/6} + x^{1/10}),$$
@@ -493,7 +492,8 @@ noncomputable def εθ_from_εψ (εψ : ℝ → ℝ) (x₀ : ℝ) : ℝ :=
   and finally when $x \geq 10^{95}$,
   $$\psi(x^{1/2}) + \psi(x^{1/3}) + \psi(x^{1/5}) \leq 1.00000002(x^{1/2} + x^{1/3} + x^{1/5}).$$
   The result follows by combining the worst coefficients from all cases and dividing by $x$. -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 711)]
 theorem proposition_17 {x x₀ : ℝ} (hx : x > x₀) (hx₀ : x₀ > 2) (εψ : ℝ → ℝ)
     (hEψ : Eψ x ≤ εψ x₀) :
     -εθ_from_εψ εψ x₀ ≤ (θ x - x) / x ∧ (θ x - x) / x ≤ εψ x₀ ∧
@@ -519,7 +519,8 @@ theorem proposition_17 {x x₀ : ℝ} (hx : x > x₀) (hx₀ : x₀ > 2) (εψ :
   We conclude by using the identity: for all $2 \leq a < b$,
   $$ \int_a^b \frac{dt}{(\log t)^2}
     = \Li(b) - \frac{b}{\log b} - (\Li(a) - \frac{a}{\log a}). $$ -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 712)]
 theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
   {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
   (h_b_start : b 0 = log x₀)
@@ -546,18 +547,19 @@ theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
   to see that the difference is strictly increasing. Evaluating at $x = 6.58$ and applying the mean value theorem gives the announced result.
   -/)
   (latexEnv := "lemma")
-  ]
-theorem lemma_20_a : StrictAntiOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) := sorry
+  (discussion := 713)]
+theorem lemma_20_a : StrictMonoOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) := sorry
 
 @[blueprint
   "fks2-lemma-20b"
   (title := "FKS2 Lemma 20b")
   (statement := /--
-  Assume $x \geq 6.58$. Then $\Li(x) - \frac{x}{\log x}$ is strictly increasing and
+  Assume $x \geq 6.58$. Then
   $\Li(x) - \frac{x}{\log x} > \frac{x-6.58}{\log^2 x} > 0$.
   -/)
   (proof := /-- This follows from Lemma \ref{fks2-lemma-20a} and the mean value theorem. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 714)]
 theorem lemma_20_b {x : ℝ} (hx : x ≥ 6.58) :
   Li x - x / log x > (x - 6.58) / (log x) ^ 2 ∧
   (x - 6.58) / (log x) ^ 2 > 0 :=
@@ -572,7 +574,8 @@ theorem lemma_20_b {x : ℝ} (hx : x ≥ 6.58) :
   $$ + \varepsilon_{\theta,num}(x_1) \frac{\log x}{x} \int_{x_1}^{x} \frac{1}{(\log t)^2} \, dt. $$ -/)
   (proof := /-- This is obtained by combining Sublemma \ref{fks2-eq-30} with the admissibility of $\varepsilon_{\theta,num}$ and Lemma \ref{fks2-lemma-19}.
   -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 715)]
 theorem theorem_6_1 {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
   (h_b_start : b 0 = log x₀)
@@ -605,7 +608,8 @@ theorem theorem_6_1 {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   $$ f(x) < \frac{1}{\log x_1 + \log(\log x_1) - 1}, $$
   which gives the announced result.
   -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 716)]
 theorem theorem_6_2 {x₁ : ℝ} (h : x₁ ≥ 14) (x : ℝ) (hx : x ≥ x₁) :
   (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 < 1 / (log x₁ + log (log x₁) - 1) :=
   sorry
@@ -617,7 +621,8 @@ theorem theorem_6_2 {x₁ : ℝ} (h : x₁ ≥ 14) (x : ℝ) (hx : x ≥ x₁) :
   $$ \frac{\log x}{x} \int_{x_1}^x \frac{dt}{\log^2 t} \leq \frac{\log x_2}{x_2} \left( \Li(x_2) - \frac{x_2}{\log x_2} - \Li(x_1) + \frac{x_1}{\log x_1} \right ). $$ -/)
   (proof := /-- Let $f(x)$ be as in the previous sublemma.  Notice that by assumption $x_1 \leq x \leq x_2 \leq x_1 \log x_1 < x_m$, so that
   $$ f(x) \leq f(x_2) = \frac{\log x_2}{x_2} \left( \Li(x_2) - \frac{x_2}{\log x_2} - \Li(x_1) + \frac{x_1}{\log x_1} \right). $$ -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 717)]
 theorem theorem_6_3 {x₁ : ℝ} (h : x₁ ≥ 14) (x₂ : ℝ) (hx₂ : x₂ ≥ x₁) (x : ℝ) (hx : x ≥ x₁) (hx' : x ≤ x₂) :
   (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 ≤
     (log x₂ / x₂) * (Li x₂ - x₂ / log x₂ - Li x₁ + x₁ / log x₁) :=
@@ -626,7 +631,8 @@ theorem theorem_6_3 {x₁ : ℝ} (h : x₁ ≥ 14) (x₂ : ℝ) (hx₂ : x₂ �
 @[blueprint
   "fks2-theorem-6"
   (title := "FKS2 Theorem 6")
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 718)]
 theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
   {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
   (h_b_start : b 0 = log x₀)
@@ -663,7 +669,8 @@ theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
   $$ E_\pi(x) \leq \varepsilon_{\pi,num}(x_1,x_2) :=
     \varepsilon_{\theta,num}(x_1)(1 + \mu_{num}(x_0,x_1,x_2)).$$ -/)
   (proof := /-- This follows by combining the three substeps. -/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 718)]
 theorem theorem_6_alt {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
   (h_b_start : b 0 = log x₀)
@@ -686,7 +693,8 @@ theorem theorem_6_alt {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   Then $E_\pi(x) \leq \varepsilon_{\pi,num}(x_1)$ for all $x \geq x_1$.
   -/)
   (proof := /-- This follows directly from Theorem \ref{fks2-theorem-6} by taking the supremum over all partitions ending at infinity. -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 719)]
 theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
     {M : ℕ} (b' : Fin (M + 1) → EReal) (hmono : Monotone b')
     (h_b_start : b' 0 = log x₁)
@@ -720,7 +728,8 @@ theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
     {\sqrt{\log x_1}}.$$
   -/)
   (proof := /-- This follows by applying Theorem \ref{fks2-theorem-3} with Proposition \ref{fks2-proposition-13}.-/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 720)]
 theorem corollary_21
   (Aψ B C R x₀ x₁ : ℝ)
   (hB : B ≥ max (3 / 2) (1 + C ^ 2 / (16 * R)))
@@ -821,7 +830,8 @@ def Table_5 : List (ℝ × ℝ × ℝ) := [
 
   As in the proof of \cite[Lemmas 5.2 and 5.3]{FKS} one may verify that the numerical results obtainable from Theorem \ref{fks2-theorem-6}, using Corollary \ref{fks2-corollary-8}, may be interpolated as a step function to give a bound on $E_\pi(x)$ of the shape $\varepsilon_{\pi,asymp}(x)$. In this way we obtain that $A_\pi = 121.107$ is admissible for $x > 2$. Note that the subdivisions we use are essentially the same as used in \cite[Lemmas 5.2 and 5.3]{FKS}. In Table 5 we give a sampling of the relevant values, more of the values of $\varepsilon_{\pi,num}(x_1)$ can be found in Table 4. Far more detailed versions of these tables will be posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf.
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 721)]
 theorem corollary_22 : Eπ.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
 
 def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
@@ -841,9 +851,10 @@ def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
   $A_\pi, B, C, x_0$ as in Table 6 give an admissible asymptotic bound for $E_\pi$ with
   $R = 5.5666305$.
   -/)
-  (proof := /-- The bounds of the form $\eps_{\pi, asymp}(x)$ come from selecting a value $A$ for which Corollary \ref{fks-corollary-22} provides a better bound at $x = e^{7500}$ and from verifying that the bound in Corollary \ref{fks-corollary-22} decreases faster beyond this point. This final verification proceeds by looking at the derivative of the ratio as in Lemma \ref{fks-lemma-10}. To verify these still hold for smaller $x$, we proceed as below. To verify the results for any $x$ in $\log(10^{19}) < \log(x) < 100000$, one simply proceeds as in \cite[Lemmas 5.2, 5.3]{FKS} and interpolates the numerical results of Theorem \ref{fks-theorem-6}. For instance, we use the values in Table 4 as a step function and verifies that it provides a tighter bound than we are claiming. Note that our verification uses a more refined collection of values than those provided in Table 4 or the tables posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf. To verify results for $x < 10^{19}$, one compares against the results from \cite{buthe-theorem-2a}, or one checks directly for particularly small $x$.
+  (proof := /-- The bounds of the form $\eps_{\pi, asymp}(x)$ come from selecting a value $A$ for which Corollary \ref{fks-corollary-22} provides a better bound at $x = e^{7500}$ and from verifying that the bound in Corollary \ref{fks-corollary-22} decreases faster beyond this point. This final verification proceeds by looking at the derivative of the ratio as in Lemma \ref{fks-lemma-10}. To verify these still hold for smaller $x$, we proceed as below. To verify the results for any $x$ in $\log(10^{19}) < \log(x) < 100000$, one simply proceeds as in \cite[Lemmas 5.2, 5.3]{FKS} and interpolates the numerical results of Theorem \ref{fks-theorem-6}. For instance, we use the values in Table 4 as a step function and verifies that it provides a tighter bound than we are claiming. Note that our verification uses a more refined collection of values than those provided in Table 4 or the tables posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf. To verify results for $x < 10^{19}$, one compares against the results from Theorem \ref{buthe-theorem-2a}, or one checks directly for particularly small $x$.
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 722)]
 theorem corollary_23 (Aπ B C x₀ : ℝ) (h : [Aπ, B, C, x₀] ∈ table6) :
     Eπ.classicalBound Aπ B C 5.5666305 x₀ := sorry
 
@@ -904,7 +915,7 @@ For $x > 10^{19}$, we use Theorem 6 as well as values for $\varepsilon_{\pi,num}
   \[
   \left| \frac{\log(x)}{x} (\pi(x) - \mathrm{Li}(x)) \right| \leq \left| \frac{\log(p_n)}{p_n} (\pi(p_n) - \mathrm{Li}(p_{n+1})) \right| \leq 0.4298.
   \]
-  For $x$ satisfying $p_{25} = 97 \leq x \leq 10^{19}$, we use \cite[Theorem 2]{buthe-theorem-2a} and verify
+  For $x$ satisfying $p_{25} = 97 \leq x \leq 10^{19}$, we use Theorem \ref{buthe-theorem-2a} and verify
   \[
   \mathcal{E}(x) = \frac{1}{\sqrt{x}} \left( 1.95 + \frac{3.9}{\log(x)} + \frac{19.5}{(\log(x))^2} \right) \leq 0.4298.
   \]
@@ -913,7 +924,8 @@ For $x > 10^{19}$, we use Theorem 6 as well as values for $\varepsilon_{\pi,num}
   \varepsilon_{\pi,num}(x) \leq 0.4298.
   \]
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 723)]
 theorem corollary_26 : Eπ.bound 0.4298 2 := sorry
 
 end FKS2
