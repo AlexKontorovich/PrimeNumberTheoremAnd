@@ -144,9 +144,19 @@ theorem lemma_10_substep_2 {a b c x : ℝ} (hx : x > 1) :
  -/)
   (latexEnv := "lemma")
   (discussion := 612)]
-theorem lemma_10a {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b < -c ^ 2 / (16 * a)) :
-  StrictAnti (g_bound a b c) :=
-  sorry
+theorem lemma_10a {a b c : ℝ} (ha : a > 0) (hb : b < -c ^ 2 / (16 * a)) :
+    StrictAntiOn (g_bound a b c) (Set.Ioi 1) := by
+  refine strictAntiOn_of_deriv_neg (convex_Ioi 1) (fun x hx ↦ ?_) (fun x hx ↦ ?_)
+  · have : 0 < x := by linarith [hx.out]
+    exact (((continuousAt_id.rpow continuousAt_const (Or.inl this.ne')).mul
+      ((continuousAt_log this.ne').rpow continuousAt_const (Or.inl (log_pos hx.out).ne'))).mul
+      (continuous_exp.continuousAt.comp (continuousAt_const.mul
+      (continuous_sqrt.continuousAt.comp (continuousAt_log this.ne'))))).continuousWithinAt
+  · rw [interior_Ioi] at hx; rw [lemma_10_substep_2 hx]
+    let t := sqrt (log x)
+    have : -a * t^2 + c/2 * t + b = -a * (t - c/(4*a))^2 + (b + c^2/(16*a)) := by grind
+    have : b + c^2/(16*a) < 0 := by grind
+    linarith [mul_nonneg (le_of_lt ha) (sq_nonneg (t - c/(4*a)))]
 
 @[blueprint
   "fks2-lemma-10b"
@@ -210,8 +220,8 @@ theorem lemma_10c {b c : ℝ} (hb : b < 0) (hc : c > 0) :
   (latexEnv := "corollary")
   (discussion := 615)]
 theorem corollary_11 {B C R : ℝ} (hR : R > 0) (hB : B > 1 + C ^ 2 / (16 * R)) (hC : C > 0) :
-    StrictAnti (g_bound 1 (1 - B) (C / sqrt R)) := by
-  apply lemma_10a one_pos (div_pos hC (sqrt_pos.mpr hR))
+    StrictAntiOn (g_bound 1 (1 - B) (C / sqrt R)) (Set.Ioi 1) := by
+  apply lemma_10a one_pos
   rw [div_pow, sq_sqrt hR.le, mul_one]
   linarith [show C ^ 2 / R / 16 = C ^ 2 / (16 * R) by ring]
 
