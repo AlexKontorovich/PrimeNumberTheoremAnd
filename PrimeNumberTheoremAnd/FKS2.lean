@@ -360,6 +360,25 @@ theorem remark_7 {x₀ x₁ : ℝ} (x₂ : ℝ) (h : x₁ ≥ max x₀ 14)
 theorem remark_15 (x₀ : ℝ) (h : log x₀ ≥ 1000) :
     Eθ.classicalBound (FKS.A x₀) (3/2) 2 5.5666305 x₀ := by sorry
 
+/- We recall inequality (30)
+\begin{equation}
+|\pi(x) - \mathrm{Li}(x)| \leq \left| \frac{\theta(x) - x}{\log(x)} \right| + \left| \pi(x_0) - \mathrm{Li}(x_0) - \frac{\theta(x_0) - x_0}{\log(x_0)} \right| + \left| \int_{x_0}^{x} \frac{\theta(t) - t}{t(\log(t))^2} \, dt \right|.
+\end{equation}
+-/
+
+@[blueprint
+  "fks2-eq30"
+  (title := "FKS2 Equation (30)")
+  (statement := /--
+  For any $x \geq x_0 > 0$,
+  $$ |\pi(x) - \Li(x)| \leq \left| \frac{\theta(x) - x}{\log(x)} \right| + \left| \pi(x_0) - \Li(x_0) - \frac{\theta(x_0) - x_0}{\log(x_0)} \right| + \left| \int_{x_0}^{x} \frac{\theta(t) - t}{t(\log(t))^2} \, dt \right|. $$
+  -/)
+  (proof := /-- This follows from applying the triangle inequality to Sublemma \ref{fks2-eq-17}. -/)
+  (latexEnv := "sublemma")]
+theorem eq_30 {x x₀ : ℝ} (hx : x ≥ x₀) :
+  Eπ x * x / log x ≤ Eψ x * x / log x + |Eπ x₀ - Eθ x₀| * x₀ / log x₀ + ∫ t in x₀..x, Eθ t / log t ^ 2 :=
+  by sorry
+
 @[blueprint
   "fks2-theorem-3"
   (title := "FKS2 Theorem 3")
@@ -372,10 +391,8 @@ theorem remark_15 (x₀ : ℝ) (h : log x₀ ≥ 1000) :
   for all $x \geq x_1$.  In other words, we have an admissible bound with parameters
   $(1+\mu_{asymp}(x_0,x_1))A, B, C, x_1$ for $E_\pi$.
   -/)
-  (proof := /-- We assume that $(\pi(x_0) - \Li(x_0))$ can be numerically calculated. Thus we use (17) to rewrite $(\pi(x) - \Li(x)) - (\pi(x_0) - \Li(x_0))$, so that
-  $$ |\pi(x) - \Li(x)| = \frac{\theta(x) - x}{\log(x)} - \frac{\theta(x_0) - x_0}{\log(x_0)} + \int_{x_0}^{x} \frac{\theta(t) - t}{t (\log(t))^2} dt + \pi(x_0) - \Li(x_0) $$
-  $$ \leq |\pi(x_0) - \Li(x_0) - \frac{\theta(x_0) - x_0}{\log(x_0)}| + \frac{\theta(x) - x}{\log(x)} + \int_{x_0}^{x} \frac{\theta(t) - t}{t (\log(t))^2} dt.$$
-  We use the assumption ($\varepsilon_{\theta,\mathrm{asymp}}(x)$ provides an admissible bound on $\theta(x)$ for all $x \geq x_0$) to bound $\frac{\theta(x) - x}{\log(x)}$ and Lemma \ref{fks2-lemma-12} to bound $\int_{x_0}^{x} \frac{\theta(t) - t}{t (\log(t))^2} dt$.  We obtain
+  (proof := /-- The starting point is Sublemma \ref{fks2-eq30}.
+  The assumption ($\varepsilon_{\theta,\mathrm{asymp}}(x)$ provides an admissible bound on $\theta(x)$ for all $x \geq x_0$) to bound $\frac{\theta(x) - x}{\log(x)}$ and Lemma \ref{fks2-lemma-12} to bound $\int_{x_0}^{x} \frac{\theta(t) - t}{t (\log(t))^2} dt$.  We obtain
   $$ |\pi(x) - \Li(x)| \leq |\pi(x_0) - \Li(x_0) - \frac{\theta(x_0) - x_0}{\log(x_0)}| + \frac{x \varepsilon_{\theta,\mathrm{asymp}}(x)}{\log(x)} + \frac{2 A_\theta}{R^B} x m(x_0,x) \exp(-C \sqrt{\frac{\log x}{R}}) D_+\left( \sqrt{\log x} - \frac{C}{2\sqrt{R}} \right).$$
   We recall that $x \geq x_1 \geq x_0$.  Note that, by Corollary \ref{fks2-corollary-11},
   $$ \frac{\log(x)}{x \varepsilon_{\theta,\mathrm{asymp}}(x)} = \frac{1}{A_\theta} g(1, 1 - B, \frac{C}{\sqrt{R}}, x) $$
@@ -442,6 +459,17 @@ theorem proposition_17 {x x₀ : ℝ} (hx : x > x₀) (hx₀ : x₀ > 2) (εψ :
   $$ |\int_{x_0}^{x_1} \frac{\theta(t)-t}{t \log^2 t}\ dt|
     \leq \sum_{i=1}^{N-1} \eps_{\theta,num}(e^{b_i})
     ( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}}).$$ -/)
+  (proof := /-- We split the integral at each $e^{b_i}$ and apply the bound
+  $$ |\frac{\theta(t)-t}{t}| \leq \eps_{\theta,num}(e^{b_i}), \text{ for every } e^{b_i} \leq t < e^{b_{i+1}}. $$
+  Thus,
+  $$ |\int_{x_0}^{x_1} \frac{\theta(t)-t}{t \log^2 t}\ dt|
+    \leq \sum_{i=1}^{N-1} \int_{e^{b_i}}^{e^{b_{i+1}}}
+      |\frac{\theta(t)-t}{t \log^2 t}|\ dt
+    \leq \sum_{i=1}^{N-1} \eps_{\theta,num}(e^{b_i})
+      \int_{e^{b_i}}^{e^{b_{i+1}}} \frac{dt}{(\log t)^2}. $$
+  We conclude by using the identity: for all $2 \leq a < b$,
+  $$ \int_a^b \frac{dt}{(\log t)^2}
+    = \Li(b) - \frac{b}{\log b} - (\Li(a) - \frac{a}{\log a}). $$ -/)
   (latexEnv := "lemma")]
 theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
   {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
@@ -457,23 +485,94 @@ theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
   sorry
 
 @[blueprint
-  "fks2-lemma-20"]
+  "fks2-lemma-20a"
+  (title := "FKS2 Lemma 20a")
+  (statement := /--
+  The function $\Li(x) - \frac{x}{\log x}$ is strictly increasing for $x > 6.58$.
+  -/)
+  (proof := /-- Differentiate
+  \[
+  \frac{d}{dx} \left( \mathrm{Li}(x) - \frac{x}{\log(x)} \right) = \frac{1}{\log(x)} + \frac{1 - \log(x)}{(\log(x))^2} = \frac{1}{(\log(x))^2}
+  \]
+  to see that the difference is strictly increasing. Evaluating at $x = 6.58$ and applying the mean value theorem gives the announced result.
+  -/)
+  (latexEnv := "lemma")
+  ]
 theorem lemma_20_a : StrictAntiOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) := sorry
 
 @[blueprint
-  "fks2-lemma-20"
-  (title := "FKS2 Lemma 20")
+  "fks2-lemma-20b"
+  (title := "FKS2 Lemma 20b")
   (statement := /--
   Assume $x \geq 6.58$. Then $\Li(x) - \frac{x}{\log x}$ is strictly increasing and
   $\Li(x) - \frac{x}{\log x} > \frac{x-6.58}{\log^2 x} > 0$.
   -/)
+  (proof := /-- This follows from Lemma \ref{fks2-lemma-20a} and the mean value theorem. -/)
   (latexEnv := "lemma")]
 theorem lemma_20_b {x : ℝ} (hx : x ≥ 6.58) :
   Li x - x / log x > (x - 6.58) / (log x) ^ 2 ∧
   (x - 6.58) / (log x) ^ 2 > 0 :=
   sorry
 
+@[blueprint
+  "fks2-theorem-6-1"
+  (title := "FKS2 Theorem 6, substep 1")
+  (statement := /-- With the hypotheses of Theorem \ref{fks2-theorem-6}, for all $x \geq x_1$ we have
+  $$ E_\pi(x) \leq \varepsilon_{θ,num}(x_1) + \frac{\log x}{x} \frac{x_0}{\log x_0} (E_\pi(x_0) + E_\theta(x_0))$$
+  $$ + \frac{\log x}{x} \sum_{i=1}^{N-1} \varepsilon_{\theta,num}(e^{b_i}) \left( \mathrm{Li}(e^{b_{i+1}}) - \mathrm{Li}(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}} \right) $$
+  $$ + \varepsilon_{\theta,num}(x_1) \frac{\log x}{x} \int_{x_1}^{x} \frac{1}{(\log t)^2} \, dt. $$ -/)
+  (proof := /-- This is obtained by combining Sublemma \ref{fks2-eq-30} with the admissibility of $\varepsilon_{\theta,num}$ and Lemma \ref{fks2-lemma-19}.
+  -/)
+  (latexEnv := "sublemma")]
+theorem theorem_6_1 {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
+  {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
+  (h_b_start : b 0 = log x₀)
+  (h_b_end : b (Fin.last N) = log x₁)
+  (εθ_num : ℝ → ℝ)
+  (h_εθ_num : Eθ.numericalBound x₁ εθ_num) (x : ℝ) (hx : x ≥ x₁) :
+  Eπ x ≤ εθ_num x₁ + (log x / x) * (x₀ / log x₀) * (Eπ x₀ + Eθ x₀) +
+    (log x / x) * ∑ i ∈ Finset.Iio (Fin.last N),
+      εθ_num (exp (b i)) *
+      (Li (exp (b (i + 1))) - Li (exp (b i)) +
+      exp (b i) / b i - exp (b (i + 1)) / b (i + 1)) +
+    εθ_num x₁ * (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 :=
+  sorry
 
+@[blueprint
+  "fks2-theorem-6-2"
+  (title := "FKS2 Theorem 6, substep 2")
+  (statement := /-- With the hypotheses of Theorem \ref{fks2-theorem-6}, for all $x \geq x_1$ we have
+  $$ \frac{\log x}{x} \int_{x_1}^x \frac{dt}{\log^2 t} < \frac{1}{\log x_1 + \log \log x_1 - 1}. $$ -/)
+  (proof := /-- Call the left-hand side $f(x)$. We have
+  $$ f(x) = \frac{\log x}{x} \left( \mathrm{Li}(x) - \frac{x}{\log x} - \mathrm{Li}(x_1) + \frac{x_1}{\log x_1} \right). $$
+  Using integration by parts, its derivative can be written as
+  $$ f'(x) = -\frac{1}{x \log^2 x} + \frac{2}{x \log^3 x} + \frac{\log x - 1}{x^2} \left( \frac{x_1}{\log^2 x_1} + \frac{2 x_1}{\log^3 x_1} - \int_{x_1}^x \frac{6}{\log^4 t} dt \right). $$
+  From which we see that $f'(x_1) = \frac{1}{\log x_1} > 0$, and that $f'(x)$ is eventually negative. Thus there exists a critical point for $f(x)$ to the right of $x_1$. Moreover, by bounding $\int_{x_1}^x \frac{6}{\log^4 t} dt < 6 \frac{x - x_1}{\log^4 x_1}$, one finds that $f'(x_1 \log x_1) > 0$ if $x_1 > e$.
+  Now we write $f'(x) = \frac{f_1(x)}{x^2}$ with
+  $$ f_1(x) = \frac{x}{\log x} - (\log x - 1) \int_{x_1}^x \frac{1}{\log^2 t} dt. $$
+  Its derivative is $f_1'(x) = -\frac{1}{x} \int_{x_1}^x \frac{1}{\log^2 t} dt$, which is negative for $x > x_1$. Thus $f_1(x)$ decreases and vanishes at most once, giving $f(x)$ at most one critical point, $x_m > x_1$, which is then the maximum of $f(x)$. In other words, $x_m$ satisfies $f_1(x_m) = 0$, i.e.\ $\mathrm{Li}(x_m) - \mathrm{Li}(x_1) + \frac{x_1}{\log x_1} = -\frac{x_m}{1 - \log x_m}$, which shows that $f(x)$ attains its maximum at $x = x_m$, where
+  $$ f(x_m) = \frac{\log x_m}{x_m} \left( -\frac{x_m}{\log x_m} - \frac{x_m}{1 - \log x_m} \right) = \frac{1}{\log x_m - 1}. $$
+  Now, because $x_m > x_1 \log x_1$ we obtain the bound
+  $$ f(x) < \frac{1}{\log x_1 + \log(\log x_1) - 1}, $$
+  which gives the announced result.
+  -/)
+  (latexEnv := "sublemma")]
+theorem theorem_6_2 {x₁ : ℝ} (h : x₁ ≥ 14) (x : ℝ) (hx : x ≥ x₁) :
+  (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 < 1 / (log x₁ + log (log x₁) - 1) :=
+  sorry
+
+@[blueprint
+  "fks2-theorem-6-3"
+  (title := "FKS2 Theorem 6, substep 3")
+  (statement := /-- With the hypotheses of Theorem \ref{fks2-theorem-6}, for all $x \geq x_1$ we have
+  $$ \frac{\log x}{x} \int_{x_1}^x \frac{dt}{\log^2 t} \leq \frac{\log x_2}{x_2} \left( \Li(x_2) - \frac{x_2}{\log x_2} - \Li(x_1) + \frac{x_1}{\log x_1} \right ). $$ -/)
+  (proof := /-- Let $f(x)$ be as in the previous sublemma.  Notice that by assumption $x_1 \leq x \leq x_2 \leq x_1 \log x_1 < x_m$, so that
+  $$ f(x) \leq f(x_2) = \frac{\log x_2}{x_2} \left( \Li(x_2) - \frac{x_2}{\log x_2} - \Li(x_1) + \frac{x_1}{\log x_1} \right). $$ -/)
+  (latexEnv := "sublemma")]
+theorem theorem_6_3 {x₁ : ℝ} (h : x₁ ≥ 14) (x₂ : ℝ) (hx₂ : x₂ ≥ x₁) (x : ℝ) (hx : x ≥ x₁) (hx' : x ≤ x₂) :
+  (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 ≤
+    (log x₂ / x₂) * (Li x₂ - x₂ / log x₂ - Li x₁ + x₁ / log x₁) :=
+  sorry
 
 @[blueprint
   "fks2-theorem-6"
@@ -513,7 +612,9 @@ theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
   $$ + \frac{1}{\log x_1 + \log\log x_1 - 1}.$$
   Then, for all $x_1 \leq x \leq x_2$ we have
   $$ E_\pi(x) \leq \varepsilon_{\pi,num}(x_1,x_2) :=
-    \varepsilon_{\theta,num}(x_1)(1 + \mu_{num}(x_0,x_1,x_2)).$$ -/)]
+    \varepsilon_{\theta,num}(x_1)(1 + \mu_{num}(x_0,x_1,x_2)).$$ -/)
+  (proof := /-- This follows by combining the three substeps. -/)
+  (latexEnv := "theorem")]
 theorem theorem_6_alt {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
   (h_b_start : b 0 = log x₀)
@@ -531,9 +632,11 @@ theorem theorem_6_alt {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
   Let $\{b'_i\}_{i=1}^M$ be a set of finite subdivisions of $[\log(x_1),\infty)$, with
   $b'_1 = \log(x_1)$ and $b'_M = \infty$. Define
   $$ \varepsilon_{\pi, num}(x_1) :=
-    \max_{1 \leq i \leq M-1}\varepsilon_{\pi, num}(\exp(b'_i), \exp(b'_{i+1})).$$
+    \max_{1 \leq i \leq M-1}\varepsilon_{\pi, num}(\exp(b'_i),
+    \exp(b'_{i+1})).$$
   Then $E_\pi(x) \leq \varepsilon_{\pi,num}(x_1)$ for all $x \geq x_1$.
   -/)
+  (proof := /-- This follows directly from Theorem \ref{fks2-theorem-6} by taking the supremum over all partitions ending at infinity. -/)
   (latexEnv := "corollary")]
 theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
     {M : ℕ} (b' : Fin (M + 1) → EReal) (hmono : Monotone b')
@@ -567,6 +670,7 @@ theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
     |E_\pi(x_0) - E_\theta(x_0)| + \frac{2 D_+(\sqrt{\log x} - \frac{C}{2\sqrt{R}})}
     {\sqrt{\log x_1}}.$$
   -/)
+  (proof := /-- This follows by applying Theorem \ref{fks2-theorem-3} with Proposition \ref{fks2-proposition-13}.-/)
   (latexEnv := "corollary")]
 theorem corollary_21
   (Aψ B C R x₀ x₁ : ℝ)
@@ -579,6 +683,77 @@ theorem corollary_21
   sorry
 
 
+/-- Values for $\eps_{\pi, num}(x_1) are calculated using Corollary 8 with Theorem 6. Note that here $x_0=1015$ and that our sets $\{b_i\}_{i=1}^N$ and $\{b'_i\}_{i=1}^M$ are more refined than as provided by Tables 1, 2, and 3. -/
+def Table_4 : List (ℝ × ℝ) := [
+  (44, 1.7893e-8), (45, 1.1449e-8), (46, 7.2959e-9), (47, 4.6388e-9), (48, 2.9451e-9),
+  (49, 1.8680e-9), (50, 1.1785e-9), (51, 7.4479e-10), (52, 4.7046e-10), (53, 2.9707e-10),
+  (54, 1.8753e-10), (55, 1.1785e-10), (56, 7.4191e-11), (57, 4.6692e-11), (58, 2.9380e-11),
+  (59, 1.8774e-11), (60, 1.2330e-11), (61, 8.4134e-12), (62, 6.0325e-12), (63, 4.5827e-12),
+  (64, 3.6978e-12), (65, 3.1557e-12), (66, 2.8216e-12), (67, 2.6138e-12), (68, 2.4828e-12),
+  (69, 2.3985e-12), (70, 2.3427e-12), (71, 2.3043e-12), (72, 2.2766e-12), (73, 2.2555e-12),
+  (74, 2.2387e-12), (75, 2.2244e-12), (76, 2.2120e-12), (77, 2.2006e-12), (78, 2.1901e-12),
+  (79, 2.1802e-12), (80, 2.1708e-12), (81, 2.1617e-12), (82, 2.1530e-12), (83, 2.1446e-12),
+  (84, 2.1364e-12), (85, 2.1284e-12), (86, 2.1207e-12), (87, 2.1132e-12), (88, 2.1059e-12),
+  (89, 2.0988e-12), (90, 2.0919e-12), (91, 2.0851e-12), (92, 2.0786e-12), (93, 2.0721e-12),
+  (94, 2.0659e-12), (95, 2.0598e-12), (96, 2.0538e-12), (97, 2.0480e-12), (98, 2.0423e-12),
+  (99, 2.0367e-12), (100, 2.0339e-12), (110, 1.9853e-12), (120, 1.9457e-12), (130, 1.9126e-12),
+  (140, 1.8847e-12), (150, 1.8608e-12), (160, 1.8401e-12), (170, 1.8219e-12), (180, 1.8059e-12),
+  (190, 1.7917e-12), (200, 1.7789e-12), (210, 1.7675e-12), (220, 1.7571e-12), (230, 1.7476e-12),
+  (240, 1.7390e-12), (250, 1.7311e-12), (260, 1.7238e-12), (270, 1.7171e-12), (280, 1.7108e-12),
+  (290, 1.7051e-12), (300, 1.6997e-12), (310, 1.6946e-12), (320, 1.6899e-12), (330, 1.6855e-12),
+  (340, 1.6814e-12), (350, 1.6775e-12), (360, 1.6738e-12), (370, 1.6703e-12), (380, 1.6670e-12), (390, 1.6639e-12),
+  (400, 1.6609e-12), (410, 1.6581e-12), (420, 1.6554e-12), (430, 1.6529e-12), (440, 1.6505e-12),
+  (450, 1.6481e-12), (475, 1.6428e-12), (500, 1.6380e-12), (525, 1.6336e-12), (550, 1.6296e-12),
+  (575, 1.6260e-12), (600, 1.6227e-12), (625, 1.6197e-12), (650, 1.6169e-12), (675, 1.6143e-12),
+  (700, 1.6119e-12), (725, 1.6097e-12), (750, 1.6076e-12), (775, 1.6057e-12), (800, 1.6038e-12),
+  (825, 1.6021e-12), (850, 1.6005e-12), (875, 1.5990e-12), (900, 1.5976e-12), (925, 1.5962e-12),
+  (950, 1.5949e-12), (975, 1.5937e-12), (1000, 1.5925e-12), (1025, 1.5914e-12), (1050, 1.5904e-12),
+  (1075, 1.5894e-12), (1100, 1.5885e-12), (1125, 1.5875e-12), (1150, 1.5867e-12), (1175, 1.5858e-12),
+  (1200, 1.5850e-12), (1225, 1.5843e-12), (1250, 1.5836e-12), (1275, 1.5828e-12), (1300, 1.5822e-12),
+  (1325, 1.5815e-12), (1350, 1.5809e-12), (1375, 1.5803e-12), (1400, 1.5797e-12), (1425, 1.5791e-12),
+  (1450, 1.5786e-12), (1475, 1.5781e-12), (1500, 1.5776e-12), (1525, 1.5771e-12), (1550, 1.5766e-12),
+  (1575, 1.5761e-12), (1600, 1.5757e-12), (1625, 1.5753e-12), (1650, 1.5749e-12), (1675, 1.5745e-12),
+  (1700, 1.5741e-12), (1725, 1.5737e-12), (1750, 1.5733e-12), (1775, 1.5729e-12), (1800, 1.5726e-12),
+  (1825, 1.5723e-12), (1850, 1.5719e-12), (1875, 1.5716e-12), (1900, 1.5713e-12), (1925, 1.5710e-12),
+  (1950, 1.5707e-12), (1975, 1.5704e-12), (2000, 1.5701e-12), (2100, 1.3254e-12), (2200, 7.1013e-13),
+  (2300, 3.8078e-13), (2400, 2.0436e-13), (2500, 1.0977e-13), (2600, 5.9004e-14), (2700, 3.1743e-14),
+  (2800, 1.7095e-14), (2900, 9.2127e-15), (3000, 4.9698e-15), (3100, 2.6833e-15), (3200, 1.4502e-15),
+  (3300, 7.8459e-16), (3400, 4.2495e-16), (3500, 2.3044e-16), (3600, 1.2511e-16), (3700, 6.8015e-17),
+  (3800, 3.7027e-17), (3900, 2.0187e-17), (4000, 1.1024e-17), (4100, 6.0301e-18), (4200, 3.3046e-18),
+  (4300, 1.8146e-18), (4400, 9.9846e-19), (4500, 5.5065e-19), (4600, 3.0441e-19), (4700, 1.6903e-19),
+  (4800, 9.4404e-20), (4900, 5.3026e-20), (5000, 2.9949e-20), (6000, 1.2979e-22), (7000, 8.5175e-25),
+  (8000, 7.7862e-27), (9000, 9.2230e-29), (10000, 1.3682e-30), (20000, 1.9349e-45), (30000, 6.6592e-57),
+  (40000, 1.3470e-66), (50000, 3.7292e-75), (60000, 6.6648e-83), (70000, 4.9112e-90), (80000, 1.1133e-96),
+  (90000, 6.3306e-103), (100000, 7.7825e-109), (200000, 1.2375e-156), (300000, 2.1902e-193), (400000, 2.1118e-224),
+  (500000, 9.5685e-252), (600000, 1.7723e-276), (700000, 3.1360e-299), (800000, 2.0569e-320),
+  (900000, 2.5885e-340), (1e6, 3.8635e-359), (1e7, 1.0364e-1153)
+]
+
+/-- Table 5.  Sample of values showing $\eps_{\pi, asymp}(x_1)$ interpolates an upper bound for $\eps_{\pi,num}(x_1)$ with $A_\pi = 121.107$, $B = 3.2$, and $C = 2$.  See Corollary 22.  Note that values $\eps_{\pi, num}(x_1,\infty)$ displayed are computed using (12) from Theorem 6 rather than Corollary 8. -/
+def Table_5 : List (ℝ × ℝ × ℝ) := [
+  (100, 1.9202, 2.0495e-12),
+  (1000, 6.6533e-7, 1.5938e-12),
+  (2000, 2.8341e-11, 1.5707e-12),
+  (3000, 1.0385e-14, 4.9711e-15),
+  (4000, 1.2145e-17, 1.1026e-17),
+  (5000, 3.0305e-20, 2.9954e-20),
+  (6000, 1.3052e-22, 1.2980e-22),
+  (7000, 8.5363e-25, 8.5185e-25),
+  (8000, 7.7910e-27, 7.7871e-27),
+  (9000, 9.3522e-29, 9.2236e-29),
+  (10000, 1.4137e-30, 1.3683e-30),
+  (11000, 2.6036e-32, 2.4758e-32),
+  (12000, 5.6934e-34, 5.3287e-34),
+  (13000, 1.4481e-35, 1.3361e-35),
+  (14000, 4.2127e-37, 3.8368e-37),
+  (15000, 1.3824e-38, 1.2443e-38),
+  (16000, 5.0581e-40, 4.5033e-40),
+  (17000, 2.0432e-41, 1.8009e-41),
+  (18000, 9.0354e-43, 7.8897e-43),
+  (19000, 4.3424e-44, 3.7589e-44),
+  (20000, 2.2536e-45, 1.9349e-45)
+]
+
 @[blueprint
   "fks2-corollary-22"
   (title := "FKS2 Corollary 22")
@@ -588,6 +763,14 @@ theorem corollary_21
   |\pi(x) - \mathrm{Li}(x)| \leq 9.2211 x \sqrt{\log x} \exp(-0.8476 \sqrt{\log x})
   \]
   for all $x \geq 2$.
+  -/)
+  (proof := /-- We fix $R = 1$, $x_0 = 2$, $x_1 = e^{100}$, $A_\theta = 9.2211$, $B = 1.5$ and $C = 0.8476$. By Corollary \ref{fks2-corollary-14}, these are admissible for all $x \geq 2$, so we can apply Theorem \ref{fks2-theorem-3} and calculate that
+  \begin{equation}
+  \mu_{asymp}(40.78\ldots, e^{20000}) \leq 5.01516 \cdot 10^{-5}.
+  \end{equation}
+  This implies that $A_\pi = 121.103$ is admissible for all $x \geq e^{20000}$.
+
+  As in the proof of \cite[Lemmas 5.2 and 5.3]{FKS} one may verify that the numerical results obtainable from Theorem \ref{fks2-theorem-6}, using Corollary \ref{fks2-corollary-8}, may be interpolated as a step function to give a bound on $E_\pi(x)$ of the shape $\varepsilon_{\pi,asymp}(x)$. In this way we obtain that $A_\pi = 121.107$ is admissible for $x > 2$. Note that the subdivisions we use are essentially the same as used in \cite[Lemmas 5.2 and 5.3]{FKS}. In Table 5 we give a sampling of the relevant values, more of the values of $\varepsilon_{\pi,num}(x_1)$ can be found in Table 4. Far more detailed versions of these tables will be posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf.
   -/)
   (latexEnv := "corollary")]
 theorem corollary_22 : Eπ.classicalBound 9.2211 1.5 0.8476 1 2 := sorry
@@ -608,6 +791,8 @@ def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
   (statement := /--
   $A_\pi, B, C, x_0$ as in Table 6 give an admissible asymptotic bound for $E_\pi$ with
   $R = 5.5666305$.
+  -/)
+  (proof := /-- The bounds of the form $\eps_{\pi, asymp}(x)$ come from selecting a value $A$ for which Corollary \ref{fks-corollary-22} provides a better bound at $x = e^{7500}$ and from verifying that the bound in Corollary \ref{fks-corollary-22} decreases faster beyond this point. This final verification proceeds by looking at the derivative of the ratio as in Lemma \ref{fks-lemma-10}. To verify these still hold for smaller $x$, we proceed as below. To verify the results for any $x$ in $\log(10^{19}) < \log(x) < 100000$, one simply proceeds as in \cite[Lemmas 5.2, 5.3]{FKS} and interpolates the numerical results of Theorem \ref{fks-theorem-6}. For instance, we use the values in Table 4 as a step function and verifies that it provides a tighter bound than we are claiming. Note that our verification uses a more refined collection of values than those provided in Table 4 or the tables posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf. To verify results for $x < 10^{19}$, one compares against the results from \cite{buthe-theorem-2a}, or one checks directly for particularly small $x$.
   -/)
   (latexEnv := "corollary")]
 theorem corollary_23 (Aπ B C x₀ : ℝ) (h : [Aπ, B, C, x₀] ∈ table6) :
@@ -634,9 +819,27 @@ noncomputable def table7 : List ((ℝ → ℝ) × Set ℝ) :=
   We have the bounds $E_\pi(x) \leq B(x)$, where
   $B(x)$ is given by Table 7.
   -/)
+  (proof := /-- Same as in Corollary \ref{fks-corollary-23}.-/)
   (latexEnv := "corollary")]
 theorem corollary_24 (B : ℝ → ℝ) (I : Set ℝ) (h : (B, I) ∈ table7) :
     ∀ x, log x ∈ I → Eπ x ≤ B x := sorry
+
+/- \begin{proof}
+We numerically verify that the inequality in (45) holds by showing that, for $1 \leq n \leq 25$ and all $x \in [p_n, p_{n+1}]$,
+\[
+\left| \frac{\log(x)}{x} (\pi(x) - \mathrm{Li}(x)) \right| \leq \left| \frac{\log(p_n)}{p_n} (\pi(p_n) - \mathrm{Li}(p_{n+1})) \right| \leq 0.4298.
+\]
+
+For $x$ satisfying $p_{25} = 97 \leq x \leq 10^{19}$, we use [4, Theorem 2] and verify
+\[
+\mathcal{E}(x) = \frac{1}{\sqrt{x}} \left( 1.95 + \frac{3.9}{\log(x)} + \frac{19.5}{(\log(x))^2} \right) \leq 0.4298.
+\]
+
+For $x > 10^{19}$, we use Theorem 6 as well as values for $\varepsilon_{\pi,num}(x)$ found in Table 4 to conclude
+\[
+\varepsilon_{\pi,num}(x) \leq 0.4298.
+\]
+\end{proof} -/
 
 @[blueprint
   "fks2-corollary-26"
@@ -647,6 +850,19 @@ theorem corollary_24 (B : ℝ → ℝ) (I : Set ℝ) (h : (B, I) ∈ table7) :
   |\pi(x) - \mathrm{Li}(x)| \leq 0.4298 \frac{x}{\log x}
   \]
   for all $x \geq 2$.
+  -/)
+  (proof := /-- We numerically verify that the inequality holds by showing that, for $1 \leq n \leq 25$ and all $x \in [p_n, p_{n+1}]$,
+  \[
+  \left| \frac{\log(x)}{x} (\pi(x) - \mathrm{Li}(x)) \right| \leq \left| \frac{\log(p_n)}{p_n} (\pi(p_n) - \mathrm{Li}(p_{n+1})) \right| \leq 0.4298.
+  \]
+  For $x$ satisfying $p_{25} = 97 \leq x \leq 10^{19}$, we use \cite[Theorem 2]{buthe-theorem-2a} and verify
+  \[
+  \mathcal{E}(x) = \frac{1}{\sqrt{x}} \left( 1.95 + \frac{3.9}{\log(x)} + \frac{19.5}{(\log(x))^2} \right) \leq 0.4298.
+  \]
+  For $x > 10^{19}$, we use Theorem \ref{fks-theorem-6} as well as values for $\varepsilon_{\pi,num}(x)$ found in Table 4 to conclude
+  \[
+  \varepsilon_{\pi,num}(x) \leq 0.4298.
+  \]
   -/)
   (latexEnv := "corollary")]
 theorem corollary_26 : Eπ.bound 0.4298 2 := sorry
