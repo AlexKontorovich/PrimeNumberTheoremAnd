@@ -188,22 +188,43 @@ theorem prop_3_sub_4 (n : ℕ) (hn : 9 ≤ n) : u (n + 1) < u n := by
   calc
     _ = (∑ k ∈ Finset.Icc 4 n, (2 : ℝ) ^ ((n + 1) / (k : ℝ) - (n + 1) / 3) * (1 - 2 ^
       (1 / (3 : ℝ) - 1 / ↑k))) + 2 ^ (1 - (n + 1) / (3 : ℝ)) := by
-      sorry
-    _ = (2 : ℝ) ^ (- (n + 1 : ℝ) / 3) * (2 - ∑ k ∈ Finset.Icc 4 n, 2 ^ ((n + 1) / (k : ℝ)) *
+      rw [Finset.sum_Icc_succ_top (by linarith), div_self (by norm_cast), ← sub_add_eq_add_sub,
+        ← Finset.sum_sub_distrib, Nat.cast_add, Nat.cast_one]
+      congr with x
+      rw [mul_sub, mul_one, ← rpow_add (by linarith)]
+      congr
+      ring
+    _ = (2 : ℝ) ^ (- ((n + 1 : ℝ) / 3)) * (2 - ∑ k ∈ Finset.Icc 4 n, 2 ^ ((n + 1) / (k : ℝ)) *
       (2 ^ (1 / (3 : ℝ) - 1 / k) - 1)) := by
-      sorry
+      rw [mul_sub, Finset.mul_sum, ← rpow_add_one (by linarith), neg_add_eq_sub,
+        ← neg_add_eq_sub _ (2 ^ _), ← Finset.sum_neg_distrib]
+      congr with x
+      rw [← mul_assoc, ← rpow_add (by linarith)]
+      ring_nf
   by_cases h : 20 ≤ n
   · suffices 2 < ∑ k ∈ Finset.Icc 4 n, (2 : ℝ) ^ ((n + 1) / (k : ℝ)) *
       (2 ^ (1 / (3 : ℝ) - 1 / k) - 1) from mul_neg_of_pos_of_neg (by positivity) (by linarith)
     calc
     _ < 2 ^ (21 / (4 : ℝ)) * (2 ^ (1 / (12 : ℝ)) - 1) := by sorry
-    _ < (2 : ℝ) ^ ((n + 1) / (4 : ℝ)) * (2 ^ (1 / (3 : ℝ) - 1 / 4) - 1) := by
-      sorry
+    _ ≤ (2 : ℝ) ^ ((n + 1) / (4 : ℝ)) * (2 ^ (1 / (3 : ℝ) - 1 / 4) - 1) := by
+      norm_num
+      gcongr
+      · suffices 1 < (2 : ℝ) ^ (1 / (12 : ℝ)) from by linarith
+        rw [one_lt_rpow_iff] <;> grind
+      · grind
+      · norm_cast; linarith
     _ < ∑ k ∈ Finset.Icc 4 n, (2 : ℝ) ^ ((n + 1) / (k : ℝ)) * (2 ^ (1 / (3 : ℝ) - 1 / k) - 1) := by
-      refine Finset.single_lt_sum (f := fun k : ℕ => (2 : ℝ) ^ ((n + 1) / (k : ℝ)) * (2 ^
-        (1 / (3 : ℝ) - 1 / k) - 1)) (j := 5) (by linarith) (by grind) (by grind) ?_ (fun k hk => ?_)
-      · sorry
-      · sorry
+      refine Finset.single_lt_sum (f := fun k : ℕ => (2 : ℝ) ^ ((n + 1) / (k : ℝ)) * (2 ^ (1 /
+        (3 : ℝ) - 1 / k) - 1)) (j := 5) (by linarith) (by grind) (by grind) ?_ (fun k _ _ => ?_)
+      · refine mul_pos (by positivity) ?_
+        suffices 1 < (2 : ℝ) ^ (1 / 3 - 1 / (5 : ℝ)) from by linarith
+        rw [one_lt_rpow_iff] <;> grind
+      · refine mul_nonneg (by positivity) ?_
+        suffices 1 ≤ (2 : ℝ) ^ (1 / 3 - 1 / (k : ℝ)) from by linarith
+        refine one_le_rpow (by grind) ?_
+        have : 1 / (k : ℝ) ≤ 1 / (3 : ℝ) := by
+          refine one_div_le_one_div_of_le ?_ ?_ <;> simp_all; grind
+        linarith
   · interval_cases n
     repeat sorry
 
