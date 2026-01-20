@@ -221,7 +221,7 @@ theorem lemma_10c {b c : ℝ} (hb : b < 0) (hc : c > 0) :
   (discussion := 615)]
 theorem corollary_11 {B C R : ℝ} (hR : R > 0) (hB : B > 1 + C ^ 2 / (16 * R)) (hC : C > 0) :
     StrictAntiOn (g_bound 1 (1 - B) (C / sqrt R)) (Set.Ioi 1) := by
-  apply lemma_10a one_pos (div_pos hC (sqrt_pos.mpr hR))
+  apply lemma_10a one_pos
   rw [div_pow, sq_sqrt hR.le, mul_one]
   linarith [show C ^ 2 / R / 16 = C ^ 2 / (16 * R) by ring]
 
