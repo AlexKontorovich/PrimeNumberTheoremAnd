@@ -68,3 +68,130 @@ theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := sorry
 theorem JY.theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 2 := sorry
 
 blueprint_comment /-- TODO: input other results from JY -/
+
+-- def HasPrimeInInterval (x h : ℝ) : Prop := ∃ p : ℕ, Nat.Prime p ∧ x < p ∧ p ≤ x + h
+
+@[blueprint
+  "thm:schoenfeld1976"
+  (title := "Schoenfeld 1976")
+  (statement := /--
+  If $x > 2010760$, then there is a prime in the interval
+  \[
+  \left( x\left(1 - \frac{1}{15697}\right), x \right].
+  \]
+  -/)
+  (latexEnv := "theorem")]
+theorem Schoenfeld1976.has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
+    HasPrimeInInterval (x*(1-1/15697)) x := by sorry
+
+
+@[blueprint
+  "thm:ramare-saouter2003"
+  (title := "Ramaré-Saouter 2003")
+  (statement := /--
+  If $x > 10,726,905,041$, then there is a prime in the interval $(x(1-1/28314000), x]$.
+  -/)
+  (latexEnv := "theorem")]
+theorem RamareSaouter2003.has_prime_in_interval (x : ℝ) (hx : x > 10726905041) :
+    HasPrimeInInterval (x*(1-1/28314000)) x := by sorry
+
+@[blueprint
+  "thm:ramare_saouter2003-2"
+  (title := "Ramaré-Saouter 2003 (2)")
+  (statement := /-- If $x > \exp(53)$, then there is a prime in the interval
+  \[ \left( x\left(1 - \frac{1}{204879661}\right), x \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem RamareSaouter2003.has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
+    HasPrimeInInterval (x*(1-1/204879661)) x := by sorry
+
+@[blueprint
+  "thm:gourdon-demichel2004"
+  (title := "Gourdon-Demichel 2004")
+  (statement := /-- If $x > \exp(60)$, then there is a prime in the interval
+  \[ \left( x\left(1 - \frac{1}{14500755538}\right), x \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem GourdonDemichel2004.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
+    HasPrimeInInterval (x*(1-1/14500755538)) x := by sorry
+
+@[blueprint
+  "thm:prime_gaps_2014"
+  (title := "Prime Gaps 2014")
+  (statement := /-- If $x > \exp(60)$, then there is a prime in the interval
+  \[ \left( x\left(1 - \frac{1}{1966196911}\right), x \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem PrimeGaps2014.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
+    HasPrimeInInterval (x*(1-1/1966196911)) x := by sorry
+
+@[blueprint
+  "thm:prime_gaps_2024"
+  (title := "Prime Gaps 2024")
+  (statement := /-- If $x > \exp(60)$, then there is a prime in the interval
+  \[ \left( x\left(1 - \frac{1}{76900000000}\right), x \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem PrimeGaps2024.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
+    HasPrimeInInterval (x*(1-1/76900000000)) x := by sorry
+
+@[blueprint
+  "thm:trudgian2016"
+  (title := "Trudgian 2016")
+  (statement := /-- If $x > 2,898,242$, then there
+  is a prime in the interval
+  \[ \left[ x, x\left(1 + \frac{1}{111(\log x)^2}\right) \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem Trudgian2016.has_prime_in_interval (x : ℝ) (hx : x > 2898242) :
+    HasPrimeInInterval x (x / (111 * (log x) ^ 2)) := by sorry
+
+@[blueprint
+  "thm:dudek2014"
+  (title := "Dudek 2014")
+  (statement := /-- If $x > \exp(\exp(34.32))$, then there is a prime in the interval
+  \[ \left( x, x + 3x^{2/3} \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem Dudek2014.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
+    HasPrimeInInterval x (3 * x ^ (2 / 3)) := by sorry
+
+@[blueprint
+  "thm:cully-hugill2021"
+  (title := "Cully-Hugill 2021")
+  (statement := /-- If $x > \exp(\exp(33.99))$, then there is a prime in the interval
+  \[ \left( x, x + 3x^{2/3} \right]. \]
+  -/)
+  (latexEnv := "theorem") ]
+theorem CullyHugill2021.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99)) :
+    HasPrimeInInterval x (3 * x ^ (2 / 3)) := by sorry
+
+@[blueprint
+  "thm:rh_prime_interval_2002"
+  (title := "RH Prime Interval 2002")
+  (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 2$, there is a prime in the interval
+  \[ \left( x - \frac{8}{5}\sqrt{x} \ight], x \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH: RiemannHypothesis) :
+    HasPrimeInInterval (x - (8 / 5) * sqrt x) x := by sorry
+
+@[blueprint
+  "thm:dudek2015_rh"
+  (title := "Dudek 2015 under RH")
+  (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 2$, there is a prime in the interval
+  \[ \left( x - \frac{4}{\pi}\sqrt{x}\ight], x \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
+    HasPrimeInInterval (x - (4 / π) * sqrt x) x := by sorry
+
+@[blueprint
+  "thm:carneiroetal_2019_rh"
+  (title := "Carneiro et al. 2019 under RH")
+  (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 4$, there is a prime in the interval
+  \[ \left( x - \frac{22}{25}\sqrt{x}\log x\ight], x \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem CarneiroEtAl2019RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
+    HasPrimeInInterval (x - (22 / 25) * sqrt x * log x) x := by sorry
