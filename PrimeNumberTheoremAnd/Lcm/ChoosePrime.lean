@@ -164,13 +164,13 @@ theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     · exact Nat.cast_lt.mp (hq₀_ub'.trans_lt hq₁_lb)
     · exact Nat.cast_lt.mp (hq₁_ub'.trans_lt hq₂_lb)
   · intro i
-    fin_cases i <;> simp?
+    fin_cases i
     · -- i=0 : y0 ≤ q0
-      exact (le_of_lt hq₀_lb)
+      simpa [y0] using (le_of_lt hq₀_lb)
     · -- i=1 : y1 ≤ q1
-      exact (le_of_lt hq₁_lb)
+      simpa [y1] using (le_of_lt hq₁_lb)
     · -- i=2 : y2 ≤ q2
-      exact (le_of_lt hq₂_lb)
+      simpa [y2] using (le_of_lt hq₂_lb)
 
 blueprint_comment /--
 \subsection{Bounding the factors in \eqref{eq:main-ineq}}

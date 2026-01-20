@@ -15,7 +15,7 @@ noncomputable abbrev onePlusEps_log : ℝ := (1 : ℝ) + eps_log
 
 
 blueprint_comment /--
-\subsection{Reduction to a small epsilon-inequality}
+\subsection{Numerical inequalities to support PrimeGap -> HA Lcm proof}
 -/
 
 
