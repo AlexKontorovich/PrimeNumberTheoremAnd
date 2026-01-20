@@ -131,7 +131,8 @@ theorem sublemma_1_6 {x : ℝ} (hx : 0 < x) :
       ψ (x ^ (1 / 3:ℝ)) +
       ∑' k, θ (x ^ (1 / (6 * (k:ℝ) - 1))) -
       ∑' k, θ (x ^ (1 / (6 * (k:ℝ)))) +
-      ∑' k, θ (x ^ (1 / (6 * (k:ℝ) + 1))) := by sorry
+      ∑' k, θ (x ^ (1 / (6 * (k:ℝ) + 1))) := by
+  rw [sublemma_1_4 hx, sublemma_1_5 hx]; ring
 
 @[blueprint
   "costa-pereira-sublemma-1-7"
