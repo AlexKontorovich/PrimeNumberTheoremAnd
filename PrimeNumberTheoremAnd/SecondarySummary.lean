@@ -170,7 +170,7 @@ theorem CullyHugill2021.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99
   "thm:rh_prime_interval_2002"
   (title := "RH Prime Interval 2002")
   (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 2$, there is a prime in the interval
-  \[ \left( x - \frac{8}{5}\sqrt{x} \right], x \right]. \]
+  \[ \left( x - \frac{8}{5}\sqrt{x}, x \right]. \]
   -/)
   (latexEnv := "theorem")]
 theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH: RiemannHypothesis) :
@@ -180,7 +180,7 @@ theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH: 
   "thm:dudek2015_rh"
   (title := "Dudek 2015 under RH")
   (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 2$, there is a prime in the interval
-  \[ \left( x - \frac{4}{\pi}\sqrt{x} \right], x \right]. \]
+  \[ \left( x - \frac{4}{\pi}\sqrt{x}, x \right]. \]
   -/)
   (latexEnv := "theorem")]
 theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
@@ -190,7 +190,7 @@ theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : Riemann
   "thm:carneiroetal_2019_rh"
   (title := "Carneiro et al. 2019 under RH")
   (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 4$, there is a prime in the interval
-  \[ \left( x - \frac{22}{25}\sqrt{x}\log x\right], x \right]. \]
+  \[ \left( x - \frac{22}{25}\sqrt{x}\log x, x \right]. \]
   -/)
   (latexEnv := "theorem")]
 theorem CarneiroEtAl2019RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
