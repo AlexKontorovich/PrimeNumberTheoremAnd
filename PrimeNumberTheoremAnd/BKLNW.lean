@@ -18,10 +18,12 @@ structure Inputs where
   hε : ∀ b ≥ 0, ∀ x ≥ exp b, |ψ x - x| ≤ ε b * x
   x₁ : ℝ
   hx₁ : x₁ ≥ exp 7
-  hx₁' : ∀ x ∈ Set.Icc 1 x₁, θ x < x
+  hx₁' : ∀ x ∈ Set.Ioc 0 x₁, θ x < x
   R : ℝ
   hR : riemannZeta.classicalZeroFree R
   ZDB : zero_density_bound
+
+lemma epsilon_nonneg (I : Inputs) {b : ℝ} (hb : 0 ≤ b) : 0 ≤ I.ε b := by sorry
 
 @[blueprint
   "bklnw-cor-2-1"
@@ -104,7 +106,7 @@ theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
   (title := "Buthe equation (1.7)")
   (statement := /-- $\theta(x) < x$ for all $1 \leq x \leq 10^{19}$. -/)
   (latexEnv := "sublemma")]
-theorem buthe_eq_1_7 : ∀ x ∈ Set.Icc 1 1e19, θ x < x := by sorry
+theorem buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x := by sorry
 
 @[blueprint
   "bklnw-inputs"
@@ -320,8 +322,21 @@ since $\log x_1 \geq 7$. The last two inequalities for $\theta(x^{1/2})$ combine
  -/)
   (latexEnv := "proposition")
   (discussion := 641)]
-theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : b ≤ 2 * log I.x₁) (hx : x ≥ exp b) :
-    θ (x^(1/2:ℝ)) < (1 + I.ε (log I.x₁)) * x^(1/2:ℝ) := by sorry
+theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : b ≤ 2 * log I.x₁) (hx : exp b ≤ x) :
+    θ (x ^ (1 / 2 : ℝ)) < (1 + I.ε (log I.x₁)) * x ^ (1 / 2 : ℝ) := by
+  by_cases h : exp b ≤ I.x₁ ^ 2
+  · by_cases! hp : x ^ (1 / 2 : ℝ) ≤ I.x₁
+    · have hq : 0 < x ^ (1 / 2 : ℝ) := by sorry
+      refine (I.hx₁' (x ^ (1 / 2 : ℝ)) ⟨hq, hp⟩).trans_le ?_
+      nth_rw 1 [← one_mul (x ^ (1 / 2 : ℝ))]
+      gcongr
+      have : 1 ≤ exp 7 := one_le_exp (by linarith)
+      have : 0 ≤ log I.x₁ := log_nonneg (by linarith [I.hx₁])
+      linarith [epsilon_nonneg I this]
+    · calc
+      _ ≤ ψ (x ^ (1 / 2 : ℝ)) := by sorry
+      _ < (1 + I.ε (log I.x₁)) * x ^ (1 / 2 : ℝ) := by sorry
+  · sorry
 
 @[blueprint
   "bklnw-prop-4-b"
