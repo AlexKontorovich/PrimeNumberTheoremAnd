@@ -145,8 +145,37 @@ theorem lemma_10_substep_2 {a b c x : ℝ} (hx : x > 1) :
   (latexEnv := "lemma")
   (discussion := 612)]
 theorem lemma_10a {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b < -c ^ 2 / (16 * a)) :
-  StrictAnti (g_bound a b c) :=
-  sorry
+  StrictAntiOn (g_bound a b c) (Set.Ioi 1) := by
+  refine strictAntiOn_of_deriv_neg ?_ ?_ ?_
+  · exact convex_Ioi 1
+  · unfold g_bound
+    intro x hx
+    exact ContinuousAt.continuousWithinAt (
+      by exact ContinuousAt.mul (
+        ContinuousAt.mul (ContinuousAt.rpow continuousAt_id continuousAt_const <| Or.inl <| by linarith [hx.out])
+          (ContinuousAt.rpow (continuousAt_log <| by linarith [hx.out]) continuousAt_const <| Or.inl <| by linarith [hx.out, log_pos hx.out]))
+          <| ContinuousAt.rexp <| ContinuousAt.mul continuousAt_const <| Real.continuous_sqrt.continuousAt.comp <| Real.continuousAt_log <| by linarith [hx.out])
+  · intro x hx
+    rw [interior_Ioi] at hx
+    rw [lemma_10_substep_2 (show 1 < x by exact (Set.mem_Ioi.mp hx))]
+    set t : ℝ := sqrt (log x)
+    have hcomp : (-a * t^2 + (c / 2) * t + b) = (-a) * (t - c / (4 * a))^2 + (b + c^2 / (16 * a)) := by
+      calc (-a * t^2 + (c / 2) * t + b)
+        _ = -a * t^2 + (c/2) * t - (c^2 / (16 * a)) + (b + c^2 / (16 * a)) := by ring_nf
+        _ = (-a) * (t^2 - (c/(2 * a)) * t + (c^2 / (16 * a ^ 2))) + (b + c^2 / (16 * a)) := by field_simp; norm_num; ring_nf
+        _ = (-a) * (t - c / (4 * a))^2 + (b + c^2 / (16 * a)) := by ring_nf
+    have hneg : (-a) * (t - c / (4 * a))^2 ≤ 0 := by
+      have hs : 0 ≤ (t - c / (4 * a))^2 := sq_nonneg _
+      nlinarith [(le_of_lt ha), hs]
+    have hle : (-a * t^2 + (c / 2) * t + b) ≤ b + c^2 / (16 * a) := by
+      calc (-a * t^2 + (c / 2) * t + b)
+        _ = (-a) * (t - c / (4 * a))^2 + (b + c^2 / (16 * a)) := by exact hcomp
+        _ ≤ 0 + (b + c^2 / (16 * a)) := by linarith [hneg]
+        _ = b + c^2 / (16 * a) := by ring
+    have hb' : b + c^2 / (16 * a) < 0 := by
+      simpa [div_eq_mul_inv] using (add_neg_neg_iff.mpr hb)
+    exact lt_of_le_of_lt hle (show b + c^2 / (16 * a) < 0 by linarith [hb])
+
 
 @[blueprint
   "fks2-lemma-10b"
@@ -210,7 +239,7 @@ theorem lemma_10c {b c : ℝ} (hb : b < 0) (hc : c > 0) :
   (latexEnv := "corollary")
   (discussion := 615)]
 theorem corollary_11 {B C R : ℝ} (hR : R > 0) (hB : B > 1 + C ^ 2 / (16 * R)) (hC : C > 0) :
-    StrictAnti (g_bound 1 (1 - B) (C / sqrt R)) := by
+    StrictAntiOn (g_bound 1 (1 - B) (C / sqrt R)) (Set.Ioi 1) := by
   apply lemma_10a one_pos (div_pos hC (sqrt_pos.mpr hR))
   rw [div_pow, sq_sqrt hR.le, mul_one]
   linarith [show C ^ 2 / R / 16 = C ^ 2 / (16 * R) by ring]
