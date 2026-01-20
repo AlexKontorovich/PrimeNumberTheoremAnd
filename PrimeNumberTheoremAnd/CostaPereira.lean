@@ -150,6 +150,29 @@ theorem sublemma_1_7 {x : ℝ} (hx : 0 < x) :
       ψ (x ^ (1 / 3:ℝ)) +
       ∑' (k : ℕ), θ (x ^ (1 / (5 * (k:ℝ)))) := by sorry
 
+lemma sublemma_1_8_term_bound {x : ℝ} (hx : 0 < x) (k : ℕ) (hk : 1 ≤ k) :
+    θ (x ^ (1 / (7 * (k : ℝ)))) ≤
+      θ (x ^ (1 / (6 * (k : ℝ) - 1))) - θ (x ^ (1 / (6 * (k : ℝ)))) +
+        θ (x ^ (1 / (6 * (k : ℝ) + 1))) := by
+  have hk_pos : (k : ℝ) ≥ 1 := by exact_mod_cast hk
+  by_cases hx1 : x < 1
+  · unfold theta
+    rw [floor_eq_zero.mpr <| rpow_lt_one hx.le hx1 <| by positivity,
+        floor_eq_zero.mpr <| rpow_lt_one hx.le hx1 <| one_div_pos.mpr <| by linarith,
+        floor_eq_zero.mpr <| rpow_lt_one hx.le hx1 <| by positivity,
+        floor_eq_zero.mpr <| rpow_lt_one hx.le hx1 <| one_div_pos.mpr <| by linarith]
+    norm_num
+  · have h1 : θ (x ^ (1 / (6 * k - 1 : ℝ))) ≥ θ (x ^ (1 / (6 * k : ℝ))) := by
+      apply theta_mono
+      norm_num
+      exact rpow_le_rpow_of_exponent_le (by linarith)
+        (by rw [inv_mul_eq_div, inv_eq_one_div, div_le_div_iff₀] <;> nlinarith)
+    have h2 : θ (x ^ (1 / (6 * k + 1 : ℝ))) ≥ θ (x ^ (1 / (7 * k : ℝ))) := by
+      apply theta_mono; norm_num
+      exact rpow_le_rpow_of_exponent_le (by linarith)
+        (by rw [inv_mul_eq_div, inv_eq_one_div, div_le_div_iff₀] <;> nlinarith)
+    linarith
+
 @[blueprint
   "costa-pereira-sublemma-1-8"
   (title := "Costa-Pereira Sublemma 1.8")
@@ -162,10 +185,18 @@ theorem sublemma_1_7 {x : ℝ} (hx : 0 < x) :
   (latexEnv := "sublemma")
   (discussion := 683)]
 theorem sublemma_1_8 {x : ℝ} (hx : 0 < x) :
-    ψ x - θ x ≥
-      ψ (x ^ (1 / 2:ℝ)) +
-      ψ (x ^ (1 / 3:ℝ)) +
-      ∑' (k : ℕ), θ (x ^ (1 / (7 * (k:ℝ)))) := by sorry
+    ψ x - θ x ≥ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ∑' k, θ (x ^ (1 / (7 * (k : ℝ)))) := by
+  refine sublemma_1_6 hx ▸ ?_
+  norm_num [add_assoc, tsum_eq_zero_of_not_summable]
+  rw [show ∑' k : ℝ, θ (x ^ (6 * k + 1)⁻¹) = ∑' k : ℝ, θ (x ^ (k⁻¹ * (1 / 6))) from ?_]
+  · rw [show ∑' k : ℝ, θ (x ^ (6 * k - 1)⁻¹) = ∑' k : ℝ, θ (x ^ (k⁻¹ * (1 / 7))) from ?_]
+    · linarith
+    · rw [← Equiv.tsum_eq (Equiv.addRight (1 / 6 : ℝ))]; norm_num; ring_nf
+      rw [← Equiv.tsum_eq (Equiv.mulLeft₀ (7 / 6) (by norm_num))]; norm_num; ring_nf
+  · rw [← Equiv.tsum_eq (Equiv.addRight (1 / 6))]; norm_num; ring_nf
+    rw [← Equiv.tsum_eq (Equiv.ofBijective (fun k : ℝ => k * 6⁻¹ - 2 * 6⁻¹)
+      ⟨fun a ↦ by aesop, fun a ↦ ⟨a * 6 + 2, by ring⟩⟩)]; norm_num; ring_nf
+    rw [← Equiv.tsum_eq (Equiv.mulRight₀ (6 : ℝ) (by norm_num))]; norm_num; ring_nf
 
 @[blueprint
   "costa-pereira-theorem-1a"
