@@ -865,8 +865,7 @@ theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) :
     · exact absurd hL' (Nat.ne_of_gt (Criterion.L'_pos c))
     · simp_all only [ne_eq, one_div, inv_pow, not_false_eq_true, prod_div_distrib]
       rw [mul_div, eq_div_iff]
-      · rw [mul_comm]
-        rw [← Finset.prod_subset (show c.L'.primeFactors ⊆ c.M.primeFactors from ?_)]
+      · rw [mul_comm, ← Finset.prod_subset (show c.L'.primeFactors ⊆ c.M.primeFactors from ?_)]
         · intro p hp hpn; rw [Nat.factorization_eq_zero_of_not_dvd] <;> aesop
         · intro p hp; simp_all only [mem_primeFactors, ne_eq, not_false_eq_true, and_true, true_and]
           exact dvd_trans hp.2 (by exact ⟨(4 * ∏ i, c.p i) * c.m, by rw [Criterion.M]; ring⟩)
@@ -915,7 +914,7 @@ theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) :
       (∏ p ∈ Finset.image c.p Finset.univ, (1 + 1/(p * (p + 1) : ℝ)))*(1 + 3 / (8 * c.n : ℝ)) := by
     refine le_trans ?_ (Finset.prod_le_prod ?_ h_ratio_terms)
     · rw [Finset.prod_ite]
-      refine mul_le_mul ?_ ?_ ?_ ?_
+      refine mul_le_mul ?_ ?_ (by positivity) (Finset.prod_nonneg fun _ _ ↦ by positivity)
       · rw [Finset.prod_subset]
         · simp only [mem_image, mem_univ, true_and, subset_iff, mem_filter, mem_primeFactors,
             forall_exists_index, forall_apply_eq_imp_iff, exists_apply_eq_apply, and_true]
@@ -933,8 +932,6 @@ theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) :
         · contrapose! h
           refine ⟨dvd_mul_of_dvd_left ?_ _, Nat.ne_of_gt (Criterion.M_pos c)⟩
           · exact dvd_mul_of_dvd_left (dvd_mul_of_dvd_left (by decide) _) _
-      · positivity
-      · exact Finset.prod_nonneg fun _ _ ↦ by positivity
     · intro p hp; split_ifs <;> positivity
   simp_all
   rw [Finset.prod_image] at h_prod_ratio_terms <;> norm_num [Finset.prod_range_succ] at *
