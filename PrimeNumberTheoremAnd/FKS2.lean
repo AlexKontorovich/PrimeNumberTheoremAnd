@@ -144,7 +144,7 @@ theorem lemma_10_substep_2 {a b c x : ℝ} (hx : x > 1) :
  -/)
   (latexEnv := "lemma")
   (discussion := 612)]
-theorem lemma_10a {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b < -c ^ 2 / (16 * a)) :
+theorem lemma_10a {a b c : ℝ} (ha : a > 0) (hb : b < -c ^ 2 / (16 * a)) :
   StrictAntiOn (g_bound a b c) (Set.Ioi 1) := by
   refine strictAntiOn_of_deriv_neg ?_ ?_ ?_
   · exact convex_Ioi 1
