@@ -198,7 +198,8 @@ theorem prop_3_sub_4 (n : ℕ) (hn : n ≥ 9) : u (n + 1) < u n := by sorry
   (latexEnv := "sublemma")
   (discussion := 635)]
 theorem prop_3_sub_5 (n : ℕ) (hn : n ≥ 9) : f (2^n) > f (2^(n + 1)) := by
-  simp [prop_3_sub_3, prop_3_sub_4 n hn]
+  rw [prop_3_sub_3 n (Nat.le_of_add_left_le hn), prop_3_sub_3 (n + 1) (by omega)]
+  linarith [prop_3_sub_4 n hn]
 
 @[blueprint
   "bklnw-prop-3-sub-6"
