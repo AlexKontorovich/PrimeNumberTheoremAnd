@@ -3990,7 +3990,16 @@ theorem WeakPNT_character
 theorem WeakPNT_AP_prelim {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) :
     ∃ G: ℂ → ℂ, (ContinuousOn G {s | 1 ≤ s.re}) ∧
     (Set.EqOn G (fun s ↦ LSeries (fun n ↦ if n % q = a then Λ n else 0) s - 1 /
-      ((Nat.totient q) * (s - 1))) {s | 1 < s.re}) := sorry
+      ((Nat.totient q) * (s - 1))) {s | 1 < s.re}) := by
+  have : NeZero q := NeZero.of_pos hq
+  have hG : ∃ G : ℂ → ℂ, ContinuousOn G {s | 1 ≤ s.re} ∧ Set.EqOn G
+      (fun s ↦ LSeries (fun n ↦ if (n : ZMod q) = a then Λ n else 0) s - (q.totient : ℂ)⁻¹ / (s - 1)) {s | 1 < s.re} := by
+    use vonMangoldt.LFunctionResidueClassAux (a : ZMod q), vonMangoldt.continuousOn_LFunctionResidueClassAux (q := q) (a := a)
+    have := vonMangoldt.eqOn_LFunctionResidueClassAux ((ZMod.isUnit_iff_coprime a q).mpr ha)
+    convert this using 6; split <;> simp_all
+  convert hG using 6
+  · simp [ZMod.natCast_eq_natCast_iff', Nat.mod_eq_of_lt ha']
+  · rw [inv_eq_one_div, div_div]
 
 /-- The von Mangoldt function divided by `n ^ s` is summable for `s > 1`. -/
 lemma summable_vonMangoldt_div_rpow {s : ℝ} (hs : 1 < s) : Summable (fun n ↦ Λ n / n ^ s) := by
