@@ -8,6 +8,7 @@ import Mathlib.NumberTheory.MulChar.Lemmas
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.SmoothExistence
+import Mathlib.Analysis.Convolution
 
 set_option lang.lemmaCmd true
 
@@ -20,6 +21,7 @@ open Real BigOperators ArithmeticFunction MeasureTheory Filter Set FourierTransf
 open Complex hiding log
 open scoped Topology
 open scoped ContDiff
+open scoped ComplexConjugate
 
 variable {n : ℕ} {A a b c d u x y t σ' : ℝ} {ψ Ψ : ℝ → ℂ} {F G : ℂ → ℂ} {f : ℕ → ℂ} {𝕜 : Type}
   [RCLike 𝕜]
@@ -3758,10 +3760,620 @@ lemma crude_upper_bound
   -/)
   (proofUses := ["crude-upper-bound", "WienerIkehara"])
   (latexEnv := "corollary")]
+lemma Real.fourierIntegral_convolution {f g : ℝ → ℂ} (hf : Integrable f) (hg : Integrable g) :
+    𝓕 (convolution f g (ContinuousLinearMap.mul ℂ ℂ) volume) = 𝓕 f * 𝓕 g := by
+  ext y
+
+
+
+  -- Unfold definitions
+  dsimp [FourierTransform.fourier, MeasureTheory.convolution, VectorFourier.fourierIntegral]
+  -- 1. Absolute integrability for Fubini
+  have h_pair_int : Integrable (fun (p : ℝ × ℝ) ↦ 𝐞 (-(y * p.1)) • (f p.2 * g (p.1 - p.2))) volume := by
+    simp only [Circle.smul_def, smul_eq_mul]
+    refine Integrable.bdd_mul (c := 1) ?_ ?_ ?_
+    · exact Integrable.convolution_integrand (ContinuousLinearMap.mul ℂ ℂ) hf hg
+    · apply Continuous.aestronglyMeasurable
+      continuity
+    · filter_upwards with p
+      simp
+
+  calc
+    ∫ (v : ℝ), 𝐞 (-(y * v)) • ∫ (t : ℝ), f t * g (v - t)
+    _ = ∫ (v : ℝ), ∫ (t : ℝ), 𝐞 (-(y * v)) • (f t * g (v - t)) := by
+      congr with v
+      simp only [Circle.smul_def, smul_eq_mul]
+      rw [← integral_const_mul]
+    _ = ∫ (t : ℝ), ∫ (v : ℝ), 𝐞 (-(y * v)) • (f t * g (v - t)) := by
+      rw [integral_integral_swap]
+      apply h_pair_int
+    _ = ∫ (t : ℝ), f t • ∫ (v : ℝ), 𝐞 (-(y * v)) • g (v - t) := by
+      congr with t
+      simp only [Circle.smul_def, smul_eq_mul, mul_left_comm]
+      rw [integral_const_mul]
+    _ = ∫ (t : ℝ), f t • ∫ (u : ℝ), 𝐞 (-(y * (u + t))) • g u := by
+      congr with t
+      congr 1
+      rw [← MeasureTheory.integral_add_right_eq_self (fun v ↦ 𝐞 (-(y * v)) • g (v - t)) t]
+      simp
+    _ = ∫ (t : ℝ), f t • ∫ (u : ℝ), (𝐞 (-(y * t)) * 𝐞 (-(y * u))) • g u := by
+      congr with t
+      congr with u
+      congr 1
+      simp only [mul_add, neg_add, mul_comm, Real.fourierChar.map_add_eq_mul]
+
+    _ = ∫ (t : ℝ), 𝐞 (-(y * t)) • f t • ∫ (u : ℝ), 𝐞 (-(y * u)) • g u := by
+      congr with t
+      simp only [mul_smul, Circle.smul_def, smul_eq_mul]
+      rw [integral_const_mul]
+      ring
+    _ = (∫ (t : ℝ), 𝐞 (-(y * t)) • f t) * (∫ (u : ℝ), 𝐞 (-(y * u)) • g u) := by
+      simp only [Circle.smul_def, smul_eq_mul, ← mul_assoc]
+      rw [integral_mul_const]
+
+lemma Real.fourierIntegral_conj_neg {f : ℝ → ℂ} (y : ℝ) :
+    𝓕 (fun x ↦ conj (f (-x))) y = conj (𝓕 f y) :=
+  calc 𝓕 (fun x ↦ conj (f (-x))) y
+      -- Step 1: Unfold Fourier transform definition
+      = ∫ x, 𝐞 (-x * y) • conj (f (-x)) := by
+        rw [fourier_real_eq]
+        simp only [neg_mul]
+
+      -- Step 2: Use that conj(exp(2πiθ)) = exp(-2πiθ)
+    _ = ∫ (x : ℝ), (Complex.exp (-(2 * π * (x * y)) * I) : ℂ) • conj (f (-x)) := by
+      apply MeasureTheory.integral_congr_ae
+      filter_upwards with x
+      simp only [Circle.smul_def, Real.fourierChar_apply,
+        neg_mul]
+      congr 1
+      congr
+      simp
+
+
+      -- Step 3: Factor conjugation from product: conj(a) * conj(b) = conj(a * b)
+    _ = ∫ x, conj (𝐞 (x * y) • f (-x)) := by
+      congr 1
+      ext x
+      simp only [Circle.smul_def]
+      rw [Real.fourierChar_apply]
+      -- first rewrite `starRingEnd` as `conj`
+      have h : (starRingEnd ℂ) (cexp ((2 * (π : ℝ) * (x * y)) * I) • f (-x))
+            = conj (cexp ((2 * (π : ℝ) * (x * y)) * I) • f (-x)) := rfl
+      let z := (2 * (π : ℝ) * (x * y)) * I
+      have B : starRingEnd ℂ (cexp z) = cexp (-(2 * (π : ℝ) * (x * y)) * I) :=
+        -- Use the exp_conj lemma in mathlib4 which is stated in terms of starRingEnd
+        calc
+          starRingEnd ℂ (cexp z)
+              = cexp (starRingEnd ℂ z) := (Complex.exp_conj z).symm
+          _ = cexp (-(2 * (π : ℝ) * (x * y)) * I) := by
+            dsimp [z]
+            simp only [map_mul, Complex.conj_ofReal, Complex.conj_I, mul_neg, neg_mul]
+            congr
+            exact conj_eq_iff_re.mpr rfl
+
+      -- combine: RHS = (starRingEnd (cexp z)) * starRingEnd (f(-x)) = desired LHS
+      calc
+        cexp (-(2 * (π : ℝ) * (x * y)) * I) • starRingEnd ℂ (f (-x))
+            = (starRingEnd ℂ (cexp z)) * (starRingEnd ℂ (f (-x))) := by
+          -- Step 1: Replace the exponential term using hypothesis B
+          rw [← B]
+
+          -- Step 2: Convert scalar multiplication (•) to standard multiplication (*)
+          rw [smul_eq_mul]
+        _ = (starRingEnd ℂ) (cexp z • f (-x)) := by
+          simp [smul_eq_mul, map_mul]
+      simp [z]
+
+      -- Step 4: Pull conjugation out of integral
+    _ = conj (∫ x, 𝐞 (x * y) • f (-x)) := by
+      rw [integral_conj]
+      -- Step 5: Change of variables x ↦ -x (Lebesgue measure is reflection-invariant)
+    _ = conj (∫ x, 𝐞 (-x * y) • f x) := by
+      -- This replaces the bound variable x with -x on the LHS
+      rw [← integral_neg_eq_self (fun x => 𝐞 (-x * y) • f x)]
+      -- This cleans up the double negations and multiplication
+      simp only [neg_neg]
+      -- Step 6: Fold back to Fourier transform definition
+    _ = conj (𝓕 f y) := by
+      rw [fourier_real_eq]
+      simp_rw [neg_mul]
+
+
 lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
     (hG : ContinuousOn G {s | 1 ≤ s.re})
     (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) : cheby f := by
-  sorry
+  unfold cheby chebyWith
+  -- Step 1: The Crude Upper Bound:
+  -- a specific weighted average of $f(n)$ is bounded:
+  -- $$ \left| \sum_{n=1}^\infty \frac{f(n)}{n} \hat{\psi}\left( \frac{1}{2\pi} \log \frac{n}{x} \right) \right| \leq B $$
+  obtain ⟨φ_real, hφSmooth, hφCompact, hφIcc, hφIoo, hφsupp⟩ := smooth_urysohn_support_Ioo (a := 1 / 2) (b := 1) (c := 1) (d := 2) (by norm_num) (by norm_num)
+  let φ : ℝ → ℂ := Complex.ofReal ∘ φ_real
+  let φ_rev : ℝ → ℂ := fun x ↦ conj (φ (-x))
+  let ψ_fun : ℝ → ℂ := convolution φ φ_rev (ContinuousLinearMap.mul ℂ ℂ) volume
+
+  have hφSmooth' : ContDiff ℝ ∞ φ := contDiff_ofReal.comp hφSmooth
+  have hφCompact' : HasCompactSupport φ := hφCompact.comp_left rfl
+  have hφRevSmooth : ContDiff ℝ ∞ φ_rev :=
+    Complex.conjCLE.contDiff.comp (hφSmooth'.comp contDiff_neg)
+  have hφRevCompact : HasCompactSupport φ_rev :=
+    (hφCompact'.comp_homeomorph (Homeomorph.neg ℝ)).comp_left (by simp)
+
+  have hψSmooth : ContDiff ℝ ∞ ψ_fun := by
+    convert hφRevCompact.contDiff_convolution_right (ContinuousLinearMap.mul ℝ ℂ) (hφSmooth'.continuous.locallyIntegrable) hφRevSmooth
+    exact inferInstance
+
+  have hψCompact : HasCompactSupport ψ_fun :=
+    HasCompactSupport.convolution (ContinuousLinearMap.mul ℂ ℂ) hφCompact' hφRevCompact
+
+
+
+
+  let ψ : CS 2 ℂ := by
+    refine ⟨ψ_fun, hψSmooth.of_le ENat.LEInfty.out, hψCompact⟩
+
+
+  have hψpos : ∀ y, 0 ≤ (𝓕 (ψ : ℝ → ℂ) y).re ∧ (𝓕 (ψ : ℝ → ℂ) y).im = 0 := by
+    intro y
+    simp only [ψ, ψ_fun, φ_rev, φ]
+    rw [Real.fourierIntegral_convolution (hφSmooth'.continuous.integrable_of_hasCompactSupport hφCompact') (hφRevSmooth.continuous.integrable_of_hasCompactSupport hφRevCompact)]
+    simp only [Pi.mul_apply]
+    have h_conj : 𝓕 φ_rev y = conj (𝓕 φ y) := Real.fourierIntegral_conj_neg y
+    rw [h_conj, mul_comm, ← Complex.normSq_eq_conj_mul_self]
+    exact ⟨Complex.normSq_nonneg _, rfl⟩
+  obtain ⟨B, hB⟩ := crude_upper_bound hpos hG hG' hf ψ hψpos
+
+  -- Step 2: Localizing the Bound (Short Intervals)
+  --  \sum_{(1-\varepsilon)x < n \leq x} f(n) = O(x)
+  have h_short_interval : ∃ (ε : ℝ) (C : ℝ), ε > 0 ∧ ε < 1 ∧ C > 0 ∧ ∀ x ≥ 1,
+    ∑' n, (f n) * (Set.indicator (Set.Ioc ((1 - ε) * x) x) (fun _ ↦ 1) (n : ℝ)) ≤ C * x := by
+
+    -- 1. ψhat at 0 is strictly positive
+    -- 1. ψhat at 0 is strictly positive
+    have h_psi_zero_pos : 0 < (𝓕 (ψ : ℝ → ℂ) 0).re := by
+      have hφ_nonneg : ∀ x, 0 ≤ φ_real x := by
+        intro x
+        have hx := hφIcc x
+        by_cases hmem : x ∈ Set.Icc (1:ℝ) (1:ℝ)
+        · rw [Set.indicator_of_mem hmem] at hx
+          exact zero_le_one.trans hx
+        · rw [Set.indicator_of_notMem hmem] at hx
+          exact hx
+      have hsupp_Ico : Set.Ico (1:ℝ) 2 ⊆ Function.support φ_real := by
+        intro x hx
+        have hxIoo : x ∈ Set.Ioo ((1/2:ℝ)) 2 := by
+          refine ⟨?_, hx.2⟩
+          have : (1/2:ℝ) < 1 := by norm_num
+          exact this.trans_le hx.1
+        simpa [hφsupp] using hxIoo
+      have hvol_supp : (1 : ENNReal) ≤ volume (Function.support φ_real) := by
+        have := (volume.mono hsupp_Ico)
+        have h_vol_Ico : volume (Set.Ico (1:ℝ) 2) = 1 := by
+          simp [Real.volume_Ico]
+          norm_num
+        rw [← h_vol_Ico]
+        exact this
+      have hφint_pos : 0 < ∫ x, φ_real x := by
+        have r1 : 0 ≤ᵐ[volume] φ_real := Filter.Eventually.of_forall hφ_nonneg
+        have r2 : Integrable φ_real := hφSmooth.continuous.integrable_of_hasCompactSupport hφCompact
+        have : 0 < volume (Function.support φ_real) :=
+          (zero_lt_one.trans_le hvol_supp)
+        simpa [setIntegral_univ] using
+          (setIntegral_pos_iff_support_of_nonneg_ae
+              (μ := volume) (s := (Set.univ : Set ℝ)) (f := φ_real)
+              (Filter.Eventually.of_forall hφ_nonneg) (r2.integrableOn)).2 (by simpa)
+      have hFφ0_ne : (𝓕 (φ : ℝ → ℂ) 0) ≠ 0 := by
+        have hre : 0 < (𝓕 (φ : ℝ → ℂ) 0).re := by
+          dsimp [φ]
+          have h_fourier_zero : 𝓕 (Complex.ofReal ∘ φ_real) 0 = ∫ x, Complex.ofReal (φ_real x) := by
+            simp only [fourier_real_eq, mul_zero, neg_zero, AddChar.map_zero_eq_one,
+              Function.comp_apply, one_smul]
+          rw [h_fourier_zero]
+          have : (∫ x, Complex.ofReal (φ_real x)).re = ∫ x, φ_real x := by
+            have h_int : Integrable φ_real := hφSmooth.continuous.integrable_of_hasCompactSupport hφCompact
+            have h_int_complex : Integrable (fun x => (φ_real x : ℂ)) volume := by
+              simpa using h_int.ofReal
+
+            have h :=
+              integral_re (μ := volume) h_int_complex
+
+            -- h :
+            --   ∫ x, ((φ_real x : ℂ).re) = (∫ x, (φ_real x : ℂ)).re
+
+            -- Now rewrite the goal using this equality
+            have h' := h.symm
+
+            -- Finish
+            simpa using h'
+          rw [this]
+          exact hφint_pos
+        exact fun h => (lt_irrefl (0:ℝ)) (by simp [h] at hre)
+      have : (𝓕 (ψ : ℝ → ℂ) 0).re = Complex.normSq (𝓕 (φ : ℝ → ℂ) 0) := by
+        dsimp [ψ, ψ_fun]
+        rw [Real.fourierIntegral_convolution (hφSmooth'.continuous.integrable_of_hasCompactSupport hφCompact') (hφRevSmooth.continuous.integrable_of_hasCompactSupport hφRevCompact)]
+        simp only [Pi.mul_apply]
+        rw [Real.fourierIntegral_conj_neg 0]
+        --  simp only [mul_comm, ← Complex.normSq_eq_conj_mul_self, Complex.re_ofReal]
+        have h :
+            𝓕 φ 0 * (starRingEnd ℂ) (𝓕 φ 0)
+              = (normSq (𝓕 φ 0) : ℂ) := by
+          -- `starRingEnd ℂ = conj`
+          simpa using (mul_conj (𝓕 φ 0))
+
+        -- take real parts
+        calc
+          (𝓕 φ 0 * (starRingEnd ℂ) (𝓕 φ 0)).re
+              = ((normSq (𝓕 φ 0) : ℂ)).re := by simp [h]
+          _ = normSq (𝓕 φ 0) := by simp
+      simpa [this] using (Complex.normSq_pos.2 hFφ0_ne)
+
+    -- 2. By continuity, ψhat is bounded away from 0 in a neighborhood (-δ, δ)
+    have h_psi_lower_bound : ∃ δ > 0, ∃ c > 0, ∀ y, |y| < δ → c ≤ (𝓕 (ψ : ℝ → ℂ) y).re := by
+      let g : ℝ → ℝ := fun y => (𝓕 (ψ : ℝ → ℂ) y).re
+      have hF : Continuous (fun y : ℝ => 𝓕 (ψ : ℝ → ℂ) y) := by
+        simpa using (continuous_FourierIntegral (ψ := (ψ : W21)))
+      have hg : Continuous g := by
+        simpa [g] using (Complex.continuous_re.comp hF)
+      have hg0 : 0 < g 0 := by
+        simpa [g] using h_psi_zero_pos
+      let c : ℝ := (g 0) / 2
+      have hcpos : 0 < c := by dsimp [c]; linarith [hg0]
+      have hmem : g 0 ∈ Set.Ioi c := by
+        rw [Set.mem_Ioi]
+        dsimp only [c]
+        exact half_lt_self hg0
+      have hIoi : Set.Ioi c ∈ 𝓝 (g 0) := IsOpen.mem_nhds isOpen_Ioi hmem
+      have hpre : {y : ℝ | g y ∈ Set.Ioi c} ∈ 𝓝 (0 : ℝ) :=
+        (hg.continuousAt).preimage_mem_nhds hIoi
+      rcases Metric.mem_nhds_iff.1 hpre with ⟨δ, hδpos, hball⟩
+      refine ⟨δ, hδpos, c, hcpos, ?_⟩
+      intro y hy
+      have hyball : y ∈ Metric.ball (0 : ℝ) δ := by
+        rw [mem_ball_zero_iff]
+        exact hy
+      have : g y ∈ Set.Ioi c := hball hyball
+      exact le_of_lt this
+
+    obtain ⟨δ, hδpos, c, hcpos, h_psi_ge_c⟩ := h_psi_lower_bound
+
+    -- 3. Choose ε corresponding to this δ
+    let ε := 1 - Real.exp (-2 * Real.pi * δ)
+    have hε : 0 < ε ∧ ε < 1 := by
+      dsimp only [ε]
+      have h_exp_lt : Real.exp (-2 * Real.pi * δ) < 1 := by
+        rw [Real.exp_lt_one_iff]
+        nlinarith [Real.pi_pos, hδpos]
+      have h_exp_pos : 0 < Real.exp (-2 * Real.pi * δ) := Real.exp_pos _
+      constructor <;> linarith
+
+
+    refine ⟨ε, ?_⟩
+    refine ⟨B / c + 1, ?_⟩
+    refine ⟨hε.1, ?_⟩  -- ε > 0
+    refine ⟨hε.2, ?_⟩  -- ε < 1
+    refine ⟨by
+      have hB_nonneg : 0 ≤ B := by
+        specialize hB 1 zero_lt_one
+        exact (norm_nonneg _).trans hB
+      have : 0 ≤ B / c := div_nonneg hB_nonneg hcpos.le
+      linarith, fun x hx ↦ ?_⟩  -- C > 0
+    have h_summable : Summable (fun (n : ℕ) ↦ ↑(f n) / ↑n * 𝓕 ψ.toFun (1 / (2 * π) * Real.log (↑n / x))) := by sorry
+    -- 4. Restrict sum to the short interval where ψhat is large
+    have h_sum_lower : c / x * ∑' n, f n * Set.indicator (Set.Ioc ((1 - ε) * x) x) (fun _ ↦ 1) (n : ℝ)
+        ≤ ∑' n, f n / n * (𝓕 (ψ : ℝ → ℂ) (1 / (2 * Real.pi) * Real.log (n / x))).re := by
+
+      rw [← tsum_mul_left]
+      refine Summable.tsum_le_tsum ?_ ?_ ?_
+      · intro n
+        by_cases hn : (n : ℝ) ∈ Set.Ioc ((1 - ε) * x) x
+        · rw [Set.indicator_of_mem hn]
+          simp only [mul_one]
+          -- We have c/x * f n ≤ f n / n * Re(...)
+          -- Suffices to show c/x ≤ 1/n * Re(...) since f n ≥ 0
+          by_cases hfn : f n = 0
+          · simp [hfn]
+
+          -- Main inequality backbone
+          -- Define the Fourier argument
+          let y := (1 / (2 * π)) * Real.log ((↑n : ℝ) / x)
+
+          have hn_pos : 0 < (n : ℝ) := by
+             have : 0 < (1 - ε) * x := mul_pos (sub_pos.mpr hε.2) (zero_lt_one.trans_le hx)
+             linarith [hn.1]
+
+
+          have h_arg_small : |y| < δ := by
+             have h2pi_pos : 0 < 2 * π := by linarith [Real.pi_pos]
+             change |(1 / (2 * π)) * Real.log ((↑n : ℝ) / x)| < δ
+
+             rw [abs_mul, abs_div, abs_one, abs_of_pos h2pi_pos]
+             field_simp [ne_of_gt h2pi_pos]
+             rw [mul_comm, abs_lt]
+             -- -2πδ < log(n/x) < 2πδ
+             have h_log_lower : -2 * π * δ < Real.log (n / x) := by
+               rw [← Real.log_exp (-2 * π * δ), Real.log_lt_log_iff (Real.exp_pos _) (div_pos hn_pos (zero_lt_one.trans_le hx))]
+               -- ε = 1 - exp(...) => exp(...) = 1 - ε
+               have : Real.exp (-2 * π * δ) = 1 - ε := by dsimp [ε]; ring
+               rw [this]
+               field_simp
+               exact hn.1
+
+             have h_log_upper : Real.log (n / x) ≤ 0 := by
+                rw [← Real.log_one, Real.log_le_log_iff (div_pos hn_pos (zero_lt_one.trans_le hx)) zero_lt_one]
+                rw [div_le_one (zero_lt_one.trans_le hx)]
+                exact hn.2
+
+             have h_upper_bound : Real.log (n / x) < 2 * π * δ :=
+                h_log_upper.trans_lt (mul_pos (mul_pos (by norm_num) Real.pi_pos) hδpos)
+
+             constructor
+             · linarith
+             · linarith
+
+          -- Lower-bound the Fourier weight
+          have h_re_ge : c ≤ (𝓕 ψ.toFun y).re := h_psi_ge_c y h_arg_small
+
+          -- Compare inverses using ↑n ≤ x
+          have h_inv_le : x⁻¹ ≤ (n : ℝ)⁻¹ := by
+             rw [inv_le_inv₀ (zero_lt_one.trans_le hx) hn_pos]
+             exact hn.2
+
+          -- Build the scalar inequality c * x⁻¹ ≤ (↑n)⁻¹ * Re(...)
+          have h_scalar : c * x⁻¹ ≤ (n : ℝ)⁻¹ * (𝓕 ψ.toFun y).re := by
+             calc
+                c * x⁻¹ ≤ c * (n : ℝ)⁻¹ := mul_le_mul_of_nonneg_left h_inv_le hcpos.le
+                _ ≤ (𝓕 ψ.toFun y).re * (n : ℝ)⁻¹ := mul_le_mul_of_nonneg_right h_re_ge (inv_nonneg.mpr hn_pos.le)
+                _ = (n : ℝ)⁻¹ * (𝓕 ψ.toFun y).re := mul_comm _ _
+
+          -- Multiply by f n and reassociate to match the goal
+          have h_final : c * (x⁻¹ * f n) ≤ ((n : ℝ)⁻¹ * (𝓕 ψ.toFun y).re) * f n := by
+             rw [← mul_assoc]
+             exact mul_le_mul_of_nonneg_right h_scalar (hpos n)
+
+          simp only [div_eq_mul_inv]
+          -- Rewrite LHS: c / x * f n = c * x⁻¹ * f n = c * (x⁻¹ * f n)
+          rw [mul_assoc] at h_final
+          -- Rewrite RHS: f n * n⁻¹ * Re = (n⁻¹ * Re) * f n ?? No wait.
+          -- Goal RHS: f n * n⁻¹ * Re
+          -- h_final RHS: (n⁻¹ * Re) * f n
+
+          convert h_final using 1
+          · ring
+          · dsimp only [y]
+            ring_nf
+
+        · rw [Set.indicator_of_notMem hn]
+          simp only [mul_zero, mul_zero]
+          apply mul_nonneg
+          · apply div_nonneg (hpos n) (Nat.cast_nonneg n)
+          · exact (hψpos _).1
+      · apply summable_of_finite_support
+        refine Set.Finite.subset (Set.finite_le_nat (Int.floor x).toNat) ?_
+        intro n hn
+        simp only [Function.mem_support, ne_eq, mul_ne_zero_iff] at hn
+        -- hn : c/x ≠ 0 ∧ f n ≠ 0 ∧ indicator ... ≠ 0
+        have h_ind_ne := hn.2.2
+        rw [← ne_eq] at h_ind_ne
+        rw [Set.indicator_apply_ne_zero] at h_ind_ne
+        have h_le : (n : ℝ) ≤ x := h_ind_ne.1.2
+        simp only [Set.mem_setOf_eq]
+        rw [← Int.ofNat_le, Int.toNat_of_nonneg (Int.floor_nonneg.mpr (zero_le_one.trans hx))]
+        apply Int.le_floor.mpr
+        exact h_le
+      · rw [← Complex.summable_ofReal]
+        convert h_summable using 1
+        ext n
+        rw [Complex.ofReal_mul, Complex.ofReal_div]
+        norm_cast
+        rw [Complex.ofReal_mul]
+        congr 1
+        apply Complex.ext
+        · -- Real part: Re(↑(z.re)) = Re(z)
+          simp only [Complex.ofReal_re]
+          -- Goal: z.re = z.re (rfl)
+        · -- Imaginary part: Im(↑(z.re)) = Im(z)
+          simp only [Complex.ofReal_im]
+          -- Goal: z.im = z.im (rfl)
+          -- Goal: 0 = z.im
+          symm
+          -- Goal: z.im = 0
+          exact (hψpos _).2
+
+    -- 5. Combine with crude upper bound
+    have h_combined : c / x * ∑' n, f n * Set.indicator (Set.Ioc ((1 - ε) * x) x) (fun _ ↦ 1) (n : ℝ) ≤ B := by
+      apply le_trans h_sum_lower
+      -- We need to commute sum and re.
+      -- This requires summability.
+
+      have h_real_eq : ∑' (n : ℕ), f n / ↑n * (𝓕 ψ.toFun (1 / (2 * π) * Real.log (↑n / x))).re =
+          (∑' (n : ℕ), ↑(f n) / ↑n * 𝓕 ψ.toFun (1 / (2 * π) * Real.log (↑n / x))).re := by
+        rw [Complex.re_tsum h_summable]
+        congr with n
+        rw [Complex.mul_re]
+        norm_cast
+        simp only [zero_mul, sub_zero]
+      rw [h_real_eq]
+      apply le_trans (Complex.re_le_norm _)
+      apply hB
+      linarith
+
+
+    -- Conclusion
+
+    let S := ∑' n, (f n) * (Set.indicator (Set.Ioc ((1 - ε) * x) x) (fun _ ↦ 1) (n : ℝ))
+    calc
+      S = 1 * S := by ring
+      _ = x / c * (c / x * S) := by
+        have hc : c ≠ 0 := ne_of_gt hcpos
+        have hx_ne : x ≠ 0 := by linarith [hx]
+        field_simp [hc, hx_ne]
+      _ ≤ x / c * B := by
+        gcongr
+      _ = (B / c) * x := by
+        have hc : c ≠ 0 := ne_of_gt hcpos
+        field_simp [hc]
+      _ ≤ (B / c + 1) * x := by gcongr; norm_num
+
+  -- Step 3 & 4: Strong Induction and Conclusion
+  -- Goal: ∃ C, ∀ (n : ℕ), cumsum (fun x ↦ ‖(fun n ↦ ↑(f n)) x‖) n ≤ C * ↑n
+  -- We assume f is non-negative, so ‖f n‖ = f n.
+  -- We need to provide a C such that the bound holds for all n.
+  obtain ⟨ε, C_short, hε, hε_lt_one, hC_short, h_bound⟩ := h_short_interval
+  let C := C_short / ε + (f 0) + 1
+  refine ⟨C, ?_⟩
+  intro n
+  induction n using Nat.strong_induction_on with | h n ih =>
+  rcases lt_or_ge n 2 with hn | hn
+  · -- n = 0, 1
+    interval_cases n
+    · simp [cumsum]
+    · simp [cumsum]
+      -- Goal: |f 0| <= C.
+      simp only [abs_of_nonneg (hpos 0)]
+      dsimp [C]
+      have : 0 ≤ C_short / ε := div_nonneg (le_of_lt hC_short) (le_of_lt hε)
+      linarith
+  · -- n ≥ 2
+    let x := (n : ℝ) - 1
+    have hx : x ≥ 1 := by
+       simp only [x, ge_iff_le]
+       rw [le_sub_iff_add_le]
+       norm_cast
+
+    specialize h_bound x hx
+    -- Define the cutoff m for the short interval
+    let m := Nat.floor ((1 - ε) * x) + 1
+    -- Basic properties of m
+    have hm_lt : m < n := by
+      dsimp [m, x]
+      have : Nat.floor ((1 - ε) * (↑n - 1)) < n - 1 := by
+        have : (1 - ε) * (↑n - 1) < ↑(n - 1) := by
+          calc (1 - ε) * (↑n - 1)
+              < 1 * (↑n - 1) := by gcongr; linarith
+            _ = ↑n - 1 := by ring
+            _ = ↑(n - 1) := by simp [Nat.cast_sub (by omega : 1 ≤ n)]
+        refine (Nat.floor_lt ?_).mpr this
+        apply mul_nonneg <;> linarith
+      omega
+
+    -- Access inductive hypothesis for m
+    let S := fun k ↦ cumsum (fun x ↦ ‖(fun n ↦ ↑(f n)) x‖) k
+    have h_ih : S m ≤ C * m := by
+      have := ih m hm_lt
+      simp only [S]
+      convert this using 2
+      ext k
+      simp [abs_of_nonneg (hpos k)]
+    -- Decompose the sum: S(n) = S(m) + sum_{m < k <= n} f k
+    have h_split : S n ≤ S m + C_short * x := by
+      -- S(n) = ∑_{k ≤ n} f(k) = ∑_{k ≤ m} f(k) + ∑_{m < k ≤ n} f(k) = S(m) + ∑_{m < k ≤ n} f(k)
+      have h_decomp : S n = S m + ∑ k ∈ Finset.Ico m n, f k := by
+        simp only [S, cumsum]
+        -- First, simplify the norm inside the sum
+        have h_norm : ∀ k, ‖(fun n ↦ ↑(f n)) k‖ = f k := fun k ↦ abs_of_nonneg (hpos k)
+        simp only [h_norm]
+        -- Now split the range
+        rw [Finset.sum_range_add_sum_Ico _ (by omega : m ≤ n)]
+
+      rw [h_decomp]
+      gcongr
+      -- Now show: ∑_{k ∈ Ico (m+1) (n+1)} f(k) ≤ C_short * x
+      -- This follows from h_bound because Ico (m+1) (n+1) ⊆ Ioc ((1-ε)*x) x
+      calc ∑ k ∈ Finset.Ico m n, f k
+          = ∑ k ∈ Finset.Ico m n, f k * Set.indicator (Set.Ioc ((1 - ε) * x) x) (fun _ ↦ 1) (k : ℝ) := by
+            apply Finset.sum_congr rfl
+            intro k hk
+            -- simp only [Set.indicator_of_mem, mul_one]
+            -- Prove k ∈ Ioc ...
+            have h_k_ge_m : (k : ℝ) ≥ m := by exact_mod_cast Finset.mem_Ico.mp hk |>.1
+            have h_m_gt_lower_bound : (m : ℝ) > (1 - ε) * x := by
+              dsimp [m]
+              simp only [Nat.cast_add, Nat.cast_one, gt_iff_lt]
+              linarith [Nat.lt_floor_add_one ((1 - ε) * x)]
+            have h_k_gt_lower_bound : (k : ℝ) > (1 - ε) * x := by linarith
+            have h_k_lt_n : (k : ℝ) < n := by exact_mod_cast Finset.mem_Ico.mp hk |>.2
+            have h_n_eq_x_plus_1 : (n : ℝ) = x + 1 := by linarith
+            have h_k_le_x : (k : ℝ) ≤ x := by
+              rw [h_n_eq_x_plus_1] at h_k_lt_n
+              have : (k : ℤ) < (x + 1 : ℝ) := by exact_mod_cast h_k_lt_n
+              have h_k_le_n_minus_1 : k ≤ n - 1 := Nat.le_pred_of_lt (Finset.mem_Ico.mp hk).2
+              have : (k : ℝ) ≤ n - 1 := by
+                have : 1 ≤ n := by omega
+                rw [← Nat.cast_one, ← Nat.cast_sub this]
+                norm_cast
+              linarith
+            have h_mem_Ioc : (k : ℝ) ∈ Set.Ioc ((1 - ε) * x) x := ⟨h_k_gt_lower_bound, h_k_le_x⟩
+            rw [Set.indicator_of_mem h_mem_Ioc]
+            ring
+        _ ≤ ∑' k, f k * Set.indicator (Set.Ioc ((1 - ε) * x) x) (fun _ ↦ 1) (k : ℝ) := by
+          refine Summable.sum_le_tsum (Finset.Ico m n) ?_ ?_
+          · intro k hk
+            apply mul_nonneg (hpos k)
+            apply Set.indicator_nonneg
+            intro _ _; norm_num
+
+          -- Summability proof
+          -- The RHS is summable because it's part of the hypothesis h_bound (which implies terms are summable/bounded)
+          -- Actually h_bound gives the bound for the sum.
+          -- We know f(n) terms are summable for σ > 1.
+          -- But strictly speaking, we need Summable (rhs).
+          -- Let's assume hf implies enough summability or since we have a finite bound, abstractly it exists?
+          -- Actually, hf is for σ > 1. Here we essentially have a cutoff.
+          -- But the indicator has compact support (bounded interval), so only finitely many terms are non-zero!
+          -- So summability is trivial.
+          · apply summable_of_finite_support
+            apply Set.Finite.subset (s := {k : ℕ | k ≤ ⌊x⌋₊})
+            · exact Set.finite_le_nat _
+            · intro k hk
+              simp only [Function.mem_support, ne_eq, mul_eq_zero, not_or] at hk
+              -- hk.2 means indicator is not 0, so k ∈ Ioc
+              have hk_ind := hk.2
+              simp only [Set.indicator_apply_ne_zero] at hk_ind
+              exact Nat.le_floor hk_ind.1.2
+
+
+
+
+        _ ≤ C_short * x := h_bound
+
+    have hC_nonneg : 0 ≤ C := by
+      dsimp [C]
+      have h1 : 0 ≤ C_short / ε := div_nonneg (le_of_lt hC_short) (le_of_lt hε)
+      have h2 : 0 ≤ f 0 := hpos 0
+      linarith
+
+    convert le_trans h_split ?_ using 1
+    · simp [S]
+    refine le_trans (add_le_add_left h_ih (C_short * x)) ?_ -- ih : S(m) <= C*m
+    -- Goal: C * m + C_short * x ≤ C * n
+    calc
+      _ ≤ C * ((1 - ε) * x + 1) + C_short * x := by
+        gcongr
+        calc
+          ↑m ≤ ↑(Nat.floor ((1 - ε) * x)) + 1 := by simp [m]
+          _ ≤ (1 - ε) * x + 1 := by
+              have : ↑(Nat.floor ((1 - ε) * x)) ≤ (1 - ε) * x := by
+                apply Nat.floor_le
+                apply mul_nonneg
+                · linarith [hε_lt_one]
+                · linarith [hx]
+              linarith [this]
+
+      _ = (C * (1 - ε) + C_short) * x + C := by ring
+      _ ≤ C * x + C := by
+        suffices h : C_short ≤ C * ε by nlinarith [h, hx]
+        calc C_short
+            ≤ (C_short / ε) * ε := by
+              field_simp [ne_of_gt hε]
+              linarith [hC_short, hε]
+          _ ≤ (C_short / ε + f 0 + 1) * ε := by
+            gcongr
+            have : 0 ≤ f 0 := hpos 0
+            linarith
+          _ = C * ε := by simp [C]
+      _ ≤ C * n := by
+        have : x + 1 = n := by linarith
+        rw [← this, mul_add, mul_one]
+
 
 /-
   \begin{corollary}[WienerIkeharaTheorem'']\label{WienerIkeharaTheorem''}
