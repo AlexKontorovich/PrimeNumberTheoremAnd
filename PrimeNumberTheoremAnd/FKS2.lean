@@ -145,37 +145,18 @@ theorem lemma_10_substep_2 {a b c x : ℝ} (hx : x > 1) :
   (latexEnv := "lemma")
   (discussion := 612)]
 theorem lemma_10a {a b c : ℝ} (ha : a > 0) (hb : b < -c ^ 2 / (16 * a)) :
-  StrictAntiOn (g_bound a b c) (Set.Ioi 1) := by
-  refine strictAntiOn_of_deriv_neg ?_ ?_ ?_
-  · exact convex_Ioi 1
-  · unfold g_bound
-    intro x hx
-    exact ContinuousAt.continuousWithinAt (
-      by exact ContinuousAt.mul (
-        ContinuousAt.mul (ContinuousAt.rpow continuousAt_id continuousAt_const <| Or.inl <| by linarith [hx.out])
-          (ContinuousAt.rpow (continuousAt_log <| by linarith [hx.out]) continuousAt_const <| Or.inl <| by linarith [hx.out, log_pos hx.out]))
-          <| ContinuousAt.rexp <| ContinuousAt.mul continuousAt_const <| Real.continuous_sqrt.continuousAt.comp <| Real.continuousAt_log <| by linarith [hx.out])
-  · intro x hx
-    rw [interior_Ioi] at hx
-    rw [lemma_10_substep_2 (show 1 < x by exact (Set.mem_Ioi.mp hx))]
-    set t : ℝ := sqrt (log x)
-    have hcomp : (-a * t^2 + (c / 2) * t + b) = (-a) * (t - c / (4 * a))^2 + (b + c^2 / (16 * a)) := by
-      calc (-a * t^2 + (c / 2) * t + b)
-        _ = -a * t^2 + (c/2) * t - (c^2 / (16 * a)) + (b + c^2 / (16 * a)) := by ring_nf
-        _ = (-a) * (t^2 - (c/(2 * a)) * t + (c^2 / (16 * a ^ 2))) + (b + c^2 / (16 * a)) := by field_simp; norm_num; ring_nf
-        _ = (-a) * (t - c / (4 * a))^2 + (b + c^2 / (16 * a)) := by ring_nf
-    have hneg : (-a) * (t - c / (4 * a))^2 ≤ 0 := by
-      have hs : 0 ≤ (t - c / (4 * a))^2 := sq_nonneg _
-      nlinarith [(le_of_lt ha), hs]
-    have hle : (-a * t^2 + (c / 2) * t + b) ≤ b + c^2 / (16 * a) := by
-      calc (-a * t^2 + (c / 2) * t + b)
-        _ = (-a) * (t - c / (4 * a))^2 + (b + c^2 / (16 * a)) := by exact hcomp
-        _ ≤ 0 + (b + c^2 / (16 * a)) := by linarith [hneg]
-        _ = b + c^2 / (16 * a) := by ring
-    have hb' : b + c^2 / (16 * a) < 0 := by
-      simpa [div_eq_mul_inv] using (add_neg_neg_iff.mpr hb)
-    exact lt_of_le_of_lt hle (show b + c^2 / (16 * a) < 0 by linarith [hb])
-
+    StrictAntiOn (g_bound a b c) (Set.Ioi 1) := by
+  refine strictAntiOn_of_deriv_neg (convex_Ioi 1) (fun x hx ↦ ?_) (fun x hx ↦ ?_)
+  · have : 0 < x := by linarith [hx.out]
+    exact (((continuousAt_id.rpow continuousAt_const (Or.inl this.ne')).mul
+      ((continuousAt_log this.ne').rpow continuousAt_const (Or.inl (log_pos hx.out).ne'))).mul
+      (continuous_exp.continuousAt.comp (continuousAt_const.mul
+      (continuous_sqrt.continuousAt.comp (continuousAt_log this.ne'))))).continuousWithinAt
+  · rw [interior_Ioi] at hx; rw [lemma_10_substep_2 hx]
+    let t := sqrt (log x)
+    have : -a * t^2 + c/2 * t + b = -a * (t - c/(4*a))^2 + (b + c^2/(16*a)) := by grind
+    have : b + c^2/(16*a) < 0 := by grind
+    linarith [mul_nonneg (le_of_lt ha) (sq_nonneg (t - c/(4*a)))]
 
 @[blueprint
   "fks2-lemma-10b"
