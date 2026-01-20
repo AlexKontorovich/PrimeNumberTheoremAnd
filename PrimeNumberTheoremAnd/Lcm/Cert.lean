@@ -36,7 +36,7 @@ Complete structural assumptions:
 10. theorem `final_comparison`
 -/
 
-structure PrimeGap_Criterion where
+class PrimeGap_Criterion where
   h_X₀ : X₀ > 1
   gap_nonneg : ∀ x : ℝ, x ≥ X₀ → 0 ≤ gap.δ x
   gap_decreasing : ∀ x y : ℝ, X₀ ≤ x → X₀ ≤ y → x ≤ y → gap.δ y ≤ gap.δ x
@@ -60,8 +60,6 @@ structure PrimeGap_Criterion where
 
 
 
-
-
 /- theorem `exists_p_primes` lemmas -/
 /- Structural assumptions required
 assuming n ≥ X₀ ^ 2 throughout
@@ -70,24 +68,24 @@ assuming n ≥ X₀ ^ 2 throughout
   3. gap.δ is decreasing for x ≥ X₀
 -/
 
-lemma sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma sqrt_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (X₀ : ℝ) ≤ √(n : ℝ) := by
   /- holds when X₀ ≥ 0 -/
   sorry
 
-lemma step1_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma step1_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (X₀ : ℝ) ≤ (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) := by
   /- holds when X₀ ≥ 0 and gap.δ(√n) ≥ 0 for n ≥ X₀^2 -/
   sorry
 
 
-lemma step2_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma step2_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (X₀ : ℝ) ≤ (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) ^ 2 := by
   /- holds when X₀ ≥ 0 and gap.δ(√n) ≥ 0 for n ≥ X₀^2 -/
   sorry
 
 
-lemma step1_upper {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma step1_upper [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     (x * (1 + ε)) * (1 + gap.δ (x * (1 + ε))) ≤ x * (1 + ε) ^ 2 := by
@@ -96,7 +94,7 @@ lemma step1_upper {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   sorry
 
 
-lemma step2_upper {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma step2_upper [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     (x * (1 + ε) ^ 2) * (1 + gap.δ (x * (1 + ε) ^ 2)) ≤ x * (1 + ε) ^ 3 := by
@@ -114,7 +112,7 @@ assuming n ≥ X₀ ^ 2 throughout
   2. gap.δ is decreasing for x ≥ X₀
   3. gap.δ(x) ≥ 0 for x ≥ X₀
 -/
-lemma y0_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma y0_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) ^ 3 := by
@@ -125,7 +123,7 @@ lemma y0_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   sorry
 
 
-lemma y1_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma y1_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) ^ 2 := by
@@ -134,7 +132,7 @@ lemma y1_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   /- This holds when gap.δ(x) ≥ 0 for x ≥ X₀ -/
   sorry
 
-lemma y2_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma y2_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) := by
@@ -142,7 +140,7 @@ lemma y2_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   /- This holds when gap.δ(x) ≥ 0 for x ≥ X₀ -/
   sorry
 
-lemma y0_mul_one_add_delta_le_y1 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma y0_mul_one_add_delta_le_y1 [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     let y0 : ℝ := (n : ℝ) / (1 + ε) ^ 3
@@ -152,7 +150,7 @@ lemma y0_mul_one_add_delta_le_y1 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   -/
   sorry
 
-lemma y1_mul_one_add_delta_le_y2 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma y1_mul_one_add_delta_le_y2 [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     let y1 : ℝ := (n : ℝ) / (1 + ε) ^ 2
@@ -163,7 +161,7 @@ lemma y1_mul_one_add_delta_le_y2 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   -/
   sorry
 
-lemma y2_mul_one_add_delta_lt_n {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma y2_mul_one_add_delta_lt_n [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
     let ε : ℝ := gap.δ x
     let y2 : ℝ := (n : ℝ) / (1 + ε)
@@ -191,13 +189,13 @@ Try moving this entirely into `prod_q_ge` if possible.
 -/
 
 /- *** This lemma is likely not used *** -/
-lemma b_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < b n := by
+lemma b_pos [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) : 0 < b n := by
   /- 1 + δ(√n) ≥ 0 for n ≥ X₀ ^ 2
    This holds when δ(x) ≥ 0 for x ≥ X₀ and X₀ ≥ 0 -/
   sorry
 
 
-lemma prod_q_rhs_reindex (n : ℕ) :
+lemma prod_q_rhs_reindex [PrimeGap_Criterion] (n : ℕ) :
     (∏ i : Fin 3, (1 + (b n) ^ ((i : ℕ) + 1 : ℝ) / n))
       =
     (∏ i : Fin 3, (1 + (b n) ^ ((3 : ℝ) - (i : ℕ)) / n)) := by
@@ -213,7 +211,7 @@ lemma prod_q_rhs_reindex (n : ℕ) :
 
 
 
-lemma inv_le_rpow_div_of_lower_bound {n : ℕ} (hn : n ≥ X₀ ^ 2)
+lemma inv_le_rpow_div_of_lower_bound [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2)
     {t : ℝ} {q : ℕ}
     (hq : (n : ℝ) * (b n) ^ (-t) ≤ (q : ℝ)) :
     (1 : ℝ) / (q : ℝ) ≤ (b n) ^ t / n := by
@@ -231,14 +229,14 @@ assuming n ≥ X₀ ^ 2 throughout
   1. X₀ > 0
   2. gap.δ(x) ≥ 0 for x ≥ X₀
 -/
-lemma one_add_delta_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma one_add_delta_pos [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     0 < (1 + gap.δ (√(n : ℝ))) := by
   /- This holds when δ(x) ≥ 0 for x ≥ X₀ and X₀ > 0-/
   sorry
 
 
-lemma p_mul_padd1_le_bound
-    {n : ℕ} (hn : n ≥ X₀ ^ 2)
+lemma p_mul_padd1_le_bound [PrimeGap_Criterion]
+  {n : ℕ} (hn : n ≥ X₀ ^ 2)
     {p : Fin 3 → ℕ}
     (hp_prime : ∀ i, Nat.Prime (p i))
     (hp_mono : StrictMono p)
@@ -260,13 +258,13 @@ assuming n ≥ X₀ ^ 2 throughout
   2. gap.δ(x) ≥ 0 for x ≥ X₀
 -/
 
-lemma n_pos {n : ℕ} (hn : n ≥ X₀ ^ 2) : (0 : ℝ) < (n : ℝ) := by
+lemma n_pos [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) : (0 : ℝ) < (n : ℝ) := by
   /- This holds when X₀ ≠ 0 -/
   sorry
 
 
 
-lemma pq_ratio_rhs_as_fraction {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma pq_ratio_rhs_as_fraction [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
       =
     ((4 : ℝ) * ∏ i : Fin 3,
@@ -293,7 +291,7 @@ assuming n ≥ X₀ ^ 2 throughout
 
 
 /- `hn` lemmas -/
-lemma one_le_X₀_sq : (1 : ℕ) ≤ X₀ ^ 2 := by
+lemma one_le_X₀_sq [PrimeGap_Criterion] : (1 : ℕ) ≤ X₀ ^ 2 := by
   /- This holds when X₀ > 1 -/
   /-
   Proof idea:
@@ -304,7 +302,7 @@ lemma one_le_X₀_sq : (1 : ℕ) ≤ X₀ ^ 2 := by
 /- End of `hn` lemmas-/
 
 /- `h_ord_2` lemmas -/
-lemma ord2_mid {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma ord2_mid [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     √(n : ℝ) * (1 + gap.δ (√(n : ℝ))) ^ (3 : ℕ)
       <
     (n : ℝ) / (1 + gap.δ (√(n : ℝ))) ^ (3 : ℕ) := by
@@ -318,7 +316,7 @@ lemma ord2_mid {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 /- End of `h_ord_2` lemmas -/
 
 /- `h_crit` lemmas -/
-theorem main_ineq_delta_form {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+theorem main_ineq_delta_form [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (∏ i : Fin 3,
         (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
       ≤
@@ -342,7 +340,7 @@ theorem main_ineq_delta_form {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   sorry
 
 
-lemma delta_prod_mul_nonneg {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma delta_prod_mul_nonneg [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     0 ≤
       (∏ i : Fin 3,
           (1 + 1 /
@@ -352,7 +350,7 @@ lemma delta_prod_mul_nonneg {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   /- holds when gap.δ(x) > 0 for x ≥ X₀ and X₀ > 0 -/
   sorry
 
-lemma delta_ratio_term_nonneg {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma delta_ratio_term_nonneg [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     0 ≤ 1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
   /- holds when 4 * (1 + gap.δ(√n)) ^ 12 ≤ n ^ (3 / 2) for n ≥ X₀ ^ 2 -/
   sorry
@@ -365,7 +363,7 @@ assuming n ≥ X₀ ^ 2 throughout
   1. gap.δ(√n) ≤ 0.000675 for n ≥ X₀ ^ 2
   2. X₀ > 0 and n > 0
 -/
-lemma delta_sqrt_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma delta_sqrt_le [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     gap.δ (√(n : ℝ)) ≤ (0.000675 : ℝ) := by
   /- This holds when gap.δ(√n) ≤ 0.000675 for n ≥ X₀ ^ 2 -/
   /-- (Cert) Numerical bound on the prime-gap delta at √n: `δ(√n) ≤ 0.000675` for `n ≥ X₀^2`. -/
@@ -376,7 +374,7 @@ lemma delta_sqrt_le {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   -/
   sorry
 
-lemma inv_n_pow_3_div_2_le_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma inv_n_pow_3_div_2_le_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (1 / (n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (X₀ : ℝ)) * (1 / n) := by
   /- This holds when X₀ > 0 and n > 0 -/
   /- *** Proof idea *** :
@@ -387,7 +385,7 @@ lemma inv_n_pow_3_div_2_le_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   sorry
 
 
-lemma inv_n_add_sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma inv_n_add_sqrt_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (1 / ((n : ℝ) + √(n : ℝ))) ≥ (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) := by
   /- This holds when X₀ > 0 and n > 0 -/
   /- *** Proof idea *** :
@@ -397,7 +395,7 @@ lemma inv_n_add_sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   -/
   sorry
 
-theorem main_ineq_delta_form_lhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+theorem main_ineq_delta_form_lhs [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (∏ i : Fin 3,
         (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
       ≤ (∏ i : Fin 3,
@@ -407,7 +405,7 @@ theorem main_ineq_delta_form_lhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
         by applying `delta_sqrt_le` to bound `gap.δ (√(n : ℝ))` by `0.000675` -/
       sorry
 
-theorem main_ineq_delta_form_rhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+theorem main_ineq_delta_form_rhs [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (∏ i : Fin 3,
         (1 + 1 /
           ((1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
@@ -449,6 +447,24 @@ theorem final_comparison {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : �
 
 /- End of lemmas required to prove h_crit: `theorem main_ineq_delta_form` -/
 
+
+/--
+Provide the concrete instance at the end of this file.
+Fill in each field using the corresponding proofs for your chosen `gap` and `X₀`.
+-/
+instance : PrimeGap_Criterion := by
+  refine
+    { h_X₀ := ?_,
+      gap_nonneg := ?_,
+      gap_decreasing := ?_,
+      delta_sixth_power_lt_sqrt := ?_,
+      delta_twelfth_power_le_n_pow_3_div_2 := ?_,
+      eps_log_bound := ?_,
+      prod_epsilon_le := ?_,
+      prod_epsilon_ge := ?_,
+      final_comparison := ?_ }
+  all_goals
+    sorry
 
 
 

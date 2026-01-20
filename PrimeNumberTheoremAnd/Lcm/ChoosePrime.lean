@@ -10,6 +10,8 @@ open scoped BigOperators
 
 namespace six_primes
 
+variable [Numerical.PrimeGap_Criterion]
+
 blueprint_comment /--
 \subsection{Choice of six primes \(p_i,q_i\) for large \(n\)}
 -/
