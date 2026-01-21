@@ -116,7 +116,7 @@ theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   for all $x \geq 2$.
   -/)
   (latexEnv := "theorem")]
-theorem JY.theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 2 := sorry
+theorem JY.theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 23 := sorry
 
 blueprint_comment /-- TODO: input other results from JY -/
 
