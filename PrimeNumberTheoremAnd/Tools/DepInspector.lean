@@ -139,14 +139,15 @@ elab_rules : command
 
             logInfo m!"Declaration type of {depName}:\n  {← ppExpr depDecl.type}"
 
-            let mut count : Nat := 0
+            let countRef ← IO.mkRef (0 : Nat)
 
             traverseWithCtx v (fun e => do
               let (fn, args) := getAppFnArgs e
               match consumeMData fn with
               | .const n _ =>
                   if n == depName then
-                    count := count + 1
+                    countRef.modify (· + 1)
+                    let count ← countRef.get
                     let ty ← inferType e
                     logInfo m!"\nOccurrence #{count}:\n  term: {← ppExpr e}\n  term type: {← ppExpr ty}"
 
@@ -161,6 +162,7 @@ elab_rules : command
               | _ => pure ()
             )
 
+            let count ← countRef.get
             if count == 0 then
               logInfo m!"No applications of {depName} found inside the proof term of {rootName}."
             else
