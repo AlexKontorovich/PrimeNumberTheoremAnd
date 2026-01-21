@@ -129,7 +129,53 @@ lemma step1_upper [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (x * (1 + ε)) * (1 + gap.δ (x * (1 + ε))) ≤ x * (1 + ε) ^ 2 := by
   /- holds when x, ε ≥ 0 and gap.δ(x * (1 + gap.δ(x))) ≤ gap.δ(x)-/
   /- this holds when gap.δ is decreasing for x ≥ X₀ -/
-  sorry
+  dsimp
+  set x : ℝ := Real.sqrt (n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+  -- Rewrite the goal in terms of `x` and `ε`.
+  -- (After this, the goal is exactly the displayed inequality.)
+  simp [hx.symm, hε.symm]
+
+  have hX0_le_x : (X₀ : ℝ) ≤ x := by
+    simpa [hx.symm] using (sqrt_ge_X₀ (n := n) hn)
+
+  have hε_nonneg : 0 ≤ ε := by
+    have : 0 ≤ gap.δ x := PrimeGap_Criterion.gap_nonneg x (by simpa using hX0_le_x)
+    simpa [hε] using this
+
+  have h_one_le : (1 : ℝ) ≤ 1 + ε := by
+    exact le_add_of_nonneg_right hε_nonneg
+
+  have hx_nonneg : 0 ≤ x := by
+    -- `x = √n`
+    simpa [hx] using (Real.sqrt_nonneg (n : ℝ))
+
+  have h_one_add_nonneg : 0 ≤ 1 + ε := by
+    exact add_nonneg (by norm_num) hε_nonneg
+
+  have hx_le_y : x ≤ x * (1 + ε) := by
+    have := mul_le_mul_of_nonneg_left h_one_le hx_nonneg
+    simpa [mul_one, mul_assoc] using this
+
+  have hX0_le_y : (X₀ : ℝ) ≤ x * (1 + ε) := le_trans hX0_le_x hx_le_y
+
+  have hδy_le_δx : gap.δ (x * (1 + ε)) ≤ gap.δ x :=
+    PrimeGap_Criterion.gap_decreasing x (x * (1 + ε)) hX0_le_x hX0_le_y hx_le_y
+
+  have hδy_le_ε : gap.δ (x * (1 + ε)) ≤ ε := by
+    simpa [hε.symm] using hδy_le_δx
+
+  have h_one_add_le : 1 + gap.δ (x * (1 + ε)) ≤ 1 + ε := by
+    simpa [add_comm] using (add_le_add_left hδy_le_ε 1)
+
+  have hmul_nonneg : 0 ≤ x * (1 + ε) := by
+    exact mul_nonneg hx_nonneg h_one_add_nonneg
+
+  have hmul : (x * (1 + ε)) * (1 + gap.δ (x * (1 + ε))) ≤ (x * (1 + ε)) * (1 + ε) := by
+    exact mul_le_mul_of_nonneg_left h_one_add_le hmul_nonneg
+
+  -- Finish by simplifying the right-hand side.
+  simpa [pow_two, mul_assoc, mul_left_comm, mul_comm] using hmul
 
 
 lemma step2_upper [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
@@ -138,7 +184,60 @@ lemma step2_upper [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (x * (1 + ε) ^ 2) * (1 + gap.δ (x * (1 + ε) ^ 2)) ≤ x * (1 + ε) ^ 3 := by
   /- holds when x, ε ≥ 0 and gap.δ(x * (1 + gap.δ(x)) ^ 2) ≤ gap.δ(x) -/
   /- this holds when gap.δ is decreasing for x ≥ X₀ -/
-  sorry
+  dsimp
+  set x : ℝ := Real.sqrt (n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+  -- Rewrite the goal in terms of `x` and `ε`.
+  simp [hx.symm, hε.symm]
+
+  have hX0_le_x : (X₀ : ℝ) ≤ x := by
+    simpa [hx.symm] using (sqrt_ge_X₀ (n := n) hn)
+
+  have hε_nonneg : 0 ≤ ε := by
+    have : 0 ≤ gap.δ x := PrimeGap_Criterion.gap_nonneg x (by simpa using hX0_le_x)
+    simpa [hε] using this
+
+  have h_one_le : (1 : ℝ) ≤ 1 + ε := by
+    exact le_add_of_nonneg_right hε_nonneg
+
+  have hx_nonneg : 0 ≤ x := by
+    simpa [hx] using (Real.sqrt_nonneg (n : ℝ))
+
+  have h_one_add_nonneg : 0 ≤ 1 + ε := by
+    exact add_nonneg (by norm_num) hε_nonneg
+
+  -- Show `1 ≤ (1+ε)^2`.
+  have h_one_le_sq : (1 : ℝ) ≤ (1 + ε) ^ 2 := by
+    have h_a_le_a2 : (1 + ε) ≤ (1 + ε) ^ 2 := by
+      have := mul_le_mul_of_nonneg_right h_one_le h_one_add_nonneg
+      simpa [pow_two] using this
+    exact le_trans h_one_le h_a_le_a2
+
+  have hx_le_y : x ≤ x * (1 + ε) ^ 2 := by
+    have := mul_le_mul_of_nonneg_left h_one_le_sq hx_nonneg
+    simpa [mul_one, mul_assoc] using this
+
+  have hX0_le_y : (X₀ : ℝ) ≤ x * (1 + ε) ^ 2 := le_trans hX0_le_x hx_le_y
+
+  have hδy_le_δx : gap.δ (x * (1 + ε) ^ 2) ≤ gap.δ x :=
+    PrimeGap_Criterion.gap_decreasing x (x * (1 + ε) ^ 2) hX0_le_x hX0_le_y hx_le_y
+
+  have hδy_le_ε : gap.δ (x * (1 + ε) ^ 2) ≤ ε := by
+    simpa [hε.symm] using hδy_le_δx
+
+  have h_one_add_le : 1 + gap.δ (x * (1 + ε) ^ 2) ≤ 1 + ε := by
+    simpa [add_comm] using (add_le_add_left hδy_le_ε 1)
+
+  have hmul_nonneg : 0 ≤ x * (1 + ε) ^ 2 := by
+    exact mul_nonneg hx_nonneg (sq_nonneg (1 + ε))
+
+  have hmul :
+      (x * (1 + ε) ^ 2) * (1 + gap.δ (x * (1 + ε) ^ 2))
+        ≤ (x * (1 + ε) ^ 2) * (1 + ε) := by
+    exact mul_le_mul_of_nonneg_left h_one_add_le hmul_nonneg
+
+  -- Simplify the RHS: `(x*(1+ε)^2)*(1+ε) = x*(1+ε)^3`.
+  simpa [pow_succ, mul_assoc, mul_left_comm, mul_comm] using hmul
 
 /- End of theorem `exists_p_primes` lemmas-/
 
