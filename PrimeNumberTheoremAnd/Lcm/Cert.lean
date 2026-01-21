@@ -953,8 +953,7 @@ lemma pq_ratio_rhs_as_fraction [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^
     sorry
 
 
-/- End of theorem `pq_ratio_ge` lemmas-/
-
+/- End of theorem `pq_ratio_ge` lemmas- -/
 
 /-
 Final criterion structure in Main.lean
@@ -1128,15 +1127,6 @@ lemma inv_n_add_sqrt_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2
   -/
   sorry
 
--- theorem main_ineq_delta_form_lhs [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
---     (∏ i : Fin 3,
---         (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
---       ≤ (∏ i : Fin 3,
---         (1 + (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ))) := by
---       /- This holds when gap.δ(√n) ≤ 0.000675 for n ≥ X₀ ^ 2 -/
---       /- *** Proof idea *** :
---         by applying `delta_sqrt_le` to bound `gap.δ (√(n : ℝ))` by `0.000675` -/
---       sorry
 
 theorem main_ineq_delta_form_lhs [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (∏ i : Fin 3,
@@ -1230,7 +1220,314 @@ theorem main_ineq_delta_form_rhs [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀
       applying `delta_sqrt_le`, `inv_n_add_sqrt_ge_X₀`, and `inv_n_pow_3_div_2_le_X₀` to rewrite
       the inequality
       -/
-      sorry
+  classical
+  -- Abbreviate `δ = gap.δ(√n)` to keep expressions readable.
+  set δ : ℝ := gap.δ (√(n : ℝ)) with hδ
+
+  -- Bounds on `δ`.
+  have hδ_le : δ ≤ (0.000675 : ℝ) := by
+    simpa [hδ] using (delta_sqrt_le (n := n) hn)
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := sqrt_ge_X₀ (n := n) hn
+  have hδ_nonneg : 0 ≤ δ := by
+    have : 0 ≤ gap.δ (√(n : ℝ)) :=
+      PrimeGap_Criterion.gap_nonneg (x := √(n : ℝ)) (by exact hX0_le_sqrt)
+    simpa [hδ] using this
+
+  have hbase_pos : 0 < (1 + δ) := by
+    have h_one_le : (1 : ℝ) ≤ 1 + δ := le_add_of_nonneg_right hδ_nonneg
+    exact lt_of_lt_of_le (by norm_num) h_one_le
+  have hbase_nonneg : 0 ≤ (1 + δ) := le_of_lt hbase_pos
+  have hbase_le : (1 + δ) ≤ (1.000675 : ℝ) := by
+    nlinarith [hδ_le]
+
+  -- Positivity of `n`.
+  have hX0_pos : 0 < X₀ := lt_trans Nat.zero_lt_one (PrimeGap_Criterion.h_X₀)
+  have hX0_sq_pos : 0 < X₀ ^ 2 := pow_pos hX0_pos 2
+  have hn_pos_nat : 0 < n := lt_of_lt_of_le hX0_sq_pos hn
+  have hn_pos : (0 : ℝ) < (n : ℝ) := by exact_mod_cast hn_pos_nat
+
+  -- Lower bound on `1/(n+√n)`.
+  have hinv_add :
+      (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) ≤ (1 / ((n : ℝ) + √(n : ℝ))) := by
+    -- `inv_n_add_sqrt_ge_X₀` is written using `≥` notation, which is definitionaly `≤` with swapped sides.
+    simpa using (inv_n_add_sqrt_ge_X₀ (n := n) hn)
+
+  -- Termwise comparison for the product on the RHS.
+  have hterm_le :
+      ∀ i : Fin 3,
+        (1 + 1 /
+            ((1.000675 : ℝ) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ))
+          ≤
+        (1 + 1 /
+            ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))) := by
+    intro i
+    have ht_nonneg : (0 : ℝ) ≤ (2 * (i : ℕ) + 2 : ℝ) := by
+      exact_mod_cast (Nat.zero_le (2 * (i : ℕ) + 2))
+
+    have hpow_le :
+        (1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ)
+          ≤ (1.000675 : ℝ) ^ (2 * (i : ℕ) + 2 : ℝ) := by
+      exact Real.rpow_le_rpow hbase_nonneg hbase_le ht_nonneg
+    have hpow_pos :
+        0 < (1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ) :=
+      Real.rpow_pos_of_pos hbase_pos _
+
+    -- Taking reciprocals flips the inequality.
+    have hone_div_le :
+        (1 : ℝ) / ((1.000675 : ℝ) ^ (2 * (i : ℕ) + 2 : ℝ))
+          ≤ (1 : ℝ) / ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ)) := by
+      exact one_div_le_one_div_of_le hpow_pos hpow_le
+
+    have hB_nonneg :
+        0 ≤ (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) := by
+      have hX0r_pos : 0 < (X₀ : ℝ) := by exact_mod_cast hX0_pos
+      have h1pos : 0 < (1 + 1 / (X₀ : ℝ)) := by
+        have : (0 : ℝ) < 1 / (X₀ : ℝ) := one_div_pos.2 hX0r_pos
+        nlinarith
+      have hA_nonneg : 0 ≤ (1 / (1 + 1 / (X₀ : ℝ))) := one_div_nonneg.2 (le_of_lt h1pos)
+      have hC_nonneg : 0 ≤ (1 / (n : ℝ)) := one_div_nonneg.2 (le_of_lt hn_pos)
+      exact mul_nonneg hA_nonneg hC_nonneg
+
+    have hA_nonneg :
+        0 ≤ (1 : ℝ) / ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ)) :=
+      one_div_nonneg.2 (le_of_lt (Real.rpow_pos_of_pos hbase_pos _))
+
+    -- Multiply the two component inequalities.
+    have hfrac_le :
+        ((1 : ℝ) / ((1.000675 : ℝ) ^ (2 * (i : ℕ) + 2 : ℝ)))
+            * ((1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)))
+          ≤
+        ((1 : ℝ) / ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ))) * (1 / ((n : ℝ) + √(n : ℝ))) := by
+      -- First use the reciprocal comparison, then the bound for `1/(n+√n)`.
+      have hstep1 :
+          ((1 : ℝ) / ((1.000675 : ℝ) ^ (2 * (i : ℕ) + 2 : ℝ)))
+              * ((1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)))
+            ≤
+          ((1 : ℝ) / ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ)))
+              * ((1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ))) := by
+        exact mul_le_mul_of_nonneg_right hone_div_le hB_nonneg
+      have hstep2 :
+          ((1 : ℝ) / ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ)))
+              * ((1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)))
+            ≤
+          ((1 : ℝ) / ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ))) * (1 / ((n : ℝ) + √(n : ℝ))) := by
+        exact mul_le_mul_of_nonneg_left hinv_add hA_nonneg
+      exact le_trans hstep1 hstep2
+
+    -- Rewrite the RHS product of reciprocals as a single reciprocal of a product.
+    have hfrac_le' :
+        ((1 : ℝ) / ((1.000675 : ℝ) ^ (2 * (i : ℕ) + 2 : ℝ)))
+            * (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ))
+          ≤
+        (1 : ℝ) /
+          (((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ)) * ((n : ℝ) + √(n : ℝ))) := by
+      -- reassociate the LHS and simplify the RHS
+      have hfrac_le'' :
+          ((1 : ℝ) / ((1.000675 : ℝ) ^ (2 * (i : ℕ) + 2 : ℝ)))
+              * (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ))
+            ≤
+          ((1 : ℝ) / ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ))) * (1 / ((n : ℝ) + √(n : ℝ))) := by
+        simpa [mul_assoc] using hfrac_le
+      have hsimpr :
+          ((1 : ℝ) / ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ))) * (1 / ((n : ℝ) + √(n : ℝ)))
+            = (1 / ((n : ℝ) + √(n : ℝ))) * ((1 : ℝ) / ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ))) := by
+        ac_rfl
+      -- clean up associativity on the left
+      simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm, hsimpr] using hfrac_le''
+
+    -- Add 1 to both sides.
+    have : (1 : ℝ) +
+          ((1 : ℝ) / ((1.000675 : ℝ) ^ (2 * (i : ℕ) + 2 : ℝ)))
+            * (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ))
+        ≤ (1 : ℝ) +
+            (1 : ℝ) /
+              (((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ)) * ((n : ℝ) + √(n : ℝ))) := by
+      simpa [add_comm, add_left_comm, add_assoc] using (add_le_add_right hfrac_le' 1)
+
+    -- Match the exact shape.
+    simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using this
+
+  have hterm_nonneg :
+      ∀ i : Fin 3,
+        0 ≤ (1 + 1 /
+            ((1.000675 : ℝ) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)) := by
+    intro i
+    have hX0r_pos : 0 < (X₀ : ℝ) := by exact_mod_cast hX0_pos
+    have h1pos : 0 < (1 + 1 / (X₀ : ℝ)) := by
+      have : (0 : ℝ) < 1 / (X₀ : ℝ) := one_div_pos.2 hX0r_pos
+      nlinarith
+    have hninv_nonneg : 0 ≤ (1 / (n : ℝ)) := one_div_nonneg.2 (le_of_lt hn_pos)
+    have hA_nonneg : 0 ≤ (1 / (1 + 1 / (X₀ : ℝ))) := one_div_nonneg.2 (le_of_lt h1pos)
+    have hpow_pos : 0 < (1.000675 : ℝ) ^ (2 * (i : ℕ) + 2 : ℝ) := by
+      have : 0 < (1.000675 : ℝ) := by norm_num
+      exact Real.rpow_pos_of_pos this _
+    have hB_nonneg : 0 ≤ (1 : ℝ) / ((1.000675 : ℝ) ^ (2 * (i : ℕ) + 2 : ℝ)) :=
+      one_div_nonneg.2 (le_of_lt hpow_pos)
+    have hfrac_nonneg :
+        0 ≤ ((1 : ℝ) / ((1.000675 : ℝ) ^ (2 * (i : ℕ) + 2 : ℝ)))
+              * (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) := by
+      have : 0 ≤ ((1 : ℝ) / ((1.000675 : ℝ) ^ (2 * (i : ℕ) + 2 : ℝ)))
+                * ((1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ))) := by
+        exact mul_nonneg hB_nonneg (mul_nonneg hA_nonneg hninv_nonneg)
+      simpa [mul_assoc] using this
+    exact add_nonneg (by norm_num)
+      (by simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using hfrac_nonneg)
+
+  -- Product inequality: RHS product ≤ LHS product.
+  have hprod_le :
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((1.000675) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+        ≤
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ))))) := by
+    simpa using
+      (Finset.prod_le_prod (s := (Finset.univ : Finset (Fin 3)))
+        (by
+          intro i hi
+          simpa using (hterm_nonneg i))
+        (by
+          intro i hi
+          simpa using (hterm_le i)))
+
+  -- Ratio term inequality: `1 - const ≤ 1 - δterm`.
+  have hratio_le :
+      (1 - 4 * (1.000675 : ℝ) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ)))
+        ≤ (1 - 4 * (1 + δ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+    -- First show `δterm ≤ constTerm`.
+    have hpow12_le : (1 + δ) ^ 12 ≤ (1.000675 : ℝ) ^ 12 := by
+      exact pow_le_pow_left₀ hbase_nonneg hbase_le 12
+    have hden_pos : 0 < (n : ℝ) ^ (3 / 2 : ℝ) := by
+      exact Real.rpow_pos_of_pos hn_pos _
+    have hstep1 :
+        4 * (1 + δ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
+          ≤ 4 * (1.000675 : ℝ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
+      have hnum_le : 4 * (1 + δ) ^ 12 ≤ 4 * (1.000675 : ℝ) ^ 12 := by
+        exact mul_le_mul_of_nonneg_left hpow12_le (by norm_num)
+      have hinv_nonneg : 0 ≤ (1 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+        exact le_of_lt (one_div_pos.mpr hden_pos)
+      simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using
+        (mul_le_mul_of_nonneg_right hnum_le hinv_nonneg)
+
+    have hinv_pow :
+        (1 / (n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (X₀ : ℝ)) * (1 / n) := by
+      simpa using (inv_n_pow_3_div_2_le_X₀ (n := n) hn)
+    have hconst_nonneg : 0 ≤ (4 * (1.000675 : ℝ) ^ 12) := by
+      have : 0 ≤ (1.000675 : ℝ) ^ 12 := pow_nonneg (by norm_num) 12
+      nlinarith
+    have hstep2 :
+        4 * (1.000675 : ℝ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
+          ≤ 4 * (1.000675 : ℝ) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ)) := by
+      -- rewrite `a/d` as `a*(1/d)` and use `hinv_pow`.
+      have : 4 * (1.000675 : ℝ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
+            = (4 * (1.000675 : ℝ) ^ 12) * (1 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+        simp [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
+      -- multiply `hinv_pow` by the nonnegative constant
+      have hmul := mul_le_mul_of_nonneg_left hinv_pow hconst_nonneg
+      -- clean up
+      simpa [this, mul_assoc, mul_left_comm, mul_comm] using hmul
+
+    have hδterm_le :
+        4 * (1 + δ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
+          ≤ 4 * (1.000675 : ℝ) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ)) := by
+      exact le_trans hstep1 hstep2
+
+    -- `δterm ≤ constTerm` implies `1 - constTerm ≤ 1 - δterm`.
+    have := sub_le_sub_left hδterm_le 1
+    simpa [sub_eq_add_neg, mul_assoc, mul_left_comm, mul_comm] using this
+
+  -- Nonnegativity of the middle factor and δ-ratio term, needed to multiply inequalities.
+  have hmid_nonneg : 0 ≤ (1 + (3 : ℝ) / (8 * (n : ℝ))) := by
+    have hden_pos : 0 < (8 * (n : ℝ)) := by nlinarith [hn_pos]
+    have hfrac_nonneg : 0 ≤ (3 : ℝ) / (8 * (n : ℝ)) := div_nonneg (by norm_num) (le_of_lt hden_pos)
+    exact add_nonneg (by norm_num) hfrac_nonneg
+  have hratioδ_nonneg :
+      0 ≤ (1 - 4 * (1 + δ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+    -- provided earlier
+    simpa [hδ] using (delta_ratio_term_nonneg (n := n) hn)
+
+  -- Prove the desired inequality as `RHS ≤ LHS` and finish.
+  have hRHS_le_LHS :
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((1.000675) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+        * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+        * (1 - 4 * (1.000675) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ)))
+        ≤
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+        * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+        * (1 - 4 * (1 + δ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+    -- Multiply the ratio inequality by the nonnegative `Prod_const * Mid`.
+    have hprod_const_nonneg :
+        0 ≤ (∏ i : Fin 3,
+            (1 + 1 /
+              ((1.000675) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ))) := by
+      simpa using
+        (Finset.prod_nonneg (s := (Finset.univ : Finset (Fin 3))) (by
+          intro i hi
+          simpa using (hterm_nonneg i)))
+    have hleft_nonneg :
+        0 ≤
+          (∏ i : Fin 3,
+              (1 + 1 /
+                ((1.000675) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+            * (1 + (3 : ℝ) / (8 * (n : ℝ))) := by
+      exact mul_nonneg hprod_const_nonneg hmid_nonneg
+    have h1 :
+        (∏ i : Fin 3,
+            (1 + 1 /
+              ((1.000675) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+          * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+          * (1 - 4 * (1.000675) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ)))
+          ≤
+        (∏ i : Fin 3,
+            (1 + 1 /
+              ((1.000675) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+          * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+          * (1 - 4 * (1 + δ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+      have := mul_le_mul_of_nonneg_left hratio_le hleft_nonneg
+      simpa [mul_assoc] using this
+
+    -- Multiply the product inequality by the nonnegative `Mid*Ratioδ`.
+    have hmr_nonneg :
+        0 ≤ (1 + (3 : ℝ) / (8 * (n : ℝ))) *
+            (1 - 4 * (1 + δ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+      exact mul_nonneg hmid_nonneg hratioδ_nonneg
+    have h2 :
+        (∏ i : Fin 3,
+            (1 + 1 /
+              ((1.000675) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+          * ((1 + (3 : ℝ) / (8 * (n : ℝ))) *
+            (1 - 4 * (1 + δ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)))
+          ≤
+        (∏ i : Fin 3,
+            (1 + 1 /
+              ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+          * ((1 + (3 : ℝ) / (8 * (n : ℝ))) *
+            (1 - 4 * (1 + δ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ))) := by
+      exact mul_le_mul_of_nonneg_right hprod_le hmr_nonneg
+
+    -- Reassociate to match the goal.
+    have : (∏ i : Fin 3,
+            (1 + 1 /
+              ((1.000675) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+          * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+          * (1 - 4 * (1 + δ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ))
+          ≤
+        (∏ i : Fin 3,
+            (1 + 1 /
+              ((1 + δ) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+          * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+          * (1 - 4 * (1 + δ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+      -- `h2` has `Prod * (Mid*Ratio)` form.
+      simpa [mul_assoc] using h2
+    exact le_trans h1 this
+
+  -- Replace `δ` back with `gap.δ(√n)` and close.
+  simpa [hδ] using hRHS_le_LHS
 
 
 theorem prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
