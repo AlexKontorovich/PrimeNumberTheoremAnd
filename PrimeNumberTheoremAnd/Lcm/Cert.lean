@@ -1146,7 +1146,38 @@ lemma delta_prod_mul_nonneg [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2)
 lemma delta_ratio_term_nonneg [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     0 ≤ 1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
   /- holds when 4 * (1 + gap.δ(√n)) ^ 12 ≤ n ^ (3 / 2) for n ≥ X₀ ^ 2 -/
-  sorry
+  -- From the criterion we have the basic comparison.
+  have h_main :
+      4 * (1 + gap.δ (√(n : ℝ))) ^ 12 ≤ (n : ℝ) ^ (3 / 2 : ℝ) := by
+    simpa using (PrimeGap_Criterion.delta_twelfth_power_le_n_pow_3_div_2 (n := n) hn)
+
+  -- The denominator is positive since `n ≥ X₀^2` and `X₀ > 1`.
+  have hX0_pos_nat : 0 < X₀ :=
+    lt_trans Nat.zero_lt_one (PrimeGap_Criterion.h_X₀)
+  have hX0_sq_pos_nat : 0 < X₀ ^ 2 := pow_pos hX0_pos_nat 2
+  have hn_pos_nat : 0 < n := lt_of_lt_of_le hX0_sq_pos_nat hn
+  have hn_pos : (0 : ℝ) < (n : ℝ) := by
+    exact_mod_cast hn_pos_nat
+  have hden_pos : 0 < (n : ℝ) ^ (3 / 2 : ℝ) :=
+    Real.rpow_pos_of_pos hn_pos _
+
+  -- Convert `h_main` into `4*(...)/n^(3/2) ≤ 1`.
+  have h_div_le_one :
+      4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) ≤ (1 : ℝ) := by
+    -- Multiply the inequality `h_main` by the nonnegative inverse of the denominator.
+    have h_inv_nonneg : 0 ≤ ((n : ℝ) ^ (3 / 2 : ℝ))⁻¹ :=
+      inv_nonneg.2 (le_of_lt hden_pos)
+    have hmul := mul_le_mul_of_nonneg_right h_main h_inv_nonneg
+    have hden_ne : (n : ℝ) ^ (3 / 2 : ℝ) ≠ 0 := ne_of_gt hden_pos
+    -- Simplify: `a * d⁻¹ = a / d` and `d * d⁻¹ = 1`.
+    have hmul' :
+        4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
+          ≤ (n : ℝ) ^ (3 / 2 : ℝ) * ((n : ℝ) ^ (3 / 2 : ℝ))⁻¹ := by
+      simpa [div_eq_mul_inv, mul_assoc] using hmul
+    simpa [hden_ne] using hmul'
+
+  -- Now rewrite the goal as `t ≤ 1`.
+  exact (sub_nonneg).2 h_div_le_one
 
 /- End of `h_crit` lemmas-/
 
