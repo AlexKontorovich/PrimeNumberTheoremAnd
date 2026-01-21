@@ -40,6 +40,7 @@ class PrimeGap_Criterion where
   h_X₀ : X₀ > 1
   gap_nonneg : ∀ x : ℝ, x ≥ X₀ → 0 ≤ gap.δ x
   gap_decreasing : ∀ x y : ℝ, X₀ ≤ x → X₀ ≤ y → x ≤ y → gap.δ y ≤ gap.δ x
+  gap_strict_decreasing: ∀ x y : ℝ, X₀ ≤ x → X₀ ≤ y → x < y → gap.δ y < gap.δ x
   delta_sixth_power_lt_sqrt : ∀ n : ℕ, n ≥ X₀ ^ 2 →
     (1 + gap.δ (√(n : ℝ))) ^ 6 < √(n : ℝ)
   delta_twelfth_power_le_n_pow_3_div_2 : ∀ n : ℕ, n ≥ X₀ ^ 2 →
@@ -938,6 +939,7 @@ lemma n_pos [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) : (0 : ℝ) < (
 
 
 
+-- set_option maxHeartbeats 800000 in
 lemma pq_ratio_rhs_as_fraction [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
       =
@@ -945,10 +947,12 @@ lemma pq_ratio_rhs_as_fraction [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^
         (√(n : ℝ)) * (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ))
       /
     (∏ i : Fin 3,
-        (n : ℝ) / (1 + gap.δ (√(n : ℝ))) ^ ((3 : ℕ) - (i : ℕ))) := by
+        (n : ℝ) / ((1 + gap.δ (√(n : ℝ))) ^ ((3 : ℕ) - (i : ℕ)))) := by
     /- This is structural
      This holds when gap.δ(x) ≥ 0 for x ≥ X₀, and X₀ > 0 -/
     sorry
+
+
 /- End of theorem `pq_ratio_ge` lemmas-/
 
 
@@ -1124,6 +1128,16 @@ lemma inv_n_add_sqrt_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2
   -/
   sorry
 
+-- theorem main_ineq_delta_form_lhs [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+--     (∏ i : Fin 3,
+--         (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
+--       ≤ (∏ i : Fin 3,
+--         (1 + (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ))) := by
+--       /- This holds when gap.δ(√n) ≤ 0.000675 for n ≥ X₀ ^ 2 -/
+--       /- *** Proof idea *** :
+--         by applying `delta_sqrt_le` to bound `gap.δ (√(n : ℝ))` by `0.000675` -/
+--       sorry
+
 theorem main_ineq_delta_form_lhs [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (∏ i : Fin 3,
         (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
@@ -1132,7 +1146,73 @@ theorem main_ineq_delta_form_lhs [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀
       /- This holds when gap.δ(√n) ≤ 0.000675 for n ≥ X₀ ^ 2 -/
       /- *** Proof idea *** :
         by applying `delta_sqrt_le` to bound `gap.δ (√(n : ℝ))` by `0.000675` -/
-      sorry
+  classical
+  have hδ_le : gap.δ (√(n : ℝ)) ≤ (0.000675 : ℝ) := delta_sqrt_le (n := n) hn
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := sqrt_ge_X₀ (n := n) hn
+  have hδ_nonneg : 0 ≤ gap.δ (√(n : ℝ)) :=
+    PrimeGap_Criterion.gap_nonneg (x := √(n : ℝ)) (by exact hX0_le_sqrt)
+  have hbase_le : (1 + gap.δ (√(n : ℝ))) ≤ (1.000675 : ℝ) := by
+    nlinarith [hδ_le]
+  have hbase_nonneg : 0 ≤ (1 + gap.δ (√(n : ℝ))) := by
+    nlinarith [hδ_nonneg]
+
+  -- Positivity of `n` (since `n ≥ X₀^2` and `X₀ > 1`).
+  have hX0_pos : 0 < X₀ := lt_trans Nat.zero_lt_one (PrimeGap_Criterion.h_X₀)
+  have hX0_sq_pos : 0 < X₀ ^ 2 := pow_pos hX0_pos 2
+  have hn_pos_nat : 0 < n := lt_of_lt_of_le hX0_sq_pos hn
+  have hn_pos : (0 : ℝ) < (n : ℝ) := by exact_mod_cast hn_pos_nat
+
+  -- Compare term-by-term, then use monotonicity of finite products.
+  have hterm_le :
+      ∀ i : Fin 3,
+        (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ))
+          ≤ 1 + (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ) := by
+    intro i
+    have hexp_pos : (0 : ℝ) < ((i : ℕ) + 1 : ℝ) := by
+      -- `i+1 ≥ 1` for `i : Fin 3`.
+      exact_mod_cast (Nat.succ_pos (i : ℕ))
+    have hexp_nonneg : (0 : ℝ) ≤ ((i : ℕ) + 1 : ℝ) := le_of_lt hexp_pos
+    have hrpow :
+        (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ)
+          ≤ (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) := by
+      -- monotonicity of `x ↦ x^t` for `t ≥ 0`
+      exact Real.rpow_le_rpow hbase_nonneg hbase_le hexp_nonneg
+    have hdiv :
+        (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)
+          ≤ (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ) := by
+      have h_inv_nonneg : 0 ≤ (1 / (n : ℝ)) := by
+        exact le_of_lt (one_div_pos.mpr hn_pos)
+      simpa [div_eq_mul_inv] using (mul_le_mul_of_nonneg_right hrpow h_inv_nonneg)
+    -- normalize `a + 1` vs `1 + a`
+    simpa [add_comm, add_left_comm, add_assoc] using (add_le_add_right hdiv 1)
+
+  have hterm_nonneg :
+      ∀ i : Fin 3,
+        0 ≤ (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)) := by
+    intro i
+    have hbase_pos : 0 < (1 + gap.δ (√(n : ℝ))) := by
+      have h_one_le : (1 : ℝ) ≤ 1 + gap.δ (√(n : ℝ)) :=
+        le_add_of_nonneg_right hδ_nonneg
+      exact lt_of_lt_of_le (by norm_num) h_one_le
+    have hexp_pos : 0 < ((i : ℕ) + 1 : ℝ) := by
+      exact_mod_cast (Nat.succ_pos (i : ℕ))
+    have hrpow_pos :
+        0 < (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) :=
+      Real.rpow_pos_of_pos hbase_pos _
+    have hdiv_nonneg :
+        0 ≤ (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ) := by
+      exact div_nonneg (le_of_lt hrpow_pos) (le_of_lt hn_pos)
+    exact add_nonneg (by norm_num) hdiv_nonneg
+
+  -- Convert the binder-style product to a `Finset.univ` product for `prod_le_prod`.
+  simpa using
+    (Finset.prod_le_prod (s := (Finset.univ : Finset (Fin 3)))
+      (by
+        intro i hi
+        simpa using (hterm_nonneg i))
+      (by
+        intro i hi
+        simpa using (hterm_le i)))
 
 theorem main_ineq_delta_form_rhs [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (∏ i : Fin 3,
@@ -1214,6 +1294,7 @@ instance : PrimeGap_Criterion := by
         intro x hx
         exact gap.δ_nonneg hx,
       gap_decreasing := ?_,
+      gap_strict_decreasing := ?_,
       delta_sixth_power_lt_sqrt := ?_,
       delta_twelfth_power_le_n_pow_3_div_2 := ?_,
       eps_log_bound := ?_,
