@@ -693,7 +693,7 @@ lemma inv_le_rpow_div_of_lower_bound [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ 
       _ = ((b n) ^ (-t))⁻¹ * (n : ℝ)⁻¹ := by
               simp [mul_inv_rev]
       _ = (b n) ^ t * (n : ℝ)⁻¹ := by
-            sorry  -- simp [Real.rpow_neg]
+            simp [Real.rpow_neg hb_pos.le]
       _ = (b n) ^ t / n := by
               simp [div_eq_mul_inv, mul_comm]
 
