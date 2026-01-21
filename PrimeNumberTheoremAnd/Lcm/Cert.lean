@@ -601,7 +601,95 @@ lemma y2_mul_one_add_delta_lt_n [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ 
   n / (1 + ε) ≥ √n for n ≥ X₀ ^ 2
     -- when n, ε ≥ 0, this holds automatically if `y0_mul_one_add_delta_le_y1` holds.
   -/
-  sorry
+  dsimp
+  set x : ℝ := Real.sqrt (n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+  set y2 : ℝ := (n : ℝ) / (1 + ε) with hy2
+
+  have hX0_le_x : (X₀ : ℝ) ≤ x := by
+    simpa [hx.symm] using (sqrt_ge_X₀ (n := n) hn)
+
+  have hε_nonneg : 0 ≤ ε := by
+    have : 0 ≤ gap.δ x :=
+      PrimeGap_Criterion.gap_nonneg x (by simpa using hX0_le_x)
+    simpa [hε] using this
+
+  have h_one_le : (1 : ℝ) ≤ 1 + ε :=
+    le_add_of_nonneg_right hε_nonneg
+  have h_one_add_pos : 0 < 1 + ε :=
+    lt_of_lt_of_le (by norm_num) h_one_le
+
+  -- Positivity of `n` (hence `x = √n > 0`) from `n ≥ X₀^2` and `X₀ > 1`.
+  have hX0_pos : 0 < X₀ := lt_trans Nat.zero_lt_one (PrimeGap_Criterion.h_X₀)
+  have hX0_sq_pos : 0 < X₀ ^ 2 := pow_pos hX0_pos 2
+  have hn_pos_nat : 0 < n := lt_of_lt_of_le hX0_sq_pos hn
+  have hn_pos : (0 : ℝ) < (n : ℝ) := by
+    exact_mod_cast hn_pos_nat
+
+  have hx_pos : 0 < x := by
+    simpa [hx] using (Real.sqrt_pos.2 hn_pos)
+
+  -- From the criterion: `(1+ε)^6 < x`.
+  have h6 : (1 + ε) ^ 6 < x := by
+    simpa [hx, hε] using
+      (PrimeGap_Criterion.delta_sixth_power_lt_sqrt (n := n) hn)
+
+  -- Since `1 ≤ 1+ε`, we have `1+ε ≤ (1+ε)^6`.
+  have hone_add_le_pow6 : 1 + ε ≤ (1 + ε) ^ 6 := by
+    have : (1 + ε) ^ (1 : ℕ) ≤ (1 + ε) ^ 6 :=
+      pow_le_pow_right₀ h_one_le (by decide)
+    simpa [pow_one] using this
+
+  have hone_add_lt_x : 1 + ε < x :=
+    lt_of_le_of_lt hone_add_le_pow6 h6
+
+  -- Convert `hone_add_lt_x` into the strict inequality `x < y2`.
+  have hx_sq : x * x = (n : ℝ) := by
+    have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast (Nat.zero_le n)
+    simp [hx, hn0]
+
+  have hx_mul_lt : x * (1 + ε) < (n : ℝ) := by
+    have hx_mul_lt_xsq : x * (1 + ε) < x * x :=
+      (mul_lt_mul_of_pos_left hone_add_lt_x hx_pos)
+    simpa [hx_sq] using hx_mul_lt_xsq
+
+  have hx_lt_y2 : x < y2 := by
+    have : x < (n : ℝ) / (1 + ε) :=
+      (lt_div_iff₀ h_one_add_pos).2 hx_mul_lt
+    simpa [hy2] using this
+
+  have hX0_le_y2 : (X₀ : ℝ) ≤ y2 := by
+    simpa [hx, hε, hy2] using (y2_ge_X₀ (n := n) hn)
+
+  -- Strict decreasing gives `δ(y2) < δ(x) = ε`.
+  have hδy2_lt_ε : gap.δ y2 < ε := by
+    have hδy2_lt_δx : gap.δ y2 < gap.δ x :=
+      PrimeGap_Criterion.gap_strict_decreasing x y2 hX0_le_x hX0_le_y2 hx_lt_y2
+    simpa [hε] using hδy2_lt_δx
+
+  have hone_add_lt : 1 + gap.δ y2 < 1 + ε := by
+    simpa using (add_lt_add_left hδy2_lt_ε 1)
+
+  have hy2_pos : 0 < y2 := by
+    have : 0 < (n : ℝ) / (1 + ε) := div_pos hn_pos h_one_add_pos
+    simpa [hy2] using this
+
+  have hmul : y2 * (1 + gap.δ y2) < y2 * (1 + ε) :=
+    mul_lt_mul_of_pos_left hone_add_lt hy2_pos
+
+  have hy2_mul : y2 * (1 + ε) = (n : ℝ) := by
+    have hne : (1 + ε) ≠ 0 := ne_of_gt h_one_add_pos
+    calc
+      y2 * (1 + ε) = ((n : ℝ) / (1 + ε)) * (1 + ε) := by
+        simp [hy2]
+      _ = (n : ℝ) := by
+        field_simp [hne]
+
+  calc
+    y2 * (1 + gap.δ y2) < y2 * (1 + ε) := hmul
+    _ = (n : ℝ) := hy2_mul
+
 
 
 /- End of theorem `exists_q_primes` lemmas-/
