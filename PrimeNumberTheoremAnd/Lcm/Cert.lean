@@ -1081,7 +1081,67 @@ lemma delta_prod_mul_nonneg [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2)
               * ((n : ℝ) + √(n : ℝ)) )))
         * (1 + (3 : ℝ) / (8 * (n : ℝ))) := by
   /- holds when gap.δ(x) > 0 for x ≥ X₀ and X₀ > 0 -/
-  sorry
+  classical
+
+  -- Positivity of `n` (from `hn : n ≥ X₀^2` and `X₀ > 1`).
+  have hX0_pos_nat : 0 < X₀ :=
+    lt_trans Nat.zero_lt_one (PrimeGap_Criterion.h_X₀)
+  have hX0_sq_pos_nat : 0 < X₀ ^ 2 := pow_pos hX0_pos_nat 2
+  have hn_pos_nat : 0 < n := lt_of_lt_of_le hX0_sq_pos_nat hn
+  have hn_pos : (0 : ℝ) < (n : ℝ) := by
+    exact_mod_cast hn_pos_nat
+
+  have hsqrt_nonneg : 0 ≤ √(n : ℝ) := Real.sqrt_nonneg (n : ℝ)
+  have hsum_pos : 0 < (n : ℝ) + √(n : ℝ) :=
+    add_pos_of_pos_of_nonneg hn_pos hsqrt_nonneg
+
+  -- Nonnegativity of `δ(√n)` and hence positivity of `1 + δ(√n)`.
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := sqrt_ge_X₀ (n := n) hn
+  have hδ_nonneg : 0 ≤ gap.δ (√(n : ℝ)) :=
+    PrimeGap_Criterion.gap_nonneg (x := √(n : ℝ)) (by simpa using hX0_le_sqrt)
+  have hb_pos : 0 < (1 + gap.δ (√(n : ℝ))) := by
+    -- `1 > 0` and `δ(√n) ≥ 0`.
+    exact add_pos_of_pos_of_nonneg (by norm_num : (0 : ℝ) < (1 : ℝ)) hδ_nonneg
+
+  -- Define the three multiplicative factors to make the `Fin 3` product readable.
+  let f : Fin 3 → ℝ := fun i =>
+    (1 + 1 /
+      ((1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ))))
+
+  have hf_nonneg : ∀ i : Fin 3, 0 ≤ f i := by
+    intro i
+    have hpow_pos : 0 < (1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) :=
+      Real.rpow_pos_of_pos hb_pos _
+    have hden_pos : 0 <
+        (1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)) :=
+      mul_pos hpow_pos hsum_pos
+    have hdiv_nonneg :
+        0 ≤ (1 : ℝ) /
+          ((1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ))) := by
+      -- A reciprocal of a positive number is nonnegative.
+      exact one_div_nonneg.2 (le_of_lt hden_pos)
+    -- `1 + (nonneg)` is nonnegative.
+    exact add_nonneg (by norm_num : (0 : ℝ) ≤ (1 : ℝ)) hdiv_nonneg
+
+  have hprod_nonneg : 0 ≤ ∏ i : Fin 3, f i := by
+    -- Expand the `Fin 3` product into three factors.
+    have h01 : 0 ≤ f (0 : Fin 3) * f (1 : Fin 3) :=
+      mul_nonneg (hf_nonneg 0) (hf_nonneg 1)
+    have h012 : 0 ≤ (f (0 : Fin 3) * f (1 : Fin 3)) * f (2 : Fin 3) :=
+      mul_nonneg h01 (hf_nonneg 2)
+    simpa [Fin.prod_univ_three, f, mul_assoc] using h012
+
+  have hlast_nonneg : 0 ≤ 1 + (3 : ℝ) / (8 * (n : ℝ)) := by
+    have hden_pos : 0 < (8 : ℝ) * (n : ℝ) := mul_pos (by norm_num) hn_pos
+    have hdiv_nonneg : 0 ≤ (3 : ℝ) / ((8 : ℝ) * (n : ℝ)) :=
+      div_nonneg (by norm_num) (le_of_lt hden_pos)
+    exact add_nonneg (by norm_num : (0 : ℝ) ≤ (1 : ℝ)) hdiv_nonneg
+
+  -- Combine the two nonneg factors.
+  have : 0 ≤ (∏ i : Fin 3, f i) * (1 + (3 : ℝ) / (8 * (n : ℝ))) :=
+    mul_nonneg hprod_nonneg hlast_nonneg
+  -- Unfold `f` to match the statement.
+  simpa [f] using this
 
 lemma delta_ratio_term_nonneg [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     0 ≤ 1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
