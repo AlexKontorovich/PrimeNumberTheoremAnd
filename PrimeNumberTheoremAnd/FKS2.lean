@@ -23,9 +23,9 @@ namespace FKS2
   (latexEnv := "remark")
   (discussion := 608)]
 theorem sec_1_1_remark
-    (h02 : IntervalIntegrable (fun t => 1 / Real.log t) MeasureTheory.volume 0 2)
+    (h02 : IntervalIntegrable (fun t ↦ 1 / log t) MeasureTheory.volume 0 2)
     (x : ℝ)
-    (h2x : IntervalIntegrable (fun t => 1 / Real.log t) MeasureTheory.volume 2 x) :
+    (h2x : IntervalIntegrable (fun t ↦ 1 / log t) MeasureTheory.volume 2 x) :
     li x - Li x = li 2 := by
   unfold li Li
   rw [← intervalIntegral.integral_add_adjacent_intervals h02 h2x]
@@ -56,7 +56,7 @@ theorem eq_17 {x₀ x : ℝ} (hx₀ : 2 ≤ x₀) (hx : x₀ < x) :
   have px : 2 ≤ x := by linarith
   have l0 {x} (hx : 2 ≤ x) : ContinuousOn (fun t ↦ (t * log t ^ 2)⁻¹) (Set.uIcc 2 x) := by
     refine ContinuousOn.inv₀ (continuousOn_id.mul (ContinuousOn.pow (ContinuousOn.log
-      continuousOn_id fun y hy => ?_) 2)) fun y hy => ?_
+      continuousOn_id fun y hy ↦ ?_) 2)) fun y hy ↦ ?_
     repeat simp_all; grind
   have l1 {x} (hx : 2 ≤ x) : IntervalIntegrable (fun t ↦ θ t / (t * log t ^ 2)) volume 2 x := by
     simpa [div_eq_mul_inv] using IntervalIntegrable.mul_continuousOn
@@ -66,14 +66,14 @@ theorem eq_17 {x₀ x : ℝ} (hx₀ : 2 ≤ x₀) (hx : x₀ < x) :
       intervalIntegral.intervalIntegrable_id (l0 hx)
   have hL {x} (hx : 2 ≤ x) : Li x = x / log x - 2 / log 2 + ∫ t in 2..x, 1 / (log t ^ 2) := by
     have hnt {t} (ht : t ∈ Set.uIcc 2 x) : t ≠ 0 := by simp_all; linarith
-    rw [Li, funext fun t => (mul_one (1 / log t)).symm,
-    intervalIntegral.integral_mul_deriv_eq_deriv_mul (u := fun t => 1 / log t)
-    (u' := fun t => -(1 / t) / log t ^ 2) _ (fun t _ => hasDerivAt_id' t) _
+    rw [Li, funext fun t ↦ (mul_one (1 / log t)).symm,
+    intervalIntegral.integral_mul_deriv_eq_deriv_mul (u := fun t ↦ 1 / log t)
+    (u' := fun t ↦ -(1 / t) / log t ^ 2) _ (fun t _ ↦ hasDerivAt_id' t) _
     intervalIntegrable_const]
     · suffices ∫ (x : ℝ) in 2..x, - (1 / x) / log x ^ 2 * x
         = ∫ (x : ℝ) in 2..x, - (1 / (log x ^ 2)) from by
         rw [this, intervalIntegral.integral_neg]; ring
-      refine intervalIntegral.integral_congr fun t ht => ?_
+      refine intervalIntegral.integral_congr fun t ht ↦ ?_
       ring_nf
       rw [mul_inv_cancel₀ (hnt ht), one_mul]
     · intro t ht
@@ -83,7 +83,7 @@ theorem eq_17 {x₀ x : ℝ} (hx₀ : 2 ≤ x₀) (hx : x₀ < x) :
   have he {x} (hx : 2 ≤ x) : pi x - Li x = (θ x - x) / log x + 2 / log 2
     + ∫ t in 2..x, (θ t - t) / (t * log t ^ 2) := by
     simp only [RS_prime.eq_417 hx, hL hx, sub_div, intervalIntegral.integral_sub (l1 hx) (l2 hx)]
-    rw [intervalIntegral.integral_congr fun t ht => div_mul_cancel_left₀ _ ((log t) ^ 2)]
+    rw [intervalIntegral.integral_congr fun t ht ↦ div_mul_cancel_left₀ _ ((log t) ^ 2)]
     · ring_nf
     · simp_all; grind
   calc
@@ -106,10 +106,10 @@ $$ \frac{d}{dx} g(a, b, c, x) = \left( -a \log(x) + b + \frac{c}{2}\sqrt{\log(x)
 theorem lemma_10_substep {a b c x : ℝ} (hx : x > 1) :
   deriv (g_bound a b c) x =
     (-a * log x + b + (c / 2) * sqrt (log x)) * x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x)) := by
-      have h_prod_rule : deriv (fun x => x ^ (-a) * (log x) ^ b * exp (c * sqrt (log x))) x =
-        (deriv (fun x => x ^ (-a)) x) * (log x) ^ b * exp (c * sqrt (log x)) +
-        x ^ (-a) * (deriv (fun x => (log x) ^ b) x) * exp (c * sqrt (log x)) +
-        x ^ (-a) * (log x) ^ b * (deriv (fun x => exp (c * sqrt (log x))) x) := by
+      have h_prod_rule : deriv (fun x ↦ x ^ (-a) * (log x) ^ b * exp (c * sqrt (log x))) x =
+        (deriv (fun x ↦ x ^ (-a)) x) * (log x) ^ b * exp (c * sqrt (log x)) +
+        x ^ (-a) * (deriv (fun x ↦ (log x) ^ b) x) * exp (c * sqrt (log x)) +
+        x ^ (-a) * (log x) ^ b * (deriv (fun x ↦ exp (c * sqrt (log x))) x) := by
           norm_num [ DifferentiableAt.mul, DifferentiableAt.rpow, DifferentiableAt.sqrt, show x ≠ 0 by linarith, show log x ≠ 0 by exact ne_of_gt <| log_pos hx ] ; ring
       unfold g_bound
       rw [h_prod_rule]
@@ -132,7 +132,7 @@ theorem lemma_10_substep_2 {a b c x : ℝ} (hx : x > 1) :
   rw [lemma_10_substep hx, sq_sqrt hlogx.le]
   have hpos : 0 < x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x)) := by positivity
   rw [show ∀ y, y * x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x)) =
-      y * (x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x))) from fun _ => by ring]
+      y * (x ^ (-a - 1) * (log x) ^ (b - 1) * exp (c * sqrt (log x))) from fun _ ↦ by ring]
   rw [mul_neg_iff]
   constructor <;> intro h
   · rcases h with ⟨-, hc⟩ | ⟨h, -⟩ <;> linarith
@@ -171,9 +171,30 @@ theorem lemma_10a {a b c : ℝ} (ha : a > 0) (hb : b < -c ^ 2 / (16 * a)) :
   (latexEnv := "lemma")
   (discussion := 613)]
 theorem lemma_10b {a b c : ℝ} (ha : a > 0) (hc : c > 0) (hb : b ≥ -c ^ 2 / (16 * a)) :
-    StrictAntiOn (g_bound a b c)
-      (Set.Ioi (exp ((c / (4 * a) + (1 / (2 * a)) * sqrt (c ^ 2 / 4 + 4 * a * b)) ^ 2))) :=
-  sorry
+    StrictAntiOn (g_bound a b c) (Set.Ioi (exp ((c / (4 * a) + (1 / (2 * a)) * sqrt (c ^ 2 / 4 + 4 * a * b)) ^ 2))) := by
+  have h_deriv_neg : ∀ x > exp ((c / (4 * a) + 1 / (2 * a) * sqrt (c ^ 2 / 4 + 4 * a * b)) ^ 2),
+      deriv (g_bound a b c) x < 0 := by
+    intro x hx
+    have h_sqrt : sqrt (log x) > c / (4 * a) + 1 / (2 * a) * sqrt (c ^ 2 / 4 + 4 * a * b) :=
+      lt_sqrt_of_sq_lt (by simpa using log_lt_log (by positivity) hx)
+    have h_quadratic : -a * (sqrt (log x)) ^ 2 + (c / 2) * sqrt (log x) + b < 0 := by
+      field_simp at *
+      nlinarith [sqrt_nonneg ((c ^ 2 + a * b * 4 ^ 2) / 4),
+        mul_self_sqrt (show 0 ≤ (c ^ 2 + a * b * 4 ^ 2) / 4 by nlinarith), sqrt_nonneg (log x),
+        mul_self_sqrt (show 0 ≤ log x by
+          exact le_of_not_gt fun h ↦ by
+            rw [sqrt_eq_zero'.mpr h.le] at *; nlinarith [sqrt_nonneg ((c ^ 2 + a * b * 4 ^ 2) / 4),
+              mul_self_sqrt (show 0 ≤ (c ^ 2 + a * b * 4 ^ 2) / 4 by nlinarith)])]
+    convert (lemma_10_substep_2 (show x > 1 from lt_trans (by norm_num; positivity) hx)).2 h_quadratic using 1
+  intro x hx y hy hxy
+  obtain ⟨z, hz⟩ : ∃ z ∈ Set.Ioo x y, deriv (g_bound a b c) z = (g_bound a b c y - g_bound a b c x) / (y - x) := by
+    apply_rules [exists_deriv_eq_slope]
+    · exact continuousOn_of_forall_continuousAt fun z hz ↦ DifferentiableAt.continuousAt
+        (differentiableAt_of_deriv_ne_zero (ne_of_lt (h_deriv_neg z (lt_of_lt_of_le hx hz.1))))
+    · exact fun u hu ↦ DifferentiableAt.differentiableWithinAt
+        (differentiableAt_of_deriv_ne_zero (ne_of_lt (h_deriv_neg u (lt_trans hx hu.1))))
+  have := h_deriv_neg z <| hx.out.trans hz.1.1
+  rw [hz.2, div_lt_iff₀] at this <;> linarith
 
 @[blueprint
   "fks2-lemma-10c"
