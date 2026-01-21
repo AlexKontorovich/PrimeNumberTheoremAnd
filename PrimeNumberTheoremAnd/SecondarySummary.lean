@@ -133,10 +133,7 @@ blueprint_comment /-- TODO: input other results from JY -/
   -/)
   (latexEnv := "theorem")]
 theorem Schoenfeld1976.has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
-    HasPrimeInInterval (x*(1-1/15697)) x := by
-  obtain ⟨p, hp, hpn, hp2n⟩ := exists_prime_lt_and_le_two_mul ⌊x * 15696 / 15697⌋₊ (floor_pos.mpr <| by grind).ne'
-  exact ⟨p, hp, by grind [lt_of_floor_lt hpn], by grind [floor_le (show 0 ≤ x * 15696 / 15697 by positivity),
-    show (p : ℝ) ≤ 2 * ⌊x * 15696 / 15697⌋₊ from mod_cast hp2n]⟩
+    HasPrimeInInterval (x*(1-1/15697)) (x/15697) := by sorry
 
 @[blueprint
   "thm:ramare-saouter2003"
@@ -146,14 +143,7 @@ theorem Schoenfeld1976.has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
   -/)
   (latexEnv := "theorem")]
 theorem RamareSaouter2003.has_prime_in_interval (x : ℝ) (hx : x > 10726905041) :
-    HasPrimeInInterval (x*(1-1/28314000)) x := by
-  field_simp
-  have := exists_prime_lt_and_le_two_mul (⌊x * (28314000 - 1) / 28314000⌋₊) ?_
-      <;> norm_num at *
-  · obtain ⟨p, hp₁, hp₂, hp₃⟩ := this
-    exact ⟨p, hp₁, lt_of_floor_lt hp₂, by grind [floor_le (by positivity : 0 ≤ x * 28313999 / 28314000),
-      (by exact_mod_cast hp₃ : (p : ℝ) ≤ 2 * ⌊x * 28313999 / 28314000⌋₊)]⟩
-  · grind
+    HasPrimeInInterval (x*(1-1/28314000)) (x/28314000) := by sorry
 
 @[blueprint
   "thm:ramare_saouter2003-2"
@@ -163,20 +153,7 @@ theorem RamareSaouter2003.has_prime_in_interval (x : ℝ) (hx : x > 10726905041)
   -/)
   (latexEnv := "theorem")]
 theorem RamareSaouter2003.has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
-    HasPrimeInInterval (x*(1-1/204879661)) x := by
-  have h_x_gt_204879661 : x > 204879661 := calc
-    (204879661 : ℝ) ≤ 2.7182818283 ^ 53 := by norm_num
-    _ ≤ (exp 1) ^ 53 := pow_le_pow_left₀ (by positivity) exp_one_gt_d9.le _
-    _ = exp 53 := by rw [← exp_nat_mul]; norm_num
-    _ < x := hx
-  have := exists_prime_lt_and_le_two_mul (⌊x * (204879661 - 1) / 204879661⌋₊) ?_
-    <;> norm_num at *
-  · obtain ⟨p, hp₁, hp₂, hp₃⟩ := this
-    exact ⟨p, hp₁, by grind [lt_floor_add_one (x * 204879660 / 204879661),
-        (by norm_cast : (⌊x * 204879660 / 204879661⌋₊ : ℝ) + 1 ≤ p)],
-      by grind [floor_le (show 0 ≤ x * 204879660 / 204879661 by positivity),
-      (by norm_cast : (p : ℝ) ≤ 2 * ⌊x * 204879660 / 204879661⌋₊)]⟩
-  · grind [add_one_le_exp 53]
+    HasPrimeInInterval (x*(1-1/204879661)) (x/204879661) := by sorry
 
 @[blueprint
   "thm:gourdon-demichel2004"
@@ -186,16 +163,7 @@ theorem RamareSaouter2003.has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
   -/)
   (latexEnv := "theorem")]
 theorem GourdonDemichel2004.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
-    HasPrimeInInterval (x*(1-1/14500755538)) x := by
-  have hn : ⌊x * 14500755537 / 14500755538⌋₊ ≠ 0 := by
-    rw [ne_eq, floor_eq_zero, not_lt]
-    linarith [add_one_le_exp 60]
-  obtain ⟨p, hp_prime, hp_lb, hp_ub⟩ := exists_prime_lt_and_le_two_mul _ hn
-  refine ⟨p, hp_prime, ?_, ?_⟩
-  · linarith [lt_of_floor_lt hp_lb]
-  · have h1 : 0 ≤ x * 14500755537 / 14500755538 := by linarith [exp_pos 60]
-    have h2 : (p : ℝ) ≤ 2 * ⌊x * 14500755537 / 14500755538⌋₊ := by exact_mod_cast hp_ub
-    linarith [floor_le h1, h2]
+    HasPrimeInInterval (x*(1-1/14500755538)) (x/14500755538) := by sorry
 
 theorem theta_pos_implies_prime_in_interval {x y : ℝ} (_hxy : y < x) (h : θ x - θ y > 0) :
     HasPrimeInInterval y (x - y) := by
@@ -218,27 +186,7 @@ theorem theta_pos_implies_prime_in_interval {x y : ℝ} (_hxy : y < x) (h : θ x
   -/)
   (latexEnv := "theorem")]
 theorem PrimeGaps2014.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
-    HasPrimeInInterval (x*(1-1/1966196911)) x := by
-  have h_theta_pos : θ x - θ (x * (1 - 1 / 1966196911)) > 0 := by
-    have h_gap_pos : x * (1 - 1.2312e-11) - (x * (1 - 1 / 1966196911)) * (1 + 1.2215e-11) > 0 := by
-      nlinarith [add_one_le_exp 60]
-    have h_theta_bounds :
-        x * (1 - 1.2312e-11) ≤ θ x ∧ θ (x * (1 - 1 / 1966196911)) ≤
-        (x * (1 - 1 / 1966196911)) * (1 + 1.2215e-11) := by
-      constructor
-      · have := BKLNW.thm_1a_table
-          (show (60, 1.2215e-11, 1.2312e-11) ∈ BKLNW.Table_14 by norm_num [BKLNW.Table_14])
-          (show x ≥ 60 by linarith [add_one_le_exp 60])
-        norm_num at *; grind
-      · have := BKLNW.thm_1a_table
-          (show (60, 1.2215e-11, 1.2312e-11) ∈ BKLNW.Table_14 by norm_num [BKLNW.Table_14])
-          (show x * (1 - 1 / 1966196911) ≥ 60 by nlinarith [add_one_le_exp 60])
-        norm_num at *; grind
-    grind
-  have := theta_pos_implies_prime_in_interval
-    (show x * (1 - 1 / 1966196911) < x from mul_lt_of_lt_one_right (by linarith [exp_pos 60])
-      (by norm_num)) h_theta_pos
-  exact this.imp fun p hp ↦ ⟨hp.1, hp.2.1, by grind⟩
+    HasPrimeInInterval (x*(1-1/1966196911)) (x/1966196911) := by sorry
 
 @[blueprint
   "thm:prime_gaps_2024"
@@ -248,13 +196,7 @@ theorem PrimeGaps2014.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
   -/)
   (latexEnv := "theorem")]
 theorem PrimeGaps2024.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
-    HasPrimeInInterval (x*(1-1/76900000000)) x := by
-  have := exists_prime_lt_and_le_two_mul (⌊x * 76899999999 / 76900000000⌋₊) ?_ <;> norm_num at *
-  · obtain ⟨p, hp₁, hp₂, hp₃⟩ := this
-    exact ⟨p, hp₁, lt_of_floor_lt hp₂ |> lt_of_le_of_lt (by grind), (cast_le.mpr hp₃).trans (by
-        have hx' : 0 < x := lt_trans (by positivity) hx
-        grind [floor_le (by positivity : 0 ≤ x * 76899999999 / 76900000000), add_one_le_exp 60])⟩
-  · grind [add_one_le_exp 60]
+    HasPrimeInInterval (x*(1-1/76900000000)) (x/76900000000) := by sorry
 
 @[blueprint
   "thm:trudgian2016"
@@ -283,7 +225,7 @@ theorem Dudek2014.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
   (statement := /-- If $x > \exp(\exp(33.99))$, then there is a prime in the interval
   \[ \left( x, x + 3x^{2/3} \right]. \]
   -/)
-  (latexEnv := "theorem") ]
+  (latexEnv := "theorem")]
 theorem CullyHugill2021.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99)) :
     HasPrimeInInterval x (3 * x ^ (2 / 3)) := by sorry
 
@@ -294,8 +236,8 @@ theorem CullyHugill2021.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99
   \[ \left( x - \frac{8}{5}\sqrt{x}, x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH: RiemannHypothesis) :
-    HasPrimeInInterval (x - (8 / 5) * sqrt x) x := by sorry
+theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
+    HasPrimeInInterval (x - (8 / 5) * sqrt x) ((8 / 5) * sqrt x) := by sorry
 
 @[blueprint
   "thm:dudek2015_rh"
@@ -305,7 +247,7 @@ theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH: 
   -/)
   (latexEnv := "theorem")]
 theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
-    HasPrimeInInterval (x - (4 / π) * sqrt x) x := by sorry
+    HasPrimeInInterval (x - (4 / π) * sqrt x) ((4 / π) * sqrt x) := by sorry
 
 @[blueprint
   "thm:carneiroetal_2019_rh"
@@ -315,4 +257,4 @@ theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : Riemann
   -/)
   (latexEnv := "theorem")]
 theorem CarneiroEtAl2019RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
-    HasPrimeInInterval (x - (22 / 25) * sqrt x * log x) x := by sorry
+    HasPrimeInInterval (x - (22 / 25) * sqrt x * log x) ((22 / 25) * sqrt x * log x) := by sorry
