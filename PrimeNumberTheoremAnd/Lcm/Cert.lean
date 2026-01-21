@@ -775,7 +775,9 @@ lemma p_mul_padd1_le_bound [PrimeGap_Criterion]
               simpa only using (Real.sq_sqrt hn0)
             simp [hsqrt_sq, pow_two]
       _ = (n : ℝ) * B ^ ((i + 1 : ℝ) + (i + 1 : ℝ)) := by
-        sorry -- simpa using (Real.rpow_add hB_pos (i + 1 : ℝ) (i + 1 : ℝ)).symm
+        simpa using
+          (congrArg (fun t => (n : ℝ) * t)
+            (Real.rpow_add hB_pos (i + 1 : ℝ) (i + 1 : ℝ)).symm)
       _ = (n : ℝ) * B ^ (2 * (i : ℕ) + 2 : ℝ) := by
             have : ((i + 1 : ℝ) + (i + 1 : ℝ)) = (2 * (i : ℕ) + 2 : ℝ) := by
               nlinarith
