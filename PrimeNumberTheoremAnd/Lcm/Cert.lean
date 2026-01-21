@@ -752,7 +752,7 @@ lemma prod_q_rhs_reindex [PrimeGap_Criterion] (n : ℕ) :
   have h31' : (3 : ℝ) - 1 = (2 : ℝ) := by norm_num
   have h32' : (3 : ℝ) - 2 = (1 : ℝ) := by norm_num
   -- After expansion, this is just commutativity: the RHS lists the same three factors in reverse.
-  simp [Fin.prod_univ_three, h01, h11, h21, h30, h31, h32, h12, h23, h31', h32']
+  simp [Fin.prod_univ_three, h12, h23, h31', h32']
   ac_rfl
 
 
