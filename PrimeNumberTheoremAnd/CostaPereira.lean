@@ -109,7 +109,50 @@ theorem sublemma_1_4 {x : ℝ} (hx : 0 < x) :
   (latexEnv := "sublemma")
   (discussion := 680)]
 theorem sublemma_1_5 {x : ℝ} (hx : 0 < x) :
-    ψ (x ^ (1 / 3 : ℝ)) = ∑' (k : ℕ), θ (x ^ (1 / (6 * (k : ℝ) - 3))) + ∑' (k : ℕ), θ (x ^ (1 / (6 * (k : ℝ)))) := by sorry
+    ψ (x ^ (1 / 3 : ℝ)) =
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * ((Nat.succ k : ℕ) : ℝ) - 3))) +
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * ((Nat.succ k : ℕ) : ℝ)))) := by
+      rw [sublemma_1_2 hx (3 : ℝ)]
+      have eventually_theta_eq_zero {x : ℝ} (hx : 0 < x) : ∀ᶠ k : ℕ in Filter.atTop, θ (x ^ (1 / (3 * (2 * k : ℝ)))) = 0 := by
+        have h_lim : Filter.Tendsto (fun k : ℕ => x ^ (1 / (6 * k) : ℝ)) Filter.atTop (nhds 1) := by
+          simpa using tendsto_const_nhds.rpow ( tendsto_inv_atTop_nhds_zero_nat.comp ( Filter.tendsto_id.nsmul_atTop ( by norm_num ) ) ) ( by aesop );
+        filter_upwards [ h_lim.eventually ( gt_mem_nhds one_lt_two ) ] with k hk using theta_eq_zero_of_lt_two <| by ring_nf at *; linarith;
+      have theta_one_equals_zero : θ 1 = 0 := by
+        unfold Chebyshev.theta; norm_num [ Finset.sum_filter, Finset.sum_range_succ ]
+      have summable_of_eventually_zero {f : ℕ → ℝ} (hf : ∀ᶠ n in Filter.atTop, f n = 0) : Summable f := by
+        rw [ Filter.eventually_atTop ] at hf; obtain ⟨ N, hN ⟩ := hf; exact summable_nat_add_iff N |>.1 <| by exact ⟨ _, hasSum_single 0 <| by aesop ⟩ ;
+      have summable_even {x : ℝ} {hx : 0 < x} :
+        Summable (fun k : ℕ ↦ θ (x ^ (1 / (3 * (2 * k : ℝ))))) := by
+        convert summable_of_eventually_zero ( eventually_theta_eq_zero hx ) using 1
+      have summable_test_odd {x : ℝ} (hx : 0 < x) :
+        Summable (fun k : ℕ ↦ θ (x ^ (1 / (3 * (↑(2 * k + 1) : ℝ))))) := by
+          have h_theta_zero : ∀ᶠ k : ℕ in Filter.atTop, θ (x ^ (1 / (3 * (↑(2 * k + 1) : ℝ)))) = 0 := by
+            obtain ⟨N, hN⟩ : ∃ N : ℕ, ∀ k ≥ N, x ^ (1 / (3 * (2 * k + 1) : ℝ)) < 2 := by
+              have h_lim : Filter.Tendsto (fun k : ℕ => x ^ (1 / (3 * (2 * k + 1) : ℝ))) Filter.atTop (nhds 1) := by
+                simpa using tendsto_const_nhds.rpow ( tendsto_inv_atTop_zero.comp <| Filter.Tendsto.const_mul_atTop ( by positivity ) <| Filter.tendsto_atTop_mono ( fun k => by linarith ) tendsto_natCast_atTop_atTop ) ( by aesop );
+              simpa using h_lim.eventually ( gt_mem_nhds <| by norm_num );
+            filter_upwards [ Filter.eventually_ge_atTop N ] with k hk using theta_eq_zero_of_lt_two <| by simpa using hN k hk;
+          apply summable_of_eventually_zero; exact h_theta_zero
+      rw [← tsum_even_add_odd
+        (by simpa using summable_even (x := x) (hx := hx))
+        (by simpa using summable_test_odd (x := x) (hx := hx))]
+      rw [add_comm]
+      congr 1
+      · apply tsum_congr
+        intro k
+        congr 1
+        congr 1
+        push_cast
+        ring
+      · rw [Summable.tsum_eq_zero_add (by simpa using summable_even (x := x) (hx := hx))]
+        simp only [mul_zero, Nat.cast_zero, div_zero, Real.rpow_zero]
+        rw [show θ 1 = 0 from theta_one_equals_zero, zero_add]
+        apply tsum_congr
+        intro k
+        congr 1
+        congr 1
+        push_cast
+        ring
 
 @[blueprint
   "costa-pereira-sublemma-1-6"
