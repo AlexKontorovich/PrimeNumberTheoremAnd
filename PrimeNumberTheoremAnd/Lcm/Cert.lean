@@ -802,7 +802,12 @@ assuming n ≥ X₀ ^ 2 throughout
 lemma one_add_delta_pos [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     0 < (1 + gap.δ (√(n : ℝ))) := by
   /- This holds when δ(x) ≥ 0 for x ≥ X₀ and X₀ > 0-/
-  sorry
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := sqrt_ge_X₀ (n := n) hn
+  have hδ_nonneg : 0 ≤ gap.δ (√(n : ℝ)) :=
+    PrimeGap_Criterion.gap_nonneg (x := √(n : ℝ)) (by exact hX0_le_sqrt)
+  have h_one_le : (1 : ℝ) ≤ 1 + gap.δ (√(n : ℝ)) := by
+    exact le_add_of_nonneg_right hδ_nonneg
+  exact lt_of_lt_of_le (by norm_num) h_one_le
 
 lemma p_mul_padd1_le_bound [PrimeGap_Criterion]
   {n : ℕ} (hn : n ≥ X₀ ^ 2)
@@ -815,8 +820,103 @@ lemma p_mul_padd1_le_bound [PrimeGap_Criterion]
     ∀ i : Fin 3,
       ((p i * (p i + 1) : ℕ) : ℝ)
         ≤ (1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n) := by
-  /- This holds when δ(x) ≥ 0 for x ≥ X₀ and n > 0, which is true when X₀ > 0 -/
-  sorry
+  intro i
+  set B : ℝ := 1 + gap.δ (√(n : ℝ))
+
+  have hB_pos : 0 < B := by
+    simpa [B] using (one_add_delta_pos (n := n) hn)
+
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := sqrt_ge_X₀ (n := n) hn
+  have hδ_nonneg : 0 ≤ gap.δ (√(n : ℝ)) :=
+    PrimeGap_Criterion.gap_nonneg (x := √(n : ℝ)) (by exact hX0_le_sqrt)
+  have h1_le_B : (1 : ℝ) ≤ B := by
+    simpa [B] using (add_le_add_left hδ_nonneg 1)
+
+  have hB_nonneg : 0 ≤ B := le_of_lt hB_pos
+
+  have hsqrt_nonneg : 0 ≤ √(n : ℝ) := by
+    exact Real.sqrt_nonneg (n : ℝ)
+  have hp_nonneg : 0 ≤ (p i : ℝ) := by
+    exact_mod_cast (Nat.zero_le (p i))
+
+  have hp_le : (p i : ℝ) ≤ √(n : ℝ) * B ^ (i + 1 : ℝ) := by
+    simpa [B] using (hp_ub i)
+
+  have hp_sq_le : (p i : ℝ) ^ 2 ≤ (n : ℝ) * B ^ (2 * (i : ℕ) + 2 : ℝ) := by
+    have h_rhs_nonneg : 0 ≤ √(n : ℝ) * B ^ (i + 1 : ℝ) := by
+      have hBpow_pos : 0 < B ^ (i + 1 : ℝ) := Real.rpow_pos_of_pos hB_pos _
+      exact mul_nonneg hsqrt_nonneg (le_of_lt hBpow_pos)
+    have hsq :
+        (p i : ℝ) * (p i : ℝ) ≤
+          (√(n : ℝ) * B ^ (i + 1 : ℝ)) * (√(n : ℝ) * B ^ (i + 1 : ℝ)) := by
+      exact mul_le_mul hp_le hp_le hp_nonneg h_rhs_nonneg
+    have hsq' : (p i : ℝ) ^ 2 ≤ (√(n : ℝ) * B ^ (i + 1 : ℝ)) ^ 2 := by
+      simpa [pow_two] using hsq
+    calc
+      (p i : ℝ) ^ 2
+          ≤ (√(n : ℝ) * B ^ (i + 1 : ℝ)) ^ 2 := hsq'
+      _ = (√(n : ℝ)) ^ 2 * (B ^ (i + 1 : ℝ)) ^ 2 := by
+            simpa [pow_two, mul_comm, mul_left_comm, mul_assoc] using
+              (mul_pow (√(n : ℝ)) (B ^ (i + 1 : ℝ)) 2)
+      _ = (n : ℝ) * (B ^ (i + 1 : ℝ) * B ^ (i + 1 : ℝ)) := by
+            have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
+              exact_mod_cast (Nat.zero_le n)
+            have hsqrt_sq : (√(n : ℝ)) ^ 2 = (n : ℝ) := by
+              simpa using (Real.sq_sqrt hn0)
+            simp [hsqrt_sq, pow_two]
+      _ = (n : ℝ) * B ^ ((i + 1 : ℝ) + (i + 1 : ℝ)) := by
+        sorry -- simpa using (Real.rpow_add hB_pos (i + 1 : ℝ) (i + 1 : ℝ)).symm
+      _ = (n : ℝ) * B ^ (2 * (i : ℕ) + 2 : ℝ) := by
+            have : ((i + 1 : ℝ) + (i + 1 : ℝ)) = (2 * (i : ℕ) + 2 : ℝ) := by
+              nlinarith
+            simp [this]
+
+  have hp_le' : (p i : ℝ) ≤ √(n : ℝ) * B ^ (2 * (i : ℕ) + 2 : ℝ) := by
+    have hi1_nonneg : 0 ≤ (i + 1 : ℝ) := by
+      have hi_nonneg : (0 : ℝ) ≤ (i : ℝ) := by
+        exact_mod_cast (Nat.zero_le (i : ℕ))
+      nlinarith
+    have h_one_le_Bpow : (1 : ℝ) ≤ B ^ (i + 1 : ℝ) := by
+      exact Real.one_le_rpow h1_le_B hi1_nonneg
+    have hBpow_nonneg : 0 ≤ B ^ (i + 1 : ℝ) := by
+      exact le_of_lt (Real.rpow_pos_of_pos hB_pos _)
+    have hBpow_le_sq : B ^ (i + 1 : ℝ) ≤ (B ^ (i + 1 : ℝ)) ^ 2 := by
+      have :
+          B ^ (i + 1 : ℝ) ≤ B ^ (i + 1 : ℝ) * B ^ (i + 1 : ℝ) :=
+        le_mul_of_one_le_right hBpow_nonneg h_one_le_Bpow
+      simpa [pow_two] using this
+    have hBpow_sq :
+        (B ^ (i + 1 : ℝ)) ^ 2 = B ^ ((i + 1 : ℝ) + (i + 1 : ℝ)) := by
+      simpa [pow_two] using (Real.rpow_add hB_pos (i + 1 : ℝ) (i + 1 : ℝ)).symm
+    have hBpow_le : B ^ (i + 1 : ℝ) ≤ B ^ (2 * (i : ℕ) + 2 : ℝ) := by
+      have hBpow_le_sum :
+          B ^ (i + 1 : ℝ) ≤ B ^ ((i + 1 : ℝ) + (i + 1 : ℝ)) := by
+        simpa [hBpow_sq] using hBpow_le_sq
+      have hExp :
+          ((i + 1 : ℝ) + (i + 1 : ℝ)) = (2 * (i : ℕ) + 2 : ℝ) := by
+        nlinarith
+      simpa [hExp] using hBpow_le_sum
+    have := mul_le_mul_of_nonneg_left hBpow_le hsqrt_nonneg
+    exact le_trans hp_le (by simpa [mul_assoc, mul_left_comm, mul_comm] using this)
+
+  have hmul_cast :
+      ((p i * (p i + 1) : ℕ) : ℝ) = (p i : ℝ) * ((p i : ℝ) + 1) := by
+    simp [Nat.cast_mul, Nat.cast_add, Nat.cast_one]
+
+  have hmul_as_sum :
+      (p i : ℝ) * ((p i : ℝ) + 1) = (p i : ℝ) ^ 2 + (p i : ℝ) := by
+    ring
+
+  calc
+    ((p i * (p i + 1) : ℕ) : ℝ)
+      = (p i : ℝ) ^ 2 + (p i : ℝ) := by
+        simp [hmul_cast, hmul_as_sum]
+    _ ≤ (n : ℝ) * B ^ (2 * (i : ℕ) + 2 : ℝ) + (√(n : ℝ) * B ^ (2 * (i : ℕ) + 2 : ℝ)) := by
+            exact add_le_add hp_sq_le hp_le'
+    _ = B ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)) := by
+            ring
+    _ = (1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n) := by
+            simp [B]
 
 /- End of theorem `prod_p_ge` lemmas-/
 
