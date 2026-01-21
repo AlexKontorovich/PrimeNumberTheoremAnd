@@ -1802,7 +1802,113 @@ theorem main_ineq_delta_form [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2
   4) Set `ε := 1/n` and use the hypotheses `0 ≤ ε` and `ε ≤ 1/(X₀^2)` (derived from `hn`).
   5) Apply `prod_epsilon_le`, `prod_epsilon_ge`, and `final_comparison` to finish.
   -/
-  sorry
+  -- Step 0: set ε := 1/n and record bounds on ε from `hn`.
+  set ε : ℝ := (1 : ℝ) / (n : ℝ) with hε
+
+  have hX0_pos_nat : 0 < X₀ := lt_trans Nat.zero_lt_one (PrimeGap_Criterion.h_X₀)
+  have hX0_sq_pos_nat : 0 < X₀ ^ 2 := pow_pos hX0_pos_nat 2
+  have hn_pos_nat : 0 < n := lt_of_lt_of_le hX0_sq_pos_nat hn
+  have hn_pos : (0 : ℝ) < (n : ℝ) := by exact_mod_cast hn_pos_nat
+  have hn0 : (0 : ℝ) ≤ (n : ℝ) := le_of_lt hn_pos
+
+  have hε_nonneg : 0 ≤ ε := by
+    rw [hε]
+    exact one_div_nonneg.2 hn0
+
+  have hX0_sq_pos : (0 : ℝ) < (X₀ ^ 2 : ℝ) := by
+    exact_mod_cast hX0_sq_pos_nat
+  have hn_cast : (X₀ ^ 2 : ℝ) ≤ (n : ℝ) := by
+    exact_mod_cast hn
+
+  have hε_le : ε ≤ 1 / (X₀ ^ 2 : ℝ) := by
+    have h := one_div_le_one_div_of_le hX0_sq_pos hn_cast
+    simpa [hε] using h
+
+  have hε_bounds : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ) := ⟨hε_nonneg, hε_le⟩
+
+  -- Arithmetic identity for the `3/(8*n)` factor.
+  have hn_ne : (n : ℝ) ≠ 0 := by
+    exact_mod_cast (Nat.ne_of_gt hn_pos_nat)
+  have h38 : (3 : ℝ) / 8 * ε = (3 : ℝ) / (8 * (n : ℝ)) := by
+    simp [hε, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
+
+  -- Rewrite `onePlusEps_log` to the numerical constant used in the bounds.
+  have hone : (onePlusEps_log : ℝ) = (1.000675 : ℝ) := by
+    simp [onePlusEps_log, eps_log]
+    norm_num
+
+  -- Exponent rewrite: `2*(i+1) = 2*i+2` (as reals), useful for `rpow`.
+  have hexp (i : Fin 3) : (2 : ℝ) * ((i : ℕ) + 1 : ℝ) = (2 * (i : ℕ) + 2 : ℝ) := by
+    nlinarith
+
+  -- Step 1: bound the original LHS using `main_ineq_delta_form_lhs`.
+  have hLHS_bound :
+      (∏ i : Fin 3,
+          (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
+        ≤
+      (∏ i : Fin 3,
+          (1 + (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ))) :=
+    main_ineq_delta_form_lhs (n := n) hn
+
+  -- Step 2: bound the original RHS from below using `main_ineq_delta_form_rhs`.
+  have hRHS_bound :
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((1.000675) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+        * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+        * (1 - 4 * (1.000675) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ)))
+        ≤
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+        * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+        * (1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+    simpa [ge_iff_le, mul_assoc, mul_left_comm, mul_comm] using
+      (main_ineq_delta_form_rhs (n := n) hn)
+
+  -- Step 4/5: compare the bounded LHS and bounded RHS using the `ε`-lemmas.
+  have hLHS_poly :
+      (∏ i : Fin 3,
+          (1 + (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
+        ≤
+      1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 := by
+    have h := PrimeGap_Criterion.prod_epsilon_le (ε := ε) hε_bounds
+    simpa [hε, hone, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using h
+
+  have hpoly_poly :
+      1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤
+        1 + 3.36683 * ε - 0.01 * ε ^ 2 :=
+    PrimeGap_Criterion.final_comparison (ε := ε) hε_bounds
+
+  have hpoly_RHS :
+      1 + 3.36683 * ε - 0.01 * ε ^ 2 ≤
+        (∏ i : Fin 3,
+            (1 + 1 /
+              ((1.000675) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+          * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+          * (1 - 4 * (1.000675) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ))) := by
+    have h := PrimeGap_Criterion.prod_epsilon_ge (ε := ε) hε_bounds
+    have h' :
+        1 + 3.36683 * ε - 0.01 * ε ^ 2 ≤
+          (∏ i : Fin 3,
+              (1 + ε / (onePlusEps_log ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 / (1 + 1 / X₀)))) *
+            (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * onePlusEps_log ^ 12 / X₀ * ε) := by
+      simpa [ge_iff_le] using h
+    simpa [hε, hone, hexp, h38, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using h'
+
+  have hLHS_RHSconst :
+      (∏ i : Fin 3,
+          (1 + (1.000675 : ℝ) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
+        ≤
+        (∏ i : Fin 3,
+            (1 + 1 /
+              ((1.000675) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+          * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+          * (1 - 4 * (1.000675) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ))) := by
+    exact le_trans (le_trans hLHS_poly hpoly_poly) hpoly_RHS
+
+  -- Step 6: chain the three inequalities.
+  exact le_trans (le_trans hLHS_bound hLHS_RHSconst) hRHS_bound
 
 /- End of lemmas required to prove h_crit: `theorem main_ineq_delta_form` -/
 
