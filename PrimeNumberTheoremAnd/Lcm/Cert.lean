@@ -1195,7 +1195,7 @@ lemma delta_sqrt_le [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   - use the monotonicity of `x ↦ δ(x)` for x ≥ X₀ and the numerical estimate at X₀;
   - convert `hn : n ≥ X₀^2` into `√n ≥ X₀`, then finish by monotonicity + `norm_num`.
   -/
-  sorry
+  simpa using (PrimeGap_Criterion.eps_log_bound (n := n) hn)
 
 lemma inv_n_pow_3_div_2_le_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (1 / (n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (X₀ : ℝ)) * (1 / n) := by
