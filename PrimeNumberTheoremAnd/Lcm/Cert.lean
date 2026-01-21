@@ -600,6 +600,102 @@ lemma y2_mul_one_add_delta_lt_n [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ 
     -- when n, ε ≥ 0, this holds automatically if `y0_mul_one_add_delta_le_y1` holds.
   -/
   sorry
+
+
+-- lemma y1_mul_one_add_delta_le_y2 [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+--     let x : ℝ := √(n : ℝ)
+--     let ε : ℝ := gap.δ x
+--     let y1 : ℝ := (n : ℝ) / (1 + ε) ^ 2
+--     y1 * (1 + gap.δ y1) ≤ (n : ℝ) / (1 + ε) := by
+--   /- holds when gap.δ is decreasing for x ≥ X₀ and
+--   n / (1 + ε) ^ 2 ≥ √n for n ≥ X₀ ^ 2
+--     -- when n, ε ≥ 0, this holds automatically if `y0_mul_one_add_delta_le_y1` holds.
+--   -/
+--   dsimp
+--   set x : ℝ := Real.sqrt (n : ℝ) with hx
+--   set ε : ℝ := gap.δ x with hε
+--   set y1 : ℝ := (n : ℝ) / (1 + ε) ^ 2 with hy1
+
+--   have hX0_le_x : (X₀ : ℝ) ≤ x := by
+--     simpa [hx] using (sqrt_ge_X₀ (n := n) hn)
+
+--   have hε_nonneg : 0 ≤ ε := by
+--     have : 0 ≤ gap.δ x :=
+--       PrimeGap_Criterion.gap_nonneg x (by simpa using hX0_le_x)
+--     simpa [hε] using this
+
+--   have h_one_add_pos : 0 < 1 + ε := by
+--     have : (0 : ℝ) < 1 := by norm_num
+--     exact add_pos_of_pos_of_nonneg this hε_nonneg
+
+--   have h_one_add_ne : (1 + ε) ≠ 0 := ne_of_gt h_one_add_pos
+--   have h_pow2_pos : 0 < (1 + ε) ^ 2 := pow_pos h_one_add_pos 2
+
+--   have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
+--     exact_mod_cast (Nat.zero_le n)
+
+--   have hy1_nonneg : 0 ≤ y1 := by
+--     have : 0 ≤ (n : ℝ) / (1 + ε) ^ 2 :=
+--       div_nonneg hn0 (le_of_lt h_pow2_pos)
+--     simpa [hy1] using this
+
+--   -- show √n ≤ y1
+--   have hpow6_lt_x : (1 + ε) ^ 6 < x := by
+--     have := PrimeGap_Criterion.delta_sixth_power_lt_sqrt (n := n) hn
+--     simpa [hx, hε] using this
+
+--   have h_one_le : (1 : ℝ) ≤ 1 + ε := le_add_of_nonneg_right hε_nonneg
+--   have hpow4_ge1 : (1 : ℝ) ≤ (1 + ε) ^ 4 := one_le_pow_of_one_le h_one_le 4
+--   have hpow2_le_pow6 : (1 + ε) ^ 2 ≤ (1 + ε) ^ 6 := by
+--     calc
+--       (1 + ε) ^ 2 = (1 + ε) ^ 2 * 1 := by simp
+--       _ ≤ (1 + ε) ^ 2 * (1 + ε) ^ 4 := by
+--         exact mul_le_mul_of_nonneg_left hpow4_ge1 (le_of_lt h_pow2_pos)
+--       _ = (1 + ε) ^ (2 + 4) := by
+--         simpa [pow_add, mul_assoc, mul_left_comm, mul_comm] using
+--           (pow_add (1 + ε) 2 4).symm
+--       _ = (1 + ε) ^ 6 := by simp
+--   have hpow2_lt_x : (1 + ε) ^ 2 < x := lt_of_le_of_lt hpow2_le_pow6 hpow6_lt_x
+--   have hpow2_le_x : (1 + ε) ^ 2 ≤ x := le_of_lt hpow2_lt_x
+
+--   have hx_nonneg : 0 ≤ x := by
+--     simpa [hx] using Real.sqrt_nonneg (n : ℝ)
+
+--   have hx_sq : x * x = (n : ℝ) := by
+--     simpa [hx] using (Real.mul_self_sqrt hn0)
+
+--   have hx_le_y1 : x ≤ y1 := by
+--     have hx_mul_le : x * (1 + ε) ^ 2 ≤ (n : ℝ) := by
+--       have hx_mul_le_xsq : x * (1 + ε) ^ 2 ≤ x * x :=
+--         mul_le_mul_of_nonneg_left hpow2_le_x hx_nonneg
+--       simpa [hx_sq] using hx_mul_le_xsq
+--     have : x ≤ (n : ℝ) / (1 + ε) ^ 2 := (le_div_iff h_pow2_pos).2 hx_mul_le
+--     simpa [hy1] using this
+
+--   have hX0_le_y1 : (X₀ : ℝ) ≤ y1 := by
+--     simpa [hx, hε, hy1] using (y1_ge_X₀ (n := n) hn)
+
+--   have hδy1_le_δx : gap.δ y1 ≤ gap.δ x :=
+--     PrimeGap_Criterion.gap_decreasing x y1 hX0_le_x hX0_le_y1 hx_le_y1
+--   have hδy1_le_ε : gap.δ y1 ≤ ε := by
+--     simpa [hε.symm] using hδy1_le_δx
+
+--   have hone_add_le : 1 + gap.δ y1 ≤ 1 + ε :=
+--     add_le_add_left hδy1_le_ε 1
+
+--   have hmul : y1 * (1 + gap.δ y1) ≤ y1 * (1 + ε) :=
+--     mul_le_mul_of_nonneg_left hone_add_le hy1_nonneg
+
+--   have hy1_mul : y1 * (1 + ε) = (n : ℝ) / (1 + ε) := by
+--     rw [hy1]
+--     field_simp [h_one_add_ne]
+--     ring
+
+--   calc
+--     y1 * (1 + gap.δ y1) ≤ y1 * (1 + ε) := hmul
+--     _ = (n : ℝ) / (1 + ε) := hy1_mul
+
+
 /- End of theorem `exists_q_primes` lemmas-/
 
 
