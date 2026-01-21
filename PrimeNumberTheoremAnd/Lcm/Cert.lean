@@ -135,7 +135,8 @@ lemma step1_upper [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   set ε : ℝ := gap.δ x with hε
   -- Rewrite the goal in terms of `x` and `ε`.
   -- (After this, the goal is exactly the displayed inequality.)
-  simp [hx.symm, hε.symm]
+  -- simp [hx.symm, hε.symm]
+  simp only [ge_iff_le]
 
   have hX0_le_x : (X₀ : ℝ) ≤ x := by
     simpa [hx.symm] using (sqrt_ge_X₀ (n := n) hn)
@@ -149,7 +150,7 @@ lemma step1_upper [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 
   have hx_nonneg : 0 ≤ x := by
     -- `x = √n`
-    simpa [hx] using (Real.sqrt_nonneg (n : ℝ))
+    simpa only [hx] using (Real.sqrt_nonneg (n : ℝ))
 
   have h_one_add_nonneg : 0 ≤ 1 + ε := by
     exact add_nonneg (by norm_num) hε_nonneg
@@ -176,7 +177,7 @@ lemma step1_upper [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     exact mul_le_mul_of_nonneg_left h_one_add_le hmul_nonneg
 
   -- Finish by simplifying the right-hand side.
-  simpa [pow_two, mul_assoc, mul_left_comm, mul_comm] using hmul
+  simpa [pow_two, mul_assoc] using hmul
 
 
 lemma step2_upper [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
@@ -189,7 +190,7 @@ lemma step2_upper [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   set x : ℝ := Real.sqrt (n : ℝ) with hx
   set ε : ℝ := gap.δ x with hε
   -- Rewrite the goal in terms of `x` and `ε`.
-  simp [hx.symm, hε.symm]
+  simp only [ge_iff_le]
 
   have hX0_le_x : (X₀ : ℝ) ≤ x := by
     simpa [hx.symm] using (sqrt_ge_X₀ (n := n) hn)
@@ -238,7 +239,7 @@ lemma step2_upper [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     exact mul_le_mul_of_nonneg_left h_one_add_le hmul_nonneg
 
   -- Simplify the RHS: `(x*(1+ε)^2)*(1+ε) = x*(1+ε)^3`.
-  simpa [pow_succ, mul_assoc, mul_left_comm, mul_comm] using hmul
+  simpa [pow_succ, mul_assoc] using hmul
 
 /- End of theorem `exists_p_primes` lemmas-/
 
@@ -394,7 +395,7 @@ lemma y2_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
       simpa using (div_le_self h_nonneg h_one_le)
     have hrewrite : ((n : ℝ) / (1 + ε)) / (1 + ε) = (n : ℝ) / (1 + ε) ^ 2 := by
       -- `(a/b)/c = a/(b*c)` and `a^2 = a*a`.
-      simp [div_div, pow_two, mul_assoc]
+      simp [div_div, pow_two]
     -- Replace the left-hand side by `n/(1+ε)^2`.
     simpa [hrewrite] using h_div_le
 
@@ -542,7 +543,7 @@ lemma y1_mul_one_add_delta_le_y2 [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀
     le_of_lt (lt_of_le_of_lt hpow2_le_pow6 h6)
 
   have hx_nonneg : 0 ≤ x := by
-    simpa [hx] using Real.sqrt_nonneg (n : ℝ)
+    simpa only [hx] using Real.sqrt_nonneg (n : ℝ)
 
   have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
     exact_mod_cast (Nat.zero_le n)
