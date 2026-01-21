@@ -201,7 +201,7 @@ lemma step2_upper [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     exact le_add_of_nonneg_right hε_nonneg
 
   have hx_nonneg : 0 ≤ x := by
-    simpa [hx] using (Real.sqrt_nonneg (n : ℝ))
+    simp [hx]
 
   have h_one_add_nonneg : 0 ≤ 1 + ε := by
     exact add_nonneg (by norm_num) hε_nonneg
@@ -257,7 +257,58 @@ lemma y0_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   /- and this is automatically true if we can show a stronger version, which would be helpful for the following lemmas
    i.e. √n ≤ n / (1 + gap.δ(√n)) ^ 3 for n ≥ X₀ ^ 2
   -/
-  sorry
+  dsimp
+  set x : ℝ := Real.sqrt (n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+
+  have hX0_le_x : (X₀ : ℝ) ≤ x := by
+    -- `x = √n` and `n ≥ X₀^2`.
+    simpa [hx.symm] using (sqrt_ge_X₀ (n := n) hn)
+
+  have hε_nonneg : 0 ≤ ε := by
+    have : 0 ≤ gap.δ x :=
+      PrimeGap_Criterion.gap_nonneg x (by simpa using hX0_le_x)
+    simpa [hε] using this
+
+  have h_one_le : (1 : ℝ) ≤ 1 + ε := by
+    exact le_add_of_nonneg_right hε_nonneg
+
+  have h_one_add_pos : (0 : ℝ) < 1 + ε := by
+    exact lt_of_lt_of_le (by norm_num) h_one_le
+
+  have hx_nonneg : 0 ≤ x := by
+    simp [hx]
+
+  -- From the criterion: `(1 + δ(√n))^6 < √n`.
+  have h6 : (1 + ε) ^ 6 < x := by
+    simpa [hx, hε] using (PrimeGap_Criterion.delta_sixth_power_lt_sqrt (n := n) hn)
+
+  -- Since `1 ≤ 1+ε`, we have `(1+ε)^3 ≤ (1+ε)^6`.
+  have hpow3_le_pow6 : (1 + ε) ^ 3 ≤ (1 + ε) ^ 6 := by
+    exact pow_le_pow_right₀ h_one_le (by decide)
+
+  have hpow3_le_x : (1 + ε) ^ 3 ≤ x := by
+    exact le_of_lt (lt_of_le_of_lt hpow3_le_pow6 h6)
+
+  -- Stronger intermediate bound: `x ≤ n / (1+ε)^3`.
+  have hx_le_y0 : x ≤ (n : ℝ) / (1 + ε) ^ 3 := by
+    have hden_pos : 0 < (1 + ε) ^ 3 := by
+      exact pow_pos h_one_add_pos 3
+    -- Use `le_div_iff` and prove `x * (1+ε)^3 ≤ n`.
+    have hx_mul : x * (1 + ε) ^ 3 ≤ x * x := by
+      have := mul_le_mul_of_nonneg_left hpow3_le_x hx_nonneg
+      simpa [mul_assoc] using this
+    have hx_sq : x * x = (n : ℝ) := by
+      have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
+        exact_mod_cast (Nat.zero_le n)
+      -- `x = √n`, so `x*x = (√n)^2 = n`.
+      -- We go through `Real.sq_sqrt`.
+      simp [hx]
+    have hx_mul' : x * (1 + ε) ^ 3 ≤ (n : ℝ) := by
+      simpa [hx_sq] using hx_mul
+    exact (le_div_iff₀ hden_pos).2 hx_mul'
+
+  exact le_trans hX0_le_x hx_le_y0
 
 
 lemma y1_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
@@ -267,7 +318,45 @@ lemma y1_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   /- Derived from `y0_ge_X₀` plus the fact that dividing by `(1+ε)^2` is larger than
      dividing by `(1+ε)^3` when `1+ε ≥ 1`. -/
   /- This holds when gap.δ(x) ≥ 0 for x ≥ X₀ -/
-  sorry
+  dsimp
+  set x : ℝ := Real.sqrt (n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+
+  have hX0_le_y0 : (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) ^ 3 := by
+    -- `y0_ge_X₀` is written with the same `x`/`ε` definitions.
+    simpa [hx, hε] using (y0_ge_X₀ (n := n) hn)
+
+  have hε_nonneg : 0 ≤ ε := by
+    have hX0_le_x : (X₀ : ℝ) ≤ x := by
+      simpa [hx.symm] using (sqrt_ge_X₀ (n := n) hn)
+    have : 0 ≤ gap.δ x :=
+      PrimeGap_Criterion.gap_nonneg x (by simpa using hX0_le_x)
+    simpa [hε] using this
+
+  have h_one_le : (1 : ℝ) ≤ 1 + ε := by
+    exact le_add_of_nonneg_right hε_nonneg
+  have h_one_add_pos : (0 : ℝ) < 1 + ε := by
+    exact lt_of_lt_of_le (by norm_num) h_one_le
+
+  -- `n/(1+ε)^3 ≤ n/(1+ε)^2` since dividing by an extra positive factor decreases the value.
+  have hy0_le_y1 : (n : ℝ) / (1 + ε) ^ 3 ≤ (n : ℝ) / (1 + ε) ^ 2 := by
+    have h_nonneg : (0 : ℝ) ≤ (n : ℝ) / (1 + ε) ^ 2 := by
+      -- numerator is nonneg and denominator positive
+      have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
+        exact_mod_cast (Nat.zero_le n)
+      have hpow_pos : (0 : ℝ) < (1 + ε) ^ 2 := by
+        exact pow_pos h_one_add_pos 2
+      exact div_nonneg hn0 (le_of_lt hpow_pos)
+    have h_div_le : ((n : ℝ) / (1 + ε) ^ 2) / (1 + ε) ≤ (n : ℝ) / (1 + ε) ^ 2 := by
+      -- `div_le_self` is `a / b ≤ a` when `0 ≤ a` and `1 ≤ b`.
+      simpa using (div_le_self h_nonneg h_one_le)
+    have hrewrite : ((n : ℝ) / (1 + ε) ^ 2) / (1 + ε) = (n : ℝ) / (1 + ε) ^ 3 := by
+      -- `(a/b)/c = a/(b*c)` and `a^3 = a^2*a`.
+      simp [div_div, pow_succ, mul_assoc]
+    -- Replace the left-hand side by `n/(1+ε)^3`.
+    simpa [hrewrite] using h_div_le
+
+  exact le_trans hX0_le_y0 hy0_le_y1
 
 lemma y2_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
@@ -275,7 +364,40 @@ lemma y2_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) := by
   /- Same pattern as `y1_ge_X₀`: `n/(1+ε) ≥ n/(1+ε)^2`. -/
   /- This holds when gap.δ(x) ≥ 0 for x ≥ X₀ -/
-  sorry
+  dsimp
+  set x : ℝ := Real.sqrt (n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+
+  have hX0_le_y1 : (X₀ : ℝ) ≤ (n : ℝ) / (1 + ε) ^ 2 := by
+    simpa [hx, hε] using (y1_ge_X₀ (n := n) hn)
+
+  have hε_nonneg : 0 ≤ ε := by
+    have hX0_le_x : (X₀ : ℝ) ≤ x := by
+      simpa [hx.symm] using (sqrt_ge_X₀ (n := n) hn)
+    have : 0 ≤ gap.δ x :=
+      PrimeGap_Criterion.gap_nonneg x (by simpa using hX0_le_x)
+    simpa [hε] using this
+
+  have h_one_le : (1 : ℝ) ≤ 1 + ε := by
+    exact le_add_of_nonneg_right hε_nonneg
+  have h_one_add_pos : (0 : ℝ) < 1 + ε := by
+    exact lt_of_lt_of_le (by norm_num) h_one_le
+
+  -- `n/(1+ε)^2 ≤ n/(1+ε)` since dividing by an extra positive factor decreases the value.
+  have hy1_le_y2 : (n : ℝ) / (1 + ε) ^ 2 ≤ (n : ℝ) / (1 + ε) := by
+    have h_nonneg : (0 : ℝ) ≤ (n : ℝ) / (1 + ε) := by
+      have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
+        exact_mod_cast (Nat.zero_le n)
+      exact div_nonneg hn0 (le_of_lt h_one_add_pos)
+    have h_div_le : ((n : ℝ) / (1 + ε)) / (1 + ε) ≤ (n : ℝ) / (1 + ε) := by
+      simpa using (div_le_self h_nonneg h_one_le)
+    have hrewrite : ((n : ℝ) / (1 + ε)) / (1 + ε) = (n : ℝ) / (1 + ε) ^ 2 := by
+      -- `(a/b)/c = a/(b*c)` and `a^2 = a*a`.
+      simp [div_div, pow_two, mul_assoc]
+    -- Replace the left-hand side by `n/(1+ε)^2`.
+    simpa [hrewrite] using h_div_le
+
+  exact le_trans hX0_le_y1 hy1_le_y2
 
 lemma y0_mul_one_add_delta_le_y1 [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
@@ -285,7 +407,104 @@ lemma y0_mul_one_add_delta_le_y1 [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀
   /- holds when gap.δ is decreasing for x ≥ X₀ and a "stronger" version of
   `lemma y0_ge_X₀`, i.e. n / (1 + ε) ^ 3 ≥ √n for n ≥ X₀ ^ 2
   -/
-  sorry
+  dsimp
+  set x : ℝ := Real.sqrt (n : ℝ) with hx
+  set ε : ℝ := gap.δ x with hε
+  set y0 : ℝ := (n : ℝ) / (1 + ε) ^ 3 with hy0
+
+  have hX0_le_x : (X₀ : ℝ) ≤ x := by
+    simpa [hx.symm] using (sqrt_ge_X₀ (n := n) hn)
+
+  have hε_nonneg : 0 ≤ ε := by
+    have : 0 ≤ gap.δ x :=
+      PrimeGap_Criterion.gap_nonneg x (by simpa using hX0_le_x)
+    simpa [hε] using this
+
+  have h_one_le : (1 : ℝ) ≤ 1 + ε := by
+    exact le_add_of_nonneg_right hε_nonneg
+
+  have h_one_add_pos : (0 : ℝ) < 1 + ε := by
+    exact lt_of_lt_of_le (by norm_num) h_one_le
+
+  have hx_nonneg : 0 ≤ x := by
+    simp [hx]
+
+  -- As in `y0_ge_X₀`, we can show the stronger bound `x ≤ y0`.
+  have h6 : (1 + ε) ^ 6 < x := by
+    simpa [hx, hε] using (PrimeGap_Criterion.delta_sixth_power_lt_sqrt (n := n) hn)
+
+  have hpow3_le_pow6 : (1 + ε) ^ 3 ≤ (1 + ε) ^ 6 := by
+    exact pow_le_pow_right₀ h_one_le (by decide)
+
+  have hpow3_le_x : (1 + ε) ^ 3 ≤ x := by
+    exact le_of_lt (lt_of_le_of_lt hpow3_le_pow6 h6)
+
+  have hx_le_y0 : x ≤ y0 := by
+    -- `x ≤ n/(1+ε)^3` via `le_div_iff` and `x*(1+ε)^3 ≤ x*x = n`.
+    have hden_pos : 0 < (1 + ε) ^ 3 := by
+      exact pow_pos h_one_add_pos 3
+    have hx_mul : x * (1 + ε) ^ 3 ≤ x * x := by
+      have := mul_le_mul_of_nonneg_left hpow3_le_x hx_nonneg
+      simpa [mul_assoc] using this
+    have hx_sq : x * x = (n : ℝ) := by
+      have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
+        exact_mod_cast (Nat.zero_le n)
+      simp [hx, hn0]
+    have hx_mul' : x * (1 + ε) ^ 3 ≤ (n : ℝ) := by
+      simpa [hx_sq] using hx_mul
+    -- Convert to a division statement.
+    have : x ≤ (n : ℝ) / (1 + ε) ^ 3 := (le_div_iff₀ hden_pos).2 hx_mul'
+    -- Finally rewrite `(n)/(1+ε)^3` as `y0`.
+    simpa [hy0] using this
+
+  have hX0_le_y0 : (X₀ : ℝ) ≤ y0 := by
+    -- from `y0_ge_X₀`
+    simpa [hx, hε, hy0] using (y0_ge_X₀ (n := n) hn)
+
+  -- Since `x ≤ y0` and `δ` is decreasing for `≥ X₀`, we have `δ(y0) ≤ δ(x) = ε`.
+  have hδy0_le_ε : gap.δ y0 ≤ ε := by
+    have hδy0_le_δx : gap.δ y0 ≤ gap.δ x :=
+      PrimeGap_Criterion.gap_decreasing x y0 hX0_le_x hX0_le_y0 hx_le_y0
+    simpa [hε] using hδy0_le_δx
+
+  have hone_add_le : 1 + gap.δ y0 ≤ 1 + ε := by
+    simpa [add_comm, add_left_comm, add_assoc] using (add_le_add_left hδy0_le_ε 1)
+
+  have hy0_nonneg : 0 ≤ y0 := by
+    -- numerator is nonneg and denominator is positive
+    have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast (Nat.zero_le n)
+    have hpow_pos : (0 : ℝ) < (1 + ε) ^ 3 := by
+      exact pow_pos h_one_add_pos 3
+    -- `y0 = n / (1+ε)^3`
+    simpa [hy0] using (div_nonneg hn0 (le_of_lt hpow_pos))
+
+  have hmul : y0 * (1 + gap.δ y0) ≤ y0 * (1 + ε) := by
+    exact mul_le_mul_of_nonneg_left hone_add_le hy0_nonneg
+
+  -- Simplify `y0*(1+ε) = n/(1+ε)^2`.
+  have : y0 * (1 + ε) = (n : ℝ) / (1 + ε) ^ 2 := by
+    -- `y0 = n/(1+ε)^3`, so multiplying by `(1+ε)` cancels one power.
+    have hone_add_ne : (1 + ε) ≠ 0 := by
+      exact ne_of_gt h_one_add_pos
+    -- Turn the product into a single fraction and cancel a common factor.
+    calc
+      y0 * (1 + ε)
+          = ((n : ℝ) / (1 + ε) ^ 3) * (1 + ε) := by
+              simp [hy0]
+      _   = ((n : ℝ) * (1 + ε)) / (1 + ε) ^ 3 := by
+              -- `a/b * c = (a*c)/b`
+              simp [div_mul_eq_mul_div]
+      _   = ((n : ℝ) * (1 + ε)) / ((1 + ε) ^ 2 * (1 + ε)) := by
+              -- `a^3 = a^2 * a`
+              simp [pow_succ, mul_assoc]
+            _   = (n : ℝ) / (1 + ε) ^ 2 := by
+              -- cancel the common factor `(1+ε)`
+              have hne : (1 + ε) ≠ 0 := ne_of_gt h_one_add_pos
+              field_simp [hne, pow_succ, mul_assoc, mul_left_comm, mul_comm]
+
+  -- Finish.
+  simpa [this] using hmul
 
 lemma y1_mul_one_add_delta_le_y2 [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     let x : ℝ := √(n : ℝ)
