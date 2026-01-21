@@ -804,7 +804,6 @@ lemma one_add_delta_pos [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   /- This holds when δ(x) ≥ 0 for x ≥ X₀ and X₀ > 0-/
   sorry
 
-
 lemma p_mul_padd1_le_bound [PrimeGap_Criterion]
   {n : ℕ} (hn : n ≥ X₀ ^ 2)
     {p : Fin 3 → ℕ}
@@ -868,7 +867,11 @@ lemma one_le_X₀_sq [PrimeGap_Criterion] : (1 : ℕ) ≤ X₀ ^ 2 := by
   - for the current `PrimeGaps.latest`, `X₀` is a concrete positive numeral (89693),
     so this is `decide`/`norm_num`.
   -/
-  sorry
+  have hX0_pos : 0 < X₀ :=
+    lt_trans Nat.zero_lt_one (PrimeGap_Criterion.h_X₀)
+  have hX0_sq_pos : 0 < X₀ ^ 2 := pow_pos hX0_pos 2
+  -- `Nat.succ_le_iff` with `a = 0` is `1 ≤ b ↔ 0 < b`.
+  exact Nat.succ_le_iff.2 hX0_sq_pos
 /- End of `hn` lemmas-/
 
 /- `h_ord_2` lemmas -/
@@ -882,8 +885,84 @@ lemma ord2_mid [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     3. (1 + gap.δ (√n)) ^ 6 < √n for n ≥ X₀ ^ 2
     4. 4 * (1 + gap.δ (√n)) ^ 12 ≤ n ^ (3 / 2) for n ≥ X₀ ^ 2
    -/
-  sorry
-/- End of `h_ord_2` lemmas -/
+
+  -- Abbreviate `x = √n` and `b = 1 + δ(x)`.
+  set x : ℝ := Real.sqrt (n : ℝ) with hx
+  set b : ℝ := 1 + gap.δ x with hb
+
+  -- We will use `lt_div_iff₀` with the positive denominator `b^3`.
+  have hX0_le_x : (X₀ : ℝ) ≤ x := by
+    simpa [hx] using (sqrt_ge_X₀ (n := n) hn)
+
+  have hδ_nonneg : 0 ≤ gap.δ x :=
+    PrimeGap_Criterion.gap_nonneg x (by simpa using hX0_le_x)
+
+  have hb_pos : 0 < b := by
+    -- `b = 1 + δ(x)` and `δ(x) ≥ 0`.
+    simpa [hb] using
+      (add_pos_of_pos_of_nonneg (by norm_num : (0 : ℝ) < (1 : ℝ)) hδ_nonneg)
+
+  have hb3_pos : 0 < b ^ (3 : ℕ) := pow_pos hb_pos 3
+
+  -- From `hn` and `X₀ > 1`, we get `n > 0`, hence `x = √n > 0`.
+  have hX0_pos_nat : 0 < X₀ :=
+    lt_trans Nat.zero_lt_one (PrimeGap_Criterion.h_X₀)
+  have hX0_sq_pos_nat : 0 < X₀ ^ 2 := pow_pos hX0_pos_nat 2
+  have hn_pos_nat : 0 < n := lt_of_lt_of_le hX0_sq_pos_nat hn
+  have hn_pos : (0 : ℝ) < (n : ℝ) := by exact_mod_cast hn_pos_nat
+  have hx_pos : 0 < x := by
+    simpa [hx] using (Real.sqrt_pos.2 hn_pos)
+
+  -- Criterion gives `b^6 < x` (since `b = 1 + δ(√n)` and `x = √n`).
+  have h6 : b ^ (6 : ℕ) < x := by
+    simpa [hx, hb] using
+      (PrimeGap_Criterion.delta_sixth_power_lt_sqrt (n := n) hn)
+
+  -- Multiply `b^6 < x` by the positive number `x` to get `x*b^6 < x*x`.
+  have hx_mul6 : x * b ^ (6 : ℕ) < x * x := by
+    have := mul_lt_mul_of_pos_left h6 hx_pos
+    simpa [mul_assoc] using this
+
+  -- Convert `x*x` into `n` (since `x = √(n)`).
+  have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
+    exact_mod_cast (Nat.zero_le n)
+  have hx_sq : x * x = (n : ℝ) := by
+    have : x ^ (2 : ℕ) = (n : ℝ) := by
+      simpa [hx] using (Real.sq_sqrt hn0)
+    simpa [pow_two] using this
+
+  have hxb6_lt_n : x * b ^ (6 : ℕ) < (n : ℝ) := by
+    simpa [hx_sq] using hx_mul6
+
+  -- Rewrite `(x*b^3)*b^3` as `x*b^6` and apply `lt_div_iff₀`.
+  have hpow : b ^ (3 : ℕ) * b ^ (3 : ℕ) = b ^ (6 : ℕ) := by
+    have : (3 : ℕ) + 3 = 6 := by norm_num
+    calc
+      b ^ (3 : ℕ) * b ^ (3 : ℕ)
+          = b ^ ((3 : ℕ) + 3) := by
+              simpa using (pow_add b 3 3).symm
+      _   = b ^ (6 : ℕ) := by
+              simp [this]
+
+  have hrewrite :
+      (x * b ^ (3 : ℕ)) * b ^ (3 : ℕ) = x * b ^ (6 : ℕ) := by
+    calc
+      (x * b ^ (3 : ℕ)) * b ^ (3 : ℕ)
+          = x * (b ^ (3 : ℕ) * b ^ (3 : ℕ)) := by
+              simp [mul_assoc]
+      _   = x * b ^ (6 : ℕ) := by
+              simp [hpow, mul_assoc]
+
+  have hmul : (x * b ^ (3 : ℕ)) * b ^ (3 : ℕ) < (n : ℝ) := by
+    simpa [hrewrite] using hxb6_lt_n
+
+  have hdiv : x * b ^ (3 : ℕ) < (n : ℝ) / b ^ (3 : ℕ) :=
+    (lt_div_iff₀ hb3_pos).2 hmul
+
+  -- Unfold `x` and `b` to match the statement.
+  simpa [hx, hb] using hdiv
+
+-- /- End of `h_ord_2` lemmas -/
 
 /- `h_crit` lemmas -/
 theorem main_ineq_delta_form [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
