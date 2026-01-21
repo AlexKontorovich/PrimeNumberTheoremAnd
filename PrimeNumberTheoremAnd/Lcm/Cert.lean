@@ -1265,12 +1265,12 @@ lemma inv_n_pow_3_div_2_le_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ 
               simp [mul_inv_rev]
       _   = ((1 : ℝ) / (n : ℝ)) * ((1 : ℝ) / √(n : ℝ)) := by
               -- rearrange the inverses into `1/n * 1/√n`
-              simp [one_div, mul_assoc, mul_left_comm, mul_comm]
+              simp [one_div, mul_comm]
 
   have h_right : ((1 : ℝ) / (n : ℝ)) * ((1 : ℝ) / (X₀ : ℝ))
       = (1 / (X₀ : ℝ)) * (1 / n) := by
     -- Commute the product and normalize casts.
-    simp [mul_assoc, mul_left_comm, mul_comm, one_div]
+    simp [mul_comm, one_div]
 
   -- Final.
   simpa [h_left, h_right, mul_assoc, mul_left_comm, mul_comm] using hmul
@@ -1652,7 +1652,7 @@ theorem main_ineq_delta_form_rhs [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀
       -- rewrite `a/d` as `a*(1/d)` and use `hinv_pow`.
       have : 4 * (1.000675 : ℝ) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
             = (4 * (1.000675 : ℝ) ^ 12) * (1 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
-        simp [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
+        simp [div_eq_mul_inv, mul_comm]
       -- multiply `hinv_pow` by the nonnegative constant
       have hmul := mul_le_mul_of_nonneg_left hinv_pow hconst_nonneg
       -- clean up
@@ -1831,7 +1831,7 @@ theorem main_ineq_delta_form [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2
   have hn_ne : (n : ℝ) ≠ 0 := by
     exact_mod_cast (Nat.ne_of_gt hn_pos_nat)
   have h38 : (3 : ℝ) / 8 * ε = (3 : ℝ) / (8 * (n : ℝ)) := by
-    simp [hε, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
+    simp [hε, div_eq_mul_inv, mul_left_comm, mul_comm]
 
   -- Rewrite `onePlusEps_log` to the numerical constant used in the bounds.
   have hone : (onePlusEps_log : ℝ) = (1.000675 : ℝ) := by
