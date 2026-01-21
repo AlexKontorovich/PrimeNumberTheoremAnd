@@ -359,7 +359,7 @@ theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : b ≤ 2 * log I.x₁) (hx : x �
   (title := "Proposition 4, part b")
   (statement := /--  If $b > 2\log x_1$, then we have
 \[
-\theta(x^{1/2}) < (1 + \varepsilon(b/2))x^{1/2} \quad \text{for } x \geq e^b.
+\theta(x^{1/2}) \leq (1 + \varepsilon(b/2))x^{1/2} \quad \text{for } x \geq e^b.
 \]
  -/)
   (proof := /-- Note that in the paper, the inequality in Proposition 4 is strict, but the
