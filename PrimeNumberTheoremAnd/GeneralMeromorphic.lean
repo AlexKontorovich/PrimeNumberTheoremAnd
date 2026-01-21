@@ -14,9 +14,10 @@ open scoped Interval
   none of which is on the boundary of the rectangle (so the function is continuous there). -/
 @[blueprint
   (statement := /--
-  A function $f$ is Meromorphic on a rectangle with corners $z$ and $w$ if it is holomorphic off a
-  (finite) set of poles, none of which are on the boundary of the rectangle.
-  [Note: Might be overkill, can just work explicitly with the functions that arise. Of course would be nice to have the general theory as well...]
+    A function $f$ is Meromorphic on a rectangle with corners $z$ and $w$ if it is holomorphic off
+    a (finite) set of poles, none of which are on the boundary of the rectangle.
+    [Note: Might be overkill, can just work explicitly with the functions that arise. Of course
+    would be nice to have the general theory as well...]
   -/)]
 class MeromorphicOnRectangle (f : ℂ → ℂ) (poles : Finset ℂ) (z w : ℂ) : Prop where
   holomorphicOn : HolomorphicOn f ((Rectangle z w) ∩ polesᶜ)
@@ -49,7 +50,8 @@ $$
 
 
 blueprint_comment /--
-If a meromorphic function $f$ has a pole at $z_0$, then the residue of $f$ at $z_0$ is the coefficient of $1/(z-z_0)$ in the Laurent series of $f$ around $z_0$.
+If a meromorphic function $f$ has a pole at $z_0$, then the residue of $f$ at $z_0$ is the
+coefficient of $1/(z-z_0)$ in the Laurent series of $f$ around $z_0$.
 \begin{definition}\label{Residue}
 If $f$ has a pole of order $n$ at $z_0$, then
 $$
@@ -112,9 +114,11 @@ We can evaluate a small integral around a pole by taking the residue.
 --   sorry_using [PoleOrder, Residue, RectangleIntegral, RectangleIntegralEqSumOfRectangles]
 
 blueprint_comment /--
-[Note: Of course the standard thing is to do this with circles, where the integral comes out directly from the parametrization. But discs don't tile
-discs! Thus the standard approach is with annoying keyhole contours, etc; this is a total mess to formalize! Instead, we observe that rectangles do tile rectangles, so we can just do the
-whole theory with rectangles. The cost is the extra difficulty of this little calculation.]
+[Note: Of course the standard thing is to do this with circles, where the integral comes out
+directly from the parametrization. But discs don't tile discs! Thus the standard approach is with
+annoying keyhole contours, etc; this is a total mess to formalize! Instead, we observe that
+rectangles do tile rectangles, so we can just do the whole theory with rectangles. The cost is
+the extra difficulty of this little calculation.]
 
 [Note: We only ever need simple poles for PNT, so would be enough to develop those...]
 -/

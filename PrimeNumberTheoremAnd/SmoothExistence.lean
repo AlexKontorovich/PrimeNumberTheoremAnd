@@ -15,7 +15,7 @@ lemma smooth_urysohn_support_Ioo {a b c d : ℝ} (h1 : a < b) (h3 : c < d) :
     Set.indicator (Set.Icc b c) 1 ≤ Ψ ∧
     Ψ ≤ Set.indicator (Set.Ioo a d) 1 ∧ (Function.support Ψ = Set.Ioo a d) := by
 
-  have := exists_msmooth_zero_iff_one_iff_of_isClosed
+  have := exists_contMDiff_zero_iff_one_iff_of_isClosed (n := ⊤)
     (modelWithCornersSelf ℝ ℝ) (s := Set.Iic a ∪ Set.Ici d) (t := Set.Icc b c)
     (IsClosed.union isClosed_Iic isClosed_Ici)
     (isClosed_Icc)

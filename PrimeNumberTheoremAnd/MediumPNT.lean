@@ -78,7 +78,8 @@ The main object of study is the following inverse Mellin-type transform, which w
 be a smoothed Chebyshev function.
 -/
 
-noncomputable abbrev SmoothedChebyshevIntegrand (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ → ℂ :=
+noncomputable abbrev SmoothedChebyshevIntegrand
+    (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : ℝ) : ℂ → ℂ :=
   fun s ↦ (- deriv riemannZeta s) / riemannZeta s *
     𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) s * (X : ℂ) ^ s
 
@@ -98,8 +99,10 @@ noncomputable def SmoothedChebyshev (SmoothingF : ℝ → ℝ) (ε : ℝ) (X : �
 open ComplexConjugate
 
 
-lemma smoothedChebyshevIntegrand_conj {SmoothingF : ℝ → ℝ} {ε X : ℝ} (Xpos : 0 < X) (s : ℂ) :
-    SmoothedChebyshevIntegrand SmoothingF ε X (conj s) = conj (SmoothedChebyshevIntegrand SmoothingF ε X s) := by
+lemma smoothedChebyshevIntegrand_conj
+    {SmoothingF : ℝ → ℝ} {ε X : ℝ} (Xpos : 0 < X) (s : ℂ) :
+    SmoothedChebyshevIntegrand SmoothingF ε X (conj s) =
+      conj (SmoothedChebyshevIntegrand SmoothingF ε X s) := by
   unfold SmoothedChebyshevIntegrand
   simp only [map_mul, map_div₀, map_neg]
   congr
@@ -126,13 +129,18 @@ open MeasureTheory
 @[blueprint
   (title := "SmoothedChebyshevDirichlet-aux-integrable")
   (statement := /--
-  Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$, and $\sigma\in (1, 2]$, the function
+  Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in
+  $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$,
+  and $\sigma\in (1, 2]$, the function
   $$
   x \mapsto\mathcal{M}(\widetilde{1_{\epsilon}})(\sigma + ix)
   $$
   is integrable on $\mathbb{R}$.
   -/)
-  (proof := /-- By Lemma \ref{MellinOfSmooth1b} the integrand is $O(1/t^2)$ as $t\rightarrow \infty$ and hence the function is integrable. -/)
+  (proof := /--
+  By Lemma \ref{MellinOfSmooth1b} the integrand is $O(1/t^2)$ as $t\rightarrow \infty$ and hence
+  the function is integrable.
+  -/)
   (latexEnv := "lemma")]
 lemma SmoothedChebyshevDirichlet_aux_integrable {SmoothingF : ℝ → ℝ}
     (diffSmoothingF : ContDiff ℝ 1 SmoothingF)
@@ -176,8 +184,8 @@ attribute [fun_prop] Continuous.const_cpow
   (title := "SmoothedChebyshevDirichlet-aux-tsum-integral")
   (statement := /--
   Fix a nonnegative, continuously differentiable function $F$ on $\mathbb{R}$ with support in
-  $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$ and $\sigma\in(1,2]$, the
-  function
+  $[1/2,2]$, and total mass one, $\int_{(0,\infty)} F(x)/x dx = 1$. Then for any $\epsilon>0$ and
+  $\sigma\in(1,2]$, the function
   $x \mapsto \sum_{n=1}^\infty \frac{\Lambda(n)}{n^{\sigma+it}}
   \mathcal{M}(\widetilde{1_{\epsilon}})(\sigma+it) x^{\sigma+it}$ is equal to
   $\sum_{n=1}^\infty \int_{(0,\infty)} \frac{\Lambda(n)}{n^{\sigma+it}}
@@ -205,7 +213,8 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     refine ContinuousOn.comp' ?_ ?_ ?_ (t := {z : ℂ | 0 < z.re })
     · refine continuousOn_of_forall_continuousAt ?_
       intro z hz
-      exact (Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one hz).continuousAt
+      exact (Smooth1MellinDifferentiable diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩
+        SmoothingFpos mass_one hz).continuousAt
     · fun_prop
     · simp only [mapsTo_univ_iff, mem_setOf_eq, add_re, ofReal_re, mul_re, I_re, mul_zero,
         ofReal_im, I_im, mul_one, sub_self, add_zero, forall_const]; linarith
@@ -227,10 +236,12 @@ lemma SmoothedChebyshevDirichlet_aux_tsum_integral {SmoothingF : ℝ → ℝ}
     · apply Continuous.aestronglyMeasurable
       fun_prop (disch := simp[i_eq_zero, x_neq_zero])
   · rw [← lt_top_iff_ne_top]
-    simp_rw [enorm_mul, enorm_eq_nnnorm, nnnorm_div, ← norm_toNNReal, Complex.norm_cpow_eq_rpow_re_of_pos X_pos, norm_toNNReal, abs_two]
+    simp_rw [enorm_mul, enorm_eq_nnnorm, nnnorm_div, ← norm_toNNReal,
+      Complex.norm_cpow_eq_rpow_re_of_pos X_pos, norm_toNNReal, abs_two]
     simp only [nnnorm_real, add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one,
       sub_self, add_zero]
-    simp_rw [MeasureTheory.lintegral_mul_const' (r := ↑(X ^ σ).toNNReal) (hr := by simp), ENNReal.tsum_mul_right]
+    simp_rw [MeasureTheory.lintegral_mul_const' (r := ↑(X ^ σ).toNNReal) (hr := by simp),
+      ENNReal.tsum_mul_right]
     apply WithTop.mul_lt_top ?_ ENNReal.coe_lt_top
 
     conv =>
@@ -303,13 +314,17 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
     _ = 1 / (2 * π * I) * (I * ∑' n, ∫ (t : ℝ), Λ n / (n : ℂ) ^ (σ + ↑t * I) *
       mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * X ^ (σ + ↑t * I)) := ?_
     _ = 1 / (2 * π * I) * (I * ∑' n, Λ n * ∫ (t : ℝ),
-      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * (X / (n : ℂ)) ^ (σ + ↑t * I)) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) *
+        (X / (n : ℂ)) ^ (σ + ↑t * I)) := ?_
     _ = 1 / (2 * π) * (∑' n, Λ n * ∫ (t : ℝ),
-      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * (X / (n : ℂ)) ^ (σ + ↑t * I)) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) *
+        (X / (n : ℂ)) ^ (σ + ↑t * I)) := ?_
     _ = ∑' n, Λ n * (1 / (2 * π) * ∫ (t : ℝ),
-      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * (X / (n : ℂ)) ^ (σ + ↑t * I)) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) *
+        (X / (n : ℂ)) ^ (σ + ↑t * I)) := ?_
     _ = ∑' n, Λ n * (1 / (2 * π) * ∫ (t : ℝ),
-      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) * ((n : ℂ) / X) ^ (-(σ + ↑t * I))) := ?_
+      mellin (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (σ + ↑t * I) *
+        ((n : ℂ) / X) ^ (-(σ + ↑t * I))) := ?_
     _ = _ := ?_
   · congr; ext t
     rw [LogDerivativeDirichlet]
@@ -359,7 +374,8 @@ theorem SmoothedChebyshevDirichlet {SmoothingF : ℝ → ℝ}
       · rw [mul_comm]
         norm_cast
     · exact div_pos (by exact_mod_cast n_pos) (by linarith : 0 < X)
-    · apply Smooth1MellinConvergent diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩ SmoothingFpos mass_one
+    · apply Smooth1MellinConvergent diffSmoothingF suppSmoothingF ⟨εpos, ε_lt_one⟩
+        SmoothingFpos mass_one
       simp only [ofReal_re]
       linarith
     · dsimp [VerticalIntegrable]
@@ -377,15 +393,19 @@ The smoothed Chebyshev function is close to the actual Chebyshev function.
 --open scoped ArithmeticFunction in
 theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → ℝ} (SmoothingF : ℝ → ℝ)
     (c₁ : ℝ) (c₁_pos : 0 < c₁) (c₁_lt : c₁ < 1)
-    (c₂ : ℝ) (c₂_pos : 0 < c₂) (c₂_lt : c₂ < 2) (hc₂ : ∀ (ε x : ℝ), ε ∈ Ioo 0 1 → 1 + c₂ * ε ≤ x → Smooth1 SmoothingF ε x = 0)
+    (c₂ : ℝ) (c₂_pos : 0 < c₂) (c₂_lt : c₂ < 2)
+    (hc₂ : ∀ (ε x : ℝ), ε ∈ Ioo 0 1 → 1 + c₂ * ε ≤ x → Smooth1 SmoothingF ε x = 0)
     (C : ℝ) (C_eq : C = 6 * (3 * c₁ + c₂))
     (ε : ℝ) (ε_pos : 0 < ε) (ε_lt_one : ε < 1)
-    (X : ℝ) (X_pos : 0 < X) (X_gt_three : 3 < X) (X_bound_1 : 1 ≤ X * ε * c₁) (X_bound_2 : 1 ≤ X * ε * c₂)
+    (X : ℝ) (X_pos : 0 < X) (X_gt_three : 3 < X)
+    (X_bound_1 : 1 ≤ X * ε * c₁) (X_bound_2 : 1 ≤ X * ε * c₂)
     (smooth1BddAbove : ∀ (n : ℕ), 0 < n → Smooth1 SmoothingF ε (↑n / X) ≤ 1)
     (smooth1BddBelow : ∀ (n : ℕ), 0 < n → Smooth1 SmoothingF ε (↑n / X) ≥ 0)
-    (smoothIs1 : ∀ (n : ℕ), 0 < n → ↑n ≤ X * (1 - c₁ * ε) → Smooth1 SmoothingF ε (↑n / X) = 1)
+    (smoothIs1 : ∀ (n : ℕ), 0 < n → ↑n ≤ X * (1 - c₁ * ε) →
+      Smooth1 SmoothingF ε (↑n / X) = 1)
     (smoothIs0 : ∀ (n : ℕ), 1 + c₂ * ε ≤ ↑n / X → Smooth1 SmoothingF ε (↑n / X) = 0) :
-  ‖(↑((∑' (n : ℕ), ArithmeticFunction.vonMangoldt n * Smooth1 SmoothingF ε (↑n / X))) : ℂ) - ψ X‖ ≤
+  ‖(↑((∑' (n : ℕ), ArithmeticFunction.vonMangoldt n * Smooth1 SmoothingF ε (↑n / X))) : ℂ) -
+      ψ X‖ ≤
     C * ε * X * Real.log X := by
   norm_cast
 
@@ -419,7 +439,8 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     (hc₂ _ _ (⟨ε_pos, ε_lt_one⟩) ((le_div_iff₀ X_pos).2 (Nat.ceil_le.1 (not_lt.1
     (s ∘ Finset.mem_range.2))))))
 
-  have sumΛn₀ (n₀ : ℕ) : Summable (fun n ↦ Λ (n + n₀) * F ((n + n₀) / X)) := by exact_mod_cast sumΛ.comp_injective fun Q=>by omega
+  have sumΛn₀ (n₀ : ℕ) : Summable (fun n ↦ Λ (n + n₀) * F ((n + n₀) / X)) := by
+    exact_mod_cast sumΛ.comp_injective fun Q => by omega
 
   rw[← Summable.sum_add_tsum_nat_add' (k := n₀) (mod_cast sumΛn₀ n₀)]
 
@@ -470,7 +491,8 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
         omega]
 
   rw [show(∑' (n : ℕ), Λ (n + n₁) * F (↑(n + n₁) / X)) = Λ (n₁) * F (↑n₁ / X) by
-    have : (∑' (n : ℕ), Λ (n + n₁) * F (↑(n + n₁) / X)) = Λ (n₁) * F (↑n₁ / X) + (∑' (n : ℕ), Λ (n + 1 + n₁) * F (↑(n + 1 + n₁) / X)) := by
+    have : (∑' (n : ℕ), Λ (n + n₁) * F (↑(n + n₁) / X)) =
+        Λ (n₁) * F (↑n₁ / X) + (∑' (n : ℕ), Λ (n + 1 + n₁) * F (↑(n + 1 + n₁) / X)) := by
       let fTemp := fun n ↦ Λ (n + n₁) * F ((↑n + ↑n₁) / X)
       have hTemp (n : ℕ): fTemp n = Λ (n + n₁) * F (↑(n + n₁) / X) := by rw[Nat.cast_add]
       rw[← tsum_congr hTemp, ← tsum_congr fun n ↦ (hTemp (n + 1))]
@@ -485,7 +507,8 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     convert mul_zero _
     apply smoothIs0
     rw[← mul_le_mul_iff_left₀ X_pos]
-    rw[( by field_simp : ↑(n + 1 + n₁) / X * X = ↑(n + 1 + n₁)), (by ring : (1 + c₂ * ε) * X = 1 + (X * (1 + c₂ * ε) - 1)), Nat.cast_add, Nat.cast_add]
+    rw [(by field_simp : ↑(n + 1 + n₁) / X * X = ↑(n + 1 + n₁)),
+      (by ring : (1 + c₂ * ε) * X = 1 + (X * (1 + c₂ * ε) - 1)), Nat.cast_add, Nat.cast_add]
     bound]
 
   have X_le_floor_add_one : X ≤ ↑⌊X + 1⌋₊ := by
@@ -526,14 +549,17 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     have inter1: ‖ Λ (n + n₀)‖ ≤ Real.log (↑n + ↑n₀) := by
       rw[Real.norm_of_nonneg ArithmeticFunction.vonMangoldt_nonneg, ← Nat.cast_add]
       apply ArithmeticFunction.vonMangoldt_le_log
-    have inter2: Real.log (↑n + ↑n₀) ≤ Real.log (↑n₁) := by exact_mod_cast Real.log_le_log (by positivity) n_add_n0_le_n1
-    have inter3: Real.log (↑n₁) ≤ Real.log (X * (1 + c₂ * ε)) := by exact Real.log_le_log (by bound) (by linarith)
+    have inter2: Real.log (↑n + ↑n₀) ≤ Real.log (↑n₁) := by
+      exact_mod_cast Real.log_le_log (by positivity) n_add_n0_le_n1
+    have inter3: Real.log (↑n₁) ≤ Real.log (X * (1 + c₂ * ε)) := by
+      exact Real.log_le_log (by bound) (by linarith)
     exact le_imp_le_of_le_of_le inter1 inter3 inter2
 
   have bnd1 :
     ∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖
     ≤ (n₁ - n₀) * Real.log (X * (1 + c₂ * ε)) := by
-    have : (n₁ - n₀) * Real.log (X * (1 + c₂ * ε)) = (∑ n ∈ Finset.range (n₁ - n₀), Real.log (X * (1 + c₂ * ε))) := by
+    have : (n₁ - n₀) * Real.log (X * (1 + c₂ * ε)) =
+        (∑ n ∈ Finset.range (n₁ - n₀), Real.log (X * (1 + c₂ * ε))) := by
       rw[← Nat.cast_sub]
       · nth_rewrite 1 [← Finset.card_range (n₁ - n₀)]
         rw[Finset.cast_card, Finset.sum_const, smul_one_mul]
@@ -555,19 +581,22 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
 
   have bnd2 :
     ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), ‖Λ (x + n₀)‖ ≤ (⌊X + 1⌋₊ - n₀) * Real.log (X + 1) := by
-    have : (⌊X + 1⌋₊ - n₀) * Real.log (X + 1) = (∑ n ∈ Finset.range (⌊X + 1⌋₊ - n₀), Real.log (X + 1)) := by
+    have : (⌊X + 1⌋₊ - n₀) * Real.log (X + 1) =
+        (∑ n ∈ Finset.range (⌊X + 1⌋₊ - n₀), Real.log (X + 1)) := by
       rw[← Nat.cast_sub]
       · nth_rewrite 1 [← Finset.card_range (⌊X + 1⌋₊ - n₀)]
         rw[Finset.cast_card, Finset.sum_const, smul_one_mul]
         exact Eq.symm (Finset.sum_const (Real.log (X + 1)))
       simp only [Nat.ceil_le, n₀]
-      exact Preorder.le_trans (X * (1 - c₁ * ε)) X (↑⌊X + 1⌋₊) n₀_inside_le_X X_le_floor_add_one
+      exact Preorder.le_trans (X * (1 - c₁ * ε)) X (↑⌊X + 1⌋₊) n₀_inside_le_X
+        X_le_floor_add_one
     rw[this]
     apply Finset.sum_le_sum
     intro n hn
     have n_add_n0_le_X_add_one: (n : ℝ) + n₀ ≤ X + 1 := by
       rw[Finset.mem_range] at hn
-      rw[← add_le_add_iff_right (-↑n₀), add_assoc, ← sub_eq_add_neg, sub_self, add_zero, ← sub_eq_add_neg]
+      rw [← add_le_add_iff_right (-↑n₀), add_assoc, ← sub_eq_add_neg, sub_self, add_zero,
+        ← sub_eq_add_neg]
       have temp: (n : ℝ) < ⌊X + 1⌋₊ - n₀ := by
         rw [← Nat.cast_sub, Nat.cast_lt]
         · exact hn
@@ -596,8 +625,8 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
     exact mul_le_mul const_le_2 (by rfl) (by positivity) (by positivity)
 
   calc
-    _ = ‖∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((↑n + ↑n₀) / X) - ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), Λ (x + n₀) +
-        Λ n₁ * F (↑n₁ / X)‖ := by
+    _ = ‖∑ n ∈ Finset.range (n₁ - n₀), Λ (n + n₀) * F ((↑n + ↑n₀) / X) -
+          ∑ x ∈ Finset.range (⌊X + 1⌋₊ - n₀), Λ (x + n₀) + Λ n₁ * F (↑n₁ / X)‖ := by
       congr 1
       ring
     _ ≤ (∑ n ∈ Finset.range (n₁ - n₀), ‖Λ (n + n₀)‖ * ‖F ((↑n + ↑n₀) / X)‖) +
@@ -647,7 +676,8 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
         rw[← mul_one (Real.log (X * (1 + c₂ * ε)))]
         apply mul_le_mul _ _ (norm_nonneg _) (log_nonneg (by bound))
         · rw[Real.norm_of_nonneg ArithmeticFunction.vonMangoldt_nonneg]
-          exact le_trans ArithmeticFunction.vonMangoldt_le_log <| Real.log_le_log (mod_cast n₁_pos) n₁_le
+          exact le_trans ArithmeticFunction.vonMangoldt_le_log <|
+            Real.log_le_log (mod_cast n₁_pos) n₁_le
         rw[Real.norm_of_nonneg <| smooth1BddBelow _ n₁_pos]
         apply smooth1BddAbove _ n₁_pos
     _ ≤ 2 * (X * ε * (3 * c₁ + c₂)) * (Real.log X + (Real.log X + Real.log 3)) := by
@@ -657,8 +687,10 @@ theorem SmoothedChebyshevClose_aux {Smooth1 : (ℝ → ℝ) → ℝ → ℝ → 
       nth_rewrite 1 [← one_mul (Real.log (3 * X))]
       apply mul_le_mul_of_nonneg_right _ (log_nonneg (by linarith))
       linarith
-    _ = 4 * (X * ε * (3 * c₁ + c₂)) * Real.log X + 2 * (X * ε * (3 * c₁ + c₂)) * Real.log 3 := by ring
-    _ ≤ 4 * (X * ε * (3 * c₁ + c₂)) * Real.log X + 2 * (X * ε * (3 * c₁ + c₂)) * Real.log X := by gcongr
+    _ = 4 * (X * ε * (3 * c₁ + c₂)) * Real.log X +
+          2 * (X * ε * (3 * c₁ + c₂)) * Real.log 3 := by ring
+    _ ≤ 4 * (X * ε * (3 * c₁ + c₂)) * Real.log X +
+          2 * (X * ε * (3 * c₁ + c₂)) * Real.log X := by gcongr
     _ = _ := by
       rw [C_eq]
       ring
@@ -779,8 +811,9 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
   rw [SmoothedChebyshevDirichlet diffSmoothingF SmoothingFnonneg suppSmoothingF
     mass_one (by linarith) εpos ε_lt_one]
 
-  convert SmoothedChebyshevClose_aux SmoothingF c₁ c₁_pos c₁_lt c₂ c₂_pos c₂_lt hc₂ C C_eq ε ε_pos ε_lt_one
-    X X_pos X_gt_three X_bound_1 X_bound_2 smooth1BddAbove smooth1BddBelow smoothIs1 smoothIs0
+  convert SmoothedChebyshevClose_aux SmoothingF c₁ c₁_pos c₁_lt c₂ c₂_pos c₂_lt hc₂ C C_eq ε
+    ε_pos ε_lt_one X X_pos X_gt_three X_bound_1 X_bound_2 smooth1BddAbove smooth1BddBelow
+    smoothIs1 smoothIs0
 
 
 
@@ -791,8 +824,9 @@ $\sigma_1 = 1- A/ \log T^9$, and
 $\sigma_2<\sigma_1$ a constant.
 Pull
 contours (via rectangles!) to go
-from $\sigma_0-i\infty$ up to $\sigma_0-iT$, then over to $\sigma_1-iT$,
-up to $\sigma_1-3i$, over to $\sigma_2-3i$, up to $\sigma_2+3i$, back over to $\sigma_1+3i$, up to $\sigma_1+iT$, over to $\sigma_0+iT$, and finally up to $\sigma_0+i\infty$.
+from $\sigma_0-i\infty$ up to $\sigma_0-iT$, then over to $\sigma_1-iT$, up to $\sigma_1-3i$,
+over to $\sigma_2-3i$, up to $\sigma_2+3i$, back over to $\sigma_1+3i$, up to $\sigma_1+iT$,
+over to $\sigma_0+iT$, and finally up to $\sigma_0+i\infty$.
 
 In the process, we will pick up the residue at $s=1$.
 We will do this in several stages. Here the interval integrals are defined as follows:
@@ -978,8 +1012,8 @@ noncomputable def I₆ (SmoothingF : ℝ → ℝ) (ε X σ₁ σ₂ : ℝ) : ℂ
   $$
   -/)]
 noncomputable def I₅ (SmoothingF : ℝ → ℝ) (ε X σ₂ : ℝ) : ℂ :=
-  (1 / (2 * π * I)) * (I * (∫ t in (-3)..3,
-    SmoothedChebyshevIntegrand SmoothingF ε X (σ₂ + t * I)))
+  (1 / (2 * π * I)) *
+    (I * (∫ t in (-3)..3, SmoothedChebyshevIntegrand SmoothingF ε X (σ₂ + t * I)))
 
 theorem realDiff_of_complexDiff {f : ℂ → ℂ} (s : ℂ) (hf : DifferentiableAt ℂ f s) :
     ContinuousAt (fun (x : ℝ) ↦ f (s.re + x * I)) s.im := by
@@ -1011,7 +1045,9 @@ theorem dlog_riemannZeta_bdd_on_vertical_lines_explicit {σ₀ : ℝ} (σ₀_gt 
   \left\| \frac{\zeta'(\sigma_0 + t i)}{\zeta(\sigma_0 + t i)} \right\| \leq C.
   $$
   -/)
-  (proof := /-- Write as Dirichlet series and estimate trivially using Theorem \ref{LogDerivativeDirichlet}. -/)
+  (proof := /--
+  Write as Dirichlet series and estimate trivially using Theorem \ref{LogDerivativeDirichlet}.
+  -/)
   (latexEnv := "lemma")]
 theorem dlog_riemannZeta_bdd_on_vertical_lines {σ₀ : ℝ} (σ₀_gt : 1 < σ₀) :
     ∃ c > 0, ∀(t : ℝ), ‖ζ' (σ₀ + t * I) / ζ (σ₀ + t * I)‖ ≤ c := by
@@ -1068,7 +1104,8 @@ theorem SmoothedChebyshevPull1_aux_integrable {SmoothingF : ℝ → ℝ} {ε : �
           add_zero, ne_eq]
         linarith
   convert (SmoothedChebyshevDirichlet_aux_integrable ContDiffSmoothingF SmoothingFnonneg
-    suppSmoothingF mass_one ε_pos ε_lt_one σ₀_gt σ₀_le_2).bdd_mul (c := c) ?_ (ae_of_all _ this) using 2
+    suppSmoothingF mass_one ε_pos ε_lt_one σ₀_gt σ₀_le_2).bdd_mul
+      (c := c) ?_ (ae_of_all _ this) using 2
   · unfold SmoothedChebyshevIntegrand
     ring
   · apply Continuous.aestronglyMeasurable
@@ -1170,8 +1207,9 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
     unfold I₉
     nth_rewrite 6 [add_comm]
     simp only [← add_assoc]
-    rw[add_right_cancel_iff, ← add_right_inj (1 / (2 * ↑π * I) *
-        -VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) (1 + (Real.log X)⁻¹) (-T) T),
+    rw [add_right_cancel_iff,
+        ← add_right_inj (1 / (2 * ↑π * I) *
+          -VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) (1 + (Real.log X)⁻¹) (-T) T),
         ← mul_add, ← sub_eq_neg_add, sub_self, mul_zero]
     unfold VIntegral I₂ I₃₇ I₈
     simp only [smul_eq_mul, temp, ← add_assoc, ← mul_neg, ← mul_add]
@@ -1255,7 +1293,8 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
         · intro s hs
           apply DifferentiableAt.differentiableWithinAt
           simp only [re_add_im]
-          apply Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one
+          apply Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF ⟨ε_pos, ε_lt_one⟩
+            SmoothingFnonneg mass_one
           have := mem_reProdIm.mp hs.1 |>.1
           simp only [sub_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
             sub_zero, one_div, ofReal_inv, add_re, one_re, inv_re, normSq_ofReal,
@@ -1279,7 +1318,8 @@ theorem SmoothedChebyshevPull1 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
         apply DifferentiableAt.differentiableWithinAt
         simp only [g]
         apply DifferentiableAt.mul
-        · apply Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one
+        · apply Smooth1MellinDifferentiable ContDiffSmoothingF suppSmoothingF ⟨ε_pos, ε_lt_one⟩
+            SmoothingFnonneg mass_one
           simp only [ofReal_inv, U] at uInU
           unfold Rectangle at uInU
           rw[Complex.mem_reProdIm] at uInU
@@ -1321,9 +1361,12 @@ lemma verticalIntegral_split_three_finite {s a b e σ : ℝ} {f : ℂ → ℂ}
     VIntegral f σ b e := by
   dsimp [VIntegral]
   rw [← intervalIntegrable_iff_integrableOn_Icc_of_le (by linarith)] at hf
-  rw[← intervalIntegral.integral_add_adjacent_intervals (b := a), ← intervalIntegral.integral_add_adjacent_intervals (a := a) (b := b)]
+  rw [← intervalIntegral.integral_add_adjacent_intervals (b := a),
+    ← intervalIntegral.integral_add_adjacent_intervals (a := a) (b := b)]
   · ring
-  all_goals apply IntervalIntegrable.mono_set hf; apply uIcc_subset_uIcc <;> apply mem_uIcc_of_le <;> linarith
+  all_goals
+    apply IntervalIntegrable.mono_set hf
+    apply uIcc_subset_uIcc <;> apply mem_uIcc_of_le <;> linarith
 
 lemma verticalIntegral_split_three_finite' {s a b e σ : ℝ} {f : ℂ → ℂ}
     (hf : IntegrableOn (fun t : ℝ ↦ f (σ + t * I)) (Icc s e))
@@ -1333,8 +1376,9 @@ lemma verticalIntegral_split_three_finite' {s a b e σ : ℝ} {f : ℂ → ℂ}
     (1 : ℂ) / (2 * π * I) * (VIntegral f σ a b) +
     (1 : ℂ) / (2 * π * I) * (VIntegral f σ b e) := by
   have : (1 : ℂ) / (2 * π * I) * (VIntegral f σ s a) +
-    (1 : ℂ) / (2 * π * I) * (VIntegral f σ a b) +
-    (1 : ℂ) / (2 * π * I) * (VIntegral f σ b e) = (1 : ℂ) / (2 * π * I) * ((VIntegral f σ s a) +
+      (1 : ℂ) / (2 * π * I) * (VIntegral f σ a b) +
+      (1 : ℂ) / (2 * π * I) * (VIntegral f σ b e) =
+        (1 : ℂ) / (2 * π * I) * ((VIntegral f σ s a) +
     (VIntegral f σ a b) +
     (VIntegral f σ b e)) := by ring
   rw [this]
@@ -1344,14 +1388,16 @@ lemma verticalIntegral_split_three_finite' {s a b e σ : ℝ} {f : ℂ → ℂ}
 theorem SmoothedChebyshevPull2_aux1 {T σ₁ : ℝ} (σ₁lt : σ₁ < 1)
   (holoOn : HolomorphicOn (ζ' / ζ) (Icc σ₁ 2 ×ℂ Icc (-T) T \ {1})) :
   ContinuousOn (fun (t : ℝ) ↦ -ζ' (σ₁ + t * I) / ζ (σ₁ + t * I)) (Icc (-T) T) := by
-  rw [show (fun (t : ℝ) ↦ -ζ' (↑σ₁ + ↑t * I) / ζ (↑σ₁ + ↑t * I)) = -(ζ' / ζ) ∘ (fun (t : ℝ) ↦ ↑σ₁ + ↑t * I) by ext; simp; ring_nf]
+  rw [show (fun (t : ℝ) ↦ -ζ' (↑σ₁ + ↑t * I) / ζ (↑σ₁ + ↑t * I)) =
+      -(ζ' / ζ) ∘ (fun (t : ℝ) ↦ ↑σ₁ + ↑t * I) by ext; simp; ring_nf]
   apply ContinuousOn.neg
   apply holoOn.continuousOn.comp (by fun_prop)
   intro t ht
   simp only [mem_diff, mem_singleton_iff]
   constructor
   · apply mem_reProdIm.mpr
-    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self, add_zero, add_im, mul_im, zero_add, left_mem_Icc, ht, and_true]
+    simp only [add_re, ofReal_re, mul_re, I_re, mul_zero, ofReal_im, I_im, mul_one, sub_self,
+      add_zero, add_im, mul_im, zero_add, left_mem_Icc, ht, and_true]
     linarith
   · intro h
     replace h := congr_arg re h
@@ -1474,7 +1520,8 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
         · apply SmoothedChebyshevPull2_aux1 σ₁_lt_one holoOn
         · apply continuousOn_of_forall_continuousAt
           intro t t_mem
-          have := Smooth1MellinDifferentiable diff_SmoothingF suppSmoothingF  ⟨ε_pos, ε_lt_one⟩ SmoothingFnonneg mass_one (s := ↑σ₁ + ↑t * I) (by simpa)
+          have := Smooth1MellinDifferentiable diff_SmoothingF suppSmoothingF ⟨ε_pos, ε_lt_one⟩
+            SmoothingFnonneg mass_one (s := ↑σ₁ + ↑t * I) (by simpa)
           simpa using realDiff_of_complexDiff _ this
       · apply continuousOn_of_forall_continuousAt
         intro t t_mem
@@ -1495,16 +1542,22 @@ theorem SmoothedChebyshevPull2 {SmoothingF : ℝ → ℝ} {ε : ℝ} (ε_pos : 0
             · apply continuous_ofReal.continuousAt
             · exact continuousAt_const
     · refine ⟨by linarith, by linarith, by linarith⟩
-  calc I₃₇ SmoothingF ε T X σ₁ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (0 : ℂ) := by simp
-    _ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (RectangleIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z w) := by rw [← zero_over_box]
-    _ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re z.im
-    - HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re w.im
-    + VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
-    - VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by simp [RectangleIntegral]
-    _ = I₃₇ SmoothingF ε T X σ₁ - ((1 / (2 * π * I)) * HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re z.im
-    - (1 / (2 * π * I)) * HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re w.im
-    + (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
-    - (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by ring
+  calc I₃₇ SmoothingF ε T X σ₁ =
+        I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) * (0 : ℂ) := by simp
+    _ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) *
+        (RectangleIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z w) := by rw [← zero_over_box]
+    _ = I₃₇ SmoothingF ε T X σ₁ - (1 / (2 * π * I)) *
+        (HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re z.im
+        - HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re w.im
+        + VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
+        - VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by
+      simp [RectangleIntegral]
+    _ = I₃₇ SmoothingF ε T X σ₁ -
+        ((1 / (2 * π * I)) * HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re z.im
+        - (1 / (2 * π * I)) * HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re w.im
+        + (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
+        - (1 / (2 * π * I)) *
+            VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re z.im w.im) := by ring
     _ = I₃₇ SmoothingF ε T X σ₁ - (I₄ SmoothingF ε X σ₁ σ₂
     - (1 / (2 * π * I)) * HIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) z.re w.re w.im
     + (1 / (2 * π * I)) * VIntegral (SmoothedChebyshevIntegrand SmoothingF ε X) w.re z.im w.im
@@ -1618,7 +1671,7 @@ theorem ae_volume_of_contains_compl_singleton_zero
   -- Since s contains univ \ {0} = ℝ \ {0}, its complement is contained in {0}
   have h_compl_subset : sᶜ ⊆ {0} := by
     intro x hx
-    -- If x ∉ s, then x ∉ ℝ \ {0} (since ℝ \ {0} ⊆ s)
+    -- If x is not in s, then x is not in ℝ \ {0} (since ℝ \ {0} is a subset of s)
     -- This means x = 0
     by_contra h_not_zero
     have : x ∈ univ \ {0} := ⟨trivial, h_not_zero⟩
@@ -1674,14 +1727,15 @@ theorem integral_evaluation (x : ℝ) (T : ℝ) (T_large : 3 < T) :
         have U1 : {x_1 : ℝ | x_1 ≠ 0} = (univ \ {0}) := by
           apply Set.ext
           intro x
-          simp_all only [ne_eq, setOf_subset_setOf, not_false_eq_true, implies_true, mem_setOf_eq, mem_diff, mem_univ,
-  mem_singleton_iff, true_and]
+          simp_all only [ne_eq, setOf_subset_setOf, not_false_eq_true, implies_true,
+            mem_setOf_eq, mem_diff, mem_univ, mem_singleton_iff, true_and]
 
         rw [U1] at U
         exact ae_volume_of_contains_compl_singleton_zero _ U
 
   have T3 : Integrable (fun (t : ℝ) ↦ (t^2)⁻¹) (volume.restrict (Iic (-T))) := by
-    have D3 := integrableOn_Ioi_rpow_of_lt (by norm_num : (-2 : ℝ) < -1) (by linarith : 0 < T) |>.comp_neg
+    have D3 := integrableOn_Ioi_rpow_of_lt (by norm_num : (-2 : ℝ) < -1)
+      (by linarith : 0 < T) |>.comp_neg
     simp only [rpow_neg_ofNat, Int.reduceNeg, zpow_neg, involutiveNeg, neg_Ioi] at D3
     have D4 :=
       (integrableOn_Iic_iff_integrableOn_Iio'
@@ -1934,7 +1988,8 @@ theorem I1Bound
     simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, mul_inv_rev, gt_iff_lt,
       Complex.norm_div, add_sub_cancel_left, inv_inv]
 
-  have K_bounds_zeta_at_any_t : ∀(t : ℝ), ‖ζ' (pts t) / ζ (pts t)‖ ≤ K * Real.log X := by
+  have K_bounds_zeta_at_any_t :
+      ∀(t : ℝ), ‖ζ' (pts t) / ζ (pts t)‖ ≤ K * Real.log X := by
     intro t
     rw [←inve]
     exact K_bounds_zeta_at_any_t' t pts_re pts_re_ge_one pts_re_le_one
@@ -1971,7 +2026,9 @@ theorem I1Bound
 
     intro t
 
-    let M_bounds_mellin_easy := fun (t : ℝ) ↦ M_bounds_mellin_hard pts_re pts_re_pos (pts t) (triv_pts_lo_bound t) (triv_pts_up_bound t) eps eps_pos eps_less_one
+    let M_bounds_mellin_easy := fun (t : ℝ) ↦
+      M_bounds_mellin_hard pts_re pts_re_pos (pts t) (triv_pts_lo_bound t) (triv_pts_up_bound t)
+        eps eps_pos eps_less_one
 
     let zeta_part := (fun (t : ℝ) ↦ -ζ' (pts t) / ζ (pts t))
     let mellin_part := (fun (t : ℝ) ↦ 𝓜 (fun x ↦ (Smooth1 SmoothingF eps x : ℂ)) (pts t))
@@ -1993,7 +2050,8 @@ theorem I1Bound
       intro t
       exact M_bounds_mellin_easy t
 
-    have X_part_and_mellin_bound : ∀(t : ℝ),‖mellin_part t * X_part t‖ ≤ M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
+    have X_part_and_mellin_bound :
+        ∀(t : ℝ), ‖mellin_part t * X_part t‖ ≤ M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
       intro t
       exact norm_mul_le_of_le (mellin_bound t) (X_part_bound t)
 
@@ -2008,20 +2066,23 @@ theorem I1Bound
       rw [T2]
       exact K_bounds_zeta_at_any_t t
 
-    have g_bound : ∀(t : ℝ), ‖zeta_part t * (mellin_part t * X_part t)‖ ≤ (K * Real.log X) * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
+    have g_bound : ∀(t : ℝ), ‖zeta_part t * (mellin_part t * X_part t)‖ ≤
+        (K * Real.log X) * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
       intro t
       exact norm_mul_le_of_le (zeta_bound t) (X_part_and_mellin_bound t)
 
     have T1 : f = g := by rfl
 
-    have final_bound_pointwise : ‖f t‖ ≤ K * Real.log X * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
+    have final_bound_pointwise :
+        ‖f t‖ ≤ K * Real.log X * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) := by
       rw [T1]
       unfold g
       rw [mul_assoc]
       exact g_bound t
 
-    have trivialize : K * Real.log X * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) = (K * M) * Real.log X * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by
-            ring_nf
+    have trivialize :
+        K * Real.log X * (M * (eps * ‖pts t‖^2)⁻¹ * X^pts_re) =
+          (K * M) * Real.log X * (eps * ‖pts t‖^2)⁻¹ * X^pts_re := by ring_nf
 
     rw [trivialize] at final_bound_pointwise
     exact final_bound_pointwise
@@ -2033,9 +2094,11 @@ theorem I1Bound
     -- LOL!
     exact
       Preorder.le_trans (1 + (Real.log X)⁻¹) (pts (SmoothingF (SmoothingF M))).re 2
-        (triv_pts_lo_bound (SmoothingF (SmoothingF M))) (triv_pts_up_bound (SmoothingF (SmoothingF M)))
+        (triv_pts_lo_bound (SmoothingF (SmoothingF M)))
+        (triv_pts_up_bound (SmoothingF (SmoothingF M)))
 
-  have f_integrable := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt σ₀_le_2 suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
+  have f_integrable := SmoothedChebyshevPull1_aux_integrable eps_pos eps_less_one X_large σ₀_gt
+    σ₀_le_2 suppSmoothingF SmoothingFnonneg mass_one ContDiffSmoothingF
 
   have S : X^pts_re = rexp 1 * X := by
     unfold pts_re
@@ -2082,14 +2145,19 @@ theorem I1Bound
                    unfold pts
                    exact poisson_kernel_integrable pts_re (pts_re_neq_zero)
 
-              have U := MeasureTheory.Integrable.const_mul simple_int ((K * M) * Real.log X * eps⁻¹ * X ^ pts_re)
+              have U := MeasureTheory.Integrable.const_mul simple_int
+                ((K * M) * Real.log X * eps⁻¹ * X ^ pts_re)
               refine MeasureTheory.Integrable.restrict ?_
               exact U
-        _ = (K * M) * Real.log X * X ^ pts_re * eps⁻¹ * ∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹ := by
-              have simpli_fun : (fun (t : ℝ) ↦ (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re ) = (fun (t : ℝ) ↦ ((K * M) * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹)) :=
+        _ = (K * M) * Real.log X * X ^ pts_re * eps⁻¹ *
+              ∫ (t : ℝ) in Iic (-T), (‖pts t‖ ^ 2)⁻¹ := by
+              have simpli_fun :
+                  (fun (t : ℝ) ↦ (K * M) * Real.log X * (eps * ‖pts t‖ ^ 2)⁻¹ * X ^ pts_re) =
+                    (fun (t : ℝ) ↦ ((K * M) * Real.log X * X ^ pts_re * eps⁻¹ * (‖pts t‖^2)⁻¹)) :=
                 by funext t; ring_nf
               rw [simpli_fun]
-              exact MeasureTheory.integral_const_mul ((K * M) * Real.log X * X ^ pts_re * eps⁻¹) (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
+              exact MeasureTheory.integral_const_mul ((K * M) * Real.log X * X ^ pts_re * eps⁻¹)
+                (fun (t : ℝ) ↦ (‖pts t‖^2)⁻¹)
         _ ≤ (K * M) * Real.log X * X ^ pts_re * eps⁻¹ * T⁻¹ := by
               have U := integral_evaluation (pts_re) T (T_large)
               unfold pts
@@ -2255,7 +2323,8 @@ lemma I2Bound {SmoothingF : ℝ → ℝ}
         refine div_le_div_of_nonneg_left (by norm_num) (by norm_num) ?_
         exact one_le_pow₀ (logt_gt_one T_gt.le).le
       _ < 1 := by norm_num
-  suffices ∀ σ ∈ Ioc σ₁ (1 + (Real.log X)⁻¹), ‖SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I)‖ ≤ C' * X / (ε * T) by
+  suffices ∀ σ ∈ Ioc σ₁ (1 + (Real.log X)⁻¹),
+      ‖SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I)‖ ≤ C' * X / (ε * T) by
     calc
       ‖∫ (σ : ℝ) in σ₁..1 + (Real.log X)⁻¹,
           SmoothedChebyshevIntegrand SmoothingF ε X (↑σ - ↑T * I)‖ ≤
@@ -2389,7 +2458,9 @@ lemma I8I2 {SmoothingF : ℝ → ℝ}
   .
   $$
   -/)
-  (proof := /-- We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$. -/)
+  (proof := /--
+  We deduce this from the corresponding bound for $I_2$, using the symmetry between $I_2$ and $I_8$.
+  -/)
   (latexEnv := "lemma")]
 lemma I8Bound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
@@ -2516,7 +2587,8 @@ lemma log_pow_over_xsq_integral_bounded :
         rw [fun1]
         exact ContinuousAt.comp cont2 (HasDerivAt.neg (hasDerivAt_id x)).continuousAt
 
-      have deriv_u : (∀ x ∈ Set.Ioo (3 ⊓ T) (3 ⊔ T), HasDerivAt u (u' x) x) := by
+      have deriv_u :
+          (∀ x ∈ Set.Ioo (3 ⊓ T) (3 ⊔ T), HasDerivAt u (u' x) x) := by
         intro x hx
         have min3t : min 3 T = 3 := by
           exact min_eq_left_of_lt Tgt3
@@ -2741,7 +2813,8 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
     rw [← Set.neg_mem_Ioo_iff, mem_Ioo] at ht
     rwa [this]
 
-  have logt9gt1_bounds : ∀ t, t ∈ Set.Icc (-T) (-3) → Real.log |t| ^ 9 > 1 := by
+  have logt9gt1_bounds :
+      ∀ t, t ∈ Set.Icc (-T) (-3) → Real.log |t| ^ 9 > 1 := by
     intro t ht
     refine one_lt_pow₀ (logt_gt_one ?_) ?_
     · have : |t| = -t := by
@@ -2783,7 +2856,8 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
     unfold σ₁
     linarith[AoverlogT9in0half.2]
 
-  have quotient_bound : ∀ t ∈ Ioo (-T) (-3), Real.log |t| ^ 9 / (σ₁ ^ 2 + t ^ 2) ≤ Real.log |t| ^ 9 / t ^ 2  := by
+  have quotient_bound :
+      ∀ t ∈ Ioo (-T) (-3), Real.log |t| ^ 9 / (σ₁ ^ 2 + t ^ 2) ≤ Real.log |t| ^ 9 / t ^ 2 := by
     intro t ht
     have loght := logt9gt1_bounds t (Ioo_subset_Icc_self ht)
     have logpos : Real.log |t| ^ 9 > 0 := zero_lt_one.trans loght
@@ -2795,7 +2869,9 @@ theorem I3Bound {SmoothingF : ℝ → ℝ}
     have denom2_pos : 0 < σ₁ ^ 2 + t ^ 2 := add_pos_of_nonneg_of_pos (sq_nonneg _) denom_pos
     exact (div_le_div_iff_of_pos_left logpos denom2_pos denom_pos).mpr denom_le
 
-  have MellinBound : ∀ (t : ℝ) , ‖𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (σ₁ + t * I)‖ ≤ CM * (ε * ‖(σ₁ + t * I)‖ ^ 2)⁻¹ := by
+  have MellinBound : ∀ (t : ℝ),
+      ‖𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (σ₁ + t * I)‖ ≤
+        CM * (ε * ‖(σ₁ + t * I)‖ ^ 2)⁻¹ := by
     intro t
     refine CMhyp σ₁ σ₁pos _ ?_ ?_ _ εgt0 εlt1 <;> simp [σ₁lt1.le.trans one_le_two]
 
