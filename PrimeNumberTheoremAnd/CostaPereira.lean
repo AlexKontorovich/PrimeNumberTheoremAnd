@@ -78,7 +78,7 @@ theorem sublemma_1_2 {x : ℝ} (hx : 0 < x) (n : ℝ) : ψ (x ^ (1 / n:ℝ)) = �
   (latexEnv := "sublemma")
   (discussion := 678)]
 theorem sublemma_1_3 {x : ℝ} (hx : 0 < x) :
-    ψ x = θ x + ψ (x ^ (1 / 2:ℝ)) + ∑' k, θ (x ^ (1 / (2 * (k:ℝ) + 1))) := by sorry
+    ψ x = θ x + ψ (x ^ (1 / 2 : ℝ)) + ∑' k, θ (x ^ (1 / (2 * (k : ℝ) + 1))) := by sorry
 
 @[blueprint
   "costa-pereira-sublemma-1-4"
@@ -92,11 +92,10 @@ theorem sublemma_1_3 {x : ℝ} (hx : 0 < x) :
   (latexEnv := "sublemma")
   (discussion := 679)]
 theorem sublemma_1_4 {x : ℝ} (hx : 0 < x) :
-    ψ x - θ x =
-      ψ (x ^ (1 / 2:ℝ)) +
-      ∑' k, θ (x ^ (1 / (6 * (k:ℝ) - 3))) +
-      ∑' k, θ (x ^ (1 / (6 * (k:ℝ) - 1))) +
-      ∑' k, θ (x ^ (1 / (6 * (k:ℝ) + 1))) := by sorry
+    ψ x - θ x = ψ (x ^ (1 / 2 : ℝ)) +
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * (k : ℝ) - 3))) +
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * (k : ℝ) - 1))) +
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * (k : ℝ) + 1))) := by sorry
 
 @[blueprint
   "costa-pereira-sublemma-1-5"
@@ -110,9 +109,7 @@ theorem sublemma_1_4 {x : ℝ} (hx : 0 < x) :
   (latexEnv := "sublemma")
   (discussion := 680)]
 theorem sublemma_1_5 {x : ℝ} (hx : 0 < x) :
-    ψ (x ^ (1 / 3:ℝ)) =
-      ∑' k, θ (x ^ (1 / (6 * (k:ℝ) - 3))) +
-      ∑' k, θ (x ^ (1 / (6 * (k:ℝ)))) := by sorry
+    ψ (x ^ (1 / 3 : ℝ)) = ∑' (k : ℕ), θ (x ^ (1 / (6 * (k : ℝ) - 3))) + ∑' (k : ℕ), θ (x ^ (1 / (6 * (k : ℝ)))) := by sorry
 
 @[blueprint
   "costa-pereira-sublemma-1-6"
@@ -129,9 +126,10 @@ theorem sublemma_1_6 {x : ℝ} (hx : 0 < x) :
     ψ x - θ x =
       ψ (x ^ (1 / 2:ℝ)) +
       ψ (x ^ (1 / 3:ℝ)) +
-      ∑' k, θ (x ^ (1 / (6 * (k:ℝ) - 1))) -
-      ∑' k, θ (x ^ (1 / (6 * (k:ℝ)))) +
-      ∑' k, θ (x ^ (1 / (6 * (k:ℝ) + 1))) := by sorry
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * (k:ℝ) - 1))) -
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * (k:ℝ)))) +
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * (k:ℝ) + 1))) := by
+  rw [sublemma_1_4 hx, sublemma_1_5 hx]; ring
 
 @[blueprint
   "costa-pereira-sublemma-1-7"
@@ -145,10 +143,7 @@ theorem sublemma_1_6 {x : ℝ} (hx : 0 < x) :
   (latexEnv := "sublemma")
   (discussion := 682)]
 theorem sublemma_1_7 {x : ℝ} (hx : 0 < x) :
-    ψ x - θ x ≤
-      ψ (x ^ (1 / 2:ℝ)) +
-      ψ (x ^ (1 / 3:ℝ)) +
-      ∑' (k : ℕ), θ (x ^ (1 / (5 * (k:ℝ)))) := by sorry
+    ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ∑' (k : ℕ), θ (x ^ (1 / (5 * (k : ℝ)))) := by sorry
 
 @[blueprint
   "costa-pereira-sublemma-1-8"
@@ -162,10 +157,7 @@ theorem sublemma_1_7 {x : ℝ} (hx : 0 < x) :
   (latexEnv := "sublemma")
   (discussion := 683)]
 theorem sublemma_1_8 {x : ℝ} (hx : 0 < x) :
-    ψ x - θ x ≥
-      ψ (x ^ (1 / 2:ℝ)) +
-      ψ (x ^ (1 / 3:ℝ)) +
-      ∑' (k : ℕ), θ (x ^ (1 / (7 * (k:ℝ)))) := by sorry
+    ψ x - θ x ≥ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ∑' (k : ℕ), θ (x ^ (1 / (7 * (k : ℝ)))) := by sorry
 
 @[blueprint
   "costa-pereira-theorem-1a"
