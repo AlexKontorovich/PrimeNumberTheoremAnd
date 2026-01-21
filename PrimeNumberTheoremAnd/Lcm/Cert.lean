@@ -1205,7 +1205,75 @@ lemma inv_n_pow_3_div_2_le_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ 
   - from `hn` get `√n ≥ X₀`;
   - conclude `1/(n*√n) ≤ (1/n)*(1/X₀)`.
   -/
-  sorry
+  have hX0_pos_nat : 0 < X₀ :=
+    lt_trans Nat.zero_lt_one (PrimeGap_Criterion.h_X₀)
+  have hX0_pos : (0 : ℝ) < (X₀ : ℝ) := by
+    exact_mod_cast hX0_pos_nat
+
+  have hX0_sq_pos_nat : 0 < X₀ ^ 2 := pow_pos hX0_pos_nat 2
+  have hn_pos_nat : 0 < n := lt_of_lt_of_le hX0_sq_pos_nat hn
+  have hn_pos : (0 : ℝ) < (n : ℝ) := by
+    exact_mod_cast hn_pos_nat
+
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := sqrt_ge_X₀ (n := n) hn
+  have hsqrt_pos : (0 : ℝ) < √(n : ℝ) := lt_of_lt_of_le hX0_pos hX0_le_sqrt
+
+  -- Convert `n^(3/2)` to `n * √n`.
+  have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
+    exact_mod_cast (Nat.zero_le n)
+  have hpow : (n : ℝ) ^ (3 / 2 : ℝ) = (n : ℝ) * √(n : ℝ) := by
+    have h_exp : (3 / 2 : ℝ) = (1 : ℝ) + (1 / 2 : ℝ) := by
+      norm_num
+    calc
+      (n : ℝ) ^ (3 / 2 : ℝ)
+          = (n : ℝ) ^ ((1 : ℝ) + (1 / 2 : ℝ)) := by
+              simp [h_exp]
+      _   = (n : ℝ) ^ (1 : ℝ) * (n : ℝ) ^ (1 / 2 : ℝ) := by
+              simpa using (Real.rpow_add hn_pos (1 : ℝ) (1 / 2 : ℝ))
+      _   = (n : ℝ) * (n : ℝ) ^ (1 / 2 : ℝ) := by
+              simp
+      _   = (n : ℝ) * √(n : ℝ) := by
+              -- `x^(1/2) = √x`.
+              simpa using congrArg (fun t => (n : ℝ) * t) (by
+                -- `Real.sqrt_eq_rpow` is oriented as `√x = x^(1/2)`.
+                simpa using (Real.sqrt_eq_rpow (n : ℝ)).symm)
+
+  -- From `√n ≥ X₀`, take reciprocals.
+  have h_inv_sqrt_le : (1 : ℝ) / √(n : ℝ) ≤ (1 : ℝ) / (X₀ : ℝ) := by
+    -- `a ≤ b` with `0 < a` gives `1/b ≤ 1/a`.
+    simpa [one_div] using (one_div_le_one_div_of_le hX0_pos hX0_le_sqrt)
+
+  have hn_inv_nonneg : 0 ≤ (1 : ℝ) / (n : ℝ) := by
+    exact div_nonneg (by norm_num) (le_of_lt hn_pos)
+
+  -- Multiply the reciprocal inequality by `1/n`.
+  have hmul : ((1 : ℝ) / (n : ℝ)) * ((1 : ℝ) / √(n : ℝ))
+      ≤ ((1 : ℝ) / (n : ℝ)) * ((1 : ℝ) / (X₀ : ℝ)) := by
+    exact mul_le_mul_of_nonneg_left h_inv_sqrt_le hn_inv_nonneg
+
+  -- Rewrite both sides into the desired form.
+  have h_left : (1 : ℝ) / (n : ℝ) ^ (3 / 2 : ℝ)
+      = ((1 : ℝ) / (n : ℝ)) * ((1 : ℝ) / √(n : ℝ)) := by
+    calc
+      (1 : ℝ) / (n : ℝ) ^ (3 / 2 : ℝ)
+          = (1 : ℝ) / ((n : ℝ) * √(n : ℝ)) := by
+              simp [hpow]
+      _   = ((n : ℝ) * √(n : ℝ))⁻¹ := by
+              simp [one_div]
+      _   = (√(n : ℝ))⁻¹ * (n : ℝ)⁻¹ := by
+              simp [mul_inv_rev]
+      _   = ((1 : ℝ) / (n : ℝ)) * ((1 : ℝ) / √(n : ℝ)) := by
+              -- rearrange the inverses into `1/n * 1/√n`
+              simp [one_div, mul_assoc, mul_left_comm, mul_comm]
+
+  have h_right : ((1 : ℝ) / (n : ℝ)) * ((1 : ℝ) / (X₀ : ℝ))
+      = (1 / (X₀ : ℝ)) * (1 / n) := by
+    -- Commute the product and normalize casts.
+    simp [mul_assoc, mul_left_comm, mul_comm, one_div]
+
+  -- Final.
+  simpa [h_left, h_right, mul_assoc, mul_left_comm, mul_comm] using hmul
+
 
 
 lemma inv_n_add_sqrt_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
