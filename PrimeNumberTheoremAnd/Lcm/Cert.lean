@@ -602,98 +602,6 @@ lemma y2_mul_one_add_delta_lt_n [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ 
     -- when n, ε ≥ 0, this holds automatically if `y0_mul_one_add_delta_le_y1` holds.
   -/
   sorry
-  -- dsimp
-  -- set x : ℝ := Real.sqrt (n : ℝ) with hx
-  -- set ε : ℝ := gap.δ x with hε
-  -- set y2 : ℝ := (n : ℝ) / (1 + ε) with hy2
-
-  -- have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
-  --   exact_mod_cast (Nat.zero_le n)
-
-  -- have hX0_le_x : (X₀ : ℝ) ≤ x := by
-  --   simpa [hx] using (sqrt_ge_X₀ (n := n) hn)
-
-  -- have hε_nonneg : 0 ≤ ε := by
-  --   have : 0 ≤ gap.δ x :=
-  --     PrimeGap_Criterion.gap_nonneg x (by simpa using hX0_le_x)
-  --   simpa [hε] using this
-
-  -- have h_one_add_pos : 0 < 1 + ε := by
-  --   have : (0 : ℝ) < 1 := by norm_num
-  --   exact add_pos_of_pos_of_nonneg this hε_nonneg
-  -- have h_one_add_ne : (1 + ε) ≠ 0 := ne_of_gt h_one_add_pos
-
-  -- have hx_nonneg : 0 ≤ x := by
-  --   simpa [hx] using Real.sqrt_nonneg (n : ℝ)
-
-  -- have hpow6_lt_x : (1 + ε) ^ 6 < x := by
-  --   have := PrimeGap_Criterion.delta_sixth_power_lt_sqrt (n := n) hn
-  --   simpa [hx, hε] using this
-
-  -- have hone_add_nonneg : 0 ≤ 1 + ε := by
-  --   nlinarith [hε_nonneg]
-
-  -- have h_one_le : (1 : ℝ) ≤ 1 + ε := le_add_of_nonneg_right hε_nonneg
-
-  -- have hone_add_le_pow2 : 1 + ε ≤ (1 + ε) ^ 2 := by
-  --   have hmul := mul_le_mul_of_nonneg_left h_one_le hone_add_nonneg
-  --   simpa [pow_two] using hmul
-
-  -- have hpow4_ge1 : (1 : ℝ) ≤ (1 + ε) ^ 4 := one_le_pow_of_one_le h_one_le 4
-
-  -- have hpow2_pos : 0 < (1 + ε) ^ 2 := pow_pos h_one_add_pos 2
-  -- have hpow2_le_pow6 : (1 + ε) ^ 2 ≤ (1 + ε) ^ 6 := by
-  --   calc
-  --     (1 + ε) ^ 2 = (1 + ε) ^ 2 * 1 := by simp
-  --     _ ≤ (1 + ε) ^ 2 * (1 + ε) ^ 4 := by
-  --       exact mul_le_mul_of_nonneg_left hpow4_ge1 (le_of_lt hpow2_pos)
-  --     _ = (1 + ε) ^ (2 + 4) := by
-  --       simpa [pow_add, mul_assoc, mul_left_comm, mul_comm] using
-  --         (pow_add (1 + ε) 2 4).symm
-  --     _ = (1 + ε) ^ 6 := by simp
-
-  -- have hone_add_lt_x : 1 + ε < x := by
-  --   exact lt_of_le_of_lt (le_trans hone_add_le_pow2 hpow2_le_pow6) hpow6_lt_x
-  -- have hone_add_le_x : 1 + ε ≤ x := le_of_lt hone_add_lt_x
-
-  -- have hx_sq : x * x = (n : ℝ) := by
-  --   simpa [hx] using (Real.mul_self_sqrt hn0)
-
-  -- have hx_le_y2 : x ≤ y2 := by
-  --   have hx_mul_le : x * (1 + ε) ≤ (n : ℝ) := by
-  --     have hx_mul_le_xsq : x * (1 + ε) ≤ x * x :=
-  --       mul_le_mul_of_nonneg_left hone_add_le_x hx_nonneg
-  --     simpa [hx_sq, mul_assoc] using hx_mul_le_xsq
-  --   have : x ≤ (n : ℝ) / (1 + ε) := (le_div_iff h_one_add_pos).2 hx_mul_le
-  --   simpa [hy2] using this
-
-  -- have hX0_le_y2 : (X₀ : ℝ) ≤ y2 := by
-  --   simpa [hx, hε, hy2] using (y2_ge_X₀ (n := n) hn)
-
-  -- have hδy2_le_δx : gap.δ y2 ≤ gap.δ x :=
-  --   PrimeGap_Criterion.gap_decreasing x y2 hX0_le_x hX0_le_y2 hx_le_y2
-  -- have hδy2_le_ε : gap.δ y2 ≤ ε := by
-  --   simpa [hε.symm] using hδy2_le_δx
-
-  -- have hy2_nonneg : 0 ≤ y2 := by
-  --   have : 0 ≤ (n : ℝ) / (1 + ε) :=
-  --     div_nonneg hn0 (le_of_lt h_one_add_pos)
-  --   simpa [hy2] using this
-
-  -- have hone_add_delta_le : 1 + gap.δ y2 ≤ 1 + ε :=
-  --   add_le_add_left hδy2_le_ε 1
-
-  -- have hmul : y2 * (1 + gap.δ y2) ≤ y2 * (1 + ε) :=
-  --   mul_le_mul_of_nonneg_left hone_add_delta_le hy2_nonneg
-
-  -- have hy2_mul : y2 * (1 + ε) = (n : ℝ) := by
-  --   rw [hy2]
-  --   field_simp [h_one_add_ne]
-  --   ring
-
-  -- calc
-  --   y2 * (1 + gap.δ y2) ≤ y2 * (1 + ε) := hmul
-  --   _ = (n : ℝ) := hy2_mul
 
 
 /- End of theorem `exists_q_primes` lemmas-/
@@ -940,7 +848,6 @@ lemma n_pos [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) : (0 : ℝ) < (
 
 
 
--- set_option maxHeartbeats 800000 in
 lemma pq_ratio_rhs_as_fraction [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
       =
@@ -951,7 +858,157 @@ lemma pq_ratio_rhs_as_fraction [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^
         (n : ℝ) / ((1 + gap.δ (√(n : ℝ))) ^ ((3 : ℕ) - (i : ℕ)))) := by
     /- This is structural
      This holds when gap.δ(x) ≥ 0 for x ≥ X₀, and X₀ > 0 -/
-    sorry
+    classical
+    set x : ℝ := √(n : ℝ) with hx
+    set b : ℝ := 1 + gap.δ x with hb
+
+    have hn_pos : (0 : ℝ) < (n : ℝ) := n_pos (n := n) hn
+    have hn0 : (0 : ℝ) ≤ (n : ℝ) := le_of_lt hn_pos
+
+    have hX0_le_x : (X₀ : ℝ) ≤ x := by
+      simpa [hx] using (sqrt_ge_X₀ (n := n) hn)
+
+    have hδ_nonneg : 0 ≤ gap.δ x :=
+      PrimeGap_Criterion.gap_nonneg x (by simpa using hX0_le_x)
+
+    have hb_pos : 0 < b := by
+      have h_one_le : (1 : ℝ) ≤ 1 + gap.δ x := le_add_of_nonneg_right hδ_nonneg
+      exact lt_of_lt_of_le (by norm_num) h_one_le
+
+    have hb_ne : b ≠ 0 := ne_of_gt hb_pos
+
+    have hx_pos : 0 < x := by
+      simpa [hx] using (Real.sqrt_pos.2 hn_pos)
+
+    have hx_ne : x ≠ 0 := ne_of_gt hx_pos
+
+    have hx_pow : x ^ (3 : ℕ) = (n : ℝ) ^ (3 / 2 : ℝ) := by
+      have hcast : x ^ ((3 : ℝ)) = x ^ (3 : ℕ) := by
+        simp
+      calc
+        x ^ (3 : ℕ) = x ^ ((3 : ℝ)) := by
+          exact hcast.symm
+        _ = (n : ℝ) ^ ((1 / 2 : ℝ) * (3 : ℝ)) := by
+          -- rewrite `x = n^(1/2)` and combine exponents
+          simp [hx, Real.sqrt_eq_rpow, rpow_mul hn0]
+        _ = (n : ℝ) ^ (3 / 2 : ℝ) := by
+          norm_num
+
+    have hx_sq : x ^ (2 : ℕ) = (n : ℝ) := by
+      simp [hx, Real.sq_sqrt hn0]
+
+    have hn_pow3 : (n : ℝ) ^ (3 : ℕ) = x ^ (6 : ℕ) := by
+      calc
+        (n : ℝ) ^ (3 : ℕ) = (x ^ (2 : ℕ)) ^ (3 : ℕ) := by
+          simp [hx_sq]
+        _ = x ^ (2 * 3 : ℕ) := by
+          simpa using (pow_mul x 2 3).symm
+        _ = x ^ (6 : ℕ) := by
+          norm_num
+
+    have hnum :
+        (∏ i : Fin 3, x * b ^ ((i : ℕ) + 1 : ℝ))
+          = x ^ (3 : ℕ) * b ^ (6 : ℕ) := by
+      -- Expand the finite product and convert rpow to nat power.
+      have hnum' :
+          (∏ i : Fin 3, x * b ^ ((i : ℕ) + 1 : ℝ))
+            = (x * b ^ (1 : ℕ)) * (x * b ^ (2 : ℕ)) * (x * b ^ (3 : ℕ)) := by
+        rw [Fin.prod_univ_three]
+        simp
+        norm_num
+
+      have hx3 : x * x * x = x ^ (3 : ℕ) := by
+        calc
+          x * x * x = x ^ (2 : ℕ) * x := by
+            simp [pow_two, mul_assoc]
+          _ = x ^ (3 : ℕ) := by
+            simp [pow_succ]
+
+      have hb12 : b ^ (1 : ℕ) * b ^ (2 : ℕ) = b ^ (3 : ℕ) := by
+        simpa using (pow_add b 1 2).symm
+
+      have hb123 : b ^ (1 : ℕ) * b ^ (2 : ℕ) * b ^ (3 : ℕ) = b ^ (6 : ℕ) := by
+        calc
+          b ^ (1 : ℕ) * b ^ (2 : ℕ) * b ^ (3 : ℕ)
+              = (b ^ (1 : ℕ) * b ^ (2 : ℕ)) * b ^ (3 : ℕ) := by
+            simp [mul_assoc]
+          _ = b ^ (3 : ℕ) * b ^ (3 : ℕ) := by
+            rw [hb12]
+          _ = b ^ (3 + 3 : ℕ) := by
+                  simpa using (pow_add b 3 3).symm
+          _ = b ^ (6 : ℕ) := by
+                  norm_num
+
+      calc
+        (∏ i : Fin 3, x * b ^ ((i : ℕ) + 1 : ℝ))
+            = (x * b ^ (1 : ℕ)) * (x * b ^ (2 : ℕ)) * (x * b ^ (3 : ℕ)) := hnum'
+        _ = (x * x * x) * (b ^ (1 : ℕ) * b ^ (2 : ℕ) * b ^ (3 : ℕ)) := by
+            ac_rfl
+        _ = x ^ (3 : ℕ) * b ^ (6 : ℕ) := by
+          rw [hx3, hb123]
+
+    have hden :
+        (∏ i : Fin 3, (n : ℝ) / (b ^ ((3 : ℕ) - (i : ℕ))))
+          = (n : ℝ) ^ (3 : ℕ) / b ^ (6 : ℕ) := by
+      have h30 : (3 : ℕ) - (0 : ℕ) = 3 := by norm_num
+      have h31 : (3 : ℕ) - (1 : ℕ) = 2 := by norm_num
+      have h32 : (3 : ℕ) - (2 : ℕ) = 1 := by norm_num
+      calc
+        (∏ i : Fin 3, (n : ℝ) / (b ^ ((3 : ℕ) - (i : ℕ))))
+            = (n : ℝ) / b ^ (3 : ℕ) * ((n : ℝ) / b ^ (2 : ℕ)) * ((n : ℝ) / b ^ (1 : ℕ)) := by
+          rw [Fin.prod_univ_three]
+          simp [h30, h31, h32, mul_assoc]
+        _ = ((n : ℝ) * (n : ℝ) * (n : ℝ)) / (b ^ (3 : ℕ) * b ^ (2 : ℕ) * b ^ (1 : ℕ)) := by
+          -- combine fractions
+          simp [mul_assoc, mul_left_comm, mul_comm, div_eq_mul_inv]
+        _ = (n : ℝ) ^ (3 : ℕ) / b ^ (6 : ℕ) := by
+          have hn3 : (n : ℝ) * (n : ℝ) * (n : ℝ) = (n : ℝ) ^ (3 : ℕ) := by
+            simp [pow_succ, mul_assoc]
+          have hb3 : b ^ (3 : ℕ) * b ^ (2 : ℕ) * b ^ (1 : ℕ) = b ^ (6 : ℕ) := by
+            calc
+              b ^ (3 : ℕ) * b ^ (2 : ℕ) * b ^ (1 : ℕ)
+                  = b ^ (3 : ℕ) * (b ^ (2 : ℕ) * b ^ (1 : ℕ)) := by
+                      simp [mul_assoc]
+              _ = b ^ (3 : ℕ) * b ^ (3 : ℕ) := by
+                      have : b ^ (2 : ℕ) * b ^ (1 : ℕ) = b ^ (3 : ℕ) := by
+                        simpa using (pow_add b 2 1).symm
+                      rw [this]
+              _ = b ^ (3 + 3 : ℕ) := by
+                      simpa using (pow_add b 3 3).symm
+              _ = b ^ (6 : ℕ) := by
+                      norm_num
+          rw [hn3, hb3]
+
+    have hRHS :
+        ((4 : ℝ) * ∏ i : Fin 3, x * b ^ ((i : ℕ) + 1 : ℝ))
+          / (∏ i : Fin 3, (n : ℝ) / (b ^ ((3 : ℕ) - (i : ℕ))))
+          = 4 * b ^ (12 : ℕ) / (n : ℝ) ^ (3 / 2 : ℝ) := by
+      calc
+        ((4 : ℝ) * ∏ i : Fin 3, x * b ^ ((i : ℕ) + 1 : ℝ))
+            / (∏ i : Fin 3, (n : ℝ) / (b ^ ((3 : ℕ) - (i : ℕ))))
+            = (4 : ℝ) * (x ^ (3 : ℕ) * b ^ (6 : ℕ)) / ((n : ℝ) ^ (3 : ℕ) / b ^ (6 : ℕ)) := by
+                simp [hnum, hden]
+        _ = (4 : ℝ) * x ^ (3 : ℕ) * b ^ (12 : ℕ) / (n : ℝ) ^ (3 : ℕ) := by
+          -- `a / (c / d) = a * d / c` and collect powers
+          have hb12' : b ^ (6 : ℕ) * b ^ (6 : ℕ) = b ^ (12 : ℕ) := by
+            simpa using (pow_add b 6 6).symm
+          calc
+            (4 : ℝ) * (x ^ (3 : ℕ) * b ^ (6 : ℕ)) / ((n : ℝ) ^ (3 : ℕ) / b ^ (6 : ℕ))
+              = (4 : ℝ) * (x ^ (3 : ℕ) * b ^ (6 : ℕ)) * (b ^ (6 : ℕ) / (n : ℝ) ^ (3 : ℕ)) := by
+                simp [div_eq_mul_inv]
+            _ = (4 : ℝ) * x ^ (3 : ℕ) * (b ^ (6 : ℕ) * b ^ (6 : ℕ)) / (n : ℝ) ^ (3 : ℕ) := by
+              simp [mul_assoc, mul_left_comm, mul_comm, div_eq_mul_inv]
+            _ = (4 : ℝ) * x ^ (3 : ℕ) * b ^ (12 : ℕ) / (n : ℝ) ^ (3 : ℕ) := by
+              simp [hb12', mul_assoc]
+        _ = (4 : ℝ) * x ^ (3 : ℕ) * b ^ (12 : ℕ) / x ^ (6 : ℕ) := by
+          simp [hn_pow3]
+        _ = (4 : ℝ) * b ^ (12 : ℕ) / x ^ (3 : ℕ) := by
+                field_simp [hx_ne, mul_assoc, mul_left_comm, mul_comm]
+        _ = 4 * b ^ (12 : ℕ) / (n : ℝ) ^ (3 / 2 : ℝ) := by
+          simp [hx_pow]
+
+    -- Return to the original notation.
+    simpa [hb, hx, mul_assoc, mul_left_comm, mul_comm] using hRHS.symm
 
 
 /- End of theorem `pq_ratio_ge` lemmas- -/
