@@ -3763,9 +3763,6 @@ lemma crude_upper_bound
 lemma Real.fourierIntegral_convolution {f g : ℝ → ℂ} (hf : Integrable f) (hg : Integrable g) :
     𝓕 (convolution f g (ContinuousLinearMap.mul ℂ ℂ) volume) = 𝓕 f * 𝓕 g := by
   ext y
-
-
-
   -- Unfold definitions
   dsimp [FourierTransform.fourier, MeasureTheory.convolution, VectorFourier.fourierIntegral]
   -- 1. Absolute integrability for Fubini
@@ -3823,12 +3820,10 @@ lemma Real.fourierIntegral_conj_neg {f : ℝ → ℂ} (y : ℝ) :
     _ = ∫ (x : ℝ), (Complex.exp (-(2 * π * (x * y)) * I) : ℂ) • conj (f (-x)) := by
       apply MeasureTheory.integral_congr_ae
       filter_upwards with x
-      simp only [Circle.smul_def, Real.fourierChar_apply,
-        neg_mul]
+      simp only [Circle.smul_def, Real.fourierChar_apply, neg_mul]
       congr 1
       congr
       simp
-
 
       -- Step 3: Factor conjugation from product: conj(a) * conj(b) = conj(a * b)
     _ = ∫ x, conj (𝐞 (x * y) • f (-x)) := by
@@ -3878,14 +3873,13 @@ lemma Real.fourierIntegral_conj_neg {f : ℝ → ℂ} (y : ℝ) :
       rw [fourier_real_eq]
       simp_rw [neg_mul]
 
-
-lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
-    (hG : ContinuousOn G {s | 1 ≤ s.re})
-    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) : cheby f := by
-  unfold cheby chebyWith
-  -- Step 1: The Crude Upper Bound:
-  -- a specific weighted average of $f(n)$ is bounded:
-  -- $$ \left| \sum_{n=1}^\infty \frac{f(n)}{n} \hat{\psi}\left( \frac{1}{2\pi} \log \frac{n}{x} \right) \right| \leq B $$
+/--
+Constructs a smooth, compactly supported test function $\psi$ whose Fourier transform is non-negative.
+This kernel is constructed as the convolution of a smooth bump function $\phi$ with its conjugate-reversed version.
+-/
+lemma auto_cheby_exists_smooth_nonneg_fourier_kernel :
+    ∃ (ψ : ℝ → ℂ), ContDiff ℝ ∞ ψ ∧ HasCompactSupport ψ ∧
+    (∀ y, 0 ≤ (𝓕 ψ y).re ∧ (𝓕 ψ y).im = 0) ∧ 0 < (𝓕 ψ 0).re := by
   obtain ⟨φ_real, hφSmooth, hφCompact, hφIcc, hφIoo, hφsupp⟩ := smooth_urysohn_support_Ioo (a := 1 / 2) (b := 1) (c := 1) (d := 2) (by norm_num) (by norm_num)
   let φ : ℝ → ℂ := Complex.ofReal ∘ φ_real
   let φ_rev : ℝ → ℂ := fun x ↦ conj (φ (-x))
@@ -3901,36 +3895,17 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
   have hψSmooth : ContDiff ℝ ∞ ψ_fun := by
     convert hφRevCompact.contDiff_convolution_right (ContinuousLinearMap.mul ℝ ℂ) (hφSmooth'.continuous.locallyIntegrable) hφRevSmooth
     exact inferInstance
-
   have hψCompact : HasCompactSupport ψ_fun :=
     HasCompactSupport.convolution (ContinuousLinearMap.mul ℂ ℂ) hφCompact' hφRevCompact
-
-
-
-
-  let ψ : CS 2 ℂ := by
-    refine ⟨ψ_fun, hψSmooth.of_le ENat.LEInfty.out, hψCompact⟩
-
-
-  have hψpos : ∀ y, 0 ≤ (𝓕 (ψ : ℝ → ℂ) y).re ∧ (𝓕 (ψ : ℝ → ℂ) y).im = 0 := by
-    intro y
-    simp only [ψ, ψ_fun, φ_rev, φ]
+  refine ⟨ψ_fun, hψSmooth, hψCompact, ?_, ?_⟩
+  · intro y
     rw [Real.fourierIntegral_convolution (hφSmooth'.continuous.integrable_of_hasCompactSupport hφCompact') (hφRevSmooth.continuous.integrable_of_hasCompactSupport hφRevCompact)]
     simp only [Pi.mul_apply]
     have h_conj : 𝓕 φ_rev y = conj (𝓕 φ y) := Real.fourierIntegral_conj_neg y
     rw [h_conj, mul_comm, ← Complex.normSq_eq_conj_mul_self]
     exact ⟨Complex.normSq_nonneg _, rfl⟩
-  obtain ⟨B, hB⟩ := crude_upper_bound hpos hG hG' hf ψ hψpos
-
-  -- Step 2: Localizing the Bound (Short Intervals)
-  --  \sum_{(1-\varepsilon)x < n \leq x} f(n) = O(x)
-  have h_short_interval : ∃ (ε : ℝ) (C : ℝ), ε > 0 ∧ ε < 1 ∧ C > 0 ∧ ∀ x ≥ 1,
-    ∑' n, (f n) * (Set.indicator (Set.Ioc ((1 - ε) * x) x) (fun _ ↦ 1) (n : ℝ)) ≤ C * x := by
-
-    -- 1. ψhat at 0 is strictly positive
-    -- 1. ψhat at 0 is strictly positive
-    have h_psi_zero_pos : 0 < (𝓕 (ψ : ℝ → ℂ) 0).re := by
-      have hφ_nonneg : ∀ x, 0 ≤ φ_real x := by
+  · -- Proof that \hat{\psi}(0) > 0
+    have hφ_nonneg : ∀ x, 0 ≤ φ_real x := by
         intro x
         have hx := hφIcc x
         by_cases hmem : x ∈ Set.Icc (1:ℝ) (1:ℝ)
@@ -3938,21 +3913,21 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
           exact zero_le_one.trans hx
         · rw [Set.indicator_of_notMem hmem] at hx
           exact hx
-      have hsupp_Ico : Set.Ico (1:ℝ) 2 ⊆ Function.support φ_real := by
+    have hsupp_Ico : Set.Ico (1:ℝ) 2 ⊆ Function.support φ_real := by
         intro x hx
         have hxIoo : x ∈ Set.Ioo ((1/2:ℝ)) 2 := by
           refine ⟨?_, hx.2⟩
           have : (1/2:ℝ) < 1 := by norm_num
           exact this.trans_le hx.1
         simpa [hφsupp] using hxIoo
-      have hvol_supp : (1 : ENNReal) ≤ volume (Function.support φ_real) := by
+    have hvol_supp : (1 : ENNReal) ≤ volume (Function.support φ_real) := by
         have := (volume.mono hsupp_Ico)
         have h_vol_Ico : volume (Set.Ico (1:ℝ) 2) = 1 := by
           simp [Real.volume_Ico]
           norm_num
         rw [← h_vol_Ico]
         exact this
-      have hφint_pos : 0 < ∫ x, φ_real x := by
+    have hφint_pos : 0 < ∫ x, φ_real x := by
         have r1 : 0 ≤ᵐ[volume] φ_real := Filter.Eventually.of_forall hφ_nonneg
         have r2 : Integrable φ_real := hφSmooth.continuous.integrable_of_hasCompactSupport hφCompact
         have : 0 < volume (Function.support φ_real) :=
@@ -3961,8 +3936,8 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
           (setIntegral_pos_iff_support_of_nonneg_ae
               (μ := volume) (s := (Set.univ : Set ℝ)) (f := φ_real)
               (Filter.Eventually.of_forall hφ_nonneg) (r2.integrableOn)).2 (by simpa)
-      have hFφ0_ne : (𝓕 (φ : ℝ → ℂ) 0) ≠ 0 := by
-        have hre : 0 < (𝓕 (φ : ℝ → ℂ) 0).re := by
+    have hFφ0_ne : (𝓕 φ 0) ≠ 0 := by
+        have hre : 0 < (𝓕 φ 0).re := by
           dsimp [φ]
           have h_fourier_zero : 𝓕 (Complex.ofReal ∘ φ_real) 0 = ∫ x, Complex.ofReal (φ_real x) := by
             simp only [fourier_real_eq, mul_zero, neg_zero, AddChar.map_zero_eq_one,
@@ -3973,48 +3948,43 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
             have h_int_complex : Integrable (fun x => (φ_real x : ℂ)) volume := by
               simpa using h_int.ofReal
 
-            have h :=
-              integral_re (μ := volume) h_int_complex
-
-            -- h :
-            --   ∫ x, ((φ_real x : ℂ).re) = (∫ x, (φ_real x : ℂ)).re
-
-            -- Now rewrite the goal using this equality
-            have h' := h.symm
-
-            -- Finish
-            simpa using h'
+            have h := integral_re (μ := volume) h_int_complex
+            simpa using h.symm
           rw [this]
           exact hφint_pos
         exact fun h => (lt_irrefl (0:ℝ)) (by simp [h] at hre)
-      have : (𝓕 (ψ : ℝ → ℂ) 0).re = Complex.normSq (𝓕 (φ : ℝ → ℂ) 0) := by
-        dsimp [ψ, ψ_fun]
-        rw [Real.fourierIntegral_convolution (hφSmooth'.continuous.integrable_of_hasCompactSupport hφCompact') (hφRevSmooth.continuous.integrable_of_hasCompactSupport hφRevCompact)]
-        simp only [Pi.mul_apply]
-        rw [Real.fourierIntegral_conj_neg 0]
-        --  simp only [mul_comm, ← Complex.normSq_eq_conj_mul_self, Complex.re_ofReal]
-        have h :
-            𝓕 φ 0 * (starRingEnd ℂ) (𝓕 φ 0)
-              = (normSq (𝓕 φ 0) : ℂ) := by
-          -- `starRingEnd ℂ = conj`
-          simpa using (mul_conj (𝓕 φ 0))
 
-        -- take real parts
-        calc
-          (𝓕 φ 0 * (starRingEnd ℂ) (𝓕 φ 0)).re
-              = ((normSq (𝓕 φ 0) : ℂ)).re := by simp [h]
-          _ = normSq (𝓕 φ 0) := by simp
-      simpa [this] using (Complex.normSq_pos.2 hFφ0_ne)
+    rw [Real.fourierIntegral_convolution (hφSmooth'.continuous.integrable_of_hasCompactSupport hφCompact') (hφRevSmooth.continuous.integrable_of_hasCompactSupport hφRevCompact)]
+    simp only [Pi.mul_apply]
+    have h_conj : 𝓕 φ_rev 0 = conj (𝓕 φ 0) := Real.fourierIntegral_conj_neg 0
+    rw [h_conj, mul_comm, ← Complex.normSq_eq_conj_mul_self]
+    exact Complex.normSq_pos.2 hFφ0_ne
 
+/--
+Establishes the "Short Interval" bound from the global filtered bound.
+If a specific weighted average of $f(n)$ is bounded by $B$, then the sum of $f(n)$
+over a short interval $((1-\epsilon)x, x]$ is bounded by $O(x)$.
+-/
+lemma auto_cheby_short_interval_bound (hpos : 0 ≤ f)
+    (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (B : ℝ)
+    (ψ : ℝ → ℂ)
+    (hψSmooth : ContDiff ℝ ∞ ψ)
+    (hψCompact : HasCompactSupport ψ)
+    (hψpos : ∀ y, 0 ≤ (𝓕 ψ y).re ∧ (𝓕 ψ y).im = 0)
+    (hψ0 : 0 < (𝓕 ψ 0).re)
+    (hB_bound : ∀ x ≥ 1, ‖∑' n, f n / n * 𝓕 ψ (1 / (2 * Real.pi) * Real.log (n / x))‖ ≤ B) :
+    ∃ (ε : ℝ) (C : ℝ), ε > 0 ∧ ε < 1 ∧ C > 0 ∧ ∀ x ≥ 1,
+      ∑' n, (f n) * (Set.indicator (Set.Ioc ((1 - ε) * x) x) (fun _ ↦ 1) (n : ℝ)) ≤ C * x := by
     -- 2. By continuity, ψhat is bounded away from 0 in a neighborhood (-δ, δ)
-    have h_psi_lower_bound : ∃ δ > 0, ∃ c > 0, ∀ y, |y| < δ → c ≤ (𝓕 (ψ : ℝ → ℂ) y).re := by
+    have h_psi_lower_bound : ∃ δ > 0, ∃ c > 0, ∀ y, |y| < δ → c ≤ (𝓕 ψ y).re := by
       let g : ℝ → ℝ := fun y => (𝓕 (ψ : ℝ → ℂ) y).re
       have hF : Continuous (fun y : ℝ => 𝓕 (ψ : ℝ → ℂ) y) := by
-        simpa using (continuous_FourierIntegral (ψ := (ψ : W21)))
+        exact VectorFourier.fourierIntegral_continuous Real.continuous_fourierChar (by continuity) (hψSmooth.continuous.integrable_of_hasCompactSupport hψCompact)
       have hg : Continuous g := by
         simpa [g] using (Complex.continuous_re.comp hF)
       have hg0 : 0 < g 0 := by
-        simpa [g] using h_psi_zero_pos
+        simpa [g] using hψ0
       let c : ℝ := (g 0) / 2
       have hcpos : 0 < c := by dsimp [c]; linarith [hg0]
       have hmem : g 0 ∈ Set.Ioi c := by
@@ -4045,21 +4015,22 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
       have h_exp_pos : 0 < Real.exp (-2 * Real.pi * δ) := Real.exp_pos _
       constructor <;> linarith
 
-
     refine ⟨ε, ?_⟩
     refine ⟨B / c + 1, ?_⟩
     refine ⟨hε.1, ?_⟩  -- ε > 0
     refine ⟨hε.2, ?_⟩  -- ε < 1
     refine ⟨by
       have hB_nonneg : 0 ≤ B := by
-        specialize hB 1 zero_lt_one
-        exact (norm_nonneg _).trans hB
+        specialize hB_bound 1 (by linarith)
+        exact (norm_nonneg _).trans hB_bound
       have : 0 ≤ B / c := div_nonneg hB_nonneg hcpos.le
       linarith, fun x hx ↦ ?_⟩  -- C > 0
-    have h_summable : Summable (fun (n : ℕ) ↦ ↑(f n) / ↑n * 𝓕 ψ.toFun (1 / (2 * π) * Real.log (↑n / x))) := by sorry
+
+    have h_summable : Summable (fun (n : ℕ) ↦ ↑(f n) / ↑n * 𝓕 ψ (1 / (2 * π) * Real.log (↑n / x))) := by sorry
+
     -- 4. Restrict sum to the short interval where ψhat is large
     have h_sum_lower : c / x * ∑' n, f n * Set.indicator (Set.Ioc ((1 - ε) * x) x) (fun _ ↦ 1) (n : ℝ)
-        ≤ ∑' n, f n / n * (𝓕 (ψ : ℝ → ℂ) (1 / (2 * Real.pi) * Real.log (n / x))).re := by
+        ≤ ∑' n, f n / n * (𝓕 ψ (1 / (2 * Real.pi) * Real.log (n / x))).re := by
 
       rw [← tsum_mul_left]
       refine Summable.tsum_le_tsum ?_ ?_ ?_
@@ -4079,7 +4050,6 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
           have hn_pos : 0 < (n : ℝ) := by
              have : 0 < (1 - ε) * x := mul_pos (sub_pos.mpr hε.2) (zero_lt_one.trans_le hx)
              linarith [hn.1]
-
 
           have h_arg_small : |y| < δ := by
              have h2pi_pos : 0 < 2 * π := by linarith [Real.pi_pos]
@@ -4110,7 +4080,7 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
              · linarith
 
           -- Lower-bound the Fourier weight
-          have h_re_ge : c ≤ (𝓕 ψ.toFun y).re := h_psi_ge_c y h_arg_small
+          have h_re_ge : c ≤ (𝓕 ψ y).re := h_psi_ge_c y h_arg_small
 
           -- Compare inverses using ↑n ≤ x
           have h_inv_le : x⁻¹ ≤ (n : ℝ)⁻¹ := by
@@ -4118,24 +4088,19 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
              exact hn.2
 
           -- Build the scalar inequality c * x⁻¹ ≤ (↑n)⁻¹ * Re(...)
-          have h_scalar : c * x⁻¹ ≤ (n : ℝ)⁻¹ * (𝓕 ψ.toFun y).re := by
+          have h_scalar : c * x⁻¹ ≤ (n : ℝ)⁻¹ * (𝓕 ψ y).re := by
              calc
                 c * x⁻¹ ≤ c * (n : ℝ)⁻¹ := mul_le_mul_of_nonneg_left h_inv_le hcpos.le
-                _ ≤ (𝓕 ψ.toFun y).re * (n : ℝ)⁻¹ := mul_le_mul_of_nonneg_right h_re_ge (inv_nonneg.mpr hn_pos.le)
-                _ = (n : ℝ)⁻¹ * (𝓕 ψ.toFun y).re := mul_comm _ _
+                _ ≤ (𝓕 ψ y).re * (n : ℝ)⁻¹ := mul_le_mul_of_nonneg_right h_re_ge (inv_nonneg.mpr hn_pos.le)
+                _ = (n : ℝ)⁻¹ * (𝓕 ψ y).re := mul_comm _ _
 
           -- Multiply by f n and reassociate to match the goal
-          have h_final : c * (x⁻¹ * f n) ≤ ((n : ℝ)⁻¹ * (𝓕 ψ.toFun y).re) * f n := by
+          have h_final : c * (x⁻¹ * f n) ≤ ((n : ℝ)⁻¹ * (𝓕 ψ y).re) * f n := by
              rw [← mul_assoc]
              exact mul_le_mul_of_nonneg_right h_scalar (hpos n)
 
           simp only [div_eq_mul_inv]
-          -- Rewrite LHS: c / x * f n = c * x⁻¹ * f n = c * (x⁻¹ * f n)
           rw [mul_assoc] at h_final
-          -- Rewrite RHS: f n * n⁻¹ * Re = (n⁻¹ * Re) * f n ?? No wait.
-          -- Goal RHS: f n * n⁻¹ * Re
-          -- h_final RHS: (n⁻¹ * Re) * f n
-
           convert h_final using 1
           · ring
           · dsimp only [y]
@@ -4169,23 +4134,16 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
         apply Complex.ext
         · -- Real part: Re(↑(z.re)) = Re(z)
           simp only [Complex.ofReal_re]
-          -- Goal: z.re = z.re (rfl)
         · -- Imaginary part: Im(↑(z.re)) = Im(z)
           simp only [Complex.ofReal_im]
-          -- Goal: z.im = z.im (rfl)
-          -- Goal: 0 = z.im
           symm
-          -- Goal: z.im = 0
           exact (hψpos _).2
 
     -- 5. Combine with crude upper bound
     have h_combined : c / x * ∑' n, f n * Set.indicator (Set.Ioc ((1 - ε) * x) x) (fun _ ↦ 1) (n : ℝ) ≤ B := by
       apply le_trans h_sum_lower
-      -- We need to commute sum and re.
-      -- This requires summability.
-
-      have h_real_eq : ∑' (n : ℕ), f n / ↑n * (𝓕 ψ.toFun (1 / (2 * π) * Real.log (↑n / x))).re =
-          (∑' (n : ℕ), ↑(f n) / ↑n * 𝓕 ψ.toFun (1 / (2 * π) * Real.log (↑n / x))).re := by
+      have h_real_eq : ∑' (n : ℕ), f n / ↑n * (𝓕 ψ (1 / (2 * π) * Real.log (↑n / x))).re =
+          (∑' (n : ℕ), ↑(f n) / ↑n * 𝓕 ψ (1 / (2 * π) * Real.log (↑n / x))).re := by
         rw [Complex.re_tsum h_summable]
         congr with n
         rw [Complex.mul_re]
@@ -4193,12 +4151,10 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
         simp only [zero_mul, sub_zero]
       rw [h_real_eq]
       apply le_trans (Complex.re_le_norm _)
-      apply hB
+      apply hB_bound
       linarith
 
-
     -- Conclusion
-
     let S := ∑' n, (f n) * (Set.indicator (Set.Ioc ((1 - ε) * x) x) (fun _ ↦ 1) (n : ℝ))
     calc
       S = 1 * S := by ring
@@ -4213,11 +4169,16 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
         field_simp [hc]
       _ ≤ (B / c + 1) * x := by gcongr; norm_num
 
-  -- Step 3 & 4: Strong Induction and Conclusion
+/--
+Bootstraps a short interval bound to a global bound using strong induction.
+If $f(n)$ is controlled in intervals of size $\epsilon x$, then it is controlled globally.
+-/
+lemma auto_cheby_bootstrap_induction (hpos : 0 ≤ f)
+    (h_short : ∃ (ε : ℝ) (C : ℝ), ε > 0 ∧ ε < 1 ∧ C > 0 ∧ ∀ x ≥ 1,
+      ∑' n, (f n) * (Set.indicator (Set.Ioc ((1 - ε) * x) x) (fun _ ↦ 1) (n : ℝ)) ≤ C * x) :
+    cheby f := by
   -- Goal: ∃ C, ∀ (n : ℕ), cumsum (fun x ↦ ‖(fun n ↦ ↑(f n)) x‖) n ≤ C * ↑n
-  -- We assume f is non-negative, so ‖f n‖ = f n.
-  -- We need to provide a C such that the bound holds for all n.
-  obtain ⟨ε, C_short, hε, hε_lt_one, hC_short, h_bound⟩ := h_short_interval
+  obtain ⟨ε, C_short, hε, hε_lt_one, hC_short, h_bound⟩ := h_short
   let C := C_short / ε + (f 0) + 1
   refine ⟨C, ?_⟩
   intro n
@@ -4310,16 +4271,6 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
             apply mul_nonneg (hpos k)
             apply Set.indicator_nonneg
             intro _ _; norm_num
-
-          -- Summability proof
-          -- The RHS is summable because it's part of the hypothesis h_bound (which implies terms are summable/bounded)
-          -- Actually h_bound gives the bound for the sum.
-          -- We know f(n) terms are summable for σ > 1.
-          -- But strictly speaking, we need Summable (rhs).
-          -- Let's assume hf implies enough summability or since we have a finite bound, abstractly it exists?
-          -- Actually, hf is for σ > 1. Here we essentially have a cutoff.
-          -- But the indicator has compact support (bounded interval), so only finitely many terms are non-zero!
-          -- So summability is trivial.
           · apply summable_of_finite_support
             apply Set.Finite.subset (s := {k : ℕ | k ≤ ⌊x⌋₊})
             · exact Set.finite_le_nat _
@@ -4329,10 +4280,6 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
               have hk_ind := hk.2
               simp only [Set.indicator_apply_ne_zero] at hk_ind
               exact Nat.le_floor hk_ind.1.2
-
-
-
-
         _ ≤ C_short * x := h_bound
 
     have hC_nonneg : 0 ≤ C := by
@@ -4373,6 +4320,29 @@ lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (n
       _ ≤ C * n := by
         have : x + 1 = n := by linarith
         rw [← this, mul_add, mul_one]
+
+lemma auto_cheby (hpos : 0 ≤ f) (hf : ∀ (σ' : ℝ), 1 < σ' → Summable (nterm f σ'))
+    (hG : ContinuousOn G {s | 1 ≤ s.re})
+    (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1)) {s | 1 < s.re}) : cheby f := by
+  unfold cheby chebyWith
+  -- Step 1: Obtain a smoothing kernel
+  obtain ⟨ψ_fun, hψSmooth, hψCompact, hψpos, hψ0⟩ := auto_cheby_exists_smooth_nonneg_fourier_kernel
+
+  -- Bundle ψ into the Schwartz/CompactSupport wrapper expected by crude_upper_bound
+  let ψ : CS 2 ℂ := ⟨ψ_fun, hψSmooth.of_le ENat.LEInfty.out, hψCompact⟩
+  have hψpos_bundled : ∀ y, 0 ≤ (𝓕 (ψ : ℝ → ℂ) y).re ∧ (𝓕 (ψ : ℝ → ℂ) y).im = 0 := hψpos
+
+  -- Step 2: Apply the crude upper bound
+  obtain ⟨B, hB⟩ := crude_upper_bound hpos hG hG' hf ψ hψpos_bundled
+
+  -- Step 3: Localize to short intervals
+  have h_short := auto_cheby_short_interval_bound hpos hf B ψ_fun hψSmooth hψCompact hψpos hψ0 (by
+    intro x hx
+    apply hB
+    linarith)
+
+  -- Step 4: Bootstrap to global bound using induction
+  exact auto_cheby_bootstrap_induction hpos h_short
 
 
 /-
