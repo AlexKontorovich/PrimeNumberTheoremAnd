@@ -787,7 +787,7 @@ lemma inv_le_rpow_div_of_lower_bound [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ 
       _ = (b n) ^ t * (n : ℝ)⁻¹ := by
             sorry  -- simp [Real.rpow_neg]
       _ = (b n) ^ t / n := by
-              simp [div_eq_mul_inv, mul_comm, mul_left_comm, mul_assoc]
+              simp [div_eq_mul_inv, mul_comm]
 
   simpa [h_simp] using h_recip
 
@@ -864,7 +864,7 @@ lemma p_mul_padd1_le_bound [PrimeGap_Criterion]
             have hn0 : (0 : ℝ) ≤ (n : ℝ) := by
               exact_mod_cast (Nat.zero_le n)
             have hsqrt_sq : (√(n : ℝ)) ^ 2 = (n : ℝ) := by
-              simpa using (Real.sq_sqrt hn0)
+              simpa only using (Real.sq_sqrt hn0)
             simp [hsqrt_sq, pow_two]
       _ = (n : ℝ) * B ^ ((i + 1 : ℝ) + (i + 1 : ℝ)) := by
         sorry -- simpa using (Real.rpow_add hB_pos (i + 1 : ℝ) (i + 1 : ℝ)).symm
@@ -1037,7 +1037,7 @@ lemma ord2_mid [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     exact_mod_cast (Nat.zero_le n)
   have hx_sq : x * x = (n : ℝ) := by
     have : x ^ (2 : ℕ) = (n : ℝ) := by
-      simpa [hx] using (Real.sq_sqrt hn0)
+      simpa only [hx] using (Real.sq_sqrt hn0)
     simpa [pow_two] using this
 
   have hxb6_lt_n : x * b ^ (6 : ℕ) < (n : ℝ) := by
@@ -1060,7 +1060,7 @@ lemma ord2_mid [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
           = x * (b ^ (3 : ℕ) * b ^ (3 : ℕ)) := by
               simp [mul_assoc]
       _   = x * b ^ (6 : ℕ) := by
-              simp [hpow, mul_assoc]
+              simp [hpow]
 
   have hmul : (x * b ^ (3 : ℕ)) * b ^ (3 : ℕ) < (n : ℝ) := by
     simpa [hrewrite] using hxb6_lt_n
