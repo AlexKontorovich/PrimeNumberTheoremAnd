@@ -1284,7 +1284,77 @@ lemma inv_n_add_sqrt_ge_X₀ [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2
   - so `n + √n ≤ n + n/X₀ = (1+1/X₀)*n`
   - invert both sides (positive) to get the lower bound for `1/(n+√n)`
   -/
-  sorry
+  -- Positivity facts.
+  have hX0_pos_nat : 0 < X₀ :=
+    lt_trans Nat.zero_lt_one (PrimeGap_Criterion.h_X₀)
+  have hX0_pos : (0 : ℝ) < (X₀ : ℝ) := by
+    exact_mod_cast hX0_pos_nat
+
+  have hX0_sq_pos_nat : 0 < X₀ ^ 2 := pow_pos hX0_pos_nat 2
+  have hn_pos_nat : 0 < n := lt_of_lt_of_le hX0_sq_pos_nat hn
+  have hn_pos : (0 : ℝ) < (n : ℝ) := by
+    exact_mod_cast hn_pos_nat
+  have hn0 : (0 : ℝ) ≤ (n : ℝ) := le_of_lt hn_pos
+
+  have hsqrt_nonneg : 0 ≤ √(n : ℝ) := Real.sqrt_nonneg (n : ℝ)
+
+  -- Bound `√n` by `n/X₀` using `X₀ ≤ √n`.
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := sqrt_ge_X₀ (n := n) hn
+  have h_mul : (√(n : ℝ)) * (X₀ : ℝ) ≤ (n : ℝ) := by
+    -- Multiply `X₀ ≤ √n` by `√n ≥ 0`.
+    have hmul' : (X₀ : ℝ) * √(n : ℝ) ≤ √(n : ℝ) * √(n : ℝ) := by
+      have := mul_le_mul_of_nonneg_right hX0_le_sqrt hsqrt_nonneg
+      -- swap the RHS into `√n * √n`.
+      simpa [mul_assoc, mul_comm, mul_left_comm] using this
+    -- `√n * √n = n`.
+    have hsq : √(n : ℝ) * √(n : ℝ) = (n : ℝ) := by
+      simp [Real.mul_self_sqrt hn0]
+    -- Commute the LHS and rewrite.
+    simpa [mul_comm, mul_left_comm, mul_assoc, hsq] using hmul'
+
+  have hsqrt_le_div : √(n : ℝ) ≤ (n : ℝ) / (X₀ : ℝ) := by
+    -- `a ≤ b/c` iff `a*c ≤ b` for `0 < c`.
+    exact (le_div_iff₀ hX0_pos).2 (by simpa [mul_comm, mul_left_comm, mul_assoc] using h_mul)
+
+  -- Therefore `n + √n ≤ (1 + 1/X₀) * n`.
+  have hden_le : (n : ℝ) + √(n : ℝ) ≤ (1 + 1 / (X₀ : ℝ)) * (n : ℝ) := by
+    calc
+      (n : ℝ) + √(n : ℝ) ≤ (n : ℝ) + (n : ℝ) / (X₀ : ℝ) := by
+        nlinarith [hsqrt_le_div]
+      _ = (1 + 1 / (X₀ : ℝ)) * (n : ℝ) := by
+        ring
+
+  have hden_pos : (0 : ℝ) < (n : ℝ) + √(n : ℝ) :=
+    add_pos_of_pos_of_nonneg hn_pos hsqrt_nonneg
+
+  -- Take reciprocals.
+  have hrecip : (1 : ℝ) / ((1 + 1 / (X₀ : ℝ)) * (n : ℝ))
+      ≤ (1 : ℝ) / ((n : ℝ) + √(n : ℝ)) := by
+    -- `a ≤ b` with `0 < a` gives `1/b ≤ 1/a`.
+    simpa [one_div] using (one_div_le_one_div_of_le hden_pos hden_le)
+
+  -- Rewrite `1/((1+1/X₀)*n)` as `(1/(1+1/X₀))*(1/n)`.
+  have hrew : (1 : ℝ) / ((1 + 1 / (X₀ : ℝ)) * (n : ℝ))
+      = (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) := by
+    calc
+      (1 : ℝ) / ((1 + 1 / (X₀ : ℝ)) * (n : ℝ))
+          = ((1 + 1 / (X₀ : ℝ)) * (n : ℝ))⁻¹ := by
+              simp [one_div]
+      _ = (n : ℝ)⁻¹ * (1 + 1 / (X₀ : ℝ))⁻¹ := by
+              simp [mul_inv_rev]
+      _ = (1 / (n : ℝ)) * (1 / (1 + 1 / (X₀ : ℝ))) := by
+              simp [one_div]
+      _ = (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) := by
+              ac_rfl
+
+  -- Finish.
+  have : (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) ≤ (1 : ℝ) / ((n : ℝ) + √(n : ℝ)) := by
+    calc
+      (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ))
+          = (1 : ℝ) / ((1 + 1 / (X₀ : ℝ)) * (n : ℝ)) := by
+              simpa [hrew] using hrew.symm
+      _ ≤ (1 : ℝ) / ((n : ℝ) + √(n : ℝ)) := hrecip
+  exact this
 
 
 theorem main_ineq_delta_form_lhs [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
