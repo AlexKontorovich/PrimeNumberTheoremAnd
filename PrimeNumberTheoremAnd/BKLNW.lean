@@ -154,7 +154,25 @@ theorem prop_3_sub_1 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 1)
   (proof := /-- Clear. -/)
   (latexEnv := "sublemma")
   (discussion := 632)]
-theorem prop_3_sub_2 (n : ℕ) : StrictAntiOn f (Set.Ico (2^n) (2^(n + 1))) := by sorry
+theorem prop_3_sub_2 (n : ℕ) (hn : n ≥ 4) : StrictAntiOn f (Set.Ico (2^n) (2^(n + 1))) := by
+  have hlog2 : (0 : ℝ) < log 2 := log_pos one_lt_two
+  have hfloor : ∀ x ∈ Set.Ico (2^n : ℝ) (2^(n+1)), ⌊log x / log 2⌋₊ = n := fun x ⟨hlo, hhi⟩ ↦ by
+    rw [Nat.floor_eq_iff <| div_nonneg (log_pos <| lt_of_lt_of_le (by
+      norm_cast; exact Nat.one_lt_two_pow (by omega)) hlo).le hlog2.le, le_div_iff₀ hlog2, div_lt_iff₀ hlog2]
+    refine ⟨?_, ?_⟩
+    · calc (n : ℝ) * log 2 = log ((2 : ℝ)^n) := (log_pow 2 n).symm
+        _ ≤ log x := log_le_log (by positivity) hlo
+    · calc log x < log ((2 : ℝ)^(n+1)) := log_lt_log (lt_of_lt_of_le (by positivity : (0 : ℝ) < 2^n) hlo) hhi
+        _ = (↑n + 1) * log 2 := by rw [log_pow]; push_cast; ring
+  intro a ha b hb hab
+  simp only [f, hfloor a ha, hfloor b hb]
+  refine Finset.sum_lt_sum (fun k hk ↦ ?_) ⟨4, Finset.mem_Icc.mpr ⟨by omega, by omega⟩, ?_⟩
+  · rcases eq_or_ne k 3 with rfl | hk3
+    · simp
+    · have hk' : 3 < k := by simp only [Finset.mem_Icc] at hk; omega
+      exact (rpow_lt_rpow_of_neg (lt_of_lt_of_le (by positivity) ha.1) hab
+        (by have : (k:ℝ) > 3 := mod_cast hk'; field_simp; linarith)).le
+  · exact rpow_lt_rpow_of_neg (lt_of_lt_of_le (by positivity) ha.1) hab (by norm_num)
 
 noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - (n/3:ℝ))
 
@@ -247,7 +265,13 @@ theorem prop_3_sub_7 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
     calc x₀ = 2^((log x₀) / (log 2)) := key.symm
          _ < 2^((n:ℝ) + 1) := rpow_lt_rpow_of_exponent_lt one_lt_two h1
          _ = 2^(n+1) := by rw [← rpow_natCast 2 (n+1)]; norm_cast
-  exact (prop_3_sub_2 n).le_iff_ge ⟨hx₀_ge.trans hx_lo, hx_hi⟩ ⟨hx₀_ge, hx₀_lt⟩ |>.mpr hx_lo
+  have : n ≥ 4 := by
+    by_contra hcon; push_neg at hcon
+    have : (2 : ℝ) ^ (n + 1) ≤ 2^9 := pow_le_pow_right₀ one_le_two <| by omega
+    linarith [hx₀, hx₀_lt]
+  rcases hx_lo.eq_or_lt with rfl | hlt
+  · rfl
+  · exact (prop_3_sub_2 n this ⟨hx₀_ge, hx₀_lt⟩ ⟨hx₀_ge.trans hx_lo, hx_hi⟩ hlt).le
 
 @[blueprint
   "bklnw-prop-3-sub-8"
