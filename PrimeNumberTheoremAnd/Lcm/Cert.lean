@@ -929,7 +929,12 @@ assuming n ≥ X₀ ^ 2 throughout
 
 lemma n_pos [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) : (0 : ℝ) < (n : ℝ) := by
   /- This holds when X₀ ≠ 0 -/
-  sorry
+  -- Since `X₀ > 1`, we have `0 < X₀`, hence `0 < X₀^2 ≤ n`.
+  have hX0_pos : 0 < X₀ := lt_trans Nat.zero_lt_one PrimeGap_Criterion.h_X₀
+  have hX0_sq_pos : 0 < X₀ ^ 2 := pow_pos hX0_pos 2
+  have hn_pos_nat : 0 < n := lt_of_lt_of_le hX0_sq_pos hn
+  exact_mod_cast hn_pos_nat
+
 
 
 
@@ -1065,30 +1070,6 @@ lemma ord2_mid [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 -- /- End of `h_ord_2` lemmas -/
 
 /- `h_crit` lemmas -/
-theorem main_ineq_delta_form [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (∏ i : Fin 3,
-        (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
-      ≤
-    (∏ i : Fin 3,
-        (1 + 1 /
-          ((1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
-      * (1 + (3 : ℝ) / (8 * (n : ℝ)))
-      * (1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
-  /-
-   *** Proof outline (exactly your write-up) *** :
-  1) Use `main_ineq_delta_form_lhs` to bound the LHS by an expression with
-     `0.000675` in place of `gap.δ(√n)`.
-  2) Use `main_ineq_delta_form_rhs` to bound the RHS by an expression with
-     `0.000675` in place of `gap.δ(√n)`, and `1/(1 + 1/X₀)` and `1/X₀` in place of
-     `1/(1 + gap.δ(√n))` and `1/n^(3/2)`, respectively.
-  3) Use `delta_prod_mul_nonneg` and `delta_ratio_term_nonneg` to ensure
-     the RHS expression is nonnegative.
-  4) Set `ε := 1/n` and use the hypotheses `0 ≤ ε` and `ε ≤ 1/(X₀^2)` (derived from `hn`).
-  5) Apply `prod_epsilon_le`, `prod_epsilon_ge`, and `final_comparison` to finish.
-  -/
-  sorry
-
-
 lemma delta_prod_mul_nonneg [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     0 ≤
       (∏ i : Fin 3,
@@ -1117,8 +1098,7 @@ lemma delta_sqrt_le [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   /- This holds when gap.δ(√n) ≤ 0.000675 for n ≥ X₀ ^ 2 -/
   /-- (Cert) Numerical bound on the prime-gap delta at √n: `δ(√n) ≤ 0.000675` for `n ≥ X₀^2`. -/
   /- *** Proof idea (Dusart provider) *** :
-  - unfold `gap := PrimeGaps.latest` and the definition of δ;
-  - use monotonicity of `x ↦ 1/(log x)^3` for x ≥ X₀ and the numerical estimate at X₀;
+  - use the monotonicity of `x ↦ δ(x)` for x ≥ X₀ and the numerical estimate at X₀;
   - convert `hn : n ≥ X₀^2` into `√n ≥ X₀`, then finish by monotonicity + `norm_num`.
   -/
   sorry
@@ -1193,6 +1173,30 @@ theorem final_comparison {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : �
     1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
     dsimp [X₀] at *
     nlinarith
+
+
+theorem main_ineq_delta_form [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (∏ i : Fin 3,
+        (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
+      ≤
+    (∏ i : Fin 3,
+        (1 + 1 /
+          ((1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+      * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+      * (1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+  /-
+   *** Proof outline (exactly your write-up) *** :
+  1) Use `main_ineq_delta_form_lhs` to bound the LHS by an expression with
+     `0.000675` in place of `gap.δ(√n)`.
+  2) Use `main_ineq_delta_form_rhs` to bound the RHS by an expression with
+     `0.000675` in place of `gap.δ(√n)`, and `1/(1 + 1/X₀)` and `1/X₀` in place of
+     `1/(1 + gap.δ(√n))` and `1/n^(3/2)`, respectively.
+  3) Use `delta_prod_mul_nonneg` and `delta_ratio_term_nonneg` to ensure
+     the RHS expression is nonnegative.
+  4) Set `ε := 1/n` and use the hypotheses `0 ≤ ε` and `ε ≤ 1/(X₀^2)` (derived from `hn`).
+  5) Apply `prod_epsilon_le`, `prod_epsilon_ge`, and `final_comparison` to finish.
+  -/
+  sorry
 
 /- End of lemmas required to prove h_crit: `theorem main_ineq_delta_form` -/
 
