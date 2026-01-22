@@ -276,8 +276,8 @@ theorem remark_after_corollary_11 :
   (statement := /--
   Suppose that $E_\theta$ satisfies an admissible classical bound with parameters $A,B,C,R,x_0$.
   Then, for all $x \geq x_0$,
-  $$ \int_{x_0}^x |\frac{E_\theta(t)}{\log^2 t} dt| \leq \frac{2A}{R^B} x m(x_0,x)
-    \exp(-C \sqrt{\frac{\log x}{R}}) D_+( \sqrt{\log x} - \frac{C}{2\sqrt{R}} )$$
+  $$ \int_{x_0}^x \left|\frac{E_\theta(t)}{\log^2 t} dt\right| \leq \frac{2A}{R^B} x m(x_0,x)
+    \exp\left(-C \sqrt{\frac{\log x}{R}}\right) D_+\left( \sqrt{\log x} - \frac{C}{2\sqrt{R}} \right)$$
   where
   $$ m(x_0,x) = \max ( (\log x_0)^{(2B-3)/2}, (\log x)^{(2B-3)/2} ). $$
   -/)
@@ -322,8 +322,9 @@ noncomputable def ν_asymp (Aψ B C R x₀ : ℝ) : ℝ :=
   with
   $$ \nu_{asymp}(x_0) = \frac{1}{A_\psi} (\frac{R}{\log x_0})^B
     \exp(C \sqrt{\frac{\log x_0}{R}}) (a_1 (\log x_0) x_0^{-1/2} + a_2 (\log x_0) x_0^{-2/3}).$$
+  and $a_1,a_2$ are given by Definitions \ref{bklnw-def-a-1} and \ref{bklnw-def-a-2}.
   -/)
-  (proof := /-- The proof of \cite[Corollary 14.1]{BKLNW} essentially proves the proposition, but requires that $x_0 \geq e^{1000}$ to conclude that the function
+  (proof := /-- The proof of Corollary \ref{bklnw-cor-14.1} essentially proves the proposition, but requires that $x_0 \geq e^{1000}$ to conclude that the function
   $$ 1 + \frac{a_1 \exp(C \sqrt{\frac{\log x}{R}})}{A_\psi \sqrt{x} (\log x/R)^{B}} + \frac{a_2 \exp(C \sqrt{\frac{\log x}{R}})}{A_\psi x^{2/3} (\log x/R)^{B}} = 1 + \frac{a_1}{A_\psi} g(1/2, -B, C/\sqrt{R}, x) + \frac{a_2}{A_\psi} g(2/3, -B, C/\sqrt{R}, x)$$
   is decreasing. By Lemma \ref{fks2-lemma-10a}, since $B > C^2/8R$, the function is actually decreasing for all $x$. -/)
   (latexEnv := "proposition")
@@ -341,7 +342,7 @@ theorem proposition_13
   We have an admissible bound for $E_\theta$ with $A = 121.0961$, $B=3/2$, $C=2$,
   $R = 5.5666305$, $x_0=2$.
   -/)
-  (proof := /-- By \cite[Corollary 1.3]{FKS}, with $R = 5.5666305$, and using the admissible asymptotic bound for $E_\psi(x)$ with $A_\psi = 121.096$, $B = 3/2$, $C = 2$, for all $x \geq x_0 = e^{30}$, we can obtain $\nu_{asymp}(x_0) \leq 6.3376 \cdot 10^{-7}$, from which one can conclude an admissible asymptotic bound for $E_\theta(x)$ with $A_\theta = 121.0961$, $B = 3/2$, $C = 2$, for all $x \geq x_0 = e^{30}$. Additionally, the minimum value of $\varepsilon_{\theta,asymp}(x)$ for $2 \leq x \leq e^{30}$ is roughly $2.6271\ldots$ at $x=2$. The results found in \cite[Table 13 and 14]{BKLNW} give $E_\theta(x) \leq 1 < \varepsilon_{\theta,asymp}(2) \leq \varepsilon_{\theta,asymp}(x)$ for all $2 \leq x \leq e^{30}$. -/)
+  (proof := /-- By Corollary \ref{fks_cor_13}, with $R = 5.5666305$, and using the admissible asymptotic bound for $E_\psi(x)$ with $A_\psi = 121.096$, $B = 3/2$, $C = 2$, for all $x \geq x_0 = e^{30}$, we can obtain $\nu_{asymp}(x_0) \leq 6.3376 \cdot 10^{-7}$, from which one can conclude an admissible asymptotic bound for $E_\theta(x)$ with $A_\theta = 121.0961$, $B = 3/2$, $C = 2$, for all $x \geq x_0 = e^{30}$. Additionally, the minimum value of $\varepsilon_{\theta,asymp}(x)$ for $2 \leq x \leq e^{30}$ is roughly $2.6271\ldots$ at $x=2$. The results found in \cite[Table 13 and 14]{BKLNW} give $E_\theta(x) \leq 1 < \varepsilon_{\theta,asymp}(2) \leq \varepsilon_{\theta,asymp}(x)$ for all $2 \leq x \leq e^{30}$. -/)
   (latexEnv := "corollary")
   (discussion := 672)]
 theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := sorry
@@ -370,6 +371,18 @@ def _root_.Eπ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop := ∀ x �
 
 def _root_.Eθ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop := ∀ x ≥ x₀, Eθ x ≤ (ε x₀)
 
+@[blueprint
+  "fks2-eq-11"
+  (title := "FKS2 equation (11)")
+  (statement := /--
+  For $x_1 \leq x_2 \leq x_1 \log x_1$, we define
+  $$ \mu_{num}(x_0,x_1,x_2) := \frac{x_0 \log(x_1)}{\epsilon_{\theta,num}(x_1) x_1 \log(x_0)}
+    \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right| +
+    \frac{\log(x_1)}{\epsilon_{\theta,num}(x_1) x_1}
+    \sum_{i=0}^{N-1} \epsilon_{\theta,num}(e^{b_i})
+    \left( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}} \right) +
+    \frac{\log(x_2)}{x_2} \left( \Li(x_2) - \frac{x_2}{\log x_2} - \Li(x_1) + \frac{x_1}{\log x_1} \right).$$
+   -/)]
 noncomputable def μ_num_1 {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ → ℝ) (x₀ x₁ x₂ : ℝ) : ℝ :=
   (x₀ * log x₁) / (εθ_num x₁ * x₁ * log x₀) * |Eπ x₀ - Eθ x₀| +
   (log x₁) / (εθ_num x₁ * x₁) *
@@ -378,6 +391,18 @@ noncomputable def μ_num_1 {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ �
       exp (b i) / b i - exp (b (i + 1)) / b (i + 1))) +
     (log x₂) / x₂ * (Li x₂ - x₂ / log x₂ - Li x₁ + x₁ / log x₁)
 
+@[blueprint
+  "fks2-eq-12"
+  (title := "FKS2 equation (12)")
+  (statement := /--
+  For $x_2 \geq x_1 \log x_1$, we define
+  $$ \mu_{num}(x_0,x_1) := \frac{x_0 \log(x_1)}{\epsilon_{\theta,num}(x_1) x_1 \log(x_0)}
+    \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right| +
+    \frac{\log(x_1)}{\epsilon_{\theta,num}(x_1) x_1}
+    \sum_{i=0}^{N-1} \epsilon_{\theta,num}(e^{b_i})
+    \left( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}} \right) +
+    \frac{1}{\log x_1 + \log(\log x_1) - 1}.$$
+   -/)]
 noncomputable def μ_num_2 {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ → ℝ) (x₀ x₁ : ℝ) : ℝ :=
   (x₀ * log x₁) / (εθ_num x₁ * x₁ * log x₀) * |Eπ x₀ - Eθ x₀| +
   (log x₁) / (εθ_num x₁ * x₁) *
@@ -392,6 +417,13 @@ noncomputable def μ_num {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ →
   else
     μ_num_2 b εθ_num x₀ x₁
 
+@[blueprint
+  "fks2-eq-13"
+  (title := "FKS2 equation (13)")
+  (statement := /--
+  For $x_1 \leq x_2$, we define $\epsilon_{\pi,num}(x_0,x_1,x_2) := \epsilon_{\theta,num}(x_1)
+    (1 + \mu_{num}(x_0,x_1,x_2))$.
+   -/)]
 noncomputable def επ_num {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ → ℝ) (x₀ x₁ : ℝ)
     (x₂ : EReal) : ℝ :=
   εθ_num x₁ * (1 + μ_num b εθ_num x₀ x₁ x₂)
@@ -428,15 +460,10 @@ theorem remark_7 {x₀ x₁ : ℝ} (x₂ : ℝ) (h : x₁ ≥ max x₀ 14)
   choice of $A(x_0)$, $B = 3/2$, $C = 2$, and $R = 5.5666305$.
   -/)
   (latexEnv := "remark")
+  (proof := /-- From \cite[Table 6]{FKS} we have $\nu_{asymp}(x_0) \leq 10^{-200}$. Thus, one easily verifies that the rounding up involved in forming \cite[Table 6]{FKS} exceeds the rounding up also needed to apply this step. Consequently we may use values from $A_\theta$ taken from \cite[Table 6]{FKS} directly but this does, in contrast to Corollary \ref{fks2-corollary-14}, require the assumption $x > x_0$, as per that table. -/)
   (discussion := 674)]
 theorem remark_15 (x₀ : ℝ) (h : log x₀ ≥ 1000) :
     Eθ.classicalBound (FKS.A x₀) (3/2) 2 5.5666305 x₀ := by sorry
-
-/- We recall inequality (30)
-\begin{equation}
-|\pi(x) - \mathrm{Li}(x)| \leq \left| \frac{\theta(x) - x}{\log(x)} \right| + \left| \pi(x_0) - \mathrm{Li}(x_0) - \frac{\theta(x_0) - x_0}{\log(x_0)} \right| + \left| \int_{x_0}^{x} \frac{\theta(t) - t}{t(\log(t))^2} \, dt \right|.
-\end{equation}
--/
 
 @[blueprint
   "fks2-eq30"
@@ -446,7 +473,8 @@ theorem remark_15 (x₀ : ℝ) (h : log x₀ ≥ 1000) :
   $$ |\pi(x) - \Li(x)| \leq \left| \frac{\theta(x) - x}{\log(x)} \right| + \left| \pi(x_0) - \Li(x_0) - \frac{\theta(x_0) - x_0}{\log(x_0)} \right| + \left| \int_{x_0}^{x} \frac{\theta(t) - t}{t(\log(t))^2} \, dt \right|. $$
   -/)
   (proof := /-- This follows from applying the triangle inequality to Sublemma \ref{fks2-eq-17}. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 741)]
 theorem eq_30 {x x₀ : ℝ} (hx : x ≥ x₀) :
   Eπ x * x / log x ≤ Eψ x * x / log x + |Eπ x₀ - Eθ x₀| * x₀ / log x₀ + ∫ t in x₀..x, Eθ t / log t ^ 2 :=
   by sorry
@@ -565,7 +593,7 @@ theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
   -/)
   (proof := /-- Differentiate
   \[
-  \frac{d}{dx} \left( \mathrm{Li}(x) - \frac{x}{\log(x)} \right) = \frac{1}{\log(x)} + \frac{1 - \log(x)}{(\log(x))^2} = \frac{1}{(\log(x))^2}
+  \frac{d}{dx} \left( \Li(x) - \frac{x}{\log(x)} \right) = \frac{1}{\log(x)} + \frac{1 - \log(x)}{(\log(x))^2} = \frac{1}{(\log(x))^2}
   \]
   to see that the difference is strictly increasing. Evaluating at $x = 6.58$ and applying the mean value theorem gives the announced result.
   -/)
@@ -593,7 +621,7 @@ theorem lemma_20_b {x : ℝ} (hx : x ≥ 6.58) :
   (title := "FKS2 Theorem 6, substep 1")
   (statement := /-- With the hypotheses of Theorem \ref{fks2-theorem-6}, for all $x \geq x_1$ we have
   $$ E_\pi(x) \leq \varepsilon_{θ,num}(x_1) + \frac{\log x}{x} \frac{x_0}{\log x_0} (E_\pi(x_0) + E_\theta(x_0))$$
-  $$ + \frac{\log x}{x} \sum_{i=1}^{N-1} \varepsilon_{\theta,num}(e^{b_i}) \left( \mathrm{Li}(e^{b_{i+1}}) - \mathrm{Li}(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}} \right) $$
+  $$ + \frac{\log x}{x} \sum_{i=1}^{N-1} \varepsilon_{\theta,num}(e^{b_i}) \left( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}} \right) $$
   $$ + \varepsilon_{\theta,num}(x_1) \frac{\log x}{x} \int_{x_1}^{x} \frac{1}{(\log t)^2} \, dt. $$ -/)
   (proof := /-- This is obtained by combining Sublemma \ref{fks2-eq-30} with the admissibility of $\varepsilon_{\theta,num}$ and Lemma \ref{fks2-lemma-19}.
   -/)
@@ -676,17 +704,17 @@ theorem theorem_6 {x₀ x₁ : ℝ} (x₂ : EReal) (h : x₁ ≥ max x₀ 14)
   $x = \exp(b_i)$, for each $i=1,\dots,N$.  For $x_1 \leq x_2 \leq x_1 \log x_1$, we define
   $$ \mu_{num}(x_0,x_1,x_2) = \frac{x_0 \log x_1}{\varepsilon_{\theta,num}(x_0) x_1 \log x_0}
     \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right|$$
-  $$ + \frac{\log x_1}{\varepsilon_{theta,num}(x_1) x_1} \sum_{i=1}^{N-1}
+  $$ + \frac{\log x_1}{\varepsilon_{\theta,num}(x_1) x_1} \sum_{i=1}^{N-1}
     \varepsilon_{\theta,num}(\exp(b_i))
-    \left( Li(e^{b_{i+1}}) - Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}}\right)$$
+    \left( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}}\right)$$
   $$ + \frac{\log x_2}{x_2}
-    \left( Li(x_2) - \frac{x_2}{\log x_2} - Li(x_1) + \frac{x_1}{\log x_1} \right)$$
+    \left( \Li(x_2) - \frac{x_2}{\log x_2} - \Li(x_1) + \frac{x_1}{\log x_1} \right)$$
   and for $x_2 > x_1 \log x_1$, including the case $x_2 = \infty$, we define
   $$ \mu_{num}(x_0,x_1,x_2) = \frac{x_0 \log x_1}{\varepsilon_{\theta,num}(x_1) x_1 \log x_0}
     \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right|$$
   $$ + \frac{\log x_1}{\varepsilon_{\theta,num}(x_1) x_1} \sum_{i=1}^{N-1}
     \varepsilon_{\theta,num}(\exp(b_i))
-    \left( Li(e^{b_{i+1}}) - Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}}\right)$$
+    \left( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}}\right)$$
   $$ + \frac{1}{\log x_1 + \log\log x_1 - 1}.$$
   Then, for all $x_1 \leq x \leq x_2$ we have
   $$ E_\pi(x) \leq \varepsilon_{\pi,num}(x_1,x_2) :=
@@ -871,7 +899,7 @@ def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
   "fks2-corollary-23"
   (title := "FKS2 Corollary 23")
   (statement := /--
-  $A_\pi, B, C, x_0$ as in Table 6 give an admissible asymptotic bound for $E_\pi$ with
+  $A_\pi, B, C, x_0$ as in \cite[Table 6]{FKS2} give an admissible asymptotic bound for $E_\pi$ with
   $R = 5.5666305$.
   -/)
   (proof := /-- The bounds of the form $\eps_{\pi, asymp}(x)$ come from selecting a value $A$ for which Corollary \ref{fks-corollary-22} provides a better bound at $x = e^{7500}$ and from verifying that the bound in Corollary \ref{fks-corollary-22} decreases faster beyond this point. This final verification proceeds by looking at the derivative of the ratio as in Lemma \ref{fks-lemma-10}. To verify these still hold for smaller $x$, we proceed as below. To verify the results for any $x$ in $\log(10^{19}) < \log(x) < 100000$, one simply proceeds as in \cite[Lemmas 5.2, 5.3]{FKS} and interpolates the numerical results of Theorem \ref{fks-theorem-6}. For instance, we use the values in Table 4 as a step function and verifies that it provides a tighter bound than we are claiming. Note that our verification uses a more refined collection of values than those provided in Table 4 or the tables posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf. To verify results for $x < 10^{19}$, one compares against the results from Theorem \ref{buthe-theorem-2a}, or one checks directly for particularly small $x$.
@@ -906,23 +934,6 @@ noncomputable def table7 : List ((ℝ → ℝ) × Set ℝ) :=
   (latexEnv := "corollary")]
 theorem corollary_24 (B : ℝ → ℝ) (I : Set ℝ) (h : (B, I) ∈ table7) :
     ∀ x, log x ∈ I → Eπ x ≤ B x := sorry
-
-/- \begin{proof}
-We numerically verify that the inequality in (45) holds by showing that, for $1 \leq n \leq 25$ and all $x \in [p_n, p_{n+1}]$,
-\[
-\left| \frac{\log(x)}{x} (\pi(x) - \mathrm{Li}(x)) \right| \leq \left| \frac{\log(p_n)}{p_n} (\pi(p_n) - \mathrm{Li}(p_{n+1})) \right| \leq 0.4298.
-\]
-
-For $x$ satisfying $p_{25} = 97 \leq x \leq 10^{19}$, we use [4, Theorem 2] and verify
-\[
-\mathcal{E}(x) = \frac{1}{\sqrt{x}} \left( 1.95 + \frac{3.9}{\log(x)} + \frac{19.5}{(\log(x))^2} \right) \leq 0.4298.
-\]
-
-For $x > 10^{19}$, we use Theorem 6 as well as values for $\varepsilon_{\pi,num}(x)$ found in Table 4 to conclude
-\[
-\varepsilon_{\pi,num}(x) \leq 0.4298.
-\]
-\end{proof} -/
 
 @[blueprint
   "fks2-corollary-26"
