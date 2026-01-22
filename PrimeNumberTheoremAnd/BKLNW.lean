@@ -716,7 +716,7 @@ noncomputable def Inputs.C (_ : Inputs) (σ : ℝ) : ℝ := 16 * σ / 3 - 10 / 3
   (title := "Theorem 14")
   (statement := /-- Let $x_0 \geq 1000$ and let $\sigma \in [0.75, 1)$. For all $x \geq e^{x_0}$,
   $$ \frac{|\psi(x) - x|}{x} \leq A \left( \frac{\log x}{R} \right)^B \exp\left( -C \left( \frac{\log x}{R} \right)^{1/2} \right) $$
-  where $A$, $B$, and $C$ are defined in (A.20) and (A.21). -/)]
+  where $A$, $B$, and $C$ are defined in Definitions \ref{bklnw-eq_A_20}, \ref{bklnw-eq_A_21}. -/)]
 theorem thm_14 {I : Inputs} {x₀ σ x : ℝ} (hx₀ : x₀ ≥ 1000) (hσ : 0.75 ≤ σ ∧ σ < 1) (hx : x ≥ exp x₀) :
   Eψ x ≤ I.A σ x₀ * (log x / I.R)^(I.B σ) * exp (-I.C σ * (log x / I.R)^(1/2:ℝ)) := by sorry
 
@@ -725,9 +725,18 @@ theorem thm_14 {I : Inputs} {x₀ σ x : ℝ} (hx₀ : x₀ ≥ 1000) (hσ : 0.7
   (title := "Corollary 14.1")
   (statement := /-- Let $x_0 \geq 1000$. For all $x \geq e^{x_0}$,
   $$ \frac{|\theta(x) - x|}{x} \leq A' \left( \frac{\log x}{R} \right)^B \exp\left( -C \left( \frac{\log x}{R} \right)^{1/2} \right) $$
-  where $B$ and $C$ are defined in (A.21) and
+  where $B$ and $C$ are defined in Definition \ref{bklnw-eq_A_21} and
   $$ A' = A \left( 1 + \frac{1}{A} \left( \frac{R}{\log x_0} \right)^B \exp\left( C \frac{\log x_0}{R} \right) \left( a_1(x_0) \exp\left( -\frac{x_0}{2} \right) + a_2(x_0) \exp\left( -\frac{2 x_0}{3} \right) \right) \right), $$
-  where $a_1$ and $a_2$ are defined in Corollary 5.1. -/)]
+  where $a_1$ and $a_2$ are defined in Corollary \ref{bklnw-cor-5-1}. -/)
+  (proof := /--
+Let $x \geq e^{x_0}$. By writing $\theta(x) - x = \psi(x) - x + \theta(x) - \psi(x)$, applying the triangle inequality, and invoking Corollary \ref{bklnw-cor-5-1}, it follows that
+\begin{align*}
+\left|\frac{\theta(x) - x}{x}\right| &\leq A\left(\frac{\log x}{R}\right)^B \exp\left(-C\left(\frac{\log x}{R}\right)^{\frac{1}{2}}\right) + a_1(x_0)x^{-\frac{1}{2}} + a_2(x_0)x^{-\frac{2}{3}} \\
+&\leq A\left(\frac{\log x}{R}\right)^B \exp\left(-C\left(\frac{\log x}{R}\right)^{\frac{1}{2}}\right) \\
+&\quad \times \left(1 + \frac{a_1(x_0) \exp\left(C\sqrt{\frac{\log x}{R}}\right)}{A\sqrt{x}\left(\frac{\log x}{R}\right)^B} + \frac{a_2(x_0) \exp\left(C\sqrt{\frac{\log x}{R}}\right)}{Ax^{\frac{2}{3}}\left(\frac{\log x}{R}\right)^B}\right).
+\end{align*}
+It may be checked the function in brackets decreases for $x \geq e^{x_0}$ with $x_0 \geq 1000$ and thus we obtain the claim.
+-/)]
 theorem cor_14_1 {I : Inputs} {x₀ σ x : ℝ} (hx₀ : x₀ ≥ 1000) (hσ : 0.75 ≤ σ ∧ σ < 1) (hx : x ≥ exp x₀) :
   Eθ x ≤ I.A σ x₀ * (1 + (1 / I.A σ x₀) * (I.R / log x₀)^(I.B σ) * exp (I.C σ * (log x₀ / I.R)) *
     (I.a₁ x₀ * exp (-x₀ / 2) + I.a₂ x₀ * exp (-2 * x₀ / 3))) *
