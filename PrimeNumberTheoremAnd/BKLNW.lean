@@ -192,7 +192,77 @@ theorem prop_3_sub_3 (n : ℕ) (hn : n ≥ 3) : f (2^n) = 1 + u n := by
   rw [← rpow_natCast _ n, ← rpow_mul (by norm_num)]
   field_simp
 
-set_option maxHeartbeats 100000000 in
+noncomputable def summand (k n : ℕ) : ℝ :=
+  (2 : ℝ) ^ ((n + 1 : ℝ) / k) * ((2 : ℝ) ^ (1 / 3 - 1 / k : ℝ) - 1)
+
+lemma summand_pos.aux {k : ℕ} (hk : 3 < k) : 0 < (2 : ℝ) ^ (1 / 3 - 1 / k : ℝ) - 1 :=
+  sub_pos.mpr <| Real.one_lt_rpow (by grind) <|
+    sub_pos.mpr <| one_div_lt_one_div_of_lt (by grind) (by exact_mod_cast hk)
+
+lemma summand_pos {k : ℕ} (hk : 3 < k) (n : ℕ) : 0 < summand k n :=
+  mul_pos (Real.rpow_pos_of_pos (by grind) _) (summand_pos.aux hk)
+
+lemma summand_mono {k : ℕ} (hk : 3 < k) : StrictMono (summand k) :=
+  (Real.strictMono_rpow_of_base_gt_one (by grind : (1 : ℝ) < 2))
+  |>.comp (Nat.strictMono_cast.add_const 1 |>.div_const (by positivity))
+  |>.mul_const (summand_pos.aux hk)
+
+lemma sum_gt.aux (k : ℕ) (a b : ℝ) (hk : 3 < k := by decide) (hb1 : 0 ≤ b - 1 := by norm_num only)
+    (ha : a ^ k ≤ 1024 := by norm_num only) (hb : b ^ (3 * k) ≤ 2 ^ (k - 3) := by norm_num only) :
+    a * (b - 1) ≤ summand k 9 := by
+  have ha_bound : a ≤ 2 ^ (10 / k : ℝ) := calc
+    a ≤ (1024 : ℝ) ^ (1 / k : ℝ) := by
+      contrapose! ha
+      calc
+        _ ≤ ((1024 : ℝ) ^ (1 / k : ℝ)) ^ k := by
+          rw [← rpow_mul_natCast (by positivity), one_div_mul_cancel (by positivity), rpow_one]
+        _ < _ := pow_lt_pow_left₀ ha (by positivity) (by positivity)
+    _ = _ := by norm_num [div_eq_mul_inv, rpow_mul]
+  have hb_bound : b - 1 ≤ 2 ^ (1 / 3 - 1 / k : ℝ) - 1 := calc
+    _ ≤ ((2 : ℝ) ^ (k - 3 : ℝ)) ^ (1 / (3 * k : ℝ)) - 1 := by
+      gcongr
+      contrapose! hb
+      calc
+        _ ≤ (((2 : ℝ) ^ (k - 3 : ℝ)) ^ (1 / (3 * k : ℝ))) ^ (3 * k) := by
+          rw [← rpow_mul_natCast (by positivity), ← Real.rpow_natCast, Nat.cast_sub hk.le]
+          simp
+          field_simp
+          simp
+        _ < _ := pow_lt_pow_left₀ hb (by positivity) (by positivity)
+    _ = _ := by rw [← Real.rpow_mul (by positivity), mul_one_div]; field_simp
+  grw [ha_bound, hb_bound]
+  norm_num [summand]
+
+lemma sum_gt {n : ℕ} (hn : 9 ≤ n) : 2.12 < ∑ k ∈ Finset.Icc 4 n, summand k n := calc
+  _ < ∑ k ∈ Finset.Icc 4 9, summand k 9 := by
+    simp only [Nat.reduceLeDiff, Finset.sum_Icc_succ_top, Finset.Icc_self, Finset.sum_singleton]
+    grw [← sum_gt.aux 4 5.65 1.05, ← sum_gt.aux 5 4 1.09, ← sum_gt.aux 6 3.17 1.12,
+      ← sum_gt.aux 7 2.69 1.14, ← sum_gt.aux 8 2.37 1.155, ← sum_gt.aux 9 2.16 1.1665]
+    norm_num
+  _ ≤ ∑ k ∈ Finset.Icc 4 n, summand k 9 :=
+    Finset.sum_le_sum_of_subset_of_nonneg (Finset.Icc_subset_Icc_right hn) fun k _ _ ↦
+      (summand_pos (by grind) 9).le
+  _ ≤ _ := Finset.sum_le_sum fun k hk ↦ (summand_mono (by grind)).le_iff_le.mpr hn
+
+lemma u_diff_factored {n : ℕ} (hn : 4 ≤ n) :
+    u (n + 1) - u n = 2 ^ (-(n + 1) / 3 : ℝ) * (2 - ∑ k ∈ Finset.Icc 4 n, summand k n) := by
+  have hn1 : (1 + n : ℝ) ≠ 0 := by linarith
+  have h_expand : u (n + 1) =
+      (∑ k ∈ Finset.Icc 4 n, (2 : ℝ) ^ ((n + 1) / k - (n + 1) / 3 : ℝ)) +
+      (2 : ℝ) ^ ((n + 1) / (n + 1) - (n + 1) / 3 : ℝ) ∧
+      u n = (∑ k ∈ Finset.Icc 4 n, (2 : ℝ) ^ (n / k - n / 3 : ℝ)) := by
+    simp only [u, Nat.succ_eq_succ ▸ Finset.Icc_succ_left_eq_Ioc]
+    rw [Finset.sum_Ioc_succ_top] <;> norm_num; grind
+  unfold summand
+  rw [h_expand.1, h_expand.2]
+  ring_nf
+  simp only [Nat.ofNat_pos, ← rpow_add, Finset.sum_add_distrib, mul_add, Finset.mul_sum ..]
+  ring_nf
+  rw [show (-1 / 3 + (n : ℝ) * (-1 / 3) + (n : ℝ) * (1 + (n : ℝ))⁻¹ + (1 + (n : ℝ))⁻¹) =
+      (-1 / 3 + (n : ℝ) * (-1 / 3)) + 1 by grind]
+  simp [Real.rpow_add]
+  grind
+
 @[blueprint
   "bklnw-prop-3-sub-4"
   (title := "Proposition 3, substep 4")
@@ -209,188 +279,9 @@ and it follows that $u_{n+1} - u_n < 0$ for $n \geq 20$. Finally, a numerical ca
   (latexEnv := "sublemma")
   (discussion := 634)]
 theorem prop_3_sub_4 (n : ℕ) (hn : 9 ≤ n) : u (n + 1) < u n := by
-  suffices u (n + 1) - u n < 0 from by linarith
-  unfold u
-  calc
-    _ = (∑ k ∈ Finset.Icc 4 n, (2 : ℝ) ^ ((n + 1) / (k : ℝ) - (n + 1) / 3) * (1 - 2 ^
-      (1 / (3 : ℝ) - 1 / ↑k))) + 2 ^ (1 - (n + 1) / (3 : ℝ)) := by
-      rw [Finset.sum_Icc_succ_top (by linarith), div_self (by norm_cast), ← sub_add_eq_add_sub,
-        ← Finset.sum_sub_distrib, Nat.cast_add, Nat.cast_one]
-      congr with x
-      rw [mul_sub, mul_one, ← rpow_add (by linarith)]
-      congr
-      ring
-    _ = (2 : ℝ) ^ (- ((n + 1 : ℝ) / 3)) * (2 - ∑ k ∈ Finset.Icc 4 n, 2 ^ ((n + 1) / (k : ℝ)) *
-      (2 ^ (1 / (3 : ℝ) - 1 / k) - 1)) := by
-      rw [mul_sub, Finset.mul_sum, ← rpow_add_one (by linarith), neg_add_eq_sub,
-        ← neg_add_eq_sub _ (2 ^ _), ← Finset.sum_neg_distrib]
-      congr with x
-      rw [← mul_assoc, ← rpow_add (by linarith)]
-      ring_nf
-  by_cases h : 20 ≤ n
-  · suffices 2 < ∑ k ∈ Finset.Icc 4 n, (2 : ℝ) ^ ((n + 1) / (k : ℝ)) *
-      (2 ^ (1 / (3 : ℝ) - 1 / k) - 1) from mul_neg_of_pos_of_neg (by positivity) (by linarith)
-    calc
-    _ < 2 ^ (21 / (4 : ℝ)) * (2 ^ (1 / (12 : ℝ)) - 1) := by
-      have ha : 1.05946 < (2 : ℝ) ^ (1 / 12 : ℝ) ∧ 36.5 < (2 : ℝ) ^ (21 / 4 : ℝ) := by
-        norm_num [lt_rpow_iff_log_lt]
-        rw [div_mul_eq_mul_div, lt_div_iff₀', div_mul_eq_mul_div, lt_div_iff₀']
-        <;> norm_num [← log_rpow, log_lt_log]
-      norm_num at *
-      nlinarith
-    _ ≤ (2 : ℝ) ^ ((n + 1) / (4 : ℝ)) * (2 ^ (1 / (3 : ℝ) - 1 / 4) - 1) := by
-      norm_num
-      gcongr
-      · suffices 1 < (2 : ℝ) ^ (1 / (12 : ℝ)) from by linarith
-        rw [one_lt_rpow_iff] <;> grind
-      · grind
-      · norm_cast; linarith
-    _ < ∑ k ∈ Finset.Icc 4 n, (2 : ℝ) ^ ((n + 1) / (k : ℝ)) * (2 ^ (1 / (3 : ℝ) - 1 / k) - 1) := by
-      refine Finset.single_lt_sum (f := fun k : ℕ => (2 : ℝ) ^ ((n + 1) / (k : ℝ)) * (2 ^ (1 /
-        (3 : ℝ) - 1 / k) - 1)) (j := 5) (by linarith) (by grind) (by grind) ?_ (fun k _ _ => ?_)
-      · refine mul_pos (by positivity) ?_
-        suffices 1 < (2 : ℝ) ^ (1 / 3 - 1 / (5 : ℝ)) from by linarith
-        rw [one_lt_rpow_iff] <;> grind
-      · refine mul_nonneg (by positivity) ?_
-        suffices 1 ≤ (2 : ℝ) ^ (1 / 3 - 1 / (k : ℝ)) from by linarith
-        refine one_le_rpow (by grind) ?_
-        have : 1 / (k : ℝ) ≤ 1 / (3 : ℝ) := by
-          refine one_div_le_one_div_of_le ?_ ?_ <;> simp_all; grind
-        linarith
-  · have : 0.6931 < log 2 := log_two_gt_d9.trans_le' <| by norm_num
-    have :
-      1.189 < (2 : ℝ) ^ (1 / 4 : ℝ) ∧
-      1.122 < (2 : ℝ) ^ (1 / 6 : ℝ) ∧
-      1.059 < (2 : ℝ) ^ (1 / 12 : ℝ) ∧
-      1.319 < (2 : ℝ) ^ (2 / 5 : ℝ) ∧
-      1.166 < (2 : ℝ) ^ (2 / 9 : ℝ) ∧
-      1.096 < (2 : ℝ) ^ (2 / 15 : ℝ) ∧
-      2.828 < (2 : ℝ) ^ (3 / 2 : ℝ) ∧
-      2.519 < (2 : ℝ) ^ (4 / 3 : ℝ) ∧
-      1.203 < (2 : ℝ) ^ (4 / 15 : ℝ) ∧
-      1.141 < (2 : ℝ) ^ (4 / 21 : ℝ) ∧
-      5.656 < (2 : ℝ) ^ (5 / 2 : ℝ) ∧
-      3.174 < (2 : ℝ) ^ (5 / 3 : ℝ) ∧
-      2.378 < (2 : ℝ) ^ (5 / 4 : ℝ) ∧
-      1.212 < (2 : ℝ) ^ (5 / 18 : ℝ) ∧
-      1.155 < (2 : ℝ) ^ (5 / 24 : ℝ) ∧
-      2.297 < (2 : ℝ) ^ (6 / 5 : ℝ) ∧
-      11.313 < (2 : ℝ) ^ (7 / 2 : ℝ) ∧
-      5.039 < (2 : ℝ) ^ (7 / 3 : ℝ) ∧
-      3.363 < (2 : ℝ) ^ (7 / 4 : ℝ) ∧
-      2.639 < (2 : ℝ) ^ (7 / 5 : ℝ) ∧
-      2.244 < (2 : ℝ) ^ (7 / 6 : ℝ) ∧
-      1.175 < (2 : ℝ) ^ (7 / 30 : ℝ) ∧
-      6.349 < (2 : ℝ) ^ (8 / 3 : ℝ) ∧
-      3.031 < (2 : ℝ) ^ (8 / 5 : ℝ) ∧
-      2.208 < (2 : ℝ) ^ (8 / 7 : ℝ) ∧
-      1.182 < (2 : ℝ) ^ (8 / 33 : ℝ) ∧
-      22.627 < (2 : ℝ) ^ (9 / 2 : ℝ) ∧
-      4.756 < (2 : ℝ) ^ (9 / 4 : ℝ) ∧
-      3.482 < (2 : ℝ) ^ (9 / 5 : ℝ) ∧
-      2.438 < (2 : ℝ) ^ (9 / 7 : ℝ) ∧
-      2.181 < (2 : ℝ) ^ (9 / 8 : ℝ) ∧
-      10.079 < (2 : ℝ) ^ (10 / 3 : ℝ) ∧
-      2.665 < (2 : ℝ) ^ (10 / 7 : ℝ) ∧
-      2.125 < (2 : ℝ) ^ (10 / 9 : ℝ) ∧
-      1.194 < (2 : ℝ) ^ (10 / 39 : ℝ) ∧
-      6.727 < (2 : ℝ) ^ (11 / 4 : ℝ) ∧
-      4.594 < (2 : ℝ) ^ (11 / 5 : ℝ) ∧
-      3.563 < (2 : ℝ) ^ (11 / 6 : ℝ) ∧
-      2.971 < (2 : ℝ) ^ (11 / 7 : ℝ) ∧
-      2.593 < (2 : ℝ) ^ (11 / 8 : ℝ) ∧
-      2.333 < (2 : ℝ) ^ (11 / 9 : ℝ) ∧
-      2.143 < (2 : ℝ) ^ (11 / 10 : ℝ) ∧
-      1.199 < (2 : ℝ) ^ (11 / 42 : ℝ) ∧
-      5.278 < (2 : ℝ) ^ (12 / 5 : ℝ) ∧
-      3.281 < (2 : ℝ) ^ (12 / 7 : ℝ) ∧
-      2.130 < (2 : ℝ) ^ (12 / 11 : ℝ) ∧
-      9.513 < (2 : ℝ) ^ (13 / 4 : ℝ) ∧
-      6.062 < (2 : ℝ) ^ (13 / 5 : ℝ) ∧
-      4.489 < (2 : ℝ) ^ (13 / 6 : ℝ) ∧
-      3.622 < (2 : ℝ) ^ (13 / 7 : ℝ) ∧
-      3.084 < (2 : ℝ) ^ (13 / 8 : ℝ) ∧
-      2.721 < (2 : ℝ) ^ (13 / 9 : ℝ) ∧
-      2.462 < (2 : ℝ) ^ (13 / 10 : ℝ) ∧
-      2.268 < (2 : ℝ) ^ (13 / 11 : ℝ) ∧
-      2.118 < (2 : ℝ) ^ (13 / 12 : ℝ) ∧
-      1.206 < (2 : ℝ) ^ (13 / 48 : ℝ) ∧
-      6.964 < (2 : ℝ) ^ (14 / 5 : ℝ) ∧
-      2.939 < (2 : ℝ) ^ (14 / 9 : ℝ) ∧
-      2.416 < (2 : ℝ) ^ (14 / 11 : ℝ) ∧
-      2.109 < (2 : ℝ) ^ (14 / 13 : ℝ) ∧
-      1.209 < (2 : ℝ) ^ (14 / 51 : ℝ) ∧
-      13.454 < (2 : ℝ) ^ (15 / 4 : ℝ) ∧
-      4.416 < (2 : ℝ) ^ (15 / 7 : ℝ) ∧
-      3.668 < (2 : ℝ) ^ (15 / 8 : ℝ) ∧
-      2.573 < (2 : ℝ) ^ (15 / 11 : ℝ) ∧
-      2.225 < (2 : ℝ) ^ (15 / 13 : ℝ) ∧
-      2.101 < (2 : ℝ) ^ (15 / 14 : ℝ) ∧
-      9.189 < (2 : ℝ) ^ (16 / 5 : ℝ) ∧
-      4.876 < (2 : ℝ) ^ (16 / 7 : ℝ) ∧
-      3.428 < (2 : ℝ) ^ (16 / 9 : ℝ) ∧
-      2.740 < (2 : ℝ) ^ (16 / 11 : ℝ) ∧
-      2.346 < (2 : ℝ) ^ (16 / 13 : ℝ) ∧
-      2.094 < (2 : ℝ) ^ (16 / 15 : ℝ) ∧
-      1.214 < (2 : ℝ) ^ (16 / 57 : ℝ) ∧
-      19.027 < (2 : ℝ) ^ (17 / 4 : ℝ) ∧
-      10.556 < (2 : ℝ) ^ (17 / 5 : ℝ) ∧
-      7.127 < (2 : ℝ) ^ (17 / 6 : ℝ) ∧
-      5.383 < (2 : ℝ) ^ (17 / 7 : ℝ) ∧
-      4.362 < (2 : ℝ) ^ (17 / 8 : ℝ) ∧
-      3.703 < (2 : ℝ) ^ (17 / 9 : ℝ) ∧
-      3.249 < (2 : ℝ) ^ (17 / 10 : ℝ) ∧
-      2.918 < (2 : ℝ) ^ (17 / 11 : ℝ) ∧
-      2.669 < (2 : ℝ) ^ (17 / 12 : ℝ) ∧
-      2.475 < (2 : ℝ) ^ (17 / 13 : ℝ) ∧
-      2.320 < (2 : ℝ) ^ (17 / 14 : ℝ) ∧
-      2.193 < (2 : ℝ) ^ (17 / 15 : ℝ) ∧
-      2.088 < (2 : ℝ) ^ (17 / 16 : ℝ) ∧
-      12.125 < (2 : ℝ) ^ (18 / 5 : ℝ) ∧
-      5.943 < (2 : ℝ) ^ (18 / 7 : ℝ) ∧
-      3.108 < (2 : ℝ) ^ (18 / 11 : ℝ) ∧
-      2.611 < (2 : ℝ) ^ (18 / 13 : ℝ) ∧
-      2.083 < (2 : ℝ) ^ (18 / 17 : ℝ) ∧
-      7.245 < (2 : ℝ) ^ (20 / 7 : ℝ) ∧
-      4.666 < (2 : ℝ) ^ (20 / 9 : ℝ) ∧
-      3.526 < (2 : ℝ) ^ (20 / 11 : ℝ) ∧
-      2.904 < (2 : ℝ) ^ (20 / 13 : ℝ) ∧
-      2.260 < (2 : ℝ) ^ (20 / 17 : ℝ) ∧
-      2.074 < (2 : ℝ) ^ (20 / 19 : ℝ) ∧
-      26.908 < (2 : ℝ) ^ (19 / 4 : ℝ) ∧
-      13.928 < (2 : ℝ) ^ (19 / 5 : ℝ) ∧
-      8.979 < (2 : ℝ) ^ (19 / 6 : ℝ) ∧
-      6.562 < (2 : ℝ) ^ (19 / 7 : ℝ) ∧
-      5.187 < (2 : ℝ) ^ (19 / 8 : ℝ) ∧
-      4.320 < (2 : ℝ) ^ (19 / 9 : ℝ) ∧
-      3.732 < (2 : ℝ) ^ (19 / 10 : ℝ) ∧
-      3.311 < (2 : ℝ) ^ (19 / 11 : ℝ) ∧
-      2.996 < (2 : ℝ) ^ (19 / 12 : ℝ) ∧
-      2.754 < (2 : ℝ) ^ (19 / 13 : ℝ) ∧
-      2.561 < (2 : ℝ) ^ (19 / 14 : ℝ) ∧
-      2.406 < (2 : ℝ) ^ (19 / 15 : ℝ) ∧
-      2.277 < (2 : ℝ) ^ (19 / 16 : ℝ) ∧
-      2.169 < (2 : ℝ) ^ (19 / 17 : ℝ) ∧
-      2.078 < (2 : ℝ) ^ (19 / 18 : ℝ) ∧
-      7.245 < (2 : ℝ) ^ (20 / 7 : ℝ) ∧
-      4.666 < (2 : ℝ) ^ (20 / 9 : ℝ) ∧
-      3.526 < (2 : ℝ) ^ (20 / 11 : ℝ) ∧
-      2.904 < (2 : ℝ) ^ (20 / 13 : ℝ) ∧
-      2.260 < (2 : ℝ) ^ (20 / 17 : ℝ) ∧
-      2.074 < (2 : ℝ) ^ (20 / 19 : ℝ) := by
-      refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
-        ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
-        ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
-        ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
-        ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
-        ?_, ?_, ?_, ?_, ?_, ?_⟩
-      <;> norm_num [Real.lt_rpow_iff_log_lt]
-      <;> rw [div_mul_eq_mul_div, lt_div_iff₀']
-      <;> norm_num [← Real.log_rpow, Real.log_lt_log]
-    interval_cases n
-    <;> norm_num [Finset.sum_Ioc_succ_top, (Nat.succ_eq_succ ▸ Finset.Icc_succ_left_eq_Ioc)] at *
-    <;> refine mul_neg_of_pos_of_neg (by positivity) ?_
-    <;> nlinarith
+  grw [← sub_neg, u_diff_factored (by grind), ← sum_gt hn]
+  norm_num
+  positivity
 
 @[blueprint
   "bklnw-prop-3-sub-5"
