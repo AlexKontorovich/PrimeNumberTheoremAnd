@@ -200,7 +200,7 @@ lemma summand_pos.aux {k : ℕ} (hk : 3 < k) : 0 < (2 : ℝ) ^ (1 / 3 - 1 / k : 
     sub_pos.mpr <| one_div_lt_one_div_of_lt (by grind) (by exact_mod_cast hk)
 
 lemma summand_pos {k : ℕ} (hk : 3 < k) (n : ℕ) : 0 < summand k n :=
-  mul_pos (Real.rpow_pos_of_pos (by grind) _) (summand_pos.aux hk)
+  mul_pos (by positivity) (summand_pos.aux hk)
 
 lemma summand_mono {k : ℕ} (hk : 3 < k) : StrictMono (summand k) :=
   (Real.strictMono_rpow_of_base_gt_one (by grind : (1 : ℝ) < 2))
