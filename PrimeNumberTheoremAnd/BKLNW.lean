@@ -94,16 +94,17 @@ noncomputable def table_8_ε (b : ℝ) : ℝ :=
 @[blueprint
   "bknlw-theorem-2"
   (title := "Theorem 2")
-  (statement := /-- If $b>0$ then $|\psi(x) - x| \leq \varepsilon(b) x$ for all $x \geq \exp(b)$. -/)
+  (statement := /-- If $b>0$ then $|\psi(x) - x| \leq \varepsilon(b) x$ for all $x \geq \exp(b)$, where $\varepsilon$ is as in \cite[Table 8]{BKLNW} -/)
   (latexEnv := "theorem")]
 theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
     |ψ x - x| ≤ table_8_ε b * x := by sorry
 
 @[blueprint
-  "buthe-eq-1-7"
-  (title := "Buthe equation (1.7)")
+  "from-buthe-eq-1-7"
+  (title := "A consequence of Buthe equation (1.7)")
   (statement := /-- $\theta(x) < x$ for all $1 \leq x \leq 10^{19}$. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}. -/)]
 theorem buthe_eq_1_7 : ∀ x ∈ Set.Icc 1 1e19, θ x < x := by sorry
 
 @[blueprint

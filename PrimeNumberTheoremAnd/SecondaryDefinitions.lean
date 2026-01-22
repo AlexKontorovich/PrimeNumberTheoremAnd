@@ -9,11 +9,7 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-In this section we define the basic types of secondary estimates we will work with in the project. Key references:
-
-FKS1: Fiori--Kadiri--Swidninsky arXiv:2204.02588
-
-FKS2: Fiori--Kadiri--Swidninsky arXiv:2206.12557
+In this section we define the basic types of secondary estimates we will work with in the project. 
 -/
 
 open Real Finset
