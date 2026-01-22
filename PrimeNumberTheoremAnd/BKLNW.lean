@@ -427,11 +427,10 @@ noncomputable def a₂ : ℝ → ℝ := Inputs.default.a₂
   "bklnw-cor-5-1"
   (title := "Corollary 5.1")
   (statement := /--  Let $b \geq 7$. Then for all $x \geq e^b$ we have $\psi(x) - \vartheta(x) < a_1 x^{1/2} + a_2 x^{1/3}$, where $a_1 = a_1(b) = 1 + 1.93378 \times 10^{-8}$ if $b \leq 38 \log 10$, $1 + \varepsilon(b/2)$ if $b > 38 \log 10$, and $a_2 = a_2(b) = (1 + 1.93378 \times 10^{-8}) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}) \right)$, where $f$ is defined by (2.4) and values for $\varepsilon(b/2)$ are from Table 8. -/)
-  (proof := /-- This is Theorem 5 applied to the default inputs in Definition \ref{bklnw-inputs}. -/)]
+  (proof := /-- This is Theorem 5 applied to the default inputs in Definition \ref{bklnw-inputs}. -/)
+  (discussion := 743)]
 theorem cor_5_1 {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
     ψ x - θ x < a₁ b * x^(1/2:ℝ) + a₂ b * x^(1/3:ℝ) := by sorry
-
-/- We have the following values for a2. b 20 25 30 35 40 43 a2 1.4263 1.2196 1.1211 1.07086 1.04320 1.03253 1.01718 b 100 150 200 250 a2 1+2.421·10−4 1+3.749·10−6 1+7.712·10−8 1+2.024·10−8 1+1.936·10−8 -/
 
 def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
   [ (20, 1.4263, 4)
