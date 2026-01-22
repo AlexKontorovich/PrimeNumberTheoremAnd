@@ -3168,8 +3168,7 @@ theorem limiting_fourier_variant_lim1
     simpa [this] using hbounded
 
   have rterm_antitone : ∀ n, AntitoneOn (fun σ => rterm σ n) (Set.Ioi 1) := by
-    intro n
-    intro σ₁ hσ₁ σ₂ hσ₂ hσ₁₂
+    intro n σ₁ hσ₁ σ₂ hσ₂ hσ₁₂
     by_cases hn : n = 0
     · subst hn; simp [rterm]
     · have hf : 0 ≤ f n := hpos n

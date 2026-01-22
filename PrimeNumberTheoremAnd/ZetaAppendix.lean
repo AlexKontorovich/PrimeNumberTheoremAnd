@@ -762,7 +762,7 @@ $2\pi k + \frac{\tau}{t \nu}>0$, and, as we said, $2\pi - \frac{\tau}{t \nu}>0$.
   (latexEnv := "lemma")
   (discussion := 549)]
 theorem lemma_aachdecre (σ : ℝ) (hσ : 0 ≤ σ) (τ : ℝ) (ν : ℝ) (hν : ν ≠ 0) (a b : ℝ)
-    (ha : a > |τ| / (2 * π * |ν|)) (hb : b > a) (k : ℕ) (hk : 1 ≤ k) :
+    (ha : a > |τ| / (2 * π * |ν|)) (k : ℕ) (hk : 1 ≤ k) :
     let f : ℝ → ℝ := fun t ↦ t ^ (-σ - k) * |2 * π * ν - τ / t| ^ (-(k : ℝ) - 1)
     AntitoneOn f (Set.Icc a b) := by
   have h_deriv_neg : ∀ t ∈ Set.Icc a b,

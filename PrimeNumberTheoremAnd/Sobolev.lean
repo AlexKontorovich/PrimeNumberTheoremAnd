@@ -1,5 +1,5 @@
 import Mathlib.Analysis.Calculus.Deriv.Support
-import Mathlib.Analysis.Distribution.SchwartzSpace
+import Mathlib.Analysis.Distribution.SchwartzSpace.Deriv
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter
 
 open Real Complex MeasureTheory Filter Topology BoundedContinuousFunction SchwartzMap  BigOperators
