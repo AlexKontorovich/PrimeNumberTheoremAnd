@@ -245,23 +245,21 @@ lemma sum_gt {n : ℕ} (hn : 9 ≤ n) : 2.12 < ∑ k ∈ Finset.Icc 4 n, summand
   _ ≤ _ := Finset.sum_le_sum fun k hk ↦ (summand_mono (by grind)).le_iff_le.mpr hn
 
 lemma u_diff_factored {n : ℕ} (hn : 4 ≤ n) :
-    u (n + 1) - u n = 2 ^ (-(n + 1) / 3 : ℝ) * (2 - ∑ k ∈ Finset.Icc 4 n, summand k n) := by
-  have hn1 : (1 + n : ℝ) ≠ 0 := by linarith
-  have h_expand : u (n + 1) =
-      (∑ k ∈ Finset.Icc 4 n, (2 : ℝ) ^ ((n + 1) / k - (n + 1) / 3 : ℝ)) +
-      (2 : ℝ) ^ ((n + 1) / (n + 1) - (n + 1) / 3 : ℝ) ∧
-      u n = (∑ k ∈ Finset.Icc 4 n, (2 : ℝ) ^ (n / k - n / 3 : ℝ)) := by
-    simp only [u, Nat.succ_eq_succ ▸ Finset.Icc_succ_left_eq_Ioc]
-    rw [Finset.sum_Ioc_succ_top] <;> norm_num; grind
-  unfold summand
-  rw [h_expand.1, h_expand.2]
-  ring_nf
-  simp only [Nat.ofNat_pos, ← rpow_add, Finset.sum_add_distrib, mul_add, Finset.mul_sum]
-  ring_nf
-  rw [show (-1 / 3 + (n : ℝ) * (-1 / 3) + (n : ℝ) * (1 + (n : ℝ))⁻¹ + (1 + (n : ℝ))⁻¹) =
-      (-1 / 3 + (n : ℝ) * (-1 / 3)) + 1 by grind]
-  simp [Real.rpow_add]
-  grind
+    u (n + 1) - u n = 2 ^ (-(n + 1) / 3 : ℝ) * (2 - ∑ k ∈ Finset.Icc 4 n, summand k n) := calc
+  u (n + 1) - u n = (∑ k ∈ Finset.Icc 4 n,
+      (2 : ℝ) ^ ((n + 1) / (k : ℝ) - (n + 1) / 3) * (1 - 2 ^ (1 / (3 : ℝ) - 1 / ↑k)))
+      + 2 ^ (1 - (n + 1) / (3 : ℝ)) := by
+    rw [u, u, Finset.sum_Icc_succ_top (Nat.le_add_right_of_le hn), div_self (by norm_cast),
+      ← sub_add_eq_add_sub, ← Finset.sum_sub_distrib, Nat.cast_add, Nat.cast_one]
+    congr with x
+    rw [mul_sub, mul_one, ← rpow_add two_pos]
+    grind
+  _ = _ := by
+    rw [mul_sub, Finset.mul_sum, ← rpow_add_one two_pos.ne', neg_div, neg_add_eq_sub,
+      ← neg_add_eq_sub _ (2 ^ _), ← Finset.sum_neg_distrib]
+    congr with x
+    rw [summand, ← mul_assoc, ← rpow_add two_pos]
+    grind
 
 @[blueprint
   "bklnw-prop-3-sub-4"
