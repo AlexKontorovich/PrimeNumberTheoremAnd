@@ -1,6 +1,7 @@
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.CostaPereira
+import PrimeNumberTheoremAnd.BKLNW_app
 
 blueprint_comment /--
 \section{Tools from BKLNW}
