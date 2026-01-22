@@ -276,8 +276,8 @@ theorem remark_after_corollary_11 :
   (statement := /--
   Suppose that $E_\theta$ satisfies an admissible classical bound with parameters $A,B,C,R,x_0$.
   Then, for all $x \geq x_0$,
-  $$ \int_{x_0}^x |\frac{E_\theta(t)}{\log^2 t} dt| \leq \frac{2A}{R^B} x m(x_0,x)
-    \exp(-C \sqrt{\frac{\log x}{R}}) D_+( \sqrt{\log x} - \frac{C}{2\sqrt{R}} )$$
+  $$ \int_{x_0}^x \left|\frac{E_\theta(t)}{\log^2 t} dt\right| \leq \frac{2A}{R^B} x m(x_0,x)
+    \exp\left(-C \sqrt{\frac{\log x}{R}}\right) D_+\left( \sqrt{\log x} - \frac{C}{2\sqrt{R}} \right)$$
   where
   $$ m(x_0,x) = \max ( (\log x_0)^{(2B-3)/2}, (\log x)^{(2B-3)/2} ). $$
   -/)
@@ -322,8 +322,9 @@ noncomputable def ν_asymp (Aψ B C R x₀ : ℝ) : ℝ :=
   with
   $$ \nu_{asymp}(x_0) = \frac{1}{A_\psi} (\frac{R}{\log x_0})^B
     \exp(C \sqrt{\frac{\log x_0}{R}}) (a_1 (\log x_0) x_0^{-1/2} + a_2 (\log x_0) x_0^{-2/3}).$$
+  and $a_1,a_2$ are given by Definitions \ref{bklnw-def-a-1} and \ref{bklnw-def-a-2}.
   -/)
-  (proof := /-- The proof of \cite[Corollary 14.1]{BKLNW} essentially proves the proposition, but requires that $x_0 \geq e^{1000}$ to conclude that the function
+  (proof := /-- The proof of Corollary \ref{bklnw-cor-14.1} essentially proves the proposition, but requires that $x_0 \geq e^{1000}$ to conclude that the function
   $$ 1 + \frac{a_1 \exp(C \sqrt{\frac{\log x}{R}})}{A_\psi \sqrt{x} (\log x/R)^{B}} + \frac{a_2 \exp(C \sqrt{\frac{\log x}{R}})}{A_\psi x^{2/3} (\log x/R)^{B}} = 1 + \frac{a_1}{A_\psi} g(1/2, -B, C/\sqrt{R}, x) + \frac{a_2}{A_\psi} g(2/3, -B, C/\sqrt{R}, x)$$
   is decreasing. By Lemma \ref{fks2-lemma-10a}, since $B > C^2/8R$, the function is actually decreasing for all $x$. -/)
   (latexEnv := "proposition")
@@ -341,7 +342,7 @@ theorem proposition_13
   We have an admissible bound for $E_\theta$ with $A = 121.0961$, $B=3/2$, $C=2$,
   $R = 5.5666305$, $x_0=2$.
   -/)
-  (proof := /-- By \cite[Corollary 1.3]{FKS}, with $R = 5.5666305$, and using the admissible asymptotic bound for $E_\psi(x)$ with $A_\psi = 121.096$, $B = 3/2$, $C = 2$, for all $x \geq x_0 = e^{30}$, we can obtain $\nu_{asymp}(x_0) \leq 6.3376 \cdot 10^{-7}$, from which one can conclude an admissible asymptotic bound for $E_\theta(x)$ with $A_\theta = 121.0961$, $B = 3/2$, $C = 2$, for all $x \geq x_0 = e^{30}$. Additionally, the minimum value of $\varepsilon_{\theta,asymp}(x)$ for $2 \leq x \leq e^{30}$ is roughly $2.6271\ldots$ at $x=2$. The results found in \cite[Table 13 and 14]{BKLNW} give $E_\theta(x) \leq 1 < \varepsilon_{\theta,asymp}(2) \leq \varepsilon_{\theta,asymp}(x)$ for all $2 \leq x \leq e^{30}$. -/)
+  (proof := /-- By Corollary \ref{fks_cor_13}, with $R = 5.5666305$, and using the admissible asymptotic bound for $E_\psi(x)$ with $A_\psi = 121.096$, $B = 3/2$, $C = 2$, for all $x \geq x_0 = e^{30}$, we can obtain $\nu_{asymp}(x_0) \leq 6.3376 \cdot 10^{-7}$, from which one can conclude an admissible asymptotic bound for $E_\theta(x)$ with $A_\theta = 121.0961$, $B = 3/2$, $C = 2$, for all $x \geq x_0 = e^{30}$. Additionally, the minimum value of $\varepsilon_{\theta,asymp}(x)$ for $2 \leq x \leq e^{30}$ is roughly $2.6271\ldots$ at $x=2$. The results found in \cite[Table 13 and 14]{BKLNW} give $E_\theta(x) \leq 1 < \varepsilon_{\theta,asymp}(2) \leq \varepsilon_{\theta,asymp}(x)$ for all $2 \leq x \leq e^{30}$. -/)
   (latexEnv := "corollary")
   (discussion := 672)]
 theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := sorry

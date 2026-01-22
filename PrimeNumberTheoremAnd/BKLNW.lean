@@ -374,10 +374,22 @@ since $x^{1/2} > e^{b/2} > x_1 \geq e^7$.
 theorem prop_4_b (I : Inputs) {b x : ℝ} (hb : b > 2 * log I.x₁) (hx : x ≥ exp b) :
     θ (x^(1/2)) < (1 + I.ε (b / 2)) * x^(1/2) := by sorry
 
+@[blueprint
+  "bklnw-def-a-1"
+  (title := "Definition of a1")
+  (statement := /--  $a_1$ is equal to $1 + \varepsilon(\log x_1)$ if $b \leq 2\log x_1$, and equal to $1 + \varepsilon(b/2)$ if $b > 2\log x_1$. -/)]
 noncomputable def Inputs.a₁ (I : Inputs) (b : ℝ) : ℝ :=
   if b ≤ 2 * log I.x₁ then 1 + I.ε (log I.x₁)
   else 1 + I.ε (b / 2)
 
+@[blueprint
+  "bklnw-def-a-2"
+  (title := "Definition of a2")
+  (statement := /--  $a_2$ is defined by
+\[
+a_2 = (1 + \alpha) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}) \right).
+\]
+ -/)]
 noncomputable def Inputs.a₂ (I : Inputs) (b : ℝ) : ℝ :=
   (1 + I.α) * (max (f (exp b)) (f (⌊ b / (log 2) ⌋ + 1)))
 
