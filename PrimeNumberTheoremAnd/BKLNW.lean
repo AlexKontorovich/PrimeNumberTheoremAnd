@@ -7,7 +7,7 @@ blueprint_comment /--
 In this file we record the results from \cite{BKLNW}.
 -/
 
-open Real
+open Real Chebyshev
 
 namespace BKLNW
 
@@ -18,10 +18,12 @@ structure Inputs where
   hε : ∀ b ≥ 0, ∀ x ≥ exp b, |ψ x - x| ≤ ε b * x
   x₁ : ℝ
   hx₁ : x₁ ≥ exp 7
-  hx₁' : ∀ x ∈ Set.Icc 1 x₁, θ x < x
+  hx₁' : ∀ x ∈ Set.Ioc 0 x₁, θ x < x
   R : ℝ
   hR : riemannZeta.classicalZeroFree R
   ZDB : zero_density_bound
+
+lemma epsilon_nonneg (I : Inputs) {b : ℝ} (hb : 0 ≤ b) : 0 ≤ I.ε b := by sorry
 
 @[blueprint
   "bklnw-cor-2-1"
@@ -105,7 +107,7 @@ theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
   (statement := /-- $\theta(x) < x$ for all $1 \leq x \leq 10^{19}$. -/)
   (latexEnv := "sublemma")
   (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}. -/)]
-theorem buthe_eq_1_7 : ∀ x ∈ Set.Icc 1 1e19, θ x < x := by sorry
+theorem buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x := by sorry
 
 @[blueprint
   "bklnw-inputs"
@@ -192,6 +194,75 @@ theorem prop_3_sub_3 (n : ℕ) (hn : n ≥ 3) : f (2^n) = 1 + u n := by
   rw [← rpow_natCast _ n, ← rpow_mul (by norm_num)]
   field_simp
 
+noncomputable def summand (k n : ℕ) : ℝ :=
+  (2 : ℝ) ^ ((n + 1 : ℝ) / k) * ((2 : ℝ) ^ (1 / 3 - 1 / k : ℝ) - 1)
+
+lemma summand_pos.aux {k : ℕ} (hk : 3 < k) : 0 < (2 : ℝ) ^ (1 / 3 - 1 / k : ℝ) - 1 :=
+  sub_pos.mpr <| Real.one_lt_rpow (by grind) <|
+    sub_pos.mpr <| one_div_lt_one_div_of_lt (by grind) (by exact_mod_cast hk)
+
+lemma summand_pos {k : ℕ} (hk : 3 < k) (n : ℕ) : 0 < summand k n :=
+  mul_pos (by positivity) (summand_pos.aux hk)
+
+lemma summand_mono {k : ℕ} (hk : 3 < k) : StrictMono (summand k) :=
+  (Real.strictMono_rpow_of_base_gt_one (by grind : (1 : ℝ) < 2))
+  |>.comp (Nat.strictMono_cast.add_const 1 |>.div_const (by positivity))
+  |>.mul_const (summand_pos.aux hk)
+
+lemma sum_gt.aux (k : ℕ) (a b : ℝ) (hk : 3 < k := by decide) (hb1 : 0 ≤ b - 1 := by norm_num only)
+    (ha : a ^ k ≤ 1024 := by norm_num only) (hb : b ^ (3 * k) ≤ 2 ^ (k - 3) := by norm_num only) :
+    a * (b - 1) ≤ summand k 9 := by
+  have ha_bound : a ≤ 2 ^ (10 / k : ℝ) := calc
+    a ≤ (1024 : ℝ) ^ (1 / k : ℝ) := by
+      contrapose! ha
+      calc
+        _ ≤ ((1024 : ℝ) ^ (1 / k : ℝ)) ^ k := by
+          rw [← rpow_mul_natCast (by positivity), one_div_mul_cancel (by positivity), rpow_one]
+        _ < _ := pow_lt_pow_left₀ ha (by positivity) (by positivity)
+    _ = _ := by norm_num [div_eq_mul_inv, rpow_mul]
+  have hb_bound : b - 1 ≤ 2 ^ (1 / 3 - 1 / k : ℝ) - 1 := calc
+    _ ≤ ((2 : ℝ) ^ (k - 3 : ℝ)) ^ (1 / (3 * k : ℝ)) - 1 := by
+      gcongr
+      contrapose! hb
+      calc
+        _ ≤ (((2 : ℝ) ^ (k - 3 : ℝ)) ^ (1 / (3 * k : ℝ))) ^ (3 * k) := by
+          rw [← rpow_mul_natCast (by positivity), ← Real.rpow_natCast, Nat.cast_sub hk.le]
+          simp
+          field_simp
+          simp
+        _ < _ := pow_lt_pow_left₀ hb (by positivity) (by positivity)
+    _ = _ := by rw [← Real.rpow_mul (by positivity), mul_one_div]; field_simp
+  grw [ha_bound, hb_bound]
+  norm_num [summand]
+
+lemma sum_gt {n : ℕ} (hn : 9 ≤ n) : 2.12 < ∑ k ∈ Finset.Icc 4 n, summand k n := calc
+  _ < ∑ k ∈ Finset.Icc 4 9, summand k 9 := by
+    simp only [Nat.reduceLeDiff, Finset.sum_Icc_succ_top, Finset.Icc_self, Finset.sum_singleton]
+    grw [← sum_gt.aux 4 5.65 1.05, ← sum_gt.aux 5 4 1.09, ← sum_gt.aux 6 3.17 1.12,
+      ← sum_gt.aux 7 2.69 1.14, ← sum_gt.aux 8 2.37 1.155, ← sum_gt.aux 9 2.16 1.1665]
+    norm_num
+  _ ≤ ∑ k ∈ Finset.Icc 4 n, summand k 9 :=
+    Finset.sum_le_sum_of_subset_of_nonneg (Finset.Icc_subset_Icc_right hn) fun k _ _ ↦
+      (summand_pos (by grind) 9).le
+  _ ≤ _ := Finset.sum_le_sum fun k hk ↦ (summand_mono (by grind)).le_iff_le.mpr hn
+
+lemma u_diff_factored {n : ℕ} (hn : 4 ≤ n) :
+    u (n + 1) - u n = 2 ^ (-(n + 1) / 3 : ℝ) * (2 - ∑ k ∈ Finset.Icc 4 n, summand k n) := calc
+  u (n + 1) - u n = (∑ k ∈ Finset.Icc 4 n,
+      (2 : ℝ) ^ ((n + 1) / (k : ℝ) - (n + 1) / 3) * (1 - 2 ^ (1 / (3 : ℝ) - 1 / ↑k)))
+      + 2 ^ (1 - (n + 1) / (3 : ℝ)) := by
+    rw [u, u, Finset.sum_Icc_succ_top (Nat.le_add_right_of_le hn), div_self (by norm_cast),
+      ← sub_add_eq_add_sub, ← Finset.sum_sub_distrib, Nat.cast_add, Nat.cast_one]
+    congr with x
+    rw [mul_sub, mul_one, ← rpow_add two_pos]
+    grind
+  _ = _ := by
+    rw [mul_sub, Finset.mul_sum, ← rpow_add_one two_pos.ne', neg_div, neg_add_eq_sub,
+      ← neg_add_eq_sub _ (2 ^ _), ← Finset.sum_neg_distrib]
+    congr with x
+    rw [summand, ← mul_assoc, ← rpow_add two_pos]
+    grind
+
 @[blueprint
   "bklnw-prop-3-sub-4"
   (title := "Proposition 3, substep 4")
@@ -200,14 +271,13 @@ theorem prop_3_sub_3 (n : ℕ) (hn : n ≥ 3) : f (2^n) = 1 + u n := by
 \begin{equation}
 u_{n+1} - u_n = \sum_{k=4}^{n} 2^{\frac{n+1}{k} - \frac{n+1}{3}}(1 - 2^{\frac{1}{3} - \frac{1}{k}}) + 2^{1 - \frac{n+1}{3}} = 2^{-\frac{n+1}{3}} \left( 2 - \sum_{k=4}^{n} 2^{\frac{n+1}{k}}(2^{\frac{1}{3} - \frac{1}{k}} - 1) \right).
 \end{equation}
-Observe that if $n \geq 20$, then
-\[
-\sum_{k=4}^{n} 2^{\frac{n+1}{k}}(2^{\frac{1}{3} - \frac{1}{k}} - 1) > 2^{\frac{n+1}{4}}(2^{\frac{1}{3} - \frac{1}{4}} - 1) \geq 2^{\frac{21}{4}}(2^{\frac{1}{12}} - 1) > 2
-\]
-and it follows that $u_{n+1} - u_n < 0$ for $n \geq 20$. Finally, a numerical calculation verifies that the right hand side of the equation above is negative for $9 \leq n \leq 19$. -/)
+Define $s(k, n) := 2^{\frac{n+1}{k}}(2^{\frac{1}{3} - \frac{1}{k}} - 1)$. Note that $s(k, n)$ is monotone increasing in $n$ for each fixed $k \geq 4$. By numerical computation (using the trick $x \le 2 ^ {p / q} \iff x ^ q \le 2 ^ p$ to verify decimal lower bounds $x$), $\sum_{k=4}^{n} s(k, n) \ge \sum_{k=4}^{9} s(k, 9) > 2.12 > 2$. Thus $u_{n+1} - u_n < 0$. -/)
   (latexEnv := "sublemma")
   (discussion := 634)]
-theorem prop_3_sub_4 (n : ℕ) (hn : n ≥ 9) : u (n + 1) < u n := by sorry
+theorem prop_3_sub_4 (n : ℕ) (hn : 9 ≤ n) : u (n + 1) < u n := by
+  grw [← sub_neg, u_diff_factored (by grind), ← sum_gt hn]
+  norm_num
+  positivity
 
 @[blueprint
   "bklnw-prop-3-sub-5"
@@ -335,12 +405,15 @@ theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (x : ℝ) (hx : x ≥ ex
 @[blueprint
   "bklnw-prop-4-a"
   (title := "Proposition 4, part a")
-  (statement := /--  If $b \leq 2\log x_1$, then we have
+  (statement := /--  If $7 \leq b \leq 2\log x_1$, then we have
 \begin{equation}
-\theta(x^{1/2}) < (1 + \varepsilon(\log x_1))x^{1/2} \quad \text{for } x \geq e^b.
+\theta(x^{1/2}) \leq (1 + \varepsilon(\log x_1))x^{1/2} \quad \text{for } x \geq e^b.
 \end{equation}
  -/)
-  (proof := /-- If $e^b \leq x \leq x_1^2$, then $x^{1/2} \leq x_1$, and thus
+  (proof := /--
+Note that in the paper, the inequality in Proposition 4 is strict, but the
+argument can only show nonstrict inequalities.
+If $e^b \leq x \leq x_1^2$, then $x^{1/2} \leq x_1$, and thus
 \[
 \theta(x^{1/2}) < x^{1/2} \quad \text{for } e^b \leq x \leq x_1^2.
 \]
@@ -352,18 +425,35 @@ since $\log x_1 \geq 7$. The last two inequalities for $\theta(x^{1/2})$ combine
  -/)
   (latexEnv := "proposition")
   (discussion := 641)]
-theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : b ≤ 2 * log I.x₁) (hx : x ≥ exp b) :
-    θ (x^(1/2:ℝ)) < (1 + I.ε (log I.x₁)) * x^(1/2:ℝ) := by sorry
+theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : 7 ≤ b) (hi : b ≤ 2 * log I.x₁) (hx : exp b ≤ x) :
+    θ (x ^ (1 / 2 : ℝ)) ≤ (1 + I.ε (log I.x₁)) * x ^ (1 / 2 : ℝ) := by
+  have ha : 1 < I.x₁ := by linarith [I.hx₁, (one_lt_exp_iff.2 (by linarith) : 1 < exp 7)]
+  have hb : 0 < log I.x₁ := log_pos (by linarith)
+  by_cases! hp : x ^ (1 / 2 : ℝ) ≤ I.x₁
+  · have hq : 0 < x ^ (1 / 2 : ℝ) := by
+      suffices 0 < x from rpow_pos_of_pos this _
+      exact (exp_pos b).trans_le hx
+    refine (I.hx₁' (x ^ (1 / 2 : ℝ)) ⟨hq, hp⟩).le.trans ?_
+    nth_rw 1 [← one_mul (x ^ (1 / 2 : ℝ))]
+    gcongr
+    linarith [epsilon_nonneg I hb.le]
+  · calc
+    _ ≤ ψ (x ^ (1 / 2 : ℝ)) := theta_le_psi _
+    _ ≤ (1 + I.ε (log I.x₁)) * x ^ (1 / 2 : ℝ) := by
+      have := (le_abs_self (ψ (x ^ (1 / 2 : ℝ)) - x ^ (1 / 2 : ℝ))).trans <|
+        I.hε (log I.x₁) hb.le (x ^ (1 / 2 : ℝ)) (exp_log (by linarith : 0 < I.x₁) ▸ hp).le
+      linarith
 
 @[blueprint
   "bklnw-prop-4-b"
   (title := "Proposition 4, part b")
   (statement := /--  If $b > 2\log x_1$, then we have
 \[
-\theta(x^{1/2}) < (1 + \varepsilon(b/2))x^{1/2} \quad \text{for } x \geq e^b.
+\theta(x^{1/2}) \leq (1 + \varepsilon(b/2))x^{1/2} \quad \text{for } x \geq e^b.
 \]
  -/)
-  (proof := /-- As in the above subcase, we have for $x \geq e^b$
+  (proof := /-- Note that in the paper, the inequality in Proposition 4 is strict, but the
+argument can only show nonstrict inequalities. As in the above subcase, we have for $x \geq e^b$
 \[
 \theta(x^{1/2}) \leq \psi(x^{1/2}) \leq (1 + \varepsilon(b/2))x^{1/2},
 \]
@@ -371,8 +461,15 @@ since $x^{1/2} > e^{b/2} > x_1 \geq e^7$.
  -/)
   (latexEnv := "proposition")
   (discussion := 642)]
-theorem prop_4_b (I : Inputs) {b x : ℝ} (hb : b > 2 * log I.x₁) (hx : x ≥ exp b) :
-    θ (x^(1/2)) < (1 + I.ε (b / 2)) * x^(1/2) := by sorry
+theorem prop_4_b (I : Inputs) {b x : ℝ} (hb : 7 ≤ b) (hi : 2 * log I.x₁ < b) (hx : exp b ≤ x) :
+    θ (x ^ (1 / 2 : ℝ)) ≤ (1 + I.ε (b / 2)) * x ^ (1 / 2 : ℝ) := calc
+  _ ≤ ψ (x ^ (1 / 2 : ℝ)) := theta_le_psi _
+  _ ≤ (1 + I.ε (b / 2)) * x ^ (1 / 2 : ℝ) := by
+    have : exp (b / 2) ≤ x ^ (1 / 2 : ℝ) := by
+      rw [exp_half, ← sqrt_eq_rpow]
+      exact sqrt_monotone hx
+    have := (le_abs_self _).trans <| I.hε (b / 2) (by linarith) (x ^ (1 / 2 : ℝ)) this
+    linarith
 
 @[blueprint
   "bklnw-def-a-1"
@@ -445,7 +542,7 @@ theorem cor_5_1 {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
     ψ x - θ x < a₁ b * x^(1/2:ℝ) + a₂ b * x^(1/3:ℝ) := by sorry
 
 def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
-  [ (20, 1.4263, 4)
+  [(20, 1.4263, 4)
   , (25, 1.2196, 4)
   , (30, 1.1211, 4)
   , (35, 1.07086, 5)
@@ -456,7 +553,7 @@ def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
   , (200, 1 + 7.712e-8, 9)
   , (250, 1 + 2.024e-8, 9)
   , (300, 1 + 1.936e-8, 9)
-  ]
+ ]
 
 @[blueprint
   "bklnw-cor-5-1-rem"
