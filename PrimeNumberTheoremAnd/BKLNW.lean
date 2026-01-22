@@ -381,10 +381,11 @@ theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : 7 ≤ b) (hi : b ≤ 2 * log I.x
   (title := "Proposition 4, part b")
   (statement := /--  If $b > 2\log x_1$, then we have
 \[
-\theta(x^{1/2}) < (1 + \varepsilon(b/2))x^{1/2} \quad \text{for } x \geq e^b.
+\theta(x^{1/2}) \leq (1 + \varepsilon(b/2))x^{1/2} \quad \text{for } x \geq e^b.
 \]
  -/)
-  (proof := /-- As in the above subcase, we have for $x \geq e^b$
+  (proof := /-- Note that in the paper, the inequality in Proposition 4 is strict, but the
+argument can only show nonstrict inequalities. As in the above subcase, we have for $x \geq e^b$
 \[
 \theta(x^{1/2}) \leq \psi(x^{1/2}) \leq (1 + \varepsilon(b/2))x^{1/2},
 \]
@@ -392,8 +393,15 @@ since $x^{1/2} > e^{b/2} > x_1 \geq e^7$.
  -/)
   (latexEnv := "proposition")
   (discussion := 642)]
-theorem prop_4_b (I : Inputs) {b x : ℝ} (hb : b > 2 * log I.x₁) (hx : x ≥ exp b) :
-    θ (x^(1/2)) < (1 + I.ε (b / 2)) * x^(1/2) := by sorry
+theorem prop_4_b (I : Inputs) {b x : ℝ} (hb : 7 ≤ b) (hi : 2 * log I.x₁ < b) (hx : exp b ≤ x) :
+    θ (x ^ (1 / 2 : ℝ)) ≤ (1 + I.ε (b / 2)) * x ^ (1 / 2 : ℝ) := calc
+  _ ≤ ψ (x ^ (1 / 2 : ℝ)) := theta_le_psi _
+  _ ≤ (1 + I.ε (b / 2)) * x ^ (1 / 2 : ℝ) := by
+    have : exp (b / 2) ≤ x ^ (1 / 2 : ℝ) := by
+      rw [exp_half, ← sqrt_eq_rpow]
+      exact sqrt_monotone hx
+    have := (le_abs_self _).trans <| I.hε (b / 2) (by linarith) (x ^ (1 / 2 : ℝ)) this
+    linarith
 
 @[blueprint
   "bklnw-def-a-1"
