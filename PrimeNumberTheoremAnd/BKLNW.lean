@@ -256,7 +256,7 @@ lemma u_diff_factored {n : ℕ} (hn : 4 ≤ n) :
   unfold summand
   rw [h_expand.1, h_expand.2]
   ring_nf
-  simp only [Nat.ofNat_pos, ← rpow_add, Finset.sum_add_distrib, mul_add, Finset.mul_sum ..]
+  simp only [Nat.ofNat_pos, ← rpow_add, Finset.sum_add_distrib, mul_add, Finset.mul_sum]
   ring_nf
   rw [show (-1 / 3 + (n : ℝ) * (-1 / 3) + (n : ℝ) * (1 + (n : ℝ))⁻¹ + (1 + (n : ℝ))⁻¹) =
       (-1 / 3 + (n : ℝ) * (-1 / 3)) + 1 by grind]
