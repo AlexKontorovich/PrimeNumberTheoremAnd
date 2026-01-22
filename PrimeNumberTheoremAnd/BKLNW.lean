@@ -94,16 +94,17 @@ noncomputable def table_8_ε (b : ℝ) : ℝ :=
 @[blueprint
   "bknlw-theorem-2"
   (title := "Theorem 2")
-  (statement := /-- If $b>0$ then $|\psi(x) - x| \leq \varepsilon(b) x$ for all $x \geq \exp(b)$. -/)
+  (statement := /-- If $b>0$ then $|\psi(x) - x| \leq \varepsilon(b) x$ for all $x \geq \exp(b)$, where $\varepsilon$ is as in \cite[Table 8]{BKLNW} -/)
   (latexEnv := "theorem")]
 theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
     |ψ x - x| ≤ table_8_ε b * x := by sorry
 
 @[blueprint
-  "buthe-eq-1-7"
-  (title := "Buthe equation (1.7)")
+  "from-buthe-eq-1-7"
+  (title := "A consequence of Buthe equation (1.7)")
   (statement := /-- $\theta(x) < x$ for all $1 \leq x \leq 10^{19}$. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}. -/)]
 theorem buthe_eq_1_7 : ∀ x ∈ Set.Icc 1 1e19, θ x < x := by sorry
 
 @[blueprint
@@ -381,10 +382,22 @@ theorem prop_4_b (I : Inputs) {b x : ℝ} (hb : 7 ≤ b) (hi : 2 * log I.x₁ < 
     have := (le_abs_self _).trans <| I.hε (b / 2) (by linarith) (x ^ (1 / 2 : ℝ)) this
     linarith
 
+@[blueprint
+  "bklnw-def-a-1"
+  (title := "Definition of a1")
+  (statement := /--  $a_1$ is equal to $1 + \varepsilon(\log x_1)$ if $b \leq 2\log x_1$, and equal to $1 + \varepsilon(b/2)$ if $b > 2\log x_1$. -/)]
 noncomputable def Inputs.a₁ (I : Inputs) (b : ℝ) : ℝ :=
   if b ≤ 2 * log I.x₁ then 1 + I.ε (log I.x₁)
   else 1 + I.ε (b / 2)
 
+@[blueprint
+  "bklnw-def-a-2"
+  (title := "Definition of a2")
+  (statement := /--  $a_2$ is defined by
+\[
+a_2 = (1 + \alpha) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}) \right).
+\]
+ -/)]
 noncomputable def Inputs.a₂ (I : Inputs) (b : ℝ) : ℝ :=
   (1 + I.α) * (max (f (exp b)) (f (⌊ b / (log 2) ⌋ + 1)))
 
@@ -434,11 +447,10 @@ noncomputable def a₂ : ℝ → ℝ := Inputs.default.a₂
   "bklnw-cor-5-1"
   (title := "Corollary 5.1")
   (statement := /--  Let $b \geq 7$. Then for all $x \geq e^b$ we have $\psi(x) - \vartheta(x) < a_1 x^{1/2} + a_2 x^{1/3}$, where $a_1 = a_1(b) = 1 + 1.93378 \times 10^{-8}$ if $b \leq 38 \log 10$, $1 + \varepsilon(b/2)$ if $b > 38 \log 10$, and $a_2 = a_2(b) = (1 + 1.93378 \times 10^{-8}) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}) \right)$, where $f$ is defined by (2.4) and values for $\varepsilon(b/2)$ are from Table 8. -/)
-  (proof := /-- This is Theorem 5 applied to the default inputs in Definition \ref{bklnw-inputs}. -/)]
+  (proof := /-- This is Theorem 5 applied to the default inputs in Definition \ref{bklnw-inputs}. -/)
+  (discussion := 743)]
 theorem cor_5_1 {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
     ψ x - θ x < a₁ b * x^(1/2:ℝ) + a₂ b * x^(1/3:ℝ) := by sorry
-
-/- We have the following values for a2. b 20 25 30 35 40 43 a2 1.4263 1.2196 1.1211 1.07086 1.04320 1.03253 1.01718 b 100 150 200 250 a2 1+2.421·10−4 1+3.749·10−6 1+7.712·10−8 1+2.024·10−8 1+1.936·10−8 -/
 
 def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
   [ (20, 1.4263, 4)
@@ -712,7 +724,7 @@ noncomputable def Inputs.C (_ : Inputs) (σ : ℝ) : ℝ := 16 * σ / 3 - 10 / 3
   (title := "Theorem 14")
   (statement := /-- Let $x_0 \geq 1000$ and let $\sigma \in [0.75, 1)$. For all $x \geq e^{x_0}$,
   $$ \frac{|\psi(x) - x|}{x} \leq A \left( \frac{\log x}{R} \right)^B \exp\left( -C \left( \frac{\log x}{R} \right)^{1/2} \right) $$
-  where $A$, $B$, and $C$ are defined in (A.20) and (A.21). -/)]
+  where $A$, $B$, and $C$ are defined in Definitions \ref{bklnw-eq_A_20}, \ref{bklnw-eq_A_21}. -/)]
 theorem thm_14 {I : Inputs} {x₀ σ x : ℝ} (hx₀ : x₀ ≥ 1000) (hσ : 0.75 ≤ σ ∧ σ < 1) (hx : x ≥ exp x₀) :
   Eψ x ≤ I.A σ x₀ * (log x / I.R)^(I.B σ) * exp (-I.C σ * (log x / I.R)^(1/2:ℝ)) := by sorry
 
@@ -721,9 +733,18 @@ theorem thm_14 {I : Inputs} {x₀ σ x : ℝ} (hx₀ : x₀ ≥ 1000) (hσ : 0.7
   (title := "Corollary 14.1")
   (statement := /-- Let $x_0 \geq 1000$. For all $x \geq e^{x_0}$,
   $$ \frac{|\theta(x) - x|}{x} \leq A' \left( \frac{\log x}{R} \right)^B \exp\left( -C \left( \frac{\log x}{R} \right)^{1/2} \right) $$
-  where $B$ and $C$ are defined in (A.21) and
+  where $B$ and $C$ are defined in Definition \ref{bklnw-eq_A_21} and
   $$ A' = A \left( 1 + \frac{1}{A} \left( \frac{R}{\log x_0} \right)^B \exp\left( C \frac{\log x_0}{R} \right) \left( a_1(x_0) \exp\left( -\frac{x_0}{2} \right) + a_2(x_0) \exp\left( -\frac{2 x_0}{3} \right) \right) \right), $$
-  where $a_1$ and $a_2$ are defined in Corollary 5.1. -/)]
+  where $a_1$ and $a_2$ are defined in Corollary \ref{bklnw-cor-5-1}. -/)
+  (proof := /--
+Let $x \geq e^{x_0}$. By writing $\theta(x) - x = \psi(x) - x + \theta(x) - \psi(x)$, applying the triangle inequality, and invoking Corollary \ref{bklnw-cor-5-1}, it follows that
+\begin{align*}
+\left|\frac{\theta(x) - x}{x}\right| &\leq A\left(\frac{\log x}{R}\right)^B \exp\left(-C\left(\frac{\log x}{R}\right)^{\frac{1}{2}}\right) + a_1(x_0)x^{-\frac{1}{2}} + a_2(x_0)x^{-\frac{2}{3}} \\
+&\leq A\left(\frac{\log x}{R}\right)^B \exp\left(-C\left(\frac{\log x}{R}\right)^{\frac{1}{2}}\right) \\
+&\quad \times \left(1 + \frac{a_1(x_0) \exp\left(C\sqrt{\frac{\log x}{R}}\right)}{A\sqrt{x}\left(\frac{\log x}{R}\right)^B} + \frac{a_2(x_0) \exp\left(C\sqrt{\frac{\log x}{R}}\right)}{Ax^{\frac{2}{3}}\left(\frac{\log x}{R}\right)^B}\right).
+\end{align*}
+It may be checked the function in brackets decreases for $x \geq e^{x_0}$ with $x_0 \geq 1000$ and thus we obtain the claim.
+-/)]
 theorem cor_14_1 {I : Inputs} {x₀ σ x : ℝ} (hx₀ : x₀ ≥ 1000) (hσ : 0.75 ≤ σ ∧ σ < 1) (hx : x ≥ exp x₀) :
   Eθ x ≤ I.A σ x₀ * (1 + (1 / I.A σ x₀) * (I.R / log x₀)^(I.B σ) * exp (I.C σ * (log x₀ / I.R)) *
     (I.a₁ x₀ * exp (-x₀ / 2) + I.a₂ x₀ * exp (-2 * x₀ / 3))) *

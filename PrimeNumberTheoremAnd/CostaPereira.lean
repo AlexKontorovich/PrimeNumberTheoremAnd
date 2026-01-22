@@ -1,3 +1,4 @@
+import Mathlib.Analysis.SpecialFunctions.Log.Base
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 
 open Chebyshev Finset Nat Real Filter
@@ -75,7 +76,24 @@ theorem sublemma_1_2 {x : ℝ} (hx : 0 < x) (n : ℝ) :
   (latexEnv := "sublemma")
   (discussion := 678)]
 theorem sublemma_1_3 {x : ℝ} (hx : 0 < x) :
-    ψ x = θ x + ψ (x ^ (1 / 2 : ℝ)) + ∑' (k : ℕ), θ (x ^ (1 / (2 * (k.succ : ℝ) + 1))) := by sorry
+    ψ x = θ x + ψ (x ^ (1 / 2 : ℝ)) + ∑' (k : ℕ), θ (x ^ (1 / (2 * (k.succ : ℝ) + 1))) := by
+  rw [sublemma_1_1 hx, sublemma_1_2 hx 2]
+  have h_summable : Summable (fun k : ℕ ↦ θ (x ^ (1 / (k.succ : ℝ)))) := by
+    obtain ⟨N, hN⟩ : ∃ N : ℕ, ∀ k ≥ N, θ (x ^ (1 / (k.succ : ℝ))) = 0 := by
+      refine ⟨⌈logb 2 x⌉₊ + 1, fun k hk ↦ ?_⟩
+      rw [theta_eq_zero_of_lt_two]
+      norm_num
+      rw [← log_lt_log_iff (rpow_pos_of_pos hx _) zero_lt_two, log_rpow hx, inv_mul_lt_iff₀ <|
+        cast_add_one_pos _]
+      have := lt_of_ceil_lt hk
+      rw [logb, div_lt_iff₀ <| log_pos one_lt_two] at this
+      nlinarith [Real.log_pos one_lt_two]
+    exact summable_of_ne_finset_zero fun k hk ↦ hN k <| le_of_not_gt fun hk' ↦ hk <| mem_range.mpr hk'
+  rw [← h_summable.sum_add_tsum_nat_add 1, ← tsum_even_add_odd] <;> norm_num [add_assoc, mul_add]
+  · convert h_summable.comp_injective (show (fun k ↦ 2 * k + 1).Injective from fun a b h ↦ by grind) using 2
+    grind
+  · convert h_summable.comp_injective (show (fun k ↦ 2 * k + 2).Injective from fun a b h ↦ by grind) using 2
+    grind
 
 @[blueprint
   "costa-pereira-sublemma-1-4"
@@ -92,7 +110,36 @@ theorem sublemma_1_4 {x : ℝ} (hx : 0 < x) :
     ψ x - θ x = ψ (x ^ (1 / 2 : ℝ)) +
       ∑' (k : ℕ), θ (x ^ (1 / (6 * ((k.succ : ℕ) : ℝ) - 3))) +
       ∑' (k : ℕ), θ (x ^ (1 / (6 * ((k.succ : ℕ) : ℝ) - 1))) +
-      ∑' (k : ℕ), θ (x ^ (1 / (6 * ((k.succ : ℕ) : ℝ) + 1))) := by sorry
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * ((k.succ : ℕ) : ℝ) + 1))) := by
+  have h_split_sum :
+      ∑' (k : ℕ), θ (x ^ (1 / (2 * (k.succ : ℝ) + 1) : ℝ)) =
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * (k.succ : ℝ) - 3) : ℝ)) +
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * (k.succ : ℝ) - 1) : ℝ)) +
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * (k.succ : ℝ) + 1) : ℝ)) := by
+    have h_split : ∀ {f : ℕ → ℝ}, Summable f →
+        ∑' k : ℕ, f k = ∑' k : ℕ, f (3 * k) + ∑' k : ℕ, f (3 * k + 1) +
+        ∑' k : ℕ, f (3 * k + 2) := fun {f} hf ↦ by
+      have h := Nat.sumByResidueClasses hf 3
+      have hsum : (∑ j : ZMod 3, ∑' m, f (j.val + 3 * m)) =
+          ∑' m, f (3 * m) + ∑' m, f (3 * m + 1) + ∑' m, f (3 * m + 2) := by
+        have : univ (α := ZMod 3) = {0, 1, 2} := rfl
+        simp only [this, sum_insert (by decide : (0 : ZMod 3) ∉ ({1, 2} : Finset _)),
+          sum_insert (by decide : (1 : ZMod 3) ∉ ({2} : Finset _)), sum_singleton,
+          show (0 : ZMod 3).val = 0 from rfl, show (1 : ZMod 3).val = 1 from rfl,
+          show (2 : ZMod 3).val = 2 from rfl, zero_add, add_comm 1, add_comm 2]
+        ring
+      exact h.trans hsum
+    convert @h_split (fun k ↦ θ (x ^ (1 / (2 * (k.succ : ℝ) + 1)))) ?_ using 1
+    · norm_num [Nat.succ_eq_add_one, mul_add]; ring_nf
+    · obtain ⟨N, hN⟩ : ∃ N : ℕ, ∀ k ≥ N, θ (x ^ (1 / (2 * (k.succ : ℝ) + 1))) = 0 := by
+        obtain ⟨N, hN⟩ : ∃ N : ℕ, ∀ k ≥ N, x ^ (1 / (2 * (k.succ : ℝ) + 1) : ℝ) < 2 := by
+          have h_tends_one : Tendsto (fun k : ℕ ↦ x ^ (1 / (2 * (k.succ : ℝ) + 1) : ℝ)) atTop (nhds 1) := by
+            simpa using tendsto_const_nhds.rpow (tendsto_inv_atTop_zero.comp <|
+              tendsto_atTop_mono (fun k ↦ by linarith) tendsto_natCast_atTop_atTop) <| .inl hx.ne'
+          simpa using h_tends_one.eventually (gt_mem_nhds <| by norm_num)
+        exact ⟨N, fun _ hk ↦ by simp_all [theta_eq_zero_of_lt_two]⟩
+      exact summable_nat_add_iff N |>.1 <| ⟨_, hasSum_single 0 fun k hk ↦ hN _ <| Nat.le_add_left ..⟩
+  grind [sublemma_1_3 hx]
 
 @[blueprint
   "costa-pereira-sublemma-1-5"
@@ -194,7 +241,81 @@ theorem sublemma_1_6 {x : ℝ} (hx : 0 < x) :
   (latexEnv := "sublemma")
   (discussion := 682)]
 theorem sublemma_1_7 {x : ℝ} (hx : 0 < x) :
-    ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ∑' (k : ℕ), θ (x ^ (1 / (5 * ((k.succ  : ℕ) : ℝ)))) := by sorry
+    ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ∑' (k : ℕ), θ (x ^ (1 / (5 * ((k.succ  : ℕ) : ℝ)))) := by
+  have h_split :
+      ψ x - θ x ≤ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) +
+        ∑' k : ℕ, θ (x ^ (1 / (6 * (k.succ : ℝ) - 1 : ℝ))) := by
+    rw [sublemma_1_6 hx]
+    norm_num [sub_add]
+    refine Summable.tsum_le_tsum ?_ ?_ ?_
+    · field_simp
+      intro i
+      apply_rules [sum_le_sum_of_subset_of_nonneg]
+      · intro p hp
+        have hp1 := mem_filter.mp hp |>.1
+        have hp2 := mem_filter.mp hp |>.2
+        refine mem_filter.mpr ⟨mem_Ioc.mpr ⟨?_, ?_⟩, hp2⟩
+        · exact mem_Ioc.mp hp1 |>.1
+        · refine (mem_Ioc.mp hp1 |>.2).trans (Nat.floor_mono ?_)
+          refine Real.rpow_le_rpow_of_exponent_le ?_ (by gcongr; linarith)
+          show 1 ≤ x
+          by_contra h
+          push_neg at h
+          rw [Nat.floor_eq_zero.mpr <| Real.rpow_lt_one hx.le h <| by positivity] at hp
+          simp_all
+      · exact fun _ _ _ ↦ Real.log_nonneg <| Nat.one_le_cast.2 <| Nat.Prime.pos <| by simp_all
+    · have h_theta_zero : ∀ᶠ k : ℕ in atTop, θ (x ^ (1 / (6 * (k + 1) + 1 : ℝ))) = 0 := by
+        have h_theta_zero : Tendsto (fun k : ℕ ↦ x ^ (1 / (6 * (k + 1) + 1 : ℝ))) atTop (nhds 1) := by
+          simpa using tendsto_const_nhds.rpow (tendsto_inv_atTop_zero.comp <|
+            tendsto_atTop_mono (fun k ↦ by linarith) tendsto_natCast_atTop_atTop) (by simp [hx.ne'])
+        filter_upwards [h_theta_zero.eventually (gt_mem_nhds one_lt_two)] with k hk
+        rw [theta_eq_zero_of_lt_two hk]
+      obtain ⟨N, hN⟩ := eventually_atTop.mp h_theta_zero
+      rw [← summable_nat_add_iff N]
+      exact ⟨_, hasSum_single 0 fun n hn ↦ by
+        simpa using hN (n + N) (by omega)⟩
+    · refine summable_of_ne_finset_zero (s := range (floor (Real.logb 2 x) + 1)) fun b hb ↦ ?_
+      rw [theta_eq_zero_of_lt_two]
+      rw [← log_lt_log_iff (by positivity) zero_lt_two, Real.log_rpow hx]
+      field_simp
+      contrapose! hb
+      refine mem_range.mpr <| Nat.lt_succ_of_le <| Nat.le_floor ?_
+      rw [Real.logb, le_div_iff₀ <| Real.log_pos <| by norm_num]
+      nlinarith [Real.log_pos one_lt_two]
+  refine h_split.trans (add_le_add_right (Summable.tsum_le_tsum ?_ ?_ ?_) _)
+  · intro i
+    apply_rules [sum_le_sum_of_subset_of_nonneg]
+    · intro p hp
+      refine mem_filter.mpr ⟨mem_Ioc.mpr ⟨mem_Ioc.mp (mem_filter.mp hp |>.1) |>.1, ?_⟩, mem_filter.mp hp |>.2⟩
+      refine (mem_Ioc.mp (mem_filter.mp hp |>.1) |>.2).trans (Nat.floor_mono ?_)
+      have : 1 ≤ x := by
+        by_contra h
+        push_neg at h
+        have hpos : (0 : ℝ) < 1 / (6 * (i.succ : ℝ) - 1) := one_div_pos.mpr <| by
+          linarith [show (i.succ : ℝ) ≥ 1 by simp]
+        rw [Nat.floor_eq_zero.mpr <| rpow_lt_one hx.le h hpos] at hp
+        simp_all
+      refine rpow_le_rpow_of_exponent_le this ?_
+      rw [div_le_div_iff₀] <;> nlinarith [show (i.succ : ℝ) ≥ 1 by simp]
+    · exact fun _ _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <| Nat.Prime.pos <| by simp_all
+  · refine summable_of_ne_finset_zero (s := range (floor (logb 2 x) + 1)) ?_
+    simp only [mem_range, Order.lt_add_one_iff, not_le, succ_eq_add_one, cast_add, cast_one, one_div]
+    intro k hk
+    rw [theta_eq_zero_of_lt_two]
+    rw [← log_lt_log_iff (rpow_pos_of_pos hx ..) zero_lt_two, log_rpow hx, inv_mul_lt_iff₀ (by linarith)]
+    have := Nat.lt_of_floor_lt hk
+    rw [logb, div_lt_iff₀ (log_pos one_lt_two)] at this
+    nlinarith [Real.log_pos one_lt_two]
+  · refine summable_of_ne_finset_zero (s := range (Nat.floor (log x / Real.log 5) + 1)) fun k hk ↦ ?_
+    rw [theta_eq_zero_of_lt_two]
+    norm_num
+    rw [← log_lt_log_iff (by positivity) (by positivity), log_rpow hx, inv_mul_eq_div, div_mul_eq_mul_div,
+      div_lt_iff₀] <;> norm_num at *
+    · have := Nat.lt_of_floor_lt hk
+      rw [div_lt_iff₀ (by positivity)] at this
+      rw [show (5 : ℝ) = 2 ^ 2 * 1.25 by norm_num, log_mul, Real.log_pow] at this <;> norm_num at *
+      nlinarith [Real.log_pos one_lt_two, log_le_log (by norm_num) (by norm_num : (5 : ℝ) / 4 ≤ 2)]
+    · positivity
 
 @[blueprint
   "costa-pereira-sublemma-1-8"
@@ -209,7 +330,94 @@ theorem sublemma_1_7 {x : ℝ} (hx : 0 < x) :
   (latexEnv := "sublemma")
   (discussion := 683)]
 theorem sublemma_1_8 {x : ℝ} (hx : 0 < x) :
-    ψ x - θ x ≥ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ∑' (k : ℕ), θ (x ^ (1 / (7 * ((k.succ : ℕ) : ℝ)))) := by sorry
+    ψ x - θ x ≥ ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ∑' (k : ℕ), θ (x ^ (1 / (7 * ((k.succ : ℕ) : ℝ)))) := by
+  have h_sublemma : ψ x - θ x = ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) +
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * ((k.succ : ℕ) : ℝ) - 1))) -
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * ((k.succ : ℕ) : ℝ)))) +
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * ((k.succ : ℕ) : ℝ) + 1))) :=
+    sublemma_1_6 hx
+  have h_sum_bound1 : ∑' (k : ℕ), θ (x ^ (1 / (6 * ((k.succ : ℕ) : ℝ) + 1))) ≥
+      ∑' (k : ℕ), θ (x ^ (1 / (7 * ((k.succ : ℕ) : ℝ)))) := by
+    refine Summable.tsum_le_tsum ?_ ?_ ?_
+    · intro k
+      apply_rules [sum_le_sum_of_subset_of_nonneg]
+      · exact fun p hp ↦ mem_filter.mpr
+          ⟨mem_Ioc.mpr
+            ⟨mem_Ioc.mp (mem_filter.mp hp |>.1) |>.1,
+             (mem_Ioc.mp (mem_filter.mp hp |>.1) |>.2).trans
+              (floor_mono <| rpow_le_rpow_of_exponent_le
+                (show 1 ≤ x from le_of_not_gt fun h ↦ by
+                  rw [floor_eq_zero.mpr <|
+                    rpow_lt_one hx.le h <| by positivity] at hp
+                  simp_all)
+                (by rw [div_le_div_iff₀] <;> norm_num <;> linarith))⟩,
+           mem_filter.mp hp |>.2⟩
+      · exact fun _ _ _ ↦ log_nonneg <|
+          one_le_cast.2 <| Prime.pos <| by simp_all
+    · have h_finite : ∃ N : ℕ, ∀ k ≥ N, θ (x ^ (1 / (7 * (k.succ : ℝ)))) = 0 := by
+        use ceil (log x / Real.log 2) + 1
+        intro k hk
+        rw [theta_eq_zero_of_lt_two]
+        norm_num
+        rw [← log_lt_log_iff (by positivity) (by positivity), log_rpow hx,
+          inv_mul_eq_div, div_mul_eq_mul_div, div_lt_iff₀] <;>
+          nlinarith [le_ceil (log x / Real.log 2), Real.log_pos one_lt_two,
+            mul_div_cancel₀ (log x) (ne_of_gt (log_pos one_lt_two)),
+            show (k : ℝ) ≥ ⌈log x / Real.log 2⌉₊ + 1 by exact_mod_cast hk]
+      exact summable_of_ne_finset_zero (s := range h_finite.choose)
+        fun k hk ↦ h_finite.choose_spec k <| le_of_not_gt fun hk' ↦ hk <|
+          mem_range.mpr hk'
+    · have h_finite : ∃ N : ℕ, ∀ k ≥ N, θ (x ^ (1 / (6 * ((k.succ : ℕ) : ℝ) + 1))) = 0 := by
+        use ceil (log x / Real.log 2) + 1
+        intro k hk
+        rw [theta_eq_zero_of_lt_two]
+        norm_num
+        rw [← log_lt_log_iff (rpow_pos_of_pos hx ..) zero_lt_two, log_rpow hx, inv_mul_lt_iff₀] <;>
+          nlinarith [le_ceil (log x / Real.log 2), Real.log_pos one_lt_two,
+            mul_div_cancel₀ (log x) (ne_of_gt (log_pos one_lt_two)),
+              show (k : ℝ) ≥ ⌈Real.log x / Real.log 2⌉₊ + 1 by exact_mod_cast hk]
+      exact summable_of_ne_finset_zero
+        fun k hk ↦ h_finite.choose_spec k <| le_of_not_gt fun hk' ↦ hk <|
+          mem_range.mpr hk'
+  have h_sum_bound2 : ∑' (k : ℕ), θ (x ^ (1 / (6 * ((k.succ : ℕ) : ℝ) - 1))) ≥
+      ∑' (k : ℕ), θ (x ^ (1 / (6 * ((k.succ : ℕ) : ℝ)))) := by
+    refine Summable.tsum_le_tsum ?_ ?_ ?_
+    · intro k
+      apply_rules [sum_le_sum_of_subset_of_nonneg] <;> norm_num
+      · field_simp
+        exact fun p hp ↦ mem_filter.mpr
+          ⟨mem_Ioc.mpr
+            ⟨mem_Ioc.mp (mem_filter.mp hp |>.1) |>.1,
+             (mem_Ioc.mp (mem_filter.mp hp |>.1) |>.2).trans
+              (floor_mono <| rpow_le_rpow_of_exponent_le
+                (show 1 ≤ x from le_of_not_gt fun h ↦ by
+                  rw [floor_eq_zero.mpr <| rpow_lt_one hx.le h <| by positivity] at hp
+                  simp_all) (by rw [div_le_div_iff₀] <;> nlinarith))⟩, mem_filter.mp hp |>.2⟩
+      · exact fun _ _ _ _ _ ↦ log_nonneg <| one_le_cast.2 <| Prime.pos ‹_›
+    · have h_finite : ∃ N : ℕ, ∀ k ≥ N, θ (x ^ (1 / (6 * ((k.succ : ℕ) : ℝ)))) = 0 := by
+        use ceil (log x / Real.log 2) + 1
+        intro k hk
+        rw [theta_eq_zero_of_lt_two]
+        norm_num
+        rw [← log_lt_log_iff (by positivity) zero_lt_two, log_rpow hx,
+          inv_mul_eq_div, div_mul_eq_mul_div, div_lt_iff₀] <;>
+          nlinarith [le_ceil (log x / Real.log 2), Real.log_pos one_lt_two,
+            mul_div_cancel₀ (log x) (ne_of_gt (Real.log_pos one_lt_two)),
+            show (k : ℝ) ≥ ⌈log x / Real.log 2⌉₊ + 1 by exact_mod_cast hk]
+      exact summable_of_ne_finset_zero (s := range h_finite.choose)
+        fun k hk ↦ h_finite.choose_spec k <| le_of_not_gt fun hk' ↦ hk <| mem_range.mpr hk'
+    · refine summable_of_ne_finset_zero (s := range (ceil (log x / Real.log 2) + 1)) ?_
+      simp only [mem_range, Order.lt_add_one_iff, not_le, succ_eq_add_one, cast_add, cast_one, one_div]
+      intro k hk
+      rw [theta_eq_zero_of_lt_two]
+      have := lt_of_ceil_lt hk
+      rw [div_lt_iff₀ (log_pos one_lt_two)] at this
+      have hx_pow : x < 2 ^ (k : ℕ) := by rw [← log_lt_log_iff hx (by positivity), Real.log_pow]; linarith
+      exact (rpow_lt_rpow (le_of_lt hx) hx_pow (inv_pos.mpr (by linarith))).trans_le
+        (by rw [← rpow_natCast, ← rpow_mul zero_le_two]
+            exact (rpow_le_rpow_of_exponent_le one_le_two
+              (show (k : ℝ) / (6 * (k + 1) - 1) ≤ 1 by rw [div_le_iff₀] <;> linarith)).trans (by norm_num))
+  grind
 
 @[blueprint
   "costa-pereira-theorem-1a"
