@@ -7,7 +7,7 @@ blueprint_comment /--
 In this file we record the results from \cite{BKLNW}.
 -/
 
-open Real
+open Real Chebyshev
 
 namespace BKLNW
 
@@ -18,10 +18,12 @@ structure Inputs where
   hε : ∀ b ≥ 0, ∀ x ≥ exp b, |ψ x - x| ≤ ε b * x
   x₁ : ℝ
   hx₁ : x₁ ≥ exp 7
-  hx₁' : ∀ x ∈ Set.Icc 1 x₁, θ x < x
+  hx₁' : ∀ x ∈ Set.Ioc 0 x₁, θ x < x
   R : ℝ
   hR : riemannZeta.classicalZeroFree R
   ZDB : zero_density_bound
+
+lemma epsilon_nonneg (I : Inputs) {b : ℝ} (hb : 0 ≤ b) : 0 ≤ I.ε b := by sorry
 
 @[blueprint
   "bklnw-cor-2-1"
@@ -105,7 +107,7 @@ theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
   (statement := /-- $\theta(x) < x$ for all $1 \leq x \leq 10^{19}$. -/)
   (latexEnv := "sublemma")
   (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}. -/)]
-theorem buthe_eq_1_7 : ∀ x ∈ Set.Icc 1 1e19, θ x < x := by sorry
+theorem buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x := by sorry
 
 @[blueprint
   "bklnw-inputs"
@@ -403,12 +405,15 @@ theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (x : ℝ) (hx : x ≥ ex
 @[blueprint
   "bklnw-prop-4-a"
   (title := "Proposition 4, part a")
-  (statement := /--  If $b \leq 2\log x_1$, then we have
+  (statement := /--  If $7 \leq b \leq 2\log x_1$, then we have
 \begin{equation}
-\theta(x^{1/2}) < (1 + \varepsilon(\log x_1))x^{1/2} \quad \text{for } x \geq e^b.
+\theta(x^{1/2}) \leq (1 + \varepsilon(\log x_1))x^{1/2} \quad \text{for } x \geq e^b.
 \end{equation}
  -/)
-  (proof := /-- If $e^b \leq x \leq x_1^2$, then $x^{1/2} \leq x_1$, and thus
+  (proof := /--
+Note that in the paper, the inequality in Proposition 4 is strict, but the
+argument can only show nonstrict inequalities.
+If $e^b \leq x \leq x_1^2$, then $x^{1/2} \leq x_1$, and thus
 \[
 \theta(x^{1/2}) < x^{1/2} \quad \text{for } e^b \leq x \leq x_1^2.
 \]
@@ -420,18 +425,35 @@ since $\log x_1 \geq 7$. The last two inequalities for $\theta(x^{1/2})$ combine
  -/)
   (latexEnv := "proposition")
   (discussion := 641)]
-theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : b ≤ 2 * log I.x₁) (hx : x ≥ exp b) :
-    θ (x^(1/2:ℝ)) < (1 + I.ε (log I.x₁)) * x^(1/2:ℝ) := by sorry
+theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : 7 ≤ b) (hi : b ≤ 2 * log I.x₁) (hx : exp b ≤ x) :
+    θ (x ^ (1 / 2 : ℝ)) ≤ (1 + I.ε (log I.x₁)) * x ^ (1 / 2 : ℝ) := by
+  have ha : 1 < I.x₁ := by linarith [I.hx₁, (one_lt_exp_iff.2 (by linarith) : 1 < exp 7)]
+  have hb : 0 < log I.x₁ := log_pos (by linarith)
+  by_cases! hp : x ^ (1 / 2 : ℝ) ≤ I.x₁
+  · have hq : 0 < x ^ (1 / 2 : ℝ) := by
+      suffices 0 < x from rpow_pos_of_pos this _
+      exact (exp_pos b).trans_le hx
+    refine (I.hx₁' (x ^ (1 / 2 : ℝ)) ⟨hq, hp⟩).le.trans ?_
+    nth_rw 1 [← one_mul (x ^ (1 / 2 : ℝ))]
+    gcongr
+    linarith [epsilon_nonneg I hb.le]
+  · calc
+    _ ≤ ψ (x ^ (1 / 2 : ℝ)) := theta_le_psi _
+    _ ≤ (1 + I.ε (log I.x₁)) * x ^ (1 / 2 : ℝ) := by
+      have := (le_abs_self (ψ (x ^ (1 / 2 : ℝ)) - x ^ (1 / 2 : ℝ))).trans <|
+        I.hε (log I.x₁) hb.le (x ^ (1 / 2 : ℝ)) (exp_log (by linarith : 0 < I.x₁) ▸ hp).le
+      linarith
 
 @[blueprint
   "bklnw-prop-4-b"
   (title := "Proposition 4, part b")
   (statement := /--  If $b > 2\log x_1$, then we have
 \[
-\theta(x^{1/2}) < (1 + \varepsilon(b/2))x^{1/2} \quad \text{for } x \geq e^b.
+\theta(x^{1/2}) \leq (1 + \varepsilon(b/2))x^{1/2} \quad \text{for } x \geq e^b.
 \]
  -/)
-  (proof := /-- As in the above subcase, we have for $x \geq e^b$
+  (proof := /-- Note that in the paper, the inequality in Proposition 4 is strict, but the
+argument can only show nonstrict inequalities. As in the above subcase, we have for $x \geq e^b$
 \[
 \theta(x^{1/2}) \leq \psi(x^{1/2}) \leq (1 + \varepsilon(b/2))x^{1/2},
 \]
@@ -439,8 +461,15 @@ since $x^{1/2} > e^{b/2} > x_1 \geq e^7$.
  -/)
   (latexEnv := "proposition")
   (discussion := 642)]
-theorem prop_4_b (I : Inputs) {b x : ℝ} (hb : b > 2 * log I.x₁) (hx : x ≥ exp b) :
-    θ (x^(1/2)) < (1 + I.ε (b / 2)) * x^(1/2) := by sorry
+theorem prop_4_b (I : Inputs) {b x : ℝ} (hb : 7 ≤ b) (hi : 2 * log I.x₁ < b) (hx : exp b ≤ x) :
+    θ (x ^ (1 / 2 : ℝ)) ≤ (1 + I.ε (b / 2)) * x ^ (1 / 2 : ℝ) := calc
+  _ ≤ ψ (x ^ (1 / 2 : ℝ)) := theta_le_psi _
+  _ ≤ (1 + I.ε (b / 2)) * x ^ (1 / 2 : ℝ) := by
+    have : exp (b / 2) ≤ x ^ (1 / 2 : ℝ) := by
+      rw [exp_half, ← sqrt_eq_rpow]
+      exact sqrt_monotone hx
+    have := (le_abs_self _).trans <| I.hε (b / 2) (by linarith) (x ^ (1 / 2 : ℝ)) this
+    linarith
 
 @[blueprint
   "bklnw-def-a-1"
