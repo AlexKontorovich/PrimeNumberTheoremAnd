@@ -107,7 +107,7 @@ theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
   (statement := /-- $\theta(x) < x$ for all $1 \leq x \leq 10^{19}$. -/)
   (latexEnv := "sublemma")
   (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}. -/)]
-theorem buthe_eq_1_7 : ∀ x ∈ Set.Icc 1 1e19, θ x < x := by sorry
+theorem buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x := by sorry
 
 @[blueprint
   "bklnw-inputs"
