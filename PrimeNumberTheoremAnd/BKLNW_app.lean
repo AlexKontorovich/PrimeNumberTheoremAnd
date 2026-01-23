@@ -7,7 +7,7 @@ blueprint_comment /--
 In this file we record the results from Appendix A of \cite{BKLNW}.  In this appendix, the authors derive explicit estimates on the error term in the prime number theorem for the Chebyshev function $\psi$ assuming various inputs on the zeros of the Riemann zeta function, including a zero-density estimate, a classical zero-free region, and numerical verification of RH up to some height.
 -/
 
-namespace BKLNW
+namespace BKLNW_app
 
 open Real
 
@@ -391,4 +391,4 @@ theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
 
 
 
-end BKLNW
+end BKLNW_app
