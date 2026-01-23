@@ -52,6 +52,22 @@ theorem MTY_theorem : riemannZeta.classicalZeroFree 5.558691 := sorry
 
 -- TODO: move to separate file
 @[blueprint
+  "platt_RH"
+  (title := "Platt's numerical verification of RH")
+  (statement := /-- The Riemann hypothesis is verified up to $H_0 = 3.061 \times 10^{10}$. -/)
+  (latexEnv := "theorem")]
+theorem Platt_theorem : riemannZeta.RH_up_to 30610000000 := sorry
+
+-- TODO: move to separate file
+@[blueprint
+  "gourdon_wedeniwski"
+  (title := "Gourdon-Wedeniwski")
+  (statement := /-- The Riemann hypothesis is verified up to $H_0 = 2445999556030$. -/)
+  (latexEnv := "theorem")]
+theorem GW_theorem : riemannZeta.RH_up_to 2445999556030 := sorry
+
+-- TODO: move to separate file
+@[blueprint
   "pt_theorem_1"
   (title := "PT Theorem 1")
   (statement := /-- The Riemann hypothesis is verified up to $H_0 = 3 \times 10^{12}$. -/)

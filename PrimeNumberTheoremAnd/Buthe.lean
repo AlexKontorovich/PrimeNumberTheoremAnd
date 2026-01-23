@@ -10,7 +10,7 @@ In this section we collect some results from Buthe's paper \cite{Buthe}, which p
 
 namespace Buthe
 
-open Real
+open MeasureTheory Real
 
 -- TODO: enter in other results from Buthe's paper than Theorem 2.
 
@@ -63,9 +63,9 @@ theorem theorem_2d {x : ℝ} (hx1 : 2 ≤ x) (hx2 : x ≤ 10 ^ 19) :
   -/)
   (latexEnv := "theorem")]
 theorem theorem_2e {x : ℝ} (hx1 : 2 ≤ x) (hx2 : x ≤ 10 ^ 19) :
-    li x - pi x ≤
-      (sqrt x / log x) *
-        (1.95 + 3.9 / log x + 19.5 / (log x) ^ 2) := by sorry
+    li x - pi x ≤ (sqrt x / log x) * (1.95 + 3.9 / log x + 19.5 / (log x) ^ 2) := by
+  sorry
+
 
 @[blueprint
   "buthe-theorem-2f"

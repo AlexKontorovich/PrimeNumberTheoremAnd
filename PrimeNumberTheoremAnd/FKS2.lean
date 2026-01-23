@@ -16,22 +16,6 @@ open Real MeasureTheory Chebyshev
 namespace FKS2
 
 @[blueprint
-  "fks2-rem"
-  (title := "Remark in FKS2 Section 1.1")
-  (statement := /-- $\li(x) - \Li(x) = \li(2)$. -/)
-  (proof := /-- This follows directly from the definitions of $\li$ and $\Li$. -/)
-  (latexEnv := "remark")
-  (discussion := 608)]
-theorem sec_1_1_remark
-    (h02 : IntervalIntegrable (fun t ↦ 1 / log t) MeasureTheory.volume 0 2)
-    (x : ℝ)
-    (h2x : IntervalIntegrable (fun t ↦ 1 / log t) MeasureTheory.volume 2 x) :
-    li x - Li x = li 2 := by
-  unfold li Li
-  rw [← intervalIntegral.integral_add_adjacent_intervals h02 h2x]
-  simp
-
-@[blueprint
   "fks2-eq-16"
   (title := "g function, FKS2 (16)")
   (statement := /--
@@ -242,7 +226,7 @@ theorem lemma_10c {b c : ℝ} (hb : b < 0) (hc : c > 0) :
   (proof := /-- This follows from Lemma \ref{fks2-lemma-10a} applied with $a=1$, $b=1-B$ and $c=C/\sqrt{R}$. -/)
   (latexEnv := "corollary")
   (discussion := 615)]
-theorem corollary_11 {B C R : ℝ} (hR : R > 0) (hB : B > 1 + C ^ 2 / (16 * R)) (hC : C > 0) :
+theorem corollary_11 {B C R : ℝ} (hR : R > 0) (hB : B > 1 + C ^ 2 / (16 * R)) :
     StrictAntiOn (g_bound 1 (1 - B) (C / sqrt R)) (Set.Ioi 1) := by
   apply lemma_10a one_pos
   rw [div_pow, sq_sqrt hR.le, mul_one]

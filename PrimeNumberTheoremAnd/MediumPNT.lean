@@ -1692,8 +1692,7 @@ theorem ae_volume_of_contains_compl_singleton_zero
 theorem integral_evaluation (x : ℝ) (T : ℝ) (T_large : 3 < T) :
     ∫ (t : ℝ) in Iic (-T), (‖x + t * I‖ ^ 2)⁻¹ ≤ T⁻¹ := by
   have T00 : ∀ (x t : ℝ), t^2 ≤ ‖x + t * I‖^2 := by
-    intro x
-    intro t
+    intro x t
     rw [Complex.norm_add_mul_I x t]
     ring_nf
     rw [Real.sq_sqrt _]
@@ -1701,9 +1700,7 @@ theorem integral_evaluation (x : ℝ) (T : ℝ) (T_large : 3 < T) :
     · positivity
 
   have T0 : ∀ (x t : ℝ), t ≠ 0 → (‖x + t * I‖^2)⁻¹ ≤ (t^2)⁻¹ := by
-    intro x
-    intro t
-    intro hyp
+    intro x t hyp
     have U0 : 0 < t^2 := by positivity
     have U1 : 0 < ‖x + t * I‖^2 := by
       rw [Complex.norm_add_mul_I x t]
@@ -1721,8 +1718,7 @@ theorem integral_evaluation (x : ℝ) (T : ℝ) (T_large : 3 < T) :
     · refine Filter.mem_sets.mp ?_
       · have U :  {x_1 : ℝ | x_1 ≠ 0} ⊆ {x_1 : ℝ | (‖x + x_1 * I‖ ^ 2)⁻¹ ≤ (x_1 ^ 2)⁻¹}  := by
           rw [Set.setOf_subset_setOf]
-          intro t
-          intro hyp_t
+          intro t hyp_t
           exact T0 x t hyp_t
         have U1 : {x_1 : ℝ | x_1 ≠ 0} = (univ \ {0}) := by
           apply Set.ext
@@ -1896,10 +1892,7 @@ theorem I1Bound
     let ⟨K', ⟨K'_pos, K'_bounds_zeta⟩⟩ := triv_bound_zeta
     use (2 * (K' + 1))
     use (by positivity)
-    intro t
-    intro σ
-    intro cond
-    intro cond2
+    intro t σ cond cond2
 
     have T0 : 0 < K' + 1 := by positivity
     have T1 : 1 ≤ (σ - 1)⁻¹ := by
@@ -3542,8 +3535,7 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
     simp! only [neg_le_self_iff, Nat.ofNat_nonneg, uIcc_of_le]
     simp_all only [one_div, support_subset_iff, ne_eq, mem_Icc, neg_le_self_iff,
       Nat.ofNat_nonneg, uIcc_of_le]
-    intro z
-    intro hyp_z
+    intro z hyp_z
     simp only [mem_reProdIm, mem_singleton_iff, mem_Icc] at hyp_z
     simp only [mem_diff, mem_reProdIm, mem_Icc, mem_singleton_iff]
     constructor
@@ -3619,8 +3611,7 @@ lemma I5Bound {SmoothingF : ℝ → ℝ}
 
   have T1 : ∀(t : ℝ), t ∈ uIoc (-3) (3 : ℝ) → ‖-ζ' (↑σ₂ + ↑t * I) / ζ (↑σ₂ + ↑t * I) * 𝓜 (fun x ↦ ↑(Smooth1 SmoothingF ε x)) (↑σ₂ + ↑t * I) *
           (↑X : ℂ) ^ (↑σ₂ + ↑t * I)‖ ≤ Const * ε⁻¹ * X ^ σ₂ := by
-    intro t
-    intro hyp_t
+    intro t hyp_t
     have Z := by
       calc
         ‖(-ζ' (↑σ₂ + ↑t * I) / ζ (↑σ₂ + ↑t * I)) * (𝓜 (fun x ↦ (Smooth1 SmoothingF ε x : ℂ)) (↑σ₂ + ↑t * I)) *

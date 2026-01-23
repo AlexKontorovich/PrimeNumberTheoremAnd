@@ -1,4 +1,5 @@
 import Architect
+import Mathlib.Topology.Order.Basic
 import Mathlib.NumberTheory.PrimeCounting
 
 import PrimeNumberTheoremAnd.PrimaryDefinitions
@@ -9,7 +10,7 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-In this section we define the basic types of secondary estimates we will work with in the project. 
+In this section we define the basic types of secondary estimates we will work with in the project.
 -/
 
 open Real Finset
@@ -22,14 +23,27 @@ open Real Finset
   (statement := /-- $\pi(x)$ is the number of primes less than or equal to $x$. -/)]
 noncomputable def pi (x : ℝ) : ℝ :=  Nat.primeCounting ⌊x⌋₊
 
+open Topology
+
 @[blueprint
   "li-def"
   (title := "li and Li")
   (statement := /-- $\mathrm{li}(x) = \int_0^x \frac{dt}{\log t}$ and $\mathrm{Li}(x) = \int_2^x \frac{dt}{\log t}$. -/)]
-noncomputable def li (x : ℝ) : ℝ := ∫ t in 0..x, 1 / log t
+noncomputable def li (x : ℝ) : ℝ := lim ((𝓝[>] (0 : ℝ)).map (fun ε ↦ ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1-ε) (1+ε)), 1 / log t))
 
 @[blueprint "li-def"]
 noncomputable def Li (x : ℝ) : ℝ := ∫ t in 2..x, 1 / log t
+
+@[blueprint
+  "li_minus_Li"
+  (title := "li minus Li")
+  (statement := /-- $\li(x) - \Li(x) = \li(2)$. -/)
+  (proof := /-- This follows directly from the definitions of $\li$ and $\Li$. -/)
+  (latexEnv := "remark")]
+theorem li.sub_Li
+    (x : ℝ) (h2x : 2 ≤ x) :
+    li x - Li x = li 2 := by
+    sorry
 
 @[blueprint
   "theta-def"
