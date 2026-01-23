@@ -1,6 +1,7 @@
 import Architect
 import PrimeNumberTheoremAnd.Lcm.Base
 import PrimeNumberTheoremAnd.Lcm.Cert
+import PrimeNumberTheoremAnd.Lcm.Cert_ChoosePrime_lemmas
 
 namespace Lcm
 
@@ -45,7 +46,7 @@ theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   -- define the “base point”
   let x : ℝ := √(n : ℝ)
   have hxX : (X₀ : ℝ) ≤ x := by
-    simpa [x] using Numerical.sqrt_ge_X₀ (n := n) hn
+    simpa [x] using ChoosePrime_lemmas.sqrt_ge_X₀ (n := n) hn
   -- define ε once (this is where `hε` comes from if you use `set`)
   let ε : ℝ := gap.δ x
 
@@ -59,7 +60,7 @@ theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   have hx1X : (X₀ : ℝ) ≤ x * (1 + ε) := by
     -- Cert lemma C4, rewritten to use `x`/`ε`
     -- (since x = √n and ε = δ x)
-    simpa [x, ε] using Numerical.step1_ge_X₀ (n := n) hn
+    simpa [x, ε] using ChoosePrime_lemmas.step1_ge_X₀ (n := n) hn
 
   obtain ⟨p₁, hp₁_prime, hp₁_lb, hp₁_ub⟩ :=
     gap.prime_in_Icc (x := x * (1 + ε)) hx1X
@@ -68,18 +69,17 @@ theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     -- provider gives `p₁ ≤ (x*(1+ε)) * (1 + δ(x*(1+ε)))`
     -- Cert lemma C6 turns that into `≤ x*(1+ε)^2`
     refine le_trans (by simpa [ε] using hp₁_ub) ?_
-    simpa [x, ε] using Numerical.step1_upper (n := n) hn
+    simpa [x, ε] using ChoosePrime_lemmas.step1_upper (n := n) hn
 
   -- (3) third prime at x*(1+ε)^2
   have hx2X : (X₀ : ℝ) ≤ x * (1 + ε) ^ 2 := by
-    simpa [x, ε] using Numerical.step2_ge_X₀ (n := n) hn
-
+    simpa [x, ε] using ChoosePrime_lemmas.step2_ge_X₀ (n := n) hn
   obtain ⟨p₂, hp₂_prime, hp₂_lb, hp₂_ub⟩ :=
     gap.prime_in_Icc (x := x * (1 + ε) ^ 2) hx2X
 
   have hp₂_ub' : (p₂ : ℝ) ≤ x * (1 + ε) ^ 3 := by
     refine le_trans (by simpa [ε] using hp₂_ub) ?_
-    simpa [x, ε] using Numerical.step2_upper (n := n) hn
+    simpa [x, ε] using ChoosePrime_lemmas.step2_upper (n := n) hn
 
   -- package the primes
   refine ⟨![p₀, p₁, p₂], ?_, ?_, ?_, ?_⟩
