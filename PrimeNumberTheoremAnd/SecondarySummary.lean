@@ -4,6 +4,7 @@ import Mathlib.NumberTheory.Bertrand
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.FKS2
 import PrimeNumberTheoremAnd.Dusart
+import PrimeNumberTheoremAnd.BKLNW_app
 
 blueprint_comment /--
 \section{Summary of results}
@@ -145,6 +146,41 @@ theorem Schoenfeld1976.has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
 theorem RamareSaouter2003.has_prime_in_interval (x : ℝ) (hx : x > 10726905041) :
     HasPrimeInInterval (x*(1-1/28314000)) (x/28314000) := by sorry
 
+/-- The value of `ε` from Table 8 at `n = 53` is `1.11990 × 10⁻⁹`. -/
+lemma RamareSaouter2003.epsilon_val : BKLNW_app.table_8_ε 53 = 1.11990e-9 := by
+  norm_num [BKLNW_app.table_8_ε]
+
+/-- Numerical inequality: `δ · (1 + M₀) > m₀ + M₀ for X₀ = e⁵³` and `δ = 1/204879661`. -/
+lemma RamareSaouter2003.numerical_ineq :
+    let ε := 1.11990e-9
+    let X₀ := exp 53
+    let m₀ := ε + 1.03883 * (X₀ ^ (-1 / 2 : ℝ) + X₀ ^ (-2 / 3 : ℝ) + X₀ ^ (-4 / 5 : ℝ))
+    let M₀ := ε
+    let δ := 1 / 204879661
+    δ * (1 + M₀) > m₀ + M₀ := by
+  norm_num [exp_pos, rpow_def_of_pos, exp_pos]
+  have h_exp_bound : exp (-(53 / 2)) < 1 / 10 ^ 11 ∧ exp (-(106 / 3)) < 1 / 10 ^ 15 ∧
+      exp (-(212 / 5)) < 1 / 10 ^ 18 := by
+    field_simp
+    refine ⟨?_, ?_, ?_⟩
+    · rw [exp_neg, inv_mul_eq_div, div_lt_one (by positivity)]
+      have := exp_one_gt_d9.le
+      rw [show exp (53 / 2) = (exp 1) ^ 26 * exp (1 / 2) by
+        rw [← exp_nat_mul, ← exp_add]; ring_nf]
+      nlinarith [add_one_le_exp (1 / 2), pow_le_pow_left₀ (by positivity) this 26]
+    · rw [exp_neg, mul_inv_lt_iff₀ (by positivity)]
+      have := exp_one_gt_d9.le
+      norm_num1 at *
+      rw [show exp (106 / 3) = (exp 1) ^ 35 * exp (1 / 3) by
+        rw [← exp_nat_mul, ← exp_add]; ring_nf]
+      nlinarith [add_one_le_exp (1 / 3), pow_le_pow_left₀ (by positivity) this 35]
+    · rw [exp_neg, mul_inv_lt_iff₀ (by positivity)]
+      have := exp_one_gt_d9.le
+      rw [show exp (212 / 5) = (exp 1) ^ 42 * exp (2 / 5) by
+        rw [← exp_nat_mul, ← exp_add]; ring_nf]
+      nlinarith [add_one_le_exp (2 / 5), pow_le_pow_left₀ (by positivity) this 42]
+  linarith [exp_pos (-(53 / 2)), exp_pos (-(106 / 3)), exp_pos (-(212 / 5))]
+
 @[blueprint
   "thm:ramare_saouter2003-2"
   (title := "Ramaré-Saouter 2003 (2)")
@@ -153,7 +189,61 @@ theorem RamareSaouter2003.has_prime_in_interval (x : ℝ) (hx : x > 10726905041)
   -/)
   (latexEnv := "theorem")]
 theorem RamareSaouter2003.has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
-    HasPrimeInInterval (x*(1-1/204879661)) (x/204879661) := by sorry
+    HasPrimeInInterval (x * (1 - 1 / 204879661)) (x / 204879661) := by
+  have h_chebyshev : θ x > θ (x * (1 - 1 / 204879661)) := by
+    have hθ_bounds : θ x ≥ x * (1 - (BKLNW_app.table_8_ε 53 +
+          1.03883 * (exp 53) ^ (-1 / 2 : ℝ) + 1.03883 * (exp 53) ^ (-2 / 3 : ℝ) + 1.03883 * (exp 53) ^ (-4 / 5 : ℝ))) ∧
+            θ (x * (1 - 1 / 204879661)) ≤ x * (1 - 1 / 204879661) * (1 + BKLNW_app.table_8_ε 50) := by
+      have hθ_bounds : ∀ {X₀ X₁ x : ℝ}, X₀ ≥ exp 20 → X₁ ≥ exp 20 → x ≥ X₀ → x ≥ X₁ →
+          θ x ≥ x * (1 - (BKLNW.Inputs.default.ε (log X₀) +
+            1.03883 * X₀ ^ (-1 / 2 : ℝ) + 1.03883 * X₀ ^ (-2 / 3 : ℝ) + 1.03883 * X₀ ^ (-4 / 5 : ℝ))) ∧
+              θ x ≤ x * (1 + BKLNW.Inputs.default.ε (log X₁)) := by
+        intro X₀ X₁ x hX₀ hX₁ hx₀ hx₁
+        refine ⟨?_, ?_⟩
+        · have := BKLNW.thm_1a hX₀ hX₁ hx₀ hx₁
+          simp only [θ]
+          ring_nf at this ⊢
+          linarith [this.1]
+        · have := BKLNW.thm_1a hX₀ hX₁ hx₀ hx₁
+          simp only [θ]
+          linarith [this.2]
+      refine ⟨?_, ?_⟩
+      · convert hθ_bounds (show exp 53 ≥ exp 20 by norm_num)
+            (show exp 53 ≥ exp 20 by norm_num) (show x ≥ exp 53 by linarith)
+              (show x ≥ exp 53 by linarith) |> And.left using 1
+        aesop
+      · have := @hθ_bounds (exp 50) (exp 50) (x * (1 - 1 / 204879661)) ?_ ?_ ?_ ?_
+          <;> norm_num at *
+        · exact this.2.trans (mul_le_mul_of_nonneg_left (add_le_add_left (by rfl) _) (by nlinarith [exp_pos 53]))
+        · rw [show (53 : ℝ) = 50 + 3 by norm_num, exp_add] at hx
+          nlinarith [add_one_le_exp 50, add_one_le_exp 3]
+        · rw [show exp 53 = (exp 50) * (exp 3) by rw [← exp_add]; norm_num] at hx
+          nlinarith [exp_pos 3, add_one_le_exp 3, add_one_le_exp 50]
+    have hθ_bounds' : BKLNW_app.table_8_ε 53 +
+        1.03883 * (exp 53) ^ (-1 / 2 : ℝ) + 1.03883 * (exp 53) ^ (-2 / 3 : ℝ) + 1.03883 * (exp 53) ^ (-4 / 5 : ℝ) +
+          BKLNW_app.table_8_ε 50 < 1 / 204879661 * (1 + BKLNW_app.table_8_ε 50) := by
+      norm_num [BKLNW_app.table_8_ε] at *
+      linarith [RamareSaouter2003.numerical_ineq]
+    nlinarith [add_one_le_exp 53, exp_pos 53,
+      mul_inv_cancel₀ (ne_of_gt (exp_pos 53)), mul_inv_cancel₀ (ne_of_gt (exp_pos (53 * (-1 / 2)))),
+      mul_inv_cancel₀ (ne_of_gt (exp_pos (53 * (-2 / 3)))), mul_inv_cancel₀ (ne_of_gt (exp_pos (53 * (-4 / 5))))]
+  obtain ⟨p, hp_prime, hp_bounds⟩ : ∃ p : ℕ, x * (1 - 1 / 204879661) < p ∧ p ≤ x ∧ p.Prime := by
+    have h_prime_in_interval :
+        ∑ p ∈ filter Prime (Icc 1 (floor x)), Real.log p >
+        ∑ p ∈ filter Prime (Icc 1 (floor (x * (1 - 1 / 204879661)))), Real.log p := by
+      convert h_chebyshev using 1
+    obtain ⟨p, hp_prime, hp_interval⟩ :
+        ∃ p ∈ filter Prime (Icc 1 (floor x)),
+          p ∉ filter Prime (Icc 1 (floor (x * (1 - 1 / 204879661)))) := by
+      exact not_subset.mp fun h ↦ (not_le_of_gt h_prime_in_interval) <|
+        sum_le_sum_of_subset_of_nonneg h fun _ _ _ ↦ log_nonneg <| one_le_cast.mpr <| Prime.pos <| by aesop
+    exact ⟨p,
+      not_le.mp fun h ↦ hp_interval <| mem_filter.mpr
+        ⟨mem_Icc.mpr ⟨Prime.pos <| mem_filter.mp hp_prime |>.2, le_floor <| by linarith⟩, mem_filter.mp hp_prime |>.2⟩,
+          floor_le (show 0 ≤ x by linarith [exp_pos 53]) |> le_trans
+            (cast_le.mpr <| mem_Icc.mp (mem_filter.mp hp_prime |>.1) |>.2), mem_filter.mp hp_prime |>.2⟩
+  exact ⟨p, hp_bounds.2, hp_prime, by ring_nf at *; linarith⟩
+
 
 @[blueprint
   "thm:gourdon-demichel2004"
