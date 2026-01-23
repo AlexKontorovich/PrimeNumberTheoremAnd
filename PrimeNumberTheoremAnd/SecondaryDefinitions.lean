@@ -28,7 +28,7 @@ open Topology
 @[blueprint
   "li-def"
   (title := "li and Li")
-  (statement := /-- $\mathrm{li}(x) = \int_0^x \frac{dt}{\log t}$ and $\mathrm{Li}(x) = \int_2^x \frac{dt}{\log t}$. -/)]
+  (statement := /-- $\mathrm{li}(x) = \int_0^x \frac{dt}{\log t}$ (in the principal value sense) and $\mathrm{Li}(x) = \int_2^x \frac{dt}{\log t}$. -/)]
 noncomputable def li (x : ℝ) : ℝ := lim ((𝓝[>] (0 : ℝ)).map (fun ε ↦ ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1-ε) (1+ε)), 1 / log t))
 
 @[blueprint "li-def"]
@@ -49,7 +49,8 @@ theorem log_le
   "log_lower_1"
   (title := "First log lower bound")
   (statement := /-- For $t \geq 0$, one has $t - \frac{t^2}{2} \leq \log(1+t)$. -/)
-  (proof := /-- Use Taylor's theorem with remainder and the fact that the second derivative of $\log(1+t)$ is at most $1$ for $t \geq 0$.-/)]
+  (proof := /-- Use Taylor's theorem with remainder and the fact that the second derivative of $\log(1+t)$ is at most $1$ for $t \geq 0$.-/)
+  (latexEnv := "sublemma")]
 theorem log_ge
     (t s : ℝ) (ht : t ≥ 0) (hs : s > 0) :
     t - t ^ 2 / (2 * s ^ 2) ≤ log (1 + t) := by
@@ -59,7 +60,8 @@ theorem log_ge
   "log_lower_2"
   (title := "Second log lower bound")
   (statement := /-- For $0 \leq t \leq t_0 < 1$, one has $\frac{t}{t_0} \log (1-t_0) \leq \log(1-t)$. -/)
-  (proof := /-- Use concavity of log.-/)]
+  (proof := /-- Use concavity of log.-/)
+  (latexEnv := "sublemma")]
 theorem log_ge'
     (t t₀ : ℝ) (ht : 0 ≤ t) (ht0 : t ≤ t₀) (ht0' : t₀ < 1) :
     (t / t₀) * log (1 - t₀) ≤ log (1 - t) := by
@@ -79,7 +81,7 @@ theorem symm_inv_log
 @[blueprint
   "li-approx"
   (title := "li approximation")
-  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{\log(4/3)}{4/3} \eps)$. -/)
+  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{\log(4/3)}{4/3} \eps)$. -/)
   (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
   (latexEnv := "sublemma")
   ]
