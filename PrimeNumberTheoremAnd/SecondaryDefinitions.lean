@@ -35,10 +35,65 @@ noncomputable def li (x : ℝ) : ℝ := lim ((𝓝[>] (0 : ℝ)).map (fun ε ↦
 noncomputable def Li (x : ℝ) : ℝ := ∫ t in 2..x, 1 / log t
 
 @[blueprint
+  "log_upper"
+  (title := "Log upper bound")
+  (statement := /-- For $t > -1$, one has $\log (1+t) \leq t$. -/)
+  (proof := /-- This follows from the mean value theorem. -/)
+  (latexEnv := "sublemma")]
+theorem log_le
+    (t : ℝ) (ht : t > -1) :
+    log (1 + t) ≤ t := by
+    sorry
+
+@[blueprint
+  "log_lower_1"
+  (title := "First log lower bound")
+  (statement := /-- For $t \geq 0$, one has $t - \frac{t^2}{2} \leq \log(1+t)$. -/)
+  (proof := /-- Use Taylor's theorem with remainder and the fact that the second derivative of $\log(1+t)$ is at most $1$ for $t \geq 0$.-/)]
+theorem log_ge
+    (t s : ℝ) (ht : t ≥ 0) (hs : s > 0) :
+    t - t ^ 2 / (2 * s ^ 2) ≤ log (1 + t) := by
+    sorry
+
+@[blueprint
+  "log_lower_2"
+  (title := "Second log lower bound")
+  (statement := /-- For $0 \leq t \leq t_0 < 1$, one has $\frac{t}{t_0} \log (1-t_0) \leq \log(1-t)$. -/)
+  (proof := /-- Use concavity of log.-/)]
+theorem log_ge'
+    (t t₀ : ℝ) (ht : 0 ≤ t) (ht0 : t ≤ t₀) (ht0' : t₀ < 1) :
+    (t / t₀) * log (1 - t₀) ≤ log (1 - t) := by
+    sorry
+
+@[blueprint
+  "symm_inv_log"
+  (title := "Symmetrization of inverse log")
+  (statement := /-- For $0 < t \leq 1/2$, one has $| \frac{1}{\log(1+t)} + \frac{1}{\log(1-t)}| \leq \frac{\log(4/3)}{4/3}. -/)
+  (proof := /-- The expression can be written as $\frac{|\log(1-t^2)|}{|\log(1-t)| |\log(1+t)|}$. Now use the previous upper and lower bounds, noting that $t^2 \leq 1/4$. -/)
+  (latexEnv := "sublemma")]
+theorem symm_inv_log
+    (t : ℝ) (ht : 0 < t) (ht' : t ≤ 1 / 2) :
+    |1 / log (1 + t) + 1 / log (1 - t)| ≤ log (4 / 3) / (4 / 3) := by
+    sorry
+
+@[blueprint
+  "li-approx"
+  (title := "li approximation")
+  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{\log(4/3)}{4/3} \eps)$. -/)
+  (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
+  (latexEnv := "sublemma")
+  ]
+theorem li.eq
+    (x ε : ℝ) (hx : x ≥ 2) (hε1 : 0 < ε) (hε2 : ε ≤ 1) : ∃ E,
+    li x = ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)), 1 / log t + E ∧
+    |E| ≤ log (4 / 3) / (4 / 3) * ε := by
+    sorry
+
+@[blueprint
   "li_minus_Li"
   (title := "li minus Li")
   (statement := /-- $\li(x) - \Li(x) = \li(2)$. -/)
-  (proof := /-- This follows directly from the definitions of $\li$ and $\Li$. -/)
+  (proof := /-- This follows from the previous estimate. -/)
   (latexEnv := "remark")
   (discussion := 758)]
 theorem li.sub_Li
@@ -50,6 +105,8 @@ theorem li.sub_Li
   "Ramanujan-Soldner-constant"
   (title := "Ramanujan-Soldner constant")
   (statement := /-- $\li(2) = 1.0451\dots$. -/)
+  (proof := /-- Use Sublemma \ref{li-approx} and some numerical integration. -/)
+  (latexEnv := "lemma")
   (discussion := 759)]
 theorem li.two_approx : li 2 ∈ Set.Icc 1.0451 1.0452 := by
   sorry
