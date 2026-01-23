@@ -5,7 +5,9 @@ import PrimeNumberTheoremAnd.BKLNW_app
 
 blueprint_comment /--
 \section{Tools from BKLNW}
-In this file we record the results from \cite{BKLNW}.
+In this file we record the results from \cite{BKLNW}, excluding Appendix A which is treated elsewhere.
+
+NOTE: the current ordering of results in this section needs to be refactored.  This section should be considered as a work in progress.
 -/
 
 open Real Chebyshev
@@ -48,8 +50,8 @@ theorem buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x := by sorry
 noncomputable def Inputs.default : Inputs := {
   α := 1.93378e-8
   hα := cor_2_1
-  ε := BKLNW_app.table_8_ε
-  hε := BKLNW_app.theorem_2
+  ε := BKLNW.table_8_ε
+  hε := BKLNW.theorem_2
   x₁ := 1e19
   hx₁ := by grw [← exp_one_rpow, rpow_ofNat, exp_one_lt_three]; norm_num
   hx₁' := buthe_eq_1_7
