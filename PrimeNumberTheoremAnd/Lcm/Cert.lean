@@ -810,11 +810,10 @@ lemma one_add_delta_pos [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 lemma p_mul_padd1_le_bound [PrimeGap_Criterion]
   {n : ℕ} (hn : n ≥ X₀ ^ 2)
     {p : Fin 3 → ℕ}
-    (hp_prime : ∀ i, Nat.Prime (p i))
-    (hp_mono : StrictMono p)
+    -- (hp_prime : ∀ i, Nat.Prime (p i))
+    -- (hp_mono : StrictMono p)
     (hp_ub :
-      ∀ i, (p i : ℝ) ≤ √(n : ℝ) * (1 + gap.δ (√(n : ℝ))) ^ (i + 1 : ℝ))
-    (hsqrt_lt_p0 : √(n : ℝ) < p 0) :
+      ∀ i, (p i : ℝ) ≤ √(n : ℝ) * (1 + gap.δ (√(n : ℝ))) ^ (i + 1 : ℝ)) :
     ∀ i : Fin 3,
       ((p i * (p i + 1) : ℕ) : ℝ)
         ≤ (1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n) := by
@@ -1907,26 +1906,6 @@ theorem main_ineq_delta_form_rhs [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀
   simpa [hδ] using hRHS_le_LHS
 
 
-theorem prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
-    ∏ i : Fin 3, (1 + onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) * ε) ≤
-      1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 := by
-  norm_cast; norm_num [Fin.prod_univ_three]; nlinarith
-
-
-theorem prod_epsilon_ge {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
-    (∏ i : Fin 3,
-      (1 + ε / (onePlusEps_log ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 / (1 + 1/X₀)))) *
-        (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * onePlusEps_log ^ 12 / X₀ * ε) ≥
-      1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
-  norm_cast; norm_num [Fin.prod_univ_three]
-  dsimp [X₀] at *
-  nlinarith [pow_nonneg hε.left 3, pow_nonneg hε.left 4]
-
-
-theorem final_comparison {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
-    1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
-    dsimp [X₀] at *
-    nlinarith
 
 
 theorem main_ineq_delta_form [PrimeGap_Criterion] {n : ℕ} (hn : n ≥ X₀ ^ 2) :
@@ -2066,6 +2045,28 @@ Provide the concrete instance at the end of this file.
 Fill in each field using the corresponding proofs for your chosen `gap` and `X₀`.
 -/
 
+theorem prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
+    ∏ i : Fin 3, (1 + onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) * ε) ≤
+      1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 := by
+  norm_cast; norm_num [Fin.prod_univ_three]; nlinarith
+
+
+theorem prod_epsilon_ge {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
+    (∏ i : Fin 3,
+      (1 + ε / (onePlusEps_log ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 / (1 + 1/X₀)))) *
+        (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * onePlusEps_log ^ 12 / X₀ * ε) ≥
+      1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
+  norm_cast; norm_num [Fin.prod_univ_three]
+  dsimp [X₀] at *
+  nlinarith [pow_nonneg hε.left 3, pow_nonneg hε.left 4]
+
+
+theorem final_comparison {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
+    1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
+    dsimp [X₀] at *
+    nlinarith
+
+
 
 instance : PrimeGap_Criterion := by
   refine
@@ -2078,9 +2079,15 @@ instance : PrimeGap_Criterion := by
       delta_sixth_power_lt_sqrt := ?_,
       delta_twelfth_power_le_n_pow_3_div_2 := ?_,
       eps_log_bound := ?_,
-      prod_epsilon_le := ?_,
-      prod_epsilon_ge := ?_,
-      final_comparison := ?_ }
+      prod_epsilon_le := by
+        intro ε hε
+        exact prod_epsilon_le hε,
+      prod_epsilon_ge := by
+        intro ε hε
+        exact prod_epsilon_ge hε,
+      final_comparison := by
+        intro ε hε
+        exact final_comparison hε }
   all_goals
     sorry
 

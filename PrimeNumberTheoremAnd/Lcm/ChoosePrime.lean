@@ -233,9 +233,24 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   -- Extract the lower bound on `q_i` from `exists_q_primes`
   have hq_lower :
       (n : ℝ) * (Numerical.b n) ^ (-((3 : ℝ) - (i : ℕ))) ≤ ((exists_q_primes hn).choose i : ℝ) := by
+      sorry
     -- `choose_spec.2.2.1` is the lower-bound field of `exists_q_primes`
-    sorry
-    -- simpa [Numerical.b] using (exists_q_primes hn).choose_spec.2.2.1 i
+    -- -- set the Nat exponent once and cast it cleanly to ℝ
+    -- let k : ℕ := (3 : ℕ) - (i : ℕ)
+    -- have hq_lower' :
+    --     (n : ℝ) / (Numerical.b n) ^ (k : ℝ) ≤ ((exists_q_primes hn).choose i : ℝ) := by
+    --   simpa [Numerical.b, k, Real.rpow_natCast] using (exists_q_primes hn).choose_spec.2.2.1 i
+    -- have hb_nonneg : 0 ≤ Numerical.b n := by
+    --   have hb_pos : 0 < Numerical.b n := Numerical.b_pos (n := n) hn
+    --   exact le_of_lt hb_pos
+    -- have hi : (i : ℕ) ≤ 3 := by
+    --   exact Nat.le_of_lt_succ (Nat.lt_succ_of_lt i.is_lt)
+    -- have hk : (k : ℝ) = (3 : ℝ) - (i : ℕ) := by
+    --   simpa [k, Nat.cast_sub hi]
+    -- have hq_lower'' :
+    --     (n : ℝ) * (Numerical.b n) ^ (-(k : ℝ)) ≤ ((exists_q_primes hn).choose i : ℝ) := by
+    --   simpa [div_eq_mul_inv, Real.rpow_neg hb_nonneg] using hq_lower'
+    -- simpa [hk] using hq_lower''
 
   -- Convert that to a reciprocal upper bound using the Cert lemma
   have hinv :
@@ -318,7 +333,7 @@ theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
             ≤ (1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n) := by
         simpa [p] using
           Numerical.p_mul_padd1_le_bound (hn := hn)
-            (p := p) hp_prime hp_mono hp_ub hsqrt_lt_p0 i
+            (p := p) hp_ub i
 
       -- turn denominator inequality into the desired factor inequality
       have hpos : 0 < ((p i * (p i + 1) : ℕ) : ℝ) := by
