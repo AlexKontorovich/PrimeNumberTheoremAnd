@@ -226,7 +226,7 @@ theorem lemma_10c {b c : ℝ} (hb : b < 0) (hc : c > 0) :
   (proof := /-- This follows from Lemma \ref{fks2-lemma-10a} applied with $a=1$, $b=1-B$ and $c=C/\sqrt{R}$. -/)
   (latexEnv := "corollary")
   (discussion := 615)]
-theorem corollary_11 {B C R : ℝ} (hR : R > 0) (hB : B > 1 + C ^ 2 / (16 * R)) (hC : C > 0) :
+theorem corollary_11 {B C R : ℝ} (hR : R > 0) (hB : B > 1 + C ^ 2 / (16 * R)) :
     StrictAntiOn (g_bound 1 (1 - B) (C / sqrt R)) (Set.Ioi 1) := by
   apply lemma_10a one_pos
   rw [div_pow, sq_sqrt hR.le, mul_one]

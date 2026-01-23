@@ -1,4 +1,4 @@
-import Mathlib.Analysis.Distribution.SchwartzSpace
+import Mathlib.Analysis.Distribution.SchwartzSpace.Deriv
 import Mathlib.MeasureTheory.Integral.IntegralEqImproper
 import Mathlib.Topology.ContinuousMap.Bounded.Basic
 import Mathlib.Order.Filter.ZeroAndBoundedAtFilter

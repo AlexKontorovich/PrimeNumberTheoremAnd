@@ -3811,8 +3811,7 @@ lemma LogDerivZetaBndUnif :
     linarith
 
   have T2 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ 9 ≤ σ → A / Real.log |t| ^ 9 ≤ σ - 1 := by
-    intro σ'
-    intro hyp_σ'
+    intro σ' hyp_σ'
     calc
       A / Real.log |t| ^ 9 = (1 + A / Real.log |t| ^ 9) - 1 := by ring_nf
       _ ≤ σ' - 1 := by gcongr
