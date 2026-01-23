@@ -1,6 +1,7 @@
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.CostaPereira
+import PrimeNumberTheoremAnd.BKLNW_app
 
 blueprint_comment /--
 \section{Tools from BKLNW}
@@ -19,11 +20,11 @@ structure Inputs where
   x₁ : ℝ
   hx₁ : x₁ ≥ exp 7
   hx₁' : ∀ x ∈ Set.Ioc 0 x₁, θ x < x
-  R : ℝ
-  hR : riemannZeta.classicalZeroFree R
-  ZDB : zero_density_bound
 
-lemma epsilon_nonneg (I : Inputs) {b : ℝ} (hb : 0 ≤ b) : 0 ≤ I.ε b := by sorry
+lemma Inputs.epsilon_nonneg (I : Inputs) {b : ℝ} (hb : 0 ≤ b) : 0 ≤ I.ε b := by
+  have := I.hε b hb (exp b) (by grind)
+  grw [←abs_nonneg] at this
+  apply nonneg_of_mul_nonneg_left this (by positivity)
 
 @[blueprint
   "bklnw-cor-2-1"
@@ -31,75 +32,6 @@ lemma epsilon_nonneg (I : Inputs) {b : ℝ} (hb : 0 ≤ b) : 0 ≤ I.ε b := by 
   (statement := /-- $\theta(x) \leq (1 + 1.93378 \times 10^{-8}) x$. -/)
   (latexEnv := "corollary")]
 theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + 1.93378e-8) * x := by sorry
-
-noncomputable def table_8_ε (b : ℝ) : ℝ :=
-  if b < 20 then 1   -- junk value
-  else if b < 21 then 4.2670e-5
-  else if b < 22 then 2.58843e-5
-  else if b < 23 then 1.56996e-5
-  else if b < 24 then 9.52229e-6
-  else if b < 25 then 5.77556e-6
-  else if b < 30 then 3.50306e-6
-  else if b < 35 then 2.87549e-7
-  else if b < 40 then 2.36034e-8
-  else if b < 45 then 1.93378e-8
-  else if b < 50 then 1.09073e-8
-  else if b < 100 then 1.11990e-9
-  else if b < 200 then 2.45299e-12
-  else if b < 300 then 2.18154e-12
-  else if b < 400 then 2.09022e-12
-  else if b < 500 then 2.03981e-12
-  else if b < 600 then 1.99986e-12
-  else if b < 700 then 1.98894e-12
-  else if b < 800 then 1.97643e-12
-  else if b < 900 then 1.96710e-12
-  else if b < 1000 then 1.95987e-12
-  else if b < 1500 then 1.94751e-12
-  else if b < 2000 then 1.93677e-12
-  else if b < 2500 then 1.92279e-12
-  else if b < 3000 then 9.06304e-13
-  else if b < 3500 then 4.59972e-14
-  else if b < 4000 then 2.48641e-15
-  else if b < 4500 then 1.42633e-16
-  else if b < 5000 then 8.68295e-18
-  else if b < 5500 then 5.63030e-19
-  else if b < 6000 then 3.91348e-20
-  else if b < 6500 then 2.94288e-21
-  else if b < 7000 then 2.38493e-22
-  else if b < 7500 then 2.07655e-23
-  else if b < 8000 then 1.96150e-24
-  else if b < 8500 then 1.97611e-25
-  else if b < 9000 then 2.12970e-26
-  else if b < 9500 then 2.44532e-27
-  else if b < 10000 then 2.97001e-28
-  else if b < 10500 then 3.78493e-29
-  else if b < 11000 then 5.10153e-30
-  else if b < 11500 then 7.14264e-31
-  else if b < 12000 then 1.04329e-31
-  else if b < 12500 then 1.59755e-32
-  else if b < 13000 then 2.53362e-33
-  else if b < 13500 then 4.13554e-34
-  else if b < 14000 then 7.21538e-35
-  else if b < 15000 then 1.22655e-35
-  else if b < 16000 then 4.10696e-37
-  else if b < 17000 then 1.51402e-38
-  else if b < 18000 then 6.20397e-40
-  else if b < 19000 then 2.82833e-41
-  else if b < 20000 then 1.36785e-42
-  else if b < 21000 then 7.16209e-44
-  else if b < 22000 then 4.11842e-45
-  else if b < 23000 then 2.43916e-46
-  else if b < 24000 then 1.56474e-47
-  else if b < 25000 then 1.07022e-48
-  else 7.57240e-50
-
-@[blueprint
-  "bknlw-theorem-2"
-  (title := "Theorem 2")
-  (statement := /-- If $b>0$ then $|\psi(x) - x| \leq \varepsilon(b) x$ for all $x \geq \exp(b)$, where $\varepsilon$ is as in \cite[Table 8]{BKLNW} -/)
-  (latexEnv := "theorem")]
-theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
-    |ψ x - x| ≤ table_8_ε b * x := by sorry
 
 @[blueprint
   "from-buthe-eq-1-7"
@@ -116,14 +48,11 @@ theorem buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x := by sorry
 noncomputable def Inputs.default : Inputs := {
   α := 1.93378e-8
   hα := cor_2_1
-  ε := table_8_ε
-  hε := theorem_2
+  ε := BKLNW_app.table_8_ε
+  hε := BKLNW_app.theorem_2
   x₁ := 1e19
   hx₁ := by grw [← exp_one_rpow, rpow_ofNat, exp_one_lt_three]; norm_num
   hx₁' := buthe_eq_1_7
-  R := 5.5666305  -- a slightly more conservative value of 5.573412 was used in the paper
-  hR := MT_theorem_1
-  ZDB := FKS.corollary_2_9_merged -- stronger than what was used here, I think
 }
 
 
@@ -436,7 +365,7 @@ theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : 7 ≤ b) (hi : b ≤ 2 * log I.x
     refine (I.hx₁' (x ^ (1 / 2 : ℝ)) ⟨hq, hp⟩).le.trans ?_
     nth_rw 1 [← one_mul (x ^ (1 / 2 : ℝ))]
     gcongr
-    linarith [epsilon_nonneg I hb.le]
+    linarith [I.epsilon_nonneg hb.le]
   · calc
     _ ≤ ψ (x ^ (1 / 2 : ℝ)) := theta_le_psi _
     _ ≤ (1 + I.ε (log I.x₁)) * x ^ (1 / 2 : ℝ) := by
@@ -745,98 +674,5 @@ theorem thm_1b_table {X₀ : ℝ} {M : Fin 5 → ℝ} (h : (X₀, M) ∈ Table_1
   x * (1 - M k / (log x)^(k.val + 1)) ≤ θ x ∧ θ x ≤ x * (1 + M k / (log x)^(k.val + 1)) :=
   by sorry
 
--- TODO: input the statements and arguments from Appendix A
-
-noncomputable def Inputs.c1 (I : Inputs) (σ : ℝ) : ℝ := I.ZDB.c₁ σ
-noncomputable def Inputs.c2 (I : Inputs) (σ : ℝ) : ℝ := I.ZDB.c₂ σ
-
-@[blueprint
-  "bklnw-eq_A_16"
-  (title := "Equation (A.16)")
-  (statement := /-- We define
-  $$ k(\sigma, x_0) = \left( \exp\left(\frac{10 - 16 \sigma}{3} \left( \frac{\log x_0}{R} \right)^{1/2} \right) \left( \frac{\log x_0}{R} \right)^{5 - 2 \sigma} \right)^{-1}. $$
-  -/)]
-noncomputable def Inputs.k (I : Inputs) (σ x₀ : ℝ) : ℝ := (exp ((10 - 16 * σ) / 3 * (log x₀ / I.R)^(1/2)) * (log x₀ / I.R)^(5 - 2 * σ))^(-1:ℝ)
-
-@[blueprint
-  "bklnw-eq_A_17"
-  (title := "Equation (A.17)")
-  (statement := /-- We define
-  $$ c_3(\sigma, x_0) = 2 \exp\left( -2 \left( \frac{\log x_0}{R} \right)^{1/2} \right) (\log x_0)^2 k(\sigma, x_0). $$
-  -/)]
-noncomputable def Inputs.c3 (I : Inputs) (σ x₀ : ℝ) : ℝ :=
-  2 * exp (-2 * (log x₀ / I.R)^(1/2)) * (log x₀)^2 * I.k σ x₀
-
-@[blueprint
-  "bklnw-eq_A_18"
-  (title := "Equation (A.18)")
-  (statement := /-- We define
-  $$ c_4(\sigma, x_0) = x_0^{\sigma - 1} \left( \frac{2 \log x_0}{\pi R} + 1.8642 \right) k(\sigma, x_0). $$
-  -/)]
-noncomputable def Inputs.c4 (I : Inputs) (σ x₀ : ℝ) : ℝ :=
-  x₀^(σ - 1:ℝ) * (2 * log x₀ / π / I.R + 1.8642) * I.k σ x₀
-
-@[blueprint
-  "bklnw-eq_A_19"
-  (title := "Equation (A.19)")
-  (statement := /-- We define
-  $$ c_5(\sigma, x_0) = 8.01 \cdot c_2(\sigma) \exp\left( -2 \left( \frac{\log x_0}{R} \right)^{1/2} \right) \frac{\log x_0}{R} k(\sigma, x_0). $$
-  -/)]
-noncomputable def Inputs.c5 (I : Inputs) (σ x₀ : ℝ) : ℝ :=
-  8.01 * I.c2 σ * exp (-2 * (log x₀ / I.R)^(1/2)) * (log x₀ / I.R) * I.k σ x₀
-
-@[blueprint
-  "bklnw-eq_A_20"
-  (title := "Equation (A.20)")
-  (statement := /-- We define
-  $$ A(\sigma, x_0) = 2.0025 \cdot 25^{-2 \sigma} \cdot c_1(\sigma) + c_3(\sigma, x_0) + c_4(\sigma, x_0) + c_5(\sigma, x_0). $$
-  -/)]
-noncomputable def Inputs.A (I : Inputs) (σ x₀ : ℝ) : ℝ :=
-  2.0025 * 25^(-2 * σ) * I.c1 σ + I.c3 σ x₀ + I.c4 σ x₀ + I.c5 σ x₀
-
-@[blueprint
-  "bklnw-eq_A_21"
-  (title := "Equation (A.21)")
-  (statement := /-- We define
-  $$ B = 5/2 - \sigma, $$
-  and
-  $$ C = 16 \sigma/3 - \frac{10}{3}. $$
-  -/)]
-noncomputable def Inputs.B (_ : Inputs) (σ : ℝ) : ℝ := 5/2 - σ
-
-@[blueprint
-  "bklnw-eq_A_21"]
-noncomputable def Inputs.C (_ : Inputs) (σ : ℝ) : ℝ := 16 * σ / 3 - 10 / 3
-
-@[blueprint
-  "bklnw-thm-14"
-  (title := "Theorem 14")
-  (statement := /-- Let $x_0 \geq 1000$ and let $\sigma \in [0.75, 1)$. For all $x \geq e^{x_0}$,
-  $$ \frac{|\psi(x) - x|}{x} \leq A \left( \frac{\log x}{R} \right)^B \exp\left( -C \left( \frac{\log x}{R} \right)^{1/2} \right) $$
-  where $A$, $B$, and $C$ are defined in Definitions \ref{bklnw-eq_A_20}, \ref{bklnw-eq_A_21}. -/)]
-theorem thm_14 {I : Inputs} {x₀ σ x : ℝ} (hx₀ : x₀ ≥ 1000) (hσ : 0.75 ≤ σ ∧ σ < 1) (hx : x ≥ exp x₀) :
-  Eψ x ≤ I.A σ x₀ * (log x / I.R)^(I.B σ) * exp (-I.C σ * (log x / I.R)^(1/2:ℝ)) := by sorry
-
-@[blueprint
-  "bklnw-cor-14.1"
-  (title := "Corollary 14.1")
-  (statement := /-- Let $x_0 \geq 1000$. For all $x \geq e^{x_0}$,
-  $$ \frac{|\theta(x) - x|}{x} \leq A' \left( \frac{\log x}{R} \right)^B \exp\left( -C \left( \frac{\log x}{R} \right)^{1/2} \right) $$
-  where $B$ and $C$ are defined in Definition \ref{bklnw-eq_A_21} and
-  $$ A' = A \left( 1 + \frac{1}{A} \left( \frac{R}{\log x_0} \right)^B \exp\left( C \frac{\log x_0}{R} \right) \left( a_1(x_0) \exp\left( -\frac{x_0}{2} \right) + a_2(x_0) \exp\left( -\frac{2 x_0}{3} \right) \right) \right), $$
-  where $a_1$ and $a_2$ are defined in Corollary \ref{bklnw-cor-5-1}. -/)
-  (proof := /--
-Let $x \geq e^{x_0}$. By writing $\theta(x) - x = \psi(x) - x + \theta(x) - \psi(x)$, applying the triangle inequality, and invoking Corollary \ref{bklnw-cor-5-1}, it follows that
-\begin{align*}
-\left|\frac{\theta(x) - x}{x}\right| &\leq A\left(\frac{\log x}{R}\right)^B \exp\left(-C\left(\frac{\log x}{R}\right)^{\frac{1}{2}}\right) + a_1(x_0)x^{-\frac{1}{2}} + a_2(x_0)x^{-\frac{2}{3}} \\
-&\leq A\left(\frac{\log x}{R}\right)^B \exp\left(-C\left(\frac{\log x}{R}\right)^{\frac{1}{2}}\right) \\
-&\quad \times \left(1 + \frac{a_1(x_0) \exp\left(C\sqrt{\frac{\log x}{R}}\right)}{A\sqrt{x}\left(\frac{\log x}{R}\right)^B} + \frac{a_2(x_0) \exp\left(C\sqrt{\frac{\log x}{R}}\right)}{Ax^{\frac{2}{3}}\left(\frac{\log x}{R}\right)^B}\right).
-\end{align*}
-It may be checked the function in brackets decreases for $x \geq e^{x_0}$ with $x_0 \geq 1000$ and thus we obtain the claim.
--/)]
-theorem cor_14_1 {I : Inputs} {x₀ σ x : ℝ} (hx₀ : x₀ ≥ 1000) (hσ : 0.75 ≤ σ ∧ σ < 1) (hx : x ≥ exp x₀) :
-  Eθ x ≤ I.A σ x₀ * (1 + (1 / I.A σ x₀) * (I.R / log x₀)^(I.B σ) * exp (I.C σ * (log x₀ / I.R)) *
-    (I.a₁ x₀ * exp (-x₀ / 2) + I.a₂ x₀ * exp (-2 * x₀ / 3))) *
-    (log x / I.R)^(I.B σ) * exp (-I.C σ * (log x / I.R)^(1/2:ℝ)) := by sorry
 
 end BKLNW
