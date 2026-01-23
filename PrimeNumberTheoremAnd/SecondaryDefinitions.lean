@@ -39,7 +39,8 @@ noncomputable def Li (x : ℝ) : ℝ := ∫ t in 2..x, 1 / log t
   (title := "li minus Li")
   (statement := /-- $\li(x) - \Li(x) = \li(2)$. -/)
   (proof := /-- This follows directly from the definitions of $\li$ and $\Li$. -/)
-  (latexEnv := "remark")]
+  (latexEnv := "remark")
+  (discussion := 758)]
 theorem li.sub_Li
     (x : ℝ) (h2x : 2 ≤ x) :
     li x - Li x = li 2 := by
@@ -48,7 +49,8 @@ theorem li.sub_Li
 @[blueprint
   "Ramanujan-Soldner-constant"
   (title := "Ramanujan-Soldner constant")
-  (statement := /-- $\li(2) = 1.0451\dots$. -/)]
+  (statement := /-- $\li(2) = 1.0451\dots$. -/)
+  (discussion := 759)]
 theorem li.two_approx : li 2 ∈ Set.Icc 1.0451 1.0452 := by
   sorry
 
