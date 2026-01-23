@@ -49,7 +49,7 @@ theorem li.sub_Li
   "Ramanujan-Soldner-constant"
   (title := "Ramanujan-Soldner constant")
   (statement := /-- $\li(2) = 1.0451\dots$. -/)]
-theorem li.two_approx : li 2 ∈ Icc 1.0451 1.0452 := by
+theorem li.two_approx : li 2 ∈ Set.Icc 1.0451 1.0452 := by
   sorry
 
 
