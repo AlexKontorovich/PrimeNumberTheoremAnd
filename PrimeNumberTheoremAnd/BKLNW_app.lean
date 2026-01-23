@@ -4,7 +4,7 @@ import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 
 blueprint_comment /--
 \section{Appendix A of BKLNW}
-In this file we record the results from Appendix A of \cite{BKLNW}.
+In this file we record the results from Appendix A of \cite{BKLNW}.  In this appendix, the authors derive explicit estimates on the error term in the prime number theorem for the Chebyshev function $\psi$ assuming various inputs on the zeros of the Riemann zeta function, including a zero-density estimate, a classical zero-free region, and numerical verification of RH up to some height.
 -/
 
 namespace BKLNW_app
@@ -61,7 +61,8 @@ noncomputable def Sigma₂ (x T δ : ℝ) : ℂ := riemannZeta.zeroes_sum (Set.I
   (statement := /-- We have
   $$ \sum_{|\gamma| < T} \frac{x^{\rho-1}}{\rho} = \Sigma_1 + \Sigma_2 $$ -/)
   (proof := /-- Follows directly from the definitions of Σ₁ and Σ₂. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 750)]
 theorem bklnw_eq_A_9 (x T δ : ℝ) : riemannZeta.zeroes_sum (Set.Icc 0 1) (Set.Ioo (-T) T) (fun ρ ↦ x^(ρ-1) / ρ) = Sigma₁ x T δ + Sigma₂ x T δ := by sorry
 
 @[blueprint
@@ -97,7 +98,8 @@ theorem bklnw_eq_A_12 (I : Inputs) (x T δ lambda : ℝ) (hlambda: 1 < lambda):
   (statement := /-- We have
   $$ |\Sigma_2| \leq \frac{2\lambda}{T} \sum_{k=0}^{K-1} \lambda^k x^{-\frac{1}{R \log(T/\lambda^k)}} \left(c_1 \left(\frac{T}{\lambda^k}\right)^{\frac{8\delta}{3}} (\log(T/\lambda^k))^{3+2\delta} + c_2 (\log(T/\lambda^k))^2\right). $$ -/)
   (proof := /-- Inserting (A.6) into the result of (A.12). -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 751)]
 theorem bklnw_eq_A_13 (I : Inputs) (x T δ lambda : ℝ) (hlambda : 1 < lambda):
   let K := ⌊ log (T / I.H) / log lambda ⌋₊ + 1
   ‖Sigma₂ x T δ‖ ≤ (2 * lambda / T) *
@@ -125,7 +127,8 @@ noncomputable def Inputs.s₂ (I : Inputs) (δ b : ℝ) (K : ℕ) (lambda T : �
   (statement := /-- Let $b_1, b_2$ satisfy $1000 \leq b_1 < b_2$. Let $0.001 \leq \delta \leq 0.025$, $\lambda > 1$, $H < T < e^{b_1}$, and $K = \left\lfloor \frac{\log \frac{T}{H}}{\log \lambda} \right\rfloor + 1$. Then for all $x \in [e^{b_1}, e^{b_2}]$
   $$ \left|\frac{\psi(x) - x}{x}\right| \leq s_0(b_2, T) + s_1(b_1, \delta, T) + s_2(b_1, \delta, \lambda, K, T), $$ where $s_0, s_1, s_2$ are respectively defined in Definitions \ref{bklnw-eq_A_8}, \ref{bklnw-eq_A_11}, and \ref{bklnw-eq_A_14} -/)
   (proof := /-- Follows from combining Sublemmas \ref{bklnw_eq_A_7}, \ref{bklnw_eq_A_9}, \ref{bklnw_eq_A_10}, and \ref{bklnw_eq_A_13}. -/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 752)]
 theorem bklnw_thm_15 (I : Inputs) (b₁ b₂ δ lambda T x : ℝ) (hb : 1000 ≤ b₁) (hb' : b₁ < b₂)
   (hδ : 0.001 ≤ δ) (hlambda : 1 < lambda) (hT1 : I.H < T) (hT2 : T < exp b₁) (hx : x ∈ Set.Icc (exp b₁) (exp b₂)) :
   let K := ⌊ log (T / I.H) / log lambda ⌋₊ + 1
@@ -214,7 +217,9 @@ theorem bklnw_eq_A_26 (x : ℝ) (hx1 : 100 ≤ x) (hx2 : x ≤ 1e19) :
   "bklnw-lemma_15"
   (title := "Lemma 15")
   (statement := /-- Let $B_0$, $B$, and $c$ be positive constants such that
-  $$ |(x-\psi(x))/\sqrt{x}| ≤ c \hbox{ for all } B_0 < x \leq B$$
+\begin{equation}\tag{A.27}
+|(x-\psi(x))/\sqrt{x}| ≤ c \hbox{ for all } B_0 < x \leq B
+\end{equation}
   is known.  Furthermore, assume for every $b_0 > 0$ there exists $\varepsilon(b_0) > 0$ such that
 \begin{equation}\tag{A.28}
 |\psi(x) - x| \leq \varepsilon(b_0) x \quad \text{for all } x \geq e^{b_0}.
@@ -222,12 +227,13 @@ theorem bklnw_eq_A_26 (x : ℝ) (hx1 : 100 ≤ x) (hx2 : x ≤ 1e19) :
 Let $b$ be positive such that $e^b \in (B_0, B]$. Then, for all $x \geq e^b$ we have
 \begin{equation}\tag{A.29}
 \left|\frac{\psi(x) - x}{x}\right| \leq \max (\frac{c}{e^{\frac{b}{2}}}, \varepsilon(\log B)).\end{equation} -/)
-  (proof := /-- Multiplying both sides of (A.27) by $\frac{1}{\sqrt{x}}$ gives
+  (proof := /-- Multiplying both sides of \eqref{A.27} by $\frac{1}{\sqrt{x}}$ gives
 \[
 \left|\frac{\psi(x) - x}{x}\right| \leq \frac{c}{e^{\frac{b}{2}}} \quad \text{for all } e^b \leq x \leq B
 \]
-as $\frac{1}{\sqrt{x}} \leq \frac{1}{e^{\frac{b}{2}}}$. Then, for $x \geq B$ we apply (A.28) with $b_0 = \log B$. Combining these bounds, we derive (A.29). -/)
-  (latexEnv := "lemma")]
+as $\frac{1}{\sqrt{x}} \leq \frac{1}{e^{\frac{b}{2}}}$. Then, for $x \geq B$ we apply \eqref{A.28} with $b_0 = \log B$. Combining these bounds, we derive \eqref{A.29}. -/)
+  (latexEnv := "lemma")
+  (discussion := 753)]
 theorem bklnw_lemma_15 (c B₀ B : ℝ)
   (hbound : ∀ x ∈ Set.Ioc B₀ B, Eψ x ≤ c / sqrt x)
   (ε : ℝ → ℝ)
