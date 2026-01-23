@@ -217,7 +217,7 @@ theorem Trudgian2016.has_prime_in_interval (x : ℝ) (hx : x > 2898242) :
   -/)
   (latexEnv := "theorem")]
 theorem Dudek2014.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
-    HasPrimeInInterval x (3 * x ^ (2 / 3)) := by sorry
+    HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
 
 @[blueprint
   "thm:cully-hugill2021"
@@ -227,27 +227,26 @@ theorem Dudek2014.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
   -/)
   (latexEnv := "theorem")]
 theorem CullyHugill2021.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99)) :
-    HasPrimeInInterval x (3 * x ^ (2 / 3)) := by sorry
+    HasPrimeInInterval x (3 * x ^ (2 / 3 : ℝ)) := by sorry
 
 @[blueprint
   "thm:rh_prime_interval_2002"
   (title := "RH Prime Interval 2002")
   (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 2$, there is a prime in the interval
-  \[ \left( x - \frac{8}{5}\sqrt{x}, x \right]. \]
+  \[ \left( x - \frac{8}{5}\sqrt{x} \log x, x \right]. \]
   -/)
   (latexEnv := "theorem")]
 theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
-    HasPrimeInInterval (x - (8 / 5) * sqrt x) ((8 / 5) * sqrt x) := by sorry
-
+    HasPrimeInInterval (x - (8 / 5) * sqrt x * log x) ((8 / 5) * sqrt x * log x) := by sorry
 @[blueprint
   "thm:dudek2015_rh"
   (title := "Dudek 2015 under RH")
   (statement := /-- Assuming the Riemann Hypothesis, for $x \geq 2$, there is a prime in the interval
-  \[ \left( x - \frac{4}{\pi}\sqrt{x}, x \right]. \]
+  \[ \left( x - \frac{4}{\pi}\sqrt{x} \log x, x \right]. \]
   -/)
   (latexEnv := "theorem")]
 theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
-    HasPrimeInInterval (x - (4 / π) * sqrt x) ((4 / π) * sqrt x) := by sorry
+    HasPrimeInInterval (x - (4 / π) * sqrt x * log x) ((4 / π) * sqrt x * log x) := by sorry
 
 @[blueprint
   "thm:carneiroetal_2019_rh"
