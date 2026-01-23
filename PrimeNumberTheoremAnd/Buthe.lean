@@ -10,7 +10,7 @@ In this section we collect some results from Buthe's paper \cite{Buthe}, which p
 
 namespace Buthe
 
-open Real
+open MeasureTheory Real
 
 -- TODO: enter in other results from Buthe's paper than Theorem 2.
 
@@ -63,9 +63,27 @@ theorem theorem_2d {x : ℝ} (hx1 : 2 ≤ x) (hx2 : x ≤ 10 ^ 19) :
   -/)
   (latexEnv := "theorem")]
 theorem theorem_2e {x : ℝ} (hx1 : 2 ≤ x) (hx2 : x ≤ 10 ^ 19) :
-    li x - pi x ≤
-      (sqrt x / log x) *
-        (1.95 + 3.9 / log x + 19.5 / (log x) ^ 2) := by sorry
+    li x - pi x ≤ (sqrt x / log x) * (1.95 + 3.9 / log x + 19.5 / (log x) ^ 2) := by
+  norm_num [pi, li]
+  field_simp
+  refine le_add_of_nonneg_of_le ?_ ?_
+  · exact div_nonneg
+      (mul_nonneg (mul_nonneg (sqrt_nonneg _) (by norm_num)) (add_nonneg
+          (mul_nonneg (add_nonneg (by norm_num) (div_nonneg (by norm_num) (log_nonneg (by linarith))))
+              (by norm_num)) (div_nonneg (by norm_num) (sq_nonneg _))))
+      (log_nonneg (by linarith))
+  · rw [intervalIntegral.integral_undef] <;> norm_num
+    rw [intervalIntegrable_iff_integrableOn_Ioc_of_le (by linarith)]
+    have h_div : ¬IntegrableOn (fun t : ℝ ↦ (log t)⁻¹) (Set.Ioc 1 x) MeasureSpace.volume := by
+      have h_div : ¬IntegrableOn (fun t : ℝ ↦ (t - 1)⁻¹) (Set.Ioc 1 x) MeasureSpace.volume := by
+        rw [← intervalIntegrable_iff_integrableOn_Ioc_of_le (by linarith)]; aesop
+      refine fun h ↦ h_div <| h.mono' ?_ ?_
+      · exact Measurable.aestronglyMeasurable (Measurable.inv (measurable_id.sub measurable_const))
+      · filter_upwards [ae_restrict_mem measurableSet_Ioc] with t ht using by
+          rw [norm_of_nonneg (inv_nonneg.2 (sub_nonneg.2 ht.1.le))]
+          exact inv_anti₀ (log_pos ht.1) (by linarith [log_le_sub_one_of_pos (zero_lt_one.trans ht.1)])
+    exact fun h ↦ h_div <| h.mono_set <| Set.Ioc_subset_Ioc (by norm_num) le_rfl
+
 
 @[blueprint
   "buthe-theorem-2f"
