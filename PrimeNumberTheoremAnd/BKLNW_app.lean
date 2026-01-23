@@ -88,7 +88,7 @@ noncomputable def s₁ (b δ T : ℝ) : ℝ := exp (-δ * b) * (1 / (2 * π) * (
   $$ |\Sigma_2| \leq 2 \sum_{k=0}^{K-1} \frac{\lambda^{k+1} x^{-\frac{1}{R \log(T/\lambda^k)}}}{T} N\left(1 - \delta, \frac{T}{\lambda^k}\right). $$ -/)
   (proof := /-- An argument of Pintz (TODO: incorporate reference) is employed.  The interval $[0,T]$ is split into subintervals $[T/\lambda^{k+1}, T/\lambda^k]$ where $\lambda > 1$, $0 \leq k \leq K-1$, and $K = \lfloor \frac{\log T/H}{\log \lambda} \rfloor + 1$.  Then use the zero-free region to bound $\Re \rho$. -/)
   (latexEnv := "sublemma")]
-theorem bklnw_eq_A_12 (I : Inputs) (x T δ lambda : ℝ) (hlambda: 1 < lambda):
+theorem bklnw_eq_A_12 (I : Inputs) (x T δ lambda : ℝ) (hlambda : 1 < lambda) :
   let K := ⌊ log (T / I.H) / log lambda ⌋₊ + 1
   ‖Sigma₂ x T δ‖ ≤ 2 * ∑ k ∈ Finset.range K, (lambda^(k+1) * x^(- (1 / I.R * log (T / lambda^k))) / T) * I.ZDB.N (1 - δ) (T / lambda^k) := by sorry
 
@@ -100,7 +100,7 @@ theorem bklnw_eq_A_12 (I : Inputs) (x T δ lambda : ℝ) (hlambda: 1 < lambda):
   (proof := /-- Inserting (A.6) into the result of (A.12). -/)
   (latexEnv := "sublemma")
   (discussion := 751)]
-theorem bklnw_eq_A_13 (I : Inputs) (x T δ lambda : ℝ) (hlambda : 1 < lambda):
+theorem bklnw_eq_A_13 (I : Inputs) (x T δ lambda : ℝ) (hlambda : 1 < lambda) :
   let K := ⌊ log (T / I.H) / log lambda ⌋₊ + 1
   ‖Sigma₂ x T δ‖ ≤ (2 * lambda / T) *
     ∑ k ∈ Finset.range K,

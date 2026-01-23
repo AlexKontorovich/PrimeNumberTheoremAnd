@@ -46,6 +46,14 @@ theorem li.sub_Li
     sorry
 
 @[blueprint
+  "Ramanujan-Soldner-constant"
+  (title := "Ramanujan-Soldner constant")
+  (statement := /-- $\li(2) = 1.0451\dots$. -/)]
+theorem li.two_approx : li 2 ∈ Set.Icc 1.0451 1.0452 := by
+  sorry
+
+
+@[blueprint
   "theta-def"
   (title := "theta")
   (statement := /-- $\theta(x) = \sum_{p \leq x} \log p$ where the sum is over primes $p$. -/)]
