@@ -186,7 +186,9 @@ theorem theta_pos_implies_prime_in_interval {x y : ℝ} (_hxy : y < x) (h : θ x
   -/)
   (latexEnv := "theorem")]
 theorem PrimeGaps2014.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
-    HasPrimeInInterval (x*(1-1/1966196911)) (x/1966196911) := by sorry
+    HasPrimeInInterval (x*(1-1/1966196911)) (x/1966196911) :=
+  (GourdonDemichel2004.has_prime_in_interval x hx) |> fun ⟨p, hp_prime, hp_bounds⟩ ↦
+    ⟨p, hp_prime, by linarith, by linarith⟩
 
 @[blueprint
   "thm:prime_gaps_2024"
