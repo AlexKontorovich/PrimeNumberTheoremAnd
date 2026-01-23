@@ -233,24 +233,21 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   -- Extract the lower bound on `q_i` from `exists_q_primes`
   have hq_lower :
       (n : ℝ) * (Numerical.b n) ^ (-((3 : ℝ) - (i : ℕ))) ≤ ((exists_q_primes hn).choose i : ℝ) := by
-      sorry
-    -- `choose_spec.2.2.1` is the lower-bound field of `exists_q_primes`
-    -- -- set the Nat exponent once and cast it cleanly to ℝ
-    -- let k : ℕ := (3 : ℕ) - (i : ℕ)
-    -- have hq_lower' :
-    --     (n : ℝ) / (Numerical.b n) ^ (k : ℝ) ≤ ((exists_q_primes hn).choose i : ℝ) := by
-    --   simpa [Numerical.b, k, Real.rpow_natCast] using (exists_q_primes hn).choose_spec.2.2.1 i
-    -- have hb_nonneg : 0 ≤ Numerical.b n := by
-    --   have hb_pos : 0 < Numerical.b n := Numerical.b_pos (n := n) hn
-    --   exact le_of_lt hb_pos
-    -- have hi : (i : ℕ) ≤ 3 := by
-    --   exact Nat.le_of_lt_succ (Nat.lt_succ_of_lt i.is_lt)
-    -- have hk : (k : ℝ) = (3 : ℝ) - (i : ℕ) := by
-    --   simpa [k, Nat.cast_sub hi]
-    -- have hq_lower'' :
-    --     (n : ℝ) * (Numerical.b n) ^ (-(k : ℝ)) ≤ ((exists_q_primes hn).choose i : ℝ) := by
-    --   simpa [div_eq_mul_inv, Real.rpow_neg hb_nonneg] using hq_lower'
-    -- simpa [hk] using hq_lower''
+    -- `choose_spec.2.2.1` is the lower-bound field of `exists_q_primes`.
+    -- We just rewrite `n / (1+δ)^k` as `n * (b n)^(-k)` (for k = 3,2,1).
+    classical
+    have hb_pos : 0 < Numerical.b n := Numerical.b_pos (n := n) hn
+    -- `i : Fin 3`, so `((3 : ℝ) - (i : ℕ))` is one of `3,2,1`.
+    fin_cases i
+    · have hx : ((0 : ℝ) - 3) = (-3 : ℝ) := by norm_num
+      simpa [hx, Numerical.b, div_eq_mul_inv, Real.rpow_neg hb_pos.le, Real.rpow_natCast] using
+        (exists_q_primes hn).choose_spec.2.2.1 (i := (0 : Fin 3))
+    · have hx : ((1 : ℝ) - 3) = (-2 : ℝ) := by norm_num
+      simpa [hx, Numerical.b, div_eq_mul_inv, Real.rpow_neg hb_pos.le, Real.rpow_natCast] using
+        (exists_q_primes hn).choose_spec.2.2.1 (i := (1 : Fin 3))
+    · have hx : ((2 : ℝ) - 3) = (-1 : ℝ) := by norm_num
+      simpa [hx, Numerical.b, div_eq_mul_inv, Real.rpow_neg hb_pos.le, Real.rpow_natCast] using
+        (exists_q_primes hn).choose_spec.2.2.1 (i := (2 : Fin 3))
 
   -- Convert that to a reciprocal upper bound using the Cert lemma
   have hinv :
