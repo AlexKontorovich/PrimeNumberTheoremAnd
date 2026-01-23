@@ -249,6 +249,13 @@ theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH :
 theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
     HasPrimeInInterval (x - (4 / π) * sqrt x) ((4 / π) * sqrt x) := by sorry
 
+theorem interval_subset_prime {x A B : ℝ} (hA : HasPrimeInInterval (x - A) A) (hAB : A ≤ B) :
+    HasPrimeInInterval (x - B) B := by
+  obtain ⟨p, hp_prime, hp_interval⟩ := hA
+  have : x - B < p ∧ p ≤ x :=
+    ⟨Set.Ioc_subset_Ioc (tsub_le_tsub_left hAB x) le_rfl ⟨by grind, by linarith⟩ |>.1, by grind⟩
+  exact ⟨p, hp_prime, this.left, by grind⟩
+
 @[blueprint
   "thm:carneiroetal_2019_rh"
   (title := "Carneiro et al. 2019 under RH")
@@ -257,4 +264,29 @@ theorem Dudek2015RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : Riemann
   -/)
   (latexEnv := "theorem")]
 theorem CarneiroEtAl2019RH.has_prime_in_interval (x : ℝ) (hx : x ≥ 4) (RH : RiemannHypothesis) :
-    HasPrimeInInterval (x - (22 / 25) * sqrt x * log x) ((22 / 25) * sqrt x * log x) := by sorry
+    HasPrimeInInterval (x - (22 / 25) * sqrt x * log x) ((22 / 25) * sqrt x * log x) := by
+  by_cases hx_ge_6_2 : x ≥ 6.2
+  · have h_prime_interval_2002 : HasPrimeInInterval (x - (8 / 5) * sqrt x) ((8 / 5) * sqrt x) :=
+      RHPrimeInterval2002.has_prime_in_interval x (by linarith) RH
+    have h_subset : (22 / 25) * sqrt x * log x ≥ (8 / 5) * sqrt x := by
+      have h_log_6_2 : log 6.2 > 1.82 := by
+        norm_num [log_lt_log] at *
+        rw [div_lt_iff₀'] <;> norm_num [← log_rpow, lt_log_iff_exp_lt]
+        rw [show exp 91 = (exp 1) ^ 91 by rw [← exp_nat_mul]; norm_num]
+        exact lt_of_le_of_lt (pow_le_pow_left₀ (by positivity) (exp_one_lt_d9.le) _) (by norm_num)
+      have h_div : (22 / 25) * log x ≥ (8 / 5) := by
+        linarith [log_le_sub_one_of_pos (show 0 < 6.2 by norm_num), log_le_log (by norm_num) hx_ge_6_2]
+      nlinarith [sqrt_nonneg x]
+    simpa only [neg_sub] using interval_subset_prime h_prime_interval_2002 h_subset
+  · by_cases hx_ge_5 : x ≥ 5
+    · use 5
+      norm_num at *
+      have hlogx : log x ≥ 1 :=
+        (le_log_iff_exp_le (by linarith)).2 (exp_one_lt_d9.le.trans (by linarith : (2.7182818286 : ℝ) ≤ x))
+      exact ⟨by nlinarith [sqrt_nonneg x, sq_sqrt (show 0 ≤ x by linarith)], hx_ge_5⟩
+    · have h_prime_3_interval : x - (22 / 25) * sqrt x * log x < 3 := by
+        have h_log_ge_log4 : log x ≥ Real.log 4 := log_le_log (by norm_num) hx
+        rw [show (4 : ℝ) = 2 ^ 2 by norm_num, Real.log_pow] at h_log_ge_log4
+        norm_num at *
+        nlinarith [sqrt_nonneg x, sq_sqrt (show 0 ≤ x by linarith), log_two_gt_d9, log_le_sub_one_of_pos zero_lt_two]
+      exact ⟨3, by norm_num, h_prime_3_interval, by linarith⟩
