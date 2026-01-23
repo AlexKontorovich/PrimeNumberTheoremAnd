@@ -32,7 +32,7 @@ noncomputable def Inputs.default : Inputs := {
   (title := "Equation (A.7)")
   (statement := /-- Let $x \geq e^{1000}$ and $T$ satisfies $50 < T \leq x$. Then
   $$ \frac{\psi(x) - x}{x} = \sum_{|\gamma| < T} \frac{x^{\rho - 1}}{\rho} + \mathcal{O}^*\left(\frac{2(\log x)^2}{T}\right) $$ where $A = \mathcal{O}^*(B)$ means $|A| \leq B$. -/)
-  (proof := /-- See Dudek, Theorem 1.3 (TODO: incorporate reference) -/)
+  (proof := /-- See \cite[Theorem 1.3]{Dudek}. -/)
   (latexEnv := "sublemma")]
 theorem bklnw_eq_A_7 (x T : ℝ) (hx : x ≥ exp 1000) (hT1 : 50 < T) (hT2 : T ≤ x) : ∃ E, ((ψ x - x) / x = riemannZeta.zeroes_sum (Set.Icc 0 1) (Set.Ioo (-T) T) (fun ρ ↦ x^(ρ-1) / ρ) + E ∧ ‖E‖ ≤ 2 * (log x)^2 / T) := by sorry
 
@@ -70,7 +70,7 @@ theorem bklnw_eq_A_9 (x T δ : ℝ) : riemannZeta.zeroes_sum (Set.Icc 0 1) (Set.
   (title := "Equation (A.10)")
   (statement := /-- We have
   $$ |\Sigma_1| \leq x^{-\delta} \left(\frac{1}{2\pi}(\log(T/2\pi))^2 + 1.8642\right). $$ -/)
-  (proof := /-- See Demichel, Lemma 2.10 (TODO: incorporate reference) -/)
+  (proof := /-- See \cite[Lemma 2.10]{STD2015}. -/)
   (latexEnv := "sublemma")]
 theorem bklnw_eq_A_10 (x T δ : ℝ) (hδ : 0.001 ≤ δ) : ‖Sigma₁ x T δ‖ ≤ exp (-δ * log x) * (1 / (2 * π) * (log (T / (2 * π)))^2 + 1.8642) := by sorry
 
@@ -86,7 +86,7 @@ noncomputable def s₁ (b δ T : ℝ) : ℝ := exp (-δ * b) * (1 / (2 * π) * (
   (title := "Equation (A.12)")
   (statement := /-- We have
   $$ |\Sigma_2| \leq 2 \sum_{k=0}^{K-1} \frac{\lambda^{k+1} x^{-\frac{1}{R \log(T/\lambda^k)}}}{T} N\left(1 - \delta, \frac{T}{\lambda^k}\right). $$ -/)
-  (proof := /-- An argument of Pintz (TODO: incorporate reference) is employed.  The interval $[0,T]$ is split into subintervals $[T/\lambda^{k+1}, T/\lambda^k]$ where $\lambda > 1$, $0 \leq k \leq K-1$, and $K = \lfloor \frac{\log T/H}{\log \lambda} \rfloor + 1$.  Then use the zero-free region to bound $\Re \rho$. -/)
+  (proof := /-- An argument of Pintz \cite[Pintz1980] is employed.  The interval $[0,T]$ is split into subintervals $[T/\lambda^{k+1}, T/\lambda^k]$ where $\lambda > 1$, $0 \leq k \leq K-1$, and $K = \lfloor \frac{\log T/H}{\log \lambda} \rfloor + 1$.  Then use the zero-free region to bound $\Re \rho$. -/)
   (latexEnv := "sublemma")]
 theorem bklnw_eq_A_12 (I : Inputs) (x T δ lambda : ℝ) (hlambda : 1 < lambda) :
   let K := ⌊ log (T / I.H) / log lambda ⌋₊ + 1
@@ -199,7 +199,7 @@ noncomputable def Inputs.C (_ : Inputs) (σ : ℝ) : ℝ := 16 * σ / 3 - 10 / 3
   (statement := /-- Let $x_0 \geq 1000$ and let $\sigma \in [0.75, 1)$. For all $x \geq e^{x_0}$,
   $$ \frac{|\psi(x) - x|}{x} \leq A \left( \frac{\log x}{R} \right)^B \exp\left( -C \left( \frac{\log x}{R} \right)^{1/2} \right) $$
   where $A$, $B$, and $C$ are defined in Definitions \ref{bklnw-eq_A_20}, \ref{bklnw-eq_A_21}. -/)
-  (proof := /-- This is proven by Platt and Trudgian (TODO: give citation). -/)]
+  (proof := /-- This is proven by Platt and Trudgian \cite{PT2021} -/)]
 theorem thm_14 (I : Inputs) {x₀ σ x : ℝ} (hx₀ : x₀ ≥ 1000) (hσ : 0.75 ≤ σ ∧ σ < 1) (hx : x ≥ exp x₀) :
   Eψ x ≤ I.A σ x₀ * (log x / I.R)^(I.B σ) * exp (-I.C σ * (log x / I.R)^(1/2:ℝ)) := by sorry
 
@@ -248,7 +248,7 @@ theorem bklnw_lemma_15 (c B₀ B : ℝ)
   (statement := /-- Let $b$ be a positive constant such that $\log 11 < b \leq 19 \log(10)$. Then we have
   $$ \left|\frac{\psi(x) - x}{x}\right| \leq \max\left\{\frac{0.94}{e^{\frac{b}{2}}}, \varepsilon(19 \log 10)\right\} \quad \text{for all } x \geq e^b. $$
   Note that by Table 8, we have $\varepsilon(19 \log 10) = 1.93378 \cdot 10^{-8}$. -/)
-  (proof := /-- By (1.5) of Buthe2 (TODO: provide reference), (A.27) holds with $B_0 = 11$, $B = 10^{19}$, and $c = 0.94$. Thus we may apply Lemma \ref{bklnw-lemma_15} with $B_0 = 11$, $B = 10^{19}$, and $c = 0.94$ from (1.5) of Buthe2 to obtain the claim. -/)
+  (proof := /-- By \cite[(1.5)]{Buthe}, (A.27) holds with $B_0 = 11$, $B = 10^{19}$, and $c = 0.94$. Thus we may apply Lemma \ref{bklnw-lemma_15} with $B_0 = 11$, $B = 10^{19}$, and $c = 0.94$ from \cite[(1.5)]{Buthe} to obtain the claim. -/)
   (latexEnv := "corollary")]
 theorem bklnw_cor_15_1 (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10)
   (ε : ℝ → ℝ)
@@ -280,8 +280,8 @@ def μ (c α : ℝ) : ℝ := sorry
   \mathcal{E}_2 &= 0.16 \frac{1 + x_0^{-1}}{\sinh c} e^{0.71\sqrt{c\varepsilon}} \log\left(\frac{c}{\varepsilon}\right), \quad \text{and} \\
   \mathcal{E}_3 &= \frac{2}{\sqrt{x_0}} \sum_{0 < \gamma < \frac{c}{\varepsilon}} \frac{\ell_{c,\varepsilon}(\gamma)}{\gamma} + \frac{2}{x_0}.
   \end{align*}
-  The $\nu_c(\alpha) = \nu_{c,1}(\alpha)$ and $\mu_c(\alpha) = \mu_{c,1}(\alpha)$ where $\nu_{c,\varepsilon}(\alpha)$ and $\mu_{c,\varepsilon}(\alpha)$ are defined by \cite[p.~2490]Buthe2 (TODO: provide reference). -/)
-  (proof := /-- This is Theorem 1 of Buthe2. -/)
+  The $\nu_c(\alpha) = \nu_{c,1}(\alpha)$ and $\mu_c(\alpha) = \mu_{c,1}(\alpha)$ where $\nu_{c,\varepsilon}(\alpha)$ and $\mu_{c,\varepsilon}(\alpha)$ are defined by \cite[p.~2490]{Buthe2}. -/)
+  (proof := /-- This is \cite[Theorem 1]{Buthe2}. -/)
   (latexEnv := "theorem")]
 theorem bklnw_thm_16 (ε c x₀ α : ℝ)
   (hε : 0 < ε ∧ ε < 1e-3)
