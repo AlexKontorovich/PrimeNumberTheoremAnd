@@ -16,22 +16,6 @@ open Real MeasureTheory Chebyshev
 namespace FKS2
 
 @[blueprint
-  "fks2-rem"
-  (title := "Remark in FKS2 Section 1.1")
-  (statement := /-- $\li(x) - \Li(x) = \li(2)$. -/)
-  (proof := /-- This follows directly from the definitions of $\li$ and $\Li$. -/)
-  (latexEnv := "remark")
-  (discussion := 608)]
-theorem sec_1_1_remark
-    (h02 : IntervalIntegrable (fun t ↦ 1 / log t) MeasureTheory.volume 0 2)
-    (x : ℝ)
-    (h2x : IntervalIntegrable (fun t ↦ 1 / log t) MeasureTheory.volume 2 x) :
-    li x - Li x = li 2 := by
-  unfold li Li
-  rw [← intervalIntegral.integral_add_adjacent_intervals h02 h2x]
-  simp
-
-@[blueprint
   "fks2-eq-16"
   (title := "g function, FKS2 (16)")
   (statement := /--
