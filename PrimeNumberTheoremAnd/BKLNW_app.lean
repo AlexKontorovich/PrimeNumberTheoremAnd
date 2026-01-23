@@ -120,8 +120,8 @@ noncomputable def Inputs.s₂ (I : Inputs) (δ b : ℝ) (K : ℕ) (lambda T : �
       ((I.ZDB.c₁ (1-δ)) * (T / lambda^k)^(8 * δ / 3) * (log (T / lambda^k))^(3 + 2 * δ) + (I.ZDB.c₂ (1-δ)) * (log (T / lambda^k))^2)
 
 @[blueprint
-  "bklnw-thm-15"
-  (title := "Theorem A.15")
+  "bklnw-thm-13"
+  (title := "Theorem 13")
   (statement := /-- Let $b_1, b_2$ satisfy $1000 \leq b_1 < b_2$. Let $0.001 \leq \delta \leq 0.025$, $\lambda > 1$, $H < T < e^{b_1}$, and $K = \left\lfloor \frac{\log \frac{T}{H}}{\log \lambda} \right\rfloor + 1$. Then for all $x \in [e^{b_1}, e^{b_2}]$
   $$ \left|\frac{\psi(x) - x}{x}\right| \leq s_0(b_2, T) + s_1(b_1, \delta, T) + s_2(b_1, \delta, \lambda, K, T), $$ where $s_0, s_1, s_2$ are respectively defined in Definitions \ref{bklnw-eq_A_8}, \ref{bklnw-eq_A_11}, and \ref{bklnw-eq_A_14} -/)
   (proof := /-- Follows from combining Sublemmas \ref{bklnw_eq_A_7}, \ref{bklnw_eq_A_9}, \ref{bklnw_eq_A_10}, and \ref{bklnw_eq_A_13}. -/)
@@ -210,81 +210,6 @@ theorem bklnw_eq_A_26 (x : ℝ) (hx1 : 100 ≤ x) (hx2 : x ≤ 1e19) :
   Eψ x ≤ 0.94 / sqrt x := by sorry
 
 
-/-
-\subsection{Bounding $\psi(x)$ using B\"uthe's methods}
-
-For the range $[0, e^{2313}]$, the best bounds for $|\psi(x) - x|$ are based on two arguments of B\"uthe \cite{Buthe2018}, \cite{Buthe2016}. First, for $100 \leq x \leq 10^{19}$ B\"uthe \cite[Theorem 2]{Buthe2018} developed an analytic algorithm to compute $\psi(x)$. Using this, he showed that
-\begin{equation}\tag{A.26}
--0.94 \leq \frac{x - \psi(x)}{\sqrt{x}} \leq 0.94.
-\end{equation}
-This yields sharp bounds for $|\psi(x) - x|$ in the range $x \leq 10^{19}$. In \cite{Buthe2018}, B\"uthe used a smoothing argument similar to \cite{FaberKadiri}. However, instead he used Logan's function, which works extremely well in the range $[10^{19}, e^{2314})$.
-
-First, we give a general statement for an application of general bounds of the type (A.26).
-
-\begin{lemma}
-Let $B_0$, $B$, and $c$ be positive constants such that
-\begin{equation}\tag{A.27}
-\left|\frac{x - \psi(x)}{\sqrt{x}}\right| \leq c \quad \text{for all } B_0 < x \leq B
-\end{equation}
-is known. Furthermore, assume for every $b_0 > 0$ there exists $\varepsilon(b_0) > 0$ such that
-\begin{equation}\tag{A.28}
-|\psi(x) - x| \leq \varepsilon(b_0) x \quad \text{for all } x \geq e^{b_0}.
-\end{equation}
-Let $b$ be positive such that $e^b \in (B_0, B]$. Then, for all $x \geq e^b$ we have
-\begin{equation}\tag{A.29}
-\left|\frac{\psi(x) - x}{x}\right| \leq \max\left\{\frac{c}{e^{\frac{b}{2}}}, \varepsilon(\log B)\right\}.
-\end{equation}
-\end{lemma}
-
-\begin{proof}
-Multiplying both sides of (A.27) by $\frac{1}{\sqrt{x}}$ gives
-\[
-\left|\frac{\psi(x) - x}{x}\right| \leq \frac{c}{e^{\frac{b}{2}}} \quad \text{for all } e^b \leq x \leq B
-\]
-as $\frac{1}{\sqrt{x}} \leq \frac{1}{e^{\frac{b}{2}}}$. Then, for $x \geq B$ we apply (A.28) with $b_0 = \log B$. Combining these bounds, we derive (A.29).
-\end{proof}
-
-Using \cite[(1.5)]{Buthe2018}, we have
-
-\begin{corollary}
-Let $b$ be a positive constant such that $\log 11 < b \leq 19 \log(10)$. Then we have
-\begin{equation}\tag{A.30}
-\left|\frac{\psi(x) - x}{x}\right| \leq \max\left\{\frac{0.94}{e^{\frac{b}{2}}}, \varepsilon(19 \log 10)\right\} \quad \text{for all } x \geq e^b.
-\end{equation}
-Note that by Table 8, we have $\varepsilon(19 \log 10) = 1.93378 \cdot 10^{-8}$.
-\end{corollary}
-
-\begin{proof}
-By B\"uthe \cite[(1.5)]{Buthe2018}, (A.27) holds with $B_0 = 11$, $B = 10^{19}$, and $c = 0.94$. Thus we may apply Lemma 15 with $B_0 = 11$, $B = 10^{19}$, and $c = 0.94$ from \cite[(1.5)]{Buthe2018} to obtain (A.30).
-\end{proof}
-
-We now describe the main theorem in \cite{Buthe2016}. Like \cite{FaberKadiri}, this is a smoothing argument. B\"uthe considers the Fourier transform of Logan's function which is a sharp cut-off filter kernel described in \cite{Logan}:
-\[
-\ell_{c,\varepsilon}(\xi) = \frac{c}{\sinh c} \frac{\sin(\sqrt{(\xi\varepsilon)^2 - c^2})}{\sqrt{(\xi\varepsilon)^2 - c^2}}.
-\]
-Our computations require more values than those provided in \cite{Buthe2016}, so we use his method to compute more values in these ranges.
-
-\begin{theorem}[\cite{Buthe2016}, Theorem 1]
-Let $0 < \varepsilon < 10^{-3}$, $c \geq 3$, $x_0 \geq 100$ and $\alpha \in [0, 1)$ such that the inequality
-\[
-B_0 := \frac{\varepsilon e^{-\varepsilon} x_0 |\nu_c(\alpha)|}{2(\mu_c)_+(\alpha)} > 1
-\]
-holds. We denote the zeros of the Riemann zeta function by $\rho = \beta + i\gamma$ with $\beta, \gamma \in \mathbb{R}$. Then, if $\beta = \frac{1}{2}$ holds for $0 < \gamma \leq \frac{c}{\varepsilon}$, the inequality
-\[
-|\psi(x) - x| \leq x e^{\varepsilon\alpha}(\mathcal{E}_1 + \mathcal{E}_2 + \mathcal{E}_3)
-\]
-holds for all $x \geq e^{\varepsilon\alpha} x_0$, where
-\begin{align*}
-\mathcal{E}_1 &= e^{2\varepsilon} \log(e^\varepsilon x_0) \left[\frac{2\varepsilon|\nu_c(\alpha)|}{\log B_0} + \frac{2.01\varepsilon}{\sqrt{x_0}} + \frac{\log\log(2x_0^2)}{2x_0}\right] + e^{\varepsilon\alpha} - 1,\footnotemark \\
-\mathcal{E}_2 &= 0.16 \frac{1 + x_0^{-1}}{\sinh c} e^{0.71\sqrt{c\varepsilon}} \log\left(\frac{c}{\varepsilon}\right), \quad \text{and} \\
-\mathcal{E}_3 &= \frac{2}{\sqrt{x_0}} \sum_{0 < \gamma < \frac{c}{\varepsilon}} \frac{\ell_{c,\varepsilon}(\gamma)}{\gamma} + \frac{2}{x_0}.
-\end{align*}
-The $\nu_c(\alpha) = \nu_{c,1}(\alpha)$ and $\mu_c(\alpha) = \mu_{c,1}(\alpha)$ where $\nu_{c,\varepsilon}(\alpha)$ and $\mu_{c,\varepsilon}(\alpha)$ are defined by \cite[p.~2490]{Buthe2016}.
-\end{theorem}
-
-\footnotetext{This term is written without the $e^{\varepsilon\alpha} - 1$ in \cite{Buthe2016}, during personal communication with the author A.L.\ discovered this error and are updating the theorem statement to reflect this.}
--/
-
 @[blueprint
   "bklnw-lemma_15"
   (title := "Lemma 15")
@@ -296,7 +221,7 @@ The $\nu_c(\alpha) = \nu_{c,1}(\alpha)$ and $\mu_c(\alpha) = \mu_{c,1}(\alpha)$ 
 \end{equation}
 Let $b$ be positive such that $e^b \in (B_0, B]$. Then, for all $x \geq e^b$ we have
 \begin{equation}\tag{A.29}
-\left|\frac{\psi(x) - x}{x}\right| \leq \max () \frac{c}{e^{\frac{b}{2}}}, \varepsilon(\log B)\right).\end{equation} -/)
+\left|\frac{\psi(x) - x}{x}\right| \leq \max (\frac{c}{e^{\frac{b}{2}}}, \varepsilon(\log B)).\end{equation} -/)
   (proof := /-- Multiplying both sides of (A.27) by $\frac{1}{\sqrt{x}}$ gives
 \[
 \left|\frac{\psi(x) - x}{x}\right| \leq \frac{c}{e^{\frac{b}{2}}} \quad \text{for all } e^b \leq x \leq B
@@ -323,9 +248,6 @@ theorem bklnw_cor_15_1 (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10)
   (ε : ℝ → ℝ)
   (hε : ∀ b₀ > 0, ∀ x ≥ exp b₀, Eψ x ≤ ε b₀) :
   ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) (ε (19 * log 10)) := by sorry
-
-theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
-  ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) 1.93378e-8 := by sorry
 
 @[blueprint
   "logan-function"
@@ -373,6 +295,87 @@ theorem bklnw_thm_16 (ε c x₀ α : ℝ)
   Eψ x ≤ exp (ε * α) * (E₁ + E₂ + E₃) :=
     by sorry
 
+noncomputable def table_8_ε (b : ℝ) : ℝ :=
+  if b < 20 then 1   -- junk value
+  else if b < 21 then 4.2670e-5
+  else if b < 22 then 2.58843e-5
+  else if b < 23 then 1.56996e-5
+  else if b < 24 then 9.52229e-6
+  else if b < 25 then 5.77556e-6
+  else if b < 30 then 3.50306e-6
+  else if b < 35 then 2.87549e-7
+  else if b < 40 then 2.36034e-8
+  else if b < 45 then 1.93378e-8
+  else if b < 50 then 1.09073e-8
+  else if b < 100 then 1.11990e-9
+  else if b < 200 then 2.45299e-12
+  else if b < 300 then 2.18154e-12
+  else if b < 400 then 2.09022e-12
+  else if b < 500 then 2.03981e-12
+  else if b < 600 then 1.99986e-12
+  else if b < 700 then 1.98894e-12
+  else if b < 800 then 1.97643e-12
+  else if b < 900 then 1.96710e-12
+  else if b < 1000 then 1.95987e-12
+  else if b < 1500 then 1.94751e-12
+  else if b < 2000 then 1.93677e-12
+  else if b < 2500 then 1.92279e-12
+  else if b < 3000 then 9.06304e-13
+  else if b < 3500 then 4.59972e-14
+  else if b < 4000 then 2.48641e-15
+  else if b < 4500 then 1.42633e-16
+  else if b < 5000 then 8.68295e-18
+  else if b < 5500 then 5.63030e-19
+  else if b < 6000 then 3.91348e-20
+  else if b < 6500 then 2.94288e-21
+  else if b < 7000 then 2.38493e-22
+  else if b < 7500 then 2.07655e-23
+  else if b < 8000 then 1.96150e-24
+  else if b < 8500 then 1.97611e-25
+  else if b < 9000 then 2.12970e-26
+  else if b < 9500 then 2.44532e-27
+  else if b < 10000 then 2.97001e-28
+  else if b < 10500 then 3.78493e-29
+  else if b < 11000 then 5.10153e-30
+  else if b < 11500 then 7.14264e-31
+  else if b < 12000 then 1.04329e-31
+  else if b < 12500 then 1.59755e-32
+  else if b < 13000 then 2.53362e-33
+  else if b < 13500 then 4.13554e-34
+  else if b < 14000 then 7.21538e-35
+  else if b < 15000 then 1.22655e-35
+  else if b < 16000 then 4.10696e-37
+  else if b < 17000 then 1.51402e-38
+  else if b < 18000 then 6.20397e-40
+  else if b < 19000 then 2.82833e-41
+  else if b < 20000 then 1.36785e-42
+  else if b < 21000 then 7.16209e-44
+  else if b < 22000 then 4.11842e-45
+  else if b < 23000 then 2.43916e-46
+  else if b < 24000 then 1.56474e-47
+  else if b < 25000 then 1.07022e-48
+  else 7.57240e-50
+
+@[blueprint
+  "bknlw-theorem-2"
+  (title := "Theorem 2")
+  (statement := /-- If $b>0$ then $|\psi(x) - x| \leq \varepsilon(b) x$ for all $x \geq \exp(b)$, where $\varepsilon$ is as in \cite[Table 8]{BKLNW}. -/)
+  (latexEnv := "theorem")
+  (proof := /-- Values for $20 \leq b \leq 2000$ are computed using Theorem \ref{bklnw-thm-16}, and values for $2500 \leq b \leq 25000$ are computed as using Theorem \ref{bklnw-thm-13}.  For $b > 25000$ we use Theorem \ref{bklnw-thm-14}. -/)]
+theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
+    |ψ x - x| ≤ table_8_ε b * x := by sorry
+
+@[blueprint
+ "bklnw-cor_15_1_alt"
+  (title := "Corollary 15.1, alternative version")
+  (statement := /-- Let $b$ be a positive constant such that $\log 11 < b \leq 19 \log(10)$. Then we have
+  $$ \left|\frac{\psi(x) - x}{x}\right| \leq \max\left\{\frac{0.94}{e^{\frac{b}{2}}}, 1.93378 \cdot 10^{-8}\right\} \quad \text{for all } x \geq e^b. $$
+   -/)
+  (proof := /-- From Table 8 we have $\varepsilon(19 \log 10) = 1.93378 \cdot 10^{-8}$.
+  Now apply Corollary \ref{bklnw-cor_15_1} and Theorem \ref{bklnw-theorem-2}. -/)
+  (latexEnv := "corollary")]
+theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
+  ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) 1.93378e-8 := by sorry
 
 
 
