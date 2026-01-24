@@ -48,6 +48,55 @@ theorem gap_strictly_decreasing {x y : ℝ}
   simpa [δ, one_div] using hdiv
 
 
+theorem delta_sixth_power_lt_sqrt {x : ℝ} (hx : (X₀ : ℝ) ≤ x) :
+    δ x ^ (6 : ℝ) < Real.sqrt x := by
+  have hx_ge3 : (3 : ℝ) ≤ x := by
+    have hX₀_ge3 : (3 : ℝ) ≤ (X₀ : ℝ) := by
+      norm_num [X₀]
+    exact le_trans hX₀_ge3 hx
+
+  have hx_pos : 0 < x := by linarith
+
+  have hlog_gt_one : 1 < Real.log x := by
+    refine (Real.lt_log_iff_exp_lt hx_pos).mpr ?_
+    have hexp1_lt3 : Real.exp (1 : ℝ) < 3 := by
+      simpa using Real.exp_one_lt_three
+    exact lt_of_lt_of_le hexp1_lt3 hx_ge3
+
+  have hlog_pow_gt_one : 1 < (Real.log x) ^ (3 : ℝ) := by
+    have : (1 : ℝ) ^ (3 : ℝ) < (Real.log x) ^ (3 : ℝ) := by
+      exact Real.rpow_lt_rpow (by positivity : (0 : ℝ) ≤ 1) hlog_gt_one (by norm_num)
+    simpa using this
+
+  have hδ_lt_one : δ x < 1 := by
+    have : (1 : ℝ) / (Real.log x) ^ (3 : ℝ) < (1 : ℝ) / (1 : ℝ) := by
+      simpa using (one_div_lt_one_div_of_lt (by norm_num : (0 : ℝ) < 1) hlog_pow_gt_one)
+    simpa [δ] using this
+
+  have hδ_nonneg : 0 ≤ δ x := δ_nonneg (x := x) hx
+
+  have hδ_pow_lt_one : δ x ^ (6 : ℝ) < 1 := by
+    have : δ x ^ (6 : ℝ) < (1 : ℝ) ^ (6 : ℝ) :=
+      Real.rpow_lt_rpow hδ_nonneg hδ_lt_one (by norm_num)
+    simpa using this
+
+  have hsqrt_gt_one : 1 < Real.sqrt x := by
+    have hx_gt_one : (1 : ℝ) < x := by
+      have hX₀_gt_one : (1 : ℝ) < (X₀ : ℝ) := by
+        norm_num [X₀]
+      exact lt_of_lt_of_le hX₀_gt_one hx
+    rw [Real.lt_sqrt]
+    · simpa using hx_gt_one
+    · linarith
+
+  exact lt_trans hδ_pow_lt_one hsqrt_gt_one
+
+theorem delta_twelfth_power_le_n_pow_3_div_2 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    4 * (1 + δ (√(n : ℝ))) ^ 12 ≤ n ^ (3 / 2 : ℝ) := by
+    sorry
+
+
+
 
 theorem prime_in_Icc {x : ℝ} (hx : (X₀ : ℝ) ≤ x) :
     ∃ p : ℕ, Nat.Prime p ∧ x < (p : ℝ) ∧ (p : ℝ) ≤ x * (1 + δ x) := by
