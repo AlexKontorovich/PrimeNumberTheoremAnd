@@ -48,7 +48,8 @@ theorem log_le (t : ℝ) (ht : t > -1) : log (1 + t) ≤ t :=
   (title := "First log lower bound")
   (statement := /-- For $t \geq 0$, one has $t - \frac{t^2}{2} \leq \log(1+t)$. -/)
   (proof := /-- Use Taylor's theorem with remainder and the fact that the second derivative of $\log(1+t)$ is at most $1$ for $t \geq 0$.-/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 765)]
 theorem log_ge
     (t s : ℝ) (ht : t ≥ 0) (hs : s > 0) :
     t - t ^ 2 / (2 * s ^ 2) ≤ log (1 + t) := by
@@ -59,7 +60,8 @@ theorem log_ge
   (title := "Second log lower bound")
   (statement := /-- For $0 \leq t \leq t_0 < 1$, one has $\frac{t}{t_0} \log (1-t_0) \leq \log(1-t)$. -/)
   (proof := /-- Use concavity of log.-/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 766)]
 theorem log_ge'
     (t t₀ : ℝ) (ht : 0 ≤ t) (ht0 : t ≤ t₀) (ht0' : t₀ < 1) :
     (t / t₀) * log (1 - t₀) ≤ log (1 - t) := by
@@ -70,7 +72,8 @@ theorem log_ge'
   (title := "Symmetrization of inverse log")
   (statement := /-- For $0 < t \leq 1/2$, one has $| \frac{1}{\log(1+t)} + \frac{1}{\log(1-t)}| \leq \frac{\log(4/3)}{4/3}$. -/)
   (proof := /-- The expression can be written as $\frac{|\log(1-t^2)|}{|\log(1-t)| |\log(1+t)|}$. Now use the previous upper and lower bounds, noting that $t^2 \leq 1/4$. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 767)]
 theorem symm_inv_log
     (t : ℝ) (ht : 0 < t) (ht' : t ≤ 1 / 2) :
     |1 / log (1 + t) + 1 / log (1 - t)| ≤ log (4 / 3) / (4 / 3) := by
@@ -82,7 +85,7 @@ theorem symm_inv_log
   (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{\log(4/3)}{4/3} \eps)$. -/)
   (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
   (latexEnv := "sublemma")
-  ]
+  (discussion := 768)]
 theorem li.eq
     (x ε : ℝ) (hx : x ≥ 2) (hε1 : 0 < ε) (hε2 : ε ≤ 1) : ∃ E,
     li x = ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)), 1 / log t + E ∧
