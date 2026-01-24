@@ -430,9 +430,23 @@ theorem mertens_second_theorem' :
     · exact integrableOn_deriv_inv.1.abs
 
 @[blueprint
+  "Mertens-constant"
+  (title := "Mertens constant E")
+  (statement := /--
+  $E := \lim_{x \to \infty} \left( \sum_{p \leq x} \frac{\log p}{p} - \log x \right)$. -/)]
+noncomputable def _root_.mertensConstant : ℝ := - Real.log 2 + L (fun x => log x / x)
+
+theorem mertensConstant_identity {x : ℝ} (hx : 2 ≤ x) :
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), Real.log p / p =
+    log x + mertensConstant + (θ x - x) / x +
+    ∫ y in Set.Ioi x, (θ y - y) * deriv (fun s ↦ Real.log s / s / log s) y := by
+  sorry
+
+@[blueprint
   "rs-420"]
 theorem mertens_first_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
-    ∑ p ∈ filter Nat.Prime (range ⌊x⌋₊), Real.log p / p - log x - mertensConstant) (nhds 0) := by sorry
+    ∑ p ∈ filter Nat.Prime (Iic ⌊x⌋₊), Real.log p / p - log x) (𝓝 mertensConstant) := by
+  sorry
 
 @[blueprint
   "rs-420"
@@ -446,7 +460,8 @@ theorem mertens_first_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
   (discussion := 604)]
 theorem eq_420 {x : ℝ} (hx : 2 ≤ x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), Real.log p / p =
-      log x + mertensConstant + (θ x - x) / x - ∫ y in 2..x, (θ y - y) / (y ^ 2) := by sorry
+    log x + mertensConstant + (θ x - x) / x - ∫ y in 2..x, (θ y - y) / (y ^ 2) := by
+  sorry
 
 @[blueprint
   "rs-420"]
