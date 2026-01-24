@@ -40,10 +40,8 @@ noncomputable def Li (x : ℝ) : ℝ := ∫ t in 2..x, 1 / log t
   (statement := /-- For $t > -1$, one has $\log (1+t) \leq t$. -/)
   (proof := /-- This follows from the mean value theorem. -/)
   (latexEnv := "sublemma")]
-theorem log_le
-    (t : ℝ) (ht : t > -1) :
-    log (1 + t) ≤ t := by
-    sorry
+theorem log_le (t : ℝ) (ht : t > -1) : log (1 + t) ≤ t :=
+  (Real.log_le_sub_one_of_pos (neg_lt_iff_pos_add'.mp ht)).trans add_tsub_le_left
 
 @[blueprint
   "log_lower_1"
