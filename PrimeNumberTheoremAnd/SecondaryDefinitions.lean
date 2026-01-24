@@ -83,8 +83,7 @@ theorem symm_inv_log
   (title := "li approximation")
   (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{\log(4/3)}{4/3} \eps)$. -/)
   (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
-  (latexEnv := "sublemma")
-  ]
+  (latexEnv := "sublemma")]
 theorem li.eq
     (x ε : ℝ) (hx : x ≥ 2) (hε1 : 0 < ε) (hε2 : ε ≤ 1) : ∃ E,
     li x = ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)), 1 / log t + E ∧
