@@ -30,7 +30,7 @@ lemma Inputs.epsilon_nonneg (I : Inputs) {b : ℝ} (hb : 0 ≤ b) : 0 ≤ I.ε b
 
 @[blueprint
   "bklnw-cor-2-1"
-  (title := "Corollary 2.1")
+  (title := "BKLNW Corollary 2.1")
   (statement := /-- $\theta(x) \leq (1 + 1.93378 \times 10^{-8}) x$. -/)
   (latexEnv := "corollary")]
 theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + 1.93378e-8) * x := by sorry
@@ -60,7 +60,7 @@ noncomputable def Inputs.default : Inputs := {
 
 @[blueprint
   "bklnw-eq-2-4"
-  (title := "Equation 2.4")
+  (title := "BKLNW Equation 2.4")
   (statement := /--
   $$ f(x) := \sum_{k=3}^{\lfloor \log x / \log 2 \rfloor} x^{1/k - 1/3}.$$
   -/)]
@@ -68,7 +68,7 @@ noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2
 
 @[blueprint
   "bklnw-prop-3-sub-1"
-  (title := "Proposition 3, substep 1")
+  (title := "BKLNW Proposition 3, substep 1")
   (statement := /-- Let $x \geq x_0$ and let $\alpha$ be admissible. Then
 \[
 \frac{\psi(x) - \theta(x) - \theta(x^{1/2})}{x^{1/3}} \leq (1 + \alpha) \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} x^{\frac{1}{k} - \frac{1}{3}}.
@@ -83,7 +83,7 @@ theorem prop_3_sub_1 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 1)
 
 @[blueprint
   "bklnw-prop-3-sub-2"
-  (title := "Proposition 3, substep 2")
+  (title := "BKLNW Proposition 3, substep 2")
   (statement := /-- $f$ decreases on $[2^n, 2^{n+1})$.-/)
   (proof := /-- Clear. -/)
   (latexEnv := "sublemma")
@@ -112,7 +112,7 @@ noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - 
 
 @[blueprint
   "bklnw-prop-3-sub-3"
-  (title := "Proposition 3, substep 3")
+  (title := "BKLNW Proposition 3, substep 3")
   (statement := /-- $f(2^n) = 1 + u_n$.-/)
   (proof := /-- Clear. -/)
   (latexEnv := "sublemma")
@@ -196,7 +196,7 @@ lemma u_diff_factored {n : ℕ} (hn : 4 ≤ n) :
 
 @[blueprint
   "bklnw-prop-3-sub-4"
-  (title := "Proposition 3, substep 4")
+  (title := "BKLNW Proposition 3, substep 4")
   (statement := /-- $u_{n+1} < u_n$ for $n \geq 9$.-/)
   (proof := /-- We have
 \begin{equation}
@@ -212,7 +212,7 @@ theorem prop_3_sub_4 (n : ℕ) (hn : 9 ≤ n) : u (n + 1) < u n := by
 
 @[blueprint
   "bklnw-prop-3-sub-5"
-  (title := "Proposition 3, substep 5")
+  (title := "BKLNW Proposition 3, substep 5")
   (statement := /-- $f(2^n) > f(2^{n+1})$ for $n \geq 9$. -/)
   (proof := /-- This follows from Sublemmas \ref{bklnw-prop-3-sub-3} and \ref{bklnw-prop-3-sub-4}. -/)
   (latexEnv := "sublemma")
@@ -223,7 +223,7 @@ theorem prop_3_sub_5 (n : ℕ) (hn : n ≥ 9) : f (2^n) > f (2^(n + 1)) := by
 
 @[blueprint
   "bklnw-prop-3-sub-6"
-  (title := "Proposition 3, substep 6")
+  (title := "BKLNW Proposition 3, substep 6")
   (statement := /-- $f(x) \leq f(2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1})$ on $[2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1}, \infty)$. -/)
   (proof := /-- Follows from Sublemmas \ref{bklnw-prop-3-sub-2} and \ref{bklnw-prop-3-sub-5}. -/)
   (latexEnv := "sublemma")
@@ -234,7 +234,7 @@ theorem prop_3_sub_6 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
 
 @[blueprint
   "bklnw-prop-3-sub-7"
-  (title := "Proposition 3, substep 7")
+  (title := "BKLNW Proposition 3, substep 7")
   (statement := /-- $f(x) \leq f(x_0)$ for $x \in [x_0, 2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1})$. -/)
   (proof := /-- Follows since $f(x)$ decreases on $[2^{\lfloor \frac{\log x_0}{\log 2} \rfloor}, 2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1})$. -/)
   (latexEnv := "sublemma")
@@ -277,7 +277,7 @@ theorem prop_3_sub_7 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
 
 @[blueprint
   "bklnw-prop-3-sub-8"
-  (title := "Proposition 3, substep 8")
+  (title := "BKLNW Proposition 3, substep 8")
   (statement := /--  $f(x) \leq \max\left(f(x_0), f(2^{\lfloor \frac{\log x_0}{\log 2} \rfloor + 1})\right)$. -/)
   (proof := /-- Combines previous sublemmas. -/)
   (latexEnv := "sublemma")
@@ -291,7 +291,7 @@ theorem prop_3_sub_8 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
 
 @[blueprint
   "bklnw-prop-3"
-  (title := "Proposition 3")
+  (title := "BKLNW Proposition 3")
   (statement := /--  Let $x_0 \geq 2^9$. Let $\alpha > 0$ exist such that $\theta(x) \leq (1 + \alpha)x$ for $x > 0$. Then for $x \geq x_0$,
 \begin{equation}
 \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} \theta(x^{1/k}) \leq \eta x^{1/3},
@@ -315,7 +315,7 @@ theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9)
 
 @[blueprint
   "bklnw-cor-3-1"
-  (title := "Corollary 3.1")
+  (title := "BKLNW Corollary 3.1")
   (statement := /--  Let $b \geq 7$. Assume $x \geq e^b$. Then we have
 \[
 \psi(x) - \theta(x) - \theta(x^{1/2}) \leq \eta x^{1/3},
@@ -335,7 +335,7 @@ theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (x : ℝ) (hx : x ≥ ex
 
 @[blueprint
   "bklnw-prop-4-a"
-  (title := "Proposition 4, part a")
+  (title := "BKLNW Proposition 4, part a")
   (statement := /--  If $7 \leq b \leq 2\log x_1$, then we have
 \begin{equation}
 \theta(x^{1/2}) \leq (1 + \varepsilon(\log x_1))x^{1/2} \quad \text{for } x \geq e^b.
@@ -377,7 +377,7 @@ theorem prop_4_a (I : Inputs) {b x : ℝ} (hx : exp b ≤ x) :
 
 @[blueprint
   "bklnw-prop-4-b"
-  (title := "Proposition 4, part b")
+  (title := "BKLNW Proposition 4, part b")
   (statement := /--  If $b > 2\log x_1$, then we have
 \[
 \theta(x^{1/2}) \leq (1 + \varepsilon(b/2))x^{1/2} \quad \text{for } x \geq e^b.
@@ -423,7 +423,7 @@ noncomputable def Inputs.a₂ (I : Inputs) (b : ℝ) : ℝ :=
 
 @[blueprint
   "bklnw-thm-5"
-  (title := "Theorem 5")
+  (title := "BKLNW Theorem 5")
   (statement := /--  Let $\alpha > 0$ exist such that
 \[
 \theta(x) \leq (1 + \alpha)x \quad \text{for all } x > 0.
@@ -465,7 +465,7 @@ noncomputable def a₂ : ℝ → ℝ := Inputs.default.a₂
 
 @[blueprint
   "bklnw-cor-5-1"
-  (title := "Corollary 5.1")
+  (title := "BKLNW Corollary 5.1")
   (statement := /--  Let $b \geq 7$. Then for all $x \geq e^b$ we have $\psi(x) - \vartheta(x) < a_1 x^{1/2} + a_2 x^{1/3}$, where $a_1 = a_1(b) = 1 + 1.93378 \times 10^{-8}$ if $b \leq 38 \log 10$, $1 + \varepsilon(b/2)$ if $b > 38 \log 10$, and $a_2 = a_2(b) = (1 + 1.93378 \times 10^{-8}) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}) \right)$, where $f$ is defined by (2.4) and values for $\varepsilon(b/2)$ are from Table 8. -/)
   (proof := /-- This is Theorem 5 applied to the default inputs in Definition \ref{bklnw-inputs}. -/)
   (discussion := 743)]
@@ -488,7 +488,7 @@ def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
 
 @[blueprint
   "bklnw-cor-5-1-rem"
-  (title := "Remark after Corollary 5.1")
+  (title := "Remark after BKLNW Corollary 5.1")
   (statement := /--  We have the following values for $a_2$, given by the table after \cite[Corollary 5.1]{BKLNW} -/)
   (latexEnv := "remark")]
 theorem cor_5_1_rem (b a₂b : ℝ) (m : ℕ) (hb : (b, a₂b, m) ∈ table_cor_5_1) :
@@ -626,7 +626,7 @@ noncomputable def Table_15 : List (ℝ × (Fin 5 → ℝ)) := [
 
 @[blueprint
   "bklnw-thm-1a"
-  (title := "Theorem 1a")
+  (title := "BKLNW Theorem 1a")
   (statement := /--  For any fixed $X_0 \geq 1$, there exists $m_0 > 0$ such that, for all $x \geq X_0$
   $$ x(1 - m_0) \leq \theta(x). $$
   For any fixed $X_1 \geq 1$, there exists $M_0 > 0$ such that, for all $x \geq X_1$
@@ -670,8 +670,8 @@ theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ x : ℝ} (hX₀ : X₀ > 1) (
 
 /- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
 @[blueprint
-  "bklnw-thm-1b"
-  (title := "Theorem 1b")
+  "bklnw-thm-1b-table"
+  (title := "BKLNW Theorem 1b, table form")
   (statement := /--  See \cite[Table 15]{BKLNW} for values of $m_k$ and $M_k$, for $k \in \{1,2,3,4,5\}$.
   -/)
   (latexEnv := "theorem")]
