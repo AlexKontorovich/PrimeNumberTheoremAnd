@@ -356,7 +356,7 @@ since $\log x_1 \geq 7$. The last two inequalities for $\theta(x^{1/2})$ combine
  -/)
   (latexEnv := "proposition")
   (discussion := 641)]
-theorem prop_4_a (I : Inputs) {b x : ℝ} (hb : 7 ≤ b) (hi : b ≤ 2 * log I.x₁) (hx : exp b ≤ x) :
+theorem prop_4_a (I : Inputs) {b x : ℝ} (hx : exp b ≤ x) :
     θ (x ^ (1 / 2 : ℝ)) ≤ (1 + I.ε (log I.x₁)) * x ^ (1 / 2 : ℝ) := by
   have ha : 1 < I.x₁ := by linarith [I.hx₁, (one_lt_exp_iff.2 (by linarith) : 1 < exp 7)]
   have hb : 0 < log I.x₁ := log_pos (by linarith)
@@ -392,7 +392,7 @@ since $x^{1/2} > e^{b/2} > x_1 \geq e^7$.
  -/)
   (latexEnv := "proposition")
   (discussion := 642)]
-theorem prop_4_b (I : Inputs) {b x : ℝ} (hb : 7 ≤ b) (hi : 2 * log I.x₁ < b) (hx : exp b ≤ x) :
+theorem prop_4_b (I : Inputs) {b x : ℝ} (hb : 7 ≤ b) (hx : exp b ≤ x) :
     θ (x ^ (1 / 2 : ℝ)) ≤ (1 + I.ε (b / 2)) * x ^ (1 / 2 : ℝ) := calc
   _ ≤ ψ (x ^ (1 / 2 : ℝ)) := theta_le_psi _
   _ ≤ (1 + I.ε (b / 2)) * x ^ (1 / 2 : ℝ) := by
