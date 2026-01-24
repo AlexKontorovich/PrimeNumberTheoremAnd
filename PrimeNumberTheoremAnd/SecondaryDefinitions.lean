@@ -141,25 +141,33 @@ noncomputable def Eθ (x : ℝ) : ℝ := |θ x - x| / x
 
 @[blueprint
   "classical-bound-theta"
-  (title := "Definition 1, FKS2")
+  (title := "Definitions 1, 5, FKS2")
   (statement := /--
   We say that $E_\theta$ satisfies a \emph{classical bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
   \[ E_\theta(x) \leq A \left(\frac{\log x}{R}\right)^B \exp\left(-C \left(\frac{\log x}{R}\right)^{1/2}\right). \]
-  Similarly for $E_\pi$.
+  We say that it obeys a \emph{numerical bound} with parameter $ε(x_0)$ if for all $x \geq x_0$ we have
+  \[ E_\theta(x) \leq ε(x_0). \]
   -/)]
 def Eθ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eθ x ≤ admissible_bound A B C R x
 
+def Eθ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop := ∀ x ≥ x₀, Eθ x ≤ (ε x₀)
+
 @[blueprint "classical-bound-pi"
-  (title := "Definition 1, FKS2")
+  (title := "Definitions 1, 5, FKS2")
   (statement := /--
   We say that $E_\pi$ satisfies a \emph{classical bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
   \[ E_\pi(x) \leq A \left(\frac{\log x}{R}\right)^B \exp\left(-C \left(\frac{\log x}{R}\right)^{1/2}\right). \]
+  We say that it obeys a \emph{numerical bound} with parameter $ε(x_0)$ if for all $x \geq x_0$ we have
+  \[ E_\pi(x) \leq ε(x_0). \]
   -/)]
 def Eπ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ admissible_bound A B C R x
 
+def Eπ.bound (ε x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ ε
+
+def Eπ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop := Eπ.bound (ε x₀) x₀
+
 def Eπ.vinogradovBound (A B C x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ A * (log x) ^ B * exp (-C * (log x) ^ (3/5) / (log (log x)) ^ (1/5))
 
-def Eπ.bound (ε x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ ε
 
 def HasPrimeInInterval (x h : ℝ) : Prop :=
   ∃ p : ℕ, Nat.Prime p ∧ x < p ∧ p ≤ x + h
