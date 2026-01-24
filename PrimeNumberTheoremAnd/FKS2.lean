@@ -589,15 +589,14 @@ theorem lemma_20_a : StrictMonoOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) :=
   "fks2-lemma-20b"
   (title := "FKS2 Lemma 20b")
   (statement := /--
-  Assume $x \geq 6.58$. Then
+  Assume $x > 6.58$. Then
   $\Li(x) - \frac{x}{\log x} > \frac{x-6.58}{\log^2 x} > 0$.
   -/)
   (proof := /-- This follows from Lemma \ref{fks2-lemma-20a} and the mean value theorem. -/)
   (latexEnv := "lemma")
   (discussion := 714)]
-theorem lemma_20_b {x : ℝ} (hx : x ≥ 6.58) :
-  Li x - x / log x > (x - 6.58) / (log x) ^ 2 ∧
-  (x - 6.58) / (log x) ^ 2 > 0 :=
+theorem lemma_20_b {x : ℝ} (hx : x > 6.58) :
+    Li x - x / log x > (x - 6.58) / (log x) ^ 2 ∧ (x - 6.58) / (log x) ^ 2 > 0 :=
   sorry
 
 @[blueprint
