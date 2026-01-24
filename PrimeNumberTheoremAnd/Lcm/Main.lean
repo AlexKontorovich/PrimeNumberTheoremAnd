@@ -1,5 +1,5 @@
 import Architect
-import PrimeNumberTheoremAnd.Lcm.Cert
+import PrimeNumberTheoremAnd.Lcm.Cert_ChoosePrime_lemmas
 import PrimeNumberTheoremAnd.Lcm.ChoosePrime
 
 namespace Lcm
@@ -1001,7 +1001,7 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
   n := n
   p := (six_primes.exists_p_primes hn).choose
   q := (six_primes.exists_q_primes hn).choose
-  hn := le_trans Numerical.one_le_X₀_sq hn
+  hn := le_trans ChoosePrime_lemmas.one_le_X₀_sq hn
   hp := (six_primes.exists_p_primes hn).choose_spec.1
   hp_mono := (six_primes.exists_p_primes hn).choose_spec.2.1
   hq := (six_primes.exists_q_primes hn).choose_spec.1
@@ -1025,7 +1025,7 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
         √(n : ℝ) * (1 + gap.δ (√(n : ℝ))) ^ (3 : ℕ)
           <
         (n : ℝ) / (1 + gap.δ (√(n : ℝ))) ^ (3 : ℕ) :=
-      Numerical.ord2_mid (n := n) hn
+      ChoosePrime_lemmas.ord2_mid (n := n) hn
 
     have : ((six_primes.exists_p_primes hn).choose 2 : ℝ) < ((six_primes.exists_q_primes hn).choose 0 : ℝ) :=
       lt_of_le_of_lt hp' (lt_of_lt_of_le hmid hq')
@@ -1059,12 +1059,12 @@ noncomputable def Criterion.mk' {n : ℕ} (hn : n ≥ X₀ ^ 2) : Criterion wher
                 / (∏ i : Fin 3, ((six_primes.exists_q_primes hn).choose i : ℝ))) :=
         (show _ ≤ _ from by simpa [ge_iff_le] using hge)
 
-      exact le_trans (Numerical.delta_ratio_term_nonneg (n := n) hn) hle
+      exact le_trans (ChoosePrime_lemmas.delta_ratio_term_nonneg (n := n) hn) hle
     -- Reduce the prime inequality to the delta-only inequality:
     grw [six_primes.prod_q_ge hn, six_primes.prod_p_ge hn, six_primes.pq_ratio_ge hn]
     -- Now the goal matches the Cert lemma:
-    · exact Numerical.main_ineq_delta_form (n := n) hn
-    · exact Numerical.delta_prod_mul_nonneg (n := n) hn
+    · exact ChoosePrime_lemmas.main_ineq_delta_form (n := n) hn
+    · exact ChoosePrime_lemmas.delta_prod_mul_nonneg (n := n) hn
 
 blueprint_comment /--
 \subsection{Conclusion for large \(n\)}

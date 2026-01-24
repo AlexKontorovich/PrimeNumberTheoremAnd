@@ -131,9 +131,9 @@ theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   let y2 : ℝ := (n : ℝ) / (1 + ε)
 
   -- apply provider at y0,y1,y2
-  have hy0X : (X₀ : ℝ) ≤ y0 := by simpa [x, ε, y0] using Numerical.y0_ge_X₀ (n := n) hn
-  have hy1X : (X₀ : ℝ) ≤ y1 := by simpa [x, ε, y1] using Numerical.y1_ge_X₀ (n := n) hn
-  have hy2X : (X₀ : ℝ) ≤ y2 := by simpa [x, ε, y2] using Numerical.y2_ge_X₀ (n := n) hn
+  have hy0X : (X₀ : ℝ) ≤ y0 := by simpa [x, ε, y0] using ChoosePrime_lemmas.y0_ge_X₀ (n := n) hn
+  have hy1X : (X₀ : ℝ) ≤ y1 := by simpa [x, ε, y1] using ChoosePrime_lemmas.y1_ge_X₀ (n := n) hn
+  have hy2X : (X₀ : ℝ) ≤ y2 := by simpa [x, ε, y2] using ChoosePrime_lemmas.y2_ge_X₀ (n := n) hn
 
   obtain ⟨q₀, hq₀_prime, hq₀_lb, hq₀_ub⟩ := gap.prime_in_Icc (x := y0) hy0X
   obtain ⟨q₁, hq₁_prime, hq₁_lb, hq₁_ub⟩ := gap.prime_in_Icc (x := y1) hy1X
@@ -143,17 +143,17 @@ theorem exists_q_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   have hq₀_ub' : (q₀ : ℝ) ≤ y1 := by
     -- q₀ ≤ y0*(1+δ y0) ≤ y1
     refine le_trans (by simpa [y0] using hq₀_ub) ?_
-    simpa [x, ε, y0, y1] using Numerical.y0_mul_one_add_delta_le_y1 (n := n) hn
+    simpa [x, ε, y0, y1] using ChoosePrime_lemmas.y0_mul_one_add_delta_le_y1 (n := n) hn
 
   have hq₁_ub' : (q₁ : ℝ) ≤ y2 := by
     refine le_trans (by simpa [y1] using hq₁_ub) ?_
-    simpa [x, ε, y1, y2] using Numerical.y1_mul_one_add_delta_le_y2 (n := n) hn
+    simpa [x, ε, y1, y2] using ChoosePrime_lemmas.y1_mul_one_add_delta_le_y2 (n := n) hn
 
   have hq₂_lt_n : q₂ < n := by
     -- q₂ ≤ y2*(1+δ y2) < n
     have hq₂_lt : (q₂ : ℝ) < (n : ℝ) := by
       have : (q₂ : ℝ) ≤ y2 * (1 + gap.δ y2) := by simpa [y2] using hq₂_ub
-      exact lt_of_le_of_lt this (by simpa [x, ε, y2] using Numerical.y2_mul_one_add_delta_lt_n (n := n) hn)
+      exact lt_of_le_of_lt this (by simpa [x, ε, y2] using ChoosePrime_lemmas.y2_mul_one_add_delta_lt_n (n := n) hn)
     exact Nat.cast_lt.mp hq₂_lt
 
   -- package as Fin 3 → ℕ and prove StrictMono using lb/ub
@@ -205,8 +205,8 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
       ∏ i : Fin 3, (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / n) := by
   -- introduce the Cert abbreviation locally (purely for readability)
   -- (this does *not* change the theorem statement)
-  have hb : (1 + gap.δ (√(n : ℝ))) = Numerical.b n := by
-    simp [Numerical.b]
+  have hb : (1 + gap.δ (√(n : ℝ))) = ChoosePrime_lemmas.b n := by
+    simp [ChoosePrime_lemmas.b]
 
   -- Reindex RHS to match the `exists_q_primes` exponent pattern `((3 : ℝ) - (i : ℕ))`.
   -- After rewriting, all the bounds line up directly.
@@ -215,44 +215,44 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   have :
       (∏ i : Fin 3, (1 + (1 + gap.δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / n))
         =
-      (∏ i : Fin 3, (1 + (Numerical.b n) ^ ((i : ℕ) + 1 : ℝ) / n)) := by
-    simp [Numerical.b]
+      (∏ i : Fin 3, (1 + (ChoosePrime_lemmas.b n) ^ ((i : ℕ) + 1 : ℝ) / n)) := by
+    simp [ChoosePrime_lemmas.b]
   -- use it
   rw [this]
   -- now reindex via Cert lemma
-  rw [Numerical.prod_q_rhs_reindex (n := n)]
+  rw [ChoosePrime_lemmas.prod_q_rhs_reindex (n := n)]
 
   -- pointwise compare factors and multiply
   apply Finset.prod_le_prod (fun _ _ => by positivity)
   intro i _
   -- target: `1 + 1/q_i ≤ 1 + (b n)^((3:ℝ)-(i:ℕ))/n`
   suffices
-      (1 : ℝ) / (exists_q_primes hn).choose i ≤ (Numerical.b n) ^ ((3 : ℝ) - (i : ℕ)) / n by
+      (1 : ℝ) / (exists_q_primes hn).choose i ≤ (ChoosePrime_lemmas.b n) ^ ((3 : ℝ) - (i : ℕ)) / n by
     linarith
 
   -- Extract the lower bound on `q_i` from `exists_q_primes`
   have hq_lower :
-      (n : ℝ) * (Numerical.b n) ^ (-((3 : ℝ) - (i : ℕ))) ≤ ((exists_q_primes hn).choose i : ℝ) := by
+      (n : ℝ) * (ChoosePrime_lemmas.b n) ^ (-((3 : ℝ) - (i : ℕ))) ≤ ((exists_q_primes hn).choose i : ℝ) := by
     -- `choose_spec.2.2.1` is the lower-bound field of `exists_q_primes`.
     -- We just rewrite `n / (1+δ)^k` as `n * (b n)^(-k)` (for k = 3,2,1).
     classical
-    have hb_pos : 0 < Numerical.b n := Numerical.b_pos (n := n) hn
+    have hb_pos : 0 < ChoosePrime_lemmas.b n := ChoosePrime_lemmas.b_pos (n := n) hn
     -- `i : Fin 3`, so `((3 : ℝ) - (i : ℕ))` is one of `3,2,1`.
     fin_cases i
     · have hx : ((0 : ℝ) - 3) = (-3 : ℝ) := by norm_num
-      simpa [hx, Numerical.b, div_eq_mul_inv, Real.rpow_neg hb_pos.le, Real.rpow_natCast] using
+      simpa [hx, ChoosePrime_lemmas.b, div_eq_mul_inv, Real.rpow_neg hb_pos.le, Real.rpow_natCast] using
         (exists_q_primes hn).choose_spec.2.2.1 (i := (0 : Fin 3))
     · have hx : ((1 : ℝ) - 3) = (-2 : ℝ) := by norm_num
-      simpa [hx, Numerical.b, div_eq_mul_inv, Real.rpow_neg hb_pos.le, Real.rpow_natCast] using
+      simpa [hx, ChoosePrime_lemmas.b, div_eq_mul_inv, Real.rpow_neg hb_pos.le, Real.rpow_natCast] using
         (exists_q_primes hn).choose_spec.2.2.1 (i := (1 : Fin 3))
     · have hx : ((2 : ℝ) - 3) = (-1 : ℝ) := by norm_num
-      simpa [hx, Numerical.b, div_eq_mul_inv, Real.rpow_neg hb_pos.le, Real.rpow_natCast] using
+      simpa [hx, ChoosePrime_lemmas.b, div_eq_mul_inv, Real.rpow_neg hb_pos.le, Real.rpow_natCast] using
         (exists_q_primes hn).choose_spec.2.2.1 (i := (2 : Fin 3))
 
   -- Convert that to a reciprocal upper bound using the Cert lemma
   have hinv :
-      (1 : ℝ) / ((exists_q_primes hn).choose i : ℝ) ≤ (Numerical.b n) ^ ((3 : ℝ) - (i : ℕ)) / n := by
-    exact Numerical.inv_le_rpow_div_of_lower_bound (hn := hn) (t := (3 : ℝ) - (i : ℕ))
+      (1 : ℝ) / ((exists_q_primes hn).choose i : ℝ) ≤ (ChoosePrime_lemmas.b n) ^ ((3 : ℝ) - (i : ℕ)) / n := by
+    exact ChoosePrime_lemmas.inv_le_rpow_div_of_lower_bound (hn := hn) (t := (3 : ℝ) - (i : ℕ))
       (q := (exists_q_primes hn).choose i) hq_lower
 
   -- finish (remove explicit casts)
@@ -300,7 +300,7 @@ theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   -- goal `LHS ≥ RHS` is definitionaly `RHS ≤ LHS`
   refine Finset.prod_le_prod
     (fun i _ => by
-      have hB : 0 < (1 + gap.δ (√(n : ℝ))) := Numerical.one_add_delta_pos (n := n) hn
+      have hB : 0 < (1 + gap.δ (√(n : ℝ))) := ChoosePrime_lemmas.one_add_delta_pos (n := n) hn
       positivity [hB])
     (fun i _ => by
       -- i is already in context; no `intro` needed
@@ -329,7 +329,7 @@ theorem prod_p_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
           ((p i * (p i + 1) : ℕ) : ℝ)
             ≤ (1 + gap.δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * (n + √n) := by
         simpa [p] using
-          Numerical.p_mul_padd1_le_bound (hn := hn)
+          ChoosePrime_lemmas.p_mul_padd1_le_bound (hn := hn)
             (p := p) hp_ub i
 
       -- turn denominator inequality into the desired factor inequality
@@ -387,8 +387,8 @@ theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
         / ∏ i, ((exists_q_primes hn).choose i : ℝ) ≥
     1 - 4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
   -- Reduce to proving the fraction is bounded above, then use antitonicity of `1 - ·`.
-  have hnpos : (0 : ℝ) < (n : ℝ) := Numerical.n_pos (n := n) hn
-  have hbpos : 0 < (1 + gap.δ (√(n : ℝ))) := Numerical.one_add_delta_pos (n := n) hn
+  have hnpos : (0 : ℝ) < (n : ℝ) := ChoosePrime_lemmas.n_pos (n := n) hn
+  have hbpos : 0 < (1 + gap.δ (√(n : ℝ))) := ChoosePrime_lemmas.one_add_delta_pos (n := n) hn
 
   have hfrac :
       ((4 : ℝ) * ∏ i, ((exists_p_primes hn).choose i : ℝ))
@@ -396,7 +396,7 @@ theorem pq_ratio_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
         ≤
       4 * (1 + gap.δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ) := by
     -- Rewrite the RHS into a product ratio that matches the pointwise `p`/`q` bounds.
-    rw [Numerical.pq_ratio_rhs_as_fraction (n := n) hn]
+    rw [ChoosePrime_lemmas.pq_ratio_rhs_as_fraction (n := n) hn]
     gcongr <;> try
     (first
       | exact (exists_p_primes hn).choose_spec.2.2.1 _
