@@ -27,7 +27,7 @@ lemma Chebyshev.theta_pos {y : ℝ} (hy : 2 ≤ y) : 0 < θ y := by
   (proof := /-- This in principle follows by establishing an analogue of Theorem \ref{chebyshev-asymptotic}, using mediumPNT in place of weakPNT. -/)
   (latexEnv := "theorem")
   (discussion := 597)]
-theorem pnt : ∃ C > 0, ∀ x ≥ 2, |θ x - x| ≤ C * x / log x ^ 2 := by sorry
+theorem pnt : ∃ C ≥ 0, ∀ x ≥ 2, |θ x - x| ≤ C * x / log x ^ 2 := by sorry
 
 @[blueprint
   "theta-stieltjes"
@@ -147,9 +147,7 @@ theorem eq_414 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) (hf : DifferentiableOn
     · exact ContinuousOn.div₀ (by fun_prop) (continuousOn_log.mono (by grind))
         (fun x hx => by linarith [Real.log_pos (by simp_all; linarith)])
     · exact (hd.continuousOn_mul (by fun_prop)).congr_ae (hoc ▸ this)
-  _ = (∫ y in 2..x, f y / log y) + 2 * f 2 / Real.log 2 +
-    f x * (θ x - x) / log x -
-    ∫ y in 2..x, (θ y - y) * deriv (fun s ↦ f s / log s) y := by ring
+  _ = _ := by ring
 
 @[blueprint
   "rs-416"
@@ -230,14 +228,15 @@ theorem bound_deriv {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) 
     congr <;> rw [norm_of_nonneg]
     · exact log_nonneg (by grind)
     · exact mul_nonneg (by grind) (pow_nonneg (log_nonneg (by grind)) 2)
-  _ = C * (1 / (a ^ 2 * log a) + 1 / (a ^ 2 * log a ^ 2)) := by field_simp
+  _ = _ := by field_simp
 
 theorem integrableOn_deriv {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {C : ℝ}
     (hC : ∀ x ∈ Set.Ici 2, |f x| ≤ C / x ∧ |deriv f x| ≤ C / x ^ 2) :
-    IntegrableOn (fun y ↦ (θ y - y) * deriv (fun t ↦ f t / log t) y) (Set.Ioi 2) volume := by
+    IntegrableOn (fun y ↦ (θ y - y) * deriv (fun t ↦ f t / log t) y) (Set.Ioi 2) volume
+    ∧ ∀ x ≥ 2, IntervalIntegrable (fun t ↦ deriv (fun s ↦ f s / Real.log s) t) volume 2 x := by
   obtain ⟨A, hA⟩ := pnt
-  refine Integrable.mono' (g := fun t => (A * C) * (1 / (t * log t ^ 3) + 1 / (t * log t ^ 4)))
-    ?_ ?_ ?_
+  refine ⟨Integrable.mono' (g := fun t => (A * C) * (1 / (t * log t ^ 3) + 1 / (t * log t ^ 4)))
+    ?_ ?_ ?_, fun x hx => ?_⟩
   · refine ((ioiIntegrable_inv_log_pow ?_ ?_).add (ioiIntegrable_inv_log_pow ?_ ?_)).const_mul
       (A * C) <;> linarith
   · exact (theta_mono.measurable.aestronglyMeasurable.sub (by fun_prop)).mul
@@ -247,9 +246,14 @@ theorem integrableOn_deriv {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.I
     _ = |(θ a - a)| * ‖deriv (fun t ↦ f t / log t) a‖ := by simp
     _ ≤ A * a / log a ^ 2 * (C * (1 / (a ^ 2 * log a) + 1 / (a ^ 2 * log a ^ 2))) := by
       gcongr
-      · exact div_nonneg (mul_nonneg hA.1.le (by grind)) (pow_nonneg (log_nonneg (by grind)) 2)
+      · exact div_nonneg (mul_nonneg hA.1 (by grind)) (pow_nonneg (log_nonneg (by grind)) 2)
       · exact hA.2 a (Set.mem_Ioi.1 ho).le
-    _ = A * C * (1 / (a * log a ^ 3) + 1 / (a * log a ^ 4)) := by field_simp
+    _ = _ := by field_simp
+  · refine (intervalIntegrable_iff_integrableOn_Ioc_of_le hx).2 (Integrable.mono'
+      (Integrable.const_mul (Integrable.add ?_ ?_) C) (aestronglyMeasurable_deriv _ _)
+      (ae_restrict_of_ae_restrict_of_subset Set.Ioc_subset_Ioi_self (bound_deriv hf hC)))
+    · simpa using intervalIntegrable_inv_log_pow 2 1 (by linarith : 1 < (2 : ℝ)) x
+    · simpa using intervalIntegrable_inv_log_pow 2 2 (by linarith : 1 < (2 : ℝ)) x
 
 @[blueprint
   "rs-415"
@@ -260,19 +264,14 @@ theorem integrableOn_deriv {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.I
   (proof := /-- Follows from Sublemma \ref{rs-414} and Definition \ref{rs-416}. -/)
   (latexEnv := "sublemma")
   (discussion := 601)]
-theorem eq_415 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x) {C : ℝ}
-    (hC : ∀ x ∈ Set.Ici 2, |f x| ≤ C / x ∧ |deriv f x| ≤ C / x ^ 2) :
+theorem eq_415 {f : ℝ → ℝ} (hf : DifferentiableOn ℝ f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x)
+    (hft : IntegrableOn (fun y ↦ (θ y - y) * deriv (fun t ↦ f t / log t) y) (Set.Ioi 2) volume)
+    (hfi : IntervalIntegrable (fun t ↦ deriv (fun s ↦ f s / Real.log s) t) volume 2 x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p = (∫ y in 2..x, f y / log y) + L f +
     f x * (θ x - x) / log x + ∫ y in Set.Ioi x, (θ y - y) * deriv (fun s ↦ f s / log s) y := by
-  have := integrableOn_deriv hf hC
-  rw [eq_414 hx (hf.mono Set.Icc_subset_Ici_self), L, ← intervalIntegral.interval_add_Ioi this
-    (this.mono_set (Set.Ioi_subset_Ioi hx))]
-  · ring
-  · refine (intervalIntegrable_iff_integrableOn_Ioc_of_le hx).2 (Integrable.mono'
-      (Integrable.const_mul (Integrable.add ?_ ?_) C) (aestronglyMeasurable_deriv _ _)
-      (ae_restrict_of_ae_restrict_of_subset Set.Ioc_subset_Ioi_self (bound_deriv hf hC)))
-    · simpa using intervalIntegrable_inv_log_pow 2 1 (by linarith : 1 < (2 : ℝ)) x
-    · simpa using intervalIntegrable_inv_log_pow 2 2 (by linarith : 1 < (2 : ℝ)) x
+  rw [eq_414 hx (hf.mono Set.Icc_subset_Ici_self) hfi, L, ← intervalIntegral.interval_add_Ioi hft
+    (hft.mono_set (Set.Ioi_subset_Ioi hx))]
+  ring
 
 @[blueprint
   "rs-417"
@@ -334,43 +333,51 @@ theorem ioiIntegral_tendsto_zero {ι E : Type*} [NormedAddCommGroup E] [NormedSp
     intervalIntegral_tendsto_integral_Ioi a hfi hb))
 
 @[blueprint
-  "rs-419"]
-theorem mertens_second_theorem : ∃ C, Filter.atTop.Tendsto (fun x : ℝ ↦
-    ∑ p ∈ filter Nat.Prime (Iic ⌊x⌋₊), 1 / (p : ℝ) - log (log x)) (𝓝 C) := by
-  have diff : DifferentiableOn ℝ (HDiv.hDiv (1 : ℝ)) (Set.Ici 2) := by fun_prop (disch := grind)
-  have bound1 {x : ℝ} (hx : x ∈ Set.Ici 2) : |1 / x| ≤ 1 / x := by
-    rw [abs_of_nonneg (one_div_nonneg.2 (by grind))]
-  have bound2 {x : ℝ} (hx : x ∈ Set.Ici 2) : |deriv (HDiv.hDiv 1) x| ≤ 1 / x ^ 2 := by
-    rw [deriv_fun_div (differentiableAt_const 1) differentiableAt_id (by grind), abs_div]
+  "Meissel-Mertens-constant"
+  (title := "Meissel-Mertens constant B")
+  (statement := /--
+  $B := \lim_{x \to \infty} \left( \sum_{p \leq x} \frac{1}{p} - \log \log x \right)$. -/)]
+noncomputable def _root_.meisselMertensConstant : ℝ := - log (log 2) + L (fun x => 1 / x)
+
+theorem integrableOn_deriv_inv : IntegrableOn (fun y ↦ (θ y - y) *
+    deriv (fun t ↦ 1 / t / Real.log t) y) (Set.Ioi 2) volume ∧
+    ∀ x ≥ 2, IntervalIntegrable (fun t ↦ deriv (fun s ↦ 1 / s / Real.log s) t) volume 2 x := by
+  refine integrableOn_deriv (C := 1) (by fun_prop (disch := grind)) (fun x hx => ⟨?_, ?_⟩)
+  · rw [abs_of_nonneg (one_div_nonneg.2 (by grind))]
+  · rw [deriv_fun_div (differentiableAt_const 1) differentiableAt_id (by grind), abs_div]
     simp
-  have : ∀ᶠ x in atTop, - log (log 2) + L (fun x => 1 / x) + (1 / x * (θ x - x) / log x +
+
+theorem meisselMertensConstant_identity {x : ℝ} (hx : 2 ≤ x) :
+    ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / (p : ℝ) =
+    log (log x) + meisselMertensConstant + (θ x - x) / (x * log x) +
+    ∫ y in Set.Ioi x, (θ y - y) * deriv (fun s ↦ 1 / s / Real.log s) y := by
+  rw [eq_415 (by fun_prop (disch := grind)) hx integrableOn_deriv_inv.1
+    (integrableOn_deriv_inv.2 x hx), integral_eq_loglog hx, meisselMertensConstant]
+  ring
+
+@[blueprint
+  "rs-419"]
+theorem mertens_second_theorem : Filter.atTop.Tendsto (fun x : ℝ ↦
+    ∑ p ∈ filter Nat.Prime (Iic ⌊x⌋₊), 1 / (p : ℝ) - log (log x)) (𝓝 meisselMertensConstant) := by
+  have lem : ∀ᶠ x in atTop, meisselMertensConstant + ((θ x - x) / (x * log x) +
     ∫ y in Set.Ioi x, (θ y - y) * deriv (fun s ↦ 1 / s / Real.log s) y) =
     ∑ p ∈ filter Nat.Prime (Iic ⌊x⌋₊), 1 / (p : ℝ) - log (log x):= by
     filter_upwards [Ici_mem_atTop 2] with y hy
-    rw [eq_415 diff hy (fun t ht => ⟨bound1 ht, bound2 ht⟩), integral_eq_loglog hy]
+    rw [meisselMertensConstant_identity hy]
     ring
-  refine ⟨- log (log 2) + L (fun x => 1 / x) + (0 + 0), Tendsto.congr' this (tendsto_const_nhds.add
-    (Tendsto.add ?_ (ioiIntegral_tendsto_zero 2 ?_ tendsto_id)))⟩
+  rw [← add_zero meisselMertensConstant, ← add_zero 0]
+  refine (tendsto_const_nhds.add (Tendsto.add ?_
+    (ioiIntegral_tendsto_zero 2 integrableOn_deriv_inv.1 tendsto_id))).congr' lem
   · obtain ⟨C, hC⟩ := pnt
     refine squeeze_zero_norm' (a := fun x => C / Real.log x ^ 3) ?_ ?_
     · filter_upwards [Ici_mem_atTop 2] with y hy
       have h1 {y : ℝ} (hy : y ∈ Set.Ici 2) : 0 < y := by grind
       have h2 {y : ℝ} (hy : y ∈ Set.Ici 2) : 0 ≤ log y := log_nonneg (by grind)
-      simp only [one_div, norm_div, norm_mul, norm_inv, norm_of_nonneg (h1 hy).le, norm_eq_abs,
-        norm_of_nonneg (h2 hy)]
+      simp only [norm_div, norm_mul, norm_of_nonneg (h1 hy).le, norm_eq_abs, norm_of_nonneg (h2 hy)]
       grw [hC.2 y hy]
-      · field_simp (disch := grind); rfl
-      · exact h2 hy
-      · simp [(h1 hy).le]
+      · rw [div_right_comm, ← div_div, mul_div_cancel_right₀ _ (by grind)]; field_simp; rfl
+      · exact mul_nonneg (h1 hy).le (h2 hy)
     · exact ((tendsto_pow_atTop (by linarith : 3 ≠ 0)).comp tendsto_log_atTop).const_div_atTop C
-  · exact integrableOn_deriv (C := 1) diff (fun x hx => ⟨bound1 hx, bound2 hx⟩)
-
-@[blueprint
-  "Meissel-Mertens-constant"
-  (title := "Meissel-Mertens constant B")
-  (statement := /--
-  $B := \lim_{x \to \infty} \left( \sum_{p \leq x} \frac{1}{p} - \log \log x \right)$. -/)]
-noncomputable def _root_.meisselMertensConstant : ℝ := mertens_second_theorem.choose
 
 @[blueprint
   "rs-419"
@@ -385,14 +392,43 @@ noncomputable def _root_.meisselMertensConstant : ℝ := mertens_second_theorem.
 theorem eq_419 {x : ℝ} (hx : 2 ≤ x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / (p : ℝ) =
     log (log x) + meisselMertensConstant + (θ x - x) / (x * log x)
-    - ∫ y in 2..x, (θ y - y) * (1 + log y) / (y ^ 2 * log y ^ 2) := by
-  sorry
+    - ∫ y in Set.Ioi x, (θ y - y) * (1 + log y) / (y ^ 2 * log y ^ 2) := by
+  simp_rw [meisselMertensConstant_identity hx, sub_eq_add_neg _ (∫ y in Set.Ioi x, _),
+    ← integral_neg, ← div_neg, mul_div_assoc]
+  have : ∫ (y : ℝ) in Set.Ioi x, (θ y - y) * deriv (fun s ↦ 1 / s / Real.log s) y =
+    ∫ (a : ℝ) in Set.Ioi x, (θ a - a) * ((1 + Real.log a) / -(a ^ 2 * Real.log a ^ 2)) := by
+    refine setIntegral_congr_fun measurableSet_Ioi fun y hy => mul_eq_mul_left_iff.2 (Or.inl ?_)
+    have := deriv_fun_inv'' (y.hasDerivAt_mul_log (by grind)).differentiableAt
+      (mul_ne_zero_iff.2 ⟨by grind, by linarith [Real.log_pos (by grind : 1 < y)]⟩)
+    simp_all [deriv_mul_log (by grind : y ≠ 0), div_eq_mul_inv, mul_comm]
+    ring
+  congr
 
 @[blueprint
   "rs-419"]
 theorem mertens_second_theorem' :
-    ∃ C, ∀ x, |∑ p ∈ filter Prime (range ⌊x⌋₊), 1 / (p : ℝ) - log (log x)| ≤ C := by
-  sorry
+    ∃ C, ∀ x ≥ 2, |∑ p ∈ filter Prime (Iic ⌊x⌋₊), 1 / (p : ℝ) - log (log x)| ≤ C := by
+  obtain ⟨C, hC⟩ := pnt
+  refine ⟨|meisselMertensConstant| + C / Real.log 2 ^ 3 +
+    ∫ y in Set.Ioi 2, |(θ y - y) * deriv (fun t ↦ 1 / t / Real.log t) y|, fun x hx => ?_⟩
+  calc
+  _ ≤ |meisselMertensConstant + (θ x - x) / (x * log x)
+    + ∫ y in Set.Ioi x, (θ y - y) * deriv (fun t ↦ 1 / t / Real.log t) y| := by
+    rw [meisselMertensConstant_identity hx]; ring_nf; rfl
+  _ ≤ |meisselMertensConstant| + |(θ x - x) / (x * log x)|
+    + ∫ y in Set.Ioi x, |(θ y - y) * deriv (fun t ↦ 1 / t / Real.log t) y| := by
+    grw [sub_eq_add_neg, abs_add_le, abs_add_le, abs_integral_le_integral_abs]
+  _ ≤ _ := by
+    gcongr
+    · grw [abs_div, hC.2 x hx, abs_of_nonneg (mul_nonneg (by grind) (log_nonneg (by grind))),
+        div_right_comm, ← div_div, mul_div_cancel_right₀ _ (by grind)]
+      ring_nf
+      gcongr
+      · exact hC.1
+      · exact inv_nonneg.2 (log_nonneg (by grind))
+    · filter_upwards with a
+      apply abs_nonneg
+    · exact integrableOn_deriv_inv.1.abs
 
 @[blueprint
   "rs-420"]
