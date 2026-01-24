@@ -104,14 +104,37 @@ lemma delta_twelfth_power_le_n_pow_3_div_2 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
    sorry
 
 
+/- Lemmas to prove the final criterion theorem main_ineq_delta_form -/
+
+
 noncomputable abbrev eps_log : ℝ := (0.000675 : ℝ)
 noncomputable abbrev onePlusEps_log : ℝ := (1 : ℝ) + eps_log
+
+
+/- `main_ineq_delta_form_lhs` `main_ineq_delta_form_rhs` sub-lemmas -/
+lemma eps_log_bound {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    δ (√(n : ℝ)) ≤ (0.000675 : ℝ) := by
+    sorry
+
+lemma inv_n_pow_3_div_2_le_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (1 / (n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (X₀ : ℝ)) * (1 / n) := by
+    sorry
+
+lemma inv_n_add_sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (1 / ((n : ℝ) + √(n : ℝ))) ≥ (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) := by
+    sorry
+
+/- End of `main_ineq_delta_form_lhs` `main_ineq_delta_form_rhs` sub-lemmas -/
 
 lemma main_ineq_delta_form_lhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (∏ i : Fin 3,
         (1 + (1 + δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
       ≤ (∏ i : Fin 3,
         (1 + onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ))) := by
+    /- *** Proof idea ***
+    We use lemma eps_log_bound to bound δ(√n) by 0.000675,
+    and then compare term-by-term in the product (use positivity of all terms).
+    -/
     sorry
 
 
@@ -126,6 +149,15 @@ lemma main_ineq_delta_form_rhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
           ((onePlusEps_log) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
       * (1 + (3 : ℝ) / (8 * (n : ℝ)))
       * (1 - 4 * (onePlusEps_log) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ))) := by
+    /- *** Proof idea ***
+    Compare term-by-term in the product using positivity of all terms
+      · first term is positive since δ is nonnegative (δ_nonneg)
+      · second term is obvious positive
+      · third term is positive using delta_twelfth_power_le_n_pow_3_div_2
+    First term uses eps_log_bound and inv_n_add_sqrt_ge_X₀ to bound δ(√n) by 0.000675
+    Last term uses delta_twelfth_power_le_n_pow_3_div_2 and inv_n_pow_3_div_2_le_X₀ to bound
+      4 * (1 + δ(√n))^12 / n^(3/2) by 4 * (1 + 0.000675)^12 * 1 / (X₀ : ℝ) * 1 / (n : ℝ)
+    -/
     sorry
 
 
@@ -158,6 +190,12 @@ theorem main_ineq_delta_form {n : ℕ} (hn : n ≥ X₀ ^ 2) :
           ((1 + δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
       * (1 + (3 : ℝ) / (8 * (n : ℝ)))
       * (1 - 4 * (1 + δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+  /- *** Proof idea ***
+    We bound the LHS from above (main_ineq_delta_form_lhs)
+    and the RHS from below (main_ineq_delta_form_rhs),
+    then reduce to comparing polynomials in ε = 1/n,
+    which is done via prod_epsilon_le, prod_epsilon_ge, and final_comparison.
+  -/
    sorry
 
 
