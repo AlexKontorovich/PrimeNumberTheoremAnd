@@ -12,6 +12,11 @@ abbrev X₀ : ℕ := 89693
 noncomputable abbrev δ (x : ℝ) : ℝ := 1 / (Real.log x) ^ (3 : ℝ)
 @[simp] lemma δ_def (x : ℝ) : δ x = 1 / (Real.log x) ^ (3 : ℝ) := rfl
 
+/- TO-DO: Some of the lemmas, especially the theorem comparison ones
+    can probably be made more elegant by using `Real.rpow` lemmas
+    instead of unfolding the definition each time.  -/
+lemma h_X₀ : X₀ > 1 := by norm_num [X₀]
+
 lemma δ_nonneg {x : ℝ} (hx : (X₀ : ℝ) ≤ x) : 0 ≤ δ x := by
   have hx1 : (1 : ℝ) ≤ x := by
     have hX₀ : (1 : ℝ) ≤ (X₀ : ℝ) := by
@@ -25,7 +30,7 @@ lemma δ_nonneg {x : ℝ} (hx : (X₀ : ℝ) ≤ x) : 0 ≤ δ x := by
     exact div_nonneg (by exact zero_le_one) hpow
   simpa [δ] using hδ
 
-theorem gap_strictly_decreasing {x y : ℝ}
+lemma gap_strictly_decreasing {x y : ℝ}
     (hx : (X₀ : ℝ) ≤ x) (hy : (X₀ : ℝ) ≤ y) (hxy : x < y) :
     δ y < δ x := by
   have hX0_gt1 : (1 : ℝ) < (X₀ : ℝ) := by
@@ -48,7 +53,7 @@ theorem gap_strictly_decreasing {x y : ℝ}
   simpa [δ, one_div] using hdiv
 
 
-theorem delta_sixth_power_lt_sqrt {x : ℝ} (hx : (X₀ : ℝ) ≤ x) :
+lemma delta_sixth_power_lt_sqrt {x : ℝ} (hx : (X₀ : ℝ) ≤ x) :
     δ x ^ (6 : ℝ) < Real.sqrt x := by
   have hx_ge3 : (3 : ℝ) ≤ x := by
     have hX₀_ge3 : (3 : ℝ) ≤ (X₀ : ℝ) := by
@@ -91,10 +96,69 @@ theorem delta_sixth_power_lt_sqrt {x : ℝ} (hx : (X₀ : ℝ) ≤ x) :
 
   exact lt_trans hδ_pow_lt_one hsqrt_gt_one
 
-theorem delta_twelfth_power_le_n_pow_3_div_2 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+lemma delta_twelfth_power_le_n_pow_3_div_2 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     4 * (1 + δ (√(n : ℝ))) ^ 12 ≤ n ^ (3 / 2 : ℝ) := by
+  /- given that delta is 1/log^3(x) so is monotone,
+  the proof should reduce to compare the values at X₀
+  -/
+   sorry
+
+
+noncomputable abbrev eps_log : ℝ := (0.000675 : ℝ)
+noncomputable abbrev onePlusEps_log : ℝ := (1 : ℝ) + eps_log
+
+lemma main_ineq_delta_form_lhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (∏ i : Fin 3,
+        (1 + (1 + δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
+      ≤ (∏ i : Fin 3,
+        (1 + onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ))) := by
     sorry
 
+
+lemma main_ineq_delta_form_rhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (∏ i : Fin 3,
+        (1 + 1 /
+          ((1 + δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+      * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+      * (1 - 4 * (1 + δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ))
+    ≥ (∏ i : Fin 3,
+        (1 + 1 /
+          ((onePlusEps_log) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+      * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+      * (1 - 4 * (onePlusEps_log) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ))) := by
+    sorry
+
+
+lemma prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
+    ∏ i : Fin 3, (1 + onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) * ε) ≤
+      1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 := by
+  norm_cast; norm_num [Fin.prod_univ_three]; nlinarith
+
+
+lemma prod_epsilon_ge {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
+    (∏ i : Fin 3,
+      (1 + ε / (onePlusEps_log ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 / (1 + 1/X₀)))) *
+        (1 + (3 : ℝ) / 8 * ε) * (1 - 4 * onePlusEps_log ^ 12 / X₀ * ε) ≥
+      1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
+  norm_cast; norm_num [Fin.prod_univ_three]
+  dsimp [X₀] at *
+  nlinarith [pow_nonneg hε.left 3, pow_nonneg hε.left 4]
+
+lemma final_comparison {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
+    1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 ≤ 1 + 3.36683 * ε - 0.01 * ε ^ 2 := by
+    dsimp [X₀] at *
+    nlinarith
+
+theorem main_ineq_delta_form {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    (∏ i : Fin 3,
+        (1 + (1 + δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
+      ≤
+    (∏ i : Fin 3,
+        (1 + 1 /
+          ((1 + δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+      * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+      * (1 - 4 * (1 + δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+   sorry
 
 
 
