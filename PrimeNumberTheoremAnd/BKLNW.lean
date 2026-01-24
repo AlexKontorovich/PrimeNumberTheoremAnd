@@ -650,6 +650,7 @@ theorem thm_1a_table {X₀ m₀ M₀ : ℝ} (h : (X₀, M₀, m₀) ∈ Table_14
   x * (1 - m₀) ≤ θ x ∧ θ x ≤ x * (1 + M₀) :=
   by sorry
 
+/- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
 @[blueprint
   "bklnw-thm-1b"
   (title := "Theorem 1b")
@@ -667,6 +668,7 @@ theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ x : ℝ} (hX₀ : X₀ > 1) (
     (hx₁ : x ≥ X₁) : ∃ mₖ Mₖ, (x * (1 - mₖ / (log x)^k) ≤ θ x) ∧ (θ x ≤ x * (1 + Mₖ / (log x)^k)) := by
   sorry
 
+/- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
 @[blueprint
   "bklnw-thm-1b"
   (title := "Theorem 1b")
