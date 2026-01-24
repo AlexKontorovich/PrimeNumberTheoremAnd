@@ -650,12 +650,13 @@ theorem thm_1a_table {X₀ m₀ M₀ : ℝ} (h : (X₀, M₀, m₀) ∈ Table_14
   x * (1 - m₀) ≤ θ x ∧ θ x ≤ x * (1 + M₀) :=
   by sorry
 
+/- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
 @[blueprint
   "bklnw-thm-1b"
-  (title := "BKLNW Theorem 1b")
-  (statement := /--  Let $k$ be an integer with $1 \leq k \leq 5$. For any fixed $X_0 \geq 1$, there exists $m_k > 0$ such that, for all $x \geq X_0$
+  (title := "Theorem 1b")
+  (statement := /--  Let $k$ be an integer with $1 \leq k \leq 5$. For any fixed $X_0 > 1$, there exists $m_k > 0$ such that, for all $x \geq X_0$
   $$ x(1 - \frac{m_k}{(\log x)^k}) \leq \theta(x). $$
-  For any fixed $X_1 \geq 1$, there exists $M_k > 0$ such that, for all $x \geq X_1$
+  For any fixed $X_1 > 1$, there exists $M_k > 0$ such that, for all $x \geq X_1$
   $$ \theta(x) \leq x(1 + \frac{M_k}{(\log x)^k}). $$
   In the case $k = 0$ and $X_0, X_1 \geq e^{20}$, we have
   $$ m_0 = \varepsilon(\log X_0) + 1.03883 \left( X_0^{-1/2} + X_0^{-2/3} + X_0^{-4/5} \right) $$
@@ -663,18 +664,21 @@ theorem thm_1a_table {X₀ m₀ M₀ : ℝ} (h : (X₀, M₀, m₀) ∈ Table_14
   $$ M_0 = \varepsilon(\log X_1). $$
   -/)
   (latexEnv := "theorem")]
-theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ x : ℝ} (hx₀ : x ≥ X₀) (hx₁ : x ≥ X₁) : ∃ mₖ Mₖ,
-  (x * (1 - mₖ / (log x)^k) ≤ θ x) ∧ (θ x ≤ x * (1 + Mₖ / (log x)^k)) := by sorry
+theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ x : ℝ} (hX₀ : X₀ > 1) (hX₁ : X₁ > 1) (hx₀ : x ≥ X₀)
+    (hx₁ : x ≥ X₁) : ∃ mₖ Mₖ, (x * (1 - mₖ / (log x)^k) ≤ θ x) ∧ (θ x ≤ x * (1 + Mₖ / (log x)^k)) := by
+  sorry
 
+/- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
 @[blueprint
   "bklnw-thm-1b-table"
   (title := "BKLNW Theorem 1b, table form")
   (statement := /--  See \cite[Table 15]{BKLNW} for values of $m_k$ and $M_k$, for $k \in \{1,2,3,4,5\}$.
   -/)
   (latexEnv := "theorem")]
-theorem thm_1b_table {X₀ : ℝ} {M : Fin 5 → ℝ} (h : (X₀, M) ∈ Table_15) (k : Fin 5) {x : ℝ} (hx : x ≥ X₀) :
-  x * (1 - M k / (log x)^(k.val + 1)) ≤ θ x ∧ θ x ≤ x * (1 + M k / (log x)^(k.val + 1)) :=
-  by sorry
+theorem thm_1b_table {X₀ : ℝ} (hX₀ : X₀ > 1) {M : Fin 5 → ℝ} (h : (X₀, M) ∈ Table_15) (k : Fin 5)
+    {x : ℝ} (hx : x ≥ X₀) :
+    x * (1 - M k / (log x)^(k.val + 1)) ≤ θ x ∧ θ x ≤ x * (1 + M k / (log x)^(k.val + 1)) := by
+  sorry
 
 
 end BKLNW
