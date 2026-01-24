@@ -6,14 +6,27 @@ import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 blueprint_comment /--
 \section{The implications of FKS2}
 
-In this file we record the implications in the paper \cite{FKS2}.  Roughly speaking, this paper has two components: a "$\psi$ to $\theta$ pipeline" that converts estimates on the first Chebyshev function $\psi$ to estimates on the second Chebyshev function $\theta$; and a "$\theta$ to $\pi$ pipeline" that converts estimates on $\theta$ to estimates on the prime counting function $\pi$.  Each pipeline converts "admissible classical bounds" (Definition \ref{fks2-def-admissible-classical-bound}) of one function to admissible classical bounds of the next function in the pipeline.
+In this file we record the implications in the paper \cite{FKS2}.  Roughly speaking, this paper has two components: a "$\psi$ to $\theta$ pipeline" that converts estimates on the error $E_\psi(x) = |\psi(x)-x|/x$ in the prime number theorem for the first Chebyshev function $\psi$ to estimates on the error $E_\theta(x) = |\theta(x)-x|/x$ in the prime number theorem for the second Chebyshev function $\theta$; and a "$\theta$ to $\pi$ pipeline" that converts estimates $E_\theta$ to estimates on the error $E_\pi(x) = |\pi(x) - \Li(x)|/(x/\log x)$ in the prime number theorem for the prime counting function $\pi$.  Each pipeline converts "admissible classical bounds" (Definitions \ref{classical-bound-psi} \ref{classical-bound-theta}, \ref{classical-bound-pi}) of one error to admissible classical bounds of the next error in the pipeline.
 
-Many of the results in this file only hold for $x$ above a certain threshold.  In order to lower these thresholds, this paper also imports multiple results (often numerical) from other papers to cover medium and small values of $x$.
+There are two types of bounds considered here.  The first are asymptotic bounds of the form
+$$ E_\psi(x), E_\theta(x), E_\pi(x) \leq A \left(\frac{\log x}{R}\right)^B \exp\left(-C \left(\frac{\log x}{R}\right)^{1/2}\right) $$
+for various $A,B,C,R$ and all $x \geq x_0$.  The second are numerical bounds of the form
+$$ E_\psi(x), E_\theta(x), E_\pi(x) \leq \varepsilon_{num}(x_0) $$
+for all $x \geq x_0$ and certain specific numerical choices of $x_0$ and $\varepsilon_{num}(x_0)$.  One needs to merge these bounds together to obtain the best final results.
+
 -/
 
 open Real MeasureTheory Chebyshev
 
 namespace FKS2
+
+blueprint_comment /--
+\subsection{Basic estimates on the error bound g}
+
+Our asymptotic bounds can be described using a certain function $g$.  Here we define $g$ and record its basic properties.
+
+-/
+
 
 @[blueprint
   "fks2-eq-16"
@@ -22,61 +35,6 @@ namespace FKS2
   For any $a,b,c,x \in \mathbb{R}$ we define
   $g(a,b,c,x) := x^{-a} (\log x)^b \exp( c (\log x)^{1/2} )$. -/)]
 noncomputable def g_bound (a b c x : ℝ) : ℝ := x^(-a) * (log x)^b * exp (c * sqrt (log x))
-
-@[blueprint
-  "fks2-eq-17"
-  (title := "FKS2 equation (17)")
-  (statement := /--
-  For any $2 \leq x_0 < x$ one has
-  $$ (\pi(x) - \Li(x)) - (\pi(x_0) - \Li(x_0)) = \frac{\theta(x) - x}{\log x}
-    - \frac{\theta(x_0) - x_0}{\log x_0} + \int_{x_0}^x \frac{\theta(t) - t}{t \log^2 t} dt.$$ -/)
-  (proof := /-- This follows from Sublemma \ref{rs-417}. -/)
-  (latexEnv := "sublemma")
-  (discussion := 609)]
-theorem eq_17 {x₀ x : ℝ} (hx₀ : 2 ≤ x₀) (hx : x₀ < x) :
-    (pi x - Li x) - (pi x₀ - Li x₀) =
-    (θ x - x) / log x - (θ x₀ - x₀) / log x₀ +
-    ∫ t in x₀..x, (θ t - t) / (t * log t ^ 2) :=
-  have px : 2 ≤ x := by linarith
-  have l0 {x} (hx : 2 ≤ x) : ContinuousOn (fun t ↦ (t * log t ^ 2)⁻¹) (Set.uIcc 2 x) := by
-    refine ContinuousOn.inv₀ (continuousOn_id.mul (ContinuousOn.pow (ContinuousOn.log
-      continuousOn_id fun y hy ↦ ?_) 2)) fun y hy ↦ ?_
-    repeat simp_all; grind
-  have l1 {x} (hx : 2 ≤ x) : IntervalIntegrable (fun t ↦ θ t / (t * log t ^ 2)) volume 2 x := by
-    simpa [div_eq_mul_inv] using IntervalIntegrable.mul_continuousOn
-      theta_mono.intervalIntegrable (l0 hx)
-  have l2 {x} (hx : 2 ≤ x) : IntervalIntegrable (fun t ↦ t / (t * log t ^ 2)) volume 2 x := by
-    simpa [div_eq_mul_inv] using IntervalIntegrable.mul_continuousOn
-      intervalIntegral.intervalIntegrable_id (l0 hx)
-  have hL {x} (hx : 2 ≤ x) : Li x = x / log x - 2 / log 2 + ∫ t in 2..x, 1 / (log t ^ 2) := by
-    have hnt {t} (ht : t ∈ Set.uIcc 2 x) : t ≠ 0 := by simp_all; linarith
-    rw [Li, funext fun t ↦ (mul_one (1 / log t)).symm,
-    intervalIntegral.integral_mul_deriv_eq_deriv_mul (u := fun t ↦ 1 / log t)
-    (u' := fun t ↦ -(1 / t) / log t ^ 2) _ (fun t _ ↦ hasDerivAt_id' t) _
-    intervalIntegrable_const]
-    · suffices ∫ (x : ℝ) in 2..x, - (1 / x) / log x ^ 2 * x
-        = ∫ (x : ℝ) in 2..x, - (1 / (log x ^ 2)) from by
-        rw [this, intervalIntegral.integral_neg]; ring
-      refine intervalIntegral.integral_congr fun t ht ↦ ?_
-      ring_nf
-      rw [mul_inv_cancel₀ (hnt ht), one_mul]
-    · intro t ht
-      simpa using HasDerivAt.inv (hasDerivAt_log (hnt ht)) (by simp_all; grind)
-    · simp only [neg_div, div_div]
-      simpa using (l0 hx).intervalIntegrable.neg
-  have he {x} (hx : 2 ≤ x) : pi x - Li x = (θ x - x) / log x + 2 / log 2
-    + ∫ t in 2..x, (θ t - t) / (t * log t ^ 2) := by
-    simp only [RS_prime.eq_417 hx, hL hx, sub_div, intervalIntegral.integral_sub (l1 hx) (l2 hx)]
-    rw [intervalIntegral.integral_congr fun t ht ↦ div_mul_cancel_left₀ _ ((log t) ^ 2)]
-    · ring_nf
-    · simp_all; grind
-  calc
-  _ = (θ x - x) / log x - (θ x₀ - x₀) / log x₀ + ((∫ t in 2..x, (θ t - t) / (t * log t ^ 2)) -
-    ∫ t in 2..x₀, (θ t - t) / (t * log t ^ 2)) := by rw [he px, he hx₀]; ring
-  _ = (θ x - x) / log x - (θ x₀ - x₀) / log x₀ + ∫ t in x₀..x, (θ t - t) / (t * log t ^ 2) := by
-    rw [intervalIntegral.integral_interval_sub_left]
-    · simpa [sub_div] using IntervalIntegrable.sub (l1 px) (l2 px)
-    · simpa [sub_div] using IntervalIntegrable.sub (l1 hx₀) (l2 hx₀)
 
 @[blueprint
   "fks2-lemma-10-substep"
@@ -232,6 +190,10 @@ theorem corollary_11 {B C R : ℝ} (hR : R > 0) (hB : B > 1 + C ^ 2 / (16 * R)) 
   rw [div_pow, sq_sqrt hR.le, mul_one]
   linarith [show C ^ 2 / R / 16 = C ^ 2 / (16 * R) by ring]
 
+blueprint_comment /--
+When integrating expressions involving $g$, the Dawson function naturally appears; and we need to record some basic properties about it.
+-/
+
 @[blueprint
   "fks2-eq-19"
   (title := "Dawson function, FKS2 (19)")
@@ -254,42 +216,12 @@ theorem remark_after_corollary_11 :
     ∃ x₀ : ℝ, x₀ ∈ Set.Icc 0.924 0.925 ∧ (∀ x, dawson x ≤ dawson x₀) ∧
       StrictAntiOn dawson (Set.Ioi x₀) := sorry
 
-@[blueprint
-  "fks2-lemma-12"
-  (title := "FKS2 Lemma 12")
-  (statement := /--
-  Suppose that $E_\theta$ satisfies an admissible classical bound with parameters $A,B,C,R,x_0$.
-  Then, for all $x \geq x_0$,
-  $$ \int_{x_0}^x \left|\frac{E_\theta(t)}{\log^2 t} dt\right| \leq \frac{2A}{R^B} x m(x_0,x)
-    \exp\left(-C \sqrt{\frac{\log x}{R}}\right) D_+\left( \sqrt{\log x} - \frac{C}{2\sqrt{R}} \right)$$
-  where
-  $$ m(x_0,x) = \max ( (\log x_0)^{(2B-3)/2}, (\log x)^{(2B-3)/2} ). $$
-  -/)
-  (proof := /-- Since $\varepsilon_{\theta,\mathrm{asymp}}(t)$ provides an admissible bound on $\theta(t)$ for all $t \geq x_0$, we have
-\[
-\int_{x_0}^{x} \left| \frac{\theta(t) - t}{t(\log(t))^2} \right| dt \leq \int_{x_0}^{x} \frac{\varepsilon_{\theta,\mathrm{asymp}}(t)}{(\log(t))^2} = \frac{A_\theta}{R^B} \int_{x_0}^{x} (\log(t))^{B-2} \exp\left( -C\sqrt{\frac{\log(t)}{R}} \right) dt.
-\]
-We perform the substitution $u = \sqrt{\log(t)}$ and note that $u^{2B-3} \leq m(x_0, x)$ as defined in (21). Thus the above is bounded above by
-\[
-\frac{2A_\theta m(x_0, x)}{R^B} \int_{\sqrt{\log(x_0)}}^{\sqrt{\log(x)}} \exp\left( u^2 - \frac{Cu}{\sqrt{R}} \right) du.
-\]
-Then, by completing the square $u^2 - \frac{Cu}{\sqrt{R}} = \left( u - \frac{C}{2\sqrt{R}} \right)^2 - \frac{C^2}{4R}$ and doing the substitution $v = u - \frac{C}{2\sqrt{R}}$, the above becomes
-\[
-\frac{2A_\theta m(x_0, x)}{R^B} \exp\left( -\frac{C^2}{4R} \right) \int_{\sqrt{\log(x_0)} - \frac{C}{2\sqrt{R}}}^{\sqrt{\log(x)} - \frac{C}{2\sqrt{R}}} \exp(v^2) \, dv.
-\]
-Now we have
-\begin{align*}
-\int_{\sqrt{\log(x_0)} - \frac{C}{2\sqrt{R}}}^{\sqrt{\log(x)} - \frac{C}{2\sqrt{R}}} \exp(v^2) \, dv &\leq \int_{0}^{\sqrt{\log(x)} - \frac{C}{2\sqrt{R}}} \exp(v^2) \, dv \\
-&= x \exp\left( \frac{C^2}{4R} \right) \exp\left( -C\sqrt{\frac{\log(x)}{R}} \right) D_+\left( \sqrt{\log(x)} - \frac{C}{2\sqrt{R}} \right).
-\end{align*}
-Combining the above completes the proof. -/)
-  (latexEnv := "lemma")
-  (discussion := 617)]
-theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀) (hx : x ≥ x₀) :
-  ∫ t in x₀..x, |Eθ t| / log t ^ 2 ≤
-    (2 * A) / (R ^ B) * x * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) *
-    exp (-C * sqrt (log x / R)) * dawson (sqrt (log x) - C / (2 * sqrt R)) :=
-  sorry
+
+blueprint_comment /--
+\subsection{From asymptotic estimates on psi to asymptotic estimates on theta}
+
+To get from asymptotic estimates on $E_\psi$ to asymptotic estimates on $E_\theta$, the paper cites results and arguments from the previous paper \cite{BKLNW}, which is treated elsewhere in this blueprint.
+-/
 
 noncomputable def ν_asymp (Aψ B C R x₀ : ℝ) : ℝ :=
   (1 / Aψ) * (R / log x₀) ^ B * exp (C * sqrt (log x₀ / R)) *
@@ -331,111 +263,6 @@ theorem proposition_13
   (discussion := 672)]
 theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := sorry
 
-
-@[blueprint
-  "fks2-eq-9"
-  (title := "mu asymptotic function, FKS2 (9)")
-  (statement := /--
-  For $x_0,x_1 > 0$, we define
-  $$ \mu_{asymp}(x_0,x_1) := \frac{x_0 \log(x_1)}{\epsilon_{\theta,asymp}(x_1) x_1 \log(x_0)}
-    \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right| +
-    \frac{2D_+(\sqrt{\log(x_1)} - \frac{C}{2\sqrt{R}}}{\sqrt{\log x_1}}$$.
-  -/)]
-noncomputable def μ_asymp (A B C R x₀ x₁ : ℝ) : ℝ :=
-  (x₀ * log x₁) / ((admissible_bound A B C R x₁) * x₁ * log x₀) * |Eπ x₀ - Eθ x₀| +
-    2 * (dawson (sqrt (log x₁) - C / (2 * sqrt R))) / (sqrt (log x₁))
-
-@[blueprint
-  "fks2-def-5"
-  (title := "FKS2 Definition 5")
-  (statement := /--
-  Let $x_0 > 2$. We say a (step) function $ε_{\diamond,num}(x_0)$ gives an admissible numerical
-  bound for $E_\diamond(x)$ if $E_\diamond(x) \leq ε_{\diamond,num}(x_0)$ for all $x \geq x_0$. -/)]
-def _root_.Eπ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ (ε x₀)
-
-def _root_.Eθ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop := ∀ x ≥ x₀, Eθ x ≤ (ε x₀)
-
-@[blueprint
-  "fks2-eq-11"
-  (title := "FKS2 equation (11)")
-  (statement := /--
-  For $x_1 \leq x_2 \leq x_1 \log x_1$, we define
-  $$ \mu_{num}(x_0,x_1,x_2) := \frac{x_0 \log(x_1)}{\epsilon_{\theta,num}(x_1) x_1 \log(x_0)}
-    \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right| +
-    \frac{\log(x_1)}{\epsilon_{\theta,num}(x_1) x_1}
-    \sum_{i=0}^{N-1} \epsilon_{\theta,num}(e^{b_i})
-    \left( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}} \right) +
-    \frac{\log(x_2)}{x_2} \left( \Li(x_2) - \frac{x_2}{\log x_2} - \Li(x_1) + \frac{x_1}{\log x_1} \right).$$
-   -/)]
-noncomputable def μ_num_1 {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ → ℝ) (x₀ x₁ x₂ : ℝ) : ℝ :=
-  (x₀ * log x₁) / (εθ_num x₁ * x₁ * log x₀) * |Eπ x₀ - Eθ x₀| +
-  (log x₁) / (εθ_num x₁ * x₁) *
-    (∑ i ∈ Finset.Iio (Fin.last N), εθ_num (exp (b i)) *
-      (Li (exp (b (i + 1))) - Li (exp (b i)) +
-      exp (b i) / b i - exp (b (i + 1)) / b (i + 1))) +
-    (log x₂) / x₂ * (Li x₂ - x₂ / log x₂ - Li x₁ + x₁ / log x₁)
-
-@[blueprint
-  "fks2-eq-12"
-  (title := "FKS2 equation (12)")
-  (statement := /--
-  For $x_2 \geq x_1 \log x_1$, we define
-  $$ \mu_{num}(x_0,x_1) := \frac{x_0 \log(x_1)}{\epsilon_{\theta,num}(x_1) x_1 \log(x_0)}
-    \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right| +
-    \frac{\log(x_1)}{\epsilon_{\theta,num}(x_1) x_1}
-    \sum_{i=0}^{N-1} \epsilon_{\theta,num}(e^{b_i})
-    \left( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}} \right) +
-    \frac{1}{\log x_1 + \log(\log x_1) - 1}.$$
-   -/)]
-noncomputable def μ_num_2 {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ → ℝ) (x₀ x₁ : ℝ) : ℝ :=
-  (x₀ * log x₁) / (εθ_num x₁ * x₁ * log x₀) * |Eπ x₀ - Eθ x₀| +
-  (log x₁) / (εθ_num x₁ * x₁) *
-    (∑ i ∈ Finset.Iio (Fin.last N), εθ_num (exp (b i)) *
-      (Li (exp (b (i + 1))) - Li (exp (b i)) +
-      exp (b i) / b i - exp (b (i + 1)) / b (i + 1))) +
-    1 / (log x₁ + log (log x₁) - 1)
-
-noncomputable def μ_num {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ → ℝ) (x₀ x₁ : ℝ) (x₂ : EReal) : ℝ :=
-  if x₂ ≤ x₁ * log x₁ then
-    μ_num_1 b εθ_num x₀ x₁ x₂.toReal
-  else
-    μ_num_2 b εθ_num x₀ x₁
-
-@[blueprint
-  "fks2-eq-13"
-  (title := "FKS2 equation (13)")
-  (statement := /--
-  For $x_1 \leq x_2$, we define $\epsilon_{\pi,num}(x_0,x_1,x_2) := \epsilon_{\theta,num}(x_1)
-    (1 + \mu_{num}(x_0,x_1,x_2))$.
-   -/)]
-noncomputable def επ_num {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ → ℝ) (x₀ x₁ : ℝ)
-    (x₂ : EReal) : ℝ :=
-  εθ_num x₁ * (1 + μ_num b εθ_num x₀ x₁ x₂)
-
-noncomputable def default_b (x₀ x₁ : ℝ) : Fin 2 → ℝ :=
-  fun i ↦ if i = 0 then log x₀ else log x₁
-
-@[blueprint
-  "fks2-remark-7"
-  (title := "FKS2 Remark 7")
-  (statement := /--
-  If
-  $$ \frac{d}{dx} \frac{\log x}{x}
-    \left( \Li(x) - \frac{x}{\log x} - \Li(x_1) + \frac{x_1}{\log x_1} \right)|_{x_2} \geq 0 $$
-  then $\mu_{num,1}(x_0,x_1,x_2) < \mu_{num,2}(x_0,x_1)$.
-  -/)
-  (proof := /-- This follows from the definitions of $\mu_{num,1}$ and $\mu_{num,2}$. -/)
-  (latexEnv := "remark")
-  (discussion := 673)]
-theorem remark_7 {x₀ x₁ : ℝ} (x₂ : ℝ) (h : x₁ ≥ max x₀ 14)
-  {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
-  (h_b_start : b 0 = log x₀)
-  (h_b_end : b (Fin.last N) = log x₁)
-  (εθ_num : ℝ → ℝ)
-  (h_εθ_num : Eθ.numericalBound x₁ εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) (hx₂ : x ≤ x₂)
-  (hderiv : deriv (fun x ↦ (log x) / x * (Li x - x / log x - Li x₁ + x₁ / log x₁)) x₂ ≥ 0) :
-    μ_num_1 b εθ_num x₀ x₁ x₂ < μ_num_2 b εθ_num x₀ x₁ := by sorry
-
 @[blueprint
   "fks2-remark-15"
   (title := "FKS2 Remark 15")
@@ -449,6 +276,86 @@ theorem remark_7 {x₀ x₁ : ℝ} (x₂ : ℝ) (h : x₁ ≥ max x₀ 14)
 theorem remark_15 (x₀ : ℝ) (h : log x₀ ≥ 1000) :
     Eθ.classicalBound (FKS.A x₀) (3/2) 2 5.5666305 x₀ := by sorry
 
+
+blueprint_comment /--
+\subsection{From asymptotic estimates on theta to asymptotic estimates on pi}
+
+To get from asymptotic estimates on $E_\theta$ to asymptotic estimates on $E_\pi$, one first needs a way to express the latter as an integral of the former.
+-/
+
+@[blueprint
+  "fks2-eq-17"
+  (title := "FKS2 equation (17)")
+  (statement := /--
+  For any $2 \leq x_0 < x$ one has
+  $$ (\pi(x) - \Li(x)) - (\pi(x_0) - \Li(x_0)) = \frac{\theta(x) - x}{\log x}
+    - \frac{\theta(x_0) - x_0}{\log x_0} + \int_{x_0}^x \frac{\theta(t) - t}{t \log^2 t} dt.$$ -/)
+  (proof := /-- This follows from Sublemma \ref{rs-417}. -/)
+  (latexEnv := "sublemma")
+  (discussion := 609)]
+theorem eq_17 {x₀ x : ℝ} (hx₀ : 2 ≤ x₀) (hx : x₀ < x) :
+    (pi x - Li x) - (pi x₀ - Li x₀) =
+    (θ x - x) / log x - (θ x₀ - x₀) / log x₀ +
+    ∫ t in x₀..x, (θ t - t) / (t * log t ^ 2) :=
+  have px : 2 ≤ x := by linarith
+  have l0 {x} (hx : 2 ≤ x) : ContinuousOn (fun t ↦ (t * log t ^ 2)⁻¹) (Set.uIcc 2 x) := by
+    refine ContinuousOn.inv₀ (continuousOn_id.mul (ContinuousOn.pow (ContinuousOn.log
+      continuousOn_id fun y hy ↦ ?_) 2)) fun y hy ↦ ?_
+    repeat simp_all; grind
+  have l1 {x} (hx : 2 ≤ x) : IntervalIntegrable (fun t ↦ θ t / (t * log t ^ 2)) volume 2 x := by
+    simpa [div_eq_mul_inv] using IntervalIntegrable.mul_continuousOn
+      theta_mono.intervalIntegrable (l0 hx)
+  have l2 {x} (hx : 2 ≤ x) : IntervalIntegrable (fun t ↦ t / (t * log t ^ 2)) volume 2 x := by
+    simpa [div_eq_mul_inv] using IntervalIntegrable.mul_continuousOn
+      intervalIntegral.intervalIntegrable_id (l0 hx)
+  have hL {x} (hx : 2 ≤ x) : Li x = x / log x - 2 / log 2 + ∫ t in 2..x, 1 / (log t ^ 2) := by
+    have hnt {t} (ht : t ∈ Set.uIcc 2 x) : t ≠ 0 := by simp_all; linarith
+    rw [Li, funext fun t ↦ (mul_one (1 / log t)).symm,
+    intervalIntegral.integral_mul_deriv_eq_deriv_mul (u := fun t ↦ 1 / log t)
+    (u' := fun t ↦ -(1 / t) / log t ^ 2) _ (fun t _ ↦ hasDerivAt_id' t) _
+    intervalIntegrable_const]
+    · suffices ∫ (x : ℝ) in 2..x, - (1 / x) / log x ^ 2 * x
+        = ∫ (x : ℝ) in 2..x, - (1 / (log x ^ 2)) from by
+        rw [this, intervalIntegral.integral_neg]; ring
+      refine intervalIntegral.integral_congr fun t ht ↦ ?_
+      ring_nf
+      rw [mul_inv_cancel₀ (hnt ht), one_mul]
+    · intro t ht
+      simpa using HasDerivAt.inv (hasDerivAt_log (hnt ht)) (by simp_all; grind)
+    · simp only [neg_div, div_div]
+      simpa using (l0 hx).intervalIntegrable.neg
+  have he {x} (hx : 2 ≤ x) : pi x - Li x = (θ x - x) / log x + 2 / log 2
+    + ∫ t in 2..x, (θ t - t) / (t * log t ^ 2) := by
+    simp only [RS_prime.eq_417 hx, hL hx, sub_div, intervalIntegral.integral_sub (l1 hx) (l2 hx)]
+    rw [intervalIntegral.integral_congr fun t ht ↦ div_mul_cancel_left₀ _ ((log t) ^ 2)]
+    · ring_nf
+    · simp_all; grind
+  calc
+  _ = (θ x - x) / log x - (θ x₀ - x₀) / log x₀ + ((∫ t in 2..x, (θ t - t) / (t * log t ^ 2)) -
+    ∫ t in 2..x₀, (θ t - t) / (t * log t ^ 2)) := by rw [he px, he hx₀]; ring
+  _ = (θ x - x) / log x - (θ x₀ - x₀) / log x₀ + ∫ t in x₀..x, (θ t - t) / (t * log t ^ 2) := by
+    rw [intervalIntegral.integral_interval_sub_left]
+    · simpa [sub_div] using IntervalIntegrable.sub (l1 px) (l2 px)
+    · simpa [sub_div] using IntervalIntegrable.sub (l1 hx₀) (l2 hx₀)
+
+blueprint_comment /--
+The following definition is only implicitly in FKS2, but will be convenient:
+-/
+
+@[blueprint
+  "fks2-error-def"
+  (title := "Defining an error term")
+  (statement := /--
+  For any $x_0>0$, we define
+  $$\delta(x_0) := |\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}|.$$
+  -/)]
+noncomputable def δ (x₀ : ℝ) : ℝ :=
+  |(pi x₀ - Li x₀) / (x₀ / log x₀) - (θ x₀ - x₀) / x₀|
+
+blueprint_comment /--
+We can now obtain an upper bound on $E_\pi$ in terms of $E_\theta$:
+-/
+
 @[blueprint
   "fks2-eq30"
   (title := "FKS2 Equation (30)")
@@ -460,8 +367,66 @@ theorem remark_15 (x₀ : ℝ) (h : log x₀ ≥ 1000) :
   (latexEnv := "sublemma")
   (discussion := 741)]
 theorem eq_30 {x x₀ : ℝ} (hx : x ≥ x₀) :
-  Eπ x * x / log x ≤ Eψ x * x / log x + |Eπ x₀ - Eθ x₀| * x₀ / log x₀ + ∫ t in x₀..x, Eθ t / log t ^ 2 :=
+  Eπ x ≤ Eψ x + δ x₀ + (log x / x) * ∫ t in x₀..x, Eθ t / log t ^ 2 :=
   by sorry
+
+blueprint_comment /--
+Next, we bound the integral appearing in Sublemma \ref{fks2-eq-17}.
+-/
+
+@[blueprint
+  "fks2-lemma-12"
+  (title := "FKS2 Lemma 12")
+  (statement := /--
+  Suppose that $E_\theta$ satisfies an admissible classical bound with parameters $A,B,C,R,x_0$.
+  Then, for all $x \geq x_0$,
+  $$ \int_{x_0}^x \left|\frac{E_\theta(t)}{\log^2 t} dt\right| \leq \frac{2A}{R^B} x m(x_0,x)
+    \exp\left(-C \sqrt{\frac{\log x}{R}}\right) D_+\left( \sqrt{\log x} - \frac{C}{2\sqrt{R}} \right)$$
+  where
+  $$ m(x_0,x) = \max ( (\log x_0)^{(2B-3)/2}, (\log x)^{(2B-3)/2} ). $$
+  -/)
+  (proof := /-- Since $\varepsilon_{\theta,\mathrm{asymp}}(t)$ provides an admissible bound on $\theta(t)$ for all $t \geq x_0$, we have
+\[
+\int_{x_0}^{x} \left| \frac{\theta(t) - t}{t(\log(t))^2} \right| dt \leq \int_{x_0}^{x} \frac{\varepsilon_{\theta,\mathrm{asymp}}(t)}{(\log(t))^2} = \frac{A_\theta}{R^B} \int_{x_0}^{x} (\log(t))^{B-2} \exp\left( -C\sqrt{\frac{\log(t)}{R}} \right) dt.
+\]
+We perform the substitution $u = \sqrt{\log(t)}$ and note that $u^{2B-3} \leq m(x_0, x)$ as defined in (21). Thus the above is bounded above by
+\[
+\frac{2A_\theta m(x_0, x)}{R^B} \int_{\sqrt{\log(x_0)}}^{\sqrt{\log(x)}} \exp\left( u^2 - \frac{Cu}{\sqrt{R}} \right) du.
+\]
+Then, by completing the square $u^2 - \frac{Cu}{\sqrt{R}} = \left( u - \frac{C}{2\sqrt{R}} \right)^2 - \frac{C^2}{4R}$ and doing the substitution $v = u - \frac{C}{2\sqrt{R}}$, the above becomes
+\[
+\frac{2A_\theta m(x_0, x)}{R^B} \exp\left( -\frac{C^2}{4R} \right) \int_{\sqrt{\log(x_0)} - \frac{C}{2\sqrt{R}}}^{\sqrt{\log(x)} - \frac{C}{2\sqrt{R}}} \exp(v^2) \, dv.
+\]
+Now we have
+\begin{align*}
+\int_{\sqrt{\log(x_0)} - \frac{C}{2\sqrt{R}}}^{\sqrt{\log(x)} - \frac{C}{2\sqrt{R}}} \exp(v^2) \, dv &\leq \int_{0}^{\sqrt{\log(x)} - \frac{C}{2\sqrt{R}}} \exp(v^2) \, dv \\
+&= x \exp\left( \frac{C^2}{4R} \right) \exp\left( -C\sqrt{\frac{\log(x)}{R}} \right) D_+\left( \sqrt{\log(x)} - \frac{C}{2\sqrt{R}} \right).
+\end{align*}
+Combining the above completes the proof. -/)
+  (latexEnv := "lemma")
+  (discussion := 617)]
+theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀) (hx : x ≥ x₀) :
+  ∫ t in x₀..x, |Eθ t| / log t ^ 2 ≤
+    (2 * A) / (R ^ B) * x * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) *
+    exp (-C * sqrt (log x / R)) * dawson (sqrt (log x) - C / (2 * sqrt R)) :=
+  sorry
+
+@[blueprint
+  "fks2-eq-9"
+  (title := "mu asymptotic function, FKS2 (9)")
+  (statement := /--
+  For $x_0,x_1 > 0$, we define
+  $$ \mu_{asymp}(x_0,x_1) := \frac{x_0 \log(x_1)}{\epsilon_{\theta,asymp}(x_1) x_1 \log(x_0)}
+    \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right| +
+    \frac{2D_+(\sqrt{\log(x_1)} - \frac{C}{2\sqrt{R}}}{\sqrt{\log x_1}}$$.
+  -/)]
+noncomputable def μ_asymp (A B C R x₀ x₁ : ℝ) : ℝ :=
+  (x₀ * log x₁) / ((admissible_bound A B C R x₁) * x₁ * log x₀) * δ x₀ +
+    2 * (dawson (sqrt (log x₁) - C / (2 * sqrt R))) / (sqrt (log x₁))
+
+blueprint_comment /--
+We obtain our final bound for converting bounds on $E_\theta$ to bounds on $E_\pi$.
+-/
 
 @[blueprint
   "fks2-theorem-3"
@@ -484,7 +449,7 @@ theorem eq_30 {x x₀ : ℝ} (hx : x ≥ x₀) :
   $$ \frac{\log(x)}{x \varepsilon_{\theta,\mathrm{asymp}}(x)} \leq \frac{\log(x_1)}{x_1 \varepsilon_{\theta,\mathrm{asymp}}(x_1)}. $$
   In addition, we have the simplification
   $$ \frac{\log(x)}{x \varepsilon_{\theta,\mathrm{asymp}}(x)} \frac{2 A_\theta}{R^B} x m(x_0,x) e^{-C \sqrt{\frac{\log x}{R}}} = 2 m(x_0,x) (\log(x))^{1 - B} = 2 (\log(x))^{1 - B} \leq 2 (\log(x_1))^{1 - B}, $$
-  by definition (6) of $\varepsilon_{\theta,\mathrm{asymp}}(x)$ and by $m(x_0,x) = (\log(x))^{(2B - 3)/2}$, since $B \geq 3/2$.  Finally, since $\sqrt{\log(x_1)} - \frac{C}{2\sqrt{R}} > 1$, the Dawson function decreases for all $x \geq x_1$:
+  by Definition \ref{classical-bound-theta} and by $m(x_0,x) = (\log(x))^{(2B - 3)/2}$, since $B \geq 3/2$.  Finally, since $\sqrt{\log(x_1)} - \frac{C}{2\sqrt{R}} > 1$, the Dawson function decreases for all $x \geq x_1$:
   $$ D_+\left( \sqrt{\log x} - \frac{C}{2\sqrt{R}} \right) \leq D_+\left( \sqrt{\log x_1} - \frac{C}{2\sqrt{R}} \right). $$
   We conclude by combining the above:
   $$ \frac{|\pi(x) - \Li(x)|}{\frac{x \varepsilon_{\theta,\mathrm{asymp}}(x)}{\log(x)}} \leq \frac{\log(x_1)}{x_1 \varepsilon_{\theta,\mathrm{asymp}}(x_1)} |\pi(x_0) - \Li(x_0) - \frac{\theta(x_0) - x_0}{\log(x_0)}| + 1 + \frac{2 D_+\left( \sqrt{\log x_1} - \frac{C}{2\sqrt{R}} \right)}{\sqrt{\log(x_1)}}, $$
@@ -498,6 +463,13 @@ theorem theorem_3 (A B C R x₀ x₁ : ℝ)
   (hx1 : x₁ ≥ max x₀ (exp ((1 + C / (2 * sqrt R)) ^ 2))) :
   Eπ.classicalBound (A * (1 + μ_asymp A B C R x₀ x₁)) B C R x₁ :=
   sorry
+
+
+blueprint_comment /--
+\subsection{From numerical estimates on psi to numerical estimates on theta}
+
+Here we record a way to convert a numerical bound on $E_\psi$ to a numerical bound on $E_\theta$.
+-/
 
 noncomputable def εθ_from_εψ (εψ : ℝ → ℝ) (x₀ : ℝ) : ℝ :=
   εψ x₀ + 1.00000002 * (x₀ ^ (-(1:ℝ)/2) + x₀ ^ (-(2:ℝ)/3) + x₀ ^ (-(4:ℝ)/5)) +
@@ -533,6 +505,12 @@ theorem proposition_17 {x x₀ : ℝ} (hx : x > x₀) (hx₀ : x₀ > 2) (εψ :
     (hEψ : Eψ x ≤ εψ x₀) :
     -εθ_from_εψ εψ x₀ ≤ (θ x - x) / x ∧ (θ x - x) / x ≤ εψ x₀ ∧
       εψ x₀ ≤ εθ_from_εψ εψ x₀ := by sorry
+
+blueprint_comment /--
+\subsection{From numerical estimates on theta to numerical estimates on pi}
+
+Here we record a way to convert a numerical bound on $E_\theta$ to a numerical bound on $E_\pi$.  We first need some preliminary lemmas.
+-/
 
 @[blueprint
   "fks2-lemma-19"
@@ -600,10 +578,16 @@ theorem lemma_20_b {x : ℝ} (hx : x > 6.58) :
     Li x - x / log x > (x - 6.58) / (log x) ^ 2 ∧ (x - 6.58) / (log x) ^ 2 > 0 :=
   sorry
 
+blueprint_comment /--
+Now we can start estimating $E_\pi$.  We make the following running hypotheses. Let $x_0 > 0$ be chosen such that $\pi(x_0)$ and $\theta(x_0)$ are computable, and let   $x_1 \geq \max(x_0, 14)$. Let $\{b_i\}_{i=1}^N$ be a finite partition of   $[\log x_0, \log x_1]$, with $b_1 = \log x_0$ and $b_N = \log x_1$, and suppose that   $\varepsilon_{\theta,\mathrm{num}}$ gives numerical bounds for $x = \exp(b_i)$, for each $i=1,\dots,N$.
+-/
+
+
+
 @[blueprint
   "fks2-theorem-6-1"
   (title := "FKS2 Theorem 6, substep 1")
-  (statement := /-- With the hypotheses of Theorem \ref{fks2-theorem-6}, for all $x \geq x_1$ we have
+  (statement := /-- With the above hypotheses, for all $x \geq x_1$ we have
   $$ E_\pi(x) \leq \varepsilon_{θ,num}(x_1) + \frac{\log x}{x} \frac{x_0}{\log x_0} (E_\pi(x_0) + E_\theta(x_0))$$
   $$ + \frac{\log x}{x} \sum_{i=1}^{N-1} \varepsilon_{\theta,num}(e^{b_i}) \left( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}} \right) $$
   $$ + \varepsilon_{\theta,num}(x_1) \frac{\log x}{x} \int_{x_1}^{x} \frac{1}{(\log t)^2} \, dt. $$ -/)
@@ -628,7 +612,7 @@ theorem theorem_6_1 {x₀ x₁ : ℝ} (h : x₁ ≥ max x₀ 14)
 @[blueprint
   "fks2-theorem-6-2"
   (title := "FKS2 Theorem 6, substep 2")
-  (statement := /-- With the hypotheses of Theorem \ref{fks2-theorem-6}, for all $x \geq x_1$ we have
+  (statement := /-- With the above hypotheses, for all $x \geq x_1$ we have
   $$ \frac{\log x}{x} \int_{x_1}^x \frac{dt}{\log^2 t} < \frac{1}{\log x_1 + \log \log x_1 - 1}. $$ -/)
   (proof := /-- Call the left-hand side $f(x)$. We have
   $$ f(x) = \frac{\log x}{x} \left( \mathrm{Li}(x) - \frac{x}{\log x} - \mathrm{Li}(x_1) + \frac{x_1}{\log x_1} \right). $$
@@ -652,7 +636,7 @@ theorem theorem_6_2 {x₁ : ℝ} (h : x₁ ≥ 14) (x : ℝ) (hx : x ≥ x₁) :
 @[blueprint
   "fks2-theorem-6-3"
   (title := "FKS2 Theorem 6, substep 3")
-  (statement := /-- With the hypotheses of Theorem \ref{fks2-theorem-6}, for all $x \geq x_1$ we have
+  (statement := /-- With the above hypotheses, for all $x \geq x_1$ we have
   $$ \frac{\log x}{x} \int_{x_1}^x \frac{dt}{\log^2 t} \leq \frac{\log x_2}{x_2} \left( \Li(x_2) - \frac{x_2}{\log x_2} - \Li(x_1) + \frac{x_1}{\log x_1} \right ). $$ -/)
   (proof := /-- Let $f(x)$ be as in the previous sublemma.  Notice that by assumption $x_1 \leq x \leq x_2 \leq x_1 \log x_1 < x_m$, so that
   $$ f(x) \leq f(x_2) = \frac{\log x_2}{x_2} \left( \Li(x_2) - \frac{x_2}{\log x_2} - \Li(x_1) + \frac{x_1}{\log x_1} \right). $$ -/)
@@ -662,6 +646,97 @@ theorem theorem_6_3 {x₁ : ℝ} (h : x₁ ≥ 14) (x₂ : ℝ) (hx₂ : x₂ �
   (log x / x) * ∫ t in x₁..x, 1 / (log t) ^ 2 ≤
     (log x₂ / x₂) * (Li x₂ - x₂ / log x₂ - Li x₁ + x₁ / log x₁) :=
   sorry
+
+blueprint_comment /--
+We can merge these sublemmas together after making some definitions. -/
+
+@[blueprint
+  "fks2-eq-11"
+  (title := "FKS2 equation (11)")
+  (statement := /--
+  For $x_1 \leq x_2 \leq x_1 \log x_1$, we define
+  $$ \mu_{num,1}(x_0,x_1,x_2) := \frac{x_0 \log(x_1)}{\epsilon_{\theta,num}(x_1) x_1 \log(x_0)}
+    \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right| +
+    \frac{\log(x_1)}{\epsilon_{\theta,num}(x_1) x_1}
+    \sum_{i=0}^{N-1} \epsilon_{\theta,num}(e^{b_i})
+    \left( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}} \right) +
+    \frac{\log(x_2)}{x_2} \left( \Li(x_2) - \frac{x_2}{\log x_2} - \Li(x_1) + \frac{x_1}{\log x_1} \right).$$
+   -/)]
+noncomputable def μ_num_1 {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ → ℝ) (x₀ x₁ x₂ : ℝ) : ℝ :=
+  (x₀ * log x₁) / (εθ_num x₁ * x₁ * log x₀) * δ x₀ +
+  (log x₁) / (εθ_num x₁ * x₁) *
+    (∑ i ∈ Finset.Iio (Fin.last N), εθ_num (exp (b i)) *
+      (Li (exp (b (i + 1))) - Li (exp (b i)) +
+      exp (b i) / b i - exp (b (i + 1)) / b (i + 1))) +
+    (log x₂) / x₂ * (Li x₂ - x₂ / log x₂ - Li x₁ + x₁ / log x₁)
+
+@[blueprint
+  "fks2-eq-12"
+  (title := "FKS2 equation (12)")
+  (statement := /--
+  For $x_2 \geq x_1 \log x_1$, we define
+  $$ \mu_{num,2}(x_0,x_1) := \frac{x_0 \log(x_1)}{\epsilon_{\theta,num}(x_1) x_1 \log(x_0)}
+    \left|\frac{\pi(x_0) - \Li(x_0)}{x_0/\log x_0} - \frac{\theta(x_0) - x_0}{x_0}\right| +
+    \frac{\log(x_1)}{\epsilon_{\theta,num}(x_1) x_1}
+    \sum_{i=0}^{N-1} \epsilon_{\theta,num}(e^{b_i})
+    \left( \Li(e^{b_{i+1}}) - \Li(e^{b_i}) + \frac{e^{b_i}}{b_i} - \frac{e^{b_{i+1}}}{b_{i+1}} \right) +
+    \frac{1}{\log x_1 + \log(\log x_1) - 1}.$$
+   -/)]
+noncomputable def μ_num_2 {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ → ℝ) (x₀ x₁ : ℝ) : ℝ :=
+  (x₀ * log x₁) / (εθ_num x₁ * x₁ * log x₀) * δ x₀ +
+  (log x₁) / (εθ_num x₁ * x₁) *
+    (∑ i ∈ Finset.Iio (Fin.last N), εθ_num (exp (b i)) *
+      (Li (exp (b (i + 1))) - Li (exp (b i)) +
+      exp (b i) / b i - exp (b (i + 1)) / b (i + 1))) +
+    1 / (log x₁ + log (log x₁) - 1)
+
+@[blueprint
+  "fks2-mu-def"
+  (title := "Definition of mu")
+  (statement := /-- We define $\mu_{num}(x_0, x_1, x_2)$ to equal $\mu_{num,1}(x_0,x_1,x_2)$ when $x_2 \leq x_1 \log x_1$ and $\mu_{num,2}(x_0,x_1)$ otherwise. -/)]
+noncomputable def μ_num {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ → ℝ) (x₀ x₁ : ℝ) (x₂ : EReal) : ℝ :=
+  if x₂ ≤ x₁ * log x₁ then
+    μ_num_1 b εθ_num x₀ x₁ x₂.toReal
+  else
+    μ_num_2 b εθ_num x₀ x₁
+
+@[blueprint
+  "fks2-eq-13"
+  (title := "FKS2 equation (13)")
+  (statement := /--
+  For $x_1 \leq x_2$, we define $\epsilon_{\pi,num}(x_0,x_1,x_2) := \epsilon_{\theta,num}(x_1)
+    (1 + \mu_{num}(x_0,x_1,x_2))$.
+   -/)]
+noncomputable def επ_num {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ → ℝ) (x₀ x₁ : ℝ)
+    (x₂ : EReal) : ℝ :=
+  εθ_num x₁ * (1 + μ_num b εθ_num x₀ x₁ x₂)
+
+noncomputable def default_b (x₀ x₁ : ℝ) : Fin 2 → ℝ :=
+  fun i ↦ if i = 0 then log x₀ else log x₁
+
+@[blueprint
+  "fks2-remark-7"
+  (title := "FKS2 Remark 7")
+  (statement := /--
+  If
+  $$ \frac{d}{dx} \frac{\log x}{x}
+    \left( \Li(x) - \frac{x}{\log x} - \Li(x_1) + \frac{x_1}{\log x_1} \right)|_{x_2} \geq 0 $$
+  then $\mu_{num,1}(x_0,x_1,x_2) < \mu_{num,2}(x_0,x_1)$.
+  -/)
+  (proof := /-- This follows from the definitions of $\mu_{num,1}$ and $\mu_{num,2}$. -/)
+  (latexEnv := "remark")
+  (discussion := 673)]
+theorem remark_7 {x₀ x₁ : ℝ} (x₂ : ℝ) (h : x₁ ≥ max x₀ 14)
+  {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
+  (h_b_start : b 0 = log x₀)
+  (h_b_end : b (Fin.last N) = log x₁)
+  (εθ_num : ℝ → ℝ)
+  (h_εθ_num : Eθ.numericalBound x₁ εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) (hx₂ : x ≤ x₂)
+  (hderiv : deriv (fun x ↦ (log x) / x * (Li x - x / log x - Li x₁ + x₁ / log x₁)) x₂ ≥ 0) :
+    μ_num_1 b εθ_num x₀ x₁ x₂ < μ_num_2 b εθ_num x₀ x₁ := by sorry
+
+blueprint_comment /--
+This gives us the final result to obtain numerical bounds for $E_\pi$ from numerical bounds on $E_\theta$. -/
 
 @[blueprint
   "fks2-theorem-6"
@@ -742,11 +817,18 @@ theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
         (if (i+1) = Fin.last M then ⊤ else exp (b' (i+1)).toReal)) :=
   sorry
 
+blueprint_comment /--
+\subsection{Putting everything together}
+
+By merging together the above tools with various parameter choices, we can obtain some clean corollaries.
+-/
+
+
 @[blueprint
   "fks2-corollary-21"
   (title := "FKS2 Corollary 21")
   (statement := /--
-  Let $B \geq \max(\frac{3}{2}, 1 + \frac{C^2}{16R})$.  Let $x_0, x_1 > 0$ with
+  Let $B \geq \max(\frac{3}{2}, 1 + \frac{C^2}{16R})$ and $B > C^2/8R$.  Let $x_0, x_1 > 0$ with
   $x_1 \geq \max(x_0, \exp( (1 + \frac{C}{2\sqrt{R}})^2))$. If $E_\psi$ satisfies an admissible
   classical bound with parameters $A_\psi,B,C,R,x_0$, then $E_\pi$ satisfies an admissible
   classical bound with $A_\pi, B, C, R, x_1$, where
@@ -762,7 +844,7 @@ theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
     |E_\pi(x_0) - E_\theta(x_0)| + \frac{2 D_+(\sqrt{\log x} - \frac{C}{2\sqrt{R}})}
     {\sqrt{\log x_1}}.$$
   -/)
-  (proof := /-- This follows by applying Theorem \ref{fks2-theorem-3} with Proposition \ref{fks2-proposition-13}.-/)
+  (proof := /-- This follows by applying Theorem \ref{fks2-theorem-3} with Proposition \ref{fks2-proposition-13}.  The hypothesis $B > C^2/8R$ is not present in original source.-/)
   (latexEnv := "corollary")
   (discussion := 720)]
 theorem corollary_21
