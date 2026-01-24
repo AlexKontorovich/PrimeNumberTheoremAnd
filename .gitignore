@@ -62,3 +62,6 @@ __pycache__/
 ## Generated upstreaming dashboard files
 home_page/_include/ready_to_upstream.md
 home_page/_include/easy_to_unlock.md
+
+## Tools
+/deps/*

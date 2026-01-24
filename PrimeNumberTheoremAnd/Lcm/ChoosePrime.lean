@@ -1,6 +1,5 @@
 import Architect
 import PrimeNumberTheoremAnd.Lcm.Base
-import PrimeNumberTheoremAnd.Lcm.Cert
 import PrimeNumberTheoremAnd.Lcm.Cert_ChoosePrime_lemmas
 
 namespace Lcm

@@ -30,7 +30,7 @@ lemma δ_nonneg {x : ℝ} (hx : (X₀ : ℝ) ≤ x) : 0 ≤ δ x := by
     exact div_nonneg (by exact zero_le_one) hpow
   simpa [δ] using hδ
 
-lemma gap_strictly_decreasing {x y : ℝ}
+lemma δ_strictly_decreasing {x y : ℝ}
     (hx : (X₀ : ℝ) ≤ x) (hy : (X₀ : ℝ) ≤ y) (hxy : x < y) :
     δ y < δ x := by
   have hX0_gt1 : (1 : ℝ) < (X₀ : ℝ) := by
@@ -114,7 +114,74 @@ noncomputable abbrev onePlusEps_log : ℝ := (1 : ℝ) + eps_log
 /- `main_ineq_delta_form_lhs` `main_ineq_delta_form_rhs` sub-lemmas -/
 lemma eps_log_bound {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     δ (√(n : ℝ)) ≤ (0.000675 : ℝ) := by
-    sorry
+  -- First turn `hn : n ≥ X₀^2` into `X₀ ≤ √n`.
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := by
+    have hn' : (X₀ ^ 2 : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast hn
+    have hsqrt : √(X₀ ^ 2 : ℝ) ≤ √(n : ℝ) := by
+      exact Real.sqrt_le_sqrt hn'
+    have hX0_nonneg : (0 : ℝ) ≤ (X₀ : ℝ) := by
+      exact_mod_cast (Nat.zero_le X₀)
+    -- `√(X₀^2) = X₀` since `X₀ ≥ 0`.
+    simpa [Nat.cast_pow, Real.sqrt_sq_eq_abs, abs_of_nonneg hX0_nonneg] using hsqrt
+
+  -- Monotonicity: δ is strictly decreasing for `x ≥ X₀`, so δ(√n) ≤ δ(X₀).
+  have hδ_le_δX0 : δ (√(n : ℝ)) ≤ δ (X₀ : ℝ) := by
+    rcases lt_or_eq_of_le hX0_le_sqrt with hlt | heq
+    · have hlt' : δ (√(n : ℝ)) < δ (X₀ : ℝ) := by
+        -- Apply strict decreasingness with `x = X₀`, `y = √n`.
+        simpa using
+          (δ_strictly_decreasing (x := (X₀ : ℝ)) (y := √(n : ℝ))
+            (by rfl) (by simpa using hX0_le_sqrt) hlt)
+      exact le_of_lt hlt'
+    · simp [δ, heq.symm]
+
+  -- Numerical bound at `X₀`: δ(X₀) ≤ 0.000675.
+  have hlog_X0_gt : (11.4 : ℝ) < Real.log (X₀ : ℝ) := by
+    have hX0_pos : (0 : ℝ) < (X₀ : ℝ) := by
+      norm_num [X₀]
+    have h5pos : (0 : ℝ) < (5 : ℝ) := by
+      norm_num
+    have h57_lt : (57 : ℝ) < (5 : ℝ) * Real.log (X₀ : ℝ) := by
+      -- Rewrite the RHS as `log (X₀^5)` and compare via `exp`.
+      have h57_lt_log : (57 : ℝ) < Real.log ((X₀ : ℝ) ^ (5 : ℕ)) := by
+        have hpos : (0 : ℝ) < ((X₀ : ℝ) ^ (5 : ℕ)) := by
+          exact pow_pos hX0_pos _
+        refine (Real.lt_log_iff_exp_lt hpos).2 ?_
+        -- Reduce to a numerical inequality using `exp 1 < 2.7182818286`.
+        have hpow_lt : Real.exp (1 : ℝ) ^ (57 : ℕ) < (2.7182818286 : ℝ) ^ (57 : ℕ) := by
+          exact pow_lt_pow_left₀ Real.exp_one_lt_d9 (Real.exp_pos (1 : ℝ)).le (n := 57) (by decide)
+        have hnum : (2.7182818286 : ℝ) ^ (57 : ℕ) < ((X₀ : ℝ) ^ (5 : ℕ)) := by
+          norm_num [X₀]
+        have : Real.exp (1 : ℝ) ^ (57 : ℕ) < ((X₀ : ℝ) ^ (5 : ℕ)) := lt_trans hpow_lt hnum
+        simpa [Real.exp_one_pow] using this
+      -- Expand `log (X₀^5)`.
+      simpa [Real.log_pow, hX0_pos.ne', mul_comm, mul_left_comm, mul_assoc] using h57_lt_log
+    have hdiv : (57 : ℝ) / (5 : ℝ) < Real.log (X₀ : ℝ) := by
+      exact (div_lt_iff₀ h5pos).2 (by simpa [mul_comm, mul_left_comm, mul_assoc] using h57_lt)
+    have h114 : (11.4 : ℝ) = (57 : ℝ) / (5 : ℝ) := by
+      norm_num
+    simpa [h114] using hdiv
+
+  have hδX0_le : δ (X₀ : ℝ) ≤ (0.000675 : ℝ) := by
+    -- Rewrite δ in terms of a natural power.
+    have h11_pos : (0 : ℝ) < (11.4 : ℝ) := by norm_num
+    have h11_pow_pos : (0 : ℝ) < (11.4 : ℝ) ^ (3 : ℕ) := by
+      exact pow_pos h11_pos _
+    have hpow_lt : (11.4 : ℝ) ^ (3 : ℕ) < (Real.log (X₀ : ℝ)) ^ (3 : ℕ) := by
+      have h11_nonneg : (0 : ℝ) ≤ (11.4 : ℝ) := by norm_num
+      exact pow_lt_pow_left₀ hlog_X0_gt h11_nonneg (n := 3) (by decide)
+    have hone_div_lt : (1 : ℝ) / (Real.log (X₀ : ℝ)) ^ (3 : ℕ)
+        < (1 : ℝ) / (11.4 : ℝ) ^ (3 : ℕ) := by
+      simpa [one_div] using (one_div_lt_one_div_of_lt h11_pow_pos hpow_lt)
+    have hone_div_le : (1 : ℝ) / (11.4 : ℝ) ^ (3 : ℕ) ≤ (0.000675 : ℝ) := by
+      norm_num
+    -- Combine.
+    have : (1 : ℝ) / (Real.log (X₀ : ℝ)) ^ (3 : ℕ) ≤ (0.000675 : ℝ) :=
+      le_trans (le_of_lt hone_div_lt) hone_div_le
+    simpa [δ, Real.rpow_natCast] using this
+
+  exact le_trans hδ_le_δX0 hδX0_le
 
 lemma inv_n_pow_3_div_2_le_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (1 / (n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (X₀ : ℝ)) * (1 / n) := by
@@ -216,6 +283,14 @@ noncomputable def provider : PrimeGaps.Provider :=
   δ_nonneg := by
     intro x hx
     exact δ_nonneg hx
+  δ_strictly_decreasing := by
+    intro x y hx hy hxy
+    exact δ_strictly_decreasing hx hy hxy
+  delta_sixth_power_lt_sqrt := by
+    intro x hx
+    exact delta_sixth_power_lt_sqrt hx
+  delta_twelfth_power_le_n_pow_3_div_2 := by
+    sorry
   prime_in_Icc := by
     intro x hx
     exact prime_in_Icc (x := x) hx }
