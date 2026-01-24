@@ -768,13 +768,16 @@ theorem corollary_8 {x₁ : ℝ} (hx₁ : x₁ ≥ 14)
 theorem corollary_21
   (Aψ B C R x₀ x₁ : ℝ)
   (hB : B ≥ max (3 / 2) (1 + C ^ 2 / (16 * R)))
+  (hB' : B > C ^ 2 / (8 * R))
   (hx0 : x₀ > 0)
   (hx1 : x₁ ≥ max x₀ (exp ((1 + C / (2 * sqrt R)) ^ 2)))
   (hEψ : Eψ.classicalBound Aψ B C R x₀) :
   let Aθ := Aψ * (1 + ν_asymp Aψ B C R x₀)
   Eπ.classicalBound (Aθ * (1 + (μ_asymp Aθ B C R x₀ x₁))) B C R x₁ :=
-  sorry
-
+  -- NOTE: the hypothesis hB' is not present in the original source material [FKS2]. See
+  -- https://github.com/AlexKontorovich/PrimeNumberTheoremAnd/issues/720 for more information
+  let Aθ := Aψ * (1 + ν_asymp Aψ B C R x₀)
+  theorem_3 Aθ B C R x₀ x₁ hB hx0 (proposition_13 Aψ B C R x₀ hEψ hB') hx1
 
 /-- Values for $\eps_{\pi, num}(x_1) are calculated using Corollary 8 with Theorem 6. Note that here $x_0=1015$ and that our sets $\{b_i\}_{i=1}^N$ and $\{b'_i\}_{i=1}^M$ are more refined than as provided by Tables 1, 2, and 3. -/
 def Table_4 : List (ℝ × ℝ) := [

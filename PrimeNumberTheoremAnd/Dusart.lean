@@ -1,5 +1,5 @@
 import Architect
-import PrimeNumberTheoremAnd.SecondaryDefinitions
+import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 
 blueprint_comment /--
 \section{Dusart's explicit estimates for primes}
