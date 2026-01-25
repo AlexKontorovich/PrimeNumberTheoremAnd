@@ -1617,21 +1617,10 @@ theorem Params.initial.score_bound (P : Params) :
           simp only [h_tiny, h_small, h_medium, ↓reduceIte]
           sorry -- use h_large_le and h_large_ge
 
-  have := calc P.initial.waste + (if P.initial.total_imbalance > 0 then Real.log P.n else 0) +
-       ∑ p ∈ (P.n + 1).primesBelow, (if P.initial.balance p > 0 then ↑(P.initial.balance p) * Real.log ↑p
-         else if p ≤ P.L then -↑(P.initial.balance p) * Real.log ↑P.L
-         else -↑(P.initial.balance p) * Real.log (↑P.n / ↑p))
-    ≤ ↑P.n * Real.log (1 - 1 / ↑P.M)⁻¹ +
-      ∑ p ∈ (P.n + 1).primesBelow, (if p ≤ P.L then (↑P.M * Real.log ↑P.n + ↑P.M * ↑P.L ^ 2 * ↑P.n.primeCounting) * Real.log ↑P.L
-        else if p ≤ ⌊√↑P.n⌋₊ then ↑P.M * Real.log ↑P.n * Real.log ↑P.n / Real.log 2
-        else if p ≤ P.n / P.L then ↑P.M * Real.log ↑P.n
-        else ↑P.n / ↑p * Real.log (↑P.n / ↑p)) := by
-                gcongr
-                ·
-                  sorry
-                ·
-                  sorry
-  exact this
+
+  sorry
+
+  --exact this
 
 
 @[blueprint
