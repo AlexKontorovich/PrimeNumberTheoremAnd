@@ -165,8 +165,8 @@ blueprint_comment /--
 \subsection{Bounding psi minus theta}
 
 In this section we obtain bounds of the shape
-$$ \psi(x) - \theta(x) ≤ a_1 x^{1/2} + a_2 x^{1/3}$$
-for all $x \geq x_0$ and various $a_1, a_2, x$.
+$$ \psi(x) - \theta(x) \leq a_1 x^{1/2} + a_2 x^{1/3}$$
+for all $x \geq x_0$ and various $a_1, a_2, x_0$.
 -/
 
 @[blueprint
@@ -695,7 +695,7 @@ TODO: Formalize Lemma 10
 
 
 blueprint_comment /--
-\subsection{Final bound on E_theta(x)}
+\subsection{Final bound on Etheta(x)}
 
 Now we put everything together.
 
