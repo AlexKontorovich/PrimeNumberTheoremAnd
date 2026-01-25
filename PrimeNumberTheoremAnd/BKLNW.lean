@@ -600,7 +600,7 @@ def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
 @[blueprint
   "bklnw-cor-5-1-rem"
   (title := "Remark after BKLNW Corollary 5.1")
-  (statement := /--  We have the following values for $a_2$, given by the table after \cite[Corollary 5.1]{BKLNW} -/)
+  (statement := /--  We have the following values for $a_2$, given by the table after \cite[Corollary 5.1]{BKLNW}. -/)
   (latexEnv := "remark")]
 theorem cor_5_1_rem (b a₂b : ℝ) (m : ℕ) (hb : (b, a₂b, m) ∈ table_cor_5_1) :
     a₂ b ∈ Set.Icc a₂b (a₂b + 10^(-m:ℝ)) := by sorry
@@ -608,7 +608,7 @@ theorem cor_5_1_rem (b a₂b : ℝ) (m : ℕ) (hb : (b, a₂b, m) ∈ table_cor_
 
 
 blueprint_comment /--
-\subsection{Bounding theta(x)-x with a logarithmic decay, I: large $x$}
+\subsection{Bounding theta(x)-x with a logarithmic decay, I: large x}
 
 In this section and the next ones we obtain bounds of the shape
 $$ x (1 - \frac{m_k}{\log^k x}) \leq \theta(x)$$
@@ -653,7 +653,7 @@ theorem lem_6 {c₁ c₂ c₃ c₄ k b x : ℝ} (hc₁ : 0 < c₁) (hc₂ : 0 < 
   (title := "BKLNW Corollary 14.1")
   (statement := /--  Suppose one has an asymptotic bound $E_\psi$ with parameters $A,B,C,R,e^{x_0}$ (which need to satisfy some additional bounds) with $x_0 \geq 1000$.  Then $E_\psi$ obeys an asymptotic bound with parameters $A', B, C, R, e^{x_0}$, where
   $$ A' := A (1 + \frac{1}{A} (\frac{R}{x_0})^B \exp(C \sqrt{\frac{x_0}{R}}) (a_1(x_0) \exp(\frac{-x_0}{2}) + a_2(x_0) \exp(\frac{-2 x_0}{3}))) $$
-  and $a_1(x_0), a_2(x_0)$ are as in Corollary \ref{bklnw-cor-5-1} -/)
+  and $a_1(x_0), a_2(x_0)$ are as in Corollary \ref{bklnw-cor-5-1}. -/)
   (proof := /-- We write $\theta(x) - x = \psi(x) - x + \theta(x) - \psi(x)$, apply the triangle inequality, and invoke Corollary \ref{blknw-cor-5-1} to obtain
 $$
 E_\theta(x) \leq A (\frac{\log x}{R})^B \exp(-C (\frac{\log x}{R})^{\frac{1}{2}}) + a_1(x_0) x^{-\frac{1}{2}} + a_2(x_0) x^{-\frac{2}{3}}$$
@@ -668,31 +668,8 @@ theorem cor_14_1 {A B C R x₀ : ℝ} (hx₀ : x₀ ≥ 1000)
     Eθ.classicalBound A' B C R x₀ := by
       sorry
 
-/-
-Corollary 7.1.
-
-\begin{corollary}
-Let $k > 0$, $x_0 \geq 1000$, and $b \geq \max\left(\log x_0, \log\left(4R\left(\frac{B+k}{C}\right)^2\right)\right)$. Then
-\[
-|\theta(x) - x| \leq \frac{\mathcal{A}_k(b) x}{(\log x)^k} \quad \text{for all } x \geq e^b
-\]
-where
-\begin{equation}\tag{3.6}
-\mathcal{A}_k(b) = \frac{A}{R^B} \cdot b^{B+k} \cdot \exp\left(-C\sqrt{\frac{b}{R}}\right)
-\end{equation}
-and $R = 5.573412$. Values for $\mathcal{A}_k(b)$ for $1 \leq k \leq 5$ are displayed in Table 9.
-\end{corollary}
-
-\begin{proof}
-We apply Lemma 6 with $R = 5.573412$ (using \cite{MossinghoffTrudgian}), and values from Theorem 7, namely $c_1 = \frac{A}{R^B}$, $c_2 = B$, $c_3 = \frac{C}{\sqrt{R}}$, and $c_4 = x_0$. We complete the proof by noticing
-\[
-\frac{4(c_2 + k)^2}{c_3^2} = 4R\left(\frac{B + k}{C}\right)^2.
-\]
-\end{proof}
--/
-
 blueprint_comment /--
-\subsection{Bounding theta(x)-x with a logarithmic decay, II: medium $x$}
+\subsection{Bounding theta(x)-x with a logarithmic decay, II: medium x}
 
 In this section we tackle medium $x$.
 
@@ -700,7 +677,7 @@ TODO: formalize Lemma 8 and Corollary 8.1
 -/
 
 blueprint_comment /--
-\subsection{Bounding theta(x)-x with a logarithmic decay, III: small $x$}
+\subsection{Bounding theta(x)-x with a logarithmic decay, III: small x}
 
 In this section we tackle small $x$.
 
@@ -709,7 +686,7 @@ TODO: formalize (3.17), (3.18), Lemma 9, Corollary 9.1
 
 
 blueprint_comment /--
-\subsection{Bounding theta(x)-x with a logarithmic decay, IV: very small $x$}
+\subsection{Bounding theta(x)-x with a logarithmic decay, IV: very small x}
 
 In this section we tackle very small $x$.
 
