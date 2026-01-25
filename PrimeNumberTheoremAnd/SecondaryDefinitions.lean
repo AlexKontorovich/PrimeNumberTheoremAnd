@@ -50,10 +50,22 @@ theorem log_le (t : ℝ) (ht : t > -1) : log (1 + t) ≤ t :=
   (proof := /-- Use Taylor's theorem with remainder and the fact that the second derivative of $\log(1+t)$ is at most $1$ for $t \geq 0$.-/)
   (latexEnv := "sublemma")
   (discussion := 765)]
-theorem log_ge
-    (t s : ℝ) (ht : t ≥ 0) (hs : s > 0) :
-    t - t ^ 2 / (2 * s ^ 2) ≤ log (1 + t) := by
-    sorry
+theorem log_ge {t : ℝ} (ht : 0 ≤ t) : t - t ^ 2 / 2 ≤ log (1 + t) := by
+  rcases ht.eq_or_lt with rfl | ht
+  · simp
+  let f : ℝ → ℝ := fun s ↦ log (1 + s) - (s - s ^ 2 / 2)
+  have hf_deriv_pos : ∀ s > 0, 0 ≤ deriv f s := by
+    intro s hs
+    norm_num [f, add_comm, show s + 1 ≠ 0 by positivity]
+    ring_nf
+    nlinarith [inv_mul_cancel₀ (by positivity : (1 + s) ≠ 0)]
+  have h_mvt : ∃ c ∈ Set.Ioo 0 t, deriv f c = (f t - f 0) / (t - 0) := by
+    refine exists_deriv_eq_slope _ ht ?_ ?_  <;> intro x hx
+    · exact ContinuousAt.continuousWithinAt (by fun_prop (disch := grind))
+    · exact DifferentiableAt.differentiableWithinAt (by fun_prop (disch := grind))
+  norm_num +zetaDelta at h_mvt
+  obtain ⟨c, ⟨hc₁, hc₂⟩, hc⟩ := h_mvt
+  nlinarith [hf_deriv_pos c hc₁, mul_div_cancel₀ (log (1 + t) - (t - t ^ 2 / 2)) (by positivity)]
 
 @[blueprint
   "log_lower_2"
