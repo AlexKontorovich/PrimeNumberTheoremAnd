@@ -1463,8 +1463,8 @@ lemma Params.initial.balance_ge_neg_M_mul_log (P : Params) {p : ℕ} (hp : p.Pri
   have := Fact.mk hp
   rw [Factorization.balance, Factorization.sum, initial.sum_valuation_eq_small P hp hp_le hp_gt,
     factorization_def _ hp, padicValNat_factorial]
-  simp only [cast_mul, cast_sum, Int.natCast_ediv, cast_pow, ge_iff_le, neg_le_sub_iff_le_add]
-  · calc
+  · simp only [cast_mul, cast_sum, Int.natCast_ediv, cast_pow, ge_iff_le, neg_le_sub_iff_le_add]
+    calc
     _ ≤ ∑ k ∈ Ico 1 (Nat.log p P.n + 1), ((P.M : ℤ) *
         (Finset.filter (p^k ∣ ·) (Ico (P.n - P.n / P.M) P.n)).card + P.M) :=
       sum_le_sum fun k _ ↦ mod_cast initial.count_multiples_lower_bound P.n P.M (p^k)
@@ -1560,8 +1560,174 @@ theorem Params.initial.score_bound (P : Params) :
 
     sorry
   -- grw [h2]
+  by_cases hImb : (∑ p ∈ (P.n + 1).primesBelow, (P.initial.balance p).natAbs) = 0
+  · -- balanced case: penalty is 0
+    simp only [hImb, gt_iff_lt, lt_self_iff_false, ↓reduceIte, neg_mul, zero_add, sum_const,
+      nsmul_eq_mul, nat_floor_real_sqrt_eq_nat_sqrt, ge_iff_le]
+    have hbal0 : ∀ p ∈ (P.n + 1).primesBelow, (P.initial.balance p).natAbs = 0 := by
+      intro p hp
+      simp only [Int.natAbs_eq_zero]
+      have hpabs : (P.initial.balance p).natAbs = 0 := by
+        have hbal0 :
+            ∀ q ∈ (P.n + 1).primesBelow, (P.initial.balance q).natAbs = 0 := by
+          exact (Finset.sum_eq_zero_iff_of_nonneg (fun _ _ => Nat.zero_le _)).1 hImb
+        exact hbal0 p hp
+      exact Int.natAbs_eq_zero.mp hpabs
+    have hbal0' : ∀ x ∈ (P.n + 1).primesBelow, P.initial.balance x = 0 := by
+      intro x hx
+      exact Int.natAbs_eq_zero.mp (hbal0 x hx)
 
-  sorry
+    have hLHS : (∑ x ∈ (P.n + 1).primesBelow,
+        if 0 < P.initial.balance x then (P.initial.balance x : ℝ) * Real.log x
+        else if x ≤ P.L then -((P.initial.balance x : ℝ) * Real.log P.L)
+        else -((P.initial.balance x : ℝ) * Real.log (P.n / x))) = 0 := by
+      refine Finset.sum_eq_zero ?_
+      intro x hx
+      have hx0 : P.initial.balance x = 0 := hbal0' x hx
+      simp [hx0]
+
+    -- replace the LHS by 0 and finish
+    simp only [hLHS, ge_iff_le]
+
+
+    have hcard1 : 0 ≤ (↑(#({x ∈ Finset.Iic (P.n / P.L) | Nat.Prime x})) : ℝ) := by
+      exact_mod_cast Nat.zero_le _
+    have hcard2 : 0 ≤ (↑(#({x ∈ Finset.Iic P.n.sqrt | Nat.Prime x})) : ℝ) := by
+      exact_mod_cast Nat.zero_le _
+    have hcard3 : 0 ≤ (↑(#({x ∈ Finset.Iic P.L | Nat.Prime x})) : ℝ) := by
+      exact_mod_cast Nat.zero_le _
+
+    have hM0 : (0 : ℝ) ≤ (P.M : ℝ) := by exact_mod_cast Nat.zero_le _
+    have hlog2pos : 0 < Real.log (2 : ℝ) := by
+      have : (1 : ℝ) < 2 := by norm_num
+      simpa using Real.log_pos this
+
+    -- You’ll almost surely also want these:
+    have hn1 : (1 : ℝ) ≤ (P.n : ℝ) := by
+      -- pick whatever you already have: from Params you have n > L*L and L>0 so n≥1
+      have : 0 < P.n := by
+        -- from P.hL_pos and P.hL : n > L*L
+        have hLpos : 0 < P.L := P.hL_pos
+        have : 0 < P.L * P.L := Nat.mul_pos hLpos hLpos
+        exact lt_trans this P.hL
+      exact one_le_cast.mpr this
+
+    have hlogn_nonneg : 0 ≤ Real.log (P.n : ℝ) := by
+      exact Real.log_nonneg hn1
+
+    have hlogL_nonneg : 0 ≤ Real.log (P.L : ℝ) := by
+      -- from P.hL_pos : L > 0 gives L ≥ 1
+      have hL1 : (1 : ℝ) ≤ (P.L : ℝ) := by
+        have : 0 < P.L := P.hL_pos
+        exact_mod_cast Nat.succ_le_iff.mp this
+      exact Real.log_nonneg hL1
+
+    -- Now show each RHS block is ≥ 0.
+
+    have hblock1 :
+        0 ≤ (↑(#({x ∈ Finset.Iic (P.n / P.L) | Nat.Prime x})) : ℝ) * ((P.M : ℝ) * Real.log (P.n : ℝ)) := by
+      positivity
+
+    have hblock2 :
+        0 ≤ (↑(#({x ∈ Finset.Iic P.n.sqrt | Nat.Prime x})) : ℝ) *
+          ((P.M : ℝ) * Real.log (P.n : ℝ) * Real.log (P.n : ℝ) / Real.log (2 : ℝ)) := by
+      have : 0 ≤ (Real.log (P.n : ℝ) * Real.log (P.n : ℝ)) := mul_nonneg hlogn_nonneg hlogn_nonneg
+      have : 0 ≤ ((P.M : ℝ) * Real.log (P.n : ℝ) * Real.log (P.n : ℝ) / Real.log (2 : ℝ)) := by
+        -- division by positive log2
+        have hden : 0 < Real.log (2 : ℝ) := hlog2pos
+        have : 0 ≤ (P.M : ℝ) * (Real.log (P.n : ℝ) * Real.log (P.n : ℝ)) := by
+          nlinarith [hM0, mul_nonneg hlogn_nonneg hlogn_nonneg]
+        positivity
+      nlinarith [hcard2, this]
+
+    have hblock3 :
+        0 ≤ ∑ p ∈ Finset.Icc (P.n / P.L + 1) P.n with Nat.Prime p,
+            (P.n : ℝ) / (p : ℝ) * Real.log ((P.n : ℝ) / (p : ℝ)) := by
+      refine Finset.sum_nonneg ?_
+      intro p hp
+      -- On this index set, p ≤ n and p ≥ n/L+1, and p is prime so p>0.
+      have hp_pos : (0 : ℝ) < (p : ℝ) := by
+        have : 0 < p := (Nat.Prime.pos (by
+          exact (Finset.mem_filter.mp hp).2))
+        exact_mod_cast this
+      have hp_le_n : (p : ℝ) ≤ (P.n : ℝ) := by
+        exact_mod_cast (Finset.mem_Icc.mp (Finset.mem_filter.mp hp).1).2
+      have hnp_ge1 : (1 : ℝ) ≤ (P.n : ℝ) / (p : ℝ) := by
+        -- since p ≤ n and p>0
+        exact (one_le_div₀ hp_pos).mpr hp_le_n
+      have hlog_nonneg : 0 ≤ Real.log ((P.n : ℝ) / (p : ℝ)) := Real.log_nonneg hnp_ge1
+      have hdiv_nonneg : 0 ≤ (P.n : ℝ) / (p : ℝ) := by nlinarith [hp_pos]
+      exact mul_nonneg hdiv_nonneg hlog_nonneg
+
+    have hblock4 :
+        0 ≤ (↑(#({x ∈ Finset.Iic P.L | Nat.Prime x})) : ℝ) *
+          (((P.M : ℝ) * Real.log (P.n : ℝ) + (P.M : ℝ) * (P.L : ℝ)^2 * (P.n.primeCounting : ℝ))
+            * Real.log (P.L : ℝ)) := by
+      have hpc_nonneg : 0 ≤ (P.n.primeCounting : ℝ) := by
+        exact_mod_cast Nat.zero_le _
+      have hinner_nonneg :
+          0 ≤ (P.M : ℝ) * Real.log (P.n : ℝ) + (P.M : ℝ) * (P.L : ℝ)^2 * (P.n.primeCounting : ℝ) := by
+        have : 0 ≤ (P.M : ℝ) * Real.log (P.n : ℝ) := mul_nonneg hM0 hlogn_nonneg
+        have : 0 ≤ (P.M : ℝ) * (P.L : ℝ)^2 * (P.n.primeCounting : ℝ) := by
+          have hLsq : 0 ≤ (P.L : ℝ)^2 := sq_nonneg _
+          positivity
+        nlinarith
+      have : 0 ≤ (((P.M : ℝ) * Real.log (P.n : ℝ) + (P.M : ℝ) * (P.L : ℝ)^2 * (P.n.primeCounting : ℝ))
+            * Real.log (P.L : ℝ)) := mul_nonneg hinner_nonneg hlogL_nonneg
+      nlinarith [hcard3, this]
+
+    -- Now finish by add_nonneg chaining:
+    nlinarith [hblock1, hblock2, hblock3, hblock4]
+
+  · -- imbalanced case: penalty is log n
+    have hImb' : (∑ p ∈ (P.n + 1).primesBelow, (P.initial.balance p).natAbs) > 0 := by
+      exact Nat.pos_of_ne_zero hImb
+    simp only [gt_iff_lt, hImb', ↓reduceIte, neg_mul, sum_const, nsmul_eq_mul,
+      nat_floor_real_sqrt_eq_nat_sqrt, ge_iff_le]
+
+    have hif : (if ∑ p ∈ (P.n + 1).primesBelow, (P.initial.balance p).natAbs > 0
+            then Real.log (P.n : ℝ) else 0) = Real.log (P.n : ℝ) := by
+      simp [hImb']
+
+    nth_rewrite 1 [← hif]
+
+    -- name the summand so `split_sum` can be applied cleanly
+    set g : ℕ → ℝ := fun x =>
+      if 0 < P.initial.balance x then (P.initial.balance x : ℝ) * Real.log (x : ℝ)
+      else if x ≤ P.L then -((P.initial.balance x : ℝ) * Real.log (P.L : ℝ))
+      else -((P.initial.balance x : ℝ) * Real.log ((P.n : ℝ) / (x : ℝ)))
+
+    -- now split the big prime-sum into 4 pieces
+    rw [split_sum (f := g)]
+    -- optional: unfold back so the goal is readable again
+    simp only [gt_iff_lt, ge_iff_le, g]
+
+    set S : ℕ := ∑ p ∈ (P.n + 1).primesBelow, (P.initial.balance p).natAbs
+
+    by_cases hS0 : S = 0
+    · -- balanced: penalty term is 0
+      have hSlt : ¬ (0 < S) := by simp [hS0]
+      simp only [hS0, lt_self_iff_false, ↓reduceIte, zero_add, ge_iff_le, S]  -- removes the `if`, leaves you with 4 sums ≤ RHS
+      exfalso
+      exact hImb hS0
+
+    · -- imbalanced: penalty term is log n
+      have hSpos : 0 < S := Nat.pos_of_ne_zero hS0
+      simp only [hSpos, ↓reduceIte, ge_iff_le, S]      -- turns the `if` into `Real.log n`
+
+
+      -- first, rewrite the four big blocks in terms of g
+      simp only [one_div, log_inv, mul_neg, ge_iff_le, gt_iff_lt, neg_mul, tsub_le_iff_right,
+        ite_eq_left_iff, not_lt, nonpos_iff_eq_zero] at *
+
+      rw [← split_sum (f := g)]
+      sorry
+
+
+-- now rewrite your goal’s LHS using hif and then finish by the lemma you already have
+-- (the one that gave the RHS bound for the “if + sum” expression)
+
+    sorry
   -- unfold Factorization.score
   -- have hw := initial.waste P
   -- -- hw : P.initial.waste ≤ P.n * log (1 - 1/(P.M : ℝ))⁻¹
