@@ -607,16 +607,44 @@ theorem cor_5_1_rem (b a₂b : ℝ) (m : ℕ) (hb : (b, a₂b, m) ∈ table_cor_
 
 
 blueprint_comment /--
-\subsection{Bounding theta(x)-x with a logarithmic decay}
+\subsection{Bounding theta(x)-x with a logarithmic decay, I: large $x$}
 
-In this section we obtain bounds of the shape
+In this section and the next ones we obtain bounds of the shape
 $$ x (1 - \frac{m_k}{\log^k x}) \leq \theta(x)$$
 for all $x \geq X_0$ and
 $$ \theta(x) \leq x (1 + \frac{M_k}{\log^k x})$$
 for all $x \geq X_1$, for various $k, m_k, M_k, X_0, X_1$, with $k \in \{1,\dots,5\}$.
 
-TODO: fill in lemmas here from Section 3
+For this section we focus on estimates that are useful when $x$ is extremely large, e.g., $x \geq e^{25000}$.
 -/
+
+
+
+@[blueprint
+  "bklnw-lem-6"
+  (title := "BKLNW Lemma 6")
+  (statement := /--  Suppose there exists $c_1, c_2, c_3, c_4 > 0$ such that
+\begin{equation}\tag{3.3}
+|\theta(x) - x| \leq c_1 x (\log x)^{c_2} \exp(-c_3 (\log x)^{\frac{1}{2}}) \quad \text{for all } x \geq c_4.
+\end{equation}
+Let $k > 0$ and let $b \geq \max\left(\log c_4, \log\left(\frac{4(c_2 + k)^2}{c_3^2}\right)\right)$. Then for all $x \geq e^b$ we have
+$$
+|\theta(x) - x| \leq \frac{\mathcal{A}_k(b) x}{(\log x)^k},
+$$
+where
+$$
+\mathcal{A}_k(b) = c_1 \cdot b^{c_2 + k} e^{-c_3\sqrt{b}}.
+$$ -/)
+  (proof := /-- We denote $g(x) = (\log x)^{c_2 + k} \exp(-c_3 (\log x)^{\frac{1}{2}})$. By \eqref{3.3}, $|\theta(x) - x| < \frac{c_1 g(x) x}{(\log x)^k}$ for all $x \geq c_4$. It suffices to bound $g$: by calculus, $g(x)$ decreases when $x \geq \frac{4(c_2 + k)^2}{c_3^2}$. Therefore $|\theta(x) - x| \leq \frac{c_1 g(e^b) x}{(\log x)^k}$. Note that $c_1 g(e^b) = \mathcal{A}_k(b)$ and the condition on $b$ follows from the conditions $e^b \geq c_4$ and $e^b \geq \frac{4(c_2 + k)^2}{c_3^2}$. -/)
+  (latexEnv := "lemma")]
+theorem lem_6 {c₁ c₂ c₃ c₄ k b x : ℝ} (hc₁ : 0 < c₁) (hc₂ : 0 < c₂) (hc₃ : 0 < c₃) (hc₄ : 0 < c₄)
+    (hθ : Eθ.classicalBound c₁ c₂ c₃ 1 c₄)
+    (hk : 0 < k)
+    (hb : b ≥ max (log c₄) (log ((4 * (c₂ + k) ^ 2) / (c₃ ^ 2))))
+    (hx : x ≥ exp b) :
+    let A := c₁ * b ^ (c₂ + k) * exp (-c₃ * sqrt b)
+    Eθ x ≤ A / (log x) ^ k := by
+      sorry
 
 
 
