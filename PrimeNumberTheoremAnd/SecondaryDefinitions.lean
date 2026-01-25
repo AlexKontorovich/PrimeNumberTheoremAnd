@@ -70,26 +70,26 @@ theorem log_ge'
 @[blueprint
   "symm_inv_log"
   (title := "Symmetrization of inverse log")
-  (statement := /-- For $0 < t \leq 1/2$, one has $| \frac{1}{\log(1+t)} + \frac{1}{\log(1-t)}| \leq \frac{\log(4/3)}{4/3}$. -/)
+  (statement := /-- For $0 < t \leq 1/2$, one has $| \frac{1}{\log(1+t)} + \frac{1}{\log(1-t)}| \leq \frac{\log(4/3)}{\log(3/2) \log 2}$. -/)
   (proof := /-- The expression can be written as $\frac{|\log(1-t^2)|}{|\log(1-t)| |\log(1+t)|}$. Now use the previous upper and lower bounds, noting that $t^2 \leq 1/4$. -/)
   (latexEnv := "sublemma")
   (discussion := 767)]
 theorem symm_inv_log
     (t : ℝ) (ht : 0 < t) (ht' : t ≤ 1 / 2) :
-    |1 / log (1 + t) + 1 / log (1 - t)| ≤ log (4 / 3) / (4 / 3) := by
+    |1 / log (1 + t) + 1 / log (1 - t)| ≤ log (4 / 3) / (log (3 / 2) * log 2) := by
     sorry
 
 @[blueprint
   "li-approx"
   (title := "li approximation")
-  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{\log(4/3)}{4/3} \eps)$. -/)
+  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{\log(4/3)}{\log(3/2) \log 2} \eps)$. -/)
   (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
   (latexEnv := "sublemma")
   (discussion := 768)]
 theorem li.eq
     (x ε : ℝ) (hx : x ≥ 2) (hε1 : 0 < ε) (hε2 : ε ≤ 1) : ∃ E,
     li x = ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)), 1 / log t + E ∧
-    |E| ≤ log (4 / 3) / (4 / 3) * ε := by
+    |E| ≤ log (4 / 3) / (log (3 / 2) * log 2) * ε := by
     sorry
 
 @[blueprint
