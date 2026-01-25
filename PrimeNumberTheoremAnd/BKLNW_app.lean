@@ -412,16 +412,17 @@ theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
    -/)
   (proof := /-- From Table 8 we have $\varepsilon(19 \log 10) = 1.93378 \cdot 10^{-8}$.
   Now apply Corollary \ref{bklnw-cor_15_1} and Theorem \ref{bklnw-theorem-2}. -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 775)]
 theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
-  ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) 1.93378e-8 := by sorry
-
-
-
-
-
-
-
-
+    ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) 1.93378e-8 := by
+  intro x hx
+  grw [bklnw_cor_15_1 b hb1 hb2 table_8_ε (fun b₀ hb₀ x hx ↦ by
+    grw [Eψ, div_le_iff₀ (lt_of_lt_of_le (by positivity) hx), theorem_2 b₀ hb₀.le x hx]) x hx]
+  apply max_le_max_left
+  suffices 43 < 19 * Real.log 10 ∧ 19 * Real.log 10 < 44 by grind only [table_8_ε]
+  rw [← log_rpow (by positivity), lt_log_iff_exp_lt (by positivity),
+    log_lt_iff_lt_exp (by positivity), ← exp_one_rpow 43, ← exp_one_rpow 44]
+  exact ⟨by grw [Real.exp_one_lt_d9]; norm_num, by grw [← Real.exp_one_gt_d9]; norm_num⟩
 
 end BKLNW_app
