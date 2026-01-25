@@ -54,7 +54,6 @@ theorem log_ge {t : ℝ} (ht : 0 ≤ t) :
     t - t ^ 2 / 2 ≤ log (1 + t) := by
   rcases ht.eq_or_lt with rfl|ht
   · simp
-  -- Define the function $f(t) = \ln(1+t) - (t - t^2/2)$ and show that $f(t) \geq 0$ for $t \geq 0$.
   set f : ℝ → ℝ := fun t => Real.log (1 + t) - (t - t^2 / 2)
   have hf_deriv_pos : ∀ t > 0, 0 ≤ deriv f t := by
     intro t ht
@@ -62,7 +61,6 @@ theorem log_ge {t : ℝ} (ht : 0 ≤ t) :
     norm_num [ add_comm, show t + 1 ≠ 0 by linarith ]
     ring_nf
     nlinarith [ inv_mul_cancel₀ ( by linarith : ( 1 + t ) ≠ 0 ) ]
-  -- Since $f$ is differentiable and its derivative is non-negative for $t > 0$, we can apply the Mean Value Theorem to $f$ on the interval $[0, t]$.
   have h_mvt : ∃ c ∈ Set.Ioo 0 t, deriv f c = (f t - f 0) / (t - 0) := by
     apply exists_deriv_eq_slope _ ht <;> unfold f
     · exact fun x hx ↦ ContinuousAt.continuousWithinAt (by fun_prop (disch := grind))
