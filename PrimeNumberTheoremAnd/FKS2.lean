@@ -366,9 +366,48 @@ We can now obtain an upper bound on $E_\pi$ in terms of $E_\theta$:
   (proof := /-- This follows from applying the triangle inequality to Sublemma \ref{fks2-eq-17}. -/)
   (latexEnv := "sublemma")
   (discussion := 741)]
-theorem eq_30 {x x₀ : ℝ} (hx : x ≥ x₀) :
-  Eπ x ≤ Eψ x + δ x₀ + (log x / x) * ∫ t in x₀..x, Eθ t / log t ^ 2 :=
-  by sorry
+theorem eq_30 {x x₀ : ℝ} (hx : x ≥ x₀) (hx₀ : x₀ ≥ 2) :
+  Eπ x ≤ Eθ x + (log x / x) * (x₀ / log x₀) * δ x₀ + (log x / x) * ∫ t in x₀..x, Eθ t / log t ^ 2 := by
+  -- NOTE: the hypothesis `hx₀` was added to apply `eq_17`.
+  -- It is not present in the original source material [FKS2].
+  have : (log x / x) * (x₀ / log x₀) * δ x₀ = (log x / x) * |pi x₀ - Li x₀ - (θ x₀ - x₀) / log x₀| := by
+    unfold δ
+    have : log x₀ > 0 := log_pos (by linarith)
+    field_simp
+    rw [abs_div, abs_of_nonneg (by linarith : x₀ ≥ 0), abs_div, abs_of_pos this]
+    field_simp
+  rw [this]; unfold Eπ Eθ
+  field_simp [(by linarith : x > 0)]
+  calc
+    _ = |pi x - Li x - (pi x₀ - Li x₀) + pi x₀ - Li x₀| * log x := by ring_nf
+    _ = |(θ x - x) / log x
+        + (pi x₀ - Li x₀ - (θ x₀ - x₀) / log x₀)
+        + (∫ t in x₀..x, (θ t - t) / (t * log t ^ 2))| * log x := by
+      by_cases h : x = x₀
+      · rw [h, intervalIntegral.integral_same]; ring_nf
+      · congr
+        rw [eq_17 hx₀ (lt_of_le_of_ne hx (Ne.symm h))]
+        ring
+    _ ≤ |(θ x - x) / log x| * log x
+        + |pi x₀ - Li x₀ - (θ x₀ - x₀) / log x₀| * log x
+        + |∫ t in x₀..x, (θ t - t) / (t * log t ^ 2)| * log x := by
+      rw [← distrib_three_right]; gcongr
+      · exact log_nonneg (by linarith)
+      · exact abs_add_three _ _ _
+    _ ≤ |θ x - x|
+        + log x * |pi x₀ - Li x₀ - (θ x₀ - x₀) / log x₀|
+        + log x * ∫ t in x₀..x, |θ t - t| / (t * log t ^ 2) := by
+      have : log x > 0 := log_pos (by linarith)
+      rw [abs_div, abs_of_pos this]
+      field_simp [this]
+      gcongr
+      have : ∫ t in x₀..x, |θ t - t| / (t * log t ^ 2) = ∫ t in x₀..x, |(θ t - t) / (t * log t ^ 2)| := by
+        apply intervalIntegral.integral_congr_ae
+        filter_upwards with t ht
+        rw [Set.uIoc_of_le hx, Set.mem_Ioc] at ht
+        have : t * log t ^ 2 ≥ 0 := mul_nonneg (by linarith) (pow_two_nonneg (log t))
+        rw [abs_div, abs_of_nonneg this]
+      simp only [this, intervalIntegral.abs_integral_le_integral_abs hx]
 
 blueprint_comment /--
 Next, we bound the integral appearing in Sublemma \ref{fks2-eq-17}.
