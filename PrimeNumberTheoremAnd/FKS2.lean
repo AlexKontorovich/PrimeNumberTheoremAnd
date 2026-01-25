@@ -547,6 +547,16 @@ theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
       exp (b i) / b i - exp (b (i + 1)) / b (i + 1)) :=
   sorry
 
+lemma hasDerivAt_Li {x : ℝ} (hx : x ∈ Set.Ioi 6.58) : HasDerivAt Li (1 / log x) x := by
+  have hf (x) (hx : x ∈ Set.Ioi 6.58) : ContinuousAt (fun x ↦ 1 / log x) x := by
+    have := log_pos (by linarith [Set.mem_Ioi.mp hx]) |>.ne'
+    fun_prop (disch := simp_all)
+  refine intervalIntegral.integral_hasDerivAt_right ?_ ?_ (hf x hx)
+  · have := Set.uIcc_of_le (show 2 ≤ x by linarith [Set.mem_Ioi.mp hx])
+    apply intervalIntegral.intervalIntegrable_one_div (by grind [log_eq_zero])
+    fun_prop (disch := grind)
+  · grind [ContinuousAt.stronglyMeasurableAtFilter isOpen_Ioi hf]
+
 @[blueprint
   "fks2-lemma-20a"
   (title := "FKS2 Lemma 20a")
@@ -562,6 +572,16 @@ theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
   (latexEnv := "lemma")
   (discussion := 713)]
 theorem lemma_20_a : StrictMonoOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) := sorry
+theorem lemma_20_a : StrictMonoOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) := by
+  have hpos (x : ℝ) (hx : x ∈ Set.Ioi 6.58) := log_pos (by linarith [Set.mem_Ioi.mp hx]) |>.ne'
+  apply strictMonoOn_of_deriv_pos (convex_Ioi _)
+  · apply HasDerivAt.continuousOn (by apply hasDerivAt_Li) |>.sub
+    fun_prop (disch := simp_all)
+  · intro x hx
+    rw [interior_Ioi, Set.mem_Ioi] at hx
+    rw [deriv_fun_sub (hasDerivAt_Li hx).differentiableAt (by fun_prop (disch := simp_all)),
+      deriv_fun_div differentiableAt_fun_id (differentiableAt_log (by linarith)) (hpos x hx)]
+    simp [(hasDerivAt_Li hx).deriv, field, pow_two_pos_of_ne_zero, (hpos x hx), - sub_pos]
 
 /- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2206.12557. -/
 @[blueprint
