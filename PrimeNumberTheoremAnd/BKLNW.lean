@@ -647,10 +647,82 @@ theorem lem_6 {c₁ c₂ c₃ c₄ k b x : ℝ} (hc₁ : 0 < c₁) (hc₂ : 0 < 
       sorry
 
 
+@[blueprint
+  "bklnw-cor-14-1"
+  (title := "BKLNW Corollary 14.1")
+  (statement := /--  Suppose one has an asymptotic bound $E_\psi$ with parameters $A,B,C,R,e^{x_0}$ (which need to satisfy some additional bounds) with $x_0 \geq 1000$.  Then $E_\psi$ obeys an asymptotic bound with parameters $A', B, C, R, e^{x_0}$, where
+  $$ A' := A (1 + \frac{1}{A} (\frac{R}{x_0})^B \exp(C \sqrt{\frac{x_0}{R}}) (a_1(x_0) \exp(\frac{-x_0}{2}) + a_2(x_0) \exp(\frac{-2 x_0}{3}))) $$
+  and $a_1(x_0), a_2(x_0)$ are as in Corollary \ref{bklnw-cor-5-1} -/)
+  (proof := /-- We write $\theta(x) - x = \psi(x) - x + \theta(x) - \psi(x)$, apply the triangle inequality, and invoke Corollary \ref{blknw-cor-5-1} to obtain
+$$
+E_\theta(x) \leq A (\frac{\log x}{R})^B \exp(-C (\frac{\log x}{R})^{\frac{1}{2}}) + a_1(x_0) x^{-\frac{1}{2}} + a_2(x_0) x^{-\frac{2}{3}}$$
+$$ \leq A (\frac{\log x}{R})^B \exp(-C (\frac{\log x}{R})^{\frac{1}{2}}) (1 + \frac{a_1(x_0) \exp(C \sqrt{\frac{\log x}{R}})}{A \sqrt{x} (\frac{\log x}{R})^B} + \frac{a_2(x_0) \exp(C \sqrt{\frac{\log x}{R}})}{A x^{\frac{2}{3}} (\frac{\log x}{R})^B}).$$
+The function in brackets decreases for $x \geq e^{x_0}$ with $x_0 \geq 1000$ (assuming reasonable hypotheses on $A,B,C,R$) and thus we obtain the desired bound with $A'$ as above.
+ -/)
+  (latexEnv := "corollary")]
+theorem cor_14_1 {A B C R x₀ : ℝ} (hx₀ : x₀ ≥ 1000)
+    (hEψ : Eψ.classicalBound A B C R x₀) :
+    let A' := A * (1 + (1 / A) * (R / x₀) ^ B * exp (C * sqrt (x₀ / R)) *
+      (a₁ x₀ * exp (-x₀ / 2) + a₂ x₀ * exp (-2 * x₀ / 3)))
+    Eθ.classicalBound A' B C R x₀ := by
+      sorry
+
+/-
+Corollary 7.1.
+
+\begin{corollary}
+Let $k > 0$, $x_0 \geq 1000$, and $b \geq \max\left(\log x_0, \log\left(4R\left(\frac{B+k}{C}\right)^2\right)\right)$. Then
+\[
+|\theta(x) - x| \leq \frac{\mathcal{A}_k(b) x}{(\log x)^k} \quad \text{for all } x \geq e^b
+\]
+where
+\begin{equation}\tag{3.6}
+\mathcal{A}_k(b) = \frac{A}{R^B} \cdot b^{B+k} \cdot \exp\left(-C\sqrt{\frac{b}{R}}\right)
+\end{equation}
+and $R = 5.573412$. Values for $\mathcal{A}_k(b)$ for $1 \leq k \leq 5$ are displayed in Table 9.
+\end{corollary}
+
+\begin{proof}
+We apply Lemma 6 with $R = 5.573412$ (using \cite{MossinghoffTrudgian}), and values from Theorem 7, namely $c_1 = \frac{A}{R^B}$, $c_2 = B$, $c_3 = \frac{C}{\sqrt{R}}$, and $c_4 = x_0$. We complete the proof by noticing
+\[
+\frac{4(c_2 + k)^2}{c_3^2} = 4R\left(\frac{B + k}{C}\right)^2.
+\]
+\end{proof}
+-/
+
+blueprint_comment /--
+\subsection{Bounding theta(x)-x with a logarithmic decay, II: medium $x$}
+
+In this section we tackle medium $x$.
+
+TODO: formalize Lemma 8 and Corollary 8.1
+-/
+
+blueprint_comment /--
+\subsection{Bounding theta(x)-x with a logarithmic decay, III: small $x$}
+
+In this section we tackle small $x$.
+
+TODO: formalize (3.17), (3.18), Lemma 9, Corollary 9.1
+-/
 
 
+blueprint_comment /--
+\subsection{Bounding theta(x)-x with a logarithmic decay, IV: very small $x$}
+
+In this section we tackle very small $x$.
+
+TODO: Formalize Lemma 10
+-/
 
 
+blueprint_comment /--
+\subsection{Final bound on E_theta(x)}
+
+Now we put everything together.
+
+TODO: Section 3.7.1; 3.7.2; 3.7.3; 3.7.4
+-/
 
 
 noncomputable def Table_15 : List (ℝ × (Fin 5 → ℝ)) := [
@@ -767,6 +839,15 @@ theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ x : ℝ} (hx₀ : x ≥ X₀)
 theorem thm_1b_table {X₀ : ℝ} {M : Fin 5 → ℝ} (h : (X₀, M) ∈ Table_15) (k : Fin 5) {x : ℝ} (hx : x ≥ X₀) :
   x * (1 - M k / (log x)^(k.val + 1)) ≤ θ x ∧ θ x ≤ x * (1 + M k / (log x)^(k.val + 1)) :=
   by sorry
+
+
+blueprint_comment /--
+\subsection{Computational examples}
+
+Now we apply the previous theorem.
+
+TODO: Corollary 11.1, 11.2
+-/
 
 
 end BKLNW
