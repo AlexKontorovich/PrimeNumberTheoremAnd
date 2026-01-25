@@ -66,7 +66,8 @@ theorem lemma_11a (I : Pre_inputs) {x : ℝ} (hx : x > 0) :
   "bklnw-lemma-11b"
   (title := "BKLNW Lemma 11b")
   (statement := /-- With the hypotheses as above, we have
-  $$ (1 - \eps(b) - c_0(e^{-b/2} + e^{-2b/3} + e^{-4b/5})) x \leq \theta(x)$ for all $x \geq e^b$ and $b>0$, where $c_0 = 1.03883$ is the constant from \cite[Theorem 12]{rs-prime}. -/)
+  $$ (1 - \eps(b) - c_0(e^{-b/2} + e^{-2b/3} + e^{-4b/5})) x \leq \theta(x)$$
+   for all $x \geq e^b$ and $b>0$, where $c_0 = 1.03883$ is the constant from \cite[Theorem 12]{rs-prime}. -/)
   (proof := /-- From Theorem \ref{costa-pereira-theorem-1a} we have $\psi(x) - \theta(x) ≤ \psi(x^{1/2}) + \psi(x^{1/3}) + \psi(x^{1/5})$.  Now apply the hypothesis on $\psi(x)$ and  Theorem \ref{rs-psi-upper}. -/)
   (latexEnv := "lemma")]
 theorem lemma_11b (I : Pre_inputs) {b x : ℝ} (hb : 0 < b) (hx : x ≥ exp b) :
