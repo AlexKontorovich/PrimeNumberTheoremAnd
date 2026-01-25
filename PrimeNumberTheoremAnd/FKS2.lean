@@ -571,7 +571,6 @@ lemma hasDerivAt_Li {x : ℝ} (hx : x ∈ Set.Ioi 6.58) : HasDerivAt Li (1 / log
   -/)
   (latexEnv := "lemma")
   (discussion := 713)]
-theorem lemma_20_a : StrictMonoOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) := sorry
 theorem lemma_20_a : StrictMonoOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) := by
   have hpos (x : ℝ) (hx : x ∈ Set.Ioi 6.58) := log_pos (by linarith [Set.mem_Ioi.mp hx]) |>.ne'
   apply strictMonoOn_of_deriv_pos (convex_Ioi _)
