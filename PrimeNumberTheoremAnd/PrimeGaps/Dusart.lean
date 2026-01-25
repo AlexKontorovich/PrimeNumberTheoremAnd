@@ -484,6 +484,7 @@ lemma main_ineq_delta_form_lhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   linarith
 
 
+set_option maxHeartbeats 800000 in
 lemma main_ineq_delta_form_rhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (∏ i : Fin 3,
         (1 + 1 /
@@ -495,16 +496,223 @@ lemma main_ineq_delta_form_rhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
           ((onePlusEps_log) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
       * (1 + (3 : ℝ) / (8 * (n : ℝ)))
       * (1 - 4 * (onePlusEps_log) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ))) := by
-    /- *** Proof idea ***
-    Compare term-by-term in the product using positivity of all terms
-      · first term is positive since δ is nonnegative (δ_nonneg)
-      · second term is obvious positive
-      · third term is positive using delta_twelfth_power_le_n_pow_3_div_2
-    First term uses eps_log_bound and inv_n_add_sqrt_ge_X₀ to bound δ(√n) by 0.000675
-    Last term uses delta_twelfth_power_le_n_pow_3_div_2 and inv_n_pow_3_div_2_le_X₀ to bound
-      4 * (1 + δ(√n))^12 / n^(3/2) by 4 * (1 + 0.000675)^12 * 1 / (X₀ : ℝ) * 1 / (n : ℝ)
-    -/
-    sorry
+  /- *** Proof idea ***
+  Compare term-by-term in the product using positivity of all terms.
+  For the product part, we bound `(1+δ(√n))` by `onePlusEps_log` and
+  `1/(n+√n)` by `1/(1+1/X₀) * 1/n`.
+  For the last factor, we combine `delta_twelfth_power_le_n_pow_3_div_2`,
+  `inv_n_pow_3_div_2_le_X₀`, and the bound on `δ(√n)`.
+  -/
+  classical
+
+  -- Basic facts about `n`.
+  have hn_pos_nat : 0 < n := by
+    have hX0_pos : 0 < X₀ := by
+      norm_num [X₀]
+    have hX0sq_pos : 0 < X₀ ^ 2 := by
+      exact pow_pos hX0_pos _
+    exact lt_of_lt_of_le hX0sq_pos hn
+  have hn_pos : 0 < (n : ℝ) := by
+    exact_mod_cast hn_pos_nat
+  have hn_nonneg : 0 ≤ (n : ℝ) := hn_pos.le
+
+  -- Turn `hn : X₀^2 ≤ n` into `X₀ ≤ √n`.
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := by
+    have hn' : (X₀ ^ 2 : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast hn
+    have hsqrt : √(X₀ ^ 2 : ℝ) ≤ √(n : ℝ) := by
+      exact Real.sqrt_le_sqrt hn'
+    have hX0_nonneg : (0 : ℝ) ≤ (X₀ : ℝ) := by
+      exact_mod_cast (Nat.zero_le X₀)
+    simpa [Nat.cast_pow, Real.sqrt_sq_eq_abs, abs_of_nonneg hX0_nonneg] using hsqrt
+
+  have hδ_nonneg : 0 ≤ δ (√(n : ℝ)) := by
+    exact δ_nonneg hX0_le_sqrt
+  have hδ_le_eps : δ (√(n : ℝ)) ≤ eps_log := by
+    simpa [eps_log] using (eps_log_bound (n := n) hn)
+  have hbase_le : (1 + δ (√(n : ℝ))) ≤ onePlusEps_log := by
+    linarith [hδ_le_eps]
+  have hbase_nonneg : 0 ≤ (1 + δ (√(n : ℝ))) := by
+    linarith
+  have hbase_pos : 0 < (1 + δ (√(n : ℝ))) := by
+    linarith
+
+  have heps_nonneg : 0 ≤ onePlusEps_log := by
+    norm_num [onePlusEps_log, eps_log]
+  have heps_pos : 0 < onePlusEps_log := by
+    norm_num [onePlusEps_log, eps_log]
+
+  -- Product comparison: RHS product ≤ LHS product.
+  have hprod :
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((onePlusEps_log) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+        ≤
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((1 + δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ))))) := by
+    -- Compare factors pointwise, then multiply.
+    refine Finset.prod_le_prod (fun _ _ => by positivity) ?_
+    intro i _
+    -- It suffices to compare the reciprocals.
+    suffices
+        (1 : ℝ) / ((onePlusEps_log) ^ (2 * (i : ℕ) + 2 : ℝ)) * (1 / (1 + 1 / (X₀ : ℝ))) *
+            (1 / (n : ℝ))
+          ≤ (1 : ℝ) /
+            ((1 + δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ))) by
+      -- Add 1 on both sides.
+      have h := add_le_add_left this 1
+      simpa [add_comm, add_left_comm, add_assoc] using h
+
+    -- First, compare the `rpow` denominators.
+    let k : ℝ := (2 * (i : ℕ) + 2 : ℝ)
+    have hk_nonneg : 0 ≤ k := by
+      dsimp [k]
+      exact_mod_cast (Nat.zero_le (2 * (i : ℕ) + 2))
+    have hrpow_le : (1 + δ (√(n : ℝ))) ^ k ≤ onePlusEps_log ^ k := by
+      exact Real.rpow_le_rpow hbase_nonneg hbase_le hk_nonneg
+    have hinv_rpow : (1 : ℝ) / (onePlusEps_log ^ k) ≤ (1 : ℝ) / ((1 + δ (√(n : ℝ))) ^ k) := by
+      -- `a ≤ b` with `0 < a` gives `1/b ≤ 1/a`.
+      have hpos : 0 < (1 + δ (√(n : ℝ))) ^ k :=
+        Real.rpow_pos_of_pos hbase_pos _
+      simpa [one_div] using (one_div_le_one_div_of_le hpos hrpow_le)
+
+    -- Second, compare `1/(n+√n)` using the previously proved lemma.
+    have hinv_sum : (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) ≤ (1 : ℝ) / ((n : ℝ) + √(n : ℝ)) := by
+      -- `a ≥ b` is `b ≤ a`.
+      simpa [mul_assoc, mul_left_comm, mul_comm] using (inv_n_add_sqrt_ge_X₀ (n := n) hn)
+
+    -- Multiply the two bounds.
+    have hmul :
+        ((1 : ℝ) / (onePlusEps_log ^ k)) * ((1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)))
+          ≤ ((1 : ℝ) / ((1 + δ (√(n : ℝ))) ^ k)) * ((1 : ℝ) / ((n : ℝ) + √(n : ℝ))) := by
+      refine mul_le_mul hinv_rpow hinv_sum (by positivity) (by positivity)
+
+    -- Rewrite into the target form.
+    -- RHS: `(1/a) * (1/b) = 1/(a*b)`.
+    -- LHS: reassociate products.
+    simpa [k, mul_assoc, mul_left_comm, mul_comm, one_div_mul_one_div] using hmul
+
+  -- Last factor comparison.
+  -- Define the two "bad" terms we subtract.
+  set a : ℝ := 4 * (1 + δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)
+  set b : ℝ := 4 * (onePlusEps_log) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ))
+
+  have ha_le_hb : a ≤ b := by
+    -- Use `inv_n_pow_3_div_2_le_X₀` and the monotonicity of `pow`.
+    have hpow12 : (1 + δ (√(n : ℝ))) ^ 12 ≤ (onePlusEps_log) ^ 12 := by
+      have h1δ_nonneg : 0 ≤ (1 + δ (√(n : ℝ))) := by linarith
+      exact pow_le_pow_left₀ h1δ_nonneg hbase_le (n := 12)
+    have hinv : (1 / (n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (X₀ : ℝ)) * (1 / n) := by
+      simpa using (inv_n_pow_3_div_2_le_X₀ (n := n) hn)
+    -- Combine: `(1+δ)^12 * 1/n^(3/2) ≤ (onePlusEps)^12 * (1/X₀) * (1/n)`.
+    have hmul :
+        ((1 + δ (√(n : ℝ))) ^ 12) * (1 / (n : ℝ) ^ (3 / 2 : ℝ))
+          ≤ ((onePlusEps_log) ^ 12) * ((1 / (X₀ : ℝ)) * (1 / n)) := by
+      refine mul_le_mul hpow12 hinv (by positivity) (by positivity)
+    -- Multiply by 4 and rewrite divisions.
+    have hmul4 :
+        4 * (((1 + δ (√(n : ℝ))) ^ 12) * (1 / (n : ℝ) ^ (3 / 2 : ℝ)))
+          ≤ 4 * (((onePlusEps_log) ^ 12) * ((1 / (X₀ : ℝ)) * (1 / n))) := by
+      exact mul_le_mul_of_nonneg_left hmul (by norm_num)
+    -- Match `a` and `b`.
+    -- Note: `a = 4*(1+δ)^12 * (1/n^(3/2))` and `b = 4*(onePlusEps)^12*(1/X₀)*(1/n)`.
+    simpa [a, b, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using hmul4
+
+  have hC'le : (1 - b) ≤ (1 - a) := by
+    -- `a ≤ b` implies `1 - b ≤ 1 - a`.
+    exact sub_le_sub_left ha_le_hb 1
+
+  -- We will need `0 ≤ 1 - b`.
+  have hb_le_one : b ≤ 1 := by
+    -- Crude bound: `onePlusEps_log ≤ 2`, so `(onePlusEps_log)^12 ≤ 2^12`.
+    have heps_le2 : onePlusEps_log ≤ (2 : ℝ) := by
+      norm_num [onePlusEps_log, eps_log]
+    have hpow_le : (onePlusEps_log) ^ 12 ≤ (2 : ℝ) ^ 12 :=
+      pow_le_pow_left₀ heps_nonneg heps_le2 (n := 12)
+    -- Also `1/n ≤ 1/X₀^2`.
+    have hn' : (X₀ ^ 2 : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast hn
+    have hX0sq_pos : 0 < (X₀ ^ 2 : ℝ) := by
+      have hX0_pos_nat : 0 < X₀ := by norm_num [X₀]
+      have : 0 < (X₀ ^ 2 : ℕ) := pow_pos hX0_pos_nat _
+      exact_mod_cast this
+    have hinv_n : (1 : ℝ) / (n : ℝ) ≤ (1 : ℝ) / (X₀ ^ 2 : ℝ) := by
+      -- From `X₀^2 ≤ n`.
+      simpa [one_div] using (one_div_le_one_div_of_le hX0sq_pos hn')
+    -- Put everything together via monotonicity.
+    have hb_le' : b ≤ 4 * (2 : ℝ) ^ 12 * (1 / (X₀ : ℝ)) * ((1 : ℝ) / (n : ℝ)) := by
+      -- only using `hpow_le`.
+      have : 4 * (onePlusEps_log) ^ 12 ≤ 4 * (2 : ℝ) ^ 12 :=
+        mul_le_mul_of_nonneg_left hpow_le (by norm_num)
+      -- multiply by the remaining nonnegative factor
+      have hnn : 0 ≤ (1 / (X₀ : ℝ)) * ((1 : ℝ) / (n : ℝ)) := by positivity
+      have : (4 * (onePlusEps_log) ^ 12) * ((1 / (X₀ : ℝ)) * ((1 : ℝ) / (n : ℝ)))
+          ≤ (4 * (2 : ℝ) ^ 12) * ((1 / (X₀ : ℝ)) * ((1 : ℝ) / (n : ℝ))) :=
+        mul_le_mul_of_nonneg_right this hnn
+      -- rearrange to match `b`
+      simpa [b, mul_assoc, mul_left_comm, mul_comm] using this
+    have hb_le'' : 4 * (2 : ℝ) ^ 12 * (1 / (X₀ : ℝ)) * ((1 : ℝ) / (n : ℝ))
+        ≤ 4 * (2 : ℝ) ^ 12 * (1 / (X₀ : ℝ)) * ((1 : ℝ) / (X₀ ^ 2 : ℝ)) := by
+      have hnn : 0 ≤ 4 * (2 : ℝ) ^ 12 * (1 / (X₀ : ℝ)) := by positivity
+      exact mul_le_mul_of_nonneg_left hinv_n hnn
+    have hb_le''' : 4 * (2 : ℝ) ^ 12 * (1 / (X₀ : ℝ)) * ((1 : ℝ) / (X₀ ^ 2 : ℝ)) ≤ 1 := by
+      -- Numerical check: `4*2^12 = 16384` and `X₀` is huge.
+      dsimp [X₀] at *
+      norm_num
+    exact le_trans (le_trans hb_le' hb_le'') hb_le'''
+
+  have hC'_nonneg : 0 ≤ (1 - b) := by
+    exact sub_nonneg.2 hb_le_one
+
+  -- Now combine everything.
+  -- Rewrite the goal as a ≤ b for easier multiplication.
+  have hB_nonneg : 0 ≤ (1 + (3 : ℝ) / (8 * (n : ℝ))) := by positivity
+  have hA_nonneg : 0 ≤
+      (∏ i : Fin 3,
+        (1 + 1 /
+          ((1 + δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ))))) := by
+    positivity
+
+  -- First multiply the product comparison by the common middle and right factors.
+  have h1 :
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((onePlusEps_log) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
+        * ((1 + (3 : ℝ) / (8 * (n : ℝ))) * (1 - b))
+        ≤
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((1 + δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+        * ((1 + (3 : ℝ) / (8 * (n : ℝ))) * (1 - b)) := by
+    have hBC'_nonneg : 0 ≤ (1 + (3 : ℝ) / (8 * (n : ℝ))) * (1 - b) := by
+      exact mul_nonneg hB_nonneg hC'_nonneg
+    exact mul_le_mul_of_nonneg_right hprod hBC'_nonneg
+
+  -- Then compare the rightmost factor `1 - b ≤ 1 - a`.
+  have h2 : (1 + (3 : ℝ) / (8 * (n : ℝ))) * (1 - b)
+        ≤ (1 + (3 : ℝ) / (8 * (n : ℝ))) * (1 - a) :=
+    mul_le_mul_of_nonneg_left hC'le hB_nonneg
+
+  have h3 :
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((1 + δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+        * ((1 + (3 : ℝ) / (8 * (n : ℝ))) * (1 - b))
+        ≤
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((1 + δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+        * ((1 + (3 : ℝ) / (8 * (n : ℝ))) * (1 - a)) :=
+    mul_le_mul_of_nonneg_left h2 hA_nonneg
+
+  have hfinal := le_trans h1 h3
+
+  -- Unfold `a` and `b` and reassociate.
+  -- Also rewrite `≥` as `≤`.
+  -- The original statement has the form `LHS ≥ RHS`.
+  -- We have proved `RHS ≤ LHS`.
+  simpa [ge_iff_le, a, b, mul_assoc, mul_left_comm, mul_comm, div_eq_mul_inv] using hfinal
 
 
 lemma prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
