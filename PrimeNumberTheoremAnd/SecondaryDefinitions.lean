@@ -50,10 +50,26 @@ theorem log_le (t : ℝ) (ht : t > -1) : log (1 + t) ≤ t :=
   (proof := /-- Use Taylor's theorem with remainder and the fact that the second derivative of $\log(1+t)$ is at most $1$ for $t \geq 0$.-/)
   (latexEnv := "sublemma")
   (discussion := 765)]
-theorem log_ge
-    (t s : ℝ) (ht : t ≥ 0) (hs : s > 0) :
-    t - t ^ 2 / (2 * s ^ 2) ≤ log (1 + t) := by
-    sorry
+theorem log_ge {t : ℝ} (ht : 0 ≤ t) :
+    t - t ^ 2 / 2 ≤ log (1 + t) := by
+  rcases ht.eq_or_lt with rfl|ht
+  · simp
+  -- Define the function $f(t) = \ln(1+t) - (t - t^2/2)$ and show that $f(t) \geq 0$ for $t \geq 0$.
+  set f : ℝ → ℝ := fun t => Real.log (1 + t) - (t - t^2 / 2)
+  have hf_deriv_pos : ∀ t > 0, 0 ≤ deriv f t := by
+    intro t ht
+    unfold f
+    norm_num [ add_comm, show t + 1 ≠ 0 by linarith ]
+    ring_nf
+    nlinarith [ inv_mul_cancel₀ ( by linarith : ( 1 + t ) ≠ 0 ) ]
+  -- Since $f$ is differentiable and its derivative is non-negative for $t > 0$, we can apply the Mean Value Theorem to $f$ on the interval $[0, t]$.
+  have h_mvt : ∃ c ∈ Set.Ioo 0 t, deriv f c = (f t - f 0) / (t - 0) := by
+    apply exists_deriv_eq_slope _ ht <;> unfold f
+    · exact fun x hx ↦ ContinuousAt.continuousWithinAt (by fun_prop (disch := grind))
+    · exact fun x hx ↦ DifferentiableAt.differentiableWithinAt (by fun_prop (disch := grind))
+  norm_num +zetaDelta at h_mvt
+  obtain ⟨ c, ⟨ hc₁, hc₂ ⟩, hc ⟩ := h_mvt
+  nlinarith [ hf_deriv_pos c hc₁, mul_div_cancel₀ ( Real.log ( 1 + t ) - ( t - t ^ 2 / 2 ) ) ( by linarith : t ≠ 0 ) ]
 
 @[blueprint
   "log_lower_2"
