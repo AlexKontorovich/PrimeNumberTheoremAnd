@@ -3,7 +3,7 @@ import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 
 blueprint_comment /--
-\section{Appendix A of BKLNW}
+\section{Appendix A of BKLNW}\label{bklnw-app-sec}
 In this file we record the results from Appendix A of \cite{BKLNW}.  In this appendix, the authors derive explicit estimates on the error term in the prime number theorem for the Chebyshev function $\psi$ assuming various inputs on the zeros of the Riemann zeta function, including a zero-density estimate, a classical zero-free region, and numerical verification of RH up to some height.
 -/
 

@@ -1,10 +1,11 @@
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 
 blueprint_comment /--
-\section{The estimates of Buthe}
+\section{The estimates of Buthe}\label{buthe-sec}
 
 In this section we collect some results from Buthe's paper \cite{Buthe}, which provides explicit estimates on $\psi(x)$, $\theta(x)$, and $\pi(x)$.
 
+TODO: Add more results and proofs here, and reorganize the blueprint
 -/
 
 
