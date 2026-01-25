@@ -384,37 +384,12 @@ theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
 theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
     ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) 1.93378e-8 := by
   intro x hx
-  have h1 : Eψ x ≤ max (0.94 / exp (b / 2)) (table_8_ε (19 * log 10)) := by
-    have hε : ∀ b₀ > 0, ∀ x ≥ exp b₀, Eψ x ≤ table_8_ε b₀ := fun b₀ hb₀ x hx => by
-      have := theorem_2 b₀ hb₀.le x hx
-      simp only [Eψ] at this ⊢
-      rwa [div_le_iff₀ (lt_of_lt_of_le (exp_pos b₀) hx)]
-    exact bklnw_cor_15_1 b hb1 hb2 table_8_ε hε x hx
-  have h3 : table_8_ε (19 * log 10) ≤ 193378e-13 := by
-    have h_lower : (43 : ℝ) < 19 * log 10 := by
-      have he := exp_one_lt_d9.le
-      have h1 : exp 43 < (10 : ℝ) ^ (19 : ℝ) := calc
-        exp 43 = (exp 1) ^ 43 := by rw [← exp_nat_mul]; norm_num
-        _ ≤ 2.7182818286 ^ 43 := pow_le_pow_left₀ (exp_nonneg 1) he _
-        _ < (10 : ℝ) ^ (19 : ℝ) := by norm_num
-      rwa [← log_rpow (by norm_num : (10 : ℝ) > 0), lt_log_iff_exp_lt (by positivity)]
-    have h_upper : 19 * log 10 < (44 : ℝ) := by
-      have h1 : (10 : ℝ) ^ (19 : ℝ) < exp 44 := calc
-        (10 : ℝ) ^ (19 : ℝ) < 2.7182818283 ^ 44 := by norm_num
-        _ ≤ (exp 1) ^ 44 := pow_le_pow_left₀ (by positivity) exp_one_gt_d9.le _
-        _ = exp 44 := by rw [← exp_nat_mul]; norm_num
-      rwa [← log_rpow (by norm_num : (10 : ℝ) > 0), log_lt_iff_lt_exp (by positivity)]
-    unfold table_8_ε
-    rw [if_neg (not_lt.mpr (by linarith : (20 : ℝ) ≤ 19 * log 10)),
-        if_neg (not_lt.mpr (by linarith : (21 : ℝ) ≤ 19 * log 10)),
-        if_neg (not_lt.mpr (by linarith : (22 : ℝ) ≤ 19 * log 10)),
-        if_neg (not_lt.mpr (by linarith : (23 : ℝ) ≤ 19 * log 10)),
-        if_neg (not_lt.mpr (by linarith : (24 : ℝ) ≤ 19 * log 10)),
-        if_neg (not_lt.mpr (by linarith : (25 : ℝ) ≤ 19 * log 10)),
-        if_neg (not_lt.mpr (by linarith : (30 : ℝ) ≤ 19 * log 10)),
-        if_neg (not_lt.mpr (by linarith : (35 : ℝ) ≤ 19 * log 10)),
-        if_neg (not_lt.mpr (by linarith : (40 : ℝ) ≤ 19 * log 10)),
-        if_pos (by linarith : 19 * log 10 < 45)]
-  exact h1.trans (max_le_max_left _ h3)
+  grw [bklnw_cor_15_1 b hb1 hb2 table_8_ε (fun b₀ hb₀ x hx ↦ by
+    grw [Eψ, div_le_iff₀ (lt_of_lt_of_le (by positivity) hx), theorem_2 b₀ hb₀.le x hx]) x hx]
+  apply max_le_max_left
+  suffices 43 < 19 * Real.log 10 ∧ 19 * Real.log 10 < 44 by grind only [table_8_ε]
+  rw [← log_rpow (by positivity), lt_log_iff_exp_lt (by positivity),
+    log_lt_iff_lt_exp (by positivity), ← exp_one_rpow 43, ← exp_one_rpow 44]
+  exact ⟨by grw [Real.exp_one_lt_d9]; norm_num, by grw [← Real.exp_one_gt_d9]; norm_num⟩
 
 end BKLNW_app
