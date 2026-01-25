@@ -1538,115 +1538,139 @@ theorem Params.initial.score_bound (P : Params) :
         (P.n / p) * Real.log (P.n / p) +
       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic P.L),
         (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L := by
-  unfold Factorization.score
-  have hw := initial.waste P
-  -- hw : P.initial.waste ≤ P.n * log (1 - 1/(P.M : ℝ))⁻¹
+  have h1 := Params.initial.waste P
+  have h2 := @Params.initial.balance_large_prime_le P
+  have h3 := @Params.initial.balance_large_prime_ge P
+  have h4 := @Params.initial.balance_medium_prime_le P
+  have h5 := @Params.initial.balance_medium_prime_ge P
+  have h6 := @Params.initial.balance_small_prime_le P
+  have h7 := @Params.initial.balance_small_prime_ge P
+  have h8 := @Params.initial.balance_tiny_prime_ge P
+  rw [Factorization.score]
+  grw [h1]
+  simp_rw [add_assoc]
+  gcongr 1
+  simp_rw [Factorization.total_imbalance]
+  have split_sum {f : ℕ → ℝ} :
+      ∑ p ∈ (P.n + 1).primesBelow, f p =
+        ∑ p ∈ (P.n + 1).primesBelow with p ≤ P.L, f p +
+        ∑ p ∈ (P.n + 1).primesBelow with P.L < p ∧ p ≤ Real.sqrt P.n, f p +
+        ∑ p ∈ (P.n + 1).primesBelow with Real.sqrt P.n < ((p : ℕ) : ℝ) ∧ p ≤ P.n / P.L, f p +
+        ∑ p ∈ (P.n + 1).primesBelow with P.n / P.L < p, f p := by
 
-  -- Large primes (p ≥ n/L): no surplus, deficit at most n/p
-  have h_large_le : ∀ p, p ≥ P.n / P.L → P.initial.balance p ≤ 0 :=
-    fun p hp => initial.balance_large_prime_le P hp
-  have h_large_ge : ∀ p, p ≥ P.n / P.L → P.initial.balance p ≥ -(P.n / p : ℤ) :=
-    fun p hp => initial.balance_large_prime_ge P hp
+    sorry
+  -- grw [h2]
 
-  -- Medium primes (√n < p < n/L): balance bounded by ±M
-  have h_medium_le : ∀ (p : ℕ), p > Real.sqrt P.n → P.initial.balance p ≤ P.M :=
-    fun p hp => initial.balance_medium_prime_le P hp
-  have h_medium_ge : ∀ p, p < P.n / P.L → p > Real.sqrt P.n → P.initial.balance p ≥ -P.M :=
-    fun p hp hp' => initial.balance_medium_prime_ge P hp hp'
+  sorry
+  -- unfold Factorization.score
+  -- have hw := initial.waste P
+  -- -- hw : P.initial.waste ≤ P.n * log (1 - 1/(P.M : ℝ))⁻¹
 
-  -- Small primes (L < p ≤ √n): balance bounded by ±M log n / log 2
-  have h_small_le : ∀ p, P.initial.balance p ≤ P.M * (Real.log P.n) / (Real.log 2) :=
-    fun p => initial.balance_small_prime_le P
-  have h_small_ge : ∀ (p : ℕ), p ≤ Real.sqrt P.n → p > P.L →
-      P.initial.balance p ≥ -P.M * (Real.log P.n) / (Real.log 2) :=
-    fun p hp hp' => initial.balance_small_prime_ge P hp hp'
+  -- -- Large primes (p ≥ n/L): no surplus, deficit at most n/p
+  -- have h_large_le : ∀ p, p ≥ P.n / P.L → P.initial.balance p ≤ 0 :=
+  --   fun p hp => initial.balance_large_prime_le P hp
+  -- have h_large_ge : ∀ p, p ≥ P.n / P.L → P.initial.balance p ≥ -(P.n / p : ℤ) :=
+  --   fun p hp => initial.balance_large_prime_ge P hp
 
-  -- Tiny primes (p ≤ L): surplus bounded, deficit bounded by M log n + M L² π(n)
-  -- Note: h_tiny_le is covered by h_small_le (it applies to all primes)
-  have h_tiny_ge : ∀ p, p ≤ P.L →
-      P.initial.balance p ≥ -P.M * (Real.log P.n) - P.M * P.L^2 * (primeCounting P.n) :=
-    fun p hp => initial.balance_tiny_prime_ge P hp
+  -- -- Medium primes (√n < p < n/L): balance bounded by ±M
+  -- have h_medium_le : ∀ (p : ℕ), p > Real.sqrt P.n → P.initial.balance p ≤ P.M :=
+  --   fun p hp => initial.balance_medium_prime_le P hp
+  -- have h_medium_ge : ∀ p, p < P.n / P.L → p > Real.sqrt P.n → P.initial.balance p ≥ -P.M :=
+  --   fun p hp hp' => initial.balance_medium_prime_ge P hp hp'
 
-  -----
+  -- -- Small primes (L < p ≤ √n): balance bounded by ±M log n / log 2
+  -- have h_small_le : ∀ p, P.initial.balance p ≤ P.M * (Real.log P.n) / (Real.log 2) :=
+  --   fun p => initial.balance_small_prime_le P
+  -- have h_small_ge : ∀ (p : ℕ), p ≤ Real.sqrt P.n → p > P.L →
+  --     P.initial.balance p ≥ -P.M * (Real.log P.n) / (Real.log 2) :=
+  --   fun p hp hp' => initial.balance_small_prime_ge P hp hp'
 
-  -- Bound the "if imbalance" term
-  have h_imb_term : (if P.initial.total_imbalance > 0 then Real.log P.n else 0) ≥ 0 := by
-    split_ifs <;> [exact Real.log_natCast_nonneg P.n; exact le_refl 0]
+  -- -- Tiny primes (p ≤ L): surplus bounded, deficit bounded by M log n + M L² π(n)
+  -- -- Note: h_tiny_le is covered by h_small_le (it applies to all primes)
+  -- have h_tiny_ge : ∀ p, p ≤ P.L →
+  --     P.initial.balance p ≥ -P.M * (Real.log P.n) - P.M * P.L^2 * (primeCounting P.n) :=
+  --   fun p hp => initial.balance_tiny_prime_ge P hp
 
-  -- Now we need to bound the sum over primes
-  -- Key insight: partition primesBelow into regions and bound each
+  -- -----
 
-  -- First, let's establish that primesBelow (n+1) = primes ≤ n
-  have h_primesBelow : ∀ p, p ∈ (P.n + 1).primesBelow ↔ p.Prime ∧ p ≤ P.n := by
-    intro p
-    simp only [mem_primesBelow]
-    exact ⟨fun h ↦ ⟨h.2, by omega⟩, fun h ↦ ⟨by omega, h.1⟩⟩
+  -- -- Bound the "if imbalance" term
+  -- have h_imb_term : (if P.initial.total_imbalance > 0 then Real.log P.n else 0) ≥ 0 := by
+  --   split_ifs <;> [exact Real.log_natCast_nonneg P.n; exact le_refl 0]
 
-  -- For each prime p ≤ n, bound its contribution to the sum
-  have h_term_bound : ∀ p ∈ (P.n + 1).primesBelow,
-      (if P.initial.balance p > 0 then (P.initial.balance p : ℝ) * Real.log p
-       else if p ≤ P.L then -(P.initial.balance p : ℝ) * Real.log P.L
-       else -(P.initial.balance p : ℝ) * Real.log (P.n / p)) ≤
-      (if p ≤ P.L then (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L
-       else if p ≤ ⌊Real.sqrt P.n⌋₊ then P.M * Real.log P.n * Real.log P.n / Real.log 2
-       else if p ≤ P.n / P.L then P.M * Real.log P.n
-       else (P.n / p) * Real.log (P.n / p)) := by
-    intro p hp
-    simp only [h_primesBelow] at hp
-    obtain ⟨hp_prime, hp_le_n⟩ := hp
-    -- Case split on which region p is in
-    by_cases h_tiny : p ≤ P.L
-    · -- Tiny prime case
-      simp only [h_tiny, ↓reduceIte]
-      by_cases h_bal_pos : P.initial.balance p > 0
-      · -- Surplus case: use h_small_le
-        simp only [h_bal_pos, ↓reduceIte]
-        sorry -- bound (balance p) * log p ≤ (M log n / log 2) * log L ≤ RHS
-      · -- Deficit case: use h_tiny_ge
-        simp only [h_bal_pos, ↓reduceIte]
-        sorry -- bound (-balance p) * log L ≤ (M log n + M L² π(n)) * log L
-    · by_cases h_small : p ≤ ⌊Real.sqrt P.n⌋₊
-      · -- Small prime case
-        simp only [h_tiny, h_small, ↓reduceIte]
-        sorry -- use h_small_le and h_small_ge
-      · by_cases h_medium : p ≤ P.n / P.L
-        · -- Medium prime case
-          simp only [h_tiny, h_small, h_medium, ↓reduceIte]
-          sorry -- use h_medium_le and h_medium_ge
-        · -- Large prime case
-          simp only [h_tiny, h_small, h_medium, ↓reduceIte]
-          sorry -- use h_large_le and h_large_ge
+  -- -- Now we need to bound the sum over primes
+  -- -- Key insight: partition primesBelow into regions and bound each
 
-  calc _ ≤
-    P.n * log (1 - 1 / P.M)⁻¹ + (if P.initial.total_imbalance > 0 then Real.log P.n else 0) +
-       ∑ p ∈ (P.n + 1).primesBelow,
-         (if p ≤ P.L then (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L
-          else if p ≤ ⌊Real.sqrt P.n⌋₊ then P.M * Real.log P.n * Real.log P.n / Real.log 2
-          else if p ≤ P.n / P.L then P.M * Real.log P.n
-          else (P.n / p) * Real.log (P.n / p)) := by
-        gcongr
+  -- -- First, let's establish that primesBelow (n+1) = primes ≤ n
+  -- have h_primesBelow : ∀ p, p ∈ (P.n + 1).primesBelow ↔ p.Prime ∧ p ≤ P.n := by
+  --   intro p
+  --   simp only [mem_primesBelow]
+  --   exact ⟨fun h ↦ ⟨h.2, by omega⟩, fun h ↦ ⟨by omega, h.1⟩⟩
 
-        sorry
-    -- Step 2: bound imbalance term by Real.log P.n
-    _ ≤ P.n * log (1 - 1 / P.M)⁻¹ + Real.log P.n +
-       ∑ p ∈ (P.n + 1).primesBelow,
-         (if p ≤ P.L then (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L
-          else if p ≤ ⌊Real.sqrt P.n⌋₊ then P.M * Real.log P.n * Real.log P.n / Real.log 2
-          else if p ≤ P.n / P.L then P.M * Real.log P.n
-          else (P.n / p) * Real.log (P.n / p)) := by
-      gcongr
-      split_ifs <;> [exact le_refl _; exact Real.log_natCast_nonneg P.n]
-    -- Step 3: split LHS sum into four disjoint parts, show each ≤ corresponding RHS sum
-    -- The extra Real.log P.n is absorbed by overcounting in the medium sum
-    _ ≤ P.n * log (1 - 1 / P.M)⁻¹ +
-        ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)), P.M * Real.log P.n +
-        ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊Real.sqrt P.n⌋₊), P.M * Real.log P.n * Real.log P.n / Real.log 2 +
-        ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n), (P.n / p) * Real.log (P.n / p) +
-        ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic P.L), (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L := by
-        -- Need to show:
-        -- Real.log P.n + ∑_{p ≤ n, prime} (region-based bound) ≤ (four overlapping sums)
-        sorry
-      _ ≤ _ := by sorry
+  -- -- For each prime p ≤ n, bound its contribution to the sum
+  -- have h_term_bound : ∀ p ∈ (P.n + 1).primesBelow,
+  --     (if P.initial.balance p > 0 then (P.initial.balance p : ℝ) * Real.log p
+  --      else if p ≤ P.L then -(P.initial.balance p : ℝ) * Real.log P.L
+  --      else -(P.initial.balance p : ℝ) * Real.log (P.n / p)) ≤
+  --     (if p ≤ P.L then (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L
+  --      else if p ≤ ⌊Real.sqrt P.n⌋₊ then P.M * Real.log P.n * Real.log P.n / Real.log 2
+  --      else if p ≤ P.n / P.L then P.M * Real.log P.n
+  --      else (P.n / p) * Real.log (P.n / p)) := by
+  --   intro p hp
+  --   simp only [h_primesBelow] at hp
+  --   obtain ⟨hp_prime, hp_le_n⟩ := hp
+  --   -- Case split on which region p is in
+  --   by_cases h_tiny : p ≤ P.L
+  --   · -- Tiny prime case
+  --     simp only [h_tiny, ↓reduceIte]
+  --     by_cases h_bal_pos : P.initial.balance p > 0
+  --     · -- Surplus case: use h_small_le
+  --       simp only [h_bal_pos, ↓reduceIte]
+  --       sorry -- bound (balance p) * log p ≤ (M log n / log 2) * log L ≤ RHS
+  --     · -- Deficit case: use h_tiny_ge
+  --       simp only [h_bal_pos, ↓reduceIte]
+  --       sorry -- bound (-balance p) * log L ≤ (M log n + M L² π(n)) * log L
+  --   · by_cases h_small : p ≤ ⌊Real.sqrt P.n⌋₊
+  --     · -- Small prime case
+  --       simp only [h_tiny, h_small, ↓reduceIte]
+  --       sorry -- use h_small_le and h_small_ge
+  --     · by_cases h_medium : p ≤ P.n / P.L
+  --       · -- Medium prime case
+  --         simp only [h_tiny, h_small, h_medium, ↓reduceIte]
+  --         sorry -- use h_medium_le and h_medium_ge
+  --       · -- Large prime case
+  --         simp only [h_tiny, h_small, h_medium, ↓reduceIte]
+  --         sorry -- use h_large_le and h_large_ge
+
+  -- calc _ ≤
+  --   P.n * log (1 - 1 / P.M)⁻¹ + (if P.initial.total_imbalance > 0 then Real.log P.n else 0) +
+  --      ∑ p ∈ (P.n + 1).primesBelow,
+  --        (if p ≤ P.L then (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L
+  --         else if p ≤ ⌊Real.sqrt P.n⌋₊ then P.M * Real.log P.n * Real.log P.n / Real.log 2
+  --         else if p ≤ P.n / P.L then P.M * Real.log P.n
+  --         else (P.n / p) * Real.log (P.n / p)) := by
+  --       gcongr
+
+  --       sorry
+  --   -- Step 2: bound imbalance term by Real.log P.n
+  --   _ ≤ P.n * log (1 - 1 / P.M)⁻¹ + Real.log P.n +
+  --      ∑ p ∈ (P.n + 1).primesBelow,
+  --        (if p ≤ P.L then (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L
+  --         else if p ≤ ⌊Real.sqrt P.n⌋₊ then P.M * Real.log P.n * Real.log P.n / Real.log 2
+  --         else if p ≤ P.n / P.L then P.M * Real.log P.n
+  --         else (P.n / p) * Real.log (P.n / p)) := by
+  --     gcongr
+  --     split_ifs <;> [exact le_refl _; exact Real.log_natCast_nonneg P.n]
+  --   -- Step 3: split LHS sum into four disjoint parts, show each ≤ corresponding RHS sum
+  --   -- The extra Real.log P.n is absorbed by overcounting in the medium sum
+  --   _ ≤ P.n * log (1 - 1 / P.M)⁻¹ +
+  --       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)), P.M * Real.log P.n +
+  --       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊Real.sqrt P.n⌋₊), P.M * Real.log P.n * Real.log P.n / Real.log 2 +
+  --       ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n), (P.n / p) * Real.log (P.n / p) +
+  --       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic P.L), (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L := by
+  --       -- Need to show:
+  --       -- Real.log P.n + ∑_{p ≤ n, prime} (region-based bound) ≤ (four overlapping sums)
+  --       sorry
+  --     _ ≤ _ := by sorry
 
 
 @[blueprint
