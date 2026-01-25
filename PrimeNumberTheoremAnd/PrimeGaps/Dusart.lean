@@ -9,7 +9,7 @@ namespace Dusart
 abbrev X₀ : ℕ := 89693
 @[simp] lemma X₀_eq : X₀ = 89693 := rfl
 
-noncomputable abbrev δ (x : ℝ) : ℝ := 1 / (Real.log x) ^ (3 : ℝ)
+noncomputable def δ (x : ℝ) : ℝ := 1 / (Real.log x) ^ (3 : ℝ)
 @[simp] lemma δ_def (x : ℝ) : δ x = 1 / (Real.log x) ^ (3 : ℝ) := rfl
 
 /- TO-DO: Some of the lemmas, especially the theorem comparison ones
@@ -484,18 +484,26 @@ lemma main_ineq_delta_form_lhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   linarith
 
 
-set_option maxHeartbeats 800000 in
-lemma main_ineq_delta_form_rhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+-- Packaging the (very large) LHS/RHS expressions as `def`s avoids a deterministic
+-- heartbeat timeout during `whnf` on the lemma statement.
+noncomputable def main_ineq_delta_form_rhs_LHS (n : ℕ) : ℝ :=
     (∏ i : Fin 3,
         (1 + 1 /
           ((1 + δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
       * (1 + (3 : ℝ) / (8 * (n : ℝ)))
       * (1 - 4 * (1 + δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ))
-    ≥ (∏ i : Fin 3,
+
+noncomputable def main_ineq_delta_form_rhs_RHS (n : ℕ) : ℝ :=
+    (∏ i : Fin 3,
         (1 + 1 /
           ((onePlusEps_log) ^ (2 * (i : ℕ) + 2 : ℝ)) * 1 / (1 + 1 / (X₀ : ℝ)) * 1 / (n : ℝ)))
       * (1 + (3 : ℝ) / (8 * (n : ℝ)))
-      * (1 - 4 * (onePlusEps_log) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ))) := by
+      * (1 - 4 * (onePlusEps_log) ^ 12 * (1 / (X₀ : ℝ)) * (1 / (n : ℝ)))
+
+lemma main_ineq_delta_form_rhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
+    main_ineq_delta_form_rhs_LHS n ≥ main_ineq_delta_form_rhs_RHS n := by
+  -- Unfold the packaged definitions (lightweight: avoids `dsimp` reducing inside the terms).
+  unfold main_ineq_delta_form_rhs_LHS main_ineq_delta_form_rhs_RHS
   /- *** Proof idea ***
   Compare term-by-term in the product using positivity of all terms.
   For the product part, we bound `(1+δ(√n))` by `onePlusEps_log` and
@@ -712,7 +720,8 @@ lemma main_ineq_delta_form_rhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
   -- Also rewrite `≥` as `≤`.
   -- The original statement has the form `LHS ≥ RHS`.
   -- We have proved `RHS ≤ LHS`.
-  simpa [ge_iff_le, a, b, mul_assoc, mul_left_comm, mul_comm, div_eq_mul_inv] using hfinal
+  refine (ge_iff_le).2 ?_
+  simpa [a, b, mul_assoc] using hfinal
 
 
 lemma prod_epsilon_le {ε : ℝ} (hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ)) :
