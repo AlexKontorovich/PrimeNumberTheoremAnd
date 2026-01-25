@@ -1570,8 +1570,8 @@ theorem Params.initial.score_bound (P : Params) :
   -----
 
   -- Bound the "if imbalance" term
-  have h_imb_term : (if P.initial.total_imbalance > 0 then Real.log P.n else 0) ≤ Real.log P.n := by
-    split_ifs <;> [exact le_refl _; exact Real.log_natCast_nonneg P.n]
+  have h_imb_term : (if P.initial.total_imbalance > 0 then Real.log P.n else 0) ≥ 0 := by
+    split_ifs <;> [exact Real.log_natCast_nonneg P.n; exact le_refl 0]
 
   -- Now we need to bound the sum over primes
   -- Key insight: partition primesBelow into regions and bound each
@@ -1618,33 +1618,34 @@ theorem Params.initial.score_bound (P : Params) :
           sorry -- use h_large_le and h_large_ge
 
   calc _ ≤
-    ↑P.n * Real.log (1 - 1 / ↑P.M)⁻¹ + Real.log ↑P.n +
-    ∑ p ∈ (P.n + 1).primesBelow, (if p ≤ P.L then (↑P.M * Real.log ↑P.n + ↑P.M * ↑P.L ^ 2 * ↑P.n.primeCounting) * Real.log ↑P.L
-      else if p ≤ ⌊√↑P.n⌋₊ then ↑P.M * Real.log ↑P.n * Real.log ↑P.n / Real.log 2
-      else if p ≤ P.n / P.L then ↑P.M * Real.log ↑P.n
-      else ↑P.n / ↑p * Real.log (↑P.n / ↑p)) := by
+    P.n * log (1 - 1 / P.M)⁻¹ + (if P.initial.total_imbalance > 0 then Real.log P.n else 0) +
+       ∑ p ∈ (P.n + 1).primesBelow,
+         (if p ≤ P.L then (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L
+          else if p ≤ ⌊Real.sqrt P.n⌋₊ then P.M * Real.log P.n * Real.log P.n / Real.log 2
+          else if p ≤ P.n / P.L then P.M * Real.log P.n
+          else (P.n / p) * Real.log (P.n / p)) := by
         gcongr
 
         sorry
-      _ ≤ ↑P.n * Real.log (1 - 1 / ↑P.M)⁻¹ +
-    ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)), ↑P.M * Real.log ↑P.n +
-    ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊√↑P.n⌋₊), ↑P.M * Real.log ↑P.n * Real.log ↑P.n / Real.log 2 +
-    ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n), ↑P.n / ↑p * Real.log (↑P.n / ↑p) +
-    ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic P.L), (↑P.M * Real.log ↑P.n + ↑P.M * ↑P.L ^ 2 * ↑P.n.primeCounting) * Real.log ↑P.L := by
-        gcongr
-        -- First goal: Real.log ↑P.n ≤ ∑ p ∈ Finset.Iic (P.n / P.L) with Prime p, M * log n
-        · rw [show
-            ↑P.n * Real.log (1 - 1 / ↑P.M)⁻¹ + ∑ p ∈ Finset.Iic (P.n / P.L) with Nat.Prime p, ↑P.M * Real.log ↑P.n +
-    ∑ p ∈ Finset.Iic ⌊√↑P.n⌋₊ with Nat.Prime p, ↑P.M * Real.log ↑P.n * Real.log ↑P.n / Real.log 2
-            =
-            ↑P.n * Real.log (1 - 1 / ↑P.M)⁻¹ + (∑ p ∈ Finset.Iic (P.n / P.L) with Nat.Prime p, ↑P.M * Real.log ↑P.n +
-    ∑ p ∈ Finset.Iic ⌊√↑P.n⌋₊ with Nat.Prime p, ↑P.M * Real.log ↑P.n * Real.log ↑P.n / Real.log 2)
-             by ring]
-          apply (le_add_iff_nonneg_right _).mpr
-          positivity -- or apply add_nonneg with Finset.sum_nonneg
-        -- Second goal: the sum inequality
-        · sorry -- split LHS sum and show each part ≤ corresponding RHS
-        · sorry
+    -- Step 2: bound imbalance term by Real.log P.n
+    _ ≤ P.n * log (1 - 1 / P.M)⁻¹ + Real.log P.n +
+       ∑ p ∈ (P.n + 1).primesBelow,
+         (if p ≤ P.L then (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L
+          else if p ≤ ⌊Real.sqrt P.n⌋₊ then P.M * Real.log P.n * Real.log P.n / Real.log 2
+          else if p ≤ P.n / P.L then P.M * Real.log P.n
+          else (P.n / p) * Real.log (P.n / p)) := by
+      gcongr
+      split_ifs <;> [exact le_refl _; exact Real.log_natCast_nonneg P.n]
+    -- Step 3: split LHS sum into four disjoint parts, show each ≤ corresponding RHS sum
+    -- The extra Real.log P.n is absorbed by overcounting in the medium sum
+    _ ≤ P.n * log (1 - 1 / P.M)⁻¹ +
+        ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)), P.M * Real.log P.n +
+        ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊Real.sqrt P.n⌋₊), P.M * Real.log P.n * Real.log P.n / Real.log 2 +
+        ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n), (P.n / p) * Real.log (P.n / p) +
+        ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic P.L), (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L := by
+        -- Need to show:
+        -- Real.log P.n + ∑_{p ≤ n, prime} (region-based bound) ≤ (four overlapping sums)
+        sorry
       _ ≤ _ := by sorry
 
 
