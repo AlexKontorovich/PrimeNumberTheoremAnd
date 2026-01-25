@@ -50,23 +50,22 @@ theorem log_le (t : ℝ) (ht : t > -1) : log (1 + t) ≤ t :=
   (proof := /-- Use Taylor's theorem with remainder and the fact that the second derivative of $\log(1+t)$ is at most $1$ for $t \geq 0$.-/)
   (latexEnv := "sublemma")
   (discussion := 765)]
-theorem log_ge {t : ℝ} (ht : 0 ≤ t) :
-    t - t ^ 2 / 2 ≤ log (1 + t) := by
-  rcases ht.eq_or_lt with rfl|ht
+theorem log_ge {t : ℝ} (ht : 0 ≤ t) : t - t ^ 2 / 2 ≤ log (1 + t) := by
+  rcases ht.eq_or_lt with rfl | ht
   · simp
-  set f : ℝ → ℝ := fun t => Real.log (1 + t) - (t - t^2 / 2)
-  have hf_deriv_pos : ∀ t > 0, 0 ≤ deriv f t := by
-    intro t ht
-    norm_num [f, add_comm, show t + 1 ≠ 0 by linarith]
+  let f : ℝ → ℝ := fun s ↦ log (1 + s) - (s - s ^ 2 / 2)
+  have hf_deriv_pos : ∀ s > 0, 0 ≤ deriv f s := by
+    intro s hs
+    norm_num [f, add_comm, show s + 1 ≠ 0 by positivity]
     ring_nf
-    nlinarith [ inv_mul_cancel₀ ( by linarith : ( 1 + t ) ≠ 0 ) ]
+    nlinarith [inv_mul_cancel₀ (by positivity : (1 + s) ≠ 0)]
   have h_mvt : ∃ c ∈ Set.Ioo 0 t, deriv f c = (f t - f 0) / (t - 0) := by
-    apply exists_deriv_eq_slope _ ht <;> unfold f
-    · exact fun x hx ↦ ContinuousAt.continuousWithinAt (by fun_prop (disch := grind))
-    · exact fun x hx ↦ DifferentiableAt.differentiableWithinAt (by fun_prop (disch := grind))
+    refine exists_deriv_eq_slope _ ht ?_ ?_  <;> intro x hx
+    · exact ContinuousAt.continuousWithinAt (by fun_prop (disch := grind))
+    · exact DifferentiableAt.differentiableWithinAt (by fun_prop (disch := grind))
   norm_num +zetaDelta at h_mvt
-  obtain ⟨ c, ⟨ hc₁, hc₂ ⟩, hc ⟩ := h_mvt
-  nlinarith [ hf_deriv_pos c hc₁, mul_div_cancel₀ ( Real.log ( 1 + t ) - ( t - t ^ 2 / 2 ) ) ( by linarith : t ≠ 0 ) ]
+  obtain ⟨c, ⟨hc₁, hc₂⟩, hc⟩ := h_mvt
+  nlinarith [hf_deriv_pos c hc₁, mul_div_cancel₀ (log (1 + t) - (t - t ^ 2 / 2)) (by positivity)]
 
 @[blueprint
   "log_lower_2"
