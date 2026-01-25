@@ -454,4 +454,12 @@ theorem mertens_first_theorem' :
     ∃ C, ∀ x, |∑ p ∈ filter Prime (range ⌊x⌋₊), Real.log p / p - Real.log x| ≤ C := by sorry
 
 
+def c₀ : ℝ := 1.03883
+
+@[blueprint
+  "rs-psi-upper"
+  (title := "RS Theorem 12")
+  (statement := /-- We have $\psi(x) < c_0 x$ for all $x>0$. -/)]
+theorem theorem_12 {x : ℝ} (hx : 0 < x) : ψ x < c₀ * x := by sorry
+
 end RS_prime

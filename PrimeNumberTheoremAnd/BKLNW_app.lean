@@ -329,6 +329,11 @@ theorem bklnw_thm_16 (ε c x₀ α : ℝ)
   Eψ x ≤ exp (ε * α) * (E₁ + E₂ + E₃) :=
     by sorry
 
+
+blueprint_comment /--
+Note: This thesis of Bhattacharjee \cite{bhattacharjee2023survey} will be a good resource when formalizing this result.
+-/
+
 noncomputable def table_8_ε (b : ℝ) : ℝ :=
   if b < 20 then 1   -- junk value
   else if b < 21 then 4.2670e-5
