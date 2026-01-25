@@ -759,7 +759,95 @@ theorem main_ineq_delta_form {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     then reduce to comparing polynomials in ε = 1/n,
     which is done via prod_epsilon_le, prod_epsilon_ge, and final_comparison.
   -/
-   sorry
+
+  classical
+
+  -- Work with ε = 1/n.
+  set ε : ℝ := (1 : ℝ) / (n : ℝ) with hεdef
+
+  have hn_pos_nat : 0 < n := by
+    have hX0_pos : 0 < X₀ := by
+      norm_num [X₀]
+    have hX0sq_pos : 0 < X₀ ^ 2 := by
+      exact pow_pos hX0_pos _
+    exact lt_of_lt_of_le hX0sq_pos hn
+
+  have hn_pos : 0 < (n : ℝ) := by
+    exact_mod_cast hn_pos_nat
+
+  have hε : 0 ≤ ε ∧ ε ≤ 1 / (X₀ ^ 2 : ℝ) := by
+    have hε_nonneg : 0 ≤ ε := by
+      -- `ε = 1/n` with `n > 0`.
+      have : 0 ≤ (1 : ℝ) / (n : ℝ) := by positivity
+      simp [hεdef]
+
+    have hn' : (X₀ ^ 2 : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast hn
+    have hX0sq_pos : 0 < (X₀ ^ 2 : ℝ) := by
+      have hX0_pos : 0 < X₀ := by
+        norm_num [X₀]
+      have : 0 < (X₀ ^ 2 : ℕ) := by
+        exact pow_pos hX0_pos _
+      exact_mod_cast this
+
+    have hε_le : ε ≤ 1 / (X₀ ^ 2 : ℝ) := by
+      -- From `X₀^2 ≤ n`, invert to get `1/n ≤ 1/X₀^2`.
+      have : (1 : ℝ) / (n : ℝ) ≤ (1 : ℝ) / (X₀ ^ 2 : ℝ) := by
+        simpa using (one_div_le_one_div_of_le hX0sq_pos hn')
+      simpa [hεdef] using this
+    exact ⟨hε_nonneg, hε_le⟩
+
+  -- Upper bound the LHS by replacing `δ(√n)` with `eps_log`.
+  have hL0 := main_ineq_delta_form_lhs (n := n) hn
+  have hL :
+      (∏ i : Fin 3,
+          (1 + (1 + δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
+        ≤
+      (∏ i : Fin 3,
+          (1 + onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) * ε)) := by
+    simpa [hεdef, div_eq_mul_inv, one_div, mul_assoc, mul_left_comm, mul_comm] using hL0
+
+  -- Lower bound the RHS via the packaged comparison lemma.
+  have hR0 : main_ineq_delta_form_rhs_RHS n ≤ main_ineq_delta_form_rhs_LHS n := by
+    simpa [ge_iff_le] using (main_ineq_delta_form_rhs (n := n) hn)
+
+  have hpoly_ge :
+      (1 + 3.36683 * ε - 0.01 * ε ^ 2)
+        ≤
+      main_ineq_delta_form_rhs_RHS n := by
+    have h := prod_epsilon_ge (ε := ε) hε
+    -- Normalize the exponent forms used in the product.
+    have hmul2 : ∀ i : Fin 3, ((i : ℕ) + 1 : ℝ) * 2 = (i : ℕ) * 2 + 2 := by
+      intro i
+      ring
+    -- Convert `≥` to `≤` and rewrite into `main_ineq_delta_form_rhs_RHS`.
+    have h' : (1 + 3.36683 * ε - 0.01 * ε ^ 2) ≤
+        (∏ i : Fin 3,
+            (1 + ε / (onePlusEps_log ^ (2 * ((i : ℕ) + 1 : ℝ))) * (1 / (1 + 1 / X₀))))
+          * (1 + (3 : ℝ) / 8 * ε)
+          * (1 - 4 * onePlusEps_log ^ 12 / X₀ * ε) := by
+      simpa [ge_iff_le] using h
+    -- Match the expression with `main_ineq_delta_form_rhs_RHS n`.
+    simpa [main_ineq_delta_form_rhs_RHS, hεdef, div_eq_mul_inv, one_div, mul_assoc, mul_left_comm, mul_comm, hmul2]
+      using h'
+
+  -- Now chain everything.
+  calc
+    (∏ i : Fin 3,
+        (1 + (1 + δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
+        ≤ (∏ i : Fin 3, (1 + onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) * ε)) := hL
+    _ ≤ 1 + 3.01 * ε + 3.01 * ε ^ 2 + 1.01 * ε ^ 3 :=
+        prod_epsilon_le (ε := ε) hε
+    _ ≤ 1 + 3.36683 * ε - 0.01 * ε ^ 2 :=
+        final_comparison (ε := ε) hε
+    _ ≤ main_ineq_delta_form_rhs_RHS n := hpoly_ge
+    _ ≤ main_ineq_delta_form_rhs_LHS n := hR0
+    _ = (∏ i : Fin 3,
+          (1 + 1 /
+            ((1 + δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+        * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+        * (1 - 4 * (1 + δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+        simp [main_ineq_delta_form_rhs_LHS, mul_assoc]
 
 
 
