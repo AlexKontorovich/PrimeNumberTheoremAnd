@@ -1617,10 +1617,35 @@ theorem Params.initial.score_bound (P : Params) :
           simp only [h_tiny, h_small, h_medium, ↓reduceIte]
           sorry -- use h_large_le and h_large_ge
 
+  calc _ ≤
+    ↑P.n * Real.log (1 - 1 / ↑P.M)⁻¹ + Real.log ↑P.n +
+    ∑ p ∈ (P.n + 1).primesBelow, (if p ≤ P.L then (↑P.M * Real.log ↑P.n + ↑P.M * ↑P.L ^ 2 * ↑P.n.primeCounting) * Real.log ↑P.L
+      else if p ≤ ⌊√↑P.n⌋₊ then ↑P.M * Real.log ↑P.n * Real.log ↑P.n / Real.log 2
+      else if p ≤ P.n / P.L then ↑P.M * Real.log ↑P.n
+      else ↑P.n / ↑p * Real.log (↑P.n / ↑p)) := by
+        gcongr
 
-  sorry
-
-  --exact this
+        sorry
+      _ ≤ ↑P.n * Real.log (1 - 1 / ↑P.M)⁻¹ +
+    ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)), ↑P.M * Real.log ↑P.n +
+    ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic ⌊√↑P.n⌋₊), ↑P.M * Real.log ↑P.n * Real.log ↑P.n / Real.log 2 +
+    ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n), ↑P.n / ↑p * Real.log (↑P.n / ↑p) +
+    ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic P.L), (↑P.M * Real.log ↑P.n + ↑P.M * ↑P.L ^ 2 * ↑P.n.primeCounting) * Real.log ↑P.L := by
+        gcongr
+        -- First goal: Real.log ↑P.n ≤ ∑ p ∈ Finset.Iic (P.n / P.L) with Prime p, M * log n
+        · rw [show
+            ↑P.n * Real.log (1 - 1 / ↑P.M)⁻¹ + ∑ p ∈ Finset.Iic (P.n / P.L) with Nat.Prime p, ↑P.M * Real.log ↑P.n +
+    ∑ p ∈ Finset.Iic ⌊√↑P.n⌋₊ with Nat.Prime p, ↑P.M * Real.log ↑P.n * Real.log ↑P.n / Real.log 2
+            =
+            ↑P.n * Real.log (1 - 1 / ↑P.M)⁻¹ + (∑ p ∈ Finset.Iic (P.n / P.L) with Nat.Prime p, ↑P.M * Real.log ↑P.n +
+    ∑ p ∈ Finset.Iic ⌊√↑P.n⌋₊ with Nat.Prime p, ↑P.M * Real.log ↑P.n * Real.log ↑P.n / Real.log 2)
+             by ring]
+          apply (le_add_iff_nonneg_right _).mpr
+          positivity -- or apply add_nonneg with Finset.sum_nonneg
+        -- Second goal: the sum inequality
+        · sorry -- split LHS sum and show each part ≤ corresponding RHS
+        · sorry
+      _ ≤ _ := by sorry
 
 
 @[blueprint
