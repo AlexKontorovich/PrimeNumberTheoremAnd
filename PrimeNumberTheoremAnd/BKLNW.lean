@@ -1,39 +1,37 @@
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.CostaPereira
+import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.BKLNW_app
 
 blueprint_comment /--
 \section{Tools from BKLNW}
-In this file we record the results from \cite{BKLNW}, excluding Appendix A which is treated elsewhere.
-
-NOTE: the current ordering of results in this section needs to be refactored.  This section should be considered as a work in progress.
+In this file we record the results from \cite{BKLNW}, excluding Appendix A which is treated elsewhere.  These results convert an initial estimate on $E_\psi(x)$ (provided by Appendix A) to estimates on $E_\theta(x)$.  One first obtains estimates on $E_\theta(x)$ that do not decay in $x$, and then obtain further estimates that decay like $1/\log^k x$ for some $k=1,\dots 5$.
 -/
 
 open Real Chebyshev
 
 namespace BKLNW
 
-structure Inputs where
-  α : ℝ
-  hα : ∀ x > 0, θ x ≤ (1 + α) * x
+blueprint_comment /--
+\subsection{Bounding Etheta uniformly}
+
+We first focus on getting bounds on $E_\theta(x)$ that do not decay in $x$.  A key input, provided by Appendix A, is a bound on $E_\psi(x)$ of the form
+$$ E_\psi(x) \leq \varepsilon(b) \quad \text{for } x \geq e^b.$$
+We also assume a numerical verification $\theta(x) < x$ for $x \leq x_1$ for some $x_1 \geq e^7$.
+-/
+
+structure Pre_inputs where
   ε : ℝ → ℝ
   hε : ∀ b ≥ 0, ∀ x ≥ exp b, |ψ x - x| ≤ ε b * x
   x₁ : ℝ
   hx₁ : x₁ ≥ exp 7
   hx₁' : ∀ x ∈ Set.Ioc 0 x₁, θ x < x
 
-lemma Inputs.epsilon_nonneg (I : Inputs) {b : ℝ} (hb : 0 ≤ b) : 0 ≤ I.ε b := by
+lemma Pre_inputs.epsilon_nonneg (I : Pre_inputs) {b : ℝ} (hb : 0 ≤ b) : 0 ≤ I.ε b := by
   have := I.hε b hb (exp b) (by grind)
   grw [←abs_nonneg] at this
   apply nonneg_of_mul_nonneg_left this (by positivity)
-
-@[blueprint
-  "bklnw-cor-2-1"
-  (title := "BKLNW Corollary 2.1")
-  (statement := /-- $\theta(x) \leq (1 + 1.93378 \times 10^{-8}) x$. -/)
-  (latexEnv := "corollary")]
-theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + 1.93378e-8) * x := by sorry
 
 @[blueprint
   "from-buthe-eq-1-7"
@@ -44,12 +42,10 @@ theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + 1.93378e-8) * x := by sorry
 theorem buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x := by sorry
 
 @[blueprint
-  "bklnw-inputs"
-  (title := "Default input parameters")
-  (statement := /-- We take $\alpha = 1.93378 \times 10^{-8}$, $\varepsilon$ as in Table 8 of \cite{BKLNW}, and $x_1 = 10^{19}$. -/)]
-noncomputable def Inputs.default : Inputs := {
-  α := 1.93378e-8
-  hα := cor_2_1
+  "bklnw-pre-inputs"
+  (title := "Default pre-input parameters")
+  (statement := /-- We take $\varepsilon$ as in Table 8 of \cite{BKLNW}, and $x_1 = 10^{19}$. -/)]
+noncomputable def Pre_inputs.default : Pre_inputs := {
   ε := BKLNW_app.table_8_ε
   hε := BKLNW_app.theorem_2
   x₁ := 1e19
@@ -57,6 +53,121 @@ noncomputable def Inputs.default : Inputs := {
   hx₁' := buthe_eq_1_7
 }
 
+@[blueprint
+  "bklnw-lemma-11a"
+  (title := "BKLNW Lemma 11a")
+  (statement := /-- With the hypotheses as above, we have $\theta(x) \leq (1+\eps(\log x_1)) x)$ for all $x > 0$.-/)
+  (proof := /-- Follows immediately from the given hypothesis $\theta(x) \leq \psi(x)$, splitting into the cases $x ≥ x_1$ and $x < x_1$. -/)
+  (latexEnv := "lemma")]
+theorem lemma_11a (I : Pre_inputs) {x : ℝ} (hx : x > 0) :
+    θ x ≤ (1 + I.ε (log I.x₁)) * x := by sorry
+
+@[blueprint
+  "bklnw-lemma-11b"
+  (title := "BKLNW Lemma 11b")
+  (statement := /-- With the hypotheses as above, we have
+  $$ (1 - \eps(b) - c_0(e^{-b/2} + e^{-2b/3} + e^{-4b/5})) x \leq \theta(x)$$
+   for all $x \geq e^b$ and $b>0$, where $c_0 = 1.03883$ is the constant from \cite[Theorem 12]{rs-prime}. -/)
+  (proof := /-- From Theorem \ref{costa-pereira-theorem-1a} we have $\psi(x) - \theta(x) ≤ \psi(x^{1/2}) + \psi(x^{1/3}) + \psi(x^{1/5})$.  Now apply the hypothesis on $\psi(x)$ and  Theorem \ref{rs-psi-upper}. -/)
+  (latexEnv := "lemma")]
+theorem lemma_11b (I : Pre_inputs) {b x : ℝ} (hb : 0 < b) (hx : x ≥ exp b) :
+    (1 - I.ε b - RS_prime.c₀ * (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5))) * x ≤ θ x := by sorry
+
+@[blueprint
+  "bklnw-thm-1a"
+  (title := "BKLNW Theorem 1a")
+  (statement := /--  For any fixed $X_0 \geq 1$, there exists $m_0 > 0$ such that, for all $x \geq X_0$
+  $$ x(1 - m_0) \leq \theta(x). $$
+  For any fixed $X_1 \geq 1$, there exists $M_0 > 0$ such that, for all $x \geq X_1$
+  $$ \theta(x) \leq x(1 + M_0). $$
+  For $X_0, X_1 \geq e^{20}$, we have
+  $$ m_0 = \varepsilon(\log X_0) + 1.03883 \left( X_0^{-1/2} + X_0^{-2/3} + X_0^{-4/5} \right) $$
+  and
+  $$ M_0 = \varepsilon(\log X_1). $$
+  -/)
+  (proof := /-- Combine Lemmas \ref{bklnw-lemma-11a} with $b = \log X_1$ for the upper bound, and and \ref{bklnw-lemma-11b} with $b = \log X_0$ for the lower bound. -/)
+  (latexEnv := "theorem")]
+theorem thm_1a {X₀ X₁ x : ℝ} (hX₀ : X₀ ≥ exp 20) (hX₁ : X₁ ≥ exp 20) (hx₀ : x ≥ X₀) (hx₁ : x ≥ X₁) :
+  let m₀ := Pre_inputs.default.ε (log X₀) + RS_prime.c₀ * (X₀^(-1/2:ℝ) + X₀^(-2/3:ℝ) + X₀^(-4/5:ℝ))
+  let M₀ := Pre_inputs.default.ε (log X₁)
+  x * (1 - m₀) ≤ θ x ∧ θ x ≤ x * (1 + M₀) := by sorry
+
+noncomputable def Table_14 : List (ℝ × ℝ × ℝ) := [
+  (20, 4.2676e-5, 9.1639e-5),
+  (25, 3.5031e-6, 7.4366e-6),
+  (30, 2.8755e-7, 6.0751e-7),
+  (35, 2.3603e-8, 4.9766e-8),
+  (40, 1.9338e-8, 2.1482e-8),
+  (19 * log 10, 1.9338e-8, 1.9667e-8),
+  (45, 1.0907e-8, 1.1084e-8),
+  (50, 1.1199e-9, 1.1344e-9),
+  (60, 1.2215e-11, 1.2312e-11),
+  (70, 2.7923e-12, 2.7930e-12),
+  (80, 2.6108e-12, 2.6108e-12),
+  (90, 2.5213e-12, 2.5213e-12),
+  (100, 2.4530e-12, 2.4530e-12),
+  (200, 2.1815e-12, 2.1816e-12),
+  (300, 2.0902e-12, 2.0903e-12),
+  (400, 2.0398e-12, 2.0399e-12),
+  (500, 1.9999e-12, 1.9999e-12),
+  (700, 1.9764e-12, 1.9765e-12),
+  (1000, 1.9475e-12, 1.9476e-12),
+  (2000, 1.9228e-12, 1.9228e-12),
+  (3000, 4.5997e-14, 4.5998e-14),
+  (4000, 1.4263e-16, 1.4264e-16),
+  (5000, 5.6303e-19, 5.6303e-19),
+  (7000, 2.0765e-23, 2.0766e-23),
+  (10000, 3.7849e-29, 3.7850e-29),
+  (11000, 7.1426e-31, 7.1427e-31),
+  (12000, 1.5975e-32, 1.5976e-32),
+  (13000, 4.1355e-34, 4.1356e-34),
+  (13800.7464, 2.5423e-35, 2.5424e-35),
+  (15000, 4.1070e-37, 4.1070e-37),
+  (17000, 6.2040e-40, 6.2040e-40),
+  (20000, 7.1621e-44, 7.1621e-44),
+  (22000, 2.4392e-46, 2.4392e-46),
+  (25000, 7.5724e-50, 7.5724e-50)
+]
+
+@[blueprint
+  "bklnw-thm-1a"
+  (statement := /-- See \cite[Table 14]{BKLNW} for values of $m_0$ and $M_0$. -/)
+  (latexEnv := "theorem")]
+theorem thm_1a_table {X₀ m₀ M₀ : ℝ} (h : (X₀, M₀, m₀) ∈ Table_14) {x : ℝ} (hx : x ≥ X₀) :
+  x * (1 - m₀) ≤ θ x ∧ θ x ≤ x * (1 + M₀) :=
+  by sorry
+
+
+@[blueprint
+  "bklnw-cor-2-1"
+  (title := "BKLNW Corollary 2.1")
+  (statement := /-- $\theta(x) \leq (1 + 1.93378 \times 10^{-8}) x$. -/)
+  (proof := /-- We combine together Theorem \ref{from-buthe-eq-1-7} and Theorem \ref{bklnw-thm-1a} with $X_1 = 10^{19}$, using Table 14. -/)
+  (latexEnv := "corollary")]
+theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + 1.93378e-8) * x := by sorry
+
+structure Inputs extends Pre_inputs where
+  α : ℝ
+  hα : ∀ x > 0, θ x ≤ (1 + α) * x
+
+
+@[blueprint
+  "bklnw-inputs"
+  (title := "Default input parameters")
+  (statement := /-- We take $\alpha = 1.93378 \times 10^{-8}$, so that we have $\theta(x) \leq (1 + \alpha) x$ for all $x$. -/)]
+noncomputable def Inputs.default : Inputs := {
+  toPre_inputs := Pre_inputs.default
+  α := 1.93378e-8
+  hα := cor_2_1
+}
+
+blueprint_comment /--
+\subsection{Bounding psi minus theta}
+
+In this section we obtain bounds of the shape
+$$ \psi(x) - \theta(x) \leq a_1 x^{1/2} + a_2 x^{1/3}$$
+for all $x \geq x_0$ and various $a_1, a_2, x_0$.
+-/
 
 @[blueprint
   "bklnw-eq-2-4"
@@ -457,7 +568,7 @@ a_2 = (1 + \alpha) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}
   (latexEnv := "theorem")
   (discussion := 643)]
 theorem thm_5 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
-    ψ x - θ x < Inputs.a₁ I b * x^(1/2:ℝ) + Inputs.a₂ I b * x^(1/3:ℝ) := by sorry
+    ψ x - θ x < I.a₁ b * x^(1/2:ℝ) + I.a₂ b * x^(1/3:ℝ) := by sorry
 
 noncomputable def a₁ : ℝ → ℝ := Inputs.default.a₁
 
@@ -489,47 +600,108 @@ def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
 @[blueprint
   "bklnw-cor-5-1-rem"
   (title := "Remark after BKLNW Corollary 5.1")
-  (statement := /--  We have the following values for $a_2$, given by the table after \cite[Corollary 5.1]{BKLNW} -/)
+  (statement := /--  We have the following values for $a_2$, given by the table after \cite[Corollary 5.1]{BKLNW}. -/)
   (latexEnv := "remark")]
 theorem cor_5_1_rem (b a₂b : ℝ) (m : ℕ) (hb : (b, a₂b, m) ∈ table_cor_5_1) :
     a₂ b ∈ Set.Icc a₂b (a₂b + 10^(-m:ℝ)) := by sorry
 
-noncomputable def Table_14 : List (ℝ × ℝ × ℝ) := [
-  (20, 4.2676e-5, 9.1639e-5),
-  (25, 3.5031e-6, 7.4366e-6),
-  (30, 2.8755e-7, 6.0751e-7),
-  (35, 2.3603e-8, 4.9766e-8),
-  (40, 1.9338e-8, 2.1482e-8),
-  (19 * log 10, 1.9338e-8, 1.9667e-8),
-  (45, 1.0907e-8, 1.1084e-8),
-  (50, 1.1199e-9, 1.1344e-9),
-  (60, 1.2215e-11, 1.2312e-11),
-  (70, 2.7923e-12, 2.7930e-12),
-  (80, 2.6108e-12, 2.6108e-12),
-  (90, 2.5213e-12, 2.5213e-12),
-  (100, 2.4530e-12, 2.4530e-12),
-  (200, 2.1815e-12, 2.1816e-12),
-  (300, 2.0902e-12, 2.0903e-12),
-  (400, 2.0398e-12, 2.0399e-12),
-  (500, 1.9999e-12, 1.9999e-12),
-  (700, 1.9764e-12, 1.9765e-12),
-  (1000, 1.9475e-12, 1.9476e-12),
-  (2000, 1.9228e-12, 1.9228e-12),
-  (3000, 4.5997e-14, 4.5998e-14),
-  (4000, 1.4263e-16, 1.4264e-16),
-  (5000, 5.6303e-19, 5.6303e-19),
-  (7000, 2.0765e-23, 2.0766e-23),
-  (10000, 3.7849e-29, 3.7850e-29),
-  (11000, 7.1426e-31, 7.1427e-31),
-  (12000, 1.5975e-32, 1.5976e-32),
-  (13000, 4.1355e-34, 4.1356e-34),
-  (13800.7464, 2.5423e-35, 2.5424e-35),
-  (15000, 4.1070e-37, 4.1070e-37),
-  (17000, 6.2040e-40, 6.2040e-40),
-  (20000, 7.1621e-44, 7.1621e-44),
-  (22000, 2.4392e-46, 2.4392e-46),
-  (25000, 7.5724e-50, 7.5724e-50)
-]
+
+
+blueprint_comment /--
+\subsection{Bounding theta(x)-x with a logarithmic decay, I: large x}
+
+In this section and the next ones we obtain bounds of the shape
+$$ x (1 - \frac{m_k}{\log^k x}) \leq \theta(x)$$
+for all $x \geq X_0$ and
+$$ \theta(x) \leq x (1 + \frac{M_k}{\log^k x})$$
+for all $x \geq X_1$, for various $k, m_k, M_k, X_0, X_1$, with $k \in \{1,\dots,5\}$.
+
+For this section we focus on estimates that are useful when $x$ is extremely large, e.g., $x \geq e^{25000}$.
+-/
+
+
+
+@[blueprint
+  "bklnw-lem-6"
+  (title := "BKLNW Lemma 6")
+  (statement := /--  Suppose there exists $c_1, c_2, c_3, c_4 > 0$ such that
+\begin{equation}\tag{3.3}
+|\theta(x) - x| \leq c_1 x (\log x)^{c_2} \exp(-c_3 (\log x)^{\frac{1}{2}}) \quad \text{for all } x \geq c_4.
+\end{equation}
+Let $k > 0$ and let $b \geq \max\left(\log c_4, \log\left(\frac{4(c_2 + k)^2}{c_3^2}\right)\right)$. Then for all $x \geq e^b$ we have
+$$
+|\theta(x) - x| \leq \frac{\mathcal{A}_k(b) x}{(\log x)^k},
+$$
+where
+$$
+\mathcal{A}_k(b) = c_1 \cdot b^{c_2 + k} e^{-c_3\sqrt{b}}.
+$$ -/)
+  (proof := /-- We denote $g(x) = (\log x)^{c_2 + k} \exp(-c_3 (\log x)^{\frac{1}{2}})$. By \eqref{3.3}, $|\theta(x) - x| < \frac{c_1 g(x) x}{(\log x)^k}$ for all $x \geq c_4$. It suffices to bound $g$: by calculus, $g(x)$ decreases when $x \geq \frac{4(c_2 + k)^2}{c_3^2}$. Therefore $|\theta(x) - x| \leq \frac{c_1 g(e^b) x}{(\log x)^k}$. Note that $c_1 g(e^b) = \mathcal{A}_k(b)$ and the condition on $b$ follows from the conditions $e^b \geq c_4$ and $e^b \geq \frac{4(c_2 + k)^2}{c_3^2}$. -/)
+  (latexEnv := "lemma")]
+theorem lem_6 {c₁ c₂ c₃ c₄ k b x : ℝ} (hc₁ : 0 < c₁) (hc₂ : 0 < c₂) (hc₃ : 0 < c₃) (hc₄ : 0 < c₄)
+    (hθ : Eθ.classicalBound c₁ c₂ c₃ 1 c₄)
+    (hk : 0 < k)
+    (hb : b ≥ max (log c₄) (log ((4 * (c₂ + k) ^ 2) / (c₃ ^ 2))))
+    (hx : x ≥ exp b) :
+    let A := c₁ * b ^ (c₂ + k) * exp (-c₃ * sqrt b)
+    Eθ x ≤ A / (log x) ^ k := by
+      sorry
+
+
+@[blueprint
+  "bklnw-cor-14-1"
+  (title := "BKLNW Corollary 14.1")
+  (statement := /--  Suppose one has an asymptotic bound $E_\psi$ with parameters $A,B,C,R,e^{x_0}$ (which need to satisfy some additional bounds) with $x_0 \geq 1000$.  Then $E_\psi$ obeys an asymptotic bound with parameters $A', B, C, R, e^{x_0}$, where
+  $$ A' := A (1 + \frac{1}{A} (\frac{R}{x_0})^B \exp(C \sqrt{\frac{x_0}{R}}) (a_1(x_0) \exp(\frac{-x_0}{2}) + a_2(x_0) \exp(\frac{-2 x_0}{3}))) $$
+  and $a_1(x_0), a_2(x_0)$ are as in Corollary \ref{bklnw-cor-5-1}. -/)
+  (proof := /-- We write $\theta(x) - x = \psi(x) - x + \theta(x) - \psi(x)$, apply the triangle inequality, and invoke Corollary \ref{blknw-cor-5-1} to obtain
+$$
+E_\theta(x) \leq A (\frac{\log x}{R})^B \exp(-C (\frac{\log x}{R})^{\frac{1}{2}}) + a_1(x_0) x^{-\frac{1}{2}} + a_2(x_0) x^{-\frac{2}{3}}$$
+$$ \leq A (\frac{\log x}{R})^B \exp(-C (\frac{\log x}{R})^{\frac{1}{2}}) (1 + \frac{a_1(x_0) \exp(C \sqrt{\frac{\log x}{R}})}{A \sqrt{x} (\frac{\log x}{R})^B} + \frac{a_2(x_0) \exp(C \sqrt{\frac{\log x}{R}})}{A x^{\frac{2}{3}} (\frac{\log x}{R})^B}).$$
+The function in brackets decreases for $x \geq e^{x_0}$ with $x_0 \geq 1000$ (assuming reasonable hypotheses on $A,B,C,R$) and thus we obtain the desired bound with $A'$ as above.
+ -/)
+  (latexEnv := "corollary")]
+theorem cor_14_1 {A B C R x₀ : ℝ} (hx₀ : x₀ ≥ 1000)
+    (hEψ : Eψ.classicalBound A B C R x₀) :
+    let A' := A * (1 + (1 / A) * (R / x₀) ^ B * exp (C * sqrt (x₀ / R)) *
+      (a₁ x₀ * exp (-x₀ / 2) + a₂ x₀ * exp (-2 * x₀ / 3)))
+    Eθ.classicalBound A' B C R x₀ := by
+      sorry
+
+blueprint_comment /--
+\subsection{Bounding theta(x)-x with a logarithmic decay, II: medium x}
+
+In this section we tackle medium $x$.
+
+TODO: formalize Lemma 8 and Corollary 8.1
+-/
+
+blueprint_comment /--
+\subsection{Bounding theta(x)-x with a logarithmic decay, III: small x}
+
+In this section we tackle small $x$.
+
+TODO: formalize (3.17), (3.18), Lemma 9, Corollary 9.1
+-/
+
+
+blueprint_comment /--
+\subsection{Bounding theta(x)-x with a logarithmic decay, IV: very small x}
+
+In this section we tackle very small $x$.
+
+TODO: Formalize Lemma 10
+-/
+
+
+blueprint_comment /--
+\subsection{Final bound on Etheta(x)}
+
+Now we put everything together.
+
+TODO: Section 3.7.1; 3.7.2; 3.7.3; 3.7.4
+-/
+
 
 noncomputable def Table_15 : List (ℝ × (Fin 5 → ℝ)) := [
   (0, ![1.2323e0, 3.9649e0, 2.0829e1, 1.5123e2, 1.3441e5]),
@@ -620,36 +792,6 @@ noncomputable def Table_15 : List (ℝ × (Fin 5 → ℝ)) := [
   (25000, ![7.5635e-45, 1.8909e-40, 4.7272e-36, 1.1818e-31, 2.9545e-27])
 ]
 
--- TODO: input the statements and arguments from Section 3 used to prove Theorem 1 below
-
-/- Theorem 1. Let k be an integer with 0 ≤ k ≤ 5. For any fixed X0 ≥ 1, there exists mk > 0 such that, for all x ≥ X0 (1.1) x 1− mk (log x)k ≤ θ(x). For any fixed X1 ≥ 1, there exists Mk > 0 such that, for all x ≥ X1 (1.2) θ(x) ≤ x 1+ Mk (log x)k . In the case k = 0 and X0,X1 ≥ e20, we have m0 =ε(logX0)+1.03883(X−1/2 0 +X−2/3 0 +X−4/5 0 ) and M0=ε(logX1). See Table 14 for values of m0 and M0, and Table 15 for values of mk and Mk, for k ∈ {1,2,3,4,5}. -/
-
-@[blueprint
-  "bklnw-thm-1a"
-  (title := "BKLNW Theorem 1a")
-  (statement := /--  For any fixed $X_0 \geq 1$, there exists $m_0 > 0$ such that, for all $x \geq X_0$
-  $$ x(1 - m_0) \leq \theta(x). $$
-  For any fixed $X_1 \geq 1$, there exists $M_0 > 0$ such that, for all $x \geq X_1$
-  $$ \theta(x) \leq x(1 + M_0). $$
-  For $X_0, X_1 \geq e^{20}$, we have
-  $$ m_0 = \varepsilon(\log X_0) + 1.03883 \left( X_0^{-1/2} + X_0^{-2/3} + X_0^{-4/5} \right) $$
-  and
-  $$ M_0 = \varepsilon(\log X_1). $$
-  -/)
-  (latexEnv := "theorem")]
-theorem thm_1a {X₀ X₁ x : ℝ} (hX₀ : X₀ ≥ exp 20) (hX₁ : X₁ ≥ exp 20) (hx₀ : x ≥ X₀) (hx₁ : x ≥ X₁) :
-  let m₀ := Inputs.default.ε (log X₀) + 1.03883 * (X₀^(-1/2:ℝ) + X₀^(-2/3:ℝ) + X₀^(-4/5:ℝ))
-  let M₀ := Inputs.default.ε (log X₁)
-  x * (1 - m₀) ≤ θ x ∧ θ x ≤ x * (1 + M₀) := by sorry
-
-@[blueprint
-  "bklnw-thm-1a"
-  (statement := /-- See \cite[Table 14]{BKLNW} for values of $m_0$ and $M_0$ -/)
-  (latexEnv := "theorem")]
-theorem thm_1a_table {X₀ m₀ M₀ : ℝ} (h : (X₀, M₀, m₀) ∈ Table_14) {x : ℝ} (hx : x ≥ X₀) :
-  x * (1 - m₀) ≤ θ x ∧ θ x ≤ x * (1 + M₀) :=
-  by sorry
-
 /- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
 @[blueprint
   "bklnw-thm-1b"
@@ -675,10 +817,18 @@ theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ x : ℝ} (hX₀ : X₀ > 1) (
   (statement := /--  See \cite[Table 15]{BKLNW} for values of $m_k$ and $M_k$, for $k \in \{1,2,3,4,5\}$.
   -/)
   (latexEnv := "theorem")]
-theorem thm_1b_table {X₀ : ℝ} (hX₀ : X₀ > 1) {M : Fin 5 → ℝ} (h : (X₀, M) ∈ Table_15) (k : Fin 5)
-    {x : ℝ} (hx : x ≥ X₀) :
-    x * (1 - M k / (log x)^(k.val + 1)) ≤ θ x ∧ θ x ≤ x * (1 + M k / (log x)^(k.val + 1)) := by
-  sorry
+theorem thm_1b_table {X₀ : ℝ} (hX₀ : X₀ > 1) {M : Fin 5 → ℝ} (h : (X₀, M) ∈ Table_15) (k : Fin 5) {x : ℝ} (hx : x ≥ X₀) :
+  x * (1 - M k / (log x)^(k.val + 1)) ≤ θ x ∧ θ x ≤ x * (1 + M k / (log x)^(k.val + 1)) :=
+  by sorry
+
+
+blueprint_comment /--
+\subsection{Computational examples}
+
+Now we apply the previous theorem.
+
+TODO: Corollary 11.1, 11.2
+-/
 
 
 end BKLNW

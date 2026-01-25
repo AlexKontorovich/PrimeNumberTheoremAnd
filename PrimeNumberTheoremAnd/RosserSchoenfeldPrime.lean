@@ -540,4 +540,12 @@ theorem mertens_first_theorem' :
       apply abs_nonneg
     · simpa using integrableOn_deriv_inv.1.abs
 
+def c₀ : ℝ := 1.03883
+
+@[blueprint
+  "rs-psi-upper"
+  (title := "RS Theorem 12")
+  (statement := /-- We have $\psi(x) < c_0 x$ for all $x>0$. -/)]
+theorem theorem_12 {x : ℝ} (hx : 0 < x) : ψ x < c₀ * x := by sorry
+
 end RS_prime
