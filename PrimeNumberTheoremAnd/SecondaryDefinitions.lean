@@ -50,10 +50,22 @@ theorem log_le (t : ℝ) (ht : t > -1) : log (1 + t) ≤ t :=
   (proof := /-- Use Taylor's theorem with remainder and the fact that the second derivative of $\log(1+t)$ is at most $1$ for $t \geq 0$.-/)
   (latexEnv := "sublemma")
   (discussion := 765)]
-theorem log_ge
-    (t s : ℝ) (ht : t ≥ 0) (hs : s > 0) :
-    t - t ^ 2 / (2 * s ^ 2) ≤ log (1 + t) := by
-    sorry
+theorem log_ge {t : ℝ} (ht : 0 ≤ t) : t - t ^ 2 / 2 ≤ log (1 + t) := by
+  rcases ht.eq_or_lt with rfl | ht
+  · simp
+  let f : ℝ → ℝ := fun s ↦ log (1 + s) - (s - s ^ 2 / 2)
+  have hf_deriv_pos : ∀ s > 0, 0 ≤ deriv f s := by
+    intro s hs
+    norm_num [f, add_comm, show s + 1 ≠ 0 by positivity]
+    ring_nf
+    nlinarith [inv_mul_cancel₀ (by positivity : (1 + s) ≠ 0)]
+  have h_mvt : ∃ c ∈ Set.Ioo 0 t, deriv f c = (f t - f 0) / (t - 0) := by
+    refine exists_deriv_eq_slope _ ht ?_ ?_  <;> intro x hx
+    · exact ContinuousAt.continuousWithinAt (by fun_prop (disch := grind))
+    · exact DifferentiableAt.differentiableWithinAt (by fun_prop (disch := grind))
+  norm_num +zetaDelta at h_mvt
+  obtain ⟨c, ⟨hc₁, hc₂⟩, hc⟩ := h_mvt
+  nlinarith [hf_deriv_pos c hc₁, mul_div_cancel₀ (log (1 + t) - (t - t ^ 2 / 2)) (by positivity)]
 
 @[blueprint
   "log_lower_2"
@@ -62,34 +74,41 @@ theorem log_ge
   (proof := /-- Use concavity of log.-/)
   (latexEnv := "sublemma")
   (discussion := 766)]
-theorem log_ge'
-    (t t₀ : ℝ) (ht : 0 ≤ t) (ht0 : t ≤ t₀) (ht0' : t₀ < 1) :
+theorem log_ge' {t t₀ : ℝ} (ht : 0 ≤ t) (ht0 : t ≤ t₀) (ht0' : t₀ < 1) :
     (t / t₀) * log (1 - t₀) ≤ log (1 - t) := by
-    sorry
+  rcases ht.eq_or_lt with rfl | ht
+  · simp
+  rcases ht0.eq_or_lt with rfl | ht0
+  · field_simp [ht.ne]
+    rfl
+  have := strictConcaveOn_log_Ioi.2  (y := 1) (x := 1 - t₀) (by grind) (by grind) (by linarith)
+  simp only [smul_eq_mul, log_one, mul_zero, add_zero, mul_one] at this
+  convert this (a := t / t₀) (b := 1 - t / t₀) (by bound) (by bound) (by ring) |>.le using 2
+  field [show t₀ ≠ 0 by linarith]
 
 @[blueprint
   "symm_inv_log"
   (title := "Symmetrization of inverse log")
-  (statement := /-- For $0 < t \leq 1/2$, one has $| \frac{1}{\log(1+t)} + \frac{1}{\log(1-t)}| \leq \frac{\log(4/3)}{4/3}$. -/)
+  (statement := /-- For $0 < t \leq 1/2$, one has $| \frac{1}{\log(1+t)} + \frac{1}{\log(1-t)}| \leq \frac{\log(4/3)}{\log(3/2) \log 2}$. -/)
   (proof := /-- The expression can be written as $\frac{|\log(1-t^2)|}{|\log(1-t)| |\log(1+t)|}$. Now use the previous upper and lower bounds, noting that $t^2 \leq 1/4$. -/)
   (latexEnv := "sublemma")
   (discussion := 767)]
 theorem symm_inv_log
     (t : ℝ) (ht : 0 < t) (ht' : t ≤ 1 / 2) :
-    |1 / log (1 + t) + 1 / log (1 - t)| ≤ log (4 / 3) / (4 / 3) := by
+    |1 / log (1 + t) + 1 / log (1 - t)| ≤ log (4 / 3) / (log (3 / 2) * log 2) := by
     sorry
 
 @[blueprint
   "li-approx"
   (title := "li approximation")
-  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{\log(4/3)}{4/3} \eps)$. -/)
+  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{\log(4/3)}{\log(3/2) \log 2} \eps)$. -/)
   (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
   (latexEnv := "sublemma")
   (discussion := 768)]
 theorem li.eq
     (x ε : ℝ) (hx : x ≥ 2) (hε1 : 0 < ε) (hε2 : ε ≤ 1) : ∃ E,
     li x = ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)), 1 / log t + E ∧
-    |E| ≤ log (4 / 3) / (4 / 3) * ε := by
+    |E| ≤ log (4 / 3) / (log (3 / 2) * log 2) * ε := by
     sorry
 
 @[blueprint
