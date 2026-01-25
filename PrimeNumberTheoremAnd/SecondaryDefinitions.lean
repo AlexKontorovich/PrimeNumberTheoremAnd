@@ -74,10 +74,17 @@ theorem log_ge {t : ℝ} (ht : 0 ≤ t) : t - t ^ 2 / 2 ≤ log (1 + t) := by
   (proof := /-- Use concavity of log.-/)
   (latexEnv := "sublemma")
   (discussion := 766)]
-theorem log_ge'
-    (t t₀ : ℝ) (ht : 0 ≤ t) (ht0 : t ≤ t₀) (ht0' : t₀ < 1) :
+theorem log_ge' {t t₀ : ℝ} (ht : 0 ≤ t) (ht0 : t ≤ t₀) (ht0' : t₀ < 1) :
     (t / t₀) * log (1 - t₀) ≤ log (1 - t) := by
-    sorry
+  rcases ht.eq_or_lt with rfl | ht
+  · simp
+  rcases ht0.eq_or_lt with rfl | ht0
+  · field_simp [ht.ne]
+    rfl
+  have := strictConcaveOn_log_Ioi.2  (y := 1) (x := 1 - t₀) (by grind) (by grind) (by linarith)
+  simp only [smul_eq_mul, log_one, mul_zero, add_zero, mul_one] at this
+  convert this (a := t / t₀) (b := 1 - t / t₀) (by bound) (by bound) (by ring) |>.le using 2
+  field [show t₀ ≠ 0 by linarith]
 
 @[blueprint
   "symm_inv_log"
