@@ -126,10 +126,108 @@ lemma delta_sixth_power_lt_sqrt {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 
 lemma delta_twelfth_power_le_n_pow_3_div_2 {n : ℕ} (hn : n ≥ X₀ ^ 2) :
      4 * (1 + δ (√(n : ℝ))) ^ 12 ≤ (n : ℝ) ^ (3 / 2 : ℝ) := by
-  /- given that delta is 1/log^3(x) so is monotone,
-  the proof should reduce to compare the values at X₀
-  -/
-   sorry
+  -- First turn `hn : n ≥ X₀^2` into `X₀ ≤ √n`.
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := by
+    have hn' : (X₀ ^ 2 : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast hn
+    have hsqrt : √(X₀ ^ 2 : ℝ) ≤ √(n : ℝ) := by
+      exact Real.sqrt_le_sqrt hn'
+    have hX0_nonneg : (0 : ℝ) ≤ (X₀ : ℝ) := by
+      exact_mod_cast (Nat.zero_le X₀)
+    simpa [Nat.cast_pow, Real.sqrt_sq_eq_abs, abs_of_nonneg hX0_nonneg] using hsqrt
+
+  -- Positivity facts.
+  have hn_pos_nat : 0 < n := by
+    have hX0_pos : 0 < X₀ := by
+      norm_num [X₀]
+    have hX0sq_pos : 0 < X₀ ^ 2 := by
+      exact pow_pos hX0_pos _
+    exact lt_of_lt_of_le hX0sq_pos hn
+  have hn_pos : 0 < (n : ℝ) := by
+    exact_mod_cast hn_pos_nat
+  have hn_nonneg : 0 ≤ (n : ℝ) := hn_pos.le
+  have hsqrt_pos : 0 < √(n : ℝ) := by
+    simpa [Real.sqrt_eq_rpow] using (Real.rpow_pos_of_pos hn_pos (1 / 2 : ℝ))
+
+  -- Bound `δ(√n) < 1` by proving `1 < log(√n)`.
+  have h3_le_X0 : (3 : ℝ) ≤ (X₀ : ℝ) := by
+    norm_num [X₀]
+  have h3_le_sqrt : (3 : ℝ) ≤ √(n : ℝ) :=
+    le_trans h3_le_X0 hX0_le_sqrt
+  have hexp1_lt3 : Real.exp (1 : ℝ) < (3 : ℝ) := by
+    exact lt_trans Real.exp_one_lt_d9 (by norm_num)
+  have hexp1_lt_sqrt : Real.exp (1 : ℝ) < √(n : ℝ) :=
+    lt_of_lt_of_le hexp1_lt3 h3_le_sqrt
+  have hlog_gt1 : (1 : ℝ) < Real.log (√(n : ℝ)) := by
+    simpa using (Real.lt_log_iff_exp_lt hsqrt_pos).2 hexp1_lt_sqrt
+  have hlog_pow_gt1 : (1 : ℝ) < (Real.log (√(n : ℝ))) ^ (3 : ℝ) := by
+    have hone_nonneg : (0 : ℝ) ≤ (1 : ℝ) := by norm_num
+    have h3pos : (0 : ℝ) < (3 : ℝ) := by norm_num
+    have : (1 : ℝ) ^ (3 : ℝ) < (Real.log (√(n : ℝ))) ^ (3 : ℝ) :=
+      Real.rpow_lt_rpow hone_nonneg hlog_gt1 h3pos
+    simpa using this
+  have hδ_lt1 : δ (√(n : ℝ)) < 1 := by
+    have : (1 : ℝ) / ((Real.log (√(n : ℝ))) ^ (3 : ℝ)) < (1 : ℝ) := by
+      simpa using (one_div_lt_one_div_of_lt (by norm_num : (0 : ℝ) < 1) hlog_pow_gt1)
+    simpa [δ] using this
+  have hδ_nonneg : 0 ≤ δ (√(n : ℝ)) := by
+    exact δ_nonneg hX0_le_sqrt
+  have hδ_le1 : δ (√(n : ℝ)) ≤ 1 := le_of_lt hδ_lt1
+
+  -- Hence `1 + δ(√n) ≤ 2`, so the LHS is bounded by `4 * 2^12`.
+  have h1δ_nonneg : 0 ≤ (1 + δ (√(n : ℝ))) := by
+    linarith
+  have h1δ_le2 : (1 + δ (√(n : ℝ))) ≤ (2 : ℝ) := by
+    linarith
+  have hpow_le : (1 + δ (√(n : ℝ))) ^ 12 ≤ (2 : ℝ) ^ 12 := by
+    exact pow_le_pow_left₀ h1δ_nonneg h1δ_le2 (n := 12)
+  have hlhs_le : 4 * (1 + δ (√(n : ℝ))) ^ 12 ≤ 4 * (2 : ℝ) ^ 12 := by
+    exact mul_le_mul_of_nonneg_left hpow_le (by norm_num)
+
+  -- Show `4 * 2^12 ≤ (n:ℝ)^(3/2)` by `4*2^12 = 16384 ≤ n ≤ n^(3/2)`.
+  have h16384_le_X0sq : (16384 : ℕ) ≤ X₀ ^ 2 := by
+    norm_num [X₀]
+  have h16384_le_n_nat : (16384 : ℕ) ≤ n :=
+    le_trans h16384_le_X0sq hn
+  have h16384_le_n : (16384 : ℝ) ≤ (n : ℝ) := by
+    exact_mod_cast h16384_le_n_nat
+
+  have hsqrt_ge1 : (1 : ℝ) ≤ √(n : ℝ) := by
+    have hn1_nat : (1 : ℕ) ≤ n := Nat.succ_le_iff.mp hn_pos_nat
+    have hn1 : (1 : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast hn1_nat
+    have : √(1 : ℝ) ≤ √(n : ℝ) := Real.sqrt_le_sqrt hn1
+    simpa using this
+
+  have hn_le_rpow : (n : ℝ) ≤ (n : ℝ) ^ (3 / 2 : ℝ) := by
+    -- Rewrite `n^(3/2)` as `n * √n`.
+    have hsplit : (n : ℝ) ^ (3 / 2 : ℝ) = (n : ℝ) * (√(n : ℝ)) := by
+      have h : (3 / 2 : ℝ) = (1 : ℝ) + (1 / 2 : ℝ) := by ring
+      calc
+        (n : ℝ) ^ (3 / 2 : ℝ)
+          = (n : ℝ) ^ ((1 : ℝ) + (1 / 2 : ℝ)) := by simp [h]
+        _ = (n : ℝ) ^ (1 : ℝ) * (n : ℝ) ^ (1 / 2 : ℝ) := by
+          simp [Real.rpow_add hn_pos]
+        _ = (n : ℝ) * (n : ℝ) ^ (1 / 2 : ℝ) := by simp [Real.rpow_one]
+        _ = (n : ℝ) * (√(n : ℝ)) := by
+            -- `√x = x^(1/2)`.
+            simp [Real.sqrt_eq_rpow]
+    -- Now use `1 ≤ √n`.
+    rw [hsplit]
+    have : (n : ℝ) * (1 : ℝ) ≤ (n : ℝ) * √(n : ℝ) :=
+      mul_le_mul_of_nonneg_left hsqrt_ge1 hn_nonneg
+    simpa [mul_one] using this
+
+  have hconst : (4 : ℝ) * (2 : ℝ) ^ 12 = (16384 : ℝ) := by
+    norm_num
+
+  have hconst_le_rpow : 4 * (2 : ℝ) ^ 12 ≤ (n : ℝ) ^ (3 / 2 : ℝ) := by
+    -- chain: 4*2^12 = 16384 ≤ n ≤ n^(3/2)
+    have : (4 : ℝ) * (2 : ℝ) ^ 12 ≤ (n : ℝ) := by
+      simpa [hconst] using h16384_le_n
+    exact le_trans this hn_le_rpow
+
+  exact le_trans hlhs_le hconst_le_rpow
 
 
 /- Lemmas to prove the final criterion theorem main_ineq_delta_form -/
