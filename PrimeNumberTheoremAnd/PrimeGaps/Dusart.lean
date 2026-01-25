@@ -311,11 +311,113 @@ lemma eps_log_bound {n : ℕ} (hn : n ≥ X₀ ^ 2) :
 
 lemma inv_n_pow_3_div_2_le_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (1 / (n : ℝ) ^ (3 / 2 : ℝ)) ≤ (1 / (X₀ : ℝ)) * (1 / n) := by
-    sorry
+  -- First turn `hn : n ≥ X₀^2` into `X₀ ≤ √n`.
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := by
+    have hn' : (X₀ ^ 2 : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast hn
+    have hsqrt : √(X₀ ^ 2 : ℝ) ≤ √(n : ℝ) := by
+      exact Real.sqrt_le_sqrt hn'
+    have hX0_nonneg : (0 : ℝ) ≤ (X₀ : ℝ) := by
+      exact_mod_cast (Nat.zero_le X₀)
+    simpa [Nat.cast_pow, Real.sqrt_sq_eq_abs, abs_of_nonneg hX0_nonneg] using hsqrt
+
+  have hn_pos_nat : 0 < n := by
+    have hX0_pos : 0 < X₀ := by
+      norm_num [X₀]
+    have hX0sq_pos : 0 < X₀ ^ 2 := by
+      exact pow_pos hX0_pos _
+    exact lt_of_lt_of_le hX0sq_pos hn
+  have hn_pos : 0 < (n : ℝ) := by
+    exact_mod_cast hn_pos_nat
+  have hn_nonneg : 0 ≤ (n : ℝ) := hn_pos.le
+  have hX0_pos : 0 < (X₀ : ℝ) := by
+    norm_num [X₀]
+  have hsqrt_pos : 0 < √(n : ℝ) := Real.sqrt_pos.2 hn_pos
+
+  -- Rewrite the exponent `3/2` as `1 + 1/2`.
+  have hsplit : (n : ℝ) ^ (3 / 2 : ℝ) = (n : ℝ) * √(n : ℝ) := by
+    have h : (3 / 2 : ℝ) = (1 : ℝ) + (1 / 2 : ℝ) := by ring
+    calc
+      (n : ℝ) ^ (3 / 2 : ℝ)
+          = (n : ℝ) ^ ((1 : ℝ) + (1 / 2 : ℝ)) := by simp [h]
+      _ = (n : ℝ) ^ (1 : ℝ) * (n : ℝ) ^ (1 / 2 : ℝ) := by
+          simp [Real.rpow_add hn_pos]
+      _ = (n : ℝ) * (n : ℝ) ^ (1 / 2 : ℝ) := by simp [Real.rpow_one]
+      _ = (n : ℝ) * √(n : ℝ) := by
+          simp [Real.sqrt_eq_rpow]
+
+  -- Compare denominators: `n*X₀ ≤ n*√n`.
+  have hdenom_le : (n : ℝ) * (X₀ : ℝ) ≤ (n : ℝ) * √(n : ℝ) := by
+    exact mul_le_mul_of_nonneg_left hX0_le_sqrt hn_nonneg
+
+  -- Now invert the inequality.
+  have h_inv : (1 : ℝ) / ((n : ℝ) * √(n : ℝ)) ≤ (1 : ℝ) / ((n : ℝ) * (X₀ : ℝ)) := by
+    have hdenom_pos : 0 < (n : ℝ) * (X₀ : ℝ) := mul_pos hn_pos hX0_pos
+    simpa [one_div] using (one_div_le_one_div_of_le hdenom_pos hdenom_le)
+
+  -- Put everything in the desired form.
+  -- Left side: `1 / n^(3/2) = 1 / (n*√n)`.
+  -- Right side: `(1/X₀) * (1/n) = 1 / (n*X₀)`.
+  simpa [hsplit, one_div_mul_one_div, mul_comm, mul_left_comm, mul_assoc] using h_inv
 
 lemma inv_n_add_sqrt_ge_X₀ {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (1 / ((n : ℝ) + √(n : ℝ))) ≥ (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) := by
-    sorry
+  -- Turn `hn : X₀^2 ≤ n` into `X₀ ≤ √n`.
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := by
+    have hn' : (X₀ ^ 2 : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast hn
+    have hsqrt : √(X₀ ^ 2 : ℝ) ≤ √(n : ℝ) := by
+      exact Real.sqrt_le_sqrt hn'
+    have hX0_nonneg : (0 : ℝ) ≤ (X₀ : ℝ) := by
+      exact_mod_cast (Nat.zero_le X₀)
+    simpa [Nat.cast_pow, Real.sqrt_sq_eq_abs, abs_of_nonneg hX0_nonneg] using hsqrt
+
+  have hn_pos_nat : 0 < n := by
+    have hX0_pos : 0 < X₀ := by
+      norm_num [X₀]
+    have hX0sq_pos : 0 < X₀ ^ 2 := by
+      exact pow_pos hX0_pos _
+    exact lt_of_lt_of_le hX0sq_pos hn
+  have hn_pos : 0 < (n : ℝ) := by
+    exact_mod_cast hn_pos_nat
+  have hn_nonneg : 0 ≤ (n : ℝ) := hn_pos.le
+  have hX0_pos : 0 < (X₀ : ℝ) := by
+    norm_num [X₀]
+
+  -- From `X₀ ≤ √n` we get `√n ≤ n / X₀`.
+  have hsqrt_le_div : √(n : ℝ) ≤ (n : ℝ) / (X₀ : ℝ) := by
+    -- Use `a ≤ b` ⇒ `a*c ≤ b*c` with `c = √n ≥ 0`.
+    have hsqrt_nonneg : 0 ≤ √(n : ℝ) := Real.sqrt_nonneg _
+    have hmul : (X₀ : ℝ) * √(n : ℝ) ≤ √(n : ℝ) * √(n : ℝ) := by
+      simpa [mul_comm, mul_left_comm, mul_assoc] using
+        (mul_le_mul_of_nonneg_right hX0_le_sqrt hsqrt_nonneg)
+    have hmul' : (X₀ : ℝ) * √(n : ℝ) ≤ (n : ℝ) := by
+      -- `√n * √n = n`.
+      simpa [mul_comm, mul_left_comm, mul_assoc, Real.sq_sqrt hn_nonneg, sq] using hmul
+    -- Divide by `X₀ > 0`.
+    refine (le_div_iff₀ hX0_pos).2 ?_
+    simpa [mul_comm, mul_left_comm, mul_assoc] using hmul'
+
+  -- Denominator comparison: `n + √n ≤ (1 + 1/X₀) * n`.
+  have hdenom_le : (n : ℝ) + √(n : ℝ) ≤ (1 + 1 / (X₀ : ℝ)) * (n : ℝ) := by
+    have : (n : ℝ) + √(n : ℝ) ≤ (n : ℝ) + (n : ℝ) / (X₀ : ℝ) := by
+      gcongr
+    -- Simplify the right-hand side.
+    simpa [div_eq_mul_inv, mul_add, add_mul, mul_assoc, mul_comm, mul_left_comm] using this
+
+  -- Invert the inequality (since all denominators are positive).
+  have hpos : 0 < (n : ℝ) + √(n : ℝ) := by
+    have hsqrt_nonneg : 0 ≤ √(n : ℝ) := Real.sqrt_nonneg _
+    exact add_pos_of_pos_of_nonneg hn_pos hsqrt_nonneg
+  have hinv : (1 : ℝ) / ((1 + 1 / (X₀ : ℝ)) * (n : ℝ)) ≤ (1 : ℝ) / ((n : ℝ) + √(n : ℝ)) := by
+    simpa [one_div] using (one_div_le_one_div_of_le hpos hdenom_le)
+
+  -- Rewrite the RHS in the desired product form.
+  -- Goal is `1/(n+√n) ≥ (1/(1+1/X₀))*(1/n)`.
+  -- So we show the product is ≤ `1/(n+√n)`.
+  have : (1 / (1 + 1 / (X₀ : ℝ))) * (1 / (n : ℝ)) ≤ 1 / ((n : ℝ) + √(n : ℝ)) := by
+    simpa [one_div_mul_one_div, mul_comm, mul_left_comm, mul_assoc] using hinv
+  exact this
 
 /- End of `main_ineq_delta_form_lhs` `main_ineq_delta_form_rhs` sub-lemmas -/
 
@@ -324,11 +426,62 @@ lemma main_ineq_delta_form_lhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
         (1 + (1 + δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
       ≤ (∏ i : Fin 3,
         (1 + onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ))) := by
-    /- *** Proof idea ***
-    We use lemma eps_log_bound to bound δ(√n) by 0.000675,
-    and then compare term-by-term in the product (use positivity of all terms).
-    -/
-    sorry
+  /- *** Proof idea ***
+  We use lemma `eps_log_bound` to bound `δ(√n)` by `0.000675`, hence
+  `1 + δ(√n) ≤ 1 + 0.000675 = onePlusEps_log`.
+  Then we compare the three factors term-by-term and multiply.
+  -/
+  classical
+
+  -- First turn `hn : n ≥ X₀^2` into `X₀ ≤ √n` (needed for `δ_nonneg`).
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := by
+    have hn' : (X₀ ^ 2 : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast hn
+    have hsqrt : √(X₀ ^ 2 : ℝ) ≤ √(n : ℝ) := by
+      exact Real.sqrt_le_sqrt hn'
+    have hX0_nonneg : (0 : ℝ) ≤ (X₀ : ℝ) := by
+      exact_mod_cast (Nat.zero_le X₀)
+    simpa [Nat.cast_pow, Real.sqrt_sq_eq_abs, abs_of_nonneg hX0_nonneg] using hsqrt
+
+  have hn_pos_nat : 0 < n := by
+    have hX0_pos : 0 < X₀ := by
+      norm_num [X₀]
+    have hX0sq_pos : 0 < X₀ ^ 2 := by
+      exact pow_pos hX0_pos _
+    exact lt_of_lt_of_le hX0sq_pos hn
+  have hn_nonneg : 0 ≤ (n : ℝ) := by
+    exact_mod_cast (Nat.zero_le n)
+  have hn_pos : 0 < (n : ℝ) := by
+    exact_mod_cast hn_pos_nat
+
+  have hδ_le_eps : δ (√(n : ℝ)) ≤ eps_log := by
+    simpa [eps_log] using (eps_log_bound (n := n) hn)
+  have hδ_nonneg : 0 ≤ δ (√(n : ℝ)) := by
+    exact δ_nonneg hX0_le_sqrt
+
+  have hbase_le : (1 + δ (√(n : ℝ))) ≤ onePlusEps_log := by
+    -- `1 + δ(√n) ≤ 1 + eps_log`.
+    linarith [hδ_le_eps]
+  have hbase_nonneg : 0 ≤ (1 + δ (√(n : ℝ))) := by
+    linarith
+  have heps_nonneg : 0 ≤ onePlusEps_log := by
+    -- `onePlusEps_log = 1 + eps_log`.
+    norm_num [onePlusEps_log, eps_log]
+
+  -- Pointwise comparison of the factors.
+  refine Finset.prod_le_prod (fun _ _ => by positivity) ?_
+  intro i _
+  -- Compare the rpow terms.
+  have hexp_nonneg : 0 ≤ ((i : ℕ) + 1 : ℝ) := by
+    exact_mod_cast (Nat.zero_le ((i : ℕ) + 1))
+  have hrpow_le : (1 + δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ)
+      ≤ onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) := by
+    exact Real.rpow_le_rpow hbase_nonneg hbase_le hexp_nonneg
+  have hdiv_le : (1 + δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)
+      ≤ onePlusEps_log ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ) := by
+    exact div_le_div_of_nonneg_right hrpow_le hn_nonneg
+  -- Add 1 on both sides.
+  linarith
 
 
 lemma main_ineq_delta_form_rhs {n : ℕ} (hn : n ≥ X₀ ^ 2) :
