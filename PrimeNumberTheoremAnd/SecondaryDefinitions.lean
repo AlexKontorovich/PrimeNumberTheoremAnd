@@ -57,8 +57,7 @@ theorem log_ge {t : ℝ} (ht : 0 ≤ t) :
   set f : ℝ → ℝ := fun t => Real.log (1 + t) - (t - t^2 / 2)
   have hf_deriv_pos : ∀ t > 0, 0 ≤ deriv f t := by
     intro t ht
-    unfold f
-    norm_num [ add_comm, show t + 1 ≠ 0 by linarith ]
+    norm_num [f, add_comm, show t + 1 ≠ 0 by linarith]
     ring_nf
     nlinarith [ inv_mul_cancel₀ ( by linarith : ( 1 + t ) ≠ 0 ) ]
   have h_mvt : ∃ c ∈ Set.Ioo 0 t, deriv f c = (f t - f 0) / (t - 0) := by
