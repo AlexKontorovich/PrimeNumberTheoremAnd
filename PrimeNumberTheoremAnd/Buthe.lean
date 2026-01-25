@@ -36,7 +36,7 @@ theorem theorem_2a {x : ℝ} (hx1 : 11 < x) (hx2 : x ≤ 10 ^ 19) :
   (statement := /-- If $1423 \leq x \leq 10^{19}$, then $x - \vartheta(x) \leq 1.95\sqrt{x}$. -/)
   (latexEnv := "theorem")]
 theorem theorem_2b {x : ℝ} (hx1 : 1423 ≤ x) (hx2 : x ≤ 10 ^ 19) :
-    Eθ x ≤ 1.95 / sqrt x := by sorry
+    x - θ x ≤ 1.95 * sqrt x := by sorry
 
 @[blueprint
   "buthe-theorem-2c"
@@ -44,7 +44,7 @@ theorem theorem_2b {x : ℝ} (hx1 : 1423 ≤ x) (hx2 : x ≤ 10 ^ 19) :
   (statement := /-- If $1 \leq x \leq 10^{19}$, then $x - \vartheta(x) > 0.05\sqrt{x}$. -/)
   (latexEnv := "theorem")]
 theorem theorem_2c {x : ℝ} (hx1 : 1 ≤ x) (hx2 : x ≤ 10 ^ 19) :
-    Eθ x ≥ 0.05 / sqrt x := by sorry
+    x - θ x ≥ 0.05 * sqrt x := by sorry
 
 @[blueprint
   "buthe-theorem-2d"
