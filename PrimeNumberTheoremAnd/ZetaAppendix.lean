@@ -877,8 +877,8 @@ after reindexing the second sum. Regrouping terms again, we obtain our equation.
   (latexEnv := "lemma")
   (discussion := 569)]
 theorem lemma_abadeuleulmit1 {z : ℂ} (hz : ¬∃ n : ℤ, z = n) :
-    (π / Complex.sin (π * z)) =
-      (1 / z) + ∑' (n : {m : ℤ // m > 0}), (-1) ^ (n : ℤ) * ((1 / (z - n) : ℂ) + (1 / (z + n) : ℂ)) := by
+    (π / Complex.sin (π * z) : ℂ) =
+      (1 / z : ℂ) + ∑' n : ℤ, (-1) ^ n * ((1 / (z - n) : ℂ) + (1 / (z + n) : ℂ)) := by
   sorry
 
 @[blueprint
