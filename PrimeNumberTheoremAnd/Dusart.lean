@@ -2,9 +2,11 @@ import Architect
 import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 
 blueprint_comment /--
-\section{Dusart's explicit estimates for primes}
+\section{Dusart's explicit estimates for primes}\label{dusart-sec}
 
 In this section we record the estimates of Dusart \cite{Dusart2018} on explicit estimates for sums over primes.
+
+TODO: add more results and proofs here, and reorganize the blueprint
 -/
 
 namespace Dusart

@@ -38,7 +38,8 @@ lemma Pre_inputs.epsilon_nonneg (I : Pre_inputs) {b : ℝ} (hb : 0 ≤ b) : 0 �
   (title := "A consequence of Buthe equation (1.7)")
   (statement := /-- $\theta(x) < x$ for all $1 \leq x \leq 10^{19}$. -/)
   (latexEnv := "sublemma")
-  (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}. -/)]
+  (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}. -/)
+  (discussion := 787)]
 theorem buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x := by sorry
 
 @[blueprint
@@ -58,7 +59,8 @@ noncomputable def Pre_inputs.default : Pre_inputs := {
   (title := "BKLNW Lemma 11a")
   (statement := /-- With the hypotheses as above, we have $\theta(x) \leq (1+\eps(\log x_1)) x)$ for all $x > 0$.-/)
   (proof := /-- Follows immediately from the given hypothesis $\theta(x) \leq \psi(x)$, splitting into the cases $x ≥ x_1$ and $x < x_1$. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 788)]
 theorem lemma_11a (I : Pre_inputs) {x : ℝ} (hx : x > 0) :
     θ x ≤ (1 + I.ε (log I.x₁)) * x := by sorry
 
@@ -69,7 +71,8 @@ theorem lemma_11a (I : Pre_inputs) {x : ℝ} (hx : x > 0) :
   $$ (1 - \eps(b) - c_0(e^{-b/2} + e^{-2b/3} + e^{-4b/5})) x \leq \theta(x)$$
    for all $x \geq e^b$ and $b>0$, where $c_0 = 1.03883$ is the constant from \cite[Theorem 12]{rs-prime}. -/)
   (proof := /-- From Theorem \ref{costa-pereira-theorem-1a} we have $\psi(x) - \theta(x) ≤ \psi(x^{1/2}) + \psi(x^{1/3}) + \psi(x^{1/5})$.  Now apply the hypothesis on $\psi(x)$ and  Theorem \ref{rs-psi-upper}. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 789)]
 theorem lemma_11b (I : Pre_inputs) {b x : ℝ} (hb : 0 < b) (hx : x ≥ exp b) :
     (1 - I.ε b - RS_prime.c₀ * (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5))) * x ≤ θ x := by sorry
 
@@ -86,7 +89,8 @@ theorem lemma_11b (I : Pre_inputs) {b x : ℝ} (hb : 0 < b) (hx : x ≥ exp b) :
   $$ M_0 = \varepsilon(\log X_1). $$
   -/)
   (proof := /-- Combine Lemmas \ref{bklnw-lemma-11a} with $b = \log X_1$ for the upper bound, and and \ref{bklnw-lemma-11b} with $b = \log X_0$ for the lower bound. -/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 790)]
 theorem thm_1a {X₀ X₁ x : ℝ} (hX₀ : X₀ ≥ exp 20) (hX₁ : X₁ ≥ exp 20) (hx₀ : x ≥ X₀) (hx₁ : x ≥ X₁) :
   let m₀ := Pre_inputs.default.ε (log X₀) + RS_prime.c₀ * (X₀^(-1/2:ℝ) + X₀^(-2/3:ℝ) + X₀^(-4/5:ℝ))
   let M₀ := Pre_inputs.default.ε (log X₁)
@@ -130,7 +134,7 @@ noncomputable def Table_14 : List (ℝ × ℝ × ℝ) := [
 ]
 
 @[blueprint
-  "bklnw-thm-1a"
+  "bklnw-thm-1a-explicit"
   (statement := /-- See \cite[Table 14]{BKLNW} for values of $m_0$ and $M_0$. -/)
   (latexEnv := "theorem")]
 theorem thm_1a_table {X₀ m₀ M₀ : ℝ} (h : (X₀, M₀, m₀) ∈ Table_14) {x : ℝ} (hx : x ≥ X₀) :
@@ -143,7 +147,8 @@ theorem thm_1a_table {X₀ m₀ M₀ : ℝ} (h : (X₀, M₀, m₀) ∈ Table_14
   (title := "BKLNW Corollary 2.1")
   (statement := /-- $\theta(x) \leq (1 + 1.93378 \times 10^{-8}) x$. -/)
   (proof := /-- We combine together Theorem \ref{from-buthe-eq-1-7} and Theorem \ref{bklnw-thm-1a} with $X_1 = 10^{19}$, using Table 14. -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 791)]
 theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + 1.93378e-8) * x := by sorry
 
 structure Inputs extends Pre_inputs where
@@ -579,6 +584,7 @@ noncomputable def a₂ : ℝ → ℝ := Inputs.default.a₂
   (title := "BKLNW Corollary 5.1")
   (statement := /--  Let $b \geq 7$. Then for all $x \geq e^b$ we have $\psi(x) - \vartheta(x) < a_1 x^{1/2} + a_2 x^{1/3}$, where $a_1 = a_1(b) = 1 + 1.93378 \times 10^{-8}$ if $b \leq 38 \log 10$, $1 + \varepsilon(b/2)$ if $b > 38 \log 10$, and $a_2 = a_2(b) = (1 + 1.93378 \times 10^{-8}) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}) \right)$, where $f$ is defined by (2.4) and values for $\varepsilon(b/2)$ are from Table 8. -/)
   (proof := /-- This is Theorem 5 applied to the default inputs in Definition \ref{bklnw-inputs}. -/)
+  (latexEnv := "corollary")
   (discussion := 743)]
 theorem cor_5_1 {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
     ψ x - θ x < a₁ b * x^(1/2:ℝ) + a₂ b * x^(1/3:ℝ) := by sorry

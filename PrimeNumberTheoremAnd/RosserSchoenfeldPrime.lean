@@ -3,11 +3,13 @@ import Mathlib.MeasureTheory.Measure.Stieltjes
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 
 blueprint_comment /--
-\section{The prime number bounds of Rosser and Schoenfeld}
+\section{The prime number bounds of Rosser and Schoenfeld}\label{rs-prime-sec}
 -/
 
 blueprint_comment /--
 In this section we formalize the prime number bounds of Rosser and Schoenfeld \cite{rs-prime}.
+
+TODO: Add more results and proofs here, and reorganize the blueprint
 -/
 
 namespace RS_prime

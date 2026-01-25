@@ -90,7 +90,7 @@ theorem log_ge' {t t₀ : ℝ} (ht : 0 ≤ t) (ht0 : t ≤ t₀) (ht0' : t₀ < 
   "symm_inv_log"
   (title := "Symmetrization of inverse log")
   (statement := /-- For $0 < t \leq 1/2$, one has $| \frac{1}{\log(1+t)} + \frac{1}{\log(1-t)}| \leq \frac{\log(4/3)}{\log(3/2) \log 2}$. -/)
-  (proof := /-- The expression can be written as $\frac{|\log(1-t^2)|}{|\log(1-t)| |\log(1+t)|}$. Now use the previous upper and lower bounds, noting that $t^2 \leq 1/4$. -/)
+  (proof := /-- The expression can be written as $\frac{|\log(1-t^2)|}{|\log(1-t)| |\log(1+t)|}$. Now use the previous upper and lower bounds, noting that $t^2 \leq 1/4$. NOTE: this gives the slightly weaker bound of $16 \log(4/3) / 3$, but this can suffice for applications.  The sharp bound would require showing that the left-hand side is monotone in $t$, which looks true but not so easy to verify. -/)
   (latexEnv := "sublemma")
   (discussion := 767)]
 theorem symm_inv_log
