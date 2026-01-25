@@ -379,7 +379,8 @@ theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
    -/)
   (proof := /-- From Table 8 we have $\varepsilon(19 \log 10) = 1.93378 \cdot 10^{-8}$.
   Now apply Corollary \ref{bklnw-cor_15_1} and Theorem \ref{bklnw-theorem-2}. -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 775)]
 theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
     ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) 1.93378e-8 := by
   intro x hx
