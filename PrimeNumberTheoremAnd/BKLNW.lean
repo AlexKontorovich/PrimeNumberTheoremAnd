@@ -123,9 +123,22 @@ theorem lemma_11b (I : Pre_inputs) {b x : ℝ} (hb : 0 < b) (hx : x ≥ exp b) :
   (latexEnv := "theorem")
   (discussion := 790)]
 theorem thm_1a {X₀ X₁ x : ℝ} (hX₀ : X₀ ≥ exp 20) (hX₁ : X₁ ≥ exp 20) (hx₀ : x ≥ X₀) (hx₁ : x ≥ X₁) :
-  let m₀ := Pre_inputs.default.ε (log X₀) + RS_prime.c₀ * (X₀^(-1/2:ℝ) + X₀^(-2/3:ℝ) + X₀^(-4/5:ℝ))
-  let M₀ := Pre_inputs.default.ε (log X₁)
-  x * (1 - m₀) ≤ θ x ∧ θ x ≤ x * (1 + M₀) := by sorry
+    let m₀ := Pre_inputs.default.ε (log X₀) + RS_prime.c₀ * (X₀^(-1/2:ℝ) + X₀^(-2/3:ℝ) + X₀^(-4/5:ℝ))
+    let M₀ := Pre_inputs.default.ε (log X₁)
+    x * (1 - m₀) ≤ θ x ∧ θ x ≤ x * (1 + M₀) := by
+  have hX₀' : X₀ > 1 := by linarith [add_one_le_exp 20]
+  have hX₁' : X₁ > 1 := by linarith [add_one_le_exp 20]
+  have h_psi_bounds : ψ x ≤ x * (1 + Pre_inputs.default.ε (log X₁)) := by
+    have := BKLNW_app.theorem_2 (log X₁) (log_nonneg hX₁'.le) x (by rw [exp_log (by linarith)]; linarith)
+    rw [mul_add, mul_one, abs_le] at *
+    linarith!
+  have h_theta_bounds : θ x ≥ (1 - Pre_inputs.default.ε (log X₀) -
+      RS_prime.c₀ * (exp (-log X₀ / 2) + exp (-2 * log X₀ / 3) +
+        exp (-4 * log X₀ / 5))) * x := by
+    grind [lemma_11b Pre_inputs.default (log_pos (hX₀')) ((exp_log (by positivity)).symm ▸ hx₀)]
+  refine ⟨?_, by grind [theta_le_psi x]⟩
+  convert h_theta_bounds.le using 1
+  grind [rpow_def_of_pos (by linarith : 0 < X₀)]
 
 noncomputable def Table_14 : List (ℝ × ℝ × ℝ) := [
   (20, 4.2676e-5, 9.1639e-5),
