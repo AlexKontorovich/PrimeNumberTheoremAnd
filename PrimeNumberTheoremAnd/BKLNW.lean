@@ -185,7 +185,39 @@ theorem thm_1a_table {X₀ m₀ M₀ : ℝ} (h : (X₀, M₀, m₀) ∈ Table_14
   (proof := /-- We combine together Theorem \ref{from-buthe-eq-1-7} and Theorem \ref{bklnw-thm-1a} with $X_1 = 10^{19}$, using Table 14. -/)
   (latexEnv := "corollary")
   (discussion := 791)]
-theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + 1.93378e-8) * x := by sorry
+theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + 1.93378e-8) * x := by
+  intro x hx_pos
+  by_cases hx : x ≤ 1e19
+  · exact le_trans (le_of_lt (buthe_eq_1_7 x ⟨hx_pos, hx⟩)) (le_mul_of_one_le_left hx_pos.le (by norm_num))
+  · push_neg at hx
+    have h_exp20 : 1e19 ≥ exp 20 := le_of_lt <| by
+      rw [show exp 20 = (exp 1) ^ 20 by rw [← exp_nat_mul]; norm_num]
+      exact lt_of_le_of_lt (pow_le_pow_left₀ (by positivity) exp_one_lt_d9.le _) (by norm_num)
+    have h_eps : Pre_inputs.default.ε (log 1e19) ≤ 1.93378e-8 := by
+      norm_num [BKLNW.Pre_inputs.default, BKLNW_app.table_8_ε, log_le_iff_le_exp]
+      rw [show (10000000000000000000 : ℝ) = 10 ^ 19 by norm_num, log_pow]
+      norm_num [log_le_iff_le_exp]
+      rw [if_neg, if_neg, if_neg, if_neg, if_neg, if_neg, if_neg, if_neg, if_neg, if_pos]
+        <;> norm_num [log_le_iff_le_exp] at *
+      any_goals
+        have := log_two_gt_d9
+        rw [show (10 : ℝ) = 2 * 5 by norm_num, log_mul] <;> norm_num at *
+        linarith [log_lt_log (by norm_num) (by norm_num : (5 : ℝ) > 2)]
+      · rw [← log_rpow, log_lt_iff_lt_exp] <;> norm_num
+        rw [show exp 45 = (exp 1) ^ 45 by rw [← exp_nat_mul]; norm_num]
+        exact lt_of_lt_of_le (by norm_num) (pow_le_pow_left₀ (by positivity) exp_one_gt_d9.le _)
+      · norm_num [← log_rpow, le_log_iff_exp_le]
+        rw [show exp 40 = (exp 1) ^ 40 by rw [← exp_nat_mul]; norm_num]
+        exact le_trans (pow_le_pow_left₀ (by positivity) exp_one_lt_d9.le _) (by norm_num)
+      · norm_num [← log_rpow, le_log_iff_exp_le] at *
+        rw [show exp 35 = (exp 1) ^ 35 by rw [← exp_nat_mul]; norm_num]
+        exact le_trans (pow_le_pow_left₀ (by positivity) exp_one_lt_d9.le _) (by norm_num)
+      · norm_num [← log_rpow, le_log_iff_exp_le] at *
+        rw [show exp 30 = (exp 1) ^ 30 by rw [← exp_nat_mul]; norm_num]
+        exact le_trans (pow_le_pow_left₀ (by positivity) (exp_one_lt_d9.le) _) (by norm_num)
+    calc θ x ≤ x * (1 + Pre_inputs.default.ε (log 1e19)) := (thm_1a h_exp20 h_exp20 (le_of_lt hx) (le_of_lt hx)).2
+      _ ≤ x * (1 + 1.93378e-8) := mul_le_mul_of_nonneg_left ((add_le_add_iff_left 1).mpr h_eps) hx_pos.le
+      _ = (1 + 1.93378e-8) * x := mul_comm ..
 
 structure Inputs extends Pre_inputs where
   α : ℝ
