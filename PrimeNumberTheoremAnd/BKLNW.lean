@@ -1,3 +1,5 @@
+import Mathlib.Data.Rat.Cast.OfScientific
+import Mathlib.Tactic.NormNum.Prime
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.CostaPereira
@@ -9,7 +11,7 @@ blueprint_comment /--
 In this file we record the results from \cite{BKLNW}, excluding Appendix A which is treated elsewhere.  These results convert an initial estimate on $E_\psi(x)$ (provided by Appendix A) to estimates on $E_\theta(x)$.  One first obtains estimates on $E_\theta(x)$ that do not decay in $x$, and then obtain further estimates that decay like $1/\log^k x$ for some $k=1,\dots 5$.
 -/
 
-open Real Chebyshev
+open Chebyshev Finset Real
 
 namespace BKLNW
 
@@ -121,9 +123,22 @@ theorem lemma_11b (I : Pre_inputs) {b x : ℝ} (hb : 0 < b) (hx : x ≥ exp b) :
   (latexEnv := "theorem")
   (discussion := 790)]
 theorem thm_1a {X₀ X₁ x : ℝ} (hX₀ : X₀ ≥ exp 20) (hX₁ : X₁ ≥ exp 20) (hx₀ : x ≥ X₀) (hx₁ : x ≥ X₁) :
-  let m₀ := Pre_inputs.default.ε (log X₀) + RS_prime.c₀ * (X₀^(-1/2:ℝ) + X₀^(-2/3:ℝ) + X₀^(-4/5:ℝ))
-  let M₀ := Pre_inputs.default.ε (log X₁)
-  x * (1 - m₀) ≤ θ x ∧ θ x ≤ x * (1 + M₀) := by sorry
+    let m₀ := Pre_inputs.default.ε (log X₀) + RS_prime.c₀ * (X₀^(-1/2:ℝ) + X₀^(-2/3:ℝ) + X₀^(-4/5:ℝ))
+    let M₀ := Pre_inputs.default.ε (log X₁)
+    x * (1 - m₀) ≤ θ x ∧ θ x ≤ x * (1 + M₀) := by
+  have hX₀' : X₀ > 1 := by linarith [add_one_le_exp 20]
+  have hX₁' : X₁ > 1 := by linarith [add_one_le_exp 20]
+  have h_psi_bounds : ψ x ≤ x * (1 + Pre_inputs.default.ε (log X₁)) := by
+    have := BKLNW_app.theorem_2 (log X₁) (log_nonneg hX₁'.le) x (by rw [exp_log (by linarith)]; linarith)
+    rw [mul_add, mul_one, abs_le] at *
+    linarith!
+  have h_theta_bounds : θ x ≥ (1 - Pre_inputs.default.ε (log X₀) -
+      RS_prime.c₀ * (exp (-log X₀ / 2) + exp (-2 * log X₀ / 3) +
+        exp (-4 * log X₀ / 5))) * x := by
+    grind [lemma_11b Pre_inputs.default (log_pos (hX₀')) ((exp_log (by positivity)).symm ▸ hx₀)]
+  refine ⟨?_, by grind [theta_le_psi x]⟩
+  convert h_theta_bounds.le using 1
+  grind [rpow_def_of_pos (by linarith : 0 < X₀)]
 
 noncomputable def Table_14 : List (ℝ × ℝ × ℝ) := [
   (20, 4.2676e-5, 9.1639e-5),
@@ -221,7 +236,7 @@ for all $x \geq x_0$ and various $a_1, a_2, x_0$.
   (statement := /--
   $$ f(x) := \sum_{k=3}^{\lfloor \log x / \log 2 \rfloor} x^{1/k - 1/3}.$$
   -/)]
-noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋₊, x^(1/k - 1/3 : ℝ)
+noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Icc 3 ⌊ (log x)/(log 2) ⌋₊, x^(1/k - 1/3 : ℝ)
 
 @[blueprint
   "bklnw-prop-3-sub-1"
@@ -249,7 +264,8 @@ theorem prop_3_sub_2 (n : ℕ) (hn : n ≥ 4) : StrictAntiOn f (Set.Ico (2^n) (2
   have hlog2 : (0 : ℝ) < log 2 := log_pos one_lt_two
   have hfloor : ∀ x ∈ Set.Ico (2^n : ℝ) (2^(n+1)), ⌊log x / log 2⌋₊ = n := fun x ⟨hlo, hhi⟩ ↦ by
     rw [Nat.floor_eq_iff <| div_nonneg (log_pos <| lt_of_lt_of_le (by
-      norm_cast; exact Nat.one_lt_two_pow (by omega)) hlo).le hlog2.le, le_div_iff₀ hlog2, div_lt_iff₀ hlog2]
+      norm_cast; exact Nat.one_lt_two_pow (by omega)) hlo).le hlog2.le, le_div_iff₀ hlog2,
+        div_lt_iff₀ hlog2]
     refine ⟨?_, ?_⟩
     · calc (n : ℝ) * log 2 = log ((2 : ℝ)^n) := (log_pow 2 n).symm
         _ ≤ log x := log_le_log (by positivity) hlo
@@ -257,15 +273,15 @@ theorem prop_3_sub_2 (n : ℕ) (hn : n ≥ 4) : StrictAntiOn f (Set.Ico (2^n) (2
         _ = (↑n + 1) * log 2 := by rw [log_pow]; push_cast; ring
   intro a ha b hb hab
   simp only [f, hfloor a ha, hfloor b hb]
-  refine Finset.sum_lt_sum (fun k hk ↦ ?_) ⟨4, Finset.mem_Icc.mpr ⟨by omega, by omega⟩, ?_⟩
+  refine sum_lt_sum (fun k hk ↦ ?_) ⟨4, mem_Icc.mpr ⟨by omega, by omega⟩, ?_⟩
   · rcases eq_or_ne k 3 with rfl | hk3
     · simp
-    · have hk' : 3 < k := by simp only [Finset.mem_Icc] at hk; omega
+    · have hk' : 3 < k := by simp only [mem_Icc] at hk; omega
       exact (rpow_lt_rpow_of_neg (lt_of_lt_of_le (by positivity) ha.1) hab
         (by have : (k:ℝ) > 3 := mod_cast hk'; field_simp; linarith)).le
   · exact rpow_lt_rpow_of_neg (lt_of_lt_of_le (by positivity) ha.1) hab (by norm_num)
 
-noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - (n/3:ℝ))
+noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Icc 4 n, 2^((n/k:ℝ) - (n/3:ℝ))
 
 @[blueprint
   "bklnw-prop-3-sub-3"
@@ -276,8 +292,8 @@ noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - 
   (discussion := 633)]
 theorem prop_3_sub_3 (n : ℕ) (hn : n ≥ 3) : f (2^n) = 1 + u n := by
   have sum_bound : ⌊ (log (2 ^ n)) / (log 2) ⌋₊ = n := by norm_num
-  rw [f, u, sum_bound, ← Finset.add_sum_Ioc_eq_sum_Icc hn,
-    ← Finset.Icc_add_one_left_eq_Ioc, Nat.cast_ofNat, sub_self, rpow_zero]
+  rw [f, u, sum_bound, ← add_sum_Ioc_eq_sum_Icc hn,
+    ← Icc_add_one_left_eq_Ioc, Nat.cast_ofNat, sub_self, rpow_zero]
   congr with k
   rw [← rpow_natCast _ n, ← rpow_mul (by norm_num)]
   field_simp
@@ -323,30 +339,30 @@ lemma sum_gt.aux (k : ℕ) (a b : ℝ) (hk : 3 < k := by decide) (hb1 : 0 ≤ b 
   grw [ha_bound, hb_bound]
   norm_num [summand]
 
-lemma sum_gt {n : ℕ} (hn : 9 ≤ n) : 2.12 < ∑ k ∈ Finset.Icc 4 n, summand k n := calc
-  _ < ∑ k ∈ Finset.Icc 4 9, summand k 9 := by
-    simp only [Nat.reduceLeDiff, Finset.sum_Icc_succ_top, Finset.Icc_self, Finset.sum_singleton]
+lemma sum_gt {n : ℕ} (hn : 9 ≤ n) : 2.12 < ∑ k ∈ Icc 4 n, summand k n := calc
+  _ < ∑ k ∈ Icc 4 9, summand k 9 := by
+    simp only [Nat.reduceLeDiff, sum_Icc_succ_top, Icc_self, sum_singleton]
     grw [← sum_gt.aux 4 5.65 1.05, ← sum_gt.aux 5 4 1.09, ← sum_gt.aux 6 3.17 1.12,
       ← sum_gt.aux 7 2.69 1.14, ← sum_gt.aux 8 2.37 1.155, ← sum_gt.aux 9 2.16 1.1665]
     norm_num
-  _ ≤ ∑ k ∈ Finset.Icc 4 n, summand k 9 :=
-    Finset.sum_le_sum_of_subset_of_nonneg (Finset.Icc_subset_Icc_right hn) fun k _ _ ↦
+  _ ≤ ∑ k ∈ Icc 4 n, summand k 9 :=
+    sum_le_sum_of_subset_of_nonneg (Icc_subset_Icc_right hn) fun k _ _ ↦
       (summand_pos (by grind) 9).le
-  _ ≤ _ := Finset.sum_le_sum fun k hk ↦ (summand_mono (by grind)).le_iff_le.mpr hn
+  _ ≤ _ := sum_le_sum fun k hk ↦ (summand_mono (by grind)).le_iff_le.mpr hn
 
 lemma u_diff_factored {n : ℕ} (hn : 4 ≤ n) :
-    u (n + 1) - u n = 2 ^ (-(n + 1) / 3 : ℝ) * (2 - ∑ k ∈ Finset.Icc 4 n, summand k n) := calc
-  u (n + 1) - u n = (∑ k ∈ Finset.Icc 4 n,
+    u (n + 1) - u n = 2 ^ (-(n + 1) / 3 : ℝ) * (2 - ∑ k ∈ Icc 4 n, summand k n) := calc
+  u (n + 1) - u n = (∑ k ∈ Icc 4 n,
       (2 : ℝ) ^ ((n + 1) / (k : ℝ) - (n + 1) / 3) * (1 - 2 ^ (1 / (3 : ℝ) - 1 / ↑k)))
       + 2 ^ (1 - (n + 1) / (3 : ℝ)) := by
-    rw [u, u, Finset.sum_Icc_succ_top (Nat.le_add_right_of_le hn), div_self (by norm_cast),
-      ← sub_add_eq_add_sub, ← Finset.sum_sub_distrib, Nat.cast_add, Nat.cast_one]
+    rw [u, u, sum_Icc_succ_top (Nat.le_add_right_of_le hn), div_self (by norm_cast),
+      ← sub_add_eq_add_sub, ← sum_sub_distrib, Nat.cast_add, Nat.cast_one]
     congr with x
     rw [mul_sub, mul_one, ← rpow_add two_pos]
     grind
   _ = _ := by
-    rw [mul_sub, Finset.mul_sum, ← rpow_add_one two_pos.ne', neg_div, neg_add_eq_sub,
-      ← neg_add_eq_sub _ (2 ^ _), ← Finset.sum_neg_distrib]
+    rw [mul_sub, mul_sum, ← rpow_add_one two_pos.ne', neg_div, neg_add_eq_sub,
+      ← neg_add_eq_sub _ (2 ^ _), ← sum_neg_distrib]
     congr with x
     rw [summand, ← mul_assoc, ← rpow_add two_pos]
     grind
@@ -386,8 +402,38 @@ theorem prop_3_sub_5 (n : ℕ) (hn : n ≥ 9) : f (2^n) > f (2^(n + 1)) := by
   (latexEnv := "sublemma")
   (discussion := 636)]
 theorem prop_3_sub_6 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
-    (hx : x ≥ 2 ^ (⌊(log x₀) / (log 2)⌋ + 1)) :
-    f x ≤ f (2 ^ (⌊(log x₀)/(log 2)⌋ + 1)) := by sorry
+    (hx : x ≥ 2 ^ (⌊(log x₀) / (log 2)⌋₊ + 1)) :
+    f x ≤ f (2 ^ (⌊(log x₀)/(log 2)⌋₊ + 1)) := by
+  have hlog2 : log 2 > 0 := log_pos one_lt_two
+  have hx_pos : x > 0 := lt_of_lt_of_le (by positivity) hx
+  set m := ⌊(log x₀) / (log 2)⌋₊; set n := ⌊log x / log 2⌋₊
+  have hm : m ≥ 9 := Nat.le_floor <| (le_div_iff₀ hlog2).mpr <| by
+    rw [← log_pow]; exact Real.log_le_log (by positivity) hx₀
+  have hn : n ≥ m + 1 := Nat.le_floor <| (le_div_iff₀ hlog2).mpr <| by
+    rw [← log_pow]; exact Real.log_le_log (by positivity) hx
+  have key : x = 2 ^ (log x / log 2) := by
+    rw [rpow_def_of_pos two_pos, mul_comm, div_mul_cancel₀ _ hlog2.ne', exp_log hx_pos]
+  have hdiv : 0 ≤ log x / log 2 :=
+    div_nonneg (log_nonneg (hx.trans' (one_le_pow₀ one_le_two))) hlog2.le
+  have hlo : (2:ℝ)^n ≤ x := by
+    rw [key, ← rpow_natCast]; exact rpow_le_rpow_of_exponent_le one_le_two (Nat.floor_le hdiv)
+  have hhi : x < 2^(n+1) := by
+    rw [key, ← rpow_natCast]
+    exact rpow_lt_rpow_of_exponent_lt one_lt_two (by exact_mod_cast Nat.lt_floor_add_one _)
+  have hf_x : f x ≤ f (2^n) := by
+    by_cases hx_eq : x = 2^n; · simp [hx_eq]
+    exact (prop_3_sub_2 n (by omega)
+      ⟨le_rfl, by exact_mod_cast Nat.pow_lt_pow_right one_lt_two (Nat.lt_succ_self n)⟩
+      ⟨hlo, hhi⟩ (hlo.lt_of_ne' hx_eq)).le
+  calc f x ≤ f (2^n) := hf_x
+    _ ≤ f (2^(m+1)) := by
+      obtain ⟨d, hd⟩ := Nat.exists_eq_add_of_le hn
+      rw [hd]; clear hd
+      induction d with
+      | zero => rfl
+      | succ d ih =>
+        have hmd : m + 1 + d ≥ 9 := by omega
+        exact (prop_3_sub_5 _ hmd).le.trans ih
 
 @[blueprint
   "bklnw-prop-3-sub-7"
@@ -397,40 +443,31 @@ theorem prop_3_sub_6 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
   (latexEnv := "sublemma")
   (discussion := 637)]
 theorem prop_3_sub_7 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
-    (hx : x ∈ Set.Ico x₀ (2 ^ (⌊(log x₀) / (log 2)⌋ + 1))) :
+    (hx : x ∈ Set.Ico x₀ (2 ^ (⌊(log x₀) / (log 2)⌋₊ + 1))) :
     f x ≤ f x₀ := by
   obtain ⟨hx_lo, hx_hi⟩ := hx
   have hx₀_pos : 0 < x₀ := by positivity
-  set m := ⌊(log x₀) / (log 2)⌋
-  have hm_nonneg : 0 ≤ m := Int.floor_nonneg.mpr <| div_nonneg (log_nonneg (by linarith)) (log_pos one_lt_two).le
-  set n := m.toNat
-  have hn_eq : (n : ℤ) = m := Int.toNat_of_nonneg hm_nonneg
-  have hpow_eq : (2:ℝ)^(m + 1) = 2^(n+1) := by rw [show m + 1 = ((n + 1 : ℕ) : ℤ) by omega, zpow_natCast]
-  rw [hpow_eq] at hx_hi
+  have hlog2 : log 2 > 0 := log_pos one_lt_two
+  set n := ⌊(log x₀) / (log 2)⌋₊
   have key : (2:ℝ)^((log x₀) / (log 2)) = x₀ := by
-    rw [rpow_def_of_pos (by norm_num : (0:ℝ) < 2), mul_comm,
-        div_mul_cancel₀ _ (log_pos one_lt_two).ne', exp_log hx₀_pos]
+    rw [rpow_def_of_pos (by norm_num), mul_comm, div_mul_cancel₀ _ hlog2.ne', exp_log hx₀_pos]
   have hx₀_ge : x₀ ≥ 2^n := by
-    have h1 : (n : ℝ) ≤ (log x₀) / (log 2) := by
-      calc (n : ℝ) = (m : ℝ) := by rw [← hn_eq]; simp
-           _ ≤ (log x₀) / (log 2) := Int.floor_le _
-    calc x₀ = 2^((log x₀) / (log 2)) := key.symm
-         _ ≥ 2^(n:ℝ) := rpow_le_rpow_of_exponent_le one_le_two h1
-         _ = 2^n := rpow_natCast 2 n
+    have : (n:ℝ) ≤ log x₀ / log 2 := Nat.floor_le (div_nonneg (log_nonneg (by linarith)) hlog2.le)
+    calc x₀ = 2^(log x₀ / log 2) := key.symm
+      _ ≥ 2^(n:ℝ) := rpow_le_rpow_of_exponent_le one_le_two this
+      _ = 2^n := rpow_natCast 2 n
   have hx₀_lt : x₀ < 2^(n+1) := by
-    have h1 : (log x₀) / (log 2) < n + 1 := by
-      calc (log x₀) / (log 2) < m + 1 := Int.lt_floor_add_one _
-           _ = (n : ℝ) + 1 := by rw [← hn_eq]; simp
-    calc x₀ = 2^((log x₀) / (log 2)) := key.symm
-         _ < 2^((n:ℝ) + 1) := rpow_lt_rpow_of_exponent_lt one_lt_two h1
-         _ = 2^(n+1) := by rw [← rpow_natCast 2 (n+1)]; norm_cast
-  have : n ≥ 4 := by
+    have : log x₀ / log 2 < n + 1 := Nat.lt_floor_add_one _
+    calc x₀ = 2^(log x₀ / log 2) := key.symm
+      _ < 2^((n:ℝ)+1) := rpow_lt_rpow_of_exponent_lt one_lt_two (by exact_mod_cast this)
+      _ = 2^(n+1) := by rw [← rpow_natCast]; norm_cast
+  have hn_ge : n ≥ 4 := by
     by_contra hcon; push_neg at hcon
     have : (2 : ℝ) ^ (n + 1) ≤ 2^9 := pow_le_pow_right₀ one_le_two <| by omega
     linarith [hx₀, hx₀_lt]
   rcases hx_lo.eq_or_lt with rfl | hlt
   · rfl
-  · exact (prop_3_sub_2 n this ⟨hx₀_ge, hx₀_lt⟩ ⟨hx₀_ge.trans hx_lo, hx_hi⟩ hlt).le
+  · exact (prop_3_sub_2 n hn_ge ⟨hx₀_ge, hx₀_lt⟩ ⟨hx₀_ge.trans hx_lo, hx_hi⟩ hlt).le
 
 @[blueprint
   "bklnw-prop-3-sub-8"
@@ -441,8 +478,8 @@ theorem prop_3_sub_7 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
   (discussion := 638)]
 theorem prop_3_sub_8 (x₀ : ℝ) (hx₀ : x₀ ≥ 2 ^ 9) (x : ℝ)
     (hx : x ≥ x₀) :
-    f x ≤ max (f x₀) (f (2 ^ (⌊ (log x₀)/(log 2) ⌋ + 1))) := by
-  by_cases hcase : x < 2 ^ (⌊(log x₀) / (log 2)⌋ + 1)
+    f x ≤ max (f x₀) (f (2 ^ (⌊ (log x₀)/(log 2) ⌋₊ + 1))) := by
+  by_cases hcase : x < 2 ^ (⌊(log x₀) / (log 2)⌋₊ + 1)
   · exact (prop_3_sub_7 x₀ hx₀ x ⟨hx, hcase⟩).trans (le_max_left _ _)
   · exact (prop_3_sub_6 x₀ hx₀ x (not_lt.mp hcase)).trans (le_max_right _ _)
 
@@ -465,10 +502,45 @@ f(x) := \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} x^{\frac{1}{k} - \fra
   (proof := /-- Combines previous sublemmas. -/)
   (latexEnv := "proposition")
   (discussion := 639)]
-theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9)
-    (hx : x ≥ x₀) :
-    ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋, θ (x^(1/k)) ≤
-      (1 + I.α) * max (f x₀) (f (2^(⌊ (log x₀)/(log 2) ⌋ + 1))) * x^(1/3:ℝ) := by sorry
+theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9) (hx : x ≥ x₀) :
+    ∑ k ∈ Icc 3 ⌊(log x)/(log 2)⌋, θ (x^(1/k)) ≤
+      (1 + I.α) * max (f x₀) (f (2^(⌊(log x₀)/(log 2)⌋ + 1))) * x^(1/3:ℝ) := by
+  have h_sum_le : ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋, θ (x^(1 / k : ℝ)) ≤
+      (1 + I.α) * f x * x^(1 / 3 : ℝ) := by
+    have h_sum_le' : ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋, θ (x^(1 / k : ℝ)) ≤
+        ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋, (1 + I.α) * x^(1 / k : ℝ) := sum_le_sum fun i hi ↦ by
+        have := I.hα (x ^ (1 / (i : ℝ))) (rpow_pos_of_pos (by grind) _)
+        norm_num [log_rpow (by positivity)] at *
+        grind
+    convert h_sum_le' using 1
+    norm_num [f, mul_sum .., mul_assoc, mul_comm, mul_left_comm, sum_mul]
+    refine sum_bij (fun k hk ↦ k) ?_ ?_ ?_ ?_ <;> norm_num
+    · exact fun a ha₁ ha₂ ↦ ⟨ha₁, Int.le_floor.2 <| by
+        exact_mod_cast Nat.floor_le (div_nonneg (log_nonneg <| by
+          grind [one_le_rpow (by grind : (1 : ℝ) ≤ 2) (show 0 ≤ 9 by grind)])
+          (log_nonneg <| by grind)) |> le_trans (Nat.cast_le.2 ha₂)⟩
+    · exact fun b hb₁ hb₂ ↦
+        have hb_nn : 0 ≤ b := by grind
+        ⟨Int.toNat b,
+          ⟨by grind [Int.toNat_of_nonneg hb_nn],
+           by grind [Int.toNat_of_nonneg hb_nn,
+             show ⌊log x / log 2⌋₊ ≥ ⌊log x / log 2⌋ from Int.self_le_toNat _]⟩,
+          by rw [Int.toNat_of_nonneg hb_nn]⟩
+    · intro a ha₁ ha₂; rw [← rpow_add (by grind)]; grind
+  refine le_trans ?_ (h_sum_le.trans ?_)
+  · refine sum_le_sum fun k hk ↦ ?_
+    rcases k with ⟨_ | _ | _ | k⟩ <;> norm_num at *
+    · norm_cast
+      refine Nat.succ_div ▸ sum_le_sum_of_subset_of_nonneg ?_ ?_
+      · norm_num [subset_iff]
+      · exact fun _ _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <| Nat.Prime.pos <| by grind only [= mem_filter]
+    · tauto
+  · gcongr
+    · exact rpow_nonneg (by grind) _
+    · have := I.hα 1
+      grind [show 0 ≤ θ 1 from sum_nonneg fun _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <|
+        Nat.Prime.pos <| by grind only [= mem_filter]]
+    · exact prop_3_sub_8 x₀ hx₀ x hx
 
 @[blueprint
   "bklnw-cor-3-1"
@@ -628,7 +700,8 @@ noncomputable def a₂ : ℝ → ℝ := Inputs.default.a₂
   (latexEnv := "corollary")
   (discussion := 743)]
 theorem cor_5_1 {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
-    ψ x - θ x < a₁ b * x^(1/2:ℝ) + a₂ b * x^(1/3:ℝ) := by sorry
+    ψ x - θ x < a₁ b * x ^ (1 / 2 : ℝ) + a₂ b * x ^ (1 / 3 : ℝ) := by
+  convert BKLNW.thm_5 (BKLNW.Inputs.default) hb hx using 1
 
 def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
   [(20, 1.4263, 4)
