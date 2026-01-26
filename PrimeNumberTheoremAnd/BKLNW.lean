@@ -725,7 +725,7 @@ noncomputable def a₂ : ℝ → ℝ := Inputs.default.a₂
   (latexEnv := "corollary")
   (discussion := 743)]
 theorem cor_5_1 {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
-    ψ x - θ x < a₁ b * x ^ (1 / 2 : ℝ) + a₂ b * x ^ (1 / 3 : ℝ) := by
+    ψ x - θ x < a₁ b * x ^ (1 / 2 : ℝ) + a₂ b * x ^ (1 / 3 : ℝ) :=
   thm_5 Inputs.default hb hx
 
 def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
