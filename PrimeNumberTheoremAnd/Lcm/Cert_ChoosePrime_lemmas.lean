@@ -1314,14 +1314,26 @@ instance : PrimeGap_Criterion := by
       gap_nonneg := by
         intro x hx
         exact gap.δ_nonneg hx,
-      gap_decreasing := ?_,
-      gap_strict_decreasing := ?_,
-      delta_sixth_power_lt_sqrt := ?_,
-      delta_twelfth_power_le_n_pow_3_div_2 := ?_,
-      delta_ineq := ?_
+      gap_decreasing := by
+        intro x y hx hy hxy
+        by_cases hxy' : x < y
+        · exact le_of_lt (gap.δ_strictly_decreasing hx hy hxy')
+        · have hyx : y ≤ x := le_of_not_gt hxy'
+          have hxy_eq : x = y := le_antisymm hxy hyx
+          simp [hxy_eq],
+      gap_strict_decreasing := by
+        intro x y hx hy hxy
+        exact gap.δ_strictly_decreasing hx hy hxy,
+      delta_sixth_power_lt_sqrt := by
+        intro n hn
+        exact gap.delta_sixth_power_lt_sqrt (n := n) hn,
+      delta_twelfth_power_le_n_pow_3_div_2 := by
+        intro n hn
+        exact gap.delta_twelfth_power_le_n_pow_3_div_2 (n := n) hn,
+      delta_ineq := by
+        intro n hn
+        exact gap.delta_ineq (n := n) hn,
       }
-  all_goals
-    sorry
 
 
 

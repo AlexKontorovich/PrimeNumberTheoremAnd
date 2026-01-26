@@ -14,7 +14,7 @@ structure Provider where
     ∀ {x y : ℝ}, (X₀ : ℝ) ≤ x → (X₀ : ℝ) ≤ y → x < y → δ y < δ x
   delta_sixth_power_lt_sqrt:
     ∀ {n : ℕ}, X₀ ^ 2 ≤ n →
-      (δ (√(n : ℝ))) ^ (6 : ℝ) < Real.sqrt (n : ℝ)
+      (1 + δ (√(n : ℝ))) ^ (6 : ℕ) < Real.sqrt (n : ℝ)
   delta_twelfth_power_le_n_pow_3_div_2:
     ∀ {n : ℕ}, X₀ ^ 2 ≤ n →
       4 * (1 + δ (√(n : ℝ))) ^ 12 ≤ (n : ℝ) ^ (3 / 2 : ℝ)

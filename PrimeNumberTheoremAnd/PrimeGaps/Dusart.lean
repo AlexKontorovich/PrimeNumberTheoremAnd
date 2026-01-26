@@ -55,72 +55,10 @@ lemma δ_strictly_decreasing {x y : ℝ}
 
 
 lemma delta_sixth_power_lt_sqrt {n : ℕ} (hn : n ≥ X₀ ^ 2) :
-    (δ (√(n : ℝ))) ^ (6 : ℝ) < Real.sqrt (n : ℝ) := by
-  -- First turn `hn : n ≥ X₀^2` into `X₀ ≤ √n`.
-  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := by
-    have hn' : (X₀ ^ 2 : ℝ) ≤ (n : ℝ) := by
-      exact_mod_cast hn
-    have hsqrt : √(X₀ ^ 2 : ℝ) ≤ √(n : ℝ) := by
-      exact Real.sqrt_le_sqrt hn'
-    have hX0_nonneg : (0 : ℝ) ≤ (X₀ : ℝ) := by
-      exact_mod_cast (Nat.zero_le X₀)
-    simpa [Nat.cast_pow, Real.sqrt_sq_eq_abs, abs_of_nonneg hX0_nonneg] using hsqrt
-
-  -- `√n` is positive (needed to use `lt_log_iff_exp_lt`).
-  have hn_pos_nat : 0 < n := by
-    have hX0_pos : 0 < X₀ := by
-      norm_num [X₀]
-    have hX0sq_pos : 0 < X₀ ^ 2 := by
-      exact pow_pos hX0_pos _
-    exact lt_of_lt_of_le hX0sq_pos hn
-  have hsqrt_pos : 0 < √(n : ℝ) := by
-    have hn_pos : 0 < (n : ℝ) := by
-      exact_mod_cast hn_pos_nat
-    simpa [Real.sqrt_eq_rpow] using (Real.rpow_pos_of_pos hn_pos (1 / 2 : ℝ))
-
-  -- Show `δ(√n) < 1` by proving `1 < log(√n)`.
-  have h3_le_X0 : (3 : ℝ) ≤ (X₀ : ℝ) := by
-    norm_num [X₀]
-  have h3_le_sqrt : (3 : ℝ) ≤ √(n : ℝ) :=
-    le_trans h3_le_X0 hX0_le_sqrt
-  have hexp1_lt3 : Real.exp (1 : ℝ) < (3 : ℝ) := by
-    exact lt_trans Real.exp_one_lt_d9 (by norm_num)
-  have hexp1_lt_sqrt : Real.exp (1 : ℝ) < √(n : ℝ) :=
-    lt_of_lt_of_le hexp1_lt3 h3_le_sqrt
-  have hlog_gt1 : (1 : ℝ) < Real.log (√(n : ℝ)) := by
-    -- `a < log b` iff `exp a < b` when `0 < b`.
-    simpa using (Real.lt_log_iff_exp_lt hsqrt_pos).2 hexp1_lt_sqrt
-
-  have hlog_pow_gt1 : (1 : ℝ) < (Real.log (√(n : ℝ))) ^ (3 : ℝ) := by
-    have hone_nonneg : (0 : ℝ) ≤ (1 : ℝ) := by norm_num
-    have h3pos : (0 : ℝ) < (3 : ℝ) := by norm_num
-    have : (1 : ℝ) ^ (3 : ℝ) < (Real.log (√(n : ℝ))) ^ (3 : ℝ) :=
-      Real.rpow_lt_rpow hone_nonneg hlog_gt1 h3pos
-    simpa using this
-
-  have hδ_lt1 : δ (√(n : ℝ)) < 1 := by
-    have : (1 : ℝ) / ((Real.log (√(n : ℝ))) ^ (3 : ℝ)) < (1 : ℝ) := by
-      -- `1 < a` with `0 < 1` gives `1/a < 1`.
-      simpa using (one_div_lt_one_div_of_lt (by norm_num : (0 : ℝ) < 1) hlog_pow_gt1)
-    simpa [δ] using this
-
-  have hδ_nonneg : 0 ≤ δ (√(n : ℝ)) := by
-    exact δ_nonneg hX0_le_sqrt
-
-  have hδ_pow_lt1 : (δ (√(n : ℝ))) ^ (6 : ℕ) < (1 : ℝ) := by
-    have hpow : (δ (√(n : ℝ))) ^ (6 : ℕ) < (1 : ℝ) ^ (6 : ℕ) := by
-      exact pow_lt_pow_left₀ hδ_lt1 hδ_nonneg (n := 6) (by decide)
-    simpa using hpow
-
-  -- Finally, `1 < √n` since `X₀ > 1` and `X₀ ≤ √n`.
-  have hsqrt_gt1 : (1 : ℝ) < Real.sqrt (n : ℝ) := by
-    have h1_lt_X0 : (1 : ℝ) < (X₀ : ℝ) := by
-      norm_num [X₀]
-    exact lt_of_lt_of_le h1_lt_X0 hX0_le_sqrt
-
-  have : (δ (√(n : ℝ))) ^ (6 : ℕ) < Real.sqrt (n : ℝ) :=
-    lt_trans hδ_pow_lt1 hsqrt_gt1
-  simpa [Real.rpow_natCast] using this
+    (1 + δ (√(n : ℝ))) ^ (6 : ℕ) < Real.sqrt (n : ℝ) := by
+  /-∀ n : ℕ, n ≥ X₀ ^ 2 →
+    (1 + gap.δ (√(n : ℝ))) ^ 6 < √(n : ℝ)-/
+  sorry
 
 
 
@@ -848,6 +786,20 @@ theorem main_ineq_delta_form {n : ℕ} (hn : n ≥ X₀ ^ 2) :
         * (1 + (3 : ℝ) / (8 * (n : ℝ)))
         * (1 - 4 * (1 + δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
         simp [main_ineq_delta_form_rhs_LHS, mul_assoc]
+
+
+theorem delta_ineq {n : ℕ} (hn : X₀ ^ 2 ≤ n) :
+    (∏ i : Fin 3,
+          (1 + (1 + δ (√(n : ℝ))) ^ ((i : ℕ) + 1 : ℝ) / (n : ℝ)))
+        ≤
+      (∏ i : Fin 3,
+          (1 + 1 /
+            ((1 + δ (√(n : ℝ))) ^ (2 * (i : ℕ) + 2 : ℝ) * ((n : ℝ) + √(n : ℝ)))))
+        * (1 + (3 : ℝ) / (8 * (n : ℝ)))
+        * (1 - 4 * (1 + δ (√(n : ℝ))) ^ 12 / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+  have hn' : n ≥ X₀ ^ 2 := by
+    simpa [ge_iff_le] using hn
+  simpa using (main_ineq_delta_form (n := n) hn')
 
 
 
