@@ -1,3 +1,5 @@
+import Mathlib.Data.Rat.Cast.OfScientific
+import Mathlib.Tactic.NormNum.Prime
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.CostaPereira
@@ -9,7 +11,7 @@ blueprint_comment /--
 In this file we record the results from \cite{BKLNW}, excluding Appendix A which is treated elsewhere.  These results convert an initial estimate on $E_\psi(x)$ (provided by Appendix A) to estimates on $E_\theta(x)$.  One first obtains estimates on $E_\theta(x)$ that do not decay in $x$, and then obtain further estimates that decay like $1/\log^k x$ for some $k=1,\dots 5$.
 -/
 
-open Real Chebyshev
+open Chebyshev Finset Real
 
 namespace BKLNW
 
@@ -221,7 +223,7 @@ for all $x \geq x_0$ and various $a_1, a_2, x_0$.
   (statement := /--
   $$ f(x) := \sum_{k=3}^{\lfloor \log x / \log 2 \rfloor} x^{1/k - 1/3}.$$
   -/)]
-noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋₊, x^(1/k - 1/3 : ℝ)
+noncomputable def f (x : ℝ) : ℝ := ∑ k ∈ Icc 3 ⌊ (log x)/(log 2) ⌋₊, x^(1/k - 1/3 : ℝ)
 
 @[blueprint
   "bklnw-prop-3-sub-1"
@@ -249,7 +251,8 @@ theorem prop_3_sub_2 (n : ℕ) (hn : n ≥ 4) : StrictAntiOn f (Set.Ico (2^n) (2
   have hlog2 : (0 : ℝ) < log 2 := log_pos one_lt_two
   have hfloor : ∀ x ∈ Set.Ico (2^n : ℝ) (2^(n+1)), ⌊log x / log 2⌋₊ = n := fun x ⟨hlo, hhi⟩ ↦ by
     rw [Nat.floor_eq_iff <| div_nonneg (log_pos <| lt_of_lt_of_le (by
-      norm_cast; exact Nat.one_lt_two_pow (by omega)) hlo).le hlog2.le, le_div_iff₀ hlog2, div_lt_iff₀ hlog2]
+      norm_cast; exact Nat.one_lt_two_pow (by omega)) hlo).le hlog2.le, le_div_iff₀ hlog2,
+        div_lt_iff₀ hlog2]
     refine ⟨?_, ?_⟩
     · calc (n : ℝ) * log 2 = log ((2 : ℝ)^n) := (log_pow 2 n).symm
         _ ≤ log x := log_le_log (by positivity) hlo
@@ -257,15 +260,15 @@ theorem prop_3_sub_2 (n : ℕ) (hn : n ≥ 4) : StrictAntiOn f (Set.Ico (2^n) (2
         _ = (↑n + 1) * log 2 := by rw [log_pow]; push_cast; ring
   intro a ha b hb hab
   simp only [f, hfloor a ha, hfloor b hb]
-  refine Finset.sum_lt_sum (fun k hk ↦ ?_) ⟨4, Finset.mem_Icc.mpr ⟨by omega, by omega⟩, ?_⟩
+  refine sum_lt_sum (fun k hk ↦ ?_) ⟨4, mem_Icc.mpr ⟨by omega, by omega⟩, ?_⟩
   · rcases eq_or_ne k 3 with rfl | hk3
     · simp
-    · have hk' : 3 < k := by simp only [Finset.mem_Icc] at hk; omega
+    · have hk' : 3 < k := by simp only [mem_Icc] at hk; omega
       exact (rpow_lt_rpow_of_neg (lt_of_lt_of_le (by positivity) ha.1) hab
         (by have : (k:ℝ) > 3 := mod_cast hk'; field_simp; linarith)).le
   · exact rpow_lt_rpow_of_neg (lt_of_lt_of_le (by positivity) ha.1) hab (by norm_num)
 
-noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - (n/3:ℝ))
+noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Icc 4 n, 2^((n/k:ℝ) - (n/3:ℝ))
 
 @[blueprint
   "bklnw-prop-3-sub-3"
@@ -276,8 +279,8 @@ noncomputable def u (n : ℕ) : ℝ := ∑ k ∈ Finset.Icc 4 n, 2^((n/k:ℝ) - 
   (discussion := 633)]
 theorem prop_3_sub_3 (n : ℕ) (hn : n ≥ 3) : f (2^n) = 1 + u n := by
   have sum_bound : ⌊ (log (2 ^ n)) / (log 2) ⌋₊ = n := by norm_num
-  rw [f, u, sum_bound, ← Finset.add_sum_Ioc_eq_sum_Icc hn,
-    ← Finset.Icc_add_one_left_eq_Ioc, Nat.cast_ofNat, sub_self, rpow_zero]
+  rw [f, u, sum_bound, ← add_sum_Ioc_eq_sum_Icc hn,
+    ← Icc_add_one_left_eq_Ioc, Nat.cast_ofNat, sub_self, rpow_zero]
   congr with k
   rw [← rpow_natCast _ n, ← rpow_mul (by norm_num)]
   field_simp
@@ -323,30 +326,30 @@ lemma sum_gt.aux (k : ℕ) (a b : ℝ) (hk : 3 < k := by decide) (hb1 : 0 ≤ b 
   grw [ha_bound, hb_bound]
   norm_num [summand]
 
-lemma sum_gt {n : ℕ} (hn : 9 ≤ n) : 2.12 < ∑ k ∈ Finset.Icc 4 n, summand k n := calc
-  _ < ∑ k ∈ Finset.Icc 4 9, summand k 9 := by
-    simp only [Nat.reduceLeDiff, Finset.sum_Icc_succ_top, Finset.Icc_self, Finset.sum_singleton]
+lemma sum_gt {n : ℕ} (hn : 9 ≤ n) : 2.12 < ∑ k ∈ Icc 4 n, summand k n := calc
+  _ < ∑ k ∈ Icc 4 9, summand k 9 := by
+    simp only [Nat.reduceLeDiff, sum_Icc_succ_top, Icc_self, sum_singleton]
     grw [← sum_gt.aux 4 5.65 1.05, ← sum_gt.aux 5 4 1.09, ← sum_gt.aux 6 3.17 1.12,
       ← sum_gt.aux 7 2.69 1.14, ← sum_gt.aux 8 2.37 1.155, ← sum_gt.aux 9 2.16 1.1665]
     norm_num
-  _ ≤ ∑ k ∈ Finset.Icc 4 n, summand k 9 :=
-    Finset.sum_le_sum_of_subset_of_nonneg (Finset.Icc_subset_Icc_right hn) fun k _ _ ↦
+  _ ≤ ∑ k ∈ Icc 4 n, summand k 9 :=
+    sum_le_sum_of_subset_of_nonneg (Icc_subset_Icc_right hn) fun k _ _ ↦
       (summand_pos (by grind) 9).le
-  _ ≤ _ := Finset.sum_le_sum fun k hk ↦ (summand_mono (by grind)).le_iff_le.mpr hn
+  _ ≤ _ := sum_le_sum fun k hk ↦ (summand_mono (by grind)).le_iff_le.mpr hn
 
 lemma u_diff_factored {n : ℕ} (hn : 4 ≤ n) :
-    u (n + 1) - u n = 2 ^ (-(n + 1) / 3 : ℝ) * (2 - ∑ k ∈ Finset.Icc 4 n, summand k n) := calc
-  u (n + 1) - u n = (∑ k ∈ Finset.Icc 4 n,
+    u (n + 1) - u n = 2 ^ (-(n + 1) / 3 : ℝ) * (2 - ∑ k ∈ Icc 4 n, summand k n) := calc
+  u (n + 1) - u n = (∑ k ∈ Icc 4 n,
       (2 : ℝ) ^ ((n + 1) / (k : ℝ) - (n + 1) / 3) * (1 - 2 ^ (1 / (3 : ℝ) - 1 / ↑k)))
       + 2 ^ (1 - (n + 1) / (3 : ℝ)) := by
-    rw [u, u, Finset.sum_Icc_succ_top (Nat.le_add_right_of_le hn), div_self (by norm_cast),
-      ← sub_add_eq_add_sub, ← Finset.sum_sub_distrib, Nat.cast_add, Nat.cast_one]
+    rw [u, u, sum_Icc_succ_top (Nat.le_add_right_of_le hn), div_self (by norm_cast),
+      ← sub_add_eq_add_sub, ← sum_sub_distrib, Nat.cast_add, Nat.cast_one]
     congr with x
     rw [mul_sub, mul_one, ← rpow_add two_pos]
     grind
   _ = _ := by
-    rw [mul_sub, Finset.mul_sum, ← rpow_add_one two_pos.ne', neg_div, neg_add_eq_sub,
-      ← neg_add_eq_sub _ (2 ^ _), ← Finset.sum_neg_distrib]
+    rw [mul_sub, mul_sum, ← rpow_add_one two_pos.ne', neg_div, neg_add_eq_sub,
+      ← neg_add_eq_sub _ (2 ^ _), ← sum_neg_distrib]
     congr with x
     rw [summand, ← mul_assoc, ← rpow_add two_pos]
     grind
@@ -486,10 +489,45 @@ f(x) := \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} x^{\frac{1}{k} - \fra
   (proof := /-- Combines previous sublemmas. -/)
   (latexEnv := "proposition")
   (discussion := 639)]
-theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9)
-    (hx : x ≥ x₀) :
-    ∑ k ∈ Finset.Icc 3 ⌊ (log x)/(log 2) ⌋, θ (x^(1/k)) ≤
-      (1 + I.α) * max (f x₀) (f (2^(⌊ (log x₀)/(log 2) ⌋ + 1))) * x^(1/3:ℝ) := by sorry
+theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9) (hx : x ≥ x₀) :
+    ∑ k ∈ Icc 3 ⌊(log x)/(log 2)⌋, θ (x^(1/k)) ≤
+      (1 + I.α) * max (f x₀) (f (2^(⌊(log x₀)/(log 2)⌋ + 1))) * x^(1/3:ℝ) := by
+  have h_sum_le : ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋, θ (x^(1 / k : ℝ)) ≤
+      (1 + I.α) * f x * x^(1 / 3 : ℝ) := by
+    have h_sum_le' : ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋, θ (x^(1 / k : ℝ)) ≤
+        ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋, (1 + I.α) * x^(1 / k : ℝ) := sum_le_sum fun i hi ↦ by
+        have := I.hα (x ^ (1 / (i : ℝ))) (rpow_pos_of_pos (by grind) _)
+        norm_num [log_rpow (by positivity)] at *
+        grind
+    convert h_sum_le' using 1
+    norm_num [f, mul_sum .., mul_assoc, mul_comm, mul_left_comm, sum_mul]
+    refine sum_bij (fun k hk ↦ k) ?_ ?_ ?_ ?_ <;> norm_num
+    · exact fun a ha₁ ha₂ ↦ ⟨ha₁, Int.le_floor.2 <| by
+        exact_mod_cast Nat.floor_le (div_nonneg (log_nonneg <| by
+          grind [one_le_rpow (by grind : (1 : ℝ) ≤ 2) (show 0 ≤ 9 by grind)])
+          (log_nonneg <| by grind)) |> le_trans (Nat.cast_le.2 ha₂)⟩
+    · exact fun b hb₁ hb₂ ↦
+        have hb_nn : 0 ≤ b := by grind
+        ⟨Int.toNat b,
+          ⟨by grind [Int.toNat_of_nonneg hb_nn],
+           by grind [Int.toNat_of_nonneg hb_nn,
+             show ⌊log x / log 2⌋₊ ≥ ⌊log x / log 2⌋ from Int.self_le_toNat _]⟩,
+          by rw [Int.toNat_of_nonneg hb_nn]⟩
+    · intro a ha₁ ha₂; rw [← rpow_add (by grind)]; grind
+  refine le_trans ?_ (h_sum_le.trans ?_)
+  · refine sum_le_sum fun k hk ↦ ?_
+    rcases k with ⟨_ | _ | _ | k⟩ <;> norm_num at *
+    · norm_cast
+      refine Nat.succ_div ▸ sum_le_sum_of_subset_of_nonneg ?_ ?_
+      · norm_num [subset_iff]
+      · exact fun _ _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <| Nat.Prime.pos <| by grind only [= mem_filter]
+    · tauto
+  · gcongr
+    · exact rpow_nonneg (by grind) _
+    · have := I.hα 1
+      grind [show 0 ≤ θ 1 from sum_nonneg fun _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <|
+        Nat.Prime.pos <| by grind only [= mem_filter]]
+    · exact prop_3_sub_8 x₀ hx₀ x hx
 
 @[blueprint
   "bklnw-cor-3-1"
