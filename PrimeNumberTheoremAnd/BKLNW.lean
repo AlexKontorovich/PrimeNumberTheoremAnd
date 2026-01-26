@@ -62,16 +62,10 @@ noncomputable def Pre_inputs.default : Pre_inputs := {
   (latexEnv := "lemma")
   (discussion := 788)]
 theorem lemma_11a (I : Pre_inputs) {x : ℝ} (hx : x > 0) : θ x ≤ (1 + I.ε (log I.x₁)) * x := by
-  have hx₁_pos : 1 ≤ I.x₁ := le_trans (by norm_num [one_le_exp]) I.hx₁
+  have hx₁_pos : 1 ≤ I.x₁ := (one_le_exp (7).ofNat_nonneg).trans I.hx₁
   by_cases h : x ≤ I.x₁
-  · nlinarith [I.hx₁' x ⟨hx, h⟩, I.epsilon_nonneg <| log_nonneg <| le_trans (by norm_num [one_le_exp]) I.hx₁]
-  · push_neg at h
-    have hε_bound : |ψ x - x| ≤ I.ε (log I.x₁) * x := by
-      refine I.hε (log I.x₁) (log_nonneg <| le_trans (by norm_num [one_le_exp]) I.hx₁) x ?_
-      rw [exp_log (by grind)]
-      exact le_of_lt h
-    calc θ x ≤ ψ x := theta_le_psi x
-      _ ≤ (1 + I.ε (log I.x₁)) * x := by grind
+  · grw [I.hx₁' x ⟨hx, h⟩, ← I.epsilon_nonneg (Real.log_nonneg hx₁_pos), add_zero, one_mul]
+  · grw [add_mul, theta_le_psi, ← I.hε _ (Real.log_nonneg hx₁_pos)] <;> grind [exp_log]
 
 @[blueprint
   "bklnw-lemma-11b"
@@ -92,22 +86,21 @@ theorem lemma_11b (I : Pre_inputs) {b x : ℝ} (hb : 0 < b) (hx : x ≥ exp b) :
     RS_prime.theorem_12 <| rpow_pos_of_pos hx_pos _
   have hψ_fifth : ψ (x ^ (1 / 5 : ℝ)) < RS_prime.c₀ * x ^ (1 / 5 : ℝ) :=
     RS_prime.theorem_12 <| rpow_pos_of_pos hx_pos _
-  have hψ_lower : (1 - I.ε b) * x ≤ ψ x := by
-    linarith [abs_le.mp (I.hε b hb.le x (by linarith [add_one_le_exp b]))]
+  have hψ_lower : (1 - I.ε b) * x ≤ ψ x := by grind [I.hε b hb.le x hx]
   have hψ_upper : ψ x ≤ θ x + ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) := by
-    linarith [CostaPereira.theorem_1a hx_pos]
+    grind [CostaPereira.theorem_1a hx_pos]
   have h_half : x ^ (1 / 2 : ℝ) ≤ x * exp (-b / 2) := by
     rw [← log_le_log_iff (rpow_pos_of_pos hx_pos _) (mul_pos hx_pos (exp_pos _)),
         log_rpow hx_pos, log_mul hx_pos.ne' (exp_pos _).ne', log_exp]
-    linarith
+    grind
   have h_third : x ^ (1 / 3 : ℝ) ≤ x * exp (-2 * b / 3) := by
     rw [← log_le_log_iff (rpow_pos_of_pos hx_pos _) (mul_pos hx_pos (exp_pos _)),
         log_rpow hx_pos, log_mul hx_pos.ne' (exp_pos _).ne', log_exp]
-    linarith
+    grind
   have h_fifth : x ^ (1 / 5 : ℝ) ≤ x * exp (-4 * b / 5) := by
     rw [← log_le_log_iff (rpow_pos_of_pos hx_pos _) (mul_pos hx_pos (exp_pos _)),
         log_rpow hx_pos, log_mul hx_pos.ne' (exp_pos _).ne', log_exp]
-    linarith
+    grind
   have hc₀_nonneg : 0 ≤ RS_prime.c₀ := le_of_lt (by norm_num : (0 : ℝ) < 1.03883)
   nlinarith
 
@@ -190,34 +183,14 @@ theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + 1.93378e-8) * x := by
   by_cases hx : x ≤ 1e19
   · exact le_trans (le_of_lt (buthe_eq_1_7 x ⟨hx_pos, hx⟩)) (le_mul_of_one_le_left hx_pos.le (by norm_num))
   · push_neg at hx
-    have h_exp20 : 1e19 ≥ exp 20 := le_of_lt <| by
-      rw [show exp 20 = (exp 1) ^ 20 by rw [← exp_nat_mul]; norm_num]
-      exact lt_of_le_of_lt (pow_le_pow_left₀ (by positivity) exp_one_lt_d9.le _) (by norm_num)
-    have h_eps : Pre_inputs.default.ε (log 1e19) ≤ 1.93378e-8 := by
-      norm_num [BKLNW.Pre_inputs.default, BKLNW_app.table_8_ε, log_le_iff_le_exp]
-      rw [show (10000000000000000000 : ℝ) = 10 ^ 19 by norm_num, log_pow]
-      norm_num [log_le_iff_le_exp]
-      rw [if_neg, if_neg, if_neg, if_neg, if_neg, if_neg, if_neg, if_neg, if_neg, if_pos]
-        <;> norm_num [log_le_iff_le_exp] at *
-      any_goals
-        have := log_two_gt_d9
-        rw [show (10 : ℝ) = 2 * 5 by norm_num, log_mul] <;> norm_num at *
-        linarith [log_lt_log (by norm_num) (by norm_num : (5 : ℝ) > 2)]
-      · rw [← log_rpow, log_lt_iff_lt_exp] <;> norm_num
-        rw [show exp 45 = (exp 1) ^ 45 by rw [← exp_nat_mul]; norm_num]
-        exact lt_of_lt_of_le (by norm_num) (pow_le_pow_left₀ (by positivity) exp_one_gt_d9.le _)
-      · norm_num [← log_rpow, le_log_iff_exp_le]
-        rw [show exp 40 = (exp 1) ^ 40 by rw [← exp_nat_mul]; norm_num]
-        exact le_trans (pow_le_pow_left₀ (by positivity) exp_one_lt_d9.le _) (by norm_num)
-      · norm_num [← log_rpow, le_log_iff_exp_le] at *
-        rw [show exp 35 = (exp 1) ^ 35 by rw [← exp_nat_mul]; norm_num]
-        exact le_trans (pow_le_pow_left₀ (by positivity) exp_one_lt_d9.le _) (by norm_num)
-      · norm_num [← log_rpow, le_log_iff_exp_le] at *
-        rw [show exp 30 = (exp 1) ^ 30 by rw [← exp_nat_mul]; norm_num]
-        exact le_trans (pow_le_pow_left₀ (by positivity) (exp_one_lt_d9.le) _) (by norm_num)
-    calc θ x ≤ x * (1 + Pre_inputs.default.ε (log 1e19)) := (thm_1a h_exp20 h_exp20 (le_of_lt hx) (le_of_lt hx)).2
-      _ ≤ x * (1 + 1.93378e-8) := mul_le_mul_of_nonneg_left ((add_le_add_iff_left 1).mpr h_eps) hx_pos.le
-      _ = (1 + 1.93378e-8) * x := mul_comm ..
+    have h_exp20 : 1e19 ≥ exp 20 := by grw [← exp_one_rpow 20, Real.exp_one_lt_d9]; norm_num only
+    suffices Pre_inputs.default.ε (log 1e19) ≤ 1.93378e-8 by
+      grw [(thm_1a h_exp20 h_exp20 hx.le hx.le).2, this, mul_comm]
+    unfold Pre_inputs.default BKLNW_app.table_8_ε
+    suffices 43 < log 1e19 ∧ log 1e19 < 44 by grind only
+    rw [lt_log_iff_exp_lt (by positivity), log_lt_iff_lt_exp (by positivity),
+      ← exp_one_rpow 43, ← exp_one_rpow 44]
+    exact ⟨by grw [Real.exp_one_lt_d9]; norm_num only, by grw [← Real.exp_one_gt_d9]; norm_num only⟩
 
 structure Inputs extends Pre_inputs where
   α : ℝ

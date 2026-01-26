@@ -423,6 +423,6 @@ theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
   suffices 43 < 19 * Real.log 10 ∧ 19 * Real.log 10 < 44 by grind only [table_8_ε]
   rw [← log_rpow (by positivity), lt_log_iff_exp_lt (by positivity),
     log_lt_iff_lt_exp (by positivity), ← exp_one_rpow 43, ← exp_one_rpow 44]
-  exact ⟨by grw [Real.exp_one_lt_d9]; norm_num, by grw [← Real.exp_one_gt_d9]; norm_num⟩
+  exact ⟨by grw [Real.exp_one_lt_d9]; norm_num only, by grw [← Real.exp_one_gt_d9]; norm_num only⟩
 
 end BKLNW_app
