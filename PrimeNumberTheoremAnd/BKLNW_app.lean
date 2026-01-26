@@ -3,7 +3,7 @@ import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 
 blueprint_comment /--
-\section{Appendix A of BKLNW}
+\section{Appendix A of BKLNW}\label{bklnw-app-sec}
 In this file we record the results from Appendix A of \cite{BKLNW}.  In this appendix, the authors derive explicit estimates on the error term in the prime number theorem for the Chebyshev function $\psi$ assuming various inputs on the zeros of the Riemann zeta function, including a zero-density estimate, a classical zero-free region, and numerical verification of RH up to some height.
 -/
 
@@ -263,9 +263,37 @@ theorem bklnw_cor_15_1 (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10)
   (latexEnv := "definition")]
 noncomputable def ℓ (c ε ξ : ℝ) : ℝ := (c / sinh c) * (sin (sqrt ((ξ * ε)^2 - c^2))) / (sqrt ((ξ * ε)^2 - c^2))
 
-def ν (c α : ℝ) : ℝ := sorry
+open Complex in
+@[blueprint
+  "logan-function-ft"
+  (title := "Fourier transform of Logan's function")
+  (statement := /-- We define
+  $$ \eta_{c,\varepsilon}(\xi) = \frac{1}{2\pi} \int_{\R} e^{-it\xi} ℓ_{c,\varepsilon}(t) \, dt. $$ -/)
+  (latexEnv := "definition")]
+noncomputable def η (c ε ξ : ℝ) : ℝ := (1 / (2 * π)) * (∫ t : ℝ, exp (-I * t * ξ) * ℓ c ε t).re
 
-def μ (c α : ℝ) : ℝ := sorry
+noncomputable def pre_μ (c ε t : ℝ) : ℝ := - ∫ τ in Set.Ici t, η c ε τ
+
+@[blueprint
+  "buthe-mu-def"
+  (title := "Definition of Buthe's function mu")
+  (statement := /-- We define the auxiliary functions
+  \begin{align*}
+  \mu_{c,\varepsilon}(t) &=
+  \begin{cases}
+  -\int_t^{\infty} \eta_{c,\varepsilon}(\tau) d\tau & t < 0, \\
+  -\mu_{c,\varepsilon}(-t) & t > 0, \\
+  0 & t = 0,
+  \end{cases} \\
+  \nu_{c,\varepsilon}(t) &= \int_{-\infty}^t \mu_{c,\varepsilon}(\tau) d\tau.
+  \end{align*} -/)
+  (latexEnv := "definition")]
+noncomputable def μ (c ε t : ℝ) : ℝ :=
+  if t < 0 then pre_μ c ε t
+  else if t > 0 then - pre_μ c ε (-t)
+  else 0
+
+noncomputable def ν (c ε t : ℝ) : ℝ := ∫ τ in Set.Iic t, μ c ε τ
 
 @[blueprint
   "bklnw-thm_16"
@@ -288,18 +316,23 @@ theorem bklnw_thm_16 (ε c x₀ α : ℝ)
   (hc : 3 ≤ c)
   (hx₀ : 100 ≤ x₀)
   (hα : 0 ≤ α ∧ α < 1)
-  (hB0 : (ε * exp (-ε) * x₀ * |ν c α|) / (2 * (μ c α)) > 1)
+  (hB0 : (ε * rexp (-ε) * x₀ * |ν c ε α|) / (2 * (μ c ε α)) > 1)
   (hRH : riemannZeta.RH_up_to (c / ε))
   (x : ℝ)
-  (hx : x ≥ exp (ε * α) * x₀) :
-  let E₁ := exp (2 * ε) * log (exp ε * x₀) *
-        (2 * ε * |ν c α| / log ((ε * exp (-ε) * x₀ * |ν c α|) / (2 * (μ c α))) +
+  (hx : x ≥ rexp (ε * α) * x₀) :
+  let E₁ := rexp (2 * ε) * log (rexp ε * x₀) *
+        (2 * ε * |ν c ε α| / log ((ε * rexp (-ε) * x₀ * |ν c ε α|) / (2 * (μ c ε α))) +
          2.01 * ε / sqrt x₀ +
          log (log (2 * x₀^2) / (2 * x₀))) + exp (ε * α) - 1
   let E₂ := 0.16 * (1 + x₀^(-1:ℝ)) / sinh c * exp (0.71 * sqrt (c * ε)) * log (c / ε)
   let E₃ := 2 / sqrt x₀ * riemannZeta.zeroes_sum (Set.Icc 0 1) (Set.Ioo 0 (c / ε)) (fun ρ ↦ (ℓ c ε ρ.im) / ρ.im) + 2 / x₀
   Eψ x ≤ exp (ε * α) * (E₁ + E₂ + E₃) :=
     by sorry
+
+
+blueprint_comment /--
+Note: This thesis of Bhattacharjee \cite{bhattacharjee2023survey} will be a good resource when formalizing this result.
+-/
 
 noncomputable def table_8_ε (b : ℝ) : ℝ :=
   if b < 20 then 1   -- junk value
@@ -379,16 +412,17 @@ theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
    -/)
   (proof := /-- From Table 8 we have $\varepsilon(19 \log 10) = 1.93378 \cdot 10^{-8}$.
   Now apply Corollary \ref{bklnw-cor_15_1} and Theorem \ref{bklnw-theorem-2}. -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 775)]
 theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
-  ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) 1.93378e-8 := by sorry
-
-
-
-
-
-
-
-
+    ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) 1.93378e-8 := by
+  intro x hx
+  grw [bklnw_cor_15_1 b hb1 hb2 table_8_ε (fun b₀ hb₀ x hx ↦ by
+    grw [Eψ, div_le_iff₀ (lt_of_lt_of_le (by positivity) hx), theorem_2 b₀ hb₀.le x hx]) x hx]
+  apply max_le_max_left
+  suffices 43 < 19 * Real.log 10 ∧ 19 * Real.log 10 < 44 by grind only [table_8_ε]
+  rw [← log_rpow (by positivity), lt_log_iff_exp_lt (by positivity),
+    log_lt_iff_lt_exp (by positivity), ← exp_one_rpow 43, ← exp_one_rpow 44]
+  exact ⟨by grw [Real.exp_one_lt_d9]; norm_num only, by grw [← Real.exp_one_gt_d9]; norm_num only⟩
 
 end BKLNW_app

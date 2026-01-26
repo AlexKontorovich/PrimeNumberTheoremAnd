@@ -1,7 +1,6 @@
 import Architect
 import Mathlib.Topology.Order.Basic
 import Mathlib.NumberTheory.PrimeCounting
-import LeanCert.Core.LogBounds
 
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 
@@ -51,15 +50,22 @@ theorem log_le (t : ℝ) (ht : t > -1) : log (1 + t) ≤ t :=
   (proof := /-- Use Taylor's theorem with remainder and the fact that the second derivative of $\log(1+t)$ is at most $1$ for $t \geq 0$.-/)
   (latexEnv := "sublemma")
   (discussion := 765)]
-theorem log_ge
-    (t s : ℝ) (ht : t ≥ 0) (hs : s > 0) :
-    t - t ^ 2 / (2 * s ^ 2) ≤ log (1 + t) := by
-  -- Note: This bound only holds for s ≤ 1. For s > 1, the LHS exceeds log(1+t).
-  -- The base case t - t²/2 ≤ log(1+t) is proven in LeanCert.Core.log_lower_taylor.
-  -- For s ≤ 1: t²/(2s²) ≥ t²/2, so t - t²/(2s²) ≤ t - t²/2 ≤ log(1+t) ✓
-  -- For s > 1: The claim t - t²/(2s²) ≤ log(1+t) approaches t ≤ log(1+t) which is FALSE.
-  -- TODO: Either add s ≤ 1 constraint or revise the blueprint.
-  sorry
+theorem log_ge {t : ℝ} (ht : 0 ≤ t) : t - t ^ 2 / 2 ≤ log (1 + t) := by
+  rcases ht.eq_or_lt with rfl | ht
+  · simp
+  let f : ℝ → ℝ := fun s ↦ log (1 + s) - (s - s ^ 2 / 2)
+  have hf_deriv_pos : ∀ s > 0, 0 ≤ deriv f s := by
+    intro s hs
+    norm_num [f, add_comm, show s + 1 ≠ 0 by positivity]
+    ring_nf
+    nlinarith [inv_mul_cancel₀ (by positivity : (1 + s) ≠ 0)]
+  have h_mvt : ∃ c ∈ Set.Ioo 0 t, deriv f c = (f t - f 0) / (t - 0) := by
+    refine exists_deriv_eq_slope _ ht ?_ ?_  <;> intro x hx
+    · exact ContinuousAt.continuousWithinAt (by fun_prop (disch := grind))
+    · exact DifferentiableAt.differentiableWithinAt (by fun_prop (disch := grind))
+  norm_num +zetaDelta at h_mvt
+  obtain ⟨c, ⟨hc₁, hc₂⟩, hc⟩ := h_mvt
+  nlinarith [hf_deriv_pos c hc₁, mul_div_cancel₀ (log (1 + t) - (t - t ^ 2 / 2)) (by positivity)]
 
 @[blueprint
   "log_lower_2"
@@ -68,36 +74,85 @@ theorem log_ge
   (proof := /-- Use concavity of log.-/)
   (latexEnv := "sublemma")
   (discussion := 766)]
-theorem log_ge'
-    (t t₀ : ℝ) (ht : 0 ≤ t) (ht0 : t ≤ t₀) (ht0' : t₀ < 1) :
-    (t / t₀) * log (1 - t₀) ≤ log (1 - t) :=
-  LeanCert.Core.log_ge' t t₀ ht ht0 ht0'
+theorem log_ge' {t t₀ : ℝ} (ht : 0 ≤ t) (ht0 : t ≤ t₀) (ht0' : t₀ < 1) :
+    (t / t₀) * log (1 - t₀) ≤ log (1 - t) := by
+  rcases ht.eq_or_lt with rfl | ht
+  · simp
+  rcases ht0.eq_or_lt with rfl | ht0
+  · field_simp [ht.ne]
+    rfl
+  have := strictConcaveOn_log_Ioi.2  (y := 1) (x := 1 - t₀) (by grind) (by grind) (by linarith)
+  simp only [smul_eq_mul, log_one, mul_zero, add_zero, mul_one] at this
+  convert this (a := t / t₀) (b := 1 - t / t₀) (by bound) (by bound) (by ring) |>.le using 2
+  field [show t₀ ≠ 0 by linarith]
 
 @[blueprint
   "symm_inv_log"
   (title := "Symmetrization of inverse log")
-  (statement := /-- For $0 < t \leq 1/2$, one has $| \frac{1}{\log(1+t)} + \frac{1}{\log(1-t)}| \leq \frac{\log(4/3)}{4/3}$. -/)
-  (proof := /-- The expression can be written as $\frac{|\log(1-t^2)|}{|\log(1-t)| |\log(1+t)|}$. Now use the previous upper and lower bounds, noting that $t^2 \leq 1/4$. -/)
+  (statement := /-- For $0 < t \leq 1/2$, one has $| \frac{1}{\log(1+t)} + \frac{1}{\log(1-t)}| \leq \frac{16\log(4/3)}{3}$. -/)
+  (proof := /-- The expression can be written as $\frac{|\log(1-t^2)|}{|\log(1-t)| |\log(1+t)|}$. Now use the previous upper and lower bounds, noting that $t^2 \leq 1/4$. NOTE: this gives the slightly weaker bound of $16 \log(4/3) / 3$, but this can suffice for applications.  The sharp bound would require showing that the left-hand side is monotone in $t$, which looks true but not so easy to verify. -/)
   (latexEnv := "sublemma")
   (discussion := 767)]
 theorem symm_inv_log
     (t : ℝ) (ht : 0 < t) (ht' : t ≤ 1 / 2) :
-    |1 / log (1 + t) + 1 / log (1 - t)| ≤ log (4 / 3) / (4 / 3) := by
-  -- Blueprint bound is too tight: g(t) → 1 as t → 0⁺, but log(4/3)/(4/3) ≈ 0.216.
-  -- Correct bound is |g(t)| ≤ 2 for t ∈ (0, 1), or ≤ 4/3 for t ∈ (0, 1/2].
-  sorry
+    |1 / log (1 + t) + 1 / log (1 - t)| ≤ 16 * log (4 / 3) / 3 := by
+  have log_add_ne_zero : log (1 + t) ≠ 0 := by simp; grind
+  have log_sub_ne_zero : log (1 - t) ≠ 0 := by simp; grind
+  have : t ^ 2 <= 1 / 4 := by
+    rw [show (1 : ℝ) / 4 = (1 / 2) ^ 2 by norm_num]
+    gcongr
+  have numerator := log_ge' (by positivity) this (by norm_num)
+  have denominator1 := le_neg.mpr <| log_le (-t) (by linarith)
+  have : 3 / 4 * t ≤ t - t ^ 2 / 2 := by
+    rw [(by ring : t - t ^ 2 / 2 = (1 - t / 2) * t)]
+    gcongr
+    linarith
+  have denominator2 := le_trans this <| log_ge ht.le
+  have denominator : log (1 + t) * -(log (1 - t)) >= (3 / 4 * t) * t := by
+    gcongr
+    · bound
+    · exact denominator1
+  calc
+  _ = |(log (1 + t) + log (1 - t)) / (log (1 + t) * log (1 - t))| := by
+    congr
+    field
+  _ = |(log (1 - t^2)) / (log (1 + t) * log (1 - t))| := by
+    rw [← log_mul (by linarith) (by linarith)]
+    congr
+    ring
+  _ = (-(log (1 - t^2))) / (log (1 + t) * (-log (1 - t))) := by
+    rw [abs_div, abs_mul, abs_of_nonpos <| log_nonpos (by bound)
+      (by simp only [tsub_le_iff_right, le_add_iff_nonneg_right]; positivity),
+      abs_of_nonneg <| log_nonneg (by linarith),
+      abs_of_nonpos <| log_nonpos (by linarith) (by linarith)]
+  _ ≤ (-t ^ 2 / (1 / 4) * log (3 / 4)) / (log (1 + t) * -log (1 - t)) := by
+    gcongr
+    · apply mul_nonneg
+      · apply log_nonneg; linarith
+      · apply neg_nonneg.mpr <| log_nonpos _ _ <;> linarith
+    linarith
+  _ ≤ (-t ^ 2 / (1 / 4) * log (3 / 4)) / (3 / 4 * t * t) := by
+    gcongr
+    apply mul_nonneg_of_nonpos_of_nonpos
+    · apply div_nonpos_of_nonpos_of_nonneg _ (by norm_num)
+      apply neg_le.mp
+      simpa using sq_nonneg t
+    · apply log_nonpos <;> norm_num
+  _ = _ := by
+    rw [(by field : (3 : ℝ) / 4 = (4 / 3)⁻¹), log_inv]
+    field
 
 @[blueprint
   "li-approx"
   (title := "li approximation")
-  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{\log(4/3)}{4/3} \eps)$. -/)
+  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{16\log(4/3)}{3} \eps)$. -/)
   (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
   (latexEnv := "sublemma")
   (discussion := 768)]
 theorem li.eq
     (x ε : ℝ) (hx : x ≥ 2) (hε1 : 0 < ε) (hε2 : ε ≤ 1) : ∃ E,
     li x = ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)), 1 / log t + E ∧
-    |E| ≤ log (4 / 3) / (4 / 3) * ε := by
+    |E| ≤ 16 *log (4 / 3) / 3 * ε := by
     sorry
 
 @[blueprint
@@ -179,11 +234,3 @@ def HasPrimeInInterval (x h : ℝ) : Prop :=
 
 def HasPrimeInInterval.log_thm (X₀ : ℝ) (k : ℝ) :=
   ∀ x ≥ X₀, HasPrimeInInterval x (x / (log x)^k)
-
-@[blueprint
-  "Mertens-constant"
-  (title := "Mertens constant E")
-  (statement := /--
-  $E := \lim_{x \to \infty} \left( \sum_{p \leq x} \frac{\log p}{p} - \log x \right)$. -/)]
-noncomputable def mertensConstant : ℝ :=
-  lim (Filter.atTop.comap (fun x : ℝ ↦ ∑ p ∈ Finset.filter Nat.Prime (Finset.range ⌊x⌋₊), Real.log p / p - log x))

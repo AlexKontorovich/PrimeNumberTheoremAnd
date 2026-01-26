@@ -1,10 +1,12 @@
+import Mathlib.Algebra.Order.Module.OrderedSMul
+import Mathlib.Data.Rat.Cast.OfScientific
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.BKLNW
 import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 
 blueprint_comment /--
-\section{The implications of FKS2}
+\section{The implications of FKS2}\label{fks2-sec}
 
 In this file we record the implications in the paper \cite{FKS2}.  Roughly speaking, this paper has two components: a "$\psi$ to $\theta$ pipeline" that converts estimates on the error $E_\psi(x) = |\psi(x)-x|/x$ in the prime number theorem for the first Chebyshev function $\psi$ to estimates on the error $E_\theta(x) = |\theta(x)-x|/x$ in the prime number theorem for the second Chebyshev function $\theta$; and a "$\theta$ to $\pi$ pipeline" that converts estimates $E_\theta$ to estimates on the error $E_\pi(x) = |\pi(x) - \Li(x)|/(x/\log x)$ in the prime number theorem for the prime counting function $\pi$.  Each pipeline converts "admissible classical bounds" (Definitions \ref{classical-bound-psi} \ref{classical-bound-theta}, \ref{classical-bound-pi}) of one error to admissible classical bounds of the next error in the pipeline.
 
@@ -366,9 +368,48 @@ We can now obtain an upper bound on $E_\pi$ in terms of $E_\theta$:
   (proof := /-- This follows from applying the triangle inequality to Sublemma \ref{fks2-eq-17}. -/)
   (latexEnv := "sublemma")
   (discussion := 741)]
-theorem eq_30 {x x₀ : ℝ} (hx : x ≥ x₀) :
-  Eπ x ≤ Eψ x + δ x₀ + (log x / x) * ∫ t in x₀..x, Eθ t / log t ^ 2 :=
-  by sorry
+theorem eq_30 {x x₀ : ℝ} (hx : x ≥ x₀) (hx₀ : x₀ ≥ 2) :
+  Eπ x ≤ Eθ x + (log x / x) * (x₀ / log x₀) * δ x₀ + (log x / x) * ∫ t in x₀..x, Eθ t / log t ^ 2 := by
+  -- NOTE: the hypothesis `hx₀` was added to apply `eq_17`.
+  -- It is not present in the original source material [FKS2].
+  have : (log x / x) * (x₀ / log x₀) * δ x₀ = (log x / x) * |pi x₀ - Li x₀ - (θ x₀ - x₀) / log x₀| := by
+    unfold δ
+    have : log x₀ > 0 := log_pos (by linarith)
+    field_simp
+    rw [abs_div, abs_of_nonneg (by linarith : x₀ ≥ 0), abs_div, abs_of_pos this]
+    field_simp
+  rw [this]; unfold Eπ Eθ
+  field_simp [(by linarith : x > 0)]
+  calc
+    _ = |pi x - Li x - (pi x₀ - Li x₀) + pi x₀ - Li x₀| * log x := by ring_nf
+    _ = |(θ x - x) / log x
+        + (pi x₀ - Li x₀ - (θ x₀ - x₀) / log x₀)
+        + (∫ t in x₀..x, (θ t - t) / (t * log t ^ 2))| * log x := by
+      by_cases h : x = x₀
+      · rw [h, intervalIntegral.integral_same]; ring_nf
+      · congr
+        rw [eq_17 hx₀ (lt_of_le_of_ne hx (Ne.symm h))]
+        ring
+    _ ≤ |(θ x - x) / log x| * log x
+        + |pi x₀ - Li x₀ - (θ x₀ - x₀) / log x₀| * log x
+        + |∫ t in x₀..x, (θ t - t) / (t * log t ^ 2)| * log x := by
+      rw [← distrib_three_right]; gcongr
+      · exact log_nonneg (by linarith)
+      · exact abs_add_three _ _ _
+    _ ≤ |θ x - x|
+        + log x * |pi x₀ - Li x₀ - (θ x₀ - x₀) / log x₀|
+        + log x * ∫ t in x₀..x, |θ t - t| / (t * log t ^ 2) := by
+      have : log x > 0 := log_pos (by linarith)
+      rw [abs_div, abs_of_pos this]
+      field_simp [this]
+      gcongr
+      have : ∫ t in x₀..x, |θ t - t| / (t * log t ^ 2) = ∫ t in x₀..x, |(θ t - t) / (t * log t ^ 2)| := by
+        apply intervalIntegral.integral_congr_ae
+        filter_upwards with t ht
+        rw [Set.uIoc_of_le hx, Set.mem_Ioc] at ht
+        have : t * log t ^ 2 ≥ 0 := mul_nonneg (by linarith) (pow_two_nonneg (log t))
+        rw [abs_div, abs_of_nonneg this]
+      simp only [this, intervalIntegral.abs_integral_le_integral_abs hx]
 
 blueprint_comment /--
 Next, we bound the integral appearing in Sublemma \ref{fks2-eq-17}.
@@ -475,6 +516,60 @@ noncomputable def εθ_from_εψ (εψ : ℝ → ℝ) (x₀ : ℝ) : ℝ :=
   εψ x₀ + 1.00000002 * (x₀ ^ (-(1:ℝ)/2) + x₀ ^ (-(2:ℝ)/3) + x₀ ^ (-(4:ℝ)/5)) +
     0.94 * (x₀ ^ (-(3:ℝ)/4) + x₀ ^ (-(5:ℝ)/6) + x₀ ^ (-(9:ℝ)/10))
 
+/-- Bound for `ψ(y)` for small `y`. -/
+theorem psi_le_bound_small (y : ℝ) (hy1 : 1 < y) (hy2 : y < 100) :
+    ψ y ≤ 1.00000002 * y + 0.94 * y ^ (1/2 : ℝ) := by
+  have h_ineq : (RS_prime.c₀ - 1.00000002) * y ≤ 0.94 * y ^ (1 / 2 : ℝ) := by
+    rw [← sqrt_eq_rpow]
+    nlinarith [sq_nonneg (sqrt y - 3), mul_self_sqrt (show 0 ≤ y by positivity),
+      sqrt_nonneg y, show RS_prime.c₀ = 1.03883 by rfl]
+  grind [RS_prime.theorem_12 (by positivity)]
+
+/-- Bound for `ψ(y)` for medium `y`. -/
+theorem psi_le_bound_medium (y : ℝ) (hy1 : 100 ≤ y) (hy2 : y ≤ 1e19) :
+    ψ y ≤ 1.00000002 * y + 0.94 * y ^ (1/2 : ℝ) := by
+  have h_psi_le : |ψ y - y| ≤ 0.94 * sqrt y := by
+    have := BKLNW_app.bklnw_eq_A_26 y hy1 hy2
+    rw [le_div_iff₀ (sqrt_pos.mpr (by positivity)), show Eψ y = |ψ y - y| / y by rfl,
+        div_mul_eq_mul_div, div_le_iff₀] at this <;>
+          nlinarith [sqrt_nonneg y, sq_sqrt (by positivity : 0 ≤ y)]
+  rw [← sqrt_eq_rpow]
+  grind
+
+/-- Bound for `ψ(y)` for large `y`. -/
+theorem psi_le_bound_large (y : ℝ) (hy : 1e19 < y) :
+    ψ y ≤ 1.00000002 * y + 0.94 * y ^ (1/2 : ℝ) := by
+  have h_b : |ψ y - y| ≤ BKLNW_app.table_8_ε (19 * log 10) * y := by
+    apply BKLNW_app.theorem_2 (19 * log 10) (by positivity) y (by
+      rw [mul_comm, exp_mul, exp_log (by positivity)]; linarith)
+  have h_eps : BKLNW_app.table_8_ε (19 * log 10) ≤ 1.93378e-8 := by
+    have h_log_approx : 43 < 19 * log 10 ∧ 19 * log 10 < 44 := by
+      rw [← log_rpow, lt_log_iff_exp_lt, log_lt_iff_lt_exp] <;> norm_num
+      refine ⟨?_, ?_⟩
+      · have := exp_one_lt_d9.le
+        rw [show exp 43 = (exp 1) ^ 43 by rw [← exp_nat_mul]; norm_num]
+        exact (pow_le_pow_left₀ (by positivity) this _).trans_lt <| by norm_num
+      · have := exp_one_gt_d9.le
+        rw [show exp 44 = (exp 1) ^ 44 by rw [← exp_nat_mul]; norm_num]
+        exact lt_of_lt_of_le (by norm_num) <| pow_le_pow_left₀ (by positivity) this _
+    norm_num [BKLNW_app.table_8_ε, h_log_approx]; norm_num at *
+    field_simp
+    rw [if_neg (by linarith), if_neg (by linarith), if_neg (by linarith),
+        if_neg (by linarith), if_neg (by linarith), if_neg (by linarith),
+        if_neg (by linarith), if_neg (by linarith), if_neg (by linarith),
+        if_pos (by linarith)]
+    norm_num [log_pos] at *
+  norm_num [← sqrt_eq_rpow] at *
+  nlinarith [abs_le.mp h_b, sqrt_nonneg y, sq_sqrt (show 0 ≤ y by linarith), h_eps]
+
+/-- Bound for `ψ(y)` for all `y > 1`. -/
+theorem psi_le_bound (y : ℝ) (hy : 1 < y) : ψ y ≤ 1.00000002 * y + 0.94 * y ^ (1/2 : ℝ) := by
+  by_cases hy_large : y ≤ 1e19
+  · by_cases hy_small : y < 100
+    · exact psi_le_bound_small y hy hy_small
+    · exact psi_le_bound_medium y (by grind) (by grind)
+  · exact psi_le_bound_large y (by grind)
+
 @[blueprint
   "fks2-proposition-17"
   (title := "FKS2 Proposition 17")
@@ -501,10 +596,77 @@ noncomputable def εθ_from_εψ (εψ : ℝ → ℝ) (x₀ : ℝ) : ℝ :=
   The result follows by combining the worst coefficients from all cases and dividing by $x$. -/)
   (latexEnv := "proposition")
   (discussion := 711)]
-theorem proposition_17 {x x₀ : ℝ} (hx : x > x₀) (hx₀ : x₀ > 2) (εψ : ℝ → ℝ)
-    (hEψ : Eψ x ≤ εψ x₀) :
-    -εθ_from_εψ εψ x₀ ≤ (θ x - x) / x ∧ (θ x - x) / x ≤ εψ x₀ ∧
-      εψ x₀ ≤ εθ_from_εψ εψ x₀ := by sorry
+theorem proposition_17 {x x₀ : ℝ} (hx : x > x₀) (hx₀ : x₀ > 2) (εψ : ℝ → ℝ) (hEψ : Eψ x ≤ εψ x₀) :
+    -εθ_from_εψ εψ x₀ ≤ (θ x - x) / x ∧ (θ x - x) / x ≤ εψ x₀ ∧ εψ x₀ ≤ εθ_from_εψ εψ x₀ := by
+  refine ⟨?_, ?_, ?_⟩
+  · have hx_pos : 0 < x := by linarith
+    have hθ_bound :
+        θ x ≥ x - εψ x₀ * x -
+          1.00000002 * (x ^ (1 / 2 : ℝ) + x ^ (1 / 3 : ℝ) + x ^ (1 / 5 : ℝ)) -
+          0.94 * (x ^ (1 / 4 : ℝ) + x ^ (1 / 6 : ℝ) + x ^ (1 / 10 : ℝ)) := by
+      have hθ_from_ψ :
+          θ x ≥ x - εψ x₀ * x -
+            (ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ))) := by
+        have hθ_basic : θ x ≥ x - εψ x₀ * x - (ψ x - θ x) := by
+          rw [show Eψ x = |ψ x - x| / x from rfl] at hEψ
+          rw [div_le_iff₀] at hEψ <;>
+            cases abs_cases (ψ x - x) <;> nlinarith [show 0 < x by linarith]
+        exact hθ_basic.trans' <| sub_le_sub_left
+          (le_trans (by norm_num) (CostaPereira.theorem_1a (by linarith))) _
+      have hψ_bounds :
+          ψ (x ^ (1 / 2 : ℝ)) ≤ 1.00000002 * x ^ (1 / 2 : ℝ) + 0.94 * x ^ (1 / 4 : ℝ) ∧
+          ψ (x ^ (1 / 3 : ℝ)) ≤ 1.00000002 * x ^ (1 / 3 : ℝ) + 0.94 * x ^ (1 / 6 : ℝ) ∧
+          ψ (x ^ (1 / 5 : ℝ)) ≤ 1.00000002 * x ^ (1 / 5 : ℝ) + 0.94 * x ^ (1 / 10 : ℝ) := by
+        have hψ_le : ∀ y : ℝ, 1 < y → ψ y ≤ 1.00000002 * y + 0.94 * y ^ (1 / 2 : ℝ) :=
+          fun y a ↦ psi_le_bound y a
+        exact ⟨by
+            convert hψ_le (x ^ (1 / 2 : ℝ)) (one_lt_rpow (by linarith) (by norm_num)) using 1
+            rw [← rpow_mul (by linarith)]; norm_num, by
+            convert hψ_le (x ^ (1 / 3 : ℝ)) (one_lt_rpow (by linarith) (by norm_num)) using 1
+            rw [← rpow_mul (by linarith)]; norm_num, by
+            convert hψ_le (x ^ (1 / 5 : ℝ)) (one_lt_rpow (by linarith) (by norm_num)) using 1
+            rw [← rpow_mul (by linarith)]; norm_num⟩
+      linarith [rpow_pos_of_pos hx_pos (1 / 2 : ℝ),
+        rpow_pos_of_pos hx_pos (1 / 3 : ℝ), rpow_pos_of_pos hx_pos (1 / 5 : ℝ),
+        rpow_pos_of_pos hx_pos (1 / 4 : ℝ), rpow_pos_of_pos hx_pos (1 / 6 : ℝ),
+        rpow_pos_of_pos hx_pos (1 / 10 : ℝ)]
+    have hfactor :
+        1.00000002 * (x ^ (1 / 2 : ℝ) + x ^ (1 / 3 : ℝ) + x ^ (1 / 5 : ℝ)) +
+          0.94 * (x ^ (1 / 4 : ℝ) + x ^ (1 / 6 : ℝ) + x ^ (1 / 10 : ℝ)) ≤
+        x * (1.00000002 * (x₀ ^ (-(1 / 2 : ℝ)) + x₀ ^ (-(2 / 3 : ℝ)) + x₀ ^ (-(4 / 5 : ℝ))) +
+          0.94 * (x₀ ^ (-(3 / 4 : ℝ)) + x₀ ^ (-(5 / 6 : ℝ)) + x₀ ^ (-(9 / 10 : ℝ)))) := by
+      have hpowers :
+          x ^ (1 / 2 : ℝ) ≤ x * x₀ ^ (-(1 / 2 : ℝ)) ∧
+          x ^ (1 / 3 : ℝ) ≤ x * x₀ ^ (-(2 / 3 : ℝ)) ∧
+          x ^ (1 / 5 : ℝ) ≤ x * x₀ ^ (-(4 / 5 : ℝ)) ∧
+          x ^ (1 / 4 : ℝ) ≤ x * x₀ ^ (-(3 / 4 : ℝ)) ∧
+          x ^ (1 / 6 : ℝ) ≤ x * x₀ ^ (-(5 / 6 : ℝ)) ∧
+          x ^ (1 / 10 : ℝ) ≤ x * x₀ ^ (-(9 / 10 : ℝ)) := by
+        have hpower_bound : ∀ k : ℝ, 0 < k → k < 1 → x ^ k ≤ x * x₀ ^ (k - 1) := by
+          intro k hk hk'
+          rw [← log_le_log_iff (rpow_pos_of_pos (by linarith) _) (mul_pos (by linarith)
+            (rpow_pos_of_pos (by linarith) _)), log_rpow (by linarith),
+              log_mul (by linarith) (ne_of_gt (rpow_pos_of_pos (by linarith) _)), log_rpow (by linarith)]
+          ring_nf
+          nlinarith [log_lt_log (by linarith) hx]
+        exact ⟨by convert hpower_bound (1 / 2) (by norm_num) (by norm_num) using 1; ring_nf,
+          by convert hpower_bound (1 / 3) (by norm_num) (by norm_num) using 1; ring_nf,
+          by convert hpower_bound (1 / 5) (by norm_num) (by norm_num) using 1; ring_nf,
+          by convert hpower_bound (1 / 4) (by norm_num) (by norm_num) using 1; ring_nf,
+          by convert hpower_bound (1 / 6) (by norm_num) (by norm_num) using 1; ring_nf,
+          by convert hpower_bound (1 / 10) (by norm_num) (by norm_num) using 1; ring_nf⟩
+      linarith [rpow_pos_of_pos hx_pos (1 / 2 : ℝ),
+        rpow_pos_of_pos hx_pos (1 / 3 : ℝ), rpow_pos_of_pos hx_pos (1 / 5 : ℝ),
+        rpow_pos_of_pos hx_pos (1 / 4 : ℝ), rpow_pos_of_pos hx_pos (1 / 6 : ℝ),
+        rpow_pos_of_pos hx_pos (1 / 10 : ℝ)]
+    rw [le_div_iff₀ hx_pos, εθ_from_εψ]
+    grind
+  · have h_le_psi : (θ x - x) / x ≤ (ψ x - x) / x := by
+      gcongr
+      · linarith
+      · exact theta_le_psi x
+    exact h_le_psi.trans <| hEψ.trans' (div_le_div_of_nonneg_right (le_abs_self _) (by linarith))
+  · exact le_add_of_le_of_nonneg (le_add_of_nonneg_right <| by positivity) <| by positivity
 
 blueprint_comment /--
 \subsection{From numerical estimates on theta to numerical estimates on pi}
@@ -547,6 +709,16 @@ theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
       exp (b i) / b i - exp (b (i + 1)) / b (i + 1)) :=
   sorry
 
+lemma hasDerivAt_Li {x : ℝ} (hx : x ∈ Set.Ioi 6.58) : HasDerivAt Li (1 / log x) x := by
+  have hf (x) (hx : x ∈ Set.Ioi 6.58) : ContinuousAt (fun x ↦ 1 / log x) x := by
+    have := log_pos (by linarith [Set.mem_Ioi.mp hx]) |>.ne'
+    fun_prop (disch := simp_all)
+  refine intervalIntegral.integral_hasDerivAt_right ?_ ?_ (hf x hx)
+  · have := Set.uIcc_of_le (show 2 ≤ x by linarith [Set.mem_Ioi.mp hx])
+    apply intervalIntegral.intervalIntegrable_one_div (by grind [log_eq_zero])
+    fun_prop (disch := grind)
+  · grind [ContinuousAt.stronglyMeasurableAtFilter isOpen_Ioi hf]
+
 @[blueprint
   "fks2-lemma-20a"
   (title := "FKS2 Lemma 20a")
@@ -561,21 +733,30 @@ theorem lemma_19 {x₀ x₁ : ℝ} (hx₁ : x₁ > x₀) (hx₀ : x₀ ≥ 2)
   -/)
   (latexEnv := "lemma")
   (discussion := 713)]
-theorem lemma_20_a : StrictMonoOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) := sorry
+theorem lemma_20_a : StrictMonoOn (fun x ↦ Li x - x / log x) (Set.Ioi 6.58) := by
+  have hpos (x : ℝ) (hx : x ∈ Set.Ioi 6.58) := log_pos (by linarith [Set.mem_Ioi.mp hx]) |>.ne'
+  apply strictMonoOn_of_deriv_pos (convex_Ioi _)
+  · apply HasDerivAt.continuousOn (by apply hasDerivAt_Li) |>.sub
+    fun_prop (disch := simp_all)
+  · intro x hx
+    rw [interior_Ioi, Set.mem_Ioi] at hx
+    rw [deriv_fun_sub (hasDerivAt_Li hx).differentiableAt (by fun_prop (disch := simp_all)),
+      deriv_fun_div differentiableAt_fun_id (differentiableAt_log (by linarith)) (hpos x hx)]
+    simp [(hasDerivAt_Li hx).deriv, field, pow_two_pos_of_ne_zero, (hpos x hx), - sub_pos]
 
+/- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2206.12557. -/
 @[blueprint
   "fks2-lemma-20b"
   (title := "FKS2 Lemma 20b")
   (statement := /--
-  Assume $x \geq 6.58$. Then
+  Assume $x > 6.58$. Then
   $\Li(x) - \frac{x}{\log x} > \frac{x-6.58}{\log^2 x} > 0$.
   -/)
   (proof := /-- This follows from Lemma \ref{fks2-lemma-20a} and the mean value theorem. -/)
   (latexEnv := "lemma")
   (discussion := 714)]
-theorem lemma_20_b {x : ℝ} (hx : x ≥ 6.58) :
-  Li x - x / log x > (x - 6.58) / (log x) ^ 2 ∧
-  (x - 6.58) / (log x) ^ 2 > 0 :=
+theorem lemma_20_b {x : ℝ} (hx : x > 6.58) :
+    Li x - x / log x > (x - 6.58) / (log x) ^ 2 ∧ (x - 6.58) / (log x) ^ 2 > 0 :=
   sorry
 
 blueprint_comment /--

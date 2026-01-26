@@ -4,7 +4,7 @@ import PrimeNumberTheoremAnd.SecondaryDefinitions
 open Chebyshev Finset Nat Real Filter
 
 blueprint_comment /--
-\section{An inequality of Costa-Pereira}
+\section{An inequality of Costa-Pereira}\label{costa-pereira-sec}
 
 We record here an inequality relating the Chebyshev functions $\psi(x)$ and $\theta(x)$ due to
 Costa Pereira \cite{costa-pereira}, namely
