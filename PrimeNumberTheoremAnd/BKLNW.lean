@@ -201,8 +201,14 @@ lemma check_row_implies_bound {b M m : ℝ} (h : check_row_prop (b, M, m)) {x : 
   (latexEnv := "theorem")
   (discussion := 801)]
 theorem thm_1a_table {b M m : ℝ} (h_check : check_row_prop (b, M, m)) {x : ℝ} (hx : x ≥ exp b) :
-    x * (1 - m) ≤ θ x ∧ θ x ≤ x * (1 + M) :=
-  check_row_implies_bound h_check hx
+    x * (1 - m) ≤ θ x ∧ θ x ≤ x * (1 + M) := by
+  obtain ⟨hb, hM, hm⟩ := h_check
+  have := thm_1a (exp_le_exp.mpr hb) (exp_le_exp.mpr hb) hx hx
+  simp only at hm hM this
+  simp only [log_exp b, rpow_def_of_pos (exp_pos b)] at this
+  have : 0 ≤ x := (exp_pos b).le.trans hx
+  grw [← hm, ← hM]
+  grind
 
 lemma row_1_checked : check_row_prop (20, 4.2676e-5, 9.1639e-5) := by
   norm_num [check_row_prop, Pre_inputs.default, BKLNW_app.table_8_ε, RS_prime.c₀]
