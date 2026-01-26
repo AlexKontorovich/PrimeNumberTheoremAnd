@@ -52,7 +52,7 @@ theorem g_tendsto_one :
   symmetricLogCombination_tendsto_one
 
 /-- |g(t)| ≤ 2 for t ∈ (0, 1/2]. -/
-theorem g_bounded (t : ℝ) (ht_pos : 0 < t) (ht_lt : t < 1 / 2) :
+theorem g_bounded (t : ℝ) (ht_pos : 0 < t) (ht_lt : t < 1/2) :
     |g t| ≤ 2 :=
   symmetricLogCombination_bounded t ht_pos ht_lt
 
