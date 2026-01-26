@@ -177,14 +177,29 @@ noncomputable def Table_14 : List (ℝ × ℝ × ℝ) := [
   (25000, 7.5724e-50, 7.5724e-50)
 ]
 
+def check_row_prop (row : ℝ × ℝ × ℝ) : Prop :=
+  let b := row.1
+  let M := row.2.1
+  let m := row.2.2
+  20 ≤ b ∧
+  Pre_inputs.default.ε b ≤ M ∧
+  Pre_inputs.default.ε b + RS_prime.c₀ * (Real.exp (-b/2) + Real.exp (-2*b/3) + Real.exp (-4*b/5)) ≤ m
+
+lemma check_row_implies_bound {b M m : ℝ} (h : BKLNW.check_row_prop (b, M, m)) {x : ℝ} (hx : x ≥ Real.exp b) :
+    x * (1 - m) ≤ θ x ∧ θ x ≤ x * (1 + M) := by
+  obtain ⟨ hb, hM, hm ⟩ := h;
+  have := thm_1a (exp_le_exp.mpr hb) (exp_le_exp.mpr hb)
+    (show x ≥ exp b by linarith) (show x ≥ exp b by linarith)
+  norm_num [rpow_def_of_pos (exp_pos _)] at *;
+  constructor <;> ring_nf at * <;> nlinarith [exp_pos b]
+
 @[blueprint
   "bklnw-thm-1a-explicit"
   (statement := /-- See \cite[Table 14]{BKLNW} for values of $m_0$ and $M_0$. -/)
   (latexEnv := "theorem")]
-theorem thm_1a_table {X₀ m₀ M₀ : ℝ} (h : (X₀, M₀, m₀) ∈ Table_14) {x : ℝ} (hx : x ≥ X₀) :
-  x * (1 - m₀) ≤ θ x ∧ θ x ≤ x * (1 + M₀) :=
-  by sorry
-
+theorem thm_1a_table {b M m : ℝ} (h_check : check_row_prop (b, M, m)) {x : ℝ} (hx : x ≥ exp b) :
+    x * (1 - m) ≤ θ x ∧ θ x ≤ x * (1 + M) :=
+  check_row_implies_bound h_check hx
 
 @[blueprint
   "bklnw-cor-2-1"
@@ -540,7 +555,17 @@ theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9) (hx : x ≥ 
     · have := I.hα 1
       grind [show 0 ≤ θ 1 from sum_nonneg fun _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <|
         Nat.Prime.pos <| by grind only [= mem_filter]]
-    · exact prop_3_sub_8 x₀ hx₀ x hx
+    · have hlog_pos : log x₀ / log 2 ≥ 0 :=
+        div_nonneg (log_nonneg (by linarith [rpow_pos_of_pos (by norm_num : (0:ℝ) < 2) 9])) (log_nonneg one_le_two)
+      have hfloor_nn : 0 ≤ ⌊log x₀ / log 2⌋ := Int.floor_nonneg.2 hlog_pos
+      have hfloor_eq : (2 : ℝ)^(⌊log x₀ / log 2⌋ + 1) = 2^(⌊log x₀ / log 2⌋₊ + 1) := by
+        rw [← zpow_natCast, ← Int.toNat_of_nonneg (by omega : 0 ≤ ⌊log x₀ / log 2⌋ + 1)]
+        congr 2
+        have : (⌊log x₀ / log 2⌋ + 1).toNat = ⌊log x₀ / log 2⌋.toNat + 1 := by
+          rw [show (⌊log x₀ / log 2⌋ + 1) = (⌊log x₀ / log 2⌋.toNat : ℤ) + 1 from by
+            rw [Int.toNat_of_nonneg hfloor_nn], Int.toNat_natCast_add_one]
+        rw [this, Int.floor_toNat]
+      exact hfloor_eq ▸prop_3_sub_8 x₀ hx₀ x hx
 
 @[blueprint
   "bklnw-cor-3-1"
