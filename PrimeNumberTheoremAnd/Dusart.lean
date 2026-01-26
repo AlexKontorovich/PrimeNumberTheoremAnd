@@ -349,7 +349,9 @@ theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := sorry
   \]
   -/)
   (latexEnv := "corollary")]
-theorem corollary_5_5 {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) := by sorry
+theorem corollary_5_5 {x : ℝ} (hx : x ≥ 468991632) :
+    HasPrimeInInterval x (x / (5000 * (log x) ^ (2 : ℝ))) := by
+  sorry
 
 @[blueprint "Dusart_thm_5_6"
   (title := "Dusart Theorem 5.6")
