@@ -61,8 +61,17 @@ noncomputable def Pre_inputs.default : Pre_inputs := {
   (proof := /-- Follows immediately from the given hypothesis $\theta(x) \leq \psi(x)$, splitting into the cases $x ≥ x_1$ and $x < x_1$. -/)
   (latexEnv := "lemma")
   (discussion := 788)]
-theorem lemma_11a (I : Pre_inputs) {x : ℝ} (hx : x > 0) :
-    θ x ≤ (1 + I.ε (log I.x₁)) * x := by sorry
+theorem lemma_11a (I : Pre_inputs) {x : ℝ} (hx : x > 0) : θ x ≤ (1 + I.ε (log I.x₁)) * x := by
+  have hx₁_pos : 1 ≤ I.x₁ := le_trans (by norm_num [one_le_exp]) I.hx₁
+  by_cases h : x ≤ I.x₁
+  · nlinarith [I.hx₁' x ⟨hx, h⟩, I.epsilon_nonneg <| log_nonneg <| le_trans (by norm_num [one_le_exp]) I.hx₁]
+  · push_neg at h
+    have hε_bound : |ψ x - x| ≤ I.ε (log I.x₁) * x := by
+      refine I.hε (log I.x₁) (log_nonneg <| le_trans (by norm_num [one_le_exp]) I.hx₁) x ?_
+      rw [exp_log (by grind)]
+      exact le_of_lt h
+    calc θ x ≤ ψ x := theta_le_psi x
+      _ ≤ (1 + I.ε (log I.x₁)) * x := by grind
 
 @[blueprint
   "bklnw-lemma-11b"
