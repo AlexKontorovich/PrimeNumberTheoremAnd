@@ -183,16 +183,6 @@ def check_row_prop (row : ℝ × ℝ × ℝ) : Prop :=
   Pre_inputs.default.ε b ≤ M ∧
   Pre_inputs.default.ε b + RS_prime.c₀ * (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5)) ≤ m
 
-lemma check_row_implies_bound {b M m : ℝ} (h : check_row_prop (b, M, m)) {x : ℝ} (hx : x ≥ exp b) :
-    x * (1 - m) ≤ θ x ∧ θ x ≤ x * (1 + M) := by
-  obtain ⟨hb, hM, hm⟩ := h
-  have := thm_1a (exp_le_exp.mpr hb) (exp_le_exp.mpr hb) hx hx
-  simp only at hm hM this
-  simp only [log_exp b, rpow_def_of_pos (exp_pos b)] at this
-  have : 0 ≤ x := (exp_pos b).le.trans hx
-  grw [← hm, ← hM]
-  grind
-
 @[blueprint
   "bklnw-thm-1a-explicit"
   (statement := /-- See \cite[Table 14]{BKLNW} for values of $m_0$ and $M_0$. -/)
