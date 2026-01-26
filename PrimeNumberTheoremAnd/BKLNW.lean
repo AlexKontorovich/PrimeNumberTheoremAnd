@@ -3,6 +3,7 @@ import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.CostaPereira
 import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.BKLNW_app
+import PrimeNumberTheoremAnd.Buthe
 
 blueprint_comment /--
 \section{Tools from BKLNW}
@@ -40,7 +41,20 @@ lemma Pre_inputs.epsilon_nonneg (I : Pre_inputs) {b : ℝ} (hb : 0 ≤ b) : 0 �
   (latexEnv := "sublemma")
   (proof := /-- This follows from Theorem \ref{buthe-theorem-2c}. -/)
   (discussion := 787)]
-theorem buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x := by sorry
+theorem buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x := by
+  intro x hx
+  have hx':= (Set.mem_Ioc).1 hx
+  have hlb := hx'.left
+  have hub:= hx'.right
+  have hub' : x ≤ 10^19 := by linarith
+  by_cases h : x < 1
+  · have hworse: x < 2 := by linarith
+    have htheta: theta x = 0 := by apply Chebyshev.theta_eq_zero_of_lt_two hworse
+    linarith
+  · have hnewlb : x≥ 1 := by simpa using h
+    have hineq : x - θ x ≥ 5e-2 * √x := by exact Buthe.theorem_2c hnewlb hub'
+    have hsqrtpos: 0 < sqrt x := by exact Real.sqrt_pos.mpr hlb
+    linarith
 
 @[blueprint
   "bklnw-pre-inputs"
