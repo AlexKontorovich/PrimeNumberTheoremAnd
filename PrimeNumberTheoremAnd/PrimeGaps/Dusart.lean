@@ -58,7 +58,74 @@ lemma delta_sixth_power_lt_sqrt {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     (1 + δ (√(n : ℝ))) ^ (6 : ℕ) < Real.sqrt (n : ℝ) := by
   /-∀ n : ℕ, n ≥ X₀ ^ 2 →
     (1 + gap.δ (√(n : ℝ))) ^ 6 < √(n : ℝ)-/
-  sorry
+  -- First turn `hn : n ≥ X₀^2` into `X₀ ≤ √n`.
+  have hX0_le_sqrt : (X₀ : ℝ) ≤ √(n : ℝ) := by
+    have hn' : (X₀ ^ 2 : ℝ) ≤ (n : ℝ) := by
+      exact_mod_cast hn
+    have hsqrt : √(X₀ ^ 2 : ℝ) ≤ √(n : ℝ) := by
+      exact Real.sqrt_le_sqrt hn'
+    have hX0_nonneg : (0 : ℝ) ≤ (X₀ : ℝ) := by
+      exact_mod_cast (Nat.zero_le X₀)
+    -- `√(X₀^2) = X₀` since `X₀ ≥ 0`.
+    simpa [Nat.cast_pow, Real.sqrt_sq_eq_abs, abs_of_nonneg hX0_nonneg] using hsqrt
+
+  -- Positivity of `n` (hence `√n > 0`).
+  have hn_pos_nat : 0 < n := by
+    have hX0_pos : 0 < X₀ := by
+      norm_num [X₀]
+    have hX0sq_pos : 0 < X₀ ^ 2 := by
+      exact pow_pos hX0_pos 2
+    exact lt_of_lt_of_le hX0sq_pos hn
+  have hn_pos : 0 < (n : ℝ) := by
+    exact_mod_cast hn_pos_nat
+  have hsqrt_pos : 0 < √(n : ℝ) := Real.sqrt_pos.2 hn_pos
+
+  -- Bound `δ(√n) < 1`, hence `1 + δ(√n) < 2`.
+  have h3_le_X0 : (3 : ℝ) ≤ (X₀ : ℝ) := by
+    norm_num [X₀]
+  have h3_le_sqrt : (3 : ℝ) ≤ √(n : ℝ) :=
+    le_trans h3_le_X0 hX0_le_sqrt
+  have hexp1_lt3 : Real.exp (1 : ℝ) < (3 : ℝ) := by
+    exact lt_trans Real.exp_one_lt_d9 (by norm_num)
+  have hexp1_lt_sqrt : Real.exp (1 : ℝ) < √(n : ℝ) :=
+    lt_of_lt_of_le hexp1_lt3 h3_le_sqrt
+  have hlog_gt1 : (1 : ℝ) < Real.log (√(n : ℝ)) := by
+    simpa using (Real.lt_log_iff_exp_lt hsqrt_pos).2 hexp1_lt_sqrt
+  have hlog_pow_gt1 : (1 : ℝ) < (Real.log (√(n : ℝ))) ^ (3 : ℝ) := by
+    have hone_nonneg : (0 : ℝ) ≤ (1 : ℝ) := by
+      norm_num
+    have h3pos : (0 : ℝ) < (3 : ℝ) := by
+      norm_num
+    have : (1 : ℝ) ^ (3 : ℝ) < (Real.log (√(n : ℝ))) ^ (3 : ℝ) :=
+      Real.rpow_lt_rpow hone_nonneg hlog_gt1 h3pos
+    simpa using this
+  have hδ_lt1 : δ (√(n : ℝ)) < 1 := by
+    have : (1 : ℝ) / (Real.log (√(n : ℝ))) ^ (3 : ℝ) < (1 : ℝ) := by
+      simpa using
+        (one_div_lt_one_div_of_lt (by norm_num : (0 : ℝ) < (1 : ℝ)) hlog_pow_gt1)
+    simpa [δ] using this
+  have hδ_nonneg : 0 ≤ δ (√(n : ℝ)) := by
+    exact δ_nonneg hX0_le_sqrt
+  have h1δ_lt2 : (1 + δ (√(n : ℝ))) < (2 : ℝ) := by
+    linarith
+  have h1δ_nonneg : 0 ≤ (1 + δ (√(n : ℝ))) := by
+    linarith
+
+  -- Thus `(1+δ(√n))^6 < 2^6 = 64`.
+  have hpow_lt : (1 + δ (√(n : ℝ))) ^ (6 : ℕ) < (2 : ℝ) ^ (6 : ℕ) := by
+    exact pow_lt_pow_left₀ h1δ_lt2 h1δ_nonneg (n := 6) (by decide)
+  have h2pow : (2 : ℝ) ^ (6 : ℕ) = (64 : ℝ) := by
+    norm_num
+  have hL : (1 + δ (√(n : ℝ))) ^ (6 : ℕ) < (64 : ℝ) := by
+    simpa [h2pow] using hpow_lt
+
+  -- And `64 < X₀ ≤ √n` since `X₀ = 89693`.
+  have h64_lt_X0 : (64 : ℝ) < (X₀ : ℝ) := by
+    norm_num [X₀]
+  have h64_lt_sqrt : (64 : ℝ) < Real.sqrt (n : ℝ) :=
+    lt_of_lt_of_le h64_lt_X0 hX0_le_sqrt
+
+  exact lt_trans hL h64_lt_sqrt
 
 
 
