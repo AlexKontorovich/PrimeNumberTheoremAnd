@@ -556,17 +556,7 @@ theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9) (hx : x ≥ 
     · have := I.hα 1
       grind [show 0 ≤ θ 1 from sum_nonneg fun _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <|
         Nat.Prime.pos <| by grind only [= mem_filter]]
-    · have hlog_pos : log x₀ / log 2 ≥ 0 :=
-        div_nonneg (log_nonneg (by linarith [rpow_pos_of_pos (by norm_num : (0:ℝ) < 2) 9])) (log_nonneg one_le_two)
-      have hfloor_nn : 0 ≤ ⌊log x₀ / log 2⌋ := Int.floor_nonneg.2 hlog_pos
-      have hfloor_eq : (2 : ℝ)^(⌊log x₀ / log 2⌋ + 1) = 2^(⌊log x₀ / log 2⌋₊ + 1) := by
-        rw [← zpow_natCast, ← Int.toNat_of_nonneg (by omega : 0 ≤ ⌊log x₀ / log 2⌋ + 1)]
-        congr 2
-        have : (⌊log x₀ / log 2⌋ + 1).toNat = ⌊log x₀ / log 2⌋.toNat + 1 := by
-          rw [show (⌊log x₀ / log 2⌋ + 1) = (⌊log x₀ / log 2⌋.toNat : ℤ) + 1 from by
-            rw [Int.toNat_of_nonneg hfloor_nn], Int.toNat_natCast_add_one]
-        rw [this, Int.floor_toNat]
-      exact hfloor_eq ▸prop_3_sub_8 x₀ hx₀ x hx
+    · exact prop_3_sub_8 x₀ hx₀ x hx
 
 @[blueprint
   "bklnw-cor-3-1"
