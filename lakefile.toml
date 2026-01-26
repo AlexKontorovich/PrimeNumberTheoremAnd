@@ -6,11 +6,11 @@ pp.unicode.fun = true
 pp.proofs.withType = false
 autoImplicit = false
 relaxedAutoImplicit = false
-linter.mathlibStandardSet = true
-linter.style.openClassical = false
-linter.style.longLine = false
-linter.style.emptyLine = false
-linter.flexible = true
+weak.linter.mathlibStandardSet = true
+weak.linter.style.openClassical = false
+weak.linter.style.longLine = false
+weak.linter.style.emptyLine = false
+weak.linter.flexible = true
 
 [[require]]
 name = "LeanArchitect"
