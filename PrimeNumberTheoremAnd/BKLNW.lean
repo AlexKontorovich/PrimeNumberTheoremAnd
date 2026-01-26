@@ -83,7 +83,34 @@ theorem lemma_11a (I : Pre_inputs) {x : ℝ} (hx : x > 0) : θ x ≤ (1 + I.ε (
   (latexEnv := "lemma")
   (discussion := 789)]
 theorem lemma_11b (I : Pre_inputs) {b x : ℝ} (hb : 0 < b) (hx : x ≥ exp b) :
-    (1 - I.ε b - RS_prime.c₀ * (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5))) * x ≤ θ x := by sorry
+    (1 - I.ε b - RS_prime.c₀ * (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5))) * x ≤ θ x := by
+  have hx_pos : 0 < x := lt_of_lt_of_le (exp_pos b) hx
+  have hlog_x : b ≤ log x := (log_exp b).symm ▸ log_le_log (exp_pos b) hx
+  have hψ_half : ψ (x ^ (1 / 2 : ℝ)) < RS_prime.c₀ * x ^ (1 / 2 : ℝ) :=
+    RS_prime.theorem_12 <| rpow_pos_of_pos (lt_of_lt_of_le (exp_pos b) hx) _
+  have hψ_third : ψ (x ^ (1 / 3 : ℝ)) < RS_prime.c₀ * x ^ (1 / 3 : ℝ) :=
+    RS_prime.theorem_12 <| rpow_pos_of_pos hx_pos _
+  have hψ_fifth : ψ (x ^ (1 / 5 : ℝ)) < RS_prime.c₀ * x ^ (1 / 5 : ℝ) :=
+    RS_prime.theorem_12 <| rpow_pos_of_pos hx_pos _
+  have hψ_lower : (1 - I.ε b) * x ≤ ψ x := by
+    linarith [abs_le.mp (I.hε b hb.le x (by linarith [add_one_le_exp b]))]
+  have hψ_upper : ψ x ≤ θ x + ψ (x ^ (1 / 2 : ℝ)) + ψ (x ^ (1 / 3 : ℝ)) + ψ (x ^ (1 / 5 : ℝ)) := by
+    linarith [CostaPereira.theorem_1a hx_pos]
+  have h_half : x ^ (1 / 2 : ℝ) ≤ x * exp (-b / 2) := by
+    rw [← log_le_log_iff (rpow_pos_of_pos hx_pos _) (mul_pos hx_pos (exp_pos _)),
+        log_rpow hx_pos, log_mul hx_pos.ne' (exp_pos _).ne', log_exp]
+    linarith
+  have h_third : x ^ (1 / 3 : ℝ) ≤ x * exp (-2 * b / 3) := by
+    rw [← log_le_log_iff (rpow_pos_of_pos hx_pos _) (mul_pos hx_pos (exp_pos _)),
+        log_rpow hx_pos, log_mul hx_pos.ne' (exp_pos _).ne', log_exp]
+    linarith
+  have h_fifth : x ^ (1 / 5 : ℝ) ≤ x * exp (-4 * b / 5) := by
+    rw [← log_le_log_iff (rpow_pos_of_pos hx_pos _) (mul_pos hx_pos (exp_pos _)),
+        log_rpow hx_pos, log_mul hx_pos.ne' (exp_pos _).ne', log_exp]
+    linarith
+  have hc₀_nonneg : 0 ≤ RS_prime.c₀ := le_of_lt (by norm_num : (0 : ℝ) < 1.03883)
+  nlinarith
+
 
 @[blueprint
   "bklnw-thm-1a"
