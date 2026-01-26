@@ -183,9 +183,9 @@ def check_row_prop (row : ℝ × ℝ × ℝ) : Prop :=
   let m := row.2.2
   20 ≤ b ∧
   Pre_inputs.default.ε b ≤ M ∧
-  Pre_inputs.default.ε b + RS_prime.c₀ * (Real.exp (-b/2) + Real.exp (-2*b/3) + Real.exp (-4*b/5)) ≤ m
+  Pre_inputs.default.ε b + RS_prime.c₀ * (exp (-b/2) + exp (-2*b/3) + exp (-4*b/5)) ≤ m
 
-lemma check_row_implies_bound {b M m : ℝ} (h : BKLNW.check_row_prop (b, M, m)) {x : ℝ} (hx : x ≥ Real.exp b) :
+lemma check_row_implies_bound {b M m : ℝ} (h : check_row_prop (b, M, m)) {x : ℝ} (hx : x ≥ exp b) :
     x * (1 - m) ≤ θ x ∧ θ x ≤ x * (1 + M) := by
   obtain ⟨ hb, hM, hm ⟩ := h;
   have := thm_1a (exp_le_exp.mpr hb) (exp_le_exp.mpr hb)
@@ -201,6 +201,24 @@ lemma check_row_implies_bound {b M m : ℝ} (h : BKLNW.check_row_prop (b, M, m))
 theorem thm_1a_table {b M m : ℝ} (h_check : check_row_prop (b, M, m)) {x : ℝ} (hx : x ≥ exp b) :
     x * (1 - m) ≤ θ x ∧ θ x ≤ x * (1 + M) :=
   check_row_implies_bound h_check hx
+
+lemma row_1_checked : check_row_prop (20, 4.2676e-5, 9.1639e-5) := by
+  norm_num [check_row_prop, Pre_inputs.default, BKLNW_app.table_8_ε, RS_prime.c₀, exp_neg, exp_neg, exp_neg]
+  suffices h_exp : (4267 / 100000000 : ℝ) + (103883 / 100000) *
+      (exp (-10) + exp (-40 / 3) + exp (-16)) ≤ 91639 / 1000000000 by
+    convert h_exp using 1; norm_num [exp_neg]
+  field_simp
+  have := Real.exp_neg_one_lt_d9 ; norm_num1 at * ; rw [ show Real.exp ( -10 ) =
+  (exp (-1)) ^ 10 by rw [← exp_nat_mul]; ring_nf, show exp (- (40 / 3)) = (exp (-1)) ^ (40 / 3 : ℝ) by
+    rw [← exp_mul]; ring_nf, show exp (-16) = (exp (-1)) ^ 16 by rw [← exp_nat_mul]; ring_nf]
+  have : (426700000 + 10388300000000 * ((919698603 / 2500000000 : ℝ) ^ 10 +
+      (919698603 / 2500000000 : ℝ) ^ (40 / 3 : ℝ) + (919698603 / 2500000000 : ℝ) ^ 16)) * 1000000000
+        ≤ 916390000000000000 := by
+    rw [show (40 / 3 : ℝ) = 13 + 1 / 3 by norm_num, rpow_add] <;> norm_num
+    let y : ℝ := (919698603 / 2500000000 : ℝ) ^ (1 / 3 : ℝ)
+    have : y^3 = 919698603 / 2500000000 := by rw [← rpow_natCast, ← rpow_mul] <;> norm_num
+    nlinarith [sq_nonneg (y^2)]
+  exact le_trans (by gcongr) this
 
 @[blueprint
   "bklnw-cor-2-1"
@@ -717,7 +735,7 @@ noncomputable def a₂ : ℝ → ℝ := Inputs.default.a₂
   (discussion := 743)]
 theorem cor_5_1 {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
     ψ x - θ x < a₁ b * x ^ (1 / 2 : ℝ) + a₂ b * x ^ (1 / 3 : ℝ) := by
-  convert BKLNW.thm_5 (BKLNW.Inputs.default) hb hx using 1
+  convert thm_5 (Inputs.default) hb hx using 1
 
 def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
   [(20, 1.4263, 4)
