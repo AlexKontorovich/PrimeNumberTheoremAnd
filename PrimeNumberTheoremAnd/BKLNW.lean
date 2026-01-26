@@ -196,7 +196,8 @@ lemma check_row_implies_bound {b M m : ℝ} (h : BKLNW.check_row_prop (b, M, m))
 @[blueprint
   "bklnw-thm-1a-explicit"
   (statement := /-- See \cite[Table 14]{BKLNW} for values of $m_0$ and $M_0$. -/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 801)]
 theorem thm_1a_table {b M m : ℝ} (h_check : check_row_prop (b, M, m)) {x : ℝ} (hx : x ≥ exp b) :
     x * (1 - m) ≤ θ x ∧ θ x ≤ x * (1 + M) :=
   check_row_implies_bound h_check hx
