@@ -178,12 +178,10 @@ noncomputable def Table_14 : List (ℝ × ℝ × ℝ) := [
 ]
 
 def check_row_prop (row : ℝ × ℝ × ℝ) : Prop :=
-  let b := row.1
-  let M := row.2.1
-  let m := row.2.2
+  let (b, M, m) := row
   20 ≤ b ∧
   Pre_inputs.default.ε b ≤ M ∧
-  Pre_inputs.default.ε b + RS_prime.c₀ * (exp (-b/2) + exp (-2*b/3) + exp (-4*b/5)) ≤ m
+  Pre_inputs.default.ε b + RS_prime.c₀ * (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5)) ≤ m
 
 lemma check_row_implies_bound {b M m : ℝ} (h : check_row_prop (b, M, m)) {x : ℝ} (hx : x ≥ exp b) :
     x * (1 - m) ≤ θ x ∧ θ x ≤ x * (1 + M) := by
