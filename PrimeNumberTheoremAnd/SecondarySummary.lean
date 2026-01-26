@@ -93,7 +93,7 @@ theorem Schoenfeld1976.has_prime_in_interval (x : ℝ) (hx : x > 2010760) :
   -/)
   (latexEnv := "theorem")]
 theorem RamareSaouter2003.has_prime_in_interval (x : ℝ) (hx : x > 10726905041) :
-    HasPrimeInInterval (x*(1-1/28314000)) x := by sorry
+  HasPrimeInInterval (x*(1-1/28314000)) (x/28314000) := by sorry
 
 @[blueprint
   "thm:ramare_saouter2003-2"
@@ -162,7 +162,7 @@ theorem Dudek2014.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 34.32)) :
   (statement := /-- If $x > \exp(\exp(33.99))$, then there is a prime in the interval
   \[ \left( x, x + 3x^{2/3} \right]. \]
   -/)
-  (latexEnv := "theorem") ]
+  (latexEnv := "theorem")]
 theorem CullyHugill2021.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99)) :
     HasPrimeInInterval x (3 * x ^ (2 / 3)) := by sorry
 
@@ -173,7 +173,7 @@ theorem CullyHugill2021.has_prime_in_interval (x : ℝ) (hx : x > exp (exp 33.99
   \[ \left( x - \frac{8}{5}\sqrt{x}, x \right]. \]
   -/)
   (latexEnv := "theorem")]
-theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH: RiemannHypothesis) :
+theorem RHPrimeInterval2002.has_prime_in_interval (x : ℝ) (hx : x ≥ 2) (RH : RiemannHypothesis) :
     HasPrimeInInterval (x - (8 / 5) * sqrt x) x := by sorry
 
 @[blueprint
