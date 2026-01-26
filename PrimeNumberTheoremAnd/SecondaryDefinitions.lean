@@ -145,14 +145,14 @@ theorem symm_inv_log
 @[blueprint
   "li-approx"
   (title := "li approximation")
-  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{\log(4/3)}{\log(3/2) \log 2} \eps)$. -/)
+  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{16\log(4/3)}{3} \eps)$. -/)
   (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
   (latexEnv := "sublemma")
   (discussion := 768)]
 theorem li.eq
     (x ε : ℝ) (hx : x ≥ 2) (hε1 : 0 < ε) (hε2 : ε ≤ 1) : ∃ E,
     li x = ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)), 1 / log t + E ∧
-    |E| ≤ log (4 / 3) / (log (3 / 2) * log 2) * ε := by
+    |E| ≤ 16 *log (4 / 3) / 3 * ε := by
     sorry
 
 @[blueprint
