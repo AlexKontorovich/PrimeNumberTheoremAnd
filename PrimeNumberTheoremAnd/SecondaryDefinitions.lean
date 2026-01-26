@@ -89,26 +89,70 @@ theorem log_ge' {t t₀ : ℝ} (ht : 0 ≤ t) (ht0 : t ≤ t₀) (ht0' : t₀ < 
 @[blueprint
   "symm_inv_log"
   (title := "Symmetrization of inverse log")
-  (statement := /-- For $0 < t \leq 1/2$, one has $| \frac{1}{\log(1+t)} + \frac{1}{\log(1-t)}| \leq \frac{\log(4/3)}{\log(3/2) \log 2}$. -/)
+  (statement := /-- For $0 < t \leq 1/2$, one has $| \frac{1}{\log(1+t)} + \frac{1}{\log(1-t)}| \leq \frac{16\log(4/3)}{3}$. -/)
   (proof := /-- The expression can be written as $\frac{|\log(1-t^2)|}{|\log(1-t)| |\log(1+t)|}$. Now use the previous upper and lower bounds, noting that $t^2 \leq 1/4$. NOTE: this gives the slightly weaker bound of $16 \log(4/3) / 3$, but this can suffice for applications.  The sharp bound would require showing that the left-hand side is monotone in $t$, which looks true but not so easy to verify. -/)
   (latexEnv := "sublemma")
   (discussion := 767)]
 theorem symm_inv_log
     (t : ℝ) (ht : 0 < t) (ht' : t ≤ 1 / 2) :
-    |1 / log (1 + t) + 1 / log (1 - t)| ≤ log (4 / 3) / (log (3 / 2) * log 2) := by
-    sorry
+    |1 / log (1 + t) + 1 / log (1 - t)| ≤ 16 * log (4 / 3) / 3 := by
+  have log_add_ne_zero : log (1 + t) ≠ 0 := by simp; grind
+  have log_sub_ne_zero : log (1 - t) ≠ 0 := by simp; grind
+  have : t ^ 2 <= 1 / 4 := by
+    rw [show (1 : ℝ) / 4 = (1 / 2) ^ 2 by norm_num]
+    gcongr
+  have numerator := log_ge' (by positivity) this (by norm_num)
+  have denominator1 := le_neg.mpr <| log_le (-t) (by linarith)
+  have : 3 / 4 * t ≤ t - t ^ 2 / 2 := by
+    rw [(by ring : t - t ^ 2 / 2 = (1 - t / 2) * t)]
+    gcongr
+    linarith
+  have denominator2 := le_trans this <| log_ge ht.le
+  have denominator : log (1 + t) * -(log (1 - t)) >= (3 / 4 * t) * t := by
+    gcongr
+    · bound
+    · exact denominator1
+  calc
+  _ = |(log (1 + t) + log (1 - t)) / (log (1 + t) * log (1 - t))| := by
+    congr
+    field
+  _ = |(log (1 - t^2)) / (log (1 + t) * log (1 - t))| := by
+    rw [← log_mul (by linarith) (by linarith)]
+    congr
+    ring
+  _ = (-(log (1 - t^2))) / (log (1 + t) * (-log (1 - t))) := by
+    rw [abs_div, abs_mul, abs_of_nonpos <| log_nonpos (by bound)
+      (by simp only [tsub_le_iff_right, le_add_iff_nonneg_right]; positivity),
+      abs_of_nonneg <| log_nonneg (by linarith),
+      abs_of_nonpos <| log_nonpos (by linarith) (by linarith)]
+  _ ≤ (-t ^ 2 / (1 / 4) * log (3 / 4)) / (log (1 + t) * -log (1 - t)) := by
+    gcongr
+    · apply mul_nonneg
+      · apply log_nonneg; linarith
+      · apply neg_nonneg.mpr <| log_nonpos _ _ <;> linarith
+    linarith
+  _ ≤ (-t ^ 2 / (1 / 4) * log (3 / 4)) / (3 / 4 * t * t) := by
+    gcongr
+    apply mul_nonneg_of_nonpos_of_nonpos
+    · apply div_nonpos_of_nonpos_of_nonneg _ (by norm_num)
+      apply neg_le.mp
+      simpa using sq_nonneg t
+    · apply log_nonpos <;> norm_num
+  _ = _ := by
+    rw [(by field : (3 : ℝ) / 4 = (4 / 3)⁻¹), log_inv]
+    field
 
 @[blueprint
   "li-approx"
   (title := "li approximation")
-  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{\log(4/3)}{\log(3/2) \log 2} \eps)$. -/)
+  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{16\log(4/3)}{3} \eps)$. -/)
   (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
   (latexEnv := "sublemma")
   (discussion := 768)]
 theorem li.eq
     (x ε : ℝ) (hx : x ≥ 2) (hε1 : 0 < ε) (hε2 : ε ≤ 1) : ∃ E,
     li x = ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)), 1 / log t + E ∧
-    |E| ≤ log (4 / 3) / (log (3 / 2) * log 2) * ε := by
+    |E| ≤ 16 *log (4 / 3) / 3 * ε := by
     sorry
 
 @[blueprint
