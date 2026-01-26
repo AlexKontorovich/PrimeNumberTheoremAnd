@@ -1,6 +1,7 @@
 import Architect
 import Mathlib.Topology.Order.Basic
 import Mathlib.NumberTheory.PrimeCounting
+import LeanCert.Core.LogBounds
 
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 
@@ -53,7 +54,12 @@ theorem log_le (t : ℝ) (ht : t > -1) : log (1 + t) ≤ t :=
 theorem log_ge
     (t s : ℝ) (ht : t ≥ 0) (hs : s > 0) :
     t - t ^ 2 / (2 * s ^ 2) ≤ log (1 + t) := by
-    sorry
+  -- Note: This bound only holds for s ≤ 1. For s > 1, the LHS exceeds log(1+t).
+  -- The base case t - t²/2 ≤ log(1+t) is proven in LeanCert.Core.log_lower_taylor.
+  -- For s ≤ 1: t²/(2s²) ≥ t²/2, so t - t²/(2s²) ≤ t - t²/2 ≤ log(1+t) ✓
+  -- For s > 1: The claim t - t²/(2s²) ≤ log(1+t) approaches t ≤ log(1+t) which is FALSE.
+  -- TODO: Either add s ≤ 1 constraint or revise the blueprint.
+  sorry
 
 @[blueprint
   "log_lower_2"
@@ -64,8 +70,8 @@ theorem log_ge
   (discussion := 766)]
 theorem log_ge'
     (t t₀ : ℝ) (ht : 0 ≤ t) (ht0 : t ≤ t₀) (ht0' : t₀ < 1) :
-    (t / t₀) * log (1 - t₀) ≤ log (1 - t) := by
-    sorry
+    (t / t₀) * log (1 - t₀) ≤ log (1 - t) :=
+  LeanCert.Core.log_ge' t t₀ ht ht0 ht0'
 
 @[blueprint
   "symm_inv_log"
@@ -77,7 +83,9 @@ theorem log_ge'
 theorem symm_inv_log
     (t : ℝ) (ht : 0 < t) (ht' : t ≤ 1 / 2) :
     |1 / log (1 + t) + 1 / log (1 - t)| ≤ log (4 / 3) / (4 / 3) := by
-    sorry
+  -- Blueprint bound is too tight: g(t) → 1 as t → 0⁺, but log(4/3)/(4/3) ≈ 0.216.
+  -- Correct bound is |g(t)| ≤ 2 for t ∈ (0, 1), or ≤ 4/3 for t ∈ (0, 1/2].
+  sorry
 
 @[blueprint
   "li-approx"
