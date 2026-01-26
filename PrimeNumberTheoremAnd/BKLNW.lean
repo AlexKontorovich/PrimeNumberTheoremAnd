@@ -205,22 +205,11 @@ theorem thm_1a_table {b M m : ℝ} (h_check : check_row_prop (b, M, m)) {x : ℝ
   check_row_implies_bound h_check hx
 
 lemma row_1_checked : check_row_prop (20, 4.2676e-5, 9.1639e-5) := by
-  norm_num [check_row_prop, Pre_inputs.default, BKLNW_app.table_8_ε, RS_prime.c₀, exp_neg, exp_neg, exp_neg]
-  suffices h_exp : (4267 / 100000000 : ℝ) + (103883 / 100000) *
-      (exp (-10) + exp (-40 / 3) + exp (-16)) ≤ 91639 / 1000000000 by
-    convert h_exp using 1; norm_num [exp_neg]
-  field_simp
-  have := Real.exp_neg_one_lt_d9 ; norm_num1 at * ; rw [ show Real.exp ( -10 ) =
-  (exp (-1)) ^ 10 by rw [← exp_nat_mul]; ring_nf, show exp (- (40 / 3)) = (exp (-1)) ^ (40 / 3 : ℝ) by
-    rw [← exp_mul]; ring_nf, show exp (-16) = (exp (-1)) ^ 16 by rw [← exp_nat_mul]; ring_nf]
-  have : (426700000 + 10388300000000 * ((919698603 / 2500000000 : ℝ) ^ 10 +
-      (919698603 / 2500000000 : ℝ) ^ (40 / 3 : ℝ) + (919698603 / 2500000000 : ℝ) ^ 16)) * 1000000000
-        ≤ 916390000000000000 := by
-    rw [show (40 / 3 : ℝ) = 13 + 1 / 3 by norm_num, rpow_add] <;> norm_num
-    let y : ℝ := (919698603 / 2500000000 : ℝ) ^ (1 / 3 : ℝ)
-    have : y^3 = 919698603 / 2500000000 := by rw [← rpow_natCast, ← rpow_mul] <;> norm_num
-    nlinarith [sq_nonneg (y^2)]
-  exact le_trans (by gcongr) this
+  norm_num [check_row_prop, Pre_inputs.default, BKLNW_app.table_8_ε, RS_prime.c₀]
+  rw [← neg_one_mul 10, ← neg_one_mul (40 / 3), ← neg_one_mul 16, exp_mul, exp_mul, exp_mul]
+  grw [exp_neg_one_lt_d9]
+  suffices (0.3678794412 : ℝ) ^ (40 / 3 : ℝ) < 0.00000162 by grw [this]; norm_num only
+  rw [← pow_lt_pow_iff_left₀ (by positivity) (n := 3), ← rpow_mul_natCast] <;> norm_num only
 
 @[blueprint
   "bklnw-cor-2-1"
