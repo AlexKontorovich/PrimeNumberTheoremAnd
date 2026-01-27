@@ -1,6 +1,7 @@
 import Architect
 import Mathlib.MeasureTheory.Measure.Stieltjes
 import PrimeNumberTheoremAnd.SecondaryDefinitions
+import PrimeNumberTheoremAnd.RosserSchoenfeldPrime_tables
 
 blueprint_comment /--
 \section{The prime number bounds of Rosser and Schoenfeld}\label{rs-prime-sec}
@@ -542,7 +543,7 @@ theorem mertens_first_theorem' :
       apply abs_nonneg
     · simpa using integrableOn_deriv_inv.1.abs
 
-def c₀ : ℝ := 1.03883
+
 
 @[blueprint
   "rs-psi-upper"

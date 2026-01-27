@@ -1,6 +1,7 @@
 import PrimeNumberTheoremAnd.Auxiliary
 import PrimeNumberTheoremAnd.BKLNW
 import PrimeNumberTheoremAnd.BKLNW_app
+import PrimeNumberTheoremAnd.BKLNW_tables
 import PrimeNumberTheoremAnd.BorelCaratheodory
 import PrimeNumberTheoremAnd.BrunTitchmarsh
 import PrimeNumberTheoremAnd.Buthe
