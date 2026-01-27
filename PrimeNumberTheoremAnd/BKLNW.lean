@@ -191,14 +191,33 @@ noncomputable def Table_14 : List (ℝ × ℝ × ℝ) := [
   (25000, 7.5724e-50, 7.5724e-50)
 ]
 
+def check_row_prop (row : ℝ × ℝ × ℝ) : Prop :=
+  let (b, M, m) := row
+  20 ≤ b ∧
+  Pre_inputs.default.ε b ≤ M ∧
+  Pre_inputs.default.ε b + RS_prime.c₀ * (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5)) ≤ m
+
 @[blueprint
   "bklnw-thm-1a-explicit"
   (statement := /-- See \cite[Table 14]{BKLNW} for values of $m_0$ and $M_0$. -/)
-  (latexEnv := "theorem")]
-theorem thm_1a_table {X₀ m₀ M₀ : ℝ} (h : (X₀, M₀, m₀) ∈ Table_14) {x : ℝ} (hx : x ≥ X₀) :
-  x * (1 - m₀) ≤ θ x ∧ θ x ≤ x * (1 + M₀) :=
-  by sorry
+  (latexEnv := "theorem")
+  (discussion := 801)]
+theorem thm_1a_table {b M m : ℝ} (h_check : check_row_prop (b, M, m)) {x : ℝ} (hx : x ≥ exp b) :
+    x * (1 - m) ≤ θ x ∧ θ x ≤ x * (1 + M) := by
+  obtain ⟨hb, hM, hm⟩ := h_check
+  have := thm_1a (exp_le_exp.mpr hb) (exp_le_exp.mpr hb) hx hx
+  simp only at hm hM this
+  simp only [log_exp b, rpow_def_of_pos (exp_pos b)] at this
+  have : 0 ≤ x := (exp_pos b).le.trans hx
+  grw [← hm, ← hM]
+  grind
 
+lemma row_1_checked : check_row_prop (20, 4.2676e-5, 9.1639e-5) := by
+  norm_num [check_row_prop, Pre_inputs.default, BKLNW_app.table_8_ε, RS_prime.c₀]
+  rw [← neg_one_mul 10, ← neg_one_mul (40 / 3), ← neg_one_mul 16, exp_mul, exp_mul, exp_mul]
+  grw [exp_neg_one_lt_d9]
+  suffices (0.3678794412 : ℝ) ^ (40 / 3 : ℝ) < 0.00000162 by grw [this]; norm_num only
+  rw [← pow_lt_pow_iff_left₀ (by positivity) (n := 3), ← rpow_mul_natCast] <;> norm_num only
 
 @[blueprint
   "bklnw-cor-2-1"
@@ -714,8 +733,8 @@ noncomputable def a₂ : ℝ → ℝ := Inputs.default.a₂
   (latexEnv := "corollary")
   (discussion := 743)]
 theorem cor_5_1 {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
-    ψ x - θ x < a₁ b * x ^ (1 / 2 : ℝ) + a₂ b * x ^ (1 / 3 : ℝ) := by
-  convert BKLNW.thm_5 (BKLNW.Inputs.default) hb hx using 1
+    ψ x - θ x < a₁ b * x ^ (1 / 2 : ℝ) + a₂ b * x ^ (1 / 3 : ℝ) :=
+  thm_5 Inputs.default hb hx
 
 def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
   [(20, 1.4263, 4)
