@@ -303,7 +303,7 @@ noncomputable def table_8_ε (b : ℝ) : ℝ := sInf { ε | ∃ p ∈ table_8, p
 /-- Simplified form of table -/
 noncomputable def table_8_ε' (b : ℝ) : ℝ :=
   if b < 20 then 1   -- junk value
-  else if b < 21 then 4.2670e-5
+  else if b < 21 then 4.26760e-5
   else if b < 22 then 2.58843e-5
   else if b < 23 then 1.56996e-5
   else if b < 24 then 9.52229e-6
