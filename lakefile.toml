@@ -28,7 +28,7 @@ git = "https://github.com/PatrickMassot/checkdecls.git"
 [[require]]
 name = "leancert"
 git = "https://github.com/alerad/leancert"
-rev = "main"
+rev = "v4.27.0"
 
 [[lean_lib]]
 name = "PrimeNumberTheoremAnd"
