@@ -552,7 +552,8 @@ theorem psi_le_bound_large (y : ℝ) (hy : 1e19 < y) :
       · have := exp_one_gt_d9.le
         rw [show exp 44 = (exp 1) ^ 44 by rw [← exp_nat_mul]; norm_num]
         exact lt_of_lt_of_le (by norm_num) <| pow_le_pow_left₀ (by positivity) this _
-    norm_num [BKLNW_app.table_8_ε, h_log_approx]; norm_num at *
+    grw [BKLNW_app.table_8_ε.le_simp (19 * log 10) (by grind)]
+    norm_num [BKLNW_app.table_8_ε', h_log_approx]; norm_num at *
     field_simp
     rw [if_neg (by linarith), if_neg (by linarith), if_neg (by linarith),
         if_neg (by linarith), if_neg (by linarith), if_neg (by linarith),

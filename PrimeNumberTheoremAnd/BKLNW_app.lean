@@ -1,6 +1,7 @@
 import PrimeNumberTheoremAnd.ZetaSummary
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
+import PrimeNumberTheoremAnd.BKLNW_app_tables
 
 blueprint_comment /--
 \section{Appendix A of BKLNW}\label{bklnw-app-sec}
@@ -334,66 +335,6 @@ blueprint_comment /--
 Note: This thesis of Bhattacharjee \cite{bhattacharjee2023survey} will be a good resource when formalizing this result.
 -/
 
-noncomputable def table_8_ε (b : ℝ) : ℝ :=
-  if b < 20 then 1   -- junk value
-  else if b < 21 then 4.2670e-5
-  else if b < 22 then 2.58843e-5
-  else if b < 23 then 1.56996e-5
-  else if b < 24 then 9.52229e-6
-  else if b < 25 then 5.77556e-6
-  else if b < 30 then 3.50306e-6
-  else if b < 35 then 2.87549e-7
-  else if b < 40 then 2.36034e-8
-  else if b < 45 then 1.93378e-8
-  else if b < 50 then 1.09073e-8
-  else if b < 100 then 1.11990e-9
-  else if b < 200 then 2.45299e-12
-  else if b < 300 then 2.18154e-12
-  else if b < 400 then 2.09022e-12
-  else if b < 500 then 2.03981e-12
-  else if b < 600 then 1.99986e-12
-  else if b < 700 then 1.98894e-12
-  else if b < 800 then 1.97643e-12
-  else if b < 900 then 1.96710e-12
-  else if b < 1000 then 1.95987e-12
-  else if b < 1500 then 1.94751e-12
-  else if b < 2000 then 1.93677e-12
-  else if b < 2500 then 1.92279e-12
-  else if b < 3000 then 9.06304e-13
-  else if b < 3500 then 4.59972e-14
-  else if b < 4000 then 2.48641e-15
-  else if b < 4500 then 1.42633e-16
-  else if b < 5000 then 8.68295e-18
-  else if b < 5500 then 5.63030e-19
-  else if b < 6000 then 3.91348e-20
-  else if b < 6500 then 2.94288e-21
-  else if b < 7000 then 2.38493e-22
-  else if b < 7500 then 2.07655e-23
-  else if b < 8000 then 1.96150e-24
-  else if b < 8500 then 1.97611e-25
-  else if b < 9000 then 2.12970e-26
-  else if b < 9500 then 2.44532e-27
-  else if b < 10000 then 2.97001e-28
-  else if b < 10500 then 3.78493e-29
-  else if b < 11000 then 5.10153e-30
-  else if b < 11500 then 7.14264e-31
-  else if b < 12000 then 1.04329e-31
-  else if b < 12500 then 1.59755e-32
-  else if b < 13000 then 2.53362e-33
-  else if b < 13500 then 4.13554e-34
-  else if b < 14000 then 7.21538e-35
-  else if b < 15000 then 1.22655e-35
-  else if b < 16000 then 4.10696e-37
-  else if b < 17000 then 1.51402e-38
-  else if b < 18000 then 6.20397e-40
-  else if b < 19000 then 2.82833e-41
-  else if b < 20000 then 1.36785e-42
-  else if b < 21000 then 7.16209e-44
-  else if b < 22000 then 4.11842e-45
-  else if b < 23000 then 2.43916e-46
-  else if b < 24000 then 1.56474e-47
-  else if b < 25000 then 1.07022e-48
-  else 7.57240e-50
 
 @[blueprint
   "bknlw-theorem-2"
@@ -420,7 +361,9 @@ theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
   grw [bklnw_cor_15_1 b hb1 hb2 table_8_ε (fun b₀ hb₀ x hx ↦ by
     grw [Eψ, div_le_iff₀ (lt_of_lt_of_le (by positivity) hx), theorem_2 b₀ hb₀.le x hx]) x hx]
   apply max_le_max_left
-  suffices 43 < 19 * Real.log 10 ∧ 19 * Real.log 10 < 44 by grind only [table_8_ε]
+  suffices 43 < 19 * Real.log 10 ∧ 19 * Real.log 10 < 44 by
+    grw [table_8_ε.le_simp (19 * log 10) (by grind)]
+    grind [table_8_ε']
   rw [← log_rpow (by positivity), lt_log_iff_exp_lt (by positivity),
     log_lt_iff_lt_exp (by positivity), ← exp_one_rpow 43, ← exp_one_rpow 44]
   exact ⟨by grw [Real.exp_one_lt_d9]; norm_num only, by grw [← Real.exp_one_gt_d9]; norm_num only⟩
