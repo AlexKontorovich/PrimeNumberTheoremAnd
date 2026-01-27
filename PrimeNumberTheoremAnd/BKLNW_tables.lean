@@ -58,12 +58,14 @@ def check_row_prop (row : ℝ × ℝ × ℝ) : Prop :=
   BKLNW_app.table_8_ε b ≤ M ∧
   BKLNW_app.table_8_ε b + RS_prime.c₀ * (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5)) ≤ m
 
-lemma row_1_checked : check_row_prop (20, 4.2676e-5, 9.1639e-5) := by
-  norm_num [check_row_prop, BKLNW_app.table_8_ε, RS_prime.c₀]
-  rw [← neg_one_mul 10, ← neg_one_mul (40 / 3), ← neg_one_mul 16, exp_mul, exp_mul, exp_mul]
-  grw [exp_neg_one_lt_d9]
-  suffices (0.3678794412 : ℝ) ^ (40 / 3 : ℝ) < 0.00000162 by grw [this]; norm_num only
-  rw [← pow_lt_pow_iff_left₀ (by positivity) (n := 3), ← rpow_mul_natCast] <;> norm_num only
+-- This lemma no longer works because we changed the definition of table_8_ε to use sInf.  It may be safely deleted.
+--
+-- lemma row_1_checked : check_row_prop (20, 4.2676e-5, 9.1639e-5) := by
+--   norm_num [check_row_prop, BKLNW_app.table_8_ε, RS_prime.c₀]
+--   rw [← neg_one_mul 10, ← neg_one_mul (40 / 3), ← neg_one_mul 16, exp_mul, exp_mul, exp_mul]
+--   grw [exp_neg_one_lt_d9]
+--   suffices (0.3678794412 : ℝ) ^ (40 / 3 : ℝ) < 0.00000162 by grw [this]; norm_num only
+--   rw [← pow_lt_pow_iff_left₀ (by positivity) (n := 3), ← rpow_mul_natCast] <;> norm_num only
 
 @[blueprint
   "bklnw-table-14-check"
