@@ -74,51 +74,6 @@ theorem g_alt (t : ℝ) (ht_pos : 0 < t) (ht_lt : t < 1) :
     g t = log (1 - t^2) / (log (1 + t) * log (1 - t)) :=
   symmetricLogCombination_alt t ht_pos ht_lt
 
-/-! ### Numerical Integration Setup -/
-
-/-- The expression g_alt_expr represents log(1-t²)/(log(1+t)·log(1-t)).
-    This form is better for interval arithmetic as it avoids the apparent
-    singularity in the symmetric form. -/
-def g_alt_expr : Expr :=
-  Expr.mul
-    (Expr.log (Expr.add (Expr.const 1)
-      (Expr.neg (Expr.mul (Expr.var 0) (Expr.var 0)))))
-    (Expr.inv
-      (Expr.mul
-        (Expr.log (Expr.add (Expr.const 1) (Expr.var 0)))
-        (Expr.log (Expr.add (Expr.const 1) (Expr.neg (Expr.var 0))))))
-
-theorem g_alt_expr_supported : ExprSupportedWithInv g_alt_expr := by
-  unfold g_alt_expr
-  apply ExprSupportedWithInv.mul
-  · apply ExprSupportedWithInv.log
-    apply ExprSupportedWithInv.add
-    · exact ExprSupportedWithInv.const 1
-    · apply ExprSupportedWithInv.neg
-      apply ExprSupportedWithInv.mul <;> exact ExprSupportedWithInv.var 0
-  · apply ExprSupportedWithInv.inv
-    apply ExprSupportedWithInv.mul
-    · apply ExprSupportedWithInv.log
-      apply ExprSupportedWithInv.add
-      exact ExprSupportedWithInv.const 1
-      exact ExprSupportedWithInv.var 0
-    · apply ExprSupportedWithInv.log
-      apply ExprSupportedWithInv.add
-      exact ExprSupportedWithInv.const 1
-      exact ExprSupportedWithInv.neg (ExprSupportedWithInv.var 0)
-
-/-! ### Certified Bound Helpers -/
-
-def checkIntegralLowerBound (e : Expr) (I : IntervalRat) (n : ℕ) (c : ℚ) : Bool :=
-  match integratePartitionWithInv e I n with
-  | some J => decide (c ≤ J.lo)
-  | none => false
-
-def checkIntegralUpperBound (e : Expr) (I : IntervalRat) (n : ℕ) (c : ℚ) : Bool :=
-  match integratePartitionWithInv e I n with
-  | some J => decide (J.hi ≤ c)
-  | none => false
-
 /-! ### Integrability Lemmas -/
 
 /-- 1/log(1-u) is integrable on [ε, 1) for ε > 0. -/
