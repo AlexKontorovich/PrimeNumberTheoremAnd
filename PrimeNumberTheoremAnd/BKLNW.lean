@@ -192,8 +192,11 @@ theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + 1.93378e-8) * x := by
     have h_exp20 : 1e19 ≥ exp 20 := by grw [← exp_one_rpow 20, Real.exp_one_lt_d9]; norm_num only
     suffices Pre_inputs.default.ε (log 1e19) ≤ 1.93378e-8 by
       grw [(thm_1a h_exp20 h_exp20 hx.le hx.le).2, this, mul_comm]
-    unfold Pre_inputs.default BKLNW_app.table_8_ε
-    suffices 43 < log 1e19 ∧ log 1e19 < 44 by sorry
+    unfold Pre_inputs.default
+    suffices 43 < log 1e19 ∧ log 1e19 < 44 by
+      change BKLNW_app.table_8_ε (log 1e19) ≤ 1.93378e-8
+      grw [BKLNW_app.table_8_ε.le_simp (log 1e19) (by grind)]
+      grind [BKLNW_app.table_8_ε']
     rw [lt_log_iff_exp_lt (by positivity), log_lt_iff_lt_exp (by positivity),
       ← exp_one_rpow 43, ← exp_one_rpow 44]
     exact ⟨by grw [Real.exp_one_lt_d9]; norm_num only, by grw [← Real.exp_one_gt_d9]; norm_num only⟩
