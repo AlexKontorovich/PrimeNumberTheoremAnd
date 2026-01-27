@@ -1750,7 +1750,7 @@ $\sum_n \left(\frac{\sigma}{(n-\vartheta)^2} + \frac{\sigma}{(n+\vartheta)^2}\ri
 -/)
   (latexEnv := "lemma")
   (discussion := 572)]
-theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : ℝ} (ha : 0 < a)
+theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 < s.re) {a b : ℝ} (ha : 0 < a)
     (hab : a < b) (ha' : a.IsHalfInteger) (hb' : b.IsHalfInteger) (haτ : a > |s.im| / (2 * π)) :
     let ϑ : ℝ := s.im / (2 * π * a)
     let ϑ_minus : ℝ := s.im / (2 * π * b)
