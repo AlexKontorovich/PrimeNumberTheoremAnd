@@ -57,23 +57,6 @@ noncomputable def li2_symmetric : ℝ := ∫ t in (0:ℝ)..1, g t
 /-- Our li2_symmetric equals LeanCert's Li2.li2 (both are ∫₀¹ symmetricLogCombination). -/
 theorem li2_symmetric_eq_Li2_li2 : li2_symmetric = Li2.li2 := rfl
 
-/-! ### Key Properties from LeanCert -/
-
-/-- g(t) → 1 as t → 0⁺ (the removable singularity). -/
-theorem g_tendsto_one :
-    Filter.Tendsto g (nhdsWithin 0 (Ioi 0)) (nhds 1) :=
-  symmetricLogCombination_tendsto_one
-
-/-- |g(t)| ≤ 2 for t ∈ (0, 1/2]. -/
-theorem g_bounded (t : ℝ) (ht_pos : 0 < t) (ht_lt : t < 1/2) :
-    |g t| ≤ 2 :=
-  symmetricLogCombination_bounded t ht_pos ht_lt
-
-/-- g(t) = log(1-t²)/(log(1+t)·log(1-t)) for t ∈ (0, 1). -/
-theorem g_alt (t : ℝ) (ht_pos : 0 < t) (ht_lt : t < 1) :
-    g t = log (1 - t^2) / (log (1 + t) * log (1 - t)) :=
-  symmetricLogCombination_alt t ht_pos ht_lt
-
 /-! ### Integrability Lemmas -/
 
 /-- 1/log(1-u) is integrable on [ε, 1) for ε > 0. -/
@@ -87,7 +70,8 @@ theorem log_one_minus_integrable (ε : ℝ) (hε : 0 < ε) (hε1 : ε < 1) :
   have hbdd : ∀ u ∈ Ioc ε 1, ‖1 / log (1 - u)‖ ≤ 1 / ε := by
     intro u ⟨hε_lt_u, hu_le_1⟩
     by_cases hu_eq_1 : u = 1
-    · simp [hu_eq_1, log_zero]; positivity
+    · subst hu_eq_1; simp only [sub_self, log_zero, div_zero, norm_zero]
+      exact div_nonneg zero_le_one (le_of_lt hε)
     · have hu_lt_1 : u < 1 := lt_of_le_of_ne hu_le_1 hu_eq_1
       have h1mu_pos : 0 < 1 - u := by linarith
       have h1mu_lt1 : 1 - u < 1 := by linarith
