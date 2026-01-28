@@ -920,8 +920,9 @@ noncomputable def Table_15 : List (ℝ × (Fin 5 → ℝ)) := [
   $$ M_0 = \varepsilon(\log X_1). $$
   -/)
   (latexEnv := "theorem")]
-theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ x : ℝ} (hX₀ : X₀ > 1) (hX₁ : X₁ > 1) (hx₀ : x ≥ X₀)
-    (hx₁ : x ≥ X₁) : ∃ mₖ Mₖ, (x * (1 - mₖ / (log x)^k) ≤ θ x) ∧ (θ x ≤ x * (1 + Mₖ / (log x)^k)) := by
+theorem thm_1b (k : ℕ) (hk : k ≤ 5) {X₀ X₁ : ℝ} (hX₀ : X₀ > 1) (hX₁ : X₁ > 1) :
+    ∃ mₖ Mₖ, ∀ x, x ≥ X₀ → x ≥ X₁ →
+      (x * (1 - mₖ / (log x)^k) ≤ θ x) ∧ (θ x ≤ x * (1 + Mₖ / (log x)^k)) := by
   sorry
 
 /- [FIX]: This fixes a typo in the original paper https://arxiv.org/pdf/2002.11068. -/
