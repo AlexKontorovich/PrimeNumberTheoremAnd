@@ -7,6 +7,8 @@ blueprint_comment /--
 
 blueprint_comment /--
 In this section we establish the primary results of Fiori, Kadiri, and Swidinsky \cite{FKS}.
+
+TODO: reorganize this blueprint and add proofs.
 -/
 
 open Real MeasureTheory

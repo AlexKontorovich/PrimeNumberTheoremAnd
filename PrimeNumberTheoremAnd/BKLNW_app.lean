@@ -1,9 +1,10 @@
 import PrimeNumberTheoremAnd.ZetaSummary
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
+import PrimeNumberTheoremAnd.BKLNW_app_tables
 
 blueprint_comment /--
-\section{Appendix A of BKLNW}
+\section{Appendix A of BKLNW}\label{bklnw-app-sec}
 In this file we record the results from Appendix A of \cite{BKLNW}.  In this appendix, the authors derive explicit estimates on the error term in the prime number theorem for the Chebyshev function $\psi$ assuming various inputs on the zeros of the Riemann zeta function, including a zero-density estimate, a classical zero-free region, and numerical verification of RH up to some height.
 -/
 
@@ -32,7 +33,7 @@ noncomputable def Inputs.default : Inputs := {
   (title := "Equation (A.7)")
   (statement := /-- Let $x \geq e^{1000}$ and $T$ satisfies $50 < T \leq x$. Then
   $$ \frac{\psi(x) - x}{x} = \sum_{|\gamma| < T} \frac{x^{\rho - 1}}{\rho} + \mathcal{O}^*\left(\frac{2(\log x)^2}{T}\right) $$ where $A = \mathcal{O}^*(B)$ means $|A| \leq B$. -/)
-  (proof := /-- See Dudek, Theorem 1.3 (TODO: incorporate reference) -/)
+  (proof := /-- See \cite[Theorem 1.3]{Dudek}. -/)
   (latexEnv := "sublemma")]
 theorem bklnw_eq_A_7 (x T : ℝ) (hx : x ≥ exp 1000) (hT1 : 50 < T) (hT2 : T ≤ x) : ∃ E, ((ψ x - x) / x = riemannZeta.zeroes_sum (Set.Icc 0 1) (Set.Ioo (-T) T) (fun ρ ↦ x^(ρ-1) / ρ) + E ∧ ‖E‖ ≤ 2 * (log x)^2 / T) := by sorry
 
@@ -70,7 +71,7 @@ theorem bklnw_eq_A_9 (x T δ : ℝ) : riemannZeta.zeroes_sum (Set.Icc 0 1) (Set.
   (title := "Equation (A.10)")
   (statement := /-- We have
   $$ |\Sigma_1| \leq x^{-\delta} \left(\frac{1}{2\pi}(\log(T/2\pi))^2 + 1.8642\right). $$ -/)
-  (proof := /-- See Demichel, Lemma 2.10 (TODO: incorporate reference) -/)
+  (proof := /-- See \cite[Lemma 2.10]{STD2015}. -/)
   (latexEnv := "sublemma")]
 theorem bklnw_eq_A_10 (x T δ : ℝ) (hδ : 0.001 ≤ δ) : ‖Sigma₁ x T δ‖ ≤ exp (-δ * log x) * (1 / (2 * π) * (log (T / (2 * π)))^2 + 1.8642) := by sorry
 
@@ -86,9 +87,9 @@ noncomputable def s₁ (b δ T : ℝ) : ℝ := exp (-δ * b) * (1 / (2 * π) * (
   (title := "Equation (A.12)")
   (statement := /-- We have
   $$ |\Sigma_2| \leq 2 \sum_{k=0}^{K-1} \frac{\lambda^{k+1} x^{-\frac{1}{R \log(T/\lambda^k)}}}{T} N\left(1 - \delta, \frac{T}{\lambda^k}\right). $$ -/)
-  (proof := /-- An argument of Pintz (TODO: incorporate reference) is employed.  The interval $[0,T]$ is split into subintervals $[T/\lambda^{k+1}, T/\lambda^k]$ where $\lambda > 1$, $0 \leq k \leq K-1$, and $K = \lfloor \frac{\log T/H}{\log \lambda} \rfloor + 1$.  Then use the zero-free region to bound $\Re \rho$. -/)
+  (proof := /-- An argument of Pintz \cite[Pintz1980] is employed.  The interval $[0,T]$ is split into subintervals $[T/\lambda^{k+1}, T/\lambda^k]$ where $\lambda > 1$, $0 \leq k \leq K-1$, and $K = \lfloor \frac{\log T/H}{\log \lambda} \rfloor + 1$.  Then use the zero-free region to bound $\Re \rho$. -/)
   (latexEnv := "sublemma")]
-theorem bklnw_eq_A_12 (I : Inputs) (x T δ lambda : ℝ) (hlambda: 1 < lambda):
+theorem bklnw_eq_A_12 (I : Inputs) (x T δ lambda : ℝ) (hlambda : 1 < lambda) :
   let K := ⌊ log (T / I.H) / log lambda ⌋₊ + 1
   ‖Sigma₂ x T δ‖ ≤ 2 * ∑ k ∈ Finset.range K, (lambda^(k+1) * x^(- (1 / I.R * log (T / lambda^k))) / T) * I.ZDB.N (1 - δ) (T / lambda^k) := by sorry
 
@@ -100,7 +101,7 @@ theorem bklnw_eq_A_12 (I : Inputs) (x T δ lambda : ℝ) (hlambda: 1 < lambda):
   (proof := /-- Inserting (A.6) into the result of (A.12). -/)
   (latexEnv := "sublemma")
   (discussion := 751)]
-theorem bklnw_eq_A_13 (I : Inputs) (x T δ lambda : ℝ) (hlambda : 1 < lambda):
+theorem bklnw_eq_A_13 (I : Inputs) (x T δ lambda : ℝ) (hlambda : 1 < lambda) :
   let K := ⌊ log (T / I.H) / log lambda ⌋₊ + 1
   ‖Sigma₂ x T δ‖ ≤ (2 * lambda / T) *
     ∑ k ∈ Finset.range K,
@@ -199,7 +200,7 @@ noncomputable def Inputs.C (_ : Inputs) (σ : ℝ) : ℝ := 16 * σ / 3 - 10 / 3
   (statement := /-- Let $x_0 \geq 1000$ and let $\sigma \in [0.75, 1)$. For all $x \geq e^{x_0}$,
   $$ \frac{|\psi(x) - x|}{x} \leq A \left( \frac{\log x}{R} \right)^B \exp\left( -C \left( \frac{\log x}{R} \right)^{1/2} \right) $$
   where $A$, $B$, and $C$ are defined in Definitions \ref{bklnw-eq_A_20}, \ref{bklnw-eq_A_21}. -/)
-  (proof := /-- This is proven by Platt and Trudgian (TODO: give citation). -/)]
+  (proof := /-- This is proven by Platt and Trudgian \cite{PT2021} -/)]
 theorem thm_14 (I : Inputs) {x₀ σ x : ℝ} (hx₀ : x₀ ≥ 1000) (hσ : 0.75 ≤ σ ∧ σ < 1) (hx : x ≥ exp x₀) :
   Eψ x ≤ I.A σ x₀ * (log x / I.R)^(I.B σ) * exp (-I.C σ * (log x / I.R)^(1/2:ℝ)) := by sorry
 
@@ -248,7 +249,7 @@ theorem bklnw_lemma_15 (c B₀ B : ℝ)
   (statement := /-- Let $b$ be a positive constant such that $\log 11 < b \leq 19 \log(10)$. Then we have
   $$ \left|\frac{\psi(x) - x}{x}\right| \leq \max\left\{\frac{0.94}{e^{\frac{b}{2}}}, \varepsilon(19 \log 10)\right\} \quad \text{for all } x \geq e^b. $$
   Note that by Table 8, we have $\varepsilon(19 \log 10) = 1.93378 \cdot 10^{-8}$. -/)
-  (proof := /-- By (1.5) of Buthe2 (TODO: provide reference), (A.27) holds with $B_0 = 11$, $B = 10^{19}$, and $c = 0.94$. Thus we may apply Lemma \ref{bklnw-lemma_15} with $B_0 = 11$, $B = 10^{19}$, and $c = 0.94$ from (1.5) of Buthe2 to obtain the claim. -/)
+  (proof := /-- By \cite[(1.5)]{Buthe}, (A.27) holds with $B_0 = 11$, $B = 10^{19}$, and $c = 0.94$. Thus we may apply Lemma \ref{bklnw-lemma_15} with $B_0 = 11$, $B = 10^{19}$, and $c = 0.94$ from \cite[(1.5)]{Buthe} to obtain the claim. -/)
   (latexEnv := "corollary")]
 theorem bklnw_cor_15_1 (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10)
   (ε : ℝ → ℝ)
@@ -263,9 +264,37 @@ theorem bklnw_cor_15_1 (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10)
   (latexEnv := "definition")]
 noncomputable def ℓ (c ε ξ : ℝ) : ℝ := (c / sinh c) * (sin (sqrt ((ξ * ε)^2 - c^2))) / (sqrt ((ξ * ε)^2 - c^2))
 
-def ν (c α : ℝ) : ℝ := sorry
+open Complex in
+@[blueprint
+  "logan-function-ft"
+  (title := "Fourier transform of Logan's function")
+  (statement := /-- We define
+  $$ \eta_{c,\varepsilon}(\xi) = \frac{1}{2\pi} \int_{\R} e^{-it\xi} ℓ_{c,\varepsilon}(t) \, dt. $$ -/)
+  (latexEnv := "definition")]
+noncomputable def η (c ε ξ : ℝ) : ℝ := (1 / (2 * π)) * (∫ t : ℝ, exp (-I * t * ξ) * ℓ c ε t).re
 
-def μ (c α : ℝ) : ℝ := sorry
+noncomputable def pre_μ (c ε t : ℝ) : ℝ := - ∫ τ in Set.Ici t, η c ε τ
+
+@[blueprint
+  "buthe-mu-def"
+  (title := "Definition of Buthe's function mu")
+  (statement := /-- We define the auxiliary functions
+  \begin{align*}
+  \mu_{c,\varepsilon}(t) &=
+  \begin{cases}
+  -\int_t^{\infty} \eta_{c,\varepsilon}(\tau) d\tau & t < 0, \\
+  -\mu_{c,\varepsilon}(-t) & t > 0, \\
+  0 & t = 0,
+  \end{cases} \\
+  \nu_{c,\varepsilon}(t) &= \int_{-\infty}^t \mu_{c,\varepsilon}(\tau) d\tau.
+  \end{align*} -/)
+  (latexEnv := "definition")]
+noncomputable def μ (c ε t : ℝ) : ℝ :=
+  if t < 0 then pre_μ c ε t
+  else if t > 0 then - pre_μ c ε (-t)
+  else 0
+
+noncomputable def ν (c ε t : ℝ) : ℝ := ∫ τ in Set.Iic t, μ c ε τ
 
 @[blueprint
   "bklnw-thm_16"
@@ -280,20 +309,20 @@ def μ (c α : ℝ) : ℝ := sorry
   \mathcal{E}_2 &= 0.16 \frac{1 + x_0^{-1}}{\sinh c} e^{0.71\sqrt{c\varepsilon}} \log\left(\frac{c}{\varepsilon}\right), \quad \text{and} \\
   \mathcal{E}_3 &= \frac{2}{\sqrt{x_0}} \sum_{0 < \gamma < \frac{c}{\varepsilon}} \frac{\ell_{c,\varepsilon}(\gamma)}{\gamma} + \frac{2}{x_0}.
   \end{align*}
-  The $\nu_c(\alpha) = \nu_{c,1}(\alpha)$ and $\mu_c(\alpha) = \mu_{c,1}(\alpha)$ where $\nu_{c,\varepsilon}(\alpha)$ and $\mu_{c,\varepsilon}(\alpha)$ are defined by \cite[p.~2490]Buthe2 (TODO: provide reference). -/)
-  (proof := /-- This is Theorem 1 of Buthe2. -/)
+  The $\nu_c(\alpha) = \nu_{c,1}(\alpha)$ and $\mu_c(\alpha) = \mu_{c,1}(\alpha)$ where $\nu_{c,\varepsilon}(\alpha)$ and $\mu_{c,\varepsilon}(\alpha)$ are defined by \cite[p.~2490]{Buthe2}. -/)
+  (proof := /-- This is \cite[Theorem 1]{Buthe2}. -/)
   (latexEnv := "theorem")]
 theorem bklnw_thm_16 (ε c x₀ α : ℝ)
   (hε : 0 < ε ∧ ε < 1e-3)
   (hc : 3 ≤ c)
   (hx₀ : 100 ≤ x₀)
   (hα : 0 ≤ α ∧ α < 1)
-  (hB0 : (ε * exp (-ε) * x₀ * |ν c α|) / (2 * (μ c α)) > 1)
+  (hB0 : (ε * rexp (-ε) * x₀ * |ν c ε α|) / (2 * (μ c ε α)) > 1)
   (hRH : riemannZeta.RH_up_to (c / ε))
   (x : ℝ)
-  (hx : x ≥ exp (ε * α) * x₀) :
-  let E₁ := exp (2 * ε) * log (exp ε * x₀) *
-        (2 * ε * |ν c α| / log ((ε * exp (-ε) * x₀ * |ν c α|) / (2 * (μ c α))) +
+  (hx : x ≥ rexp (ε * α) * x₀) :
+  let E₁ := rexp (2 * ε) * log (rexp ε * x₀) *
+        (2 * ε * |ν c ε α| / log ((ε * rexp (-ε) * x₀ * |ν c ε α|) / (2 * (μ c ε α))) +
          2.01 * ε / sqrt x₀ +
          log (log (2 * x₀^2) / (2 * x₀))) + exp (ε * α) - 1
   let E₂ := 0.16 * (1 + x₀^(-1:ℝ)) / sinh c * exp (0.71 * sqrt (c * ε)) * log (c / ε)
@@ -301,66 +330,11 @@ theorem bklnw_thm_16 (ε c x₀ α : ℝ)
   Eψ x ≤ exp (ε * α) * (E₁ + E₂ + E₃) :=
     by sorry
 
-noncomputable def table_8_ε (b : ℝ) : ℝ :=
-  if b < 20 then 1   -- junk value
-  else if b < 21 then 4.2670e-5
-  else if b < 22 then 2.58843e-5
-  else if b < 23 then 1.56996e-5
-  else if b < 24 then 9.52229e-6
-  else if b < 25 then 5.77556e-6
-  else if b < 30 then 3.50306e-6
-  else if b < 35 then 2.87549e-7
-  else if b < 40 then 2.36034e-8
-  else if b < 45 then 1.93378e-8
-  else if b < 50 then 1.09073e-8
-  else if b < 100 then 1.11990e-9
-  else if b < 200 then 2.45299e-12
-  else if b < 300 then 2.18154e-12
-  else if b < 400 then 2.09022e-12
-  else if b < 500 then 2.03981e-12
-  else if b < 600 then 1.99986e-12
-  else if b < 700 then 1.98894e-12
-  else if b < 800 then 1.97643e-12
-  else if b < 900 then 1.96710e-12
-  else if b < 1000 then 1.95987e-12
-  else if b < 1500 then 1.94751e-12
-  else if b < 2000 then 1.93677e-12
-  else if b < 2500 then 1.92279e-12
-  else if b < 3000 then 9.06304e-13
-  else if b < 3500 then 4.59972e-14
-  else if b < 4000 then 2.48641e-15
-  else if b < 4500 then 1.42633e-16
-  else if b < 5000 then 8.68295e-18
-  else if b < 5500 then 5.63030e-19
-  else if b < 6000 then 3.91348e-20
-  else if b < 6500 then 2.94288e-21
-  else if b < 7000 then 2.38493e-22
-  else if b < 7500 then 2.07655e-23
-  else if b < 8000 then 1.96150e-24
-  else if b < 8500 then 1.97611e-25
-  else if b < 9000 then 2.12970e-26
-  else if b < 9500 then 2.44532e-27
-  else if b < 10000 then 2.97001e-28
-  else if b < 10500 then 3.78493e-29
-  else if b < 11000 then 5.10153e-30
-  else if b < 11500 then 7.14264e-31
-  else if b < 12000 then 1.04329e-31
-  else if b < 12500 then 1.59755e-32
-  else if b < 13000 then 2.53362e-33
-  else if b < 13500 then 4.13554e-34
-  else if b < 14000 then 7.21538e-35
-  else if b < 15000 then 1.22655e-35
-  else if b < 16000 then 4.10696e-37
-  else if b < 17000 then 1.51402e-38
-  else if b < 18000 then 6.20397e-40
-  else if b < 19000 then 2.82833e-41
-  else if b < 20000 then 1.36785e-42
-  else if b < 21000 then 7.16209e-44
-  else if b < 22000 then 4.11842e-45
-  else if b < 23000 then 2.43916e-46
-  else if b < 24000 then 1.56474e-47
-  else if b < 25000 then 1.07022e-48
-  else 7.57240e-50
+
+blueprint_comment /--
+Note: This thesis of Bhattacharjee \cite{bhattacharjee2023survey} will be a good resource when formalizing this result.
+-/
+
 
 @[blueprint
   "bknlw-theorem-2"
@@ -379,16 +353,19 @@ theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
    -/)
   (proof := /-- From Table 8 we have $\varepsilon(19 \log 10) = 1.93378 \cdot 10^{-8}$.
   Now apply Corollary \ref{bklnw-cor_15_1} and Theorem \ref{bklnw-theorem-2}. -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 775)]
 theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
-  ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) 1.93378e-8 := by sorry
-
-
-
-
-
-
-
-
+    ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) 1.93378e-8 := by
+  intro x hx
+  grw [bklnw_cor_15_1 b hb1 hb2 table_8_ε (fun b₀ hb₀ x hx ↦ by
+    grw [Eψ, div_le_iff₀ (lt_of_lt_of_le (by positivity) hx), theorem_2 b₀ hb₀.le x hx]) x hx]
+  apply max_le_max_left
+  suffices 43 < 19 * Real.log 10 ∧ 19 * Real.log 10 < 44 by
+    grw [table_8_ε.le_simp (19 * log 10) (by grind)]
+    grind [table_8_ε']
+  rw [← log_rpow (by positivity), lt_log_iff_exp_lt (by positivity),
+    log_lt_iff_lt_exp (by positivity), ← exp_one_rpow 43, ← exp_one_rpow 44]
+  exact ⟨by grw [Real.exp_one_lt_d9]; norm_num only, by grw [← Real.exp_one_gt_d9]; norm_num only⟩
 
 end BKLNW_app

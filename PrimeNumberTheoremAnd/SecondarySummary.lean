@@ -120,7 +120,7 @@ theorem JY.theorem_1_4 : Eπ.vinogradovBound 0.028 0.801 0.1853 23 := sorry
 
 blueprint_comment /-- TODO: input other results from JY -/
 
--- def HasPrimeInInterval (x h : ℝ) : Prop := ∃ p : ℕ, Prime p ∧ x < p ∧ p ≤ x + h
+blueprint_comment /-- The results below are taken from https://tme-emt-wiki-gitlab-io-9d3436.gitlab.io/Art09.html -/
 
 @[blueprint
   "thm:schoenfeld1976"
