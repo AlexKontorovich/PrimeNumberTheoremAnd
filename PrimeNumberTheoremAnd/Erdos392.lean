@@ -1720,14 +1720,24 @@ theorem Params.initial.score_bound (P : Params) :
       simp only [one_div, log_inv, mul_neg, ge_iff_le, gt_iff_lt, neg_mul, tsub_le_iff_right,
         ite_eq_left_iff, not_lt, nonpos_iff_eq_zero] at *
 
-      rw [← split_sum (f := g)]
+--      rw [← split_sum (f := g)]
+      set A1 : ℝ :=
+        ∑ x ∈ (P.n + 1).primesBelow with x ≤ P.L, g x
+      set A2 : ℝ :=
+        ∑ x ∈ (P.n + 1).primesBelow with P.L < x ∧ (x : ℝ) ≤ Real.sqrt (P.n : ℝ), g x
+
+      -- set A3 : ℝ :=
+      --   ∑ x ∈ (P.n + 1).primesBelow with
+      --     ((Real.sqrt (P.n : ℝ) < (x : ℝ))
+          -- ∧ (x ≤ P.n / P.L)), g x
+      set A4 : ℝ :=
+        ∑ x ∈ (P.n + 1).primesBelow with P.n / P.L < x, g x
       sorry
 
 
 -- now rewrite your goal’s LHS using hif and then finish by the lemma you already have
 -- (the one that gave the RHS bound for the “if + sum” expression)
 
-    sorry
   -- unfold Factorization.score
   -- have hw := initial.waste P
   -- -- hw : P.initial.waste ≤ P.n * log (1 - 1/(P.M : ℝ))⁻¹
