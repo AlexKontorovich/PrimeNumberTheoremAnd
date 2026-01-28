@@ -512,13 +512,96 @@ theorem mobius_lemma_2_sub_2 (x : ℝ) (K : ℕ) (hK : (K : ℝ) ≤ x) :
   (discussion := 530)]
 theorem mobius_lemma_2 (x : ℝ) (hx : x > 0) (K : ℕ) : R x =
     ∑ k ∈ Finset.range (K + 1), M (Real.sqrt (x / k)) -
-    ∫ u in 0..(K + 0.5), (M (Real.sqrt (x / u)) : ℝ) -
+    (∫ u in 0..(K + 0.5), (M (Real.sqrt (x / u)) : ℝ)) -
     ∑ k ∈ Finset.Ico (K + 1) (⌊x⌋₊ + 2),
-      ∫ u in (k - 0.5)..(k + 0.5), (M (Real.sqrt (x / u)) - M (Real.sqrt (x / k)) : ℝ) -
-    2 * x *
-      ∑ k ∈ Finset.Ico (K + 1) (⌊x⌋₊ + 1),
-        ∫ t in Real.sqrt (x / (k + 0.5))..Real.sqrt (x / (k - 0.5)),
-          ((M t - M (Real.sqrt (x / k))) : ℝ) / t ^ 3 := by sorry
-
+      ∫ u in (k - 0.5)..(k + 0.5), (M (Real.sqrt (x / u)) - M (Real.sqrt (x / k)) : ℝ) := by
+    let f : ℝ → ℝ := fun u ↦ (M (sqrt (x / u)) : ℝ)
+    have hM_zero {x y : ℝ} (hx : x > 0) (hxy : x < y):  M (Real.sqrt (x / y)) = 0 := by
+      rw [M, Nat.floor_eq_zero.mpr (show sqrt (x / y) < 1 by exact (sqrt_lt_sqrt (div_pos hx (lt_trans hx hxy)).le ((div_lt_one (lt_trans hx hxy)).mpr hxy)).trans_eq sqrt_one), Finset.Ioc_self]
+      simp
+    have hM_norm_le {t : ℝ} (ht : 0 ≤ t) : ‖(M t : ℝ)‖ ≤ t := by
+      have abs_M_le_floor (t : ℝ) : |M t| ≤ (⌊t⌋₊ : ℤ) := by
+        unfold M
+        refine le_trans (abs_sum_le_sum_abs (s := Finset.Ioc 0 ⌊t⌋₊) (f := fun n => moebius n)) ?_
+        refine le_trans
+          (Finset.sum_le_sum (s := Finset.Ioc 0 ⌊t⌋₊)
+            (f := fun n => |(moebius n : ℤ)|)
+            (g := fun _ => (1 : ℤ)) ?_) ?_
+        · intro n hn
+          have abs_moebius_le_one (n : ℕ) : |(moebius n : ℤ)| ≤ 1 := by
+            by_cases hsq : Squarefree n <;> simp [ArithmeticFunction.moebius, hsq]
+          exact abs_moebius_le_one n
+        · simp
+      calc
+        ‖(M t : ℝ)‖ = (|M t| : ℝ) := by simp
+        _ ≤ (⌊t⌋₊ : ℝ) := by exact_mod_cast (abs_M_le_floor t)
+        _ ≤ t := by simpa using (Nat.floor_le ht)
+    have hM_int {a b : ℝ} (ha : 0 ≤ a) (hab : a ≤ b) : IntervalIntegrable (fun u ↦ (M (Real.sqrt (x / u)) : ℝ)) volume a b := by
+      rw [intervalIntegrable_iff_integrableOn_Ioc_of_le hab]
+      refine Integrable.mono' (g := fun u : ℝ => Real.sqrt (x / u)) ?_ ?_ ?_
+      · have hdom_on : IntegrableOn (fun u : ℝ => Real.sqrt (x / u)) (Set.uIoc a b) volume := by
+          have hp : IntervalIntegrable (fun u : ℝ => u ^ (-(1/2 : ℝ))) volume a b := by
+            simpa using (intervalIntegral.intervalIntegrable_rpow' (a := a) (b := b) (r := (-(1/2:ℝ))) (by linarith))
+          have hdom_interval : IntervalIntegrable (fun u ↦ Real.sqrt (x / u)) MeasureTheory.volume a b := by
+            have h_eq : ∀ u ∈ Set.Ioo a b, Real.sqrt (x / u) = Real.sqrt x * u ^ (-(1 / 2 : ℝ)) := by
+              intro u hu; rw [Real.sqrt_div (le_of_lt hx), Real.sqrt_eq_rpow, Real.sqrt_eq_rpow, Real.rpow_neg (by linarith [hu.1])]; ring;
+            rw [intervalIntegrable_iff_integrableOn_Ioo_of_le hab] at *;
+            exact MeasureTheory.Integrable.congr (hp.const_mul _) (Filter.eventuallyEq_of_mem (MeasureTheory.ae_restrict_mem measurableSet_Ioo) fun u hu => by rw [h_eq u hu])
+          exact intervalIntegrable_iff.mp hdom_interval
+        rw [Set.uIoc_of_le hab] at hdom_on
+        simpa [MeasureTheory.IntegrableOn] using hdom_on
+      · refine aestronglyMeasurable ?_
+        have h_meas_floor : Measurable (fun u ↦ Nat.floor (sqrt (x / u))) :=
+          nat_floor (.sqrt (measurable_const.div measurable_id'))
+        have h_meas_sum : Measurable (fun n : ℕ ↦ ∑ k ∈ Ioc 0 n, (moebius k : ℤ)) := by fun_prop
+        exact Measurable.comp (by fun_prop) (h_meas_sum.comp h_meas_floor)
+      · filter_upwards [ae_restrict_mem (measurableSet_Ioc : MeasurableSet (Set.Ioc a b))] with u hu
+        simpa using (hM_norm_le (show sqrt (x / u) ≥ 0 by exact (sqrt_pos.mpr (show (x / u) > 0 by exact div_pos hx (lt_of_le_of_lt ha hu.1))).le))
+    by_cases hK : (K > x)
+    · have hfloor_K : ⌊x⌋₊ < K := by exact (Nat.floor_lt hx.le).mpr hK
+      rw [Ico_eq_empty_iff.mpr (show ¬((⌊x⌋₊ + 2) > (K + 1)) by grind), Finset.sum_empty, sub_zero]
+      rw [← Finset.sum_range_add_sum_Ico (m := (⌊x⌋₊ + 1)) (n := (K+1)) (fun (k : ℕ) => M (Real.sqrt (x / (k : ℝ)))) (by linarith)]
+      have : ∀ k ∈ Ico (⌊x⌋₊ + 1) (K + 1), M (sqrt (x / k)) = 0 := by
+        intro k hk
+        exact hM_zero hx (show k > x by exact lt_of_lt_of_le (Nat.lt_floor_add_one x) (by exact_mod_cast (mem_Ico.mp hk).1))
+      rw [sum_eq_zero this, add_zero, ← intervalIntegral.integral_add_adjacent_intervals (hM_int (by linarith) (by linarith)) (hM_int (by linarith) (by linarith))]
+      have hint_zero : (∫ (u : ℝ) in x..↑K + 0.5, f u) = 0 := by
+        have hf : (f =ᵐ[volume.restrict (Set.Ioc x (↑K + (1/2 : ℝ)))] 0) := by
+          filter_upwards [ae_restrict_mem measurableSet_Ioc] with u hu
+          rw [Pi.zero_apply]
+          unfold f
+          exact_mod_cast hM_zero hx hu.1
+        rw [intervalIntegral.integral_of_le (by linarith), MeasureTheory.integral_eq_zero_of_ae]
+        norm_num at *; exact hf
+      rw [hint_zero, add_zero, mobius_lemma_1, ← Nat.Ico_zero_eq_range, Finset.sum_eq_sum_Ico_succ_bot (by linarith)]
+      · simp [norm_le_zero_iff.mp (hM_norm_le (show 0 ≤ 0 by linarith)), show Finset.Ioc 0 ⌊x⌋₊ = Finset.Ico 1 (⌊x⌋₊ + 1) by ext; simp; omega]
+      · exact hx
+    · have h_int : (∫ (u : ℝ) in 0..x, ((M √(x / u)) : ℝ)) = (∫ (u : ℝ) in 0..↑⌊x⌋₊ + 3 / 2, ((M √(x / u)) : ℝ)) := by
+        rw [← intervalIntegral.integral_add_adjacent_intervals (hM_int (by linarith) (show 0 ≤ x by linarith)) (hM_int (by linarith) (show x ≤ (↑⌊x⌋₊ + (3 / 2)) by  have := Nat.lt_floor_add_one x; linarith))]
+        have : (∫ (u : ℝ) in x..(↑⌊x⌋₊ + 3 / 2), ((M √(x / u)): ℝ)) = 0 := by
+          refine intervalIntegral.integral_zero_ae ?_
+          refine ae_of_all _ ?_
+          intro a ha
+          simpa using (hM_zero hx (show a > x by exact (Set.uIoc_of_le (show x ≤ (⌊x⌋₊ + 3 / 2) by have := Nat.lt_floor_add_one x; linarith) ▸ ha).1))
+        simp [this]
+      have h_split : (∫ (u : ℝ) in 0..(⌊x⌋₊ + 3 / 2), ((M √(x / u)) : ℝ)) =
+        (∫ (u : ℝ) in 0..(K + 1/2), ((M √(x / u)) : ℝ)) + ∑ k ∈ Ico (K + 1) (⌊x⌋₊ + 2), ∫ (u : ℝ) in ↑k - 0.5..↑k + 0.5, ((M √(x / u)) : ℝ) := by
+        rw [← intervalIntegral.integral_add_adjacent_intervals (hM_int (by linarith) (show 0 ≤ ((K + (1/2)) : ℝ) by linarith)) (hM_int (by linarith) (by have :=  Nat.lt_floor_add_one x; linarith [hK]))]
+        rw [mobius_lemma_2_sub_2 x K (by linarith)]
+        norm_num
+      have hsum_split: ∑ k ∈ Ico (K + 1) (⌊x⌋₊ + 2), ∫ (u : ℝ) in (k : ℝ) - 1 / 2..(k : ℝ) + 1 / 2, ((M (Real.sqrt (x / u)) : ℝ) - (M (Real.sqrt x / Real.sqrt k) : ℝ)) =
+          - (∑ k ∈ Ico (K + 1) (⌊x⌋₊ + 2), (M (Real.sqrt x / Real.sqrt k) : ℝ) -
+            ∑ k ∈ Ico (K + 1) (⌊x⌋₊ + 2), ∫ (u : ℝ) in (k : ℝ) - 1 / 2..(k : ℝ) + 1 / 2, (M (Real.sqrt (x / u)) : ℝ)) := by
+              rw [← Finset.sum_sub_distrib, Finset.sum_congr rfl fun i hi => intervalIntegral.integral_sub ?_ ?_] <;> norm_num
+              rw [intervalIntegrable_iff_integrableOn_Ioo_of_le]
+              · have hi1 : (1 : ℝ) ≤ (i : ℝ) := by
+                  have : (1 : ℕ) ≤ i := le_trans (by exact Nat.succ_le_succ (Nat.zero_le K)) (mem_Ico.mp hi).1
+                  exact_mod_cast this
+                exact (intervalIntegrable_iff_integrableOn_Ioo_of_le (by linarith)).1 (hM_int (show (0 : ℝ) ≤ (i - (1/2)) by linarith) (by linarith))
+              · linarith
+      rw [mobius_lemma_1 x hx, mobius_lemma_2_sub_1 x hx K (by linarith), h_int, h_split]
+      norm_num
+      rw [hsum_split]
+      abel
 
 end MobiusLemma
