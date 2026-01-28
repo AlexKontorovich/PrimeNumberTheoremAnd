@@ -284,9 +284,9 @@ def table_8 : List (ℝ × ℝ) := [
   (12800, 8.4803e-34),
   (12900, 5.9154e-34),
   (13000, 4.1356e-34),
-  (14000, 1.2266e-34),
-  (15000, 4.1071e-36),
-  (16000, 1.5141e-37),
+  (14000, 1.2266e-35),
+  (15000, 4.1071e-37),
+  (16000, 1.5141e-38),
   (17000, 6.2041e-40),
   (18000, 2.8284e-41),
   (19000, 1.3679e-42),
@@ -367,7 +367,8 @@ noncomputable def table_8_ε' (b : ℝ) : ℝ :=
   (title := "BKLNW Table 8 vs expanded Table 8")
   (statement := /-- The value of $\eps(b)$ arising from Table 8 of \cite{BKLNW} is weaker than that from the expanded version of Table 8 available in the arXiv.-/)
   (proof := /-- Routine computation. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 807)]
 theorem table_8_ε.le_simp (b : ℝ) (hb : b ≥ 20) : table_8_ε b ≤ table_8_ε' b := by
   sorry
 
