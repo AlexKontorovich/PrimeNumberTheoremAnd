@@ -20,11 +20,10 @@ Therefore we introduce a generalized `ArithmeticFunction` called `GenArithFuncti
 @[blueprint
   "GenArithFunction"
   (statement := /-- Generalized arithmetic function on a type with multiplication and one. -/)]
-def GenArithFunction (N R : Type*) [Zero N] [Zero R] :=
+abbrev GenArithFunction (N R : Type*) [Zero N] [Zero R] :=
   ZeroHom N R
 
 variable {N R : Type*}
-
 
 /-
 We need to add an instance or something so that
