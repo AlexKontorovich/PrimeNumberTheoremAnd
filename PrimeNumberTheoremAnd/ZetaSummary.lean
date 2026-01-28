@@ -31,11 +31,12 @@ zero-free region for the Riemann zeta-function, arXiv:2212.06867.
   --/)]
 theorem HSW.main_theorem : riemannZeta.Riemann_vonMangoldt_bound 0.1038 0.2573 9.3675 := sorry
 
+
 -- TODO: move to separate file
 @[blueprint
   "mt_theorem_1"
   (title := "MT Theorem 1")
-  (statement := /-- One has a classical zero-free region with $R = 5.5666305$. -/)
+  (statement := /-- One has a classical zero-free region with $R = 5.5666305$. (A more conservative value of $R = 5.573412$ was announced in the paper using weaker numerical verification of the Riemann hypothesis.) -/)
   (uses := ["classical-zero-free-region"])
   (latexEnv := "theorem")]
 theorem MT_theorem_1 : riemannZeta.classicalZeroFree 5.5666305 := sorry
@@ -48,6 +49,22 @@ theorem MT_theorem_1 : riemannZeta.classicalZeroFree 5.5666305 := sorry
   (uses := ["classical-zero-free-region"])
   (latexEnv := "theorem")]
 theorem MTY_theorem : riemannZeta.classicalZeroFree 5.558691 := sorry
+
+-- TODO: move to separate file
+@[blueprint
+  "platt_RH"
+  (title := "Platt's numerical verification of RH")
+  (statement := /-- The Riemann hypothesis is verified up to $H_0 = 3.061 \times 10^{10}$. -/)
+  (latexEnv := "theorem")]
+theorem Platt_theorem : riemannZeta.RH_up_to 30610000000 := sorry
+
+-- TODO: move to separate file
+@[blueprint
+  "gourdon_wedeniwski"
+  (title := "Gourdon-Wedeniwski")
+  (statement := /-- The Riemann hypothesis is verified up to $H_0 = 2445999556030$. -/)
+  (latexEnv := "theorem")]
+theorem GW_theorem : riemannZeta.RH_up_to 2445999556030 := sorry
 
 -- TODO: move to separate file
 @[blueprint

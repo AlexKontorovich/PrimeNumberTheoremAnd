@@ -1408,10 +1408,9 @@ lemma hasDerivAt_Zeta0Integral {N : ℕ} (Npos : 0 < N) {s : ℂ} (hs : s ∈ {s
         simp only [sub_re, neg_re, one_re, neg_le_sub_iff_le_add, le_neg_add_iff_add_le] at this
         linarith
     · apply hasDerivAt_id _ |>.neg |>.sub_const
-  convert (hasDerivAt_integral_of_dominated_loc_of_deriv_le (x₀ := s) (F := F) (F' := F') (ε := ε)
-    (ε_pos := ε_pos) (μ := μ) (bound := bound) (hF_meas := hF_meas) (hF_int := hF_int)
-    (hF'_meas := hF'_meas) (h_bound := h_bound) (bound_integrable := bound_integrable)
-    (h_diff := h_diff)).2 using 3
+  convert (hasDerivAt_integral_of_dominated_loc_of_deriv_le (F := F) (F' := F') (x₀ := s)
+    (s := Metric.ball s ε) (bound := bound) (μ := μ) (Metric.ball_mem_nhds s ε_pos)
+    hF_meas hF_int hF'_meas h_bound bound_integrable h_diff).2 using 3
   · ext a; simp only [one_div, F, f]; ring_nf
   · simp only [one_div, mul_neg, neg_mul, neg_inj, F', f]; ring_nf
 
@@ -3812,8 +3811,7 @@ lemma LogDerivZetaBndUnif :
     linarith
 
   have T2 : ∀⦃σ : ℝ⦄, 1 + A / Real.log |t| ^ 9 ≤ σ → A / Real.log |t| ^ 9 ≤ σ - 1 := by
-    intro σ'
-    intro hyp_σ'
+    intro σ' hyp_σ'
     calc
       A / Real.log |t| ^ 9 = (1 + A / Real.log |t| ^ 9) - 1 := by ring_nf
       _ ≤ σ' - 1 := by gcongr

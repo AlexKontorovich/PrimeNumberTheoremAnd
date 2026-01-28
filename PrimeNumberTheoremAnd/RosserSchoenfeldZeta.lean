@@ -2,11 +2,13 @@ import Architect
 import PrimeNumberTheoremAnd.ZetaDefinitions
 
 blueprint_comment /--
-\section{The zeta function bounds of Rosser and Schoenfeld}
+\section{The zeta function bounds of Rosser and Schoenfeld}\label{rs-zeta-sec}
 -/
 
 blueprint_comment /--
 In this section we formalize the zeta function bounds of Rosser and Schoenfeld.
+
+TODO: Add more results and proofs here, and reorganize the blueprint
 -/
 
 namespace RS

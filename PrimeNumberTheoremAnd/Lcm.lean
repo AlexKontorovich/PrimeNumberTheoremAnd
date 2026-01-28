@@ -136,6 +136,29 @@ theorem Criterion.prod_p_le_prod_q (c : Criterion) : 4 * ∏ i, c.p i < ∏ i, c
   rw [sub_pos, div_lt_one <| prod_pos fun i _ ↦ cast_pos.mpr (c.hq i).pos] at hR_pos
   exact_mod_cast hR_pos
 
+lemma Criterion.p_gt_two (c : Criterion) (i : Fin 3) : 2 < c.p i := by
+  have h_pi_gt_two : ∀ i, 1 < c.p i := fun i ↦ Nat.Prime.one_lt (c.hp i)
+  by_contra h_contra
+  interval_cases _ : c.p i; iterate 2 grind
+  · have := c.h_ord_1; have := c.h_ord_2; have := c.h_ord_3; fin_cases i
+    · simp_all only [Fin.isValue, Fin.zero_eta, cast_ofNat]
+      rw [Real.sqrt_lt] at * <;> norm_cast at * <;>
+      linarith [h_pi_gt_two 0, h_pi_gt_two 1, h_pi_gt_two 2, c.hp_mono (show 0 < 1 by decide),
+        c.hp_mono (show 1 < 2 by decide), c.hq_mono (show 0 < 1 by decide),
+        c.hq_mono (show 1 < 2 by decide)]
+    · grind [c.hp_mono (show 0 < 1 by decide) , c.hp_mono (show 1 < 2 by decide)]
+    · grind [h_pi_gt_two 0, h_pi_gt_two 1, h_pi_gt_two 2, c.hp_mono (show 0 < 1 by decide),
+        c.hp_mono (show 1 < 2 by decide)]
+
+lemma Criterion.q_gt_two (c : Criterion) (i : Fin 3) : 2 < c.q i := by
+  have h_q_gt_two : ∀ i, 2 < c.q i := fun i ↦ by
+    have h_q_gt_p : ∀ i, c.p 2 < c.q i := fun i ↦ by
+      fin_cases i <;> linarith! [c.hp_mono <| show 0 < 1 by decide, c.hp_mono <|
+        show 1 < 2 by decide, c.hq_mono <| show 0 < 1 by decide, c.hq_mono <|
+        show 1 < 2 by decide, c.h_ord_2, c.h_ord_3]
+    grind [c.p_gt_two 2]
+  exact h_q_gt_two i
+
 blueprint_comment /--
 \subsection{Factorisation of \(L_n\) and construction of a competitor}
 -/
@@ -155,6 +178,91 @@ lemma Criterion.L'_pos (c : Criterion) : 0 < c.L' :=
 
 lemma Criterion.L_eq_prod_q_mul_L' (c : Criterion) : L c.n = (∏ i, c.q i) * c.L' := by
   rw [L', Nat.mul_div_cancel' c.prod_q_dvd_L]
+
+lemma Criterion.val_two_L' (c : Criterion) : (c.L').factorization 2 = Nat.log 2 c.n := by
+  have h_lcm : ∀ n : ℕ, n ≥ 1 → Nat.factorization (L n) 2 = Nat.log 2 n := by
+    have h_lcm_exp : ∀ n : ℕ, n ≥ 1 → (Nat.factorization (Finset.lcm (Finset.Icc 1 n)
+        (fun x ↦ x)) 2) = Finset.sup (Finset.Icc 1 n) (fun x ↦ Nat.factorization x 2) := by
+      intros n hn
+      have h_lcm_exp : ∀ {S : Finset ℕ}, (∀ x ∈ S, x ≠ 0) → (Nat.factorization (Finset.lcm S
+          (fun x ↦ x)) 2) = Finset.sup S (fun x ↦ Nat.factorization x 2) := by
+        intro S hS
+        induction S using Finset.induction with
+        | empty => simp
+        | insert x S hxS ih =>
+            simp_all only [lcm_insert]
+            erw [Nat.factorization_lcm] <;> simp_all
+      exact h_lcm_exp fun x hx ↦ by linarith [Finset.mem_Icc.mp hx]
+    have h_sup : ∀ n : ℕ, n ≥ 1 → Finset.sup (Finset.Icc 1 n) (fun x ↦ Nat.factorization x 2) =
+       Nat.log 2 n := fun n hn ↦ by
+      apply le_antisymm
+      · exact Finset.sup_le fun x hx ↦ Nat.le_log_of_pow_le (by decide) <|
+          Nat.le_trans (Nat.le_of_dvd (by linarith [Finset.mem_Icc.mp hx])
+          <| Nat.ordProj_dvd _ _) <| by linarith [Finset.mem_Icc.mp hx]
+      · refine le_trans ?_ (Finset.le_sup <| Finset.mem_Icc.mpr ⟨Nat.one_le_pow _ _ zero_lt_two,
+          Nat.pow_log_le_self 2 <| by linarith⟩)
+        norm_num [Nat.Prime.factorization_self (prime_two)]
+    aesop
+  rw [show c.L' = L c.n / (∏ i, c.q i) by rfl, Nat.factorization_div] <;> norm_num [h_lcm, c.hn]
+  · rw [Nat.factorization_eq_zero_of_not_dvd] <;> norm_num [Fin.prod_univ_three]
+    norm_num [Nat.mul_mod, Nat.mod_mod, Nat.odd_iff.mp (Nat.Prime.odd_of_ne_two (c.hq 0)
+      (by linarith [c.p_gt_two 0, c.q_gt_two 0])), Nat.odd_iff.mp (Nat.Prime.odd_of_ne_two (c.hq 1)
+      (by linarith [c.p_gt_two 1, c.q_gt_two 1])), Nat.odd_iff.mp (Nat.Prime.odd_of_ne_two (c.hq 2)
+      (by linarith [c.p_gt_two 2, c.q_gt_two 2]))]
+  · exact prod_q_dvd_L c
+
+lemma Criterion.val_p_L' (c : Criterion) (i : Fin 3) : (c.L').factorization (c.p i) = 1 := by
+  have h_pi_factor : Nat.factorization (L c.n) (c.p i) = 1 := by
+    have h_prime_factor : ∀ {p : ℕ}, Nat.Prime p → Real.sqrt c.n < p → p < c.n →
+        (Nat.factorization (L c.n)) p = 1 := @fun p hp hp_sqrt hp_lt_n ↦ by
+      have h_prime_factor : (Nat.factorization (L c.n)) p = 1 := by
+        have h_prime_factor_def : (Nat.factorization (L c.n)) p = Finset.sup (Finset.Icc 1 c.n)
+            (fun i ↦ Nat.factorization i p) := by
+          have h_prime_factor_def : (Nat.factorization (Finset.lcm (Finset.Icc 1 c.n) (fun i ↦ i)))
+              p = Finset.sup (Finset.Icc 1 c.n) (fun i ↦ Nat.factorization i p) := by
+            have h_lcm_factorization : ∀ {S : Finset ℕ}, (∀ i ∈ S, i ≠ 0) →
+                (Nat.factorization (Finset.lcm S (fun i ↦ i))) p =
+                Finset.sup S (fun i ↦ Nat.factorization i p) := by
+              intros S hS_nonzero
+              induction S using Finset.induction with
+              | empty => simp [Finset.lcm]
+              | insert i S hiS ih =>
+                  by_cases hi : i = 0
+                  · simp_all
+                  simp only [lcm_insert]
+                  erw [Nat.factorization_lcm] <;> simp_all
+            exact h_lcm_factorization fun i hi ↦ by linarith [Finset.mem_Icc.mp hi]
+          exact h_prime_factor_def
+        have h_prime_power : ∀ i ∈ Finset.Icc 1 c.n, Nat.factorization i p ≤ 1 := fun i hi ↦ by
+          have h_prime_power : p^2 > c.n := by
+            rw [Real.sqrt_lt] at hp_sqrt <;> norm_cast at * <;> nlinarith only [hp_sqrt, hp_lt_n]
+          exact le_of_not_gt fun h ↦ absurd (Nat.dvd_trans (pow_dvd_pow p h) (Nat.ordProj_dvd i p))
+            (Nat.not_dvd_of_pos_of_lt (Finset.mem_Icc.mp hi |>.1)
+            (by nlinarith [Finset.mem_Icc.mp hi |>.2]))
+        refine h_prime_factor_def.trans (le_antisymm (Finset.sup_le h_prime_power) ?_)
+        exact le_trans (by norm_num [hp]) (Finset.le_sup (f := fun i ↦ Nat.factorization i p)
+          (Finset.mem_Icc.mpr ⟨hp.pos, hp_lt_n.le⟩))
+      exact (Nat.add_right_cancel (congrFun (congrArg HAdd.hAdd ((h_prime_factor.symm))) p)).symm
+    apply h_prime_factor (c.hp i) (c.h_ord_1.trans_le (by
+      exact_mod_cast c.hp_mono.monotone (Nat.zero_le _))) (by
+        have := c.h_ord_2; have := c.h_ord_3; fin_cases i <;> linarith! [c.hp_mono <|
+          show 0 < 1 by decide, c.hp_mono <| show 1 < 2 by decide, c.hq_mono <|
+          show 0 < 1 by decide, c.hq_mono <| show 1 < 2 by decide])
+  have h_pi_factor_L' : Nat.factorization (L c.n) (c.p i) = Nat.factorization (c.L')
+      (c.p i) + Nat.factorization (∏ i, c.q i) (c.p i) := by
+    have h_pi_factor_L' : Nat.factorization (L c.n) = Nat.factorization (c.L') +
+        Nat.factorization (∏ i, c.q i) := by
+      rw [← Nat.factorization_mul] <;> norm_num [c.L'_pos.ne']
+      · rw [mul_comm, Criterion.L_eq_prod_q_mul_L']
+      · exact Finset.prod_ne_zero_iff.mpr fun i _ ↦ Nat.Prime.ne_zero (c.hq i)
+    aesop
+  have h_pi_not_div_q : ∀ j, ¬(c.p i ∣ c.q j) := by
+    intro j hj; have := c.hq j; have := c.hp i; simp_all only [Nat.prime_dvd_prime_iff_eq]
+    have := c.h_ord_2; have := c.h_ord_3; fin_cases i <;> fin_cases j <;> linarith! [c.hp_mono <|
+      show 0 < 1 by decide, c.hp_mono <| show 1 < 2 by decide, c.hq_mono <|
+      show 0 < 1 by decide, c.hq_mono <| show 1 < 2 by decide]
+  simp_all [Fin.prod_univ_three,Nat.factorization_mul,Nat.Prime.ne_zero (c.hq _),
+    Nat.factorization_eq_zero_of_not_dvd (h_pi_not_div_q _)]
 
 @[blueprint
   "lem:Lprime-def"
@@ -351,6 +459,45 @@ lemma Criterion.m_pos (c : Criterion) : 0 < c.m :=
 
 lemma Criterion.M_pos (c : Criterion) : 0 < c.M :=
   mul_pos (mul_pos (mul_pos (zero_lt_succ 3) (prod_pos fun i _ ↦ (c.hp i).pos)) c.m_pos) c.L'_pos
+
+lemma Criterion.val_two_M_ge_L' (c : Criterion) : (c.M).factorization 2 ≥ (c.L').factorization 2 + 2
+    := by
+  rw [show c.M = (4 * ∏ i, c.p i) * c.m * c.L' from rfl, Nat.factorization_mul]
+  · simp only [Fin.prod_univ_three, ne_eq, _root_.mul_eq_zero, OfNat.ofNat_ne_zero,
+      Nat.Prime.ne_zero (c.hp _), or_self, not_false_eq_true, Nat.ne_of_gt (Criterion.m_pos c),
+      factorization_mul]
+    rw [show (4 : ℕ) = 2 ^ 2 by norm_num, Nat.factorization_pow]; norm_num; ring_nf;
+      linarith [Nat.Prime.factorization_self (prime_two)]
+  · simp only [ne_eq, _root_.mul_eq_zero, OfNat.ofNat_ne_zero, prod_eq_zero_iff, mem_univ,
+    true_and, false_or, not_or, not_exists]
+    exact ⟨fun i ↦ Nat.Prime.ne_zero (c.hp i), Nat.ne_of_gt (c.m_pos)⟩
+  · exact Nat.ne_of_gt <| c.L'_pos
+
+lemma Criterion.val_p_M_ge_two (c : Criterion) (i : Fin 3) : (c.M).factorization (c.p i) ≥ 2 := by
+  have h_pi_factorization_M : (Nat.factorization (c.M)) (c.p i) =
+      (Nat.factorization (4 * ∏ i, c.p i)) (c.p i) + (Nat.factorization (c.m)) (c.p i) +
+      (Nat.factorization (c.L')) (c.p i) := by
+    rw [show c.M = (4 * ∏ i, c.p i) * c.m * c.L' by
+          exact Nat.add_zero (((4 * ∏ i, c.p i) * c.m).mul c.L'), Nat.factorization_mul,
+            Nat.factorization_mul]
+    iterate 3 simp [Finset.prod_ne_zero_iff.mpr fun i _ ↦ Nat.Prime.ne_zero (c.hp i),
+      Nat.ne_of_gt (Criterion.m_pos c)]
+    · simp only [ne_eq, _root_.mul_eq_zero, OfNat.ofNat_ne_zero, false_or, not_or]
+      exact ⟨Finset.prod_ne_zero_iff.mpr fun i _ ↦ Nat.Prime.ne_zero (c.hp i),
+        Nat.ne_of_gt (c.m_pos)⟩
+    · exact Nat.ne_of_gt (Criterion.L'_pos c)
+  simp_all only [Finset.prod_eq_prod_diff_singleton_mul (Finset.mem_univ i),
+    ge_iff_le, val_p_L' c i, reduceLeDiff]
+  rw [Nat.factorization_mul] <;> norm_num
+  · rw [Nat.factorization_mul]
+    · exact le_add_of_le_of_nonneg (le_add_of_nonneg_of_le (Nat.zero_le _)
+        (Nat.one_le_iff_ne_zero.mpr <| by simp [c.hp i])) (Nat.zero_le _)
+    · simp only [ne_eq, prod_eq_zero_iff, mem_sdiff, mem_univ, mem_singleton, true_and,
+      not_exists, not_and]
+      exact fun x hx ↦ Nat.Prime.ne_zero (c.hp x)
+    · exact Nat.Prime.ne_zero (c.hp i)
+  · exact ⟨Finset.prod_ne_zero_iff.mpr fun j hj ↦ Nat.Prime.ne_zero (c.hp j),
+      Nat.Prime.ne_zero (c.hp i)⟩
 
 @[blueprint
   "lem:M-basic"
@@ -625,6 +772,19 @@ blueprint_comment /--
 \subsection{Conclusion of the criterion}
 -/
 
+private lemma σnorm_ratio_ge_aux {k : ℕ} (n : ℕ) (hk : 2 ^ k ≤ n) :
+    (∑ i ∈ Finset.range (k + 3), (1 / 2 : ℝ) ^ i) / (∑ i ∈ Finset.range (k + 1), (1 / 2 : ℝ) ^ i) ≥
+      1 + 3 / (8 * n) := by
+    have h_sums : (∑ i ∈ Finset.range (k + 3), (1 / 2 : ℝ) ^ i) = 2 - (1 / 2) ^ (k + 2) ∧
+        (∑ i ∈ Finset.range (k + 1), (1 / 2 : ℝ) ^ i) = 2 - (1 / 2) ^ k := by
+      norm_num [geom_sum_eq]; ring_nf; norm_num
+    field_simp [h_sums]
+    rw [h_sums.1,h_sums.2]; ring_nf; norm_num
+    have h_inv : (n : ℝ)⁻¹ ≤ (1 / 2 : ℝ) ^ k := by
+      simpa using inv_anti₀ (by positivity) (mod_cast hk)
+    nlinarith [pow_pos (by norm_num : (0 : ℝ) < 1 / 2) k, pow_le_pow_of_le_one
+      (by norm_num : (0 : ℝ) ≤ 1 / 2) (by norm_num) (show k ≥ 0 by norm_num)]
+
 @[blueprint "lem:sigmaM-lower-final"
   (title := "Lower bound for \\(\\sigma(M)/M\\)")
   (statement := /--
@@ -668,11 +828,116 @@ blueprint_comment /--
 
   Finally, the contribution of all other primes is at least \(1\).
   -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 664)]
 theorem Criterion.σnorm_M_ge_σnorm_L'_mul (c : Criterion) :
     σnorm c.M ≥
       σnorm c.L' * (∏ i, (1 + 1 / (c.p i * (c.p i + 1 : ℝ)))) * (1 + 3 / (8 * c.n)) := by
-  sorry
+  have h_sigma_norm_M : (σnorm c.M) = (σnorm (c.L' : ℕ)) * (∏ p ∈ Nat.primeFactors c.M,
+      ((∑ i ∈ Finset.range (Nat.factorization c.M p + 1), (1 / p : ℝ) ^ i) /
+      (∑ i ∈ Finset.range (Nat.factorization (c.L' : ℕ) p + 1), (1 / p : ℝ) ^ i))) := by
+    have h_sigma_norm_prod : ∀ {n : ℕ}, n ≠ 0 → (σnorm n : ℝ) = (∏ p ∈ Nat.primeFactors n,
+        ((∑ i ∈ Finset.range (Nat.factorization n p + 1), (1 / p : ℝ) ^ i))) := by
+      intro n hn_ne_zero
+      have h_sigma_def : ((σ n) : ℝ) = (∏ p ∈ Nat.primeFactors n, (∑ i ∈ Finset.range
+          (Nat.factorization n p + 1), (p ^ i : ℝ))) := by
+        unfold σ
+        have h_sigma_def : ∀ {n : ℕ}, n ≠ 0 → (Nat.divisors n).sum (fun d ↦ d) =
+            ∏ p ∈ n.primeFactors, (∑ i ∈ Finset.range (Nat.factorization n p + 1), p ^ i) := by
+          exact fun {n} a ↦ sum_divisors a
+        convert congr_arg (( ↑ ) : ℕ → ℝ) (h_sigma_def hn_ne_zero) using 1 <;>
+        norm_num [ArithmeticFunction.sigma]
+      have h_sigma_def : (n : ℝ) = (∏ p ∈ Nat.primeFactors n, (p ^ (Nat.factorization n p) : ℝ)) :=
+        mod_cast Eq.symm (Nat.factorization_prod_pow_eq_self hn_ne_zero)
+      simp_all only [div_eq_mul_inv]
+      rw [← div_eq_mul_inv, ← Finset.prod_div_distrib]
+      refine Finset.prod_congr rfl fun p hp ↦ ?_
+      field_simp
+      rw [Finset.mul_sum _ _ _, ← Finset.sum_flip]
+      exact Finset.sum_congr rfl fun i hi ↦ by
+        rw [show ((1:ℝ) / ↑p) ^ i = 1 / ((↑p) ^ i) by simp]
+        rw [mul_one_div, eq_div_iff (pow_ne_zero _ <| Nat.cast_ne_zero.mpr <| Nat.ne_of_gt <|
+          Nat.pos_of_mem_primeFactors hp), ←pow_add, Nat.sub_add_cancel <|
+          Finset.mem_range_succ_iff.mp hi]
+    by_cases hM : c.M = 0 <;> by_cases hL' : c.L' = 0
+    · simp_all
+    · exact absurd hM (Nat.ne_of_gt (Criterion.M_pos c))
+    · exact absurd hL' (Nat.ne_of_gt (Criterion.L'_pos c))
+    · simp_all only [ne_eq, one_div, inv_pow, not_false_eq_true, prod_div_distrib]
+      rw [mul_div, eq_div_iff]
+      · rw [mul_comm, ← Finset.prod_subset (show c.L'.primeFactors ⊆ c.M.primeFactors from ?_)]
+        · intro p hp hpn; rw [Nat.factorization_eq_zero_of_not_dvd] <;> aesop
+        · intro p hp; simp_all only [mem_primeFactors, ne_eq, not_false_eq_true, and_true, true_and]
+          exact dvd_trans hp.2 (by exact ⟨(4 * ∏ i, c.p i) * c.m, by rw [Criterion.M]; ring⟩)
+      · exact Finset.prod_ne_zero_iff.mpr fun p hp ↦ ne_of_gt <| Finset.sum_pos
+          (fun _ _ ↦ inv_pos.mpr <| pow_pos (Nat.cast_pos.mpr <| Nat.pos_of_mem_primeFactors hp) _)
+          <| by norm_num
+  have h_ratio_terms (p : ℕ) (hp : p ∈ Nat.primeFactors c.M) : (∑ i ∈ Finset.range
+      (Nat.factorization c.M p + 1), (1 / p : ℝ) ^ i) / (∑ i ∈ Finset.range
+      (Nat.factorization (c.L' : ℕ) p + 1), (1 / p : ℝ) ^ i) ≥ if p ∈ Finset.image c.p Finset.univ
+      then (1 + 1 / (p * (p + 1) : ℝ)) else if p = 2 then (1 + 3 / (8 * c.n : ℝ)) else 1 := by
+    split_ifs
+    · obtain ⟨i, hi⟩ : ∃ i : Fin 3, p = c.p i := by grind
+      have h_ratio_p_i : (∑ i ∈ Finset.range (Nat.factorization c.M p + 1), (1 / p : ℝ) ^ i) /
+          (∑ i ∈ Finset.range (Nat.factorization (c.L' : ℕ) p + 1), (1 / p : ℝ) ^ i) ≥
+          (∑ i ∈ Finset.range 3, (1 / p : ℝ) ^ i) / (∑ i ∈ Finset.range 2, (1 / p : ℝ) ^ i) := by
+        rw [show Nat.factorization (c.L' : ℕ) p = 1 from hi ▸ c.val_p_L' i]
+        exact div_le_div_of_nonneg_right (Finset.sum_le_sum_of_subset_of_nonneg (Finset.range_mono
+          (by grind [c.val_p_M_ge_two i])) fun _ _ _ ↦ by positivity)
+          (Finset.sum_nonneg fun _ _ ↦ by positivity)
+      convert h_ratio_p_i using 1; norm_num [Finset.sum_range_succ]; ring_nf; field_simp; grind
+    · have h_geo_series : (∑ i ∈ Finset.range (Nat.factorization c.M 2 + 1), (1 / 2 : ℝ) ^ i)
+          / (∑ i ∈ Finset.range (Nat.factorization c.L' 2 + 1), (1 / 2 : ℝ) ^ i) ≥
+          (1 + 3 / (8 * c.n : ℝ)) := by
+        have h_geo_series : (∑ i ∈ Finset.range (Nat.factorization c.M 2 + 1), (1 / 2 : ℝ) ^ i)
+            / (∑ i ∈ Finset.range (Nat.factorization (c.L' : ℕ) 2 + 1), (1 / 2 : ℝ) ^ i) ≥
+            (∑ i ∈ Finset.range (Nat.factorization (c.L' : ℕ) 2 + 3), (1 / 2 : ℝ) ^ i) /
+            (∑ i ∈ Finset.range (Nat.factorization (c.L' : ℕ) 2 + 1), (1 / 2 : ℝ) ^ i) := by
+          exact div_le_div_of_nonneg_right (Finset.sum_le_sum_of_subset_of_nonneg
+            (Finset.range_mono (by linarith [val_two_M_ge_L' c])) fun _ _ _ ↦ by positivity)
+            (Finset.sum_nonneg fun _ _ ↦ by positivity)
+        refine le_trans ?_ h_geo_series
+        convert σnorm_ratio_ge_aux c.n _ using 1
+        exact c.val_two_L'.symm ▸ Nat.pow_log_le_self 2 (by linarith [c.hn])
+      aesop
+    · rw [ge_iff_le, le_div_iff₀] <;> norm_num
+      · refine Finset.sum_le_sum_of_subset_of_nonneg (Finset.range_mono (Nat.succ_le_succ ?_))
+          fun ?_ ?_ ?_ ↦ by positivity
+        have h_div : c.L' ∣ c.M := by
+          exact dvd_mul_left _ _
+        exact (Nat.factorization_le_iff_dvd (by aesop) (by aesop)) |>.2 h_div p
+      · exact Finset.sum_pos (fun _ _ ↦ inv_pos.mpr (pow_pos (Nat.cast_pos.mpr
+          (Nat.pos_of_mem_primeFactors hp)) _)) (by norm_num)
+  have h_prod_ratio_terms : (∏ p ∈ Nat.primeFactors c.M,
+      ((∑ i ∈ Finset.range (Nat.factorization c.M p + 1), (1 / p : ℝ) ^ i) /
+      (∑ i ∈ Finset.range (Nat.factorization (c.L' : ℕ) p + 1), (1 / p : ℝ) ^ i))) ≥
+      (∏ p ∈ Finset.image c.p Finset.univ, (1 + 1/(p * (p + 1) : ℝ)))*(1 + 3 / (8 * c.n : ℝ)) := by
+    refine le_trans ?_ (Finset.prod_le_prod ?_ h_ratio_terms)
+    · rw [Finset.prod_ite]
+      refine mul_le_mul ?_ ?_ (by positivity) (Finset.prod_nonneg fun _ _ ↦ by positivity)
+      · rw [Finset.prod_subset]
+        · simp only [mem_image, mem_univ, true_and, subset_iff, mem_filter, mem_primeFactors,
+            forall_exists_index, forall_apply_eq_imp_iff, exists_apply_eq_apply, and_true]
+          intro i; exact ⟨c.hp i, by
+            exact dvd_mul_of_dvd_left (dvd_mul_of_dvd_left (dvd_mul_of_dvd_right
+              (Finset.dvd_prod_of_mem _ (Finset.mem_univ _)) _) _) _, by
+              exact Nat.ne_of_gt (Criterion.M_pos c)⟩
+        · aesop
+      · rw [Finset.prod_ite]
+        by_cases h : 2 ∈ c.M.primeFactors <;> simp_all +decide only
+          [mem_primeFactors, true_and, prod_const]
+        · simp only [one_pow, mul_one]
+          refine le_self_pow₀ (M₀ := ℝ) (by norm_num ; positivity) ?_
+          · norm_num; exact ⟨2, Nat.prime_two, h.1, h.2, fun i ↦ by linarith [c.p_gt_two i], rfl⟩
+        · contrapose! h
+          refine ⟨dvd_mul_of_dvd_left ?_ _, Nat.ne_of_gt (Criterion.M_pos c)⟩
+          · exact dvd_mul_of_dvd_left (dvd_mul_of_dvd_left (by decide) _) _
+    · intro p hp; split_ifs <;> positivity
+  simp_all
+  rw [Finset.prod_image] at h_prod_ratio_terms <;> norm_num [Finset.prod_range_succ] at *
+  · simpa only [mul_assoc] using mul_le_mul_of_nonneg_left h_prod_ratio_terms <|
+      show 0 ≤ σnorm c.L' by exact div_nonneg (Nat.cast_nonneg _) <| Nat.cast_nonneg _
+  · simp [c.hp_mono.injective]
 
 
 
@@ -755,11 +1020,10 @@ inequality.  Here we will rely on the prime number theorem of Dusart \cite{Dusar
   and \(p_1 < p_2 < p_3\).
   Moreover, \(\sqrt{n} < p_1\)
   -/)
-  (proof := /-- Apply Theorem~\ref{thm:Dusart} successively with
+  (proof := /-- Apply Proposition~\ref{Dusart_prop_5_4} successively with
   \(x, x(1+1/\log^3 x), x(1+1/\log^3 x)^2\), keeping track of the resulting primes and bounds.
   For \(n\) large and \(x = \sqrt{n}\), we have \(\sqrt{n} < p_1\) as soon as the first interval
   lies strictly above \(\sqrt{n}\); this can be enforced by taking \(n\) large enough. -/)
-  (proofUses := ["thm:Dusart"])
   (latexEnv := "lemma")]
 theorem exists_p_primes {n : ℕ} (hn : n ≥ X₀ ^ 2) :
     ∃ p : Fin 3 → ℕ, (∀ i, Nat.Prime (p i)) ∧ StrictMono p ∧
@@ -984,26 +1248,7 @@ theorem prod_q_ge {n : ℕ} (hn : n ≥ X₀ ^ 2) :
       ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((i : ℕ) + 1 : ℝ) / n) := by
   rw [show ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((i : ℕ) + 1 : ℝ) / n) =
       ∏ i : Fin 3, (1 + (1 + 1 / (log √(n : ℝ)) ^ 3) ^ ((3 : ℝ) - (i : ℕ)) / n) by
-    rw [Fin.prod_univ_three, Fin.prod_univ_three]
-    conv =>
-      enter [1, 1, 1, 2, 1, 2]
-      equals 1 => simp
-    conv =>
-      enter [1, 1, 2, 2, 1, 2]
-      equals 2 => norm_cast
-    conv =>
-      enter [2, 1, 1, 2, 1, 2]
-      equals 3 => norm_cast
-    conv =>
-      enter [1, 2, 2, 1, 2]
-      equals 3 => norm_cast
-    conv =>
-      enter [2, 2, 2, 1, 2]
-      equals 1 => norm_cast
-    conv =>
-      enter [2, 1, 2, 2, 1, 2]
-      equals 2 => norm_cast
-    ring]
+    simp only [Fin.prod_univ_three, Fin.val_zero, Fin.val_one, Fin.val_two]; ring_nf]
   apply Finset.prod_le_prod (fun _ _ ↦ by positivity)
   intro i _
   suffices h : (1 : ℝ) / (exists_q_primes hn).choose i ≤

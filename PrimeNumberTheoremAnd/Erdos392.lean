@@ -1,8 +1,6 @@
 import Architect
-import Mathlib.Tactic
-import Mathlib.Algebra.BigOperators.Group.Multiset.Defs
-import Mathlib.NumberTheory.SmoothNumbers
-import Mathlib.NumberTheory.PrimeCounting
+import Mathlib.Analysis.SpecialFunctions.Stirling
+import Mathlib.NumberTheory.Bertrand
 import PrimeNumberTheoremAnd.Consequences
 
 namespace Erdos392
@@ -771,8 +769,7 @@ lemma Factorization.lower_score_3_case2a {n : ℕ} (f : Factorization n) (L : �
 /-- Case 2b of `lower_score_3`: If `L ≤ n` and the product of deficit primes is `> n`,
 we can find a submultiset to add that reduces the score. -/
 lemma Factorization.lower_score_3_case2b {n : ℕ} (f : Factorization n) (L : ℕ)
-    (h_surplus : ∀ p, f.balance p ≤ 0) (h_deficit_large : ∀ p, f.balance p < 0 → p ≤ L)
-    (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0)
+    (h_surplus : ∀ p, f.balance p ≤ 0) (hf : ∃ p ∈ (n + 1).primesBelow, p ≤ L ∧ f.balance p < 0)
     (h_prod : n < (deficitMultiset f L).prod) (hL_le_n : L ≤ n) :
     ∃ f' : Factorization n,
       f'.total_imbalance < f.total_imbalance ∧ f'.score L ≤ f.score L := by
@@ -800,7 +797,7 @@ lemma Factorization.lower_score_3_clean {n : ℕ} (f : Factorization n) (L : ℕ
   · exact lower_score_3_case1 f L h_surplus h_deficit_large hf h_prod
   by_cases hL_gt_n : n < L
   · exact lower_score_3_case2a f L h_surplus hf hL_gt_n
-  · exact lower_score_3_case2b f L h_surplus h_deficit_large hf
+  · exact lower_score_3_case2b f L h_surplus hf
       (not_le.mp h_prod) (not_lt.mp hL_gt_n)
 
 @[blueprint
@@ -1269,7 +1266,7 @@ lemma Params.initial.term_bound (P : Params) {p k : ℕ} (hp : p.Prime) :
       P.n / p ^ k + P.M := by
   calc
     _ ≤ P.M * ((P.n / P.M + p ^ k - 1) / p ^ k) := Nat.mul_le_mul_left _ (by
-        convert Params.initial.count_multiples_le (P.n - P.n / P.M) P.n (p ^ k) <|
+        convert initial.count_multiples_le (P.n - P.n / P.M) P.n (p ^ k) <|
           pow_pos hp.pos k using 1
         rw [Nat.sub_sub_self (div_le_self _ _)])
     _ ≤ P.M * (P.n / P.M / p ^ k + 1) := mul_le_mul_left _
@@ -1326,14 +1323,14 @@ theorem Params.initial.balance_small_prime_le (P : Params) {p : ℕ} :
         rw [h_factorization_eq, ← Finset.sum_filter]
         refine sum_bij (fun k hk ↦ k) ?_ ?_ ?_ ?_ <;> norm_num
         · refine fun a ha₁ ha₂ ↦
-            ⟨⟨ha₁, lt_succ_of_le (Nat.le_log_of_pow_le hp_prime.one_lt ?_)⟩, ?_⟩
-          · refine le_trans (Nat.pow_le_pow_right hp_prime.pos (le_of_lt_succ ha₂)) ?_
+            ⟨⟨ha₁, Nat.le_log_of_pow_le (y := P.n) hp_prime.one_lt ?_⟩, ?_⟩
+          · refine le_trans (Nat.pow_le_pow_right hp_prime.pos ha₂) ?_
             refine le_trans (le_of_dvd (pos_of_ne_zero (by aesop)) (ordProj_dvd ..)) ?_
             linarith [Finset.mem_Ico.mp hm]
-          · exact dvd_trans (pow_dvd_pow _ <| le_of_lt_succ ha₂) <| ordProj_dvd ..
-        · refine fun b hb₁ hb₂ hb₃ ↦ ⟨hb₁, lt_succ_of_le (le_of_not_gt fun hb₄ ↦
+          · exact dvd_trans (pow_dvd_pow _ ha₂) <| ordProj_dvd ..
+        · refine fun b hb₁ hb₂ hb₃ ↦ ⟨hb₁, Nat.le_of_not_gt fun hb₄ ↦
             absurd (dvd_trans (pow_dvd_pow _ hb₄) hb₃) <|
-              pow_succ_factorization_not_dvd ?_ hp_prime)⟩
+              pow_succ_factorization_not_dvd ?_ hp_prime⟩
           linarith [Finset.mem_Ico.mp hm, Nat.sub_pos_of_lt (show P.n / P.M < P.n from
             div_lt_self (pos_of_ne_zero (by grind)) (by linarith [P.hM]))]
       rw [sum_congr rfl h_sum_multiples_aux, sum_comm]; simp_all
@@ -1447,7 +1444,7 @@ lemma Params.initial.sum_valuation_eq_small (P : Params) {p : ℕ} (hp : p.Prime
       intro x hx₁ hx₂ hx₃
       contrapose! hx₃
       rw [← factorization_le_iff_dvd] at hx₃ <;> norm_num at *
-      · exact lt_succ_of_le (by simpa [hp] using hx₃ p)
+      · simpa [hp] using hx₃ p
       · exact fun h ↦ absurd h hp.ne_zero
       · rintro rfl
         norm_num at *
@@ -1465,11 +1462,11 @@ lemma Params.initial.balance_ge_neg_M_mul_log (P : Params) {p : ℕ} (hp : p.Pri
     factorization_def _ hp, padicValNat_factorial]
   · simp only [cast_mul, cast_sum, Int.natCast_ediv, cast_pow, ge_iff_le, neg_le_sub_iff_le_add]
     calc
-    _ ≤ ∑ k ∈ Ico 1 (Nat.log p P.n + 1), ((P.M : ℤ) *
-        (Finset.filter (p^k ∣ ·) (Ico (P.n - P.n / P.M) P.n)).card + P.M) :=
-      sum_le_sum fun k _ ↦ mod_cast initial.count_multiples_lower_bound P.n P.M (p^k)
-        (by linarith [P.hM]) (pow_pos hp.pos _)
-    _ = _ := by simp [sum_add_distrib, mul_sum, mul_comm]
+      _ ≤ ∑ k ∈ Ico 1 (Nat.log p P.n + 1), ((P.M : ℤ) *
+          (Finset.filter (p^k ∣ ·) (Ico (P.n - P.n / P.M) P.n)).card + P.M) :=
+        sum_le_sum fun k _ ↦ mod_cast initial.count_multiples_lower_bound P.n P.M (p^k)
+          (by linarith [P.hM]) (pow_pos hp.pos _)
+      _ = _ := by simp [sum_add_distrib, mul_sum, mul_comm]
   · exact lt_succ_self _
 
 @[blueprint
@@ -1502,6 +1499,344 @@ theorem Params.initial.balance_small_prime_ge (P : Params) {p : ℕ} (hp : p ≤
       positivity
   exact le_trans (by rw [mul_div]; ring_nf; gcongr; norm_cast; linarith [P.hL_pos]) h_bound_ℝ
 
+/-- The factorization consisting of `M` copies of `[n - n/M, n)`, without filtering for smooth
+numbers. -/
+def Params.initial_full (P : Params) : Factorization P.n where
+  a := (replicate P.M (Finset.Ico (P.n - P.n / P.M) P.n).val).join
+  ha m hm := by
+    simp only [mem_join] at *
+    obtain ⟨s, hs₁, hs₂⟩ := hm
+    rw [eq_of_mem_replicate hs₁] at hs₂
+    exact (Finset.mem_Ico.mp hs₂).2.le
+  hpos m hm := by
+    simp_all only [join, sum_replicate, mem_nsmul, mem_val, Finset.mem_Ico, tsub_le_iff_right]
+    nlinarith [div_mul_le_self P.n P.M, P.hM]
+
+/-- The set of numbers in `[n - n/M, n)` that are not `(n/L)`-smooth. -/
+def Params.rough_set (P : Params) : Finset ℕ :=
+  (Finset.Ico (P.n - P.n / P.M) P.n).filter (· ∉ (P.n / P.L).smoothNumbers)
+
+/-- The balance of `initial_full` at prime `p` is `M` times the sum of valuations in the interval,
+minus the valuation of `n!`. -/
+lemma Params.initial_full_balance_eq (P : Params) (p : ℕ) :
+    (initial_full P).balance p =
+      (P.M : ℤ) * (∑ m ∈ Finset.Ico (P.n - P.n / P.M) P.n, (m.factorization p : ℤ)) -
+        (P.n.factorial.factorization p : ℤ) := by
+  simp_all [Factorization.balance, Factorization.sum, initial_full]
+
+/-- The number of multiples of `p^k` in `[n - n/M, n)` times `M` is at least `n / p^k - M`. -/
+lemma Params.initial.count_multiples_lower_bound_pow (n M p k : ℕ) (hM : M > 0) (hp : p > 0) :
+    M * (filter (p ^ k ∣ ·) (Finset.Ico (n - n / M) n)).card + M ≥ n / p ^ k :=
+  initial.count_multiples_lower_bound n M (p ^ k) hM <| pow_pos hp _
+
+/-- The term-wise bound `M · Cₖ - ⌊n/p^k⌋ ≥ -M`. -/
+lemma Params.initial_full_term_bound (P : Params) (p k : ℕ) (hp : p > 0) :
+    (P.M : ℤ) * (filter (p ^ k ∣ ·) (Finset.Ico (P.n - P.n / P.M) P.n)).card - (P.n / p ^ k : ℤ) ≥ -P.M := by
+  have := initial.count_multiples_lower_bound_pow P.n P.M p k (by linarith [P.hM]) hp
+  have h : (P.n / p ^ k : ℤ) ≤ P.M * (filter (p ^ k ∣ ·)
+      (Finset.Ico (P.n - P.n / P.M) P.n)).card + P.M := ToInt.of_le rfl rfl this
+  linarith
+
+/-- The sum of valuations in `[n - n/M, n)` equals `∑ k ∈ [1, log_p n], #{m ∈ I | p^k ∣ m}`. -/
+lemma Params.initial_full_sum_valuation_eq (P : Params) (p : ℕ) (hp : p.Prime) :
+    ∑ m ∈ Finset.Ico (P.n - P.n / P.M) P.n, (m.factorization p : ℤ) =
+    ∑ k ∈ Finset.Ico 1 (Nat.log p P.n + 1), ((filter (p ^ k ∣ ·) (Finset.Ico (P.n - P.n / P.M) P.n)).card : ℤ) := by
+  by_cases hPn : P.n = 0
+  · simp_all
+  · have h_zero : ∀ k > log p P.n, (filter (p ^ k ∣ ·) (Finset.Ico (P.n - P.n / P.M) P.n)).card = 0 :=
+      fun k hk ↦ card_eq_zero.mpr (filter_eq_empty_iff.mpr fun x hx hdiv ↦ by
+        have hx_pos : 0 < x := pos_of_ne_zero fun h ↦ by
+          rw [Finset.mem_Ico, h] at hx
+          exact not_lt.mpr hx.1 (Nat.sub_pos_of_lt (div_lt_self hx.2 P.hM))
+        exact not_lt.mpr (le_of_dvd hx_pos hdiv) <| (Finset.mem_Ico.mp hx).2.trans_le
+          (lt_pow_of_log_lt hp.one_lt hk).le)
+    rw_mod_cast [sum_factorization_eq_sum_multiples]
+    · rw [← sum_subset (Ico_subset_Ico_right (succ_le_of_lt
+        (log_lt_of_lt_pow hPn (show P.n < p ^ P.n from Nat.recOn P.n (by norm_num)
+          fun n ihn ↦ by rw [_root_.pow_succ']; nlinarith [hp.one_lt, ihn]))))]
+      aesop
+    · assumption
+    · exact Nat.sub_pos_of_lt (div_lt_self (pos_of_ne_zero hPn) P.hM)
+
+/-- The balance of `initial_full` is at least `-M · log n / log 2`. -/
+lemma Params.initial_full_balance_ge (P : Params) (p : ℕ) (hp : p.Prime) :
+    (initial_full P).balance p ≥ -P.M * Real.log P.n / Real.log 2 := by
+  have h_balance : (initial_full P).balance p = P.M * (∑ k ∈ Finset.Ico 1 (Nat.log p P.n + 1),
+    ((filter (p ^ k ∣ ·) (Finset.Ico (P.n - P.n / P.M) P.n)).card : ℤ)) -
+      (∑ k ∈ Finset.Ico 1 (Nat.log p P.n + 1), (P.n / p ^ k : ℤ)) := by
+    convert initial_full_balance_eq P p using 1
+    congr! 2
+    · exact (initial_full_sum_valuation_eq P p hp).symm
+    · rw [factorization_def]
+      · have := Fact.mk hp; rw [padicValNat_factorial] <;> aesop
+      · assumption
+  have h_term : ∀ k ∈ Finset.Ico 1 (log p P.n + 1),
+      (P.M : ℤ) * ((filter (p ^ k ∣ ·) (Finset.Ico (P.n - P.n / P.M) P.n)).card : ℤ) -
+      (P.n / p ^ k : ℤ) ≥ -P.M := fun k _ ↦ initial_full_term_bound P p k hp.pos
+  have h_sum : (P.M : ℤ) * (∑ k ∈ Finset.Ico 1 (log p P.n + 1),
+      ((filter (p ^ k ∣ ·) (Finset.Ico (P.n - P.n / P.M) P.n)).card : ℤ)) -
+      (∑ k ∈ Finset.Ico 1 (log p P.n + 1), (P.n / p ^ k : ℤ)) ≥ -P.M * log p P.n := by
+    simpa [mul_comm, mul_sum, sum_mul] using sum_le_sum h_term
+  have hn_pos : P.n > 0 := by nlinarith [P.hL, P.hL_pos]
+  have h_log : (log p P.n : ℝ) ≤ Real.log P.n / Real.log 2 := by
+    rw [le_div_iff₀ (log_pos one_lt_two), ← Real.log_pow]
+    gcongr
+    norm_cast
+    exact (pow_le_pow_left' hp.two_le _).trans (Nat.pow_log_le_self _ hn_pos.ne')
+  simp_all only [Finset.mem_Ico, Order.lt_add_one_iff, ge_iff_le, neg_le_sub_iff_le_add,
+    and_imp, neg_mul, Int.cast_sub, Int.cast_mul, Int.cast_natCast, Int.cast_sum]
+  rw [div_le_iff₀ (by positivity)] at *
+  rw [le_div_iff₀ (log_pos (by norm_num))] at h_log
+  norm_num [← @Int.cast_le ℝ] at *
+  nlinarith [Real.log_pos one_lt_two]
+
+/-- The balance of `initial` equals that of `initial_full` minus `M` times the sum of valuations
+in `rough_set`. -/
+lemma Params.initial_balance_eq (P : Params) (p : ℕ) :
+    P.initial.balance p = (initial_full P).balance p -
+      (P.M : ℤ) * ∑ m ∈ rough_set P, (m.factorization p : ℤ) := by
+  unfold Factorization.balance rough_set
+  simp only [initial, initial_full]
+  unfold Factorization.sum
+  simp only [cast_multiset_sum, Multiset.map_map, Function.comp_apply, map_join, map_replicate,
+    sum_join, sum_map_val, sum_replicate, smul_eq_mul, cast_mul, cast_sum, sum_filter, ite_not]
+  induction P.M with
+  | zero => simp_all only [Nat.div_zero, tsub_zero, le_refl, Ico_eq_zero_of_le, replicate_zero,
+    join_zero, filter_zero, Multiset.map_zero, sum_zero, zero_sub, CharP.cast_eq_zero,
+    Ico_eq_empty_of_le, sum_empty, mul_zero]
+  | succ M ih =>
+    simp_all only [replicate_succ, join_cons, filter_add, Multiset.map_add, sum_add, cast_add,
+      cast_one, add_mul, one_mul]
+    rw [show (Multiset.filter (· ∈ (P.n / P.L).smoothNumbers)
+        (Multiset.replicate M (Multiset.Ico (P.n - P.n / (M + 1)) P.n)).join) =
+        Multiset.join (Multiset.replicate M (Multiset.filter (· ∈ (P.n / P.L).smoothNumbers)
+        (Multiset.Ico (P.n - P.n / (M + 1)) P.n))) from ?_]
+    · simp_all only [mul_sum, sum_ite, sum_const_zero, zero_add, sub_eq_iff_eq_add, map_join,
+      map_replicate, sum_join, sum_replicate, Int.nsmul_eq_mul]
+      simp only [add_comm, sub_eq_add_neg, filter_not, Finset.filter_subset, sum_sdiff_eq_sub,
+        add_assoc, neg_add_rev, neg_neg, add_left_comm, add_neg_cancel, zero_add,
+        add_neg_cancel_left]
+      rw [← Finset.mul_sum]
+      congr
+    · rw [Multiset.filter_join, Multiset.map_replicate]
+
+/-- If `m` is in the rough set, it has a prime factor `q ≥ n / L`. -/
+lemma Params.exists_large_prime_of_rough (P : Params) (m : ℕ) (hm : m ∈ rough_set P) :
+    ∃ q, q.Prime ∧ q ≥ P.n / P.L ∧ q ∣ m := by
+  unfold rough_set at hm
+  by_cases hq : m = 0 <;> simp_all only [smoothNumbers, ne_eq, mem_primeFactorsList', and_imp,
+    Set.mem_setOf_eq, not_and, not_forall, not_lt, Finset.mem_filter]
+  · have := Nat.exists_infinite_primes (P.n / P.L)
+    aesop
+  · tauto
+
+/-- If a prime `q ≥ n / L` divides `m < n`, then its valuation in `m` is `1`. -/
+lemma Params.valuation_eq_one_of_large_prime (P : Params) (m q : ℕ) (hm : m < P.n)
+    (hm_pos : m ≠ 0) (hq : q.Prime) (hq_ge : q ≥ P.n / P.L) (hdiv : q ∣ m) :
+    m.factorization q = 1 := by
+  have hq_sq_gt_m : q ^ 2 > m := by
+    have hq_gt_sqrt_n : q > Real.sqrt P.n := P.hL'.trans_le (Nat.cast_le.mpr hq_ge)
+    rw [gt_iff_lt, Real.sqrt_lt] at hq_gt_sqrt_n <;> norm_cast at * <;> nlinarith
+  exact le_antisymm (Nat.le_of_not_lt fun h ↦ not_le.mpr hq_sq_gt_m <|
+    le_of_dvd (pos_of_ne_zero hm_pos) <| dvd_trans (pow_dvd_pow _ h) <|
+      ordProj_dvd m q) (Nat.pos_of_ne_zero <| Finsupp.mem_support_iff.mp <| by aesop)
+
+/-- Any `m` in the rough set can be written as `q * k` where `q` is a prime `≥ n / L` and
+`k ≤ L`, with `m.factorization q = 1`. -/
+lemma Params.rough_set_structure (P : Params) (m : ℕ) (hm : m ∈ rough_set P) :
+    ∃ q k, q.Prime ∧ q ≥ P.n / P.L ∧ k ≤ P.L ∧ m = q * k ∧ m.factorization q = 1 := by
+  obtain ⟨q, hq_prime, hq_ge, hq_div⟩ := exists_large_prime_of_rough P m hm
+  use q
+  have hk_le : m / q ≤ P.L := by
+    have h_div : m ≤ P.n - 1 :=
+      Nat.le_sub_one_of_lt (Finset.mem_Ico.mp (Finset.mem_filter.mp hm |>.1) |>.2)
+    have h_div' : m / q ≤ (P.n - 1) / q := Nat.div_le_div_right h_div
+    refine le_trans h_div' (Nat.le_of_lt_succ ?_)
+    rw [Nat.div_lt_iff_lt_mul hq_prime.pos, tsub_lt_iff_left] <;>
+      nlinarith [Nat.div_add_mod P.n P.L, Nat.mod_lt P.n P.hL_pos, P.hL]
+  refine ⟨m / q, hq_prime, hq_ge, hk_le, (Nat.mul_div_cancel' hq_div).symm, ?_⟩
+  have hm_pos : m ≠ 0 := by
+    intro h
+    simp only [h, rough_set, Finset.mem_filter, Finset.mem_Ico, nonpos_iff_eq_zero] at hm
+    have : P.n - P.n / P.M > 0 := Nat.sub_pos_of_lt (Nat.div_lt_self (by linarith) P.hM)
+    omega
+  exact valuation_eq_one_of_large_prime P m q
+    (Finset.mem_Ico.mp (Finset.mem_filter.mp hm |>.1) |>.2) hm_pos hq_prime hq_ge hq_div
+
+/-- The prime factor `q ≥ n / L` of an element of `rough_set`, chosen via `rough_set_structure`. -/
+noncomputable def Params.rough_q (P : Params) (m : ℕ) : ℕ :=
+  if h : m ∈ rough_set P then (rough_set_structure P m h).choose else 0
+
+/-- The cofactor `k ≤ L` of an element of `rough_set`, chosen via `rough_set_structure`. -/
+noncomputable def Params.rough_k (P : Params) (m : ℕ) : ℕ :=
+  if h : m ∈ rough_set P then (rough_set_structure P m h).choose_spec.choose else 0
+
+/-- Properties of `rough_q` and `rough_k`: the prime `q` satisfies `q ≥ n / L`, the cofactor `k`
+satisfies `k ≤ L`, we have `m = q * k`, and `m.factorization q = 1`. -/
+lemma Params.rough_qk_prop (P : Params) (m : ℕ) (h : m ∈ rough_set P) :
+    let q := rough_q P m
+    let k := rough_k P m
+    q.Prime ∧ q ≥ P.n / P.L ∧ k ≤ P.L ∧ m = q * k ∧ m.factorization q = 1 := by
+  simp only [rough_q, rough_k, dif_pos h]
+  exact (rough_set_structure P m h).choose_spec.choose_spec
+
+/-- The cardinality of `rough_set` is at most `π(n) * L`. -/
+lemma Params.rough_set_card_le (P : Params) :
+    (rough_set P).card ≤ (Nat.primeCounting P.n) * P.L := by
+  have h_struct : ∀ m ∈ rough_set P,
+      ∃ q k, q.Prime ∧ q ≥ P.n / P.L ∧ k ≤ P.L ∧ m = q * k ∧ m.factorization q = 1 :=
+    fun m hm => rough_set_structure P m hm
+  have h_subset : rough_set P ⊆ Finset.image (fun p : ℕ × ℕ => p.1 * p.2)
+      (Finset.product (Finset.filter Nat.Prime (Finset.Icc 1 P.n)) (Finset.Icc 1 P.L)) := by
+    intro m hm
+    obtain ⟨q, k, hq, hq', hk, rfl, _⟩ := h_struct m hm
+    exact Finset.mem_image.mpr ⟨(q, k), Finset.mem_product.mpr
+      ⟨Finset.mem_filter.mpr ⟨Finset.mem_Icc.mpr ⟨hq.pos, by
+        have := Finset.mem_Ico.mp (Finset.mem_filter.mp hm |>.1)
+        nlinarith [Nat.pos_of_ne_zero (show k ≠ 0 from by aesop)]⟩, hq⟩,
+      Finset.mem_Icc.mpr ⟨Nat.pos_of_ne_zero (by aesop), hk⟩⟩, rfl⟩
+  refine le_trans (Finset.card_le_card h_subset) (le_trans Finset.card_image_le ?_)
+  erw [Finset.card_product, Nat.primeCounting, Nat.primeCounting', Nat.count_eq_card_filter_range]
+  simp only [Finset.range_eq_Ico, Nat.card_Icc, add_tsub_cancel_right]
+  have h1 : Finset.filter Nat.Prime (Finset.Icc 1 P.n) =
+      Finset.filter Nat.Prime (Finset.Icc 0 P.n) := by
+    ext p
+    simp only [Finset.mem_filter, Finset.mem_Icc]
+    constructor <;> intro ⟨⟨hl, hr⟩, hp⟩
+    · exact ⟨⟨Nat.zero_le _, hr⟩, hp⟩
+    · exact ⟨⟨hp.one_le, hr⟩, hp⟩
+  have h2 : Finset.filter Nat.Prime (Finset.Ico 0 (P.n + 1)) =
+      Finset.filter Nat.Prime (Finset.Icc 0 P.n) := by congr 1
+  rw [h1, h2, mul_comm]
+
+/-- For `m ∈ rough_set` and `p ≤ L`, `vₚ(m) = vₚ(k)`. -/
+lemma Params.rough_valuation_eq_k_valuation (P : Params) (m : ℕ) (hm : m ∈ rough_set P)
+    (p : ℕ) (hp : p ≤ P.L) : m.factorization p = (rough_k P m).factorization p := by
+  set q := rough_q P m
+  set k := rough_k P m
+  have hp_ne_q : p ≠ q := by
+    have := rough_qk_prop P m hm
+    have := this.2.1
+    rw [ge_iff_le, Nat.div_le_iff_le_mul_add_pred] at this <;> norm_num at *
+    · have := P.hL'
+      rw [gt_iff_lt, Real.sqrt_lt] at this <;> norm_cast at * <;>
+        nlinarith [div_add_mod P.n P.L, mod_lt P.n P.hL_pos, P.hL]
+    · exact P.hL_pos
+  have := rough_qk_prop P m hm
+  rw [this.2.2.2.1, Nat.factorization_mul] <;> norm_num [this.1.ne_zero, hp_ne_q]
+  · simp +zetaDelta only [ne_eq, ge_iff_le, Nat.add_eq_right] at *
+    rw [this.1.factorization]
+    norm_num [hp_ne_q]
+  · exact Nat.ne_of_gt (Nat.pos_of_ne_zero fun h => by
+      have := this.2.2.2.1; simp_all +singlePass)
+
+/-- For `m ∈ rough_set` and `p ≤ L`, `vₚ(m) ≤ logₚ L`. -/
+lemma Params.rough_valuation_le_log (P : Params) (m : ℕ) (hm : m ∈ rough_set P) (p : ℕ)
+    (hp : p ≤ P.L) (hp_prime : p.Prime) : m.factorization p ≤ Nat.log p P.L := by
+  have hk_le_L : rough_k P m ≤ P.L := (rough_qk_prop P m hm).2.2.1
+  have h_val_k_le_log_p_L : (rough_k P m).factorization p ≤ Nat.log p P.L := by
+    by_cases h : rough_k P m = 0
+    · simp_all
+    · exact le_log_of_pow_le hp_prime.one_lt <| le_trans (le_of_dvd (pos_of_ne_zero h) (ordProj_dvd ..)) hk_le_L
+  convert h_val_k_le_log_p_L using 1
+  exact rough_valuation_eq_k_valuation P m hm p hp
+
+/-- The sum of valuations of `p` in `rough_set` is at most `π(n) * L * logₚ L`. -/
+lemma Params.rough_valuation_sum_le (P : Params) (p : ℕ) (hp : p ≤ P.L) (hp_prime : p.Prime) :
+    ∑ m ∈ rough_set P, m.factorization p ≤ primeCounting P.n * P.L * log p P.L := by
+  have h_card : (rough_set P).card ≤ primeCounting P.n * P.L := rough_set_card_le P
+  have h_val : ∀ m ∈ rough_set P, m.factorization p ≤ Nat.log p P.L :=
+    fun m a ↦ rough_valuation_le_log P m a p hp hp_prime
+  exact le_trans (sum_le_sum h_val) (by simpa using mul_le_mul_right _ h_card)
+
+/-- Since `p ≥ 2` and `L ≥ 1`, `logₚ L < L`, so `L - logₚ L ≥ 1`. -/
+lemma Params.L_sub_log_ge_one (P : Params) (p : ℕ) (hp : p.Prime) : (P.L : ℝ) - log p P.L ≥ 1 := by
+  refine le_tsub_of_add_le_left ?_
+  norm_cast
+  exact log_lt_of_lt_pow (by linarith [P.hL_pos]) (Nat.recOn P.L (by grind) fun n ihn ↦ by
+    rw [pow_succ']; nlinarith [hp.one_lt, ihn])
+
+/-- `π(n) ≥ log n` for `n ≥ 2`. -/
+lemma Params.primeCounting_ge_log (n : ℕ) (hn : n ≥ 2) : (n.primeCounting : ℝ) ≥ Real.log n := by
+  have h_prod_le : ∀ k : ℕ, Nat.primeCounting (2 ^ k) ≥ k := by
+    intro k
+    induction k with
+    | zero => norm_num
+    | succ k ih =>
+      obtain ⟨p, hp_prime, hp_bounds⟩ : ∃ p, p.Prime ∧ 2 ^ k < p ∧ p ≤ 2 ^ (k + 1) := by
+        obtain ⟨p, hp₁, hp₂⟩ := bertrand (2 ^ k) (by positivity)
+        exact ⟨p, hp₁, by linarith, by rw [_root_.pow_succ']; linarith⟩
+      rw [primeCounting] at *
+      rw [primeCounting', count_eq_card_filter_range] at *
+      refine le_trans (succ_le_succ ih) (Finset.card_lt_card ?_)
+      norm_num [Finset.ssubset_def, Finset.subset_iff]
+      exact ⟨fun x hx₁ hx₂ => ⟨by linarith, hx₂⟩, p, by linarith, hp_prime, fun hx₃ => by linarith⟩
+  obtain ⟨k, hk⟩ : ∃ k : ℕ, 2 ^ k ≤ n ∧ n < 2 ^ (k + 1) :=
+    ⟨log 2 n, pow_le_of_le_log (ne_zero_of_lt hn) (log_anti_left (h_prod_le (succ 1)) (h_prod_le 2)),
+      lt_pow_of_log_lt (one_lt_two) (Nat.lt_add_of_pos_right (h_prod_le (succ 0)))⟩
+  have h_pi_ge_k : primeCounting n ≥ k := le_trans (h_prod_le k) (monotone_primeCounting hk.1)
+  have h_log_le : Real.log n ≤ (k + 1) * Real.log 2 := by
+    rw [← Real.log_rpow zero_lt_two]; gcongr; norm_cast; linarith [pow_succ' 2 k]
+  have h_k_ge_5 : 5 ≤ k → (k + 1) * Real.log 2 ≤ k := fun hk => by
+    have := Real.log_two_lt_d9; norm_num1 at *; nlinarith [show (k : ℝ) ≥ 5 by norm_cast]
+  by_cases hk_ge_5 : 5 ≤ k
+  · exact le_trans h_log_le (le_trans (h_k_ge_5 hk_ge_5) (mod_cast h_pi_ge_k))
+  · interval_cases k <;> norm_num at *
+    · grind
+    · rcases hk with ⟨hk₁, hk₂⟩; interval_cases n <;> norm_num at *
+      · exact le_trans log_two_lt_d9.le
+          (by norm_num; linarith [show (primeCounting 2 : ℝ) ≥ 1 by exact_mod_cast h_pi_ge_k])
+      · rw [show primeCounting 3 = 2 by rfl]; norm_num
+        linarith [log_le_sub_one_of_pos zero_lt_three]
+    · rcases hk with ⟨hk₁, hk₂⟩; interval_cases n <;> norm_num at *
+      · rw [show (4 : ℝ) = 2 ^ 2 by norm_num, Real.log_pow]; norm_num
+        exact le_trans (mul_le_mul_of_nonneg_left log_two_lt_d9.le zero_le_two)
+          (by norm_num; linarith [show (primeCounting 4 : ℝ) ≥ 2 by exact_mod_cast h_pi_ge_k])
+      · rw [show (primeCounting 5 : ℝ) = 3 by norm_cast]
+        have := log_two_lt_d9; norm_num at *
+        linarith [log_le_sub_one_of_pos (show 0 < 5 / 4 by norm_num)]
+      · rw [show primeCounting 6 = 3 by rfl]; norm_num
+        have := log_two_lt_d9; have := log_lt_sub_one_of_pos zero_lt_three
+        norm_num at *; linarith
+      · rw [show primeCounting 7 = 4 by rfl]; norm_num
+        rw [log_le_iff_le_exp] <;> norm_num
+        have := exp_one_gt_d9.le; norm_num at *
+        rw [show exp 4 = (exp 1) ^ 4 by rw [← exp_nat_mul]; norm_num]
+        nlinarith [pow_le_pow_left₀ (by positivity) this 4]
+    · rcases hk with ⟨hk₁, hk₂⟩; interval_cases n <;> norm_num at *
+      all_goals rw [log_le_iff_le_exp (by norm_num)]; norm_num [primeCounting]
+      all_goals norm_num [primeCounting', count_eq_card_filter_range]
+      all_goals rw [show Finset.filter Nat.Prime (range _) = Finset.filter Nat.Prime (range _) by rfl]
+      all_goals norm_num [Finset.card]
+      all_goals rw [← log_le_log_iff (by positivity) (by positivity), log_exp]
+      all_goals rw [log_le_iff_le_exp (by norm_num)]
+      all_goals norm_num [exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
+      all_goals refine le_trans ?_ (Summable.sum_le_tsum (Finset.range 10) (fun _ _ ↦ by positivity) (summable_pow_div_factorial _))
+      all_goals norm_num [Finset.sum_range_succ, factorial]
+    · have : n < 32 := by linarith
+      interval_cases n <;> norm_num [primeCounting] at *
+      all_goals
+        rw [Real.log_le_iff_le_exp (by norm_num)]
+        simp only [primeCounting', count_eq_card_filter_range,
+            Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
+        refine le_trans ?_ (Summable.sum_le_tsum (Finset.range 10)
+            (fun _ _ ↦ by positivity) (Real.summable_pow_div_factorial _))
+        simp only [Finset.sum_range_succ, factorial, card_filter]
+        norm_num
+
+/-- `π(n) * L * (L - logₚ L) ≥ log n * (1 / log 2 - 1)`. -/
+lemma Params.balance_inequality_aux (P : Params) (p : ℕ) (hp_prime : p.Prime) :
+    (P.n.primeCounting : ℝ) * P.L * (P.L - Nat.log p P.L) ≥
+      Real.log P.n * (1 / Real.log 2 - 1) := by
+  have h_pi : (P.n).primeCounting ≥ Real.log P.n := by
+    have := primeCounting_ge_log P.n (show 2 ≤ P.n from ?_)
+    · exact this
+    · nlinarith [P.hL_pos, P.hL, P.hL'.le]
+  exact le_trans
+    (mul_le_mul_of_nonneg_left (show (1 / Real.log 2 - 1) ≤ 1 by
+      rw [div_sub_one, div_le_iff₀] <;> nlinarith [log_two_gt_d9, log_le_sub_one_of_pos zero_lt_two]) (by positivity))
+        (by nlinarith [mul_le_mul_of_nonneg_left (L_sub_log_ge_one P p hp_prime) (show 0 ≤ (P.n.primeCounting : ℝ) by positivity)])
+
 @[blueprint
   "initial-factorization-tiny-prime-ge"
   (statement := /-- A tiny prime $p \leq L$ can be in deficit by at most $M\log n + ML\pi(n)$.-/)
@@ -1511,8 +1846,21 @@ theorem Params.initial.balance_small_prime_ge (P : Params) {p : ℕ} (hp : p ≤
   (latexEnv := "sublemma")
   (discussion := 515)]
 theorem Params.initial.balance_tiny_prime_ge (P : Params) {p : ℕ} (hp : p ≤ P.L) :
-    P.initial.balance p ≥ - P.M * (Real.log P.n) - P.M * P.L^2 * (primeCounting P.n) := by
-  sorry
+    P.initial.balance p ≥ -P.M * Real.log P.n - P.M * P.L ^ 2 * primeCounting P.n := by
+  have h_full := initial_full_balance_ge P
+  by_cases hprime : p.Prime
+  · have h_eq := initial_balance_eq P p
+    have h_sum := rough_valuation_sum_le P p hp hprime
+    have h_aux := balance_inequality_aux P p hprime
+    simp_all only [neg_mul, div_eq_mul_inv, ge_iff_le, one_mul, Int.cast_sub, Int.cast_mul,
+      Int.cast_natCast, Int.cast_sum, tsub_le_iff_right]
+    norm_num [← @Int.cast_inj ℝ] at *
+    nlinarith [h_full p hprime, (by norm_cast : (∑ m ∈ rough_set P, (m.factorization p : ℕ) : ℝ) ≤
+        P.n.primeCounting * P.L * Nat.log p P.L), Real.log_pos one_lt_two, mul_inv_cancel₀
+          (ne_of_gt (log_pos one_lt_two))]
+  · simp only [Factorization.balance, hprime, not_false_eq_true, factorization_eq_zero_of_not_prime,
+      CharP.cast_eq_zero, sub_zero, Int.cast_natCast, neg_mul, ge_iff_le, tsub_le_iff_right]
+    exact le_trans (neg_nonpos_of_nonneg (by positivity)) (by positivity)
 
 @[blueprint
   "initial-score-bound"
@@ -1528,7 +1876,8 @@ theorem Params.initial.balance_tiny_prime_ge (P : Params) {p : ℕ} (hp : p ≤ 
   Sublemma \ref{initial-factorization-medium-prime-ge},
   Sublemma \ref{initial-factorization-small-prime-le},
   Sublemma \ref{initial-factorization-small-prime-ge}, and
-  Sublemma \ref{initial-factorization-tiny-prime-ge}, and combine $\log p$ and $\log (n/p)$ to $\log n$.-/)]
+  Sublemma \ref{initial-factorization-tiny-prime-ge}, and combine $\log p$ and $\log (n/p)$ to $\log n$.-/)
+  (discussion := 665)]
 theorem Params.initial.score_bound (P : Params) :
     P.initial.score P.L ≤ P.n * log (1 - 1 / (P.M : ℝ))⁻¹ +
       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic (P.n / P.L)), P.M * Real.log P.n +
@@ -2046,6 +2395,90 @@ theorem Params.initial.bound_score_3 (ε : ℝ) (hε : ε > 0) (M : ℕ) :
           ≤ 8 * (M + 1) * (ε * Real.log 2 * n / (8 * (M + 1))) := le_of_lt (by nlinarith [h_sqrt_log])
         _ = ε * n * Real.log 2 := by field_simp
 
+/-- The product `∏ p ≤ n, (1 - 1/p)` over primes tends to zero as `n → ∞`. -/
+lemma prod_one_sub_one_div_prime_tendsto_zero :
+    Filter.Tendsto (fun n ↦ ∏ p ∈ filter Prime (range n), (1 - 1 / (p : ℝ))) .atTop (nhds 0) := by
+  have h_exp_neg_sum : Filter.Tendsto
+      (fun n : ℕ ↦ Real.exp (-∑ p ∈ filter Prime (range n), (1 / p : ℝ))) .atTop (nhds 0) := by
+    have h_not_summable : ¬Summable (fun p : ℕ ↦ if p.Prime then (1 / p : ℝ) else 0) := by
+      have h_primes : ¬Summable (fun p : Nat.Primes ↦ (1 / p : ℝ)) := by
+        convert Primes.not_summable_one_div
+      contrapose! h_primes
+      convert h_primes.comp_injective (fun a b h ↦ Subtype.ext h) using 1
+      ext ⟨p, hp⟩
+      simp [hp]
+    have h_diverge : Filter.Tendsto
+        (fun n : ℕ ↦ ∑ p ∈ range n, if p.Prime then (1 / p : ℝ) else 0) .atTop .atTop :=
+      (not_summable_iff_tendsto_nat_atTop_of_nonneg (fun _ ↦ by positivity)).mp h_not_summable
+    simpa [sum_filter] using h_diverge
+  refine squeeze_zero (fun n ↦ prod_nonneg fun _ hx ↦
+    sub_nonneg.mpr <| div_le_self zero_le_one <| mod_cast (mem_filter.mp hx).2.pos) ?_ h_exp_neg_sum
+  intro n
+  rw [exp_neg, exp_sum, ← prod_inv_distrib]
+  refine prod_le_prod (fun _ hx ↦ sub_nonneg.mpr <| div_le_self zero_le_one <|
+    mod_cast (mem_filter.mp hx).2.pos) fun _ _ ↦ ?_
+  rw [← Real.exp_neg]
+  exact (Real.add_one_le_exp _).trans' (by norm_num)
+
+/-- For any `ε > 0`, there exists `a ≠ 0` with `φ(a)/a < ε`. -/
+lemma exists_phi_div_self_lt {ε : ℝ} (hε : 0 < ε) : ∃ a : ℕ, a ≠ 0 ∧ (a.totient : ℝ) / a < ε := by
+  obtain ⟨n, hn⟩ : ∃ n : ℕ, ∏ p ∈ filter Prime (range n), (1 - 1 / (p : ℝ)) < ε :=
+    (prod_one_sub_one_div_prime_tendsto_zero.eventually (gt_mem_nhds hε)).exists
+  use ∏ p ∈ filter Prime (range n), p
+  rw [totient_eq_div_primeFactors_mul, primeFactors_prod]
+  · rw [Nat.div_self] <;> norm_num
+    · rw [← Finset.prod_div_distrib]
+      refine ⟨prod_ne_zero_iff.mpr fun p hp ↦ (mem_filter.mp hp).2.ne_zero, ?_⟩
+      convert hn using 1
+      exact prod_congr rfl fun x hx ↦ by
+        rw [cast_sub <| succ_le_of_lt (mem_filter.mp hx).2.pos]
+        simp [sub_div, (mem_filter.mp hx).2.ne_zero]
+    · exact fun _ _ hi' ↦ hi'.pos
+  · aesop
+
+@[blueprint
+  "primeCounting-is-o-id"
+  (statement := /-- $$\pi(n) = o(n) \quad \text{as } n \to \infty.$$ -/)
+  (proof := /-- Given $\varepsilon > 0$, choose $a \neq 0$ with $\varphi(a)/a < \varepsilon/2$
+(using $\prod_{p \leq n}(1 - 1/p) \to 0$). For $n \geq a + 2$,
+$$\pi(n) \leq \frac{\varphi(a)}{a} \cdot n + \varphi(a) + \pi(a+1) + 1.$$
+Since $\varphi(a)/a < \varepsilon/2$, for $n$ large enough the constant terms are absorbed,
+giving $\pi(n) < \varepsilon n$. -/)
+  (latexEnv := "lemma")]
+lemma primeCounting_is_o_id :
+    IsLittleO .atTop (fun n ↦ (primeCounting n : ℝ)) (fun n ↦ (n : ℝ)) := by
+  refine isLittleO_iff.mpr fun ε hε ↦ ?_
+  obtain ⟨a, ha_ne_zero, ha_bound⟩ : ∃ a : ℕ, a ≠ 0 ∧ (a.totient : ℝ) / a < ε / 2 :=
+    exists_phi_div_self_lt (half_pos hε)
+  obtain ⟨N, hN⟩ : ∃ N : ℕ, ∀ n ≥ N,
+      (primeCounting' n : ℝ) ≤ (a.totient : ℝ) / a * n + (a.totient : ℝ) + primeCounting' (a + 1) := by
+    refine ⟨a + 1 + 1, fun n hn ↦ ?_⟩
+    have := primeCounting'_add_le ha_ne_zero (lt_succ_self a) (n - (a + 1))
+    simp only [ne_eq, ge_iff_le, primeCounting'] at *
+    rw [div_mul_eq_mul_div, div_add', div_add', le_div_iff₀] <;> norm_cast <;> try positivity
+    rw [show a + 1 + (n - (a + 1)) = n by rw [add_tsub_cancel_of_le (by linarith)]] at this
+    nlinarith [Nat.zero_le (φ a), Nat.zero_le (count Nat.Prime (a + 1)),
+      Nat.zero_le ((n - (a + 1)) / a), Nat.div_mul_le_self (n - (a + 1)) a,
+      Nat.sub_add_cancel (by linarith : a + 1 ≤ n)]
+  have hN_primeCounting : ∀ᶠ n in .atTop, (primeCounting n : ℝ) ≤
+      (totient a : ℝ) / a * (n : ℝ) + (totient a : ℝ) + primeCounting' (a + 1) + 1 := by
+    simp only [ne_eq, ge_iff_le, primeCounting', primeCounting, Filter.eventually_atTop] at *
+    refine ⟨N + 1, fun b hb ↦ ?_⟩
+    specialize hN (b + 1) (by linarith)
+    simp_all only [count_succ, cast_add, cast_ite, cast_one, CharP.cast_eq_zero]
+    have h_phi_le : (φ a : ℝ) / a ≤ 1 := by
+      rw [div_le_iff₀ (cast_pos.mpr <| pos_of_ne_zero ha_ne_zero)]
+      simp [one_mul, totient_le a]
+    nlinarith
+  norm_num at *
+  obtain ⟨M, hM⟩ := hN_primeCounting
+  let C := (φ a : ℝ) + primeCounting' (a + 1) + 1
+  refine ⟨M + ⌈C / (ε / 2)⌉₊ + 1, fun n hn ↦ ?_⟩
+  have h_ceil := le_ceil (C / (ε / 2))
+  have h_cancel := mul_div_cancel₀ C (by positivity : ε / 2 ≠ 0)
+  have h_n_ge : (n : ℝ) ≥ M + ⌈C / (ε / 2)⌉₊ + 1 := by exact_mod_cast hn
+  nlinarith [hM n (by linarith)]
+
 @[blueprint
   "bound-score-4"
   (statement := /-- If $n$ sufficiently large depending on $L, \varepsilon$, then
@@ -2054,9 +2487,117 @@ $\sum_{n/L < p \leq n} \frac{n}{p} \log \frac{n}{p} \leq \varepsilon n$. -/)
   (discussion := 517)
   (latexEnv := "sublemma")]
 theorem Params.initial.bound_score_4 (ε : ℝ) (hε : ε > 0) (L : ℕ) :
-    ∀ᶠ n in Filter.atTop, ∀ P : Params,
-      P.L = L → P.n = n → ∑ p ∈ Finset.filter (·.Prime) (Finset.Icc (P.n / P.L + 1) P.n),
-          (P.n / p) * Real.log (P.n / p) ≤ ε * P.n := by sorry
+    ∀ᶠ n in .atTop, ∀ P : Params, P.L = L → P.n = n → ∑ p ∈ filter (·.Prime) (Icc (P.n / P.L + 1) P.n),
+      (P.n / p) * Real.log (P.n / p) ≤ ε * P.n := by
+  have h_term_bound : ∀ (n L : ℕ), 0 < n → 0 < L → ∀ p ∈ Finset.filter (·.Prime) (Icc (n / L + 1) n),
+      ((n : ℝ) / p) * Real.log (n / p) ≤ L * Real.log L := by
+    intro n L hn hL p hp
+    have hp_Icc := Finset.mem_Icc.mp (mem_filter.mp hp).1
+    have hp_prime : p.Prime := (mem_filter.mp hp).2
+    have h_div_bound : (n / p : ℝ) ≤ L := by
+      rw [div_le_iff₀ (cast_pos.mpr hp_prime.pos)]
+      norm_cast
+      nlinarith [Nat.div_add_mod n L, Nat.mod_lt n hL, hp_Icc.1, hp_Icc.2]
+    gcongr
+    · exact log_nonneg <| by rw [le_div_iff₀ (cast_pos.mpr hp_prime.pos)]; norm_cast; grind
+    · exact div_pos (cast_pos.mpr hn) (cast_pos.mpr hp_prime.pos)
+  have h_num_terms : ∀ (n L : ℕ), 0 < n → 0 < L →
+      (Finset.filter (·.Prime) (Icc (n / L + 1) n)).card ≤ primeCounting n := by
+    intro n L _ _
+    rw [primeCounting, primeCounting', count_eq_card_filter_range]
+    exact card_mono fun x hx ↦ Finset.mem_filter.mpr ⟨Finset.mem_range.mpr (by
+      linarith [Finset.mem_Icc.mp (Finset.mem_filter.mp hx).1]), (mem_filter.mp hx).2⟩
+  have h_bound : ∀ᶠ n in .atTop, ∀ P : Params, P.L = L → P.n = n → (∑ p ∈ filter (·.Prime) (Icc (P.n / P.L + 1) P.n),
+        ((P.n : ℝ) / p) * Real.log (P.n / p)) ≤ (primeCounting P.n) * L * Real.log L := by
+    filter_upwards [Filter.eventually_gt_atTop 0] with n hn P hP₁ hP₂
+    refine le_trans (Finset.sum_le_sum fun x hx ↦ h_term_bound _ _ (by linarith) P.hL_pos _ hx) ?_
+    · simp_all only [gt_iff_lt, Finset.mem_filter, Finset.mem_Icc, and_imp, sum_const, nsmul_eq_mul, mul_assoc]
+      exact mul_le_mul_of_nonneg_right (mod_cast h_num_terms n L hn (by linarith [P.hL_pos]))
+        (mul_nonneg (cast_nonneg _) (log_natCast_nonneg _))
+  have h_tendsto : Filter.Tendsto (fun n ↦ (primeCounting n : ℝ) * L * Real.log L / n) .atTop (nhds 0) := by
+    have := primeCounting_is_o_id
+    rw [isLittleO_iff_tendsto] at this
+    · convert this.const_mul (L * Real.log L) using 2 <;> ring
+    · aesop
+  have h_pi_bound : ∀ᶠ n in .atTop, (primeCounting n : ℝ) * L * Real.log L ≤ ε * n := by
+    filter_upwards [h_tendsto.eventually (gt_mem_nhds (show 0 < ε by positivity)),
+      Filter.eventually_gt_atTop 0] with n hn hn'
+    rw [div_lt_iff₀ (by positivity : (0 : ℝ) < n)] at hn
+    linarith
+  filter_upwards [h_bound, h_pi_bound] with n hn hn' P hP hP'
+  exact le_trans (hn P hP hP') (by simpa [hP'] using hn')
+
+@[blueprint
+  "primeCounting-le-bound"
+  (statement := /-- For all $n \geq 2$, one has $$\pi(n) \leq \sqrt{n} + \frac{2n \log 4}{\log n}.$$ -/)
+  (proof := /-- By Chebyshev's bound, $\prod_{p \leq n} p \leq 4^n$, so
+$\sum_{p \leq n} \log p \leq n \log 4$. The number of primes $p \leq \sqrt{n}$ is trivially
+at most $\sqrt{n}$. For primes $p > \sqrt{n}$, we have $\log p > \frac{1}{2} \log n$, hence
+$$\bigl(\pi(n) - \pi(\sqrt{n})\bigr) \cdot \tfrac{1}{2} \log n
+  < \sum_{\sqrt{n} < p \leq n} \log p \leq n \log 4,$$
+giving $\pi(n) - \pi(\sqrt{n}) < \frac{2n \log 4}{\log n}$. Adding $\pi(\sqrt{n}) \leq \sqrt{n}$
+yields the result. -/)
+  (latexEnv := "sublemma")]
+lemma primeCounting_le_bound (n : ℕ) (hn : 2 ≤ n) :
+    (Nat.primeCounting n : ℝ) ≤ Real.sqrt n + (2 * n * Real.log 4) / Real.log n := by
+  have h_sum_log_bound :
+      (∑ p ∈ filter Prime (Icc 1 n), Real.log p) ≤ n * Real.log 4 := by
+    have h_prod_le : (∏ p ∈ filter Prime (Icc 1 n), p : ℕ) ≤ 4 ^ n := by
+      convert primorial_le_4_pow n using 1; congr 1 with (_ | p) <;> aesop
+    have h_prod_le_real : (∏ p ∈ filter Prime (Icc 1 n), (p : ℝ)) ≤ 4 ^ n := by
+      rw [← cast_prod]; exact_mod_cast h_prod_le
+    rw [← log_prod fun x hx ↦ cast_ne_zero.mpr <| Nat.Prime.ne_zero <| by aesop]
+    have h_prod_pos : 0 < ∏ p ∈ filter Prime (Icc 1 n), (p : ℝ) :=
+      prod_pos fun p hp ↦ cast_pos.mpr <| Prime.pos <| by aesop
+    simpa using log_le_log h_prod_pos h_prod_le_real
+  have h_large_primes :
+      (∑ p ∈ filter Prime (Icc (⌊Real.sqrt n⌋₊ + 1) n), Real.log p) ≥
+      (primeCounting n - primeCounting ⌊Real.sqrt n⌋₊) * Real.log (Real.sqrt n) := by
+    have h_log_lower : ∀ p ∈ Finset.filter Prime (Icc (⌊Real.sqrt n⌋₊ + 1) n),
+        Real.log p ≥ Real.log (Real.sqrt n) := fun p hp ↦ log_le_log (by positivity)
+        (le_trans (lt_floor_add_one _ |> le_of_lt) (mod_cast (Finset.mem_Icc.mp (mem_filter.mp hp).1).1))
+    refine le_trans ?_ (sum_le_sum h_log_lower)
+    norm_num [primeCounting, primeCounting', count_eq_card_filter_range]
+    rw [show Finset.filter Prime (Icc (n.sqrt + 1) n) =
+      Finset.filter Prime (range (n + 1)) \ filter Nat.Prime (range (n.sqrt + 1)) from ?_, card_sdiff]
+    · rw [cast_sub]
+      · rw [inter_eq_left.mpr (filter_subset_filter _ <| range_mono <| succ_le_succ <| sqrt_le_self _)]
+      · exact card_mono inter_subset_right
+    · ext; simp [Finset.mem_Icc, Finset.mem_range, mem_sdiff]; grind
+  have h_combined :
+      (Nat.primeCounting n - Nat.primeCounting ⌊Real.sqrt n⌋₊) * Real.log (Real.sqrt n) ≤
+      n * Real.log 4 := by
+    refine le_trans h_large_primes <| h_sum_log_bound.trans' <| sum_le_sum_of_subset_of_nonneg ?_
+        (fun _ _ _ ↦ log_nonneg <| one_le_cast.mpr <| Prime.pos <| by aesop)
+    exact filter_subset_filter _ <| Icc_subset_Icc (succ_pos _) le_rfl
+  have h_trivial : primeCounting ⌊Real.sqrt n⌋₊ ≤ Real.sqrt n := by
+    have : primeCounting ⌊Real.sqrt n⌋₊ ≤ ⌊Real.sqrt n⌋₊ := by
+      rw [primeCounting, primeCounting', count_eq_card_filter_range]
+      calc (Finset.filter Prime (range (⌊Real.sqrt n⌋₊ + 1))).card
+          ≤ (Finset.Ico 2 (⌊Real.sqrt n⌋₊ + 1)).card := card_le_card fun x hx ↦ Finset.mem_Ico.mpr
+            ⟨Prime.two_le (mem_filter.mp hx).2, Finset.mem_range.mp (mem_filter.mp hx).1⟩
+        _ ≤ ⌊Real.sqrt n⌋₊ := by simp
+    exact le_trans (cast_le.mpr this) (floor_le (sqrt_nonneg _))
+  rw [log_sqrt (cast_nonneg _)] at h_combined
+  rw [add_div', le_div_iff₀] <;> nlinarith [log_pos <| show (n : ℝ) > 1 by norm_cast,
+    log_le_sub_one_of_pos <| show (n : ℝ) > 0 by positivity]
+
+/-- The ratio `π(n) / n → 0` as `n → ∞`. -/
+lemma tendsto_primeCounting_div_id_zero :
+    Filter.Tendsto (fun n ↦ (Nat.primeCounting n : ℝ) / n) .atTop (nhds 0) := by
+  have h_upper_bound : ∀ n : ℕ, 2 ≤ n → (primeCounting n : ℝ) / n ≤ Real.sqrt n / n + (2 * Real.log 4) / Real.log n := by
+    intro n hn
+    rw [div_le_iff₀ (by positivity)]
+    convert primeCounting_le_bound n hn using 1
+    · ring_nf; norm_num [show n ≠ 0 by positivity]
+  have h_tendsto : Filter.Tendsto (fun n : ℕ ↦ .sqrt n / n + (2 * Real.log 4) / Real.log n) .atTop (nhds 0) := by
+    have h1 : Filter.Tendsto (fun n : ℕ ↦ Real.sqrt n / n) .atTop (nhds 0) := by
+      simpa [sqrt_div_self] using tendsto_inv_atTop_nhds_zero_nat.sqrt
+    have h2 : Filter.Tendsto (fun n : ℕ ↦ (2 * Real.log 4) / Real.log n) .atTop (nhds 0) :=
+      tendsto_const_nhds.div_atTop (tendsto_log_atTop.comp tendsto_natCast_atTop_atTop)
+    simpa using h1.add h2
+  exact squeeze_zero_norm' (Filter.eventually_atTop.mpr ⟨2, fun n hn ↦ by
+    rw [norm_of_nonneg (by positivity)]; exact h_upper_bound n hn⟩) h_tendsto
 
 @[blueprint
   "bound-score-5"
@@ -2069,7 +2610,31 @@ theorem Params.initial.bound_score_5 (ε : ℝ) (hε : ε > 0) (M L : ℕ) :
     ∀ᶠ n in Filter.atTop, ∀ P : Params,
       P.M = M → P.L = L → P.n = n → ∑ _p ∈ Finset.filter (·.Prime) (Finset.Iic P.L),
           (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L ≤ ε * P.n := by
-  sorry
+  have tendsto_log_div_atTop : Filter.Tendsto (fun n : ℕ ↦ Real.log n / (n : ℝ)) .atTop (nhds 0) := by
+    suffices h : Filter.Tendsto (fun y : ℝ ↦ y * Real.log (1 / y)) (.map (1 / ·) .atTop) (nhds 0) by
+      exact (h.comp (Filter.map_mono tendsto_natCast_atTop_atTop)).congr fun _ ↦ by grind
+    norm_num at *
+    exact tendsto_nhdsWithin_of_tendsto_nhds (by simpa using Real.continuous_mul_log.neg.tendsto 0)
+  have h_pi_div_n_zero : Filter.Tendsto (fun n : ℕ ↦ (Nat.primeCounting n : ℝ) / n)
+      .atTop (nhds 0) := tendsto_primeCounting_div_id_zero
+  have h_sum_bound : Filter.Tendsto (fun n : ℕ ↦
+      ((Nat.primeCounting L : ℝ) * (M * Real.log n + M * L ^ 2 * (Nat.primeCounting n : ℝ)) *
+        Real.log L) / n) .atTop (nhds 0) := by
+    convert Filter.Tendsto.const_mul ((primeCounting L : ℝ) * M * Real.log L)
+      ((tendsto_log_div_atTop.const_mul 1).add (h_pi_div_n_zero.const_mul (L ^ 2 : ℝ))) using 2 <;>
+      ring
+  filter_upwards [h_sum_bound.eventually (gt_mem_nhds hε), Filter.eventually_gt_atTop 0] with n hn hn' P hM hL hn''
+  rw [div_lt_iff₀ (by positivity)] at hn
+  simp_all only [gt_iff_lt, mul_comm, mul_left_comm, mul_add, mul_assoc, sum_const]
+  convert hn.le using 1
+  · norm_num [primeCounting]
+    ring_nf
+    rw [primeCounting', count_eq_card_filter_range]
+    norm_num [add_comm, sum_range_succ]
+    ring_nf
+    rw [show count Nat.Prime (1 + L) = (Finset.filter Prime (Iic L)).card from ?_]
+    · ring_nf
+    · rw [count_eq_card_filter_range, add_comm, range_eq_Ico]; rfl
 
 @[blueprint
   "initial-score"
@@ -2134,54 +2699,159 @@ theorem Params.initial.score (ε : ℝ) (hε : ε > 0) :
 
 @[blueprint
   "erdos-sol-1"
-  (statement := /-- One can find a balanced factorization of $n!$ with cardinality at least
-  $n - n / \log n - o(n / \log n)$.--/)
+  (statement := /-- One can find a balanced factorization of $n!$ with cardinality at most
+  $n - n / \log n + o(n / \log n)$.--/)
   (proof := /-- Combine Proposition \ref{initial-score} with Proposition \ref{card-bound} and
   the Stirling approximation.-/)
-  (latexEnv := "theorem")]
-theorem Solution_1 (ε : ℝ) (_hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Factorization n,
-    f.total_imbalance = 0 ∧ f.a.card ≥ n - n / Real.log n - ε * n / Real.log n := by
-  refine .of_forall fun n ↦
-    ⟨⟨Multiset.Ico 1 (n + 1), fun _ hm ↦ ?_, fun _ hm ↦ ?_⟩, ?_, ?_⟩
-  · exact le_of_lt_succ (Multiset.mem_Ico.mp hm).2
-  · exact (Multiset.mem_Ico.mp hm).1
-  · rw [Factorization.total_imbalance]
-    refine Finset.sum_eq_zero fun p hp ↦ ?_
-    simp only [Factorization.balance, Factorization.sum, Int.natAbs_eq_zero, sub_eq_zero]
-    norm_cast
-    simp only [Multiset.Ico, ← sum_eq_multiset_sum]
-    have : ∀ {m : ℕ}, m > 0 →
-        m.factorial.factorization p = ∑ k ∈ Ico 1 (m + 1), k.factorization p := by
-      intro m hm
-      induction hm with
-      | refl => simp [factorial]
-      | step _ ih =>
-        rw [factorial_succ, factorization_mul (by omega) (factorial_pos _).ne',
-          Finsupp.coe_add, Pi.add_apply, ih, sum_Ico_succ_top (by omega : 1 ≤ _ + 1)]
+  (latexEnv := "theorem")
+  (discussion := 648)]
+theorem Solution_1 (ε : ℝ) (hε : ε > 0) : ∀ᶠ n in .atTop, ∃ f : Factorization n,
+    f.total_imbalance = 0 ∧ f.a.card ≤ n - n / Real.log n + ε * n / Real.log n := by
+  have h_stirling : ∀ᶠ n : ℕ in .atTop, log (n ! : ℝ) ≤ n * Real.log n - n + (ε / 4) * n := by
+    have h_ratio : Filter.Tendsto (fun n : ℕ ↦ (n ! : ℝ) / (sqrt (2 * n * π) * (n / exp 1) ^ n)) .atTop (nhds 1) := by
+      have h := Stirling.factorial_isEquivalent_stirling
+      rw [isEquivalent_iff_tendsto_one] at h
+      · exact h
+      · filter_upwards [Filter.eventually_gt_atTop 0] with n hn; positivity
+    have h_ratio_le : ∀ᶠ n : ℕ in .atTop,
+        (n ! : ℝ) / (sqrt (2 * n * π) * (n / exp 1) ^ n) ≤ 2 :=
+      h_ratio.eventually (Metric.ball_mem_nhds 1 one_pos) |>.mono fun n hn ↦ by
+        simp only [Real.dist_eq] at hn; linarith [abs_sub_lt_iff.mp hn]
+    have h_log_o := isLittleO_log_id_atTop.def (by linarith : (0 : ℝ) < ε / 16)
+    have h_const : ∀ᶠ n : ℕ in .atTop, Real.log 2 + log (2 * π) / 2 ≤ (ε / 16) * n := by
+      let c := Real.log 2 + log (2 * π) / 2
+      filter_upwards [Filter.eventually_ge_atTop (ceil (c / (ε / 16)) + 1)] with n hn
+      calc c = (ε / 16) * (c / (ε / 16)) := by field_simp
+        _ ≤ (ε / 16) * (ceil (c / (ε / 16)) + 1) := by
+            gcongr; exact (le_ceil _).trans (le_add_of_nonneg_right (by norm_num))
+        _ ≤ (ε / 16) * n := by gcongr; exact_mod_cast hn
+    filter_upwards [h_ratio_le, h_log_o.natCast_atTop, h_const, Filter.eventually_gt_atTop 0]
+      with n h_rat h_logn h_c hn_pos
+    have hn : (0 : ℝ) < n := cast_pos.mpr hn_pos
+    have h_fact : (n ! : ℝ) ≤ 2 * sqrt (2 * n * π) * (n / exp 1) ^ n := by
+      calc (n ! : ℝ) = (n ! : ℝ) / (sqrt (2 * n * π) * (n / exp 1) ^ n) *
+      have h_denom_pos : sqrt (2 * n * π) * (n / exp 1) ^ n > 0 := by positivity
+              (sqrt (2 * n * π) * (n / exp 1) ^ n) := by field_simp
+        _ ≤ 2 * (sqrt (2 * n * π) * (n / exp 1) ^ n) := by gcongr
+        _ = 2 * sqrt (2 * n * π) * (n / exp 1) ^ n := by ring
+    simp only [id, norm_eq_abs] at h_logn
+    have hn1 : (1 : ℝ) ≤ n := by exact_mod_cast one_le_iff_ne_zero.mpr (pos_iff_ne_zero.mp hn_pos)
+    rw [abs_of_nonneg (Real.log_nonneg hn1), abs_of_nonneg hn.le] at h_logn
+    have h2npi : (0 : ℝ) < 2 * n * π := by positivity
+    have h2pi : (0 : ℝ) < 2 * π := by positivity
+    have hsqrt : sqrt (2 * n * π) > 0 := by positivity
+    have hpow : (n / exp 1 : ℝ) ^ n > 0 := by positivity
+    calc Real.log (n ! : ℝ)
+        ≤ log (2 * sqrt (2 * n * π) * (n / exp 1) ^ n) := log_le_log (by positivity) h_fact
+      _ = Real.log 2 + log (2 * n * π) / 2 + n * Real.log n - n := by
+        rw [show (2 : ℝ) * sqrt (2 * n * π) * (n / exp 1) ^ n =
+              2 * (sqrt (2 * n * π) * (n / exp 1) ^ n) by ring, log_mul (by norm_num)
+                (mul_pos hsqrt hpow).ne', log_mul hsqrt.ne' hpow.ne', sqrt_eq_rpow, log_rpow h2npi,
+                  Real.log_pow, log_div hn.ne' (exp_pos 1).ne', log_exp]
         ring
-    rcases n with _ | n
-    · simp only [mem_primesBelow] at hp; exact (hp.2.one_lt.not_gt hp.1).elim
-    · exact (this n.succ_pos).symm
-  · simp only [Multiset.Ico, Finset.card_val, ge_iff_le, tsub_le_iff_right, card_Ico,
-      add_tsub_cancel_right]
-    have : (0 : ℝ) ≤ n / Real.log n ∧ (0 : ℝ) ≤ ε * n / Real.log n :=
-      ⟨by positivity, by positivity⟩
-    linarith
+      _ = Real.log 2 + Real.log (2 * π) / 2 + Real.log n / 2 + n * Real.log n - n := by
+          have : Real.log (2 * n * π) = Real.log (2 * π) + Real.log n := by
+            rw [show (2 : ℝ) * n * π = 2 * π * n by ring, log_mul h2pi.ne' hn.ne']
+          linarith [this]
+      _ ≤ (ε / 16) * n + (ε / 16) * n / 2 + n * Real.log n - n := by gcongr
+      _ = n * Real.log n - n + (3 * ε / 32) * n := by ring
+      _ ≤ n * Real.log n - n + (ε / 4) * n := by nlinarith
+  filter_upwards [Params.initial.score (ε / 2) (by linarith), h_stirling, Filter.eventually_gt_atTop 1]
+    with n ⟨P, hPn, hP_score⟩ h_stir hn
+  obtain ⟨f, hf_bal, hf_card⟩ := Factorization.card_bound P.initial P.L
+  subst hPn
+  refine ⟨f, hf_bal, ?_⟩
+  have hlogn_pos : Real.log P.n > 0 := Real.log_pos (by exact_mod_cast hn)
+  calc (f.a.card : ℝ)
+      ≤ (Real.log P.n.factorial + P.initial.score P.L) / Real.log P.n := by rw [le_div_iff₀ hlogn_pos]; exact hf_card
+    _ ≤ (P.n * Real.log P.n - P.n + (ε / 4) * P.n + (ε / 2) * P.n) / Real.log P.n := by gcongr
+    _ = P.n - P.n / Real.log P.n + (3 * ε / 4) * P.n / Real.log P.n := by field_simp; ring
+    _ ≤ P.n - P.n / Real.log P.n + ε * P.n / Real.log P.n := by gcongr; linarith
+
+/-- Pair up elements of a list by multiplying consecutive pairs. -/
+def pairProd : List ℕ → List ℕ
+  | [] => []
+  | [a] => [a]
+  | a :: b :: rest => (a * b) :: pairProd rest
+
+/-- The product of a list equals the product of its paired version. -/
+lemma pairProd_prod (l : List ℕ) : l.prod = (pairProd l).prod := by
+  induction l using pairProd.induct with
+  | case1 => simp [pairProd]
+  | case2 a => simp [pairProd]
+  | case3 a b rest ih => simp [pairProd, mul_assoc, ih]
+
+/-- The length of the paired list is `⌈l.length / 2⌉ = (l.length + 1) / 2`. -/
+lemma pairProd_length (l : List ℕ) : (pairProd l).length = (l.length + 1) / 2 := by
+  induction l using pairProd.induct with
+  | case1 => simp [pairProd]
+  | case2 a => simp [pairProd]
+  | case3 a b rest ih => simp [pairProd, ih]; omega
+
+/-- If all elements of `l` are at most `n`, then all elements of `pairProd l` are at most `n²`. -/
+lemma pairProd_bound (l : List ℕ) (n : ℕ) (hl : ∀ x ∈ l, x ≤ n) :
+    ∀ x ∈ pairProd l, x ≤ n ^ 2 := by
+  induction l using pairProd.induct with
+  | case1 => simp [pairProd]
+  | case2 a =>
+    simp only [pairProd, List.mem_singleton, forall_eq]
+    calc a ≤ n := hl a (List.mem_singleton_self a)
+      _ ≤ n ^ 2 := le_self_pow (by omega) n
+  | case3 a b rest ih =>
+    intro x hx
+    rw [pairProd, List.mem_cons] at hx
+    rcases hx with rfl | hx
+    · have ha := hl a <| by simp
+      have hb := hl b <| by simp
+      calc a * b ≤ n * n := by gcongr
+        _ = n ^ 2 := (sq n).symm
+    · exact ih (fun x hx' ↦ hl x <| by grind) x hx
 
 @[blueprint
   "erdos-sol-2"
-  (statement := /-- One can find a factor $n!$ into at least $n/2 - n / 2\log n - o(n / \log n)$
+  (statement := /-- One can factorize $n!$ into at most $n/2 - n / 2\log n + o(n / \log n)$
   numbers of size at most $n^2$.--/)
   (proof := /-- Group the factorization arising in Theorem \ref{erdos-sol-1} into pairs, using
   Lemma \ref{balance-zero}.-/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 649)]
 theorem Solution_2 (ε : ℝ) (hε : ε > 0) :
     ∀ᶠ n in .atTop, ∃ (t : ℕ) (a : Fin t → ℕ), ∏ i, a i = n.factorial ∧ ∀ i, a i ≤ n ^ 2 ∧
-        t ≥ (n / 2) - n / (2 * Real.log n) - ε * n / Real.log n := by
-  norm_num
-  refine ⟨2, fun b _hb ↦ ⟨b, (· + 1), ?_, ?_⟩⟩ <;> norm_num
-  · exact prod_range_add_one_eq_factorial b ▸ (prod_range (· + 1)).symm
-  · exact fun i ↦ ⟨by nlinarith [i.is_lt],
-      le_add_of_le_of_nonneg (le_add_of_le_of_nonneg (by linarith) (by positivity)) (by positivity)⟩
+        t ≤ (n / 2) - n / (2 * Real.log n) + ε * n / Real.log n := by
+  have h_large : ∀ᶠ n : ℕ in .atTop, (1 : ℝ) / 2 ≤ (ε / 4) * n / Real.log n := by
+    have h := isLittleO_log_id_atTop.def (by linarith : (0 : ℝ) < ε / 8)
+    filter_upwards [h.natCast_atTop, Filter.eventually_gt_atTop 1] with n hlogn hn
+    simp only [id, norm_eq_abs] at hlogn
+    rw [abs_of_pos <| log_pos <| one_lt_cast.mpr hn, abs_of_pos <| cast_pos.mpr (lt_of_succ_lt hn)] at hlogn
+    have hdiv : n / Real.log n ≥ 8 / ε := by
+      rw [ge_iff_le, le_div_iff₀ <| log_pos <| one_lt_cast.mpr hn]
+      calc 8 / ε * Real.log n ≤ 8 / ε * ((ε / 8) * n) := by gcongr
+        _ = n := by field_simp
+    calc (1 : ℝ) / 2 ≤ (ε / 4) * (8 / ε) / 2 := by field_simp; norm_num
+      _ ≤ (ε / 4) * (n / Real.log n) / 2 := by gcongr
+      _ = (ε / 4) * n / Real.log n / 2 := by ring
+      _ ≤ (ε / 4) * n / Real.log n := by
+        linarith [div_pos (by positivity : (ε / 4) * n > 0) <| log_pos <| one_lt_cast.mpr hn]
+  filter_upwards [Solution_1 (ε / 2) (by linarith), Filter.eventually_gt_atTop 1, h_large]
+    with n ⟨f, hf_bal, hf_card⟩ hn hn_large
+  refine ⟨(pairProd f.a.toList).length, fun i ↦ (pairProd f.a.toList).get i, ?_, ?_⟩
+  · rw [← List.prod_ofFn, List.ofFn_get]
+    have hprod : f.prod id = n.factorial := f.zero_total_imbalance hf_bal
+    simp only [Factorization.prod, Multiset.map_id] at hprod
+    rw [← hprod, ← Multiset.prod_toList]
+    exact (pairProd_prod f.a.toList).symm
+  · have ht_bound : ((pairProd f.a.toList).length : ℝ) ≤ n / 2 - n / (2 * Real.log n) + ε * n / Real.log n := by
+      change ((pairProd f.a.toList).length : ℝ) ≤ _
+      rw [pairProd_length f.a.toList, length_toList f.a]
+      calc (((f.a.card + 1) / 2 : ℕ) : ℝ) ≤ (f.a.card + 1 : ℕ) / 2 := cast_div_le
+        _ = (f.a.card : ℝ) / 2 + 1 / 2 := by simp only [cast_add, cast_one]; ring
+        _ ≤ (n - n / Real.log n + (ε / 2) * n / Real.log n) / 2 + 1 / 2 := by gcongr
+        _ = n / 2 - n / (2 * Real.log n) + (ε / 4) * n / Real.log n + 1 / 2 := by field_simp; ring
+        _ ≤ n / 2 - n / (2 * Real.log n) + (ε / 4) * n / Real.log n + (ε / 4) * n / Real.log n := by
+            linarith [hn_large]
+        _ = n / 2 - n / (2 * Real.log n) + (ε / 2) * n / Real.log n := by ring
+        _ ≤ n / 2 - n / (2 * Real.log n) + ε * n / Real.log n := by gcongr; linarith
+    intro i
+    exact ⟨pairProd_bound f.a.toList n (fun x hx ↦ f.ha x (mem_toList.mp hx)) _ (List.get_mem ..), ht_bound⟩
 
 end Erdos392
