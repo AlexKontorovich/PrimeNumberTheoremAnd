@@ -187,9 +187,8 @@ theorem BorelCaratheodoryDeriv {M R r : ℝ} {z : ℂ} {f : ℂ → ℂ}
     $$I_f(z)=z\int_0^1f(tz)\,dt.$$
   -/)
   (latexEnv := "definition")]
-noncomputable def PathIntegral {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R) (R_lt_one : R < 1)
-    (f : ℂ → ℂ) (analyticOnNhdOfDR : AnalyticOnNhd ℂ f (Metric.closedBall (0 : ℂ) R)) :
-    ℂ → ℂ := fun c ↦ let γ : ℝ → ℂ := fun r ↦ r * c
+noncomputable def PathIntegral (f : ℂ → ℂ) :
+    ℂ → ℂ := fun c ↦ let γ : ℝ → ℂ := fun s ↦ s * c
     ∫ t in 0..1, f (γ t) * (deriv γ) t
 
 
@@ -232,11 +231,17 @@ theorem LogOfAnalyticFunction {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R) (
     (∀ z ∈ Metric.closedBall 0 r, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re) := by
     let L : ℂ → ℂ := fun z ↦ deriv B z / B z
     have LanalyticOnNhdOfDR : AnalyticOnNhd ℂ L (Metric.closedBall (0 : ℂ) R) := AnalyticOnNhd.div (AnalyticOnNhd.deriv BanalyticOnNhdOfDR) BanalyticOnNhdOfDR Bnonzero
-    let J_B : ℂ → ℂ := PathIntegral zero_lt_r r_lt_R R_lt_one L LanalyticOnNhdOfDR
+    let J_B : ℂ → ℂ := PathIntegral L
     use J_B
-    have derivJ_B : ∀ z ∈ Metric.closedBall 0 r, deriv J_B z = L z := by
+    have derivJ_BOnOpenR : ∀ z ∈ Metric.ball 0 R, deriv J_B z = L z := by
         intro w hw
         sorry
+    have derivJ_BOnClosedr : ∀ z ∈ Metric.closedBall 0 r, deriv J_B z = L z := by
+        intro w hw
+        apply derivJ_BOnOpenR
+        rw[mem_ball_zero_iff]
+        rw[mem_closedBall_zero_iff] at hw
+        linarith
     have J_BAnalytic : AnalyticOnNhd ℂ J_B (Metric.closedBall 0 r) := by
         unfold AnalyticOnNhd
         intro z hz
@@ -254,7 +259,7 @@ theorem LogOfAnalyticFunction {r R : ℝ} (zero_lt_r : 0 < r) (r_lt_R : r < R) (
     have J_BLogDiff : ∀ z ∈ Metric.closedBall 0 r, Real.log ‖B z‖ - Real.log ‖B 0‖ = (J_B z).re := by
         intro w hw
         sorry
-    exact ⟨J_BAnalytic, J_BZeroAtZero, derivJ_B, J_BLogDiff⟩
+    exact ⟨J_BAnalytic, J_BZeroAtZero, derivJ_BOnClosedr, J_BLogDiff⟩
 
 
 
