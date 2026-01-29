@@ -1,6 +1,7 @@
 import Architect
 import Mathlib.MeasureTheory.Measure.Stieltjes
 import PrimeNumberTheoremAnd.SecondaryDefinitions
+import PrimeNumberTheoremAnd.RosserSchoenfeldPrime_tables
 
 blueprint_comment /--
 \section{The prime number bounds of Rosser and Schoenfeld}\label{rs-prime-sec}
@@ -51,6 +52,217 @@ noncomputable def θ.Stieltjes : StieltjesFunction ℝ := {
       simp [floor_of_nonpos hx, theta_eq_theta_coe_floor y, floor_eq_zero.mpr hy.2]
 }
 
+lemma theta_succ_sub (k : ℕ) : (θ (k + 1) - θ k) = if Nat.Prime (k + 1) then Real.log (k + 1) else 0  := by
+  simp [Chebyshev.theta_eq_sum_Icc, Chebyshev.theta_eq_sum_Icc, Finset.sum_filter, Nat.floor_add_one, Finset.sum_Icc_succ_top]
+
+lemma theta_one : θ 1 = 0 := by
+  simp [theta, Finset.sum_filter]
+
+lemma theta_two : θ 2 = Real.log 2 := by
+  simp [theta, Finset.sum_filter, Finset.sum_Ioc_succ_top, Nat.prime_two]
+
+lemma leftLim_theta_succ (k : ℕ) : Function.leftLim θ (k + 1) = θ k := by
+  rw [leftLim_eq_of_tendsto (y := θ ↑k)]
+  · exact Filter.NeBot.ne'
+  · rw [nhdsWithin_restrict (t := Set.Ioo ↑k ↑(k + 2))]
+    · rw [Set.Iio_inter_Ioo]
+      apply tendsto_nhdsWithin_congr (f := fun _ => θ ↑k)
+      · intro y hy
+        have floor_k_eq: ⌊(k : ℝ)⌋₊ = ⌊(y: ℝ)⌋₊ := by
+          rw [eq_comm, Nat.floor_eq_iff]
+          · simp
+            grind
+          · simp at hy
+            linarith
+        rw [Chebyshev.theta_eq_theta_coe_floor]
+        rw [Chebyshev.theta_eq_theta_coe_floor (x := y)]
+        congr
+      · simp
+    · simp
+    · exact isOpen_Ioo
+
+theorem summable_pre413 {f : ℝ → ℝ} {s : Set ℝ} (hs : Bornology.IsBounded s) (hs_measureable : MeasurableSet s) :
+  Summable fun (n: ℕ) ↦ ∫ (x : ℝ) in n..(n + 1), f x ∂«θ».Stieltjes.measure.restrict s := by
+
+  by_cases s_empty: s = ∅
+  · rw [summable_congr (g := 0)]
+    · apply summable_zero
+    · simp [s_empty, intervalIntegral.integral_of_le]
+
+  apply summable_of_finite_support
+  apply Set.Finite.subset (s := Finset.Icc (⌊sInf s⌋₊ - 1) (⌈sSup s⌉₊ + 1))
+  · apply finite_toSet
+  · intro a ha
+    simp only [Function.mem_support, ne_eq] at ha
+    rw [← ne_eq] at ha
+    by_contra!
+    rw [intervalIntegral.integral_zero_ae] at ha
+    · simp at ha
+    · rw [MeasureTheory.ae_iff]
+      rw [Measure.restrict_apply']
+      · simp only [le_add_iff_nonneg_right, zero_le_one, Set.uIoc_of_le, Set.mem_Ioc,
+          and_imp, Classical.not_imp]
+        rw [Set.setOf_and]
+        rw [Set.setOf_and]
+        rw [← Set.inter_assoc]
+        nth_rw 1 [Set.inter_assoc]
+        rw [Set.inter_comm]
+        rw [Set.inter_assoc]
+        apply MeasureTheory.measure_inter_null_of_null_right
+        · conv =>
+            arg 1
+            arg 2
+            equals ∅ =>
+              ext c
+              simp only [Set.mem_inter_iff, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false,
+                not_and, not_le]
+              intro c_mem a_lt
+              simp only [coe_Icc, Set.mem_Icc, not_and_or] at this
+              cases this
+              · rename_i le_a
+                rw [tsub_le_iff_right, not_le] at le_a
+                apply Nat.lt_of_lt_floor at le_a
+                simp at le_a
+                have := csInf_le (hs.bddBelow) c_mem
+                linarith
+              · rename_i a_le
+                rw [not_le] at a_le
+                apply LT.lt.le at a_le
+                rw [Order.add_one_le_iff] at a_le
+                apply LT.lt.le at a_le
+                apply Nat.le_of_ceil_le at a_le
+                grw [le_csSup hs.bddAbove c_mem] at a_lt
+                linarith
+          simp
+      · apply hs_measureable
+
+lemma support_pre413 {f : ℝ → ℝ} {x : ℝ} (hx : 2 ≤ x) :
+  (Function.support fun (n: ℕ) ↦ ∫ (x : ℝ) in ↑n..↑n + 1, f x ∂«θ».Stieltjes.measure.restrict (Set.Icc 2 x)) ⊆
+    (Finset.Ico 1 ⌊x⌋₊) := by
+  intro n hn
+  simp only [Function.mem_support, ne_eq] at hn
+  rw [intervalIntegral.integral_of_le (by simp), ← ne_eq, ← abs_pos] at hn
+  grw [MeasureTheory.abs_integral_le_integral_abs] at hn
+  rw [MeasureTheory.integral_pos_iff_support_of_nonneg_ae] at hn
+  · simp only [measurableSet_Ioc, Measure.restrict_restrict, measurableSet_Icc,
+      MeasurableSet.inter, Measure.restrict_apply'] at hn
+    by_cases n_eq: n = 0
+    · simp only [n_eq, CharP.cast_eq_zero, zero_add] at hn
+      conv at hn =>
+        pattern _ ∩ _
+        rhs
+        equals ∅ => grind
+      simp at hn
+    by_contra!
+    conv at hn =>
+      rhs
+      arg 2
+      rhs
+      equals (Set.Ioc ↑n x) =>
+        ext a
+        simp only [Set.mem_inter_iff, Set.mem_Ioc, Set.mem_Icc]
+        refine ⟨?_, ?_⟩
+        · intro ha
+          refine ⟨by grind, ?_⟩
+          grind
+        · intro ha
+          simp only [coe_Ico, Set.mem_Ico, not_and_or] at this
+          refine ⟨?_, ?_⟩
+          · refine ⟨?_, ?_⟩
+            · grind
+            · cases this
+              · grind
+              · rename_i n_le
+                simp at n_le
+                grw [ha.2]
+                grw [Nat.lt_floor_add_one (a := x)]
+                simpa using n_le
+          · refine ⟨?_, by grind⟩
+            have le_x: (2: ℕ) ≤ x := by norm_cast
+            apply Nat.le_floor at le_x
+            conv =>
+              lhs
+              equals ↑(2: ℕ) => simp
+
+            simp only [not_le, lt_one_iff, n_eq, not_lt, false_or] at this
+            grw [le_x, this]
+            linarith
+
+    apply _root_.ne_of_lt at hn
+    rw [ne_eq, eq_comm] at hn
+    rw [measure_inter_null_of_null_right] at hn
+    · simp at hn
+    · simp only [«θ».Stieltjes, StieltjesFunction.measure_Ioc, ENNReal.ofReal_eq_zero, tsub_le_iff_right, zero_add]
+      rw [theta_eq_theta_coe_floor]
+      apply Monotone.imp (by exact theta_mono)
+      simp only [coe_Ico, Set.mem_Ico, not_and, not_lt] at this
+      simp [this (by omega)]
+  · apply Filter.Eventually.of_forall
+    intro y
+    simp
+  · apply MeasureTheory.Integrable.of_integral_ne_zero
+    grind
+
+lemma pre_413_measure_inter {x : ℝ} (hx : 2 ≤ x) (y : Finset.Ico 1 ⌊x⌋₊) :
+    «θ».Stieltjes.measure.real (Set.Ioc (↑↑y) (↑↑y + 1) ∩ Set.Icc 2 x) = if Nat.Prime (y + 1) then Real.log (↑y + 1) else 0 := by
+  by_cases y_eq: y.val = 1
+  · simp only [y_eq, cast_one, reduceAdd]
+    norm_num
+    conv =>
+      arg 1
+      arg 2
+      equals Set.Icc 2 2 =>
+        ext a
+        simp
+        have foo := y.prop
+        rw [Finset.mem_Ico] at foo
+        grind
+    rw [Measure.real_def]
+    simp only [«θ».Stieltjes, Set.Icc_self, StieltjesFunction.measure_singleton,
+      theta_two]
+    conv =>
+      lhs
+      arg 1
+      arg 1
+      rhs
+      arg 2
+      equals ↑(1: ℕ) + (1: ℝ) => norm_num
+    rw [leftLim_theta_succ]
+    simp [theta_one, Real.log_nonneg]
+  · rw [Measure.real_def, MeasureTheory.measure_eq_measure_of_null_diff (t := Set.Ioc (↑↑y) (↑↑y + 1))]
+    · simp only [«θ».Stieltjes, StieltjesFunction.measure_Ioc, theta_succ_sub,
+      ENNReal.toReal_ofReal_eq_iff]
+      split_ifs
+      · simp [Real.log_nonneg]
+      · simp
+    · simp
+    · simp
+      conv =>
+        arg 1
+        arg 2
+        equals ∅ =>
+          ext a
+          simp only [Set.mem_diff, Set.mem_Ioc, Set.mem_Icc, not_and, not_le,
+            Set.mem_empty_iff_false, iff_false, Classical.not_imp, not_lt, and_imp]
+          intro ha hb
+          have y_prop := y.property
+          rw [Finset.mem_Ico] at y_prop
+
+          have y_lt: (2: ℝ) ≤ y.val := by
+            norm_cast
+            omega
+          refine ⟨?_, ?_⟩
+          · grw [y_lt]
+            linarith
+          · grw [hb]
+            have bar := y_prop.2
+            rw [← Nat.add_one_le_iff] at bar
+            norm_cast
+            grw [bar]
+            apply Nat.floor_le
+            linarith
+      simp
+
 @[blueprint
   "rs-pre-413"
   (title := "RS-prime display before (4.13)")
@@ -58,9 +270,149 @@ noncomputable def θ.Stieltjes : StieltjesFunction ℝ := {
   (proof := /-- This follows from the definition of the Stieltjes integral. -/)
   (latexEnv := "sublemma")
   (discussion := 599)]
-theorem pre_413 {f : ℝ → ℝ} (hf : ContinuousOn f (Set.Ici 2)) {x : ℝ} (hx : 2 ≤ x) :
+theorem pre_413 {f : ℝ → ℝ} {x : ℝ} (hf : ContinuousOn f (Set.Icc 2 (x + 1))) (hx : 2 ≤ x) :
     ∑ p ∈ filter Prime (Iic ⌊x⌋₊), f p =
-      ∫ y in Set.Icc 2 x, f y / log y ∂θ.Stieltjes.measure := by sorry
+      ∫ y in Set.Icc 2 x, f y / log y ∂θ.Stieltjes.measure := by
+  rw [← (MeasureTheory.Integrable.hasSum_intervalIntegral _ 0).tsum_eq]
+  · rw [tsum_of_nat_of_neg_add_one]
+    · conv =>
+        rhs
+        rhs
+        arg 1
+        intro n
+        rw [intervalIntegral.integral_of_le (by simp)]
+        rw [MeasureTheory.setIntegral_measure_zero]
+        . skip
+        . tactic =>
+            rw [Measure.restrict_apply]
+            apply MeasureTheory.measure_inter_null_of_null_left
+            simp only [«θ».Stieltjes, neg_add_rev, Int.reduceNeg, Int.cast_add, Int.cast_neg,
+              Int.cast_one, Int.cast_natCast, zero_add, neg_add_cancel_comm,
+              StieltjesFunction.measure_Ioc, theta, ENNReal.ofReal_eq_zero, tsub_le_iff_right]
+            rw [Finset.Ioc_eq_empty_of_le]
+            · rw [Finset.Ioc_eq_empty_of_le]
+              simp
+              linarith
+            · simp
+              linarith
+            · simp
+      simp only [Int.cast_natCast, zero_add, tsum_zero, add_zero]
+      rw [tsum_eq_sum' (s := Finset.Ico 1 ⌊x⌋₊)]
+      · conv =>
+          rhs
+          arg 2
+          intro k
+          rw [intervalIntegral.integral_congr_ae_restrict (g := fun _ => (f (k + 1)) / (Real.log (k + 1))) (by
+            rw [Set.uIoc_of_le (by simp)]
+            conv =>
+              pattern Set.Ioc _ _
+              equals (Set.Ioo ↑k ↑(k + 1)) ∪ {↑(k + 1)} => simp
+            rw [MeasureTheory.ae_restrict_union_eq]
+            unfold Filter.EventuallyEq
+            rw [Filter.eventually_sup, ← Filter.EventuallyEq]
+            refine ⟨?_, ?_⟩
+            · unfold Filter.EventuallyEq
+              rw [MeasureTheory.ae_iff, MeasureTheory.Measure.restrict_apply', Set.inter_comm]
+              apply MeasureTheory.measure_inter_null_of_null_left
+              · rw [MeasureTheory.Measure.restrict_apply']
+                · apply MeasureTheory.measure_inter_null_of_null_left
+                  simp [«θ».Stieltjes, leftLim_theta_succ]
+                · simp
+              · simp
+            · rw [Measure.restrict_restrict (by simp)]
+              by_cases k_succ_mem: ↑k + (1: ℝ) ∈ Set.Icc (2: ℝ) x
+              · simp only [cast_add, cast_one, Set.singleton_inter_of_mem k_succ_mem,
+                  Measure.restrict_singleton, StieltjesFunction.measure_singleton, «θ».Stieltjes, leftLim_theta_succ, theta_succ_sub]
+                split_ifs
+                · rename_i k_prime
+                  rw [MeasureTheory.Measure.ae_ennreal_smul_measure_iff]
+                  · simp
+                  · have := k_prime.two_le
+                    simp_rw [ne_eq, ENNReal.ofReal_eq_zero, not_le]
+                    apply Real.log_pos
+                    simp
+                    grind
+                · simp
+              · rw [Set.singleton_inter_of_notMem]
+                · simp
+                · simp
+                  simp at k_succ_mem
+                  grind
+          )]
+        simp_rw [intervalIntegral.integral_const']
+        simp only [measurableSet_Ioc, measureReal_restrict_apply, add_lt_iff_neg_left, not_lt,
+          zero_le_one, Set.Ioc_eq_empty, measureReal_empty, sub_zero, smul_eq_mul]
+        nth_rw 2 [← Finset.sum_coe_sort]
+        simp_rw [pre_413_measure_inter hx]
+        simp only [ite_mul, zero_mul]
+        have log_succ (y: Finset.Ico 1 ⌊x⌋₊) : Real.log (y + 1) ≠ 0 := by
+          have foo := y.property
+          simp
+          norm_cast
+          grind
+        field_simp [log_succ]
+        rw [Finset.sum_coe_sort (f := fun y => (if Nat.Prime (y + 1) then (f (↑y + 1)) else 0)),
+            Finset.sum_Ico_eq_sum_range]
+        norm_cast
+        ring
+        conv =>
+          rhs
+          arg 1
+          arg 1
+          equals ⌊x⌋₊ + 1 - 2 => simp
+        rw [← Finset.sum_Ico_eq_sum_range (m := 2) (f := fun x => if Nat.Prime (x) then f ↑(x) else 0)]
+        conv =>
+          rhs
+          arg 1
+          equals Finset.Icc 2 ⌊x⌋₊ =>
+            ext a
+            simp
+        rw [Finset.sum_filter, Finset.Iic_eq_Icc]
+        rw [← Finset.sum_subset (s₁ := Finset.Icc 2 ⌊x⌋₊)]
+        · intro a ha
+          simp at ha
+          simp
+          omega
+        · intro a ha a_not
+          simp at a_not
+          simp at ha
+          have a_lt: a < 2 := by omega
+          have not_prime : ¬ Nat.Prime a := by
+            by_cases a_eq: a = 0
+            · simp [a_eq, Nat.not_prime_zero]
+            · by_cases a_eq: a = 1
+              · simp [a_eq, Nat.not_prime_one]
+              · omega
+          simp [not_prime]
+      · apply support_pre413 hx
+    · simp only [Int.cast_natCast, zero_add]
+      apply summable_pre413 (by exact Metric.isBounded_Icc 2 x) (by exact
+        measurableSet_Icc)
+    · rw [summable_congr (g := 0)]
+      · apply summable_zero
+      · intro n
+        rw [intervalIntegral.integral_of_le (by simp)]
+        have inter_empty: Set.Ioc (-1 + -(n: ℝ)) (-↑n) ∩ Set.Icc 2 x = ∅ := by
+          ext a
+          simp only [Set.mem_inter_iff, Set.mem_Ioc, add_neg_lt_iff_lt_add, Set.mem_Icc,
+            Set.mem_empty_iff_false, iff_false, not_and, not_le, and_imp]
+          intros
+          linarith
+        simp [inter_empty]
+  · apply ContinuousOn.integrableOn_Icc
+    intro a ha
+    have a_ne: a ≠ 0 := by grind
+    apply ContinuousWithinAt.div
+    · apply hf.mono (t := Set.Icc _ _)
+      · intro a ha
+        simp
+        simp at ha
+        grind
+      · simpa using ha
+    · apply ContinuousAt.continuousWithinAt
+      fun_prop (disch := assumption)
+    · simp
+      grind
 
 @[blueprint
   "rs-413"
@@ -542,7 +894,7 @@ theorem mertens_first_theorem' :
       apply abs_nonneg
     · simpa using integrableOn_deriv_inv.1.abs
 
-def c₀ : ℝ := 1.03883
+
 
 @[blueprint
   "rs-psi-upper"

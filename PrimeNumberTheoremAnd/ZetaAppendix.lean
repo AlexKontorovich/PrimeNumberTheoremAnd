@@ -1764,9 +1764,9 @@ theorem lemma_abadsumas {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a b : �
           |ϑ| / (2 * π ^ 2) * ((1 / ((1 - |ϑ|) ^ 3 : ℝ)) + 2 * (riemannZeta 3).re - 1)
       else
         s.re / 6
-    ∃ E : ℂ, ∑' n : ℤ, (FourierTransform.fourier f n + FourierTransform.fourier f (-n)) =
+    ∃ E : ℂ, ∑' n : ℕ, (FourierTransform.fourier f (n + 1) + FourierTransform.fourier f (-(n + 1 : ℤ))) =
       ((a ^ (-s) : ℂ) * g ϑ) / (2 * I) - ((b ^ (-s) : ℂ) * g ϑ_minus) / (2 * I) + E ∧
-      ‖E‖ ≤ C := by
+      ‖E‖ ≤ C / a ^ (s.re + 1) := by
   sorry
 
 @[blueprint
