@@ -33,7 +33,7 @@ we can automatically coerce `GenArithFunction N R` to a function `N → R`.
   "IsAdditive"
   (statement := /-- Additive function. -/)]
 def IsAdditive [MonoidWithZero N] [AddZeroClass R] (f : GenArithFunction N R) : Prop :=
-  ∀ {m n : N}, IsRelPrime m n → f.toFun (m * n) = f.toFun m + f.toFun n
+  ∀ {m n : N}, IsRelPrime m n → f (m * n) = f m + f n
 
 @[blueprint
   "IsCompletelyAdditive"
