@@ -49,18 +49,29 @@ lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
 
 @[blueprint "DerivativeBound"
   (title := "DerivativeBound")
-  (statement := /-- Let $R,\,M>0$ and $0 < r < r' < R$. Let $f$ be analytic on $|z|\leq R$ such that $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then we have that
+  (statement := /--
+    Let $R,\,M>0$ and $0 < r < r' < R$. Let $f$ be analytic on $|z|\leq R$ such that
+    $f(0)=0$ and suppose $\Re f(z)\leq M$ for all $|z|\leq R$. Then we have that
     $$|f'(z)|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}$$
-    for all $|z|\leq r$. -/)
-  (proof := /-- By Lemma \ref{cauchy_formula_deriv} we know that
-    $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw=\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
+    for all $|z|\leq r$.
+  -/)
+  (proof := /--
+    By Lemma \ref{cauchy_formula_deriv} we know that
+    $$f'(z)=\frac{1}{2\pi i}\oint_{|w|=r'}\frac{f(w)}{(w-z)^2}\,dw
+      =\frac{1}{2\pi }\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt.$$
     Thus,
     \begin{equation}\label{pickupPoint1}
-        |f'(z)|=\left|\frac{1}{2\pi}\int_0^{2\pi}\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt\right|\leq\frac{1}{2\pi}\int_0^{2\pi}\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
+        |f'(z)|=\left|\frac{1}{2\pi}\int_0^{2\pi}
+        \frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\,dt\right|
+        \leq\frac{1}{2\pi}\int_0^{2\pi}
+        \left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
     \end{equation}
-    Now applying Theorem \ref{borelCaratheodory_closedBall}, and noting that $r'-r\leq|r'e^{it}-z|$, we have that
-    $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
-    Substituting this into Equation (\ref{pickupPoint1}) and evaluating the integral completes the proof. -/)
+    Now applying Theorem \ref{borelCaratheodory_closedBall}, and noting that
+    $r'-r\leq|r'e^{it}-z|$, we have that
+    $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|
+      \leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
+    Substituting this into Equation (\ref{pickupPoint1}) and evaluating the integral
+    completes the proof. -/)
   (latexEnv := "lemma")]
 lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (Mpos : 0 < M)
@@ -72,7 +83,9 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
     (r_lt_r' : r < r') (r'_lt_R : r' < R) :
     ‖(deriv f) z‖ ≤ 2 * M * (r') ^ 2 / ((R - r') * (r' - r) ^ 2) := by
     have diff_neg : r - r' < 0 := by linarith
-    have cauchy_param : deriv f z = (1 / (2 * Real.pi * I)) * (∫ (θ : ℝ) in 0..(2 * Real.pi), (I * r' * Complex.exp (I * θ) * ((r' * Complex.exp (I * θ)) - z)⁻¹ ^ 2) * f (r' * Complex.exp (I * θ))) := by
+    have cauchy_param : deriv f z = (1 / (2 * Real.pi * I)) *
+        (∫ (θ : ℝ) in 0..(2 * Real.pi), (I * r' * Complex.exp (I * θ) *
+            ((r' * Complex.exp (I * θ)) - z)⁻¹ ^ 2) * f (r' * Complex.exp (I * θ))) := by
         rw[cauchy_formula_deriv hf_domain r_lt_r' r'_lt_R z_in_r, smul_eq_mul]
         unfold circleIntegral circleMap
         simp only [one_div, mul_inv_rev, inv_I, neg_mul, zero_add, deriv_const_mul_field',
@@ -88,8 +101,10 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
         ·   refine DifferentiableAt.mul_const ?_ I
             exact differentiableAt_ofReal θ
     rw[cauchy_param]
-    calc ‖1 / (2 * ↑π * I) * ∫ (θ : ℝ) in 0..2 * π, I * ↑r' * cexp (I * ↑θ) * (↑r' * cexp (I * ↑θ) - z)⁻¹ ^ 2 * f (↑r' * cexp (I * ↑θ))‖
-        = (2 * π)⁻¹ * ‖∫ (θ : ℝ) in 0..2 * π, I * ↑r' * cexp (I * ↑θ) * (↑r' * cexp (I * ↑θ) - z)⁻¹ ^ 2 * f (↑r' * cexp (I * ↑θ))‖ := by
+    calc ‖1 / (2 * ↑π * I) * ∫ (θ : ℝ) in 0..2 * π,
+          I * ↑r' * cexp (I * ↑θ) * (↑r' * cexp (I * ↑θ) - z)⁻¹ ^ 2 * f (↑r' * cexp (I * ↑θ))‖
+        = (2 * π)⁻¹ * ‖∫ (θ : ℝ) in 0..2 * π,
+          I * ↑r' * cexp (I * ↑θ) * (↑r' * cexp (I * ↑θ) - z)⁻¹ ^ 2 * f (↑r' * cexp (I * ↑θ))‖ := by
             simp only [one_div, mul_inv_rev, inv_I, neg_mul, inv_pow, norm_neg, Complex.norm_mul,
                 norm_I, norm_inv, norm_real, norm_eq_abs, Complex.norm_ofNat, one_mul]
             rw [abs_of_pos pi_pos]
@@ -101,16 +116,19 @@ lemma DerivativeBound {R M r r' : ℝ} {z : ℂ} {f : ℂ → ℂ}
             simp only [inv_pow, Complex.norm_mul, norm_I, norm_real, norm_eq_abs, one_mul,
                 norm_exp_I_mul_ofReal, mul_one, norm_inv, norm_pow]
             rw[abs_of_pos (lt_trans pos_r r_lt_r')]
-            refine mul_le_mul₃ (rfl.le) ?_ ?_ (inv_nonneg.mpr (sq_nonneg _)) (le_of_lt (lt_trans pos_r r_lt_r')) (norm_nonneg (f (↑r' * cexp (I * ↑θ))))
+            refine mul_le_mul₃ (rfl.le) ?_ ?_ (inv_nonneg.mpr (sq_nonneg _))
+                (le_of_lt (lt_trans pos_r r_lt_r')) (norm_nonneg (f (↑r' * cexp (I * ↑θ))))
             ·   have hz_norm : ‖z‖ ≤ r := mem_closedBall_zero_iff.mp z_in_r
                 refine inv_anti₀ (sq_pos_of_pos (by grind)) (sq_le_sq' ?_ ?_)
                 · calc -(‖(r' : ℂ) * cexp (I * θ) - z‖) ≤ 0 := neg_nonpos.mpr (norm_nonneg _)
                     _ ≤ r' - r := by grind
                 · calc r' - r ≤ |r'| - ‖z‖ := sub_le_sub (le_abs_self _) hz_norm
-                    _ = ‖(r' : ℂ) * cexp (I * θ)‖ - ‖z‖ := by simp [abs_of_pos <| pos_r.trans r_lt_r']
+                    _ = ‖(r' : ℂ) * cexp (I * θ)‖ - ‖z‖ := by
+                      simp [abs_of_pos <| pos_r.trans r_lt_r']
                     _ ≤ ‖r' * cexp (I * θ) - z‖ := norm_sub_norm_le _ _
-            ·   exact borelCaratheodory_closedBall (by grind) analytic_f f_zero_at_zero Mpos re_f_le_M
-                    r'_lt_R (mem_closedBall_zero_iff.mpr (by simp [abs_of_pos <| pos_r.trans r_lt_r']))
+            ·   exact borelCaratheodory_closedBall (by grind) analytic_f f_zero_at_zero
+                    Mpos re_f_le_M r'_lt_R
+                    (mem_closedBall_zero_iff.mpr (by simp [abs_of_pos <| pos_r.trans r_lt_r']))
         _ = 2 * M * r' ^ 2 / ((R - r') * (r' - r) ^ 2) := by
             rw[sub_zero, abs_of_pos two_pi_pos]
             field_simp
