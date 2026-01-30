@@ -1,4 +1,8 @@
-import Mathlib.Algebra.Order.Module.OrderedSMul
+import Mathlib.Algebra.Field.Defs
+import Mathlib.Algebra.Group.Action.Basic
+import Mathlib.Algebra.GroupWithZero.Action.Pi
+import Mathlib.Algebra.GroupWithZero.Action.Prod
+import Mathlib.Algebra.Order.Module.Defs
 import Mathlib.Data.Rat.Cast.OfScientific
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
