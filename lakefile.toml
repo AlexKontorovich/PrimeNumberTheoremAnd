@@ -15,7 +15,7 @@ linter.flexible = true
 [[require]]
 name = "LeanArchitect"
 git = "https://github.com/hanwenzhu/LeanArchitect.git"
-rev = "v4.27.0"
+rev = "v4.28.0-rc1"
 
 [[require]]
 name = "mathlib"
