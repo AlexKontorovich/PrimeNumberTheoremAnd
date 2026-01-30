@@ -171,8 +171,10 @@ theorem thm_1a_crit {b M m : ℝ} (h_check : check_row_prop (b, M, m)) {x : ℝ}
   rw [show Pre_inputs.default.ε = BKLNW_app.table_8_ε by rfl] at this
   grind
 
-
-
+@[blueprint
+  "bklnw-thm-1a-table"
+  (statement := /-- The previous theorem holds with $(b,M,m)$ given by the values in \cite[Table 14]{BKLNW}. -/)
+  (latexEnv := "theorem")]
 theorem thm_1a_table {b M m : ℝ} (h_table : (b, M, m) ∈ Table_14) {x : ℝ} (hx : x ≥ exp b) :
     x * (1 - m) ≤ θ x ∧ θ x ≤ x * (1 + M) := thm_1a_crit (table_14_check h_table) hx
 
@@ -181,7 +183,7 @@ theorem thm_1a_table {b M m : ℝ} (h_table : (b, M, m) ∈ Table_14) {x : ℝ} 
   "bklnw-cor-2-1"
   (title := "BKLNW Corollary 2.1")
   (statement := /-- $\theta(x) \leq (1 + 1.93378 \times 10^{-8}) x$. -/)
-  (proof := /-- We combine together Theorem \ref{from-buthe-eq-1-7} and Theorem \ref{bklnw-thm-1a} with $X_1 = 10^{19}$, using Table 14. -/)
+  (proof := /-- We combine together Theorem \ref{from-buthe-eq-1-7} and Theorem \ref{bklnw-thm-1a-table} with $X_1 = 10^{19}$. -/)
   (latexEnv := "corollary")
   (discussion := 791)]
 theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + 1.93378e-8) * x := by
