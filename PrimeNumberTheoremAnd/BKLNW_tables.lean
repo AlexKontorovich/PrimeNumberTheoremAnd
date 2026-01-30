@@ -70,7 +70,8 @@ def check_row_prop (row : ℝ × ℝ × ℝ) : Prop :=
 @[blueprint
   "bklnw-table-14-check"
   (statement := /-- The entries in Table 14 obey the criterion in Sublemma \ref{bklnw-thm-1a-checked}. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 808)]
 theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ Table_14) : check_row_prop (b, M, m) := by sorry
 
 
