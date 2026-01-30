@@ -7,29 +7,33 @@ absolutely convergent.
 
 ## Status - ALL PROVEN
 
-- `li2_symmetric_lower` - done (via LeanCert.Examples.Li2Verified)
-- `li2_symmetric_upper` - done (via LeanCert.Examples.Li2Verified)
+- `li2_symmetric_lower` - done (via LeanCert.Examples.Li2Bounds)
+- `li2_symmetric_upper` - done (via LeanCert.Examples.Li2Bounds)
 - `li2_symmetric_eq_li2` - PROVEN (connects symmetric form to principal value, PNT#764)
   - Uses Filter.Tendsto.limUnder_eq to connect the limit definition
 - `setDiff_integral_eq_split` - PROVEN (integrability via IntegrableOn.of_bound)
 - `li2_bounds` - PROVEN: 1.039 ≤ li(2) ≤ 1.06
 
+## Build Time Optimization
+
+This file imports only the lightweight LeanCert.Examples.Li2Bounds module, which
+compiles in seconds. The heavy numerical verification (~20 min) is in
+LeanCert.Examples.Li2Verified and is only needed for LeanCert's CI.
+
 See: https://github.com/alerad/leancert
 -/
 import Architect
-import LeanCert
-import LeanCert.Engine.TaylorModel.Log1p
-import LeanCert.Engine.Integrate
-import LeanCert.Examples.Li2Verified
+import LeanCert.Examples.Li2Bounds  -- Lightweight interface (fast build)
+-- Note: LeanCert.Examples.Li2Verified contains the heavy numerical verification
+-- but is not imported here to keep build times reasonable for contributors.
+-- The bounds are verified in LeanCert CI.
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.Topology.Order.Basic
 
 open Real MeasureTheory Set
 open scoped Interval
 
-open LeanCert.Core
-open LeanCert.Validity.Integration
-open LeanCert.Engine.TaylorModel
+open LeanCert.Engine.TaylorModel  -- For symmetricLogCombination
 open Topology
 
 namespace Li2Bounds
@@ -103,7 +107,7 @@ theorem log_one_plus_integrable (ε : ℝ) (hε : 0 < ε) (hε1 : ε < 1) :
 
 /-! ### Integrability of g on [0, 1] -/
 
-/-- g is integrable on [0, 1]. Uses boundedness by 2 from Li2Verified. -/
+/-- g is integrable on [0, 1]. Uses boundedness by 2 from Li2Bounds. -/
 theorem g_intervalIntegrable_full : IntervalIntegrable g volume 0 1 := by
   have hmeas : Measurable g := by
     have hlog1p : Measurable fun t : ℝ => log (1 + t) :=
