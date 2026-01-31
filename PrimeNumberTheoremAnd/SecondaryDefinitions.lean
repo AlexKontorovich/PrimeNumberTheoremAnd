@@ -3,6 +3,7 @@ import Mathlib.Topology.Order.Basic
 import Mathlib.NumberTheory.PrimeCounting
 
 import PrimeNumberTheoremAnd.PrimaryDefinitions
+import PrimeNumberTheoremAnd.Li2Bounds
 
 
 blueprint_comment /--
@@ -176,6 +177,35 @@ theorem li.sub_Li
   (discussion := 759)]
 theorem li.two_approx : li 2 ∈ Set.Icc 1.0451 1.0452 := by
   sorry
+
+/-- The local li definition matches Li2Bounds.li (they are definitionally equal). -/
+theorem li_eq_Li2Bounds_li (x : ℝ) : li x = Li2Bounds.li x := rfl
+
+/-- Weak bounds on li(2) via symmetric form integration.
+    The tighter bounds in li.two_approx require more precise numerical integration.
+    Proved via LeanCert numerical integration in Li2Bounds.lean. -/
+@[blueprint
+  "li2-bounds-weak"
+  (title := "Weak bounds on li(2)")
+  (statement := /-- $1.039 \leq \li(2) \leq 1.06$. -/)
+  (latexEnv := "sublemma")
+  (discussion := 759)]
+theorem li.two_approx_weak : li 2 ∈ Set.Icc 1.039 1.06 := by
+  rw [li_eq_Li2Bounds_li]
+  exact Li2Bounds.li_two_approx_weak_proof
+
+/-- The symmetric form equals the principal value li(2).
+    This connects the absolutely convergent symmetric integral ∫₀¹ g(t) dt
+    to the principal value definition of li(2). -/
+@[blueprint
+  "li2-symmetric-eq"
+  (title := "Symmetric form equals principal value")
+  (statement := /-- $\int_0^1 \left(\frac{1}{\log(1+t)} + \frac{1}{\log(1-t)}\right) dt = \mathrm{li}(2)$ -/)
+  (latexEnv := "sublemma")
+  (discussion := 764)]
+theorem li2_symmetric_eq_li2 : Li2Bounds.li2_symmetric = li 2 := by
+  rw [li_eq_Li2Bounds_li]
+  exact Li2Bounds.li2_symmetric_eq_li2
 
 
 @[blueprint
