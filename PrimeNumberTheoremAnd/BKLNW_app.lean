@@ -356,7 +356,7 @@ theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
   (latexEnv := "corollary")
   (discussion := 775)]
 theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
-    ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) 1.93378e-8 := by
+    ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) (1.93378e-8*table_8_margin) := by
   intro x hx
   grw [bklnw_cor_15_1 b hb1 hb2 table_8_ε (fun b₀ hb₀ x hx ↦ by
     grw [Eψ, div_le_iff₀ (lt_of_lt_of_le (by positivity) hx), theorem_2 b₀ hb₀.le x hx]) x hx]
