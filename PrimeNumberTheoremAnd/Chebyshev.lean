@@ -96,7 +96,7 @@ theorem E_nu_period (x : ℝ) (hx : x ≥ 0) : E ν (x + 30) = E ν x := by sorr
 
 @[blueprint
   "cheby-E-val"
-  (title := "$E$ lies in $[0,1]$")
+  (title := "$E$ lies between $0$ and $1$")
   (statement := /-- One has $0 \leq E(x) \leq 1$ for all $x \geq 0$. -/)
   (proof := /-- This follows from direct computation for $0 \leq x < 30$, and then by periodicity for larger $x$. -/)
   (latexEnv := "lemma")]
