@@ -15,6 +15,9 @@ namespace BKLNW
 
 open Real
 
+/-- Add a margin to the values in Table 14 to account for numerical errors. -/
+abbrev Table_14_margin : ℝ := BKLNW_app.table_8_margin * 1.001
+
 noncomputable def Table_14 : List (ℝ × ℝ × ℝ) := [
   (20, 4.2676e-5 * Table_14_margin, 9.1639e-5 * Table_14_margin),
   (25, 3.5031e-6 * Table_14_margin, 7.4366e-6 * Table_14_margin),
