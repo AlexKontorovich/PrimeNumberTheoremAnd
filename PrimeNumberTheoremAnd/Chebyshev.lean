@@ -76,7 +76,8 @@ noncomputable def ν : ℕ →₀ ℝ := single 1 1 - single 2 1 - single 3 1 - 
   (statement := /-- One has $\sum_n \nu(n)/n = 0$ -/)
   (proof := /-- This follows from direct computation. -/)
   (latexEnv := "lemma")]
-theorem nu_sum_div_eq_zero : ν.sum (fun n w ↦ w / n) = 0 := by sorry
+theorem nu_sum_div_eq_zero : ν.sum (fun n w ↦ w / n) = 0 := by
+  norm_num [ν, add_div, Finsupp.sum_add_index', sub_div, Finsupp.sum_sub_index]
 
 @[blueprint
   "cheby-E-1"
