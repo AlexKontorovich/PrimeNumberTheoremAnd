@@ -177,7 +177,7 @@ lemma second_fourier_integrable_aux1a (hσ : 1 < σ') :
   apply exp_neg_integrableOn_Ioi
   linarith
 
-lemma second_fourier_integrable_aux1 (hcont : Continuous ψ) (hsupp : Integrable ψ) (hσ : 1 < σ') :
+lemma second_fourier_integrable_aux1 (hcont : Measurable ψ) (hsupp : Integrable ψ) (hσ : 1 < σ') :
     let ν : Measure (ℝ × ℝ) := (volume.restrict (Ici (-Real.log x))).prod volume
     Integrable (Function.uncurry fun (u : ℝ) (a : ℝ) ↦ ((rexp (-u * (σ' - 1))) : ℂ) •
     (𝐞 (Multiplicative.ofAdd (-(a * (u / (2 * π))))) : ℂ) • ψ a) ν := by
@@ -187,7 +187,9 @@ lemma second_fourier_integrable_aux1 (hcont : Continuous ψ) (hsupp : Integrable
     -- TODO: find out why fun_prop does not play well with Multiplicative.ofAdd
     simp only [neg_mul, ofReal_exp, ofReal_neg, ofReal_mul, ofReal_sub, ofReal_one,
       Multiplicative.ofAdd, Equiv.coe_fn_mk, smul_eq_mul]
-    apply MeasureTheory.measurable_uncurry_of_continuous_of_measurable <;> fun_prop
+    convert_to Measurable (fun (p:ℝ × ℝ) ↦ (cexp (-(p.1 * (σ' - 1))) * ((𝐞 (-(p.2 * (p.1 / (2 * π))))):ℂ)) * (ψ p.2))
+    · ext; simp [Function.uncurry]; ring
+    fun_prop
   · let f1 : ℝ → ENNReal := fun a1 ↦ ‖cexp (-(↑a1 * (↑σ' - 1)))‖ₑ
     let f2 : ℝ → ENNReal := fun a2 ↦ ‖ψ a2‖ₑ
     suffices ∫⁻ (a : ℝ × ℝ), f1 a.1 * f2 a.2 ∂ν < ⊤ by
@@ -217,14 +219,13 @@ lemma second_fourier_aux (hx : 0 < x) :
 @[blueprint "second-fourier"
   (title := "second-fourier")
   (statement := /--
-  If $\psi: \R \to \C$ is continuous and compactly supported and $x > 0$, then for any $\sigma>1$
+  If $\psi: \R \to \C$ is absolutely integrable and $x > 0$, then for any $\sigma>1$
   $$ \int_{-\log x}^\infty e^{-u(\sigma-1)} \hat \psi(\frac{u}{2\pi})\ du =
   x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt.$$
   -/)
   (proof := /--
   The left-hand side expands as
-  $$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt\ du \atop{?}=
-  x^{\sigma - 1} \int_\R \frac{1}{\sigma+it-1} \psi(t) x^{it}\ dt$$
+  $$ \int_{-\log x}^\infty \int_\R e^{-u(\sigma-1)} \psi(t) e(-\frac{tu}{2\pi})\ dt\ du$$
   so by Fubini's theorem it suffices to verify the identity
   \begin{align*}
   \int_{-\log x}^\infty e^{-u(\sigma-1)} e(-\frac{tu}{2\pi})\ du
@@ -234,7 +235,7 @@ lemma second_fourier_aux (hx : 0 < x) :
   \end{align*}
   -/)
   (latexEnv := "lemma")]
-lemma second_fourier (hcont : Continuous ψ) (hsupp : Integrable ψ)
+lemma second_fourier (hcont : Measurable ψ) (hsupp : Integrable ψ)
     {x σ' : ℝ} (hx : 0 < x) (hσ : 1 < σ') :
     ∫ u in Ici (-log x), Real.exp (-u * (σ' - 1)) * 𝓕 (ψ : ℝ → ℂ) (u / (2 * π)) =
     (x^(σ' - 1) : ℝ) * ∫ t, (1 / (σ' + t * I - 1)) * ψ t * x^(t * I) ∂ volume := by
@@ -496,7 +497,7 @@ lemma limiting_fourier_aux (hG' : Set.EqOn G (fun s ↦ LSeries f s - A / (s - 1
   have hint : Integrable ψ := ψ.h1.continuous.integrable_of_hasCompactSupport ψ.h2
   have l3 : 0 < x := zero_lt_one.trans_le hx
   have l1 (σ') (hσ' : 1 < σ') := first_fourier hf hint l3 hσ'
-  have l2 (σ') (hσ' : 1 < σ') := second_fourier ψ.h1.continuous hint l3 hσ'
+  have l2 (σ') (hσ' : 1 < σ') := second_fourier ψ.h1.continuous.measurable hint l3 hσ'
   have l8 : Continuous fun t : ℝ ↦ (x : ℂ) ^ (t * I) :=
     continuous_const.cpow (continuous_ofReal.mul continuous_const) (by simp [l3])
   have l6 : Continuous fun t : ℝ ↦ LSeries f (↑σ' + ↑t * I) * ψ t * ↑x ^ (↑t * I) := by
@@ -2484,7 +2485,7 @@ lemma limiting_fourier_aux_gt_zero (hG' : Set.EqOn G (fun s ↦ LSeries f s - A 
       simp only [one_div, ← mul_assoc]
       exact ((continuous_const.mul (Continuous.inv₀ (by fun_prop) e2)).mul ψ.h1.continuous).mul l8
     exact this.integrable_of_hasCompactSupport ψ.h2.mul_left.mul_right.mul_left.mul_left
-  simp_rw [first_fourier hf hint hx hσ', second_fourier ψ.h1.continuous hint hx hσ',
+  simp_rw [first_fourier hf hint hx hσ', second_fourier ψ.h1.continuous.measurable hint hx hσ',
     ← integral_const_mul, ← integral_sub l4 l5]
   refine integral_congr_ae (.of_forall fun u ↦ ?_)
   have e1 : 1 < ((σ' : ℂ) + (u : ℂ) * I).re := by simp [hσ']
