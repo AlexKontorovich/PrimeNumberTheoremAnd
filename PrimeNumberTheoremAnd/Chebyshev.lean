@@ -44,9 +44,13 @@ theorem T.ge (x : ℝ) (hx : 1 ≤ x) : T x ≥ x * log x - x + 1 - log x := by
   (title := "Relating $T$ and von Mangoldt")
   (statement := /-- For $x \geq 0$, we have $T(x) = \sum_{n \leq x} \Lambda(n) \lfloor x/n \rfloor$. -/)
   (proof := /-- This follows from the identity $\log n = \sum_{d|n} \Lambda(d)$ and rearranging sums. -/)
-  (latexEnv := "lemma")]
-theorem T.eq_sum_Lambda (x : ℝ) (hx : 0 ≤ x) : T x = ∑ n ∈ Finset.Icc 1 ⌊x⌋₊, Λ n * ⌊x / n⌋₊ := by
-  sorry
+  (latexEnv := "lemma")
+  (discussion := 833)]
+theorem T.eq_sum_Lambda (x : ℝ) : T x = ∑ n ∈ Finset.Icc 1 ⌊x⌋₊, Λ n * ⌊x / n⌋₊ := by
+  unfold T
+  simp_rw [← log_apply, ← vonMangoldt_mul_zeta]
+  rw [← Finset.Ioc_eq_Icc, sum_Ioc_mul_zeta_eq_sum]
+  simp_rw [Nat.floor_div_natCast]
 
 @[blueprint
   "cheby-E"
@@ -66,8 +70,7 @@ open Finsupp in
 @[blueprint
   "cheby-nu"
   (title := "Chebyshev's weight $\nu$")
-  (statement := /-- $\nu = e_1 - e_2 - e_3 - e_5 + e_{30}$, where $e_n$ is the Kronecker delta at $n$. -/)
-]
+  (statement := /-- $\nu = e_1 - e_2 - e_3 - e_5 + e_{30}$, where $e_n$ is the Kronecker delta at $n$. -/)]
 noncomputable def ν : ℕ →₀ ℝ := single 1 1 - single 2 1 - single 3 1 - single 5 1 + single 30 1
 
 @[blueprint
