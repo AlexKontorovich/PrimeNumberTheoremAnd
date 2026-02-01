@@ -187,8 +187,6 @@ lemma second_fourier_integrable_aux1 (hcont : Measurable ψ) (hsupp : Integrable
     -- TODO: find out why fun_prop does not play well with Multiplicative.ofAdd
     simp only [neg_mul, ofReal_exp, ofReal_neg, ofReal_mul, ofReal_sub, ofReal_one,
       Multiplicative.ofAdd, Equiv.coe_fn_mk, smul_eq_mul]
-    convert_to Measurable (fun (p:ℝ × ℝ) ↦ (cexp (-(p.1 * (σ' - 1))) * ((𝐞 (-(p.2 * (p.1 / (2 * π))))):ℂ)) * (ψ p.2))
-    · ext; simp [Function.uncurry]; ring
     fun_prop
   · let f1 : ℝ → ENNReal := fun a1 ↦ ‖cexp (-(↑a1 * (↑σ' - 1)))‖ₑ
     let f2 : ℝ → ENNReal := fun a2 ↦ ‖ψ a2‖ₑ
