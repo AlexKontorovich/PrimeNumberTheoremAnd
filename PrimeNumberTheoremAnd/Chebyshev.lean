@@ -93,7 +93,35 @@ noncomputable def E (ν : ℕ →₀ ℝ) (x : ℝ) : ℝ := ν.sum (fun m w ↦
 $$ \sum_m \nu(m) T(x/m) = \sum_{n \leq x} E(x/n) \Lambda(n).$$ -/)
   (latexEnv := "lemma")
   (discussion := 834)]
-theorem T.weighted_eq_sum (ν : ℕ →₀ ℝ) (x : ℝ) : ν.sum (fun m w ↦ w * T (x/m)) = ∑ n ∈ Finset.Icc 1 ⌊x⌋₊, Λ n * E ν (x/n) := by sorry
+theorem T.weighted_eq_sum (ν : ℕ →₀ ℝ) (x : ℝ) : ν.sum (fun m w ↦ w * T (x/m)) = ∑ n ∈ Finset.Icc 1 ⌊x⌋₊, Λ n * E ν (x/n) := by
+  simp_rw [T.eq_sum_Lambda, E, Finsupp.mul_sum]
+  rw [← Finsupp.sum_finsetSum_comm]
+  apply Finsupp.sum_congr fun y hy ↦ ?_
+  rw [Finset.mul_sum]
+  by_cases! hy : y = 0
+  · simp [hy]
+  have one_le_y : 1 ≤ (y : ℝ) := by simp; grind
+  by_cases! hx : x < 1
+  · simp only [Nat.lt_one_iff, Nat.floor_eq_zero, hx, Finset.Icc_eq_empty_of_lt, Finset.sum_empty]
+    convert Finset.sum_empty
+    simp only [Finset.Icc_eq_empty_iff, Nat.one_le_floor_iff, not_le]
+    exact div_lt_one (by linarith)|>.mpr (by linarith)
+  apply Finset.sum_subset_zero_on_sdiff
+  · apply Finset.Icc_subset_Icc_right
+    gcongr
+    exact div_le_self (by linarith) one_le_y
+  · intro t ht
+    simp only [Finset.mem_sdiff, Finset.mem_Icc, not_and, not_le] at ht
+    simp only [mul_eq_zero, Nat.cast_eq_zero, Nat.floor_eq_zero]
+    right
+    right
+    apply div_lt_one (by linarith)|>.mpr
+    have := ht.2 ht.1.1
+    apply div_lt_iff₀ (by simp; grind)|>.mpr
+    rw [Nat.floor_lt <| div_nonneg (by linarith) (by linarith)] at this
+    have := div_lt_iff₀ (by linarith)|>.mp this
+    rwa [mul_comm] at this
+  · intros; ring_nf
 
 open Finsupp in
 @[blueprint
