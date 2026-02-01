@@ -143,18 +143,18 @@ theorem symm_inv_log
     rw [(by field : (3 : ℝ) / 4 = (4 / 3)⁻¹), log_inv]
     field
 
-@[blueprint
-  "li-approx"
-  (title := "li approximation")
-  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{16\log(4/3)}{3} \eps)$. -/)
-  (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
-  (latexEnv := "sublemma")
-  (discussion := 768)]
-theorem li.eq
-    (x ε : ℝ) (hx : x ≥ 2) (hε1 : 0 < ε) (hε2 : ε ≤ 1) : ∃ E,
-    li x = ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)), 1 / log t + E ∧
-    |E| ≤ 16 *log (4 / 3) / 3 * ε := by
-    sorry
+-- @[blueprint
+--   "li-approx"
+--   (title := "li approximation")
+--   (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{16\log(4/3)}{3} \eps)$. -/)
+--   (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
+--   (latexEnv := "sublemma")
+--   (discussion := 768)]
+-- theorem li.eq
+--     (x ε : ℝ) (hx : x ≥ 2) (hε1 : 0 < ε) (hε2 : ε ≤ 1) : ∃ E,
+--     li x = ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)), 1 / log t + E ∧
+--     |E| ≤ 16 *log (4 / 3) / 3 * ε := by
+--     sorry
 
 @[blueprint
   "li_minus_Li"
@@ -191,7 +191,7 @@ theorem li.sub_Li
   "Ramanujan-Soldner-constant"
   (title := "Ramanujan-Soldner constant")
   (statement := /-- $\li(2) = 1.0451\dots$. -/)
-  (proof := /-- Use Sublemma \ref{li-approx} and some numerical integration. -/)
+  (proof := /-- Symmetrize the integral and use and some numerical integration. -/)
   (latexEnv := "lemma")
   (discussion := 759)]
 theorem li.two_approx : li 2 ∈ Set.Icc 1.0451 1.0452 := by

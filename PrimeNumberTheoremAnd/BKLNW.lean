@@ -733,7 +733,8 @@ def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
   "bklnw-cor-5-1-rem"
   (title := "Remark after BKLNW Corollary 5.1")
   (statement := /--  We have the following values for $a_2$, given by the table after \cite[Corollary 5.1]{BKLNW}. -/)
-  (latexEnv := "remark")]
+  (latexEnv := "remark")
+  (discussion := 853)]
 theorem cor_5_1_rem (b a₂b : ℝ) (m : ℕ) (hb : (b, a₂b, m) ∈ table_cor_5_1) :
     a₂ b ∈ Set.Icc a₂b (a₂b + 10^(-m:ℝ)) := by sorry
 
@@ -743,9 +744,9 @@ blueprint_comment /--
 \subsection{Bounding theta(x)-x with a logarithmic decay, I: large x}
 
 In this section and the next ones we obtain bounds of the shape
-$$ x (1 - \frac{m_k}{\log^k x}) \leq \theta(x)$$
+$$ x \left(1 - \frac{m_k}{\log^k x}\right) \leq \theta(x)$$
 for all $x \geq X_0$ and
-$$ \theta(x) \leq x (1 + \frac{M_k}{\log^k x})$$
+$$ \theta(x) \leq x \left(1 + \frac{M_k}{\log^k x}\right)$$
 for all $x \geq X_1$, for various $k, m_k, M_k, X_0, X_1$, with $k \in \{1,\dots,5\}$.
 
 For this section we focus on estimates that are useful when $x$ is extremely large, e.g., $x \geq e^{25000}$.
@@ -757,7 +758,7 @@ For this section we focus on estimates that are useful when $x$ is extremely lar
   "bklnw-lem-6"
   (title := "BKLNW Lemma 6")
   (statement := /--  Suppose there exists $c_1, c_2, c_3, c_4 > 0$ such that
-\begin{equation}\tag{3.3}
+\begin{equation}\eqref{bklnw_3.3}
 |\theta(x) - x| \leq c_1 x (\log x)^{c_2} \exp(-c_3 (\log x)^{\frac{1}{2}}) \quad \text{for all } x \geq c_4.
 \end{equation}
 Let $k > 0$ and let $b \geq \max\left(\log c_4, \log\left(\frac{4(c_2 + k)^2}{c_3^2}\right)\right)$. Then for all $x \geq e^b$ we have
@@ -768,8 +769,9 @@ where
 $$
 \mathcal{A}_k(b) = c_1 \cdot b^{c_2 + k} e^{-c_3\sqrt{b}}.
 $$ -/)
-  (proof := /-- We denote $g(x) = (\log x)^{c_2 + k} \exp(-c_3 (\log x)^{\frac{1}{2}})$. By \eqref{3.3}, $|\theta(x) - x| < \frac{c_1 g(x) x}{(\log x)^k}$ for all $x \geq c_4$. It suffices to bound $g$: by calculus, $g(x)$ decreases when $x \geq \frac{4(c_2 + k)^2}{c_3^2}$. Therefore $|\theta(x) - x| \leq \frac{c_1 g(e^b) x}{(\log x)^k}$. Note that $c_1 g(e^b) = \mathcal{A}_k(b)$ and the condition on $b$ follows from the conditions $e^b \geq c_4$ and $e^b \geq \frac{4(c_2 + k)^2}{c_3^2}$. -/)
-  (latexEnv := "lemma")]
+  (proof := /-- We denote $g(x) = (\log x)^{c_2 + k} \exp(-c_3 (\log x)^{\frac{1}{2}})$. By \eqref{bklnw_3.3}, $|\theta(x) - x| < \frac{c_1 g(x) x}{(\log x)^k}$ for all $x \geq c_4$. It suffices to bound $g$: by calculus, $g(x)$ decreases when $x \geq \frac{4(c_2 + k)^2}{c_3^2}$. Therefore $|\theta(x) - x| \leq \frac{c_1 g(e^b) x}{(\log x)^k}$. Note that $c_1 g(e^b) = \mathcal{A}_k(b)$ and the condition on $b$ follows from the conditions $e^b \geq c_4$ and $e^b \geq \frac{4(c_2 + k)^2}{c_3^2}$. -/)
+  (latexEnv := "lemma")
+  (discussion := 854)]
 theorem lem_6 {c₁ c₂ c₃ c₄ k b x : ℝ} (hc₁ : 0 < c₁) (hc₂ : 0 < c₂) (hc₃ : 0 < c₃) (hc₄ : 0 < c₄)
     (hθ : Eθ.classicalBound c₁ c₂ c₃ 1 c₄)
     (hk : 0 < k)
@@ -783,7 +785,7 @@ theorem lem_6 {c₁ c₂ c₃ c₄ k b x : ℝ} (hc₁ : 0 < c₁) (hc₂ : 0 < 
 @[blueprint
   "bklnw-cor-14-1"
   (title := "BKLNW Corollary 14.1")
-  (statement := /--  Suppose one has an asymptotic bound $E_\psi$ with parameters $A,B,C,R,e^{x_0}$ (which need to satisfy some additional bounds) with $x_0 \geq 1000$.  Then $E_\psi$ obeys an asymptotic bound with parameters $A', B, C, R, e^{x_0}$, where
+  (statement := /--  Suppose one has an asymptotic bound $E_\psi$ with parameters $A,B,C,R,e^{x_0}$ (which need to satisfy some additional bounds) with $x_0 \geq 1000$.  Then $E_\theta$ obeys an asymptotic bound with parameters $A', B, C, R, e^{x_0}$, where
   $$ A' := A (1 + \frac{1}{A} (\frac{R}{x_0})^B \exp(C \sqrt{\frac{x_0}{R}}) (a_1(x_0) \exp(\frac{-x_0}{2}) + a_2(x_0) \exp(\frac{-2 x_0}{3}))) $$
   and $a_1(x_0), a_2(x_0)$ are as in Corollary \ref{bklnw-cor-5-1}. -/)
   (proof := /-- We write $\theta(x) - x = \psi(x) - x + \theta(x) - \psi(x)$, apply the triangle inequality, and invoke Corollary \ref{blknw-cor-5-1} to obtain
@@ -792,9 +794,15 @@ E_\theta(x) \leq A (\frac{\log x}{R})^B \exp(-C (\frac{\log x}{R})^{\frac{1}{2}}
 $$ \leq A (\frac{\log x}{R})^B \exp(-C (\frac{\log x}{R})^{\frac{1}{2}}) (1 + \frac{a_1(x_0) \exp(C \sqrt{\frac{\log x}{R}})}{A \sqrt{x} (\frac{\log x}{R})^B} + \frac{a_2(x_0) \exp(C \sqrt{\frac{\log x}{R}})}{A x^{\frac{2}{3}} (\frac{\log x}{R})^B}).$$
 The function in brackets decreases for $x \geq e^{x_0}$ with $x_0 \geq 1000$ (assuming reasonable hypotheses on $A,B,C,R$) and thus we obtain the desired bound with $A'$ as above.
  -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 855)]
 theorem cor_14_1 {A B C R x₀ : ℝ} (hx₀ : x₀ ≥ 1000)
-    (hEψ : Eψ.classicalBound A B C R x₀) :
+    (hEψ : Eψ.classicalBound A B C R x₀)
+    (hA : A > 0)
+    (hB : B ∈ Set.Icc (3 / 2) (7 / 4))
+    (hC : C ∈ Set.Icc (2 / 3) 2)
+    (hR : R ∈ Set.Icc 1 10) -- some plausible placeholder (and mild) hypotheses on B,C,R here, consistent with actual values.  Feel free to adjust as needed
+    :
     let A' := A * (1 + (1 / A) * (R / x₀) ^ B * exp (C * sqrt (x₀ / R)) *
       (a₁ x₀ * exp (-x₀ / 2) + a₂ x₀ * exp (-2 * x₀ / 3)))
     Eθ.classicalBound A' B C R x₀ := by
