@@ -233,7 +233,34 @@ theorem E_nu_period (x : ℝ) (hx : x ≥ 0) : E ν (x + 30) = E ν x := by
   (proof := /-- This follows from direct computation for $0 \leq x < 30$, and then by periodicity for larger $x$. -/)
   (latexEnv := "lemma")
   (discussion := 836)]
-theorem E_nu_bound (x : ℝ) (hx : x ≥ 0) : 0 ≤ E ν x ∧ E ν x ≤ 1 := by sorry
+theorem E_nu_bound (x : ℝ) (hx : x ≥ 0) : 0 ≤ E ν x ∧ E ν x ≤ 1 := by
+  have : ∀ y, 0 ≤ y → y < 30 → 0 ≤ E ν y ∧ E ν y ≤ 1 := fun y hy0 hy30 ↦ by
+    have expand : E ν y = ⌊y⌋₊ - ⌊y / 2⌋₊ - ⌊y / 3⌋₊ - ⌊y / 5⌋₊ + ⌊y / 30⌋₊ := by
+      rw [E, ν, Finsupp.sum_add_index' (by grind) (by grind), Finsupp.sum_sub_index (by grind),
+        Finsupp.sum_sub_index (by grind), Finsupp.sum_sub_index (by grind)]; simp
+    simp only [expand, Nat.floor_eq_zero.mpr (by linarith : y / 30 < 1), Nat.cast_zero, add_zero]
+    have := Nat.floor_le hy0; have := Nat.lt_floor_add_one y
+    have := Nat.floor_le (by positivity : 0 ≤ y/2); have := Nat.lt_floor_add_one (y/2)
+    have := Nat.floor_le (by positivity : 0 ≤ y/3); have := Nat.lt_floor_add_one (y/3)
+    have := Nat.floor_le (by positivity : 0 ≤ y/5); have := Nat.lt_floor_add_one (y/5)
+    have : 2 * ⌊y/2⌋₊ ≤ ⌊y⌋₊ ∧ ⌊y⌋₊ < 2 * ⌊y/2⌋₊ + 2 :=
+      ⟨Nat.le_floor (by grind), by exact_mod_cast (by linarith : (⌊y⌋₊ : ℝ) < 2*⌊y/2⌋₊ + 2)⟩
+    have : 3 * ⌊y/3⌋₊ ≤ ⌊y⌋₊ ∧ ⌊y⌋₊ < 3 * ⌊y/3⌋₊ + 3 :=
+      ⟨Nat.le_floor (by grind), by exact_mod_cast (by linarith : (⌊y⌋₊ : ℝ) < 3*⌊y/3⌋₊ + 3)⟩
+    have : 5 * ⌊y/5⌋₊ ≤ ⌊y⌋₊ ∧ ⌊y⌋₊ < 5 * ⌊y/5⌋₊ + 5 :=
+      ⟨Nat.le_floor (by grind), by exact_mod_cast (by linarith : (⌊y⌋₊ : ℝ) < 5*⌊y/5⌋₊ + 5)⟩
+    have : ⌊y⌋₊ < 30 := by exact_mod_cast (by linarith : (⌊y⌋₊ : ℝ) < 30)
+    exact ⟨by linarith [show (⌊y/2⌋₊ + ⌊y/3⌋₊ + ⌊y/5⌋₊ : ℝ) ≤ ⌊y⌋₊ from by exact_mod_cast (by omega)],
+      by linarith [show (⌊y⌋₊ : ℝ) ≤ ⌊y/2⌋₊ + ⌊y/3⌋₊ + ⌊y/5⌋₊ + 1 from by exact_mod_cast (by omega)]⟩
+  let y := x - ⌊x / 30⌋₊ * 30
+  have hy : 0 ≤ y ∧ y < 30 := ⟨by linarith [Nat.floor_le (by positivity : 0 ≤ x/30)], by
+    linarith [Nat.lt_floor_add_one (x/30)]⟩
+  have hxy : E ν x = E ν y := by
+    have : x = y + ⌊x/30⌋₊ * 30 := by ring
+    rw [this]; induction ⌊x/30⌋₊ with
+    | zero => simp
+    | succ n ih => simp [add_mul, ← add_assoc, E_nu_period _ (by linarith : y + n * 30 ≥ 0), ih]
+  exact hxy ▸ this y hy.1 hy.2
 
 @[blueprint
   "cheby-U-def"
