@@ -165,44 +165,44 @@ theorem a_bound : a ∈ Set.Icc 0.92129 0.92130 := by sorry
 @[blueprint
   "U-bounds"
   (title := "Bounds for $U$")
-  (statement := /-- For $x \geq 1$, we have $|U(x) - ax| \leq 5(\log x + 1)$. -/)
+  (statement := /-- For $x \geq 1$, we have $|U(x) - ax| \leq 5\log x + 1$. -/)
   (proof := /-- Use Lemma \ref{cheby-T-upper}, Lemma \ref{cheby-T-lower}, the definition of $a$, and the triangle inequality -/)
   (latexEnv := "lemma")
   (discussion := 840)]
-theorem U_bound (x : ℝ) (hx : 1 ≤ x) : |U x - a * x| ≤ 5 * (log x + 1) := by sorry
+theorem U_bound (x : ℝ) (hx : 1 ≤ x) : |U x - a * x| ≤ 5 * log x + 1 := by sorry
 
 @[blueprint
   "psi-lower"
   (title := "Lower bound for $\\psi$")
-  (statement := /-- For $x \geq 1$, we have $\psi(x) \geq ax - 5(\log x + 1)$. -/)
+  (statement := /-- For $x \geq 1$, we have $\psi(x) \geq ax - 5\log x - 1$. -/)
   (proof := /-- Use Lemma \ref{U-bounds} and Proposition \ref{cheby-psi-lower}.-/)
   (latexEnv := "theorem")
   (discussion := 841)]
-theorem psi_lower (x : ℝ) (hx : 1 ≤ x) : ψ x ≥ a * x - 5 * (log x + 1) := by sorry
+theorem psi_lower (x : ℝ) (hx : 1 ≤ x) : ψ x ≥ a * x - 5 * log x - 1 := by sorry
 
 @[blueprint
   "psi-diff-upper"
   (title := "Upper bound for $\\psi$ difference")
-  (statement := /-- For $x \geq 1$, we have $\psi(x) - \psi(x/6) \leq ax + 5(\log x + 1)$. -/)
+  (statement := /-- For $x \geq 1$, we have $\psi(x) - \psi(x/6) \leq ax + 5\log x + 1$. -/)
   (proof := /-- Use Lemma \ref{U-bounds} and Proposition \ref{cheby-psi-upper}.-/)
   (latexEnv := "proposition")
   (discussion := 842)]
-theorem psi_diff_upper (x : ℝ) (hx : 1 ≤ x) : ψ x - ψ (x / 6) ≤ a * x + 5 * (log x + 1) := by sorry
+theorem psi_diff_upper (x : ℝ) (hx : 1 ≤ x) : ψ x - ψ (x / 6) ≤ a * x + 5 * log x + 1 := by sorry
 
 @[blueprint
   "psi-upper"
   (title := "Upper bound for $\\psi$")
-  (statement := /-- For $x \geq 1$, we have $\psi(x) \leq 6ax/5 + 5(\log 5 / \log 6 + 1)(\log x + 1)$. -/)
+  (statement := /-- For $x \geq 1$, we have $\psi(x) \leq 6ax/5 + (\log x / \log 6 + 1)(5\log x + 1)$. -/)
   (proof := /-- Iterate Lemma \ref{psi-diff-upper}.-/)
   (latexEnv := "theorem")
   (discussion := 843)]
-theorem psi_upper (x : ℝ) (hx : 1 ≤ x) : ψ x ≤ 6 * a * x / 5 + 5 * (log 5 / log 6 + 1) * (log x + 1) := by sorry
+theorem psi_upper (x : ℝ) (hx : 1 ≤ x) : ψ x ≤ 6 * a * x / 5 + (log x / log 6 + 1) * (5 * log x + 1) := by sorry
 
 @[blueprint
   "psi-upper-clean"
   (title := "Clean upper bound for $\\psi$")
   (statement := /-- For $x > 0$, we have $\psi(x) \leq 1.11 x$. -/)
-  (proof := /-- For $x$ large enough, this follows from Theorem \ref{psi-upper}. For small $x$, this follows from direct computation.-/)
+  (proof := /-- For $x \geq 10^6$, this follows from Theorem \ref{psi-upper}. For small $x$, this follows from direct computation.  Gemini suggests that if one considers the sequence $x_1,x_2,\dots$ defined by $2, 4, 6, 7, 9, 11, 13, 16, 19, 23, 27, 32, 37, 43, 50, 58, 67, 77, 88, 100, 114, 129, 147, 166, 187, 211, 238, 268, 302, 340, 381, 427, 479, 536, 600, 671, 750, 839, 938, 1048, 1172, 1310, 1464, 1636, 1827, 2041, 2279, 2544, 2839, 3167, 3534, 3943, 4398, 4905, 5471, 6101, 6803, 7586, 8458, 9431, 10515, 11723, 13070, 14571, 16244, 18108, 20186, 22501, 25081, 27956, 31160, 34731, 38711, 43147, 48090, 53599, 59737, 66579, 74202, 82698, 92166, 102718$ then one should have $\psi(x_{j+1}-1) \leq 1.11 x_j$ for all $j$, which should suffice.-/)
   (latexEnv := "theorem")
   (discussion := 844)]
 theorem psi_upper_clean (x : ℝ) (hx : x > 0) : ψ x ≤ 1.11 * x := by sorry
