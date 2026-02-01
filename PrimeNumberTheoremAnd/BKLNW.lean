@@ -660,7 +660,7 @@ a_2 = (1 + \alpha) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}
 \]
  -/)]
 noncomputable def Inputs.a₂ (I : Inputs) (b : ℝ) : ℝ :=
-  (1 + I.α) * (max (f (exp b)) (f (⌊ b / (log 2) ⌋₊ + 1)))
+  (1 + I.α) * (max (f (exp b)) (f 2^(⌊ b / (log 2) ⌋₊ + 1)))
 
 @[blueprint
   "bklnw-thm-5"

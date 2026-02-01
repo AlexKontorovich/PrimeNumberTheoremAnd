@@ -175,7 +175,7 @@ theorem nu_sum_div_eq_zero : ν.sum (fun n w ↦ w / n) = 0 := by
 @[blueprint
   "cheby-E-1"
   (title := "$E$ initially constant")
-  (statement := /-- One has $E(x)=1$ for $1 \leq x \leq 6$. -/)
+  (statement := /-- One has $E(x)=1$ for $1 \leq x < 6$. -/)
   (proof := /-- This follows from direct computation. -/)
   (latexEnv := "lemma")
   (discussion := 835)]
