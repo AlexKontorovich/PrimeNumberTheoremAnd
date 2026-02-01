@@ -27,7 +27,33 @@ noncomputable def T (x : ℝ) : ℝ :=
   (latexEnv := "lemma")
   (discussion := 831)]
 theorem T.le (x : ℝ) (hx : 1 ≤ x) : T x ≤ x * log x - x + 1 + log x := by
-  sorry
+  rw [T, ← Finset.Ico_insert_right <| Nat.one_le_iff_ne_zero.mpr (Nat.floor_pos.mpr hx).ne',
+    Finset.sum_insert Finset.right_notMem_Ico]
+  have : MonotoneOn log (Set.Icc (1 : ℕ) ⌊x⌋₊) :=
+    fun a ha _ _ hab ↦ log_le_log (lt_of_lt_of_le one_pos (by grind)) hab
+  have : ∑ n ∈ Finset.Ico 1 ⌊x⌋₊, log n ≤ ⌊x⌋₊ * log ⌊x⌋₊ - ⌊x⌋₊ + 1 :=
+    calc ∑ n ∈ Finset.Ico 1 ⌊x⌋₊, log n
+        ≤ ∫ t in (1 : ℕ)..(⌊x⌋₊ : ℕ), log t := this.sum_le_integral_Ico <|
+          Nat.one_le_iff_ne_zero.mpr (Nat.floor_pos.mpr hx).ne'
+      _ = ⌊x⌋₊ * log ⌊x⌋₊ - ⌊x⌋₊ + 1 := by simp
+  have h1 : (1 : ℝ) ≤ ⌊x⌋₊ := by simp_all
+  have : (⌊x⌋₊ : ℝ) * log ⌊x⌋₊ - ⌊x⌋₊ ≤ x * log x - x := by
+    have : MonotoneOn (fun t ↦ t * log t - t) (Set.Ici 1) :=
+      monotoneOn_of_deriv_nonneg (convex_Ici 1) (continuous_mul_log.sub continuous_id).continuousOn
+        (fun t ht ↦ by
+          simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at ht
+          exact ((differentiableAt_id.mul (differentiableAt_log (by grind))).sub
+            differentiableAt_id).differentiableWithinAt)
+        (fun t ht ↦ by
+          simp only [Set.nonempty_Iio, interior_Ici', Set.mem_Ioi] at ht
+          have : DifferentiableAt ℝ (fun t ↦ t * log t) t :=
+            differentiableAt_id.mul (differentiableAt_log <| by grind)
+          have hderiv : deriv (fun t ↦ t * log t - t) t = log t := by
+            simp [show (fun t ↦ t * log t - t) = (fun t ↦ t * log t) - _root_.id by rfl,
+              deriv_sub this differentiableAt_id, deriv_mul_log (by linarith)]
+          exact hderiv ▸ log_nonneg (le_of_lt ht))
+    exact this (Set.mem_Ici.mpr h1) (Set.mem_Ici.mpr hx) <| Nat.floor_le (by grind)
+  linarith [log_le_log (by positivity) <| Nat.floor_le (by linarith)]
 
 @[blueprint
   "cheby-T-lower"
