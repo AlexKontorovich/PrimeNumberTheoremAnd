@@ -226,7 +226,14 @@ noncomputable def U (x : ℝ) : ℝ := ν.sum (fun m w ↦ w * T (x/m))
   (proof := /-- Use Lemma \ref{cheby-T-E} and Lemma \ref{cheby-E-val}. -/)
   (latexEnv := "proposition")
   (discussion := 837)]
-theorem psi_ge_weighted (x : ℝ) (hx : x > 0) : ψ x ≥ U x := by sorry
+theorem psi_ge_weighted (x : ℝ) (hx : x > 0) : ψ x ≥ U x := by
+  unfold U psi
+  rw [T.weighted_eq_sum, ← Finset.Ioc_eq_Icc]
+  gcongr
+  expose_names
+  have := E_nu_bound (x / i) <| div_nonneg hx.le (by simp)
+  grw [this.2, mul_one]
+  exact vonMangoldt_nonneg
 
 @[blueprint
   "cheby-psi-diff"
