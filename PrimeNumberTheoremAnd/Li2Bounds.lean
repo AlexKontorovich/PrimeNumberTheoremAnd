@@ -207,18 +207,18 @@ The symmetric integral li2_symmetric equals the principal value li(2).
 This follows from the substitutions u = 1-t and u = t-1 which transform
 the principal value integral into the absolutely convergent symmetric form. -/
 
-/-- The set difference Ioc 0 2 \ Ioo (1-ε) (1+ε) for small ε > 0. -/
-theorem setDiff_decompose (ε : ℝ) (hε : 0 < ε) :
-    Set.Ioc 0 2 \ Set.Ioo (1 - ε) (1 + ε) = Set.Ioc 0 (1 - ε) ∪ Set.Icc (1 + ε) 2 := by
+/-- The set difference Ioc 0 x \ Ioo (1-ε) (1+ε) for small ε > 0. -/
+theorem setDiff_decompose (ε x : ℝ) (hε : 0 < ε) (hx : 2 ≤ x) :
+    Set.Ioc 0 x \ Set.Ioo (1 - ε) (1 + ε) = Set.Ioc 0 (1 - ε) ∪ Set.Icc (1 + ε) x := by
   grind
 
 /-- The Set.diff integral equals the split interval integrals.
     This is the key technical lemma connecting PNT+'s li definition to the symmetric form. -/
-theorem setDiff_integral_eq_split (ε : ℝ) (hε : 0 < ε) (hε1 : ε < 1) :
-    ∫ t in Set.Ioc 0 2 \ Set.Ioo (1 - ε) (1 + ε), 1 / log t =
-    (∫ t in (0:ℝ)..(1 - ε), 1 / log t) + (∫ t in (1 + ε)..(2:ℝ), 1 / log t) := by
+theorem setDiff_integral_eq_split (ε x : ℝ) (hε : 0 < ε) (hε1 : ε < 1) (hx : 2 ≤ x) :
+    ∫ t in Set.Ioc 0 x \ Set.Ioo (1 - ε) (1 + ε), 1 / log t =
+    (∫ t in (0:ℝ)..(1 - ε), 1 / log t) + (∫ t in (1 + ε)..x, 1 / log t) := by
   -- Step 1: Rewrite using set decomposition
-  rw [setDiff_decompose ε hε, setIntegral_union (by grind) measurableSet_Icc,
+  rw [setDiff_decompose ε x hε hx, setIntegral_union (by grind) measurableSet_Icc,
     intervalIntegral.integral_of_le (by linarith), integral_Icc_eq_integral_Ioc,
     intervalIntegral.integral_of_le (by linarith)]
   · -- The function 1/log t is bounded on (0, 1-ε]: as t → 0⁺, 1/log t → 0
@@ -259,10 +259,10 @@ theorem setDiff_integral_eq_split (ε : ℝ) (hε : 0 < ε) (hε1 : ε < 1) :
 /-- The filter tendsto result for the principal value. -/
 theorem pv_tendsto_li2_symmetric :
     Filter.Tendsto (fun ε => ∫ t in Set.Ioc 0 2 \ Set.Ioo (1 - ε) (1 + ε), 1 / log t)
-      (nhdsWithin 0 (Set.Ioi 0)) (nhds li2_symmetric) := by
+      (𝓝[>] 0) (nhds li2_symmetric) := by
   apply Filter.Tendsto.congr' _ limit_integral_g
   filter_upwards [Ioo_mem_nhdsGT (by linarith : (0 : ℝ) < 1)] with ε hε
-  rw [setDiff_integral_eq_split ε hε.1 hε.2, pv_integral_eq_symmetric ε hε.1 hε.2]
+  rw [setDiff_integral_eq_split ε 2 hε.1 hε.2 (by rfl), pv_integral_eq_symmetric ε hε.1 hε.2]
 
 @[blueprint
   "li2-eq"
