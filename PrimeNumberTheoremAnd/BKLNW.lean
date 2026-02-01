@@ -499,30 +499,19 @@ f(x) := \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} x^{\frac{1}{k} - \fra
   (latexEnv := "proposition")
   (discussion := 639)]
 theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9) (hx : x ≥ x₀) :
-    ∑ k ∈ Icc 3 ⌊(log x)/(log 2)⌋, θ (x^(1/(k:ℝ))) ≤
+    ∑ k ∈ Icc 3 ⌊(log x)/(log 2)⌋₊, θ (x^(1/(k:ℝ))) ≤
       (1 + I.α) * max (f x₀) (f (2^(⌊(log x₀)/(log 2)⌋₊ + 1))) * x^(1/3:ℝ) := by
-  have h_sum_le : ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋, θ (x^(1 / k : ℝ)) ≤
+  have h_sum_le : ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋₊, θ (x^(1 / k : ℝ)) ≤
       (1 + I.α) * f x * x^(1 / 3 : ℝ) := by
-    have h_sum_le' : ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋, θ (x^(1 / k : ℝ)) ≤
-        ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋, (1 + I.α) * x^(1 / k : ℝ) := sum_le_sum fun i hi ↦ by
-        have := I.hα (x ^ (1 / (i : ℝ))) (rpow_pos_of_pos (by grind) _)
-        norm_num [log_rpow (by positivity)] at *
-        grind
+    have h_sum_le' : ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋₊, θ (x^(1 / k : ℝ)) ≤
+        ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋₊, (1 + I.α) * x^(1 / k : ℝ) := sum_le_sum fun i hi ↦ by
+      have := I.hα (x ^ (1 / (i : ℝ))) (rpow_pos_of_pos (by grind) _)
+      norm_num [log_rpow (by positivity)] at *
+      exact this
     convert h_sum_le' using 1
     norm_num [f, mul_sum .., mul_assoc, mul_comm, mul_left_comm, sum_mul]
     refine sum_bij (fun k hk ↦ k) ?_ ?_ ?_ ?_ <;> norm_num
-    · exact fun a ha₁ ha₂ ↦ ⟨ha₁, Int.le_floor.2 <| by
-        exact_mod_cast Nat.floor_le (div_nonneg (log_nonneg <| by
-          grind [one_le_rpow (by grind : (1 : ℝ) ≤ 2) (show 0 ≤ 9 by grind)])
-          (log_nonneg <| by grind)) |> le_trans (Nat.cast_le.2 ha₂)⟩
-    · exact fun b hb₁ hb₂ ↦
-        have hb_nn : 0 ≤ b := by grind
-        ⟨Int.toNat b,
-          ⟨by grind [Int.toNat_of_nonneg hb_nn],
-           by grind [Int.toNat_of_nonneg hb_nn,
-             show ⌊log x / log 2⌋₊ ≥ ⌊log x / log 2⌋ from Int.self_le_toNat _]⟩,
-          by rw [Int.toNat_of_nonneg hb_nn]⟩
-    · intro a ha₁ ha₂; rw [← rpow_add (by grind)]; grind
+    intro a ha₁ ha₂; rw [← rpow_add (by grind)]; grind
   apply le_trans h_sum_le ?_
   gcongr
   · exact rpow_nonneg (by grind) _
@@ -560,23 +549,19 @@ theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (x : ℝ) (hx : x ≥ ex
     _ = ∑ n ∈ Icc 2 ⌊log x / log 2⌋₊, θ (x ^ ((1 : ℝ) / n)) - θ (x ^ (1/2 : ℝ)) := by
       rw [Chebyshev.psi_eq_theta_add_sum_theta (by linarith)]; ring
     _ = ∑ n ∈ Icc 3 ⌊log x / log 2⌋₊, θ (x ^ ((1 : ℝ) / n)) := by
-      have : ⌊log x / log 2⌋₊ ≥ 2 := by
-        calc
+      have : ⌊log x / log 2⌋₊ ≥ 2 := calc
           _ ≥ ⌊b / log 2⌋₊ := by gcongr; rw [← log_exp b]; exact log_le_log (by linarith) hx
           _ ≥ 2 := by apply Nat.le_floor; field_simp; norm_num; linarith [log_two_lt_d9, hb]
       rw [← add_sum_Ioc_eq_sum_Icc this, ← Icc_add_one_left_eq_Ioc]; ring_nf
-    _ = ∑ n ∈ Icc (3 : ℤ) ⌊log x / log 2⌋, θ (x ^ ((1 : ℝ) / n)) := by
+    _ = ∑ n ∈ Icc 3 ⌊log x / log 2⌋₊, θ (x ^ ((1 : ℝ) / n)) := by
       refine sum_bij (fun n _ ↦ n) ?_ ?_ ?_ ?_
       · intro n hn; simp only [mem_Icc] at hn ⊢
-        rw [← Int.natCast_floor_eq_floor (div_nonneg (log_nonneg (by linarith)) (log_nonneg (by norm_num)))]
         exact ⟨by exact_mod_cast hn.1, by exact_mod_cast hn.2⟩
-      · intro _ _ _ _ h; exact Int.ofNat_inj.mp h
+      · intro _ _ _ _ h; simp only at h; exact h
       · intro n hn; simp only [mem_Icc] at hn ⊢
-        lift n to ℕ using (by linarith [hn.1])
         refine ⟨n, ?_, rfl⟩
-        rw [← Int.natCast_floor_eq_floor (div_nonneg (log_nonneg (by linarith)) (log_nonneg (by norm_num)))] at hn
         exact ⟨by exact_mod_cast hn.1, by exact_mod_cast hn.2⟩
-      · intro _ _; simp only [one_div, Int.cast_natCast]
+      · intro _ _; simp only [one_div]
     _ ≤ (1 + I.α) * max (f x₀) (f (2 ^ (⌊log x₀ / log 2⌋₊ + 1))) * x ^ (1/3 : ℝ) := by
       exact prop_3 I this hx
     _ ≤ (1 + I.α) * max (f (exp b)) (f (2 ^ (⌊b / log 2⌋ + 1))) * x ^ (1/3 : ℝ) := by
