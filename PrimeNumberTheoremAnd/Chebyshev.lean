@@ -167,44 +167,60 @@ theorem a_bound : a ∈ Set.Icc 0.92129 0.92130 := by sorry
 @[blueprint
   "U-bounds"
   (title := "Bounds for $U$")
-  (statement := /-- For $x \geq 1$, we have $|U(x) - ax| \leq 5(\log x + 1)$. -/)
-  (proof := /-- Use Lemma \ref{cheby-T-upper}, Lemma \ref{cheby-T-lower}, the definition of $a$, and the triangle inequality -/)
+  (statement := /-- For $x \geq 30$, we have $|U(x) - ax| \leq 5\log x - 5$. -/)
+  (proof := /-- Use Lemma \ref{cheby-T-upper}, Lemma \ref{cheby-T-lower}, the definition of $a$, and the triangle inequality, also using that $\log(2)+\log(3)+\log(5)+\log(30) \geq 6$. -/)
   (latexEnv := "lemma")
   (discussion := 840)]
-theorem U_bound (x : ℝ) (hx : 1 ≤ x) : |U x - a * x| ≤ 5 * (log x + 1) := by sorry
+theorem U_bound (x : ℝ) (hx : 30 ≤ x) : |U x - a * x| ≤ 5 * log x - 5 := by sorry
 
 @[blueprint
   "psi-lower"
   (title := "Lower bound for $\\psi$")
-  (statement := /-- For $x \geq 1$, we have $\psi(x) \geq ax - 5(\log x + 1)$. -/)
+  (statement := /-- For $x \geq 30$, we have $\psi(x) \geq ax - 5\log x - 1$. -/)
   (proof := /-- Use Lemma \ref{U-bounds} and Proposition \ref{cheby-psi-lower}.-/)
   (latexEnv := "theorem")
   (discussion := 841)]
-theorem psi_lower (x : ℝ) (hx : 1 ≤ x) : ψ x ≥ a * x - 5 * (log x + 1) := by sorry
+theorem psi_lower (x : ℝ) (hx : 30 ≤ x) : ψ x ≥ a * x - 5 * log x + 5 := by sorry
 
 @[blueprint
   "psi-diff-upper"
   (title := "Upper bound for $\\psi$ difference")
-  (statement := /-- For $x \geq 1$, we have $\psi(x) - \psi(x/6) \leq ax + 5(\log x + 1)$. -/)
+  (statement := /-- For $x \geq 30$, we have $\psi(x) - \psi(x/6) \leq ax + 5\log x - 5$. -/)
   (proof := /-- Use Lemma \ref{U-bounds} and Proposition \ref{cheby-psi-upper}.-/)
   (latexEnv := "proposition")
   (discussion := 842)]
-theorem psi_diff_upper (x : ℝ) (hx : 1 ≤ x) : ψ x - ψ (x / 6) ≤ a * x + 5 * (log x + 1) := by sorry
+theorem psi_diff_upper (x : ℝ) (hx : 30 ≤ x) : ψ x - ψ (x / 6) ≤ a * x + 5 * log x - 5 := by sorry
+
+@[blueprint
+  "psi-num"
+  (title := "Numerical bound for $\\psi(x)$ for very small $x$")
+  (statement := /-- For $0 < x \leq 30$, we have $\psi(x) \leq 1.015 x$. -/)
+  (proof := /-- Numerical check (the maximum occurs at $x=19$).  One only needs to check the case when $x$ is a prime power.-/)
+  (latexEnv := "sublemma")]
+theorem psi_num (x : ℝ) (hx : x > 0) (hx2 : x ≤ 30) : ψ x ≤ 1.015 * x := by sorry
 
 @[blueprint
   "psi-upper"
   (title := "Upper bound for $\\psi$")
-  (statement := /-- For $x \geq 1$, we have $\psi(x) \leq 6ax/5 + 5(\log 5 / \log 6 + 1)(\log x + 1)$. -/)
-  (proof := /-- Iterate Lemma \ref{psi-diff-upper}.-/)
+  (statement := /-- For $x \geq 30$, we have $\psi(x) \leq 6ax/5 + (\log (x/5) / \log 6) (5 \log x - 5)$. -/)
+  (proof := /-- Iterate Lemma \ref{psi-diff-upper} using Sublemma \ref{psi-num} .-/)
   (latexEnv := "theorem")
   (discussion := 843)]
-theorem psi_upper (x : ℝ) (hx : 1 ≤ x) : ψ x ≤ 6 * a * x / 5 + 5 * (log 5 / log 6 + 1) * (log x + 1) := by sorry
+theorem psi_upper (x : ℝ) (hx : 30 ≤ x) : ψ x ≤ 6 * a * x / 5 + (log (x/5) / log 6) * (5 * log x - 5) := by sorry
+
+@[blueprint
+  "psi-num-2"
+  (title := "Numerical bound for $\\psi(x)$ for medium $x$")
+  (statement := /-- For $0 < x \leq 11723$, we have $\psi(x) \leq 1.11 x$. -/)
+  (proof := /-- From Lemma \ref{psi-num} we can take $x \geq 30$. If one considers the sequence $x_1,x_2,\dots$ defined by $27, 32, 37, 43, 50, 58, 67, 77, 88, 100, 114, 129, 147, 166, 187, 211, 238, 268, 302, 340, 381, 427, 479, 536, 600, 671, 750, 839, 938, 1048, 1172, 1310, 1464, 1636, 1827, 2041, 2279, 2544, 2839, 3167, 3534, 3943, 4398, 4905, 5471, 6101, 6803, 7586, 8458, 9431, 10515, 11723$ then one should have $\psi(x_{j+1}-1) \leq 1.11 x_j$ for all $j$, which suffices.-/)
+  (latexEnv := "sublemma")]
+theorem psi_num_2 (x : ℝ) (hx : x > 0) (hx2 : x ≤ 11723) : ψ x ≤ 1.11 * x := by sorry
 
 @[blueprint
   "psi-upper-clean"
   (title := "Clean upper bound for $\\psi$")
   (statement := /-- For $x > 0$, we have $\psi(x) \leq 1.11 x$. -/)
-  (proof := /-- For $x$ large enough, this follows from Theorem \ref{psi-upper}. For small $x$, this follows from direct computation.-/)
+  (proof := /-- Strong induction on $x$.  For $x \leq 11723$ one can use Sublemma \ref{psi-num-2}.  Otherwise, we can use Proposition \ref{psi-diff-upper} and the triangle inequality. -/)
   (latexEnv := "theorem")
   (discussion := 844)]
 theorem psi_upper_clean (x : ℝ) (hx : x > 0) : ψ x ≤ 1.11 * x := by sorry

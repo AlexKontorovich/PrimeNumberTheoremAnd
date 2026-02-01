@@ -11,6 +11,7 @@ Purely numerical calculations from Appendix A of \cite{BKLNW}.  This is kept in 
 namespace BKLNW_app
 
 def table_8 : List (ℝ × ℝ) := [
+  (0, 1), -- junk value
   (20, 4.2676e-5),
   (21, 2.5885e-5),
   (22, 1.5701e-5),
