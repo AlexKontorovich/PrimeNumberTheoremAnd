@@ -146,7 +146,29 @@ theorem nu_sum_div_eq_zero : ν.sum (fun n w ↦ w / n) = 0 := by
   (proof := /-- This follows from direct computation. -/)
   (latexEnv := "lemma")
   (discussion := 835)]
-theorem E_nu_eq_one (x : ℝ) (hx : x ∈ Set.Icc 1 6) : E ν x = 1 := by sorry
+theorem E_nu_eq_one (x : ℝ) (hx : x ∈ Set.Ico 1 6) : E ν x = 1 := by
+  have : E ν x = ⌊x⌋₊ - ⌊x / 2⌋₊ - ⌊x / 3⌋₊ - ⌊x / 5⌋₊ + ⌊x / 30⌋₊ := by
+    rw [E, ν, Finsupp.sum_add_index' (by grind) (by grind), Finsupp.sum_sub_index (by grind),
+      Finsupp.sum_sub_index (by grind), Finsupp.sum_sub_index (by grind)]; simp
+  obtain ⟨h1, h6⟩ := hx
+  simp only [this, Nat.floor_eq_zero.mpr (by linarith : x / 30 < 1)]
+  have : 1 ≤ ⌊x⌋₊ := by rwa [Nat.one_le_floor_iff]
+  have : ⌊x⌋₊ ≤ 5 := Nat.lt_succ_iff.mp (Nat.floor_lt' (by grind) |>.mpr h6)
+  have : 2 * ⌊x / 2⌋₊ ≤ ⌊x⌋₊ ∧ ⌊x⌋₊ ≤ 2 * ⌊x / 2⌋₊ + 1 := by
+    refine ⟨Nat.le_floor (by push_cast; linarith [Nat.floor_le (by positivity : 0 ≤ x / 2)]), ?_⟩
+    have : ⌊x⌋₊ < 2 * ⌊x / 2⌋₊ + 2 := Nat.floor_lt' (by omega) |>.mpr (by grind [Nat.lt_floor_add_one (x / 2)])
+    omega
+  have : 3 * ⌊x / 3⌋₊ ≤ ⌊x⌋₊ ∧ ⌊x⌋₊ ≤ 3 * ⌊x / 3⌋₊ + 2 := by
+    have := Nat.lt_floor_add_one (x / 3)
+    refine ⟨Nat.le_floor (by push_cast; linarith [Nat.floor_le (by positivity : 0 ≤ x / 3)]), ?_⟩
+    have : ⌊x⌋₊ < 3 * ⌊x / 3⌋₊ + 3 := Nat.floor_lt' (by omega) |>.mpr (by grind)
+    omega
+  have : 5 * ⌊x / 5⌋₊ ≤ ⌊x⌋₊ ∧ ⌊x⌋₊ ≤ 5 * ⌊x / 5⌋₊ + 4 := by
+    refine ⟨Nat.le_floor (by push_cast; linarith [Nat.floor_le (by positivity : 0 ≤ x / 5)]), ?_⟩
+    have : ⌊x⌋₊ < 5 * ⌊x / 5⌋₊ + 5 := Nat.floor_lt' (by grind) |>.mpr (by grind [Nat.lt_floor_add_one (x / 5)])
+    omega
+  simp only [show ⌊x⌋₊ = ⌊x / 2⌋₊ + ⌊x / 3⌋₊ + ⌊x / 5⌋₊ + 1 by omega, Nat.cast_add]
+  ring
 
 @[blueprint
   "cheby-E-periodic"
