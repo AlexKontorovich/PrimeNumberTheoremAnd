@@ -65,7 +65,40 @@ theorem T.le (x : ℝ) (hx : 1 ≤ x) : T x ≤ x * log x - x + 1 + log x := by
   (latexEnv := "lemma")
   (discussion := 832)]
 theorem T.ge (x : ℝ) (hx : 1 ≤ x) : T x ≥ x * log x - x + 1 - log x := by
-  sorry
+  have hone_le_floor : 1 ≤ ⌊x⌋₊ := Nat.one_le_iff_ne_zero.mpr (Nat.floor_pos.mpr hx).ne'
+  simp only [T, ← Finset.Ico_insert_right hone_le_floor, Finset.sum_insert Finset.right_notMem_Ico]
+  have mono_log : MonotoneOn log (Set.Icc (1 : ℕ) ⌊x⌋₊) := fun a ha _ _ hab ↦
+    log_le_log (lt_of_lt_of_le one_pos (by simpa using ha.1)) hab
+  have sum_shift : ∑ i ∈ Finset.Ico 1 ⌊x⌋₊, log (i + 1 : ℕ) = log ⌊x⌋₊ + ∑ i ∈ Finset.Ico 1 ⌊x⌋₊, log i := by
+    have : ∀ n : ℕ, 1 ≤ n → ∑ i ∈ Finset.Ico 1 n, log (i + 1 : ℕ) = log n + ∑ i ∈ Finset.Ico 1 n, log i := by
+      intro n hn
+      induction n with
+      | zero => omega
+      | succ m ihm =>
+        cases m with
+        | zero => simp
+        | succ k =>
+          conv_lhs => rw [Nat.Ico_succ_right_eq_insert_Ico (by omega), Finset.sum_insert Finset.right_notMem_Ico]
+          conv_rhs => rw [Nat.Ico_succ_right_eq_insert_Ico (by omega), Finset.sum_insert Finset.right_notMem_Ico]
+          have h_ih := ihm (by omega)
+          simp only [Nat.cast_succ] at h_ih ⊢
+          linarith [h_ih]
+    exact this ⌊x⌋₊ hone_le_floor
+  have int_le_T : ∫ t in (1 : ℕ)..(⌊x⌋₊ : ℕ), log t ≤ log ⌊x⌋₊ + ∑ n ∈ Finset.Ico 1 ⌊x⌋₊, log n := by
+    linarith [mono_log.integral_le_sum_Ico hone_le_floor, sum_shift]
+  have int_eq : ∫ t in (1 : ℕ)..(⌊x⌋₊ : ℕ), log t = ⌊x⌋₊ * log ⌊x⌋₊ - ⌊x⌋₊ + 1 := by simp
+  have target_le_int : x * log x - x + 1 - log x ≤ ⌊x⌋₊ * log ⌊x⌋₊ - ⌊x⌋₊ + 1 := by
+    have : ∫ t in (⌊x⌋₊ : ℝ)..x, log t ≤ (x - ⌊x⌋₊) * log x := by
+      calc ∫ t in (⌊x⌋₊ : ℝ)..x, log t
+          ≤ ∫ _ in (⌊x⌋₊ : ℝ)..x, log x :=
+            intervalIntegral.integral_mono_on (Nat.floor_le <| by linarith) intervalIntegral.intervalIntegrable_log'
+              intervalIntegrable_const fun t ht ↦ log_le_log (lt_of_lt_of_le (by positivity) ht.1) ht.2
+        _ = (x - ⌊x⌋₊) * log x := by simp
+    calc x * log x - x + 1 - log x
+        ≤ (x * log x - x + 1) - (x - ⌊x⌋₊) * log x := by nlinarith [log_nonneg hx, Nat.lt_floor_add_one x]
+      _ ≤ (x * log x - x + 1) - ∫ t in (⌊x⌋₊ : ℝ)..x, log t := by grind
+      _ = ⌊x⌋₊ * log ⌊x⌋₊ - ⌊x⌋₊ + 1 := by grind [integral_log]
+  linarith [int_le_T, int_eq, target_le_int]
 
 @[blueprint
   "cheby-T-Lambda"
