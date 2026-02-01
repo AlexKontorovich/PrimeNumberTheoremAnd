@@ -363,7 +363,7 @@ noncomputable def table_8_ε' (b : ℝ) : ℝ :=
   else if b < 23000 then 2.43916e-48 * table_8_margin
   else if b < 24000 then 1.56474e-49 * table_8_margin
   else if b < 25000 then 1.07022e-50 * table_8_margin
-  else 7.57240e-52 * table_8_margin
+  else 7.57240e-50 * table_8_margin
 
 @[blueprint
   "bklnw-table-8-compat"
