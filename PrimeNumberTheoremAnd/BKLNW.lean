@@ -499,7 +499,7 @@ f(x) := \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} x^{\frac{1}{k} - \fra
   (latexEnv := "proposition")
   (discussion := 639)]
 theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9) (hx : x ≥ x₀) :
-    ∑ k ∈ Icc 3 ⌊(log x)/(log 2)⌋, θ (x^(1/k)) ≤
+    ∑ k ∈ Icc 3 ⌊(log x)/(log 2)⌋, θ (x^(1/(k:ℝ))) ≤
       (1 + I.α) * max (f x₀) (f (2^(⌊(log x₀)/(log 2)⌋₊ + 1))) * x^(1/3:ℝ) := by
   have h_sum_le : ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋, θ (x^(1 / k : ℝ)) ≤
       (1 + I.α) * f x * x^(1 / 3 : ℝ) := by
@@ -523,20 +523,13 @@ theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9) (hx : x ≥ 
              show ⌊log x / log 2⌋₊ ≥ ⌊log x / log 2⌋ from Int.self_le_toNat _]⟩,
           by rw [Int.toNat_of_nonneg hb_nn]⟩
     · intro a ha₁ ha₂; rw [← rpow_add (by grind)]; grind
-  refine le_trans ?_ (h_sum_le.trans ?_)
-  · refine sum_le_sum fun k hk ↦ ?_
-    rcases k with ⟨_ | _ | _ | k⟩ <;> norm_num at *
-    · norm_cast
-      refine Nat.succ_div ▸ sum_le_sum_of_subset_of_nonneg ?_ ?_
-      · norm_num [subset_iff]
-      · exact fun _ _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <| Nat.Prime.pos <| by grind only [= mem_filter]
-    · tauto
-  · gcongr
-    · exact rpow_nonneg (by grind) _
-    · have := I.hα 1
-      grind [show 0 ≤ θ 1 from sum_nonneg fun _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <|
-        Nat.Prime.pos <| by grind only [= mem_filter]]
-    · exact prop_3_sub_8 x₀ hx₀ x hx
+  apply le_trans h_sum_le ?_
+  gcongr
+  · exact rpow_nonneg (by grind) _
+  · have := I.hα 1
+    grind [show 0 ≤ θ 1 from sum_nonneg fun _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <|
+      Nat.Prime.pos <| by grind only [= mem_filter]]
+  · exact prop_3_sub_8 x₀ hx₀ x hx
 
 @[blueprint
   "bklnw-cor-3-1"
@@ -556,7 +549,45 @@ where
   (discussion := 640)]
 theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (x : ℝ) (hx : x ≥ exp b) :
     ψ x - θ x - θ (x^(1/2:ℝ)) ≤
-      (1 + I.α) * max (f (exp b)) (f (2^(⌊ b/(log 2) ⌋ + 1))) * x^(1/3:ℝ) := by sorry
+      (1 + I.α) * max (f (exp b)) (f (2^(⌊b / (log 2)⌋ + 1))) * x^(1/3:ℝ) := by
+  let x₀ := exp b
+  have : x₀ ≥ 2 ^ 9 := by
+    refine le_trans ?_ (exp_le_exp_of_le hb)
+    rw [← exp_one_rpow]
+    refine le_trans ?_ (rpow_le_rpow (by norm_num) exp_one_gt_d9.le (by norm_num))
+    norm_num
+  calc
+    _ = ∑ n ∈ Icc 2 ⌊log x / log 2⌋₊, θ (x ^ ((1 : ℝ) / n)) - θ (x ^ (1/2 : ℝ)) := by
+      rw [Chebyshev.psi_eq_theta_add_sum_theta (by linarith)]; ring
+    _ = ∑ n ∈ Icc 3 ⌊log x / log 2⌋₊, θ (x ^ ((1 : ℝ) / n)) := by
+      have : ⌊log x / log 2⌋₊ ≥ 2 := by
+        calc
+          _ ≥ ⌊b / log 2⌋₊ := by gcongr; rw [← log_exp b]; exact log_le_log (by linarith) hx
+          _ ≥ 2 := by apply Nat.le_floor; field_simp; norm_num; linarith [log_two_lt_d9, hb]
+      rw [← add_sum_Ioc_eq_sum_Icc this, ← Icc_add_one_left_eq_Ioc]; ring_nf
+    _ = ∑ n ∈ Icc (3 : ℤ) ⌊log x / log 2⌋, θ (x ^ ((1 : ℝ) / n)) := by
+      refine sum_bij (fun n _ ↦ n) ?_ ?_ ?_ ?_
+      · intro n hn; simp only [mem_Icc] at hn ⊢
+        rw [← Int.natCast_floor_eq_floor (div_nonneg (log_nonneg (by linarith)) (log_nonneg (by norm_num)))]
+        exact ⟨by exact_mod_cast hn.1, by exact_mod_cast hn.2⟩
+      · intro _ _ _ _ h; exact Int.ofNat_inj.mp h
+      · intro n hn; simp only [mem_Icc] at hn ⊢
+        lift n to ℕ using (by linarith [hn.1])
+        refine ⟨n, ?_, rfl⟩
+        rw [← Int.natCast_floor_eq_floor (div_nonneg (log_nonneg (by linarith)) (log_nonneg (by norm_num)))] at hn
+        exact ⟨by exact_mod_cast hn.1, by exact_mod_cast hn.2⟩
+      · intro _ _; simp only [one_div, Int.cast_natCast]
+    _ ≤ (1 + I.α) * max (f x₀) (f (2 ^ (⌊log x₀ / log 2⌋₊ + 1))) * x ^ (1/3 : ℝ) := by
+      exact prop_3 I this hx
+    _ ≤ (1 + I.α) * max (f (exp b)) (f (2 ^ (⌊b / log 2⌋ + 1))) * x ^ (1/3 : ℝ) := by
+      gcongr
+      · exact rpow_nonneg (le_trans (by linarith) hx) _
+      · have := I.hα 1
+        grind [show 0 ≤ θ 1 from sum_nonneg fun _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <|
+          Nat.Prime.pos <| by grind only [= mem_filter]]
+      · simp only [x₀, log_exp]
+        rw [← Int.natCast_floor_eq_floor (div_nonneg (by linarith) (log_nonneg (by norm_num)))]
+        rfl
 
 @[blueprint
   "bklnw-prop-4-a"
