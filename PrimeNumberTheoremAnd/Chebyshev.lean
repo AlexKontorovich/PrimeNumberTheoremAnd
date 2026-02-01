@@ -93,7 +93,22 @@ theorem E_nu_eq_one (x : ℝ) (hx : x ∈ Set.Icc 1 6) : E ν x = 1 := by sorry
   (statement := /-- One has $E(x+30) = E(x)$. -/)
   (proof := /-- This follows from direct computation. -/)
   (latexEnv := "lemma")]
-theorem E_nu_period (x : ℝ) (hx : x ≥ 0) : E ν (x + 30) = E ν x := by sorry
+theorem E_nu_period (x : ℝ) (hx : x ≥ 0) : E ν (x + 30) = E ν x := by
+  have : ∀ y, E ν y = ⌊y⌋₊ - ⌊y / 2⌋₊ - ⌊y / 3⌋₊ - ⌊y / 5⌋₊ + ⌊y / 30⌋₊ := fun _ ↦ by
+    rw [E, ν, Finsupp.sum_add_index' (by simp) (by intros; ring), Finsupp.sum_sub_index
+      (by intros; ring), Finsupp.sum_sub_index (by intros; ring), Finsupp.sum_sub_index
+      (by intros; ring)]; simp
+  simp only [this, show ⌊x + 30⌋₊ = ⌊x⌋₊ + 30 from Nat.floor_add_natCast hx 30, Nat.cast_add,
+    show ⌊(x + 30) / 2⌋₊ = ⌊x / 2⌋₊ + 15 by
+      rw [show (x + 30) / 2 = x / 2 + (15 : ℕ) by ring, Nat.floor_add_natCast (by positivity)],
+    show ⌊(x + 30) / 3⌋₊ = ⌊x / 3⌋₊ + 10 by
+      rw [show (x + 30) / 3 = x / 3 + (10 : ℕ) by ring, Nat.floor_add_natCast (by positivity)],
+    show ⌊(x + 30) / 5⌋₊ = ⌊x / 5⌋₊ + 6 by
+      rw [show (x + 30) / 5 = x / 5 + (6 : ℕ) by ring, Nat.floor_add_natCast (by positivity)],
+    show ⌊(x + 30) / 30⌋₊ = ⌊x / 30⌋₊ + 1 by
+      rw [show (x + 30) / 30 = x / 30 + (1 : ℕ) by ring, Nat.floor_add_natCast (by positivity)],
+    Nat.cast_one]
+  ring
 
 @[blueprint
   "cheby-E-val"
