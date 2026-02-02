@@ -1,3 +1,9 @@
+import Mathlib.Algebra.Lie.OfAssociative
+import Mathlib.Algebra.Order.Ring.Star
+import Mathlib.Data.Rat.Cast.OfScientific
+import Mathlib.Data.Real.StarOrdered
+import Mathlib.NumberTheory.Chebyshev
+import Mathlib.Tactic.NormNum.BigOperators
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 
 blueprint_comment /--
@@ -317,13 +323,79 @@ theorem psi_diff_le_weighted (x : ℝ) (hx : x > 0) : ψ x - ψ (x / 6) ≤ U x 
   (statement := /-- We define $a := -\sum_m \nu(m) \log m / m$. -/)]
 noncomputable def a : ℝ := - ν.sum (fun m w ↦ w * log m / m)
 
+lemma a_simpl : a = (7/15) * Real.log 2 + (3/10) * Real.log 3 + (1/6) * Real.log 5 := by
+  norm_num [a, Finsupp.sum, Finsupp.single_apply]
+  rw [show ν.support = { 1, 2, 3, 5, 30 } from ?_]
+  · norm_num [Finset.sum, ν]
+    grind [show (30 : ℝ) = 2 * 3 * 5 by ring, log_mul, log_mul]
+  · norm_num [ν, Finset.ext_iff]; grind
+
+lemma log_five_bounds : 1.609437 < Real.log 5 ∧ Real.log 5 < 1.609438 := by
+  rw [Real.lt_log_iff_exp_lt, Real.log_lt_iff_lt_exp] <;> norm_num
+  constructor
+  · have h : Real.exp (1609437 / 1000000) = Real.exp (1609437 / 2000000) ^ 2 := by
+      norm_num [← Real.exp_nat_mul]
+    rw [h]
+    have hexp : Real.exp (1609437 / 2000000) < Real.sqrt 5 := by
+      have hx : (1609437 : ℝ) / 2000000 ∈ Set.Icc 0 1 := by constructor <;> grind
+      calc Real.exp (1609437 / 2000000)
+          ≤ (∑ m ∈ Finset.range 15, ((1609437 : ℝ) / 2000000) ^ m / m.factorial) +
+            ((1609437 : ℝ) / 2000000) ^ 15 * (15 + 1) / (Nat.factorial 15 * 15) :=
+              Real.exp_bound' hx.1 hx.2 (by grind)
+        _ < 2.2360679 := by norm_num [Finset.sum_range_succ, Nat.factorial]
+        _ < Real.sqrt 5 := by rw [Real.lt_sqrt (by grind : (0 : ℝ) ≤ 2.2360679)]; grind
+    calc Real.exp (1609437 / 2000000) ^ 2
+        < (Real.sqrt 5) ^ 2 := sq_lt_sq' (by linarith [Real.exp_pos (1609437 / 2000000)]) hexp
+      _ = 5 := Real.sq_sqrt (by grind)
+  · rw [show (804719 : ℝ) / 500000 = 1.609438 by norm_num]
+    norm_num [Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div] at *
+    exact (by norm_num [Finset.sum_range_succ, Nat.factorial] : (5 : ℝ) < _).trans_le
+      (Summable.sum_le_tsum (Finset.range 20) (fun _ _ ↦ by positivity)
+        (Real.summable_pow_div_factorial _))
+
+lemma log_three_lt : Real.log 3 < 1.098613 := by
+  rw [Real.log_lt_iff_lt_exp (by positivity), Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
+  exact lt_of_lt_of_le (by norm_num [Finset.sum_range_succ, Nat.factorial])
+    (Summable.sum_le_tsum (Finset.range 10) (fun _ _ ↦ by positivity)
+      (Real.summable_pow_div_factorial _))
+
+lemma log_three_gt : 1.098612 < Real.log 3 := by
+  have h_exp : Real.exp 1.098612 < 3 := by
+    have h_exp_taylor : Real.exp (1.098612) ≤
+        ∑ k ∈ Finset.range 10, (1.098612 : ℝ)^k / Nat.factorial k +
+        (1.098612 : ℝ)^10 / Nat.factorial 10 * (1 / (1 - 1.098612 / 11)) := by
+      simp only [Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
+      rw [← Summable.sum_add_tsum_nat_add (k := 10) (h := Real.summable_pow_div_factorial _)]
+      have h_term_bound : ∀ i : ℕ, (1.098612 : ℝ)^(i + 10) / Nat.factorial (i + 10) ≤
+          (1.098612 : ℝ)^10 / Nat.factorial 10 * (1.098612 / 11)^i := by
+        intro i; rw [div_mul_eq_mul_div, div_le_div_iff₀ (by positivity) (by positivity)]
+        induction i with
+        | zero => grind
+        | succ i ih =>
+          norm_num [Nat.factorial_succ, pow_succ'] at *
+          nlinarith [pow_pos (by norm_num : (0 : ℝ) < 274653 / 250000) i,
+            pow_pos (by norm_num : (0 : ℝ) < 274653 / 2750000) i,
+            mul_le_mul_of_nonneg_left (sq_nonneg (i : ℝ))
+              (by positivity : (0 : ℝ) ≤ 274653 / 250000 ^ i)]
+      have hgeom : Summable fun n ↦ (1.098612 / 11 : ℝ) ^ n :=
+        summable_geometric_of_lt_one (by positivity) (by norm_num)
+      exact add_le_add_right ((Summable.tsum_le_tsum h_term_bound
+        (Summable.of_nonneg_of_le (fun _ ↦ by positivity) (fun i ↦ h_term_bound i)
+          <| Summable.mul_left _ hgeom) (Summable.mul_left _ hgeom)).trans
+        <| by rw [tsum_mul_left, tsum_geometric_of_lt_one (by positivity) (by norm_num)]; grind) _
+    exact h_exp_taylor.trans_lt <| by norm_num [Finset.sum_range_succ, Nat.factorial]
+  simpa using Real.log_lt_log (by positivity) h_exp
+
 @[blueprint
   "a-val"
   (title := "Numerical value of $a$")
   (statement := /-- We have $0.92129 \leq a \leq 0.92130$. -/)
   (latexEnv := "lemma")
   (discussion := 839)]
-theorem a_bound : a ∈ Set.Icc 0.92129 0.92130 := by sorry
+theorem a_bound : a ∈ Set.Icc 0.92129 0.92130 := by
+  norm_num [Chebyshev.a_simpl]
+  constructor <;> nlinarith [Real.log_two_gt_d9, Real.log_two_lt_d9, log_three_gt, log_three_lt,
+    log_five_bounds]
 
 @[blueprint
   "U-bounds"
@@ -385,18 +457,5 @@ theorem psi_num_2 (x : ℝ) (hx : x > 0) (hx2 : x ≤ 11723) : ψ x ≤ 1.11 * x
   (latexEnv := "theorem")
   (discussion := 844)]
 theorem psi_upper_clean (x : ℝ) (hx : x > 0) : ψ x ≤ 1.11 * x := by sorry
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 end Chebyshev
