@@ -3,7 +3,7 @@ import PrimeNumberTheoremAnd.SecondaryDefinitions
 blueprint_comment /--
 \section{Chebyshev's estimates}\label{chebyshev-estimates-sec}
 
-We record Chebyshev's estimates on $\psi$. The material here is adapted from the presentation of Diamond -/
+We record Chebyshev's estimates on $\psi$. The material here is adapted from the presentation of Diamond \cite{diamond}. -/
 
 namespace Chebyshev
 

@@ -6,6 +6,7 @@ import PrimeNumberTheoremAnd.BKLNW_tables
 import PrimeNumberTheoremAnd.BorelCaratheodory
 import PrimeNumberTheoremAnd.BrunTitchmarsh
 import PrimeNumberTheoremAnd.Buthe
+import PrimeNumberTheoremAnd.CH2
 import PrimeNumberTheoremAnd.Chebyshev
 import PrimeNumberTheoremAnd.Consequences
 import PrimeNumberTheoremAnd.CostaPereira
