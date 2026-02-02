@@ -900,6 +900,9 @@ noncomputable def επ_num {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ �
 noncomputable def default_b (x₀ x₁ : ℝ) : Fin 2 → ℝ :=
   fun i ↦ if i = 0 then log x₀ else log x₁
 
+/- [NOTE]: The original FKS2 paper states the derivative condition
+`deriv (fun x ↦ (log x) / x * (Li x - x / log x - Li x₁ + x₁ / log x₁)) x₂ ≥ 0`
+as a hypothesis for this remark. However, Aristotle's proof shows it is not required. -/
 @[blueprint
   "fks2-remark-7"
   (title := "FKS2 Remark 7")
@@ -913,13 +916,24 @@ noncomputable def default_b (x₀ x₁ : ℝ) : Fin 2 → ℝ :=
   (latexEnv := "remark")
   (discussion := 673)]
 theorem remark_7 {x₀ x₁ : ℝ} (x₂ : ℝ) (h : x₁ ≥ max x₀ 14)
-  {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
-  (h_b_start : b 0 = log x₀)
-  (h_b_end : b (Fin.last N) = log x₁)
-  (εθ_num : ℝ → ℝ)
-  (h_εθ_num : Eθ.numericalBound x₁ εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) (hx₂ : x ≤ x₂)
-  (hderiv : deriv (fun x ↦ (log x) / x * (Li x - x / log x - Li x₁ + x₁ / log x₁)) x₂ ≥ 0) :
-    μ_num_1 b εθ_num x₀ x₁ x₂ < μ_num_2 b εθ_num x₀ x₁ := by sorry
+    {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ → ℝ) (x : ℝ) (hx₁ : x₁ ≤ x) (hx₂ : x ≤ x₂) :
+    μ_num_1 b εθ_num x₀ x₁ x₂ < μ_num_2 b εθ_num x₀ x₁ := by
+  simp only [μ_num_2, μ_num_1, sup_le_iff, add_lt_add_iff_left] at *
+  convert theorem_6_2 (by linarith : x₁ ≥ 14) x₂ (by linarith) using 1
+  · rw [intervalIntegral.integral_eq_sub_of_hasDerivAt]; rotate_right
+    · exact fun x ↦ Li x - x / log x
+    · ring_nf
+    · intro x hx
+      convert HasDerivAt.sub (hasDerivAt_Li _) (HasDerivAt.div (hasDerivAt_id x)
+        (hasDerivAt_log _) _) using 1 <;>
+        ring_nf <;> norm_num [show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith,
+          show log x ≠ 0 by exact ne_of_gt <| log_pos <| by cases Set.mem_uIcc.mp hx <;> linarith]
+      · by_cases h : log x = 0 <;> simp [sq, h]
+      · cases Set.mem_uIcc.mp hx <;> linarith
+    · apply_rules [ContinuousOn.intervalIntegrable]
+      exact continuousOn_of_forall_continuousAt fun t ht ↦ ContinuousAt.div continuousAt_const
+        (ContinuousAt.pow (continuousAt_log (by cases Set.mem_uIcc.mp ht <;> linarith)) _)
+          (ne_of_gt (sq_pos_of_pos (log_pos (by cases Set.mem_uIcc.mp ht <;> linarith))))
 
 blueprint_comment /--
 This gives us the final result to obtain numerical bounds for $E_\pi$ from numerical bounds on $E_\theta$. -/
