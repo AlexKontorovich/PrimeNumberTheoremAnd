@@ -1,6 +1,10 @@
 import Architect
+import Mathlib.Algebra.Lie.OfAssociative
+import Mathlib.Analysis.CStarAlgebra.Classes
+import Mathlib.Data.Rat.Cast.OfScientific
+import Mathlib.Data.Real.StarOrdered
+import Mathlib.RingTheory.SimpleRing.Principal
 import PrimeNumberTheoremAnd.BorelCaratheodory
-import PrimeNumberTheoremAnd.DerivativeBound
 import PrimeNumberTheoremAnd.MediumPNT
 
 open Nat Filter Set Function Complex Real ComplexConjugate MeasureTheory
@@ -1236,7 +1240,125 @@ noncomputable def I5New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
   (1 / (2 * π * I)) * (I * (∫ t : ℝ in Ici T,
       SmoothedChebyshevIntegrand SmoothingF ε X ((1 + (Real.log X)⁻¹) + t * I)))
 
+lemma IntegralLogSqOverTSqBound : ∃ C > 0, ∀ T, 3 < T →
+  ∫ t in Set.Ici T, (Real.log t)^2 / t^2 ≤ C / Real.sqrt T := by
+    have h_log_sq_le_t_fourth_pow :
+        ∃ C > 0, ∀ t : ℝ, 3 ≤ t → (Real.log t)^2 / t^2 ≤ C / t^(3/2 : ℝ) := by
+      have h_log_sq_le_sqrt :
+          ∃ C > 0, ∀ t : ℝ, 3 ≤ t → Real.log t ^ 2 ≤ C * t ^ (1 / 2 : ℝ) := by
+        have h_log_sq_le_sqrt : ∃ C > 0, ∀ t : ℝ, 3 ≤ t → Real.log t ≤ C * t ^ (1 / 4 : ℝ) := by
+          use 4, by grind, fun t ht ↦ ?_
+          have := Real.log_le_sub_one_of_pos (by positivity : 0 < t ^ (1 / 4 : ℝ))
+          rw [Real.log_rpow (by positivity)] at this; linarith
+        obtain ⟨C, hC₀, hC⟩ := h_log_sq_le_sqrt; use C^2
+        exact ⟨sq_pos_of_pos hC₀, fun t ht ↦
+          (pow_le_pow_left₀ (Real.log_nonneg <| by linarith) (hC t ht) 2).trans <| by
+            rw [mul_pow, ← Real.rpow_natCast, ← Real.rpow_natCast, ← Real.rpow_mul (by linarith)]
+            grind⟩
+      obtain ⟨C, hC_pos, hC⟩ := h_log_sq_le_sqrt; use C
+      refine ⟨hC_pos, fun t ht ↦ ?_⟩; rw [div_le_div_iff₀] <;> try positivity
+      convert mul_le_mul_of_nonneg_right (hC t ht)
+        (Real.rpow_nonneg (by linarith : 0 ≤ t) (3 / 2)) using 1
+      rw [mul_assoc, ← Real.rpow_natCast, ← Real.rpow_add (by linarith)]; grind
+    obtain ⟨C, hC_pos, hC_bound⟩ := h_log_sq_le_t_fourth_pow
+    use C * 2
+    have h_integral_bound :
+        ∀ T : ℝ, 3 < T → ∫ t in Set.Ici T, C / t^(3/2 : ℝ) = C * 2 / Real.sqrt T := by
+      have h_integral_eval :
+          ∀ T : ℝ, 3 < T → ∫ t in Set.Ici T, t ^ (-3 / 2 : ℝ) = 2 / Real.sqrt T := by
+        intro T hT
+        rw [MeasureTheory.integral_Ici_eq_integral_Ioi, integral_Ioi_rpow_of_lt] <;> norm_num
+        · rw [Real.sqrt_eq_rpow, Real.rpow_neg] <;> ring_nf; linarith
+        · linarith
+      intro T hT; convert congr_arg (fun x ↦ C * x) (h_integral_eval T hT) using 1 <;> ring_nf
+      rw [← MeasureTheory.integral_const_mul]
+      refine MeasureTheory.setIntegral_congr_fun measurableSet_Ici fun x hx ↦ ?_
+      rw [← Real.rpow_neg (by linarith [Set.mem_Ici.mp hx])]; ring_nf
+    refine ⟨by positivity, fun T hT ↦ (MeasureTheory.setIntegral_mono_on ?_ ?_ measurableSet_Ici
+        fun t ht ↦ hC_bound t <| by linarith [ht.out]).trans (h_integral_bound T hT |> le_of_eq)⟩
+    · have hInteg : IntegrableOn (fun t ↦ C / t ^ (3 / 2 : ℝ)) (Set.Ici T) := by
+        have := h_integral_bound T hT
+        contrapose! this; rw [MeasureTheory.integral_undef this]; positivity
+      have hMeas : AEStronglyMeasurable (fun t ↦ Real.log t ^ 2 / t ^ 2)
+          (MeasureTheory.volume.restrict (Set.Ici T)) :=
+        Measurable.aestronglyMeasurable <| Measurable.mul
+          (Measurable.pow_const Real.measurable_log _)
+          (Measurable.inv (measurable_id.pow_const _))
+      have hBound : ∀ᵐ t ∂MeasureTheory.volume.restrict (Set.Ici T),
+          ‖Real.log t ^ 2 / t ^ 2‖ ≤ C / t ^ (3 / 2 : ℝ) := by
+        filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ici] with t ht
+        rw [Real.norm_of_nonneg (by positivity)]
+        exact hC_bound t (by linarith [ht.out])
+      exact MeasureTheory.Integrable.mono' hInteg hMeas hBound
+    · have := h_integral_bound T hT
+      contrapose! this; rw [MeasureTheory.integral_undef this]; positivity
 
+lemma NormXPowS {X : ℝ} (X_gt_one : 1 < X) {s : ℂ} (hs : s.re = 1 + (Real.log X)⁻¹) :
+    ‖(X : ℂ) ^ s‖ = X * Real.exp 1 := by
+  have hX : 0 < X := by positivity
+  simp only [Complex.norm_cpow_eq_rpow_re_of_pos hX, hs, Real.rpow_add hX, Real.rpow_one,
+    Real.rpow_inv_log hX X_gt_one.ne']
+
+lemma LogDerivZetaBoundForI1 : ∃ C > 0, ∀ {X T : ℝ} (_Xgt3 : 3 < X) (_Tgt3 : 3 < T)
+    (t : ℝ) (_ht : t ≤ -T),
+    let σ := 1 + (Real.log X)⁻¹
+    ‖deriv riemannZeta (σ + t * I) / riemannZeta (σ + t * I)‖ ≤ C * (Real.log (-t))^2 := by
+  obtain ⟨C, hC⟩ := LogDerivZetaUniformLogSquaredBound
+  field_simp
+  use C + 1
+  refine ⟨by grind, fun {X T} hX hT t ht ↦ (hC.2 _ _ ?_ ?_).trans ?_⟩
+  · cases abs_cases t <;> grind
+  · apply Set.mem_Ici.mpr
+    have hX' : 0 ≤ 1 / Real.log X := one_div_nonneg.mpr (Real.log_nonneg (by grind))
+    have ht' : 0 ≤ F / Real.log |t| := by
+      apply div_nonneg (Fequ ▸ div_nonneg (le_of_lt EinIoo.1) zero_le_three)
+      exact Real.log_nonneg (by cases abs_cases t <;> grind)
+    grind
+  · simp only [abs_of_nonpos (by grind : t ≤ 0)]
+    nlinarith [hC.1, sq_nonneg (Real.log (-t))]
+
+lemma I1NewIntegrandBound {SmoothingF : ℝ → ℝ}
+    (suppSmoothingF : Function.support SmoothingF ⊆ Set.Icc (1 / 2) 2)
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) :
+    ∃ C > 0, ∀ {ε X T : ℝ} (_εinIoo : ε ∈ Set.Ioo 0 1) (_Xgt3 : 3 < X) (_Tgt3 : 3 < T)
+    (t : ℝ) (_ht : t ≤ -T),
+    ‖SmoothedChebyshevIntegrand SmoothingF ε X (1 + (Real.log X)⁻¹ + t * I)‖ ≤
+    C * (X / ε) * (Real.log (-t))^2 / (-t)^2 := by
+  obtain ⟨C₁, hC₁₀, hC₁⟩ := @LogDerivZetaBoundForI1
+  obtain ⟨C₂, hC₂₀, hC₂⟩ := @MellinOfSmooth1b SmoothingF ContDiffSmoothingF suppSmoothingF
+  refine ⟨C₁ * C₂ * Real.exp 1, by positivity, fun {ε X T} hε hX hT t ht ↦ ?_⟩
+  specialize hC₁ hX hT t ht
+  specialize hC₂ 1 zero_lt_one (1 + (Real.log X)⁻¹ + t * Complex.I) ?_ ?_ ε hε.1 hε.2 <;> norm_num at *
+  · exact Real.log_nonneg (by linarith)
+  · linarith [inv_le_one_of_one_le₀ (show 1 ≤ Real.log X from by
+      rw [Real.le_log_iff_exp_le (by linarith)]
+      exact Real.exp_one_lt_d9.le.trans (by grind))]
+  · refine (mul_le_mul_of_nonneg_right
+        (mul_le_mul hC₁ hC₂ (by positivity) (by positivity)) (by positivity)).trans ?_
+    rw [Complex.norm_cpow_of_ne_zero (by norm_cast; linarith)]
+    norm_num [Complex.normSq, Complex.sq_norm]
+    ring_nf
+    norm_num
+    rw [abs_of_pos (by positivity)]
+    norm_num [Complex.arg]
+    ring_nf
+    norm_num
+    rw [if_pos (by positivity)]
+    norm_num [Real.rpow_add (by positivity : 0 < X), Real.rpow_one]
+    ring_nf
+    norm_num
+    rw [show X ^ (Real.log X)⁻¹ = Real.exp 1 by
+      rw [Real.rpow_def_of_pos (by positivity)]
+      norm_num [Real.exp_ne_zero, ne_of_gt (Real.log_pos (by linarith : 1 < X))]]
+    ring_nf
+    norm_num
+    field_simp
+    gcongr
+    · exact mul_pos (sq_pos_of_neg (by linarith)) hε.1
+    · linarith
+    · exact le_add_of_nonneg_left <| add_nonneg (add_nonneg zero_le_one
+          (div_nonneg zero_le_two (Real.log_nonneg (by linarith))))
+          (div_nonneg zero_le_one (sq_nonneg _))
 
 @[blueprint
   (title := "I1NewBound")
@@ -1263,12 +1385,104 @@ noncomputable def I5New (SmoothingF : ℝ → ℝ) (ε X T : ℝ) : ℂ :=
   (latexEnv := "lemma")]
 lemma I1NewBound {SmoothingF : ℝ → ℝ}
     (suppSmoothingF : Function.support SmoothingF ⊆ Icc (1 / 2) 2)
-    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
-    ∀ {ε X T : ℝ} (εinIoo : ε ∈ Ioo 0 1) (Xgt3 : 3 < X) (Tgt3 : 3 < T),
+    (ContDiffSmoothingF : ContDiff ℝ 1 SmoothingF) : ∃ (C : ℝ) (_Cnonneg : 0 ≤ C),
+    ∀ {ε X T : ℝ} (_εinIoo : ε ∈ Ioo 0 1) (_Xgt3 : 3 < X) (_Tgt3 : 3 < T),
     ‖I1New SmoothingF ε X T‖ ≤ C * (X / (ε * Real.sqrt T)) := by
-    sorry
-
-
+    have h_I1New_bound : ∃ C > 0, ∀ {ε X T : ℝ} (εinIoo : ε ∈ Set.Ioo 0 1) (Xgt3 : 3 < X)
+        (Tgt3 : 3 < T),
+        ‖∫ t in Set.Iic (-T),
+          SmoothedChebyshevIntegrand SmoothingF ε X (1 + (Real.log X)⁻¹ + t * I)‖ ≤
+          C * (X / ε) * (1 / Real.sqrt T) := by
+            obtain ⟨C₁, hC₁_pos, hC₁⟩ : ∃ C₁ > 0, ∀ {ε X T : ℝ} (εinIoo : ε ∈ Set.Ioo 0 1)
+                (Xgt3 : 3 < X) (Tgt3 : 3 < T)
+                (t : ℝ) (ht : t ≤ -T),
+                ‖SmoothedChebyshevIntegrand SmoothingF ε X (1 + (Real.log X)⁻¹ + t * I)‖ ≤
+                C₁ * (X / ε) * (Real.log (-t))^2 / (-t)^2 :=
+              I1NewIntegrandBound suppSmoothingF ContDiffSmoothingF
+            obtain ⟨C₂, hC₂_pos, hC₂⟩ : ∃ C₂ > 0, ∀ {T : ℝ} (Tgt3 : 3 < T),
+                ∫ t in Set.Ici T, (Real.log t)^2 / t^2 ≤ C₂ / Real.sqrt T :=
+                  IntegralLogSqOverTSqBound
+            refine ⟨C₁ * C₂, mul_pos hC₁_pos hC₂_pos,
+              fun {ε X T} εinIoo Xgt3 Tgt3 ↦
+                (MeasureTheory.norm_integral_le_integral_norm _).trans ?_⟩
+            refine (MeasureTheory.integral_mono_of_nonneg
+              (g := fun t ↦ C₁ * (X / ε) * Real.log (-t) ^ 2 / (-t) ^ 2) ?_ ?_ ?_).trans ?_
+            · exact Filter.Eventually.of_forall fun x ↦ norm_nonneg _
+            · have h_integrable :
+                  MeasureTheory.IntegrableOn (fun t ↦ (Real.log t)^2 / t^2) (Set.Ici T) := by
+                have h_integrable :
+                    MeasureTheory.IntegrableOn
+                      (fun t ↦ (Real.log t)^2 / t^2) (Set.Ioi T) := by
+                  have h_bound : ∀ t, t > T → (Real.log t)^2 / t^2 ≤ 4 / t^(3/2 : ℝ) := by
+                    intro t ht
+                    have h_log_bound : Real.log t ≤ 2 * t^(1/4 : ℝ) := by
+                      have := Real.log_le_sub_one_of_pos (show 0 < t ^ (1 / 4 : ℝ) / 2 by
+                        exact div_pos (Real.rpow_pos_of_pos (by linarith) _) zero_lt_two)
+                      rw [Real.log_div (by exact ne_of_gt (Real.rpow_pos_of_pos (by linarith) _))
+                        (by norm_num), Real.log_rpow (by linarith)] at this
+                      have := Real.log_two_lt_d9; norm_num at *; linarith
+                    rw [div_le_div_iff₀ (by nlinarith)
+                      (Real.rpow_pos_of_pos (by linarith) (3 / 2))]
+                    refine (mul_le_mul_of_nonneg_right (pow_le_pow_left₀
+                      (Real.log_nonneg (by linarith)) h_log_bound 2)
+                      (by exact Real.rpow_nonneg (by linarith) _)).trans ?_
+                    ring_nf
+                    norm_num
+                    rw [← Real.rpow_natCast, ← Real.rpow_mul (by linarith),
+                      ← Real.rpow_add (by linarith)]
+                    norm_num
+                  have h_integrable :
+                      MeasureTheory.IntegrableOn (fun t ↦ 4 / t^(3/2 : ℝ)) (Set.Ioi T) := by
+                    have h_integrable :
+                        MeasureTheory.IntegrableOn (fun t ↦ t ^ (-3 / 2 : ℝ)) (Set.Ioi T) :=
+                      integrableOn_Ioi_rpow_of_lt (by norm_num) (by linarith)
+                    norm_num [div_eq_mul_inv] at *
+                    exact MeasureTheory.Integrable.const_mul (h_integrable.congr_fun
+                      (fun x hx ↦ by rw [Real.rpow_neg (by linarith [hx.out])])
+                      measurableSet_Ioi) _
+                  refine h_integrable.mono' ?_ ?_
+                  · refine ContinuousOn.aestronglyMeasurable ?_ measurableSet_Ioi
+                    have hne : ∀ t ∈ Set.Ioi T, t ≠ 0 := fun t ht ↦ by linarith [ht.out]
+                    have hsq : ∀ t ∈ Set.Ioi T, t ^ 2 ≠ 0 := fun t ht ↦ pow_ne_zero 2 (hne t ht)
+                    fun_prop (discharger := assumption)
+                  · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Ioi]
+                      with t ht using by
+                        rw [Real.norm_of_nonneg (by positivity)]
+                        exact h_bound t ht
+                rw [MeasureTheory.IntegrableOn, MeasureTheory.Measure.restrict_congr_set
+                  MeasureTheory.Ioi_ae_eq_Ici] at *
+                simp_all only [one_div, mem_Ioo, ofReal_inv, Complex.norm_mul, Complex.norm_div,
+                  norm_neg, log_neg_eq_log, even_two, Even.neg_pow]
+              have h_integrable : MeasureTheory.IntegrableOn (fun t ↦
+                  (Real.log (-t))^2 / (-t)^2) (Set.Iic (-T)) := by
+                convert h_integrable.comp_neg using 1; norm_num [Set.indicator]
+              simpa only [mul_div_assoc] using h_integrable.const_mul _
+            · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Iic] with t ht
+                using hC₁ εinIoo Xgt3 Tgt3 t ht
+            · convert mul_le_mul_of_nonneg_left (hC₂ Tgt3) (show 0 ≤ C₁ * (X / ε) by
+                exact mul_nonneg hC₁_pos.le
+                  (div_nonneg (by positivity) (by linarith [εinIoo.1]))) using 1 <;> ring_nf
+              rw [← MeasureTheory.integral_const_mul, MeasureTheory.integral_Ici_eq_integral_Ioi,
+                ← neg_neg T, ← integral_comp_neg_Iic]
+              norm_num
+              ring_nf
+    obtain ⟨C, hC₀, hC⟩ := h_I1New_bound; use C / (2 * Real.pi)
+    refine ⟨by positivity, fun {ε X T} hε hX hT ↦ ?_⟩
+    simp_all [div_eq_mul_inv, mul_assoc, mul_comm, mul_left_comm]
+    ring_nf at *
+    convert mul_le_mul_of_nonneg_right (hC hε.1 hε.2 hX hT)
+      (show (0 : ℝ) ≤ Real.pi⁻¹ * (1 / 2) by positivity) using 1
+    · simp only [I1New, SmoothedChebyshevIntegrand, norm_mul, norm_inv, Complex.norm_I,
+        Complex.norm_two, mul_one, one_mul, one_div]
+      rw [show ∀ a b : ℝ, (2 * a)⁻¹ * b = b * (a⁻¹ * 2⁻¹) by intro _ _; ring]
+      congr 1
+      · apply congr_arg
+        apply MeasureTheory.setIntegral_congr_fun measurableSet_Iic fun t _ ↦ by
+          rw [show (↑t : ℂ) * I = I * ↑t by ring, div_eq_mul_inv, neg_mul,
+              show (↑(Real.log X)⁻¹ : ℂ) = (↑(Real.log X))⁻¹ from Complex.ofReal_inv _]
+          ring
+      · rw [show ‖(↑π : ℂ)‖ = π from (RCLike.norm_ofReal π).trans (abs_of_pos Real.pi_pos)]
+    · ring
 
 @[blueprint
   (title := "I5NewBound")
