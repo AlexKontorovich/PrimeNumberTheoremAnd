@@ -291,7 +291,25 @@ theorem psi_ge_weighted (x : ℝ) (hx : x > 0) : ψ x ≥ U x := by
   (proof := /-- Use Lemma \ref{cheby-T-E}, Lemma \ref{cheby-E-val}, and Lemma \ref{cheby-E-1}. -/)
   (latexEnv := "proposition")
   (discussion := 838)]
-theorem psi_diff_le_weighted (x : ℝ) (hx : x > 0) : ψ x - ψ (x / 6) ≤ U x := by sorry
+theorem psi_diff_le_weighted (x : ℝ) (hx : x > 0) : ψ x - ψ (x / 6) ≤ U x := by
+  unfold U psi
+  rw [T.weighted_eq_sum, ← Finset.Ioc_eq_Icc]
+  have subset : Finset.Ioc 0 ⌊x / 6⌋₊ ⊆ Finset.Ioc 0 ⌊x⌋₊ := by
+    apply Finset.Ioc_subset_Ioc_right
+    gcongr
+    exact div_le_self hx.le (by norm_num)
+  rw [← Finset.sum_sdiff_eq_sub subset, ← Finset.sum_sdiff subset]
+  refine le_add_of_le_of_nonneg (Finset.sum_le_sum fun n hn ↦ ?_) (Finset.sum_nonneg fun n hn ↦ mul_nonneg vonMangoldt_nonneg ?_)
+  · rw [E_nu_eq_one, mul_one]
+    simp_all only [gt_iff_lt, Finset.mem_sdiff, Finset.mem_Ioc, not_and, not_le, Set.mem_Ico]
+    refine ⟨one_le_div (by simp; grind)|>.mpr <| Nat.le_floor_iff hx.le |>.mp hn.1.2, ?_⟩
+    have := hn.2 hn.1.1
+    apply div_lt_iff₀ (by simp; grind)|>.mpr
+    rw [Nat.floor_lt <| div_nonneg (by linarith) (by linarith)] at this
+    have := div_lt_iff₀ (by linarith)|>.mp this
+    rwa [mul_comm] at this
+  · exact E_nu_bound _ (div_nonneg hx.le (by simp))|>.1
+
 
 @[blueprint
   "a-def"
