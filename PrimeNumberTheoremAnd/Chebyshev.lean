@@ -413,7 +413,11 @@ theorem U_bound (x : ℝ) (hx : 30 ≤ x) : |U x - a * x| ≤ 5 * log x - 5 := b
   (proof := /-- Use Lemma \ref{U-bounds} and Proposition \ref{cheby-psi-lower}.-/)
   (latexEnv := "theorem")
   (discussion := 841)]
-theorem psi_lower (x : ℝ) (hx : 30 ≤ x) : ψ x ≥ a * x - 5 * log x + 5 := by sorry
+theorem psi_lower (x : ℝ) (hx : 30 ≤ x) : ψ x ≥ a * x - 5 * log x + 5 := by
+  have h1 : ψ x ≥ U x := psi_ge_weighted x (by linarith)
+  have h2 := U_bound x hx
+  rw [abs_sub_le_iff] at h2
+  linarith [h2.1]
 
 @[blueprint
   "psi-diff-upper"
@@ -422,7 +426,11 @@ theorem psi_lower (x : ℝ) (hx : 30 ≤ x) : ψ x ≥ a * x - 5 * log x + 5 := 
   (proof := /-- Use Lemma \ref{U-bounds} and Proposition \ref{cheby-psi-upper}.-/)
   (latexEnv := "proposition")
   (discussion := 842)]
-theorem psi_diff_upper (x : ℝ) (hx : 30 ≤ x) : ψ x - ψ (x / 6) ≤ a * x + 5 * log x - 5 := by sorry
+theorem psi_diff_upper (x : ℝ) (hx : 30 ≤ x) : ψ x - ψ (x / 6) ≤ a * x + 5 * log x - 5 := by
+  have h1 : ψ x - ψ (x / 6) ≤ U x := psi_diff_le_weighted x (by linarith)
+  have h2 := U_bound x hx
+  rw [abs_sub_le_iff] at h2
+  linarith [h2.2]
 
 @[blueprint
   "psi-num"
