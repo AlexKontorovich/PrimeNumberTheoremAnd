@@ -3,6 +3,7 @@ import Mathlib.Topology.Order.Basic
 import Mathlib.NumberTheory.PrimeCounting
 
 import PrimeNumberTheoremAnd.PrimaryDefinitions
+import PrimeNumberTheoremAnd.Li2Bounds
 
 
 blueprint_comment /--
@@ -142,18 +143,18 @@ theorem symm_inv_log
     rw [(by field : (3 : ℝ) / 4 = (4 / 3)⁻¹), log_inv]
     field
 
-@[blueprint
-  "li-approx"
-  (title := "li approximation")
-  (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{16\log(4/3)}{3} \eps)$. -/)
-  (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
-  (latexEnv := "sublemma")
-  (discussion := 768)]
-theorem li.eq
-    (x ε : ℝ) (hx : x ≥ 2) (hε1 : 0 < ε) (hε2 : ε ≤ 1) : ∃ E,
-    li x = ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)), 1 / log t + E ∧
-    |E| ≤ 16 *log (4 / 3) / 3 * ε := by
-    sorry
+-- @[blueprint
+--   "li-approx"
+--   (title := "li approximation")
+--   (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{16\log(4/3)}{3} \eps)$. -/)
+--   (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
+--   (latexEnv := "sublemma")
+--   (discussion := 768)]
+-- theorem li.eq
+--     (x ε : ℝ) (hx : x ≥ 2) (hε1 : 0 < ε) (hε2 : ε ≤ 1) : ∃ E,
+--     li x = ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)), 1 / log t + E ∧
+--     |E| ≤ 16 *log (4 / 3) / 3 * ε := by
+--     sorry
 
 @[blueprint
   "li_minus_Li"
@@ -165,17 +166,65 @@ theorem li.eq
 theorem li.sub_Li
     (x : ℝ) (h2x : 2 ≤ x) :
     li x - Li x = li 2 := by
-    sorry
+  have : Filter.Tendsto (fun ε => ∫ t in Set.Ioc 0 x \ Set.Ioo (1 - ε) (1 + ε), 1 / log t)
+      (𝓝[>] 0) (nhds (Li2Bounds.li2_symmetric + Li x)) := by
+    apply Filter.Tendsto.congr' (f₁ := fun ε ↦ (∫ t in (0:ℝ)..(1 - ε), 1 / log t) + (∫ t in (1 + ε)..2, 1 / log t) + Li x)
+    · filter_upwards [Ioo_mem_nhdsGT (by linarith : (0 : ℝ) < 1)] with ε hε
+      rw [ Li2Bounds.setDiff_integral_eq_split ε x hε.1 hε.2 h2x]
+      unfold Li
+      rw [add_assoc, intervalIntegral.integral_add_adjacent_intervals]
+      all_goals
+        apply ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+        rw [Set.uIcc_of_le (by grind)] at ht
+        have : log t ≠ 0 := by simp; grind
+        fun_prop (disch := grind)
+    apply Filter.Tendsto.add_const
+    apply Li2Bounds.pv_tendsto_li2_symmetric.congr'
+    filter_upwards [Ioo_mem_nhdsGT (by linarith : (0 : ℝ) < 1)] with ε hε using Li2Bounds.setDiff_integral_eq_split ε 2 hε.1 hε.2 (by rfl)
+  have : li x = Li2Bounds.li2_symmetric + Li x := by
+    exact this.limUnder_eq
+  rw [this, Li2Bounds.li2_symmetric_eq_li2]
+  simp
+  rfl
 
 @[blueprint
   "Ramanujan-Soldner-constant"
   (title := "Ramanujan-Soldner constant")
   (statement := /-- $\li(2) = 1.0451\dots$. -/)
-  (proof := /-- Use Sublemma \ref{li-approx} and some numerical integration. -/)
+  (proof := /-- Symmetrize the integral and use and some numerical integration. -/)
   (latexEnv := "lemma")
   (discussion := 759)]
 theorem li.two_approx : li 2 ∈ Set.Icc 1.0451 1.0452 := by
   sorry
+
+/-- The local li definition matches Li2Bounds.li (they are definitionally equal). -/
+theorem li_eq_Li2Bounds_li (x : ℝ) : li x = Li2Bounds.li x := rfl
+
+/-- Weak bounds on li(2) via symmetric form integration.
+    The tighter bounds in li.two_approx require more precise numerical integration.
+    Proved via LeanCert numerical integration in Li2Bounds.lean. -/
+@[blueprint
+  "li2-bounds-weak"
+  (title := "Weak bounds on li(2)")
+  (statement := /-- $1.039 \leq \li(2) \leq 1.06$. -/)
+  (latexEnv := "sublemma")
+  (discussion := 759)]
+theorem li.two_approx_weak : li 2 ∈ Set.Icc 1.039 1.06 := by
+  rw [li_eq_Li2Bounds_li]
+  exact Li2Bounds.li_two_approx_weak_proof
+
+/-- The symmetric form equals the principal value li(2).
+    This connects the absolutely convergent symmetric integral ∫₀¹ g(t) dt
+    to the principal value definition of li(2). -/
+@[blueprint
+  "li2-symmetric-eq"
+  (title := "Symmetric form equals principal value")
+  (statement := /-- $\int_0^1 \left(\frac{1}{\log(1+t)} + \frac{1}{\log(1-t)}\right) dt = \mathrm{li}(2)$ -/)
+  (latexEnv := "sublemma")
+  (discussion := 764)]
+theorem li2_symmetric_eq_li2 : Li2Bounds.li2_symmetric = li 2 := by
+  rw [li_eq_Li2Bounds_li]
+  exact Li2Bounds.li2_symmetric_eq_li2
 
 
 @[blueprint
