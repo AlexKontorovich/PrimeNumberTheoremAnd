@@ -9,34 +9,38 @@ blueprint_comment /--
 -/
 
 blueprint_comment /--
-We will want to treat very general additive and multiplicative functions, and set up the API for them.
-So if we just use natural numbers for the domain, we will
-eventually suffer when we, e.g., want to consider functions defined on ideals in number fields.
-Thus we set up the definitions in a more general way.
-
-Therefore we introduce a generalized `ArithmeticFunction` called `GenArithFunction`.
+Here we collect facts from Chapter 1 that are not already in Mathlib.
+We will try to upstream as much as possible.
 -/
 
-@[blueprint
-  "GenArithFunction"
-  (statement := /-- Generalized arithmetic function on a type with multiplication and one. -/)]
-abbrev GenArithFunction (N R : Type*) [Zero N] [Zero R] :=
-  ZeroHom N R
 
-variable {N R : Type*}
+variable {R : Type*}
 
-/-
-We need to add an instance or something so that
-we can automatically coerce `GenArithFunction N R` to a function `N → R`.
+/--
+An arithmetic function `IsAdditive` if it satisfies the property that for any two coprime natural numbers `m` and `n`, the function evaluated at their product equals the sum of the function evaluated at each number individually.
 -/
 @[blueprint
   "IsAdditive"
   (statement := /-- Additive function. -/)]
-def IsAdditive [MonoidWithZero N] [AddZeroClass R] (f : GenArithFunction N R) : Prop :=
-  ∀ {m n : N}, IsRelPrime m n → f (m * n) = f m + f n
+def IsAdditive [AddZeroClass R] (f : ArithmeticFunction R) : Prop :=
+  ∀ {m n : ℕ}, IsRelPrime m n → f (m * n) = f m + f n
 
 @[blueprint
   "IsCompletelyAdditive"
   (statement := /-- Completely additive function. -/)]
 def IsCompletelyAdditive [MulZeroOneClass R] :=
   MonoidWithZeroHom ℕ R
+
+/-- If `g` is a multiplicative arithmetic function, then for any `n ≠ 0`,
+    `∑ d | n, μ(d) * g(d) = ∏ p ∈ n.primeFactors, (1 - g(p))`. -/
+@[blueprint
+  "sum_moebius_pmul_eq_prod_one_sub"
+  (statement := /-- If `g` is a multiplicative arithmetic function, then for any `n ≠ 0`,
+    `∑ d | n, μ(d) * g(d) = ∏ p ∈ n.primeFactors, (1 - g(p))`. -/)
+  (proof := /--
+  Multiply out and collect terms.
+  -/)]
+theorem sum_moebius_pmul_eq_prod_one_sub {R : Type*} [CommRing R]
+    {g : ArithmeticFunction R} (hg : g.IsMultiplicative) {n : ℕ} (hn : n ≠ 0) :
+    ∑ d ∈ n.divisors, (moebius d : R) * g d = ∏ p ∈ n.primeFactors, (1 - g p) := by
+  sorry
