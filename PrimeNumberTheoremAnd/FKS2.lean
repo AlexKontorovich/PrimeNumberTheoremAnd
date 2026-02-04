@@ -1,4 +1,8 @@
-import Mathlib.Algebra.Order.Module.OrderedSMul
+import Mathlib.Algebra.Field.Defs
+import Mathlib.Algebra.Group.Action.Basic
+import Mathlib.Algebra.GroupWithZero.Action.Pi
+import Mathlib.Algebra.GroupWithZero.Action.Prod
+import Mathlib.Algebra.Order.Module.Defs
 import Mathlib.Data.Rat.Cast.OfScientific
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
@@ -242,7 +246,7 @@ noncomputable def ν_asymp (Aψ B C R x₀ : ℝ) : ℝ :=
     \exp(C \sqrt{\frac{\log x_0}{R}}) (a_1 (\log x_0) x_0^{-1/2} + a_2 (\log x_0) x_0^{-2/3}).$$
   and $a_1,a_2$ are given by Definitions \ref{bklnw-def-a-1} and \ref{bklnw-def-a-2}.
   -/)
-  (proof := /-- The proof of Corollary \ref{bklnw-cor-14.1} essentially proves the proposition, but requires that $x_0 \geq e^{1000}$ to conclude that the function
+  (proof := /-- The proof of Corollary \ref{bklnw-cor-14-1} essentially proves the proposition, but requires that $x_0 \geq e^{1000}$ to conclude that the function
   $$ 1 + \frac{a_1 \exp(C \sqrt{\frac{\log x}{R}})}{A_\psi \sqrt{x} (\log x/R)^{B}} + \frac{a_2 \exp(C \sqrt{\frac{\log x}{R}})}{A_\psi x^{2/3} (\log x/R)^{B}} = 1 + \frac{a_1}{A_\psi} g(1/2, -B, C/\sqrt{R}, x) + \frac{a_2}{A_\psi} g(2/3, -B, C/\sqrt{R}, x)$$
   is decreasing. By Lemma \ref{fks2-lemma-10a}, since $B > C^2/8R$, the function is actually decreasing for all $x$. -/)
   (latexEnv := "proposition")
@@ -542,7 +546,7 @@ theorem psi_le_bound_large (y : ℝ) (hy : 1e19 < y) :
   have h_b : |ψ y - y| ≤ BKLNW_app.table_8_ε (19 * log 10) * y := by
     apply BKLNW_app.theorem_2 (19 * log 10) (by positivity) y (by
       rw [mul_comm, exp_mul, exp_log (by positivity)]; linarith)
-  have h_eps : BKLNW_app.table_8_ε (19 * log 10) ≤ 1.93378e-8 := by
+  have h_eps : BKLNW_app.table_8_ε (19 * log 10) ≤ 1.93378e-8 * BKLNW_app.table_8_margin := by
     have h_log_approx : 43 < 19 * log 10 ∧ 19 * log 10 < 44 := by
       rw [← log_rpow, lt_log_iff_exp_lt, log_lt_iff_lt_exp] <;> norm_num
       refine ⟨?_, ?_⟩
@@ -896,6 +900,9 @@ noncomputable def επ_num {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ �
 noncomputable def default_b (x₀ x₁ : ℝ) : Fin 2 → ℝ :=
   fun i ↦ if i = 0 then log x₀ else log x₁
 
+/- [NOTE]: The original FKS2 paper states the derivative condition
+`deriv (fun x ↦ (log x) / x * (Li x - x / log x - Li x₁ + x₁ / log x₁)) x₂ ≥ 0`
+as a hypothesis for this remark. However, Aristotle's proof shows it is not required. -/
 @[blueprint
   "fks2-remark-7"
   (title := "FKS2 Remark 7")
@@ -909,13 +916,24 @@ noncomputable def default_b (x₀ x₁ : ℝ) : Fin 2 → ℝ :=
   (latexEnv := "remark")
   (discussion := 673)]
 theorem remark_7 {x₀ x₁ : ℝ} (x₂ : ℝ) (h : x₁ ≥ max x₀ 14)
-  {N : ℕ} (b : Fin (N + 1) → ℝ) (hmono : Monotone b)
-  (h_b_start : b 0 = log x₀)
-  (h_b_end : b (Fin.last N) = log x₁)
-  (εθ_num : ℝ → ℝ)
-  (h_εθ_num : Eθ.numericalBound x₁ εθ_num) (x : ℝ) (hx₁ : x₁ ≤ x) (hx₂ : x ≤ x₂)
-  (hderiv : deriv (fun x ↦ (log x) / x * (Li x - x / log x - Li x₁ + x₁ / log x₁)) x₂ ≥ 0) :
-    μ_num_1 b εθ_num x₀ x₁ x₂ < μ_num_2 b εθ_num x₀ x₁ := by sorry
+    {N : ℕ} (b : Fin (N + 1) → ℝ) (εθ_num : ℝ → ℝ) (x : ℝ) (hx₁ : x₁ ≤ x) (hx₂ : x ≤ x₂) :
+    μ_num_1 b εθ_num x₀ x₁ x₂ < μ_num_2 b εθ_num x₀ x₁ := by
+  simp only [μ_num_2, μ_num_1, sup_le_iff, add_lt_add_iff_left] at *
+  convert theorem_6_2 (by linarith : x₁ ≥ 14) x₂ (by linarith) using 1
+  · rw [intervalIntegral.integral_eq_sub_of_hasDerivAt]; rotate_right
+    · exact fun x ↦ Li x - x / log x
+    · ring_nf
+    · intro x hx
+      convert HasDerivAt.sub (hasDerivAt_Li _) (HasDerivAt.div (hasDerivAt_id x)
+        (hasDerivAt_log _) _) using 1 <;>
+        ring_nf <;> norm_num [show x ≠ 0 by cases Set.mem_uIcc.mp hx <;> linarith,
+          show log x ≠ 0 by exact ne_of_gt <| log_pos <| by cases Set.mem_uIcc.mp hx <;> linarith]
+      · by_cases h : log x = 0 <;> simp [sq, h]
+      · cases Set.mem_uIcc.mp hx <;> linarith
+    · apply_rules [ContinuousOn.intervalIntegrable]
+      exact continuousOn_of_forall_continuousAt fun t ht ↦ ContinuousAt.div continuousAt_const
+        (ContinuousAt.pow (continuousAt_log (by cases Set.mem_uIcc.mp ht <;> linarith)) _)
+          (ne_of_gt (sq_pos_of_pos (log_pos (by cases Set.mem_uIcc.mp ht <;> linarith))))
 
 blueprint_comment /--
 This gives us the final result to obtain numerical bounds for $E_\pi$ from numerical bounds on $E_\theta$. -/
@@ -1153,8 +1171,7 @@ def table6 : List (List ℝ) := [[0.000120, 0.25, 1.00, 22.955],
   $A_\pi, B, C, x_0$ as in \cite[Table 6]{FKS2} give an admissible asymptotic bound for $E_\pi$ with
   $R = 5.5666305$.
   -/)
-  (proof := /-- The bounds of the form $\eps_{\pi, asymp}(x)$ come from selecting a value $A$ for which Corollary \ref{fks-corollary-22} provides a better bound at $x = e^{7500}$ and from verifying that the bound in Corollary \ref{fks-corollary-22} decreases faster beyond this point. This final verification proceeds by looking at the derivative of the ratio as in Lemma \ref{fks-lemma-10}. To verify these still hold for smaller $x$, we proceed as below. To verify the results for any $x$ in $\log(10^{19}) < \log(x) < 100000$, one simply proceeds as in \cite[Lemmas 5.2, 5.3]{FKS} and interpolates the numerical results of Theorem \ref{fks-theorem-6}. For instance, we use the values in Table 4 as a step function and verifies that it provides a tighter bound than we are claiming. Note that our verification uses a more refined collection of values than those provided in Table 4 or the tables posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf. To verify results for $x < 10^{19}$, one compares against the results from Theorem \ref{buthe-theorem-2a}, or one checks directly for particularly small $x$.
-  -/)
+  (proof := /-- The bounds of the form $\eps_{\pi, asymp}(x)$ come from selecting a value $A$ for which Corollary \ref{fks-corollary-22} provides a better bound at $x = e^{7500}$ and from verifying that the bound in Corollary \ref{fks-corollary-22} decreases faster beyond this point. This final verification proceeds by looking at the derivative of the ratio as in Lemma \ref{fks-lemma-10}. To verify these still hold for smaller $x$, we proceed as below. To verify the results for any $x$ in $\log(10^{19}) < \log(x) < 100000$, one simply proceeds as in \cite[Lemmas 5.2, 5.3]{FKS} and interpolates the numerical results of Theorem \ref{fks2-theorem-6}. For instance, we use the values in Table 4 as a step function and verifies that it provides a tighter bound than we are claiming. Note that our verification uses a more refined collection of values than those provided in Table 4 or the tables posted online in https://arxiv.org/src/2206.12557v1/anc/PrimeCountingTables.pdf. To verify results for $x < 10^{19}$, one compares against the results from Theorem \ref{buthe-theorem-2a}, or one checks directly for particularly small $x$. -/)
   (latexEnv := "corollary")
   (discussion := 722)]
 theorem corollary_23 (Aπ B C x₀ : ℝ) (h : [Aπ, B, C, x₀] ∈ table6) :
@@ -1200,7 +1217,7 @@ theorem corollary_24 (B : ℝ → ℝ) (I : Set ℝ) (h : (B, I) ∈ table7) :
   \[
   \left| \frac{\log(x)}{x} (\pi(x) - \mathrm{Li}(x)) \right| \leq \left| \frac{\log(p_n)}{p_n} (\pi(p_n) - \mathrm{Li}(p_{n+1})) \right| \leq 0.4298.
   \]
-  For $x$ satisfying $p_{25} = 97 \leq x \leq 10^{19}$, we use Theorem \ref{buthe-theorem-2a} and verify
+  For $x$ satisfying $p_{25} = 97 \leq x \leq 10^{19}$, we use Theorems \ref{buthe-theorem-2e}, \ref{buthe-theorem-2f} and verify
   \[
   \mathcal{E}(x) = \frac{1}{\sqrt{x}} \left( 1.95 + \frac{3.9}{\log(x)} + \frac{19.5}{(\log(x))^2} \right) \leq 0.4298.
   \]

@@ -15,41 +15,44 @@ namespace BKLNW
 
 open Real
 
-noncomputable def Table_14 : List (ℝ × ℝ × ℝ) := [
-  (20, 4.2676e-5, 9.1639e-5),
-  (25, 3.5031e-6, 7.4366e-6),
-  (30, 2.8755e-7, 6.0751e-7),
-  (35, 2.3603e-8, 4.9766e-8),
-  (40, 1.9338e-8, 2.1482e-8),
-  (19 * log 10, 1.9338e-8, 1.9667e-8),
-  (45, 1.0907e-8, 1.1084e-8),
-  (50, 1.1199e-9, 1.1344e-9),
-  (60, 1.2215e-11, 1.2312e-11),
-  (70, 2.7923e-12, 2.7930e-12),
-  (80, 2.6108e-12, 2.6108e-12),
-  (90, 2.5213e-12, 2.5213e-12),
-  (100, 2.4530e-12, 2.4530e-12),
-  (200, 2.1815e-12, 2.1816e-12),
-  (300, 2.0902e-12, 2.0903e-12),
-  (400, 2.0398e-12, 2.0399e-12),
-  (500, 1.9999e-12, 1.9999e-12),
-  (700, 1.9764e-12, 1.9765e-12),
-  (1000, 1.9475e-12, 1.9476e-12),
-  (2000, 1.9228e-12, 1.9228e-12),
-  (3000, 4.5997e-14, 4.5998e-14),
-  (4000, 1.4263e-16, 1.4264e-16),
-  (5000, 5.6303e-19, 5.6303e-19),
-  (7000, 2.0765e-23, 2.0766e-23),
-  (10000, 3.7849e-29, 3.7850e-29),
-  (11000, 7.1426e-31, 7.1427e-31),
-  (12000, 1.5975e-32, 1.5976e-32),
-  (13000, 4.1355e-34, 4.1356e-34),
-  (13800.7464, 2.5423e-35, 2.5424e-35),
-  (15000, 4.1070e-37, 4.1070e-37),
-  (17000, 6.2040e-40, 6.2040e-40),
-  (20000, 7.1621e-44, 7.1621e-44),
-  (22000, 2.4392e-46, 2.4392e-46),
-  (25000, 7.5724e-50, 7.5724e-50)
+/-- Add a margin to the values in Table 14 to account for numerical errors. -/
+abbrev table_14_margin : ℝ := BKLNW_app.table_8_margin * 1.001
+
+noncomputable def table_14 : List (ℝ × ℝ × ℝ) := [
+  (20, 4.2676e-5 * table_14_margin, 9.1639e-5 * table_14_margin),
+  (25, 3.5031e-6 * table_14_margin, 7.4366e-6 * table_14_margin),
+  (30, 2.8755e-7 * table_14_margin, 6.0751e-7 * table_14_margin),
+  (35, 2.3603e-8 * table_14_margin, 4.9766e-8 * table_14_margin),
+  (40, 1.9338e-8 * table_14_margin, 2.1482e-8 * table_14_margin),
+  (19 * log 10, 1.9338e-8 * table_14_margin, 1.9667e-8 * table_14_margin),
+  (45, 1.0907e-8 * table_14_margin, 1.1084e-8 * table_14_margin),
+  (50, 1.1199e-9 * table_14_margin, 1.1344e-9 * table_14_margin),
+  (60, 1.2215e-11 * table_14_margin, 1.2312e-11 * table_14_margin),
+  (70, 2.7923e-12 * table_14_margin, 2.7930e-12 * table_14_margin),
+  (80, 2.6108e-12 * table_14_margin, 2.6108e-12 * table_14_margin),
+  (90, 2.5213e-12 * table_14_margin, 2.5213e-12 * table_14_margin),
+  (100, 2.4530e-12 * table_14_margin, 2.4530e-12 * table_14_margin),
+  (200, 2.1815e-12 * table_14_margin, 2.1816e-12 * table_14_margin),
+  (300, 2.0902e-12 * table_14_margin, 2.0903e-12 * table_14_margin),
+  (400, 2.0398e-12 * table_14_margin, 2.0399e-12 * table_14_margin),
+  (500, 1.9999e-12 * table_14_margin, 1.9999e-12 * table_14_margin),
+  (700, 1.9764e-12 * table_14_margin, 1.9765e-12 * table_14_margin),
+  (1000, 1.9475e-12 * table_14_margin, 1.9476e-12 * table_14_margin),
+  (2000, 1.9228e-12 * table_14_margin, 1.9228e-12 * table_14_margin),
+  (3000, 4.5997e-14 * table_14_margin, 4.5998e-14 * table_14_margin),
+  (4000, 1.4263e-16 * table_14_margin, 1.4264e-16 * table_14_margin),
+  (5000, 5.6303e-19 * table_14_margin, 5.6303e-19 * table_14_margin),
+  (7000, 2.0765e-23 * table_14_margin, 2.0766e-23 * table_14_margin),
+  (10000, 3.7849e-29 * table_14_margin, 3.7850e-29 * table_14_margin),
+  (11000, 7.1426e-31 * table_14_margin, 7.1427e-31 * table_14_margin),
+  (12000, 1.5975e-32 * table_14_margin, 1.5976e-32 * table_14_margin),
+  (13000, 4.1355e-34 * table_14_margin, 4.1356e-34 * table_14_margin),
+  (13800.7464, 2.5423e-35 * table_14_margin, 2.5424e-35 * table_14_margin),
+  (15000, 4.1070e-37 * table_14_margin, 4.1070e-37 * table_14_margin),
+  (17000, 6.2040e-40 * table_14_margin, 6.2040e-40 * table_14_margin),
+  (20000, 7.1621e-44 * table_14_margin, 7.1621e-44 * table_14_margin),
+  (22000, 2.4392e-46 * table_14_margin, 2.4392e-46 * table_14_margin),
+  (25000, 7.5724e-50 * table_14_margin, 7.5724e-50 * table_14_margin)
 ]
 
 def check_row_prop (row : ℝ × ℝ × ℝ) : Prop :=
@@ -72,7 +75,7 @@ def check_row_prop (row : ℝ × ℝ × ℝ) : Prop :=
   (statement := /-- The entries in Table 14 obey the criterion in Sublemma \ref{bklnw-thm-1a-checked}. -/)
   (latexEnv := "sublemma")
   (discussion := 808)]
-theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ Table_14) : check_row_prop (b, M, m) := by sorry
+theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_row_prop (b, M, m) := by sorry
 
 
 
