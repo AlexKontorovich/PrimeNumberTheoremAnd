@@ -79,7 +79,7 @@ theorem zeta_mul_zeta : (ζ : ArithmeticFunction ℕ) * ζ = τ := by
   From the previous theorem, we have that the Dirichlet convolution of `ζ` with itself is `τ`.
   Taking L-series on both sides, we get `LSeries(τ, s) = LSeries(ζ, s) * LSeries(ζ, s)`.
   Since `LSeries(ζ, s)` is the Riemann zeta function `ζ(s)`, we conclude that
-  `LSeries(τ, s) = ζ(s) ^ 2` for `Re(s) > 1`.
+  `LSeries(τ, s) = ζ(s) \^ 2` for `Re(s) > 1`.
   -/)]
 theorem LSeries_tau_eq_riemannZeta_sq {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗τ) s = riemannZeta s ^ 2 := by
