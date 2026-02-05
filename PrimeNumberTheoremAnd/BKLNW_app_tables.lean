@@ -285,6 +285,8 @@ def table_8 : List (ℝ × ℝ) := [
   (12800, 8.4803e-34),
   (12900, 5.9154e-34),
   (13000, 4.1356e-34),
+  (13500, 7.2154e-34),   -- added for compatibility with Table 8
+  (13800, 2.5423e-35),   -- added for compatibility with Table 14
   (14000, 1.2266e-35),
   (15000, 4.1071e-37),
   (16000, 1.5141e-38),
@@ -345,25 +347,25 @@ noncomputable def table_8_ε' (b : ℝ) : ℝ :=
   else if b < 9000 then 2.12970e-26 * table_8_margin
   else if b < 9500 then 2.44532e-27 * table_8_margin
   else if b < 10000 then 2.97001e-28 * table_8_margin
-  else if b < 10500 then 3.78493e-30 * table_8_margin
-  else if b < 11000 then 5.10153e-31 * table_8_margin
-  else if b < 11500 then 7.14264e-32 * table_8_margin
-  else if b < 12000 then 1.04329e-32 * table_8_margin
-  else if b < 12500 then 1.59755e-33 * table_8_margin
-  else if b < 13000 then 2.53362e-34 * table_8_margin
-  else if b < 13500 then 4.13554e-35 * table_8_margin
-  else if b < 14000 then 7.21538e-36 * table_8_margin
+  else if b < 10500 then 3.78493e-29 * table_8_margin
+  else if b < 11000 then 5.10153e-30 * table_8_margin
+  else if b < 11500 then 7.14264e-31 * table_8_margin
+  else if b < 12000 then 1.04329e-31 * table_8_margin
+  else if b < 12500 then 1.59755e-32 * table_8_margin
+  else if b < 13000 then 2.53362e-33 * table_8_margin
+  else if b < 13500 then 4.13554e-34 * table_8_margin
+  else if b < 14000 then 7.21538e-35 * table_8_margin
   else if b < 15000 then 1.22655e-37 * table_8_margin
-  else if b < 16000 then 4.10696e-39 * table_8_margin
-  else if b < 17000 then 1.51402e-40 * table_8_margin
-  else if b < 18000 then 6.20397e-42 * table_8_margin
-  else if b < 19000 then 2.82833e-43 * table_8_margin
-  else if b < 20000 then 1.36785e-44 * table_8_margin
-  else if b < 21000 then 7.16209e-46 * table_8_margin
-  else if b < 22000 then 4.11842e-47 * table_8_margin
-  else if b < 23000 then 2.43916e-48 * table_8_margin
-  else if b < 24000 then 1.56474e-49 * table_8_margin
-  else if b < 25000 then 1.07022e-50 * table_8_margin
+  else if b < 16000 then 4.10696e-37 * table_8_margin
+  else if b < 17000 then 1.51402e-38 * table_8_margin
+  else if b < 18000 then 6.20397e-40 * table_8_margin
+  else if b < 19000 then 2.82833e-41 * table_8_margin
+  else if b < 20000 then 1.36785e-42 * table_8_margin
+  else if b < 21000 then 7.16209e-44 * table_8_margin
+  else if b < 22000 then 4.11842e-45 * table_8_margin
+  else if b < 23000 then 2.43916e-46 * table_8_margin
+  else if b < 24000 then 1.56474e-47 * table_8_margin
+  else if b < 25000 then 1.07022e-48 * table_8_margin
   else 7.57240e-50 * table_8_margin
 
 @[blueprint
