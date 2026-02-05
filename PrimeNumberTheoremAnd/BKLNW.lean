@@ -752,6 +752,28 @@ for all $x \geq X_1$, for various $k, m_k, M_k, X_0, X_1$, with $k \in \{1,\dots
 For this section we focus on estimates that are useful when $x$ is extremely large, e.g., $x \geq e^{25000}$.
 -/
 
+/-
+Show that the function g in the proof of the following lemma is decreasing
+-/
+lemma g_decreasing_interval (A C : ℝ) (hA : 0 < A) (hC : 0 < C) (u v : ℝ) (hu : 4 * A ^ 2 / C ^ 2 ≤ u) (huv : u ≤ v) :
+    v ^ A * Real.exp (-C * Real.sqrt v) ≤ u ^ A * Real.exp (-C * Real.sqrt u) := by
+      -- Let $f(t) = t^A e^{-C\sqrt{t}}$. The derivative is $f'(t) = t^{A-1} e^{-C\sqrt{t}} (A - \frac{C}{2}\sqrt{t})$.
+      set f := fun t : ℝ => t ^ A * Real.exp (-C * Real.sqrt t)
+      have h_deriv : ∀ t > 0, deriv f t = t ^ (A - 1) * Real.exp (-C * Real.sqrt t) * (A - C / 2 * Real.sqrt t) := by
+        intro t ht; norm_num [ f, ht.ne', Real.sqrt_eq_rpow, Real.rpow_sub ht ] ; ring;
+        rw [ show ( -1 / 2 : ℝ ) = ( 1 / 2 : ℝ ) - 1 by norm_num, Real.rpow_sub ht ] ; norm_num ; ring;
+      -- Since $4A^2/C^2 \le u \le v$, we have $f'(t) \le 0$ for $t \ge 4A^2/C^2$.
+      have h_deriv_nonpos : ∀ t > 0, 4 * A ^ 2 / C ^ 2 ≤ t → deriv f t ≤ 0 := by
+        intro t ht ht'; rw [ h_deriv t ht ] ; exact mul_nonpos_of_nonneg_of_nonpos ( mul_nonneg ( Real.rpow_nonneg ht.le _ ) ( Real.exp_nonneg _ ) ) ( sub_nonpos_of_le <| by rw [ div_le_iff₀ <| by positivity ] at *; nlinarith [ show 0 ≤ Real.sqrt t * C by positivity, Real.mul_self_sqrt ht.le ] ) ;
+      by_contra h_contra;
+      -- Apply the mean value theorem to $f$ on the interval $[u, v]$.
+      obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo u v, deriv f c = (f v - f u) / (v - u) := by
+        apply_rules [ exists_deriv_eq_slope ];
+        · exact huv.lt_of_ne ( by rintro rfl; linarith );
+        · exact continuousOn_of_forall_continuousAt fun t ht => ContinuousAt.mul ( ContinuousAt.rpow continuousAt_id continuousAt_const <| Or.inr <| by linarith ) <| ContinuousAt.rexp <| ContinuousAt.mul continuousAt_const <| Real.continuous_sqrt.continuousAt;
+        · exact fun x hx => DifferentiableAt.differentiableWithinAt ( by exact DifferentiableAt.mul ( DifferentiableAt.rpow ( differentiableAt_id ) ( by norm_num ) ( by linarith [ hx.1, show 0 < u by exact lt_of_lt_of_le ( by positivity ) hu ] ) ) ( DifferentiableAt.exp ( DifferentiableAt.mul ( differentiableAt_const _ ) ( DifferentiableAt.sqrt ( differentiableAt_id ) ( by linarith [ hx.1, show 0 < u by exact lt_of_lt_of_le ( by positivity ) hu ] ) ) ) ) );
+      simp +zetaDelta only [gt_iff_lt, neg_mul, ge_iff_le, not_le, Set.mem_Ioo] at *
+      rw [ eq_div_iff ] at hc <;> nlinarith [ h_deriv_nonpos c ( by linarith [ show 0 < u by exact lt_of_lt_of_le ( by positivity ) hu ] ) ( by linarith ) ]
 
 
 @[blueprint
@@ -775,11 +797,35 @@ $$ -/)
 theorem lem_6 {c₁ c₂ c₃ c₄ k b x : ℝ} (hc₁ : 0 < c₁) (hc₂ : 0 < c₂) (hc₃ : 0 < c₃) (hc₄ : 0 < c₄)
     (hθ : Eθ.classicalBound c₁ c₂ c₃ 1 c₄)
     (hk : 0 < k)
-    (hb : b ≥ max (log c₄) (log ((4 * (c₂ + k) ^ 2) / (c₃ ^ 2))))
+    (hb : b ≥ max (log c₄) (((4 * (c₂ + k) ^ 2) / (c₃ ^ 2))))
     (hx : x ≥ exp b) :
     let A := c₁ * b ^ (c₂ + k) * exp (-c₃ * sqrt b)
     Eθ x ≤ A / (log x) ^ k := by
-      sorry
+      /-NOTE: the hypothesis `hb` is modified from the original source material \cite{BKLNW}, from b ≥ log ((4 * (c₂ + k) ^ 2) / (c₃ ^ 2))) to b ≥ ((4 * (c₂ + k) ^ 2) / (c₃ ^ 2))).
+      This corresponds to the fact that in the proof sketch above, the claim "$g(x)$ decreases when $x \geq \frac{4(c_2 + k)^2}{c_3^2}$" should be "$g(x)$ decreases when $\log x \geq \frac{4(c_2 + k)^2}{c_3^2}$."  -/
+      -- By `hθ`, we have $E_\theta(x) \le c_1 (\log x)^{c_2} e^{-c_3\sqrt{\log x}}$.
+      have h_bound : Eθ x ≤ c₁ * (Real.log x) ^ c₂ * Real.exp (-c₃ * Real.sqrt (Real.log x)) := by
+        convert hθ x _ using 1 <;> norm_num;
+        · unfold admissible_bound ; norm_num;
+          exact Or.inl <| Or.inl <| Real.sqrt_eq_rpow _;
+        · exact le_trans ( Real.log_le_iff_le_exp ( by positivity ) |>.1 ( le_trans ( le_max_left _ _ ) hb ) ) hx;
+      -- By `g_decreasing_interval` with $A = c_2+k$ and $C = c_3$, $g$ is decreasing on $[4(c_2+k)^2/c_3^2, \infty)$.
+      have h_decreasing : ∀ u v : ℝ, 4 * (c₂ + k) ^ 2 / c₃ ^ 2 ≤ u → u ≤ v → v ^ (c₂ + k) * Real.exp (-c₃ * Real.sqrt v) ≤ u ^ (c₂ + k) * Real.exp (-c₃ * Real.sqrt u) := by
+        -- Apply the lemma g_decreasing_interval with A = c₂ + k and C = c₃.
+        apply g_decreasing_interval (c₂ + k) c₃ (by linarith) (by linarith);
+      -- Since $b \ge 4(c_2+k)^2/c_3^2$, we have $b \le \log x$.
+      have h_log_x_ge_b : b ≤ Real.log x := by
+        exact le_trans ( by norm_num ) ( Real.log_le_log ( by positivity ) hx );
+      have := h_decreasing b ( Real.log x ) ( by linarith [ le_max_right ( Real.log c₄ ) ( 4 * ( c₂ + k ) ^ 2 / c₃ ^ 2 ) ] ) h_log_x_ge_b; simp_all +decide only [ge_iff_le, sup_le_iff, neg_mul,
+        Real.rpow_add
+            (show 0 < Real.log x from
+              lt_of_lt_of_le
+                (by
+                  linarith [le_max_left (Real.log c₄) (4 * (c₂ + k) ^ 2 / c₃ ^ 2),
+                    le_max_right (Real.log c₄) (4 * (c₂ + k) ^ 2 / c₃ ^ 2),
+                    show 0 < 4 * (c₂ + k) ^ 2 / c₃ ^ 2 by positivity])
+                h_log_x_ge_b)]
+      rw [ le_div_iff₀ ( Real.rpow_pos_of_pos ( show 0 < Real.log x from lt_of_lt_of_le ( by linarith [ show 0 < 4 * ( c₂ + k ) ^ 2 / c₃ ^ 2 by positivity ] ) h_log_x_ge_b ) _ ) ] ; nlinarith [ Real.rpow_pos_of_pos ( show 0 < Real.log x from lt_of_lt_of_le ( by linarith [ show 0 < 4 * ( c₂ + k ) ^ 2 / c₃ ^ 2 by positivity ] ) h_log_x_ge_b ) k ] ;
 
 
 @[blueprint
