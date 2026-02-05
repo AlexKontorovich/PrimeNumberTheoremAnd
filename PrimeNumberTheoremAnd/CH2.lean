@@ -1,4 +1,6 @@
+import Mathlib.Data.Real.Sign
 import PrimeNumberTheoremAnd.PrimaryDefinitions
+import PrimeNumberTheoremAnd.Wiener
 
 blueprint_comment /--
 \section{Chirre-Helfgott's estimates for sums of nonnegative arithmetic functions}\label{ch2-sec}
@@ -23,11 +25,12 @@ open Complex hiding log
   (title := "CH2 Proposition 2.3, substep 1")
   (statement := /--
   Let $a_n$ be a sequence with $\sum_{n>1} \frac{|a_n|}{n \log^\beta n} < \infty$ for some $\beta > 1$.  Write $G(s)= \sum_n a_n n^{-s} - \frac{1}{s-1}$ for $\mathrm{Re} s > 1$.  Let $\varphi$ be absolutely integrable, supported on $[-1,1]$, and has Fourier decay $\hat \psi(y) = O(1/|y|^\beta)$.  Then for any $x>0$ and $\sigma > 1$
-  $$ \frac{1}{2\pi} \sum a_n \frac{x}{n^\sigma} \hat \psi(\frac{T}{2\pi} \log \frac{n}{x} ) = \frac{1}{2\pi T} \int_{-T}^{T} \varphi(t) G(\sigma+it) x^{it}\ dt + \int_{-T \log x/2\pi}^\infty e^{-y(\sigma-1)} \hat \varphi(y)\ dy) \frac{x^{2-\sigma}}{T}.$$
+  $$ \frac{1}{2\pi} \sum a_n \frac{x}{n^\sigma} \hat \psi(\frac{T}{2\pi} \log \frac{n}{x} ) = \frac{1}{2\pi T} \int_{-T}^{T} \varphi(\frac{t}{T}) G(\sigma+it) x^{it}\ dt + \int_{-T \log x/2\pi}^\infty e^{-y(\sigma-1)} \hat \varphi(y)\ dy) \frac{x^{2-\sigma}}{T}.$$
   -/)
   (proof := /-- Use Lemma \ref{first-fourier} and Lemma \ref{second-fourier}, similar to the proof of `limiting\_fourier\_aux`.
   -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 879)]
 theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     (ha : Summable (fun n ↦ ‖a n‖ / (n * log n ^ β)))
     {G : ℂ → ℂ}
@@ -38,7 +41,7 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     (x σ : ℝ) (hx : 0 < x) (hσ : 1 < σ) :
     (1 / (2 * π)) * ∑' n, a n * (x / (n ^ σ : ℝ)) * 𝓕 φ ((T / (2 * π)) * log (n / x)) =
       (1 / (2 * π * T)) *
-        ∫ t in Set.Icc (-T) T, φ t * G (σ + t * I) * x ^ (t * I) +
+        ∫ t in Set.Icc (-T) T, φ (t/T) * G (σ + t * I) * x ^ (t * I) +
       (∫ y in Set.Iic (-T * log x / (2 * π)), rexp (-y * (σ - 1)) * 𝓕 φ y) * (x ^ (2 - σ) / T : ℝ) := by
       sorry
 
@@ -51,7 +54,8 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
   -/)
   (proof := /-- Apply Sublemma \ref{ch2-prop-2-3-1} and take the limit as $\sigma \to 1^+$, using the continuity of $G$ and the dominated convergence theorem, as well as the Fourier inversion formula.
   -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 880)]
 theorem prop_2_3 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     (ha : Summable (fun n ↦ ‖a n‖ / (n * log n ^ β)))
     {G : ℂ → ℂ} (hG : ContinuousOn G { z | z.re ≥ 1 ∧ z.im ∈ Set.Icc (-T) T })
@@ -92,7 +96,9 @@ noncomputable def I' (lambda u : ℝ) : ℝ := -- use I' instead of I to avoid c
   $S_\sigma(x) = x^{-\sigma} \sum_n a_n \frac{x}{n} I_\lambda( \frac{T}{2\pi} \log \frac{n}{x} )$
   where $\lambda = 2\pi(\sigma-1)/T$.
   -/)
-  (latexEnv := "sublemma")]
+  (proof := /-- Routine manipulation. -/)
+  (latexEnv := "sublemma")
+  (discussion := 881)]
 theorem S_eq_I (a : ℕ → ℝ) (σ x T : ℝ) (hσ : σ ≠ 1) (hT : 0 < T)
     : -- may need a summability hypothesis on a
     let lambda := (2 * π * (σ - 1)) / T
@@ -119,7 +125,8 @@ hence
 $$ -\int_{-\infty}^{-T \log x/2π} \hat \varphi_+(y)\ dy \leq - x^{\sigma-1}/(-\lambda).$$
 Since $x^{-\sigma} * (2\pi x / T) * x^{\sigma-1}/(-\lambda) = 1/(1-\sigma)$, the result follows.
   -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 882)]
 theorem prop_2_4_plus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     (ha : Summable (fun n ↦ ‖a n‖ / (n * log n ^ β)))
     {G : ℂ → ℂ} (hG : ContinuousOn G { z | z.re ≥ 1 ∧ z.im ∈ Set.Icc (-T) T })
@@ -147,7 +154,8 @@ theorem prop_2_4_plus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β : ℝ}
   -/)
   (proof := /-- Similar to the proof of Proposition \ref{ch2-prop-2-4-plus}; see \cite[Proposition 2.4]{ch2} for details.
   -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 883)]
 theorem prop_2_4_minus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     (ha : Summable (fun n ↦ ‖a n‖ / (n * log n ^ β)))
     {G : ℂ → ℂ} (hG : ContinuousOn G { z | z.re ≥ 1 ∧ z.im ∈ Set.Icc (-T) T })
@@ -167,13 +175,166 @@ theorem prop_2_4_minus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β : ℝ
   sorry
 
 
+blueprint_comment /--
+\subsection{Extremal approximants to the truncated exponential}\label{ch2-trunc-sec}
 
+In this section we construct extremal approximants to the truncated exponential function and establish their basic properties, following \cite[Section 4]{ch2}, although we skip the proof of their extremality.
+-/
+
+noncomputable def coth (z : ℂ) : ℂ := 1 / tanh z
+
+@[blueprint
+  "Phi-circ-def"
+  (title := "Definition of Phi-circ (4.5)")
+  (statement := /--
+  $$\Phi^{\pm,\circ}_\nu(z) := \frac{1}{2} (\coth\frac{w}{2} \pm 1)$$
+  where $$w = -2\pi i z + \nu.$$
+  -/)]
+noncomputable def Phi_circ (ν ε : ℝ) (z : ℂ) : ℂ :=
+  let w := -2 * π * I * z + (ν : ℂ)
+  (1 / 2) * (coth (w / 2) + ε)
+
+@[blueprint
+  "Phi-star-def"
+  (title := "Definition of Phi-star (4.5)")
+  (statement := /--
+  $$\Phi^{\pm,\ast}_\nu(z) := \frac{i}{2\pi} (\frac{\nu}{2} \coth\frac{\nu}{2} - \frac{w}{2} \coth \frac{w}{2} \pm \pi i z)$$
+  where $$w = -2\pi i z + \nu.$$
+  -/)]
+noncomputable def Phi_star (ν ε : ℝ) (z : ℂ) : ℂ :=
+  let w := -2 * π * I * z + (ν : ℂ)
+  (I / (2 * π)) * ((ν / 2) * coth (ν / 2) - (w / 2) * coth (w / 2) + ε * π * I * z)
+
+@[blueprint
+  "phi-pm-def"
+  (title := "Definition of phi-pm (4.5)")
+  (statement := /--
+  $$\varphi^{\pm}_\nu(t) := 1_{[-1,1]}(t) ( \Phi^{\pm,\circ}_\nu(t) + \mathrm{sgn}(t) \Phi^{\pm,\ast}_\nu(t) ).$$
+  -/)]
+noncomputable def ϕ_pm (ν ε : ℝ) (t : ℝ) : ℂ :=
+  if -1 ≤ t ∧ t ≤ 1 then
+    Phi_circ ν ε (t : ℂ) + t.sign * Phi_star ν ε (t : ℂ)
+  else 0
+
+@[blueprint
+  "phi-def"
+  (title := "Definition of phi")
+  (statement := /--
+  $$\varphi_{\pm, \lambda}(t) := \varphi^{\pm}_\nu(\mathrm{sgn}(\lambda) t).$$
+  -/)]
+noncomputable def ϕ (lambda : ℝ) (ε : ℝ) (t : ℝ) : ℂ :=
+  ϕ_pm (|lambda|) ε (lambda.sign * t)
+
+@[blueprint
+  "phi-l1"
+  (title := "phi is in L1")
+  (statement := /--
+  $\varphi$ is absolutely integrable.
+  -/)
+  (proof := /-- Straightforward estimation -/)
+  (latexEnv := "lemma")]
+theorem ϕ_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (ϕ lambda ε) := by sorry
+
+@[blueprint
+  "phi-cts"
+  (title := "phi is absolutely continuous")
+  (statement := /--
+  $\varphi$ is absolutely continuous.
+  -/)
+  (proof := /-- Straightforward estimation -/)
+  (latexEnv := "lemma")]
+theorem ϕ_continuous (lambda ε : ℝ) (hlam : lambda ≠ 0) : AbsolutelyContinuous (ϕ lambda ε) := by sorry
+
+@[blueprint
+  "phi-deriv-bv"
+  (title := "phi derivative is of bounded variation")
+  (statement := /--
+  $\varphi'$ is of bounded variation.
+  -/)
+  (proof := /-- Straightforward estimation -/)
+  (latexEnv := "lemma")]
+theorem ϕ_deriv_bv (lambda ε : ℝ) (hlam : lambda ≠ 0) : BoundedVariationOn (deriv (ϕ lambda ε)) Set.univ := by sorry
+
+@[blueprint
+  "F-def"
+  (title := "Definition of F")
+  (statement := /--
+  $F_{\pm, \lambda}$ is the Fourier transform of $\varphi_{\pm, \lambda}$.
+  -/)]
+noncomputable def F (lambda : ℝ) (ε : ℝ) (y : ℝ) : ℝ := (𝓕 (ϕ lambda ε) y).re
+
+@[blueprint
+  "F-l1"
+  (title := "F is in L1")
+  (statement := /--
+  $F$ is absolutely integrable.
+  -/)
+  (proof := /-- Use Lemma \ref{decay-alt}. -/)
+  (latexEnv := "lemma")]
+theorem F_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (F lambda ε) := by sorry
+
+@[blueprint
+  "F-real"
+  (title := "F real")
+  (statement := /--
+  $F_{\pm,\lambda}$ is real-valued.
+  -/)
+  (proof := /-- Follows from the symmetry of $\phi$. -/)
+  (latexEnv := "sublemma")]
+theorem F.real (lambda ε y : ℝ) : (𝓕 (ϕ lambda ε) y).im = 0 := by sorry
+
+@[blueprint
+  "F-maj"
+  (title := "F+ majorizes I")
+  (statement := /--
+  $F_{+,\lambda}(y) \geq I_\lambda(y)$ for all $y$.
+  -/)
+  (proof := /-- TODO. -/)
+  (latexEnv := "theorem")]
+theorem F.plus_majorizes_I (lambda y : ℝ) (hlam: lambda ≠ 0) :
+    F lambda 1 y ≥ I' lambda y := by sorry
+
+@[blueprint
+  "F-min"
+  (title := "F- minorizes I")
+  (statement := /--
+  $F_{+,\lambda}(y) \geq I_\lambda(y)$ for all $y$.
+  -/)
+  (proof := /-- TODO. -/)
+  (latexEnv := "theorem")]
+theorem F.minus_minorizes_I (lambda y : ℝ) (hlam: lambda ≠ 0) :
+    F lambda (-1) y ≤ I' lambda y := by sorry
+
+@[blueprint
+  "F-plus-l1"
+  (title := "F+ L1 bound")
+  (statement := /--
+  $\int (F_{+,\lambda}(y)-I_\lambda(y))\ dy = \frac{1}{1-e^{-|\lambda|}} - \frac{1}{|\lambda|}$.
+  -/)
+  (proof := /-- This should follow from the Fourier inversion formula, after showing $F_{+,\lambda}$ is in $L^1$.. -/)
+  (latexEnv := "theorem")]
+theorem F.plus_l1 (lambda y : ℝ) (hlam: lambda ≠ 0) :
+    ∫ y : ℝ, F lambda 1 y - I' lambda y =
+      1 / (1 - rexp (-|lambda|)) - 1 / |lambda| := by sorry
+
+@[blueprint
+  "F-minus-l1"
+  (title := "F- L1 bound")
+  (statement := /--
+  $\int (I_\lambda(y) - F_{-,\lambda}(y))\ dy = \frac{1}{|\lambda|} - \frac{1}{e^{|\lambda|} - 1}$.
+  -/)
+  (proof := /-- This should follow from the Fourier inversion formula, after showing $F_{-,\lambda}$ is in $L^1$.. -/)
+  (latexEnv := "theorem")]
+theorem F.minus_l1 (lambda y : ℝ) (hlam: lambda ≠ 0) :
+    ∫ y : ℝ, I' lambda y - F lambda (-1) y =
+      1 / |lambda| - 1 / (rexp (|lambda|) - 1) := by sorry
 
 blueprint_comment /--
-\subsection{Extremal approximants to the truncated expnential}\label{ch2-trunc-sec}
-
-TODO: incorporate material from \cite[Section 4]{ch2}.
+TODO: Lemmas 4.2, 4.3, 4.4
 -/
+
+
+
 
 
 blueprint_comment /--
