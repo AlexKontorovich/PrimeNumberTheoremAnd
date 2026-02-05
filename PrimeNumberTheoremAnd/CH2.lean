@@ -1,5 +1,6 @@
 import Mathlib.Data.Real.Sign
 import PrimeNumberTheoremAnd.PrimaryDefinitions
+import PrimeNumberTheoremAnd.Wiener
 
 blueprint_comment /--
 \section{Chirre-Helfgott's estimates for sums of nonnegative arithmetic functions}\label{ch2-sec}
@@ -177,7 +178,7 @@ theorem prop_2_4_minus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β : ℝ
 blueprint_comment /--
 \subsection{Extremal approximants to the truncated exponential}\label{ch2-trunc-sec}
 
-TODO: incorporate material from \cite[Section 4]{ch2}.
+In this section we construct extremal approximants to the truncated exponential function and establish their basic properties, following \cite[Section 4]{ch2}, although we skip the proof of their extremality.
 -/
 
 noncomputable def coth (z : ℂ) : ℂ := 1 / tanh z
@@ -235,6 +236,26 @@ noncomputable def ϕ (lambda : ℝ) (ε : ℝ) (t : ℝ) : ℂ :=
 theorem ϕ_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (ϕ lambda ε) := by sorry
 
 @[blueprint
+  "phi-cts"
+  (title := "phi is absolutely continuous")
+  (statement := /--
+  $\varphi$ is absolutely continuous.
+  -/)
+  (proof := /-- Straightforward estimation -/)
+  (latexEnv := "lemma")]
+theorem ϕ_continuous (lambda ε : ℝ) (hlam : lambda ≠ 0) : AbsolutelyContinuous (ϕ lambda ε) := by sorry
+
+@[blueprint
+  "phi-deriv-bv"
+  (title := "phi derivative is of bounded variation")
+  (statement := /--
+  $\varphi'$ is of bounded variation.
+  -/)
+  (proof := /-- Straightforward estimation -/)
+  (latexEnv := "lemma")]
+theorem ϕ_deriv_bv (lambda ε : ℝ) (hlam : lambda ≠ 0) : BoundedVariationOn (deriv (ϕ lambda ε)) Set.univ := by sorry
+
+@[blueprint
   "F-def"
   (title := "Definition of F")
   (statement := /--
@@ -243,10 +264,20 @@ theorem ϕ_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (ϕ l
 noncomputable def F (lambda : ℝ) (ε : ℝ) (y : ℝ) : ℝ := (𝓕 (ϕ lambda ε) y).re
 
 @[blueprint
+  "F-l1"
+  (title := "F is in L1")
+  (statement := /--
+  $F$ is absolutely integrable.
+  -/)
+  (proof := /-- Use Lemma \ref{decay-alt}. -/)
+  (latexEnv := "lemma")]
+theorem F_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (F lambda ε) := by sorry
+
+@[blueprint
   "F-real"
   (title := "F real")
   (statement := /--
-  $F_{\pm,\lambda} is real-valued.
+  $F_{\pm,\lambda}$ is real-valued.
   -/)
   (proof := /-- Follows from the symmetry of $\phi$. -/)
   (latexEnv := "sublemma")]
