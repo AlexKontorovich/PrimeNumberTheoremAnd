@@ -208,7 +208,7 @@ noncomputable def Phi_star (ν ε : ℝ) (z : ℂ) : ℂ :=
   "phi-pm-def"
   (title := "Definition of phi-pm (4.5)")
   (statement := /--
-  $$\varphi^{\pm}_\nu(t) := 1_{[-1,1]}(t) ( \Phi^{\pm,\circ}_\nu(t) + \sgn(t) \Phi^{\pm,\ast}_\nu(t) ).$$
+  $$\varphi^{\pm}_\nu(t) := 1_{[-1,1]}(t) ( \Phi^{\pm,\circ}_\nu(t) + \mathrm{sgn}(t) \Phi^{\pm,\ast}_\nu(t) ).$$
   -/)]
 noncomputable def ϕ_pm (ν ε : ℝ) (t : ℝ) : ℂ :=
   if -1 ≤ t ∧ t ≤ 1 then
@@ -280,7 +280,7 @@ theorem F.minus_minorizes_I (lambda y : ℝ) (hlam: lambda ≠ 0) :
   (statement := /--
   $\int (F_{+,\lambda}(y)-I_\lambda(y))\ dy = \frac{1}{1-e^{-|\lambda|}} - \frac{1}{|\lambda|}$.
   -/)
-  (proof := /-- TODO. -/)
+  (proof := /-- This should follow from the Fourier inversion formula, after showing $F_{+,\lambda}$ is in $L^1$.. -/)
   (latexEnv := "theorem")]
 theorem F.plus_l1 (lambda y : ℝ) (hlam: lambda ≠ 0) :
     ∫ y : ℝ, F lambda 1 y - I' lambda y =
@@ -292,7 +292,7 @@ theorem F.plus_l1 (lambda y : ℝ) (hlam: lambda ≠ 0) :
   (statement := /--
   $\int (I_\lambda(y) - F_{-,\lambda}(y))\ dy = \frac{1}{|\lambda|} - \frac{1}{e^{|\lambda|} - 1}$.
   -/)
-  (proof := /-- TODO. -/)
+  (proof := /-- This should follow from the Fourier inversion formula, after showing $F_{-,\lambda}$ is in $L^1$.. -/)
   (latexEnv := "theorem")]
 theorem F.minus_l1 (lambda y : ℝ) (hlam: lambda ≠ 0) :
     ∫ y : ℝ, I' lambda y - F lambda (-1) y =
