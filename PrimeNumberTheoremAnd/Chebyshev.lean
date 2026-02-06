@@ -64,7 +64,7 @@ theorem T.le (x : ℝ) (hx : 1 ≤ x) : T x ≤ x * log x - x + 1 + log x := by
 @[blueprint
   "cheby-T-lower"
   (title := "Lower bound on $T$")
-  (statement := /-- For $x \geq 1$, we have $T(x) \leq x \log x - x + 1 - \log x$. -/)
+  (statement := /-- For $x \geq 1$, we have $T(x) \geq x \log x - x + 1 - \log x$. -/)
   (proof := /-- Drop the $n=1$ term. Lower bound $\log n$ by $\int_{n-1}^{n} \log t\ dt$ for $2 \leq n < x$ to bound
   $$T(x) \geq \int_1^{\lfloor x \rfloor} \log t\ dt \geq \int_1^x \log t\ dt - \log x $$
   giving the claim. -/)
