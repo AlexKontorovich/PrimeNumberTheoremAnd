@@ -449,28 +449,23 @@ theorem psi_num (x : ℝ) (hx : x > 0) (hx2 : x ≤ 30) : ψ x ≤ 1.015 * x := 
     · simp only [Finset.mem_Icc, zero_le, true_and]
       exact Nat.floor_le_of_le hx2
   unfold psi
-  have lam2 : Λ 2 = log 2 := vonMangoldt_apply_prime (by decide)
-  have lam3 : Λ 3 = log 3 := vonMangoldt_apply_prime (by decide)
-  have lam5 : Λ 5 = log 5 := vonMangoldt_apply_prime (by decide)
-  have lam7 : Λ 7 = log 7 := vonMangoldt_apply_prime (by decide)
-  have lam11 : Λ 11 = log 11 := vonMangoldt_apply_prime (by decide)
-  have lam13 : Λ 13 = log 13 := vonMangoldt_apply_prime (by decide)
-  have lam17 : Λ 17 = log 17 := vonMangoldt_apply_prime (by decide)
-  have lam19 : Λ 19 = log 19 := vonMangoldt_apply_prime (by decide)
-  have lam23 : Λ 23 = log 23 := vonMangoldt_apply_prime (by decide)
-  have lam29 : Λ 29 = log 29 := vonMangoldt_apply_prime (by decide)
+  have primes : Λ 2 = log 2 ∧ Λ 3 = log 3 ∧ Λ 5 = log 5 ∧ Λ 7 = log 7 ∧ Λ 11 = log 11 ∧ Λ 13 = log 13 ∧ Λ 17 = log 17 ∧ Λ 19 = log 19 ∧ Λ 23 = log 23 ∧ Λ 29 = log 29 := by
+    split_ands <;> exact vonMangoldt_apply_prime (by decide)
   have lam4 : Λ 4 = log 2 := by
-    rwa [show 4 = 2 ^ 2 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+    rw [show 4 = 2 ^ 2 by norm_num, vonMangoldt_apply_pow (by norm_num), primes.1]
   have lam8 : Λ 8 = log 2 := by
-    rwa [show 8 = 2 ^ 3 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+    rw [show 8 = 2 ^ 3 by norm_num, vonMangoldt_apply_pow (by norm_num), primes.1]
   have lam9 : Λ 9 = log 3 := by
-    rwa [show 9 = 3 ^ 2 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+    rw [show 9 = 3 ^ 2 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+    simp_all
   have lam16 : Λ 16 = log 2 := by
-    rwa [show 16 = 2 ^ 4 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+    rw [show 16 = 2 ^ 4 by norm_num, vonMangoldt_apply_pow (by norm_num), primes.1]
   have lam25 : Λ 25 = log 5 := by
-    rwa [show 25 = 5 ^ 2 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+    rw [show 25 = 5 ^ 2 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+    simp_all
   have lam27 : Λ 27 = log 3 := by
-    rwa [show 27 = 3 ^ 3 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+    rw [show 27 = 3 ^ 3 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+    simp_all
   have lam6 : Λ 6 = 0 := by
     rw [vonMangoldt_eq_zero_iff]
     decide
