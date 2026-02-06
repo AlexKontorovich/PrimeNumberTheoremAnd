@@ -432,13 +432,124 @@ theorem psi_diff_upper (x : ℝ) (hx : 30 ≤ x) : ψ x - ψ (x / 6) ≤ a * x +
   rw [abs_sub_le_iff] at h2
   linarith [h2.2]
 
+set_option maxHeartbeats 400000 in
+-- Proof splits into many cases
 @[blueprint
   "psi-num"
   (title := "Numerical bound for $\\psi(x)$ for very small $x$")
   (statement := /-- For $0 < x \leq 30$, we have $\psi(x) \leq 1.015 x$. -/)
   (proof := /-- Numerical check (the maximum occurs at $x=19$).  One only needs to check the case when $x$ is a prime power.-/)
   (latexEnv := "sublemma")]
-theorem psi_num (x : ℝ) (hx : x > 0) (hx2 : x ≤ 30) : ψ x ≤ 1.015 * x := by sorry
+theorem psi_num (x : ℝ) (hx : x > 0) (hx2 : x ≤ 30) : ψ x ≤ 1.015 * x := by
+  suffices ∀ n ∈ Finset.Icc (0 : ℕ) 30, ψ n ≤ 1.015 * n by
+    rw [psi_eq_psi_coe_floor]
+    grw [this]
+    · gcongr
+      exact Nat.floor_le hx.le
+    · simp only [Finset.mem_Icc, zero_le, true_and]
+      exact Nat.floor_le_of_le hx2
+  unfold psi
+  have lam2 : Λ 2 = log 2 := vonMangoldt_apply_prime (by decide)
+  have lam3 : Λ 3 = log 3 := vonMangoldt_apply_prime (by decide)
+  have lam5 : Λ 5 = log 5 := vonMangoldt_apply_prime (by decide)
+  have lam7 : Λ 7 = log 7 := vonMangoldt_apply_prime (by decide)
+  have lam11 : Λ 11 = log 11 := vonMangoldt_apply_prime (by decide)
+  have lam13 : Λ 13 = log 13 := vonMangoldt_apply_prime (by decide)
+  have lam17 : Λ 17 = log 17 := vonMangoldt_apply_prime (by decide)
+  have lam19 : Λ 19 = log 19 := vonMangoldt_apply_prime (by decide)
+  have lam23 : Λ 23 = log 23 := vonMangoldt_apply_prime (by decide)
+  have lam29 : Λ 29 = log 29 := vonMangoldt_apply_prime (by decide)
+  have lam4 : Λ 4 = log 2 := by
+    rwa [show 4 = 2 ^ 2 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+  have lam8 : Λ 8 = log 2 := by
+    rwa [show 8 = 2 ^ 3 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+  have lam9 : Λ 9 = log 3 := by
+    rwa [show 9 = 3 ^ 2 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+  have lam16 : Λ 16 = log 2 := by
+    rwa [show 16 = 2 ^ 4 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+  have lam25 : Λ 25 = log 5 := by
+    rwa [show 25 = 5 ^ 2 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+  have lam27 : Λ 27 = log 3 := by
+    rwa [show 27 = 3 ^ 3 by norm_num, vonMangoldt_apply_pow (by norm_num)]
+  have lam6 : Λ 6 = 0 := by
+    rw [vonMangoldt_eq_zero_iff]
+    decide
+  have lam10 : Λ 10 = 0 := by
+    rw [vonMangoldt_eq_zero_iff]
+    decide
+  have lam12 : Λ 12 = 0 := by
+    rw [vonMangoldt_eq_zero_iff]
+    decide
+  have lam14 : Λ 14 = 0 := by
+    rw [vonMangoldt_eq_zero_iff]
+    decide
+  have lam15 : Λ 15 = 0 := by
+    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
+    decide
+  have lam18 : Λ 18 = 0 := by
+    rw [vonMangoldt_eq_zero_iff]
+    decide
+  have lam20 : Λ 20 = 0 := by
+    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
+    decide
+  have lam21 : Λ 21 = 0 := by
+    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
+    decide
+  have lam22 : Λ 22 = 0 := by
+    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
+    decide
+  have lam24 : Λ 24 = 0 := by
+    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
+    decide
+  have lam26 : Λ 26 = 0 := by
+    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
+    decide
+  have lam28 : Λ 28 = 0 := by
+    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
+    decide
+  have lam20 : Λ 30 = 0 := by
+    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
+    decide
+  have log7bound : log 7 < 1.946 := by
+    rw [log_lt_iff_lt_exp (by norm_num), Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
+    refine lt_of_lt_of_le ?_ <| Summable.sum_le_tsum (Finset.range 10) (fun _ _ ↦ by positivity) (summable_pow_div_factorial _)
+    simp [Finset.sum_range_succ]
+    norm_num
+  have log11bound : log 11 < 2.398 := by
+    rw [log_lt_iff_lt_exp (by norm_num), Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
+    refine lt_of_lt_of_le ?_ <| Summable.sum_le_tsum (Finset.range 12) (fun _ _ ↦ by positivity) (summable_pow_div_factorial _)
+    simp [Finset.sum_range_succ]
+    norm_num
+  have log13bound : log 13 < 2.57 := by
+    rw [log_lt_iff_lt_exp (by norm_num), Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
+    refine lt_of_lt_of_le ?_ <| Summable.sum_le_tsum (Finset.range 9) (fun _ _ ↦ by positivity) (summable_pow_div_factorial _)
+    simp [Finset.sum_range_succ]
+    norm_num
+  have log17bound : log 17 < 2.84 := by
+    rw [log_lt_iff_lt_exp (by norm_num), Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
+    refine lt_of_lt_of_le ?_ <| Summable.sum_le_tsum (Finset.range 9) (fun _ _ ↦ by positivity) (summable_pow_div_factorial _)
+    simp [Finset.sum_range_succ]
+    norm_num
+  have log19bound : log 19 < 2.95 := by
+    rw [log_lt_iff_lt_exp (by norm_num), Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
+    refine lt_of_lt_of_le ?_ <| Summable.sum_le_tsum (Finset.range 9) (fun _ _ ↦ by positivity) (summable_pow_div_factorial _)
+    simp [Finset.sum_range_succ]
+    norm_num
+  have log23bound : log 23 ≤ (3 : ℕ) * log 2 + log 3 := by
+    rw [← log_pow, ← log_mul] <;> norm_num
+    gcongr
+    norm_num
+  have log29bound : log 29 ≤ log 2 + log 3 + log 5 := by
+    rw [← log_mul, ← log_mul]<;> norm_num
+    gcongr
+    norm_num
+  intro n hn
+  fin_cases hn
+  · simp
+  · simp; norm_num
+  all_goals
+    simp_all [Finset.sum_Ioc_succ_top]
+    linarith [log_two_lt_d9, log_three_lt, log_five_bounds.2]
 
 @[blueprint
   "psi-upper"
