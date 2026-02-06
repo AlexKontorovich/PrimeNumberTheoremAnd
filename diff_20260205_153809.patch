@@ -1,0 +1,1510 @@
+diff --git a/PrimeNumberTheoremAnd/BKLNW_app_tables.lean b/PrimeNumberTheoremAnd/BKLNW_app_tables.lean
+index b15c9b4..097ab1a 100644
+--- a/PrimeNumberTheoremAnd/BKLNW_app_tables.lean
++++ b/PrimeNumberTheoremAnd/BKLNW_app_tables.lean
+@@ -9,6 +9,9 @@ Purely numerical calculations from Appendix A of \cite{BKLNW}.  This is kept in
+ 
+ -/
+ namespace BKLNW_app
++lemma le_of_not_lt {a b : ℝ} (h : ¬ b < a) : a ≤ b := by
++  by_contra h'
++  exact h (lt_of_not_ge h')
+ 
+ def table_8 : List (ℝ × ℝ) := [
+   (0, 1), -- junk value
+@@ -303,6 +306,23 @@ def table_8 : List (ℝ × ℝ) := [
+ 
+ noncomputable def table_8_ε (b : ℝ) : ℝ := sInf { ε | ∃ p ∈ table_8, p.1 ≤ b ∧ p.2 = ε }
+ 
++lemma table_8_ε_le_of_row {b b₀ ε : ℝ} (hmem : (b₀, ε) ∈ table_8) (hb : b₀ ≤ b) :
++    table_8_ε b ≤ ε := by
++  classical
++  let S : Set ℝ := { ε | ∃ p ∈ table_8, p.1 ≤ b ∧ p.2 = ε }
++  have hmemS : ε ∈ S := by
++    exact ⟨(b₀, ε), hmem, hb, rfl⟩
++  have hfinite : S.Finite := by
++    refine (Set.Finite.subset (s := { ε | ε ∈ table_8.map Prod.snd }) ?_ ?_)
++    · simpa using (List.finite_toSet (table_8.map Prod.snd))
++    · intro ε hε
++      rcases hε with ⟨p, hp, _, rfl⟩
++      have hp' : p.2 ∈ table_8.map Prod.snd := by
++        exact (List.mem_map).2 ⟨p, hp, rfl⟩
++      simpa using hp'
++  have hbdd : BddBelow S := hfinite.bddBelow
++  simpa [table_8_ε, S] using (csInf_le hbdd hmemS)
++
+ /-- To avoid roundoff errors we add a safety margin here -/
+ abbrev table_8_margin : ℝ := 1.001
+ 
+@@ -354,8 +374,8 @@ noncomputable def table_8_ε' (b : ℝ) : ℝ :=
+   else if b < 12500 then 1.59755e-32 * table_8_margin
+   else if b < 13000 then 2.53362e-33 * table_8_margin
+   else if b < 13500 then 4.13554e-34 * table_8_margin
+-  else if b < 14000 then 7.21538e-35 * table_8_margin
+-  else if b < 15000 then 1.22655e-37 * table_8_margin
++  else if b < 14000 then 7.21538e-34 * table_8_margin
++  else if b < 15000 then 1.22655e-35 * table_8_margin
+   else if b < 16000 then 4.10696e-37 * table_8_margin
+   else if b < 17000 then 1.51402e-38 * table_8_margin
+   else if b < 18000 then 6.20397e-40 * table_8_margin
+@@ -368,6 +388,9 @@ noncomputable def table_8_ε' (b : ℝ) : ℝ :=
+   else if b < 25000 then 1.07022e-48 * table_8_margin
+   else 7.57240e-50 * table_8_margin
+ 
++set_option maxRecDepth 10000 in
++set_option maxHeartbeats 2000000 in
++-- Large table membership proof requires extra simp recursion/heartbeats.
+ @[blueprint
+   "bklnw-table-8-compat"
+   (title := "BKLNW Table 8 vs expanded Table 8")
+@@ -376,6 +399,643 @@ noncomputable def table_8_ε' (b : ℝ) : ℝ :=
+   (latexEnv := "sublemma")
+   (discussion := 807)]
+ theorem table_8_ε.le_simp (b : ℝ) (hb : b ≥ 20) : table_8_ε b ≤ table_8_ε' b := by
+-  sorry
++  classical
++  have h20 : ¬ b < 20 := by linarith [hb]
++  by_cases h21 : b < 21
++  ·
++    have hprev : (20 : ℝ) ≤ b := by exact hb
++    have hrow : table_8_ε b ≤ 4.2676e-5 :=
++      table_8_ε_le_of_row (by simp [table_8]) hprev
++    have hbound : (4.2676e-5 : ℝ) ≤ 4.26760e-5 * table_8_margin := by
++      norm_num [table_8_margin]
++    have hle : table_8_ε b ≤ 4.26760e-5 * table_8_margin := by
++      exact le_trans hrow hbound
++    simpa [table_8_ε', h20, h21] using hle
++  ·
++    by_cases h22 : b < 22
++    ·
++      have hprev : (21 : ℝ) ≤ b := by exact le_of_not_lt h21
++      have hrow : table_8_ε b ≤ 2.5885e-5 :=
++        table_8_ε_le_of_row (by simp [table_8]) hprev
++      have hbound : (2.5885e-5 : ℝ) ≤ 2.58843e-5 * table_8_margin := by
++        norm_num [table_8_margin]
++      have hle : table_8_ε b ≤ 2.58843e-5 * table_8_margin := by
++        exact le_trans hrow hbound
++      simpa [table_8_ε', h20, h22, h21] using hle
++    ·
++      by_cases h23 : b < 23
++      ·
++        have hprev : (22 : ℝ) ≤ b := by exact le_of_not_lt h22
++        have hrow : table_8_ε b ≤ 1.5701e-5 :=
++          table_8_ε_le_of_row (by simp [table_8]) hprev
++        have hbound : (1.5701e-5 : ℝ) ≤ 1.56996e-5 * table_8_margin := by
++          norm_num [table_8_margin]
++        have hle : table_8_ε b ≤ 1.56996e-5 * table_8_margin := by
++          exact le_trans hrow hbound
++        simpa [table_8_ε', h20, h23, h21, h22] using hle
++      ·
++        by_cases h24 : b < 24
++        ·
++          have hprev : (23 : ℝ) ≤ b := by exact le_of_not_lt h23
++          have hrow : table_8_ε b ≤ 9.5224e-6 :=
++            table_8_ε_le_of_row (by simp [table_8]) hprev
++          have hbound : (9.5224e-6 : ℝ) ≤ 9.52229e-6 * table_8_margin := by
++            norm_num [table_8_margin]
++          have hle : table_8_ε b ≤ 9.52229e-6 * table_8_margin := by
++            exact le_trans hrow hbound
++          simpa [table_8_ε', h20, h24, h21, h22, h23] using hle
++        ·
++          by_cases h25 : b < 25
++          ·
++            have hprev : (24 : ℝ) ≤ b := by exact le_of_not_lt h24
++            have hrow : table_8_ε b ≤ 5.7757e-6 :=
++              table_8_ε_le_of_row (by simp [table_8]) hprev
++            have hbound : (5.7757e-6 : ℝ) ≤ 5.77556e-6 * table_8_margin := by
++              norm_num [table_8_margin]
++            have hle : table_8_ε b ≤ 5.77556e-6 * table_8_margin := by
++              exact le_trans hrow hbound
++            simpa [table_8_ε', h20, h25, h21, h22, h23, h24] using hle
++          ·
++            by_cases h30 : b < 30
++            ·
++              have hprev : (25 : ℝ) ≤ b := by exact le_of_not_lt h25
++              have hrow : table_8_ε b ≤ 3.5032e-6 :=
++                table_8_ε_le_of_row (by simp [table_8]) hprev
++              have hbound : (3.5032e-6 : ℝ) ≤ 3.50306e-6 * table_8_margin := by
++                norm_num [table_8_margin]
++              have hle : table_8_ε b ≤ 3.50306e-6 * table_8_margin := by
++                exact le_trans hrow hbound
++              simpa [table_8_ε', h20, h30, h21, h22, h23, h24, h25] using hle
++            ·
++              by_cases h35 : b < 35
++              ·
++                have hprev : (30 : ℝ) ≤ b := by exact le_of_not_lt h30
++                have hrow : table_8_ε b ≤ 2.8756e-7 :=
++                  table_8_ε_le_of_row (by simp [table_8]) hprev
++                have hbound : (2.8756e-7 : ℝ) ≤ 2.87549e-7 * table_8_margin := by
++                  norm_num [table_8_margin]
++                have hle : table_8_ε b ≤ 2.87549e-7 * table_8_margin := by
++                  exact le_trans hrow hbound
++                simpa [table_8_ε', h20, h35, h21, h22, h23, h24, h25, h30] using hle
++              ·
++                by_cases h40 : b < 40
++                ·
++                  have hprev : (35 : ℝ) ≤ b := by exact le_of_not_lt h35
++                  have hrow : table_8_ε b ≤ 2.3604e-8 :=
++                    table_8_ε_le_of_row (by simp [table_8]) hprev
++                  have hbound : (2.3604e-8 : ℝ) ≤ 2.36034e-8 * table_8_margin := by
++                    norm_num [table_8_margin]
++                  have hle : table_8_ε b ≤ 2.36034e-8 * table_8_margin := by
++                    exact le_trans hrow hbound
++                  simpa [table_8_ε', h20, h40, h21, h22, h23, h24, h25, h30, h35] using hle
++                ·
++                  by_cases h45 : b < 45
++                  ·
++                    have hprev : (40 : ℝ) ≤ b := by exact le_of_not_lt h40
++                    have hrow : table_8_ε b ≤ 1.9339e-8 :=
++                      table_8_ε_le_of_row (by simp [table_8]) hprev
++                    have hbound : (1.9339e-8 : ℝ) ≤ 1.93378e-8 * table_8_margin := by
++                      norm_num [table_8_margin]
++                    have hle : table_8_ε b ≤ 1.93378e-8 * table_8_margin := by
++                      exact le_trans hrow hbound
++                    simpa [table_8_ε', h20, h45, h21, h22, h23, h24, h25, h30, h35, h40] using hle
++                  ·
++                    by_cases h50 : b < 50
++                    ·
++                      have hprev : (45 : ℝ) ≤ b := by exact le_of_not_lt h45
++                      have hrow : table_8_ε b ≤ 1.0908e-8 :=
++                        table_8_ε_le_of_row (by simp [table_8]) hprev
++                      have hbound : (1.0908e-8 : ℝ) ≤ 1.09073e-8 * table_8_margin := by
++                        norm_num [table_8_margin]
++                      have hle : table_8_ε b ≤ 1.09073e-8 * table_8_margin := by
++                        exact le_trans hrow hbound
++                      simpa [table_8_ε', h20, h50, h21, h22, h23, h24, h25, h30, h35, h40, h45] using hle
++                    ·
++                      by_cases h100 : b < 100
++                      ·
++                        have hprev : (50 : ℝ) ≤ b := by exact le_of_not_lt h50
++                        have hrow : table_8_ε b ≤ 1.1200e-9 :=
++                          table_8_ε_le_of_row (by simp [table_8]) hprev
++                        have hbound : (1.1200e-9 : ℝ) ≤ 1.11990e-9 * table_8_margin := by
++                          norm_num [table_8_margin]
++                        have hle : table_8_ε b ≤ 1.11990e-9 * table_8_margin := by
++                          exact le_trans hrow hbound
++                        simpa [table_8_ε', h20, h100, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50] using hle
++                      ·
++                        by_cases h200 : b < 200
++                        ·
++                          have hprev : (100 : ℝ) ≤ b := by exact le_of_not_lt h100
++                          have hrow : table_8_ε b ≤ 2.4531e-12 :=
++                            table_8_ε_le_of_row (by simp [table_8]) hprev
++                          have hbound : (2.4531e-12 : ℝ) ≤ 2.45299e-12 * table_8_margin := by
++                            norm_num [table_8_margin]
++                          have hle : table_8_ε b ≤ 2.45299e-12 * table_8_margin := by
++                            exact le_trans hrow hbound
++                          simpa [table_8_ε', h20, h200, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100] using hle
++                        ·
++                          by_cases h300 : b < 300
++                          ·
++                            have hprev : (200 : ℝ) ≤ b := by exact le_of_not_lt h200
++                            have hrow : table_8_ε b ≤ 2.1816e-12 :=
++                              table_8_ε_le_of_row (by simp [table_8]) hprev
++                            have hbound : (2.1816e-12 : ℝ) ≤ 2.18154e-12 * table_8_margin := by
++                              norm_num [table_8_margin]
++                            have hle : table_8_ε b ≤ 2.18154e-12 * table_8_margin := by
++                              exact le_trans hrow hbound
++                            simpa [table_8_ε', h20, h300, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200] using hle
++                          ·
++                            by_cases h400 : b < 400
++                            ·
++                              have hprev : (300 : ℝ) ≤ b := by exact le_of_not_lt h300
++                              have hrow : table_8_ε b ≤ 2.0903e-12 :=
++                                table_8_ε_le_of_row (by simp [table_8]) hprev
++                              have hbound : (2.0903e-12 : ℝ) ≤ 2.09022e-12 * table_8_margin := by
++                                norm_num [table_8_margin]
++                              have hle : table_8_ε b ≤ 2.09022e-12 * table_8_margin := by
++                                exact le_trans hrow hbound
++                              simpa [table_8_ε', h20, h400, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300] using hle
++                            ·
++                              by_cases h500 : b < 500
++                              ·
++                                have hprev : (400 : ℝ) ≤ b := by exact le_of_not_lt h400
++                                have hrow : table_8_ε b ≤ 2.0399e-12 :=
++                                  table_8_ε_le_of_row (by simp [table_8]) hprev
++                                have hbound : (2.0399e-12 : ℝ) ≤ 2.03981e-12 * table_8_margin := by
++                                  norm_num [table_8_margin]
++                                have hle : table_8_ε b ≤ 2.03981e-12 * table_8_margin := by
++                                  exact le_trans hrow hbound
++                                simpa [table_8_ε', h20, h500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400] using hle
++                              ·
++                                by_cases h600 : b < 600
++                                ·
++                                  have hprev : (500 : ℝ) ≤ b := by exact le_of_not_lt h500
++                                  have hrow : table_8_ε b ≤ 1.9999e-12 :=
++                                    table_8_ε_le_of_row (by simp [table_8]) hprev
++                                  have hbound : (1.9999e-12 : ℝ) ≤ 1.99986e-12 * table_8_margin := by
++                                    norm_num [table_8_margin]
++                                  have hle : table_8_ε b ≤ 1.99986e-12 * table_8_margin := by
++                                    exact le_trans hrow hbound
++                                  simpa [table_8_ε', h20, h600, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500] using hle
++                                ·
++                                  by_cases h700 : b < 700
++                                  ·
++                                    have hprev : (600 : ℝ) ≤ b := by exact le_of_not_lt h600
++                                    have hrow : table_8_ε b ≤ 1.9890e-12 :=
++                                      table_8_ε_le_of_row (by simp [table_8]) hprev
++                                    have hbound : (1.9890e-12 : ℝ) ≤ 1.98894e-12 * table_8_margin := by
++                                      norm_num [table_8_margin]
++                                    have hle : table_8_ε b ≤ 1.98894e-12 * table_8_margin := by
++                                      exact le_trans hrow hbound
++                                    simpa [table_8_ε', h20, h700, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600] using hle
++                                  ·
++                                    by_cases h800 : b < 800
++                                    ·
++                                      have hprev : (700 : ℝ) ≤ b := by exact le_of_not_lt h700
++                                      have hrow : table_8_ε b ≤ 1.9765e-12 :=
++                                        table_8_ε_le_of_row (by simp [table_8]) hprev
++                                      have hbound : (1.9765e-12 : ℝ) ≤ 1.97643e-12 * table_8_margin := by
++                                        norm_num [table_8_margin]
++                                      have hle : table_8_ε b ≤ 1.97643e-12 * table_8_margin := by
++                                        exact le_trans hrow hbound
++                                      simpa [table_8_ε', h20, h800, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700] using hle
++                                    ·
++                                      by_cases h900 : b < 900
++                                      ·
++                                        have hprev : (800 : ℝ) ≤ b := by exact le_of_not_lt h800
++                                        have hrow : table_8_ε b ≤ 1.9672e-12 :=
++                                          table_8_ε_le_of_row (by simp [table_8]) hprev
++                                        have hbound : (1.9672e-12 : ℝ) ≤ 1.96710e-12 * table_8_margin := by
++                                          norm_num [table_8_margin]
++                                        have hle : table_8_ε b ≤ 1.96710e-12 * table_8_margin := by
++                                          exact le_trans hrow hbound
++                                        simpa [table_8_ε', h20, h900, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800] using hle
++                                      ·
++                                        by_cases h1000 : b < 1000
++                                        ·
++                                          have hprev : (900 : ℝ) ≤ b := by exact le_of_not_lt h900
++                                          have hrow : table_8_ε b ≤ 1.9600e-12 :=
++                                            table_8_ε_le_of_row (by simp [table_8]) hprev
++                                          have hbound : (1.9600e-12 : ℝ) ≤ 1.95987e-12 * table_8_margin := by
++                                            norm_num [table_8_margin]
++                                          have hle : table_8_ε b ≤ 1.95987e-12 * table_8_margin := by
++                                            exact le_trans hrow hbound
++                                          simpa [table_8_ε', h20, h1000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900] using hle
++                                        ·
++                                          by_cases h1500 : b < 1500
++                                          ·
++                                            have hprev : (1000 : ℝ) ≤ b := by exact le_of_not_lt h1000
++                                            have hrow : table_8_ε b ≤ 1.9476e-12 :=
++                                              table_8_ε_le_of_row (by simp [table_8]) hprev
++                                            have hbound : (1.9476e-12 : ℝ) ≤ 1.94751e-12 * table_8_margin := by
++                                              norm_num [table_8_margin]
++                                            have hle : table_8_ε b ≤ 1.94751e-12 * table_8_margin := by
++                                              exact le_trans hrow hbound
++                                            simpa [table_8_ε', h20, h1500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000] using hle
++                                          ·
++                                            by_cases h2000 : b < 2000
++                                            ·
++                                              have hprev : (1500 : ℝ) ≤ b := by exact le_of_not_lt h1500
++                                              have hrow : table_8_ε b ≤ 1.9369e-12 :=
++                                                table_8_ε_le_of_row (by simp [table_8]) hprev
++                                              have hbound : (1.9369e-12 : ℝ) ≤ 1.93677e-12 * table_8_margin := by
++                                                norm_num [table_8_margin]
++                                              have hle : table_8_ε b ≤ 1.93677e-12 * table_8_margin := by
++                                                exact le_trans hrow hbound
++                                              simpa [table_8_ε', h20, h2000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500] using hle
++                                            ·
++                                              by_cases h2500 : b < 2500
++                                              ·
++                                                have hprev : (2000 : ℝ) ≤ b := by exact le_of_not_lt h2000
++                                                have hrow : table_8_ε b ≤ 1.9229e-12 :=
++                                                  table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                have hbound : (1.9229e-12 : ℝ) ≤ 1.92279e-12 * table_8_margin := by
++                                                  norm_num [table_8_margin]
++                                                have hle : table_8_ε b ≤ 1.92279e-12 * table_8_margin := by
++                                                  exact le_trans hrow hbound
++                                                simpa [table_8_ε', h20, h2500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000] using hle
++                                              ·
++                                                by_cases h3000 : b < 3000
++                                                ·
++                                                  have hprev : (2500 : ℝ) ≤ b := by exact le_of_not_lt h2500
++                                                  have hrow : table_8_ε b ≤ 9.0631e-13 :=
++                                                    table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                  have hbound : (9.0631e-13 : ℝ) ≤ 9.06304e-13 * table_8_margin := by
++                                                    norm_num [table_8_margin]
++                                                  have hle : table_8_ε b ≤ 9.06304e-13 * table_8_margin := by
++                                                    exact le_trans hrow hbound
++                                                  simpa [table_8_ε', h20, h3000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500] using hle
++                                                ·
++                                                  by_cases h3500 : b < 3500
++                                                  ·
++                                                    have hprev : (3000 : ℝ) ≤ b := by exact le_of_not_lt h3000
++                                                    have hrow : table_8_ε b ≤ 4.5998e-14 :=
++                                                      table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                    have hbound : (4.5998e-14 : ℝ) ≤ 4.59972e-14 * table_8_margin := by
++                                                      norm_num [table_8_margin]
++                                                    have hle : table_8_ε b ≤ 4.59972e-14 * table_8_margin := by
++                                                      exact le_trans hrow hbound
++                                                    simpa [table_8_ε', h20, h3500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000] using hle
++                                                  ·
++                                                    by_cases h4000 : b < 4000
++                                                    ·
++                                                      have hprev : (3500 : ℝ) ≤ b := by exact le_of_not_lt h3500
++                                                      have hrow : table_8_ε b ≤ 2.4865e-15 :=
++                                                        table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                      have hbound : (2.4865e-15 : ℝ) ≤ 2.48641e-15 * table_8_margin := by
++                                                        norm_num [table_8_margin]
++                                                      have hle : table_8_ε b ≤ 2.48641e-15 * table_8_margin := by
++                                                        exact le_trans hrow hbound
++                                                      simpa [table_8_ε', h20, h4000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500] using hle
++                                                    ·
++                                                      by_cases h4500 : b < 4500
++                                                      ·
++                                                        have hprev : (4000 : ℝ) ≤ b := by exact le_of_not_lt h4000
++                                                        have hrow : table_8_ε b ≤ 1.4264e-16 :=
++                                                          table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                        have hbound : (1.4264e-16 : ℝ) ≤ 1.42633e-16 * table_8_margin := by
++                                                          norm_num [table_8_margin]
++                                                        have hle : table_8_ε b ≤ 1.42633e-16 * table_8_margin := by
++                                                          exact le_trans hrow hbound
++                                                        simpa [table_8_ε', h20, h4500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000] using hle
++                                                      ·
++                                                        by_cases h5000 : b < 5000
++                                                        ·
++                                                          have hprev : (4500 : ℝ) ≤ b := by exact le_of_not_lt h4500
++                                                          have hrow : table_8_ε b ≤ 8.6830e-18 :=
++                                                            table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                          have hbound : (8.6830e-18 : ℝ) ≤ 8.68295e-18 * table_8_margin := by
++                                                            norm_num [table_8_margin]
++                                                          have hle : table_8_ε b ≤ 8.68295e-18 * table_8_margin := by
++                                                            exact le_trans hrow hbound
++                                                          simpa [table_8_ε', h20, h5000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500] using hle
++                                                        ·
++                                                          by_cases h5500 : b < 5500
++                                                          ·
++                                                            have hprev : (5000 : ℝ) ≤ b := by exact le_of_not_lt h5000
++                                                            have hrow : table_8_ε b ≤ 5.6304e-19 :=
++                                                              table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                            have hbound : (5.6304e-19 : ℝ) ≤ 5.63030e-19 * table_8_margin := by
++                                                              norm_num [table_8_margin]
++                                                            have hle : table_8_ε b ≤ 5.63030e-19 * table_8_margin := by
++                                                              exact le_trans hrow hbound
++                                                            simpa [table_8_ε', h20, h5500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000] using hle
++                                                          ·
++                                                            by_cases h6000 : b < 6000
++                                                            ·
++                                                              have hprev : (5500 : ℝ) ≤ b := by exact le_of_not_lt h5500
++                                                              have hrow : table_8_ε b ≤ 3.9136e-20 :=
++                                                                table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                              have hbound : (3.9136e-20 : ℝ) ≤ 3.91348e-20 * table_8_margin := by
++                                                                norm_num [table_8_margin]
++                                                              have hle : table_8_ε b ≤ 3.91348e-20 * table_8_margin := by
++                                                                exact le_trans hrow hbound
++                                                              simpa [table_8_ε', h20, h6000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500] using hle
++                                                            ·
++                                                              by_cases h6500 : b < 6500
++                                                              ·
++                                                                have hprev : (6000 : ℝ) ≤ b := by exact le_of_not_lt h6000
++                                                                have hrow : table_8_ε b ≤ 2.9430e-21 :=
++                                                                  table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                have hbound : (2.9430e-21 : ℝ) ≤ 2.94288e-21 * table_8_margin := by
++                                                                  norm_num [table_8_margin]
++                                                                have hle : table_8_ε b ≤ 2.94288e-21 * table_8_margin := by
++                                                                  exact le_trans hrow hbound
++                                                                simpa [table_8_ε', h20, h6500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000] using hle
++                                                              ·
++                                                                by_cases h7000 : b < 7000
++                                                                ·
++                                                                  have hprev : (6500 : ℝ) ≤ b := by exact le_of_not_lt h6500
++                                                                  have hrow : table_8_ε b ≤ 2.3850e-22 :=
++                                                                    table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                  have hbound : (2.3850e-22 : ℝ) ≤ 2.38493e-22 * table_8_margin := by
++                                                                    norm_num [table_8_margin]
++                                                                  have hle : table_8_ε b ≤ 2.38493e-22 * table_8_margin := by
++                                                                    exact le_trans hrow hbound
++                                                                  simpa [table_8_ε', h20, h7000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500] using hle
++                                                                ·
++                                                                  by_cases h7500 : b < 7500
++                                                                  ·
++                                                                    have hprev : (7000 : ℝ) ≤ b := by exact le_of_not_lt h7000
++                                                                    have hrow : table_8_ε b ≤ 2.0766e-23 :=
++                                                                      table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                    have hbound : (2.0766e-23 : ℝ) ≤ 2.07655e-23 * table_8_margin := by
++                                                                      norm_num [table_8_margin]
++                                                                    have hle : table_8_ε b ≤ 2.07655e-23 * table_8_margin := by
++                                                                      exact le_trans hrow hbound
++                                                                    simpa [table_8_ε', h20, h7500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000] using hle
++                                                                  ·
++                                                                    by_cases h8000 : b < 8000
++                                                                    ·
++                                                                      have hprev : (7500 : ℝ) ≤ b := by exact le_of_not_lt h7500
++                                                                      have hrow : table_8_ε b ≤ 1.9616e-24 :=
++                                                                        table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                      have hbound : (1.9616e-24 : ℝ) ≤ 1.96150e-24 * table_8_margin := by
++                                                                        norm_num [table_8_margin]
++                                                                      have hle : table_8_ε b ≤ 1.96150e-24 * table_8_margin := by
++                                                                        exact le_trans hrow hbound
++                                                                      simpa [table_8_ε', h20, h8000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500] using hle
++                                                                    ·
++                                                                      by_cases h8500 : b < 8500
++                                                                      ·
++                                                                        have hprev : (8000 : ℝ) ≤ b := by exact le_of_not_lt h8000
++                                                                        have hrow : table_8_ε b ≤ 1.9762e-25 :=
++                                                                          table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                        have hbound : (1.9762e-25 : ℝ) ≤ 1.97611e-25 * table_8_margin := by
++                                                                          norm_num [table_8_margin]
++                                                                        have hle : table_8_ε b ≤ 1.97611e-25 * table_8_margin := by
++                                                                          exact le_trans hrow hbound
++                                                                        simpa [table_8_ε', h20, h8500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000] using hle
++                                                                      ·
++                                                                        by_cases h9000 : b < 9000
++                                                                        ·
++                                                                          have hprev : (8500 : ℝ) ≤ b := by exact le_of_not_lt h8500
++                                                                          have hrow : table_8_ε b ≤ 2.1298e-26 :=
++                                                                            table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                          have hbound : (2.1298e-26 : ℝ) ≤ 2.12970e-26 * table_8_margin := by
++                                                                            norm_num [table_8_margin]
++                                                                          have hle : table_8_ε b ≤ 2.12970e-26 * table_8_margin := by
++                                                                            exact le_trans hrow hbound
++                                                                          simpa [table_8_ε', h20, h9000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500] using hle
++                                                                        ·
++                                                                          by_cases h9500 : b < 9500
++                                                                          ·
++                                                                            have hprev : (9000 : ℝ) ≤ b := by exact le_of_not_lt h9000
++                                                                            have hrow : table_8_ε b ≤ 2.4454e-27 :=
++                                                                              table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                            have hbound : (2.4454e-27 : ℝ) ≤ 2.44532e-27 * table_8_margin := by
++                                                                              norm_num [table_8_margin]
++                                                                            have hle : table_8_ε b ≤ 2.44532e-27 * table_8_margin := by
++                                                                              exact le_trans hrow hbound
++                                                                            simpa [table_8_ε', h20, h9500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000] using hle
++                                                                          ·
++                                                                            by_cases h10000 : b < 10000
++                                                                            ·
++                                                                              have hprev : (9500 : ℝ) ≤ b := by exact le_of_not_lt h9500
++                                                                              have hrow : table_8_ε b ≤ 2.9701e-28 :=
++                                                                                table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                              have hbound : (2.9701e-28 : ℝ) ≤ 2.97001e-28 * table_8_margin := by
++                                                                                norm_num [table_8_margin]
++                                                                              have hle : table_8_ε b ≤ 2.97001e-28 * table_8_margin := by
++                                                                                exact le_trans hrow hbound
++                                                                              simpa [table_8_ε', h20, h10000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500] using hle
++                                                                            ·
++                                                                              by_cases h10500 : b < 10500
++                                                                              ·
++                                                                                have hprev : (10000 : ℝ) ≤ b := by exact le_of_not_lt h10000
++                                                                                have hrow : table_8_ε b ≤ 3.7850e-29 :=
++                                                                                  table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                have hbound : (3.7850e-29 : ℝ) ≤ 3.78493e-29 * table_8_margin := by
++                                                                                  norm_num [table_8_margin]
++                                                                                have hle : table_8_ε b ≤ 3.78493e-29 * table_8_margin := by
++                                                                                  exact le_trans hrow hbound
++                                                                                simpa [table_8_ε', h20, h10500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000] using hle
++                                                                              ·
++                                                                                by_cases h11000 : b < 11000
++                                                                                ·
++                                                                                  have hprev : (10500 : ℝ) ≤ b := by exact le_of_not_lt h10500
++                                                                                  have hrow : table_8_ε b ≤ 5.1016e-30 :=
++                                                                                    table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                  have hbound : (5.1016e-30 : ℝ) ≤ 5.10153e-30 * table_8_margin := by
++                                                                                    norm_num [table_8_margin]
++                                                                                  have hle : table_8_ε b ≤ 5.10153e-30 * table_8_margin := by
++                                                                                    exact le_trans hrow hbound
++                                                                                  simpa [table_8_ε', h20, h11000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500] using hle
++                                                                                ·
++                                                                                  by_cases h11500 : b < 11500
++                                                                                  ·
++                                                                                    have hprev : (11000 : ℝ) ≤ b := by exact le_of_not_lt h11000
++                                                                                    have hrow : table_8_ε b ≤ 7.1427e-31 :=
++                                                                                      table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                    have hbound : (7.1427e-31 : ℝ) ≤ 7.14264e-31 * table_8_margin := by
++                                                                                      norm_num [table_8_margin]
++                                                                                    have hle : table_8_ε b ≤ 7.14264e-31 * table_8_margin := by
++                                                                                      exact le_trans hrow hbound
++                                                                                    simpa [table_8_ε', h20, h11500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000] using hle
++                                                                                  ·
++                                                                                    by_cases h12000 : b < 12000
++                                                                                    ·
++                                                                                      have hprev : (11500 : ℝ) ≤ b := by exact le_of_not_lt h11500
++                                                                                      have hrow : table_8_ε b ≤ 1.0434e-31 :=
++                                                                                        table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                      have hbound : (1.0434e-31 : ℝ) ≤ 1.04329e-31 * table_8_margin := by
++                                                                                        norm_num [table_8_margin]
++                                                                                      have hle : table_8_ε b ≤ 1.04329e-31 * table_8_margin := by
++                                                                                        exact le_trans hrow hbound
++                                                                                      simpa [table_8_ε', h20, h12000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500] using hle
++                                                                                    ·
++                                                                                      by_cases h12500 : b < 12500
++                                                                                      ·
++                                                                                        have hprev : (12000 : ℝ) ≤ b := by exact le_of_not_lt h12000
++                                                                                        have hrow : table_8_ε b ≤ 1.5976e-32 :=
++                                                                                          table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                        have hbound : (1.5976e-32 : ℝ) ≤ 1.59755e-32 * table_8_margin := by
++                                                                                          norm_num [table_8_margin]
++                                                                                        have hle : table_8_ε b ≤ 1.59755e-32 * table_8_margin := by
++                                                                                          exact le_trans hrow hbound
++                                                                                        simpa [table_8_ε', h20, h12500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000] using hle
++                                                                                      ·
++                                                                                        by_cases h13000 : b < 13000
++                                                                                        ·
++                                                                                          have hprev : (12500 : ℝ) ≤ b := by exact le_of_not_lt h12500
++                                                                                          have hrow : table_8_ε b ≤ 2.5337e-33 :=
++                                                                                            table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                          have hbound : (2.5337e-33 : ℝ) ≤ 2.53362e-33 * table_8_margin := by
++                                                                                            norm_num [table_8_margin]
++                                                                                          have hle : table_8_ε b ≤ 2.53362e-33 * table_8_margin := by
++                                                                                            exact le_trans hrow hbound
++                                                                                          simpa [table_8_ε', h20, h13000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500] using hle
++                                                                                        ·
++                                                                                          by_cases h13500 : b < 13500
++                                                                                          ·
++                                                                                            have hprev : (13000 : ℝ) ≤ b := by exact le_of_not_lt h13000
++                                                                                            have hrow : table_8_ε b ≤ 4.1356e-34 :=
++                                                                                              table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                            have hbound : (4.1356e-34 : ℝ) ≤ 4.13554e-34 * table_8_margin := by
++                                                                                              norm_num [table_8_margin]
++                                                                                            have hle : table_8_ε b ≤ 4.13554e-34 * table_8_margin := by
++                                                                                              exact le_trans hrow hbound
++                                                                                            simpa [table_8_ε', h20, h13500, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000] using hle
++                                                                                          ·
++                                                                                            by_cases h14000 : b < 14000
++                                                                                            ·
++                                                                                              have hprev : (13500 : ℝ) ≤ b := by exact le_of_not_lt h13500
++                                                                                              have hrow : table_8_ε b ≤ 7.2154e-34 :=
++                                                                                                table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                              have hbound : (7.2154e-34 : ℝ) ≤ 7.21538e-34 * table_8_margin := by
++                                                                                                norm_num [table_8_margin]
++                                                                                              have hle : table_8_ε b ≤ 7.21538e-34 * table_8_margin := by
++                                                                                                exact le_trans hrow hbound
++                                                                                              simpa [table_8_ε', h20, h14000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000, h13500] using hle
++                                                                                            ·
++                                                                                              by_cases h15000 : b < 15000
++                                                                                              ·
++                                                                                                have hprev : (14000 : ℝ) ≤ b := by exact le_of_not_lt h14000
++                                                                                                have hrow : table_8_ε b ≤ 1.2266e-35 :=
++                                                                                                  table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                                have hbound : (1.2266e-35 : ℝ) ≤ 1.22655e-35 * table_8_margin := by
++                                                                                                  norm_num [table_8_margin]
++                                                                                                have hle : table_8_ε b ≤ 1.22655e-35 * table_8_margin := by
++                                                                                                  exact le_trans hrow hbound
++                                                                                                simpa [table_8_ε', h20, h15000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000, h13500, h14000] using hle
++                                                                                              ·
++                                                                                                by_cases h16000 : b < 16000
++                                                                                                ·
++                                                                                                  have hprev : (15000 : ℝ) ≤ b := by exact le_of_not_lt h15000
++                                                                                                  have hrow : table_8_ε b ≤ 4.1071e-37 :=
++                                                                                                    table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                                  have hbound : (4.1071e-37 : ℝ) ≤ 4.10696e-37 * table_8_margin := by
++                                                                                                    norm_num [table_8_margin]
++                                                                                                  have hle : table_8_ε b ≤ 4.10696e-37 * table_8_margin := by
++                                                                                                    exact le_trans hrow hbound
++                                                                                                  simpa [table_8_ε', h20, h16000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000, h13500, h14000, h15000] using hle
++                                                                                                ·
++                                                                                                  by_cases h17000 : b < 17000
++                                                                                                  ·
++                                                                                                    have hprev : (16000 : ℝ) ≤ b := by exact le_of_not_lt h16000
++                                                                                                    have hrow : table_8_ε b ≤ 1.5141e-38 :=
++                                                                                                      table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                                    have hbound : (1.5141e-38 : ℝ) ≤ 1.51402e-38 * table_8_margin := by
++                                                                                                      norm_num [table_8_margin]
++                                                                                                    have hle : table_8_ε b ≤ 1.51402e-38 * table_8_margin := by
++                                                                                                      exact le_trans hrow hbound
++                                                                                                    simpa [table_8_ε', h20, h17000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000, h13500, h14000, h15000, h16000] using hle
++                                                                                                  ·
++                                                                                                    by_cases h18000 : b < 18000
++                                                                                                    ·
++                                                                                                      have hprev : (17000 : ℝ) ≤ b := by exact le_of_not_lt h17000
++                                                                                                      have hrow : table_8_ε b ≤ 6.2041e-40 :=
++                                                                                                        table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                                      have hbound : (6.2041e-40 : ℝ) ≤ 6.20397e-40 * table_8_margin := by
++                                                                                                        norm_num [table_8_margin]
++                                                                                                      have hle : table_8_ε b ≤ 6.20397e-40 * table_8_margin := by
++                                                                                                        exact le_trans hrow hbound
++                                                                                                      simpa [table_8_ε', h20, h18000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000, h13500, h14000, h15000, h16000, h17000] using hle
++                                                                                                    ·
++                                                                                                      by_cases h19000 : b < 19000
++                                                                                                      ·
++                                                                                                        have hprev : (18000 : ℝ) ≤ b := by exact le_of_not_lt h18000
++                                                                                                        have hrow : table_8_ε b ≤ 2.8284e-41 :=
++                                                                                                          table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                                        have hbound : (2.8284e-41 : ℝ) ≤ 2.82833e-41 * table_8_margin := by
++                                                                                                          norm_num [table_8_margin]
++                                                                                                        have hle : table_8_ε b ≤ 2.82833e-41 * table_8_margin := by
++                                                                                                          exact le_trans hrow hbound
++                                                                                                        simpa [table_8_ε', h20, h19000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000, h13500, h14000, h15000, h16000, h17000, h18000] using hle
++                                                                                                      ·
++                                                                                                        by_cases h20000 : b < 20000
++                                                                                                        ·
++                                                                                                          have hprev : (19000 : ℝ) ≤ b := by exact le_of_not_lt h19000
++                                                                                                          have hrow : table_8_ε b ≤ 1.3679e-42 :=
++                                                                                                            table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                                          have hbound : (1.3679e-42 : ℝ) ≤ 1.36785e-42 * table_8_margin := by
++                                                                                                            norm_num [table_8_margin]
++                                                                                                          have hle : table_8_ε b ≤ 1.36785e-42 * table_8_margin := by
++                                                                                                            exact le_trans hrow hbound
++                                                                                                          simpa [table_8_ε', h20, h20000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000, h13500, h14000, h15000, h16000, h17000, h18000, h19000] using hle
++                                                                                                        ·
++                                                                                                          by_cases h21000 : b < 21000
++                                                                                                          ·
++                                                                                                            have hprev : (20000 : ℝ) ≤ b := by exact le_of_not_lt h20000
++                                                                                                            have hrow : table_8_ε b ≤ 7.1622e-44 :=
++                                                                                                              table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                                            have hbound : (7.1622e-44 : ℝ) ≤ 7.16209e-44 * table_8_margin := by
++                                                                                                              norm_num [table_8_margin]
++                                                                                                            have hle : table_8_ε b ≤ 7.16209e-44 * table_8_margin := by
++                                                                                                              exact le_trans hrow hbound
++                                                                                                            simpa [table_8_ε', h20, h21000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000, h13500, h14000, h15000, h16000, h17000, h18000, h19000, h20000] using hle
++                                                                                                          ·
++                                                                                                            by_cases h22000 : b < 22000
++                                                                                                            ·
++                                                                                                              have hprev : (21000 : ℝ) ≤ b := by exact le_of_not_lt h21000
++                                                                                                              have hrow : table_8_ε b ≤ 4.1185e-45 :=
++                                                                                                                table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                                              have hbound : (4.1185e-45 : ℝ) ≤ 4.11842e-45 * table_8_margin := by
++                                                                                                                norm_num [table_8_margin]
++                                                                                                              have hle : table_8_ε b ≤ 4.11842e-45 * table_8_margin := by
++                                                                                                                exact le_trans hrow hbound
++                                                                                                              simpa [table_8_ε', h20, h22000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000, h13500, h14000, h15000, h16000, h17000, h18000, h19000, h20000, h21000] using hle
++                                                                                                            ·
++                                                                                                              by_cases h23000 : b < 23000
++                                                                                                              ·
++                                                                                                                have hprev : (22000 : ℝ) ≤ b := by exact le_of_not_lt h22000
++                                                                                                                have hrow : table_8_ε b ≤ 2.4393e-46 :=
++                                                                                                                  table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                                                have hbound : (2.4393e-46 : ℝ) ≤ 2.43916e-46 * table_8_margin := by
++                                                                                                                  norm_num [table_8_margin]
++                                                                                                                have hle : table_8_ε b ≤ 2.43916e-46 * table_8_margin := by
++                                                                                                                  exact le_trans hrow hbound
++                                                                                                                simpa [table_8_ε', h20, h23000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000, h13500, h14000, h15000, h16000, h17000, h18000, h19000, h20000, h21000, h22000] using hle
++                                                                                                              ·
++                                                                                                                by_cases h24000 : b < 24000
++                                                                                                                ·
++                                                                                                                  have hprev : (23000 : ℝ) ≤ b := by exact le_of_not_lt h23000
++                                                                                                                  have hrow : table_8_ε b ≤ 1.5648e-47 :=
++                                                                                                                    table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                                                  have hbound : (1.5648e-47 : ℝ) ≤ 1.56474e-47 * table_8_margin := by
++                                                                                                                    norm_num [table_8_margin]
++                                                                                                                  have hle : table_8_ε b ≤ 1.56474e-47 * table_8_margin := by
++                                                                                                                    exact le_trans hrow hbound
++                                                                                                                  simpa [table_8_ε', h20, h24000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000, h13500, h14000, h15000, h16000, h17000, h18000, h19000, h20000, h21000, h22000, h23000] using hle
++                                                                                                                ·
++                                                                                                                  by_cases h25000 : b < 25000
++                                                                                                                  ·
++                                                                                                                    have hprev : (24000 : ℝ) ≤ b := by exact le_of_not_lt h24000
++                                                                                                                    have hrow : table_8_ε b ≤ 1.0703e-48 :=
++                                                                                                                      table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                                                    have hbound : (1.0703e-48 : ℝ) ≤ 1.07022e-48 * table_8_margin := by
++                                                                                                                      norm_num [table_8_margin]
++                                                                                                                    have hle : table_8_ε b ≤ 1.07022e-48 * table_8_margin := by
++                                                                                                                      exact le_trans hrow hbound
++                                                                                                                    simpa [table_8_ε', h20, h25000, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000, h13500, h14000, h15000, h16000, h17000, h18000, h19000, h20000, h21000, h22000, h23000, h24000] using hle
++                                                                                                                  ·
++                                                                                                                    -- final else
++                                                                                                                    have hprev : (25000 : ℝ) ≤ b := by exact le_of_not_lt h25000
++                                                                                                                    have hrow : table_8_ε b ≤ 7.5725e-50 :=
++                                                                                                                      table_8_ε_le_of_row (by simp [table_8]) hprev
++                                                                                                                    have hbound : (7.5725e-50 : ℝ) ≤ 7.57240e-50 * table_8_margin := by
++                                                                                                                      norm_num [table_8_margin]
++                                                                                                                    have hle : table_8_ε b ≤ 7.57240e-50 * table_8_margin := by
++                                                                                                                      exact le_trans hrow hbound
++                                                                                                                    simpa [table_8_ε', h20, h21, h22, h23, h24, h25, h30, h35, h40, h45, h50, h100, h200, h300, h400, h500, h600, h700, h800, h900, h1000, h1500, h2000, h2500, h3000, h3500, h4000, h4500, h5000, h5500, h6000, h6500, h7000, h7500, h8000, h8500, h9000, h9500, h10000, h10500, h11000, h11500, h12000, h12500, h13000, h13500, h14000, h15000, h16000, h17000, h18000, h19000, h20000, h21000, h22000, h23000, h24000, h25000] using hle
+ 
+ end BKLNW_app
+diff --git a/PrimeNumberTheoremAnd/BKLNW_tables.lean b/PrimeNumberTheoremAnd/BKLNW_tables.lean
+index 75e52c4..a1a84b4 100644
+--- a/PrimeNumberTheoremAnd/BKLNW_tables.lean
++++ b/PrimeNumberTheoremAnd/BKLNW_tables.lean
+@@ -61,6 +61,82 @@ def check_row_prop (row : ℝ × ℝ × ℝ) : Prop :=
+   BKLNW_app.table_8_ε b ≤ M ∧
+   BKLNW_app.table_8_ε b + RS_prime.c₀ * (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5)) ≤ m
+ 
++/-- Upper bound used for `exp (-1)` in numerical estimates. -/
++abbrev exp_neg_one_ub : ℝ := 0.3678794412
++
++lemma exp_neg_le_rpow (x : ℝ) (hx : 0 ≤ x) : exp (-x) ≤ exp_neg_one_ub ^ x := by
++  have hmul : (-1 : ℝ) * x = -x := by ring
++  have h1 : exp (-x) = exp (-1) ^ x := by
++    simpa [hmul] using (Real.exp_mul (-1) x)
++  have hbase : exp (-1) ≤ exp_neg_one_ub := by
++    exact le_of_lt Real.exp_neg_one_lt_d9
++  have hpos : 0 ≤ exp (-1) := by positivity
++  calc
++    exp (-x) = exp (-1) ^ x := h1
++    _ ≤ exp_neg_one_ub ^ x := by
++      exact rpow_le_rpow hpos hbase hx
++
++lemma exp_neg_le_rpow' (x : ℝ) (hx : 0 ≤ x) : exp (-x) ≤ exp_neg_one_ub ^ x := by
++  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using exp_neg_le_rpow (x:=x) hx
++
++lemma rpow_le_of_pow_le {a c : ℝ} (ha : 0 ≤ a) (hc : 0 ≤ c) {p q : ℕ} (hq : q ≠ 0)
++    (h : a ^ p ≤ c ^ q) : a ^ (p / (q : ℝ)) ≤ c := by
++  have hpow : (a ^ (p / (q : ℝ))) ^ q = a ^ p := by
++    have hq' : (q : ℝ) ≠ 0 := by exact_mod_cast hq
++    calc
++      (a ^ (p / (q : ℝ))) ^ q = a ^ ((p / (q : ℝ)) * q) := by
++        symm
++        exact Real.rpow_mul_natCast ha (p / (q : ℝ)) q
++      _ = a ^ (p : ℝ) := by
++        field_simp [hq']
++      _ = a ^ p := by
++        simp [Real.rpow_natCast]
++  have h' : (a ^ (p / (q : ℝ))) ^ q ≤ c ^ q := by
++    simpa [hpow] using h
++  exact (pow_le_pow_iff_left₀ (by positivity) hc hq).1 h'
++
++lemma exp_neg_le_pow (n : ℕ) {x : ℝ} (hx : (n : ℝ) ≤ x) : exp (-x) ≤ exp_neg_one_ub ^ n := by
++  have h1 : exp (-x) ≤ exp (-(n : ℝ)) := by
++    have : -x ≤ -(n : ℝ) := by linarith
++    exact (Real.exp_le_exp).2 this
++  have hbase : exp (-1) ≤ exp_neg_one_ub := by
++    exact le_of_lt Real.exp_neg_one_lt_d9
++  have hpos : 0 ≤ exp (-1) := by positivity
++  have hExp : exp (-(n : ℝ)) = exp (-1) ^ n := by
++    have hmul : (n : ℝ) * (-1) = -(n : ℝ) := by ring
++    simpa [hmul] using (Real.exp_nat_mul (-1) n)
++  calc
++    exp (-x) ≤ exp (-(n : ℝ)) := h1
++    _ = exp (-1) ^ n := hExp
++    _ ≤ exp_neg_one_ub ^ n := by
++      exact pow_le_pow_left₀ hpos hbase n
++
++lemma exp_neg_le_pow' (n : ℕ) {x : ℝ} (hx : (n : ℝ) ≤ x) : exp (-x) ≤ exp_neg_one_ub ^ n := by
++  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using exp_neg_le_pow (n:=n) (x:=x) hx
++
++lemma check_row_prop_of_bounds {b M m eps c1 c2 c3 : ℝ}
++    (hb : 20 ≤ b)
++    (h_eps : BKLNW_app.table_8_ε b ≤ eps)
++    (h_epsM : eps ≤ M)
++    (h1 : exp (-b / 2) ≤ c1)
++    (h2 : exp (-2 * b / 3) ≤ c2)
++    (h3 : exp (-4 * b / 5) ≤ c3)
++    (hbound : eps + RS_prime.c₀ * (c1 + c2 + c3) ≤ m) :
++    check_row_prop (b, M, m) := by
++  refine ⟨hb, ?_, ?_⟩
++  · exact le_trans h_eps h_epsM
++  · have hc0 : 0 ≤ RS_prime.c₀ := by norm_num [RS_prime.c₀]
++    have hsum : exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5) ≤ c1 + c2 + c3 := by
++      linarith [h1, h2, h3]
++    have hsum' : RS_prime.c₀ * (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5)) ≤
++        RS_prime.c₀ * (c1 + c2 + c3) := by
++      exact mul_le_mul_of_nonneg_left hsum hc0
++    have hmain : BKLNW_app.table_8_ε b + RS_prime.c₀ *
++        (exp (-b / 2) + exp (-2 * b / 3) + exp (-4 * b / 5)) ≤
++        eps + RS_prime.c₀ * (c1 + c2 + c3) := by
++      linarith [h_eps, hsum']
++    exact hmain.trans hbound
++
+ -- This lemma no longer works because we changed the definition of table_8_ε to use sInf.  It may be safely deleted.
+ --
+ -- lemma row_1_checked : check_row_prop (20, 4.2676e-5, 9.1639e-5) := by
+@@ -70,13 +146,716 @@ def check_row_prop (row : ℝ × ℝ × ℝ) : Prop :=
+ --   suffices (0.3678794412 : ℝ) ^ (40 / 3 : ℝ) < 0.00000162 by grw [this]; norm_num only
+ --   rw [← pow_lt_pow_iff_left₀ (by positivity) (n := 3), ← rpow_mul_natCast] <;> norm_num only
+ 
++set_option maxRecDepth 10000 in
++set_option maxHeartbeats 2000000 in
++-- Large table membership proof requires extra simp recursion/heartbeats.
+ @[blueprint
+   "bklnw-table-14-check"
+   (statement := /-- The entries in Table 14 obey the criterion in Sublemma \ref{bklnw-thm-1a-checked}. -/)
+   (latexEnv := "sublemma")
+   (discussion := 808)]
+-theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_row_prop (b, M, m) := by sorry
+-
++theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_row_prop (b, M, m) := by
++  classical
++  simp [table_14] at h_table
++  rcases h_table with h_table | h_table
++  ·
++    rcases h_table with ⟨rfl, rfl, rfl⟩
++    have hb : (20 : ℝ) ≤ 20 := by norm_num
++    have hrow : BKLNW_app.table_8_ε 20 ≤ 4.2676e-5 :=
++      BKLNW_app.table_8_ε_le_of_row (b₀ := 20) (ε := 4.2676e-5) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++    have h_epsM : (4.2676e-5 : ℝ) ≤ 4.2676e-5 * table_14_margin := by norm_num [table_14_margin]
++    have h1 : exp (-20 / 2) ≤ exp_neg_one_ub ^ 10 := by
++      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=10) (x:=20/2) (by norm_num))
++    have h2 : exp (-2 * 20 / 3) ≤ 1.62e-6 := by
++      have h2' : exp (-2 * 20 / 3) ≤ exp_neg_one_ub ^ ((40:ℝ) / 3) := by
++        have hx : (2:ℝ) * 20 / 3 = (40:ℝ) / 3 := by ring
++        simpa [hx, neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using
++          (exp_neg_le_rpow' (x:=2*20/3) (by norm_num))
++      have h2'' : exp_neg_one_ub ^ ((40:ℝ) / 3) ≤ 1.62e-6 := by
++        have ha : 0 ≤ exp_neg_one_ub := by norm_num [exp_neg_one_ub]
++        have hc : 0 ≤ (1.62e-6 : ℝ) := by norm_num
++        refine rpow_le_of_pow_le (a:=exp_neg_one_ub) (c:=1.62e-6) ha hc (p:=40) (q:=3)
++          (by norm_num) ?_
++        norm_num [exp_neg_one_ub]
++      exact h2'.trans h2''
++    have h3 : exp (-4 * 20 / 5) ≤ exp_neg_one_ub ^ 16 := by
++      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=16) (x:=4*20/5) (by norm_num))
++    have hbound : (4.2676e-5 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 10 + 1.62e-6 + exp_neg_one_ub ^ 16) ≤ 9.1639e-5 * table_14_margin := by
++      norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++    exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++  ·
++    rcases h_table with h_table | h_table
++    ·
++      rcases h_table with ⟨rfl, rfl, rfl⟩
++      have hb : (20 : ℝ) ≤ 25 := by norm_num
++      have hrow : BKLNW_app.table_8_ε 25 ≤ 3.5032e-6 :=
++        BKLNW_app.table_8_ε_le_of_row (b₀ := 25) (ε := 3.5032e-6) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++      have h_epsM : (3.5032e-6 : ℝ) ≤ 3.5031e-6 * table_14_margin := by norm_num [table_14_margin]
++      have h1 : exp (-25 / 2) ≤ 3.73e-6 := by
++        have h1' : exp (-25 / 2) ≤ exp_neg_one_ub ^ ((25:ℝ) / 2) := by
++          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_rpow' (x:=25/2) (by norm_num))
++        have h1'' : exp_neg_one_ub ^ ((25:ℝ) / 2) ≤ 3.73e-6 := by
++          refine rpow_le_of_pow_le (by positivity) (by norm_num) (p:=25) (q:=2) (by norm_num) ?_
++          norm_num [exp_neg_one_ub]
++        exact h1'.trans h1''
++      have h2 : exp (-2 * 25 / 3) ≤ 5.78e-8 := by
++        have h2' : exp (-2 * 25 / 3) ≤ exp_neg_one_ub ^ ((50:ℝ) / 3) := by
++          have hx : (2:ℝ) * 25 / 3 = (50:ℝ) / 3 := by ring
++          simpa [hx, neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using
++            (exp_neg_le_rpow' (x:=2*25/3) (by norm_num))
++        have h2'' : exp_neg_one_ub ^ ((50:ℝ) / 3) ≤ 5.78e-8 := by
++          have ha : 0 ≤ exp_neg_one_ub := by norm_num [exp_neg_one_ub]
++          have hc : 0 ≤ (5.78e-8 : ℝ) := by norm_num
++          refine rpow_le_of_pow_le (a:=exp_neg_one_ub) (c:=5.78e-8) ha hc (p:=50) (q:=3)
++            (by norm_num) ?_
++          norm_num [exp_neg_one_ub]
++        exact h2'.trans h2''
++      have h3 : exp (-4 * 25 / 5) ≤ exp_neg_one_ub ^ 20 := by
++        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=20) (x:=4*25/5) (by norm_num))
++      have hbound : (3.5032e-6 : ℝ) + RS_prime.c₀ * (3.73e-6 + 5.78e-8 + exp_neg_one_ub ^ 20) ≤ 7.4366e-6 * table_14_margin := by
++        norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++      exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++    ·
++      rcases h_table with h_table | h_table
++      ·
++        rcases h_table with ⟨rfl, rfl, rfl⟩
++        have hb : (20 : ℝ) ≤ 30 := by norm_num
++        have hrow : BKLNW_app.table_8_ε 30 ≤ 2.8756e-7 :=
++          BKLNW_app.table_8_ε_le_of_row (b₀ := 30) (ε := 2.8756e-7) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++        have h_epsM : (2.8756e-7 : ℝ) ≤ 2.8755e-7 * table_14_margin := by norm_num [table_14_margin]
++        have h1 : exp (-30 / 2) ≤ exp_neg_one_ub ^ 15 := by
++          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=15) (x:=30/2) (by norm_num))
++        have h2 : exp (-2 * 30 / 3) ≤ exp_neg_one_ub ^ 20 := by
++          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=20) (x:=2*30/3) (by norm_num))
++        have h3 : exp (-4 * 30 / 5) ≤ exp_neg_one_ub ^ 24 := by
++          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=24) (x:=4*30/5) (by norm_num))
++        have hbound : (2.8756e-7 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 15 + exp_neg_one_ub ^ 20 + exp_neg_one_ub ^ 24) ≤ 6.0751e-7 * table_14_margin := by
++          norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++        exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++      ·
++        rcases h_table with h_table | h_table
++        ·
++          rcases h_table with ⟨rfl, rfl, rfl⟩
++          have hb : (20 : ℝ) ≤ 35 := by norm_num
++          have hrow : BKLNW_app.table_8_ε 35 ≤ 2.3604e-8 :=
++            BKLNW_app.table_8_ε_le_of_row (b₀ := 35) (ε := 2.3604e-8) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++          have h_epsM : (2.3604e-8 : ℝ) ≤ 2.3603e-8 * table_14_margin := by norm_num [table_14_margin]
++          have h1 : exp (-35 / 2) ≤ 2.52e-8 := by
++            have h1' : exp (-35 / 2) ≤ exp_neg_one_ub ^ ((35:ℝ) / 2) := by
++              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_rpow' (x:=35/2) (by norm_num))
++            have h1'' : exp_neg_one_ub ^ ((35:ℝ) / 2) ≤ 2.52e-8 := by
++              refine rpow_le_of_pow_le (by positivity) (by norm_num) (p:=35) (q:=2) (by norm_num) ?_
++              norm_num [exp_neg_one_ub]
++            exact h1'.trans h1''
++          have h2 : exp (-2 * 35 / 3) ≤ 7.36e-11 := by
++            have h2' : exp (-2 * 35 / 3) ≤ exp_neg_one_ub ^ ((70:ℝ) / 3) := by
++              have hx : (2:ℝ) * 35 / 3 = (70:ℝ) / 3 := by ring
++              simpa [hx, neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using
++                (exp_neg_le_rpow' (x:=2*35/3) (by norm_num))
++            have h2'' : exp_neg_one_ub ^ ((70:ℝ) / 3) ≤ 7.36e-11 := by
++              have ha : 0 ≤ exp_neg_one_ub := by norm_num [exp_neg_one_ub]
++              have hc : 0 ≤ (7.36e-11 : ℝ) := by norm_num
++              refine rpow_le_of_pow_le (a:=exp_neg_one_ub) (c:=7.36e-11) ha hc (p:=70) (q:=3)
++                (by norm_num) ?_
++              norm_num [exp_neg_one_ub]
++            exact h2'.trans h2''
++          have h3 : exp (-4 * 35 / 5) ≤ exp_neg_one_ub ^ 28 := by
++            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=28) (x:=4*35/5) (by norm_num))
++          have hbound : (2.3604e-8 : ℝ) + RS_prime.c₀ * (2.52e-8 + 7.36e-11 + exp_neg_one_ub ^ 28) ≤ 4.9766e-8 * table_14_margin := by
++            norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++          exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++        ·
++          rcases h_table with h_table | h_table
++          ·
++            rcases h_table with ⟨rfl, rfl, rfl⟩
++            have hb : (20 : ℝ) ≤ 40 := by norm_num
++            have hrow : BKLNW_app.table_8_ε 40 ≤ 1.9339e-8 :=
++              BKLNW_app.table_8_ε_le_of_row (b₀ := 40) (ε := 1.9339e-8) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++            have h_epsM : (1.9339e-8 : ℝ) ≤ 1.9338e-8 * table_14_margin := by norm_num [table_14_margin]
++            have h1 : exp (-40 / 2) ≤ exp_neg_one_ub ^ 20 := by
++              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=20) (x:=40/2) (by norm_num))
++            have h2 : exp (-2 * 40 / 3) ≤ exp_neg_one_ub ^ 26 := by
++              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=26) (x:=2*40/3) (by norm_num))
++            have h3 : exp (-4 * 40 / 5) ≤ exp_neg_one_ub ^ 32 := by
++              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=32) (x:=4*40/5) (by norm_num))
++            have hbound : (1.9339e-8 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 20 + exp_neg_one_ub ^ 26 + exp_neg_one_ub ^ 32) ≤ 2.1482e-8 * table_14_margin := by
++              norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++            exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++          ·
++            rcases h_table with h_table | h_table
++            ·
++              rcases h_table with ⟨rfl, rfl, rfl⟩
++              have h_log_approx : 43 < 19 * log 10 ∧ 19 * log 10 < 44 := by
++                rw [← log_rpow, lt_log_iff_exp_lt, log_lt_iff_lt_exp] <;> norm_num
++                refine ⟨?_, ?_⟩
++                · have := exp_one_lt_d9.le
++                  rw [show exp 43 = (exp 1) ^ 43 by rw [← exp_nat_mul]; norm_num]
++                  exact (pow_le_pow_left₀ (by positivity) this _).trans_lt <| by norm_num
++                · have := exp_one_gt_d9.le
++                  rw [show exp 44 = (exp 1) ^ 44 by rw [← exp_nat_mul]; norm_num]
++                  exact lt_of_lt_of_le (by norm_num) <| pow_le_pow_left₀ (by positivity) this _
++              have hb : (20 : ℝ) ≤ 19 * log 10 := by linarith [h_log_approx.1]
++              have hrow : BKLNW_app.table_8_ε (19 * log 10) ≤ 1.9339e-8 :=
++                BKLNW_app.table_8_ε_le_of_row (b₀ := 40) (ε := 1.9339e-8)
++                  (by simp [BKLNW_app.table_8]) (by linarith [h_log_approx.1])
++              have h_epsM : (1.9339e-8 : ℝ) ≤ 1.9338e-8 * table_14_margin := by norm_num [table_14_margin]
++              have h1 : exp (-(19 * log 10) / 2) ≤ 3.17e-10 := by
++                have h1' : exp (-(19 * log 10) / 2) = (1/10 : ℝ) ^ ((19:ℝ) / 2) := by
++                  have hmul : -(19 * log 10) / 2 = (log 10) * (-(19 : ℝ) / 2) := by ring
++                  calc
++                    exp (-(19 * log 10) / 2) = exp (log 10 * (-(19 : ℝ) / 2)) := by
++                      simpa [hmul]
++                    _ = exp (log 10) ^ (-(19 : ℝ) / 2) := by
++                      simpa using (Real.exp_mul (log 10) (-(19 : ℝ) / 2))
++                    _ = exp (log 10) ^ (-( (19:ℝ) / 2)) := by
++                      simpa [neg_div]
++                    _ = (10 : ℝ) ^ (-( (19:ℝ) / 2)) := by
++                      have h10 : (0 : ℝ) < 10 := by norm_num
++                      simpa [Real.exp_log h10]
++                    _ = (1/10 : ℝ) ^ ((19:ℝ) / 2) := by
++                      simpa [one_div] using (rpow_neg_eq_inv_rpow (10:ℝ) ((19:ℝ) / 2))
++                have h1'' : (1/10 : ℝ) ^ ((19:ℝ) / 2) ≤ 3.17e-10 := by
++                  have ha : 0 ≤ (1/10 : ℝ) := by norm_num
++                  have hc : 0 ≤ (3.17e-10 : ℝ) := by norm_num
++                  refine rpow_le_of_pow_le (a:=1/10) (c:=3.17e-10) ha hc (p:=19) (q:=2)
++                    (by norm_num) ?_
++                  norm_num
++                simpa [h1'] using h1''
++              have h2 : exp (-2 * (19 * log 10) / 3) ≤ 2.16e-13 := by
++                have h2' : exp (-2 * (19 * log 10) / 3) = (1/10 : ℝ) ^ ((38:ℝ) / 3) := by
++                  have hmul : -(2 * (19 * log 10)) / 3 = (log 10) * (-(38 : ℝ) / 3) := by ring
++                  calc
++                    exp (-2 * (19 * log 10) / 3) = exp (-(2 * (19 * log 10)) / 3) := by
++                      ring
++                    _ = exp (log 10 * (-(38 : ℝ) / 3)) := by
++                      simpa [hmul]
++                    _ = exp (log 10) ^ (-(38 : ℝ) / 3) := by
++                      simpa using (Real.exp_mul (log 10) (-(38 : ℝ) / 3))
++                    _ = exp (log 10) ^ (-( (38:ℝ) / 3)) := by
++                      simpa [neg_div]
++                    _ = (10 : ℝ) ^ (-( (38:ℝ) / 3)) := by
++                      have h10 : (0 : ℝ) < 10 := by norm_num
++                      simpa [Real.exp_log h10]
++                    _ = (1/10 : ℝ) ^ ((38:ℝ) / 3) := by
++                      simpa [one_div] using (rpow_neg_eq_inv_rpow (10:ℝ) ((38:ℝ) / 3))
++                have h2'' : (1/10 : ℝ) ^ ((38:ℝ) / 3) ≤ 2.16e-13 := by
++                  have ha : 0 ≤ (1/10 : ℝ) := by norm_num
++                  have hc : 0 ≤ (2.16e-13 : ℝ) := by norm_num
++                  refine rpow_le_of_pow_le (a:=1/10) (c:=2.16e-13) ha hc (p:=38) (q:=3)
++                    (by norm_num) ?_
++                  norm_num
++                calc
++                  exp (-2 * (19 * log 10) / 3) = (1/10 : ℝ) ^ ((38:ℝ) / 3) := h2'
++                  _ ≤ 2.16e-13 := h2''
++              have h3 : exp (-4 * (19 * log 10) / 5) ≤ 6.32e-16 := by
++                have h3' : exp (-4 * (19 * log 10) / 5) = (1/10 : ℝ) ^ ((76:ℝ) / 5) := by
++                  have hmul : -(4 * (19 * log 10)) / 5 = (log 10) * (-(76 : ℝ) / 5) := by ring
++                  calc
++                    exp (-4 * (19 * log 10) / 5) = exp (-(4 * (19 * log 10)) / 5) := by
++                      ring
++                    _ = exp (log 10 * (-(76 : ℝ) / 5)) := by
++                      simpa [hmul]
++                    _ = exp (log 10) ^ (-(76 : ℝ) / 5) := by
++                      simpa using (Real.exp_mul (log 10) (-(76 : ℝ) / 5))
++                    _ = exp (log 10) ^ (-( (76:ℝ) / 5)) := by
++                      simpa [neg_div]
++                    _ = (10 : ℝ) ^ (-( (76:ℝ) / 5)) := by
++                      have h10 : (0 : ℝ) < 10 := by norm_num
++                      simpa [Real.exp_log h10]
++                    _ = (1/10 : ℝ) ^ ((76:ℝ) / 5) := by
++                      simpa [one_div] using (rpow_neg_eq_inv_rpow (10:ℝ) ((76:ℝ) / 5))
++                have h3'' : (1/10 : ℝ) ^ ((76:ℝ) / 5) ≤ 6.32e-16 := by
++                  have ha : 0 ≤ (1/10 : ℝ) := by norm_num
++                  have hc : 0 ≤ (6.32e-16 : ℝ) := by norm_num
++                  refine rpow_le_of_pow_le (a:=1/10) (c:=6.32e-16) ha hc (p:=76) (q:=5)
++                    (by norm_num) ?_
++                  norm_num
++                calc
++                  exp (-4 * (19 * log 10) / 5) = (1/10 : ℝ) ^ ((76:ℝ) / 5) := h3'
++                  _ ≤ 6.32e-16 := h3''
++              have hbound : (1.9339e-8 : ℝ) + RS_prime.c₀ * (3.17e-10 + 2.16e-13 + 6.32e-16) ≤ 1.9667e-8 * table_14_margin := by
++                norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++              exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++            ·
++              rcases h_table with h_table | h_table
++              ·
++                rcases h_table with ⟨rfl, rfl, rfl⟩
++                have hb : (20 : ℝ) ≤ 45 := by norm_num
++                have hrow : BKLNW_app.table_8_ε 45 ≤ 1.0908e-8 :=
++                  BKLNW_app.table_8_ε_le_of_row (b₀ := 45) (ε := 1.0908e-8) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                have h_epsM : (1.0908e-8 : ℝ) ≤ 1.0907e-8 * table_14_margin := by norm_num [table_14_margin]
++                have h1 : exp (-45 / 2) ≤ 1.70e-10 := by
++                  have h1' : exp (-45 / 2) ≤ exp_neg_one_ub ^ ((45:ℝ) / 2) := by
++                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_rpow' (x:=45/2) (by norm_num))
++                  have h1'' : exp_neg_one_ub ^ ((45:ℝ) / 2) ≤ 1.70e-10 := by
++                    refine rpow_le_of_pow_le (by positivity) (by norm_num) (p:=45) (q:=2) (by norm_num) ?_
++                    norm_num [exp_neg_one_ub]
++                  exact h1'.trans h1''
++                have h2 : exp (-2 * 45 / 3) ≤ exp_neg_one_ub ^ 30 := by
++                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=30) (x:=2*45/3) (by norm_num))
++                have h3 : exp (-4 * 45 / 5) ≤ exp_neg_one_ub ^ 36 := by
++                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=36) (x:=4*45/5) (by norm_num))
++                have hbound : (1.0908e-8 : ℝ) + RS_prime.c₀ * (1.70e-10 + exp_neg_one_ub ^ 30 + exp_neg_one_ub ^ 36) ≤ 1.1084e-8 * table_14_margin := by
++                  norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++              ·
++                rcases h_table with h_table | h_table
++                ·
++                  rcases h_table with ⟨rfl, rfl, rfl⟩
++                  have hb : (20 : ℝ) ≤ 50 := by norm_num
++                  have hrow : BKLNW_app.table_8_ε 50 ≤ 1.1200e-9 :=
++                    BKLNW_app.table_8_ε_le_of_row (b₀ := 50) (ε := 1.1200e-9) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                  have h_epsM : (1.1200e-9 : ℝ) ≤ 1.1199e-9 * table_14_margin := by norm_num [table_14_margin]
++                  have h1 : exp (-50 / 2) ≤ exp_neg_one_ub ^ 25 := by
++                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=25) (x:=50/2) (by norm_num))
++                  have h2 : exp (-2 * 50 / 3) ≤ exp_neg_one_ub ^ 33 := by
++                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=33) (x:=2*50/3) (by norm_num))
++                  have h3 : exp (-4 * 50 / 5) ≤ exp_neg_one_ub ^ 40 := by
++                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=40) (x:=4*50/5) (by norm_num))
++                  have hbound : (1.1200e-9 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 25 + exp_neg_one_ub ^ 33 + exp_neg_one_ub ^ 40) ≤ 1.1344e-9 * table_14_margin := by
++                    norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                  exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                ·
++                  rcases h_table with h_table | h_table
++                  ·
++                    rcases h_table with ⟨rfl, rfl, rfl⟩
++                    have hb : (20 : ℝ) ≤ 60 := by norm_num
++                    have hrow : BKLNW_app.table_8_ε 60 ≤ 1.2216e-11 :=
++                      BKLNW_app.table_8_ε_le_of_row (b₀ := 60) (ε := 1.2216e-11) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                    have h_epsM : (1.2216e-11 : ℝ) ≤ 1.2215e-11 * table_14_margin := by norm_num [table_14_margin]
++                    have h1 : exp (-60 / 2) ≤ exp_neg_one_ub ^ 30 := by
++                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=30) (x:=60/2) (by norm_num))
++                    have h2 : exp (-2 * 60 / 3) ≤ exp_neg_one_ub ^ 40 := by
++                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=40) (x:=2*60/3) (by norm_num))
++                    have h3 : exp (-4 * 60 / 5) ≤ exp_neg_one_ub ^ 48 := by
++                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=48) (x:=4*60/5) (by norm_num))
++                    have hbound : (1.2216e-11 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 30 + exp_neg_one_ub ^ 40 + exp_neg_one_ub ^ 48) ≤ 1.2312e-11 * table_14_margin := by
++                      norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                    exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                  ·
++                    rcases h_table with h_table | h_table
++                    ·
++                      rcases h_table with ⟨rfl, rfl, rfl⟩
++                      have hb : (20 : ℝ) ≤ 70 := by norm_num
++                      have hrow : BKLNW_app.table_8_ε 70 ≤ 2.7924e-12 :=
++                        BKLNW_app.table_8_ε_le_of_row (b₀ := 70) (ε := 2.7924e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                      have h_epsM : (2.7924e-12 : ℝ) ≤ 2.7923e-12 * table_14_margin := by norm_num [table_14_margin]
++                      have h1 : exp (-70 / 2) ≤ exp_neg_one_ub ^ 35 := by
++                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=35) (x:=70/2) (by norm_num))
++                      have h2 : exp (-2 * 70 / 3) ≤ exp_neg_one_ub ^ 46 := by
++                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=46) (x:=2*70/3) (by norm_num))
++                      have h3 : exp (-4 * 70 / 5) ≤ exp_neg_one_ub ^ 56 := by
++                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=56) (x:=4*70/5) (by norm_num))
++                      have hbound : (2.7924e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 35 + exp_neg_one_ub ^ 46 + exp_neg_one_ub ^ 56) ≤ 2.7930e-12 * table_14_margin := by
++                        norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                      exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                    ·
++                      rcases h_table with h_table | h_table
++                      ·
++                        rcases h_table with ⟨rfl, rfl, rfl⟩
++                        have hb : (20 : ℝ) ≤ 80 := by norm_num
++                        have hrow : BKLNW_app.table_8_ε 80 ≤ 2.6109e-12 :=
++                          BKLNW_app.table_8_ε_le_of_row (b₀ := 80) (ε := 2.6109e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                        have h_epsM : (2.6109e-12 : ℝ) ≤ 2.6108e-12 * table_14_margin := by norm_num [table_14_margin]
++                        have h1 : exp (-80 / 2) ≤ exp_neg_one_ub ^ 40 := by
++                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=40) (x:=80/2) (by norm_num))
++                        have h2 : exp (-2 * 80 / 3) ≤ exp_neg_one_ub ^ 53 := by
++                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=53) (x:=2*80/3) (by norm_num))
++                        have h3 : exp (-4 * 80 / 5) ≤ exp_neg_one_ub ^ 64 := by
++                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=64) (x:=4*80/5) (by norm_num))
++                        have hbound : (2.6109e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 40 + exp_neg_one_ub ^ 53 + exp_neg_one_ub ^ 64) ≤ 2.6108e-12 * table_14_margin := by
++                          norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                        exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                      ·
++                        rcases h_table with h_table | h_table
++                        ·
++                          rcases h_table with ⟨rfl, rfl, rfl⟩
++                          have hb : (20 : ℝ) ≤ 90 := by norm_num
++                          have hrow : BKLNW_app.table_8_ε 90 ≤ 2.5214e-12 :=
++                            BKLNW_app.table_8_ε_le_of_row (b₀ := 90) (ε := 2.5214e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                          have h_epsM : (2.5214e-12 : ℝ) ≤ 2.5213e-12 * table_14_margin := by norm_num [table_14_margin]
++                          have h1 : exp (-90 / 2) ≤ exp_neg_one_ub ^ 45 := by
++                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=45) (x:=90/2) (by norm_num))
++                          have h2 : exp (-2 * 90 / 3) ≤ exp_neg_one_ub ^ 60 := by
++                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=60) (x:=2*90/3) (by norm_num))
++                          have h3 : exp (-4 * 90 / 5) ≤ exp_neg_one_ub ^ 72 := by
++                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=72) (x:=4*90/5) (by norm_num))
++                          have hbound : (2.5214e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 45 + exp_neg_one_ub ^ 60 + exp_neg_one_ub ^ 72) ≤ 2.5213e-12 * table_14_margin := by
++                            norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                          exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                        ·
++                          rcases h_table with h_table | h_table
++                          ·
++                            rcases h_table with ⟨rfl, rfl, rfl⟩
++                            have hb : (20 : ℝ) ≤ 100 := by norm_num
++                            have hrow : BKLNW_app.table_8_ε 100 ≤ 2.4531e-12 :=
++                              BKLNW_app.table_8_ε_le_of_row (b₀ := 100) (ε := 2.4531e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                            have h_epsM : (2.4531e-12 : ℝ) ≤ 2.4530e-12 * table_14_margin := by norm_num [table_14_margin]
++                            have h1 : exp (-100 / 2) ≤ exp_neg_one_ub ^ 50 := by
++                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=50) (x:=100/2) (by norm_num))
++                            have h2 : exp (-2 * 100 / 3) ≤ exp_neg_one_ub ^ 66 := by
++                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=66) (x:=2*100/3) (by norm_num))
++                            have h3 : exp (-4 * 100 / 5) ≤ exp_neg_one_ub ^ 80 := by
++                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=80) (x:=4*100/5) (by norm_num))
++                            have hbound : (2.4531e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 50 + exp_neg_one_ub ^ 66 + exp_neg_one_ub ^ 80) ≤ 2.4530e-12 * table_14_margin := by
++                              norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                            exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                          ·
++                            rcases h_table with h_table | h_table
++                            ·
++                              rcases h_table with ⟨rfl, rfl, rfl⟩
++                              have hb : (20 : ℝ) ≤ 200 := by norm_num
++                              have hrow : BKLNW_app.table_8_ε 200 ≤ 2.1816e-12 :=
++                                BKLNW_app.table_8_ε_le_of_row (b₀ := 200) (ε := 2.1816e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                              have h_epsM : (2.1816e-12 : ℝ) ≤ 2.1815e-12 * table_14_margin := by norm_num [table_14_margin]
++                              have h1 : exp (-200 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=200/2) (by norm_num))
++                              have h2 : exp (-2 * 200 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*200/3) (by norm_num))
++                              have h3 : exp (-4 * 200 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*200/5) (by norm_num))
++                              have hbound : (2.1816e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.1816e-12 * table_14_margin := by
++                                norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                              exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                            ·
++                              rcases h_table with h_table | h_table
++                              ·
++                                rcases h_table with ⟨rfl, rfl, rfl⟩
++                                have hb : (20 : ℝ) ≤ 300 := by norm_num
++                                have hrow : BKLNW_app.table_8_ε 300 ≤ 2.0903e-12 :=
++                                  BKLNW_app.table_8_ε_le_of_row (b₀ := 300) (ε := 2.0903e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                have h_epsM : (2.0903e-12 : ℝ) ≤ 2.0902e-12 * table_14_margin := by norm_num [table_14_margin]
++                                have h1 : exp (-300 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=300/2) (by norm_num))
++                                have h2 : exp (-2 * 300 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*300/3) (by norm_num))
++                                have h3 : exp (-4 * 300 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*300/5) (by norm_num))
++                                have hbound : (2.0903e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.0903e-12 * table_14_margin := by
++                                  norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                              ·
++                                rcases h_table with h_table | h_table
++                                ·
++                                  rcases h_table with ⟨rfl, rfl, rfl⟩
++                                  have hb : (20 : ℝ) ≤ 400 := by norm_num
++                                  have hrow : BKLNW_app.table_8_ε 400 ≤ 2.0399e-12 :=
++                                    BKLNW_app.table_8_ε_le_of_row (b₀ := 400) (ε := 2.0399e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                  have h_epsM : (2.0399e-12 : ℝ) ≤ 2.0398e-12 * table_14_margin := by norm_num [table_14_margin]
++                                  have h1 : exp (-400 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=400/2) (by norm_num))
++                                  have h2 : exp (-2 * 400 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*400/3) (by norm_num))
++                                  have h3 : exp (-4 * 400 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*400/5) (by norm_num))
++                                  have hbound : (2.0399e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.0399e-12 * table_14_margin := by
++                                    norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                  exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                ·
++                                  rcases h_table with h_table | h_table
++                                  ·
++                                    rcases h_table with ⟨rfl, rfl, rfl⟩
++                                    have hb : (20 : ℝ) ≤ 500 := by norm_num
++                                    have hrow : BKLNW_app.table_8_ε 500 ≤ 1.9999e-12 :=
++                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 500) (ε := 1.9999e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                    have h_epsM : (1.9999e-12 : ℝ) ≤ 1.9999e-12 * table_14_margin := by norm_num [table_14_margin]
++                                    have h1 : exp (-500 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=500/2) (by norm_num))
++                                    have h2 : exp (-2 * 500 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*500/3) (by norm_num))
++                                    have h3 : exp (-4 * 500 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*500/5) (by norm_num))
++                                    have hbound : (1.9999e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.9999e-12 * table_14_margin := by
++                                      norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                    exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                  ·
++                                    rcases h_table with h_table | h_table
++                                    ·
++                                      rcases h_table with ⟨rfl, rfl, rfl⟩
++                                      have hb : (20 : ℝ) ≤ 700 := by norm_num
++                                      have hrow : BKLNW_app.table_8_ε 700 ≤ 1.9765e-12 :=
++                                        BKLNW_app.table_8_ε_le_of_row (b₀ := 700) (ε := 1.9765e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                      have h_epsM : (1.9765e-12 : ℝ) ≤ 1.9764e-12 * table_14_margin := by norm_num [table_14_margin]
++                                      have h1 : exp (-700 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=700/2) (by norm_num))
++                                      have h2 : exp (-2 * 700 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*700/3) (by norm_num))
++                                      have h3 : exp (-4 * 700 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*700/5) (by norm_num))
++                                      have hbound : (1.9765e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.9765e-12 * table_14_margin := by
++                                        norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                      exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                    ·
++                                      rcases h_table with h_table | h_table
++                                      ·
++                                        rcases h_table with ⟨rfl, rfl, rfl⟩
++                                        have hb : (20 : ℝ) ≤ 1000 := by norm_num
++                                        have hrow : BKLNW_app.table_8_ε 1000 ≤ 1.9476e-12 :=
++                                          BKLNW_app.table_8_ε_le_of_row (b₀ := 1000) (ε := 1.9476e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                        have h_epsM : (1.9476e-12 : ℝ) ≤ 1.9475e-12 * table_14_margin := by norm_num [table_14_margin]
++                                        have h1 : exp (-1000 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=1000/2) (by norm_num))
++                                        have h2 : exp (-2 * 1000 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*1000/3) (by norm_num))
++                                        have h3 : exp (-4 * 1000 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*1000/5) (by norm_num))
++                                        have hbound : (1.9476e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.9476e-12 * table_14_margin := by
++                                          norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                        exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                      ·
++                                        rcases h_table with h_table | h_table
++                                        ·
++                                          rcases h_table with ⟨rfl, rfl, rfl⟩
++                                          have hb : (20 : ℝ) ≤ 2000 := by norm_num
++                                          have hrow : BKLNW_app.table_8_ε 2000 ≤ 1.9229e-12 :=
++                                            BKLNW_app.table_8_ε_le_of_row (b₀ := 2000) (ε := 1.9229e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                          have h_epsM : (1.9229e-12 : ℝ) ≤ 1.9228e-12 * table_14_margin := by norm_num [table_14_margin]
++                                          have h1 : exp (-2000 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2000/2) (by norm_num))
++                                          have h2 : exp (-2 * 2000 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*2000/3) (by norm_num))
++                                          have h3 : exp (-4 * 2000 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*2000/5) (by norm_num))
++                                          have hbound : (1.9229e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.9228e-12 * table_14_margin := by
++                                            norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                          exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                        ·
++                                          rcases h_table with h_table | h_table
++                                          ·
++                                            rcases h_table with ⟨rfl, rfl, rfl⟩
++                                            have hb : (20 : ℝ) ≤ 3000 := by norm_num
++                                            have hrow : BKLNW_app.table_8_ε 3000 ≤ 4.5998e-14 :=
++                                              BKLNW_app.table_8_ε_le_of_row (b₀ := 3000) (ε := 4.5998e-14) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                            have h_epsM : (4.5998e-14 : ℝ) ≤ 4.5997e-14 * table_14_margin := by norm_num [table_14_margin]
++                                            have h1 : exp (-3000 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=3000/2) (by norm_num))
++                                            have h2 : exp (-2 * 3000 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*3000/3) (by norm_num))
++                                            have h3 : exp (-4 * 3000 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*3000/5) (by norm_num))
++                                            have hbound : (4.5998e-14 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 4.5998e-14 * table_14_margin := by
++                                              norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                            exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                          ·
++                                            rcases h_table with h_table | h_table
++                                            ·
++                                              rcases h_table with ⟨rfl, rfl, rfl⟩
++                                              have hb : (20 : ℝ) ≤ 4000 := by norm_num
++                                              have hrow : BKLNW_app.table_8_ε 4000 ≤ 1.4264e-16 :=
++                                                BKLNW_app.table_8_ε_le_of_row (b₀ := 4000) (ε := 1.4264e-16) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                              have h_epsM : (1.4264e-16 : ℝ) ≤ 1.4263e-16 * table_14_margin := by norm_num [table_14_margin]
++                                              have h1 : exp (-4000 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4000/2) (by norm_num))
++                                              have h2 : exp (-2 * 4000 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*4000/3) (by norm_num))
++                                              have h3 : exp (-4 * 4000 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*4000/5) (by norm_num))
++                                              have hbound : (1.4264e-16 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.4264e-16 * table_14_margin := by
++                                                norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                              exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                            ·
++                                              rcases h_table with h_table | h_table
++                                              ·
++                                                rcases h_table with ⟨rfl, rfl, rfl⟩
++                                                have hb : (20 : ℝ) ≤ 5000 := by norm_num
++                                                have hrow : BKLNW_app.table_8_ε 5000 ≤ 5.6304e-19 :=
++                                                  BKLNW_app.table_8_ε_le_of_row (b₀ := 5000) (ε := 5.6304e-19) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                                have h_epsM : (5.6304e-19 : ℝ) ≤ 5.6303e-19 * table_14_margin := by norm_num [table_14_margin]
++                                                have h1 : exp (-5000 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=5000/2) (by norm_num))
++                                                have h2 : exp (-2 * 5000 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*5000/3) (by norm_num))
++                                                have h3 : exp (-4 * 5000 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*5000/5) (by norm_num))
++                                                have hbound : (5.6304e-19 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 5.6303e-19 * table_14_margin := by
++                                                  norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                                exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                              ·
++                                                rcases h_table with h_table | h_table
++                                                ·
++                                                  rcases h_table with ⟨rfl, rfl, rfl⟩
++                                                  have hb : (20 : ℝ) ≤ 7000 := by norm_num
++                                                  have hrow : BKLNW_app.table_8_ε 7000 ≤ 2.0766e-23 :=
++                                                    BKLNW_app.table_8_ε_le_of_row (b₀ := 7000) (ε := 2.0766e-23) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                                  have h_epsM : (2.0766e-23 : ℝ) ≤ 2.0765e-23 * table_14_margin := by norm_num [table_14_margin]
++                                                  have h1 : exp (-7000 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=7000/2) (by norm_num))
++                                                  have h2 : exp (-2 * 7000 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*7000/3) (by norm_num))
++                                                  have h3 : exp (-4 * 7000 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*7000/5) (by norm_num))
++                                                  have hbound : (2.0766e-23 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.0766e-23 * table_14_margin := by
++                                                    norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                                  exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                                ·
++                                                  rcases h_table with h_table | h_table
++                                                  ·
++                                                    rcases h_table with ⟨rfl, rfl, rfl⟩
++                                                    have hb : (20 : ℝ) ≤ 10000 := by norm_num
++                                                    have hrow : BKLNW_app.table_8_ε 10000 ≤ 3.7850e-29 :=
++                                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 10000) (ε := 3.7850e-29) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                                    have h_epsM : (3.7850e-29 : ℝ) ≤ 3.7849e-29 * table_14_margin := by norm_num [table_14_margin]
++                                                    have h1 : exp (-10000 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=10000/2) (by norm_num))
++                                                    have h2 : exp (-2 * 10000 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*10000/3) (by norm_num))
++                                                    have h3 : exp (-4 * 10000 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*10000/5) (by norm_num))
++                                                    have hbound : (3.7850e-29 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 3.7850e-29 * table_14_margin := by
++                                                      norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                                    exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                                  ·
++                                                    rcases h_table with h_table | h_table
++                                                    ·
++                                                      rcases h_table with ⟨rfl, rfl, rfl⟩
++                                                      have hb : (20 : ℝ) ≤ 11000 := by norm_num
++                                                      have hrow : BKLNW_app.table_8_ε 11000 ≤ 7.1427e-31 :=
++                                                        BKLNW_app.table_8_ε_le_of_row (b₀ := 11000) (ε := 7.1427e-31) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                                      have h_epsM : (7.1427e-31 : ℝ) ≤ 7.1426e-31 * table_14_margin := by norm_num [table_14_margin]
++                                                      have h1 : exp (-11000 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=11000/2) (by norm_num))
++                                                      have h2 : exp (-2 * 11000 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*11000/3) (by norm_num))
++                                                      have h3 : exp (-4 * 11000 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                                        simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*11000/5) (by norm_num))
++                                                      have hbound : (7.1427e-31 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 7.1427e-31 * table_14_margin := by
++                                                        norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                                      exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                                    ·
++                                                      rcases h_table with h_table | h_table
++                                                      ·
++                                                        rcases h_table with ⟨rfl, rfl, rfl⟩
++                                                        have hb : (20 : ℝ) ≤ 12000 := by norm_num
++                                                        have hrow : BKLNW_app.table_8_ε 12000 ≤ 1.5976e-32 :=
++                                                          BKLNW_app.table_8_ε_le_of_row (b₀ := 12000) (ε := 1.5976e-32) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                                        have h_epsM : (1.5976e-32 : ℝ) ≤ 1.5975e-32 * table_14_margin := by norm_num [table_14_margin]
++                                                        have h1 : exp (-12000 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=12000/2) (by norm_num))
++                                                        have h2 : exp (-2 * 12000 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*12000/3) (by norm_num))
++                                                        have h3 : exp (-4 * 12000 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                                          simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*12000/5) (by norm_num))
++                                                        have hbound : (1.5976e-32 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.5976e-32 * table_14_margin := by
++                                                          norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                                        exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                                      ·
++                                                        rcases h_table with h_table | h_table
++                                                        ·
++                                                          rcases h_table with ⟨rfl, rfl, rfl⟩
++                                                          have hb : (20 : ℝ) ≤ 13000 := by norm_num
++                                                          have hrow : BKLNW_app.table_8_ε 13000 ≤ 4.1356e-34 :=
++                                                            BKLNW_app.table_8_ε_le_of_row (b₀ := 13000) (ε := 4.1356e-34) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                                          have h_epsM : (4.1356e-34 : ℝ) ≤ 4.1355e-34 * table_14_margin := by norm_num [table_14_margin]
++                                                          have h1 : exp (-13000 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=13000/2) (by norm_num))
++                                                          have h2 : exp (-2 * 13000 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*13000/3) (by norm_num))
++                                                          have h3 : exp (-4 * 13000 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                                            simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*13000/5) (by norm_num))
++                                                          have hbound : (4.1356e-34 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 4.1356e-34 * table_14_margin := by
++                                                            norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                                          exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                                        ·
++                                                          rcases h_table with h_table | h_table
++                                                          ·
++                                                            rcases h_table with ⟨rfl, rfl, rfl⟩
++                                                            have hb : (20 : ℝ) ≤ 13800.7464 := by norm_num
++                                                            have hrow : BKLNW_app.table_8_ε 13800.7464 ≤ 2.5423e-35 :=
++                                                              BKLNW_app.table_8_ε_le_of_row (b₀ := 13800) (ε := 2.5423e-35)
++                                                                (by simp [BKLNW_app.table_8]) (by norm_num)
++                                                            have h_epsM : (2.5423e-35 : ℝ) ≤ 2.5423e-35 * table_14_margin := by norm_num [table_14_margin]
++                                                            have h1 : exp (-13800.7464 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=13800.7464/2) (by norm_num))
++                                                            have h2 : exp (-2 * 13800.7464 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*13800.7464/3) (by norm_num))
++                                                            have h3 : exp (-4 * 13800.7464 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                                              simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*13800.7464/5) (by norm_num))
++                                                            have hbound : (2.5423e-35 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.5424e-35 * table_14_margin := by
++                                                              norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                                            exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                                          ·
++                                                            rcases h_table with h_table | h_table
++                                                            ·
++                                                              rcases h_table with ⟨rfl, rfl, rfl⟩
++                                                              have hb : (20 : ℝ) ≤ 15000 := by norm_num
++                                                              have hrow : BKLNW_app.table_8_ε 15000 ≤ 4.1071e-37 :=
++                                                                BKLNW_app.table_8_ε_le_of_row (b₀ := 15000) (ε := 4.1071e-37) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                                              have h_epsM : (4.1071e-37 : ℝ) ≤ 4.1070e-37 * table_14_margin := by norm_num [table_14_margin]
++                                                              have h1 : exp (-15000 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=15000/2) (by norm_num))
++                                                              have h2 : exp (-2 * 15000 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*15000/3) (by norm_num))
++                                                              have h3 : exp (-4 * 15000 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                                                simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*15000/5) (by norm_num))
++                                                              have hbound : (4.1071e-37 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 4.1070e-37 * table_14_margin := by
++                                                                norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                                              exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                                            ·
++                                                              rcases h_table with h_table | h_table
++                                                              ·
++                                                                rcases h_table with ⟨rfl, rfl, rfl⟩
++                                                                have hb : (20 : ℝ) ≤ 17000 := by norm_num
++                                                                have hrow : BKLNW_app.table_8_ε 17000 ≤ 6.2041e-40 :=
++                                                                  BKLNW_app.table_8_ε_le_of_row (b₀ := 17000) (ε := 6.2041e-40) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                                                have h_epsM : (6.2041e-40 : ℝ) ≤ 6.2040e-40 * table_14_margin := by norm_num [table_14_margin]
++                                                                have h1 : exp (-17000 / 2) ≤ exp_neg_one_ub ^ 100 := by
++                                                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=17000/2) (by norm_num))
++                                                                have h2 : exp (-2 * 17000 / 3) ≤ exp_neg_one_ub ^ 100 := by
++                                                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2*17000/3) (by norm_num))
++                                                                have h3 : exp (-4 * 17000 / 5) ≤ exp_neg_one_ub ^ 100 := by
++                                                                  simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4*17000/5) (by norm_num))
++                                                                have hbound : (6.2041e-40 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 6.2040e-40 * table_14_margin := by
++                                                                  norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                                                exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                                              ·
++                                                                rcases h_table with h_table | h_table
++                                                                ·
++                                                                  rcases h_table with ⟨rfl, rfl, rfl⟩
++                                                                  have hb : (20 : ℝ) ≤ 20000 := by norm_num
++                                                                  have hrow : BKLNW_app.table_8_ε 20000 ≤ 7.1622e-44 :=
++                                                                    BKLNW_app.table_8_ε_le_of_row (b₀ := 20000) (ε := 7.1622e-44) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                                                  have h_epsM : (7.1622e-44 : ℝ) ≤ 7.1621e-44 * table_14_margin := by norm_num [table_14_margin]
++                                                                  have h1 : exp (-20000 / 2) ≤ exp_neg_one_ub ^ 125 := by
++                                                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=20000/2) (by norm_num))
++                                                                  have h2 : exp (-2 * 20000 / 3) ≤ exp_neg_one_ub ^ 125 := by
++                                                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=2*20000/3) (by norm_num))
++                                                                  have h3 : exp (-4 * 20000 / 5) ≤ exp_neg_one_ub ^ 125 := by
++                                                                    simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=4*20000/5) (by norm_num))
++                                                                  have hbound : (7.1622e-44 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125) ≤ 7.1621e-44 * table_14_margin := by
++                                                                    norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                                                  exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                                                ·
++                                                                  rcases h_table with h_table | h_table
++                                                                  ·
++                                                                    rcases h_table with ⟨rfl, rfl, rfl⟩
++                                                                    have hb : (20 : ℝ) ≤ 22000 := by norm_num
++                                                                    have hrow : BKLNW_app.table_8_ε 22000 ≤ 2.4393e-46 :=
++                                                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 22000) (ε := 2.4393e-46) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                                                    have h_epsM : (2.4393e-46 : ℝ) ≤ 2.4392e-46 * table_14_margin := by norm_num [table_14_margin]
++                                                                    have h1 : exp (-22000 / 2) ≤ exp_neg_one_ub ^ 125 := by
++                                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=22000/2) (by norm_num))
++                                                                    have h2 : exp (-2 * 22000 / 3) ≤ exp_neg_one_ub ^ 125 := by
++                                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=2*22000/3) (by norm_num))
++                                                                    have h3 : exp (-4 * 22000 / 5) ≤ exp_neg_one_ub ^ 125 := by
++                                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=4*22000/5) (by norm_num))
++                                                                    have hbound : (2.4393e-46 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125) ≤ 2.4392e-46 * table_14_margin := by
++                                                                      norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                                                    exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
++                                                                  ·
++                                                                    rcases h_table with ⟨rfl, rfl, rfl⟩
++                                                                    have hb : (20 : ℝ) ≤ 25000 := by norm_num
++                                                                    have hrow : BKLNW_app.table_8_ε 25000 ≤ 7.5725e-50 :=
++                                                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 25000) (ε := 7.5725e-50) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
++                                                                    have h_epsM : (7.5725e-50 : ℝ) ≤ 7.5724e-50 * table_14_margin := by norm_num [table_14_margin]
++                                                                    have h1 : exp (-25000 / 2) ≤ exp_neg_one_ub ^ 125 := by
++                                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=25000/2) (by norm_num))
++                                                                    have h2 : exp (-2 * 25000 / 3) ≤ exp_neg_one_ub ^ 125 := by
++                                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=2*25000/3) (by norm_num))
++                                                                    have h3 : exp (-4 * 25000 / 5) ≤ exp_neg_one_ub ^ 125 := by
++                                                                      simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=4*25000/5) (by norm_num))
++                                                                    have hbound : (7.5725e-50 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125) ≤ 7.5724e-50 * table_14_margin := by
++                                                                      norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
++                                                                    exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
+ 
+ 
+ end BKLNW
