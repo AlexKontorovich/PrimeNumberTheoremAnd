@@ -1,4 +1,5 @@
 import Architect
+import Mathlib.NumberTheory.Chebyshev
 import PrimeNumberTheoremAnd.SecondarySummary
 
 namespace Lcm
@@ -1665,5 +1666,40 @@ blueprint_comment /--
   (proofUses := ["prop:ineq-holds-large-n", "thm:criterion"])]
 theorem L_not_HA_of_ge (n : ℕ) (hn : n ≥ 89693 ^ 2) : ¬HighlyAbundant (L n) :=
   (Criterion.mk' hn).not_highlyAbundant
+
+blueprint_comment /--
+\subsection{Bonus material}
+
+The following result is not needed for this application, but is worth recording nevertheless.
+-/
+
+@[blueprint
+  "thm:lcm-eq"
+  (title := "Formula for log of L equals Chebyshev psi")
+  (statement := /-- For every $n$, $\log L_n = \sum_{p \leq n} \lfloor \log n / \log p \rfloor \log p$. -/)
+  (proof := /-- Compute the number of times $p$ divides $L_n$ and use the fundamental theorem of arithmetic. -/)
+  (latexEnv := "sublemma")]
+theorem L_eq_prod (n : ℕ) :
+    L n = ∏ p in Finset.filter Prime.prime (Finset.range (n + 1)),
+      p ^ ⌊Real.log n / Real.log p⌋₊ := by sorry
+
+@[blueprint
+  "thm:psi-eq"
+  (title := "Formula for Chebyshev psi")
+  (statement := /-- For every $n$, $\psi(n) = \sum_{p \leq n} \lfloor \log n / \log p \rfloor \log p$, where $\psi$ is the Chebyshev psi function. -/)
+  (proof := /-- Compute the number of times $p$ divides $L_n$ and use the fundamental theorem of arithmetic. -/)
+  (latexEnv := "sublemma")]
+theorem psi_eq_prod (n : ℕ) :
+    Chebyshev.psi n = ∑ p in Finset.filter Prime.prime (Finset.range (n + 1)),
+      ⌊Real.log n / Real.log p⌋₊ * Real.log p := by sorry
+
+@[blueprint
+  "thm:lcm-psi"
+  (title := "Log of L equals Chebyshev psi")
+  (statement := /-- For every $n$, $\log L_n = \psi(n)$, where $\psi$ is the Chebyshev psi function. -/)
+  (proof := /-- Combine the previous results. -/)
+  (latexEnv := "proposition")]
+theorem log_L_eq_psi (n : ℕ) : Real.log (L n) = Chebyshev.psi n := by sorry
+
 
 end Lcm
