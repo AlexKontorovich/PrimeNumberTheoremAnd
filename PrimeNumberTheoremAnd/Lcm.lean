@@ -1680,7 +1680,7 @@ The following result is not needed for this application, but is worth recording 
   (proof := /-- Compute the number of times $p$ divides $L_n$ and use the fundamental theorem of arithmetic. -/)
   (latexEnv := "sublemma")]
 theorem L_eq_prod (n : ℕ) :
-    L n = ∏ p in Finset.filter Prime.prime (Finset.range (n + 1)),
+    L n = ∏ p ∈ Finset.filter Prime.prime (Finset.range (n + 1)),
       p ^ ⌊Real.log n / Real.log p⌋₊ := by sorry
 
 @[blueprint
@@ -1690,7 +1690,7 @@ theorem L_eq_prod (n : ℕ) :
   (proof := /-- Compute the number of times $p$ divides $L_n$ and use the fundamental theorem of arithmetic. -/)
   (latexEnv := "sublemma")]
 theorem psi_eq_prod (n : ℕ) :
-    Chebyshev.psi n = ∑ p in Finset.filter Prime.prime (Finset.range (n + 1)),
+    Chebyshev.psi n = ∑ p ∈ Finset.filter Prime.prime (Finset.range (n + 1)),
       ⌊Real.log n / Real.log p⌋₊ * Real.log p := by sorry
 
 @[blueprint
