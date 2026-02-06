@@ -466,45 +466,8 @@ theorem psi_num (x : ℝ) (hx : x > 0) (hx2 : x ≤ 30) : ψ x ≤ 1.015 * x := 
   have lam27 : Λ 27 = log 3 := by
     rw [show 27 = 3 ^ 3 by norm_num, vonMangoldt_apply_pow (by norm_num)]
     simp_all
-  have lam6 : Λ 6 = 0 := by
-    rw [vonMangoldt_eq_zero_iff]
-    decide
-  have lam10 : Λ 10 = 0 := by
-    rw [vonMangoldt_eq_zero_iff]
-    decide
-  have lam12 : Λ 12 = 0 := by
-    rw [vonMangoldt_eq_zero_iff]
-    decide
-  have lam14 : Λ 14 = 0 := by
-    rw [vonMangoldt_eq_zero_iff]
-    decide
-  have lam15 : Λ 15 = 0 := by
-    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
-    decide
-  have lam18 : Λ 18 = 0 := by
-    rw [vonMangoldt_eq_zero_iff]
-    decide
-  have lam20 : Λ 20 = 0 := by
-    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
-    decide
-  have lam21 : Λ 21 = 0 := by
-    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
-    decide
-  have lam22 : Λ 22 = 0 := by
-    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
-    decide
-  have lam24 : Λ 24 = 0 := by
-    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
-    decide
-  have lam26 : Λ 26 = 0 := by
-    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
-    decide
-  have lam28 : Λ 28 = 0 := by
-    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
-    decide
-  have lam20 : Λ 30 = 0 := by
-    rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log]
-    decide
+  have comps : Λ 6 = 0 ∧ Λ 10 = 0 ∧ Λ 12 = 0 ∧ Λ 14 = 0 ∧ Λ 15 = 0 ∧ Λ 18 = 0 ∧ Λ 20 = 0 ∧ Λ 21 = 0 ∧ Λ 22 = 0 ∧ Λ 24 = 0 ∧ Λ 26 = 0 ∧ Λ 28 = 0 ∧ Λ 30 = 0 := by
+    split_ands <;> rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log] <;> decide
   have log7bound : log 7 < 1.946 := by
     rw [log_lt_iff_lt_exp (by norm_num), Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
     refine lt_of_lt_of_le ?_ <| Summable.sum_le_tsum (Finset.range 10) (fun _ _ ↦ by positivity) (summable_pow_div_factorial _)
