@@ -64,7 +64,7 @@ theorem T.le (x : ℝ) (hx : 1 ≤ x) : T x ≤ x * log x - x + 1 + log x := by
 @[blueprint
   "cheby-T-lower"
   (title := "Lower bound on $T$")
-  (statement := /-- For $x \geq 1$, we have $T(x) \leq x \log x - x + 1 - \log x$. -/)
+  (statement := /-- For $x \geq 1$, we have $T(x) \geq x \log x - x + 1 - \log x$. -/)
   (proof := /-- Drop the $n=1$ term. Lower bound $\log n$ by $\int_{n-1}^{n} \log t\ dt$ for $2 \leq n < x$ to bound
   $$T(x) \geq \int_1^{\lfloor x \rfloor} \log t\ dt \geq \int_1^x \log t\ dt - \log x $$
   giving the claim. -/)
@@ -447,7 +447,77 @@ theorem psi_num (x : ℝ) (hx : x > 0) (hx2 : x ≤ 30) : ψ x ≤ 1.015 * x := 
   (proof := /-- Iterate Lemma \ref{psi-diff-upper} using Sublemma \ref{psi-num} .-/)
   (latexEnv := "theorem")
   (discussion := 843)]
-theorem psi_upper (x : ℝ) (hx : 30 ≤ x) : ψ x ≤ 6 * a * x / 5 + (log (x/5) / log 6) * (5 * log x - 5) := by sorry
+theorem psi_upper (x : ℝ) (hx : 30 ≤ x) : ψ x ≤ 6 * a * x / 5 + (log (x/5) / log 6) * (5 * log x - 5) := by
+  have telescope (n : ℕ) : ψ x - ψ (x / 6 ^ n) = ∑ i ∈ Finset.Ico 0 n, (ψ (x / 6 ^ i) - ψ (x / 6 ^ (i + 1))) := by
+    induction n with
+    | zero => simp
+    | succ n hn =>
+      rw [Finset.sum_Ico_succ_top <| Nat.zero_le n, ← hn]
+      ring
+  have bound (n : ℕ) (h : ∀ i < n, 30 ≤ x / 6 ^ i) : ψ x - ψ (x / 6 ^ n) ≤ ∑ i ∈ Finset.Ico 0 n, (a * x / 6 ^i + 5 * log (x / 6 ^ i) - 5) := by
+    rw [telescope]
+    refine Finset.sum_le_sum fun i hi ↦ ?_
+    convert psi_diff_upper (x / 6 ^ i) (by grind) using 3
+    · field
+    · ring
+  replace bound (n : ℕ) (h : ∀ i < n, 30 ≤ x / 6 ^ i) : ψ x - ψ (x / 6 ^ n) ≤ ∑ i ∈ Finset.Ico 0 n, (a * x / 6 ^i + 5 * log x - 5) := by
+    grw [bound n h]
+    apply Finset.sum_le_sum fun i hi ↦ ?_
+    gcongr
+    bound
+  let n := ⌊log (x / 5) / log 6⌋₊
+  specialize bound n ?_
+  · intro i hi
+    apply le_div_iff₀ (by simp)|>.mpr
+    trans (30 * 6 ^ (n-1))
+    · gcongr <;> grind
+    · trans (30 * 6 ^ (log (x / 5) / log 6 - 1))
+      · rw [← rpow_natCast, Nat.cast_sub]
+        · gcongr
+          · norm_num
+          · refine Nat.floor_le <| div_nonneg ?_ ?_ <;> apply log_nonneg <;> linarith
+          · norm_cast
+        · apply Nat.le_floor
+          norm_cast
+          apply le_div_iff₀ (log_pos (by norm_num))|>.mpr
+          rw [one_mul]
+          gcongr
+          linarith
+      · rw [rpow_def_of_pos (by norm_num)]
+        field_simp
+        rw [exp_sub, exp_log, exp_log] <;> linarith
+  simp_rw [← add_sub, Finset.sum_add_distrib, Finset.sum_const, Nat.Ico_zero_eq_range, Finset.card_range, nsmul_eq_mul, tsub_le_iff_right] at bound
+  apply bound.trans
+  conv => lhs; arg 1; arg 1; arg 2; ext i; rw [← mul_one_div, ←one_div_pow]
+  rw [← Finset.mul_sum, geom_sum_eq (by norm_num)]
+  norm_num
+  have : x / 6 ^ n ≤ 30 := by
+    apply div_le_iff₀ (by simp)|>.mpr
+    trans 30 * 6 ^ (log (x / 5) / log 6 - 1)
+    · rw [rpow_def_of_pos (by norm_num)]
+      field_simp
+      rw [exp_sub, exp_log, exp_log] <;> linarith
+    · rw [← rpow_natCast]
+      gcongr
+      · norm_num
+      · exact Nat.sub_one_lt_floor _|>.le
+  grw [psi_num _ (by simp; linarith) this]
+  calc
+  _ = 6 * a * x / 5 - x * (1 / 6) ^ n * (a * 1 / (5 / 6) - 1.015) + ↑n * (5 * log x - 5) := by
+    ring_nf
+    congr
+    field
+  _ ≤6 * a * x / 5 + n * (5 * log x - 5) := by
+    gcongr
+    simp only [one_div, inv_pow, mul_one, tsub_le_iff_right, le_add_iff_nonneg_right]
+    refine mul_nonneg (mul_nonneg (by linarith) (by simp)) ?_
+    grw [← a_bound.1]
+    norm_num
+  _ ≤ _ := by
+    gcongr
+    · simp only [sub_nonneg, Nat.ofNat_pos, le_mul_iff_one_le_right]
+      exact le_log_iff_exp_le (by linarith)|>.mpr (by linarith [exp_one_lt_three])
+    · exact Nat.floor_le (by bound)
 
 @[blueprint
   "psi-num-2"

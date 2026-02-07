@@ -60,6 +60,304 @@ open Real Complex MeasureTheory Finset Filter Topology Set Summable
   (statement := /-- We recall that $e(\alpha) = e^{2\pi i \alpha}$. -/)]
 noncomputable def e (α : ℝ) : ℂ := exp (2 * π * I * α)
 
+private lemma h2piI_ne_zero : 2 * π * I ≠ 0 := by norm_num
+
+private lemma continuousOn_e_comp (φ : ℝ → ℝ) (s : Set ℝ)
+    (hφ : ContinuousOn φ s) : ContinuousOn (fun t ↦ e (φ t)) s := by
+  simp only [e]; fun_prop
+
+private lemma continuousOn_ofReal_deriv (φ : ℝ → ℝ) (a b : ℝ)
+    (hderiv_cont : ContinuousOn (fun t ↦ deriv φ t) (Set.Icc a b)) :
+    ContinuousOn (fun t ↦ (↑(deriv φ t) : ℂ)) (Set.Icc a b) :=
+  continuous_ofReal.comp_continuousOn hderiv_cont
+
+private lemma denom1_ne_zero (φ : ℝ → ℝ) (a b : ℝ)
+    (hphi_ne : ∀ t ∈ Set.Icc a b, deriv φ t ≠ 0) :
+    ∀ t ∈ Set.Icc a b, 2 * π * I * ↑(deriv φ t) ≠ 0 := by
+  intro t ht
+  exact mul_ne_zero h2piI_ne_zero (ofReal_ne_zero.mpr (hphi_ne t ht))
+
+private lemma denom2_ne_zero (φ : ℝ → ℝ) (a b : ℝ)
+    (hphi_ne : ∀ t ∈ Set.Icc a b, deriv φ t ≠ 0) :
+    ∀ t ∈ Set.Icc a b, 2 * π * I * ↑(deriv φ t) ^ 2 ≠ 0 := by
+  intro t ht
+  exact mul_ne_zero h2piI_ne_zero (pow_ne_zero 2 (ofReal_ne_zero.mpr (hphi_ne t ht)))
+
+private lemma continuousOn_denom1 (φ : ℝ → ℝ) (a b : ℝ)
+    (hderiv_cont : ContinuousOn (fun t ↦ deriv φ t) (Set.Icc a b)) :
+    ContinuousOn (fun t ↦ 2 * π * I * ↑(deriv φ t)) (Set.Icc a b) := by
+  exact ContinuousOn.mul continuousOn_const (continuousOn_ofReal_deriv φ a b hderiv_cont)
+
+private lemma continuousOn_denom2 (φ : ℝ → ℝ) (a b : ℝ)
+    (hderiv_cont : ContinuousOn (fun t ↦ deriv φ t) (Set.Icc a b)) :
+    ContinuousOn (fun t ↦ 2 * π * I * ↑(deriv φ t) ^ 2) (Set.Icc a b) := by
+  exact ContinuousOn.mul continuousOn_const ((continuousOn_ofReal_deriv φ a b hderiv_cont).pow 2)
+
+private lemma intervalIntegrable_v' (φ : ℝ → ℝ) (a b : ℝ) (hab : a ≤ b)
+    (hφ_cont : ContinuousOn φ (Set.Icc a b))
+    (hderiv_cont : ContinuousOn (fun t ↦ deriv φ t) (Set.Icc a b)) :
+    IntervalIntegrable (fun t ↦ 2 * π * I * ↑(deriv φ t) * e (φ t)) volume a b :=
+  (ContinuousOn.mul
+    (continuousOn_denom1 φ a b hderiv_cont)
+    (continuousOn_e_comp φ _ hφ_cont)).intervalIntegrable_of_Icc hab
+
+private lemma continuousOn_rpow_const_Icc (a b p : ℝ) (ha_pos : 0 < a) :
+    ContinuousOn (fun t ↦ t ^ p) (Set.Icc a b) := by
+  apply ContinuousOn.rpow_const continuousOn_id
+  intro x hx
+  exact Or.inl (ne_of_gt (lt_of_lt_of_le ha_pos hx.1))
+
+private lemma continuousOn_rpow_toComplex (a b p : ℝ) (ha_pos : 0 < a) :
+    ContinuousOn (fun t ↦ ((t ^ p : ℝ) : ℂ)) (Set.Icc a b) :=
+  continuous_ofReal.comp_continuousOn (continuousOn_rpow_const_Icc a b p ha_pos)
+
+private lemma intervalIntegrable_term1 (σ : ℝ) (φ : ℝ → ℝ) (a b : ℝ) (hab : a ≤ b) (ha_pos : 0 < a)
+    (hφ_cont : ContinuousOn φ (Set.Icc a b))
+    (hderiv_cont : ContinuousOn (fun t ↦ deriv φ t) (Set.Icc a b))
+    (hphi_ne : ∀ t ∈ Set.Icc a b, deriv φ t ≠ 0) :
+    IntervalIntegrable
+      (fun x ↦ (x ^ (-σ - 1) : ℝ) / (2 * π * I * ↑(deriv φ x)) * e (φ x)) volume a b :=
+  (ContinuousOn.mul
+    (ContinuousOn.div
+      (continuousOn_rpow_toComplex a b (-σ - 1) ha_pos)
+      (continuousOn_denom1 φ a b hderiv_cont)
+      (denom1_ne_zero φ a b hphi_ne))
+    (continuousOn_e_comp φ _ hφ_cont)).intervalIntegrable_of_Icc hab
+
+private lemma intervalIntegrable_term2 (σ : ℝ) (φ : ℝ → ℝ) (a b : ℝ) (hab : a ≤ b) (ha_pos : 0 < a)
+    (hφ_cont : ContinuousOn φ (Set.Icc a b))
+    (hderiv_cont : ContinuousOn (fun t ↦ deriv φ t) (Set.Icc a b))
+    (hderiv2_cont : ContinuousOn (fun t ↦ deriv (deriv φ) t) (Set.Icc a b))
+    (hphi_ne : ∀ t ∈ Set.Icc a b, deriv φ t ≠ 0) :
+    IntervalIntegrable
+      (fun x ↦ (x ^ (-σ) : ℝ) * ↑(deriv (deriv φ) x) /
+        (2 * π * I * ↑(deriv φ x) ^ 2) * e (φ x)) volume a b :=
+  (ContinuousOn.mul
+    (ContinuousOn.mul
+      (ContinuousOn.mul
+        (continuousOn_rpow_toComplex a b (-σ) ha_pos)
+        (continuous_ofReal.comp_continuousOn hderiv2_cont))
+      (ContinuousOn.inv₀ (continuousOn_denom2 φ a b hderiv_cont)
+        (denom2_ne_zero φ a b hphi_ne)))
+    (continuousOn_e_comp φ _ hφ_cont)).intervalIntegrable_of_Icc hab
+
+private lemma intervalIntegrable_u' (σ : ℝ) (φ : ℝ → ℝ) (a b : ℝ) (hab : a ≤ b) (ha_pos : 0 < a)
+    (hderiv_cont : ContinuousOn (fun t ↦ deriv φ t) (Set.Icc a b))
+    (hderiv2_cont : ContinuousOn (fun t ↦ deriv (deriv φ) t) (Set.Icc a b))
+    (hphi_ne : ∀ t ∈ Set.Icc a b, deriv φ t ≠ 0) :
+    IntervalIntegrable
+      (fun t ↦ (-σ * t ^ (-σ - 1) : ℝ) / (2 * π * I * ↑(deriv φ t)) +
+        (t ^ (-σ) : ℝ) * (-↑(deriv (deriv φ) t) / (2 * π * I * ↑(deriv φ t) ^ 2)))
+      volume a b :=
+  (ContinuousOn.add
+    (ContinuousOn.div
+       (continuous_ofReal.comp_continuousOn
+         (ContinuousOn.mul continuousOn_const
+           (continuousOn_rpow_const_Icc a b (-σ - 1) ha_pos)))
+      (continuousOn_denom1 φ a b hderiv_cont)
+      (denom1_ne_zero φ a b hphi_ne))
+    (ContinuousOn.mul
+      (continuousOn_rpow_toComplex a b (-σ) ha_pos)
+      (ContinuousOn.div
+        (ContinuousOn.neg (continuous_ofReal.comp_continuousOn hderiv2_cont))
+        (continuousOn_denom2 φ a b hderiv_cont)
+        (denom2_ne_zero φ a b hphi_ne)))).intervalIntegrable_of_Icc hab
+
+private lemma hasDerivAt_inv_phaseDeriv (φ : ℝ → ℝ) (t : ℝ)
+    (hdiff2 : DifferentiableAt ℝ (deriv φ) t) (hne : deriv φ t ≠ 0) :
+    HasDerivAt (fun x ↦ (1 : ℂ) / (2 * π * I * ↑(deriv φ x)))
+      (-↑(deriv (deriv φ) t) / (2 * π * I * ↑(deriv φ t) ^ 2)) t := by
+  have hne' : (↑(deriv φ t) : ℂ) ≠ 0 := ofReal_ne_zero.mpr hne
+  have hderiv_phi : HasDerivAt (fun x ↦ (↑(deriv φ x) : ℂ)) (↑(deriv (deriv φ) t)) t :=
+    hdiff2.hasDerivAt.ofReal_comp
+  have h_2piI_phi' : HasDerivAt (fun x ↦ 2 * π * I * ↑(deriv φ x))
+      (2 * π * I * ↑(deriv (deriv φ) t)) t := hderiv_phi.const_mul (2 * π * I)
+  have hinv : HasDerivAt (fun x ↦ (2 * π * I * ↑(deriv φ x))⁻¹)
+      (-(2 * π * I * ↑(deriv (deriv φ) t)) / (2 * π * I * ↑(deriv φ t)) ^ 2) t := by
+    have h2piI_phi'_ne : 2 * π * I * ↑(deriv φ t) ≠ 0 :=
+      mul_ne_zero h2piI_ne_zero hne'
+    have hinv_at : HasDerivAt (Inv.inv : ℂ → ℂ)
+        (-((2 * π * I * ↑(deriv φ t)) ^ 2)⁻¹) (2 * π * I * ↑(deriv φ t)) :=
+      hasDerivAt_inv h2piI_phi'_ne
+    have hcomp := hinv_at.comp t h_2piI_phi'
+    convert hcomp using 1
+    field_simp
+  convert hinv using 1
+  · funext x; simp [div_eq_mul_inv]
+  · field_simp [hne']
+
+private lemma hasDerivAt_u_full (σ : ℝ) (φ : ℝ → ℝ) (t : ℝ) (ht : 0 < t)
+    (hdiff2 : DifferentiableAt ℝ (deriv φ) t) (hne : deriv φ t ≠ 0) :
+    HasDerivAt (fun x ↦ ((x ^ (-σ) : ℝ) : ℂ) / (2 * π * I * ↑(deriv φ x)))
+      (((-σ * t ^ (-σ - 1) : ℝ) : ℂ) / (2 * π * I * ↑(deriv φ t)) +
+       ((t ^ (-σ) : ℝ) : ℂ) * (-↑(deriv (deriv φ) t) / (2 * π * I * ↑(deriv φ t) ^ 2))) t := by
+  have h1 : HasDerivAt (fun x ↦ ((x ^ (-σ) : ℝ) : ℂ)) (((-σ * t ^ (-σ - 1) : ℝ) : ℂ)) t :=
+    (hasDerivAt_rpow_const (Or.inl (ne_of_gt ht))).ofReal_comp
+  have h2 := hasDerivAt_inv_phaseDeriv φ t hdiff2 hne
+  have hprod := h1.mul h2
+  convert hprod using 1
+  · funext x
+    rw [Pi.mul_apply]
+    ring_nf
+  · ring_nf
+
+private lemma hasDerivAt_e_comp (φ : ℝ → ℝ) (t : ℝ) (hdiff : DifferentiableAt ℝ φ t) :
+    HasDerivAt (fun x ↦ e (φ x)) (2 * π * I * ↑(deriv φ t) * e (φ t)) t := by
+  have hcomp :
+      HasDerivAt (fun x ↦ cexp (2 * π * I * (φ x : ℂ)))
+        (cexp (2 * π * I * (φ t : ℂ)) * (2 * π * I * (↑(deriv φ t)))) t := by
+    exact (hasDerivAt_exp (2 * π * I * (φ t : ℂ))).comp t
+      ((hdiff.hasDerivAt.ofReal_comp).const_mul (2 * π * I))
+  simpa only [e, mul_assoc, mul_left_comm, mul_comm] using hcomp
+
+private lemma integral_Icc_eq_interval {a b : ℝ} (h : a ≤ b) (f : ℝ → ℂ) :
+    ∫ t in Set.Icc a b, f t = ∫ t in a..b, f t := by
+  rw [intervalIntegral.integral_of_le h]
+  exact MeasureTheory.integral_Icc_eq_integral_Ioc
+
+theorem integral_power_phase_ibp (σ : ℝ) (φ : ℝ → ℝ) (a b : ℝ) (hab : a < b) (ha_pos : 0 < a)
+    (h_phi_ne : ∀ t ∈ Set.Icc a b, deriv φ t ≠ 0)
+    (h_phi_diff : ∀ t ∈ Set.Icc a b, DifferentiableAt ℝ φ t)
+    (h_phi_diff2 : ∀ t ∈ Set.Icc a b, DifferentiableAt ℝ (deriv φ) t)
+    (h_phi_cont : ContinuousOn φ (Set.Icc a b))
+    (h_deriv_cont : ContinuousOn (fun t ↦ deriv φ t) (Set.Icc a b))
+    (h_deriv2_cont : ContinuousOn (fun t ↦ deriv (deriv φ) t) (Set.Icc a b)) :
+    let Φ : ℝ → ℂ := fun t ↦ (t ^ (-σ) : ℝ) * e (φ t) / (2 * π * I * (deriv φ t))
+    ∫ t in Set.Icc a b, (t ^ (-σ) : ℝ) * e (φ t) = Φ b - Φ a +
+      (σ * ∫ t in Set.Icc a b, (t ^ (-σ - 1) : ℝ) / (2 * π * I * (deriv φ t)) * e (φ t)) +
+      ∫ t in Set.Icc a b, (t ^ (-σ) : ℝ) * (deriv (deriv φ) t) /
+        (2 * π * I * (deriv φ t) ^ 2) * e (φ t) := by
+  intro Φ
+  have hab_le : a ≤ b := le_of_lt hab
+  rw [integral_Icc_eq_interval hab_le, integral_Icc_eq_interval hab_le,
+    integral_Icc_eq_interval hab_le]
+  let u : ℝ → ℂ := fun t ↦ ((t ^ (-σ) : ℝ) : ℂ) / (2 * π * I * ↑(deriv φ t))
+  let v : ℝ → ℂ := fun t ↦ e (φ t)
+  let u' : ℝ → ℂ := fun t ↦ ((-σ * t ^ (-σ - 1) : ℝ) : ℂ) / (2 * π * I * ↑(deriv φ t)) +
+      ((t ^ (-σ) : ℝ) : ℂ) * (-↑(deriv (deriv φ) t) / (2 * π * I * ↑(deriv φ t) ^ 2))
+  let v' : ℝ → ℂ := fun t ↦ 2 * π * I * ↑(deriv φ t) * e (φ t)
+  have h_uv_eq_Phi : ∀ t, u t * v t = Φ t := by
+    intro t
+    simp only [u, v, Φ]
+    ring_nf
+  have h_lhs : ∫ x in a..b, ((x ^ (-σ) : ℝ) : ℂ) * e (φ x) =
+      ∫ x in a..b, u x * v' x := by
+    apply intervalIntegral.integral_congr
+    intro x hx
+    rw [uIcc_of_le hab_le] at hx
+    simp only [u, v']
+    field_simp [h_phi_ne x hx]
+  rw [h_lhs]
+  have h_ibp : (∫ x in a..b, u x * v' x) = u b * v b - u a * v a - ∫ x in a..b, u' x * v x := by
+    have hIoo_to_Icc : ∀ {x : ℝ}, x ∈ Set.Ioo (min a b) (max a b) → x ∈ Set.Icc a b := by
+      intro x hx
+      rw [min_eq_left hab_le, max_eq_right hab_le] at hx
+      exact Ioo_subset_Icc_self hx
+    exact intervalIntegral.integral_mul_deriv_eq_deriv_mul_of_hasDerivAt
+      (by
+        rw [uIcc_of_le hab_le]
+        exact ContinuousOn.div
+          (continuousOn_rpow_toComplex a b (-σ) ha_pos)
+          (continuousOn_denom1 φ a b h_deriv_cont)
+          (denom1_ne_zero φ a b h_phi_ne))
+      (by
+        rw [uIcc_of_le hab_le]
+        exact continuousOn_e_comp φ _ h_phi_cont)
+      (by
+        intro x hx
+        have hx_in : x ∈ Set.Icc a b := hIoo_to_Icc hx
+        have hx_pos : 0 < x := lt_of_lt_of_le ha_pos hx_in.1
+        exact hasDerivAt_u_full σ φ x hx_pos (h_phi_diff2 x hx_in) (h_phi_ne x hx_in))
+      (by
+        intro x hx
+        exact hasDerivAt_e_comp φ x (h_phi_diff x (hIoo_to_Icc hx)))
+      (by simpa [u'] using
+        intervalIntegrable_u' σ φ a b hab_le ha_pos h_deriv_cont h_deriv2_cont h_phi_ne)
+      (by simpa [v'] using intervalIntegrable_v' φ a b hab_le h_phi_cont h_deriv_cont)
+  rw [h_ibp]
+  simp only [h_uv_eq_Phi, sub_eq_add_neg, ← intervalIntegral.integral_neg, add_assoc]
+  congr 1
+  have h_cong : ∫ x in a..b, -(u' x * v x) =
+      ∫ x in a..b,
+        (σ * (((x ^ (-σ - 1) : ℝ) : ℂ) / (2 * π * I * ↑(deriv φ x)) * e (φ x)) +
+          ((x ^ (-σ) : ℝ) : ℂ) * ↑(deriv (deriv φ) x) /
+            (2 * π * I * ↑(deriv φ x) ^ 2) * e (φ x)) := by
+    apply intervalIntegral.integral_congr
+    intro x hx
+    simp only [u', v]
+    rw [neg_mul, show (↑(-(σ * x ^ (-σ - 1))) : ℂ) = -((↑σ : ℂ) * ↑(x ^ (-σ - 1))) by norm_cast]
+    ring_nf
+  have h_int_term1 : IntervalIntegrable
+      (fun x ↦ ((x ^ (-σ - 1) : ℝ) : ℂ) / (2 * π * I * ↑(deriv φ x)) * e (φ x)) volume a b :=
+    intervalIntegrable_term1 σ φ a b hab_le ha_pos h_phi_cont h_deriv_cont h_phi_ne
+  have h_int_term2 : IntervalIntegrable
+      (fun x ↦ ((x ^ (-σ) : ℝ) : ℂ) * ↑(deriv (deriv φ) x) /
+        (2 * π * I * ↑(deriv φ x) ^ 2) * e (φ x)) volume a b :=
+    intervalIntegrable_term2 σ φ a b hab_le ha_pos h_phi_cont h_deriv_cont h_deriv2_cont h_phi_ne
+  rw [h_cong, intervalIntegral.integral_add (h_int_term1.const_mul σ) h_int_term2,
+      intervalIntegral.integral_const_mul, sub_eq_add_neg]
+
+theorem cpow_split_re_im (t : ℝ) (s : ℂ) (ht : 0 < t) :
+    (t : ℂ) ^ s = (t : ℂ) ^ (s.re : ℂ) * cexp ((s.im * I) * Real.log t) := by
+  have ht0 : (t : ℂ) ≠ 0 := ne_zero_of_re_pos ht
+  conv_lhs => rw [← re_add_im s]
+  rw [cpow_add _ _ ht0]
+  congr 1
+  rw [cpow_def_of_ne_zero ht0, ofReal_log ht.le, mul_comm]
+
+private lemma phase_rewrite (t : ℝ) (s : ℂ) (ν : ℝ) (ht : 0 < t) :
+    (t : ℂ) ^ (-s) * e (ν * t) =
+      ((t ^ (-s.re) : ℝ) : ℂ) * e (ν * t - (s.im / (2 * π)) * Real.log t) := by
+  have hsplit := cpow_split_re_im t (-s) ht
+  calc
+    (t : ℂ) ^ (-s) * e (ν * t) =
+        ((t : ℂ) ^ ((-s).re : ℂ)) *
+          (cexp (((-s).im * I) * Real.log t) * cexp (2 * π * I * (ν * t))) := by
+      rw [hsplit, mul_assoc]
+      congr 2
+      rw [e, ofReal_mul]
+    _ = ((t : ℂ) ^ ((-s).re : ℂ)) * cexp (((-s).im * I) * Real.log t + 2 * π * I * (ν * t)) := by
+      rw [mul_assoc, ← Complex.exp_add]
+    _ = ((t ^ (-s.re) : ℝ) : ℂ) *
+        cexp (2 * π * I * (ν * t - (s.im / (2 * π)) * Real.log t)) := by
+      congr 1
+      · rw [neg_re, ofReal_cpow ht.le]
+      · congr 1
+        rw [neg_im, ofReal_neg, neg_mul]
+        field_simp
+        ring_nf
+    _ = ((t ^ (-s.re) : ℝ) : ℂ) * e (ν * t - (s.im / (2 * π)) * Real.log t) := by
+      simp only [e, ofReal_sub, ofReal_mul, ofReal_div, ofReal_ofNat]
+
+private lemma deriv_linear_sub_log (ν c : ℝ) (t : ℝ) (ht : t ≠ 0) :
+    deriv (fun t ↦ ν * t - c * Real.log t) t = ν - c * t⁻¹ := by
+  have hf : deriv (fun t ↦ ν * t) t = ν := by
+    simpa [mul_comm] using ((hasDerivAt_id t).const_mul ν).deriv
+  have hg : deriv (fun t ↦ c * Real.log t) t = c * t⁻¹ := by
+    rw [deriv_const_mul_field, Real.deriv_log]
+  have hdiff_f : DifferentiableAt ℝ (fun t ↦ ν * t) t := by fun_prop
+  have hdiff_g : DifferentiableAt ℝ (fun t ↦ c * Real.log t) t :=
+    (Real.differentiableAt_log ht).const_mul c
+  rw [deriv_fun_sub hdiff_f hdiff_g, hf, hg]
+
+private lemma phi_deriv_ne_zero (s : ℂ) (ν a t : ℝ)
+    (ha : a > |s.im| / (2 * π * |ν|)) (ha_pos : 0 < a) (hν : ν ≠ 0)
+    (ht : a ≤ t) :
+    deriv (fun t ↦ ν * t - s.im / (2 * π) * Real.log t) t ≠ 0 := by
+  have ht_pos : 0 < t := lt_of_lt_of_le ha_pos ht
+  rw [deriv_linear_sub_log ν (s.im / (2 * π)) t ht_pos.ne']
+  intro hzero
+  have h_eq : s.im = 2 * π * ν * t := by
+    field_simp at hzero
+    linarith [hzero]
+  have hpi_pos : 0 < (2 * π : ℝ) := by positivity
+  have h_abs : |s.im| = 2 * π * |ν| * t := by
+    rw [h_eq, abs_mul, abs_mul, abs_of_pos hpi_pos, abs_of_pos ht_pos]
+  absurd ha
+  rw [not_lt, h_abs]
+  field_simp
+  exact ht
+
 blueprint_comment /--
 \subsection{The decay of a Fourier transform}
 Our first objective will be to estimate the Fourier transform of
@@ -98,17 +396,55 @@ while
 -/)
   (latexEnv := "lemma")
   (discussion := 546)]
-theorem lemma_aachIBP (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 0) (a b : ℝ)
+theorem lemma_aachIBP (s : ℂ) (ν : ℝ) (hν : ν ≠ 0) (a b : ℝ)
     (ha : a > |s.im| / (2 * π * |ν|)) (hb : b > a) :
     let φ : ℝ → ℝ := fun t ↦ ν * t - (s.im / (2 * π)) * Real.log t
     let Φ : ℝ → ℂ := fun t ↦
       (t ^ (-s.re) : ℝ) * e (φ t) / (2 * π * I * (deriv φ t))
     ∫ t in Set.Icc a b, t ^ (-s) * e (ν * t) = Φ b - Φ a +
-      s.re * ∫ t in Set.Icc a b,
-        (t ^ (-s.re - 1) : ℝ) / (2 * π * I * (deriv φ t)) * e (φ t) +
+      (s.re * ∫ t in Set.Icc a b,
+        (t ^ (-s.re - 1) : ℝ) / (2 * π * I * (deriv φ t)) * e (φ t)) +
       ∫ t in Set.Icc a b, (t ^ (-s.re) : ℝ) * (deriv (deriv φ) t) /
         (2 * π * I * (deriv φ t) ^ 2) * e (φ t) := by
-  sorry
+  have ha_pos : 0 < a := lt_of_le_of_lt (div_nonneg (abs_nonneg _) (by positivity)) ha
+  intro φ Φ
+  have hIcc_pos : Set.Icc a b ⊆ Set.Ioi 0 := fun t ht ↦ lt_of_lt_of_le ha_pos ht.1
+  have h_lhs : ∫ t in Set.Icc a b, t ^ (-s) * e (ν * t) =
+      ∫ t in Set.Icc a b, (t ^ (-s.re) : ℝ) * e (φ t) := by
+    refine setIntegral_congr_fun measurableSet_Icc ?_
+    intro t ht
+    simpa [φ] using phase_rewrite t s ν (hIcc_pos ht)
+  rw [h_lhs]
+  have h_phi_ne : ∀ t ∈ Set.Icc a b, deriv φ t ≠ 0 := by
+    intro t ht
+    exact phi_deriv_ne_zero s ν a t ha ha_pos hν ht.1
+  have hsmooth : ContDiffOn ℝ 2 φ (Set.Ioi 0) := by
+    simp only [φ]
+    apply ContDiffOn.sub
+    · fun_prop
+    · apply ContDiffOn.mul contDiffOn_const
+      exact contDiffOn_log.mono (fun x hx ↦ ne_of_gt hx)
+  have h_diff : ∀ t ∈ Set.Icc a b, DifferentiableAt ℝ φ t :=
+    fun t ht ↦ (hsmooth.differentiableOn (by norm_num)).differentiableAt
+      (Ioi_mem_nhds (hIcc_pos ht))
+  have h_diff2 : ∀ t ∈ Set.Icc a b, DifferentiableAt ℝ (deriv φ) t := by
+    intro t ht
+    have h := hsmooth.contDiffAt (Ioi_mem_nhds (hIcc_pos ht))
+    have h1 : ContDiffAt ℝ 1 (deriv φ) t := h.derivWithin (by norm_num)
+    exact h1.differentiableAt (by norm_num)
+  have h_cont : ContinuousOn φ (Set.Icc a b) :=
+    (hsmooth.mono (fun x hx ↦ lt_of_lt_of_le ha_pos hx.1)).continuousOn
+  have h_deriv_cont : ContinuousOn (fun t ↦ deriv φ t) (Set.Icc a b) := by
+    have h1 : ContinuousOn (deriv φ) (Set.Ioi 0) :=
+      hsmooth.continuousOn_deriv_of_isOpen isOpen_Ioi (by norm_num)
+    exact h1.mono (fun x hx ↦ lt_of_lt_of_le ha_pos hx.1)
+  have h_deriv2_cont : ContinuousOn (fun t ↦ deriv (deriv φ) t) (Set.Icc a b) := by
+    have h1 : ContDiffOn ℝ 1 (deriv φ) (Set.Ioi 0) :=
+      ((contDiffOn_succ_iff_deriv_of_isOpen isOpen_Ioi).mp hsmooth).2.2
+    exact (h1.continuousOn_deriv_of_isOpen isOpen_Ioi (by norm_num)).mono
+      (fun x hx ↦ lt_of_lt_of_le ha_pos hx.1)
+  exact integral_power_phase_ibp s.re φ a b hb ha_pos h_phi_ne h_diff h_diff2
+    h_cont h_deriv_cont h_deriv2_cont
 
 @[blueprint
   "lem:aachra"
