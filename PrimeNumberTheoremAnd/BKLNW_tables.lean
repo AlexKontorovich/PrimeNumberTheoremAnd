@@ -147,8 +147,6 @@ lemma check_row_prop_of_bounds {b M m eps c1 c2 c3 : ℝ}
 --   rw [← pow_lt_pow_iff_left₀ (by positivity) (n := 3), ← rpow_mul_natCast] <;> norm_num only
 
 set_option maxRecDepth 10000 in
-set_option maxHeartbeats 2000000 in
--- Large table membership proof requires extra simp recursion/heartbeats.
 @[blueprint
   "bklnw-table-14-check"
   (statement := /-- The entries in Table 14 obey the criterion in Sublemma \ref{bklnw-thm-1a-checked}. -/)
@@ -156,13 +154,12 @@ set_option maxHeartbeats 2000000 in
   (discussion := 808)]
 theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_row_prop (b, M, m) := by
   classical
-  simp [table_14] at h_table
+  simp only [table_14, List.mem_cons, List.not_mem_nil, or_false] at h_table
   rcases h_table with h_table | h_table
-  ·
-    rcases h_table with ⟨rfl, rfl, rfl⟩
+  · rcases h_table with ⟨rfl, rfl, rfl⟩
     have hb : (20 : ℝ) ≤ 20 := by norm_num
     have hrow : BKLNW_app.table_8_ε 20 ≤ 4.2676e-5 :=
-      BKLNW_app.table_8_ε_le_of_row (b₀ := 20) (ε := 4.2676e-5) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+      BKLNW_app.table_8_ε_le_of_row (b₀ := 20) (ε := 4.2676e-5) (BKLNW_app.table_8_mem_20) (by exact le_rfl)
     have h_epsM : (4.2676e-5 : ℝ) ≤ 4.2676e-5 * table_14_margin := by norm_num [table_14_margin]
     have h1 : exp (-20 / 2) ≤ exp_neg_one_ub ^ 10 := by
       simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=10) (x:=20/2) (by norm_num))
@@ -183,13 +180,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
     have hbound : (4.2676e-5 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 10 + 1.62e-6 + exp_neg_one_ub ^ 16) ≤ 9.1639e-5 * table_14_margin := by
       norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
     exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-  ·
-    rcases h_table with h_table | h_table
-    ·
-      rcases h_table with ⟨rfl, rfl, rfl⟩
+  · rcases h_table with h_table | h_table
+    · rcases h_table with ⟨rfl, rfl, rfl⟩
       have hb : (20 : ℝ) ≤ 25 := by norm_num
       have hrow : BKLNW_app.table_8_ε 25 ≤ 3.5032e-6 :=
-        BKLNW_app.table_8_ε_le_of_row (b₀ := 25) (ε := 3.5032e-6) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+        BKLNW_app.table_8_ε_le_of_row (b₀ := 25) (ε := 3.5032e-6) (BKLNW_app.table_8_mem_25) (by exact le_rfl)
       have h_epsM : (3.5032e-6 : ℝ) ≤ 3.5031e-6 * table_14_margin := by norm_num [table_14_margin]
       have h1 : exp (-25 / 2) ≤ 3.73e-6 := by
         have h1' : exp (-25 / 2) ≤ exp_neg_one_ub ^ ((25:ℝ) / 2) := by
@@ -215,13 +210,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
       have hbound : (3.5032e-6 : ℝ) + RS_prime.c₀ * (3.73e-6 + 5.78e-8 + exp_neg_one_ub ^ 20) ≤ 7.4366e-6 * table_14_margin := by
         norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
       exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-    ·
-      rcases h_table with h_table | h_table
-      ·
-        rcases h_table with ⟨rfl, rfl, rfl⟩
+    · rcases h_table with h_table | h_table
+      · rcases h_table with ⟨rfl, rfl, rfl⟩
         have hb : (20 : ℝ) ≤ 30 := by norm_num
         have hrow : BKLNW_app.table_8_ε 30 ≤ 2.8756e-7 :=
-          BKLNW_app.table_8_ε_le_of_row (b₀ := 30) (ε := 2.8756e-7) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+          BKLNW_app.table_8_ε_le_of_row (b₀ := 30) (ε := 2.8756e-7) (BKLNW_app.table_8_mem_30) (by exact le_rfl)
         have h_epsM : (2.8756e-7 : ℝ) ≤ 2.8755e-7 * table_14_margin := by norm_num [table_14_margin]
         have h1 : exp (-30 / 2) ≤ exp_neg_one_ub ^ 15 := by
           simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=15) (x:=30/2) (by norm_num))
@@ -232,13 +225,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
         have hbound : (2.8756e-7 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 15 + exp_neg_one_ub ^ 20 + exp_neg_one_ub ^ 24) ≤ 6.0751e-7 * table_14_margin := by
           norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
         exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-      ·
-        rcases h_table with h_table | h_table
-        ·
-          rcases h_table with ⟨rfl, rfl, rfl⟩
+      · rcases h_table with h_table | h_table
+        · rcases h_table with ⟨rfl, rfl, rfl⟩
           have hb : (20 : ℝ) ≤ 35 := by norm_num
           have hrow : BKLNW_app.table_8_ε 35 ≤ 2.3604e-8 :=
-            BKLNW_app.table_8_ε_le_of_row (b₀ := 35) (ε := 2.3604e-8) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+            BKLNW_app.table_8_ε_le_of_row (b₀ := 35) (ε := 2.3604e-8) (BKLNW_app.table_8_mem_35) (by exact le_rfl)
           have h_epsM : (2.3604e-8 : ℝ) ≤ 2.3603e-8 * table_14_margin := by norm_num [table_14_margin]
           have h1 : exp (-35 / 2) ≤ 2.52e-8 := by
             have h1' : exp (-35 / 2) ≤ exp_neg_one_ub ^ ((35:ℝ) / 2) := by
@@ -264,13 +255,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
           have hbound : (2.3604e-8 : ℝ) + RS_prime.c₀ * (2.52e-8 + 7.36e-11 + exp_neg_one_ub ^ 28) ≤ 4.9766e-8 * table_14_margin := by
             norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
           exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-        ·
-          rcases h_table with h_table | h_table
-          ·
-            rcases h_table with ⟨rfl, rfl, rfl⟩
+        · rcases h_table with h_table | h_table
+          · rcases h_table with ⟨rfl, rfl, rfl⟩
             have hb : (20 : ℝ) ≤ 40 := by norm_num
             have hrow : BKLNW_app.table_8_ε 40 ≤ 1.9339e-8 :=
-              BKLNW_app.table_8_ε_le_of_row (b₀ := 40) (ε := 1.9339e-8) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+              BKLNW_app.table_8_ε_le_of_row (b₀ := 40) (ε := 1.9339e-8) (BKLNW_app.table_8_mem_40) (by exact le_rfl)
             have h_epsM : (1.9339e-8 : ℝ) ≤ 1.9338e-8 * table_14_margin := by norm_num [table_14_margin]
             have h1 : exp (-40 / 2) ≤ exp_neg_one_ub ^ 20 := by
               simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=20) (x:=40/2) (by norm_num))
@@ -281,10 +270,8 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
             have hbound : (1.9339e-8 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 20 + exp_neg_one_ub ^ 26 + exp_neg_one_ub ^ 32) ≤ 2.1482e-8 * table_14_margin := by
               norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
             exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-          ·
-            rcases h_table with h_table | h_table
-            ·
-              rcases h_table with ⟨rfl, rfl, rfl⟩
+          · rcases h_table with h_table | h_table
+            · rcases h_table with ⟨rfl, rfl, rfl⟩
               have h_log_approx : 43 < 19 * log 10 ∧ 19 * log 10 < 44 := by
                 rw [← log_rpow, lt_log_iff_exp_lt, log_lt_iff_lt_exp] <;> norm_num
                 refine ⟨?_, ?_⟩
@@ -297,21 +284,21 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
               have hb : (20 : ℝ) ≤ 19 * log 10 := by linarith [h_log_approx.1]
               have hrow : BKLNW_app.table_8_ε (19 * log 10) ≤ 1.9339e-8 :=
                 BKLNW_app.table_8_ε_le_of_row (b₀ := 40) (ε := 1.9339e-8)
-                  (by simp [BKLNW_app.table_8]) (by linarith [h_log_approx.1])
+                  (BKLNW_app.table_8_mem_40) (by linarith [h_log_approx.1])
               have h_epsM : (1.9339e-8 : ℝ) ≤ 1.9338e-8 * table_14_margin := by norm_num [table_14_margin]
               have h1 : exp (-(19 * log 10) / 2) ≤ 3.17e-10 := by
                 have h1' : exp (-(19 * log 10) / 2) = (1/10 : ℝ) ^ ((19:ℝ) / 2) := by
                   have hmul : -(19 * log 10) / 2 = (log 10) * (-(19 : ℝ) / 2) := by ring
                   calc
                     exp (-(19 * log 10) / 2) = exp (log 10 * (-(19 : ℝ) / 2)) := by
-                      simpa [hmul]
+                      simp [hmul]
                     _ = exp (log 10) ^ (-(19 : ℝ) / 2) := by
                       simpa using (Real.exp_mul (log 10) (-(19 : ℝ) / 2))
                     _ = exp (log 10) ^ (-( (19:ℝ) / 2)) := by
-                      simpa [neg_div]
+                      simp [neg_div]
                     _ = (10 : ℝ) ^ (-( (19:ℝ) / 2)) := by
                       have h10 : (0 : ℝ) < 10 := by norm_num
-                      simpa [Real.exp_log h10]
+                      simp [Real.exp_log h10]
                     _ = (1/10 : ℝ) ^ ((19:ℝ) / 2) := by
                       simpa [one_div] using (rpow_neg_eq_inv_rpow (10:ℝ) ((19:ℝ) / 2))
                 have h1'' : (1/10 : ℝ) ^ ((19:ℝ) / 2) ≤ 3.17e-10 := by
@@ -326,16 +313,16 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                   have hmul : -(2 * (19 * log 10)) / 3 = (log 10) * (-(38 : ℝ) / 3) := by ring
                   calc
                     exp (-2 * (19 * log 10) / 3) = exp (-(2 * (19 * log 10)) / 3) := by
-                      ring
+                      ring_nf
                     _ = exp (log 10 * (-(38 : ℝ) / 3)) := by
-                      simpa [hmul]
+                      simp [hmul]
                     _ = exp (log 10) ^ (-(38 : ℝ) / 3) := by
                       simpa using (Real.exp_mul (log 10) (-(38 : ℝ) / 3))
                     _ = exp (log 10) ^ (-( (38:ℝ) / 3)) := by
-                      simpa [neg_div]
+                      simp [neg_div]
                     _ = (10 : ℝ) ^ (-( (38:ℝ) / 3)) := by
                       have h10 : (0 : ℝ) < 10 := by norm_num
-                      simpa [Real.exp_log h10]
+                      simp [Real.exp_log h10]
                     _ = (1/10 : ℝ) ^ ((38:ℝ) / 3) := by
                       simpa [one_div] using (rpow_neg_eq_inv_rpow (10:ℝ) ((38:ℝ) / 3))
                 have h2'' : (1/10 : ℝ) ^ ((38:ℝ) / 3) ≤ 2.16e-13 := by
@@ -352,16 +339,16 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                   have hmul : -(4 * (19 * log 10)) / 5 = (log 10) * (-(76 : ℝ) / 5) := by ring
                   calc
                     exp (-4 * (19 * log 10) / 5) = exp (-(4 * (19 * log 10)) / 5) := by
-                      ring
+                      ring_nf
                     _ = exp (log 10 * (-(76 : ℝ) / 5)) := by
-                      simpa [hmul]
+                      simp [hmul]
                     _ = exp (log 10) ^ (-(76 : ℝ) / 5) := by
                       simpa using (Real.exp_mul (log 10) (-(76 : ℝ) / 5))
                     _ = exp (log 10) ^ (-( (76:ℝ) / 5)) := by
-                      simpa [neg_div]
+                      simp [neg_div]
                     _ = (10 : ℝ) ^ (-( (76:ℝ) / 5)) := by
                       have h10 : (0 : ℝ) < 10 := by norm_num
-                      simpa [Real.exp_log h10]
+                      simp [Real.exp_log h10]
                     _ = (1/10 : ℝ) ^ ((76:ℝ) / 5) := by
                       simpa [one_div] using (rpow_neg_eq_inv_rpow (10:ℝ) ((76:ℝ) / 5))
                 have h3'' : (1/10 : ℝ) ^ ((76:ℝ) / 5) ≤ 6.32e-16 := by
@@ -376,13 +363,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
               have hbound : (1.9339e-8 : ℝ) + RS_prime.c₀ * (3.17e-10 + 2.16e-13 + 6.32e-16) ≤ 1.9667e-8 * table_14_margin := by
                 norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
               exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-            ·
-              rcases h_table with h_table | h_table
-              ·
-                rcases h_table with ⟨rfl, rfl, rfl⟩
+            · rcases h_table with h_table | h_table
+              · rcases h_table with ⟨rfl, rfl, rfl⟩
                 have hb : (20 : ℝ) ≤ 45 := by norm_num
                 have hrow : BKLNW_app.table_8_ε 45 ≤ 1.0908e-8 :=
-                  BKLNW_app.table_8_ε_le_of_row (b₀ := 45) (ε := 1.0908e-8) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                  BKLNW_app.table_8_ε_le_of_row (b₀ := 45) (ε := 1.0908e-8) (BKLNW_app.table_8_mem_45) (by exact le_rfl)
                 have h_epsM : (1.0908e-8 : ℝ) ≤ 1.0907e-8 * table_14_margin := by norm_num [table_14_margin]
                 have h1 : exp (-45 / 2) ≤ 1.70e-10 := by
                   have h1' : exp (-45 / 2) ≤ exp_neg_one_ub ^ ((45:ℝ) / 2) := by
@@ -398,13 +383,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                 have hbound : (1.0908e-8 : ℝ) + RS_prime.c₀ * (1.70e-10 + exp_neg_one_ub ^ 30 + exp_neg_one_ub ^ 36) ≤ 1.1084e-8 * table_14_margin := by
                   norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                 exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-              ·
-                rcases h_table with h_table | h_table
-                ·
-                  rcases h_table with ⟨rfl, rfl, rfl⟩
+              · rcases h_table with h_table | h_table
+                · rcases h_table with ⟨rfl, rfl, rfl⟩
                   have hb : (20 : ℝ) ≤ 50 := by norm_num
                   have hrow : BKLNW_app.table_8_ε 50 ≤ 1.1200e-9 :=
-                    BKLNW_app.table_8_ε_le_of_row (b₀ := 50) (ε := 1.1200e-9) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                    BKLNW_app.table_8_ε_le_of_row (b₀ := 50) (ε := 1.1200e-9) (BKLNW_app.table_8_mem_50) (by exact le_rfl)
                   have h_epsM : (1.1200e-9 : ℝ) ≤ 1.1199e-9 * table_14_margin := by norm_num [table_14_margin]
                   have h1 : exp (-50 / 2) ≤ exp_neg_one_ub ^ 25 := by
                     simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=25) (x:=50/2) (by norm_num))
@@ -415,13 +398,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                   have hbound : (1.1200e-9 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 25 + exp_neg_one_ub ^ 33 + exp_neg_one_ub ^ 40) ≤ 1.1344e-9 * table_14_margin := by
                     norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                   exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                ·
-                  rcases h_table with h_table | h_table
-                  ·
-                    rcases h_table with ⟨rfl, rfl, rfl⟩
+                · rcases h_table with h_table | h_table
+                  · rcases h_table with ⟨rfl, rfl, rfl⟩
                     have hb : (20 : ℝ) ≤ 60 := by norm_num
                     have hrow : BKLNW_app.table_8_ε 60 ≤ 1.2216e-11 :=
-                      BKLNW_app.table_8_ε_le_of_row (b₀ := 60) (ε := 1.2216e-11) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                      BKLNW_app.table_8_ε_le_of_row (b₀ := 60) (ε := 1.2216e-11) (BKLNW_app.table_8_mem_60) (by exact le_rfl)
                     have h_epsM : (1.2216e-11 : ℝ) ≤ 1.2215e-11 * table_14_margin := by norm_num [table_14_margin]
                     have h1 : exp (-60 / 2) ≤ exp_neg_one_ub ^ 30 := by
                       simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=30) (x:=60/2) (by norm_num))
@@ -432,13 +413,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                     have hbound : (1.2216e-11 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 30 + exp_neg_one_ub ^ 40 + exp_neg_one_ub ^ 48) ≤ 1.2312e-11 * table_14_margin := by
                       norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                     exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                  ·
-                    rcases h_table with h_table | h_table
-                    ·
-                      rcases h_table with ⟨rfl, rfl, rfl⟩
+                  · rcases h_table with h_table | h_table
+                    · rcases h_table with ⟨rfl, rfl, rfl⟩
                       have hb : (20 : ℝ) ≤ 70 := by norm_num
                       have hrow : BKLNW_app.table_8_ε 70 ≤ 2.7924e-12 :=
-                        BKLNW_app.table_8_ε_le_of_row (b₀ := 70) (ε := 2.7924e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                        BKLNW_app.table_8_ε_le_of_row (b₀ := 70) (ε := 2.7924e-12) (BKLNW_app.table_8_mem_70) (by exact le_rfl)
                       have h_epsM : (2.7924e-12 : ℝ) ≤ 2.7923e-12 * table_14_margin := by norm_num [table_14_margin]
                       have h1 : exp (-70 / 2) ≤ exp_neg_one_ub ^ 35 := by
                         simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=35) (x:=70/2) (by norm_num))
@@ -449,13 +428,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                       have hbound : (2.7924e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 35 + exp_neg_one_ub ^ 46 + exp_neg_one_ub ^ 56) ≤ 2.7930e-12 * table_14_margin := by
                         norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                       exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                    ·
-                      rcases h_table with h_table | h_table
-                      ·
-                        rcases h_table with ⟨rfl, rfl, rfl⟩
+                    · rcases h_table with h_table | h_table
+                      · rcases h_table with ⟨rfl, rfl, rfl⟩
                         have hb : (20 : ℝ) ≤ 80 := by norm_num
                         have hrow : BKLNW_app.table_8_ε 80 ≤ 2.6109e-12 :=
-                          BKLNW_app.table_8_ε_le_of_row (b₀ := 80) (ε := 2.6109e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                          BKLNW_app.table_8_ε_le_of_row (b₀ := 80) (ε := 2.6109e-12) (BKLNW_app.table_8_mem_80) (by exact le_rfl)
                         have h_epsM : (2.6109e-12 : ℝ) ≤ 2.6108e-12 * table_14_margin := by norm_num [table_14_margin]
                         have h1 : exp (-80 / 2) ≤ exp_neg_one_ub ^ 40 := by
                           simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=40) (x:=80/2) (by norm_num))
@@ -466,13 +443,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                         have hbound : (2.6109e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 40 + exp_neg_one_ub ^ 53 + exp_neg_one_ub ^ 64) ≤ 2.6108e-12 * table_14_margin := by
                           norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                         exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                      ·
-                        rcases h_table with h_table | h_table
-                        ·
-                          rcases h_table with ⟨rfl, rfl, rfl⟩
+                      · rcases h_table with h_table | h_table
+                        · rcases h_table with ⟨rfl, rfl, rfl⟩
                           have hb : (20 : ℝ) ≤ 90 := by norm_num
                           have hrow : BKLNW_app.table_8_ε 90 ≤ 2.5214e-12 :=
-                            BKLNW_app.table_8_ε_le_of_row (b₀ := 90) (ε := 2.5214e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                            BKLNW_app.table_8_ε_le_of_row (b₀ := 90) (ε := 2.5214e-12) (BKLNW_app.table_8_mem_90) (by exact le_rfl)
                           have h_epsM : (2.5214e-12 : ℝ) ≤ 2.5213e-12 * table_14_margin := by norm_num [table_14_margin]
                           have h1 : exp (-90 / 2) ≤ exp_neg_one_ub ^ 45 := by
                             simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=45) (x:=90/2) (by norm_num))
@@ -483,13 +458,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                           have hbound : (2.5214e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 45 + exp_neg_one_ub ^ 60 + exp_neg_one_ub ^ 72) ≤ 2.5213e-12 * table_14_margin := by
                             norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                           exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                        ·
-                          rcases h_table with h_table | h_table
-                          ·
-                            rcases h_table with ⟨rfl, rfl, rfl⟩
+                        · rcases h_table with h_table | h_table
+                          · rcases h_table with ⟨rfl, rfl, rfl⟩
                             have hb : (20 : ℝ) ≤ 100 := by norm_num
                             have hrow : BKLNW_app.table_8_ε 100 ≤ 2.4531e-12 :=
-                              BKLNW_app.table_8_ε_le_of_row (b₀ := 100) (ε := 2.4531e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                              BKLNW_app.table_8_ε_le_of_row (b₀ := 100) (ε := 2.4531e-12) (BKLNW_app.table_8_mem_100) (by exact le_rfl)
                             have h_epsM : (2.4531e-12 : ℝ) ≤ 2.4530e-12 * table_14_margin := by norm_num [table_14_margin]
                             have h1 : exp (-100 / 2) ≤ exp_neg_one_ub ^ 50 := by
                               simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=50) (x:=100/2) (by norm_num))
@@ -500,13 +473,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                             have hbound : (2.4531e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 50 + exp_neg_one_ub ^ 66 + exp_neg_one_ub ^ 80) ≤ 2.4530e-12 * table_14_margin := by
                               norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                             exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                          ·
-                            rcases h_table with h_table | h_table
-                            ·
-                              rcases h_table with ⟨rfl, rfl, rfl⟩
+                          · rcases h_table with h_table | h_table
+                            · rcases h_table with ⟨rfl, rfl, rfl⟩
                               have hb : (20 : ℝ) ≤ 200 := by norm_num
                               have hrow : BKLNW_app.table_8_ε 200 ≤ 2.1816e-12 :=
-                                BKLNW_app.table_8_ε_le_of_row (b₀ := 200) (ε := 2.1816e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                BKLNW_app.table_8_ε_le_of_row (b₀ := 200) (ε := 2.1816e-12) (BKLNW_app.table_8_mem_200) (by exact le_rfl)
                               have h_epsM : (2.1816e-12 : ℝ) ≤ 2.1815e-12 * table_14_margin := by norm_num [table_14_margin]
                               have h1 : exp (-200 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                 simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=200/2) (by norm_num))
@@ -517,13 +488,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                               have hbound : (2.1816e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.1816e-12 * table_14_margin := by
                                 norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                               exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                            ·
-                              rcases h_table with h_table | h_table
-                              ·
-                                rcases h_table with ⟨rfl, rfl, rfl⟩
+                            · rcases h_table with h_table | h_table
+                              · rcases h_table with ⟨rfl, rfl, rfl⟩
                                 have hb : (20 : ℝ) ≤ 300 := by norm_num
                                 have hrow : BKLNW_app.table_8_ε 300 ≤ 2.0903e-12 :=
-                                  BKLNW_app.table_8_ε_le_of_row (b₀ := 300) (ε := 2.0903e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                  BKLNW_app.table_8_ε_le_of_row (b₀ := 300) (ε := 2.0903e-12) (BKLNW_app.table_8_mem_300) (by exact le_rfl)
                                 have h_epsM : (2.0903e-12 : ℝ) ≤ 2.0902e-12 * table_14_margin := by norm_num [table_14_margin]
                                 have h1 : exp (-300 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                   simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=300/2) (by norm_num))
@@ -534,13 +503,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                 have hbound : (2.0903e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.0903e-12 * table_14_margin := by
                                   norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                 exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                              ·
-                                rcases h_table with h_table | h_table
-                                ·
-                                  rcases h_table with ⟨rfl, rfl, rfl⟩
+                              · rcases h_table with h_table | h_table
+                                · rcases h_table with ⟨rfl, rfl, rfl⟩
                                   have hb : (20 : ℝ) ≤ 400 := by norm_num
                                   have hrow : BKLNW_app.table_8_ε 400 ≤ 2.0399e-12 :=
-                                    BKLNW_app.table_8_ε_le_of_row (b₀ := 400) (ε := 2.0399e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                    BKLNW_app.table_8_ε_le_of_row (b₀ := 400) (ε := 2.0399e-12) (BKLNW_app.table_8_mem_400) (by exact le_rfl)
                                   have h_epsM : (2.0399e-12 : ℝ) ≤ 2.0398e-12 * table_14_margin := by norm_num [table_14_margin]
                                   have h1 : exp (-400 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                     simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=400/2) (by norm_num))
@@ -551,13 +518,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                   have hbound : (2.0399e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.0399e-12 * table_14_margin := by
                                     norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                   exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                ·
-                                  rcases h_table with h_table | h_table
-                                  ·
-                                    rcases h_table with ⟨rfl, rfl, rfl⟩
+                                · rcases h_table with h_table | h_table
+                                  · rcases h_table with ⟨rfl, rfl, rfl⟩
                                     have hb : (20 : ℝ) ≤ 500 := by norm_num
                                     have hrow : BKLNW_app.table_8_ε 500 ≤ 1.9999e-12 :=
-                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 500) (ε := 1.9999e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 500) (ε := 1.9999e-12) (BKLNW_app.table_8_mem_500) (by exact le_rfl)
                                     have h_epsM : (1.9999e-12 : ℝ) ≤ 1.9999e-12 * table_14_margin := by norm_num [table_14_margin]
                                     have h1 : exp (-500 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                       simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=500/2) (by norm_num))
@@ -568,13 +533,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                     have hbound : (1.9999e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.9999e-12 * table_14_margin := by
                                       norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                     exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                  ·
-                                    rcases h_table with h_table | h_table
-                                    ·
-                                      rcases h_table with ⟨rfl, rfl, rfl⟩
+                                  · rcases h_table with h_table | h_table
+                                    · rcases h_table with ⟨rfl, rfl, rfl⟩
                                       have hb : (20 : ℝ) ≤ 700 := by norm_num
                                       have hrow : BKLNW_app.table_8_ε 700 ≤ 1.9765e-12 :=
-                                        BKLNW_app.table_8_ε_le_of_row (b₀ := 700) (ε := 1.9765e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                        BKLNW_app.table_8_ε_le_of_row (b₀ := 700) (ε := 1.9765e-12) (BKLNW_app.table_8_mem_700) (by exact le_rfl)
                                       have h_epsM : (1.9765e-12 : ℝ) ≤ 1.9764e-12 * table_14_margin := by norm_num [table_14_margin]
                                       have h1 : exp (-700 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                         simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=700/2) (by norm_num))
@@ -585,13 +548,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                       have hbound : (1.9765e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.9765e-12 * table_14_margin := by
                                         norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                       exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                    ·
-                                      rcases h_table with h_table | h_table
-                                      ·
-                                        rcases h_table with ⟨rfl, rfl, rfl⟩
+                                    · rcases h_table with h_table | h_table
+                                      · rcases h_table with ⟨rfl, rfl, rfl⟩
                                         have hb : (20 : ℝ) ≤ 1000 := by norm_num
                                         have hrow : BKLNW_app.table_8_ε 1000 ≤ 1.9476e-12 :=
-                                          BKLNW_app.table_8_ε_le_of_row (b₀ := 1000) (ε := 1.9476e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                          BKLNW_app.table_8_ε_le_of_row (b₀ := 1000) (ε := 1.9476e-12) (BKLNW_app.table_8_mem_1000) (by exact le_rfl)
                                         have h_epsM : (1.9476e-12 : ℝ) ≤ 1.9475e-12 * table_14_margin := by norm_num [table_14_margin]
                                         have h1 : exp (-1000 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                           simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=1000/2) (by norm_num))
@@ -602,13 +563,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                         have hbound : (1.9476e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.9476e-12 * table_14_margin := by
                                           norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                         exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                      ·
-                                        rcases h_table with h_table | h_table
-                                        ·
-                                          rcases h_table with ⟨rfl, rfl, rfl⟩
+                                      · rcases h_table with h_table | h_table
+                                        · rcases h_table with ⟨rfl, rfl, rfl⟩
                                           have hb : (20 : ℝ) ≤ 2000 := by norm_num
                                           have hrow : BKLNW_app.table_8_ε 2000 ≤ 1.9229e-12 :=
-                                            BKLNW_app.table_8_ε_le_of_row (b₀ := 2000) (ε := 1.9229e-12) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                            BKLNW_app.table_8_ε_le_of_row (b₀ := 2000) (ε := 1.9229e-12) (BKLNW_app.table_8_mem_2000) (by exact le_rfl)
                                           have h_epsM : (1.9229e-12 : ℝ) ≤ 1.9228e-12 * table_14_margin := by norm_num [table_14_margin]
                                           have h1 : exp (-2000 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                             simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=2000/2) (by norm_num))
@@ -619,13 +578,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                           have hbound : (1.9229e-12 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.9228e-12 * table_14_margin := by
                                             norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                           exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                        ·
-                                          rcases h_table with h_table | h_table
-                                          ·
-                                            rcases h_table with ⟨rfl, rfl, rfl⟩
+                                        · rcases h_table with h_table | h_table
+                                          · rcases h_table with ⟨rfl, rfl, rfl⟩
                                             have hb : (20 : ℝ) ≤ 3000 := by norm_num
                                             have hrow : BKLNW_app.table_8_ε 3000 ≤ 4.5998e-14 :=
-                                              BKLNW_app.table_8_ε_le_of_row (b₀ := 3000) (ε := 4.5998e-14) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                              BKLNW_app.table_8_ε_le_of_row (b₀ := 3000) (ε := 4.5998e-14) (BKLNW_app.table_8_mem_3000) (by exact le_rfl)
                                             have h_epsM : (4.5998e-14 : ℝ) ≤ 4.5997e-14 * table_14_margin := by norm_num [table_14_margin]
                                             have h1 : exp (-3000 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                               simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=3000/2) (by norm_num))
@@ -636,13 +593,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                             have hbound : (4.5998e-14 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 4.5998e-14 * table_14_margin := by
                                               norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                             exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                          ·
-                                            rcases h_table with h_table | h_table
-                                            ·
-                                              rcases h_table with ⟨rfl, rfl, rfl⟩
+                                          · rcases h_table with h_table | h_table
+                                            · rcases h_table with ⟨rfl, rfl, rfl⟩
                                               have hb : (20 : ℝ) ≤ 4000 := by norm_num
                                               have hrow : BKLNW_app.table_8_ε 4000 ≤ 1.4264e-16 :=
-                                                BKLNW_app.table_8_ε_le_of_row (b₀ := 4000) (ε := 1.4264e-16) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                                BKLNW_app.table_8_ε_le_of_row (b₀ := 4000) (ε := 1.4264e-16) (BKLNW_app.table_8_mem_4000) (by exact le_rfl)
                                               have h_epsM : (1.4264e-16 : ℝ) ≤ 1.4263e-16 * table_14_margin := by norm_num [table_14_margin]
                                               have h1 : exp (-4000 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                                 simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=4000/2) (by norm_num))
@@ -653,13 +608,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                               have hbound : (1.4264e-16 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.4264e-16 * table_14_margin := by
                                                 norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                               exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                            ·
-                                              rcases h_table with h_table | h_table
-                                              ·
-                                                rcases h_table with ⟨rfl, rfl, rfl⟩
+                                            · rcases h_table with h_table | h_table
+                                              · rcases h_table with ⟨rfl, rfl, rfl⟩
                                                 have hb : (20 : ℝ) ≤ 5000 := by norm_num
                                                 have hrow : BKLNW_app.table_8_ε 5000 ≤ 5.6304e-19 :=
-                                                  BKLNW_app.table_8_ε_le_of_row (b₀ := 5000) (ε := 5.6304e-19) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                                  BKLNW_app.table_8_ε_le_of_row (b₀ := 5000) (ε := 5.6304e-19) (BKLNW_app.table_8_mem_5000) (by exact le_rfl)
                                                 have h_epsM : (5.6304e-19 : ℝ) ≤ 5.6303e-19 * table_14_margin := by norm_num [table_14_margin]
                                                 have h1 : exp (-5000 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                                   simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=5000/2) (by norm_num))
@@ -670,13 +623,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                                 have hbound : (5.6304e-19 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 5.6303e-19 * table_14_margin := by
                                                   norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                                 exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                              ·
-                                                rcases h_table with h_table | h_table
-                                                ·
-                                                  rcases h_table with ⟨rfl, rfl, rfl⟩
+                                              · rcases h_table with h_table | h_table
+                                                · rcases h_table with ⟨rfl, rfl, rfl⟩
                                                   have hb : (20 : ℝ) ≤ 7000 := by norm_num
                                                   have hrow : BKLNW_app.table_8_ε 7000 ≤ 2.0766e-23 :=
-                                                    BKLNW_app.table_8_ε_le_of_row (b₀ := 7000) (ε := 2.0766e-23) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                                    BKLNW_app.table_8_ε_le_of_row (b₀ := 7000) (ε := 2.0766e-23) (BKLNW_app.table_8_mem_7000) (by exact le_rfl)
                                                   have h_epsM : (2.0766e-23 : ℝ) ≤ 2.0765e-23 * table_14_margin := by norm_num [table_14_margin]
                                                   have h1 : exp (-7000 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                                     simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=7000/2) (by norm_num))
@@ -687,13 +638,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                                   have hbound : (2.0766e-23 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.0766e-23 * table_14_margin := by
                                                     norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                                   exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                                ·
-                                                  rcases h_table with h_table | h_table
-                                                  ·
-                                                    rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                · rcases h_table with h_table | h_table
+                                                  · rcases h_table with ⟨rfl, rfl, rfl⟩
                                                     have hb : (20 : ℝ) ≤ 10000 := by norm_num
                                                     have hrow : BKLNW_app.table_8_ε 10000 ≤ 3.7850e-29 :=
-                                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 10000) (ε := 3.7850e-29) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 10000) (ε := 3.7850e-29) (BKLNW_app.table_8_mem_10000) (by exact le_rfl)
                                                     have h_epsM : (3.7850e-29 : ℝ) ≤ 3.7849e-29 * table_14_margin := by norm_num [table_14_margin]
                                                     have h1 : exp (-10000 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                                       simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=10000/2) (by norm_num))
@@ -704,13 +653,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                                     have hbound : (3.7850e-29 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 3.7850e-29 * table_14_margin := by
                                                       norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                                     exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                                  ·
-                                                    rcases h_table with h_table | h_table
-                                                    ·
-                                                      rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                  · rcases h_table with h_table | h_table
+                                                    · rcases h_table with ⟨rfl, rfl, rfl⟩
                                                       have hb : (20 : ℝ) ≤ 11000 := by norm_num
                                                       have hrow : BKLNW_app.table_8_ε 11000 ≤ 7.1427e-31 :=
-                                                        BKLNW_app.table_8_ε_le_of_row (b₀ := 11000) (ε := 7.1427e-31) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                                        BKLNW_app.table_8_ε_le_of_row (b₀ := 11000) (ε := 7.1427e-31) (BKLNW_app.table_8_mem_11000) (by exact le_rfl)
                                                       have h_epsM : (7.1427e-31 : ℝ) ≤ 7.1426e-31 * table_14_margin := by norm_num [table_14_margin]
                                                       have h1 : exp (-11000 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                                         simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=11000/2) (by norm_num))
@@ -721,13 +668,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                                       have hbound : (7.1427e-31 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 7.1427e-31 * table_14_margin := by
                                                         norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                                       exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                                    ·
-                                                      rcases h_table with h_table | h_table
-                                                      ·
-                                                        rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                    · rcases h_table with h_table | h_table
+                                                      · rcases h_table with ⟨rfl, rfl, rfl⟩
                                                         have hb : (20 : ℝ) ≤ 12000 := by norm_num
                                                         have hrow : BKLNW_app.table_8_ε 12000 ≤ 1.5976e-32 :=
-                                                          BKLNW_app.table_8_ε_le_of_row (b₀ := 12000) (ε := 1.5976e-32) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                                          BKLNW_app.table_8_ε_le_of_row (b₀ := 12000) (ε := 1.5976e-32) (BKLNW_app.table_8_mem_12000) (by exact le_rfl)
                                                         have h_epsM : (1.5976e-32 : ℝ) ≤ 1.5975e-32 * table_14_margin := by norm_num [table_14_margin]
                                                         have h1 : exp (-12000 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                                           simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=12000/2) (by norm_num))
@@ -738,13 +683,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                                         have hbound : (1.5976e-32 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 1.5976e-32 * table_14_margin := by
                                                           norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                                         exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                                      ·
-                                                        rcases h_table with h_table | h_table
-                                                        ·
-                                                          rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                      · rcases h_table with h_table | h_table
+                                                        · rcases h_table with ⟨rfl, rfl, rfl⟩
                                                           have hb : (20 : ℝ) ≤ 13000 := by norm_num
                                                           have hrow : BKLNW_app.table_8_ε 13000 ≤ 4.1356e-34 :=
-                                                            BKLNW_app.table_8_ε_le_of_row (b₀ := 13000) (ε := 4.1356e-34) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                                            BKLNW_app.table_8_ε_le_of_row (b₀ := 13000) (ε := 4.1356e-34) (BKLNW_app.table_8_mem_13000) (by exact le_rfl)
                                                           have h_epsM : (4.1356e-34 : ℝ) ≤ 4.1355e-34 * table_14_margin := by norm_num [table_14_margin]
                                                           have h1 : exp (-13000 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                                             simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=13000/2) (by norm_num))
@@ -755,14 +698,12 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                                           have hbound : (4.1356e-34 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 4.1356e-34 * table_14_margin := by
                                                             norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                                           exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                                        ·
-                                                          rcases h_table with h_table | h_table
-                                                          ·
-                                                            rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                        · rcases h_table with h_table | h_table
+                                                          · rcases h_table with ⟨rfl, rfl, rfl⟩
                                                             have hb : (20 : ℝ) ≤ 13800.7464 := by norm_num
                                                             have hrow : BKLNW_app.table_8_ε 13800.7464 ≤ 2.5423e-35 :=
                                                               BKLNW_app.table_8_ε_le_of_row (b₀ := 13800) (ε := 2.5423e-35)
-                                                                (by simp [BKLNW_app.table_8]) (by norm_num)
+                                                                (BKLNW_app.table_8_mem_13800) (by norm_num)
                                                             have h_epsM : (2.5423e-35 : ℝ) ≤ 2.5423e-35 * table_14_margin := by norm_num [table_14_margin]
                                                             have h1 : exp (-13800.7464 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                                               simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=13800.7464/2) (by norm_num))
@@ -773,13 +714,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                                             have hbound : (2.5423e-35 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 2.5424e-35 * table_14_margin := by
                                                               norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                                             exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                                          ·
-                                                            rcases h_table with h_table | h_table
-                                                            ·
-                                                              rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                          · rcases h_table with h_table | h_table
+                                                            · rcases h_table with ⟨rfl, rfl, rfl⟩
                                                               have hb : (20 : ℝ) ≤ 15000 := by norm_num
                                                               have hrow : BKLNW_app.table_8_ε 15000 ≤ 4.1071e-37 :=
-                                                                BKLNW_app.table_8_ε_le_of_row (b₀ := 15000) (ε := 4.1071e-37) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                                                BKLNW_app.table_8_ε_le_of_row (b₀ := 15000) (ε := 4.1071e-37) (BKLNW_app.table_8_mem_15000) (by exact le_rfl)
                                                               have h_epsM : (4.1071e-37 : ℝ) ≤ 4.1070e-37 * table_14_margin := by norm_num [table_14_margin]
                                                               have h1 : exp (-15000 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                                                 simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=15000/2) (by norm_num))
@@ -790,13 +729,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                                               have hbound : (4.1071e-37 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 4.1070e-37 * table_14_margin := by
                                                                 norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                                               exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                                            ·
-                                                              rcases h_table with h_table | h_table
-                                                              ·
-                                                                rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                            · rcases h_table with h_table | h_table
+                                                              · rcases h_table with ⟨rfl, rfl, rfl⟩
                                                                 have hb : (20 : ℝ) ≤ 17000 := by norm_num
                                                                 have hrow : BKLNW_app.table_8_ε 17000 ≤ 6.2041e-40 :=
-                                                                  BKLNW_app.table_8_ε_le_of_row (b₀ := 17000) (ε := 6.2041e-40) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                                                  BKLNW_app.table_8_ε_le_of_row (b₀ := 17000) (ε := 6.2041e-40) (BKLNW_app.table_8_mem_17000) (by exact le_rfl)
                                                                 have h_epsM : (6.2041e-40 : ℝ) ≤ 6.2040e-40 * table_14_margin := by norm_num [table_14_margin]
                                                                 have h1 : exp (-17000 / 2) ≤ exp_neg_one_ub ^ 100 := by
                                                                   simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=100) (x:=17000/2) (by norm_num))
@@ -807,13 +744,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                                                 have hbound : (6.2041e-40 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100 + exp_neg_one_ub ^ 100) ≤ 6.2040e-40 * table_14_margin := by
                                                                   norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                                                 exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                                              ·
-                                                                rcases h_table with h_table | h_table
-                                                                ·
-                                                                  rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                              · rcases h_table with h_table | h_table
+                                                                · rcases h_table with ⟨rfl, rfl, rfl⟩
                                                                   have hb : (20 : ℝ) ≤ 20000 := by norm_num
                                                                   have hrow : BKLNW_app.table_8_ε 20000 ≤ 7.1622e-44 :=
-                                                                    BKLNW_app.table_8_ε_le_of_row (b₀ := 20000) (ε := 7.1622e-44) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                                                    BKLNW_app.table_8_ε_le_of_row (b₀ := 20000) (ε := 7.1622e-44) (BKLNW_app.table_8_mem_20000) (by exact le_rfl)
                                                                   have h_epsM : (7.1622e-44 : ℝ) ≤ 7.1621e-44 * table_14_margin := by norm_num [table_14_margin]
                                                                   have h1 : exp (-20000 / 2) ≤ exp_neg_one_ub ^ 125 := by
                                                                     simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=20000/2) (by norm_num))
@@ -824,13 +759,11 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                                                   have hbound : (7.1622e-44 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125) ≤ 7.1621e-44 * table_14_margin := by
                                                                     norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                                                   exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                                                ·
-                                                                  rcases h_table with h_table | h_table
-                                                                  ·
-                                                                    rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                                · rcases h_table with h_table | h_table
+                                                                  · rcases h_table with ⟨rfl, rfl, rfl⟩
                                                                     have hb : (20 : ℝ) ≤ 22000 := by norm_num
                                                                     have hrow : BKLNW_app.table_8_ε 22000 ≤ 2.4393e-46 :=
-                                                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 22000) (ε := 2.4393e-46) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 22000) (ε := 2.4393e-46) (BKLNW_app.table_8_mem_22000) (by exact le_rfl)
                                                                     have h_epsM : (2.4393e-46 : ℝ) ≤ 2.4392e-46 * table_14_margin := by norm_num [table_14_margin]
                                                                     have h1 : exp (-22000 / 2) ≤ exp_neg_one_ub ^ 125 := by
                                                                       simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=22000/2) (by norm_num))
@@ -841,11 +774,10 @@ theorem table_14_check {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) : check_
                                                                     have hbound : (2.4393e-46 : ℝ) + RS_prime.c₀ * (exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125 + exp_neg_one_ub ^ 125) ≤ 2.4392e-46 * table_14_margin := by
                                                                       norm_num [table_14_margin, RS_prime.c₀, exp_neg_one_ub]
                                                                     exact check_row_prop_of_bounds hb hrow h_epsM h1 h2 h3 hbound
-                                                                  ·
-                                                                    rcases h_table with ⟨rfl, rfl, rfl⟩
+                                                                  · rcases h_table with ⟨rfl, rfl, rfl⟩
                                                                     have hb : (20 : ℝ) ≤ 25000 := by norm_num
                                                                     have hrow : BKLNW_app.table_8_ε 25000 ≤ 7.5725e-50 :=
-                                                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 25000) (ε := 7.5725e-50) (by simp [BKLNW_app.table_8]) (by exact le_rfl)
+                                                                      BKLNW_app.table_8_ε_le_of_row (b₀ := 25000) (ε := 7.5725e-50) (BKLNW_app.table_8_mem_25000) (by exact le_rfl)
                                                                     have h_epsM : (7.5725e-50 : ℝ) ≤ 7.5724e-50 * table_14_margin := by norm_num [table_14_margin]
                                                                     have h1 : exp (-25000 / 2) ≤ exp_neg_one_ub ^ 125 := by
                                                                       simpa [neg_div, neg_mul, mul_assoc, mul_left_comm, mul_comm] using (exp_neg_le_pow' (n:=125) (x:=25000/2) (by norm_num))
