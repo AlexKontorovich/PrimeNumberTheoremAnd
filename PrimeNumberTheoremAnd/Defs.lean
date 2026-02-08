@@ -62,7 +62,7 @@ noncomputable def Li (x : ℝ) : ℝ := ∫ t in 2..x, 1 / log t
 @[blueprint
   "Epsi-def"
   (title := "Equation (2) of FKS2")
-  (statement := /-- $E_ψ(x) = |ψ(x) - x| / x$ -/)]
+  (statement := /-- $E_\psi(x) = |ψ(x) - x| / x$ -/)]
 noncomputable def Eψ (x : ℝ) : ℝ := |ψ x - x| / x
 
 noncomputable def admissible_bound (A B C R : ℝ) (x : ℝ) := A * (log x / R) ^ B * exp (-C * (log x / R) ^ ((1:ℝ)/(2:ℝ)))
@@ -71,11 +71,11 @@ noncomputable def admissible_bound (A B C R : ℝ) (x : ℝ) := A * (log x / R) 
   "classical-bound-psi"
   (title := "Definitions 1, 5, FKS2")
   (statement := /--
-  We say that $E_ψ$ satisfies a \emph{classical bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
-  \[ E_ψ(x) \leq A \left(\frac{\log x}{R}\right)^B \exp\left(-C \left(\frac{\log x}{R}\right)^{1/2}\right). \]
+  We say that $E_\psi$ satisfies a \emph{classical bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
+  \[ E_\psi(x) \leq A \left(\frac{\log x}{R}\right)^B \exp\left(-C \left(\frac{\log x}{R}\right)^{1/2}\right). \]
 
-  We say that it obeys a \emph{numerical bound} with parameter $ε(x_0)$ if for all $x \geq x_0$ we have
-  \[ E_ψ(x) \leq ε(x_0). \]
+  We say that it obeys a \emph{numerical bound} with parameter $\varepsilon(x_0)$ if for all $x \geq x_0$ we have
+  \[ E_\psi(x) \leq \varepsilon(x_0). \]
   -/)]
 def Eψ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eψ x ≤ admissible_bound A B C R x
 
@@ -103,8 +103,8 @@ noncomputable def Eθ (x : ℝ) : ℝ := |θ x - x| / x
   (statement := /--
   We say that $E_\theta$ satisfies a \emph{classical bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
   \[ E_\theta(x) \leq A \left(\frac{\log x}{R}\right)^B \exp\left(-C \left(\frac{\log x}{R}\right)^{1/2}\right). \]
-  We say that it obeys a \emph{numerical bound} with parameter $ε(x_0)$ if for all $x \geq x_0$ we have
-  \[ E_\theta(x) \leq ε(x_0). \]
+  We say that it obeys a \emph{numerical bound} with parameter $\varepsilon(x_0)$ if for all $x \geq x_0$ we have
+  \[ E_\theta(x) \leq \varepsilon(x_0). \]
   -/)]
 def Eθ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eθ x ≤ admissible_bound A B C R x
 
@@ -115,8 +115,8 @@ def Eθ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop := ∀ x ≥ x₀,
   (statement := /--
   We say that $E_\pi$ satisfies a \emph{classical bound} with parameters $A, B, C, R, x_0$ if for all $x \geq x_0$ we have
   \[ E_\pi(x) \leq A \left(\frac{\log x}{R}\right)^B \exp\left(-C \left(\frac{\log x}{R}\right)^{1/2}\right). \]
-  We say that it obeys a \emph{numerical bound} with parameter $ε(x_0)$ if for all $x \geq x_0$ we have
-  \[ E_\pi(x) \leq ε(x_0). \]
+  We say that it obeys a \emph{numerical bound} with parameter $\varepsilon(x_0)$ if for all $x \geq x_0$ we have
+  \[ E_\pi(x) \leq \varepsilon(x_0). \]
   -/)]
 def Eπ.classicalBound (A B C R x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ admissible_bound A B C R x
 
