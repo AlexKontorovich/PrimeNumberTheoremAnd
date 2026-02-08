@@ -7,6 +7,7 @@ import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.BKLNW_app
 import PrimeNumberTheoremAnd.BKLNW_tables
 import PrimeNumberTheoremAnd.Buthe
+import PrimeNumberTheoremAnd.LogTables
 
 blueprint_comment /--
 \section{Tools from BKLNW}
@@ -199,9 +200,9 @@ theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + (1.93378e-8*BKLNW_app.table_8_margin)
       change BKLNW_app.table_8_ε (log 1e19) ≤ 1.93378e-8 * BKLNW_app.table_8_margin
       grw [BKLNW_app.table_8_ε.le_simp (log 1e19) (by grind)]
       grind [BKLNW_app.table_8_ε']
-    rw [lt_log_iff_exp_lt (by positivity), log_lt_iff_lt_exp (by positivity),
-      ← exp_one_rpow 43, ← exp_one_rpow 44]
-    exact ⟨by grw [Real.exp_one_lt_d9]; norm_num only, by grw [← Real.exp_one_gt_d9]; norm_num only⟩
+    have h1e19 : (1e19 : ℝ) = (10 : ℝ) ^ 19 := by norm_num
+    rw [h1e19, Real.log_pow]; push_cast
+    constructor <;> nlinarith [LogTables.log_10_gt, LogTables.log_10_lt]
 
 structure Inputs extends Pre_inputs where
   α : ℝ

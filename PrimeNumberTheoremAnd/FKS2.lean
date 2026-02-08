@@ -547,15 +547,8 @@ theorem psi_le_bound_large (y : ℝ) (hy : 1e19 < y) :
     apply BKLNW_app.theorem_2 (19 * log 10) (by positivity) y (by
       rw [mul_comm, exp_mul, exp_log (by positivity)]; linarith)
   have h_eps : BKLNW_app.table_8_ε (19 * log 10) ≤ 1.93378e-8 * BKLNW_app.table_8_margin := by
-    have h_log_approx : 43 < 19 * log 10 ∧ 19 * log 10 < 44 := by
-      rw [← log_rpow, lt_log_iff_exp_lt, log_lt_iff_lt_exp] <;> norm_num
-      refine ⟨?_, ?_⟩
-      · have := exp_one_lt_d9.le
-        rw [show exp 43 = (exp 1) ^ 43 by rw [← exp_nat_mul]; norm_num]
-        exact (pow_le_pow_left₀ (by positivity) this _).trans_lt <| by norm_num
-      · have := exp_one_gt_d9.le
-        rw [show exp 44 = (exp 1) ^ 44 by rw [← exp_nat_mul]; norm_num]
-        exact lt_of_lt_of_le (by norm_num) <| pow_le_pow_left₀ (by positivity) this _
+    have h_log_approx : 43 < 19 * log 10 ∧ 19 * log 10 < 44 :=
+      ⟨by nlinarith [LogTables.log_10_gt], by nlinarith [LogTables.log_10_lt]⟩
     grw [BKLNW_app.table_8_ε.le_simp (19 * log 10) (by grind)]
     norm_num [BKLNW_app.table_8_ε', h_log_approx]; norm_num at *
     field_simp
