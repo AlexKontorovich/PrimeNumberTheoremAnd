@@ -200,6 +200,8 @@ lemma prime_gap_record.hasPrimeInInterval {g p : ℕ} {x h : ℝ} (hgap : prime_
   let m : ℕ := ⌊x⌋₊
   let k : ℕ := m.primeCounting
   let q : ℕ := nth_prime k
+  have hk_count : k = Nat.count Nat.Prime (m + 1) := by
+    simp [k, Nat.primeCounting, Nat.primeCounting']
   have hx_nonneg : 0 ≤ x := by linarith
   have hm_le_x : (m : ℝ) ≤ x := Nat.floor_le hx_nonneg
   have hm_ge_two : 2 ≤ m := Nat.le_floor hx'
@@ -210,16 +212,15 @@ lemma prime_gap_record.hasPrimeInInterval {g p : ℕ} {x h : ℝ} (hgap : prime_
     exact (not_le_of_gt hm_ge_two) hm_le_one
   have hm_lt_q : m < q := by
     have hmq : m + 1 ≤ q := by
-      exact (Nat.count_le_iff_le_nth (p := Nat.Prime) infinite_setOf_prime).1
-        (by simpa [k, Nat.primeCounting, Nat.primeCounting'])
+      exact (Nat.count_le_iff_le_nth (p := Nat.Prime) infinite_setOf_prime).1 (by simpa [hk_count])
     exact lt_of_lt_of_le (Nat.lt_succ_self m) hmq
-  have hq_prime : Nat.Prime q := by simpa [q] using (prime_nth_prime k)
+  have hq_prime : Nat.Prime q := by simp [q]
   have hq_le_m_add_g : q ≤ m + g := by
     have hk1 : k - 1 < k := Nat.sub_lt (Nat.succ_le_of_lt hk_pos) (by norm_num)
     have hprev_le_m : nth_prime (k - 1) ≤ m := by
       have hprev_lt : nth_prime (k - 1) < m + 1 := by
         exact (Nat.lt_nth_iff_count_lt (p := Nat.Prime) infinite_setOf_prime).1
-          (by simpa [k, Nat.primeCounting, Nat.primeCounting'] using hk1)
+          (by simpa [hk_count] using hk1)
       exact Nat.lt_succ_iff.mp hprev_lt
     have hm_le_p : m ≤ p := by
       exact Nat.cast_le.mp (le_trans hm_le_x hx)
@@ -232,13 +233,13 @@ lemma prime_gap_record.hasPrimeInInterval {g p : ℕ} {x h : ℝ} (hgap : prime_
         have hk1_eq_n : k - 1 = n := by
           apply (nth_strictMono infinite_setOf_prime).injective
           simpa [hn_p] using heq
-        simpa [nth_prime_gap, hk1_eq_n, hn_g]
+        simp [nth_prime_gap, hk1_eq_n, hn_g]
     have hmono : nth_prime (k - 1) ≤ nth_prime (k - 1 + 1) :=
       (nth_strictMono infinite_setOf_prime).monotone (Nat.le_succ _)
     have : q = nth_prime (k - 1) + nth_prime_gap (k - 1) := by
       have hk' : k - 1 + 1 = k := Nat.sub_add_cancel (Nat.succ_le_of_lt hk_pos)
       calc
-        q = nth_prime (k - 1 + 1) := by simpa [q, hk']
+        q = nth_prime (k - 1 + 1) := by simp [q, hk']
         _ = nth_prime (k - 1) + (nth_prime (k - 1 + 1) - nth_prime (k - 1)) := by
           exact (Nat.add_sub_of_le hmono).symm
         _ = nth_prime (k - 1) + nth_prime_gap (k - 1) := by simp [nth_prime_gap]
