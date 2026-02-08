@@ -451,21 +451,8 @@ theorem psi_num (x : ℝ) (hx : x > 0) (hx2 : x ≤ 30) : ψ x ≤ 1.015 * x := 
   unfold psi
   have primes : Λ 2 = log 2 ∧ Λ 3 = log 3 ∧ Λ 5 = log 5 ∧ Λ 7 = log 7 ∧ Λ 11 = log 11 ∧ Λ 13 = log 13 ∧ Λ 17 = log 17 ∧ Λ 19 = log 19 ∧ Λ 23 = log 23 ∧ Λ 29 = log 29 := by
     split_ands <;> exact vonMangoldt_apply_prime (by decide)
-  have lam4 : Λ 4 = log 2 := by
-    rw [show 4 = 2 ^ 2 by norm_num, vonMangoldt_apply_pow (by norm_num), primes.1]
-  have lam8 : Λ 8 = log 2 := by
-    rw [show 8 = 2 ^ 3 by norm_num, vonMangoldt_apply_pow (by norm_num), primes.1]
-  have lam9 : Λ 9 = log 3 := by
-    rw [show 9 = 3 ^ 2 by norm_num, vonMangoldt_apply_pow (by norm_num)]
-    simp_all
-  have lam16 : Λ 16 = log 2 := by
-    rw [show 16 = 2 ^ 4 by norm_num, vonMangoldt_apply_pow (by norm_num), primes.1]
-  have lam25 : Λ 25 = log 5 := by
-    rw [show 25 = 5 ^ 2 by norm_num, vonMangoldt_apply_pow (by norm_num)]
-    simp_all
-  have lam27 : Λ 27 = log 3 := by
-    rw [show 27 = 3 ^ 3 by norm_num, vonMangoldt_apply_pow (by norm_num)]
-    simp_all
+  have lam_pow : (Λ (2 ^ 2) = log 2) ∧ Λ (2 ^ 3) = log 2 ∧ Λ (2 ^ 4) = log 2 ∧ Λ (3 ^ 2) = log 3 ∧ Λ (3 ^ 3) = log 3 ∧ Λ (5 ^ 2) = log 5:= by
+    split_ands <;> rw [vonMangoldt_apply_pow (by norm_num)] <;> (try rw [primes.1]) <;> simp_all
   have comps : Λ 6 = 0 ∧ Λ 10 = 0 ∧ Λ 12 = 0 ∧ Λ 14 = 0 ∧ Λ 15 = 0 ∧ Λ 18 = 0 ∧ Λ 20 = 0 ∧ Λ 21 = 0 ∧ Λ 22 = 0 ∧ Λ 24 = 0 ∧ Λ 26 = 0 ∧ Λ 28 = 0 ∧ Λ 30 = 0 := by
     split_ands <;> rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log] <;> decide
   have log7bound : log 7 < 1.946 := by
@@ -478,21 +465,13 @@ theorem psi_num (x : ℝ) (hx : x > 0) (hx2 : x ≤ 30) : ψ x ≤ 1.015 * x := 
     refine lt_of_lt_of_le ?_ <| Summable.sum_le_tsum (Finset.range 12) (fun _ _ ↦ by positivity) (summable_pow_div_factorial _)
     simp [Finset.sum_range_succ]
     norm_num
-  have log13bound : log 13 < 2.57 := by
-    rw [log_lt_iff_lt_exp (by norm_num), Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
-    refine lt_of_lt_of_le ?_ <| Summable.sum_le_tsum (Finset.range 9) (fun _ _ ↦ by positivity) (summable_pow_div_factorial _)
-    simp [Finset.sum_range_succ]
-    norm_num
-  have log17bound : log 17 < 2.84 := by
-    rw [log_lt_iff_lt_exp (by norm_num), Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
-    refine lt_of_lt_of_le ?_ <| Summable.sum_le_tsum (Finset.range 9) (fun _ _ ↦ by positivity) (summable_pow_div_factorial _)
-    simp [Finset.sum_range_succ]
-    norm_num
-  have log19bound : log 19 < 2.95 := by
-    rw [log_lt_iff_lt_exp (by norm_num), Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
-    refine lt_of_lt_of_le ?_ <| Summable.sum_le_tsum (Finset.range 9) (fun _ _ ↦ by positivity) (summable_pow_div_factorial _)
-    simp [Finset.sum_range_succ]
-    norm_num
+  have : (log 13 < 2.57) ∧ (log 17 < 2.84) ∧ (log 19 < 2.95) := by
+    split_ands
+    all_goals
+      rw [log_lt_iff_lt_exp (by norm_num), Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
+      refine lt_of_lt_of_le ?_ <| Summable.sum_le_tsum (Finset.range 9) (fun _ _ ↦ by positivity) (summable_pow_div_factorial _)
+      simp [Finset.sum_range_succ]
+      norm_num
   have log23bound : log 23 ≤ (3 : ℕ) * log 2 + log 3 := by
     rw [← log_pow, ← log_mul] <;> norm_num
     gcongr
