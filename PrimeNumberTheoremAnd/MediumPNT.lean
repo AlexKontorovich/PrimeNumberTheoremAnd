@@ -1,4 +1,5 @@
 import Architect
+import PrimeNumberTheoremAnd.LogTables
 import PrimeNumberTheoremAnd.MellinCalculus
 import PrimeNumberTheoremAnd.ZetaBounds
 import PrimeNumberTheoremAnd.ZetaConj
@@ -727,14 +728,14 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
 
   have c₁_lt : c₁ < 1 := by
     rw[c₁_eq]
-    exact lt_trans (Real.log_two_lt_d9) (by norm_num)
+    linarith [LogTables.log_2_lt]
 
   have c₂_lt : c₂ < 2 := by
     rw[c₂_eq]
     nth_rewrite 3 [← mul_one 2]
     apply mul_lt_mul'
     · rfl
-    · exact lt_trans (Real.log_two_lt_d9) (by norm_num)
+    · linarith [LogTables.log_2_lt]
     · exact Real.log_nonneg (by norm_num)
     · positivity
 
@@ -781,11 +782,8 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
   have X_bound_1 : 1 ≤ X * ε * c₁ := by
     rw[c₁_eq, ← div_le_iff₀]
     · have : 1 / Real.log 2 < 2 := by
-        nth_rewrite 2 [← one_div_one_div 2]
-        rw[one_div_lt_one_div]
-        · exact lt_of_le_of_lt (by norm_num) (Real.log_two_gt_d9)
-        · exact Real.log_pos (by norm_num)
-        norm_num
+        rw [div_lt_iff₀ (by linarith [LogTables.log_2_gt])]
+        linarith [LogTables.log_2_gt]
       apply le_of_lt
       exact gt_trans X_bound this
     exact Real.log_pos (by norm_num)
@@ -793,16 +791,8 @@ theorem SmoothedChebyshevClose {SmoothingF : ℝ → ℝ}
   have X_bound_2 : 1 ≤ X * ε * c₂ := by
     rw[c₂_eq, ← div_le_iff₀]
     · have : 1 / (2 * Real.log 2) < 2 := by
-        nth_rewrite 3 [← one_div_one_div 2]
-        · rw[one_div_lt_one_div, ← one_mul (1 / 2)]
-          · apply mul_lt_mul
-            · norm_num
-            · apply le_of_lt
-              exact lt_trans (by norm_num) (Real.log_two_gt_d9)
-            repeat norm_num
-          · norm_num
-            exact Real.log_pos (by norm_num)
-          · norm_num
+        rw [div_lt_iff₀ (by positivity)]
+        linarith [LogTables.log_2_gt]
       apply le_of_lt
       exact gt_trans X_bound this
     norm_num
@@ -1949,8 +1939,8 @@ theorem I1Bound
         refine log_lt_log ?_ X_large
         simp only [Nat.ofNat_pos]
 
-    have Z01 : 1 < Real.log 3 := logt_gt_one le_rfl
-    have Zpos0 : 0 < Real.log 3 := by positivity
+    have Z01 : 1 < Real.log 3 := by linarith [LogTables.log_3_gt]
+    have Zpos0 : 0 < Real.log 3 := by linarith [LogTables.log_3_gt]
     have Zpos1 : 0 < Real.log X := by calc
       0 < Real.log 3 := Zpos0
       _ < Real.log X := Z
@@ -2486,7 +2476,7 @@ lemma I8Bound {SmoothingF : ℝ → ℝ}
   (latexEnv := "lemma")]
 lemma log_pow_over_xsq_integral_bounded :
   ∀ n : ℕ, ∃ C : ℝ, 0 < C ∧ ∀ T >3, ∫ x in Ioo 3 T, (Real.log x)^n / x^2 < C := by
-  have log3gt1: 1 < Real.log 3 := logt_gt_one le_rfl
+  have log3gt1: 1 < Real.log 3 := by linarith [LogTables.log_3_gt]
   intro n
   induction n with
   | zero =>
