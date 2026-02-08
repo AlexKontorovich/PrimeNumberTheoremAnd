@@ -58,7 +58,25 @@ lemma HasPrimeInInterval.iff_theta_ge (x h : ℝ) : HasPrimeInInterval x h ↔ �
   (discussion := 906)]
 lemma Eθ.hasPrimeInInterval (x h : ℝ) (hx : 0 < x) (hh : 0 < h) :
     x * Eθ x + (x + h) * Eθ (x + h) < h → HasPrimeInInterval x h := by
-  sorry
+  intro hE
+  have hxh : 0 < x + h := by linarith
+  have hx_bound : θ x ≤ x + x * Eθ x := by
+    have hx_abs : x * Eθ x = |θ x - x| := by
+      unfold Eθ
+      field_simp [hx.ne']
+    have habs : |θ x - x| ≤ x * Eθ x := by
+      simpa [hx_abs] using (le_rfl : |θ x - x| ≤ |θ x - x|)
+    linarith [abs_sub_le_iff.mp habs |>.1]
+  have hxh_bound : (x + h) - (x + h) * Eθ (x + h) ≤ θ (x + h) := by
+    have hxh_abs : (x + h) * Eθ (x + h) = |θ (x + h) - (x + h)| := by
+      unfold Eθ
+      field_simp [hxh.ne']
+    have habs : |θ (x + h) - (x + h)| ≤ (x + h) * Eθ (x + h) := by
+      simpa [hxh_abs] using (le_rfl : |θ (x + h) - (x + h)| ≤ |θ (x + h) - (x + h)|)
+    linarith [abs_sub_le_iff.mp habs |>.2]
+  have htheta : θ (x + h) > θ x := by
+    linarith [hx_bound, hxh_bound, hE]
+  exact (HasPrimeInInterval.iff_theta_ge x h).2 htheta
 
 
 @[blueprint
