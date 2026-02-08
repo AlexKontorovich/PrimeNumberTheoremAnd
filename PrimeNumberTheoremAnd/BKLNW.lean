@@ -660,7 +660,7 @@ a_2 = (1 + \alpha) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}
 \]
  -/)]
 noncomputable def Inputs.a₂ (I : Inputs) (b : ℝ) : ℝ :=
-  (1 + I.α) * (max (f (exp b)) (f 2^(⌊ b / (log 2) ⌋₊ + 1)))
+  (1 + I.α) * (max (f (exp b)) (f (2^(⌊ b / (log 2) ⌋₊ + 1))))
 
 @[blueprint
   "bklnw-thm-5"
@@ -698,7 +698,18 @@ a_2 = (1 + \alpha) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}
   (latexEnv := "theorem")
   (discussion := 643)]
 theorem thm_5 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
-    ψ x - θ x < I.a₁ b * x^(1/2:ℝ) + I.a₂ b * x^(1/3:ℝ) := by sorry
+    ψ x - θ x ≤ I.a₁ b * x^(1/2:ℝ) + I.a₂ b * x^(1/3:ℝ) := calc
+  _ = θ (x ^ (1/2 : ℝ)) + (ψ x - θ x - θ (x ^ (1/2 : ℝ))) := by ring
+  _ ≤ I.a₁ b * x^(1/2:ℝ) + I.a₂ b * x^(1/3:ℝ) := by
+    gcongr
+    · unfold Inputs.a₁
+      by_cases h : b ≤ 2 * log I.x₁
+      · simp only [if_pos h, prop_4_a I hx]
+      · simp only [if_neg h, prop_4_b I hb hx]
+    · unfold Inputs.a₂
+      convert cor_3_1 I hb x hx
+      · rw [← Int.natCast_floor_eq_floor (div_nonneg (by linarith) (log_nonneg (by norm_num)))]; rfl
+      · tauto
 
 noncomputable def a₁ : ℝ → ℝ := Inputs.default.a₁
 
