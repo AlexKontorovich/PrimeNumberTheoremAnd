@@ -736,7 +736,7 @@ theorem eq_418 {x : ℝ} (hx : 2 ≤ x) :
   have := deriv_fun_inv'' (y.hasDerivAt_mul_log (by grind)).differentiableAt
     (mul_ne_zero_iff.2 ⟨by grind, by linarith [Real.log_pos (by grind : 1 < y)]⟩)
   simp only [neg_mul_eq_mul_neg, mul_div_assoc, mul_left_cancel_iff_of_pos
-    (Chebyshev.theta_pos hy.1), div_div, fun t : ℝ => one_div (t * log t), this,
+    (theta_pos hy.1), div_div, fun t : ℝ => one_div (t * log t), this,
     deriv_mul_log (by grind : y ≠ 0)]
   ring
 
