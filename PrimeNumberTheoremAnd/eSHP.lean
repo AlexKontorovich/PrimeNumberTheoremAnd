@@ -1,14 +1,14 @@
 import PrimeNumberTheoremAnd.Defs
-import PrimeNumberTheoremAnd.eSHS_tables
+import PrimeNumberTheoremAnd.eSHP_tables
 
 blueprint_comment /--
-\section{Prime gap data from eSHS}
+\section{Prime gap data from eSHP}
 
-Numerical results on prime gaps from \cite{eSHS}.
+Numerical results on prime gaps from \cite{eSHP}.
 
 -/
 
-namespace eSHS
+namespace eSHP
 
 @[blueprint
   "table-8-prime-gap-test"
@@ -51,4 +51,4 @@ theorem table_9_prime_gap (g P : ℕ) (h : (g, P) ∈ table_9) : first_gap_recor
   sorry
 
 
-end eSHS
+end eSHP

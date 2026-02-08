@@ -2,13 +2,13 @@ import Architect
 import PrimeNumberTheoremAnd.Defs
 
 blueprint_comment /--
-\section{Numerical content of eSHS}
+\section{Numerical content of eSHP}
 
-Purely numerical calculations from \cite{eSHS}.  This is kept in a separate file from the main file to avoid heavy recompilations.  Because of this, this file should not import any other files from the PNT+ project, other than further numerical data files.
+Purely numerical calculations from \cite{eSHP}.  This is kept in a separate file from the main file to avoid heavy recompilations.  Because of this, this file should not import any other files from the PNT+ project, other than further numerical data files.
 
 -/
 
-namespace eSHS
+namespace eSHP
 
 def table_8 : List (ℕ × ℕ) := [
   (2, 1), (3, 2), (7, 4), (23, 6), (89, 8), (113, 14), (523, 18), (887, 20), (1129, 22), (1327, 34), (155921, 86),
@@ -53,4 +53,4 @@ def table_9 : List (ℕ × ℕ) := [
   (1290, 2980707563031238363), (1306, 3278018069102480227)
 ]
 
-end eSHS
+end eSHP

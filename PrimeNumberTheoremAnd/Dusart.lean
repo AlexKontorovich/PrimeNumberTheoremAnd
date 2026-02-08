@@ -1,7 +1,7 @@
 import Architect
 import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.PrimeInInterval
-import PrimeNumberTheoremAnd.eSHS
+import PrimeNumberTheoremAnd.eSHP
 
 blueprint_comment /--
 \section{Dusart's explicit estimates for primes}\label{dusart-sec}
