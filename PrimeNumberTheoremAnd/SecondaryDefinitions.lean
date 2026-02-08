@@ -1,7 +1,7 @@
 import Architect
 import Mathlib.Topology.Order.Basic
 import Mathlib.NumberTheory.PrimeCounting
-
+import PrimeNumberTheoremAnd.Consequences
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.Li2Bounds
 
@@ -14,26 +14,9 @@ blueprint_comment /--
 In this section we define the basic types of secondary estimates we will work with in the project.
 -/
 
-open Real Finset
+open Real Finset Topology
 
 /- Standard arithmetic functions. TODO: align this with notation used elsewhere in PNT+ -/
-
-@[blueprint
-  "pi-def"
-  (title := "pi")
-  (statement := /-- $\pi(x)$ is the number of primes less than or equal to $x$. -/)]
-noncomputable def pi (x : ℝ) : ℝ :=  Nat.primeCounting ⌊x⌋₊
-
-open Topology
-
-@[blueprint
-  "li-def"
-  (title := "li and Li")
-  (statement := /-- $\mathrm{li}(x) = \int_0^x \frac{dt}{\log t}$ (in the principal value sense) and $\mathrm{Li}(x) = \int_2^x \frac{dt}{\log t}$. -/)]
-noncomputable def li (x : ℝ) : ℝ := lim ((𝓝[>] (0 : ℝ)).map (fun ε ↦ ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1-ε) (1+ε)), 1 / log t))
-
-@[blueprint "li-def"]
-noncomputable def Li (x : ℝ) : ℝ := ∫ t in 2..x, 1 / log t
 
 @[blueprint
   "log_upper"
@@ -142,19 +125,6 @@ theorem symm_inv_log
   _ = _ := by
     rw [(by field : (3 : ℝ) / 4 = (4 / 3)⁻¹), log_inv]
     field
-
--- @[blueprint
---   "li-approx"
---   (title := "li approximation")
---   (statement := /-- If $x \geq 2$ and $0 < \eps \leq 1$, then $\mathrm{li}(x) = \int_{[0,x] \backslash [-\eps, \eps]} \frac{dt}{\log t} + O_*( \frac{16\log(4/3)}{3} \eps)$. -/)
---   (proof := /-- Symmetrize the principal value integral around 1 using the previous lemma. -/)
---   (latexEnv := "sublemma")
---   (discussion := 768)]
--- theorem li.eq
---     (x ε : ℝ) (hx : x ≥ 2) (hε1 : 0 < ε) (hε2 : ε ≤ 1) : ∃ E,
---     li x = ∫ t in Set.diff (Set.Ioc 0 x) (Set.Ioo (1 - ε) (1 + ε)), 1 / log t + E ∧
---     |E| ≤ 16 *log (4 / 3) / 3 * ε := by
---     sorry
 
 @[blueprint
   "li_minus_Li"
@@ -278,8 +248,39 @@ def Eπ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop := Eπ.bound (ε x
 def Eπ.vinogradovBound (A B C x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ A * (log x) ^ B * exp (-C * (log x) ^ (3/5) / (log (log x)) ^ (1/5))
 
 
-def HasPrimeInInterval (x h : ℝ) : Prop :=
-  ∃ p : ℕ, Nat.Prime p ∧ x < p ∧ p ≤ x + h
+@[blueprint
+  "admissible-bound-monotone"
+  (title := "Admissible bound decreasing for large x")
+  (statement := /--
+  If $A,B,C,R > 0$ then the classical bound is monotone decreasing for $x \geq \exp( R (2B/C)^2 )$. -/)
+  (proof := /-- Differentiate the bound and check the sign. -/)
+  (latexEnv := "lemma")]
+lemma admissible_bound.mono (A B C R : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) :
+    MonotoneOn (admissible_bound A B C R) (Set.Ici (Real.exp (R * (2 * B / C) ^ 2))) := by
+  sorry
 
-def HasPrimeInInterval.log_thm (X₀ : ℝ) (k : ℝ) :=
-  ∀ x ≥ X₀, HasPrimeInInterval x (x / (log x)^k)
+@[blueprint
+  "classical-to-numeric"
+  (title := "Classic bound implies numerical bound")
+  (statement := /--
+  A classical bound for $x \geq x_0$ implies a numerical bound for $x \geq \max(x_0, \exp( R (2B/C)^2  )). -/)
+  (proof := /-- Immediate from previous lemma -/)
+  (latexEnv := "lemma")]
+lemma Eψ.classicalBound.to_numericalBound (A B C R x₀ x₁ : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) (hEψ : Eψ.classicalBound A B C R x₀)
+    (hx₁ : x₁ ≥ max x₀ (Real.exp (R * (2 * B / C) ^ 2))) :
+     Eψ.numericalBound x₁ (fun x ↦ admissible_bound A B C R x) := by
+    sorry
+
+@[blueprint
+  "classical-to-numeric"]
+lemma Eθ.classicalBound.to_numericalBound (A B C R x₀ x₁ : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) (hEθ : Eθ.classicalBound A B C R x₀)
+    (hx₁ : x₁ ≥ max x₀ (Real.exp (R * (2 * B / C) ^ 2))) :
+     Eθ.numericalBound x₁ (fun x ↦ admissible_bound A B C R x) := by
+    sorry
+
+@[blueprint
+  "classical-to-numeric"]
+lemma Eπ.classicalBound.to_numericalBound (A B C R x₀ x₁ : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) (hEπ : Eπ.classicalBound A B C R x₀)
+    (hx₁ : x₁ ≥ max x₀ (Real.exp (R * (2 * B / C) ^ 2))) :
+     Eπ.numericalBound x₁ (fun x ↦ admissible_bound A B C R x) := by
+    sorry

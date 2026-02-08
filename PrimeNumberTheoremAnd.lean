@@ -10,9 +10,12 @@ import PrimeNumberTheoremAnd.CH2
 import PrimeNumberTheoremAnd.Chebyshev
 import PrimeNumberTheoremAnd.Consequences
 import PrimeNumberTheoremAnd.CostaPereira
+import PrimeNumberTheoremAnd.Defs
 import PrimeNumberTheoremAnd.DerivativeBound
 import PrimeNumberTheoremAnd.Dusart
 import PrimeNumberTheoremAnd.Erdos392
+import PrimeNumberTheoremAnd.eSHS
+import PrimeNumberTheoremAnd.eSHS_tables
 import PrimeNumberTheoremAnd.FKS2
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.Fourier
@@ -33,6 +36,7 @@ import PrimeNumberTheoremAnd.MediumPNT
 import PrimeNumberTheoremAnd.MellinCalculus
 import PrimeNumberTheoremAnd.MobiusLemma
 import PrimeNumberTheoremAnd.PerronFormula
+import PrimeNumberTheoremAnd.PrimeInInterval
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.PrimarySummary
 import PrimeNumberTheoremAnd.Rectangle

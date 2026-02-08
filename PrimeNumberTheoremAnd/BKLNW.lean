@@ -780,7 +780,7 @@ lemma g_decreasing_interval (A C : ℝ) (hA : 0 < A) (hC : 0 < C) (u v : ℝ) (h
   "bklnw-lem-6"
   (title := "BKLNW Lemma 6")
   (statement := /--  Suppose there exists $c_1, c_2, c_3, c_4 > 0$ such that
-\begin{equation}\eqref{bklnw_3.3}
+\begin{equation}\label{bklnw_3.3}
 |\theta(x) - x| \leq c_1 x (\log x)^{c_2} \exp(-c_3 (\log x)^{\frac{1}{2}}) \quad \text{for all } x \geq c_4.
 \end{equation}
 Let $k > 0$ and let $b \geq \max\left(\log c_4, \log\left(\frac{4(c_2 + k)^2}{c_3^2}\right)\right)$. Then for all $x \geq e^b$ we have
@@ -834,7 +834,7 @@ theorem lem_6 {c₁ c₂ c₃ c₄ k b x : ℝ} (hc₁ : 0 < c₁) (hc₂ : 0 < 
   (statement := /--  Suppose one has an asymptotic bound $E_\psi$ with parameters $A,B,C,R,e^{x_0}$ (which need to satisfy some additional bounds) with $x_0 \geq 1000$.  Then $E_\theta$ obeys an asymptotic bound with parameters $A', B, C, R, e^{x_0}$, where
   $$ A' := A (1 + \frac{1}{A} (\frac{R}{x_0})^B \exp(C \sqrt{\frac{x_0}{R}}) (a_1(x_0) \exp(\frac{-x_0}{2}) + a_2(x_0) \exp(\frac{-2 x_0}{3}))) $$
   and $a_1(x_0), a_2(x_0)$ are as in Corollary \ref{bklnw-cor-5-1}. -/)
-  (proof := /-- We write $\theta(x) - x = \psi(x) - x + \theta(x) - \psi(x)$, apply the triangle inequality, and invoke Corollary \ref{blknw-cor-5-1} to obtain
+  (proof := /-- We write $\theta(x) - x = \psi(x) - x + \theta(x) - \psi(x)$, apply the triangle inequality, and invoke Corollary \ref{bklnw-cor-5-1} to obtain
 $$
 E_\theta(x) \leq A (\frac{\log x}{R})^B \exp(-C (\frac{\log x}{R})^{\frac{1}{2}}) + a_1(x_0) x^{-\frac{1}{2}} + a_2(x_0) x^{-\frac{2}{3}}$$
 $$ \leq A (\frac{\log x}{R})^B \exp(-C (\frac{\log x}{R})^{\frac{1}{2}}) (1 + \frac{a_1(x_0) \exp(C \sqrt{\frac{\log x}{R}})}{A \sqrt{x} (\frac{\log x}{R})^B} + \frac{a_2(x_0) \exp(C \sqrt{\frac{\log x}{R}})}{A x^{\frac{2}{3}} (\frac{\log x}{R})^B}).$$
