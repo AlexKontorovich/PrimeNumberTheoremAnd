@@ -19,7 +19,37 @@ open Real Chebyshev Nat Finset
   (latexEnv := "lemma")
   (discussion := 904)]
 lemma HasPrimeInInterval.iff_pi_ge (x h : ℝ) : HasPrimeInInterval x h ↔ pi (x + h) > pi x := by
-  sorry
+  constructor
+  · rintro ⟨p, hpprime, hxp, hpxh⟩
+    have hfloorxh : p ≤ ⌊x + h⌋₊ := Nat.le_floor hpxh
+    have hfloorx_lt : ⌊x⌋₊ < p := by
+      by_cases hx0 : 0 ≤ x
+      · exact (Nat.floor_lt hx0).2 hxp
+      · have hp0 : 0 < p := hpprime.pos
+        rw [Nat.floor_of_nonpos (le_of_not_ge hx0)]
+        exact hp0
+    have hfloorx_pred : ⌊x⌋₊ ≤ p - 1 := Nat.le_pred_of_lt hfloorx_lt
+    have hpstep' : Nat.primeCounting' p < Nat.primeCounting' (p + 1) := by
+      simpa [Nat.primeCounting'] using
+        (Nat.count_lt_count_succ_iff (p := Nat.Prime) (n := p)).2 hpprime
+    have hpstep : Nat.primeCounting (p - 1) < Nat.primeCounting p := by
+      simpa [Nat.primeCounting_sub_one] using hpstep'
+    have hnat : Nat.primeCounting ⌊x⌋₊ < Nat.primeCounting ⌊x + h⌋₊ := by
+      exact lt_of_le_of_lt (Nat.monotone_primeCounting hfloorx_pred)
+        (lt_of_lt_of_le hpstep (Nat.monotone_primeCounting hfloorxh))
+    change (Nat.primeCounting ⌊x + h⌋₊ : ℝ) > (Nat.primeCounting ⌊x⌋₊ : ℝ)
+    exact_mod_cast hnat
+  · intro hpi
+    change (Nat.primeCounting ⌊x + h⌋₊ : ℝ) > (Nat.primeCounting ⌊x⌋₊ : ℝ) at hpi
+    have hnat : Nat.primeCounting ⌊x⌋₊ < Nat.primeCounting ⌊x + h⌋₊ := by
+      exact_mod_cast hpi
+    obtain ⟨p, hpprime, hp1, hp2⟩ := prime_in_gap' ⌊x⌋₊ ⌊x + h⌋₊ hnat
+    refine ⟨p, hpprime, ?_, ?_⟩
+    · exact lt_of_floor_lt <| lt_of_lt_of_le (Nat.lt_succ_self ⌊x⌋₊) hp1
+    · have hp_floor : p ≤ ⌊x + h⌋₊ := Nat.lt_succ_iff.mp hp2
+      have hfloor_pos : 0 < ⌊x + h⌋₊ := lt_of_lt_of_le hpprime.pos hp_floor
+      have hxh_pos : 0 < x + h := Nat.pos_of_floor_pos hfloor_pos
+      exact (Nat.cast_le.2 hp_floor).trans (Nat.floor_le hxh_pos.le)
 
 -- this is a legacy piece of code that could be incorporated somehow into the proof of `HasPrimeInInterval.iff_theta_ge` below.
 
