@@ -14,8 +14,8 @@ import PrimeNumberTheoremAnd.Defs
 import PrimeNumberTheoremAnd.DerivativeBound
 import PrimeNumberTheoremAnd.Dusart
 import PrimeNumberTheoremAnd.Erdos392
-import PrimeNumberTheoremAnd.eSHS
-import PrimeNumberTheoremAnd.eSHS_tables
+import PrimeNumberTheoremAnd.eSHP
+import PrimeNumberTheoremAnd.eSHP_tables
 import PrimeNumberTheoremAnd.FKS2
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.Fourier

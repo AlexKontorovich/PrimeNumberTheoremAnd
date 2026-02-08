@@ -1,7 +1,7 @@
 import Architect
 import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.PrimeInInterval
-import PrimeNumberTheoremAnd.eSHS
+import PrimeNumberTheoremAnd.eSHP
 
 blueprint_comment /--
 \section{Dusart's explicit estimates for primes}\label{dusart-sec}
@@ -338,7 +338,8 @@ theorem corollary_5_3_d {x : ℝ} (hx : x > 5.6) : pi x ≤ x / (log x - 1 - 1.2
   \]
   -/)
   (proof := /-- Use Lemma \ref{etheta-pi} and Theorem \ref{Dusart_thm_4_2}.  -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 910)]
 theorem proposition_5_4a : HasPrimeInInterval.log_thm 4e18 3 := sorry
 
 @[blueprint "Dusart_prop_5_4b"
@@ -350,7 +351,8 @@ theorem proposition_5_4a : HasPrimeInInterval.log_thm 4e18 3 := sorry
   \]
   -/)
   (proof := /-- Use Lemma \ref{prime-gap-record-interval} and Proposition \ref{table-8-prime-gap}.  -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 911)]
 theorem proposition_5_4b (x : ℝ) (hx : x ∈ Set.Ioo 360653 4e18) : HasPrimeInInterval x (x / (log x)^3) := sorry
 
 @[blueprint "Dusart_prop_5_4c"
@@ -376,7 +378,8 @@ theorem proposition_5_4c (x : ℝ) (hx : x ∈ Set.Icc 89693 360653) : HasPrimeI
   \]
   -/)
   (proof := /-- Combine the three substeps. -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 912)]
 theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := sorry
 
 @[blueprint "Dusart_cor_5_5"
@@ -387,7 +390,9 @@ theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := sorry
   x < p \leq x\Bigl(1 + \frac{1}{5000 \log^2 x}\Bigr).
   \]
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (proof := /-- Use Proposition \ref{Dusart_prop_5_4} and the fact that $1/\log^3 x < 1/(5000 \log^2 x)$ for $x \geq 468991632$. -/)
+  (discussion := 913)]
 theorem corollary_5_5 {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) := by sorry
 
 @[blueprint "Dusart_thm_5_6"

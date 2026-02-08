@@ -133,7 +133,8 @@ def Eπ.vinogradovBound (A B C x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ A
   (statement := /--
   If $A,B,C,R > 0$ then the classical bound is monotone decreasing for $x \geq \exp( R (2B/C)^2 )$. -/)
   (proof := /-- Differentiate the bound and check the sign. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 900)]
 lemma admissible_bound.mono (A B C R : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) :
     MonotoneOn (admissible_bound A B C R) (Set.Ici (Real.exp (R * (2 * B / C) ^ 2))) := by
   sorry
@@ -144,7 +145,8 @@ lemma admissible_bound.mono (A B C R : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < 
   (statement := /--
   A classical bound for $x \geq x_0$ implies a numerical bound for $x \geq \max(x_0, \exp( R (2B/C)^2  ))$. -/)
   (proof := /-- Immediate from previous lemma -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 901)]
 lemma Eψ.classicalBound.to_numericalBound (A B C R x₀ x₁ : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) (hEψ : Eψ.classicalBound A B C R x₀)
     (hx₁ : x₁ ≥ max x₀ (Real.exp (R * (2 * B / C) ^ 2))) :
      Eψ.numericalBound x₁ (fun x ↦ admissible_bound A B C R x) := by
