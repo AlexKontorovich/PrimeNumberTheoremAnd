@@ -62,7 +62,7 @@ noncomputable def Li (x : ℝ) : ℝ := ∫ t in 2..x, 1 / log t
 @[blueprint
   "Epsi-def"
   (title := "Equation (2) of FKS2")
-  (statement := /-- $E_\psi(x) = |ψ(x) - x| / x$ -/)]
+  (statement := /-- $E_\psi(x) = |\psi(x) - x| / x$ -/)]
 noncomputable def Eψ (x : ℝ) : ℝ := |ψ x - x| / x
 
 noncomputable def admissible_bound (A B C R : ℝ) (x : ℝ) := A * (log x / R) ^ B * exp (-C * (log x / R) ^ ((1:ℝ)/(2:ℝ)))
@@ -86,7 +86,7 @@ def Eψ.numericalBound (x₀ : ℝ) (ε : ℝ → ℝ) : Prop := Eψ.bound (ε x
 @[blueprint
   "Epi-def"
   (title := "Equation (1) of FKS2")
-  (statement := /-- $E_\pi(x) = |\pi(x) - \mathrm{Li}(x)| / \mathrm{Li}(x)$ -/)]
+  (statement := /-- $E_\pi(x) = |\pi(x) - \mathrm{Li}(x)| / \mathrm{Li}(x)$. -/)]
 noncomputable def Eπ (x : ℝ) : ℝ := |pi x - Li x| / (x / log x)
 
 
@@ -142,7 +142,7 @@ lemma admissible_bound.mono (A B C R : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < 
   "classical-to-numeric"
   (title := "Classic bound implies numerical bound")
   (statement := /--
-  A classical bound for $x \geq x_0$ implies a numerical bound for $x \geq \max(x_0, \exp( R (2B/C)^2  )). -/)
+  A classical bound for $x \geq x_0$ implies a numerical bound for $x \geq \max(x_0, \exp( R (2B/C)^2  ))$. -/)
   (proof := /-- Immediate from previous lemma -/)
   (latexEnv := "lemma")]
 lemma Eψ.classicalBound.to_numericalBound (A B C R x₀ x₁ : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) (hEψ : Eψ.classicalBound A B C R x₀)
