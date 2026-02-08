@@ -379,7 +379,7 @@ theorem proposition_5_4c (x : ℝ) (hx : x ∈ Set.Icc 89693 360653) : HasPrimeI
   -/)
   (proof := /-- Combine the three substeps. -/)
   (latexEnv := "proposition")
-  (discussion := 911)]
+  (discussion := 912)]
 theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := sorry
 
 @[blueprint "Dusart_cor_5_5"
@@ -392,7 +392,7 @@ theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := sorry
   -/)
   (latexEnv := "corollary")
   (proof := /-- Use Proposition \ref{Dusart_prop_5_4} and the fact that $1/\log^3 x < 1/(5000 \log^2 x)$ for $x \geq 468991632$. -/)
-  (discussion := 912)]
+  (discussion := 913)]
 theorem corollary_5_5 {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) := by sorry
 
 @[blueprint "Dusart_thm_5_6"
