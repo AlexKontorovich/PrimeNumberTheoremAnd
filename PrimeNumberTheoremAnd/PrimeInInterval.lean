@@ -19,7 +19,37 @@ open Real Chebyshev Nat Finset
   (latexEnv := "lemma")
   (discussion := 904)]
 lemma HasPrimeInInterval.iff_pi_ge (x h : ℝ) : HasPrimeInInterval x h ↔ pi (x + h) > pi x := by
-  sorry
+  constructor
+  · rintro ⟨p, hpprime, hxp, hpxh⟩
+    have hfloorxh : p ≤ ⌊x + h⌋₊ := Nat.le_floor hpxh
+    have hfloorx_lt : ⌊x⌋₊ < p := by
+      by_cases hx0 : 0 ≤ x
+      · exact (Nat.floor_lt hx0).2 hxp
+      · have hp0 : 0 < p := hpprime.pos
+        rw [Nat.floor_of_nonpos (le_of_not_ge hx0)]
+        exact hp0
+    have hfloorx_pred : ⌊x⌋₊ ≤ p - 1 := Nat.le_pred_of_lt hfloorx_lt
+    have hpstep' : Nat.primeCounting' p < Nat.primeCounting' (p + 1) := by
+      simpa [Nat.primeCounting'] using
+        (Nat.count_lt_count_succ_iff (p := Nat.Prime) (n := p)).2 hpprime
+    have hpstep : Nat.primeCounting (p - 1) < Nat.primeCounting p := by
+      simpa [Nat.primeCounting_sub_one] using hpstep'
+    have hnat : Nat.primeCounting ⌊x⌋₊ < Nat.primeCounting ⌊x + h⌋₊ := by
+      exact lt_of_le_of_lt (Nat.monotone_primeCounting hfloorx_pred)
+        (lt_of_lt_of_le hpstep (Nat.monotone_primeCounting hfloorxh))
+    change (Nat.primeCounting ⌊x + h⌋₊ : ℝ) > (Nat.primeCounting ⌊x⌋₊ : ℝ)
+    exact_mod_cast hnat
+  · intro hpi
+    change (Nat.primeCounting ⌊x + h⌋₊ : ℝ) > (Nat.primeCounting ⌊x⌋₊ : ℝ) at hpi
+    have hnat : Nat.primeCounting ⌊x⌋₊ < Nat.primeCounting ⌊x + h⌋₊ := by
+      exact_mod_cast hpi
+    obtain ⟨p, hpprime, hp1, hp2⟩ := prime_in_gap' ⌊x⌋₊ ⌊x + h⌋₊ hnat
+    refine ⟨p, hpprime, ?_, ?_⟩
+    · exact lt_of_floor_lt <| lt_of_lt_of_le (Nat.lt_succ_self ⌊x⌋₊) hp1
+    · have hp_floor : p ≤ ⌊x + h⌋₊ := Nat.lt_succ_iff.mp hp2
+      have hfloor_pos : 0 < ⌊x + h⌋₊ := lt_of_lt_of_le hpprime.pos hp_floor
+      have hxh_pos : 0 < x + h := Nat.pos_of_floor_pos hfloor_pos
+      exact (Nat.cast_le.2 hp_floor).trans (Nat.floor_le hxh_pos.le)
 
 -- this is a legacy piece of code that could be incorporated somehow into the proof of `HasPrimeInInterval.iff_theta_ge` below.
 
@@ -46,7 +76,49 @@ theorem theta_pos_implies_prime_in_interval {x y : ℝ} (_hxy : y < x) (h : θ x
   (latexEnv := "lemma")
   (discussion := 905)]
 lemma HasPrimeInInterval.iff_theta_ge (x h : ℝ) : HasPrimeInInterval x h ↔ θ (x + h) > θ x := by
-  sorry
+  constructor
+  · rintro ⟨p, hpprime, hxp, hpxh⟩
+    let s : Finset ℕ := filter Nat.Prime (Icc 0 ⌊x⌋₊)
+    let t : Finset ℕ := filter Nat.Prime (Icc 0 ⌊x + h⌋₊)
+    have hs : s ⊆ t := by
+      intro q hq
+      have hq' : q ∈ filter Nat.Prime (Icc 0 ⌊x⌋₊) := by simpa [s] using hq
+      have hxxh : x ≤ x + h := le_of_lt (lt_of_lt_of_le hxp hpxh)
+      rw [mem_filter] at hq' ⊢
+      have hqIcc : q ∈ Icc 0 ⌊x + h⌋₊ := by
+        exact mem_Icc.mpr ⟨(mem_Icc.mp hq'.1).1, le_trans (mem_Icc.mp hq'.1).2 (Nat.floor_mono hxxh)⟩
+      exact ⟨hqIcc, hq'.2⟩
+    have hp_in_t : p ∈ t := by
+      have : p ∈ filter Nat.Prime (Icc 0 ⌊x + h⌋₊) := by
+        exact Finset.mem_filter.mpr <| by
+          refine ⟨mem_Icc.mpr ?_, hpprime⟩
+          exact ⟨Nat.zero_le p, Nat.le_floor hpxh⟩
+      simpa [t] using this
+    have hp_notin_s : p ∉ s := by
+      intro hpins
+      have hpins' : p ∈ filter Nat.Prime (Icc 0 ⌊x⌋₊) := by simpa [s] using hpins
+      rw [mem_filter, mem_Icc] at hpins'
+      have hx_nn : 0 ≤ x := by
+        have hfloor_pos : 0 < ⌊x⌋₊ := lt_of_lt_of_le hpprime.pos hpins'.1.2
+        exact le_trans (by norm_num : (0 : ℝ) ≤ 1) (Nat.floor_pos.mp hfloor_pos)
+      exact (not_le_of_gt hxp) ((Nat.cast_le.2 hpins'.1.2).trans (Nat.floor_le hx_nn))
+    have hnonneg : ∀ q ∈ t, q ∉ s → 0 ≤ Real.log q := by
+      intro q hq _
+      have hq' : q ∈ filter Nat.Prime (Icc 0 ⌊x + h⌋₊) := by simpa [t] using hq
+      rw [mem_filter] at hq'
+      exact Real.log_nonneg (Nat.one_le_cast.2 hq'.2.one_le)
+    have hsum_lt : (∑ q ∈ s, Real.log q) < ∑ q ∈ t, Real.log q := by
+      exact Finset.sum_lt_sum_of_subset hs hp_in_t hp_notin_s
+        (Real.log_pos (Nat.one_lt_cast.2 hpprime.one_lt)) hnonneg
+    simpa [Chebyshev.theta_eq_sum_Icc, s, t] using hsum_lt
+  · intro htheta
+    have hxh : x < x + h := by
+      by_contra hle
+      have hmono : θ (x + h) ≤ θ x := Chebyshev.theta_mono (le_of_not_gt hle)
+      linarith
+    have hprime : HasPrimeInInterval x ((x + h) - x) :=
+      theta_pos_implies_prime_in_interval hxh (by linarith [htheta])
+    simpa using hprime
 
 @[blueprint
   "etheta-pi"
