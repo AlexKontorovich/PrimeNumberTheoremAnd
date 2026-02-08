@@ -59,7 +59,7 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
 theorem prop_2_3 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     (ha : Summable (fun n ↦ ‖a n‖ / (n * log n ^ β)))
     {G : ℂ → ℂ} (hG : ContinuousOn G { z | z.re ≥ 1 ∧ z.im ∈ Set.Icc (-T) T })
-    (hG' : Set.EqOn G (fun s ↦ ∑' n, a n / n ^ s - 1 / (s - 1)) { z | z.re > 1 } )
+    (hG' : Set.EqOn G (fun s ↦ ∑' n, a n / n ^ s - 1 / (s - 1)) { z | z.re > 1 })
     {φ : ℝ → ℂ} (hφ_mes : Measurable φ) (hφ_int : Integrable φ)
     (hφ_supp : ∀ x, x ∉ Set.Icc (-1) 1 → φ x = 0)
     (hφ_Fourier : ∃ C : ℝ, ∀ y : ℝ, y ≠ 0 → ‖𝓕 φ y‖ ≤ C / |y| ^ β)
@@ -130,7 +130,7 @@ Since $x^{-\sigma} * (2\pi x / T) * x^{\sigma-1}/(-\lambda) = 1/(1-\sigma)$, the
 theorem prop_2_4_plus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     (ha : Summable (fun n ↦ ‖a n‖ / (n * log n ^ β)))
     {G : ℂ → ℂ} (hG : ContinuousOn G { z | z.re ≥ 1 ∧ z.im ∈ Set.Icc (-T) T })
-    (hG' : Set.EqOn G (fun s ↦ ∑' n, a n / (n ^ s : ℂ) - 1 / (s - 1)) { z | z.re > 1 } )
+    (hG' : Set.EqOn G (fun s ↦ ∑' n, a n / (n ^ s : ℂ) - 1 / (s - 1)) { z | z.re > 1 })
     {φ_plus : ℝ → ℂ} (hφ_mes : Measurable φ_plus) (hφ_int : Integrable φ_plus)
     (hφ_supp : ∀ x, x ∉ Set.Icc (-1) 1 → φ_plus x = 0)
     (hφ_Fourier : ∃ C : ℝ, ∀ y : ℝ, y ≠ 0 → ‖𝓕 φ_plus y‖ ≤ C / |y| ^ β)
@@ -159,7 +159,7 @@ theorem prop_2_4_plus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β : ℝ}
 theorem prop_2_4_minus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     (ha : Summable (fun n ↦ ‖a n‖ / (n * log n ^ β)))
     {G : ℂ → ℂ} (hG : ContinuousOn G { z | z.re ≥ 1 ∧ z.im ∈ Set.Icc (-T) T })
-    (hG' : Set.EqOn G (fun s ↦ ∑' n, a n / (n ^ s : ℂ) - 1 / (s - 1)) { z | z.re > 1 } )
+    (hG' : Set.EqOn G (fun s ↦ ∑' n, a n / (n ^ s : ℂ) - 1 / (s - 1)) { z | z.re > 1 })
     {φ_minus : ℝ → ℂ} (hφ_mes : Measurable φ_minus) (hφ_int : Integrable φ_minus)
     (hφ_supp : ∀ x, x ∉ Set.Icc (-1) 1 → φ_minus x = 0)
     (hφ_Fourier : ∃ C : ℝ, ∀ y : ℝ, y ≠ 0 → ‖𝓕 φ_minus y‖ ≤ C / |y| ^ β)
@@ -291,7 +291,7 @@ theorem F.real (lambda ε y : ℝ) : (𝓕 (ϕ lambda ε) y).im = 0 := by sorry
   -/)
   (proof := /-- TODO. -/)
   (latexEnv := "theorem")]
-theorem F.plus_majorizes_I (lambda y : ℝ) (hlam: lambda ≠ 0) :
+theorem F.plus_majorizes_I (lambda y : ℝ) (hlam : lambda ≠ 0) :
     F lambda 1 y ≥ I' lambda y := by sorry
 
 @[blueprint
@@ -302,7 +302,7 @@ theorem F.plus_majorizes_I (lambda y : ℝ) (hlam: lambda ≠ 0) :
   -/)
   (proof := /-- TODO. -/)
   (latexEnv := "theorem")]
-theorem F.minus_minorizes_I (lambda y : ℝ) (hlam: lambda ≠ 0) :
+theorem F.minus_minorizes_I (lambda y : ℝ) (hlam : lambda ≠ 0) :
     F lambda (-1) y ≤ I' lambda y := by sorry
 
 @[blueprint
@@ -313,7 +313,7 @@ theorem F.minus_minorizes_I (lambda y : ℝ) (hlam: lambda ≠ 0) :
   -/)
   (proof := /-- This should follow from the Fourier inversion formula, after showing $F_{+,\lambda}$ is in $L^1$.. -/)
   (latexEnv := "theorem")]
-theorem F.plus_l1 (lambda y : ℝ) (hlam: lambda ≠ 0) :
+theorem F.plus_l1 (lambda y : ℝ) (hlam : lambda ≠ 0) :
     ∫ y : ℝ, F lambda 1 y - I' lambda y =
       1 / (1 - rexp (-|lambda|)) - 1 / |lambda| := by sorry
 
@@ -325,7 +325,7 @@ theorem F.plus_l1 (lambda y : ℝ) (hlam: lambda ≠ 0) :
   -/)
   (proof := /-- This should follow from the Fourier inversion formula, after showing $F_{-,\lambda}$ is in $L^1$.. -/)
   (latexEnv := "theorem")]
-theorem F.minus_l1 (lambda y : ℝ) (hlam: lambda ≠ 0) :
+theorem F.minus_l1 (lambda y : ℝ) (hlam : lambda ≠ 0) :
     ∫ y : ℝ, I' lambda y - F lambda (-1) y =
       1 / |lambda| - 1 / (rexp (|lambda|) - 1) := by sorry
 
