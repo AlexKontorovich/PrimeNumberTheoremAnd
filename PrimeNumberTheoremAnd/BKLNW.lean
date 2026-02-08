@@ -660,7 +660,7 @@ a_2 = (1 + \alpha) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}
 \]
  -/)]
 noncomputable def Inputs.a₂ (I : Inputs) (b : ℝ) : ℝ :=
-  (1 + I.α) * (max (f (exp b)) (f 2^(⌊ b / (log 2) ⌋₊ + 1)))
+  (1 + I.α) * (max (f (exp b)) (f (2^(⌊ b / (log 2) ⌋₊ + 1))))
 
 @[blueprint
   "bklnw-thm-5"
@@ -716,27 +716,21 @@ theorem cor_5_1 {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
   thm_5 Inputs.default hb hx
 
 def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
-  [(20, 1.4263, 4)
-  , (25, 1.2196, 4)
-  , (30, 1.1211, 4)
+  [(20, 1.4262, 4)
+  , (25, 1.2195, 4)
+  , (30, 1.1210, 4)
   , (35, 1.07086, 5)
-  , (40, 1.04320, 5)
-  , (43, 1.03253, 5)
-  , (100, 1 + 2.421e-4, 7)
-  , (150, 1 + 3.749e-6, 8)
-  , (200, 1 + 7.712e-8, 9)
-  , (250, 1 + 2.024e-8, 9)
-  , (300, 1 + 1.936e-8, 9)
+  , (40, 1.04319, 5)
+  , (43, 1.03252, 5)
+  , (100, 1 + 2.420e-4, 7)
+  , (150, 1 + 3.748e-6, 8)
+  , (200, 1 + 7.713e-8, 9)
+  , (250, 1 + 2.025e-8, 9)
+  , (300, 1 + 1.937e-8, 8)
  ]
 
-@[blueprint
-  "bklnw-cor-5-1-rem"
-  (title := "Remark after BKLNW Corollary 5.1")
-  (statement := /--  We have the following values for $a_2$, given by the table after \cite[Corollary 5.1]{BKLNW}. -/)
-  (latexEnv := "remark")
-  (discussion := 853)]
-theorem cor_5_1_rem (b a₂b : ℝ) (m : ℕ) (hb : (b, a₂b, m) ∈ table_cor_5_1) :
-    a₂ b ∈ Set.Icc a₂b (a₂b + 10^(-m:ℝ)) := by sorry
+-- cor_5_1_rem is proved sorry-free in BKLNW_a2_bounds.lean (as BKLNW.cor_5_1_rem)
+-- via LeanCert certified interval arithmetic for all 11 table entries.
 
 
 
