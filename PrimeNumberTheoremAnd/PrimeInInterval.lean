@@ -79,3 +79,13 @@ lemma Eθ.classicalBound.hasPrimeInInterval {x₀ x h A B C R : ℝ} (hEθ : Eθ
   (hb : (2 * x + h) * (admissible_bound A B C R x) < h) :
     HasPrimeInInterval x h := by
   sorry
+
+@[blueprint
+  "prime-gap-record-interval"
+  (title := "Prime gap record implies prime in short interval")
+  (statement := /--
+  If there is a prime gap record $(g,p)$, then there is a prime in $(x,x+h]$ whenever $x < p$ and $h \geq g$. -/)
+  (proof := /-- If $p_k$ is the largest prime less than or equal to $x$, then $p_{k+1} - p_k < g \leq h$, hence $x < p_{k+1} \leq x+h$, giving the claim. -/)
+  (latexEnv := "lemma")]
+lemma prime_gap_record.hasPrimeInInterval {g p : ℕ} {x h : ℝ} (hgap : prime_gap_record p g) (hx : x ≤ p) (hx' : x ≥ 2) (hh : h > g) :
+    HasPrimeInInterval x h := by sorry

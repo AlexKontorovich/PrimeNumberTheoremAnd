@@ -16,7 +16,6 @@ In this section we define the basic types of secondary estimates we will work wi
 
 open Real Finset Topology
 
-/- Standard arithmetic functions. TODO: align this with notation used elsewhere in PNT+ -/
 
 @[blueprint
   "log_upper"
@@ -195,4 +194,3 @@ theorem li.two_approx_weak : li 2 ∈ Set.Icc 1.039 1.06 := by
 theorem li2_symmetric_eq_li2 : Li2Bounds.li2_symmetric = li 2 := by
   rw [li_eq_Li2Bounds_li]
   exact Li2Bounds.li2_symmetric_eq_li2
-
