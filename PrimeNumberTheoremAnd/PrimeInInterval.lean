@@ -46,7 +46,49 @@ theorem theta_pos_implies_prime_in_interval {x y : ℝ} (_hxy : y < x) (h : θ x
   (latexEnv := "lemma")
   (discussion := 905)]
 lemma HasPrimeInInterval.iff_theta_ge (x h : ℝ) : HasPrimeInInterval x h ↔ θ (x + h) > θ x := by
-  sorry
+  constructor
+  · rintro ⟨p, hpprime, hxp, hpxh⟩
+    let s : Finset ℕ := filter Nat.Prime (Icc 0 ⌊x⌋₊)
+    let t : Finset ℕ := filter Nat.Prime (Icc 0 ⌊x + h⌋₊)
+    have hs : s ⊆ t := by
+      intro q hq
+      have hq' : q ∈ filter Nat.Prime (Icc 0 ⌊x⌋₊) := by simpa [s] using hq
+      have hxxh : x ≤ x + h := le_of_lt (lt_of_lt_of_le hxp hpxh)
+      rw [mem_filter] at hq' ⊢
+      have hqIcc : q ∈ Icc 0 ⌊x + h⌋₊ := by
+        exact mem_Icc.mpr ⟨(mem_Icc.mp hq'.1).1, le_trans (mem_Icc.mp hq'.1).2 (Nat.floor_mono hxxh)⟩
+      exact ⟨hqIcc, hq'.2⟩
+    have hp_in_t : p ∈ t := by
+      have : p ∈ filter Nat.Prime (Icc 0 ⌊x + h⌋₊) := by
+        exact Finset.mem_filter.mpr <| by
+          refine ⟨mem_Icc.mpr ?_, hpprime⟩
+          exact ⟨Nat.zero_le p, Nat.le_floor hpxh⟩
+      simpa [t] using this
+    have hp_notin_s : p ∉ s := by
+      intro hpins
+      have hpins' : p ∈ filter Nat.Prime (Icc 0 ⌊x⌋₊) := by simpa [s] using hpins
+      rw [mem_filter, mem_Icc] at hpins'
+      have hx_nn : 0 ≤ x := by
+        have hfloor_pos : 0 < ⌊x⌋₊ := lt_of_lt_of_le hpprime.pos hpins'.1.2
+        exact le_trans (by norm_num : (0 : ℝ) ≤ 1) (Nat.floor_pos.mp hfloor_pos)
+      exact (not_le_of_gt hxp) ((Nat.cast_le.2 hpins'.1.2).trans (Nat.floor_le hx_nn))
+    have hnonneg : ∀ q ∈ t, q ∉ s → 0 ≤ Real.log q := by
+      intro q hq _
+      have hq' : q ∈ filter Nat.Prime (Icc 0 ⌊x + h⌋₊) := by simpa [t] using hq
+      rw [mem_filter] at hq'
+      exact Real.log_nonneg (Nat.one_le_cast.2 hq'.2.one_le)
+    have hsum_lt : (∑ q ∈ s, Real.log q) < ∑ q ∈ t, Real.log q := by
+      exact Finset.sum_lt_sum_of_subset hs hp_in_t hp_notin_s
+        (Real.log_pos (Nat.one_lt_cast.2 hpprime.one_lt)) hnonneg
+    simpa [Chebyshev.theta_eq_sum_Icc, s, t] using hsum_lt
+  · intro htheta
+    have hxh : x < x + h := by
+      by_contra hle
+      have hmono : θ (x + h) ≤ θ x := Chebyshev.theta_mono (le_of_not_gt hle)
+      linarith
+    have hprime : HasPrimeInInterval x ((x + h) - x) :=
+      theta_pos_implies_prime_in_interval hxh (by linarith [htheta])
+    simpa using hprime
 
 @[blueprint
   "etheta-pi"
