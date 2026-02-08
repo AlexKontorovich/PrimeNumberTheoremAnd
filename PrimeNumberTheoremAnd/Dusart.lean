@@ -11,7 +11,7 @@ TODO: add more results and proofs here, and reorganize the blueprint
 
 namespace Dusart
 
-open Nat Real
+open Nat Real Chebyshev
 
 def Table1 : List (ℝ × ℝ × ℕ × ℝ × ℝ × ℝ) := [
   (20, 0.86, 5, 1.595e-5, 1132492, 1.067e-3),

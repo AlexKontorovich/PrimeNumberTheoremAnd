@@ -24,7 +24,7 @@ JY: D. R. Johnston, A. Yang, Some explicit estimates for the error term in the p
 theorem, arXiv:2204.01980.
 -/
 
-open Finset Nat Real
+open Finset Nat Real Chebyshev
 
 
 @[blueprint "thm:pt_2"
@@ -45,8 +45,9 @@ theorem PT.corollary_2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := by
   simp only [admissible_bound]; norm_num
   suffices h_div : 92211 / 10000 * log x ^ (3 / 2 : ℝ) *
     exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ)) ≤ 235 * log x ^ (38 / 25 : ℝ) by
-    (convert mul_le_mul_of_nonneg_right h_div (exp_nonneg (-4 / 5 * log x^(1 / 2 : ℝ))) using 1; rw [exp_add (-2119 / 2500 * log x^(1 / 2 : ℝ)) (4 / 5 * log x^(1 / 2 : ℝ))]; ring_nf)
-    norm_num [mul_assoc, ← exp_add]
+    convert mul_le_mul_of_nonneg_right h_div (exp_nonneg (-4 / 5 * log x^(1 / 2 : ℝ))) using 1
+    · rw [exp_add (-2119 / 2500 * log x^(1 / 2 : ℝ)) (4 / 5 * log x^(1 / 2 : ℝ))]; ring_nf
+      norm_num [mul_assoc, ← exp_add]
     simp only [one_div, mul_eq_mul_left_iff, exp_eq_exp, _root_.mul_eq_zero, OfNat.ofNat_ne_zero, false_or]
     left
     linarith
@@ -84,8 +85,10 @@ theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
   simp only [admissible_bound]; norm_num
   suffices h_div : 92211 / 10000 * log x ^ (3 / 2 : ℝ) *
     exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4137 / 5000 * log x^(1 / 2 : ℝ)) ≤ 959 / 100 * log x ^ (303 / 200 : ℝ) by
-    (convert mul_le_mul_of_nonneg_right h_div (exp_nonneg (-4137 / 5000 * log x^(1 / 2 : ℝ))) using 1; rw [exp_add (-2119 / 2500 * log x^(1 / 2 : ℝ)) (4137 / 5000 * log x^(1 / 2 : ℝ))]; ring_nf)
-    norm_num [mul_assoc, ← exp_add]
+    convert mul_le_mul_of_nonneg_right h_div (exp_nonneg (-4137 / 5000 * log x^(1 / 2 : ℝ))) using 1
+    · rw [exp_add (-2119 / 2500 * log x^(1 / 2 : ℝ)) (4137 / 5000 * log x^(1 / 2 : ℝ))]
+      ring_nf
+      norm_num [mul_assoc, ← exp_add]
     simp only [one_div, mul_eq_mul_left_iff, exp_eq_exp, _root_.mul_eq_zero]
     left
     linarith
@@ -170,18 +173,6 @@ theorem RamareSaouter2003.has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
 theorem GourdonDemichel2004.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/14500755538)) (x/14500755538) := by sorry
 
-theorem theta_pos_implies_prime_in_interval {x y : ℝ} (_hxy : y < x) (h : θ x - θ y > 0) :
-    HasPrimeInInterval y (x - y) := by
-  have h_diff : θ x - θ y =
-      ∑ p ∈ filter Prime (Icc 1 (floor x)), Real.log p -
-      ∑ p ∈ filter Prime (Icc 1 (floor y)), Real.log p := by unfold θ; rfl
-  obtain ⟨p, hp₁, hp₂, hp₃⟩ : ∃ p ∈ Icc 1 (floor x), p.Prime ∧ p > floor y := by
-    contrapose! h
-    exact h_diff.symm ▸ sub_nonpos_of_le (sum_le_sum_of_subset_of_nonneg
-      (fun p hp ↦ by grind) fun _ _ _ ↦ log_nonneg <| one_le_cast.mpr <| Prime.pos <| by grind)
-  have hx_nn : 0 ≤ x := by linarith [floor_pos.mp (hp₂.one_lt.le.trans (mem_Icc.mp hp₁).2)]
-  have hp_le_x : (p : ℝ) ≤ x := floor_le (by positivity) |> le_trans (mod_cast mem_Icc.mp hp₁ |>.2)
-  exact ⟨p, hp₂, lt_of_floor_lt hp₃, by grind⟩
 
 @[blueprint
   "thm:prime_gaps_2014"

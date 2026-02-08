@@ -10,7 +10,7 @@ In this file we record the results from Appendix A of \cite{BKLNW}.  In this app
 
 namespace BKLNW_app
 
-open Real
+open Real Chebyshev
 
 structure Inputs where
   H : ℝ
@@ -243,7 +243,6 @@ theorem bklnw_lemma_15 (c B₀ B : ℝ)
   (hb : exp b ∈ Set.Ioc B₀ B)
   (hbpos : b > 0)
   (hcpos : c > 0)
-  (hB₀pos : B₀ > 0)
   (hBpos : B > 0) :
   ∀ x ≥ exp b, Eψ x ≤ max (c / exp (b / 2)) (ε (log B)) := by
     intro x hx

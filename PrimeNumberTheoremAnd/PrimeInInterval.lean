@@ -7,7 +7,7 @@ blueprint_comment /--
 In this section, bounds on $E_\theta$ are used to deduce the existence of primes in short intervals. (One could also proceed using $E_\pi$, but the bounds are messier and the results slightly weaker.)
 -/
 
-open Real
+open Real Chebyshev Nat Finset
 
 @[blueprint
   "pi-inc"
@@ -19,6 +19,19 @@ open Real
   (latexEnv := "lemma")]
 lemma HasPrimeInInterval.iff_pi_ge (x h : ℝ) : HasPrimeInInterval x h ↔ pi (x + h) > pi x := by
   sorry
+
+theorem theta_pos_implies_prime_in_interval {x y : ℝ} (_hxy : y < x) (h : θ x - θ y > 0) :
+    HasPrimeInInterval y (x - y) := by
+  have h_diff : θ x - θ y =
+      ∑ p ∈ filter Prime (Icc 1 (floor x)), Real.log p -
+      ∑ p ∈ filter Prime (Icc 1 (floor y)), Real.log p := by rfl
+  obtain ⟨p, hp₁, hp₂, hp₃⟩ : ∃ p ∈ Icc 1 (floor x), p.Prime ∧ p > floor y := by
+    contrapose! h
+    exact h_diff.symm ▸ sub_nonpos_of_le (sum_le_sum_of_subset_of_nonneg
+      (fun p hp ↦ by grind) fun _ _ _ ↦ log_nonneg <| one_le_cast.mpr <| Prime.pos <| by grind)
+  have hx_nn : 0 ≤ x := by linarith [floor_pos.mp (hp₂.one_lt.le.trans (mem_Icc.mp hp₁).2)]
+  have hp_le_x : (p : ℝ) ≤ x := floor_le (by positivity) |> le_trans (mod_cast mem_Icc.mp hp₁ |>.2)
+  exact ⟨p, hp₂, lt_of_floor_lt hp₃, by grind⟩
 
 @[blueprint
   "theta-inc"

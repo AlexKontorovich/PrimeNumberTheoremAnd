@@ -37,7 +37,7 @@ theorem table_8_prime_gap (p g : ℕ) (h : (p, g) ∈ table_8) : prime_gap_recor
   For every pair $(g,P)$ in Table 9 with $P < 30$, $P$ is the first prime producing the prime gap $g$, and all smaller $g'$ (that are even or $1$) have a smaller first prime. -/)
   (proof := /-- Direct computation. -/)
   (latexEnv := "proposition")]
-theorem table_9_prime_ga_test (g P : ℕ) (h : (g, P) ∈ table_9) (htest : P < 30) : first_gap_record g P := by
+theorem table_9_prime_gap_test (g P : ℕ) (h : (g, P) ∈ table_9) (htest : P < 30) : first_gap_record g P := by
   sorry
 
 @[blueprint
