@@ -11,7 +11,7 @@ TODO: Add more results and proofs here, and reorganize the blueprint
 
 namespace Buthe
 
-open MeasureTheory Real
+open MeasureTheory Real Chebyshev
 
 -- TODO: enter in other results from Buthe's paper than Theorem 2.
 
