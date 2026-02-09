@@ -5,7 +5,7 @@
    "type": "git",
    "subDir": null,
    "scope": "",
-   "rev": "2d5c725defddde9f355ed49be83227093f77056b",
+   "rev": "7632b3f0c496a3e082862b2b20f76b48d2f1a14d",
    "name": "leancert",
    "manifestFile": "lake-manifest.json",
    "inputRev": "v4.28.0-rc1",
