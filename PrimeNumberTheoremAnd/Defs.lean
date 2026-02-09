@@ -136,8 +136,8 @@ def Eπ.vinogradovBound (A B C x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ A
   (latexEnv := "lemma")
   (discussion := 900)]
 lemma admissible_bound.mono (A B C R : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) :
-    MonotoneOn (admissible_bound A B C R) (Set.Ici (Real.exp (R * (2 * B / C) ^ 2))) := by
   sorry
+    AntitoneOn (admissible_bound A B C R) (Set.Ici (Real.exp (R * (2 * B / C) ^ 2))) := by
 
 @[blueprint
   "classical-to-numeric"
@@ -147,21 +147,28 @@ lemma admissible_bound.mono (A B C R : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < 
   (proof := /-- Immediate from previous lemma -/)
   (latexEnv := "lemma")
   (discussion := 901)]
-lemma Eψ.classicalBound.to_numericalBound (A B C R x₀ x₁ : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) (hEψ : Eψ.classicalBound A B C R x₀)
+lemma Eψ.classicalBound.to_numericalBound (A B C R x₀ x₁ : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C)
+    (hR : 0 < R) (hEψ : Eψ.classicalBound A B C R x₀)
     (hx₁ : x₁ ≥ max x₀ (Real.exp (R * (2 * B / C) ^ 2))) :
-     Eψ.numericalBound x₁ (fun x ↦ admissible_bound A B C R x) := by
-    sorry
+     Eψ.numericalBound x₁ (fun x ↦ admissible_bound A B C R x) :=
+  fun x hx ↦ le_trans (hEψ x (le_trans (le_max_left ..) (le_trans hx₁ hx)))
+    (admissible_bound.mono A B C R hA hB hC hR (Set.mem_Ici.mpr (le_trans (le_max_right ..) hx₁))
+        (Set.mem_Ici.mpr (le_trans (le_max_right ..) (le_trans hx₁ hx))) hx)
 
-@[blueprint
-  "classical-to-numeric"]
-lemma Eθ.classicalBound.to_numericalBound (A B C R x₀ x₁ : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) (hEθ : Eθ.classicalBound A B C R x₀)
+@[blueprint "classical-to-numeric"]
+lemma Eθ.classicalBound.to_numericalBound (A B C R x₀ x₁ : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C)
+    (hR : 0 < R) (hEθ : Eθ.classicalBound A B C R x₀)
     (hx₁ : x₁ ≥ max x₀ (Real.exp (R * (2 * B / C) ^ 2))) :
-     Eθ.numericalBound x₁ (fun x ↦ admissible_bound A B C R x) := by
-    sorry
+    Eθ.numericalBound x₁ (fun x ↦ admissible_bound A B C R x) :=
+  fun x hx ↦ le_trans (hEθ x (le_trans (le_max_left ..) (le_trans hx₁ hx)))
+    (admissible_bound.mono A B C R hA hB hC hR (Set.mem_Ici.mpr (le_trans (le_max_right ..) hx₁))
+        (Set.mem_Ici.mpr (le_trans (le_max_right ..) (le_trans hx₁ hx))) hx)
 
-@[blueprint
-  "classical-to-numeric"]
-lemma Eπ.classicalBound.to_numericalBound (A B C R x₀ x₁ : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) (hEπ : Eπ.classicalBound A B C R x₀)
+@[blueprint "classical-to-numeric"]
+lemma Eπ.classicalBound.to_numericalBound (A B C R x₀ x₁ : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C)
+    (hR : 0 < R) (hEπ : Eπ.classicalBound A B C R x₀)
     (hx₁ : x₁ ≥ max x₀ (Real.exp (R * (2 * B / C) ^ 2))) :
-     Eπ.numericalBound x₁ (fun x ↦ admissible_bound A B C R x) := by
-    sorry
+    Eπ.numericalBound x₁ (fun x ↦ admissible_bound A B C R x) :=
+  fun x hx ↦ le_trans (hEπ x (le_trans (le_max_left ..) (le_trans hx₁ hx)))
+    (admissible_bound.mono A B C R hA hB hC hR (Set.mem_Ici.mpr (le_trans (le_max_right ..) hx₁))
+        (Set.mem_Ici.mpr (le_trans (le_max_right ..) (le_trans hx₁ hx))) hx)
