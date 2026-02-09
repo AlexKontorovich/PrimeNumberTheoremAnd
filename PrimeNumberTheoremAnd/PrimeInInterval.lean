@@ -159,9 +159,18 @@ lemma Eθ.hasPrimeInInterval (x h : ℝ) (hx : 0 < x) (hh : 0 < h) :
   (proof := /-- Apply Lemma \ref{etheta-pi}. -/)
   (latexEnv := "lemma")
   (discussion := 907)]
-lemma Eθ.numericalBound.hasPrimeInInterval {x₀ x h : ℝ} {ε : ℝ → ℝ} (hEθ : Eθ.numericalBound x₀ ε) (hh : 0 < h) (hx : x₀ ≤ x) (hε : (2 * x + h) * ε x₀ < h) :
+lemma Eθ.numericalBound.hasPrimeInInterval {x₀ x h : ℝ} {ε : ℝ → ℝ} (hEθ : Eθ.numericalBound x₀ ε)
+    (hh : 0 < h) (hx₀ : x₀ ≤ x) (hx : 0 < x) (hε : (2 * x + h) * ε x₀ < h) :
     HasPrimeInInterval x h := by
-  sorry
+  have hxh : 0 < x + h := by linarith
+  have hE₁ : Eθ x ≤ ε x₀ := hEθ x hx₀
+  have hE₂ : Eθ (x + h) ≤ ε x₀ := hEθ (x + h) (by linarith [hx₀, hh])
+  have h1 : x * Eθ x ≤ x * ε x₀ := mul_le_mul_of_nonneg_left hE₁ hx.le
+  have h2 : (x + h) * Eθ (x + h) ≤ (x + h) * ε x₀ :=
+    mul_le_mul_of_nonneg_left hE₂ hxh.le
+  have hsum : x * Eθ x + (x + h) * Eθ (x + h) ≤ (2 * x + h) * ε x₀ := by
+    nlinarith [h1, h2]
+  exact Eθ.hasPrimeInInterval x h hx hh (lt_of_le_of_lt hsum hε)
 
 @[blueprint
   "etheta-classical-pi"
