@@ -136,8 +136,8 @@ def Eπ.vinogradovBound (A B C x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ A
   (latexEnv := "lemma")
   (discussion := 900)]
 lemma admissible_bound.mono (A B C R : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) :
-  sorry
     AntitoneOn (admissible_bound A B C R) (Set.Ici (Real.exp (R * (2 * B / C) ^ 2))) := by
+  sorry
 
 @[blueprint
   "classical-to-numeric"
