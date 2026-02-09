@@ -1,0 +1,7 @@
+GPT-5.2-High-Reasoning 
+Token usage: total=109,406 input=76,400 (+ 1,679,872 cached) output=33,006 (reasoning 28,316)                      
+To continue this session, run codex resume 019c4410-f53f-7441-bf77-8a56474faece 
+
+Codex-5.3-Medium-Reasoning 
+Token usage: total=152,596 input=130,637 (+ 1,774,464 cached) output=21,959 (reasoning 9,634)
+To continue this session, run codex resume 019c4437-dbd2-7370-9e15-d57387c4f905
