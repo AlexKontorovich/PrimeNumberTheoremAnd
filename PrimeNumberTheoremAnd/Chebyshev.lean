@@ -4,6 +4,7 @@ import Mathlib.Data.Rat.Cast.OfScientific
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.NumberTheory.Chebyshev
 import Mathlib.Tactic.NormNum.BigOperators
+import PrimeNumberTheoremAnd.LogTables
 import PrimeNumberTheoremAnd.SecondaryDefinitions
 
 blueprint_comment /--
@@ -64,7 +65,7 @@ theorem T.le (x : ℝ) (hx : 1 ≤ x) : T x ≤ x * log x - x + 1 + log x := by
 @[blueprint
   "cheby-T-lower"
   (title := "Lower bound on $T$")
-  (statement := /-- For $x \geq 1$, we have $T(x) \leq x \log x - x + 1 - \log x$. -/)
+  (statement := /-- For $x \geq 1$, we have $T(x) \geq x \log x - x + 1 - \log x$. -/)
   (proof := /-- Drop the $n=1$ term. Lower bound $\log n$ by $\int_{n-1}^{n} \log t\ dt$ for $2 \leq n < x$ to bound
   $$T(x) \geq \int_1^{\lfloor x \rfloor} \log t\ dt \geq \int_1^x \log t\ dt - \log x $$
   giving the claim. -/)
@@ -330,62 +331,6 @@ lemma a_simpl : a = (7/15) * Real.log 2 + (3/10) * Real.log 3 + (1/6) * Real.log
     grind [show (30 : ℝ) = 2 * 3 * 5 by ring, log_mul, log_mul]
   · norm_num [ν, Finset.ext_iff]; grind
 
-lemma log_five_bounds : 1.609437 < Real.log 5 ∧ Real.log 5 < 1.609438 := by
-  rw [Real.lt_log_iff_exp_lt, Real.log_lt_iff_lt_exp] <;> norm_num
-  constructor
-  · have h : Real.exp (1609437 / 1000000) = Real.exp (1609437 / 2000000) ^ 2 := by
-      norm_num [← Real.exp_nat_mul]
-    rw [h]
-    have hexp : Real.exp (1609437 / 2000000) < Real.sqrt 5 := by
-      have hx : (1609437 : ℝ) / 2000000 ∈ Set.Icc 0 1 := by constructor <;> grind
-      calc Real.exp (1609437 / 2000000)
-          ≤ (∑ m ∈ Finset.range 15, ((1609437 : ℝ) / 2000000) ^ m / m.factorial) +
-            ((1609437 : ℝ) / 2000000) ^ 15 * (15 + 1) / (Nat.factorial 15 * 15) :=
-              Real.exp_bound' hx.1 hx.2 (by grind)
-        _ < 2.2360679 := by norm_num [Finset.sum_range_succ, Nat.factorial]
-        _ < Real.sqrt 5 := by rw [Real.lt_sqrt (by grind : (0 : ℝ) ≤ 2.2360679)]; grind
-    calc Real.exp (1609437 / 2000000) ^ 2
-        < (Real.sqrt 5) ^ 2 := sq_lt_sq' (by linarith [Real.exp_pos (1609437 / 2000000)]) hexp
-      _ = 5 := Real.sq_sqrt (by grind)
-  · rw [show (804719 : ℝ) / 500000 = 1.609438 by norm_num]
-    norm_num [Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div] at *
-    exact (by norm_num [Finset.sum_range_succ, Nat.factorial] : (5 : ℝ) < _).trans_le
-      (Summable.sum_le_tsum (Finset.range 20) (fun _ _ ↦ by positivity)
-        (Real.summable_pow_div_factorial _))
-
-lemma log_three_lt : Real.log 3 < 1.098613 := by
-  rw [Real.log_lt_iff_lt_exp (by positivity), Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
-  exact lt_of_lt_of_le (by norm_num [Finset.sum_range_succ, Nat.factorial])
-    (Summable.sum_le_tsum (Finset.range 10) (fun _ _ ↦ by positivity)
-      (Real.summable_pow_div_factorial _))
-
-lemma log_three_gt : 1.098612 < Real.log 3 := by
-  have h_exp : Real.exp 1.098612 < 3 := by
-    have h_exp_taylor : Real.exp (1.098612) ≤
-        ∑ k ∈ Finset.range 10, (1.098612 : ℝ)^k / Nat.factorial k +
-        (1.098612 : ℝ)^10 / Nat.factorial 10 * (1 / (1 - 1.098612 / 11)) := by
-      simp only [Real.exp_eq_exp_ℝ, NormedSpace.exp_eq_tsum_div]
-      rw [← Summable.sum_add_tsum_nat_add (k := 10) (h := Real.summable_pow_div_factorial _)]
-      have h_term_bound : ∀ i : ℕ, (1.098612 : ℝ)^(i + 10) / Nat.factorial (i + 10) ≤
-          (1.098612 : ℝ)^10 / Nat.factorial 10 * (1.098612 / 11)^i := by
-        intro i; rw [div_mul_eq_mul_div, div_le_div_iff₀ (by positivity) (by positivity)]
-        induction i with
-        | zero => grind
-        | succ i ih =>
-          norm_num [Nat.factorial_succ, pow_succ'] at *
-          nlinarith [pow_pos (by norm_num : (0 : ℝ) < 274653 / 250000) i,
-            pow_pos (by norm_num : (0 : ℝ) < 274653 / 2750000) i,
-            mul_le_mul_of_nonneg_left (sq_nonneg (i : ℝ))
-              (by positivity : (0 : ℝ) ≤ 274653 / 250000 ^ i)]
-      have hgeom : Summable fun n ↦ (1.098612 / 11 : ℝ) ^ n :=
-        summable_geometric_of_lt_one (by positivity) (by norm_num)
-      exact add_le_add_right ((Summable.tsum_le_tsum h_term_bound
-        (Summable.of_nonneg_of_le (fun _ ↦ by positivity) (fun i ↦ h_term_bound i)
-          <| Summable.mul_left _ hgeom) (Summable.mul_left _ hgeom)).trans
-        <| by rw [tsum_mul_left, tsum_geometric_of_lt_one (by positivity) (by norm_num)]; grind) _
-    exact h_exp_taylor.trans_lt <| by norm_num [Finset.sum_range_succ, Nat.factorial]
-  simpa using Real.log_lt_log (by positivity) h_exp
-
 @[blueprint
   "a-val"
   (title := "Numerical value of $a$")
@@ -394,8 +339,8 @@ lemma log_three_gt : 1.098612 < Real.log 3 := by
   (discussion := 839)]
 theorem a_bound : a ∈ Set.Icc 0.92129 0.92130 := by
   norm_num [Chebyshev.a_simpl]
-  constructor <;> nlinarith [Real.log_two_gt_d9, Real.log_two_lt_d9, log_three_gt, log_three_lt,
-    log_five_bounds]
+  constructor <;> nlinarith [LogTables.log_2_gt, LogTables.log_2_lt,
+    LogTables.log_3_gt, LogTables.log_3_lt, LogTables.log_5_gt, LogTables.log_5_lt]
 
 @[blueprint
   "U-bounds"
@@ -432,13 +377,49 @@ theorem psi_diff_upper (x : ℝ) (hx : 30 ≤ x) : ψ x - ψ (x / 6) ≤ a * x +
   rw [abs_sub_le_iff] at h2
   linarith [h2.2]
 
+set_option maxHeartbeats 400000 in
+-- Proof splits into many cases
 @[blueprint
   "psi-num"
   (title := "Numerical bound for $\\psi(x)$ for very small $x$")
   (statement := /-- For $0 < x \leq 30$, we have $\psi(x) \leq 1.015 x$. -/)
   (proof := /-- Numerical check (the maximum occurs at $x=19$).  One only needs to check the case when $x$ is a prime power.-/)
   (latexEnv := "sublemma")]
-theorem psi_num (x : ℝ) (hx : x > 0) (hx2 : x ≤ 30) : ψ x ≤ 1.015 * x := by sorry
+theorem psi_num (x : ℝ) (hx : x > 0) (hx2 : x ≤ 30) : ψ x ≤ 1.015 * x := by
+  suffices ∀ n ∈ Finset.Icc (0 : ℕ) 30, ψ n ≤ 1.015 * n by
+    rw [psi_eq_psi_coe_floor]
+    grw [this]
+    · gcongr
+      exact Nat.floor_le hx.le
+    · simp only [Finset.mem_Icc, zero_le, true_and]
+      exact Nat.floor_le_of_le hx2
+  unfold psi
+  have primes : Λ 2 = log 2 ∧ Λ 3 = log 3 ∧ Λ 5 = log 5 ∧ Λ 7 = log 7 ∧ Λ 11 = log 11 ∧ Λ 13 = log 13 ∧ Λ 17 = log 17 ∧ Λ 19 = log 19 ∧ Λ 23 = log 23 ∧ Λ 29 = log 29 := by
+    split_ands <;> exact vonMangoldt_apply_prime (by decide)
+  have lam_pow : (Λ (2 ^ 2) = log 2) ∧ Λ (2 ^ 3) = log 2 ∧ Λ (2 ^ 4) = log 2 ∧ Λ (3 ^ 2) = log 3 ∧ Λ (3 ^ 3) = log 3 ∧ Λ (5 ^ 2) = log 5:= by
+    split_ands <;> rw [vonMangoldt_apply_pow (by norm_num)] <;> (try rw [primes.1]) <;> simp_all
+  have comps : Λ 6 = 0 ∧ Λ 10 = 0 ∧ Λ 12 = 0 ∧ Λ 14 = 0 ∧ Λ 15 = 0 ∧ Λ 18 = 0 ∧ Λ 20 = 0 ∧ Λ 21 = 0 ∧ Λ 22 = 0 ∧ Λ 24 = 0 ∧ Λ 26 = 0 ∧ Λ 28 = 0 ∧ Λ 30 = 0 := by
+    split_ands <;> rw [vonMangoldt_eq_zero_iff, isPrimePow_nat_iff_bounded_log] <;> decide
+  have log7bound : log 7 < 1.946 := by linarith [LogTables.log_7_lt]
+  have log11bound : log 11 < 2.398 := by linarith [LogTables.log_11_lt]
+  have : (log 13 < 2.57) ∧ (log 17 < 2.84) ∧ (log 19 < 2.95) :=
+    ⟨by linarith [LogTables.log_13_lt], by linarith [LogTables.log_17_lt],
+     by linarith [LogTables.log_19_lt]⟩
+  have log23bound : log 23 ≤ (3 : ℕ) * log 2 + log 3 := by
+    rw [← log_pow, ← log_mul] <;> norm_num
+    gcongr
+    norm_num
+  have log29bound : log 29 ≤ log 2 + log 3 + log 5 := by
+    rw [← log_mul, ← log_mul]<;> norm_num
+    gcongr
+    norm_num
+  intro n hn
+  fin_cases hn
+  · simp
+  · simp; norm_num
+  all_goals
+    simp_all [Finset.sum_Ioc_succ_top]
+    linarith [LogTables.log_2_lt, LogTables.log_3_lt, LogTables.log_5_lt]
 
 @[blueprint
   "psi-upper"
@@ -447,7 +428,77 @@ theorem psi_num (x : ℝ) (hx : x > 0) (hx2 : x ≤ 30) : ψ x ≤ 1.015 * x := 
   (proof := /-- Iterate Lemma \ref{psi-diff-upper} using Sublemma \ref{psi-num} .-/)
   (latexEnv := "theorem")
   (discussion := 843)]
-theorem psi_upper (x : ℝ) (hx : 30 ≤ x) : ψ x ≤ 6 * a * x / 5 + (log (x/5) / log 6) * (5 * log x - 5) := by sorry
+theorem psi_upper (x : ℝ) (hx : 30 ≤ x) : ψ x ≤ 6 * a * x / 5 + (log (x/5) / log 6) * (5 * log x - 5) := by
+  have telescope (n : ℕ) : ψ x - ψ (x / 6 ^ n) = ∑ i ∈ Finset.Ico 0 n, (ψ (x / 6 ^ i) - ψ (x / 6 ^ (i + 1))) := by
+    induction n with
+    | zero => simp
+    | succ n hn =>
+      rw [Finset.sum_Ico_succ_top <| Nat.zero_le n, ← hn]
+      ring
+  have bound (n : ℕ) (h : ∀ i < n, 30 ≤ x / 6 ^ i) : ψ x - ψ (x / 6 ^ n) ≤ ∑ i ∈ Finset.Ico 0 n, (a * x / 6 ^i + 5 * log (x / 6 ^ i) - 5) := by
+    rw [telescope]
+    refine Finset.sum_le_sum fun i hi ↦ ?_
+    convert psi_diff_upper (x / 6 ^ i) (by grind) using 3
+    · field
+    · ring
+  replace bound (n : ℕ) (h : ∀ i < n, 30 ≤ x / 6 ^ i) : ψ x - ψ (x / 6 ^ n) ≤ ∑ i ∈ Finset.Ico 0 n, (a * x / 6 ^i + 5 * log x - 5) := by
+    grw [bound n h]
+    apply Finset.sum_le_sum fun i hi ↦ ?_
+    gcongr
+    bound
+  let n := ⌊log (x / 5) / log 6⌋₊
+  specialize bound n ?_
+  · intro i hi
+    apply le_div_iff₀ (by simp)|>.mpr
+    trans (30 * 6 ^ (n-1))
+    · gcongr <;> grind
+    · trans (30 * 6 ^ (log (x / 5) / log 6 - 1))
+      · rw [← rpow_natCast, Nat.cast_sub]
+        · gcongr
+          · norm_num
+          · refine Nat.floor_le <| div_nonneg ?_ ?_ <;> apply log_nonneg <;> linarith
+          · norm_cast
+        · apply Nat.le_floor
+          norm_cast
+          apply le_div_iff₀ (log_pos (by norm_num))|>.mpr
+          rw [one_mul]
+          gcongr
+          linarith
+      · rw [rpow_def_of_pos (by norm_num)]
+        field_simp
+        rw [exp_sub, exp_log, exp_log] <;> linarith
+  simp_rw [← add_sub, Finset.sum_add_distrib, Finset.sum_const, Nat.Ico_zero_eq_range, Finset.card_range, nsmul_eq_mul, tsub_le_iff_right] at bound
+  apply bound.trans
+  conv => lhs; arg 1; arg 1; arg 2; ext i; rw [← mul_one_div, ←one_div_pow]
+  rw [← Finset.mul_sum, geom_sum_eq (by norm_num)]
+  norm_num
+  have : x / 6 ^ n ≤ 30 := by
+    apply div_le_iff₀ (by simp)|>.mpr
+    trans 30 * 6 ^ (log (x / 5) / log 6 - 1)
+    · rw [rpow_def_of_pos (by norm_num)]
+      field_simp
+      rw [exp_sub, exp_log, exp_log] <;> linarith
+    · rw [← rpow_natCast]
+      gcongr
+      · norm_num
+      · exact Nat.sub_one_lt_floor _|>.le
+  grw [psi_num _ (by simp; linarith) this]
+  calc
+  _ = 6 * a * x / 5 - x * (1 / 6) ^ n * (a * 1 / (5 / 6) - 1.015) + ↑n * (5 * log x - 5) := by
+    ring_nf
+    congr
+    field
+  _ ≤6 * a * x / 5 + n * (5 * log x - 5) := by
+    gcongr
+    simp only [one_div, inv_pow, mul_one, tsub_le_iff_right, le_add_iff_nonneg_right]
+    refine mul_nonneg (mul_nonneg (by linarith) (by simp)) ?_
+    grw [← a_bound.1]
+    norm_num
+  _ ≤ _ := by
+    gcongr
+    · simp only [sub_nonneg, Nat.ofNat_pos, le_mul_iff_one_le_right]
+      exact le_log_iff_exp_le (by linarith)|>.mpr (by linarith [exp_one_lt_three])
+    · exact Nat.floor_le (by bound)
 
 @[blueprint
   "psi-num-2"

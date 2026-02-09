@@ -1,7 +1,9 @@
 import Architect
 import Mathlib.NumberTheory.Harmonic.Bounds
 import PrimeNumberTheoremAnd.Mathlib.Analysis.SpecialFunctions.Log.Basic
+import PrimeNumberTheoremAnd.Defs
 import PrimeNumberTheoremAnd.Wiener
+
 
 set_option lang.lemmaCmd true
 
@@ -911,12 +913,6 @@ theorem pi_alt' :
   all_goals ring
 
 
-blueprint_comment /--
-Let $p_n$ denote the $n^{th}$ prime.
--/
-
-noncomputable abbrev nth_prime (n : ℕ) : ℕ := Nat.nth Nat.Prime n
-
 lemma pi_nth_prime (n : ℕ) :
     primeCounting (nth_prime n) = n + 1 := by
   rw [primeCounting, primeCounting', count_nth_succ_of_infinite infinite_setOf_prime]
@@ -1664,9 +1660,6 @@ lemma sum_mobius_mul_floor (x : ℝ) (hx : 1 ≤ x) :
     positivity
   · simpa [moebius_mul_coe_zeta, one_apply]
 
-noncomputable abbrev Psi (x : ℝ) : ℝ := ψ x
-
-noncomputable def M (x : ℝ) : ℝ := ∑ n ∈ Iic ⌊x⌋₊, (μ n : ℝ)
 
 noncomputable def mu_log : ArithmeticFunction ℝ :=
     ⟨(fun n ↦ μ n * ArithmeticFunction.log n), (by simp)⟩
