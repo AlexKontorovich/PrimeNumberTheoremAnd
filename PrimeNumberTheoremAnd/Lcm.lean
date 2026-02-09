@@ -1,4 +1,5 @@
 import Architect
+import Mathlib.NumberTheory.Chebyshev
 import PrimeNumberTheoremAnd.SecondarySummary
 
 namespace Lcm
@@ -381,8 +382,8 @@ theorem Criterion.σnorm_ln_eq (c : Criterion) :
   have hcopL' : ∀ i, (c.q i).Coprime c.L' := fun i ↦
     (c.hq i).coprime_iff_not_dvd.mpr (c.q_not_dvd_L' i)
   have hσ_prime : ∀ i, sigma 1 (c.q i) = 1 + c.q i := fun i ↦ by
-    rw [← pow_one (c.q i), sigma_one_apply_prime_pow (c.hq i), sum_range_succ, range_one,
-      sum_singleton, pow_zero, pow_one]
+    rw [← pow_one (c.q i), sigma_one_apply_prime_pow (c.hq i)]
+    simp [reduceAdd, geom_sum_two, pow_one, add_comm]
   simp only [σnorm, σ, c.L_eq_prod_q_mul_L', Fin.prod_univ_three]
   rw [show c.q 0 * c.q 1 * c.q 2 * c.L' = (c.q 0 * c.q 1 * c.q 2) * c.L' by ring,
       isMultiplicative_sigma.map_mul_of_coprime (coprime_mul_iff_left.mpr
@@ -1665,5 +1666,40 @@ blueprint_comment /--
   (proofUses := ["prop:ineq-holds-large-n", "thm:criterion"])]
 theorem L_not_HA_of_ge (n : ℕ) (hn : n ≥ 89693 ^ 2) : ¬HighlyAbundant (L n) :=
   (Criterion.mk' hn).not_highlyAbundant
+
+blueprint_comment /--
+\subsection{Bonus material}
+
+The following result is not needed for this application, but is worth recording nevertheless.
+-/
+
+@[blueprint
+  "thm:lcm-eq"
+  (title := "Formula for log of L equals Chebyshev psi")
+  (statement := /-- For every $n$, $\log L_n = \sum_{p \leq n} \lfloor \log n / \log p \rfloor \log p$. -/)
+  (proof := /-- Compute the number of times $p$ divides $L_n$ and use the fundamental theorem of arithmetic. -/)
+  (latexEnv := "sublemma")]
+theorem L_eq_prod (n : ℕ) :
+    L n = ∏ p ∈ Finset.filter Nat.Prime (Finset.range (n + 1)),
+      p ^ ⌊Real.log n / Real.log p⌋₊ := by sorry
+
+@[blueprint
+  "thm:psi-eq"
+  (title := "Formula for Chebyshev psi")
+  (statement := /-- For every $n$, $\psi(n) = \sum_{p \leq n} \lfloor \log n / \log p \rfloor \log p$, where $\psi$ is the Chebyshev psi function. -/)
+  (proof := /-- Compute the number of times $p$ divides $L_n$ and use the fundamental theorem of arithmetic. -/)
+  (latexEnv := "sublemma")]
+theorem psi_eq_prod (n : ℕ) :
+    Chebyshev.psi n = ∑ p ∈ Finset.filter Nat.Prime (Finset.range (n + 1)),
+      ⌊Real.log n / Real.log p⌋₊ * Real.log p := by sorry
+
+@[blueprint
+  "thm:lcm-psi"
+  (title := "Log of L equals Chebyshev psi")
+  (statement := /-- For every $n$, $\log L_n = \psi(n)$, where $\psi$ is the Chebyshev psi function. -/)
+  (proof := /-- Combine the previous results. -/)
+  (latexEnv := "proposition")]
+theorem log_L_eq_psi (n : ℕ) : Real.log (L n) = Chebyshev.psi n := by sorry
+
 
 end Lcm
