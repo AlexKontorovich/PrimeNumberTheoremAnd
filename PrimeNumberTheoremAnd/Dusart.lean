@@ -2,6 +2,7 @@ import Architect
 import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.PrimeInInterval
 import PrimeNumberTheoremAnd.eSHP
+import LeanCert.Tactic.IntervalAuto
 
 blueprint_comment /--
 \section{Dusart's explicit estimates for primes}\label{dusart-sec}
@@ -340,7 +341,73 @@ theorem corollary_5_3_d {x : ℝ} (hx : x > 5.6) : pi x ≤ x / (log x - 1 - 1.2
   (proof := /-- Use Lemma \ref{etheta-pi} and Theorem \ref{Dusart_thm_4_2}.  -/)
   (latexEnv := "sublemma")
   (discussion := 910)]
-theorem proposition_5_4a : HasPrimeInInterval.log_thm 4e18 3 := sorry
+theorem proposition_5_4a : HasPrimeInInterval.log_thm 4e18 3 := by
+  intro x hx
+  have hx_pos : 0 < x := by linarith
+  have hlog_pos : 0 < log x := Real.log_pos (by linarith)
+  let h : ℝ := x / (log x) ^ 3
+  have hh_pos : 0 < h := by
+    have hpow_pos : 0 < (log x) ^ 3 := by positivity
+    exact div_pos hx_pos hpow_pos
+  have htab : (3, (0.499 : ℝ), (4e18 : ℝ)) ∈ Table_4_2 := by
+    simp [Table_4_2]
+  have hE1 : Eθ x ≤ 0.499 / (log x) ^ 3 := theorem_4_2 htab hx
+  have hxh_ge : x + h ≥ 4e18 := by linarith [hx, hh_pos]
+  have hE2' : Eθ (x + h) ≤ 0.499 / (log (x + h)) ^ 3 := theorem_4_2 htab hxh_ge
+  have hlog_mono : log x ≤ log (x + h) := by
+    apply Real.log_le_log
+    · linarith [hx_pos, hh_pos]
+    · linarith [hh_pos]
+  have hdenom_mono : 0.499 / (log (x + h)) ^ 3 ≤ 0.499 / (log x) ^ 3 := by
+    have hpow_mono : (log x) ^ 3 ≤ (log (x + h)) ^ 3 := by
+      gcongr
+    have hpow_pos : 0 < (log x) ^ 3 := by positivity
+    have hdiv : (1 : ℝ) / (log (x + h)) ^ 3 ≤ 1 / (log x) ^ 3 :=
+      one_div_le_one_div_of_le hpow_pos hpow_mono
+    calc
+      0.499 / (log (x + h)) ^ 3 = 0.499 * (1 / (log (x + h)) ^ 3) := by ring
+      _ ≤ 0.499 * (1 / (log x) ^ 3) := by gcongr
+      _ = 0.499 / (log x) ^ 3 := by ring
+  have hE2 : Eθ (x + h) ≤ 0.499 / (log x) ^ 3 := hE2'.trans hdenom_mono
+  have hmain_le :
+      x * Eθ x + (x + h) * Eθ (x + h) ≤ (2 * x + h) * (0.499 / (log x) ^ 3) := by
+    have h1 : x * Eθ x ≤ x * (0.499 / (log x) ^ 3) := mul_le_mul_of_nonneg_left hE1 hx_pos.le
+    have h2 : (x + h) * Eθ (x + h) ≤ (x + h) * (0.499 / (log x) ^ 3) := by
+      apply mul_le_mul_of_nonneg_left hE2
+      linarith [hx_pos, hh_pos]
+    nlinarith [h1, h2]
+  have hlog_big : (249.5 : ℝ) < (log x) ^ 3 := by
+    have hexp10 : (Real.exp 10 : ℝ) < 4e18 := by interval_decide
+    have hlog_gt10 : (10 : ℝ) < log x := by
+      have : Real.exp 10 < x := lt_of_lt_of_le hexp10 hx
+      have hexp : Real.exp 10 < Real.exp (log x) := by
+        simpa [Real.exp_log hx_pos] using this
+      exact (Real.exp_lt_exp.mp hexp)
+    have hcube : (1000 : ℝ) < (log x) ^ 3 := by
+      have hlog_pos' : 0 < log x := lt_trans (by norm_num) hlog_gt10
+      have hmul : (10 : ℝ) * 10 * 10 < log x * log x * log x := by nlinarith [hlog_gt10, hlog_pos']
+      have h1000 : (1000 : ℝ) = (10 : ℝ) * 10 * 10 := by norm_num
+      have hpow : (log x) ^ 3 = log x * log x * log x := by ring
+      linarith [hmul, h1000, hpow]
+    linarith
+  have hcoeff : (2 * x + h) * (0.499 / (log x) ^ 3) < h := by
+    have hpow_pos : 0 < (log x) ^ 3 := by positivity
+    have hfac_pos : 0 < x / (log x) ^ 3 := by positivity
+    have hlt : 0.499 * (2 + 1 / (log x) ^ 3) < 1 := by
+      have hsmall : 1 / (log x) ^ 3 < 1 / 249.5 := by
+        exact one_div_lt_one_div_of_lt (by positivity) hlog_big
+      nlinarith
+    have hrepr :
+        (2 * x + x / (log x) ^ 3) * (0.499 / (log x) ^ 3) =
+          (x / (log x) ^ 3) * (0.499 * (2 + 1 / (log x) ^ 3)) := by
+      field_simp [hpow_pos.ne']
+    have hmul : (x / (log x) ^ 3) * (0.499 * (2 + 1 / (log x) ^ 3)) < (x / (log x) ^ 3) * 1 :=
+      mul_lt_mul_of_pos_left hlt hfac_pos
+    have hmul' : (x / (log x) ^ 3) * 1 = h := by simp [h]
+    have hleft : (2 * x + h) * (0.499 / (log x) ^ 3) =
+        (x / (log x) ^ 3) * (0.499 * (2 + 1 / (log x) ^ 3)) := by simpa [h] using hrepr
+    exact (hleft ▸ (hmul.trans_eq hmul'))
+  simpa [h] using Eθ.hasPrimeInInterval x h hx_pos hh_pos (lt_of_le_of_lt hmain_le hcoeff)
 
 @[blueprint "Dusart_prop_5_4b"
   (title := "Dusart Proposition 5.4, substep 2")
