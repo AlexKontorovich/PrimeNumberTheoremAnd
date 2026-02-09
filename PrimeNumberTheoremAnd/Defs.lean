@@ -136,8 +136,40 @@ def Eπ.vinogradovBound (A B C x₀ : ℝ) : Prop := ∀ x ≥ x₀, Eπ x ≤ A
   (latexEnv := "lemma")
   (discussion := 900)]
 lemma admissible_bound.mono (A B C R : ℝ) (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) :
-    AntitoneOn (admissible_bound A B C R) (Set.Ici (Real.exp (R * (2 * B / C) ^ 2))) := by
-  sorry
+    AntitoneOn (admissible_bound A B C R) (Set.Ici (exp (R * (2 * B / C) ^ 2))) := by
+  intro a ha b _ hab
+  simp only [admissible_bound, mul_assoc]
+  have hua : (2 * B / C) ^ 2 ≤ log a / R := by
+    rw [le_div_iff₀ hR, mul_comm ((2 * B / C) ^ 2), ← log_exp (R * (2 * B / C) ^ 2)]
+    exact log_le_log (exp_pos _) (Set.mem_Ici.mp ha)
+  have huab : log a / R ≤ log b / R :=
+    div_le_div_of_nonneg_right (log_le_log ((exp_pos _).trans_le (Set.mem_Ici.mp ha)) hab) hR.le
+  have hua₀ : 0 < log a / R := lt_of_lt_of_le (by positivity) hua
+  apply mul_le_mul_of_nonneg_left _ hA.le
+  rw [rpow_def_of_pos (hua₀.trans_le huab), rpow_def_of_pos hua₀, ← exp_add, ← exp_add, exp_le_exp]
+  let sa := (log a / R) ^ ((1 : ℝ) / 2); let sb := (log b / R) ^ ((1 : ℝ) / 2)
+  rw [show log (log b / R) = 2 * log sb from by grind [log_rpow (hua₀.trans_le huab) ((1 : ℝ) / 2)],
+      show log (log a / R) = 2 * log sa from by grind [log_rpow hua₀ ((1 : ℝ) / 2)]]
+  have hsab : sa ≤ sb := rpow_le_rpow (le_trans (by positivity) hua) huab (by positivity)
+  have : 2 * B / C ≤ sa := by
+    rw [show (2 * B / C : ℝ) = ((2 * B / C) ^ 2) ^ ((1 : ℝ) / 2) from by
+      rw [← rpow_natCast _ 2, ← rpow_mul (by positivity)]; norm_num [rpow_one]]
+    exact rpow_le_rpow (by positivity) hua (by positivity)
+  suffices h : AntitoneOn (fun t ↦ 2 * B * log t - C * t) (Set.Ici (2 * B / C)) by
+    grind [h (Set.mem_Ici.mpr this) (Set.mem_Ici.mpr (this.trans hsab)) hsab]
+  apply antitoneOn_of_deriv_nonpos (convex_Ici _)
+  · exact ((continuousOn_const.mul (continuousOn_log.mono fun t ht ↦ ne_of_gt ((div_pos
+      (by positivity) hC).trans_le ht))).sub (continuousOn_const.mul continuousOn_id))
+  · intro t ht
+    rw [interior_Ici] at ht
+    exact (((hasDerivAt_log ((div_pos (by positivity) hC).trans ht).ne').const_mul _).sub
+      ((hasDerivAt_id t).const_mul C)).differentiableAt.differentiableWithinAt
+  · intro t ht
+    rw [interior_Ici] at ht
+    have : HasDerivAt (fun t ↦ 2 * B * log t - C * t) (2 * B * t⁻¹ - C * 1) t :=
+      ((hasDerivAt_log ((div_pos (by positivity) hC).trans ht).ne').const_mul _).sub ((hasDerivAt_id t).const_mul C)
+    rw [this.deriv, mul_one, sub_nonpos, ← div_eq_mul_inv, div_le_iff₀ <| (div_pos (by positivity) hC).trans ht]
+    linarith [(div_lt_iff₀ hC).mp ht, mul_comm C t]
 
 @[blueprint
   "classical-to-numeric"
