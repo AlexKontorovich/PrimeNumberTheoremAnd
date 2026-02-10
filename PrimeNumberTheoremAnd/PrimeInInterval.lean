@@ -194,7 +194,7 @@ lemma Eθ.classicalBound.hasPrimeInInterval {x₀ x h A B C R : ℝ} (hEθ : Eθ
   (proof := /-- If $p_k$ is the largest prime less than or equal to $x$, then $p_{k+1} - p_k < g \leq h$, hence $x < p_{k+1} \leq x+h$, giving the claim. -/)
   (latexEnv := "lemma")
   (discussion := 908)]
-lemma prime_gap_record.hasPrimeInInterval {g p : ℕ} {x h : ℝ} (hgap : prime_gap_record p g) (hx : x ≤ p) (hx' : x ≥ 2) (hh : h > g) :
+lemma prime_gap_record.hasPrimeInInterval {g p : ℕ} {x h : ℝ} (hgap : prime_gap_record p g) (hx : x ≤ p) (hx_ge_two : x ≥ 2) (hh : h ≥ g) :
     HasPrimeInInterval x h := by
   rcases hgap with ⟨n, hn_p, hn_g, hrec⟩
   let m : ℕ := ⌊x⌋₊
@@ -204,7 +204,7 @@ lemma prime_gap_record.hasPrimeInInterval {g p : ℕ} {x h : ℝ} (hgap : prime_
     simp [k, Nat.primeCounting, Nat.primeCounting']
   have hx_nonneg : 0 ≤ x := by linarith
   have hm_le_x : (m : ℝ) ≤ x := Nat.floor_le hx_nonneg
-  have hm_ge_two : 2 ≤ m := Nat.le_floor hx'
+  have hm_ge_two : 2 ≤ m := Nat.le_floor hx_ge_two
   have hk_pos : 0 < k := by
     by_contra hk0
     have hk0' : k = 0 := Nat.eq_zero_of_not_pos hk0
