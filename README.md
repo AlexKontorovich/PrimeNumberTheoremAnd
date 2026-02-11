@@ -25,4 +25,4 @@ All the required dependencies will be loaded (this takes a few minutes), after w
 vscode window, where you can edit the code, and submit PR's.
 
 ## License
-This project is licensed under the Apache 2.0 License. ee the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache 2.0 License. See the [LICENSE](LICENSE) file for details.

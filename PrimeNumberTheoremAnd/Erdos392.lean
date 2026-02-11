@@ -2,6 +2,7 @@ import Architect
 import Mathlib.Analysis.SpecialFunctions.Stirling
 import Mathlib.NumberTheory.Bertrand
 import PrimeNumberTheoremAnd.Consequences
+import PrimeNumberTheoremAnd.LogTables
 
 namespace Erdos392
 
@@ -1799,10 +1800,7 @@ lemma Params.primeCounting_ge_log (n : ℕ) (hn : n ≥ 2) : (n.primeCounting : 
         have := log_two_lt_d9; have := log_lt_sub_one_of_pos zero_lt_three
         norm_num at *; linarith
       · rw [show primeCounting 7 = 4 by rfl]; norm_num
-        rw [log_le_iff_le_exp] <;> norm_num
-        have := exp_one_gt_d9.le; norm_num at *
-        rw [show exp 4 = (exp 1) ^ 4 by rw [← exp_nat_mul]; norm_num]
-        nlinarith [pow_le_pow_left₀ (by positivity) this 4]
+        linarith [LogTables.log_7_lt]
     · rcases hk with ⟨hk₁, hk₂⟩; interval_cases n <;> norm_num at *
       all_goals rw [log_le_iff_le_exp (by norm_num)]; norm_num [primeCounting]
       all_goals norm_num [primeCounting', count_eq_card_filter_range]

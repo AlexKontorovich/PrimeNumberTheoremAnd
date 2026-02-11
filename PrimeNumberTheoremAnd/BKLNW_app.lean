@@ -2,6 +2,7 @@ import PrimeNumberTheoremAnd.ZetaSummary
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.BKLNW_app_tables
+import PrimeNumberTheoremAnd.LogTables
 
 blueprint_comment /--
 \section{Appendix A of BKLNW}\label{bklnw-app-sec}
@@ -10,7 +11,7 @@ In this file we record the results from Appendix A of \cite{BKLNW}.  In this app
 
 namespace BKLNW_app
 
-open Real
+open Real Chebyshev
 
 structure Inputs where
   H : ℝ
@@ -240,8 +241,37 @@ theorem bklnw_lemma_15 (c B₀ B : ℝ)
   (ε : ℝ → ℝ)
   (hε : ∀ b₀ > 0, ∀ x ≥ exp b₀, Eψ x ≤ ε b₀)
   (b : ℝ)
-  (hb : exp b ∈ Set.Ioc B₀ B) :
-  ∀ x ≥ exp b, Eψ x ≤ max (c / exp (b / 2)) (ε (log B)) := by sorry
+  (hb : exp b ∈ Set.Ioc B₀ B)
+  (hbpos : b > 0)
+  (hcpos : c > 0)
+  (hBpos : B > 0) :
+  ∀ x ≥ exp b, Eψ x ≤ max (c / exp (b / 2)) (ε (log B)) := by
+    intro x hx
+    by_cases hcases: x ≤ B
+    · have hlb: B₀ < x := by linarith [hx, hb.1]
+      simp only [Set.Ioc, Set.mem_setOf_eq, and_imp] at hbound
+      have hb: Eψ x ≤ c/ sqrt x := by exact hbound x hlb hcases
+      have hsqrtcomp: sqrt (exp b) ≤ sqrt x := by exact Real.sqrt_monotone hx
+      have hidentity1:  exp (2 * (b/2)) = exp (b/2) ^2 := by apply Real.exp_nat_mul (b/2) 2
+      have hidentity2: 2*(b/2) = b := by ring
+      simp only [hidentity2] at hidentity1
+      have hnonneg: 0 ≤ exp (b/2) := by linarith [Real.exp_pos (b/2)]
+      have hidentity3: sqrt (exp b) = sqrt (exp (b/2) ^2) := by simpa using congrArg Real.sqrt hidentity1
+      simp [Real.sqrt_sq hnonneg] at hidentity3
+      have hsqrtcomp2: exp (b/2) ≤ sqrt x := by linarith
+      have hsqrtpos: sqrt x > 0 := by linarith [Real.exp_pos (b/2)]
+      have hsqrtcomp3: c / sqrt x ≤ c / exp (b/2) := by field_simp; exact hsqrtcomp2
+      have hubcomp: c / exp (b/2) ≤ max (c / exp (b / 2)) (ε (log B)) := by exact le_max_left (c / exp (b/2)) (ε (log B))
+      linarith
+    · simp [not_le] at hcases
+      have hidentity : exp (log B) = B := by exact Real.exp_log hBpos
+      have hBone: 1 < B := by linarith [hb.2, Real.one_lt_exp_iff.2 hbpos]
+      have hlogBpos: 0 < log B := by exact Real.log_pos hBone
+      specialize hε (log B) hlogBpos
+      have hlb: x ≥ exp (log B) := by linarith
+      specialize hε x hlb
+      have hubcomp: ε (log B) ≤  max (c / exp (b / 2)) (ε (log B)) := by exact le_max_right (c / exp (b/2)) (ε (log B))
+      linarith
 
 @[blueprint
  "bklnw-cor_15_1"
@@ -356,7 +386,7 @@ theorem theorem_2 : ∀ b ≥ 0, ∀ x ≥ exp b,
   (latexEnv := "corollary")
   (discussion := 775)]
 theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
-    ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) 1.93378e-8 := by
+    ∀ x ≥ exp b, Eψ x ≤ max (0.94 / exp (b / 2)) (1.93378e-8*table_8_margin) := by
   intro x hx
   grw [bklnw_cor_15_1 b hb1 hb2 table_8_ε (fun b₀ hb₀ x hx ↦ by
     grw [Eψ, div_le_iff₀ (lt_of_lt_of_le (by positivity) hx), theorem_2 b₀ hb₀.le x hx]) x hx]
@@ -364,8 +394,6 @@ theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
   suffices 43 < 19 * Real.log 10 ∧ 19 * Real.log 10 < 44 by
     grw [table_8_ε.le_simp (19 * log 10) (by grind)]
     grind [table_8_ε']
-  rw [← log_rpow (by positivity), lt_log_iff_exp_lt (by positivity),
-    log_lt_iff_lt_exp (by positivity), ← exp_one_rpow 43, ← exp_one_rpow 44]
-  exact ⟨by grw [Real.exp_one_lt_d9]; norm_num only, by grw [← Real.exp_one_gt_d9]; norm_num only⟩
+  constructor <;> nlinarith [LogTables.log_10_gt, LogTables.log_10_lt]
 
 end BKLNW_app

@@ -24,7 +24,7 @@ JY: D. R. Johnston, A. Yang, Some explicit estimates for the error term in the p
 theorem, arXiv:2204.01980.
 -/
 
-open Finset Nat Real
+open Finset Nat Real Chebyshev
 
 
 @[blueprint "thm:pt_2"
@@ -44,23 +44,27 @@ theorem PT.corollary_2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := by
   refine (this x hx2).trans ?_
   simp only [admissible_bound]; norm_num
   suffices h_div : 92211 / 10000 * log x ^ (3 / 2 : ℝ) *
-    exp (-(2119 / 2500) + (4 / 5)) ≤ 235 * log x ^ (38 / 25 : ℝ) by
-    (convert mul_le_mul_of_nonneg_right h_div (exp_nonneg (-(4 / 5))) using 1; rw [exp_add]; ring_nf)
-    norm_num [mul_assoc, ← exp_add]
-  suffices h_div : 92211 / 10000 * exp (-(2119 / 2500) + (4 / 5)) ≤
+    exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ)) ≤ 235 * log x ^ (38 / 25 : ℝ) by
+    convert mul_le_mul_of_nonneg_right h_div (exp_nonneg (-4 / 5 * log x^(1 / 2 : ℝ))) using 1
+    · rw [exp_add (-2119 / 2500 * log x^(1 / 2 : ℝ)) (4 / 5 * log x^(1 / 2 : ℝ))]; ring_nf
+      norm_num [mul_assoc, ← exp_add]
+    simp only [one_div, mul_eq_mul_left_iff, exp_eq_exp, _root_.mul_eq_zero, OfNat.ofNat_ne_zero, false_or]
+    left
+    linarith
+  suffices h_div : 92211 / 10000 * exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ)) ≤
       235 * log x ^ (38 / 25 - 3 / 2 : ℝ) by
     convert mul_le_mul_of_nonneg_right h_div (rpow_nonneg (log_nonneg
       (show x ≥ 1 by linarith)) (3 / 2 : ℝ)) using 1 <;> ring_nf
     rw [← rpow_add (log_pos (by linarith : x > 1))]
     norm_num
-  exact (mul_le_mul_of_nonneg_left
-      (rpow_le_rpow (by positivity)
-        (show log x ≥ 1 by nlinarith [log_exp 2000, log_le_log (by positivity) hx]) (by positivity))
-      (by positivity)).trans' (by
-      norm_num
-      nlinarith [exp_pos (-(2119 / 2500) + 4 / 5), exp_neg (-(2119 / 2500) + 4 / 5),
-        mul_inv_cancel₀ <| ne_of_gt <| exp_pos (-(2119 / 2500) + 4 / 5),
-        add_one_le_exp (-(2119 / 2500) + 4 / 5), add_one_le_exp (-(-(2119 / 2500) + 4 / 5))])
+  have hsqrtlogpos: 0 < log x ^ (1/2:ℝ) := by exact rpow_pos_of_pos (log_pos (by linarith: x > 1)) (1/2:ℝ)
+  have hneg: -(2119 / 2500) * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ) < 0 := by linarith
+  have hexpone: exp (-(2119 / 2500) * log x^(1 / 2 : ℝ) + 4 / 5 * log x^(1 / 2 : ℝ)) < 1 := by exact exp_lt_one_iff.mpr hneg
+  have hcompare: 0 ≤ (38 / 25 - 3 / 2 : ℝ) := by linarith
+  have hlogone: log x ≥ 1 := by nlinarith [log_exp 2000, log_le_log (by positivity) hx]
+  have hlogone2:  (log x)^(0:ℝ) ≤ (log x)^(38 / 25 - 3 / 2 : ℝ) := by exact rpow_le_rpow_of_exponent_le hlogone hcompare
+  rw [rpow_zero (log x)] at hlogone2
+  linarith
 
 @[blueprint
   "thm:jy_13"
@@ -74,34 +78,38 @@ theorem PT.corollary_2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := by
   -/)
   (latexEnv := "theorem")]
 theorem JY.corollary_1_3 : Eπ.classicalBound 9.59 1.515 0.8274 1 2 := by
+  have := FKS2.corollary_22
   intro x hx
-  convert FKS2.corollary_22 x using 1
-  norm_num [admissible_bound]
-  constructor
-  · intro
-    convert FKS2.corollary_22 x using 1
-    norm_num [admissible_bound]
-  · refine fun h ↦ (h hx).trans ?_
-    suffices h_div : 92211 / 10000 * exp (-(2119 / 2500)) ≤
-        959 / 100 * log x ^ (303 / 200 - 3 / 2 : ℝ) * exp (-(4137 / 5000)) by
-      convert mul_le_mul_of_nonneg_left h_div
-        (rpow_nonneg (log_nonneg (by grind : (1 : ℝ) ≤ x)) (3 / 2)) using 1
-      · ring
-      · rw [show (303 / 200 : ℝ) = 3 / 2 + (303 / 200 - 3 / 2) by grind,
-            rpow_add (log_pos (by grind))]; ring_nf
-    suffices h_exp : 92211 / 10000 * exp (-(2119 / 2500) + 4137 / 5000) ≤
-        959 / 100 * log x ^ (303 / 200 - 3 / 2 : ℝ) by
-      convert mul_le_mul_of_nonneg_right h_exp (exp_nonneg (-(4137 / 5000))) using 1
-      · rw [mul_assoc, ← exp_add]; ring_nf
-    refine le_trans ?_ <| mul_le_mul_of_nonneg_left (rpow_le_rpow (by grind)
-      (log_two_gt_d9.le.trans (log_le_log (by grind) hx)) (by grind)) (by grind)
+  have hx2 : x ≥ 2 := by grind [add_one_le_exp 2000]
+  refine (this x hx2).trans ?_
+  simp only [admissible_bound]; norm_num
+  suffices h_div : 92211 / 10000 * log x ^ (3 / 2 : ℝ) *
+    exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4137 / 5000 * log x^(1 / 2 : ℝ)) ≤ 959 / 100 * log x ^ (303 / 200 : ℝ) by
+    convert mul_le_mul_of_nonneg_right h_div (exp_nonneg (-4137 / 5000 * log x^(1 / 2 : ℝ))) using 1
+    · rw [exp_add (-2119 / 2500 * log x^(1 / 2 : ℝ)) (4137 / 5000 * log x^(1 / 2 : ℝ))]
+      ring_nf
+      norm_num [mul_assoc, ← exp_add]
+    simp only [one_div, mul_eq_mul_left_iff, exp_eq_exp, _root_.mul_eq_zero]
+    left
+    linarith
+  suffices h_div : 92211 / 10000 * exp (-2119 / 2500 * log x^(1 / 2 : ℝ) + 4137 / 5000 * log x^(1 / 2 : ℝ)) ≤
+    959 / 100 * log x ^ (303 / 200 - 3 / 2 : ℝ) by
+    convert mul_le_mul_of_nonneg_right h_div (rpow_nonneg (log_nonneg
+      (show x ≥ 1 by linarith)) (3 / 2 : ℝ)) using 1 <;> ring_nf
+    rw [← rpow_add (log_pos (by linarith : x > 1))]
     norm_num
-    refine (mul_le_mul_of_nonneg_left (exp_le_one_iff.mpr (by grind)) (by grind)).trans ?_
-    norm_num
-    rw [← log_le_log_iff (by positivity) (by positivity),
-        log_mul (by positivity) (by positivity), log_rpow (by positivity),
-        div_mul_eq_mul_div, add_div', le_div_iff₀] <;>
-          norm_num [← log_rpow, mul_comm, ← log_mul, log_le_log_iff]
+  have hsqrtlogpos: 0 < log x ^ (1/2:ℝ) := by exact rpow_pos_of_pos (log_pos (by linarith: x > 1)) (1/2:ℝ)
+  have hneg: -(2119 / 2500) * log x^(1 / 2 : ℝ) + 4137 / 5000 * log x^(1 / 2 : ℝ) < 0 := by linarith
+  have hexpone: exp (-(2119 / 2500) * log x^(1 / 2 : ℝ) + 4137 / 5000 * log x^(1 / 2 : ℝ)) < 1 := by exact exp_lt_one_iff.mpr hneg
+
+  suffices h_calc: 92211/10000 ≤ 959/100 * log x ^(303 / 200 - 3/2 : ℝ) by linarith
+  refine le_trans ?_ <| mul_le_mul_of_nonneg_left (rpow_le_rpow (by grind)
+  (log_two_gt_d9.le.trans (log_le_log (by grind) hx)) (by grind)) (by grind)
+  norm_num
+  rw [← log_le_log_iff (by positivity) (by positivity),
+  log_mul (by positivity) (by positivity), log_rpow (by positivity),
+  div_mul_eq_mul_div, add_div', le_div_iff₀] <;>
+  norm_num [← log_rpow, mul_comm, ← log_mul, log_le_log_iff]
 
 
 @[blueprint
@@ -165,18 +173,6 @@ theorem RamareSaouter2003.has_prime_in_interval_2 (x : ℝ) (hx : x > exp 53) :
 theorem GourdonDemichel2004.has_prime_in_interval (x : ℝ) (hx : x > exp 60) :
     HasPrimeInInterval (x*(1-1/14500755538)) (x/14500755538) := by sorry
 
-theorem theta_pos_implies_prime_in_interval {x y : ℝ} (_hxy : y < x) (h : θ x - θ y > 0) :
-    HasPrimeInInterval y (x - y) := by
-  have h_diff : θ x - θ y =
-      ∑ p ∈ filter Prime (Icc 1 (floor x)), Real.log p -
-      ∑ p ∈ filter Prime (Icc 1 (floor y)), Real.log p := by unfold θ; rfl
-  obtain ⟨p, hp₁, hp₂, hp₃⟩ : ∃ p ∈ Icc 1 (floor x), p.Prime ∧ p > floor y := by
-    contrapose! h
-    exact h_diff.symm ▸ sub_nonpos_of_le (sum_le_sum_of_subset_of_nonneg
-      (fun p hp ↦ by grind) fun _ _ _ ↦ log_nonneg <| one_le_cast.mpr <| Prime.pos <| by grind)
-  have hx_nn : 0 ≤ x := by linarith [floor_pos.mp (hp₂.one_lt.le.trans (mem_Icc.mp hp₁).2)]
-  have hp_le_x : (p : ℝ) ≤ x := floor_le (by positivity) |> le_trans (mod_cast mem_Icc.mp hp₁ |>.2)
-  exact ⟨p, hp₂, lt_of_floor_lt hp₃, by grind⟩
 
 @[blueprint
   "thm:prime_gaps_2014"

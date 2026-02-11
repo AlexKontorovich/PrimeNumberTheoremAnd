@@ -66,12 +66,17 @@ A word about the expected ``rate-limiting-steps'' in each of the approaches.
 
 (*) In approach (3), it's obviously the Hadamard factorization, which needs quite a lot of nontrivial mathematics. (But after that, the math is not hard, on top of things in approach (2) -- and if we're getting the strong error term, we can afford to lose $\log X$ in the Chebyshev discussion above...).
 
-\chapter{First approach: Wiener-Ikehara Tauberian theorem}
+\chapter{Basic definitions and notation}\label{defs-chapter}
+
+\inputleanmodule{PrimeNumberTheoremAnd.Defs}
+
+
+\chapter{First approach: Wiener-Ikehara Tauberian theorem}\label{wiener-ikehara-chapter}
 
 \section{A Fourier-analytic proof of the Wiener-Ikehara theorem}
 \inputleanmodule{PrimeNumberTheoremAnd.Wiener}
 
-\chapter{Second approach}
+\chapter{Second approach}\label{second-approach-chapter}
 
 \section{Residue calculus on rectangles}
 \inputleanmodule{PrimeNumberTheoremAnd.Rectangle}
@@ -92,7 +97,7 @@ A word about the expected ``rate-limiting-steps'' in each of the approaches.
 \inputleanmodule{PrimeNumberTheoremAnd.MediumPNT}
 
 
-\chapter{Third Approach}
+\chapter{Third Approach}\label{third-approach-chapter}
 
 \section{Hadamard factorization}
 \inputleanmodule{PrimeNumberTheoremAnd.HadamardFactorization}
@@ -106,11 +111,11 @@ A word about the expected ``rate-limiting-steps'' in each of the approaches.
 \inputleanmodule{PrimeNumberTheoremAnd.StrongPNT}
 
 
-\chapter{Elementary Corollaries}
+\chapter{Elementary Corollaries}\label{corollaries-chapter}
 
 \inputleanmodule{PrimeNumberTheoremAnd.Consequences}
 
-\chapter{Explicit estimates}
+\chapter{Explicit estimates}\label{explicit-chapter}
 
 We will try to systematically collect explicit estimates related to the prime number theorem from
 the literature, and formalize them in a modular fashion.  We divide such estimates into four
@@ -154,6 +159,8 @@ secondary ones.
 
 \inputleanmodule{PrimeNumberTheoremAnd.BKLNW_app}
 
+\inputleanmodule{PrimeNumberTheoremAnd.CH2}
+
 \inputleanmodule{PrimeNumberTheoremAnd.PrimarySummary}
 
 
@@ -161,7 +168,11 @@ secondary ones.
 
 \inputleanmodule{PrimeNumberTheoremAnd.SecondaryDefinitions}
 
+\inputleanmodule{PrimeNumberTheoremAnd.Chebyshev}
+
 \inputleanmodule{PrimeNumberTheoremAnd.CostaPereira}
+
+\inputleanmodule{PrimeNumberTheoremAnd.PrimeInInterval}
 
 \inputleanmodule{PrimeNumberTheoremAnd.RosserSchoenfeldPrime}
 
@@ -173,6 +184,10 @@ secondary ones.
 
 \inputleanmodule{PrimeNumberTheoremAnd.FKS2}
 
+\inputleanmodule{PrimeNumberTheoremAnd.eSHP_tables}
+
+\inputleanmodule{PrimeNumberTheoremAnd.eSHP}
+
 \inputleanmodule{PrimeNumberTheoremAnd.Dusart}
 
 \inputleanmodule{PrimeNumberTheoremAnd.SecondarySummary}
@@ -182,6 +197,10 @@ secondary ones.
 \inputleanmodule{PrimeNumberTheoremAnd.Lcm}
 
 \inputleanmodule{PrimeNumberTheoremAnd.Erdos392}
+
+\chapter{Iwaniec-Kowalski}\label{IK-chapter}
+
+\inputleanmodule{PrimeNumberTheoremAnd.IwaniecKowalskiCh1}
 
 \bibliographystyle{plain} % We choose the "plain" reference style
 \bibliography{references}

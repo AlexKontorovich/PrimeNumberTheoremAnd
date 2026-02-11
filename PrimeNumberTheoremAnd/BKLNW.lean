@@ -7,6 +7,7 @@ import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
 import PrimeNumberTheoremAnd.BKLNW_app
 import PrimeNumberTheoremAnd.BKLNW_tables
 import PrimeNumberTheoremAnd.Buthe
+import PrimeNumberTheoremAnd.LogTables
 
 blueprint_comment /--
 \section{Tools from BKLNW}
@@ -171,9 +172,11 @@ theorem thm_1a_crit {b M m : ℝ} (h_check : check_row_prop (b, M, m)) {x : ℝ}
   rw [show Pre_inputs.default.ε = BKLNW_app.table_8_ε by rfl] at this
   grind
 
-
-
-theorem thm_1a_table {b M m : ℝ} (h_table : (b, M, m) ∈ Table_14) {x : ℝ} (hx : x ≥ exp b) :
+@[blueprint
+  "bklnw-thm-1a-table"
+  (statement := /-- The previous theorem holds with $(b,M,m)$ given by the values in \cite[Table 14]{BKLNW}. -/)
+  (latexEnv := "theorem")]
+theorem thm_1a_table {b M m : ℝ} (h_table : (b, M, m) ∈ table_14) {x : ℝ} (hx : x ≥ exp b) :
     x * (1 - m) ≤ θ x ∧ θ x ≤ x * (1 + M) := thm_1a_crit (table_14_check h_table) hx
 
 
@@ -181,25 +184,25 @@ theorem thm_1a_table {b M m : ℝ} (h_table : (b, M, m) ∈ Table_14) {x : ℝ} 
   "bklnw-cor-2-1"
   (title := "BKLNW Corollary 2.1")
   (statement := /-- $\theta(x) \leq (1 + 1.93378 \times 10^{-8}) x$. -/)
-  (proof := /-- We combine together Theorem \ref{from-buthe-eq-1-7} and Theorem \ref{bklnw-thm-1a} with $X_1 = 10^{19}$, using Table 14. -/)
+  (proof := /-- We combine together Theorem \ref{from-buthe-eq-1-7} and Theorem \ref{bklnw-thm-1a-table} with $X_1 = 10^{19}$. -/)
   (latexEnv := "corollary")
   (discussion := 791)]
-theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + 1.93378e-8) * x := by
+theorem cor_2_1 : ∀ x > 0, θ x ≤ (1 + (1.93378e-8*BKLNW_app.table_8_margin)) * x := by
   intro x hx_pos
   by_cases hx : x ≤ 1e19
   · exact le_trans (le_of_lt (buthe_eq_1_7 x ⟨hx_pos, hx⟩)) (le_mul_of_one_le_left hx_pos.le (by norm_num))
   · push_neg at hx
     have h_exp20 : 1e19 ≥ exp 20 := by grw [← exp_one_rpow 20, Real.exp_one_lt_d9]; norm_num only
-    suffices Pre_inputs.default.ε (log 1e19) ≤ 1.93378e-8 by
+    suffices Pre_inputs.default.ε (log 1e19) ≤ 1.93378e-8 * BKLNW_app.table_8_margin by
       grw [(thm_1a h_exp20 h_exp20 hx.le hx.le).2, this, mul_comm]
     unfold Pre_inputs.default
     suffices 43 < log 1e19 ∧ log 1e19 < 44 by
-      change BKLNW_app.table_8_ε (log 1e19) ≤ 1.93378e-8
+      change BKLNW_app.table_8_ε (log 1e19) ≤ 1.93378e-8 * BKLNW_app.table_8_margin
       grw [BKLNW_app.table_8_ε.le_simp (log 1e19) (by grind)]
       grind [BKLNW_app.table_8_ε']
-    rw [lt_log_iff_exp_lt (by positivity), log_lt_iff_lt_exp (by positivity),
-      ← exp_one_rpow 43, ← exp_one_rpow 44]
-    exact ⟨by grw [Real.exp_one_lt_d9]; norm_num only, by grw [← Real.exp_one_gt_d9]; norm_num only⟩
+    have h1e19 : (1e19 : ℝ) = (10 : ℝ) ^ 19 := by norm_num
+    rw [h1e19, Real.log_pow]; push_cast
+    constructor <;> nlinarith [LogTables.log_10_gt, LogTables.log_10_lt]
 
 structure Inputs extends Pre_inputs where
   α : ℝ
@@ -212,7 +215,7 @@ structure Inputs extends Pre_inputs where
   (statement := /-- We take $\alpha = 1.93378 \times 10^{-8}$, so that we have $\theta(x) \leq (1 + \alpha) x$ for all $x$. -/)]
 noncomputable def Inputs.default : Inputs := {
   toPre_inputs := Pre_inputs.default
-  α := 1.93378e-8
+  α := 1.93378e-8 * BKLNW_app.table_8_margin
   hα := cor_2_1
 }
 
@@ -497,44 +500,26 @@ f(x) := \sum_{k=3}^{\lfloor \frac{\log x}{\log 2} \rfloor} x^{\frac{1}{k} - \fra
   (latexEnv := "proposition")
   (discussion := 639)]
 theorem prop_3 (I : Inputs) {x₀ x : ℝ} (hx₀ : x₀ ≥ 2 ^ 9) (hx : x ≥ x₀) :
-    ∑ k ∈ Icc 3 ⌊(log x)/(log 2)⌋, θ (x^(1/k)) ≤
+    ∑ k ∈ Icc 3 ⌊(log x)/(log 2)⌋₊, θ (x^(1/(k:ℝ))) ≤
       (1 + I.α) * max (f x₀) (f (2^(⌊(log x₀)/(log 2)⌋₊ + 1))) * x^(1/3:ℝ) := by
-  have h_sum_le : ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋, θ (x^(1 / k : ℝ)) ≤
+  have h_sum_le : ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋₊, θ (x^(1 / k : ℝ)) ≤
       (1 + I.α) * f x * x^(1 / 3 : ℝ) := by
-    have h_sum_le' : ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋, θ (x^(1 / k : ℝ)) ≤
-        ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋, (1 + I.α) * x^(1 / k : ℝ) := sum_le_sum fun i hi ↦ by
-        have := I.hα (x ^ (1 / (i : ℝ))) (rpow_pos_of_pos (by grind) _)
-        norm_num [log_rpow (by positivity)] at *
-        grind
+    have h_sum_le' : ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋₊, θ (x^(1 / k : ℝ)) ≤
+        ∑ k ∈ Icc 3 ⌊(log x) / (log 2)⌋₊, (1 + I.α) * x^(1 / k : ℝ) := sum_le_sum fun i hi ↦ by
+      have := I.hα (x ^ (1 / (i : ℝ))) (rpow_pos_of_pos (by grind) _)
+      norm_num [log_rpow (by positivity)] at *
+      exact this
     convert h_sum_le' using 1
     norm_num [f, mul_sum .., mul_assoc, mul_comm, mul_left_comm, sum_mul]
     refine sum_bij (fun k hk ↦ k) ?_ ?_ ?_ ?_ <;> norm_num
-    · exact fun a ha₁ ha₂ ↦ ⟨ha₁, Int.le_floor.2 <| by
-        exact_mod_cast Nat.floor_le (div_nonneg (log_nonneg <| by
-          grind [one_le_rpow (by grind : (1 : ℝ) ≤ 2) (show 0 ≤ 9 by grind)])
-          (log_nonneg <| by grind)) |> le_trans (Nat.cast_le.2 ha₂)⟩
-    · exact fun b hb₁ hb₂ ↦
-        have hb_nn : 0 ≤ b := by grind
-        ⟨Int.toNat b,
-          ⟨by grind [Int.toNat_of_nonneg hb_nn],
-           by grind [Int.toNat_of_nonneg hb_nn,
-             show ⌊log x / log 2⌋₊ ≥ ⌊log x / log 2⌋ from Int.self_le_toNat _]⟩,
-          by rw [Int.toNat_of_nonneg hb_nn]⟩
-    · intro a ha₁ ha₂; rw [← rpow_add (by grind)]; grind
-  refine le_trans ?_ (h_sum_le.trans ?_)
-  · refine sum_le_sum fun k hk ↦ ?_
-    rcases k with ⟨_ | _ | _ | k⟩ <;> norm_num at *
-    · norm_cast
-      refine Nat.succ_div ▸ sum_le_sum_of_subset_of_nonneg ?_ ?_
-      · norm_num [subset_iff]
-      · exact fun _ _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <| Nat.Prime.pos <| by grind only [= mem_filter]
-    · tauto
-  · gcongr
-    · exact rpow_nonneg (by grind) _
-    · have := I.hα 1
-      grind [show 0 ≤ θ 1 from sum_nonneg fun _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <|
-        Nat.Prime.pos <| by grind only [= mem_filter]]
-    · exact prop_3_sub_8 x₀ hx₀ x hx
+    intro a ha₁ ha₂; rw [← rpow_add (by grind)]; grind
+  apply le_trans h_sum_le ?_
+  gcongr
+  · exact rpow_nonneg (by grind) _
+  · have := I.hα 1
+    grind [show 0 ≤ θ 1 from sum_nonneg fun _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <|
+      Nat.Prime.pos <| by grind only [= mem_filter]]
+  · exact prop_3_sub_8 x₀ hx₀ x hx
 
 @[blueprint
   "bklnw-cor-3-1"
@@ -554,7 +539,41 @@ where
   (discussion := 640)]
 theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (x : ℝ) (hx : x ≥ exp b) :
     ψ x - θ x - θ (x^(1/2:ℝ)) ≤
-      (1 + I.α) * max (f (exp b)) (f (2^(⌊ b/(log 2) ⌋ + 1))) * x^(1/3:ℝ) := by sorry
+      (1 + I.α) * max (f (exp b)) (f (2^(⌊b / (log 2)⌋ + 1))) * x^(1/3:ℝ) := by
+  let x₀ := exp b
+  have : x₀ ≥ 2 ^ 9 := by
+    refine le_trans ?_ (exp_le_exp_of_le hb)
+    rw [← exp_one_rpow]
+    refine le_trans ?_ (rpow_le_rpow (by norm_num) exp_one_gt_d9.le (by norm_num))
+    norm_num
+  calc
+    _ = ∑ n ∈ Icc 2 ⌊log x / log 2⌋₊, θ (x ^ ((1 : ℝ) / n)) - θ (x ^ (1/2 : ℝ)) := by
+      rw [Chebyshev.psi_eq_theta_add_sum_theta (by linarith)]; ring
+    _ = ∑ n ∈ Icc 3 ⌊log x / log 2⌋₊, θ (x ^ ((1 : ℝ) / n)) := by
+      have : ⌊log x / log 2⌋₊ ≥ 2 := calc
+          _ ≥ ⌊b / log 2⌋₊ := by gcongr; rw [← log_exp b]; exact log_le_log (by linarith) hx
+          _ ≥ 2 := by apply Nat.le_floor; field_simp; norm_num; linarith [log_two_lt_d9, hb]
+      rw [← add_sum_Ioc_eq_sum_Icc this, ← Icc_add_one_left_eq_Ioc]; ring_nf
+    _ = ∑ n ∈ Icc 3 ⌊log x / log 2⌋₊, θ (x ^ ((1 : ℝ) / n)) := by
+      refine sum_bij (fun n _ ↦ n) ?_ ?_ ?_ ?_
+      · intro n hn; simp only [mem_Icc] at hn ⊢
+        exact ⟨by exact_mod_cast hn.1, by exact_mod_cast hn.2⟩
+      · intro _ _ _ _ h; simp only at h; exact h
+      · intro n hn; simp only [mem_Icc] at hn ⊢
+        refine ⟨n, ?_, rfl⟩
+        exact ⟨by exact_mod_cast hn.1, by exact_mod_cast hn.2⟩
+      · intro _ _; simp only [one_div]
+    _ ≤ (1 + I.α) * max (f x₀) (f (2 ^ (⌊log x₀ / log 2⌋₊ + 1))) * x ^ (1/3 : ℝ) := by
+      exact prop_3 I this hx
+    _ ≤ (1 + I.α) * max (f (exp b)) (f (2 ^ (⌊b / log 2⌋ + 1))) * x ^ (1/3 : ℝ) := by
+      gcongr
+      · exact rpow_nonneg (le_trans (by linarith) hx) _
+      · have := I.hα 1
+        grind [show 0 ≤ θ 1 from sum_nonneg fun _ _ ↦ log_nonneg <| Nat.one_le_cast.2 <|
+          Nat.Prime.pos <| by grind only [= mem_filter]]
+      · simp only [x₀, log_exp]
+        rw [← Int.natCast_floor_eq_floor (div_nonneg (by linarith) (log_nonneg (by norm_num)))]
+        rfl
 
 @[blueprint
   "bklnw-prop-4-a"
@@ -642,7 +661,7 @@ a_2 = (1 + \alpha) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}
 \]
  -/)]
 noncomputable def Inputs.a₂ (I : Inputs) (b : ℝ) : ℝ :=
-  (1 + I.α) * (max (f (exp b)) (f (⌊ b / (log 2) ⌋₊ + 1)))
+  (1 + I.α) * (max (f (exp b)) (f (2^(⌊ b / (log 2) ⌋₊ + 1))))
 
 @[blueprint
   "bklnw-thm-5"
@@ -680,7 +699,18 @@ a_2 = (1 + \alpha) \max\left( f(e^b), f(2^{\lfloor \frac{b}{\log 2} \rfloor + 1}
   (latexEnv := "theorem")
   (discussion := 643)]
 theorem thm_5 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
-    ψ x - θ x < I.a₁ b * x^(1/2:ℝ) + I.a₂ b * x^(1/3:ℝ) := by sorry
+    ψ x - θ x ≤ I.a₁ b * x^(1/2:ℝ) + I.a₂ b * x^(1/3:ℝ) := calc
+  _ = θ (x ^ (1/2 : ℝ)) + (ψ x - θ x - θ (x ^ (1/2 : ℝ))) := by ring
+  _ ≤ I.a₁ b * x^(1/2:ℝ) + I.a₂ b * x^(1/3:ℝ) := by
+    gcongr
+    · unfold Inputs.a₁
+      by_cases h : b ≤ 2 * log I.x₁
+      · simp only [if_pos h, prop_4_a I hx]
+      · simp only [if_neg h, prop_4_b I hb hx]
+    · unfold Inputs.a₂
+      convert cor_3_1 I hb x hx
+      · rw [← Int.natCast_floor_eq_floor (div_nonneg (by linarith) (log_nonneg (by norm_num)))]; rfl
+      · tauto
 
 noncomputable def a₁ : ℝ → ℝ := Inputs.default.a₁
 
@@ -694,30 +724,25 @@ noncomputable def a₂ : ℝ → ℝ := Inputs.default.a₂
   (latexEnv := "corollary")
   (discussion := 743)]
 theorem cor_5_1 {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
-    ψ x - θ x < a₁ b * x ^ (1 / 2 : ℝ) + a₂ b * x ^ (1 / 3 : ℝ) :=
+    ψ x - θ x ≤ a₁ b * x ^ (1 / 2 : ℝ) + a₂ b * x ^ (1 / 3 : ℝ) :=
   thm_5 Inputs.default hb hx
 
 def table_cor_5_1 : List (ℝ × ℝ × ℕ) :=
-  [(20, 1.4263, 4)
-  , (25, 1.2196, 4)
-  , (30, 1.1211, 4)
+  [(20, 1.4262, 4)
+  , (25, 1.2195, 4)
+  , (30, 1.1210, 4)
   , (35, 1.07086, 5)
-  , (40, 1.04320, 5)
-  , (43, 1.03253, 5)
-  , (100, 1 + 2.421e-4, 7)
-  , (150, 1 + 3.749e-6, 8)
-  , (200, 1 + 7.712e-8, 9)
-  , (250, 1 + 2.024e-8, 9)
-  , (300, 1 + 1.936e-8, 9)
+  , (40, 1.04319, 5)
+  , (43, 1.03252, 5)
+  , (100, 1 + 2.420e-4, 7)
+  , (150, 1 + 3.748e-6, 8)
+  , (200, 1 + 7.713e-8, 9)
+  , (250, 1 + 2.025e-8, 9)
+  , (300, 1 + 1.937e-8, 8)
  ]
 
-@[blueprint
-  "bklnw-cor-5-1-rem"
-  (title := "Remark after BKLNW Corollary 5.1")
-  (statement := /--  We have the following values for $a_2$, given by the table after \cite[Corollary 5.1]{BKLNW}. -/)
-  (latexEnv := "remark")]
-theorem cor_5_1_rem (b a₂b : ℝ) (m : ℕ) (hb : (b, a₂b, m) ∈ table_cor_5_1) :
-    a₂ b ∈ Set.Icc a₂b (a₂b + 10^(-m:ℝ)) := by sorry
+-- cor_5_1_rem is proved sorry-free in BKLNW_a2_bounds.lean (as BKLNW.cor_5_1_rem)
+-- via LeanCert certified interval arithmetic for all 11 table entries.
 
 
 
@@ -725,21 +750,43 @@ blueprint_comment /--
 \subsection{Bounding theta(x)-x with a logarithmic decay, I: large x}
 
 In this section and the next ones we obtain bounds of the shape
-$$ x (1 - \frac{m_k}{\log^k x}) \leq \theta(x)$$
+$$ x \left(1 - \frac{m_k}{\log^k x}\right) \leq \theta(x)$$
 for all $x \geq X_0$ and
-$$ \theta(x) \leq x (1 + \frac{M_k}{\log^k x})$$
+$$ \theta(x) \leq x \left(1 + \frac{M_k}{\log^k x}\right)$$
 for all $x \geq X_1$, for various $k, m_k, M_k, X_0, X_1$, with $k \in \{1,\dots,5\}$.
 
 For this section we focus on estimates that are useful when $x$ is extremely large, e.g., $x \geq e^{25000}$.
 -/
 
+/-
+Show that the function g in the proof of the following lemma is decreasing
+-/
+lemma g_decreasing_interval (A C : ℝ) (hA : 0 < A) (hC : 0 < C) (u v : ℝ) (hu : 4 * A ^ 2 / C ^ 2 ≤ u) (huv : u ≤ v) :
+    v ^ A * Real.exp (-C * Real.sqrt v) ≤ u ^ A * Real.exp (-C * Real.sqrt u) := by
+      -- Let $f(t) = t^A e^{-C\sqrt{t}}$. The derivative is $f'(t) = t^{A-1} e^{-C\sqrt{t}} (A - \frac{C}{2}\sqrt{t})$.
+      set f := fun t : ℝ => t ^ A * Real.exp (-C * Real.sqrt t)
+      have h_deriv : ∀ t > 0, deriv f t = t ^ (A - 1) * Real.exp (-C * Real.sqrt t) * (A - C / 2 * Real.sqrt t) := by
+        intro t ht; norm_num [ f, ht.ne', Real.sqrt_eq_rpow, Real.rpow_sub ht ] ; ring;
+        rw [ show ( -1 / 2 : ℝ ) = ( 1 / 2 : ℝ ) - 1 by norm_num, Real.rpow_sub ht ] ; norm_num ; ring;
+      -- Since $4A^2/C^2 \le u \le v$, we have $f'(t) \le 0$ for $t \ge 4A^2/C^2$.
+      have h_deriv_nonpos : ∀ t > 0, 4 * A ^ 2 / C ^ 2 ≤ t → deriv f t ≤ 0 := by
+        intro t ht ht'; rw [ h_deriv t ht ] ; exact mul_nonpos_of_nonneg_of_nonpos ( mul_nonneg ( Real.rpow_nonneg ht.le _ ) ( Real.exp_nonneg _ ) ) ( sub_nonpos_of_le <| by rw [ div_le_iff₀ <| by positivity ] at *; nlinarith [ show 0 ≤ Real.sqrt t * C by positivity, Real.mul_self_sqrt ht.le ] ) ;
+      by_contra h_contra;
+      -- Apply the mean value theorem to $f$ on the interval $[u, v]$.
+      obtain ⟨c, hc⟩ : ∃ c ∈ Set.Ioo u v, deriv f c = (f v - f u) / (v - u) := by
+        apply_rules [ exists_deriv_eq_slope ];
+        · exact huv.lt_of_ne ( by rintro rfl; linarith );
+        · exact continuousOn_of_forall_continuousAt fun t ht => ContinuousAt.mul ( ContinuousAt.rpow continuousAt_id continuousAt_const <| Or.inr <| by linarith ) <| ContinuousAt.rexp <| ContinuousAt.mul continuousAt_const <| Real.continuous_sqrt.continuousAt;
+        · exact fun x hx => DifferentiableAt.differentiableWithinAt ( by exact DifferentiableAt.mul ( DifferentiableAt.rpow ( differentiableAt_id ) ( by norm_num ) ( by linarith [ hx.1, show 0 < u by exact lt_of_lt_of_le ( by positivity ) hu ] ) ) ( DifferentiableAt.exp ( DifferentiableAt.mul ( differentiableAt_const _ ) ( DifferentiableAt.sqrt ( differentiableAt_id ) ( by linarith [ hx.1, show 0 < u by exact lt_of_lt_of_le ( by positivity ) hu ] ) ) ) ) );
+      simp +zetaDelta only [gt_iff_lt, neg_mul, ge_iff_le, not_le, Set.mem_Ioo] at *
+      rw [ eq_div_iff ] at hc <;> nlinarith [ h_deriv_nonpos c ( by linarith [ show 0 < u by exact lt_of_lt_of_le ( by positivity ) hu ] ) ( by linarith ) ]
 
 
 @[blueprint
   "bklnw-lem-6"
   (title := "BKLNW Lemma 6")
   (statement := /--  Suppose there exists $c_1, c_2, c_3, c_4 > 0$ such that
-\begin{equation}\tag{3.3}
+\begin{equation}\label{bklnw_3.3}
 |\theta(x) - x| \leq c_1 x (\log x)^{c_2} \exp(-c_3 (\log x)^{\frac{1}{2}}) \quad \text{for all } x \geq c_4.
 \end{equation}
 Let $k > 0$ and let $b \geq \max\left(\log c_4, \log\left(\frac{4(c_2 + k)^2}{c_3^2}\right)\right)$. Then for all $x \geq e^b$ we have
@@ -750,33 +797,64 @@ where
 $$
 \mathcal{A}_k(b) = c_1 \cdot b^{c_2 + k} e^{-c_3\sqrt{b}}.
 $$ -/)
-  (proof := /-- We denote $g(x) = (\log x)^{c_2 + k} \exp(-c_3 (\log x)^{\frac{1}{2}})$. By \eqref{3.3}, $|\theta(x) - x| < \frac{c_1 g(x) x}{(\log x)^k}$ for all $x \geq c_4$. It suffices to bound $g$: by calculus, $g(x)$ decreases when $x \geq \frac{4(c_2 + k)^2}{c_3^2}$. Therefore $|\theta(x) - x| \leq \frac{c_1 g(e^b) x}{(\log x)^k}$. Note that $c_1 g(e^b) = \mathcal{A}_k(b)$ and the condition on $b$ follows from the conditions $e^b \geq c_4$ and $e^b \geq \frac{4(c_2 + k)^2}{c_3^2}$. -/)
-  (latexEnv := "lemma")]
+  (proof := /-- We denote $g(x) = (\log x)^{c_2 + k} \exp(-c_3 (\log x)^{\frac{1}{2}})$. By \eqref{bklnw_3.3}, $|\theta(x) - x| < \frac{c_1 g(x) x}{(\log x)^k}$ for all $x \geq c_4$. It suffices to bound $g$: by calculus, $g(x)$ decreases when $x \geq \frac{4(c_2 + k)^2}{c_3^2}$. Therefore $|\theta(x) - x| \leq \frac{c_1 g(e^b) x}{(\log x)^k}$. Note that $c_1 g(e^b) = \mathcal{A}_k(b)$ and the condition on $b$ follows from the conditions $e^b \geq c_4$ and $e^b \geq \frac{4(c_2 + k)^2}{c_3^2}$. -/)
+  (latexEnv := "lemma")
+  (discussion := 854)]
 theorem lem_6 {c₁ c₂ c₃ c₄ k b x : ℝ} (hc₁ : 0 < c₁) (hc₂ : 0 < c₂) (hc₃ : 0 < c₃) (hc₄ : 0 < c₄)
     (hθ : Eθ.classicalBound c₁ c₂ c₃ 1 c₄)
     (hk : 0 < k)
-    (hb : b ≥ max (log c₄) (log ((4 * (c₂ + k) ^ 2) / (c₃ ^ 2))))
+    (hb : b ≥ max (log c₄) (((4 * (c₂ + k) ^ 2) / (c₃ ^ 2))))
     (hx : x ≥ exp b) :
     let A := c₁ * b ^ (c₂ + k) * exp (-c₃ * sqrt b)
     Eθ x ≤ A / (log x) ^ k := by
-      sorry
+      /-NOTE: the hypothesis `hb` is modified from the original source material \cite{BKLNW}, from b ≥ log ((4 * (c₂ + k) ^ 2) / (c₃ ^ 2))) to b ≥ ((4 * (c₂ + k) ^ 2) / (c₃ ^ 2))).
+      This corresponds to the fact that in the proof sketch above, the claim "$g(x)$ decreases when $x \geq \frac{4(c_2 + k)^2}{c_3^2}$" should be "$g(x)$ decreases when $\log x \geq \frac{4(c_2 + k)^2}{c_3^2}$."  -/
+      -- By `hθ`, we have $E_\theta(x) \le c_1 (\log x)^{c_2} e^{-c_3\sqrt{\log x}}$.
+      have h_bound : Eθ x ≤ c₁ * (Real.log x) ^ c₂ * Real.exp (-c₃ * Real.sqrt (Real.log x)) := by
+        convert hθ x _ using 1 <;> norm_num;
+        · unfold admissible_bound ; norm_num;
+          exact Or.inl <| Or.inl <| Real.sqrt_eq_rpow _;
+        · exact le_trans ( Real.log_le_iff_le_exp ( by positivity ) |>.1 ( le_trans ( le_max_left _ _ ) hb ) ) hx;
+      -- By `g_decreasing_interval` with $A = c_2+k$ and $C = c_3$, $g$ is decreasing on $[4(c_2+k)^2/c_3^2, \infty)$.
+      have h_decreasing : ∀ u v : ℝ, 4 * (c₂ + k) ^ 2 / c₃ ^ 2 ≤ u → u ≤ v → v ^ (c₂ + k) * Real.exp (-c₃ * Real.sqrt v) ≤ u ^ (c₂ + k) * Real.exp (-c₃ * Real.sqrt u) := by
+        -- Apply the lemma g_decreasing_interval with A = c₂ + k and C = c₃.
+        apply g_decreasing_interval (c₂ + k) c₃ (by linarith) (by linarith);
+      -- Since $b \ge 4(c_2+k)^2/c_3^2$, we have $b \le \log x$.
+      have h_log_x_ge_b : b ≤ Real.log x := by
+        exact le_trans ( by norm_num ) ( Real.log_le_log ( by positivity ) hx );
+      have := h_decreasing b ( Real.log x ) ( by linarith [ le_max_right ( Real.log c₄ ) ( 4 * ( c₂ + k ) ^ 2 / c₃ ^ 2 ) ] ) h_log_x_ge_b; simp_all +decide only [ge_iff_le, sup_le_iff, neg_mul,
+        Real.rpow_add
+            (show 0 < Real.log x from
+              lt_of_lt_of_le
+                (by
+                  linarith [le_max_left (Real.log c₄) (4 * (c₂ + k) ^ 2 / c₃ ^ 2),
+                    le_max_right (Real.log c₄) (4 * (c₂ + k) ^ 2 / c₃ ^ 2),
+                    show 0 < 4 * (c₂ + k) ^ 2 / c₃ ^ 2 by positivity])
+                h_log_x_ge_b)]
+      rw [ le_div_iff₀ ( Real.rpow_pos_of_pos ( show 0 < Real.log x from lt_of_lt_of_le ( by linarith [ show 0 < 4 * ( c₂ + k ) ^ 2 / c₃ ^ 2 by positivity ] ) h_log_x_ge_b ) _ ) ] ; nlinarith [ Real.rpow_pos_of_pos ( show 0 < Real.log x from lt_of_lt_of_le ( by linarith [ show 0 < 4 * ( c₂ + k ) ^ 2 / c₃ ^ 2 by positivity ] ) h_log_x_ge_b ) k ] ;
 
 
 @[blueprint
   "bklnw-cor-14-1"
   (title := "BKLNW Corollary 14.1")
-  (statement := /--  Suppose one has an asymptotic bound $E_\psi$ with parameters $A,B,C,R,e^{x_0}$ (which need to satisfy some additional bounds) with $x_0 \geq 1000$.  Then $E_\psi$ obeys an asymptotic bound with parameters $A', B, C, R, e^{x_0}$, where
+  (statement := /--  Suppose one has an asymptotic bound $E_\psi$ with parameters $A,B,C,R,e^{x_0}$ (which need to satisfy some additional bounds) with $x_0 \geq 1000$.  Then $E_\theta$ obeys an asymptotic bound with parameters $A', B, C, R, e^{x_0}$, where
   $$ A' := A (1 + \frac{1}{A} (\frac{R}{x_0})^B \exp(C \sqrt{\frac{x_0}{R}}) (a_1(x_0) \exp(\frac{-x_0}{2}) + a_2(x_0) \exp(\frac{-2 x_0}{3}))) $$
   and $a_1(x_0), a_2(x_0)$ are as in Corollary \ref{bklnw-cor-5-1}. -/)
-  (proof := /-- We write $\theta(x) - x = \psi(x) - x + \theta(x) - \psi(x)$, apply the triangle inequality, and invoke Corollary \ref{blknw-cor-5-1} to obtain
+  (proof := /-- We write $\theta(x) - x = \psi(x) - x + \theta(x) - \psi(x)$, apply the triangle inequality, and invoke Corollary \ref{bklnw-cor-5-1} to obtain
 $$
 E_\theta(x) \leq A (\frac{\log x}{R})^B \exp(-C (\frac{\log x}{R})^{\frac{1}{2}}) + a_1(x_0) x^{-\frac{1}{2}} + a_2(x_0) x^{-\frac{2}{3}}$$
 $$ \leq A (\frac{\log x}{R})^B \exp(-C (\frac{\log x}{R})^{\frac{1}{2}}) (1 + \frac{a_1(x_0) \exp(C \sqrt{\frac{\log x}{R}})}{A \sqrt{x} (\frac{\log x}{R})^B} + \frac{a_2(x_0) \exp(C \sqrt{\frac{\log x}{R}})}{A x^{\frac{2}{3}} (\frac{\log x}{R})^B}).$$
 The function in brackets decreases for $x \geq e^{x_0}$ with $x_0 \geq 1000$ (assuming reasonable hypotheses on $A,B,C,R$) and thus we obtain the desired bound with $A'$ as above.
  -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (discussion := 855)]
 theorem cor_14_1 {A B C R x₀ : ℝ} (hx₀ : x₀ ≥ 1000)
-    (hEψ : Eψ.classicalBound A B C R x₀) :
+    (hEψ : Eψ.classicalBound A B C R x₀)
+    (hA : A > 0)
+    (hB : B ∈ Set.Icc (3 / 2) (7 / 4))
+    (hC : C ∈ Set.Icc (2 / 3) 2)
+    (hR : R ∈ Set.Icc 1 10) -- some plausible placeholder (and mild) hypotheses on B,C,R here, consistent with actual values.  Feel free to adjust as needed
+    :
     let A' := A * (1 + (1 / A) * (R / x₀) ^ B * exp (C * sqrt (x₀ / R)) *
       (a₁ x₀ * exp (-x₀ / 2) + a₂ x₀ * exp (-2 * x₀ / 3)))
     Eθ.classicalBound A' B C R x₀ := by
