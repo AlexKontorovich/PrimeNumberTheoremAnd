@@ -420,7 +420,7 @@ theorem proposition_5_4a : HasPrimeInInterval.log_thm 4e18 3 := by
   (proof := /-- Use Lemma \ref{prime-gap-record-interval} and Proposition \ref{table-8-prime-gap}.  -/)
   (latexEnv := "sublemma")
   (discussion := 911)]
-theorem proposition_5_4b (x : ℝ) (hx : x ∈ Set.Ioo 360653 4e18) : HasPrimeInInterval x (x / (log x)^3) := sorry
+theorem proposition_5_4b (x : ℝ) (hx : x ∈ Set.Ioo 360653 4e18) : HasPrimeInInterval x (x / (log x)^(3:ℝ)) := sorry
 
 @[blueprint "Dusart_prop_5_4c"
   (title := "Dusart Proposition 5.4, substep 3")
@@ -432,7 +432,7 @@ theorem proposition_5_4b (x : ℝ) (hx : x ∈ Set.Ioo 360653 4e18) : HasPrimeIn
   -/)
   (proof := /-- This is a computer computation, likely not formalizable within Lean. -/)
   (latexEnv := "sublemma")]
-theorem proposition_5_4c (x : ℝ) (hx : x ∈ Set.Icc 89693 360653) : HasPrimeInInterval x (x / (log x)^3) := sorry
+theorem proposition_5_4c (x : ℝ) (hx : x ∈ Set.Icc 89693 360653) : HasPrimeInInterval x (x / (log x)^(3:ℝ)) := sorry
 
 
 @[blueprint "Dusart_prop_5_4"
@@ -447,7 +447,9 @@ theorem proposition_5_4c (x : ℝ) (hx : x ∈ Set.Icc 89693 360653) : HasPrimeI
   (proof := /-- Combine the three substeps. -/)
   (latexEnv := "proposition")
   (discussion := 912)]
-theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := sorry
+theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := fun x hx =>
+  (le_or_gt x 360653).elim (proposition_5_4c x ⟨hx, ·⟩) fun h =>
+    (le_or_gt 4e18 x).elim (proposition_5_4a x) (proposition_5_4b x ⟨h, ·⟩)
 
 @[blueprint "Dusart_cor_5_5"
   (title := "Dusart Corollary 5.5")
