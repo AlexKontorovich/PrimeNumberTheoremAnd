@@ -83,7 +83,11 @@ theorem zeta_mul_zeta : (ζ : ArithmeticFunction ℕ) * ζ = τ := by
   -/)]
 theorem LSeries_tau_eq_riemannZeta_sq {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗τ) s = riemannZeta s ^ 2 := by
-  sorry
+  have h1 : LSeries (↗(ζ * ζ)) s = LSeries (↗((ζ : ArithmeticFunction ℂ) * ζ)) s := by
+    congr 1; ext n; simp only [← natCoe_mul, natCoe_apply]
+  have h2 : LSeries (↗((ζ : ArithmeticFunction ℂ) * ζ)) s = LSeries (↗ζ) s * LSeries (↗ζ) s :=
+    LSeries_mul' (LSeriesSummable_zeta_iff.mpr hs) (LSeriesSummable_zeta_iff.mpr hs)
+  rw [← zeta_mul_zeta, h1, h2, LSeries_zeta_eq_riemannZeta hs, pow_two]
 
 
 
