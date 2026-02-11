@@ -257,8 +257,111 @@ theorem proposition_13
   (hB : B > C ^ 2 / (8 * R)) :
   Eθ.classicalBound (Aψ * (1 + ν_asymp Aψ B C R x₀)) B C R x₀ := by sorry
 
-set_option maxHeartbeats 1000000 in
--- Needed for arithmetic normalization in `corollary_14`.
+theorem corollary_14_small_adm :
+    ∀ {x : ℝ}, 2 ≤ x → x ≤ Real.exp 30 →
+    (1:ℝ) ≤ admissible_bound 121.0961 (3/2) 2 5.5666305 x := by
+  intro x hx hx30
+  let u : ℝ := Real.log x / 5.5666305
+  have hu_pos : 0 < u := by
+    have hlogx : 0 < Real.log x := Real.log_pos (lt_of_lt_of_le (by norm_num) hx)
+    exact div_pos hlogx (by norm_num)
+  have hu_ge : (31/250:ℝ) ≤ u := by
+    have hlog2x : Real.log 2 ≤ Real.log x := Real.log_le_log (by norm_num) hx
+    have h : (31/250:ℝ) * 5.5666305 ≤ Real.log x := by
+      nlinarith [hlog2x, LogTables.log_2_gt]
+    exact (le_div_iff₀ (by norm_num : (0:ℝ) < 5.5666305)).2 h
+  have hu_le : u ≤ 30 / 5.5666305 := by
+    have hlog : Real.log x ≤ 30 := by
+      have := Real.log_le_log (by positivity : 0 < x) hx30
+      simpa [Real.log_exp] using this
+    have hdiv : Real.log x / 5.5666305 ≤ 30 / 5.5666305 :=
+      div_le_div_of_nonneg_right hlog (by norm_num)
+    simpa [u] using hdiv
+  change (1:ℝ) ≤ 121.0961 * u ^ (3 / 2 : ℝ) * Real.exp (-2 * u ^ (1 / 2 : ℝ))
+  have hu_pow : u ^ (3 / 2 : ℝ) = u * Real.sqrt u := by
+    rw [show (3 / 2 : ℝ) = (1:ℝ) + (1 / 2 : ℝ) by norm_num]
+    rw [Real.rpow_add hu_pos]
+    simp [Real.sqrt_eq_rpow]
+  have hu_sqrtpow : u ^ (1 / 2 : ℝ) = Real.sqrt u := by
+    simp [Real.sqrt_eq_rpow]
+  rw [hu_pow, hu_sqrtpow]
+  by_cases hu64 : u ≤ (16/25:ℝ)
+  · have hsqrt_upper : Real.sqrt u ≤ (4/5:ℝ) := by
+      refine (Real.sqrt_le_iff).2 ?_
+      constructor
+      · norm_num
+      · nlinarith
+    have hsqrt_lower : (7/20:ℝ) ≤ Real.sqrt u := by
+      refine (Real.le_sqrt (by norm_num) hu_pos.le).2 ?_
+      nlinarith [hu_ge]
+    have hu_mul : (217/5000:ℝ) ≤ u * Real.sqrt u := by
+      nlinarith [hu_ge, hsqrt_lower]
+    have h_exp_base : (1/5:ℝ) ≤ Real.exp (-(8/5:ℝ)) := by
+      have hlog : Real.log (1/5:ℝ) ≤ -(8/5:ℝ) := by
+        have hfive : (1/5:ℝ) = (5:ℝ)⁻¹ := by norm_num
+        rw [hfive, Real.log_inv]
+        nlinarith [LogTables.log_5_gt]
+      exact (Real.log_le_iff_le_exp (by norm_num : (0:ℝ) < 1/5)).1 hlog
+    have h_exp_u : Real.exp (-(8/5:ℝ)) ≤ Real.exp (-2 * Real.sqrt u) := by
+      apply Real.exp_le_exp.mpr
+      linarith
+    have h_exp : (1/5:ℝ) ≤ Real.exp (-2 * Real.sqrt u) := by
+      exact le_trans h_exp_base h_exp_u
+    nlinarith [hu_mul, h_exp]
+  · have hu64' : (16/25:ℝ) < u := lt_of_not_ge hu64
+    by_cases hu94 : u ≤ (9/4:ℝ)
+    · have hsqrt_lower : (4/5:ℝ) ≤ Real.sqrt u := by
+        refine (Real.le_sqrt (by norm_num) hu_pos.le).2 ?_
+        nlinarith [hu64']
+      have hu_mul : (64/125:ℝ) ≤ u * Real.sqrt u := by
+        nlinarith [hu64', hsqrt_lower]
+      have h_exp_base : (1/25:ℝ) ≤ Real.exp (-3:ℝ) := by
+        have hlog : Real.log (1/25:ℝ) ≤ (-3:ℝ) := by
+          have htwfive : (1/25:ℝ) = (25:ℝ)⁻¹ := by norm_num
+          rw [htwfive, Real.log_inv]
+          have hlog25 : (3:ℝ) ≤ Real.log 25 := by
+            rw [show (25:ℝ) = (5:ℝ)^2 by norm_num, Real.log_pow]
+            have htmp : (3:ℝ) < (2:ℝ) * Real.log 5 := by nlinarith [LogTables.log_5_gt]
+            exact le_of_lt htmp
+          linarith
+        exact (Real.log_le_iff_le_exp (by norm_num : (0:ℝ) < 1/25)).1 hlog
+      have h_exp_u : Real.exp (-3:ℝ) ≤ Real.exp (-2 * Real.sqrt u) := by
+        apply Real.exp_le_exp.mpr
+        have hsqrt_upper : Real.sqrt u ≤ (3/2:ℝ) := by
+          refine (Real.sqrt_le_iff).2 ?_
+          constructor
+          · norm_num
+          · nlinarith [hu94]
+        linarith
+      have h_exp : (1/25:ℝ) ≤ Real.exp (-2 * Real.sqrt u) := le_trans h_exp_base h_exp_u
+      nlinarith [hu_mul, h_exp]
+    · have hu94' : (9/4:ℝ) < u := lt_of_not_ge hu94
+      have hsqrt_lower : (3/2:ℝ) ≤ Real.sqrt u := by
+        refine (Real.le_sqrt (by norm_num) hu_pos.le).2 ?_
+        nlinarith [hu94']
+      have hu_mul : (27/8:ℝ) ≤ u * Real.sqrt u := by
+        nlinarith [hu94', hsqrt_lower]
+      have hsqrt_upper : Real.sqrt u ≤ (47/20:ℝ) := by
+        refine (Real.sqrt_le_iff).2 ?_
+        constructor
+        · norm_num
+        · nlinarith [hu_le]
+      have h_exp_base : (1/115:ℝ) ≤ Real.exp (-(47/10:ℝ)) := by
+        have hlog : Real.log (1/115:ℝ) ≤ (-(47/10:ℝ)) := by
+          have hone : (1/115:ℝ) = (115:ℝ)⁻¹ := by norm_num
+          rw [hone, Real.log_inv]
+          have hlog115 : (47/10:ℝ) ≤ Real.log 115 := by
+            have h115 : (115:ℝ) = 23 * 5 := by norm_num
+            rw [h115, Real.log_mul (by norm_num) (by norm_num)]
+            nlinarith [LogTables.log_23_gt, LogTables.log_5_gt]
+          linarith
+        exact (Real.log_le_iff_le_exp (by norm_num : (0:ℝ) < 1/115)).1 hlog
+      have h_exp_u : Real.exp (-(47/10:ℝ)) ≤ Real.exp (-2 * Real.sqrt u) := by
+        apply Real.exp_le_exp.mpr
+        linarith
+      have h_exp : (1/115:ℝ) ≤ Real.exp (-2 * Real.sqrt u) := le_trans h_exp_base h_exp_u
+      nlinarith [hu_mul, h_exp]
+
 @[blueprint
   "fks2-corollary-14"
   (title := "FKS2 Corollary 14")
@@ -272,109 +375,7 @@ set_option maxHeartbeats 1000000 in
 theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := by
   have hsmall_adm :
       ∀ {x : ℝ}, 2 ≤ x → x ≤ Real.exp 30 →
-      (1:ℝ) ≤ admissible_bound 121.0961 (3/2) 2 5.5666305 x := by
-    intro x hx hx30
-    let u : ℝ := Real.log x / 5.5666305
-    have hu_pos : 0 < u := by
-      have hlogx : 0 < Real.log x := Real.log_pos (lt_of_lt_of_le (by norm_num) hx)
-      exact div_pos hlogx (by norm_num)
-    have hu_ge : (31/250:ℝ) ≤ u := by
-      have hlog2x : Real.log 2 ≤ Real.log x := Real.log_le_log (by norm_num) hx
-      have h : (31/250:ℝ) * 5.5666305 ≤ Real.log x := by
-        nlinarith [hlog2x, LogTables.log_2_gt]
-      exact (le_div_iff₀ (by norm_num : (0:ℝ) < 5.5666305)).2 h
-    have hu_le : u ≤ 30 / 5.5666305 := by
-      have hlog : Real.log x ≤ 30 := by
-        have := Real.log_le_log (by positivity : 0 < x) hx30
-        simpa [Real.log_exp] using this
-      have : Real.log x / 5.5666305 ≤ 30 / 5.5666305 :=
-        div_le_div_of_nonneg_right hlog (by norm_num)
-      simp [u] at this ⊢
-      exact this
-    change (1:ℝ) ≤ 121.0961 * u ^ (3 / 2 : ℝ) * Real.exp (-2 * u ^ (1 / 2 : ℝ))
-    have hu_pow : u ^ (3 / 2 : ℝ) = u * Real.sqrt u := by
-      rw [show (3 / 2 : ℝ) = (1:ℝ) + (1 / 2 : ℝ) by norm_num]
-      rw [Real.rpow_add hu_pos]
-      simp [Real.sqrt_eq_rpow]
-    have hu_sqrtpow : u ^ (1 / 2 : ℝ) = Real.sqrt u := by
-      simp [Real.sqrt_eq_rpow]
-    rw [hu_pow, hu_sqrtpow]
-    by_cases hu64 : u ≤ (16/25:ℝ)
-    · have hsqrt_upper : Real.sqrt u ≤ (4/5:ℝ) := by
-        refine (Real.sqrt_le_iff).2 ?_
-        constructor
-        · norm_num
-        · nlinarith
-      have hsqrt_lower : (7/20:ℝ) ≤ Real.sqrt u := by
-        refine (Real.le_sqrt (by norm_num) hu_pos.le).2 ?_
-        nlinarith [hu_ge]
-      have hu_mul : (217/5000:ℝ) ≤ u * Real.sqrt u := by
-        nlinarith [hu_ge, hsqrt_lower]
-      have h_exp_base : (1/5:ℝ) ≤ Real.exp (-(8/5:ℝ)) := by
-        have hlog : Real.log (1/5:ℝ) ≤ -(8/5:ℝ) := by
-          have hfive : (1/5:ℝ) = (5:ℝ)⁻¹ := by norm_num
-          rw [hfive, Real.log_inv]
-          nlinarith [LogTables.log_5_gt]
-        exact (Real.log_le_iff_le_exp (by norm_num : (0:ℝ) < 1/5)).1 hlog
-      have h_exp_u : Real.exp (-(8/5:ℝ)) ≤ Real.exp (-2 * Real.sqrt u) := by
-        apply Real.exp_le_exp.mpr
-        linarith
-      have h_exp : (1/5:ℝ) ≤ Real.exp (-2 * Real.sqrt u) := by
-        exact le_trans h_exp_base h_exp_u
-      nlinarith [hu_mul, h_exp]
-    · have hu64' : (16/25:ℝ) < u := lt_of_not_ge hu64
-      by_cases hu94 : u ≤ (9/4:ℝ)
-      · have hsqrt_lower : (4/5:ℝ) ≤ Real.sqrt u := by
-          refine (Real.le_sqrt (by norm_num) hu_pos.le).2 ?_
-          nlinarith [hu64']
-        have hu_mul : (64/125:ℝ) ≤ u * Real.sqrt u := by
-          nlinarith [hu64', hsqrt_lower]
-        have h_exp_base : (1/25:ℝ) ≤ Real.exp (-3:ℝ) := by
-          have hlog : Real.log (1/25:ℝ) ≤ (-3:ℝ) := by
-            have htwfive : (1/25:ℝ) = (25:ℝ)⁻¹ := by norm_num
-            rw [htwfive, Real.log_inv]
-            have hlog25 : (3:ℝ) ≤ Real.log 25 := by
-              rw [show (25:ℝ) = (5:ℝ)^2 by norm_num, Real.log_pow]
-              have htmp : (3:ℝ) < (2:ℝ) * Real.log 5 := by nlinarith [LogTables.log_5_gt]
-              exact le_of_lt htmp
-            linarith
-          exact (Real.log_le_iff_le_exp (by norm_num : (0:ℝ) < 1/25)).1 hlog
-        have h_exp_u : Real.exp (-3:ℝ) ≤ Real.exp (-2 * Real.sqrt u) := by
-          apply Real.exp_le_exp.mpr
-          have hsqrt_upper : Real.sqrt u ≤ (3/2:ℝ) := by
-            refine (Real.sqrt_le_iff).2 ?_
-            constructor
-            · norm_num
-            · nlinarith [hu94]
-          linarith
-        have h_exp : (1/25:ℝ) ≤ Real.exp (-2 * Real.sqrt u) := le_trans h_exp_base h_exp_u
-        nlinarith [hu_mul, h_exp]
-      · have hu94' : (9/4:ℝ) < u := lt_of_not_ge hu94
-        have hsqrt_lower : (3/2:ℝ) ≤ Real.sqrt u := by
-          refine (Real.le_sqrt (by norm_num) hu_pos.le).2 ?_
-          nlinarith [hu94']
-        have hu_mul : (27/8:ℝ) ≤ u * Real.sqrt u := by
-          nlinarith [hu94', hsqrt_lower]
-        have hsqrt_upper : Real.sqrt u ≤ (47/20:ℝ) := by
-          refine (Real.sqrt_le_iff).2 ?_
-          constructor
-          · norm_num
-          · nlinarith [hu_le]
-        have h_exp_base : (1/115:ℝ) ≤ Real.exp (-(47/10:ℝ)) := by
-          have hlog : Real.log (1/115:ℝ) ≤ (-(47/10:ℝ)) := by
-            have hone : (1/115:ℝ) = (115:ℝ)⁻¹ := by norm_num
-            rw [hone, Real.log_inv]
-            have hlog115 : (47/10:ℝ) ≤ Real.log 115 := by
-              have h115 : (115:ℝ) = 23 * 5 := by norm_num
-              rw [h115, Real.log_mul (by norm_num) (by norm_num)]
-              nlinarith [LogTables.log_23_gt, LogTables.log_5_gt]
-            linarith
-          exact (Real.log_le_iff_le_exp (by norm_num : (0:ℝ) < 1/115)).1 hlog
-        have h_exp_u : Real.exp (-(47/10:ℝ)) ≤ Real.exp (-2 * Real.sqrt u) := by
-          apply Real.exp_le_exp.mpr
-          linarith
-        have h_exp : (1/115:ℝ) ≤ Real.exp (-2 * Real.sqrt u) := le_trans h_exp_base h_exp_u
-        nlinarith [hu_mul, h_exp]
+      (1:ℝ) ≤ admissible_bound 121.0961 (3/2) 2 5.5666305 x := corollary_14_small_adm
 
   have hfloor30 : ⌊(30:ℝ) / Real.log 2⌋₊ = 43 := by
     refine (Nat.floor_eq_iff (by positivity : (0:ℝ) ≤ 30 / Real.log 2)).2 ?_
@@ -392,8 +393,10 @@ theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := by
       norm_num
       nlinarith [LogTables.log_10_gt]
     have hif : (30:ℝ) ≤ 2 * Real.log (1e19) := by linarith [h40]
-    simp [BKLNW.Inputs.default, BKLNW.Pre_inputs.default, if_pos hif]
-    exact BKLNW_app.table_8_ε_le_of_row BKLNW_app.table_8_mem_40 h40
+    have htable : BKLNW_app.table_8_ε (Real.log (1e19)) ≤ 1.9339e-8 :=
+      BKLNW_app.table_8_ε_le_of_row BKLNW_app.table_8_mem_40 h40
+    have hgoal : 1 + BKLNW_app.table_8_ε (Real.log (1e19)) ≤ 1 + 1.9339e-8 := by linarith
+    simpa [BKLNW.Inputs.default, BKLNW.Pre_inputs.default, if_pos hif] using hgoal
 
   have ha2 : BKLNW.a₂ 30 ≤ 42.42 := by
     have hf_exp30 : BKLNW.f (Real.exp 30) ≤ 41 := by
@@ -536,7 +539,9 @@ theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := by
 
   have hν : ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30) ≤ 8.25e-7 := by
     let coeff : ℝ := (1 / (121.096:ℝ)) * (5.5666305 / 30) ^ (3/2:ℝ) * Real.exp (2 * Real.sqrt (30 / 5.5666305))
-    let rhsBracket : ℝ := (1 + 1.9339e-8) * 30 * (1 / 3250000:ℝ) + 42.42 * 30 * (1 / 460000000:ℝ)
+    let c1 : ℝ := 1 + 1.9339e-8
+    let c2 : ℝ := 42.42
+    let rhsBracket : ℝ := 30 * (c1 * (1 / 3250000:ℝ)) + 30 * (c2 * (1 / 460000000:ℝ))
     have hpow1 : (Real.exp 30) ^ (-(1:ℝ)/2) = Real.exp (-15) := by
       calc
         (Real.exp 30) ^ (-(1:ℝ)/2) = Real.exp (30 * (-(1:ℝ)/2)) := (Real.exp_mul 30 (-(1:ℝ)/2)).symm
@@ -545,33 +550,54 @@ theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := by
       calc
         (Real.exp 30) ^ (-(2:ℝ)/3) = Real.exp (30 * (-(2:ℝ)/3)) := (Real.exp_mul 30 (-(2:ℝ)/3)).symm
         _ = Real.exp (-20) := by ring_nf
-    have hνeq : ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30)
+    have hνeq₀ : ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30)
         = coeff * (BKLNW.a₁ 30 * 30 * Real.exp (-15) + BKLNW.a₂ 30 * 30 * Real.exp (-20)) := by
       simp [ν_asymp, hpow1, hpow2, coeff]
+    have hνeq : ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30)
+        = coeff * (30 * (BKLNW.a₁ 30 * Real.exp (-15)) + 30 * (BKLNW.a₂ 30 * Real.exp (-20))) := by
+      calc
+        ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30)
+            = coeff * (BKLNW.a₁ 30 * 30 * Real.exp (-15) + BKLNW.a₂ 30 * 30 * Real.exp (-20)) := hνeq₀
+        _ = coeff * (30 * (BKLNW.a₁ 30 * Real.exp (-15)) + 30 * (BKLNW.a₂ 30 * Real.exp (-20))) := by
+          ring
     rw [hνeq]
     have hbracket :
-        BKLNW.a₁ 30 * 30 * Real.exp (-15) + BKLNW.a₂ 30 * 30 * Real.exp (-20)
+        30 * (BKLNW.a₁ 30 * Real.exp (-15)) + 30 * (BKLNW.a₂ 30 * Real.exp (-20))
         ≤ rhsBracket := by
-      have h1 : BKLNW.a₁ 30 * 30 * Real.exp (-15) ≤ (1 + 1.9339e-8) * 30 * (1 / 3250000:ℝ) := by
-        have h1a : BKLNW.a₁ 30 * Real.exp (-15) ≤ (1 + 1.9339e-8) * Real.exp (-15) :=
-          mul_le_mul_of_nonneg_right ha1 (by positivity)
-        have h1b : (1 + 1.9339e-8) * Real.exp (-15) ≤ (1 + 1.9339e-8) * (1 / 3250000:ℝ) :=
-          mul_le_mul_of_nonneg_left h15 (by positivity)
-        have h1ab : BKLNW.a₁ 30 * Real.exp (-15) ≤ (1 + 1.9339e-8) * (1 / 3250000:ℝ) := le_trans h1a h1b
-        have h1mul : 30 * (BKLNW.a₁ 30 * Real.exp (-15)) ≤ 30 * ((1 + 1.9339e-8) * (1 / 3250000:ℝ)) :=
-          mul_le_mul_of_nonneg_left h1ab (by norm_num)
-        convert h1mul using 1 <;> ring_nf
-      have h2 : BKLNW.a₂ 30 * 30 * Real.exp (-20) ≤ 42.42 * 30 * (1 / 460000000:ℝ) := by
-        have h2a : BKLNW.a₂ 30 * Real.exp (-20) ≤ 42.42 * Real.exp (-20) :=
-          mul_le_mul_of_nonneg_right ha2 (by positivity)
-        have h2b : 42.42 * Real.exp (-20) ≤ 42.42 * (1 / 460000000:ℝ) :=
-          mul_le_mul_of_nonneg_left h20 (by positivity)
-        have h2ab : BKLNW.a₂ 30 * Real.exp (-20) ≤ 42.42 * (1 / 460000000:ℝ) := le_trans h2a h2b
-        have h2mul : 30 * (BKLNW.a₂ 30 * Real.exp (-20)) ≤ 30 * (42.42 * (1 / 460000000:ℝ)) :=
-          mul_le_mul_of_nonneg_left h2ab (by norm_num)
-        convert h2mul using 1 <;> ring_nf
-      have : BKLNW.a₁ 30 * 30 * Real.exp (-15) + BKLNW.a₂ 30 * 30 * Real.exp (-20)
-        ≤ (1 + 1.9339e-8) * 30 * (1 / 3250000:ℝ) + 42.42 * 30 * (1 / 460000000:ℝ) :=
+      have hc1_nonneg : 0 ≤ c1 := by
+        dsimp [c1]
+        norm_num
+      have hc2_nonneg : 0 ≤ c2 := by
+        dsimp [c2]
+        norm_num
+      have ha1' : BKLNW.a₁ 30 ≤ c1 := by simpa [c1] using ha1
+      have ha2' : BKLNW.a₂ 30 ≤ c2 := by simpa [c2] using ha2
+      have he15_nonneg : 0 ≤ Real.exp (-15) := le_of_lt (Real.exp_pos _)
+      have he20_nonneg : 0 ≤ Real.exp (-20) := le_of_lt (Real.exp_pos _)
+      have h30_nonneg : (0:ℝ) ≤ 30 := by norm_num
+      have h1 : 30 * (BKLNW.a₁ 30 * Real.exp (-15)) ≤ 30 * (c1 * (1 / 3250000:ℝ)) := by
+        calc
+          30 * (BKLNW.a₁ 30 * Real.exp (-15)) ≤ 30 * (c1 * Real.exp (-15)) := by
+            apply mul_le_mul_of_nonneg_left
+            · exact mul_le_mul_of_nonneg_right ha1' he15_nonneg
+            · exact h30_nonneg
+          _ ≤ 30 * (c1 * (1 / 3250000:ℝ)) := by
+            apply mul_le_mul_of_nonneg_left
+            · exact mul_le_mul_of_nonneg_left h15 hc1_nonneg
+            · exact h30_nonneg
+      have h2 : 30 * (BKLNW.a₂ 30 * Real.exp (-20)) ≤ 30 * (c2 * (1 / 460000000:ℝ)) := by
+        calc
+          30 * (BKLNW.a₂ 30 * Real.exp (-20)) ≤ 30 * (c2 * Real.exp (-20)) := by
+            apply mul_le_mul_of_nonneg_left
+            · exact mul_le_mul_of_nonneg_right ha2' he20_nonneg
+            · exact h30_nonneg
+          _ ≤ 30 * (c2 * (1 / 460000000:ℝ)) := by
+            apply mul_le_mul_of_nonneg_left
+            · exact mul_le_mul_of_nonneg_left h20 hc2_nonneg
+            · exact h30_nonneg
+      have :
+          30 * (BKLNW.a₁ 30 * Real.exp (-15)) + 30 * (BKLNW.a₂ 30 * Real.exp (-20))
+        ≤ 30 * (c1 * (1 / 3250000:ℝ)) + 30 * (c2 * (1 / 460000000:ℝ)) :=
         add_le_add h1 h2
       simpa [rhsBracket] using this
     have hcoef' : coeff ≤ 0.06865 := by simpa [coeff] using hcoef
@@ -580,14 +606,22 @@ theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := by
       have hinv : 0 ≤ (1 / (121.096:ℝ)) := by norm_num
       have hpow : 0 ≤ (5.5666305 / 30 : ℝ) ^ (3 / 2 : ℝ) :=
         Real.rpow_nonneg (by norm_num : (0:ℝ) ≤ 5.5666305 / 30) _
-      have hexp : 0 ≤ Real.exp (2 * Real.sqrt (30 / 5.5666305)) := by positivity
+      have hexp : 0 ≤ Real.exp (2 * Real.sqrt (30 / 5.5666305)) := le_of_lt (Real.exp_pos _)
       exact mul_nonneg (mul_nonneg hinv hpow) hexp
     have hrhs_nonneg : 0 ≤ rhsBracket := by
       dsimp [rhsBracket]
-      have h1nn : 0 ≤ (1 + 1.9339e-8) * 30 * (1 / 3250000:ℝ) := by positivity
-      have h2nn : 0 ≤ 42.42 * 30 * (1 / 460000000:ℝ) := by positivity
+      have h1nn : 0 ≤ 30 * (c1 * (1 / 3250000:ℝ)) := by
+        have hc1_nonneg : 0 ≤ c1 := by
+          dsimp [c1]
+          norm_num
+        exact mul_nonneg (by norm_num) (mul_nonneg hc1_nonneg (by norm_num))
+      have h2nn : 0 ≤ 30 * (c2 * (1 / 460000000:ℝ)) := by
+        have hc2_nonneg : 0 ≤ c2 := by
+          dsimp [c2]
+          norm_num
+        exact mul_nonneg (by norm_num) (mul_nonneg hc2_nonneg (by norm_num))
       exact add_nonneg h1nn h2nn
-    have hmul1 : coeff * (BKLNW.a₁ 30 * 30 * Real.exp (-15) + BKLNW.a₂ 30 * 30 * Real.exp (-20)) ≤ coeff * rhsBracket :=
+    have hmul1 : coeff * (30 * (BKLNW.a₁ 30 * Real.exp (-15)) + 30 * (BKLNW.a₂ 30 * Real.exp (-20))) ≤ coeff * rhsBracket :=
       mul_le_mul_of_nonneg_left hbracket hcoeff_nonneg
     have hmul2 : coeff * rhsBracket ≤ 0.06865 * rhsBracket :=
       mul_le_mul_of_nonneg_right hcoef' hrhs_nonneg
@@ -646,7 +680,7 @@ theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := by
     have hlog_div_nonneg : 0 ≤ Real.log x / 5.5666305 := by
       have hx_ge1 : (1:ℝ) ≤ x := by
         have h1exp30 : (1:ℝ) < Real.exp 30 := by
-          simpa using (Real.one_lt_exp (by norm_num : (0:ℝ) < 30))
+          exact (Real.one_lt_exp_iff).2 (by norm_num : (0:ℝ) < 30)
         exact le_trans (le_of_lt h1exp30) hx30'
       exact div_nonneg (Real.log_nonneg hx_ge1) (by norm_num)
     have hpow_nonneg : 0 ≤ (Real.log x / 5.5666305) ^ (3 / 2 : ℝ) :=
@@ -669,139 +703,7 @@ theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := by
       unfold admissible_bound
       simpa [t, e, mul_assoc, mul_left_comm, mul_comm] using hAte
     exact le_trans hmain hAmono
-/-
-PROOF PLAN FOR theorem corollary_14:
 
-1) Goal shape:
-   - Goal is `Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2`.
-   - Unfold `Eθ.classicalBound` (in `PrimeNumberTheoremAnd/Defs.lean`):
-       `Eθ.classicalBound A B C R x₀ := ∀ x ≥ x₀, Eθ x ≤ admissible_bound A B C R x`.
-   - Unfold `Eθ` and `admissible_bound` (in `PrimeNumberTheoremAnd/Defs.lean`):
-       `Eθ x = |θ x - x| / x`,
-       `admissible_bound A B C R x = A * (log x / R) ^ B * exp (-C * (log x / R) ^ (1/2))`.
-   - Key local definition: `ν_asymp` (above) and transfer lemma `proposition_13`.
-   - External inputs that will be used:
-     * `FKS.FKS_corollary_1_3 : Eψ.classicalBound 121.096 (3/2) 2 5.5666305 2`
-       (in `PrimeNumberTheoremAnd/FioriKadiriSwidinsky.lean`).
-     * `BKLNW.buthe_eq_1_7 : ∀ x ∈ Set.Ioc 0 1e19, θ x < x`
-       (in `PrimeNumberTheoremAnd/BKLNW.lean`).
-     * Certified bounds on `BKLNW.a₂` at `b = 30` via
-       `BKLNW.cor_5_1_rem` (in `PrimeNumberTheoremAnd/BKLNW_a2_bounds.lean`).
-     * Bounds on `BKLNW_app.table_8_ε` via `BKLNW_app.table_8_ε_le_of_row`
-       and row-membership lemmas like `BKLNW_app.table_8_mem_40`
-       (in `PrimeNumberTheoremAnd/BKLNW_app_tables.lean`).
-
-2) “Provable as stated?” check:
-   - The statement is well-typed: `Eθ.classicalBound` takes `(A B C R x₀ : ℝ)`; here `A=121.0961`,
-     `B=3/2`, `C=2`, `R=5.5666305`, `x₀=2`.
-   - Mathematically it should be provable with the intended ingredients:
-     * Use `proposition_13` to get an asymptotic `Eθ`-bound starting at `x₀ = exp 30`,
-       then extend down to `x₀ = 2` by a separate argument on `2 ≤ x ≤ exp 30`.
-   - Main potential blockers are purely “engineering”:
-     * establishing the numerical inequality `ν_asymp 121.096 (3/2) 2 5.5666305 (exp 30) ≤ 6.3376e-7`;
-     * showing the admissible bound `admissible_bound 121.0961 (3/2) 2 5.5666305 x` is ≥ 1
-       (or at least ≥ `Eθ x`) on the finite interval `2 ≤ x ≤ exp 30`.
-
-3) If provable as stated: Lean tactic plan:
-   1. Start by unfolding the goal:
-      `rw [Eθ.classicalBound]; intro x hx`.
-   2. Split into “small x” and “large x”:
-      `by_cases hx30 : x ≤ exp 30`.
-
-   Small-x case (`hx30 : x ≤ exp 30`):
-   3. Prove `Eθ x ≤ 1` from `θ x < x`:
-      - First show `x ∈ Set.Ioc 0 1e19`:
-        * `have hx_pos : 0 < x := lt_of_lt_of_le (by norm_num) hx` (since `hx : x ≥ 2`).
-        * show `x ≤ 1e19` by chaining `hx30` with a lemma `exp 30 ≤ 1e19`.
-          This can be proved by rewriting `1e19 = exp (log 1e19)` and showing `30 ≤ log 1e19`.
-          Use `Real.log_pow`, `LogTables.log_10_gt`, `LogTables.log_10_lt` (as in `psi_le_bound_large`).
-      - Apply `hθlt : θ x < x := BKLNW.buthe_eq_1_7 x ⟨hx_pos, hx_le⟩`.
-      - Convert `hθlt` into `hθsub : θ x - x ≤ 0`, then:
-        `simp [Eθ, hθsub, abs_of_nonpos]` to rewrite `Eθ x` as `(x - θ x) / x`.
-      - Bound `(x - θ x) / x ≤ 1`:
-        use `theta_nonneg x` (exists; used in `PrimeNumberTheoremAnd/RosserSchoenfeldPrime.lean`)
-        to get `0 ≤ θ x`, hence `x - θ x ≤ x`, then divide by `x > 0`.
-
-   4. Show `1 ≤ admissible_bound 121.0961 (3/2) 2 5.5666305 x` for `2 ≤ x ≤ exp 30`.
-      This is the “finite interval” numerical step. Suggested approach:
-      - Rewrite the bound in terms of `u := log x / 5.5666305`, so it is
-        `121.0961 * u^(3/2) * exp (-2 * sqrt u)`.
-      - Prove that the function `u ↦ u^(3/2) * exp (-2 * sqrt u)` is unimodal with a single maximum
-        at `u* = (2*(3/2)/2)^2 = (3/2)^2 = 2.25`, hence its minimum on the compact interval
-        `[u_min, u_max]` occurs at an endpoint. Conclude:
-        `admissible_bound ... x ≥ min (admissible_bound ... 2) (admissible_bound ... (exp 30))`.
-      - Then prove both endpoint values are ≥ 1 by `norm_num`/`nlinarith` after simplifying with
-        `Real.log_exp` and `Real.exp_log`.
-      Implementation hint: mirror the calculus style in `PrimeNumberTheoremAnd/Defs.lean`:
-        it uses `antitoneOn_of_deriv_nonpos`; for the increasing part use
-        `monotoneOn_of_deriv_nonneg` (confirmed to exist; used in `PrimeNumberTheoremAnd/Chebyshev.lean`).
-      If lemma names for derivatives are unclear, search:
-        `rg -n "deriv.*rpow|deriv.*sqrt|monotoneOn_of_deriv_nonneg|antitoneOn_of_deriv_nonpos" PrimeNumberTheoremAnd`.
-
-   5. Combine steps 3-4:
-      `have hEθ : Eθ x ≤ 1 := ...`
-      `have h1 : (1:ℝ) ≤ admissible_bound 121.0961 (3/2) 2 5.5666305 x := ...`
-      then finish by `exact le_trans hEθ (le_trans h1 (le_rfl))`.
-
-   Large-x case (`hx30 : ¬ x ≤ exp 30`, so `hx30' : x ≥ exp 30`):
-   6. Build an `Eψ` classical bound starting at `exp 30`:
-      - Let `hEψ2 := FKS.FKS_corollary_1_3`.
-      - Define
-        `have hEψ30 : Eψ.classicalBound 121.096 (3/2) 2 5.5666305 (exp 30) := by
-           intro y hy; exact hEψ2 y (le_trans (by have : (2:ℝ) ≤ exp 30 := by ...; exact this) hy)`.
-   7. Apply `proposition_13` at `x₀ = exp 30`:
-      - Prove the side condition `hB : (3/2:ℝ) > 2^2 / (8 * 5.5666305)` by `norm_num`/`nlinarith`.
-      - Obtain
-        `hEθ30 : Eθ.classicalBound (121.096 * (1 + ν_asymp 121.096 (3/2) 2 5.5666305 (exp 30)))
-                   (3/2) 2 5.5666305 (exp 30)`
-        via `proposition_13`.
-   8. Prove the numerical estimate for `ν_asymp` at `x₀ = exp 30`:
-      - Start with `simp [ν_asymp, Real.log_exp]` to reduce `log (exp 30)` to `30` and turn
-        `x₀ ^ (-(1/2))` into `exp (-15)` etc. (`rpow`/`sqrt_eq_rpow` may appear).
-      - Bound `BKLNW.a₂ 30` using the certified interval lemma:
-        `have ha2 : BKLNW.a₂ 30 ≤ 1.1210 + 10^(-(4:ℝ)) := by
-           have hIcc := BKLNW.cor_5_1_rem 30 1.1210 4 (by simp [BKLNW.table_cor_5_1]);
-           exact (Set.mem_Icc.mp hIcc).2`.
-      - Bound `BKLNW.a₁ 30` by unfolding `BKLNW.a₁`/`BKLNW.Inputs.a₁` at `b=30` and using
-        `BKLNW_app.table_8_ε_le_of_row` with the row `b₀ = 40`:
-        * show `30 ≤ 2 * log (1e19)` (so the `if`-branch picks `1 + ε (log x₁)`),
-        * show `40 ≤ log (1e19)` and apply `BKLNW_app.table_8_ε_le_of_row BKLNW_app.table_8_mem_40`.
-      - After substituting these bounds, finish with `nlinarith` (expect some `field_simp`).
-      Search helpers:
-        `rg -n "cor_5_1_rem" PrimeNumberTheoremAnd/BKLNW_a2_bounds.lean`
-        `rg -n "table_8_ε_le_of_row|table_8_mem_40" PrimeNumberTheoremAnd/BKLNW_app_tables.lean`
-        `rg -n "a₁\\s*:=|Inputs\\.a₁" PrimeNumberTheoremAnd/BKLNW.lean`.
-   9. Upgrade the A-constant to `121.0961`:
-      - From `hν : ν_asymp ... (exp 30) ≤ 6.3376e-7`, derive
-        `hA : 121.096 * (1 + ν_asymp ...) ≤ 121.0961` by `nlinarith`.
-      - Show monotonicity in `A` pointwise:
-        prove `admissible_bound A ... x ≤ admissible_bound A' ... x` when `A ≤ A'` and the
-        remaining factor is nonnegative (use `mul_le_mul_of_nonneg_right` + `exp_pos`).
-      - Apply `hEθ30 x hx30'` to get the bound at `A := 121.096*(1+ν)`, then transport it to
-        `A' := 121.0961`.
-
-4) If NOT provable as stated (possible typo):
-   - If the numeric steps become intractable, the smallest “statement fix” that matches the narrative
-     is changing the starting point from `x₀ = 2` to `x₀ = exp 30`; but the blueprint statement here
-     explicitly says `x₀ = 2`, and the `BKLNW.buthe_eq_1_7` input is designed to cover the range
-     below `exp 30`, so it should be provable as stated.
-
-5) Implementation checklist for Codex:
-   - Implement two local helper facts in the proof:
-     * `h_small : ∀ x, 2 ≤ x → x ≤ exp 30 → Eθ x ≤ 1` via `BKLNW.buthe_eq_1_7` and `abs_of_nonpos`.
-     * `h_large : ∀ x, x ≥ exp 30 → Eθ x ≤ admissible_bound 121.0961 (3/2) 2 5.5666305 x`
-       via `proposition_13` + numeric bound on `ν_asymp`.
-   - Be careful with:
-     * rewriting `log (exp 30)` (`Real.log_exp`) and `exp (log x)` (`Real.exp_log`) side conditions;
-     * coercions: the file uses both `(3/2)` and `(3 / 2)`; normalize with `norm_num`/`ring`;
-     * positivity goals (`by positivity`) before `div_le_iff₀`, `le_div_iff₀`, `mul_le_mul_of_nonneg_right`.
-   - Quick sanity checks while implementing:
-     * `simp [Eθ, admissible_bound]` should not leave `abs` stuck once you provide sign info;
-     * after bounding `ν_asymp`, isolate it as a `have hν : ... ≤ ...` lemma and reuse it twice
-       (once for the `A`-rounding step, once to avoid recomputation).
-
-END OF PLAN
--/
 
 @[blueprint
   "fks2-remark-15"
