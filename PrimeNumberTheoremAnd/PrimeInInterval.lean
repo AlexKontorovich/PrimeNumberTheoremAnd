@@ -159,9 +159,18 @@ lemma Eθ.hasPrimeInInterval (x h : ℝ) (hx : 0 < x) (hh : 0 < h) :
   (proof := /-- Apply Lemma \ref{etheta-pi}. -/)
   (latexEnv := "lemma")
   (discussion := 907)]
-lemma Eθ.numericalBound.hasPrimeInInterval {x₀ x h : ℝ} {ε : ℝ → ℝ} (hEθ : Eθ.numericalBound x₀ ε) (hh : 0 < h) (hx : x₀ ≤ x) (hε : (2 * x + h) * ε x₀ < h) :
+lemma Eθ.numericalBound.hasPrimeInInterval {x₀ x h : ℝ} {ε : ℝ → ℝ} (hEθ : Eθ.numericalBound x₀ ε)
+    (hh : 0 < h) (hx₀ : x₀ ≤ x) (hx : 0 < x) (hε : (2 * x + h) * ε x₀ < h) :
     HasPrimeInInterval x h := by
-  sorry
+  have hxh : 0 < x + h := by linarith
+  have hE₁ : Eθ x ≤ ε x₀ := hEθ x hx₀
+  have hE₂ : Eθ (x + h) ≤ ε x₀ := hEθ (x + h) (by linarith [hx₀, hh])
+  have h1 : x * Eθ x ≤ x * ε x₀ := mul_le_mul_of_nonneg_left hE₁ hx.le
+  have h2 : (x + h) * Eθ (x + h) ≤ (x + h) * ε x₀ :=
+    mul_le_mul_of_nonneg_left hE₂ hxh.le
+  have hsum : x * Eθ x + (x + h) * Eθ (x + h) ≤ (2 * x + h) * ε x₀ := by
+    nlinarith [h1, h2]
+  exact Eθ.hasPrimeInInterval x h hx hh (lt_of_le_of_lt hsum hε)
 
 @[blueprint
   "etheta-classical-pi"
@@ -185,5 +194,63 @@ lemma Eθ.classicalBound.hasPrimeInInterval {x₀ x h A B C R : ℝ} (hEθ : Eθ
   (proof := /-- If $p_k$ is the largest prime less than or equal to $x$, then $p_{k+1} - p_k < g \leq h$, hence $x < p_{k+1} \leq x+h$, giving the claim. -/)
   (latexEnv := "lemma")
   (discussion := 908)]
-lemma prime_gap_record.hasPrimeInInterval {g p : ℕ} {x h : ℝ} (hgap : prime_gap_record p g) (hx : x ≤ p) (hx' : x ≥ 2) (hh : h > g) :
-    HasPrimeInInterval x h := by sorry
+lemma prime_gap_record.hasPrimeInInterval {g p : ℕ} {x h : ℝ} (hgap : prime_gap_record p g) (hx : x ≤ p) (hx_ge_two : x ≥ 2) (hh : h ≥ g) :
+    HasPrimeInInterval x h := by
+  rcases hgap with ⟨n, hn_p, hn_g, hrec⟩
+  let m : ℕ := ⌊x⌋₊
+  let k : ℕ := m.primeCounting
+  let q : ℕ := nth_prime k
+  have hk_count : k = Nat.count Nat.Prime (m + 1) := by
+    simp [k, Nat.primeCounting, Nat.primeCounting']
+  have hx_nonneg : 0 ≤ x := by linarith
+  have hm_le_x : (m : ℝ) ≤ x := Nat.floor_le hx_nonneg
+  have hm_ge_two : 2 ≤ m := Nat.le_floor hx_ge_two
+  have hk_pos : 0 < k := by
+    by_contra hk0
+    have hk0' : k = 0 := Nat.eq_zero_of_not_pos hk0
+    have hm_le_one : m ≤ 1 := Nat.primeCounting_eq_zero_iff.mp (by simpa [k] using hk0')
+    exact (not_le_of_gt hm_ge_two) hm_le_one
+  have hm_lt_q : m < q := by
+    have hmq : m + 1 ≤ q := by
+      exact (Nat.count_le_iff_le_nth (p := Nat.Prime) infinite_setOf_prime).1 (by simpa [hk_count])
+    exact lt_of_lt_of_le (Nat.lt_succ_self m) hmq
+  have hq_prime : Nat.Prime q := by simp [q]
+  have hq_le_m_add_g : q ≤ m + g := by
+    have hk1 : k - 1 < k := Nat.sub_lt (Nat.succ_le_of_lt hk_pos) (by norm_num)
+    have hprev_le_m : nth_prime (k - 1) ≤ m := by
+      have hprev_lt : nth_prime (k - 1) < m + 1 := by
+        exact (Nat.lt_nth_iff_count_lt (p := Nat.Prime) infinite_setOf_prime).1
+          (by simpa [hk_count] using hk1)
+      exact Nat.lt_succ_iff.mp hprev_lt
+    have hm_le_p : m ≤ p := by
+      exact Nat.cast_le.mp (le_trans hm_le_x hx)
+    have hprev_le_p : nth_prime (k - 1) ≤ p := by
+      exact le_trans hprev_le_m hm_le_p
+    have hgap_prev_le : nth_prime_gap (k - 1) ≤ g := by
+      by_cases hlt : nth_prime (k - 1) < p
+      · exact Nat.le_of_lt (hrec (k - 1) hlt)
+      · have heq : nth_prime (k - 1) = p := le_antisymm hprev_le_p (le_of_not_gt hlt)
+        have hk1_eq_n : k - 1 = n := by
+          apply (nth_strictMono infinite_setOf_prime).injective
+          simpa [hn_p] using heq
+        simp [nth_prime_gap, hk1_eq_n, hn_g]
+    have hmono : nth_prime (k - 1) ≤ nth_prime (k - 1 + 1) :=
+      (nth_strictMono infinite_setOf_prime).monotone (Nat.le_succ _)
+    have : q = nth_prime (k - 1) + nth_prime_gap (k - 1) := by
+      have hk' : k - 1 + 1 = k := Nat.sub_add_cancel (Nat.succ_le_of_lt hk_pos)
+      calc
+        q = nth_prime (k - 1 + 1) := by simp [q, hk']
+        _ = nth_prime (k - 1) + (nth_prime (k - 1 + 1) - nth_prime (k - 1)) := by
+          exact (Nat.add_sub_of_le hmono).symm
+        _ = nth_prime (k - 1) + nth_prime_gap (k - 1) := by simp [nth_prime_gap]
+    calc
+      q = nth_prime (k - 1) + nth_prime_gap (k - 1) := this
+      _ ≤ m + g := by gcongr
+  refine ⟨q, hq_prime, ?_, ?_⟩
+  · have hx_lt_m1 : x < (m : ℝ) + 1 := by simpa [m] using (Nat.lt_floor_add_one x)
+    have hm1_le_q : (m : ℝ) + 1 ≤ q := by exact_mod_cast (Nat.succ_le_iff.mpr hm_lt_q)
+    exact lt_of_lt_of_le hx_lt_m1 hm1_le_q
+  · have hq_le_xhg : (q : ℝ) ≤ x + h := by
+      have hq_le : (q : ℝ) ≤ m + g := by exact_mod_cast hq_le_m_add_g
+      linarith
+    exact hq_le_xhg
