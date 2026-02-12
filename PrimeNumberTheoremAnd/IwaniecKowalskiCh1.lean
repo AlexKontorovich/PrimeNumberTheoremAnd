@@ -151,7 +151,33 @@ theorem d_succ (k : ℕ) : d (k + 1) = d k * zeta := pow_succ zeta k
   -/)]
 theorem LSeries_d_eq_riemannZeta_pow (k : ℕ) {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗(d k)) s = riemannZeta s ^ k := by
-  sorry
+  have natCoe_zeta : (↑(ζ : ArithmeticFunction ℕ) : ArithmeticFunction ℂ) = ζ := by
+    ext n; simp [natCoe_apply, zeta_apply]
+  have natCoe_d_succ (j : ℕ) :
+    (↑(d (j + 1)) : ArithmeticFunction ℂ) = (↑(d j) : ArithmeticFunction ℂ) * ζ := by
+    rw [d_succ, natCoe_mul, natCoe_zeta]
+  suffices ∀ j, LSeries (↗(d j : ArithmeticFunction ℂ)) s = riemannZeta s ^ j ∧
+      LSeriesSummable (↗(d j : ArithmeticFunction ℂ)) s from (this k).1
+  intro j
+  induction j with
+  | zero =>
+    simp only [d_zero, natCoe_one, pow_zero, one_eq_delta]
+    exact ⟨congr_fun LSeries_delta s,
+      (hasSum_single 1 fun n hn => by simp [LSeries.term_delta, hn]).summable⟩
+  | succ j ih =>
+    obtain ⟨ih_eq, ih_sum⟩ := ih
+    have hζ : LSeriesSummable (↗(ζ : ArithmeticFunction ℂ)) s :=
+      LSeriesSummable_zeta_iff.mpr hs
+    constructor
+    · rw [pow_succ, LSeries_congr (fun {n} _ => show (↑(d (j + 1)) : ArithmeticFunction ℂ) n =
+        ((↑(d j) : ArithmeticFunction ℂ) * ζ) n by rw [natCoe_d_succ]) s,
+        LSeries_mul' ih_sum hζ, ih_eq]
+      congr 1
+      exact LSeries_zeta_eq_riemannZeta hs
+    · rw [(LSeriesSummable_congr s (fun {n} _ => show (↑(d (j + 1)) : ArithmeticFunction ℂ) n =
+        ((↑(d j) : ArithmeticFunction ℂ) * ζ) n by rw [natCoe_d_succ]))]
+      exact LSeriesSummable_mul ih_sum hζ
+
 
 /-- `d k` is multiplicative for all `k`. -/
 @[blueprint
