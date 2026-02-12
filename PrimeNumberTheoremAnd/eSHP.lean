@@ -80,6 +80,16 @@ theorem table_8_prime_gap (p g : ℕ) (h : (p, g) ∈ table_8) : prime_gap_recor
   sorry
 
 @[blueprint
+  "table-8-prime-gap-complete-test"
+  (title := "Table 8 prime gap records - completeness")
+  (statement := /--
+  Table 8 contains ALL the prime gap records $(p_k,g_k)$ with $p_k \leq 30$. -/)
+  (proof := /-- Brute force verification. -/)
+  (latexEnv := "proposition")]
+theorem table_8_prime_gap_complete_test (p g : ℕ) (hp : p ≤ 30) (hrecord : prime_gap_record p g) : (p, g) ∈ table_8 := by
+  sorry
+
+@[blueprint
   "table-8-prime-gap-complete"
   (title := "Table 8 prime gap records - completeness")
   (statement := /--
@@ -252,6 +262,16 @@ theorem table_9_prime_gap_test (g P : ℕ) (h : (g, P) ∈ table_9) (htest : P <
   (proof := /-- Verified by computer.  Unlikely to be formalizable in Lean with current technology, except for the small values of the table. -/)
   (latexEnv := "proposition")]
 theorem table_9_prime_gap (g P : ℕ) (h : (g, P) ∈ table_9) : first_gap_record g P := by
+  sorry
+
+@[blueprint
+  "table-9-prime-gap-complete-test"
+  (title := "Table 9 prime gaps - completeness test")
+  (statement := /--
+  Table 9 contains all first gap records $(g,P)$ with $g < 8$. -/)
+  (proof := /-- Brute force verification. -/)
+  (latexEnv := "proposition")]
+theorem table_9_prime_gap_complete_test (g P : ℕ) (hg : g < 8) (hrecord : first_gap_record g P) : (g, P) ∈ table_9 := by
   sorry
 
 @[blueprint
