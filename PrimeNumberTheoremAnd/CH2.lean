@@ -17,7 +17,8 @@ blueprint_comment /--
 Some material from \cite[Section 2]{ch2}, slightly rearranged to take advantage of existing results in the repository.
 -/
 
-open Real  MeasureTheory FourierTransform
+open Real  MeasureTheory FourierTransform Chebyshev
+open ArithmeticFunction hiding log
 open Complex hiding log
 
 @[blueprint
@@ -178,7 +179,7 @@ theorem prop_2_4_minus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β : ℝ
 blueprint_comment /--
 \subsection{Extremal approximants to the truncated exponential}\label{ch2-trunc-sec}
 
-In this section we construct extremal approximants to the truncated exponential function and establish their basic properties, following \cite[Section 4]{ch2}, although we skip the proof of their extremality.
+In this section we construct extremal approximants to the truncated exponential function and establish their basic properties, following \cite[Section 4]{ch2}, although we skip the proof of their extremality.  As such, the material here is organized rather differently from that in the paper.
 -/
 
 noncomputable def coth (z : ℂ) : ℂ := 1 / tanh z
@@ -198,7 +199,7 @@ noncomputable def Phi_circ (ν ε : ℝ) (z : ℂ) : ℂ :=
   "Phi-star-def"
   (title := "Definition of Phi-star (4.5)")
   (statement := /--
-  $$\Phi^{\pm,\ast}_\nu(z) := \frac{i}{2\pi} (\frac{\nu}{2} \coth\frac{\nu}{2} - \frac{w}{2} \coth \frac{w}{2} \pm \pi i z)$$
+  $$\Phi^{\pm,\ast}_\nu(z) := \frac{i}{2\pi} \left(\frac{\nu}{2} \coth\frac{\nu}{2} - \frac{w}{2} \coth \frac{w}{2} \pm \pi i z\right)$$
   where $$w = -2\pi i z + \nu.$$
   -/)]
 noncomputable def Phi_star (ν ε : ℝ) (z : ℂ) : ℂ :=
@@ -229,10 +230,11 @@ noncomputable def ϕ (lambda : ℝ) (ε : ℝ) (t : ℝ) : ℂ :=
   "phi-l1"
   (title := "phi is in L1")
   (statement := /--
-  $\varphi$ is absolutely integrable.
+  $\varphi_{\pm, \lambda}$ is absolutely integrable.
   -/)
   (proof := /-- Straightforward estimation -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 942)]
 theorem ϕ_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (ϕ lambda ε) := by sorry
 
 @[blueprint
@@ -242,7 +244,8 @@ theorem ϕ_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (ϕ l
   $\varphi$ is absolutely continuous.
   -/)
   (proof := /-- Straightforward estimation -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 943)]
 theorem ϕ_continuous (lambda ε : ℝ) (hlam : lambda ≠ 0) : AbsolutelyContinuous (ϕ lambda ε) := by sorry
 
 @[blueprint
@@ -252,7 +255,8 @@ theorem ϕ_continuous (lambda ε : ℝ) (hlam : lambda ≠ 0) : AbsolutelyContin
   $\varphi'$ is of bounded variation.
   -/)
   (proof := /-- Straightforward estimation -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 944)]
 theorem ϕ_deriv_bv (lambda ε : ℝ) (hlam : lambda ≠ 0) : BoundedVariationOn (deriv (ϕ lambda ε)) Set.univ := by sorry
 
 @[blueprint
@@ -270,7 +274,8 @@ noncomputable def F (lambda : ℝ) (ε : ℝ) (y : ℝ) : ℝ := (𝓕 (ϕ lambd
   $F$ is absolutely integrable.
   -/)
   (proof := /-- Use Lemma \ref{decay-alt}. -/)
-  (latexEnv := "lemma")]
+  (latexEnv := "lemma")
+  (discussion := 945)]
 theorem F_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (F lambda ε) := by sorry
 
 @[blueprint
@@ -280,7 +285,8 @@ theorem F_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (F lam
   $F_{\pm,\lambda}$ is real-valued.
   -/)
   (proof := /-- Follows from the symmetry of $\phi$. -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 946)]
 theorem F.real (lambda ε y : ℝ) : (𝓕 (ϕ lambda ε) y).im = 0 := by sorry
 
 @[blueprint
@@ -355,5 +361,61 @@ blueprint_comment /--
 TODO: incorporate material from \cite[Section 7]{ch2} onwards.
 -/
 
+
+
+@[blueprint
+  "CH2-cor-1-2-a"
+  (title := "Corollary 1.2, part a")
+  (statement := /--
+  Assume the Riemann hypothesis holds up to height $T \geq 10^7$. For $x > \max(T,10^9)$,
+$$\psi(x) - x \cdot \pi T \coth(\pi T) \leq \pi T^{-1} \cdot x + \frac{1}{2\pi} \log^2(T/(2\pi)) - \frac{1}{6\pi} \log(T/(2\pi)) \sqrt{x},$$
+  -/)
+  (proof := /-- TBD. -/)
+  (latexEnv := "corollary")]
+theorem cor_1_2_a {T x : ℝ} (hT : 1e7 ≤ T) (RH : riemannZeta.RH_up_to T) (hx : max T 1e9 < x) :
+    |ψ x - x * π * T * (coth (π * T)).re| ≤
+      π * T⁻¹ * x + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) * sqrt x := by sorry
+
+@[blueprint
+  "CH2-cor-1-2-b"
+  (title := "Corollary 1.2, part b")
+  (statement := /--
+  Assume the Riemann hypothesis holds up to height $T \geq 10^7$. For $x > \max(T,10^9)$,
+$$\sum_{n \leq x} \frac{\Lambda(n)}{n^{-(\log x - \gamma)}} \leq \pi \sqrt{T}^{-1} + \frac{1}{2\pi} \log^2(T/(2\pi)) - \frac{1}{6\pi} \log(T/(2\pi)) \frac{1}{x},$$
+where $\gamma = 0.577215...$ is Euler’s constant.
+  -/)
+  (proof := /-- TBD. -/)
+  (latexEnv := "corollary")]
+theorem cor_1_2_b {T x : ℝ} (hT : 1e7 ≤ T) (RH : riemannZeta.RH_up_to T) (hx : max T 1e9 < x) :
+    ∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / (n:ℝ) ^ (-(log x - eulerMascheroniConstant)) ≤
+      π * sqrt T⁻¹ + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) / x := by sorry
+
+/- Corollary 1.3. For any x ≥ 1, |ψ(x) − x| ≤ π 3 · 1012 · x +113.67√x, n≤x Λ(n) n =logx−γ+O∗ π √ 3 · 1012 + 113.67 x . -/
+
+@[blueprint
+  "CH2-cor-1-3-a"
+  (title := "Corollary 1.3, part a")
+  (statement := /--
+For $x \geq 1$,
+$$|\psi(x) - x| \leq \pi \cdot 3 \cdot 10^{12} \cdot x + 113.67 \sqrt{x},$$
+where $\psi(x)$ is the Chebyshev function.
+  -/)
+  (proof := /-- TBD. -/)
+  (latexEnv := "corollary")]
+theorem cor_1_3_a (x : ℝ) (hx : 1 ≤ x) :
+    |ψ x - x| ≤ π * 3 * 10 ^ 12 * x + 113.67 * sqrt x := by sorry
+
+@[blueprint
+  "CH2-cor-1-3-b"
+  (title := "Corollary 1.3, part b")
+  (statement := /--
+For $x \geq 1$,
+$$ \sum_{n \leq x} \frac{\Lambda(n)}{n^{-(\log x - \gamma)}} = \log x - \gamma + O^*(\pi \cdot \sqrt{3} \cdot 10^{12} + 113.67 / x).$$
+  -/)
+  (proof := /-- TBD. -/)
+  (latexEnv := "corollary")]
+theorem cor_1_3_b (x : ℝ) (hx : 1 ≤ x) : ∃ E,
+    ∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / (n:ℝ) ^ (-(log x - eulerMascheroniConstant)) =
+      log x - eulerMascheroniConstant + E ∧ |E| ≤ π * sqrt 3 * 10 ^ 12 + 113.67 / x := by sorry
 
 end CH2
