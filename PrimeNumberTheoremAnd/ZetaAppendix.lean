@@ -1781,7 +1781,7 @@ We could prove these equations starting from Euler's product for $\sin \pi z$.
 -/
 
 @[blueprint
-  "lem:abadeuleulmit1"
+  "lem:abadeulmit1"
   (title := "Euler/Mittag-Leffler expansion for cosec")
   (statement := /--
 Let $z\in \mathbb{C}$, $z\notin \mathbb{Z}$. Then
