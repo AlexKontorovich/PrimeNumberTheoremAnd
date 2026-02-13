@@ -1847,8 +1847,6 @@ lemma lemma_abadeulmit2_integral_eq_cot_diff {z w : ℂ}
   -π * Complex.cot (π * z) - (-π * Complex.cot (π * w)) := by
   rw [lemma_abadeulmit2_integral_tsum_inv_sub_int_sq hz hw h_path]
   have h_summable_w : Summable (fun n : ℤ ↦ (1 / (w - n) - 1 / (z - n) : ℂ)) := summable_inv_sub_inv_aux hz hw
-  have h1 : Summable (fun n : ℕ ↦ 1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1))) := Summable_cotTerm hw
-  have h2 : Summable (fun n : ℕ ↦ 1 / (z - (↑n + 1)) + 1 / (z + (↑n + 1))) := Summable_cotTerm hz
   calc
     ∑' (n : ℤ), (1 / (w - n) - 1 / (z - n))
     = 1 / (w - 0) - 1 / (z - 0) + ∑' (n : ℕ), (1 / (w - (↑n + 1)) - 1 / (z - (↑n + 1)) + (1 / (w - -(↑n + 1)) - 1 / (z - -(↑n + 1)))) := by
@@ -1868,7 +1866,7 @@ lemma lemma_abadeulmit2_integral_eq_cot_diff {z w : ℂ}
       intro n
       ring
     _ = (1 / w - 1 / z) + (∑' (n : ℕ), (1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1))) - ∑' (n : ℕ), (1 / (z - (↑n + 1)) + 1 / (z + (↑n + 1)))) := by
-      rw [Summable.tsum_sub h1 h2]
+      rw [Summable.tsum_sub (Summable_cotTerm hw) (Summable_cotTerm hz)]
     _ = (1 / w + ∑' (n : ℕ+), (1 / (w - n) + 1 / (w + n))) - (1 / z + ∑' (n : ℕ+), (1 / (z - n) + 1 / (z + n))) := by
       have hw : ∑' (n : ℕ), (1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1))) = ∑' (n : ℕ+), (1 / (w - n) + 1 / (w + n)) := by
         symm
