@@ -5,17 +5,9 @@ import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Analysis.ConstantSpeed
 import Mathlib.Analysis.Real.Pi.Bounds
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Cotangent
-import Mathlib.Topology.Algebra.InfiniteSum.Group
-import Mathlib.Topology.Algebra.InfiniteSum.NatInt
 import Mathlib.Data.Int.Star
 import Mathlib.Data.Real.StarOrdered
-import Mathlib.Topology.MetricSpace.ProperSpace
 import PrimeNumberTheoremAnd.ZetaBounds
-import Mathlib.MeasureTheory.Integral.DominatedConvergence
-import Mathlib.Topology.Compactness.Compact
-import Mathlib.Analysis.Calculus.FDeriv.Mul
-import Mathlib.Analysis.Calculus.FDeriv.RestrictScalars
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 
 blueprint_comment /--
 \section{Approximating the Riemann zeta function}
