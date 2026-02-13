@@ -1577,7 +1577,7 @@ $\left(\frac{1}{z\pm n}\right)' = -\frac{1}{(z\pm n)^2}$, we are done.
 -/)
   (latexEnv := "lemma")
   (discussion := 570)]
-lemma step2_term_by_term_integration {z w : ℂ}
+lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
   (hz : z ∈ integerComplement)
   (hw : w ∈ integerComplement)
   (h_path : ∀ t : ℝ, t ∈ Set.Icc 0 1 → w + ↑t * (z - w) ∉ range (fun n : ℤ => (n : ℂ))) :
@@ -1629,16 +1629,10 @@ lemma step2_term_by_term_integration {z w : ℂ}
         calc ‖n‖ / 2 = ‖n‖ - ‖n‖ / 2 := by ring
           _ ≤ ‖n‖ - M := by dsimp [C] at hn; linarith [norm_nonneg (path t)]
           _ ≤ ‖(n : ℂ) - path t‖ := h_dist
-
     apply Summable.of_norm_bounded_eventually (g := fun n : ℤ ↦ 4 / ‖n‖ ^ 2)
     · apply Summable.mul_left
       simp only [Int.norm_eq_abs, sq_abs]
       simpa only [one_div] using (summable_one_div_int_pow (p := 2)).mpr one_lt_two
-
-
-
-
-
     · rw [Filter.eventually_cofinite]
       let S : Set ℤ := {n | ‖n‖ ≤ C}
       have hS : S.Finite := by
@@ -1669,7 +1663,7 @@ lemma step2_term_by_term_integration {z w : ℂ}
         norm_integral_le_integral_norm _
       have hn_bound : ∫ (t : ℝ) in Set.Ioc 0 1, ‖g n t‖ ≤ 4 / ‖n‖ ^ 2 := by
         have h_int_const : ∫ (t : ℝ) in Set.Ioc 0 1, (4 / ‖n‖ ^ 2) = 4 / ‖n‖ ^ 2 := by
-           simp only [MeasureTheory.setIntegral_const, Real.volume_Ioc, sub_zero, ENNReal.toReal_ofReal (zero_le_one : (0:ℝ) ≤ 1), one_smul]
+           simp
         rw [← h_int_const]
         apply MeasureTheory.integral_mono_ae
         · exact ((h_integrable n).1).norm
@@ -1678,12 +1672,22 @@ lemma step2_term_by_term_integration {z w : ℂ}
           · simp
         · --
           simp [g, path]
-          filter_upwards [MeasureTheory.ae_restrict_mem (measurableSet_Ioc : MeasurableSet (Set.Ioc (0 : ℝ) 1))] with t ht
-          specialize h_le n h_n_large t (Set.Ioc_subset_Icc_self ht)
-          simp only [g, one_div, norm_inv, norm_pow]
-          convert h_le using 1
+          refine Filter.eventually_inf_principal.mpr ?_
+          filter_upwards with x
+          intro hx
+          have hx_Icc : x ∈ Set.Icc 0 1 := ⟨le_of_lt hx.1, hx.2⟩
+          specialize h_le n h_n_large x hx_Icc
+          simp only [path] at h_le
+
           rw [norm_sub_rev]
-      exact hn (h_int.trans hn_bound)
+          rw [← inv_pow]
+          exact h_le
+      apply hn
+      refine le_trans ?_ hn_bound
+      simp only [g, one_div]
+      refine le_of_eq ?_
+      simp_rw [norm_inv, norm_pow]
+      rw [Real.norm_of_nonneg (by positivity)]
 
 
 
@@ -1701,28 +1705,43 @@ lemma step2_term_by_term_integration {z w : ℂ}
       rw [Set.uIcc_of_le (zero_le_one : (0:ℝ)≤1)]
       intro t ht
       dsimp [F, g, path]
-      have h_denom_ne_zero : path t - n ≠ 0 := by
+      have h_denom_ne_zero : path t - (n : ℂ) ≠ 0 := by
         rw [sub_ne_zero]
         intro h_eq
         exact h_path t ht ⟨n, h_eq.symm⟩
-
       have h_d_path : HasDerivAt path (z - w) t := by
         dsimp [path]
         apply HasDerivAt.const_add
         convert (hasDerivAt_ofReal t).mul_const (z - w) using 1
         ring
+      have h_d_path_sub : HasDerivAt (fun x ↦ path x - (n : ℂ)) (z - w) t := h_d_path.sub_const (n : ℂ)
+      have h_inv_deriv : HasDerivAt (fun x ↦ (path x - (n : ℂ))⁻¹) (-(z - w) / (path t - (n : ℂ))^2) t := by
 
-      have h_d_path_sub : HasDerivAt (fun x ↦ path x - n) (z - w) t := HasDerivAt.sub_const (n : ℂ) h_d_path
-      have h_inv : HasFDerivAt Inv.inv (-ContinuousLinearMap.mulLeftRight ℂ ℂ (path t - n)⁻¹ (path t - n)⁻¹) (path t - n) :=
-        hasFDerivAt_inv' (show path t - n ≠ 0 from h_denom_ne_zero)
-      have h_inv_comp := (h_inv.restrictScalars ℝ).comp t h_d_path_sub.hasFDerivAt
-      rw [HasDerivAt]
-      convert h_inv_comp.neg using 2
-      · ext y
-        simp [ContinuousLinearMap.mulLeftRight, ContinuousLinearMap.smulRight]
-        ring
-      · field_simp [g]
-        ring
+        sorry
+
+
+        -- have h_outer : HasDerivAt (fun u : ℂ => -u⁻¹) ((path t - ↑n)⁻²) (path t - ↑n) := by
+        --   convert (hasDerivAt_inv h_denom_ne_zero).const_mul (-1 : ℂ) using 1
+        --   ring
+        -- convert h_outer.scomp t h_d_path_sub using 1
+        -- ring
+        -- -- have h_outer : HasDerivAt (fun u : ℂ => -u⁻¹) ((path t - ↑n)⁻²) (path t - ↑n) :=
+        -- --   (hasDerivAt_inv h_denom_ne_zero).neg
+        -- -- exact h_outer.scomp t h_d_path_sub
+
+        -- refine (hasDerivAt_inv h_denom_ne_zero).neg.scomp t h_d_path_sub ?_
+
+
+        -- refine (hasDerivAt_neg (hasDerivAt_inv ?_ ?_)).comp t h_d_path_sub
+        -- exact h_d_path_sub.inv h_denom_ne_zero
+
+
+
+        -- h_d_path_sub.inv h_denom_ne_zero
+      convert h_inv_deriv.neg using 1
+      · ext x; simp [F, path]
+        field_simp
+      · simp [path]; ring
 
     rw [intervalIntegral.integral_eq_sub_of_hasDerivAt h_deriv ((h_integrable n).const_mul (z - w))]
     dsimp [F, path]
@@ -1738,61 +1757,73 @@ lemma step2_term_by_term_integration {z w : ℂ}
         have : w + ↑x * (z - w) ∈ Set.range (fun (n : ℤ) ↦ (n : ℂ)) :=
           ⟨i, by simp; rw [sub_eq_zero] at h; exact h.symm ⟩
         apply h_path x (Set.Ioc_subset_Icc_self hx) this
-      rw [MeasureTheory.ofReal_integral_eq_lintegral_ofReal]
-
+      rw [MeasureTheory.ofReal_integral_eq_lintegral_ofReal (f := fun t : ℝ ↦ ‖g i t‖)]
       · apply setLIntegral_congr_fun_ae (by simp)
         apply Filter.Eventually.of_forall
         intro x hx
         simp [g, path]
-
         rw [enorm_inv]
         · conv_rhs => arg 1; rw [← ofReal_norm_eq_enorm, norm_pow]
           apply ENNReal.ofReal_inv_of_pos
           apply sq_pos_of_pos
           apply norm_pos_iff.mpr (convexity_w x hx)
         · simp [convexity_w x hx]
-      · --simp [g, path]
-        apply MeasureTheory.IntegrableOn.of_bound
-        · simp
+      · let S := path '' Set.Icc 0 1
+        have h_compact : IsCompact S := isCompact_Icc.image_of_continuousOn h_cont_path
+        have h_not_mem : (i : ℂ) ∉ S := by
+          simp [S]
+          intro t h0 h1 heq
+          rcases lt_or_eq_of_le h0 with ht_pos | rfl
+          · exact convexity_w t ⟨ht_pos, h1⟩ (sub_eq_zero.mpr heq)
+          · dsimp [path] at heq; simp at heq; rw [heq] at hw; exact hw ⟨i, rfl⟩
+        have h_dist : 0 < Metric.infDist (i : ℂ) S := by
+          refine lt_of_le_of_ne Metric.infDist_nonneg ?_
+          intro h
+          have hS_ne : S.Nonempty := (Set.nonempty_Icc.mpr zero_le_one).image path
+          rw [← h_compact.isClosed.closure_eq, Metric.mem_closure_iff_infDist_zero hS_ne] at h_not_mem
+          exact h_not_mem h.symm
+        let δ := Metric.infDist (i : ℂ) S
+        let C := 1 / δ ^ 2
+        apply MeasureTheory.IntegrableOn.of_bound (C := C) (hs := by simp)
         · apply ContinuousOn.aestronglyMeasurable
           swap; simp
           · apply ContinuousOn.norm
             have hcont_path' :
               ContinuousOn path (Set.Ioc 0 1) :=
               h_cont_path.mono (by intro t ht; exact Set.Ioc_subset_Icc_self ht)
-
             have hcont_sub :
               ContinuousOn (fun t ↦ path t - (i : ℂ)) (Set.Ioc 0 1) :=
-              hcont_path'.sub continuousOn_const
-
+                hcont_path'.sub continuousOn_const
             have hcont_pow :
-              ContinuousOn (fun t ↦ (path t - (i : ℂ))^2) (Set.Ioc 0 1) :=
-              hcont_sub.pow 2
-
+              ContinuousOn (fun t ↦ (path t - (i : ℂ))^2) (Set.Ioc 0 1) := hcont_sub.pow 2
             have hne :
               ∀ t ∈ Set.Ioc 0 1, (path t - (i : ℂ)) ≠ 0 := by
               intro t ht
               simpa [path] using convexity_w t ht
-
             have hcont_inv :
               ContinuousOn (fun t ↦ ((path t - (i : ℂ))^2)⁻¹) (Set.Ioc 0 1) :=
               hcont_pow.inv₀ (by
                 intro t ht
                 have h := hne t ht
                 exact pow_ne_zero 2 h)
-
             simpa [g, div_eq_mul_inv] using hcont_inv
-        · sorry
-        · sorry
+        · filter_upwards [MeasureTheory.ae_restrict_mem (measurableSet_Ioc : MeasurableSet (Set.Ioc (0 : ℝ) 1))] with t ht
+          simp only [g, norm_div, norm_one, norm_pow]
+          dsimp [C]
+          apply div_le_div₀ (by exact zero_le_one) (by simp) (by positivity)
+          apply pow_le_pow_left₀ (by positivity)
+          rw [norm_sub_rev, ← dist_eq_norm]
+          rw [abs_of_nonneg dist_nonneg]
+          apply Metric.infDist_le_dist_of_mem
+          apply Set.mem_image_of_mem
+          exact Set.Ioc_subset_Icc_self ht
       · exact Eventually.of_forall fun t ↦ norm_nonneg _
-
     rw [h_eq]
     simp_rw [ENNReal.ofReal_eq_coe_nnreal (MeasureTheory.integral_nonneg_of_ae (Eventually.of_forall fun t ↦ norm_nonneg _))]
     rw [ENNReal.tsum_coe_ne_top_iff_summable, ← NNReal.summable_coe]
     apply Summable.congr h_summable
     intro i
     simp
-
 
 lemma summable_inv_sub_inv_aux {z w : ℂ} (hz : z ∈ integerComplement) (hw : w ∈ integerComplement) :
     Summable (fun n : ℤ ↦ 1 / (w - n) - 1 / (z - n)) := by
@@ -1807,7 +1838,7 @@ lemma summable_inv_sub_inv_aux {z w : ℂ} (hz : z ∈ integerComplement) (hw : 
     apply Asymptotics.IsBigO.trans (g := fun n : ℤ ↦ (1 : ℝ) / |n|^2)
     · apply Asymptotics.IsBigO.of_bound (4 * ‖z - w‖)
       filter_upwards [tendsto_norm_cocompact_atTop.comp Int.tendsto_coe_cofinite |>.eventually (eventually_ge_atTop (max (2 * ‖w‖) (2 * ‖z‖)))] with n hn
-      simp only [norm_div, norm_mul, norm_pow, norm_intCast]
+      simp only [norm_div, norm_mul, norm_pow]
       rw [Real.norm_of_nonneg (by positivity)]
       have hw' : ‖w‖ ≤ |(n : ℝ)| / 2 := by
         have : (max (2 * ‖w‖) (2 * ‖z‖) : ℝ) ≤ |(n : ℝ)| := hn
@@ -1833,29 +1864,25 @@ lemma summable_inv_sub_inv_aux {z w : ℂ} (hz : z ∈ integerComplement) (hw : 
         ‖z - w‖ / (‖w - n‖ * ‖z - n‖)
           ≤ ‖z - w‖ / (|(n : ℝ)| / 2 * (|(n : ℝ)| / 2)) := by
             have h_n_pos : 0 < |(n : ℝ)| / 2 := by
-              have h_z_nz : z ≠ 0 := fun h ↦ hz ⟨0, by simp [h.symm]⟩
-              have h_z_pos : 0 < ‖z‖ := norm_pos_iff.mpr h_z_nz
+              have h_z_pos : 0 < ‖z‖ := norm_pos_iff.mpr (fun h ↦ hz ⟨0, by simp [h.symm]⟩)
               have : 2 * ‖z‖ ≤ |(n : ℝ)| := (le_max_right _ _).trans hn
               linarith
             gcongr
         _ = 4 * ‖z - w‖ * (1 / |(n : ℝ)| ^ 2) := by ring
         _ = 4 * ‖z - w‖ * (1 / ‖(↑|n| : ℝ)‖ ^ 2) := by
           simp [abs_abs, Int.cast_abs, Real.norm_eq_abs]
-
-
-    · exact (Asymptotics.isBigO_refl _ _).congr_left (fun n ↦ by simp [abs_pow])
+    · exact (Asymptotics.isBigO_refl _ _).congr_left (fun n ↦ by simp)
   exact summable_of_isBigO (summable_one_div_int_pow.mpr one_lt_two) h_bound
 
-
 -- Step 3: Relate the integral to the difference of cotangents
-lemma step3_integral_eq_cot_diff {z w : ℂ}
+lemma lemma_abadeulmit2_integral_eq_cot_diff {z w : ℂ}
   (hz : z ∈ integerComplement)
   (hw : w ∈ integerComplement)
   (h_path : ∀ t : ℝ, t ∈ Set.Icc 0 1 → w + ↑t * (z - w) ∉ range (fun n : ℤ => (n : ℂ))) :
   (z - w) * ∫ (t : ℝ) in 0..1, ∑' (n : ℤ), 1 / (w + ↑t * (z - w) - ↑n) ^ 2 =
   -π * Complex.cot (π * z) - (-π * Complex.cot (π * w)) := by
   -- 1. Use the result from Step 2 to rewrite the integral as a sum.
-  rw [step2_term_by_term_integration hz hw h_path]
+  rw [lemma_abadeulmit2_integral_tsum_inv_sub_int_sq hz hw h_path]
   -- 2. The sum over integers relates to the difference of Eisenstein sums.
   have sum_Eisenstein_diff {z w : ℂ} (hz : z ∈ integerComplement) (hw : w ∈ integerComplement) :
     ∑' (n : ℤ), (1 / (w - n) - 1 / (z - n)) = (-π * Complex.cot (π * z)) - (-π * Complex.cot (π * w)) := by
@@ -1888,7 +1915,6 @@ lemma step3_integral_eq_cot_diff {z w : ℂ}
           symm
           simp_rw [tsum_pnat_eq_tsum_succ (f := fun (n : ℕ) => 1 / (w - n) + 1 / (w + n))]
           simp
-
         have hz_sum : ∑' (n : ℕ), (1 / (z - (↑n + 1)) + 1 / (z + (↑n + 1))) = ∑' (n : ℕ+), (1 / (z - n) + 1 / (z + n)) := by
           symm
           simp_rw [tsum_pnat_eq_tsum_succ (f := fun (n : ℕ) => 1 / (z - n) + 1 / (z + n))]
@@ -1899,42 +1925,26 @@ lemma step3_integral_eq_cot_diff {z w : ℂ}
         rw [cot_series_rep hz, cot_series_rep hw]
       _ = (-π * Complex.cot (π * z)) - (-π * Complex.cot (π * w)) := by
         ring
-
   exact @sum_Eisenstein_diff z w hz hw
 
--- Step 4a: Conclude S(z) is the derivative of -π cot(π z)
--- This follows from Steps 2 and 3 via the Fundamental Theorem of Calculus.
-lemma step4aux_continuous_integral_S {z : ℂ} (hz : z ∈ integerComplement)
-  :
+lemma lemma_abadeulmit2_continuousAt_integral_tsum_one_div_sub_int_sq {z : ℂ}
+  (hz : z ∈ integerComplement) :
   ContinuousAt (fun x' ↦ ∫ (t : ℝ) in 0..1, (fun w : ℂ ↦ ∑' (n : ℤ), 1 / (w - n) ^ 2) (z + ↑t * (x' - z))) z  := by
-  -- 1. Identify an open neighborhood of z that contains no integers
   have h_open : IsOpen integerComplement := Complex.isOpen_compl_range_intCast
   obtain ⟨ε, hε, h_ball⟩ := Metric.isOpen_iff.1 h_open z hz
   let S : ℂ → ℂ := fun w : ℂ ↦ ∑' (n : ℤ), 1 / (w - n) ^ 2
-  -- 2. Define a smaller closed (compact) ball K inside that neighborhood
   let ε' := ε / 2
   have hε' : ε' > 0 := half_pos hε
   let K := Metric.closedBall z ε'
-  have hK_compact : IsCompact K := by
+  have hK_compact : IsCompact K := by exact isCompact_closedBall z ε'
+  have hK_sub : K ⊆ integerComplement := (Metric.closedBall_subset_ball (half_lt_self hε)).trans h_ball
 
-    exact isCompact_closedBall z ε'
-  have hK_sub : K ⊆ integerComplement :=
-    (Metric.closedBall_subset_ball (half_lt_self hε)).trans h_ball
-
-  -- 3. Use the continuity of S to obtain the bound M via the Extreme Value Theorem
-  -- We assume hS_cont : ContinuousAt S z has been established via uniform convergence
-  -- 3. Establish continuity of S on K (as K excludes integers, S is analytic there)
   have hS_cont : ContinuousOn S K := by
-    -- The series converges uniformly on compact sets away from poles.
-    -- (Here we assume this standard analytic fact or utilize continuous_tsum)
     dsimp [S]
-    -- apply continuousOn_tsum (f := fun (i : ℤ) (w : ℂ) ↦ ((w - ↑i) ^ 2)⁻¹) (u := fun n ↦ (‖z - ↑n‖ - ε')⁻¹ ^ 2)
     refine continuousOn_tsum (u := fun (n : ℤ) ↦ (‖z - n‖ - ε')⁻¹ ^ 2) ?_ ?_ ?_
-    · -- ⊢ ∀ (i : ℤ), ContinuousOn (fun x ↦ ((x - ↑i) ^ 2)⁻¹) K
-      intro i
+    · intro i
       simp_rw [one_div]
-      apply ContinuousOn.inv₀
-      · fun_prop
+      apply ContinuousOn.inv₀ (by fun_prop)
       · intro x hx
         apply pow_ne_zero
         rw [sub_ne_zero]
@@ -1946,86 +1956,58 @@ lemma step4aux_continuous_integral_S {z : ℂ} (hz : z ∈ integerComplement)
         simp_rw [one_div, ← inv_pow]
         refine Asymptotics.IsBigO.pow ?_ 2
         apply Asymptotics.IsBigO.inv_rev
-        · -- Since f = Θ(g) implies g = O(f), we move to proving the Theta relationship
-          apply Asymptotics.IsBigO.of_bound 2
+        · apply Asymptotics.IsBigO.of_bound 2
           filter_upwards [eventually_ge_atTop (Nat.ceil (2 * (‖z‖ + ε')))] with x hx
-          -- push_cast
           norm_cast
-          have hx_real : 2 * (‖z‖ + ε') ≤ x := by
-            exact_mod_cast Nat.le_of_ceil_le hx
+          have hx_real : 2 * (‖z‖ + ε') ≤ x := by exact_mod_cast Nat.le_of_ceil_le hx
           have h_dist : ↑x - ‖z‖ ≤ ‖z - ↑x‖ := by
-            -- Use the reverse triangle inequality |‖a‖ - ‖b‖| ≤ ‖a - b‖
-            -- exact_mod_cast Complex.abs_abs_sub_abs_le_abs_sub (x : ℂ) z
             rw [← Complex.norm_natCast x]
             rw [norm_sub_rev z (x : ℂ)]
             apply norm_sub_norm_le
-
-          -- Use Real.norm_of_nonneg to remove the outer norm and linarith to close
           rw [Real.norm_of_nonneg (by linarith)]
           linarith
         · filter_upwards [eventually_gt_atTop 0] with x hx hx_zero
-          -- hx is x > 0, hx_zero is x = 0
           norm_cast at hx_zero
           linarith
       · apply summable_of_isBigO_nat (g := fun n : ℕ ↦ (1 : ℝ) / (n + 1 : ℝ)^2)
         · exact_mod_cast (summable_nat_add_iff 1).mpr (summable_one_div_nat_pow.mpr one_lt_two)
 
-        · -- ⊢ (fun n ↦ (‖z - ↑(-(↑n + 1))‖ - ε')⁻¹ ^ 2) =O[atTop] fun n ↦ 1 / (↑n + 1) ^ 2
-          simp_rw [one_div, ← inv_pow]
+        · simp_rw [one_div, ← inv_pow]
           refine Asymptotics.IsBigO.pow ?_ 2
           apply Asymptotics.IsBigO.inv_rev
           · apply Asymptotics.IsBigO.of_bound 2
             filter_upwards [eventually_ge_atTop (Nat.ceil (2 * (‖z‖ + ε')))] with x hx
             push_cast
             simp only [sub_neg_eq_add]
-
             have h_rev : ↑x + 1 - ‖z‖ ≤ ‖z + (↑x + 1)‖ := by
-              -- Reverse triangle inequality: ‖a + b‖ ≥ ‖b‖ - ‖a‖
               rw [add_comm]
               have h_tri := norm_sub_norm_le (x + 1 : ℂ) (-z)
               rw [norm_neg, ← Nat.cast_add_one, Complex.norm_natCast] at h_tri
               simpa [sub_neg_eq_add, add_comm, Nat.cast_add_one] using h_tri
-            -- 1. Convert the ceiling inequality hx into a real-number inequality
-            have hx_real : 2 * (‖z‖ + ε') ≤ ↑x := by
-              exact_mod_cast Nat.le_of_ceil_le hx
-
-            -- 2. Simplify the LHS norm (norm of a positive natural is just the natural)
+            have hx_real : 2 * (‖z‖ + ε') ≤ ↑x := by exact_mod_cast Nat.le_of_ceil_le hx
             norm_cast at *
             push_cast at *
-
-            -- 3. Remove the outer norm on the RHS (absolute value) by proving the inside is non-negative
             rw [Real.norm_of_nonneg (by linarith)]
             linarith
           · apply Filter.Eventually.of_forall
             intro x hx
             norm_cast at hx
-
-    · --⊢ ∀ (n : ℤ), ∀ x ∈ K, ‖((x - ↑n) ^ 2)⁻¹‖ ≤ (fun n ↦ (‖z - ↑n‖ - ε')⁻¹ ^ 2) n
-      intro n x hx
+    · intro n x hx
       dsimp
       rw [one_div, norm_inv, norm_pow, ← inv_pow]
       have h_dist : ε ≤ ‖z - ↑n‖ := by
         contrapose! hz
-        -- If ‖z - ↑n‖ < ε, then ↑n is in the ball
         have h_mem : ↑n ∈ Metric.ball z ε := by rwa [Metric.mem_ball, dist_eq_norm, norm_sub_rev]
-        -- By h_ball, that means ↑n is in the integerComplement
         have h_comp := h_ball h_mem
-        -- But an integer cannot be in the integerComplement
-
         exact (h_comp ⟨n, rfl⟩).elim
       gcongr
       · dsimp [ε'] at *
         linarith
-      · -- 1. Use the definition of the closed ball to get ‖x - z‖ ≤ ε'
-        rw [Metric.mem_closedBall, dist_eq_norm] at hx
-        -- 2. Use the triangle inequality ‖z - n‖ ≤ ‖z - x‖ + ‖x - n‖
+      · rw [Metric.mem_closedBall, dist_eq_norm] at hx
         calc ‖z - ↑n‖ - ε' ≤ ‖z - ↑n‖ - ‖x - z‖ := by linarith
                         _ ≤ ‖x - ↑n‖ := by
                           rw [norm_sub_rev x z]
                           linarith [norm_sub_le_norm_sub_add_norm_sub z x ↑n]
-
-
-
 
   -- 4. Obtain the bound M using the fact that continuous images of compact sets are bounded
   -- Note: We use Bornology.IsBounded to resolve the namespace/type ambiguity
@@ -2076,9 +2058,7 @@ lemma step4aux_continuous_integral_S {z : ℂ} (hz : z ∈ integerComplement)
       exact Metric.closedBall_mem_nhds z hε'
     · fun_prop
 
-
-
-lemma step4a_series_eq_deriv_cot {z : ℂ} (hz : z ∈ integerComplement) :
+lemma lemma_abadeulmit2_tsum_one_div_sub_int_sq {z : ℂ} (hz : z ∈ integerComplement) :
   ∑' (n : ℤ), 1 / (z - n) ^ 2 =
   deriv (fun w ↦ -π * Complex.cot (π * w)) z := by
   set f := fun w : ℂ ↦ -π * Complex.cot (π * w)
@@ -2117,12 +2097,12 @@ lemma step4a_series_eq_deriv_cot {z : ℂ} (hz : z ∈ integerComplement) :
 
       -- Use the continuity of g to close the Tendsto goal
       rw [← hgz]
-      apply (step4aux_continuous_integral_S hz).tendsto
+      apply (lemma_abadeulmit2_continuousAt_integral_tsum_one_div_sub_int_sq hz).tendsto
 
   · -- ⊢ f =ᶠ[𝓝 z] fun w ↦ f z + (w - z) * ∫ (t : ℝ) in 0..1, S (z + ↑t * (w - z))
     obtain ⟨ε, hε, h_ball⟩ := Metric.isOpen_iff.1 (Complex.isOpen_compl_range_intCast) z hz
     filter_upwards [Metric.ball_mem_nhds z hε] with w hw
-    rw [step3_integral_eq_cot_diff (h_ball hw) hz]
+    rw [lemma_abadeulmit2_integral_eq_cot_diff (h_ball hw) hz]
     · dsimp [f]; ring
     · intro t ht
       apply h_ball
@@ -2131,8 +2111,7 @@ lemma step4a_series_eq_deriv_cot {z : ℂ} (hz : z ∈ integerComplement) :
       refine ⟨t, ht, ?_⟩
       simp; ring
 
--- Step 4b: Explicit calculation of the derivative
-lemma step4b_deriv_calculation {z : ℂ} (hz : z ∈ integerComplement) :
+lemma lemma_abadeulmit2_deriv_neg_pi_mul_cot_pi_mul {z : ℂ} (hz : z ∈ integerComplement) :
   deriv (fun w ↦ -π * Complex.cot (π * w)) z =
   π ^ 2 / (Complex.sin (π * z)) ^ 2 := by
   have hsin : sin (π * z) ≠ 0 := sin_pi_mul_ne_zero hz
@@ -2150,13 +2129,10 @@ lemma step4b_deriv_calculation {z : ℂ} (hz : z ∈ integerComplement) :
   rw [deriv_const_mul _ h_deriv_cot.differentiableAt, h_deriv_cot.deriv]
   field_simp
 
--- Main Theorem: Chaining the lemmas
 theorem lemma_abadeulmit2 {z : ℂ} (hz : z ∈ integerComplement) :
     (π ^ 2 / (sin (π * z) ^ 2)) = ∑' (n : ℤ), (1 / ((z - n) ^ 2)) := by
-  -- 1. Use Step 4b to rewrite the LHS (trig term) as the derivative of cotangent.
-  rw [← step4b_deriv_calculation hz]
-  -- 2. Use Step 4a to rewrite the derivative as the infinite series (RHS).
-  rw [← step4a_series_eq_deriv_cot hz]
+  rw [← lemma_abadeulmit2_deriv_neg_pi_mul_cot_pi_mul hz]
+  rw [← lemma_abadeulmit2_tsum_one_div_sub_int_sq hz]
 
 
 
