@@ -1846,47 +1846,44 @@ lemma lemma_abadeulmit2_integral_eq_cot_diff {z w : ℂ}
   (z - w) * ∫ (t : ℝ) in 0..1, ∑' (n : ℤ), 1 / (w + ↑t * (z - w) - ↑n) ^ 2 =
   -π * Complex.cot (π * z) - (-π * Complex.cot (π * w)) := by
   rw [lemma_abadeulmit2_integral_tsum_inv_sub_int_sq hz hw h_path]
-  have sum_Eisenstein_diff {z w : ℂ} (hz : z ∈ integerComplement) (hw : w ∈ integerComplement) :
-    ∑' (n : ℤ), (1 / (w - n) - 1 / (z - n)) = (-π * Complex.cot (π * z)) - (-π * Complex.cot (π * w)) := by
-    have h_summable_w : Summable (fun n : ℤ ↦ (1 / (w - n) - 1 / (z - n) : ℂ)) := summable_inv_sub_inv_aux hz hw
-    have h1 : Summable (fun n : ℕ ↦ 1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1))) := Summable_cotTerm hw
-    have h2 : Summable (fun n : ℕ ↦ 1 / (z - (↑n + 1)) + 1 / (z + (↑n + 1))) := Summable_cotTerm hz
-    calc
-      ∑' (n : ℤ), (1 / (w - n) - 1 / (z - n))
-      = 1 / (w - 0) - 1 / (z - 0) + ∑' (n : ℕ), (1 / (w - (↑n + 1)) - 1 / (z - (↑n + 1)) + (1 / (w - -(↑n + 1)) - 1 / (z - -(↑n + 1)))) := by
-        rw [eq_sub_of_add_eq (tsum_nat_add_neg h_summable_w).symm,
-          (h_summable_w.nat_add_neg).tsum_eq_zero_add]
-        simp only [Int.cast_zero, sub_zero, neg_add_rev]
-        ring_nf
-        congr 1
-        apply tsum_congr
-        intro b
-        push_cast
-        ring
-      _ = (1 / w - 1 / z) + ∑' (n : ℕ), (1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1)) - (1 / (z - (↑n + 1)) + 1 / (z + (↑n + 1)))) := by
-        simp only [sub_zero]
-        congr 1
-        apply tsum_congr
-        intro n
-        ring
-      _ = (1 / w - 1 / z) + (∑' (n : ℕ), (1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1))) - ∑' (n : ℕ), (1 / (z - (↑n + 1)) + 1 / (z + (↑n + 1)))) := by
-        rw [Summable.tsum_sub h1 h2]
-      _ = (1 / w + ∑' (n : ℕ+), (1 / (w - n) + 1 / (w + n))) - (1 / z + ∑' (n : ℕ+), (1 / (z - n) + 1 / (z + n))) := by
-        have hw : ∑' (n : ℕ), (1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1))) = ∑' (n : ℕ+), (1 / (w - n) + 1 / (w + n)) := by
-          symm
-          simp_rw [tsum_pnat_eq_tsum_succ (f := fun (n : ℕ) => 1 / (w - n) + 1 / (w + n))]
-          simp
-        have hz_sum : ∑' (n : ℕ), (1 / (z - (↑n + 1)) + 1 / (z + (↑n + 1))) = ∑' (n : ℕ+), (1 / (z - n) + 1 / (z + n)) := by
-          symm
-          simp_rw [tsum_pnat_eq_tsum_succ (f := fun (n : ℕ) => 1 / (z - n) + 1 / (z + n))]
-          simp
-        rw [hw, hz_sum]
-        ring
-      _ = π * cot (π * w) - π * cot (π * z) := by
-        rw [cot_series_rep hz, cot_series_rep hw]
-      _ = (-π * Complex.cot (π * z)) - (-π * Complex.cot (π * w)) := by
-        ring
-  exact @sum_Eisenstein_diff z w hz hw
+  have h_summable_w : Summable (fun n : ℤ ↦ (1 / (w - n) - 1 / (z - n) : ℂ)) := summable_inv_sub_inv_aux hz hw
+  have h1 : Summable (fun n : ℕ ↦ 1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1))) := Summable_cotTerm hw
+  have h2 : Summable (fun n : ℕ ↦ 1 / (z - (↑n + 1)) + 1 / (z + (↑n + 1))) := Summable_cotTerm hz
+  calc
+    ∑' (n : ℤ), (1 / (w - n) - 1 / (z - n))
+    = 1 / (w - 0) - 1 / (z - 0) + ∑' (n : ℕ), (1 / (w - (↑n + 1)) - 1 / (z - (↑n + 1)) + (1 / (w - -(↑n + 1)) - 1 / (z - -(↑n + 1)))) := by
+      rw [eq_sub_of_add_eq (tsum_nat_add_neg h_summable_w).symm,
+        (h_summable_w.nat_add_neg).tsum_eq_zero_add]
+      simp only [Int.cast_zero, sub_zero, neg_add_rev]
+      ring_nf
+      congr 1
+      apply tsum_congr
+      intro b
+      push_cast
+      ring
+    _ = (1 / w - 1 / z) + ∑' (n : ℕ), (1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1)) - (1 / (z - (↑n + 1)) + 1 / (z + (↑n + 1)))) := by
+      simp only [sub_zero]
+      congr 1
+      apply tsum_congr
+      intro n
+      ring
+    _ = (1 / w - 1 / z) + (∑' (n : ℕ), (1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1))) - ∑' (n : ℕ), (1 / (z - (↑n + 1)) + 1 / (z + (↑n + 1)))) := by
+      rw [Summable.tsum_sub h1 h2]
+    _ = (1 / w + ∑' (n : ℕ+), (1 / (w - n) + 1 / (w + n))) - (1 / z + ∑' (n : ℕ+), (1 / (z - n) + 1 / (z + n))) := by
+      have hw : ∑' (n : ℕ), (1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1))) = ∑' (n : ℕ+), (1 / (w - n) + 1 / (w + n)) := by
+        symm
+        simp_rw [tsum_pnat_eq_tsum_succ (f := fun (n : ℕ) => 1 / (w - n) + 1 / (w + n))]
+        simp
+      have hz_sum : ∑' (n : ℕ), (1 / (z - (↑n + 1)) + 1 / (z + (↑n + 1))) = ∑' (n : ℕ+), (1 / (z - n) + 1 / (z + n)) := by
+        symm
+        simp_rw [tsum_pnat_eq_tsum_succ (f := fun (n : ℕ) => 1 / (z - n) + 1 / (z + n))]
+        simp
+      rw [hw, hz_sum]
+      ring
+    _ = π * cot (π * w) - π * cot (π * z) := by
+      rw [cot_series_rep hz, cot_series_rep hw]
+    _ = (-π * Complex.cot (π * z)) - (-π * Complex.cot (π * w)) := by
+      ring
 
 lemma lemma_abadeulmit2_continuousAt_integral_tsum_one_div_sub_int_sq {z : ℂ}
   (hz : z ∈ integerComplement) :
