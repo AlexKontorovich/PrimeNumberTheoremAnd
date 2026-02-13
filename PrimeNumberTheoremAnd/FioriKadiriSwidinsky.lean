@@ -11,7 +11,7 @@ In this section we establish the primary results of Fiori, Kadiri, and Swidinsky
 TODO: reorganize this blueprint and add proofs.
 -/
 
-open Real MeasureTheory
+open Real MeasureTheory Chebyshev
 
 namespace FKS
 
