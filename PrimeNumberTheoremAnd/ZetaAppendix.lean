@@ -1585,12 +1585,10 @@ lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
   ∑' (n : ℤ), (1 / (w - ↑n) - 1 / (z - ↑n)) := by
   let path (t : ℝ) := w + ↑t * (z - w)
   let g (n : ℤ) (t : ℝ) := 1 / (path t - n) ^ 2
-
   have h_cont_path : ContinuousOn path (Set.Icc 0 1) := by fun_prop
   have h_bound_path : Bornology.IsBounded (path '' Set.Icc 0 1) :=
     (isCompact_Icc.image_of_continuousOn h_cont_path).isBounded
   obtain ⟨M, hM⟩ := h_bound_path.exists_norm_le
-
   have h_integrable (n : ℤ) : IntervalIntegrable (g n) volume 0 1 := by
     apply ContinuousOn.intervalIntegrable
     rw [Set.uIcc_of_le (zero_le_one : (0 : ℝ) ≤ 1)]
@@ -1605,7 +1603,6 @@ lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
       rw [sub_ne_zero]
       intro h_eq
       exact h_path t ht ⟨n, h_eq.symm⟩
-
   have h_summable : Summable (fun n ↦ ∫ t in Set.Ioc 0 1, ‖g n t‖) := by
     simp_rw [g, norm_div, norm_one, norm_pow]
     -- We show that for large |n|, the term is bounded by C/|n|^2
@@ -1670,15 +1667,13 @@ lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
         · apply MeasureTheory.integrableOn_const
           · exact ne_of_lt measure_Ioc_lt_top
           · simp
-        · --
-          simp [g, path]
+        · simp [g, path]
           refine Filter.eventually_inf_principal.mpr ?_
           filter_upwards with x
           intro hx
           have hx_Icc : x ∈ Set.Icc 0 1 := ⟨le_of_lt hx.1, hx.2⟩
           specialize h_le n h_n_large x hx_Icc
           simp only [path] at h_le
-
           rw [norm_sub_rev]
           rw [← inv_pow]
           exact h_le
@@ -1688,9 +1683,6 @@ lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
       refine le_of_eq ?_
       simp_rw [norm_inv, norm_pow]
       rw [Real.norm_of_nonneg (by positivity)]
-
-
-
   rw [intervalIntegral.integral_of_le (zero_le_one : (0:ℝ) ≤ 1)]
   rw [MeasureTheory.integral_tsum]
   · rw [← tsum_mul_left]
@@ -1698,8 +1690,6 @@ lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
     ext n
     rw [← intervalIntegral.integral_of_le (zero_le_one : (0:ℝ) ≤ 1)]
     rw [← intervalIntegral.integral_const_mul (z - w)]
-
-    -- Use FTC
     let F (t : ℝ) := -1 / (path t - n)
     have h_deriv : ∀ t ∈ Set.uIcc 0 1, HasDerivAt F ((z - w) * g n t) t := by
       rw [Set.uIcc_of_le (zero_le_one : (0:ℝ)≤1)]
@@ -1716,33 +1706,15 @@ lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
         ring
       have h_d_path_sub : HasDerivAt (fun x ↦ path x - (n : ℂ)) (z - w) t := h_d_path.sub_const (n : ℂ)
       have h_inv_deriv : HasDerivAt (fun x ↦ (path x - (n : ℂ))⁻¹) (-(z - w) / (path t - (n : ℂ))^2) t := by
-
-        sorry
-
-
-        -- have h_outer : HasDerivAt (fun u : ℂ => -u⁻¹) ((path t - ↑n)⁻²) (path t - ↑n) := by
-        --   convert (hasDerivAt_inv h_denom_ne_zero).const_mul (-1 : ℂ) using 1
-        --   ring
-        -- convert h_outer.scomp t h_d_path_sub using 1
-        -- ring
-        -- -- have h_outer : HasDerivAt (fun u : ℂ => -u⁻¹) ((path t - ↑n)⁻²) (path t - ↑n) :=
-        -- --   (hasDerivAt_inv h_denom_ne_zero).neg
-        -- -- exact h_outer.scomp t h_d_path_sub
-
-        -- refine (hasDerivAt_inv h_denom_ne_zero).neg.scomp t h_d_path_sub ?_
-
-
-        -- refine (hasDerivAt_neg (hasDerivAt_inv ?_ ?_)).comp t h_d_path_sub
-        -- exact h_d_path_sub.inv h_denom_ne_zero
-
-
-
-        -- h_d_path_sub.inv h_denom_ne_zero
+        have h_inv := (hasDerivAt_inv h_denom_ne_zero).hasFDerivAt.restrictScalars ℝ
+        convert HasFDerivAt.comp_hasDerivAt t h_inv h_d_path_sub using 1
+        simp [ContinuousLinearMap.restrictScalars]
+        field_simp
+        ring
       convert h_inv_deriv.neg using 1
-      · ext x; simp [F, path]
+      · ext x; simp [path]
         field_simp
       · simp [path]; ring
-
     rw [intervalIntegral.integral_eq_sub_of_hasDerivAt h_deriv ((h_integrable n).const_mul (z - w))]
     dsimp [F, path]
     ring_nf
@@ -1785,8 +1757,7 @@ lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
         let δ := Metric.infDist (i : ℂ) S
         let C := 1 / δ ^ 2
         apply MeasureTheory.IntegrableOn.of_bound (C := C) (hs := by simp)
-        · apply ContinuousOn.aestronglyMeasurable
-          swap; simp
+        · refine ContinuousOn.aestronglyMeasurable ?_ (by simp)
           · apply ContinuousOn.norm
             have hcont_path' :
               ContinuousOn path (Set.Ioc 0 1) :=
@@ -1874,19 +1845,15 @@ lemma summable_inv_sub_inv_aux {z w : ℂ} (hz : z ∈ integerComplement) (hw : 
     · exact (Asymptotics.isBigO_refl _ _).congr_left (fun n ↦ by simp)
   exact summable_of_isBigO (summable_one_div_int_pow.mpr one_lt_two) h_bound
 
--- Step 3: Relate the integral to the difference of cotangents
 lemma lemma_abadeulmit2_integral_eq_cot_diff {z w : ℂ}
   (hz : z ∈ integerComplement)
   (hw : w ∈ integerComplement)
   (h_path : ∀ t : ℝ, t ∈ Set.Icc 0 1 → w + ↑t * (z - w) ∉ range (fun n : ℤ => (n : ℂ))) :
   (z - w) * ∫ (t : ℝ) in 0..1, ∑' (n : ℤ), 1 / (w + ↑t * (z - w) - ↑n) ^ 2 =
   -π * Complex.cot (π * z) - (-π * Complex.cot (π * w)) := by
-  -- 1. Use the result from Step 2 to rewrite the integral as a sum.
   rw [lemma_abadeulmit2_integral_tsum_inv_sub_int_sq hz hw h_path]
-  -- 2. The sum over integers relates to the difference of Eisenstein sums.
   have sum_Eisenstein_diff {z w : ℂ} (hz : z ∈ integerComplement) (hw : w ∈ integerComplement) :
     ∑' (n : ℤ), (1 / (w - n) - 1 / (z - n)) = (-π * Complex.cot (π * z)) - (-π * Complex.cot (π * w)) := by
-    -- 1. Split the sum over ℤ into components.
     have h_summable_w : Summable (fun n : ℤ ↦ (1 / (w - n) - 1 / (z - n) : ℂ)) := summable_inv_sub_inv_aux hz hw
     have h1 : Summable (fun n : ℕ ↦ 1 / (w - (↑n + 1)) + 1 / (w + (↑n + 1))) := Summable_cotTerm hw
     have h2 : Summable (fun n : ℕ ↦ 1 / (z - (↑n + 1)) + 1 / (z + (↑n + 1))) := Summable_cotTerm hz
@@ -1938,7 +1905,6 @@ lemma lemma_abadeulmit2_continuousAt_integral_tsum_one_div_sub_int_sq {z : ℂ}
   let K := Metric.closedBall z ε'
   have hK_compact : IsCompact K := by exact isCompact_closedBall z ε'
   have hK_sub : K ⊆ integerComplement := (Metric.closedBall_subset_ball (half_lt_self hε)).trans h_ball
-
   have hS_cont : ContinuousOn S K := by
     dsimp [S]
     refine continuousOn_tsum (u := fun (n : ℤ) ↦ (‖z - n‖ - ε')⁻¹ ^ 2) ?_ ?_ ?_
@@ -1971,7 +1937,6 @@ lemma lemma_abadeulmit2_continuousAt_integral_tsum_one_div_sub_int_sq {z : ℂ}
           linarith
       · apply summable_of_isBigO_nat (g := fun n : ℕ ↦ (1 : ℝ) / (n + 1 : ℝ)^2)
         · exact_mod_cast (summable_nat_add_iff 1).mpr (summable_one_div_nat_pow.mpr one_lt_two)
-
         · simp_rw [one_div, ← inv_pow]
           refine Asymptotics.IsBigO.pow ?_ 2
           apply Asymptotics.IsBigO.inv_rev
@@ -2008,23 +1973,12 @@ lemma lemma_abadeulmit2_continuousAt_integral_tsum_one_div_sub_int_sq {z : ℂ}
                         _ ≤ ‖x - ↑n‖ := by
                           rw [norm_sub_rev x z]
                           linarith [norm_sub_le_norm_sub_add_norm_sub z x ↑n]
-
-  -- 4. Obtain the bound M using the fact that continuous images of compact sets are bounded
-  -- Note: We use Bornology.IsBounded to resolve the namespace/type ambiguity
   have h_bound : Bornology.IsBounded (S '' K) :=
     (hK_compact.image_of_continuousOn hS_cont).isBounded
   obtain ⟨M, hM⟩ := h_bound.exists_norm_le
-  -- convert intervalIntegral.continuousAt_of_dominated_interval
-  --   (μ := volume)
-  --   (bound := fun _ ↦ M)
-  --   (a := 0) (b := 1)
-  --   (F := fun x t ↦ S (z + t * (x - z)))
-  refine intervalIntegral.continuousAt_of_dominated_interval
-    (μ := volume)
-    (bound := fun _ ↦ M)
-    (F := fun x t ↦ S (z + t * (x - z)))
+  apply intervalIntegral.continuousAt_of_dominated_interval
+    (bound := fun _ ↦ M) (F := fun x t ↦ S (z + t * (x - z)))
     (a := 0) (b := 1)
-    ?_ ?_ ?_ ?_
   · filter_upwards [Metric.ball_mem_nhds z hε'] with x hx
     refine ContinuousOn.aestronglyMeasurable ?_ measurableSet_uIoc
     apply ContinuousOn.comp hS_cont (by fun_prop)
@@ -2033,7 +1987,6 @@ lemma lemma_abadeulmit2_continuousAt_integral_tsum_one_div_sub_int_sq {z : ℂ}
     · simp only [Set.mem_Icc]
       rw [uIoc_of_le zero_le_one] at ht
       exact ⟨le_of_lt ht.1, ht.2⟩
-
   · filter_upwards [Metric.ball_mem_nhds z hε'] with x hx
     apply Filter.Eventually.of_forall
     intro t ht
@@ -2042,19 +1995,12 @@ lemma lemma_abadeulmit2_continuousAt_integral_tsum_one_div_sub_int_sq {z : ℂ}
     convert Convex.add_smul_sub_mem (convex_closedBall z ε') (Metric.mem_closedBall_self (le_of_lt hε')) (Metric.ball_subset_closedBall hx) ?_
     rw [uIoc_of_le zero_le_one] at ht
     exact ⟨le_of_lt ht.1, ht.2⟩
-
-  · -- ⊢ IntervalIntegrable (fun x ↦ M) volume 0 1
-    exact intervalIntegrable_const
-  · -- ⊢ ∀ᵐ (t : ℝ), t ∈ uIoc 0 1 → ContinuousAt (fun x ↦ (fun x t ↦ S (z + ↑t * (x - z))) x t) z
-    apply Filter.Eventually.of_forall
+  · exact intervalIntegrable_const
+  · apply Filter.Eventually.of_forall
     intro t ht
-    simp only
     refine ContinuousAt.comp (g := S) ?_ ?_
-    · -- 1. Simplify the arithmetic z + t * (z - z) to z
-      simp only [sub_self, mul_zero, add_zero]
-      -- 2. Apply the ContinuousOn.continuousAt lemma
+    · simp only [sub_self, mul_zero, add_zero]
       apply hS_cont.continuousAt
-      -- 3. Provide proof that K is a neighborhood of z
       exact Metric.closedBall_mem_nhds z hε'
     · fun_prop
 
@@ -2078,29 +2024,17 @@ lemma lemma_abadeulmit2_tsum_one_div_sub_int_sq {z : ℂ} (hz : z ∈ integerCom
       -- rw [tendsto_sub_nhds_zero_iff]
       have h_eq : (fun x ↦ (x - z) * ((∫ (t : ℝ) in 0..1, S (z + ↑t * (x - z))) - ∑' (n : ℤ), 1 / (z - ↑n) ^ 2) / (x - z)) =
             (fun x ↦ (∫ (t : ℝ) in 0..1, S (z + ↑t * (x - z))) - ∑' (n : ℤ), 1 / (z - ↑n) ^ 2) := by
-
         ext x
-
-
-
         rcases eq_or_ne x z with rfl | hx
-
-        · simp [S] -- Handles the x = z case via Lean's 0 / 0 = 0
+        · simp [S]
         · rw [mul_div_cancel_left₀ _ (sub_ne_zero.mpr hx)]
-
       rw [h_eq, tendsto_sub_nhds_zero_iff]
-      -- Evaluate the integral at x = z
       have hgz : g z = ∑' (n : ℤ), 1 / (z - ↑n) ^ 2 := by
         simp only [g, sub_self, mul_zero, add_zero]
-        -- Integral of a constant S z over [0,1] is S z
         rw [intervalIntegral.integral_const, sub_zero, Complex.real_smul, Complex.ofReal_one, one_mul]
-
-      -- Use the continuity of g to close the Tendsto goal
       rw [← hgz]
       apply (lemma_abadeulmit2_continuousAt_integral_tsum_one_div_sub_int_sq hz).tendsto
-
-  · -- ⊢ f =ᶠ[𝓝 z] fun w ↦ f z + (w - z) * ∫ (t : ℝ) in 0..1, S (z + ↑t * (w - z))
-    obtain ⟨ε, hε, h_ball⟩ := Metric.isOpen_iff.1 (Complex.isOpen_compl_range_intCast) z hz
+  · obtain ⟨ε, hε, h_ball⟩ := Metric.isOpen_iff.1 (Complex.isOpen_compl_range_intCast) z hz
     filter_upwards [Metric.ball_mem_nhds z hε] with w hw
     rw [lemma_abadeulmit2_integral_eq_cot_diff (h_ball hw) hz]
     · dsimp [f]; ring
