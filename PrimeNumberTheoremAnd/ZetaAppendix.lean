@@ -2011,18 +2011,14 @@ lemma lemma_abadeulmit2_tsum_one_div_sub_int_sq {z : ℂ} (hz : z ∈ integerCom
   set S := fun w : ℂ ↦ ∑' (n : ℤ), 1 / (w - n) ^ 2
   suffices HasDerivAt f (∑' (n : ℤ), 1 / (z - n) ^ 2) z from this.deriv.symm
   apply HasDerivAt.congr_of_eventuallyEq (f := fun w ↦ f z + (w - z) * ∫ t in (0:ℝ)..1, S (z + t * (w - z)))
-  · -- HasDerivAt (fun w ↦ f z + (w - z) * ∫ (t : ℝ) in 0..1, S (z + ↑t * (w - z))) (∑' (n : ℤ), 1 / (z - ↑n) ^ 2) z
-    apply HasDerivAt.const_add
+  · apply HasDerivAt.const_add
     rw [hasDerivAt_iff_isLittleO]
     simp only [sub_self, mul_zero, add_zero]
     set g := fun x' ↦ ∫ (t : ℝ) in 0..1, S (z + ↑t * (x' - z))
     simp only [zero_mul, sub_zero, smul_eq_mul, ← mul_sub]
-    -- suffices (fun x' ↦ ∫ (t : ℝ) in 0..1, S (z + ↑t * (x' - z)) - ∑' (n : ℤ), 1 / (z - ↑n) ^ 2) =o[𝓝 z] (fun _ ↦ 1) from this.mul_one (fun x' ↦ x' - z)
     apply Asymptotics.isLittleO_of_tendsto
     · intro x' hx; simp [sub_eq_zero.mp hx]
-    · -- simp only [mul_div_cancel_left _ (sub_ne_zero.mpr)]
-      -- rw [tendsto_sub_nhds_zero_iff]
-      have h_eq : (fun x ↦ (x - z) * ((∫ (t : ℝ) in 0..1, S (z + ↑t * (x - z))) - ∑' (n : ℤ), 1 / (z - ↑n) ^ 2) / (x - z)) =
+    · have h_eq : (fun x ↦ (x - z) * ((∫ (t : ℝ) in 0..1, S (z + ↑t * (x - z))) - ∑' (n : ℤ), 1 / (z - ↑n) ^ 2) / (x - z)) =
             (fun x ↦ (∫ (t : ℝ) in 0..1, S (z + ↑t * (x - z))) - ∑' (n : ℤ), 1 / (z - ↑n) ^ 2) := by
         ext x
         rcases eq_or_ne x z with rfl | hx
