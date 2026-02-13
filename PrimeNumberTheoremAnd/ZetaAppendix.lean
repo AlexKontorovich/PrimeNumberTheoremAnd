@@ -1578,13 +1578,13 @@ $\left(\frac{1}{z\pm n}\right)' = -\frac{1}{(z\pm n)^2}$, we are done.
   (latexEnv := "lemma")
   (discussion := 570)]
 lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
-  (hz : z ∈ integerComplement)
+  (_hz : z ∈ integerComplement)
   (hw : w ∈ integerComplement)
   (h_path : ∀ t : ℝ, t ∈ Set.Icc 0 1 → w + ↑t * (z - w) ∉ range (fun n : ℤ => (n : ℂ))) :
   (z - w) * ∫ (t : ℝ) in 0..1, ∑' (n : ℤ), 1 / (w + ↑t * (z - w) - ↑n) ^ 2 =
   ∑' (n : ℤ), (1 / (w - ↑n) - 1 / (z - ↑n)) := by
-  let path (t : ℝ) := w + ↑t * (z - w)
-  let g (n : ℤ) (t : ℝ) := 1 / (path t - n) ^ 2
+  let path : ℝ → ℂ := fun t => w + (t : ℂ) * (z - w)
+  let g : ℤ → ℝ → ℂ := fun n t => 1 / (path t - (n : ℂ)) ^ 2
   have h_cont_path : ContinuousOn path (Set.Icc 0 1) := by fun_prop
   have h_bound_path : Bornology.IsBounded (path '' Set.Icc 0 1) :=
     (isCompact_Icc.image_of_continuousOn h_cont_path).isBounded
@@ -1605,7 +1605,6 @@ lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
       exact h_path t ht ⟨n, h_eq.symm⟩
   have h_summable : Summable (fun n ↦ ∫ t in Set.Ioc 0 1, ‖g n t‖) := by
     simp_rw [g, norm_div, norm_one, norm_pow]
-    -- We show that for large |n|, the term is bounded by C/|n|^2
     let C := 2 * M
     have h_le : ∀ (n : ℤ), ‖n‖ > C → ∀ t ∈ Set.Icc 0 1, ‖(n : ℂ) - path t‖⁻¹ ^ 2 ≤ 4 / ‖n‖ ^ 2 := by
       intro n hn t ht
@@ -1667,7 +1666,7 @@ lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
         · apply MeasureTheory.integrableOn_const
           · exact ne_of_lt measure_Ioc_lt_top
           · simp
-        · simp [g, path]
+        · simp only [measurableSet_Ioc, ae_restrict_eq, one_div, norm_inv, norm_pow, g, path]
           refine Filter.eventually_inf_principal.mpr ?_
           filter_upwards with x
           intro hx
@@ -1727,13 +1726,13 @@ lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
       have convexity_w : ∀ x : ℝ, x ∈ Set.Ioc 0 1 → w + ↑x * (z - w) - ↑i ≠ 0 := by
         intro x hx h
         have : w + ↑x * (z - w) ∈ Set.range (fun (n : ℤ) ↦ (n : ℂ)) :=
-          ⟨i, by simp; rw [sub_eq_zero] at h; exact h.symm ⟩
+          ⟨i, by simp only; rw [sub_eq_zero] at h; exact h.symm ⟩
         apply h_path x (Set.Ioc_subset_Icc_self hx) this
       rw [MeasureTheory.ofReal_integral_eq_lintegral_ofReal (f := fun t : ℝ ↦ ‖g i t‖)]
       · apply setLIntegral_congr_fun_ae (by simp)
         apply Filter.Eventually.of_forall
         intro x hx
-        simp [g, path]
+        simp only [one_div, norm_inv, norm_pow, g, path]
         rw [enorm_inv]
         · conv_rhs => arg 1; rw [← ofReal_norm_eq_enorm, norm_pow]
           apply ENNReal.ofReal_inv_of_pos
@@ -1743,11 +1742,14 @@ lemma lemma_abadeulmit2_integral_tsum_inv_sub_int_sq {z w : ℂ}
       · let S := path '' Set.Icc 0 1
         have h_compact : IsCompact S := isCompact_Icc.image_of_continuousOn h_cont_path
         have h_not_mem : (i : ℂ) ∉ S := by
-          simp [S]
+          simp only [Set.mem_image, Set.mem_Icc, not_exists, not_and, and_imp, S]
           intro t h0 h1 heq
           rcases lt_or_eq_of_le h0 with ht_pos | rfl
           · exact convexity_w t ⟨ht_pos, h1⟩ (sub_eq_zero.mpr heq)
-          · dsimp [path] at heq; simp at heq; rw [heq] at hw; exact hw ⟨i, rfl⟩
+          · dsimp [path] at heq
+            simp only [zero_mul, add_zero] at heq
+            rw [heq] at hw
+            exact hw ⟨i, rfl⟩
         have h_dist : 0 < Metric.infDist (i : ℂ) S := by
           refine lt_of_le_of_ne Metric.infDist_nonneg ?_
           intro h
@@ -2063,8 +2065,6 @@ theorem lemma_abadeulmit2 {z : ℂ} (hz : z ∈ integerComplement) :
     (π ^ 2 / (sin (π * z) ^ 2)) = ∑' (n : ℤ), (1 / ((z - n) ^ 2)) := by
   rw [← lemma_abadeulmit2_deriv_neg_pi_mul_cot_pi_mul hz]
   rw [← lemma_abadeulmit2_tsum_one_div_sub_int_sq hz]
-
-
 
 @[blueprint
   "lem:abadimpseri"
