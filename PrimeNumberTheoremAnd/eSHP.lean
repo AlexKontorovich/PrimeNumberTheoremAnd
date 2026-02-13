@@ -81,11 +81,12 @@ theorem table_8_prime_gap (p g : ℕ) (h : (p, g) ∈ table_8) : prime_gap_recor
 
 @[blueprint
   "table-8-prime-gap-complete-test"
-  (title := "Table 8 prime gap records - completeness")
+  (title := "Table 8 prime gap records - completeness unit test")
   (statement := /--
   Table 8 contains ALL the prime gap records $(p_k,g_k)$ with $p_k \leq 30$. -/)
   (proof := /-- Brute force verification. -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 948)]
 theorem table_8_prime_gap_complete_test (p g : ℕ) (hp : p ≤ 30) (hrecord : prime_gap_record p g) : (p, g) ∈ table_8 := by
   sorry
 
@@ -104,7 +105,8 @@ theorem table_8_prime_gap_complete (p g : ℕ) (hp : p ≤ 4 * 10 ^ 18) (hrecord
   (statement := /--
   The maximum prime gap for primes less than or equal to $4 \times 10^{18}$ is $1476$. -/)
   (proof := /-- If not, then there would be an entry in Table 8 with $g > 1476$, which can be verified not to be the case. -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 949)]
 theorem max_prime_gap (n : ℕ) (hp : nth_prime n ≤ 4 * 10 ^ 18) : nth_prime_gap n ≤ 1476 := by
   sorry
 
@@ -270,7 +272,8 @@ theorem table_9_prime_gap (g P : ℕ) (h : (g, P) ∈ table_9) : first_gap_recor
   (statement := /--
   Table 9 contains all first gap records $(g,P)$ with $g < 8$. -/)
   (proof := /-- Brute force verification. -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 950)]
 theorem table_9_prime_gap_complete_test (g P : ℕ) (hg : g < 8) (hrecord : first_gap_record g P) : (g, P) ∈ table_9 := by
   sorry
 
@@ -290,7 +293,8 @@ theorem table_9_prime_gap_complete (g P : ℕ) (hg : g < 1346) (hrecord : first_
   (statement := /--
   Every gap $g < 1346$ that is even or one occurs as a prime gap with first prime at most $3278018069102480227$. -/)
   (proof := /-- If not, then there would be an entry in Table 8 with $P > 3278018069102480227$, which can be verified not to be the case. -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 951)]
 theorem exists_prime_gap (g : ℕ) (hg : g ∈ Set.Ico 1 1476) (hg' : Even g ∨ g = 1) : first_gap g ≤ 3278018069102480227 := by
   sorry
 
