@@ -21,6 +21,7 @@ import PrimeNumberTheoremAnd.FKS2
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.GeneralMeromorphic
+import PrimeNumberTheoremAnd.Goldbach
 import PrimeNumberTheoremAnd.HadamardFactorization
 import PrimeNumberTheoremAnd.HoffsteinLockhart
 import PrimeNumberTheoremAnd.KLN

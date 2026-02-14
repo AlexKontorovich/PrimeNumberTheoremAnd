@@ -345,69 +345,32 @@ theorem proposition_5_4a : HasPrimeInInterval.log_thm 4e18 3 := by
   intro x hx
   have hx_pos : 0 < x := by linarith
   have hlog_pos : 0 < log x := Real.log_pos (by linarith)
-  let h : ℝ := x / (log x) ^ 3
-  have hh_pos : 0 < h := by
-    have hpow_pos : 0 < (log x) ^ 3 := by positivity
-    exact div_pos hx_pos hpow_pos
-  have htab : (3, (0.499 : ℝ), (4e18 : ℝ)) ∈ Table_4_2 := by
-    simp [Table_4_2]
+  have hpow_pos : 0 < (log x) ^ 3 := by positivity
+  have htab : (3, (0.499 : ℝ), (4e18 : ℝ)) ∈ Table_4_2 := by simp [Table_4_2]
   have hE1 : Eθ x ≤ 0.499 / (log x) ^ 3 := theorem_4_2 htab hx
-  have hxh_ge : x + h ≥ 4e18 := by linarith [hx, hh_pos]
-  have hE2' : Eθ (x + h) ≤ 0.499 / (log (x + h)) ^ 3 := theorem_4_2 htab hxh_ge
-  have hlog_mono : log x ≤ log (x + h) := by
-    apply Real.log_le_log
-    · linarith [hx_pos, hh_pos]
-    · linarith [hh_pos]
-  have hdenom_mono : 0.499 / (log (x + h)) ^ 3 ≤ 0.499 / (log x) ^ 3 := by
-    have hpow_mono : (log x) ^ 3 ≤ (log (x + h)) ^ 3 := by
-      gcongr
-    have hpow_pos : 0 < (log x) ^ 3 := by positivity
-    have hdiv : (1 : ℝ) / (log (x + h)) ^ 3 ≤ 1 / (log x) ^ 3 :=
-      one_div_le_one_div_of_le hpow_pos hpow_mono
-    calc
-      0.499 / (log (x + h)) ^ 3 = 0.499 * (1 / (log (x + h)) ^ 3) := by ring
-      _ ≤ 0.499 * (1 / (log x) ^ 3) := by gcongr
-      _ = 0.499 / (log x) ^ 3 := by ring
-  have hE2 : Eθ (x + h) ≤ 0.499 / (log x) ^ 3 := hE2'.trans hdenom_mono
-  have hmain_le :
-      x * Eθ x + (x + h) * Eθ (x + h) ≤ (2 * x + h) * (0.499 / (log x) ^ 3) := by
-    have h1 : x * Eθ x ≤ x * (0.499 / (log x) ^ 3) := mul_le_mul_of_nonneg_left hE1 hx_pos.le
-    have h2 : (x + h) * Eθ (x + h) ≤ (x + h) * (0.499 / (log x) ^ 3) := by
-      apply mul_le_mul_of_nonneg_left hE2
-      linarith [hx_pos, hh_pos]
-    nlinarith [h1, h2]
-  have hlog_big : (249.5 : ℝ) < (log x) ^ 3 := by
-    have hexp10 : (Real.exp 10 : ℝ) < 4e18 := by interval_decide
-    have hlog_gt10 : (10 : ℝ) < log x := by
-      have : Real.exp 10 < x := lt_of_lt_of_le hexp10 hx
-      have hexp : Real.exp 10 < Real.exp (log x) := by
-        simpa [Real.exp_log hx_pos] using this
-      exact (Real.exp_lt_exp.mp hexp)
-    have hcube : (1000 : ℝ) < (log x) ^ 3 := by
-      have hlog_pos' : 0 < log x := lt_trans (by norm_num) hlog_gt10
-      have hmul : (10 : ℝ) * 10 * 10 < log x * log x * log x := by nlinarith [hlog_gt10, hlog_pos']
-      have h1000 : (1000 : ℝ) = (10 : ℝ) * 10 * 10 := by norm_num
-      have hpow : (log x) ^ 3 = log x * log x * log x := by ring
-      linarith [hmul, h1000, hpow]
-    linarith
+  set h := x / (log x) ^ 3 with hh_def
+  have hh_pos : 0 < h := by positivity
+  have hE2 : Eθ (x + h) ≤ 0.499 / (log x) ^ 3 :=
+    (theorem_4_2 htab (show x + h ≥ 4e18 by linarith)).trans
+      (div_le_div_of_nonneg_left (by norm_num) hpow_pos
+        (pow_le_pow_left₀ hlog_pos.le (Real.log_le_log hx_pos (by linarith)) 3))
+  have hmain : x * Eθ x + (x + h) * Eθ (x + h) ≤ (2 * x + h) * (0.499 / (log x) ^ 3) := by
+    nlinarith [mul_le_mul_of_nonneg_left hE1 hx_pos.le,
+               mul_le_mul_of_nonneg_left hE2 (show (0:ℝ) ≤ x + h by linarith)]
+  have hlog_gt10 : (10 : ℝ) < log x :=
+    (lt_log_iff_exp_lt hx_pos).mpr (lt_of_lt_of_le (by interval_decide) hx)
+  have hlog3_gt : (249.5 : ℝ) < (log x) ^ 3 := by
+    have : (log x) ^ 3 = log x * log x * log x := by ring
+    nlinarith
   have hcoeff : (2 * x + h) * (0.499 / (log x) ^ 3) < h := by
-    have hpow_pos : 0 < (log x) ^ 3 := by positivity
-    have hfac_pos : 0 < x / (log x) ^ 3 := by positivity
-    have hlt : 0.499 * (2 + 1 / (log x) ^ 3) < 1 := by
-      have hsmall : 1 / (log x) ^ 3 < 1 / 249.5 := by
-        exact one_div_lt_one_div_of_lt (by positivity) hlog_big
-      nlinarith
-    have hrepr :
-        (2 * x + x / (log x) ^ 3) * (0.499 / (log x) ^ 3) =
-          (x / (log x) ^ 3) * (0.499 * (2 + 1 / (log x) ^ 3)) := by
-      field_simp [hpow_pos.ne']
-    have hmul : (x / (log x) ^ 3) * (0.499 * (2 + 1 / (log x) ^ 3)) < (x / (log x) ^ 3) * 1 :=
-      mul_lt_mul_of_pos_left hlt hfac_pos
-    have hmul' : (x / (log x) ^ 3) * 1 = h := by simp [h]
-    have hleft : (2 * x + h) * (0.499 / (log x) ^ 3) =
-        (x / (log x) ^ 3) * (0.499 * (2 + 1 / (log x) ^ 3)) := by simpa [h] using hrepr
-    exact (hleft ▸ (hmul.trans_eq hmul'))
-  simpa [h] using Eθ.hasPrimeInInterval x h hx_pos hh_pos (lt_of_le_of_lt hmain_le hcoeff)
+    have : (2 * x + h) * (0.499 / (log x) ^ 3) =
+        h * (0.499 * (2 + 1 / (log x) ^ 3)) := by
+      simp only [hh_def]; field_simp [hpow_pos.ne']
+    rw [this]
+    have : 0.499 * (2 + 1 / (log x) ^ 3) < 1 := by
+      nlinarith [one_div_lt_one_div_of_lt (show (0:ℝ) < 249.5 by positivity) hlog3_gt]
+    linarith [mul_lt_mul_of_pos_left this hh_pos]
+  simpa [h] using Eθ.hasPrimeInInterval x h hx_pos hh_pos (lt_of_le_of_lt hmain hcoeff)
 
 @[blueprint "Dusart_prop_5_4b"
   (title := "Dusart Proposition 5.4, substep 2")
@@ -420,7 +383,7 @@ theorem proposition_5_4a : HasPrimeInInterval.log_thm 4e18 3 := by
   (proof := /-- Use Lemma \ref{prime-gap-record-interval} and Proposition \ref{table-8-prime-gap}.  -/)
   (latexEnv := "sublemma")
   (discussion := 911)]
-theorem proposition_5_4b (x : ℝ) (hx : x ∈ Set.Ioo 360653 4e18) : HasPrimeInInterval x (x / (log x)^3) := sorry
+theorem proposition_5_4b (x : ℝ) (hx : x ∈ Set.Ioo 360653 4e18) : HasPrimeInInterval x (x / (log x)^(3:ℝ)) := sorry
 
 @[blueprint "Dusart_prop_5_4c"
   (title := "Dusart Proposition 5.4, substep 3")
@@ -432,7 +395,7 @@ theorem proposition_5_4b (x : ℝ) (hx : x ∈ Set.Ioo 360653 4e18) : HasPrimeIn
   -/)
   (proof := /-- This is a computer computation, likely not formalizable within Lean. -/)
   (latexEnv := "sublemma")]
-theorem proposition_5_4c (x : ℝ) (hx : x ∈ Set.Icc 89693 360653) : HasPrimeInInterval x (x / (log x)^3) := sorry
+theorem proposition_5_4c (x : ℝ) (hx : x ∈ Set.Icc 89693 360653) : HasPrimeInInterval x (x / (log x)^(3:ℝ)) := sorry
 
 
 @[blueprint "Dusart_prop_5_4"
@@ -447,7 +410,9 @@ theorem proposition_5_4c (x : ℝ) (hx : x ∈ Set.Icc 89693 360653) : HasPrimeI
   (proof := /-- Combine the three substeps. -/)
   (latexEnv := "proposition")
   (discussion := 912)]
-theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := sorry
+theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := fun x hx =>
+  (le_or_gt x 360653).elim (proposition_5_4c x ⟨hx, ·⟩) fun h =>
+    (le_or_gt 4e18 x).elim (proposition_5_4a x) (proposition_5_4b x ⟨h, ·⟩)
 
 @[blueprint "Dusart_cor_5_5"
   (title := "Dusart Corollary 5.5")
