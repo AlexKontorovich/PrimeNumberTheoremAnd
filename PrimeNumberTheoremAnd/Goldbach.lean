@@ -82,7 +82,28 @@ theorem richstein_goldbach : even_conjecture (4 * 10 ^ 14) := by sorry
   The odd Goldbach conjecture is verified up to $1.13256 \times 10^{22}$. -/)
   (proof := /-- Combine Proposition \ref{richstein-even-goldbach}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:ramare-saouter2003}. -/)
   (latexEnv := "proposition")]
-theorem ramare_saouter_odd_goldbach : odd_conjecture (113256 * 10 ^ 18) := by sorry
+theorem ramare_saouter_odd_goldbach : odd_conjecture (113256 * 10 ^ 17) := by sorry
+
+@[blueprint
+  "e-silva-herzog-piranian-even-goldbach"
+  (title := "e Silva--Herzog--Piranian verification of even Goldbach")
+  (statement := /-- \cite{eSHP}
+  The even Goldbach conjecture is verified up to $4 \times 10^{18}$. -/)
+  (proof := /-- Numerical verification. -/)
+  (latexEnv := "proposition")]
+theorem e_silva_herzog_piranian_goldbach : even_conjecture (4 * 10 ^ 18) := by sorry
+
+@[blueprint
+  "helfgott-odd-goldbach-substep-1"
+  (title := "Helfgott's verification of odd Goldbach, substep 1")
+  (statement := /-- \cite[Appendix C]{helfgott-goldbach-arxiv}
+  The odd Goldbach conjecture is verified up to $1.1325 \times 10^{26}$. -/)
+  (proof := /-- Combine Proposition \ref{e-silva-herzog-piranian-even-goldbach}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:ramare-saouter2003}. -/)
+  (latexEnv := "sublemma")]
+theorem helfgott_odd_goldbach_1 : odd_conjecture (11325 * 10 ^ 22) := by sorry
+
+blueprint_comment /-- The arguments in \cite[Appendix C]{helfgott-goldbach-arxiv} push the bound further than this, but require unpublished estimates of Ramare. -/
+
 
 
 
