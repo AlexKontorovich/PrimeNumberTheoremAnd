@@ -1267,12 +1267,6 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
       intro t ht
       exact h_deriv_φ t ht
     rw [this.deriv_eq]
-
-    have h_diff_const : DifferentiableAt ℝ (fun _ ↦ ν) a := differentiableAt_const _
-    have h_diff_inv : DifferentiableAt ℝ (fun t ↦ s.im / (2 * π * t)) a := by
-      rw [show (fun t ↦ s.im / (2 * π * t)) = (fun t ↦ (s.im / (2 * π)) * t⁻¹) by ext; field_simp]
-      apply DifferentiableAt.const_mul
-      exact differentiableAt_id.inv ha_ne_zero
     apply HasDerivAt.deriv
     change HasDerivAt ((fun _ ↦ ν) - (fun t ↦ s.im / (2 * π * t))) _ _
     rw [show (fun t ↦ s.im / (2 * π * t)) = (fun t ↦ (s.im / (2 * π)) * t⁻¹) by ext; field_simp]
