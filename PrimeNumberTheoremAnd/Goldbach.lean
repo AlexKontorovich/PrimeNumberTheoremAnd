@@ -1,5 +1,4 @@
-import PrimeNumberTheoremAnd.Defs
-
+import PrimeNumberTheoremAnd.SecondarySummary
 
 blueprint_comment /--
 \section{Numerical verification of Goldbach}\label{goldbach-sec}
@@ -94,15 +93,33 @@ theorem ramare_saouter_odd_goldbach : odd_conjecture (113256 * 10 ^ 17) := by so
 theorem e_silva_herzog_piranian_goldbach : even_conjecture (4 * 10 ^ 18) := by sorry
 
 @[blueprint
-  "helfgott-odd-goldbach-substep-1"
-  (title := "Helfgott's verification of odd Goldbach, substep 1")
+  "helfgott-odd-goldbach-finite"
+  (title := "Helfgott's verification of odd Goldbach for small $n$")
   (statement := /-- \cite[Appendix C]{helfgott-goldbach-arxiv}
   The odd Goldbach conjecture is verified up to $1.1325 \times 10^{26}$. -/)
   (proof := /-- Combine Proposition \ref{e-silva-herzog-piranian-even-goldbach}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:ramare-saouter2003}. -/)
   (latexEnv := "sublemma")]
 theorem helfgott_odd_goldbach_1 : odd_conjecture (11325 * 10 ^ 22) := by sorry
 
-blueprint_comment /-- The arguments in \cite[Appendix C]{helfgott-goldbach-arxiv} push the bound further than this, but require unpublished estimates of Ramare. -/
+blueprint_comment /-- The arguments in \cite[Appendix C]{helfgott-goldbach-arxiv} push the bound further than this, but require unpublished estimates of Ramare. However, similar arguments were established in \cite{kadiri-lumley}, and we present them here. -/
+
+@[blueprint
+  "e-silva-herzog-piranian-even-goldbach-ext"
+  (title := "e Silva--Herzog--Piranian verification of even Goldbach (extended)")
+  (statement := /-- \cite{eSHP}
+  The even Goldbach conjecture is verified up to $4 \times 10^{18} + 4$. -/)
+  (proof := /-- If $N = 4 \times 10^{18}$, use the fact that $211, 313, N-209, N-309$ are all prime. -/)
+  (latexEnv := "proposition")]
+theorem e_silva_herzog_piranian_goldbach_ext : even_conjecture (4 * 10 ^ 18 + 4) := by sorry
+
+@[blueprint
+  "kl-odd-goldbach-finite"
+  (title := "Kadiri--Lumley's verification of odd Goldbach for small $n$")
+  (statement := /-- \cite[Corollary 1.2]{kadiri-lumley}
+  The odd Goldbach conjecture is verified up to $1966196911 \times 4 \times 10^{18}$. -/)
+  (proof := /-- Combine Proposition \ref{e-silva-herzog-piranian-even-goldbach-ext}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:prime_gaps_KL} with $x₀ = e^{60}$ and $\Delta = 1966090061$. -/)
+  (latexEnv := "proposition")]
+theorem kadiri_lumley_odd_goldbach_finite : odd_conjecture (1966196911 * 4 * 10 ^ 18) := by sorry
 
 
 
