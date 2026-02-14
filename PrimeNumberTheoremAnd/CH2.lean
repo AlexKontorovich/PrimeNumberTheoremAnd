@@ -400,8 +400,11 @@ where $\psi(x)$ is the Chebyshev function.
   -/)
   (proof := /-- TBD. -/)
   (latexEnv := "corollary")]
-theorem cor_1_3_a (x : ℝ) (hx : 1 ≤ x) :
-    |ψ x - x| ≤ π * 3 * 10 ^ (-12 : ℝ) * x + 113.67 * sqrt x := by sorry
+theorem cor_1_3_a (x : ℝ) (hx : 1 ≤ x) : |ψ x - x| ≤ π * 3 * 10 ^ 12 * x + 113.67 * sqrt x := by
+  have hx' : (0 : ℝ) ≤ x := by grind
+  have : |ψ x - x| ≤ ψ x + x := abs_le.mpr ⟨by grind [psi_nonneg x], by grind [psi_nonneg x]⟩
+  have : π * 3 * 10 ^ 12 > log 4 + 5 := by grind [pi_gt_three, log_le_sub_one_of_pos zero_lt_four]
+  nlinarith [sqrt_nonneg x, sq_sqrt hx', psi_le_const_mul_self hx']
 
 @[blueprint
   "CH2-cor-1-3-b"
