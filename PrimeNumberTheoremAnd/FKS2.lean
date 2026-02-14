@@ -257,7 +257,7 @@ theorem proposition_13
   (hB : B > C ^ 2 / (8 * R)) :
   Eθ.classicalBound (Aψ * (1 + ν_asymp Aψ B C R x₀)) B C R x₀ := by sorry
 
-theorem corollary_14_small_adm :
+lemma corollary_14_small_adm :
     ∀ {x : ℝ}, 2 ≤ x → x ≤ Real.exp 30 →
     (1:ℝ) ≤ admissible_bound 121.0961 (3/2) 2 5.5666305 x := by
   intro x hx hx30
