@@ -274,7 +274,7 @@ theorem table_9_prime_gap (g P : ℕ) (h : (g, P) ∈ table_9) : first_gap_recor
   (proof := /-- Brute force verification. -/)
   (latexEnv := "proposition")
   (discussion := 950)]
-theorem table_9_prime_gap_complete_test (g P : ℕ) (hg : g < 8) (hrecord : first_gap_record g P) : (g, P) ∈ table_9 := by
+theorem table_9_prime_gap_complete_test (g P : ℕ) (hg : g < 8) (hg' : 0 < g) (hrecord : first_gap_record g P) : (g, P) ∈ table_9 := by
   sorry
 
 @[blueprint
@@ -284,7 +284,7 @@ theorem table_9_prime_gap_complete_test (g P : ℕ) (hg : g < 8) (hrecord : firs
   Table 9 contains all first gap records $(g,P)$ with $g < 1346$ -/)
   (proof := /-- Verified by computer.  Unlikely to be formalizable in Lean with current technology, except for the small values of the table. -/)
   (latexEnv := "proposition")]
-theorem table_9_prime_gap_complete (g P : ℕ) (hg : g < 1346) (hrecord : first_gap_record g P) : (g, P) ∈ table_9 := by
+theorem table_9_prime_gap_complete (g P : ℕ) (hg : g < 1346) (hg' : 0 < g) (hrecord : first_gap_record g P) : (g, P) ∈ table_9 := by
   sorry
 
 @[blueprint
