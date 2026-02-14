@@ -1221,6 +1221,13 @@ Hence, again by Lemma \ref{lem:aachmonophase},
 -/)
   (latexEnv := "lemma")
   (discussion := 550)]
+lemma deriv_e {φ : ℝ → ℝ} {t : ℝ} (hφ : DifferentiableAt ℝ φ t) :
+    deriv (fun t ↦ e (φ t)) t = 2 * π * I * deriv φ t * e (φ t) := by
+  simp only [e]
+  apply HasDerivAt.deriv
+  convert (Complex.hasDerivAt_exp _).comp t (hφ.hasDerivAt.ofReal_comp.const_mul (2 * π * I)) using 1
+  ring
+
 theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 0) (a b : ℝ)
     (ha : a > |s.im| / (2 * π * |ν|)) (hb : b > a) :
     let φ : ℝ → ℝ := fun t ↦ ν * t - (s.im / (2 * π)) * Real.log t
@@ -1229,7 +1236,278 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
     ∃ E, ∫ t in Set.Icc a b, t ^ (-s) * e (ν * t) = Φ b - Φ a +
       ((a ^ (-s.re - 1) : ℝ) / (2 * π ^ 2)) * E ∧
       ‖E‖ ≤ s.re / (|ν - ϑ| ^ 2) + |ϑ| / (|ν - ϑ| ^ 3) := by
-  sorry
+  intro φ Φ ϑ
+  rw [lemma_aachIBP s ν hν a b ha hb]
+  dsimp only [φ, Φ]
+
+  let g_1 : ℝ → ℝ := fun t ↦ t ^ (-s.re - 1) / (deriv φ t) ^ 2
+  have g_1_cont : ∀ (top : ℝ), top > a → ContinuousOn g_1 (Set.Icc a top) := by
+    sorry
+  have g_1_integral_bound : ‖∫ t in Set.Icc a b, (t : ℂ) ^ ((-s.re - 1) : ℂ) / (2 * π * I * deriv φ t) * e (φ t)‖ ≤
+    1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2) := sorry
+  let g_2 : ℝ → ℝ := fun t ↦ t ^ (-s.re) * |deriv (deriv φ) t| / |deriv φ t| ^ 3
+  have hg_2_cont : ContinuousOn g_2 (Set.Icc a b) := by
+    sorry
+  have g_2_integral_bound : ‖∫ t in Set.Icc a b, (t : ℂ) ^ (-s.re : ℂ) * (deriv (deriv φ) t) /
+      (2 * π * I * (deriv φ t) ^ 2) * e (φ t)‖ ≤
+    1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3) := by
+    -- First, let's define F explicitly
+    let F : ℝ → ℂ := fun t ↦ e (φ t) / (2 * π * I)
+
+    -- Define g to match the Stieltjes integral form
+    let g : ℝ → ℂ := fun t ↦ t ^ (-s.re : ℂ) * (deriv (deriv φ) t) / ((deriv φ t) ^ 3)
+    -- Show that F' = φ' * e(φ)
+    have hF_deriv : ∀ t ∈ Set.Ioo a b, deriv F t = (deriv φ t) * e (φ t) := by
+      intro t ht
+      simp only [F]
+      rw [deriv_div_const]
+      have h_pos : 0 < t := lt_trans (lt_of_le_of_lt (div_nonneg (abs_nonneg _) (by positivity)) ha) ht.1
+      have hφ_diff : DifferentiableAt ℝ φ t := by
+        unfold φ
+        apply DifferentiableAt.sub (differentiableAt_const .. |>.mul differentiableAt_id)
+        apply DifferentiableAt.mul (differentiableAt_const ..)
+        exact Real.differentiableAt_log h_pos.ne'
+      rw [deriv_e hφ_diff]
+      field_simp [Real.pi_pos.ne', I_ne_zero]
+
+    -- Rewrite 1/(φ')² as 1/(φ')³ · φ'
+    have key_algebra : ∀ t ∈ Set.Ioo a b,
+        (deriv φ t) ≠ 0 →
+        1 / ((deriv φ t) ^ 2) = 1 / ((deriv φ t) ^ 3) * (deriv φ t) := by
+      intro t ht hφ_ne
+      field_simp
+
+    -- Rewrite the integrand
+    have step1_integral_eq :
+      ∫ (t : ℝ) in Set.Icc a b, t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / (2 * ↑π * I * ↑(deriv φ t) ^ 2) * e (φ t) =
+      ∫ (t : ℝ) in Set.Icc a b, g t * deriv F t := by
+      congr 1
+      ext t
+      simp only [g, F]
+      -- Need to prove: deriv φ t ≠ 0 on [a,b]
+      have hφ_ne : deriv φ t ≠ 0 := by sorry
+      calc ↑t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / (2 * ↑π * I * ↑(deriv φ t) ^ 2) * e (φ t)
+          = ↑t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / ↑(deriv φ t) ^ 2 / (2 * ↑π * I) * e (φ t) := by ring
+        _ = ↑t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / ↑(deriv φ t) ^ 3 * ↑(deriv φ t) / (2 * ↑π * I) * e (φ t) := by
+            rw [div_mul_eq_div_div, ← key_algebra t _ hφ_ne]; ring; sorry -- need t ∈ Ioo a b
+        _ = (↑t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / ↑(deriv φ t) ^ 3) * (↑(deriv φ t) * e (φ t)) / (2 * ↑π * I) := by ring
+        _ = (↑t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / ↑(deriv φ t) ^ 3) * deriv F t := by
+            rw [← hF_deriv t _]; ring; sorry -- need t ∈ Ioo a b
+
+    -- Main statement
+    have hg2_antitone : AntitoneOn g_2 (Set.Icc a b) := by sorry
+    let g_real : ℝ → ℝ := fun t ↦ t ^ (-s.re) * (deriv (deriv φ) t) / (deriv φ t) ^ 3
+    -- Show that g_real equals the complex function g as real values
+    have hg_real : ∀ t, (g_real t : ℂ) = g t := by
+      intro t
+      simp only [g_real, g]
+      norm_cast
+
+    have hg_real_cont : ContinuousOn g_real (Set.Icc a b) := by sorry
+
+    -- Show |g_real| = g_2 (which is already known to be antitone)
+    have hg_real_abs : ∀ t ∈ Set.Icc a b, |g_real t| = g_2 t := by sorry
+
+    -- Therefore |g_real| is antitone
+    have hg_real_abs_antitone : AntitoneOn (fun t ↦ |g_real t|) (Set.Icc a b) := by
+      intro x hx y hy hxy
+      rw [hg_real_abs x hx, hg_real_abs y hy]
+      exact hg2_antitone hx hy hxy
+
+    -- Apply lemma_aachra
+    have hTV : BoundedVariationOn g_real (Set.Icc a b) ∧
+              (eVariationOn g_real (Set.Icc a b)).toReal = |g_real a| - |g_real b| := by
+      apply lemma_aachra (by linarith : a < b) g_real hg_real_cont hg_real_abs_antitone
+
+    -- Extract the total variation formula
+    have hTV_formula : (eVariationOn g_real (Set.Icc a b)).toReal = |g_real a| - |g_real b| :=
+      hTV.2
+
+    -- Bound the total variation by g_2(a)
+    have hTV_bound : (eVariationOn g_real (Set.Icc a b)).toReal ≤ g_2 a := by sorry
+
+    -- Define h_real to match the pattern in lemma_aachmonophase
+    have h_real : ℝ → ℝ := fun t ↦ t ^ (-s.re) * deriv (deriv φ) t / (deriv φ t) ^ 2
+    -- Verify that g_real = h_real / φ'
+    have hg_real_def : ∀ t, g_real t = h_real t / deriv φ t := by sorry
+    -- Show h_real is continuous on [a,b]
+    have hh_real_cont : ContinuousOn h_real (Set.Icc a b) := by sorry
+    -- φ is C¹ on [a,b]
+    have hφ_C1 : ContDiffOn ℝ 1 φ (Set.Icc a b) := by sorry
+    -- φ' ≠ 0 on [a,b]
+    have hφ'_ne0 : ∀ t ∈ Set.Icc a b, deriv φ t ≠ 0 := by
+      sorry -- we should have proven this in Step 2
+
+    -- Apply lemma_aachmonophase
+    have integral_bound_real :
+        ‖∫ t in Set.Icc a b, h_real t * e (φ t)‖ ≤ |g_real a| / π := by
+      apply lemma_aachmonophase (by linarith : a < b) φ hφ_C1 hφ'_ne0 h_real g_real
+      · exact hg_real_def
+      · exact hg_real_cont
+      · exact hg_real_abs_antitone
+
+    -- Factor out the 1/(2πi) constant from our original integral
+    have integral_factored :
+        ∫ t in Set.Icc a b, t ^ (-↑s.re : ℂ) * ↑(deriv (deriv φ) t) / (2 * ↑π * I * ↑(deriv φ t) ^ 2) * e (φ t)
+        = (1 : ℂ) / (2 * π * I) * ∫ t in Set.Icc a b, ↑(h_real t) * e (φ t) := by
+      rw [← integral_mul_const]
+      congr 1
+      ext t
+      simp only [h_real]
+      push_cast
+      field_simp
+      ring
+
+    -- Bound the complex integral
+    have step4_bound :
+        ‖∫ t in Set.Icc a b, t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / (2 * ↑π * I * ↑(deriv φ t) ^ 2) * e (φ t)‖
+        ≤ 1 / (2 * π) * (|g_real a| / π) := by
+      rw [integral_factored]
+      rw [Complex.norm_div, Complex.norm_mul]
+      calc ‖(1 : ℂ) / (2 * π * I)‖ * ‖∫ t in Set.Icc a b, ↑(h_real t) * e (φ t)‖
+          = (1 / (2 * π)) * ‖∫ t in Set.Icc a b, ↑(h_real t) * e (φ t)‖ := by
+            congr 1
+            simp [Complex.abs_div, Complex.abs_I, Complex.abs_ofReal]
+            field_simp
+        _ ≤ (1 / (2 * π)) * (|g_real a| / π) := by
+            apply mul_le_mul_of_nonneg_left integral_bound_real
+            linarith [Real.pi_pos]
+        _ = 1 / (2 * π) * (|g_real a| / π) := by ring
+
+    -- Use g_2(a) = |g_real(a)|
+    have step4_final :
+        ‖∫ t in Set.Icc a b, t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / (2 * ↑π * I * ↑(deriv φ t) ^ 2) * e (φ t)‖
+        ≤ 1 / (2 * π) * (g_2 a / π) := by
+      convert step4_bound using 2
+      rw [← hg_real_abs a (by constructor; linarith; linarith)]
+
+    sorry
+  let I1 := ∫ t in Set.Icc a b, (t ^ (-s.re - 1) : ℝ) / (2 * π * I * deriv φ t) * e (φ t)
+  let I2 := ∫ t in Set.Icc a b, (t ^ (-s.re) : ℝ) * (deriv (deriv φ) t) /
+      (2 * π * I * (deriv φ t) ^ 2) * e (φ t)
+  have ha_pos : 0 < a := lt_of_le_of_lt (div_nonneg (abs_nonneg _) (by positivity)) ha
+  have h_bound : 2 * π ^ 2 * (s.re * ‖I1‖ + ‖I2‖) ≤ a ^ (-s.re - 1) * (s.re * |ν - ϑ| + |ϑ|) / |ν - ϑ| ^ 3 := by
+    have h_I1 : ‖I1‖ ≤ 1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2) := by
+      convert g_1_integral_bound using 2
+      refine setIntegral_congr_fun measurableSet_Icc fun t ht ↦ ?_
+      rw [Complex.ofReal_cpow (by linarith [ht.1, ha_pos]), Complex.ofReal_sub, Complex.ofReal_one]
+      ring
+      simp only [Complex.ofReal_neg]; ring
+    have h_I2 : ‖I2‖ ≤ 1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3) := by
+      convert g_2_integral_bound using 2
+      refine setIntegral_congr_fun measurableSet_Icc fun t ht ↦ ?_
+      rw [Complex.ofReal_cpow (by linarith [ht.1, ha_pos])]
+      ring
+      simp only [Complex.ofReal_neg]; ring
+    have h_den_ne0 : |ν - ϑ| ≠ 0 := by
+      intro h
+      have : a = |s.im| / (2 * π * |ν|) := by
+        dsimp [ϑ] at h
+        rw [abs_eq_zero, sub_eq_zero, eq_comm] at h
+        field_simp [ha_pos.ne', Real.pi_pos.ne', hν] at h
+        rw [h]
+        rw [abs_mul, abs_mul, abs_of_pos Real.two_pi_pos, abs_of_pos ha_pos]
+        field_simp
+      linarith
+    calc
+      2 * π ^ 2 * (s.re * ‖I1‖ + ‖I2‖)
+      _ ≤ 2 * π ^ 2 * (s.re * (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2)) +
+          (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3))) := by
+            gcongr
+      _ = (s.re * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2)) + (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3) := by
+            field_simp [Real.pi_pos.ne']
+      _ = a ^ (-s.re - 1) * (s.re / |ν - ϑ| ^ 2 + |ϑ| / |ν - ϑ| ^ 3) := by
+            ring
+      _ = a ^ (-s.re - 1) * (s.re * |ν - ϑ| + |ϑ|) / |ν - ϑ| ^ 3 := by
+            field_simp [h_den_ne0]
+
+  abel
+  simp only [add_left_cancel_iff]
+  refine ⟨(2 * π ^ 2 * a ^ (s.re + 1 : ℂ)) * (s.re * I1 + I2), ?_, ?_⟩
+  · abel
+    field_simp [I1, I2]
+    rw [Complex.ofReal_cpow ha_pos.le, ← Complex.cpow_add _ _ (ofReal_ne_zero.mpr (ne_of_gt ha_pos))]
+    ring_nf
+    have : 1 + (s.re : ℂ) + ↑(-1 - s.re) = 0 := by push_cast; ring
+    rw [this, Complex.cpow_zero]
+    simp only [mul_one]
+    congr 1
+    · simp only [I1]
+      congr
+      rw [show (fun t ↦ ν * t + s.im * π⁻¹ * Real.log t * (-1 / 2)) = φ by ext; dsimp [φ]; ring]
+      ext x
+      ring; -- simp
+      simp only [mul_assoc]
+      congr 1
+      -- have hderivφx : deriv φ x ≠ 0 := by
+        -- sorry
+      by_cases hx_icc : x ∈ Set.Icc a b
+      · have h_exp : ν * x + s.im * (Real.log x * (π⁻¹ * (-1 / 2))) = φ x := by
+          unfold φ
+          ring
+        rw [h_exp]
+        ring
+      · -- Step 1: Unfold the definition of φ to simplify the exponent
+        simp only [φ]
+        ring_nf
+    · -- Step 1: Simplify 1 * I2 to I2
+      rw [one_mul]
+
+      -- Step 2: The key is showing the integrands are equal
+      -- We need to prove the two integral expressions are the same
+      congr 1
+
+      -- Step 3: Reduce to pointwise equality of the integrands
+      ext t
+
+      -- Step 4: Convert division to multiplication by inverse for easier manipulation
+      simp only [div_eq_mul_inv, pow_two, mul_inv]
+
+      -- Step 5: Use commutativity and associativity to rearrange terms
+      rw [mul_comm, mul_assoc, mul_left_comm]
+
+      -- Step 6: Let ring solve the algebraic equality
+      ring_nf
+      -- Step 1: Prove the anonymous function equals φ
+      have h_fun : (fun t ↦ ν * t + s.im * π⁻¹ * Real.log t * (-1 / 2)) = φ := by
+        ext x
+        simp only [φ, div_eq_mul_inv]
+        ring
+
+      -- Step 2: Rewrite all occurrences using this equality
+      simp only [h_fun]
+      field_simp
+      congr;
+      unfold φ
+      field_simp; ring
+  · calc
+    ‖2 * ↑π ^ 2 * (a : ℂ) ^ ((s.re : ℂ) + 1) * (↑s.re * I1 + I2)‖
+      = (2 * π ^ 2 * a ^ (s.re + 1)) * ‖↑s.re * I1 + I2‖ := by
+        rw [norm_mul]
+        congr
+        simp only [Complex.norm_mul, Complex.norm_ofNat, norm_pow, norm_real, norm_eq_abs, sq_abs,
+          mul_eq_mul_left_iff, mul_eq_zero, OfNat.ofNat_ne_zero, ne_eq, not_false_eq_true,
+          pow_eq_zero_iff, pi_ne_zero, or_self, or_false]
+        rw [Complex.norm_cpow_eq_rpow_re_of_pos]
+        · simp
+        · exact lt_of_le_of_lt (div_nonneg (abs_nonneg _) (by positivity)) ha
+    _ ≤ (2 * π ^ 2 * a ^ (s.re + 1)) * ((s.re : ℝ) * ‖I1‖ + ‖I2‖) := by
+      field_simp
+      refine (norm_add_le _ _).trans ?_
+      simp [abs_of_nonneg hsigma]
+    _ ≤ (2 * π ^ 2 * a ^ (s.re + 1)) * (s.re * (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2))
+          + (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3))) := by
+      field_simp
+      exact h_bound
+    _ = s.re / |ν - ϑ| ^ 2 + |ϑ| / |ν - ϑ| ^ 3 := by
+      field_simp
+      rw [← Real.rpow_add ha_pos]
+      ring_nf
+      rw [Real.rpow_zero]
+      ring
+    _ = s.re / |ν + -1 • ϑ| ^ 2 + |ϑ| / |ν + -1 • ϑ| ^ 3 := by
+      simp only [sq_abs, Int.reduceNeg, neg_smul, one_smul]
+      ring
 
 def _root_.Real.IsHalfInteger (x : ℝ) : Prop := ∃ k : ℤ, x = k + 1 / 2
 
