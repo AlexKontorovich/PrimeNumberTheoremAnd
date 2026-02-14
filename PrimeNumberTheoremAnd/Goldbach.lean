@@ -69,7 +69,7 @@ theorem even_to_odd_goldbach (x₀ H Δ : ℕ) -- may need some lower bounds on 
 @[blueprint
   "richstein-even-goldbach"
   (title := "Richstein's verification of even Goldbach")
-  (statement := /--
+  (statement := /-- \cite{richstein}
   The even Goldbach conjecture is verified up to $4 \times 10^{14}$. -/)
   (proof := /-- Numerical verification. -/)
   (latexEnv := "proposition")]
@@ -78,7 +78,7 @@ theorem richstein_goldbach : even_conjecture (4 * 10 ^ 14) := by sorry
 @[blueprint
   "ramare-saouter-odd-goldbach"
   (title := "Ramaré and Saouter's verification of odd Goldbach")
-  (statement := /--
+  (statement := /-- \cite[Corollary 1]{ramare-saouter}
   The odd Goldbach conjecture is verified up to $1.13256 \times 10^{22}$. -/)
   (proof := /-- Combine Proposition \ref{richstein-even-goldbach}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:ramare-saouter2003}. -/)
   (latexEnv := "proposition")]
