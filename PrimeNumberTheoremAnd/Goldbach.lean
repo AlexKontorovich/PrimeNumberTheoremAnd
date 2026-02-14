@@ -117,7 +117,7 @@ theorem e_silva_herzog_piranian_goldbach_ext : even_conjecture (4 * 10 ^ 18 + 4)
   (title := "Kadiri--Lumley's verification of odd Goldbach for small $n$")
   (statement := /-- \cite[Corollary 1.2]{kadiri-lumley}
   The odd Goldbach conjecture is verified up to $1966196911 \times 4 \times 10^{18}$. -/)
-  (proof := /-- Combine Proposition \ref{e-silva-herzog-piranian-even-goldbach-ext}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:prime_gaps_KL} with $x₀ = e^{60}$ and $\Delta = 1966090061$. -/)
+  (proof := /-- Combine Proposition \ref{e-silva-herzog-piranian-even-goldbach-ext}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:prime_gaps_KL} with $x_0 = e^{60}$ and $\Delta = 1966090061$. -/)
   (latexEnv := "proposition")]
 theorem kadiri_lumley_odd_goldbach_finite : odd_conjecture (1966196911 * 4 * 10 ^ 18) := by sorry
 
