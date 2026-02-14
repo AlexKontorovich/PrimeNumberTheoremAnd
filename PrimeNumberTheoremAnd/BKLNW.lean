@@ -848,17 +848,141 @@ The function in brackets decreases for $x \geq e^{x_0}$ with $x_0 \geq 1000$ (as
  -/)
   (latexEnv := "corollary")
   (discussion := 855)]
-theorem cor_14_1 {A B C R x₀ : ℝ} (hx₀ : x₀ ≥ 1000)
-    (hEψ : Eψ.classicalBound A B C R x₀)
-    (hA : A > 0)
-    (hB : B ∈ Set.Icc (3 / 2) (7 / 4))
-    (hC : C ∈ Set.Icc (2 / 3) 2)
-    (hR : R ∈ Set.Icc 1 10) -- some plausible placeholder (and mild) hypotheses on B,C,R here, consistent with actual values.  Feel free to adjust as needed
-    :
-    let A' := A * (1 + (1 / A) * (R / x₀) ^ B * exp (C * sqrt (x₀ / R)) *
+theorem cor_14_1 {A B C R x₀ : ℝ} (hB : B > 0) (hC : C ∈ Set.Ioc 0 (sqrt (R * x₀))) (hR : R ∈ Set.Icc 1 10)
+    (hx₀ : x₀ ≥ 1000)
+    (hEψ : Eψ.classicalBound A B C R (exp x₀)) :
+    let A' := (A + (R / x₀) ^ B * exp (C * sqrt (x₀ / R)) *
       (a₁ x₀ * exp (-x₀ / 2) + a₂ x₀ * exp (-2 * x₀ / 3)))
-    Eθ.classicalBound A' B C R x₀ := by
-      sorry
+    Eθ.classicalBound A' B C R (exp x₀) := by
+      unfold Eθ.classicalBound Eθ
+      intro A' x hx
+      have hR_gt_zero : 0 < R := by
+        linarith [Set.mem_Icc.1 hR]
+      have hx_gt_zero : 0 < x := by
+        exact (lt_of_lt_of_le (exp_pos x₀) hx)
+      have hlog_pos {y : ℝ} (hy : y ≥ exp x₀) : log y > 1 := by
+       exact lt_of_lt_of_le ( by norm_num; linarith ) ( Real.log_le_log ( by positivity ) hy )
+      have ha₁_pos : a₁ x₀ ≥ 0 := by
+          unfold a₁
+          unfold Inputs.a₁
+          split_ifs
+          · have : 0 < log Inputs.default.x₁ := by linarith [Inputs.default.hx₁]
+            linarith [Inputs.default.epsilon_nonneg this.le]
+          · have : 0 < x₀ / 2 := by linarith
+            linarith [Inputs.default.epsilon_nonneg this.le]
+      have ha₂_pos : a₂ x₀ ≥ 0 := by
+        unfold a₂
+        unfold Inputs.a₂
+        have hf_pos (x : ℝ) (hx : x ≥ 0) : f x ≥ 0 := by
+          unfold f
+          apply sum_nonneg
+          intro n hn
+          apply rpow_nonneg hx
+        have hα_pos : 0 < Inputs.default.α := by
+          apply mul_pos <;> norm_num
+        exact mul_nonneg (by linarith) (by exact le_max_iff.mpr (Or.inl (hf_pos (exp x₀) (exp_nonneg _))))
+      let F := fun x => (A + (a₁ x₀ * exp (C * (log x / R) ^ ((1/2) : ℝ))) / (x ^ ((1/2) : ℝ) * (log x / R) ^ B) + (a₂ x₀ * exp (C * (log x / R) ^ ((1/2) : ℝ))) / (x ^ ((2/3) : ℝ) * (log x / R) ^ B))
+      have hF_antitone : AntitoneOn F (Set.Ici (exp x₀)) := by
+        let L : ℝ → ℝ := fun x => log x / R
+        let g (α : ℝ) : ℝ → ℝ := fun x => rexp (C * (L x) ^ (1/2:ℝ)) / (x^α * (L x)^B)
+        have g_diff (α : ℝ) : DifferentiableOn ℝ (g α) (Set.Ioi 1) := by
+          refine DifferentiableOn.div ?_ ?_ ?_;
+          · refine DifferentiableOn.exp ( DifferentiableOn.const_mul ?_ _ );
+            exact DifferentiableOn.rpow ( DifferentiableOn.div_const ( differentiableOn_id.log fun x hx => ne_of_gt <| lt_trans zero_lt_one hx ) _ ) ( differentiableOn_const _ ) ( fun x hx => ne_of_gt <| div_pos ( Real.log_pos hx ) hR_gt_zero );
+          · refine DifferentiableOn.mul ?_ ?_;
+            · exact DifferentiableOn.rpow differentiableOn_id ( differentiableOn_const _ ) ( by intro x hx; linarith [ hx.out ] );
+            · refine DifferentiableOn.rpow ?_ ?_ ?_;
+              · exact DifferentiableOn.div_const ( differentiableOn_id.log fun x hx => ne_of_gt <| lt_trans zero_lt_one hx ) _;
+              · exact differentiableOn_const _;
+              · exact fun x hx => ne_of_gt ( div_pos ( Real.log_pos hx ) hR_gt_zero );
+          · exact fun x hx => mul_ne_zero ( ne_of_gt ( Real.rpow_pos_of_pos ( zero_lt_one.trans hx ) _ ) ) ( ne_of_gt ( Real.rpow_pos_of_pos ( div_pos ( Real.log_pos hx ) hR_gt_zero ) _ ) )
+        have deriv_g_eq (α x : ℝ) (hx : 1 < x) :
+          deriv (g α) x = (g α) x / x * (C / (2 * sqrt (R * log x)) - α - B / log x) := by
+          convert HasDerivAt.deriv ( HasDerivAt.div ( HasDerivAt.exp ( HasDerivAt.const_mul ( C : ℝ ) ( HasDerivAt.rpow_const ( HasDerivAt.div_const ( Real.hasDerivAt_log ( by positivity ) ) R ) ?_ ) ) ) ( HasDerivAt.mul ( HasDerivAt.rpow_const ( hasDerivAt_id' x ) ?_ ) ( HasDerivAt.rpow_const ( HasDerivAt.div_const ( Real.hasDerivAt_log ( by positivity ) ) R ) ?_ ) ) ?_ ) using 1 <;> norm_num <;> ring_nf <;> norm_num [ Real.rpow_natCast, show x ≠ 0 by positivity, show x ^ α ≠ 0 by positivity, show ( Real.log x ) ≠ 0 by exact ne_of_gt ( Real.log_pos hx ), show R ≠ 0 by positivity ];
+          · unfold g; norm_num [ Real.rpow_add ( show 0 < Real.log x * R⁻¹ from mul_pos ( Real.log_pos hx ) ( inv_pos.mpr hR_gt_zero ) ), Real.rpow_neg ( show 0 ≤ Real.log x * R⁻¹ from mul_nonneg ( Real.log_nonneg hx.le ) ( inv_nonneg.mpr hR_gt_zero.le ) ) ] ; ring_nf;
+            unfold L; norm_num [ Real.rpow_add ( show 0 < x by positivity ), Real.rpow_neg_one, Real.rpow_neg ( show 0 ≤ Real.log x * R⁻¹ by exact mul_nonneg ( Real.log_nonneg hx.le ) ( inv_nonneg.mpr hR_gt_zero.le ) ) ] ; ring_nf;
+            rw [ ← Real.sqrt_eq_rpow ] ; norm_num [ Real.sqrt_mul ( show 0 ≤ Real.log x by exact Real.log_nonneg hx.le ), Real.sqrt_mul ( show 0 ≤ R by positivity ), hR_gt_zero.ne', ne_of_gt ( Real.rpow_pos_of_pos ( show 0 < Real.log x * R⁻¹ by exact mul_pos ( Real.log_pos hx ) ( inv_pos.mpr hR_gt_zero ) ) _ ), ne_of_gt ( Real.rpow_pos_of_pos ( show 0 < x by positivity ) _ ) ] ; ring_nf;
+            grind;
+          · constructor <;> linarith;
+          · exact Or.inl ⟨ by linarith, by linarith ⟩;
+          · exact ne_of_gt ( Real.rpow_pos_of_pos ( mul_pos ( Real.log_pos hx ) ( inv_pos.mpr hR_gt_zero ) ) _ )
+        have g_antitoneOn (α : ℝ) (hα : 0 < α) (hx₀ : 0 < x₀) (h_cond : C / (2 * sqrt (R * x₀)) ≤ α) :
+          AntitoneOn (g α) (Set.Ici (exp x₀)) := by
+          have h_deriv_neg : ∀ x : ℝ, Real.exp x₀ ≤ x → deriv (g α) x ≤ 0 := by
+            intro x hx
+            have h_deriv : deriv (g α) x = (g α) x / x * (C / (2 * sqrt (R * log x)) - α - B / log x) := by
+              convert deriv_g_eq α x ( by linarith [show 1 < exp x₀ by simpa [exp, Real.exp_zero] using (Real.exp_lt_exp.mpr hx₀) ] ) using 1;
+            refine h_deriv ▸ mul_nonpos_of_nonneg_of_nonpos ?_ ?_;
+            · exact div_nonneg ( div_nonneg ( Real.exp_nonneg _ ) ( mul_nonneg ( Real.rpow_nonneg ( by linarith [ Real.exp_pos x₀ ] ) _ ) ( Real.rpow_nonneg ( div_nonneg ( Real.log_nonneg ( by linarith [ Real.add_one_le_exp x₀ ] ) ) hR_gt_zero.le ) _ ) ) ) ( by linarith [ Real.exp_pos x₀ ] );
+            · refine sub_nonpos_of_le ?_;
+              refine le_trans ( sub_nonpos_of_le ?_ ) ( div_nonneg hB.le ( Real.log_nonneg <| by linarith [ Real.add_one_le_exp x₀ ] ) );
+              exact le_trans ( div_le_div_of_nonneg_left ( by exact (Set.mem_Ioc.mp hC).1.le ) ( by positivity ) ( mul_le_mul_of_nonneg_left ( Real.sqrt_le_sqrt <| mul_le_mul_of_nonneg_left ( show Real.log x ≥ x₀ by rw [ ge_iff_le ] ; rw [ Real.le_log_iff_exp_le ] <;> linarith [ Real.exp_pos x₀ ] ) <| by positivity ) <| by positivity ) ) h_cond;
+          apply_rules [ antitoneOn_of_deriv_nonpos ];
+          · exact convex_Ici _;
+          · refine ContinuousOn.div ?_ ?_ ?_ <;> norm_num [ Real.exp_pos _, hR_gt_zero.ne', (Set.mem_Ioc.mp hC).1.ne', hα.ne', hB.ne' ];
+            · exact ContinuousOn.rexp ( ContinuousOn.mul continuousOn_const <| ContinuousOn.rpow ( ContinuousOn.div_const ( Real.continuousOn_log.mono <| by intro x hx; exact ne_of_gt <| lt_of_lt_of_le ( by positivity ) hx ) _ ) continuousOn_const <| by norm_num );
+            · refine ContinuousOn.mul ( continuousOn_id.rpow_const ?_ ) ?_;
+              · exact fun x hx => Or.inl <| ne_of_gt <| lt_of_lt_of_le ( by positivity ) hx;
+              · exact ContinuousOn.rpow ( ContinuousOn.div_const ( Real.continuousOn_log.mono <| by intro x hx; exact ne_of_gt <| lt_of_lt_of_le ( by positivity ) hx ) _ ) continuousOn_const <| by intro x hx; exact Or.inr <| by positivity;
+            · exact fun x hx => ⟨ ne_of_gt ( Real.rpow_pos_of_pos ( by linarith [ Real.exp_pos x₀ ] ) _ ), ne_of_gt ( Real.rpow_pos_of_pos ( div_pos ( Real.log_pos ( by linarith [ Real.add_one_le_exp x₀ ] ) ) hR_gt_zero ) _ ) ⟩;
+          · exact DifferentiableOn.mono (g_diff α) ( by intro x hx; exact Set.mem_Ioi.mpr <| lt_of_lt_of_le ( by norm_num; positivity ) <| interior_subset hx );
+          · exact fun x hx => h_deriv_neg x <| interior_subset hx
+        have hF_g: F = fun x => A + a₁ x₀ * g (1/2) x + a₂ x₀ * g (2/3) x := by
+          simp [F, g, L, div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm]
+        rw [hF_g]
+        have h_linear_combination_antitone : AntitoneOn (fun x => a₁ x₀ * g (1 / 2 : ℝ) x + a₂ x₀ * g  (2 / 3 : ℝ) x) (Set.Ici (Real.exp x₀)) := by
+          have hc_bound : C / (2 * sqrt (R * x₀)) ≤ 1 / 2 := by
+            have hs : (0 : ℝ) < Real.sqrt (R * x₀) := lt_of_lt_of_le hC.1 hC.2
+            have hs0 : Real.sqrt (R * x₀) ≠ 0 := ne_of_gt hs
+            have hden : (0 : ℝ) ≤ 2 * Real.sqrt (R * x₀) := mul_nonneg (by norm_num) (Real.sqrt_nonneg (R * x₀))
+            refine (le_trans (div_le_div_of_nonneg_right hC.2 hden) ?_)
+            field_simp [hs0]
+            rfl
+          exact fun x hx y hy hxy => add_le_add ( mul_le_mul_of_nonneg_left ((g_antitoneOn (1/2) (by linarith) (by linarith) (by linarith)) hx hy hxy) ha₁_pos) (mul_le_mul_of_nonneg_left ((g_antitoneOn (2/3) (by linarith) (by linarith) (by linarith)) hx hy hxy) ha₂_pos );
+        convert h_linear_combination_antitone.add_const A using 1 ; ring_nf;
+      have hle: |θ x - x| / x ≤ (log x / R) ^ B * exp (-C * (log x / R) ^ ((1 / 2) : ℝ)) * F (exp x₀) := by
+        calc
+          _ ≤ |ψ x - x| / x + |θ x - ψ x| / x := by
+            conv_lhs => enter[1]; rw [show θ x - x = (ψ x - x) + (θ x - ψ x) by ring]
+            have htri :|(ψ x - x) + (θ x - ψ x)| ≤ |ψ x - x| + |θ x - ψ x| := by
+              exact abs_add_le (ψ x - x) (θ x - ψ x)
+            simpa [add_assoc, add_div] using (div_le_div_of_nonneg_right htri (by linarith))
+          _ ≤ A * (log x / R) ^ B * exp (-C * (log x / R) ^ ((1 / 2) : ℝ)) + a₁ x₀ * x ^ ((-1 / 2) : ℝ) + a₂ x₀ * x ^ ((-2 / 3) : ℝ) := by
+            have hθψ : |θ x - ψ x| / x ≤ a₁ x₀ * x ^ (-(1 / 2) : ℝ) + a₂ x₀ * x ^ (-(2 / 3) : ℝ) := by
+              have hcor_5_1 : |θ x - ψ x| / x ≤ (a₁ x₀ * x ^ ((1 / 2) : ℝ) + a₂ x₀ * x ^ ((1 / 3) : ℝ)) / x := by
+                refine div_le_div_of_nonneg_right ?_ hx_gt_zero.le
+                · rw [abs_sub_comm, abs_of_nonneg (show 0 ≤ ψ x - θ x by linarith [theta_le_psi x])]
+                  exact (cor_5_1 (show x₀ ≥ 7 by linarith) hx)
+              rw [add_div, mul_div_assoc, mul_div_assoc] at hcor_5_1;
+              nth_rw 5 [show (x : ℝ) = x ^ (1 : ℝ) from (rpow_one x).symm] at hcor_5_1; nth_rw 7 [show (x : ℝ) = x ^ (1 : ℝ) from (rpow_one x).symm] at hcor_5_1
+              rw [← rpow_sub hx_gt_zero, ← rpow_sub hx_gt_zero] at hcor_5_1
+              norm_num at hcor_5_1
+              exact hcor_5_1
+            have hψ : |ψ x - x| / x ≤ A * (log x / R) ^ B * exp (-C * (log x / R) ^ ((1 / 2) : ℝ)) := by
+              exact hEψ x hx
+            linarith
+          _ = (log x / R) ^ B * exp (-C * (log x / R) ^ ((1 / 2) : ℝ)) * F x := by
+            unfold F
+            rw [mul_add, mul_add, mul_assoc ((log x / R) ^ B) (rexp _) ((a₁ x₀ * rexp _ / (x ^ (1 / 2) * (log x / R) ^ B)))]
+            rw [mul_comm (a₁ x₀) (rexp _), mul_comm (a₂ x₀) (rexp _), ← mul_div_assoc, ← mul_assoc, ← exp_add]
+            rw [mul_assoc ((log x / R) ^ B) (rexp _) (rexp _ * a₂ x₀ / _), mul_div_assoc (rexp _) (a₂ x₀), ← mul_assoc (rexp _) (rexp _), ← exp_add, mul_div_assoc, div_eq_mul_inv (a₁ x₀), div_eq_mul_inv (a₂ x₀), mul_inv, mul_inv]
+            simp only [one_div, neg_mul, neg_add_cancel, exp_zero, one_mul]
+            rw [mul_comm (x ^ 2⁻¹)⁻¹, mul_left_comm, ← mul_assoc ((log x / R) ^ B), mul_comm ((x ^ (2 / 3))⁻¹), ← mul_assoc (a₂ x₀), mul_comm (a₂ x₀) ((log x / R) ^ B)⁻¹, mul_assoc ((log x / R) ^ B)⁻¹, ← mul_assoc ((log x / R) ^ B)]
+            rw [mul_inv_cancel₀ (show (log x / R) ^ B ≠ 0 by exact (rpow_ne_zero (show log x / R > 0 by exact (div_pos (by linarith [hlog_pos hx]) (by linarith))).le (by linarith)).mpr (show log x / R ≠ 0 by exact (div_ne_zero (by linarith [hlog_pos hx]) (by linarith [hR_gt_zero]))))]
+            norm_num; simp only [mul_assoc, mul_comm]
+            rw [rpow_neg hx_gt_zero.le, rpow_neg hx_gt_zero.le]
+          _ ≤ (log x / R) ^ B * exp (-C * (log x / R) ^ ((1 / 2) : ℝ)) * F (exp x₀) := by
+            apply mul_le_mul_of_nonneg_left (hF_antitone (show (exp x₀) ∈ Set.Ici (exp x₀) by simp) (show x ∈ Set.Ici (exp x₀) by exact hx) hx) (show 0 ≤ (log x / R) ^ B * exp (_) by exact (mul_nonneg (rpow_nonneg (div_nonneg (by linarith [hlog_pos hx]) (by linarith)) B) (exp_nonneg (_))) )
+      have heq : A' = F (exp x₀) := by
+        unfold A' F
+        rw [log_exp, mul_comm (a₁ x₀) (rexp (_)), mul_comm (a₂ x₀) (rexp (C * (x₀ / R) ^ (1 / 2))), mul_div_assoc (rexp (C * (x₀ / R) ^ (1 / 2))), mul_comm (a₁ x₀), mul_div_assoc (rexp (C * (x₀ / R) ^ (1 / 2))), add_assoc, ← mul_add]
+        rw [div_eq_mul_inv (a₁ x₀), div_eq_mul_inv (a₂ x₀), mul_inv (rexp x₀ ^ (2 / 3)) ((x₀ / R) ^ B), mul_inv (rexp x₀ ^ (1 / 2)) ((x₀ / R) ^ B)]
+        rw [← exp_mul, ← exp_mul, ← exp_neg, ← exp_neg, ← inv_rpow, inv_div, sqrt_eq_rpow]
+        · ring_nf
+        · exact (div_pos (by linarith) (by linarith)).le
+      rw [← heq, mul_comm] at hle
+      unfold admissible_bound
+      exact (by simpa [mul_assoc] using hle)
 
 blueprint_comment /--
 \subsection{Bounding theta(x)-x with a logarithmic decay, II: medium x}

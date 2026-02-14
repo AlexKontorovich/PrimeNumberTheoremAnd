@@ -180,11 +180,13 @@ lemma Eθ.numericalBound.hasPrimeInInterval {x₀ x h : ℝ} {ε : ℝ → ℝ} 
   (proof := /-- Apply Lemma \ref{etheta-num-pi} and Lemma \ref{classical-to-numeric}. -/)
   (latexEnv := "lemma")
   (discussion := 909)]
-lemma Eθ.classicalBound.hasPrimeInInterval {x₀ x h A B C R : ℝ} (hEθ : Eθ.classicalBound x₀ A B C R)
+lemma Eθ.classicalBound.hasPrimeInInterval {x₀ x h A B C R : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
   (hA : 0 < A) (hB : 0 < B) (hC : 0 < C) (hR : 0 < R) (hh : 0 < h) (hx : x₀ ≤ x) (hx' : x ≥ exp (R * (2 * B / C) ^ 2))
   (hb : (2 * x + h) * (admissible_bound A B C R x) < h) :
     HasPrimeInInterval x h := by
-  sorry
+  have : Eθ.numericalBound x _ := Eθ.classicalBound.to_numericalBound A B C R x₀ x hA hB hC hR hEθ (max_le hx hx')
+  have hx_pos : x > 0 := lt_of_lt_of_le (exp_pos _) hx'
+  exact Eθ.numericalBound.hasPrimeInInterval this hh (le_refl _) hx_pos hb
 
 @[blueprint
   "prime-gap-record-interval"
