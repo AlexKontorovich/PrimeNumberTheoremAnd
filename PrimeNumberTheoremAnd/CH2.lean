@@ -401,7 +401,7 @@ where $\psi(x)$ is the Chebyshev function.
   (proof := /-- TBD. -/)
   (latexEnv := "corollary")]
 theorem cor_1_3_a (x : ℝ) (hx : 1 ≤ x) :
-    |ψ x - x| ≤ π * 3 * 10 ^ (-12) * x + 113.67 * sqrt x := by sorry
+    |ψ x - x| ≤ π * 3 * 10 ^ (-12 : ℝ) * x + 113.67 * sqrt x := by sorry
 
 @[blueprint
   "CH2-cor-1-3-b"
@@ -414,6 +414,6 @@ $$ \sum_{n \leq x} \frac{\Lambda(n)}{n^{-(\log x - \gamma)}} = \log x - \gamma +
   (latexEnv := "corollary")]
 theorem cor_1_3_b (x : ℝ) (hx : 1 ≤ x) : ∃ E,
     ∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / (n:ℝ) ^ (-(log x - eulerMascheroniConstant)) =
-      log x - eulerMascheroniConstant + E ∧ |E| ≤ π * sqrt 3 * 10 ^ (-12) + 113.67 / x := by sorry
+      log x - eulerMascheroniConstant + E ∧ |E| ≤ π * sqrt 3 * 10 ^ (-12 : ℝ) + 113.67 / x := by sorry
 
 end CH2

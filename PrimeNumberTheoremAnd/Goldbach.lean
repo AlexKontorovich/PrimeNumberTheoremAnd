@@ -1,0 +1,89 @@
+import PrimeNumberTheoremAnd.Defs
+
+
+blueprint_comment /--
+\section{Numerical verification of Goldbach}\label{goldbach-sec}
+
+We record here a simple way to convert prime in short interval theorems, together with numerical verification of even Goldbach, to numerical verification of odd Goldbach.
+
+-/
+
+namespace Goldbach
+
+@[blueprint
+  "even-goldbach"
+  (title := "Even Goldbach conjecture up to a given height")
+  (statement := /--
+  We say that the even Goldbach conjecture is verified up to height $H$ if every even integer between $4$ and $H$ is the sum of two primes. -/)]
+def even_conjecture (H : ℕ) : Prop :=
+  ∀ n ∈ Finset.Icc 4 H, ∃ p q : ℕ, Prime p ∧ Prime q ∧ n = p + q
+
+lemma even_conjecture_mono (H H' : ℕ) (h : even_conjecture H) (hh : H' ≤ H) : even_conjecture H' := by
+  intro n hn; apply h; grind
+
+@[blueprint
+  "even-goldbach-test"
+  (title := "Even Goldbach conjecture - unit test")
+  (statement := /--
+  The even Goldbach conjecture is verified up to height 30. -/)
+  (proof := /-- This is a simple unit test, which can be verified by hand. -/)
+  (latexEnv := "proposition")]
+theorem even_goldbach_test : even_conjecture 30 := by
+  sorry
+
+@[blueprint
+  "odd-goldbach"
+  (title := "Odd Goldbach conjecture up to a given height")
+  (statement := /--
+  We say that the odd Goldbach conjecture is verified up to height $H$ if every odd integer between $5$ and $H$ is the sum of three primes. -/)]
+def odd_conjecture (H : ℕ) : Prop :=
+  ∀ n ∈ Finset.Icc 5 H, ∃ p q r : ℕ, Prime p ∧ Prime q ∧ Prime r ∧ n = p + q + r
+
+lemma odd_conjecture_mono (H H' : ℕ) (h : odd_conjecture H) (hh : H' ≤ H) : odd_conjecture H' := by
+  intro n hn; apply h; grind
+
+@[blueprint
+  "even-to-odd-goldbach-triv"
+  (title := "Even Goldbach implies odd Goldbach")
+  (statement := /--
+  If the even Goldbach conjecture is verified up to height $H$, then the odd Goldbach conjecture is verified up to height $H+3$. -/)
+  (proof := /-- If $n$ is an odd integer between $5$ and $H+3$, then $n-3$ is an even integer between $4$ and $H$, so we can write $n-3 = p + q$ for some primes $p$ and $q$, and hence $n = p + q + 3$. -/)
+  (latexEnv := "proposition")]
+theorem even_to_odd_goldbach_triv (H : ℕ) (h : even_conjecture H) : odd_conjecture (H + 3) := by sorry
+
+theorem odd_goldbach_test : odd_conjecture 33 := even_to_odd_goldbach_triv 30 even_goldbach_test
+
+@[blueprint
+  "even-to-odd-goldbach"
+  (title := "Even Goldbach plus PNT in short interval implies odd Goldbach")
+  (statement := /--
+  If every interval $(x(1-1/\Delta), x]$ contains a prime for $x \geq x_0$, the even Goldbach conjecture is verified up to height $H$, and the odd Goldbach conjecture is verified up to height $x_0+4$, then the odd Goldbach conjecture is verified up to height $(H-4)\Delta + 4$. -/)
+  (proof := /-- If $x \leq x_0+4$ then we are done by hypothesis, so assume $x_0+4 < x \leq H\Delta$.  By hypothesis, there is a prime $p$ with $(x-4)(1-1/\Delta) < p \leq x-4$.  Then $x-p$ is even, at least $4$, and at most $(x-4)/\Delta + 4 \leq H$, so is the sum of two primes, giving the claim. -/)
+  (latexEnv := "proposition")]
+theorem even_to_odd_goldbach (x₀ H Δ : ℕ) -- may need some lower bounds on these parameters
+  (hprime : ∀ x ≥ x₀, HasPrimeInInterval (x * (1 - 1 / Δ)) (x / Δ))
+  (heven : even_conjecture H)
+  (hodd : odd_conjecture (x₀ + 4)) :
+  odd_conjecture ((H - 4) * Δ + 4) := by sorry
+
+@[blueprint
+  "richstein-even-goldbach"
+  (title := "Richstein's verification of even Goldbach")
+  (statement := /--
+  The even Goldbach conjecture is verified up to $4 \times 10^{14}$. -/)
+  (proof := /-- Numerical verification. -/)
+  (latexEnv := "proposition")]
+theorem richstein_goldbach : even_conjecture (4 * 10 ^ 14) := by sorry
+
+@[blueprint
+  "ramare-saouter-odd-goldbach"
+  (title := "Ramaré and Saouter's verification of odd Goldbach")
+  (statement := /--
+  The odd Goldbach conjecture is verified up to $1.13256 \times 10^{22}$. -/)
+  (proof := /-- Combine Proposition \ref{richstein-even-goldbach}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:ramare-saouter2003}. -/)
+  (latexEnv := "proposition")]
+theorem ramare_saouter_odd_goldbach : odd_conjecture (113256 * 10 ^ 18) := by sorry
+
+
+
+end Goldbach
