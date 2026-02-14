@@ -390,32 +390,30 @@ theorem cor_1_2_b {T x : ℝ} (hT : 1e7 ≤ T) (RH : riemannZeta.RH_up_to T) (hx
     ∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / (n:ℝ) ^ (-(log x - eulerMascheroniConstant)) ≤
       π * sqrt T⁻¹ + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) / x := by sorry
 
-/- Corollary 1.3. For any x ≥ 1, |ψ(x) − x| ≤ π 3 · 1012 · x +113.67√x, n≤x Λ(n) n =logx−γ+O∗ π √ 3 · 1012 + 113.67 x . -/
-
 @[blueprint
   "CH2-cor-1-3-a"
   (title := "Corollary 1.3, part a")
   (statement := /--
 For $x \geq 1$,
-$$|\psi(x) - x| \leq \pi \cdot 3 \cdot 10^{12} \cdot x + 113.67 \sqrt{x},$$
+$$|\psi(x) - x| \leq \pi \cdot 3 \cdot 10^{-12} \cdot x + 113.67 \sqrt{x},$$
 where $\psi(x)$ is the Chebyshev function.
   -/)
   (proof := /-- TBD. -/)
   (latexEnv := "corollary")]
 theorem cor_1_3_a (x : ℝ) (hx : 1 ≤ x) :
-    |ψ x - x| ≤ π * 3 * 10 ^ 12 * x + 113.67 * sqrt x := by sorry
+    |ψ x - x| ≤ π * 3 * 10 ^ (-12) * x + 113.67 * sqrt x := by sorry
 
 @[blueprint
   "CH2-cor-1-3-b"
   (title := "Corollary 1.3, part b")
   (statement := /--
 For $x \geq 1$,
-$$ \sum_{n \leq x} \frac{\Lambda(n)}{n^{-(\log x - \gamma)}} = \log x - \gamma + O^*(\pi \cdot \sqrt{3} \cdot 10^{12} + 113.67 / x).$$
+$$ \sum_{n \leq x} \frac{\Lambda(n)}{n^{-(\log x - \gamma)}} = \log x - \gamma + O^*(\pi \cdot \sqrt{3} \cdot 10^{-12} + 113.67 / x).$$
   -/)
   (proof := /-- TBD. -/)
   (latexEnv := "corollary")]
 theorem cor_1_3_b (x : ℝ) (hx : 1 ≤ x) : ∃ E,
     ∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / (n:ℝ) ^ (-(log x - eulerMascheroniConstant)) =
-      log x - eulerMascheroniConstant + E ∧ |E| ≤ π * sqrt 3 * 10 ^ 12 + 113.67 / x := by sorry
+      log x - eulerMascheroniConstant + E ∧ |E| ≤ π * sqrt 3 * 10 ^ (-12) + 113.67 / x := by sorry
 
 end CH2
