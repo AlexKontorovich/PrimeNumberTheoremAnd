@@ -1,4 +1,7 @@
+import Mathlib.Algebra.Lie.OfAssociative
+import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Data.Real.Sign
+import Mathlib.Data.Real.StarOrdered
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.Wiener
 
@@ -235,7 +238,69 @@ noncomputable def ϕ (lambda : ℝ) (ε : ℝ) (t : ℝ) : ℂ :=
   (proof := /-- Straightforward estimation -/)
   (latexEnv := "lemma")
   (discussion := 942)]
-theorem ϕ_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (ϕ lambda ε) := by sorry
+theorem ϕ_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (ϕ lambda ε) := by
+  unfold ϕ; simp only [ϕ_pm, ofReal_mul]
+  have habs : -(|lambda| / 2) < |lambda| / 2 := by linarith [abs_pos.2 hlam]
+  have h_integrable : IntegrableOn (fun t : ℝ ↦
+      Phi_circ |lambda| ε (lambda.sign * t) +
+        (lambda.sign * t).sign * Phi_star |lambda| ε (lambda.sign * t)) (Set.Icc (-1) 1) := by
+    refine Integrable.add ?_ ?_
+    · refine ContinuousOn.integrableOn_Icc (ContinuousOn.mul continuousOn_const ?_)
+      refine (ContinuousOn.div continuousOn_const ?_ ?_).add continuousOn_const
+      · refine ContinuousOn.div (by fun_prop) (by fun_prop) ?_
+        norm_num [Complex.ext_iff, Complex.cosh, Complex.exp_re, Complex.exp_im]
+        intro x hx₁ hx₂ hx₃ hx₄
+        nlinarith [exp_pos (|lambda| / 2), exp_pos (-(|lambda| / 2)),
+          Real.sin_sq_add_cos_sq (-(2 * π * (lambda.sign * x)) / 2),
+          sin_le_one (-(2 * π * (lambda.sign * x)) / 2),
+          cos_le_one (-(2 * π * (lambda.sign * x)) / 2), exp_lt_exp.2 habs]
+      · norm_num [Complex.tanh_eq_sinh_div_cosh, Complex.ext_iff, Complex.sinh, Complex.cosh,
+          Complex.exp_re, Complex.exp_im]
+        intro x hx₁ hx₂; constructor <;> intro h <;>
+          nlinarith [exp_pos (|lambda| / 2), exp_pos (-(|lambda| / 2)),
+            Real.sin_sq_add_cos_sq (-(2 * π * (lambda.sign * x)) / 2),
+            sin_le_one (-(2 * π * (lambda.sign * x)) / 2),
+            cos_le_one (-(2 * π * (lambda.sign * x)) / 2), exp_lt_exp.2 habs]
+    · refine Integrable.mono' (g := fun t ↦ ‖Phi_star |lambda| ε (lambda.sign * t)‖) ?_ ?_ ?_
+      · refine ContinuousOn.integrableOn_Icc (.norm (.mul continuousOn_const ?_))
+        refine ContinuousOn.add ?_ (Continuous.continuousOn (by continuity))
+        refine ContinuousOn.sub continuousOn_const ?_
+        refine ContinuousOn.mul (by fun_prop) (ContinuousOn.div continuousOn_const ?_ ?_)
+        · refine ContinuousOn.div (by fun_prop) (Continuous.continuousOn (by continuity)) ?_
+          · norm_num [Complex.ext_iff, Complex.cosh, Complex.exp_re, Complex.exp_im]
+            intro x hx₁ hx₂ hx₃ hx₄
+            nlinarith [exp_pos (|lambda| / 2), exp_pos (-(|lambda| / 2)),
+              Real.sin_sq_add_cos_sq (-(2 * π * (lambda.sign * x)) / 2),
+              sin_le_one (-(2 * π * (lambda.sign * x)) / 2),
+              cos_le_one (-(2 * π * (lambda.sign * x)) / 2), exp_lt_exp.2 habs]
+        · norm_num [Complex.tanh_eq_sinh_div_cosh]
+          norm_num [Complex.ext_iff, Complex.sinh, Complex.cosh, Complex.exp_re, Complex.exp_im]
+          intro x hx₁ hx₂; constructor <;> intro h <;>
+            nlinarith [exp_pos (|lambda| / 2), exp_pos (-(|lambda| / 2)),
+              Real.sin_sq_add_cos_sq (-(2 * π * (lambda.sign * x)) / 2),
+              sin_le_one (-(2 * π * (lambda.sign * x)) / 2),
+              cos_le_one (-(2 * π * (lambda.sign * x)) / 2), exp_lt_exp.2 habs]
+      · exact (Measurable.mul
+          (measurable_ofReal.comp ((show Measurable (fun x : ℝ ↦ Real.sign x) from
+            .ite measurableSet_Iio measurable_const
+              (.ite measurableSet_Ioi measurable_const measurable_const)).comp
+                (measurable_const.mul measurable_id')))
+          (.mul measurable_const (.add
+            (.sub measurable_const (.mul (by fun_prop)
+              (.div measurable_const ((show Measurable fun x : ℂ ↦ Complex.tanh x from by
+                simpa only [Complex.tanh_eq_sinh_div_cosh] using
+                  Complex.continuous_sinh.measurable.mul
+                    Complex.continuous_cosh.measurable.inv).comp (by measurability)))))
+            (by fun_prop)))).aestronglyMeasurable
+      · norm_num [Real.sign]
+        exact Filter.eventually_inf_principal.mpr (.of_forall fun x hx ↦
+          mul_le_of_le_one_left (norm_nonneg _) (by split_ifs <;> norm_num))
+  rw [← integrable_indicator_iff] at *
+  · convert h_integrable using 1
+    ext; simp only [Set.indicator, Set.mem_Icc]
+    rcases lt_or_gt_of_ne hlam with hlam | hlam <;> simp [*, Real.sign_of_pos, Real.sign_of_neg]
+    grind
+  · norm_num
 
 @[blueprint
   "phi-cts"
@@ -374,7 +439,7 @@ $$\psi(x) - x \cdot \pi T \coth(\pi T) \leq \pi T^{-1} \cdot x + \frac{1}{2\pi} 
   (latexEnv := "corollary")]
 theorem cor_1_2_a {T x : ℝ} (hT : 1e7 ≤ T) (RH : riemannZeta.RH_up_to T) (hx : max T 1e9 < x) :
     |ψ x - x * π * T * (coth (π * T)).re| ≤
-      π * T⁻¹ * x + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) * sqrt x := by sorry
+      π * T⁻¹ * x + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) * Real.sqrt x := by sorry
 
 @[blueprint
   "CH2-cor-1-2-b"
@@ -388,7 +453,7 @@ where $\gamma = 0.577215...$ is Euler’s constant.
   (latexEnv := "corollary")]
 theorem cor_1_2_b {T x : ℝ} (hT : 1e7 ≤ T) (RH : riemannZeta.RH_up_to T) (hx : max T 1e9 < x) :
     ∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / n ≤
-      π * sqrt T⁻¹ + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) / x := by sorry
+      π * Real.sqrt T⁻¹ + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) / x := by sorry
 
 @[blueprint
   "CH2-cor-1-3-a"
@@ -401,7 +466,7 @@ where $\psi(x)$ is the Chebyshev function.
   (proof := /-- TBD. -/)
   (latexEnv := "corollary")]
 theorem cor_1_3_a (x : ℝ) (hx : 1 ≤ x) :
-    |ψ x - x| ≤ π * 3 * 10 ^ (-12 : ℝ) * x + 113.67 * sqrt x := by sorry
+    |ψ x - x| ≤ π * 3 * 10 ^ (-12 : ℝ) * x + 113.67 * Real.sqrt x := by sorry
 
 @[blueprint
   "CH2-cor-1-3-b"
@@ -414,6 +479,6 @@ $$ \sum_{n \leq x} \frac{\Lambda(n)}{n} = \log x - \gamma + O^*(\pi \cdot \sqrt{
   (latexEnv := "corollary")]
 theorem cor_1_3_b (x : ℝ) (hx : 1 ≤ x) : ∃ E,
     ∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / n =
-      log x - eulerMascheroniConstant + E ∧ |E| ≤ π * sqrt 3 * 10 ^ (-12 : ℝ) + 113.67 / x := by sorry
+      log x - eulerMascheroniConstant + E ∧ |E| ≤ π * Real.sqrt 3 * 10 ^ (-12 : ℝ) + 113.67 / x := by sorry
 
 end CH2
