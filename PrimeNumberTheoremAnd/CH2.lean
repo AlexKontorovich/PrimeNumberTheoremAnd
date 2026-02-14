@@ -1,3 +1,5 @@
+import Mathlib.Analysis.CStarAlgebra.Classes
+import Mathlib.Data.Real.CompleteField
 import Mathlib.Data.Real.Sign
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.Wiener
@@ -276,7 +278,39 @@ noncomputable def F (lambda : ℝ) (ε : ℝ) (y : ℝ) : ℝ := (𝓕 (ϕ lambd
   (proof := /-- Use Lemma \ref{decay-alt}. -/)
   (latexEnv := "lemma")
   (discussion := 945)]
-theorem F_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (F lambda ε) := by sorry
+theorem F_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (F lambda ε) := by
+  refine Integrable.mono' (g := fun y ↦ ‖𝓕 (ϕ lambda ε) y‖) ?_ ?_ ?_
+  · refine Integrable.mono' (g := fun u ↦ ((∫ t, ‖ϕ lambda ε t‖) +
+      (eVariationOn (deriv (ϕ lambda ε)) Set.univ).toReal / (2 * Real.pi) ^ 2) /
+        (1 + ‖u‖ ^ 2)) ?_ ?_ ?_
+    · have : ∫ u : ℝ, (1 + ‖u‖ ^ 2)⁻¹ = Real.pi := by norm_num +zetaDelta at *
+      exact Integrable.const_mul (by contrapose! this; rw [integral_undef this]; positivity) _
+    · refine AEStronglyMeasurable.norm ?_
+      have hf : AEStronglyMeasurable (fun (u : ℝ) ↦
+          ∫ t, ϕ lambda ε t * Complex.exp (-2 * Real.pi * I * u * t)) volume :=
+        (continuous_iff_continuousAt.mpr fun u ↦
+          tendsto_integral_filter_of_dominated_convergence (fun t ↦ ‖ϕ lambda ε t‖)
+            (.of_forall fun _ ↦ (ϕ_integrable _ _ hlam).aestronglyMeasurable.mul
+              (Continuous.aestronglyMeasurable (by continuity)))
+            (by norm_num [norm_exp]) (ϕ_integrable _ _ hlam).norm
+            (.of_forall fun x ↦ Continuous.tendsto (by continuity) _)).aestronglyMeasurable
+      exact hf.congr (.of_forall fun x ↦ by
+        simp only [Real.fourier_real_eq_integral_exp_smul]
+        congr 1; ext t; rw [smul_eq_mul, mul_comm]; congr 1; congr 1; push_cast; ring)
+    · filter_upwards using fun u ↦ by
+        simpa using decay_alt _ (ϕ_integrable _ _ hlam) (ϕ_continuous _ _ hlam)
+          (ϕ_deriv_bv _ _ hlam) u
+  · have : Continuous (F lambda ε) := by
+      apply_rules [continuous_ofReal.comp, Continuous.comp]
+      all_goals try continuity
+      exact continuous_iff_continuousAt.mpr fun x ↦
+        tendsto_integral_filter_of_dominated_convergence (fun a ↦ ‖ϕ lambda ε a‖)
+          (.of_forall fun _ ↦ (Continuous.aestronglyMeasurable (by continuity)).smul
+            (ϕ_integrable _ _ hlam).aestronglyMeasurable)
+              (by norm_num [norm_smul, Circle.norm_smul]) (ϕ_integrable _ _ hlam).norm
+                (.of_forall fun a ↦ Continuous.tendsto (by continuity) _)
+    exact this.aestronglyMeasurable
+  · exact .of_forall fun x ↦ abs_re_le_norm _
 
 @[blueprint
   "F-real"
@@ -374,7 +408,7 @@ $$\psi(x) - x \cdot \pi T \coth(\pi T) \leq \pi T^{-1} \cdot x + \frac{1}{2\pi} 
   (latexEnv := "corollary")]
 theorem cor_1_2_a {T x : ℝ} (hT : 1e7 ≤ T) (RH : riemannZeta.RH_up_to T) (hx : max T 1e9 < x) :
     |ψ x - x * π * T * (coth (π * T)).re| ≤
-      π * T⁻¹ * x + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) * sqrt x := by sorry
+      π * T⁻¹ * x + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) * Real.sqrt x := by sorry
 
 @[blueprint
   "CH2-cor-1-2-b"
@@ -388,7 +422,7 @@ where $\gamma = 0.577215...$ is Euler’s constant.
   (latexEnv := "corollary")]
 theorem cor_1_2_b {T x : ℝ} (hT : 1e7 ≤ T) (RH : riemannZeta.RH_up_to T) (hx : max T 1e9 < x) :
     ∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / n ≤
-      π * sqrt T⁻¹ + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) / x := by sorry
+      π * Real.sqrt T⁻¹ + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) / x := by sorry
 
 @[blueprint
   "CH2-cor-1-3-a"
@@ -401,7 +435,7 @@ where $\psi(x)$ is the Chebyshev function.
   (proof := /-- TBD. -/)
   (latexEnv := "corollary")]
 theorem cor_1_3_a (x : ℝ) (hx : 1 ≤ x) :
-    |ψ x - x| ≤ π * 3 * 10 ^ (-12 : ℝ) * x + 113.67 * sqrt x := by sorry
+    |ψ x - x| ≤ π * 3 * 10 ^ (-12 : ℝ) * x + 113.67 * Real.sqrt x := by sorry
 
 @[blueprint
   "CH2-cor-1-3-b"
@@ -414,6 +448,6 @@ $$ \sum_{n \leq x} \frac{\Lambda(n)}{n} = \log x - \gamma + O^*(\pi \cdot \sqrt{
   (latexEnv := "corollary")]
 theorem cor_1_3_b (x : ℝ) (hx : 1 ≤ x) : ∃ E,
     ∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / n =
-      log x - eulerMascheroniConstant + E ∧ |E| ≤ π * sqrt 3 * 10 ^ (-12 : ℝ) + 113.67 / x := by sorry
+      log x - eulerMascheroniConstant + E ∧ |E| ≤ π * Real.sqrt 3 * 10 ^ (-12 : ℝ) + 113.67 / x := by sorry
 
 end CH2
