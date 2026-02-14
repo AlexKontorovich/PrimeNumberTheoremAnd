@@ -1480,41 +1480,41 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
 
   have ha_pos : 0 < a := lt_of_le_of_lt (div_nonneg (abs_nonneg _) (by positivity)) ha
   have h_bound : 2 * π ^ 2 * (s.re * ‖I1‖ + ‖I2‖) ≤ a ^ (-s.re - 1) * (s.re * |ν - ϑ| + |ϑ|) / |ν - ϑ| ^ 3 := by
-      have h_I1 : ‖I1‖ ≤ 1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2) := by
-        convert g_1_integral_bound using 2
-        refine setIntegral_congr_fun measurableSet_Icc fun t ht ↦ ?_
-        rw [Complex.ofReal_cpow (by linarith [ht.1, ha_pos]), Complex.ofReal_sub, Complex.ofReal_one]
-        ring
-        simp only [Complex.ofReal_neg]; ring
-      have h_I2 : ‖I2‖ ≤ 1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3) := by
-        convert g_2_integral_bound using 2
-        refine setIntegral_congr_fun measurableSet_Icc fun t ht ↦ ?_
-        rw [Complex.ofReal_cpow (by linarith [ht.1, ha_pos])]
-        ring
-        simp only [Complex.ofReal_neg]; ring
-      have h_den_ne0 : |ν - ϑ| ≠ 0 := by
-        intro h
-        have : a = |s.im| / (2 * π * |ν|) := by
-          dsimp [ϑ] at h
-          rw [abs_eq_zero, sub_eq_zero, eq_comm] at h
-          field_simp [ha_pos.ne', Real.pi_pos.ne', hν] at h
-          rw [h]
-          rw [abs_mul, abs_mul, abs_of_pos Real.two_pi_pos, abs_of_pos ha_pos]
-          field_simp
-        linarith
-      calc
-        2 * π ^ 2 * (s.re * ‖I1‖ + ‖I2‖)
-        _ ≤ 2 * π ^ 2 * (s.re * (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2)) +
-            (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3))) := by
-              gcongr
-        _ = (s.re * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2)) + (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3) := by
-              field_simp [Real.pi_pos.ne']
-        _ = a ^ (-s.re - 1) * (s.re / |ν - ϑ| ^ 2 + |ϑ| / |ν - ϑ| ^ 3) := by
-              ring
-        _ = a ^ (-s.re - 1) * (s.re * |ν - ϑ| + |ϑ|) / |ν - ϑ| ^ 3 := by
-              field_simp [h_den_ne0]
+    have h_I1 : ‖I1‖ ≤ 1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2) := by
+      convert g_1_integral_bound using 2
+      refine setIntegral_congr_fun measurableSet_Icc fun t ht ↦ ?_
+      rw [Complex.ofReal_cpow (by linarith [ht.1, ha_pos]), Complex.ofReal_sub, Complex.ofReal_one]
+      ring_nf
+      simp only [Complex.ofReal_neg]; ring_nf
+    have h_I2 : ‖I2‖ ≤ 1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3) := by
+      convert g_2_integral_bound using 2
+      refine setIntegral_congr_fun measurableSet_Icc fun t ht ↦ ?_
+      rw [Complex.ofReal_cpow (by linarith [ht.1, ha_pos])]
+      ring_nf
+      simp only [Complex.ofReal_neg]; ring
+    have h_den_ne0 : |ν - ϑ| ≠ 0 := by
+      intro h
+      have : a = |s.im| / (2 * π * |ν|) := by
+        dsimp [ϑ] at h
+        rw [abs_eq_zero, sub_eq_zero, eq_comm] at h
+        field_simp [ha_pos.ne', Real.pi_pos.ne', hν] at h
+        rw [h]
+        rw [abs_mul, abs_mul, abs_of_pos Real.two_pi_pos, abs_of_pos ha_pos]
+        field_simp
+      linarith
+    calc
+      2 * π ^ 2 * (s.re * ‖I1‖ + ‖I2‖)
+      _ ≤ 2 * π ^ 2 * (s.re * (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2)) +
+          (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3))) := by
+            gcongr
+      _ = (s.re * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2)) + (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3) := by
+            field_simp [Real.pi_pos.ne']
+      _ = a ^ (-s.re - 1) * (s.re / |ν - ϑ| ^ 2 + |ϑ| / |ν - ϑ| ^ 3) := by
+            ring
+      _ = a ^ (-s.re - 1) * (s.re * |ν - ϑ| + |ϑ|) / |ν - ϑ| ^ 3 := by
+            field_simp [h_den_ne0]
 
-  abel
+  abel_nf
   simp only [add_left_cancel_iff]
   refine ⟨(2 * π ^ 2 * a ^ (s.re + 1 : ℂ)) * (s.re * I1 + I2), ?_, ?_⟩
   · abel
