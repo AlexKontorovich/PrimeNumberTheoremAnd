@@ -114,7 +114,7 @@ theorem pi_upper (a : ℝ → ℝ) (htheta : ∀ x ≥ 2, abs (θ x - x) * log x
 
 @[blueprint
   "log-7-int-bound"
-  (title := "Bound for integral of log^{-7} x")
+  (title := "Bound for integral of an inverse power of log")
   (statement := /-- For $x \geq 2$ we have
 $$\int_2^x \frac{dt}{\log^7 t} < \frac{x}{\log^7 x} + 7 \Big( \frac{\sqrt{x}}{\log^8 2} + \frac{2^8 x}{\log^8 x} \Big).$$-/)
   (proof := /-- This follows from the trivial bound $\int_2^x \frac{dt}{\log^7 t} < \int_2^x \frac{dt}{\log^7 \sqrt{x}}$ and the bound $\int_2^x \frac{dt}{\log^7 t} < \int_2^x \frac{dt}{\log^7 x}$. -/)
