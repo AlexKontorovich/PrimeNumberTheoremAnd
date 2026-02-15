@@ -312,6 +312,17 @@ theorem F_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (F lam
     exact this.aestronglyMeasurable
   · exact .of_forall fun x ↦ abs_re_le_norm _
 
+lemma Phi_circ_neg_conj (ν ε : ℝ) (s : ℝ) :
+    Phi_circ ν ε (-↑s : ℂ) = starRingEnd ℂ (Phi_circ ν ε (↑s : ℂ)) := by
+  rw [show (-↑s : ℂ) = ↑(-s) from by push_cast; ring]
+  simp [coth, ← Complex.tanh_conj, Phi_circ, map_ofNat]
+
+lemma Phi_star_neg_conj (ν ε : ℝ) (s : ℝ) :
+    Phi_star ν ε (-↑s : ℂ) = -starRingEnd ℂ (Phi_star ν ε (↑s : ℂ)) := by
+  rw [show (-↑s : ℂ) = ↑(-s) from by push_cast; ring]
+  simp [Phi_star, map_ofNat, coth, ← Complex.tanh_conj]
+  ring_nf
+
 @[blueprint
   "F-real"
   (title := "F real")
@@ -321,7 +332,24 @@ theorem F_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (F lam
   (proof := /-- Follows from the symmetry of $\phi$. -/)
   (latexEnv := "sublemma")
   (discussion := 946)]
-theorem F.real (lambda ε y : ℝ) : (𝓕 (ϕ lambda ε) y).im = 0 := by sorry
+theorem F.real (lambda ε y : ℝ) : (𝓕 (ϕ lambda ε) y).im = 0 := by
+  have h_fourier_real : ∀ f : ℝ → ℂ, (∀ t, f (-t) = starRingEnd ℂ (f t)) → ∀ y, (𝓕 f y).im = 0 := by
+    intro f hf y
+    have h_fourier_real : 𝓕 f y = ∫ t, f t * Complex.exp (-2 * Real.pi * Complex.I * y * t) := by
+      simp only [Real.fourier_real_eq_integral_exp_smul, smul_eq_mul]
+      congr 1; ext t; rw [mul_comm]; congr 1; congr 1; push_cast; ring
+    have h_fourier_real : ∫ t, f t * Complex.exp (-2 * Real.pi * Complex.I * y * t) = ∫ t,
+        starRingEnd ℂ (f t) * Complex.exp (2 * Real.pi * Complex.I * y * t) := by
+      rw [← MeasureTheory.integral_neg_eq_self]; congr; ext; simp_all
+    have h_fourier_real : ∫ t, f t * Complex.exp (-2 * Real.pi * Complex.I * y * t) =
+        starRingEnd ℂ (∫ t, f t * Complex.exp (-2 * Real.pi * Complex.I * y * t)) := by
+      convert h_fourier_real using 1
+      rw [← integral_conj]; congr; ext; simp [Complex.ext_iff, Complex.exp_re, Complex.exp_im]
+    norm_num [Complex.ext_iff] at *; grind
+  apply h_fourier_real
+  intro t
+  simp only [ϕ, ϕ_pm, mul_neg, ofReal_neg, Real.sign_neg]
+  split_ifs with h1 h2 h3 <;> grind [conj_ofReal, Phi_circ_neg_conj, Phi_star_neg_conj]
 
 @[blueprint
   "F-maj"
