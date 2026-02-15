@@ -485,7 +485,7 @@ lemma integral_F_eq_phi_zero (lambda : ℝ) (hlam : lambda ≠ 0) :
     congr_fun (Continuous.fourierInv_fourier_eq h_cont.1 h_cont.2.1 h_cont.2.2) 0
   rw [← h_inv]
   simp only [F, fourierInv, VectorFourier.fourierIntegral, LinearMap.neg_apply, innerₗ_apply_apply,
-    RCLike.inner_apply, ringHom_apply, zero_mul, neg_zero, AddChar.map_zero_eq_one, one_smul]
+    RCLike.inner_apply, zero_mul, neg_zero, AddChar.map_zero_eq_one, one_smul]
   convert integral_re h_cont.2.2
 
 @[blueprint "F-plus-l1"
