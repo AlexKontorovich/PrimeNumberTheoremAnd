@@ -63,7 +63,7 @@ theorem odd_goldbach_test : odd_conjecture 33 := even_to_odd_goldbach_triv 30 ev
   (latexEnv := "proposition")
   (discussion := 961)]
 theorem even_to_odd_goldbach (x₀ H Δ : ℕ)
-    (hprime : ∀ x ≥ x₀, HasPrimeInInterval (x * (1 - 1 / Δ)) (x / Δ))
+    (hprime : ∀ x > x₀, HasPrimeInInterval (x * (1 - 1 / Δ)) (x / Δ))
     (heven : even_conjecture H) (hodd : odd_conjecture (x₀ + 4)) :
     odd_conjecture ((H - 4) * Δ + 4) := by
   by_cases! hH : H < 4
@@ -77,7 +77,7 @@ theorem even_to_odd_goldbach (x₀ H Δ : ℕ)
     · exact odd_goldbach_test n (by grind : n ∈ Finset.Icc 5 33) ho
     by_cases! hn : n ≤ x₀ + 4
     · exact hodd n (by grind : n ∈ Finset.Icc 5 (x₀ + 4)) ho
-    · obtain ⟨p, hp⟩ := hprime (n - 4) (by grind : n - 4 ≥ x₀)
+    · obtain ⟨p, hp⟩ := hprime (n - 4) (by grind : n - 4 > x₀)
       have hnpe : Even (n - p) :=
         have h2p : 2 < p := by
           rw [← Nat.cast_lt (α := ℝ)]
