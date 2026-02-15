@@ -1241,14 +1241,15 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
   dsimp only [φ, Φ]
 
   let g_1 : ℝ → ℝ := fun t ↦ t ^ (-s.re - 1) / (deriv φ t) ^ 2
-  have g_1_cont : ∀ (top : ℝ), top > a → ContinuousOn g_1 (Set.Icc a top) := by
-    sorry
-  have g_1_integral_bound : ‖∫ t in Set.Icc a b, (t : ℂ) ^ ((-s.re - 1) : ℂ) / (2 * π * I * deriv φ t) * e (φ t)‖ ≤
-    1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2) := sorry
-  -- First, we need the formulas for φ' and φ'' at a
+  have ha_pos : 0 < a := lt_of_le_of_lt (div_nonneg (abs_nonneg _) (by positivity)) ha
   have ha_ne_zero : a ≠ 0 := by
     have : 0 ≤ |s.im| / (2 * π * |ν|) := div_nonneg (abs_nonneg _) (by positivity)
     linarith
+  have h_deriv_ne_zero : (∀ t ∈ Set.Icc a b, deriv φ t ≠ 0) := by
+    intro t ht
+    exact phi_deriv_ne_zero s ν a t ha ha_pos hν ht.1
+  have hcontdiffφ : ContDiffOn ℝ 1 φ (Set.Icc a b) := sorry
+
   have hφ_deriv_at_a : deriv φ a = ν - s.im / (2 * π * a) := by
     rw [show φ = fun t ↦ ν * t - s.im / (2 * π) * Real.log t from rfl]
     convert HasDerivAt.deriv (HasDerivAt.sub (HasDerivAt.const_mul ν (hasDerivAt_id a))
@@ -1274,205 +1275,195 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
       (HasDerivAt.const_mul (s.im / (2 * π)) (hasDerivAt_inv ha_ne_zero)) using 1
     field_simp
     ring
+  have hsmooth : ContDiffOn ℝ 2 φ (Set.Ioi 0) := by
+    simp only [φ]
+    apply ContDiffOn.sub
+    · fun_prop
+    · apply ContDiffOn.mul contDiffOn_const
+      exact contDiffOn_log.mono (fun x hx ↦ ne_of_gt hx)
+  have h_cont : ContinuousOn φ (Set.Icc a b) :=
+    (hsmooth.mono (fun x hx ↦ lt_of_lt_of_le ha_pos hx.1)).continuousOn
+  have h_deriv_cont : ContinuousOn (fun t ↦ deriv φ t) (Set.Icc a b) := by
+    have h1 : ContinuousOn (deriv φ) (Set.Ioi 0) :=
+      hsmooth.continuousOn_deriv_of_isOpen isOpen_Ioi (by norm_num)
+    exact h1.mono (fun x hx ↦ lt_of_lt_of_le ha_pos hx.1)
+  have h_deriv2_cont : ContinuousOn (fun t ↦ deriv (deriv φ) t) (Set.Icc a b) := by
+    have h1 : ContDiffOn ℝ 1 (deriv φ) (Set.Ioi 0) :=
+      ((contDiffOn_succ_iff_deriv_of_isOpen isOpen_Ioi).mp hsmooth).2.2
+    exact (h1.continuousOn_deriv_of_isOpen isOpen_Ioi (by norm_num)).mono
+      (fun x hx ↦ lt_of_lt_of_le ha_pos hx.1)
 
+  have g_1_cont : ContinuousOn g_1 (Set.Icc a b) := by
+    apply ContinuousOn.div
+    · sorry -- fun_prop (disch := grind)
+    · sorry -- fun_prop (disch := grind)
+    · sorry -- grind
+  have hg_1_antitone : AntitoneOn (fun t ↦ |g_1 t|) (Set.Icc a b) := by
+    let f : ℝ → ℝ := fun t ↦ t ^ (-s.re - 1) * |2 * π * ν - s.im / t| ^ (-2 : ℝ)
+    have hf_anti : AntitoneOn f (Set.Icc a b) := by
+      convert lemma_aachdecre s.re hsigma s.im ν hν a b ha 1 (by norm_num) using 1
+      -- Proof of equality between f and lemma's function
+      ext t
+      dsimp [f]
+      congr 2
+      · simp
+      · norm_num
+    -- 3. Prove scaled f is antitone
+    have h_scaled_anti : AntitoneOn (fun t ↦ (2 * π) ^ 2 * f t) (Set.Icc a b) := by
+      intro x hx y hy hxy
+      apply mul_le_mul_of_nonneg_left (hf_anti hx hy hxy)
+      positivity
+    -- 4. Prove equality between |g_1| and scaled f
+    have hg_eq : Set.EqOn (fun t ↦ |g_1 t|) (fun t ↦ (2 * π) ^ 2 * f t) (Set.Icc a b) := by
+      intro t ht
+      have ht_pos : 0 < t := lt_of_lt_of_le (lt_of_le_of_lt (by positivity) ha) ht.1
+      dsimp only [g_1, f]
+      rw [abs_div, abs_pow, abs_rpow_of_nonneg ht_pos.le]
+      -- LHS deriv substitution
+      have hφ' : deriv φ t = ν - s.im / (2 * π * t) := by
+        rw [show φ = fun x ↦ ν * x - (s.im / (2 * π)) * Real.log x from rfl]
+        convert HasDerivAt.deriv (HasDerivAt.sub (HasDerivAt.const_mul ν (hasDerivAt_id t))
+          (HasDerivAt.const_mul (s.im / (2 * π)) (Real.hasDerivAt_log ht_pos.ne'))) using 1
+        field_simp
+      rw [hφ']
+      -- RHS inner substitution
+      have h_inner : 2 * π * ν - s.im / t = 2 * π * (ν - s.im / (2 * π * t)) := by
+        field_simp [ht_pos.ne', Real.two_pi_pos.ne']
+      rw [h_inner]
+      -- RHS simplifications
+      rw [abs_mul, abs_of_pos Real.two_pi_pos]
+      rw [mul_rpow Real.two_pi_pos.le (abs_nonneg _)]
+      -- Rearrange and close
+      rw [abs_of_pos ht_pos, mul_left_comm ((2 * π) ^ 2)]
+      field_simp
+      have : 2 ^ 2 * π ^ 2 * (2 * π) ^ (-2 : ℝ) = 1 := by
+        rw [Real.rpow_neg (by positivity), Real.rpow_two, mul_pow]
+        field_simp [Real.two_pi_pos.ne']
+      rw [this]; simp only [sq_abs, one_div, rpow_neg_ofNat, Int.reduceNeg, zpow_neg, one_mul,
+        inv_inj]
+      symm; apply sq_abs
+    exact h_scaled_anti.congr hg_eq.symm
+  have g_1_integral_bound : ‖∫ t in Set.Icc a b, (t : ℂ) ^ ((-s.re - 1) : ℂ) / (2 * π * I * deriv φ t) * e (φ t)‖ ≤
+    1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2) := by
+    let h : ℝ → ℝ := fun t ↦ t^(-s.re - 1) / deriv φ t
+    have hg_1_eq_h_div_deriv_φ : (∀ (t : ℝ), g_1 t = h t / deriv φ t) := by
+      intro t
+      dsimp [g_1, h]
+      rw [div_div, pow_two]
+    have hmonophase := lemma_aachmonophase (a := a) (b := b) (φ := φ)   (by simp [hb])  (hcontdiffφ) (h_deriv_ne_zero) h g_1 hg_1_eq_h_div_deriv_φ g_1_cont hg_1_antitone
+
+
+
+    simp only [ofReal_div, h] at hmonophase
+    have h_factor : (fun t => (t ^ (-s.re - 1 : ℂ) / (2 * π * I * deriv φ t)) * e (φ t)) =
+                (fun t => (1 / (2 * π * I)) * (t ^ (-s.re - 1 : ℂ) / deriv φ t * e (φ t))) := by
+      ext t
+      field_simp
+    rw [h_factor]
+    have step1 : ∫ (t : ℝ) in Set.Icc a b, 1 / (2 * π * I) * ((t : ℂ) ^ ((-s.re - 1) : ℂ) / (deriv φ t) * e (φ t))
+           = 1 / (2 * π * I) * ∫ (t : ℝ) in Set.Icc a b, (t : ℂ) ^ ((-s.re - 1) : ℂ) / (deriv φ t) * e (φ t) :=
+      integral_const_mul _ _
+    rw [step1, norm_mul]
+    have h_norm_const : ‖1 / (2 * ↑π * I)‖ = 1 / (2 * π) := by
+      simp only [one_div, mul_inv_rev, inv_I, neg_mul, norm_neg, Complex.norm_mul, norm_I, norm_inv,
+        norm_real, norm_eq_abs, Complex.norm_ofNat, one_mul, mul_eq_mul_right_iff, inv_inj,
+        abs_eq_self, inv_eq_zero, OfNat.ofNat_ne_zero, or_false]
+      positivity
+    rw [h_norm_const]
+    trans (1 / (2 * π)) * (|g_1 a| / π)
+    · have h_int_eq : ∫ (t : ℝ) in Set.Icc a b, (t : ℂ) ^ (-s.re - 1 : ℂ) / ↑(deriv φ t) * e (φ t)
+              = ∫ (t : ℝ) in Set.Icc a b, ↑(t ^ (-s.re - 1)) / ↑(deriv φ t) * e (φ t) := by
+        refine setIntegral_congr_fun measurableSet_Icc fun t ht ↦ ?_
+        rw [Complex.ofReal_cpow]
+        · simp only [Complex.ofReal_sub, Complex.ofReal_neg, Complex.ofReal_one]
+        · have : 0 ≤ |s.im| / (2 * π * |ν|) := by positivity
+          linarith [ht.1, ha]
+      rw [h_int_eq]
+      apply mul_le_mul_of_nonneg_left hmonophase (by positivity)
+    · rw [div_mul_eq_mul_div, mul_div_assoc]
+      dsimp only [g_1]
+      field_simp
+      have hderivφ_eq_nu_minus_theta : deriv φ a = ν - ϑ := by
+        dsimp only [φ]
+        convert HasDerivAt.deriv (HasDerivAt.sub (HasDerivAt.const_mul ν (hasDerivAt_id a))
+          (HasDerivAt.const_mul (s.im / (2 * π)) (Real.hasDerivAt_log ha_ne_zero))) using 1
+        dsimp [ϑ]
+        field_simp
+      rw [hderivφ_eq_nu_minus_theta]
+      rw [abs_div, Real.abs_rpow_of_nonneg ha_pos.le, abs_pow, abs_of_pos ha_pos]
+  let g_2 : ℝ → ℝ := fun t ↦ t ^ (-s.re) * deriv (deriv φ) t / (deriv φ t) ^ 3
+  have g_2_cont : ContinuousOn g_2 (Set.Icc a b) := by
+    apply ContinuousOn.div
+    · sorry -- fun_prop (disch := grind)
+    · sorry -- fun_prop (disch := grind)
+    · sorry -- grind
+  have g_2_antitone : AntitoneOn (fun t ↦ |g_2 t|) (Set.Icc a b) := by
+    set f : ℝ → ℝ := fun t ↦ t ^ (-s.re - 2) * |2 * π * ν - s.im / t| ^ (-3 : ℝ) with hf
+    have hf_antitone : AntitoneOn f (Set.Icc a b) := by
+      -- exact lemma_aachdecre s.re hsigma s.im ν hν a b ha 2 (by norm_num : 1 ≤ 2)
+      convert lemma_aachdecre s.re hsigma s.im ν hν a b ha 2 (by norm_num : 1 ≤ 2) using 1
+      ext t
+      simp only [hf]
+      ring_nf
+    have g2_eq_const_mul_f : ∀ t ∈ Set.Icc a b, |g_2 t| = (|s.im| / (2 * π)^2) * f t := by
+      intro t ht
+
+      sorry
+    intro x hx y hy hxy
+    simp_rw [g2_eq_const_mul_f x hx, g2_eq_const_mul_f y hy]
+    exact mul_le_mul_of_nonneg_left (hf_antitone hx hy hxy) (by positivity)
   have g_2_integral_bound : ‖∫ t in Set.Icc a b, (t : ℂ) ^ (-s.re : ℂ) * (deriv (deriv φ) t) /
       (2 * π * I * (deriv φ t) ^ 2) * e (φ t)‖ ≤
     1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3) := by
-    -- First, let's define F explicitly
-    let F : ℝ → ℂ := fun t ↦ e (φ t) / (2 * π * I)
+    -- let h : ℝ → ℝ := fun t ↦ t ^ (-s.re) * deriv (deriv φ) t / (deriv φ t) ^ 2
 
-    -- Define g to match the Stieltjes integral form
-    let g : ℝ → ℂ := fun t ↦ t ^ (-s.re : ℂ) * (deriv (deriv φ) t) / ((deriv φ t) ^ 3)
-    -- Show that F' = φ' * e(φ)
-    have hF_deriv : ∀ t ∈ Set.Ioo a b, deriv F t = (deriv φ t) * e (φ t) := by
-      intro t ht
-      simp only [F]
-      rw [deriv_div_const]
-      have h_pos : 0 < t := lt_trans (lt_of_le_of_lt (div_nonneg (abs_nonneg _) (by positivity)) ha) ht.1
-      have hφ_diff : DifferentiableAt ℝ φ t := by
-        unfold φ
-        apply DifferentiableAt.sub (differentiableAt_const .. |>.mul differentiableAt_id)
-        apply DifferentiableAt.mul (differentiableAt_const ..)
-        exact Real.differentiableAt_log h_pos.ne'
-      rw [deriv_e hφ_diff]
-      field_simp [Real.pi_pos.ne', I_ne_zero]
 
-    -- Rewrite 1/(φ')² as 1/(φ')³ · φ'
-    have key_algebra : ∀ t ∈ Set.Ioo a b,
-        (deriv φ t) ≠ 0 →
-        1 / ((deriv φ t) ^ 2) = 1 / ((deriv φ t) ^ 3) * (deriv φ t) := by
-      intro t ht hφ_ne
-      field_simp
+    -- have hg_2_eq_h_div_deriv_φ : (∀ (t : ℝ), g_2 t = h t / deriv φ t) := by
+    --   intro t
+    --   dsimp [g_2, h]
 
-    -- Rewrite the integrand
-    have step1_integral_eq :
-      ∫ (t : ℝ) in Set.Icc a b, t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / (2 * ↑π * I * ↑(deriv φ t) ^ 2) * e (φ t) =
-      ∫ (t : ℝ) in Set.Icc a b, g t * deriv F t := by sorry
-      -- congr 1
-      -- ext t
-      -- simp only [g, F]
-      -- -- Need to prove: deriv φ t ≠ 0 on [a,b]
-      -- have hφ_ne : deriv φ t ≠ 0 := by sorry
-      -- calc ↑t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / (2 * ↑π * I * ↑(deriv φ t) ^ 2) * e (φ t)
-      --     = ↑t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / ↑(deriv φ t) ^ 2 / (2 * ↑π * I) * e (φ t) := by ring
-      --   _ = ↑t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / ↑(deriv φ t) ^ 3 * ↑(deriv φ t) / (2 * ↑π * I) * e (φ t) := by
-      --       rw [div_mul_eq_div_div, ← key_algebra t _ hφ_ne]; ring; sorry -- need t ∈ Ioo a b
-      --   _ = (↑t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / ↑(deriv φ t) ^ 3) * (↑(deriv φ t) * e (φ t)) / (2 * ↑π * I) := by ring
-      --   _ = (↑t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / ↑(deriv φ t) ^ 3) * deriv F t := by
-      --       rw [← hF_deriv t _]; ring; sorry -- need t ∈ Ioo a b
-
-    -- Main statement
-    -- have hg2_antitone : AntitoneOn g (Set.Icc a b) := by sorry
-    let g_real : ℝ → ℝ := fun t ↦ t ^ (-s.re) * (deriv (deriv φ) t) / (deriv φ t) ^ 3
-    -- Show that g_real equals the complex function g as real values
-    have hg_real : ∀ t, (g_real t : ℂ) = g t := by
-      intro t
-      simp only [g_real, g]
-      norm_cast
-
-    have hg_real_cont : ContinuousOn g_real (Set.Icc a b) := by sorry
-
-    -- Show |g_real| = g_2 (which is already known to be antitone)
-    have hg_real_abs : ∀ t ∈ Set.Icc a b, |g_real t| = g_2 t := by sorry
-
-    -- Therefore |g_real| is antitone
-    have hg_real_abs_antitone : AntitoneOn (fun t ↦ |g_real t|) (Set.Icc a b) := by
-      intro x hx y hy hxy
-      rw [hg_real_abs x hx, hg_real_abs y hy]
-      exact hg2_antitone hx hy hxy
-
-    -- Apply lemma_aachra
-    have hTV : BoundedVariationOn g_real (Set.Icc a b) ∧
-              (eVariationOn g_real (Set.Icc a b)).toReal = |g_real a| - |g_real b| := by
-      apply lemma_aachra (by linarith : a < b) g_real hg_real_cont hg_real_abs_antitone
-
-    -- Extract the total variation formula
-    have hTV_formula : (eVariationOn g_real (Set.Icc a b)).toReal = |g_real a| - |g_real b| :=
-      hTV.2
-
-    -- Bound the total variation by g_2(a)
-    have hTV_bound : (eVariationOn g_real (Set.Icc a b)).toReal ≤ g_2 a := by sorry
-
-    -- Define h_real to match the pattern in lemma_aachmonophase
-    have h_real : ℝ → ℝ := fun t ↦ t ^ (-s.re) * deriv (deriv φ) t / (deriv φ t) ^ 2
-    -- Verify that g_real = h_real / φ'
-    have hg_real_def : ∀ t, g_real t = h_real t / deriv φ t := by sorry
-    -- Show h_real is continuous on [a,b]
-    have hh_real_cont : ContinuousOn h_real (Set.Icc a b) := by sorry
-    -- φ is C¹ on [a,b]
-    have hφ_C1 : ContDiffOn ℝ 1 φ (Set.Icc a b) := by sorry
-    -- φ' ≠ 0 on [a,b]g
-    have hφ'_ne0 : ∀ t ∈ Set.Icc a b, deriv φ t ≠ 0 := by
-      sorry -- we should have proven this in Step 2
-
-    -- Final calculation chaining the factoring and the bound
-    have step4_final :
-        ‖∫ t in Set.Icc a b, t ^ (-↑s.re : ℂ) * ↑(deriv (deriv φ) t) / (2 * ↑π * I * ↑(deriv φ t) ^ 2) * e (φ t)‖
-        ≤ 1 / (2 * π) * (g a / π) := by sorry
-      -- calc
-      --   ‖∫ t in Set.Icc a b, t ^ (-↑s.re : ℂ) * ↑(deriv (deriv φ) t) / (2 * ↑π * I * ↑(deriv φ t) ^ 2) * e (φ t)‖
-      --     = ‖(1 : ℂ) / (2 * π * I) * ∫ t in Set.Icc a b, ↑(h_real t) * e (φ t)‖ := by
-      --       congr 1
-      --       rw [← integral_const_mul]
-      --       congr 1; ext t
-      --       simp only [h_real]; push_cast; field_simp; ring
-      --   _ = ‖(1 : ℂ) / (2 * π * I)‖ * ‖∫ t in Set.Icc a b, ↑(h_real t) * e (φ t)‖ := by
-      --       rw [Complex.norm_mul]
-      --   _ = (1 / (2 * π)) * ‖∫ t in Set.Icc a b, ↑(h_real t) * e (φ t)‖ := by
-      --       congr 1
-      --       simp [Complex.abs_div, Complex.abs_I, Complex.abs_ofReal]
-      --       field_simp
-      --   _ ≤ (1 / (2 * π)) * (|g_real a| / π) := by
-      --       apply mul_le_mul_of_nonneg_left ?_ (by linarith [Real.pi_pos])
-      --       apply lemma_aachmonophase (by linarith : a < b) φ hφ_C1 hφ'_ne0 h_real g_real
-      --       · exact hg_real_def
-      --       · exact hg_real_cont
-      --       · exact hg_real_abs_antitone
-      --   _ = 1 / (2 * π) * (g a / π) := by
-      --       rw [hg_real_abs a (by constructor; linarith; linarith)]
-
-    -- Step 5: Compute g_2(a) explicitly
+    --   rw [div_div, ← pow_succ]
+    -- have hmonophase := lemma_aachmonophase (a := a) (b := b) (φ := φ)   (by simp [hb])  (hcontdiffφ) (h_deriv_ne_zero) h g_2 hg_2_eq_h_div_deriv_φ g_2_cont g_2_antitone  --  g_1_cont hg_1_antitone
+    -- simp only [ofReal_div, h, g_2] at hmonophase
 
 
 
-    -- Relate ϑ to s.im
-    have hϑ_tau : |s.im| = 2 * π * a * |ϑ| := by
-      simp only [ϑ]
-      rw [abs_div, abs_mul, abs_mul]
-      calc |s.im| = |s.im| / (2 * π * a) * (2 * π * a) := by field_simp
-        _ = 2 * π * a * (|s.im| / (2 * π * a)) := by ring
-        _ = 2 * π * a * |s.im / (2 * π * a)| := by
-            congr 1
-            rw [abs_div]
-            simp [abs_of_pos (by linarith [Real.pi_pos, ha] : 0 < 2 * π * a)]
-
-    -- Main computation of g_2(a)
-    have hg2_a_formula : g a = a ^ (-s.re - 1 : ℂ) * |ϑ| / |ν - ϑ| ^ 3 := by
-      simp only [g]
-      rw [hφ_deriv2_at_a, hφ_deriv_at_a]
-      sorry
-      -- calc a ^ (-s.re) * |s.im / (2 * π * a ^ 2)| / |ν - s.im / (2 * π * a)| ^ 3
-      --     = a ^ (-s.re) * (|s.im| / (2 * π * a ^ 2)) / |ν - s.im / (2 * π * a)| ^ 3 := by
-      --         congr 1
-      --         rw [abs_div]
-      --         simp [abs_of_pos (by linarith [Real.pi_pos, ha] : 0 < 2 * π * a ^ 2)]
-      --   _ = (a ^ (-s.re) * |s.im|) / (2 * π * a ^ 2) / |ν - ϑ| ^ 3 := by
-      --         simp only [ϑ]
-      --         ring_nf
-      --   _ = |s.im| / (2 * π * a ^ (2 + s.re)) / |ν - ϑ| ^ 3 := by
-      --         rw [← rpow_natCast a 2]
-      --         rw [← rpow_add (by linarith [ha] : 0 < a)]
-      --         ring_nf
-      --   _ = |s.im| / (2 * π * a ^ (2 + s.re) * |ν - ϑ| ^ 3) := by
-      --         field_simp
-      --   _ = (2 * π * a * |ϑ|) / (2 * π * a ^ (2 + s.re) * |ν - ϑ| ^ 3) := by
-      --         rw [← hϑ_tau]
-      --   _ = (2 * π * a * |ϑ|) / (2 * π * a * a ^ (1 + s.re) * |ν - ϑ| ^ 3) := by
-      --         congr 1
-      --         rw [← rpow_natCast a 1]
-      --         rw [← rpow_add (by linarith [ha] : 0 < a)]
-      --         ring_nf
-      --   _ = |ϑ| / (a ^ (1 + s.re) * |ν - ϑ| ^ 3) := by
-      --         field_simp
-      --         ring
-      --   _ = a ^ (-(1 + s.re)) * |ϑ| / |ν - ϑ| ^ 3 := by
-      --         rw [div_mul_eq_mul_div]
-      --         congr 1
-      --         rw [← rpow_neg (by linarith [ha] : 0 ≤ a)]
-      --         ring_nf
-      --   _ = a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3 := by
-      --         ring_nf
-      -- Step 6: Combine everything to prove the final bound
-    -- sorry
-    -- Step 6: Combine everything to prove the final bound
-
-    have final_bound :
-        ‖∫ (t : ℝ) in Set.Icc a b, t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / (2 * ↑π * I * ↑(deriv φ t) ^ 2) * e (φ t)‖
-        ≤ 1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3) :=
-      calc ‖∫ (t : ℝ) in Set.Icc a b, t ^ (-s.re : ℂ) * ↑(deriv (deriv φ) t) / (2 * ↑π * I * ↑(deriv φ t) ^ 2) * e (φ t)‖
-          ≤ 1 / (2 * π) * (g_real a / π) := by
-            exact step4_final
-        _ = 1 / (2 * π) * g_real a / π := by
-            ring
-        _ = g_real a / (2 * π * π) := by
-            ring
-        _ = g_real a / (2 * π ^ 2) := by
-            congr 1
-            norm_num
-            ring
-        _ = (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3) / (2 * π ^ 2) := by
-            rw [hg2_a_formula]
-        _ = 1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3) := by
-            ring
-
-    -- Apply the final bound to close the goal
-    exact final_bound
+    -- have h_factor : ∫ t in Set.Icc a b, (t : ℂ) ^ (-s.re : ℂ) * (deriv (deriv φ) t) /
+    --     (2 * π * I * (deriv φ t) ^ 2) * e (φ t) =
+    --     ∫ t in Set.Icc a b, (1 / (2 * π * I)) * (↑(h t) * e (φ t)) := by
+    --   apply setIntegral_congr_fun measurableSet_Icc
+    --   intro t ht
+    --   dsimp [h]
+    --   rw [Complex.ofReal_cpow (by linarith [ha_pos, ht.1]), Complex.ofReal_mul, Complex.ofReal_div, Complex.ofReal_pow]
+    --   field_simp; ring_nf
+    -- rw [h_factor, integral_const_mul, norm_mul]
+    -- have h_norm_const : ‖1 / (2 * ↑π * I)‖ = 1 / (2 * π) := by
+    --   rw [norm_div, norm_one, Complex.norm_mul, Complex.norm_I, mul_one, Complex.norm_real]
+    --   rw [abs_of_nonneg Real.two_pi_pos.le]
+    -- rw [h_norm_const]
+    -- -- Goal: ⊢ 1 / (2 * π) * ‖∫ (a : ℝ) in Set.Icc a b, ↑(h a) * e (φ a)‖ ≤ 1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3)
+    -- rw [one_div]
+    -- refine (mul_le_mul_of_nonneg_left ?_ (inv_nonneg.mpr Real.two_pi_pos.le)).trans_eq ?_
+    -- · convert hmonophase using 1
+    --   apply congr_arg
+    --   apply setIntegral_congr_fun measurableSet_Icc
+    --   intro t ht
+    --   dsimp [h]
+    --   rw [Complex.ofReal_div]
+    -- rw [hφ_deriv_at_a, hφ_deriv2_at_a]
+    -- rw [show s.im / (2 * π * a ^ 2) = ϑ / a by dsimp [ϑ]; field_simp]
+    -- rw [abs_div, abs_pow, abs_mul, Real.abs_rpow_of_nonneg ha_pos.le]
+    -- rw [abs_div, abs_of_pos ha_pos]
+    -- rw [← div_div, div_pow, rpow_sub ha_pos, rpow_one]
+    -- field_simp
+    -- ring
+    sorry
 
   let I1 := ∫ t in Set.Icc a b, (t ^ (-s.re - 1) : ℝ) / (2 * π * I * deriv φ t) * e (φ t)
   let I2 := ∫ t in Set.Icc a b, (t ^ (-s.re) : ℝ) * (deriv (deriv φ) t) /
       (2 * π * I * (deriv φ t) ^ 2) * e (φ t)
 
-  have ha_pos : 0 < a := lt_of_le_of_lt (div_nonneg (abs_nonneg _) (by positivity)) ha
+
   have h_bound : 2 * π ^ 2 * (s.re * ‖I1‖ + ‖I2‖) ≤ a ^ (-s.re - 1) * (s.re * |ν - ϑ| + |ϑ|) / |ν - ϑ| ^ 3 := by
     have h_I1 : ‖I1‖ ≤ 1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2) := by
       convert g_1_integral_bound using 2
@@ -1511,7 +1502,7 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
   abel_nf
   simp only [add_left_cancel_iff]
   refine ⟨(2 * π ^ 2 * a ^ (s.re + 1 : ℂ)) * (s.re * I1 + I2), ?_, ?_⟩
-  · abel
+  · abel_nf
     field_simp [I1, I2]
     rw [Complex.ofReal_cpow ha_pos.le, ← Complex.cpow_add _ _ (ofReal_ne_zero.mpr (ne_of_gt ha_pos))]
     ring_nf
@@ -1523,11 +1514,9 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
       congr
       rw [show (fun t ↦ ν * t + s.im * π⁻¹ * Real.log t * (-1 / 2)) = φ by ext; dsimp [φ]; ring]
       ext x
-      ring; -- simp
+      ring_nf; -- simp
       simp only [mul_assoc]
       congr 1
-      -- have hderivφx : deriv φ x ≠ 0 := by
-        -- sorry
       by_cases hx_icc : x ∈ Set.Icc a b
       · have h_exp : ν * x + s.im * (Real.log x * (π⁻¹ * (-1 / 2))) = φ x := by
           unfold φ
@@ -1567,34 +1556,66 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
       congr;
       unfold φ
       field_simp; ring
-  · calc
-    ‖2 * ↑π ^ 2 * (a : ℂ) ^ ((s.re : ℂ) + 1) * (↑s.re * I1 + I2)‖
-      = (2 * π ^ 2 * a ^ (s.re + 1)) * ‖↑s.re * I1 + I2‖ := by
-        rw [norm_mul]
-        congr
-        simp only [Complex.norm_mul, Complex.norm_ofNat, norm_pow, norm_real, norm_eq_abs, sq_abs,
-          mul_eq_mul_left_iff, mul_eq_zero, OfNat.ofNat_ne_zero, ne_eq, not_false_eq_true,
-          pow_eq_zero_iff, pi_ne_zero, or_self, or_false]
-        rw [Complex.norm_cpow_eq_rpow_re_of_pos]
-        · simp
-        · exact lt_of_le_of_lt (div_nonneg (abs_nonneg _) (by positivity)) ha
-    _ ≤ (2 * π ^ 2 * a ^ (s.re + 1)) * ((s.re : ℝ) * ‖I1‖ + ‖I2‖) := by
-      field_simp
-      refine (norm_add_le _ _).trans ?_
-      simp [abs_of_nonneg hsigma]
-    _ ≤ (2 * π ^ 2 * a ^ (s.re + 1)) * (s.re * (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2))
-          + (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3))) := by
+  ·
+    have h1 : ‖2 * ↑π ^ 2 * (a : ℂ) ^ ((s.re : ℂ) + 1) * (↑s.re * I1 + I2)‖ = (2 * π ^ 2 * a ^ (s.re + 1)) * ‖↑s.re * I1 + I2‖ := by
+      rw [norm_mul]
+      congr
+      simp only [Complex.norm_mul, Complex.norm_ofNat, norm_pow, norm_real, norm_eq_abs, sq_abs,
+        mul_eq_mul_left_iff, mul_eq_zero, OfNat.ofNat_ne_zero, ne_eq, not_false_eq_true,
+        pow_eq_zero_iff, pi_ne_zero, or_self, or_false]
+      rw [Complex.norm_cpow_eq_rpow_re_of_pos]
+      · simp
+      · exact lt_of_le_of_lt (div_nonneg (abs_nonneg _) (by positivity)) ha
+
+    have h2 : ‖2 * ↑π ^ 2 * (a : ℂ) ^ ((s.re : ℂ) + 1) * (↑s.re * I1 + I2)‖ ≤ (2 * π ^ 2 * a ^ (s.re + 1)) * ((s.re : ℝ) * ‖I1‖ + ‖I2‖) := by
+      rw [h1]
+      gcongr
+      calc ‖↑s.re * I1 + I2‖
+        _ ≤ ‖↑s.re * I1‖ + ‖I2‖ := norm_add_le _ _
+        _ = s.re * ‖I1‖ + ‖I2‖ := by simp [norm_mul, abs_of_nonneg hsigma]
+      -- _ ≤ (2 * π ^ 2 * a ^ (s.re + 1)) * ((s.re : ℝ) * ‖I1‖ + ‖I2‖) := by
+      --   field_simp
+      --   refine (norm_add_le _ _).trans ?_
+      --   simp [abs_of_nonneg hsigma]
+      -- _ ≤ (2 * π ^ 2 * a ^ (s.re + 1)) * (s.re * (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2))
+      --       + (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3))) := by
+      --   field_simp
+      --   exact h_bound
+      -- _ = s.re / |ν - ϑ| ^ 2 + |ϑ| / |ν - ϑ| ^ 3 := by
+      --   simp only [one_div, mul_inv_rev, sq_abs]
+      --   have hT1 : 2 * π ^ 2 * a ^ (s.re + 1) * (s.re * ((π ^ 2)⁻¹ * 2⁻¹ * (a ^ (-s.re - 1) / (ν - ϑ) ^ 2))) = s.re / (ν - ϑ) ^ 2 := by
+      --     field_simp [← Real.rpow_add ha_pos, ha_pos.ne', Real.pi_pos.ne']
+      --     ring
+      --   have hT2 : 2 * π ^ 2 * a ^ (s.re + 1) * ((π ^ 2)⁻¹ * 2⁻¹ * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3)) = |ϑ| / |ν - ϑ| ^ 3 := by
+      --     -- field_simp [← Real.rpow_add ha_pos, ha_pos.ne', Real.pi_pos.ne']
+      --     -- ring
+      --     sorry
+      --   rw [mul_add, hT1, hT2]
+      -- _ = s.re / |ν + (-1 : ℝ) • ϑ| ^ 2 + |ϑ| / |ν + (-1 : ℝ) • ϑ| ^ 3 := by
+      --   have h: (ν : ℝ) + (-1 : ℝ) • ϑ = (ν : ℝ) - (ϑ : ℝ) := by sorry
+      --   have h' : |ν + (-1 : ℝ) • ϑ| = |ν - ϑ| := by rw [h]
+      --   rw [h']
+    have h3 :  (2 * π ^ 2 * a ^ (s.re + 1)) * ((s.re : ℝ) * ‖I1‖ + ‖I2‖) ≤ (2 * π ^ 2 * a ^ (s.re + 1)) * (s.re * (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2))
+            + (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3))) := by
       field_simp
       exact h_bound
-    _ = s.re / |ν - ϑ| ^ 2 + |ϑ| / |ν - ϑ| ^ 3 := by
-      field_simp
-      rw [← Real.rpow_add ha_pos]
-      ring_nf
-      rw [Real.rpow_zero]
+
+    have h4 : (2 * π ^ 2 * a ^ (s.re + 1)) * (s.re * (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) / |ν - ϑ| ^ 2))
+            + (1 / (2 * π ^ 2) * (a ^ (-s.re - 1) * |ϑ| / |ν - ϑ| ^ 3))) = s.re / |ν - ϑ| ^ 2 + |ϑ| / |ν - ϑ| ^ 3 := by
+      field_simp [ha_pos.ne', Real.pi_pos.ne', |ν - ϑ|]
+      rw [mul_add, ← Real.rpow_add ha_pos, ← Real.rpow_add ha_pos]
+      simp only [add_neg_cancel_right, Real.rpow_zero, one_mul]
       ring
-    _ = s.re / |ν + -1 • ϑ| ^ 2 + |ϑ| / |ν + -1 • ϑ| ^ 3 := by
-      simp only [sq_abs, Int.reduceNeg, neg_smul, one_smul]
-      ring
+
+    have hnew : |ν - ϑ| = |ν + -1 • ϑ| := by
+      rw [neg_smul, one_smul, sub_eq_add_neg]
+
+    rw [hnew]
+    exact h2.trans (h3.trans h4.le)
+
+
+
+
 
 def _root_.Real.IsHalfInteger (x : ℝ) : Prop := ∃ k : ℤ, x = k + 1 / 2
 
