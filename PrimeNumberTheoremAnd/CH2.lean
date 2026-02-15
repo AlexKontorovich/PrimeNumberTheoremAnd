@@ -2,6 +2,7 @@ import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.CStarAlgebra.Classes
 import Mathlib.Data.Real.Sign
 import Mathlib.Data.Real.StarOrdered
+import Mathlib.MeasureTheory.Integral.Gamma
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.Wiener
 
@@ -341,7 +342,39 @@ noncomputable def F (lambda : ℝ) (ε : ℝ) (y : ℝ) : ℝ := (𝓕 (ϕ lambd
   (proof := /-- Use Lemma \ref{decay-alt}. -/)
   (latexEnv := "lemma")
   (discussion := 945)]
-theorem F_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (F lambda ε) := by sorry
+theorem F_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (F lambda ε) := by
+  refine Integrable.mono' (g := fun y ↦ ‖𝓕 (ϕ lambda ε) y‖) ?_ ?_ ?_
+  · refine Integrable.mono' (g := fun u ↦ ((∫ t, ‖ϕ lambda ε t‖) +
+      (eVariationOn (deriv (ϕ lambda ε)) Set.univ).toReal / (2 * Real.pi) ^ 2) /
+        (1 + ‖u‖ ^ 2)) ?_ ?_ ?_
+    · have : ∫ u : ℝ, (1 + ‖u‖ ^ 2)⁻¹ = Real.pi := by norm_num +zetaDelta at *
+      exact Integrable.const_mul (by contrapose! this; rw [integral_undef this]; positivity) _
+    · refine AEStronglyMeasurable.norm ?_
+      have hf : AEStronglyMeasurable (fun (u : ℝ) ↦
+          ∫ t, ϕ lambda ε t * Complex.exp (-2 * Real.pi * I * u * t)) volume :=
+        (continuous_iff_continuousAt.mpr fun u ↦
+          tendsto_integral_filter_of_dominated_convergence (fun t ↦ ‖ϕ lambda ε t‖)
+            (.of_forall fun _ ↦ (ϕ_integrable _ _ hlam).aestronglyMeasurable.mul
+              (Continuous.aestronglyMeasurable (by continuity)))
+            (by norm_num [norm_exp]) (ϕ_integrable _ _ hlam).norm
+            (.of_forall fun x ↦ Continuous.tendsto (by continuity) _)).aestronglyMeasurable
+      exact hf.congr (.of_forall fun x ↦ by
+        simp only [Real.fourier_real_eq_integral_exp_smul]
+        congr 1; ext t; rw [smul_eq_mul, mul_comm]; congr 1; congr 1; push_cast; ring)
+    · filter_upwards using fun u ↦ by
+        simpa using decay_alt _ (ϕ_integrable _ _ hlam) (ϕ_continuous _ _ hlam)
+          (ϕ_deriv_bv _ _ hlam) u
+  · have : Continuous (F lambda ε) := by
+      apply_rules [continuous_ofReal.comp, Continuous.comp]
+      all_goals try continuity
+      exact continuous_iff_continuousAt.mpr fun x ↦
+        tendsto_integral_filter_of_dominated_convergence (fun a ↦ ‖ϕ lambda ε a‖)
+          (.of_forall fun _ ↦ (Continuous.aestronglyMeasurable (by continuity)).smul
+            (ϕ_integrable _ _ hlam).aestronglyMeasurable)
+              (by norm_num [norm_smul, Circle.norm_smul]) (ϕ_integrable _ _ hlam).norm
+                (.of_forall fun a ↦ Continuous.tendsto (by continuity) _)
+    exact this.aestronglyMeasurable
+  · exact .of_forall fun x ↦ abs_re_le_norm _
 
 @[blueprint
   "F-real"
@@ -376,17 +409,98 @@ theorem F.plus_majorizes_I (lambda y : ℝ) (hlam : lambda ≠ 0) :
 theorem F.minus_minorizes_I (lambda y : ℝ) (hlam : lambda ≠ 0) :
     F lambda (-1) y ≤ I' lambda y := by sorry
 
-@[blueprint
-  "F-plus-l1"
+lemma I_prime_integral (lambda : ℝ) (hlam : lambda ≠ 0) :
+    ∫ y, I' lambda y = 1 / |lambda| := by
+  by_cases hlambda_pos : 0 < lambda
+  · have h_split : ∫ y, I' lambda y = ∫ y in Set.Ici 0, Real.exp (-lambda * y) := by
+      rw [← MeasureTheory.integral_indicator] <;> norm_num [Set.indicator, I']
+      exact congr_arg _ (funext fun x ↦ by split_ifs <;> nlinarith)
+    rw [h_split, MeasureTheory.integral_Ici_eq_integral_Ioi]
+    convert integral_exp_neg_mul_rpow zero_lt_one hlambda_pos using 1 <;>
+      norm_num [Real.rpow_neg_one, abs_of_pos hlambda_pos]
+  · unfold I'
+    have h_integral_neg : ∫ y in Set.Iic 0, Real.exp (-lambda * y) = 1 / (-lambda) := by
+      convert integral_exp_neg_mul_rpow zero_lt_one (neg_pos.mpr (lt_of_le_of_ne
+        (le_of_not_gt hlambda_pos) hlam)) using 1 <;> norm_num [Real.rpow_neg_one]
+      rw [← neg_zero, ← integral_comp_neg_Iic]; norm_num
+    rw [← MeasureTheory.integral_indicator] at * <;> norm_num [Set.indicator] at *
+    cases eq_or_lt_of_le hlambda_pos <;> simp_all only [not_true_eq_false, abs_of_nonpos, inv_neg]
+    convert h_integral_neg using 3
+    split_ifs <;> nlinarith [inv_mul_cancel₀ hlam]
+
+lemma phi_zero_val (lambda : ℝ) (hlam : lambda ≠ 0) :
+    (ϕ lambda 1 0).re = 1 / (1 - Real.exp (-|lambda|)) := by
+  norm_num [ϕ, ϕ_pm, Phi_circ, Phi_star, coth, Complex.tanh_eq_sinh_div_cosh, Complex.normSq,
+    Complex.div_re, Complex.div_im, Complex.cosh, Complex.sinh, Complex.exp_re, Complex.exp_im]
+  field_simp
+  rw [div_add', div_eq_div_iff] <;> ring_nf <;> norm_num [Real.exp_ne_zero, sub_eq_zero, hlam]
+  · rw [← Real.exp_add]; ring_nf
+  · linarith [abs_pos.mpr hlam]
+  · exact Ne.symm (by norm_num [hlam])
+  · linarith [abs_pos.mpr hlam]
+
+lemma I_prime_integrable (lambda : ℝ) (hlam : lambda ≠ 0) :
+    MeasureTheory.Integrable (I' lambda) := by
+  have := I_prime_integral lambda hlam
+  exact by contrapose! this; rw [MeasureTheory.integral_undef this]; positivity
+
+lemma integral_F_eq_phi_zero (lambda : ℝ) (hlam : lambda ≠ 0) :
+    ∫ y, F lambda 1 y = (ϕ lambda 1 0).re := by
+  have h_cont : Continuous (ϕ lambda 1) ∧ Integrable (ϕ lambda 1) volume ∧
+      Integrable (𝓕 (ϕ lambda 1)) volume := by
+    have h_cont : Continuous (ϕ lambda 1) ∧ Integrable (ϕ lambda 1) volume := by
+      constructor
+      · obtain ⟨g, hg⟩ := ϕ_continuous lambda 1 hlam
+        rw [show ϕ lambda 1 = fun x ↦ ϕ lambda 1 0 + ∫ t in (0 : ℝ)..x, deriv (ϕ lambda 1) t
+          by ext x; linear_combination hg 0 x]
+        apply continuous_const.add
+        apply intervalIntegral.continuous_primitive
+        intro a b
+        apply_rules [MeasureTheory.IntegrableOn.intervalIntegrable]
+        have hbv : BoundedVariationOn (deriv (ϕ lambda 1)) Set.univ :=
+          ϕ_deriv_bv lambda 1 hlam
+        have hbv_loc := hbv.mono (Set.subset_univ (Set.uIcc a b))
+        have h_bounded : ∃ C, ∀ x ∈ Set.uIcc a b, ‖deriv (ϕ lambda 1) x‖ ≤ C := by
+          have h_bd : ∃ C, ∀ x ∈ Set.uIcc a b,
+              ‖deriv (ϕ lambda 1) x - deriv (ϕ lambda 1) a‖ ≤ C :=
+            ⟨_, fun x hx ↦ hbv_loc.dist_le hx Set.left_mem_uIcc⟩
+          exact ⟨h_bd.choose + ‖deriv (ϕ lambda 1) a‖, fun x hx ↦ by
+            simpa using (norm_add_le (deriv (ϕ lambda 1) x - deriv (ϕ lambda 1) a)
+              (deriv (ϕ lambda 1) a)).trans (add_le_add (h_bd.choose_spec x hx) le_rfl)⟩
+        exact MeasureTheory.Integrable.mono' (g := fun _ ↦ h_bounded.choose)
+          continuous_const.integrableOn_Icc
+          (aestronglyMeasurable_deriv (ϕ lambda 1) (volume.restrict (Set.uIcc a b)))
+          (by filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Icc] with x hx using
+            h_bounded.choose_spec x hx)
+      · exact ϕ_integrable lambda 1 hlam
+    have h_fourier_integrable : Integrable (𝓕 (ϕ lambda 1)) volume := by
+      have hF_int : Integrable (F lambda 1) volume := F_integrable lambda 1 hlam
+      have hF_real : ∀ y : ℝ, (𝓕 (ϕ lambda 1) y).im = 0 := fun y ↦ F.real lambda 1 y
+      convert hF_int.ofReal using 1
+      congr! 1
+      ext y; simp [F]
+      simp [Complex.ext_iff, hF_real]
+    exact ⟨h_cont.1, h_cont.2, h_fourier_integrable⟩
+  have h_inv : 𝓕⁻ (𝓕 (ϕ lambda 1)) 0 = ϕ lambda 1 0 :=
+    congr_fun (Continuous.fourierInv_fourier_eq h_cont.1 h_cont.2.1 h_cont.2.2) 0
+  rw [← h_inv]
+  simp only [F, fourierInv, VectorFourier.fourierIntegral, LinearMap.neg_apply, innerₗ_apply_apply,
+    RCLike.inner_apply, ringHom_apply, zero_mul, neg_zero, AddChar.map_zero_eq_one, one_smul]
+  convert integral_re h_cont.2.2
+
+@[blueprint "F-plus-l1"
   (title := "F+ L1 bound")
   (statement := /--
   $\int (F_{+,\lambda}(y)-I_\lambda(y))\ dy = \frac{1}{1-e^{-|\lambda|}} - \frac{1}{|\lambda|}$.
   -/)
   (proof := /-- This should follow from the Fourier inversion formula, after showing $F_{+,\lambda}$ is in $L^1$.. -/)
   (latexEnv := "theorem")]
-theorem F.plus_l1 (lambda y : ℝ) (hlam : lambda ≠ 0) :
-    ∫ y : ℝ, F lambda 1 y - I' lambda y =
-      1 / (1 - rexp (-|lambda|)) - 1 / |lambda| := by sorry
+theorem F.plus_l1 (lambda : ℝ) (hlam : lambda ≠ 0) :
+    ∫ y : ℝ, F lambda 1 y - I' lambda y = 1 / (1 - rexp (-|lambda|)) - 1 / |lambda| := by
+  rw [MeasureTheory.integral_sub] <;> norm_num [integral_F_eq_phi_zero, I_prime_integral, hlam]
+  · rw [← one_div, phi_zero_val]; exact RCLike.ofReal_ne_zero.mp hlam
+  · exact F_integrable lambda 1 hlam
+  · exact I_prime_integrable lambda hlam
 
 @[blueprint
   "F-minus-l1"
