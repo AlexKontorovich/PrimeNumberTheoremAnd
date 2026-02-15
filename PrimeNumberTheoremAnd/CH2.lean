@@ -519,10 +519,11 @@ lemma integral_F_eq_phi_zero (lambda : ℝ) (hlam : lambda ≠ 0) :
 @[blueprint "F-plus-l1"
   (title := "F+ L1 bound")
   (statement := /--
-  $\int (F_{+,\lambda}(y)-I_\lambda(y))\ dy = \frac{1}{1-e^{-|\lambda|}} - \frac{1}{|\lambda|}$.
+  $\int (F_{+,\lambda}(y)-I_\lambda(y))\ dy = \frac{1}{1-e^{-|\lambda|}} - \frac{1}{|\lambda|}$. (cf. \cite[(4.2)]{ch2})
   -/)
   (proof := /-- This should follow from the Fourier inversion formula, after showing $F_{+,\lambda}$ is in $L^1$.. -/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 967)]
 theorem F.plus_l1 (lambda : ℝ) (hlam : lambda ≠ 0) :
     ∫ y : ℝ, F lambda 1 y - I' lambda y = 1 / (1 - rexp (-|lambda|)) - 1 / |lambda| := by
   rw [MeasureTheory.integral_sub] <;> norm_num [integral_F_eq_phi_zero, I_prime_integral, hlam]
@@ -534,10 +535,11 @@ theorem F.plus_l1 (lambda : ℝ) (hlam : lambda ≠ 0) :
   "F-minus-l1"
   (title := "F- L1 bound")
   (statement := /--
-  $\int (I_\lambda(y) - F_{-,\lambda}(y))\ dy = \frac{1}{|\lambda|} - \frac{1}{e^{|\lambda|} - 1}$.
+  $\int (I_\lambda(y) - F_{-,\lambda}(y))\ dy = \frac{1}{|\lambda|} - \frac{1}{e^{|\lambda|} - 1}$. (cf. \cite[(4.3)]{ch2})
   -/)
   (proof := /-- This should follow from the Fourier inversion formula, after showing $F_{-,\lambda}$ is in $L^1$.. -/)
-  (latexEnv := "theorem")]
+  (latexEnv := "theorem")
+  (discussion := 968)]
 theorem F.minus_l1 (lambda y : ℝ) (hlam : lambda ≠ 0) :
     ∫ y : ℝ, I' lambda y - F lambda (-1) y =
       1 / |lambda| - 1 / (rexp (|lambda|) - 1) := by sorry

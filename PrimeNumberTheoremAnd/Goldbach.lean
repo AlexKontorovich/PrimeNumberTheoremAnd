@@ -102,7 +102,8 @@ theorem e_silva_herzog_piranian_goldbach : even_conjecture (4 * 10 ^ 18) := by s
   (statement := /-- \cite[Appendix C]{helfgott-goldbach-arxiv}
   The odd Goldbach conjecture is verified up to $1.1325 \times 10^{26}$. -/)
   (proof := /-- Combine Proposition \ref{e-silva-herzog-piranian-even-goldbach}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:ramare-saouter2003}. -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 969)]
 theorem helfgott_odd_goldbach_finite : odd_conjecture (11325 * 10 ^ 22) := by sorry
 
 blueprint_comment /-- The arguments in \cite[Appendix C]{helfgott-goldbach-arxiv} push the bound further than this, but require unpublished estimates of Ramare. However, similar arguments were established in \cite{kadiri-lumley}, and we present them here. -/
@@ -122,7 +123,8 @@ theorem e_silva_herzog_piranian_goldbach_ext : even_conjecture (4 * 10 ^ 18 + 4)
   (statement := /-- \cite[Corollary 1.2]{kadiri-lumley}
   The odd Goldbach conjecture is verified up to $1966196911 \times 4 \times 10^{18}$. -/)
   (proof := /-- Combine Proposition \ref{e-silva-herzog-piranian-even-goldbach-ext}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:prime_gaps_KL} with $x_0 = e^{60}$ and $\Delta = 1966090061$. -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 970)]
 theorem kadiri_lumley_odd_goldbach_finite : odd_conjecture (1966196911 * 4 * 10 ^ 18) := by sorry
 
 

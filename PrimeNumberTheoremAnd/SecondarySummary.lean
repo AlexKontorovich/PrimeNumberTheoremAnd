@@ -23,9 +23,55 @@ Math. Comp. 90 (2021), no. 328, 871–881.
 JY: D. R. Johnston, A. Yang, Some explicit estimates for the error term in the prime number
 theorem, arXiv:2204.01980.
 -/
+open Nat hiding log
+open Finset Real Chebyshev
 
-open Finset Nat Real Chebyshev
+namespace PT
 
+
+def Table_1 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ) :=
+ [ (1000, 0.98, 461.9, 1.52, 1.89, 1.20e-5),
+   (2000, 0.98, 411.4, 1.52, 1.89, 8.35e-10),
+   (3000, 0.98, 379.6, 1.52, 1.89, 4.51e-13),
+   (4000, 0.98, 356.3, 1.52, 1.89, 7.33e-16),
+   (5000, 0.99, 713.0, 1.51, 1.94, 9.77e-19),
+   (6000, 0.99, 611.6, 1.51, 1.94, 4.23e-21),
+   (7000, 0.99, 590.1, 1.51, 1.94, 3.09e-23),
+   (8000, 0.99, 570.5, 1.51, 1.94, 3.12e-25),
+   (9000, 0.99, 552.3, 1.51, 1.94, 4.11e-27),
+   (10000,0.99,535.4 ,1.51 ,1.94 ,6.78e-29)]
+
+
+@[blueprint "pt_thm_1"
+  (title := "PT Theorem 1")
+  (statement := /--
+Let $R = 5.573412$. For each row $\{X, \sigma, A, B, C, \epsilon_0\}$ from \cite[Table 1]{PT2021} we have
+\begin{equation}\label{marcellina}
+\left|\frac{\psi(x) - x}{x}\right| \leq A \left(\frac{\log x}{R}\right)^B \exp\left(-C\sqrt{\frac{\log x}{R}}\right)
+\end{equation}
+and
+\begin{equation*}
+\left|\psi(x)-x\right|\leq \epsilon_0 x
+\end{equation*}
+for all $\log x \geq X$.
+  -/)
+  (latexEnv := "theorem")]
+theorem theorem_1 (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Table_1) :
+  Eψ.classicalBound A B C 5.573412 (exp X) ∧ Eψ.numericalBound (exp X) (fun _ ↦ ε₀) := by sorry
+
+@[blueprint "pt_cor_1"
+  (title := "PT Corollary 1")
+  (statement := /--
+Let $R = 5.573412$. For each row $\{X, \sigma, A, B, C, \epsilon_0\}$ from \cite[Table 1]{PT2021} we have
+\begin{equation}\label{marcellina}
+\left|\frac{\psi(x) - x}{x}\right| \leq A_1 \left(\frac{\log x}{R}\right)^B \exp\left(-C\sqrt{\frac{\log x}{R}}\right)
+\end{equation}
+where $A_1 = A + 0.1$.
+  -/)
+  (proof := /-- This follows trivially (and wastefully) from the work of Dusart  \cite[Cor.\ 4.5]{Dusart} or the authors \cite[Cor.\ 2]{PT2021}.  It should also follow from the results of \cite{FKS2}. -/)
+  (latexEnv := "corollary")]
+theorem corollary_1 (X σ A B C ε₀ : ℝ) (h : (X, σ, A, B, C, ε₀) ∈ Table_1) :
+  Eθ.classicalBound (A + 0.1) B C 5.573412 (exp X) := by sorry
 
 @[blueprint "thm:pt_2"
   (title := "PT Corollary 2")
@@ -37,7 +83,7 @@ open Finset Nat Real Chebyshev
   for all $x \geq \exp(2000)$.
   -/)
   (latexEnv := "theorem")]
-theorem PT.corollary_2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := by
+theorem corollary_2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := by
   have := FKS2.corollary_22
   intro x hx
   have hx2 : x ≥ 2 := by grind [add_one_le_exp 2000]
@@ -65,6 +111,8 @@ theorem PT.corollary_2 : Eπ.classicalBound 235 1.52 0.8 1 (exp 2000) := by
   have hlogone2:  (log x)^(0:ℝ) ≤ (log x)^(38 / 25 - 3 / 2 : ℝ) := by exact rpow_le_rpow_of_exponent_le hlogone hcompare
   rw [rpow_zero (log x)] at hlogone2
   linarith
+
+end PT
 
 @[blueprint
   "thm:jy_13"
