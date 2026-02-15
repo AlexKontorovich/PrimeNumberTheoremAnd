@@ -3415,7 +3415,9 @@ theorem proposition_dadaro {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a : 
       ∑ n ∈ Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) -
       (a ^ (1 - s) : ℂ) / (1 - s) + c * (a ^ (-s) : ℂ) + E ∧
       ‖E‖ ≤ C / (a ^ (s.re + 1 : ℝ)) := by
-  sorry
+  rcases hsigma.eq_or_lt with hsigma_eq | hsigma_lt
+  · exact proposition_dadaro_zero_eq hs1 hsigma_eq ha ha' haτ
+  · exact proposition_dadaro_zero_le hs1 hsigma_lt ha ha' haτ
 
 blueprint_comment /--
 \begin{remark}
