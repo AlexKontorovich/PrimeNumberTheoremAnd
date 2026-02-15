@@ -70,8 +70,19 @@ theorem even_to_odd_goldbach (x₀ H Δ : ℕ)-- may need some lower bounds on t
   by_cases! hn : n ≤ x₀ + 4
   · exact hodd n (by grind : n ∈ Finset.Icc 5 (x₀ + 4)) ho
   · obtain ⟨p, hp⟩ := hprime (n - 4) (by grind : n - 4 ≥ x₀)
-    have hnpe : Even (n - p) := by sorry
-    have hnp : (n - p) ∈ Finset.Icc 4 H := by sorry
+    have hnpe : Even (n - p) := sorry
+    have hnp : (n - p) ∈ Finset.Icc 4 H := by
+      have hpn4 : p ≤ n - 4 := by simpa [field] using hp.2.2
+      have hpn : p ≤ n := hpn4.trans tsub_le_self
+      refine Finset.mem_Icc.2 ⟨?_, ?_⟩
+      · exact (le_tsub_iff_le_tsub (by grind) hpn).2 hpn4
+      · have := hp.2.1
+        rw [← Nat.cast_le (α := ℝ), Nat.cast_sub hpn]
+        rw [Nat.cast_sub (by grind), mul_sub, mul_one, ← sub_add_eq_sub_sub, sub_lt_comm] at this
+        refine this.le.trans ?_
+        calc
+        _ ≤ 4 + (((H - 4) * Δ + 4) - 4) * (1 / Δ : ℝ) := by sorry
+        _ ≤ _ := by sorry
     obtain ⟨q, r, hqr⟩ := heven (n - p) hnp hnpe
     refine ⟨p, q, r, hp.1, hqr.1, hqr.2.1, ?_⟩
     grind
