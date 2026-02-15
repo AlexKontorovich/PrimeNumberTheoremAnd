@@ -1334,7 +1334,8 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
       intro t
       dsimp [g_1, h]
       rw [div_div, pow_two]
-    have hmonophase := by exact lemma_aachmonophase (a := a) (b := b) (φ := φ)   (by simp [hb])  (hcontdiffφ) (h_deriv_ne_zero) h g_1 hg_1_eq_h_div_deriv_φ g_1_cont hg_1_antitone
+    have hmonophase := lemma_aachmonophase (a := a) (b := b) (φ := φ) (by simp [hb])
+      (hcontdiffφ) (h_deriv_ne_zero) h g_1 hg_1_eq_h_div_deriv_φ g_1_cont hg_1_antitone
     simp only [ofReal_div, h] at hmonophase
     have h_factor : (fun t => (t ^ (-s.re - 1 : ℂ) / (2 * π * I * deriv φ t)) * e (φ t)) =
                 (fun t => (1 / (2 * π * I)) * (t ^ (-s.re - 1 : ℂ) / deriv φ t * e (φ t))) := by
@@ -1423,7 +1424,8 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
       intro t
       dsimp [g_2, h]
       rw [div_div, ← pow_succ]
-    have hmonophase := by exact lemma_aachmonophase (a := a) (b := b) (φ := φ)   (by simp [hb])  (hcontdiffφ) (h_deriv_ne_zero) h g_2 hg_2_eq_h_div_deriv_φ g_2_cont g_2_antitone  --  g_1_cont hg_1_antitone
+    have hmonophase := lemma_aachmonophase (a := a) (b := b) (φ := φ) (by simp [hb])
+      (hcontdiffφ) (h_deriv_ne_zero) h g_2 hg_2_eq_h_div_deriv_φ g_2_cont g_2_antitone
     simp only [ofReal_div, h, g_2] at hmonophase
     have h_factor : ∫ t in Set.Icc a b, (t : ℂ) ^ (-s.re : ℂ) * (deriv (deriv φ) t) /
         (2 * π * I * (deriv φ t) ^ 2) * e (φ t) =
