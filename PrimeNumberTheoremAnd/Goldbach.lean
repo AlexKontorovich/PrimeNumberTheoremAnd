@@ -85,7 +85,7 @@ theorem richstein_goldbach : even_conjecture (4 * 10 ^ 14) := by sorry
   (proof := /-- Combine Proposition \ref{richstein-even-goldbach}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:ramare-saouter2003}. -/)
   (latexEnv := "proposition")
   (discussion := 962)]
-theorem ramare_saouter_odd_goldbach : odd_conjecture (113256 * 10 ^ 17) := by sorry
+theorem ramare_saouter_odd_goldbach : odd_conjecture 11325599999999886744004 := by sorry
 
 @[blueprint
   "e-silva-herzog-piranian-even-goldbach"
@@ -125,9 +125,17 @@ theorem e_silva_herzog_piranian_goldbach_ext : even_conjecture (4 * 10 ^ 18 + 4)
   (proof := /-- Combine Proposition \ref{e-silva-herzog-piranian-even-goldbach-ext}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:prime_gaps_KL} with $x_0 = e^{60}$ and $\Delta = 1966090061$. -/)
   (latexEnv := "proposition")
   (discussion := 970)]
-theorem kadiri_lumley_odd_goldbach_finite : odd_conjecture (1966196911 * 4 * 10 ^ 18) := by sorry
-
-
-
+theorem kadiri_lumley_odd_goldbach_finite : odd_conjecture (1966196911 * 4 * 10 ^ 18) := by
+  have h1 (x) (hx : x ≥ Real.exp 60) := KadiriLumley.has_prime_in_interval (Real.exp 60) x
+    61 4.588e-9 20504393735 0.93 0.4527 1966196911 hx
+  simp only [ge_iff_le, KadiriLumley.Table_2, Real.log_exp, List.mem_cons, Prod.mk.injEq,
+    OfNat.ofNat_eq_ofNat, Nat.reduceEqDiff, and_false, and_self, Nat.succ_ne_self, List.not_mem_nil,
+    or_self, or_false, or_true, forall_const] at h1
+  have h2 := even_to_odd_goldbach (⌈Real.exp 60⌉₊) (4 * 10 ^ 18 + 4) 1966196911
+    (fun x hx => h1 x (Nat.le_of_ceil_le hx)) e_silva_herzog_piranian_goldbach_ext
+  have h3 := odd_conjecture_mono _ (⌈Real.exp 60⌉₊ + 4) helfgott_odd_goldbach_finite
+  norm_num at *
+  have : ⌈Real.exp 60⌉₊ + 4 ≤ 113250000000000000000000000 := by sorry
+  exact odd_conjecture_mono _ _ (h2 (h3 this)) (by grind)
 
 end Goldbach
