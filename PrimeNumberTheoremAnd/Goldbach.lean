@@ -53,7 +53,7 @@ theorem even_goldbach_test : even_conjecture 30 := by
   (statement := /--
   We say that the odd Goldbach conjecture is verified up to height $H$ if every odd integer between $5$ and $H$ is the sum of three primes. -/)]
 def odd_conjecture (H : ℕ) : Prop :=
-  ∀ n ∈ Finset.Icc 5 H, ∃ p q r : ℕ, Prime p ∧ Prime q ∧ Prime r ∧ n = p + q + r
+  ∀ n ∈ Finset.Icc 5 H, Odd n → ∃ p q r : ℕ, Prime p ∧ Prime q ∧ Prime r ∧ n = p + q + r
 
 lemma odd_conjecture_mono (H H' : ℕ) (h : odd_conjecture H) (hh : H' ≤ H) : odd_conjecture H' := by
   intro n hn; apply h; grind
