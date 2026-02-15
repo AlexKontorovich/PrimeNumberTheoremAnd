@@ -1,5 +1,9 @@
+import Mathlib.Algebra.Order.Ring.Star
+import Mathlib.Data.Int.Star
 import PrimeNumberTheoremAnd.Defs
 import PrimeNumberTheoremAnd.eSHP_tables
+
+open Nat
 
 blueprint_comment /--
 \section{Prime gap data from eSHP}
@@ -99,6 +103,19 @@ theorem table_8_prime_gap_complete_test (p g : ℕ) (hp : p ≤ 30) (hrecord : p
   (latexEnv := "proposition")]
 theorem table_8_prime_gap_complete (p g : ℕ) (hp : p ≤ 4 * 10 ^ 18) (hrecord : prime_gap_record p g) : (p, g) ∈ table_8 := by sorry
 
+lemma exists_prime_gap_record_le (n : ℕ) :
+    ∃ m, nth_prime m ≤ nth_prime n ∧ nth_prime_gap n ≤ nth_prime_gap m ∧
+      prime_gap_record (nth_prime m) (nth_prime_gap m) := by
+  let g := nth_prime_gap n; let S := {k | k ≤ n ∧ g ≤ nth_prime_gap k}
+  obtain ⟨m, hm_mem, hm_min⟩ : ∃ m ∈ S, ∀ k ∈ S, m ≤ k := ⟨Nat.find <|
+    show S.Nonempty from ⟨n, le_rfl, le_rfl⟩, Nat.find_spec <|
+      show S.Nonempty from ⟨n, le_rfl, le_rfl⟩, fun k hk ↦ Nat.find_min' _ hk⟩
+  refine ⟨m, ?_, hm_mem.2, m, rfl, rfl, fun k hk ↦ ?_ ⟩
+  · exact monotone_nat_of_le_succ (fun n ↦ nth_monotone (infinite_setOf_prime) n.le_succ) hm_mem.1
+  · contrapose! hk
+    exact monotone_nat_of_le_succ (fun n ↦ nth_monotone (infinite_setOf_prime) n.le_succ)
+      (le_of_not_gt fun h ↦ not_lt_of_ge (hm_min _ ⟨by linarith [hm_mem.1], by linarith [hm_mem.2]⟩) h)
+
 @[blueprint
   "max-prime-gap"
   (title := "Maximum prime gap")
@@ -108,9 +125,9 @@ theorem table_8_prime_gap_complete (p g : ℕ) (hp : p ≤ 4 * 10 ^ 18) (hrecord
   (latexEnv := "proposition")
   (discussion := 949)]
 theorem max_prime_gap (n : ℕ) (hp : nth_prime n ≤ 4 * 10 ^ 18) : nth_prime_gap n ≤ 1476 := by
-  sorry
-
-
+  have h : ∀ x ∈ table_8, x.2 ≤ 1476 := by decide
+  obtain ⟨m, hm₁, hm₂, hm₃⟩ := exists_prime_gap_record_le n
+  exact hm₂.trans <| h _ <| table_8_prime_gap_complete _ _ (hm₁.trans hp) hm₃
 
 @[blueprint
   "table-9-prime-gap-test"
@@ -238,7 +255,7 @@ theorem table_9_prime_gap_test (g P : ℕ) (h : (g, P) ∈ table_9) (htest : P <
   have hPmem : P ∈ table_9.map Prod.snd := by
     simpa using (List.mem_map_of_mem (f := Prod.snd) h)
   have htestb : decide (P < 30) = true := decide_eq_true htest
-  have hPsmallmem : P ∈ (table_9.map Prod.snd).filter (fun n => decide (n < 30)) :=
+  have hPsmallmem : P ∈ (table_9.map Prod.snd).filter (fun n ↦ decide (n < 30)) :=
     List.mem_filter.mpr ⟨hPmem, htestb⟩
   have hPsmall : P = 2 ∨ P = 3 ∨ P = 7 ∨ P = 23 := by
     simpa [table_9] using hPsmallmem
@@ -297,7 +314,5 @@ theorem table_9_prime_gap_complete (g P : ℕ) (hg : g < 1346) (hg' : 0 < g) (hr
   (discussion := 951)]
 theorem exists_prime_gap (g : ℕ) (hg : g ∈ Set.Ico 1 1476) (hg' : Even g ∨ g = 1) : first_gap g ≤ 3278018069102480227 := by
   sorry
-
-
 
 end eSHP
