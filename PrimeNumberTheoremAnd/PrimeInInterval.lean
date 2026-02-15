@@ -137,14 +137,14 @@ lemma Eθ.hasPrimeInInterval (x h : ℝ) (hx : 0 < x) (hh : 0 < h) :
       unfold Eθ
       field_simp [hx.ne']
     have habs : |θ x - x| ≤ x * Eθ x := by
-      simpa [hx_abs] using (le_rfl : |θ x - x| ≤ |θ x - x|)
+      simp [hx_abs]
     linarith [abs_sub_le_iff.mp habs |>.1]
   have hxh_bound : (x + h) - (x + h) * Eθ (x + h) ≤ θ (x + h) := by
     have hxh_abs : (x + h) * Eθ (x + h) = |θ (x + h) - (x + h)| := by
       unfold Eθ
       field_simp [hxh.ne']
     have habs : |θ (x + h) - (x + h)| ≤ (x + h) * Eθ (x + h) := by
-      simpa [hxh_abs] using (le_rfl : |θ (x + h) - (x + h)| ≤ |θ (x + h) - (x + h)|)
+      simp [hxh_abs]
     linarith [abs_sub_le_iff.mp habs |>.2]
   have htheta : θ (x + h) > θ x := by
     linarith [hx_bound, hxh_bound, hE]
@@ -214,7 +214,7 @@ lemma prime_gap_record.hasPrimeInInterval {g p : ℕ} {x h : ℝ} (hgap : prime_
     exact (not_le_of_gt hm_ge_two) hm_le_one
   have hm_lt_q : m < q := by
     have hmq : m + 1 ≤ q := by
-      exact (Nat.count_le_iff_le_nth (p := Nat.Prime) infinite_setOf_prime).1 (by simpa [hk_count])
+      exact (Nat.count_le_iff_le_nth (p := Nat.Prime) infinite_setOf_prime).1 (by simp [hk_count])
     exact lt_of_lt_of_le (Nat.lt_succ_self m) hmq
   have hq_prime : Nat.Prime q := by simp [q]
   have hq_le_m_add_g : q ≤ m + g := by
