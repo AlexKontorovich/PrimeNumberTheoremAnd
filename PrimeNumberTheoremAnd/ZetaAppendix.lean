@@ -1594,7 +1594,7 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
       ring
     _ = s.re / |ν + -1 • ϑ| ^ 2 + |ϑ| / |ν + -1 • ϑ| ^ 3 := by
       simp only [sq_abs, Int.reduceNeg, neg_smul, one_smul]
-      ring
+      ring_nf
 
 def _root_.Real.IsHalfInteger (x : ℝ) : Prop := ∃ k : ℤ, x = k + 1 / 2
 
@@ -2988,6 +2988,415 @@ continuously to $\sigma=0$.
 -/)
   (latexEnv := "proposition")
   (discussion := 573)]
+lemma proposition_dadaro_zero_le {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 < s.re) {a : ℝ} (ha : 0 < a)
+    (ha' : a.IsHalfInteger) (haτ : a > |s.im| / (2 * π)) :
+    let ϑ : ℝ := s.im / (2 * π * a)
+    let C : ℝ :=
+      if ϑ ≠ 0 then
+        s.re / 2 * ((1 / (Complex.sin (π * ϑ) ^ 2 : ℂ)).re - (1 / ((π * ϑ) ^ 2 : ℂ)).re) +
+          |ϑ| / (2 * π ^ 2) * ((1 / ((1 - |ϑ|) ^ 3 : ℝ)) + 2 * (riemannZeta 3).re - 1)
+      else
+        s.re / 6
+    let c : ℂ :=
+      if ϑ ≠ 0 then
+        I / 2 * ((1 / Complex.sin (π * ϑ) : ℂ) - (1 / (π * ϑ : ℂ)))
+      else
+        0
+    ∃ E : ℂ, riemannZeta s =
+      ∑ n ∈ Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) -
+      (a ^ (1 - s) : ℂ) / (1 - s) + c * (a ^ (-s) : ℂ) + E ∧
+      ‖E‖ ≤ C / (a ^ (s.re + 1 : ℝ)) := by
+  intro ϑ C c
+  -- Step 1: Choose b > a with b ∈ ℤ + 1/2
+  -- We need to construct a suitable b
+  have ⟨b, hb_half, hb_gt⟩ : ∃ b : ℝ, b.IsHalfInteger ∧ b > a := by
+    use a + 1/2
+    constructor
+    · -- Prove a + 1/2 is a half-integer when a is
+      sorry
+    · linarith
+
+  -- Define the indicator function f(y) = 𝟙_{[a,b]}(y) / y^s
+  let f : ℝ → ℂ := fun y =>
+    if a ≤ y ∧ y ≤ b then (y : ℂ) ^ (-s) else 0
+
+  -- rw [lemma_abadtoabsum]
+  have hsum_1_s := lemma_abadtoabsum (a := a) (b := b) ha hb_half hb_gt hs1 hsigma
+  -- have
+  have ha_ne : ¬∃ n : ℤ, a = ↑n := by
+    intro h
+    have : a.IsInteger := h
+    contradiction
+  have hb_ne : ¬∃ n : ℤ, b = ↑n := sorry
+  have hlim := lemma_abadusepoisson ha_ne hb_ne hb_gt ha hs1
+  -- have hsum_1_s := lemma_abadtoabsum (b := b) ha
+
+  obtain ⟨L, hL_tendsto, hL_sum⟩ := hlim
+  have hsum_a : ∃ E,
+    ∑ n ∈ Finset.Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) =
+      riemannZeta s + a ^ (1 - s) / (1 - s) - L + E ∧
+    ‖E‖ ≤ 2 * ‖s‖ / (s.re * b ^ s.re) := by sorry
+
+  -- have
+  have := lemma_abadsumas hs1 (by linarith) ha hb_gt ha' hb_half haτ
+
+  let ϑ_minus : ℝ := s.im / (2 * π * b)
+  let g : ℝ → ℂ := fun t ↦ if t ≠ 0 then 1 / Complex.sin (↑π * ↑t) - 1 / (↑π * ↑t) else 0
+
+  have hsum_combined : ∃ E₁ E₂,
+    ∑ n ∈ Finset.Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) =
+      riemannZeta s + (a : ℂ) ^ (1 - s) / (1 - s) + (a : ℂ) ^ (-s) * g ϑ / (2 * I) -
+      (E₁ + (b : ℂ) ^ (-s) * g ϑ_minus / (2 * I) + E₂) ∧
+      ‖E₁‖ ≤ C / a ^ (s.re + 1) ∧
+      ‖E₂‖ ≤ 2 * ‖s‖ / (s.re * b ^ s.re) := by
+    sorry
+
+  -- Extract the components from hsum_combined
+  obtain ⟨E₁, E₂, hsum_eq, hE₁_bound, hE₂_bound⟩ := hsum_combined
+
+  -- Rearrange to solve for riemannZeta s
+  have h_rearrange : riemannZeta s =
+    ∑ n ∈ Finset.Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) - (a : ℂ) ^ (1 - s) / (1 - s) -
+    (a : ℂ) ^ (-s) * g ϑ / (2 * I) + (E₁ + (b : ℂ) ^ (-s) * g ϑ_minus / (2 * I) + E₂) := by
+    rw [hsum_eq]; ring
+
+
+  -- Define the combined error term (absorbing the sign issue)
+  use E₁ + b ^ (-s) * g ϑ_minus / (2 * I) + E₂
+
+
+
+  -- Key lemma: -g(ϑ)/(2i) = c
+  have h_g_eq_c : -g ϑ / (2 * I) = c := by
+
+    by_cases h_ϑ_ne_0 : ϑ ≠ 0
+    · -- Case ϑ ≠ 0
+      simp [c, g]
+      rw [if_neg h_ϑ_ne_0, if_neg h_ϑ_ne_0]
+      field_simp
+      rw [Complex.I_sq]
+      ring
+    · -- Case ϑ = 0
+      simp only [g, h_ϑ_ne_0, ite_false]
+      simp only [c, h_ϑ_ne_0, ite_false]
+      simp only [zero_div, neg_zero]
+
+  constructor
+
+  -- Part 1: Prove the equality
+  · calc riemannZeta s
+    _ = ∑ n ∈ Finset.Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) - (a : ℂ) ^ (1 - s) / (1 - s) -
+        ((a : ℂ) ^ (-s) * g ϑ / (2 * I)) + (E₁ + (b : ℂ) ^ (-s) * g ϑ_minus / (2 * I) + E₂) := by
+      exact h_rearrange
+    _ = ∑ n ∈ Finset.Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) - (a : ℂ) ^ (1 - s) / (1 - s) -
+      ((a : ℂ) ^ (-s) * (-c)) + (E₁ + (b : ℂ) ^ (-s) * g ϑ_minus / (2 * I) + E₂) := by
+      rw [mul_div_assoc]
+      rw [show g ϑ / (2 * I) = -c by rw [← neg_eq_iff_eq_neg, ← neg_div, h_g_eq_c]]
+    _ = ∑ n ∈ Finset.Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) - (a : ℂ) ^ (1 - s) / (1 - s) +
+      c * (a : ℂ) ^ (-s) + (E₁ + (b : ℂ) ^ (-s) * g ϑ_minus / (2 * I) + E₂) := by ring
+
+
+lemma proposition_dadaro_zero_eq {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 = s.re) {a : ℝ} (ha : 0 < a)
+    (ha' : a.IsHalfInteger) (haτ : a > |s.im| / (2 * π)) :
+    let ϑ : ℝ := s.im / (2 * π * a)
+    let C : ℝ :=
+      if ϑ ≠ 0 then
+        s.re / 2 * ((1 / (Complex.sin (π * ϑ) ^ 2 : ℂ)).re - (1 / ((π * ϑ) ^ 2 : ℂ)).re) +
+          |ϑ| / (2 * π ^ 2) * ((1 / ((1 - |ϑ|) ^ 3 : ℝ)) + 2 * (riemannZeta 3).re - 1)
+      else
+        s.re / 6
+    let c : ℂ :=
+      if ϑ ≠ 0 then
+        I / 2 * ((1 / Complex.sin (π * ϑ) : ℂ) - (1 / (π * ϑ : ℂ)))
+      else
+        0
+    ∃ E : ℂ, riemannZeta s =
+      ∑ n ∈ Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) -
+      (a ^ (1 - s) : ℂ) / (1 - s) + c * (a ^ (-s) : ℂ) + E ∧
+      ‖E‖ ≤ C / (a ^ (s.re + 1 : ℝ)) := by
+  intro ϑ C c
+  -- $\zeta(s)=\sum_{n \leq a} \frac{1}{n^s}-\frac{a^{1-s}}{1-s}+c_{\vartheta} a^{-s}+O^*\left(\frac{C_{\sigma, \vartheta}}{a^{\sigma+1}}\right)$
+  -- All terms extend continuously to $\sigma=0$.
+  -- Step 1: Apply the given theorem to nearby points with positive real part
+  have h_nearby_approximation : ∀ σ ∈ Set.Ioo (0 : ℝ) 1,
+    ∃ E_σ : ℂ,
+      riemannZeta (σ + I * s.im) =
+        ∑ n ∈ Finset.Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-(σ + I * s.im)) -
+        ↑a ^ (1 - (σ + I * s.im)) / (1 - (σ + I * s.im)) +
+        c * ↑a ^ (-(σ + I * s.im)) + E_σ ∧
+      ‖E_σ‖ ≤ (if ϑ ≠ 0 then
+          σ / 2 * ((1 / Complex.sin (π * ϑ : ℂ) ^ 2).re - (1 / (π * ϑ : ℂ) ^ 2).re) +
+            |ϑ| / (2 * π ^ 2) * (1 / (1 - |ϑ|) ^ 3 + 2 * (riemannZeta 3).re - 1)
+        else σ / 6) / a ^ (σ + 1) := by
+    intro σ hσ
+    -- hσ : σ ∈ Set.Ioo 0 1
+    -- Goal: ∃ E_σ, ...
+
+    -- Extract that 0 < σ < 1
+    have hσ_pos : 0 < σ := hσ.1
+    have hσ_lt_one : σ < 1 := hσ.2
+
+    -- Define s_σ = σ + I * s.im
+    set s_σ : ℂ := ↑σ + I * ↑s.im with hs_σ_def
+
+    -- Show s_σ ≠ 1
+    have hs_σ_ne_one : s_σ ≠ 1 := by
+      intro h
+      simp [s_σ] at h
+      -- Extract that σ = 1 and s.im = 0 from h
+      have : σ = 1 ∧ s.im = 0 := by sorry
+      exact hσ_lt_one.ne this.1
+
+    -- Show 0 < s_σ.re
+    have hs_σ_re_pos : 0 < s_σ.re := by
+      simp [s_σ]
+      exact hσ_pos
+
+    -- Show that a > |s_σ.im| / (2 * π)
+    have ha_τ_σ : a > |s_σ.im| / (2 * π) := by
+      simp [s_σ]
+      exact haτ
+
+    -- Apply proposition_dadaro_zero_le
+    obtain ⟨E_σ, hE_σ_eq, hE_σ_bound⟩ :=
+      proposition_dadaro_zero_le hs_σ_ne_one hs_σ_re_pos ha ha' ha_τ_σ
+
+    -- Show that the ϑ used in the theorem equals our ϑ
+    have hϑ_eq : s_σ.im / (2 * π * a) = ϑ := by
+      simp [s_σ, ϑ]
+
+    -- Show that c in the theorem equals our c
+    have hc_eq : (if s_σ.im / (2 * π * a) ≠ 0 then
+        I / 2 * (1 / Complex.sin (↑π * ↑(s_σ.im / (2 * π * a))) -
+        1 / (↑π * ↑(s_σ.im / (2 * π * a)))) else 0) = c := by
+      rw [hϑ_eq]
+
+    -- Rewrite the equation using hc_eq
+    rw [hc_eq] at hE_σ_eq
+
+    -- Show that the bound constant matches
+    have hC_eq : (if s_σ.im / (2 * π * a) ≠ 0 then
+        s_σ.re / 2 * ((1 / Complex.sin (π * (s_σ.im / (2 * π * a))) ^ 2).re -
+          (1 / (π * (s_σ.im / (2 * π * a))) ^ 2)) +
+        |s_σ.im / (2 * π * a)| / (2 * π ^ 2) *
+          (1 / (1 - |s_σ.im / (2 * π * a)|) ^ 3 + 2 * (riemannZeta 3).re - 1)
+      else s_σ.re / 6) / a ^ (s_σ.re + 1) =
+      (if ϑ ≠ 0 then
+        σ / 2 * ((1 / Complex.sin (π * ϑ) ^ 2).re - (1 / (π * ϑ) ^ 2)) +
+        |ϑ| / (2 * π ^ 2) * (1 / (1 - |ϑ|) ^ 3 + 2 * (riemannZeta 3).re - 1)
+      else σ / 6) / a ^ (σ + 1) := by
+      simp [s_σ, hϑ_eq]
+
+    -- Rewrite the bound using hC_eq
+    rw [hC_eq] at hE_σ_bound
+
+    -- Provide the witness
+    exact ⟨E_σ, hE_σ_eq, hE_σ_bound⟩
+
+
+  -- Step 2: All terms extend continuously to σ = 0
+  have h_continuous_extension :
+    ContinuousAt (fun σ : ℝ => riemannZeta (σ + I * s.im)) 0 ∧
+    ContinuousAt (fun σ : ℝ => ∑ n ∈ Finset.Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-(σ + I * s.im))) 0 ∧
+    ContinuousAt (fun σ : ℝ => ↑a ^ (1 - (σ + I * s.im)) / (1 - (σ + I * s.im))) 0 ∧
+    ContinuousAt (fun σ : ℝ => c * ↑a ^ (-(σ + I * s.im))) 0 := by
+    have hs_zero : (↑(0 : ℝ) + I * ↑s.im : ℂ) = s := by
+      apply Complex.ext <;> simp [hsigma.symm]
+    repeat' constructor
+    · -- change ContinuousAt (riemannZeta ∘ (fun σ ↦ ↑σ + I * ↑s.im)) 0
+      rw [show (fun σ : ℝ ↦ riemannZeta (↑σ + I * ↑s.im))= riemannZeta ∘ (fun σ : ℝ ↦ ↑σ + I * ↑s.im)
+        by ext σ; simp]
+      apply ContinuousAt.comp (g := riemannZeta) (f := fun σ : ℝ ↦ ↑σ + I * ↑s.im)
+      · rw [hs_zero]
+        exact (differentiableAt_riemannZeta hs1).continuousAt
+      · fun_prop
+    · apply tendsto_finset_sum
+      intro i hi
+      simp only [Finset.mem_Icc] at hi
+      apply ContinuousAt.cpow
+      · exact continuousAt_const
+      · fun_prop
+      · left; norm_cast
+        linarith
+    · apply ContinuousAt.div
+      · apply ContinuousAt.cpow
+        · exact continuousAt_const
+        · fun_prop
+        · left; norm_cast
+      · fun_prop
+      · rw [hs_zero]
+        exact sub_ne_zero.mpr hs1.symm
+    · apply ContinuousAt.mul
+      · exact continuousAt_const
+      · apply ContinuousAt.cpow
+        · exact continuousAt_const
+        · fun_prop
+        · left; norm_cast
+
+  -- Step 3: The error bound converges to C / a as σ → 0⁺
+  have h_error_bound_limit :
+    ∀ ε > 0, ∃ δ > 0, ∀ σ ∈ Set.Ioo (0 : ℝ) δ,
+      (if ϑ ≠ 0 then
+          σ / 2 * ((1 / Complex.sin (π * ϑ : ℂ) ^ 2).re - (1 / (π * ϑ : ℂ) ^ 2).re) +
+            |ϑ| / (2 * π ^ 2) * (1 / (1 - |ϑ|) ^ 3 + 2 * (riemannZeta 3).re - 1)
+        else σ / 6) / a ^ (σ + 1) < C / a + ε := sorry
+
+
+  -- Step 1: Simplify s.re + 1 = 1 since s.re = 0
+  rw [show s.re + 1 = 1 by rw [← hsigma]; norm_num]
+
+  -- Step 2: Express s in canonical form
+  have hs_canonical : s = I * s.im := by
+    apply Complex.ext
+    · simp [hsigma.symm]
+    · simp
+  -- rw [show s = I * s.im by apply Complex.ext; exact hsigma.symm; simp [Complex.ofReal_im]
+  rw [hs_canonical]
+
+  let σ_n : ℕ → ℝ := fun n => 1 / (n + 2 : ℝ)
+  have hσ_n_mem : ∀ n, σ_n n ∈ Set.Ioo (0 : ℝ) 1 := by
+    intro n
+    constructor
+    · simp [σ_n]; positivity
+    · simp [σ_n]; norm_num
+      rw [inv_lt_one₀]
+      · linarith
+      · positivity
+
+  -- Step 4: Get error terms E_n for each σ_n
+  have hE_n : ∀ n, ∃ E_n : ℂ,
+    riemannZeta (↑(σ_n n) + I * ↑s.im) =
+      ∑ k ∈ Finset.Icc 1 ⌊a⌋₊, (k : ℂ) ^ (-(↑(σ_n n) + I * ↑s.im)) -
+      ↑a ^ (1 - (↑(σ_n n) + I * ↑s.im)) / (1 - (↑(σ_n n) + I * ↑s.im)) +
+      c * ↑a ^ (-(↑(σ_n n) + I * ↑s.im)) + E_n ∧
+    ‖E_n‖ ≤ (if ϑ ≠ 0 then
+        σ_n n / 2 * ((1 / Complex.sin (π * ϑ : ℂ) ^ 2).re - (1 / (π * ϑ : ℂ) ^ 2).re) +
+          |ϑ| / (2 * π ^ 2) * (1 / (1 - |ϑ|) ^ 3 + 2 * (riemannZeta 3).re - 1)
+      else σ_n n / 6) / a ^ (σ_n n + 1) := by
+    intro n
+    exact h_nearby_approximation (σ_n n) (hσ_n_mem n)
+  choose E_n hE_n_eq hE_n_bound using hE_n
+  have h_lim_σ : Tendsto σ_n atTop (𝓝 0) := by
+    simp [σ_n]
+    apply tendsto_inv_atTop_zero.comp
+    apply Filter.tendsto_atTop_add_const_right
+    exact tendsto_natCast_atTop_atTop
+  let E := riemannZeta (I * s.im) - (∑ k ∈ Finset.Icc 1 ⌊a⌋₊, (k : ℂ) ^ (-(I * s.im) : ℂ) -
+             ↑a ^ (1 - (I * s.im) : ℂ) / (1 - (I * s.im) : ℂ) + c * ↑a ^ (-(I * s.im) : ℂ))
+  have hE_converges : Filter.Tendsto E_n Filter.atTop (𝓝 E) := by
+    have : Tendsto (fun n ↦ riemannZeta (↑(σ_n n) + I * ↑s.im) -
+        (∑ k ∈ Finset.Icc 1 ⌊a⌋₊, (k : ℂ) ^ (-(↑(σ_n n) + I * ↑s.im) : ℂ) -
+          ↑a ^ (1 - (↑(σ_n n) + I * ↑s.im) : ℂ) / (1 - (↑(σ_n n) + I * ↑s.im) : ℂ) +
+        c * ↑a ^ (-(↑(σ_n n) + I * ↑s.im) : ℂ))) atTop (𝓝 E) := by
+      apply Tendsto.sub
+      · convert h_continuous_extension.1.tendsto.comp h_lim_σ using 1
+        simp [zero_add]
+      · apply Tendsto.add
+        · apply Tendsto.sub
+          · convert h_continuous_extension.2.1.tendsto.comp h_lim_σ using 1
+            simp [zero_add]
+          · convert h_continuous_extension.2.2.1.tendsto.comp h_lim_σ using 1
+            simp [zero_add]
+        · convert h_continuous_extension.2.2.2.tendsto.comp h_lim_σ using 1
+          simp [zero_add]
+
+    apply this.congr
+    intro n
+    rw [hE_n_eq n]
+    ring
+
+  -- obtain ⟨E, hE_lim⟩ := hE_converges
+  -- use E
+  have hnormE_converges : Tendsto (fun n ↦ ‖E_n n‖) atTop (𝓝 ‖E‖) := by
+    apply Filter.Tendsto.norm hE_converges
+  -- Key subgoal 3: The norm sequence is bounded by bound_n
+  -- Define the bounding sequence for clarity
+  let bound_n : ℕ → ℝ := fun n =>
+    (if ϑ ≠ 0 then
+        σ_n n / 2 * ((1 / Complex.sin (π * ϑ : ℂ) ^ 2).re - (1 / (π * ϑ : ℂ) ^ 2).re) +
+        |ϑ| / (2 * π ^ 2) * (1 / (1 - |ϑ|) ^ 3 + 2 * (riemannZeta 3).re - 1)
+      else σ_n n / 6) / a ^ (σ_n n + 1)
+  -- Key subgoal 1: The bounding sequence converges to C/a
+  have h_bound_converges : Tendsto bound_n atTop (𝓝 (C / a)) := by
+    by_cases hϑ : ϑ = 0
+    · simp [bound_n, hϑ, ↓reduceIte]
+      have h_num : Tendsto (fun n ↦ σ_n n / 6) atTop (𝓝 0) := by
+        simpa using h_lim_σ.div_const 6
+      have h_den : Tendsto (fun n ↦ a ^ (σ_n n + 1)) atTop (𝓝 a) := by
+        convert Tendsto.rpow tendsto_const_nhds (h_lim_σ.add tendsto_const_nhds) (Or.inl ha.ne')
+        simp
+      rw [show C = 0 by simp [C, hϑ, hsigma.symm, zero_div]]
+      apply h_num.div h_den ha.ne'
+    · simp [bound_n, hϑ]
+      have hC : C = |ϑ| / (2 * π ^ 2) * (1 / (1 - |ϑ|) ^ 3 + 2 * (riemannZeta 3).re - 1) := by
+        simp [C, hϑ]
+        rw [← hsigma]; simp
+      have hnum : Tendsto (fun n ↦ σ_n n / 2 * ((1 / Complex.sin (π * ϑ : ℂ) ^ 2).re - (1 / (π * ϑ : ℂ) ^ 2).re) +
+          C) atTop (𝓝 C) := by
+        nth_rw 2 [← zero_add C]
+        apply Tendsto.add
+        · convert (h_lim_σ.div_const 2).mul_const ((1 / Complex.sin (π * ϑ : ℂ) ^ 2).re - (1 / (π * ϑ : ℂ) ^ 2).re)
+          simp
+        · exact tendsto_const_nhds
+      have hden : Tendsto (fun n ↦ a ^ (σ_n n + 1)) atTop (𝓝 a) := by
+        convert Tendsto.rpow tendsto_const_nhds (h_lim_σ.add tendsto_const_nhds) (Or.inl ha.ne')
+        simp
+      convert hnum.div hden (by positivity) using 1
+      · ext n; dsimp; congr 1; rw [hC]
+        have h_sin : (1 / Complex.sin ((π : ℂ) * (ϑ : ℂ)) ^ 2).re =
+            (Complex.sin ((π : ℂ) * (ϑ : ℂ)) ^ 2).re / normSq (Complex.sin ((π : ℂ) * (ϑ : ℂ))) ^ 2 := by
+          simp
+        have h_th : (1 / ((π : ℂ) * (ϑ : ℂ)) ^ 2).re = (((π : ℂ) * (ϑ : ℂ)) ^ 2).re / (π * π * (ϑ * ϑ)) ^ 2 := by simp
+        simp only [h_sin, h_th]; ring
+
+  -- Key subgoal 2: The sequence of norms converges to ‖E‖ (by continuity of norm)
+  have h_norm_continuous : Tendsto (fun n => ‖E_n n‖) atTop (𝓝 ‖E‖) := hE_converges.norm
+  have h_norm_bounded : ∀ n, ‖E_n n‖ ≤ bound_n n := by
+    intro n
+    simp_rw [bound_n]
+    exact hE_n_bound n
+  use E
+  constructor
+  -- Take limit of hE_n_eq as n → ∞ using continuity
+  · have h_lhs : Filter.Tendsto (fun n => riemannZeta (↑(σ_n n) + I * ↑s.im))
+      Filter.atTop (𝓝 (riemannZeta (I * ↑s.im))) := by
+
+      -- apply h_continuous_extension.1.tendsto.comp
+      -- 1. Prove that σ_n tends to 0
+      -- 1. Prove that σ_n tends to 0
+      have h_lim_σ : Tendsto σ_n atTop (𝓝 0) := by
+        simp [σ_n]
+        -- Goal: Tendsto (fun n ↦ (↑n + 2)⁻¹) atTop (𝓝 0)
+        apply tendsto_inv_atTop_zero.comp
+        -- Use Filter.tendsto_atTop_add_const_right to get the exact syntactic form (fun x ↦ x + 2)
+        apply Filter.tendsto_atTop_add_const_right
+        exact tendsto_natCast_atTop_atTop
+      -- 2. Use the continuity hypothesis and bridge the definitional gap
+      have h_cont := h_continuous_extension.1.tendsto
+      convert h_cont.comp h_lim_σ using 1
+      · -- Show that the function composition matches the goal's lambda
+        ext n; simp
+
+
+    have h_rhs : Filter.Tendsto (fun n =>
+        ∑ k ∈ Finset.Icc 1 ⌊a⌋₊, (k : ℂ) ^ (-(↑(σ_n n) + I * ↑s.im)) -
+        ↑a ^ (1 - (↑(σ_n n) + I * ↑s.im)) / (1 - (↑(σ_n n) + I * ↑s.im)) +
+        c * ↑a ^ (-(↑(σ_n n) + I * ↑s.im)))
+      Filter.atTop (𝓝 (∑ k ∈ Finset.Icc 1 ⌊a⌋₊, (k : ℂ) ^ (-(I * ↑s.im)) -
+        ↑a ^ (1 - I * ↑s.im) / (1 - I * ↑s.im) + c * ↑a ^ (-(I * ↑s.im)))) := by
+      have h1 := h_continuous_extension.2.1.tendsto.comp h_lim_σ
+      have h2 := h_continuous_extension.2.2.1.tendsto.comp h_lim_σ
+      have h3 := h_continuous_extension.2.2.2.tendsto.comp h_lim_σ
+      convert (h1.sub h2).add h3 using 1
+      ext n; simp
+    simp [E]
+  -- Part 2: Prove the error bound
+  · exact le_of_tendsto_of_tendsto h_norm_continuous h_bound_converges
+      (Filter.Eventually.of_forall h_norm_bounded)
+
+
+
+
 theorem proposition_dadaro {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a : ℝ} (ha : 0 < a)
     (ha' : a.IsHalfInteger) (haτ : a > |s.im| / (2 * π)) :
     let ϑ : ℝ := s.im / (2 * π * a)
