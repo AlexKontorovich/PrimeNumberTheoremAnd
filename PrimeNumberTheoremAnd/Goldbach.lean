@@ -85,7 +85,7 @@ theorem richstein_goldbach : even_conjecture (4 * 10 ^ 14) := by sorry
   (proof := /-- Combine Proposition \ref{richstein-even-goldbach}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:ramare-saouter2003}. -/)
   (latexEnv := "proposition")
   (discussion := 962)]
-theorem ramare_saouter_odd_goldbach : odd_conjecture 11325599999999886744004 := by sorry
+theorem ramare_saouter_odd_goldbach : odd_conjecture (113256 * 10 ^ 17) := by sorry
 
 @[blueprint
   "e-silva-herzog-piranian-even-goldbach"
