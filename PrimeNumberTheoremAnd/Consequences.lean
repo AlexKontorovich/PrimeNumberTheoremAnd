@@ -2432,15 +2432,16 @@ blueprint_comment /--
 -/
 
 @[blueprint
+  "chebyshev-asymptotic-pnt"
   (title := "Prime number theorem in AP")
   (statement := /--
   If $a\ (q)$ is a primitive residue class, then one has
   $$ \sum_{p \leq x: p = a\ (q)} \log p = \frac{x}{\phi(q)} + o(x).$$
   -/)
   (proof := /--
-  This is a routine modification of the proof of Theorem \ref{chebyshev_asymptotic}.
+  This is a routine modification of the proof of Theorem \ref{chebyshev-asymptotic}.
   -/)
-  (proofUses := ["chebyshev_asymptotic"])
+  (proofUses := ["chebyshev-asymptotic"])
   (latexEnv := "theorem")]
 theorem chebyshev_asymptotic_pnt
     {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : a.Coprime q) (ha' : a < q) :
@@ -2513,9 +2514,9 @@ theorem chebyshev_asymptotic_pnt
   (statement := /-- Any primitive residue class contains an infinite number of primes. -/)
   (proof := /--
   If this were not the case, then the sum $\sum_{p \leq x: p = a\ (q)} \log p$
-  would be bounded in $x$, contradicting Theorem \ref{chebyshev_asymptotic_pnt}.
+  would be bounded in $x$, contradicting Theorem \ref{chebyshev-asymptotic-pnt}.
   -/)
-  (proofUses := ["chebyshev_asymptotic_pnt"])
+  (proofUses := ["chebyshev-asymptotic-pnt"])
   (latexEnv := "corollary")]
 theorem dirichlet_thm {q : ℕ} {a : ℕ} (hq : q ≥ 1) (ha : Nat.Coprime a q) (ha' : a < q) :
     Infinite { p // p.Prime ∧ p % q = a } := by

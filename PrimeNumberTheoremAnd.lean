@@ -21,6 +21,7 @@ import PrimeNumberTheoremAnd.FKS2
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.Fourier
 import PrimeNumberTheoremAnd.GeneralMeromorphic
+import PrimeNumberTheoremAnd.Goldbach
 import PrimeNumberTheoremAnd.HadamardFactorization
 import PrimeNumberTheoremAnd.HoffsteinLockhart
 import PrimeNumberTheoremAnd.KLN
@@ -41,6 +42,7 @@ import PrimeNumberTheoremAnd.PerronFormula
 import PrimeNumberTheoremAnd.PrimeInInterval
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.PrimarySummary
+import PrimeNumberTheoremAnd.Ramanujan
 import PrimeNumberTheoremAnd.Rectangle
 import PrimeNumberTheoremAnd.ResidueCalcOnRectangles
 import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
