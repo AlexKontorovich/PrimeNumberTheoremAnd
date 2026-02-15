@@ -29,23 +29,7 @@ lemma even_conjecture_mono (H H' : ℕ) (h : even_conjecture H) (hh : H' ≤ H) 
   (latexEnv := "proposition")
   (discussion := 959)]
 theorem even_goldbach_test : even_conjecture 30 := by
-  intro n hn he
-  fin_cases hn
-  all_goals try grind
-  · exact ⟨2, 2, by decide⟩
-  · exact ⟨3, 3, by decide⟩
-  · exact ⟨3, 5, by decide⟩
-  · exact ⟨5, 5, by decide⟩
-  · exact ⟨5, 7, by decide⟩
-  · exact ⟨7, 7, by decide⟩
-  · exact ⟨5, 11, by decide⟩
-  · exact ⟨7, 11, by decide⟩
-  · exact ⟨7, 13, by decide⟩
-  · exact ⟨11, 11, by decide⟩
-  · exact ⟨11, 13, by decide⟩
-  · exact ⟨13, 13, by decide⟩
-  · exact ⟨11, 17, by decide⟩
-  · exact ⟨13, 17, by decide⟩
+  sorry
 
 @[blueprint
   "odd-goldbach"
@@ -120,7 +104,14 @@ theorem e_silva_herzog_piranian_goldbach : even_conjecture (4 * 10 ^ 18) := by s
   (proof := /-- Combine Proposition \ref{e-silva-herzog-piranian-even-goldbach}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:ramare-saouter2003}. -/)
   (latexEnv := "proposition")
   (discussion := 969)]
-theorem helfgott_odd_goldbach_finite : odd_conjecture (11325 * 10 ^ 22) := by sorry
+theorem helfgott_odd_goldbach_finite : odd_conjecture (11325 * 10 ^ 22) := by
+  have h1 := even_to_odd_goldbach 10726905042 (4 * 10 ^ 18) 28314000
+    (fun x hx => RamareSaouter2003.has_prime_in_interval x (by norm_cast : (x : ℝ) > 10726905041))
+    e_silva_herzog_piranian_goldbach
+  have h2 := odd_conjecture_mono (4 * 10 ^ 18 + 3) 10726905046
+    (even_to_odd_goldbach_triv _ e_silva_herzog_piranian_goldbach)
+  norm_num at *
+  exact odd_conjecture_mono _ _ (h1 h2) (by grind)
 
 blueprint_comment /-- The arguments in \cite[Appendix C]{helfgott-goldbach-arxiv} push the bound further than this, but require unpublished estimates of Ramare. However, similar arguments were established in \cite{kadiri-lumley}, and we present them here. -/
 
