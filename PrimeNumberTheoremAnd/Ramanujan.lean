@@ -133,7 +133,7 @@ $$ (cf. \cite[\S 5]{PT2021})
 -/)
   (proof := /-- Follows from Lemma \ref{pi-error-identity} and the triangle inequality. -/)
   (latexEnv := "sublemma")]
-theorem pi_lower (a : ℝ → ℝ) (htheta : ∀ x ≥ 2, abs (θ x - x) * log x ^ 5 ≤ x * a x) (x : ℝ) (hx : 2 ≤ x)  :
+theorem pi_lower (a : ℝ → ℝ) (htheta : ∀ x ≥ 2, abs (θ x - x) * log x ^ 5 ≤ x * a x) (x : ℝ) (hx : 2 ≤ x) :
     pi x ≥ x / log x - a x * x / log x ^ 6 + ∫ t in Set.Icc 2 x, 1 / log t ^ 2 - ∫ t in Set.Icc 2 x, a t / log t ^ 7 := by
     sorry
 
