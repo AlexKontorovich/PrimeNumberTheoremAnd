@@ -1421,8 +1421,7 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
           simp only [Nat.cast_ofNat, rpow_ofNat, rpow_neg_ofNat, Int.reduceNeg, zpow_neg,
             mul_eq_mul_right_iff, inv_eq_zero, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
             pow_eq_zero_iff, abs_eq_zero, div_eq_zero_iff]
-          left
-          field_simp [ht_pos.ne']
+          left; field_simp [ht_pos.ne']
         _ = |s.im| * (2 * π) ^ 2 * (t ^ (-s.re - 2) * |2 * π * ν - s.im / t| ^ (-3 : ℝ)) := by
           rw [← Real.rpow_add ht_pos]
           ring_nf
@@ -1522,7 +1521,7 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
       congr
       rw [show (fun t ↦ ν * t + s.im * π⁻¹ * Real.log t * (-1 / 2)) = φ by ext; dsimp [φ]; ring]
       ext x
-      ring_nf; -- simp
+      ring_nf
       simp only [mul_assoc]
       congr 1
       rw [show (ν * x + s.im * (Real.log x * (π⁻¹ * (-1 / 2))) = φ x) by dsimp [φ]; ring]
