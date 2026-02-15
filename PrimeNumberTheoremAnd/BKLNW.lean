@@ -537,7 +537,7 @@ where
  -/)
   (latexEnv := "corollary")
   (discussion := 640)]
-theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (x : ℝ) (hx : x ≥ exp b) :
+theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
     ψ x - θ x - θ (x^(1/2:ℝ)) ≤
       (1 + I.α) * max (f (exp b)) (f (2^(⌊b / (log 2)⌋ + 1))) * x^(1/3:ℝ) := by
   let x₀ := exp b
@@ -708,9 +708,8 @@ theorem thm_5 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
       · simp only [if_pos h, prop_4_a I hx]
       · simp only [if_neg h, prop_4_b I hb hx]
     · unfold Inputs.a₂
-      convert cor_3_1 I hb x hx
-      · rw [← Int.natCast_floor_eq_floor (div_nonneg (by linarith) (log_nonneg (by norm_num)))]; rfl
-      · tauto
+      convert cor_3_1 I hb hx
+      rw [← Int.natCast_floor_eq_floor (div_nonneg (by linarith) (log_nonneg (by norm_num)))]; rfl
 
 noncomputable def a₁ : ℝ → ℝ := Inputs.default.a₁
 
@@ -766,7 +765,7 @@ lemma g_decreasing_interval (A C : ℝ) (hA : 0 < A) (hC : 0 < C) (u v : ℝ) (h
       -- Let $f(t) = t^A e^{-C\sqrt{t}}$. The derivative is $f'(t) = t^{A-1} e^{-C\sqrt{t}} (A - \frac{C}{2}\sqrt{t})$.
       set f := fun t : ℝ => t ^ A * Real.exp (-C * Real.sqrt t)
       have h_deriv : ∀ t > 0, deriv f t = t ^ (A - 1) * Real.exp (-C * Real.sqrt t) * (A - C / 2 * Real.sqrt t) := by
-        intro t ht; norm_num [ f, ht.ne', Real.sqrt_eq_rpow, Real.rpow_sub ht ] ; ring;
+        intro t ht; norm_num [ f, ht.ne', Real.sqrt_eq_rpow, Real.rpow_sub ht ] ; ring_nf;
         rw [ show ( -1 / 2 : ℝ ) = ( 1 / 2 : ℝ ) - 1 by norm_num, Real.rpow_sub ht ] ; norm_num ; ring;
       -- Since $4A^2/C^2 \le u \le v$, we have $f'(t) \le 0$ for $t \ge 4A^2/C^2$.
       have h_deriv_nonpos : ∀ t > 0, 4 * A ^ 2 / C ^ 2 ≤ t → deriv f t ≤ 0 := by

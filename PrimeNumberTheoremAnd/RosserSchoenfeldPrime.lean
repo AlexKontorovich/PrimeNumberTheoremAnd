@@ -430,7 +430,7 @@ theorem pre_413 {f : ℝ → ℝ} {x : ℝ} (hf : ContinuousOn f (Set.Icc 2 (x +
         rw [Finset.sum_coe_sort (f := fun y => (if Nat.Prime (y + 1) then (f (↑y + 1)) else 0)),
             Finset.sum_Ico_eq_sum_range]
         norm_cast
-        ring
+        ring_nf
         conv =>
           rhs
           arg 1

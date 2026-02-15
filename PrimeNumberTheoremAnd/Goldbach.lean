@@ -15,7 +15,7 @@ namespace Goldbach
   (statement := /--
   We say that the even Goldbach conjecture is verified up to height $H$ if every even integer between $4$ and $H$ is the sum of two primes. -/)]
 def even_conjecture (H : ℕ) : Prop :=
-  ∀ n ∈ Finset.Icc 4 H, ∃ p q : ℕ, Prime p ∧ Prime q ∧ n = p + q
+  ∀ n ∈ Finset.Icc 4 H, Even n → ∃ p q : ℕ, Nat.Prime p ∧ Nat.Prime q ∧ n = p + q
 
 lemma even_conjecture_mono (H H' : ℕ) (h : even_conjecture H) (hh : H' ≤ H) : even_conjecture H' := by
   intro n hn; apply h; grind
@@ -29,7 +29,23 @@ lemma even_conjecture_mono (H H' : ℕ) (h : even_conjecture H) (hh : H' ≤ H) 
   (latexEnv := "proposition")
   (discussion := 959)]
 theorem even_goldbach_test : even_conjecture 30 := by
-  sorry
+  intro n hn he
+  fin_cases hn
+  all_goals try grind
+  · exact ⟨2, 2, by decide⟩
+  · exact ⟨3, 3, by decide⟩
+  · exact ⟨3, 5, by decide⟩
+  · exact ⟨5, 5, by decide⟩
+  · exact ⟨5, 7, by decide⟩
+  · exact ⟨7, 7, by decide⟩
+  · exact ⟨5, 11, by decide⟩
+  · exact ⟨7, 11, by decide⟩
+  · exact ⟨7, 13, by decide⟩
+  · exact ⟨11, 11, by decide⟩
+  · exact ⟨11, 13, by decide⟩
+  · exact ⟨13, 13, by decide⟩
+  · exact ⟨11, 17, by decide⟩
+  · exact ⟨13, 17, by decide⟩
 
 @[blueprint
   "odd-goldbach"
@@ -37,7 +53,7 @@ theorem even_goldbach_test : even_conjecture 30 := by
   (statement := /--
   We say that the odd Goldbach conjecture is verified up to height $H$ if every odd integer between $5$ and $H$ is the sum of three primes. -/)]
 def odd_conjecture (H : ℕ) : Prop :=
-  ∀ n ∈ Finset.Icc 5 H, ∃ p q r : ℕ, Prime p ∧ Prime q ∧ Prime r ∧ n = p + q + r
+  ∀ n ∈ Finset.Icc 5 H, Odd n → ∃ p q r : ℕ, Nat.Prime p ∧ Nat.Prime q ∧ Nat.Prime r ∧ n = p + q + r
 
 lemma odd_conjecture_mono (H H' : ℕ) (h : odd_conjecture H) (hh : H' ≤ H) : odd_conjecture H' := by
   intro n hn; apply h; grind
@@ -62,11 +78,46 @@ theorem odd_goldbach_test : odd_conjecture 33 := even_to_odd_goldbach_triv 30 ev
   (proof := /-- If $x \leq x_0+4$ then we are done by hypothesis, so assume $x_0+4 < x \leq H\Delta$.  By hypothesis, there is a prime $p$ with $(x-4)(1-1/\Delta) < p \leq x-4$.  Then $x-p$ is even, at least $4$, and at most $(x-4)/\Delta + 4 \leq H$, so is the sum of two primes, giving the claim. -/)
   (latexEnv := "proposition")
   (discussion := 961)]
-theorem even_to_odd_goldbach (x₀ H Δ : ℕ) -- may need some lower bounds on these parameters
-  (hprime : ∀ x ≥ x₀, HasPrimeInInterval (x * (1 - 1 / Δ)) (x / Δ))
-  (heven : even_conjecture H)
-  (hodd : odd_conjecture (x₀ + 4)) :
-  odd_conjecture ((H - 4) * Δ + 4) := by sorry
+theorem even_to_odd_goldbach (x₀ H Δ : ℕ)
+    (hprime : ∀ x ≥ x₀, HasPrimeInInterval (x * (1 - 1 / Δ)) (x / Δ))
+    (heven : even_conjecture H) (hodd : odd_conjecture (x₀ + 4)) :
+    odd_conjecture ((H - 4) * Δ + 4) := by
+  by_cases! hH : H < 4
+  · simp_all [tsub_eq_zero_of_le hH.le, odd_conjecture]
+  by_cases! Δ ≤ 1
+  · interval_cases Δ
+    · simp_all [odd_conjecture]
+    · simp_all [odd_conjecture_mono (H + 3) H (even_to_odd_goldbach_triv H heven) (by linarith)]
+  · intro n h ho
+    by_cases! hn33 : n ≤ 8
+    · exact odd_goldbach_test n (by grind : n ∈ Finset.Icc 5 33) ho
+    by_cases! hn : n ≤ x₀ + 4
+    · exact hodd n (by grind : n ∈ Finset.Icc 5 (x₀ + 4)) ho
+    · obtain ⟨p, hp⟩ := hprime (n - 4) (by grind : n - 4 ≥ x₀)
+      have hnpe : Even (n - p) :=
+        have h2p : 2 < p := by
+          rw [← Nat.cast_lt (α := ℝ)]
+          calc
+          _ = (8 - 4) * (1 - 1 / 2 : ℝ) := by norm_num
+          _ < (n - 4) * (1 -  1 / 2 : ℝ) := by gcongr; norm_cast
+          _ ≤ ↑(n - 4) * (1 -  1 / Δ : ℝ) := by gcongr <;> norm_cast; grind
+          _ < p := hp.2.1
+        ho.tsub_odd (hp.1.odd_of_ne_two h2p.ne')
+      have hnp : (n - p) ∈ Finset.Icc 4 H := by
+        have hpn4 : p ≤ n - 4 := by simpa [field] using hp.2.2
+        have hpn : p ≤ n := hpn4.trans tsub_le_self
+        refine Finset.mem_Icc.2 ⟨?_, ?_⟩
+        · exact (le_tsub_iff_le_tsub (by grind) hpn).2 hpn4
+        · have := hp.2.1
+          rw [← Nat.cast_le (α := ℝ), Nat.cast_sub hpn]
+          rw [Nat.cast_sub (by grind), mul_sub, mul_one, ← sub_add_eq_sub_sub, sub_lt_comm] at this
+          refine this.le.trans ?_
+          calc
+          _ ≤ 4 + ((↑(H - 4) * Δ + 4) - 4) * (1 / Δ : ℝ) := by gcongr <;> norm_cast; grind
+          _ ≤ _ := by simp [field, Nat.cast_sub hH]
+      obtain ⟨q, r, hqr⟩ := heven (n - p) hnp hnpe
+      refine ⟨p, q, r, hp.1, hqr.1, hqr.2.1, ?_⟩
+      grind
 
 @[blueprint
   "richstein-even-goldbach"
@@ -85,7 +136,14 @@ theorem richstein_goldbach : even_conjecture (4 * 10 ^ 14) := by sorry
   (proof := /-- Combine Proposition \ref{richstein-even-goldbach}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:ramare-saouter2003}. -/)
   (latexEnv := "proposition")
   (discussion := 962)]
-theorem ramare_saouter_odd_goldbach : odd_conjecture (113256 * 10 ^ 17) := by sorry
+theorem ramare_saouter_odd_goldbach : odd_conjecture 11325599999999886744004 := by
+  have h1 := even_to_odd_goldbach 10726905042 (4 * 10 ^ 14) 28314000
+    (fun x hx => RamareSaouter2003.has_prime_in_interval x (by norm_cast : (x : ℝ) > 10726905041))
+    richstein_goldbach
+  have h2 := odd_conjecture_mono (4 * 10 ^ 14 + 3) 10726905046
+    (even_to_odd_goldbach_triv _ richstein_goldbach)
+  norm_num at *
+  exact h1 h2
 
 @[blueprint
   "e-silva-herzog-piranian-even-goldbach"
@@ -104,7 +162,14 @@ theorem e_silva_herzog_piranian_goldbach : even_conjecture (4 * 10 ^ 18) := by s
   (proof := /-- Combine Proposition \ref{e-silva-herzog-piranian-even-goldbach}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:ramare-saouter2003}. -/)
   (latexEnv := "proposition")
   (discussion := 969)]
-theorem helfgott_odd_goldbach_finite : odd_conjecture (11325 * 10 ^ 22) := by sorry
+theorem helfgott_odd_goldbach_finite : odd_conjecture (11325 * 10 ^ 22) := by
+  have h1 := even_to_odd_goldbach 10726905042 (4 * 10 ^ 18) 28314000
+    (fun x hx => RamareSaouter2003.has_prime_in_interval x (by norm_cast : (x : ℝ) > 10726905041))
+    e_silva_herzog_piranian_goldbach
+  have h2 := odd_conjecture_mono (4 * 10 ^ 18 + 3) 10726905046
+    (even_to_odd_goldbach_triv _ e_silva_herzog_piranian_goldbach)
+  norm_num at *
+  exact odd_conjecture_mono _ _ (h1 h2) (by grind)
 
 blueprint_comment /-- The arguments in \cite[Appendix C]{helfgott-goldbach-arxiv} push the bound further than this, but require unpublished estimates of Ramare. However, similar arguments were established in \cite{kadiri-lumley}, and we present them here. -/
 
@@ -126,8 +191,6 @@ theorem e_silva_herzog_piranian_goldbach_ext : even_conjecture (4 * 10 ^ 18 + 4)
   (latexEnv := "proposition")
   (discussion := 970)]
 theorem kadiri_lumley_odd_goldbach_finite : odd_conjecture (1966196911 * 4 * 10 ^ 18) := by sorry
-
-
 
 
 end Goldbach
