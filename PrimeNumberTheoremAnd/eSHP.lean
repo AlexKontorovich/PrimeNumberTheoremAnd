@@ -1,5 +1,9 @@
+import Mathlib.Algebra.Order.Ring.Star
+import Mathlib.Data.Int.Star
 import PrimeNumberTheoremAnd.Defs
 import PrimeNumberTheoremAnd.eSHP_tables
+
+open Nat
 
 blueprint_comment /--
 \section{Prime gap data from eSHP}
@@ -81,13 +85,30 @@ theorem table_8_prime_gap (p g : ℕ) (h : (p, g) ∈ table_8) : prime_gap_recor
 
 @[blueprint
   "table-8-prime-gap-complete-test"
-  (title := "Table 8 prime gap records - completeness")
+  (title := "Table 8 prime gap records - completeness unit test")
   (statement := /--
   Table 8 contains ALL the prime gap records $(p_k,g_k)$ with $p_k \leq 30$. -/)
   (proof := /-- Brute force verification. -/)
-  (latexEnv := "proposition")]
-theorem table_8_prime_gap_complete_test (p g : ℕ) (hp : p ≤ 30) (hrecord : prime_gap_record p g) : (p, g) ∈ table_8 := by
-  sorry
+  (latexEnv := "proposition")
+  (discussion := 948)]
+theorem table_8_prime_gap_complete_test (p g : ℕ) (hp : p ≤ 30)
+    (hrecord : prime_gap_record p g) : (p, g) ∈ table_8 := by
+  rcases hrecord with ⟨n, hn₁, hn₂, hn₃⟩
+  have nth_eq : ∀ {m i}, m.Prime → Nat.count Nat.Prime m = i → nth_prime i = m :=
+    fun hm hc ↦ by simpa [nth_prime, hc] using nth_count hm
+  have hpv : ∀ k < 11, nth_prime k =
+      if k = 0 then 2 else if k = 1 then 3 else if k = 2 then 5 else if k = 3 then 7
+      else if k = 4 then 11 else if k = 5 then 13 else if k = 6 then 17
+      else if k = 7 then 19 else if k = 8 then 23 else if k = 9 then 29 else 31 := by
+    intro k hk; interval_cases k <;> exact nth_eq (by decide) (by decide)
+  by_cases hn : n < 11
+  · interval_cases n <;> simp only [← hn₁, ← hn₂, nth_prime_gap] at *
+    all_goals
+      have := hn₃ 0; have := hn₃ 1; have := hn₃ 2; have := hn₃ 3; have := hn₃ 4
+      have := hn₃ 5; have := hn₃ 6; have := hn₃ 7; have := hn₃ 8; have := hn₃ 9
+      simp +decide [*] at *
+  · have h10 := nth_eq (show Nat.Prime 31 by decide) (show count Nat.Prime 31 = 10 by decide)
+    linarith [nth_monotone Nat.infinite_setOf_prime (show 10 ≤ n by omega), hn₁]
 
 @[blueprint
   "table-8-prime-gap-complete"
@@ -98,17 +119,31 @@ theorem table_8_prime_gap_complete_test (p g : ℕ) (hp : p ≤ 30) (hrecord : p
   (latexEnv := "proposition")]
 theorem table_8_prime_gap_complete (p g : ℕ) (hp : p ≤ 4 * 10 ^ 18) (hrecord : prime_gap_record p g) : (p, g) ∈ table_8 := by sorry
 
+lemma exists_prime_gap_record_le (n : ℕ) :
+    ∃ m, nth_prime m ≤ nth_prime n ∧ nth_prime_gap n ≤ nth_prime_gap m ∧
+      prime_gap_record (nth_prime m) (nth_prime_gap m) := by
+  let g := nth_prime_gap n; let S := {k | k ≤ n ∧ g ≤ nth_prime_gap k}
+  obtain ⟨m, hm_mem, hm_min⟩ : ∃ m ∈ S, ∀ k ∈ S, m ≤ k := ⟨Nat.find <|
+    show S.Nonempty from ⟨n, le_rfl, le_rfl⟩, Nat.find_spec <|
+      show S.Nonempty from ⟨n, le_rfl, le_rfl⟩, fun k hk ↦ Nat.find_min' _ hk⟩
+  refine ⟨m, ?_, hm_mem.2, m, rfl, rfl, fun k hk ↦ ?_ ⟩
+  · exact monotone_nat_of_le_succ (fun n ↦ nth_monotone (infinite_setOf_prime) n.le_succ) hm_mem.1
+  · contrapose! hk
+    exact monotone_nat_of_le_succ (fun n ↦ nth_monotone (infinite_setOf_prime) n.le_succ)
+      (le_of_not_gt fun h ↦ not_lt_of_ge (hm_min _ ⟨by linarith [hm_mem.1], by linarith [hm_mem.2]⟩) h)
+
 @[blueprint
   "max-prime-gap"
   (title := "Maximum prime gap")
   (statement := /--
   The maximum prime gap for primes less than or equal to $4 \times 10^{18}$ is $1476$. -/)
   (proof := /-- If not, then there would be an entry in Table 8 with $g > 1476$, which can be verified not to be the case. -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 949)]
 theorem max_prime_gap (n : ℕ) (hp : nth_prime n ≤ 4 * 10 ^ 18) : nth_prime_gap n ≤ 1476 := by
-  sorry
-
-
+  have h : ∀ x ∈ table_8, x.2 ≤ 1476 := by decide
+  obtain ⟨m, hm₁, hm₂, hm₃⟩ := exists_prime_gap_record_le n
+  exact hm₂.trans <| h _ <| table_8_prime_gap_complete _ _ (hm₁.trans hp) hm₃
 
 @[blueprint
   "table-9-prime-gap-test"
@@ -236,7 +271,7 @@ theorem table_9_prime_gap_test (g P : ℕ) (h : (g, P) ∈ table_9) (htest : P <
   have hPmem : P ∈ table_9.map Prod.snd := by
     simpa using (List.mem_map_of_mem (f := Prod.snd) h)
   have htestb : decide (P < 30) = true := decide_eq_true htest
-  have hPsmallmem : P ∈ (table_9.map Prod.snd).filter (fun n => decide (n < 30)) :=
+  have hPsmallmem : P ∈ (table_9.map Prod.snd).filter (fun n ↦ decide (n < 30)) :=
     List.mem_filter.mpr ⟨hPmem, htestb⟩
   have hPsmall : P = 2 ∨ P = 3 ∨ P = 7 ∨ P = 23 := by
     simpa [table_9] using hPsmallmem
@@ -270,8 +305,9 @@ theorem table_9_prime_gap (g P : ℕ) (h : (g, P) ∈ table_9) : first_gap_recor
   (statement := /--
   Table 9 contains all first gap records $(g,P)$ with $g < 8$. -/)
   (proof := /-- Brute force verification. -/)
-  (latexEnv := "proposition")]
-theorem table_9_prime_gap_complete_test (g P : ℕ) (hg : g < 8) (hrecord : first_gap_record g P) : (g, P) ∈ table_9 := by
+  (latexEnv := "proposition")
+  (discussion := 950)]
+theorem table_9_prime_gap_complete_test (g P : ℕ) (hg : g < 8) (hg' : 0 < g) (hrecord : first_gap_record g P) : (g, P) ∈ table_9 := by
   sorry
 
 @[blueprint
@@ -281,7 +317,7 @@ theorem table_9_prime_gap_complete_test (g P : ℕ) (hg : g < 8) (hrecord : firs
   Table 9 contains all first gap records $(g,P)$ with $g < 1346$ -/)
   (proof := /-- Verified by computer.  Unlikely to be formalizable in Lean with current technology, except for the small values of the table. -/)
   (latexEnv := "proposition")]
-theorem table_9_prime_gap_complete (g P : ℕ) (hg : g < 1346) (hrecord : first_gap_record g P) : (g, P) ∈ table_9 := by
+theorem table_9_prime_gap_complete (g P : ℕ) (hg : g < 1346) (hg' : 0 < g) (hrecord : first_gap_record g P) : (g, P) ∈ table_9 := by
   sorry
 
 @[blueprint
@@ -290,10 +326,9 @@ theorem table_9_prime_gap_complete (g P : ℕ) (hg : g < 1346) (hrecord : first_
   (statement := /--
   Every gap $g < 1346$ that is even or one occurs as a prime gap with first prime at most $3278018069102480227$. -/)
   (proof := /-- If not, then there would be an entry in Table 8 with $P > 3278018069102480227$, which can be verified not to be the case. -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 951)]
 theorem exists_prime_gap (g : ℕ) (hg : g ∈ Set.Ico 1 1476) (hg' : Even g ∨ g = 1) : first_gap g ≤ 3278018069102480227 := by
   sorry
-
-
 
 end eSHP
