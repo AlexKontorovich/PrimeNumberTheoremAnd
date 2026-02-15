@@ -62,30 +62,46 @@ theorem odd_goldbach_test : odd_conjecture 33 := even_to_odd_goldbach_triv 30 ev
   (proof := /-- If $x \leq x_0+4$ then we are done by hypothesis, so assume $x_0+4 < x \leq H\Delta$.  By hypothesis, there is a prime $p$ with $(x-4)(1-1/\Delta) < p \leq x-4$.  Then $x-p$ is even, at least $4$, and at most $(x-4)/\Delta + 4 \leq H$, so is the sum of two primes, giving the claim. -/)
   (latexEnv := "proposition")
   (discussion := 961)]
-theorem even_to_odd_goldbach (x₀ H Δ : ℕ)-- may need some lower bounds on these parameters
+theorem even_to_odd_goldbach (x₀ H Δ : ℕ)
     (hprime : ∀ x ≥ x₀, HasPrimeInInterval (x * (1 - 1 / Δ)) (x / Δ))
     (heven : even_conjecture H) (hodd : odd_conjecture (x₀ + 4)) :
     odd_conjecture ((H - 4) * Δ + 4) := by
-  intro n h ho
-  by_cases! hn : n ≤ x₀ + 4
-  · exact hodd n (by grind : n ∈ Finset.Icc 5 (x₀ + 4)) ho
-  · obtain ⟨p, hp⟩ := hprime (n - 4) (by grind : n - 4 ≥ x₀)
-    have hnpe : Even (n - p) := sorry
-    have hnp : (n - p) ∈ Finset.Icc 4 H := by
-      have hpn4 : p ≤ n - 4 := by simpa [field] using hp.2.2
-      have hpn : p ≤ n := hpn4.trans tsub_le_self
-      refine Finset.mem_Icc.2 ⟨?_, ?_⟩
-      · exact (le_tsub_iff_le_tsub (by grind) hpn).2 hpn4
-      · have := hp.2.1
-        rw [← Nat.cast_le (α := ℝ), Nat.cast_sub hpn]
-        rw [Nat.cast_sub (by grind), mul_sub, mul_one, ← sub_add_eq_sub_sub, sub_lt_comm] at this
-        refine this.le.trans ?_
-        calc
-        _ ≤ 4 + (((H - 4) * Δ + 4) - 4) * (1 / Δ : ℝ) := by sorry
-        _ ≤ _ := by sorry
-    obtain ⟨q, r, hqr⟩ := heven (n - p) hnp hnpe
-    refine ⟨p, q, r, hp.1, hqr.1, hqr.2.1, ?_⟩
-    grind
+  by_cases! hH : H < 4
+  · simp_all [tsub_eq_zero_of_le hH.le, odd_conjecture]
+  by_cases! Δ ≤ 1
+  · interval_cases Δ
+    · simp_all [odd_conjecture]
+    · simp_all [odd_conjecture_mono (H + 3) H (even_to_odd_goldbach_triv H heven) (by linarith)]
+  · intro n h ho
+    by_cases! hn33 : n ≤ 8
+    · exact odd_goldbach_test n (by grind : n ∈ Finset.Icc 5 33) ho
+    by_cases! hn : n ≤ x₀ + 4
+    · exact hodd n (by grind : n ∈ Finset.Icc 5 (x₀ + 4)) ho
+    · obtain ⟨p, hp⟩ := hprime (n - 4) (by grind : n - 4 ≥ x₀)
+      have hnpe : Even (n - p) :=
+        have h2p : 2 < p := by
+          rw [← Nat.cast_lt (α := ℝ)]
+          calc
+          _ = (8 - 4) * (1 - 1 / 2 : ℝ) := by norm_num
+          _ < (n - 4) * (1 -  1 / 2 : ℝ) := by gcongr; norm_cast
+          _ ≤ ↑(n - 4) * (1 -  1 / Δ : ℝ) := by gcongr <;> norm_cast; grind
+          _ < p := hp.2.1
+        ho.tsub_odd (hp.1.odd_of_ne_two h2p.ne')
+      have hnp : (n - p) ∈ Finset.Icc 4 H := by
+        have hpn4 : p ≤ n - 4 := by simpa [field] using hp.2.2
+        have hpn : p ≤ n := hpn4.trans tsub_le_self
+        refine Finset.mem_Icc.2 ⟨?_, ?_⟩
+        · exact (le_tsub_iff_le_tsub (by grind) hpn).2 hpn4
+        · have := hp.2.1
+          rw [← Nat.cast_le (α := ℝ), Nat.cast_sub hpn]
+          rw [Nat.cast_sub (by grind), mul_sub, mul_one, ← sub_add_eq_sub_sub, sub_lt_comm] at this
+          refine this.le.trans ?_
+          calc
+          _ ≤ 4 + ((↑(H - 4) * Δ + 4) - 4) * (1 / Δ : ℝ) := by gcongr <;> norm_cast; grind
+          _ ≤ _ := by simp [field, Nat.cast_sub hH]
+      obtain ⟨q, r, hqr⟩ := heven (n - p) hnp hnpe
+      refine ⟨p, q, r, hp.1, hqr.1, hqr.2.1, ?_⟩
+      grind
 
 @[blueprint
   "richstein-even-goldbach"
