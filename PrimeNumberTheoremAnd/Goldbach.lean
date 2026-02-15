@@ -15,7 +15,7 @@ namespace Goldbach
   (statement := /--
   We say that the even Goldbach conjecture is verified up to height $H$ if every even integer between $4$ and $H$ is the sum of two primes. -/)]
 def even_conjecture (H : ℕ) : Prop :=
-  ∀ n ∈ Finset.Icc 4 H, Even n → ∃ p q : ℕ, Prime p ∧ Prime q ∧ n = p + q
+  ∀ n ∈ Finset.Icc 4 H, Even n → ∃ p q : ℕ, Nat.Prime p ∧ Nat.Prime q ∧ n = p + q
 
 lemma even_conjecture_mono (H H' : ℕ) (h : even_conjecture H) (hh : H' ≤ H) : even_conjecture H' := by
   intro n hn; apply h; grind
@@ -53,7 +53,7 @@ theorem even_goldbach_test : even_conjecture 30 := by
   (statement := /--
   We say that the odd Goldbach conjecture is verified up to height $H$ if every odd integer between $5$ and $H$ is the sum of three primes. -/)]
 def odd_conjecture (H : ℕ) : Prop :=
-  ∀ n ∈ Finset.Icc 5 H, Odd n → ∃ p q r : ℕ, Prime p ∧ Prime q ∧ Prime r ∧ n = p + q + r
+  ∀ n ∈ Finset.Icc 5 H, Odd n → ∃ p q r : ℕ, Nat.Prime p ∧ Nat.Prime q ∧ Nat.Prime r ∧ n = p + q + r
 
 lemma odd_conjecture_mono (H H' : ℕ) (h : odd_conjecture H) (hh : H' ≤ H) : odd_conjecture H' := by
   intro n hn; apply h; grind
