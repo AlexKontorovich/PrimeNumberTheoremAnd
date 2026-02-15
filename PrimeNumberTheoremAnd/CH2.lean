@@ -1,5 +1,5 @@
+import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.CStarAlgebra.Classes
-import Mathlib.Data.Real.CompleteField
 import Mathlib.Data.Real.Sign
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.MeasureTheory.Integral.Gamma
@@ -239,7 +239,69 @@ noncomputable def ϕ (lambda : ℝ) (ε : ℝ) (t : ℝ) : ℂ :=
   (proof := /-- Straightforward estimation -/)
   (latexEnv := "lemma")
   (discussion := 942)]
-theorem ϕ_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (ϕ lambda ε) := by sorry
+theorem ϕ_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (ϕ lambda ε) := by
+  unfold ϕ; simp only [ϕ_pm, ofReal_mul]
+  have habs : -(|lambda| / 2) < |lambda| / 2 := by linarith [abs_pos.2 hlam]
+  have h_integrable : IntegrableOn (fun t : ℝ ↦
+      Phi_circ |lambda| ε (lambda.sign * t) +
+        (lambda.sign * t).sign * Phi_star |lambda| ε (lambda.sign * t)) (Set.Icc (-1) 1) := by
+    refine Integrable.add ?_ ?_
+    · refine ContinuousOn.integrableOn_Icc (ContinuousOn.mul continuousOn_const ?_)
+      refine (ContinuousOn.div continuousOn_const ?_ ?_).add continuousOn_const
+      · refine ContinuousOn.div (by fun_prop) (by fun_prop) ?_
+        norm_num [Complex.ext_iff, Complex.cosh, Complex.exp_re, Complex.exp_im]
+        intro x hx₁ hx₂ hx₃ hx₄
+        nlinarith [exp_pos (|lambda| / 2), exp_pos (-(|lambda| / 2)),
+          Real.sin_sq_add_cos_sq (-(2 * π * (lambda.sign * x)) / 2),
+          sin_le_one (-(2 * π * (lambda.sign * x)) / 2),
+          cos_le_one (-(2 * π * (lambda.sign * x)) / 2), exp_lt_exp.2 habs]
+      · norm_num [Complex.tanh_eq_sinh_div_cosh, Complex.ext_iff, Complex.sinh, Complex.cosh,
+          Complex.exp_re, Complex.exp_im]
+        intro x hx₁ hx₂; constructor <;> intro h <;>
+          nlinarith [exp_pos (|lambda| / 2), exp_pos (-(|lambda| / 2)),
+            Real.sin_sq_add_cos_sq (-(2 * π * (lambda.sign * x)) / 2),
+            sin_le_one (-(2 * π * (lambda.sign * x)) / 2),
+            cos_le_one (-(2 * π * (lambda.sign * x)) / 2), exp_lt_exp.2 habs]
+    · refine Integrable.mono' (g := fun t ↦ ‖Phi_star |lambda| ε (lambda.sign * t)‖) ?_ ?_ ?_
+      · refine ContinuousOn.integrableOn_Icc (.norm (.mul continuousOn_const ?_))
+        refine ContinuousOn.add ?_ (Continuous.continuousOn (by continuity))
+        refine ContinuousOn.sub continuousOn_const ?_
+        refine ContinuousOn.mul (by fun_prop) (ContinuousOn.div continuousOn_const ?_ ?_)
+        · refine ContinuousOn.div (by fun_prop) (Continuous.continuousOn (by continuity)) ?_
+          · norm_num [Complex.ext_iff, Complex.cosh, Complex.exp_re, Complex.exp_im]
+            intro x hx₁ hx₂ hx₃ hx₄
+            nlinarith [exp_pos (|lambda| / 2), exp_pos (-(|lambda| / 2)),
+              Real.sin_sq_add_cos_sq (-(2 * π * (lambda.sign * x)) / 2),
+              sin_le_one (-(2 * π * (lambda.sign * x)) / 2),
+              cos_le_one (-(2 * π * (lambda.sign * x)) / 2), exp_lt_exp.2 habs]
+        · norm_num [Complex.tanh_eq_sinh_div_cosh]
+          norm_num [Complex.ext_iff, Complex.sinh, Complex.cosh, Complex.exp_re, Complex.exp_im]
+          intro x hx₁ hx₂; constructor <;> intro h <;>
+            nlinarith [exp_pos (|lambda| / 2), exp_pos (-(|lambda| / 2)),
+              Real.sin_sq_add_cos_sq (-(2 * π * (lambda.sign * x)) / 2),
+              sin_le_one (-(2 * π * (lambda.sign * x)) / 2),
+              cos_le_one (-(2 * π * (lambda.sign * x)) / 2), exp_lt_exp.2 habs]
+      · exact (Measurable.mul
+          (measurable_ofReal.comp ((show Measurable (fun x : ℝ ↦ Real.sign x) from
+            .ite measurableSet_Iio measurable_const
+              (.ite measurableSet_Ioi measurable_const measurable_const)).comp
+                (measurable_const.mul measurable_id')))
+          (.mul measurable_const (.add
+            (.sub measurable_const (.mul (by fun_prop)
+              (.div measurable_const ((show Measurable fun x : ℂ ↦ Complex.tanh x from by
+                simpa only [Complex.tanh_eq_sinh_div_cosh] using
+                  Complex.continuous_sinh.measurable.mul
+                    Complex.continuous_cosh.measurable.inv).comp (by measurability)))))
+            (by fun_prop)))).aestronglyMeasurable
+      · norm_num [Real.sign]
+        exact Filter.eventually_inf_principal.mpr (.of_forall fun x hx ↦
+          mul_le_of_le_one_left (norm_nonneg _) (by split_ifs <;> norm_num))
+  rw [← integrable_indicator_iff] at *
+  · convert h_integrable using 1
+    ext; simp only [Set.indicator, Set.mem_Icc]
+    rcases lt_or_gt_of_ne hlam with hlam | hlam <;> simp [*, Real.sign_of_pos, Real.sign_of_neg]
+    grind
+  · norm_num
 
 @[blueprint
   "phi-cts"
@@ -451,7 +513,7 @@ lemma integral_F_eq_phi_zero (lambda : ℝ) (hlam : lambda ≠ 0) :
     congr_fun (Continuous.fourierInv_fourier_eq h_cont.1 h_cont.2.1 h_cont.2.2) 0
   rw [← h_inv]
   simp only [F, fourierInv, VectorFourier.fourierIntegral, LinearMap.neg_apply, innerₗ_apply_apply,
-    RCLike.inner_apply, ringHom_apply, zero_mul, neg_zero, AddChar.map_zero_eq_one, one_smul]
+    RCLike.inner_apply, zero_mul, neg_zero, AddChar.map_zero_eq_one, one_smul]
   convert integral_re h_cont.2.2
 
 @[blueprint "F-plus-l1"
