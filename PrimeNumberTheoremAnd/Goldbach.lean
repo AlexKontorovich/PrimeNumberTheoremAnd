@@ -15,7 +15,7 @@ namespace Goldbach
   (statement := /--
   We say that the even Goldbach conjecture is verified up to height $H$ if every even integer between $4$ and $H$ is the sum of two primes. -/)]
 def even_conjecture (H : ℕ) : Prop :=
-  ∀ n ∈ Finset.Icc 4 H, ∃ p q : ℕ, Prime p ∧ Prime q ∧ n = p + q
+  ∀ n ∈ Finset.Icc 4 H, Even n → ∃ p q : ℕ, Nat.Prime p ∧ Nat.Prime q ∧ n = p + q
 
 lemma even_conjecture_mono (H H' : ℕ) (h : even_conjecture H) (hh : H' ≤ H) : even_conjecture H' := by
   intro n hn; apply h; grind
@@ -37,7 +37,7 @@ theorem even_goldbach_test : even_conjecture 30 := by
   (statement := /--
   We say that the odd Goldbach conjecture is verified up to height $H$ if every odd integer between $5$ and $H$ is the sum of three primes. -/)]
 def odd_conjecture (H : ℕ) : Prop :=
-  ∀ n ∈ Finset.Icc 5 H, ∃ p q r : ℕ, Prime p ∧ Prime q ∧ Prime r ∧ n = p + q + r
+  ∀ n ∈ Finset.Icc 5 H, Odd n → ∃ p q r : ℕ, Nat.Prime p ∧ Nat.Prime q ∧ Nat.Prime r ∧ n = p + q + r
 
 lemma odd_conjecture_mono (H H' : ℕ) (h : odd_conjecture H) (hh : H' ≤ H) : odd_conjecture H' := by
   intro n hn; apply h; grind
@@ -62,11 +62,19 @@ theorem odd_goldbach_test : odd_conjecture 33 := even_to_odd_goldbach_triv 30 ev
   (proof := /-- If $x \leq x_0+4$ then we are done by hypothesis, so assume $x_0+4 < x \leq H\Delta$.  By hypothesis, there is a prime $p$ with $(x-4)(1-1/\Delta) < p \leq x-4$.  Then $x-p$ is even, at least $4$, and at most $(x-4)/\Delta + 4 \leq H$, so is the sum of two primes, giving the claim. -/)
   (latexEnv := "proposition")
   (discussion := 961)]
-theorem even_to_odd_goldbach (x₀ H Δ : ℕ) -- may need some lower bounds on these parameters
-  (hprime : ∀ x ≥ x₀, HasPrimeInInterval (x * (1 - 1 / Δ)) (x / Δ))
-  (heven : even_conjecture H)
-  (hodd : odd_conjecture (x₀ + 4)) :
-  odd_conjecture ((H - 4) * Δ + 4) := by sorry
+theorem even_to_odd_goldbach (x₀ H Δ : ℕ)-- may need some lower bounds on these parameters
+    (hprime : ∀ x ≥ x₀, HasPrimeInInterval (x * (1 - 1 / Δ)) (x / Δ))
+    (heven : even_conjecture H) (hodd : odd_conjecture (x₀ + 4)) :
+    odd_conjecture ((H - 4) * Δ + 4) := by
+  intro n h ho
+  by_cases! hn : n ≤ x₀ + 4
+  · exact hodd n (by grind : n ∈ Finset.Icc 5 (x₀ + 4)) ho
+  · obtain ⟨p, hp⟩ := hprime (n - 4) (by grind : n - 4 ≥ x₀)
+    have hnpe : Even (n - p) := by sorry
+    have hnp : (n - p) ∈ Finset.Icc 4 H := by sorry
+    obtain ⟨q, r, hqr⟩ := heven (n - p) hnp hnpe
+    refine ⟨p, q, r, hp.1, hqr.1, hqr.2.1, ?_⟩
+    grind
 
 @[blueprint
   "richstein-even-goldbach"
@@ -126,8 +134,6 @@ theorem e_silva_herzog_piranian_goldbach_ext : even_conjecture (4 * 10 ^ 18 + 4)
   (latexEnv := "proposition")
   (discussion := 970)]
 theorem kadiri_lumley_odd_goldbach_finite : odd_conjecture (1966196911 * 4 * 10 ^ 18) := by sorry
-
-
 
 
 end Goldbach
