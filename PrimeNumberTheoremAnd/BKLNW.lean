@@ -537,7 +537,7 @@ where
  -/)
   (latexEnv := "corollary")
   (discussion := 640)]
-theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (x : ℝ) (hx : x ≥ exp b) :
+theorem cor_3_1 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
     ψ x - θ x - θ (x^(1/2:ℝ)) ≤
       (1 + I.α) * max (f (exp b)) (f (2^(⌊b / (log 2)⌋ + 1))) * x^(1/3:ℝ) := by
   let x₀ := exp b
@@ -708,9 +708,8 @@ theorem thm_5 (I : Inputs) {b x : ℝ} (hb : b ≥ 7) (hx : x ≥ exp b) :
       · simp only [if_pos h, prop_4_a I hx]
       · simp only [if_neg h, prop_4_b I hb hx]
     · unfold Inputs.a₂
-      convert cor_3_1 I hb x hx
-      · rw [← Int.natCast_floor_eq_floor (div_nonneg (by linarith) (log_nonneg (by norm_num)))]; rfl
-      · tauto
+      convert cor_3_1 I hb hx
+      rw [← Int.natCast_floor_eq_floor (div_nonneg (by linarith) (log_nonneg (by norm_num)))]; rfl
 
 noncomputable def a₁ : ℝ → ℝ := Inputs.default.a₁
 
