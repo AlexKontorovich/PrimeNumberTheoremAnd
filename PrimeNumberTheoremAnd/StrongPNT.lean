@@ -1127,7 +1127,70 @@ lemma FLogTtoDeltaT : ∀ (t : ℝ),
     ring_nf
     exact fun t ↦ trivial
 
-
+/-- The logarithmic derivative of the Riemann zeta function is bounded in the half-plane
+`Re(s) >= 3/2`. -/
+lemma LogDerivZetaBdd_of_Re_ge_three_halves :
+    ∃ C, ∀ (s : ℂ), 3/2 ≤ s.re → ‖deriv riemannZeta s / riemannZeta s‖ ≤ C := by
+  have h_sum_converges : Summable (fun n : ℕ ↦ vonMangoldt n / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+    have h_summable : Summable (fun n : ℕ ↦ (Real.log n : ℝ) / (n : ℝ) ^ (3 / 2 : ℝ)) := by
+      obtain ⟨C, hC_pos, hC⟩ : ∃ C > 0, ∀ n : ℕ, n ≥ 2 → Real.log n ≤ C * (n : ℝ) ^ (1/4 : ℝ) := by
+        use 4, by grind, fun n hn ↦ by
+          have := Real.log_le_sub_one_of_pos (by positivity : 0 < (n : ℝ) ^ (1/4 : ℝ))
+          rw [Real.log_rpow (by positivity)] at this
+          nlinarith [Real.rpow_pos_of_pos (by positivity : 0 < (n : ℝ)) (1/4 : ℝ)]
+      have hBound : ∀ n : ℕ, n ≥ 2 →
+          (Real.log n : ℝ) / (n : ℝ) ^ (3 / 2 : ℝ) ≤ C / (n : ℝ) ^ (5 / 4 : ℝ) := fun n hn ↦ by
+        rw [div_le_div_iff₀ (by positivity) (by positivity)]
+        convert mul_le_mul_of_nonneg_right (hC n hn)
+          (by positivity : 0 ≤ (n : ℝ) ^ (5 / 4 : ℝ)) using 1
+        rw [mul_assoc, ← Real.rpow_add (by positivity)]
+        grind
+      rw [← summable_nat_add_iff 2]
+      exact Summable.of_nonneg_of_le
+        (fun n ↦ div_nonneg (Real.log_nonneg (by grind))
+          (Real.rpow_nonneg (Nat.cast_nonneg _) _))
+        (fun n ↦ hBound _ (by grind))
+        (Summable.mul_left _ <| by simpa using summable_nat_add_iff 2 |>.2 <|
+          Real.summable_one_div_nat_rpow.2 <| by grind)
+    refine .of_nonneg_of_le (fun n ↦ ?_) (fun n ↦ ?_) h_summable
+    · exact div_nonneg (by exact_mod_cast ArithmeticFunction.vonMangoldt_nonneg)
+        (by positivity)
+    · rcases eq_or_ne n 0 with (rfl | hn) <;>
+        simp_all [ArithmeticFunction.vonMangoldt]
+      field_simp
+      split_ifs
+      · exact Real.log_le_log (Nat.cast_pos.mpr (Nat.minFac_pos _))
+          (Nat.cast_le.mpr (Nat.minFac_le (Nat.pos_of_ne_zero hn)))
+      · exact Real.log_nonneg (Nat.one_le_cast.mpr (Nat.pos_of_ne_zero hn))
+  have h_log_deriv_sum : ∀ s : ℂ, 3 / 2 ≤ s.re →
+      deriv riemannZeta s / riemannZeta s = -∑' n : ℕ, (vonMangoldt n : ℂ) / (n : ℂ) ^ s := by
+    intro s hs
+    suffices h : -deriv riemannZeta s / riemannZeta s =
+        ∑' n : ℕ, (vonMangoldt n : ℂ) / (n : ℂ) ^ s by rw [← h, neg_div, neg_neg]
+    exact LogDerivativeDirichlet s (by grind)
+  have h_triangle : ∀ s : ℂ,
+      ‖∑' n : ℕ, (vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ ≤
+        ∑' n : ℕ, ‖(vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ := fun s ↦ by
+    by_cases h : Summable fun n ↦ (ArithmeticFunction.vonMangoldt n : ℂ) / (n : ℂ) ^ s
+    · exact norm_tsum_le_tsum_norm h.norm
+    · simp only [tsum_eq_zero_of_not_summable h, norm_zero]
+      exact tsum_nonneg fun _ ↦ by positivity
+  have h_norm_summand : ∀ s : ℂ, 3 / 2 ≤ s.re → ∀ n : ℕ,
+      ‖(vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ ≤ (vonMangoldt n : ℝ) / (n : ℝ) ^ (3 / 2 : ℝ) := by
+    intro s hs n
+    by_cases hn : n = 0 <;> simp_all [Complex.norm_cpow_of_ne_zero]
+    ring_nf; norm_num
+    rw [abs_of_nonneg ArithmeticFunction.vonMangoldt_nonneg]
+    exact mul_le_mul_of_nonneg_left (inv_anti₀ (by positivity)
+      (Real.rpow_le_rpow_of_exponent_le (mod_cast Nat.one_le_iff_ne_zero.mpr hn) hs))
+      ArithmeticFunction.vonMangoldt_nonneg
+  refine ⟨∑' n : ℕ, (ArithmeticFunction.vonMangoldt n : ℝ) / (n : ℝ) ^ (3 / 2 : ℝ),
+    fun s hs ↦ ?_⟩
+  have hSum : Summable fun n ↦ ‖(vonMangoldt n : ℂ) / (n : ℂ) ^ s‖ :=
+    Summable.of_nonneg_of_le (fun n ↦ by positivity)
+      (fun n ↦ h_norm_summand s hs n) h_sum_converges
+  simpa [neg_div, h_log_deriv_sum s hs] using (h_triangle s).trans
+    (hSum.tsum_le_tsum (fun n ↦ h_norm_summand s hs n) h_sum_converges)
 
 @[blueprint
   (title := "LogDerivZetaUniformLogSquaredBound")
@@ -1152,14 +1215,24 @@ lemma FLogTtoDeltaT : ∀ (t : ℝ),
   -/)
   (proofUses := ["riemannZetaLogDerivResidue", "LogDerivZetaUniformLogSquaredBoundStrip"])
   (latexEnv := "theorem")]
-theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (Cnonneg : 0 ≤ C),
-    ∀ (σ t : ℝ),
-    3 < |t| →
-        σ ∈ Set.Ici (1 - F / Real.log |t|) →
-            ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
-    sorry
-
-
+theorem LogDerivZetaUniformLogSquaredBound : ∃ (C : ℝ) (_Cnonneg : 0 ≤ C),
+    ∀ (σ t : ℝ), 3 < |t| → σ ∈ Set.Ici (1 - F / Real.log |t|) →
+      ‖ζ' (σ + t * I) / ζ (σ + t * I)‖ ≤ C * Real.log |t| ^ 2 := by
+  obtain ⟨C1, hC1⟩ := LogDerivZetaUniformLogSquaredBoundStripSpec
+  obtain ⟨C2, hC2⟩ := LogDerivZetaBdd_of_Re_ge_three_halves
+  use max C1 C2, le_max_of_le_left hC1.1
+  intro σ t ht hσ
+  by_cases hσ' : σ ≤ 3 / 2
+  · exact (hC1.2 σ t (by grind) ⟨hσ, hσ'⟩).trans
+      (mul_le_mul_of_nonneg_right (le_max_left _ _) (sq_nonneg _))
+  · refine (hC2 _ ?_).trans ?_
+    · norm_num; linarith
+    · have hC2pos := (norm_nonneg _).trans (hC2 2 (by norm_num))
+      exact (le_max_right _ _).trans (le_mul_of_one_le_right
+        (le_max_of_le_right (by grind))
+        (one_le_pow₀ (by
+          rw [Real.le_log_iff_exp_le (by grind)]
+          exact Real.exp_one_lt_d9.le.trans (by grind))))
 
 @[blueprint
   (title := "LogDerivZetaLogSquaredBoundSmallt")

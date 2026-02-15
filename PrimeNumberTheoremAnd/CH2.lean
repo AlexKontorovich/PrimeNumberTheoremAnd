@@ -1,4 +1,8 @@
+import Mathlib.Analysis.CStarAlgebra.Classes
+import Mathlib.Data.Real.CompleteField
+import Mathlib.Data.Real.Sign
 import PrimeNumberTheoremAnd.PrimaryDefinitions
+import PrimeNumberTheoremAnd.Wiener
 
 blueprint_comment /--
 \section{Chirre-Helfgott's estimates for sums of nonnegative arithmetic functions}\label{ch2-sec}
@@ -15,7 +19,8 @@ blueprint_comment /--
 Some material from \cite[Section 2]{ch2}, slightly rearranged to take advantage of existing results in the repository.
 -/
 
-open Real  MeasureTheory FourierTransform
+open Real  MeasureTheory FourierTransform Chebyshev
+open ArithmeticFunction hiding log
 open Complex hiding log
 
 @[blueprint
@@ -23,11 +28,12 @@ open Complex hiding log
   (title := "CH2 Proposition 2.3, substep 1")
   (statement := /--
   Let $a_n$ be a sequence with $\sum_{n>1} \frac{|a_n|}{n \log^\beta n} < \infty$ for some $\beta > 1$.  Write $G(s)= \sum_n a_n n^{-s} - \frac{1}{s-1}$ for $\mathrm{Re} s > 1$.  Let $\varphi$ be absolutely integrable, supported on $[-1,1]$, and has Fourier decay $\hat \psi(y) = O(1/|y|^\beta)$.  Then for any $x>0$ and $\sigma > 1$
-  $$ \frac{1}{2\pi} \sum a_n \frac{x}{n^\sigma} \hat \psi(\frac{T}{2\pi} \log \frac{n}{x} ) = \frac{1}{2\pi T} \int_{-T}^{T} \varphi(t) G(\sigma+it) x^{it}\ dt + \int_{-T \log x/2\pi}^\infty e^{-y(\sigma-1)} \hat \varphi(y)\ dy) \frac{x^{2-\sigma}}{T}.$$
+  $$ \frac{1}{2\pi} \sum a_n \frac{x}{n^\sigma} \hat \psi(\frac{T}{2\pi} \log \frac{n}{x} ) = \frac{1}{2\pi T} \int_{-T}^{T} \varphi(\frac{t}{T}) G(\sigma+it) x^{it}\ dt + \int_{-T \log x/2\pi}^\infty e^{-y(\sigma-1)} \hat \varphi(y)\ dy) \frac{x^{2-\sigma}}{T}.$$
   -/)
   (proof := /-- Use Lemma \ref{first-fourier} and Lemma \ref{second-fourier}, similar to the proof of `limiting\_fourier\_aux`.
   -/)
-  (latexEnv := "sublemma")]
+  (latexEnv := "sublemma")
+  (discussion := 879)]
 theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     (ha : Summable (fun n ↦ ‖a n‖ / (n * log n ^ β)))
     {G : ℂ → ℂ}
@@ -36,9 +42,9 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     (hφ_supp : ∀ x, x ∉ Set.Icc (-1) 1 → φ x = 0) -- this hypothesis may be unnecessary
     (hφ_Fourier : ∃ C : ℝ, ∀ y : ℝ, y ≠ 0 → ‖𝓕 φ y‖ ≤ C / |y| ^ β)
     (x σ : ℝ) (hx : 0 < x) (hσ : 1 < σ) :
-    (1 / (2 * π)) * ∑' n, a n * (x / (n ^ σ : ℝ)) * 𝓕 φ ((T / (2 * π)) * log (n / x)) =
+    (1 / (2 * π)) * ∑' (n : ℕ+), a n * (x / (n ^ σ : ℝ)) * 𝓕 φ ((T / (2 * π)) * log (n / x)) =
       (1 / (2 * π * T)) *
-        ∫ t in Set.Icc (-T) T, φ t * G (σ + t * I) * x ^ (t * I) +
+        ∫ t in Set.Icc (-T) T, φ (t/T) * G (σ + t * I) * x ^ (t * I) +
       (∫ y in Set.Iic (-T * log x / (2 * π)), rexp (-y * (σ - 1)) * 𝓕 φ y) * (x ^ (2 - σ) / T : ℝ) := by
       sorry
 
@@ -51,16 +57,17 @@ theorem prop_2_3_1 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
   -/)
   (proof := /-- Apply Sublemma \ref{ch2-prop-2-3-1} and take the limit as $\sigma \to 1^+$, using the continuity of $G$ and the dominated convergence theorem, as well as the Fourier inversion formula.
   -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 880)]
 theorem prop_2_3 {a : ℕ → ℂ} {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     (ha : Summable (fun n ↦ ‖a n‖ / (n * log n ^ β)))
     {G : ℂ → ℂ} (hG : ContinuousOn G { z | z.re ≥ 1 ∧ z.im ∈ Set.Icc (-T) T })
-    (hG' : Set.EqOn G (fun s ↦ ∑' n, a n / n ^ s - 1 / (s - 1)) { z | z.re > 1 } )
+    (hG' : Set.EqOn G (fun s ↦ ∑' n, a n / n ^ s - 1 / (s - 1)) { z | z.re > 1 })
     {φ : ℝ → ℂ} (hφ_mes : Measurable φ) (hφ_int : Integrable φ)
     (hφ_supp : ∀ x, x ∉ Set.Icc (-1) 1 → φ x = 0)
     (hφ_Fourier : ∃ C : ℝ, ∀ y : ℝ, y ≠ 0 → ‖𝓕 φ y‖ ≤ C / |y| ^ β)
     (x : ℝ) (hx : 0 < x) :
-    (1 / (2 * π)) * ∑' n, a n * (x / n) * 𝓕 φ ((T / (2 * π)) * log (n / x)) =
+    (1 / (2 * π)) * ∑' (n : ℕ+), a n * (x / n) * 𝓕 φ ((T / (2 * π)) * log (n / x)) =
       (1 / (2 * π * T)) *
         ∫ t in Set.Icc (-T) T, φ (t/T) * G (1 + t * I) * x ^ (1 + t * I) +
       (φ 0 - ∫ y in Set.Iic (-T * log x / (2 * π)), 𝓕 φ y) * (x / T) := by
@@ -92,12 +99,14 @@ noncomputable def I' (lambda u : ℝ) : ℝ := -- use I' instead of I to avoid c
   $S_\sigma(x) = x^{-\sigma} \sum_n a_n \frac{x}{n} I_\lambda( \frac{T}{2\pi} \log \frac{n}{x} )$
   where $\lambda = 2\pi(\sigma-1)/T$.
   -/)
-  (latexEnv := "sublemma")]
+  (proof := /-- Routine manipulation. -/)
+  (latexEnv := "sublemma")
+  (discussion := 881)]
 theorem S_eq_I (a : ℕ → ℝ) (σ x T : ℝ) (hσ : σ ≠ 1) (hT : 0 < T)
     : -- may need a summability hypothesis on a
     let lambda := (2 * π * (σ - 1)) / T
     S a σ x =
-      (x ^ (-σ):ℝ) * ∑' n, a n * (x / (n ^ σ : ℝ)) * I' lambda ((T / (2 * π)) * log (n / x)) := by
+      (x ^ (-σ):ℝ) * ∑' (n : ℕ+), a n * (x / (n ^ σ : ℝ)) * I' lambda ((T / (2 * π)) * log (n / x)) := by
       sorry
 
 @[blueprint
@@ -119,11 +128,12 @@ hence
 $$ -\int_{-\infty}^{-T \log x/2π} \hat \varphi_+(y)\ dy \leq - x^{\sigma-1}/(-\lambda).$$
 Since $x^{-\sigma} * (2\pi x / T) * x^{\sigma-1}/(-\lambda) = 1/(1-\sigma)$, the result follows.
   -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 882)]
 theorem prop_2_4_plus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     (ha : Summable (fun n ↦ ‖a n‖ / (n * log n ^ β)))
     {G : ℂ → ℂ} (hG : ContinuousOn G { z | z.re ≥ 1 ∧ z.im ∈ Set.Icc (-T) T })
-    (hG' : Set.EqOn G (fun s ↦ ∑' n, a n / (n ^ s : ℂ) - 1 / (s - 1)) { z | z.re > 1 } )
+    (hG' : Set.EqOn G (fun s ↦ ∑' n, a n / (n ^ s : ℂ) - 1 / (s - 1)) { z | z.re > 1 })
     {φ_plus : ℝ → ℂ} (hφ_mes : Measurable φ_plus) (hφ_int : Integrable φ_plus)
     (hφ_supp : ∀ x, x ∉ Set.Icc (-1) 1 → φ_plus x = 0)
     (hφ_Fourier : ∃ C : ℝ, ∀ y : ℝ, y ≠ 0 → ‖𝓕 φ_plus y‖ ≤ C / |y| ^ β)
@@ -147,11 +157,12 @@ theorem prop_2_4_plus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β : ℝ}
   -/)
   (proof := /-- Similar to the proof of Proposition \ref{ch2-prop-2-4-plus}; see \cite[Proposition 2.4]{ch2} for details.
   -/)
-  (latexEnv := "proposition")]
+  (latexEnv := "proposition")
+  (discussion := 883)]
 theorem prop_2_4_minus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β : ℝ} (hT : 0 < T) (hβ : 1 < β)
     (ha : Summable (fun n ↦ ‖a n‖ / (n * log n ^ β)))
     {G : ℂ → ℂ} (hG : ContinuousOn G { z | z.re ≥ 1 ∧ z.im ∈ Set.Icc (-T) T })
-    (hG' : Set.EqOn G (fun s ↦ ∑' n, a n / (n ^ s : ℂ) - 1 / (s - 1)) { z | z.re > 1 } )
+    (hG' : Set.EqOn G (fun s ↦ ∑' (n : ℕ+), a n / (n ^ s : ℂ) - 1 / (s - 1)) { z | z.re > 1 })
     {φ_minus : ℝ → ℂ} (hφ_mes : Measurable φ_minus) (hφ_int : Integrable φ_minus)
     (hφ_supp : ∀ x, x ∉ Set.Icc (-1) 1 → φ_minus x = 0)
     (hφ_Fourier : ∃ C : ℝ, ∀ y : ℝ, y ≠ 0 → ‖𝓕 φ_minus y‖ ≤ C / |y| ^ β)
@@ -167,13 +178,203 @@ theorem prop_2_4_minus {a : ℕ → ℝ} (ha_pos : ∀ n, a n ≥ 0) {T β : ℝ
   sorry
 
 
+blueprint_comment /--
+\subsection{Extremal approximants to the truncated exponential}\label{ch2-trunc-sec}
 
+In this section we construct extremal approximants to the truncated exponential function and establish their basic properties, following \cite[Section 4]{ch2}, although we skip the proof of their extremality.  As such, the material here is organized rather differently from that in the paper.
+-/
+
+noncomputable def coth (z : ℂ) : ℂ := 1 / tanh z
+
+@[blueprint
+  "Phi-circ-def"
+  (title := "Definition of Phi-circ (4.5)")
+  (statement := /--
+  $$\Phi^{\pm,\circ}_\nu(z) := \frac{1}{2} (\coth\frac{w}{2} \pm 1)$$
+  where $$w = -2\pi i z + \nu.$$
+  -/)]
+noncomputable def Phi_circ (ν ε : ℝ) (z : ℂ) : ℂ :=
+  let w := -2 * π * I * z + (ν : ℂ)
+  (1 / 2) * (coth (w / 2) + ε)
+
+@[blueprint
+  "Phi-star-def"
+  (title := "Definition of Phi-star (4.5)")
+  (statement := /--
+  $$\Phi^{\pm,\ast}_\nu(z) := \frac{i}{2\pi} \left(\frac{\nu}{2} \coth\frac{\nu}{2} - \frac{w}{2} \coth \frac{w}{2} \pm \pi i z\right)$$
+  where $$w = -2\pi i z + \nu.$$
+  -/)]
+noncomputable def Phi_star (ν ε : ℝ) (z : ℂ) : ℂ :=
+  let w := -2 * π * I * z + (ν : ℂ)
+  (I / (2 * π)) * ((ν / 2) * coth (ν / 2) - (w / 2) * coth (w / 2) + ε * π * I * z)
+
+@[blueprint
+  "phi-pm-def"
+  (title := "Definition of phi-pm (4.5)")
+  (statement := /--
+  $$\varphi^{\pm}_\nu(t) := 1_{[-1,1]}(t) ( \Phi^{\pm,\circ}_\nu(t) + \mathrm{sgn}(t) \Phi^{\pm,\ast}_\nu(t) ).$$
+  -/)]
+noncomputable def ϕ_pm (ν ε : ℝ) (t : ℝ) : ℂ :=
+  if -1 ≤ t ∧ t ≤ 1 then
+    Phi_circ ν ε (t : ℂ) + t.sign * Phi_star ν ε (t : ℂ)
+  else 0
+
+@[blueprint
+  "phi-def"
+  (title := "Definition of phi")
+  (statement := /--
+  $$\varphi_{\pm, \lambda}(t) := \varphi^{\pm}_\nu(\mathrm{sgn}(\lambda) t).$$
+  -/)]
+noncomputable def ϕ (lambda : ℝ) (ε : ℝ) (t : ℝ) : ℂ :=
+  ϕ_pm (|lambda|) ε (lambda.sign * t)
+
+@[blueprint
+  "phi-l1"
+  (title := "phi is in L1")
+  (statement := /--
+  $\varphi_{\pm, \lambda}$ is absolutely integrable.
+  -/)
+  (proof := /-- Straightforward estimation -/)
+  (latexEnv := "lemma")
+  (discussion := 942)]
+theorem ϕ_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (ϕ lambda ε) := by sorry
+
+@[blueprint
+  "phi-cts"
+  (title := "phi is absolutely continuous")
+  (statement := /--
+  $\varphi$ is absolutely continuous.
+  -/)
+  (proof := /-- Straightforward estimation -/)
+  (latexEnv := "lemma")
+  (discussion := 943)]
+theorem ϕ_continuous (lambda ε : ℝ) (hlam : lambda ≠ 0) : AbsolutelyContinuous (ϕ lambda ε) := by sorry
+
+@[blueprint
+  "phi-deriv-bv"
+  (title := "phi derivative is of bounded variation")
+  (statement := /--
+  $\varphi'$ is of bounded variation.
+  -/)
+  (proof := /-- Straightforward estimation -/)
+  (latexEnv := "lemma")
+  (discussion := 944)]
+theorem ϕ_deriv_bv (lambda ε : ℝ) (hlam : lambda ≠ 0) : BoundedVariationOn (deriv (ϕ lambda ε)) Set.univ := by sorry
+
+@[blueprint
+  "F-def"
+  (title := "Definition of F")
+  (statement := /--
+  $F_{\pm, \lambda}$ is the Fourier transform of $\varphi_{\pm, \lambda}$.
+  -/)]
+noncomputable def F (lambda : ℝ) (ε : ℝ) (y : ℝ) : ℝ := (𝓕 (ϕ lambda ε) y).re
+
+@[blueprint
+  "F-l1"
+  (title := "F is in L1")
+  (statement := /--
+  $F$ is absolutely integrable.
+  -/)
+  (proof := /-- Use Lemma \ref{decay-alt}. -/)
+  (latexEnv := "lemma")
+  (discussion := 945)]
+theorem F_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (F lambda ε) := by
+  refine Integrable.mono' (g := fun y ↦ ‖𝓕 (ϕ lambda ε) y‖) ?_ ?_ ?_
+  · refine Integrable.mono' (g := fun u ↦ ((∫ t, ‖ϕ lambda ε t‖) +
+      (eVariationOn (deriv (ϕ lambda ε)) Set.univ).toReal / (2 * Real.pi) ^ 2) /
+        (1 + ‖u‖ ^ 2)) ?_ ?_ ?_
+    · have : ∫ u : ℝ, (1 + ‖u‖ ^ 2)⁻¹ = Real.pi := by norm_num +zetaDelta at *
+      exact Integrable.const_mul (by contrapose! this; rw [integral_undef this]; positivity) _
+    · refine AEStronglyMeasurable.norm ?_
+      have hf : AEStronglyMeasurable (fun (u : ℝ) ↦
+          ∫ t, ϕ lambda ε t * Complex.exp (-2 * Real.pi * I * u * t)) volume :=
+        (continuous_iff_continuousAt.mpr fun u ↦
+          tendsto_integral_filter_of_dominated_convergence (fun t ↦ ‖ϕ lambda ε t‖)
+            (.of_forall fun _ ↦ (ϕ_integrable _ _ hlam).aestronglyMeasurable.mul
+              (Continuous.aestronglyMeasurable (by continuity)))
+            (by norm_num [norm_exp]) (ϕ_integrable _ _ hlam).norm
+            (.of_forall fun x ↦ Continuous.tendsto (by continuity) _)).aestronglyMeasurable
+      exact hf.congr (.of_forall fun x ↦ by
+        simp only [Real.fourier_real_eq_integral_exp_smul]
+        congr 1; ext t; rw [smul_eq_mul, mul_comm]; congr 1; congr 1; push_cast; ring)
+    · filter_upwards using fun u ↦ by
+        simpa using decay_alt _ (ϕ_integrable _ _ hlam) (ϕ_continuous _ _ hlam)
+          (ϕ_deriv_bv _ _ hlam) u
+  · have : Continuous (F lambda ε) := by
+      apply_rules [continuous_ofReal.comp, Continuous.comp]
+      all_goals try continuity
+      exact continuous_iff_continuousAt.mpr fun x ↦
+        tendsto_integral_filter_of_dominated_convergence (fun a ↦ ‖ϕ lambda ε a‖)
+          (.of_forall fun _ ↦ (Continuous.aestronglyMeasurable (by continuity)).smul
+            (ϕ_integrable _ _ hlam).aestronglyMeasurable)
+              (by norm_num [norm_smul, Circle.norm_smul]) (ϕ_integrable _ _ hlam).norm
+                (.of_forall fun a ↦ Continuous.tendsto (by continuity) _)
+    exact this.aestronglyMeasurable
+  · exact .of_forall fun x ↦ abs_re_le_norm _
+
+@[blueprint
+  "F-real"
+  (title := "F real")
+  (statement := /--
+  $F_{\pm,\lambda}$ is real-valued.
+  -/)
+  (proof := /-- Follows from the symmetry of $\phi$. -/)
+  (latexEnv := "sublemma")
+  (discussion := 946)]
+theorem F.real (lambda ε y : ℝ) : (𝓕 (ϕ lambda ε) y).im = 0 := by sorry
+
+@[blueprint
+  "F-maj"
+  (title := "F+ majorizes I")
+  (statement := /--
+  $F_{+,\lambda}(y) \geq I_\lambda(y)$ for all $y$.
+  -/)
+  (proof := /-- TODO. -/)
+  (latexEnv := "theorem")]
+theorem F.plus_majorizes_I (lambda y : ℝ) (hlam : lambda ≠ 0) :
+    F lambda 1 y ≥ I' lambda y := by sorry
+
+@[blueprint
+  "F-min"
+  (title := "F- minorizes I")
+  (statement := /--
+  $F_{+,\lambda}(y) \geq I_\lambda(y)$ for all $y$.
+  -/)
+  (proof := /-- TODO. -/)
+  (latexEnv := "theorem")]
+theorem F.minus_minorizes_I (lambda y : ℝ) (hlam : lambda ≠ 0) :
+    F lambda (-1) y ≤ I' lambda y := by sorry
+
+@[blueprint
+  "F-plus-l1"
+  (title := "F+ L1 bound")
+  (statement := /--
+  $\int (F_{+,\lambda}(y)-I_\lambda(y))\ dy = \frac{1}{1-e^{-|\lambda|}} - \frac{1}{|\lambda|}$.
+  -/)
+  (proof := /-- This should follow from the Fourier inversion formula, after showing $F_{+,\lambda}$ is in $L^1$.. -/)
+  (latexEnv := "theorem")]
+theorem F.plus_l1 (lambda y : ℝ) (hlam : lambda ≠ 0) :
+    ∫ y : ℝ, F lambda 1 y - I' lambda y =
+      1 / (1 - rexp (-|lambda|)) - 1 / |lambda| := by sorry
+
+@[blueprint
+  "F-minus-l1"
+  (title := "F- L1 bound")
+  (statement := /--
+  $\int (I_\lambda(y) - F_{-,\lambda}(y))\ dy = \frac{1}{|\lambda|} - \frac{1}{e^{|\lambda|} - 1}$.
+  -/)
+  (proof := /-- This should follow from the Fourier inversion formula, after showing $F_{-,\lambda}$ is in $L^1$.. -/)
+  (latexEnv := "theorem")]
+theorem F.minus_l1 (lambda y : ℝ) (hlam : lambda ≠ 0) :
+    ∫ y : ℝ, I' lambda y - F lambda (-1) y =
+      1 / |lambda| - 1 / (rexp (|lambda|) - 1) := by sorry
 
 blueprint_comment /--
-\subsection{Extremal approximants to the truncated expnential}\label{ch2-trunc-sec}
-
-TODO: incorporate material from \cite[Section 4]{ch2}.
+TODO: Lemmas 4.2, 4.3, 4.4
 -/
+
+
+
 
 
 blueprint_comment /--
@@ -194,5 +395,59 @@ blueprint_comment /--
 TODO: incorporate material from \cite[Section 7]{ch2} onwards.
 -/
 
+
+
+@[blueprint
+  "CH2-cor-1-2-a"
+  (title := "Corollary 1.2, part a")
+  (statement := /--
+  Assume the Riemann hypothesis holds up to height $T \geq 10^7$. For $x > \max(T,10^9)$,
+$$\psi(x) - x \cdot \pi T \coth(\pi T) \leq \pi T^{-1} \cdot x + \frac{1}{2\pi} \log^2(T/(2\pi)) - \frac{1}{6\pi} \log(T/(2\pi)) \sqrt{x},$$
+  -/)
+  (proof := /-- TBD. -/)
+  (latexEnv := "corollary")]
+theorem cor_1_2_a {T x : ℝ} (hT : 1e7 ≤ T) (RH : riemannZeta.RH_up_to T) (hx : max T 1e9 < x) :
+    |ψ x - x * π * T * (coth (π * T)).re| ≤
+      π * T⁻¹ * x + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) * Real.sqrt x := by sorry
+
+@[blueprint
+  "CH2-cor-1-2-b"
+  (title := "Corollary 1.2, part b")
+  (statement := /--
+  Assume the Riemann hypothesis holds up to height $T \geq 10^7$. For $x > \max(T,10^9)$,
+$$\sum_{n \leq x} \frac{\Lambda(n)}{n} \leq \pi \sqrt{T}^{-1} + \frac{1}{2\pi} \log^2(T/(2\pi)) - \frac{1}{6\pi} \log(T/(2\pi)) \frac{1}{x},$$
+where $\gamma = 0.577215...$ is Euler’s constant.
+  -/)
+  (proof := /-- TBD. -/)
+  (latexEnv := "corollary")]
+theorem cor_1_2_b {T x : ℝ} (hT : 1e7 ≤ T) (RH : riemannZeta.RH_up_to T) (hx : max T 1e9 < x) :
+    ∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / n ≤
+      π * Real.sqrt T⁻¹ + (1 / (2 * π)) * log (T / (2 * π)) ^ 2 - (1 / (6 * π)) * log (T / (2 * π)) / x := by sorry
+
+@[blueprint
+  "CH2-cor-1-3-a"
+  (title := "Corollary 1.3, part a")
+  (statement := /--
+For $x \geq 1$,
+$$|\psi(x) - x| \leq \pi \cdot 3 \cdot 10^{-12} \cdot x + 113.67 \sqrt{x},$$
+where $\psi(x)$ is the Chebyshev function.
+  -/)
+  (proof := /-- TBD. -/)
+  (latexEnv := "corollary")]
+theorem cor_1_3_a (x : ℝ) (hx : 1 ≤ x) :
+    |ψ x - x| ≤ π * 3 * 10 ^ (-12 : ℝ) * x + 113.67 * Real.sqrt x := by sorry
+
+@[blueprint
+  "CH2-cor-1-3-b"
+  (title := "Corollary 1.3, part b")
+  (statement := /--
+For $x \geq 1$,
+$$ \sum_{n \leq x} \frac{\Lambda(n)}{n} = \log x - \gamma + O^*(\pi \cdot \sqrt{3} \cdot 10^{-12} + 113.67 / x).$$
+  -/)
+  (proof := /-- TBD. -/)
+  (latexEnv := "corollary")]
+theorem cor_1_3_b (x : ℝ) (hx : 1 ≤ x) : ∃ E,
+    ∑ n ∈ Finset.Iic (⌊x⌋₊), Λ n / n =
+      log x - eulerMascheroniConstant + E ∧ |E| ≤ π * Real.sqrt 3 * 10 ^ (-12 : ℝ) + 113.67 / x := by sorry
 
 end CH2
