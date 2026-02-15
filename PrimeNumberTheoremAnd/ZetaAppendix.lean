@@ -1366,8 +1366,8 @@ theorem lemma_aachfour (s : ℂ) (hsigma : 0 ≤ s.re) (ν : ℝ) (hν : ν ≠ 
       field_simp
       have hderivφ_eq_nu_minus_theta : deriv φ a = ν - ϑ := by
         rw [hφ_deriv _ (left_mem_Icc.mpr hb.le)]
-      rw [hderivφ_eq_nu_minus_theta]
-      rw [abs_div, Real.abs_rpow_of_nonneg ha_pos.le, abs_pow, abs_of_pos ha_pos]
+      rw [hderivφ_eq_nu_minus_theta, abs_div, Real.abs_rpow_of_nonneg ha_pos.le,
+        abs_pow, abs_of_pos ha_pos]
   let g_2 : ℝ → ℝ := fun t ↦ t ^ (-s.re) * deriv (deriv φ) t / (deriv φ t) ^ 3
   have g_2_cont : ContinuousOn g_2 (Set.Icc a b) := by
     apply ContinuousOn.div
