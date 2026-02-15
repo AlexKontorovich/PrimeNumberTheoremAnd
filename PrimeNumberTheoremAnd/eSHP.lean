@@ -91,8 +91,24 @@ theorem table_8_prime_gap (p g : ℕ) (h : (p, g) ∈ table_8) : prime_gap_recor
   (proof := /-- Brute force verification. -/)
   (latexEnv := "proposition")
   (discussion := 948)]
-theorem table_8_prime_gap_complete_test (p g : ℕ) (hp : p ≤ 30) (hrecord : prime_gap_record p g) : (p, g) ∈ table_8 := by
-  sorry
+theorem table_8_prime_gap_complete_test (p g : ℕ) (hp : p ≤ 30)
+    (hrecord : prime_gap_record p g) : (p, g) ∈ table_8 := by
+  rcases hrecord with ⟨n, hn₁, hn₂, hn₃⟩
+  have nth_eq : ∀ {m i}, m.Prime → Nat.count Nat.Prime m = i → nth_prime i = m :=
+    fun hm hc ↦ by simpa [nth_prime, hc] using nth_count hm
+  have hpv : ∀ k < 11, nth_prime k =
+      if k = 0 then 2 else if k = 1 then 3 else if k = 2 then 5 else if k = 3 then 7
+      else if k = 4 then 11 else if k = 5 then 13 else if k = 6 then 17
+      else if k = 7 then 19 else if k = 8 then 23 else if k = 9 then 29 else 31 := by
+    intro k hk; interval_cases k <;> exact nth_eq (by decide) (by decide)
+  by_cases hn : n < 11
+  · interval_cases n <;> simp only [← hn₁, ← hn₂, nth_prime_gap] at *
+    all_goals
+      have := hn₃ 0; have := hn₃ 1; have := hn₃ 2; have := hn₃ 3; have := hn₃ 4
+      have := hn₃ 5; have := hn₃ 6; have := hn₃ 7; have := hn₃ 8; have := hn₃ 9
+      simp +decide [*] at *
+  · have h10 := nth_eq (show Nat.Prime 31 by decide) (show count Nat.Prime 31 = 10 by decide)
+    linarith [nth_monotone Nat.infinite_setOf_prime (show 10 ≤ n by omega), hn₁]
 
 @[blueprint
   "table-8-prime-gap-complete"
