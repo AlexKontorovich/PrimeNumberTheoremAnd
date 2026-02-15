@@ -29,7 +29,23 @@ lemma even_conjecture_mono (H H' : ℕ) (h : even_conjecture H) (hh : H' ≤ H) 
   (latexEnv := "proposition")
   (discussion := 959)]
 theorem even_goldbach_test : even_conjecture 30 := by
-  sorry
+  intro n hn he
+  fin_cases hn
+  all_goals try grind
+  · exact ⟨2, 2, by decide⟩
+  · exact ⟨3, 3, by decide⟩
+  · exact ⟨3, 5, by decide⟩
+  · exact ⟨5, 5, by decide⟩
+  · exact ⟨5, 7, by decide⟩
+  · exact ⟨7, 7, by decide⟩
+  · exact ⟨5, 11, by decide⟩
+  · exact ⟨7, 11, by decide⟩
+  · exact ⟨7, 13, by decide⟩
+  · exact ⟨11, 11, by decide⟩
+  · exact ⟨11, 13, by decide⟩
+  · exact ⟨13, 13, by decide⟩
+  · exact ⟨11, 17, by decide⟩
+  · exact ⟨13, 17, by decide⟩
 
 @[blueprint
   "odd-goldbach"
