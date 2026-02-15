@@ -333,6 +333,20 @@ lemma nth_prime_vals :
       norm_num
     exact h_prime_8
 
+/-- For any odd number `g > 1`, the first prime gap of size `g` is `0` (meaning it doesn't exist). -/
+lemma first_gap_odd_gt_1 {g : ℕ} (hg : Odd g) (hg1 : 1 < g) : first_gap g = 0 := by
+  simp only [first_gap, dite_eq_right_iff, forall_exists_index]
+  intro n hn
+  obtain ⟨k, hk⟩ := hg
+  simp_all only [lt_add_iff_pos_left, ofNat_pos, mul_pos_iff_of_pos_left]
+  have : ∀ n > 0, Odd (nth_prime n) := fun n hn ↦ Prime.odd_of_ne_two (prime_nth_prime n) (by
+      grind [Prime.two_le (prime_nth_prime n), show nth_prime n > 2 from
+          lt_of_le_of_lt (Prime.two_le <| prime_nth_prime 0) <|
+            nth_strictMono infinite_setOf_prime hn])
+  have : Even (nth_prime (n + 1) - nth_prime n) := Nat.Odd.sub_odd (this _ n.succ_pos) <|
+    this n (pos_of_ne_zero (by rintro rfl; unfold nth_prime_gap at hn; aesop))
+  aesop
+
 /-- The first prime gap of size `1` occurs at prime `2`. -/
 lemma first_gap_1 : first_gap 1 = 2 := by
   convert nth_prime_vals.left using 1
@@ -351,6 +365,10 @@ lemma first_gap_2 : first_gap 2 = 3 := by
     specialize h 1
     simp_all [nth_prime_gap]
 
+/-- The first prime gap of size `3` does not occur. -/
+lemma first_gap_3 : first_gap 3 = 0 :=
+  first_gap_odd_gt_1 (by decide) (by norm_num)
+
 /-- The first prime gap of size `4` occurs at prime `7`. -/
 lemma first_gap_4 : first_gap 4 = 7 := by
   rw [show first_gap 4 = nth_prime (Nat.find (show ∃ n, nth_prime_gap n = 4 from by
@@ -362,6 +380,10 @@ lemma first_gap_4 : first_gap 4 = 7 := by
       intro n hn
       interval_cases n <;> norm_num [nth_prime_vals]]
   exact nth_prime_three_eq_seven
+
+/-- The first prime gap of size `5` does not occur. -/
+lemma first_gap_5 : first_gap 5 = 0 :=
+  first_gap_odd_gt_1 (by decide) (by norm_num)
 
 /-- The first prime gap of size `6` occurs at prime `23`. -/
 lemma first_gap_6 : first_gap 6 = 23 := by
@@ -386,19 +408,9 @@ lemma first_gap_6 : first_gap 6 = 23 := by
       exact this.trans (nth_count <| by norm_num)
     exact h_prime_10.symm ▸ rfl
 
-/-- For any odd number `g > 1`, the first prime gap of size `g` is `0` (meaning it doesn't exist). -/
-lemma first_gap_odd_gt_1 {g : ℕ} (hg : Odd g) (hg1 : 1 < g) : first_gap g = 0 := by
-  simp only [first_gap, dite_eq_right_iff, forall_exists_index]
-  intro n hn
-  obtain ⟨k, hk⟩ := hg
-  simp_all only [lt_add_iff_pos_left, ofNat_pos, mul_pos_iff_of_pos_left]
-  have : ∀ n > 0, Odd (nth_prime n) := fun n hn ↦ Prime.odd_of_ne_two (prime_nth_prime n) (by
-      grind [Prime.two_le (prime_nth_prime n), show nth_prime n > 2 from
-          lt_of_le_of_lt (Prime.two_le <| prime_nth_prime 0) <|
-            nth_strictMono infinite_setOf_prime hn])
-  have : Even (nth_prime (n + 1) - nth_prime n) := Nat.Odd.sub_odd (this _ n.succ_pos) <|
-    this n (pos_of_ne_zero (by rintro rfl; unfold nth_prime_gap at hn; aesop))
-  aesop
+/-- The first prime gap of size `7` does not occur. -/
+lemma first_gap_7 : first_gap 7 = 0 :=
+  first_gap_odd_gt_1 (by decide) (by norm_num)
 
 @[blueprint
   "table-9-prime-gap-complete-test"
@@ -408,11 +420,12 @@ lemma first_gap_odd_gt_1 {g : ℕ} (hg : Odd g) (hg1 : 1 < g) : first_gap g = 0 
   (proof := /-- Brute force verification. -/)
   (latexEnv := "proposition")
   (discussion := 950)]
+
 theorem table_9_prime_gap_complete_test (g P : ℕ) (hg : g < 8) (hg' : 0 < g)
     (hrecord : first_gap_record g P) : (g, P) ∈ table_9 := by
   interval_cases g
   all_goals rcases hrecord with ⟨⟨rfl, rfl, hP⟩, h⟩
-  all_goals norm_num [first_gap_1, first_gap_2, first_gap_4, first_gap_6, first_gap_odd_gt_1] at h ⊢
+  all_goals norm_num [first_gap_1, first_gap_2, first_gap_4, first_gap_6] at h ⊢
   all_goals norm_cast
 
 @[blueprint
