@@ -101,7 +101,14 @@ theorem richstein_goldbach : even_conjecture (4 * 10 ^ 14) := by sorry
   (proof := /-- Combine Proposition \ref{richstein-even-goldbach}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:ramare-saouter2003}. -/)
   (latexEnv := "proposition")
   (discussion := 962)]
-theorem ramare_saouter_odd_goldbach : odd_conjecture (113256 * 10 ^ 17) := by sorry
+theorem ramare_saouter_odd_goldbach : odd_conjecture 11325599999999886744004 := by
+  have h1 := even_to_odd_goldbach 10726905042 (4 * 10 ^ 14) 28314000
+    (fun x hx => RamareSaouter2003.has_prime_in_interval x (by norm_cast : (x : ℝ) > 10726905041))
+    richstein_goldbach
+  have h2 := odd_conjecture_mono (4 * 10 ^ 14 + 3) 10726905046
+    (even_to_odd_goldbach_triv _ richstein_goldbach)
+  norm_num at *
+  exact h1 h2
 
 @[blueprint
   "e-silva-herzog-piranian-even-goldbach"
