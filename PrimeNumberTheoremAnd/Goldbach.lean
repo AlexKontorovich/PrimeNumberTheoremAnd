@@ -29,23 +29,7 @@ lemma even_conjecture_mono (H H' : ℕ) (h : even_conjecture H) (hh : H' ≤ H) 
   (latexEnv := "proposition")
   (discussion := 959)]
 theorem even_goldbach_test : even_conjecture 30 := by
-  intro n hn he
-  fin_cases hn
-  all_goals try grind
-  · exact ⟨2, 2, by decide⟩
-  · exact ⟨3, 3, by decide⟩
-  · exact ⟨3, 5, by decide⟩
-  · exact ⟨5, 5, by decide⟩
-  · exact ⟨5, 7, by decide⟩
-  · exact ⟨7, 7, by decide⟩
-  · exact ⟨5, 11, by decide⟩
-  · exact ⟨7, 11, by decide⟩
-  · exact ⟨7, 13, by decide⟩
-  · exact ⟨11, 11, by decide⟩
-  · exact ⟨11, 13, by decide⟩
-  · exact ⟨13, 13, by decide⟩
-  · exact ⟨11, 17, by decide⟩
-  · exact ⟨13, 17, by decide⟩
+  sorry
 
 @[blueprint
   "odd-goldbach"
@@ -101,7 +85,14 @@ theorem richstein_goldbach : even_conjecture (4 * 10 ^ 14) := by sorry
   (proof := /-- Combine Proposition \ref{richstein-even-goldbach}, Proposition \ref{even-to-odd-goldbach-triv}, and Theorem \ref{thm:ramare-saouter2003}. -/)
   (latexEnv := "proposition")
   (discussion := 962)]
-theorem ramare_saouter_odd_goldbach : odd_conjecture (113256 * 10 ^ 17) := by sorry
+theorem ramare_saouter_odd_goldbach : odd_conjecture 11325599999999886744004 := by
+  have h1 := even_to_odd_goldbach 10726905042 (4 * 10 ^ 14) 28314000
+    (fun x hx => RamareSaouter2003.has_prime_in_interval x (by norm_cast : (x : ℝ) > 10726905041))
+    richstein_goldbach
+  have h2 := odd_conjecture_mono (4 * 10 ^ 14 + 3) 10726905046
+    (even_to_odd_goldbach_triv _ richstein_goldbach)
+  norm_num at *
+  exact h1 h2
 
 @[blueprint
   "e-silva-herzog-piranian-even-goldbach"
