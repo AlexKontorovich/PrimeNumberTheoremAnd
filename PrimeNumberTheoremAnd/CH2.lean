@@ -1,10 +1,13 @@
 import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.Analysis.CStarAlgebra.Classes
+import Mathlib.Data.PNat.Interval
 import Mathlib.Data.Real.Sign
 import Mathlib.Data.Real.StarOrdered
 import Mathlib.MeasureTheory.Integral.Gamma
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.Wiener
+
+open Real
 
 blueprint_comment /--
 \section{Chirre-Helfgott's estimates for sums of nonnegative arithmetic functions}\label{ch2-sec}
@@ -104,12 +107,79 @@ noncomputable def I' (lambda u : ℝ) : ℝ := -- use I' instead of I to avoid c
   (proof := /-- Routine manipulation. -/)
   (latexEnv := "sublemma")
   (discussion := 881)]
-theorem S_eq_I (a : ℕ → ℝ) (σ x T : ℝ) (hσ : σ ≠ 1) (hT : 0 < T)
-    : -- may need a summability hypothesis on a
-    let lambda := (2 * π * (σ - 1)) / T
-    S a σ x =
-      (x ^ (-σ):ℝ) * ∑' (n : ℕ+), a n * (x / (n ^ σ : ℝ)) * I' lambda ((T / (2 * π)) * log (n / x)) := by
-      sorry
+theorem S_eq_I (a : ℕ → ℝ) (s x T : ℝ) (hs : s ≠ 1) (hT : 0 < T) (hx : 0 < x) :
+    let lambda := (2 * π * (s - 1)) / T
+    S a s x = (x ^ (-s) : ℝ) * ∑' (n : ℕ+), a n * (x / n) * I' lambda ((T / (2 * π)) * log (n / x)) := by
+  have lambda_mul_u {s T : ℝ} (hT : 0 < T) (u : ℝ) :
+      2 * π * (s - 1) / T * (T / (2 * π) * u) = (s - 1) * u := by field_simp [pi_ne_zero]
+  by_cases hs_lt : s < 1
+  · have hS_def : S a s x = ∑ n ∈ Finset.Icc 1 ⌊x⌋₊, a n / (n ^ s : ℝ) := if_pos hs_lt
+    have h_tsum_eq : x ^ (-s : ℝ) * ∑' n : ℕ+,
+        a n * (x / n) * I' (2 * π * (s - 1) / T) ((T / (2 * π)) * log (n / x)) =
+        x ^ (-s : ℝ) * ∑ n ∈ Finset.Icc 1 ⌊x⌋₊, a n * (x / n) * (x / n) ^ (s - 1) := by
+      have h_cond : x ^ (-s : ℝ) * ∑' n : ℕ+, a n * (x / n) * I' (2 * π * (s - 1) / T)
+            ((T / (2 * π)) * log (n / x)) =
+          x ^ (-s : ℝ) * ∑' n : ℕ+, if n ≤ ⌊x⌋₊ then a n * (x / n) * (x / n) ^ (s - 1) else 0 := by
+        congr 1; congr 1 with n; unfold I'
+        have hn_pos : (0 : ℝ) < n := Nat.cast_pos.mpr n.pos
+        simp only [lambda_mul_u hT]
+        split_ifs with h1 h2 h3
+        · congr 1; rw [rpow_def_of_pos (div_pos hx hn_pos),
+            show log (x / n) = log x - log n from log_div hx.ne' hn_pos.ne']
+          congr 1; rw [show log (n / x) = log n - log x from
+            log_div hn_pos.ne' hx.ne']
+          field_simp [hT.ne']; ring
+        · exact absurd h1 (not_le.mpr (mul_neg_of_neg_of_pos (sub_neg_of_lt hs_lt)
+            (log_pos (by rw [lt_div_iff₀ hx]; linarith [Nat.lt_of_floor_lt (not_le.mp h2)]))))
+        · exact absurd h1 (not_not.mpr (mul_nonneg_of_nonpos_of_nonpos (sub_neg_of_lt hs_lt).le
+            (log_nonpos (div_pos hn_pos hx).le
+              ((div_le_one hx).mpr (le_trans (Nat.cast_le.mpr h3) (Nat.floor_le hx.le))))))
+        · simp
+      rw [h_cond, tsum_eq_sum (s := Finset.Icc 1 ⟨⌊x⌋₊ + 1, Nat.succ_pos _⟩)]
+      · congr 1; rw [← Finset.sum_filter]; field_simp
+        refine Finset.sum_bij (fun n _ ↦ n) ?_ ?_ ?_ ?_
+        · simp +decide only [Finset.mem_filter, Finset.mem_Icc, PNat.one_le, true_and, and_imp]
+          exact fun n hn₁ hn₂ ↦ ⟨PNat.one_le _, hn₂⟩
+        · exact fun _ _ _ _ h ↦ Subtype.val_injective h
+        · simp +decide only [Finset.mem_Icc, Finset.mem_filter, PNat.one_le, true_and,
+            exists_prop, and_imp]
+          exact fun b hb₁ hb₂ ↦ ⟨⟨b, hb₁⟩, ⟨Nat.le_succ_of_le hb₂, hb₂⟩, rfl⟩
+        · simp only [Finset.mem_filter, Finset.mem_Icc, PNat.one_le, true_and,
+            mul_assoc, mul_comm, implies_true]
+      · simp +zetaDelta only [Finset.mem_Icc, PNat.one_le, true_and, not_le, ite_eq_right_iff,
+          mul_eq_zero, div_eq_zero_iff, Nat.cast_eq_zero, PNat.ne_zero, or_false] at *
+        exact fun n hn₁ hn₂ ↦ absurd (Nat.le_succ_of_le hn₂) (not_le_of_gt hn₁)
+    simp_all only [ne_eq, div_eq_mul_inv, rpow_neg hx.le, mul_left_comm, mul_comm,
+      mul_inv_rev, mul_assoc, Finset.mul_sum ..]
+    refine Finset.sum_congr rfl fun n hn ↦ ?_
+    have hn_pos : (0 : ℝ) < n := by norm_cast; linarith [Finset.mem_Icc.mp hn]
+    rw [mul_rpow (by positivity) (by positivity), inv_rpow (by positivity)]
+    ring_nf
+    rw [rpow_add hx, rpow_neg_one, rpow_add hn_pos, rpow_neg_one]
+    field_simp
+  · have hs_def : S a s x = ∑' n : ℕ, if n ≥ x then a n / (n ^ s : ℝ) else 0 := by simp_all [S]
+    have hs_ge : ∑' n : ℕ, (if n ≥ x then a n / (n ^ s : ℝ) else 0) =
+        ∑' n : ℕ+, (if (n : ℝ) ≥ x then a n / (n ^ s : ℝ) else 0) :=
+      (Subtype.val_injective.tsum_eq fun n hn ↦
+        ⟨⟨n, Nat.pos_of_ne_zero fun h ↦ by simp_all [Function.mem_support]⟩, rfl⟩).symm
+    have hs_factor : ∑' n : ℕ+, (if (n : ℝ) ≥ x then a n / (n ^ s : ℝ) else 0) =
+        x ^ (-s) * ∑' n : ℕ+, (if (n : ℝ) ≥ x then a n * (x / (n : ℝ)) * (x / (n : ℝ)) ^ (s - 1) else 0) := by
+      rw [← tsum_mul_left]; congr; ext n
+      split_ifs with h
+      · have hn : (0 : ℝ) < n := by positivity
+        rw [div_eq_mul_inv, div_rpow hx.le hn.le, rpow_sub_one hx.ne', rpow_sub_one hn.ne', rpow_neg hx.le]
+        field_simp
+      · simp
+    convert hs_factor using 3
+    · rw [hs_def, hs_ge]
+    · ext n; simp only [I', lambda_mul_u hT]
+      split_ifs <;> simp_all only [ne_eq, not_lt, ge_iff_le, Nat.cast_pos, PNat.pos,
+        rpow_def_of_pos, div_pos_iff_of_pos_left, not_le, mul_zero, mul_eq_mul_left_iff]
+      · exact Or.inl (by rw [show (n : ℝ) / x = (x / n)⁻¹ from (inv_div x n).symm, Real.log_inv]; field_simp)
+      · linarith [mul_neg_of_pos_of_neg (sub_pos.mpr <| lt_of_le_of_ne hs_lt (Ne.symm ‹_›))
+          (log_neg (by positivity : (0 : ℝ) < n / x) <| by rw [div_lt_one hx]; linarith)]
+      · linarith [mul_nonneg (sub_nonneg.mpr hs_lt)
+          (log_nonneg (by rw [le_div_iff₀ hx]; linarith : (1:ℝ) ≤ n / x))]
 
 @[blueprint
   "ch2-prop-2-4-plus"
