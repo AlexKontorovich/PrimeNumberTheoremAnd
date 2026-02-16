@@ -76,7 +76,15 @@ theorem sum_moebius_pmul_eq_prod_one_sub {R : Type*} [CommRing R]
   which is exactly the number of divisors of $n$, i.e., $\tau(n)$.
   -/)]
 theorem zeta_mul_zeta : (ζ : ArithmeticFunction ℕ) * ζ = τ := by
-  sorry
+  ext n; unfold zeta tau sigma
+  simp only [mul_apply, coe_mk, mul_ite, mul_zero, mul_one, pow_zero, sum_const, smul_eq_mul]
+  have key : ∀ x ∈ n.divisorsAntidiagonal, (if x.2 = 0 then 0 else if x.1 = 0 then 0 else 1) = 1 := by
+    intro ⟨a, b⟩ hx
+    have := Nat.mem_divisorsAntidiagonal.mp hx
+    simp [mul_ne_zero_iff.mp (this.1 ▸ this.2)]
+  simp_rw [Finset.sum_congr rfl key, Finset.card_eq_sum_ones, Finset.sum_const]
+  simp only [smul_eq_mul, mul_one, ← Nat.map_div_right_divisors]
+  exact card_map { toFun := fun d ↦ (d, n / d), inj' := fun x x_1 ↦ congr_arg Prod.fst }
 
 /-- The L-series of $\tau$ equals the square of the Riemann zeta function for $\Re(s) > 1$. -/
 @[blueprint
@@ -217,7 +225,8 @@ noncomputable def sigmaC {R : Type*} [Semiring R] [HPow R R R] (s : R) : Arithme
   -/)]
 lemma sigmaC_natCast (k : ℕ) (n : ℕ) :
     sigmaC k n = (σ k n : ℂ) := by
-  sorry
+  unfold sigmaC sigma
+  simp only [cast_id, coe_mk, cast_sum, cast_pow]
 
 /-- `ζ(s)ζ(s - ν) = Σ σ_ν(n) n^(-s)` for `Re(s) > 1` and `Re(s - ν) > 1`. -/
 @[blueprint
