@@ -425,7 +425,8 @@ theorem table_9_prime_gap_complete_test (g P : ℕ) (hg : g < 8) (hg' : 0 < g)
     (hrecord : first_gap_record g P) : (g, P) ∈ table_9 := by
   interval_cases g
   all_goals rcases hrecord with ⟨⟨rfl, rfl, hP⟩, h⟩
-  all_goals norm_num [first_gap_1, first_gap_2, first_gap_4, first_gap_6] at h ⊢
+  all_goals norm_num [first_gap_1, first_gap_2, first_gap_3, first_gap_4, first_gap_5, first_gap_6,
+    first_gap_7 ] at h ⊢
   all_goals norm_cast
 
 @[blueprint
