@@ -122,92 +122,6 @@ lemma Li_eq_sub_add_integral (x : ℝ) (hx : 2 ≤ x) :
         (by linarith [Set.mem_Icc.mp (by simpa [hx] using ht)]))
           (ne_of_gt (log_pos (by linarith [Set.mem_Icc.mp (by simpa [hx] using ht)]))))
 
-/-- Relationship between `pi(x)` and `theta(x)` using partial summation. -/
-lemma pi_eq_theta_div_log_add_integral (x : ℝ) (hx : 2 ≤ x) :
-    pi x = θ x / log x + ∫ t in Icc 2 x, θ t / (t * log t ^ 2) := by
-  have h_pi_def : _root_.pi x = ∑ p ∈ Finset.filter Nat.Prime (Finset.Icc 1 ⌊x⌋₊), 1 := by
-    norm_num +zetaDelta at *; unfold _root_.pi
-    rw [Nat.primeCounting, Nat.primeCounting', Nat.count_eq_card_filter_range]
-    congr 2 with (_ | i) <;> aesop
-  have h_theta_def : ∑ p ∈ Finset.filter Nat.Prime (Finset.Icc 1 ⌊x⌋₊), 1 =
-      ∑ p ∈ Finset.filter Nat.Prime (Finset.Icc 1 ⌊x⌋₊), (log p / log x) +
-      ∑ p ∈ Finset.filter Nat.Prime (Finset.Icc 1 ⌊x⌋₊),
-        (∫ t in Set.Icc (p : ℝ) x, (1 / (t * log t ^ 2) * log p)) := by
-    rw [← Finset.sum_add_distrib, Finset.sum_congr rfl]
-    intro p hp
-    obtain ⟨hp_mem, hp_prime⟩ := Finset.mem_filter.mp hp
-    have hp2 : (p : ℝ) ≥ 2 := by exact_mod_cast hp_prime.two_le
-    rw [MeasureTheory.integral_Icc_eq_integral_Ioc,
-      ← intervalIntegral.integral_of_le] <;> norm_num
-    · rw [intervalIntegral.integral_eq_sub_of_hasDerivAt]
-      rotate_right
-      · use fun t ↦ -1 / log t
-      · ring_nf
-        norm_num [ne_of_gt, log_pos, show p > 1 from hp_prime.one_lt,
-          show x > 1 from one_lt_two.trans_le hx]
-      · intro t ht
-        have ht' : t > 1 := by cases Set.mem_uIcc.mp ht <;> linarith [hp2]
-        convert HasDerivAt.div (hasDerivAt_const _ _)
-          (hasDerivAt_log (by linarith [ht'])) (ne_of_gt <| log_pos ht') using 1
-        ring
-      · apply_rules [ContinuousOn.intervalIntegrable]
-        exact continuousOn_of_forall_continuousAt fun y hy ↦
-          have hy' : y > 1 := by cases Set.mem_uIcc.mp hy <;> linarith [hp2]
-          ContinuousAt.mul
-            (ContinuousAt.inv₀ (ContinuousAt.pow (continuousAt_log (by linarith [hy'])) _)
-              (ne_of_gt (sq_pos_of_pos (log_pos hy'))))
-            (ContinuousAt.inv₀ continuousAt_id (ne_of_gt (by linarith [hy'])))
-    · exact le_trans (Nat.cast_le.mpr (Finset.mem_Icc.mp hp_mem |>.2))
-        (Nat.floor_le (by positivity))
-  convert h_theta_def using 2
-  · rw [← Finset.sum_div]
-    unfold theta; aesop
-  · have h_fubini : ∫ t in Set.Icc 2 x,
-        (∑ p ∈ Finset.filter Nat.Prime (Finset.Icc 1 ⌊x⌋₊),
-          (if p ≤ t then log p else 0)) / (t * log t ^ 2) =
-        ∑ p ∈ Finset.filter Nat.Prime (Finset.Icc 1 ⌊x⌋₊),
-          ∫ t in Set.Icc 2 x, (if p ≤ t then log p else 0) / (t * log t ^ 2) := by
-      rw [← MeasureTheory.integral_finset_sum]
-      · simp only [Finset.sum_div]
-      · intro p hp
-        have hp_prime := (Finset.mem_filter.mp hp).2
-        refine MeasureTheory.Integrable.mono'
-          (g := fun t ↦ log p / (t * log t ^ 2)) ?_ ?_ ?_
-        · exact ContinuousOn.integrableOn_Icc (continuousOn_of_forall_continuousAt fun t ht ↦
-            ContinuousAt.div continuousAt_const
-              (ContinuousAt.mul continuousAt_id <|
-                ContinuousAt.pow (continuousAt_log <| by linarith [ht.1]) _) <|
-              ne_of_gt <| mul_pos (by linarith [ht.1]) <|
-                sq_pos_of_pos <| log_pos <| by linarith [ht.1])
-        · exact (Measurable.mul (.ite measurableSet_Ici measurable_const measurable_const)
-            (.inv (measurable_id'.mul (measurable_log.pow_const 2)))).aestronglyMeasurable
-        · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Icc] with t ht
-          split_ifs <;> norm_num [abs_div, abs_mul, abs_of_nonneg, ht.1.trans']
-          · rw [abs_of_nonneg (log_nonneg (Nat.one_le_cast.mpr hp_prime.pos))]
-          · exact div_nonneg (log_nonneg (Nat.one_le_cast.mpr hp_prime.pos))
-              (mul_nonneg (by linarith [ht.1]) (sq_nonneg _))
-    convert h_fubini using 1
-    · refine MeasureTheory.setIntegral_congr_fun measurableSet_Icc fun t ht ↦ ?_
-      rw [Finset.sum_filter,
-        show θ t = ∑ p ∈ Finset.Icc 1 ⌊t⌋₊, if Nat.Prime p then log p else 0 from ?_]
-      · rw [← Finset.sum_subset (Finset.Icc_subset_Icc_right (Nat.floor_mono ht.2))]
-        · exact congrArg₂ _
-            (Finset.sum_congr rfl fun p hp ↦ by
-              split_ifs <;> linarith [Nat.floor_le (show 0 ≤ t by linarith [ht.1]),
-                show (p : ℝ) ≤ ⌊t⌋₊ by exact_mod_cast Finset.mem_Icc.mp hp |>.2]) rfl
-        · simp only [Finset.mem_Icc, not_and, not_le, ite_eq_right_iff, and_imp] at *
-          exact fun n hn₁ hn₂ hn₃ hn₄ hn₅ ↦ absurd (hn₃ hn₁) (not_lt_of_ge (Nat.le_floor hn₅))
-      · rw [Finset.sum_ite]; aesop
-    · refine Finset.sum_congr rfl fun p hp ↦ ?_
-      rw [← MeasureTheory.integral_indicator, ← MeasureTheory.integral_indicator] <;>
-        norm_num [Set.indicator]
-      congr with y ; split_ifs <;> ring_nf
-      · linarith
-      · exact absurd (show 2 ≤ y ∧ y ≤ x from
-            ⟨by linarith [show (p : ℝ) ≥ 2 by exact_mod_cast (Finset.mem_filter.mp hp).2.two_le],
-             by linarith⟩) ‹_›
-      · aesop
-
 @[blueprint
   "pi-error-identity"
   (title := "Integral identity for pi - Li")
@@ -249,7 +163,10 @@ theorem pi_error_identity (x : ℝ) (hx : 2 ≤ x) :
     · exact ContinuousOn.integrableOn_Icc (continuousOn_const.div
         (ContinuousOn.pow (continuousOn_log.mono <| by norm_num) _) fun t ht ↦
         ne_of_gt <| sq_pos_of_pos <| log_pos <| by linarith [ht.1])
-  rw [h_integral, pi_eq_theta_div_log_add_integral x hx, Li_eq_sub_add_integral x hx]; ring
+  have h_pi : pi x = θ x / log x + ∫ t in Icc 2 x, θ t / (t * log t ^ 2) := by
+    rw [integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hx]
+    exact primeCounting_eq_theta_div_log_add_integral hx
+  rw [h_integral, h_pi, Li_eq_sub_add_integral x hx]; ring
 
 @[blueprint
   "ramanujan-pi-upper"
