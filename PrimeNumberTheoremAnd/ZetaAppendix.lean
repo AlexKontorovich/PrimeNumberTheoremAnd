@@ -2988,7 +2988,7 @@ continuously to $\sigma=0$.
 -/)
   (latexEnv := "proposition")
   (discussion := 573)]
-lemma proposition_dadaro_zero_le {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 < s.re) {a : ℝ} (ha : 0 < a)
+lemma proposition_dadaro_zero_lt {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 < s.re) {a : ℝ} (ha : 0 < a)
     (ha' : a.IsHalfInteger) (haτ : a > |s.im| / (2 * π)) :
     let ϑ : ℝ := s.im / (2 * π * a)
     let C : ℝ :=
@@ -3094,6 +3094,7 @@ lemma proposition_dadaro_zero_le {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 < s.re) {
       rw [show g ϑ / (2 * I) = -c by rw [← neg_eq_iff_eq_neg, ← neg_div, h_g_eq_c]]
     _ = ∑ n ∈ Finset.Icc 1 ⌊a⌋₊, (n : ℂ) ^ (-s) - (a : ℂ) ^ (1 - s) / (1 - s) +
       c * (a : ℂ) ^ (-s) + (E₁ + (b : ℂ) ^ (-s) * g ϑ_minus / (2 * I) + E₂) := by ring
+  · sorry
 
 
 lemma proposition_dadaro_zero_eq {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 = s.re) {a : ℝ} (ha : 0 < a)
@@ -3157,9 +3158,9 @@ lemma proposition_dadaro_zero_eq {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 = s.re) {
       simp [s_σ]
       exact haτ
 
-    -- Apply proposition_dadaro_zero_le
+    -- Apply proposition_dadaro_zero_lt
     obtain ⟨E_σ, hE_σ_eq, hE_σ_bound⟩ :=
-      proposition_dadaro_zero_le hs_σ_ne_one hs_σ_re_pos ha ha' ha_τ_σ
+      proposition_dadaro_zero_lt hs_σ_ne_one hs_σ_re_pos ha ha' ha_τ_σ
 
     -- Show that the ϑ used in the theorem equals our ϑ
     have hϑ_eq : s_σ.im / (2 * π * a) = ϑ := by
@@ -3185,7 +3186,8 @@ lemma proposition_dadaro_zero_eq {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 = s.re) {
         σ / 2 * ((1 / Complex.sin (π * ϑ) ^ 2).re - (1 / (π * ϑ) ^ 2)) +
         |ϑ| / (2 * π ^ 2) * (1 / (1 - |ϑ|) ^ 3 + 2 * (riemannZeta 3).re - 1)
       else σ / 6) / a ^ (σ + 1) := by
-      simp [s_σ, hϑ_eq]
+      simp [s_σ]
+
 
     -- Rewrite the bound using hC_eq
     rw [hC_eq] at hE_σ_bound
@@ -3391,7 +3393,7 @@ lemma proposition_dadaro_zero_eq {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 = s.re) {
       ext n; simp
     simp [E]
   -- Part 2: Prove the error bound
-  · exact le_of_tendsto_of_tendsto h_norm_continuous h_bound_converges
+  · exact le_of_tendsto_of_tendsto h_norm_continuous (by simp [h_bound_converges])
       (Filter.Eventually.of_forall h_norm_bounded)
 
 
@@ -3417,7 +3419,7 @@ theorem proposition_dadaro {s : ℂ} (hs1 : s ≠ 1) (hsigma : 0 ≤ s.re) {a : 
       ‖E‖ ≤ C / (a ^ (s.re + 1 : ℝ)) := by
   rcases hsigma.eq_or_lt with hsigma_eq | hsigma_lt
   · exact proposition_dadaro_zero_eq hs1 hsigma_eq ha ha' haτ
-  · exact proposition_dadaro_zero_le hs1 hsigma_lt ha ha' haτ
+  · exact proposition_dadaro_zero_lt hs1 hsigma_lt ha ha' haτ
 
 blueprint_comment /--
 \begin{remark}
