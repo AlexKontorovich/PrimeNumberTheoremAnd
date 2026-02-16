@@ -333,6 +333,6 @@ noncomputable def Table_2 : List (ℝ × ℝ × ℝ × ℝ × ℝ × ℝ × ℝ 
   -/)
   (latexEnv := "theorem")]
 theorem has_prime_in_interval (x₀ x m δ T₁ σ₀ a Δ : ℝ) (hx : x ≥ x₀) (hrow : (log x₀, m, δ, T₁, σ₀, a, Δ) ∈ Table_2) :
-    HasPrimeInInterval (x*(1-Δ⁻¹)) (x/Δ) := by sorry
+    HasPrimeInInterval (x*(1- 1 / Δ)) (x/Δ) := by sorry
 
 end KadiriLumley
