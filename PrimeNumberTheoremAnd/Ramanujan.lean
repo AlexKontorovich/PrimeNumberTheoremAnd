@@ -1,6 +1,5 @@
 import PrimeNumberTheoremAnd.Defs
 
-
 blueprint_comment /--
 \section{Ramanujan's inequality}\label{ramanujan-sec}
 
@@ -233,7 +232,59 @@ noncomputable def xₐ : ℝ := exp 3914
   (latexEnv := "lemma")
   (discussion := 995)]
 theorem a_mono : AntitoneOn a (Set.Ici xₐ) := by
-    sorry
+  intro x hx y hy hxy
+  simp only [Set.mem_Ici] at hx hy
+  have hxa3 : xₐ ≥ exp 3000 := by unfold xₐ; exact exp_le_exp.mpr (by norm_num)
+  have hx3 := le_trans hxa3 hx; have hy3 := le_trans hxa3 hy
+  have neg : ∀ z ≥ exp 3000, ∀ lo hi : ℝ, hi ≤ exp 3000 → ¬(z ∈ Set.Ico lo hi) :=
+    fun z hz _ _ hhi h ↦ absurd (Set.mem_Ico.mp h).2 (not_lt.mpr (le_trans hhi hz))
+  have h599 : (599 : ℝ) ≤ exp 3000 := by linarith [add_one_le_exp (3000 : ℝ)]
+  have h58 := exp_le_exp.mpr (show (58 : ℝ) ≤ 3000 by norm_num)
+  have h1169 := exp_le_exp.mpr (show (1169 : ℝ) ≤ 3000 by norm_num)
+  have h2000 := exp_le_exp.mpr (show (2000 : ℝ) ≤ 3000 by norm_num)
+  change a y ≤ a x
+  simp only [a, neg x hx3 _ _ h599, neg x hx3 _ _ h58, neg x hx3 _ _ h1169,
+    neg x hx3 _ _ h2000, neg x hx3 _ _ le_rfl,
+    neg y hy3 _ _ h599, neg y hy3 _ _ h58, neg y hy3 _ _ h1169,
+    neg y hy3 _ _ h2000, neg y hy3 _ _ le_rfl, ite_false]
+  have hlog_nn : ∀ z ≥ exp 3000, (0 : ℝ) ≤ log z :=
+    fun z hz ↦ le_of_lt (log_pos (by linarith [add_one_le_exp (3000 : ℝ)]))
+  have hsqrt_conv : sqrt (5.573412 : ℝ) = sqrt 1393353 / 500 := by
+    rw [show (5.573412 : ℝ) = 1393353 / 250000 from by norm_num,
+      sqrt_div (by positivity : (0 : ℝ) ≤ 1393353),
+      show (250000 : ℝ) = 500 ^ 2 from by norm_num, sqrt_sq (by norm_num : (500 : ℝ) ≥ 0)]
+  rw [sqrt_div (hlog_nn x hx3), sqrt_div (hlog_nn y hy3)]
+  simp only [hsqrt_conv]
+  let f := fun t ↦ t ^ 5 * (t / (1393353 / 250000)) ^ (38 / 25 : ℝ) *
+    exp (-(189 / 100 * (sqrt t / (sqrt 1393353 / 500))))
+  have h_deriv_neg : ∀ t ∈ Set.Ioi (3914 : ℝ), deriv f t ≤ 0 := by
+    intro t ht; simp only [Set.mem_Ioi] at ht
+    have ht_ne : t ≠ 0 := by linarith
+    have hdiv_ne : t / (1393353 / 250000) ≠ 0 := by positivity
+    simp only [f]; norm_num [sqrt_eq_rpow, ht_ne, hdiv_ne]
+    ring_nf; norm_num [ht_ne, hdiv_ne]
+    rw [show (38 / 25 : ℝ) = (13 / 25 : ℝ) + 1 by norm_num, rpow_add]
+      <;> norm_num <;> try positivity
+    rw [show (-(1 / 2 : ℝ)) = (1 / 2 : ℝ) - 1 by norm_num, rpow_sub]
+      <;> norm_num <;> try positivity
+    field_simp; norm_num [← sqrt_eq_rpow] at *
+    nlinarith [sqrt_nonneg t, sq_sqrt (show 0 ≤ t by linarith),
+      sqrt_nonneg 1393353, sq_sqrt (show 0 ≤ 1393353 by norm_num),
+      mul_le_mul_of_nonneg_left (le_of_lt ht) (sqrt_nonneg t),
+      mul_le_mul_of_nonneg_left (le_of_lt ht) (sqrt_nonneg 1393353)]
+  have hf_cont : ContinuousOn f (Set.Ici 3914) := by
+    simp only [f]; fun_prop (discharger := norm_num)
+  have hf_diff : DifferentiableOn ℝ f (interior (Set.Ici 3914)) := by
+    simp only [f, interior_Ici]; intro t ht; simp only [Set.mem_Ioi] at ht
+    have : t ≠ 0 := by linarith
+    fun_prop (discharger := positivity)
+  have h_decr := antitoneOn_of_deriv_nonpos (convex_Ici (3914 : ℝ)) hf_cont hf_diff
+    (by simp only [interior_Ici]; exact h_deriv_neg)
+  have hlog_mem : ∀ z ≥ xₐ, log z ∈ Set.Ici (3914 : ℝ) := fun z hz ↦ by
+    simp only [Set.mem_Ici]; unfold xₐ at hz
+    linarith [log_exp (3914 : ℝ), log_le_log (by positivity) hz]
+  have := h_decr (hlog_mem x hx) (hlog_mem y hy) (log_le_log (by linarith [exp_pos (3914 : ℝ)]) hxy)
+  simp only [f] at this; ring_nf at *; linarith
 
 noncomputable def C₁ : ℝ := log xₐ ^ 6 / xₐ * ∫ t in Set.Icc 2 xₐ, (720 + a t) / log t ^ 7
 
