@@ -430,7 +430,7 @@ theorem F.plus_majorizes_I (lambda y : ℝ) (hlam : lambda ≠ 0) :
   "F-min"
   (title := "F- minorizes I")
   (statement := /--
-  $F_{+,\lambda}(y) \geq I_\lambda(y)$ for all $y$.
+  $F_{-,\lambda}(y) \geq I_\lambda(y)$ for all $y$.
   -/)
   (proof := /-- TODO. -/)
   (latexEnv := "theorem")]
