@@ -53,7 +53,7 @@ theorem even_goldbach_test : even_conjecture 30 := by
   (statement := /--
   We say that the odd Goldbach conjecture is verified up to height $H$ if every odd integer between $5$ and $H$ is the sum of three primes. -/)]
 def odd_conjecture (H : ℕ) : Prop :=
-  ∀ n ∈ Finset.Icc 5 H, Odd n → ∃ p q r : ℕ, Nat.Prime p ∧ Nat.Prime q ∧ Nat.Prime r ∧ n = p + q + r
+  ∀ n ∈ Finset.Icc 7 H, Odd n → ∃ p q r : ℕ, Nat.Prime p ∧ Nat.Prime q ∧ Nat.Prime r ∧ n = p + q + r
 
 lemma odd_conjecture_mono (H H' : ℕ) (h : odd_conjecture H) (hh : H' ≤ H) : odd_conjecture H' := by
   intro n hn; apply h; grind
@@ -63,10 +63,13 @@ lemma odd_conjecture_mono (H H' : ℕ) (h : odd_conjecture H) (hh : H' ≤ H) : 
   (title := "Even Goldbach implies odd Goldbach")
   (statement := /--
   If the even Goldbach conjecture is verified up to height $H$, then the odd Goldbach conjecture is verified up to height $H+3$. -/)
-  (proof := /-- If $n$ is an odd integer between $5$ and $H+3$, then $n-3$ is an even integer between $4$ and $H$, so we can write $n-3 = p + q$ for some primes $p$ and $q$, and hence $n = p + q + 3$. -/)
+  (proof := /-- If $n$ is an odd integer between $7$ and $H+3$, then $n-3$ is an even integer between $4$ and $H$, so we can write $n-3 = p + q$ for some primes $p$ and $q$, and hence $n = p + q + 3$. -/)
   (latexEnv := "proposition")
   (discussion := 960)]
-theorem even_to_odd_goldbach_triv (H : ℕ) (h : even_conjecture H) : odd_conjecture (H + 3) := by sorry
+theorem even_to_odd_goldbach_triv (H : ℕ) (h : even_conjecture H) : odd_conjecture (H + 3) := by
+  intro n hn ⟨k, hk⟩; simp only [Finset.mem_Icc] at hn
+  obtain ⟨p, q, hp, hq, hpq⟩ := h (n - 3) (by simp only [Finset.mem_Icc]; omega) ⟨k - 1, by omega⟩
+  exact ⟨p, q, 3, hp, hq, by norm_num, by omega⟩
 
 theorem odd_goldbach_test : odd_conjecture 33 := even_to_odd_goldbach_triv 30 even_goldbach_test
 
@@ -90,9 +93,9 @@ theorem even_to_odd_goldbach (x₀ H Δ : ℕ)
     · simp_all [odd_conjecture_mono (H + 3) H (even_to_odd_goldbach_triv H heven) (by linarith)]
   · intro n h ho
     by_cases! hn33 : n ≤ 8
-    · exact odd_goldbach_test n (by grind : n ∈ Finset.Icc 5 33) ho
+    · exact odd_goldbach_test n (by grind : n ∈ Finset.Icc 7 33) ho
     by_cases! hn : n ≤ x₀ + 4
-    · exact hodd n (by grind : n ∈ Finset.Icc 5 (x₀ + 4)) ho
+    · exact hodd n (by grind : n ∈ Finset.Icc 7 (x₀ + 4)) ho
     · obtain ⟨p, hp⟩ := hprime (n - 4) (by grind : n - 4 ≥ x₀)
       have hnpe : Even (n - p) :=
         have h2p : 2 < p := by
