@@ -242,49 +242,29 @@ theorem a_mono : AntitoneOn a (Set.Ici xₐ) := by
   have h58 := exp_le_exp.mpr (show (58 : ℝ) ≤ 3000 by norm_num)
   have h1169 := exp_le_exp.mpr (show (1169 : ℝ) ≤ 3000 by norm_num)
   have h2000 := exp_le_exp.mpr (show (2000 : ℝ) ≤ 3000 by norm_num)
+  have ha_eq : ∀ z ≥ exp 3000, a z = admissible_bound (379.7 * 5.573412 ^ 5) 6.52 1.89 5.573412 z := by
+    intro z hz
+    have hlog : 0 < log z := log_pos (by linarith [add_one_le_exp (3000 : ℝ)])
+    have hdiv : 0 < log z / 5.573412 := by positivity
+    unfold a admissible_bound
+    simp only [neg z hz _ _ h599, neg z hz _ _ h58, neg z hz _ _ h1169,
+      neg z hz _ _ h2000, neg z hz _ _ le_rfl, ite_false, sqrt_eq_rpow]
+    have h_pow : (log z) ^ (5 : ℕ) = 5.573412 ^ (5 : ℕ) * (log z / 5.573412) ^ (5 : ℕ) := by
+      rw [show log z = 5.573412 * (log z / 5.573412) from by field_simp]; ring
+    have h_rpow : (log z / 5.573412) ^ (5 : ℕ) * (log z / 5.573412) ^ (1.52 : ℝ) =
+        (log z / 5.573412) ^ (6.52 : ℝ) := by
+      rw [← rpow_natCast (log z / 5.573412) 5, ← rpow_add hdiv]; push_cast; norm_num
+    rw [h_pow]
+    conv_lhs =>
+      rw [show ∀ (a b c d e : ℝ), a * b * (c * d * e) = c * a * (b * d) * e from by intros; ring]
+    rw [h_rpow]
   change a y ≤ a x
-  simp only [a, neg x hx3 _ _ h599, neg x hx3 _ _ h58, neg x hx3 _ _ h1169,
-    neg x hx3 _ _ h2000, neg x hx3 _ _ le_rfl,
-    neg y hy3 _ _ h599, neg y hy3 _ _ h58, neg y hy3 _ _ h1169,
-    neg y hy3 _ _ h2000, neg y hy3 _ _ le_rfl, ite_false]
-  have hlog_nn : ∀ z ≥ exp 3000, (0 : ℝ) ≤ log z :=
-    fun z hz ↦ le_of_lt (log_pos (by linarith [add_one_le_exp (3000 : ℝ)]))
-  have hsqrt_conv : sqrt (5.573412 : ℝ) = sqrt 1393353 / 500 := by
-    rw [show (5.573412 : ℝ) = 1393353 / 250000 from by norm_num,
-      sqrt_div (by positivity : (0 : ℝ) ≤ 1393353),
-      show (250000 : ℝ) = 500 ^ 2 from by norm_num, sqrt_sq (by norm_num : (500 : ℝ) ≥ 0)]
-  rw [sqrt_div (hlog_nn x hx3), sqrt_div (hlog_nn y hy3)]
-  simp only [hsqrt_conv]
-  let f := fun t ↦ t ^ 5 * (t / (1393353 / 250000)) ^ (38 / 25 : ℝ) *
-    exp (-(189 / 100 * (sqrt t / (sqrt 1393353 / 500))))
-  have h_deriv_neg : ∀ t ∈ Set.Ioi (3914 : ℝ), deriv f t ≤ 0 := by
-    intro t ht; simp only [Set.mem_Ioi] at ht
-    have ht_ne : t ≠ 0 := by linarith
-    have hdiv_ne : t / (1393353 / 250000) ≠ 0 := by positivity
-    simp only [f]; norm_num [sqrt_eq_rpow, ht_ne, hdiv_ne]
-    ring_nf; norm_num [ht_ne, hdiv_ne]
-    rw [show (38 / 25 : ℝ) = (13 / 25 : ℝ) + 1 by norm_num, rpow_add]
-      <;> norm_num <;> try positivity
-    rw [show (-(1 / 2 : ℝ)) = (1 / 2 : ℝ) - 1 by norm_num, rpow_sub]
-      <;> norm_num <;> try positivity
-    field_simp; norm_num [← sqrt_eq_rpow] at *
-    nlinarith [sqrt_nonneg t, sq_sqrt (show 0 ≤ t by linarith),
-      sqrt_nonneg 1393353, sq_sqrt (show 0 ≤ 1393353 by norm_num),
-      mul_le_mul_of_nonneg_left (le_of_lt ht) (sqrt_nonneg t),
-      mul_le_mul_of_nonneg_left (le_of_lt ht) (sqrt_nonneg 1393353)]
-  have hf_cont : ContinuousOn f (Set.Ici 3914) := by
-    simp only [f]; fun_prop (discharger := norm_num)
-  have hf_diff : DifferentiableOn ℝ f (interior (Set.Ici 3914)) := by
-    simp only [f, interior_Ici]; intro t ht; simp only [Set.mem_Ioi] at ht
-    have : t ≠ 0 := by linarith
-    fun_prop (discharger := positivity)
-  have h_decr := antitoneOn_of_deriv_nonpos (convex_Ici (3914 : ℝ)) hf_cont hf_diff
-    (by simp only [interior_Ici]; exact h_deriv_neg)
-  have hlog_mem : ∀ z ≥ xₐ, log z ∈ Set.Ici (3914 : ℝ) := fun z hz ↦ by
-    simp only [Set.mem_Ici]; unfold xₐ at hz
-    linarith [log_exp (3914 : ℝ), log_le_log (by positivity) hz]
-  have := h_decr (hlog_mem x hx) (hlog_mem y hy) (log_le_log (by linarith [exp_pos (3914 : ℝ)]) hxy)
-  simp only [f] at this; ring_nf at *; linarith
+  rw [ha_eq x hx3, ha_eq y hy3]
+  exact admissible_bound.mono _ _ _ _ (by positivity) (by positivity) (by positivity) (by positivity)
+    (Set.mem_Ici.mpr (le_trans (show exp (5.573412 * (2 * 6.52 / 1.89) ^ 2) ≤ xₐ from by
+      unfold xₐ; exact exp_le_exp.mpr (by norm_num)) hx))
+    (Set.mem_Ici.mpr (le_trans (show exp (5.573412 * (2 * 6.52 / 1.89) ^ 2) ≤ xₐ from by
+      unfold xₐ; exact exp_le_exp.mpr (by norm_num)) hy)) hxy
 
 noncomputable def C₁ : ℝ := log xₐ ^ 6 / xₐ * ∫ t in Set.Icc 2 xₐ, (720 + a t) / log t ^ 7
 
