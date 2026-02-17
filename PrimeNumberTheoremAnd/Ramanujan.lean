@@ -1,6 +1,5 @@
 import PrimeNumberTheoremAnd.Defs
 
-
 blueprint_comment /--
 \section{Ramanujan's inequality}\label{ramanujan-sec}
 
@@ -233,7 +232,39 @@ noncomputable def xₐ : ℝ := exp 3914
   (latexEnv := "lemma")
   (discussion := 995)]
 theorem a_mono : AntitoneOn a (Set.Ici xₐ) := by
-    sorry
+  intro x hx y hy hxy
+  simp only [Set.mem_Ici] at hx hy
+  have hxa3 : xₐ ≥ exp 3000 := by unfold xₐ; exact exp_le_exp.mpr (by norm_num)
+  have hx3 := le_trans hxa3 hx; have hy3 := le_trans hxa3 hy
+  have neg : ∀ z ≥ exp 3000, ∀ lo hi : ℝ, hi ≤ exp 3000 → ¬(z ∈ Set.Ico lo hi) :=
+    fun z hz _ _ hhi h ↦ absurd (Set.mem_Ico.mp h).2 (not_lt.mpr (le_trans hhi hz))
+  have h599 : (599 : ℝ) ≤ exp 3000 := by linarith [add_one_le_exp (3000 : ℝ)]
+  have h58 := exp_le_exp.mpr (show (58 : ℝ) ≤ 3000 by norm_num)
+  have h1169 := exp_le_exp.mpr (show (1169 : ℝ) ≤ 3000 by norm_num)
+  have h2000 := exp_le_exp.mpr (show (2000 : ℝ) ≤ 3000 by norm_num)
+  have ha_eq : ∀ z ≥ exp 3000, a z = admissible_bound (379.7 * 5.573412 ^ 5) 6.52 1.89 5.573412 z := by
+    intro z hz
+    have hlog : 0 < log z := log_pos (by linarith [add_one_le_exp (3000 : ℝ)])
+    have hdiv : 0 < log z / 5.573412 := by positivity
+    unfold a admissible_bound
+    simp only [neg z hz _ _ h599, neg z hz _ _ h58, neg z hz _ _ h1169,
+      neg z hz _ _ h2000, neg z hz _ _ le_rfl, ite_false, sqrt_eq_rpow]
+    have h_pow : (log z) ^ (5 : ℕ) = 5.573412 ^ (5 : ℕ) * (log z / 5.573412) ^ (5 : ℕ) := by
+      rw [show log z = 5.573412 * (log z / 5.573412) from by field_simp]; ring
+    have h_rpow : (log z / 5.573412) ^ (5 : ℕ) * (log z / 5.573412) ^ (1.52 : ℝ) =
+        (log z / 5.573412) ^ (6.52 : ℝ) := by
+      rw [← rpow_natCast (log z / 5.573412) 5, ← rpow_add hdiv]; push_cast; norm_num
+    rw [h_pow]
+    conv_lhs =>
+      rw [show ∀ (a b c d e : ℝ), a * b * (c * d * e) = c * a * (b * d) * e from by intros; ring]
+    rw [h_rpow]
+  change a y ≤ a x
+  rw [ha_eq x hx3, ha_eq y hy3]
+  exact admissible_bound.mono _ _ _ _ (by positivity) (by positivity) (by positivity) (by positivity)
+    (Set.mem_Ici.mpr (le_trans (show exp (5.573412 * (2 * 6.52 / 1.89) ^ 2) ≤ xₐ from by
+      unfold xₐ; exact exp_le_exp.mpr (by norm_num)) hx))
+    (Set.mem_Ici.mpr (le_trans (show exp (5.573412 * (2 * 6.52 / 1.89) ^ 2) ≤ xₐ from by
+      unfold xₐ; exact exp_le_exp.mpr (by norm_num)) hy)) hxy
 
 noncomputable def C₁ : ℝ := log xₐ ^ 6 / xₐ * ∫ t in Set.Icc 2 xₐ, (720 + a t) / log t ^ 7
 
