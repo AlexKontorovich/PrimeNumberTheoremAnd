@@ -330,7 +330,8 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
   induction k with
   | zero => rw [d_zero]; exact isMultiplicative_one
   | succ k ih =>
-    sorry -- follows from IsMultiplicative.pow and isMultiplicative_zeta
+    rw [d_succ]
+    exact ih.mul isMultiplicative_zeta
 
 /-- Explicit formula: `d k (p^a) = (a + k - 1).choose (k - 1) for prime p` for `k ≥ 1`. -/
 @[blueprint
