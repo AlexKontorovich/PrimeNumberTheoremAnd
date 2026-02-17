@@ -385,7 +385,23 @@ theorem ϕ_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (ϕ l
   (proof := /-- Straightforward estimation -/)
   (latexEnv := "lemma")
   (discussion := 943)]
-theorem ϕ_continuous (lambda ε : ℝ) (hlam : lambda ≠ 0) : AbsolutelyContinuous (ϕ lambda ε) := by sorry
+theorem ϕ_differentiable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Differentiable ℝ (ϕ lambda ε) := by
+  /- Proof sketch:
+     ϕ is defined as ϕ_pm (|lambda|) ε (lambda.sign * t) where:
+     - ϕ_pm ν ε t = 0 for |t| > 1
+     - ϕ_pm ν ε t = Phi_circ + t.sign * Phi_star for |t| ≤ 1
+
+     Key steps:
+     1. On (-1, 1): ϕ is a composition of smooth functions (coth, sinh, cosh, polynomials)
+        Hence differentiable by standard rules (Differentiable.comp, Differentiable.div, etc.)
+     2. Outside [-1, 1]: ϕ = 0, which is differentiable
+     3. At t = ±1: Need to verify that the limits match. The construction of Phi_circ and
+        Phi_star ensures the function is C^1 at the boundaries (the blueprint states this).
+
+     Tactics needed: unfold ϕ, ϕ_pm; split on cases; use fun_prop / continuity for interior;
+     verify boundary derivatives match using HasDerivAt.
+  -/
+  sorry
 
 @[blueprint
   "phi-deriv-bv"
@@ -396,7 +412,42 @@ theorem ϕ_continuous (lambda ε : ℝ) (hlam : lambda ≠ 0) : AbsolutelyContin
   (proof := /-- Straightforward estimation -/)
   (latexEnv := "lemma")
   (discussion := 944)]
-theorem ϕ_deriv_bv (lambda ε : ℝ) (hlam : lambda ≠ 0) : BoundedVariationOn (deriv (ϕ lambda ε)) Set.univ := by sorry
+theorem ϕ_deriv_bv (lambda ε : ℝ) (hlam : lambda ≠ 0) : BoundedVariationOn (deriv (ϕ lambda ε)) Set.univ := by
+  /- Proof sketch:
+     Since ϕ has compact support (supported on a scaled version of [-1, 1]):
+     1. deriv ϕ = 0 outside the support, so BV outside is trivial
+     2. On the compact support, deriv ϕ is a smooth function (by ϕ_differentiable and
+        the structure of Phi_circ, Phi_star involving analytic functions)
+     3. A smooth function on a compact set has bounded variation
+
+     Key lemma to use: BoundedVariationOn.of_compact_of_continuous or similar.
+     Alternatively, compute deriv ϕ explicitly and show it's monotone or has bounded
+     derivative (which implies BV).
+  -/
+  sorry
+
+@[blueprint
+  "phi-deriv-int"
+  (title := "phi derivative is integrable")
+  (statement := /--
+  $\varphi'$ is integrable.
+  -/)
+  (proof := /-- From differentiability and rapid decay at infinity -/)
+  (latexEnv := "lemma")
+  (discussion := 945)]
+theorem ϕ_deriv_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (deriv (ϕ lambda ε)) := by
+  /- Proof sketch:
+     Since ϕ has compact support (on a scaled [-1, 1]):
+     1. deriv ϕ = 0 outside this compact set
+     2. On the compact set, deriv ϕ is continuous (from ϕ_differentiable)
+     3. A continuous function on a compact set is bounded
+     4. A bounded function with compact support is integrable
+
+     Key lemma: Integrable.of_compactSupport or IntegrableOn of continuous on compact.
+     Alternatively: use that ϕ is smooth with compact support, hence deriv ϕ is
+     smooth with compact support, hence integrable.
+  -/
+  sorry
 
 @[blueprint
   "F-def"
@@ -435,8 +486,8 @@ theorem F_integrable (lambda ε : ℝ) (hlam : lambda ≠ 0) : Integrable (F lam
         simp only [Real.fourier_real_eq_integral_exp_smul]
         congr 1; ext t; rw [smul_eq_mul, mul_comm]; congr 1; congr 1; push_cast; ring)
     · filter_upwards using fun u ↦ by
-        simpa using decay_alt _ (ϕ_integrable _ _ hlam) (ϕ_continuous _ _ hlam)
-          (ϕ_deriv_bv _ _ hlam) u
+        simpa using decay_alt _ (ϕ_integrable _ _ hlam) (ϕ_differentiable _ _ hlam)
+          (ϕ_deriv_integrable _ _ hlam) (ϕ_deriv_bv _ _ hlam) u
   · have : Continuous (F lambda ε) := by
       apply_rules [continuous_ofReal.comp, Continuous.comp]
       all_goals try continuity

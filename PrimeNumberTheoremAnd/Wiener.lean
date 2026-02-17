@@ -8,6 +8,7 @@ import Mathlib.NumberTheory.MulChar.Lemmas
 import Mathlib.Topology.EMetricSpace.BoundedVariation
 import PrimeNumberTheoremAnd.Mathlib.Analysis.Asymptotics.Asymptotics
 import PrimeNumberTheoremAnd.Fourier
+import PrimeNumberTheoremAnd.BVFourier
 import PrimeNumberTheoremAnd.SmoothExistence
 import Mathlib.Analysis.Convolution
 
@@ -320,15 +321,184 @@ and the claim then follows from the triangle inequality. -/)
   (discussion := 562)]
 theorem prelim_decay_2 (ψ : ℝ → ℂ) (hψ : Integrable ψ) (hvar : BoundedVariationOn ψ Set.univ)
     (u : ℝ) (hu : u ≠ 0) :
-    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn ψ Set.univ).toReal / (2 * π * ‖u‖) := by sorry
+    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn ψ Set.univ).toReal / (2 * π * ‖u‖) := by
+  -- We avoid Stieltjes integration by using translation and a difference quotient.
+  have fourier_comp_add_right (a : ℝ) :
+      𝓕 (ψ ∘ fun x : ℝ => x + a) u = 𝐞 (a * u) * 𝓕 ψ u := by
+    have htrans :
+        Fourier.fourierIntegral 𝐞 volume (ψ ∘ fun x : ℝ => x + a) u =
+          𝐞 (a * u) • Fourier.fourierIntegral 𝐞 volume ψ u := by
+      have h :=
+        Fourier.fourierIntegral_comp_add_right (𝕜 := ℝ) (E := ℂ) (e := 𝐞) (μ := volume) ψ a
+      have h := congr_fun h u
+      simpa using h
+    have hF (g : ℝ → ℂ) : 𝓕 g u = Fourier.fourierIntegral 𝐞 volume g u := by
+      simp [Real.fourier_real_eq, Fourier.fourierIntegral_def]
+    calc
+      𝓕 (ψ ∘ fun x : ℝ => x + a) u =
+          Fourier.fourierIntegral 𝐞 volume (ψ ∘ fun x : ℝ => x + a) u := by
+        simpa using (hF (ψ ∘ fun x : ℝ => x + a))
+      _ = 𝐞 (a * u) • Fourier.fourierIntegral 𝐞 volume ψ u := htrans
+      _ = 𝐞 (a * u) * 𝓕 ψ u := by
+        simp [hF ψ, Circle.smul_def]
+
+  -- A key estimate: the difference of Fourier transforms is controlled by the `L¹` distance of
+  -- translates, which in turn is bounded by total variation.
+  have hdiff (h : ℝ) :
+      ‖(1 - 𝐞 (h * u)) * 𝓕 ψ u‖ ≤ |h| * (eVariationOn ψ Set.univ).toReal := by
+    -- Rewrite the left-hand side using the translation rule.
+    have hψ_trans : Integrable (ψ ∘ fun x : ℝ => x + h) := by
+      simpa [Function.comp] using hψ.comp_add_right h
+    have hψ_sub : Integrable (fun x : ℝ => ψ x - ψ (x + h)) := by
+      simpa [Function.comp, sub_eq_add_neg] using hψ.sub hψ_trans
+    have hfourier :
+        𝓕 (fun x : ℝ => ψ x - ψ (x + h)) u = (1 - 𝐞 (h * u)) * 𝓕 ψ u := by
+      -- `𝓕 (ψ - ψ(·+h)) = 𝓕 ψ - 𝓕 (ψ(·+h))`
+      have hsub := F_sub hψ hψ_trans u
+      -- Translate term: `𝓕 (ψ(·+h)) u = 𝐞 (h*u) * 𝓕 ψ u`
+      have htrans := fourier_comp_add_right h
+      -- Combine.
+      -- `F_sub` gives `𝓕 (ψ - ψ(·+h)) = 𝓕 ψ - 𝓕 (ψ(·+h))`.
+      -- Rewrite the second term using `htrans`.
+      simpa [htrans, sub_eq_add_neg, mul_add, add_mul, mul_assoc, mul_left_comm, mul_comm] using hsub
+    -- Bound the Fourier transform by the `L¹` norm.
+    have hbound :
+        ‖𝓕 (fun x : ℝ => ψ x - ψ (x + h)) u‖ ≤ ∫ t : ℝ, ‖ψ t - ψ (t + h)‖ := by
+      simpa [sub_eq_add_neg, Pi.neg_def] using (prelim_decay (fun x : ℝ => ψ x - ψ (x + h)) u)
+    -- Use bounded variation to control the translate difference.
+    have hBV :
+        ∫ t : ℝ, ‖ψ (t + h) - ψ t‖ ≤ |h| * (eVariationOn ψ Set.univ).toReal :=
+      BVFourier.integral_norm_sub_translate_le ψ hψ hvar h
+    -- Finish (swap the subtraction order under the norm).
+    have hBV' :
+        ∫ t : ℝ, ‖ψ t - ψ (t + h)‖ ≤ |h| * (eVariationOn ψ Set.univ).toReal := by
+      simpa [norm_sub_rev] using hBV
+    -- Put everything together.
+    have :
+        ‖(1 - 𝐞 (h * u)) * 𝓕 ψ u‖ ≤ |h| * (eVariationOn ψ Set.univ).toReal := by
+      -- Rewrite via `hfourier` and apply the two bounds.
+      have := (hbound.trans hBV')
+      simpa [hfourier] using this
+    exact this
+
+  -- Now take the limit `h → 0` of the bound after dividing by `|h|`.
+  have hu' : 0 < ‖u‖ := by
+    simpa [Real.norm_eq_abs] using (norm_pos_iff.2 hu)
+  have hden_pos : 0 < 2 * π * ‖u‖ := by positivity
+
+  -- Difference quotient of `h ↦ 𝐞(h*u)` at 0.
+  have hderiv :
+      HasDerivAt (fun t : ℝ => (𝐞 (t * u) : ℂ)) ((u : ℂ) * (2 * π * I)) 0 := by
+    have h1 : HasDerivAt (fun t : ℝ => t * u) u 0 := by
+      simpa using (hasDerivAt_mul_const u : HasDerivAt (fun t : ℝ => t * u) u 0)
+    have h2 :
+        HasDerivAt (fun x : ℝ => (𝐞 x : ℂ)) (2 * π * I * (𝐞 (0 * u) : ℂ)) (0 * u) := by
+      simpa using (Real.hasDerivAt_fourierChar (0 * u))
+    have h := h2.scomp 0 h1
+    simpa [mul_assoc, mul_left_comm, mul_comm] using h
+
+  have htend :
+      Tendsto (fun h : ℝ => ‖(1 : ℂ) - (𝐞 (h * u) : ℂ)‖ / |h|) (nhdsWithin (0 : ℝ) ({0}ᶜ : Set ℝ))
+        (nhds (2 * π * ‖u‖)) := by
+    -- Use `HasDerivAt.tendsto_slope_zero` and take norms.
+    have ht := HasDerivAt.tendsto_slope_zero (x := (0 : ℝ)) hderiv
+    -- Simplify the limit value.
+    have hlim : ‖((u : ℂ) * (2 * π * I))‖ = 2 * π * ‖u‖ := by
+      have h2 : ‖(2 : ℂ)‖ = 2 := by norm_num
+      simp only [norm_mul, Complex.norm_real, Complex.norm_I, Real.norm_eq_abs,
+                 abs_of_pos Real.pi_pos, mul_one, h2]
+      ring
+    -- Show the functions are equal pointwise.
+    have hfun_eq : ∀ t : ℝ, t ≠ 0 →
+        ‖t⁻¹ • ((𝐞 ((0 + t) * u) : ℂ) - (𝐞 (0 * u) : ℂ))‖ = ‖(1 : ℂ) - (𝐞 (t * u) : ℂ)‖ / |t| := by
+      intro t ht
+      simp only [zero_add, zero_mul, AddChar.map_zero_eq_one, Circle.coe_one]
+      rw [norm_smul, Real.norm_eq_abs, abs_inv, norm_sub_rev, mul_comm, div_eq_mul_inv]
+    -- Transform using function and limit equality.
+    rw [show (2 * π * ‖u‖) = ‖((u : ℂ) * (2 * π * I))‖ from hlim.symm]
+    refine Tendsto.congr' ?_ ht.norm
+    filter_upwards [self_mem_nhdsWithin] with t htne
+    exact hfun_eq t (mem_compl_singleton_iff.mp htne)
+
+  -- Combine the uniform inequality with the limit.
+  have hmain :
+      (2 * π * ‖u‖) * ‖𝓕 ψ u‖ ≤ (eVariationOn ψ Set.univ).toReal := by
+    -- Apply `le_of_tendsto'` to the function `h ↦ (‖1 - 𝐞(h*u)‖/|h|) * ‖𝓕 ψ u‖`.
+    have htend' : Tendsto (fun h : ℝ => (‖(1 : ℂ) - (𝐞 (h * u) : ℂ)‖ / |h|) * ‖𝓕 ψ u‖)
+        (nhdsWithin (0 : ℝ) ({0}ᶜ : Set ℝ)) (nhds ((2 * π * ‖u‖) * ‖𝓕 ψ u‖)) := by
+      simpa [mul_assoc] using (htend.mul_const ‖𝓕 ψ u‖)
+    apply le_of_tendsto' htend'
+    intro h
+    -- Pointwise bound from `hdiff`.
+    -- For `h = 0`, this is trivial since the left-hand side is 0.
+    by_cases h0 : h = 0
+    · subst h0
+      simp
+    · -- Divide the bound in `hdiff` by `|h|`.
+      have hdiff_h := hdiff h
+      -- Rewrite and divide by `|h|`.
+      have habs_pos : 0 < |h| := abs_pos.2 h0
+      -- Use `norm_mul` and cancel `|h|`.
+      have : (‖(1 : ℂ) - (𝐞 (h * u) : ℂ)‖ / |h|) * ‖𝓕 ψ u‖ ≤ (eVariationOn ψ Set.univ).toReal := by
+        -- Start from `‖(1 - 𝐞(h*u)) * 𝓕 ψ u‖ ≤ |h| * TV`.
+        -- Divide by `|h|` and rewrite.
+        have hdiv := div_le_div_of_nonneg_right hdiff_h habs_pos.le
+        -- Simplify both sides.
+        simpa [norm_mul, div_mul_eq_mul_div, mul_assoc, mul_left_comm, mul_comm,
+          div_eq_mul_inv, habs_pos.ne'] using hdiv
+      simpa [mul_assoc, mul_left_comm, mul_comm] using this
+
+  -- Divide through by `2 * π * ‖u‖`.
+  have : ‖𝓕 ψ u‖ ≤ (eVariationOn ψ Set.univ).toReal / (2 * π * ‖u‖) := by
+    -- Use `le_div_iff'` since the denominator is positive.
+    rw [le_div_iff₀ hden_pos]
+    -- Rearrange `‖𝓕 ψ u‖ * (2π‖u‖) ≤ TV`.
+    calc ‖𝓕 ψ u‖ * (2 * π * ‖u‖)
+        = (2 * π * ‖u‖) * ‖𝓕 ψ u‖ := by ring
+      _ ≤ (eVariationOn ψ Set.univ).toReal := hmain
+  exact this
 
 noncomputable def AbsolutelyContinuous (f : ℝ → ℂ) : Prop := (∀ᵐ x, DifferentiableAt ℝ f x) ∧
   ∀ a b : ℝ, f b - f a = ∫ t in a..b, deriv f t
 
+/-! ### Helper lemmas for prelim_decay_3
+
+These lemmas establish the key relationships needed to prove prelim_decay_3 from prelim_decay_2.
+-/
+
+/-- The key Fourier derivative relationship for differentiable functions:
+    ‖𝓕[ψ](u)‖ = ‖𝓕[ψ'](u)‖ / (2π|u|)
+
+    This follows from Real.fourier_deriv: 𝓕[ψ'] = (2πiu) · 𝓕[ψ]
+    Rearranging and taking norms gives the stated identity.
+-/
+lemma AbsolutelyContinuous.fourier_deriv_norm (ψ : ℝ → ℂ)
+    (hψ : Integrable ψ) (hdiff : Differentiable ℝ ψ)
+    (hψ'_int : Integrable (deriv ψ)) (u : ℝ) (hu : u ≠ 0) :
+    ‖𝓕 ψ u‖ = ‖𝓕 (deriv ψ) u‖ / (2 * π * ‖u‖) := by
+  -- Use Real.fourier_deriv: 𝓕 (deriv f) = fun x ↦ (2 * π * I * x) • (𝓕 f x)
+  have h_fourier_deriv := Real.fourier_deriv hψ hdiff hψ'_int
+  -- At point u: 𝓕 (deriv ψ) u = (2 * π * I * u) • 𝓕 ψ u
+  have h_at_u : 𝓕 (deriv ψ) u = (2 * π * I * u) • 𝓕 ψ u := congr_fun h_fourier_deriv u
+  -- Compute ‖2 * π * I * u‖ = 2 * π * |u|
+  have h_norm_factor : ‖(2 * π * I * (u : ℂ) : ℂ)‖ = 2 * π * ‖u‖ := by
+    simp only [norm_mul, Complex.norm_real, Complex.norm_I, Real.norm_eq_abs,
+               abs_of_pos Real.pi_pos, mul_one]
+    norm_num
+  by_cases h_fourier_zero : 𝓕 ψ u = 0
+  · -- If 𝓕 ψ u = 0, then 𝓕 (deriv ψ) u = 0, so both sides are 0
+    simp only [h_fourier_zero, norm_zero]
+    have : 𝓕 (deriv ψ) u = 0 := by rw [h_at_u, h_fourier_zero, smul_zero]
+    simp [this]
+  · -- Otherwise, use h_at_u to relate the norms
+    have h_denom_pos : 0 < 2 * π * ‖u‖ := by positivity
+    rw [h_at_u, norm_smul, h_norm_factor]
+    field_simp [ne_of_gt h_denom_pos]
+
 @[blueprint "prelim-decay-3"
   (title := "Preliminary decay bound III")
   (statement := /--
-If $\psi:\R \to \C$ is absolutely integrable, absolutely continuous, and $\psi'$ is of bounded
+If $\psi:\R \to \C$ is absolutely integrable, differentiable, and $\psi'$ is of bounded
 variation, then
 $$ |\hat \psi(u)| \leq \| \psi' \|_{TV} / (2\pi |u|)^2$$
 for all non-zero $u \in \R$.
@@ -337,24 +507,39 @@ for all non-zero $u \in \R$.
   (proofUses := ["prelim-decay-2"])
   (latexEnv := "lemma")
   (discussion := 563)]
-theorem prelim_decay_3 (ψ : ℝ → ℂ) (hψ : Integrable ψ)
-    (habscont : AbsolutelyContinuous ψ)
-    (hvar : BoundedVariationOn (deriv ψ) Set.univ) (u : ℝ) (hu : u ≠ 0) :
-    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn (deriv ψ) Set.univ).toReal / (2 * π * ‖u‖) ^ 2 := by sorry
+theorem prelim_decay_3 (ψ : ℝ → ℂ) (hψ : Integrable ψ) (hdiff : Differentiable ℝ ψ)
+    (hψ'_int : Integrable (deriv ψ)) (hvar : BoundedVariationOn (deriv ψ) Set.univ)
+    (u : ℝ) (hu : u ≠ 0) :
+    ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤ (eVariationOn (deriv ψ) Set.univ).toReal / (2 * π * ‖u‖) ^ 2 := by
+  -- Step 1: Use the Fourier derivative relationship
+  have fourier_rel : ‖𝓕 ψ u‖ = ‖𝓕 (deriv ψ) u‖ / (2 * π * ‖u‖) :=
+    AbsolutelyContinuous.fourier_deriv_norm ψ hψ hdiff hψ'_int u hu
+  -- Step 2: Apply prelim_decay_2 to deriv ψ
+  have decay_deriv : ‖𝓕 (deriv ψ) u‖ ≤ (eVariationOn (deriv ψ) Set.univ).toReal / (2 * π * ‖u‖) :=
+    prelim_decay_2 (deriv ψ) hψ'_int hvar u hu
+  -- Step 3: Combine the bounds
+  calc ‖𝓕 ψ u‖
+      = ‖𝓕 (deriv ψ) u‖ / (2 * π * ‖u‖) := fourier_rel
+    _ ≤ ((eVariationOn (deriv ψ) Set.univ).toReal / (2 * π * ‖u‖)) / (2 * π * ‖u‖) := by
+        apply div_le_div_of_nonneg_right decay_deriv
+        have : 0 < 2 * π * ‖u‖ := by positivity
+        exact le_of_lt this
+    _ = (eVariationOn (deriv ψ) Set.univ).toReal / (2 * π * ‖u‖) ^ 2 := by
+        rw [div_div, sq]
 
 @[blueprint "decay-alt"
   (title := "Decay bound, alternate form")
   (statement := /--
 If $\psi:\R \to \C$ is absolutely
-integrable, absolutely continuous, and $\psi'$ is of bounded variation, then
+integrable, differentiable, and $\psi'$ is of bounded variation, then
 $$ |\hat \psi(u)| \leq ( \|\psi\|_1 + \| \psi' \|_{TV} / (2\pi)^2) / (1+|u|^2)$$
 for all $u \in \R$.  -/)
   (proof := /-- Should follow from previous lemmas. -/)
   (proofUses := ["prelim-decay", "prelim-decay-3", "decay"])
   (latexEnv := "lemma")
   (discussion := 564)]
-theorem decay_alt (ψ : ℝ → ℂ) (hψ : Integrable ψ) (habscont : AbsolutelyContinuous ψ)
-    (hvar : BoundedVariationOn (deriv ψ) Set.univ) (u : ℝ) :
+theorem decay_alt (ψ : ℝ → ℂ) (hψ : Integrable ψ) (hdiff : Differentiable ℝ ψ)
+    (hψ'_int : Integrable (deriv ψ)) (hvar : BoundedVariationOn (deriv ψ) Set.univ) (u : ℝ) :
     ‖𝓕 (ψ : ℝ → ℂ) u‖ ≤
       ((∫ t, ‖ψ t‖) + (eVariationOn (deriv ψ) Set.univ).toReal / (2 * π) ^ 2) /
         (1 + ‖u‖ ^ 2) := by
@@ -369,7 +554,7 @@ theorem decay_alt (ψ : ℝ → ℂ) (hψ : Integrable ψ) (habscont : Absolutel
           linarith
   · have bound1 : ‖𝓕 ψ u‖ ≤ ∫ t, ‖ψ t‖ := prelim_decay ψ u
     have bound2 : ‖𝓕 ψ u‖ ≤ (eVariationOn (deriv ψ) Set.univ).toReal / (2 * π * ‖u‖) ^ 2 :=
-      prelim_decay_3 ψ hψ habscont hvar u hu
+      prelim_decay_3 ψ hψ hdiff hψ'_int hvar u hu
     have : (2 * π * ‖u‖) ^ 2 = (2 * π) ^ 2 * ‖u‖ ^ 2 := by ring
     calc (1 + ‖u‖ ^ 2) * ‖𝓕 ψ u‖
         = ‖𝓕 ψ u‖ * 1 + ‖𝓕 ψ u‖ * ‖u‖ ^ 2 := by ring
