@@ -11,7 +11,7 @@ for sufficiently large $x$, following \cite{dudek-platt}.
 namespace Ramanujan
 
 
-open Real Chebyshev
+open Real Set MeasureTheory intervalIntegral Chebyshev
 
 noncomputable def ε (M x : ℝ) : ℝ := 72 + 2 * M + (2 * M + 132) / log x + (4 * M + 288) / (log x)^2 + (12 * M + 576) / (log x)^3 + (48 * M) / (log x)^4 + (M^2) / (log x)^5
 
@@ -89,17 +89,83 @@ theorem criterion (m_a M_a x_a : ℝ)
     ∀ x > max (exp 1 * x_a) (x' m_a M_a x_a), pi x ^ 2 < exp 1 * x / log x * pi (x / exp 1) := by
   sorry
 
+/-- Integration by parts formula for `Li(x)`. -/
+lemma Li_eq_sub_add_integral (x : ℝ) (hx : 2 ≤ x) :
+    Li x = x / log x - 2 / log 2 + ∫ t in Icc 2 x, 1 / log t ^ 2 := by
+  rw [MeasureTheory.integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le (by linarith),
+    Li, intervalIntegral.integral_eq_sub_of_hasDerivAt]
+  rotate_right
+  · use fun t ↦ t / log t + ∫ u in (2 : ℝ)..t, 1 / log u ^ 2
+  · norm_num; ring
+  · intro t ht
+    have ht' := Set.mem_Icc.mp (by simpa [hx] using ht)
+    have h_ftc : HasDerivAt (fun t ↦ ∫ u in (2 : ℝ)..t, 1 / log u ^ 2) (1 / log t ^ 2) t := by
+      apply_rules [intervalIntegral.integral_hasDerivAt_right]
+      · apply_rules [ContinuousOn.intervalIntegrable]
+        exact continuousOn_of_forall_continuousAt fun u hu ↦
+          ContinuousAt.div continuousAt_const (ContinuousAt.pow
+            (continuousAt_log (by cases Set.mem_uIcc.mp hu <;> linarith [ht'])) _)
+              (ne_of_gt (sq_pos_of_pos (log_pos (by cases Set.mem_uIcc.mp hu <;> linarith [ht']))))
+      · exact (measurable_const.div (measurable_log.pow_const _)).stronglyMeasurable.stronglyMeasurableAtFilter
+      · exact ContinuousAt.div continuousAt_const
+          (ContinuousAt.pow (continuousAt_log (by cases Set.mem_uIcc.mp ht <;> linarith)) _)
+            (ne_of_gt (sq_pos_of_pos (log_pos (by cases Set.mem_uIcc.mp ht <;> linarith))))
+    convert HasDerivAt.add
+      (HasDerivAt.div (hasDerivAt_id t) (hasDerivAt_log (show t ≠ 0 by cases Set.mem_uIcc.mp ht <;> linarith))
+        (ne_of_gt (log_pos (show t > 1 by cases Set.mem_uIcc.mp ht <;> linarith))))
+      h_ftc using 1 ; ring_nf
+    by_cases h : t = 0 <;> simp [sq, mul_assoc, h]
+    by_cases h' : log t = 0 <;> aesop
+  · exact ContinuousOn.intervalIntegrable (continuousOn_of_forall_continuousAt fun t ht ↦
+      ContinuousAt.div continuousAt_const (continuousAt_log
+        (by linarith [Set.mem_Icc.mp (by simpa [hx] using ht)]))
+          (ne_of_gt (log_pos (by linarith [Set.mem_Icc.mp (by simpa [hx] using ht)]))))
+
 @[blueprint
   "pi-error-identity"
-  (title := "Integral identity for pi - li")
+  (title := "Integral identity for pi - Li")
   (statement := /-- If $x \geq 2$, then
-$$\pi(x) - \textrm{li}(x) = \frac{\theta(x) - x}{\log x} + \frac{2}{\log 2} + \int_{2}^{x} \frac{\theta(t) -t}{t \log^{2}t}\, dt.$$ -/)
+$$\pi(x) - \textrm{Li}(x) = \frac{\theta(x) - x}{\log x} + \frac{2}{\log 2} + \int_{2}^{x} \frac{\theta(t) -t}{t \log^{2}t}\, dt.$$ -/)
   (proof := /-- Follows from Sublemma \ref{rs-417} and the fundamental theorem of calculus. -/)
   (latexEnv := "lemma")
   (discussion := 986)]
 theorem pi_error_identity (x : ℝ) (hx : 2 ≤ x) :
-    pi x - li x = (θ x - x) / log x + 2 / log 2 + ∫ t in Set.Icc 2 x, (θ t - t) / (t * log t ^ 2) := by
-    sorry
+    pi x - Li x = (θ x - x) / log x + 2 / log 2 + ∫ t in Icc 2 x, (θ t - t) / (t * log t ^ 2) := by
+  have h_integral : ∫ t in Set.Icc 2 x, (θ t - t) / (t * log t ^ 2) =
+      (∫ t in Set.Icc 2 x, θ t / (t * log t ^ 2)) -
+      (∫ t in Set.Icc 2 x, 1 / log t ^ 2) := by
+    rw [← MeasureTheory.integral_sub]
+    · exact MeasureTheory.setIntegral_congr_fun measurableSet_Icc fun t ht ↦ by
+        rw [sub_div, div_eq_mul_inv]; ring_nf
+        norm_num [show t ≠ 0 by linarith [ht.1], show log t ≠ 0 from ne_of_gt <| log_pos <| by linarith [ht.1]]
+    · have h_bound : ∀ t ∈ Set.Icc 2 x, |θ t / (t * log t ^ 2)| ≤ log 4 / log t ^ 2 := by
+        intro t ht
+        have : θ t ≤ log 4 * t := Chebyshev.theta_le_log4_mul_x (by linarith [ht.1])
+        rw [abs_of_nonneg (div_nonneg (by exact Finset.sum_nonneg fun _ _ ↦
+              log_nonneg <| Nat.one_le_cast.2 <| Nat.Prime.pos <| by aesop)
+            (mul_nonneg (by linarith [ht.1]) (sq_nonneg _))), div_le_div_iff₀] <;>
+          nlinarith [ht.1, ht.2, log_pos <| show 1 < t by linarith [ht.1],
+            log_le_sub_one_of_pos <| show 0 < t by linarith [ht.1],
+            show 0 ≤ θ t from Finset.sum_nonneg fun _ _ ↦
+              log_nonneg <| Nat.one_le_cast.2 <| Nat.Prime.pos <| by aesop]
+      refine MeasureTheory.Integrable.mono' (g := fun t ↦ log 4 / log t ^ 2) ?_ ?_ ?_
+      · exact ContinuousOn.integrableOn_Icc (continuousOn_of_forall_continuousAt fun t ht ↦
+          ContinuousAt.div continuousAt_const
+            (ContinuousAt.pow (continuousAt_log (by linarith [ht.1])) _)
+              (ne_of_gt (sq_pos_of_pos (log_pos (by linarith [ht.1])))))
+      · refine (Measurable.mul ?_ ?_).aestronglyMeasurable
+        · have : Measurable (fun t : ℕ ↦ ∑ p ∈ Finset.filter Nat.Prime (Finset.Icc 0 t), log p) :=
+            measurable_from_nat
+          exact this.comp measurable_id'.nat_floor
+        · exact Measurable.inv (measurable_id.mul (measurable_log.pow_const 2))
+      · filter_upwards [MeasureTheory.ae_restrict_mem measurableSet_Icc] with t ht using h_bound t ht
+    · exact ContinuousOn.integrableOn_Icc (continuousOn_const.div
+        (ContinuousOn.pow (continuousOn_log.mono <| by norm_num) _) fun t ht ↦
+        ne_of_gt <| sq_pos_of_pos <| log_pos <| by linarith [ht.1])
+  have h_pi : pi x = θ x / log x + ∫ t in Icc 2 x, θ t / (t * log t ^ 2) := by
+    rw [integral_Icc_eq_integral_Ioc, ← intervalIntegral.integral_of_le hx]
+    exact primeCounting_eq_theta_div_log_add_integral hx
+  rw [h_integral, h_pi, Li_eq_sub_add_integral x hx]; ring
 
 @[blueprint
   "ramanujan-pi-upper"
