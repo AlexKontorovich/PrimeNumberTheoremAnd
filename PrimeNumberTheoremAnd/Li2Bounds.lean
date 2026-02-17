@@ -1,3 +1,12 @@
+import Architect
+import LeanCert.Examples.Li2Bounds
+-- Lightweight interface (fast build)
+-- Note: LeanCert.Examples.Li2Verified contains the heavy numerical verification
+-- but is not imported here to keep build times reasonable for contributors.
+-- The bounds are verified in LeanCert CI.
+import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+import Mathlib.Topology.Order.Basic
+
 /-
 Bounds on li(2) using LeanCert numerical integration.
 
@@ -22,13 +31,6 @@ LeanCert.Examples.Li2Verified and is only needed for LeanCert's CI.
 
 See: https://github.com/alerad/leancert
 -/
-import Architect
-import LeanCert.Examples.Li2Bounds  -- Lightweight interface (fast build)
--- Note: LeanCert.Examples.Li2Verified contains the heavy numerical verification
--- but is not imported here to keep build times reasonable for contributors.
--- The bounds are verified in LeanCert CI.
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-import Mathlib.Topology.Order.Basic
 
 open Real MeasureTheory Set
 open scoped Interval

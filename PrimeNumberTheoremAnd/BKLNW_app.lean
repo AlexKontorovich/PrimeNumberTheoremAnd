@@ -2,6 +2,7 @@ import PrimeNumberTheoremAnd.ZetaSummary
 import PrimeNumberTheoremAnd.PrimaryDefinitions
 import PrimeNumberTheoremAnd.FioriKadiriSwidinsky
 import PrimeNumberTheoremAnd.BKLNW_app_tables
+import PrimeNumberTheoremAnd.LogTables
 
 blueprint_comment /--
 \section{Appendix A of BKLNW}\label{bklnw-app-sec}
@@ -393,8 +394,6 @@ theorem bklnw_cor_15_1' (b : ℝ) (hb1 : log 11 < b) (hb2 : b ≤ 19 * log 10) :
   suffices 43 < 19 * Real.log 10 ∧ 19 * Real.log 10 < 44 by
     grw [table_8_ε.le_simp (19 * log 10) (by grind)]
     grind [table_8_ε']
-  rw [← log_rpow (by positivity), lt_log_iff_exp_lt (by positivity),
-    log_lt_iff_lt_exp (by positivity), ← exp_one_rpow 43, ← exp_one_rpow 44]
-  exact ⟨by grw [Real.exp_one_lt_d9]; norm_num only, by grw [← Real.exp_one_gt_d9]; norm_num only⟩
+  constructor <;> nlinarith [LogTables.log_10_gt, LogTables.log_10_lt]
 
 end BKLNW_app
