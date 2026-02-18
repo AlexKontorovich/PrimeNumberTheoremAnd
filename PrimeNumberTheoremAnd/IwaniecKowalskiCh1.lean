@@ -76,7 +76,15 @@ theorem sum_moebius_pmul_eq_prod_one_sub {R : Type*} [CommRing R]
   which is exactly the number of divisors of $n$, i.e., $\tau(n)$.
   -/)]
 theorem zeta_mul_zeta : (ζ : ArithmeticFunction ℕ) * ζ = τ := by
-  sorry
+  ext n; unfold zeta tau sigma
+  simp only [mul_apply, coe_mk, mul_ite, mul_zero, mul_one, pow_zero, sum_const, smul_eq_mul]
+  have key : ∀ x ∈ n.divisorsAntidiagonal, (if x.2 = 0 then 0 else if x.1 = 0 then 0 else 1) = 1 := by
+    intro ⟨a, b⟩ hx
+    have := Nat.mem_divisorsAntidiagonal.mp hx
+    simp [mul_ne_zero_iff.mp (this.1 ▸ this.2)]
+  simp_rw [Finset.sum_congr rfl key, Finset.card_eq_sum_ones, Finset.sum_const]
+  simp only [smul_eq_mul, mul_one, ← Nat.map_div_right_divisors]
+  exact card_map { toFun := fun d ↦ (d, n / d), inj' := fun x x_1 ↦ congr_arg Prod.fst }
 
 /-- The L-series of $\tau$ equals the square of the Riemann zeta function for $\Re(s) > 1$. -/
 @[blueprint
@@ -151,7 +159,33 @@ theorem d_succ (k : ℕ) : d (k + 1) = d k * zeta := pow_succ zeta k
   -/)]
 theorem LSeries_d_eq_riemannZeta_pow (k : ℕ) {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗(d k)) s = riemannZeta s ^ k := by
-  sorry
+  have natCoe_zeta : (↑(ζ : ArithmeticFunction ℕ) : ArithmeticFunction ℂ) = ζ := by
+    ext n; simp [natCoe_apply, zeta_apply]
+  have natCoe_d_succ (j : ℕ) :
+    (↑(d (j + 1)) : ArithmeticFunction ℂ) = (↑(d j) : ArithmeticFunction ℂ) * ζ := by
+    rw [d_succ, natCoe_mul, natCoe_zeta]
+  suffices ∀ j, LSeries (↗(d j : ArithmeticFunction ℂ)) s = riemannZeta s ^ j ∧
+      LSeriesSummable (↗(d j : ArithmeticFunction ℂ)) s from (this k).1
+  intro j
+  induction j with
+  | zero =>
+    simp only [d_zero, natCoe_one, pow_zero, one_eq_delta]
+    exact ⟨congr_fun LSeries_delta s,
+      (hasSum_single 1 fun n hn => by simp [LSeries.term_delta, hn]).summable⟩
+  | succ j ih =>
+    obtain ⟨ih_eq, ih_sum⟩ := ih
+    have hζ : LSeriesSummable (↗(ζ : ArithmeticFunction ℂ)) s :=
+      LSeriesSummable_zeta_iff.mpr hs
+    constructor
+    · rw [pow_succ, LSeries_congr (fun {n} _ => show (↑(d (j + 1)) : ArithmeticFunction ℂ) n =
+        ((↑(d j) : ArithmeticFunction ℂ) * ζ) n by rw [natCoe_d_succ]) s,
+        LSeries_mul' ih_sum hζ, ih_eq]
+      congr 1
+      exact LSeries_zeta_eq_riemannZeta hs
+    · rw [(LSeriesSummable_congr s (fun {n} _ => show (↑(d (j + 1)) : ArithmeticFunction ℂ) n =
+        ((↑(d j) : ArithmeticFunction ℂ) * ζ) n by rw [natCoe_d_succ]))]
+      exact LSeriesSummable_mul ih_sum hζ
+
 
 /-- `d k` is multiplicative for all `k`. -/
 @[blueprint
@@ -177,7 +211,7 @@ theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : �
     d k (p ^ a) = (a + k - 1).choose (k - 1) := by
   sorry
 
-/-- (1.25) in Iwaniec-Kowalski: a formula for `d k` for all `n`. -/
+/-- (1.25) in Iwaniec-Kowalski: a formula for `d k` for all `n`.-/
 @[blueprint
   "d_apply"
   (statement := /-- (1.25) in Iwaniec-Kowalski: a formula for $d k$ for all $n$. -/)
@@ -217,7 +251,8 @@ noncomputable def sigmaC {R : Type*} [Semiring R] [HPow R R R] (s : R) : Arithme
   -/)]
 lemma sigmaC_natCast (k : ℕ) (n : ℕ) :
     sigmaC k n = (σ k n : ℂ) := by
-  sorry
+  unfold sigmaC sigma
+  simp only [cast_id, coe_mk, cast_sum, cast_pow]
 
 /-- `ζ(s)ζ(s - ν) = Σ σ_ν(n) n^(-s)` for `Re(s) > 1` and `Re(s - ν) > 1`. -/
 @[blueprint
