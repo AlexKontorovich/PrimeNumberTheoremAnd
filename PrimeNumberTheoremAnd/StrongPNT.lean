@@ -74,7 +74,7 @@ lemma cauchy_formula_deriv {f : ℂ → ℂ} {R r r' : ℝ}
           \leq\frac{1}{2\pi}\int_0^{2\pi}
           \left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|\,dt.
     \end{equation}
-    Now applying Theorem \ref{borelCaratheodory_closedBall}, and noting that
+    Now applying Theorem \ref{borelCaratheodory-closedBall}, and noting that
     $r'-r\leq|r'e^{it}-z|$, we have that
     $$\left|\frac{r'e^{it}\,f(r'e^{it})}{(r'e^{it}-z)^2}\right|
       \leq\frac{2M(r')^2}{(R-r')(r'-r)^2}.$$
@@ -403,9 +403,11 @@ blueprint_comment /--
 
 blueprint_comment /--
 \begin{proof}
-\uses{BlaschkeB, DiskBound}
-    Since $f(0)=1$, we know that $0\not\in\mathcal{K}_f(r)$. Thus,
-    $$C_f(0)=\frac{f(0)}{\displaystyle\prod_{\rho\in\mathcal{K}_f(r)}(-\rho)^{m_f(\rho)}}.$$
+\uses{BlaschkeB, DiskBound, BlaschkeOfZero}
+    Since $f(0)=1$, by Lemma \ref{BlaschkeOfZero} we know that
+    $$|B_f(0)|
+      =|f(0)|\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}
+      =\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{|\rho|}\right)^{m_f(\rho)}.$$
     Thus, substituting this into Definition \ref{BlaschkeB},
     $$(R/r)^{\sum_{\rho\in\mathcal{K}_f(r)}m_f(\rho)}
       =\prod_{\rho\in\mathcal{K}_f(r)}\left(\frac{R}{r}\right)^{m_f(\rho)}
@@ -518,7 +520,7 @@ blueprint_comment /--
     Let $B>1$ and $0 < r' < r < R' < R<1$. If $f:\mathbb{C}\to\mathbb{C}$ is a function
     analytic on neighborhoods of points in $\overline{\mathbb{D}_1}$ with $f(0)=1$ and
     $|f(z)|\leq B$ for all $|z|\leq R$, then for all
-    $z\in\overline{\mathbb{D}_{R'}}\setminus\mathcal{K}_f(R')$ we have
+    $z\in\overline{\mathbb{D}_{r'}}\setminus\mathcal{K}_f(R')$ we have
     $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|
       \leq\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log B.$$
 \end{theorem}
@@ -539,15 +541,14 @@ blueprint_comment /--
       -\sum_{\rho\in\mathcal{K}_f(R')}m_f(\rho)\,\mathrm{Log}(z-\rho).$$
     Taking the derivative of both sides we have that
     $$\frac{B_f'}{B_f}(z)=\frac{f'}{f}(z)
-      +\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-R^2/\rho}
+      +\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-R^2/\overline{\rho}}
       -\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}.$$
-    By Definition \ref{JBlaschke} and Theorem \ref{LogOfAnalyticFunction} we recall that
-    $$L_f(z)=J_{B_f}(z)=\mathrm{Log}\,B_f(z)-\mathrm{Log}\,B_f(0).$$
-    Taking the derivative of both sides we have that $L_f'(z)=(B_f'/B_f)(z)$. Thus,
+    By Definition \ref{JBlaschke} and Theorem \ref{LogOfAnalyticFunction},
+    since $L_f(z)=J_{B_f}(z)$ we have $L_f'(z)=J'_{B_f}(z)=(B_f'/B_f)(z)$. Thus,
     $$\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}
-      =L_f'(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-R^2/\rho}.$$
+      =L_f'(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-R^2/\overline{\rho}}.$$
     Now since $z\in\overline{\mathbb{D}_{R'}}$ and $\rho\in\mathcal{K}_f(R')$, we know that
-    $R^2/R'-R'\leq|z-R^2/\rho|$. Thus by the triangle inequality we have
+    $R^2/R'-R'\leq|z-R^2/\overline{\rho}|$. Thus by the triangle inequality we have
     $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|
       \leq|L_f'(z)|+\left(\frac{1}{R^2/R'-R'}\right)\sum_{\rho\in\mathcal{K}_f(R')}m_f(\rho).$$
     Now by Theorem \ref{ZerosBound} and \ref{JBlaschkeDerivBound} we get our desired result
@@ -680,7 +681,7 @@ blueprint_comment /--
 \begin{theorem}[LogDerivZetaFinalBound]\label{LogDerivZetaFinalBound}
     Let $t\in\mathbb{R}$ with $|t|\geq 2$ and $0 < r' < r < R' < R<1$. If
     $f(z)=\zeta(z+3/2+it)$, then for all
-    $z\in\overline{\mathbb{D}_R'}\setminus\mathcal{K}_f(R')$ we have that
+    $z\in\overline{\mathbb{D}_{r'}}\setminus\mathcal{K}_f(R')$ we have that
     $$\left|\frac{f'}{f}(z)-\sum_{\rho\in\mathcal{K}_f(R')}\frac{m_f(\rho)}{z-\rho}\right|
       \ll\left(\frac{16r^2}{(r-r')^3}+\frac{1}{(R^2/R'-R')\,\log(R/R')}\right)\log|t|.$$
 \end{theorem}
@@ -728,12 +729,12 @@ blueprint_comment /--
 \begin{proof}
 \uses{LogDerivZetaFinalBound}
     We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=5/6$, and
-    $R=8/9$. Thus, for all $z\in\overline{\mathbb{D}_{5/6}}\setminus\mathcal{K}_f(5/6)$
+    $R=8/9$. Thus, for all $z\in\overline{\mathbb{D}_{2/3}}\setminus\mathcal{K}_f(5/6)$
     we have that
     $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)
       -\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
     where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$. Now if we let
-    $z=-1/2+\delta$, then $z\in(-1/2,1/2)\subseteq\overline{\mathbb{D}_{5/6}}$.
+    $z=-1/2+\delta$, then $z\in(-1/2,1/2)\subseteq\overline{\mathbb{D}_{2/3}}$.
     Additionally, $f(z)=\zeta(1+\delta+it)$, where $1+\delta+it$ lies in the zero-free
     region where $\sigma>1$. Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
     $$\left|\frac{\zeta'}{\zeta}(1+\delta+it)
@@ -1003,11 +1004,11 @@ blueprint_comment /--
     By Lemma \ref{DeltaRange} we have that
     $$-11/21<-1/2-\delta_t/3\leq\sigma-3/2\leq0.$$
     We apply Theorem \ref{LogDerivZetaFinalBound} where $r'=2/3$, $r=3/4$, $R'=5/6$, and $R=8/9$.
-    Thus for all $z\in\overline{\mathbb{D}_{5/6}}\setminus\mathcal{K}_f(5/6)$ we have that
+    Thus for all $z\in\overline{\mathbb{D}_{2/3}}\setminus\mathcal{K}_f(5/6)$ we have that
     $$\left|\frac{\zeta'}{\zeta}(z+3/2+it)
       -\sum_{\rho\in\mathcal{K}_f(5/6)}\frac{m_f(\rho)}{z-\rho}\right|\ll\log|t|$$
     where $f(z)=\zeta(z+3/2+it)$ for $t\in\mathbb{R}$ with $|t|\geq 3$.
-    Now if we let $z=\sigma-3/2$, then $z\in(-11/21,0)\subseteq\overline{\mathbb{D}_{5/6}}$.
+    Now if we let $z=\sigma-3/2$, then $z\in(-11/21,0)\subseteq\overline{\mathbb{D}_{2/3}}$.
     Additionally, $f(z)=\zeta(\sigma+it)$, where $\sigma+it$ lies in the zero free region given by
     Lemma \ref{ZeroInequality} since $\sigma\geq 1-\delta_t/3\geq 1-\delta_t$.
     Thus, $z\not\in\mathcal{K}_f(5/6)$. So,
