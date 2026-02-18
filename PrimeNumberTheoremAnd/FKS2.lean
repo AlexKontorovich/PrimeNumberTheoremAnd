@@ -257,6 +257,111 @@ theorem proposition_13
   (hB : B > C ^ 2 / (8 * R)) :
   Eθ.classicalBound (Aψ * (1 + ν_asymp Aψ B C R x₀)) B C R x₀ := by sorry
 
+lemma corollary_14_small_adm :
+    ∀ {x : ℝ}, 2 ≤ x → x ≤ Real.exp 30 →
+    (1:ℝ) ≤ admissible_bound 121.0961 (3/2) 2 5.5666305 x := by
+  intro x hx hx30
+  let u : ℝ := Real.log x / 5.5666305
+  have hu_pos : 0 < u := by
+    have hlogx : 0 < Real.log x := Real.log_pos (lt_of_lt_of_le (by norm_num) hx)
+    exact div_pos hlogx (by norm_num)
+  have hu_ge : (31/250:ℝ) ≤ u := by
+    have hlog2x : Real.log 2 ≤ Real.log x := Real.log_le_log (by norm_num) hx
+    have h : (31/250:ℝ) * 5.5666305 ≤ Real.log x := by
+      nlinarith [hlog2x, LogTables.log_2_gt]
+    exact (le_div_iff₀ (by norm_num : (0:ℝ) < 5.5666305)).2 h
+  have hu_le : u ≤ 30 / 5.5666305 := by
+    have hlog : Real.log x ≤ 30 := by
+      have := Real.log_le_log (by positivity : 0 < x) hx30
+      simpa [Real.log_exp] using this
+    have hdiv : Real.log x / 5.5666305 ≤ 30 / 5.5666305 :=
+      div_le_div_of_nonneg_right hlog (by norm_num)
+    simpa [u] using hdiv
+  change (1:ℝ) ≤ 121.0961 * u ^ (3 / 2 : ℝ) * Real.exp (-2 * u ^ (1 / 2 : ℝ))
+  have hu_pow : u ^ (3 / 2 : ℝ) = u * Real.sqrt u := by
+    rw [show (3 / 2 : ℝ) = (1:ℝ) + (1 / 2 : ℝ) by norm_num]
+    rw [Real.rpow_add hu_pos]
+    simp [Real.sqrt_eq_rpow]
+  have hu_sqrtpow : u ^ (1 / 2 : ℝ) = Real.sqrt u := by
+    simp [Real.sqrt_eq_rpow]
+  rw [hu_pow, hu_sqrtpow]
+  by_cases hu64 : u ≤ (16/25:ℝ)
+  · have hsqrt_upper : Real.sqrt u ≤ (4/5:ℝ) := by
+      refine (Real.sqrt_le_iff).2 ?_
+      constructor
+      · norm_num
+      · nlinarith
+    have hsqrt_lower : (7/20:ℝ) ≤ Real.sqrt u := by
+      refine (Real.le_sqrt (by norm_num) hu_pos.le).2 ?_
+      nlinarith [hu_ge]
+    have hu_mul : (217/5000:ℝ) ≤ u * Real.sqrt u := by
+      nlinarith [hu_ge, hsqrt_lower]
+    have h_exp_base : (1/5:ℝ) ≤ Real.exp (-(8/5:ℝ)) := by
+      have hlog : Real.log (1/5:ℝ) ≤ -(8/5:ℝ) := by
+        have hfive : (1/5:ℝ) = (5:ℝ)⁻¹ := by norm_num
+        rw [hfive, Real.log_inv]
+        nlinarith [LogTables.log_5_gt]
+      exact (Real.log_le_iff_le_exp (by norm_num : (0:ℝ) < 1/5)).1 hlog
+    have h_exp_u : Real.exp (-(8/5:ℝ)) ≤ Real.exp (-2 * Real.sqrt u) := by
+      apply Real.exp_le_exp.mpr
+      linarith
+    have h_exp : (1/5:ℝ) ≤ Real.exp (-2 * Real.sqrt u) := by
+      exact le_trans h_exp_base h_exp_u
+    nlinarith [hu_mul, h_exp]
+  · have hu64' : (16/25:ℝ) < u := lt_of_not_ge hu64
+    by_cases hu94 : u ≤ (9/4:ℝ)
+    · have hsqrt_lower : (4/5:ℝ) ≤ Real.sqrt u := by
+        refine (Real.le_sqrt (by norm_num) hu_pos.le).2 ?_
+        nlinarith [hu64']
+      have hu_mul : (64/125:ℝ) ≤ u * Real.sqrt u := by
+        nlinarith [hu64', hsqrt_lower]
+      have h_exp_base : (1/25:ℝ) ≤ Real.exp (-3:ℝ) := by
+        have hlog : Real.log (1/25:ℝ) ≤ (-3:ℝ) := by
+          have htwfive : (1/25:ℝ) = (25:ℝ)⁻¹ := by norm_num
+          rw [htwfive, Real.log_inv]
+          have hlog25 : (3:ℝ) ≤ Real.log 25 := by
+            rw [show (25:ℝ) = (5:ℝ)^2 by norm_num, Real.log_pow]
+            have htmp : (3:ℝ) < (2:ℝ) * Real.log 5 := by nlinarith [LogTables.log_5_gt]
+            exact le_of_lt htmp
+          linarith
+        exact (Real.log_le_iff_le_exp (by norm_num : (0:ℝ) < 1/25)).1 hlog
+      have h_exp_u : Real.exp (-3:ℝ) ≤ Real.exp (-2 * Real.sqrt u) := by
+        apply Real.exp_le_exp.mpr
+        have hsqrt_upper : Real.sqrt u ≤ (3/2:ℝ) := by
+          refine (Real.sqrt_le_iff).2 ?_
+          constructor
+          · norm_num
+          · nlinarith [hu94]
+        linarith
+      have h_exp : (1/25:ℝ) ≤ Real.exp (-2 * Real.sqrt u) := le_trans h_exp_base h_exp_u
+      nlinarith [hu_mul, h_exp]
+    · have hu94' : (9/4:ℝ) < u := lt_of_not_ge hu94
+      have hsqrt_lower : (3/2:ℝ) ≤ Real.sqrt u := by
+        refine (Real.le_sqrt (by norm_num) hu_pos.le).2 ?_
+        nlinarith [hu94']
+      have hu_mul : (27/8:ℝ) ≤ u * Real.sqrt u := by
+        nlinarith [hu94', hsqrt_lower]
+      have hsqrt_upper : Real.sqrt u ≤ (47/20:ℝ) := by
+        refine (Real.sqrt_le_iff).2 ?_
+        constructor
+        · norm_num
+        · nlinarith [hu_le]
+      have h_exp_base : (1/115:ℝ) ≤ Real.exp (-(47/10:ℝ)) := by
+        have hlog : Real.log (1/115:ℝ) ≤ (-(47/10:ℝ)) := by
+          have hone : (1/115:ℝ) = (115:ℝ)⁻¹ := by norm_num
+          rw [hone, Real.log_inv]
+          have hlog115 : (47/10:ℝ) ≤ Real.log 115 := by
+            have h115 : (115:ℝ) = 23 * 5 := by norm_num
+            rw [h115, Real.log_mul (by norm_num) (by norm_num)]
+            nlinarith [LogTables.log_23_gt, LogTables.log_5_gt]
+          linarith
+        exact (Real.log_le_iff_le_exp (by norm_num : (0:ℝ) < 1/115)).1 hlog
+      have h_exp_u : Real.exp (-(47/10:ℝ)) ≤ Real.exp (-2 * Real.sqrt u) := by
+        apply Real.exp_le_exp.mpr
+        linarith
+      have h_exp : (1/115:ℝ) ≤ Real.exp (-2 * Real.sqrt u) := le_trans h_exp_base h_exp_u
+      nlinarith [hu_mul, h_exp]
+
 @[blueprint
   "fks2-corollary-14"
   (title := "FKS2 Corollary 14")
@@ -267,7 +372,338 @@ theorem proposition_13
   (proof := /-- By Corollary \ref{fks_cor_13}, with $R = 5.5666305$, and using the admissible asymptotic bound for $E_\psi(x)$ with $A_\psi = 121.096$, $B = 3/2$, $C = 2$, for all $x \geq x_0 = e^{30}$, we can obtain $\nu_{asymp}(x_0) \leq 6.3376 \cdot 10^{-7}$, from which one can conclude an admissible asymptotic bound for $E_\theta(x)$ with $A_\theta = 121.0961$, $B = 3/2$, $C = 2$, for all $x \geq x_0 = e^{30}$. Additionally, the minimum value of $\varepsilon_{\theta,asymp}(x)$ for $2 \leq x \leq e^{30}$ is roughly $2.6271\ldots$ at $x=2$. The results found in \cite[Table 13 and 14]{BKLNW} give $E_\theta(x) \leq 1 < \varepsilon_{\theta,asymp}(2) \leq \varepsilon_{\theta,asymp}(x)$ for all $2 \leq x \leq e^{30}$. -/)
   (latexEnv := "corollary")
   (discussion := 672)]
-theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := sorry
+theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := by
+  have hsmall_adm :
+      ∀ {x : ℝ}, 2 ≤ x → x ≤ Real.exp 30 →
+      (1:ℝ) ≤ admissible_bound 121.0961 (3/2) 2 5.5666305 x := corollary_14_small_adm
+
+  have hfloor30 : ⌊(30:ℝ) / Real.log 2⌋₊ = 43 := by
+    refine (Nat.floor_eq_iff (by positivity : (0:ℝ) ≤ 30 / Real.log 2)).2 ?_
+    constructor
+    · have h43mul : (43:ℝ) * Real.log 2 < 30 := by nlinarith [LogTables.log_2_lt]
+      exact le_of_lt ((lt_div_iff₀ (Real.log_pos one_lt_two)).2 h43mul)
+    · have h44mul' : (30:ℝ) < ((43:ℝ) + 1) * Real.log 2 := by nlinarith [LogTables.log_2_gt]
+      exact (div_lt_iff₀ (Real.log_pos one_lt_two)).2 h44mul'
+
+  have ha1 : BKLNW.a₁ 30 ≤ 1 + 1.9339e-8 := by
+    unfold BKLNW.a₁ BKLNW.Inputs.a₁
+    have h40 : (40:ℝ) ≤ Real.log (1e19) := by
+      have h1e19 : (1e19:ℝ) = (10:ℝ)^19 := by norm_num
+      rw [h1e19, Real.log_pow]
+      norm_num
+      nlinarith [LogTables.log_10_gt]
+    have hif : (30:ℝ) ≤ 2 * Real.log (1e19) := by linarith [h40]
+    have htable : BKLNW_app.table_8_ε (Real.log (1e19)) ≤ 1.9339e-8 :=
+      BKLNW_app.table_8_ε_le_of_row BKLNW_app.table_8_mem_40 h40
+    have hgoal : 1 + BKLNW_app.table_8_ε (Real.log (1e19)) ≤ 1 + 1.9339e-8 := by linarith
+    simpa [BKLNW.Inputs.default, BKLNW.Pre_inputs.default, if_pos hif] using hgoal
+
+  have ha2 : BKLNW.a₂ 30 ≤ 42.42 := by
+    have hf_exp30 : BKLNW.f (Real.exp 30) ≤ 41 := by
+      unfold BKLNW.f
+      have hfloor : ⌊(Real.log (Real.exp 30)) / Real.log 2⌋₊ = 43 := by
+        rw [Real.log_exp]
+        exact hfloor30
+      rw [hfloor]
+      have hterm : ∀ k ∈ Finset.Icc (3:ℕ) 43, (Real.exp 30) ^ (1 / (k:ℝ) - 1 / 3 : ℝ) ≤ 1 := by
+        intro k hk
+        have hk3 : (3:ℕ) ≤ k := (Finset.mem_Icc.mp hk).1
+        have hkpos : (0:ℝ) < k := by exact_mod_cast (lt_of_lt_of_le (by decide : 0 < (3:ℕ)) hk3)
+        have hexp : (1 / (k:ℝ) - 1 / 3 : ℝ) ≤ 0 := by
+          have hk_inv : (1 : ℝ) / (k:ℝ) ≤ 1 / 3 := by
+            rw [one_div_le_one_div hkpos (by norm_num : (0:ℝ) < 3)]
+            exact_mod_cast hk3
+          linarith
+        have hExpGeOne : (1:ℝ) ≤ Real.exp 30 := one_le_exp (by norm_num)
+        exact Real.rpow_le_one_of_one_le_of_nonpos hExpGeOne hexp
+      have hsum : ∑ k ∈ Finset.Icc (3:ℕ) 43, (Real.exp 30) ^ (1 / (k:ℝ) - 1 / 3 : ℝ) ≤ ((Finset.Icc (3:ℕ) 43).card : ℝ) := by
+        simpa using (Finset.sum_le_card_nsmul (Finset.Icc (3:ℕ) 43)
+          (fun k ↦ (Real.exp 30) ^ (1 / (k:ℝ) - 1 / 3 : ℝ)) 1 (by
+            intro k hk
+            simpa using hterm k hk))
+      have hcard : (Finset.Icc (3:ℕ) 43).card = 41 := by
+        norm_num [Nat.card_Icc]
+      simpa [hcard] using hsum
+
+    have hf_pow44 : BKLNW.f ((2^(44:ℕ):ℝ)) ≤ 42 := by
+      unfold BKLNW.f
+      have hfloor : ⌊(Real.log ((2^(44:ℕ):ℝ))) / Real.log 2⌋₊ = 44 := by
+        have hlog2 : Real.log 2 ≠ 0 := (Real.log_pos one_lt_two).ne'
+        have hval : (Real.log ((2^(44:ℕ):ℝ))) / Real.log 2 = (44:ℝ) := by
+          rw [show ((2^(44:ℕ):ℝ)) = (2:ℝ)^ (44:ℝ) by norm_num]
+          rw [Real.log_rpow (by positivity), div_eq_iff hlog2]
+        rw [hval]
+        norm_num
+      rw [hfloor]
+      have hterm : ∀ k ∈ Finset.Icc (3:ℕ) 44, ((2^(44:ℕ):ℝ)) ^ (1 / (k:ℝ) - 1 / 3 : ℝ) ≤ 1 := by
+        intro k hk
+        have hk3 : (3:ℕ) ≤ k := (Finset.mem_Icc.mp hk).1
+        have hkpos : (0:ℝ) < k := by exact_mod_cast (lt_of_lt_of_le (by decide : 0 < (3:ℕ)) hk3)
+        have hexp : (1 / (k:ℝ) - 1 / 3 : ℝ) ≤ 0 := by
+          have hk_inv : (1 : ℝ) / (k:ℝ) ≤ 1 / 3 := by
+            rw [one_div_le_one_div hkpos (by norm_num : (0:ℝ) < 3)]
+            exact_mod_cast hk3
+          linarith
+        have hbase : (1:ℝ) ≤ ((2^(44:ℕ):ℝ)) := by norm_num
+        exact Real.rpow_le_one_of_one_le_of_nonpos hbase hexp
+      have hsum : ∑ k ∈ Finset.Icc (3:ℕ) 44, ((2^(44:ℕ):ℝ)) ^ (1 / (k:ℝ) - 1 / 3 : ℝ) ≤ ((Finset.Icc (3:ℕ) 44).card : ℝ) := by
+        simpa using (Finset.sum_le_card_nsmul (Finset.Icc (3:ℕ) 44)
+          (fun k ↦ ((2^(44:ℕ):ℝ)) ^ (1 / (k:ℝ) - 1 / 3 : ℝ)) 1 (by
+            intro k hk
+            simpa using hterm k hk))
+      have hcard : (Finset.Icc (3:ℕ) 44).card = 42 := by
+        norm_num [Nat.card_Icc]
+      simpa [hcard] using hsum
+
+    have hf_powExpr : BKLNW.f (2 ^ (⌊(30:ℝ) / Real.log 2⌋₊ + 1)) ≤ 42 := by
+      simpa [hfloor30] using hf_pow44
+
+    unfold BKLNW.a₂ BKLNW.Inputs.a₂
+    have hmax : max (BKLNW.f (Real.exp 30)) (BKLNW.f (2 ^ (⌊(30:ℝ) / Real.log 2⌋₊ + 1))) ≤ 42 := by
+      exact max_le (le_trans hf_exp30 (by norm_num)) hf_powExpr
+    have halpha_nonneg : (0:ℝ) ≤ BKLNW.Inputs.default.α := by
+      simp [BKLNW.Inputs.default, BKLNW_app.table_8_margin]
+      norm_num
+    have halpha : BKLNW.Inputs.default.α ≤ (0.01:ℝ) := by
+      simp [BKLNW.Inputs.default, BKLNW_app.table_8_margin]
+      norm_num
+    have hfac : (1 + BKLNW.Inputs.default.α) ≤ (1.01:ℝ) := by linarith
+    have hmul1 : (1 + BKLNW.Inputs.default.α) *
+        max (BKLNW.f (Real.exp 30)) (BKLNW.f (2 ^ (⌊(30:ℝ) / Real.log 2⌋₊ + 1))) ≤
+        (1 + BKLNW.Inputs.default.α) * 42 := by
+      exact mul_le_mul_of_nonneg_left hmax (by linarith)
+    have hmul2 : (1 + BKLNW.Inputs.default.α) * 42 ≤ 1.01 * 42 := by
+      exact mul_le_mul_of_nonneg_right hfac (by norm_num)
+    linarith
+
+  have hcoef :
+      (1 / (121.096:ℝ)) * (5.5666305 / 30) ^ (3/2:ℝ) * Real.exp (2 * Real.sqrt (30 / 5.5666305)) ≤ 0.06865 := by
+    let r : ℝ := 5.5666305 / 30
+    have hr_pos : 0 < r := by
+      dsimp [r]
+      positivity
+    have hrpow : r ^ (3/2:ℝ) = r * Real.sqrt r := by
+      rw [show (3/2:ℝ) = (1:ℝ) + (1/2:ℝ) by norm_num]
+      rw [Real.rpow_add hr_pos]
+      simp [Real.sqrt_eq_rpow]
+    have hsqrt_r : Real.sqrt r ≤ (43077/100000:ℝ) := by
+      refine (Real.sqrt_le_iff).2 ?_
+      constructor
+      · norm_num
+      · dsimp [r]
+        norm_num
+    have hrpow_bound : r ^ (3/2:ℝ) ≤ r * (43077/100000:ℝ) := by
+      rw [hrpow]
+      gcongr
+    have hsqrt_u : Real.sqrt (30 / 5.5666305) ≤ (23215/10000:ℝ) := by
+      refine (Real.sqrt_le_iff).2 ?_
+      constructor
+      · norm_num
+      · norm_num
+    have hexp104 : Real.exp (2 * Real.sqrt (30 / 5.5666305)) ≤ 104 := by
+      have hpow : 2 * Real.sqrt (30 / 5.5666305) ≤ (4.643:ℝ) := by
+        nlinarith [hsqrt_u]
+      have hlog104 : (4.643:ℝ) ≤ Real.log 104 := by
+        have h104 : (104:ℝ) = 13 * 2 ^ (3:ℕ) := by norm_num
+        rw [h104, Real.log_mul (by norm_num) (by positivity), Real.log_pow]
+        norm_num
+        have h : (4.643:ℝ) < Real.log 13 + 3 * Real.log 2 := by
+          nlinarith [LogTables.log_13_gt, LogTables.log_2_gt]
+        linarith
+      have : Real.exp (2 * Real.sqrt (30 / 5.5666305)) ≤ Real.exp (Real.log 104) := by
+        exact Real.exp_le_exp.mpr (le_trans hpow hlog104)
+      simpa [Real.exp_log (by norm_num : (0:ℝ) < 104)] using this
+    have hcoef_step :
+        (1 / (121.096:ℝ)) * r ^ (3/2:ℝ) * Real.exp (2 * Real.sqrt (30 / 5.5666305))
+        ≤ (1 / (121.096:ℝ)) * (r * (43077/100000:ℝ)) * 104 := by
+      have hnonneg : 0 ≤ (1 / (121.096:ℝ)) := by positivity
+      have hmul1 : (1 / (121.096:ℝ)) * r ^ (3/2:ℝ) ≤ (1 / (121.096:ℝ)) * (r * (43077/100000:ℝ)) :=
+        mul_le_mul_of_nonneg_left hrpow_bound hnonneg
+      have hmul2 : (1 / (121.096:ℝ)) * r ^ (3/2:ℝ) * Real.exp (2 * Real.sqrt (30 / 5.5666305))
+          ≤ ((1 / (121.096:ℝ)) * (r * (43077/100000:ℝ))) * 104 := by
+        exact mul_le_mul hmul1 hexp104 (by positivity) (by positivity)
+      simpa [mul_assoc, mul_left_comm, mul_comm] using hmul2
+    have hnum : (1 / (121.096:ℝ)) * (r * (43077/100000:ℝ)) * 104 ≤ (0.06865:ℝ) := by
+      dsimp [r]
+      norm_num
+    have hmain :
+        (1 / (121.096:ℝ)) * r ^ (3/2:ℝ) * Real.exp (2 * Real.sqrt (30 / 5.5666305)) ≤ (0.06865:ℝ) :=
+      le_trans hcoef_step hnum
+    simpa [r] using hmain
+
+  have h15 : Real.exp (-15:ℝ) ≤ (1 / 3250000:ℝ) := by
+    interval_decide
+
+  have h20 : Real.exp (-20:ℝ) ≤ (1 / 460000000:ℝ) := by
+    interval_decide
+
+  have hν : ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30) ≤ 8.25e-7 := by
+    let coeff : ℝ := (1 / (121.096:ℝ)) * (5.5666305 / 30) ^ (3/2:ℝ) * Real.exp (2 * Real.sqrt (30 / 5.5666305))
+    let c1 : ℝ := 1 + 1.9339e-8
+    let c2 : ℝ := 42.42
+    let rhsBracket : ℝ := 30 * (c1 * (1 / 3250000:ℝ)) + 30 * (c2 * (1 / 460000000:ℝ))
+    have hpow1 : (Real.exp 30) ^ (-(1:ℝ)/2) = Real.exp (-15) := by
+      calc
+        (Real.exp 30) ^ (-(1:ℝ)/2) = Real.exp (30 * (-(1:ℝ)/2)) := (Real.exp_mul 30 (-(1:ℝ)/2)).symm
+        _ = Real.exp (-15) := by ring_nf
+    have hpow2 : (Real.exp 30) ^ (-(2:ℝ)/3) = Real.exp (-20) := by
+      calc
+        (Real.exp 30) ^ (-(2:ℝ)/3) = Real.exp (30 * (-(2:ℝ)/3)) := (Real.exp_mul 30 (-(2:ℝ)/3)).symm
+        _ = Real.exp (-20) := by ring_nf
+    have hνeq₀ : ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30)
+        = coeff * (BKLNW.a₁ 30 * 30 * Real.exp (-15) + BKLNW.a₂ 30 * 30 * Real.exp (-20)) := by
+      simp [ν_asymp, hpow1, hpow2, coeff]
+    have hνeq : ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30)
+        = coeff * (30 * (BKLNW.a₁ 30 * Real.exp (-15)) + 30 * (BKLNW.a₂ 30 * Real.exp (-20))) := by
+      calc
+        ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30)
+            = coeff * (BKLNW.a₁ 30 * 30 * Real.exp (-15) + BKLNW.a₂ 30 * 30 * Real.exp (-20)) := hνeq₀
+        _ = coeff * (30 * (BKLNW.a₁ 30 * Real.exp (-15)) + 30 * (BKLNW.a₂ 30 * Real.exp (-20))) := by
+          ring
+    rw [hνeq]
+    have hbracket :
+        30 * (BKLNW.a₁ 30 * Real.exp (-15)) + 30 * (BKLNW.a₂ 30 * Real.exp (-20))
+        ≤ rhsBracket := by
+      have hc1_nonneg : 0 ≤ c1 := by
+        dsimp [c1]
+        norm_num
+      have hc2_nonneg : 0 ≤ c2 := by
+        dsimp [c2]
+        norm_num
+      have ha1' : BKLNW.a₁ 30 ≤ c1 := by simpa [c1] using ha1
+      have ha2' : BKLNW.a₂ 30 ≤ c2 := by simpa [c2] using ha2
+      have he15_nonneg : 0 ≤ Real.exp (-15) := le_of_lt (Real.exp_pos _)
+      have he20_nonneg : 0 ≤ Real.exp (-20) := le_of_lt (Real.exp_pos _)
+      have h30_nonneg : (0:ℝ) ≤ 30 := by norm_num
+      have h1 : 30 * (BKLNW.a₁ 30 * Real.exp (-15)) ≤ 30 * (c1 * (1 / 3250000:ℝ)) := by
+        calc
+          30 * (BKLNW.a₁ 30 * Real.exp (-15)) ≤ 30 * (c1 * Real.exp (-15)) := by
+            apply mul_le_mul_of_nonneg_left
+            · exact mul_le_mul_of_nonneg_right ha1' he15_nonneg
+            · exact h30_nonneg
+          _ ≤ 30 * (c1 * (1 / 3250000:ℝ)) := by
+            apply mul_le_mul_of_nonneg_left
+            · exact mul_le_mul_of_nonneg_left h15 hc1_nonneg
+            · exact h30_nonneg
+      have h2 : 30 * (BKLNW.a₂ 30 * Real.exp (-20)) ≤ 30 * (c2 * (1 / 460000000:ℝ)) := by
+        calc
+          30 * (BKLNW.a₂ 30 * Real.exp (-20)) ≤ 30 * (c2 * Real.exp (-20)) := by
+            apply mul_le_mul_of_nonneg_left
+            · exact mul_le_mul_of_nonneg_right ha2' he20_nonneg
+            · exact h30_nonneg
+          _ ≤ 30 * (c2 * (1 / 460000000:ℝ)) := by
+            apply mul_le_mul_of_nonneg_left
+            · exact mul_le_mul_of_nonneg_left h20 hc2_nonneg
+            · exact h30_nonneg
+      have :
+          30 * (BKLNW.a₁ 30 * Real.exp (-15)) + 30 * (BKLNW.a₂ 30 * Real.exp (-20))
+        ≤ 30 * (c1 * (1 / 3250000:ℝ)) + 30 * (c2 * (1 / 460000000:ℝ)) :=
+        add_le_add h1 h2
+      simpa [rhsBracket] using this
+    have hcoef' : coeff ≤ 0.06865 := by simpa [coeff] using hcoef
+    have hcoeff_nonneg : 0 ≤ coeff := by
+      dsimp [coeff]
+      have hinv : 0 ≤ (1 / (121.096:ℝ)) := by norm_num
+      have hpow : 0 ≤ (5.5666305 / 30 : ℝ) ^ (3 / 2 : ℝ) :=
+        Real.rpow_nonneg (by norm_num : (0:ℝ) ≤ 5.5666305 / 30) _
+      have hexp : 0 ≤ Real.exp (2 * Real.sqrt (30 / 5.5666305)) := le_of_lt (Real.exp_pos _)
+      exact mul_nonneg (mul_nonneg hinv hpow) hexp
+    have hrhs_nonneg : 0 ≤ rhsBracket := by
+      dsimp [rhsBracket]
+      have h1nn : 0 ≤ 30 * (c1 * (1 / 3250000:ℝ)) := by
+        have hc1_nonneg : 0 ≤ c1 := by
+          dsimp [c1]
+          norm_num
+        exact mul_nonneg (by norm_num) (mul_nonneg hc1_nonneg (by norm_num))
+      have h2nn : 0 ≤ 30 * (c2 * (1 / 460000000:ℝ)) := by
+        have hc2_nonneg : 0 ≤ c2 := by
+          dsimp [c2]
+          norm_num
+        exact mul_nonneg (by norm_num) (mul_nonneg hc2_nonneg (by norm_num))
+      exact add_nonneg h1nn h2nn
+    have hmul1 : coeff * (30 * (BKLNW.a₁ 30 * Real.exp (-15)) + 30 * (BKLNW.a₂ 30 * Real.exp (-20))) ≤ coeff * rhsBracket :=
+      mul_le_mul_of_nonneg_left hbracket hcoeff_nonneg
+    have hmul2 : coeff * rhsBracket ≤ 0.06865 * rhsBracket :=
+      mul_le_mul_of_nonneg_right hcoef' hrhs_nonneg
+    have hnum : 0.06865 * rhsBracket ≤ 8.25e-7 := by
+      dsimp [rhsBracket]
+      norm_num
+    exact le_trans hmul1 (le_trans hmul2 hnum)
+
+  have hA : 121.096 * (1 + ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30)) ≤ 121.0961 := by
+    nlinarith [hν]
+
+  have hEψ30 : Eψ.classicalBound 121.096 (3/2) 2 5.5666305 (Real.exp 30) := by
+    intro y hy
+    have h2exp1 : (2:ℝ) ≤ Real.exp 1 := by
+      exact Real.exp_one_gt_two.le
+    have h2exp30 : (2:ℝ) ≤ Real.exp 30 := by
+      exact le_trans h2exp1 ((Real.exp_le_exp).2 (by norm_num : (1:ℝ) ≤ 30))
+    exact FKS.FKS_corollary_1_3 y (le_trans h2exp30 hy)
+
+  have hB : (3/2:ℝ) > 2 ^ 2 / (8 * 5.5666305) := by norm_num
+  have hEθ30 :
+      Eθ.classicalBound (121.096 * (1 + ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30)))
+        (3/2) 2 5.5666305 (Real.exp 30) :=
+    proposition_13 121.096 (3/2) 2 5.5666305 (Real.exp 30) hEψ30 hB
+
+  rw [Eθ.classicalBound]
+  intro x hx
+  by_cases hx30 : x ≤ Real.exp 30
+  · have hx_pos : 0 < x := by linarith
+    have hExp30_le_1e19 : Real.exp 30 ≤ (1e19:ℝ) := by
+      have h30lelog : (30:ℝ) ≤ Real.log (1e19) := by
+        have h1e19 : (1e19:ℝ) = (10:ℝ)^19 := by norm_num
+        rw [h1e19, Real.log_pow]
+        norm_num
+        nlinarith [LogTables.log_10_gt]
+      have : Real.exp 30 ≤ Real.exp (Real.log (1e19)) := (Real.exp_le_exp).2 h30lelog
+      simpa [Real.exp_log (by norm_num : (0:ℝ) < 1e19)] using this
+    have hx_le_1e19 : x ≤ (1e19:ℝ) := le_trans hx30 hExp30_le_1e19
+    have hθlt : θ x < x := BKLNW.buthe_eq_1_7 x ⟨hx_pos, hx_le_1e19⟩
+    have hEθ1 : Eθ x ≤ 1 := by
+      unfold Eθ
+      have habs : |θ x - x| ≤ x := by
+        have hleft : -x ≤ θ x - x := by linarith [theta_nonneg x]
+        have hright : θ x - x ≤ x := by linarith [hθlt]
+        exact abs_le.mpr ⟨hleft, hright⟩
+      have : |θ x - x| / x ≤ 1 := by
+        rw [div_le_iff₀ hx_pos]
+        nlinarith [habs]
+      exact this
+    have hAdm1 : (1:ℝ) ≤ admissible_bound 121.0961 (3/2) 2 5.5666305 x := hsmall_adm hx hx30
+    exact le_trans hEθ1 hAdm1
+  · have hx30' : Real.exp 30 ≤ x := le_of_lt (lt_of_not_ge hx30)
+    have hmain : Eθ x ≤ admissible_bound
+        (121.096 * (1 + ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30)))
+        (3/2) 2 5.5666305 x := hEθ30 x hx30'
+    have hlog_div_nonneg : 0 ≤ Real.log x / 5.5666305 := by
+      have hx_ge1 : (1:ℝ) ≤ x := by
+        have h1exp30 : (1:ℝ) < Real.exp 30 := by
+          exact (Real.one_lt_exp_iff).2 (by norm_num : (0:ℝ) < 30)
+        exact le_trans (le_of_lt h1exp30) hx30'
+      exact div_nonneg (Real.log_nonneg hx_ge1) (by norm_num)
+    have hpow_nonneg : 0 ≤ (Real.log x / 5.5666305) ^ (3 / 2 : ℝ) :=
+      Real.rpow_nonneg hlog_div_nonneg _
+    have hexp_nonneg : 0 ≤ Real.exp (-2 * (Real.log x / 5.5666305) ^ ((1:ℝ)/(2:ℝ))) := by positivity
+    have hAmono : admissible_bound
+        (121.096 * (1 + ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30)))
+        (3/2) 2 5.5666305 x ≤ admissible_bound 121.0961 (3/2) 2 5.5666305 x := by
+      let t : ℝ := (Real.log x / 5.5666305) ^ (3 / 2 : ℝ)
+      let e : ℝ := Real.exp (-2 * (Real.log x / 5.5666305) ^ ((1:ℝ)/(2:ℝ)))
+      have ht_nonneg : 0 ≤ t := by simpa [t] using hpow_nonneg
+      have he_nonneg : 0 ≤ e := by simpa [e] using hexp_nonneg
+      have hAt :
+          (121.096 * (1 + ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30))) * t ≤ 121.0961 * t :=
+        mul_le_mul_of_nonneg_right hA ht_nonneg
+      have hAte :
+          ((121.096 * (1 + ν_asymp 121.096 (3/2) 2 5.5666305 (Real.exp 30))) * t) * e ≤
+          (121.0961 * t) * e :=
+        mul_le_mul_of_nonneg_right hAt he_nonneg
+      unfold admissible_bound
+      simpa [t, e, mul_assoc, mul_left_comm, mul_comm] using hAte
+    exact le_trans hmain hAmono
+
 
 @[blueprint
   "fks2-remark-15"
@@ -547,15 +983,8 @@ theorem psi_le_bound_large (y : ℝ) (hy : 1e19 < y) :
     apply BKLNW_app.theorem_2 (19 * log 10) (by positivity) y (by
       rw [mul_comm, exp_mul, exp_log (by positivity)]; linarith)
   have h_eps : BKLNW_app.table_8_ε (19 * log 10) ≤ 1.93378e-8 * BKLNW_app.table_8_margin := by
-    have h_log_approx : 43 < 19 * log 10 ∧ 19 * log 10 < 44 := by
-      rw [← log_rpow, lt_log_iff_exp_lt, log_lt_iff_lt_exp] <;> norm_num
-      refine ⟨?_, ?_⟩
-      · have := exp_one_lt_d9.le
-        rw [show exp 43 = (exp 1) ^ 43 by rw [← exp_nat_mul]; norm_num]
-        exact (pow_le_pow_left₀ (by positivity) this _).trans_lt <| by norm_num
-      · have := exp_one_gt_d9.le
-        rw [show exp 44 = (exp 1) ^ 44 by rw [← exp_nat_mul]; norm_num]
-        exact lt_of_lt_of_le (by norm_num) <| pow_le_pow_left₀ (by positivity) this _
+    have h_log_approx : 43 < 19 * log 10 ∧ 19 * log 10 < 44 :=
+      ⟨by nlinarith [LogTables.log_10_gt], by nlinarith [LogTables.log_10_lt]⟩
     grw [BKLNW_app.table_8_ε.le_simp (19 * log 10) (by grind)]
     norm_num [BKLNW_app.table_8_ε', h_log_approx]; norm_num at *
     field_simp

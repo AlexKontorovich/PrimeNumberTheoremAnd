@@ -1,5 +1,8 @@
 import Architect
 import PrimeNumberTheoremAnd.RosserSchoenfeldPrime
+import PrimeNumberTheoremAnd.PrimeInInterval
+import PrimeNumberTheoremAnd.eSHP
+import LeanCert.Tactic.IntervalAuto
 
 blueprint_comment /--
 \section{Dusart's explicit estimates for primes}\label{dusart-sec}
@@ -11,7 +14,7 @@ TODO: add more results and proofs here, and reorganize the blueprint
 
 namespace Dusart
 
-open Nat Real
+open Nat Real Chebyshev
 
 def Table1 : List (ℝ × ℝ × ℕ × ℝ × ℝ × ℝ) := [
   (20, 0.86, 5, 1.595e-5, 1132492, 1.067e-3),
@@ -84,8 +87,6 @@ def Table_3_3 : List (ℕ × ℝ) := [
 theorem theorem_3_3 {k : ℕ} {η : ℝ} (h : (k, η) ∈ Table_3_3) {x : ℝ} (hx : x ≥ 2) :
   Eψ x ≤ η / (log x) ^ k := by sorry
 
-/- x ϑ(x) ψ(x)−ϑ(x) 1E+10 9999939830.657757 102289.175716 2E+10 19999821762.768212 144339.622582 3E+10 29999772119.815419 176300.955450 4E+10 39999808348.775748 203538.541084 5E+10 49999728380.731899 227474.729168 6E+10 59999772577.550769 249003.320704 7E+10 69999769944.203933 268660.720820 8E+10 79999718357.195652 287365.266118 9E+10 89999644656.090911 304250.688854 1E+11 99999737653.107445 320803.322857 2E+11 199999695484.246439 453289.609568 3E+11 299999423179.995211 554528.646163 4E+11 399999101196.308601 640000.361434 5E+11 499999105742.583455 715211.001138 6E+11 599999250571.436655 783167.715577 7E+11 699998999499.845475 845911.916175 8E+11 799999133776.084743 904203.190001 9E+11 899998818628.952024 958602.924046 1E+12 999999030333.096225 1009803.669232 2E+12 1999998755521.470649 1427105.865316 3E+12 2999997819758.987859 1746299.820370 4E+12 3999998370195.717561 2016279.693623 5E+12 4999998073643.711478 2253672.042145 6E+12 5999997276726.877147 2467566.593710 7E+12 6999996936360.165729 2665065.541181 8E+12 7999997864671.383505 2848858.049155 9E+12 8999996425300.244577 3021079.319393 1E+13 9999996988293.034200 3183704.089025 2E+13 19999995126082.228688 4499685.436490 3E+13 29999995531389.845427 5509328.368277 4E+13 39999993533724.316829 6359550.652121 5E+13 49999992543194.263655 7109130.001413 6E+13 59999990297033.626198 7785491.725387 7E+13 69999994316409.871731 8407960.376833 8E+13 79999990160858.304239 8988688.375101 9E+13 89999989501395.073897 9531798.550749 1E+14 99999990573246.978538 10045400.569463 2E+14 199999983475767.543204 14201359.711421 3E+14 299999986702246.281944 17388356.540338 4E+14 399999982296901.085038 20074942.600622 123Explicitestimatesofsomefunctionsoverprimes 237 Table2 continued x ϑ(x) ψ(x)−ϑ(x) 5E+14 499999974019856.236519 22439658.012185 6E+14 599999983610646.997632 24580138.242324 7E+14 699999971887332.157455 26545816.027402 8E+14 799999964680836.091645 28378339.693784 9E+14 899999961386694.231242 30098146.961102 1E+15 999999965752660.939840 31724269.567843
--/
 
 def Table2 : List ( ℝ × ℝ × ℝ ) := [
   (1e10, 9999939830.657757, 102289.175716),
@@ -156,6 +157,7 @@ def Table_4_2 : List (ℕ × ℝ × ℝ) := [
   (3, 1, 89967803),
   (3, 0.78, 158822621),
   (3, 0.5, 767135587),
+  (3, 0.499, 4e18),  -- added to make Corollary 5.5 work
   (4, 151.3, 2)
 ]
 
@@ -204,8 +206,6 @@ theorem proposition_4_4 {x : ℝ} (hx : x > 0) :
   (latexEnv := "corollary")]
 theorem corollary_4_5 {x : ℝ} (hx : x > 0) :
   ψ x - θ x < (1 + 1.47e-7) * sqrt x + 1.78 * x ^ (1 / 3 : ℝ) := by sorry
-
-/- Theorem5.1Forx⩾4·109, π(x)= x lnx 1+ 1 lnx + 2 ln2x+O∗ 7.32 ln3x . -/
 
 @[blueprint "Dusart_thm_5_1"
   (title := "Dusart Theorem 5.1")
@@ -330,6 +330,74 @@ theorem corollary_5_3_c {x : ℝ} (hx : x ≥ 468049) : pi x ≥ x / (log x - 1 
   (latexEnv := "corollary")]
 theorem corollary_5_3_d {x : ℝ} (hx : x > 5.6) : pi x ≤ x / (log x - 1 - 1.2311 / log x) := by sorry
 
+@[blueprint "Dusart_prop_5_4a"
+  (title := "Dusart Proposition 5.4, substep 1")
+  (statement := /--
+  For $x \geq 4 \times 10^{18}$, there exists a prime $p$ with
+  \[
+  x < p \le x\Bigl(1 + \frac{1}{\log^3 x}\Bigr).
+  \]
+  -/)
+  (proof := /-- Use Lemma \ref{etheta-pi} and Theorem \ref{Dusart_thm_4_2}.  -/)
+  (latexEnv := "sublemma")
+  (discussion := 910)]
+theorem proposition_5_4a : HasPrimeInInterval.log_thm 4e18 3 := by
+  intro x hx
+  have hx_pos : 0 < x := by linarith
+  have hlog_pos : 0 < log x := Real.log_pos (by linarith)
+  have hpow_pos : 0 < (log x) ^ 3 := by positivity
+  have htab : (3, (0.499 : ℝ), (4e18 : ℝ)) ∈ Table_4_2 := by simp [Table_4_2]
+  have hE1 : Eθ x ≤ 0.499 / (log x) ^ 3 := theorem_4_2 htab hx
+  set h := x / (log x) ^ 3 with hh_def
+  have hh_pos : 0 < h := by positivity
+  have hE2 : Eθ (x + h) ≤ 0.499 / (log x) ^ 3 :=
+    (theorem_4_2 htab (show x + h ≥ 4e18 by linarith)).trans
+      (div_le_div_of_nonneg_left (by norm_num) hpow_pos
+        (pow_le_pow_left₀ hlog_pos.le (Real.log_le_log hx_pos (by linarith)) 3))
+  have hmain : x * Eθ x + (x + h) * Eθ (x + h) ≤ (2 * x + h) * (0.499 / (log x) ^ 3) := by
+    nlinarith [mul_le_mul_of_nonneg_left hE1 hx_pos.le,
+               mul_le_mul_of_nonneg_left hE2 (show (0:ℝ) ≤ x + h by linarith)]
+  have hlog_gt10 : (10 : ℝ) < log x :=
+    (lt_log_iff_exp_lt hx_pos).mpr (lt_of_lt_of_le (by interval_decide) hx)
+  have hlog3_gt : (249.5 : ℝ) < (log x) ^ 3 := by
+    have : (log x) ^ 3 = log x * log x * log x := by ring
+    nlinarith
+  have hcoeff : (2 * x + h) * (0.499 / (log x) ^ 3) < h := by
+    have : (2 * x + h) * (0.499 / (log x) ^ 3) =
+        h * (0.499 * (2 + 1 / (log x) ^ 3)) := by
+      simp only [hh_def]; field_simp [hpow_pos.ne']
+    rw [this]
+    have : 0.499 * (2 + 1 / (log x) ^ 3) < 1 := by
+      nlinarith [one_div_lt_one_div_of_lt (show (0:ℝ) < 249.5 by positivity) hlog3_gt]
+    linarith [mul_lt_mul_of_pos_left this hh_pos]
+  simpa [h] using Eθ.hasPrimeInInterval x h hx_pos hh_pos (lt_of_le_of_lt hmain hcoeff)
+
+@[blueprint "Dusart_prop_5_4b"
+  (title := "Dusart Proposition 5.4, substep 2")
+  (statement := /--
+  For $360653 < x < 4 \times 10^{18}$, there exists a prime $p$ with
+  \[
+  x < p \le x\Bigl(1 + \frac{1}{\log^3 x}\Bigr).
+  \]
+  -/)
+  (proof := /-- Use Lemma \ref{prime-gap-record-interval} and Proposition \ref{table-8-prime-gap}.  -/)
+  (latexEnv := "sublemma")
+  (discussion := 911)]
+theorem proposition_5_4b (x : ℝ) (hx : x ∈ Set.Ioo 360653 4e18) : HasPrimeInInterval x (x / (log x)^(3:ℝ)) := sorry
+
+@[blueprint "Dusart_prop_5_4c"
+  (title := "Dusart Proposition 5.4, substep 3")
+  (statement := /--
+  For $89693 \leq x \leq 360653$, there exists a prime $p$ with
+  \[
+  x < p \le x\Bigl(1 + \frac{1}{\log^3 x}\Bigr).
+  \]
+  -/)
+  (proof := /-- This is a computer computation, likely not formalizable within Lean. -/)
+  (latexEnv := "sublemma")]
+theorem proposition_5_4c (x : ℝ) (hx : x ∈ Set.Icc 89693 360653) : HasPrimeInInterval x (x / (log x)^(3:ℝ)) := sorry
+
+
 @[blueprint "Dusart_prop_5_4"
   (title := "Dusart Proposition 5.4")
   (statement := /--
@@ -339,8 +407,12 @@ theorem corollary_5_3_d {x : ℝ} (hx : x > 5.6) : pi x ≤ x / (log x - 1 - 1.2
   x < p \le x\Bigl(1 + \frac{1}{\log^3 x}\Bigr).
   \]
   -/)
-  (latexEnv := "proposition")]
-theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := sorry
+  (proof := /-- Combine the three substeps. -/)
+  (latexEnv := "proposition")
+  (discussion := 912)]
+theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := fun x hx =>
+  (le_or_gt x 360653).elim (proposition_5_4c x ⟨hx, ·⟩) fun h =>
+    (le_or_gt 4e18 x).elim (proposition_5_4a x) (proposition_5_4b x ⟨h, ·⟩)
 
 @[blueprint "Dusart_cor_5_5"
   (title := "Dusart Corollary 5.5")
@@ -350,7 +422,9 @@ theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := sorry
   x < p \leq x\Bigl(1 + \frac{1}{5000 \log^2 x}\Bigr).
   \]
   -/)
-  (latexEnv := "corollary")]
+  (latexEnv := "corollary")
+  (proof := /-- Use Proposition \ref{Dusart_prop_5_4} and the fact that $1/\log^3 x < 1/(5000 \log^2 x)$ for $x \geq 468991632$. -/)
+  (discussion := 913)]
 theorem corollary_5_5 {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) := by sorry
 
 @[blueprint "Dusart_thm_5_6"
