@@ -6,6 +6,8 @@ import Mathlib.NumberTheory.Chebyshev
 import Mathlib.Tactic.NormNum.BigOperators
 import PrimeNumberTheoremAnd.LogTables
 import PrimeNumberTheoremAnd.SecondaryDefinitions
+import LeanCert.Engine.ChebyshevPsi
+import LeanCert.Tactic.IntervalAuto
 
 blueprint_comment /--
 \section{Chebyshev's estimates}\label{chebyshev-estimates-sec}
@@ -500,13 +502,37 @@ theorem psi_upper (x : ℝ) (hx : 30 ≤ x) : ψ x ≤ 6 * a * x / 5 + (log (x/5
       exact le_log_iff_exp_le (by linarith)|>.mpr (by linarith [exp_one_lt_three])
     · exact Nat.floor_le (by bound)
 
+set_option linter.style.nativeDecide false in
+open LeanCert.Engine.ChebyshevPsi in
+/-- The incremental checker verifies ψ(N) ≤ 1.11 N for all N = 1, …, 11723.
+    Note: the sparse checkpoint ladder indicated in the blueprint is not needed;
+    brute-force enumeration via `native_decide` suffices. -/
+private theorem allChecks_11723 : checkAllPsiLeMulWith 11723 (111 / 100) 20 = true :=
+  by native_decide
+
 @[blueprint
   "psi-num-2"
   (title := "Numerical bound for $\\psi(x)$ for medium $x$")
   (statement := /-- For $0 < x \leq 11723$, we have $\psi(x) \leq 1.11 x$. -/)
-  (proof := /-- From Lemma \ref{psi-num} we can take $x \geq 30$. If one considers the sequence $x_1,x_2,\dots$ defined by $27, 32, 37, 43, 50, 58, 67, 77, 88, 100, 114, 129, 147, 166, 187, 211, 238, 268, 302, 340, 381, 427, 479, 536, 600, 671, 750, 839, 938, 1048, 1172, 1310, 1464, 1636, 1827, 2041, 2279, 2544, 2839, 3167, 3534, 3943, 4398, 4905, 5471, 6101, 6803, 7586, 8458, 9431, 10515, 11723$ then one should have $\psi(x_{j+1}-1) \leq 1.11 x_j$ for all $j$, which suffices.-/)
+  (proof := /-- Verified by brute-force: an $O(N)$ incremental checker confirms $\psi(N) \leq 1.11 N$ for every integer $N = 1, \ldots, 11723$ via \texttt{native\_decide}. The sparse checkpoint ladder originally described here is not needed. The real-variable case follows by monotonicity of $\psi$. -/)
   (latexEnv := "sublemma")]
-theorem psi_num_2 (x : ℝ) (hx : x > 0) (hx2 : x ≤ 11723) : ψ x ≤ 1.11 * x := by sorry
+theorem psi_num_2 (x : ℝ) (hx : x > 0) (hx2 : x ≤ 11723) : ψ x ≤ 1.11 * x := by
+  open LeanCert.Engine.ChebyshevPsi in
+  rw [Chebyshev.psi_eq_psi_coe_floor x]
+  have hnn : (0 : ℝ) ≤ x := le_of_lt hx
+  have hfloor_le : ⌊x⌋₊ ≤ 11723 := Nat.floor_le_of_le hx2
+  rcases Nat.eq_zero_or_pos ⌊x⌋₊ with hf | hf
+  · simp only [hf, Nat.cast_zero]
+    rw [Chebyshev.psi_eq_zero_of_lt_two (by norm_num : (0:ℝ) < 2)]
+    linarith
+  · have hcheck := checkAllPsiLeMulWith_implies_checkPsiLeMulWith
+      11723 (111 / 100) 20 allChecks_11723 ⌊x⌋₊ hf hfloor_le
+    have h1 := psi_le_of_checkPsiLeMulWith ⌊x⌋₊ 20 (111 / 100) hcheck
+    have hcast : ((111 / 100 : ℚ) : ℝ) = 111 / 100 := by norm_num
+    rw [hcast] at h1
+    calc ψ (⌊x⌋₊ : ℝ) ≤ 111 / 100 * ⌊x⌋₊ := h1
+      _ ≤ 111 / 100 * x := by gcongr; exact Nat.floor_le hnn
+      _ = 1.11 * x := by norm_num
 
 @[blueprint
   "psi-upper-clean"
@@ -515,6 +541,51 @@ theorem psi_num_2 (x : ℝ) (hx : x > 0) (hx2 : x ≤ 11723) : ψ x ≤ 1.11 * x
   (proof := /-- Strong induction on $x$.  For $x \leq 11723$ one can use Sublemma \ref{psi-num-2}.  Otherwise, we can use Proposition \ref{psi-diff-upper} and the triangle inequality. -/)
   (latexEnv := "theorem")
   (discussion := 844)]
-theorem psi_upper_clean (x : ℝ) (hx : x > 0) : ψ x ≤ 1.11 * x := by sorry
+theorem psi_upper_clean (x : ℝ) (hx : x > 0) : ψ x ≤ 1.11 * x := by
+  have hlog_large : ∀ y : ℝ, 11723 < y → 5 * log y - 5 ≤ (37 / 10000 : ℝ) * y := by
+    intro y hy
+    have hlog_y : log y ≤ log 11723 + (y / 11723 - 1) := by
+      calc log y = log (11723 * (y / 11723)) := by
+              rw [mul_div_cancel₀ _ (by norm_num : (11723 : ℝ) ≠ 0)]
+        _ = log 11723 + log (y / 11723) :=
+              Real.log_mul (by norm_num) (by positivity)
+        _ ≤ log 11723 + (y / 11723 - 1) := by
+              linarith [Real.log_le_sub_one_of_pos (show 0 < y / 11723 by positivity)]
+    have hlog_11723 : log (11723 : ℝ) ≤ 937 / 100 := by interval_decide
+    calc 5 * log y - 5
+        ≤ 5 * (937 / 100 + (y / 11723 - 1)) - 5 := by linarith
+      _ = 5 / 11723 * y + 3685 / 100 := by ring
+      _ ≤ 37 / 10000 * y := by linarith
+  have hNat : ∀ n : ℕ, ψ (n : ℝ) ≤ 1.11 * n := by
+    intro n
+    refine Nat.strong_induction_on n ?_
+    intro n ih
+    by_cases hn0 : n = 0
+    · subst hn0; simp [Chebyshev.psi_eq_zero_of_lt_two (by norm_num : (0 : ℝ) < 2)]
+    · have hn : 0 < n := Nat.pos_of_ne_zero hn0
+      by_cases hsmall : (n : ℝ) ≤ 11723
+      · exact psi_num_2 n (by exact_mod_cast hn) hsmall
+      · push_neg at hsmall
+        let m : ℕ := ⌊(n : ℝ) / 6⌋₊
+        have hm_lt_n : m < n := by
+          have : (m : ℝ) < n := calc
+            (m : ℝ) ≤ n / 6 := Nat.floor_le (by positivity)
+            _ < n := by nlinarith [show (0 : ℝ) < n from by exact_mod_cast hn]
+          exact_mod_cast this
+        have hpsi_div : ψ ((n : ℝ) / 6) ≤ 1.11 * ((n : ℝ) / 6) := calc
+          ψ ((n : ℝ) / 6) = ψ (m : ℝ) := by simp [m, Chebyshev.psi_eq_psi_coe_floor]
+          _ ≤ 1.11 * (m : ℝ) := ih m hm_lt_n
+          _ ≤ 1.11 * ((n : ℝ) / 6) := by
+              nlinarith [Nat.floor_le (show 0 ≤ (n : ℝ) / 6 by positivity)]
+        calc ψ (n : ℝ)
+            ≤ ψ ((n : ℝ) / 6) + a * n + 5 * log (n : ℝ) - 5 := by
+                linarith [psi_diff_upper (n : ℝ) (by linarith)]
+          _ ≤ 1.11 * ((n : ℝ) / 6) + 0.92130 * n + (37 / 10000 : ℝ) * n := by
+                nlinarith [hpsi_div, hlog_large (n : ℝ) hsmall, a_bound.2,
+                  show (0 : ℝ) < n from by exact_mod_cast hn]
+          _ = 1.11 * n := by ring
+  rw [Chebyshev.psi_eq_psi_coe_floor x]
+  calc ψ (⌊x⌋₊ : ℝ) ≤ 1.11 * ⌊x⌋₊ := hNat ⌊x⌋₊
+    _ ≤ 1.11 * x := by nlinarith [Nat.floor_le hx.le]
 
 end Chebyshev
