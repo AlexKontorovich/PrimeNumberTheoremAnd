@@ -33,13 +33,13 @@ An arithmetic function `IsAdditive` if it satisfies the property that for any tw
 -/
 @[blueprint
   "IsAdditive"
-  (statement := /-- Additive arithmetic function: satisfies `f(mn) = f(m) + f(n)` for coprime `m, n`. -/)]
+  (statement := /-- Additive arithmetic function: satisfies $f(mn) = f(m) + f(n)$ for coprime $m$, $n$. -/)]
 def IsAdditive [AddZeroClass R] (f : ArithmeticFunction R) : Prop :=
   ∀ {m n : ℕ}, m ≠ 0 → n ≠ 0 → Coprime m n → f (m * n) = f m + f n
 
 @[blueprint
   "IsCompletelyAdditive"
-  (statement := /-- Completely additive arithmetic function: satisfies `f(mn) = f(m) + f(n)` for all `m, n ≠ 0`. -/)]
+  (statement := /-- Completely additive arithmetic function: satisfies $f(mn) = f(m) + f(n)$ for all $m, n \ne 0$. -/)]
 def IsCompletelyAdditive [AddZeroClass R] (f : ArithmeticFunction R) : Prop :=
   ∀ {m n}, m ≠ 0 → n ≠ 0 → f (m * n) = f m + f n
 
@@ -52,19 +52,73 @@ lemma IsCompletelyAdditive.isAdditive [AddZeroClass R] {f : ArithmeticFunction R
 
 -- **Think about more API for additive/completely additive functions, e.g. `f (p^k) = k * f p` for prime p, etc.**
 
+@[blueprint
+  "unique_divisor_decomposition"
+  (statement := /-- If $a$ and $b$ are coprime, then any divisor $d$ of $ab$ can be uniquely expressed as a product of a divisor of $a$ and a divisor of $b$. -/)
+  (proof := /--
+  Let $a$ and $b$ be coprime natural numbers, and let $d$ be a divisor of $ab$. Since $a$ and $b$ are coprime, we can use the fact that the divisors of $ab$ correspond to pairs of divisors of $a$ and $b$. Specifically, we can express $d$ as $d = d_a \cdot d_b$, where $d_a$ divides $a$ and $d_b$ divides $b$. The uniqueness of this decomposition follows from the coprimality of $a$ and $b$, which ensures that the divisors of $a$ and $b$ do not share any common factors. Therefore, there is a one-to-one correspondence between the divisors of $ab$ and the pairs of divisors of $a$ and $b$, which guarantees the uniqueness of the decomposition.
+  -/)]
+lemma unique_divisor_decomposition {a b d : ℕ} (hab : Coprime a b) (hd : d ∣ a * b) :
+    ∃! p : ℕ × ℕ, p.1 ∣ a ∧ p.2 ∣ b ∧ p.1 * p.2 = d := by
+  sorry
+
+/-- If `f` is a multiplicative arithmetic function, then for coprime `a` and `b`, we have $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$. -/
+@[blueprint
+  "sum_divisors_mul_of_coprime"
+  (statement := /-- If $f$ is a multiplicative arithmetic function, then for coprime, nonzero $a$ and $b$, we have that
+  $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$. -/)
+  (proof := /--
+  Since $f$ is multiplicative, we can express the sum over divisors of $ab$ in terms of the sums over divisors of $a$ and $b$. The key idea is to use the fact that the divisors of $ab$ can be expressed as products of divisors of $a$ and divisors of $b$, due to the coprimality condition. Specifically, each divisor $d$ of $ab$ can be uniquely written as $d = d_a * d_b$, where $d_a$ divides $a$ and $d_b$ divides $b$. Therefore, we can rewrite the sum as a double sum over the divisors of $a$ and $b$, which factorizes into the product of the two separate sums.
+  -/)]
+theorem sum_divisors_mul_of_coprime {R : Type*} [CommRing R]
+    {f : ArithmeticFunction R} (hf : f.IsMultiplicative)
+    {a b : ℕ} (hab : Coprime a b) (ha : a ≠ 0) (hb : b ≠ 0) :
+    ∑ d ∈ (a * b).divisors, f d = (∑ d ∈ a.divisors, f d) * (∑ d ∈ b.divisors, f d) := by
+  sorry
+
 /-- If `g` is a multiplicative arithmetic function, then for any $n \neq 0$,
-    $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p \in n.\text{primeFactors}} (1 - g(p))$. -/
+    $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$. -/
 @[blueprint
   "sum_moebius_pmul_eq_prod_one_sub"
-  (statement := /-- If `g` is a multiplicative arithmetic function, then for any $n \neq 0$,
-    $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p \in n.\text{primeFactors}} (1 - g(p))$. -/)
+  (statement := /-- If $g$ is a multiplicative arithmetic function, then for any $n \neq 0$,
+    $\sum_{d | n} \mu(d) \cdot g(d) = \prod_{p | n} (1 - g(p))$. -/)
   (proof := /--
   Multiply out and collect terms.
   -/)]
 theorem sum_moebius_pmul_eq_prod_one_sub {R : Type*} [CommRing R]
-    {g : ArithmeticFunction R} (hg : g.IsMultiplicative) {n : ℕ} (hn : n ≠ 0) :
+    {g : ArithmeticFunction R} (hg : g.IsMultiplicative) (n : ℕ) : n ≠ 0 →
     ∑ d ∈ n.divisors, (moebius d : R) * g d = ∏ p ∈ n.primeFactors, (1 - g p) := by
-  sorry
+  induction n using Nat.recOnPosPrimePosCoprime with
+  | zero => intro h; exact absurd rfl h
+  | one => exact fun _ ↦ by simp [hg.map_one]
+  | prime_pow p k hp hk =>
+    refine fun _ ↦ ?_
+    rw [Nat.primeFactors_prime_pow hk.ne' hp, Finset.prod_singleton, sum_divisors_prime_pow hp,
+      Finset.sum_range_succ']
+    simp only [pow_zero, moebius_apply_one, Int.cast_one, hg.map_one, mul_one]
+    rw [Finset.sum_eq_single_of_mem 0 (Finset.mem_range.mpr hk)]
+    · simp only [zero_add, pow_one, moebius_apply_prime hp, Int.reduceNeg, Int.cast_neg,
+        Int.cast_one, neg_mul, one_mul]; ring
+    · intro i _ hi
+      have hnsq : ¬Squarefree (p ^ (i + 1)) := by
+        rw [Nat.squarefree_pow_iff hp.ne_one (by omega : i + 1 ≠ 0)]
+        omega
+      rw [moebius_eq_zero_of_not_squarefree hnsq]
+      simp
+  | coprime a b ha hb hab iha ihb =>
+    intro hn
+    rw [hab.primeFactors_mul, Finset.prod_union hab.disjoint_primeFactors,
+        ← iha (by omega), ← ihb (by omega)]
+    let h : ArithmeticFunction R := ⟨fun n ↦ ↑(moebius n) * g n, by simp⟩
+    have h_mul : h.IsMultiplicative := by
+      refine ⟨?_, ?_⟩
+      · simp [h, ArithmeticFunction.coe_mk, hg.left]
+      · intro m n hmn
+        simp only [h, ArithmeticFunction.coe_mk]
+        rw [ArithmeticFunction.isMultiplicative_moebius.right hmn, hg.right hmn]
+        push_cast
+        ring
+    exact sum_divisors_mul_of_coprime h_mul hab (by omega) (by omega)
 
 /-- The Dirichlet convolution of $\zeta$ with itself is $\tau$ (the divisor count function). -/
 @[blueprint
@@ -76,7 +130,15 @@ theorem sum_moebius_pmul_eq_prod_one_sub {R : Type*} [CommRing R]
   which is exactly the number of divisors of $n$, i.e., $\tau(n)$.
   -/)]
 theorem zeta_mul_zeta : (ζ : ArithmeticFunction ℕ) * ζ = τ := by
-  sorry
+  ext n; unfold zeta tau sigma
+  simp only [mul_apply, coe_mk, mul_ite, mul_zero, mul_one, pow_zero, sum_const, smul_eq_mul]
+  have key : ∀ x ∈ n.divisorsAntidiagonal, (if x.2 = 0 then 0 else if x.1 = 0 then 0 else 1) = 1 := by
+    intro ⟨a, b⟩ hx
+    have := Nat.mem_divisorsAntidiagonal.mp hx
+    simp [mul_ne_zero_iff.mp (this.1 ▸ this.2)]
+  simp_rw [Finset.sum_congr rfl key, Finset.card_eq_sum_ones, Finset.sum_const]
+  simp only [smul_eq_mul, mul_one, ← Nat.map_div_right_divisors]
+  exact card_map { toFun := fun d ↦ (d, n / d), inj' := fun x x_1 ↦ congr_arg Prod.fst }
 
 /-- The L-series of $\tau$ equals the square of the Riemann zeta function for $\Re(s) > 1$. -/
 @[blueprint
@@ -101,7 +163,7 @@ theorem LSeries_tau_eq_riemannZeta_sq {s : ℂ} (hs : 1 < s.re) :
     itself k times. We have `d 0 = 1` (identity), `d 1 = ζ`, `d 2 = σ 0`. -/
 @[blueprint
   "d"
-  (statement := /-- $d k$ is the $k$-fold divisor function: the number of ways to write $n$ as an ordered
+  (statement := /-- $d_k$ is the $k$-fold divisor function: the number of ways to write $n$ as an ordered
     product of $k$ natural numbers. Equivalently, the Dirichlet convolution of $\zeta$ with
     itself $k$ times.-/)]
 def d (k : ℕ) : ArithmeticFunction ℕ := zeta ^ k
@@ -109,56 +171,90 @@ def d (k : ℕ) : ArithmeticFunction ℕ := zeta ^ k
 /-- `d 0` is the multiplicative identity (indicator at 1). -/
 @[blueprint
   "d_zero"
-  (statement := /-- $d 0$ is the multiplicative identity (indicator at 1). -/)
+  (statement := /-- $d_0$ is the multiplicative identity (indicator at 1). -/)
   (proof := /--
-  By definition, $d k$ is the $k$-fold Dirichlet convolution of $\zeta$. When $k = 0$, this corresponds to the empty convolution, which is defined to be the multiplicative identity in the algebra of arithmetic functions. The multiplicative identity is the function that takes the value $1$ at $n=1$ and $0$ elsewhere, which can be expressed as $\zeta^0$.
+  By definition, $d_k$ is the $k$-fold Dirichlet convolution of $\zeta$. When $k = 0$, this corresponds to the empty convolution, which is defined to be the multiplicative identity in the algebra of arithmetic functions. The multiplicative identity is the function that takes the value $1$ at $n=1$ and $0$ elsewhere, which can be expressed as $\zeta^0$.
   -/)]
 theorem d_zero : d 0 = 1 := pow_zero zeta
 
 /-- `d 1` is `ζ`. -/
 @[blueprint
   "d_one"
-  (statement := /-- $d 1$ is $\zeta$. -/)
+  (statement := /-- $d_1$ is $\zeta$. -/)
   (proof := /--
-  By definition, $d k$ is the $k$-fold Dirichlet convolution of $\zeta$. When $k = 1$, this means we are taking the convolution of $\zeta$ with itself once, which simply gives us $\zeta$. Therefore, $d 1 = \zeta^1 = \zeta$.
+  By definition, $d_k$ is the $k$-fold Dirichlet convolution of $\zeta$. When $k = 1$, this means we are taking the convolution of $\zeta$ with itself once, which simply gives us $\zeta$. Therefore, $d_1 = \zeta^1 = \zeta$.
   -/)]
 theorem d_one : d 1 = zeta := pow_one zeta
 
 /-- `d 2` is the classical divisor count function `τ`. -/
 @[blueprint
   "d_two"
-  (statement := /-- $d 2$ is the classical divisor count function $\tau$. -/)
+  (statement := /-- $d_2$ is the classical divisor count function $\tau$. -/)
   (proof := /--
-  By definition, $d k$ is the $k$-fold Dirichlet convolution of $\zeta$. When $k = 2$, this means we are taking the convolution of $\zeta$ with itself twice, which gives us $\zeta * \zeta$. From the earlier theorem, we know that $\zeta * \zeta = \tau$, where $\tau$ is the divisor count function. Therefore, $d 2 = \zeta^2 = \tau$.
+  By definition, $d_k$ is the $k$-fold Dirichlet convolution of $\zeta$. When $k = 2$, this means we are taking the convolution of $\zeta$ with itself twice, which gives us $\zeta * \zeta$. From the earlier theorem, we know that $\zeta * \zeta = \tau$, where $\tau$ is the divisor count function. Therefore, $d_2 = \zeta^2 = \tau$.
   -/)]
 theorem d_two : d 2 = τ := by simp [d, sq, zeta_mul_zeta]
 
-/-- Recurrence: d (k+1) = d k * ζ. -/
+/-- Recurrence: `d_(k+1) = d_k * ζ`. -/
 @[blueprint
   "d_succ"
-  (statement := /-- Recurrence: $d (k+1) = d k * \zeta$. -/)
+  (statement := /-- Recurrence: $d_{k+1} = d_k * \zeta$. -/)
   (proof := /--
-  By definition, $d k$ is the $k$-fold Dirichlet convolution of $\zeta$. Therefore, $d (k + 1)$ is the $(k + 1)$-fold convolution of $\zeta$, which can be expressed as the convolution of $d k$ (the $k$-fold convolution) with $\zeta$. Thus, we have $d (k + 1) = d k * \zeta$.
+  By definition, $d_k$ is the $k$-fold Dirichlet convolution of $\zeta$. Therefore, $d_{k + 1}$ is the $(k + 1)$-fold convolution of $\zeta$, which can be expressed as the convolution of $d_k$ (the $k$-fold convolution) with $\zeta$. Thus, we have $d_{k + 1} = d_k * \zeta$.
   -/)]
 theorem d_succ (k : ℕ) : d (k + 1) = d k * zeta := pow_succ zeta k
+
+/-- The L-series for `d k` is summable -/
+@[blueprint
+  "LSeries_d_summable"
+  (statement := /-- The L-series for $d_k$ is summable for $\Re(s) > 1$. -/)
+  (proof := /--
+  Since $d_k$ is defined as the $k$-fold Dirichlet convolution of $\zeta$, and we know that the L-series of $\zeta$ converges for $\Re(s) > 1$, it follows that the L-series of $d_k$ also converges for $\Re(s) > 1$. This is because the convolution of functions with convergent L-series will also have a convergent L-series in the same region. Therefore, we can conclude that $L(d_k, s)$ is summable for $\Re(s) > 1$.
+  -/)]
+theorem LSeries_d_summable (k : ℕ) {s : ℂ} (hs : 1 < s.re) : LSeriesSummable (↗(d k)) s := by
+  sorry
 
 /-- The L-series of `d k` equals `ζ(s)^k` for `Re(s) > 1`. -/
 @[blueprint
   "LSeries_d_eq_riemannZeta_pow"
-  (statement := /-- The $L$-series of $d k$ equals $\zeta(s)^k$ for $\Re(s) > 1$. -/)
+  (statement := /-- The $L$-series of $d_k$ equals $\zeta(s)^k$ for $\Re(s) > 1$. -/)
   (proof := /--
-  From the definition of $d k$ as the $k$-fold Dirichlet convolution of $\zeta$, we can express $d k$ as $\zeta^k$. The L-series of a Dirichlet convolution corresponds to the product of the L-series of the individual functions. Since $L(\zeta, s)$ is the Riemann zeta function $\zeta(s)$, it follows that $L(d k, s) = L(\zeta^k, s) = (L(\zeta, s))^k = \zeta(s)^k$ for $\Re(s) > 1$ where the series converges.
+  From the definition of $d_k$ as the $k$-fold Dirichlet convolution of $\zeta$, we can express $d_k$ as $\zeta^k$. The L-series of a Dirichlet convolution corresponds to the product of the L-series of the individual functions. Since $L(\zeta, s)$ is the Riemann zeta function $\zeta(s)$, it follows that $L(d_k, s) = L(\zeta^k, s) = (L(\zeta, s))^k = \zeta(s)^k$ for $\Re(s) > 1$ where the series converges.
   -/)]
 theorem LSeries_d_eq_riemannZeta_pow (k : ℕ) {s : ℂ} (hs : 1 < s.re) :
     LSeries (↗(d k)) s = riemannZeta s ^ k := by
-  sorry
+  have natCoe_d_succ (j : ℕ) :
+    (d (j + 1) : ArithmeticFunction ℂ) = (d j : ArithmeticFunction ℂ) * ζ := by
+    rw [d_succ, natCoe_mul]
+  suffices ∀ j, LSeries (↗(d j : ArithmeticFunction ℂ)) s = riemannZeta s ^ j ∧
+      LSeriesSummable (↗(d j : ArithmeticFunction ℂ)) s from (this k).1
+  intro j
+  induction j with
+  | zero =>
+    simp only [d_zero, natCoe_one, pow_zero, one_eq_delta]
+    exact ⟨congr_fun LSeries_delta s,
+      (hasSum_single 1 fun n hn => by simp [LSeries.term_delta, hn]).summable⟩
+  | succ j ih =>
+    obtain ⟨ih_eq, ih_sum⟩ := ih
+    have hζ : LSeriesSummable (↗(ζ : ArithmeticFunction ℂ)) s :=
+      LSeriesSummable_zeta_iff.mpr hs
+    constructor
+    · rw [pow_succ, LSeries_congr (fun {n} _ => show (d (j + 1) : ArithmeticFunction ℂ) n =
+        ((d j : ArithmeticFunction ℂ) * ζ) n by rw [natCoe_d_succ]) s,
+        LSeries_mul' ih_sum hζ, ih_eq]
+      congr 1
+      exact LSeries_zeta_eq_riemannZeta hs
+    · rw [(LSeriesSummable_congr s (fun {n} _ => show (d (j + 1) : ArithmeticFunction ℂ) n =
+        ((d j : ArithmeticFunction ℂ) * ζ) n by rw [natCoe_d_succ]))]
+      exact LSeriesSummable_mul ih_sum hζ
+
 
 /-- `d k` is multiplicative for all `k`. -/
 @[blueprint
   "d_isMultiplicative"
-  (statement := /-- $d k$ is multiplicative for all $k$. (Is $k \ge1$ needed?) -/)
+  (statement := /-- $d_k$ is multiplicative for all $k$. -/)
   (proof := /--
-  The function $d k$ is defined as the $k$-fold Dirichlet convolution of $\zeta$. Since $\zeta$ is a multiplicative function, and the Dirichlet convolution of multiplicative functions is also multiplicative, it follows that $d k$ is multiplicative for all $k$. This can be shown by induction on $k$, using the fact that the convolution of a multiplicative function with another multiplicative function remains multiplicative.
+  The function $d_k$ is defined as the $k$-fold Dirichlet convolution of $\zeta$. Since $\zeta$ is a multiplicative function, and the Dirichlet convolution of multiplicative functions is also multiplicative, it follows that $d_k$ is multiplicative for all $k$. This can be shown by induction on $k$, using the fact that the convolution of a multiplicative function with another multiplicative function remains multiplicative.
   -/)]
 theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
   induction k with
@@ -169,32 +265,32 @@ theorem d_isMultiplicative (k : ℕ) : (d k).IsMultiplicative := by
 /-- Explicit formula: `d k (p^a) = (a + k - 1).choose (k - 1) for prime p` for `k ≥ 1`. -/
 @[blueprint
   "d_apply_prime_pow"
-  (statement := /-- Explicit formula: $d k (p^a) = (a + k - 1).choose (k - 1)$ for prime $p$ and $k \geq 1$. -/)
+  (statement := /-- Explicit formula: $d_k (p^a) = (a + k - 1).choose (k - 1)$ for prime $p$ and $k \geq 1$. -/)
   (proof := /--
-  The function $d k$ counts the number of ways to write a natural number as an ordered product of $k$ natural numbers. For a prime power $p^a$, the number of ways to factor it into $k$ factors corresponds to the number of non-negative integer solutions to the equation $x_1 + x_2 + ... + x_k = a$, where each $x_i$ represents the exponent of $p$ in the factorization of the corresponding factor. This is a classic combinatorial problem, and the number of solutions is given by the formula $(a + k - 1).choose (k - 1)$, which counts the ways to distribute $a$ indistinguishable items (the prime factors) into $k$ distinguishable boxes (the factors).
+  The function $d_k$ counts the number of ways to write a natural number as an ordered product of $k$ natural numbers. For a prime power $p^a$, the number of ways to factor it into $k$ factors corresponds to the number of non-negative integer solutions to the equation $x_1 + x_2 + ... + x_k = a$, where each $x_i$ represents the exponent of $p$ in the factorization of the corresponding factor. This is a classic combinatorial problem, and the number of solutions is given by the formula $(a + k - 1).choose (k - 1)$, which counts the ways to distribute $a$ indistinguishable items (the prime factors) into $k$ distinguishable boxes (the factors).
   -/)]
 theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : ℕ) :
     d k (p ^ a) = (a + k - 1).choose (k - 1) := by
   sorry
 
-/-- (1.25) in Iwaniec-Kowalski: a formula for `d k` for all `n`. -/
+/-- (1.25) in Iwaniec-Kowalski: a formula for `d_k` for all `n`.-/
 @[blueprint
   "d_apply"
-  (statement := /-- (1.25) in Iwaniec-Kowalski: a formula for $d k$ for all $n$. -/)
+  (statement := /-- (1.25) in Iwaniec-Kowalski: a formula for $d_k$ for all $n$. -/)
   (proof := /--
-  The function $d k$ is multiplicative, so to compute $d k(n)$ for a general natural number $n$, we can factor $n$ into its prime power decomposition: $n = p_1^{a_1} p_2^{a_2} ... p_m^{a_m}$. Since $d k$ is multiplicative, we have:
+  The function $d_k$ is multiplicative, so to compute $d_k(n)$ for a general natural number $n$, we can factor $n$ into its prime power decomposition: $n = p_1^{a_1} p_2^{a_2} ... p_m^{a_m}$. Since $d_k$ is multiplicative, we have:
 
   \[
-  d k(n) = d k(p_1^{a_1}) \cdot d k(p_2^{a_2}) \cdot ... \cdot d k(p_m^{a_m})
+  d_k(n) = d_k(p_1^{a_1}) \cdot d_k(p_2^{a_2}) \cdot ... \cdot d_k(p_m^{a_m})
   \]
 
   Using the explicit formula for prime powers from the previous theorem, we can substitute to get:
 
   \[
-  d k(n) = \prod_{i=1}^{m} (a_i + k - 1).choose (k - 1)
+  d_k(n) = \prod_{i=1}^{m} (a_i + k - 1).choose (k - 1)
   \]
 
-  This gives us a complete formula for $d k(n)$ in terms of the prime factorization of $n$.
+  This gives us a complete formula for $d_k(n)$ in terms of the prime factorization of $n$.
   -/)]
 lemma d_apply {k n : ℕ} (hk : 0 < k) (hn : n ≠ 0) :
     d k n = ∏ p ∈ n.primeFactors, (n.factorization p + k - 1).choose (k - 1) := by
@@ -202,22 +298,26 @@ lemma d_apply {k n : ℕ} (hk : 0 < k) (hn : n ≠ 0) :
 
 /-- Divisor power sum with exponents in an arbitrary semiring `R`. -/
 @[blueprint
-  "sigmaC"
+  "sigmaR"
   (statement := /-- Divisor power sum with complex exponent. -/)]
-noncomputable def sigmaC {R : Type*} [Semiring R] [HPow R R R] (s : R) : ArithmeticFunction R where
+noncomputable def sigmaR {R : Type*} [Semiring R] [HPow R R R] (s : R) : ArithmeticFunction R where
   toFun := fun n ↦ ∑ d ∈ n.divisors, (d : R) ^ s
   map_zero' := by simp
 
-/-- For natural exponents, sigmaC agrees with sigma. -/
+@[inherit_doc]
+scoped[ArithmeticFunction] notation "σᴿ" => ArithmeticFunction.sigmaR
+
+/-- For natural exponents, sigmaR agrees with sigma. -/
 @[blueprint
-  "sigmaC_natCast"
-  (statement := /-- For natural exponents, $\sigma_C$ agrees with $\sigma$. -/)
+  "sigmaR_natCast"
+  (statement := /-- For natural exponents, $\sigma_R$ agrees with $\sigma$. -/)
   (proof := /--
-  The function $\sigma_C$ is defined as the sum of the $s$-th powers of the divisors of $n$. When $s$ is a natural number $k$, this definition coincides with the classical divisor power sum function $\sigma k n$, which also sums the $k$-th powers of the divisors of $n$. Therefore, for natural exponents, we have $\sigma_C k n = \sigma k n$ when we view $\sigma k n$ as a complex number. This can be shown by directly comparing the definitions and noting that both functions sum over the same set of divisors with the same exponentiation.
+  The function $\sigma_R$ is defined as the sum of the $s$-th powers of the divisors of $n$. When $s$ is a natural number $k$, this definition coincides with the classical divisor power sum function $\sigma k n$, which also sums the $k$-th powers of the divisors of $n$. Therefore, for natural exponents, we have $\sigma_R k n = \sigma k n$ when we view $\sigma k n$ as a complex number. This can be shown by directly comparing the definitions and noting that both functions sum over the same set of divisors with the same exponentiation.
   -/)]
-lemma sigmaC_natCast (k : ℕ) (n : ℕ) :
-    sigmaC k n = (σ k n : ℂ) := by
-  sorry
+lemma sigmaR_natCast (k n : ℕ) :
+    σᴿ k n = σ k n := by
+  unfold sigmaR sigma
+  simp
 
 /-- `ζ(s)ζ(s - ν) = Σ σ_ν(n) n^(-s)` for `Re(s) > 1` and `Re(s - ν) > 1`. -/
 @[blueprint
@@ -227,7 +327,7 @@ lemma sigmaC_natCast (k : ℕ) (n : ℕ) :
   The divisor power sum function $\sigma_\nu$ is the Dirichlet convolution of the constant function $1$ (i.e., $\zeta$) and the power function $n \mapsto n^\nu$. The L-series of a Dirichlet convolution is the product of the L-series of the individual functions. Since $L(1, s) = \zeta(s)$ and $L(n \mapsto n^\nu, s) = \zeta(s - \nu)$, we have $L(\sigma_\nu, s) = \zeta(s) \cdot \zeta(s - \nu)$ for $\Re(s) > 1$ and $\Re(s - \nu) > 1$.
   -/)]
 theorem LSeries_sigma_eq_riemannZeta_mul (ν : ℂ) {s : ℂ} (hs : 1 < s.re) (hsν : 1 < (s - ν).re) :
-    LSeries (↗(sigmaC ν)) s = riemannZeta s * riemannZeta (s - ν) := by
+    LSeries (↗(σᴿ ν)) s = riemannZeta s * riemannZeta (s - ν) := by
   sorry
 
 /-
@@ -235,6 +335,13 @@ Serious conversation to be had over zulip:
 
 Do we want to change the `σ` function in Mathlib (NumberTheory.ArithmeticFunction.Misc) to take values in `ℕ` or `ℚ` or `ℝ` or `ℂ`, (like `[RorCLike]` for functions elsewhere) so that we can do the general theory. Alternative: define a second `σ` that plays this
 more general role, and have the current `σ` be a special case of it.
+
+Answer: make `σ[R] k` and prove all existing API for it, then derive original `σ k` as `σ[ℕ] k` as a
+special case.
+
+Next time: Make `σᴿ` versions of all existing `σ` API.
 -/
+
+
 
 end ArithmeticFunction
