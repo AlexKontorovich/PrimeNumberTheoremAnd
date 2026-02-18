@@ -60,7 +60,29 @@ lemma IsCompletelyAdditive.isAdditive [AddZeroClass R] {f : ArithmeticFunction R
   -/)]
 lemma unique_divisor_decomposition {a b d : ℕ} (hab : Coprime a b) (hd : d ∣ a * b) :
     ∃! p : ℕ × ℕ, p.1 ∣ a ∧ p.2 ∣ b ∧ p.1 * p.2 = d := by
-  sorry
+  -- Existence
+  obtain ⟨d₁, d₂, h1, h2, h3⟩ := exists_dvd_and_dvd_of_dvd_mul hd
+  refine ⟨(d₁, d₂), ⟨h1, h2, h3.symm⟩, ?_⟩
+  -- Uniqueness
+  rintro ⟨q₁, q₂⟩ ⟨hq1, hq2, hq3⟩
+  have h_eq : d₁ * d₂ = q₁ * q₂ := by rw [← h3, ← hq3]
+  apply Prod.ext
+  -- d₁ = q₁
+  · apply dvd_antisymm
+    -- q₁ | d₁
+    · have : Coprime q₁ d₂ := (hab.coprime_dvd_left hq1).coprime_dvd_right h2
+      exact this.dvd_of_dvd_mul_right (by rw [h_eq]; apply dvd_mul_right)
+    -- d₁ | q₁
+    · have : Coprime d₁ q₂ := (hab.coprime_dvd_left h1).coprime_dvd_right hq2
+      exact this.dvd_of_dvd_mul_right (by rw [← h_eq]; apply dvd_mul_right)
+  -- d₂ = q₂
+  · apply dvd_antisymm
+    -- q₂ ∣ d₂
+    · have : Coprime q₂ d₁ := (hab.symm.coprime_dvd_left hq2).coprime_dvd_right h1
+      exact this.dvd_of_dvd_mul_left (by rw [h_eq]; apply dvd_mul_left)
+    -- d₂ ∣ q₂
+    · have : Coprime d₂ q₁ := (hab.symm.coprime_dvd_left h2).coprime_dvd_right hq1
+      exact this.dvd_of_dvd_mul_left (by rw [← h_eq]; apply dvd_mul_left)
 
 /-- If `f` is a multiplicative arithmetic function, then for coprime `a` and `b`, we have $\sum_{d | ab} f(d) = (\sum_{d | a} f(d)) \cdot (\sum_{d | b} f(d))$. -/
 @[blueprint
