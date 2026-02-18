@@ -890,13 +890,11 @@ theorem nu_asymp_le_remark_15_margin (x₀ : ℝ) (h : Real.log x₀ ≥ 1000) :
     h_main2.trans h_tail
   simpa [remark_15_margin] using h_final
 
-/-- If you want the exact form Codex mentioned: `≤ table_15_margin - 1`. -/
-def table_15_margin : ℝ := 1 + remark_15_margin
-
-theorem nu_asymp_le_table_15_margin_sub_one (x₀ : ℝ) (h : Real.log x₀ ≥ 1000) :
-    ν_asymp (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ ≤ table_15_margin - 1 := by
+/-- A rewritten form of `nu_asymp_le_remark_15_margin`. -/
+theorem nu_asymp_le_remark_15_margin_sub_one (x₀ : ℝ) (h : Real.log x₀ ≥ 1000) :
+    ν_asymp (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ ≤ (1 + remark_15_margin) - 1 := by
   -- this is just rewriting
-  simpa [table_15_margin, remark_15_margin] using (nu_asymp_le_remark_15_margin x₀ h)
+  simpa [remark_15_margin] using (nu_asymp_le_remark_15_margin x₀ h)
 
 
 
@@ -1373,9 +1371,9 @@ theorem corollary_14 : Eθ.classicalBound 121.0961 (3/2) 2 5.5666305 2 := by
 
 
 theorem remark_15' (x₀ : ℝ) (h : log x₀ ≥ 1000) :
-    Eθ.classicalBound ((FKS.A x₀) * table_15_margin) (3 / 2) 2 5.5666305 x₀ := by
-    have hν : ν_asymp (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ ≤ table_15_margin - 1 := by
-      exact nu_asymp_le_table_15_margin_sub_one x₀ h
+    Eθ.classicalBound ((FKS.A x₀) * (1 + remark_15_margin)) (3 / 2) 2 5.5666305 x₀ := by
+    have hν : ν_asymp (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ ≤ (1 + remark_15_margin) - 1 := by
+      exact nu_asymp_le_remark_15_margin_sub_one x₀ h
     have hEψ : Eψ.classicalBound (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ :=
       FKS.theorem_1_2b x₀ h
     have hB : (3 / 2 : ℝ) > 2 ^ 2 / (8 * (5.5666305 : ℝ)) := by
@@ -1424,8 +1422,8 @@ theorem remark_15' (x₀ : ℝ) (h : log x₀ ≥ 1000) :
       exact nonneg_of_mul_nonneg_right hmul_nonneg' hfactor_pos
     have hA :
         (FKS.A x₀) * (1 + ν_asymp (FKS.A x₀) (3 / 2) 2 5.5666305 x₀) ≤
-          (FKS.A x₀) * table_15_margin := by
-      have h1 : 1 + ν_asymp (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ ≤ table_15_margin := by
+          (FKS.A x₀) * (1 + remark_15_margin) := by
+      have h1 : 1 + ν_asymp (FKS.A x₀) (3 / 2) 2 5.5666305 x₀ ≤ 1 + remark_15_margin := by
         linarith
       exact mul_le_mul_of_nonneg_left h1 hA_nonneg
     intro x hx
@@ -1445,7 +1443,7 @@ theorem remark_15' (x₀ : ℝ) (h : log x₀ ≥ 1000) :
     have hA' :
         ((FKS.A x₀) * (1 + ν_asymp (FKS.A x₀) (3 / 2) 2 5.5666305 x₀)) *
             (log x / (5.5666305 : ℝ)) ^ (3 / 2 : ℝ) ≤
-          ((FKS.A x₀) * table_15_margin) * (log x / (5.5666305 : ℝ)) ^ (3 / 2 : ℝ) :=
+          ((FKS.A x₀) * (1 + remark_15_margin)) * (log x / (5.5666305 : ℝ)) ^ (3 / 2 : ℝ) :=
       mul_le_mul_of_nonneg_right hA hrpow_nonneg
     exact le_trans hθx (mul_le_mul_of_nonneg_right hA' (Real.exp_nonneg _))
 
