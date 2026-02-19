@@ -273,7 +273,7 @@ theorem d_apply_prime_pow {k : ℕ} (hk : 0 < k) {p : ℕ} (hp : p.Prime) (a : �
     d k (p ^ a) = (a + k - 1).choose (k - 1) := by
   sorry
 
-/-- (1.25) in Iwaniec-Kowalski: a formula for `d_k` for all `n`.-/
+/-- (1.25) in Iwaniec-Kowalski: a formula for `d k` for all `n`.-/
 @[blueprint
   "d_apply"
   (statement := /-- (1.25) in Iwaniec-Kowalski: a formula for $d_k$ for all $n$. -/)
