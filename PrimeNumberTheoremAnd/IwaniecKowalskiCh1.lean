@@ -319,6 +319,61 @@ lemma sigmaR_natCast (k n : ℕ) :
   unfold sigmaR sigma
   simp
 
+@[blueprint
+  "powR"
+  (statement := /-- Arithmetic function with complex parameter $\nu$. Evaluates as $n\mapsto n^{\nu}$ for $n\neq0$ and $0$ at $n=0$. -/)]
+noncomputable def powR (ν : ℂ) : ArithmeticFunction ℂ :=
+  ⟨fun n ↦ if n = 0 then 0 else (n : ℂ) ^ ν, by grind⟩
+
+@[blueprint
+  "sigmaR_eq_zeta_mul_powR"
+  (statement := /-- $\sigma_R(\nu) = \zeta * \text{pow}_R(\nu)$, where $\zeta$ is the constant function $1$. -/)
+  (proof := /--
+  The function $\sigma_R(\nu)$ is defined as the sum of the $\nu$-th powers of the divisors of $n$. The function $\text{pow}_R(\nu)$ is defined as $n \mapsto n^\nu$ for $n \neq 0$ and $0$ for $n = 0$. The Dirichlet convolution of $\zeta$ (the constant function $1$) and $\text{pow}_R(\nu)$ is exactly $\sigma_R(\nu)$, since for each divisor $d$ of $n$, we have $(\zeta * \text{pow}_R(\nu))(n) = \sum_{d|n} 1 \cdot d^\nu = \sigma_R(\nu)(n)$. Thus, we have $\sigma_R(\nu) = \zeta * \text{pow}_R(\nu)$.
+  -/)]
+lemma sigmaR_eq_zeta_mul_powR (ν : ℂ) : sigmaR ν = (zeta : ArithmeticFunction ℂ) * powR ν := by
+  ext n;
+  by_cases hn : n = 0 <;> simp only [ hn, ArithmeticFunction.sigmaR, ArithmeticFunction.powR,
+  ArithmeticFunction.zeta, map_zero, coe_mk, mul_apply, natCoe_apply, cast_ite, CharP.cast_eq_zero,
+  cast_one, mul_ite, mul_zero, ite_mul, zero_mul, one_mul]
+  rw [ Nat.sum_divisorsAntidiagonal fun x y => if y = 0 then 0 else if x = 0 then 0 else ( y : ℂ ) ^ ν, ← Nat.sum_div_divisors ];
+  exact Finset.sum_congr rfl fun x hx => by rw [ if_neg ( Nat.ne_of_gt ( Nat.div_pos ( Nat.le_of_dvd ( Nat.pos_of_ne_zero hn ) ( Nat.dvd_of_mem_divisors hx ) ) ( Nat.pos_of_mem_divisors hx ) ) ), if_neg ( Nat.ne_of_gt ( Nat.pos_of_mem_divisors hx ) ) ] ;
+
+@[blueprint
+  "LSeries_powR_eq"
+  (statement := /-- $L(\text{pow}_R(\nu), s) = \zeta(s - \nu)$ for $\Re(s - \nu) > 1$. -/)
+  (proof := /--
+  The function $\text{pow}_R(\nu)$ is defined as $n \mapsto n^\nu$ for $n \neq 0$ and $0$ for $n = 0$. The L-series of $\text{pow}_R(\nu)$ at $s$ is given by the sum $\sum_{n=1}^{\infty} n^{\nu - s}$. This series converges to the Riemann zeta function $\zeta(s - \nu)$ for $\Re(s - \nu) > 1$, since the zeta function is defined as $\zeta(s) = \sum_{n=1}^{\infty} n^{-s}$ for $\Re(s) > 1$. Therefore, we have $L(\text{pow}_R(\nu), s) = \zeta(s - \nu)$ under the condition that $\Re(s - \nu) > 1$.
+  -/)]
+lemma LSeries_powR_eq (ν : ℂ) {s : ℂ} (hs : 1 < (s - ν).re) :
+    LSeries (powR ν) s = riemannZeta (s - ν) := by
+  convert ( LSeries_congr _ _ ) using 1;
+  · rw [ zeta_eq_tsum_one_div_nat_cpow hs ];
+    · refine tsum_congr fun n => ?_;
+      by_cases hn : n = 0
+      · simp only [LSeries.term, hn, one_div, CharP.cast_eq_zero, ↓reduceIte, inv_eq_zero, Complex.cpow_eq_zero_iff,
+          ne_eq, true_and]
+        exact sub_ne_zero_of_ne (by rintro rfl; norm_num at hs)
+      · simp only [one_div];
+        rw [← Complex.cpow_neg, neg_sub, Complex.cpow_sub];
+        · exact Eq.symm (LSeries.term_of_ne_zero hn (fun n ↦ ↑n ^ ν) s)
+        · exact cast_ne_zero.mpr hn
+  · unfold ArithmeticFunction.powR; aesop;
+
+@[blueprint
+  "abscissa_powR_le"
+  (statement := /-- The abscissa of absolute convergence of $L(\text{pow}_R(\nu), s)$ is at most $\Re(\nu) + 1$. -/)
+  (proof := /--
+  We apply LSeries.abscissaOfAbsConv_le_of_le_const_mul_rpow which states that if there exists a constant $C$ such that $\|f(n)\| \leq C \cdot n^r$ for all $n$ sufficiently large, then the abscissa of absolute convergence of $L(f, s)$ is at most $r + 1$. In our case, we can take $f(n) = n^\nu$ and observe that $\|n^\nu\| = n^{\Re(\nu)}$. Thus, we can choose $C = 1$ and $r = \Re(\nu)$, which gives us the desired result that the abscissa of absolute convergence of $L(\text{pow}_R(\nu), s)$ is at most $\Re(\nu) + 1$.
+  -/)]
+lemma abscissa_powR_le (ν : ℂ) : LSeries.abscissaOfAbsConv (powR ν) ≤ ν.re + 1 := by
+  have h_abs_le : ∀ n : ℕ, n ≠ 0 → ‖(powR ν n : ℂ)‖ ≤ (n : ℝ) ^ ν.re := by
+    intros n hn_nonzero
+    simp only [ArithmeticFunction.powR, hn_nonzero, coe_mk, ↓reduceIte];
+    rw [ ← Complex.ofReal_natCast, Complex.norm_cpow_eq_rpow_re_of_pos ( Nat.cast_pos.mpr <| Nat.pos_of_ne_zero hn_nonzero ) ]
+  apply_rules [ LSeries.abscissaOfAbsConv_le_of_le_const_mul_rpow ];
+  exact ⟨ 1, fun n hn => by simpa using h_abs_le n hn ⟩
+
 /-- `ζ(s)ζ(s - ν) = Σ σ_ν(n) n^(-s)` for `Re(s) > 1` and `Re(s - ν) > 1`. -/
 @[blueprint
   "LSeries_sigma_eq_riemannZeta_mul"
@@ -328,7 +383,13 @@ lemma sigmaR_natCast (k n : ℕ) :
   -/)]
 theorem LSeries_sigma_eq_riemannZeta_mul (ν : ℂ) {s : ℂ} (hs : 1 < s.re) (hsν : 1 < (s - ν).re) :
     LSeries (↗(σᴿ ν)) s = riemannZeta s * riemannZeta (s - ν) := by
-  sorry
+  rw [ ← ArithmeticFunction.LSeries_zeta_eq_riemannZeta hs, ← LSeries_powR_eq ν hsν, sigmaR_eq_zeta_mul_powR];
+  apply ArithmeticFunction.LSeries_mul
+  · apply (ArithmeticFunction.abscissaOfAbsConv_zeta.trans_lt _ )
+    exact_mod_cast hs
+  · apply lt_of_le_of_lt (abscissa_powR_le ν)
+    rw[Complex.sub_re] at hsν
+    exact_mod_cast (by linarith)
 
 /-
 Serious conversation to be had over zulip:
