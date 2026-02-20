@@ -2143,6 +2143,7 @@ theorem Params.initial.score_bound (P : Params) :
             ((↑P.M * Real.log ↑P.n + ↑P.M * ↑P.L ^ 2 * ↑P.n.primeCounting) * Real.log ↑P.L) with hRHS4
 
       have hA1 : A1 ≤ RHS4 := by
+
         sorry
 
       have hA2 : A2 ≤ RHS2 := by
@@ -2154,8 +2155,99 @@ theorem Params.initial.score_bound (P : Params) :
         sorry
 
       have hA3log : Real.log ↑P.n + A3 ≤ RHS1 := by
+        let A3set : Finset ℕ :=
+          (P.n + 1).primesBelow.filter (fun x => A3prop x)
+        have hgA3 : ∀ x, x ∈ A3set → g x ≤ (↑P.M * Real.log ↑P.n) := by
+          intro x hx
+          simp only [Finset.mem_filter, A3set, A3prop] at hx
+          have hx_sqrt : Real.sqrt (↑P.n) < (↑x : ℝ) := hx.2.1
+          have := hx.1
+          simp only [primesBelow, Finset.mem_filter, Finset.mem_range,
+            Order.lt_add_one_iff] at this
+          have hx_le_n : (x : ℕ) ≤ P.n := this.1
+          have hbal_le_M : (P.initial.balance x : ℝ) ≤ (↑P.M : ℝ) := by
+            exact_mod_cast h4 (p:=x) hx_sqrt
 
-        sorry
+          by_cases hb : 0 < P.initial.balance x
+          · -- balance positive: g x = balance*log x
+            dsimp [g, hb]
+            have : Real.log (↑x : ℝ) ≤ Real.log (↑P.n : ℝ) := by
+              apply Real.log_le_log
+              · have : (0 : ℝ) ≤ √P.n := by
+                  positivity
+                linarith
+              · exact_mod_cast this.1
+            simp only [hb, ↓reduceIte, ge_iff_le]
+            gcongr
+          · -- balance ≤ 0
+            have hb' : P.initial.balance x ≤ 0 := le_of_not_gt hb
+            -- here x > L in your regime, so g uses log(n/x) branch:
+            -- g x = -(balance x) * log(n/x)
+            -- need -balance x ≤ M (from h5, watch the strictness), and log(n/x) ≤ log n
+            -- then done.
+            -- You'll likely need to prove x > P.L from √n < x and n > L^2.
+            have hx_gt_L : P.L < x := by
+              have := calc P.L ≤ √P.n := by
+                                  have : (P.L : ℝ) * P.L < P.n := by
+                                    exact_mod_cast P.hL
+                                  apply (Real.le_sqrt ?_ ?_).mpr
+                                  · linarith
+                                  · linarith [P.hL_pos]
+                                  · simp
+                             _ < _ := hx_sqrt
+              exact_mod_cast this
+
+            -- Also need to use h5: requires x < n/L (strict). Handle boundary separately.
+            by_cases hboundary : x = P.n / P.L
+            · -- boundary case: x = n/L
+              -- then h2 applies (n/L ≤ x), so balance x ≤ 0, and log(n/x)=log 1=0 ⇒ g x = 0
+              -- hence g x ≤ M log n trivially
+              subst hboundary
+              have hbal : P.initial.balance (P.n / P.L) ≤ 0 := h2 (p:=P.n / P.L) (by exact le_rfl)
+              -- now simp g at this x; log(n/(n/L)) = log(L?) careful: with coercions it is log( (n:ℝ)/(n/L:ℝ) )
+              -- but since x = n/L, n/x = L in ℕ? no; in ℝ it’s (↑n)/(↑(n/L)).
+              -- If your development set this boundary so that log(n/x)=0, use that lemma here.
+              sorry
+            · -- interior case: x < n/L, so h5 applies
+              have hx_lt : x < P.n / P.L := lt_of_le_of_ne (show x ≤ P.n / P.L from (by
+                -- from A3prop x
+                sorry)) (hboundary)
+              have hbal_lower : (- (↑P.M : ℝ)) ≤ (↑(P.initial.balance x) : ℝ) := by
+                -- from h5
+                sorry -- simpa using (h5 (p:=x) hx_lt hx_sqrt)
+              have hneg_bal : (-(↑(P.initial.balance x) : ℝ)) ≤ (↑P.M : ℝ) := by
+                linarith
+              -- Now simp g using hb, hx_gt_L so it chooses the log(n/x) branch
+              simp only [hb, ↓reduceIte, ge_iff_le, g]  -- might need `simp` hints to pick the right `if`
+              -- finish with log(n/x) ≤ log n
+              have hlog : Real.log (↑P.n / (↑x : ℝ)) ≤ Real.log (↑P.n : ℝ) := by
+                -- since 1 ≤ ↑P.n/↑x
+                sorry
+              sorry -- nlinarith
+        have hA3_sum : A3 ≤ (↑(A3set.card) : ℝ) * (↑P.M * Real.log ↑P.n) := by
+          -- A3 = ∑ x in A3set, g x
+          -- ≤ ∑ x in A3set, (M log n) = card * (M log n)
+          classical
+          have := Finset.sum_le_sum (fun x hx => hgA3 x hx)
+          -- rewrite the RHS sum of constant
+          simpa [A3, A3set, Finset.sum_const, nsmul_eq_mul] using this
+        have hcardA3_le : A3set.card ≤ NoverL_primes - 1 := by
+          classical
+          -- show A3set ⊆ {primes ≤ n/L}, and also 2 is in that set but not in A3set when n ≥ 4.
+          -- So card(A3set) ≤ card(primes≤n/L) - 1.
+          sorry
+        have hlog_budget : Real.log ↑P.n ≤ (↑P.M * Real.log ↑P.n) := by
+          -- since M > 1 and log n ≥ 0
+          -- need log n ≥ 0: follows from n ≥ 2 (from params)
+          sorry
+        have hA3log_main :
+          Real.log ↑P.n + A3 ≤ (↑(NoverL_primes) : ℝ) * (↑P.M * Real.log ↑P.n) := by
+            -- use hA3_sum + hcardA3_le to get A3 ≤ (NoverL_primes - 1) * (M log n)
+            -- then add hlog_budget to get log n + A3 ≤ NoverL_primes * (M log n)
+            sorry
+
+        -- Finally just `simpa [RHS1, hRHS1]` to match the goal:
+        simpa [RHS1, hRHS1, add_assoc, add_comm, add_left_comm] using hA3log_main
 
       linarith
 
