@@ -1904,8 +1904,58 @@ theorem Params.initial.score_bound (P : Params) :
         ∑ p ∈ (P.n + 1).primesBelow with P.L < p ∧ p ≤ Real.sqrt P.n, f p +
         ∑ p ∈ (P.n + 1).primesBelow with Real.sqrt P.n < ((p : ℕ) : ℝ) ∧ p ≤ P.n / P.L, f p +
         ∑ p ∈ (P.n + 1).primesBelow with P.n / P.L < p, f p := by
-
-    sorry
+    -- Key: (P.L : ℝ) < √n < (n/L : ℕ), so the four ranges partition primesBelow
+    have hL_lt_sqrt : (P.L : ℝ) < Real.sqrt P.n := by
+      rw [Real.lt_sqrt (Nat.cast_nonneg _)]; exact_mod_cast by nlinarith [P.hL]
+    -- Step 1: split on p ≤ P.L vs P.L < p
+    have step1 : ∑ p ∈ (P.n + 1).primesBelow, f p =
+        ∑ p ∈ (P.n + 1).primesBelow with p ≤ P.L, f p +
+        ∑ p ∈ (P.n + 1).primesBelow with P.L < p, f p := by
+      rw [← Finset.sum_filter_add_sum_filter_not _ (· ≤ P.L) f]
+      congr 1
+      apply Finset.sum_congr _ (fun _ _ => rfl)
+      ext p; simp
+    -- Step 2: split {P.L < p} on (p : ℝ) ≤ √n vs √n < (p : ℝ)
+    have step2 : ∑ p ∈ (P.n + 1).primesBelow with P.L < p, f p =
+        ∑ p ∈ (P.n + 1).primesBelow with P.L < p ∧ (p : ℝ) ≤ Real.sqrt P.n, f p +
+        ∑ p ∈ (P.n + 1).primesBelow with P.L < p ∧ Real.sqrt P.n < (p : ℝ), f p := by
+      rw [← Finset.sum_filter_add_sum_filter_not
+        (((P.n + 1).primesBelow).filter (P.L < ·)) (fun p => (p : ℝ) ≤ Real.sqrt P.n) f]
+      simp only [Finset.filter_filter]
+      congr 1
+      apply Finset.sum_congr _ (fun _ _ => rfl)
+      ext p; simp only [Finset.mem_filter, not_le]
+    -- Step 3: split {P.L < p ∧ √n < p} on p ≤ n/L vs n/L < p
+    have step3 : ∑ p ∈ (P.n + 1).primesBelow with P.L < p ∧ Real.sqrt P.n < (p : ℝ), f p =
+        ∑ p ∈ (P.n + 1).primesBelow with Real.sqrt P.n < ((p : ℕ) : ℝ) ∧ p ≤ P.n / P.L, f p +
+        ∑ p ∈ (P.n + 1).primesBelow with P.n / P.L < p, f p := by
+      rw [← Finset.sum_filter_add_sum_filter_not
+        (((P.n + 1).primesBelow).filter (fun p => P.L < p ∧ Real.sqrt P.n < (p : ℝ)))
+        (fun p => p ≤ P.n / P.L) f]
+      simp only [Finset.filter_filter]
+      congr 1
+      · -- {P.L < p ∧ √n < p ∧ p ≤ n/L} = {√n < p ∧ p ≤ n/L}
+        -- P.L < p is redundant: it follows from hL_lt_sqrt and √n < p
+        apply Finset.sum_congr _ (fun _ _ => rfl)
+        ext p; simp only [Finset.mem_filter]
+        constructor
+        · rintro ⟨hmem, ⟨-, hsq⟩, hle⟩; exact ⟨hmem, hsq, hle⟩
+        · rintro ⟨hmem, hsq, hle⟩
+          exact ⟨hmem, ⟨by exact_mod_cast lt_trans hL_lt_sqrt hsq, hsq⟩, hle⟩
+      · -- {P.L < p ∧ √n < p ∧ ¬(p ≤ n/L)} = {n/L < p}
+        -- P.L < p and √n < p are redundant: both follow from P.hL' and n/L < p
+        apply Finset.sum_congr _ (fun _ _ => rfl)
+        ext p; simp only [Finset.mem_filter, not_le]
+        constructor
+        · rintro ⟨hmem, ⟨-, -⟩, hlt⟩; exact ⟨hmem, hlt⟩
+        · rintro ⟨hmem, hlt⟩
+          refine ⟨hmem, ⟨?_, ?_⟩, hlt⟩
+          · -- P.L < p from P.L < √n < n/L < p
+            have : P.L < (P.n / P.L) := by exact_mod_cast (lt_trans hL_lt_sqrt P.hL')
+            linarith
+          · -- √n < p from √n < n/L < p
+            exact lt_trans P.hL' (by exact_mod_cast hlt)
+    rw [step1, step2, step3]; ring
   -- grw [h2]
   by_cases hImb : (∑ p ∈ (P.n + 1).primesBelow, (P.initial.balance p).natAbs) = 0
   · -- balanced case: penalty is 0
