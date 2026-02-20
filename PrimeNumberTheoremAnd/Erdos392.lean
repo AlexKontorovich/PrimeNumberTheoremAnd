@@ -1860,6 +1860,7 @@ theorem Params.initial.balance_tiny_prime_ge (P : Params) {p : ℕ} (hp : p ≤ 
       CharP.cast_eq_zero, sub_zero, Int.cast_natCast, neg_mul, ge_iff_le, tsub_le_iff_right]
     exact le_trans (neg_nonpos_of_nonneg (by positivity)) (by positivity)
 
+set_option maxHeartbeats 600000 in
 @[blueprint
   "initial-score-bound"
   (statement := /-- The initial score is bounded by
@@ -2143,10 +2144,68 @@ theorem Params.initial.score_bound (P : Params) :
             ((↑P.M * Real.log ↑P.n + ↑P.M * ↑P.L ^ 2 * ↑P.n.primeCounting) * Real.log ↑P.L) with hRHS4
 
       have hA1 : A1 ≤ RHS4 := by
-
-        sorry
-
+        apply le_trans _ (le_refl RHS4)
+        rw [hRHS4]
+        apply le_trans (Finset.sum_le_card_nsmul _ _ ((P.M * Real.log P.n +
+            P.M * P.L^2 * P.n.primeCounting) * Real.log P.L) _)
+        · -- card bound: card of A1's index set = L_primes
+          simp only [nsmul_eq_mul, L_primes]
+          gcongr
+          intro n hn
+          simp only [Finset.mem_filter, Finset.mem_Iic] at hn ⊢
+          have := hn.1
+          simp only [primesBelow, Finset.mem_filter, Finset.mem_range, Order.lt_add_one_iff] at this
+          refine ⟨hn.2, this.2⟩
+        · -- pointwise bound: each g x ≤ (M log n + M L² π(n)) * log L
+          intro x hx
+          simp only [Finset.mem_filter, primesBelow, Finset.mem_range] at hx
+          -- now split on sign of balance
+          simp only [g]
+          split_ifs with hpos hle
+          · -- positive balance: use h6
+            have hbal_le : (P.initial.balance x : ℝ) ≤ P.M * Real.log P.n / Real.log 2 :=
+              by exact_mod_cast h6
+            have hlogx_le : Real.log x ≤ Real.log P.L := by
+              apply Real.log_le_log
+              · norm_cast
+                exact Nat.Prime.pos hx.1.2
+              · exact_mod_cast hx.2
+            calc (P.initial.balance x : ℝ) * Real.log x
+                ≤ (P.M * Real.log P.n / Real.log 2) * Real.log P.L :=
+                  mul_le_mul hbal_le hlogx_le (by positivity) (by positivity)
+              _ ≤ (P.M * Real.log P.n + P.M * P.L^2 * P.n.primeCounting) * Real.log P.L := by
+                  refine mul_le_mul ?_ (by simp) (by positivity) (by positivity)
+                  have haux := balance_inequality_aux P 2 Nat.prime_two
+                  have hlog2 : Real.log 2 ≤ 1 := Real.log_le_sub_one_of_pos two_pos |>.trans
+                    (by norm_num)
+                  rw [show ↑P.M * Real.log ↑P.n + ↑P.M * ↑P.L ^ 2 * ↑P.n.primeCounting =
+                    ↑P.M * (Real.log ↑P.n + ↑P.L ^ 2 * ↑P.n.primeCounting) by ring]
+                  rw [show P.M * Real.log ↑P.n / Real.log 2 = P.M * (Real.log ↑P.n / Real.log 2)
+                    by ring]
+                  apply mul_le_mul (by simp) ?_ (by positivity) (by positivity)
+                  calc _ = Real.log ↑P.n * (1 / Real.log 2 - 1) + Real.log P.n := by ring
+                       _ ≤ ↑P.n.primeCounting * ↑P.L * (↑P.L - ↑(Nat.log 2 P.L)) + Real.log P.n := by
+                        gcongr
+                       _ ≤ Real.log ↑P.n + ↑P.L ^ 2 * ↑P.n.primeCounting := by
+                        ring_nf
+                        gcongr
+                        conv =>
+                          enter [2]
+                          equals (0 : ℝ) + P.n.primeCounting * P.L^2 => ring
+                        gcongr
+                        simp only [Left.neg_nonpos_iff]
+                        positivity
+          · -- negative balance (p ≤ L branch): use h8
+            have hbal_ge : -(P.M * Real.log P.n + P.M * P.L^2 * P.n.primeCounting) ≤
+                (P.initial.balance x : ℝ) := by
+                  linarith [h8 (p := x) hx.2]
+            rw [show -((P.initial.balance x) * Real.log P.L) =
+              (-(P.initial.balance x)) * Real.log P.L by ring]
+            apply mul_le_mul (by linarith) (by simp) (by positivity) (by positivity)
+          · -- this case can't happen since x ≤ P.L
+            omega
       have hA2 : A2 ≤ RHS2 := by
+
         sorry
 
       have hA4 : A4 ≤ RHS3 := by
@@ -2181,11 +2240,6 @@ theorem Params.initial.score_bound (P : Params) :
             gcongr
           · -- balance ≤ 0
             have hb' : P.initial.balance x ≤ 0 := le_of_not_gt hb
-            -- here x > L in your regime, so g uses log(n/x) branch:
-            -- g x = -(balance x) * log(n/x)
-            -- need -balance x ≤ M (from h5, watch the strictness), and log(n/x) ≤ log n
-            -- then done.
-            -- You'll likely need to prove x > P.L from √n < x and n > L^2.
             have hx_gt_L : P.L < x := by
               have := calc P.L ≤ √P.n := by
                                   have : (P.L : ℝ) * P.L < P.n := by
@@ -2244,9 +2298,21 @@ theorem Params.initial.score_bound (P : Params) :
           Real.log ↑P.n + A3 ≤ (↑(NoverL_primes) : ℝ) * (↑P.M * Real.log ↑P.n) := by
             -- use hA3_sum + hcardA3_le to get A3 ≤ (NoverL_primes - 1) * (M log n)
             -- then add hlog_budget to get log n + A3 ≤ NoverL_primes * (M log n)
-            sorry
+            have key : (↑(#A3set) : ℝ) * (↑P.M * Real.log ↑P.n) ≤
+           (↑NoverL_primes - 1) * (↑P.M * Real.log ↑P.n) := by
+              apply mul_le_mul_of_nonneg_right _ (by positivity)
 
-        -- Finally just `simpa [RHS1, hRHS1]` to match the goal:
+              have hN : 1 ≤ NoverL_primes := by
+
+                sorry
+              rw [show (NoverL_primes : ℝ) - 1 = ((NoverL_primes - 1 : ℕ) : ℝ) by
+                exact Eq.symm (cast_pred hN)]
+              exact_mod_cast hcardA3_le
+            calc Real.log ↑P.n + A3
+                ≤ Real.log ↑P.n + ↑(#A3set) * (↑P.M * Real.log ↑P.n) := by linarith [hA3_sum]
+              _ ≤ ↑P.M * Real.log ↑P.n + (↑NoverL_primes - 1) * (↑P.M * Real.log ↑P.n) := by
+                    linarith [hlog_budget, key]
+              _ = ↑NoverL_primes * (↑P.M * Real.log ↑P.n) := by ring
         simpa [RHS1, hRHS1, add_assoc, add_comm, add_left_comm] using hA3log_main
 
       linarith
