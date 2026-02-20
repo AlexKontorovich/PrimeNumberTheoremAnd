@@ -1860,7 +1860,8 @@ theorem Params.initial.balance_tiny_prime_ge (P : Params) {p : ℕ} (hp : p ≤ 
       CharP.cast_eq_zero, sub_zero, Int.cast_natCast, neg_mul, ge_iff_le, tsub_le_iff_right]
     exact le_trans (neg_nonpos_of_nonneg (by positivity)) (by positivity)
 
-set_option maxHeartbeats 600000 in
+
+set_option maxHeartbeats 600000 in -- hitting maxHeartbeats limits, need to increase a bit
 @[blueprint
   "initial-score-bound"
   (statement := /-- The initial score is bounded by
@@ -2204,9 +2205,54 @@ theorem Params.initial.score_bound (P : Params) :
             apply mul_le_mul (by linarith) (by simp) (by positivity) (by positivity)
           · -- this case can't happen since x ≤ P.L
             omega
-      have hA2 : A2 ≤ RHS2 := by
 
-        sorry
+      have hA2 : A2 ≤ RHS2 := by
+        rw [hRHS2]
+        apply le_trans (Finset.sum_le_card_nsmul _ _ (↑P.M * Real.log ↑P.n * Real.log ↑P.n / Real.log 2) _)
+        · -- card bound
+          simp only [nsmul_eq_mul, sqrtN_primes]
+          gcongr
+          intro x hx
+          simp only [Finset.mem_filter, Finset.mem_Iic, Finset.mem_filter] at hx ⊢
+          have := hx.1
+          simp only [primesBelow, Finset.mem_filter, Finset.mem_range, Order.lt_add_one_iff] at this
+          refine ⟨?_, this.2⟩
+          rw [Nat.le_sqrt]
+          have := hx.2.2
+          rw [Real.le_sqrt] at this
+          · ring_nf
+            exact_mod_cast this
+          · positivity
+          · positivity
+        · intro x hx
+          simp only [primesBelow, Finset.mem_filter, Finset.mem_range, Order.lt_add_one_iff] at hx
+          dsimp [g]
+          split_ifs with hpos
+          · have hlogx : Real.log x ≤ Real.log P.n := Real.log_le_log (by exact_mod_cast hx.1.2.pos)
+              (by exact_mod_cast hx.1.1)
+            calc (P.initial.balance x : ℝ) * Real.log x
+                ≤ (P.M * Real.log P.n / Real.log 2) * Real.log P.n :=
+                  mul_le_mul h6 hlogx (by positivity) (by positivity)
+              _ = P.M * Real.log P.n * Real.log P.n / Real.log 2 := by ring
+          · have := hx.2.1
+            linarith
+          · have hbal_ge : -(P.M * Real.log P.n) / Real.log 2 ≤ (P.initial.balance x : ℝ) :=
+              h7 (p := x) hx.2.2 (by exact_mod_cast hx.2.1)
+            have hneg_bal : -(P.initial.balance x : ℝ) ≤ P.M * Real.log P.n / Real.log 2 := by
+              rw [neg_div] at hbal_ge
+              linarith
+            have hx_pos : (0 : ℝ) < x := by exact_mod_cast hx.1.2.pos
+            have hx_le_n : (x : ℝ) ≤ P.n := by exact_mod_cast hx.1.1
+            have hnp_ge1 : 1 ≤ (P.n : ℝ) / x := by rw [le_div_iff₀ hx_pos]; linarith
+            have hlog_np_nn : 0 ≤ Real.log (P.n / x) := Real.log_nonneg hnp_ge1
+            have hlog_np : Real.log ((P.n : ℝ) / x) ≤ Real.log P.n :=
+              Real.log_le_log (by linarith) (div_le_self (by linarith) (by norm_cast; omega))
+            have hlogn_nn : 0 ≤ Real.log P.n := Real.log_nonneg (by norm_cast; omega)
+            calc -↑((P.initial.balance x) * Real.log (↑P.n / ↑x))
+                ≤ (P.M * Real.log P.n / Real.log 2) * Real.log P.n := by
+                          convert mul_le_mul hneg_bal hlog_np hlog_np_nn (by positivity) using 1
+                          ring
+              _ = P.M * Real.log P.n * Real.log P.n / Real.log 2 := by ring
 
       have hA4 : A4 ≤ RHS3 := by
         -- this one is the straightforward tail bound from h2/h3:
