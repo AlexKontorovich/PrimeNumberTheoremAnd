@@ -254,6 +254,33 @@ theorem Trudgian2016.has_prime_in_interval (x : ℝ) (hx : x > 2898242) :
     HasPrimeInInterval x (x / (111 * (log x) ^ 2)) := by sorry
 
 @[blueprint
+  "thm:axler2018_1"
+  (title := "Axler 2018 Theorem 1.4(1)")
+  (statement := /-- If $x ≥ 6034256$, then there
+  is a prime in the interval
+  \[ \left( x, x\left(1 + \frac{0.087}{\log^3 x}\right) \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem Axler2018.has_prime_in_interval_1 (x : ℝ) (hx : x ≥ 6034256) :
+    HasPrimeInInterval x (x * (0.087 / (log x) ^ 3)) := by sorry
+
+@[blueprint
+  "thm:axler2018_2"
+  (title := "Axler 2018 Theorem 1.4(2)")
+  (statement := /-- If $x >1$, then there
+  is a prime in the interval
+  \[ \left( x, x\left(1 + \frac{198.2}{\log^4 x}\right) \right]. \]
+  -/)
+  (latexEnv := "theorem")]
+theorem Axler2018.has_prime_in_interval_2 (x : ℝ) (hx : x > 1) :
+    HasPrimeInInterval x (x * (198.2 / (log x) ^ 4)) := by sorry
+
+def Dusart.proposition_5_4_copy : HasPrimeInInterval.log_thm 89693 3 := Dusart.proposition_5_4
+
+def Dusart.corollary_5_5_copy {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) := Dusart.corollary_5_5 hx
+
+
+@[blueprint
   "thm:dudek2014"
   (title := "Dudek 2014")
   (statement := /-- If $x > \exp(\exp(34.32))$, then there is a prime in the interval
