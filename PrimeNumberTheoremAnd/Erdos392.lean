@@ -2123,12 +2123,14 @@ theorem Params.initial.score_bound (P : Params) :
       set A2 : ℝ :=
         ∑ x ∈ (P.n + 1).primesBelow with P.L < x ∧ (x : ℝ) ≤ Real.sqrt (P.n : ℝ), g x
 
-      -- set A3 : ℝ :=
-      --   ∑ x ∈ (P.n + 1).primesBelow with
-      --     ((Real.sqrt (P.n : ℝ) < (x : ℝ))
-          -- ∧ (x ≤ P.n / P.L)), g x
+      let A3prop : ℕ → Prop := fun x ↦ ((Real.sqrt (P.n : ℝ) < (x : ℝ))
+          ∧ ((x : ℝ) ≤ P.n / P.L))
+      set A3 : ℝ :=
+        ∑ x ∈ (P.n + 1).primesBelow with A3prop x
+          , g x
       set A4 : ℝ :=
         ∑ x ∈ (P.n + 1).primesBelow with P.n / P.L < x, g x
+
       sorry
 
 
