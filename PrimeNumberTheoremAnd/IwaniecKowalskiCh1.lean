@@ -310,9 +310,9 @@ scoped[ArithmeticFunction] notation "σᴿ" => ArithmeticFunction.sigmaR
 /-- For natural exponents, sigmaR agrees with sigma. -/
 @[blueprint
   "sigmaR_natCast"
-  (statement := /-- For natural exponents, $\sigma_R$ agrees with $\sigma$. -/)
+  (statement := /-- For natural exponents, $\sigma^R$ agrees with $\sigma$. -/)
   (proof := /--
-  The function $\sigma_R$ is defined as the sum of the $s$-th powers of the divisors of $n$. When $s$ is a natural number $k$, this definition coincides with the classical divisor power sum function $\sigma k n$, which also sums the $k$-th powers of the divisors of $n$. Therefore, for natural exponents, we have $\sigma_R k n = \sigma k n$ when we view $\sigma k n$ as a complex number. This can be shown by directly comparing the definitions and noting that both functions sum over the same set of divisors with the same exponentiation.
+  The function $\sigma^R$ is defined as the sum of the $s$-th powers of the divisors of $n$. When $s$ is a natural number $k$, this definition coincides with the classical divisor power sum function $\sigma_k(n)$, which also sums the $k$-th powers of the divisors of $n$. Therefore, for natural exponents, we have $\sigma^R_k(n) = \sigma_k(n)$ when we view $\sigma_k(n)$ as a complex number. This can be shown by directly comparing the definitions and noting that both functions sum over the same set of divisors with the same exponentiation.
   -/)]
 lemma sigmaR_natCast (k n : ℕ) :
     σᴿ k n = σ k n := by
@@ -321,15 +321,15 @@ lemma sigmaR_natCast (k n : ℕ) :
 
 @[blueprint
   "powR"
-  (statement := /-- Arithmetic function with complex parameter $\nu$. Evaluates as $n\mapsto n^{\nu}$ for $n\neq0$ and $0$ at $n=0$. -/)]
+  (statement := /-- Arithmetic function with complex parameter $\nu$. Evaluates as $n\mapsto n^{\nu}$ for $n\neq 0$ and $0$ at $n=0$. -/)]
 noncomputable def powR (ν : ℂ) : ArithmeticFunction ℂ :=
   ⟨fun n ↦ if n = 0 then 0 else (n : ℂ) ^ ν, by grind⟩
 
 @[blueprint
   "sigmaR_eq_zeta_mul_powR"
-  (statement := /-- $\sigma_R(\nu) = \zeta * \text{pow}_R(\nu)$, where $\zeta$ is the constant function $1$. -/)
+  (statement := /-- $\sigma^R(\nu) = \zeta * \text{pow}^R(\nu)$, where $\zeta$ is the constant function $1$. -/)
   (proof := /--
-  The function $\sigma_R(\nu)$ is defined as the sum of the $\nu$-th powers of the divisors of $n$. The function $\text{pow}_R(\nu)$ is defined as $n \mapsto n^\nu$ for $n \neq 0$ and $0$ for $n = 0$. The Dirichlet convolution of $\zeta$ (the constant function $1$) and $\text{pow}_R(\nu)$ is exactly $\sigma_R(\nu)$, since for each divisor $d$ of $n$, we have $(\zeta * \text{pow}_R(\nu))(n) = \sum_{d|n} 1 \cdot d^\nu = \sigma_R(\nu)(n)$. Thus, we have $\sigma_R(\nu) = \zeta * \text{pow}_R(\nu)$.
+  The function $\sigma^R(\nu)$ is defined as the sum of the $\nu$-th powers of the divisors of $n$. The function $\text{pow}^R(\nu)$ is defined as $n \mapsto n^\nu$ for $n \neq 0$ and $0$ for $n = 0$. The Dirichlet convolution of $\zeta$ (the constant function $1$) and $\text{pow}^R(\nu)$ is exactly $\sigma^R(\nu)$, since for each divisor $d$ of $n$, we have $(\zeta * \text{pow}^R(\nu))(n) = \sum_{d|n} 1 \cdot d^\nu = \sigma^R(\nu)(n)$. Thus, we have $\sigma^R(\nu) = \zeta * \text{pow}^R(\nu)$.
   -/)]
 lemma sigmaR_eq_zeta_mul_powR (ν : ℂ) : sigmaR ν = (zeta : ArithmeticFunction ℂ) * powR ν := by
   ext n;
@@ -341,9 +341,9 @@ lemma sigmaR_eq_zeta_mul_powR (ν : ℂ) : sigmaR ν = (zeta : ArithmeticFunctio
 
 @[blueprint
   "LSeries_powR_eq"
-  (statement := /-- $L(\text{pow}_R(\nu), s) = \zeta(s - \nu)$ for $\Re(s - \nu) > 1$. -/)
+  (statement := /-- $L(\text{pow}^R(\nu), s) = \zeta(s - \nu)$ for $\Re(s - \nu) > 1$. -/)
   (proof := /--
-  The function $\text{pow}_R(\nu)$ is defined as $n \mapsto n^\nu$ for $n \neq 0$ and $0$ for $n = 0$. The L-series of $\text{pow}_R(\nu)$ at $s$ is given by the sum $\sum_{n=1}^{\infty} n^{\nu - s}$. This series converges to the Riemann zeta function $\zeta(s - \nu)$ for $\Re(s - \nu) > 1$, since the zeta function is defined as $\zeta(s) = \sum_{n=1}^{\infty} n^{-s}$ for $\Re(s) > 1$. Therefore, we have $L(\text{pow}_R(\nu), s) = \zeta(s - \nu)$ under the condition that $\Re(s - \nu) > 1$.
+  The function $\text{pow}^R(\nu)$ is defined as $n \mapsto n^\nu$ for $n \neq 0$ and $0$ for $n = 0$. The L-series of $\text{pow}^R(\nu)$ at $s$ is given by the sum $\sum_{n=1}^{\infty} n^{\nu - s}$. This series converges to the Riemann zeta function $\zeta(s - \nu)$ for $\Re(s - \nu) > 1$, since the zeta function is defined as $\zeta(s) = \sum_{n=1}^{\infty} n^{-s}$ for $\Re(s) > 1$. Therefore, we have $L(\text{pow}^R(\nu), s) = \zeta(s - \nu)$ under the condition that $\Re(s - \nu) > 1$.
   -/)]
 lemma LSeries_powR_eq (ν : ℂ) {s : ℂ} (hs : 1 < (s - ν).re) :
     LSeries (powR ν) s = riemannZeta (s - ν) := by
@@ -362,9 +362,9 @@ lemma LSeries_powR_eq (ν : ℂ) {s : ℂ} (hs : 1 < (s - ν).re) :
 
 @[blueprint
   "abscissa_powR_le"
-  (statement := /-- The abscissa of absolute convergence of $L(\text{pow}_R(\nu), s)$ is at most $\Re(\nu) + 1$. -/)
+  (statement := /-- The abscissa of absolute convergence of $L(\text{pow}^R(\nu), s)$ is at most $\Re(\nu) + 1$. -/)
   (proof := /--
-  We apply LSeries.abscissaOfAbsConv_le_of_le_const_mul_rpow which states that if there exists a constant $C$ such that $\|f(n)\| \leq C \cdot n^r$ for all $n$ sufficiently large, then the abscissa of absolute convergence of $L(f, s)$ is at most $r + 1$. In our case, we can take $f(n) = n^\nu$ and observe that $\|n^\nu\| = n^{\Re(\nu)}$. Thus, we can choose $C = 1$ and $r = \Re(\nu)$, which gives us the desired result that the abscissa of absolute convergence of $L(\text{pow}_R(\nu), s)$ is at most $\Re(\nu) + 1$.
+  We apply \ref{LSeries.abscissaOfAbsConv_le_of_le_const_mul_rpow} which states that if there exists a constant $C$ such that $\|f(n)\| \leq C \cdot n^r$ for all $n$ sufficiently large, then the abscissa of absolute convergence of $L(f, s)$ is at most $r + 1$. In our case, we can take $f(n) = n^\nu$ and observe that $\|n^\nu\| = n^{\Re(\nu)}$. Thus, we can choose $C = 1$ and $r = \Re(\nu)$, which gives us the desired result that the abscissa of absolute convergence of $L(\text{pow}^R(\nu), s)$ is at most $\Re(\nu) + 1$.
   -/)]
 lemma abscissa_powR_le (ν : ℂ) : LSeries.abscissaOfAbsConv (powR ν) ≤ ν.re + 1 := by
   have h_abs_le : ∀ n : ℕ, n ≠ 0 → ‖(powR ν n : ℂ)‖ ≤ (n : ℝ) ^ ν.re := by
