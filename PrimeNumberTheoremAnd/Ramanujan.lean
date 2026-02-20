@@ -167,6 +167,19 @@ theorem pi_error_identity (x : ℝ) (hx : 2 ≤ x) :
     exact primeCounting_eq_theta_div_log_add_integral hx
   rw [h_integral, h_pi, Li_eq_sub_add_integral x hx]; ring
 
+theorem integrable_theta (x : ℝ) :
+    IntegrableOn (fun t ↦ (θ t - t) / (t * log t ^ 2)) (Icc 2 x) volume := by
+  have l0 : ContinuousOn (fun t ↦ (t * log t ^ 2)⁻¹) (Set.Icc 2 x) := by
+    refine ContinuousOn.inv₀ (continuousOn_id.mul (ContinuousOn.pow (ContinuousOn.log
+      continuousOn_id fun y hy ↦ ?_) 2)) fun y hy ↦ ?_
+    repeat simp_all; grind
+  have l1 : IntegrableOn (fun t ↦ θ t / (t * log t ^ 2)) (Icc 2 x) volume :=
+    (theta_mono.monotoneOn _).integrableOn_isCompact isCompact_Icc |>.mul_continuousOn l0
+    isCompact_Icc
+  have l2 : IntegrableOn (fun t ↦ t / (t * log t ^ 2)) (Icc 2 x) volume :=
+    monotoneOn_id.integrableOn_isCompact isCompact_Icc |>.mul_continuousOn l0 isCompact_Icc
+  simpa [div_sub_div_same] using l1.sub' l2
+
 @[blueprint
   "ramanujan-pi-upper"
   (title := "Upper bound for pi")
@@ -178,9 +191,36 @@ $$ (cf. \cite[\S 5]{PT2021})
   (proof := /-- Follows from Lemma \ref{pi-error-identity} and the triangle inequality. -/)
   (latexEnv := "sublemma")
   (discussion := 987)]
-theorem pi_upper (a : ℝ → ℝ) (htheta : ∀ x ≥ 2, abs (θ x - x) * log x ^ 5 ≤ x * a x) (x : ℝ) (hx : 2 ≤ x) :
-    pi x ≤ x / log x + a x * x / log x ^ 6 + ∫ t in Set.Icc 2 x, 1 / log t ^ 2 + ∫ t in Set.Icc 2 x, a t / log t ^ 7 := by
-    sorry
+theorem pi_upper (a : ℝ → ℝ) (htheta : ∀ x ≥ 2, |θ x - x| * log x ^ 5 ≤ x * a x) (x : ℝ)
+    (ha : IntegrableOn (fun t ↦ a t / log t ^ 7) (Icc 2 x) volume)
+    (hx : 2 ≤ x) :
+    pi x ≤ x / log x + a x * x / log x ^ 6 + (∫ t in Icc 2 x, 1 / log t ^ 2)
+    + ∫ t in Icc 2 x, a t / log t ^ 7 := calc
+  _ = pi x - Li x + Li x := by ring
+  _ = x / log x + (θ x - x) / log x + (∫ (t : ℝ) in Icc 2 x, 1 / log t ^ 2) +
+     ∫ (t : ℝ) in Icc 2 x, (θ t - t) / (t * log t ^ 2) := by
+     rw [pi_error_identity x hx, Li_eq_sub_add_integral x hx]; ring
+  _ ≤ _ := by
+    gcongr ?_ + ?_ + ?_ + ?_
+    · calc
+      _ = (θ x - x) * log x ^ 5 / log x ^ 6 := by field_simp
+      _ ≤ |θ x - x| * log x ^ 5 / log x ^ 6 := by
+        gcongr
+        · exact pow_nonneg (log_nonneg (by grind)) 5
+        · exact le_abs_self _
+      _ ≤ _ := by grw [htheta x hx, mul_comm]
+    · refine setIntegral_mono_on (integrable_theta x) ha measurableSet_Icc (fun t ht => ?_)
+      calc
+      _ = (θ t - t) * log t ^ 5 / (t * log t ^ 7) := by field_simp
+      _ ≤ |θ t - t| * log t ^ 5 / (t * log t ^ 7) := by
+        gcongr
+        · exact mul_nonneg (by grind) (pow_nonneg (log_nonneg (by grind)) 7)
+        · exact pow_nonneg (log_nonneg (by grind)) 5
+        · exact le_abs_self _
+      _ ≤ _ := by
+        grw [htheta t ht.1, mul_comm]
+        · field_simp (disch := grind); rfl
+        · exact mul_nonneg (by grind) (pow_nonneg (log_nonneg (by grind)) 7)
 
 @[blueprint
   "ramanujan-pi-lower"
