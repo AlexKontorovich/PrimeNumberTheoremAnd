@@ -1011,7 +1011,38 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
   _ = 2 * A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), t ^ (2 * B - 3) * rexp (t ^ 2 - C * t / √R) := by
     rw [intervalIntegral.integral_const_mul]
     ring
+  _ ≤ 2 * A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) * rexp (t ^ 2 - C * t / √R) := by
+    gcongr
+    apply intervalIntegral.integral_mono_on (by gcongr)
+    · apply ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+      have : t ≠ 0 := by
+        rw [Set.uIcc_of_le (by gcongr)] at ht
+        apply ne_of_gt
+        apply lt_of_lt_of_le _ ht.1
+        apply sqrt_pos.mpr (log_pos (by linarith))
+      fun_prop (disch := grind)
+    · apply ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+      fun_prop
+    · intro t ht
+      gcongr
+      by_cases! h : 0 ≤ 2 * B - 3
+      · apply le_max_of_le_right
+        grw [ht.2, sqrt_eq_rpow, ← rpow_mul]
+        · field_simp; rfl
+        · apply log_nonneg (by linarith)
+        · exact le_trans (sqrt_nonneg _) ht.1
+      · apply le_max_of_le_left
+        trans (√(log x₀)) ^ (2 * B - 3)
+        · apply rpow_le_rpow_of_nonpos _ ht.1 h.le
+          exact sqrt_pos.mpr (log_pos (by linarith))
+        · rw [sqrt_eq_rpow, ← rpow_mul]
+          · field_simp; rfl
+          · exact log_nonneg (by linarith)
+  _ = 2 * A * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), rexp (t ^ 2 - C * t / √R) := by
+    rw [intervalIntegral.integral_const_mul]
+    ring
   _ ≤ _ := by sorry
+
 @[blueprint
   "fks2-eq-9"
   (title := "mu asymptotic function, FKS2 (9)")
