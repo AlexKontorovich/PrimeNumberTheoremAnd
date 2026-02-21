@@ -1887,6 +1887,13 @@ theorem Params.initial.score_bound (P : Params) :
         (P.n / p) * Real.log (P.n / p) +
       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic P.L),
         (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L := by
+  set L := P.L with hL
+  set n := P.n with hn
+  set M := P.M with hM
+  have Mbnd : 1 < M := by simp [P.hM, M]
+  have hL_pos : 0 < L := by simp [P.hL_pos, L]
+  have hLbnd : L * L < n := by simp [P.hL, L, n]
+
   have h1 := Params.initial.waste P
   have h2 := @Params.initial.balance_large_prime_le P
   have h3 := @Params.initial.balance_large_prime_ge P
@@ -1895,35 +1902,51 @@ theorem Params.initial.score_bound (P : Params) :
   have h6 := @Params.initial.balance_small_prime_le P
   have h7 := @Params.initial.balance_small_prime_ge P
   have h8 := @Params.initial.balance_tiny_prime_ge P
-  set L := P.L with hL
-  set n := P.n with hn
-  set M := P.M with hM
-  have Mbnd : 1 < M := by simp [P.hM, M]
-  have hL_pos : 0 < L := by simp [P.hL_pos, L]
-  have hLbnd : L * L < n := by simp [P.hL, L, n]
+
+
+  change P.initial.waste ≤ n * Real.log (1 - 1 / M)⁻¹ at h1
+  change ∀ {p : ℕ}, n / L ≤ p → P.initial.balance p ≤ 0 at h2
+  change ∀ {p : ℕ}, n / L ≤ p → -(↑n / ↑p) ≤ P.initial.balance p at h3
+  change ∀ {p : ℕ}, √n < p → P.initial.balance p ≤ M at h4
+  change ∀ {p : ℕ}, p < n / L → √n < p → -M ≤ P.initial.balance p at h5
+  change ∀ {p : ℕ}, P.initial.balance p ≤ M * Real.log n / Real.log 2 at h6
+  change ∀ {p : ℕ}, ↑p ≤ √n → L < p → -M * Real.log n / Real.log 2 ≤ (P.initial.balance p) at h7
+  change ∀ {p : ℕ}, p ≤ L → -M * Real.log n - M * L ^ 2 * n.primeCounting
+    ≤ (P.initial.balance p) at h8
 
   have hLbnd' : (L : ℝ) < n / L := by
     rw [lt_div_iff₀ (by positivity)]
     norm_cast
   have hL' : Real.sqrt n < (n/L:ℕ) := by simp [P.hL', L, n]
 
-  change ∀ {p : ℕ}, p ≥ n / L → P.initial.balance p ≥ -(↑n / ↑p) at h3
+  have hL_lt_NL : L < n / L := by
+    have hL_lt_sqrt : (L : ℝ) < Real.sqrt n := by
+      rw [Real.lt_sqrt (by positivity)]
+      ring_nf at hLbnd
+      exact_mod_cast hLbnd
+    exact_mod_cast hL_lt_sqrt.trans hL'
 
   rw [Factorization.score]
   grw [h1]
   simp_rw [add_assoc]
   gcongr 1
   simp_rw [Factorization.total_imbalance]
+
+  change ((if ∑ p ∈ (n + 1).primesBelow, (P.initial.balance p).natAbs > 0 then Real.log n else 0) +
+    ∑ p ∈ (n + 1).primesBelow,
+      if P.initial.balance p > 0 then ↑(P.initial.balance p) * Real.log ↑p
+      else if p ≤ L then -↑(P.initial.balance p) * Real.log ↑L else -↑(P.initial.balance p) * Real.log (↑n / ↑p)) ≤
+  ∑ p ∈ Finset.Iic (n / L) with Nat.Prime p, ↑M * Real.log n +
+    (∑ p ∈ Finset.Iic ⌊√n⌋₊ with Nat.Prime p, ↑M * Real.log n * Real.log n / Real.log 2 +
+      (∑ p ∈ Finset.Icc (n / L + 1) n with Nat.Prime p, ↑n / ↑p * Real.log (↑n / ↑p) +
+        ∑ p ∈ Finset.Iic L with Nat.Prime p, (↑M * Real.log ↑n + ↑M * ↑L ^ 2 * ↑n.primeCounting) * Real.log ↑L))
+
   have split_sum {f : ℕ → ℝ} :
       ∑ p ∈ (n + 1).primesBelow, f p =
         ∑ p ∈ (n + 1).primesBelow with p ≤ L, f p +
         ∑ p ∈ (n + 1).primesBelow with L < p ∧ p ≤ Real.sqrt n, f p +
         ∑ p ∈ (n + 1).primesBelow with Real.sqrt n < ((p : ℕ) : ℝ) ∧ p < n / L, f p +
         ∑ p ∈ (n + 1).primesBelow with n / L ≤ p, f p := by
-    -- Key: (L : ℝ) < √n < (n/L : ℕ), so the four ranges partition primesBelow
-    have hL_lt_sqrt : (L : ℝ) < Real.sqrt n := by
-      rw [Real.lt_sqrt (Nat.cast_nonneg _)]; exact_mod_cast by nlinarith [P.hL]
-    -- Step 1: split on p ≤ L vs L < p
     have step1 : ∑ p ∈ (n + 1).primesBelow, f p =
         ∑ p ∈ (n + 1).primesBelow with p ≤ L, f p +
         ∑ p ∈ (n + 1).primesBelow with L < p, f p := by
@@ -1931,7 +1954,6 @@ theorem Params.initial.score_bound (P : Params) :
       congr 1
       apply Finset.sum_congr _ (fun _ _ => rfl)
       ext p; simp
-    -- Step 2: split {L < p} on (p : ℝ) ≤ √n vs √n < (p : ℝ)
     have step2 : ∑ p ∈ (n + 1).primesBelow with L < p, f p =
         ∑ p ∈ (n + 1).primesBelow with L < p ∧ (p : ℝ) ≤ Real.sqrt n, f p +
         ∑ p ∈ (n + 1).primesBelow with L < p ∧ Real.sqrt n < (p : ℝ), f p := by
@@ -1941,7 +1963,6 @@ theorem Params.initial.score_bound (P : Params) :
       congr 1
       apply Finset.sum_congr _ (fun _ _ => rfl)
       ext p; simp only [Finset.mem_filter, not_le]
-    -- Step 3: split {L < p ∧ √n < p} on p ≤ n/L vs n/L < p
     have step3 : ∑ p ∈ (n + 1).primesBelow with L < p ∧ Real.sqrt n < (p : ℝ), f p =
         ∑ p ∈ (n + 1).primesBelow with Real.sqrt n < ((p : ℕ) : ℝ) ∧ p < n / L, f p +
         ∑ p ∈ (n + 1).primesBelow with n / L ≤ p, f p := by
@@ -1955,25 +1976,22 @@ theorem Params.initial.score_bound (P : Params) :
         constructor
         · rintro ⟨hmem, ⟨-, hsq⟩, hle⟩; exact ⟨hmem, hsq, hle⟩
         · rintro ⟨hmem, hsq, hle⟩
-          exact ⟨hmem, ⟨by exact_mod_cast lt_trans hL_lt_sqrt hsq, hsq⟩, hle⟩
-      · apply Finset.sum_congr _ (fun _ _ => rfl)
-        ext p; simp only [Finset.mem_filter, not_le]
-        constructor
-        · rintro ⟨hmem, ⟨-, -⟩, hlt⟩; exact ⟨hmem, by push_neg at hlt; exact hlt⟩
-        · rintro ⟨hmem, hlt⟩
-          rw [Real.lt_sqrt (by positivity)] at hL_lt_sqrt
-          have : (L : ℝ) < (n : ℝ) / L := by exact_mod_cast hLbnd'
-          have : L < (n / L) := by
-            have hL_lt_sqrt : (L : ℝ) < Real.sqrt n := by
+          exact ⟨hmem, ⟨by
+            have hL_lt_sqrt : (L : ℝ) < √↑n := by
               rw [Real.lt_sqrt (by positivity)]
               ring_nf at hLbnd
               exact_mod_cast hLbnd
-            exact_mod_cast hL_lt_sqrt.trans hL'
-          have := calc √n < _ := by convert hL'
-                  _ ≤ p := by exact_mod_cast hlt
+            exact_mod_cast hL_lt_sqrt.trans hsq, hsq⟩, hle⟩
+      · apply Finset.sum_congr _ (fun _ _ => rfl)
+        ext p
+        simp only [Finset.mem_filter]
+        constructor
+        · rintro ⟨hmem, ⟨-, -⟩, hlt⟩; exact ⟨hmem, by push_neg at hlt; exact hlt⟩
+        · rintro ⟨hmem, hlt⟩
           refine ⟨hmem, ⟨?_, ?_⟩, ?_⟩
           · linarith
-          · linarith
+          · calc √↑n < ↑(n / L) := by exact hL'
+                  _ ≤ ↑p := by exact_mod_cast hlt
           · simp [hlt]
     rw [step1, step2, step3]
     ring
@@ -2112,20 +2130,7 @@ theorem Params.initial.score_bound (P : Params) :
     have hImb' : (∑ p ∈ (n + 1).primesBelow, (P.initial.balance p).natAbs) > 0 := by
       exact Nat.pos_of_ne_zero hImb
     simp only [gt_iff_lt, hImb', ↓reduceIte, neg_mul, sum_const, nsmul_eq_mul,
-      nat_floor_real_sqrt_eq_nat_sqrt, ge_iff_le, L, M, n]
-
-    change (Real.log ↑n +
-    ∑ x ∈ (n + 1).primesBelow,
-      if 0 < P.initial.balance x then ↑(P.initial.balance x) * Real.log ↑x
-      else
-        if x ≤ L then -(↑(P.initial.balance x) * Real.log ↑L)
-        else -(↑(P.initial.balance x) * Real.log (↑n / ↑x))) ≤
-          ↑(#({x ∈ Finset.Iic (n / L) | Nat.Prime x})) * (↑M * Real.log ↑n) +
-          (↑(#({x ∈ Finset.Iic n.sqrt | Nat.Prime x}))
-            * (↑M * Real.log ↑n * Real.log ↑n / Real.log 2) +
-            (∑ p ∈ Finset.Icc (n / L + 1) n with Nat.Prime p, ↑n / ↑p * Real.log (↑n / ↑p) +
-              ↑(#({x ∈ Finset.Iic L | Nat.Prime x})) *
-                ((↑M * Real.log ↑n + ↑M * ↑L ^ 2 * ↑n.primeCounting) * Real.log ↑L)))
+      nat_floor_real_sqrt_eq_nat_sqrt, ge_iff_le]
 
     have hif : (if ∑ p ∈ (n + 1).primesBelow, (P.initial.balance p).natAbs > 0
             then Real.log (n : ℝ) else 0) = Real.log (n : ℝ) := by
@@ -2140,7 +2145,7 @@ theorem Params.initial.score_bound (P : Params) :
       else -((P.initial.balance x : ℝ) * Real.log ((n : ℝ) / (x : ℝ)))
 
     rw [split_sum (f := g)]
-    simp only [gt_iff_lt, ge_iff_le, g]
+    simp only [gt_iff_lt, ge_iff_le]
 
     set S : ℕ := ∑ p ∈ (n + 1).primesBelow, (P.initial.balance p).natAbs
 
@@ -2171,7 +2176,7 @@ theorem Params.initial.score_bound (P : Params) :
       set A3 : ℝ :=
         ∑ x ∈ (n + 1).primesBelow with A3prop x, g x
       set A4 : ℝ :=
-        ∑ x ∈ (n + 1).primesBelow with n / L < x, g x
+        ∑ x ∈ (n + 1).primesBelow with n / L ≤ x, g x
       set NoverL_primes : ℕ := #({x ∈ Finset.Iic (n / L) | Nat.Prime x}) with hNoverL_primes
       set sqrtN_primes  : ℕ := #({x ∈ Finset.Iic n.sqrt | Nat.Prime x}) with hsqrtN_primes
       set L_primes      : ℕ := #({x ∈ Finset.Iic L | Nat.Prime x}) with hL_primes
@@ -2179,7 +2184,7 @@ theorem Params.initial.score_bound (P : Params) :
       set RHS1 : ℝ := (↑NoverL_primes) * (↑M * Real.log ↑n) with hRHS1
       set RHS2 : ℝ := (↑sqrtN_primes) * (↑M * Real.log ↑n * Real.log ↑n / Real.log 2) with hRHS2
       set RHS3 : ℝ :=
-          (∑ p ∈ Finset.Icc (n / L + 1) n with Nat.Prime p,
+          (∑ p ∈ Finset.Icc (n / L) n with Nat.Prime p,
             ↑n / ↑p * Real.log (↑n / ↑p)) with hRHS3
       set RHS4 : ℝ :=
           (↑L_primes) *
@@ -2333,13 +2338,13 @@ theorem Params.initial.score_bound (P : Params) :
 
       have hA4 : A4 ≤ RHS3 := by
         rw [hRHS3]
-        calc A4 = ∑ x ∈ (n + 1).primesBelow.filter (fun x => n / L < x), g x := rfl
-          _ ≤ ∑ x ∈ (n + 1).primesBelow.filter (fun x => n / L < x),
+        calc A4 = ∑ x ∈ (n + 1).primesBelow.filter (fun x => n / L ≤ x), g x := rfl
+          _ ≤ ∑ x ∈ (n + 1).primesBelow.filter (fun x => n / L ≤ x),
                 (↑n / ↑x) * Real.log (↑n / ↑x) := by
               apply Finset.sum_le_sum
               intro x hx
               simp only [Finset.mem_filter, primesBelow, Finset.mem_range, Order.lt_add_one_iff] at hx
-              have hx_gt_NL : n / L < x := hx.2
+              have hx_gt_NL : n / L ≤ x := hx.2
               have hx_le_n : x ≤ n := hx.1.1
               have hx_prime : x.Prime := hx.1.2
               have hx_pos : (0 : ℝ) < x := by exact_mod_cast hx_prime.pos
@@ -2350,12 +2355,11 @@ theorem Params.initial.score_bound (P : Params) :
               dsimp [g]
               have hbal' : ¬ 0 < P.initial.balance x := by simp [hbal_le]
               have hx_gt_L : L < x := by
-                have : L ≤ n / L := Nat.le_div_iff_mul_le hL_pos |>.mpr (by linarith)
-                omega
+                linarith
               have hx_gt' : ¬ x ≤ L := by simp [hx_gt_L]
               simp only [hbal', ↓reduceIte, hx_gt', ge_iff_le]
 
-              have := h3 (p := x) hx_gt_NL.le
+              have := h3 (p := x) hx_gt_NL
               rw [neg_le] at this
 
               have : -(P.initial.balance x : ℝ) ≤ n / x := by
@@ -2367,14 +2371,14 @@ theorem Params.initial.score_bound (P : Params) :
                 (by rw [le_div_iff₀ hx_pos]; norm_cast; linarith)
               convert this using 1
               ring_nf
-          _ ≤ ∑ p ∈ Finset.Icc (n / L + 1) n with Nat.Prime p,
+          _ ≤ ∑ p ∈ Finset.Icc (n / L) n with Nat.Prime p,
                 (↑n / ↑p) * Real.log (↑n / ↑p) := by
               apply Finset.sum_le_sum_of_subset_of_nonneg
               · -- subset
                 intro x hx
                 simp only [Finset.mem_filter, Finset.mem_Icc, primesBelow,
                   Finset.mem_range, Order.lt_add_one_iff] at hx ⊢
-                exact ⟨⟨Nat.succ_le_of_lt hx.2, hx.1.1⟩, hx.1.2⟩
+                exact ⟨⟨hx.2, hx.1.1⟩, hx.1.2⟩
               · -- terms outside the subset are nonneg
                 intro x hx'' hx'
                 simp only [primesBelow, Finset.mem_filter, Finset.mem_range, Order.lt_add_one_iff,
@@ -2387,6 +2391,9 @@ theorem Params.initial.score_bound (P : Params) :
                 have hx_le_n : (x : ℝ) ≤ n := by exact_mod_cast hx''.1.2
                 have hnp_ge1 : 1 ≤ (n : ℝ) / x := by rw [le_div_iff₀ hx_pos]; linarith
                 exact mul_nonneg (by positivity) (Real.log_nonneg hnp_ge1)
+          _ ≤ _ := by
+
+              sorry
 
       have hA3log : Real.log ↑n + A3 ≤ RHS1 := by
         let A3set : Finset ℕ :=
@@ -2486,7 +2493,7 @@ theorem Params.initial.score_bound (P : Params) :
             intro x hx
             simp only [Finset.mem_filter, Finset.mem_Iic, A3set, A3prop,
               Finset.mem_filter, primesBelow, Finset.mem_range] at hx ⊢
-            exact ⟨hx.2.2, hx.1.2⟩
+            exact ⟨hx.2.2.le, hx.1.2⟩
 
           sorry
         have hlog_budget : Real.log ↑n ≤ (↑M * Real.log ↑n) := by
