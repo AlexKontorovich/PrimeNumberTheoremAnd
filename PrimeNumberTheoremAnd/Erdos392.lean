@@ -1887,6 +1887,7 @@ theorem Params.initial.score_bound (P : Params) :
         (P.n / p) * Real.log (P.n / p) +
       ∑ p ∈ Finset.filter (·.Prime) (Finset.Iic P.L),
         (P.M * Real.log P.n + P.M * P.L^2 * primeCounting P.n) * Real.log P.L := by
+  classical
   set L := P.L with hL
   set n := P.n with hn
   set M := P.M with hM
@@ -2002,12 +2003,12 @@ theorem Params.initial.score_bound (P : Params) :
         (((n + 1).primesBelow).filter (n / L ≤ ·)) (· = n / L) f]
       simp only [Finset.filter_filter]
       congr 1
-      apply Finset.sum_congr _ (fun _ _ => rfl)
-      · ext p
-        simp only [Finset.mem_filter]
-        constructor
-        · rintro ⟨hmem, hle, hne⟩; exact ⟨hmem, hne⟩
-        · rintro ⟨hmem, hlt⟩; exact ⟨hmem, by linarith, by linarith⟩
+      · apply Finset.sum_congr _ (fun _ _ => rfl)
+        · ext p
+          simp only [Finset.mem_filter]
+          constructor
+          · rintro ⟨hmem, hle, hne⟩; exact ⟨hmem, hne⟩
+          · rintro ⟨hmem, hlt⟩; exact ⟨hmem, by linarith, by linarith⟩
       · apply Finset.sum_congr
         · ext x
           simp only [Finset.mem_filter]
@@ -2377,7 +2378,6 @@ theorem Params.initial.score_bound (P : Params) :
               have hx_pos : (0 : ℝ) < x := by exact_mod_cast hx_prime.pos
               have hbal_le : P.initial.balance x ≤ 0 := by
                 apply h2 (p := x)
-                change n / L ≤ x
                 linarith
               dsimp [g]
               have hbal' : ¬ 0 < P.initial.balance x := by simp [hbal_le]
@@ -2417,135 +2417,242 @@ theorem Params.initial.score_bound (P : Params) :
                 have hx_le_n : (x : ℝ) ≤ n := by exact_mod_cast hx''.1.2
                 have hnp_ge1 : 1 ≤ (n : ℝ) / x := by rw [le_div_iff₀ hx_pos]; linarith
                 exact mul_nonneg (by positivity) (Real.log_nonneg hnp_ge1)
-
-      have hA3log : Real.log ↑n +  A3' ≤ RHS1 := by
-        let A3set : Finset ℕ :=
-          (n + 1).primesBelow.filter (fun x => A3prop x)
-        have hgA3 : ∀ x, x ∈ A3set → g x ≤ (↑M * Real.log ↑n) := by
+      have hA3log : Real.log ↑n + A3 + A3' ≤ RHS1 := by
+        -- Pointwise bound: each g x ≤ M * log n for x in A3
+        have hgA3 : ∀ x ∈ (n + 1).primesBelow.filter (fun x => A3prop x),
+            g x ≤ ↑M * Real.log ↑n := by
           intro x hx
-          simp only [Finset.mem_filter, A3set, A3prop] at hx
-          have hx_sqrt : Real.sqrt (↑n) < (↑x : ℝ) := hx.2.1
-          have := hx.1
-          simp only [primesBelow, Finset.mem_filter, Finset.mem_range,
-            Order.lt_add_one_iff] at this
-          have hx_le_n : (x : ℕ) ≤ n := this.1
-          have hbal_le_M : (P.initial.balance x : ℝ) ≤ (↑M : ℝ) := by
-            exact_mod_cast h4 (p:=x) hx_sqrt
+          simp only [Finset.mem_filter, primesBelow, Finset.mem_filter,
+            Finset.mem_range, Order.lt_add_one_iff, A3prop] at hx
+          have hx_le_n : x ≤ n := hx.1.1
+          have hx_prime : x.Prime := hx.1.2
+          have hx_sqrt : Real.sqrt n < x := hx.2.1
+          have hx_lt : x < n / L := hx.2.2
+          have hx_pos : (0 : ℝ) < x := by exact_mod_cast hx_prime.pos
+          have hbal_le : (P.initial.balance x : ℝ) ≤ M := by exact_mod_cast h4 hx_sqrt
+          have hbal_ge : -(↑M : ℝ) ≤ P.initial.balance x := by exact_mod_cast h5 hx_lt hx_sqrt
+          have hneg_bal : -(P.initial.balance x : ℝ) ≤ M := by linarith
+          have hx_ge1 : (1 : ℝ) ≤ x := by exact_mod_cast hx_prime.one_le
+          have hlog_div_nn : 0 ≤ Real.log (↑n / ↑x) :=
+            Real.log_nonneg (by
+              sorry
+              -- apply le_div_of_mul_le hx_pos
+              -- linarith [show (n : ℝ) ≥ x from by exact_mod_cast hx_le_n]
+              )
+          have hlog_div : Real.log (↑n / ↑x) ≤ Real.log ↑n :=
+            Real.log_le_log (by sorry --linarith
+              ) (div_le_self (by linarith) hx_ge1)
+          have hlogx : Real.log x ≤ Real.log n :=
+            Real.log_le_log (by linarith) (by exact_mod_cast hx_le_n)
+          simp only [g]
+          split_ifs with hpos hle
+          · exact mul_le_mul hbal_le hlogx (by positivity) (by positivity)
+          · exfalso
+            have hL_lt_sqrt : (L : ℝ) < Real.sqrt n := by
+              rw [Real.lt_sqrt (by positivity)]
+              have : L * L < n := hLbnd
+              sorry -- exact_mod_cast this
+            exact absurd (by exact_mod_cast hle : (x : ℝ) ≤ L)
+              (not_le.mpr (hL_lt_sqrt.trans hx_sqrt))
+          · rw [show  -(↑(P.initial.balance x) * Real.log (↑n / ↑x))
+              = (-↑(P.initial.balance x)) * Real.log (↑n / ↑x) by ring]
+            apply mul_le_mul (by linarith) hlog_div (by positivity) (by positivity)
 
-          by_cases hb : 0 < P.initial.balance x
-          · -- balance positive: g x = balance*log x
-            dsimp [g, hb]
-            have : Real.log (↑x : ℝ) ≤ Real.log (↑n : ℝ) := by
-              apply Real.log_le_log
-              · have : (0 : ℝ) ≤ √n := by
-                  positivity
+        -- Sum bound for A3
+        have hA3_sum : A3 ≤ ((n + 1).primesBelow.filter (fun x => A3prop x)).card *
+            (↑M * Real.log ↑n) := by
+          simp only [A3]
+          calc ∑ x ∈ (n + 1).primesBelow.filter (fun x => A3prop x), g x
+              ≤ ∑ _ ∈ (n + 1).primesBelow.filter (fun x => A3prop x), ↑M * Real.log ↑n :=
+                Finset.sum_le_sum hgA3
+            _ = _ := by simp [Finset.sum_const, nsmul_eq_mul]
+
+        have hlogn : Real.log ↑n ≤ ↑M * Real.log ↑n := by
+          nlinarith [hlogn_nn, hM_ge1]
+
+        -- 2 ≤ L (from Params, assumed available as hL2 : 2 ≤ L)
+        have hL2 : 2 ≤ L := by
+          sorry
+
+        -- prime 2 is in NoverL_primes set and not in A3set
+        have h2_le_NL : 2 ≤ n / L := le_trans hL2 hL_le_NL
+        have h2_not_A3 : ¬ A3prop 2 := by
+          simp only [A3prop, not_and, not_lt]
+          intro h
+          rw [Real.sqrt_lt (by positivity) (by positivity)] at h
+          norm_num at h
+          rw [Nat.div_le_iff_le_mul (by positivity)]
+          omega
+        have h2_in_NoverL : 2 ∈ ({x ∈ Finset.Iic (n / L) | Nat.Prime x} : Finset ℕ) := by
+          simp [Finset.mem_filter, Finset.mem_Iic, h2_le_NL, Nat.prime_two]
+
+        -- Split on whether n/L is prime
+        by_cases hnL_prime : (n / L).Prime
+        · -- n/L is prime: A3' = M * log n worth, use witnesses 2 and n/L
+          have hA3'_eq : A3' = g (n / L) := by
+            simp only [A3']
+            rw [Finset.sum_filter]
+            simp only [primesBelow, Finset.sum_filter]
+            rw [Finset.sum_eq_single (n / L)]
+            · simp only [hnL_prime, ↓reduceIte]
+            · intro b hb hne
+              simp [hne]
+            · intro h
+              simp only [Finset.mem_range, Order.lt_add_one_iff, not_le] at h
+              exact absurd (Nat.div_le_self n L) (not_le.mpr h)
+
+          have hgA3'_bound : g (n / L) ≤ ↑M * Real.log ↑n := by
+            have hNL_pos : (0 : ℝ) < n / L := by positivity
+            have hbal_le : (P.initial.balance (n / L) : ℝ) ≤ 0 := by exact_mod_cast h2 le_rfl
+            have hbal_ge : -(↑n / ↑(n / L)) ≤ (P.initial.balance (n / L) : ℝ) := by
+              sorry -- exact_mod_cast h3 le_rfl
+            have hnNL_le_L : (n : ℝ) / (n / L) ≤ L := by
+              rw [div_le_iff₀ hNL_pos]
+              have := Nat.div_mul_le_self n L
+              sorry -- exact_mod_cast this
+            have hneg_bal : -(P.initial.balance (n / L) : ℝ) ≤ M := by
+              sorry -- nlinarith [hM_ge1, hL1]
+            have hNL_ge1 : (1 : ℝ) ≤ n / L := by sorry -- exact_mod_cast hnL_prime.one_le
+            have hlog_div_nn : 0 ≤ Real.log (↑n / ↑(n / L)) := by
+              apply Real.log_nonneg
+              field_simp
+              norm_num
+              rw [Nat.div_le_iff_le_mul (by positivity)]
+              calc n ≤ n * 2 := by linarith --sorry
+                   _ ≤ n * L := by sorry -- omega
+                   _ ≤ n * L + (L - 1) := by linarith
+                   _ = _ := by omega
+            have hlog_div : Real.log (↑n / ↑(n / L)) ≤ Real.log ↑n := by
+              apply Real.log_le_log (by positivity)
+              field_simp
+              norm_num
+              linarith
+            simp only [g]
+            split_ifs with hpos hle
+            · exact absurd hbal_le (not_le.mpr (by exact_mod_cast hpos))
+            · exfalso
+              linarith
+            · rw [show -(↑(P.initial.balance (n / L)) * Real.log (↑n / ↑(n / L)))
+                = (-↑(P.initial.balance (n / L))) * Real.log (↑n / ↑(n / L)) by ring]
+              exact mul_le_mul hneg_bal hlog_div hlog_div_nn (by positivity)
+
+          -- Cardinality: A3set ⊆ Iic(n/L) primes \ {2, n/L}, so card + 2 ≤ NoverL_primes
+          have hcard : ((n + 1).primesBelow.filter (fun x => A3prop x)).card + 2 ≤ NoverL_primes := by
+            have hNL_in : n / L ∈ ({x ∈ Finset.Iic (n / L) | Nat.Prime x} : Finset ℕ) := by
+              simp [Finset.mem_filter, Finset.mem_Iic, hnL_prime]
+            have h2_ne_NL : 2 ≠ n / L := by
+              intro h
+              have : (2 : ℕ) < n / L := by
+                calc 2 ≤ L := hL2
+                  _ < n / L := hL_lt_NL
+              linarith
+            have hA3_sub : (n + 1).primesBelow.filter (fun x => A3prop x) ⊆
+                {x ∈ Finset.Iic (n / L) | Nat.Prime x} \ {2, n / L} := by
+              intro x hx
+              simp only [Finset.mem_filter, primesBelow, Finset.mem_filter,
+                Finset.mem_range, Order.lt_add_one_iff, A3prop] at hx
+              simp only [Finset.mem_sdiff, Finset.mem_filter, Finset.mem_Iic,
+                Finset.mem_insert, Finset.mem_singleton]
+              refine ⟨⟨Nat.le_of_lt hx.2.2, hx.1.2⟩, ?_⟩
+              push_neg
+              constructor
+              · intro heq
+                subst heq
+                have hL_lt_sqrt : (L : ℝ) < Real.sqrt n := by
+                  rw [Real.lt_sqrt (by positivity)]
+                  ring_nf at hLbnd
+                  exact_mod_cast hLbnd
+                have hsqrt_lt_2 : Real.sqrt n < 2 := by exact_mod_cast hx.2.1
+                have h2_le_L : (2 : ℝ) ≤ L := by exact_mod_cast hL2
                 linarith
-              · exact_mod_cast this.1
-            simp only [hb, ↓reduceIte, ge_iff_le]
-            gcongr
-          · -- balance ≤ 0
-            have hb' : P.initial.balance x ≤ 0 := le_of_not_gt hb
-            have hx_gt_L : L < x := by
-              have := calc L ≤ √n := by
-                                  have : (L : ℝ) * L < n := by
-                                    exact_mod_cast P.hL
-                                  apply (Real.le_sqrt ?_ ?_).mpr
-                                  · linarith
-                                  · linarith [P.hL_pos]
-                                  · simp
-                             _ < _ := hx_sqrt
-              exact_mod_cast this
+              · intro heq
+                subst heq
+                exact absurd hx.2.2 (lt_irrefl _)
+            have hcard_sdiff : ({x ∈ Finset.Iic (n / L) | Nat.Prime x} \ {2, n / L}).card + 2 ≤
+                NoverL_primes := by
+              have : ({2, n / L} : Finset ℕ).card = 2 := by
+                simp [Finset.card_pair h2_ne_NL]
+              have hsub : {2, n / L} ⊆ {x ∈ Finset.Iic (n / L) | Nat.Prime x} := by
+                intro x hx
+                simp only [Finset.mem_insert, Finset.mem_singleton] at hx
+                rcases hx with rfl | rfl
+                · exact h2_in_NoverL
+                · exact hNL_in
+              simp only [NoverL_primes]
+              rw [← Finset.card_sdiff_add_card_eq_card hsub, this]
 
-            by_cases hboundary : x = n / L
-            · subst hboundary
-              have hbal : P.initial.balance (n / L) ≤ 0 := h2 (p:=n / L) (by exact le_rfl)
-              simp only [hb, ↓reduceIte, show ¬n / L ≤ L from Nat.not_le.mpr hx_gt_L,
-                ge_iff_le, g]
-              have hx_pos : (0 : ℝ) < n / L := by bound
-              have Lpos : (1 : ℝ) ≤ L := by exact_mod_cast P.hL_pos
-              have hx_gt_L' : (L : ℝ) < n / L := by
-                rw [lt_div_iff₀ (by positivity)]
-                rw [Nat.lt_div_iff_mul_lt (by positivity)] at hx_gt_L
-                norm_cast
+            calc ((n + 1).primesBelow.filter (fun x => A3prop x)).card + 2
+                ≤ ({x ∈ Finset.Iic (n / L) | Nat.Prime x} \ {2, n / L}).card + 2 + 2 := by
+                  linarith [Finset.card_le_card hA3_sub]
+                _ = _ := by
 
-              have hnp_ge1 : 1 ≤ (n : ℝ) / (n / L) := by
-                rw [le_div_iff₀ hx_pos, one_mul, div_le_iff₀ (by bound)]
-                exact le_mul_of_one_le_right (by positivity) (by exact_mod_cast Lpos)
+                  sorry -- omega
+            -- cleaner:
+            --linarith [Finset.card_le_card hA3_sub, hcard_sdiff]
 
-              have hlog_np_nn : 0 ≤ Real.log ((n : ℝ) / (n / L)) := Real.log_nonneg hnp_ge1
-              have hlog_np : Real.log ((n : ℝ) / (n / L)) ≤ Real.log n :=
-                Real.log_le_log (by linarith) (div_le_self (by linarith)
-                (by linarith))
-              have hneg_bal : -(P.initial.balance (n / L) : ℝ) ≤ M := by
+          calc Real.log ↑n + A3 + A3'
+              ≤ ↑M * Real.log ↑n +
+                ((n + 1).primesBelow.filter (fun x => A3prop x)).card * (↑M * Real.log ↑n) +
+                ↑M * Real.log ↑n := by
+                  rw [hA3'_eq]; linarith [hA3_sum, hgA3'_bound, hlogn]
+            _ = (((n + 1).primesBelow.filter (fun x => A3prop x)).card + 2 : ℕ) *
+                (↑M * Real.log ↑n) := by push_cast; ring
+            _ ≤ ↑NoverL_primes * (↑M * Real.log ↑n) := by
+                apply mul_le_mul_of_nonneg_right _ (by positivity)
+                exact_mod_cast hcard
+            _ = RHS1 := by simp [RHS1]
 
-                sorry
-              have hlogn_nn : 0 ≤ Real.log n := Real.log_nonneg
-                (by exact_mod_cast Nat.one_le_iff_ne_zero.mpr (by grind))
-              calc -(↑(P.initial.balance (n / L)) * Real.log (↑n / ↑(n / L)))
-                  = -(P.initial.balance (n / L) : ℝ) * Real.log (n / (n / L)) := by
-                    sorry --ring
-                _ ≤ (M : ℝ) * Real.log n :=
-                    mul_le_mul hneg_bal hlog_np hlog_np_nn (by positivity)
-            · -- interior case: x < n/L, so h5 applies
-              have hx_lt : x < n / L := lt_of_le_of_ne (show x ≤ n / L from (by
-                -- from A3prop x
-                sorry)) (hboundary)
-              have hbal_lower : (- (↑M : ℝ)) ≤ (↑(P.initial.balance x) : ℝ) := by
-                -- from h5
-                sorry -- simpa using (h5 (p:=x) hx_lt hx_sqrt)
-              have hneg_bal : (-(↑(P.initial.balance x) : ℝ)) ≤ (↑M : ℝ) := by
-                linarith
-              simp only [hb, ↓reduceIte, ge_iff_le, g]  -- might need `simp` hints to pick the right `if`
-              -- finish with log(n/x) ≤ log n
-              have hlog : Real.log (↑n / (↑x : ℝ)) ≤ Real.log (↑n : ℝ) := by
-                -- since 1 ≤ ↑n/↑x
-                sorry
-              sorry -- nlinarith
-        have hA3_sum : A3 ≤ (↑(A3set.card) : ℝ) * (↑M * Real.log ↑n) := by
-          -- A3 = ∑ x in A3set, g x
-          -- ≤ ∑ x in A3set, (M log n) = card * (M log n)
-          classical
-          have := Finset.sum_le_sum (fun x hx => hgA3 x hx)
-          -- rewrite the RHS sum of constant
-          simpa [A3, A3set, Finset.sum_const, nsmul_eq_mul] using this
-        have hcardA3_le : A3set.card ≤ NoverL_primes - 1 := by
-          classical
-          -- show A3set ⊆ {primes ≤ n/L}, and also 2 is in that set but not in A3set when n ≥ 4.
-          -- So card(A3set) ≤ card(primes≤n/L) - 1.
-          have hA3_sub : A3set ⊆ {x ∈ Finset.Iic (n / L) | Nat.Prime x} := by
+        · -- n/L is not prime: A3' = 0
+          have hA3'_zero : A3' = 0 := by
+            simp only [A3']
+            apply Finset.sum_eq_zero
             intro x hx
-            simp only [Finset.mem_filter, Finset.mem_Iic, A3set, A3prop,
-              Finset.mem_filter, primesBelow, Finset.mem_range] at hx ⊢
-            exact ⟨hx.2.2.le, hx.1.2⟩
+            simp only [Finset.mem_filter, primesBelow, Finset.mem_filter,
+              Finset.mem_range, Order.lt_add_one_iff] at hx
+            exact absurd (hx.2 ▸ hx.1.2) hnL_prime
 
-          sorry
-        have hlog_budget : Real.log ↑n ≤ (↑M * Real.log ↑n) := by
-          -- since M > 1 and log n ≥ 0
-          -- need log n ≥ 0: follows from n ≥ 2 (from params)
-          sorry
-        have hA3log_main :
-          Real.log ↑n + A3 ≤ (↑(NoverL_primes) : ℝ) * (↑M * Real.log ↑n) := by
-            -- use hA3_sum + hcardA3_le to get A3 ≤ (NoverL_primes - 1) * (M log n)
-            -- then add hlog_budget to get log n + A3 ≤ NoverL_primes * (M log n)
-            have key : (↑(#A3set) : ℝ) * (↑M * Real.log ↑n) ≤
-           (↑NoverL_primes - 1) * (↑M * Real.log ↑n) := by
-              apply mul_le_mul_of_nonneg_right _ (by positivity)
+          -- Cardinality: A3set ⊆ Iic(n/L) primes \ {2}, so card + 1 ≤ NoverL_primes
+          have hcard : ((n + 1).primesBelow.filter (fun x => A3prop x)).card + 1 ≤ NoverL_primes := by
+            have hA3_sub : (n + 1).primesBelow.filter (fun x => A3prop x) ⊆
+                {x ∈ Finset.Iic (n / L) | Nat.Prime x} \ {2} := by
+              intro x hx
+              simp only [Finset.mem_filter, primesBelow, Finset.mem_filter,
+                Finset.mem_range, Order.lt_add_one_iff, A3prop] at hx
+              simp only [Finset.mem_sdiff, Finset.mem_filter, Finset.mem_Iic, Finset.mem_singleton]
+              refine ⟨⟨Nat.le_of_lt hx.2.2, hx.1.2⟩, ?_⟩
+              intro heq
+              subst heq
+              have hL_lt_sqrt : (L : ℝ) < Real.sqrt n := by
+                rw [Real.lt_sqrt (by positivity)]
+                ring_nf at hLbnd
+                exact_mod_cast hLbnd
+              have : (2 : ℝ) ≤ L := by exact_mod_cast hL2
+              have h1 : (2 : ℝ) ≤ L := this
+              have h2 : (L : ℝ) < Real.sqrt n := hL_lt_sqrt
+              have h3 : Real.sqrt n < 2 := by exact_mod_cast hx.2.1
+              linarith
+            have hsub2 : ({2} : Finset ℕ) ⊆ {x ∈ Finset.Iic (n / L) | Nat.Prime x} := by
+              simp [h2_in_NoverL]
+            have hcard_sdiff : ({x ∈ Finset.Iic (n / L) | Nat.Prime x} \ {2}).card + 1 ≤
+                NoverL_primes := by
+              dsimp only [NoverL_primes]
+              rw [← Finset.card_sdiff_add_card_eq_card hsub2]
+              simp only [Finset.card_singleton, le_refl]
+            linarith [Finset.card_le_card hA3_sub, hcard_sdiff]
 
-              have hN : 1 ≤ NoverL_primes := by
+          rw [hA3'_zero, add_zero]
+          calc Real.log ↑n + A3
+              ≤ ↑M * Real.log ↑n +
+                ((n + 1).primesBelow.filter (fun x => A3prop x)).card * (↑M * Real.log ↑n) := by
+                  linarith [hA3_sum, hlogn]
+            _ = (((n + 1).primesBelow.filter (fun x => A3prop x)).card + 1 : ℕ) *
+                (↑M * Real.log ↑n) := by push_cast; ring
+            _ ≤ ↑NoverL_primes * (↑M * Real.log ↑n) := by
+                apply mul_le_mul_of_nonneg_right _ (by positivity)
+                exact_mod_cast hcard
+            _ = RHS1 := by simp [RHS1]
 
-                sorry
-              rw [show (NoverL_primes : ℝ) - 1 = ((NoverL_primes - 1 : ℕ) : ℝ) by
-                exact Eq.symm (cast_pred hN)]
-              exact_mod_cast hcardA3_le
-            calc Real.log ↑n + A3
-                ≤ Real.log ↑n + ↑(#A3set) * (↑M * Real.log ↑n) := by linarith [hA3_sum]
-              _ ≤ ↑M * Real.log ↑n + (↑NoverL_primes - 1) * (↑M * Real.log ↑n) := by
-                    linarith [hlog_budget, key]
-              _ = ↑NoverL_primes * (↑M * Real.log ↑n) := by ring
-        sorry
-        --simpa [RHS1, hRHS1, add_assoc, add_comm, add_left_comm] using hA3log_main
-      sorry
-      --linarith
+      linarith
 
 @[blueprint
   "bound-score-1"
