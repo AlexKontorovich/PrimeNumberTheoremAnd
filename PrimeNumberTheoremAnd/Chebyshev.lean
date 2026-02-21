@@ -351,7 +351,45 @@ theorem a_bound : a ∈ Set.Icc 0.92129 0.92130 := by
   (proof := /-- Use Lemma \ref{cheby-T-upper}, Lemma \ref{cheby-T-lower}, the definition of $a$, and the triangle inequality, also using that $\log(2)+\log(3)+\log(5)+\log(30) \geq 6$. -/)
   (latexEnv := "lemma")
   (discussion := 840)]
-theorem U_bound (x : ℝ) (hx : 30 ≤ x) : |U x - a * x| ≤ 5 * log x - 5 := by sorry
+theorem U_bound (x : ℝ) (hx : 30 ≤ x) : |U x - a * x| ≤ 5 * log x - 5 := by
+  have hx0 : 0 < x := by linarith
+  have U_expand : U x = T x - T (x/2) - T (x/3) - T (x/5) + T (x/30) := by
+    unfold U ν
+    rw [Finsupp.sum_add_index', Finsupp.sum_sub_index, Finsupp.sum_sub_index,
+        Finsupp.sum_sub_index] <;> norm_num
+    · exact fun a b₁ b₂ => sub_mul _ _ _
+    · exact fun a b₁ b₂ => sub_mul _ _ _
+    · exact fun a b₁ b₂ => sub_mul _ _ _
+    · exact fun a b₁ b₂ => add_mul _ _ _
+  have main_term : (x * log x - x + 1) - (x/2 * log (x/2) - x/2 + 1) -
+      (x/3 * log (x/3) - x/3 + 1) - (x/5 * log (x/5) - x/5 + 1) +
+      (x/30 * log (x/30) - x/30 + 1) = a * x - 1 := by
+    unfold a; ring
+    norm_num [ν, Finsupp.sum]; ring
+    erw [Finset.sum_subset (show _ ⊆ { 1, 2, 3, 5, 30 } from ?_)] <;>
+      norm_num [Finsupp.support_single_ne_zero]; ring
+    · rw [Real.log_mul, Real.log_mul, Real.log_mul, Real.log_mul] <;> ring <;> norm_num [hx0.ne']
+      simp
+    · intro m hm; contrapose! hm; simp_all +decide [Finsupp.mem_support_iff]
+  have hTx := T.le x (by linarith)
+  have hTx30 := T.le (x/30) (by linarith)
+  have hTx2_ge := T.ge (x/2) (by linarith)
+  have hTx3_ge := T.ge (x/3) (by linarith)
+  have hTx5_ge := T.ge (x/5) (by linarith)
+  have hTx_ge := T.ge x (by linarith)
+  have hTx30_ge := T.ge (x/30) (by linarith)
+  have hTx2 := T.le (x/2) (by linarith)
+  have hTx3 := T.le (x/3) (by linarith)
+  have hTx5 := T.le (x/5) (by linarith)
+  have hlog_sum : log (x/2) + log (x/3) + log (x/5) + log (x/30)
+      = 4 * log x - log 2 - log 3 - log 5 - log 30 := by
+    rw [Real.log_div, Real.log_div, Real.log_div, Real.log_div] <;> ring <;> positivity
+  have hlog6 : log 2 + log 3 + log 5 + log 30 ≥ 6 := by
+    linarith [LogTables.log_2_gt, LogTables.log_3_gt, LogTables.log_5_gt, LogTables.log_30_gt]
+  rw [abs_le]
+  constructor
+  · rw [U_expand]; linarith
+  · rw [U_expand]; linarith
 
 @[blueprint
   "psi-lower"
