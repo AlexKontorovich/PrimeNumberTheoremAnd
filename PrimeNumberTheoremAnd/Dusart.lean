@@ -425,7 +425,20 @@ theorem proposition_5_4 : HasPrimeInInterval.log_thm 89693 3 := fun x hx =>
   (latexEnv := "corollary")
   (proof := /-- Use Proposition \ref{Dusart_prop_5_4} and the fact that $1/\log^3 x < 1/(5000 \log^2 x)$ for $x \geq 468991632$. -/)
   (discussion := 913)]
-theorem corollary_5_5 {x : ℝ} (hx : x ≥ 468991632) : HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) := by sorry
+theorem corollary_5_5 {x : ℝ} (hx : x ≥ 468991632) :
+    HasPrimeInInterval x (x * (1 + 1 / (5000 * (log x) ^ 2))) := by
+  obtain ⟨p, hp, hxp, hpx⟩ := proposition_5_4 x (by linarith)
+  have hx_pos : (0 : ℝ) < x := by linarith
+  have hlog_pos : (0 : ℝ) < log x := Real.log_pos (by linarith)
+  refine ⟨p, hp, hxp, hpx.trans ?_⟩
+  have hlog_ge1 : (1 : ℝ) ≤ log x := by
+    rw [Real.le_log_iff_exp_le hx_pos]; linarith [Real.exp_one_lt_d9]
+  gcongr
+  calc x / (log x) ^ (3 : ℝ)
+      ≤ x / 1 := by gcongr; exact Real.one_le_rpow hlog_ge1 (by norm_num)
+    _ = x := div_one x
+    _ ≤ x * (1 + 1 / (5000 * (log x) ^ 2)) :=
+        le_mul_of_one_le_right hx_pos.le (le_add_of_nonneg_right (by positivity))
 
 @[blueprint "Dusart_thm_5_6"
   (title := "Dusart Theorem 5.6")
