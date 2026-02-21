@@ -896,11 +896,63 @@ Now we have
 Combining the above completes the proof. -/)
   (latexEnv := "lemma")
   (discussion := 617)]
-theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀) (hx : x ≥ x₀) :
+theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀) (hx : x ≥ x₀)
+    (hx₀ : 2 ≤ x₀) (hR : 0 < R) (hA : 0 ≤ A) :
   ∫ t in x₀..x, |Eθ t| / log t ^ 2 ≤
     (2 * A) / (R ^ B) * x * max ((log x₀) ^ ((2 * B - 3) / 2)) ((log x) ^ ((2 * B - 3) / 2)) *
     exp (-C * sqrt (log x / R)) * dawson (sqrt (log x) - C / (2 * sqrt R)) :=
-  sorry
+  calc
+  _ ≤ ∫ t in x₀..x, |admissible_bound A B C R t| / log t ^ 2 := by
+    apply intervalIntegral.integral_mono_on hx
+    · apply IntervalIntegrable.mul_continuousOn
+      · unfold Eθ
+        apply IntervalIntegrable.abs
+        apply IntervalIntegrable.mul_continuousOn
+        · apply IntervalIntegrable.abs
+          apply IntervalIntegrable.sub
+          · apply intervalIntegrable_iff_integrableOn_Icc_of_le hx|>.mpr
+            conv => arg 1; ext x; rw [← one_mul (θ x), theta_eq_sum_Icc, Finset.sum_filter]
+            apply  integrableOn_mul_sum_Icc _ (by linarith)
+            apply ContinuousOn.integrableOn_Icc
+            fun_prop
+          · exact intervalIntegral.intervalIntegrable_id
+        · fun_prop (disch := grind [Set.uIcc_of_le hx])
+      · refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+        rw [Set.uIcc_of_le hx] at ht
+        have : log t ^ 2 ≠ 0 := by simp; grind
+        fun_prop (disch := grind)
+    · apply IntervalIntegrable.mul_continuousOn
+      · apply IntervalIntegrable.abs
+        apply ContinuousOn.intervalIntegrable fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+        unfold admissible_bound
+        have : log t ≠ 0 := by simp; grind [Set.uIcc_of_le hx]
+        fun_prop (disch := grind[Set.uIcc_of_le hx])
+      · refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+        rw [Set.uIcc_of_le hx] at ht
+        have : log t ^ 2 ≠ 0 := by simp; grind
+        fun_prop (disch := grind)
+    · intro t ht
+      specialize hEθ t ht.1
+      gcongr
+      unfold Eθ
+      exact div_nonneg (by positivity) (by grind)
+  _ = ∫ (t : ℝ) in x₀..x, A * (log t / R) ^ B * rexp (-C * (log t / R) ^ ((1 : ℝ) / 2)) / log t ^ 2 := by
+    unfold admissible_bound
+    apply intervalIntegral.integral_congr fun t ht ↦ ?_
+    congr
+    rw [abs_of_nonneg]
+    apply mul_nonneg
+    · apply mul_nonneg hA
+      apply rpow_nonneg
+      apply div_nonneg _ hR.le
+      apply log_nonneg (by grind [Set.uIcc_of_le hx])
+    positivity
+  _ = ∫ (t : ℝ) in x₀..x, A / R ^ B * (log t ^ (B - 2) * rexp (-C * (log t / R) ^ ((1 : ℝ) / 2))) := by
+    apply intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [div_rpow (log_nonneg (by grind[Set.uIcc_of_le hx])) hR.le, rpow_sub (log_pos (by grind[Set.uIcc_of_le hx])), rpow_ofNat]
+    field
+  _ ≤ _ := by
+    sorry
 
 @[blueprint
   "fks2-eq-9"
