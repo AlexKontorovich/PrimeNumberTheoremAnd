@@ -164,7 +164,8 @@ theorem li.sub_Li
   (latexEnv := "lemma")
   (discussion := 759)]
 theorem li.two_approx : li 2 ∈ Set.Icc 1.0451 1.0452 := by
-  sorry
+  change Li2Bounds.li 2 ∈ Set.Icc 1.0451 1.0452
+  exact Li2Bounds.li_two_approx_proof
 
 /-- The local li definition matches Li2Bounds.li (they are definitionally equal). -/
 theorem li_eq_Li2Bounds_li (x : ℝ) : li x = Li2Bounds.li x := rfl
