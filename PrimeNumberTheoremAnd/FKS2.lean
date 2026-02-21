@@ -951,9 +951,39 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
     apply intervalIntegral.integral_congr fun t ht ↦ ?_
     rw [div_rpow (log_nonneg (by grind[Set.uIcc_of_le hx])) hR.le, rpow_sub (log_pos (by grind[Set.uIcc_of_le hx])), rpow_ofNat]
     field
-  _ ≤ _ := by
-    sorry
-
+  _ = A / R ^ B * ∫ (t : ℝ) in x₀..x, log t ^ (B - 2) * rexp (-C * (log t / R) ^ ((1 : ℝ) / 2)) := by
+    rw [intervalIntegral.integral_const_mul]
+  _ =  A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), (t ^ 2) ^ (B - 2) * rexp (-C * (t ^ 2 / R) ^ ((1 : ℝ) / 2)) * (2 * t * rexp (t ^ 2)) := by
+    have subst := intervalIntegral.integral_comp_mul_deriv' (f := (fun t ↦ rexp (t ^ 2))) (g := (fun t ↦ log t ^ (B - 2) * rexp (-C * (log t / R) ^ ((1 : ℝ) / 2)))) (f' := (fun t ↦ 2 * t * rexp (t ^ 2))) (a := x₀.log.sqrt) (b := x.log.sqrt)
+    have left : rexp (x₀.log.sqrt ^ 2) = x₀ := by
+      rw [sq_sqrt (log_nonneg (by linarith)), exp_log (by linarith)]
+    have right : rexp (x.log.sqrt ^ 2) = x := by
+      rw [sq_sqrt (log_nonneg (by linarith)), exp_log (by linarith)]
+    simp_rw [left, right] at subst
+    simp only [Function.comp_apply, log_exp] at subst
+    rw [← subst]
+    · intro t ht
+      have := hasDerivAt_pow 2 t
+      simp only [Nat.cast_ofNat, Nat.add_one_sub_one, pow_one] at this
+      convert hasDerivAt_exp (t ^ 2) |>.comp t this using 1
+      ring
+    · fun_prop
+    · refine fun t ht ↦ ContinuousAt.continuousWithinAt ?_
+      simp only [Set.mem_image] at ht
+      rcases ht with ⟨y, ⟨hy1, hy2⟩⟩
+      rw [Set.uIcc_of_le (by gcongr)] at hy1
+      have : log t ≠ 0 := by
+        rw [← hy2, log_exp]
+        simp
+        have : √(log x₀) > 0 := by
+          apply sqrt_pos.mpr
+          apply log_pos (by linarith)
+        linarith [hy1.1]
+      have : t ≠ 0 := by
+        rw [← hy2]
+        exact exp_ne_zero _
+      fun_prop (disch := grind)
+  _ ≤ _ := by sorry
 @[blueprint
   "fks2-eq-9"
   (title := "mu asymptotic function, FKS2 (9)")
