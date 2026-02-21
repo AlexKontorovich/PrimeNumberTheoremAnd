@@ -983,6 +983,34 @@ theorem lemma_12 {A B C R x₀ x : ℝ} (hEθ : Eθ.classicalBound A B C R x₀)
         rw [← hy2]
         exact exp_ne_zero _
       fun_prop (disch := grind)
+  _ = A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), 2 * t ^ (2 * B - 4) * t * rexp (-C * (t ^ 2 / R) ^ ((1 : ℝ) / 2)) * rexp (t ^ 2) := by
+    congr 1
+    refine intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [← rpow_ofNat, ← rpow_mul]
+    · ring_nf
+    · rw [Set.uIcc_of_le (by gcongr)] at ht
+      apply le_trans _ ht.1
+      exact sqrt_nonneg _
+  _ = A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), 2 * t ^ (2 * B - 3) * rexp (-C * (t ^ 2 / R) ^ ((1 : ℝ) / 2) + t ^ 2) := by
+    congr 1
+    refine intervalIntegral.integral_congr fun t ht ↦ ?_
+    rw [exp_add, (by ring : 2 * B - 3 = (2 * B - 4)+ 1), rpow_add, rpow_one]
+    · ring
+    · rw [Set.uIcc_of_le (by gcongr)] at ht
+      apply lt_of_lt_of_le _ ht.1
+      exact sqrt_pos.mpr (log_pos (by linarith))
+  _ = A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), 2 * (t ^ (2 * B - 3) * rexp (t ^ 2 - C * t / √R)) := by
+    congr 1
+    refine intervalIntegral.integral_congr fun t ht ↦ ?_
+    have t_nonneg : 0 ≤ t := by
+      rw [Set.uIcc_of_le (by gcongr)] at ht
+      apply le_trans _ ht.1
+      exact sqrt_nonneg _
+    rw [← sqrt_eq_rpow, sqrt_div (by positivity), sqrt_sq t_nonneg]
+    ring_nf
+  _ = 2 * A / R ^ B * ∫ (t : ℝ) in √(log x₀)..√(log x), t ^ (2 * B - 3) * rexp (t ^ 2 - C * t / √R) := by
+    rw [intervalIntegral.integral_const_mul]
+    ring
   _ ≤ _ := by sorry
 @[blueprint
   "fks2-eq-9"
