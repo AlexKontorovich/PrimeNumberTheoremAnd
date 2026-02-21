@@ -1946,7 +1946,8 @@ theorem Params.initial.score_bound (P : Params) :
         ∑ p ∈ (n + 1).primesBelow with p ≤ L, f p +
         ∑ p ∈ (n + 1).primesBelow with L < p ∧ p ≤ Real.sqrt n, f p +
         ∑ p ∈ (n + 1).primesBelow with Real.sqrt n < ((p : ℕ) : ℝ) ∧ p < n / L, f p +
-        ∑ p ∈ (n + 1).primesBelow with n / L ≤ p, f p := by
+        ∑ p ∈ (n + 1).primesBelow with p = n / L, f p +
+        ∑ p ∈ (n + 1).primesBelow with n / L < p, f p := by
     have step1 : ∑ p ∈ (n + 1).primesBelow, f p =
         ∑ p ∈ (n + 1).primesBelow with p ≤ L, f p +
         ∑ p ∈ (n + 1).primesBelow with L < p, f p := by
@@ -1994,6 +1995,30 @@ theorem Params.initial.score_bound (P : Params) :
                   _ ≤ ↑p := by exact_mod_cast hlt
           · simp [hlt]
     rw [step1, step2, step3]
+    have step4 : ∑ p ∈ (n + 1).primesBelow with n / L ≤ p, f p =
+        ∑ p ∈ (n + 1).primesBelow with p = n / L, f p +
+        ∑ p ∈ (n + 1).primesBelow with n / L < p, f p := by
+      rw [← Finset.sum_filter_add_sum_filter_not
+        (((n + 1).primesBelow).filter (n / L ≤ ·)) (· = n / L) f]
+      simp only [Finset.filter_filter]
+      congr 1
+      apply Finset.sum_congr _ (fun _ _ => rfl)
+      · ext p
+        simp only [Finset.mem_filter]
+        constructor
+        · rintro ⟨hmem, hle, hne⟩; exact ⟨hmem, hne⟩
+        · rintro ⟨hmem, hlt⟩; exact ⟨hmem, by linarith, by linarith⟩
+      · apply Finset.sum_congr
+        · ext x
+          simp only [Finset.mem_filter]
+          constructor
+          · rintro ⟨hmem, hle, hne⟩
+            have : n / L < x := by grind
+            exact ⟨hmem, this⟩
+          · rintro ⟨hmem, hlt⟩
+            exact ⟨hmem, Nat.le_of_lt hlt, by linarith⟩
+        · intros; rfl
+    rw [step4]
     ring
   by_cases hImb : (∑ p ∈ (n + 1).primesBelow, (P.initial.balance p).natAbs) = 0
   · -- balanced case: penalty is 0
@@ -2162,7 +2187,7 @@ theorem Params.initial.score_bound (P : Params) :
 
 
       -- first, rewrite the four big blocks in terms of g
-      simp only [one_div, log_inv, mul_neg, ge_iff_le, gt_iff_lt, neg_mul, tsub_le_iff_right,
+      simp only [one_div, log_inv, mul_neg, gt_iff_lt, neg_mul, tsub_le_iff_right,
         ite_eq_left_iff, not_lt, nonpos_iff_eq_zero] at *
 
 --      rw [← split_sum (f := g)]
@@ -2175,8 +2200,10 @@ theorem Params.initial.score_bound (P : Params) :
           ∧ (x < n / L))
       set A3 : ℝ :=
         ∑ x ∈ (n + 1).primesBelow with A3prop x, g x
+      set A3' : ℝ :=
+        ∑ x ∈ (n + 1).primesBelow with x = n / L, g x
       set A4 : ℝ :=
-        ∑ x ∈ (n + 1).primesBelow with n / L ≤ x, g x
+        ∑ x ∈ (n + 1).primesBelow with n / L < x, g x
       set NoverL_primes : ℕ := #({x ∈ Finset.Iic (n / L) | Nat.Prime x}) with hNoverL_primes
       set sqrtN_primes  : ℕ := #({x ∈ Finset.Iic n.sqrt | Nat.Prime x}) with hsqrtN_primes
       set L_primes      : ℕ := #({x ∈ Finset.Iic L | Nat.Prime x}) with hL_primes
@@ -2184,7 +2211,7 @@ theorem Params.initial.score_bound (P : Params) :
       set RHS1 : ℝ := (↑NoverL_primes) * (↑M * Real.log ↑n) with hRHS1
       set RHS2 : ℝ := (↑sqrtN_primes) * (↑M * Real.log ↑n * Real.log ↑n / Real.log 2) with hRHS2
       set RHS3 : ℝ :=
-          (∑ p ∈ Finset.Icc (n / L) n with Nat.Prime p,
+          (∑ p ∈ Finset.Icc (n / L + 1) n with Nat.Prime p,
             ↑n / ↑p * Real.log (↑n / ↑p)) with hRHS3
       set RHS4 : ℝ :=
           (↑L_primes) *
@@ -2338,13 +2365,13 @@ theorem Params.initial.score_bound (P : Params) :
 
       have hA4 : A4 ≤ RHS3 := by
         rw [hRHS3]
-        calc A4 = ∑ x ∈ (n + 1).primesBelow.filter (fun x => n / L ≤ x), g x := rfl
-          _ ≤ ∑ x ∈ (n + 1).primesBelow.filter (fun x => n / L ≤ x),
+        calc A4 = ∑ x ∈ (n + 1).primesBelow.filter (fun x => n / L + 1 ≤ x), g x := rfl
+          _ ≤ ∑ x ∈ (n + 1).primesBelow.filter (fun x => n / L < x),
                 (↑n / ↑x) * Real.log (↑n / ↑x) := by
               apply Finset.sum_le_sum
               intro x hx
               simp only [Finset.mem_filter, primesBelow, Finset.mem_range, Order.lt_add_one_iff] at hx
-              have hx_gt_NL : n / L ≤ x := hx.2
+              have hx_gt_NL : n / L < x := hx.2
               have hx_le_n : x ≤ n := hx.1.1
               have hx_prime : x.Prime := hx.1.2
               have hx_pos : (0 : ℝ) < x := by exact_mod_cast hx_prime.pos
@@ -2359,7 +2386,7 @@ theorem Params.initial.score_bound (P : Params) :
               have hx_gt' : ¬ x ≤ L := by simp [hx_gt_L]
               simp only [hbal', ↓reduceIte, hx_gt', ge_iff_le]
 
-              have := h3 (p := x) hx_gt_NL
+              have := h3 (p := x) hx_gt_NL.le
               rw [neg_le] at this
 
               have : -(P.initial.balance x : ℝ) ≤ n / x := by
@@ -2371,8 +2398,7 @@ theorem Params.initial.score_bound (P : Params) :
                 (by rw [le_div_iff₀ hx_pos]; norm_cast; linarith)
               convert this using 1
               ring_nf
-          _ ≤ ∑ p ∈ Finset.Icc (n / L) n with Nat.Prime p,
-                (↑n / ↑p) * Real.log (↑n / ↑p) := by
+          _ ≤ _ := by
               apply Finset.sum_le_sum_of_subset_of_nonneg
               · -- subset
                 intro x hx
@@ -2391,11 +2417,8 @@ theorem Params.initial.score_bound (P : Params) :
                 have hx_le_n : (x : ℝ) ≤ n := by exact_mod_cast hx''.1.2
                 have hnp_ge1 : 1 ≤ (n : ℝ) / x := by rw [le_div_iff₀ hx_pos]; linarith
                 exact mul_nonneg (by positivity) (Real.log_nonneg hnp_ge1)
-          _ ≤ _ := by
 
-              sorry
-
-      have hA3log : Real.log ↑n + A3 ≤ RHS1 := by
+      have hA3log : Real.log ↑n +  A3' ≤ RHS1 := by
         let A3set : Finset ℕ :=
           (n + 1).primesBelow.filter (fun x => A3prop x)
         have hgA3 : ∀ x, x ∈ A3set → g x ≤ (↑M * Real.log ↑n) := by
@@ -2519,9 +2542,10 @@ theorem Params.initial.score_bound (P : Params) :
               _ ≤ ↑M * Real.log ↑n + (↑NoverL_primes - 1) * (↑M * Real.log ↑n) := by
                     linarith [hlog_budget, key]
               _ = ↑NoverL_primes * (↑M * Real.log ↑n) := by ring
-        simpa [RHS1, hRHS1, add_assoc, add_comm, add_left_comm] using hA3log_main
-
-      linarith
+        sorry
+        --simpa [RHS1, hRHS1, add_assoc, add_comm, add_left_comm] using hA3log_main
+      sorry
+      --linarith
 
 @[blueprint
   "bound-score-1"
