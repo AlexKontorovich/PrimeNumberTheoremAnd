@@ -151,8 +151,8 @@ noncomputable def corollary_2_9 {σ₁ σ₂ α δ d CC_1 c₁ CC_2 c₂ : ℝ}
 noncomputable def corollary_2_9_merged : zero_density_bound := {
   T₀ := 3e12
   σ_range := Set.Icc 0.6 1
-  c₁ σ := sorry
-  c₂ σ := sorry
+  c₁ σ := 17.4194
+  c₂ σ := 5.2954
   p σ := 8 / 3 * (1 - σ)
   q σ := 5 - 2 * σ
   bound := by sorry
@@ -281,7 +281,41 @@ theorem remark_2_6_a (x : ℝ) (hx : 0 ≤ x) :
   (statement := /-- For $s>1$, one has $\Gamma(s,x) \sim x^{s-1} e^{-x}$. -/)]
 theorem remark_2_6_b (s : ℝ) (h : s > 1) :
     Filter.Tendsto (fun x ↦ Gamma.incomplete s x / (x ^ (s - 1) * exp (-x)))
-      Filter.atTop (nhds 1) := by sorry
+      Filter.atTop (nhds 1) := by
+  unfold Gamma.incomplete
+  have h_eq : ∀ x > 0, ∫ t in Set.Ioi x, Real.exp (-t) * t ^ (s - 1) = x ^ (s - 1) * Real.exp (-x) * ∫ u in Set.Ioi 0, Real.exp (-u) * (1 + u / x) ^ (s - 1) := by
+    intro x hx_pos
+    have h_eq : ∫ t in Set.Ioi x, Real.exp (-t) * t ^ (s - 1) = ∫ u in Set.Ioi 0, Real.exp (-(x + u)) * (x + u) ^ (s - 1) := by
+      rw [ ← MeasureTheory.integral_indicator ( measurableSet_Ioi ), ← MeasureTheory.integral_indicator ( measurableSet_Ioi ) ]
+      simp +decide [ Set.indicator ]
+      rw [ ← MeasureTheory.integral_add_right_eq_self _ x ] ; congr ; ext y ; split_ifs <;> ring <;> aesop
+    rw [ h_eq, ← MeasureTheory.integral_const_mul ] ; refine' MeasureTheory.setIntegral_congr_fun measurableSet_Ioi fun u hu => _ ; rw [ show x + u = x * ( 1 + u / x ) by rw [ mul_add, mul_div_cancel₀ _ hx_pos.ne' ] ; ring ] ; rw [ Real.mul_rpow ( by positivity ) ( by linarith [ hu.out, div_nonneg hu.out.le hx_pos.le ] ) ] ; ring
+    norm_num [ sub_eq_add_neg, Real.exp_add, mul_assoc, mul_comm x, hx_pos.ne' ] ; ring
+  have h_conv : Filter.Tendsto (fun x => ∫ u in Set.Ioi 0, Real.exp (-u) * (1 + u / x) ^ (s - 1)) Filter.atTop (nhds (∫ u in Set.Ioi 0, Real.exp (-u))) := by
+    refine' MeasureTheory.tendsto_integral_filter_of_dominated_convergence _ _ _ _ _
+    refine' fun u => Real.exp ( -u ) * ( 1 + u ) ^ ( s - 1 )
+    · filter_upwards [ Filter.eventually_gt_atTop 0 ] with x hx using Measurable.aestronglyMeasurable ( by exact Measurable.mul ( Real.continuous_exp.measurable.comp measurable_neg ) ( by exact Measurable.pow_const ( by exact measurable_const.add ( measurable_id'.div_const _ ) ) _ ) )
+    · filter_upwards [ Filter.eventually_gt_atTop 1 ] with n hn
+      filter_upwards [ MeasureTheory.ae_restrict_mem measurableSet_Ioi ] with x hx using by rw [ Real.norm_of_nonneg ( mul_nonneg ( Real.exp_pos _ |> le_of_lt ) ( Real.rpow_nonneg ( by linarith [ hx.out, div_nonneg hx.out.le ( by linarith : 0 ≤ n ) ] ) _ ) ) ] ; exact mul_le_mul_of_nonneg_left ( Real.rpow_le_rpow ( by linarith [ hx.out, div_nonneg hx.out.le ( by linarith : 0 ≤ n ) ] ) ( by linarith [ hx.out, div_le_self hx.out.le ( by linarith : 1 ≤ n ) ] ) ( by linarith ) ) ( Real.exp_pos _ |> le_of_lt )
+    · have h_conv : MeasureTheory.IntegrableOn (fun u => Real.exp (-u) * (1 + u) ^ (s - 1)) (Set.Ioi 0) := by
+        have : MeasureTheory.IntegrableOn (fun u => Real.exp (-u) * (1 + u) ^ (s - 1)) (Set.Ioi 1) := by
+          have : MeasureTheory.IntegrableOn (fun u => Real.exp (-u) * (2 * u) ^ (s - 1)) (Set.Ioi 1) := by
+            have : MeasureTheory.IntegrableOn (fun u => Real.exp (-u) * u ^ (s - 1)) (Set.Ioi 1) := by
+              have h_conv : ∫ u in Set.Ioi 0, Real.exp (-u) * u ^ (s - 1) = Real.Gamma s := by
+                rw [ Real.Gamma_eq_integral ( by linarith ) ]
+              exact MeasureTheory.IntegrableOn.mono_set ( by exact ( by contrapose! h_conv; rw [ MeasureTheory.integral_undef h_conv ] ; positivity ) ) ( Set.Ioi_subset_Ioi zero_le_one )
+            have : MeasureTheory.IntegrableOn (fun u => Real.exp (-u) * u ^ (s - 1) * 2 ^ (s - 1)) (Set.Ioi 1) := by
+              exact this.mul_const _
+            refine' this.congr_fun ( fun u hu => by rw [ Real.mul_rpow ( by positivity ) ( by linarith [ hu.out ] ) ] ; ring ) measurableSet_Ioi
+          refine' this.mono' _ _
+          · exact Measurable.aestronglyMeasurable ( by exact Measurable.mul ( Real.continuous_exp.measurable.comp measurable_neg ) ( by exact Measurable.pow_const ( measurable_const.add measurable_id' ) _ ) )
+          · filter_upwards [ MeasureTheory.ae_restrict_mem measurableSet_Ioi ] with u hu using by rw [ Real.norm_of_nonneg ( mul_nonneg ( Real.exp_pos _ |> le_of_lt ) ( Real.rpow_nonneg ( by linarith [ hu.out ] ) _ ) ) ] ; exact mul_le_mul_of_nonneg_left ( Real.rpow_le_rpow ( by linarith [ hu.out ] ) ( by linarith [ hu.out ] ) ( by linarith [ hu.out ] ) ) ( Real.exp_pos _ |> le_of_lt )
+        have : MeasureTheory.IntegrableOn (fun u => Real.exp (-u) * (1 + u) ^ (s - 1)) (Set.Ioc 0 1) := by
+          exact ContinuousOn.integrableOn_Icc ( by exact continuousOn_of_forall_continuousAt fun u hu => by exact ContinuousAt.mul ( Real.continuous_exp.continuousAt.comp <| ContinuousAt.neg continuousAt_id ) <| ContinuousAt.rpow ( continuousAt_const.add continuousAt_id ) continuousAt_const <| Or.inl <| by linarith [ hu.1 ] ) |> fun h => h.mono_set <| Set.Ioc_subset_Icc_self
+        convert MeasureTheory.IntegrableOn.union this ‹IntegrableOn ( fun u => Real.exp ( -u ) * ( 1 + u ) ^ ( s - 1 ) ) ( Set.Ioi 1 ) volume› using 1 ; norm_num
+      exact h_conv
+    · filter_upwards [ MeasureTheory.ae_restrict_mem measurableSet_Ioi ] with x hx using le_trans ( Filter.Tendsto.mul tendsto_const_nhds <| Filter.Tendsto.rpow ( tendsto_const_nhds.add <| tendsto_const_nhds.div_atTop Filter.tendsto_id ) tendsto_const_nhds <| Or.inl <| by linarith [ hx.out ] ) <| by norm_num
+  exact Filter.Tendsto.congr' ( by filter_upwards [ Filter.eventually_gt_atTop 0 ] with x hx; rw [ h_eq x hx, mul_div_cancel_left₀ _ ( by positivity ) ] ) ( h_conv.trans ( by rw [ integral_exp_neg_Ioi ] ; norm_num ) )
 
 
 
@@ -370,6 +404,21 @@ noncomputable def Hn (H₀ R σ₁ σ₂ : ℝ) (n N : ℕ) : ℝ := Hσ H₀ R 
   (title := "FKS Remark 3.7")
   (statement := /-- If $\sigma < 1 - 1/R \log H_0$ then $H_σ = H_0$. -/)]
 theorem remark_3_7 {H₀ R σ : ℝ} (hσ : σ < 1 - 1 / (R * log H₀)) : Hσ H₀ R σ = H₀ := by sorry
+
+theorem remark_3_7' {H₀ R σ : ℝ} (hH₀ : H₀ > 1) (hR : R > 0)
+    (hσ : σ < 1 - 1 / (R * log H₀)) : Hσ H₀ R σ = H₀ := by
+  unfold Hσ; rw [max_eq_left]
+  have hlog := log_pos hH₀
+  have hRlog := mul_pos hR hlog
+  have h1σ : 1 - σ > 0 := by linarith [div_pos one_pos hRlog]
+  have key : 1 / (R * (1 - σ)) < log H₀ := by
+    rw [div_lt_iff₀ (mul_pos hR h1σ)]
+    calc log H₀ * (R * (1 - σ))
+        = R * (1 - σ) * log H₀ := by ring
+      _ > R * (1 / (R * log H₀)) * log H₀ :=
+          mul_lt_mul_of_pos_right (mul_lt_mul_of_pos_left (by linarith) hR) hlog
+      _ = 1 := by field_simp
+  linarith [exp_strictMono key, exp_log (show H₀ > 0 by linarith)]
 
 noncomputable def ε₃ (I : Inputs) (x σ₁ σ₂ : ℝ) (N : ℕ) (T : ℝ) : ℝ :=
     2 * x ^ (-(1 - σ₁) + (σ₂ - σ₁) / N) * (I.B₀ σ₁ (Hσ I.H₀ I.R σ₁) T) +
